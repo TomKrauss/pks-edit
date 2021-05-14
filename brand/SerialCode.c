@@ -1,5 +1,5 @@
 
-/* #include	<ctype.h> */
+/* #include <ctype.h> */
 
 char *_cryptend;
 

@@ -20,12 +20,13 @@
 #include "dial2.h"
 #include "winterf.h"
 #include "winfo.h"
+#include "lineoperations.h"
 #include "edtypes.h"
 #include "errordialogs.h"
 
 #pragma hdrstop
 
-#include	"iccall.h"
+#include "iccall.h"
 #include "pksedit.h"
 
 #define	GWL_ICICON				GWL_ICCLASSVALUES+sizeof(LONG)
@@ -44,7 +45,6 @@ typedef struct tagICONCLASS {
 extern int EdConfigureIcons(void);
 extern int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
 extern unsigned char* stralloc(unsigned char* buf);
-extern void *ll_insert(void *head,long size);
 extern long Atol(char *s);
 extern char *_strtolend;
 extern int  prof_savestring(char *grp, char *ident, char *string);

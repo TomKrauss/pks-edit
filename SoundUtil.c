@@ -15,7 +15,7 @@
  */
 
 #include <windows.h>
-#include	"lineoperations.h"
+#include "lineoperations.h"
 
 #define	CHANNEL		1
 #define	PITCH		0			/* pitch + note == height */

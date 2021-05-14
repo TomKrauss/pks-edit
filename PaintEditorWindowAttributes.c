@@ -12,11 +12,11 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include	<windows.h>
+#include <windows.h>
 #include 	"trace.h"
 #include 	"edierror.h"
-#include	"lineoperations.h"
-#include	"winfo.h"
+#include "lineoperations.h"
+#include "winfo.h"
 
 #define  	ESCAPE		'\033'
 

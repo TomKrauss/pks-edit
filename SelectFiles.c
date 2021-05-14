@@ -38,7 +38,7 @@ extern char *	FullPathName(char *path,char *fn);
 extern int  	GetPksProfileString(char *grp, char *ident, char *string, int maxlen);
 extern char *	AbbrevName(char *fn);
 extern LPSTR 	lstrchr(LPSTR str, char ch);
-extern void 	linealdocstrings(LPSTR pszDest, int nMax);
+extern void 	GetSelectableDocumentFileTypes(LPSTR pszDest, int nMax);
 extern int 		DoDocumentTypes(int nDlg);
 extern void 	GetStdMenuText(int menunr, char *text);
 
@@ -430,7 +430,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	*pszRun = 0;
 
 	*pszFilter = 0;
-	linealdocstrings(pszFilter, EDMAXPATHLEN);
+	GetSelectableDocumentFileTypes(pszFilter, EDMAXPATHLEN);
 	for (pszRun = pszFilter; *pszRun; pszRun++) {
 		if (*pszRun == '|') {
 			*pszRun = (char) 0;

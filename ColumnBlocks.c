@@ -10,11 +10,11 @@
  *									
  */
 
-#include	<windows.h>
-#include	<string.h>
-#include	"lineoperations.h"
-#include	"pksedit.h"
-#include	"edierror.h"
+#include <windows.h>
+#include <string.h>
+#include "lineoperations.h"
+#include "pksedit.h"
+#include "edierror.h"
 
 #define	TAB		9
 

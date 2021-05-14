@@ -28,7 +28,7 @@
 
 #pragma hdrstop
 
-#include	"pksedit.h"
+#include "pksedit.h"
 #include "dial2.h"
 #include "edfuncs.h"
 #include "edhist.h"

@@ -1,4 +1,5 @@
 /*
+ * 
  * DocumentTypes.c
  *
  * PROJEKT: PKS-EDIT for MS-WINDOWS
@@ -16,22 +17,29 @@
  */
 
 #include "tos.h"
-#include	"lineoperations.h"
-#include	"project.h"
-#include	"edifsel.h"
+#include "lineoperations.h"
+#include "project.h"
+#include "edifsel.h"
 #include "edierror.h"
-#include	"pksedit.h"
+#include "pksedit.h"
 
-typedef struct tagLINLIST {
-	struct tagLINLIST *	ll_next;
+/*
+ * Description of one document type in PKS edit.
+ */
+typedef struct tagDOCUMENT_TYPE {
+	/*
+	 * Next Document Type - they are maintained in a linked list.
+	 */
+	struct tagDOCUMENT_TYPE *	ll_next;
 	char				ll_name[32];
+	// Description for file selector.
 	char				ll_description[50];
 	int					ll_ctx;
 	int					ll_ownlineal;
 	char				ll_linname[256];
 	char   				ll_match[256];
 	LINEAL *			ll_lineal;
-} LINLIST;
+} DOCUMENT_TYPE;
 
 LINEAL _lineal = {
 	0,		80,		8,		4,		/* lmargin, rmargin, ts, sw */
@@ -61,9 +69,9 @@ extern int 	Mapread(int context, char *target);
 
 extern char *	_datadir;
 
-LINLIST *linnew(LINLIST *llp);
+DOCUMENT_TYPE *CreateDocumentType(DOCUMENT_TYPE *llp);
 
-static LINLIST *_linl;
+static DOCUMENT_TYPE *_linl;
 static int     _linealid = LIN_DEFCTX;
 static int	_ndoctypes;
 FSELINFO 		_linfsel = {	"", "DEFAULT.LIN", "*.LIN" };
@@ -85,9 +93,9 @@ int TabStop(int col, LINEAL *l)
 }
 
 /*--------------------------------------------------------------------------
- * initfastts()
+ * InitTabStops()
  */
-static void initfastts(LINEAL *lp)
+static void InitTabStops(LINEAL *lp)
 {	int i,ts;
 
 	ts = 0;
@@ -108,10 +116,10 @@ static void initfastts(LINEAL *lp)
 }
 
 /*--------------------------------------------------------------------------
- * lininit()
+ * InitDocumentTypeDescriptor()
  */
 static int _linited;
-void lininit(LINEAL *lp, int ts)
+void InitDocumentTypeDescriptor(LINEAL *lp, int ts)
 {	int i,ind;
 
 	_linited = 1;
@@ -124,27 +132,27 @@ void lininit(LINEAL *lp, int ts)
 			ind += ts;
 		}
 	}
-	initfastts(lp);
+	InitTabStops(lp);
 }
 
 /*--------------------------------------------------------------------------
- * tabtoggle()
+ * ToggleTabStop()
  */
-void tabtoggle(LINEAL *linp, int col)
+void ToggleTabStop(LINEAL *linp, int col)
 {
 	if (TABTHERE(linp,col))
 		TABCLEAR(linp,col);
 	else
 		TABPLACE(linp,col);
 
-	initfastts(linp);
+	InitTabStops(linp);
 
 }
 
 /*--------------------------------------------------------------------------
- * related_file_name()
+ * GetRelatedFileName()
  */
-void related_file_name(char *related_name, char *fname, char *newext)
+static void GetRelatedFileName(char *related_name, char *fname, char *newext)
 {	char *ext;
 
 	strcpy(related_name,fname);
@@ -155,12 +163,14 @@ void related_file_name(char *related_name, char *fname, char *newext)
 }
 
 /*--------------------------------------------------------------------------
- * linealdocstrings()
+ * GetSelectableDocumentFileTypes()
+ * Returns the list of document file types defined in PKS Edit in the format
+ * that it can be passed on to the open file dialog for filtering of file types
+ * (e.g. *.*|All Files|*.java|Java Files)
  */
-void linealdocstrings(LPSTR pszDest, int nMax)
-{
+void GetSelectableDocumentFileTypes(LPSTR pszDest, int nMax) {
 	LPSTR		pszEnd;
-	LINLIST *	llp;
+	DOCUMENT_TYPE *	llp;
 	int			nCopied;
 
 	pszEnd = pszDest + nMax - 2;
@@ -182,9 +192,9 @@ void linealdocstrings(LPSTR pszDest, int nMax)
 }
 
 /*--------------------------------------------------------------------------
- * linload()
+ * LoadDocumentTypeDescriptor()
  */
-static LINEAL *linload(LINLIST *llp)
+static LINEAL *LoadDocumentTypeDescriptor(DOCUMENT_TYPE *llp)
 {
 	LINEAL *lp;
 
@@ -193,7 +203,7 @@ static LINEAL *linload(LINLIST *llp)
 			return 0;
 		}
 		llp->ll_lineal = lp;
-		if (linealread(llp->ll_linname,lp,llp->ll_ctx,0) == 0) {
+		if (ReadDocumentType(llp->ll_linname,lp,llp->ll_ctx,0) == 0) {
 			memmove(lp, &_lineal, sizeof _lineal);
 		}
 		lstrcpy(llp->ll_lineal->modename, llp->ll_name);
@@ -202,19 +212,19 @@ static LINEAL *linload(LINLIST *llp)
 }
 
 /*--------------------------------------------------------------------------
- * linnrulers()
+ * CountDocumentTypes()
  */
-int linnrulers(void)
+int CountDocumentTypes(void)
 {
 	return ll_count(_linl);
 }
 
 /*--------------------------------------------------------------------------
- * linfilllbox()
+ * AddDocumentTypesToListBox()
  */
-int linfilllbox(HWND hwnd, int nItem)
+int AddDocumentTypesToListBox(HWND hwnd, int nItem)
 {
-	LINLIST *		llp;
+	DOCUMENT_TYPE *		llp;
 	int			nCnt;
 
 	for (llp = _linl, nCnt = 0; llp != 0; llp = llp->ll_next) {
@@ -225,9 +235,9 @@ int linfilllbox(HWND hwnd, int nItem)
 }
 
 /*--------------------------------------------------------------------------
- * lingetdescription()
+ * GetDocumentTypeDescription()
  */
-BOOL lingetdescription(LINLIST *llp, 
+BOOL GetDocumentTypeDescription(DOCUMENT_TYPE *llp, 
 	char **ppszId,	char **ppszDescription, char **ppszMatch, char **ppszFname, 
 	int **pOwn)
 {
@@ -236,7 +246,7 @@ BOOL lingetdescription(LINLIST *llp,
 		llp = _linl;
 	}
 	if (!llp) {
-		linnew((LINLIST *)0);
+		CreateDocumentType((DOCUMENT_TYPE *)0);
 		llp = _linl;
 	}
 	if (ppszId) {
@@ -258,9 +268,9 @@ BOOL lingetdescription(LINLIST *llp,
 }
 
 /*--------------------------------------------------------------------------
- * lincreatekeytmp()
+ * CreateTempFileForDocumentType()
  */
-int lincreatekeytmp(char *linfn, char *tmpfn)
+int CreateTempFileForDocumentType(char *linfn, char *tmpfn)
 {
 	int		fd;
 	int		fd2;
@@ -286,9 +296,9 @@ int lincreatekeytmp(char *linfn, char *tmpfn)
 }
 
 /*--------------------------------------------------------------------------
- * linkeymerge()
+ * MergeDocumentTypes()
  */
-int linkeymerge(char *pszLinealFile, char *pszDocMacFile)
+int MergeDocumentTypes(char *pszLinealFile, char *pszDocMacFile)
 {
 	int		fd;
 	int		fdDocMac;
@@ -348,9 +358,9 @@ int linkeymerge(char *pszLinealFile, char *pszDocMacFile)
 }
 
 /*--------------------------------------------------------------------------
- * linealread()
+ * ReadDocumentType()
  */
-static int linealread(char *fname, LINEAL *lp, int id, int forced)
+static int ReadDocumentType(char *fname, LINEAL *lp, int id, int forced)
 {
 	char 	keyfn[512];
 	char *	fn;
@@ -363,14 +373,14 @@ static int linealread(char *fname, LINEAL *lp, int id, int forced)
 		}
 		Fclose(fd);
 		strdcpy(keyfn, _datadir, "MODI.XXX");
-		lincreatekeytmp(fn, keyfn);
+		CreateTempFileForDocumentType(fn, keyfn);
 	} else {
 		return 0;
 	}
 
 	sfsplit(fname,(char *)0,lp->liname);
 	lp->id = id;
-	initfastts(lp);
+	InitTabStops(lp);
 
 	if (keyfn[0] != 0) {
 		Mapread(id, keyfn);
@@ -380,36 +390,36 @@ static int linealread(char *fname, LINEAL *lp, int id, int forced)
 }
 
 /*--------------------------------------------------------------------------
- * lin_match()
+ * GetFileDocumentType()
  * find the correct lineal for a given file
  * 	1. if own lineal, try to read  own lineal from disc
  * 	2. if common lineal, ...
  *	3. if neither, use standard lineal _lineal
  */
-int lin_match(LINEAL *linp, char *filename)
+int GetFileDocumentType(LINEAL *linp, char *filename)
 {
 	char 			fname[1024];
 	char			linealname[1024];
-	LINLIST *		llp;
+	DOCUMENT_TYPE *		llp;
 	LINEAL *		lp;
 	PROJECTITEM *	pip;
 
 	if ((pip = proj_finditem(filename)) != 0 &&
 		pip->pi_doctype != 0) {
-		lp = linload((LINLIST *)pip->pi_doctype);
+		lp = LoadDocumentTypeDescriptor((DOCUMENT_TYPE *)pip->pi_doctype);
 	} else {
 
 		sfsplit(filename,(char *)0, fname);
 		for (llp = _linl, lp = 0; llp != 0 && lp == 0; llp = llp->ll_next) {
 			if (match(fname,llp->ll_match)) {
 				if (llp->ll_ownlineal) {
-					related_file_name(filename,linealname,"LIN");
-					if (linealread(linealname,linp,llp->ll_ctx,0) != 0) {
+					GetRelatedFileName(filename,linealname,"LIN");
+					if (ReadDocumentType(linealname,linp,llp->ll_ctx,0) != 0) {
 						lstrcpy(linp->modename, llp->ll_name);
 						return 1;
 					}
 				}
-				if ((lp = linload(llp)) == 0) {
+				if ((lp = LoadDocumentTypeDescriptor(llp)) == 0) {
 					goto failed;
 				}
 			}
@@ -421,15 +431,15 @@ failed:
 }
 
 /*--------------------------------------------------------------------------
- * linassign()
- * assign lineal data to file
+ * AssignDocumentTypeDescriptor()
+ * assign document type properties / descriptor to file
  * if linp == 0, read lineal from disc according to filename pattern
  * match
  */
-int linassign(FTABLE *fp, LINEAL *linp)
+int  AssignDocumentTypeDescriptor(FTABLE *fp, LINEAL *linp)
 {
 	if (!_linited) {
-		lininit(&_lineal,_lineal.tabsize);
+		InitDocumentTypeDescriptor(&_lineal,_lineal.tabsize);
 	}
 
 	if ((fp->lin = _alloc(sizeof *fp->lin)) == 0)
@@ -440,7 +450,7 @@ int linassign(FTABLE *fp, LINEAL *linp)
 		return 1;
 	}
 
-	lin_match(fp->lin,fp->fname);
+	GetFileDocumentType(fp->lin,fp->fname);
 	return 1;
 }
 
@@ -466,11 +476,11 @@ int linname2id(char *name)
 # endif
 
 /*--------------------------------------------------------------------------
- * dt_save()
+ * SaveDocumentType()
  * save a document type: name + linealfile + match-extensions
  */
 static char *szDocTypes = "doctypes";
-static int dt_save(LINLIST *lp)
+static int SaveDocumentType(DOCUMENT_TYPE *lp)
 {
 	char		szBuf[1024];
 
@@ -480,30 +490,30 @@ static int dt_save(LINLIST *lp)
 }
 
 /*--------------------------------------------------------------------------
- * linsaveall()
+ * SaveAllDocumentTypes()
  */
-void linsaveall(LINLIST *llp)
+void SaveAllDocumentTypes(DOCUMENT_TYPE *llp)
 {
 	/*
 	 * recursive save of ruler list. called with param == 0 for start of saving
 	 */
 	if (!llp) {
 		prof_killsections((LPSTR)0, szDocTypes);
-		linsaveall(_linl);
+		SaveAllDocumentTypes(_linl);
 	} else {
 		if (llp->ll_next) {
-			linsaveall(llp->ll_next);
+			SaveAllDocumentTypes(llp->ll_next);
 		}
-		dt_save(llp);
+		SaveDocumentType(llp);
 	}
 }
 
 /*--------------------------------------------------------------------------
- * linnew()
+ * CreateDocumentType()
  */
-LINLIST *linnew(LINLIST *llp)
+DOCUMENT_TYPE *CreateDocumentType(DOCUMENT_TYPE *llp)
 {
-	LINLIST * llpNew;
+	DOCUMENT_TYPE * llpNew;
 	int		nLen;
 
 	if ((llpNew = ll_insert(&_linl, sizeof *llpNew)) == 0) {
@@ -523,19 +533,21 @@ LINLIST *linnew(LINLIST *llp)
 }
 
 /*--------------------------------------------------------------------------
- * lindelete()
+ * DeleteDocumentType()
  */
-void lindelete(LINLIST *llp)
+void DeleteDocumentType(DOCUMENT_TYPE *llp)
 {
 	ll_delete(&_linl, llp);
 }
 
 /*--------------------------------------------------------------------------
- * lingetprivatefor()
+ * GetPrivateDocumentType()
+ * 
+ * Return the private document type given the name of the document type.
  */
-void *lingetprivatefor(char *name)
+DOCUMENT_TYPE* GetPrivateDocumentType(char *name)
 {
-	LINLIST *	llp;
+	DOCUMENT_TYPE *	llp;
 
 	for (llp = _linl; llp; llp = llp->ll_next) {
 		if (lstrcmp(llp->ll_name, name) == 0) {
@@ -543,30 +555,30 @@ void *lingetprivatefor(char *name)
 		}
 	}
 
-	return (void *)_linl;
+	return (DOCUMENT_TYPE*)_linl;
 }
 
 /*--------------------------------------------------------------------------
- * linlinealfor()
+ * GetDocumentTypeDescriptor()
  */
-LINEAL *linlinealfor(void *p)
+LINEAL *GetDocumentTypeDescriptor(DOCUMENT_TYPE*p)
 {
-	LINLIST	*llp;
+	DOCUMENT_TYPE	*llp;
 
-	if ((llp = (LINLIST *)p) == 0) {
+	if ((llp = (DOCUMENT_TYPE *)p) == 0) {
 		return 0;
 	}
-	return linload(llp);
+	return LoadDocumentTypeDescriptor(llp);
 }
 
 /*--------------------------------------------------------------------------
- * dt_mk()
+ * InitDocumentType()
  * init a document type
  */
-static int dt_mk(char *docname)
+static int InitDocumentType(char *docname)
 {
 	char	 	*s,*szDesc,*szLinname,*szMatch,*szOwn;
-	LINLIST	*llp;
+	DOCUMENT_TYPE	*llp;
 
 	if ((llp = prof_llinsert(&_linl,sizeof *llp,szDocTypes,docname,&s)) == 0) {
 		return 0;
@@ -604,12 +616,12 @@ static int dt_mk(char *docname)
 }
 
 /*--------------------------------------------------------------------------
- * dt_init()
+ * InitAllDocumentTypes()
  * init all document types
  */
-int dt_init(void)
+int InitAllDocumentTypes(void)
 {
-	return prof_enum(szDocTypes,dt_mk,0L);
+	return prof_enum(szDocTypes,InitDocumentType,0L);
 }
 
 /*--------------------------------------------------------------------------
@@ -619,7 +631,7 @@ int dt_init(void)
 int EdLineal(int wrflag,LINEAL *lp)
 {
 	int 		fd;
-	LINLIST 	*llp;
+	DOCUMENT_TYPE 	*llp;
 	FTABLE 	*fp = _currfile;
 	char 	*fn;
 
@@ -660,7 +672,7 @@ int EdLineal(int wrflag,LINEAL *lp)
 		return 1;
 	}
 
-	if (linealread(fn,lp,lp->id,1)) {
+	if (ReadDocumentType(fn,lp,lp->id,1)) {
 		if ((wrflag & 2) == 0)
 			linchange();
 		return 1;

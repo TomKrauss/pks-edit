@@ -22,7 +22,7 @@
 
 #pragma hdrstop
 
-#include	"pksedit.h"
+#include "pksedit.h"
 #include "dial2.h"
 #include "pksrc.h"
 #include "edfuncs.h"
@@ -55,14 +55,14 @@ extern int 		cursleftright(int dir, int mtype);
 extern int 		EdExecute(long flags, long unused, 
 					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
-extern BOOL		lingetdescription(void *llp, char **ppszId,
+extern BOOL		GetDocumentTypeDescription(void *llp, char **ppszId,
 					char **ppszDescription, char **ppszMatch, char **ppszFname, 
 					int **pOwn);
-extern void 		linsaveall(void *llp);
-extern int 		linassign(FTABLE *fp, LINEAL *linp);
-extern void *		lingetprivatefor(char *);
-extern void *		linnew(void *llp);
-extern LINEAL *	linlinealfor(void *);
+extern void 		SaveAllDocumentTypes(void *llp);
+extern int 		AssignDocumentTypeDescriptor(FTABLE *fp, LINEAL *linp);
+extern void *		GetPrivateDocumentType(char *);
+extern void *		CreateDocumentType(void *llp);
+extern LINEAL *	GetDocumentTypeDescriptor(void *);
 extern char *		TmpDir(void);
 extern void 		mac_switchtodefaulttables(void);
 extern void		getcwd(char *, int);
@@ -905,7 +905,7 @@ static void doclist_command(HWND hDlg, WORD nItem,  LPARAM lParam, void *pUser)
 void DocTypelboxfill(HWND hwnd, int nItem, long selValue)
 {
 	SendDlgItemMessage(hwnd, nItem, LB_RESETCONTENT, 0, 0L);
-	if (linfilllbox(hwnd, nItem)) {
+	if (AddDocumentTypesToListBox(hwnd, nItem)) {
 		SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING, (WPARAM)-1, (LPARAM)selValue);
 	}
 }
@@ -921,7 +921,7 @@ void DocTypelboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
 	int		nLen;
 	int		nY;
 
-	if (!lingetdescription((void *)par, 
+	if (!GetDocumentTypeDescription((void *)par, 
 		&pszId, &pszDescription, (char **)0, (char **)0, (int **)0)) {
 		return;
 	}
@@ -947,7 +947,7 @@ static void DocTypeFillParams(DIALPARS *dp, void *par)
 	char *	pszFname;
 	int *	pOwn;
 
-	if (!lingetdescription(par, &pszId, &pszDescription, &pszMatch, 
+	if (!GetDocumentTypeDescription(par, &pszId, &pszDescription, &pszMatch, 
 		&pszFname, &pOwn)) {
 		return;
 	}
@@ -971,12 +971,12 @@ static void DocTypeApply(void)
 	if ((fp = _currfile) == 0) {
 		return;
 	}
-	if ((lp = linlinealfor(lastSelectedDocType)) != 0) {
+	if ((lp = GetDocumentTypeDescriptor(lastSelectedDocType)) != 0) {
 		if (!(fp->flags & F_MODIFIED)) {
 			AbandonFile(fp, lp);
 		} else {
 			_free(fp->lin);
-			linassign(fp, lp);
+			AssignDocumentTypeDescriptor(fp, lp);
 			linchange();
 		}
 	}
@@ -987,7 +987,7 @@ static void DocTypeApply(void)
  */
 static void DocNew(HWND hDlg)
 {
-	lastSelectedDocType = linnew(lastSelectedDocType);
+	lastSelectedDocType = CreateDocumentType(lastSelectedDocType);
 	DocTypelboxfill(hDlg, IDD_WINDOWLIST, (long)lastSelectedDocType);
 	DocTypeFillParams(docTypePars, (void*)lastSelectedDocType);
 	DoDlgRetreivePars(hDlg, docTypePars, NVDOCTYPEPARS);
@@ -998,7 +998,7 @@ static void DocNew(HWND hDlg)
  */
 static void DocDelete(HWND hDlg)
 {
-	lindelete(lastSelectedDocType);
+	DeleteDocumentType(lastSelectedDocType);
 	lastSelectedDocType = 0;
 	DocTypelboxfill(hDlg, IDD_WINDOWLIST, (long)lastSelectedDocType);
 	DocTypeFillParams(docTypePars, (void*)lastSelectedDocType);
@@ -1032,7 +1032,7 @@ int DoDocumentTypes(int nDlg)
 	linname[0] = 0;
 
 	docTypePars[NVDOCTYPEPARS].dp_data = &dlist;
-	lastSelectedDocType = lingetprivatefor(
+	lastSelectedDocType = GetPrivateDocumentType(
 		_currfile ? _currfile->lin->modename : "default");
 
 	DocTypeFillParams(docTypePars, (void*)lastSelectedDocType);
@@ -1045,7 +1045,7 @@ int DoDocumentTypes(int nDlg)
 		return TRUE;
 	}
 
-	linsaveall((void *)0);
+	SaveAllDocumentTypes((void *)0);
 
 	return TRUE;
 }
@@ -1278,7 +1278,7 @@ int EdDlgDispMode(void)
 	linp->dispmode = dispmode;
 	linp->t1 = tabfill;
 	if ((linp->tabsize = tabsize) != 0) {
-		lininit(linp, linp->tabsize);
+		InitDocumentTypeDescriptor(linp, linp->tabsize);
 		SendRedraw(WIPOI(_currfile)->ru_handle);
 	}
 	linp->rmargin = rmargin;

@@ -9,8 +9,8 @@
  * All Rights Reserved.					created: 29.12.1990
  *									
  */
-#include	<windows.h>
-#include	"lineoperations.h"
+#include <windows.h>
+#include "lineoperations.h"
 
 #define	MAXLSIZE	MAXLINELEN
 

@@ -39,7 +39,7 @@ extern unsigned char* stralloc(unsigned char* buf);
 extern int  ic_profsavepos(void);
 extern void MouseBusy(void);
 extern void MouseNotBusy(void);
-extern void linsaveall(void *);
+extern void SaveAllDocumentTypes(void *);
 extern void lincreate(char *szType);
 extern int  EdStat(char *s, int mode);
 extern char *FullPathName(char *path, char *fn);
@@ -326,7 +326,7 @@ int prof_save(int interactive)
 	ic_profsavepos();
 	
 	if (!bDidExist) {
-		linsaveall((void *)0);
+		SaveAllDocumentTypes((void *)0);
 	}
 
 	MouseNotBusy();

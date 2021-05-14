@@ -23,7 +23,6 @@
 
 /* #define DEMO 1 /* D E M O V E R S I O N */
 
-
 #pragma hdrstop
 
 #include "dos.h"
@@ -39,11 +38,11 @@ extern char *	OemAbbrevName(char *fn);
 extern FTABLE *ww_stackwi(int num);
 extern HWND 	ww_winid2hwnd(int winid);
 extern DWORD 	SendBrotherMessage(UINT message, LPARAM lParam);
-extern int 	lin_match(LINEAL *linp, char *filename);
+extern int 	GetFileDocumentType(LINEAL *linp, char *filename);
 extern char *	searchfile(char *s);
 extern void 	prof_saveaspath(void);
 extern int 	PromptAsPath(char *path);
-extern LINEAL *linlinealfor(void *p);
+extern LINEAL *GetDocumentTypeDescriptor(void *p);
 extern char *	basename(char *s);
 extern int 	createl(FTABLE *fp, char *q, int len, int flags);
 
@@ -586,7 +585,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 	if (newfile) {
 		fp->flags |= F_NEWFILE;
 	}
-	if (linassign(fp, linlinealfor(lastSelectedDocType)) == 0 ||
+	if (AssignDocumentTypeDescriptor(fp, GetDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
          readfile(fp, fp->lin) == 0 || 
 	    (lstrcpy(fp->fname, fn), ft_openwin(fp, wsp) == 0)) {
 		ft_destroy(fp);
@@ -652,7 +651,7 @@ int AbandonFile(FTABLE *fp, LINEAL *linp)
 	ft_bufdestroy(fp);
 
 	if (u_new(fp) == 0 || 
-	    !linassign(fp, linp) ||
+	    !AssignDocumentTypeDescriptor(fp, linp) ||
 	    !readfile(fp,fp->lin)) {
 		fp->flags = 0;
 		ww_close(WIPOI(fp));

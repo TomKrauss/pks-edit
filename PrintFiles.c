@@ -24,13 +24,13 @@
 
 #pragma hdrstop
 
-#include	<string.h>
-#include	<stddef.h>
+#include <string.h>
+#include <stddef.h>
 
-#include	"pksedit.h"
-#include	"dial2.h"
-#include	"printing.h"
-#include	"xdialog.h"
+#include "pksedit.h"
+#include "dial2.h"
+#include "printing.h"
+#include "xdialog.h"
 
 #define	PREVIEWING()		(hwndPreview != 0)
 #define	EVEN(p)			((p & 1) == 0)

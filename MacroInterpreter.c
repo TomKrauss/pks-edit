@@ -10,16 +10,16 @@
  *									
  */
 
-#include	<string.h>
-#include	<windows.h>
+#include <string.h>
+#include <windows.h>
 
-#include	"lineoperations.h"
+#include "lineoperations.h"
 #include "winfo.h"
-#include	"edierror.h"
+#include "edierror.h"
 
-#include	"pksedit.h"
-#include	"edfuncs.h"
-#include	"functab.h"
+#include "pksedit.h"
+#include "edfuncs.h"
+#include "functab.h"
 
 extern void 			MacFormatErr(void);
 extern int 			EdMacroRecord(void);

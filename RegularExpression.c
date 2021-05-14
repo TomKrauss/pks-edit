@@ -13,12 +13,12 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include	<stdio.h>
-#include	<tos.h>
-#include	<dos.h>
-#include	"regexp.h"
-#include	"pksedit.h"
-#include	"edctype.h"
+#include <stdio.h>
+#include <tos.h>
+#include <dos.h>
+#include "regexp.h"
+#include "pksedit.h"
+#include "edctype.h"
 
 #if defined(WIN32)
 #define near

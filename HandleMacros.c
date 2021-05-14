@@ -15,7 +15,7 @@
  */
 
 # if defined( _Windows ) || defined(WIN32)
-#include	<windows.h>
+#include <windows.h>
 #include "winterf.h"
 #define sprintf wsprintf
 # else
@@ -23,7 +23,7 @@
 #define	hInst		0
 # endif
 
-#include	"edfuncs.h"
+#include "edfuncs.h"
 
 extern	MACRO	*mac_byindex(int i);
 

@@ -15,8 +15,9 @@
 
 # ifndef	EDITAB_H
 #define	EDITAB_H
-#include   <crtdefs.h>
-#include	"edtypes.h"
+
+#include <crtdefs.h>
+#include "edtypes.h"
 #include "editorfont.h"
 
 #define	ED_VERSION	0x20
@@ -125,32 +126,33 @@ typedef struct mark {
 #define	fnt_charset	fnt.charset
 
 #if defined(_WINUSER_)
+
 typedef struct lineal {
 	int			lmargin,rmargin;
 	int			tabsize,shiftwidth;
-	int			nl,nl2,cr;		/* Lineends */
+	int			nl,nl2,cr;			/* Lineends */
 	int			dispmode;			/* show control... */
 	int			workmode;			/* watch brackets, abbrev... */
 	int			fno;				/* # of screen font */
 	char			liname[16];		/* name of the lineal */
-	int			id;				/* # ID for context check */
-	char			t1,fillc;			/* Tabulator Character (FÅllzeichen) */
+	int			id;					/* # ID for context check */
+	char			t1,fillc;		/* Tabulator Character (fill character) */
 	char			u2lset[32];		/* wordset and u2l ("abc=xyz") */
 	unsigned char 	tbits[512];		/* Bitset real Tabstops */
 	unsigned char	statusline[60];	/* the special status */
 	WINDOWPLACEMENT	placement;		/* for windows with fixed size */
 	EDFONT		fnt;				/* font */
 	char			bak[4];			/* Backup extension */
-	unsigned char	modename[16];		/* document type name */
+	unsigned char	modename[16];	/* document type name */
 	unsigned char  tagtag[12];		/* private tag tag */
 	unsigned char	vl[20];			/* "Vorlage" Makro on creation */
 	unsigned char	linkey[16];		/* key macro file */
 	int			scrollflags;		/* thumbtrack.. */
 	int			cursaftersearch;	/* postop, ... */
 	int			vscroll;			/* scroll n Lines */
-	int			scroll_dy;		/* scroll on dist dy to screen */
+	int			scroll_dy;			/* scroll on dist dy to screen */
 	unsigned char	cm[24];			/* makro for closing */
-	unsigned char	ts[256];			/* fast access 1st 256 Tabstops */
+	unsigned char	ts[256];		/* fast access 1st 256 Tabstops */
 	unsigned char	res2[256];		/* reserved too .... */
 } LINEAL;
 
@@ -246,6 +248,34 @@ void ln_m(LINE *lpstart,LINE *lpend,int flg);
 void ln_um(LINE *lpstart,LINE *lpend,int flg);
 long ln_needbytes(LINE *lp, int nl, int cr);
 
+/*--------------------------------------------------------------------------
+ * ll_top()
+ * put an element to the top of the linked list
+ */
+extern int ll_top(void* Head, void* Elem);
+
+/*--------------------------------------------------------------------------
+ * ll_insert()
+ * insert an element to a linked list
+ */
+extern void* ll_insert(void* head, long size);
+
+/*--------------------------------------------------------------------------
+ * ll_kill()
+ * destroy a linked list
+ */
+extern void ll_kill(void* head, int (*destroy)(void* elem));
+
+/*--------------------------------------------------------------------------
+ * ll_delete()
+ * delete an element in a linked list
+ */
+extern int ll_delete(void* head, void* element);
+
+/*--------------------------------------------------------------------------
+ * ll_count()
+ */
+extern int ll_count(void* head);
 
 /*-------- FILE FLAGS ----------*/
 

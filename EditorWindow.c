@@ -18,7 +18,7 @@
 #include <windows.h>
 # pragma hdrstop
 
-#include	"lineoperations.h"
+#include "lineoperations.h"
 #include "winfo.h"
 #include "trace.h"
 

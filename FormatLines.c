@@ -10,13 +10,13 @@
  *									
  */
 
-#include	<stdlib.h>
-#include	<string.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include	"lineoperations.h"
-#include	"edierror.h"
+#include "lineoperations.h"
+#include "edierror.h"
 
-#include	"pksedit.h"
+#include "pksedit.h"
 
 #define	isblnk(c)			(c == ' ' || c == '\t' || c == '' || c == '' || c == '')
 

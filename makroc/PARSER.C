@@ -72,13 +72,13 @@
 #line 39 "parser.y"
 
 
-#include	<windows.h>
-#include	<stdio.h>
-#include	"edfuncs.h"
+#include <windows.h>
+#include <stdio.h>
+#include "edfuncs.h"
 #include "scanner.h"
-#include	"test.h"
-#include	"binop.h"
-#include	"pkscc.h"
+#include "test.h"
+#include "binop.h"
+#include "pkscc.h"
 #include "sym.h"
 
 #define 	YYSTYPE _YYSTYPE

@@ -21,7 +21,7 @@
 #include "winterf.h"
 #include "lineoperations.h"
 #include "winfo.h"
-#include	"pksedit.h"
+#include "pksedit.h"
 
 #define	different(lp1,lp2)	cmpnormal(lp1->lbuf,lp1->len,lp2->lbuf,lp2->len)
 #define	mark(lp)			lp->lflg |= LNXMARKED

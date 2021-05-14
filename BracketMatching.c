@@ -15,16 +15,16 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include	<windows.h>
+#include <windows.h>
 #include "trace.h"
-#include	"lineoperations.h""
-#include	"winfo.h"
-#include	"edierror.h"
-#include	"regexp.h"
-#include	"uc.h"
-#include	"brackets.h"
-#include	"pksedit.h"
-#include	"publicapi.h"
+#include "lineoperations.h""
+#include "winfo.h"
+#include "edierror.h"
+#include "regexp.h"
+#include "uc.h"
+#include "brackets.h"
+#include "pksedit.h"
+#include "publicapi.h"
 
 /*--------------------------------------------------------------------------
  * EXTERNALS

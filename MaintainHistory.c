@@ -11,9 +11,9 @@
  */
 
 #include <windows.h>
-#include	<string.h>
+#include <string.h>
 #include "lineoperations.h"
-#include	"edhist.h"
+#include "edhist.h"
 
 extern unsigned char* stralloc(unsigned char* buf);
 extern char	_finds[];

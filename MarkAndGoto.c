@@ -12,9 +12,9 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include	<string.h>
-#include	"lineoperations.h"
-#include	"pksedit.h"
+#include <string.h>
+#include "lineoperations.h"
+#include "pksedit.h"
 
 #define	NFILEMARKS		16
 

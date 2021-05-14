@@ -9,9 +9,9 @@
  */
 
 #include "edfuncs.h"
-#include	"funcdef.h"
-#include	"sym.h"
-#include	"pkscc.h"
+#include "funcdef.h"
+#include "sym.h"
+#include "pkscc.h"
 
 /*--------------------------------------------------------------------------
  * init_funcs()

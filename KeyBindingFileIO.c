@@ -14,14 +14,14 @@
  */
 
 #include <windows.h>
-#include	<string.h>
-#include	"pksedit.h"
-#include	"lineoperations.h"
-#include	"edierror.h"
-#include	"edfuncs.h"
-#include	"edifsel.h"
-#include	"uc.h"
-#include	"winterf.h"
+#include <string.h>
+#include "pksedit.h"
+#include "lineoperations.h"
+#include "edierror.h"
+#include "edfuncs.h"
+#include "edifsel.h"
+#include "uc.h"
+#include "winterf.h"
 
 #define	MAX_CONTEXT	32
 
@@ -46,7 +46,7 @@ extern	FSELINFO 	_linfsel;
 extern 	PASTE	*plistenq();
 extern	PASTE	*pp_find(int id, PASTELIST *pp);
 extern	void 	pp_listfree(PASTELIST **pp);
-extern 	int 		lincreatekeytmp(char *linfn, char *tmpfn);
+extern 	int 		CreateTempFileForDocumentType(char *linfn, char *tmpfn);
 extern 	char *	searchfile(char *);
 
 static 	PASTELIST *_abbrevlist;
@@ -432,7 +432,7 @@ int EdDocMacrosAdd(void)
 		return 0;
 	}
 
-	linkeymerge(fn, _currfile->fname);
+	MergeDocumentTypes(fn, _currfile->fname);
 
 	return 0;
 }
@@ -449,7 +449,7 @@ int EdDocMacrosEdit(void)
 		return 0;
 	}
 	strdcpy(keyfile, _datadir, "MODI.TMP");
-	if (lincreatekeytmp(searchfile(_currfile->lin->liname), keyfile)) {
+	if (CreateTempFileForDocumentType(searchfile(_currfile->lin->liname), keyfile)) {
 		return tagopen(keyfile, -1L, (void*)0);
 	}
 }

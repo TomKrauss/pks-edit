@@ -371,8 +371,6 @@ extern KEYBIND		_cmdorig[];
 /*
  *  PARAMETERS (RECORDING DIALOGS) ---------------------------------------
  */
-void param_push(char flag, long par);
-
 #define	P_MAYOPEN				0x1
 #define	P_MAYPRE				0x2
 
@@ -392,9 +390,8 @@ typedef struct params {
 	struct	des *el;
 } PARAMS;
 
-int	param_EdMacroRecord(PARAMS *p);
-int	param_dialopen(PARAMS *p);
-int cdecl do_func(int num, long p1, long p2, void *s1, void *s2, void *s3);
+extern int param_dialopen(PARAMS *p);
+extern int cdecl do_func(int num, long p1, long p2, void *s1, void *s2, void *s3);
 
 #define	_EDFUNCS_H
 # endif

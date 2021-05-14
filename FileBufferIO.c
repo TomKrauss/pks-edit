@@ -12,15 +12,15 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include	<tos.h>
+#include <tos.h>
 #include "trace.h"
-#include	"lineoperations.h"
-#include	"edierror.h"
+#include "lineoperations.h"
+#include "edierror.h"
 
-#include	"pksedit.h"
+#include "pksedit.h"
 
-#include	"edexec.h"
-#include	"encryption.h"
+#include "edexec.h"
+#include "encryption.h"
 
 /* #define DEMO 1 /* D E M O V E R S I O N */
 
@@ -581,7 +581,7 @@ EXPORT int Readfile(FTABLE *fp,char *fn,int linflag)
 	fp->lockFd = 0;
 	strcpy(fp->fname,fn);
 
-	if (linflag >= 0 && !linassign(fp,(LINEAL*)0))
+	if (linflag >= 0 && !AssignDocumentTypeDescriptor(fp,(LINEAL*)0))
 		return 0;
 
 	_talking = 0;

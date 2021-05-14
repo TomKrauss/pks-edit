@@ -25,10 +25,6 @@ typedef void MARK;
 #define	OBJECT	void 
 #endif
 
-#ifndef 	REGEXP_H
-#define	REGCMP	long
-#endif
-
 #ifndef	ICCALL_H
 #define	ICCALL	long
 #endif
@@ -89,7 +85,6 @@ typedef struct edx {
 	int		(*abort)(void );
 
 	EDBINDS	*_bindings;
-	REGCMP	*_regcmp;
 	LINE		*(*find_expr)(int dir,long *Ln,long *Col,LINE *lp,char *ebuf);
 	long		*_options;
 

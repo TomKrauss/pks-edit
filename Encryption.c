@@ -10,9 +10,9 @@
  * the 1977 public-domain program by Jim Gillogly
  */
 
-#include	"encryption.h"
-#include	<string.h>
-#include	<malloc.h>
+#include "encryption.h"
+#include <string.h>
+#include <malloc.h>
 
 #define	NULL	0
 #define	LITTLE_ENDIAN		1

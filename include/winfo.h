@@ -63,6 +63,17 @@ typedef struct wininfo {
      int		win_state;
 } WINFO;
 
+
+/*--------------------------------------------------------------------------
+ * SendRedraw()
+ */
+extern void SendRedraw(HWND hwnd);
+
+/*--------------------------------------------------------------------------
+ * EdRedrawWindow()
+ */
+extern void EdRedrawWindow(WINFO* wp);
+
 #define FTPOI(wp)		(FTABLE*)(wp->fp)
 
 int ww_blkcolomn(WINFO *wp);

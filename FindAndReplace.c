@@ -23,11 +23,11 @@
 
 #pragma hdrstop
 
-#include	<string.h>
-#include	"pksedit.h"
-#include	"edctype.h"
-#include	"regexp.h"
-#include	"edhist.h"
+#include <string.h>
+#include "pksedit.h"
+#include "edctype.h"
+#include "regexp.h"
+#include "edhist.h"
 
 #define	UCHAR	unsigned char
 

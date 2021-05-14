@@ -12,8 +12,8 @@
 
 /* #define	DEBUG */
 
-#include	<stdio.h>
-#include	<string.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "edfuncs.h"
 #include "regexp.h"

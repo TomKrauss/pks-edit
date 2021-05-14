@@ -423,7 +423,7 @@ EXPORT int do_linbutton(FTABLE *fp, int x, int y, int msg, int shift)
 		if (msg == WM_RBUTTONDOWN) {
 			fp->lin->rmargin = col;
 		} else {
-			tabtoggle(fp->lin, col);
+			ToggleTabStop(fp->lin, col);
 		}
 		SendRedraw(wp->ru_handle);
 		EdRedrawWindow(wp);

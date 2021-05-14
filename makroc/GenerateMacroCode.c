@@ -10,12 +10,12 @@
  *									
  */
 
-#include	<stdio.h>
-#include	<string.h>
+#include <stdio.h>
+#include <string.h>
 
-#include	"pkscc.h"
+#include "pkscc.h"
 #include "edfuncs.h"
-#include	"scanner.h"
+#include "scanner.h"
 
 extern void 	yyerror(char *s, ...);
 extern KEYCODE	key2code(char *K);

@@ -14,12 +14,13 @@
  * 								Author: TOM
  */
 
-#include	<windows.h>
-#include	<edtypes.h>
-#include	<stdio.h>
-#include	<tos.h>
-#include	"edfuncs.h"
-#include	"resource.h"
+#include <windows.h>
+#include <edtypes.h>
+#include <stdio.h>
+#include <tos.h>
+#include "edfuncs.h"
+#include "lineoperations.h"
+#include "resource.h"
 
 extern void 	*ll_insert(void *head,long size);
 extern MACRO 	*mac_byindex(int idx);

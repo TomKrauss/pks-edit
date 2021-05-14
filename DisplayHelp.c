@@ -14,9 +14,9 @@
  * 								Author: TOM
  */
 
-#include	<windows.h>
-#include	<HtmlHelp.h>
-#include	"winterf.h"
+#include <windows.h>
+#include <HtmlHelp.h>
+#include "winterf.h"
 
 extern char *searchfile(char *s);
 

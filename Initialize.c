@@ -142,7 +142,7 @@ EXPORT void ReadConfigFiles(void)
 {
 	prof_getstdopt();
 	mac_read((char *)0);
-	dt_init();
+	InitAllDocumentTypes();
 	tags_init();
 	proj_init();
 	compiler_init();

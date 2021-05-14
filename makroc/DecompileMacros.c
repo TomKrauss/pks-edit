@@ -10,16 +10,16 @@
  *									
  */
 
-#include	<stdio.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "edfuncs.h"
-#include	"pksmod.h"
+#include "pksmod.h"
 
 #include "pkscc.h"
-#include	"test.h"
+#include "test.h"
 #include "funcdef.h"
-#include	"binop.h"
+#include "binop.h"
 
 int  MakeAutoLabel(COM_GOTO *cp);
 void StartAutoLabel(void);

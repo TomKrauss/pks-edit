@@ -12,18 +12,18 @@
 
 #define	PASTELIST		void
 
-#include	<stdio.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <windows.h>
 #include "winterf.h"
 #include "edfuncs.h"
-#include	"pksmod.h"
+#include "pksmod.h"
 
 #include "pkscc.h"
 #include "funcdef.h"
-#include	"uc.h"
-#include	"brackets.h"
+#include "uc.h"
+#include "brackets.h"
 
 #include "resource.h"
 

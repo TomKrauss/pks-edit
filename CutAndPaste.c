@@ -10,11 +10,11 @@
  *									
  */
 
-#include	<tos.h>
-#include	"lineoperations.h"
-#include	"winfo.h"
-#include	"pksedit.h"
-#include	"edierror.h"
+#include <tos.h>
+#include "lineoperations.h"
+#include "winfo.h"
+#include "pksedit.h"
+#include "edierror.h"
 #include "iccall.h"
 
 /*-----------------------*/

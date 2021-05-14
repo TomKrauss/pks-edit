@@ -10,10 +10,10 @@
  *									
  */
 
-#include	<stdio.h>
-#include	<stdlib.h>
-#include	<string.h>
-#include	"edfuncs.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "edfuncs.h"
 #include "pkscc.h"
 
 # if !defined(_Cdecl)

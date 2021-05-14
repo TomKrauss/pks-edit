@@ -10,15 +10,15 @@
  *
  */
 
-#include	<string.h>
+#include <string.h>
 
-#include	"lineoperations.h"
-#include	"project.h"
-#include	"pathname.h"
+#include "lineoperations.h"
+#include "project.h"
+#include "pathname.h"
 
 extern void *	prof_llinsert(void *Head, int size, 
 				char *group, char *item, char **idata);
-extern void *	lingetprivatefor(char *name);
+extern void *	GetPrivateDocumentType(char *name);
 extern int 	prof_enum(char *grp, int (*lpfnEnum)(char *, long), long lParam);
 
 static	PROJECT	*projectList;
@@ -40,7 +40,7 @@ static int proj_mk(char *project, long dummy)
 	pp->pr_description = strtok(s, ",");
 	pp->pr_rootdir = strtok((char *)0, ",");
 	if ((szDocType = strtok((char *)0, ",")) != 0) {
-		pp->pr_doctype = lingetprivatefor(szDocType);
+		pp->pr_doctype = GetPrivateDocumentType(szDocType);
 	}
 
 	return 1;

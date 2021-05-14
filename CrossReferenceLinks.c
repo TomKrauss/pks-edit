@@ -10,20 +10,16 @@
 #include <windows.h>
 #include <string.h>
 #include "winterf.h"
-#include	"edctype.h"
+#include "edctype.h"
 #include "edifsel.h"
-#include	"lineoperations.h"
-#include	"winfo.h"
-#include	"pksedit.h"
-#include	"edierror.h"
-#include	"iccall.h"
+#include "lineoperations.h"
+#include "winfo.h"
+#include "pksedit.h"
+#include "edierror.h"
+#include "iccall.h"
 #include "xdialog.h"
 #include "dial2.h"
 #include "regexp.h"
-
-extern int 	ll_count(void *Head);
-extern void *	ll_insert(void *head, long size);
-extern void 	ll_kill(void *head,int (*destroy)(void *elem));
 
 extern char	_finds[];
 extern char 	*_datadir;

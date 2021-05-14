@@ -44,15 +44,15 @@ extern struct yysvf yysvec[], *yybgin;
  *									
  */
 
-#include	<stdio.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include	"sym.h"
-#include	"edfuncs.h"
-#include	"scanner.h"
+#include "sym.h"
+#include "edfuncs.h"
+#include "scanner.h"
 #include "parser.h"
-#include	"lineoperations.h"
+#include "lineoperations.h"
 #include "pkscc.h"
 
 # undef  input

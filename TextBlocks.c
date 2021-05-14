@@ -25,10 +25,10 @@
 # pragma hdrstop
 
 #include <tos.h>
-#include	"pksedit.h"
+#include "pksedit.h"
 
 # if 0
-#include	"iccall.h"
+#include "iccall.h"
 
 #define	FULLSELECTED	CHECKED		/* selected, cause not empty */
 # endif

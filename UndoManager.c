@@ -12,9 +12,9 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include	"pksedit.h"
-#include	"lineoperations.h"
-#include	"edierror.h"
+#include "pksedit.h"
+#include "lineoperations.h"
+#include "edierror.h"
 
 extern	int		_playing;
 extern	FTABLE	*_currfile;

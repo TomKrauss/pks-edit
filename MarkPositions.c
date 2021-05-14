@@ -12,8 +12,8 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include	"lineoperations.h"
-#include	"edierror.h"
+#include "lineoperations.h"
+#include "edierror.h"
 
 /*----- EXTERNALS -----------*/
 

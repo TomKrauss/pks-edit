@@ -44,7 +44,7 @@
 # else /* _Windows */
 
 #include <io.h>
-#include	<fcntl.h>
+#include <fcntl.h>
 
 # if !defined(OF_READWRITE)
 #define	OF_READWRITE		O_RDWR

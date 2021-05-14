@@ -12,12 +12,12 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include	<string.h>
-#include	"edctype.h"
-#include	"lineoperations.h"
-#include	"pksedit.h"
-#include	"edfuncs.h"
-#include	"edierror.h"
+#include <string.h>
+#include "edctype.h"
+#include "lineoperations.h"
+#include "pksedit.h"
+#include "edfuncs.h"
+#include "edierror.h"
 
 #define	MAXARG			128
 #define	MAXKEYS			8
