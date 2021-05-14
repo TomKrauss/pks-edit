@@ -26,10 +26,12 @@ static char szHelpFile[] = "pksedit.chm";
 /*--------------------------------------------------------------------------
  * EdCallWinHelp()
  */
-int EdCallWinHelp(char *szFile, WORD hType, DWORD param)
+int EdCallWinHelp(char *szFile, UINT hType, DWORD param)
 {
-	int		ret;
+	static int initialized = FALSE;
+	HWND		ret;
 	LPSTR	pszFound;
+	DWORD m_dwCookie;
 
 	if (!szFile)
 		szFile = szHelpFile;
@@ -38,9 +40,16 @@ int EdCallWinHelp(char *szFile, WORD hType, DWORD param)
 		pszFound = szFile;
 	}
 
-	ret = HtmlHelp(hwndFrame, pszFound, HH_DISPLAY_TOC, 0);
+	if (!initialized) {
+		HtmlHelp(NULL, szHelpFile, HH_INITIALIZE, (DWORD)&m_dwCookie);
+		initialized = TRUE;
+	}
+	if (hType == HH_DISPLAY_SEARCH) {
+		hType = HH_DISPLAY_TOC;
+	}
+	ret = HtmlHelp(hwndFrame, pszFound, hType, (DWORD_PTR)&m_dwCookie);
 	hwndHelpRequested = hwndFrame;
-	return ret;
+	return ret == NULL ? 0 : 1;
 }
 
 /*--------------------------------------------------------------------------
@@ -49,7 +58,7 @@ int EdCallWinHelp(char *szFile, WORD hType, DWORD param)
 void HelpQuit(void)
 {
 	if (hwndHelpRequested) {
-		WinHelp(hwndHelpRequested, NULL, HELP_QUIT, 0);
+		HtmlHelp(hwndHelpRequested, szHelpFile, HH_CLOSE_ALL, 0);
 	}
 	hwndHelpRequested = NULL;
 }
@@ -59,13 +68,13 @@ void HelpQuit(void)
  */
 int HelpKey(LPSTR szFile, LPSTR szKey)
 {
-	return EdCallWinHelp(szFile,HELP_KEY,(DWORD)szKey);
+	return EdCallWinHelp(szFile, HH_KEYWORD_LOOKUP, (DWORD)szKey);
 }
 
 /*--------------------------------------------------------------------------
  * EdHelp()
  */
-int EdHelp(WORD hType, DWORD p)
+int EdHelp(UINT hType, DWORD p)
 {
 	return EdCallWinHelp((char *)0,hType,p);
 }
@@ -75,7 +84,7 @@ int EdHelp(WORD hType, DWORD p)
  */
 int EdHelpContext(WORD nCtx)
 {
-	return EdHelp(HELP_CONTEXT,(DWORD)nCtx);
+	return EdHelp(HH_DISPLAY_TOC,(DWORD)nCtx);
 }
 
 #if 0

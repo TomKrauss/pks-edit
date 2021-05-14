@@ -13,6 +13,7 @@
 #include <windowsx.h>
 #include <commdlg.h>
 #include <direct.h>
+#include <string.h>
 
 #include "trace.h"
 #include "editab.h"
@@ -23,8 +24,6 @@
 
 #include "tos.h"
 #include "edhist.h"
-#include <direct.h>
-#include <string.h>
 
 #include "edfuncs.h"
 #include "pathname.h"
@@ -226,15 +225,17 @@ static BOOL sh_rename(char *fn, WORD strId)
 static BOOL sh_delmkd(char *fn, int strId)
 {
 	int  ret;
-	char path[256];
-	char fname[256];
+	char path[EDMAXPATHLEN];
+	char fname[EDMAXFNLEN];
 
-	getcwd(path,sizeof path);
+	if (!_getcwd(path, sizeof path)) {
+		return FALSE;
+	}
 	strdcpy(fname,path,fn);
 	if (*fn) {
 		if (!(_options & WARNINGS) || 
 			PromptString(strId,AbbrevName(fname),(char*)0) == IDOK) {
-			char oemname[512];
+			char oemname[EDMAXPATHLEN];
 
 			AnsiToOem(fname,oemname);
 			if (strId == IDS_QUERYMKDIR) {
@@ -261,7 +262,7 @@ static BOOL sh_delmkd(char *fn, int strId)
 */
 static fill_listwithtokens(HWND hDlg, WORD nItem, char *src)
 {
-	char 	szTemp[1024];
+	char 	szTemp[EDMAXPATHLEN];
 	LPSTR	s;
 	LPSTR	pszSeparator;
 	int  	n;
@@ -406,11 +407,11 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	BOOL			bRet;
 	char 		szTemp[512];
 
-	pszFilter = _alloc(1024);
+	pszFilter = _alloc(EDMAXPATHLEN);
 	if (!pszFilter) {
 		return FALSE;
 	}
-	pszCustomFilter = _alloc(512);
+	pszCustomFilter = _alloc(EDMAXPATHLEN);
 	if (!pszCustomFilter) {
 		_free(pszFilter);
 		return FALSE;
@@ -429,7 +430,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	*pszRun = 0;
 
 	*pszFilter = 0;
-	linealdocstrings(pszFilter, 1024);
+	linealdocstrings(pszFilter, EDMAXPATHLEN);
 	for (pszRun = pszFilter; *pszRun; pszRun++) {
 		if (*pszRun == '|') {
 			*pszRun = (char) 0;
@@ -445,7 +446,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	ofn.lpstrFilter = (LPSTR)pszFilter;
 	ofn.nFilterIndex = 0;
 	ofn.lpstrCustomFilter = (LPSTR)pszCustomFilter;
-	ofn.nMaxCustFilter = 512;
+	ofn.nMaxCustFilter = EDMAXPATHLEN;
 	ofn.lpstrFile = (LPSTR)szFileName;	// Stores the result in this variable
 	ofn.nMaxFile = EDMAXPATHLEN - 1;
 	ofn.lpstrTitle = sTitleSpec;

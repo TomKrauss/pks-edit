@@ -1247,6 +1247,7 @@ BEGIN
     IDS_MSGWRITEERR         "!Beim Schreiben der Daten\nist ein Fehler aufgetreten"
     IDS_MSGDELOLDKEYBIND    "Soll die alte Tastenbindung zu %s gelöst werden"
     IDS_MSGFILESHAVECHANGED "Die Datei %s wurde außerhalb von PKSEDIT geändert. Soll sie neu geladen werden"
+    IDS_STRING148           "Demo"
 END
 
 STRINGTABLE

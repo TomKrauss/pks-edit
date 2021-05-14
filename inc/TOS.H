@@ -38,8 +38,8 @@
 
 # define Frename(dummy,old,new)	rename(old,new)
 # define Fdelete(name)		unlink(name)
-# define Ddelete(name)		rmdir(name)
-# define Dcreate(name)		mkdir(name)
+# define Ddelete(name)		_rmdir(name)
+# define Dcreate(name)		_mkdir(name)
 
 # else /* _Windows */
 

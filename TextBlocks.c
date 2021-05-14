@@ -105,19 +105,21 @@ void EdGetSelectedText(void)
 EXPORT void bl_free(PASTE *buf)
 {
 	lnlistfree(buf->pln);
-	blfill(buf,sizeof *buf,0);
+	blfill((unsigned char*) buf,sizeof *buf,0);
 }
 
 /*--------------------------------------------------------------------------
  * pp_listfree()
  */
-EXPORT void pp_listfree(PASTELIST **header)
-{	register PASTELIST *pp = *header;
+EXPORT void pp_listfree(PASTELIST **header) {	
+	register PASTELIST *pp = *header;
+	register PASTELIST* next;
 
 	while (pp) {
 		bl_free(&pp->pbuf);
+		next = pp->next;
 		_free(pp);
-		pp = pp->next;
+		pp = next;
 	}
 	*header = 0;
 }

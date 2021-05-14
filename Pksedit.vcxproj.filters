@@ -450,10 +450,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="PKSEDIT.RC">
-      <Filter>Source Files</Filter>
-    </ResourceCompile>
-    <ResourceCompile Include="STRINGS.RC">
+    <ResourceCompile Include="pksedit.rc">
       <Filter>Source Files</Filter>
     </ResourceCompile>
   </ItemGroup>
