@@ -14,12 +14,12 @@
  * 								Author: TOM
  */
 
-# include	<windows.h>
-# include	<edtypes.h>
-# include	<stdio.h>
-# include	<tos.h>
-# include	"edfuncs.h"
-# include	"resource.h"
+#include	<windows.h>
+#include	<edtypes.h>
+#include	<stdio.h>
+#include	<tos.h>
+#include	"edfuncs.h"
+#include	"resource.h"
 
 extern void 	*ll_insert(void *head,long size);
 extern MACRO 	*mac_byindex(int idx);
@@ -120,7 +120,7 @@ int rsc_wrtables(int fd, char *itemtype, RSCTABLE *rp)
  */
 long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes)
 {
-	int 		offs,size,i;
+	int 		offs,i;
 	long		total;
 	MACRO  	*mp;
 	struct macrodata *seqp;

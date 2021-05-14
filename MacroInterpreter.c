@@ -10,16 +10,16 @@
  *									
  */
 
-# include	<string.h>
-# include	<windows.h>
+#include	<string.h>
+#include	<windows.h>
 
-# include	"editab.h"
-# include "winfo.h"
-# include	"edierror.h"
+#include	"lineoperations.h"
+#include "winfo.h"
+#include	"edierror.h"
 
-# include	"pksedit.h"
-# include	"edfuncs.h"
-# include	"functab.h"
+#include	"pksedit.h"
+#include	"edfuncs.h"
+#include	"functab.h"
 
 extern void 			MacFormatErr(void);
 extern int 			EdMacroRecord(void);
@@ -125,7 +125,7 @@ int param_space(unsigned char typ, char *s)
 static void push_sequence(unsigned char typ, long par)
 {	char *spend;
 	char *sp;
-	int  s,slen;
+	int  s;
 
 	if (_recording == 0)
 		return;
@@ -298,7 +298,6 @@ int param_record(PARAMS *pp)
  */
 long param_pop(unsigned char **Sp)
 {
-	long ret;
 	unsigned char *sp = *Sp;
 	unsigned char typ = *sp;
 
@@ -591,15 +590,12 @@ void ReturnString(char *string)
 /*---------------------------------*/
 /* do_seq()					*/
 /*---------------------------------*/
-# define COM1_INCR(cp,type,offset) (COM_1FUNC*)(((unsigned char *)cp)+((type *)cp)->offset)
-# define COM_PARAMINCR(cp)		(COM_1FUNC*)(((unsigned char *)cp)+param_space(cp->typ,&cp->funcnum));
+#define COM1_INCR(cp,type,offset) (COM_1FUNC*)(((unsigned char *)cp)+((type *)cp)->offset)
+#define COM_PARAMINCR(cp)		(COM_1FUNC*)(((unsigned char *)cp)+param_space(cp->typ,&cp->funcnum));
 static int _macaborted;
 int do_seq(COM_1FUNC *cp,COM_1FUNC *cpmax)
 {
-	unsigned char *	sp;
 	long 			val;
-	char				space[512];
-	long				ret;
 
 	for (val = 1; cp < cpmax; ) {
 		if (_macaborted || (_macaborted = ed_abort(FALSE)) != 0)

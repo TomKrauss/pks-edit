@@ -1,5 +1,5 @@
 /*
- * REGCMP.H
+ * regexp.h
  *
  * PROJECT: PKSEDIT for ATARI TOS
  *
@@ -10,12 +10,12 @@
  *									
  */
 
-# ifndef 	REGCMP_H
-# define	REGCMP_H
+#ifndef REGEXP_H
+#define	REGEXP_H
 
-# define	RE_DOREX		0x1		/* use .{}*?+ and all the stuff */
-# define	RE_IGNCASE	0x2		/* ignore case */
-# define	RE_SHELLWILD	0x4		/* wildcards are: *?[] */
+#define	RE_DOREX		0x1		/* use .{}*?+ and all the stuff */
+#define	RE_IGNCASE		0x2		/* ignore case */
+#define	RE_SHELLWILD	0x4		/* wildcards are: *?[] */
 
 extern unsigned char *compile(unsigned char *instring, 
 			 		     unsigned char *ep, 

@@ -11,7 +11,7 @@
  *									
  */
 
-#include "editab.h"
+#include "lineoperations.h"
 
 #ifdef MC68000
 

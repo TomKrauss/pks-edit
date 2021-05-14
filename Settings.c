@@ -17,7 +17,7 @@
 #include <windows.h>
 
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "edierror.h"
 
 #include "winfo.h"
@@ -27,7 +27,7 @@
 
 #include "pksedit.h"
 #include "dial2.h"
-# include "functab.h"
+#include "functab.h"
 
 #/*---- GLOBALS ---------------*/
 

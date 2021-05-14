@@ -13,9 +13,9 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include "editab.h"
-# include "edfuncs.h"
-# include "resource.h"
+#include "lineoperations.h"
+#include "edfuncs.h"
+#include "resource.h"
 
 static RSCTABLE __k = {
 	0,	"default",	sizeof _keymaptab, 	_keymaptab,

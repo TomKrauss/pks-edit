@@ -1,24 +1,24 @@
 #include <stdio.h>
-# define U(x) x
+#define U(x) x
 #ifdef TURBO
 int yyback(int *p,int m);
 int yylook(void );
 int yywrap(void );
 #endif /* TURBO */
 
-# define NLSTATE yyprevious=YYNEWLINE
-# define BEGIN yybgin = yysvec + 1 +
-# define INITIAL 0
-# define YYLERR yysvec
-# define YYSTATE (yyestate-yysvec-1)
-# define YYOPTIM 1
-# define YYLMAX 200
-# define output(c) putc(c,yyout)
-# define input() (((yytchar=yysptr>yysbuf?U(*--yysptr):getc(yyin))==10?(yylineno++,yytchar):yytchar)==EOF?0:yytchar)
-# define unput(c) {yytchar= (c);if(yytchar=='\n')yylineno--;*yysptr++=yytchar;}
-# define yymore() (yymorfg=1)
-# define ECHO fprintf(yyout, "%s",yytext)
-# define REJECT { nstr = yyreject(); goto yyfussy;}
+#define NLSTATE yyprevious=YYNEWLINE
+#define BEGIN yybgin = yysvec + 1 +
+#define INITIAL 0
+#define YYLERR yysvec
+#define YYSTATE (yyestate-yysvec-1)
+#define YYOPTIM 1
+#define YYLMAX 200
+#define output(c) putc(c,yyout)
+#define input() (((yytchar=yysptr>yysbuf?U(*--yysptr):getc(yyin))==10?(yylineno++,yytchar):yytchar)==EOF?0:yytchar)
+#define unput(c) {yytchar= (c);if(yytchar=='\n')yylineno--;*yysptr++=yytchar;}
+#define yymore() (yymorfg=1)
+#define ECHO fprintf(yyout, "%s",yytext)
+#define REJECT { nstr = yyreject(); goto yyfussy;}
 int yyleng; extern char yytext[];
 int yymorfg;
 extern char *yysptr, yysbuf[];
@@ -44,19 +44,19 @@ extern struct yysvf yysvec[], *yybgin;
  *									
  */
 
-# include	<stdio.h>
-# include <string.h>
-# include <stdlib.h>
-# include <stdarg.h>
-# include	"sym.h"
-# include	"edfuncs.h"
-# include	"scanner.h"
-# include "parser.h"
-# include	"editab.h"
-# include "pkscc.h"
+#include	<stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include	"sym.h"
+#include	"edfuncs.h"
+#include	"scanner.h"
+#include "parser.h"
+#include	"lineoperations.h"
+#include "pkscc.h"
 
 # undef  input
-# define input() (((yytchar=yysptr>yysbuf?U(*--yysptr):cmdgetc()))==EOF?\
+#define input() (((yytchar=yysptr>yysbuf?U(*--yysptr):cmdgetc()))==EOF?\
 					0:yytchar)
 
 typedef struct yyerrstruct {
@@ -387,8 +387,8 @@ int yywrap(void )
 	return 1;
 }
 
-# define keys 2
-# define YYNEWLINE 10
+#define keys 2
+#define YYNEWLINE 10
 yylex(){
 int nstr; extern int yyprevious;
 while((nstr = yylook()) >= 0)
@@ -805,7 +805,7 @@ int yyvstop[] = {
 18,
 0,
 0};
-# define YYTYPE char
+#define YYTYPE char
 struct yywork { YYTYPE verify, advance; } yycrank[] = {
 0,0,	0,0,	1,5,	0,0,	
 0,0,	0,0,	0,0,	0,0,	
@@ -1117,8 +1117,8 @@ char yyextra[] = {
 0,0,0,0,0,0,0,0,
 0};
 int yylineno =1;
-# define YYU(x) x
-# define NLSTATE yyprevious=YYNEWLINE
+#define YYU(x) x
+#define NLSTATE yyprevious=YYNEWLINE
 char yytext[YYLMAX];
 struct yysvf *yylstate [YYLMAX], **yylsp, **yyolsp;
 char yysbuf[YYLMAX];

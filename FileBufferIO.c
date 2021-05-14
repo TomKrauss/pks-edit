@@ -12,17 +12,17 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include	<tos.h>
-# include "trace.h"
-# include	"editab.h"
-# include	"edierror.h"
+#include	<tos.h>
+#include "trace.h"
+#include	"lineoperations.h"
+#include	"edierror.h"
 
-# include	"pksedit.h"
+#include	"pksedit.h"
 
-# include	"edexec.h"
-# include	"des.h"
+#include	"edexec.h"
+#include	"encryption.h"
 
-/* # define DEMO 1 /* D E M O V E R S I O N */
+/* #define DEMO 1 /* D E M O V E R S I O N */
 
 /*----- EXTERNALS -----------*/
 
@@ -268,7 +268,6 @@ int _broken,_flushing;
 EXPORT int readfile(FTABLE *fp, LINEAL *linp)
 {
 	int				ret;
-	int				i;
 	int				nl;
 	int				fd;
 	register	char *	buf;

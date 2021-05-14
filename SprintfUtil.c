@@ -14,16 +14,16 @@
  * 								Author: TOM
  */
 
-# include <windows.h>
-# include <stdarg.h>
-# include "winterf.h"
-# include "edierror.h"
+#include <windows.h>
+#include <stdarg.h>
+#include "winterf.h"
+#include "edierror.h"
 
-# include <dos.h>
-# include <string.h>
-# include <time.h>
-# include "editab.h"
-# include "winfo.h"
+#include <dos.h>
+#include <string.h>
+#include <time.h>
+#include "lineoperations.h"
+#include "winfo.h"
 
 extern char *basename(char *fn);
 extern LPSTR lstrchr(char *s, char c);

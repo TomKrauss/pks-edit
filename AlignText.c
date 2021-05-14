@@ -12,11 +12,11 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include	<string.h>
-# include	"editab.h"
-# include	"regcmp.h"
-# include	"edierror.h"
-# include	"pksedit.h"
+#include	<string.h>
+#include	"lineoperations.h"
+#include	"regexp.h"
+#include	"edierror.h"
+#include	"pksedit.h"
 
 extern int 	chkblk(FTABLE *fp);
 extern int	_cphys2scr(FTABLE *fp, char *lbuf,int lnoffs);

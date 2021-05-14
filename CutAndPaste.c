@@ -10,12 +10,12 @@
  *									
  */
 
-# include	<tos.h>
-# include	"editab.h"
-# include	"winfo.h"
-# include	"pksedit.h"
-# include	"edierror.h"
-# include "iccall.h"
+#include	<tos.h>
+#include	"lineoperations.h"
+#include	"winfo.h"
+#include	"pksedit.h"
+#include	"edierror.h"
+#include "iccall.h"
 
 /*-----------------------*/
 /* EXTERNALS			*/

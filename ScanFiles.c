@@ -17,7 +17,7 @@
 #include <malloc.h>
 
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "winfo.h"
 #include "winterf.h"
 #include "pksedit.h"

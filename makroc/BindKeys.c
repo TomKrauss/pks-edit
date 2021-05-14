@@ -14,12 +14,12 @@
  * 								Author: TOM
  */
 
-# include <stdio.h>
-# include	<string.h>
+#include <stdio.h>
+#include	<string.h>
 
-# include "edfuncs.h"
-# include	"resource.h"
-# include	"pkscc.h"
+#include "edfuncs.h"
+#include	"resource.h"
+#include	"pkscc.h"
 
 extern char *		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 extern char *		code2key(KEYCODE k);

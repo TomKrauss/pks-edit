@@ -12,9 +12,9 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include	"pksedit.h"
-# include	"editab.h"
-# include	"edierror.h"
+#include	"pksedit.h"
+#include	"lineoperations.h"
+#include	"edierror.h"
 
 extern	int		_playing;
 extern	FTABLE	*_currfile;
@@ -23,7 +23,7 @@ extern	LINE		*ln_cut();
 /*--------------------------------------------------------------------------
  * LOCALS
  */
-# define	NFRAGS		64
+#define	NFRAGS		64
 
 typedef struct undo {
 	int nfrags;

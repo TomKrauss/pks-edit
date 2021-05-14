@@ -12,7 +12,7 @@
  * (c) Pahlen & Krauß
  */
 
-#include "editab.h"
+#include "edtypes.h"
 
 char *_strtolend;
 

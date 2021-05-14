@@ -20,7 +20,7 @@
 #include <windowsx.h>
 
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "edierror.h"
 
 #include "winterf.h"
@@ -28,11 +28,11 @@
 
 #pragma hdrstop
 
-# include	"pksedit.h"
-# include "dial2.h"
-# include "edfuncs.h"
-# include "edhist.h"
-# include "xdialog.h"
+#include	"pksedit.h"
+#include "dial2.h"
+#include "edfuncs.h"
+#include "edhist.h"
+#include "xdialog.h"
 
 #define ISRADIODLGCTL(i) 	((i) >= IDD_LOWRADIO && (i) <= IDD_HIGHRADIO)
 #define ISFLAGDLGCTL(i) 		(((i) >= IDD_LOWOPT && (i) <= IDD_HIGHOPT) ||\

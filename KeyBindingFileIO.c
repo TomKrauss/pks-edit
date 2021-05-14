@@ -13,17 +13,17 @@
  * All Rights Reserved.
  */
 
-# include <windows.h>
-# include	<string.h>
-# include	"pksedit.h"
-# include	"editab.h"
-# include	"edierror.h"
-# include	"edfuncs.h"
-# include	"edifsel.h"
-# include	"uc.h"
-# include	"winterf.h"
+#include <windows.h>
+#include	<string.h>
+#include	"pksedit.h"
+#include	"lineoperations.h"
+#include	"edierror.h"
+#include	"edfuncs.h"
+#include	"edifsel.h"
+#include	"uc.h"
+#include	"winterf.h"
 
-# define	MAX_CONTEXT	32
+#define	MAX_CONTEXT	32
 
 extern	unsigned char *stralloc(unsigned char *buf);
 extern	LPSTR lstrchr(char *s, char c);
@@ -66,7 +66,6 @@ PASTELIST *_esclist[MAX_CONTEXT];
 FTABLE _outfile;
 static void macro_error(int msgId)
 {	
-	LINE 	*lp;
 	long 	n;
 	char 	msg[128],b[512];
 
@@ -207,8 +206,7 @@ static char *cutquotes(char **S)
  * advtok()
  */
 static int advtok(LINE **lp,PASTE *pp,char *s)
-{	register char c;
-	register LINE *lnlast;
+{	register LINE *lnlast;
 	LINE *lnfirst;
 	int cfirst,clast,p1;
 
@@ -445,7 +443,6 @@ int EdDocMacrosAdd(void)
 int EdDocMacrosEdit(void)
 {
 	char 	keyfile[256];
-	char *	fn;
 	extern char *_datadir;
 
 	if (!_currfile) {

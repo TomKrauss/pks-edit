@@ -16,9 +16,9 @@
 
 # ifndef RESOURCE_H
 
-# define	MAX_ENTITIES			16
-# define	RS_VERSION			0x00000900L
-# define 	RSC_NAMELEN			10
+#define	MAX_ENTITIES			16
+#define	RS_VERSION			0x00000900L
+#define 	RSC_NAMELEN			10
 
 typedef unsigned short OFFSET;
 
@@ -45,9 +45,9 @@ typedef struct tagRSCHEADER {
 	ENTITY	rs_ent[MAX_ENTITIES];
 } RSCHEADER;
 
-# define	RSC_O_READ		0
-# define	RSC_O_CREAT		1
-# define	RSC_O_UPDATE		2
+#define	RSC_O_READ		0
+#define	RSC_O_CREAT		1
+#define	RSC_O_UPDATE		2
 
 typedef struct tagRSCFILE {
 	int		rf_fd;
@@ -63,7 +63,7 @@ void *	rsc_tableresize(RSCTABLE *rp, int itemsize, void *noalloc, int (*empty)(v
 RSCTABLE *rsc_findtable(RSCTABLE *rp, char *pszTarget);
 int 		rsc_switchtotable(RSCTABLE **Rp, char *pszTarget);
 
-# define	RESOURCE_H
+#define	RESOURCE_H
 # endif
 
 

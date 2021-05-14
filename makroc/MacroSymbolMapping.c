@@ -14,12 +14,12 @@
  * 								Author: TOM
  */
 
-# include	<stdio.h>
-# include	<stdlib.h>
-# include	<string.h>
-# include	"edfuncs.h"
-# include	"pkscc.h"
-# include	"sym.h"
+#include	<stdio.h>
+#include	<stdlib.h>
+#include	<string.h>
+#include	"edfuncs.h"
+#include	"pkscc.h"
+#include	"sym.h"
 
 extern void 	Alert(char *, ...);
 extern long 	number(char *s);

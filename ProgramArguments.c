@@ -16,7 +16,7 @@
 
 #include <windows.h>
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 
 #define iswhite(c)	(c == ' ' || c == '\t')
 

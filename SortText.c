@@ -12,25 +12,25 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include	<string.h>
-# include	"edctype.h"
-# include	"editab.h"
-# include	"pksedit.h"
-# include	"edfuncs.h"
-# include	"edierror.h"
+#include	<string.h>
+#include	"edctype.h"
+#include	"lineoperations.h"
+#include	"pksedit.h"
+#include	"edfuncs.h"
+#include	"edierror.h"
 
-# define	MAXARG			128
-# define	MAXKEYS			8
-# define	MAXDEPTH			6
+#define	MAXARG			128
+#define	MAXKEYS			8
+#define	MAXDEPTH			6
 
 typedef struct dvec {
 	long n;
 	int	w;
 } DVEC[6];
 
-# define	K_UNIQ			0x1		/* skip records whith this key uniq */
-# define	K_SKIPWHITE		0x2
-# define	K_SORTDICT		0x4
+#define	K_UNIQ			0x1		/* skip records whith this key uniq */
+#define	K_SKIPWHITE		0x2
+#define	K_SORTDICT		0x4
 
 typedef struct {
 	char	flag;
@@ -38,7 +38,7 @@ typedef struct {
 	int  (*cmp)(unsigned char *s1,int l1,unsigned char *s2, int l2);
 } KEY;
 
-# define	KT_MKTOKEN		0x1
+#define	KT_MKTOKEN		0x1
 
 typedef struct keytab {
 	int	nkeys;
@@ -71,7 +71,7 @@ typedef struct strvec {
  * this is a hack: use the formular backingstore as temporary
  * buffer for the line list
  */
-# define	MAXREC			(unsigned int)((32000L)/sizeof(RECORD))
+#define	MAXREC			(unsigned int)((32000L)/sizeof(RECORD))
 
 static long	_nlines;
 static int	_sortflags;
@@ -463,7 +463,7 @@ static int mk2ndlist(LINE *lpfirst, LINE *lplast,int n)
  */
 void ln_order(FTABLE *fp, RECORD *rectab, RECPARAMS *rp)
 {	int i,j,n;
-	LINE *lp,*lpd,*lpend;
+	LINE *lpd,*lpend;
 
 	n	   = rp->nrec;
 	lpend   = rp->lplast;
@@ -494,7 +494,7 @@ static int undo_cash(FTABLE *fp, LINE *lpfirst, LINE *lplast)
 {	RECORD 	*rec,*rp;
 	RECPARAMS *recpar;
 	LINE	  	*lp;
-	long   	i,nrec,size;
+	long   	nrec,size;
 
 	size  = ln_cnt(lpfirst,lplast);
 	nrec  = size;

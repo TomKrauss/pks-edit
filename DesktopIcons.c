@@ -14,23 +14,24 @@
  * 								Author: TOM
  */
 
-# include <windows.h>
+#include <windows.h>
 
-# include "trace.h"
-# include "dial2.h"
-# include "winterf.h"
-# include "editab.h"
-# include "winfo.h"
+#include "trace.h"
+#include "dial2.h"
+#include "winterf.h"
+#include "winfo.h"
+#include "edtypes.h"
+#include "errordialogs.h"
 
 #pragma hdrstop
 
-# include	"iccall.h"
-# include "pksedit.h"
+#include	"iccall.h"
+#include "pksedit.h"
 
-# define	GWL_ICICON				GWL_ICCLASSVALUES+sizeof(LONG)
-# define	GWL_ICONEXTRA			GWL_ICICON+sizeof(LONG)
+#define	GWL_ICICON				GWL_ICCLASSVALUES+sizeof(LONG)
+#define	GWL_ICONEXTRA			GWL_ICICON+sizeof(LONG)
 
-# define	PROP_NOTDRAGGED			-4711
+#define	PROP_NOTDRAGGED			-4711
 
 typedef struct tagICONCLASS {
 	struct tagICONCLASS *next;
@@ -71,7 +72,7 @@ int EdIconsQuit(LONG hwnd)
 /*------------------------------------------------------------
  * ic_lboxdraw()
  */
-# define	IC_WIDTH	32
+#define	IC_WIDTH	32
 void ic_lboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
 {
 	ICONCLASS	*icp;
@@ -679,7 +680,6 @@ HWND ic_add(ICONCLASS *icp, LPSTR szTitle, LPSTR szParams, int x, int y)
 {
 	INT			width;
 	INT			height;
-	INT			nShow;
 	HWND		hwnd;
 
 	if (!icp) {

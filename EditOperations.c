@@ -13,15 +13,15 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include <windows.h>
-# include "trace.h"
-# include "functab.h"
-# include "editab.h"
-# include "winfo.h"
-# include "edierror.h"
-# include "pksedit.h"
+#include <windows.h>
+#include "trace.h"
+#include "functab.h"
+#include "lineoperations.h"
+#include "winfo.h"
+#include "edierror.h"
+#include "pksedit.h"
 
-# define	SWAP(a,b)			{	a ^= b, b ^=a, a ^= b;  }
+#define	SWAP(a,b)			{	a ^= b, b ^=a, a ^= b;  }
 
 /*--------------------------------------------------------------------------
  * EXTERNALS
@@ -243,7 +243,6 @@ static int PostInsline(FTABLE *fp, int dir, long ln, long col)
  */
 int EdLineInsert(int control)
 {	LINE     	*olp,*nlp;
-	int  	omin;
 	FTABLE 	*fp;
 	int      	dir,ai;
 	long 	ln;
@@ -437,8 +436,8 @@ static void dowrap(FTABLE *fp)
 /*--------------------------------------------------------------------------
  * doauto()
  */
-# define	D_EBUG(x)		{/*ed_error(x); RedrawTotalWindow(fp);*/}
-# define	HARD_BREAK(lp)	((lp->lflg & LNNOCR) == 0)
+#define	D_EBUG(x)		{/*ed_error(x); RedrawTotalWindow(fp);*/}
+#define	HARD_BREAK(lp)	((lp->lflg & LNNOCR) == 0)
 
 int doauto(FTABLE *fp)
 {	register unsigned char *destbuf,*sourcebuf;

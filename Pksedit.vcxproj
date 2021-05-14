@@ -47,6 +47,12 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\windebug\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -60,15 +66,15 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>.\inc;.\rc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\include;.\rc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>.\WinRel/Pksedit.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\WinRel/</AssemblerListingLocation>
-      <ObjectFileName>.\WinRel/</ObjectFileName>
-      <ProgramDataBaseFileName>.\WinRel/</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\winrelease/Pksedit.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\winrelease/</AssemblerListingLocation>
+      <ObjectFileName>.\winrelease/</ObjectFileName>
+      <ProgramDataBaseFileName>.\winrelease/</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>
@@ -91,7 +97,7 @@
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\WinRel/Pksedit.bsc</OutputFile>
+      <OutputFile>.\winrelease/Pksedit.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -106,7 +112,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.\inc;.\rc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\include;.\rc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
@@ -689,42 +695,45 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\editorfont.h" />
+    <ClInclude Include="include\errordialogs.h" />
+    <ClInclude Include="include\publicapi.h" />
     <ClInclude Include="rc\dial2.h" />
     <ClInclude Include="rc\fsel.h" />
-    <ClInclude Include="inc\binop.h" />
-    <ClInclude Include="inc\brackets.h" />
-    <ClInclude Include="inc\context.h" />
-    <ClInclude Include="inc\des.h" />
-    <ClInclude Include="inc\edctype.h" />
-    <ClInclude Include="inc\edexec.h" />
-    <ClInclude Include="inc\edfuncs.h" />
-    <ClInclude Include="inc\edhist.h" />
-    <ClInclude Include="inc\edierror.h" />
-    <ClInclude Include="inc\edifsel.h" />
-    <ClInclude Include="inc\editab.h" />
-    <ClInclude Include="inc\edtypes.h" />
-    <ClInclude Include="inc\ftw.h" />
-    <ClInclude Include="inc\funcdef.h" />
-    <ClInclude Include="inc\functab.h" />
-    <ClInclude Include="inc\iccall.h" />
-    <ClInclude Include="inc\parser.h" />
-    <ClInclude Include="inc\pathname.h" />
-    <ClInclude Include="inc\pkscc.h" />
-    <ClInclude Include="inc\pksedith.h" />
-    <ClInclude Include="inc\pksmod.h" />
-    <ClInclude Include="inc\project.h" />
-    <ClInclude Include="inc\prt.h" />
-    <ClInclude Include="inc\regcmp.h" />
-    <ClInclude Include="inc\resource.h" />
-    <ClInclude Include="inc\scanner.h" />
-    <ClInclude Include="inc\sym.h" />
-    <ClInclude Include="inc\test.h" />
-    <ClInclude Include="inc\tos.h" />
-    <ClInclude Include="inc\trace.h" />
-    <ClInclude Include="inc\uc.h" />
-    <ClInclude Include="inc\winfo.h" />
-    <ClInclude Include="inc\winterf.h" />
-    <ClInclude Include="inc\xdialog.h" />
+    <ClInclude Include="include\binop.h" />
+    <ClInclude Include="include\brackets.h" />
+    <ClInclude Include="include\context.h" />
+    <ClInclude Include="include\encryption.h" />
+    <ClInclude Include="include\edctype.h" />
+    <ClInclude Include="include\edexec.h" />
+    <ClInclude Include="include\edfuncs.h" />
+    <ClInclude Include="include\edhist.h" />
+    <ClInclude Include="include\edierror.h" />
+    <ClInclude Include="include\edifsel.h" />
+    <ClInclude Include="include\lineoperations.h" />
+    <ClInclude Include="include\edtypes.h" />
+    <ClInclude Include="include\ftw.h" />
+    <ClInclude Include="include\funcdef.h" />
+    <ClInclude Include="include\functab.h" />
+    <ClInclude Include="include\iccall.h" />
+    <ClInclude Include="include\parser.h" />
+    <ClInclude Include="include\pathname.h" />
+    <ClInclude Include="include\pkscc.h" />
+    <ClInclude Include="include\pksedith.h" />
+    <ClInclude Include="include\pksmod.h" />
+    <ClInclude Include="include\project.h" />
+    <ClInclude Include="include\printing.h" />
+    <ClInclude Include="include\regexp.h" />
+    <ClInclude Include="include\resource.h" />
+    <ClInclude Include="include\scanner.h" />
+    <ClInclude Include="include\sym.h" />
+    <ClInclude Include="include\test.h" />
+    <ClInclude Include="include\tos.h" />
+    <ClInclude Include="include\trace.h" />
+    <ClInclude Include="include\uc.h" />
+    <ClInclude Include="include\winfo.h" />
+    <ClInclude Include="include\winterf.h" />
+    <ClInclude Include="include\xdialog.h" />
     <ClInclude Include="rc\pksrc.h" />
   </ItemGroup>
   <ItemGroup>

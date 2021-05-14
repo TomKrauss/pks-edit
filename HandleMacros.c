@@ -15,15 +15,15 @@
  */
 
 # if defined( _Windows ) || defined(WIN32)
-# include	<windows.h>
-# include "winterf.h"
-# define sprintf wsprintf
+#include	<windows.h>
+#include "winterf.h"
+#define sprintf wsprintf
 # else
-# include <stdio.h>
-# define	hInst		0
+#include <stdio.h>
+#define	hInst		0
 # endif
 
-# include	"edfuncs.h"
+#include	"edfuncs.h"
 
 extern	MACRO	*mac_byindex(int i);
 

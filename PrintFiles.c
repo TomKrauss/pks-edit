@@ -12,29 +12,29 @@
  * (c) Pahlen & Krauss
  */
 
-# include <windows.h>
-# include <windowsx.h>
+#include <windows.h>
+#include <windowsx.h>
 
-# include "trace.h"
-# include "editab.h"
-# include "edierror.h"
+#include "trace.h"
+#include "lineoperations.h"
+#include "edierror.h"
 
-# include "winfo.h"
-# include "winterf.h"
+#include "winfo.h"
+#include "winterf.h"
 
 #pragma hdrstop
 
-# include	<string.h>
-# include	<stddef.h>
+#include	<string.h>
+#include	<stddef.h>
 
-# include	"pksedit.h"
-# include	"dial2.h"
-# include	"prt.h"
-# include	"xdialog.h"
+#include	"pksedit.h"
+#include	"dial2.h"
+#include	"printing.h"
+#include	"xdialog.h"
 
-# define	PREVIEWING()		(hwndPreview != 0)
-# define	EVEN(p)			((p & 1) == 0)
-# define	WP_FMTLCHAR		'|'
+#define	PREVIEWING()		(hwndPreview != 0)
+#define	EVEN(p)			((p & 1) == 0)
+#define	WP_FMTLCHAR		'|'
 
 typedef struct tagDEVEXTENTS {
 	int			xPage,yPage;
@@ -528,7 +528,6 @@ typedef VOID (FAR PASCAL *DEVMODEPROC)(HWND, HANDLE, LPSTR, LPSTR);
 #pragma argsused
 BOOL CALLBACK DlgInstallPrtProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	HDC			hdc;
 	HWND			hwndList;
 	HANDLE		hLibrary;
 	DEVMODEPROC	lpfnDM;

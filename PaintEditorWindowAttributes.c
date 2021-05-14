@@ -12,21 +12,21 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include	<windows.h>
-# include 	"trace.h"
-# include 	"edierror.h"
-# include	"editab.h"
-# include	"winfo.h"
+#include	<windows.h>
+#include 	"trace.h"
+#include 	"edierror.h"
+#include	"lineoperations.h"
+#include	"winfo.h"
 
-# define  	ESCAPE		'\033'
+#define  	ESCAPE		'\033'
 
-# define	WP_BOLD		0x1
-# define	WP_LIGHT		0x2
-# define	WP_KURSIVE	0x4
-# define	WP_UNDERLINED	0x8
-# define	WP_SUPER		0x10		/* Text Attributbit Superscript	*/
-# define	WP_SUB		0x20
-# define	HYPHEN		''
+#define	WP_BOLD		0x1
+#define	WP_LIGHT		0x2
+#define	WP_KURSIVE	0x4
+#define	WP_UNDERLINED	0x8
+#define	WP_SUPER		0x10		/* Text Attributbit Superscript	*/
+#define	WP_SUB		0x20
+#define	HYPHEN		''
 
 extern int 	TabStop(int col, LINEAL *l);
 

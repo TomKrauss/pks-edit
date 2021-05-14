@@ -12,11 +12,11 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include	<string.h>
-# include	"editab.h"
-# include	"pksedit.h"
+#include	<string.h>
+#include	"lineoperations.h"
+#include	"pksedit.h"
 
-# define	NFILEMARKS		16
+#define	NFILEMARKS		16
 
 typedef struct filemark {
 	char **curr;
@@ -35,7 +35,7 @@ extern unsigned char* stralloc(unsigned char* buf);
 /*--------------------------------------------------------------------------
  * fm_freepos()
  */
-# define	fm_freepos(p)	destroy(p)
+#define	fm_freepos(p)	destroy(p)
 
 /*--------------------------------------------------------------------------
  * fm_getincr()

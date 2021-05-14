@@ -1,33 +1,33 @@
 
 # ifndef	_EDFUNCS_H
 
-# define	EW_MODIFY		0x1		/* function modifies text */
-# define	EW_NOCASH		0x2		/* dont EdMacroRecord them */
-# define	EW_NEEDSCURRF	0x4		/* needs a current file */
-# define	EW_UNDOFLSH	0x8		/* flush undo buffer before */
-# define	EW_NEEDSBLK	0x10		/* needs a current text block */
-# define	EW_HASFORM	0x20		/* has a formula */
-# define	EW_CCASH		0x40		/* put them into char buffer */
-# define	EW_MULTI		0x80		/* has a Multiplier */
+#define	EW_MODIFY		0x1		/* function modifies text */
+#define	EW_NOCASH		0x2		/* dont EdMacroRecord them */
+#define	EW_NEEDSCURRF	0x4		/* needs a current file */
+#define	EW_UNDOFLSH	0x8		/* flush undo buffer before */
+#define	EW_NEEDSBLK	0x10		/* needs a current text block */
+#define	EW_HASFORM	0x20		/* has a formula */
+#define	EW_CCASH		0x40		/* put them into char buffer */
+#define	EW_MULTI		0x80		/* has a Multiplier */
 
-# define	MAXMOUSEBIND	32
-# define	MAXMAPMOUSE	MAXMOUSEBIND
-# define	MAXMAPKEY		200
-# define	MAXMACRO		64
+#define	MAXMOUSEBIND	32
+#define	MAXMAPMOUSE	MAXMOUSEBIND
+#define	MAXMAPKEY		200
+#define	MAXMACRO		64
 
 #ifndef DIM
-# define	DIM(tab)		(sizeof(tab)/sizeof(tab[0]))
+#define	DIM(tab)		(sizeof(tab)/sizeof(tab[0]))
 #endif
 
-# define	RECORDERSPACE	512
+#define	RECORDERSPACE	512
 
 /* "macro reference" types */
-# define	CMD_NONE		0
-# define	CMD_MENU		0x1
-# define	CMD_CMDSEQ	0x2
-# define	CMD_MACRO		0x3
-# define	CMD_BUFFER	0x4
-# define	CMD_KILLKEY	0x5
+#define	CMD_NONE		0
+#define	CMD_MENU		0x1
+#define	CMD_CMDSEQ	0x2
+#define	CMD_MACRO		0x3
+#define	CMD_BUFFER	0x4
+#define	CMD_KILLKEY	0x5
 
 typedef unsigned char 	MACROREFTYPE;
 typedef unsigned char  	MACROREFIDX;
@@ -47,12 +47,12 @@ typedef unsigned short KEYCODE;
 #define CTL_MARK		'^'
 #define SFT_MARK		'#'
 
-# define	K_SHIFT		0x300
-# define	K_CONTROL		0x400
-# define	K_ALTERNATE	0x800
+#define	K_SHIFT		0x300
+#define	K_CONTROL		0x400
+#define	K_ALTERNATE	0x800
 
-# define	K_DELETED		0x1FFF		/* Impossible Key Combination	*/
-# define	K_INVALID		K_DELETED
+#define	K_DELETED		0x1FFF		/* Impossible Key Combination	*/
+#define	K_INVALID		K_DELETED
 
 typedef struct keymap {
 	KEYCODE		keycode;
@@ -76,34 +76,34 @@ KEYCODE mac_addshift(KEYCODE code);
 
  */
 
-# define	C_STOP		0	/* eof sequence */
-# define	C_0FUNC		0x1	/* Function # (char) */
-# define	C_1FUNC		0x2	/* Function # (char) + 1 int Param */
-# define	C_MACRO		0x3	/* macro "macroname" */
-# define	C_GOTO		0x4	/* (conditionally) goto offset */
-# define	C_TEST		0x6	/* Test: testop p1 p2 */
-# define	C_BINOP		0x7	/* binary operation: binop a b */
-# define	C_ASSIGN		0x8	/* assign: a = stackval */
-# define	C_CREATESYM	0x9	/* create symbol with type and value */
+#define	C_STOP		0	/* eof sequence */
+#define	C_0FUNC		0x1	/* Function # (char) */
+#define	C_1FUNC		0x2	/* Function # (char) + 1 int Param */
+#define	C_MACRO		0x3	/* macro "macroname" */
+#define	C_GOTO		0x4	/* (conditionally) goto offset */
+#define	C_TEST		0x6	/* Test: testop p1 p2 */
+#define	C_BINOP		0x7	/* binary operation: binop a b */
+#define	C_ASSIGN		0x8	/* assign: a = stackval */
+#define	C_CREATESYM	0x9	/* create symbol with type and value */
 
-# define	C_CHAR1PAR	0x10 /* 1 Ascii character follows */
-# define	C_STRING1PAR	0x11	/* 1 string Asciistring\0 follows {pad} */
-# define	C_INT1PAR		0x12 /* pad, 1 int Parameter follows */
-# define	C_LONG1PAR	0x13 /* pad, 1 long Parameter follows */
-# define	C_STRINGVAR	0x14	/* variable reference to string */
-# define	C_LONGVAR		0x15	/* variable reference to long value */
-# define	C_FORMSTART	0x16	/* formular with parameters ... */
-# define	C_DATA		0x17	/* any data ... */
-# define	C_FURET		0x18 /* next function return is saved */
+#define	C_CHAR1PAR	0x10 /* 1 Ascii character follows */
+#define	C_STRING1PAR	0x11	/* 1 string Asciistring\0 follows {pad} */
+#define	C_INT1PAR		0x12 /* pad, 1 int Parameter follows */
+#define	C_LONG1PAR	0x13 /* pad, 1 long Parameter follows */
+#define	C_STRINGVAR	0x14	/* variable reference to string */
+#define	C_LONGVAR		0x15	/* variable reference to long value */
+#define	C_FORMSTART	0x16	/* formular with parameters ... */
+#define	C_DATA		0x17	/* any data ... */
+#define	C_FURET		0x18 /* next function return is saved */
 
-# define	C_IS1PAR(typ)	(typ & 0x10)
-# define	C_ISCMD(typ)	(typ >= C_0FUNC && typ <= C_MACRO)
+#define	C_IS1PAR(typ)	(typ & 0x10)
+#define	C_ISCMD(typ)	(typ >= C_0FUNC && typ <= C_MACRO)
 
-# define	C_NONE			0xFF
+#define	C_NONE			0xFF
 
-# define	FORM_SHOW		0x40	/* form should be opened */
-# define	FORM_INIT		0x1	/* form " and be prefilled */
-# define	FORM_REDRAW	0x2	/* force redraw */
+#define	FORM_SHOW		0x40	/* form should be opened */
+#define	FORM_INIT		0x1	/* form " and be prefilled */
+#define	FORM_REDRAW	0x2	/* force redraw */
 
 int  param_space(unsigned char typ, char *s);
 long param_pop(unsigned char **Sp);
@@ -143,9 +143,9 @@ typedef struct c_createsym {
 	unsigned char	name[1];	/* variable name */
 } COM_CREATESYM;
 
-# define	BRA_ALWAYS		0
-# define	BRA_NE			1
-# define	BRA_EQ			2
+#define	BRA_ALWAYS		0
+#define	BRA_NE			1
+#define	BRA_EQ			2
 
 typedef struct c_goto {
 	unsigned char typ;		/* C_GOTO, C_GOCOND */
@@ -237,12 +237,12 @@ typedef struct macro {
 	unsigned char name[2];
 } MACRO;
 
-# define	MAC_COMMENTLEN		220
-# define	MAC_NAMELEN		32
-# define	MAC_NAME(mp)		((mp)->name)
-# define	MAC_SIZE(size)		((size) + sizeof(MACRO))
-# define	MAC_DATA(mp)		((unsigned char *)mp+mp->dstart)
-# define	MAC_COMMENT(mp)	((unsigned char *)mp+sizeof *mp+mp->namelen)
+#define	MAC_COMMENTLEN		220
+#define	MAC_NAMELEN		32
+#define	MAC_NAME(mp)		((mp)->name)
+#define	MAC_SIZE(size)		((size) + sizeof(MACRO))
+#define	MAC_DATA(mp)		((unsigned char *)mp+mp->dstart)
+#define	MAC_COMMENT(mp)	((unsigned char *)mp+sizeof *mp+mp->namelen)
 
 /*
  * MENUS ---------------------------------------------------------------
@@ -256,13 +256,13 @@ typedef struct menu {
 	unsigned 		index;			/* points to cmdseqtab */
 } MENUBIND;
 
-# define	MAX_MENU_STRING	30
+#define	MAX_MENU_STRING	30
 
-# define	UM_ITEM		MF_STRING		/* "normal" item */
-# define	UM_SEPARATOR	MF_SEPARATOR	/* --------- */
-# define	UM_POPUP		MF_POPUP		/* -> popup */
-# define	UM_ENDPOPUP	-1			/* terminates popup in linear menu chain */
-# define	UM_ENDMENU	-2
+#define	UM_ITEM		MF_STRING		/* "normal" item */
+#define	UM_SEPARATOR	MF_SEPARATOR	/* --------- */
+#define	UM_POPUP		MF_POPUP		/* -> popup */
+#define	UM_ENDPOPUP	-1			/* terminates popup in linear menu chain */
+#define	UM_ENDMENU	-2
 
 typedef struct tagUSERMENUBIND {
 	int			type;
@@ -278,20 +278,20 @@ typedef struct tagUSERMENUBIND {
 /*
  * icon values used for the call...
  */
-# define	IPCF_NONE				0
-# define	IPCF_DROPCHAR			0x1
-# define	IPCF_DROPHWND			0x2
-# define	IPCF_DROPSTRING1		0x4
-# define	IPCF_DROPSTRING2		0x8
-# define	IPCF_DROPLONG1			0x10
-# define	IPCF_DROPLONG2			0x20
-# define	IPCF_SRCCHAR			0x100
-# define	IPCF_SRCHWND			0x200
-# define	IPCF_SRCSTRING1		0x400
-# define	IPCF_SRCSTRING2		0x800
-# define	IPCF_SRCLONG1			0x1000
-# define	IPCF_SRCLONG2			0x2000
-# define	IPCF_USERDEF			0x4000
+#define	IPCF_NONE				0
+#define	IPCF_DROPCHAR			0x1
+#define	IPCF_DROPHWND			0x2
+#define	IPCF_DROPSTRING1		0x4
+#define	IPCF_DROPSTRING2		0x8
+#define	IPCF_DROPLONG1			0x10
+#define	IPCF_DROPLONG2			0x20
+#define	IPCF_SRCCHAR			0x100
+#define	IPCF_SRCHWND			0x200
+#define	IPCF_SRCSTRING1		0x400
+#define	IPCF_SRCSTRING2		0x800
+#define	IPCF_SRCLONG1			0x1000
+#define	IPCF_SRCLONG2			0x2000
+#define	IPCF_USERDEF			0x4000
 
 typedef struct iconbind {
 	unsigned char id,dropped;	/* icon types - src and dest */
@@ -303,10 +303,10 @@ typedef struct iconbind {
  * MOUSEBUTTONS -----------------------------------------------------------
  */
 
-# define	MBUT_L	0x1
-# define	MBUT_R	0x2
-# define	MBUT_M	0x4
-# define	MBUT_RL	(MBUT_L|MBUT_R)
+#define	MBUT_L	0x1
+#define	MBUT_R	0x2
+#define	MBUT_M	0x4
+#define	MBUT_RL	(MBUT_L|MBUT_R)
 
 typedef struct tagMOUSECODE {
 	unsigned	button  : 4,
@@ -330,7 +330,7 @@ typedef struct mousebind {
 	char *		msg;					/* optional message */
 } MOUSEBIND;
 
-# define	MO_FINDCURS		0x1
+#define	MO_FINDCURS		0x1
 
 /*
  *  ALL BINDING INFORMATIONS ----------------------------------------------
@@ -363,18 +363,18 @@ extern char		_recorder[];
 extern unsigned char _cfdisable[],_blkdisable[],_rdodisable[];
 extern KEYBIND		_cmdorig[];
 
-# define	IDM_CMDNAME		1024
-# define	IDM_CMDCOMMENT		1270
-# define	IDM_LOWFUNCNAME	2048
-# define	IDM_LOWENUMNAME	2512
+#define	IDM_CMDNAME		1024
+#define	IDM_CMDCOMMENT		1270
+#define	IDM_LOWFUNCNAME	2048
+#define	IDM_LOWENUMNAME	2512
 
 /*
  *  PARAMETERS (RECORDING DIALOGS) ---------------------------------------
  */
 void param_push(char flag, long par);
 
-# define	P_MAYOPEN				0x1
-# define	P_MAYPRE				0x2
+#define	P_MAYOPEN				0x1
+#define	P_MAYPRE				0x2
 
 typedef struct des {
 	char		cmd_type;
@@ -396,6 +396,6 @@ int	param_EdMacroRecord(PARAMS *p);
 int	param_dialopen(PARAMS *p);
 int cdecl do_func(int num, long p1, long p2, void *s1, void *s2, void *s3);
 
-# define	_EDFUNCS_H
+#define	_EDFUNCS_H
 # endif
 

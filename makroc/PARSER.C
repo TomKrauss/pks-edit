@@ -72,29 +72,29 @@
 #line 39 "parser.y"
 
 
-# include	<windows.h>
-# include	<stdio.h>
-# include	"edfuncs.h"
-# include "scanner.h"
-# include	"test.h"
-# include	"binop.h"
-# include	"pkscc.h"
-# include "sym.h"
+#include	<windows.h>
+#include	<stdio.h>
+#include	"edfuncs.h"
+#include "scanner.h"
+#include	"test.h"
+#include	"binop.h"
+#include	"pkscc.h"
+#include "sym.h"
 
-# define 	YYSTYPE _YYSTYPE
-# define 	STRINGTYPE(type)	((type == C_STRING1PAR||type == C_STRINGVAR) ? \
+#define 	YYSTYPE _YYSTYPE
+#define 	STRINGTYPE(type)	((type == C_STRING1PAR||type == C_STRINGVAR) ? \
 							CT_STRING : CT_NUM)
-# define 	ISCONSTINT(t)		(t == C_LONG1PAR|| t == C_INT1PAR || \
+#define 	ISCONSTINT(t)		(t == C_LONG1PAR|| t == C_INT1PAR || \
 						 t == C_CHAR1PAR)
-# define	ISVARINT(t)		(t == C_LONGVAR)
+#define	ISVARINT(t)		(t == C_LONGVAR)
 
-# define 	MAXEXPR			12
+#define 	MAXEXPR			12
 
-# define	MODE_OVERRIDE		0
-# define	MODE_AUGMENT		1
-# define	MODE_REPLACE		2
+#define	MODE_OVERRIDE		0
+#define	MODE_AUGMENT		1
+#define	MODE_REPLACE		2
 
-# define	REC_SPACE			24000
+#define	REC_SPACE			24000
 
 static unsigned char *_recspace;
 unsigned char *_recp;

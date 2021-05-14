@@ -10,11 +10,11 @@
  *
  */
 
-# include	<string.h>
+#include	<string.h>
 
-# include	"editab.h"
-# include	"project.h"
-# include	"pathname.h"
+#include	"lineoperations.h"
+#include	"project.h"
+#include	"pathname.h"
 
 extern void *	prof_llinsert(void *Head, int size, 
 				char *group, char *item, char **idata);

@@ -4,6 +4,8 @@
 
 # ifndef 	_WINFO_H
 
+#include "editorfont.h"
+
 typedef struct tagGRECT {
 	int g_x,g_y,g_w,g_h;
 } GRECT;
@@ -14,20 +16,20 @@ typedef struct tagFSTYLE {
 	WORD mode,style;
 } FSTYLE;
 
-# define	FS_BMARKED		0
-# define	FS_XMARKED		1
+#define	FS_BMARKED		0
+#define	FS_XMARKED		1
 
 /*---- Window-Description --*/
 
-# define WIN_ICONIC			0
-# define WIN_OPEN			1
+#define WIN_ICONIC			0
+#define WIN_OPEN			1
 
-# define SC_THUMBTRACK		0x1
-# define SC_CURSORCATCH		0x2
+#define SC_THUMBTRACK		0x1
+#define SC_CURSORCATCH		0x2
 
-# define CP_POSTOP			0x0 		/* pos cursor on window after */
-# define CP_POSMID			0x1 		/* long pos jumps */
-# define CP_POSLOW			0x2 		/* " */
+#define CP_POSTOP			0x0 		/* pos cursor on window after */
+#define CP_POSMID			0x1 		/* long pos jumps */
+#define CP_POSLOW			0x2 		/* " */
 
 typedef struct wininfo {
 	struct wininfo *next;
@@ -65,6 +67,6 @@ typedef struct wininfo {
 
 int ww_blkcolomn(WINFO *wp);
 
-# define	_WINFO_H
+#define	_WINFO_H
 #endif	_WINFO_H
 

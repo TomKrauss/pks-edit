@@ -15,7 +15,7 @@
  */
 
 #include <windows.h>
-#include "editab.h"
+#include "lineoperations.h"
 #include "trace.h"
 #include "winfo.h"
 #include "edierror.h"
@@ -177,8 +177,7 @@ int sl_scrollwinrange(WINFO *wp,long *DY, long *DX)
 /*-----------------------------------------------------------
  * sl_winchanged()
  */
-void sl_winchanged(WINFO *wp,long dy, long dx)
-{ 	long ln,col;
+void sl_winchanged(WINFO *wp,long dy, long dx) { 	
 	int  my = ((int)(wp->maxln - wp->minln) >> 1);
 	int  mx = ((int)(wp->maxcol - wp->mincol) >> 1);
 

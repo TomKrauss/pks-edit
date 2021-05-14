@@ -14,21 +14,21 @@
  * 								Author: TOM
  */
 
-# include <windows.h>
-# include "trace.h"
-# include "editab.h"
-# include "edierror.h"
-# include "winfo.h"
-# include "winterf.h"
-# include "pksedit.h"
-# include "context.h"
-# include "iccall.h"
+#include <windows.h>
+#include "trace.h"
+#include "lineoperations.h"
+#include "edierror.h"
+#include "winfo.h"
+#include "winterf.h"
+#include "pksedit.h"
+#include "context.h"
+#include "iccall.h"
 
-# define	WT_WORKWIN		0
-# define	WT_RULERWIN		1
-# define	GWL_FTABLE		GWL_ICCLASSVALUES+sizeof(LONG)
+#define	WT_WORKWIN		0
+#define	WT_RULERWIN		1
+#define	GWL_FTABLE		GWL_ICCLASSVALUES+sizeof(LONG)
 
-# define	PROF_OFFSET		1
+#define	PROF_OFFSET		1
 
 typedef struct xywh {
 	int x,y,w,h;
@@ -929,8 +929,6 @@ WINFUNC WorkAreaWndProc(
 	LPARAM lParam
 	)
 {    FTABLE *	fp;
-	RECT		rect;
-	RECT		rectDaddy;
 
 	switch(message) {
 	case WM_CREATE:

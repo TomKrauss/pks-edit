@@ -30,6 +30,6 @@ typedef struct matchbox BRACKET;
 extern void key_globs(BRACKET **bp, PASTELIST **pp[], UCLIST **up);
 # endif
 
-# define	BRACKETS_H
+#define	BRACKETS_H
 # endif
 

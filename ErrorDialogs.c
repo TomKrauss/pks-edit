@@ -14,17 +14,18 @@
 #include <windows.h>
 
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "edierror.h"
+#include "errordialogs.h"
 
 #include "winfo.h"
 #include "winterf.h"
 
 # pragma hdrstop
 
-# include <stdarg.h>
-# include "dial2.h"
-# include	"pksedit.h"
+#include <stdarg.h>
+#include "dial2.h"
+#include "pksedit.h"
 
 extern char *	AbbrevName(char *fn);
 extern void 	st_seterrmsg(char *msg);
@@ -119,7 +120,7 @@ void Panic(LPSTR s)
 /*------------------------------------------------------------
  * DlgError()
  */
-# define	NSEC		5		/* stay open maximum 10 seconds */
+#define	NSEC		5		/* stay open maximum 10 seconds */
 #pragma argsused
 static HWND hwndError;
 static UINT idTimer;
@@ -159,11 +160,12 @@ BOOL CALLBACK DlgError(HWND hDlg,UINT message,WPARAM wParam, LPARAM lParam)
 /*------------------------------------------------------------
  * ShowError()
  */
-void ShowError(LPSTR fmt, va_list ap)
+void ShowError(LPSTR fmt, ...)
 { 	static FARPROC lpfnDlgProc;
 	char buf[256];
 
-
+	va_list ap;
+	va_start(ap, fmt);
 	wvsprintf(buf,fmt,ap);
 	st_seterrmsg(buf);
 	st_update();

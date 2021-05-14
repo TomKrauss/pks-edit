@@ -13,19 +13,20 @@
  *
  * 								Author: TOM
  */
-# include <windows.h>
+#include <windows.h>
 
-# include	"winterf.h"
-# include "trace.h"
-# include "editab.h"
-# include "winfo.h"
+#include "winterf.h"
+#include "trace.h"
+#include "lineoperations.h"
+#include "winfo.h"
+#include "errordialogs.h"
 
-# include "pksedit.h"
-# include	"dial2.h"
+#include "pksedit.h"
+#include "dial2.h"
 
 extern int	_playing;
 
-HWND 		hwndAbort;
+HWND hwndAbort;
 
 static FARPROC lpfnAbort;
 static int  	_aborted;

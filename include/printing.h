@@ -1,7 +1,15 @@
-/*
- * prt.h: Print Interface
+ /*
+ * printing.h
+ *
+ * Print Interface for PKS Edit
+ *
+ * PROJECT: PKSEDIT
+ *
+ * (c) Pahlen & Krauﬂ					Author : TOM
+ * All Rights Reserved.					created: 03.04.1991
+ *
  */
- 
+
 #ifndef	PRT_H
 
 typedef struct tagFONTSPEC {

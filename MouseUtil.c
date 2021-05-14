@@ -12,16 +12,17 @@
 #include <windows.h>
 #include <windowsx.h>
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "edierror.h"
+#include "errordialogs.h"
 
 #include "winfo.h"
 #include "winterf.h"
 #include "edfuncs.h"
 #include "pksedit.h"
 #include "functab.h"
-# include	"iccall.h" 
-# include	"resource.h"
+#include "iccall.h" 
+#include "resource.h"
 
 static HCURSOR   hHourGlass;		// Hour glass cursor
 static HCURSOR   hSaveCurs;

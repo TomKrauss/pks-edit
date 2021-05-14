@@ -15,12 +15,12 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include <tos.h>
-# include	"editab.h"
-# include	"project.h"
-# include	"edifsel.h"
-# include "edierror.h"
-# include	"pksedit.h"
+#include "tos.h"
+#include	"lineoperations.h"
+#include	"project.h"
+#include	"edifsel.h"
+#include "edierror.h"
+#include	"pksedit.h"
 
 typedef struct tagLINLIST {
 	struct tagLINLIST *	ll_next;
@@ -68,7 +68,7 @@ static int     _linealid = LIN_DEFCTX;
 static int	_ndoctypes;
 FSELINFO 		_linfsel = {	"", "DEFAULT.LIN", "*.LIN" };
 
-# define	LINSPACE			((long )&(((LINEAL *)0)->ts))
+#define	LINSPACE			((long )&(((LINEAL *)0)->ts))
 
 /*--------------------------------------------------------------------------
  * TabStop()

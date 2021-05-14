@@ -10,18 +10,18 @@
  *									
  */
 
-/* # define	DEBUG */
+/* #define	DEBUG */
 
-# include	<stdio.h>
-# include	<string.h>
+#include	<stdio.h>
+#include	<string.h>
 
-# include	"edfuncs.h"
-# include	"regcmp.h"
-# include	"pksmod.h"
-# include	"test.h"
-# include	"binop.h"
-# include "sym.h"
-# include "pkscc.h"
+#include "edfuncs.h"
+#include "regexp.h"
+#include "pksmod.h"
+#include "test.h"
+#include "binop.h"
+#include "sym.h"
+#include "pkscc.h"
 
 extern long 	param_pop(unsigned char **sp);
 extern long 	do_macfunc(unsigned char **sp,unsigned char *spend);

@@ -16,7 +16,7 @@
 #include <dos.h>
 
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "edierror.h"
 
 #include "winfo.h"
@@ -24,10 +24,10 @@
 
 #pragma hdrstop
 
-# include "edifsel.h"
-# include "pksedit.h"
+#include "edifsel.h"
+#include "pksedit.h"
 
-# define	PROF_OFFSET		1
+#define	PROF_OFFSET		1
 
 extern int  _findopt,_nundo,_asminutes;
 extern char _aspath[256];

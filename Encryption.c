@@ -4,18 +4,18 @@
  * implementation of DES algorithm
  *
  *
- * 3 modes: see des.h
+ * 3 modes: see encryption.h
  *
  * written 12 Dec 1986 by Phil Karn, KA9Q; large sections adapted from
  * the 1977 public-domain program by Jim Gillogly
  */
 
-# include	"des.h"
-# include	<string.h>
-# include	<malloc.h>
+#include	"encryption.h"
+#include	<string.h>
+#include	<malloc.h>
 
-# define	NULL	0
-# define	LITTLE_ENDIAN		1
+#define	NULL	0
+#define	LITTLE_ENDIAN		1
 
 # ifdef	LITTLE_ENDIAN
 unsigned long byteswap();

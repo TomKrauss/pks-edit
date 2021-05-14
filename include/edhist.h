@@ -12,7 +12,7 @@
 
 # ifndef EDHIST_H
 
-# define	MAXHIST 	32
+#define	MAXHIST 	32
 
 struct history {
 	char *s[MAXHIST];
@@ -33,7 +33,7 @@ extern char *hist_getstring(struct history *hp, int nItem);
 *--------------------------------------------*/
 extern unsigned char* blfill(unsigned char* buf, int count, unsigned char fillbyte);
 
-# define	EDHIST_H
+#define	EDHIST_H
 # endif	/* EDHIST_H */
 
 

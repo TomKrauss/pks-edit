@@ -15,7 +15,7 @@
 #include <windows.h>
 
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "edierror.h"
 
 #include "winfo.h"
@@ -173,7 +173,7 @@ termline:
 		}
 		while (i < end && s < send) {
 			if (*s >= ' ') {
-normal:			*d++ = *s++;
+				*d++ = *s++;
 				i++;
 			} else {
 				if (*s != '\t') {
@@ -230,7 +230,6 @@ static void redraw_indirect(HDC hdc, WINFO *wp, int y, LINE *lp)
 	int		nWidth;
 	DWORD	dwExtent;
 	char 	buf[100];
-	int 		p[4];
 
 	wsprintf(buf," skipped %ld... ", (long)LpIndNTotal(lp));
 

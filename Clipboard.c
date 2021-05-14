@@ -14,10 +14,10 @@
  * 								Author: TOM
  */
 
-# include <windows.h>
-# include "winterf.h"
-# include "editab.h"
-# include	"pksedit.h"
+#include <windows.h>
+#include "winterf.h"
+#include "lineoperations.h"
+#include "pksedit.h"
 
 extern void				nomemory(void);
 extern PASTE *			bl_addrbyid(int id,int insert);

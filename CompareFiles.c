@@ -19,12 +19,12 @@
 #include "trace.h"
 
 #include "winterf.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "winfo.h"
-# include	"pksedit.h"
+#include	"pksedit.h"
 
-# define	different(lp1,lp2)	cmpnormal(lp1->lbuf,lp1->len,lp2->lbuf,lp2->len)
-# define	mark(lp)			lp->lflg |= LNXMARKED
+#define	different(lp1,lp2)	cmpnormal(lp1->lbuf,lp1->len,lp2->lbuf,lp2->len)
+#define	mark(lp)			lp->lflg |= LNXMARKED
 
 extern LINE 	*ln_findbit(LINE *lp, int bit);
 extern FTABLE	*ww_stackwi(int num);

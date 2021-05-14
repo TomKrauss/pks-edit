@@ -14,7 +14,7 @@
  * 								Author: TOM
  */
  
-#include "editab.h"
+#include "edtypes.h"
  
 extern unsigned char 	_l2uset[256],
 					_u2lset[256];

@@ -15,22 +15,22 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include	<windows.h>
-# include "trace.h"
-# include	"editab.h"
-# include	"winfo.h"
-# include	"edierror.h"
-# include	"regcmp.h"
-# include	"uc.h"
-# include	"brackets.h"
-# include	"pksedit.h"
+#include	<windows.h>
+#include "trace.h"
+#include	"lineoperations.h""
+#include	"winfo.h"
+#include	"edierror.h"
+#include	"regexp.h"
+#include	"uc.h"
+#include	"brackets.h"
+#include	"pksedit.h"
+#include	"publicapi.h"
 
 /*--------------------------------------------------------------------------
  * EXTERNALS
  */
 
 extern FTABLE	*_currfile;
-extern LINE	*ln_modify();
 extern long	_multiplier;
 extern long	ln_cnt(LINE *lps,LINE *lpe);
 extern LINE 	*ln_gotouserel(FTABLE *fp,long ln);

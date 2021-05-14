@@ -10,22 +10,22 @@
  *									
  */
 
-# define	PASTELIST		void
+#define	PASTELIST		void
 
-# include	<stdio.h>
-# include <string.h>
-# include <stdlib.h>
-# include <windows.h>
-# include "winterf.h"
-# include "edfuncs.h"
-# include	"pksmod.h"
+#include	<stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <windows.h>
+#include "winterf.h"
+#include "edfuncs.h"
+#include	"pksmod.h"
 
-# include "pkscc.h"
-# include "funcdef.h"
-# include	"uc.h"
-# include	"brackets.h"
+#include "pkscc.h"
+#include "funcdef.h"
+#include	"uc.h"
+#include	"brackets.h"
 
-# include "resource.h"
+#include "resource.h"
 
 #if defined(WIN32)
 #define	_Windows

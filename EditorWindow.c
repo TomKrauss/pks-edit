@@ -15,12 +15,12 @@
  */
 
 
-# include <windows.h>
+#include <windows.h>
 # pragma hdrstop
 
-# include	"editab.h"
-# include "winfo.h"
-# include "trace.h"
+#include	"lineoperations.h"
+#include "winfo.h"
+#include "trace.h"
 
 #define MAXCOL		FBUFSIZE/2
 
@@ -77,10 +77,9 @@ void UpdateOwnCaret(WINFO *wp, HDC hdc)
 static struct olc {
 	int type,width;
 } _olcurs = { 0, 1 };
-void updatecursor(WINFO *wp)
-{
+void updatecursor(WINFO *wp) {
 	struct olc *op = &_olcurs;
-	int x,y,type;
+	int type;
 
 	type = wp->ctype;
 	if (type) {

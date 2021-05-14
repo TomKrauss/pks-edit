@@ -10,16 +10,16 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include	<windows.h>
-# include	<tos.h>
-# include	<string.h>
-# include	<sys\types.h>
-# include	<sys\stat.h>
-# include	<io.h>
-# include	"winterf.h"
-# include	"editab.h"
-# include	"pksedit.h"
-
+#include <windows.h>
+#include <tos.h>
+#include <string.h>
+#include <sys\types.h>
+#include <sys\stat.h>
+#include <io.h>
+#include "winterf.h"
+#include "lineoperations.h"
+#include "pksedit.h"
+#include "errordialogs.h"
 
 extern char *lstrchr(char *s, char c);
 extern char *basename(char *fn);
@@ -36,7 +36,7 @@ static char 	_found[1024];
 
 #if defined(WIN32)
 
-# define	dostat(s)	(EdStat(s) == 0)
+#define	dostat(s)	(EdStat(s) == 0)
 static struct _finddata_t _dta;
 
 /*--------------------------------------------------------------------------
@@ -102,7 +102,7 @@ EXPORT int EdIsDir(char *s)
 }
 
 #else
-# define	dostat(s)	(EdStat(s, 0xFF) == 0)
+#define	dostat(s)	(EdStat(s, 0xFF) == 0)
 static struct  ffblk _dta;
 
 /*--------------------------------------------------------------------------

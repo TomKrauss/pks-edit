@@ -15,21 +15,22 @@
 #include <windows.h>
 
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "edierror.h"
+#include "errordialogs.h"
 
 #include "winfo.h"
 #include "winterf.h"
 
 # pragma hdrstop
 
-# include <tos.h>
-# include	"pksedit.h"
+#include <tos.h>
+#include	"pksedit.h"
 
 # if 0
-# include	"iccall.h"
+#include	"iccall.h"
 
-# define	FULLSELECTED	CHECKED		/* selected, cause not empty */
+#define	FULLSELECTED	CHECKED		/* selected, cause not empty */
 # endif
 
 /*--------------------------------------------------------------------------

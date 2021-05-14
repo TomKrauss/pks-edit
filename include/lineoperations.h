@@ -1,25 +1,35 @@
-/*********************************************************************/
-/* EDITAB.H									VERS 24.10.88 */
-/* FILETABLE-DECLARATIONS for PKS-EDIT				crea. TOM     */
-/*********************************************************************/
+/*
+ * lineoperations.h
+ *
+ * PROJEKT: PKS-EDIT for ATARI - GEM
+ *
+ * maintain list of lines: delete, insert, modify,....
+ *
+ * 										created      : 10.02.87
+ * 										last modified:
+ *										author	   : TOM
+ *
+ * (c) Pahlen & Krauﬂ
+ */
 
 
 # ifndef	EDITAB_H
-# define	EDITAB_H
-# include   <crtdefs.h>
-# include	<edtypes.h>
+#define	EDITAB_H
+#include   <crtdefs.h>
+#include	"edtypes.h"
+#include "editorfont.h"
 
-# define	ED_VERSION	0x20
+#define	ED_VERSION	0x20
 
-# define	LN_ALIGN		2		/* make sure a small linebuffer 	 */
-# define	FBUFSIZE		8192		/* maximum filebuffer- and linesize */
+#define	LN_ALIGN		2		/* make sure a small linebuffer 	 */
+#define	FBUFSIZE		8192		/* maximum filebuffer- and linesize */
 
-# define	LINEBUFSIZE		2*FBUFSIZE+160	/* sizeof of _linebuf		 */
-# define	MAXLINELEN		4096
+#define	LINEBUFSIZE		2*FBUFSIZE+160	/* sizeof of _linebuf		 */
+#define	MAXLINELEN		4096
 
-# define	MAXUNDO		10		/* maximum of UNDO-Buffers avail	 */
-# define	MAXSHIFT		36		/* maximum shiftwidth 			 */
-# define	RM_DELTA		2		/* delta to automatic right margin  */
+#define	MAXUNDO		10		/* maximum of UNDO-Buffers avail	 */
+#define	MAXSHIFT		36		/* maximum shiftwidth 			 */
+#define	RM_DELTA		2		/* delta to automatic right margin  */
 
 /*-------- TYPES --------------*/
 
@@ -42,19 +52,19 @@ typedef struct tagLINEINDIRECT {
 	} u;
 } LINEINDIRECT;
 
-# define	LI_HIDDENLIST		0x0
-# define	LI_RULER			0x10
+#define	LI_HIDDENLIST		0x0
+#define	LI_RULER			0x10
 
-# define	LpIndirect(lp)		((LINEINDIRECT *)(lp)->lbuf)
-# define	LpIndirectTyp(lp)	((LINEINDIRECT *)(lp)->lbuf)->typ
-# define	LpIndHiddenList(lp)	LpIndirect(lp)->u.ind.list
-# define	LpIndNHidden(lp) 	LpIndirect(lp)->u.ind.count
-# define	LpIndNTotal(lp) 	LpIndirect(lp)->u.ind.deepCount
-# define	LpHasHiddenList(lp)	(((lp)->lflg & LNINDIRECT) && \
+#define	LpIndirect(lp)		((LINEINDIRECT *)(lp)->lbuf)
+#define	LpIndirectTyp(lp)	((LINEINDIRECT *)(lp)->lbuf)->typ
+#define	LpIndHiddenList(lp)	LpIndirect(lp)->u.ind.list
+#define	LpIndNHidden(lp) 	LpIndirect(lp)->u.ind.count
+#define	LpIndNTotal(lp) 	LpIndirect(lp)->u.ind.deepCount
+#define	LpHasHiddenList(lp)	(((lp)->lflg & LNINDIRECT) && \
 							LpIndirectTyp(lp) == LI_HIDDENLIST)
 
-# define	LSTRUCSIZE		(sizeof(LINE) - LN_ALIGN)
-# define	LINESIZE(l) 	((long)(LSTRUCSIZE + l->len)) 	 
+#define	LSTRUCSIZE		(sizeof(LINE) - LN_ALIGN)
+#define	LINESIZE(l) 	((long)(LSTRUCSIZE + l->len)) 	 
 
 extern char * _linebuf;
 
@@ -76,13 +86,13 @@ typedef struct pastelist {
 /*---------------------------------*/
 /* EDIT-OPS					*/
 /*---------------------------------*/
-# define	O_MODIFY			0		/* modify a line */
-# define	O_INSERT			1		/* insert a line */
-# define	O_DELETE			2		/* EdCharDelete a line */
-# define	O_MARK			3		/* mark a textblock */
-# define	O_LNORDER		4		/* reorder linelist according to a table */
-# define	O_HIDE			5		/* hide a list of lines */
-# define	O_UNHIDE			6		/* unhide a list of lines */
+#define	O_MODIFY			0		/* modify a line */
+#define	O_INSERT			1		/* insert a line */
+#define	O_DELETE			2		/* EdCharDelete a line */
+#define	O_MARK			3		/* mark a textblock */
+#define	O_LNORDER		4		/* reorder linelist according to a table */
+#define	O_HIDE			5		/* hide a list of lines */
+#define	O_UNHIDE			6		/* unhide a list of lines */
 
 /*---------------------------------*/
 /* MARKS						*/
@@ -96,36 +106,23 @@ typedef struct mark {
 
 /* special marks */
 
-# define	CNOMARK		0x00		/* release mark without freeing it */
-# define	MARKSTART		0x100	/* cut&paste - start */
-# define	MARKEND		0x101	/*	  "	   - end */
+#define	CNOMARK		0x00		/* release mark without freeing it */
+#define	MARKSTART		0x100	/* cut&paste - start */
+#define	MARKEND		0x101	/*	  "	   - end */
 
-# define	MARKSELSTART	0x102
-# define	MARKSELEND		0x103
+#define	MARKSELSTART	0x102
+#define	MARKSELEND		0x103
 
-# define	MARKDOT		0x104
+#define	MARKDOT		0x104
 
 /*---------------------------------*/
 /* LINEAL						*/
 /*---------------------------------*/
-# define	fnt_name		fnt.name
-# define	fnt_point		fnt.point
-# define	fnt_fgcolor	fnt.fgcolor
-# define	fnt_bgcolor	fnt.bgcolor
-# define	fnt_charset	fnt.charset
-
-typedef struct tagEDFONT {
-	char			name[32];
-	short		point;
-	short		weight;
-	long			fgcolor;
-	long			bgcolor;
-	short		charset;
-	short		width;
-	short		strikeout;
-	char			bOem;
-	char			res1;
-} EDFONT;
+#define	fnt_name		fnt.name
+#define	fnt_point		fnt.point
+#define	fnt_fgcolor	fnt.fgcolor
+#define	fnt_bgcolor	fnt.bgcolor
+#define	fnt_charset	fnt.charset
 
 #if defined(_WINUSER_)
 typedef struct lineal {
@@ -163,14 +160,14 @@ extern LINEAL _lineal;
 
 extern char 	bittab[];
 
-# define	TABTHERE(lin,i)		(lin->tbits[i >> 3] &  bittab[i & 07])
-# define	TABPLACE(lin,i)		(lin)->tbits[i >> 3] |= bittab[i & 07]
-# define	TABCLEAR(lin,i)		(lin)->tbits[i >> 3] &= (~bittab[i & 07])
+#define	TABTHERE(lin,i)		(lin->tbits[i >> 3] &  bittab[i & 07])
+#define	TABPLACE(lin,i)		(lin)->tbits[i >> 3] |= bittab[i & 07]
+#define	TABCLEAR(lin,i)		(lin)->tbits[i >> 3] &= (~bittab[i & 07])
 
 /* default Lineal context (Makros are global) */
-# define	LIN_DEFCTX	0
-# define	LIN_NOCTX		-1
-# define	LIN_NOTYETREAD(lp)	(lp->lmargin == -1)
+#define	LIN_DEFCTX	0
+#define	LIN_NOCTX		-1
+#define	LIN_NOTYETREAD(lp)	(lp->lmargin == -1)
 
 typedef time_t EDTIME;
 
@@ -179,8 +176,8 @@ typedef time_t EDTIME;
 /*---------------------------------*/
 typedef void * HIDDENP;
 
-# define	WIPOI(fp)	((WINFO*)fp->wp)
-# define	UNDOPOI(fp)	((UNDOBLOCK*)fp->undo)
+#define	WIPOI(fp)	((WINFO*)fp->wp)
+#define	UNDOPOI(fp)	((UNDOBLOCK*)fp->undo)
 
 typedef struct ftable 
 {
@@ -252,36 +249,36 @@ long ln_needbytes(LINE *lp, int nl, int cr);
 
 /*-------- FILE FLAGS ----------*/
 
-# define	F_INUSE			0x01 	/* Mark filestructure as used	  */ 
-# define	F_MODIFIED			0x02 	/* File has been modfied 	  */
-# define	F_NEWFILE			0x04 	/* new File to be created	  */
-# define	F_APPEND			0x08 	/* append to existing File	  */
-# define	F_NORMOPEN			0x10 	/* normal File 			  */
-# define	F_SAVEAS			0x20 	/* File is saved under new name */
-# define	F_WFORCED			0x40 	/* Forced writing, if not mod.  */
-# define	F_ISBACKUPPED		0x80		/* Backup already created	  */
-# define	F_STDLINEAL			0x200	/* Use a reasonable standard lineal */
-# define	F_HASWIN			0x400	/* file has an associated window */
-# define	F_NEEDSAUTOSAVE		0x800 	/* File is not autosaved 	  */
-# define	F_HIDDEN			0x1000	/* create File hidden		  */
-# define	F_RDONLY			0x2000	/* create File read only		  */
-# define	F_ISHELPFILE		0x4000	/* File is a Help Window File   */
-# define	F_CHANGEMARK		(F_NEEDSAUTOSAVE|F_MODIFIED)
+#define	F_INUSE			0x01 	/* Mark filestructure as used	  */ 
+#define	F_MODIFIED			0x02 	/* File has been modfied 	  */
+#define	F_NEWFILE			0x04 	/* new File to be created	  */
+#define	F_APPEND			0x08 	/* append to existing File	  */
+#define	F_NORMOPEN			0x10 	/* normal File 			  */
+#define	F_SAVEAS			0x20 	/* File is saved under new name */
+#define	F_WFORCED			0x40 	/* Forced writing, if not mod.  */
+#define	F_ISBACKUPPED		0x80		/* Backup already created	  */
+#define	F_STDLINEAL			0x200	/* Use a reasonable standard lineal */
+#define	F_HASWIN			0x400	/* file has an associated window */
+#define	F_NEEDSAUTOSAVE		0x800 	/* File is not autosaved 	  */
+#define	F_HIDDEN			0x1000	/* create File hidden		  */
+#define	F_RDONLY			0x2000	/* create File read only		  */
+#define	F_ISHELPFILE		0x4000	/* File is a Help Window File   */
+#define	F_CHANGEMARK		(F_NEEDSAUTOSAVE|F_MODIFIED)
 
 /*---------- LINEFLAGS ---------*/
 
-# define	LNMARKED			0x01 	/* at least one lineposition marked */
-# define	LNDIFFMARK		0x02 	/* Mark for last EdFilesCompare action */
-# define	LNREPLACED		0x04 	/* something in line has been replaced */
-# define	LNCPMARKED		0x08 	/* Line is within CUT&PASTE-Block	 */
-# define	LNNOCR			0x10		/* mark not chapter lines */
-# define	LNINDIRECT		0x20		/* indirect flag */
-# define	LNNOTERM			0x40		/* unterminated line */
-# define	LNXMARKED			0x80		/* marked for EdCharDelete ...	*/
+#define	LNMARKED			0x01 	/* at least one lineposition marked */
+#define	LNDIFFMARK		0x02 	/* Mark for last EdFilesCompare action */
+#define	LNREPLACED		0x04 	/* something in line has been replaced */
+#define	LNCPMARKED		0x08 	/* Line is within CUT&PASTE-Block	 */
+#define	LNNOCR			0x10		/* mark not chapter lines */
+#define	LNINDIRECT		0x20		/* indirect flag */
+#define	LNNOTERM			0x40		/* unterminated line */
+#define	LNXMARKED			0x80		/* marked for EdCharDelete ...	*/
 
 /*---- SIZE OF EXPRESSION BUFFERS -----------------------------*/
 
-# define	ESIZE		200		 	/* maximum Expressionsize		 */
+#define	ESIZE		200		 	/* maximum Expressionsize		 */
 
 #ifndef 	DIM
 #define	DIM(x)		(sizeof(x)/sizeof(x[0]))
@@ -290,8 +287,6 @@ long ln_needbytes(LINE *lp, int nl, int cr);
 #ifndef HIDDEN
 #define HIDDEN		0x2
 #endif
-
-#define EXPORT		/**/
 
 /* far modell pointer compare ... bargh..! */
 #define P_GT(p1,p2)		((void EDFAR*)(p1) > (void EDFAR*)(p2))

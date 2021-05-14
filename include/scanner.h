@@ -11,7 +11,7 @@
  */
 
 # ifndef SETLEX_H
-# define SETLEX_H
+#define SETLEX_H
 
 #define LEXEOF			0
 
@@ -19,7 +19,7 @@
 #define ERR_SPACE		2
 
 #ifndef __SETJMP
-# include	<setjmp.h>
+#include	<setjmp.h>
 #endif
 
 typedef union yytype {

@@ -11,7 +11,7 @@
  */
 
 # ifndef FUNCDEF_H
-# define	FUNCDEF_H
+#define	FUNCDEF_H
 
 typedef struct tagTYPEELEM {
 	int			te_name;
@@ -21,13 +21,13 @@ typedef struct tagTYPEELEM {
 /*
  * type flags
  */
-# define	OF_ELIPSIS	0x1			/* ... parameters may follow */
+#define	OF_ELIPSIS	0x1			/* ... parameters may follow */
 
 /*
  * kind of types
  */
-# define	OT_ENUM		1			/* enumeration type */
-# define	OT_OPTION		2			/* bitfield type */
+#define	OT_ENUM		1			/* enumeration type */
+#define	OT_OPTION		2			/* bitfield type */
 
 typedef struct tagOWNTYPE {
 	signed char	ot_typ;
@@ -37,13 +37,13 @@ typedef struct tagOWNTYPE {
 	char *		ot_id;
 } OWNTYPE;
 
-# define	MAXPARS		10
+#define	MAXPARS		10
 
-# define	PAR_USER		 1
-# define	PAR_VOID		 0
-# define	PAR_INT		-1			/* predefined types */
-# define	PAR_STRING	-2
-/* # define	PAR_DIALOGOPT	-4 		*/
+#define	PAR_USER		 1
+#define	PAR_VOID		 0
+#define	PAR_INT		-1			/* predefined types */
+#define	PAR_STRING	-2
+/* #define	PAR_DIALOGOPT	-4 		*/
 
 typedef struct edfuncdef {
 	unsigned char	idx;				/* function index edit */

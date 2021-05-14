@@ -14,7 +14,7 @@
 
 #include <windows.h>
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "edierror.h"
 
 #include "winterf.h"
@@ -22,12 +22,13 @@
 
 #pragma hdrstop
 
-# include	"pksedit.h"
-# include "dial2.h"
-# include "pksrc.h"
-# include "edfuncs.h"
-# include "edhist.h"
-# include "xdialog.h"
+#include	"pksedit.h"
+#include "dial2.h"
+#include "pksrc.h"
+#include "edfuncs.h"
+#include "edhist.h"
+#include "xdialog.h"
+#include "publicapi.h"
 
 extern int 		AbandonFile(FTABLE *fp, LINEAL *linp);
 extern int 		mac_runcmd(MACROREF *mp);
@@ -684,7 +685,6 @@ int EdReplaceTabs(int expand)
  */
 int PromptString(int strId, char *string, char *string2)
 {
-	char s[128];
 	static DIALPARS _d[] = {
 		IDD_WINTITLE,	0,			0,
 		IDD_RO1,		128,			0,
@@ -1881,17 +1881,17 @@ int CryptDialog(LPSTR password, int twice)
 /*--------------------------------------------------------------------------
  * EdIsDefined()
  */
-# define	QUERY_CLIPBOARDAVAIL		0
-# define	QUERY_BLKMARKSTART			1
-# define	QUERY_BLKMARKEND			2
-# define	QUERY_BLKMARKED			3
-# define	QUERY_CURRENTFILE			4
-# define	QUERY_OPTIONS				5
-# define	QUERY_LAYOUTOPTIONS			6
-# define	QUERY_WORKMODE				7
-# define	QUERY_DISPLAYMODE			8
-# define 	QUERY_FILEMODIFIED			9
-# define 	QUERY_BLOCKXTNDMODE			10
+#define	QUERY_CLIPBOARDAVAIL		0
+#define	QUERY_BLKMARKSTART			1
+#define	QUERY_BLKMARKEND			2
+#define	QUERY_BLKMARKED			3
+#define	QUERY_CURRENTFILE			4
+#define	QUERY_OPTIONS				5
+#define	QUERY_LAYOUTOPTIONS			6
+#define	QUERY_WORKMODE				7
+#define	QUERY_DISPLAYMODE			8
+#define 	QUERY_FILEMODIFIED			9
+#define 	QUERY_BLOCKXTNDMODE			10
 int EdIsDefined(long what)
 {
 	if (what == QUERY_CLIPBOARDAVAIL) {

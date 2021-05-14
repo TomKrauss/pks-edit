@@ -11,13 +11,13 @@
 
 #include <windows.h>
 
-#include "editab.h"
+#include "lineoperations.h"
 #include "winfo.h"
 #include "resource.h"
 #include "edfuncs.h"
 #include "helpitem.h"
 
-# define	MENU_TABCHAR	(char)8
+#define	MENU_TABCHAR	(char)8
 
 extern void *	ll_find(void *Head, char *name);
 extern void *	ll_insert(void *head,long size);

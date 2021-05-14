@@ -16,7 +16,7 @@
 #include <string.h>
 
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "edierror.h"
 
 #include "winterf.h"
@@ -24,21 +24,21 @@
 
 #pragma hdrstop
 
-# include	"pksedit.h"
-# include "dial2.h"
-# include "edfuncs.h"
+#include	"pksedit.h"
+#include "dial2.h"
+#include "edfuncs.h"
 
 # undef IDD_FKFKLAST
 # undef IDD_FKFLGLAST
-# define 	IDD_FKFKLAST		IDD_FKFK1+11
-# define 	IDD_FKFLGLAST		IDD_FKFLG1+11
+#define 	IDD_FKFKLAST		IDD_FKFK1+11
+#define 	IDD_FKFLGLAST		IDD_FKFLG1+11
 
-# define 	MAX_FKEYS			(IDD_FKFKLAST-IDD_FKFK1+1)
-# define 	NSHFT			4
-# define 	FKSLEN			21
-# define	FK_DELTA			6
+#define 	MAX_FKEYS			(IDD_FKFKLAST-IDD_FKFK1+1)
+#define 	NSHFT			4
+#define 	FKSLEN			21
+#define	FK_DELTA			6
 
-# define FKSTATE_SIZE		20
+#define FKSTATE_SIZE		20
 
 extern FARPROC SubClassWndProc(WORD set, HWND hDlg, WORD item, FARPROC lpfnNewProc);
 extern char *	mac_comment(LPSTR szBuf, LPSTR szB2, WORD nIndex, WORD type);

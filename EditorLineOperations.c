@@ -12,11 +12,11 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include	<windows.h>
-# include	<string.h>
-# include	"pksedit.h"
-# include	"editab.h"
-# include	"edierror.h"
+#include	<windows.h>
+#include	<string.h>
+#include	"pksedit.h"
+#include	"lineoperations.h"
+#include	"edierror.h"
 
 extern PASTE *	_undobuf;
 extern PASTE *	bl_addrbyid(int id, int insert);

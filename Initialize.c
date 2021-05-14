@@ -14,7 +14,7 @@
  
 #include <windows.h> 
 #include <direct.h>
-#include "editab.h"
+#include "lineoperations.h"
 
 #undef DELIVER
 
@@ -59,7 +59,6 @@ static int checkkey(char *serial, char *key)
 static void Getenv(char *name,char *d,int maxlen)
 {	extern char *getenv(char *s);
 	char *env;
-	int len;
 
 	if ((env = getenv(name)) != 0) {
 		strmaxcpy(d, env, maxlen);

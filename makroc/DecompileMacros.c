@@ -10,16 +10,16 @@
  *									
  */
 
-# include	<stdio.h>
-# include <string.h>
+#include	<stdio.h>
+#include <string.h>
 
-# include "edfuncs.h"
-# include	"pksmod.h"
+#include "edfuncs.h"
+#include	"pksmod.h"
 
-# include "pkscc.h"
-# include	"test.h"
-# include "funcdef.h"
-# include	"binop.h"
+#include "pkscc.h"
+#include	"test.h"
+#include "funcdef.h"
+#include	"binop.h"
 
 int  MakeAutoLabel(COM_GOTO *cp);
 void StartAutoLabel(void);
@@ -378,7 +378,7 @@ static unsigned char *pr_binop(FILE *fp, COM_BINOP *cp)
 /*
  * pr_mac
  */
-# define COM1_INCR(cp,type,offset) (unsigned char *)(cp+((type *)cp)->offset)
+#define COM1_INCR(cp,type,offset) (unsigned char *)(cp+((type *)cp)->offset)
 static void pr_mac(FILE *fp, MACRO *mp)
 {	unsigned char 	*sp,*sp2,*spend,*gop,*data,*comment;
 	unsigned char 	t;

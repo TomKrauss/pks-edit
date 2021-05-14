@@ -12,7 +12,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include	"edctype.h"
+#include	"edctype.h"
 
 /*--------------------------------------------------------------------------
  * strorder()

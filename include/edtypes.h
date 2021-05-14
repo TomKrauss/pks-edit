@@ -15,6 +15,8 @@ extern void *				_alloc(unsigned size);
 extern void 				_free(void *ap);
 #endif
 
+#define EXPORT		/**/
+
 typedef unsigned long 		MEMHANDLE;
 typedef MEMHANDLE EDFAR *	PMEMHANDLE;
 typedef void   EDFAR  	*	FARP;

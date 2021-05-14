@@ -14,14 +14,14 @@
  * 								Author: TOM
  */
 
-# include	<windows.h>
+#include	<windows.h>
 #if !defined(WIN32)
-# include	<toolhelp.h>
+#include	<toolhelp.h>
 #endif
-# include	"pksedit.h"
-# include	"edierror.h"
-# include	"editab.h"
-# include	"winterf.h"
+#include	"pksedit.h"
+#include	"edierror.h"
+#include	"lineoperations.h"
+#include	"winterf.h"
 
 extern void ChangeDirectory(LPSTR pszPath);
 extern void stepnofsel(char *fn, int cmpflg);
@@ -40,7 +40,7 @@ extern int	_playing;
 
 BOOL	  		bTaskFinished;
 
-# define	EX_DOS				EX_CD
+#define	EX_DOS				EX_CD
 
 /*--------------------------------------------------------------------------
  * ExecWaitNotify()

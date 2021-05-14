@@ -10,14 +10,14 @@
  *									
  */
 
-# include <windows.h>
-# include <stdio.h>
-# include <setjmp.h>
-# include <stdlib.h>
-# include <stdarg.h>
-# include <string.h>
-# include "editab.h"
-# include "pkscc.h"
+#include <windows.h>
+#include <stdio.h>
+#include <setjmp.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include "lineoperations.h"
+#include "pkscc.h"
 
 int  yyparse(void);
 void yyinit(jmp_buf *errb, char *sourcefile, LINE *lps,LINE *lpe);
@@ -203,7 +203,6 @@ int macs_execute_string(char *string)
 	FTABLE 		ft;
 	LINE *		lp;
 	jmp_buf 	errb;
-	int    		ret;
 	int			nFail;
 	int			saveMacEdited;
 

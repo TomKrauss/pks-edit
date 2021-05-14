@@ -13,12 +13,12 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include	<stdio.h>
-# include	<tos.h>
-# include	<dos.h>
-# include	"regcmp.h"
-# include	"pksedit.h"
-# include	"edctype.h"
+#include	<stdio.h>
+#include	<tos.h>
+#include	<dos.h>
+#include	"regexp.h"
+#include	"pksedit.h"
+#include	"edctype.h"
 
 #if defined(WIN32)
 #define near
@@ -31,31 +31,31 @@
 	-	CCEOF and CDOL must be last (2nd last) Flags in expression
 */
 
-# define	RANGEINVALID		1
-# define	LENGTHGARANT(c)	(! (c & 3))
+#define	RANGEINVALID		1
+#define	LENGTHGARANT(c)	(! (c & 3))
 
-# define	RNGE				(0 | RANGEINVALID)
-# define	CBRA				(2 | RANGEINVALID)
-# define	CCHR				4
-# define	CDOT				8
-# define	CKET				10
-# define	CIDS				(12 | RANGEINVALID)
-# define	CCL				16
-# define	CIDE				(24 | RANGEINVALID)
-# define	CDOL				26
-# define	CCEOF			30
-# define	CCASE			64
-# define	CBACK			66
-# define	CPBAR			128
-# define	CPIPE			(CPBAR | RANGEINVALID)
+#define	RNGE				(0 | RANGEINVALID)
+#define	CBRA				(2 | RANGEINVALID)
+#define	CCHR				4
+#define	CDOT				8
+#define	CKET				10
+#define	CIDS				(12 | RANGEINVALID)
+#define	CCL				16
+#define	CIDE				(24 | RANGEINVALID)
+#define	CDOL				26
+#define	CCEOF			30
+#define	CCASE			64
+#define	CBACK			66
+#define	CPBAR			128
+#define	CPIPE			(CPBAR | RANGEINVALID)
 
-# define	NBRA				9		/* maximum number of brackets	*/
-# define	ISTHERE(c)		(ep[(c & 0xff) >> 3] & bittab[c & 07])
-# define	MAXCTAB			32		/* maximum byte length of chartestset */
-# define	BIG				512		/* big Range Size used by: +,*,{x,} */
+#define	NBRA				9		/* maximum number of brackets	*/
+#define	ISTHERE(c)		(ep[(c & 0xff) >> 3] & bittab[c & 07])
+#define	MAXCTAB			32		/* maximum byte length of chartestset */
+#define	BIG				512		/* big Range Size used by: +,*,{x,} */
 
-# define	upcase(c)			_l2uset[(c)]
-# define	lowcase(c)		_u2lset[(c)]
+#define	upcase(c)			_l2uset[(c)]
+#define	lowcase(c)		_u2lset[(c)]
 
 #define P_LE(p1,p2)			((char near *)p1 <= (char near *)p2)
 #define P_GE(p1,p2)			((char near *)p1 >= (char near *)p2)
@@ -84,12 +84,12 @@
  * USER-DEFINES
  */
 
-# define	INIT		register unsigned char *sp = instring; int err;
-# define	GETC() 	(*sp++)
-# define	PEEKC()	(*sp)
-# define	UNGETC(c)	(--sp)
-# define	RETURN(c)	return(c)
-# define	REGEX_ERROR(c)	{ err = c; goto endcompile; }
+#define	INIT		register unsigned char *sp = instring; int err;
+#define	GETC() 	(*sp++)
+#define	PEEKC()	(*sp)
+#define	UNGETC(c)	(--sp)
+#define	RETURN(c)	return(c)
+#define	REGEX_ERROR(c)	{ err = c; goto endcompile; }
 
 static int 	_chsetinited;
 unsigned char 	bittab[] = { 1,2,4,8,16,32,64,128 };

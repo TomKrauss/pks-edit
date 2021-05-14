@@ -7,19 +7,19 @@
  * (c) Pahlen & Krauﬂ
  */
 
-# include <windows.h>
-# include <string.h>
-# include "winterf.h"
-# include	"edctype.h"
-# include "edifsel.h"
-# include	"editab.h"
-# include	"winfo.h"
-# include	"pksedit.h"
-# include	"edierror.h"
-# include	"iccall.h"
-# include "xdialog.h"
-# include "dial2.h"
-# include "regcmp.h"
+#include <windows.h>
+#include <string.h>
+#include "winterf.h"
+#include	"edctype.h"
+#include "edifsel.h"
+#include	"lineoperations.h"
+#include	"winfo.h"
+#include	"pksedit.h"
+#include	"edierror.h"
+#include	"iccall.h"
+#include "xdialog.h"
+#include "dial2.h"
+#include "regexp.h"
 
 extern int 	ll_count(void *Head);
 extern void *	ll_insert(void *head, long size);
@@ -43,9 +43,9 @@ extern void *	ll_find(void *Head, char *name);
 extern int 	ll_top(void *Head, void *Elem);
 extern void 	strdcpy(char *dest,char *source,char *fname);
 
-# define	TCMD_EXEC				'!'
-# define	TCMD_TAGFILE			'^'
-# define	TCMD_WINHELP			'&'
+#define	TCMD_EXEC				'!'
+#define	TCMD_TAGFILE			'^'
+#define	TCMD_WINHELP			'&'
 
 typedef struct tag {
 	long ln;
@@ -58,7 +58,7 @@ typedef struct tag {
  * description of the "try" list for tag retrieval
  */
 
-# define	TAGMAXTRY			5
+#define	TAGMAXTRY			5
 
 typedef struct tagtrylist {
 	int type;
@@ -181,7 +181,7 @@ static char *szCompiler = "compiler";
 static int compiler_mk(char *compiler)
 {
 	TAGEXPR 	*ct;
-	char		szBuf[256],*s;
+	char		*s;
 
 	if ((ct = prof_llinsert(&_cmptags,sizeof *ct,szCompiler,compiler,&s)) == 0) {
 		return 0;
@@ -317,7 +317,7 @@ static TAG *taggetinfo(LINE *lp)
 /*------------------------------------------------------------
  * taglist_measureitem()
  */
-# define		TAGLISTITEMHEIGHT			40
+#define		TAGLISTITEMHEIGHT			40
 void taglist_measureitem(MEASUREITEMSTRUCT *mp)
 {
 	mp->itemHeight = TAGLISTITEMHEIGHT;
@@ -410,7 +410,6 @@ static BOOL _tagCancelled;
 static TAG *findtag(char *s, FTABLE *fp)
 {
 	LINE *			lp;
-	LINE *			lpx;
 	LPSTR			pszBlank;
 	char     			sbuf[ESIZE];
 	char     			ebuf[ESIZE];
@@ -534,9 +533,8 @@ char *tagword(unsigned char *d,unsigned char *dend)
 /*------------------*/
 /* tagopen()		*/
 /*------------------*/
-int tagopen(char *name, long line, WINDOWPLACEMENT *wsp)
-{	int ret = 0;
-	FTABLE *fp;
+int tagopen(char *name, long line, WINDOWPLACEMENT *wsp) {	
+	int ret = 0;
 
 	if (selnfile(name)) {
 		if (line >= 0)
@@ -562,7 +560,6 @@ int showtag(char *s)
 	TAGTRY *		ttp;
 	TAGTRYLIST *	ttl;
 	FTABLE *		fp;
-	ICCALL *		icp;
 
 	if (!s || !*s)
 		return 0;
@@ -750,9 +747,9 @@ void stepselectcompiler(char *pszName)
 /*---------------------------------*/
 /* s_t_open()					*/
 /*---------------------------------*/
-# define	ST_TAGS		1
-# define	ST_ERRORS		2
-# define	ST_STEP		3
+#define	ST_TAGS		1
+#define	ST_ERRORS		2
+#define	ST_STEP		3
 static FSELINFO _tagfselinfo = { ".", "TAGS", "*.TAG" };
 static FSELINFO _grpfselinfo = { ".", "PKSEDIT.GRP", "*.GRP" };
 static FSELINFO _cmpfselinfo = { ".", "ERRORS.ERR", "*.ERR" };
@@ -807,7 +804,6 @@ int EdFindTagCursor(void)
 /*---------------------------------*/
 int EdFindFileCursor(void)
 {	char *fn,*found;
-	char	fselext[512];
 	char	fselpath[512];
 	extern char _incpath[];
 	extern char *pathsearch();
@@ -872,7 +868,6 @@ int EdTagfileRead(void)
 /*---------------------------------*/
 int EdErrorListRead(long dummy1, long dummy2, char *pszCompiler)
 {
-	int		nRet;
 
 	_compiler = _cmptags;
 	if (pszCompiler) {

@@ -18,7 +18,7 @@
 #include <commdlg.h>
 
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "edierror.h"
 
 #include "winfo.h"

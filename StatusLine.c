@@ -18,11 +18,11 @@
 #include <commctrl.h>
 #include "trace.h"
 #include "winterf.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "winfo.h"
 #include "edierror.h"
 
-# define	MAXSEGMENTS			20
+#define	MAXSEGMENTS			20
 
 extern int 		mysprintf(FTABLE *fp, char *d, char *fmt, ...);
 extern char *	lstrchr(const char *, const char);

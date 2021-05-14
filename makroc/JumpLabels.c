@@ -10,15 +10,15 @@
  *									
  */
 
-# include	<stdio.h>
-# include	<stdlib.h>
-# include	<string.h>
-# include	"edfuncs.h"
-# include "pkscc.h"
+#include	<stdio.h>
+#include	<stdlib.h>
+#include	<string.h>
+#include	"edfuncs.h"
+#include "pkscc.h"
 
 # if !defined(_Cdecl)
-# define	_Cdecl	/**/
-# define	_FAR		/**/
+#define	_Cdecl	/**/
+#define	_FAR		/**/
 # endif
 
 #define L_FREE			0

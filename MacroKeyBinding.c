@@ -10,24 +10,25 @@
  *									
  */
 
-# include	<tos.h>
-# include	<windowsx.h>
-# include	<string.h>
-# include 	"trace.h"
-# include	"editab.h"
-# include	"edierror.h"
-# include	"pksedit.h"
-# include 	"winfo.h"
-# include 	"winterf.h"
-# include 	"edifsel.h"
-# include	"edfuncs.h"
-# include	"functab.h"
-# include	"dial2.h"
-# include	"iccall.h"
-# include	"resource.h"
-# include 	"xdialog.h"
+#include <tos.h>
+#include <windowsx.h>
+#include <string.h>
+#include "trace.h"
+#include "lineoperations.h"
+#include "edierror.h"
+#include "pksedit.h"
+#include "winfo.h"
+#include "winterf.h"
+#include "edifsel.h"
+#include "edfuncs.h"
+#include "functab.h"
+#include "dial2.h"
+#include "iccall.h"
+#include "resource.h"
+#include "xdialog.h"
+#include "errordialogs.h"
 
-# define	MENU_TABCHAR	'\010'
+#define	MENU_TABCHAR	'\010'
 
 extern long		_multiplier;
 
@@ -108,14 +109,14 @@ int mac_getbyname(char *name)
 /*------------------------------------------------------------
  * mac_write()
  */
-# define	RSC_MACROS		0x1
-# define	RSC_SINGLEMACRO	0x2
-# define	RSC_KEYS			0x4
-# define	RSC_MICE			0x8
-# define	RSC_MENUS			0x10
+#define	RSC_MACROS		0x1
+#define	RSC_SINGLEMACRO	0x2
+#define	RSC_KEYS			0x4
+#define	RSC_MICE			0x8
+#define	RSC_MENUS			0x10
 static int mac_write(int whichresource, char *name)
 {
-	int 		ret = 1,fd,i;
+	int 		ret = 1,fd;
 
 	if ((fd = rsc_create(name,1)) < 0) {
 		tosfnerror(name,fd);

@@ -11,7 +11,7 @@ extern char	*rw_select(FSELINFO *fp, int title);
 extern char *rw_init(FSELINFO *fp);
 extern char	_fseltarget[];
 
-# define	_EDIFSEL_H
+#define	_EDIFSEL_H
 
 # endif
 

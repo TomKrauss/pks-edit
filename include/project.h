@@ -11,7 +11,7 @@
  */
 
 # if !defined( __PROJECT_H )
-# define __PROJECT_H
+#define __PROJECT_H
 
 typedef struct tagPROJECTITEM {
 	char	*		pi_name;			/* filename */

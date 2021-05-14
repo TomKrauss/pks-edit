@@ -14,12 +14,12 @@
  * 								Author: TOM
  */
 
-# include <windows.h>
-# include	"editab.h"
+#include <windows.h>
+#include	"lineoperations.h"
 
-# define	CHANNEL		1
-# define	PITCH		0			/* pitch + note == height */
-# define	QUANTIZE		64
+#define	CHANNEL		1
+#define	PITCH		0			/* pitch + note == height */
+#define	QUANTIZE		64
 
 extern long Atol();
 extern char *_strtolend;
@@ -76,8 +76,6 @@ static void ReadChimeParams()
  */
 EXPORT void chime(void)
 {
-	NOTE		*np;
-	int		n;
 
 	ReadChimeParams();
 
@@ -87,6 +85,7 @@ EXPORT void chime(void)
 	}
 
 #if !defined(WIN32)
+	int		n;
 	if (OpenSound() < 0) {
 		MessageBeep(-1);
 		return;

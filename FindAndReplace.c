@@ -15,7 +15,7 @@
 #include <windows.h>
 
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "edierror.h"
 
 #include "winfo.h"
@@ -23,11 +23,11 @@
 
 #pragma hdrstop
 
-# include	<string.h>
-# include	"pksedit.h"
-# include	"edctype.h"
-# include	"regcmp.h"
-# include	"edhist.h"
+#include	<string.h>
+#include	"pksedit.h"
+#include	"edctype.h"
+#include	"regexp.h"
+#include	"edhist.h"
 
 #define	UCHAR	unsigned char
 

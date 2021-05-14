@@ -6,7 +6,7 @@
  */
 
 # ifndef _PKSMOD_H
-# define	_PKSMOD_H
+#define	_PKSMOD_H
 
 #ifndef	EDITAB_H
 typedef void FTABLE;
@@ -16,35 +16,35 @@ typedef void MARK;
 #endif
 
 #ifndef	_EDFUNCS_H
-# define	EDBINDS	long
-# define	KEYCODE	unsigned
-# define	KEYBIND	void
+#define	EDBINDS	long
+#define	KEYCODE	unsigned
+#define	KEYBIND	void
 #endif
 
 #ifndef 	__AES__
-# define	OBJECT	void 
+#define	OBJECT	void 
 #endif
 
-#ifndef 	REGCMP_H
-# define	REGCMP	long
+#ifndef 	REGEXP_H
+#define	REGCMP	long
 #endif
 
 #ifndef	ICCALL_H
-# define	ICCALL	long
+#define	ICCALL	long
 #endif
 
 #ifndef	EDLBOX_H
-# define	LISTBOX	void
+#define	LISTBOX	void
 #endif
 
-# define	PKSM_EDMAGIC		0x504B535DL
-# define	PKSM_MODMAGIC		0x50434B5DL
+#define	PKSM_EDMAGIC		0x504B535DL
+#define	PKSM_MODMAGIC		0x50434B5DL
 
-# define	PKSM_OK			0
-# define	PKSM_FAIL			1
-# define	PKSM_WRONGARG		2
-# define	PKSM_STOLEN		1313
-# define	PKSM_ILLVERS		1212
+#define	PKSM_OK			0
+#define	PKSM_FAIL			1
+#define	PKSM_WRONGARG		2
+#define	PKSM_STOLEN		1313
+#define	PKSM_ILLVERS		1212
 
 typedef int (*INTFUNC)();
 

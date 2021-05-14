@@ -9,10 +9,10 @@
  * All Rights Reserved.					created: 29.12.1990
  *									
  */
-# include	<windows.h>
-# include	"editab.h"
+#include	<windows.h>
+#include	"lineoperations.h"
 
-# define	MAXLSIZE	MAXLINELEN
+#define	MAXLSIZE	MAXLINELEN
 
 extern int 	_broken,_flushing;
 extern LINEAL	*_rlp;

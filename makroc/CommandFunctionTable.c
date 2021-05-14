@@ -11,7 +11,7 @@
  * 								Author: TOM
  */
 
-# include "funcdef.h"
+#include "funcdef.h"
 /* Functions: */
 EDFUNCDEF _functab[] = {
 { 	0,	"\377\020" },

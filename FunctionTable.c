@@ -3,8 +3,9 @@
 #include "pksedit.h"
 #include "pksedith.h"
 #include "edierror.h"
+#include "publicapi.h"
 
-# include "iccall.h"
+#include "iccall.h"
 
 extern int
 EdFileAbandon(long ), EdAbout(long ), EdBlockCopy(long ), EdBlockDelete(long ),
@@ -15,9 +16,8 @@ EdKeycodeInsert(long ), EdCharInsert(long ), EdFormatText(long ), EdLineInsert(l
 EdMarkedLineOp(long ), EdSearchListRead(long ), EdErrorListRead(long ), EdLineal(long ),
 EdMacrosEdit(long ), EdDocMacrosEdit(long ), EdDocMacrosAdd(long ), EdMacrosReadWrite(long ),
 EdTagfileRead(long ), EdSetup(long ), EdSetMultiplier(long ), EdReplaceTabs(long ),
-EdLineSplit(long ), EdChapterGotoBegin(long ), EdChapterGotoEnd(long ), EdParaGotoBegin(long ),
-EdParaGotoEnd(long ), EdCursorRight(long ), EdCursorLeft(long ), EdCursorUp(long ),
-EdCursorDown(long ), EdCharDelete(long ), EdFkeysSwitch(long ), EdMacroEscape(long ),
+EdLineSplit(long ), EdParaGotoBegin(long ),
+EdParaGotoEnd(long ), EdCharDelete(long ), EdFkeysSwitch(long ), EdMacroEscape(long ),
 EdMacroPlay(long ), EdMacroRecord(long ), EdFindInFileList(long ), EdFind(long ),
 EdReplace(long ), EdFindAgain(long ), EdReplaceAgain(long ), EdCharControlInsert(long ),
 EdGotoLastPos(long ), EdGotoLine(long ), EdMarkSet(long ), EdMarkGoto(long ),

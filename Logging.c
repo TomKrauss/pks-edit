@@ -9,12 +9,12 @@
  *						Author : TOM
  */
 
-# include <windows.h>
+#include <windows.h>
 # pragma hdrstop
-# include <stdarg.h>
-# include "winterf.h"
-# include "trace.h"
-# include "editab.h"
+#include <stdarg.h>
+#include "winterf.h"
+#include "trace.h"
+#include "lineoperations.h"
 
 static int _debugmask = /* DEBUG_ALL */ 0;
 static int _debugfd = -1;
@@ -43,8 +43,9 @@ static void vdebug(int err, LPSTR fmt, va_list ap)
  * Debug()
  */
 EXPORT void Debug(int dbgmask, char *fmt, ...)
-{ 	va_list ap;
+{
 #ifdef DEBUG
+	va_list ap;
 	if ((_debugmask & dbgmask) == 0)
 		return;
 
@@ -58,8 +59,9 @@ EXPORT void Debug(int dbgmask, char *fmt, ...)
  * edidebug()
  */
 EXPORT void edidebug(char *fmt, ...)
-{ 	va_list ap;
+{
 #ifdef DEBUG
+	va_list ap;
 	va_start(ap,fmt);
 	vdebug(0,fmt,ap);	
 	va_end(ap);
@@ -70,9 +72,10 @@ EXPORT void edidebug(char *fmt, ...)
  * DebugWinMessag()
  */
 EXPORT void DebugWinMessag(char *funcname, HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{	char messagename[64];
-	char *s;
+{
 #ifdef DEBUG
+char messagename[64];
+char* s;
 	switch(message) {
 		case WM_NULL: s = "WM_NULL"; break;
 		case WM_CREATE: s = "WM_CREATE"; break;

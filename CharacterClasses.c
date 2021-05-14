@@ -14,26 +14,23 @@
  * 								Author: TOM
  */
 
-# include <ctype.h>
-# include "editab.h"
-# include "edctype.h"
+#include <ctype.h>
+#include "edtypes.h"
+#include "edctype.h"
 
-# define	isblnk(c)			(c == ' ' || c == '\t' || c == '' || \
-					      c == '' || c == '')
+#define	isblnk(c)    (c == ' ' || c == '\t' || c == '' || c == '' || c == '')
 					      
 /*--------------------------------------------------------------------------
  * IsSpace()
  */
-EXPORT int IsSpace(unsigned char c)
-{
+EXPORT int IsSpace(unsigned char c) {
 	return c <= ' ' && isblnk(c);
 }
 
 /*---------------------------------*/
 /* skipblank()					*/
 /*---------------------------------*/
-EXPORT unsigned char *skipblank(unsigned char *s, unsigned char *send)
-{
+EXPORT unsigned char *skipblank(unsigned char *s, unsigned char *send) {
 	while(IsSpace(*s))
 		s++;
 	return (s > send) ? send : s;
@@ -42,8 +39,7 @@ EXPORT unsigned char *skipblank(unsigned char *s, unsigned char *send)
 /*---------------------------------*/
 /* skipnoblank()				*/
 /*---------------------------------*/
-EXPORT unsigned char *skipnoblank(unsigned char *s,unsigned char *send)
-{
+EXPORT unsigned char *skipnoblank(unsigned char *s,unsigned char *send) {
 	while(s < send && !IsSpace(*s))
 		s++;
 	return s;

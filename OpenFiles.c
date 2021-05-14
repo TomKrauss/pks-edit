@@ -14,8 +14,9 @@
 #include <time.h>
 
 #include "trace.h"
-#include "editab.h"
+#include "lineoperations.h"
 #include "edierror.h"
+#include "errordialogs.h"
 
 #include "winfo.h"
 #include "winterf.h"
@@ -520,7 +521,6 @@ int selnfile(char *fn)
 int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 {   
 	char 		szResultFn[EDMAXPATHLEN];
-	char *		shareString;
 	char		szAsPath[EDMAXPATHLEN];
 	FTABLE 		*fp;
 	int 		newfile,ret;
