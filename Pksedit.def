@@ -1,0 +1,27 @@
+NAME	     PksEdit
+
+HEAPSIZE     64000
+STACKSIZE    64000
+
+EXPORTS
+	FrameWndProc
+	EditWndProc
+	WorkAreaWndProc
+	RulerWndProc
+	IconWndProc
+	DlgStdProc
+	DlgError
+	KeyInputWndProc
+	CInput
+	FkeysWndProc
+	ToggleWndProc
+	CharSetWndProc
+	DlgMacEditProc
+	DlgQueryReplaceProc
+	PrtAbortProc
+	DlgPreviewProc
+	DlgInstallPrtProc
+	FileOpenHookProc
+	ChooseFontHookProc
+	ExecWaitNotify
+

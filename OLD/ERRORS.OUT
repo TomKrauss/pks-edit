@@ -1,0 +1,183 @@
+Compiling...
+C:\src\pksedit\WORKWIN.C
+INC\context.h(22) : error C2371: 'CONTEXT' : redefinition; different basic types
+C:\src\pksedit\WORKWIN.C(70) : warning C4013: 'prof_wsframeoffs' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(73) : warning C4013: 'prof_getwinstate' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(85) : warning C4013: 'prof_savewinstate' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(95) : warning C4028: formal parameter 2 different from declaration
+C:\src\pksedit\WORKWIN.C(95) : warning C4028: formal parameter 3 different from declaration
+C:\src\pksedit\WORKWIN.C(95) : warning C4024: 'EdMkWinClass' : different types for formal and actual parameter 2
+C:\src\pksedit\WORKWIN.C(98) : warning C4028: formal parameter 2 different from declaration
+C:\src\pksedit\WORKWIN.C(98) : warning C4028: formal parameter 3 different from declaration
+C:\src\pksedit\WORKWIN.C(98) : warning C4024: 'EdMkWinClass' : different types for formal and actual parameter 2
+C:\src\pksedit\WORKWIN.C(101) : warning C4028: formal parameter 2 different from declaration
+C:\src\pksedit\WORKWIN.C(101) : warning C4028: formal parameter 3 different from declaration
+C:\src\pksedit\WORKWIN.C(101) : warning C4024: 'EdMkWinClass' : different types for formal and actual parameter 2
+C:\src\pksedit\WORKWIN.C(104) : warning C4028: formal parameter 2 different from declaration
+C:\src\pksedit\WORKWIN.C(104) : warning C4028: formal parameter 3 different from declaration
+C:\src\pksedit\WORKWIN.C(104) : warning C4024: 'EdMkWinClass' : different types for formal and actual parameter 2
+C:\src\pksedit\WORKWIN.C(361) : warning C4047: 'argument' : 'unsigned int ' differs in levels of indirection from 'void *'
+C:\src\pksedit\WORKWIN.C(361) : warning C4024: 'SendMessageA' : different types for formal and actual parameter 3
+C:\src\pksedit\WORKWIN.C(362) : warning C4047: 'argument' : 'unsigned int ' differs in levels of indirection from 'void *'
+C:\src\pksedit\WORKWIN.C(362) : warning C4024: 'SendMessageA' : different types for formal and actual parameter 3
+C:\src\pksedit\WORKWIN.C(390) : warning C4013: 'ShowMessage' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(444) : warning C4013: 'ic_position' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(519) : warning C4013: 'EdEnumChildWindows' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(540) : warning C4013: 'SendRedraw' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(576) : warning C4013: 'mkattlist' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(588) : warning C4013: 'sl_size' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(589) : warning C4013: 'EdSelectStdFont' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(591) : warning C4013: 'wt_tcursor' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(593) : warning C4013: '_curpos' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(649) : warning C4013: 'll_delete' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(722) : warning C4013: 'ic_resetxyprops' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(737) : warning C4013: 'do_icon' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(744) : warning C4013: 'll_top' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(764) : warning C4013: 'ic_moved' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(801) : warning C4013: 'ic_xyprops' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(810) : warning C4013: 'ft_wantclose' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(815) : warning C4013: 'ic_destroyxyprops' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(818) : warning C4013: 'ft_destroy' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(885) : error C2065: 'modifier' : undeclared identifier
+C:\src\pksedit\WORKWIN.C(948) : warning C4013: 'sl_moved' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(1019) : warning C4013: 'RedrawWmPaint' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(1053) : warning C4013: 'ft_select' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(1054) : warning C4013: 'op_updateall' undefined; assuming extern returning int
+C:\src\pksedit\WORKWIN.C(1103) : warning C4013: 'RightMargin' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C
+C:\src\pksedit\PRINT.C(138) : warning C4101: 'szBuff' : unreferenced local variable
+C:\src\pksedit\PRINT.C(158) : warning C4013: 'ed_abort' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(178) : warning C4013: 'EdCreateFont' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(178) : warning C4047: '=' : 'void *' differs in levels of indirection from 'int '
+C:\src\pksedit\PRINT.C(233) : warning C4013: 'SetWindowExt' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(234) : warning C4013: 'SetViewportExt' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(248) : warning C4013: 'GetWindowExt' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(277) : warning C4101: 'w' : unreferenced local variable
+C:\src\pksedit\PRINT.C(277) : warning C4101: 'h' : unreferenced local variable
+C:\src\pksedit\PRINT.C(289) : warning C4013: 'GetTextExtent' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(314) : warning C4013: 'mysprintf' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(365) : warning C4101: 'ola' : unreferenced local variable
+C:\src\pksedit\PRINT.C(365) : warning C4101: 'ols' : unreferenced local variable
+C:\src\pksedit\PRINT.C(387) : warning C4013: '_cphys2scr' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(396) : warning C4013: 'write_line' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(448) : warning C4013: 'abrt_message' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(497) : warning C4013: 'EdUnselectFont' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(511) : warning C4013: 'form_move' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(538) : warning C4013: 'SendRedraw' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(546) : warning C4068: unknown pragma
+C:\src\pksedit\PRINT.C(567) : warning C4245: 'argument' : conversion from 'const int ' to 'unsigned int ', signed/unsigned mismatch
+C:\src\pksedit\PRINT.C(573) : warning C4013: 'LbGetText' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(583) : warning C4047: '>=' : 'void *' differs in levels of indirection from 'const int '
+C:\src\pksedit\PRINT.C(595) : warning C4101: 'hdc' : unreferenced local variable
+C:\src\pksedit\PRINT.C(628) : warning C4305: 'initializing' : truncation from 'unsigned int ' to 'unsigned char '
+C:\src\pksedit\PRINT.C(637) : warning C4013: 'prof_savestring' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(640) : warning C4013: 'prof_savelong' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(643) : warning C4013: 'GetPksProfileString' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(688) : warning C4013: 'txtfile_select' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(690) : warning C4013: 'Readfile' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(694) : warning C4013: 'ww_setwindowflags' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(726) : warning C4013: 'DlgPrint' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(737) : warning C4133: 'argument' : incompatible types - from 'char *' to 'struct tagDIALPARS *'
+C:\src\pksedit\PRINT.C(745) : warning C4013: 'abrt_start' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(761) : warning C4013: 'abrt_close' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(775) : warning C4013: 'ft_bufdestroy' undefined; assuming extern returning int
+C:\src\pksedit\PRINT.C(785) : warning C4133: 'argument' : incompatible types - from 'char *' to 'struct tagDIALPARS *'
+C:\src\pksedit\PRINT.C(754) : warning C4761: integral size mismatch in argument; conversion supplied
+C:\src\pksedit\TAGS.C
+INC\edctype.h(18) : warning C4005: 'isalpha' : macro redefinition
+INC\edctype.h(19) : warning C4005: 'isupper' : macro redefinition
+INC\edctype.h(20) : warning C4005: 'islower' : macro redefinition
+INC\edctype.h(21) : warning C4005: 'isdigit' : macro redefinition
+INC\edctype.h(22) : warning C4005: 'isalnum' : macro redefinition
+INC\edctype.h(23) : warning C4005: 'isspace' : macro redefinition
+C:\src\pksedit\TAGS.C(134) : warning C4013: 'prof_enum' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(197) : warning C4101: 'szBuf' : unreferenced local variable
+C:\src\pksedit\TAGS.C(225) : warning C4013: 'repinit' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(226) : warning C4013: 'exprsub' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(242) : warning C4013: 'tosfnerror' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(246) : warning C4013: 'readtagf' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(372) : warning C4013: 'GetTextExtent' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(484) : warning C4101: 'lpx' : unreferenced local variable
+C:\src\pksedit\TAGS.C(492) : warning C4013: 'lnlistfree' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(493) : warning C4013: 'Readfile' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(543) : warning C4013: 'selnfile' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(545) : warning C4013: 'centernewpos' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(548) : warning C4013: 'opennofsel' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(552) : warning C4101: 'fp' : unreferenced local variable
+C:\src\pksedit\TAGS.C(577) : warning C4013: 'setfinds' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(593) : warning C4013: 'HelpKey' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(596) : warning C4013: 'fm_savepos' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(600) : warning C4013: '_findstr' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(618) : warning C4101: 'icp' : unreferenced local variable
+C:\src\pksedit\TAGS.C(634) : warning C4013: 'prof_getws' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(712) : warning C4013: '_curpos' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(715) : warning C4013: 'EdRedrawWindow' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(724) : warning C4013: 'sfsplit' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(773) : warning C4013: 'EdFileAbandon' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(835) : warning C4101: 'fselext' : unreferenced local variable
+C:\src\pksedit\TAGS.C(845) : warning C4013: 'findstr' undefined; assuming extern returning int
+C:\src\pksedit\TAGS.C(887) : warning C4101: 'nRet' : unreferenced local variable
+C:\src\pksedit\DEBUG.C
+C:\src\pksedit\DEBUG.C(39) : warning C4101: 'tmpfile' : unreferenced local variable
+C:\src\pksedit\DEBUG.C(39) : warning C4101: 'buf' : unreferenced local variable
+C:\src\pksedit\DEBUG.C(54) : warning C4101: 'ap' : unreferenced local variable
+C:\src\pksedit\DEBUG.C(66) : warning C4101: 'ap' : unreferenced local variable
+C:\src\pksedit\DEBUG.C(215) : warning C4101: 's' : unreferenced local variable
+C:\src\pksedit\DEBUG.C(215) : warning C4101: 'messagename' : unreferenced local variable
+C:\src\pksedit\FILES.C
+INC\tos.h(46) : warning C4005: 'OF_READWRITE' : macro redefinition
+C:\src\pksedit\FILES.C(35) : error C2079: '_dta' uses undefined struct 'ffblk'
+C:\src\pksedit\FILES.C(42) : warning C4013: 'findfirst' undefined; assuming extern returning int
+C:\src\pksedit\FILES.C(52) : error C2224: left of '.ff_attrib' must have struct/union type
+C:\src\pksedit\FILES.C(52) : warning C4033: 'EdFileMode' must return a value
+C:\src\pksedit\FILES.C(62) : error C2065: 'FA_DIREC' : undeclared identifier
+C:\src\pksedit\FILES.C(71) : error C2065: 'READ' : undeclared identifier
+C:\src\pksedit\FILES.C(72) : warning C4013: 'tosfnerror' undefined; assuming extern returning int
+C:\src\pksedit\FILES.C(89) : warning C4013: 'ed_yn' undefined; assuming extern returning int
+C:\src\pksedit\FILES.C(91) : warning C4013: 'ed_error' undefined; assuming extern returning int
+C:\src\pksedit\FILES.C(115) : warning C4013: 'strdcpy' undefined; assuming extern returning int
+C:\src\pksedit\FILES.C(151) : warning C4013: 'sfsplit' undefined; assuming extern returning int
+C:\src\pksedit\FILES.C(170) : warning C4047: 'argument' : 'unsigned int ' differs in levels of indirection from 'void *'
+C:\src\pksedit\FILES.C(170) : warning C4024: 'GetTempFileNameA' : different types for formal and actual parameter 3
+C:\src\pksedit\FILES.C(182) : warning C4047: 'argument' : 'unsigned int ' differs in levels of indirection from 'void *'
+C:\src\pksedit\FILES.C(182) : warning C4024: 'GetTempFileNameA' : different types for formal and actual parameter 3
+C:\src\pksedit\FILES.C(198) : warning C4013: '_ftw' undefined; assuming extern returning int
+C:\src\pksedit\CRYPT.C
+C:\src\pksedit\CRYPT.C(17) : warning C4005: 'NULL' : macro redefinition
+C:\src\pksedit\CRYPT.C(193) : warning C4003: not enough actual parameters for macro '_alloc'
+C:\src\pksedit\CRYPT.C(207) : warning C4013: 'free' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C
+C:\src\pksedit\RESOURCE.C(51) : warning C4013: 'NoDiskSpace' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(54) : warning C4013: 'memcpy' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(59) : warning C4013: 'WriteError' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(67) : warning C4068: unknown pragma
+C:\src\pksedit\RESOURCE.C(85) : warning C4013: 'mac_insert' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(96) : warning C4068: unknown pragma
+C:\src\pksedit\RESOURCE.C(110) : warning C4013: 'rsc_put' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(135) : warning C4013: 'strcmp' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(144) : warning C4013: 'strlen' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(146) : warning C4013: 'strcpy' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(159) : warning C4101: 'size' : unreferenced local variable
+C:\src\pksedit\RESOURCE.C(188) : warning C4018: '>=' : signed/unsigned mismatch
+C:\src\pksedit\RESOURCE.C(212) : warning C4101: 'name' : unreferenced local variable
+C:\src\pksedit\RESOURCE.C(256) : warning C4244: '=' : conversion from 'long ' to 'unsigned short ', possible loss of data
+C:\src\pksedit\RESOURCE.C(257) : warning C4244: '=' : conversion from 'long ' to 'unsigned short ', possible loss of data
+C:\src\pksedit\RESOURCE.C(285) : warning C4013: 'blfill' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(305) : warning C4018: '<' : signed/unsigned mismatch
+C:\src\pksedit\RESOURCE.C(328) : warning C4013: 'OpenError' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(335) : warning C4013: 'malloc' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(354) : warning C4013: 'free' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(376) : warning C4047: '=' : 'char *' differs in levels of indirection from 'int '
+C:\src\pksedit\RESOURCE.C(425) : warning C4013: 'll_top' undefined; assuming extern returning int
+C:\src\pksedit\RESOURCE.C(444) : warning C4133: '<' : incompatible types - from 'void *' to 'char *'
+C:\src\pksedit\RESOURCE.C(455) : error C2059: syntax error : '('
+C:\src\pksedit\RESOURCE.C(455) : error C2059: syntax error : '*'
+C:\src\pksedit\RESOURCE.C(455) : error C2061: syntax error : identifier 'empty'
+C:\src\pksedit\RESOURCE.C(455) : error C2143: syntax error : missing '{' before ')'
+C:\src\pksedit\RESOURCE.C(455) : error C2059: syntax error : ')'
+C:\src\pksedit\RESOURCE.C(456) : error C2449: found '{' at file scope (missing function header?)
+C:\src\pksedit\FKEYS.C
+fatal error C1063:
+cl.exe terminated at user request.
+Tool execution cancelled by user.
+pksedit.exe - 13 error(s), 158 warning(s)

@@ -1,0 +1,243 @@
+###############################################################################
+#
+#
+# Standard Tastenbelegung PKSEDIT: Turbo-C/Pure-C Modus
+#
+#
+#
+# aktive Anbindungen fÅr den TURBO-C Modus
+#
+###############################################################################
+
+KEYS default	# total 195 bindings
+
+Esc                      = Ωescape-makro,
+Return                   = Ωsplit-line,
+F1                       = Ωinsert-line-follow,
+F2                       = Ωmark-block-start,       # BlîckeØStart festlegen
+F3                       = Ωmark-block-end,         # BlîckeØEnde festlegen
+F6                       = Ωfind-word-forward,
+F7                       = Ωfind-tag-under-cursor,
+F8                       = Ωdelete-line-stay,
+F9                       = Ωsave-file,              # DateiØSichern & weiter
+F10                      = Ωexit-edit,              # DateiØEnde und Sichern
+ClrHome                  = Ωcursor-home,
+Up                       = Ωcursor-up-line,
+Left                     = Ωcursor-left-char,
+Right                    = Ωcursor-right-char,
+Down                     = Ωcursor-down-line,
+Insert                   = Ωtoggle-insert-mode,
+Delete                   = Ωdelete-char,
+Undo                     = Ωundo,
+Help                     = Ωswitch-fkeys-plus,
+Enter                    = Ωrecord-macro,
+Shift+Esc                = Ωset-multiplikator,
+Shift+Backspace          = Ωdelete-to-sol,
+Shift+Return             = Ωjoin-lines,
+Shift+ClrHome            = Ωcursor-eof,
+Shift+Up                 = Ωcursor-back-page,
+Shift+Down               = Ωcursor-down-page,
+Shift+Left               = Ωcursor-sol,
+Shift+Right              = Ωcursor-eol,
+Shift+Insert             = Ωpaste-buffer,
+Shift+Delete             = Ωdelete-to-eol,
+Shift+F2                 = Ωdelete-marked-lines,
+Shift+F3                 = Ωappend-block-to-buffer,
+Shift+F4                 = Ωappend-block-to-clipboard,
+Shift+F5                 = Block-LowerCase,
+Shift+F6                 = Block-MixedCase,
+Shift+F7                 = Block-UpperCase,
+Shift+F8                 = Ωdelete-line-append,
+Shift+F9                 = Ωjoin-marked-lines,
+Shift+F10                = Format-Prgrph,
+Shift+Undo               = Ωpaste-trash,
+Shift+Help               = Ωswitch-fkeys-minus,
+Ctrl+1                   = Ωselect-window-1,
+Ctrl+2                   = Ωselect-window-2,
+Ctrl+3                   = Ωselect-window-3,
+Ctrl+4                   = Ωselect-window-4,
+Ctrl+5                   = Ωselect-window-5,
+Ctrl+6                   = Ωselect-window-6,
+Ctrl+7                   = Ωwin-arrange-hor,
+Ctrl+8                   = Ωwin-arrange-tile,
+Ctrl+9                   = Ωwin-arrange-pair,
+Ctrl+0                   = Ωset-win-zoomed,
+Ctrl+Beta                = Ωchar-up-low,
+Ctrl+Quote               = Ωgoto-mark,              # SuchenØGehe zu Marke..
+Ctrl+Backspace           = Ωdelete-back-word,
+Ctrl+Q				= Ωexit-edit,              # DateiØEnde und Sichern
+Ctrl+W				= Ωcycle-window,
+Ctrl+O                   = Ωopen-file,              # DateiØDatei îffnen..
+Ctrl+R                   = Ωreplace-string,         # SuchenØErsetzen..
+Ctrl+T                   = Ωreplace-again,
+Ctrl+Z				= Tos-Shell,
+Ctrl+U				= Ωquit-file,              # DateiØSchlieûen Datei
+Ctrl+I				= FindSelection,
+Ctrl+P				= Ωprint-window,
+Ctrl+UmlautUE            = Ωchapter-last-begin,
+Ctrl+Plus                = Ωchapter-next-begin,
+Ctrl+Return              = Ωsplit-line-indent-minus,
+Ctrl+A                   = Ωfind-again-forward,
+Ctrl+S                   = Ωsave-file,              # DateiØSichern & weiter
+Ctrl+F                   = Ωfind-string,            # SuchenØSuchen..
+Ctrl+G				= Ωfind-again,             # SuchenØErneut suchen
+Ctrl+H				= Ωabandon-file,           # DateiØDatei neu lesen
+Ctrl+J				= Ωshift-line-left,
+Ctrl+K				= Ωshift-line-right,
+Ctrl+L                   = Ωgoto-line,              # SuchenØGehe zu Zeile..
+Ctrl+UmlautOE            = Ωpara-last-begin,
+Ctrl+UmlautAE            = Ωpara-next-begin,
+Ctrl+Hash                = Ωselect-previous-window,
+Ctrl+Y                   = Ωyank-line,
+Ctrl+X				= Traditional-Cut,
+Ctrl+C				= Ωyank-block,             # BlîckeØAusschneiden
+Ctrl+D				= Ωprint-block,		  # Funktionen->Drucken->Block..
+Ctrl+E				= Ωerrorlist-next,
+Ctrl+V				= Ωpaste-clipboard,        # BlîckeØEinfÅgen
+Ctrl+B				= Ωcheck-brackets,
+Ctrl+N				= Ωmark-all,
+Ctrl+M				= Ωsave-file-as,           # DateiØSichern als..
+Ctrl+Colon               = Ωmove-block,             # BlîckeØVerschieben
+Ctrl+Dot                 = Ωgoto-last-pos,          # SuchenØLetzte Position
+Ctrl+Space               = Ωre-insert,
+Ctrl+F1                  = Ωinsert-line-stay,
+Ctrl+F2                  = Ωfind-block-start,       # BlîckeØStart suchen
+Ctrl+F3                  = Ωfind-block-end,         # BlîckeØEnde suchen
+Ctrl+F4                  = Ωyank-to-buffer,
+Ctrl+F5                  = Ωpaste-buffer,
+Ctrl+F6                  = Ωfind-word-back,
+Ctrl+F7                  = Ωfind-file-under-cursor,
+Ctrl+F8                  = Ωdelete-line-follow,
+Ctrl+F9                  = Ωsave-file-and-close,    # DateiØSichern & schlieûen
+Ctrl+F10                 = Ωquit-edit,              # DateiØEnde ohne Sichern
+Ctrl+NumMinus            = Previous-Func,
+Ctrl+NumPlus             = Next-Function,
+Ctrl+Insert              = Ωinsert-char-with-dialog,
+Ctrl+Delete              = Ωdelete-word,
+Ctrl+Help                = Ωdialog-macros,
+Ctrl+NumLBracket         = Ωshift-between-brackets-left,
+Ctrl+NumRBracket         = Ωshift-between-brackets-right,
+Ctrl+NumStar             = Ωdialog-ruler,           # ModusØTextmodi..
+Ctrl+Num4                = Tex-Exit-4,
+Ctrl+Num1                = Tex-Exit-1,
+Ctrl+Num2                = Tex-Exit-2,
+Ctrl+Num3                = Tex-Exit-3,
+Ctrl+Left                = Ωcursor-left-word,
+Ctrl+Right               = Ωcursor-right-word,
+Ctrl+Up                  = Ωcursor-top-of-page,
+Ctrl+Down                = Ωcursor-bottom-of-page,
+Ctrl+Shift+1             = Ωset-win-reg-1,
+Ctrl+Shift+2             = Ωset-win-reg-2,
+Ctrl+Shift+3             = Ωset-win-reg-3,
+Ctrl+Shift+4             = Ωset-win-reg-4,
+Ctrl+Shift+5             = Ωset-win-reg-5,
+Ctrl+Shift+6             = Ωset-win-reg-6,
+Ctrl+Shift+9             = Ωwin-arrange-undo,
+Ctrl+Shift+Beta          = Ωfind-help-tag,          # HilfenØExkurs
+Ctrl+Shift+A             = Ωalign-text,             # FunktionenØAligne Texte..
+Ctrl+Shift+J             = Ωscroll-up-page,
+Ctrl+Shift+K             = Ωscroll-down-page,
+Ctrl+Shift+Dot           = Ωgoto-last-insert-pos,
+Ctrl+Shift+Dot           = Ωgoto-last-insert-pos,
+Ctrl+Shift+Up            = Ωscroll2-up-line,
+Ctrl+Shift+Down          = Ωscroll2-down-line,
+Ctrl+Shift+Help          = Ωswitch-fkeys-dialog,
+Alt+Backspace            = Ωdelete-until-previous-char,
+Alt+E				= Ωexecute-command,        # ExtraØShell..
+Alt+M				= Ωmod-x-1-0,			  # Make..
+Alt+P				= Ωmod-x-1-2,			  # Lese Project..
+Alt+T                    = Ωsave-block,             # DateiØBlock sichern..
+Alt+Return               = Ωsplit-line-indent-plus,
+Alt+A                    = Ωtoggle-show-attributes, # ModusØAttribute
+Alt+S                    = Ωtoggle-colomn-form,     # BlîckeØSpaltenform
+Alt+F                    = Ωcursor-until-char,
+Alt+H				= Ωsave-options,		  # Desktop sichern..
+Alt+J				= Ωread-options,		  # Desktop lesen..
+Alt+B                    = Ωread-block,             # DateiØDatei einfÅgen..
+Alt+N                    = Ωnext-difference,        # FunktionenØVergleichen
+Alt+Dot                  = Ωtoggle-show-control,    # ModusØControlzeichen
+Alt+F1                   = Ωedit-keyfile,
+Alt+F2                   = Ωhide-block-marks,       # BlîckeØVerstecken
+Alt+F3                   = Ωmove-block,             # BlîckeØVerschieben
+Alt+F4                   = Ωdelete-block,           # BlîckeØLîschen
+Alt+F5                   = Ωcopy-block,             # BlîckeØKopieren
+Alt+F7                   = Ωchar-up-low,
+Alt+F8                   = Ωkill-buffers,
+Alt+F9                   = Ωabandon-file,           # DateiØDatei neu lesen
+Alt+F10                  = Ωinfo-to-file,           # PKS-EDITØInfos..
+Alt+Delete               = Ωdelete-to-next-char,
+Alt+Less                 = Ωshift-range-left,       # FunktionenØSchiebe ..
+Alt+NumLBracket          = Mark-Ccl-Block,
+Alt+NumStar              = Ωset-options,            # ExtraØEinstellungen..
+Alt+NumDot               = Ωre-insert,
+Alt+1                    = Ωsize-win-with-reg-1,
+Alt+2                    = Ωsize-win-with-reg-2,
+Alt+3                    = Ωsize-win-with-reg-3,
+Alt+4                    = Ωsize-win-with-reg-4,
+Alt+5                    = Ωsize-win-with-reg-5,
+Alt+6                    = Ωsize-win-with-reg-6,
+Alt+Shift+F              = Ωcursor-back-to-char,
+Alt+Shift+J              = Ωcursor-center-page,
+Alt+Shift+K              = Ωscroll2-center-page,
+Alt+Shift+Dot            = Ωgoto-previous-tag,      # SuchenØLetzter Verweis
+Alt+Shift+Minus          = Ωmod-x-1-0,              # FunktionenØBuilderØMake all
+Alt+Shift+F1             = Ωedit-local-keyfile,
+Alt+Shift+F2             = Ωtoggle-line-marks,
+Alt+Shift+Less           = Ωshift-range-right,      # FunktionenØSchiebe ..
+Alt+Ctrl+Backspace       = Ωdelete-back-white,
+Alt+Ctrl+P               = Ωerrorlist-start,
+Alt+Ctrl+UmlautUE        = Ωchapter-last-end,
+Alt+Ctrl+Plus            = Ωchapter-next-end,
+Alt+Ctrl+UmlautOE        = Ωpara-last-end,
+Alt+Ctrl+UmlautAE        = Ωpara-next-end,
+Alt+Ctrl+N               = Ωerrorlist-end,
+Alt+Ctrl+Delete          = Ωdelete-to-white,
+Alt+Ctrl+Left            = Ωcursor-to-space,
+Alt+Ctrl+Right           = Ωcursor-back-to-space;
+
+###############################################################################
+#
+# Folgende im PKS-EDIT Modus bekannte Tastenanbindungen entfallen
+# (alle mit einem ! markierten Anbindungen haben eine Turbo-C-Entprechung)
+#
+
+# ! F4                   = Ωyank-block,             # BlîckeØAusschneiden
+# ! F5                   = Ωpaste-clipboard,        # BlîckeØEinfÅgen
+# ! Shift+F1             = Ωmark-all,
+# ! Ctrl+Tab             = Ωshift-line-left,
+# ! Ctrl+Q               = Ωquit-file,              # DateiØSchlieûen Datei
+# ! Ctrl+W               = Ωsave-file,              # DateiØSichern & weiter
+# ! Ctrl+Z               = Ωexit-edit,              # DateiØEnde und Sichern
+# ! Ctrl+G               = Ωgoto-line,              # SuchenØGehe zu Zeile..
+# ! Ctrl+Tilde           = Ωcheck-brackets,
+# ! Ctrl+X               = Ωdelete-block,           # BlîckeØLîschen
+# ! Ctrl+N               = Ωerrorlist-next,
+# ! Ctrl+Up              = Ωcursor-back-page,
+# ! Ctrl+Down            = Ωcursor-down-page,
+# ! Ctrl+Num0            = Ωfind-again,             # SuchenØErneut suchen
+# ! Alt+Tab              = Ωshift-line-right,
+# ! Alt+Q                = Ωabandon-file,           # DateiØDatei neu lesen
+# ! Alt+W                = Ωsave-file-as,           # DateiØSichern als..
+# ! Alt+Z                = Ωquit-edit,              # DateiØEnde ohne Sichern
+# ! Alt+X                = Ωexecute-command,        # ExtraØShell..
+# ! Alt+F6               = Ωcheck-brackets,
+# ! Alt+Ctrl+Hash        = Ωcycle-window,
+
+
+# Ctrl+U                 = Ωfind-in-filelist,       # SuchenØIn Ordnern..
+# Ctrl+I                 = Ωfind-tag,               # SuchenØVerweis..
+# Ctrl+P                 = Ωerrorlist-previous,
+# Ctrl+H                 = Exchange-Chars,
+# Ctrl+J                 = Ωsplit-line-soft,
+# Ctrl+L                 = Ωtoggle-show-ruler,      # ModusØLineale
+# Ctrl+C                 = Ωcopy-block,             # BlîckeØKopieren
+# Ctrl+V                 = Ωinsert-char-with-dialog,
+# Ctrl+B                 = Ωfind-again-backward,
+# Ctrl+M                 = Ωset-mark,               # SuchenØMarke setzen..
+# Alt+E                  = Ωopen-special,           # DateiØôffnen & Lineal..
+# Alt+P                  = Ωlast-difference,
+# Alt+H                  = Exchange-Words,
+# Alt+J                  = Ωscroll-up-line,
+# Alt+K                  = Ωscroll-down-line,
+# Alt+Shift+Q            = Ωwin-2-icon,             # DateiØDatei als Sinnbild
+

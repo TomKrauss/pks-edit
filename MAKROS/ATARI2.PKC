@@ -1,0 +1,348 @@
+###############################################################################
+#
+# Makros und Tastenbelegung PKSEDIT: ATARI Modus
+#
+###############################################################################
+
+#
+# Definitionen f¸r MessageBox (analog zu windows.h aus SDK)
+#
+const MB_YESNO	      = 0x0004;
+const IDYES	      = 6;
+
+macro HelpMakroC() {
+	InternalHelpContext(3000);
+}
+
+macro HelpInternalMacs() {
+	InternalHelpContext(3001);
+}
+
+macro CompileMacro()
+{
+    if (QueryStatus(QUERY_FILEMODIFIED) &&
+    	MessageBox(MB_YESNO, 0, 
+		"Sollen die Makros in diesem Fensters compiliert werden") == IDYES) {
+    	return CompileMacros();
+    }
+}
+
+macro CharacterLow2Up() 
+"Zeichentausch Textblock Klein->Groﬂ"
+{
+	Replace(FO_INIT,"([a-z‰ˆ¸])","\\u\\1",
+		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
+}
+
+macro CharacterUp2Low() 
+"Zeichentausch Textblock Groﬂ->Klein"
+{
+	Replace(FO_INIT,"([A-Zƒ÷‹])","\\l\\1",
+		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
+}
+
+macro CharacterVersale() 
+"Zeichentausch Textblock Versalien"
+{
+	Replace(FO_INIT,"([a-z‰ˆ¸A-Zƒ÷‹])([a-z‰ˆ¸A-Zƒ÷‹]+)","\\u\\1\\l\\2",
+		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
+}
+
+
+#
+# Diese Makros stellen ein Keyboard Interface
+# f¸r das Markieren von Blˆcken zur Verf¸gung 
+#
+
+macro XtndBlockCursRight() 
+"Erweiterung Block / Cursor rechts"
+{
+
+	CursorRight(MOT_SINGLE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursLeft() 
+"Erweiterung Block / Cursor links"
+{
+	CursorLeft(MOT_SINGLE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursDown() 
+"Erweiterung Block / Cursor nach unten"
+{
+	CursorDown(MOT_SINGLE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursUp() 
+"Erweiterung Block / Cursor nach oben"
+{
+	CursorUp(MOT_SINGLE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursWordRight() 
+"Erweiterung Block wortweise / Cursor nach rechts"
+{
+	CursorRight(MOT_WORD|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursWordLeft() 
+"Erweiterung Block wortweise / Cursor nach links"
+{
+	CursorLeft(MOT_WORD|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursHome() 
+"Erweiterung Block / Cursor zum Anfang der Datei"
+{
+	CursorUp(MOT_FILE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursBottom() 
+"Erweiterung Block / Cursor zum Ende der Datei"
+{
+	CursorDown(MOT_FILE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursLineStart() 
+"Erweiterung Block / Cursor zum Anfang der Zeile"
+{
+	CursorLeft(MOT_TOEND|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursLineEnd() 
+"Erweiterung Block / Cursor zum Ende der Zeile"
+{
+	CursorRight(MOT_TOEND|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursPageUp() 
+"Erweiterung Block / Cursor eine Seite hoch"
+{
+	CursorUp(MOT_PAGE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursPageDown() 
+"Erweiterung Block / Cursor eine Seite nach unten"
+{
+	CursorDown(MOT_PAGE|MOT_XTNDBLOCK);
+}
+
+macro PreviousCFunction()
+{
+	Find(FO_INIT, "^[ 	]*\\{", DIR_BACKWARD, RNG_ONCE, RE_DOREX);
+}
+
+macro NextCFunction()
+{
+	Find(FO_INIT, "^[ 	]*\\{", DIR_FORWARD, RNG_ONCE, RE_DOREX);
+}
+
+macro ToggleBlockXtndMode()
+"Schaltet den Blockerweiterungsmodus um;Block erweitern"
+{
+	if (QueryStatus(QUERY_BLOCKXTNDMODE)) {
+		SetBlockExtensionMode(0);
+	} else {
+		SetBlockExtensionMode(1);
+	}
+}
+
+#
+# die folgenden Makros konvertieren von OEM nach ANSI Zeichensatz und
+# umgekehrt, beachten jedoch nur die Umlaute bei der Konvertierung
+# eine Erweiterung auf alle Zeichen (f¸r die das entsprechende Zeichen
+# im anderen Zeichensatz existiert, sollte jedoch keine Schwierigkeit sein.)
+#
+macro ConvertOemToAnsi() 
+"Konvertiert einen Text mit OEM Zeichensatz in ANSI - Zeichensatz"
+{
+	Replace(FO_INIT,"[ÑîÅéôö·û]","\\[ÑîÅéôö·û=‰ˆ¸ƒ÷‹ﬂﬂ]\\&",
+		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
+}
+
+macro ConvertAnsiToOem() 
+"Konvertiert einen Text mit ANSI Zeichensatz in OEM - Zeichensatz"
+{
+	Replace(FO_INIT,"[‰ˆ¸ƒ÷‹ﬂ]","\\[‰ˆ¸ƒ÷‹ﬂ=ÑîÅéôö·]\\&",
+		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
+}
+
+macro PairArrangeWindows()
+"Legt die beiden oberen Fenster nebeneinander"
+{
+	WindowArrange(WIN_PAIRS);
+}
+
+macro MousePositionUngrabbed()
+{
+	MousePosition(0);
+}
+
+
+override KEYS default	# total 159 bindings
+
+RETURN                   = @split-line,             # 
+ESCAPE                   = @escape-makro,           # 
+PRIOR                    = @cursor-back-page,       # 
+NEXT                     = @cursor-down-page,       # 
+END                      = @cursor-eol,             # 
+HOME                     = @cursor-sol,             # 
+LEFT                     = @cursor-left-char,       # 
+UP                       = @cursor-up-line,         # 
+RIGHT                    = @cursor-right-char,      # 
+DOWN                     = @cursor-down-line,       # 
+INSERT                   = @toggle-insert-mode,     # 
+DELETE                   = @delete-char,            # 
+ADD                      = @shift-between-brackets-right,# 
+SUBTRACT                 = @shift-between-brackets-left,# 
+F1                       = @insert-line-follow,     # 
+F2                       = @mark-block-start,       # 
+F3                       = @mark-block-end,         # 
+F4                       = @yank-block,             # 
+F5                       = @paste-clipboard,        # 
+F6                       = @find-word-forward,      # 
+F7                       = @find-tag-under-cursor,  # 
+F8                       = @delete-line-stay,       # 
+F9                       = @compile-macros,         # 
+F10                      = @info-to-file,           # 
+F11                      = @paste-buffer,           # 
+NUMLOCK                  = @record-macro,           # 
+\145                     = @switch-fkeys-plus,      # 
+Shift+BACK               = @delete-to-sol,          # 
+Shift+TAB                = @shift-line-right,       # 
+Shift+RETURN             = @join-lines,             # 
+Shift+LEFT               = @cursor-sol,             # 
+Shift+UP                 = @cursor-top-of-page,     # 
+Shift+RIGHT              = @cursor-eol,             # 
+Shift+DOWN               = @cursor-bottom-of-page,  # 
+Shift+INSERT             = @paste-trash,            # 
+Shift+DELETE             = @delete-to-eol,          # 
+Shift+F2                 = @delete-marked-lines,    # 
+Shift+F3                 = @append-block-to-buffer, # 
+Shift+F4                 = @append-block-to-clipboard,# 
+Shift+F8                 = @kill-buffers,           # 
+Shift+F9                 = @abandon-file,           # 
+Ctrl+CANCEL              = @switch-fkeys-minus,     # 
+Ctrl+BACK                = @delete-back-word,       # 
+Ctrl+TAB                 = @cycle-window,           # 
+Ctrl+RETURN              = @split-line-indent-minus,# 
+Ctrl+SPACE               = @re-insert,              # 
+Ctrl+END                 = @cursor-eof,             # 
+Ctrl+HOME                = @cursor-home,            # 
+Ctrl+LEFT                = @cursor-left-word,       # 
+Ctrl+UP                  = @cursor-back-page,       # 
+Ctrl+RIGHT               = @cursor-right-word,      # 
+Ctrl+DOWN                = @cursor-down-page,       # 
+Ctrl+INSERT              = @insert-char-with-dialog,# 
+Ctrl+DELETE              = @delete-word,            # 
+Ctrl+HELP                = @dialog-macros,          # 
+Ctrl+0                   = @set-win-zoomed,         # 
+Ctrl+1                   = @select-window-1,        # 
+Ctrl+2                   = @select-window-2,        # 
+Ctrl+3                   = @select-window-3,        # 
+Ctrl+4                   = @select-window-4,        # 
+Ctrl+5                   = @select-window-5,        # 
+Ctrl+6                   = @select-window-6,        # 
+Ctrl+7                   = @iconize-edit,           # 
+Ctrl+8				= PairArrangeWindows,
+Ctrl+A                   = @find-again-forward,     # 
+Ctrl+B                   = @find-again-backward,    # 
+Ctrl+C                   = @copy-block,             # 
+Ctrl+E                   = @open-file,              # 
+Ctrl+F                   = @find-string,            # 
+Ctrl+G                   = @goto-line,              # 
+Ctrl+I                   = @find-tag,               # 
+Ctrl+L                   = @toggle-show-ruler,      # 
+Ctrl+M                   = @set-mark,               # 
+Ctrl+N                   = @errorlist-next,         # 
+Ctrl+P                   = @errorlist-previous,     # 
+Ctrl+Q                   = @quit-file,              # 
+Ctrl+R                   = @replace-string,         # 
+Ctrl+T                   = @replace-again,          # 
+Ctrl+U                   = @find-in-filelist,       # 
+Ctrl+W                   = @save-file,              # 
+Ctrl+X                   = @delete-block,           # 
+Ctrl+Y                   = @yank-line,              # 
+Ctrl+Z                   = @exit-edit,              # 
+Ctrl+NUMPAD0             = @find-again,             # 
+Ctrl+F1                  = @insert-line-stay,       # 
+Ctrl+F2                  = @find-block-start,       # 
+Ctrl+F3                  = @find-block-end,         # 
+Ctrl+F4                  = @yank-to-buffer,         # 
+Ctrl+F5                  = @paste-buffer,           # 
+Ctrl+F6                  = @find-word-back,         # 
+Ctrl+F7                  = @find-file-under-cursor, # 
+Ctrl+F8                  = @delete-line-follow,     # 
+Ctrl+F9                  = @save-and-close,         # 
+Ctrl+F12                 = @record-macro,           # 
+Ctrl+\187                = @check-brackets,         # 
+Ctrl+\188                = @move-block,             # 
+Ctrl+\190                = @goto-last-pos,          # 
+Ctrl+\191                = @select-previous-window, # 
+Ctrl+\219                = @char-up-low,            # 
+Ctrl+\221                = @goto-mark,              # 
+Ctrl+Shift+1             = @set-win-reg-1,          # 
+Ctrl+Shift+2             = @set-win-reg-2,          # 
+Ctrl+Shift+3             = @set-win-reg-3,          # 
+Ctrl+Shift+4             = @set-win-reg-4,          # 
+Ctrl+Shift+5             = @set-win-reg-5,          # 
+Ctrl+Shift+6             = @set-win-reg-6,          # 
+Ctrl+Shift+J             = @scroll-up-page,         # 
+Ctrl+Shift+K             = @scroll-down-page,       # 
+Ctrl+Shift+\190          = @goto-last-insert-pos,   # 
+Ctrl+Shift+UP            = @scroll2-up-line,        # 
+Ctrl+Shift+DOWN          = @scroll2-down-line,      # 
+Ctrl+Shift+A             = @align-text,             #
+Ctrl+SUBTRACT  		 = PreviousCFunction,       # 
+Ctrl+ADD		 = NextCFunction,           # 
+Alt+BACK                 = @undo,                   # 
+Alt+RETURN               = @split-line-indent-plus, # 
+Alt+ESCAPE               = @set-multiplikator,      # 
+Alt+DELETE               = @delete-to-next-char,    # 
+Alt+1                    = @size-win-with-reg-1,    # 
+Alt+2                    = @size-win-with-reg-2,    # 
+Alt+3                    = @size-win-with-reg-3,    # 
+Alt+4                    = @size-win-with-reg-4,    # 
+Alt+5                    = @size-win-with-reg-5,    # 
+Alt+6                    = @size-win-with-reg-6,    # 
+Alt+7                    = @iconize-window,         # 
+Alt+A                    = @dialog-printer-layout,  # 
+Alt+B                    = @read-block,             # 
+Alt+D                    = @print-window,           # 
+Alt+F                    = @cursor-until-char,      # 
+Alt+I                    = @keycode-insert,         # 
+Alt+J                    = @scroll-up-line,         # 
+Alt+K                    = @scroll-down-line,       # 
+Alt+N                    = @next-difference,        # 
+Alt+P                    = @last-difference,        # 
+Alt+S                    = @toggle-colomn-form,     # 
+Alt+T                    = @save-block,             # 
+Alt+U                    = @undo,                   # 
+Alt+W                    = @save-file-as,           # 
+Alt+X                    = @execute-command,        # 
+Alt+Z                    = @quit-edit,              # 
+Alt+MULTIPLY             = @set-options,            # 
+Alt+F1                   = @edit-doc-macros,        # 
+Alt+F2                   = @hide-block-marks,       # 
+Alt+F3                   = @move-block,             # 
+Alt+F4                   = @delete-block,           # 
+Alt+F5                   = @copy-block,             # 
+Alt+F8                   = @delete-line-append,     # 
+Alt+F9                   = @join-marked-lines,      # 
+Alt+F12                  = @char-up-low,            # 
+Alt+\145                 = @dialog-doc-types,       # 
+Alt+\190                 = @toggle-show-control,    # 
+Alt+Shift+F              = @cursor-back-to-char,    # 
+Alt+Shift+J              = @cursor-center-page,     # 
+Alt+Shift+K              = @scroll-center-page,     # 
+Alt+Shift+F1             = @edit-local-doc-macros,  # 
+Alt+Shift+F2             = @toggle-line-marks,      # 
+Alt+Ctrl+BACK            = @delete-back-white,      # 
+Alt+Ctrl+LEFT            = @cursor-to-space,        # 
+Alt+Ctrl+UP              = @scroll2-up-line,        # 
+Alt+Ctrl+RIGHT           = @cursor-back-to-space,   # 
+Alt+Ctrl+DOWN            = @scroll2-down-line,      # 
+Alt+Ctrl+DELETE          = @delete-to-white,        # 
+Alt+Ctrl+N               = @errorlist-end,          # 
+Alt+Ctrl+P               = @errorlist-start,        # 
+Alt+Ctrl+F1              = @mark-all;               # 

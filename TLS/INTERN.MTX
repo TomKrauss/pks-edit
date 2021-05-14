@@ -1,0 +1,403 @@
+#
+# INTERN.MTX
+#
+# Definitionen für die Makro-Programmierung von PKS-EDIT
+# 
+# option: Werte sind mit '|' kombinierbar
+# enum:   Aufzählungswert; steht für sich
+#
+# (c) Pahlen & Krauß
+#
+
+# ALIGNOPT Optionen spaltenweise Ausrichtung
+option ALIGNOPT {
+AL_CPOS		 	=	0x1,		# alle vor Cursorposition ignorieren
+AL_FIX	          =	0x2,		# alle auf fest auf Cursorposition aurichten
+AL_END	          =	0x4,		# ausrichten  Ende Suchmuster
+}
+
+# OPTIONS Sonstige Einstellungen
+option OPTIONS {
+O_BLOCKS_AS_COLOMNS	=	0x1,		# Spaltenblöcke
+O_ERROR_BELL	     =	0x2,		# Glocke bei Fehlern
+O_FLASH	          =	0x4,		# "Flash" bei Fehlern
+O_LOCKFILES		=	0x8,		# Erneutes Öffnen von Dateien für
+							# andere Applikationen verbieten
+
+O_HISTORY	          =	0x10,	# History-Dateien (PKSEDIT.HIS) verwenden
+O_SAVE_OPTIONS	     =	0x20,	# automatisches Sichern Einstellungen
+O_SAVE_MACROS	     =	0x40,	# automatisches Sichern der Makros
+O_CLEAN_AUTO_SAVE	=	0x80,	# Autosave Dateien wegwerfen beim Schließen
+
+O_AUTO_WRITE	     =	0x100,	# Automatisch sichern bei Schließen
+O_FORMFOLLOW	     =	0x200,	# Formulare am Mauszeiger
+O_MDISCROLL		=	0x400,	# Scrollbars für Desktop
+O_MESSAGES		=	0x800,	# Nachrichtenfenster
+
+O_AUTODELBLOCK		=	0x1000,	# Windows konforme Blockbehandlung
+O_UNDO_ENABLED	     =	0x2000,	# Undo eingeschaltet
+O_CUTBUFEQCLIP		=	0x4000,	# Clipboard == Löschpuffer
+}
+
+# LAYOUTOPTIONS Layout options
+option LAYOUTOPTIONS {
+OL_OPTIONBAR		=	0x1,		# Optionenleiste anzeigen
+OL_FKEYS			=	0x2,		# Funktionstastenbelegung..
+OL_SHOWSTATUS		=	0x4,		# Statuszeile..
+}
+
+# REPLACTION Art der Ersetzung
+enum REPLACTION {
+REP_NONE	          =	0,		# abbrechen
+REP_REPLACE	     =	1,		# ersetzen
+REP_MARK	          =	2,		# markieren
+REP_COUNT	          =	3,		# zählen
+}
+
+# FINDOPT Optionen Suche
+option FINDOPT {
+RE_DOREX	          =	0x1,	 	# alle Such-Sonderzeichen
+RE_IGNCASE	     =	0x2,		# ignoriere Groß-Kleinschreibung
+RE_SHELLWILD	     =	0x4,		# nur Shell-Sonderzeichen (*?)
+RE_WRAPSCAN		=	0x8,		# wrap on search
+}
+
+# REPLOPT Optionen Ersetzen
+option REPLOPT {
+OREP_INQ	          =	0x10,	# auf Rückfrage
+OREP_MARKED	     =	0x20,	# in markierten Zeilen
+}
+
+# SORTOPT Optionen Sortierung
+option SORTOPT {
+SO_SKIPSEPS	     =	0x1,		# skippe Mehrfachtrenner
+SO_CLUSTERLINES	=	0x2,		# an Sortierzeile binden
+SO_REVERSE	     =	0x4,	  	# absteigende Sortierung
+SO_NOSELECT	     =	0x8,	  	# Suchmuster wird ignoriert
+}
+
+# FORMATTYP 
+enum FORMATTYP {
+FMT_ADJLEFT	     =	0,		# linksbündig
+FMT_ADJRIGHT	     =	1,		# rechtsbündig
+FMT_ADJCENTER	     =	2,		# zentriert
+FMT_ADJBLOCK	     =	3,		# Blocksatz
+}
+
+# FORMATOPT Optionen Textformatierung
+option FORMATOPT {
+FMT_WPFORMAT	     =	0x20,	# WP-Modus
+FMT_INDENT	     =	0x40,	# Indent berücksichtigen
+}
+
+# RANGETYP Bereichsangabe für Bereichsfunktionen
+enum RANGETYP {
+RNG_ONCE	          =	0,		# 1 mal
+RNG_LINE	          =	1,		# in der aktuellen Zeile
+RNG_CHAPTER	     =	2,		# im aktuellen Absatz
+RNG_BLOCK	          =	3,		# im markierten Textblock
+RNG_TOCURS	     =	4,		# bis zum Cursor
+RNG_FROMCURS	     =	5,		# ab Cursor
+RNG_GLOBAL	     =	6,		# im ganzen Text
+RNG_FREE	          =	7,		# für Erweiterungen 
+}
+
+# EXECOPT Optionen für Programmstart
+option EXECOPT {
+EX_SYMBOL			=	0x1,		# als Symbol starten
+EX_WAIT			=	0x2,		# warten auf Programm - Ende
+EX_DOS			=	0x4,		# Dos - Applikation
+EX_RDNONE			=	0x10,
+EX_RDIN	          =	0x20,	# Daten von Programm übernehmen
+EX_RDOUT	          =	0x40,	# Textblock an Programm übergeben
+EX_RDCONV			=	0x80,	# Daten konvertieren
+}
+
+# WORKMODE Modus Dokument-Bearbeitung
+option WORKMODE {
+WM_INSERT			 = 0x1,		# Einfügen
+WM_SHOWMATCH		 = 0x2,		# automatischer Klammerncheck
+WM_ABBREV			 = 0x4,		# Abkürzungen eingeschaltet
+WM_AUTOWRAP		 = 0x8,		# automatisch Umbrechen
+WM_AUTOINDENT		 = 0x10,		# automatisch Einrücken
+WM_RDONLY			 = 0x20,		# nur lesen
+WM_BLK_LINES		 = 0x80,		# Blockmarkierung immer ganze Zeilen
+WM_AUTOFORMAT		 = 0x100,		# Absatzkontrolle
+WM_BRINDENT		 = 0x200,		# Einrücken gemäß Klammerung
+WM_BLK_COLOMN		 = 0x400,		# Spaltenblock
+WM_OEMMODE		 = 0x800,		# Tastatureingaben als OEM interpretieren
+WM_CRYPTED		 = 0x1000,	# verschlüsselt lesen und schreiben
+}
+
+# SHO_MODE Modus Dokument-Anzeige
+enum SHO_MODE {
+SHO_CONTROL		=	0x1,		# Controlzeichen sichtbar
+SHO_HEX			=	0x4,		# alternative Statuszeile
+SHO_RULER			=	0x8,		# Lineal anzeigen
+SHO_ATTR			=	0x10,	# Attributierter Text
+SHO_OEM			=	0x20,	# OEM Zeichensatz für Anzeige erzwingen
+SHO_FIXEDWI		=	0x80,	# feste Fensterlage
+SHO_HIDEHSLIDER	=	0x100,	# horizontalen Slider verstecken
+SHO_HIDEVSLIDER	=	0x200, 	# vertikalen Slider verstecken
+}
+
+# CPS_AFTER Cursorposition nach Suchen
+enum CPS_AFTER {
+CP_POSTOP			=	0x0, 	# oben am Bildschirm
+CP_POSMID			=	0x1, 	# zentriert
+CP_POSLOW			=	0x2, 	# am Ende des Bildschirms
+}
+
+# DIRECTION Richtungen beim Suchen..
+enum DIRECTION {
+DIR_NONE			=	0,		# wenn nicht benötigt
+DIR_FORWARD		=	1,		# vorwärts
+DIR_BACKWARD		=   -1,		# rückwärts
+DIR_LEFT			=   -1,		# nach links
+DIR_RIGHT			=	1,		# nach rechts
+}
+
+# ABANDONOPT 
+option ABANDONOPT {
+AB_WARN			=	0,		# mit Warnung
+AB_NOWARN			=	1,		# ohne Warnung
+}
+
+# YANKOPT (kombinierbar mit 0-256 für Speichername) 
+option YANKOPT {
+YANK_QUERY_ID		=	0x100,	# benannter Speicher
+YANK_APPEND		=	0x200,	# Anhängen an den Speicher
+}
+
+# PASTEOPT 
+option PASTEOPT {
+PASTE_CLIP          =	0x100, 	# Standard Ablage
+PASTE_QUERY_ID      =	0x200, 	# benannter Speicher
+PASTE_TRASH         =	0x400, 	# Inhalt Papierkorb
+PASTE_UNDOBUF       =	0x800, 	# benannter Lösch-Speicher
+}
+
+# MARKMODE 
+enum MARKMODE {
+MARK_RUBBER		=	0,		# mit Gummiband
+MARK_DRAG			=	1,		# durch Ziehen
+MARK_CONT			=	2,		# Erweiterungsmodus
+MARK_START		=	3,		# Markierung Start
+MARK_END			=	4,		# Markierung Ende
+MARK_ALL			=	5,		# Markierung gesammter Text
+}
+
+# LINEDELETEMODE 
+option LINEDELETEMODE {
+LD_APPEND			=	0x200,	# anhängen an Papierkorb
+LD_ACT			=	0,		# aktuelle Zeile
+LD_ABOVE			=	1,		# oberhalb aktueller Zeile
+}
+
+# LINEINSERTMODE 
+enum LINEINSERTMODE {
+LI_BELOW			=	0,		# unterhalb aktueller Zeile
+LI_ACT			=	1,		# aktuelle Zeile nach unten
+}
+
+# MLNTYPE 
+enum MLNTYPE {
+MLN_DELETE		=	0,		# markierte Zeile löschen
+MLN_JOIN			=	1,		# markierte Zeilen zusammenfügen
+MLN_TOGGLE		=	2,		# Markierung togglen
+MLN_FINDSOFT		=	3,		# Suche weiches Zeilenende
+MLN_MAKESOFT		=	4,		# Markierte Zeilen -> weiches Zeilenende
+MLN_MAKEHARD		=	5,		# Markierte Zeilen -> hartes Zeilenende
+MLN_CUT			=	6,		# Markierte Zeilen -> ausschneiden
+}
+
+# READ_OR_WRITE Parameter für alternativ: Sichern-Lesen 
+enum READ_OR_WRITE {
+ROW_READ			= 	0,		# ... lesen
+ROW_WRITE			=	1,		# ... sichern
+}
+
+# KEYTYPE 
+enum KEYTYPE {
+KT_GLOBAL			=	0,		# PKSEDIT.KEY
+KT_LOCAL			=	1,		# dokumentbezogene .KEY-Datei
+}
+
+# CONVTABSACTION 
+enum CONVTABSACTION {
+CT_EXPAND			=	1,		# Tabs in Leerzeichen umwandeln
+CT_COMPRESS		=	0,		# Leerzeichen in Tabs umwandeln
+}
+
+# LINESPLITOPT 
+enum LINESPLITOPT {
+LS_NOINDENT		=	0,		# Einrückung unbeeinflußt
+LS_PLUS			=	0x1,		# Einrückung vergrößern
+LS_MINUS			=    0x2,		# Einrückung verkleinern
+LS_SOFT			=	0x4,		# weiches Zeilenende
+}
+
+# CURSORMOTION 
+enum CURSORMOTION {
+MOT_SINGLE		=	1,		# einzelne Zeichen (Zeilen)
+MOT_TOEND			=	2,		# zum Ende (der Seite, Zeile)
+MOT_WORD			=	3,		# wortweise
+MOT_PAGE			=	3,		# seitenweise
+MOT_UNTILC		=	4,		# bis Zeichen..
+MOT_PGRPH			=	4,		# absatzweise
+MOT_FILE			=	4,		# zum .. der Datei
+MOT_SPACE			=	5,		# zum nächsten Leerzeichen
+MOT_CENTER		=	5,		# zur Mitte der ..
+MOT_XTNDBLOCK		=	0x100,	# Block erweitern während Cursorbewegung
+}
+
+# FKEYSPARAM 
+enum FKEYSPARAM {
+FKS_PLUS			=	1,		# Funktionstasten 1 * weiter schalten
+FKS_MINUS			=	-1,		# Funktionstasten 1 * zurück schalten
+FKS_DIALOG		=	0,		# unimpl.
+}
+
+# MACROPLAYTYP 
+enum MACROPLAYTYP {
+MAC_AUTO			=	-1,		# automatisch aufgezeichnete letzte Einfügung
+MAC_LASTREC		=	-2,		# letztes aufgenommenes Makro
+}
+
+# GOTOTEXTMARKTYP 
+enum GOTOTEXTMARKACTION {
+TM_LASTSEARCH 		=	0,		# Position vor letzter Suche
+TM_LASTINSERT		=	1,		# Position letzte Einfügung
+}
+
+# OPENOPTION 
+option OPENOPTION {
+OPEN_LINEAL		=	0x1,		# öffnen mit Lineal..
+}
+
+# PRINTOPTION 
+enum PRINTOPTION {
+PRT_CURRWI		=	0x1,	     # aktuelles Bearbeitungsfenster
+PRT_FILE		     =	0x2,	     # Datei..
+PRT_CURRBLK		=	0x3,	     # aktueller Textblock
+PRT_CLIP		     =	0x4,	     # Ablage
+PRT_TRASH		     =	0x5,	     # Papierkorb
+}
+
+# SAVEOPTION 
+option SAVEOPTION {
+SAV_SAVE		     =	0x1,	     # sichern
+SAV_QUIT		     =	0x2,	     # schließen Fenster
+SAV_AS		     =	0x4,	     # sichern unter..
+SAV_QUITWI		=	0x8,	     # Fenster als Sinnbild
+SAV_FORCED		=	0x10,	# sichern, auch wenn nicht geändert
+}
+
+# LISTGOTOMODE 
+enum LISTGOTOMODE {
+LIST_START		=	0,	     # zum Anfang der ..liste
+LIST_PREV		     =	1,	     # vorheriger Eintrag der ..liste
+LIST_CURR		     =	2,	     # aktueller Eintrag der ..liste
+LIST_NEXT		     =	3,	     # zum nächsten Eintrag der ..liste
+LIST_END		     =	4,	     # zum Ende der ..liste
+LIST_USETOPWINDOW   =	0x100,	# Oberstes Fenster wird zur aktuelen Fehlerliste
+}
+
+# SELWINDOWACTION (Zahlen 0-7-> Fenster 1-8) 
+enum SELWINDOWACTION {
+SW_PREVIOUS		=	-1,	     # zum darunterliegenden Fenster
+SW_CYCLE			=	-100,     # zum nächsten Fenster
+}
+
+# WINARRANGEACTION 
+enum WINARRANGEACTION {
+WIN_FULL			=	-1,	     # maximale Größe
+WIN_TILE			=	-2,	     # vertikal anordnen
+WIN_CASCADE		=	-3,		# Fenster überlappend
+WIN_ICONIZED		=	-4,		# Fenster iconisiert
+WIN_ICONARRANGE	=	-5,		# Symbole anordnen
+WIN_DESKICON		=	-6,		# PKS-EDIT als Icon
+WIN_HOR			=	-7,		# horizontal anordnen
+WIN_PAIRS		     =	-8,	     # paarweise nebeneinander
+}
+
+# MOUSEMOVEACTION 
+enum MOUSEMOVEACTION {
+MM_COPY		     =	0,	     # Text kopieren
+MM_MOVE		     =	1,	     # Text verschieben
+}
+
+# MODULTYP 
+enum MODULTYP {
+MOD_BUILDER		=	256,		# Builder-Modul
+MOD_SETUP			=	512,		# Konfigurations-Modul
+}
+
+# SELMODE 
+enum SELMODE {
+SEL_OFF			=	0,		# Selektion aufheben
+SEL_ON			=	1,		# selektieren
+}
+
+# DIALOGOPT Option Dialog beim Makro-Abspielen 
+option DIALOGOPT {
+FO_SHOW			=	0x40,	# Formular wird geöffnet
+FO_INIT			=	0x1,		# Formular wird initialisiert
+FO_REDRAW			=	0x2,		# Textfenster werden neu gezeichnet
+}
+
+# TOGGLE 
+enum TOGGLE {
+TGL_SHOWMATCH       =	0,		# Klammern-Überprüfung ein/aus
+TGL_INSERT          =	1,		# Einfüge-Modus ein/aus
+TGL_AUTOINDENT      =	2,		# Automatisches Einrücken ein/aus
+TGL_AUTOWRAP        =	3,		# Automatischer Umbruch ein/aus
+TGL_BLOCKS_AS_COLOMNS =	4,		# Spaltenblöcke
+TGL_KEYCLICK        =	6,		# Tastenklick ein/aus
+TGL_WARNINGS        =	7,		# Warungen ein/aus
+TGL_BACKUP          =	8,		# Erzeugen von Backup-Dateien ein/aus
+TGL_SHOWCONTROL     =	9,		# Anzeige von Controlzeichen ein/aus
+TGL_SHOWSTATUS      =   10,		# Statuszeile ein/aus
+TGL_ALTSTATUS       =   11,		# alternativer Status ein/aus
+TGL_SHOWRULER       =   12,		# Text-Lineal ein/aus
+TGL_SHOWATTR        =   13,		# Anzeige Textattribute ein/aus
+}
+
+# FAOPT Optionen FormAlert
+option FAOPT {
+AD_CENTER		=		0x1,		# Formular zentrieren (oder am Mauscursor)
+AD_SHRINK		=		0x2,		# Shrink-Box zeichnen
+AD_CURSORPOS	=		0x4,		# Formular am Text-Cursor
+}
+
+# LISTOPT Optionen von ListBindings
+option LISTOPT {
+LIST_MACROS		=	0x1,
+LIST_KEYS			=	0x2,
+LIST_MICE			=	0x4,
+LIST_MENUS		=	0x8,
+}
+
+# QUERY Typ für Status Abfragen
+enum QUERY {
+QUERY_CLIPBOARDAVAIL	=	0,		# Daten auf dem Clipboard?
+QUERY_BLKMARKSTART		=	1,		# Blockstart markiert?
+QUERY_BLKMARKEND		=	2,		# Blockende markiert?
+QUERY_BLKMARKED		=	3,		# gesammter Block markiert 
+								# IsDefined(..START) && IsDefined(...END)
+QUERY_CURRENTFILE		=	4,		# mindestens 1 Datei geöffnet?
+QUERY_OPTIONS			=	5,		# globale Einstellungen abfragen
+QUERY_LAYOUTOPTIONS		=	6,		# globale Layout- "
+QUERY_WORKMODE			=	7,		# Bearbeitungs - Modus abfragen
+QUERY_DISPLAYMODE		=	8,		# Anzeige - Modus abfragen
+QUERY_FILEMODIFIED		=	9,		# aktuelle Datei geändert ?
+
+QUERY_BLOCKXTNDMODE		=	10,		# Abfragen Block - Erweiterungsmodus
+}
+
+# SCROLLOPT Optionen von SetCursorMode
+option SCROLLOPT {
+SC_THUMBTRACK			=	0x1,		# "real - time" Scrollbar
+SC_CURSORCATCH			=	0x2,		# Cursor immer im aktuellen Ausschnitt
+}
+

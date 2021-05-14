@@ -1,0 +1,15 @@
+
+macro TestQuit() {
+	ExitEdit(0);
+}
+
+macro TestAlert()
+{
+    int 	ret;
+    string 	res;
+
+    ret = FormAlert(2, 0, "Ja oder Nein");
+    res = "res = " + (string) ret;
+    Alert(res);
+}
+

@@ -1,0 +1,1034 @@
+C:\Source\pksedit\ABORT.C DlgAbortProc ^BOOL CALLBACK DlgAbortPr.+$
+* abrt_start ^void abrt_start\(WORD ids.+$
+* abrt_message ^void abrt_message\(LPSTR .+$
+* abrt_close ^void abrt_close\(int alwa.+$
+* ed_abort ^int ed_abort\(BOOL bRedra.+$
+C:\Source\pksedit\ALIGN.C AlignText ^EXPORT int AlignText\(cha.+$
+C:\Source\pksedit\ARGS.C Phase1Arg ^static int Phase1Arg\(cha.+$
+* Phase2Arg ^static int Phase2Arg\(cha.+$
+* GetArgs ^static int GetArgs\(char .+$
+* GetPhase1Args ^void GetPhase1Args\(char .+$
+* GetPhase2Args ^void GetPhase2Args\(char .+$
+C:\Source\pksedit\ATOL.C Atol ^EXPORT long Atol\(char \*s.+$
+C:\Source\pksedit\BLCOLUMN.C tabcpy ^static LINE \*tabcpy\(FTAB.+$
+* blcutcol ^EXPORT int blcutcol\(PAST.+$
+* tabinsl ^static LINE \*tabinsl\(FTA.+$
+* blpastecol ^EXPORT int blpastecol\(PA.+$
+C:\Source\pksedit\BLOCKS.C BlockAsBuffer ^unsigned char \*BlockAsBu.+$
+* EdGetSelectedText ^void EdGetSelectedText\(v.+$
+* bl_free ^EXPORT void bl_free\(PAST.+$
+* pp_listfree ^EXPORT void pp_listfree\(.+$
+* EdBufferFree ^EXPORT int EdBufferFree\(.+$
+* blcut ^EXPORT int blcut\(PASTE \*.+$
+* bl_cut ^EXPORT int bl_cut\(PASTE .+$
+* bl_read ^EXPORT int bl_read\(char .+$
+* bl_write ^EXPORT int bl_write\(char.+$
+* bl_paste ^EXPORT int bl_paste\(PAST.+$
+* bl_join ^EXPORT int bl_join\(PASTE.+$
+* bl_delete ^EXPORT int bl_delete\(FTA.+$
+* undoenq ^EXPORT int undoenq\(LINE .+$
+* blgetundo ^EXPORT PASTE \*blgetundo\(.+$
+* ValidTrashCans ^void ValidTrashCans\(char.+$
+* blappnd ^EXPORT int blappnd\(PASTE.+$
+* pp_find ^EXPORT PASTE \*pp_find\(in.+$
+* ValidClipboards ^EXPORT void ValidClipboa.+$
+* plistenq ^EXPORT PASTE \*plistenq\(i.+$
+* bl_addrbyid ^EXPORT PASTE \*bl_addrbyi.+$
+* bl_avail ^int bl_avail\(int ubuf, i.+$
+C:\Source\pksedit\BRACKETS.C eq_id ^static int eq_id\(int ctx.+$
+* key_globs ^EXPORT void key_globs\(BR.+$
+* mcmp ^EXPORT int mcmp\(char \*bu.+$
+* uc_find ^EXPORT struct uclist \*uc.+$
+* uc_init ^EXPORT void uc_init\(void.+$
+* uc_add ^EXPORT int uc_add\(char \*.+$
+* sm_setup ^EXPORT int sm_setup\(void.+$
+* sm_define ^EXPORT int sm_define\(cha.+$
+* sm_init ^EXPORT void sm_init\(void.+$
+* bracketmatch ^static int bracketmatch\(.+$
+* ismatch ^static struct matchbox \*.+$
+* scanmatch ^static int scanmatch\(int.+$
+* br_indentsum ^static int br_indentsum\(.+$
+* sm_bracketindent ^EXPORT int sm_bracketind.+$
+* nextmatch ^static int nextmatch\(LIN.+$
+* EdShowMatch ^EXPORT int EdShowMatch\(v.+$
+* showmatch ^EXPORT int showmatch\(LIN.+$
+* EdCharUpToLow ^EXPORT int EdCharUpToLow.+$
+* shift_lines ^EXPORT int shift_lines\(F.+$
+* EdShiftBetweenBrackets ^EXPORT int EdShiftBetwee.+$
+* EdLinesShift ^EXPORT int EdLinesShift\(.+$
+* RangeShift ^EXPORT int RangeShift\(in.+$
+C:\Source\pksedit\CCLASS.C IsSpace ^EXPORT int IsSpace\(unsig.+$
+* skipblank ^EXPORT unsigned char \*sk.+$
+* skipnoblank ^EXPORT unsigned char \*sk.+$
+* CntSpaces ^EXPORT int CntSpaces\(uns.+$
+* isword ^EXPORT int isword\(unsign.+$
+* isnospace ^EXPORT int isnospace\(uns.+$
+* isfname ^EXPORT int isfname\(unsig.+$
+C:\Source\pksedit\CLIP.C clp_ismine ^EXPORT int clp_ismine\(vo.+$
+* clp_setclipboarddata ^static void clp_setclipb.+$
+* clp_makebufferhandle ^static HANDLE clp_makebu.+$
+* clp_setmine ^EXPORT void clp_setmine\(.+$
+* clp_setdata ^EXPORT int clp_setdata\(i.+$
+* clp_getdata ^EXPORT int clp_getdata\(v.+$
+* EdShowClipboard ^EXPORT int EdShowClipboa.+$
+C:\Source\pksedit\CMP.C cmpfold ^EXPORT int cmpfold\(unsig.+$
+* crunchdict ^EXPORT int crunchdict\(un.+$
+* cmpnormal ^EXPORT int cmpnormal\(uns.+$
+C:\Source\pksedit\CRYPT.C desinit ^static desinit\(mode\)$
+* desdone ^static void desdone\(\)$
+* setkey ^void setkey\(key\)$
+* endes ^static void endes\(block\)$
+* dedes ^static void dedes\(block\)$
+* permute ^void permute\(inblock,per.+$
+* round ^void round\(num,block\)$
+* f ^f\(r,subkey\)$
+* perminit ^perminit\(perm,p\)$
+* spinit ^spinit\(\)$
+* byteswap ^byteswap\(x\)$
+* crypt_init ^int crypt_init\(int mode,.+$
+* crypt_en ^int crypt_en\(char \*buf, .+$
+* crypt_de ^int crypt_de\(char \*buf, .+$
+C:\Source\pksedit\CURSOR.C _cphys2scr ^EXPORT int _cphys2scr\(FT.+$
+* cphys2scr ^EXPORT int cphys2scr\(cha.+$
+* _cscr2phys ^EXPORT int _cscr2phys\(FT.+$
+* cscr2phys ^EXPORT int cscr2phys\(LIN.+$
+* XtndBlock ^void XtndBlock\(FTABLE \*f.+$
+* BegXtndBlock ^static void BegXtndBlock.+$
+* HideWindowsBlocks ^static void HideWindowsB.+$
+* cphyspos ^EXPORT int cphyspos\(FTAB.+$
+* cposvalid ^EXPORT int cposvalid\(FTA.+$
+* _curpos ^EXPORT int _curpos\(FTABL.+$
+* curpos ^EXPORT int curpos\(long l.+$
+* wi_adjust ^EXPORT static int wi_adj.+$
+* centernewpos ^EXPORT int centernewpos\(.+$
+* centercpos ^EXPORT int centercpos\(lo.+$
+* center2cpos ^EXPORT int center2cpos\(F.+$
+* cadv_page ^EXPORT int cadv_page\(lon.+$
+* ln_leadspce ^EXPORT int ln_leadspce\(L.+$
+* isempty ^EXPORT int isempty\(LINE .+$
+* counttabs ^EXPORT static int countt.+$
+* tabedstart ^EXPORT int tabedstart\(LI.+$
+* tabedend ^EXPORT int tabedend\(LINE.+$
+* pgrend ^EXPORT int pgrend\(LINE \*.+$
+* pgrstart ^EXPORT int pgrstart\(LINE.+$
+* cadv_section ^static void cadv_section.+$
+* cparagrph ^EXPORT long cparagrph\(lo.+$
+* curspgrph ^EXPORT int curspgrph\(int.+$
+* cursabsatz ^EXPORT int cursabsatz\(in.+$
+* cursupdown ^EXPORT int cursupdown\(in.+$
+* nextw ^static LINE \*nextw\(LINE .+$
+* cadv_wordonly ^EXPORT LINE \*cadv_wordon.+$
+* cadv_space ^EXPORT LINE \*cadv_space\(.+$
+* cadv_word ^EXPORT LINE \*cadv_word\(L.+$
+* cadv_c ^EXPORT LINE \*cadv_c\(LINE.+$
+* l_advance ^EXPORT int l_advance\(LIN.+$
+* setmatchfunc ^EXPORT void setmatchfunc.+$
+* cursleftright ^EXPORT int cursleftright.+$
+* scn2lncol ^EXPORT void scn2lncol\(WI.+$
+* find_curs ^EXPORT int find_curs\(WIN.+$
+* MousePosition ^EXPORT int MousePosition.+$
+* EdMousePosition ^EXPORT int EdMousePositi.+$
+* EdMousePositionUngrabbed ^int EdMousePositionUngra.+$
+* EdBlockXtndMode ^int EdBlockXtndMode\(long.+$
+C:\Source\pksedit\CUSTOM.C DrawShadow ^void DrawShadow\(HDC hdc,.+$
+* EdSmallFont ^HFONT EdSmallFont\(void\) .+$
+* cust_paintbut ^EXPORT void cust_paintbu.+$
+* DrawOutline ^void DrawOutline\(HDC hDC.+$
+* cust_buttoncharheight ^int cust_buttoncharheigh.+$
+* ToggleWndProc ^WINFUNC ToggleWndProc\(HW.+$
+* MarkSelection ^static void MarkSelectio.+$
+* CharSetWndProc ^WINFUNC CharSetWndProc\(-.+$
+* class_defaults ^EXPORT void class_defaul.+$
+* cust_register ^EXPORT int cust_register.+$
+* cust_ownerselection ^void cust_ownerselection.+$
+* cust_combood ^int cust_combood\(LPDRAWI.+$
+C:\Source\pksedit\CUTPASTE.C Pastehide ^EXPORT int Pastehide\(flg.+$
+* pasteblk ^EXPORT int pasteblk\(PAST.+$
+* paste ^EXPORT int paste\(PASTE \*.+$
+* TextForTrash ^static char \*TextForTras.+$
+* TextForClip ^static char \*TextForClip.+$
+* GetTmplateDlg ^static int GetTmplateDlg.+$
+* bl_getpaste ^EXPORT PASTE \*bl_getpast.+$
+* EdBlockPaste ^EXPORT int EdBlockPaste\(.+$
+* _EdBlockRead ^EXPORT int _EdBlockRead\(.+$
+* EdBlockRead ^EXPORT int EdBlockRead\(v.+$
+* EdBlockWrite ^EXPORT int EdBlockWrite\(.+$
+* _chkblk ^EXPORT int _chkblk\(FTABL.+$
+* chkblk ^EXPORT int chkblk\(FTABLE.+$
+* CutBlock ^EXPORT int CutBlock\(MARK.+$
+* EdBlockCut ^EXPORT int EdBlockCut\(in.+$
+* _EdBlockWrite ^EXPORT int _EdBlockWrite.+$
+* block_rw ^EXPORT int block_rw\(char.+$
+* upd_lines ^static void upd_lines\(\)$
+* EdBlockCopy_mv ^EXPORT int EdBlockCopy_m.+$
+* blfin ^static int blfin\(MARK \*m.+$
+* EdBlockFindEnd ^EXPORT void EdBlockFindE.+$
+* EdBlockFindStart ^EXPORT int EdBlockFindSt.+$
+* EdBlockDelete ^EXPORT int EdBlockDelete.+$
+* EdLinesYank ^EXPORT int EdLinesYank\(\)$
+* blborders ^EXPORT int blborders\(int.+$
+* isbefore ^static int isbefore\(FTAB.+$
+* marklines ^static void marklines\(in.+$
+* _markcolomns ^static void _markcolomns.+$
+* markcolomns ^EXPORT int markcolomns\(F.+$
+* blcolcheck ^EXPORT int blcolcheck\(in.+$
+* markblk ^EXPORT int markblk\(FTABL.+$
+* SetBlockMark ^int SetBlockMark\(FTABLE .+$
+* EdMouseMarkParts ^EXPORT int EdMouseMarkPa.+$
+* EdBlockMark ^EXPORT int EdBlockMark\(i.+$
+C:\Source\pksedit\DEBUG.C vdebug ^static void vdebug\(int e.+$
+* Debug ^EXPORT void Debug\(int db.+$
+* edidebug ^EXPORT void edidebug\(cha.+$
+* DebugWinMessag ^EXPORT void DebugWinMess.+$
+C:\Source\pksedit\DIFF.C findmatch ^static LINE \*findmatch\(L.+$
+* matchlines ^static long matchlines\(F.+$
+* EdFilesCompare ^EXPORT int EdFilesCompar.+$
+C:\Source\pksedit\EDIT.C CalcCol2TabsBlanks ^int CalcCol2TabsBlanks\(L.+$
+* CalcTabs2Col ^int CalcTabs2Col\(LINEAL .+$
+* CalcStartIndentation ^static int CalcStartInde.+$
+* optinswhite ^LINE \*optinswhite\(FTABLE.+$
+* InsIndent ^static int InsIndent\(FTA.+$
+* do_brindent ^static int do_brindent\(F.+$
+* PostInsline ^static int PostInsline\(F.+$
+* EdLineInsert ^int EdLineInsert\(int con.+$
+* EdLineDelete ^int EdLineDelete\(control.+$
+* EdLinesJoin ^int EdLinesJoin\(\)$
+* cb_breakline ^static int cb_breakline\(.+$
+* findwrap ^static int findwrap\(FTAB.+$
+* RightMargin ^int RightMargin\(FTABLE \*.+$
+* dowrap ^static void dowrap\(FTABL.+$
+* doauto ^int doauto\(FTABLE \*fp\)$
+* EdCharInsert ^int EdCharInsert\(int c\)$
+* EdCharDelete ^int EdCharDelete\(control.+$
+* EdLineSplit ^int EdLineSplit\(int flag.+$
+* EdMarkedLineOp ^int EdMarkedLineOp\(int o.+$
+* EdHideLines ^int EdHideLines\(void\)$
+* EdUnHideLine ^int EdUnHideLine\(void\)$
+* EdMouseSelectLines ^void EdMouseSelectLines\(.+$
+* EdExpandAbbreviation ^int EdExpandAbbreviation.+$
+C:\Source\pksedit\ERROR.C nAlert ^static int nAlert\(int bu.+$
+* Form_Alert ^int Form_Alert\(long butt.+$
+* nIdAlert ^static int nIdAlert\(int .+$
+* alert ^void alert\(LPSTR fmt, \.\..+$
+* ed_yn ^int ed_yn\(WORD nId, \.\.\.\)$
+* ed_ync ^int ed_ync\(WORD nId, \.\.\..+$
+* Panic ^void Panic\(LPSTR s\)$
+* DlgError ^BOOL CALLBACK DlgError\(H.+$
+* ShowError ^void ShowError\(LPSTR fmt.+$
+* err_show ^static void err_show\(int.+$
+* Out ^void Out\(char \*fmt, \.\.\.\)$
+* ShowMessage ^void ShowMessage\(WORD nI.+$
+* CloseErrorWin ^void CloseErrorWin\(void\)$
+* visiblebell ^static void visiblebell\(.+$
+* ed_error ^void ed_error\(int nId,\.\..+$
+* form_error ^void form_error\(int num\)$
+* tosfnerror ^void tosfnerror\(char \*fn.+$
+C:\Source\pksedit\EWTERM.C EdHideCaret ^static int EdHideCaret\(H.+$
+* EdUpdateCaret ^static int EdUpdateCaret.+$
+* UpdateOwnCaret ^void UpdateOwnCaret\(WINF.+$
+* updatecursor ^void updatecursor\(WINFO .+$
+* check_inbounds ^int check_inbounds\(regis.+$
+* cborder ^static int cborder\(regis.+$
+* wt_curpos ^void wt_curpos\(WINFO \*wp.+$
+* wt_tcursor ^void wt_tcursor\(WINFO \*w.+$
+* wt_scrollxy ^void wt_scrollxy\(WINFO \*.+$
+* wt_scrollpart ^void wt_scrollpart\(WINFO.+$
+* wt_insline ^void wt_insline\(WINFO \*w.+$
+* wt_deleteline ^void wt_deleteline\(WINFO.+$
+C:\Source\pksedit\EXEC.C ExecWaitNotify ^BOOL FPE_FUNC ExecWaitNo.+$
+* exec_error ^static void exec_error\(c.+$
+* GetTaskHandle ^static HTASK GetTaskHand.+$
+* EdExecute ^int EdExecute\(long flags.+$
+C:\Source\pksedit\FILEIO.C InitBuffers ^BOOL InitBuffers\(void\)$
+* lnlistfree ^EXPORT void lnlistfree\(r.+$
+* list2_destroy ^static int list2_destroy.+$
+* list2_insert ^static void list2_insert.+$
+* list2_mk ^static void list2_mk\(P2L.+$
+* listPathes_mk ^static void listPathes_m.+$
+* ap_init ^int ap_init\(void\)$
+* putline ^EXPORT int putline\(FTABL.+$
+* closeF ^EXPORT int closeF\(int \*f.+$
+* NoDiskSpace ^void NoDiskSpace\(void\)$
+* WriteError ^void WriteError\(void\)$
+* OpenError ^void OpenError\(char \*fna.+$
+* readfrags ^EXPORT int readfrags\(int.+$
+* init_pw ^static int init_pw\(LINEA.+$
+* readfile ^EXPORT int readfile\(FTAB.+$
+* creabackup ^static void creabackup\(c.+$
+* flush ^int flush\(int fd, int si.+$
+* FlushBufferAndCrypt ^static int FlushBufferAn.+$
+* writefile ^EXPORT int writefile\(int.+$
+* write2ndpathfile ^EXPORT int write2ndpathf.+$
+* Writefile ^EXPORT int Writefile\(FTA.+$
+* Readfile ^EXPORT int Readfile\(FTAB.+$
+* Writeandclose ^EXPORT int Writeandclose.+$
+C:\Source\pksedit\FILES.C EdStat ^EXPORT int EdStat\(char \*.+$
+* EdFileMode ^EXPORT int EdFileMode\(ch.+$
+* EdIsDir ^EXPORT int EdIsDir\(char .+$
+* EdOpen ^EXPORT int EdOpen\(char \*.+$
+* EdMakeReadable ^EXPORT int EdMakeReadabl.+$
+* EdCreateWithMode ^EXPORT int EdCreateWithM.+$
+* EdCreate ^EXPORT int EdCreate\(char.+$
+* pathstat ^static int pathstat\(char.+$
+* searchfile ^EXPORT char \*searchfile\(.+$
+* pathsearch ^EXPORT char \*pathsearch\(.+$
+* TmpName ^EXPORT char \*TmpName\(cha.+$
+* TmpDir ^EXPORT char \*TmpDir\(void.+$
+* TmpJunk ^EXPORT void TmpJunk\(void.+$
+C:\Source\pksedit\FINDREPL.C RegError ^void RegError\(\)$
+* doregerror ^static int doregerror\(er.+$
+* _regcompile ^int _regcompile\(char \*eb.+$
+* setfinds ^void setfinds\(char \*pat\)$
+* exprinit ^int exprinit\(char \*pat\)$
+* newtab ^static unsigned char \*ne.+$
+* _repinit ^static int _repinit\(unsi.+$
+* repinit ^int repinit\(unsigned cha.+$
+* stepback ^static int stepback\(UCHA.+$
+* xabort ^static int xabort\(void \)$
+* find_expr ^LINE \*find_expr\(int dir,.+$
+* searchcpos ^static int searchcpos\(FT.+$
+* _findstr ^int _findstr\(int dir,UCH.+$
+* findstr ^int f$
+* countlines ^long countlines\(fp,start.+$
+* tab_expand ^int tab_expand\(LINE \*lp,.+$
+* expline ^static LINE \*expline\(FTA.+$
+* condexpline ^LINE \*condexpline\(FTABLE.+$
+* compline ^static LINE \*compline\(FT.+$
+* modifypgr ^static void modifypgr\(FT.+$
+* ReplaceTabs ^int ReplaceTabs\(int scop.+$
+* exprsub ^int exprsub\(unsigned cha.+$
+* breaklines ^static long breaklines\(F.+$
+* EdPasteString ^int EdPasteString\(long d.+$
+* strxcpy ^static void strxcpy\(char.+$
+* EdReplaceText ^int EdReplaceText\(int sc.+$
+* EdStringSubstitute ^void EdStringSubstitute\(.+$
+* select_range ^int select_range\(int rng.+$
+* range ^int range\(int rngdefault.+$
+C:\Source\pksedit\FKEYS.C setkeylabel ^static void setkeylabel\(.+$
+* fkey_settext ^void fkey_settext\(int st.+$
+* fkey_wh ^EXPORT int fkey_wh\(WORD .+$
+* ResizeSubWindow ^static int ResizeSubWind.+$
+* FkeysWndProc ^WINFUNC FkeysWndProc\(HWN.+$
+* fkey_show ^static void fkey_show\(HW.+$
+* fkey_register ^int fkey_register\(void\)$
+* fkey_init ^int fkey_init\(HWND hwndP.+$
+* EdFkeysSwitch ^int EdFkeysSwitch\(int de.+$
+* fkey_visibilitychanged ^void fkey_visibilitychan.+$
+C:\Source\pksedit\FONT.C EdSetTextEffects ^void EdSetTextEffects\(in.+$
+* EdCreateFont ^HFONT EdCreateFont\(EDFON.+$
+* EdSelectFont ^HFONT EdSelectFont\(WINFO.+$
+* EdUnselectFont ^void EdUnselectFont\(HDC .+$
+* EdSelectStdFont ^void EdSelectStdFont\(HWN.+$
+* ChooseFontHookProc ^UINT CALLBACK ChooseFont.+$
+* DlgChooseFont ^BOOL DlgChooseFont\(HWND .+$
+C:\Source\pksedit\FORM.C GetWindowWH ^static void GetWindowWH\(.+$
+* form_xy ^EXPORT void form_xy\(HWND.+$
+* form_textcursor ^EXPORT int form_textcurs.+$
+* form_mouse ^EXPORT int form_mouse\(HW.+$
+* form_center ^EXPORT int form_center\(H.+$
+* form_move ^EXPORT int form_move\(HWN.+$
+C:\Source\pksedit\FORMAT.C blkformat ^static void blkformat\(un.+$
+* format ^static int format\(int ty.+$
+* formatlines ^static int formatlines\(L.+$
+* FormatText ^FormatText\(int scope, in.+$
+C:\Source\pksedit\FTW.C _ftw ^	char \*path,				/\* Root .+$
+* __ftw ^static int __ftw\(char \*p.+$
+* ftwalk ^int ftwalk\(char \*path,FT.+$
+C:\Source\pksedit\GLOBMARK.C fm_getincr ^static char \*\*fm_getincr.+$
+* fm_savepos ^int fm_savepos\(char \*tag.+$
+* fm_mktagstring ^void fm_mktagstring\(char.+$
+* EdGotoPreviousTag ^int EdGotoPreviousTag\(vo.+$
+C:\Source\pksedit\HELP.C EdCallWinHelp ^int EdCallWinHelp\(char \*.+$
+* HelpQuit ^void HelpQuit\(void\)$
+* HelpKey ^int HelpKey\(LPSTR szFile.+$
+* EdHelp ^int EdHelp\(WORD hType, D.+$
+* EdHelpContext ^int EdHelpContext\(WORD n.+$
+C:\Source\pksedit\HISTORY.C hist_enq ^EXPORT void hist_enq\(str.+$
+* hist_2combo ^EXPORT void hist_2combo\(.+$
+* hist_getstring ^char \*hist_getstring\(str.+$
+* hist_updatemenu ^void hist_updatemenu\(str.+$
+* hist_save ^static void hist_save\(FT.+$
+* hist_allsave ^EXPORT void hist_allsave.+$
+* hist_read ^EXPORT void hist_read\(LI.+$
+C:\Source\pksedit\ICONS.C EdIconsQuit ^int EdIconsQuit\(LONG hwn.+$
+* ic_lboxdrawitem ^void ic_lboxdrawitem\(HDC.+$
+* ic_lboxselchange ^void	ic_lboxselchange\(HW.+$
+* ic_lboxmeasureitem ^void ic_lboxmeasureitem\(.+$
+* ic_enablecallbacks ^void ic_enablecallbacks\(.+$
+* ic_lboxfill ^void ic_lboxfill\(HWND hw.+$
+* FindChildFromPoint ^HWND FindChildFromPoint\(.+$
+* ic_sp ^static int ic_sp\(HWND hw.+$
+* ic_profsave ^static int ic_profsave\(H.+$
+* ic_profsavepos ^int ic_profsavepos\(char .+$
+* ic_dropped ^static int ic_dropped\(HW.+$
+* ic_attribs ^static ICONCLASS \*ic_att.+$
+* ic_param ^char \*ic_param\(---------.+$
+* ic_type ^int ic_type\(HWND hwnd\)$
+* ic_isicon ^BOOL ic_isicon\(HWND hwnd.+$
+* ic_getactive ^HWND ic_getactive\(ICONCL.+$
+* ic_active ^HWND ic_active\(LPSTR szT.+$
+* ic_mod ^void ic_mod\(LPSTR szTitl.+$
+* ic_redrawrect ^static void ic_redrawrec.+$
+* ic_redraw ^static void ic_redraw\(HW.+$
+* ic_setactive ^static void ic_setactive.+$
+* IconWndProc ^WINFUNC IconWndProc\(HWND.+$
+* ic_sel1 ^static int ic_sel1\(HWND .+$
+* ic_sel2 ^static int ic_sel2\(HWND .+$
+* ic_selecticons ^void ic_selecticons\(void.+$
+* ic_classname ^static char \*ic_classnam.+$
+* ic_register ^int ic_register\(void\)$
+* ic_createclass ^static ICONCLASS \*ic_cre.+$
+* ic_mk ^static int ic_mk\(LPSTR s.+$
+* ic_position ^int ic_position\(HWND hwn.+$
+* ic_add ^HWND ic_add\(ICONCLASS \*i.+$
+* ic_place ^static int ic_place\(LPST.+$
+* ic_init ^EXPORT int ic_init\(void\)$
+C:\Source\pksedit\INIT.C checkkey ^static int checkkey\(char.+$
+* Getenv ^static void Getenv\(char .+$
+* InitEnv ^EXPORT BOOL InitEnv\(void.+$
+* ReadConfigFiles ^EXPORT void ReadConfigFi.+$
+C:\Source\pksedit\KEYFILE.C macro_error ^static void macro_error\(.+$
+* ValidEscapeMacros ^void ValidEscapeMacros\(c.+$
+* EscapePasteForId ^static PASTE \*EscapePast.+$
+* TextForEscapeMacro ^static char \*TextForEsca.+$
+* EdMacroEscape ^int EdMacroEscape\(void\)$
+* skbl ^unsigned char \*skbl\(regi.+$
+* getquotes ^char \*getquotes\(char \*d,.+$
+* cutquotes ^static char \*cutquotes\(c.+$
+* advtok ^static int advtok\(LINE \*.+$
+* getbuf ^static PASTE \*getbuf\(LIN.+$
+* setupccl ^static int setupccl\(char.+$
+* set2pars ^static void set2pars\(cha.+$
+* doabbrev ^int doabbrev\(FTABLE \*fp,.+$
+* setabbrev ^static int setabbrev\(LIN.+$
+* setuc_macro ^static void setuc_macro\(.+$
+* parsekeydefs ^static void parsekeydefs.+$
+* Mapread ^int Mapread\(int context,.+$
+* EdDocMacrosAdd ^int EdDocMacrosAdd\(void\)$
+* EdDocMacrosEdit ^int EdDocMacrosEdit\(void.+$
+C:\Source\pksedit\KEYS.C key_overridetable ^void key_overridetable\(v.+$
+* key_destroytables ^void key_destroytables\(v.+$
+* key_destroytable ^void key_destroytable\(ch.+$
+* key_unbind ^void key_unbind\(KEYBIND .+$
+* key_delbindings ^void key_delbindings\(MAC.+$
+* keyslot ^static KEYBIND \*keyslot\(.+$
+* keybound ^KEYBIND \*keybound\(KEYCOD.+$
+* keyemptyslot ^int keyemptyslot\(KEYBIND.+$
+* keygetbind ^KEYBIND \*keygetbind\(void.+$
+C:\Source\pksedit\LINELIST.C ln_m ^void ln_m\(LINE \*lpstart,.+$
+* ln_mm ^void ln_mm\(LINE \*lpstart.+$
+* ln_um ^void ln_um\(LINE \*lpstart.+$
+* linetoolong ^void linetoolong\(void\)$
+* invalidhiddenop ^static void invalidhidde.+$
+* ln_newbl ^static int  ln_newbl\(FTA.+$
+* ln_delmarks ^static void ln_delmarks\(.+$
+* ln_create ^LINE \*ln_create\(int size.+$
+* ln_find ^long ln_find\(FTABLE \*fp,.+$
+* ln_insert ^void ln_insert\(FTABLE \*f.+$
+* ln_delete ^int ln_delete\(FTABLE \*fp.+$
+* mln_cutlines ^void mln_cutlines\(FTABLE.+$
+* ln_cut ^LINE \*ln_cut\(LINE \*lp, i.+$
+* ln_deepcopy ^LINE \*ln_deepcopy\(LINE \*.+$
+* ln_breakmarks ^static void ln_breakmark.+$
+* ln_break ^LINE \*ln_break\(FTABLE \*f.+$
+* ln_split ^LINE \*ln_split\(FTABLE \*f.+$
+* ln_joinmarks ^static void ln_joinmarks.+$
+* ln_join ^LINE \*ln_join\(FTABLE \*fp.+$
+* lnjoin_lines ^int lnjoin_lines\(FTABLE .+$
+* ln_goto ^LINE \*ln_goto\(FTABLE \*fp.+$
+* ln_relative ^LINE \*ln_relative\(LINE \*.+$
+* ln_crelgo ^LINE \*ln_crelgo\(FTABLE \*.+$
+* ln_relgo ^LINE \*ln_relgo\(FTABLE \*f.+$
+* ln_gotouserel ^LINE \*ln_gotouserel\(FTAB.+$
+* ln_cnt ^long ln_cnt\(LINE \*lps,LI.+$
+* ln_findbit ^LINE \*ln_findbit\(LINE \*l.+$
+* ln_repmark ^static void ln_repmark\(F.+$
+* ln_replace ^void ln_replace\(FTABLE \*.+$
+* ln_settmp ^LINE \*ln_settmp\(FTABLE \*.+$
+* ln_modify ^LINE \*ln_modify\(FTABLE \*.+$
+* ln_hide ^LINE \*ln_hide\(FTABLE \*fp.+$
+* ln_unhide ^int ln_unhide\(FTABLE \*fp.+$
+* ln_destroy ^void ln_destroy\(LINE \*lp.+$
+* ln_needbytes ^EXPORT long ln_needbytes.+$
+C:\Source\pksedit\LLIST.C ll_kill ^void ll_kill\(void \*head,.+$
+* ll_delete ^int ll_delete\(void \*Head.+$
+* ll_top ^int ll_top\(void \*Head, v.+$
+* ll_insert ^void \*ll_insert\(void \*he.+$
+* ll_find ^void \*ll_find\(void \*Head.+$
+* ll_count ^int ll_count\(void \*Head\)$
+C:\Source\pksedit\MACLIB.C mac_name ^char \*mac_name\(char \*szB.+$
+* code2key ^char \*code2kE" "F15\\0" ".+$
+* code2mouse ^char \*code2mouse\(MOUSECO.+$
+* mac_cmdseqbyname ^int mac_cmdseqbyname\(cha.+$
+C:\Source\pksedit\MACROS.C mac_byindex ^MACRO \*mac_byindex\(int i.+$
+* mac_getbyname ^int mac_getbyname\(char \*.+$
+* mac_write ^static int mac_write\(int.+$
+* mac_wantclose ^void mac_wantclose\(int w.+$
+* mac_delete ^int mac_delete\(char \*nam.+$
+* mac_validname ^int mac_validname\(char \*.+$
+* check_fkdirty ^void check_fkdirty\(KEYCO.+$
+* mac_scaninsert ^int mac_scaninsert\(KEYCO.+$
+* mac_addkeys ^static char \*mac_addkeys.+$
+* mac_addmice ^static char \*mac_addmice.+$
+* mac_menus ^static char \*mac_menus\(c.+$
+* mac_switchtodefaulttables ^void mac_switchtodefault.+$
+* mac_read ^int mac_read\(char \*fn\)$
+* mac_new ^MACRO \*mac_new\(char\* szN.+$
+* mac_nameupdate ^void mac_nameupdate\(int .+$
+* MacFormatErr ^void MacFormatErr\(void\)$
+* mac_insert ^int mac_insert\(char \*nam.+$
+* mac_recorder ^int mac_recorder\(void\)$
+* EdMacrosReadWrite ^int EdMacrosReadWrite\(in.+$
+* EdMacroRecord ^int EdMacroRecord\(void\)$
+* do_icon ^int do_icon\(HWND icHwnd,.+$
+* GetMacrorefForMenu ^MACROREF \*GetMacrorefFor.+$
+* TranslateToOrigMenu ^which $
+* do_menu ^int do_menu\(int menunum\)$
+* mac_addshift ^KEYCODE mac_addshift\(KEY.+$
+* PksGetKeyBind ^LONG PksGetKeyBind\(WPARA.+$
+* mac_runcmd ^int mac_runcmd\(MACROREF .+$
+* do_key ^int do_key\(LONG keybind\)$
+* do_insertc ^int do_insertc\(WOR------.+$
+* do_macbyname ^int do_macbyname\(char \*n.+$
+* mac_findkey ^static KEYCODE mac_findk.+$
+* mac_setmenukeys ^void mac_setmenukeys\(HME.+$
+* SelectedMacro ^static LONG SelectedMacr.+$
+* SelectedKey ^static LONG SelectedKey\(.+$
+* but_enable ^void but_enable\(HWND hwn.+$
+* list_startfilling ^HWND list_startfilling\(H.+$
+* list_endfilling ^void list_endfilling\(HWN.+$
+* MacroSelectByValue ^static BOOL MacroSelectB.+$
+* UpdateMacroList ^static void UpdateMacroL.+$
+* mac_comment ^char \*mac_comment\(LPSTR .+$
+* MenuTipFor ^char \*MenuTipFor\(int men.+$
+* ShowMenuHelp ^void ShowMenuHelp\(in----.+$
+* UpdateCommentAndName ^static void UpdateCommen.+$
+* NewMacroSelected ^static void NewMacroSele.+$
+* FillKeyTables ^static void FillKeyTable.+$
+* Update ^static void Update\(HWND .+$
+* mac_lboxdrawitem ^static void mac_lboxdraw.+$
+* mac_getkey ^static KEYCODE mac_getke.+$
+* CharItemNextSelected ^static int CharItemNextS.+$
+* DlgMacEditProc ^BOOL CALLBACK DlgMacEdit.+$
+C:\Source\pksedit\MAIN.C EdMdiCreate ^HWND--------------------.+$
+* EdMkWinClass ^	char   \*szClassName,$
+* InitApplication ^static BOOL InitApplicat.+$
+* CloseAllChild ^int CloseAllChild\(HWND h.+$
+* CloseChildWin ^int CloseChildWin\(HWND h.+$
+* CloseEditChild ^int CloseEditChild\(HWND .+$
+* InitInstance ^static BOOL InitInstance.+$
+* TranslatePksAccel ^static int TranslatePksA.+$
+* EdSleep ^void EdSleep\(void\)$
+* EdDDECallback ^static HDDEDATA CALLBACK.+$
+* InitDDE ^static int InitDDE\(void\).+$
+* UnInitDDE ^static void UnInitDDE\(vo.+$
+* RegisterServerDDE ^static void RegisterServ.+$
+* WinMain ^int PASCAL WinMain\(hInst.+$
+* EdEnumChildWindows ^int EdEnumChildWindows\(i.+$
+* EdGetActiveWindow ^HWND EdGetActiveWindow\(i.+$
+* EdCloseAll ^int EdCloseAll\(int ic_fl.+$
+* EdArrangeWin ^int EdArrangeWin\(WORD st.+$
+* GetEditMenuText ^void GetEditMenuText\(int.+$
+* GetStdMenuText ^void GetStdMenuText\(int .+$
+* SetEditMenuText ^void SetEditMenuText\(int.+$
+* HiliteEditMenu ^void HiliteEditMenu\(int .+$
+* GetHistoryMenu ^HWND GetHistoryMenu\(int .+$
+* PksChangeMenuItem ^void PksChangeMenuItem\(H.+$
+* Finit ^static void Finit\(void\)$
+* FrameWndProc ^WINFUNC FrameWndProc\(HWN.+$
+* SetMenuFor ^void SetMenuFor\(char \*ps.+$
+C:\Source\pksedit\MARKS.C mark_find ^MARK \*mark_find\(FTABLE \*.+$
+* mark_free ^static void mark_free\(FT.+$
+* mcp_release ^void mcp_release\(FTABLE .+$
+* mark_alloc ^static MARK \*mark_alloc\(.+$
+* mark_set ^MARK \*mark_set\(FTABLE \*f.+$
+* mark_goto ^LINE \*mark_goto\(FTABLE \*.+$
+* savecpos ^int savecpos\(void\)$
+* newcpos ^int newcpos\(long ln,long.+$
+* EdGotoLastPos ^int EdGotoLastPos\(int ty.+$
+C:\Source\pksedit\MATCH.C EdToUpper ^void EdToUpper\(char \*s\)$
+* cclass ^static char \*cclass\(regi.+$
+* gmatch ^static int gmatch\(char \*.+$
+* match ^int match\(char \*string,c.+$
+C:\Source\pksedit\MENU.C menu_overridetable ^void menu_overridetable\(.+$
+* menu_startdefine ^void menu_startdefine\(ch.+$
+* menuemptyslot ^int menuemptyslot\(PUSERM.+$
+* menu_addentry ^int menu_addentry\(char \*.+$
+* menu_createmenu ^static HMENU menu_create.+$
+* menu_getuserdef ^MACROREF \*menu_getuserde.+$
+* EdMenuTrackPopup ^int EdMenuTrackPopup\(lon.+$
+* menu_getmenuforcontext ^HMENU menu_getmenuforcon.+$
+C:\Source\pksedit\MOUSE.C MouseGetXYPos ^EXPORT void MouseGetXYPo.+$
+* graf_mkstate ^EXPORT void graf_mkstate.+$
+* MouseBusy ^EXPORT void MouseBusy\(vo.+$
+* MouseNotBusy ^EXPORT void MouseNotBusy.+$
+* changemouseform ^EXPORT void changemousef.+$
+* EdBlockMouseMark ^EXPORT int EdBlockMouseM.+$
+* EdMouseMoveText ^EXPORT int EdMouseMoveTe.+$
+* mouseemptyslot ^int mouseemptyslot\(MOUSE.+$
+* mouseslot ^static MOUSEBIND \*mouses.+$
+* mousebound ^MOUSEBIND \*mousebound\(MO.+$
+* mousegetbind ^MOUSEBIND \*mousegetbind\(.+$
+* mouse_unbind ^void mouse_unbind\(MOUSEB.+$
+* mouse_overridetable ^void mouse_overridetable.+$
+* mouse_delbindings ^void mouse_delbindings\(M.+$
+* mfunct ^static int mfunct\(WINFO .+$
+* do_mbutton ^EXPORT int do_mbutton\(FT.+$
+* do_linbutton ^EXPORT int do_linbutton\(.+$
+C:\Source\pksedit\MYSPRINT.C getfn ^char \*getfn\(FTABLE \*fp\)$
+* InitDateformats ^void InitDateformats\(voi.+$
+* agettime ^static void agettime\(cha.+$
+* agetdate ^static void agetdate\(cha.+$
+* print_date ^void print_date\(char \*sz.+$
+* CurrentStringVal ^static char \*CurrentStri.+$
+* CurrentNumVal ^static long CurrentNumVa.+$
+* mysprintf ^int mysprintf\(FTABLE \*fp.+$
+* EdFormatPrint ^void EdFormatPrint\(long .+$
+C:\Source\pksedit\OPEN.C make_aspath ^static int make_aspath\(c.+$
+* ft_CheckForChangedFiles ^void ft_CheckForChangedF.+$
+* asfiles ^int asfiles\(void\)$
+* prnfl ^int prnfl\(FTABLE \*fp, ch.+$
+* picksave ^void picksave\(void \)$
+* pickread ^int pickread\(void \)$
+* ft_bufdestroy ^void ft_bufdestroy\(FTABL.+$
+* ft_settime ^void ft_settime\(EDTIME \*.+$
+* ft_deleteautosave ^void ft_deleteautosave\(F.+$
+* ft_destroy ^void ft_destroy\(FTABLE \*.+$
+* ft_new ^FTABLE \*ft_new\(void\)$
+* ft_visiblename ^char \*ft_visiblename\(FTA.+$
+* ft_size ^long ft_size\(FTABLE \*fp\)$
+* ft_fpbyname ^FTABLE \*ft_fpbyname\(char.+$
+* ft_editing ^int ft_editing\(char \*fn\)$
+* ft_openwin ^static int ft_openwin\(FT.+$
+* ft_wantclose ^int ft_wantclose\(FTABLE .+$
+* SelectWindow ^int SelectWindow\(int win.+$
+* EdSelectWindow ^int EdSelectWindow\(int w.+$
+* ft_select ^int ft_select\(FTABLE \*fp.+$
+* txtfile_select ^int txtfile_select\(int t.+$
+* selnfile ^int selnfile\(char \*fn\)$
+* opennofsel ^int opennofsel\(char \*fn,.+$
+* EdEditFile ^int EdEditFile\(long edit.+$
+* AbandonFile ^int AbandonFile\(FTABLE \*.+$
+* EdFileAbandon ^int EdFileAbandon\(void\)$
+* EdSaveFile ^int EdSaveFile\(int flg\)$
+* EditDroppedFiles ^void EditDroppedFiles\(HD.+$
+C:\Source\pksedit\OPTIONS.C linchange ^int linchange\(void\)$
+* lincolchange ^static int lincolchange\(.+$
+* OpLocalAdr ^static int \*OpLocalAdr\(i.+$
+* ChangeFlag ^static void ChangeFlag\(s.+$
+* OptionSet ^BOOL OptionSet\(long nFla.+$
+* ToggleOption ^static int ToggleOption\(.+$
+* EdOptionToggle ^int EdOptionToggle\(long .+$
+* op_checktoggle ^EXPORT int op_checktoggl.+$
+* op_updateall ^EXPORT void op_updateall.+$
+C:\Source\pksedit\PORT32.C GetTextExtent ^LONG GetTextExtent\(HDC h.+$
+* SetViewportExt ^LONG SetViewportExt\(HDC .+$
+* SetWindowExt ^LONG SetWindowExt\(HDC hd.+$
+* GetWindowExt ^LONG GetWindowExt\(HDC hd.+$
+* destroy ^void destroy\(char \*\*ap\) .+$
+* stralloc ^unsigned char \*stralloc\(.+$
+* nomemory ^void nomemory\(void\) \{$
+C:\Source\pksedit\PRINT.C GetPrinterDC ^EXPORT HDC GetPrinterDC\(.+$
+* InitPrinterDC ^EXPORT void InitPrinterD.+$
+* EscapeError ^static void EscapeError\(.+$
+* CallEscape ^static int CallEscape\(HD.+$
+* PrtAbortProc ^BOOL CALLBACK PrtAbortPr.+$
+* prt_selectfont ^static HFONT prt_selectf.+$
+* Ratio ^static int Ratio\(int tot.+$
+* prt_ntextlines ^static int prt_ntextline.+$
+* ResetDeviceMode ^static void ResetDeviceM.+$
+* GetDeviceExtents ^static void GetDeviceExt.+$
+* mkwpheader ^static void mkwpheader\(H.+$
+* formatheader ^static int formatheader\(.+$
+* PrintHF ^static void PrintHF\(HDC .+$
+* Line ^static void Line\(HDC hdc.+$
+* DrawLine ^static void DrawLine\(HDC.+$
+* PrintFile ^static int PrintFile\(HDC.+$
+* DlgPreviewProc ^BOOL CALLBACK DlgPreview.+$
+* DlgInstallPrtProc ^BOOL CALLBACK DlgInstall.+$
+* PrinterDefaults ^void PrinterDefaults\(int.+$
+* EdPrint ^int EdPrint\(long what, l.+$
+* PrtInstall ^static void PrtInstall\(v.+$
+* EdPrinterLayout ^int EdPrinterLayout\(void.+$
+C:\Source\pksedit\PROFILE.C LocateSetFile ^static int LocateSetFile.+$
+* prof_setinifile ^void prof_setinifile\(cha.+$
+* GetPksProfileString ^int GetPksProfileString\(.+$
+* GetScreenRatioValues ^static void GetScreenRat.+$
+* prof_adjustpoint ^EXPORT void prof_adjustp.+$
+* prof_getws ^EXPORT int prof_getws\(ch.+$
+* prof_getwinstate ^EXPORT int prof_getwinst.+$
+* prof_printws ^EXPORT void prof_printws.+$
+* prof_savestring ^int prof_savestring\(char.+$
+* prof_killentry ^int prof_killentry\(char .+$
+* prof_savewinstate ^int prof_savewinstate\(ch.+$
+* prof_savelong ^int prof_savelong\(char \*.+$
+* prof_getlong ^LONG prof_getlong\(char \*.+$
+* prof_getstdopt ^int prof_getstdopt\(void\)$
+* prof_killsections ^void prof_killsections\(L.+$
+* prof_saveaspath ^void prof_saveaspath\(voi.+$
+* prof_save ^int prof_save\(int intera.+$
+* prof_enum ^int prof_enum\(LPSTR grp,.+$
+* prof_llinsert ^void \*prof_llinsert\(void.+$
+C:\Source\pksedit\PROJECT.C proj_mk ^static int proj_mk\(char .+$
+* proj_init ^int proj_init\(void\)$
+* pr_matchrootdir ^static int pr_matchrootd.+$
+* proj_finditem ^PROJECTITEM \*proj_findit.+$
+C:\Source\pksedit\READLINE.C createl ^int createl\(FTABLE \*fp, .+$
+* readnoterm ^unsigned char \*readnoter.+$
+* BufAsLinelist ^unsigned char \*BufAsLine.+$
+* readlines ^unsigned char \*readlines.+$
+C:\Source\pksedit\REDRAW.C markline ^static void markline\(HDC.+$
+* write_line ^int write_line\(HDC hdc, .+$
+* calcy ^static int calcy\(WINFO \*.+$
+* redraw_indirect ^static void redraw_indir.+$
+* P_redraw ^static void P_redraw\(WIN.+$
+* SendRedraw ^EXPORT void SendRedraw\(H.+$
+* RedrawWmPaint ^EXPORT void RedrawWmPain.+$
+* EdRedrawWindow ^EXPORT void EdRedrawWind.+$
+* p_redraw ^EXPORT void p_redraw\(voi.+$
+* RedrawFromTo ^EXPORT void RedrawFromTo.+$
+* RedrawTotalWindow ^EXPORT void RedrawTotalW.+$
+* redrawlinepart ^EXPORT void redrawlinepa.+$
+* redrawline ^EXPORT void redrawline\(v.+$
+* redrawspecificline ^EXPORT void redrawspecif.+$
+* OwnTextCursor ^EXPORT void OwnTextCurso.+$
+C:\Source\pksedit\REDRAWAT.C SelectTextAttribute ^static void SelectTextAt.+$
+* graf_text ^static int  graf_text\(HD.+$
+* writeattrline ^char \*writeattrline\(HDC .+$
+* mkattlist ^void mkattlist\(LINE \*lp\)$
+C:\Source\pksedit\REGEXP.C fixsets ^void fixsets\(unsigned ch.+$
+* getrnge ^unsigned getrnge\(char \*p.+$
+* place ^static void place\(regist.+$
+* octalinput ^int octalinput\(register .+$
+* setpipe ^static void setpipe\(regi.+$
+* precompile ^static void precompile\(c.+$
+* compile ^unsigned char \*compile\(u.+$
+* advpipe ^static int advpipe\(unsig.+$
+* ecmp ^int ecmp\(unsigned char \*.+$
+* advance ^static int near advance\(.+$
+* step ^int step\(unsigned char \*.+$
+C:\Source\pksedit\RESOURCE.C FlushBuffer ^int FlushBuffer\(int fd, .+$
+* rsc_rdmacros ^char \*rsc_rdmacros\(char .+$
+* rsc_wrbuf ^long rsc_wrbuf\(int fd, l.+$
+* rsc_wrtables ^int rsc_wrtables\(int fd,.+$
+* rsc_wrmacros ^long rsc_wrmacros\(int fd.+$
+* rsc_loadheader ^int rsc_loadheader\(int f.+$
+* rsc_finditem ^int rsc_finditem\(int sta.+$
+* rsc_seektoitem ^int rsc_seektoitem\(int f.+$
+* rsc_find ^int rsc_find\(int fd, cha.+$
+* rsc_put ^int rsc_put\(int fd, char.+$
+* rsc_create ^int rsc_create\(char \*fna.+$
+* rsc_enumitems ^int rsc_enumitems\(RSCFIL.+$
+* rsc_open ^RSCFILE \*rsc_open\(char \*.+$
+* rsc_close ^int rsc_close\(RSCFILE \*r.+$
+* rsc_load ^int rsc_load\(RSCFILE \*rp.+$
+* rsc_findtable ^RSCTABLE \*rsc_findtable\(.+$
+* rsc_switchtotable ^int rsc_switchtotable\(RS.+$
+* rsc_tablefindcode ^void \*rsc_tablefindcode\(.+$
+* rsc_tableresize ^void \*rsc_tableresize\(RS.+$
+C:\Source\pksedit\RETREIVE.C present ^static void present\(char.+$
+* scanlines ^static unsigned char \*sc.+$
+* listtags ^static int listtags\(char.+$
+* retreive ^int retreive\(char \*pathe.+$
+C:\Source\pksedit\RULER.C TabStop ^int TabStop\(int col, LIN.+$
+* initfastts ^static void initfastts\(L.+$
+* lininit ^void lininit\(LINEAL \*lp,.+$
+* tabtoggle ^void tabtoggle\(LINEAL \*l.+$
+* related_file_name ^void related_file_name\(c.+$
+* linealdocstrings ^void linealdocstrings\(LP.+$
+* linload ^static LINEAL \*linload\(L.+$
+* linnrulers ^int linnrulers\(void\)$
+* linfilllbox ^int linfilllbox\(HWND hwn.+$
+* lingetdescription ^BOOL lingetdescription\(L.+$
+* lincreatekeytmp ^int lincreatekeytmp\(char.+$
+* linkeymerge ^int linkeymerge\(char \*ps.+$
+* linealread ^static int linealread\(ch.+$
+* lin_match ^int lin_match\(LINEAL \*li.+$
+* linassign ^int linassign\(FTABLE \*fp.+$
+* dt_save ^static int dt_save\(LINLI.+$
+* linsaveall ^void linsaveall\(LINLIST .+$
+* linnew ^LINLIST \*linnew\(LINLIST .+$
+* lindelete ^void lindelete\(LINLIST \*.+$
+* lingetprivatefor ^void \*lingetprivatefor\(c.+$
+* linlinealfor ^LINEAL \*linlinealfor\(voi.+$
+* dt_mk ^static int dt_mk\(char \*d.+$
+* dt_init ^int dt_init\(void\)$
+* EdLineal ^int EdLineal\(int wrflag,.+$
+C:\Source\pksedit\RUN.C param_space ^int param_space\(unsigned.+$
+* push_sequence ^static void push_sequenc.+$
+* param_dialopen ^int param_dialopen\(PARAM.+$
+* param_record ^int param_record\(PARAMS .+$
+* param_pop ^long param_pop\(unsigned .+$
+* cash ^static void cash\(int fnu.+$
+* cash2 ^void cash2\(FTABLE \*fp, i.+$
+* stopcash ^void stopcash\(\)$
+* readonly ^int readonly\(FTABLE \*fp\)$
+* CanExecute ^int CanExecute\(int num, .+$
+* do_func ^int cdecl do_func\(int nu.+$
+* GetDollar ^int GetDollar\(long offse.+$
+* do_macfunc ^long do_macfunc\(COM_1FUN.+$
+* ReturnFuncVal ^static void ReturnFuncVa.+$
+* ReturnString ^void ReturnString\(char \*.+$
+* do_seq ^int do_seq\(COM_1FUNC \*cp.+$
+* EdMacroPlay ^int EdMacroPlay\(int macr.+$
+C:\Source\pksedit\SLIDER.C sl_size ^int sl_size\(WINFO \*wp\)$
+* sl_thumb2deltapos ^long sl_thumb2deltapos\(W.+$
+* sl_calcnewmin ^static long sl_calcnewmi.+$
+* sl_scrollwinrange ^int sl_scrollwinrange\(WI.+$
+* sl_winchanged ^void sl_winchanged\(WINFO.+$
+* sl_moved ^int sl_moved\(WINFO \*wp, .+$
+* EdScrollCursor ^void EdScrollCursor\(int .+$
+* EdScrollScreen ^int EdScrollScreen\(int m.+$
+C:\Source\pksedit\SORT.C s2vec ^char \*s2vec\(struct dvec .+$
+* dcmp ^static int dcmp\(char \*s1.+$
+* cmpdigit ^static int cmpdigit\(unsi.+$
+* cmpdate ^static int cmpdate\(unsig.+$
+* tokenize ^static int tokenize\(STRV.+$
+* initset ^static void initset\(char.+$
+* initkeylist ^static void initkeylist\(.+$
+* gtln ^static LINE \*gtln\(RECORD.+$
+* compare ^static int compare\(RECOR.+$
+* sortlist ^int sortlist\(RECORD \*tab.+$
+* lp2rec ^static int lp2rec\(LINE \*.+$
+* mk2ndlist ^static int mk2ndlist\(LIN.+$
+* ln_order ^void ln_orde------------.+$
+* undo_cash ^static int undo_cash\(FTA.+$
+* Sort ^int Sort\(int scope, char.+$
+C:\Source\pksedit\SOUND.C ReadChimeParams ^static void ReadChimePar.+$
+* chime ^EXPORT void chime\(void\)$
+C:\Source\pksedit\STATUS.C st_format ^static int st_format\(cha.+$
+* st_setparts ^static void st_setparts\(.+$
+* st_redraw ^void st_redraw\(BOOL bUpd.+$
+* st_seterrmsg ^void st_seterrmsg\(char \*.+$
+* status_wh ^void status_wh\(WORD \*wid.+$
+* st_init ^void st_init\(HWND hwndDa.+$
+* st_update ^void st_update\(void\)$
+* st_switchtomenumode ^void st_switchtomenumode.+$
+C:\Source\pksedit\STRINGS.C strrchr ^LPSTR strrchr\(char \*str,.+$
+* lstrchr ^LPSTR lstrchr\(char \*str,.+$
+* strmaxcpy ^LPSTR strmaxcpy\(LPSTR ps.+$
+* strdcpy ^void strdcpy\(char \*dest,.+$
+* basename ^char \*basename\(char \*ful.+$
+* extname ^char \*extname\(char \*full.+$
+* sfsplit ^void sfsplit\(char \*sourc.+$
+* FullPathName ^char \*FullPathName\(char .+$
+* AbbrevName ^char \*AbbrevName\(char \*f.+$
+* OemAbbrevName ^char \*OemAbbrevName\(char.+$
+C:\Source\pksedit\STRTOK.C strtok ^char \*strtok\(char \*s,cha.+$
+C:\Source\pksedit\TAGS.C tags_mk ^static int tags_mk\(char .+$
+* tags_init ^int tags_init\(void\)$
+* tagselect ^void tagselect\(char \*tag.+$
+* get_quoted ^static char \*get_quoted\(.+$
+* compiler_mk ^static int compiler_mk\(c.+$
+* compiler_init ^int compiler_init\(void\)$
+* tagexprinit ^static int tagexprinit\(c.+$
+* dostep ^static TAG \*dostep\(LINE .+$
+* istagfile ^static int istagfile\(FTA.+$
+* istagcmd ^static int istagcmd\(unsi.+$
+* xscan ^static LINE \*xscan\(LINE .+$
+* taggetinfo ^static TAG \*taggetinfo\(L.+$
+* taglist_measureitem ^void taglist_measureitem.+$
+* taglist_cmpitem ^int taglist_cmpitem\(COMP.+$
+* taglist_drawitem ^static void taglist_draw.+$
+* findtag ^static TAG \*findtag\(char.+$
+* readtagf ^static int readtagf\(char.+$
+* gettag ^static char \*gettag\(unsi.+$
+* tagword ^char \*tagword\(unsigned c.+$
+* tagopen ^int tagopen\(char \*name, .+$
+* showtag ^int showtag\(char \*s\)$
+* picstep ^void picstep\(LINE \*lp\)$
+* EdErrorNext ^int EdErrorNext\(int dir\)$
+* stepselectcompiler ^void stepselectcompiler\(.+$
+* s_t_open ^static int s_t_open\(int .+$
+* EdFindTagCursor ^int EdFindTagCursor\(void.+$
+* EdFindFileCursor ^int EdFindFileCursor\(voi.+$
+* EdFindWordCursor ^int EdFindWordCursor\(dir.+$
+* stepnofsel ^void stepnofsel\(char \*fn.+$
+* EdSearchListRead ^int EdSearchListRead\(voi.+$
+* EdTagfileRead ^int EdTagfileRead\(void\)$
+* EdErrorListRead ^int EdErrorListRead\(long.+$
+C:\Source\pksedit\TODO.C forceredraw ^--\*/$
+* iflash ^void iflash\(void\) \{\}$
+C:\Source\pksedit\TOOLBAR.C tb_wh ^void tb_wh\(WORD \*width, .+$
+* tb_init ^void tb_init\(HWND hwndDa.+$
+C:\Source\pksedit\TRANSCHR.C strorder ^static unsigned char \*st.+$
+* tlcompile ^unsigned char \*tlcompile.+$
+C:\Source\pksedit\UNDO.C upfree ^static void upfree\(UNDO .+$
+* u_cash ^EXPORT int u_cash\(FTABLE.+$
+* u_free ^static void u_free\(UNDOB.+$
+* u_new ^EXPORT int u_new\(FTABLE .+$
+* u_destroy ^EXPORT void u_destroy\(FT.+$
+* u_init ^EXPORT void u_init\(FTABL.+$
+* un_do ^EXPORT int un_do\(FTABLE .+$
+C:\Source\pksedit\USER.C EdCloseWindow ^int EdCloseWindow\(int wi.+$
+* EdExit ^int EdExit\(int rc\)$
+* EdExitAndSave ^int EdExitAndSave\(int rc.+$
+* EdAlert ^void EdAlert\(long unused.+$
+* EdCursorLeft ^int EdCursorLeft\(int mty.+$
+* EdCursorRight ^int EdCursorRight\(int mt.+$
+* EdCursorUp ^int EdCursorUp\(int mtype.+$
+* EdCursorDown ^int EdCursorDown\(int mty.+$
+* EdChapterGotoBegin ^int EdChapterGotoBegin\(i.+$
+* EdChapterGotoEnd ^int EdChapterGotoEnd\(int.+$
+* EdParaGotoBegin ^int EdParaGotoBegin\(int .+$
+* EdParaGotoEnd ^int EdParaGotoEnd\(int di.+$
+* EdUndo ^int EdUndo\(void\)$
+* EdBlockCopy ^int EdBlockCopy\(void\)$
+* EdBlockMove ^int EdBlockMove\(void\)$
+* EdBlockHide ^int EdBlockHide\(void\)	$
+* EdSetup ^int EdSetup\(void\)$
+* DialogCharInput ^int DialogCharInput\(int .+$
+* TmplateSelchange ^static void TmplateSelch.+$
+* TmplateListboxFill ^static void TmplateListb.+$
+* DialogTemplate ^int DialogTemplate\(unsig.+$
+* cpyout ^static void cpyout\(char .+$
+* DlgQueryReplaceProc ^BOOL CALLBACK DlgQueryRe.+$
+* QueryReplace ^int QueryReplace\(char \*s.+$
+* CloseQueryReplace ^v-----------------------.+$
+* RecordOptions ^int RecordOptions\(int \*o.+$
+* EdAbout ^int EdAbout\(void\)$
+* DialogGetNum ^long DialogGetNum\(int nD.+$
+* EdAlignText ^int EdAlignText\(void\)$
+* EdFormatText ^int EdFormatText\(void\)$
+* EdSort ^int EdSort\(void\)$
+* EdKeycodeInsert ^int EdKeycodeInsert\(void.+$
+* EdSetMultiplier ^int EdSetMultiplier\(void.+$
+* EdGotoLine ^int EdGotoLine\(void\)$
+* EdMarkSet ^int EdMarkSet\(void\)$
+* EdMarkGoto ^int EdMarkGoto\(void\)$
+* EdFindTag ^int EdFindTag\(void\)$
+* EdReplaceTabs ^int EdReplaceTabs\(int ex.+$
+* PromptString ^int PromptString\(int str.+$
+* PromptAsPath ^int PromptAsPath\(char \*p.+$
+* winlist_lboxfill ^void winlist_lboxfill\(HW.+$
+* winlist_lboxdrawitem ^static void winlist_lbox.+$
+* InfoFillParams ^static void InfoFillPara.+$
+* winlist_command ^static void winlist_comm.+$
+* ShowWindowList ^static int ShowWindowLis.+$
+* EdInfoFiles ^int EdInfoFiles\(void\)$
+* doclist_command ^static void doclist_comm.+$
+* DocTypelboxfill ^void DocTypelboxfill\(HWN.+$
+* DocTypelboxdrawitem ^void DocTypelboxdrawitem.+$
+* DocTypeFillParams ^static void DocTypeFillP.+$
+* DocTypeApply ^static void DocTypeApply.+$
+* DocNew ^static void DocNew\(HWND .+$
+* DocDelete ^static void DocDelete\(HW.+$
+* DocTypeChange ^static void DocTypeChang.+$
+* DoDocumentTypes ^int DoDocumentTypes\(int .+$
+* EdDocTypes ^int EdDocTypes\(void\)$
+* EdRangeShift ^int EdRangeShift\(int dir.+$
+* color_lboxfill ^static void color_lboxfi.+$
+* color_drawitem ^static void color_drawit.+$
+* color_getitem ^static int color_getitem.+$
+* color_showselection ^static void color_showse.+$
+* EdDlgDispMode ^int EdDlgDispMode\(void\)$
+* EdDlgWorkMode ^int EdDlgWorkMode\(void\)$
+* EdDlgCursTabs ^int EdDlgCursTabs\(void\)$
+* sel_ruler ^static void sel_ruler\(HW.+$
+* DlgModeVals ^int DlgModeVals\(LINEAL \*.+$
+* EdDlgModeVals ^int EdDlgModeVals\(void\)$
+* ReplaceAction ^int ReplaceAction\(int id.+$
+* EdReplace ^int EdReplace\(void\)$
+* EdFind ^int EdFind\(void\)$
+* EdFindInFileList ^int EdFindInFileList\(voi.+$
+* DlgPrint ^int DlgPrint\(char-------.+$
+* EdReplaceAgain ^int EdReplaceAgain\(void\)$
+* EdFindAgain ^int EdFindAgain\(int dir\)$
+* mac_getname ^int mac_getname\(KEYCODE .+$
+* EdCharControlInsert ^int EdCharControlInsert\(.+$
+* getuntilc ^int getuntilc\(int ids_nu.+$
+* EdMacrosEdit ^int EdMacrosEdit\(void\)$
+* EdCompileMacros ^int EdCompileMacros\(int .+$
+* EdListBindings ^int EdListBindings\(long .+$
+* EdCommandExecute ^int EdCommandExecute\(voi.+$
+* add_icon ^static int add_icon\(HWND.+$
+* del_icon ^static int del_icon\(HWND.+$
+* mod_icon ^static int mod_icon\(void.+$
+* EdConfigureIcons ^int EdConfigureIcons\(voi.+$
+* GetPassWord ^static void GetPassWord\(.+$
+* CryptDialog ^int CryptDialog\(LPSTR pa.+$
+* EdIsDefined ^int EdIsDefined\(long wha.+$
+C:\Source\pksedit\WORKWIN.C ww_winstate ^EXPORT void ww_winstate\(.+$
+* ww_savewinstates ^EXPORT void ww_savewinst.+$
+* ww_register ^int ww_register\(void\)$
+* MakeOrKillEditChild ^	HWND  hwnd, $
+* MakeSubWis ^static int MakeSubWis\(HW.+$
+* chRound ^static int chRound\(int x.+$
+* SetBounds ^static void SetBounds\(lo.+$
+* SetScrollCheckBounds ^EXPORT void SetScrollChe.+$
+* win_getstate ^EXPORT void win_getstate.+$
+* ww_getstate ^EXPORT void ww_getstate\(.+$
+* ww_blkcolomn ^EXPORT int ww_blkcolomn\(.+$
+* ww_findwinid ^EXPORT WINFO \*ww_findwin.+$
+* ww_havefocus ^EXPORT BOOL ww_havefocus.+$
+* ww_winid2hwnd ^EXPORT HWND ww_winid2hwn.+$
+* ww_winid2fp ^EXPORT FTABLE \*ww_winid2.+$
+* ww_timer ^EXPORT HWND ww_timer\(voi.+$
+* ww_setfocus ^void ww_setfocus\(void\)$
+* ww_toppostmessage ^EXPORT int ww_toppostmes.+$
+* ww_popup ^EXPORT void ww_popup\(HWN.+$
+* ww_stackwi ^FTABLE \*ww_stackwi\(int n.+$
+* EdWindowRegSet ^int EdWindowRegSet\(int n.+$
+* ArrangeIcons ^static void ArrangeIcons.+$
+* EnableNotTopmost ^static void En----------.+$
+* EdWinArrange ^int EdWinArrange\(int fun.+$
+* redrawallwi ^void redrawallwi\(int upd.+$
+* ww_setwindowtitle ^void ww_setwindowtitle\(F.+$
+* ww_setwindowflags ^void ww_setwindowflags\(F.+$
+* ww_new ^static WINFO \*ww_new\(FTA.+$
+* ww_destroy ^void ww_\*---------------.+$
+* ww_nwi ^int ww_nwi\(void\)$
+* ww_close ^int ww_close\(WINFO \*wp\)$
+* EditWndProc ^	HWND hwnd,$
+* SetWiSize ^static int SetWiSize\(FTA.+$
+* do_mouse ^int do_mouse\(HWND hwnd, .+$
+* do_slide ^int do_slide\(WINFO \*wp, .+$
+* WorkAreaWndProc ^	HWND hwnd,$
+* draw_lin ^static void draw_lin\(FTA.+$
+* shadow_area ^static void shadow_area\(.+$
+* RulerWndProc ^	HWND hwnd,$
+C:\Source\pksedit\XDIALOG.C SetXDialogParams ^void SetXDialogParams\(DI.+$
+* DoDialog ^int DoDialog\(int nIdDial.+$
+* DlgInitString ^void DlgInitString\(HWND .+$
+* SubClassWndProc ^FARPROC SubClassWndProc\(.+$
+* SendParentCommand ^void SendParentCommand\(H.+$
+* KeyInputWndProc ^WINFUNC KeyInputWndProc\(.+$
+* CInput ^WINFUNC CInput\(HWND hwnd.+$
+* setwrange ^int setwrange\(HWND hwnd,.+$
+* CbGetText ^int CbGetText\(HWND hwnd,.+$
+* LbGetText ^int LbGetText\(HWND hwnd,.+$
+* CbSelectItem ^static int CbSelectItem\(.+$
+* getwrange ^int getwrange\(HWND hwnd\)$
+* ISFLAGDLGCTL ^						\(i\) == IDD_3S1 \|\| .+$
+* DlgInit ^static void DlgInit\(HWND.+$
+* Do3State ^static void Do3State\(HWN.+$
+* GetItemDialListData ^static DIALPARS \*GetItem.+$
+* DoDlgRetreivePars ^void DoDlgRetreivePars\(H.+$
+* DlgApplyChanges ^static BOOL DlgApplyChan.+$
+* DlgCommand ^static BOOL DlgCommand\(H.+$
+* dlg_help ^void dlg_help\(void\)$
+* dlg_getitemdata ^static void \*dlg_getitem.+$
+* DlgNotify ^static BOOL CALLBACK Dlg.+$
+* DlgStdProc ^BOOL CALLBACK DlgStdProc.+$
+* CallDialog ^int CallDialog\(int nId, .+$
+* CreateModelessDialog ^void CreateModelessDialo.+$
+* DestroyModelessDialog ^void DestroyModelessDial.+$
+* list_lboxfill ^static void list_lboxfil.+$
+* DoDlgSelectFromList ^DLGSTRINGLIST \*DoDlgSele.+$
+* EdPromptAssign ^long EdPromptAssign\(long.+$
+C:\Source\pksedit\FSEL.C ChangeDirectory ^void ChangeDirectory\(LPS.+$
+* cons_fname ^void cons_fname\(char \*fs.+$
+* fsel_optionsenable ^void fsel_optionsenable\(.+$
+* fsel_title ^void fsel_title\(char \*ti.+$
+* menu_fseltitle ^static void menu_fseltit.+$
+* file_select ^int file_select\(int titl.+$
+* rw_select ^char \*rw_select\(FSELINFO.+$
+* rw_init ^char \*rw_init\(FSELINFO \*.+$
+* sh_rename ^static BOOL sh_rename\(ch.+$
+* sh_delmkd ^static BOOL sh_delmkd\(ch.+$
+* fill_listwithtokens ^static fill_listwithtoke.+$
+* SendOpenFileSelected ^static void SendOpenFile.+$
+* FileOpenHookProc ^UINT CALLBACK FileOpenHo.+$
+* DoSelectPerCommonDialog ^static BOOL DoSelectPerC.+$
+* EdFsel ^int EdFsel\(char \*szFileS.+$
+C:\Source\pksedit\BLFILL.C blfill ^EXPORT void \*blfill\(void.+$

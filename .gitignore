@@ -1,5 +1,11 @@
 ﻿################################################################################
 # Diese .gitignore-Datei wurde von Microsoft(R) Visual Studio automatisch erstellt.
 ################################################################################
-
-/windebug/Pksedit.tlog
+/.vs
+/.vscode
+/ipch
+/_UpgradeReport_Files
+/windebug/*
+/WINREL/*
+*.OBJ
+*.sbr

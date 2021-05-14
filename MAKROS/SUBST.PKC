@@ -1,0 +1,22 @@
+
+
+
+macro Sub() {
+	string	t = "dies ist ein teststring";
+	
+	
+	t = ReplaceInString(-1,RE_DOREX,t,"<[dt]","\\u\\&");
+	Alert(t);
+}
+
+macro Dirname() {
+
+	string filename = "C:\\AUTO\\TOSPATCH.PRG";
+	string directory = "";
+	
+	directory = ReplaceInString(1,RE_DOREX,filename,"(.*)\\\\.*","\\1");
+
+	Alert(directory);		# -> C:\\AUTO
+
+}
+

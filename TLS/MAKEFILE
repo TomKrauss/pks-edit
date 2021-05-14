@@ -1,0 +1,44 @@
+###########################################################################
+#
+# Makefile PARSEFU.TTP - internal compiler for PKSEDIT
+#
+# (c) Pahlen & Krauss 							author: Tom Krauss
+###########################################################################
+
+EDDIR		= \TED
+EDINC 		= $(EDDIR)\INC
+INCLUDE 		= $(INCFLG)$(INCDIR) $(INCFLG)$(INCDIR2) $(INCFLG)$(EDINC)
+YYFLAGS		= -d
+YYtunes		= -tv
+
+OBJECTS		= FUNCS.O PRFUNCS.O KEYS.O
+EXT		= EXE
+TARGET		= PARSEFU
+CMD		= $(TARGET).$(EXT)
+LNKFILE		= $(TMPDIR)\$(TARGET).LNK
+
+help.doc:	..\ftab.trn tls.exe
+		tls.exe -h$@ ..\ftab.trn
+
+..\functab.c:	..\ftab.trn
+		tls.exe -p$@ ..\ftab.trn
+
+$(CMD):		$(OBJECTS) $(LNKFILE)
+			$(LD) $(LDFLAGS) -S=8192 -O=$@ $(CRT0) -C=$(LNKFILE) $(LOADLIBS) $(GEMLIB)
+
+$(LNKFILE):	MAKEFILE
+			@echo $(OBJECTS) > $@
+
+KEYS.C:		$(EDDIR)\KEYS.C
+			copy $(EDDIR)\$*.C $@
+
+MACLIB.C:		$(EDDIR)\MACLIB.C
+			copy $(EDDIR)\$*.C $@
+
+FUNCS.C:		FUNCS.Y
+			bison $(YYFLAGS) $(YYtunes) $*.Y
+
+TAGS:		$(TAGSRC)	
+			tags -v $(TAGSRC)
+
+

@@ -1,0 +1,1226 @@
+***
+Funktion:	AbandonFile
+Beschreibung:	Liest die aktuelle Datei neu und ignoriert alle ƒnderungen
+Syntax:	bool AbandonFile(param1)
+ABANDONOPT<macroc_type_ABANDONOPT>	param1;	# 
+***
+Funktion:	About
+Beschreibung:	Gibt das Copyright aus
+Syntax:	bool About()
+***
+Funktion:	Alert
+Beschreibung:	Gibt eine Warnmeldung aus
+Syntax:	bool Alert(text)
+string	text;	# Hinweis-Text
+***
+Funktion:	AlignText
+Beschreibung:	Richte
+t Texte aus
+Syntax:	bool AlignText(param1,pattern,filler,range,foptions,options)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	pattern;	# auszurichtendes Muster als RE
+int	filler;	# FÅllzeichen
+RANGETYP<macroc_type_RANGETYP>	range;	# auszurichtender Bereich
+FINDOPT<macroc_type_FINDOPT>	foptions;	# Such-Optionen
+ALIGNOPT<macroc_type_ALIGNOPT>	options;	# Optionen fÅr die Ausrichtung
+***
+Funktion:	CheckBrackets
+Beschreibung:	Pr¸ft Klammernhierarchieen
+Syntax:	bool CheckBrackets()
+***
+Funktion:	CloseAllWindows
+Beschreibung:	Schlieﬂt alle Fenster
+Syntax:	bool CloseAllWindows(flag)
+int	flag;	# Icons schlieﬂen?
+***
+Funktion:	CompareWindows
+Beschreibung:	Vergleicht die beiden obersten Bearbeitungsfenster
+Syntax:	bool CompareWindows(param1)
+DIRECTION<macroc_type_DIRECTION>	param1;	# 
+***
+Funktion:	CompileMacros
+Beschreibung:	Compiliert den Text des aktuellen Fensters
+Syntax:	bool CompileMacros(flags)
+int	flags;	# 1 = Fensterliste anzeigen
+***
+Funktion:	ConfigureIcons
+Beschreibung:	Installiert Desktop Icons
+Syntax:	bool ConfigureIcons(param1,param2)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+int	param2;	# 
+***
+Funktion:	CopyBlock
+Beschreibung:	Kopiert den markierten Textblock zur Cursor-Position
+Syntax:	bool CopyBlock()
+***
+Funktion:	CursorDown
+Beschreibung:	Bewegt den Cursor nach unten
+Syntax:	bool CursorDown(param1)
+CURSORMOTION<macroc_type_CURSORMOTION>	param1;	# 
+***
+Funktion:	CursorFindFile
+Beschreibung:	Sucht die Datei unter dem Cursor
+Syntax:	bool CursorFindFile()
+***
+Funktion:	CursorFindTag
+Beschreibung:	Sucht den Quer-Verweis unter dem Cursor
+Syntax:	bool CursorFindTag()
+***
+Funktion:	CursorFindWord
+Beschreibung:	Sucht ein Wort unter dem Cursor
+Syntax:	bool CursorFindWord(param1)
+DIRECTION<macroc_type_DIRECTION>	param1;	# 
+***
+Funktion:	CursorLeft
+Beschreibung:	Bewegt den Cursor nach links
+Syntax:	bool CursorLeft(param1)
+CURSORMOTION<macroc_type_CURSORMOTION>	param1;	# 
+***
+Funktion:	CursorRight
+Beschreibung:	Bewegt den Cursor nach rechts
+Syntax:	bool CursorRight(param1)
+CURSORMOTION<macroc_type_CURSORMOTION>	param1;	# 
+***
+Funktion:	CursorUp
+Beschreibung:	Bewegt den Cursor nach oben
+Syntax:	bool CursorUp(param1)
+CURSORMOTION<macroc_type_CURSORMOTION>	param1;	# 
+***
+Funktion:	DefineDocTypes
+Beschreibung:	Definiert Dokument Typen
+Syntax:	bool DefineDocTypes()
+***
+Funktion:	Delete
+Beschreibung:	Lˆscht .. Zeichen an der Cursor-Position
+Syntax:	bool Delete(param1)
+CURSORMOTION<macroc_type_CURSORMOTION>	param1;	# 
+***
+Funktion:	DeleteBlock
+Beschreibung:	Lˆscht den markierten Textblock
+Syntax:	bool DeleteBlock(flag)
+int	flag;	# 1 -> sichern auf der Papierkorb - Ablage
+***
+Funktion:	DeleteLines
+Beschreibung:	Lˆscht die aktuelle Zeile
+Syntax:	bool DeleteLines(mode)
+LINEDELETEMODE<macroc_type_LINEDELETEMODE>	mode;	# 
+***
+Funktion:	DlgFileFormat
+Beschreibung:	Stellt das Dateiformat ein
+Syntax:	bool DlgFileFormat(param1,bak_extension,nl1,nl2,cr)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	bak_extension;	# 
+int	nl1;	# 
+int	nl2;	# 
+int	cr;	# 
+***
+Funktion:	EditDocMacros
+Beschreibung:	Editiert weitere Dokumenteinstellungen f¸r das aktuelle Lineal
+Syntax:	bool EditDocMacros()
+***
+Funktion:	EditFile
+Beschreibung:	÷ffnet eine Datei zur Bearbeitung
+Syntax:	bool EditFile(param1,param2,filename)
+OPENOPTION<macroc_type_OPENOPTION>	param1;	# 
+DIALOGOPT<macroc_type_DIALOGOPT>	param2;	# 
+string	filename;	# Dateiname
+***
+Funktion:	EditMacros
+Beschreibung:	Erlaubt das Starten und Bearbeiten von Makros und Tastenanbindungen
+Syntax:	bool EditMacros()
+***
+Funktion:	Exec
+Beschreibung:	Ausf¸hren Programm
+Syntax:	bool Exec(param1,cmd,dir,errlist,param5)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	cmd;	# 
+string	dir;	# 
+string	errlist;	# 
+EXECOPT<macroc_type_EXECOPT>	param5;	# 
+***
+Funktion:	ExecuteCommand
+Beschreibung:	F¸hrt ein Kommando aus
+Syntax:	bool ExecuteCommand(param1,prog,params,errfile,param5)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	prog;	# auszuf¸hrendes Programm
+string	params;	# Parameter
+string	errfile;	# Fehlerliste die nach Programmende gelesen wird
+EXECOPT<macroc_type_EXECOPT>	param5;	# 
+***
+Funktion:	ExitEdit
+Beschreibung:	Beendet PKS-EDIT mit Sichern aller geˆffneten Dateien
+Syntax:	bool ExitEdit(param1)
+int	param1;	# 
+***
+Funktion:	ExpandAbbreviation
+Beschreibung:	Expandiert die links vom Cursor stehende Abk¸rzung
+Syntax:	bool ExpandAbbreviation()
+***
+Funktion:	Find
+Beschreibung:	Sucht nach Suchmustern
+Syntax:	bool Find(param1,param2,dir,range,param5)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	param2;	# 
+DIRECTION<macroc_type_DIRECTION>	dir;	# 
+RANGETYP<macroc_type_RANGETYP>	range;	# 
+FINDOPT<macroc_type_FINDOPT>	param5;	# 
+***
+Funktion:	FindAgain
+Beschreibung:	Wiederholt die letzte Suche
+Syntax:	bool FindAgain(param1)
+DIRECTION<macroc_type_DIRECTION>	param1;	# 
+***
+Funktion:	FindBlockEnd
+Beschreibung:	Setzt den Cursor auf das Ende des markierten Textblocks
+Syntax:	bool FindBlockEnd()
+***
+Funktion:	FindBlockStart
+Beschreibung:	Setzt den Cursor auf den Anfang des markierten Textblocks
+Syntax:	bool FindBlockStart()
+***
+Funktion:	FindError
+Beschreibung:	Geht zu Compiler-Fehler..
+Syntax:	bool FindError(param1)
+LISTGOTOMODE<macroc_type_LISTGOTOMODE>	param1;	# 
+***
+Funktion:	FindInFileList
+Beschreibung:	Sucht nach Suchmustern in Ordnern
+Syntax:	bool FindInFileList(param1,finds,plist,once,depth,param6)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	finds;	# Suchstring
+string	plist;	# Pfadlist f¸r die Suche
+int	once;	# einmal suchen ?
+int	depth;	# Suchtiefe in Ordnern
+FINDOPT<macroc_type_FINDOPT>	param6;	# 
+***
+Funktion:	FindTag
+Beschreibung:	Geht zu Quer-Verweis ..
+Syntax:	bool FindTag(helpflg,param2,search)
+int	helpflg;	# 1 fÅr Hilfen-Verweis
+DIALOGOPT<macroc_type_DIALOGOPT>	param2;	# 
+string	search;	# Verweisname
+***
+Funktion:	FormatPrint
+Beschreibung:	Formatiert maximal einen Wert (a la Statuszeile)
+Syntax:	bool FormatPrint(format,param)
+string	format;	# 
+string	param;	# String-Parameter!
+***
+Funktion:	FormatText
+Beschreibung:	Formatiert einen Textbereich
+Syntax:	bool FormatText(param1,typ,param3,range)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+FORMATTYP<macroc_type_FORMATTYP>	typ;	# 
+FORMATOPT<macroc_type_FORMATOPT>	param3;	# 
+RANGETYP<macroc_type_RANGETYP>	range;	# 
+***
+Funktion:	FreeBuffer
+Beschreibung:	Gibt alle Textablagespeicher frei
+Syntax:	bool FreeBuffer()
+***
+Funktion:	GetSelected
+Beschreibung:	Liefert den aktuell selektierten Text
+Syntax:	bool GetSelected()
+***
+Funktion:	GotoChapterEnd
+Beschreibung:	Bewegt den Cursor zum Absatzende
+Syntax:	bool GotoChapterEnd(param1)
+DIRECTION<macroc_type_DIRECTION>	param1;	# 
+***
+Funktion:	GotoChapterStart
+Beschreibung:	Bewegt den Cursor zum Absatzanfang
+Syntax:	bool GotoChapterStart(param1)
+DIRECTION<macroc_type_DIRECTION>	param1;	# 
+***
+Funktion:	GotoLastpos
+Beschreibung:	Geht zur letzten .. Position des Cursors
+Syntax:	bool GotoLastpos(typ)
+GOTOTEXTMARKACTION<macroc_type_GOTOTEXTMARKACTION>	typ;	# 
+***
+Funktion:	GotoLasttag
+Beschreibung:	Geht zum letzten Verweis
+Syntax:	bool GotoLasttag()
+***
+Funktion:	GotoLine
+Beschreibung:	Geht zu Zeile..
+Syntax:	bool GotoLine(param1,number)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+int	number;	# Zeile
+***
+Funktion:	GotoMark
+Beschreibung:	Geht zu einer Text-Marke
+Syntax:	bool GotoMark(param1,mark)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+int	mark;	# Kennbuchstabe der Marke
+***
+Funktion:	GotoPgrphEnd
+Beschreibung:	Bewegt den Cursor zum Paragraphenende
+Syntax:	bool GotoPgrphEnd(param1)
+DIRECTION<macroc_type_DIRECTION>	param1;	# 
+***
+Funktion:	GotoPgrphStart
+Beschreibung:	Bewegt den Cursor zum Paragraphenanfang
+Syntax:	bool GotoPgrphStart(param1)
+DIRECTION<macroc_type_DIRECTION>	param1;	# 
+***
+Funktion:	HideBlock
+Beschreibung:	Versteckt den Textblock
+Syntax:	bool HideBlock()
+***
+Funktion:	HideLines
+Beschreibung:	Versteckt die Zeilen des aktuellen Textblocks
+Syntax:	bool HideLines()
+***
+Funktion:	InsertChar
+Beschreibung:	F¸gt ein Zeichen an der Cursor-Position ein
+Syntax:	bool InsertChar(character)
+int	character;	# einzuf¸gendes Zeichen
+***
+Funktion:	InsertControl
+Beschreibung:	F¸gt ein Controlzeichen mit Fomular ein
+Syntax:	bool InsertControl(param1,character)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+int	character;	# einzuf¸gendes Zeichen
+***
+Funktion:	InsertKeycode
+Beschreibung:	F¸gt einen Tasten-Code als Text an der Cursor-Position ein
+Syntax:	bool InsertKeycode(param1,keycode)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+int	keycode;	# als String einzuf¸gender Tastencode
+***
+Funktion:	InsertLine
+Beschreibung:	f¸gt eine Zeile ein
+Syntax:	bool InsertLine(mode)
+LINEINSERTMODE<macroc_type_LINEINSERTMODE>	mode;	# 
+***
+Funktion:	InsertString
+Beschreibung:	FÅgt einen String mit gegebener LÑnge ein
+Syntax:	bool InsertString(text)
+string	text;	# einzufÅgender Text
+***
+Funktion:	InsertText
+Beschreibung:	F¸gt einen Textbaustein ein
+Syntax:	bool InsertText(param1,id)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+int	id;	# Kennung des Bausteins
+***
+Funktion:	InternalHelp
+Beschreibung:	Hilfen zu ...
+Syntax:	bool InternalHelp(which)
+int	which;	# Hilfen-Eintragsnummer
+***
+Funktion:	InternalHelpContext
+Beschreibung:	Gibt Hilfe zu Arbeitssituation...
+Syntax:	bool InternalHelpContext(param1)
+int	param1;	# 
+***
+Funktion:	JoinLines
+Beschreibung:	F¸gt Zeilen zusammen
+Syntax:	bool JoinLines()
+***
+Funktion:	ListBindings
+Beschreibung:	Erzeugt eine Liste aller Tastenanbindungen
+Syntax:	bool ListBindings(which)
+LISTOPT<macroc_type_LISTOPT>	which;	# Art der Liste
+***
+Funktion:	MarkLineOp
+Beschreibung:	F¸hrt .. auf allen allen markierten Zeilen aus
+Syntax:	bool MarkLineOp(typ)
+MLNTYPE<macroc_type_MLNTYPE>	typ;	# 
+***
+Funktion:	MergeDocMacrosWith
+Beschreibung:	F¸gt weitere Dokumenteinstellungen einem Lineal hinzu
+Syntax:	bool MergeDocMacrosWith(param1,filename)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	filename;	# Name der Datei
+***
+Funktion:	MessageBox
+Beschreibung:	Erzeugt eine Windows - MessageBox - Titel nicht einstellbar
+Syntax:	bool MessageBox(style,unused,text)
+int	style;	# Stil gem‰ﬂ SDK - API
+int	unused;	# 
+string	text;	# Meldungstex wird umgebrochen
+***
+Funktion:	MouseMarkBlock
+Beschreibung:	Markiert den Textblock mit der Maus
+Syntax:	bool MouseMarkBlock(param1)
+MARKMODE<macroc_type_MARKMODE>	param1;	# 
+***
+Funktion:	MouseMarkParts
+Beschreibung:	Markiert Textteile mit der Maus
+Syntax:	bool MouseMarkParts(param1)
+CURSORMOTION<macroc_type_CURSORMOTION>	param1;	# 
+***
+Funktion:	MouseMoveText
+Beschreibung:	Bewegt Text mit der Maus
+Syntax:	bool MouseMoveText(param1)
+MOUSEMOVEACTION<macroc_type_MOUSEMOVEACTION>	param1;	# 
+***
+Funktion:	MousePosition
+Beschreibung:	Positioniert den Cursor mit der Maus
+Syntax:	bool MousePosition(ask)
+int	ask;	# 
+***
+Funktion:	MouseSelectLines
+Beschreibung:	Selektiert Zeilen mit der Maus
+Syntax:	bool MouseSelectLines(param1)
+SELMODE<macroc_type_SELMODE>	param1;	# 
+***
+Funktion:	MoveBlock
+Beschreibung:	Verschiebt den markierten Textblock zur Cursor-Position
+Syntax:	bool MoveBlock()
+***
+Funktion:	PasteBlock
+Beschreibung:	F¸gt einen Textablagespeicher an der Cursor-Position ein
+Syntax:	bool PasteBlock(param1,param2,buffer)
+PASTEOPT<macroc_type_PASTEOPT>	param1;	# 
+DIALOGOPT<macroc_type_DIALOGOPT>	param2;	# 
+int	buffer;	# Name des Speichers
+***
+Funktion:	PlayMacro
+Beschreibung:	F¸hrt ein Makro aus
+Syntax:	bool PlayMacro(param1)
+MACROPLAYTYP<macroc_type_MACROPLAYTYP>	param1;	# 
+***
+Funktion:	Print
+Beschreibung:	Druckt...
+Syntax:	bool Print(param1,filename)
+PRINTOPTION<macroc_type_PRINTOPTION>	param1;	# 
+string	filename;	# Name der Datei
+***
+Funktion:	PromptAssign
+Beschreibung:	Erzeugt ein Formular zur Eingabe eines Wertes
+Syntax:	bool PromptAssign(prompt,init)
+string	prompt;	# 
+string	init;	# Default-Belegung
+***
+Funktion:	QueryStatus
+Beschreibung:	Bestimmt, ob bestimmte Einstellungen/Zust‰nde aktiv sind
+Syntax:	bool QueryStatus(what)
+QUERY<macroc_type_QUERY>	what;	# 
+***
+Funktion:	QuitEdit
+Beschreibung:	Beendet PKS-EDIT ohne Sicherung aller geˆffneten Dateien
+Syntax:	bool QuitEdit(param1)
+int	param1;	# 
+***
+Funktion:	QuitIcons
+Beschreibung:	Schlieﬂt Sinnbilder
+Syntax:	bool QuitIcons()
+***
+Funktion:	ReadBlock
+Beschreibung:	F¸gt eine Datei an der Cursor-Position ein
+Syntax:	bool ReadBlock()
+***
+Funktion:	ReadErrorList
+Beschreibung:	Liest eine Fehlerliste eines Compiler f¸r die Fehlersuche
+Syntax:	bool ReadErrorList(compiler,param2,filename)
+string	compiler;	# Compilertyp
+DIALOGOPT<macroc_type_DIALOGOPT>	param2;	# 
+string	filename;	# Name der zu lesenden Datei
+***
+Funktion:	ReadSearchList
+Beschreibung:	Liest eine Suchliste
+Syntax:	bool ReadSearchList(param1,filename)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	filename;	# Name der zu lesenden Datei
+***
+Funktion:	ReadTagfile
+Beschreibung:	Liest die Quer-Verweis-Datei
+Syntax:	bool ReadTagfile(param1,filename)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	filename;	# Name der Datei
+***
+Funktion:	RecordMacro
+Beschreibung:	Startet eine Makro-Aufnahme
+Syntax:	bool RecordMacro()
+***
+Funktion:	Replace
+Beschreibung:	Ersetzt Text
+Syntax:	bool Replace(param1,param2,param3,param4,param5,param6,param7)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	param2;	# 
+string	param3;	# 
+REPLACTION<macroc_type_REPLACTION>	param4;	# 
+RANGETYP<macroc_type_RANGETYP>	param5;	# 
+FINDOPT<macroc_type_FINDOPT>	param6;	# 
+REPLOPT<macroc_type_REPLOPT>	param7;	# 
+***
+Funktion:	ReplaceAgain
+Beschreibung:	F¸hrt die letzte Ersetzung erneut durch
+Syntax:	bool ReplaceAgain()
+***
+Funktion:	ReplaceInString
+Beschreibung:	Ersetzt innerhalb von Strings
+Syntax:	bool ReplaceInString(max,foptions,what,pattern,with)
+int	max;	# Maximale Anzahl
+FINDOPT<macroc_type_FINDOPT>	foptions;	# Such-Optionen
+string	what;	# zu ersetzender String
+string	pattern;	# Suchmuster
+string	with;	# Ersatz
+***
+Funktion:	ReplaceTabs
+Beschreibung:	Wandelt alle Tabulatoren in Leerzeichen oder vc. vs.
+Syntax:	bool ReplaceTabs(typ,param2,range)
+CONVTABSACTION<macroc_type_CONVTABSACTION>	typ;	# 
+DIALOGOPT<macroc_type_DIALOGOPT>	param2;	# 
+RANGETYP<macroc_type_RANGETYP>	range;	# 
+***
+Funktion:	RwLineal
+Beschreibung:	Sichert/Liest ein Lineal
+Syntax:	bool RwLineal(param1,param2,filename)
+READ_OR_WRITE<macroc_type_READ_OR_WRITE>	param1;	# 
+DIALOGOPT<macroc_type_DIALOGOPT>	param2;	# 
+string	filename;	# Name der Datei
+***
+Funktion:	RwMacros
+Beschreibung:	Sichert/liest eine Makro-Datei
+Syntax:	bool RwMacros(param1,param2,filename)
+READ_OR_WRITE<macroc_type_READ_OR_WRITE>	param1;	# 
+DIALOGOPT<macroc_type_DIALOGOPT>	param2;	# 
+string	filename;	# Name der Datei
+***
+Funktion:	RwSetup
+Beschreibung:	Sichert/liest sonstige Einstellungen
+Syntax:	bool RwSetup(param1,filename)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	filename;	# Name der Datei
+***
+Funktion:	SaveFile
+Beschreibung:	Sichert die aktuelle Datei und/oder schlieﬂt das Bearbeitungs-Fenster
+Syntax:	bool SaveFile(param1,param2,filename)
+SAVEOPTION<macroc_type_SAVEOPTION>	param1;	# 
+DIALOGOPT<macroc_type_DIALOGOPT>	param2;	# 
+string	filename;	# Dateiname f¸r Sichern als..
+***
+Funktion:	ScrollCursor
+Beschreibung:	Rollt den Bildschirm, der Cursor folgt
+Syntax:	bool ScrollCursor(param1)
+CURSORMOTION<macroc_type_CURSORMOTION>	param1;	# 
+***
+Funktion:	ScrollScreen
+Beschreibung:	Rollt den Bildschirm
+Syntax:	bool ScrollScreen(param1)
+CURSORMOTION<macroc_type_CURSORMOTION>	param1;	# 
+***
+Funktion:	SelectWindow
+Beschreibung:	Wechselt zu Fenster ...
+Syntax:	bool SelectWindow(param1)
+SELWINDOWACTION<macroc_type_SELWINDOWACTION>	param1;	# 
+***
+Funktion:	SetBlockMark
+Beschreibung:	Setzt Textblock Markierungen
+Syntax:	bool SetBlockMark(mode)
+MARKMODE<macroc_type_MARKMODE>	mode;	# 
+***
+Funktion:	SetCursorMode
+Beschreibung:	Bestimmt das Cursor-Verhalten
+Syntax:	bool SetCursorMode(param1,scrollmin,scrolldelta,position,update_on_scroll)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+int	scrollmin;	# 
+int	scrolldelta;	# 
+CPS_AFTER<macroc_type_CPS_AFTER>	position;	# 
+int	update_on_scroll;	# 
+***
+Funktion:	SetDispMode
+Beschreibung:	Setzt den Anzeige-Modus
+Syntax:	bool SetDispMode(param1,alt_statusline,tabstops,rmargin,tabfiller,bg_color,mode)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	alt_statusline;	# 
+int	tabstops;	# 
+int	rmargin;	# 
+int	tabfiller;	# 
+int	bg_color;	# 
+SHO_MODE<macroc_type_SHO_MODE>	mode;	# 
+***
+Funktion:	SetMark
+Beschreibung:	Setze eine Text-Marke
+Syntax:	bool SetMark(param1,mark)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+int	mark;	# Kennbuchstabe der Marke
+***
+Funktion:	SetMultiplier
+Beschreibung:	Setzt den Multiplikator f¸r die Ausf¸hrung der n‰chsten Funktion
+Syntax:	bool SetMultiplier(param1,mult)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+int	mult;	# Multiplikatorwert
+***
+Funktion:	SetOptions
+Beschreibung:	Stellt Optionen ein
+Syntax:	bool SetOptions(param1,options,layout)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+OPTIONS<macroc_type_OPTIONS>	options;	# 
+LAYOUTOPTIONS<macroc_type_LAYOUTOPTIONS>	layout;	# 
+***
+Funktion:	SetPrinterLayout
+Beschreibung:	Stellt Optionen und Layout f¸rs Drucken ein
+Syntax:	bool SetPrinterLayout()
+***
+Funktion:	SetWindowRegister
+Beschreibung:	Definiert ein Fenstergîûen-register...
+Syntax:	bool SetWindowRegister(param1)
+int	param1;	# 
+***
+Funktion:	SetWorkMode
+Beschreibung:	Setzt den Arbeits-Modus
+Syntax:	bool SetWorkMode(param1,param2,mode)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	param2;	# 
+WORKMODE<macroc_type_WORKMODE>	mode;	# 
+***
+Funktion:	ShiftBetweenBrackets
+Beschreibung:	Verschiebt einen Klammernblock
+Syntax:	bool ShiftBetweenBrackets(param1)
+DIRECTION<macroc_type_DIRECTION>	param1;	# 
+***
+Funktion:	ShiftLines
+Beschreibung:	Shiftet (n) Zeilen
+Syntax:	bool ShiftLines(dir)
+DIRECTION<macroc_type_DIRECTION>	dir;	# 
+***
+Funktion:	ShiftText
+Beschreibung:	Verschiebt einen Textbereich
+Syntax:	bool ShiftText(dir,param2,range)
+DIRECTION<macroc_type_DIRECTION>	dir;	# 
+DIALOGOPT<macroc_type_DIALOGOPT>	param2;	# 
+RANGETYP<macroc_type_RANGETYP>	range;	# 
+***
+Funktion:	ShowClipboard
+Beschreibung:	Ruft CLIPBRD.EXE zur Anzeige der Ablage oder eines Text-Buffers
+Syntax:	bool ShowClipboard(Id der anzuzeigenden Ablage)
+int	Id der anzuzeigenden Ablage;	# 
+***
+Funktion:	ShowInfo
+Beschreibung:	Gibt Infos zur aktuellen Datei
+Syntax:	bool ShowInfo()
+***
+Funktion:	Sort
+Beschreibung:	Sortiert einen Tetxbereich
+Syntax:	bool Sort(param1,sel,fs,fields,typ,param6)
+DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
+string	sel;	# Suchmuster fÅr Selektion
+string	fs;	# Feld-Trenner
+string	fields;	# SchlÅsselfelder
+RANGETYP<macroc_type_RANGETYP>	typ;	# 
+SORTOPT<macroc_type_SORTOPT>	param6;	# 
+***
+Funktion:	SplitLine
+Beschreibung:	Spaltet die Zeile an der Cursor-Position in 2 Zeilen auf
+Syntax:	bool SplitLine(param1)
+LINESPLITOPT<macroc_type_LINESPLITOPT>	param1;	# 
+***
+Funktion:	SwitchFkeys
+Beschreibung:	Steuert die Funktionstastenanzeige
+Syntax:	bool SwitchFkeys(param1)
+FKEYSPARAM<macroc_type_FKEYSPARAM>	param1;	# 
+***
+Funktion:	ToggleTextMode
+Beschreibung:	Schaltet eine Option (ein/aus)
+Syntax:	bool ToggleTextMode(param1)
+TOGGLE<macroc_type_TOGGLE>	param1;	# 
+***
+Funktion:	TrackPopup
+Beschreibung:	÷ffnet ein Popup Menu
+Syntax:	bool TrackPopup(unused,unused,Name des Popup Menus)
+int	unused;	# 
+int	unused;	# 
+string	Name des Popup Menus;	# 
+***
+Funktion:	UnHideLine
+Beschreibung:	Macht die versteckten Zeilen unter dem Cursor wieder sichtbar
+Syntax:	bool UnHideLine()
+***
+Funktion:	Undo
+Beschreibung:	Macht die letzte ƒnderung r¸ckg‰ngig
+Syntax:	bool Undo()
+***
+Funktion:	UpToLow
+Beschreibung:	Wandelt Groﬂ- in Kleinschreibung und vc. vs.
+Syntax:	bool UpToLow()
+***
+Funktion:	WindowArrange
+Beschreibung:	Stellt Fenster ein ...
+Syntax:	bool WindowArrange(param1)
+WINARRANGEACTION<macroc_type_WINARRANGEACTION>	param1;	# 
+***
+Funktion:	WindowsHelp
+Beschreibung:	Ruft die Windows Hilfe Funktion
+Syntax:	bool WindowsHelp(param1,param2,param3)
+string	param1;	# 
+int	param2;	# 
+int	param3;	# 
+***
+Funktion:	WriteBlock
+Beschreibung:	Sichert den markierten Textblock in Datei..
+Syntax:	bool WriteBlock()
+***
+Funktion:	YankBlock
+Beschreibung:	Bringt den markierten Textblock zu einer Ablage oder einem Textablagespeicher
+Syntax:	bool YankBlock(param1,param2,buffer)
+YANKOPT<macroc_type_YANKOPT>	param1;	# 
+DIALOGOPT<macroc_type_DIALOGOPT>	param2;	# 
+int	buffer;	# Name des Speichers
+***
+Funktion:	YankLines
+Beschreibung:	Bringt Zeilen zur Ablage
+Syntax:	bool YankLines()
+***
+Type:	ALIGNOPT
+# ALIGNOPT Optionen spaltenweise Ausrichtung
+AL_CPOS                 =       0x1,            # alle vor Cursorposition ignorieren
+AL_FIX            =     0x2,            # alle auf fest auf Cursorposition aurichten
+AL_END            =     0x4,            # ausrichten  Ende Suchmuster
+***
+Type:	OPTIONS
+# OPTIONS Sonstige Einstellungen
+O_BLOCKS_AS_COLOMNS     =       0x1,            # Spaltenblˆcke
+O_ERROR_BELL         =  0x2,            # Glocke bei Fehlern
+O_FLASH           =     0x4,            # "Flash" bei Fehlern
+
+O_HISTORY                 =     0x10,   # History-Dateien (PKSEDIT.HIS) verwenden
+O_SAVE_OPTIONS       =  0x20,   # automatisches Sichern Einstellungen
+O_SAVE_MACROS        =  0x40,   # automatisches Sichern der Makros
+O_CLEAN_AUTO_SAVE       =       0x80,   # Autosave Dateien wegwerfen beim Schlieﬂen
+
+O_AUTO_WRITE         =  0x100,  # Automatisch sichern bei Schlieﬂen
+O_FORMFOLLOW         =  0x200,  # Formulare am Mauszeiger
+O_MDISCROLL             =       0x400,  # Scrollbars f¸r Desktop
+O_MESSAGES              =       0x800,  # Nachrichtenfenster
+
+O_AUTODELBLOCK          =       0x1000, # Windows konforme Blockbehandlung
+O_UNDO_ENABLED       =  0x2000, # Undo eingeschaltet
+O_CUTBUFEQCLIP          =       0x4000, # Clipboard == Lˆschpuffer
+***
+Type:	LAYOUTOPTIONS
+# LAYOUTOPTIONS Layout options
+OL_OPTIONBAR            =       0x1,            # Optionenleiste anzeigen
+OL_FKEYS                        =       0x2,            # Funktionstastenbelegung..
+OL_SHOWSTATUS           =       0x4,            # Statuszeile..
+***
+Type:	REPLACTION
+# REPLACTION Art der Ersetzung
+REP_NONE                  =     0,              # abbrechen
+REP_REPLACE          =  1,              # ersetzen
+REP_MARK                  =     2,              # markieren
+REP_COUNT                 =     3,              # z‰hlen
+***
+Type:	FINDOPT
+# FINDOPT Optionen Suche
+RE_DOREX                  =     0x1,            # alle Such-Sonderzeichen
+RE_IGNCASE           =  0x2,            # ignoriere Groﬂ-Kleinschreibung
+RE_SHELLWILD         =  0x4,            # nur Shell-Sonderzeichen (*?)
+RE_WRAPSCAN             =       0x8,            # wrap on search
+***
+Type:	REPLOPT
+# REPLOPT Optionen Ersetzen
+OREP_INQ                  =     0x10,   # auf R¸ckfrage
+OREP_MARKED          =  0x20,   # in markierten Zeilen
+***
+Type:	SORTOPT
+# SORTOPT Optionen Sortierung
+SO_SKIPSEPS          =  0x1,            # skippe Mehrfachtrenner
+SO_CLUSTERLINES =       0x2,            # an Sortierzeile binden
+SO_REVERSE           =  0x4,            # absteigende Sortierung
+SO_NOSELECT          =  0x8,            # Suchmuster wird ignoriert
+***
+Type:	FORMATTYP
+# FORMATTYP 
+FMT_ADJLEFT          =  0,              # linksb¸ndig
+FMT_ADJRIGHT         =  1,              # rechtsb¸ndig
+FMT_ADJCENTER        =  2,              # zentriert
+FMT_ADJBLOCK         =  3,              # Blocksatz
+***
+Type:	FORMATOPT
+# FORMATOPT Optionen Textformatierung
+FMT_WPFORMAT         =  0x20,   # WP-Modus
+FMT_INDENT           =  0x40,   # Indent ber¸cksichtigen
+***
+Type:	RANGETYP
+# RANGETYP Bereichsangabe f¸r Bereichsfunktionen
+RNG_ONCE                  =     0,              # 1 mal
+RNG_LINE                  =     1,              # in der aktuellen Zeile
+RNG_CHAPTER          =  2,              # im aktuellen Absatz
+RNG_BLOCK                 =     3,              # im markierten Textblock
+RNG_TOCURS           =  4,              # bis zum Cursor
+RNG_FROMCURS         =  5,              # ab Cursor
+RNG_GLOBAL           =  6,              # im ganzen Text
+RNG_FREE                  =     7,              # f¸r Erweiterungen 
+***
+Type:	EXECOPT
+# EXECOPT Optionen f¸r Programmstart
+EX_SYMBOL                       =       0x1,            # als Symbol starten
+EX_WAIT                 =       0x2,            # warten auf Programm - Ende
+EX_DOS                  =       0x4,            # Dos - Applikation
+EX_RDNONE                       =       0x10,
+EX_RDIN           =     0x20,   # Daten von Programm ¸bernehmen
+EX_RDOUT                  =     0x40,   # Textblock an Programm ¸bergeben
+EX_RDCONV                       =       0x80,   # Daten konvertieren
+***
+Type:	WORKMODE
+# WORKMODE Modus Dokument-Bearbeitung
+WM_INSERT                        = 0x1,         # Einf¸gen
+WM_SHOWMATCH             = 0x2,         # automatischer Klammerncheck
+WM_ABBREV                        = 0x4,         # Abk¸rzungen eingeschaltet
+WM_AUTOWRAP              = 0x8,         # automatisch Umbrechen
+WM_AUTOINDENT            = 0x10,                # automatisch Einr¸cken
+WM_RDONLY                        = 0x20,                # nur lesen
+WM_WITITLE2              = 0x80,                # alternative Fenster Titelbeschriftung
+WM_AUTOFORMAT            = 0x100,               # Absatzkontrolle
+WM_BRINDENT              = 0x200,               # Einr¸cken gem‰ﬂ Klammerung
+WM_BLK_COLOMN            = 0x400,               # Spaltenblock
+WM_OEMMODE               = 0x800,               # Tastatureingaben als OEM interpretieren
+WM_CRYPTED               = 0x1000,      # verschl¸sselt lesen und schreiben
+***
+Type:	SHO_MODE
+# SHO_MODE Modus Dokument-Anzeige
+SHO_CONTROL             =       0x1,            # Controlzeichen sichtbar
+SHO_HEX                 =       0x4,            # alternative Statuszeile
+SHO_RULER                       =       0x8,            # Lineal anzeigen
+SHO_ATTR                        =       0x10,   # Attributierter Text
+SHO_OEM                 =       0x20,   # OEM Zeichensatz f¸r Anzeige erzwingen
+SHO_FIXEDWI             =       0x80,   # feste Fensterlage
+SHO_HIDEHSLIDER =       0x100,  # horizontalen Slider verstecken
+SHO_HIDEVSLIDER =       0x200,  # vertikalen Slider verstecken
+***
+Type:	CPS_AFTER
+# CPS_AFTER Cursorposition nach Suchen
+CP_POSTOP                       =       0x0,    # oben am Bildschirm
+CP_POSMID                       =       0x1,    # zentriert
+CP_POSLOW                       =       0x2,    # am Ende des Bildschirms
+***
+Type:	DIRECTION
+# DIRECTION Richtungen beim Suchen..
+DIR_NONE                        =       0,              # wenn nicht benˆtigt
+DIR_FORWARD             =       1,              # vorw‰rts
+DIR_BACKWARD            =   -1,         # r¸ckw‰rts
+DIR_LEFT                        =   -1,         # nach links
+DIR_RIGHT                       =       1,              # nach rechts
+***
+Type:	ABANDONOPT
+# ABANDONOPT 
+AB_WARN                 =       0,              # mit Warnung
+AB_NOWARN                       =       1,              # ohne Warnung
+***
+Type:	YANKOPT
+# YANKOPT (kombinierbar mit 0-256 f¸r Speichername) 
+YANK_QUERY_ID           =       0x100,  # benannter Speicher
+YANK_APPEND             =       0x200,  # Anh‰ngen an den Speicher
+***
+Type:	PASTEOPT
+# PASTEOPT 
+PASTE_CLIP          =   0x100,  # Standard Ablage
+PASTE_QUERY_ID      =   0x200,  # benannter Speicher
+PASTE_TRASH         =   0x400,  # Inhalt Papierkorb
+PASTE_UNDOBUF       =   0x800,  # benannter Lˆsch-Speicher
+***
+Type:	MARKMODE
+# MARKMODE 
+MARK_RUBBER             =       0,              # mit Gummiband
+MARK_DRAG                       =       1,              # durch Ziehen
+MARK_CONT                       =       2,              # Erweiterungsmodus
+MARK_START              =       3,              # Markierung Start
+MARK_END                        =       4,              # Markierung Ende
+MARK_ALL                        =       5,              # Markierung gesammter Text
+***
+Type:	LINEDELETEMODE
+# LINEDELETEMODE 
+LD_APPEND                       =       0x200,  # anh‰ngen an Papierkorb
+LD_ACT                  =       0,              # aktuelle Zeile
+LD_ABOVE                        =       1,              # oberhalb aktueller Zeile
+***
+Type:	LINEINSERTMODE
+# LINEINSERTMODE 
+LI_BELOW                        =       0,              # unterhalb aktueller Zeile
+LI_ACT                  =       1,              # aktuelle Zeile nach unten
+***
+Type:	MLNTYPE
+# MLNTYPE 
+MLN_DELETE              =       0,              # markierte Zeile lˆschen
+MLN_JOIN                        =       1,              # markierte Zeilen zusammenf¸gen
+MLN_TOGGLE              =       2,              # Markierung togglen
+MLN_FINDSOFT            =       3,              # Suche weiches Zeilenende
+MLN_MAKESOFT            =       4,              # Markierte Zeilen -> weiches Zeilenende
+MLN_MAKEHARD            =       5,              # Markierte Zeilen -> hartes Zeilenende
+MLN_CUT                 =       6,              # Markierte Zeilen -> ausschneiden
+***
+Type:	READ_OR_WRITE
+# READ_OR_WRITE Parameter f¸r alternativ: Sichern-Lesen 
+ROW_READ                        =       0,              # ... lesen
+ROW_WRITE                       =       1,              # ... sichern
+***
+Type:	KEYTYPE
+# KEYTYPE 
+KT_GLOBAL                       =       0,              # PKSEDIT.KEY
+KT_LOCAL                        =       1,              # dokumentbezogene .KEY-Datei
+***
+Type:	CONVTABSACTION
+# CONVTABSACTION 
+CT_EXPAND                       =       1,              # Tabs in Leerzeichen umwandeln
+CT_COMPRESS             =       0,              # Leerzeichen in Tabs umwandeln
+***
+Type:	LINESPLITOPT
+# LINESPLITOPT 
+LS_NOINDENT             =       0,              # Einr¸ckung unbeeinfluﬂt
+LS_PLUS                 =       0x1,            # Einr¸ckung vergrˆﬂern
+LS_MINUS                        =    0x2,               # Einr¸ckung verkleinern
+LS_SOFT                 =       0x4,            # weiches Zeilenende
+***
+Type:	CURSORMOTION
+# CURSORMOTION 
+MOT_SINGLE              =       1,              # einzelne Zeichen (Zeilen)
+MOT_TOEND                       =       2,              # zum Ende (der Seite, Zeile)
+MOT_WORD                        =       3,              # wortweise
+MOT_PAGE                        =       3,              # seitenweise
+MOT_UNTILC              =       4,              # bis Zeichen..
+MOT_PGRPH                       =       4,              # absatzweise
+MOT_FILE                        =       4,              # zum .. der Datei
+MOT_SPACE                       =       5,              # zum n‰chsten Leerzeichen
+MOT_CENTER              =       5,              # zur Mitte der ..
+MOT_XTNDBLOCK           =       0x100,  # Block erweitern w‰hrend Cursorbewegung
+***
+Type:	FKEYSPARAM
+# FKEYSPARAM 
+FKS_PLUS                        =       1,              # Funktionstasten 1 * weiter schalten
+FKS_MINUS                       =       -1,             # Funktionstasten 1 * zur¸ck schalten
+FKS_DIALOG              =       0,              # unimpl.
+***
+Type:	MACROPLAYTYP
+# MACROPLAYTYP 
+MAC_AUTO                        =       -1,             # automatisch aufgezeichnete letzte Einf¸gung
+MAC_LASTREC             =       -2,             # letztes aufgenommenes Makro
+***
+Type:	GOTOTEXTMARKACTION
+***
+Type:	OPENOPTION
+# OPENOPTION 
+OPEN_LINEAL             =       0x1,            # ˆffnen mit Lineal..
+***
+Type:	PRINTOPTION
+# PRINTOPTION 
+PRT_CURRWI              =       0x1,         # aktuelles Bearbeitungsfenster
+PRT_FILE                     =  0x2,         # Datei..
+PRT_CURRBLK             =       0x3,         # aktueller Textblock
+PRT_CLIP                     =  0x4,         # Ablage
+PRT_TRASH                    =  0x5,         # Papierkorb
+***
+Type:	SAVEOPTION
+# SAVEOPTION 
+SAV_SAVE                     =  0x1,         # sichern
+SAV_QUIT                     =  0x2,         # schlieﬂen Fenster
+SAV_AS               =  0x4,         # sichern unter..
+SAV_QUITWI              =       0x8,         # Fenster als Sinnbild
+SAV_FORCED              =       0x10,   # sichern, auch wenn nicht ge‰ndert
+***
+Type:	LISTGOTOMODE
+# LISTGOTOMODE 
+LIST_START              =       0,           # zum Anfang der ..liste
+LIST_PREV                    =  1,           # vorheriger Eintrag der ..liste
+LIST_CURR                    =  2,           # aktueller Eintrag der ..liste
+LIST_NEXT                    =  3,           # zum n‰chsten Eintrag der ..liste
+LIST_END                     =  4,           # zum Ende der ..liste
+LIST_USETOPWINDOW   =   0x100,  # Oberstes Fenster wird zur aktuelen Fehlerliste
+***
+Type:	SELWINDOWACTION
+# SELWINDOWACTION (Zahlen 0-7-> Fenster 1-8) 
+SW_PREVIOUS             =       -1,          # zum darunterliegenden Fenster
+SW_CYCLE                        =       -100,     # zum n‰chsten Fenster
+***
+Type:	WINARRANGEACTION
+# WINARRANGEACTION 
+WIN_FULL                     =  -1,          # maximale Grˆﬂe
+WIN_HOR              =  -2,          # horizontal anordnen
+WIN_TILE                     =  -3,          # vertikal anordnen
+WIN_PAIRS                    =  -4,          # paarweise nebeneinander
+WIN_UNDO                     =  -5,          # letzte Fensterlage restaurieren
+WIN_CASCADE             =       -7,          # unimpl.
+WIN_ICONIZED            =       -8,          # unimpl.
+WIN_DESKICON            =       -9,          # unimpl.
+WIN_ICONARRANGE =       -10,         # unimpl.
+WIN_CASCADE             =       -11,         # unimpl.
+***
+Type:	MOUSEMOVEACTION
+# MOUSEMOVEACTION 
+MM_COPY              =  0,           # Text kopieren
+MM_MOVE              =  1,           # Text verschieben
+***
+Type:	MODULTYP
+# MODULTYP 
+MOD_BUILDER             =       256,            # Builder-Modul
+MOD_SETUP                       =       512,            # Konfigurations-Modul
+***
+Type:	SELMODE
+# SELMODE 
+SEL_OFF                 =       0,              # Selektion aufheben
+SEL_ON                  =       1,              # selektieren
+***
+Type:	DIALOGOPT
+# DIALOGOPT Option Dialog beim Makro-Abspielen 
+FO_SHOW                 =       0x40,   # Formular wird geˆffnet
+FO_INIT                 =       0x1,            # Formular wird initialisiert
+FO_REDRAW                       =       0x2,            # Textfenster werden neu gezeichnet
+***
+Type:	TOGGLE
+# TOGGLE 
+TGL_SHOWMATCH       =   0,              # Klammern-‹berpr¸fung ein/aus
+TGL_INSERT          =   1,              # Einf¸ge-Modus ein/aus
+TGL_AUTOINDENT      =   2,              # Automatisches Einr¸cken ein/aus
+TGL_AUTOWRAP        =   3,              # Automatischer Umbruch ein/aus
+TGL_BLOCKS_AS_COLOMNS = 4,              # Spaltenblˆcke
+TGL_KEYCLICK        =   6,              # Tastenklick ein/aus
+TGL_WARNINGS        =   7,              # Warungen ein/aus
+TGL_BACKUP          =   8,              # Erzeugen von Backup-Dateien ein/aus
+TGL_SHOWCONTROL     =   9,              # Anzeige von Controlzeichen ein/aus
+TGL_SHOWSTATUS      =   10,             # Statuszeile ein/aus
+TGL_ALTSTATUS       =   11,             # alternativer Status ein/aus
+TGL_SHOWRULER       =   12,             # Text-Lineal ein/aus
+TGL_SHOWATTR        =   13,             # Anzeige Textattribute ein/aus
+***
+Type:	FAOPT
+# FAOPT Optionen FormAlert
+AD_CENTER               =               0x1,            # Formular zentrieren (oder am Mauscursor)
+AD_SHRINK               =               0x2,            # Shrink-Box zeichnen
+AD_CURSORPOS    =               0x4,            # Formular am Text-Cursor
+***
+Type:	LISTOPT
+# LISTOPT Optionen von ListBindings
+LIST_MACROS             =       0x1,
+LIST_KEYS                       =       0x2,
+LIST_MICE                       =       0x4,
+LIST_MENUS              =       0x8,
+***
+Type:	QUERY
+# QUERY Typ f¸r Status Abfragen
+QUERY_CLIPBOARDAVAIL    =       0,              # Daten auf dem Clipboard?
+QUERY_BLKMARKSTART              =       1,              # Blockstart markiert?
+QUERY_BLKMARKEND                =       2,              # Blockende markiert?
+QUERY_BLKMARKED         =       3,              # gesammter Block markiert 
+                                                                # IsDefined(..START) && IsDefined(...END)
+QUERY_CURRENTFILE               =       4,              # mindestens 1 Datei geˆffnet?
+QUERY_OPTIONS                   =       5,              # globale Einstellungen abfragen
+QUERY_LAYOUTOPTIONS             =       6,              # globale Layout- "
+QUERY_WORKMODE                  =       7,              # Bearbeitungs - Modus abfragen
+QUERY_DISPLAYMODE               =       8,              # Anzeige - Modus abfragen
+QUERY_FILEMODIFIED              =       9,              # aktuelle Datei ge‰ndert ?
+--------------- Interne Makros -------------------
+@open-file            ÷ffnet eine Datei in einem Bearbeitungsfenster
+@open-file-name-given ÷ffnet eine Datei - der Name wird als Parameter ¸bergeben
+@open-file-dir-given  ÷ffnet eine Datei - der voreingestellte Pfad der Dateiauswahl wird als Parameter ¸bergeben
+@open-special         ÷ffnet eine Datei mit besonderem Format
+@open-history         ÷ffnet die zuletzt geschlossene Datei
+@open-history1        ÷ffnet die vorletzte geschlossene Datei
+@open-history2        ÷ffnet die vorvorletzte geschlossene Datei
+@open-history3        ÷ffnet die drittletzte geschlossene Datei
+@open-history4        ÷ffnet die viertletzte geschlossene Datei
+@quit-file            Schlieﬂt das Bearbeitungsfenster
+@save-file-and-close  Sichert den Text und schlieﬂt das Bearbeitungsfenster
+@save-file-as         Sichert den Text unter neuem Namen
+@save-file            Sichert den Text
+@read-block           F¸gt eine Datei an der Cursorposition ein
+@save-block           Sichert den markierten Textblock
+@exit-edit            Beendet PKS-EDIT und sichert alle ƒnderungen
+@quit-edit            Beendet PKS-EDIT
+@find-string          Sucht ein Suchmuster
+@replace-string       Ersetzt ein Suchmuster
+@find-again           Wiederholt die letzte Suche
+@find-again-forward   Wiederholt die letzte Suche vorw‰rts
+@find-again-backward  Wiederholt die letzte Suche r¸ckw‰rts
+@find-word-forward    Sucht das Wort unter dem Cursor
+@find-tag-under-cursor Sucht den Verweis unter dem Cursor
+@find-word-back       Sucht Wort unter dem Cursor r¸ckw‰rts
+@find-file-under-cursor Sucht die Datei mit dem Namen des Worts unter dem Cursor
+@find-in-filelist     Sucht in mehreren Dateien
+@find-tag             Verzweigt zu einem Querverweis
+@set-mark             Setzt eine Textmarke
+@goto-mark            Geht zu einer Textmarke
+@goto-line            Geht zu einer Zeile
+@goto-last-pos        Geht zur Position vor der letzten Suche
+@goto-previous-tag    Geht zur Position vor der letzten Verzweigung
+@mark-block-start     Definiert den Start der Textblock-Markierung
+@mark-block-end       Definiert das Ende der Textblock-Markierung
+@mark-all             Markiert den gesamten Text
+@hide-block-marks     Versteckt die Textblock-Markierung
+@find-block-start     Sucht den Anfang der Textblock-Markierung
+@find-block-end       Sucht das Ende der Textblock-Markierung
+@yank-block           Bringt den Textblock zur Ablage
+@yank-to-buffer       Bringt den Block zu Buffer...
+@append-block-to-buffer H‰ngt den Textblock an Buffer.. an
+@append-block-to-clipboard H‰ngt den Textblock an die Ablage an
+@paste-buffer         F¸gt Buffer... ein
+@paste-clipboard      F¸gt den Inhalt der Ablage ein
+@paste-trash          F¸gt den Inhalt des Papierkorbs ein
+@paste-buffer         F¸gt den Inhalt des ? - ten Papierkorb Speichers ein
+@delete-block         Schneidet den markierten Textblock aus
+@copy-block           Kopiert den markierten Textblock zum Cursor
+@move-block           Verschiebt den markierten Textblock zum Cursor
+@yank-line            Bringt die aktuelle Zeile zur Ablage
+@toggle-colomn-form   Beeinfluﬂt die Form des Textblocks
+@toggle-show-control  Schaltet zum Controlzeichen-Anzeige-Modus
+@toggle-show-ruler    Aktiviert die Tabulatorzeile
+@dialog-printer-layout Stellt Optionen und Layout f¸rs Drucken ein
+@toggle-alternate-status Verwendet die alternative Statuszeile
+@toggle-show-attributes Zeigt Text attributiert
+@toggle-insert-mode   Schaltet zwischen Einf¸gen und ‹berschreiben um
+@set-options          Konfiguration des allgemeinen Betriebsmodus von PKS-EDIT
+@format-text          Formatiert einen Textbereich
+@compress-tabs        Faﬂt Leerzeichen zu Tabulatoren zusammen
+@expand-tabs          Epandiert Tabulatoren zu Leerzeichen
+@align-text           Richtet Textbereiche aus
+@shift-range-right    Verschiebt einen Textbereich nach rechts
+@shift-range-left     Verschiebt einen Textbereich nach links
+@sort-text            Sortiert einen Textbereich
+@next-difference      Geht zum n‰chsten Unterschied 2er Dateien
+@print-window         Druckt das Bearbeitungsfenster
+@print-block          Druckt den markierten Textblock
+@print-file           Druckt eine Datei
+@execute-command      Startet eine externe Applikation
+@read-tagfile         Liest eine Verweisdatei
+@read-search-list     Liest eine Suchliste
+@read-compiler-errors Liest eine Compiler Fehler Liste
+@add-doc-macros       F¸gt Dokumenteinstellungen (Abk¸rzungen, ...) zu einem Lineal hinzu
+@record-macro         Startet/Stoppt eine Makro Aufnahme
+@dialog-macros        Editiert Makros und ihre Anbindungen
+@write-macros         Schreibt eine Makrodatei
+@read-macros          Liest eine Makrodatei
+@save-options         Sichert alle Einstellungen
+@configure-icons      Konfiguriert die Sinnbilder des PKS-EDIT Desktops
+@dialog-display-mode  Stellt den Anzeige-Modus ein
+@dialog-work-mode     Stellt den Bearbeitungs-Modus ein
+@dialog-text-cursor   Stellt das Verhalten des Textcursors ein
+@dialog-macro-bindings Stellt das Dateiformat ein
+@save-ruler           Sichert die Dokument-Einstellungen
+@read-ruler           Liest die Dokument-Einstellungen aus einer Datei
+@info-to-file         Zeigt Informationen zur aktuellen Datei
+@close-all-windows    Schlieﬂt alle Berabeitungs-Fenster
+@arrange-icons        Ordnet die Sinnbilder auf dem Desktop an
+@cascade-windows      Legt alle Bearbeitungsfenster hintereinander
+@tile-windows         Legt alle Bearbeitungsfenster nebeneinander
+@help-on-help         Zeigt Anweisungen zum Gebrauch des Hilfesystems an
+@help-on-menus        Zeigt Hilfen zu den PKS-EDIT Menus
+@help-on-keys         Zeigt Hilfen zu den Bearbeitungstasten von PKS-EDIT
+@help-on-desktopn     Zeigt Hilfen zum Desktop von PKS-EDIT
+@help-index           Zeigt das Hilfen-Verzeichnis an
+@show-copyright       Zeigt die Copyright-Meldung mit Serien- und Versionsnummer
+@keycode-insert       F¸gt eine Tastenkombination als Text ein
+@set-win-reg-1        Definiert Fenster-Register #0
+@set-win-reg-2        Definiert Fenster-Register #1
+@set-win-reg-3        Definiert Fenster-Register #2
+@set-win-reg-4        Definiert Fenster-Register #3
+@set-win-reg-5        Definiert Fenster-Register #4
+@set-win-reg-6        Definiert Fenster-Register #5
+@set-win-zoomed       Vergrˆﬂert das Bearbeitungsfenster auf maximale Grˆﬂe
+@size-win-with-reg-1  Setzt Fenstergrˆﬂe gem‰ﬂ Fenster-Register #0
+@size-win-with-reg-2  Setzt Fenstergrˆﬂe gem‰ﬂ Fenster-Register #1
+@size-win-with-reg-3  Setzt Fenstergrˆﬂe gem‰ﬂ Fenster-Register #2
+@size-win-with-reg-4  Setzt Fenstergrˆﬂe gem‰ﬂ Fenster-Register #3
+@size-win-with-reg-5  Setzt Fenstergrˆﬂe gem‰ﬂ Fenster-Register #4
+@size-win-with-reg-6  Setzt Fenstergrˆﬂe gem‰ﬂ Fenster-Register #5
+@select-window-1      Selektiert Fenster #1
+@select-window-2      Selektiert Fenster #2
+@select-window-3      Selektiert Fenster #3
+@select-window-4      Selektiert Fenster #4
+@select-window-5      Selektiert Fenster #5
+@select-window-6      Selektiert Fenster #6
+@select-previous-window Aktiviert das zuletzt aktive Fenster
+@cycle-window         Geht zyklisch zum n‰chsten Fenster
+@char-up-low          wandelt Groﬂ- in Kleinschreibung
+@shift-line-left      Verschiebt um eine Spalte nach links
+@shift-line-right     Verschiebt um eine Spalte nach rechts
+@replace-again        Wiederholt die letzte Ersetzung
+@errorlist-next       Geht zum n‰chsten Compiler-Fehler
+@errorlist-end        Geht zum letzten Compiler-Fehler
+@errorlist-previous   Geht zum vorherigenen Compiler-Fehler
+@errorlist-start      Geht zum ersten Compiler-Fehler
+@check-brackets       ‹berpr¸ft Klammern - Paare
+@insert-char-with-dialog Zeigt ein Formular mit dem aktuellen Zeichensatz
+@shift-between-brackets-left Verschiebt zwischen den Block zwischen Klammern nach links
+@shift-between-brackets-right Verschiebt zwischen den Block zwischen Klammern nach rechts
+@delete-char          Lˆscht das Zeichen unter dem Cursor
+@delete-to-eol        Lˆscht bis zum Ende der Zeile
+@delete-word          Lˆscht das Wort unter dem Cursor
+@delete-to-next-char  Lˆscht bis zu Zeichen..
+@delete-back-white    Lˆscht bis zum letzten Leerzeichen
+@delete-to-white      Lˆscht bis zum n‰chsten Leerzeichen
+@delete-to-sol        Lˆscht bis zum Anfang der Zeile
+@delete-back-word     Lˆscht das Links vom Cursor stehende Wort
+@delete-until-previous-char Lˆscht bis zu Zeichen..
+@split-line           F¸gt ein Zeilenende ein
+@split-line-indent-plus F¸gt ein Zeilenende ein mit Indent
+@split-line-indent-minus F¸gt ein Zeilenende ein mit Indent links
+@join-lines           Vereiningt 2 Zeilen
+@cursor-up-line       Bewegt den Cursor eine Zeile nach oben
+@cursor-top-of-page   Bewegt den Cursor zum oberen Seitenende
+@cursor-back-page     Bewegt den Cursor eine Seite nach oben
+@cursor-down-line     Bewegt den Cursor eine Zeile nach unten
+@cursor-bottom-of-page Bewegt den Cursor
+@cursor-down-page     Bewegt den Cursor eine Seite nach unten
+@cursor-right-char    Bewegt den Cursor ein Zeichen nach rechts
+@cursor-eol           Bewegt den Cursor zum Ende der Zeile
+@cursor-right-word    Bewegt den Cursor ein Wort nach rechts
+@cursor-until-char    Bewegt den Cursor zum n‰chsten Zeichen ..
+@cursor-left-char     Bewegt den Cursor ein Zeichen nach links
+@cursor-sol           Bewegt den Cursor zum Anfang der Zeile
+@cursor-left-word     Bewegt den Cursor ein Wort nach links
+@cursor-back-to-char  Bewegt den Cursor zum letzten Zeichen..
+@cursor-to-space      Bewegt den Cursor zum n‰chsten Leerzeichen
+@cursor-back-to-space Bewegt den Cursor zum letzten Leerzeichen
+@cursor-home          Bewegt den Cursor zum Anfang der Datei
+@cursor-eof           Bewegt den Cursor zum Ende der Datei
+@insert-line-follow   F¸gt eine Zeile ein, Cursor folgt
+@delete-line-stay     Lˆscht eine Zeile
+@delete-line-append   H‰ngt die aktuelle Zeile an den Papierkorb an
+@delete-line-follow   Lˆscht die Zeile, Cursor folgt
+@abandon-file         Liest die aktuelle Datei neu
+@save-and-close       Sichert und schlieﬂt das Bearbeitungsfenster
+@insert-line-stay     F¸gt eine Zeile ein, Cursor bleibt
+@edit-doc-macros      Editiert weitere Dokumenteinstellungen f¸r Lineale
+@kill-buffers         Leert alle Text-Zwischenspeicher
+@delete-marked-lines  Lˆscht alle markierten Zeilen
+@set-multiplikator    Setzt den Multiplikator f¸r die n‰chste Funktion
+@escape-makro         Startet ein Escape Makro
+@switch-fkeys-minus   Schaltet die Funktionstasten zur¸ck
+@dialog-doc-types     Definiert Dokument Typen
+@switch-fkeys-plus    Schaltet die Funktionstasten weiter
+@re-insert            Wiederholt die letzten Einf¸ge-Operationen
+@record-macro         Startet eine Makro-Aufnahme
+@undo                 Macht die letzte ƒnderung r¸ckg‰ngig
+@toggle-line-marks    Invertiert die Zeilenmarkierungen
+@iconize-edit         Iconisiert PKS-EDIT
+@iconize-window       Iconisiert das Bearbeitungsfenster
+@last-difference      Geht zum letzten Unterschied beim Datei - Vergleich
+@scroll-up-line       Scrollt eine Zeile nach oben, Cursor bleibt
+@scroll-down-line     Scrollt eine Zeile nach unten, Cursor bleibt
+@scroll-up-page       Scrollt eine Seite nach oben, Cursor bleibt
+@scroll-down-page     Scrollt eine Seite nach unten, Cursor bleibt
+@cursor-center-page   Bewegt den Cursor zur Seitenmitte
+@scroll2-up-line      Scrollt eine Zeile nach oben, Cursor folgt
+@scroll-down-line     Scrollt eine Zeile nach unten, Cursor folgt
+@scroll-center-page   Scrollt den Bildschirm so, daﬂ der Cursor in der Mitte steht
+@join-marked-lines    F¸gt alle markierten Zeilen zusammen
+@edit-local-doc-macros Dokumenteinstellungen
+@goto-last-insert-pos geht zur Stelle der letzten Einf¸gung
+@print-clipboard      druckt den Inhalt der Zwischenablage
+@print-trash          druckt den Inhalt des Papierkorbs
+@paste-undo           f¸gt den Papierkorb von einem Icon ein
+@paste-clip-icon      f¸gt die Ablage von einem Icon ein
+@icon-execute         f¸hrt ein an ein Icon gebundenes Kommando aus
+@remove-icon          lˆscht ein Icon
+@cursor-mouse-goto    positioniert den Cursor mit der Maus
+@drag-copy-text       kopiert Text mit der Maus
+@drag-move-text       bewegt Text mit der Maus
+@mouse-select-lines   markiert einzelne Zeilen
+@mouse-unselect-lines entfernt einzelne Zeilen - Markierungen
+@play-last-macro      spielt das letzte aufgenmommene Makro ab
+@mouse-mark-block     markiert eine Textblock mit der Maus
+@mouse-mark-line      markiert die aktuelle Zeile mit der Maus / konventioneller Modus
+@mouse-mark-word      markiert das aktuelle Wort mit der Maus
+@mouse-mark-to-space  markiert bis zum n‰chsten Leerzeichen mit der Maus
+@mouse-mark-paragraph markiert den aktuellen Absatz mit der Maus
+@mouse-update-block   markiert mit der Maus - Erweiterungs Modus
+@macro-list           Listet alle Makros...
+@key-list             Listet alle Tastenbelegungen
+@mouse-list           Listet alle Maustasten - Funktionen
+@compile-macros       Makros im aktuellen Fenster compilieren...
+@split-line-soft      F¸gt ein weiches Zeilenende ein
+@show-std-clip        Ruft CLIPBRD.EXE zur Anzeige der Standard - Ablage
+@erase-block          Lˆscht den markierten Textblock
+@menu-list            Listet das aktuelle Menu in PKS-MakroC Format

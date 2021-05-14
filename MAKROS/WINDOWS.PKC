@@ -1,0 +1,328 @@
+###############################################################################
+#
+# Makros und Tastenbelegung PKSEDIT: Window CUA - konformer Modus
+#
+###############################################################################
+
+#
+# Definitionen f¸r MessageBox (analog zu windows.h aus SDK)
+#
+const MB_YESNO	      = 0x0004;
+const IDYES	      = 6;
+
+macro HelpMakroC() {
+	InternalHelpContext(3000);
+}
+
+macro HelpInternalMacs() {
+	InternalHelpContext(3001);
+}
+
+macro CompileMacro()
+{
+    if (QueryStatus(QUERY_FILEMODIFIED) &&
+    	MessageBox(MB_YESNO, 0, 
+		"Sollen die Makros in diesem Fensters compiliert werden") == IDYES) {
+    	return CompileMacros();
+    }
+}
+
+macro CharacterLow2Up() 
+"Zeichentausch Textblock Klein->Groﬂ"
+{
+	Replace(FO_INIT,"([a-z‰ˆ¸])","\\u\\1",
+		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
+}
+
+macro CharacterUp2Low() 
+"Zeichentausch Textblock Groﬂ->Klein"
+{
+	Replace(FO_INIT,"([A-Zƒ÷‹])","\\l\\1",
+		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
+}
+
+macro CharacterVersale() 
+"Zeichentausch Textblock Versalien"
+{
+	Replace(FO_INIT,"([a-z‰ˆ¸A-Zƒ÷‹])([a-z‰ˆ¸A-Zƒ÷‹]+)","\\u\\1\\l\\2",
+		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
+}
+
+
+#
+# Diese Makros stellen ein Keyboard Interface
+# f¸r das Markieren von Blˆcken zur Verf¸gung 
+#
+
+macro XtndBlockCursRight() 
+"Erweiterung Block / Cursor rechts"
+{
+
+	CursorRight(MOT_SINGLE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursLeft() 
+"Erweiterung Block / Cursor links"
+{
+	CursorLeft(MOT_SINGLE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursDown() 
+"Erweiterung Block / Cursor nach unten"
+{
+	CursorDown(MOT_SINGLE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursUp() 
+"Erweiterung Block / Cursor nach oben"
+{
+	CursorUp(MOT_SINGLE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursWordRight() 
+"Erweiterung Block wortweise / Cursor nach rechts"
+{
+	CursorRight(MOT_WORD|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursWordLeft() 
+"Erweiterung Block wortweise / Cursor nach links"
+{
+	CursorLeft(MOT_WORD|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursHome() 
+"Erweiterung Block / Cursor zum Anfang der Datei"
+{
+	CursorUp(MOT_FILE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursBottom() 
+"Erweiterung Block / Cursor zum Ende der Datei"
+{
+	CursorDown(MOT_FILE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursLineStart() 
+"Erweiterung Block / Cursor zum Anfang der Zeile"
+{
+	CursorLeft(MOT_TOEND|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursLineEnd() 
+"Erweiterung Block / Cursor zum Ende der Zeile"
+{
+	CursorRight(MOT_TOEND|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursPageUp() 
+"Erweiterung Block / Cursor eine Seite hoch"
+{
+	CursorUp(MOT_PAGE|MOT_XTNDBLOCK);
+}
+
+macro XtndBlockCursPageDown() 
+"Erweiterung Block / Cursor eine Seite nach unten"
+{
+	CursorDown(MOT_PAGE|MOT_XTNDBLOCK);
+}
+
+
+macro ToggleBlockXtndMode()
+"Schaltet den Blockerweiterungsmodus um;Block erweitern"
+{
+	if (QueryStatus(QUERY_BLOCKXTNDMODE)) {
+		SetBlockExtensionMode(0);
+	} else {
+		SetBlockExtensionMode(1);
+	}
+}
+
+macro ToggleLineMode()
+"Schaltet den Blockmodus um;Block Zeilenmodus"
+{
+	int	workmode;
+	
+	workmode = QueryStatus(QUERY_WORKMODE);
+	
+	workmode = workmode ^ WM_BLK_LINES;
+	SetWorkMode(FO_INIT, "", workmode);
+}
+
+#
+# die folgenden Makros konvertieren von OEM nach ANSI Zeichensatz und
+# umgekehrt, beachten jedoch nur die Umlaute bei der Konvertierung
+# eine Erweiterung auf alle Zeichen (f¸r die das entsprechende Zeichen
+# im anderen Zeichensatz existiert, sollte jedoch keine Schwierigkeit sein.)
+#
+macro ConvertOemToAnsi() 
+"Konvertiert einen Text mit OEM Zeichensatz in ANSI - Zeichensatz"
+{
+	Replace(FO_INIT,"[ÑîÅéôö·û]","\\[ÑîÅéôö·û=‰ˆ¸ƒ÷‹ﬂﬂ]\\&",
+		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
+}
+
+macro ConvertAnsiToOem() 
+"Konvertiert einen Text mit ANSI Zeichensatz in OEM - Zeichensatz"
+{
+	Replace(FO_INIT,"[‰ˆ¸ƒ÷‹ﬂ]","\\[‰ˆ¸ƒ÷‹ﬂ=ÑîÅéôö·]\\&",
+		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
+}
+
+macro PairArrangeWindows()
+"Legt die beiden oberen Fenster nebeneinander"
+{
+	WindowArrange(WIN_PAIRS);
+}
+
+macro MousePositionUngrabbed()
+{
+	MousePosition(0);
+}
+
+override MOUSE default
+MLeft(1)                 =   MousePositionUngrabbed,       
+MLeft(0)                 =   @mouse-mark-block,       
+MLeft(2)	         =   @mouse-mark-word,        
+MRight(1)                =   @drag-copy-text,         
+Ctrl+MRight(1)           =   @drag-move-text,         
+Ctrl+MLeft(2)            =   @find-tag-under-cursor;
+
+override KEYS default 
+# Blˆcke markieren und bewegen
+Shift+DELETE            = @delete-block,                                #*
+Ctrl+INSERT             = @yank-block,                                  #*
+Shift+BACK              = @delete-to-sol,          			# 
+Shift+INSERT            = @paste-clipboard,                             # 
+Ctrl+C                  = @yank-block,
+Ctrl+V                  = @paste-clipboard,
+Ctrl+X			= @delete-block,
+Shift+Ctrl+LEFT         = XtndBlockCursWordLeft,                        #*
+Shift+Ctrl+RIGHT        = XtndBlockCursWordRight,                       #*
+Shift+RIGHT             = XtndBlockCursRight,                           #*
+Shift+LEFT              = XtndBlockCursLeft,                            #*
+Shift+UP                = XtndBlockCursUp,                              #*
+Shift+DOWN              = XtndBlockCursDown,                            #*
+Shift+HOME              = XtndBlockCursLineStart,                       #*
+Shift+END               = XtndBlockCursLineEnd,                         #*
+Ctrl+Shift+HOME         = XtndBlockCursHome,                            #*
+Ctrl+Shift+END          = XtndBlockCursBottom,                          #*
+Shift+PRIOR             = XtndBlockCursPageUp,                          #*
+Shift+NEXT              = XtndBlockCursPageDown,                        #*
+F8			= ToggleBlockXtndMode,
+
+# Fenster
+Ctrl+TAB                = @cycle-window,                                #* 
+Ctrl+F6                 = @cycle-window,
+Shift+F4                = @tile-windows,                                #* 
+Shift+F5                = @cascade-windows,                             #* 
+Ctrl+Shift+1            = @set-win-reg-1,
+Ctrl+Shift+2            = @set-win-reg-2,
+Ctrl+Shift+3            = @set-win-reg-3,
+Ctrl+Shift+4            = @set-win-reg-4,
+Ctrl+Shift+5            = @set-win-reg-5,
+Ctrl+Shift+6            = @set-win-reg-6,
+Ctrl+\191               = @select-previous-window,
+Ctrl+0                  = @set-win-zoomed,
+Ctrl+1                  = @select-window-1,
+Ctrl+2                  = @select-window-2,
+Ctrl+3                  = @select-window-3,
+Ctrl+4                  = @select-window-4,
+Ctrl+5                  = @select-window-5,
+Ctrl+6                  = @select-window-6,
+Ctrl+7                  = @iconize-edit,
+Alt+F9			= @iconize-edit,
+Ctrl+8                  = @tile-windows, 
+Ctrl+9                  = PairArrangeWindows,      # 
+Ctrl+0                  = @set-win-zoomed,         #
+
+
+Ctrl+E			= @open-file,
+Shift+F10		= @set-win-zoomed,
+
+# Cursor Bewegung
+END                     = @cursor-eol,                                  #* 
+Ctrl+END                = @cursor-eof,                                  #*
+Ctrl+HOME               = @cursor-home,                                 #*
+HOME                    = @cursor-sol,                                  #*
+LEFT                    = @cursor-left-char,                            #
+UP                      = @cursor-up-line,                              # 
+RIGHT                   = @cursor-right-char,                           # 
+DOWN                    = @cursor-down-line,                            # 
+Ctrl+LEFT               = @cursor-left-word,                            # 
+Ctrl+RIGHT              = @cursor-right-word,                           # 
+Ctrl+UP                 = @cursor-top-of-page,                          # 
+Ctrl+DOWN               = @cursor-bottom-of-page,                       # 
+Ctrl+J			= @scroll-up-line,
+Ctrl+K			= @scroll-down-line,
+Ctrl+Shift+J		= @scroll2-up-line,
+Ctrl+Shift+K		= @scroll2-down-line,
+PRIOR                   = @cursor-back-page,                            # 
+NEXT                    = @cursor-down-page,                            # 
+Shift+F5		= @goto-last-pos,
+F6			= @find-word-forward,
+Shift+F5		= @goto-last-pos,          # 
+F7                      = @find-tag-under-cursor,  # 
+Shift+F6                = @find-word-back,         # 
+Ctrl+F7                 = @find-file-under-cursor, # 
+
+# Editieren
+ESCAPE			= @escape-makro,
+Alt+F2			= @save-file-as,
+Alt+Shift+F2		= @save-file,
+F3                      = @escape-makro,
+F4                      = @re-insert,                                   #*
+F5                      = @goto-line,                                   #
+Ctrl+F12                = @open-file,                                   #
+Shift+F12               = @save-file,                                   #
+F12                     = @save-file-as,                                #
+Ctrl+Shift+F12          = @print-window,                                #
+Ctrl+A                  = @find-again-forward,     		        # 
+Ctrl+B                  = @find-again-backward,                         # 
+Ctrl+F                  = @find-string,                                 # 
+Ctrl+G                  = @goto-line,                                   # 
+Ctrl+I                  = @find-tag,                                    # 
+Ctrl+L                  = @toggle-show-ruler,                           # 
+Ctrl+N                  = @errorlist-next,                              # 
+Ctrl+O                  = @open-file,                                   # 
+Ctrl+P                  = @errorlist-previous,                          # 
+Ctrl+Q                  = @quit-file,                                   # 
+Ctrl+R                  = @replace-string,                              # 
+Ctrl+T                  = @replace-again,                               # 
+Ctrl+U                  = @find-in-filelist,                            # 
+Ctrl+W                  = @save-file,                                   # 
+Ctrl+Y                  = @yank-line,                                   # 
+Ctrl+Z                  = @exit-edit,                                   # 
+Ctrl+NUMPAD0            = @find-again,                                  # 
+Ctrl+F4                 = @quit-file,                                   # 
+
+Alt+BACK                = @undo,                                        #*
+INSERT                  = @toggle-insert-mode,                          # 
+DELETE                  = @delete-char,                                 #* 
+Ctrl+DELETE		= @delete-word,
+Ctrl+BACK		= @delete-back-word,
+RETURN                  = @split-line,                                  #*
+F1                      = @help-index,                                  #*
+Ctrl+F1                 = @find-tag-under-cursor,                       #*
+Alt+F4                  = @quit-edit,                                   #* 
+
+# Verschiedenes
+Shift+ESCAPE            = @set-multiplikator,      # 
+F9                      = @compile-macros,                              #
+Ctrl+Shift+N            = @errorlist-end,          # 
+Ctrl+Shift+P            = @errorlist-start,        # 
+Ctrl+Shift+\190         = @goto-last-insert-pos,                        # 
+Ctrl+M			= @goto-mark,
+Ctrl+Shift+M		= @set-mark,
+
+#
+# Die folgenden Tasten m¸ssen ¸ber ihren Scan - Code Wert 
+# belegt werden, da ihnen keine Standard Bezeichnung
+# zugeordnet ist
+#
+#    Eﬂzet, Dot, Quote, Tilde
+Ctrl+\219               = @char-up-low,            # 
+Ctrl+\190               = @goto-last-pos,          # 
+Ctrl+\221               = @goto-mark,              #
+Ctrl+\187		= @check-brackets;
+

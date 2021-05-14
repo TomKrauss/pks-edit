@@ -1,0 +1,43 @@
+
+macro Test-Expr()
+{
+   if ("aec\\" ~ "[a-c]+\\\\")
+   // if (0 != 12 && 1 && "acx" == "..." || ("X" == "X" && 1 != 2) )
+   // if (! "x" == "y")
+        Alert("Expression OK");
+   else
+        Alert("Expression not OK");
+
+}
+
+macro Test-Expr2()
+{
+   if (CursorDown(MOT_SINGLE) && CursorLeft(MOT_TOEND))
+        InsertChar('x');
+   else
+        InsertChar('y');
+}
+
+
+macro Test-Params(int par, string par2)
+{
+	string tmp;
+
+	tmp = "Es wurde " + (string)par + par2 + " als Parameter angegeben";
+	par2 = 14;
+	Alert(tmp);
+	tmp = "Es wurde " + (string)par + par2 + " als Parameter angegeben";
+	Alert(tmp);
+}
+
+
+macro Test-Call()
+{
+
+	Test-Params(12,"hand");
+	Test-Params(2,3);
+	Test-Params(3);
+}
+
+
+

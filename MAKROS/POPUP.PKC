@@ -1,0 +1,63 @@
+
+#
+# Dies ist ein Beispiel für die Erzeugung von fliegenden Popup Menus
+# mit PKS-MAKROC
+#
+
+
+#
+# Öffnet das Popup-Menu "Beispiel"
+#
+macro Popup() {
+	TrackPopup(0,0,"Beispiel");
+}
+
+#
+# Bindet das Makro "Popup" zum Öffnen des Menus an die rechte Maustaste
+#
+replace MOUSE default
+MRight(1)                =   Popup;
+
+
+#
+# Erzeugt ein Menu mit einem Untermenu
+#
+MENU Beispiel POPUP "Popup" {
+
+	"Tschüß" = Ciaou,			// ruft das Makro Ciaou
+
+	POPUP "Konvertierungen" {		// erzeugt das Untermenu "Konvertierungen"
+	  "Ansi -> OEM"	= ConvertAnsiToOem,	// ruft das Makro Convert...
+	  "OEM -> Ansi"	= ConvertOemToAnsi	// ""
+	},
+
+	----,					// Trennstrich im Menu
+	"Ende"	 = @quit-edit			// ruft das interne Makro zum Verlassen
+						// von PKS-EDIT auf
+
+};
+
+#
+# Erzeugt Titelzeilen - Menu für den Dokumenten - Typ "pks-makros"
+# mit 2 Titeln: Datei
+#		Suche
+#               
+#
+MENU pks-makros 
+
+POPUP "Datei" {
+
+	"Öffnen" 	= @open-file,
+	"Speichern..."	= @save-file-as,
+	----,
+	"Compileren"	= @compile-macros
+},
+
+POPUP "Suche" {
+	"Nächster Fehler" = @errorlist-next,
+	"Letzter Fehler"  = @errorlist-previous
+};
+
+
+
+

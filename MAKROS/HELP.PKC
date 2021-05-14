@@ -1,0 +1,11 @@
+macro HelpMakroC()
+{
+	HelpContext(3000);
+}
+
+macro HelpInternalMacs()
+{
+	HelpContext(3001);
+}
+
+

@@ -1,0 +1,18 @@
+
+macro testfmtprint() {	
+	string s = "";
+
+	s = FormatPrint("%j$l %j$c");
+	Alert(s);
+	s = FormatPrint("Hexoffset %j$O");
+	Alert(s);
+	CursorDown(MOT_SINGLE);
+	s = FormatPrint("%j$l %j$c");
+	Alert(s);
+}
+
+//macro findtest() {
+//	Find(FO_INIT, "^\\T*$", "", DIR_BACKWARD, REP_FIND, RNG_ONCE, 
+//		RE_DOREX, 0);
+//}
+

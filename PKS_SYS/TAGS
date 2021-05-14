@@ -1,0 +1,1773 @@
+C:\Source\peoria32\c\w3\DATEW3.C TodayDate ^VOID TodayDate \(\) \{$
+C:\Source\peoria32\c\w3\DDEW3.C PrivNewForTopicSCDDEServer ^VOID PrivNewForTopicSCDDEServer \(\) \{$
+* InitiateDDEClient ^VOID InitiateDDEClient \(OPTR oSelf, POPTR poPacket\) \{$
+* RequestDDEClient ^VOID RequestDDEClient \(OPTR oSelf, OPTR oItem\) \{$
+* SetValueToDDEClient ^VOID SetValueToDDEClient \(OPTR oSelf, POPTR poPacket\) \{$
+* StartUpdateDDEClient ^VOID StartUpdateDDEClient \(OPTR oSelf, OPTR oItem\) \{$
+* StopUpdateDDEClient ^VOID StopUpdateDDEClient \(OPTR oSelf, OPTR oItem\) \{$
+* TerminateDDEClient ^VOID TerminateDDEClient \(OPTR oSelf\) \{$
+* ExecuteCommandDDEClient ^VOID ExecuteCommandDDEClient \(OPTR oSelf, OPTR oCommand\) \{$
+* DDEClientWndProc ^LRESULT CALLBACK DDEClientWndProc \(HWND hwnd, UINT msg, WPARAM wParam,$
+* WaitForAcknowledge ^static BOOL WaitForAcknowledge \(HWND hwndServer\) \{$
+* UpdateItemToDDEServer ^VOID UpdateItemToDDEServer \(OPTR oSelf, POPTR fpoData\) \{$
+* TerminateDDEServer ^VOID TerminateDDEServer \(OPTR oSelf\) \{$
+* NegativeResponseDDEServer ^VOID NegativeResponseDDEServer \(OPTR oSelf\) \{$
+* PositiveResponseDDEServer ^VOID PositiveResponseDDEServer \(OPTR oSelf\) \{$
+* DDEServerPoke ^BOOL DDEServerPoke \(OPTR oSelf, HWND hwndServerDDE, HWND hwndClientDDE, LPARAM lParam\)$
+* DDEServerWndProc ^LRESULT CALLBACK DDEServerWndProc \(HWND hwnd, UINT msg, WPARAM wParam,$
+* InitENFINDDEServerSession ^BOOL InitENFINDDEServerSession \(HWND hwnd, WPARAM wParam, LPARAM lParam\) \{$
+C:\Source\peoria32\c\w3\DLLCALLS.C _LongToObject ^OPTR  _LongToObject \(long l\) \{$
+* _ULongToObject ^OPTR  _ULongToObject \(ULONG l\) \{$
+* _ObjectToLong ^long  _ObjectToLong \(OPTR o\) \{$
+* _ObjectToULong ^ULONG  _ObjectToULong \(OPTR o\) \{$
+* _MessageSend ^VOID  _MessageSend \(void\) \{$
+* _ExecuteBlock ^VOID  _ExecuteBlock \(void\) \{$
+* _ENFINPostMsg ^VOID  _ENFINPostMsg \(ULONG l1, ULONG l2\) \{$
+* _CIsKindOf ^BOOL  _CIsKindOf \(OPTR o, USHORT us\) \{$
+* _CIsKindOfName ^BOOL  _CIsKindOfName \(OPTR o, PSZ psz\) \{$
+* _CIsMemberOfName ^BOOL  _CIsMemberOfName \(OPTR o, PSZ psz\) \{$
+* _GetInstVarOffset ^SHORT  _GetInstVarOffset \(OPTR o1, OPTR o2\) \{$
+* _DictionaryLookup ^OPTR  _DictionaryLookup \(OPTR o1, OPTR o2\) \{$
+* _DictionaryAssign ^SHORT  _DictionaryAssign \(OPTR o1, OPTR o2, OPTR o3\) \{$
+* _DictAllocate ^OPTR  _DictAllocate \(USHORT us\) \{$
+* _GlobalLookup ^OPTR  _GlobalLookup \(OPTR o\) \{$
+* _GlobalAssign ^VOID  _GlobalAssign \(OPTR o1, OPTR o2\) \{$
+* _PointAllocate ^OPTR  _PointAllocate \(OPTR o1, OPTR o2\) \{$
+* _FloatAllocate ^OPTR  _FloatAllocate \(DOUBLE f\) \{$
+* _VectorAllocate ^OPTR  _VectorAllocate \(USHORT us\) \{$
+* _SymbolHash ^OPTR  _SymbolHash \(PSZ psz\) \{$
+* _ArrayAllocate ^OPTR  _ArrayAllocate \(USHORT us\) \{$
+* _StrAllocate ^OPTR  _StrAllocate \(USHORT us, PSZ psz\) \{$
+* _LongAllocate ^OPTR  _LongAllocate \(LONG l\) \{$
+* _BcdAllocate ^OPTR  _BcdAllocate \(PBYTE pDecimal, USHORT cBytes\) \{$
+* _BcdStrAllocate ^OPTR  _BcdStrAllocate \(PSZ pszDecimal\) \{$
+* _SymbolHashStringObject ^OPTR  _SymbolHashStringObject \(OPTR o\) \{$
+* _BufferAllocate ^OPTR  _BufferAllocate \(USHORT bufferSize\) \{$
+* _BufferSize ^USHORT  _BufferSize \(OPTR o\) \{$
+* _Out ^VOID  _Out \(PSZ format, \.\.\.\) \{$
+* _ASend ^VOID  _ASend \(USHORT us, OPTR o1, OPTR o2, \.\.\.\) \{$
+* _FatalError ^VOID  _FatalError \(LONG errIndex, \.\.\.\) \{$
+* _Error ^VOID  _Error \(LONG errIndex, \.\.\.\) \{$
+* _PMHandleAllocate ^OPTR  _PMHandleAllocate \(OPTR oType\) \{$
+* _RegisterFreePMHandleCallback ^OPTR  _RegisterFreePMHandleCallback \(PSZ p1, PSZ p2, PSZ p3\) \{$
+* _GetCoordinates ^VOID  _GetCoordinates \(OPTR o, HWND hwnd, LONG l, PSHORT ps1, PSHORT ps2, PSHORT ps3, PSHORT ps4\) \{$
+* _Keystroke ^BOOL  _Keystroke \(HWND hwnd, USHORT us\) \{$
+* _FormIsModalDisabled ^BOOL  _FormIsModalDisabled \(HWND hwnd, UINT ui\) \{$
+* _DefFormItemWndProc ^LRESULT  CALLBACK _DefFormItemWndProc \(FARPROC pf, HWND hwnd, WORD w, WPARAM wp1, LPARAM wp2\) \{$
+* _ENFINSetFontFromOText ^VOID  _ENFINSetFontFromOText \(HDC hdc, OPTR o1, OPTR o2\) \{$
+* _SetFormItemFont ^VOID  _SetFormItemFont \(HWND hwnd, OPTR o\) \{$
+* _CreateLOGFONTFromOFont ^BOOL  _CreateLOGFONTFromOFont \(HDC hdc, OPTR o, LPLOGFONT lp\) \{$
+* _FontAllocate ^OPTR  _FontAllocate \(HDC hdc, LPLOGFONT lp\) \{$
+* _FItemWmDestroy ^VOID  _FItemWmDestroy \(HWND hwnd\) \{$
+* _FItemWmSetFocus ^VOID  _FItemWmSetFocus \(HWND hwnd1, HWND hwnd2, BOOL b\) \{$
+* _ENFINAllocate ^PVOID  _ENFINAllocate \(ULONG l\) \{$
+* _ENFINFree ^BOOL  _ENFINFree \(PVOID p\) \{$
+* _GetFormHwndFromOFormItem ^HWND  _GetFormHwndFromOFormItem \(OPTR o\) \{$
+* _GetViewParentFItem ^HWND  _GetViewParentFItem \(OPTR o\) \{$
+* _GetViewHwndForm ^HWND  _GetViewHwndForm \(OPTR o\) \{$
+* _GetSelfFromHwnd ^OPTR  _GetSelfFromHwnd \(HWND hwnd\) \{$
+* _SetSelfInHwnd ^VOID  _SetSelfInHwnd \(HWND hwnd, OPTR o\) \{$
+C:\Source\peoria32\c\w3\DRWPRTW3.C GetFontMetricsDrawPort ^BOOL GetFontMetricsDrawPort \(OPTR oSelf, PTEXTMETRIC pText\) \{$
+* GetMetricsDictionary ^VOID GetMetricsDictionary\(PTEXTMETRIC pTextMetric\) \{$
+* GetFontMetricsDPort ^VOID GetFontMetricsDPort \(\) \{$
+* O2Pt ^VOID O2Pt \(OPTR oPt, PPOINT pPt\) \{$
+* CircleAtDrawPort ^VOID CircleAtDrawPort \(OPTR oSelf, POPTR fpo\) \{$
+* TranslateMMToMapMode ^VOID TranslateMMToMapMode \(SHORT sMapMode, PPOINT pts, SHORT sNumPoints\) \{$
+* CopyRectFromHPSToHPS ^VOID CopyRectFromHPSToHPS \(OPTR oSelf, POPTR fpo\) \{$
+* GetBrushBitmap ^HBITMAP GetBrushBitmap \(OPTR oPattern\) \{$
+* DecodeDrawMode ^LONG DecodeDrawMode \(OPTR oMode\) \{$
+* DecodeROPMode ^LONG DecodeROPMode \(OPTR oMode\) \{$
+* DDecodeROPMode ^int DDecodeROPMode \( SHORT enfinMode \) \{$
+* DecodeWinding ^SHORT DecodeWinding \(OPTR oMode\) \{$
+* DrawFromToDrawPort ^VOID DrawFromToDrawPort \(OPTR oSelf, POPTR fpo\) \{$
+* DrawMarkerDrawPort ^VOID DrawMarkerDrawPort \(OPTR oSelf, OPTR oPoint\) \{$
+* DrawPieSliceDrawPort ^VOID DrawPieSliceDrawPort \(OPTR oSelf, PDOUBLE pFloat\) \{$
+* DrawRectFromToDrawPort ^VOID DrawRectFromToDrawPort \(OPTR oSelf, POPTR fpo\) \{$
+* EraseDrawPort ^VOID EraseDrawPort \(OPTR oSelf\) \{$
+* GetTextExtentDrawPort ^VOID GetTextExtentDrawPort \(OPTR oSelf, OPTR oText\) \{$
+* PolyLineDrawPort ^VOID PolyLineDrawPort \(OPTR oSelf, OPTR oPoints\) \{$
+* PolyLineFillDrawPort ^VOID PolyLineFillDrawPort \(OPTR oSelf, POPTR fpo\) \{$
+* ResizeDrawPort ^VOID ResizeDrawPort \(OPTR oSelf, OPTR oRect\) \{$
+* SetPixelAtDrawPort ^VOID SetPixelAtDrawPort \(OPTR oSelf, OPTR oPixel\) \{$
+* SplinePointsDrawPort ^VOID SplinePointsDrawPort \(OPTR oSelf, OPTR oPoints\) \{$
+* TextAtDrawPort ^VOID TextAtDrawPort \(OPTR oSelf, POPTR packet\) \{$
+* SetClippingRegion ^VOID SetClippingRegion \(OPTR oGraph\) \{$
+* ConvertDrawPortPoints ^VOID ConvertDrawPortPoints \(OPTR oSelf, PPOINT points, SHORT sNumPoints\) \{$
+* InvertYCoordinates ^VOID InvertYCoordinates \(OPTR oSelf, PPOINT points, SHORT sNumPoints\) \{$
+* RestoreSettingsDrawPort ^VOID RestoreSettingsDrawPort \(OPTR oSelf\) \{$
+* SetBitmapDrawPort ^BOOL SetBitmapDrawPort \(OPTR oSelf\) \{$
+* SetDrawingParameters ^BOOL SetDrawingParameters \(OPTR oSelf, PPOINT pts, SHORT sNumPoints\) \{$
+* ResetDrawingHDC ^VOID ResetDrawingHDC \(void\) \{$
+* FloodFillDrawPort ^VOID FloodFillDrawPort \(OPTR oSelf, POPTR fpo\) \{$
+* ShutdownDrawport ^VOID ShutdownDrawport \(\) \{$
+* SynchronizeDrawing ^VOID SynchronizeDrawing \(\) \{$
+* ErrorBreakPoint ^VOID ErrorBreakPoint \(\) \{$
+* SplinePoints ^static VOID SplinePoints \(HDC hdc, PPOINT pts, INT nPoints\) \{$
+* PlotCurve ^static VOID PlotCurve \(HDC hdc, POINT pt0, POINT pt1, POINT pt2, POINT pt3\) \{$
+C:\Source\peoria32\c\w3\ELISTW3.C CalculateSelection ^SHORT CalculateSelection \(HWND hwnd, SHORT y\) \{$
+* DrawLineAt ^VOID DrawLineAt \(HWND hwnd, SHORT sSelection, LONG lColor\) \{$
+* ListBoxPaint ^VOID ListBoxPaint \(HWND hwnd\) \{$
+* AdjustTopPosition ^VOID AdjustTopPosition \(HWND hwnd\) \{$
+* NumDisplayUpdate ^VOID NumDisplayUpdate \(HWND hwnd\) \{$
+* VerticalDataUpdate ^VOID VerticalDataUpdate \(HWND hwnd\) \{$
+* HorizontalDataUpdate ^VOID HorizontalDataUpdate \(HWND hwnd\) \{$
+* DrawCursor ^VOID DrawCursor \(HWND hwnd\) \{$
+* MoveCursor ^VOID MoveCursor \(HWND hwnd, SHORT newSel\) \{$
+* HScrollMessage ^VOID HScrollMessage \(HWND hwnd, WPARAM wParam, LONG lParam\) \{$
+* HScrollToNewPosition ^VOID HScrollToNewPosition \(HWND hwnd, SHORT sPos\) \{$
+* VScrollMessage ^VOID VScrollMessage \(HWND hwnd, WPARAM wParam, LONG lParam\) \{$
+* VScrollToNewPosition ^VOID VScrollToNewPosition \(HWND hwnd, SHORT sNewTop\) \{$
+* ProcessWM_KEYDOWN ^BOOL ProcessWM_KEYDOWN \(HWND hwnd, WPARAM wParam\) \{$
+* ProcessWM_CHAR ^BOOL ProcessWM_CHAR \(HWND hwnd, WPARAM wParam\) \{$
+* ENFINListWndProc ^LRESULT CALLBACK ENFINListWndProc \(HWND hwnd, UINT wMessage, WPARARESULT CALLBACK ENFINListWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+C:\Source\peoria32\c\w3\ENFMEMW3.C ENFINHeapAllocate ^void\* ENFINHeapAllocate \(long size\) \{$
+* ENFINHeapFree ^void ENFINHeapFree \(void\* p\) \{$
+* ENFINAllocate ^PVOID ENFINAllocate \(ULONG ulSize\) \{$
+* ENFINFree ^BOOL ENFINFree \(PVOID pMem\) \{$
+C:\Source\peoria32\c\w3\EXTADDR.C NewExternalAddress ^VOID NewExternalAddress \(\) \{$
+C:\Source\peoria32\c\w3\FBTTNW3.C CreateFormButton ^VOID CreateFormButton \(OPTR oSelf\) \{$
+* CreateButtons ^VOID CreateButtons \(HWND hwnd, OPTR oSelf\) \{$
+* CreateButtonBitmap ^OPTR CreateButtonBitmap \(HWND hwnd, HBITMAP hbm, USHORT style, USHORT depressed\) \{$
+* HighlightFormButton ^VOID HighlightFormButton \(OPTR oSelf, BOOL fHighlight\) \{$
+* PurgeButtonBitmaps ^VOID PurgeButtonBitmaps \(OPTR oSelf\) \{$
+* UpdateFormButton ^VOID UpdateFormButton \(OPTR oSelf, OPTR oText\) \{$
+* ResizeWidthHeightFormButton ^VOID ResizeWidthHeightFormButton \(OPTR oSelf, PSHORT fps\) \{$
+* PaintButton ^VOID PaintButton \(LPDRAWITEMSTRUCT pdis\) \{$
+* FButtonWndProc ^LRESULT CALLBACK FButtonWndProc \(HWND hwnd, UINT iMessage, WPARAM wParam,$
+C:\Source\peoria32\c\w3\FCHKBXW3.C CreateFormCheckBox ^VOID CreateFormCheckBox \(OPTR oSelf\) \{$
+* UpdateFormCheckBox ^VOID UpdateFormCheckBox \(OPTR oSelf, BOOL fState\) \{$
+* FCheckBoxWndProc ^LRESULT CALLBACK FCheckBoxWndProc \(HWND hwnd, UINT iMessage, WPARAM wParam,$
+C:\Source\peoria32\c\w3\FCHKLW3.C CreateFormCheckList ^VOID CreateFormCheckList \(OPTR oSelf\) \{$
+* UpdateFormCheckList ^VOID UpdateFormCheckList \(OPTR oSelf\) \{$
+* SetSelections ^VOID SetSelections \(HWND hwnd, OPTR oSelections\) \{$
+* FCheckListGetFocus ^BOOL FCheckListGetFocus \(HWND hwnd, HWND hwndFocus\) \{$
+* CheckListEnumProc ^LONG CALLBACK CheckListEnumProc \(HWND hwnd, LPARAM lParam\) \{$
+* FCheckListWndProc ^LRESULT CALLBACK FCheckListWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam, LPARAM lParam\) \{$
+* GetMyChildIndex ^SHORT GetMyChildIndex\(HWND hwndParent, HWND hwnd\) \{$
+* FCheckListBoxWndProc ^LRESULT CALLBACK FCheckListBoxWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+* DisableFormCheckList ^VOID DisableFormCheckList \(OPTR oSelf\) \{$
+* EnableFormCheckList ^VOID EnableFormCheckList \(OPTR oSelf\) \{$
+C:\Source\peoria32\c\w3\FCOMBOW3.C ShouldPassFocus ^static BOOL ShouldPassFocus \(HWND hwndCombo, HWND hwndLosingFocus\) \{$
+* CreateFormCombo ^VOID CreateFormCombo \(OPTR oSelf\) \{$
+* FormatFormComboInterior ^VOID FormatFormComboInterior \(HWND hwnd, OPTR oSelf\) \{$
+* SubclassFormCombo ^VOID SubclassFormCombo \(OPTR oSelf\) \{$
+* ResizeFormCombo ^VOID ResizeFormCombo \(OPTR oSelf, PSHORT fps\) \{$
+* UpdateFormCombo ^VOID UpdateFormCombo \(OPTR oSelf\) \{$
+* FComboWndProc ^LRESULT CALLBACK FComboWndProc \(HWND hwnd, UINT message, WPARAM wParam,$
+* FComboStringWndProc ^LRESULT CALLBACK FComboStringWndProc \(HWND hwnd, UINT message, WPARAM wParam,$
+* FComboListWndProc ^LRESULT CALLBACK FComboListWndProc \(HWND hwnd, UINT message, WPARAM wParam,$
+* PutValueFromListFocus ^VOID PutValueFromListFocus \(HWND hwnd, BOOL fGetStr\) \{$
+* UpdateListTopIndex ^VOID UpdateListTopIndex \(HWND hwndList, SHORT index\)\{$
+* NextStringPosCombo ^SHElse, highlight the first item with viable prefix     \*/$
+C:\Source\peoria32\c\w3\FORMW3.C ActivateForm ^VOID ActivateForm \(OPTR oSelf\) \{$
+* DisableForm ^VOID DisableForm \(OPTR oSelf\) \{$
+* EnableForm ^VOID EnableForm \(OPTR oSelf\) \{$
+* EnableUpdateForm ^VOID EnableUpdateForm \(OPTR oSelf, BOOL fEnable\) \{$
+* GetScrollPosForm ^VOID GetScrollPosForm \(OPTR oSelf\) \{$
+* MinMaxRestoreForm ^VOID MinMaxRestoreForm \(OPTR oForm, SHORT sState\) \{$
+* RefreshForm ^VOID RefreshForm \(OPTR oForm\) \{$
+* RemoveFromTaskListForm ^VOID RemoveFromTaskListForm \(\) \{$
+* MoveForm ^VOID MoveForm \(OPTR oSelf\) \{$
+* MoveToForm ^VOID MoveToForm \(OPTR oSelf, PSHORT ps\) \{$
+* DecodeFormOptions ^LONG DecodeFormOptions \(OPTR oOptions\) \{$
+* OpenForm ^VOID OpenForm \(OPTR oSelf\) \{$
+* PlaceInBackForm ^VOID PlaceInBackForm \(OPTR oSelf\) \{$
+* PlaceInFrontForm ^VOID PlaceInFrontForm \(OPTR oSelf\) \{$
+* QueryWindowBordersForm ^VOID QueryWindowBordersForm \(PSHORT ps\) \{$
+* ResizeForm ^VOID ResizeForm \(OPTR oSelf, PSHORT ps\) \{$
+* MoveToResizeToForm ^VOID MoveToResizeToForm \(OPTR oSelf, PSHORT ps\) \{$
+* FormItemFocusForm ^VOID FormItemFocusForm \(POPTR fpoFocus\) \{$
+* FormFocusForm ^VOID FormFocusForm \(POPTR fpoFocus\) \{$
+* SetOwnerForm ^VOID SetOwnerForm \(OPTR oSelf, OPTR oParent\) \{$
+* GetOwnerForm ^VOID GetOwnerForm \(OPTR oSelf\) \{$
+* SetSystemMenuForm ^VOID SetSystemMenuForm \(OPTR oSelf, OPTR oSystemMenu\) \{$
+* SetWindowTextForm ^VOID SetWindowTextForm \(OPTR oString, HWND hwnd\) \{$
+* SizeForm ^VOID SizeForm \(OPTR oSelf\) \{$
+* ButtonHelp ^VOID ButtonHelp \(HWND hwnd\) \{$
+* ControlCommand ^VOID ControlCommand \(OPTR oSelf, WPARAM wParam, LPARAM lParam\) \{$
+* InitiateDDEServerSession ^BOOL InitiateDDEServerSession \(HWND hwnd, WPARAM wParam, LONG lParam\) \{$
+* MenuSelection ^VOID MenuSelection \(HWND hwnd, WPARAM wParam, BOOL bActivated\) \{$
+* PopupSelection ^VOID PopupSelection \(HWND hwnd, HMENU hSubMenu\) \{$
+* MenuHelp ^VOID MenuHelp \(HWND hwnd, WPARAM wParam\) \{$
+* ActivateSubForm ^VOID ActivateSubForm \(HWND hwndForm, HWND hwndOther, WPARAM wParam\) \{$
+* ProcessWM_SIZE ^BOOL ProcessWM_SIZE \(HWND hwnd, OPTR oSelf\) \{$
+* ResizeMaximizedChildren ^VOID ResizeMaximizedChildren \(OPTR oSelf\) \{$
+* HwndRectToOptrRect ^VOID HwndRectToOptrRect \(HWND hwnd, OPTR oSelf\) \{$
+* GetParentColor ^LRESULT GetParentColor \(HWND hwnd, WORD wMessage, WPARAM wParam, LPARAM lParam\) \{$
+* FormWndProc ^LRESULT CALLBACK FormWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+* IsDefaultEnfinForm ^BOOL IsDefaultEnfinForm \(HWND hwnd\) \{$
+* PaintFormBackground ^VOID PaintFormBackground \(OPTR oForm, HWND hwnd, HDC hdc\) \{$
+* PaintFormBackgroundScroll ^VOID PaintFormBackgroundScroll \(OPTR oForm, HWND hwnd, HDC hdc, BOOL fScroll,$
+* PaintBackground ^VOID PaintBackground \(HWND hwnd, HDC hdc, OPTR oBackground, BOOL fScroll,$
+* DrawGridLines ^VOID DrawGridLines \(OPTR oSelf, HWND hwnd, HDC hdc, LPRECT updateRect,$
+* PrimUse3DLook ^BOOL PrimUse3DLook \(void\) \{$
+* PrimUse2DLook ^BOOL PrimUse2DLook \(void\) \{$
+C:\Source\peoria32\c\w3\MPROGW3.C InitializeWhereNecessary ^void InitializeWhereNecessary \(\) \{$
+* ClosePeoria ^void  ClosePeoria \(\) \{$
+* OSTUDIOGetProfileString ^INT OSTUDIOGetProfileString \(PHKEY pHKeyTopLevel, LPSTR sectionName, LPSTR keyName,$
+* OSTUDIOGetProfileInt ^INT OSTUDIOGetProfileInt\(PHKEY pHKeyTopLevel, LPSTR sectionName,$
+* CreateTranscriptWindow ^HWND CreateTranscriptWindow \(HANDLE hInstance\) \{$
+* PrimGetCommandLine ^BOOL PrimGetCommandLine \(void\) \{$
+* PeoriaInit ^SHORT PeoriaInit \(HANDLE hInstance, HANDLE hPrevInstance, LPSTR lpszCmdLine, int cmdShow,$
+* PeoriaCatchAbortAction ^VOID    PeoriaCatchAbortAction \(jmp_buf catchParam\) \{$
+* PeoriaThrowAbort ^VOID PeoriaThrowAbort \(\) \{$
+* HandleException ^DWORD HandleException \(DWORD exceptionCode\) \{$
+* IsASendQueueEmpty ^BOOL IsASendQueueEmpty \(void\) \{$
+* ProcessASends ^VOID ProcessASends \(BOOL fASendAll\) \{$
+* DispatchIdleMessage ^BOOL DispatchIdleMessage \(BOOL fASendAll\) \{$
+* ExitPeoria ^VOID ExitPeoria \(\) \{$
+* ProcessMessagesFor ^VOID ProcessMessagesFor \(UINT uiTimeout\) \{$
+* ENFINProcessF1Help ^BOOL ENFINProcessF1Help \(LPMSG lpmsg, OPTR oForm\) \{$
+* CleanUpSystemForRestart ^VOID CleanUpSystemForRestart \(\) \{$
+* CleanUpSystem ^VOID CleanUpSystem \(\) \{$
+* MainInitError ^VOID  MainInitError \(SHORT formatIndex, \.\.\. \) \{$
+* MainInitWarning ^BOOL  MainInitWarning \(SHORT formatIndex, \.\.\. \) \{$
+* NextArg ^static PSZ NextArg\(PSZ pszArg\) \{$
+* MainInit ^BOOL MainInit \(HANDLE hPrevInstance,  PSZ lpszCmdLine\) \{$
+* ProcessTranscriptScrolling ^VOID ProcessTranscriptScrolling \(HWND hwnd, WPARAM wParam, LONG lParam\) \{$
+* PaintTranscriptWindow ^VOID PaintTranscriptWindow \(HWND hwnd\) \{$
+* MenuCommand ^VOID MenuCommand \(HWND hwnd, SHORT menuID\) \{$
+* QueryEndSession ^LONG QueryEndSession \(HWND hwnd\) \{$
+* GetTranscriptFont ^HFONT GetTranscriptFont \(HWND hwnd\) \{$
+* EnfinWndProc ^LRESULT CALLBACK EnfinWndProc \(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam\) \{$
+* Out ^VOID Out \(PSZ format, \.\.\.\) \{$
+* ASMOut ^VOID ASMOut \(PSZ format, \.\.\.\) \{$
+* vOut ^VOID vOut \(PSZ format, va_list args\) \{$
+* HideProgramWindow ^VOID HideProgramWindow \(\) \{$
+* ShowProgramWindow ^VOID ShowProgramWindow \(\) \{$
+* ActivateProgramWindow ^VOID ActivateProgramWindow \(\) \{$
+* ErrorOut ^VOID  ErrorOut \(PSZ format, \.\.\. \) \{$
+* OutNoLine ^VOID OutNoLine \(PSZ format, \.\.\. \) \{$
+* vOutNoLine ^VOID vOutNoLine \(PSZ format, va_list args\) \{$
+* StartSystem ^BOOL StartSystem \(void\) \{$
+C:\Source\peoria32\c\w3\DEBUGW3.C PrivateOpenDebugWindow ^VOID PrivateOpenDebugWindow \(PSZ explanation\) \{$
+* OpenErrorWindow ^VOID OpenErrorWindow \(PSZ explanation\) \{$
+* OpenFatalErrorWindow ^VOID OpenFatalErrorWindow \(PSZ explanation\) \{$
+* OpenDlgBox ^VOID OpenDlgBox \(PSZ explanation, SHORT sTemplate\) \{$
+* DebugWndProc ^BOOL CALLBACK DebugWndProc \(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam\) \{$
+C:\Source\peoria32\c\w3\TIMEW3.C NowTime ^VOID NowTime \(\) \{$
+* ENFINGetMillisecondClockValue ^LONG ENFINGetMillisecondClockValue \(void\) \{$
+* MilliCountTime ^VOID MilliCountTime \(\) \{$
+* PrimTotalSecondsTime ^BOOL  PrimTotalSecondsTime \(\) \{$
+C:\Source\peoria32\c\w3\WORKW3.C CreateWorkspaceDialog ^VOID CreateWorkspaceDialog \(\) \{$
+* WorkspaceProc ^BOOL WorkspaceProc \(HWND hDlg,WORD msg,WPARAM wParam,LPARAM lParam\) \{$
+C:\Source\peoria32\c\w3\WPWNDWW3.C PrivateResizeListWPLH ^;$
+* ShowScrollBarWPLH ^VOID ShowScrollBarWPLH \(OPTR oSelf, OPTR oShow\) \{$
+* UpdateWPLH ^VOID UpdateWPLH \(OPTR oSelf\) \{$
+* FilterWorkplaceObjects ^OPTR FilterWorkplaceObjects \(OPTR oList\) \{$
+* WPLHListWndProc ^LRESULT CALLBACK WPLHListWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam, LPARAM lParam\) \{$
+* EndDragListItem ^VOID EndDragListItem \(HWND hwnd\) \{$
+* DrawListHandler ^VOID DrawListHandler \(HWND hwnd, LONG lParam\) \{$
+* UpdateLHSelection ^VOID UpdateLHSelection \(HWND hwnd, SHORT index\) \{$
+C:\Source\peoria32\c\w3\FMENUW3.C ModifyMenuEntry ^VOID ModifyMenuEntry \(PSZ pszString\) \{$
+* CreateFormMenu ^VOID CreateFormMenu \(OPTR oSelf\) \{$
+* UpdateFormMenu ^VOID UpdateFormMenu \(OPTR oSelf\) \{$
+* SetSelectionToFormMenu ^VOID SetSelectionToFormMenu \(OPTR oSelf, WORD selection\) \{$
+* RemoveFormMenu ^VOID RemoveFormMenu \(OPTR oSelf\) \{$
+* PrivateCloseFormMenu ^VOID PrivateCloseFormMenu \(OPTR oSelf\) \{$
+* EnableAtFormMenu ^VOID EnableAtFormMenu \(OPTR oSelf, SHORT sIndex\) \{$
+* DisableAtFormMenu ^VOID DisableAtFormMenu \(OPTR oSelf, SHORT sIndex\) \{$
+* SetEnablementFormMenu ^VOID SetEnablementFormMenu \(OPTR oSelf, INT sIndex, INT sFlags\) \{$
+* CheckAtFormMSMenu ^VOID CheckAtFormMSMenu \(OPTR oSelf, SHORT sIndex\) \{$
+* UnCheckAtFormMSMenu ^VOID UnCheckAtFormMSMenu \(OPTR oSelf, SHORT sIndex\) \{$
+* HelpForHelpFormMenu ^VOID HelpForHelpFormMenu \(OPTR oSelf\) \{$
+* ExtendedHelpFormMenu ^VOID ExtendedHelpFormMenu \(OPTR oSelf\) \{$
+* KeysHelpFormMenu ^VOID KeysHelpFormMenu \(OPTR oSelf\) \{$
+* HelpIndexFormMenu ^VOID HelpIndexFormMenu \(OPTR oSelf\) \{$
+* GetMenuBar ^OPTR  GetMenuBar \(OPTR oMenu\) \{$
+* GetMenuBarHandle ^HMENU GetMenuBarHandle \(OPTR oMenu\) \{$
+* GetFormFromMenu ^HWND GetFormFromMenu \(OPTR oMenu\) \{$
+C:\Source\peoria32\c\w3\FSTRW3.C CreateStringControl ^HWND CreateStringControl \(OPTR oSelf, DWORD dwStyle\) \{$
+* CreateFormString ^VOID CreateFormString \(OPTR oSelf\) \{$
+* CreateFormMLString ^VOID CreateFormMLString \(OPTR oSelf\) \{$
+* CreateFormPassword ^VOID CreateFormPassword \(OPTR oSelf\) \{$
+* MoveFormString ^VOID MoveFormString \(OPTR oSelf, PSHORT fps\) \{$
+* ResizeFormString ^VOID ResizeFormString \(OPTR oSelf, PSHORT fps\) \{$
+* UpdateFormString ^VOID UpdateFormString \(OPTR oSelf\) \{$
+* CheckForNextItemFocus ^USHORT CheckForNextItemFocus \(OPTR oSelf, HWND hwnd, USHORT usCPos\) \{$
+* GetOTextFromOSelf ^OPTR GetOTextFromOSelf \(OPTR oSelf\) \{$
+* UpdateFormStringInternal ^VOID UpdateFormStringInternal \(OPTR oSelf, HWND hwnd\) \{$
+* UpdateFStringWithValue ^VOID UpdateFStringWithValue \(OPTR oSelf, OPTR oText, HWND hwnd, HDC hdc\) \{$
+* UpdateFStringFocus ^VOID UpdateFStringFocus \(OPTR oSelf, OPTR oText, HWND hwnd, HDC hdc, BOOL focus\) \{$
+* FStringWndProc ^LRESULT CALLBACK FStringWndProc \(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam\) \{$
+* SetWindowTextMaxLen ^VOID SetWindowTextMaxLen \(OPTR oSelf, HWND hwnd, PSZ pszText\) \{$
+C:\Source\peoria32\c\w3\FSPINW3.C CreateFormSpinButton ^VOID CreateFormSpinButton \(OPTR oSelf\) \{$
+* SubclassFormSpinButton ^VOID SubclassFormSpinButton \(OPTR oSelf\) \{$
+* UpdateFormSpinButton ^VOID UpdateFormSpinButton \(OPTR oSelf\) \{$
+* ResizeFormSpinButton ^VOID ResizeFormSpinButton \(OPTR oSelf, PSHORT fps\) \{$
+* FormatFormSpinButton ^VOID FormatFormSpinButton \(HWND hwnd, OPTR oSelf\) \{$
+* DrawBorderAndTitle ^VOID DrawBorderAndTitle \(HWND hwnd\) \{$
+* FSpinWndProc ^LRESULT CALLBACK FSpinWndProc \(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam\) \{$
+* FSpinStringWndProc ^LRESULT CALLBACK FSpinStringWndProc \(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam\) \{$
+* FSpinArrowWndProc ^LRESULT CALLBACK FSpinArrowWndProc \(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam\) \{$
+* ProcessArrowButtons ^VOID ProcessArrowButtons \(HWND hwnd, USHORT usDirection\) \{$
+C:\Source\peoria32\c\w3\FSTATW3.C CreateFormStatic ^VOID CreamBackgroundColor \(OPTR\);$
+* UpdateFStaticWithValue ^VOID UpdateFStaticWithValue \(OPTR oFormItem, HWND hwnd, HDC hdc, RECT rcRect\) \{$
+* UpdateFormStatic ^VOID UpdateFormStatic \(OPTR oSelf\) \{$
+* FStaticWndProc ^LRESULT CALLBACK FStaticWndProc \(HWND hwnd, UINT wMessaatic \*/$
+C:\Source\peoria32\c\w3\FSYNCW3.C CreateFormSyncList ^   DefFListWndProc;$
+* UpdateFormSyncList ^VOID UpdateFormSyncList \(OPTR oSelf\) \{$
+* FSyncListWndProc ^LRESULT CALLBACK FSyncListWndProc \(HWND hwnd, UINT iMessage, WPARAM wParam,$
+* SyncTheRest ^OPTR SyncTheRest \(HWND hwnd, UINT iMessage, WPARAM wParam,$
+C:\Source\peoria32\c\w3\FTLISTW3.C CreateFormTabList ^VOID CreateFormTabList \(OPTR oSelf\) \{$
+* CreateFormMSTabList ^VOID CreateFormMSTabList \(OPTR oSelf\) \{$
+* CreateFormTabListControl ^VOID CreateFormTabListControl \(OPTR oSelf, BOOL fMS\) \{$
+* ResizeFormTabList ^VOID ResizeFormTabList \(OPTR oSelf, PSHORT fps\) \{$
+* SetFocusFormTabList ^VOID SetFocusFormTabList \(OPTR oSelf\) \{$
+* SetSelectionToFormTabList ^VOID SetSelectionToFormTabList \(OPTR oSelf, SHORT selection\) \{$
+* SubclassFormTabList ^VOID SubclassFormTabList \(OPTR oSelf\) \{$
+* FLeftFormTabList ^VOID FLeftFormTabList \(OPTR oSelf\) \{$
+* FMaxLeftFormTabList ^VOID FMaxLeftFormTabList \(OPTR oSelf\) \{$
+* InvalidateHeader ^VOID InvalidateHeader \(HWND hwnd\) \{$
+* UpdateFormTabList ^VOID UpdateFormTabList \(OPTR oSelf\) \{$
+* GetColors ^VOID GetColors \(OPTR oSelf, PLONG plDefaultColor, PLONG plBackColor\) \{$
+* DrawTabListItems ^VOID DrawTabListItems \(HWND hwnd, PDRAWITEMSSTRUCT pdi\) \{$
+* PaintTabListHeader ^VOID PaintTabListHeader \(HDC hdc, RECT rcHeader, SHORT xLeft,$
+* DrawOneTabListItem ^VOID DrawOneTabListItem \(HDC hdc, RECT rcPaint, SHORT xLeft,$
+* PaintTabListClient ^VOID PaintTabListClient \(HWND hwnd\) \{$
+* FillFocusRect ^VOID FillFocusRect \(HDC hdc, RECT rc\) \{$
+* FormatFormTabListInterior ^VOID FormatFormTabListInterior \(HWND hwnd, OPTR oSelf\) \{$
+* UpdateFormTabListListBox ^VOID UpdateFormTabListListBox \(HWND hwnd\) \{$
+* UpdateVSplitBarLastFocus ^VOID UpdateVSplitBarLastFocus \(HWND hwndListBox\) \{$
+* InitFormTabListListBox ^VOID InitFormTabListListBox \(HWND hwnd, HWND hwndListBox, SHORT sIndex\) \{$
+* GetOtherListBox ^HWND GetOtherListBox \(HWND hwnd\) \{$
+* GetNewDataRange ^BOOL GetNewDataRange \(HWND hwnd\) \{$
+* PostWmPaint ^VOID PostWmPaint \(HWND hwnd\) \{$
+* CompareStringsTabList ^BOOL CompareStringsTabList \(WORD wMessage, OPTR oLine, OPTR oOptions,$
+* SearchStringTabList ^LRESULT CALLBACK SearchStringTabList \(HWND hwnd, WORD wMessage, WPARAM wParam,$
+* FTabListWndProc ^LRESULT CALLBACK FTabListWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+* FTabListBoxWndProc ^LRESULT CALLBACK FTabListBoxWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+* FMSTabListBoxWndProc ^LRESULT CALLBACK FMSTabListBoxWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+* VSplitBarWndProc ^LRESULT CALLBACK VSplitBarWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+C:\Source\peoria32\c\w3\FTPICW3.C CreateFormTopicBox ^VOID CreateFormTopicBox \(OPTR oSelf\) \{$
+* InvalidateTopicBox ^BOOL Invalid\*endIf\*/$
+* FTopicBoxWndProc ^LRESULT CALLBACK FTopicBoxWndProc \(HWND hwnd, UINT uiMessage, WPARAM wParam, LPARAM lParam\) \{$
+C:\Source\peoria32\c\w3\GDICTW3.C GetSystemVersionSystem ^VOID GetSystemVersionSystem \(\) \{$
+* PauseSystem ^VOID PauseSystem \(\) \{$
+* SynchronizeThreadsSystem ^VOID SynchronizeThreadsSystem \(\) \{$
+* BeepFrequencyDurationSystem ^VOID BeepFrequencyDurationSystem \(\) \{$
+* WhenIdleSendToArgsSys ^VOID WhenIdleSendToArgsSys \(\) \{$
+* EnvironmentAtSystem ^VOID EnvironmentAtSystem \(\) \{$
+* AbortSystemShutdownSystem ^VOID AbortSystemShutdownSystem \(\) \{$
+* PrimGetDialogBaseUnits ^BOOL PrimGetDialogBaseUnits \(void\) \{$
+C:\Source\peoria32\c\w3\HEAPW3.C GarbageCollectPMHandleObject ^VOID GarbageCollectPMHandleObject \(OPTR obj\) \{$
+* DeleteHandleBmpIconMtfMenu ^VOID DeleteHandleBmpIconMtfMenu \(\) \{$
+C:\Source\peoria32\c\w3\CHARW3.C AsCharInt ^VOID AsCharInt \(\) \{$
+* AsciiValueChar ^VOID AsciiValueChar \(\) \{$
+* IsDigitChar ^VOID IsDigitChar \(\) \{$
+* IsAlphanumericChar ^VOID IsAlphanumericChar \(\) \{$
+* IsLetterChar ^VOID IsLetterChar \(\) \{$
+* IsLowercaseChar ^VOID IsLowercaseChar \(\) \{$
+* IsUppercaseChar ^VOID IsUppercaseChar \(\) \{$
+* ToUpperChar ^VOID ToUpperChar \(\) \{$
+* ToLowerChar ^VOID ToLowerChar \(\) \{$
+C:\Source\peoria32\c\w3\ICONW3.C CreateIconHandle ^VOID CreateIconHandle \(OPTR oIcon\) \{$
+* LoadSystemIcon ^VOID LoadSystemIcon \(OPTR oName\) \{$
+* CreateIconHandleFromSystem ^BOOL CreateIconHandleFromSystem \(OPTR oIcon\) \{$
+* PrivateCopySystemIcon ^VOID PrivateCopySystemIcon \(OPTR oIcon, HANDLE hptr\) \{$
+* LoadFileIcon ^VOID LoadFileIcon \(OPTR oFileStr, INT width, INT height, INT flags\) \{$
+* CreateIconHandleFromFile ^BOOL CreateIconHandleFromFile \(OPTR oIcon, INT width, INT height, INT flags\) \{$
+* CreateBitmapColor ^BOOL CreateBitmapColor \(OPTR oIcon, PPMBITMAPARRAYFILEHEADER pbmafh\) \{$
+* IconCreateBitmap ^BOOL IconCreateBitmap \(OPTR oBitmap, ULONG ulOffset, PPMBITMAPINFOHEADER pbmp,$
+* CombineXORAndANDWithColor ^VOID CombineXORAndANDWithColor \(OPTR oColorBitmap, OPTR oXORBitmap, OPTR oANDBitmap\) \{$
+* CreateBitmapMono ^BOOL CreateBitmapMono \(OPTR oIcon, PPMBITMAPFILEHEADER pbmfh\) \{$
+* PrivateCreateIcon ^VOID PrivateCreateIcon \(OPTR oIcon\) \{$
+* AsBitmapIcon ^OPTR AsBitmapIcon \(OPTR oIcon, OPTR oBackground\) \{$
+C:\Source\peoria32\c\w3\INITW3.C InitMouse ^VOID InitMouse \(\) \{$
+* CreateStartupWindow ^HWND CreateStartupWindow \(BOOL fStartFlag\) \{$
+* InitForms ^VOID InitForms \(\) \{$
+* InitSysValues ^VOID InitSysValues \(\) \{$
+* StartupWndProc ^LRESULT CALLBACK StartupWndProc \(HWND hwnd, UINT iMessage, WPARAM wParam,$
+* PaintStartupScreen ^VOID PaintStartupScreen \(HWND hwnd, HDC hdc\) \{$
+* PaintEasterEgg ^VOID PaintEasterEgg \(HWND hwnd\) \{$
+* InitCountryProfiles ^VOID InitCountryProfiles \(OPTR oSysDefaultDict\) \{$
+* InitAvailableColors ^VOID InitAvailableColors \(\) \{$
+C:\Source\peoria32\c\w3\MEMBLOCK.C PBIGetBlockInfo ^static BLOCKINFO \*PBIGetBlockInfo \(char \*pb\) \{$
+* CreateBlockInfo ^BOOL  CreateBlockInfo \(char \*pbNew, unsigned long sizeNew\) \{$
+* FreeBlockInfo ^void  FreeBlockInfo \(char \*pbToFree\) \{$
+* UpdateBlockInfo ^void  UpdateBlockInfo \(char \*pbOld, char \*pbNew, unsigned long sizeNew\) \{$
+* SizeOfBlock ^unsig  pbi-\>pb = pbNew;$
+* ClearMemoryRefs ^void  ClearMemoryRefs \(void\) \{$
+* NoteMemoryRef ^void  NoteMemoryRef \(void \*pv\) \{$
+* CheckMemoryRefs ^void  CheckMemoryRefs \(void\) \{$
+* IsValidPointer ^BOOL  IsValidPointer \(void \*pb\) \{$
+C:\Source\peoria32\c\w3\METAW3.C InternalCloneWinMetaFileHandle ^HANDLE InternalCloneWinMetaFileHandle \(HANDLE hmf\) \{$
+* InternalCloneEnhMetaFileHandle ^HANDLE InternalCloneEnhMetaFileHandle \(HANDLE hmf\) \{$
+* PrivateAsMFPICTHandle ^VOID PrivateAsMFPICTHandle \(\) \{$
+* PrivateAsENMFHandle ^VOID PrivateAsENMFHandle \(\) \{$
+* NewMetaFileFromMFPICTHandle ^VOID NewMetaFileFromMFPICTHandle \(\) \{$
+* NewMetaFileFromENMFHandle ^VOID NewMetaFileFromENMFHandle \(\) \{$
+* WindowsCloseMetaFile ^VOID WindowsCloseMetaFile \(OPTR oSelf\) \{$
+* WindowsLoadNameMetaFile ^VOID WindowsLoadNameMetaFile \(OPTR oSelf, OPTR oName\) \{$
+* GetExtentFromMapMode ^VOID GetExtentFromMapMode \(BOOL toEnfin, LONG sMapMode,$
+* WindowsOpenMetaFile ^VOID WindowsOpenMetaFile \(OPTR oSelf\) \{$
+* WindowsPlayOnMetaFile ^VOID WindowsPlayOnMetaFile \(OPTR oSelf, OPTR oDest\) \{$
+* WindowsSaveToMetaFile ^VOID WindowsSaveToMetaFile \(OPTR oSelf, OPTR oName\) \{$
+* DecodeUnits ^SHORT DecodeUnits \(OPTR oUnits\) \{$
+* EncodeUnits ^OPTR EncodeUnits \(SHORT sMapMode\) \{$
+* ProcessFile ^BOOL ProcessFile\(LPSTR lpFileName, LPHANDLE hMF,$
+* WindowsSaveToAldusMetaFile ^VOID WindowsSaveToAldusMetaFile \(OPTR oSelf, OPTR oName\) \{$
+* GetPlaceableMetaHeader ^ALDUSMFHEADER\* GetPlaceableMetaHeader \(OPTR oSelf\) \{$
+* RenderPlaceableMeta ^BOOL RenderPlaceableMeta \(int fh, LPHANDLE hMF, ALDUSMFHEADER \*aldusMFHeader, METAHEADER \*mfHeader\) \{$
+* GetPixelsInMapMode ^SHORT GetPixelsInMapMode \(SHORT sMapMode\) \{$
+* GetWidthHeightFromHDC ^VOID GetWidthHeightFromHDC \(OPTR oSelf, HDC hdc, int units,$
+* SetPlaceableExts ^BOOL SetPlaceableExts \(OPTR oDest, HDC hDC, ALDUSMFHEADER \* ahdr\) \{$
+C:\Source\peoria32\c\w3\MODULEW3.C ENFINLoadModule ^SHORT ENFINLoadModule \(PSZ pszFailureName, SHORT sSize, PSZ pszDLLName, HMODULE\* phmod\) \{$
+* ENFINGetProcAddr ^SHORT ENFINGetProcAddr \(HMODULE hmod, PSZ pszFunctionName, PPFN ppfn\) \{$
+* ENFINFreeModule ^SHORT ENFINFreeModule \(HMODULE hmod\) \{$
+C:\Source\peoria32\c\w3\MSGW3.C EndAragoQueue ^VOID EndAragoQueue \(\) \{$
+* CheckForAbort ^VOID CheckForAbort \(\) \{$
+* StartAragoThread ^VOID StartAragoThread \(\) \{$
+* EndAragoThread ^VOID EndAragoThread \(\) \{$
+* ReallocateAragoQueue ^static VOID ReallocateAragoQueue\(VOID\) \{$
+* CheckForQueueBounds ^static BOOL CheckForQueueBounds \(ULONG numArgs\) \{$
+* vASend ^VOID vASend \(ULONG usArgs, OPTR oSelector, POPTR fpoReceiver\) \{$
+* ProcessASend ^VOID ProcessASend \(\) \{$
+* ResetAragoThread ^VOID ResetAragoThread \(\) \{$
+C:\Source\peoria32\c\w3\BITMAPW3.C CreateBitmapUsingColor ^VOID CreateBitmapUsingColor \(OPTR oSelf, OPTR oColor\) \{$
+* CopyBitmapFromHDCToHDC ^VOID CopyBitmapFromHDCToHDC \(HDC hdcSrc, HDC hdcDest, PPOINT pts\) \{$
+* NewBitmapFromHandle ^BOOL NewBitmapFromHandle \(\) \{$
+* CloneBitmapHandle ^VOID CloneBitmapHandle \(\) \{$
+* CopySystemBitmap ^OPTR CopySystemBitmap \(HBITMAP hbm, OPTR oName\) \{$
+* CreateBitmapHandleFromObject ^HBITMAP CreateBitmapHandleFromObject \(OPTR oBitmap, LONG \* width, LONG \* height\) \{$
+* CreateBitmapHandle ^VOID CreateBitmapHandle \(OPTR oBitmap\) \{$
+* CreateMemoryHDC ^VOID CreateMemoryHDC \(\) \{$
+* CollectBitmapsAndIcons ^VOID CollectBitmapsAndIcons \(\) \{$
+* InitBitmapsAndIcons ^VOID InitBitmapsAndIcons \(\) \{$
+* LoadSystemBitmapNamed ^VOID LoadSystemBitmapNamed \(OPTR oName\) \{$
+* LoadFileBitmap ^VOID LoadFileBitmap \(OPTR oFileName\) \{$
+* ReadBitmap ^VOID ReadBitmap \(PSZ szFileName, OPTR oClass\) \{$
+* SaveFileBitmap ^VOID SaveFileBitmap \(OPTR oBitmap, OPTR oFileName\) \{$
+* UpdateBitmapAndIconObjects ^VOID UpdateBitmapAndIconObjects \(\) \{$
+* UpdateBitmapBitArray ^VOID UpdateBitmapBitArray \(OPTR oBitmap\) \{$
+* UpdateBitmapBitAndColor ^VOID UpdateBitmapBitAndColor \(OPTR oBitmap, BOOL fUpdateColorTable\) \{$
+* pow2 ^LONG pow2 \(ULONG iExp\) \{$
+C:\Source\peoria32\c\w3\OUTDEVW3.C AvailableDevices ^VOID AvailableDevices \(\) \{$
+* AvailableFontsDevice ^VOID AvailableFontsDevice \(\) \{$
+* AvailableSizesDevice ^VOID AvailableSizesDevice \(\) \{$
+* GetDeviceNamed ^VOID GetDeviceNamed \(\) \{$
+* GetDefaultPrintDeviceOnError ^VOID GetDefaultPrintDeviceOnError \(\) \{$
+* DEVICEQueryFonts ^VOID DEVICEQueryFonts \(HDC hdc, OPTR oObj\) \{$
+* DEVICEQueryFontSizes ^VOID DEVICEQueryFontSizes \(HDC hdc, OPTR oSet, OPTR oFace\) \{$
+* DEVICEEnumerateFonts ^int CALLBACK DEVICEEnumerateFonts \(LPLOGFONT lplf, LPTEXTMETRIC lptm, SHORT nFontType, LPSTR lpData\) \{$
+* DEVICEEnumerateFontSizes ^int CALLBACK DEVICEEnumerateFontSizes \(LPLOGFONT lplf, LPTEXTMETRIC lptm, SHORT nFontType, LPSTR lpData\) \{$
+C:\Source\peoria32\c\w3\PASSERT.C PeoriaAssertFailed ^void   PeoriaAssertFailed \(const char \*file, int line\) \{$
+C:\Source\peoria32\c\w3\GSTRMW3.C ENFINDeleteDC ^VOID ENFINDeleteDC \(HDC hdc\) \{$
+* AbortGraphicsStream ^VOID AbortGraphicsStream \(OPTR oSelf\) \{$
+* ClearPageGraphicsStream ^VOID ClearPageGraphicsStream \(OPTR oSelf\) \{$
+* EndGraphicsStream ^VOID EndGraphicsStream \(OPTR oSelf\) \{$
+* NewPageGraphicsStream ^VOID NewPageGraphicsStream \(OPTR oSelf\) \{$
+* EndPageGraphicsStream ^VOID EndPageGraphicsStream \(OPTR oSelf\) \{$
+* NextStringGraphicsStream ^VOID NextStringGraphicsStream \(OPTR oSelf, OPTR oString\) \{$
+* StartModeNameGraphicsStream ^VOID StartModeNameGraphicsStream \(OPTR oSelf, OPTR oMode, OPTR oName,$
+* SetPropertiesGraphicsStream ^SHORT SetPropertiesGraphicsStream \(OPTR oSelf\) \{$
+* FreePrinterInfoMemory ^VOID FreePrinterInfoMemory \(PPRINTERINFO pInfo\) \{$
+* GetPrinterInfo ^BOOL GetPrinterInfo \(PPRINTERINFO pInfo\) \{$
+* SetGraphicsStreamParams ^VOID SetGraphicsStreamParams \(OPTR oSelf\) \{$
+C:\Source\peoria32\c\w3\SRVCODE.C GetClientInfoTablePos ^int GetClientInfoTablePos \(void\) \{$
+* ServerPipeReadProc ^VOID ServerPipeReadProc \(void\) \{$
+* InitializeServer ^VOID InitializeServer \(void\) \{$
+* ClientThreadProc ^VOID ClientThreadProc \(char\* imageFileName\) \{$
+* Connect ^BOOL Connect \(PSZ imageFileName, HANDLE hProcess\) \{$
+* ServerDispatch ^BOOL ServerDispatch \(WPARAM wParam, LPARAM lParam\) \{$
+C:\Source\peoria32\c\w3\STRW3.C StringDialog ^VOID StringDialog \(OPTR oForm\) \{$
+* VerifyDialog ^VOID VerifyDialog \(OPTR oForm\) \{$
+* StringEditProc ^BOOL StringEditProc \(HWND hwnd, WORD wMessage, WPARAM wParam, LONG lParam\) \{$
+* StartSessionString ^VOID StartSessionString \(\) \{$
+* PrivateGetFrom1From2String ^VOID PrivateGetFrom1From2String \(\) \{$
+* PrivateGetFromHandle ^VOID PrivateGetFromHandle \(\) \{$
+C:\Source\peoria32\c\w3\TEXTW3.C CreateFontObjectForText ^VOID CreateFontObjectForText \(OPTR oText, OPTR oDevice\) \{$
+* SetOptionsText ^VOID SetOptionsText \(\) \{$
+* GetGraphicsTextExtentText ^VOID GetGraphicsTextExtentText \(\) \{$
+* GetTextExtentText ^VOID GetTextExtentText \(\) \{$
+* GetFontMetricsText ^VOID GetFontMetricsText \(\) \{$
+* CopyToClipboard ^VOID CopyToClipboard \(\) \{$
+* PasteFromClipboard ^VOID PasteFromClipboard \(\) \{$
+C:\Source\peoria32\c\w3\FDLISTW3.C CloseDropListPopup ^VOID CloseDropListPopup\(\) \{$
+* CreateFormDList ^VOID CreateFormDList \(OPTR oSelf\) \{$
+* FormatFormDListInterior ^VOID FormatFormDListInterior \(HWND hwnd, OPTR oSelf\) \{$
+* ResizeFormDList ^VOID ResizeFormDList \(OPTR oSelf, PSHORT fps\) \{$
+* UpdateFormDList ^VOID UpdateFormDList \(OPTR oSelf\) \{$
+* UpdateFormDListString ^VOID UpdateFormDListString \(HWND hwnd, OPTR oSelf, SHORT sSelection\) \{$
+* GetTextObjectForSelection ^OPTR GetTextObjectForSelection \(OPTR oSelf, SHORT sSelection\) \{$
+* SubclassFormDList ^VOID SubclassFormDList \(OPTR oSelf\) \{$
+* TogglePopup ^VOID TogglePopup \(HWND hwndControl\) \{$
+* DrawButton ^VOID DrawButton \(LPDRAWITEMSTRUCT pdi\) \{$
+* FDListWndProc ^LRESULT CALLBACK FDListWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam, LPARAM lParam\) \{$
+* FDListStringWndProc ^LRESULT CALLBACK FDListStringWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+* FDListButtonWndProc ^LRESULT CALLBACK FDListButtonWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+* FDListListWndProc ^LRESULT CALLBACK FDListListWndProListButtonWndProc \*/$
+* DropComboUpdateString ^BOOL DropComboUpdateString \(OPTR oSelf\) \{$
+C:\Source\peoria32\c\w3\FIDRAGW3.C InitializeENFINDrag ^VOID InitializeENFINDrag \(OPTR oOrigin, HICON hIcon\) \{$
+* ENFINDrag ^VOID ENFINDrag \(LPARAM lDragPos\) \{$
+* EndENFINDrag ^VOID EndENFINDrag \(LPARAM lDropPos\) \{$
+* GetWPObjFromSource ^OPTR GetWPObjFromSource \(OPTR oSource, LPSTR lpSourceName\) \{$
+* GetDragButton ^SHORT GetDragButton \(\) \{$
+C:\Source\peoria32\c\w3\FITEM2W3.C GetMostParentHwnd ^static HWND GetMostParentHwnd \(HWND hwndItemOrForm\) \{$
+* CleanUpDesigner ^VOID CleanUpDesigner \(\) \{$
+* AdjustBorder ^VOID AdjustBorder \(POINT pt\) \{$
+* OurSetCapture ^VOID OurSetCapture \(HWND hwnd, OPTR oDragItem\) \{$
+* OurReleaseCapture ^VOID OurReleaseCapture \(\) \{$
+* CalculateBoxes ^VOID CalculateBoxes \(LPRECT lprcBorder\) \{$
+* DrawBorderMode ^VOID DrawBorderMode \(HDC hdc, LPRECT lpRect, BOOL bHighlighted\) \{$
+* DrawBorder ^VOID DrawBorder \(HDC hdc, LPRECT lpRect\) \{$
+* DrawBorderRectangle ^VOID DrawBorderRectangle \(HDC hdc, LPRECT lprect, BOOL bHighlighted\) \{$
+* FormHwndFromPoint ^HWND FormHwndFromPoint \(HWND hwndParent, POINT pt\) \{$
+* FormHwndFromPointInView ^HWND FormHwndFromPointInView \(HWND hwndParent, POINT pt, OPTR oView\) \{$
+* CreateTrackingWindow ^VOID CreateTrackingWindow\(VOID\) \{$
+* IsPointInOrOnBorder ^static BOOL IsPointInOrOnBorder \(OPTR oDragItem, POINT pt\) \{$
+* PtInBoxesExpand ^BOOL PtInBoxesExpand \(POINT pt\) \{$
+* MouseMoveForm ^VOID MouseMoveForm \(\) \{$
+* ChangeCursorResize ^BOOL ChangeCursorResize \(\) \{$
+* SetBox ^VOID SetBox \(SHORT sIndex, SHORT x, SHORT y\) \{$
+* SnapPoint ^LONG SnapPoint \(LPPOINT lppt, HWND hwndForm, HWND hwndECV\) \{$
+* SubFormMovedOrResized ^VOID SubFormMovedOrResized \(HWND hwnd\) \{$
+* AdjustXY2 ^VOID AdjustXY2 \(OPTR oForm, PSHORT psX, PSHORT psY\) \{$
+* GetDCAndWindowECV ^static OPTR GetDCAndWindowECV\(HDC \*phdcECV, HWND \* phwndECV\) \{$
+* BorderWndProc ^LRESULT CALLBACK BorderWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam, LPARAM lParam\) \{$
+* FormGenFItemWndProc ^LRESULT CALLBACK FormGenFItemWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+* StartTrackingWithBorder ^VOID StartTrackingWithBorder \(HWND hwnd, LPARAM lParam\) \{$
+* SendEnterLeaveEvent ^VOID SendEnterLeaveEvent\(OPTR oFormItem, int nSymIndex\) \{$
+* ASendButtonMessage ^VOID FAR ASendButtonMessage\(HWND hwnd, LONG msg, WPARAM wParam, LPARAM lParam\) \{$
+* RecurseFindMenu ^OPTR NEAR RecurseFindMenu \(OPTR oMenu,HWND findMenu\) \{$
+* CheckForReturn ^INT CheckForReturn\(HWND hwnd\) \{$
+* DefFormItemWndProc ^LRESULT CALLBACK DefFormItemWndProc \(FARPROC lpfnDefault, HWND hwnd, UINT wMessage, WPARAM wParam,$
+* InnerDefFormItemWndProc ^LRESULT CALLBACK InnerDefFormItemWndProc \(FARPROC lpfnDefault, HWND hwnd, UINT wMessage, WPARAM wParam,$
+* SendMouseMsgToolTip ^VOID SendMouseMsgToolTip \(OPTR oSelf, UINT wMessage, LPARAM lParam, HWND hwndOn\) \{$
+* AddToolTipFItem ^VOID AddToolTipFItem \(OPTR oSelf, HWND hwnd\) \{$
+* DeleteToolTipFItem ^VOID DeleteToolTipFItem \(OPTR oSelf, HWND hwnd\) \{$
+C:\Source\peoria32\c\w3\FITEM3W3.C InvldteIntrsctngSblngsEnumProc ^BOOL CALLBACK InvldteIntrsctngSblngsEnumProc \(HWND hwnd, LPARAM lParam\) \{$
+* InvalidateIntersectingSiblings ^VOID InvalidateIntersectingSiblings \(HWND hwnd\) \{$
+* CheckForMinimumsAndAdjust ^VOID CheckForMinimumsAndAdjust \(PSHORT pwide, PSHORT ptall\) \{$
+* ENFINGetColor ^VOID ENFINGetColor \(OPTR oColor, PLONG plColor\) \{$
+* GetColorIndex ^VOID GetColorIndex \(OPTR oColor, PLONG pColor, PtColor \*/$
+* GetSelectedColorIndex ^VOID GetSelectedColorIndex \(OPTR oColor, PLONG pColor, PLONG pBackColor\) \{$
+* GetForegroundColor ^VOID GetForegroundColor \(OPTR oColor, PLONG plColor\) \{$
+* GetBackgroundColor ^VOID GetBackgroundColor \(OPTR oColor, PLONG plColor\) \{$
+* FItemWmDestroy ^VOID FItemWmDestroy \(HWND hwnd\) \{$
+* FItemWmSetFocus ^VOID FItemWmSetFocus \(HWND hwnd, HWND hwndOther, BOOL fFocus\) \{$
+* FormIsModalDisabled ^BOOL FormIsModalDisabled \(HWND hwnd, SHORT wMessage\) \{$
+* GetRectCoordinates ^VOID GetRectCoordinates \(OPTR oFormItem, HWND hwnd, RECT\* rcRect\) \{$
+* GetCoordinates ^VOID GetCoordinates \(OPTR oSelf, HWND hParent, LONG options, PSHORT pX,$
+* Keystroke ^BOOL FAR Keystroke \(HWND hwnd, USHORT usVKey\) \{$
+* SetFocusToFItem ^BOOL SetFocusToFItem \(OPTR oFItem\) \{$
+C:\Source\peoria32\c\w3\FLINEW3.C CreateFormLine ^VOID CreateFormLine \(OPTR oSelf\) \{$
+* DecodeLineStyle ^WORD DecodeLineStyle \(OPTR oStyle\) \{$
+* DrawLines ^VOID DrawLines \(HWND hwnd\) \{$
+* FLineWndProc ^LRESULT CALLBACK FLineWndProc \(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam\) \{$
+C:\Source\peoria32\c\w3\FLISTW3.C ActivateListMethod ^VOID ActivateListMethod \(OPTR oHwnd, BOOL fActivate\) \{$
+* CreateFormList ^VOID CreateFormList \(OPTR oSelf\) \{$
+* SetSelectionToFormList ^VOID SetSelectionToFormList \(OPTR oSelf, SHORT sIndex\) \{$
+* SetTopToFormList ^VOID SetTopToFormList \(OPTR oSelf, SHORT sIndex\) \{$
+* SetLeftToFormList ^VOID SetLeftToFormList \(OPTR oSelf, SHORT sIndex\) \{$
+* LeftFormList ^VOID LeftFormList \(OPTR oSelf\) \{$
+* MaxLeftFormList ^VOID MaxLeftFormList \(OPTR oSelf\) \{$
+* UpdateFormList ^VOID UpdateFormList \(OPTR oSelf\) \{$
+* UpdateFormList2 ^VOID UpdateFormList2 \(HWND hwnd, OPTR oSelf\) \{$
+* ActivateList ^VOID ActivateList \(HWND hwnd\) \{$
+* IsFormActive ^BOOL IsFormActive \(OPTR oSelf\) \{$
+* IsItemSelected ^BOOL IsItemSelected \(HWND hwnd, OPTR oSelf, USHORT itemIndex\) \{$
+* SetListElementHeightWidth ^SHORT SetListElementHeightWidth \(HWND hwnd, OPTR oHeight, SHORT length\) \{$
+* DrawListItem ^VOID DrawListItem \(HWND hwnd, LONG lParam\) \{$
+* UpdateListSelection ^VOID UpdateListSelection \(HWND hwnd, SHORT index\) \{$
+* CompareStrings ^BOOL CompareStrings \(WORD wMessage, PSZ psz1, PSZ psz2\) \{$
+* SearchString ^LRESULT CALLBACK SearchString \(HWND hwnd, UINT wMessage, WPARAM wParam, LPARAM lParam\) \{$
+* FListWndProc ^LRESULT CALLBACK FListWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+C:\Source\peoria32\c\w3\FLSTRW3.C OpenDialogFileStream ^VOID OpenDialogFileStream \(\) \{$
+* SaveAsDialogFileStream ^VOID SaveAsDialogFileStream \(\) \{$
+* DefaultDirectoryFileStream ^VOID DefaultDirectoryFileStream \(\) \{$
+* SetDefaultDirToFileStream ^VOID SetDefaultDirToFileStream \(\) \{$
+* DefaultDriveFileStream ^VOID DefaultDriveFileStream \(\) \{$
+* SetDefaultDriveToFileStream ^VOID SetDefaultDriveToFileStream \(\) \{$
+* AvailableDrivesFileStream ^VOID AvailableDrivesFileStream \(\) \{$
+* SaveSystemImage ^VOID SaveSystemImage \(OPTR oFileName\) \{$
+* ENFINOpen ^ULONG ENFINOpen \(PSZ pszFileName, HFILE\* phFile, ULONG fsOpenFlags, ULONG fsOpenMode, PULONG pulFileSize\) \{$
+* ENFINChgFilePtr ^ULONG ENFINChgFilePtr \(HFILE hFile, LONG lDistance, USHORT usMethod, PULONG plNewPos\) \{$
+* ENFINChangeFileSize ^LONG ENFINChangeFileSize \(HFILE outFile, LONG newSize\) \{$
+* ENFINWrite ^ULONG ENFINWrite \(HFILE hFile, PVOID pBuffer, ULONG cbBuf, PULONG pcbBytesWritten\) \{$
+* ENFINRead ^ULONG ENFINRead \(HFILE hFile, PVOID pBuffer, ULONG cbBuf, PULONG pcbBytesRead\) \{$
+* ENFINMove ^ULONG ENFINMove \(PSZ pszSource, PSZ pszDestination\) \{$
+* ENFINDelete ^ULONG ENFINDelete \(PSZ pszFileName\) \{$
+* ENFINCopy ^ULONG ENFINCopy \(PSZ pszSource, PSZ pszDestination, ULONG usOpenOpt\) \{$
+* GetFileName ^PSZ GetFileName \(OPTR oName\) \{$
+* GetConvertedFileName2 ^PSZ GetConvertedFileName2 \(OPTR oName\) \{$
+* LoadHeapTable ^VOID LoadHeapTable \(BOOL fSaveImage\) \{$
+* O2External ^VOID O2External \(POPTR po\) \{$
+* PF2External ^VOID PF2External \(PPOBJ ppObj\) \{$
+* PO2External ^VOID PO2External \(PPOBJ ppObj\) \{$
+* WriteStringToImage ^VOID WriteStringToImage \(char\* str, HFILE hfImage\) \{$
+* WriteExportListToImage ^VOID WriteExportListToImage \(HFILE hfImage\) \{$
+* ReadStringFromImage ^char\* ReadStringFromImage \(HFILE hfImage\) \{$
+* ReadExportListFromImage ^char\*\* ReadExportListFromImage \(ULONG ulListSize, HFILE hfImage\) \{$
+* ReadFromImageFile ^VOID ReadFromImageFile \(HFILE hfImage\) \{$
+* ReadOptrFromFile ^VOID ReadOptrFromFile \(HFILE hfImage, POPTR po\) \{$
+* SaveImageToFile ^VOID SaveImageToFile \(OPTR oFilename\) \{$
+* TraverseO2External ^VOID TraverseO2External \(PHEAP pCurr\) \{$
+* TraverseO2Internal ^VOID TraverseO2Internal \(PHEAP pCurr\) \{$
+* TraversePO2External ^VOID TraversePO2External \(PPOBJ pCurr\) \{$
+* TraversePO2Internal ^VOID TraversePO2Internal \(PPOBJ pCurr\) \{$
+* WriteOptrToFile ^VOID WriteOptrToFile \(HFILE hfImage, OPTR oCopy\) \{$
+C:\Source\peoria32\c\w3\FMSLSTW3.C SelectMultipleItemsFormMSList ^VOID SelectMultipleItemsFormMSList \(HWND hwnd, OPTR oSelectionIndices\) \{$
+* CreateFormMSList ^VOID CreateFormMSList \(OPTR oSelf\) \{$
+* UpdateFormMSList ^VOID UpdateFormMSList \(OPTR oSelf\) \{$
+* ExtendedSelectionProc ^SHORT ExtendedSelectionProc \(HWND hwnd, SHORT y, BOOL move\) \{$
+* ChangeMode ^VOID ChangeMode \(HWND hwnd, BOOL fNewMode\) \{$
+* ShiftState ^VOID ShiftState \(HWND hwnd, BOOL fClear, SHORT select\) \{$
+* ClearSelections ^VOID ClearSelections \(HWND hwnd\) \{$
+* ToggleSelection ^VOID ToggleSelection \(HWND hwnd, SHORT sIndex\) \{$
+* SetSelectionIndex ^VOID SetSelectionIndex \(HWND hwnd, SHORT sIndex, OPTR oBool\) \{$
+* SelectDeselectAll ^VOID SelectDeselectAll \(HWND hwnd, BOOL f47\) \{$
+* ProcessVirtualKey ^BOOL ProcessVirtualKey \(HWND hwnd, WORD sVirtKey\) \{$
+* MSListActivate ^VOID MSListActivate \(HWND hwnd\) \{$
+* ProcessVkSpace ^VOID ProcessVkSpace \(HWND hwnd, BOOL fShift\) \{$
+* FMSListWndProc ^LRESULT CALLBACK FMSListWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+* FExtSelListWndProc ^LRESULT CALLBACK FExtSelListWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+C:\Source\peoria32\c\w3\FOHNDLW3.C CIsKindOfWLHW ^BOOL CIsKindOfWLHW \(OPTR oObj\) \{$
+* DragStop ^VOID DragStop \(HWND hwnd\) \{$
+* GetWPObjFromSourceHWND ^OPTR GetWPObjFromSourceHOBJHNDLR_DRAGSTART, FALSE\);$
+* CaptureFormObjHandler ^VOID CaptureFormObjHandler \(OPTR oSelf\) \{$
+* CreateFormObjHandler ^VOID CreateFormObjHandler \(OPTR oSelf\) \{$
+* UpdateFormObjHandler ^VOID UpdateFormObjHandler \(OPTR oSelf\) \{$
+* SetVisibilityFObjHandler ^VOID SetVisibilityFObjHandler \(OPTR oSelf, BOOL fVisible\) \{$
+* SelectModifierFObjHandler ^VOID SelectModifierFObjHandler \(OPTR oSelf, OPTR oModifier\) \{$
+* ShowAccept ^VOID ShowAccept \(OPTR oSelf\) \{$
+* BeginDrag ^VOID BeginDrag \(OPTR oSelf\) \{$
+* WantsMultipleDrags ^BOOL WantsMultipleDrags\(OPTR oFormItem\) \{$
+* Drag ^VOID   Drag \(HWND hwnd\) \{$
+* EndDrag ^VOID   EndDrag \(HWND hwnd\) \{$
+* ENFINSetCursor ^VOID ENFINSetCursor \(HCURSOR hcur\) \{$
+* SetCursorFromIcon ^VOID SetCursorFromIcon \(HANDLE hIcon\) \{$
+* FObjHndlrButtonWndProc ^LRESULT CALLBACK FObjHndlrButtonWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+* FObjHndlrWndProc ^LRESULT CALLBACK FObjHndlrWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+* FObjHndlrTextWndProc ^LRESULT CALLBACK FObjHndlrTextWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+C:\Source\peoria32\c\w3\FONTW3.C FontObjectsAreEqual ^BOOL FontObjectsAreEqual \(OPTR oFont1, OPTR oFont2\) \{$
+* GetNormalFontName ^char\* GetNormalFontName \(void\) \{$
+* SetNormalFontName ^void SetNormalFontName \(char\* fontName\) \{$
+* GetNormalFontSize ^char\* GetNormalFontSize \(void\) \{$
+* SetNormalFontSize ^void SetNormalFontSize \(int fontSize\) \{$
+* CreateNormalFont ^HFONT CreateNormalFont \(HDC hdc\) \{$
+* CreateDefaultFont ^VOID CreateDefaultFont \(\) \{$
+* CreateFontHandleFromOFont ^HFONT CreateFontHandleFromOFont \(HDC hdc, OPTR oFont\) \{$
+* CreateLOGFONTFromOFont ^BOOL CreateLOGFONTFromOFont \(HDC hdc, OPTR oFont, LPLOGFONT lplf\) \{$
+* DeleteFonts ^VOID DeleteFonts \(\) \{$
+* ENFINEnumerateFontSizes ^int CALLBACK ENFINEnumerateFontSizes \(LPLOGFONT lplf, LPTEXTMETRIC lptm, DWORD nFontType, LPARAM lpData\) \{$
+* GetSystemFont ^HFONT GetSystemFont \(HDC hdc\) \{$
+* ENFINResetFont ^VOID ENFINResetFont \(HDC hdc\) \{$
+* ENFINSetFontFromOFont ^VOID ENFINSetFontFromOFont \(HDC hdc, OPTR oFont\) \{$
+* ENFINSetFontFromHFont ^VOID FAR ENFINSetFontFromHFont \(HDC hdc, HFONT hFont\) \{$
+* ENFINSetFontFromOText ^VOID ENFINSetFontFromOText \(HDC hdc, OPTR oLastText, OPTR oNewText\) \{$
+* ENFINSetFontFromOOptions ^VOID ENFINSetFontFromOOptions \(HDC hdc, OPTR oOldArray, OPTR oNewArray\) \{$
+* FaceNameFromOFontSymbol ^PSZ FaceNameFromOFontSymbol \(OPTR oFont\) \{$
+* FontAllocate ^OPTR FontAllocate \(HDC hdc, LPLOGFONT lplf\) \{$
+* OFontSymbolFromFaceName ^OPTR OFontSymbolFromFaceName \(PSZ pszFaceName\) \{$
+* GetFontObject ^OPTR GetFontObject \(OPTR oOptions\) \{$
+* GetColorObject ^OPTR GetColorObject \(OPTR oOptions\) \{$
+* GetFontHandle ^HFONT GetFontHandle \(HDC hdc, OPTR oText\) \{$
+* SetFormItemFont ^VOID SetFormItemFont \(HWND hwnd, OPTR oText\) \{$
+* ResetFormItemFont ^VOID ResetFormItemFont \(HWND hwnd\) \{$
+* ResetFontHandle ^VOID FAR ResetFontHandle \(HDC hdc, HFONT hFont\) \{$
+* FontEnumProc ^static int CALLBACK FontEnumProc \(LOGFONT\* lplf, TEXTMETRIC\* lptm, DWORD dwType, LPARAM lpData\) \{$
+* InitializeTextMetricVars ^void InitializeTextMetricVars \(void\) \{$
+* SetTextMetricInstanceVars ^void SetTextMetricInstanceVars \(OPTR oSelf, TEXTMETRIC\* textMetric\) \{$
+* PrimGetFontMetricsFont ^BOOL PrimGetFontMetricsFont \(void\) \{$
+* PrimInitializeFontsSystem ^BOOL PrimInitializeFontsSystem \(void\) \{$
+* PrimCreateNormalFontFont ^BOOL PrimCreateNormalFontFont \(void\) \{$
+C:\Source\peoria32\c\w3\FPICTW3.C CreateFormPicture ^VOID CreateFormPicture \(OPTR oSelf\) \{$
+* EraseFormPicture ^VOID EraseFormPicture \(OPTR oSelf\) \{$
+* CloseFormPicture ^VOID CloseFormPicture \(OPTR oSelf\) \{$
+* FPictureWndProc ^LRESULT CALLBACK FPictureWndProc \(HWND hwnd, UINT iMessage, WPARAM wParam,$
+* FPictButtonDownMsg ^BOOL FPictButtonDownMsg \(HWND hwnd, UINT iMessage, WPARAM wParam,$
+* FPictButtonUpDblClkMsg ^BOOL FPictButtonUpDblClkMsg \(HWND hwnd, UINT iMessage, WPARAM wParam,$
+* SendButtonMessage ^VOID SendButtonMessage \(OPTR oSelf, INT xLoc, INT yLoc, INT iMsg\) \{$
+* RedrawPicture ^VOID RedrawPicture \(HWND hwnd, OPTR oSelf, OPTR oGraph\) \{$
+C:\Source\peoria32\c\w3\FRADIOW3.C CreateFormRadioButton ^VOID CreateFormRadioButton \(OPTR oSelf\) \{$
+* EnableAtFormRadioButton ^VOID EnableAtFormRadioButton \(OPTR oSelf, OPTR oPos\) \{$
+* DisableAtFormRadioButton ^VOID DisableAtFormRadioButton \(OPTR oSelf, OPTR oPos\) \{$
+* SetEnablementFormRadioButton ^VOID SetEnablementFormRadioButton \(OPTR oSelf, OPTR oPos, BOOL fState\) \{$
+* DoEnumChildWindows ^BOOL DoEnumChildWindows \(HWND hwnd, INT iProc, LPARAM lParam\) \{$
+* DisableFormRadioButton ^VOID DisableFormRadioButton \(OPTR oSelf\) \{$
+* EnableFormRadioButton ^VOID EnableFormRadioButton \(OPTR oSelf\) \{$
+* SetSelectionToFRadio ^VOID SetSelectionToFRadio \(\) \{$
+* IsEnabledAtFormRadioButton ^VOID IsEnabledAtFormRadioButton \(OPTR oSelf, USHORT usIndex\) \{$
+* ResizeFormRadioButton ^VOID ResizeFormRadioButton \(OPTR oSelf, PSHORT fps\) \{$
+* SubclassFormRadioButton ^VOID SubclassFormRadioButton \(OPTR oSelf\) \{$
+* UpdateFormRadioButton ^VOID UpdateFormRadioButton \(OPTR oSelf\) \{$
+* ArrangeChildWindows ^VOID ArrangeChildWindows \(HWND hwnd, OPTR oSelf\) \{$
+* GetChildIndex ^INT GetChildIndex \(HWND hwnd, HWND hwndWho\) \{$
+* GetChildWindow ^HWND GetChildWindow \(HWND hwnd, INT iIndex\) \{$
+* GetNumberOfChildren ^SHORT GetNumberOfChildren \(HWND hwnd\) \{$
+* SubclassChildWindows ^VOID SubclassChildWindows \(HWND hwnd\) \{$
+* FRadioGetFocus ^BOOL FRadioGetFocus \(HWND hwnd, HWND hwndFocus\) \{$
+* ChildWindowEnumProc ^LONG CALLBACK ChildWindowEnumProc \(HWND hwnd, LPARAM lParam\) \{$
+* FRadioWndProc ^LRESULT CALLBACK FRadioWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam, LPARAM lParam\) \{$
+* ProcessKey ^SHORT ProcessKey \(WPARAM wParam, SHORT sIndex, SHORT sMaxIndex\) \{$
+* FRadioButtonWndProc ^LRESULT CALLBACK FRadioButtonWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam,$
+* ENFINInvalidateChildWindows ^VOID ENFINInvalidateChildWindows \(HWND hwnd\) \{$
+C:\Source\peoria32\c\w3\FRECTW3.C ResizeWidthHeightFRect ^VOID ResizeWidthHeightFRect \(\) \{$
+* UpdateFRect ^VOID UpdateFRect \(\) \{$
+* CreateFormRect ^VOID CreateFormRect \(OPTR oSelf\) \{$
+* SetSelectionToFormRect ^VOID SetSelectionToFormRect \(OPTR oSelf, LONG xy\) \{$
+* UpdateFormRect ^VOID UpdateFormRect \(OPTR oSelf\) \{$
+* UpdateAtFormRect ^VOID UpdateAtFormRect \(OPTR oSelf, LONG xy\) \{$
+* NewVScrollPos ^BOOL NewVScrollPos \(HWND hwnd, SHORT absPos, SHORT relPos\) \{$
+* NewHScrollPos ^BOOL NewHScrollPos 	return FALSE;$
+* GetRectRange ^VOID GetRectRange \(OPTR oSelf, LPRECT rect, POINT pSelect, POINT origin\) \{$
+* RectPaint ^VOID RectPaint \(HWND hwnd\) \{$
+* SetRectScroll ^VOID SetRectScroll \(OPTR oSelf, USHORT numFullRow, USHORT numFullCol,$
+* DrawRectText ^VOID DrawRectText \(HDC hdc, OPTR output, LPRECT prect\) \{$
+* DeSelectRect ^VOID DeSelectRect \(HWND hwnd\) \{$
+* GetPoints ^VOID GetPoints \(OPTR oSelf, LPPOINT select, LPPOINT origin, BOOL old\) \{$
+* SelectRect ^VOID SelectRect \(HWND hwnd\) \{$
+* ChangeSelRect ^VOID ChangeSelRect \(HWND hwnd, OPTR oSelPt, SHORT frameColor\) \{$
+* ClearSelection ^VOID ClearSelection \(OPTR oSelf, HWND hwnd\) \{$
+* FRectWndProc ^LRESULT CALLBACK FRectWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam, LPARAM lParam\) \{$
+* FRectWmChar ^BOOL FRectWmChar \(HWND hwnd, WPARAM wParam\) \{$
+* FRectStringWndProc ^LRESULT CALLBACK FRectStringWndProc \(HWND hwnd, UINT wMessage, WPARAM wParam, LPARAM lParam\) \{$
+* MoveStringBox ^VOID MoveStringBox \(HWND hwnd, OPTR oSelf, BOOL noShow, BOOL scroll\) \{$
+* GetFRectSelfHandle ^HWND GetFRectSelfHandle \(HWND hwndString\) \{$
+* UserSetFocusFormRect ^VOID UserSetFocusFormRect \(OPTR oSelf\) \{$
+* GetStringAtSelection ^PSZ GetStringAtSelection \(OPTR oSelf\) \{$
+* SendNewString ^VOID SendNewString \(OPTR oSelf, HWND hwndString, HWND hwndSelf\) \{$
+* GetMaxCellLength ^BOOL GetMaxCellLength \(OPTR oSelf, OPTR oCol, OPTR oRow, PSHORT psLen\) \{$
+c:\source\peoria32\c\kernel\tags => c:\source\peoria32\c\kernel\tags
+     0 files copied
+C:\Source\peoria32\c\kernel\BEHAVIOR.C NewBehavior ^VOID NewBehavior \(\) \{$
+* CompileBehavior ^VOID CompileBehavior\(\) \{$
+* SetSuperToBehavior ^VOID SetSuperToBehavior \(\) \{$
+* AdjustVMMethodCacheForBehavior ^VOID AdjustVMMethodCacheForBehavior \(\) \{$
+C:\Source\peoria32\c\kernel\BITMAP.C LoadSystemBitmapNamedBitmap ^VOID LoadSystemBitmapNamedBitmap \(\) \{$
+* LoadFileOnErrorBitmap ^VOID LoadFileOnErrorBitmap \(\) \{$
+* SaveFileOnErrorBitmap ^VOID SaveFileOnErrorBitmap \(\) \{$
+* ConvertToBitmapBackground ^VOID ConvertToBitmapBackground\(\) \{$
+* PrivateCreateHandleBitmap ^VOID PrivateCreateHandleBitmap \(\) \{$
+* PrivateUpdateBitArrayBitmap ^VOID PrivateUpdateBitArrayBitmap \(\) \{$
+C:\Source\peoria32\c\kernel\BLOCK.C Value0Block ^VOID  Value0Block \(\) \{$
+* Value1Block ^VOID  Value1Block \(\) \{$
+* Value2Block ^VOID  Value2Block \(\) \{$
+* Value3Block ^VOID  Value3Block \(\) \{$
+* Value4Block ^VOID  Value4Block \(\) \{$
+* ValueArgumentsBlock ^VOID ValueArgumentsBlock \(\) \{$
+* WhileDoBlock ^VOID  WhileDoBlock \(\) \{$
+* DoWhileBlock ^VOID  DoWhileBlock \(\) \{$
+* WhileNotBlock ^VOID  WhileNotBlock \(\) \{$
+* DoUntilBlock ^VOID  DoUntilBlock \(\) \{$
+* DoBlock ^VOID  DoBlock \(\) \{$
+* GetNumArgBlock ^VOID GetNumArgBlock \(\) \{$
+* CatchBlock ^VOID CatchBlock\(\) \{$
+C:\Source\peoria32\c\kernel\BUFFER.C BoundsError ^static VOID BoundsError \(OPTR oSelf, LONG idx\) \{$
+* NewSizeBuffer ^VOID NewSizeBuffer \(\) \{$
+* AtBuffer ^VOID AtBuffer \(\) \{$
+* AtPutBuffer ^VOID AtPutBuffer \(\) \{$
+* SizeBuffer ^VOID SizeBuffer \(\) \{$
+* StringFromToBuffer ^VOID StringFromToBuffer \(\) \{$
+* SetSizeToBuffer ^VOID SetSizeToBuffer \(\) \{$
+* FillFromToWithBuffer ^VOID FillFromToWithBuffer\(void\) \{$
+C:\Source\peoria32\c\kernel\CHAR.C name ^VOID name \(\) \{\\$
+* CharBinSel ^CharBinSel \(GreaterChar, \>\)$
+* IsIdentifierChar ^VOID IsIdentifierChar \(\) \{$
+* IsSeparatorChar ^void IsSeparatorChar \(\) \{$
+* IsVowelChar ^void IsVowelChar \(\) \{$
+* PrintChar ^VOID PrintChar \(\) \{$
+* AsStringChar ^VOID AsStringChar \(\) \{$
+C:\Source\peoria32\c\kernel\CMETHOD.C PrivateSize ^static ULONG PrivateSize \(OPTR oCode\) \{$
+* SizeCompiledMethod ^VOID Size/$
+* ByteCodeArrayCompiledMethod ^VOID ByteCodeArrayCompiledMethod \(\) \{$
+* EqualCompiledMethod ^VOID EqualCompiledMethod \(\) \{$
+C:\Source\peoria32\c\kernel\CREFTR.C CopyStackToList ^VOID  CopyStackToList \(\) \{$
+* TraversalRefTree ^VOID  TraversalRefTree \(OPTR o, USHORT newFlag\) \{$
+* ObjectReferenceTree ^VOID  ObjectReferenceTree \(POPTR poObj\) \{$
+* ReferenceTreeObject ^VOID ReferenceTreeObject \(\) \{$
+C:\Source\peoria32\c\kernel\ACTIVE.C RedisplayActiveForms ^VOID RedisplayActiveForms \(\) \{$
+* OnIdleActiveForms ^VOID FAR OnIdleActiveForms \(VOID\) \{$
+C:\Source\peoria32\c\kernel\DATE.C NewJulianDate ^VOID NewJulianDate \(\) \{$
+* AsNumberDate ^VOID AsNumberDate \(\) \{$
+* AsArrayDate ^VOID AsArrayDate \(\) \{$
+* AsStringSeparateChDate ^VOID AsStringSeparateChDate \(\) \{$
+* AsStringSepCharFullYrDate ^VOID AsStringSepCharFullYrDate \(\) \{$
+* AsStringDate ^VOID AsStringDate \(\) \{$
+* AsEuroStringSeparateChDate ^VOID AsEuroStringSeparateChDate \(\) \{$
+* AsEuroStringDate ^VOID AsEuroStringDate \(\) \{$
+* AsISOStringSeparateChDate ^VOID AsISOStringSeparateChDate \(\) \{$
+* AsISOStringDate ^VOID AsISOStringDate \(\) \{$
+C:\Source\peoria32\c\kernel\DATETEXT.C NewDateText ^VOID NewDateText \(\) \{$
+C:\Source\peoria32\c\kernel\DATETXT2.C SetOptionsDateText ^VOID SetOptionsDateText \(\) \{$
+C:\Source\peoria32\c\kernel\DDE.C PrimInitiateDDEClient ^VOID PrimInitiateDDEClient \(\) \{$
+* PrimInitiateAndWaitDDEClient ^VOID PrimInitiateAndWaitDDEClient \(\) \{$
+* PrimRequestAndWaitDDEClient ^VOID PrimRequestAndWaitDDEClient \(\) \{$
+* PrimRequestDDEClient ^VOID PrimRequestDDEClient \(\) \{$
+* PrimSetValueToDDEClient ^VOID PrimSetValueToDDEClient \(\) \{$
+* PrimStartUpdateDDEClient ^VOID PrimStartUpdateDDEClient \(\) \{$
+* PrimStopUpdateDDEClient ^VOID PrimStopUpdateDDEClient \(\) \{$
+* PrimTerminateDDEClient ^VOID PrimTerminateDDEClient \(\) \{$
+* PrimExecuteCommandDDEClient ^VOID PrimExecuteCommandDDEClient \(\) \{$
+* PrimUpdateItemToDDEServer ^VOID PrimUpdateItemToDDEServer \(\) \{$
+* PrivateTerminateDDEServer ^VOID PrivateTerminateDDEServer \(\) \{$
+* PrimNegativeResponseDDEServer ^VOID PrimNegativeResponseDDEServer \(\) \{$
+* PrimPositiveResponseDDEServer ^VOID PrimPositiveResponseDDEServer \(\) \{$
+* SaveItemNameSymbol ^OPTR SaveItemNameSymbol \(OPTR oItemName\) \{$
+C:\Source\peoria32\c\kernel\DEBUG.C Debugger ^VOID Debugger \(\) \{$
+* MainDebug ^VOID MainDebug \(ULONG option\) \{$
+* MemAvailObject ^VOID MemAvailObject \(\) \{$
+* OutReturnStack ^VOID OutReturnStack \(\) \{$
+* DumpObject ^VOID DumpObject \(BOOL recursive, OPTR obj\) \{$
+* OutObject ^VOID OutObject \(PSZ prompt, OPTR obj\) \{$
+* PrivateGetContextStackSystem ^VOID PrivateGetContextStackSystem \(\) \{$
+* GetCodeObjectStackSystem ^VOID GetCodeObjectStackSystem \(\) \{$
+* GetProgramCounterStackSystem ^VOID GetProgramCounterStackSystem \(\) \{$
+* GetHomeContextStackSystem ^VOID GetHomeContextStackSystem \(\) \{$
+* GetParamStackSystem ^VOID GetParamStackSystem \(\) \{$
+* SetParamStackToSystem ^VOID SetParamStackToSystem \(\) \{$
+* OpenDebugWindow ^BOOL OpenDebugWindow \(PSZ explanation\) \{$
+C:\Source\peoria32\c\kernel\DICT.C NewDictionary ^VOID NewDictionary \(\) \{$
+* NewEntriesDictionary ^VOID NewEntriesDictionary \(\) \{$
+* AtDeepDictionary ^VOID AtDeepDictionary \(\) \*/$
+* AtPutDeepDictionary ^VOID AtPutDeepDictionary \(\) \{$
+* DeepDictionaryAssign ^VOID DeepDictionaryAssign \(OPTR dictOP, OPTR keyOP, OPTR valueOP\) \{$
+* DeepDictionaryLookup ^OPTR DeepDictionaryLookup \(OPTR dictOP, OPTR keyOP\) \{$
+* DeepDictionaryRemoveAt ^BOOL DeepDictionaryRemoveAt \(OPTR dictOP, OPTR keyOP\) \{$
+* RemoveAtDeepDictionary ^VOID RemoveAtDeepDictionary \(\) \{$
+* RemoveAtIfAbsentDeepDictionary ^VOID RemoveAtIfAbsentDeepDictionary \(\) \{$
+* DoDictionary ^VOID DoDictionary \(\) \{$
+* KeysDoDictionary ^VOID KeysDoDictionary \(\) \{$
+* AssocDoDictionary ^VOID AssocDoDictionary \(\) \{$
+* KeysAsArrayDictionary ^VOID KeysAsArrayDictionary \(\) \{$
+* HashDictionary ^VOID HashDictionary \(\) \{$
+* ExpandDeepDictionary ^VOID ExpandDeepDictionary \(\) \{$
+C:\Source\peoria32\c\kernel\DLLFLOAT.C ConvertFltToStr ^// ConvertFltToStr \(\)$
+C:\Source\peoria32\c\kernel\DLLMAIN.C DllMain ^BOOL WINAPI DllMain \(HANDLE hInst, ULONG ulReason, LPVOID lpReserved\) \{$
+C:\Source\peoria32\c\kernel\DRAWPORT.C ObjVar2L ^LONG ObjVar2L \(OPTR o, LONG i\) \{$
+* ObjVar2H ^ULONG  ObjVar2H \(OPTR o, SHORT i\) \{$
+* GetTextExtentForDPort ^VOID  GetTextExtentForDPort \(\) \{$
+* SetPixelAtDPort ^VOID  SetPixelAtDPort \(\) \{$
+* DrawFromToDPort ^VOID  DrawFromToDPort \(\) \{$
+* RectFromToDPort ^VOID  RectFromToDPort \(\) \{$
+* PrintTextAtDPort ^VOID  PrintTextAtDPort \(\) \{$
+* PieCntrStrtSweepRadiusDPort ^VOID  PieCntrStrtSweepRadiusDPort \(\) \{$
+* PolyLinePointsDPort ^VOID  PolyLinePointsDPort \(\) \{$
+* FillPolyLinePointsModeDPort ^VOID  FillPolyLinePointsModeDPort \(\) \{$
+* SetDrawModeDPort ^VOID  SetDrawModeDPort \(\) \{$
+* SetPenColorDPort ^VOID  SetPenColorDPort \(\) \{$
+* SetPenWidthDPort ^VOID  SetPenWidthDPort \(\) \{$
+* RedrawRectDPort ^VOID  RedrawRectDPort \(\) \{$
+* EraseDPort ^VOID  EraseDPort \(\) \{$
+* CopyRectToAtModeDPort ^VOID  CopyRectToAtModeDPort \(\) \{$
+* CopyRectToAtRectModeDPort ^VOID  CopyRectToAtReop \(\); /\* Source Rectangle \*/$
+* SplinePointsDPort ^VOID  SplinePointsDPort \(\) \{$
+* PrivateSetMarkerToDPort ^VOID  PrivateSetMarkerToDPort \(\) \{$
+* DrawMarkerAtDPort ^VOID  DrawMarkerAtDPort \(\) \{$
+* ResizeToDPort ^VOID  ResizeToDPort \(\) \{$
+* SetFillPatternDPort ^VOID  SetFillPatternDPort \(\) \{$
+* CircleAtRadiusModeDPort ^VOID  CircleAtRadiusModeDPort \(\) \{$
+* FloodFillDPort ^VOID  FloodFillDPort \(\) \{$
+C:\Source\peoria32\c\kernel\FALSE.C FalseBinSel ^FalseBinSel \(GreaterFalse, \>\)$
+* CheckFalseBlock ^static BOOL CheckFalseBlock \(OPTR blockContext\) \{$
+* NoEvalAndFalse ^VOID NoEvalAndFalse \(\) \{$
+* NoEvalOrFalse ^VOID NoEvalOrFalse \(\) \{$
+* IfThenElseFalse ^VOID IfThenElseFalse \(\) \{$
+* IfFalseIfTrueFalse ^VOID IfFalseIfTrueFalse \(\) \{$
+* IfThenFalse ^VOID IfThenFalse \(\) \{$
+* IfNotThenFalse ^VOID IfNotThenFalse \(\) \{$
+* PrintFalse ^VOID PrintFalse \(void\) \{$
+C:\Source\peoria32\c\kernel\FBUTTON.C OpenFButton ^VOID OpenFButton \(\) \{$
+* HighlightOnFButton ^VOID HighlightOnFButton \(\) \{$
+* HighlightOffFButton ^VOID HighlightOffFButton \(\) \{$
+* UpdateFButton ^VOID UpdateFButton \(\) \{$
+* ResizeWidthHeightFButton ^VOID ResizeWidthHeightFButton \(\) \{$
+C:\Source\peoria32\c\kernel\FCHKBOX.C OpenFCheckBox ^VOID OpenFCheckBox \(\) \{$
+* UpdateFCheckBox ^VOID UpdateFCheckBox \(\) \{$
+C:\Source\peoria32\c\kernel\FCHKLST.C DisableFChkLst ^VOID DisableFChkLst \(\) \{$
+* EnableFChkLst ^VOID EnableFChkLst \(\) \{$
+* OpenFChkLst ^VOID OpenFChkLst \(\) \{$
+* UpdateFChkLst ^VOID UpdateFChkLst \(\) \{$
+* ResizeWidthHeightFChkLst ^VOID ResizeWidthHeightFChkLst \(\) \{$
+* EditorControlFChkLst ^VOID EditorControlFChkLst \(\) \{$
+C:\Source\peoria32\c\kernel\FCOMBO.C OpenFCombo ^VOID OpenFCombo \(\) \{$
+* UpdateFCombo ^VOID UpdateFCombo \(\) \{$
+* UpdateStringFCombo ^VOID UpdateStringFCombo \(\) \{$
+* EditorControlFCombo ^VOID EditorControlFCombo \(\) \{$
+* ResizeWidthHeightFCombo ^VOID _FORMCOMBO, PTOS \(\), NULL\);$
+* SetFocusFCombo ^VOID SetFocusFCombo \(\) \{$
+* SetSelectionFromToFCombo ^VOID SetSelectionFromToFCombo \(\) \{$
+C:\Source\peoria32\c\kernel\FDLIST.C EditorControlFDList ^VOID EditorControlFDList \(\) \{$
+* OpenFDList ^VOID OpenFDList \(\) \{$
+* ResizeWidthHeightFDList ^VOID ResizeWidthHeightFDList \(\) \{$
+* UpdateFDList ^VOID UpdateFDList \(\) \{$
+* SetFocusFDList ^VOID SetFocusFDList \(\) \{$
+* SetSelectionFromToFDList ^VOID SetSelectionFromToFDList \(\) \{$
+C:\Source\peoria32\c\kernel\FILE.C IsSameFileAsFile ^VOID IsSameFileAsFile \(\) \{$
+C:\Source\peoria32\c\kernel\FILESTR2.C DeleteOnErrorFileStream ^VOID DeleteOnErrorFileStream \(\) \{$
+* MoveToOnErrorFileStream ^VOID MoveToOnErrorFileStream \(\) \{$
+* UpdateReadLimit ^VOID UpdateReadLimit \(OPTR oSelf, ULONG ulNewLimit\) \{$
+C:\Source\peoria32\c\kernel\FILESTRM.C FillBufFileStream ^static USHORT FillBufFileStream\(OPTR oSelf\) \{$
+* AtEndFileStream ^VOID AtEndFileStream \(\) \{$
+* NextByteOnErrorFileStream ^VOID NextByteOnErrorFileStream \(\) \{$
+* NextStringOnErrorFileStream ^VOID NextStringOnErrorFileStream \(\) \{$
+* SetModifiedFileStream ^static VOID SetModifiedFileStream\(OPTR oSelf, BOOL fModified\) \{$
+* NextPutStringOnErrorFileStream ^VOID NextPutStringOnErrorFileStream \(\) \{$
+* PositionFileStream ^VOID PositionFileStream \(\) \{$
+* NextStringFileStream ^VOID NextStringFileStream \(\) \{$
+* FlushOnErrorFileStream ^VOID FlushOnErrorFileStream \(\) \{$
+* CreateFileOnErrorFileStream ^VOID CreateFileOnErrorFileStream \(\) \{$
+* FindPatternFileStream ^VOID FindPatternFileStream \(\) \{$
+* NextBytePutFileStream ^VOID NextBytePutFileStream \(\) \{$
+* NewFileOnErrorFileStream ^VOID NewFileOnErrorFileStream \(\) \{$
+* ErrorFileStream ^VOID ErrorFileStream \(USHORT usErrorCode\) \{$
+C:\Source\peoria32\c\kernel\FITEM.C CloseFItem ^VOID CloseFItem \(\) \{$
+* DeselectFItem ^VOID DeselectFItem \(\) \{$
+* DisableFItem ^VOID DisableFItem \(\) \{$
+* EditorControlFItem ^VOID EditorControlFItem \(\) \{$
+* EnableFItem ^VOID EnableFItem \(\) \{$
+* HideFItem ^VOID HideFItem \(\) \{$
+* MoveXYFItem ^VOID MoveXYFItem \(\) \{$
+* OptionsFItem ^VOID OptionsFItem \(\) \{$
+* PelExtentFItem ^VOID PelExtentFItem \(\) \{$
+* PelClientExtentFItem ^VOID PelClientExtentFItem \(\) \{$
+* PelPositionFItem ^VOID PelPositionFItem \(\) \{$
+* PlaceInBackFItem ^VOID PlaceInBackFItem \(void\) \{$
+* PlaceInFrontFItem ^VOID PlaceInFrontFItem \(void\) \{$
+* PrivateSetParentToFItem ^VOID PrivateSetParentToFItem \(\) \{$
+* RefreshFItem ^VOID RefreshFItem \(\) \{$
+* ResizeWidthHeightFItem ^VOID ResizeWidthHeightFItem \(\) \{$
+* SelectFItem ^VOID SelectFItem \(\) \{$
+* SetFocusFItem ^VOID SetFocusFItem \(\) \{$
+* SetOptionsToFItem ^VOID SetOptionsToFItem \(\) \{$
+* ShowFItem ^VOID ShowFItem \(\) \{$
+* UpdateFItem ^VOID UpdateFItem \(\) \{$
+* SetVisibility ^VOID SetVisibility   \(OPTR oSelf, BOOL fVisible\) \{$
+C:\Source\peoria32\c\kernel\FLINE.C OpenFLine ^VOID OpenFLine \(\) \{$
+C:\Source\peoria32\c\kernel\FLIST.C OpenFList ^VOID OpenFList \(\) \{$
+* RefreshSelectionActFList ^VOID RefreshSelectionActFList \(\) \{$
+* UpdateFList ^VOID UpdateFList \(\) \{$
+* SetSelectionToFList ^VOID SetSelectionToFList \(\) \{$
+* SetTopToFList ^VOID SetTopToFList \(\) \{$
+* SetLeftToFList ^VOID SetLeftToFList \(\) \{$
+* LeftFList ^VOID LeftFList \(\) \{$
+* MaxLeftFList ^VOID MaxLeftFList \(\) \{$
+* NextStringPos ^SHORT NextStringPos \(OPTR oSelf, SHORT oldIndex, USHORT chr\) \{$
+C:\Source\peoria32\c\kernel\FLOAT.C MultiplyFloat ^VOID MultiplyFloat \(\) \{$
+* SubtractFloat ^VOID SubtractFloat \(\) \{$
+* AddFloat ^VOID AddFloat \(\) \{$
+* DivideFloat ^VOID DivideFloat \(\) \{$
+* FloatDivideFloat ^VOID FloatDivideFloat \(\) \{$
+* ModuloFloat ^VOID ModuloFloat \(\) \{$
+* AbsFloat ^VOID AbsFloat \(\) \{$
+* NegateFloat ^VOID NegateFloat \(\) \{$
+* AcosFloat ^VOID AcosFloat \(\) \{$
+* AsinFloat ^VOID AsinFloat \(\) \{$
+* ReciprocalFloat ^VOID ReciprocalFloat \(\) \{$
+* ExpFloat ^VOID ExpFloat \(\) \{$
+* SinFloat ^VOID SinFloat \(\) \{$
+* CosFloat ^VOID CosFloat \(\) \{$
+* TanFloat ^VOID TanFloat \(\) \{$
+* AtanFloat ^VOID AtanFloat \(\) \{$
+* LogFloat ^VOID LogFloat \(\) \{$
+* LnFloat ^VOID LnFloat \(\) \{$
+* SqrtFloat ^VOID SqrtFloat \(\) \{$
+* PowerFloat ^VOID PowerFloat \(\) \{$
+* EqualFloat ^VOID EqualFloat \(\) \{$
+* NotEqualFloat ^VOID NotEqualFloat \(\) \{$
+* GreaterFloat ^VOID GreaterFloat \(\) \{$
+* GreaterEqualFloat ^VOID GreaterEqualFloat \(\) \{$
+* LessFloat ^VOID LessFloat \(\) \{$
+* LessEqualFloat ^VOID LessEqualFloat \(\) \{$
+* NegativeFloat ^VOID NegativeFloat \(\) \{$
+* PostiveFloat ^VOID PostiveFloat \(\) \{$
+* StrictlyPositiveFloat ^VOID StrictlyPositiveFloat \(\) \{$
+* SignFloat ^VOID SignFloat \(\) \{$
+* PPushNumber ^VOID PPushNumber \(DOUBLE val\) \{$
+* FloorFloat ^VOID FloorFloat \(\) \{$
+* CeilingFloat ^VOID CeilingFloat \(\) \{$
+* TruncateFloat ^VOID TruncateFloat \(\) \{$
+* RoundFloat ^VOID RoundFloat \(\) \{$
+* Times2PowerFloat ^VOID Times2PowerFloat \(\) \{$
+* DegreesToRadiansFloat ^VOID DegreesToRadiansFloat \(\) \{$
+* RadiansToDegreesFloat ^VOID RadiansToDegreesFloat \(\) \{$
+* CoerceFloat ^VOID CoerceFloat \(\) \{$
+* GeneralityFloat ^VOID GeneralityFloat \(\) \{$
+* PrintFloat ^VOID PrintFloat \(\) \{$
+* EpsilonForFloat ^VOID EpsilonForFloat \(\) \{$
+* IsNANFloat ^VOID IsNANFloat \(\) \{$
+C:\Source\peoria32\c\kernel\FMENU.C OpenFSubMenu ^VOID OpenFSubMenu \(\) \{$
+* UpdateFSubMenu ^VOID UpdateFSubMenu \(\) \{$
+* SetSelectionToFSubMenu ^VOID SetSelectionToFSubMenu \(\) \{$
+* EnableAtFSubMenu ^VOID EnableAtFSubMenu \(\) \{$
+* DisableAtFSubMenu ^VOID DisableAtFSubMenu \(\) \{$
+* RemoveFSubMenu ^VOID RemoveFSubMenu \(\) \{$
+* PrivateCloseFSubMenu ^VOID PrivateCloseFSubMenu \(\) \{$
+* HelpForHelpFSubMenu ^VOID HelpForHelpFSubMenu \(\) \{$
+* ExtendedHelpFSubMenu ^VOID ExtendedHelpFSubMenu \(\) \{$
+* KeysHelpFSubMenu ^VOID KeysHelpFSubMenu \(\) \{$
+* HelpIndexFSubMenu ^VOID HelpIndexFSubMenu \(\) \{$
+C:\Source\peoria32\c\kernel\FMLSTRNG.C MoveXYFMLString ^VOID MoveXYFMLString \(\) \{$
+* OpenFMLString ^VOID OpenFMLString \(\) \{$
+* UpdateFMLString ^VOID UpdateFMLString \(\) \{$
+* SetSelectionFromToFMLString ^VOID SetSelectionFromToFMLString \(\) \{$
+* SelectionChangedFMLString ^VOID SelectionChangedFMLString \(\) \{$
+* MakeSureSelectionsNotNil ^VOID MakeSureSelectionsNotNil \(OPTR oSelf\) \{$
+C:\Source\peoria32\c\kernel\FMSLIST.C OpenFMSList ^VOID OpenFMSList \(\) \{$
+* UpdateFMSList ^VOID UpdateFMSList \(\) \{$
+C:\Source\peoria32\c\kernel\FMSMENU.C CheckAtFMSSubMenu ^VOID CheckAtFMSSubMenu \(\) \{$
+* UncheckAtFMSSubMenu ^VOID UncheckAtFMSSubMenu \(\) \{$
+C:\Source\peoria32\c\kernel\FOHNDLR.C HideFObjHndlr ^VOID HideFObjHndlr \(\) \{$
+* OpenFObjHndlr ^VOID OpenFObjHndlr \(\) \{$
+* PrivateCaptureFObjHndlr ^VOID PrivateCaptureFObjHndlr \(\) \{$
+* ShowFObjHndlr ^VOID ShowFObjHndlr \(\) \{$
+* UpdateFObjHndlr ^VOID UpdateFObjHndlr \(\) \{$
+* SelectModifierFObjHndlr ^VOID SelectModifierFObjHndlr \(\) \{$
+C:\Source\peoria32\c\kernel\FONT.C BoldFont ^VOID BoldFont \(VOID\) \{$
+* ItalicFont ^VOID ItalicFont \(VOID\) \{$
+* StrikeOutFont ^VOID StrikeOutFont \(VOID\) \{$
+* UnderscoreFont ^VOID UnderscoreFont \(VOID\) \{$
+* SetBoldToFont ^VOID SetBoldToFont \(VOID\) \{$
+* SetItalicToFont ^VOID SetItalicToFont \(VOID\) \{$
+* SetStrikeOutToFont ^VOID SetStrikeOutToFont \(VOID\) \{$
+* SetUnderscoreToFont ^VOID SetUnderscoreToFont \(VOID\) \{$
+C:\Source\peoria32\c\kernel\FORM.C PrimBorderWidthsForm ^BOOL PrimBorderWidthsForm \(\) \{$
+* PrimFormFocusForm ^BOOL PrimFormFocusForm   \(\) \{$
+* PrimActivateForm ^BOOL PrimActivateForm \(\) \{$
+* PrimDisableForm ^BOOL PrimDisableForm \(\) \{$
+* PrimDisableUpdateForm ^BOOL PrimDisableUpdateForm \(\) \{$
+* PrimEnableForm ^BOOL PrimEnableForm \(\) \{$
+* PrimEnableUpdateForm ^BOOL PrimEnableUpdateForm \(\) \{$
+* PrimFormItemFocusForm ^BOOL PrimFormItemFocusForm \(\) \{$
+* PrimGetScrollBarPositionsForm ^BOOL PrimGetScrollBarPositionsForm \(\) \{$
+* PrimGetOwnerForm ^BOOL PrimGetOwnerForm \(\) \{$
+* PrimInitializeHelpForm ^BOOL PrimInitializeHelpForm \(\) \{$
+* PrimMaximizeForm ^BOOL PrimMaximizeForm \(\) \{$
+* PrimMinimizeForm ^BOOL PrimMinimizeForm \(\) \{$
+* PrimMoveForm ^BOOL PrimMoveForm \(\) \{$
+* PrimMoveToForm ^BOOL PrimMoveToForm \(\) \{$
+* PrimMoveToResizeToForm ^BOOL PrimMoveToResizeToForm \(\) \{$
+* PrimOpenWindowForm ^BOOL PrimOpen \(\);$
+* PrimPlaceInBackForm ^BOOL PrimPlaceInBackForm \(\) \{$
+* PrimPlaceInFrontForm ^BOOL PrimPlaceInFrontForm \(\) \{$
+* PrimPrivateFreeHelpTableForm ^BOOL PrimPrivateFreeHelpTableForm \(\) \{$
+* PrimPrivateSetFocusFormForm ^BOOL PrimPrivateSetFocusFormForm \(\) \{$
+* PrimPrivateSetOwnerToForm ^BOOL PrimPrivateSetOwnerToForm \(\) \{$
+* PrimPrivateSetWindowTextForm ^BOOL PrimPrivateSetWindowTextForm \(\) \{$
+* PrimRefreshForm ^BOOL PrimRefreshForm \(\) \{$
+* PrimRemoveFromTaskListForm ^BOOL PrimRemoveFromTaskListForm \(\) \{$
+* PrimResizeToForm ^BOOL PrimResizeToForm \(\) \{$
+* PrimRestoreForm ^BOOL PrimRestoreForm \(\) \{$
+* PrimSetAccelTableToForm ^BOOL PrimSetAccelTableToForm \(\) \{$
+* PrimSetSystemMenuToForm ^BOOL PrimSetSystemMenuToForm \(\) \{$
+* PrimSizeForm ^BOOL PrimSizeForm \(\) \{$
+* PrimSwitchToTaskManagerForm ^BOOL PrimSwitchToTaskManagerForm \(\) \{$
+* PrimResetScrollBarsForm ^BOOL PrimResetScrollBarsForm \(\) \{$
+* PrimSetIconToForm ^BOOL PrimSetIconToForm \(\) \{$
+C:\Source\peoria32\c\kernel\FPASSWRD.C OpenFPassword ^VOID OpenFPassword \(\) \{$
+* UpdateFPassword ^VOID UpdateFPassword \(\) \{$
+C:\Source\peoria32\c\kernel\FPICTURE.C OpenFPicture ^VOID OpenFPicture \(\) \{$
+* CloseFPicture ^VOID CloseFPicture \(\) \{$
+* EraseFPicture ^VOID EraseFPicture \(\) \{$
+* RedrawRectFPicture ^VOID RedrawRectFPicture \(\) \{$
+C:\Source\peoria32\c\kernel\FRADIO.C DisableAtFRadio ^ch button \*/$
+* DisableFRadio ^VOID DisableFRadio \(\) \{$
+* EnableFRadio ^VOID EnableFRadio \(\) \{$
+* EnableAtFRadio ^VOID EnableAtFRadio \(\) \{$
+* IsEnabledAtFRadio ^VOID IsEnabledAtFRadio \(\) \{$
+* OpenFRadio ^VOID OpenFRadio \(\) \{$
+* UpdateFRadio ^VOID UpdateFRadio \(\) \{$
+* ResizeWidthHeightFRadio ^VOID ResizeWidthHeightFRadio \(\) \{$
+* EditorControlFRadio ^VOID EditorControlFRadio \(\) \{$
+C:\Source\peoria32\c\kernel\FRECT.C SetFocusFRect ^VOID SetFocusFRect \(\) \{$
+* UpdateAtFRect ^VOID UpdateAtFRect \(\) \{$
+* RemoveAtFRect ^VOID RemoveAtFRect \(\) \{$
+* SetRangeToFRect ^VOID SetRangeToFRect \(\) \{$
+* CloseFRect ^VOID CloseFRect \(\) \{$
+* UpdateFRectData ^VOID UpdateFRectData \(OPTR oSelf\) \{$
+* UpdateWidthsHeights ^SHORT UpdateWidthsHeights \(OPTR oSelf, SHORT sTotalLength, SHORT sStart,$
+* OpenFRect ^VOID OpenFRect \(\) \{$
+* SetSelectionToFRect ^VOID SetSelectionToFRect \(\) \{$
+* DisplayedOriginFRect ^VOID DisplayedOriginFRecf\*/$
+* DisplayedExtentFRect ^VOID DisplayedExtentFRect \(\) \{$
+C:\Source\peoria32\c\kernel\FSPIN.C MoveXYFSpin ^VOID MoveXYFSpin \(\) \{$
+* OpenFSpin ^VOID OpenFSpin \(\) \{$
+* ResizeWidthHeightFSpin ^VOID ResizeWidthHeightFSpin \(\) \{$
+* EditorControlFSpin ^VOID EditorControlFSpin \(\) \{$
+* UpdateFSpin ^VOID UpdateFSpin \(\) \{$
+* SetFocusFSpin ^VOID SetFocusFSpin \(\) \{$
+C:\Source\peoria32\c\kernel\FSTATIC.C OpenFStatic ^VOID OpenFStatic \(\) \{$
+* UpdateFStatic ^VOID UpdateFStatic \(\) \{$
+C:\Source\peoria32\c\kernel\FSTRING.C MoveXYFString ^VOID MoveXYFString \(\) \{$
+* OpenFString ^VOID OpenFString \(\) \{$
+* ResizeWidthHeightFString ^VOID ResizeWidthHeightFString \(\) \{$
+* UpdateFString ^VOID UpdateFString \(\) \{$
+C:\Source\peoria32\c\kernel\FSYNC.C OpenFSyncList ^VOID OpenFSyncList \(\) \{$
+* UpdateFSyncList ^VOID UpdateFSyncList \(\) \{$
+C:\Source\peoria32\c\kernel\FTLIST.C FLeftFTabList ^VOID FLeftFTabList\(\) \{$
+* FMaxLeftFTabList ^VOID FMaxLeftFTabList\(\) \{$
+* PrivateSetCharWidthToFTabList ^VOID PrivateSetCharWidthToFTabList \(\) \{$
+* EditorControlFTabList ^VOID EditorControlFTabList \(\) \{$
+* OpenFMSTabList ^VOID OpenFMSTabList \(\) \{$
+* OpenFTabList ^VOID OpenFTabList \(\) \{$
+* PrivateDrawDataFTabList ^VOIOS \(\),$
+* ResizeWidthHeightFTabList ^VOID ResizeWidthHeightFTabList \(\) \{$
+* UpdateFTabList ^VOID UpdateFTabList \(\) \{$
+* SetFocusFTabList ^VOID SetFocusFTabList \(\) \{$
+* SetSelectionToFTabList ^VOID SetSelectionToFTabList \(\) \{$
+* ConvertToTextFTabList ^VOID ConvertToTextFTabList \(\) \{$
+* TraverseDictConvertText ^BOOL TraverseDictConvertText \(OPTR oDisplayDict, OPTR oDict\) \{$
+C:\Source\peoria32\c\kernel\TIME.C AsArrayTime ^VOID AsArrayTime \(\) \{$
+* AsStringTime ^VOID AsStringTime \(\) \{$
+* AsISOStringTime ^VOID AsISOStringTime \(\) \{$
+* StringForTime ^VOID StringForTime \(CHAR chPunc\) \{$
+* TimeChunk ^VOID TimeChunk \(INT iNum, PSZ pszTime\) \{$
+C:\Source\peoria32\c\kernel\TRUE.C TrueBinSel ^TrueBinSel \(GreaterTrue, \>\)$
+* CheckTrueBlock ^static BOOL CheckTrueBlock \(OPTR blockContext\) \{$
+* NoEvalAndTrue ^VOID NoEvalAndTrue \(\) \{$
+* NoEvalOrTrue ^VOID NoEvalOrTrue \(\) \{$
+* IfThenElseTrue ^VOID IfThenElseTrue \(\) \{$
+* IfFalseIfTrueTrue ^VOID IfFalseIfTrueTrue \(\) \{$
+* IfThenTrue ^VOID IfThenTrue \(\) \{$
+* IfNotThenTrue ^VOID IfNotThenTrue \(\) \{$
+* PrintTrue ^VOID PrintTrue \(void\) \{$
+C:\Source\peoria32\c\kernel\VECT.C GeneralityVector ^VOID GeneralityVector \(\) \{$
+* SizeVector ^VOID SizeVector \(\) \{$
+* AddVector ^VOID AddVector \(\) \{$
+* SubtractVector ^VOID SubtractVector \(\) \{$
+* MultiplyVector ^VOID MultiplyVector \(\) \{$
+* FloatDivideVector ^VOID FloatDivideVector \(\) \{$
+* DivideVector ^VOID DivideVector \(\) \{$
+* PowerVector ^VOID PowerVector \(\) \{$
+* ModuloVector ^VOID ModuloVector \(\) \{$
+* AbsVector ^VOID AbsVector \(\) \{$
+* NegateVector ^VOID NegateVector \(\) \{$
+* ReciprocalVector ^VOID ReciprocalVector \(\) \{$
+* ExpVector ^VOID ExpVector \(\) \{$
+* LnVector ^VOID LnVector \(\) \{$
+* LogVector ^VOID LogVector \(\) \{$
+* SinVector ^VOID SinVector \(\) \{$
+* CosVector ^VOID CosVector \(\) \{$
+* TanVector ^VOID TanVector \(\) \{$
+* AtanVector ^VOID AtanVector \(\) \{$
+* SqrtVector ^VOID SqrtVector \(\) \{$
+C:\Source\peoria32\c\kernel\VECT2.C NewSizeFillValueVector ^VOID NewSizeFillValueVector \(\) \{$
+* NewValuesVector ^VOID NewValuesVector \(\) \{$
+* VectorBounds ^VOID VectorBounds \(OPTR vector, LONG  idx\) \{$
+* AtVector ^VOID AtVector \(\) \{$
+* AtPutVector ^VOID AtPutVector \(\) \{$
+* CopyVector ^VOID CopyVector \(\) \{$
+* CopyFromToVector ^VOID CopyFromToVector \(\) \{$
+* RevArgsOpVector ^VOID RevArgsOpVector \(\) \{$
+* VectorOpsVector ^VOID VectorOpsVector \(LONG  op\) \{$
+* BinaryOpsVector ^VOID BinaryOpsVector \(LONG  op\) \{$
+* UnaryOpsVector ^VOID UnaryOpsVector \(LONG  op\) \{$
+* DotProdVector ^VOID DotProdVector \(\) \{$
+* DotProdIgnoreNAVector ^VOID DotProdIgnoreNAVector \(\) \{$
+* SumVector ^VOID SumVector \(\) \{$
+* SumIgnoreNAVector ^VOID SumIgnoreNAVector \(\) \{$
+* EqualVector ^VOID EqualVector \(\) \{$
+* NotEqualVector ^VOID NotEqualVector \(\) \{$
+* SetSizeToVector ^VOID SetSizeToVector \(\) \{$
+C:\Source\peoria32\c\kernel\WEAKREF.C PrepareToTraverseWeakObject ^VOID APIFUNC PrepareToTraverseWeakObject \(OPTR oWeakObject\) \{$
+* PrepareToTraverseWeakDictionary ^static VOID PrepareToTraverseWeakDictionary \(OPTR oWeakDict\) \{$
+* PrepareToTraverseWeakList ^static VOID PrepareToTraverseWeakList \(OPTR oContainer, POPTR weakList, INT numItems\) \{$
+* DEBUGCheckWeakObject ^static VOID DEBUGCheckWeakObject \(OPTR oWeakObject\) \{$
+* InitializeWeakReferenceList ^VOID InitializeWeakReferenceList \(void\) \{$
+* AddObjectToWeakReferenceList ^static VOID AddObjectToWeakReferenceList \(OPTR oObject, OPTR oContainer\) \{$
+* AddObjectToFinalizationList ^VOID AddObjectToFinalizationList \(OPTR obj\) \{$
+* FinalizeObjects ^VOID FinalizeObjects \(void\) \{$
+* AbortFinalization ^VOID AbortFinalization \(void\) \{$
+* PostFinalization ^static VOID PostFinalization \(void\) \{$
+* ObjectMakeWeak ^VOID ObjectMakeWeak \(OPTR oSelf\) \{$
+* ObjectMakeStrong ^VOID ObjectMakeStrong \(OPTR oSelf\) \{$
+* ObjectIsWeak ^BOOL ObjectIsWeak \(OPTR oSelf\) \{$
+* MakeWeakObject ^VOID MakeWeakObject \(\) \{$
+* MakeStrongObject ^VOID MakeStrongObject \(\) \{$
+* IsWeakObject ^VOID IsWeakObject \(\) \{$
+C:\Source\peoria32\c\kernel\WPWINDOW.C PrimOpenWindowWPWindow ^VOID PrimOpenWindowWPWindow \(\) \{$
+* PrimUpdateWPLH ^BOOL PrimUpdateWPLH \(\) \{$
+* PrimPrivateCaptureWPLH ^BOOL PrimPrivateCaptureWPLH \(\) \{$
+C:\Source\peoria32\c\kernel\STRING2.C StringBounds ^VOID StringBounds \(OPTR str, INT idx\) \{$
+* StackAtMustBeString ^VOID StackAtMustBeString \(SHORT iStack\) \{$
+* StackTOSMustBeString ^VOID StackTOSMustBeString \(\) \{$
+* StackAtMakeIntoString ^VOID StackAtMakeIntoString \(SHORT iStack\) \{$
+* StackTOSMakeIntoString ^VOID StackTOSMakeIntoString \(\) \{$
+* NewSizeFillWithString ^VOID NewSizeFillWithString \(\) \{$
+* AsNumberString ^VOID AsNumberString \(\) \{$
+* LJustString ^VOID LJustString \(\) \{$
+* RJustString ^VOID RJustString \(\) \{$
+* CJustString ^VOID CJustString \(\) \{$
+* AsStreamString ^VOID AsStreamString \(\) \{$
+* CopyLastLineIntoStream ^static VOID CopyLastLineIntoStream \(OPTR oDest, PSZ pszSource, INT cch\) \{$
+* ExpandTabsByString ^VOID ExpandTabsByString \(\) \{$
+* IndexOfString ^VOID IndexOfString \(\) \{$
+* CopySubstitutingForString ^VOID CopySubstitutingForString \(\) \{$
+* SameAsString ^VOID SameAsString \(\) \{$
+* AsLowercaseString ^VOID AsLowercaseString \(\) \{$
+* AsUppercaseString ^VOID AsUppercaseString \(\) \{$
+* OutString ^VOID OutString \(\) \{$
+* SaveImageToFileString ^VOID SaveImageToFileString \(\) \{$
+* CopyFileToModeOnErrorString ^VOID CopyFileToModeOnErrorString \(\) \{$
+* AppendString ^VOID AppendString \(\) \{$
+* VerifyInString ^VOID VerifyInString \(\) \{$
+* InReplaceAtWithString ^VOID InReplaceAtWithString \(\) \{$
+* AsTimestampString ^VOID AsTimestampString \(\) \{$
+* AsTimeString ^VOID AsTimeString \(\) \{$
+* GetStringDigitsFromString ^static INT GetStringDigitsFromString \(INT nIndex, INT nSelfSize, INT nFractionLen\) \{$
+* ExtractFieldsString ^VOID ExtractFieldsString \(\) \{$
+* ExtractIntegersString ^VOID ExtractIntegersString \(\) \{$
+* ExtractTimeString ^VOID ExtractTimeString \(INT iFractionPos, INT iFractionMaxLen\) \{$
+* AllIndicesOfString ^VOID AllIndicesOfString \(\) \{$
+* strrstr ^char \*strrstr \(char \*string, char \*searchFor\) \{$
+* ReverseIndexOfString ^VOID ReverseIndexOfString \(\) \{$
+* ExtractStringsDelimiterEscape ^VOID ExtractStringsDelimiterEscape \(\) \{$
+* CopyFromToString ^VOID CopyFromToString \(\) \{$
+* PrintString ^VOID PrintString \(\) \{$
+* ConcatString ^VOID ConcatString \(\) \{$
+* ConcatWithBlankString ^VOID ConcatWithBlankString \(\) \{$
+* CopyString ^VOID CopyString \(\) \{$
+C:\Source\peoria32\c\kernel\BCD.C BCDAdd ^BYTE BCDAdd \(PBYTE\* pbLast, PBYTE pbFinish, PBYTE pbFirst\) \{$
+* BCDSub ^BYTE BCDSub \(PBYTE\* pbLast, PBYTE pbFinish, PBYTE pbFirst\) \{$
+* NewStringBcd ^VOID NewStringBcd \(\) \{$
+* NegateBcd ^VOID NegateBcd \(\) \{$
+* HashBcd ^VOID HashBcd \(\) \{$
+* AsStringBcd ^VOID AsStringBcd \(\) \{$
+* AddBcd ^VOID AddBcd \(\) \{$
+* SubtractBcd ^VOID SubtractBcd \(\) \{$
+* MultiplyBcd ^VOID MultiplyBcd \(\) \{$
+* GreaterBcd ^VOID  GreaterBcd \(void\) \{$
+* GreaterEqualBcd ^VOID  GreaterEqualBcd \(void\) \{$
+* LessBcd ^VOID  LessBcd \(void\) \{$
+* LessEqualBcd ^VOID  LessEqualBcd \(void\) \{$
+* EqualBcd ^VOID  EqualBcd \(void\) \{$
+* AsFloatBcd ^VOID  AsFloatBcd \(void\) \{$
+* RoundBcd ^VOID  RoundBcd \(void\) \{$
+* TruncateBcd ^VOID  TruncateBcd \(void\) \{$
+* FloorBcd ^VOID  FloorBcd \(void\) \{$
+* CeilingBcd ^VOID  CeilingBcd \(void\) \{$
+* NotEqualBcd ^VOID  NotEqualBcd \(void\) \{$
+* AsFractionBcd ^VOID  AsFractionBcd \(\) \{$
+* PrivateIsZeroBcd ^BOOL PrivateIsZeroBcd \(OPTR oBcd\) \{$
+* PrivateNegateBcd ^VOID PrivateNegateBcd \(OPTR oSelf\) \{$
+* RemoveLeadingZeroes ^VOID RemoveLeadingZeroes \(PBYTE pbBcd, PINT piPrec, PINT piScale\) \{$
+* RemoveTrailingZeroes ^VOID RemoveTrailingZeroes \(PBYTE pbBcd, PINTd, pbBcd \+ 1, iNumBytes\);$
+* PrivateConvertBcd ^VOID PrivateConvertBcd \(PBYTE pbSelf, PSZ pStr\) \{$
+* PrivateSubtractBcd ^VOID PrivateSubtractBcd \(\) \{$
+* BcdTruncate ^VOID  BcdTruncate \(void\) \{$
+* PrivateCompareBcd ^INT PrivateCompareBcd \(\) \{$
+* BcdReduceScale0 ^BOOL  BcdReduceScale0 \(void\) \{$
+* BcdStrAllocate ^OPTR  BcdStrAllocate \(PSZ pszBcd\) \{$
+* BcdInitialize ^VOID  BcdInitialize \(\) \{$
+* PrivateCopyBcd ^OPTR  PrivateCopyBcd \(OPTR oBcd\) \{$
+* PrivateCopyAndNegateBcd ^OPTR PrivateCopyAndNegateBcd \(OPTR oBcd\) \{$
+C:\Source\peoria32\c\kernel\CUTILS.C CGetActualString ^PSZ CGetActualString \(OPTR oObj\) \{$
+* CGetFloat ^DOUBLE CGetFloat \(OPTR oObj\) \{$
+* CGetString ^PSZ CGetString \(OPTR oObj\) \{$
+* CIsKindOf ^BOOL CIsKindOf \(OPTR oObj, USHORT iClass\) \{$
+* CIsKindOfName ^BOOL CIsKindOfName \(OPTR oObj, PSZ className\) \{$
+* CIsKindOfNameSymbol ^BOOL CIsKindOfNameSymbol \(OPTR  return \(CIsKindOf \(oObj, classIndex\)\);$
+* CIsMemberOfName ^BOOL CIsMemberOfName \(OPTR oObj, PSZ className\) \{$
+* CIsMemberOf ^BOOL CIsMemberOf \(OPTR oObj, USHORT iClass\) \{$
+* CreateSetObjectState ^VOID  CreateSetObjectState \(OPTR oSelf\) \{$
+* ExecuteErrorBlock ^VOID ExecuteErrorBlock \(USHORT usErrorCode\) \{$
+* while ^   while \(\(ch = pszString\[cch\+\+\]\) != '\\0'\) \{          \\$
+* FindSymbol ^OPTR FindSymbol \(PSZ pszString\) \{$
+* GetInstVar ^OPTR GetInstVar \(OPTR oSelf, OPTR oName\) \{$
+* GetInstVarOffset ^SHORT GetInstVarOffset \(OPTR oSelf, OPTR oName\) \{$
+* GetMaxTextLength ^SHORT GetMaxTextLength \(OPTR oList\) \{$
+* InitTopAndCurrentSelection ^VOID InitTopAndCurrentSelection \(OPTR oSelf\) \{$
+* SetFormItemHandle ^VOID SetFormItemHandle \(OPTR oSelf, OPTR oHWND, HWND hControl\) \{$
+* TraverseDict ^VOID TraverseDict \(OPTR oDict, PFN pfn\) \{$
+* ClearDictValues ^VOID ClearDictValues \(OPTR oDict\) \{$
+* GetObjClassName ^OPTR GetObjClassName \(OPTR oObject\) \{$
+C:\Source\peoria32\c\kernel\BEHAVIO2.C AllInstancesBehavior ^VOID AllInstancesBehavior \(\) \{$
+C:\Source\peoria32\c\kernel\PRIM.C PrimSystemDebugger ^BOOL PrimSystemDebugger \(void\) \{$
+* IsValidPrimitiveNumber ^BOOL IsValidPrimitiveNumber \(int primNumber\) \{$
+* IsValidPrimitive ^BOOL \(FALSE\);$
+* GetModuleFromDict ^OPTR GetModuleFromDict \(OPTR oDllName\) \{$
+* AddModuleToDict ^VOID AddModuleToDict \(OPTR oDllName, OPTR oDllHandle\) \{$
+* GetModuleFuncFromDict ^OPTR GetModuleFuncFromDict \(OPTR oDllName, OPTR oFuncName\) \{$
+* AddModuleFuncToDict ^VOID AddModuleFuncToDict \(OPTR oDllName, OPTR oFuncName, OPTR oFuncHandle\) \{$
+* CallPrimitiveFunc ^BOOL CallPrimitiveFunc \(int primNumber\) \{$
+* CallUserPrimitiveFunc ^BOOL CallUserPrimitiveFunc \(OPTR oUserPrimFunc, OPTR oUserPrimDll\) \{$
+* UnLoadDllEntry ^VOID UnLoadDllEntry \(OPTR oDict, OPTR oKey, OPTR oVal\) \{$
+* ResetUserPrimDicts ^VOID ResetUserPrimDicts \(\) \{$
+C:\Source\peoria32\c\kernel\PRNTSTRM.C GetDefaultPrinterPStream ^VOID GetDefaultPrinterPStream \(\) \{$
+* NewFileOnErrorPStream ^VOID NewFileOnErrorPStream \(\) \{$
+* NextStringPutOnErrorPStream ^VOID NextStringPutOnErrorPStream \(\) \{$
+* NextBytePutPStream ^VOID NextBytePutPStream \(\) \{$
+* CloseOnErrorPStream ^VOID CloseOnErrorPStream \(\) \{$
+* DoNothing ^VOID DoNothing \(\) \{$
+C:\Source\peoria32\c\kernel\RECT.C NewTopLeftHeightWidthRectangle ^VOID NewTopLeftHeightWidthRectangle \(\) \{$
+C:\Source\peoria32\c\kernel\ARRAY.C NewArray ^VOID NewArray \(\) \{$
+* NewSizeArray ^VOID NewSizeArray \(\) \{$
+* NewWithValueArray ^VOID NewWithValueArray \(\) \{$
+* NewWithWithArray ^VOID NewWithWithArray \(\) \{$
+* HashArray ^VOID HashArray \(\) \{$
+* IndexTypeError ^static VOID IndexTypeError \(OPTR oSelf\) \{$
+* DeepIndexError ^static VOID DeepIndexError \(OPTR oSelf\) \{$
+* AtArray ^VOID  AtArray \(\) \{$
+* AtPutArray ^VOID  AtPutArray $
+* SizeArray ^VOID SizeArray \(\) \{$
+* ForDoArray ^VOID  ForDoArray \(\) \{$
+* ForWithDoArray ^V\(\);   /\* block context, return self \*/$
+* SetSizeToArray ^VOID SetSizeToArray \(\) \{$
+* CopyFromToArray ^VOID  CopyFromToArray \(\) \{$
+* Smaller ^static BOOL  Smaller \(OPTR a, OPTR b, OPTR oSmallerBlock\) \{$
+* ArraySort ^static VOID  ArraySort \( OPTR oSmallerBlock \) \{$
+* SortFromToArray ^VOID SortFromToArray \(\) \{$
+* SortFromToUsingArray ^VOID SortFromToUsingArray \(\) \{$
+* SortArray ^VOID SortArray \(\) \{$
+* SortUsingArray ^VOID SortUsingArray \(\) \{$
+* IndexOfArray ^VOID IndexOfArray \(\) \{$
+* IncludesArray ^VOID IncludesArray \(\) \{$
+* CollectArray ^VOID  CollectArray \(\) \{$
+* CARArray ^VOID CARArray \(\) \{$
+* CDRArray ^VOID CDRArray \(\) \{$
+* AddArray ^VOID AddArray \(\) \{$
+* ConcatArray ^VOID  ConcatArray \(\) \{$
+* RemoveAtArray ^VOID RemoveAtArray \(\) \{$
+* SelectArray ^VOID  SelectArray \(\) \{$
+* HasElementArray ^VOID  HasElementArray \(\) \{$
+* IsEmptyArray ^VOID  IsEmptyArray \(\) \{$
+* IsNotEmptyArray ^VOID IsNotEmptyArray \(\) \{$
+* CondArray ^VOID  CondArray \(\) \{$
+* ShallowCopyArray ^VOID ShallowCopyArray \(\) \{$
+* PopArray ^VOID PopArray \(\) \{$
+* GetMaxTextExtentArray ^VOID GetMaxTextExtentArray \(\) \{$
+* PrivateLoad1Array ^VOID PrivateLoad1Array \(\) \{$
+* PrivateLoad2Array ^VOID PrivateLoad2Array \(\) \{$
+* AsFontArray ^VOID AsFontArray \(\) \{$
+* AsColorArray ^VOID AsColorArray \(\) \{$
+* AsMLStringSeparator ^VOID AsMLStringSeparator\(\) \{$
+C:\Source\peoria32\c\kernel\SET2.C NewSet ^VOID NewSet \(\) \{$
+* NewEntriesSet ^VOID NewEntriesSet \(\) \{$
+* AddSet ^VOID AddSet \(\) \{$
+* RemoveSetMethod ^VOID RemoveSetMethod \(\) \{$
+* AsArraySet ^VOID AsArraySet \(\) \{$
+* HasElementSet ^VOID HasElementSet \(\) \{$
+* RemoveSet ^BOOL RemoveSet \(OPTR setOP, OPTR valueOP\) \{$
+* ExpandSet ^VOID ExpandSet \(\) \{$
+* SetLookup ^OPTR SetLookup \(OPTR setOP, OPTR valueOP\) \{$
+* SetAssign ^OPTR SetAssign \(OPTR setOP, OPTR valueOP\) \{$
+C:\Source\peoria32\c\kernel\SMALLINT.C DivideInt ^VOID DivideInt \(\) \{$
+* Gcd ^LONG Gcd \(LONG lNumerator, LONG lDenominator\) \{$
+* FloatDivideInt ^VOID FloatDivideInt \(\) \{$
+* ModuloInt ^VOID ModuloInt \(\) \{$
+* CycleInt ^VOID CycleInt \(\) \{$
+* CycleDownInt ^VOID CycleDownInt \(\) \{$
+* AbsInt ^VOID AbsInt \(\) \{$
+* NegateInt ^VOID NegateInt \(\) \{$
+* PowerInt ^VOID PowerInt \(\) \{$
+* EqualInt ^VOID EqualInt \(\) \{$
+* NotEqualInt ^VOID NotEqualInt \(\) \{$
+* GreaterInt ^VOID GreaterInt \(\) \{$
+* GreaterEqualInt ^VOID GreaterEqualInt \(\) \{$
+* LessInt ^VOID LessInt \(\) \{$
+* LessEqualInt ^VOID LessEqualInt \(\) \{$
+* OddInt ^VOID OddInt \(\) \{$
+* EvenInt ^VOID EvenInt \(\) \{$
+* NegativeInt ^VOID NegativeInt \(\) \{$
+* PositiveInt ^VOID PositiveInt \(\) \{$
+* StrictlyPositiveInt ^VOID StrictlyPositiveInt \(\) \{$
+* SignInt ^VOID SignInt \(\) \{$
+* DegreesToRadiansInt ^VOID DegreesToRadiansInt \(\) \{$
+* RadiansToDegreesInt ^VOID RadiansToDegreesInt \(\) \{$
+* AsFloatInt ^VOID AsFloatInt \(\) \{$
+* GeneralityInt ^VOID GeneralityInt \(\) \{$
+* PrintInt ^VOID PrintInt \(\) \{$
+* AsHexStringInt ^VOID AsHexStringInt \(\) \{$
+* EpsilonForInt ^VOID EpsilonForInt \(\) \{$
+* AsDigitCharInt ^VOID AsDigitCharInt \(\) \{$
+* ForToDoInt ^VOID ForToDoInt \(\) \{$
+* RadixInt ^VOID RadixInt \(\) \{$
+* BitAndInt ^VOID BitAndInt \(\) \{$
+* BitOrInt ^VOID BitOrInt \(\) \{$
+* BitXorInt ^VOID BitXorInt \(\) \{$
+* BitAtInt ^VOID BitAtInt \(\) \{$
+* BitShiftInt ^VOID BitShiftInt \(\) \{$
+* BitInvertInt ^VOID BitInvertInt \(\) \{$
+* AsDecimalInt ^VOID AsDecimalInt \(\) \{$
+* AsDateInt ^VOID AsDateInt \(\) \{$
+* PrimNewRandomInt ^BOOL PrimNewRandomInt \(void\) \{$
+C:\Source\peoria32\c\kernel\STREAM.C NewStream ^VOID NewStream \(\) \{$
+* NextStringStream ^VOID NextStringStream \(\) \{$
+* AsBlockStream ^VOID AsBlockStream \(\) \{$
+* AsBlockPoolsStream ^VOID AsBlockPoolsStream \(\) \{$
+* AsBlockPoolsDictsUsedStream ^VOID AsBlockPoolsDictsUsedStream \(\) \{$
+* LoadAsClassMethodsOnErrorStream ^VOID LoadAsClassMethodsOnErrorStream \(\) \{$
+C:\Source\peoria32\c\kernel\STREAM2.C LoadClassVersionStream ^VOID LoadClassVersionStream \(\) \{$
+* DoInitialize ^VOID DoInitialize \(\) \{$
+* AsClassMethodsStream ^VOID AsClassMethodsStream \(\) \{$
+* GetLineNumberForAtInStream ^VOID GetLineNumberForAtInStream \(\) \{$
+* GetTempVarNamesStream ^VOID GetTempVarNamesStream \(\) \{$
+* PrimCompileCompleteStreamOnError ^BOOL PrimCompileCompleteStreamOnError \(\) \{$
+* SyntaxCheckOnErrorStream ^VOID SyntaxCheckOnErrorStream \(\) \{$
+* ReloadAsClassMethodsStream ^VOID ReloadAsClassMethodsStream \(\) \{$
+C:\Source\peoria32\c\kernel\STRING.C AsANSIString ^VOID FAR AsANSIString \(\) \{$
+* AsOEMString ^VOID FAR AsOEMString \(\) \{$
+* NewString ^VOID NewString \(\) \{$
+* NewSizeString ^VOID NewSizeString \(\) \{$
+* AtString ^VOID AtString \(\) \{$
+* AtPutString ^VOID AtPutString \(\) \{$
+* DoString ^VOID DoString \(\) \{$
+* SizeString ^VOID SizeString \(\) \{$
+* EqualString ^VOID EqualString \(\) \{$
+* NotEqualString ^VOID NotEqualString \(\) \{$
+* LessString ^VOID LessString \(\) \{$
+* LessEqualString ^VOID LessEqualString \(\) \{$
+* GreaterString ^VOID GreaterString \(\) \{$
+* GreaterEqualString ^VOID GreaterEqualString \(\) \{$
+* AsSymbolString ^VOID AsSymbolString \(\) \{$
+* AddString ^VOID AddString \(\) \{$
+* IsEmptyString ^VOID IsEmptyString \(\) \{$
+* IsNotEmptyString ^VOID IsNotEmptyString \(\) \{$
+* AsTextString ^VOID AsTextString \(\) \{$
+* AsTextOptionsString ^VOID AsTextOptionsString \(\) \{$
+* HashString ^VOID HashString\(\) \{$
+C:\Source\peoria32\c\kernel\MEMORY.C DuplicateClassAllocate ^OPTR DuplicateClassAllocate \(LONG mustBeIClass, OPTR className, OPTR oSuper,$
+* ClassAllocate ^OPTR ClassAllocate \(LONG mustBeIClass, OPTR className, OPTR oSuper,$
+* DictAllocate ^OPTR DictAllocate \(LONG initialSlots\) \{$
+* GlobalDictAllocate ^OPTR GlobalDictAllocate \(LONG initialSlots\) \{$
+* SymDictAllocate ^OPTR SymDictAllocate \(LONG initialSlots\) \{$
+* SetAllocate ^OPTR SetAllocate \(LONG initialSlots\) \{$
+* FloatAllocate ^OPTR FloatAllocate \(DOUBLE value\) \{$
+* LongAllocate ^OPTR LongAllocate \(LONG value\) \{$
+* PMHandleAllocate ^OPTR PMHandleAllocate \(OPTR oHandleType\) \{$
+* VectorAllocate ^OPTR VectorAllocate \(LONG vectorLen\) \{$
+* BcdAllocate ^OPTR BcdAllocate \(PBYTE ptrNumber, ULONG iLength\) \{$
+* StrAllocate ^OPTR StrAllocate \(LONG maxStringLength, PSZ pszCStr\) \{$
+* SymbolHashStringObject ^OPTR SymbolHashStringObject \(OPTR oString\) \{$
+* SymAllocateStringObject ^OPTR SymAllocateStringObject \(OPTR oString, LONG cch\) \{$
+* SymbolHash ^OPTR SymbolHash \(PSZ pszString\) \{$
+* SymbolAllocate ^OPTR SymbolAllocate \(PSZ pszString, LONG cch\) \{$
+* DateHash ^OPTR DateHash \(LONG julianValue\) \{$
+* DateAllocate ^OPTR DateAllocate \(LONG julianValue\) \{$
+* PointAllocate ^OPTR PointAllocate \(OPTR x, OPTR y\) \{$
+* RectAllocate ^OPTR RectAllocate \(OPTR top, OPTR left, OPTR height, OPTR width\) \{$
+* ExternalAddressAllocate ^OPTR ExternalAddressAllocate \(void\) \{$
+* ArrayAllocate ^OPTR ArrayAllocate \(LONG size\) \{$
+* DictionaryAssign ^VOID DictionaryAssign \(OPTR oDict, OPTR oKey, OPTR oValue\) \{$
+* GlobalAssign ^VOID GlobalAssign \(OPTR oKey, OPTR oValue\) \{$
+* BlockAllocate ^OPTR BlockAllocate \(OPTR numArg, OPTR numConst, OPTR codeSize\) \{$
+* MethodAllocate ^OPTR MethodAllocate \(OPTR tr\);$
+* MethodAllocateIndex ^OPTR MethodAllocateIndex \(OPTR numArg, OPTR numTemp, OPTR numConst, OPTR codeSize,$
+* BufferSize ^ULONG BufferSize \(OPTR oBuffer\) \{$
+* BufferAllocate ^OPTR BufferAllocate \(LONG bufferSize\) \{$
+* UpdateHeapList ^VOID UpdateHeapList \(ULONG ulBytes\) \{$
+C:\Source\peoria32\c\kernel\SYMBOL.C SelectorArgCountSymbol ^VOID SelectorArgCountSymbol \(\) \{$
+* LessSymbol ^VOID LessSymbol \(\) \{$
+* LessEqualSymbol ^VOID LessEqualSymbol \(\) \{$
+* GreaterSymbol ^VOID GreaterSymbol \(\) \{$
+* GreaterEqualSymbol ^VOID GreaterEqualSymbol \(\) \{$
+* EqualSymbol ^VOID EqualSymbol \(\) \{$
+* NotEqualSymbol ^VOID NotEqualSymbol \(\) \{$
+* PrintSymbol ^VOID PrintSymbol \(\) \{$
+* AsStringSymbol ^VOID AsStringSymbol \(\) \{$
+* SendToArgsSymbol ^VOID SendToArgsSymbol \(\) \{$
+* ASendToArgsSymbol ^VOID ASendToArgsSymbol \(\) \{$
+* AsTextSymbol ^VOID AsTextSymbol \(\) \{$
+* AsTextOptionsSymbol ^VOID AsTextOptionsSymbol \(\) \{$
+* ConcatSymbol ^VOID ConcatSymbol \(\) \{$
+* ConcatWithBlankSymbol ^VOID ConcatWithBlankSymbol \(\) \{$
+* SizeSymbol ^VOID SizeSymbol \(\) \{$
+* GetInSymbol ^VOID GetInSymbol \(\) \{$
+* SetInToSymbol ^VOID SetInToSymbol \(\) \{$
+C:\Source\peoria32\c\kernel\TEXT.C NewText ^VOID NewText \(\) \{$
+C:\Source\peoria32\c\kernel\TEXT2.C GetTextExtentTextMethod ^VOID FAR GetTextExtentTextMethod \(\) \{$
+* StackTOSMustBeNilOrString ^VOID StackTOSMustBeNilOrString \(\) \{$
+* RenewTextText ^VOID RenewTextText \(\) \{$
+* GetStringOptionsText ^BOOL GetStringOptionsText      sTextLen\);$
+* RenewTextInternal ^VOID RenewTextInternal \(PSZ pszText, OPTR oWidth, OPTR oHJustification,$
+* GetTotalLenNeededText ^LONG GetTotalLenNeededText \(LONG sStringLen, OPTR oWidth, OPTR oPrefix, OPTR oSuffix\) \{$
+C:\Source\peoria32\c\kernel\SET.C ForDoSet ^VOID ForDoSet \(\) \{$
+* SetSize ^VOID SetSize \(\) \{$
+* SetHashMask ^VOID SetHashMask \(\) \{$
+C:\Source\peoria32\c\kernel\MESSAGE.C Send ^VOID Send \(USHORT usArgs, OPTR oSelector, OPTR oReceiver, \.\.\.\) \{$
+* UnblockedThreadCount ^int UnblockedThreadCount \(void\) \{$
+* OtherThreadsAreRunning ^BOOL OtherThreadsAreRunning \(void\) \{$
+* MainThreadIsRunning ^BOOL MainThreadIsRunning \(void\) \{$
+* SynchronizeThreadGC ^VOID SynchronizeThreadGC \(void\) \{$
+C:\Source\peoria32\c\kernel\MESSAGE2.C FloatingPointHandler ^VOID FloatingPointHandler \(\) \{$
+* Overflowing ^VOID Overflowing \(SHORT errorIndex\) \{$
+* ContextStackOverflow ^VOID ContextStackOverflow \(\) \{$
+* ParameterStackOverflow ^VOID ParameterStackOverflow \(\) \{$
+* IncorrectNumberOfMethodArgs ^VOID IncorrectNumberOfMethodArgs \(SHORT argumentsRequired, SHORT sReceiverDepth\) \{$
+* NotABoolean ^VOID NotABoolean \(\) \{$
+* IncorrectNumberOfBlockArgs ^VOID IncorrectNumberOfBlockArgs \(SHORT argumentsRequired, SHORT sReceiverDepth\) \{$
+* ASendQueueFull ^BOOL ASendQueueFull \(\) \{$
+* ASend ^VOID ASend \(ULONG usArgs, OPTR oSelector, OPTR oReceiver, \.\.\. \) \{$
+* PeekASendMessage ^BOOL PeekASendMessage \(USHORT usArgs, OPTR oSelector, OPTR oReceiver, \.\.\. \) \{$
+* vPeekASendMessage ^BOOL vPeekASendMessage \(USHORT usArgs, OPTR oSelector, POPTR fpoReceiver\) \{$
+C:\Source\peoria32\c\kernel\METAFILE.C PrimCloseMetaFile ^VOID PrimCloseMetaFile \(\) \{$
+* LoadFileMetaFile ^VOID LoadFileMetaFile \(\) \{$
+* OpenMetaFile ^VOID OpenMetaFile \(\) \{$
+* PlayOnMetaFile ^VOID PlayOnMetaFile \(\) \{$
+* SaveFileMetaFile ^VOID SaveFileMetaFile \(\) \{$
+* SavePlaceableFileMetaFile ^VOID SavePlaceableFileMetaFile \(\) \{$
+C:\Source\peoria32\c\kernel\MODULE.C NewNameOnError ^VOID NewNameOnError \(\) \{$
+* PrimFreeModule ^VOID PrimFreeModule \(\) \{$
+* FreeModuleSave ^VOID FreeModuleSave \(BOOL fSaveInfo, OPTR oModule\) \{$
+* GetProcClassMethodNumArg ^VOID GetProcClassMethodNumArg \(\) \{$
+* GetProcClassMethodNumArgSave ^VOID GetProcClassMethodNumArgSave \(BOOL fSaveInfo, OPTR oNumArg,$
+* UnloadAllDLLModules ^VOID UnloadAllDLLModutProcClassMethodNumArgSave \*/$
+* ReloadAllDLLModules ^VOID ReloadAllDLLModules \(\) \{$
+* RegisterFreePMHandleCallback ^OPTR RegisterFreePMHandleCallback \(PSZ pszCallbackSelector,$
+C:\Source\peoria32\c\kernel\NUMBER.C CoercingRetryNumber ^VOID CoercingRetryNumber \(\) \{$
+* AsStringCFormatNumber ^VOID AsStringCFormatNumber \(\) \{$
+* AsTextNumber ^VOID AsTextNumber \(\) \{$
+* AsTextOptionsNumber ^VOID AsTextOptionsNumber \(\) \{$
+C:\Source\peoria32\c\kernel\NUMBER2.C ReciprocalNumber ^VOID ReciprocalNumber \(\) \{$
+* ExpNumber ^VOID ExpNumber \(\) \{$
+* LnNumber ^VOID LnNumber \(\) \{$
+* LogNumber ^VOID LogNumber \(\) \{$
+* SinNumber ^VOID SinNumber \(\) \{$
+* CosNumber ^VOID CosNumber \(\) \{$
+* TanNumber ^VOID TanNumber \(\) \{$
+* ATanNumber ^VOID ATanNumber \(\) \{$
+* SqrtNumber ^VOID SqrtNumber \(\) \{$
+* FromToNumber ^VOID FromToNumber \(\) \{$
+* FromToByNumber ^VOID FromToByNumber \(\) \{$
+* ForToDoNumber ^VOID ForToDoNumber \(\) \{$
+* ForToByDoNumber ^VOID ForToByDoNumber \(\) \{$
+C:\Source\peoria32\c\kernel\NUMTEXT.C NewNumText ^VOID NewNumText \(\) \{$
+C:\Source\peoria32\c\kernel\NUMTEXT2.C SetOptionsNumText ^VOID SetOptionsNumText \(\) \{$
+* InitDefaultOptionsNumText ^VOID InitDefaultOptionsNumText \(OPTR oSysDefaultDict\) \{$
+* RenewTextNumText ^VOID RenewTextNumText \(\) \{$
+* SetStringNumText ^VOID SetStringNumText \(\) \{$
+* RenewNumTextInternal ^VOID RenewNumTextInternal \(PSZ pszText, OPTR oSeparators,$
+* GetCOptionsGeneral ^BOOL GetCOptionsGeneral \(OPTR oOption, POPTR poPrecision, POPTR poCountry,$
+* GetTotalLenNeededNumText ^SHORT GetTotalLenNeededNumText \(SHORT sStringLen, OPTR oSeparators,$
+* GetStringOptionsNumText ^BOOL GetStringOptionsNumText \(PSZ \* ppszBuffer, INT \* psBufferLen,$
+* GetDoubleFromObject ^BOOL GetDoubleFromObject \(OPTR oObj, double \* dbValue\) \{$
+C:\Source\peoria32\c\kernel\OBJACC.C ObjBufSize ^INT __fastcall ObjBufSize \(OPTR o\) \{$
+C:\Source\peoria32\c\kernel\OBJECT.C ChangeClassIndexTo ^VOID ChangeClassIndexTo \(\) \{$
+* EquivilantObject ^VOID EquivilantObject \(\) \{$
+* NotEquivilantObject ^VOID NotEquivilantObject \(\) \{$
+* ShallowCopyObject ^VOID ShallowCopyObject \(\) \{$
+* DeepCopyObject ^VOID DeepCopyObject \(\) \{$
+* CopyObject ^VOID CopyObject \(\) \{$
+* BasicCopyAsObject ^VOID BasicCopyAsObject \(\) \{$
+* PrimIsKindOfObject ^BOOL PrimIsKindOfObject \(\) \{$
+* PrimIsMemberOfObject ^BOOL PrimIsMemberOfObject \(\) \{$
+* PrimRespondsToObject ^BOOL PrimRespondsToObject \(\) \{$
+* ClassObject ^VOID ClassObject \(\) \{$
+* VarAtObject ^VOID VarAtObject \(\) \{$
+* VarAtPutObject ^VOID VarAtPutObject \(\) \{$
+* BasicAtObject ^VOID BasicAtObjeme\);$
+* BasicAtPutObject ^VOID BasicAtPutObject \(\) \{$
+* BasicSizeObject ^VOID BasicSizeObject \(\) \{$
+* MemoryUsedByObject ^VOID MemoryUsedByObject \(\) \{$
+* PrimBecomeObject ^BOOL PrimBecomeObject \(\) \{$
+* SwapValueOfWithNewObject ^VOID SwapValueOfWithNewObject \(\) \{$
+* PrimBecomeOneWithObject ^BOOL PrimBecomeOneWithObject \(\) \{$
+* DisplayErrorObject ^VOID DisplayErrorObject \(\) \{$
+* ReturnStkObject ^VOID ReturnStkObject \(\) \{$
+* DebuggerObject ^VOID DebuggerObject \(\) \{$
+* DebuggerDumpObject ^VOID DebuggerDumpObject \(\) \{$
+* IsPermanentObject ^VOID IsPermanentObject \(\) \{$
+* BasicIndexOfObject ^VOID BasicIndexOfObject \(\) \{$
+* HashObject ^VOID HashObject \(\) \{$
+* ImplementorOfObject ^VOID ImplementorOfObject \(\) \{$
+* ChangeReferencesTo ^VOID ChangeReferencesTo \(\) \{$
+* SwapReferencesTo ^VOID SwapReferencesTo \(\) \{$
+C:\Source\peoria32\c\kernel\OBJECT2.C ForEachCall ^VOID  ForEachCall \(PEACHPROC PEachFunc\) \{$
+* AllReferenceObject ^VOID AllReor\*/$
+* AddToList ^VOID AddToList \(OPTR object\) \{$
+* PutListToArray ^OPTR PutListToArray \(\) \{$
+C:\Source\peoria32\c\kernel\OUT.C GetString ^PSZ GetString \(LONG stringIndex\) \{$
+* GetSymbol ^OPTR GetSymbol \(LONG stringIndex\) \{$
+* GetErrorString ^PSZ GetErrorString \(LONG errorIndex\) \{$
+* ErrorSend ^VOID ErrorSend \(OPTR oSelf, LONG formatIndex, \.\.\. \) \{$
+* Error ^VOID Error \(LONG formatIndex, \.\.\. \) \{$
+* FatalError ^VOID FatalError \(LONG formatIndex, \.\.\. \) \{$
+C:\Source\peoria32\c\kernel\OUTDEV.C AvailableOutDev ^VOID AvailableOutDev \(\) \{$
+* GetDeviceNamedOutDev ^VOID GetDeviceNamedOutDev \(\) \{$
+* DefaultPrinterOnErrorOutDev ^VOID DefaultPrinterOnErrorOutDev \(\) \{$
+* AvailableFontFacesOutDev ^VOID AvailableFontFacesOutDev \(\) \{$
+* AvailableSizesForOutDev ^VOID AvailableSizesForOutDev \(\) \{$
+* DeviceFontFacesOutDev ^VOID DeviceFontFacesOutDev \(\) \{$
+* DeviceFontSizesForOutDev ^VOID DeviceFontSizesForOutDev \(\) \{$
+C:\Source\peoria32\c\kernel\PMHANDLE.C NewPMHandle ^VOID NewPMHandle \(\) \{$
+* SetHandlePMHandle ^VOID SetHandlePMHandle \(\) \{$
+* AsIntegerPMHandle ^VOID AsIntegerPMHandle \(\) \{$
+* FormOrFItemFromHwndPMHandle ^VOID FormOrFItemFromHwndPMHandle \(\) \{$
+* GetWindowTextPMHandle ^VOID GetWindowTextPMHandle \(\) \{$
+* SendEM_GETSELPMHandle ^VOID SendEM_GETSELPMHandle \(\) \{$
+* PrimMemHandleAllocate ^BOOL PrimMemHandleAllocate \(\) \{$
+* PrimMemHandleReAllocate ^BOOL PrimMemHandleReAllocate \(\) \{$
+* PrimMemHandleLock ^BOOL PrimMemHandleLock \(\) \{$
+* PrimMemHandleUnLock ^BOOL PrimMemHandleUnLock \(\) \{$
+* PrimMemHandleFree ^BOOL PrimMemHandleFree \(\) \{$
+* PrimGetHandlePMHandle ^BOOL PrimGetHandlePMHandle \(void\) \{$
+C:\Source\peoria32\c\kernel\POINT.C EqualPoint ^VOID EqualPoint \(\) \{$
+* NewXYPoint ^VOID NewXYPoint \(\) \{$
+C:\Source\peoria32\c\kernel\FTOPICBX.C OpenFTopicBox ^VOID OpenFTopicBox \(\) \{$
+* UpdateFTopicBox ^VOID UpdateFTopicBox \(\) \{$
+C:\Source\peoria32\c\kernel\GLBLDICT.C PrimGetOSVersionInfo ^BOOL PrimGetOSVersionInfo \(void\) \{$
+* AtPutSystem ^VOID AtPutSystem \(\) \{$
+* AtSystem ^VOID AtSystem \(\) \{$
+* ActivateProgramWindowSystem ^VOID ActivateProgramWindowSystem \(\) \{$
+* ShowProgramWindowSystem ^VOID ShowProgramWindowSystem \(\) \{$
+* HideProgramWindowSystem ^VOID HideProgramWindowSystem \(\) \{$
+* ExitSystem ^VOID ExitSystem \(\) \{$
+* ApplicationNameSystem ^VOID ApplicationNameSystem \(\) \{$
+* VersionSystem ^VOID VersionSystem \(\) \{$
+* BuildIDSystem ^VOID BuildIDSystem \(\) \{$
+* ResetDisplayConstantSystem ^VOID ResetDisplayConstantSystem \(\) \{$
+* IntSizeSystem ^VOID IntSizeSystem \(\) \{$
+* GetSerialNumberSystem ^VOID GetSerialNumberSystem \(\) \{$
+* GarbageCollectSystem ^VOID GarbageCollectSystem \(\) \{$
+* CopyrightSystem ^VOID CopyrightSystem \(\) \{$
+* GetSendHookSystem ^VOID GetSendHookSystem \(\) \{$
+* SetSendHookToSystem ^VOID SetSendHookToSystem \(\) \{$
+* DoHitBreakpointLevelSystem ^VOID DoHitBreakpointLevelSystem \(PSZ pszHitBp\) \{$
+* HitBreakpointLevelSystem ^VOID HitBreakpointLevelSystem \(\) \{$
+* HitBreakpointLevelForSystem ^VOID HitBreakpointLevelForSystem \(\) \{$
+* PrivateRestartSystem ^VOID PrivateRestartSystem \(\) \{$
+* OpenWorkspaceSystem ^VOID OpenWorkspaceSystem \(\) \{$
+* StepErrorSystem ^VOID StepErrorSystem \(\) \{$
+* StepOverErrorSystem ^VOID StepOverErrorSystem \(\) \{$
+* ResumeErrorSystem ^VOID ResumeErrorSystem \(\) \{$
+* AbortErrorSystem ^VOID AbortErrorSystem \(\) \{$
+* ReturnFromErrorSystem ^VOID ReturnFromErrorSystem \(\) \{$
+* CloseView ^VOID CloseView \(OPTR oVSym\) \{$
+* OpenAboutWindow ^VOID OpenAboutWindow \(\) \{$
+* OpenSystemAboutWindow ^VSER_OPEN_ABOUTWINDOW, NULL, NULL\);$
+* GetContextStackDepth ^VOID GetContextStackDepth \(\) \{$
+* GetSendHookContextStackDepth ^VOID GetSendHookContextStackDepth \(\) \{$
+* HomeContextSystem ^VOID HomeContextSystem \(\) \{$
+* HomeContextStackAtSystem ^VOID HomeContextStackAtSystem \(\) \{$
+* CodeObjectStackAtSystem ^VOID CodeObjectStackAtSystem \(\) \{$
+* ProgramCounterStackAtSystem ^VOID ProgramCounterStackAtSystem \(\) \{$
+* SetCharSetToSystem ^VOID SetCharSetToSystem \(\) \{$
+* CharSetSystem ^VOID CharSetSystem \(\) \{$
+* FocusSystem ^VOID FocusSystem \(\) \{$
+* AbortSystem ^VOID AbortSystem \(\) \{$
+* PrivateDebugOptionSystem ^VOID PrivateDebugOptionSystem \(\) \{$
+* GetOSSystem ^VOID GetOSSystem \(\) \{$
+* throw1 ^static VOID throw1\(OPTR oArg, LONG iStack\) \{$
+* ThrowSystem ^VOID ThrowSystem \(\) \{$
+C:\Source\peoria32\c\kernel\GRPHCSTR.C AbortGStream ^VOID AbortGStream \(\) \{$
+* ClearPageGStream ^VOID ClearPageGStream \(\) \{$
+* EndGStream ^VOID EndGStream \(\) \{$
+* NewPageGStream ^VOID NewPageGStream \(\) \{$
+* EndPageGStream ^VOID EndPageGStream \(\) \{$
+* SetupPageGStream ^VOID SetupPageGStream \(\) \{$
+* NextStringPutOnErrorGStream ^VOID NextStringPutOnErrorGStream \(\) \{$
+* StartModeNameGStream ^VOID StartModeNameGStream \(\) \{$
+* CleanupGraphicsStream ^VOID CleanupGraphicsStream \(OPTR oSelf\) \{$
+C:\Source\peoria32\c\kernel\HEAP.C InitMem ^BOOL InitMem \(BOOL fInit\) \{$
+* FreeObjectMemory ^VOID FreeObjectMemory \(\) \{$
+* ShowServerHeaps ^VOID ShowServerHeaps \(void\) \{$
+* CreateGuaranteedEmptyHeaps ^VOID CreateGuaranteedEmptyHeaps \(LONG lNumberOfEmptyHeaps\) \{$
+* CheckThreadInfo ^BOOL CheckThreadInfo \(void\) \{$
+* CreateHeap ^VOID CreateHeap \(ULONG ulBytes\) \{$
+* DoGarbageCollect ^static VOID DoGarbageCollect \(\) \{$
+* StartGarbageCollect ^VOID StartGarbageCollect \(\) \{$
+* GarbageCollect ^VOID GarbageCollect \(\) \{$
+* CheckObjectForTraverse ^VOID CheckObjectForTraverse \(POPTR pObject\) \{$
+* ProtectUnreferencedObjects ^VOID ProtectUnreferencedObjects \(\) \{$
+* SweepContexts ^VOID SweepContexts \(\) \{$
+* CollectSameObjEntry ^VOID CollectSameObjEntry \(\) \{$
+* SweepHeaps ^VOID SweepHeaps \(\) \{$
+* SymDelete ^VOID SymDelete \(OPTR oSymbol\) \{$
+* DateDelete ^VOID DateDelete \(OPTR dateObj\) \{$
+* FixupGlobalPointers ^VOID FixupGlobalPointers \(\) \{$
+* StretchObjectTable ^VOID StretchObjectTable \(\) \{$
+* SwapOPTRInOT ^VOID SwapOPTRInOT \(OPTR oSelf, OPTR oOther\) \{$
+* ChangeOPTRInOT ^VOID ChangeOPTRInOT \(OPTR oSelf, OPTR oOther\) \{$
+* ExtendStringObject ^BOOL ExtendStringObject \(OPTR oStr, ULONG cch\) \{$
+* CheckHeap ^BOOL CheckHeap \(void\) \{$
+* PrimCheckHeaps ^BOOL PrimCheckHeaps \(void\) \{$
+* CheckObjectTable ^VOID CheckObjectTable \(void\) \{$
+C:\Source\peoria32\c\kernel\ICON.C PrimLoadFileIcon ^VOID PrimLoadFileIcon \(\) \{$
+* LoadSystemIconNamedIcon ^VOID LoadSystemIconNamedIcon \(\) \{$
+* PrimAsBitmapIcon ^VOID PrimAsBitmapIcon \(\) \{$
+* AsBitmapBackgroundIcon ^VOID AsBitmapBackgroundIcon \(\) \{$
+* PrivateCreateHandleIcon ^VOID PrivateCreateHandleIcon \(\) \{$
+C:\Source\peoria32\c\kernel\IDENDICT.C ASMDictionaryAssign ^VOID ASMDictionaryAssign \(OPTR oDict, OPTR oKey, OPTR oVal\) \{$
+* DictionaryLookup ^OPTR DictionaryLookup \(OPTR oDict, OPTR oKey\) \{$
+* ASMGlobalAssign ^VOID ASMGlobalAssign \(OPTR oKey, OPTR oVal\) \{$
+* GlobalLookup ^OPTR GlobalLookup \(OPTR oKey\) \{$
+* AtDictionary ^VOID AtDictionary \(\) \{$
+* AtPutDictionary ^VOID AtPutDictionary \(\) \{$
+* GlobalRemoveAt ^BOOL GlobalRemoveAt \(OPTR keyOP\) \{$
+* DictionaryRemoveAt ^BOOL DictionaryRemoveAt \(OPTR dictOP, OPTR keyOP\) \{$
+* RemoveAtDictionary ^VOID RemoveAtDictionary \(\) \{$
+* RemoveAtIfAbsentDictionary ^VOID RemoveAtIfAbsentDictionary \(\) \{$
+* ExpandDictionary ^VOID ExpandDictionary \(\) \{$
+C:\Source\peoria32\c\kernel\IDENSET.C AddIdentitySet ^VOID AddIdentitySet \(\) \{$
+* RemoveIdentitySetMethod ^VOID RemoveIdentitySetMethod \(\) \{$
+* HasElementIdentitySet ^VOID HasElementIdentitySet \(\) \{$
+* RemoveIdentitySet ^BOOL RemoveIdentitySet \(OPTR setOP, OPTR valueOP\) \{$
+* ExpandIdentitySet ^VOID ExpandIdentitySet \(\) \{$
+C:\Source\peoria32\c\kernel\INITPROG.C ThreadGlobal ^                        ThreadGlobal\(primitiveClassTable\)\[a\]\.t = \(PPRIMSPECREC\) e;$
+* OpenLogoWindow ^VOID OpenLogoWindow \(\) \{$
+* FreeLogoDLL ^VOID FreeLogoDLL \(\) \{$
+* InitializeTeamBuilderSupport ^VOID InitializeTeamBuilderSupport \(void\) \{$
+* InitializeOOP ^VOID InitializeOOP \(\) \{$
+* SetDisplayCConstants ^VOID SetDisplayCConstants \(\) \{$
+* SetDisplayConstants ^VOID SetDisplayConstants \(\) \{$
+* SpecialDictAllocate ^OPTR SpecialDictAllocate \(LONG numSlots\) \{$
+* InitAvailableCurrency ^VOID InitAvailableCurrency \(\) \{$
+* LoadImageFromFile ^BOOL LoadImageFromFile \(\) \{$
+* IsRunTimeVersion ^BOOL IsRunTimeVersion \(\) \{$
+* ParseLine ^BOOL ParseLine \(OPTR oTextFile\) \{$
+* CompileSystemClasses ^VOID CompileSystemClasses \(\) \{$
+* InitMsg ^VOID InitMsg \(\) \{$
+* InitFloat ^VOID InitFloat \(\) \{$
+* AdjustClassHierarchy ^VOID AdjustClassHierarchy \(\) \{$
+* PClassAllocate ^VOID PClassAllocate \(SHORT iClass, USHORT iSuper, USHORT classVars, USHORT instVars\) \{$
+* ClassBoolAllocate ^VOID ClassBoolAllocate \(\) \{$
+* ClassCharAllocate ^VOID ClassCharAllocate \(BOOL fAlready\) \{$
+* LoadSystemPrimitives ^VOID LoadSystemPrimitives \(\) \{$
+* AssignClassVariable0 ^VOID AssignClassVariable0 \(USHORT iIndex, OPTR oObj\) \{$
+* AssignMethods ^VOID AssignMethods \(OPTR oClass, OPTR oMethodDict, PPRIMSPECREC specP\) \{$
+* LoadPrimitives ^VOID LoadPrimitives \(USHORT iClass\) \{$
+* InitSysIniDefaults ^VOID InitSysIniDefaults \(\) \{$
+C:\Source\peoria32\c\kernel\INTERVAL.C FromToInterval ^VOID FromToInterval \(\) \{$
+* FromToByInterval ^VOID FromToByInterval \(\) \{$
+* AtInterval ^VOID AtInterval \(\) \{$
+* SizeInterval ^VOID SizeInterval \(\) \{$
+* DoInterval ^VOID DoInterval \(\) \{$
+C:\Source\peoria32\c\kernel\INTRVL2.C CopyFromToInterval ^VOID CopyFromToInterval \(\) \{$
+C:\Source\peoria32\c\kernel\LONGINT.C LongBinSel ^LongBinSel \( AddLong,      \+, idxPlus \)$
+* FloatDivideLong ^VOID FloatDivideLong \(\) \{$
+* ModuloLong ^VOID ModuloLong \(\) \{$
+* AbsLong ^VOID AbsLong \(\) \{$
+* NegateLong ^VOID NegateLong \(\) \{$
+* PowerLong ^VOID PowerLong \(\) \{$
+* EqualLong ^VOID EqualLong \(\) \{$
+* NotEqualLong ^VOID NotEqualLong \(\) \{$
+* LongCompSel ^LongCompSel \(GreaterLong, \>, idxGtr\)$
+* OddLong ^VOID OddLong \(\) \{$
+* NegativeLong ^VOID NegativeLong \(\) \{$
+* PostiveLong ^VOID PostiveLong \(\) \{$
+* StrictlyPositiveLong ^VOID StrictlyPositiveLong \(\) \{$
+* SignLong ^VOID SignLong \(\) \{$
+* DegreesToRadiansLong ^VOID DegreesToRadiansLong \(\) \{$
+* RadiansToDegreesLong ^VOID RadiansT\) ObjLong \(PTOS \(\)\) \* M_PI / 180\);$
+* AsIntegerLong ^VOID AsIntegerLong \(\) \{$
+* AsFloatLong ^VOID AsFloatLong \(\) \{$
+* CoerceLong ^VOID CoerceLong \(\) \{$
+* GeneralityLong ^VOID GeneralityLong \(\) \{$
+* PrintLong ^VOID PrintLong \(\) \{$
+* AsHexStringLong ^VOID AsHexStringLong \(\) \{$
+* EpsilonForLong ^VOID EpsilonForLong \(\) \{$
+* AsDecimalLong ^VOID AsDecimalLong\(\) \{$
+* AsDateLong ^VOID AsDateLong \(\) \{$
+C:\Source\peoria32\c\kernel\LONGINT2.C RadixLong ^VOID RadixLong\(\) \{$
+* BitAndLong ^VOID BitAndLong \(\) \{$
+* BitOrLong ^VOID BitOrLong \(\) \{$
+* BitXorLong ^VOID BitXorLong \(\) \{$
+* BitAtLong ^VOID BitAtLong \(\) \{$
+* BitShiftLong ^VOID BitShiftLong \(\) \{$
+* BitInvertLong ^VOID BitInvertLong \(\) \{$
+C:\Source\peoria32\c\kernel\LOOK.C NewLookupTable ^VOID NewLookupTable \(\) \{$
+* FindPosition ^SHORT FindPosition \(OPTR oTable, OPTR oKey\) \{$
+* FindSpot ^SHORT FindSpot \(OPTR tab, OPTR key, PBOOL equal\) \{$
+* DelSpot ^VOID DelSpot \(OPTR self, LONG idx\) \{$
+* AtLookupTable ^VOID AtLookupTable \(\) \{$
+* AtPutLookupTable ^VOID AtPutLookupTable \(\) \{$
+* SizeLookupTable ^VOID SizeLookupTable \(\) \{$
+* RemoveLookupTable ^VOID RemoveLookupTable \(\) \{$
+* RemoveIfAbsentLookupTable ^VOID RemoveIfAbsentLookupTable \(\) \{$
+* DoLookupTable ^VOID DoLookupTable \(\) \{$
+C:\Source\peoria32\c\kernel\LOOK2.C PrintLookupTable ^VOID PrintLookupTable \(\) \{$
+* FindSumUntilKey ^BOOL FindSumUntilKey \(OPTR oTable, OPTR  \(\);$
+C:\Source\peoria32\c\kernel\MAG.C BetweenAndMagnitude ^VOID BetweenAndMagnitude \(\) \{$
+* MinMagnitude ^VOID  PDrop \(\);$
+* MaxMagnitude ^VOID MaxMagnitude \(\) \{$

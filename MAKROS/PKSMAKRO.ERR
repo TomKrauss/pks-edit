@@ -1,0 +1,5 @@
+Error C:\src\pksedit\makros\popup.pkc 27: undefined macro Ciaou
+Error C:\src\pksedit\makros\popup.pkc 30: undefined macro ConvertAnsiToOem
+Error C:\src\pksedit\makros\popup.pkc 31: undefined macro ConvertOemToAnsi
+
+TOTAL 3 Errors

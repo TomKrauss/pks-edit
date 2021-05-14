@@ -1,0 +1,113 @@
+
+macro GotoCurrentError() {
+	MousePosition(0);
+	FindError(LIST_USETOPWINDOW|LIST_CURR);
+}
+
+//----------------------------------------
+
+
+override MOUSE default	# total 14 bindings
+
+MLeft(1)                 = ½cursor-mouse-goto,      
+Shift+MLeft(1)           = ½drag-copy-text,         
+Ctrl+MLeft(1)            = ½drag-move-text,         
+Alt+MLeft(1)             = ½mouse-select-lines,     
+Alt+Shift+MLeft(1)       = ½mouse-unselect-lines,   
+MLeft(2)                 = Ciaou,                   
+Shift+MLeft(2)           = ½re-insert,              
+Ctrl+Shift+MLeft(2)      = ½play-last-macro,        
+MRight(1)                = ½mouse-mark-block,       
+Shift+MRight(1)          = ½mouse-mark-line,        
+Ctrl+MRight(1)           = ½mouse-mark-word,        
+Ctrl+Shift+MRight(1)     = ½mouse-mark-to-space,    
+Alt+MRight(1)            = ½mouse-mark-paragraph,   
+MRight(2)                = ½mouse-update-block;
+
+
+BRACKETS default
+"{" 		"}" 		1	0	1	-1	0,
+"(" 		")" 		1	1	0	0	-1,
+"[" 		"]" 		1,
+"/*"		"*/"		0,
+"'"		"'"		0,
+"\""		"\""		0,
+"\\begin"	"\\end" 	1,
+"\\("		"\\)" 	1;
+
+
+ESCAPES default
+"e" 	= 	"extern ",
+"v"     = 	"void ",
+"c"     = 	"char ",
+"C"     = 	"continue",
+"l"     =   	"long ",
+"s"     = 	"short ",
+"b"     = 	"break;",
+"d"     = 	"# define	",
+"D"     = 	"default:",
+"i"     = 	"# include	",
+"#"     = 	"# ifdef	",
+"r"     = 	"register ",
+"t"     = 	"typedef struct ",
+"R"     = 	"return ",
+"S"     = 	"static ",
+"/"     = 	"/*--------------------------------------------------------------------------
+ * ()
+ */
+",
+"m"     = 	"/*---------------------------------*/
+/* MAIN						*/
+/*---------------------------------*/
+int main(int argc,char *argv[])
+{
+	return 0;
+}
+",
+"*"     = 	"/***************************************************************************/",
+"L"     = 	"LOCAL ",
+"I"     = 	"IMPORT ",
+"E"     = 	"EXPORT ",
+"u"     =   	"unsigned ",
+"U"     =   	"unsigned char ",
+"1"     = 	"# ifdef	",
+"2"     = 	"# else
+",
+"3"     = 	"# endif
+",
+"4"     =   	"# if defined (_Windows)
+",
+"=" 	=   	" == 0L",
+"!"     =   	" != 0L";
+
+ABBREVS default
+"#ia"	=	"# include	<aes.h>
+",
+"#iv"	=	"# include	<vdi.h>
+",
+"#it"	=	"# include	<tos.h>
+",
+"#is"	=	"# include	<stdlib.h>
+",
+"#iS"	=	"# include	<string.h>
+",
+"#i<"	=	"# include	<stdio.h>
+",
+"#in"	=	"# include	",
+"#main"	=	"/*---------------------------------*/
+/* MAIN						*/
+/*---------------------------------*/
+int main(void )
+{
+	return 0;
+}
+";
+
+//----------------------------------------
+
+
+override MOUSE error-list
+
+MLeft(1)                 = GotoCurrentError;
+
+

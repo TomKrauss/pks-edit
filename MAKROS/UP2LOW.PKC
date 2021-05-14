@@ -1,0 +1,22 @@
+macro CharacterLow2Up() 
+"Zeichentausch Textblock Klein->Groß"
+{
+	Replace(FO_INIT,"([a-zהצü])","\\u\\1",
+		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
+}
+
+macro CharacterUp2Low() 
+"Zeichentausch Textblock Groß->Klein"
+{
+	Replace(FO_INIT,"([A-ZִײÜ])","\\l\\1",
+		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
+}
+
+macro CharacterVersale() 
+"Zeichentausch Textblock Versalien"
+{
+	Replace(FO_INIT,"([a-zהצüA-ZִײÜ])([a-zהצüA-ZִײÜ]+)","\\u\\1\\l\\2",
+		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
+}
+
+

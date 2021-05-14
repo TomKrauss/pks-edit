@@ -1,0 +1,46 @@
+
+macro HideText() {
+
+	while(1) {
+		CursorRight(MOT_TOEND);
+		SetMark(FO_INIT,'?');
+		if (!Find(FO_INIT,"^\\*",DIR_FORWARD,RNG_ONCE,RE_DOREX)) {
+			break;
+		}
+		CursorLeft(MOT_SINGLE);
+		SetBlockMark(MARK_END);
+		GotoMark(FO_INIT,'?');
+		CursorRight(MOT_SINGLE);
+		SetBlockMark(MARK_START);
+		HideLines();
+	}
+}
+
+###########################################################################
+#
+# hide the body of all C functions in the current text
+# assumptions: C-function bodies begin with { in the first column,+
+#              all { brackets match
+#
+macro HideCFunctions() {
+	while(Find(FO_INIT,"^\\{",DIR_FORWARD,RNG_ONCE,RE_DOREX)) {
+		SetBlockMark(MARK_START);
+		CheckBrackets();
+		SetBlockMark(MARK_END);
+		HideLines();
+	}
+}
+
+macro HLines() {
+
+	HideLines();
+
+}
+
+macro UnHLines() {
+
+	UnHideLine();
+
+}
+
+

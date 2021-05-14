@@ -1,0 +1,22 @@
+macro ToggleLineMode()
+"Schaltet den Blockmodus um;Block Zeilenmodus"
+{
+	int	workmode;
+	int	notmode;
+	workmode = QueryStatus(QUERY_WORKMODE);
+
+	if (QueryStatus(QUERY_BLOCKXTNDMODE)) {
+		notmode = ~ WM_BLK_LINES;
+		workmode = workmode & notmode;
+		SetBlockExtensionMode(0);
+	} else {
+		workmode = workmode | WM_BLK_LINES;
+		SetBlockExtensionMode(1);
+	}
+	SetWorkMode(FO_INIT, "", workmode);
+}
+
+replace KEYS default 
+# Blöcke markieren und bewegen
+Ctrl+L            = ToggleLineMode;
+

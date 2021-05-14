@@ -1,0 +1,12 @@
+
+macro TileHoriz()
+{
+	WindowArrange(WIN_HOR);
+}
+
+macro TilePairs()
+{
+	WindowArrange(WIN_PAIRS);
+}
+
+

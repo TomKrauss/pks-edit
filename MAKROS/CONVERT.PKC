@@ -1,0 +1,18 @@
+#
+# die folgenden Makros beachten nur die Umlaute bei der Konvertierung
+#
+macro ConvertOemToAnsi() 
+"Konvertiert einen Text mit OEM Zeichensatz in ANSI - Zeichensatz"
+{
+	Replace(FO_INIT,"[„”™šá]","\\[„”™šá=äöüÄÖÜßß]\\&",
+		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
+}
+
+macro ConvertAnsiToOem() 
+"Konvertiert einen Text mit ANSI Zeichensatz in OEM - Zeichensatz"
+{
+	Replace(FO_INIT,"[äöüÄÖÜß]","\\[äöüÄÖÜß=„”™šá]\\&",
+		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
+}
+
+

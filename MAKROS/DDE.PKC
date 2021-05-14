@@ -1,0 +1,3 @@
+macro xtest-print() {
+	Print(PRTF_FILE, "T.C");
+}

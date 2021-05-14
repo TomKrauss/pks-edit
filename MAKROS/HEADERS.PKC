@@ -1,0 +1,157 @@
+
+
+const	max = 20;
+
+macro Example1()
+{
+	#
+	# local variables, declaration needs an initialization
+	#
+	string	text = "";
+	string	message = "we are in line: ";
+	string	tmp = "";
+	int		zeile = 2;
+	int		max_2 = max / 2;
+
+	message = PromptAssign("Enter message prefix",message);
+
+	while(zeile < max) {
+
+		# build the following alert text
+		# 	we are in line: number
+		# 	text is: "text"
+		#
+		# comment: casting an int to a string in a term is possible
+		#
+		tmp = message + (string) zeile + "|text is: \"" + text + "\"";
+		Alert(tmp);
+
+		InsertString(text);
+
+		if (!CursorDown(MOT_SINGLE)) {
+			Alert("We reached the end|of the page");
+			break;
+		}
+		CursorLeft(MOT_TOEND);
+
+		if (zeile < max_2) {
+			# adding 2 strings with '+' does the following:
+			# strcat (text,".")
+			text = text + ".";
+		} else {
+			# subtracting one string from another does the following:
+			# remove first occurance of "." in text
+			text = text - ".";
+		}
+
+		zeile = zeile + 1;
+
+	}
+}
+
+###########################################################################
+#
+# this macro generates a function header and body with 
+# comments and date stamp
+#
+macro FunctionHeader() 
+{
+	string	funame = "";
+	string	futype = "void";
+	string	tmp = "";
+
+	funame = PromptAssign("Enter function name",funame);
+	tmp = " * " + funame + "()\n";
+
+	# insert header
+	InsertString("/*-----------------------------------------------------------\n");
+	CursorDown(MOT_SINGLE);
+	InsertString(tmp);
+	CursorDown(MOT_SINGLE);
+
+	# add comment, when not empty
+	tmp = PromptAssign("Enter comment","");
+	if (tmp != "") {
+		tmp = " * comment: " + tmp;
+		InsertString(tmp);
+		CursorDown(MOT_SINGLE);
+	}
+
+	# make date stamp
+	tmp = FormatPrint("%s %D\n"," * created at:");
+	InsertString(tmp);
+	CursorDown(MOT_SINGLE);
+
+	InsertString(" */\n");
+	CursorDown(MOT_SINGLE);
+
+	#
+	# add Function Header and Body
+	#
+	futype = PromptAssign("Enter function type",futype);
+	tmp = futype + " " + funame + "()\n{\n}\n";
+	InsertString(tmp);
+	CursorRight(MOT_TOEND);
+	CursorLeft(MOT_SINGLE);
+}
+
+###########################################################################
+#
+# this macro generates an include file template
+# this could be given as a "VORLAGE" - macro for document type "*.h"
+#
+macro IncludeTemplate()
+{
+	# Basename of the current file
+	string	filename = FormatPrint("%s$f");
+	string	s = "";
+	string	date = FormatPrint("%s %D\n"," * All Rights Reserved.					created: ");
+	string	tag = "";
+
+	if (filename !~ ".*\\.H") {
+		return 1;
+	}
+
+	s = 
+	"/*\n" 													+
+	" * "  + filename + "\n" 									+
+	" *\n"													+
+	" * comment\n"												+
+	" *\n"													+
+	" * PROJECT: PKSEDIT\n"										+
+	" *\n"													+
+	" * (c) Pahlen & Krauß					Author : TOM\n"		+
+	date														+
+	" *\n"													+
+	" */\n\n";
+	InsertString(s);
+	CursorDown(MOT_FILE);
+
+	tag = "__" + filename;
+
+	tag = ReplaceInString(-1, 0, tag, ".", "_");
+
+	s = "# if !defined( " + tag + " )\n";
+	InsertString(s);
+	CursorDown(MOT_SINGLE);
+
+	s = "# define " + tag + "\n\n\n#endif /* " + tag + "*/\n";
+	InsertString(s);
+}
+
+###########################################################################
+#
+# this macro looks for the current selected text
+#
+macro FindSelected()
+{
+	string	selected = GetSelected();
+
+	Find(FO_INIT,selected,DIR_FORWARD,RNG_GLOBAL,RE_DOREX);
+}
+
+macro Ciaou()
+{
+	Alert("Good Bye");
+}
+

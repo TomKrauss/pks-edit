@@ -1,0 +1,7 @@
+macro GetPrefixes() {
+	Replace(FO_INIT,".*[^&]&([^&]).*","\\l\\1",REP_REPLACE,RNG_GLOBAL,RE_DOREX|RE_WRAPSCAN,0);
+	Replace(FO_INIT,"SEPARATOR","",REP_MARK,RNG_GLOBAL,RE_DOREX|RE_WRAPSCAN,0);
+	MarkLineOp(MLN_DELETE);
+	Sort(FO_INIT,"","","",0,RNG_GLOBAL);
+}
+

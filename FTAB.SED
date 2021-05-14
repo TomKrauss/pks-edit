@@ -1,0 +1,3 @@
+/^START DEF/,/^END DEF/!d
+/^START DEF/d
+/^END DEF/d

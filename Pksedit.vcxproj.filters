@@ -1,0 +1,460 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{2edf53a5-369d-40be-a729-2f67026baf12}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{cae15e12-ede0-443a-bab2-d2eebaf34c5b}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;fi;fd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{4f438efe-4500-420d-adc5-45c03dec6e1d}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="makroc\PARSER.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="makroc\SCANNER.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="STRINGS.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AbortProcessing.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AlignText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgramArguments.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AsciiHexToLong.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ColumnBlocks.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MemFill.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextBlocks.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BracketMatching.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CharacterClasses.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Clipboard.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="makroc\CommandFunctionTable.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Compare.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="makroc\GenerateMacroCode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Encryption.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="brand\SerialCode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CaretMovement.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CustomControls.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CutAndPaste.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CompareFiles.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditOperations.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ErrorDialogs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorWindow.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExecuteProgram.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileBufferIO.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileUtil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FindAndReplace.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyBinding.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowGeometryUtil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectFiles.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectFonts.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FormatLines.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WalkFileTree.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FunctionTable.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="makroc\ParseMacros.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MarkAndGoto.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DisplayHelp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MaintainHistory.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DesktopIcons.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Initialize.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="makroc\BindKeys.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyBindingFileIO.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyBindings.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="makroc\JumpLabels.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorLineOperations.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorLines.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HandleMacros.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MacroKeyBinding.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="makroc\CompileMacros.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FilePattern.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MarkPositions.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DynamicMenus.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MouseUtil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SprintfUtil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenFiles.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Settings.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Win32Util.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PrintFiles.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="makroc\PrintBindings.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="makroc\DecompileMacros.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SettingsIO.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ManageProjectGroups.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditSettings.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorLinesIO.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PaintEditorWindow.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PaintEditorWindowAttributes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RegularExpression.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceFileIO.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScanFiles.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DocumentTypes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MacroInterpreter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollbarUtil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SortText.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundUtil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StatusLine.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StringTokenizer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="makroc\MacroSymbolMapping.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CrossReferenceLinks.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="makroc\MacroExpressions.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NotYetImplemented.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolbarWindow.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TranslateCharacterClasses.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UndoManager.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PublicMacroFunctions.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorWindowMain.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorDialogUtil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="rc\dial2.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rc\fsel.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\binop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\brackets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\des.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\edctype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\edexec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\edfuncs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\edhist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\edierror.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\edifsel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\editab.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\edtypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\ftw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\funcdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\functab.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\iccall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\pathname.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\pkscc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\pksedith.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\pksmod.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\project.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\prt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\regcmp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\scanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\sym.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\test.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\tos.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\trace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\uc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\winfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\winterf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\xdialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rc\pksrc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PKSEDIT.DEF">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="rc\CLIP.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\CLIPEMPT.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\COPY.CUR">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\EDIT.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\EXEC.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\FILE.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\FOLDER.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\HELP.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\MACRO.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\MOVE.CUR">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\PKS.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\PKS2.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\PRINT.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\TRASH.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\UNDO.ICO">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="PKSEDIT.RC">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="STRINGS.RC">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

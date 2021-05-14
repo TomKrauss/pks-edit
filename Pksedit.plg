@@ -1,0 +1,233 @@
+<html>
+<body>
+<pre>
+<h1>Erstellungsprotokoll</h1>
+<h3>
+--------------------Konfiguration: Pksedit - Win32 Debug--------------------
+</h3>
+<h3>Befehlszeilen</h3>
+Creating command line "rc.exe /l 0x407 /fo"windebug/PKSEDIT.res" /i ".\inc" /i ".\rc" /d "NDEBUG" "C:\Source\pksedit\PKSEDIT.RC"" 
+Erstellen der temporären Datei  "C:\DOKUME~1\TOMGEB~1.000\LOKALE~1\Temp\RSP2D8.tmp" mit Inhalten
+[
+/nologo /ML /W3 /GX /ZI /Od /I ".\inc" /I ".\rc" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /FR"windebug/" /Fp"windebug/Pksedit.pch" /YX"windows.h" /Fo"windebug/" /Fd"windebug/" /FD /c 
+"C:\Source\pksedit\INIT.C"
+]
+Creating command line "cl.exe @C:\DOKUME~1\TOMGEB~1.000\LOKALE~1\Temp\RSP2D8.tmp" 
+Erstellen der temporären Datei  "C:\DOKUME~1\TOMGEB~1.000\LOKALE~1\Temp\RSP2D9.tmp" mit Inhalten
+[
+comctl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /incremental:no /pdb:"windebug/Pksedit.pdb" /debug /machine:I386 /def:".\PKSEDIT.DEF" /out:"windebug/Pksedit.exe" 
+.\windebug\ABORT.OBJ
+.\windebug\ALIGN.OBJ
+.\windebug\ARGS.OBJ
+.\windebug\ATOL.OBJ
+.\windebug\BLCOLUMN.OBJ
+.\windebug\BLFILL.OBJ
+.\windebug\BLOCKS.OBJ
+.\windebug\BRACKETS.OBJ
+.\windebug\CCLASS.OBJ
+.\windebug\CLIP.OBJ
+.\windebug\CMDFTAB.obj
+.\windebug\CMP.OBJ
+.\windebug\CODEGEN.OBJ
+.\windebug\CRYPT.OBJ
+.\windebug\CRYPTSER.OBJ
+.\windebug\CURSOR.OBJ
+.\windebug\CUSTOM.OBJ
+.\windebug\CUTPASTE.OBJ
+.\windebug\DEBUG.OBJ
+.\windebug\DIFF.OBJ
+.\windebug\EDIT.OBJ
+.\windebug\ERROR.OBJ
+.\windebug\EWTERM.OBJ
+.\windebug\EXEC.OBJ
+.\windebug\FILEIO.OBJ
+.\windebug\FILES.OBJ
+.\windebug\FINDREPL.OBJ
+.\windebug\FKEYS.OBJ
+.\windebug\FONT.OBJ
+.\windebug\FORM.OBJ
+.\windebug\FORMAT.OBJ
+.\windebug\FSEL.OBJ
+.\windebug\FTW.OBJ
+.\windebug\functab.obj
+.\windebug\FUNPARSE.OBJ
+.\windebug\GLOBMARK.OBJ
+.\windebug\HELP.OBJ
+.\windebug\HISTORY.OBJ
+.\windebug\ICONS.OBJ
+.\windebug\INIT.OBJ
+.\windebug\KEYBIND.OBJ
+.\windebug\KEYFILE.OBJ
+.\windebug\KEYS.OBJ
+.\windebug\LABELS.OBJ
+.\windebug\LINELIST.OBJ
+.\windebug\LLIST.OBJ
+.\windebug\MACLIB.OBJ
+.\windebug\MACROS.OBJ
+.\windebug\MAIN.OBJ
+.\windebug\MAKROC.OBJ
+.\windebug\MARKS.OBJ
+.\windebug\MATCH.OBJ
+.\windebug\MENU.OBJ
+.\windebug\MOUSE.OBJ
+.\windebug\MYSPRINT.OBJ
+.\windebug\OPEN.OBJ
+.\windebug\OPTIONS.OBJ
+.\windebug\PARSER.OBJ
+.\windebug\port32.obj
+.\windebug\PRINT.OBJ
+.\windebug\PRKEYS.OBJ
+.\windebug\PRMACS.OBJ
+.\windebug\PROFILE.OBJ
+.\windebug\PROJECT.OBJ
+.\windebug\properties.obj
+.\windebug\READLINE.OBJ
+.\windebug\REDRAW.OBJ
+.\windebug\REDRAWAT.OBJ
+.\windebug\REGEXP.OBJ
+.\windebug\RESOURCE.OBJ
+.\windebug\RETREIVE.OBJ
+.\windebug\RULER.OBJ
+.\windebug\RUN.OBJ
+.\windebug\SCANNER.OBJ
+.\windebug\SLIDER.OBJ
+.\windebug\SORT.OBJ
+.\windebug\SOUND.OBJ
+.\windebug\STATUS.OBJ
+.\windebug\STRINGS.OBJ
+.\windebug\STRTOK.OBJ
+.\windebug\SYM.OBJ
+.\windebug\TAGS.OBJ
+.\windebug\TEST.OBJ
+.\windebug\TODO.OBJ
+.\windebug\toolbar.obj
+.\windebug\TRANSCHR.OBJ
+.\windebug\UNDO.OBJ
+.\windebug\USER.OBJ
+.\windebug\WORKWIN.OBJ
+.\windebug\XDIALOG.OBJ
+.\windebug\PKSEDIT.res
+]
+Erstellen der Befehlzeile "link.exe @C:\DOKUME~1\TOMGEB~1.000\LOKALE~1\Temp\RSP2D9.tmp"
+<h3>Ausgabefenster</h3>
+Ressourcen werden kompiliert...
+Kompilierung läuft...
+INIT.C
+C:\Source\pksedit\INIT.C(59) : warning C4028: Formaler Parameter 1 unterscheidet sich von der Deklaration
+C:\Source\pksedit\INIT.C(66) : warning C4013: 'GetPksProfileString' undefiniert; Annahme: extern mit Rueckgabetyp int
+C:\Source\pksedit\INIT.C(61) : warning C4101: 'len' : Unreferenzierte lokale Variable
+C:\Source\pksedit\INIT.C(92) : warning C4013: 'strdcpy' undefiniert; Annahme: extern mit Rueckgabetyp int
+C:\Source\pksedit\INIT.C(116) : warning C4013: 'prof_getstdopt' undefiniert; Annahme: extern mit Rueckgabetyp int
+C:\Source\pksedit\INIT.C(117) : warning C4013: 'mac_read' undefiniert; Annahme: extern mit Rueckgabetyp int
+C:\Source\pksedit\INIT.C(118) : warning C4013: 'dt_init' undefiniert; Annahme: extern mit Rueckgabetyp int
+C:\Source\pksedit\INIT.C(119) : warning C4013: 'tags_init' undefiniert; Annahme: extern mit Rueckgabetyp int
+C:\Source\pksedit\INIT.C(121) : warning C4013: 'compiler_init' undefiniert; Annahme: extern mit Rueckgabetyp int
+C:\Source\pksedit\INIT.C(122) : warning C4013: 'PrinterDefaults' undefiniert; Annahme: extern mit Rueckgabetyp int
+C:\Source\pksedit\INIT.C(123) : warning C4013: 'fixsets' undefiniert; Annahme: extern mit Rueckgabetyp int
+Linker-Vorgang läuft...
+LINK : warning LNK4075: /EDITANDCONTINUE wird aufgrund der Angabe von /INCREMENTAL:NO ignoriert
+   Bibliothek windebug/Pksedit.lib und Objekt windebug/Pksedit.exp wird erstellt
+Erstellen der temporären Datei  "C:\DOKUME~1\TOMGEB~1.000\LOKALE~1\Temp\RSP2DD.tmp" mit Inhalten
+[
+/nologo /o"windebug/Pksedit.bsc" 
+.\windebug\ABORT.SBR
+.\windebug\ALIGN.SBR
+.\windebug\ARGS.SBR
+.\windebug\ATOL.SBR
+.\windebug\BLCOLUMN.SBR
+.\windebug\BLFILL.SBR
+.\windebug\BLOCKS.SBR
+.\windebug\BRACKETS.SBR
+.\windebug\CCLASS.SBR
+.\windebug\CLIP.SBR
+.\windebug\CMDFTAB.sbr
+.\windebug\CMP.SBR
+.\windebug\CODEGEN.SBR
+.\windebug\CRYPT.SBR
+.\windebug\CRYPTSER.SBR
+.\windebug\CURSOR.SBR
+.\windebug\CUSTOM.SBR
+.\windebug\CUTPASTE.SBR
+.\windebug\DEBUG.SBR
+.\windebug\DIFF.SBR
+.\windebug\EDIT.SBR
+.\windebug\ERROR.SBR
+.\windebug\EWTERM.SBR
+.\windebug\EXEC.SBR
+.\windebug\FILEIO.SBR
+.\windebug\FILES.SBR
+.\windebug\FINDREPL.SBR
+.\windebug\FKEYS.SBR
+.\windebug\FONT.SBR
+.\windebug\FORM.SBR
+.\windebug\FORMAT.SBR
+.\windebug\FSEL.SBR
+.\windebug\FTW.SBR
+.\windebug\functab.sbr
+.\windebug\FUNPARSE.SBR
+.\windebug\GLOBMARK.SBR
+.\windebug\HELP.SBR
+.\windebug\HISTORY.SBR
+.\windebug\ICONS.SBR
+.\windebug\INIT.SBR
+.\windebug\KEYBIND.SBR
+.\windebug\KEYFILE.SBR
+.\windebug\KEYS.SBR
+.\windebug\LABELS.SBR
+.\windebug\LINELIST.SBR
+.\windebug\LLIST.SBR
+.\windebug\MACLIB.SBR
+.\windebug\MACROS.SBR
+.\windebug\MAIN.SBR
+.\windebug\MAKROC.SBR
+.\windebug\MARKS.SBR
+.\windebug\MATCH.SBR
+.\windebug\MENU.SBR
+.\windebug\MOUSE.SBR
+.\windebug\MYSPRINT.SBR
+.\windebug\OPEN.SBR
+.\windebug\OPTIONS.SBR
+.\windebug\PARSER.SBR
+.\windebug\port32.sbr
+.\windebug\PRINT.SBR
+.\windebug\PRKEYS.SBR
+.\windebug\PRMACS.SBR
+.\windebug\PROFILE.SBR
+.\windebug\PROJECT.SBR
+.\windebug\properties.sbr
+.\windebug\READLINE.SBR
+.\windebug\REDRAW.SBR
+.\windebug\REDRAWAT.SBR
+.\windebug\REGEXP.SBR
+.\windebug\RESOURCE.SBR
+.\windebug\RETREIVE.SBR
+.\windebug\RULER.SBR
+.\windebug\RUN.SBR
+.\windebug\SCANNER.SBR
+.\windebug\SLIDER.SBR
+.\windebug\SORT.SBR
+.\windebug\SOUND.SBR
+.\windebug\STATUS.SBR
+.\windebug\STRINGS.SBR
+.\windebug\STRTOK.SBR
+.\windebug\SYM.SBR
+.\windebug\TAGS.SBR
+.\windebug\TEST.SBR
+.\windebug\TODO.SBR
+.\windebug\toolbar.sbr
+.\windebug\TRANSCHR.SBR
+.\windebug\UNDO.SBR
+.\windebug\USER.SBR
+.\windebug\WORKWIN.SBR
+.\windebug\XDIALOG.SBR]
+Erstellen der Befehlzeile "bscmake.exe @C:\DOKUME~1\TOMGEB~1.000\LOKALE~1\Temp\RSP2DD.tmp"
+Browse-Informationsdatei wird erstellt...
+<h3>Ausgabefenster</h3>
+
+
+
+<h3>Ergebnisse</h3>
+Pksedit.exe - 0 Fehler, 12 Warnung(en)
+</pre>
+</body>
+</html>

@@ -1,0 +1,43 @@
+//
+// replace a pattern in all files in a directory
+//
+const MB_YESNOCANCEL    = 0x0003;
+const IDYES 		= 6;
+const IDCANCEL		= 2;
+
+macro ReplaceInFileList() 
+{
+
+    string  	search;
+    int 	answer;
+    int		replaceBoxFlags;
+    string	ret;
+
+    search = PromptAssign("Such - Muster", "");
+    if (search == "") {
+        return;
+    }
+
+    replaceBoxFlags = FO_SHOW|FO_INIT;
+    if (FindInFileList(FO_SHOW|FO_INIT, search, "", 1, 1, RE_DOREX|RE_WRAPSCAN)) {
+        while(1) {
+	    Replace(replaceBoxFlags, search, search, REP_REPLACE, RNG_GLOBAL,
+        	RE_DOREX|RE_WRAPSCAN,OREP_INQ);
+            answer = MessageBox(MB_YESNOCANCEL, 0, "Datei sichern");
+	    ret = "Antwort: " + (string)answer;
+	    Alert(ret);
+            if (answer == IDCANCEL) {
+                return;
+            }
+            if (answer == IDYES) {
+                SaveFile(SAV_QUIT|SAV_SAVE);
+            }
+            if (!FindError(LIST_NEXT)) {
+                return;
+            }
+	    // open replace box only the first time
+	    replaceBoxFlags = 0;
+        }
+    }
+}
+

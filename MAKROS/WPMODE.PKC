@@ -1,0 +1,59 @@
+const	code = "";
+
+#########################################################################
+# Restyle-Block
+# restyle the current block in a given attribute
+# attribute type is passed via string variable "code"
+#
+macro Restyle-Block()
+{
+	SetMark(FO_INIT,'?');
+	if (!FindBlockEnd() || !FindBlockStart()) {
+		Alert("kein Block markiert");
+		return 0;
+	}
+	Replace(FO_INIT,".","",1,REP_REPLACE,RNG_BLOCK,RE_DOREX,0);
+	FindBlockEnd();
+	InsertString("€");
+	if (code != "") {
+		FindBlockStart();
+		InsertString(code);
+		SetBlockMark(MARK_START);
+	}
+	GotoMark(FO_INIT,'?');
+}
+
+#########################################################################
+# Underline-Block
+# restyle the currently marked block underlined
+#
+macro Underline-Block()
+{
+	string code = "ˆ";
+	
+	Restyle-Block();
+}
+
+#########################################################################
+# Italicise-Block
+# restyle the currently marked block underlined
+#
+macro Italicise-Block()
+{
+	string code = "„";
+	
+	Restyle-Block();
+}
+
+#########################################################################
+# Remove-Block-Atrtributes
+# restyle the currently marked block underlined
+#
+macro Remove-Block-Atrtributes()
+{
+	string code = "";
+	
+	Restyle-Block();
+}
+
+

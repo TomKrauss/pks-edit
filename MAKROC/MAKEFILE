@@ -1,0 +1,29 @@
+
+EDDIR		= ..
+TLSDIR		= ..\tls
+#YYtunes	= -t
+
+FUNCC		= $(TLSDIR)\TLS.EXE
+FTABSRC		= $(EDDIR)\FTAB.TRN
+INTERNMACS 	= $(TLSDIR)\INTERN.MTX
+EDINCL 		= $(EDDIR)\INC
+INCLUDE 	= $(INCFLG)$(INCDIR) $(INCFLG)$(INCDIR2) $(INCFLG)$(EDINCL)
+MODULES		= EDCONF.O PRKEYS.O CMDFTAB.O MSETUP.O
+DELIVER		= #-DDELIVER
+CFLAGS		=  -Y -D$(COMPILER) -G -P -DMODULVERSION $(DELIVER)
+OBJECTS	= KEYBIND.O EDCONF.O CMDFTAB.O PRKEYS.O PARSER.O SCANNER.O PRMACS.O MSETUP.O \
+		  LABELS.O FUNPARSE.O CODEGEN.O SYM.O \
+		  TEST.O EDFUNCS.O
+
+all:			scanner.c cmdftab.c
+
+CMDFTAB.C:	$(FTABSRC) $(FUNCC)
+			$(FUNCC) -F $@ $(FTABSRC)
+
+SCANNER.c: 	scanner.l
+		@lex scanner.l
+		@sed s/.*bad.switch.*/yyerror("syntax-error");/ < lexyy.c > scanner.c
+		@del lexyy.c
+		
+PARSER.C:		parser.y
+		bison parser.y

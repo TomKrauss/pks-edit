@@ -1,0 +1,12 @@
+
+
+macro TestOr()
+{
+    int		i;
+    string	s;
+
+    i = FO_INIT|FO_SHOW;
+    s = FormatPrint("%j", i);
+    Alert(s);
+}
+

@@ -1,0 +1,15 @@
+#define IDD_FSELCURRENTDIR	1088
+#define IDD_FSELNAME	1152
+#define IDD_FSELDIRANDPAT   11
+#define IDD_FSELFILES       100
+#define IDD_FSELDIRS        101
+#define IDD_FSELPATHES      102
+#define IDD_FSELPATTERNS    103
+#define IDD_FSELLWLIST      104
+#define IDD_FSELHIST        118
+#define IDD_FSELDELETE      200
+#define IDD_FSELRENAME      201
+#define IDD_FSELMKDIR       202
+#define IDD_FSELCHDIR       203
+#define IDD_FSELOPTIONS     204
+
