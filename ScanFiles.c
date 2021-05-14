@@ -49,7 +49,6 @@ static void present(char *fn)
  * scanlines()
  * 
  */
-#pragma argsused
 static unsigned char *scanlines(char *fn, unsigned char *p, unsigned char *qend)
 {
 	register char	*	q;

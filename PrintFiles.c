@@ -525,7 +525,6 @@ BOOL CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
  * DlgInstallPrtProc()
  */
 typedef VOID (FAR PASCAL *DEVMODEPROC)(HWND, HANDLE, LPSTR, LPSTR);
-#pragma argsused
 BOOL CALLBACK DlgInstallPrtProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	HWND			hwndList;

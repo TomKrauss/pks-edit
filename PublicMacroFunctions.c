@@ -748,7 +748,6 @@ void winlist_lboxfill(HWND hwnd, int nItem, long selValue)
 /*------------------------------------------------------------
  * winlist_lboxdraw()
  */
-# pragma argsused
 static void winlist_lboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
 {
 	LPSTR	pszName;

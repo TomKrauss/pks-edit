@@ -121,7 +121,6 @@ void Panic(LPSTR s)
  * DlgError()
  */
 #define	NSEC		5		/* stay open maximum 10 seconds */
-#pragma argsused
 static HWND hwndError;
 static UINT idTimer;
 BOOL CALLBACK DlgError(HWND hDlg,UINT message,WPARAM wParam, LPARAM lParam)

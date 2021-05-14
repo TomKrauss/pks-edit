@@ -217,7 +217,7 @@ typedef unsigned size_t;
 #endif
 
 void 	edidebug(char *fmt,...);
-unsigned char *blfill(unsigned char *buf,int count,unsigned char fillbyte);
+unsigned char *blfill(void *buf,int count,unsigned char fillbyte);
 int 	_chkblk(FTABLE *fp);
 int 	chkblk(FTABLE *fp);
 
@@ -247,35 +247,52 @@ void ln_replace(FTABLE *fp,LINE *oln,LINE *nl);
 void ln_m(LINE *lpstart,LINE *lpend,int flg);
 void ln_um(LINE *lpstart,LINE *lpend,int flg);
 long ln_needbytes(LINE *lp, int nl, int cr);
+/*--------------------------------------------------------------------------
+ * SelectRange()
+ *
+ * Select a range of text in the file identified by fp.
+ */
+extern int SelectRange(int rngetype, FTABLE* fp, MARK** markstart, MARK** markend);
+
+/*
+ * Typical data structure for a linked list.
+ */
+typedef struct linkedList {
+	struct linkedList* next;
+	char name[4];
+} LINKED_LIST;
+
 
 /*--------------------------------------------------------------------------
  * ll_top()
  * put an element to the top of the linked list
  */
-extern int ll_top(void* Head, void* Elem);
+extern int ll_top(void** pointerLinkedList, void* elem);
 
 /*--------------------------------------------------------------------------
  * ll_insert()
  * insert an element to a linked list
  */
-extern void* ll_insert(void* head, long size);
+extern void* ll_insert(void** pointerLinkedList, long size);
 
 /*--------------------------------------------------------------------------
  * ll_kill()
- * destroy a linked list
+ * destroy a linked list. Pass a pointer to the head of the linked list and
+ * an additional destruction function for one element in the list.
  */
-extern void ll_kill(void* head, int (*destroy)(void* elem));
+extern void ll_kill(void** pointerLinkedList, int (*destroy)(void* elem));
 
 /*--------------------------------------------------------------------------
  * ll_delete()
- * delete an element in a linked list
+ * delete an element in a linked list.Return 1 if the element was successfully deleted.
  */
-extern int ll_delete(void* head, void* element);
+extern int ll_delete(void** pointerLinkedList, void* element);
 
 /*--------------------------------------------------------------------------
  * ll_count()
+ * Count the elements in a linked list.
  */
-extern int ll_count(void* head);
+extern int ll_count(void* linkedList);
 
 /*-------- FILE FLAGS ----------*/
 

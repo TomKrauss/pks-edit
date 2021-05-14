@@ -42,7 +42,7 @@ extern char 		_fseltarget[];
 extern int 		_translatekeys;
 extern int			bInPropertySheet;
 
-extern long 		Atol(unsigned char *s);
+extern long 	Atol(unsigned char *s);
 extern int		mysprintf(FTABLE *fp, char *d,char *format,...);
 extern FTABLE		*ww_stackwi(int num);
 extern void 		ReturnString(char *string);

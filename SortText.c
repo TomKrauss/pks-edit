@@ -544,7 +544,7 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 
 	fp = _currfile;
 	u_init(fp);
-	if (select_range(scope,fp,&mps,&mpe) == RNG_INVALID) {
+	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID) {
 		return 0;
 	}
 	lpfirst = mps->lm;

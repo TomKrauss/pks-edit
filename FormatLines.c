@@ -290,7 +290,7 @@ FormatText(int scope, int type, int flags)
 	fp = _currfile;
 	flags |= type;
 
-	if (select_range(scope,fp,&mps,&mpe) == RNG_INVALID ||
+	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID ||
 	    !mark_set(fp,fp->currl,0,MARKDOT))
 		return 0;
 

@@ -718,7 +718,7 @@ int EdReplaceText(int scope, int action, int flags)
 	u_init(fp);
 	savecpos();
 
-	if (select_range(scope,fp,&markstart,&Markend) == RNG_INVALID)
+	if (SelectRange(scope,fp,&markstart,&Markend) == RNG_INVALID)
 		return 0;
 	/* force register use */
 	markend = Markend;
@@ -956,10 +956,12 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
 }
 
 /*--------------------------------------------------------------------------
- * select_range()
+ * SelectRange()
+ * 
+ * Select a range of text in the file identified by fp.
  */
-int select_range(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend)
-{	LINE *lps,*lpe;
+int SelectRange(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend) {
+	LINE *lps,*lpe;
 	int  ofs,ofe;
 
 	/*
@@ -1034,7 +1036,7 @@ int select_range(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend)
 int range(int rngdefault,MARK **mps, MARK **mpe)
 {
 	if (!_currfile || 
-	    select_range(rngdefault,_currfile,mps,mpe) == RNG_INVALID)
+	    SelectRange(rngdefault,_currfile,mps,mpe) == RNG_INVALID)
 		return 0;
 	return 1;
 }

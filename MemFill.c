@@ -81,9 +81,9 @@ EXPORT void *memmove(void *D, const void *S, size_t Len)
 * Similar to memset, but return pointer to the end of 
 * the filled area.
 *--------------------------------------------*/
-EXPORT unsigned char *blfill(unsigned char *buf, int count, unsigned char fillbyte) {	
+EXPORT unsigned char *blfill(void *buf, int count, unsigned char fillbyte) {	
 	memset(buf, (unsigned char)fillbyte, count);
-	return buf + count;
+	return (unsigned char*)buf + count;
 }
 #endif
 

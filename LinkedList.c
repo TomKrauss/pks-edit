@@ -16,40 +16,33 @@
 #include <malloc.h>
 #include "lineoperations.h"
 
-/*
- * Typical data structure for a linked list. 
- */
-typedef struct linkedList {
-	struct linkedList *next;
-	char name[4];
-} LINKED_LIST;
-
 /*--------------------------------------------------------------------------
  * ll_kill()
- * destroy a linked list
+ * destroy a linked list. Pass a pointer to the linkedList of the linked list and
+ * an additional destruction function for one element in the list.
  */
-void ll_kill(void *head,int (*destroy)(void *elem))
-{	LINKED_LIST *lp,*lpnext = NULL;
+void ll_kill(void **pointerLinkedList,int (*destroy)(void *elem)) {
+	LINKED_LIST *lp,*lpnext = NULL;
 
-	for (lp = *(LINKED_LIST**)head; lp != 0; lp = lpnext) {
+	for (lp = *pointerLinkedList; lp != 0; lp = lpnext) {
 		lpnext = lp->next;
 		if (!destroy || (*destroy)(lp) == 1) {
 			free(lp);
 		}
 	}
-	*(LINKED_LIST**)head = 0;
+	*pointerLinkedList = NULL;
 }
 
 /*--------------------------------------------------------------------------
  * ll_delete()
- * delete an element in a linked list
+ * delete an element in a linked list.Return 1 if the element was successfully deleted.
  */
-int ll_delete(void *Head, void *Elem)
-{	LINKED_LIST *lp,*lpprev,**head;
+int ll_delete(void **pointerLinkedList, void *element) {
+	LINKED_LIST *lp,*lpprev,**head;
 
-	head = Head;
+	head = pointerLinkedList;
 	for (lp = *head, lpprev = 0; lp != 0; lpprev = lp, lp = lp->next) {
-		if (lp == Elem) {
+		if (lp == element) {
 			if (lpprev) {
 				lpprev->next = lp->next;
 			} else {
@@ -66,10 +59,10 @@ int ll_delete(void *Head, void *Elem)
  * ll_top()
  * put an element to the top of the linked list
  */
-int ll_top(LINKED_LIST **start, void *elem)
+int ll_top(void **pointerLinkedList, void *elem)
 {	LINKED_LIST *lp,*lpprev, **head;
 
-	head = start;
+	head = pointerLinkedList;
 	for (lp = *head, lpprev = 0; lp != 0; lpprev = lp, lp = lp->next) {
 		if (lp == elem) {
 			if (lpprev == 0) 
@@ -87,7 +80,7 @@ int ll_top(LINKED_LIST **start, void *elem)
  * ll_insert()
  * insert an element to a linked list
  */
-void *ll_insert(LINKED_LIST *head,long size) {
+void *ll_insert(void **pointerLinkedList,long size) {
 	LINKED_LIST *lp;
 
 	if ((lp = malloc((size_t)size)) == 0)
@@ -95,8 +88,8 @@ void *ll_insert(LINKED_LIST *head,long size) {
 
 	blfill(lp, (size_t)size,0);
 
-	lp->next = *(LINKED_LIST **)head;
-	*(LINKED_LIST **)head = lp;
+	lp->next = *pointerLinkedList;
+	*pointerLinkedList = lp;
 	return lp;
 }
 
@@ -105,11 +98,11 @@ void *ll_insert(LINKED_LIST *head,long size) {
  * 
  * Find an element in a linked list, with a given name.
  */
-void *ll_find(LINKED_LIST *head, char *name)
+void *ll_find(void *linkedList, char *name)
 {
 	LINKED_LIST *lp;
 
-	for (lp = head; lp != 0; lp = lp->next) {
+	for (lp = linkedList; lp != 0; lp = lp->next) {
 		if (strcmp(lp->name,name) == 0)
 			return lp;
 	}
@@ -118,13 +111,14 @@ void *ll_find(LINKED_LIST *head, char *name)
 
 /*--------------------------------------------------------------------------
  * ll_count()
+ * Count the elements in a linked list.
  */
-int ll_count(LINKED_LIST *head)
+int ll_count(void *linkedList)
 {
 	int		nCnt;
 	LINKED_LIST *lp;
 
-	for (lp = head, nCnt = 0; lp != 0; lp = lp->next) {
+	for (lp = linkedList, nCnt = 0; lp != 0; lp = lp->next) {
 		nCnt++;
 	}
 	return nCnt;

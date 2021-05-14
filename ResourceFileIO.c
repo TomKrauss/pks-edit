@@ -66,7 +66,6 @@ int FlushBuffer(int fd, char *buffer, int size, int rest)
 /*------------------------------------------------------------
  * rsc_rdmacros()
  */
-#pragma argsused
 char *rsc_rdmacros(char *name, unsigned char *p, unsigned char *pend)
 {
 	int  		len;

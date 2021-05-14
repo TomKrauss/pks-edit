@@ -38,7 +38,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 		return 0;
 
 	fp = _currfile;
-	if (select_range(scope,fp,&mps,&mpe) == RNG_INVALID)
+	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID)
 		return 0;
 	if (filler == 0)
 		filler = ' ';

@@ -37,7 +37,6 @@ typedef struct xywh {
 static WINFO *_winlist;
 
 extern int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
-extern void *ll_insert(void *head,long size);
 extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
 extern char *AbbrevName(char *fn);
 extern char *basename(char *fn);

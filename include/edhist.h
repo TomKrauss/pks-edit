@@ -31,7 +31,7 @@ extern char *hist_getstring(struct history *hp, int nItem);
 * Similar to memset, but return pointer to the end of
 * the filled area.
 *--------------------------------------------*/
-extern unsigned char* blfill(unsigned char* buf, int count, unsigned char fillbyte);
+extern unsigned char* blfill(void* buf, int count, unsigned char fillbyte);
 
 #define	EDHIST_H
 # endif	/* EDHIST_H */
