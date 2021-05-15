@@ -36,7 +36,6 @@ extern void	*prof_llinsert(void *Head, int size,
 						char *group, char *item, char **idata);
 extern void 	ShowError(LPSTR fmt, void *ap);
 extern void *	ll_find(void *Head, char *name);
-extern int 	ll_top(void *Head, void *Elem);
 extern void 	strdcpy(char *dest,char *source,char *fname);
 
 #define	TCMD_EXEC				'!'

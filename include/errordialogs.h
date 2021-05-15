@@ -35,5 +35,16 @@ extern int ed_ync(WORD nId, ...);
  */
 extern void ShowError(LPSTR fmt, ...);
 
+/*------------------------------------------------------------
+ * ed_error()
+ * Display an error alert given a resource ID + optional arguments.
+ */
+extern void ed_error(int nId, ...);
+
+/*------------------------------------------------------------
+ * tosfnerror()
+ */
+extern void tosfnerror(char* fn, int fd);
+
 #define ERRORDIALOGS_H
 #endif

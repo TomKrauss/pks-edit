@@ -23,6 +23,7 @@
 #include "pksedit.h"
 #include "context.h"
 #include "iccall.h"
+#include "stringutil.h"
 
 #define	WT_WORKWIN		0
 #define	WT_RULERWIN		1
@@ -38,8 +39,6 @@ static WINFO *_winlist;
 
 extern int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
 extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
-extern char *AbbrevName(char *fn);
-extern char *basename(char *fn);
 extern char *ft_visiblename(FTABLE *fp);
 extern int  do_linbutton(FTABLE *fp, int x, int y, int msg, int shift);
 extern int  do_mbutton(FTABLE *fp, int x,int y,int b, int nclicks,int shift);

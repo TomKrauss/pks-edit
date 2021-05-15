@@ -31,9 +31,5 @@ int _ftw(char *path,FTWFUNC func,int depth,char *pattern,int mode);
 int  ftw(char *path,FTWFUNC func,int depth,char *pattern);
 int ftwalk(char *path,FTWFUNC func,int depth,int fmode);
 
-char *basename(char *fullname);
-char *extname(char *fullname);
-int sfsplit(char *fullname,char *path,char *fn);
-
 #endif __FTW__
 

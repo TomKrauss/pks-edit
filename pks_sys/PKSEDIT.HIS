@@ -1,5 +1,6 @@
 [files]
-"D:\dvltools\pksedit\PKS_SYS\PKSEDIT.INI", line 85: 0x3 0x3 1785 222 -8 -31 -3 0 1937 1100
+"D:\dvltools\pksedit\PKS_SYS\PKSEDIT.INI", line 85: 0x3 0x2 144585 5679 -8 -31 -243 0 1697 1100
+"D:\source\pksedit\PKS_SYS\MODI.TMP", line 1: 0x3 0x3 1788 153 -8 -31 -3 0 1937 1100
 [find]
 !lock
 !Exception

@@ -21,6 +21,7 @@
 #include "project.h"
 #include "edifsel.h"
 #include "edierror.h"
+#include "stringutil.h"
 #include "pksedit.h"
 
 /*
@@ -52,11 +53,7 @@ LINEAL _lineal = {
 	"0x%6p$O: 0x%2p$C 0%h$C",			/* status - line */
 };
 
-extern void *	ll_insert(void *head,long size);
 extern void *	ll_find(void *Head, char *name);
-extern LPSTR 	strmaxcpy(LPSTR pszDest, LPSTR pszSource, int nMax);
-extern char 	*extname(char *s);
-extern char 	*basename(char *s);
 extern char 	*searchfile(char *fn);
 extern int 		ll_count(void *Head);
 extern long 	Atol(char *s);
@@ -64,7 +61,6 @@ extern void 	*prof_llinsert(void *Head, int size, char *group,
 						char *item, char **idata);
 extern void 	prof_killsections(LPSTR pszFn, LPSTR pszSection);
 extern char *	TmpName(char *dst, char c);
-extern void 	strdcpy(char *dest,char *source,char *fname);
 extern int 	Mapread(int context, char *target);
 
 extern char *	_datadir;

@@ -100,7 +100,7 @@ void ic_lboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
 /*--------------------------------------------------------------------------
  * ic_lboxselchange()
  */
-void	ic_lboxselchange(HWND hDlg, WORD nItem, LONG lParam, void *p)
+void ic_lboxselchange(HWND hDlg, WORD nItem, LONG lParam, void *p)
 {
 	ICONCLASS	*icp;
 

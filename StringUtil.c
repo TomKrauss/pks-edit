@@ -1,5 +1,5 @@
 /*
- * STRINGS.C
+ * StringUtil.c
  *
  * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
  *
@@ -12,15 +12,18 @@
  *										author	   : TOM
  *
  * (c) Pahlen & Krauss
- *
- * 								Author: TOM
  */
 
 #include <windows.h>
 #include <direct.h>
 
 #include "pathname.h"
+#include "stringutil.h"
 
+/*
+ * Return a pointer to the last matching position, where a character can be found in a String 
+ * or NULL if it cannot be found at all.
+ */
 char* strrchr(const char *str, int ch) {	
 	const char* strl = str + strlen(str);
 
@@ -32,8 +35,11 @@ char* strrchr(const char *str, int ch) {
 	return NULL;
 }
 
-LPSTR lstrchr(char *str, char ch)
-{
+/*
+ * Return the pointer to the first matching position of a character in a String or NULL
+ * if no match is found.
+ */
+char *lstrchr(const char *str, char ch) {
 	while(*str) {
 		if (ch == *str)
 			return str;
@@ -42,8 +48,11 @@ LPSTR lstrchr(char *str, char ch)
 	return NULL;
 }
 
-LPSTR strmaxcpy(LPSTR pszDest, LPSTR pszSource, int nMax)
-{
+/*
+ * Copies a pathname string into a destrination string - at max nMax characters.
+ * Returns the pointer to the end of the string.
+ */
+char* strmaxcpy(char* pszDest, const char* pszSource, int nMax) {
 	LPSTR		pszEnd;
 	
 	pszEnd = pszDest + nMax - 1;
@@ -63,11 +72,10 @@ LPSTR strmaxcpy(LPSTR pszDest, LPSTR pszSource, int nMax)
  * concat file and dirname and make sure there is one(1!) SLASH between
  * the both
  */
-void strdcpy(char *dest,char *source,char *fname)
-{
-	if (*source) {
-		while (*source)
-			*dest++ = *source++;
+void strdcpy(char *dest, const char *pathname, const char *fname) {
+	if (*pathname) {
+		while (*pathname)
+			*dest++ = *pathname++;
 		if (dest[-1] != DIRSEPARATOR)
 			*dest++ = DIRSEPARATOR;
 	}
@@ -76,9 +84,9 @@ void strdcpy(char *dest,char *source,char *fname)
 
 /*--------------------------------------------------------------------------
  * basename()
- * return pointer to filename component of a path
+ * return pointer to filename component of a pathName
  */
-char *basename(char *fullname)
+char *basename(const char *fullname)
 {	register char *f = fullname;
 	register char c;
 
@@ -89,9 +97,9 @@ char *basename(char *fullname)
 
 /*--------------------------------------------------------------------------
  * extname()
- * return pointer to the extension component of a path
+ * return pointer to the extension component of a pathName
  */
-char *extname(char *fullname) {	
+char *extname(const char *fullname) {
 	char *base = basename(fullname);
 
 	while(*base == '.') base++;		/* skip . and .. */
@@ -102,24 +110,24 @@ char *extname(char *fullname) {
 
 /*--------------------------------------------------------------------------
  * sfsplit()
- * split a pathname in path and filename components
+ * split a pathname in pathName and filename components
  */
-void sfsplit(char *source,char *path,char *fn) {
-	char *fname = basename(source);
+void sfsplit(const char *completeFileName, char *pathName, char *fileName) {
+	char *fname = basename(completeFileName);
 
-	if (path != NULL) {
-		while(source < fname)
-			*path++ = *source++;
-		*path = 0;
+	if (pathName != NULL) {
+		while(completeFileName < fname)
+			*pathName++ = *completeFileName++;
+		*pathName = 0;
 	}
-	if (fn != NULL) {
+	if (fileName != NULL) {
 		/*
 		 * avoid overruns
 		 */
-		source = &fn[256];
-		while(fn < source && *fname)
-			*fn++ = *fname++;
-		*fn = 0;
+		completeFileName = &fileName[256];
+		while(fileName < completeFileName && *fname)
+			*fileName++ = *fname++;
+		*fileName = 0;
 	}
 }
 
@@ -127,8 +135,7 @@ void sfsplit(char *source,char *path,char *fn) {
  * FullPathName()
  * make full pathname
  */
-char *FullPathName(char *path,char *fn)
-{
+char *FullPathName(const char *path, const char *fn) {
 #if defined(WIN32)
 	char *		pszFn;
 
@@ -173,8 +180,8 @@ char *FullPathName(char *path,char *fn)
 /*------------------------------------------------------------
  * AbbrevName()
  */
-char *AbbrevName(char *fn)
-{	int l,i;
+char *AbbrevName(const char *fn) {	
+	int l,i;
 	static char aname[32];
 	
 	if ((l = lstrlen(fn)) < 20)
@@ -203,8 +210,7 @@ char *AbbrevName(char *fn)
 /*------------------------------------------------------------
  * OemAbbrevName()
  */
-char *OemAbbrevName(char *fn)
-{
+char *OemAbbrevName(const char *fn) {
 	char *ret = AbbrevName(fn);
 	OemToAnsi(ret,ret);
 	return ret;

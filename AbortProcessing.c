@@ -58,9 +58,8 @@ BOOL CALLBACK DlgAbortProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 /*------------------------------------------------------------
  * abrt_start()
  */
-void abrt_start(WORD ids)
-{
-	char			szB1[30],szBuff[256];
+void abrt_start(unsigned int ids) {
+	char szB1[30],szBuff[256];
 
 	if (!_playing && !hwndAbort) {
 		szB1[0] = 0;

@@ -17,7 +17,7 @@
 
 #include <windows.h>
 #include "trace.h"
-#include "lineoperations.h""
+#include "lineoperations.h"
 #include "winfo.h"
 #include "edierror.h"
 #include "regexp.h"
@@ -34,7 +34,6 @@ extern FTABLE	*_currfile;
 extern long	_multiplier;
 extern long	ln_cnt(LINE *lps,LINE *lpe);
 extern LINE 	*ln_gotouserel(FTABLE *fp,long ln);
-extern void	*ll_insert(void *head,long size);
 extern LINE	*optinswhite(FTABLE *fp, LINE *lp, int col, int *inserted);
 extern int	CalcTabs2Col(LINEAL *linp, int tabs);
 

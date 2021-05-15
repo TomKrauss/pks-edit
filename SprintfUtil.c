@@ -16,17 +16,16 @@
 
 #include <windows.h>
 #include <stdarg.h>
-#include "winterf.h"
-#include "edierror.h"
-
 #include <dos.h>
 #include <string.h>
 #include <time.h>
+
+#include "winterf.h"
+#include "edierror.h"
 #include "lineoperations.h"
 #include "winfo.h"
+#include "stringutil.h"
 
-extern char *basename(char *fn);
-extern LPSTR lstrchr(char *s, char c);
 extern char *ft_visiblename(FTABLE *fp);
 
 int  _psenabled = 1;

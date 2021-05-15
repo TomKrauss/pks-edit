@@ -29,20 +29,20 @@
 #include "edhist.h"
 #include "xdialog.h"
 #include "publicapi.h"
+#include "stringutil.h"
 
 extern int 		AbandonFile(FTABLE *fp, LINEAL *linp);
 extern int 		mac_runcmd(MACROREF *mp);
-extern char *	basename(char *fullname);
 extern unsigned char* stralloc(unsigned char* buf);
 extern int 		AlignText(char *finds, int scope, char filler, int flags);
 extern long 	ft_size(FTABLE *fp);
 extern char *	AbbrevName(char *fn);
-extern CALLBACK DlgMacEditProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam);
-extern void 	ic_lboxfill(HWND hwnd, WORD nItem,  LPARAM selValue);
+extern BOOL CALLBACK DlgMacEditProc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam);
+extern void 	ic_lboxfill(HWND hwnd, int nItem, long selValue);
 extern void 	ic_lboxmeasureitem(MEASUREITEMSTRUCT *mp);
 extern void		ic_lboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl);
-extern void		ic_lboxselchange(HWND hDlg, WORD nItem,  LPARAM lParam, void *p);
-extern int 		LbGetText(HWND hwnd, WORD id, LONG *szBuff);
+extern void		ic_lboxselchange(HWND hDlg, WORD nItem, LONG lParam, void* p);
+extern int 		LbGetText(HWND hwnd, WORD id, char *szBuff);
 extern FTABLE *	ww_stackwi(int num);
 extern FTABLE *	ww_winid2fp(int winid);
 extern int 		ww_nwi(void);
@@ -55,9 +55,10 @@ extern int 		cursleftright(int dir, int mtype);
 extern int 		EdExecute(long flags, long unused, 
 					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
-extern BOOL		GetDocumentTypeDescription(void *llp, char **ppszId,
-					char **ppszDescription, char **ppszMatch, char **ppszFname, 
-					int **pOwn);
+extern BOOL GetDocumentTypeDescription(void* llp,
+		char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszFname,
+		int** pOwn);
+
 extern void 		SaveAllDocumentTypes(void *llp);
 extern int 		AssignDocumentTypeDescriptor(FTABLE *fp, LINEAL *linp);
 extern void *		GetPrivateDocumentType(char *);
@@ -65,7 +66,6 @@ extern void *		CreateDocumentType(void *llp);
 extern LINEAL *	GetDocumentTypeDescriptor(void *);
 extern char *		TmpDir(void);
 extern void 		mac_switchtodefaulttables(void);
-extern void		getcwd(char *, int);
 extern void 		ic_enablecallbacks(HWND hwnd, void *icp);
 extern int 		linchange(void);
 extern void 		SendRedraw(HWND hwnd);
@@ -881,11 +881,9 @@ static DIALPARS docTypePars[] =
 	0
 };
 
-static void doclist_command(HWND hDlg, WORD nItem,  LPARAM lParam, void *pUser)
+static void doclist_command(HWND hDlg, WORD nItem, WORD nNotify, void *pUser)
 {
-	WORD		nNotify;
-
-	switch(nNotify = HIWORD(lParam)) {
+	switch(nNotify) {
 	case LBN_SELCHANGE:
 	case LBN_DBLCLK:
 		LbGetText(hDlg, nItem, pUser);
@@ -910,6 +908,15 @@ void DocTypelboxfill(HWND hwnd, int nItem, long selValue)
 }
 
 /*------------------------------------------------------------
+ * ic_lboxmeasureitem()
+ */
+void DocTypelboxmeasureitem(MEASUREITEMSTRUCT* mp)
+{
+	mp->itemHeight = 22;
+}
+
+
+/*------------------------------------------------------------
  * DocTypelboxdraw()
  */
 void DocTypelboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
@@ -917,22 +924,29 @@ void DocTypelboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
 	char	*	pszId;
 	char *	pszDescription;
 	SIZE		size;
+	SIZE		sizeDescription;
 	int		nLen;
 	int		nY;
+	int		spacing = 3;
 
 	if (!GetDocumentTypeDescription((void *)par, 
 		&pszId, &pszDescription, (char **)0, (char **)0, (int **)0)) {
 		return;
 	}
 	nLen = lstrlen(pszId);
-	TextOut(hdc, rcp->left, rcp->top, pszId, nLen);
 	GetTextExtentPoint(hdc, pszId, nLen, &size);
+	GetTextExtentPoint(hdc, pszDescription, lstrlen(pszDescription), &sizeDescription);
+	int dTop = nY = (rcp->bottom - rcp->top - size.cy) / 2;
+	TextOut(hdc, rcp->left + spacing, rcp->top + dTop, pszId, nLen);
 	if (size.cx < 110) {
-		nY = rcp->top + size.cy / 2;
-		MoveTo(hdc, rcp->left + size.cx + 5, nY);
-		LineTo(hdc, rcp->left + 115, nY);
+		HGDIOBJ original = SelectObject(hdc, GetStockObject(DC_PEN));
+		nY = (rcp->top + rcp->bottom) / 2;
+		SetDCPenColor(hdc, RGB(200,200,200));
+		MoveTo(hdc, rcp->left + spacing + size.cx + 5, nY);
+		LineTo(hdc, rcp->right-2*spacing-sizeDescription.cx, nY);
+		SelectObject(hdc,original);
 	}
-	TextOut(hdc, rcp->left + 120, rcp->top, pszDescription, lstrlen(pszDescription));
+	TextOut(hdc, rcp->left + rcp->right-spacing - sizeDescription.cx, rcp->top + dTop, pszDescription, lstrlen(pszDescription));
 }
 
 /*--------------------------------------------------------------------------
@@ -1023,7 +1037,7 @@ int DoDocumentTypes(int nDlg)
 		(long*)&lastSelectedDocType, 
 		DocTypelboxfill, 
 		LbGetText, 
-		0, 
+		DocTypelboxmeasureitem, 
 		DocTypelboxdrawitem, 
 		doclist_command
 	};

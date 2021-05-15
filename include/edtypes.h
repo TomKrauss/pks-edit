@@ -11,8 +11,6 @@
 #else
 #define CALLBACK			FAR PASCAL _export
 #define EDFAR				far
-extern void *				_alloc(unsigned size);
-extern void 				_free(void *ap);
 #endif
 
 #define EXPORT		/**/
@@ -22,6 +20,7 @@ typedef MEMHANDLE EDFAR *	PMEMHANDLE;
 typedef void   EDFAR  	*	FARP;
 typedef void   EDNEAR	*	NEARP;
 typedef	int					CTXID;
+typedef int					BOOL;
 
 #define EDTYPES_H
 #endif

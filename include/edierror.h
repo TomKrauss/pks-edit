@@ -2,9 +2,27 @@
 #ifndef _EDIERROR_H
 #define	_EDIERROR_H
 
-void ed_error(int nId, ...);
-void alert(char * fmt, ...);
-int  EdOptionToggle(long option);
+#include "edtypes.h"
+
+extern void ed_error(int nId, ...);
+extern int EdOptionToggle(long option);
+
+/*------------------------------------------------------------
+ * ed_abort()
+ * optional force redraw to reflect changes in the current
+ * top window due to a workin progress
+ */
+extern int ed_abort(BOOL bRedraw);
+
+/*------------------------------------------------------------
+ * abrt_close()
+ */
+extern void abrt_close(int always);
+
+/*------------------------------------------------------------
+ * abrt_start()
+ */
+extern void abrt_start(unsigned int ids);
 
 #define	E_SERIOUSC		'!'
 

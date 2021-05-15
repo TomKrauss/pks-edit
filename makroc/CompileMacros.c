@@ -18,6 +18,7 @@
 #include <string.h>
 #include "lineoperations.h"
 #include "pkscc.h"
+#include "stringutil.h"
 
 int  yyparse(void);
 void yyinit(jmp_buf *errb, char *sourcefile, LINE *lps,LINE *lpe);
@@ -26,7 +27,6 @@ int  opennofsel(char *fn, long line, void *wsp);
 char *TmpDir(void);
 void alert(char * fmt, ...);
 void ShowError(char * fmt, va_list ap);
-char *basename(char *);
 
 extern int		_macedited;
 

@@ -20,14 +20,10 @@
 #include "lineoperations.h"
 #include "pksedit.h"
 #include "errordialogs.h"
+#include "stringutil.h"
 
-extern char *lstrchr(char *s, char c);
-extern char *basename(char *fn);
-extern char *AbbrevName(char *fn);
-extern void sfsplit(char* source, char* path, char* fn);
 extern char *_datadir;
-
-static char 	_found[1024];
+static char _found[1024];
 
 #if !defined(S_IREAD)
 #define		S_IREAD		_S_IREAD
@@ -149,7 +145,7 @@ EXPORT int EdOpen(char *fn)
 }
 
 EXPORT int EdMakeReadable(char *fn) {
-	return chmod(fn,S_IREAD|S_IWRITE);
+	return _chmod(fn,S_IREAD|S_IWRITE);
 }
 
 /*--------------------------------------------------------------------------

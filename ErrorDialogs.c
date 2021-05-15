@@ -243,6 +243,7 @@ static void visiblebell(void)
 
 /*------------------------------------------------------------
  * ed_error()
+ * Display an error alert given a resource ID + optional arguments.
  */
 void ed_error(int nId,...)
 {
