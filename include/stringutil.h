@@ -14,6 +14,16 @@
 
 #ifndef STRINGUTIL_H
 
+
+extern char* _strtolend;
+
+/*--------------------------------------------------------------------------
+ * Atol()
+ * Convert the first integer value from the passed String (interpret hex numbers and
+ * normal numbers) set the resulting pointer after parsing to _strtolend.
+ */
+extern long Atol(char* s);
+
 /*
  * Return a pointer to the last matching position, where a character can be found in a String
  * or NULL if it cannot be found at all.

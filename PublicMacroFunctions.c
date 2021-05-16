@@ -1193,7 +1193,7 @@ static void color_drawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
  */
 static int color_getitem(HWND hwnd, WORD id, char *szBuff)
 { 	
-	int	  	item;
+	LRESULT	item;
 	HDC		hDC;
 
 	item = SendDlgItemMessage(hwnd, id, CB_GETCURSEL, 0, 0);

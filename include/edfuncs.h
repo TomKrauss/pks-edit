@@ -265,9 +265,9 @@ typedef struct menu {
 #define	UM_ENDMENU	-2
 
 typedef struct tagUSERMENUBIND {
-	int			type;
+	int				type;
 	MACROREF		macref;
-	unsigned int	handle;			/* submenu handle, or item identifier */
+	void*			handle;			/* submenu handle, or item identifier */
 	char			szString[MAX_MENU_STRING];
 } USERMENUBIND, * PUSERMENUBIND;
 

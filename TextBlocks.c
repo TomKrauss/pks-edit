@@ -38,9 +38,7 @@
  */
 
 extern FTABLE	*_currfile;
-extern LINE	*ln_cut(),*ln_break(),*ln_join(),*ln_modify();
 extern char	*TmpName(char *dst, char c);
-extern void	*ll_insert(void *head, long size);
 
 /*--------------------------------------------------------------------------
  * GLOBALS

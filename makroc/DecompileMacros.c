@@ -20,13 +20,13 @@
 #include "test.h"
 #include "funcdef.h"
 #include "binop.h"
+#include "stringutil.h"
 
 int  MakeAutoLabel(COM_GOTO *cp);
 void StartAutoLabel(void);
 void NextAutoLabel(char **name, unsigned char **cp);
 void CloseAutoLabels(void);
 char *FindAutoLabel(COM_GOTO *cp);
-char * strmaxcpy(char * pszDest, char * pszSource, int nMax);
 
 extern EDBINDS	_bindings;
 

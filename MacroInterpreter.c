@@ -122,13 +122,14 @@ int param_space(unsigned char typ, char *s)
  * we do not need, to handle all command types, cause in ineractive
  * mode, commands like test or binop are not possible
  */
-static void push_sequence(unsigned char typ, long par)
+static void push_sequence(unsigned char typ, void* par)
 {	char *spend;
 	char *sp;
 	int  s;
 
-	if (_recording == 0)
+	if (_recording == 0) {
 		return;
+	}
 
 	sp = _cmdparamp;
 	s  = param_space(typ,(char *)par);
@@ -269,7 +270,7 @@ int param_record(PARAMS *pp)
 	if ((opt & FORM_INIT) == 0)
 		cf.nfields = 0;
 
-	push_sequence(C_FORMSTART,(long)&cf);
+	push_sequence(C_FORMSTART,&cf);
 
 	dp = pp->el;
 	for (i = cf.nfields; i > 0; i--, dp++) {
@@ -683,7 +684,7 @@ int EdMacroPlay(int macroindex)
 	} 
 
 	if (hadrecstate && macroindex >= 0) {
-		push_sequence(C_MACRO,(long )_macrotab[macroindex]->name);
+		push_sequence(C_MACRO,_macrotab[macroindex]->name);
 		_recording = 0;
 	}
 

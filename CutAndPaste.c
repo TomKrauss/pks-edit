@@ -841,7 +841,7 @@ int SetBlockMark(FTABLE *fp, LINE *lpMark, int nMarkOffset,
 		lp2 = fp->lastl->prev;
 		markblk(fp,fp->firstl,0,lp2,lp2->len);
 		fp->blcol1 = 0;
-		fp->blcol2 = 4096;
+		fp->blcol2 = MAXLINELEN;
 		RedrawTotalWindow(fp);
 		return 1;
 	}

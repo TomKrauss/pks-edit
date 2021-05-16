@@ -848,7 +848,8 @@ EXPORT void scn2lncol(WINFO *wp,int x, int y, long *ln,long *col)
  */
 EXPORT int find_curs(WINFO *wp, int x,int y)
 {	long col,ln;
-	int b=1,dummy,id;
+	int b=1,dummy;
+	UINT_PTR id;
 
 	SetCapture(wp->ww_handle);
 	id = SetTimer(0,0,100,0);

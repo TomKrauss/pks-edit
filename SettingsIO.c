@@ -21,6 +21,7 @@
 
 #include "winfo.h"
 #include "winterf.h"
+#include "stringutil.h"
 
 #pragma hdrstop
 
@@ -31,16 +32,11 @@
 
 extern int  _findopt,_nundo,_asminutes;
 extern char _pksEditTempPath[256];
-extern long Atol(char *s);
 extern char *_strtolend;
-extern void *ll_insert(void *head,long size);
 extern void *ll_find(void *Head, char *name);
 extern unsigned char* stralloc(unsigned char* buf);
-extern int  ic_profsavepos(void);
 extern void MouseBusy(void);
 extern void MouseNotBusy(void);
-extern void SaveAllDocumentTypes(void *);
-extern void lincreate(char *szType);
 extern int  EdStat(char *s, int mode);
 extern char *FullPathName(char *path, char *fn);
 
@@ -61,25 +57,25 @@ struct llist {
 	char			name[4];
 };
 
-static char _setfile[256];
+static char _pksEditIniFilename[256];
 static FSELINFO _setfselinfo = { ".", "PKSEDIT.INI", "*.INI" };
 static char *_desk = "desk";
 static char *_cxscreen = "CXScreen";
 static char *_cyscreen = "CYScreen";
 
 /*------------------------------------------------------------
- * LocateSetFile()
+ * LocatePksEditIni()
  */
-static int LocateSetFile(void)
+static int LocatePksEditIni(void)
 {	char *fn;
 
-	if (_setfile[0]) {
+	if (_pksEditIniFilename[0]) {
 		return 1;
 	}
 	if ((fn = rw_init(&_setfselinfo)) == 0) {
 		return 0;
 	}
-	lstrcpy(_setfile,fn);
+	lstrcpy(_pksEditIniFilename,fn);
 	return 1;
 }
 
@@ -89,7 +85,7 @@ static int LocateSetFile(void)
 void prof_setinifile(char *fn)
 {
 	if (EdStat(fn, 0xFF) == 0) {
-		FullPathName(_setfile, fn);
+		FullPathName(_pksEditIniFilename, fn);
 	}
 }
 
@@ -98,10 +94,10 @@ void prof_setinifile(char *fn)
  */
 int GetPksProfileString(char *grp, char *ident, char *string, int maxlen)
 {
-	if (!LocateSetFile())
+	if (!LocatePksEditIni())
 		return 0;
 	return
-		GetPrivateProfileString(grp, ident, "", string, maxlen ,_setfile);
+		GetPrivateProfileString(grp, ident, "", string, maxlen ,_pksEditIniFilename);
 }
 
 /*--------------------------------------------------------------------------
@@ -190,7 +186,7 @@ EXPORT void prof_printws(char *buf, WINDOWPLACEMENT *wsp)
 int prof_savestring(char *grp, char *ident, char *string)
 {
 	return
-		WritePrivateProfileString(grp,ident,string,_setfile);
+		WritePrivateProfileString(grp,ident,string,_pksEditIniFilename);
 }
 
 /*--------------------------------------------------------------------------
@@ -239,7 +235,7 @@ LONG prof_getlong(char *grp,char *ident)
  */
 int prof_getstdopt(void)
 {
-	if (!LocateSetFile()) {
+	if (!LocatePksEditIni()) {
 		return 0;
 	}
 
@@ -260,10 +256,10 @@ int prof_getstdopt(void)
 void prof_killsections(LPSTR pszFn, LPSTR pszSection)
 {
 	if (!pszFn) {
-		if (!LocateSetFile()) {
+		if (!LocatePksEditIni()) {
 			return;
 		}
-		pszFn = _setfile;
+		pszFn = _pksEditIniFilename;
 	}
 	prof_savestring(pszSection, (char *)0, (char *)0);
 }
@@ -287,10 +283,10 @@ int prof_save(int interactive)
 	WINDOWPLACEMENT 	ws;
 
 	if (!interactive) {
-		fn = _setfile;
+		fn = _pksEditIniFilename;
 	} else {
-		LocateSetFile();
-		sfsplit(_setfile, _setfselinfo.path, _setfselinfo.fname);
+		LocatePksEditIni();
+		sfsplit(_pksEditIniFilename, _setfselinfo.path, _setfselinfo.fname);
 		if ((fn = rw_select(&_setfselinfo, MOPTION)) == 0) {
 			return 0;
 		}
@@ -309,7 +305,7 @@ int prof_save(int interactive)
 	}
 
 	MouseBusy();
-	lstrcpy(_setfile,fn);
+	lstrcpy(_pksEditIniFilename,fn);
 
 	prof_savelong(_desk,"Options",(long)_options);
 	prof_savelong(_desk,"Layout",(long)_layoutoptions);
@@ -340,11 +336,11 @@ int prof_enum(LPSTR grp, int (*lpfnEnum)(LPSTR, LONG), LONG lParam)
 {
 	char *s;
 
-	if (!LocateSetFile()) {
+	if (!LocatePksEditIni()) {
 		return 1;
 	}
 
-	GetPrivateProfileString(grp, NULL, "", _linebuf, LINEBUFSIZE, _setfile);
+	GetPrivateProfileString(grp, NULL, "", _linebuf, LINEBUFSIZE, _pksEditIniFilename);
 	s = _linebuf;
 	while(*s) {
 		if (!(*lpfnEnum)(s,lParam))

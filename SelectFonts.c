@@ -28,7 +28,7 @@
 
 #include "dial2.h"
 
-#define 	italic				res1
+#define italic					res1
 #define	IDD_FONTSTRIKEOUT		1040
 #define	IDD_FONTUNDERLINE		1041
 
@@ -40,7 +40,7 @@ static LOGFONT _lf =  {
  
     0,					// lfEscapement;
     0,					// lfOrientation;
-    FW_NORMAL,				// lfWeight;
+    FW_NORMAL,			// lfWeight;
     
     0,					// lfItalic;
     0,					// lfUnderline;
@@ -106,7 +106,7 @@ HFONT EdSelectFont(WINFO *wp, HDC hdc)
 	HFONT      oldFont;
 
 	wp->fnt.bOem = (wp->dispmode & SHOWOEM) ? 1 : 0;
-	wp->fnt_handle = (int)EdCreateFont(&wp->fnt);
+	wp->fnt_handle = EdCreateFont(&wp->fnt);
 
 	if (!wp->fnt_handle) {
 		return 0;
@@ -174,10 +174,10 @@ UINT CALLBACK ChooseFontHookProc(HWND hDlg, UINT msg, WPARAM wParam,
  */
 BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 {
-	LOGFONT 		lf;
+	LOGFONT 	lf;
 	CHOOSEFONT 	cf;
 	HDC			hdc;
-	BOOL			bRet;
+	BOOL		bRet;
 
 	hdc = (bPrinter) ? GetPrinterDC() : CreateIC("DISPLAY",NULL,NULL,NULL);
 
@@ -195,7 +195,6 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 	lf.lfStrikeOut = 0;
 	lf.lfEscapement = 0;
 	lf.lfOrientation = 0;
-	lf.lfItalic = 0;
 	lf.lfUnderline = 0;
 	lf.lfStrikeOut = 0;
 #endif
@@ -231,9 +230,12 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 		ep->weight = (short)lf.lfWeight;
 	}
 
-	FreeProcInstance((FARPROC)cf.lpfnHook);
-
-	DeleteDC(hdc);
+	if (cf.lpfnHook != NULL) {
+		FreeProcInstance((FARPROC)cf.lpfnHook);
+	}
+	if (hdc != NULL) {
+		DeleteDC(hdc);
+	}
 	return bRet;
 }
 

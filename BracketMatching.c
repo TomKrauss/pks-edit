@@ -106,7 +106,7 @@ EXPORT void uc_init(void)
  */
 EXPORT int uc_add(char *pat,char *p,int type,int id)
 {	struct uclist *up;
-	int len;
+	size_t len;
 	
 	if (!pat || !p) {
 		return 0;

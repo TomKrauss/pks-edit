@@ -14,7 +14,6 @@
 #include <string.h>
 #include <malloc.h>
 
-#define	NULL	0
 #define	LITTLE_ENDIAN		1
 
 # ifdef	LITTLE_ENDIAN

@@ -34,7 +34,7 @@ typedef struct tagFSTYLE {
 typedef struct wininfo {
 	struct wininfo *next;
 	int		win_id;
-     HWND      edwin_handle,ww_handle,ru_handle,st_handle;
+    HWND      edwin_handle,ww_handle,ru_handle,st_handle;
      
      int       dispmode;				/* flags see edierror.h... */
      int       workmode;
@@ -49,7 +49,7 @@ typedef struct wininfo {
      int       owncursor,ctype;        	/* owncursor and caret - type */
 
 	EDFONT	fnt;
-	int		fnt_handle;     
+	HFONT	fnt_handle;     
 	
 	int		vscroll,hscroll;		/* # of lines and columns to scroll */
 	int		scroll_dx,			/* distance cursor-window border */

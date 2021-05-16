@@ -32,7 +32,7 @@
 #define	WMBRD_FINDFILE		3			/* editing file(lParam) ? */
 
 #define	GWL_ICPARAMS		0
-#define	GWL_ICCLASSVALUES	GWL_ICPARAMS+sizeof(LONG)
+#define	GWL_ICCLASSVALUES	GWL_ICPARAMS+sizeof(void*)
 
 /* charsel custom messages and notifications */
 #define	WM_CHARCHANGE		WM_USER + 1	/* new character activated */
@@ -62,12 +62,12 @@ extern char   szWorkAreaClass[];
 typedef long (FPE_FUNC *WINFUNCP)(HWND, UINT, WPARAM, LPARAM);
 typedef BOOL (FPE_FUNC *ENUMFUNCP)(HWND, DWORD);
 
-extern WINFUNC 	FrameWndProc(HWND, UINT, WPARAM, LPARAM);
+extern WNDPROC 	FrameWndProc(HWND, UINT, WPARAM, LPARAM);
 extern WINFUNC 	IconWndProc(HWND, UINT, WPARAM, LPARAM);
 extern WINFUNC 	EditWndProc(HWND, UINT, WPARAM, LPARAM);
 extern WINFUNC 	WorkAreaWndProc(HWND, UINT, WPARAM, LPARAM);
 extern WINFUNC 	RulerWndProc(HWND, UINT, WPARAM, LPARAM);
-extern int 		EdMkWinClass( char *szClassName, WINFUNCP WinProc, 
+extern int 		EdMkWinClass( char *szClassName, WNDPROC WinProc, 
 					LPSTR lpCursorName, HANDLE hbrBackground, 
 					LPSTR szIcon, int nExtra);
 

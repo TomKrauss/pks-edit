@@ -14,6 +14,7 @@
 #include <commdlg.h>
 #include <direct.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "trace.h"
 #include "lineoperations.h"
@@ -30,17 +31,18 @@
 #include "edifsel.h"
 #include "fsel.h"
 #include "pksedit.h"
+#include "stringutil.h"
 
-extern void 	_free(void *);
-extern void 	sfsplit(char *source, char *path, char *fn);
 extern unsigned char* stralloc(unsigned char* buf);
 extern char *	FullPathName(char *path,char *fn);
 extern int  	GetPksProfileString(char *grp, char *ident, char *string, int maxlen);
-extern char *	AbbrevName(char *fn);
-extern LPSTR 	lstrchr(LPSTR str, char ch);
 extern void 	GetSelectableDocumentFileTypes(LPSTR pszDest, int nMax);
 extern int 		DoDocumentTypes(int nDlg);
 extern void 	GetStdMenuText(int menunr, char *text);
+/*------------------------------------------------------------
+ * EdGetActiveWindow()
+ */
+extern HWND EdGetActiveWindow(int includeicons);
 
 extern int	nCurrentDialog;
 
@@ -143,7 +145,7 @@ int file_select(int title, char *path, char *fnam, char *pattern)
 	strdcpy(pathname,path,pattern);
 	nSave = nCurrentDialog;
 	nCurrentDialog = title;
-	ret = EdFsel(pathname,fnam,_fseltarget, title == MSAVEAS);
+	ret = EdFsel(pathname,fnam,_fseltarget, title == MSAVEAS || title == MWRSEQ);
 	nCurrentDialog = nSave;
 	sfsplit(pathname,path,pattern);
 	if (_fseltarget[0] == 0) {
@@ -289,7 +291,7 @@ static fill_listwithtokens(HWND hDlg, WORD nItem, char *src)
 			(pszSeparator = lstrchr(pszSeparator, '|')) != 0;
 			*pszSeparator++ = ';')
 			;
-		if (SendMessage(hwndList, CB_ADDSTRING, 0, (LONG)s) < 0) {
+		if (SendMessage(hwndList, CB_ADDSTRING, 0, PtrToLong(s)) < 0) {
 			return 0;
 		}
 	}
@@ -342,7 +344,7 @@ UINT CALLBACK FileOpenHookProc(HWND hDlg, UINT msg, WPARAM wParam,
 			(pszFound = hist_getstring(&_pathhist, nPathIndex)) != 0;
 			nPathIndex++) {
 			if (SendDlgItemMessage(hDlg, IDD_FSELPATHES, CB_ADDSTRING, 
-				0, (LONG)pszFound) < 0) {
+				0, PtrToLong(pszFound)) < 0) {
 				break;
 			}
 		}
@@ -447,11 +449,10 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	ofn.nFilterIndex = 0;
 	ofn.lpstrCustomFilter = (LPSTR)pszCustomFilter;
 	ofn.nMaxCustFilter = EDMAXPATHLEN;
-	ofn.lpstrFile = (LPSTR)szFileName;	// Stores the result in this variable
+	ofn.lpstrFile = szFileName;	// Stores the result in this variable
 	ofn.nMaxFile = EDMAXPATHLEN - 1;
 	ofn.lpstrTitle = sTitleSpec;
 	ofn.Flags = OFN_PATHMUSTEXIST|OFN_HIDEREADONLY;
-
 
 	if ((bSaveAs && GetSaveFileName( &ofn ) ) || (!bSaveAs && GetOpenFileName( &ofn ))) {
 		bRet = TRUE;
@@ -465,7 +466,9 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 		}
 	}
 
-	FreeProcInstance((FARPROC)ofn.lpfnHook);
+	if (ofn.lpfnHook) {
+		FreeProcInstance((FARPROC)ofn.lpfnHook);
+	}
 	_free(pszFilter);
 	_free(pszCustomFilter);
 	return bRet;

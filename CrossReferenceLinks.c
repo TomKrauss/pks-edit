@@ -22,7 +22,6 @@
 #include "regexp.h"
 
 extern char	_finds[];
-extern char 	*_datadir;
 extern int 	_regcompile(char *ebuf, char *pat, int opt);
 extern long	Atol();
 extern char 	*searchfile(char *s);

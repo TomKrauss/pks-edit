@@ -25,7 +25,7 @@ int createl(FTABLE *fp, char *q, int len, int flags)
 {	LINE  *lp;
 
 	if (len < 0) {
-		len = strlen(q);
+		len = (int)strlen(q);
 	}
 	if ((lp = _alloc(len+sizeof(LINE))) == 0L) {
 		lnlistfree(fp->firstl);

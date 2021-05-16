@@ -27,7 +27,7 @@
 
 #define	WT_WORKWIN		0
 #define	WT_RULERWIN		1
-#define	GWL_FTABLE		GWL_ICCLASSVALUES+sizeof(LONG)
+#define	GWL_FTABLE		GWL_ICCLASSVALUES+sizeof(void*)
 
 #define	PROF_OFFSET		1
 
@@ -86,13 +86,13 @@ int ww_register(void)
 {
 	if (!EdMkWinClass(szWorkAreaClass,WorkAreaWndProc,
 		      (LPSTR)IDC_IBEAM,GetStockObject(WHITE_BRUSH),0,
-		      sizeof(LONG)) ||
+		      sizeof(void*)) ||
 		!EdMkWinClass(szEditClass,EditWndProc,
 		      (LPSTR)IDC_ARROW,NULL,"Edit",
-		      GWL_FTABLE+sizeof(LONG)) ||
+		      GWL_FTABLE+sizeof(void*)) ||
 		!EdMkWinClass(szRulerClass,RulerWndProc,
 			 (LPSTR)IDC_CROSS,GetStockObject(WHITE_BRUSH),0,
-		      sizeof(LONG))
+		      sizeof(void*))
 #if 0
 		       ||
 	     !EdMkWinClass(szStatusClass,StatusWndProc,
@@ -677,11 +677,11 @@ WINFUNC EditWndProc(
 	LPARAM lParam
 	)
 {
-	FTABLE *			fp;
+	FTABLE *			fp = (FTABLE*)GetWindowLongPtr(hwnd, GWL_FTABLE);
 	WINDOWPLACEMENT 	ws;
 	WINFO *				wp;
 
-	if (message == WM_CREATE || (fp = (FTABLE *) GetWindowLong(hwnd,GWL_FTABLE)) != 0)
+	if (message == WM_CREATE || fp != NULL)
    	switch(message) {
 	case WM_CREATE:
 		{
@@ -691,7 +691,9 @@ WINFUNC EditWndProc(
 
 		cp = (LPCREATESTRUCT)lParam;
 		mp = (LPMDICREATESTRUCT)cp->lpCreateParams;
-		fp = (FTABLE*)mp->lParam;
+		if (fp == NULL) {
+			fp = (FTABLE*) mp->lParam;
+		}
 
 		if ((wp = ww_new(fp,hwnd)) == 0) {
 			DestroyWindow(hwnd);
@@ -700,14 +702,14 @@ WINFUNC EditWndProc(
 		ShowWindow(hwnd, SW_HIDE);
 		MakeSubWis(hwnd,fp,&xyWork,&xyRuler);
 		ww_setwindowtitle(fp,wp);
-		SetWindowLong(hwnd,GWL_ICPARAMS,(LONG)fp->fname);
-		SetWindowLong(hwnd,GWL_ICCLASSVALUES,(LONG)icEditIconClass);
-		SetWindowLong(hwnd,GWL_FTABLE,(LONG)fp);
+		SetWindowLongPtr(hwnd,GWL_ICPARAMS,fp->fname);
+		SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,icEditIconClass);
+		SetWindowLongPtr(hwnd,GWL_FTABLE,fp);
 		return 0;
 		}
 
 	case WM_ICONCLASSVALUE:
-		return GetWindowLong(hwnd,GWL_ICCLASSVALUES);
+		return GetWindowLongPtr(hwnd,GWL_ICCLASSVALUES);
 
 	case WM_ICONDROP:
 		ww_popup(hwnd);
@@ -828,7 +830,7 @@ int do_mouse(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	int			y;
 	FTABLE *	fp;
 
-	if ((fp = (FTABLE *) GetWindowLong(hwnd,0)) != 0) {
+	if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
 		x = LOWORD(lParam), y = HIWORD(lParam);
 	} else {
 		return 0;
@@ -935,8 +937,8 @@ WINFUNC WorkAreaWndProc(
 
 		fp = (FTABLE *)(((LPCREATESTRUCT)lParam)->lpCreateParams);
 		wp = WIPOI(fp);
-		SetWindowLong(hwnd,0,(LONG)fp);
-		EdSelectStdFont(hwnd,wp);
+		SetWindowLongPtr(hwnd, 0, fp);
+		EdSelectStdFont(hwnd, wp);
 		return 0;
 		}
 
@@ -965,7 +967,7 @@ WINFUNC WorkAreaWndProc(
 
 	case WM_HSCROLL:
 	case WM_VSCROLL:
-		if ((fp = (FTABLE *) GetWindowLong(hwnd,0)) != 0) {
+		if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
 			if (do_slide(fp->wp,message,wParam,lParam) == 0) {
 				break;
 			}
@@ -978,13 +980,13 @@ WINFUNC WorkAreaWndProc(
 		return 0;
 
 	case WM_PAINT:
-		if ((fp = (FTABLE *) GetWindowLong(hwnd,0)) != 0) {
+		if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
 		   RedrawWmPaint(WIPOI(fp));
 		}
 		return 0;
 
 	case WM_SIZE:
-		if ((fp = (FTABLE *) GetWindowLong(hwnd,0)) != 0) {
+		if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
 #if 0
 			GetWindowRect(hwnd, &rect);
 			if ((rect.left & 0xF) || ((rect.right - rect.left) & 0xF) != 0xF) {
@@ -1011,7 +1013,7 @@ WINFUNC WorkAreaWndProc(
 	    break;
 
 	case WM_SETFOCUS:
-	    if ((fp = (FTABLE *) GetWindowLong(hwnd,0)) != 0) {
+	    if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
 			wt_tcursor(fp->wp,1);
 			ft_select(fp);
 			op_updateall();
@@ -1025,7 +1027,7 @@ WINFUNC WorkAreaWndProc(
 	    return 0;
 
 	case WM_KILLFOCUS:
-		if ((fp = (FTABLE *) GetWindowLong(hwnd,0)) != 0) {
+		if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
 			if (fp->wp)
 				wt_tcursor(fp->wp,0);
 		} else {
@@ -1168,7 +1170,7 @@ WINFUNC RulerWndProc(
 			return 0;
 
 		case WM_PAINT:	
-			if ((fp = (FTABLE *) GetWindowLong(hwnd,0)) != 0) {
+			if ((fp = (FTABLE *)GetWindowLongPtr(hwnd,0)) != 0) {
 		   		draw_lin(fp);
 			} else {
 				EdTRACE(Debug(DEBUG_TRACE,"WM_PAINT in RulerWndProc without file"));
@@ -1177,14 +1179,14 @@ WINFUNC RulerWndProc(
 
 		case WM_CREATE:
 			fp = (FTABLE *)(((LPCREATESTRUCT)lParam)->lpCreateParams);
-			SetWindowLong(hwnd,0,(LONG)fp);
+			SetWindowLongPtr(hwnd,0,fp);
 			return 0;
 
 		case WM_MOUSEMOVE:
 		case WM_LBUTTONDOWN:
 		case WM_RBUTTONDOWN:
 		case WM_MBUTTONDOWN:
-			if ((fp = (FTABLE *) GetWindowLong(hwnd,0)) != 0) {
+			if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
 				do_linbutton(fp, (int)LOWORD(lParam), (int)HIWORD(lParam), 
 					(int)message, (int)wParam);
 			}

@@ -29,8 +29,8 @@
 #include "iccall.h"
 #include "pksedit.h"
 
-#define	GWL_ICICON				GWL_ICCLASSVALUES+sizeof(LONG)
-#define	GWL_ICONEXTRA			GWL_ICICON+sizeof(LONG)
+#define	GWL_ICICON				GWL_ICCLASSVALUES+sizeof(void*)
+#define	GWL_ICONEXTRA			GWL_ICICON+sizeof(void*)
 
 #define	PROP_NOTDRAGGED			-4711
 
@@ -196,7 +196,7 @@ static int ic_profsave(HWND hwnd)
 	RECT			r;
 	ICONCLASS		*icp;
 
-	if ((icp = (ICONCLASS*)GetWindowLong(hwnd,GWL_ICCLASSVALUES)) == 0) 
+	if ((icp = (ICONCLASS*)GetWindowLongPtr(hwnd,GWL_ICCLASSVALUES)) == 0) 
 		return 1;
 
 	GetAtomName(icp->ic_name,atomname,sizeof atomname);
@@ -343,11 +343,11 @@ void ic_mod(LPSTR szTitle, LPSTR szParams, ICONCLASS *icClass)
 	if (icClass == 0 || (hwnd = ic_getactive(&icp)) == 0)
 		return;
 	SetWindowText(hwnd,szTitle);
-	if ((pp = (LPSTR)GetWindowLong(hwnd,GWL_ICPARAMS)) != 0) {
+	if ((pp = (LPSTR)GetWindowLongPtr(hwnd,GWL_ICPARAMS)) != 0) {
 		_free(pp);
 	}
-	SetWindowLong(hwnd,GWL_ICPARAMS,(LONG)szParams);
-	SetWindowLong(hwnd,GWL_ICCLASSVALUES,(LONG)icClass);
+	SetWindowLongPtr(hwnd,GWL_ICPARAMS,szParams);
+	SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,icClass);
 	SendMessage(hwnd,WM_ICONSELECT,0,icClass->ic_type);
 }
 
@@ -414,26 +414,26 @@ static int		nButtonY;
 			}
 			break;
 		case WM_ICONSELECT:
-			if ((icp = (ICONCLASS*)GetWindowLong(hwnd,GWL_ICCLASSVALUES)) == 0)
+			if ((icp = (ICONCLASS*)GetWindowLongPtr(hwnd,GWL_ICCLASSVALUES)) == 0)
 				return 0;
 			ic_type = icp->ic_type;
 			if ( ic_type != lParam)
 				return 0;
 			param = ic_param(szBuf,hwnd,0);
-			holdIcon = (HICON)GetWindowLong(hwnd,GWL_ICICON);
+			holdIcon = (HICON)GetWindowLongPtr(hwnd,GWL_ICICON);
 			hIcon = bl_avail(wParam,*param) ? 
 				   	icp->ic_icon1 : icp->ic_icon2;
 			if (hIcon == holdIcon)
 				return 0;
-			SetWindowLong(hwnd,GWL_ICICON,(long)hIcon);
+			SetWindowLongPtr(hwnd,GWL_ICICON,hIcon);
 			SendRedraw(hwnd);
 			/* drop through */
 
 		case WM_ICONCLASSVALUE:
-			return GetWindowLong(hwnd,GWL_ICCLASSVALUES);
+			return GetWindowLongPtr(hwnd,GWL_ICCLASSVALUES);
 
 		case WM_PAINT:
-			hIcon = (HICON) GetWindowLong(hwnd,GWL_ICICON);
+			hIcon = (HICON) GetWindowLongPtr(hwnd,GWL_ICICON);
 			hdc = BeginPaint(hwnd, &ps);
 			if (hIcon) {
 				GetClientRect(hwnd, &rect);
@@ -542,7 +542,7 @@ static int		nButtonY;
 		case WM_DESTROY:
 			if ((param = (LPSTR)GetWindowLong(hwnd,GWL_ICPARAMS)) != 0) {
 				_free(param);
-				SetWindowLong(hwnd,GWL_ICPARAMS,0L);
+				SetWindowLongPtr(hwnd,GWL_ICPARAMS,0L);
 			}
 			if (hwnd == hwndActive) {
 				hwndActive = 0;
@@ -693,9 +693,9 @@ HWND ic_add(ICONCLASS *icp, LPSTR szTitle, LPSTR szParams, int x, int y)
 	}
 	SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE |
 			SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOACTIVATE);
-	SetWindowLong(hwnd,GWL_ICCLASSVALUES,(LONG)icp);
-	SetWindowLong(hwnd,GWL_ICPARAMS,(LONG)szParams);
-	SetWindowLong(hwnd,GWL_ICICON,(LONG)icp->ic_icon1);
+	SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,icp);
+	SetWindowLongPtr(hwnd,GWL_ICPARAMS,szParams);
+	SetWindowLongPtr(hwnd,GWL_ICICON,icp->ic_icon1);
 	return hwnd;
 }
 

@@ -182,28 +182,19 @@ char *FullPathName(const char *path, const char *fn) {
  */
 char *AbbrevName(const char *fn) {	
 	int l,i;
-	static char aname[32];
+	static char aname[64];
 	
-	if ((l = lstrlen(fn)) < 20)
+	if ((l = lstrlen(fn)) < sizeof aname)
 		return fn;
 
-	for (i = 0; i < 6; i++)
+	for (i = 0; i < 20; i++) {
 		aname[i] = fn[i];
+	}
 	aname[i++] = '.';
 	aname[i++] = '.';
-	l = l - 14;
-
-	if (lstrchr(&fn[l], DIRSEPARATOR)) {
-		while(fn[l] && fn[l] != DIRSEPARATOR) {
-			l++;
-		}
-	}
-
-	while(fn[l]) {
-		aname[i++] = fn[l++];
-	}
-	aname[i] = 0;
-
+	aname[i++] = '.';
+	l = l - 40;
+	strcpy(aname + i, fn + l);
 	return aname;
 }
 

@@ -23,10 +23,10 @@
 #define	ED_VERSION	0x20
 
 #define	LN_ALIGN		2		/* make sure a small linebuffer 	 */
-#define	FBUFSIZE		8192		/* maximum filebuffer- and linesize */
+#define	FBUFSIZE		24000		/* maximum filebuffer- and linesize */
 
 #define	LINEBUFSIZE		2*FBUFSIZE+160	/* sizeof of _linebuf		 */
-#define	MAXLINELEN		4096
+#define	MAXLINELEN		12000
 
 #define	MAXUNDO		10		/* maximum of UNDO-Buffers avail	 */
 #define	MAXSHIFT		36		/* maximum shiftwidth 			 */

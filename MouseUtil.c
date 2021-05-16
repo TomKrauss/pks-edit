@@ -130,7 +130,7 @@ EXPORT int EdBlockMouseMark(int typ)
 	long		ln,col,ln1,col1,saveln = -1,savecol;
 	WINFO	*	wp;
 	FTABLE	*	fp;
-	WORD		id;
+	UINT_PTR	id;
 
 	if ((fp =_currfile) == 0)
 		return 0;
@@ -357,7 +357,7 @@ void mouse_delbindings(MACROREFTYPE typ, MACROREFIDX val)
 	MOUSEBIND  *	mp;
 
 	for (rp = _mousetables; rp; rp = rp->rt_next) {
-		for (mp = (MOUSEBIND*)rp->rt_data; (long)mp < (long)rp->rt_end; mp++) {
+		for (mp = (MOUSEBIND*)rp->rt_data; mp < rp->rt_end; mp++) {
 			if (typ == mp->macref.typ && val == mp->macref.index) {
 				mouse_unbind(mp);
 			}

@@ -67,7 +67,7 @@ static void Getenv(char *name,char *d,int maxlen)
 
 }
 
-int mystrrchr(char s[], int c) {
+char* mystrrchr(char s[], int c) {
 	int tempLen = strlen(s);
 	while(--tempLen >= 0) {
 		if (s[tempLen] == c) {
@@ -75,6 +75,15 @@ int mystrrchr(char s[], int c) {
 		}
 	}
 	return NULL;
+}
+
+/*
+ * Check whether the passed path is a valid PKS_SYS directory containing in particular the pksedit.ini file. 
+ */
+static BOOL _checkPksSys(char* pathName) {
+	char initFileName[1024];
+	strdcpy(initFileName, _homedir, "pksedit.ini");
+	return EdStat(initFileName) == 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -91,38 +100,35 @@ EXPORT BOOL InitEnv(void )
 #if defined(DELIVER)
 	if (!checkkey(_serial,_cryptserial) ||
 	    !checkkey(_kunde,_cryptkunde)) {
-		alert("PKS-EDIT is not installed correctly");
+		alert("Bitte erwerben oder importieren Sie eine Lizenz für PKS-EDIT");
 		return FALSE;
 	}
 # endif
 	_datadir = _sysdir+8;
 	tempLen = GetModuleFileName(NULL, _homedir, EDMAXPATHLEN);
 	_homedir[tempLen] = 0;
-	tempFound = mystrrchr(_homedir, '\\');
-	if (tempFound != NULL && (tempFound-_homedir) > 1) {
-		tempFound[-1] = 0;
-		strcat(_homedir, "\\");
-		strcat(_homedir, pks_sys);
-		if (EdStat(_homedir) < 0) {
-			_homedir[0] = '\0';
-		} else {
+	GetProfileString("PksEdit", pks_sys, "", _datadir, EDMAXPATHLEN);
+	if (!*_datadir || !_checkPksSys(_datadir)) {
+		tempFound = mystrrchr(_homedir, '\\');
+		if (tempFound != NULL && (tempFound - _homedir) > 1) {
 			tempFound[-1] = 0;
+			strcat(_homedir, "\\");
+			strcat(_homedir, pks_sys);
+			if (_checkPksSys(_homedir)) {
+				strcpy(_datadir, _homedir);
+			}
 		}
-	} else {
-		_homedir[0] = '\0';
+		else {
+			_homedir[0] = '\0';
+		}
 	}
 	if (_homedir[0] == 0) {
 		getcwd(_homedir,sizeof _homedir);
-	}
-	GetProfileString("PksEdit", pks_sys, "", _datadir, EDMAXPATHLEN);
-	if (!*_datadir) {
-		strdcpy(_datadir, _homedir, "PKS_SYS");
 	}
 	Getenv(pks_sys, datadir,sizeof(_datadir));
 	if (*datadir) {
 		lstrcpy(_datadir, datadir);
 	}
-
 	compiler[0] = 0;
 	Getenv("PKS_COMPILER", compiler, sizeof(compiler));
 	if (compiler[0]) {

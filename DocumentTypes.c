@@ -83,7 +83,7 @@ int TabStop(int col, LINEAL *l)
 	if (col < DIM(l->ts) && l->ts[col]) 
 		return l->ts[col];
 
-	while (++col < 4096 && !TABTHERE(l,col))	
+	while (++col < MAXLINELEN && !TABTHERE(l,col))
 		;
 	return col;
 }
@@ -97,7 +97,7 @@ static void InitTabStops(LINEAL *lp)
 	ts = 0;
 	i  = 0;
 	for (;;) {
-		while (!TABTHERE(lp,ts) && ts < 4096) 
+		while (!TABTHERE(lp,ts) && ts < MAXLINELEN)
 			ts++;
 		if (ts >= DIM(lp->ts))
 			return;
@@ -122,7 +122,7 @@ void InitDocumentTypeDescriptor(LINEAL *lp, int ts)
 	lp->tabsize = ts;
 	blfill(lp->tbits,sizeof(lp->tbits),0);
 
-	for (i = 0, ind = ts; i < 4096; i++) {
+	for (i = 0, ind = ts; i < MAXLINELEN; i++) {
 		if (i == ind) {
 			TABPLACE(lp,i);
 			ind += ts;

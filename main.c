@@ -32,7 +32,7 @@ extern void 	ft_CheckForChangedFiles(void);
 extern void		GetPhase2Args(char *args);
 extern void		GetPhase1Args(char *args);
 extern void *	PksGetKeyBind(WPARAM key);
-extern void *	ll_insert(void *head,long size);
+extern void *	ll_insert(void **head,long size);
 extern void 	EditDroppedFiles(HDROP hdrop);
 extern BOOL 	InitBuffers(void);
 extern void 	ShowMenuHelp(int menId);
@@ -40,9 +40,8 @@ extern BOOL 	ww_havefocus(void);
 extern void 	st_init(HWND hwndDaddy);
 extern void 	status_wh(WORD *width, WORD *height);
 extern void 	tb_wh(WORD *width, WORD *height);
-extern int 	EdCloseWindow(int winid);
 extern void 	ReadConfigFiles(void);
-extern int 	clp_setdata(int whichBuffer);
+extern int 		clp_setdata(int whichBuffer);
 extern HMENU 	menu_getmenuforcontext(char *pszContext);
 extern WORD 	TranslateToOrigMenu(WORD wParam);
 extern BOOL 	InitEnv(void);
@@ -114,7 +113,7 @@ HWND EdMdiCreate(char *szClass, char *fn, int itemno, long lParam, WINDOWPLACEME
 	}
     mdicreate.lParam = lParam;
 	hwndChild = (HWND) SendMessage(hwndClient, WM_MDICREATE, 0,
-		(LONG)(LPMDICREATESTRUCT)&mdicreate);
+		PtrToLong((LPMDICREATESTRUCT)&mdicreate));
 
 	if (hwndChild && ws.length) {
 		SetWindowPlacement(hwndChild, wsp);
@@ -129,7 +128,7 @@ HWND EdMdiCreate(char *szClass, char *fn, int itemno, long lParam, WINDOWPLACEME
  */
 int EdMkWinClass(
 	char   *szClassName,
-	WINFUNCP WinProc,
+	WNDPROC WinProc,
 	LPSTR  lpCursorName,
 	HANDLE hbrBackground,
 	LPSTR  szIcon,
@@ -616,7 +615,7 @@ static void Finit(void)
 /*------------------------------------------------------------
  * FrameWndProc()
  */
-WINFUNC FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+WNDPROC FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	CLIENTCREATESTRUCT 	clientcreate;
 	WORD				fwMenu;
@@ -657,7 +656,7 @@ WINFUNC FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_MOVE:
 		case WM_SIZE:
 			if (!IsWindowVisible(hwnd)) {
-				return;
+				return 0;
 			}
 			fkey_init(hwnd);
 			st_init(hwnd);

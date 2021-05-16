@@ -41,7 +41,7 @@ int EdCallWinHelp(char *szFile, UINT hType, DWORD param)
 	}
 
 	if (!initialized) {
-		HtmlHelp(NULL, szHelpFile, HH_INITIALIZE, (DWORD)&m_dwCookie);
+		HtmlHelp(NULL, szHelpFile, HH_INITIALIZE, (DWORD_PTR)&m_dwCookie);
 		initialized = TRUE;
 	}
 	if (hType == HH_DISPLAY_SEARCH) {

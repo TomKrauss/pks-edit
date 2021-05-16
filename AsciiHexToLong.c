@@ -21,14 +21,14 @@ char *_strtolend;
  */
 EXPORT long Atol(char *s)
 {	long i = 0;
-	long minus;
+	long minus = 1;
 	int  o;
 
 	while (*s == ' ' || *s == '\t') s++;	/* skip leading white */  
 	if (*s == '-') {
 		minus = -1;
 		s++;
-	} else minus = 1;
+	}
 	if (*s == '0' && (s[1] == 'x' || s[1] == 'X')) {
 		s += 2;
 		for (;;) {

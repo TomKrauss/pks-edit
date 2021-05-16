@@ -1142,9 +1142,9 @@ static KEYCODE mac_getkey(void)
  */
 static int CharItemNextSelected(HWND hwndList, unsigned char ucKey)
 {
-	int			nItems;
-	int			nOrigPos;
-	LONG			lValue;
+	LRESULT		nItems;
+	LRESULT		nOrigPos;
+	LRESULT		lValue;
 	unsigned char	szBuf[128];
 	unsigned char 	ucCmp;
 	int 			nPos;
