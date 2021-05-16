@@ -1,9 +1,6 @@
 [files]
-"D:\dvltools\pksedit\PKS_SYS\PKSEDIT.INI", line 85: 0x3 0x2 144585 5679 -8 -31 -243 0 1697 1100
-"D:\source\pksedit\PKS_SYS\MODI.TMP", line 1: 0x3 0x3 1788 153 -8 -31 -3 0 1937 1100
+"D:\source\pksedit\.git\hooks\applypatch-msg.sample", line 15: 0x3 0x3 -3 -2 -8 -31 0 0 1940 1100
 [find]
-!lock
-!Exception
 !getInd
 !project
 !Compuser
@@ -34,6 +31,8 @@
 !yank-
 !Ctrl+V
 !Ctrl V
+!ed_
+!ed
 [replace]
 !Fritz
 !gebit\\s2j\\
@@ -63,30 +62,6 @@
 !RelationAttributeEdit
 !TRENDRBM
 [open]
-!E:\programs\together\source\oisoft\togetherx\scripts\TrendBeanInfoGenerator.java
-!F:\IBMVJava\ide\project_resources\TREND\de\gebit\edu\trend\orange\bo\KeyRepository.java
-!F:\temp\mib\reference\mib\prv\leaguemanager\LeagueManagerRelationRepository.java
-!F:\temp\mib\reference\mib\prv\leaguemanager\LeagueManagerPersistentKeyRepository.java
-!\\GBT-NT-02\wwwroot\pcshop\de\gebit\pcshop\gui\InternetShop.java
-!F:\IBMVJava\ide\project_resources\TREND\mib\prv\leaguemanager\jdbcpeer\ClubJdbcPeer.java
-!F:\temp\mib\fixes\KeyCompiler.java
-!D:\Source\java\JavaFramework\de\gebit\tools\persistence\mib\view\ProgressObservable.java
-!F:\temp\mib\fixes\KeyAnalizer.java
-!\\GBT-NT-02\JAVAPROJECTS\temp\PersistenceManager.java
-!D:\Source\java\JavaFramework\testmib.bat
-!D:\Source\java\JavaFramework\mib.properties
-!C:\temp\mib\prv\leaguemanager\LeagueManagerPersistentKeyRepository.java
-!F:\temp\mib\reference\mib\prv\leaguemanager\jdbcpeer\LeagueClubJdbcPeer.java
-!F:\temp\mib\reference\mib\prv\leaguemanager\jdbcpeer\CountryJdbcPeer.java
-!D:\Source\java\JavaFramework\mib\prv\leaguemanager\jdbcpeer\CountryJdbcPeer.java
-!D:\Source\java\JavaFramework\mib\prv\leaguemanager\jdbcpeer\ClubJdbcPeer.java
-!F:\temp\mib\reference\mib\prv\leaguemanager\jdbcpeer\ClubJdbcPeer.java
-!C:\source\pksedit\CRYPT.C
-!C:\source\pksedit\EXEC.C
-!C:\source\pksedit\Main.c
-!C:\source\pksedit\Open.c
-!C:\source\pksedit\FILES.C
-!C:\source\pksedit\PRINT.C
 !C:\source\pksedit\MYSPRINT.C
 !C:\source\pksedit\INIT.C
 !D:\temp\sync_gateway.json
@@ -94,7 +69,24 @@
 !D:\temp\config.txt
 !C:\Users\tom\AppData\Local\Temp\KEYS
 !D:\temp\readme2.txt
+!D:\source\pksedit\PKS_SYS\MODI.TMP
+!D:\source\pksedit\AbortProcessing.c
+!D:\source\pksedit\.vs\Pksedit\v16\ipch\AutoPCH\22f13d2403502d3d\CHARACTERCLASSES.ipch
+!D:\source\pksedit\.vs\Pksedit\v16\ipch\AutoPCH\13137663dcb80c40\PRINTBINDINGS.ipch
+!D:\source\pksedit\.vs\Pksedit\v16\ipch\AutoPCH\11cf2c71057b9802\MACROKEYBINDING.ipch
+!D:\source\pksedit\.vs\Pksedit\v16\Browse.VC.db
+!D:\source\pksedit\.project
+!D:\source\pksedit\.git\ms-persist.xml
+!D:\source\pksedit\.git\hooks\update.sample
+!D:\source\pksedit\.git\hooks\prepare-commit-msg.sample
+!D:\source\pksedit\.git\hooks\applypatch-msg.sample
 !D:\dvltools\pksedit\PKS_SYS\PKSEDIT.INI
+!D:\source\pksedit\.git\hooks\commit-msg.sample
+!D:\source\pksedit\.git\hooks\pre-receive.sample
+!D:\source\pksedit\.git\hooks\pre-rebase.sample
+!D:\source\pksedit\.git\hooks\pre-push.sample
+!D:\source\pksedit\.git\hooks\pre-commit.sample
+!D:\source\pksedit\.git\hooks\post-update.sample
 [pathes]
 !F:\temp\ibmexport\boupdates\de\gebit\bo\persistence\commit\*.*
 !D:\Source\java\CAIII\de\gebit\caiii\client\printer\*.*

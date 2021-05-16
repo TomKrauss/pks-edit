@@ -30,6 +30,7 @@
 #include "xdialog.h"
 #include "publicapi.h"
 #include "stringutil.h"
+#include "pathname.h"
 
 extern int 		AbandonFile(FTABLE *fp, LINEAL *linp);
 extern int 		mac_runcmd(MACROREF *mp);
@@ -1552,7 +1553,8 @@ int EdFind(void)
  */
 int EdFindInFileList(void)
 {	static char pathlist[512];
-	static int once = 1,depth = 1;
+	static char filenamePattern[50];
+	static int once = 1,depth = -1;
 	static ITEMS	_i   =  	{ 
 		{ C_STRING1PAR, _finds }, 
 		{ C_STRING1PAR, pathlist }, 
@@ -1566,21 +1568,21 @@ int EdFindInFileList(void)
 		IDD_SHELLJOKER,RE_SHELLWILD,		&_findopt,
 		IDD_IGNORECASE,RE_IGNCASE,		&_findopt,
 		IDD_OPT1,		1,				&once,
-		IDD_INT1,		sizeof depth,		&depth,
+		IDD_INT1,		sizeof depth,	&depth,
+		IDD_FILE_PATTERN, sizeof filenamePattern, &filenamePattern, 
 		IDD_FINDS2,	sizeof _finds,		&_finds,
 		IDD_PATH1,	sizeof pathlist,	&pathlist,
 		0
 	};
 
-	if (!pathlist[0]) {
+	if (!pathlist[0] || !filenamePattern[0]) {
 		getcwd(pathlist, sizeof pathlist);
-		strdcpy(pathlist, pathlist, "*.*");
+		strcpy(filenamePattern, "*.*");
 	}
 	if (!CallDialog(DLGRETREIVE,&_fp,_d)) {
 		return 0;
 	}
-
-	return retreive(pathlist,_finds,depth,once);
+	return retreive(pathlist,filenamePattern, _finds,depth < 0 ? 999 : depth,once);
 }
 
 /*--------------------------------------------------------------------------

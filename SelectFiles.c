@@ -404,7 +404,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	LPSTR		pszCustomFilter;
 	LPSTR		pszCustomOffset;
 	LPSTR		pszRun;
-	BOOL			bRet;
+	BOOL		bRet;
 	char 		szTemp[512];
 
 	pszFilter = _alloc(EDMAXPATHLEN);
@@ -451,9 +451,6 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	ofn.nMaxFile = EDMAXPATHLEN - 1;
 	ofn.lpstrTitle = sTitleSpec;
 	ofn.Flags = OFN_PATHMUSTEXIST|OFN_HIDEREADONLY;
-	// ofn.Flags = OFN_PATHMUSTEXIST | OFN_ENABLEHOOK | OFN_ENABLETEMPLATE;
-	// ofn.lpTemplateName = MAKEINTRESOURCE(DLGFSEL);
-	// ofn.lpfnHook = MakeProcInstance((FARPROC) FileOpenHookProc, hInst);
 
 
 	if ((bSaveAs && GetSaveFileName( &ofn ) ) || (!bSaveAs && GetOpenFileName( &ofn ))) {

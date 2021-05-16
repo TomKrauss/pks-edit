@@ -58,8 +58,8 @@ extern	unsigned char *_octalloc;
 
 UCHAR 	_expbuf[ESIZE];
 int  	_rflg = 0;			/* something replaced until now ? */
-char		_finds[500];
-char		_repls[500];
+char	_finds[500];
+char	_repls[500];
 int		_findopt;
 
 /*--------------------------------------------------------------------------
@@ -252,12 +252,12 @@ static int stepback(UCHAR *sp, UCHAR *ebuf, int currcol, int maxLen)
 /*--------------------------------------------------------------------------
  * xabort()
  */
-static int _aborted;
+static int _cancelled;
 static int xabort(void )
 {	static int _abort;
 
-	if ((_abort++ & 0x3F) == 0 && ed_abort(TRUE)) {
-		_aborted = 1;
+	if ((_abort++ & 0x3F) == 0 && ProgressMonitorCancel(TRUE)) {
+		_cancelled = 1;
 		return 1;
 	}
 	return 0;
@@ -559,9 +559,9 @@ int ReplaceTabs(int scope, int flg)
 	if (!range(scope,&mps,&mpe))
 		return 0;
 
-	abrt_start(IDS_ABRTCONVERT);
+	ProgressMonitorStart(IDS_ABRTCONVERT);
 	modifypgr(_currfile,(flg) ? expline : compline,&nt,&nl,mps,mpe);
-	abrt_close(0);
+	ProgressMonitorClose(0);
 
 	if (nt) 
 		ShowMessage(IDS_MSGEXPANDTABS,nt,nl);
@@ -749,7 +749,7 @@ int EdReplaceText(int scope, int action, int flags)
 		_playing = 0;
 
 	if (!(query || scope == RNG_ONCE)) {
-		abrt_start(IDS_ABRTREPLACE);
+		ProgressMonitorStart(IDS_ABRTREPLACE);
 	}
 
 	while(lp) {
@@ -873,7 +873,7 @@ advance:	if (delta <= 0 && olen <= 0)	/* empty expr. glitch */
 
 endrep:
 	if (!(query || scope == RNG_ONCE)) {
-		abrt_close(0);
+		ProgressMonitorClose(0);
 	}
 	CloseQueryReplace();
 	_playing = splflg;

@@ -1,17 +1,15 @@
 /*
- * AbortProcessing.C
+ * ProgressMonitor.c
  *
  * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
  *
- * purpose: abort processing alert box
+ * display a progress monitor, which can be cancelled by the user.
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: TOM
  *
  * (c) Pahlen & Krauss
- *
- * 								Author: TOM
  */
 #include <windows.h>
 
@@ -29,22 +27,22 @@ extern int	_playing;
 HWND hwndAbort;
 
 static FARPROC lpfnAbort;
-static int  	_aborted;
+static int  	_cancelled;
 
 /*------------------------------------------------------------
- * DlgAbortProc()
+ * DlgProgressProc()
  */
-BOOL CALLBACK DlgAbortProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
+static BOOL CALLBACK DlgProgressProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
 	switch(message) {
 		case WM_INITDIALOG:
-			_aborted = 0;
+			_cancelled = 0;
 			return TRUE;
 
 		case WM_COMMAND:
 		case WM_CLOSE:
 			if (ed_yn(IDS_MSGABRT) == IDYES) {
-				_aborted = 1;
+				_cancelled = 1;
 			}
 			return TRUE;
 
@@ -56,9 +54,9 @@ BOOL CALLBACK DlgAbortProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 }
 
 /*------------------------------------------------------------
- * abrt_start()
+ * ProgressMonitorStart()
  */
-void abrt_start(unsigned int ids) {
+void ProgressMonitorStart(unsigned int ids) {
 	char szB1[30],szBuff[256];
 
 	if (!_playing && !hwndAbort) {
@@ -66,7 +64,7 @@ void abrt_start(unsigned int ids) {
 		LoadString(hInst,ids,szB1,sizeof szB1);
 		wsprintf(szBuff,"%s..",szB1);
 		CreateModelessDialog(&hwndAbort,"DLGABORT",
-						  DlgAbortProc,&lpfnAbort);
+						  DlgProgressProc,&lpfnAbort);
 		if (hwndAbort) {
 			EnableWindow(hwndFrame,FALSE);
 			SetDlgItemText(hwndAbort, IDD_STRING1, szBuff);
@@ -75,18 +73,18 @@ void abrt_start(unsigned int ids) {
 }
 
 /*------------------------------------------------------------
- * abrt_message()
+ * ProgressMonitorShowMessage()
  */
-void abrt_message(LPSTR message)
+void ProgressMonitorShowMessage(LPSTR message)
 {
 	if (hwndAbort)
 		SetDlgItemText(hwndAbort, IDD_STRING2, message);
 }
 
 /*------------------------------------------------------------
- * abrt_close()
+ * ProgressMonitorClose()
  */
-void abrt_close(int always)
+void ProgressMonitorClose(int always)
 {
 	if (hwndAbort) {
 		EnableWindow(hwndFrame,TRUE);
@@ -95,11 +93,11 @@ void abrt_close(int always)
 }
 
 /*------------------------------------------------------------
- * ed_abort()
+ * ProgressMonitorCancel()
  * optional force redraw to reflect changes in the current
  * top window due to a workin progress
  */
-int ed_abort(BOOL bRedraw)
+int ProgressMonitorCancel(BOOL bRedraw)
 {
 	MSG			msg;
 	static int 	count;
@@ -117,7 +115,7 @@ int ed_abort(BOOL bRedraw)
 		}
 	}
 
-	return _aborted;
+	return _cancelled;
 }
 
 

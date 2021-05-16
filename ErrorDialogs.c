@@ -159,12 +159,10 @@ BOOL CALLBACK DlgError(HWND hDlg,UINT message,WPARAM wParam, LPARAM lParam)
 /*------------------------------------------------------------
  * ShowError()
  */
-void ShowError(LPSTR fmt, ...)
+void ShowError(LPSTR fmt, va_list ap)
 { 	static FARPROC lpfnDlgProc;
 	char buf[256];
 
-	va_list ap;
-	va_start(ap, fmt);
 	wvsprintf(buf,fmt,ap);
 	st_seterrmsg(buf);
 	st_update();
@@ -211,9 +209,9 @@ void Out(char *fmt, ...)
 
 /*------------------------------------------------------------
  * ShowMessage()
+ * Show an info or error message - primarily in the status bar of PKS Edit.
  */
-void ShowMessage(WORD nId, ...)
-{
+void ShowMessage(WORD nId, ...) {
 	va_list 	ap;
 
 	va_start(ap,nId);

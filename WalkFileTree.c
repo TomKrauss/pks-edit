@@ -36,13 +36,11 @@ static int  (*_func)();
  * uses #include ftw.h
  */
 int _ftw(
-	char *path,				/* Root fr Filebaumsuche			*/
-	FTWFUNC func,				/* fr jedes gefundene FILE wird		*/
-							/* func(fname,fstat) ausgefhrt, bis	*/
-							/* return(func) != 0, oder			*/
-	int depth,				/* depth der Suche erreicht			*/
-	char *pattern, 			/* pattern fuer Matching der Filenamen	*/
-	int mode					/* mode der Files die gesucht werden	*/
+	char *path,				/* Root where the file tree walk begins		*/
+	FTWFUNC func,			/* execute for every file found, until func returns != 0 or ... */
+	int depth,				/* the depth of the maximum folder recursion level is reached*/
+	char *pattern, 			/* pattern for file name matching */
+	int mode				/* file attributes of the files searched */
 )
 {	int ret;
 
@@ -71,7 +69,7 @@ static int __ftw(char *path,int depth)
 	strdcpy(target,path,"*");
 	if ((fhandle = _findfirst(target, pdta)) >= 0) {
 		do {
-			if (ed_abort(0)) {
+			if (ProgressMonitorCancel(0)) {
 				_findclose(fhandle);
 				_free(pdta);
 				_free(target);
@@ -129,5 +127,7 @@ int ftwalk(char *path,FTWFUNC func,int depth,int fmode)
 	ret = _ftw(newPath,func,depth,fname,fmode);
 	return ((_ftwflg) ? ret : FTW_NOFILE); 
 }
+
+
 
 

@@ -386,7 +386,7 @@ int sortlist(RECORD *tab,long n)
 					if (ret >= 0) break;
 				} else if (ret <= 0) break;
 	
-				if (ed_abort(0))
+				if (ProgressMonitorCancel(0))
 					return 0;
 				/* swap these fellows */
 				tmp = tab[j]; 
@@ -565,14 +565,14 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 		rp.lpfirst = lpfirst->prev;
 		rp.lplast  = lplast ->next;
 		rp.nrec    = n+n2;
-		abrt_start(IDS_ABRTSORT);
+		ProgressMonitorStart(IDS_ABRTSORT);
 		undo_cash(fp,lpfirst,lplast);
 		if (sortlist(_rectab,n)) {
 			curpos(0L,0L);
 			ln_order(fp,_rectab,&rp);
 		}
 		ln_um(fp->firstl,fp->lastl,LNREPLACED);
-		abrt_close(0);
+		ProgressMonitorClose(0);
 		RedrawTotalWindow(fp);
 		curpos(l1,0L);
 		ret = 1;

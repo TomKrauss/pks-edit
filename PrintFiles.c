@@ -142,7 +142,7 @@ BOOL CALLBACK PrtAbortProc(HDC hdcPrn, short nCode)
 {
 	if (nCode < 0)
 		EscapeError(nCode);
-	return !ed_abort(FALSE);
+	return !ProgressMonitorCancel(FALSE);
 }
 
 /*------------------------------------------------------------
@@ -432,7 +432,7 @@ static int PrintFile(HDC hdc)
 						(LPSTR)szAppName,
 					  	(LPSTR)AbbrevName(ft_visiblename(_currfile)),
 					  	pageno);
-				abrt_message(message); 
+				ProgressMonitorShowMessage(message); 
 			}
 			oldpageno = pageno;
 		}
@@ -721,7 +721,7 @@ again:
 			docinfo.cbSize = sizeof docinfo;
 			docinfo.lpszDocName = message;
 			docinfo.lpszDatatype = "Text";
-			abrt_start(IDS_ABRTPRINT);
+			ProgressMonitorStart(IDS_ABRTPRINT);
 			SetAbortProc(hdcPrn, (LPSTR)PrtAbortProc);
 			if ((PREVIEWING() || (errEscape = StartDoc(hdcPrn, &docinfo))) >= 0 &&
 			    (errEscape = PrintFile(hdcPrn)) >= 0) {
@@ -733,7 +733,7 @@ again:
 			}
 		}
 		if (hdcPrn) {
-			abrt_close(0);
+			ProgressMonitorClose(0);
 			DeleteDC(hdcPrn);
 		}
 	

@@ -43,7 +43,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	if (filler == 0)
 		filler = ' ';
 
-	abrt_start(IDS_ABRTALIGN);
+	ProgressMonitorStart(IDS_ABRTALIGN);
 
 	if (flags & (AL_CPOS|AL_FIX)) {
 		firstcol = _cphys2scr(fp,fp->currl->lbuf,fp->lnoffset);
@@ -64,7 +64,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 				if (col > aligncol)
 					aligncol = col;
 			}
-			if (lp == mpe->lm || ed_abort(1))
+			if (lp == mpe->lm || ProgressMonitorCancel(1))
 				break;
 		}
 
@@ -96,10 +96,10 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 			}
 			blfill(&lp->lbuf[besti],nchars,filler);
 		}
-		if (lp == mpe->lm || ed_abort(1))
+		if (lp == mpe->lm || ProgressMonitorCancel(1))
 			break;
 	}
-	abrt_close(0);
+	ProgressMonitorClose(0);
 	RedrawTotalWindow(fp);
 	if ((ret & aligncol) >= 0) {
 		curpos(fp->ln,(long )aligncol);

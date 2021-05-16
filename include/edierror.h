@@ -8,21 +8,21 @@ extern void ed_error(int nId, ...);
 extern int EdOptionToggle(long option);
 
 /*------------------------------------------------------------
- * ed_abort()
+ * ProgressMonitorCancel()
  * optional force redraw to reflect changes in the current
  * top window due to a workin progress
  */
-extern int ed_abort(BOOL bRedraw);
+extern int ProgressMonitorCancel(BOOL bRedraw);
 
 /*------------------------------------------------------------
- * abrt_close()
+ * ProgressMonitorClose()
  */
-extern void abrt_close(int always);
+extern void ProgressMonitorClose(int always);
 
 /*------------------------------------------------------------
- * abrt_start()
+ * ProgressMonitorStart()
  */
-extern void abrt_start(unsigned int ids);
+extern void ProgressMonitorStart(unsigned int ids);
 
 #define	E_SERIOUSC		'!'
 

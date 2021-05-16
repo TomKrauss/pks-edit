@@ -26,10 +26,10 @@
 extern char *	_datadir;
 static FTABLE	*_outfile;
 static long 	_line;
-static int 		_checkonce,_trymatch;
+static int 		_abortOnFirstMatch,_trymatch;
 
-extern char	_expbuf[];
-extern int 	prnfl(FTABLE *fp, char *fn, long line, char *remark);
+extern char		_expbuf[];
+extern int 		prnfl(FTABLE *fp, char *fn, long line, char *remark);
 extern char 	*AbbrevName(char *fn);
 extern void 	ShowMessage(WORD nId, ...);
 
@@ -37,7 +37,7 @@ extern void 	ShowMessage(WORD nId, ...);
  * present()
  * display info in abort dialog box and update .GRP-file
  */
-static long _nfound;
+static int _nfound;
 static void present(char *fn)
 {
 	_nfound++;
@@ -64,7 +64,7 @@ longline_scan:
 				stepend--;
 			if (step(q,_expbuf,stepend)) {
 				present(fn);
-				if (_checkonce)
+				if (_abortOnFirstMatch)
 					return 0;
 			}
 			_line++;
@@ -83,10 +83,10 @@ longline_scan:
 }
 
 /*--------------------------------------------------------------------------
- * parsefile()
- * scan for pattern in file fn
+ * matchInFile()
+ * scan for a search pattern in file fn
  */
-static int listtags(char *fn, DTA *stat)
+static int matchInFile(char *fn, DTA *stat)
 {	
 	int 	fd;
 
@@ -98,7 +98,7 @@ static int listtags(char *fn, DTA *stat)
 		return 0;
 
 	_line = 0L;
-	abrt_message(AbbrevName(fn));
+	ProgressMonitorShowMessage(AbbrevName(fn));
 
 	if (!_trymatch) {
 		present(fn);
@@ -118,13 +118,13 @@ static int listtags(char *fn, DTA *stat)
 /*--------------------------------------------------------------------------
  * retreive()
  */
-int retreive(char *pathes, char *search, int sdepth, int checkonce)
+int retreive(char *pathes, char* filenamePattern, char *search, int sdepth, int abortOnFirstMatch)
 {
 	char *		path;
 	char *		pathlist;
 	char		stepfile[256];
 
-	_checkonce = checkonce;
+	_abortOnFirstMatch = abortOnFirstMatch;
 	_nfound = 0;
 	strdcpy(stepfile, _datadir, "pksedit.grp");
 
@@ -140,16 +140,16 @@ int retreive(char *pathes, char *search, int sdepth, int checkonce)
 	_outfile = _alloc(sizeof *_outfile);
 	blfill(_outfile, sizeof *_outfile, 0);
 	lstrcpy(pathlist,pathes);
-	abrt_start(IDS_ABRTRETREIVE);
+	ProgressMonitorStart(IDS_ABRTRETREIVE);
 	if ((path = strtok(pathlist,",;")) != 0) {
 		do {	
-			if (ftwalk(path,listtags,sdepth,
-					 NORMALFILE|ARCHIV|WPROTECT) == 1) break;
+			if (_ftw(path,matchInFile,sdepth,
+					 filenamePattern, NORMALFILE|ARCHIV|WPROTECT) == 1) break;
 		} while ((path = strtok((char *)0,",;")) != 0);
 	}
 
 	Writeandclose(_outfile,stepfile,0);
-	abrt_close(0);
+	ProgressMonitorClose(0);
 
 	_free(pathlist);
 	_free(_outfile);

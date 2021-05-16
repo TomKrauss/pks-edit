@@ -24,7 +24,7 @@
     <ClCompile Include="StringUtil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AbortProcessing.c">
+    <ClCompile Include="ProgressMonitor.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AlignText.c">

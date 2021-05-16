@@ -1005,6 +1005,9 @@ EXPORT int EdBlockMark(int flags)
 	fp = _currfile;
 	lpMark = fp->currl;
 	nMarkOffset = fp->lnoffset;
-	return SetBlockMark(fp, lpMark, nMarkOffset, flags);
+	// for now: always consider to swap the block marks, if the end mark is placed
+	// before the start mark. In fact we should introduce the concept of a selection head instead
+	// of swapping marks.
+	return SetBlockMark(fp, lpMark, nMarkOffset, flags | MARK_RECALCULATE);
 }
 

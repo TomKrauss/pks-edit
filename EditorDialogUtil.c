@@ -348,7 +348,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 			case IDD_PATH1:
 			case IDD_STRING1: case IDD_STRING2: case IDD_STRING3:
 			case IDD_STRING4: case IDD_STRING5: case IDD_STRING6:
-			case IDD_STRING7:
+			case IDD_STRING7: case IDD_FILE_PATTERN:
 				DlgInitString(hDlg,item,(LPSTR)ip,dp->dp_size);
 				break;
 			case IDD_LONG1:
@@ -356,7 +356,11 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				goto donum;
 			case IDD_INT1: case IDD_INT2: case IDD_INT3: 
 			case IDD_INT4: case IDD_INT5:
-				wsprintf(numbuf,"%d",*ip);
+				if (*ip < 0 && item == IDD_INT1) {
+					numbuf[0] = 0;
+				} else {
+					wsprintf(numbuf, "%d", *ip);
+				}
 donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 				break;
 			case IDD_RNGE:
@@ -455,6 +459,7 @@ void DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax)
 		case IDD_STRING5:
 		case IDD_STRING6:
 		case IDD_STRING7:
+		case IDD_FILE_PATTERN:
 		case IDD_PATH1:
 			GetDlgItemText(hDlg, dp->dp_item, (LPSTR)dp->dp_data, 
 				dp->dp_size);
@@ -534,7 +539,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			if (item == IDD_LONG1) {
 				*(long*)dp->dp_data = Atol(numbuf);
 			} else {
-				*ip = Atol(numbuf);
+				*ip = numbuf[0] == 0 ? -1 : Atol(numbuf);
 			}
 			break;
 		case IDD_RNGE:
@@ -586,10 +591,14 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 			GetWindowText(GetDlgItem(hDlg, idCtrl), 
 				szButton, sizeof szButton);
 			fsel_title(szButton+1);
-			if (EdFsel(szBuff,fselbuf,_fseltarget)) {
-				SetDlgItemText(hDlg,IDD_PATH1,
-							(idCtrl == IDD_PATH2SEL) ? 
-							_fseltarget : szBuff);
+			if (EdFsel(szBuff,fselbuf,_fseltarget, idCtrl != IDD_PATH1SEL)) {
+				if (idCtrl == IDD_PATH1SEL) {
+					sfsplit(_fseltarget, fselbuf, NULL);
+					SetDlgItemText(hDlg, IDD_PATH1, fselbuf);
+				} else {
+					SetDlgItemText(hDlg, IDD_PATH1,
+						_fseltarget);
+				}
 			}
 			break;
 		case IDD_FONTSELECT2:

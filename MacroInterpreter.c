@@ -34,7 +34,7 @@ extern int 			MakeInternalSym(char *name, char ed_typ, long value);
 extern int 			Test(COM_TEST *sp);
 extern void 			Binop(COM_BINOP *sp);
 
-extern int 			ed_abort(BOOL bRedraw);
+extern int 			ProgressMonitorCancel(BOOL bRedraw);
 extern void 			redrawallwi(int update);
 extern void 			u_init(FTABLE *fp);
 extern int 			chkblk(FTABLE *fp);
@@ -598,7 +598,7 @@ int do_seq(COM_1FUNC *cp,COM_1FUNC *cpmax)
 	long 			val;
 
 	for (val = 1; cp < cpmax; ) {
-		if (_macaborted || (_macaborted = ed_abort(FALSE)) != 0)
+		if (_macaborted || (_macaborted = ProgressMonitorCancel(FALSE)) != 0)
 			return -1;
 		switch(cp->typ) {
 			case C_GOTO:

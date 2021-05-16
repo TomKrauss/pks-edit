@@ -167,6 +167,7 @@
 # define		IDS_MSGNTIMESFOUND		178
 # define		IDS_WINDOWLIST			179
 # define		IDS_SELECTCOMPILEWINDOW	180
+# define 		IDD_FILE_PATTERN        181
 
 # define	PKSEDIT_H
 #endif

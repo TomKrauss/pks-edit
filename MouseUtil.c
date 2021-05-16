@@ -374,7 +374,7 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 	long 	col;
 
 	if (mp->msg && mp->msg[0]) {
-		ShowError(mp->msg);
+		ShowError(mp->msg, NULL);
 	}
 	if (mp->flags & MO_FINDCURS) {
 		scn2lncol(wp, x, y, &ln, &col);

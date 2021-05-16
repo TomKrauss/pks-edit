@@ -29,9 +29,9 @@ extern char *searchfile(char *s);
 extern void strdcpy(char *dest,char *source,char *fname);
 extern char *TmpDir(void);
 extern void alert(LPSTR fmt, ...);
-extern int ed_abort(BOOL bRedraw);
-extern void abrt_start(WORD ids);
-extern void abrt_close(int always);
+extern int ProgressMonitorCancel(BOOL bRedraw);
+extern void ProgressMonitorStart(WORD ids);
+extern void ProgressMonitorClose(int always);
 extern void u_init(FTABLE *fp);
 
 extern FTABLE 	_outfile;
@@ -186,13 +186,13 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		if (flags & (EX_RDIN|EX_WAIT)) {
 			int savePlaying = _playing;
 			_playing = 0;
-			abrt_start(IDS_ABRTCMDCOMPLETE);
+			ProgressMonitorStart(IDS_ABRTCMDCOMPLETE);
 			while (1) {
-				if (ed_abort(FALSE) || bTaskFinished) {
+				if (ProgressMonitorCancel(FALSE) || bTaskFinished) {
 					break;
 				}
 			}
-			abrt_close(0);
+			ProgressMonitorClose(0);
 			_playing = savePlaying;
 		}
 		NotifyUnRegister(NULL);

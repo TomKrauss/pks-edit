@@ -635,25 +635,27 @@ BEGIN
     DEFPUSHBUTTON   "&OK",1,180,12,48,14
 END
 
-DLGRETREIVE DIALOG 28, 41, 227, 98
+DLGRETREIVE DIALOGEX 28, 41, 273, 128
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Suche in Ordnern"
-FONT 8, "helv"
+FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "&Suche:",301,4,12,60,8,NOT WS_GROUP
-    COMBOBOX        IDD_FINDS2,4,24,118,62,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        " Optionen &Suche",IDD_OPT10,132,32,92,60,WS_GROUP
-    CONTROL         "&Ignoriere Groß / Klein",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,138,42,84,12
-    CONTROL         "&Reguläre Ausdrücke",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,138,54,80,12
-    CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,138,66,80,12
-    CONTROL         "&Einfache Suche",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX,138,78,80,12
-    PUSHBUTTON      "Abbruch",2,132,10,40,14,WS_GROUP
-    DEFPUSHBUTTON   "OK",1,180,10,40,14
-    LTEXT           "Such&tiefe:",IDD_OPT11,4,40,32,8,NOT WS_GROUP
-    EDITTEXT        IDD_INT1,4,52,32,12
-    LTEXT           "Such&pfade:",112,4,68,40,8,NOT WS_GROUP
-    EDITTEXT        IDD_PATH1,4,80,118,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Durchsuchen..",IDD_PATH1SEL,70,62,52,14
+    LTEXT           "&Suche:",301,6,24,60,8,NOT WS_GROUP
+    COMBOBOX        IDD_FINDS2,6,36,164,62,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        " Optionen &Suche",IDD_OPT10,174,28,92,60,WS_GROUP
+    CONTROL         "&Ignoriere Groß / Klein",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,180,38,84,12
+    CONTROL         "&Reguläre Ausdrücke",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,180,50,80,12
+    CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,180,62,80,12
+    CONTROL         "&Einfache Suche",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX,180,74,80,12
+    PUSHBUTTON      "Abbruch",2,174,6,46,14,WS_GROUP
+    DEFPUSHBUTTON   "OK",1,228,6,40,14
+    LTEXT           "Maximale Such&tiefe:",IDD_OPT11,6,54,68,8,NOT WS_GROUP
+    EDITTEXT        IDD_INT1,78,54,18,12
+    LTEXT           "Suche in &Ordner:",112,6,90,114,8,NOT WS_GROUP
+    EDITTEXT        IDD_PATH1,6,102,204,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen..",IDD_PATH1SEL,216,102,52,14
+    EDITTEXT        IDD_FILE_PATTERN,78,72,90,12
+    LTEXT           "Dateimuster:",IDD_OPT12,6,72,68,8,NOT WS_GROUP
 END
 
 DLGDOCTYPES DIALOGEX 13, 39, 337, 236
@@ -891,8 +893,8 @@ BEGIN
         MENUITEM "&Ersetzen...\a",              MREPLACE
         MENUITEM "&Nächstes suchen\a",          MFAGAIN
         MENUITEM SEPARATOR
-        MENUITEM "In &Ordnern...\a",            MEDIFLIS
-        MENUITEM "&Verweis...\a",               MSHOWTAG
+        MENUITEM "In &Dateien suchen...\a",     MEDIFLIS
+        MENUITEM "Navigieren zu &Verweis...\a", MSHOWTAG
         MENUITEM SEPARATOR
         MENUITEM "Marke se&tzen...\a",          MSETMARK
         MENUITEM "&Marke...\a",                 MGOTOMAR
@@ -932,19 +934,19 @@ BEGIN
     END
     POPUP "M&odus"
     BEGIN
-        MENUITEM "&Dokumenten-Art...\a",        IDM_DOCTYPES
+        MENUITEM "&Dokumenten-Arten konfigurieren...\a", IDM_DOCTYPES
         MENUITEM SEPARATOR
         MENUITEM "&Bearbeitung...\a",           IDM_WORKMODE
         MENUITEM "&Anzeige...\a",               IDM_DISPMODE
         MENUITEM "Cursor und R&änder...\a",     IDM_CURSTABS
         MENUITEM "Datei-&Format...\a",          IDM_MODEVALS
         MENUITEM SEPARATOR
-        MENUITEM "&Controlzeichen\a",           MMSHOWCO
-        MENUITEM "Li&neale\a",                  MMSHOWLI
-        MENUITEM "Alte&rnativer Status\a",      MMSTATHE
-        MENUITEM "Te&xtattribute\a",            MMSHOWAT
+        MENUITEM "&Controlzeichen anzeigen\a",  MMSHOWCO
+        MENUITEM "Tabulator&leiste anzeigen\a", MMSHOWLI
+        MENUITEM "Alte&rnative Statuszeile verwenden\a", MMSTATHE
+        MENUITEM "Te&xtattribute anzeigen\a",   MMSHOWAT
         MENUITEM SEPARATOR
-        POPUP "&Sonstige Modi"
+        POPUP "&Sonstige Optionen"
         BEGIN
             MENUITEM "&Bearbeiten...\a",            MEDITDOCMAC
             MENUITEM "&Einfügen...\a",              MADDDOCMAC
@@ -1095,10 +1097,14 @@ BEGIN
         BOTTOMMARGIN, 115
     END
 
+    DLGRETREIVE, DIALOG
+    BEGIN
+        RIGHTMARGIN, 227
+        BOTTOMMARGIN, 122
+    END
+
     DLGDOCTYPES, DIALOG
     BEGIN
-        RIGHTMARGIN, 183
-        BOTTOMMARGIN, 212
     END
 
     DLGTAGLIST, DIALOG
@@ -1298,7 +1304,7 @@ STRINGTABLE
 BEGIN
     IDS_MSGKEYNOTBOUND      "Diese Tastenkombination ist nicht an ein Makro gebunden"
     IDS_MSGRECOVER          "Autosave Datei gefunden. Soll diese gelesen werden"
-    IDS_MSGNTIMESFOUND      "%ld mal gefunden"
+    IDS_MSGNTIMESFOUND      "%d mal gefunden"
     IDS_WINDOWLIST          "Fensterliste"
     IDS_SELECTCOMPILEWINDOW "Datei - Auswahl für die Compilation"
 END
