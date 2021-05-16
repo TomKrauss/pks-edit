@@ -47,7 +47,7 @@ extern char *	basename(char *s);
 extern int 	createl(FTABLE *fp, char *q, int len, int flags);
 
 extern int  	_asminutes;
-extern char 	_aspath[];
+extern char 	_pksEditTempPath[];
 extern char *	_datadir;
 extern void *	lastSelectedDocType;
 
@@ -66,9 +66,9 @@ static int make_aspath(char *dname, char *fname)
 {	char fn[EDMAXPATHLEN];
 	char szBuff[EDMAXPATHLEN];
 
-	if (_aspath[0]) {
+	if (_pksEditTempPath[0]) {
 		sfsplit(fname,(char *)0,fn);
-		strdcpy(szBuff,_aspath,fn);
+		strdcpy(szBuff,_pksEditTempPath,fn);
 		FullPathName(dname,szBuff);
 		return 1;
 	}
@@ -151,10 +151,10 @@ autosave:
 
 		if (ret > 0) {
 		/* we autosaved into source file: set state to unmodified */
-			if (!_aspath[0])
+			if (!_pksEditTempPath[0])
 				fp->flags &= ~F_MODIFIED;
 			ShowMessage(IDS_MSGAUBE,ft_visiblename(fp));
-		} else if (PromptAsPath(_aspath)) {
+		} else if (PromptAsPath(_pksEditTempPath)) {
 		/* let the user correct invalid autosave pathes */
 			prof_saveaspath();
 			goto autosave;

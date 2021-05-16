@@ -4,6 +4,7 @@
 /_UpgradeReport_Files
 /windebug/
 /winrelease/
+/x64/
 *.OBJ
 *.bj
 *.sbr

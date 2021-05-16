@@ -112,8 +112,7 @@ static KEYBIND *keyslot(KEYCODE keycode)
 /*-----------------------------------------------------------
  * keybound()
  */
-KEYBIND *keybound(KEYCODE keycode)
-{
+KEYBIND *keybound(KEYCODE keycode) {
 	return keyslot(keycode);
 }
 

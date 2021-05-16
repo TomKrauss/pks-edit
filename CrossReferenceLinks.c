@@ -800,7 +800,7 @@ int EdFindTagCursor(void)
 int EdFindFileCursor(void)
 {	char *fn,*found;
 	char	fselpath[512];
-	extern char _incpath[];
+	extern char _includePath[];
 	extern char *pathsearch();
 
 	if ((fn = gettag(_linebuf,&_linebuf[LINEBUFSIZE],isfname,1)) == 0) 
@@ -811,7 +811,7 @@ int EdFindFileCursor(void)
 #else
 	sfsplit(_fseltarget,fselpath,(char*)0);
 #endif
-	if ((found = pathsearch(fn,_incpath))   != 0 ||
+	if ((found = pathsearch(fn,_includePath))   != 0 ||
 	    (found = pathsearch(fn,fselpath))   != 0) {
 		return tagopen(found, 0L, (WINDOWPLACEMENT*)0);
 	}

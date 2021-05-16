@@ -30,7 +30,7 @@
 #define	PROF_OFFSET		1
 
 extern int  _findopt,_nundo,_asminutes;
-extern char _aspath[256];
+extern char _pksEditTempPath[256];
 extern long Atol(char *s);
 extern char *_strtolend;
 extern void *ll_insert(void *head,long size);
@@ -249,7 +249,7 @@ int prof_getstdopt(void)
 	_findopt = (int)prof_getlong(_desk,"FindOptions");
 	_asminutes = prof_getlong(_desk,"AsInterv");
 	_nundo = prof_getlong(_desk,"NUBuf");
-	GetPksProfileString(_desk,"AsPath",_aspath,sizeof _aspath -1);
+	GetPksProfileString(_desk,"AsPath",_pksEditTempPath,sizeof _pksEditTempPath -1);
 
 	return 1;
 }
@@ -273,7 +273,7 @@ void prof_killsections(LPSTR pszFn, LPSTR pszSection)
  */
 void prof_saveaspath(void)
 {
-	prof_savestring(_desk,"AsPath",_aspath);
+	prof_savestring(_desk,"AsPath",_pksEditTempPath);
 }
 
 /*------------------------------------------------------------

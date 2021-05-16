@@ -31,7 +31,7 @@
 extern void 	ft_CheckForChangedFiles(void);
 extern void		GetPhase2Args(char *args);
 extern void		GetPhase1Args(char *args);
-extern LONG 	PksGetKeyBind(WPARAM key);
+extern void *	PksGetKeyBind(WPARAM key);
 extern void *	ll_insert(void *head,long size);
 extern void 	EditDroppedFiles(HDROP hdrop);
 extern BOOL 	InitBuffers(void);
@@ -48,6 +48,11 @@ extern WORD 	TranslateToOrigMenu(WORD wParam);
 extern BOOL 	InitEnv(void);
 extern EDTIME 	EdGetFileTime(char *fname);
 extern char *	MenuTipFor(int menId);
+/*---------------------------------*
+ * do_key()
+ * Execute a keybinding and return 1 if successful.
+ *---------------------------------*/
+extern int do_key(void* keybind);
 
 extern BOOL	bTaskFinished;
 
@@ -267,8 +272,9 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine)
  * TranslatePksAccel()
  */
 int _translatekeys = 1;
+static void* _executeKeyBinding;
 static int TranslatePksAccel(HWND hwnd, MSG *msg)
-{	LONG lParam;
+{
 
 	switch(msg->message) {
 		case WM_SYSKEYDOWN:
@@ -284,11 +290,10 @@ static int TranslatePksAccel(HWND hwnd, MSG *msg)
 					break;
 				}
 			}
-			if ((lParam = PksGetKeyBind(msg->wParam)) != 0) {
+			if ((_executeKeyBinding = PksGetKeyBind(msg->wParam)) != 0) {
 				if (msg->message == WM_SYSKEYDOWN ||
 				    msg->message == WM_KEYDOWN) {
 					msg->message = WM_PKSKEY;
-					msg->lParam = lParam;
 					msg->hwnd = hwnd;
 					break;
 				}
@@ -761,7 +766,7 @@ WINFUNC FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case WM_PKSKEY:
 			CloseErrorWin();
-			do_key(lParam);
+			do_key(_executeKeyBinding);
 			return 0;
 
 		case WM_PKSOPTOGGLE:

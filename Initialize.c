@@ -15,6 +15,7 @@
 #include <windows.h> 
 #include <direct.h>
 #include "lineoperations.h"
+#include "pathname.h"
 
 #undef DELIVER
 
@@ -28,17 +29,15 @@ extern char *	cryptXXXX(char *dest, char *source,
 
 char	*_datadir;			/* Environment Editor-Data			*/
 
-#define MAX_PATH_LEN 1024
+char _homedir[EDMAXPATHLEN];
 
-char _homedir[MAX_PATH_LEN];
-
-char _sysdir[MAX_PATH_LEN +8]  = "****TKR.";
+char _sysdir[EDMAXPATHLEN +8]  = "****TKR.";
 char _serial[10]      = "100000";
 char _cryptserial[32] = "?";
-char _kunde[30]       = "Demoversion";
+char _kunde[30]       = "free version (by us a beer)";
 char _cryptkunde[80]  = "X";
-char _incpath[MAX_PATH_LEN]    = "INC;C:\\BORLANDC\\INCLUDE";
-char _aspath[MAX_PATH_LEN];
+char _includePath[EDMAXPATHLEN]  = "INCLUCDE;INC";
+char _pksEditTempPath[EDMAXPATHLEN];
 
 /*---------------------------------*/
 /* checkkey()					*/
@@ -84,7 +83,7 @@ int mystrrchr(char s[], int c) {
 EXPORT BOOL InitEnv(void ) 
 {
 	char 	compiler[32];
-	char	datadir[MAX_PATH_LEN];
+	char	datadir[EDMAXPATHLEN];
 	char *	pks_sys = "PKS_SYS";
 	char *  tempFound;
 	int     tempLen;
@@ -97,12 +96,13 @@ EXPORT BOOL InitEnv(void )
 	}
 # endif
 	_datadir = _sysdir+8;
-	tempLen = GetModuleFileName(NULL, _homedir, MAX_PATH_LEN);
+	tempLen = GetModuleFileName(NULL, _homedir, EDMAXPATHLEN);
 	_homedir[tempLen] = 0;
 	tempFound = mystrrchr(_homedir, '\\');
 	if (tempFound != NULL && (tempFound-_homedir) > 1) {
 		tempFound[-1] = 0;
-		strcat(_homedir, "\\pks_sys");
+		strcat(_homedir, "\\");
+		strcat(_homedir, pks_sys);
 		if (EdStat(_homedir) < 0) {
 			_homedir[0] = '\0';
 		} else {
@@ -114,7 +114,7 @@ EXPORT BOOL InitEnv(void )
 	if (_homedir[0] == 0) {
 		getcwd(_homedir,sizeof _homedir);
 	}
-	GetProfileString("PksEdit", pks_sys, "", _datadir, MAX_PATH_LEN);
+	GetProfileString("PksEdit", pks_sys, "", _datadir, EDMAXPATHLEN);
 	if (!*_datadir) {
 		strdcpy(_datadir, _homedir, "PKS_SYS");
 	}
@@ -124,12 +124,12 @@ EXPORT BOOL InitEnv(void )
 	}
 
 	compiler[0] = 0;
-	Getenv("COMPILER",compiler,sizeof(compiler));
+	Getenv("PKS_COMPILER", compiler, sizeof(compiler));
 	if (compiler[0]) {
 		stepselectcompiler(compiler);
 	}
-	Getenv("INCPATH", _incpath,sizeof(_incpath));
-	Getenv("PKS_TMP", _aspath,sizeof(_aspath));
+	Getenv("PKS_INCLUDE_PATH", _includePath, sizeof(_includePath));
+	Getenv("PKS_TMP", _pksEditTempPath, sizeof(_pksEditTempPath));
 
 	strdcpy(_homedir,_homedir,"");
 	return TRUE;

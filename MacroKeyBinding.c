@@ -684,10 +684,10 @@ KEYCODE mac_addshift(KEYCODE key)
 /*---------------------------------*/
 /* PksGetKeyBind()				*/
 /*---------------------------------*/
-LONG PksGetKeyBind(WPARAM key)
+void* PksGetKeyBind(WPARAM key)
 {
 	key = mac_addshift(key);
-	return (LONG)keybound(key);
+	return keybound(key);
 }
 
 /*---------------------------------*/
@@ -715,11 +715,11 @@ int mac_runcmd(MACROREF *mp)
 	return 0;
 }
 
-/*---------------------------------*/
-/* do_key()					*/
-/*---------------------------------*/
-int do_key(LONG keybind)
-{
+/*---------------------------------*
+ * do_key()
+ * Execute a keybinding and return 1 if successful.
+ *---------------------------------*/
+int do_key(void* keybind) {
 	KEYBIND     *kp;
 
 	if ((kp = (KEYBIND*)keybind) == (KEYBIND *) 0) 

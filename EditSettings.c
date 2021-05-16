@@ -28,13 +28,13 @@ extern void fkey_visibilitychanged(void);
 
 extern int		_nundo;
 extern int		_asminutes;
-extern char		_aspath[256];
+extern char		_pksEditTempPath[256];
 
 int			bInPropertySheet;
 
 static DIALPARS _d[] = {
 	IDD_NOCHANGEONCANCEL,	0,	0,
-	IDD_STRING1,	sizeof _aspath,	_aspath,
+	IDD_STRING1,	sizeof _pksEditTempPath,	_pksEditTempPath,
 	IDD_INT1,		sizeof _nundo,		&_nundo,
 	IDD_INT2,		sizeof _asminutes,	&_asminutes,
 	IDD_OPT1,		WARNINGS,			&_options,

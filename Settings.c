@@ -36,7 +36,7 @@ int _layoutoptions = (OL_OPTIONBAR|OL_SHOWSTATUS);
 
 /* Autosave */
 int  _asminutes;
-extern char _aspath[];
+extern char _pksEditTempPath[];
 extern int  _recording;
 extern int  _deadkey;
 

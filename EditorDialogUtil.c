@@ -104,11 +104,11 @@ FARPROC SubClassWndProc(int set, HWND hDlg, int item, FARPROC lpfnNewProc)
 	FARPROC lpfnNowProc;
 
 	hwndItem = GetDlgItem(hDlg,item);
-	lpfnNowProc = (FARPROC)GetWindowLong(hwndItem,GWL_WNDPROC);
+	lpfnNowProc = (FARPROC)GetWindowLongPtr(hwndItem,GWLP_WNDPROC);
 	if (set) {
 		lpfnNewProc = MakeProcInstance(lpfnNewProc,hInst);
 	} 
-	SetWindowLong(hwndItem,GWL_WNDPROC,(LONG)lpfnNewProc);
+	SetWindowLongPtr(hwndItem,GWLP_WNDPROC,(LONG)lpfnNewProc);
 	if (!set) {
 		FreeProcInstance(lpfnNowProc);
 	}
@@ -724,7 +724,7 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 		PropSheet_UnChanged(GetParent(hDlg), hDlg);
 		return TRUE;
 	case PSN_KILLACTIVE:
-		SetWindowLong(hDlg, DWL_MSGRESULT, FALSE);
+		SetWindowLongPtr(hDlg, DWLP_MSGRESULT, FALSE);
 		break;
 	}
 	return TRUE;

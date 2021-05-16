@@ -447,8 +447,18 @@ int RecordOptions(int *o)
  * EdAbout()
  */
 int EdAbout(void)
-{ 	static DIALPARS _d[] = {
+{ 	
+#if defined(_WIN64)
+	static char _architecture[] = "- 64 Bit Platform Version";
+#elif
+	static char _architecture[] = "- 32 Bit Platform Version";
+#endif
+	static char _versionInfo[] = "Version 1.4, 14.5.2021";
+
+	static DIALPARS _d[] = {
 		IDD_RO1,		sizeof _kunde,		_kunde,
+		IDD_STRING1,	sizeof _architecture, _architecture,
+		IDD_STRING2,	sizeof _versionInfo, _versionInfo,
 		0
 	};
 

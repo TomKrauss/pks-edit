@@ -211,10 +211,6 @@ typedef struct ftable
 
 extern FTABLE 	*_currfile,*_filetab;
 extern int 	_playing;				/* recorder plays its game ... */
-#ifndef _SIZE_T
-#define _SIZE_T
-typedef unsigned size_t;
-#endif
 
 void 	edidebug(char *fmt,...);
 unsigned char *blfill(void *buf,int count,unsigned char fillbyte);
