@@ -226,15 +226,6 @@ extern void ProgressMonitorStart(unsigned int ids);
 #define	RNG_GLOBAL		6
 #define	RNG_FREE			7
 
-/* exec */
-#define	EX_SYMBOL			0x1
-#define	EX_WAIT			0x2
-#define	EX_CD			0x4
-#define	EX_RDNONE			0x10
-#define	EX_RDIN			0x20
-#define	EX_RDOUT			0x40
-#define	EX_RDCONV			0x80
-
 /* goto textmark (lastpos) */
 #define	TM_LASTSEARCH	0
 #define	TM_LASTINSERT	1

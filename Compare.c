@@ -11,13 +11,12 @@
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
  
 #include "edtypes.h"
  
-extern unsigned char 	_l2uset[256],
-					_u2lset[256];
+extern unsigned char 	_l2uset[256];
+extern unsigned char	_u2lset[256];
 
 /*------------------------------------------------------------
  * cmpfold()

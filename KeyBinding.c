@@ -117,7 +117,7 @@ EXPORT int fkey_wh(WORD *w, WORD *h)
 	GetWindowRect(hwndFkeys,&rectK);
 	GetClientRect(hwndFkeys,&rectClient);
 	*w = (WORD)(rectK.right - rectK.left) + 1;
-	*h = (rectK.bottom - rectK.top) - rectClient.bottom + 1;
+	*h = (WORD)((rectK.bottom - rectK.top) - rectClient.bottom + 1);
 	if (GetConfiguration()->layoutoptions & OL_OPTIONBAR) {
 		*h += _fkoptheight;
 	}

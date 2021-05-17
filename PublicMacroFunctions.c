@@ -14,7 +14,7 @@
 
 #include <windows.h>
 #include "trace.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
 
@@ -32,6 +32,8 @@
 #include "publicapi.h"
 #include "stringutil.h"
 #include "pathname.h"
+#include "edexec.h"
+#include "errordialogs.h"
 
 extern int 		AbandonFile(FTABLE *fp, LINEAL *linp);
 extern int 		mac_runcmd(MACROREF *mp);

@@ -410,6 +410,9 @@
     <ClInclude Include="include\editorconfiguration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\caretmovement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">

@@ -456,7 +456,7 @@ int EdWinArrange(int func)
 	HWND  	hwnd;
 	WINDOWPLACEMENT	windowplacement;
 	WPARAM	wParam;
-	int		ret;
+	LRESULT	ret;
 
 	hwnd = wp ? wp->edwin_handle : hwndFrame;
 	wParam = 0;
@@ -507,7 +507,7 @@ int EdWinArrange(int func)
 	if (func == WIN_PAIRS) {
 		EnableNotTopmost(2, TRUE);
 	}
-	return ret;
+	return (int) ret;
 }
 
 /*-----------------------------------------------------------

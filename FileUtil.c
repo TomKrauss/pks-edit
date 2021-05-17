@@ -40,7 +40,7 @@ static struct _finddata_t _dta;
  */
 EXPORT int EdStat(char *s) 
 {
-	long handle;
+	intptr_t handle;
 
 	if ((handle = _findfirst(s,&_dta)) < 0) {
 		return -1;

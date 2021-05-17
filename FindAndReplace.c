@@ -15,7 +15,7 @@
 #include <windows.h>
 
 #include "trace.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "edierror.h"
 
 #include "winfo.h"
@@ -28,6 +28,7 @@
 #include "edctype.h"
 #include "regexp.h"
 #include "edhist.h"
+#include "errordialogs.h"
 
 #define	UCHAR	unsigned char
 
@@ -662,7 +663,7 @@ int EdPasteString(long dummy1, long dummy2, char *string)
 	if (!fp || string == 0)
 		return 0;
 	
-	len = strlen(string);
+	len = (int) strlen(string);
 	if ((lp = ln_modify(fp,fp->currl,fp->lnoffset,fp->lnoffset+len)) == 0L)
 		return 0;
 
@@ -695,7 +696,8 @@ int EdReplaceText(int scope, int action, int flags)
 	MARK		*markstart,*Markend;
 	register MARK *markend;
 	LINE		*oldxpnd = 0;
-	register	maxlen,delta,newlen;
+	register size_t newlen;
+	register	maxlen,delta;
 	register	olen;
 	int  	sc1flg = 1,splflg = _playing, column = 0, lastfcol,
 			query,marked;

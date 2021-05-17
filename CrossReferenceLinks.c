@@ -12,7 +12,7 @@
 #include "winterf.h"
 #include "edctype.h"
 #include "edifsel.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "winfo.h"
 #include "pksedit.h"
 #include "editorconfiguration.h"

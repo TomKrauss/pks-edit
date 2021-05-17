@@ -11,6 +11,7 @@
  */
 
 #include <tos.h>
+#include <windows.h>
 #include <windowsx.h>
 #include <string.h>
 #include "trace.h"
@@ -413,7 +414,7 @@ MACRO *mac_new(char* szName, char* szComment, char* bData, int size)
 	if ((mp = _alloc(MAC_SIZE(nLen+size))) == 0)
 		return (MACRO*)0;
 
-	mp->dstart = nLen+sizeof(*mp);
+	mp->dstart = (unsigned char)(nLen+sizeof(*mp));
 
 	mp->namelen = nNamelen;
 	mp->size = size;
@@ -548,8 +549,9 @@ int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped)
 	char		szB1[128];
 	char		szBtmp[64];
 	char		szB2[128];
-	int    	dropped_type,dest_type;
-	int		i,funcnum,o1,o2;
+	WPARAM		dropped_type;
+	int    		dest_type;
+	int			i,funcnum,o1,o2;
 
 	if (wParam == ICACT_DROPPED) {
 		icdropHwnd = dropped;
@@ -845,7 +847,7 @@ void mac_setmenukeys(HMENU hMenu)
 static LONG SelectedMacro(HWND hwnd)
 {
 	LONG		nData;
-	int		item;
+	LRESULT		item;
 
 	if ((item = SendDlgItemMessage(hwnd, IDD_MACROLIST, LB_GETCURSEL, 0, 0)) < 0)
 		return -1;
@@ -858,13 +860,13 @@ static LONG SelectedMacro(HWND hwnd)
  */
 static LONG SelectedKey(HWND hwnd)
 {
-	LONG		nKey;
-	int		item;
+	LONG		nKey = 0;
+	LRESULT		item;
 
-	if ((item = SendDlgItemMessage(hwnd,IDD_LISTBOX2,LB_GETCURSEL,0,0)) < 0)
+	if ((item = SendDlgItemMessage(hwnd, IDD_LISTBOX2, LB_GETCURSEL, 0, 0)) < 0) {
 		return K_DELETED;
-	SendDlgItemMessage(hwnd, IDD_LISTBOX2, LB_GETTEXT, (WPARAM)item,
-		(LONG)&nKey);
+	}
+	SendDlgItemMessage(hwnd, IDD_LISTBOX2, LB_GETTEXT, (WPARAM)item, (LONG)&nKey);
 	return nKey;
 }
 
@@ -882,14 +884,15 @@ void but_enable(HWND hwnd, WORD nItem, BOOL nWhich)
 /*------------------------------------------------------------
  * list_startfilling()
  */
-HWND list_startfilling(HWND hwnd, WORD nItem,WORD *nCurr)
+HWND list_startfilling(HWND hwnd, WORD nItem, LRESULT *nCurr)
 {
 	HWND hwndList;
 
 	hwndList = GetDlgItem(hwnd,nItem);
 	*nCurr = SendMessage(hwndList,LB_GETCURSEL,0,0L);
-	if ((int)*nCurr < 0)
+	if (*nCurr < 0) {
 		*nCurr = 0;
+	}
 	SendMessage(hwndList,LB_RESETCONTENT,0,0L);
 	SendMessage(hwndList,WM_SETREDRAW,FALSE,0L);
 	return hwndList;
@@ -912,8 +915,8 @@ static BOOL MacroSelectByValue(HWND hwnd, LONG lValue)
 {
 	int		i;
 	HWND 	hwndList;
-	WORD 	nItems;
-	LONG		nData;
+	LRESULT	nItems;
+	LONG	nData = 0;
 
 	hwndList = GetDlgItem(hwnd, IDD_MACROLIST);
 	nItems = SendMessage(hwndList, LB_GETCOUNT, 0, 0);
@@ -936,7 +939,7 @@ static void UpdateMacroList(HWND hwnd)
 {
 	HWND 	hwndList;
 	int  	i,state;
-	WORD 	nCurr;
+	LRESULT nCurr;
 
 	hwndList = list_startfilling(hwnd, IDD_MACROLIST, &nCurr);
 
@@ -1147,7 +1150,7 @@ static int CharItemNextSelected(HWND hwndList, unsigned char ucKey)
 	LRESULT		lValue;
 	unsigned char	szBuf[128];
 	unsigned char 	ucCmp;
-	int 			nPos;
+	LRESULT			nPos;
 
 	if (ucKey >= 'A' && ucKey <= 'Z') {
 		ucKey += ('a' - 'A');

@@ -17,7 +17,7 @@
 
 #include <windows.h>
 #include "trace.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "winfo.h"
 #include "edierror.h"
 #include "regexp.h"
@@ -126,9 +126,9 @@ EXPORT int uc_add(char *pat,char *p,int type,int id)
 		return 0;
 	}
 
-	up->pat      = pat;
-	up->len	   = len;
-	up->action   = type;
+	up->pat    = pat;
+	up->len	   = (int) len;
+	up->action = type;
 done:
 	up->ctx	   = id;
 	up->p	   = p;

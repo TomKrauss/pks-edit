@@ -13,7 +13,7 @@
  */
 
 #include "pksedit.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
 

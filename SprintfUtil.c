@@ -33,15 +33,6 @@ int  _psenabled = 1;
 #define MAXSSIZE		256
 
 /*--------------------------------------------------------------------------
- * getfn()
- */
-char *getfn(FTABLE *fp)
-{
-	return basename(ft_visiblename(fp));
-}
-
-
-/*--------------------------------------------------------------------------
  * InitDateformats()
  */
 static char sDate[2], sTime[2];

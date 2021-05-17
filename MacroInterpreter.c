@@ -30,7 +30,6 @@ extern int 			RecordOptions(int *o);
 extern long 			MakeInteger(void *p);
 extern long 			MakeString(void *p);
 extern long 			Assign(char *name, COM_LONG1 *v);
-extern int 			MakeInternalSym(char *name, char ed_typ, long value);
 extern int 			Test(COM_TEST *sp);
 extern void 			Binop(COM_BINOP *sp);
 
@@ -40,8 +39,6 @@ extern void 			u_init(FTABLE *fp);
 extern int 			chkblk(FTABLE *fp);
 extern void 			ft_settime(EDTIME *tp);
 extern int 			do_macbyname(char *name);
-
-int 					param_record(PARAMS *pp);
 void 				stopcash(void);
 
 int					_playing;
@@ -176,10 +173,10 @@ static void push_sequence(unsigned char typ, void* par)
 /* param_dialopen()				*/
 /*---------------------------------*/
 int param_dialopen(PARAMS *pp)
-{	int 			i;
+{	int 		i;
 	struct des 	*dp;
-	long			par;
-	COM_FORM		*cp;
+	intptr_t	par;
+	COM_FORM	*cp;
 	unsigned char	type;
 
 	if (!_playing)
@@ -297,7 +294,7 @@ int param_record(PARAMS *pp)
  * param_pop()
  * pop data from execution stack
  */
-long param_pop(unsigned char **Sp)
+intptr_t param_pop(unsigned char **Sp)
 {
 	unsigned char *sp = *Sp;
 	unsigned char typ = *sp;
@@ -307,7 +304,7 @@ long param_pop(unsigned char **Sp)
 	switch(typ) {
 		case C_DATA:
 		case C_FORMSTART:
-			return (long)sp;
+			return sp;
 		case C_CHAR1PAR:
 		case C_FURET:
 			return ((COM_CHAR1 *)sp)->val;
@@ -515,9 +512,9 @@ long do_macfunc(COM_1FUNC **Cp, COM_1FUNC *cpmax)
 			case C_STRING1PAR:
 				if (typ == C_MACRO) {
 					*sp++ = 1;
-					*sp++ = (long) param_pop((unsigned char **)&cp);
+					*sp++ = param_pop((unsigned char **)&cp);
 				} else {
-					*sp2++ = (long) param_pop((unsigned char **)&cp);
+					*sp2++ = param_pop((unsigned char **)&cp);
 				}
 				break;
 			case C_LONGVAR:
@@ -527,8 +524,7 @@ long do_macfunc(COM_1FUNC **Cp, COM_1FUNC *cpmax)
 				if (typ == C_MACRO) {
 					*sp++ = 0;
 				}
-				*sp++ = (long)
-					param_pop((unsigned char **)&cp);
+				*sp++ = param_pop((unsigned char **)&cp);
 				break;
 			default:
 				goto out;
@@ -560,7 +556,7 @@ out:
 /*--------------------------------------------------------------------------
  * ReturnString()
  */
-static int _fncmarker = -1;
+static intptr_t _fncmarker = -1;
 static void ReturnFuncVal(unsigned char typ, long v)
 {
 	char *		vname;

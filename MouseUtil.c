@@ -12,7 +12,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include "trace.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "edierror.h"
 #include "errordialogs.h"
 

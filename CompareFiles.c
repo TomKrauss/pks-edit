@@ -19,7 +19,7 @@
 #include "trace.h"
 
 #include "winterf.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "winfo.h"
 #include "pksedit.h"
 

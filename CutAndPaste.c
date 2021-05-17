@@ -11,12 +11,13 @@
  */
 
 #include <tos.h>
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "winfo.h"
 #include "pksedit.h"
 #include "edierror.h"
 #include "iccall.h"
 #include "editorconfiguration.h"
+#include "errordialogs.h"
 
 /*-----------------------*/
 /* EXTERNALS			*/

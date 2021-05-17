@@ -22,7 +22,6 @@
 #include "xdialog.h"
 #include "editorconfiguration.h"
 
-extern BOOL CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 extern void fkey_visibilitychanged(void);
 
 /*
@@ -111,7 +110,7 @@ static DIALPARS* _getDialogParsForPage(int pageIndex) {
 void EdOptionSet(void) {
     PROPSHEETPAGE psp[4];
     PROPSHEETHEADER psh;
-	int tempRet;
+	INT_PTR tempRet;
 
 	InitCommonControls();
 	SetXDialogParams(_getDialogParsForPage, TRUE);

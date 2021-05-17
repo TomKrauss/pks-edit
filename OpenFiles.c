@@ -14,7 +14,7 @@
 #include <time.h>
 
 #include "trace.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "edierror.h"
 #include "errordialogs.h"
 #include "editorconfiguration.h"
@@ -32,6 +32,7 @@
 #include "edhist.h"
 #include "pksedit.h"
 #include "editorconfiguration.h"
+#include "errordialogs.h"
 
 extern void *	ll_insert(void *head,long size);
 extern void *	shareAlloc();
@@ -50,8 +51,6 @@ extern int 	createl(FTABLE *fp, char *q, int len, int flags);
 
 extern char *	_datadir;
 extern void *	lastSelectedDocType;
-
-char *ft_visiblename(FTABLE *fp);
 
 FTABLE 		*_currfile,*_errfile;
 static FTABLE 	*_filelist;

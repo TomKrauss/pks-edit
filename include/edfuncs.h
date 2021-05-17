@@ -1,6 +1,8 @@
 
 # ifndef	_EDFUNCS_H
 
+#include <vcruntime.h>
+
 #define	EW_MODIFY		0x1		/* function modifies text */
 #define	EW_NOCASH		0x2		/* dont EdMacroRecord them */
 #define	EW_NEEDSCURRF	0x4		/* needs a current file */
@@ -106,7 +108,11 @@ KEYCODE mac_addshift(KEYCODE code);
 #define	FORM_REDRAW	0x2	/* force redraw */
 
 int  param_space(unsigned char typ, char *s);
-long param_pop(unsigned char **Sp);
+/*--------------------------------------------------------------------------
+ * param_pop()
+ * pop data from execution stack
+ */
+intptr_t param_pop(unsigned char** sp);
 
 typedef struct c_1func {
 	unsigned char  typ;		/* C_1FUNC */

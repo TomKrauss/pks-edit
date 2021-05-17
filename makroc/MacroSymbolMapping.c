@@ -23,7 +23,6 @@
 
 extern void 	Alert(char *, ...);
 extern long 	number(char *s);
-extern long 	param_pop(unsigned char **sp);
 extern int 		IsStringType(unsigned char typ);
 extern int 		GetDollar(long offset, int *typ, long *value);
 
@@ -180,15 +179,15 @@ long sym_destroy(char *key)
 /*--------------------------------------------------------------------------
  * MakeInternalSym()
  */
-int MakeInternalSym(char *name, char ed_typ, long value)
-{
+int MakeInternalSym(char *name, char ed_typ, intptr_t value) {
 	ENTRY	*ep;
 	int		type;
 
 	type = ed_typ;
 	if (ed_typ == S_STRING || ed_typ == S_CONSTSTRING) {
-		if ((value = (long)stralloc((char *)value)) == 0)
+		if ((value = stralloc((char*)value)) == 0) {
 			return 0;
+		}
 	}
 
 	if ((ep = hfind(name,FIND)) != 0) {
@@ -300,10 +299,9 @@ long MakeString(char *symbolname)
 /*--------------------------------------------------------------------------
  * Assign()
  */
-long Assign(char *name, COM_LONG1 *v)
-{
+long Assign(char *name, COM_LONG1 *v) {
 	int 	typ;
-	long	value;
+	intptr_t value;
 
 	typ = IsStringType(v->typ) ? S_STRING : S_NUMBER;
 	value = param_pop((unsigned char **)&v);

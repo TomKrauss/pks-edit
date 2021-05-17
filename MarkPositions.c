@@ -12,7 +12,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "edierror.h"
 
 /*----- EXTERNALS -----------*/

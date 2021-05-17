@@ -8,6 +8,8 @@
 
 #ifndef WINTERF_H
 
+#include "editorfont.h"
+
 #define FPE_FUNC	CALLBACK
 #define WINFUNC    	LRESULT FPE_FUNC
 #define ENUMFUNC   	BOOL FPE_FUNC
@@ -73,6 +75,12 @@ extern int 		EdMkWinClass( char *szClassName, WNDPROC WinProc,
 
 extern HWND   	hwndAbort,hwndFkeys,hwndFrame,hwndClient,hwndToolbar,
 				hwndDlg,hwndFkeys,hwndStatus;
+
+/*------------------------------------------------------------
+ * EdCreateFont()
+ * create a logical font
+ */
+extern HFONT EdCreateFont(EDFONT* pFont);
 
 extern HINSTANCE hInst;
 extern UINT		WM_PKSBROADCAST;

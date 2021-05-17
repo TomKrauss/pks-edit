@@ -20,6 +20,7 @@
 #include "lineoperations.h"
 #include "winfo.h"
 #include "editorconfiguration.h"
+#include "errordialogs.h"
 
 #pragma hdrstop
 
@@ -190,7 +191,7 @@ int CloseAllChildren(HWND hwndChild)
  * CloseChildWindow()
  */
 int CloseChildWindow(HWND hwndChild,int iconflag)
-{	int ret;
+{	LRESULT ret;
 
 	if (!hwndChild || !IsWindow(hwndChild))
 		return 0;

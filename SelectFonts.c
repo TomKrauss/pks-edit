@@ -199,7 +199,7 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 	lf.lfStrikeOut = 0;
 #endif
 
-	lf.lfCharSet = ep->charset;
+	lf.lfCharSet = (BYTE)ep->charset;
 	lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
 	lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 	lf.lfQuality = DEFAULT_QUALITY;

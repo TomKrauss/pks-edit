@@ -12,7 +12,7 @@
 
 #include <windows.h>
 #include <string.h>
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "pksedit.h"
 #include "edierror.h"
 

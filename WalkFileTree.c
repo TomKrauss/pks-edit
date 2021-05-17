@@ -57,7 +57,7 @@ int _ftw(
 static int __ftw(char *path,int depth)
 {	struct _finddata_t  *	pdta;
 	char 				*	target;
-	long					fhandle;
+	intptr_t				fhandle;
 	register int			i;
 
 	if (--depth < 0) {

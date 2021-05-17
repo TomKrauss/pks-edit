@@ -5,6 +5,7 @@
 # ifndef 	_WINFO_H
 
 #include "editorfont.h"
+#include "lineoperations.h"
 
 typedef struct tagGRECT {
 	int g_x,g_y,g_w,g_h;
@@ -73,6 +74,22 @@ extern void SendRedraw(HWND hwnd);
  * EdRedrawWindow()
  */
 extern void EdRedrawWindow(WINFO* wp);
+
+/*------------------------------------------------------------
+ * EdSelectFont()
+ * select a font and return handle to old Font
+ */
+extern HFONT EdSelectFont(WINFO* wp, HDC hdc);
+
+/*------------------------------------------------------------
+ * RedrawWmPaint()
+ */
+extern void RedrawWmPaint(WINFO* wp);
+
+/*--------------------------------------------------------------------------
+ * RedrawTotalWindow()
+ */
+extern void RedrawTotalWindow(FTABLE* fp);
 
 #define FTPOI(wp)		(FTABLE*)(wp->fp)
 

@@ -21,6 +21,7 @@
 
 #include "pksedit.h"
 #include "dial2.h"
+#include "xdialog.h"
 
 extern int	_playing;
 

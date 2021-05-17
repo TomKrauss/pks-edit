@@ -15,15 +15,12 @@
 #include <windows.h>
 
 #include "trace.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "edierror.h"
 
 #include "winfo.h"
 #include "winterf.h"
-
-#pragma hdrstop
-
-extern char *writeattrline();
+#include "errordialogs.h"
 
 static DWORD _ROPcodes[] = {
 	BLACKNESS,          /* D = 0 */

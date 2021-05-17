@@ -1,7 +1,8 @@
 [files]
-"D:\source\pksedit\pks_sys\PKSEDIT.INI", line 1: 0x2 0x3 -1 -1 -8 -31 185 30 1777 698
+"D:\source\pksedit\Compare.c", line 17: 0x0 0x1 -1 -1 -1 -1 0 0 1592 668
 [find]
 [replace]
 [open]
 [pathes]
-!D:\source\pksedit\pks_sys\*.*
+!D:\source\pksedit\*.*
+!D:\source\pksedit\pks_sys\*.LIN

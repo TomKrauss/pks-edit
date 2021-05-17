@@ -542,7 +542,7 @@ int crypt_init(int mode, char *akey)
 	desdone();
 
 	akey[DES_BLOCKS] = 0;
-	blfill(key,DES_BLOCKS,0);
+	memset(key,DES_BLOCKS,0);
 	strcpy(key,akey);
 
 	/* Set up key, determine parity bit */

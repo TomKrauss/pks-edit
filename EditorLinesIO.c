@@ -15,7 +15,6 @@
 #define	MAXLSIZE	MAXLINELEN
 
 extern int 	_broken,_flushing;
-extern LINEAL	*_rlp;
 
 /*---------------------------------*/
 /* createl()					*/
@@ -53,18 +52,18 @@ int createl(FTABLE *fp, char *q, int len, int flags)
 /*---------------------------------*/
 /* readnoterm()				*/
 /*---------------------------------*/
-unsigned char *readnoterm(FTABLE *fp, unsigned char *p, unsigned char *pend)
-{	int  nl,width;
+unsigned char *readnoterm(FTABLE *fp, LINEAL *lp, unsigned char *p, unsigned char *pend)
+{	int  nl;
 	long size;
+	int rightMargin = lp->rmargin;
 
-	nl    = 0;
-	width = _rlp->rmargin;
-	if (width <= 0)
-		width = 1;
+	nl = 0;
+	if (rightMargin <= 0)
+		rightMargin = 1;
 	while(p < pend) {
 		size = pend-p;
-		if (size >= width) {
-			size = width;
+		if (size >= rightMargin) {
+			size = rightMargin;
 		} else if (!_flushing) {
 			break;
 		}
@@ -140,12 +139,12 @@ createline:
 /*---------------------------------*/
 /* readlines()					*/
 /*---------------------------------*/
-unsigned char *readlines(FTABLE *fp, unsigned char *p, unsigned char *pend)
+unsigned char *readlines(FTABLE *fp, LINEAL *linp, unsigned char *p, unsigned char *pend)
 {
 	unsigned char 		t1;
 
-	t1 = _rlp->nl;
+	t1 = linp->nl;
 	*pend = t1;
-	return BufAsLinelist(fp, p, pend, t1, _rlp->nl2, _rlp->cr);
+	return BufAsLinelist(fp, p, pend, t1, linp->nl2, linp->cr);
 }
 

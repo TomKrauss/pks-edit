@@ -18,13 +18,13 @@
 #include "winterf.h"
 #include "lineoperations.h"
 #include "pksedit.h"
+#include "errordialogs.h"
 
 extern void				nomemory(void);
 extern PASTE *			bl_addrbyid(int id,int insert);
 extern long 			ln_needbytes(LINE *lp, int nl, int cr);
 extern unsigned char *	BufAsLinelist(FTABLE *fp, unsigned char *p, 
 								unsigned char *pend, int t1, int t2, int cr);
-extern LINEAL *_rlp;
 extern void				bl_free(PASTE *buf);
 
 /*------------------------------------------------------------
@@ -150,7 +150,6 @@ EXPORT int clp_getdata(void)
 	    (lpClip = GlobalLock(hClip)) != 0) {
 
 		blfill(&ft,sizeof ft,0);
-		_rlp = CreateDefaultDocumentTypeDescriptor();
 		size = GlobalSize(hClip);
 		if ((lpTemp = _alloc(size+10)) != 0) {
 			memmove(lpTemp, lpClip, (int)size);
@@ -169,7 +168,6 @@ EXPORT int clp_getdata(void)
             _free(lpTemp);
 		}
 		GlobalUnlock(hClip);
-		free(_rlp);
 	}
 	CloseClipboard();
 	if (ret) {

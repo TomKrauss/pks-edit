@@ -47,17 +47,27 @@ typedef DIALPARS *LPDIALPARS;
  * for that particular page, if the page is activated. The callback is passed the index of the
  * property page activated.
  */
-extern void SetXDialogParams(DIALPARS* (*func)(int pageIndex), boolean propertySheetFlag);
+extern void			SetXDialogParams(DIALPARS* (*func)(int pageIndex), boolean propertySheetFlag);
 
-BOOL			DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams);
-int  			DoDialog(int nId, FARPROC DlgWndProc, DIALPARS *dp);
-void 			DlgInitString(HWND hwnd, int item, LPSTR szString, int nMax);
-BOOL CALLBACK	DlgStdProc(HWND,UINT,WPARAM,LPARAM);
+extern BOOL			DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams);
+extern int  		DoDialog(int nId, FARPROC DlgWndProc, DIALPARS *dp);
+extern void 		DlgInitString(HWND hwnd, int item, LPSTR szString, int nMax);
+extern BOOL CALLBACK DlgStdProc(HWND,UINT,WPARAM,LPARAM);
 # if defined(_EDFUNCS_H)
-int 				CallDialog(int nId, PARAMS *pp, DIALPARS *dp);
+extern int 			CallDialog(int nId, PARAMS *pp, DIALPARS *dp);
 # endif
-void 			DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax);
-DLGSTRINGLIST *	DoDlgSelectFromList(int nId, DLGSTRINGLIST *list, DIALLIST *dp);
+extern void 		DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax);
+extern DLGSTRINGLIST*	DoDlgSelectFromList(int nId, DLGSTRINGLIST *list, DIALLIST *dp);
+/*--------------------------------------------------------------------------
+ * LbGetText()
+ */
+extern int LbGetText(HWND hwnd, WORD id, char* szBuff);
+
+/*--------------------------------------------------------------------------
+ * CreateModelessDialog()
+ */
+extern void CreateModelessDialog(HWND* hwnd, LPSTR szName, BOOL(FAR PASCAL* func)(),
+	DLGPROC* lplpfnDlgProc);
 
 #define tedinit(hDlg,item,string)	DlgInitString(hDlg,item,string,sizeof string -1)
 

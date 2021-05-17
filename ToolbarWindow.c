@@ -48,14 +48,16 @@ void tb_init(HWND hwndDaddy)
 {
 	TBADDBITMAP	tbabmp;
 	TBBUTTON	tbb[20];
-	int			iIndex;
+	LRESULT		iIndex;
 	int			nButton;
 
 	if (hwndToolbar) {
 		return;
 	}
 
-	InitCommonControls();
+    memset(tbb, 0, sizeof tbb);
+    memset(&tbabmp, 0, sizeof tbabmp);
+    InitCommonControls();
     hwndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, (LPSTR) NULL, 
 		WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | CCS_ADJUSTABLE,
         0, 0, 0, 0, hwndDaddy, (HMENU) IDM_TOOLBAR, hInst, NULL);
@@ -70,7 +72,7 @@ void tb_init(HWND hwndDaddy)
 	iIndex = SendMessage(hwndToolbar, TB_ADDBITMAP, 15, (LPARAM)&tbabmp);
 
 	nButton = 0;
-    tbb[nButton].iBitmap = iIndex + STD_FILEOPEN;
+    tbb[nButton].iBitmap = (int)(iIndex + STD_FILEOPEN);
     tbb[nButton].idCommand = MOPENF;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -78,7 +80,7 @@ void tb_init(HWND hwndDaddy)
     tbb[nButton].iString = 0;
 
 	nButton++;
-    tbb[nButton].iBitmap = iIndex + STD_FILESAVE;
+    tbb[nButton].iBitmap = (int)(iIndex + STD_FILESAVE);
     tbb[nButton].idCommand = MSAVERES;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -94,7 +96,7 @@ void tb_init(HWND hwndDaddy)
     tbb[nButton].iString = 0;
 
 	nButton++;
-    tbb[nButton].iBitmap = iIndex + STD_CUT;
+    tbb[nButton].iBitmap = (int)(iIndex + STD_CUT);
     tbb[nButton].idCommand = MTDEL;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -102,7 +104,7 @@ void tb_init(HWND hwndDaddy)
     tbb[nButton].iString = 0;
 
 	nButton++;
-    tbb[nButton].iBitmap = iIndex + STD_COPY;
+    tbb[nButton].iBitmap = (int)(iIndex + STD_COPY);
     tbb[nButton].idCommand = MTCUT;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -110,7 +112,7 @@ void tb_init(HWND hwndDaddy)
     tbb[nButton].iString = 0;
 
 	nButton++;
-    tbb[nButton].iBitmap = iIndex + STD_PASTE;
+    tbb[nButton].iBitmap = (int)(iIndex + STD_PASTE);
     tbb[nButton].idCommand = MTPASTE;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -126,7 +128,7 @@ void tb_init(HWND hwndDaddy)
     tbb[nButton].iString = 0;
 
 	nButton++;
-    tbb[nButton].iBitmap = iIndex + STD_FIND;
+    tbb[nButton].iBitmap = (int)(iIndex + STD_FIND);
     tbb[nButton].idCommand = MFIND;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -134,7 +136,7 @@ void tb_init(HWND hwndDaddy)
     tbb[nButton].iString = 0;
 
 	nButton++;
-    tbb[nButton].iBitmap = iIndex + STD_REPLACE;
+    tbb[nButton].iBitmap = (int)(iIndex + STD_REPLACE);
     tbb[nButton].idCommand = MREPLACE;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -150,7 +152,7 @@ void tb_init(HWND hwndDaddy)
     tbb[nButton].iString = 0;
 
 	nButton++;
-    tbb[nButton].iBitmap = iIndex + STD_UNDO;
+    tbb[nButton].iBitmap = (int)(iIndex + STD_UNDO);
     tbb[nButton].idCommand = IDM_UNDO;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -158,7 +160,7 @@ void tb_init(HWND hwndDaddy)
     tbb[nButton].iString = 0;
 
 	nButton++;
-    tbb[nButton].iBitmap = iIndex + STD_REDOW;
+    tbb[nButton].iBitmap = (int)(iIndex + STD_REDOW);
     tbb[nButton].idCommand = IDM_DOAGAIN;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -174,7 +176,7 @@ void tb_init(HWND hwndDaddy)
     tbb[nButton].iString = 0;
 
 	nButton++;
-    tbb[nButton].iBitmap = iIndex + STD_PRINT;
+    tbb[nButton].iBitmap = (int)(iIndex + STD_PRINT);
     tbb[nButton].idCommand = IDM_PRINTTEXT;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -182,7 +184,7 @@ void tb_init(HWND hwndDaddy)
     tbb[nButton].iString = 0;
 
 	nButton++;
-    tbb[nButton].iBitmap = iIndex + STD_HELP;
+    tbb[nButton].iBitmap = (int)(iIndex + STD_HELP);
     tbb[nButton].idCommand = IDM_HLPINDEX;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;

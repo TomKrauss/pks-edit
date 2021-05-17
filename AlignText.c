@@ -13,7 +13,7 @@
  */
 
 #include <string.h>
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "regexp.h"
 #include "edierror.h"
 #include "pksedit.h"
@@ -28,7 +28,8 @@ extern char 	_expbuf[];
 /*---------------------------------*/
 EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 {	int  col,firstcol,aligncol = -1,
-		i,firsti,besti,bestcol,nchars,ret;
+		firsti,besti,bestcol,nchars,ret;
+	long i;
 	FTABLE *fp;
 	LINE *lp;
 	MARK *mps,*mpe;

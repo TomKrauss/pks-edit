@@ -32,6 +32,10 @@ extern char		_expbuf[];
 extern int 		prnfl(FTABLE *fp, char *fn, long line, char *remark);
 extern char 	*AbbrevName(char *fn);
 extern void 	ShowMessage(WORD nId, ...);
+/*---------------------------------*/
+/* readfrags()					*/
+/*---------------------------------*/
+extern int readfrags(int fd, unsigned char* (*f)(FTABLE*, LINEAL*, unsigned char*, unsigned char*), void* par);
 
 /*--------------------------------------------------------------------------
  * present()
@@ -49,7 +53,7 @@ static void present(char *fn)
  * scanlines()
  * 
  */
-static unsigned char *scanlines(char *fn, unsigned char *p, unsigned char *qend)
+static unsigned char *scanlines(char *fn, LINEAL* linp, unsigned char *p, unsigned char *qend)
 {
 	register char	*	q;
 	register char 		nl = '\n';

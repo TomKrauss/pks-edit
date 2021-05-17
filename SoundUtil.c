@@ -59,10 +59,10 @@ static void ReadChimeParams()
 							string,sizeof string) == 0)
 			break;
 		np = &_v.v_notes[i];
-		np->n_note = Atol(string);
-		np->n_duration = Atol(_strtolend);
-		np->n_mode = Atol(_strtolend);
-		np->n_volume = Atol(_strtolend);
+		np->n_note = (unsigned char) Atol(string);
+		np->n_duration = (unsigned char) Atol(_strtolend);
+		np->n_mode = (unsigned char) Atol(_strtolend);
+		np->n_volume = (unsigned char) Atol(_strtolend);
 	}
 	if (i) {
 		_v.v_nnotes = i;

@@ -14,7 +14,7 @@
 
 #include <string.h>
 #include "edctype.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "pksedit.h"
 #include "edfuncs.h"
 #include "edierror.h"

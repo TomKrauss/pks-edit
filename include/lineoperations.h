@@ -234,30 +234,53 @@ int 	chkblk(FTABLE *fp);
 
 /*-------- line ops ----------*/
 
-LINE *ln_hide(FTABLE *fp, LINE *lp1, LINE *lp2);
-LINE *ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold);
-LINE *ln_modify(FTABLE *fp,LINE *lp,int col1,int col2);
-LINE *ln_create(int size);
-long ln_find(FTABLE *fp,LINE *lp);
-void ln_insert(FTABLE *fp,LINE *pos,LINE *lp);
-int ln_delete(FTABLE *fp,LINE *lp);
-void lndel_lines(FTABLE *fp);
-LINE *ln_cut(LINE *lp,int physize,int start,int end);
-LINE *ln_break(FTABLE *fp, LINE *linep, int col);
-LINE *ln_split(FTABLE *fp, LINE *lc, int pos2, int pos1);
-LINE *ln_join(FTABLE *fp,LINE *ln1,LINE *ln2,int flg);
-int lnjoin_lines(FTABLE *fp);
-LINE *ln_goto(FTABLE *fp,long l);
-LINE *ln_relative(LINE *cl, long l);
-LINE *ln_crelgo(FTABLE *fp, long l, long *o);
-LINE *ln_relgo(FTABLE *fp,long l);
-LINE *ln_gotouserel(FTABLE *fp,long ln);
-long ln_cnt(LINE *lps,LINE *lpe);
-LINE *ln_findbit(LINE *lp,int bit);
-void ln_replace(FTABLE *fp,LINE *oln,LINE *nl);
-void ln_m(LINE *lpstart,LINE *lpend,int flg);
-void ln_um(LINE *lpstart,LINE *lpend,int flg);
-long ln_needbytes(LINE *lp, int nl, int cr);
+extern LINE *ln_hide(FTABLE *fp, LINE *lp1, LINE *lp2);
+extern LINE *ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold);
+extern LINE *ln_modify(FTABLE *fp,LINE *lp,int col1,int col2);
+extern LINE *ln_create(int size);
+extern long ln_find(FTABLE *fp,LINE *lp);
+extern void ln_insert(FTABLE *fp,LINE *pos,LINE *lp);
+extern int ln_delete(FTABLE *fp,LINE *lp);
+extern LINE *ln_cut(LINE *lp,int physize,int start,int end);
+extern LINE *ln_break(FTABLE *fp, LINE *linep, int col);
+extern LINE *ln_split(FTABLE *fp, LINE *lc, int pos2, int pos1);
+extern LINE *ln_join(FTABLE *fp,LINE *ln1,LINE *ln2,int flg);
+extern int lnjoin_lines(FTABLE *fp);
+extern LINE *ln_goto(FTABLE *fp,long l);
+extern LINE *ln_relative(LINE *cl, long l);
+extern LINE *ln_crelgo(FTABLE *fp, long l, long *o);
+extern LINE *ln_relgo(FTABLE *fp,long l);
+extern LINE *ln_gotouserel(FTABLE *fp,long ln);
+extern long ln_cnt(LINE *lps,LINE *lpe);
+extern LINE *ln_findbit(LINE *lp,int bit);
+extern void ln_replace(FTABLE *fp,LINE *oln,LINE *nl);
+extern void ln_m(LINE *lpstart,LINE *lpend,int flg);
+extern void ln_um(LINE *lpstart,LINE *lpend,int flg);
+extern long ln_needbytes(LINE *lp, int nl, int cr);
+extern char* ft_visiblename(FTABLE* fp);
+
+/*--------------------------------------------------------------------------
+ * ln_destroy()
+ */
+extern void ln_destroy(LINE* lp);
+
+/*------------------------------------------------------------
+ * ln_needbytes()
+ * Calculates the number of bytes needed for one line.
+ */
+extern long ln_needbytes(LINE* lp, int nl, int cr);
+
+/*--------------------------------------------------------------------------
+ * ln_unhide()
+ */
+extern int ln_unhide(FTABLE* fp, LINE* lpind);
+
+/*------------------------------*
+ * lnlistfree()	
+ * Free a line list.
+ *------------------------------*/
+extern void lnlistfree(LINE* lp);
+
 /*--------------------------------------------------------------------------
  * SelectRange()
  *

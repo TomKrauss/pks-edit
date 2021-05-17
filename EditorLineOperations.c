@@ -856,7 +856,8 @@ void ln_destroy(LINE *lp)
 }
 
 /*------------------------------------------------------------
- * ln_um()
+ * ln_needbytes()
+ * Calculates the number of bytes needed for one line.
  */
 EXPORT long ln_needbytes(LINE *lp, int nl, int cr)
 { 	

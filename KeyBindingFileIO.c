@@ -16,7 +16,7 @@
 #include <windows.h>
 #include <string.h>
 #include "pksedit.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "edierror.h"
 #include "edfuncs.h"
 #include "edifsel.h"
@@ -175,7 +175,7 @@ char *getquotes(char *d,char *s,int maxlen)
 		}
 		*d++ = *s++;
 	}
-	_qulen = d-start;
+	_qulen = (int)(d-start);
 	return s;
 }
 
@@ -452,6 +452,7 @@ int EdDocMacrosEdit(void)
 	if (CreateTempFileForDocumentType(searchfile(_currfile->lin->liname), keyfile)) {
 		return tagopen(keyfile, -1L, (void*)0);
 	}
+	return 0;
 }
 
 #if defined(MACROS20)

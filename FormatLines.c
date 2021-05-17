@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "edierror.h"
 
 #include "pksedit.h"

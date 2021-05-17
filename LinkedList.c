@@ -40,7 +40,7 @@ void ll_kill(void **pointerLinkedList,int (*destroy)(void *elem)) {
 int ll_delete(void **pointerLinkedList, void *element) {
 	LINKED_LIST *lp,*lpprev,**head;
 
-	head = pointerLinkedList;
+	head = (LINKED_LIST**) pointerLinkedList;
 	for (lp = *head, lpprev = 0; lp != 0; lpprev = lp, lp = lp->next) {
 		if (lp == element) {
 			if (lpprev) {
@@ -62,7 +62,7 @@ int ll_delete(void **pointerLinkedList, void *element) {
 int ll_top(void **pointerLinkedList, void *elem)
 {	LINKED_LIST *lp,*lpprev, **head;
 
-	head = pointerLinkedList;
+	head = (LINKED_LIST**) pointerLinkedList;
 	for (lp = *head, lpprev = 0; lp != 0; lpprev = lp, lp = lp->next) {
 		if (lp == elem) {
 			if (lpprev == 0) 

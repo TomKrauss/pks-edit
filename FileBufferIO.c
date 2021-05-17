@@ -17,24 +17,22 @@
 #include "lineoperations.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
+#include "stringutil.h"
 
 #include "pksedit.h"
 
 #include "edexec.h"
 #include "encryption.h"
+#include "errordialogs.h"
 
 /* #define DEMO 1 /* D E M O V E R S I O N */
 
 /*----- EXTERNALS -----------*/
 
 extern void alert(LPSTR fmt, ...);
-extern LINE *ln_create();
-extern char *getfn();
 extern unsigned char* stralloc(unsigned char* buf);
 extern char *extname(char *s);
 extern char *TmpName(char *dst, char c);
-extern void ll_kill(void **head,int (*destroy)(void *elem));
-extern void *ll_insert(void **head,long size);
 extern int  CryptDialog(LPSTR password, int twice);
 extern EDTIME EdGetFileTime(char *fname);
 extern int EdMakeReadable(char *fn);
@@ -44,11 +42,11 @@ extern long _flushsize;
 /*----- LOCALS --------------*/
 
 static char _eof[] = "- eof -\n";
-static int  _talking = 1;
+static int  _verbose = 1;
+static int 	_scratchlen = 0;
+static char _crypting;
 
 char * 	_linebuf;
-int 	 	_scratchlen = 0;
-LINEAL 	*_rlp;
 
 /*------------------------------*/
 /* InitBuffers()			  */
@@ -173,8 +171,8 @@ EXPORT int closeF(int *fd)
 	*fd = -1;
 	return ret;
 }
-extern unsigned char *readlines(FTABLE *,  unsigned char *, unsigned char *);
-extern unsigned char *readnoterm(FTABLE *, unsigned char *, unsigned char *);
+extern unsigned char *readlines(FTABLE *, LINEAL*, unsigned char *, unsigned char *);
+extern unsigned char *readnoterm(FTABLE *, LINEAL *, unsigned char *, unsigned char *);
 
 /*--------------------------------------------------------------------------
  * NoDiskSpace()
@@ -203,8 +201,7 @@ void OpenError(char *fname)
 /*---------------------------------*/
 /* readfrags()					*/
 /*---------------------------------*/
-static char _crypting;
-EXPORT int readfrags(int fd, unsigned char * (*f)(FTABLE *, unsigned char *, unsigned char *), void *par)
+EXPORT int readfrags(int fd, unsigned char * (*f)(FTABLE *, LINEAL*, unsigned char *, unsigned char *), void *par)
 {
 	int 	cflg,got,len,ofs;
 	long	fragsize;
@@ -234,15 +231,15 @@ EXPORT int readfrags(int fd, unsigned char * (*f)(FTABLE *, unsigned char *, uns
 		ofs  = fragsize;
 		pend = &fragstart[got];
 
-		if ((q = (*f)(par,&fragstart[-len],pend)) == 0)
+		if ((q = (*f)(par,GetDefaultDocumentTypeDescriptor(),&fragstart[-len],pend)) == 0)
 			return 0;
-		if ((len = pend-q) != 0) {
+		if ((len = (int)(pend-q)) != 0) {
 			if (len < 128) {
 				fragstart = _linebuf+128;
-				fragsize	 = 2*FBUFSIZE;
+				fragsize = 2*FBUFSIZE;
 			} else {
 				fragstart = _linebuf+FBUFSIZE;
-				fragsize	 = FBUFSIZE;
+				fragsize = FBUFSIZE;
 			}
 			memmove(&fragstart[-len],q,len);
 		}
@@ -285,21 +282,20 @@ EXPORT int readfile(FTABLE *fp, LINEAL *linp)
 	int				fd;
 	register	char *	buf;
 	char				pw[32];
-	unsigned char *(*f)(FTABLE *par, unsigned char *p, unsigned char *pend);
+	unsigned char *(*f)(FTABLE *par, LINEAL *linp, unsigned char *p, unsigned char *pend);
 
 	fd = -1;
 	_broken = 0;
 	_flushing = 0;
 	fp->currl = fp->firstl;
 	buf = _scratchstart;
-	if (_talking)
+	if (_verbose)
 		MouseBusy();
 
 	f = readlines;
 	if (linp == 0) {
 		linp = GetDefaultDocumentTypeDescriptor();
 	}
-	_rlp = linp;
 
 	if ((nl = linp->nl) < 0)
 		f = readnoterm;
@@ -334,7 +330,7 @@ nullfile:
 			buf = _scratchstart;
 			if (nl >= 0)
 				*buf++ = nl;
-			if ((*f)(fp,&_scratchstart[-_scratchlen],buf) == 0) {
+			if ((*f)(fp,linp, &_scratchstart[-_scratchlen],buf) == 0) {
 ret0:			ret = 0;
 				goto readerr;
 			}
@@ -345,7 +341,7 @@ ret0:			ret = 0;
 	if (!createl(fp,_eof,sizeof _eof -2,LNNOTERM))
 		goto ret0;
 
-	if (_broken && _talking) {
+	if (_broken && _verbose) {
 		ed_error(IDS_MSGWRAPPEDLINES);
 		fp->flags |= F_CHANGEMARK;
 	}
@@ -360,7 +356,7 @@ readerr:
 	}
 
 	fp->lockFd = fd;
-	if (_talking) {
+	if (_verbose) {
 		changemouseform();
 	}
 	return ret;
@@ -416,6 +412,13 @@ static int FlushBufferAndCrypt(int fd, int size, int rest, int cont, char *pw)
 	return flush(fd,size,rest);
 }
 
+/*--------------------------------------------------------------------------
+ * getfn()
+ */
+static char* getfn(FTABLE* fp) {
+	return basename(ft_visiblename(fp));
+}
+
 
 /*--------------------------------------*/
 /* writefile() 					*/
@@ -450,8 +453,9 @@ EXPORT int writefile(int quiet, FTABLE *fp)
 	init_pw(linp,pw,1);
 
 	if (!quiet) {
+		char* printedFilename = getfn(fp);
 		ShowMessage((fp->flags & F_NEWFILE) ? IDS_MSGNEWFILE : IDS_MSGSAVEFILE,
-				  getfn(fp),fp->nlines);
+				  printedFilename, fp->nlines);
 		MouseBusy();
 	}
 	if (linp->bak[0] &&
@@ -599,9 +603,9 @@ EXPORT int Readfile(FTABLE *fp,char *fn,int linflag)
 	if (linflag >= 0 && !AssignDocumentTypeDescriptor(fp,(LINEAL*)0))
 		return 0;
 
-	_talking = 0;
+	_verbose = 0;
 	ret = readfile(fp, fp->lin);
-	_talking = 1;
+	_verbose = 1;
 	closeF(&fp->lockFd);
 
 	return ret;

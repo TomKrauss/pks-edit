@@ -23,10 +23,9 @@
 #include "sym.h"
 #include "pkscc.h"
 
-extern long 	param_pop(unsigned char **sp);
+extern intptr_t	param_pop(unsigned char **sp);
 extern long 	do_macfunc(unsigned char **sp,unsigned char *spend);
 extern void 	Alert(char *s, ...);
-extern int 	MakeInternalSym(char *name, char ed_typ, long value);
 
 /*--------------------------------------------------------------------------
  * IsStringType()

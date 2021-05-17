@@ -18,6 +18,7 @@
 #if !defined(WIN32)
 #include <toolhelp.h>
 #endif
+#include "edexec.h"
 #include "pksedit.h"
 #include "edierror.h"
 #include "lineoperations.h"

@@ -15,7 +15,7 @@
  */
 
 #include <windows.h>
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "trace.h"
 #include "winfo.h"
 #include "edierror.h"

@@ -122,7 +122,7 @@ void Panic(LPSTR s)
  */
 #define	NSEC		5		/* stay open maximum 10 seconds */
 static HWND hwndError;
-static UINT idTimer;
+static UINT_PTR idTimer;
 BOOL CALLBACK DlgError(HWND hDlg,UINT message,WPARAM wParam, LPARAM lParam)
 { 	
 	WINDOWPLACEMENT 	ws;

@@ -21,6 +21,7 @@
 
 #include "winfo.h"
 #include "winterf.h"
+#include "caretmovement.h"
 
 #pragma hdrstop
 
