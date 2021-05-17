@@ -16,6 +16,7 @@
 #include "trace.h"
 #include "lineoperations.h"
 #include "edierror.h"
+#include "editorconfiguration.h"
 
 #include "winterf.h"
 #include "winfo.h"
@@ -41,7 +42,7 @@ extern char *	AbbrevName(char *fn);
 extern BOOL CALLBACK DlgMacEditProc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam);
 extern void 	ic_lboxfill(HWND hwnd, int nItem, long selValue);
 extern void 	ic_lboxmeasureitem(MEASUREITEMSTRUCT *mp);
-extern void		ic_lboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl);
+extern void		ic_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl);
 extern void		ic_lboxselchange(HWND hDlg, WORD nItem, LONG lParam, void* p);
 extern int 		LbGetText(HWND hwnd, WORD id, char *szBuff);
 extern FTABLE *	ww_stackwi(int num);
@@ -230,7 +231,7 @@ int EdBlockHide(void)
  */
 int EdSetup(void)
 { 
-	return prof_save(1);
+	return prof_save(GetConfiguration(), TRUE);
 }
 
 /*--------------------------------------------------------------------------
@@ -759,7 +760,7 @@ void winlist_lboxfill(HWND hwnd, int nItem, long selValue)
 /*------------------------------------------------------------
  * winlist_lboxdraw()
  */
-static void winlist_lboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
+static void winlist_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 {
 	LPSTR	pszName;
 	FTABLE *	fp;
@@ -930,7 +931,7 @@ void DocTypelboxmeasureitem(MEASUREITEMSTRUCT* mp)
 /*------------------------------------------------------------
  * DocTypelboxdraw()
  */
-void DocTypelboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
+void DocTypelboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 {
 	char	*	pszId;
 	char *	pszDescription;
@@ -940,7 +941,7 @@ void DocTypelboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
 	int		nY;
 	int		spacing = 3;
 
-	if (!GetDocumentTypeDescription((void *)par, 
+	if (!GetDocumentTypeDescription(par, 
 		&pszId, &pszDescription, (char **)0, (char **)0, (int **)0)) {
 		return;
 	}
@@ -1099,58 +1100,18 @@ int EdRangeShift(int dir)
 /*--------------------------------------------------------------------------
  * color_lboxfill()
  */
-static HPALETTE	_hPal;
 static void color_lboxfill(HWND hwnd, int nItem, long selValue)
 {
 	PLOGPALETTE 	pLogPal;
 	COLORREF		cColor;
 	HDC			hdc;
 	int			i;
-	int			nPaletteSize;
+	int			nPaletteSize = 32;
 	int			nSelIndex;
 	int			iRasterCaps;
 
 	hdc = GetDC(hwnd);
 	iRasterCaps = GetDeviceCaps(hdc, RASTERCAPS);
-	if (iRasterCaps & RC_PALETTE) {
-		nPaletteSize = GetDeviceCaps(hdc, SIZEPALETTE);
-	} else {
-		nPaletteSize = GetDeviceCaps(hdc, NUMCOLORS);
-	}
-
-	if (!_hPal) {
-		if (nPaletteSize < 0 || nPaletteSize > 256) {
-			pLogPal = 0;
-		} else {	
-	     	pLogPal = (PLOGPALETTE) _alloc(
-					sizeof(LOGPALETTE) + nPaletteSize * sizeof(PALETTEENTRY));
-		}
-		if (!pLogPal) {
-			ReleaseDC(hwnd, hdc);
-			return;
-		}
-	
-	/* bloody mysterious */
-		pLogPal->palVersion = 0x300;
-		pLogPal->palNumEntries = nPaletteSize;
-		for (i=0; i < nPaletteSize; i++) {
-			pLogPal->palPalEntry[i].peRed = (BYTE)i;
-			pLogPal->palPalEntry[i].peGreen = 0;
-			pLogPal->palPalEntry[i].peBlue = 0;
-			pLogPal->palPalEntry[i].peFlags = PC_EXPLICIT;
-		}
-		_hPal = CreatePalette(pLogPal);
-		_free(pLogPal);
-	     if (!_hPal) {
-			ReleaseDC(hwnd, hdc);	
-	     	alert("CreatePalette() failed");
-	          return;
-		}
-	}
-
-	SelectPalette(hdc, _hPal, 1);
-	RealizePalette(hdc);
-
 	SendDlgItemMessage(hwnd, nItem, CB_RESETCONTENT,0,0L);
 	for (i = 0, nSelIndex = 0; i < nPaletteSize; i++) {
 		cColor = GetNearestColor (hdc, PALETTEINDEX (i));
@@ -1167,15 +1128,13 @@ static void color_lboxfill(HWND hwnd, int nItem, long selValue)
 /*------------------------------------------------------------
  * color_drawitem()
  */
-static void color_drawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
+static void color_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 {
 	HPEN		hPen;
 	HPEN		hOldPen;
 	HBRUSH	hBrush;
 	HBRUSH	hOldBrush;
 
-	SelectPalette(hdc, _hPal, 1);
-	RealizePalette(hdc);
 	hPen = GetStockObject(BLACK_PEN);
 	hOldPen = SelectObject(hdc, hPen);
 
@@ -1203,8 +1162,6 @@ static int color_getitem(HWND hwnd, WORD id, char *szBuff)
 	}
 
 	hDC = GetDC(hwnd);
-	SelectPalette(hDC, _hPal, 1);
-	RealizePalette(hDC);
 	*(long *)szBuff = (long) GetNearestColor (hDC, PALETTEINDEX (item));
 	ReleaseDC(hwnd, hDC);	
 	return 1;
@@ -1655,7 +1612,7 @@ int mac_getname(KEYCODE *scan,char *name,int oldidx)
 	do {
 		if (DoDialog(DLGMACNAME,(FARPROC)DlgStdProc,_d) == IDCANCEL)
 			return 0;
-	} while (!mac_validname(name,oldidx));
+	} while (!mac_isvalidname(name,oldidx));
 	return 1;
 }
 
@@ -1924,11 +1881,11 @@ int EdIsDefined(long what)
 	}
 
 	if (what == QUERY_OPTIONS) {
-		return _options;
+		return GetConfiguration()->options;
 	}
 
 	if (what == QUERY_LAYOUTOPTIONS) {
-		return _layoutoptions;
+		return GetConfiguration()->layoutoptions;
 	}
 
 	if (!_currfile) {

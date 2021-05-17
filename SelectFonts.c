@@ -80,7 +80,7 @@ void EdSetTextEffects(int italic, int underline, int bold)
 HFONT EdCreateFont(EDFONT *pFont)
 {	HFONT hFont;
 
-	_lf.lfHeight = pFont->point;
+	_lf.lfHeight = pFont->height;
 	_lf.lfWidth  = pFont->width;
 	_lf.lfCharSet = (pFont->bOem) ? OEM_CHARSET : pFont->charset;
 	_lf.lfWeight = (_emBolden) ? (FW_BOLD + pFont->weight) : pFont->weight;
@@ -186,7 +186,7 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 	blfill(&cf, sizeof cf, 0);
 	blfill(&lf, sizeof lf, 0);
 
-	lf.lfHeight = ep->point;
+	lf.lfHeight = ep->height;
 	lf.lfWeight = ep->weight;
 	lf.lfWidth = ep->width;
 	lf.lfItalic = ep->italic;
@@ -223,7 +223,7 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 		ep->fgcolor = (long)cf.rgbColors;
 		lstrcpy(ep->name, lf.lfFaceName);
 		ep->charset = lf.lfCharSet;
-		ep->point = (short)lf.lfHeight;
+		ep->height= (short)lf.lfHeight;
 		ep->width = (short)lf.lfWidth;
 		ep->strikeout = 0;
 		ep->italic = lf.lfItalic;

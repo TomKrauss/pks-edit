@@ -3,15 +3,13 @@
  *
  * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
  *
- * purpose: toggle and set global and local options and variables
+ * purpose: toggle and set file editing settings
  *
  *                                               created      : 
  *                                               last modified:
  *                                               author       : TOM
  *
  * (c) Pahlen & Krauss
- *
- *                                     Author: TOM
  */
 
 #include <windows.h>
@@ -19,6 +17,7 @@
 #include "trace.h"
 #include "lineoperations.h"
 #include "edierror.h"
+#include "editorconfiguration.h"
 
 #include "winfo.h"
 #include "winterf.h"
@@ -31,12 +30,7 @@
 
 #/*---- GLOBALS ---------------*/
 
-int _options       = (UNDOENABLED|WARNINGS|E_BELL|O_CUTBUFEQCLIP|O_AUTODELBLOCK);
-int _layoutoptions = (OL_OPTIONBAR|OL_SHOWSTATUS);
-
 /* Autosave */
-int  _asminutes;
-extern char _pksEditTempPath[];
 extern int  _recording;
 extern int  _deadkey;
 
@@ -126,7 +120,7 @@ static int *OpLocalAdr(int local)
 		}
 	}
 	else {
-		return (local == -1) ? &_recording : &_options;
+		return (local == -1) ? &_recording : &(GetConfiguration()->options);
 	}
 	return (int*)0;
 }

@@ -22,8 +22,6 @@
 #include "winfo.h"
 #include "winterf.h"
 
-#pragma hdrstop
-
 #include <string.h>
 #include <stddef.h>
 
@@ -31,6 +29,7 @@
 #include "dial2.h"
 #include "printing.h"
 #include "xdialog.h"
+#include "stringutil.h"
 
 #define	PREVIEWING()		(hwndPreview != 0)
 #define	EVEN(p)			((p & 1) == 0)
@@ -74,7 +73,6 @@ static PRTPARAM _prtparams = {
 extern char 		*ft_visiblename(FTABLE *fp);
 extern char 		*AbbrevName(char *fn);
 extern FTABLE		*ww_stackwi(int num);
-extern long 		Atol(char *s);
 extern long 		ln_cnt(LINE *lps,LINE *lpe);
 
 static int 		_printing;
@@ -159,7 +157,7 @@ static HFONT prt_selectfont(HDC hdc, FONTSPEC *fsp)
 		lstrcpy(font.name, fsp->fs_name);
 	}
 	font.weight = FW_NORMAL;
-	font.point = fsp->fs_cheight;
+	font.height= fsp->fs_cheight;
 	font.width = fsp->fs_cwidth;
 	font.charset = fsp->fs_oemmode ? OEM_CHARSET : ANSI_CHARSET;
 	if ((hFont = EdCreateFont(&font)) != 0) {
@@ -699,7 +697,7 @@ again:
 	memmove(&winfo,WIPOI(fp),sizeof winfo);
 	_printwhat.wp = &winfo;
 	lstrcpy(winfo.fnt_name,pp->font.fs_name);
-	winfo.fnt.point = pp->font.fs_cheight;
+	winfo.fnt.height = pp->font.fs_cheight;
 	_previewpage = 0;
 	switch(nFunc = DlgPrint(
 			message,

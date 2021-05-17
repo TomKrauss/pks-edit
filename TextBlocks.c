@@ -18,6 +18,7 @@
 #include "lineoperations.h"
 #include "edierror.h"
 #include "errordialogs.h"
+#include "editorconfiguration.h"
 
 #include "winfo.h"
 #include "winterf.h"
@@ -244,7 +245,6 @@ EXPORT int bl_read(char *fn, PASTE *pb, int rs /* Record Seperator */)
 EXPORT int bl_write(char *fn, PASTE *pb,int mode)
 {	FTABLE rf;
 	LINE	  *lp;
-	extern LINEAL _lineal;
 	int    ret = 0;
 
 	if ((rf.firstl = lp = pb->pln) != 0) {
@@ -252,8 +252,9 @@ EXPORT int bl_write(char *fn, PASTE *pb,int mode)
 			lp  = lp->next;
 		lp->lflg = LNNOTERM;
 		rf.lastl = 0;
-		rf.lin   = &_lineal;
+		rf.lin = CreateDefaultDocumentTypeDescriptor();
 		ret = Writefile(&rf,fn,mode);
+		free(rf.lin);
 	}
 	return ret;
 }
@@ -360,7 +361,7 @@ EXPORT int bl_delete(FTABLE *fp, LINE *lnfirst, LINE *lnlast, int cfirst,
 
 	if (saveintrash) {
 		ppTrash = _undobuf;
-		bSaveOnClip = (_options & O_CUTBUFEQCLIP) ? 1 : 0;
+		bSaveOnClip = (GetConfiguration()->options & O_CUTBUFEQCLIP) ? 1 : 0;
 	} else {
 		ppTrash = &ppDummy;
 		blfill(ppTrash, sizeof *ppTrash, 0);

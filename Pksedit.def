@@ -21,7 +21,6 @@ EXPORTS
 	PrtAbortProc
 	DlgPreviewProc
 	DlgInstallPrtProc
-	FileOpenHookProc
 	ChooseFontHookProc
 	ExecWaitNotify
 

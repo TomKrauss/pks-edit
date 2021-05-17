@@ -16,6 +16,7 @@
 #include <direct.h>
 #include "lineoperations.h"
 #include "pathname.h"
+#include "editorconfiguration.h"
 
 #undef DELIVER
 
@@ -36,8 +37,6 @@ char _serial[10]      = "100000";
 char _cryptserial[32] = "?";
 char _kunde[30]       = "free version (by us a beer)";
 char _cryptkunde[80]  = "X";
-char _includePath[EDMAXPATHLEN]  = "INCLUCDE;INC";
-char _pksEditTempPath[EDMAXPATHLEN];
 
 /*---------------------------------*/
 /* checkkey()					*/
@@ -134,8 +133,8 @@ EXPORT BOOL InitEnv(void )
 	if (compiler[0]) {
 		stepselectcompiler(compiler);
 	}
-	Getenv("PKS_INCLUDE_PATH", _includePath, sizeof(_includePath));
-	Getenv("PKS_TMP", _pksEditTempPath, sizeof(_pksEditTempPath));
+	Getenv("PKS_INCLUDE_PATH", GetConfiguration()->includePath, member_size(EDITOR_CONFIGURATION, includePath));
+	Getenv("PKS_TMP", GetConfiguration()->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath));
 
 	strdcpy(_homedir,_homedir,"");
 	return TRUE;

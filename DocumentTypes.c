@@ -42,21 +42,9 @@ typedef struct tagDOCUMENT_TYPE {
 	LINEAL *			ll_lineal;
 } DOCUMENT_TYPE;
 
-LINEAL _lineal = {
-	0,		80,		8,		4,		/* lmargin, rmargin, ts, sw */
-	10,		-1,		13,				/* nl1..cr */
-	0,		WM_INSERT, 1,				/* dispmode, workingmode, fno */
-	"default.lin",
-	0,		' ',		0,				/* ctxid, tab - char, fill - char */
-	"a-z0-9_=A-Z0-9_",
-	{ 0 },							/* Bitset Tabstop */
-	"0x%6p$O: 0x%2p$C 0%h$C",			/* status - line */
-};
-
 extern void *	ll_find(void *Head, char *name);
 extern char 	*searchfile(char *fn);
 extern int 		ll_count(void *Head);
-extern long 	Atol(char *s);
 extern void 	*prof_llinsert(void *Head, int size, char *group, 
 						char *item, char **idata);
 extern void 	prof_killsections(LPSTR pszFn, LPSTR pszSection);
@@ -78,12 +66,11 @@ FSELINFO 		_linfsel = {	"", "DEFAULT.LIN", "*.LIN" };
  * TabStop()
  * calculate next Tabstop
  */
-int TabStop(int col, LINEAL *l)
-{
-	if (col < DIM(l->ts) && l->ts[col]) 
+int TabStop(int col, LINEAL* l) {
+	if (col < DIM(l->ts) && l->ts[col])
 		return l->ts[col];
 
-	while (++col < MAXLINELEN && !TABTHERE(l,col))
+	while (++col < MAXLINELEN && !TABTHERE(l, col))
 		;
 	return col;
 }
@@ -91,17 +78,18 @@ int TabStop(int col, LINEAL *l)
 /*--------------------------------------------------------------------------
  * InitTabStops()
  */
-static void InitTabStops(LINEAL *lp)
-{	int i,ts;
+static void InitTabStops(LINEAL* lp)
+{
+	int i, ts;
 
 	ts = 0;
-	i  = 0;
+	i = 0;
 	for (;;) {
-		while (!TABTHERE(lp,ts) && ts < MAXLINELEN)
+		while (!TABTHERE(lp, ts) && ts < MAXLINELEN)
 			ts++;
 		if (ts >= DIM(lp->ts))
 			return;
-		while(i < ts) {
+		while (i < ts) {
 			if (i >= DIM(lp->ts))
 				return;
 			lp->ts[i] = ts;
@@ -114,21 +102,43 @@ static void InitTabStops(LINEAL *lp)
 /*--------------------------------------------------------------------------
  * InitDocumentTypeDescriptor()
  */
-static int _linited;
-void InitDocumentTypeDescriptor(LINEAL *lp, int ts)
-{	int i,ind;
+void InitDocumentTypeDescriptor(LINEAL* lp, int ts) {
+	int i, ind;
 
-	_linited = 1;
 	lp->tabsize = ts;
-	blfill(lp->tbits,sizeof(lp->tbits),0);
+	blfill(lp->tbits, sizeof(lp->tbits), 0);
 
 	for (i = 0, ind = ts; i < MAXLINELEN; i++) {
 		if (i == ind) {
-			TABPLACE(lp,i);
+			TABPLACE(lp, i);
 			ind += ts;
 		}
 	}
 	InitTabStops(lp);
+}
+
+/*--------------------------------------------------------------------------
+ * Creates the default attributes for editing a document. The returned structure
+ * must be freed, when done using it.
+ */
+LINEAL* CreateDefaultDocumentTypeDescriptor() {
+	LINEAL* lp = _alloc(sizeof *lp);
+
+	memset(lp, 0, sizeof * lp);
+	lp->rmargin = 80;
+	lp->tabsize = 8;
+	lp->shiftwidth = 4;
+	lp->dispmode = WM_INSERT;
+	lp->cr = '\r';
+	lp->nl = '\n';
+	lp->t1 = ' ';
+	strcpy(lp->liname, "default.lin");
+	strcpy(lp->statusline, "0x%6p$O: 0x%2p$C 0%h$C");
+	lp->fnt.height = 15;
+	lp->fnt.width = 7;
+	strcpy(lp->fnt.name, "consolas");
+	InitDocumentTypeDescriptor(lp, 8);
+	return lp;
 }
 
 /*--------------------------------------------------------------------------
@@ -195,13 +205,11 @@ static LINEAL *LoadDocumentTypeDescriptor(DOCUMENT_TYPE *llp)
 	LINEAL *lp;
 
 	if ((lp = llp->ll_lineal) == 0) {
-		if ((lp = _alloc(sizeof *lp)) == 0) {
+		if ((lp = CreateDefaultDocumentTypeDescriptor()) == 0) {
 			return 0;
 		}
 		llp->ll_lineal = lp;
-		if (ReadDocumentType(llp->ll_linname,lp,llp->ll_ctx,0) == 0) {
-			memmove(lp, &_lineal, sizeof _lineal);
-		}
+		ReadDocumentType(llp->ll_linname, lp, llp->ll_ctx, 0);
 		lstrcpy(llp->ll_lineal->modename, llp->ll_name);
 	}
 	return lp;
@@ -390,7 +398,7 @@ static int ReadDocumentType(char *fname, LINEAL *lp, int id, int forced)
  * find the correct lineal for a given file
  * 	1. if own lineal, try to read  own lineal from disc
  * 	2. if common lineal, ...
- *	3. if neither, use standard lineal _lineal
+ *	3. if neither, use standard lineal
  */
 int GetFileDocumentType(LINEAL *linp, char *filename)
 {
@@ -416,13 +424,18 @@ int GetFileDocumentType(LINEAL *linp, char *filename)
 					}
 				}
 				if ((lp = LoadDocumentTypeDescriptor(llp)) == 0) {
-					goto failed;
+					break;
 				}
 			}
 		}
 	}
-failed:
-	memmove(linp,(lp) ? lp : &_lineal,sizeof _lineal);
+	if (!lp) {
+		LINEAL* defaultLin = CreateDefaultDocumentTypeDescriptor();
+		memmove(linp, defaultLin, sizeof *defaultLin);
+		free(defaultLin);
+	} else {
+		memmove(linp, lp, sizeof * lp);
+	}
 	return 1;
 }
 
@@ -434,10 +447,6 @@ failed:
  */
 int  AssignDocumentTypeDescriptor(FTABLE *fp, LINEAL *linp)
 {
-	if (!_linited) {
-		InitDocumentTypeDescriptor(&_lineal,_lineal.tabsize);
-	}
-
 	if ((fp->lin = _alloc(sizeof *fp->lin)) == 0)
 		return 0;
 
@@ -645,11 +654,12 @@ int EdLineal(int wrflag,LINEAL *lp)
 		}
 	}
 
-	if ((fn = rw_select(&_linfsel,(wrflag & 1) ? MMWRITE : MMREAD)) == 0) {
+	BOOL saveAs = wrflag & 1;
+	if ((fn = rw_select(&_linfsel,saveAs ? MMWRITE : MMREAD, saveAs)) == 0) {
 		return 0;
 	}
 
-	if (wrflag & 1) {
+	if (saveAs) {
 		if ((fd = Fopen(fn, OF_READWRITE)) < 0 && (fd = EdCreate(fn)) < 0) {
 			return 0;
 		}

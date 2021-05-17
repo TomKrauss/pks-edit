@@ -16,6 +16,7 @@
 #include "trace.h"
 #include "lineoperations.h"
 #include "edierror.h"
+#include "editorconfiguration.h"
 
 #include "pksedit.h"
 
@@ -32,8 +33,8 @@ extern char *getfn();
 extern unsigned char* stralloc(unsigned char* buf);
 extern char *extname(char *s);
 extern char *TmpName(char *dst, char c);
-extern void ll_kill(void *head,int (*destroy)(void *elem));
-extern void *ll_insert(void *head,long size);
+extern void ll_kill(void **head,int (*destroy)(void *elem));
+extern void *ll_insert(void **head,long size);
 extern int  CryptDialog(LPSTR password, int twice);
 extern EDTIME EdGetFileTime(char *fname);
 extern int EdMakeReadable(char *fn);
@@ -60,6 +61,18 @@ BOOL InitBuffers(void)
 	}
 	_scratchstart = _linebuf+FBUFSIZE;
 	return TRUE;
+}
+
+/*--------------------------------------
+ * Returns the default document type descriptor for situations,
+ * where no document type descriptor was assigned to a file.
+ */
+static LINEAL* GetDefaultDocumentTypeDescriptor() {
+	static LINEAL* _defaultDocumentTypeDescriptor;
+	if (_defaultDocumentTypeDescriptor == NULL) {
+		_defaultDocumentTypeDescriptor = CreateDefaultDocumentTypeDescriptor();
+	}
+	return _defaultDocumentTypeDescriptor;
 }
 
 /*------------------------------*/
@@ -283,8 +296,9 @@ EXPORT int readfile(FTABLE *fp, LINEAL *linp)
 		MouseBusy();
 
 	f = readlines;
-	if (linp == 0)
-		linp = &_lineal;
+	if (linp == 0) {
+		linp = GetDefaultDocumentTypeDescriptor();
+	}
 	_rlp = linp;
 
 	if ((nl = linp->nl) < 0)
@@ -341,7 +355,7 @@ ret0:			ret = 0;
 
 readerr:
 
-	if ((_options & O_LOCKFILES) == 0) {
+	if ((GetConfiguration()->options & O_LOCKFILES) == 0) {
 		closeF(&fd);
 	}
 
@@ -402,6 +416,7 @@ static int FlushBufferAndCrypt(int fd, int size, int rest, int cont, char *pw)
 	return flush(fd,size,rest);
 }
 
+
 /*--------------------------------------*/
 /* writefile() 					*/
 /*--------------------------------------*/
@@ -410,8 +425,8 @@ EXPORT int writefile(int quiet, FTABLE *fp)
 	int			no;
 	int			ret;
 	LINE *		lp;
-	char			pw[32];
-	int 			nl;
+	char		pw[32];
+	int 		nl;
 	int			cr;
 	int			fd = -1;
 	int			saveLockFd;
@@ -421,7 +436,7 @@ EXPORT int writefile(int quiet, FTABLE *fp)
 	return 0;
 #else
 	if (!linp) {
-		linp = &_lineal;
+		linp = GetDefaultDocumentTypeDescriptor();
 	}
 
 	if ((saveLockFd = fp->lockFd) > 0) {

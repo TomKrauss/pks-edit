@@ -23,6 +23,7 @@
 #include "lineoperations.h"
 #include "edtypes.h"
 #include "errordialogs.h"
+#include "stringutil.h"
 
 #pragma hdrstop
 
@@ -45,7 +46,6 @@ typedef struct tagICONCLASS {
 extern int EdConfigureIcons(void);
 extern int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
 extern unsigned char* stralloc(unsigned char* buf);
-extern long Atol(char *s);
 extern char *_strtolend;
 extern int  prof_savestring(char *grp, char *ident, char *string);
 extern void prof_adjustpoint(PPOINT pPoint);
@@ -66,14 +66,14 @@ static HWND	hwndActive;
  */
 int EdIconsQuit(LONG hwnd) 
 {
-	return CloseChildWin((HWND)hwnd,1);
+	return CloseChildWindow((HWND)hwnd,1);
 }
 
 /*------------------------------------------------------------
  * ic_lboxdraw()
  */
 #define	IC_WIDTH	32
-void ic_lboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
+void ic_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 {
 	ICONCLASS	*icp;
 	char		atomname[32];

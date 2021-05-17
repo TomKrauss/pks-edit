@@ -27,11 +27,11 @@
 
 #include "edifsel.h"
 #include "pksedit.h"
+#include "editorconfiguration.h"
 
 #define	PROF_OFFSET		1
 
-extern int  _findopt,_nundo,_asminutes;
-extern char _pksEditTempPath[256];
+extern int  _findopt;
 extern char *_strtolend;
 extern void *ll_find(void *Head, char *name);
 extern unsigned char* stralloc(unsigned char* buf);
@@ -57,7 +57,10 @@ struct llist {
 	char			name[4];
 };
 
-static char _pksEditIniFilename[256];
+/*
+ * The absolute path name of the last PKSEDIT.INI file read or written. 
+ */
+static char _pksEditIniFilename[512];
 static FSELINFO _setfselinfo = { ".", "PKSEDIT.INI", "*.INI" };
 static char *_desk = "desk";
 static char *_cxscreen = "CXScreen";
@@ -75,7 +78,7 @@ static int LocatePksEditIni(void)
 	if ((fn = rw_init(&_setfselinfo)) == 0) {
 		return 0;
 	}
-	lstrcpy(_pksEditIniFilename,fn);
+	GetFullPathName(fn, sizeof _pksEditIniFilename, _pksEditIniFilename, NULL);
 	return 1;
 }
 
@@ -239,13 +242,13 @@ int prof_getstdopt(void)
 		return 0;
 	}
 
-	_options = prof_getlong(_desk,"Options");
-	_layoutoptions = prof_getlong(_desk,"Layout");
+	GetConfiguration()->options = prof_getlong(_desk,"Options");
+	GetConfiguration()->layoutoptions = prof_getlong(_desk,"Layout");
 
 	_findopt = (int)prof_getlong(_desk,"FindOptions");
-	_asminutes = prof_getlong(_desk,"AsInterv");
-	_nundo = prof_getlong(_desk,"NUBuf");
-	GetPksProfileString(_desk,"AsPath",_pksEditTempPath,sizeof _pksEditTempPath -1);
+	GetConfiguration()->asminutes = prof_getlong(_desk,"AsInterv");
+	GetConfiguration()->nundo = prof_getlong(_desk,"NUBuf");
+	GetPksProfileString(_desk,"AsPath", GetConfiguration()->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath) -1);
 
 	return 1;
 }
@@ -266,16 +269,20 @@ void prof_killsections(LPSTR pszFn, LPSTR pszSection)
 
 /*--------------------------------------------------------------------------
  * prof_saveaspath()
+ * Save the temp path of PKS editor to the pksedit.ini file.
  */
-void prof_saveaspath(void)
+void prof_saveaspath(EDITOR_CONFIGURATION* configuration)
 {
-	prof_savestring(_desk,"AsPath",_pksEditTempPath);
+	prof_savestring(_desk,"AsPath", configuration->pksEditTempPath);
 }
 
 /*------------------------------------------------------------
  * prof_save()
+ * Save the configuration. If interactive is passed, then open
+ * a file selector to pick the pksedit.ini file to which the config
+ * is saved.
  */
-int prof_save(int interactive)
+int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 {
 	BOOL		bDidExist;
 	int  	fd;
@@ -284,10 +291,11 @@ int prof_save(int interactive)
 
 	if (!interactive) {
 		fn = _pksEditIniFilename;
+
 	} else {
 		LocatePksEditIni();
 		sfsplit(_pksEditIniFilename, _setfselinfo.path, _setfselinfo.fname);
-		if ((fn = rw_select(&_setfselinfo, MOPTION)) == 0) {
+		if ((fn = rw_select(&_setfselinfo, MOPTION, TRUE)) == 0) {
 			return 0;
 		}
 	}
@@ -307,12 +315,12 @@ int prof_save(int interactive)
 	MouseBusy();
 	lstrcpy(_pksEditIniFilename,fn);
 
-	prof_savelong(_desk,"Options",(long)_options);
-	prof_savelong(_desk,"Layout",(long)_layoutoptions);
+	prof_savelong(_desk,"Options",(long)configuration->options);
+	prof_savelong(_desk,"Layout",(long)configuration->layoutoptions);
 	prof_savelong(_desk,"FindOptions",(long)_findopt);
-	prof_savelong(_desk,"AsInterv",(long)_asminutes);
-	prof_saveaspath();
-	prof_savelong(_desk,"NUBuf",(long)_nundo);
+	prof_savelong(_desk,"AsInterv",(long)configuration->asminutes);
+	prof_saveaspath(configuration);
+	prof_savelong(_desk,"NUBuf",(long)configuration->nundo);
 	prof_savelong(_desk, _cxscreen, (long)GetSystemMetrics(SM_CXSCREEN));
 	prof_savelong(_desk, _cyscreen, (long)GetSystemMetrics(SM_CYSCREEN));
 

@@ -7,7 +7,7 @@ typedef struct fselinfo {
 	char search[256];
 } FSELINFO;
 
-extern char	*rw_select(FSELINFO *fp, int title);
+extern char	*rw_select(FSELINFO *fp, int title, BOOL showSaveDialog);
 extern char *rw_init(FSELINFO *fp);
 extern char	_fseltarget[];
 

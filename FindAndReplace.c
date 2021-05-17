@@ -148,7 +148,7 @@ static int _repinit(unsigned char *pat, int findopt)
 	if (_currfile) {
 		nlchar = _currfile->lin->nl;
 	} else {
-		nlchar = _lineal.nl;
+		nlchar = '\n';
 	}
 
 	dest = _replexbuf;

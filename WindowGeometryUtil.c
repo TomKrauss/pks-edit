@@ -20,6 +20,7 @@
 
 #include "winterf.h"
 #include "winfo.h"
+#include "editorconfiguration.h"
 
 /*--------------------------------------------------------------------------
  * GetWindowWH()
@@ -115,7 +116,7 @@ EXPORT int form_center(HWND hwnd)
  */
 EXPORT int form_move(HWND hDlg)
 {
-	if (_options & O_FORMFOLLOW)
+	if (GetConfiguration()->options & O_FORMFOLLOW)
 		return form_mouse(hDlg);
 
 	return

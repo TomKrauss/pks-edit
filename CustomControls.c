@@ -16,7 +16,6 @@
 
 #include "trace.h"
 #include "lineoperations.h"
-#include "edierror.h"
 
 #include "winterf.h"
 #include "winfo.h"
@@ -298,7 +297,7 @@ WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
 
 			SetMapMode(hdc,MM_TEXT);
 			memmove(&font, &wp->fnt, sizeof font);
-			font.point = 8;
+			font.height = 8;
 			hFont = SelectObject(hdc, EdCreateFont(&font));
 			GetTextMetrics(hdc,&tm);
 			ch = tm.tmHeight + tm.tmExternalLeading;

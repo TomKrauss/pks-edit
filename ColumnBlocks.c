@@ -22,8 +22,6 @@
 /* EXTERNALS			*/
 /*-----------------------*/
 extern FTABLE	*_currfile;
-extern LINE	*ln_modify(),*ln_create();
-extern long    ln_cnt();
 
 /*---------------------------------*/
 /* tabcpy()					*/

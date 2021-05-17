@@ -16,13 +16,11 @@
 
 #include <windows.h>
 #include "lineoperations.h"
+#include "stringutil.h"
 
 #define	CHANNEL		1
 #define	PITCH		0			/* pitch + note == height */
 #define	QUANTIZE		64
-
-extern long Atol();
-extern char *_strtolend;
 
 typedef struct tagNOTE {
 	unsigned char n_note;

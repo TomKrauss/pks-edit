@@ -21,6 +21,7 @@
 
 #include "winterf.h"
 #include "winfo.h"
+#include "editorconfiguration.h"
 
 #pragma hdrstop
 
@@ -117,10 +118,10 @@ EXPORT int fkey_wh(WORD *w, WORD *h)
 	GetClientRect(hwndFkeys,&rectClient);
 	*w = (WORD)(rectK.right - rectK.left) + 1;
 	*h = (rectK.bottom - rectK.top) - rectClient.bottom + 1;
-	if (_layoutoptions & OL_OPTIONBAR) {
+	if (GetConfiguration()->layoutoptions & OL_OPTIONBAR) {
 		*h += _fkoptheight;
 	}
-	if (_layoutoptions & OL_FKEYS) {
+	if (GetConfiguration()->layoutoptions & OL_FKEYS) {
 		*h += _fkfkheight;
 	}
 	return 1;
@@ -142,7 +143,7 @@ static int ResizeSubWindow(HWND hwnd, int item, int x, int width, BOOL bOptButto
 	GetWindowRect(hwndItem,&r);
 
 	height = (bOptButton) ? _fkoptheight : _fkfkheight;
-	y = (bOptButton && (_layoutoptions & OL_FKEYS)) ? _fkfkheight : 0;
+	y = (bOptButton && (GetConfiguration()->layoutoptions & OL_FKEYS)) ? _fkfkheight : 0;
 
 	ScreenToClient(hwnd, (POINT*)&r);
 	r.left = x;
@@ -194,7 +195,7 @@ WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		nRight = r.right;
 		nDelta = (r.right - FKSTATE_SIZE) / nButtons;
-		if (_layoutoptions & OL_FKEYS) {
+		if (GetConfiguration()->layoutoptions & OL_FKEYS) {
 			for (x = 0, item = IDD_FKFK1; 
 				item < IDD_FKFK1+nButtons; item++) {
 				x = ResizeSubWindow(hwnd, item, x, nDelta, FALSE);
@@ -207,7 +208,7 @@ WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 				(item == IDD_FKFLG1 - 1 + nButtons) ? 
 				nRight - x : nDelta, TRUE);
 		}
-		if (_layoutoptions & OL_FKEYS) {
+		if (GetConfiguration()->layoutoptions & OL_FKEYS) {
 			bShow = TRUE;
 		} else {
 			bShow = FALSE;
@@ -218,7 +219,7 @@ WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		ShowWindow(GetDlgItem(hwnd, IDD_FKSTATE), bShow);
 
-		if (_layoutoptions & OL_OPTIONBAR) {
+		if (GetConfiguration()->layoutoptions & OL_OPTIONBAR) {
 			bShow = TRUE;
 		} else {
 			bShow = FALSE;
@@ -231,13 +232,13 @@ WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_COMMAND:
 
-		if ((_layoutoptions & OL_OPTIONBAR) &&
+		if ((GetConfiguration()->layoutoptions & OL_OPTIONBAR) &&
 			wParam >= IDD_FKFLG1 && wParam <= IDD_FKFLGLAST) {
 			ww_toppostmessage(WM_PKSOPTOGGLE, wParam, lParam);
 			return 0;
 		}
 
-		if ((_layoutoptions & OL_FKEYS) && 
+		if ((GetConfiguration()->layoutoptions & OL_FKEYS) &&
 			wParam >= IDD_FKFK1 && wParam <= IDD_FKFKLAST) {
 			k = VK_F1+wParam-IDD_FKFK1;
 			k |= _fkshifts[_fkeyshiftstate];
@@ -264,7 +265,7 @@ static char *szKeys = "DLGFKEYS";
  */
 static void fkey_show(HWND hwndPapa)
 {
-	if ((_layoutoptions & (OL_FKEYS|OL_OPTIONBAR)) && hwndFkeys == 0) {
+	if ((GetConfiguration()->layoutoptions & (OL_FKEYS|OL_OPTIONBAR)) && hwndFkeys == 0) {
 		hwndFkeys = CreateDialog(hInst, szKeys, hwndPapa, NULL);
 		fkey_settext(-1);
 	}
@@ -315,7 +316,7 @@ int EdFkeysSwitch(int delta)
  */
 void fkey_visibilitychanged(void)
 {
-	if ((_layoutoptions & (OL_FKEYS|OL_OPTIONBAR)) == 0 && hwndFkeys) {
+	if ((GetConfiguration()->layoutoptions & (OL_FKEYS|OL_OPTIONBAR)) == 0 && hwndFkeys) {
 		SendMessage(hwndFkeys,WM_CLOSE,0,0L);
 	} else {
 		fkey_show(hwndFrame);

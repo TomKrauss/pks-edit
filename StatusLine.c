@@ -21,6 +21,7 @@
 #include "lineoperations.h"
 #include "winfo.h"
 #include "edierror.h"
+#include "editorconfiguration.h"
 
 #define	MAXSEGMENTS			20
 
@@ -135,7 +136,7 @@ void status_wh(WORD *width, WORD *height)
 {
 	RECT		rect;
 
-	if (hwndStatus == 0 || (_layoutoptions & OL_SHOWSTATUS) == 0) {
+	if (hwndStatus == 0 || (GetConfiguration()->layoutoptions & OL_SHOWSTATUS) == 0) {
 		*width = 0;
 		*height = 0;
 		return;

@@ -213,7 +213,7 @@
     <ClCompile Include="ManageProjectGroups.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EditSettings.c">
+    <ClCompile Include="EditorConfiguration.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EditorLinesIO.c">
@@ -405,6 +405,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\stringutil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\editorconfiguration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

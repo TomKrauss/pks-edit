@@ -22,6 +22,7 @@
 #include "edifsel.h"
 #include "uc.h"
 #include "winterf.h"
+#include "stringutil.h"
 
 #define	MAX_CONTEXT	32
 
@@ -29,7 +30,6 @@ extern	unsigned char *stralloc(unsigned char *buf);
 extern	LPSTR lstrchr(char *s, char c);
 extern	LINE *ln_modify(FTABLE *fp, LINE *lp, int o1, int o2);
 extern 	long ln_cnt(LINE *lps, LINE *lpe);
-extern 	long Atol(char *s);
 extern 	char	*TmpDir();
 extern int DialogTemplate(unsigned char c, 
 			char *(*fpTextForTmplate)(char *s), char *s);
@@ -424,7 +424,7 @@ int EdDocMacrosAdd(void)
 {
 	char	*	fn;
 
-	if (!_currfile || (fn = rw_select(&_linfsel,MADDDOCMAC)) == 0) {
+	if (!_currfile || (fn = rw_select(&_linfsel,MADDDOCMAC, TRUE)) == 0) {
 		return 0;
 	}
 

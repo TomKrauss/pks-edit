@@ -150,7 +150,7 @@ EXPORT int clp_getdata(void)
 	    (lpClip = GlobalLock(hClip)) != 0) {
 
 		blfill(&ft,sizeof ft,0);
-		_rlp = &_lineal;
+		_rlp = CreateDefaultDocumentTypeDescriptor();
 		size = GlobalSize(hClip);
 		if ((lpTemp = _alloc(size+10)) != 0) {
 			memmove(lpTemp, lpClip, (int)size);
@@ -169,6 +169,7 @@ EXPORT int clp_getdata(void)
             _free(lpTemp);
 		}
 		GlobalUnlock(hClip);
+		free(_rlp);
 	}
 	CloseClipboard();
 	if (ret) {

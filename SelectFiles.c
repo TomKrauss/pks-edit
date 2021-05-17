@@ -25,6 +25,7 @@
 
 #include "tos.h"
 #include "edhist.h"
+#include "editorconfiguration.h"
 
 #include "edfuncs.h"
 #include "pathname.h"
@@ -77,18 +78,6 @@ void ChangeDirectory(LPSTR pszPath)
 	chdir(pszPath);
 }
 
-/*---------------------------------*/
-/* cons_fname()				*/
-/* Erzeugen eines Filenamens aus	*/
-/* den Parametern des AES-Filesel. */
-/*---------------------------------*/
-void cons_fname(char *fselpath,char *fselname,char *totalname)
-{	char fn[256];
-
-	sfsplit(fselpath,totalname,fn);
-	lstrcat(totalname,fselname);
-}
-
 /*------------------------------------------------------------
  * fsel_optionsenable
  * enable options button for next file selector
@@ -133,21 +122,21 @@ static void menu_fseltitle(int title)
 }
 
 /*---------------------------------*/
-/* file_select()				*/
+/* SelectFile()				*/
 /*---------------------------------*/
-int file_select(int title, char *path, char *fnam, char *pattern)
+static int SelectFile(int title, char *baseDirectory, char *filename, char *pattern, BOOL showSavedialog)
 {
 	int	nSave;
 	int 	ret;
 	char pathname[512];
 
 	menu_fseltitle(title);
-	strdcpy(pathname,path,pattern);
+	strdcpy(pathname,baseDirectory,pattern);
 	nSave = nCurrentDialog;
 	nCurrentDialog = title;
-	ret = EdFsel(pathname,fnam,_fseltarget, title == MSAVEAS || title == MWRSEQ);
+	ret = EdFsel(pathname, filename, _fseltarget, showSavedialog);
 	nCurrentDialog = nSave;
-	sfsplit(pathname,path,pattern);
+	sfsplit(pathname,baseDirectory,pattern);
 	if (_fseltarget[0] == 0) {
 		return 0;
 	}
@@ -158,7 +147,7 @@ int file_select(int title, char *path, char *fnam, char *pattern)
 /*---------------------------------*/
 /* rw_select()					*/
 /*---------------------------------*/
-char *rw_select(FSELINFO *fp, int title)
+char *rw_select(FSELINFO *fp, int title, BOOL showSaveDialog)
 {
 	static ITEMS	_i = { C_STRING1PAR, _fseltarget };
 	static PARAMS	_p = { DIM(_i), P_MAYOPEN, _i	};
@@ -173,7 +162,7 @@ char *rw_select(FSELINFO *fp, int title)
 			lstrcpy(fp->search, "*.*");
 		}
 
-		if (!file_select(title,fp->path,fp->fname,fp->search))
+		if (!SelectFile(title,fp->path,fp->fname,fp->search, showSaveDialog))
 			return (char *)0;
 		param_record(&_p);
 	}
@@ -197,208 +186,11 @@ char *rw_init(FSELINFO *fp)
 	return fn;
 }
 
-/*------------------------------------------------------------
- * sh_rename()
- */
-static BOOL sh_rename(char *fn, WORD strId)
-{
-	char path[512];
-	char fname[512];
-
-	getcwd(path,sizeof path);
-	strdcpy(fname,path,fn);
-	lstrcpy(path,fn);
-	if (PromptString(strId,AbbrevName(fname),path) == IDOK) {
-		if (EdIsDir(path)) {
-			strdcpy(path,path,fn);
-		}
-		if (Frename(0,fname,path)) {
-			form_error(-1);
-		} else {
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-/*------------------------------------------------------------
- * sh_delmkd()
- */
-static BOOL sh_delmkd(char *fn, int strId)
-{
-	int  ret;
-	char path[EDMAXPATHLEN];
-	char fname[EDMAXFNLEN];
-
-	if (!_getcwd(path, sizeof path)) {
-		return FALSE;
-	}
-	strdcpy(fname,path,fn);
-	if (*fn) {
-		if (!(_options & WARNINGS) || 
-			PromptString(strId,AbbrevName(fname),(char*)0) == IDOK) {
-			char oemname[EDMAXPATHLEN];
-
-			AnsiToOem(fname,oemname);
-			if (strId == IDS_QUERYMKDIR) {
-				ret = Dcreate(oemname);
-			} else {
-				if ((ret = Fdelete(oemname)) != 0)
-				    ret = Ddelete(oemname);
-			} 
-			if (ret) {
-				form_error(ret);
-				return FALSE;
-			} else {
-				return TRUE;
-			}
-		}
-	}
-	return FALSE;
-}
-
-/*--------------------------------------------------------------------------
- * fill_listwithtokens()
- *
- * fill a list control with an by ',' or ';' sepearated list of string items
-*/
-static fill_listwithtokens(HWND hDlg, WORD nItem, char *src)
-{
-	char 	szTemp[EDMAXPATHLEN];
-	LPSTR	s;
-	LPSTR	pszSeparator;
-	int  	n;
-	int		nCurr;
-	HWND 	hwndList;
-
-	hwndList = GetDlgItem(hDlg, nItem);
-	nCurr = SendMessage(hwndList, CB_GETCURSEL, 0, 0L);
-	if (nCurr < 0) {
-		nCurr = 0;
-	}
-	SendMessage(hwndList, CB_RESETCONTENT, 0, 0L);
-	SendMessage(hwndList, WM_SETREDRAW, FALSE, 0L);
-
-	lstrcpy(szTemp,src);
-	/*
-	 * split a list of [;,] - separated pathnames (optionally containing
-	 * extensions) and add them to a combo list
-	 * all | - characters are translated to ';', so multiple extensions
-	 * for the OpenFile common dialog are possible
-	 */
-	for (s = strtok(szTemp,",;"), n = 0; s; s = strtok((char*)0,",;")) {
-		for (pszSeparator = s; 
-			(pszSeparator = lstrchr(pszSeparator, '|')) != 0;
-			*pszSeparator++ = ';')
-			;
-		if (SendMessage(hwndList, CB_ADDSTRING, 0, PtrToLong(s)) < 0) {
-			return 0;
-		}
-	}
-	SendMessage(hwndList, WM_SETREDRAW, TRUE, 0L);
-	SendMessage(hwndList, CB_SETCURSEL, nCurr, 0L);
-	SendRedraw(hwndList);
-	
-	return n;
-}
-
-/*--------------------------------------------------------------------------
- * SendOpenFileSelected()
- */
-static void SendOpenFileSelected(HWND hDlg, LPSTR pszPath, LPSTR pszExt)
-{
-	char		szSelector[EDMAXPATHLEN];
-	char		szSaveFn[512];
-
-	strdcpy(szSelector, pszPath, *pszExt ? pszExt : "*.*");
-	SendDlgItemMessage(hDlg, IDD_FSELNAME, WM_SETREDRAW, FALSE, 0L);
-	GetDlgItemText(hDlg, IDD_FSELNAME, szSaveFn, sizeof szSaveFn);
-	SetDlgItemText(hDlg, IDD_FSELNAME, szSelector);
-	SendMessage(hDlg, WM_COMMAND, IDOK, 0L);
-	SetDlgItemText(hDlg, IDD_FSELNAME, szSaveFn);
-	SendDlgItemMessage(hDlg, IDD_FSELNAME, WM_SETREDRAW, TRUE, 0L);
-}
-
-/*--------------------------------------------------------------------------
- * FileOpenHookProc()
- */
-UINT CALLBACK FileOpenHookProc(HWND hDlg, UINT msg, WPARAM wParam,
-    LPARAM lParam)
-{
-	char	szTemp[256];
-	char	szPath[EDMAXPATHLEN];
-	char	szExt[EDMAXFNLEN];
-	char *	pszFound;
-	BOOL	bRet;
-	DWORD	dwIndex;
-	int		nPathIndex;
-	int		nId;
-
-	switch(msg) {
-
-	case WM_INITDIALOG:
-		GetPksProfileString("desk", "FselPath", szTemp, 
-			sizeof szTemp);
-		fill_listwithtokens(hDlg, IDD_FSELPATHES, szTemp);
-		for (nPathIndex = 0; 
-			(pszFound = hist_getstring(&_pathhist, nPathIndex)) != 0;
-			nPathIndex++) {
-			if (SendDlgItemMessage(hDlg, IDD_FSELPATHES, CB_ADDSTRING, 
-				0, PtrToLong(pszFound)) < 0) {
-				break;
-			}
-		}
-		ShowWindow(GetDlgItem(hDlg, IDD_FSELOPTIONS),
-			_optionsenabled ? SW_SHOW : SW_HIDE);
-		form_move(hDlg);
-     	return TRUE;
-
-     case WM_COMMAND:
-		switch(nId = GET_WM_COMMAND_ID(wParam, lParam)) {
-	     case IDD_FSELPATHES:
-			if (GET_WM_COMMAND_CMD(wParam, lParam) == CBN_SELCHANGE) {
-				dwIndex = SendDlgItemMessage(hDlg, 
-					nId, CB_GETCURSEL, 0, 0);
-				if (dwIndex != CB_ERR) {
- 					SendDlgItemMessage(hDlg, nId,
-        					CB_GETLBTEXT, (WPARAM) dwIndex, 
-						(LPARAM) ((LPSTR) szTemp));
-					sfsplit(szTemp, szPath, szExt);
-					SendOpenFileSelected(hDlg, szPath, szExt);
-				}
-			}
-     	     return TRUE; /* No standard processing. */
-		case IDD_FSELOPTIONS:
-			DoDocumentTypes(DLGSELECTDOCTYPE);
-			return TRUE;
-		case IDD_FSELDELETE:
-		case IDD_FSELMKDIR:
-		case IDD_FSELRENAME:
-			GetDlgItemText(hDlg,IDD_FSELNAME, szTemp,
-					sizeof szTemp);
-			bRet = FALSE;
-			if (nId == IDD_FSELRENAME) {
-				bRet = sh_rename(szTemp, IDS_RENAME);
-			} else {
-				bRet = sh_delmkd(szTemp, (nId == IDD_FSELDELETE) ?
-					IDS_QUERYDELETE : IDS_QUERYMKDIR);
-			}
-			if (bRet) {
-				SendOpenFileSelected(hDlg, ".", "");
-			}
-			return TRUE;
-		}
-	}
-
-    /* Allow standard processing. */
-
-    return FALSE;
-}
 
 /*--------------------------------------------------------------------------
  * DoSelectPerCommonDialog()
  */
-static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], BOOL bSaveAs)
+static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], char* initialDirectory, BOOL bSaveAs)
 {
 	OPENFILENAME 	ofn;
 	DWORD 		Errval;
@@ -407,7 +199,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	LPSTR		pszCustomOffset;
 	LPSTR		pszRun;
 	BOOL		bRet;
-	char 		szTemp[512];
+	char 		szTemp[128];
 
 	pszFilter = _alloc(EDMAXPATHLEN);
 	if (!pszFilter) {
@@ -447,12 +239,13 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	ofn.hwndOwner = hWnd;			// An invalid hWnd causes non-modality
 	ofn.lpstrFilter = (LPSTR)pszFilter;
 	ofn.nFilterIndex = 0;
+	ofn.lpstrInitialDir = initialDirectory;
 	ofn.lpstrCustomFilter = (LPSTR)pszCustomFilter;
 	ofn.nMaxCustFilter = EDMAXPATHLEN;
 	ofn.lpstrFile = szFileName;	// Stores the result in this variable
 	ofn.nMaxFile = EDMAXPATHLEN - 1;
 	ofn.lpstrTitle = sTitleSpec;
-	ofn.Flags = OFN_PATHMUSTEXIST|OFN_HIDEREADONLY;
+	ofn.Flags = OFN_PATHMUSTEXIST;
 
 	if ((bSaveAs && GetSaveFileName( &ofn ) ) || (!bSaveAs && GetOpenFileName( &ofn ))) {
 		bRet = TRUE;
@@ -493,10 +286,10 @@ int EdFsel(char *szFileSpecIn, char *szFileNameIn, char *szFullPathOut, BOOL bSa
 	sfsplit(szFileSpecIn, pszPath, pszExt);
 	sfsplit(szFileNameIn, (char *)0, pszFileName);
 
-	ChangeDirectory(pszPath);
+	//ChangeDirectory(pszPath);
 
 	if ((ret = DoSelectPerCommonDialog(GetActiveWindow(), 
-		pszFileName, pszExt, bSaveAs)) == TRUE) {
+		pszFileName, pszExt, pszPath, bSaveAs)) == TRUE) {
 		lstrcpy(szFullPathOut, pszFileName);
 		sfsplit(pszFileName, pszPath, szFileNameIn);
 		strdcpy(szFileSpecIn, pszPath, pszExt);

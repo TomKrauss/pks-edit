@@ -17,7 +17,7 @@
 #include "lineoperations.h"
 #include "edierror.h"
 #include "errordialogs.h"
-
+#include "editorconfiguration.h"
 #include "winfo.h"
 #include "winterf.h"
 
@@ -84,7 +84,7 @@ int ed_yn(WORD nId, ...)
 {   va_list ap;
     int ret;
     
-	if (!(_options & WARNINGS)) 
+	if (!(GetConfiguration()->options & WARNINGS))
 		return IDYES;
 
 	va_start(ap,nId);
@@ -100,7 +100,7 @@ int ed_ync(WORD nId, ...)
 {	va_list ap;
 	int ret;
 
-	if (!(_options & WARNINGS)) 
+	if (!(GetConfiguration()->options & WARNINGS))
 		return IDYES;
 
 	va_start(ap,nId);
@@ -167,7 +167,7 @@ void ShowError(LPSTR fmt, va_list ap)
 	st_seterrmsg(buf);
 	st_update();
 
-	if ((_options & O_MESSAGES) == 0) {
+	if ((GetConfiguration()->options & O_MESSAGES) == 0) {
 		return;
 	}
 
@@ -256,11 +256,11 @@ void ed_error(int nId,...)
 	if (*s == '!') {
 	    (void)nAlert(MB_OK|MB_ICONHAND,s+1,ap);
 	} else {
-		if (_options & WARNINGS) 
+		if (GetConfiguration()->options & WARNINGS)
 			ShowError(s,ap);
-		if (_options & E_BELL)
+		if (GetConfiguration()->options & E_BELL)
 			chime();
-		if (_options & E_FLASH) 
+		if (GetConfiguration()->options & E_FLASH)
 			visiblebell();
 	}
 	va_end(ap);

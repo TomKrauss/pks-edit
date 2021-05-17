@@ -16,6 +16,7 @@
 #include "pksedit.h"
 #include "edierror.h"
 #include "iccall.h"
+#include "editorconfiguration.h"
 
 /*-----------------------*/
 /* EXTERNALS			*/
@@ -266,7 +267,7 @@ EXPORT int EdBlockPaste(int which)
 
      fp = _currfile;
 	if ((pp = bl_getpaste(which)) != 0) {
-		if ((_options & O_AUTODELBLOCK) && _chkblk(fp)) {
+		if ((GetConfiguration()->options & O_AUTODELBLOCK) && _chkblk(fp)) {
 			EdBlockDelete(0);
 		}
 		return paste(pp,0);

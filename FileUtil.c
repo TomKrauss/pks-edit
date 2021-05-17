@@ -202,13 +202,18 @@ static int pathstat(char *path,char *fn)
  */
 EXPORT char *searchfile(char *s)
 {
-	if (dostat(s)) return s;
-	if (pathstat(_datadir,s))
+	if (dostat(s)) {
+		return s;
+	}
+	if (pathstat(_datadir, s)) {
 		return _found;
-	if (pathstat("PKS_SYS",s))
+	}
+	if (pathstat("PKS_SYS", s)) {
 		return _found;
+	}
 	return 0;
 }
+
 
 /*--------------------------------------------------------------------------
  * pathsearch()

@@ -26,6 +26,12 @@ extern void ProgressMonitorStart(unsigned int ids);
 
 #define	E_SERIOUSC		'!'
 
+#define	OPT_WMODE			(2L<<16)
+#define	OPT_DMODE			(1L<<16)
+#define	OPT_GLOBSET		(0L)
+#define  OPT_RECORD		(-1L<<16L)
+
+
 /*----- display modes --------------*/
 
 #define	SHOWCONTROL		0x1
@@ -57,41 +63,6 @@ extern void ProgressMonitorStart(unsigned int ids);
 #define	BLK_COLOMN	0x400
 #define	WM_OEMMODE	0x800
 #define	O_CRYPTED		0x1000
-
-/*----- GLOBAL FLAGS --------------*/
-
-#define	WARNINGS			0x1
-#define	E_BELL 			0x2
-#define	E_FLASH 			0x4		 	/* flash, rather ring the bell */
-#define	O_LOCKFILES		0x8			/* lock opened files */
-
-#define	O_READPIC			0x10
-#define	O_SAVESET			0x20
-#define	O_SAVESEQ			0x40
-#define	O_GARBAGE_AS		0x80
-
-#define	AUTOWRITE			0x100
-#define	O_FORMFOLLOW		0x200
-#define	O_MDISCROLL		0x400
-#define	O_MESSAGES		0x800		/* message window */
-
-#define	UNDOENABLED		0x2000
-#define	O_CUTBUFEQCLIP		0x4000		/* clipboard == cut buffer */
-#define	O_AUTODELBLOCK		0x1000		/* delete marked block on insert */
-
-/* layout options: fkeys, optionbar, statusline */
-#define	OL_OPTIONBAR		0x1			/* option bar below function keys */
-#define 	OL_FKEYS			0x2
-#define	OL_SHOWSTATUS		0x4			/* show status line */
-#define	OL_TOOLBAR			0x8			/* show tool bar */
-
-#define	OPT_WMODE			(2L<<16)
-#define	OPT_DMODE			(1L<<16)
-#define	OPT_GLOBSET		(0L)
-#define  OPT_RECORD		(-1L<<16L)
-
-extern int _options;
-extern int _layoutoptions;
 
 /*----- ... --------------*/
 

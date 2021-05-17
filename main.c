@@ -19,6 +19,7 @@
 #include "winterf.h"
 #include "lineoperations.h"
 #include "winfo.h"
+#include "editorconfiguration.h"
 
 #pragma hdrstop
 
@@ -174,9 +175,9 @@ static BOOL InitApplication(void)
 }
 
 /*------------------------------------------------------------
- * CloseAllChild()
+ * CloseAllChildren()
  */
-int CloseAllChild(HWND hwndChild)
+int CloseAllChildren(HWND hwndChild)
 {
 	if (!hwndChild || !IsWindow(hwndChild))
 		return 0;
@@ -186,9 +187,9 @@ int CloseAllChild(HWND hwndChild)
 }
 
 /*------------------------------------------------------------
- * CloseChildWin()
+ * CloseChildWindow()
  */
-int CloseChildWin(HWND hwndChild,int iconflag)
+int CloseChildWindow(HWND hwndChild,int iconflag)
 {	int ret;
 
 	if (!hwndChild || !IsWindow(hwndChild))
@@ -207,7 +208,7 @@ int CloseChildWin(HWND hwndChild,int iconflag)
  */
 int CloseEditChild(HWND hwndChild)
 {
-	return CloseChildWin(hwndChild,0);
+	return CloseChildWindow(hwndChild,0);
 }
 
 /*------------------------------------------------------------
@@ -217,7 +218,7 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine)
 {
 	DWORD				dwStyle;
 	WINDOWPLACEMENT 	ws;
-	char				szTitle[512];
+	char				szTitle[64];
 
 	InitPrinterDC();
 	InitDateformats();
@@ -225,7 +226,7 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine)
 	ReadConfigFiles();
 	hDefaultMenu = LoadMenu(hInst, "PksEdEditMenu");
 	if (nInstanceCount > 1) {
-		wsprintf(szTitle, "* PKS EDIT *", nInstanceCount);
+		wsprintf(szTitle, "* PKS EDIT * (%d)", nInstanceCount);
 	} else {
 		lstrcpy(szTitle, "PKS EDIT");
 	}
@@ -498,7 +499,7 @@ int EdCloseAll(int ic_flag)
 	EdEnumChildWindows(CloseEditChild,0);
 
 	if (ww_nwi() == 0 && ic_flag) {
-		EdEnumChildWindows(CloseAllChild,0);
+		EdEnumChildWindows(CloseAllChildren,0);
 	}
 
 	ShowWindow(hwndClient,SW_SHOW);
@@ -599,14 +600,14 @@ void PksChangeMenuItem(HWND hMenu, int nPosition, int nCmd, WORD wFlags,
 }
 
 /*------------------------------------------------------------
- * Finit()
+ * FinalizePksEdit()
+ * 
+ * Invoked, when PKS Edit exits to perform final tasks.
  */
-static void Finit(void)
+static void FinalizePksEdit(void)
 {
-	if (_options & O_SAVESET)
-		prof_save(0);
+	GetConfiguration()->autosaveOnExit();
 	picksave();
-	mac_wantclose((_options & O_SAVESEQ) ? 0 : 1);
 	TmpJunk();
 	HelpQuit();
 	UnInitDDE();
@@ -639,7 +640,7 @@ WNDPROC FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			clientcreate.idFirstChild = (unsigned int)-1;
 			dwStyle = WS_CHILD | WS_CLIPCHILDREN ;
 
-			if (_options & O_MDISCROLL) {
+			if (GetConfiguration()->options & O_MDISCROLL) {
 				dwStyle |= (WS_HSCROLL | WS_VSCROLL);
 			}
 			GetClientRect(hwnd,&rect);
@@ -796,7 +797,7 @@ WNDPROC FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	    case WM_QUERYENDSESSION:
 	    case WM_CLOSE:
-	    		Finit();
+	    		FinalizePksEdit();
 			EdCloseAll(1);
 	   		if (ww_nwi()) {
 	   			return 0;

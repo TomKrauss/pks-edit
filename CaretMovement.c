@@ -17,6 +17,7 @@
 #include "trace.h"
 #include "lineoperations.h"
 #include "edierror.h"
+#include "editorconfiguration.h"
 
 #include "winfo.h"
 #include "winterf.h"
@@ -213,7 +214,7 @@ static void HideWindowsBlocks(FTABLE *fp)
 	long col;
 
 	if (!WIPOI(fp)->bXtndBlock &&
-		(_options & O_AUTODELBLOCK) &&
+		(GetConfiguration()->options & O_AUTODELBLOCK) &&
 		_chkblk(fp)) {
 		col = fp->col;
 		Pastehide(1);

@@ -133,15 +133,14 @@ typedef struct lineal {
 	int			nl,nl2,cr;			/* Lineends */
 	int			dispmode;			/* show control... */
 	int			workmode;			/* watch brackets, abbrev... */
-	int			fno;				/* # of screen font */
-	char			liname[16];		/* name of the lineal */
+	char		liname[32];		/* name of the lineal */
 	int			id;					/* # ID for context check */
-	char			t1,fillc;		/* Tabulator Character (fill character) */
+	char		t1,fillc;		/* Tabulator Character (fill character) */
 	char			u2lset[32];		/* wordset and u2l ("abc=xyz") */
-	unsigned char 	tbits[512];		/* Bitset real Tabstops */
+	unsigned char 	tbits[MAXLINELEN/8];		/* Bitset real Tabstops */
 	unsigned char	statusline[60];	/* the special status */
 	WINDOWPLACEMENT	placement;		/* for windows with fixed size */
-	EDFONT		fnt;				/* font */
+	EDFONT			fnt;				/* font */
 	char			bak[4];			/* Backup extension */
 	unsigned char	modename[16];	/* document type name */
 	unsigned char  tagtag[12];		/* private tag tag */
@@ -156,7 +155,23 @@ typedef struct lineal {
 	unsigned char	res2[256];		/* reserved too .... */
 } LINEAL;
 
-extern LINEAL _lineal;
+/*--------------------------------------------------------------------------
+ * TabStop()
+ * calculate next Tabstop
+ */
+extern int TabStop(int col, LINEAL* lp);
+
+/*--------------------------------------------------------------------------
+ * Creates the default attributes for editing a document. The returned structure
+ * must be freed, when done using it.
+ */
+extern LINEAL* CreateDefaultDocumentTypeDescriptor();
+
+/*--------------------------------------------------------------------------
+ * InitDocumentTypeDescriptor()
+ * Initialize a document type descriptor with the proper tabsize settings.
+ */
+extern void InitDocumentTypeDescriptor(LINEAL* lp, int ts);
 
 #endif
 

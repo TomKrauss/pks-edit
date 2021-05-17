@@ -17,12 +17,12 @@
 #include <windows.h>
 #include "trace.h"
 #include "lineoperations.h"
+#include "stringutil.h"
 
 #define iswhite(c)	(c == ' ' || c == '\t')
 
 extern int 		findstr(int dir);
 extern void 	stepselectcompiler(char *pszName);
-extern long 	Atol(char *s);
 extern int 		curpos(long ln,long col);
 extern int 		showtag(char *s);
 extern void 	stepnofsel(char *fn, int cmpflg);

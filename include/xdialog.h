@@ -18,16 +18,16 @@
 
 typedef struct tagDIALPARS {
 	int		dp_item;
-	int 		dp_size;
-	void		*dp_data;
+	int 	dp_size;
+	void	*dp_data;
 } DIALPARS;
 
 typedef struct tagDIALLIST {
 	LONG		*li_param;
-	void		(*li_fill)(HWND hDlg, int item, LONG param);
+	void		(*li_fill)(HWND hDlg, int item, void *param);
 	int			(*li_get) (HWND hDlg, int item, LONG *param);
 	void		(*li_measure)(MEASUREITEMSTRUCT *mp);
-	void 		(*li_draw)(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl);
+	void 		(*li_draw)(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl);
 	void		(*li_command)(HWND hDlg, int nItem, int nNotify, void *p);
 	int			(*li_compare)(COMPAREITEMSTRUCT *cp);
 	void		(*li_selection)(DRAWITEMSTRUCT *dp);
@@ -42,7 +42,13 @@ typedef struct tagDLGSTRINGLIST {
 
 typedef DIALPARS *LPDIALPARS;
 
-void 			SetXDialogParams(DIALPARS *dp);
+/*-----------------------------------------------
+ * Assign a callback to be invoked to return the DIALOGPARS for a page (in a property sheet)
+ * for that particular page, if the page is activated. The callback is passed the index of the
+ * property page activated.
+ */
+extern void SetXDialogParams(DIALPARS* (*func)(int pageIndex), boolean propertySheetFlag);
+
 BOOL			DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams);
 int  			DoDialog(int nId, FARPROC DlgWndProc, DIALPARS *dp);
 void 			DlgInitString(HWND hwnd, int item, LPSTR szString, int nMax);

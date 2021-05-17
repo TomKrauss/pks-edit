@@ -20,6 +20,7 @@
 #include "winfo.h"
 #include "edierror.h"
 #include "pksedit.h"
+#include "editorconfiguration.h"
 
 #define	SWAP(a,b)			{	a ^= b, b ^=a, a ^= b;  }
 
@@ -657,7 +658,7 @@ int EdCharInsert(int c)
 		return EdLineSplit(c == lnp->nl ? RET_SOFT : 0);
 	}
 
-	if ((_options & O_AUTODELBLOCK) && _chkblk(fp)) {
+	if ((GetConfiguration()->options & O_AUTODELBLOCK) && _chkblk(fp)) {
 		EdBlockDelete(0);
 		if (c == 8 || c == 127) {
 			return 1;

@@ -15,15 +15,16 @@
 #include "lineoperations.h"
 #include "winfo.h"
 #include "pksedit.h"
+#include "editorconfiguration.h"
 #include "edierror.h"
 #include "iccall.h"
 #include "xdialog.h"
 #include "dial2.h"
 #include "regexp.h"
+#include "stringutil.h"
 
 extern char	_finds[];
 extern int 	_regcompile(char *ebuf, char *pat, int opt);
-extern long	Atol();
 extern char 	*searchfile(char *s);
 extern unsigned char *stralloc(unsigned char *buf);
 extern LINE 	*ln_goto(FTABLE *fp,long l);
@@ -345,7 +346,7 @@ int taglist_cmpitem(COMPAREITEMSTRUCT *cp)
 /*------------------------------------------------------------
  * taglist_drawitem()
  */
-static void taglist_drawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, int nCtl)
+static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 {
 	LONG			lExtent;
 	WORD			wDelta;
@@ -749,7 +750,7 @@ static FSELINFO _grpfselinfo = { ".", "PKSEDIT.GRP", "*.GRP" };
 static FSELINFO _cmpfselinfo = { ".", "ERRORS.ERR", "*.ERR" };
 static int s_t_open(int title, int st_type, FSELINFO *fsp)
 {
-	if (title && rw_select(fsp, title) == 0) {
+	if (title && rw_select(fsp, title, FALSE) == 0) {
 		return 0;
 	}
 
@@ -799,7 +800,6 @@ int EdFindTagCursor(void)
 int EdFindFileCursor(void)
 {	char *fn,*found;
 	char	fselpath[512];
-	extern char _includePath[];
 	extern char *pathsearch();
 
 	if ((fn = gettag(_linebuf,&_linebuf[LINEBUFSIZE],isfname,1)) == 0) 
@@ -810,7 +810,7 @@ int EdFindFileCursor(void)
 #else
 	sfsplit(_fseltarget,fselpath,(char*)0);
 #endif
-	if ((found = pathsearch(fn,_includePath))   != 0 ||
+	if ((found = pathsearch(fn,GetConfiguration()->includePath))   != 0 ||
 	    (found = pathsearch(fn,fselpath))   != 0) {
 		return tagopen(found, 0L, (WINDOWPLACEMENT*)0);
 	}

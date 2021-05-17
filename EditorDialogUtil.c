@@ -25,6 +25,7 @@
 
 #include "winterf.h"
 #include "winfo.h"
+#include "stringutil.h"
 
 #pragma hdrstop
 
@@ -40,9 +41,7 @@
 
 extern char 		_fseltarget[];
 extern int 		_translatekeys;
-extern int			bInPropertySheet;
 
-extern long 	Atol(unsigned char *s);
 extern int		mysprintf(FTABLE *fp, char *d,char *format,...);
 extern FTABLE		*ww_stackwi(int num);
 extern void 		ReturnString(char *string);
@@ -52,13 +51,22 @@ extern int 		cust_combood(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
 extern void 		fsel_title(char *title);
 
 static DIALPARS 	*_dp;
-static boolean		bInitializePropSheet;
-int	   nCurrentDialog;
+static DIALPARS*	(*_dialogInitParameterCallback)(int pageIndex);
+static boolean		bInPropertySheet;
+static boolean		bPropertySheetMoved;
 
+int	   nCurrentDialog;
 HWND   hwndDlg;
 
-void SetXDialogParams(DIALPARS *dp) {
-	_dp = dp;
+/*-----------------------------------------------
+ * Assign a callback to be invoked to return the DIALOGPARS for a page (in a property sheet)
+ * for that particular page, if the page is activated. The callback is passed the index of the 
+ * property page activated.
+ */
+void SetXDialogParams(DIALPARS* (*func)(int pageIndex), boolean propertySheetFlag) {
+	_dialogInitParameterCallback = func;
+	bInPropertySheet = propertySheetFlag;
+	bPropertySheetMoved = FALSE;
 }
 
 /*--------------------------------------------------------------------------
@@ -70,6 +78,7 @@ int DoDialog(int nIdDialog, FARPROC DlgProc, DIALPARS *dp)
 	HWND		hwnd;
 
 	_translatekeys = 0;
+	bInPropertySheet = FALSE;
 	if (dp)	{
 		_dp = dp;
 	}
@@ -108,7 +117,7 @@ FARPROC SubClassWndProc(int set, HWND hDlg, int item, FARPROC lpfnNewProc)
 	if (set) {
 		lpfnNewProc = MakeProcInstance(lpfnNewProc,hInst);
 	} 
-	SetWindowLongPtr(hwndItem,GWLP_WNDPROC,(LONG)lpfnNewProc);
+	SetWindowLongPtr(hwndItem,GWLP_WNDPROC, lpfnNewProc);
 	if (!set) {
 		FreeProcInstance(lpfnNowProc);
 	}
@@ -356,7 +365,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				goto donum;
 			case IDD_INT1: case IDD_INT2: case IDD_INT3: 
 			case IDD_INT4: case IDD_INT5:
-				if (*ip < 0 && item == IDD_INT1) {
+				if (*ip < 0) {
 					numbuf[0] = 0;
 				} else {
 					wsprintf(numbuf, "%d", *ip);
@@ -396,7 +405,7 @@ donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 /*--------------------------------------------------------------------------
  * DlgInit()
  */
-static void DlgInit(HWND hDlg, DIALPARS *dp)
+static void DlgInit(HWND hDlg, DIALPARS *dp, BOOL initialFlag)
 {
 	DIALPARS *dp2;
 	int		nPars;
@@ -404,8 +413,10 @@ static void DlgInit(HWND hDlg, DIALPARS *dp)
 	for (dp2 = dp, nPars = 0; dp2->dp_item; dp2++) {
 		nPars++;
 	}
-	if (!DoDlgInitPars(hDlg, dp, nPars) && !bInPropertySheet) {
-		form_move(hDlg);
+	if (!DoDlgInitPars(hDlg, dp, nPars) && initialFlag) {
+		if (!bInPropertySheet) {
+			form_move(hDlg);
+		}
 	}
 }
 
@@ -465,12 +476,6 @@ void DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax)
 				dp->dp_size);
 			break;
 
-		case IDD_OPT1:
-			ip = (int *) dp->dp_data;
-			*ip = (IsDlgButtonChecked(hDlg, dp->dp_item)) ?
-				*ip | dp->dp_size : 
-				*ip & ~dp->dp_size;
-			break;
 		}
 		dp++;
 	}
@@ -483,6 +488,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 {
 	char 	cbuf[2],numbuf[32];
 	int  	item,*ip;
+	BOOL	buttonChecked;
 
 	while((item = dp->dp_item) != 0) {
 		ip = (int*)dp->dp_data;
@@ -501,6 +507,29 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			if (idCtrl == IDCANCEL) {
 				return TRUE;
 			}
+			break;
+		case IDD_OPT1:
+		case IDD_OPT2:
+		case IDD_OPT3:
+		case IDD_OPT4:
+		case IDD_OPT5:
+		case IDD_OPT6:
+		case IDD_OPT7:
+		case IDD_OPT8:
+		case IDD_OPT9:
+		case IDD_OPT10:
+		case IDD_OPT11:
+		case IDD_OPT12:
+		case IDD_OPT13:
+		case IDD_OPT14:
+		case IDD_OPT15:
+		case IDD_OPT16:
+		case IDD_OPT17:
+			ip = (int*)dp->dp_data;
+			buttonChecked = IsDlgButtonChecked(hDlg, dp->dp_item);
+			*ip = buttonChecked ?
+				*ip | dp->dp_size :
+				*ip & ~dp->dp_size;
 			break;
 		case IDD_FONTSEL2COLOR:
 		case IDD_ICONLIST:
@@ -654,7 +683,7 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 		case IDD_CALLBACK1:	case IDD_CALLBACK2:	case IDD_CALLBACK3:
 		case IDD_RAWCHAR:
 		case IDOK: case IDCANCEL: case IDD_BUT3: case IDD_BUT4: case IDD_BUT5:
-			if (!DlgApplyChanges(hDlg, idCtrl, dp)) {
+			if (idCtrl != IDCANCEL && !DlgApplyChanges(hDlg, idCtrl, dp)) {
 				return FALSE;
 			}
 endd:		if (callback) {
@@ -711,17 +740,22 @@ static void *dlg_getitemdata(DIALPARS *dp, WORD item)
 static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {	LPNMHDR		pNmhdr;
 	INT			idCtrl;
+	HWND		parent;
+	int idx;
 
 	pNmhdr = (LPNMHDR) lParam;
 	idCtrl = (INT)wParam;
+	parent = GetParent(hDlg);
 	switch(pNmhdr->code) {
 	case PSN_SETACTIVE:
-	//	DlgInit(hDlg, _dp);
-	//	PropSheet_UnChanged(GetParent(hDlg), hDlg);
-		return 0;
+		idx = PropSheet_HwndToIndex(parent, hDlg);
+		_dp = _dialogInitParameterCallback(idx);
+		DlgInit(hDlg, _dp, FALSE);
+		PropSheet_UnChanged(parent, hDlg);
+		return TRUE;
 	case PSN_APPLY:
-		DlgApplyChanges(GetParent(hDlg), IDOK, _dp);
-		PropSheet_UnChanged(GetParent(hDlg), hDlg);
+		DlgApplyChanges(hDlg, IDOK, _dp);
+		PropSheet_UnChanged(parent, hDlg);
 		return TRUE;
 	case PSN_KILLACTIVE:
 		SetWindowLongPtr(hDlg, DWLP_MSGRESULT, FALSE);
@@ -749,10 +783,20 @@ BOOL CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case WM_INITDIALOG:
 			hwndDlg = hDlg;
-			bInitializePropSheet = TRUE;
-			DlgInit(hDlg,_dp);
-			bInitializePropSheet = FALSE;
+			if (bInPropertySheet) {
+				if (!bPropertySheetMoved) {
+					bPropertySheetMoved = TRUE;
+					form_move(GetParent(hDlg));
+				}
+			} else if (_dp != NULL) {
+				DlgInit(hDlg, _dp, TRUE);
+			}
 			return TRUE;
+
+		case WM_DESTROY:
+			bPropertySheetMoved = TRUE;
+			bInPropertySheet = FALSE;
+			return FALSE;
 
 		case WM_MEASUREITEM:
 			mp = (MEASUREITEMSTRUCT*)lParam;
@@ -780,7 +824,7 @@ BOOL CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
 			idCtrl = GET_WM_COMMAND_ID(wParam, lParam);
 			if ((nNotify == EN_CHANGE || ISFLAGDLGCTL(idCtrl)) &&
-					bInPropertySheet && !bInitializePropSheet && !(GetParent(hDlg) == lParam)) {
+					bInPropertySheet && !(GetParent(hDlg) == lParam)) {
 				PropSheet_Changed(GetParent(hDlg), hDlg);
 			}
 			if (DlgCommand(hDlg,wParam,lParam,_dp)) {
@@ -834,7 +878,7 @@ void DestroyModelessDialog(HWND *hwnd)
 /*------------------------------------------------------------
  * list_lboxfill()
  */
-static void list_lboxfill(HWND hwnd, int nItem, long selValue)
+static void list_lboxfill(HWND hwnd, int nItem, void* selValue)
 {
 	DLGSTRINGLIST		*dlp;
 

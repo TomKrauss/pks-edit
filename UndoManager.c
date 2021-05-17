@@ -15,10 +15,11 @@
 #include "pksedit.h"
 #include "lineoperations.h"
 #include "edierror.h"
+#include "editorconfiguration.h"
 
 extern	int		_playing;
 extern	FTABLE	*_currfile;
-extern	LINE		*ln_cut();
+extern	LINE	*ln_cut();
 
 /*--------------------------------------------------------------------------
  * LOCALS
@@ -118,7 +119,7 @@ static void u_free(UNDOBLOCK *ubp)
 		return;
 	upfree(ubp->fifo);
 	ubp->fifo = 0;
-	_undoenabled = (_options & UNDOENABLED) ? 1 : 0;
+	_undoenabled = (GetConfiguration()->options & UNDOENABLED) ? 1 : 0;
 }
 
 /*--------------------------------------------------------------------------

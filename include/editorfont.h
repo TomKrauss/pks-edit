@@ -8,7 +8,7 @@
  */
 typedef struct tagEDFONT {
 	char		name[32];
-	short		point;
+	short		height;
 	short		weight;
 	long		fgcolor;
 	long		bgcolor;

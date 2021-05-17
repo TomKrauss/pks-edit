@@ -17,6 +17,7 @@
 #include "lineoperations.h"
 #include "edierror.h"
 #include "errordialogs.h"
+#include "editorconfiguration.h"
 
 #include "winfo.h"
 #include "winterf.h"
@@ -30,6 +31,7 @@
 #include "edifsel.h"
 #include "edhist.h"
 #include "pksedit.h"
+#include "editorconfiguration.h"
 
 extern void *	ll_insert(void *head,long size);
 extern void *	shareAlloc();
@@ -46,8 +48,6 @@ extern LINEAL *GetDocumentTypeDescriptor(void *p);
 extern char *	basename(char *s);
 extern int 	createl(FTABLE *fp, char *q, int len, int flags);
 
-extern int  	_asminutes;
-extern char 	_pksEditTempPath[];
 extern char *	_datadir;
 extern void *	lastSelectedDocType;
 
@@ -66,9 +66,9 @@ static int make_aspath(char *dname, char *fname)
 {	char fn[EDMAXPATHLEN];
 	char szBuff[EDMAXPATHLEN];
 
-	if (_pksEditTempPath[0]) {
+	if (GetConfiguration()->pksEditTempPath[0]) {
 		sfsplit(fname,(char *)0,fn);
-		strdcpy(szBuff,_pksEditTempPath,fn);
+		strdcpy(szBuff, GetConfiguration()->pksEditTempPath,fn);
 		FullPathName(dname,szBuff);
 		return 1;
 	}
@@ -103,7 +103,7 @@ int asfiles(void)
 	static long 	nchkclick;
 	static int 		inas;
 
-	if (inas || (dclicks = (_asminutes * 60L * HZ)) == 0) {
+	if (inas || (dclicks = (GetConfiguration()->asminutes * 60L * HZ)) == 0) {
 		/* autosave option is OFF */
 		return 0;
 	}
@@ -151,10 +151,10 @@ autosave:
 
 		if (ret > 0) {
 		/* we autosaved into source file: set state to unmodified */
-			if (!_pksEditTempPath[0])
+			if (!GetConfiguration()->pksEditTempPath[0])
 				fp->flags &= ~F_MODIFIED;
 			ShowMessage(IDS_MSGAUBE,ft_visiblename(fp));
-		} else if (PromptAsPath(_pksEditTempPath)) {
+		} else if (PromptAsPath(GetConfiguration()->pksEditTempPath)) {
 		/* let the user correct invalid autosave pathes */
 			prof_saveaspath();
 			goto autosave;
@@ -225,7 +225,7 @@ int pickread(void )
 	FTABLE 	ft;
 	char *	pszFound;
 
-	if (_options & O_READPIC) {
+	if (GetConfiguration()->options & O_READPIC) {
 		if ((pszFound = searchfile(_hisfile)) != 0 &&
 		    Readfile(&ft, pszFound, -1)) {
 			if (_filelist == 0) {
@@ -281,7 +281,7 @@ void ft_deleteautosave(FTABLE *fp)
 {
 	char as_name[EDMAXPATHLEN];
 
-	if ((_options & O_GARBAGE_AS) && make_aspath(as_name,fp->fname)) {
+	if ((GetConfiguration()->options & O_GARBAGE_AS) && make_aspath(as_name,fp->fname)) {
 		if (areFilenamesDifferent(fp->fname,as_name)) {
 			unlink(as_name);
 		}
@@ -408,13 +408,17 @@ int ft_wantclose(FTABLE *fp)
 	if (fp->flags & F_MODIFIED) {
 		ShowWindow(hwndClient,SW_SHOW);
 		EdSelectWindow(WIPOI(fp)->win_id);
-		if (_ExSave || (_options & AUTOWRITE)) {
+		if (_ExSave || (GetConfiguration()->options & AUTOWRITE)) {
 	     	return write2ndpathfile(fp);
 		}
 		switch(ed_ync(IDS_MSGQUITORSAVE,ft_visiblename(fp))) {
 			case IDYES:
-				if (!write2ndpathfile(fp)) 
+				if (!write2ndpathfile(fp)) {
+					if (!(GetConfiguration()->options & WARNINGS)) {
+						fp->flags &= ~F_MODIFIED;
+					}
 					return 0;
+				}
 				break;
 			case IDNO:	 break;
 			case IDCANCEL:  return (0);
@@ -488,7 +492,7 @@ int txtfile_select(int title, char *result)
 	BOOL	bRet;
 
 	bRet = FALSE;
-	if ((fn = rw_select(&_txtfninfo, title)) != 0) {
+	if ((fn = rw_select(&_txtfninfo, title, FALSE)) != 0) {
 		strcpy(result,fn);
 		bRet = TRUE;
 	}
@@ -562,7 +566,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 			return 0;
 		newfile = 1;
 	} else {
-		if ((_options & O_GARBAGE_AS) && 
+		if ((GetConfiguration()->options & O_GARBAGE_AS) &&
 			make_aspath(szAsPath, fn) &&
 			areFilenamesDifferent(szAsPath, fn) &&
 			EdStat(szAsPath, 0xFF) == 0 &&

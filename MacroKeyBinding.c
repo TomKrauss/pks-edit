@@ -27,6 +27,7 @@
 #include "resource.h"
 #include "xdialog.h"
 #include "errordialogs.h"
+#include "stringutil.h"
 
 #define	MENU_TABCHAR	'\010'
 
@@ -55,7 +56,6 @@ extern int 		menu_addentry(char *pszString, int menutype,
 extern void 		menu_startdefine(char *szMenu);
 extern void 		st_switchtomenumode(BOOL bMenuMode);
 
-extern long 		Atol(char *);
 extern unsigned char *stralloc(unsigned char *buf);
 extern MACROREF *	menu_getuserdef(int nId);
 extern int 		CanExecute(int num, int warn);
@@ -158,9 +158,9 @@ done:Fclose(fd);
 }
 
 /*------------------------------------------------------------
- * mac_wantclose()
+ * mac_autosave()
  */
-void mac_wantclose(int warnflg)
+void mac_autosave(int warnflg)
 {
 	char fn[512];
 
@@ -194,9 +194,9 @@ int mac_delete(char *name)
 }
 
 /*------------------------------------------------------------
- * mac_validname()
+ * mac_isvalidname()
  */
-int mac_validname(char *name, int origidx)
+int mac_isvalidname(char *name, int origidx)
 {	int index;
 
 	if (name[0] == 0)
@@ -357,7 +357,7 @@ int mac_read(char *fn)
 		return 0;
 	}
 
-	mac_wantclose(1);
+	mac_autosave(1);
 
 	if (overwritebindings) {
 		int i;
@@ -511,7 +511,7 @@ int mac_recorder(void)
 int EdMacrosReadWrite(int wrflag)
 {	char *fn;
 
-	if ((fn = rw_select(&_seqfsel,(wrflag) ? MWRSEQ : MREADSEQ)) == 0) {
+	if ((fn = rw_select(&_seqfsel,(wrflag) ? MWRSEQ : MREADSEQ, wrflag)) == 0) {
 		return 0;
 	}
 
@@ -1108,7 +1108,7 @@ static void Update(HWND hwnd, LONG nSelected)
 /*------------------------------------------------------------
  * mac_lboxdraw()
  */
-static void mac_lboxdrawitem(HDC hdc, RECT *rcp, DWORD par, int nItem, 
+static void mac_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, 
 					    int nID)
 {
 	char	szBuf[128];

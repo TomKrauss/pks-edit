@@ -20,6 +20,7 @@
 #include "pksedit.h"
 #include "pksrc.h"
 #include "edierror.h"
+#include "editorconfiguration.h"
 
 HWND	hwndToolbar;
 
@@ -30,7 +31,7 @@ void tb_wh(WORD *width, WORD *height)
 {
 	RECT		rect;
 
-	if (hwndToolbar == 0 || (_layoutoptions & OL_TOOLBAR) == 0) {
+	if (hwndToolbar == 0 || (GetConfiguration()->layoutoptions & OL_TOOLBAR) == 0) {
 		*width = 0;
 		*height = 0;
 		return;
