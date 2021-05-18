@@ -16,6 +16,7 @@
 #include "lineoperations.h"
 #include "winfo.h"
 #include "edierror.h"
+#include "errordialogs.h"
 
 #include "pksedit.h"
 #include "edfuncs.h"
@@ -469,8 +470,8 @@ int cdecl do_func(int num, long p1, long p2, void *s1, void *s2, void *s3)
 /*--------------------------------------------------------------------------
  * GetDollar()
  */
-static long * currentParamStack;
-int GetDollar(long offset, int *typ, long *value)
+static intptr_t * currentParamStack;
+int GetDollar(intptr_t offset, int *typ, intptr_t *value)
 {
 	if (!currentParamStack || offset < 0 || offset >= 4) {
 		alert("no such parameter passed");
@@ -490,7 +491,7 @@ long do_macfunc(COM_1FUNC **Cp, COM_1FUNC *cpmax)
 {
 	long 		stack[40];
 	long *		saveStack;
-	long 		rc,*sp,*sp2;
+	intptr_t	rc,*sp,*sp2;
 	unsigned char 	typ;
 	int  		funcnum;
 	COM_1FUNC *	cp = *Cp;

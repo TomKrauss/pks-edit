@@ -57,6 +57,7 @@ extern void ed_error(int nId, ...);
  */
 extern void tosfnerror(char* fn, int fd);
 
+extern void alert(LPSTR fmt, ...);
 
 #define ERRORDIALOGS_H
 #endif

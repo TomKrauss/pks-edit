@@ -61,10 +61,10 @@ static void markline(HDC hdc, WINFO *wp,LINE *lp,int y,int lastcol)
 				 r.right-r.left,r.bottom-r.top,
 				 _ROPcodes[wp->markstyles[FS_XMARKED].mode]);
 */
-		SelectObject(hdc,GetStockObject(GRAY_BRUSH));
+		SelectObject(hdc,GetStockObject(LTGRAY_BRUSH));
 		PatBlt(hdc,r.left,r.top,
 			r.right-r.left,r.bottom-r.top,
-			PATINVERT);	 
+			PATINVERT);
 	}
 
 	if (lp->lflg & LNCPMARKED) {

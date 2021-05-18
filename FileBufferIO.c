@@ -29,7 +29,6 @@
 
 /*----- EXTERNALS -----------*/
 
-extern void alert(LPSTR fmt, ...);
 extern char *TmpName(char *dst, char c);
 extern int  CryptDialog(LPSTR password, int twice);
 extern EDTIME EdGetFileTime(char *fname);

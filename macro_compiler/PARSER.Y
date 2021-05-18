@@ -38,14 +38,15 @@
 
 %{
 
-# include	<windows.h>
-# include	<stdio.h>
-# include	"edfuncs.h"
-# include "scanner.h"
-# include	"test.h"
-# include	"binop.h"
-# include	"pkscc.h"
-# include "sym.h"
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "edfuncs.h"
+#include "scanner.h"
+#include "test.h"
+#include "binop.h"
+#include "pkscc.h"
+#include "sym.h"
 
 # define 	YYSTYPE _YYSTYPE
 # define 	STRINGTYPE(type)	((type == C_STRING1PAR||type == C_STRINGVAR) ? \
@@ -102,12 +103,11 @@ int			vname_count;
 extern 		int	yyerrflg;
 extern 		int	_bDefiningConst;
 
-void 		Alert(char *s, ...);
-void 		_free(void *p);
+void 			Alert(char *s, ...);
 int 			mac_insert(char *name, char *comment, unsigned char *data, int size);
 unsigned char 	*AddComSeq(unsigned char *sp, unsigned char *spend,
-				     	 unsigned char typ, long par);
-int 			FuncIdx(void *ep);
+				     	 unsigned char typ, intptr_t par);
+int				FuncIdx(void *ep);
 int 			bind_key(KEYCODE keycode, MACROREFTYPE typ, MACROREFIDX idx, int augment);
 int 			bind_mouse(MOUSECODE code, MACROREFTYPE typ, MACROREFIDX idx, int flags, int augment);
 int 			MakeInternalSym(char *name, char ed_typ, long value);
@@ -141,11 +141,11 @@ int 			menu_addentry(char *pszString, int menutype,
 resources		: 
 			| { 
 #ifdef YYDEBUG
-		yydebug = 1; 
+int yydebug = 1; 
 #endif
 			} resource resources
 
-resource		: macros		
+resource	: macros		
 			| icons	
 			| menus
 			| keys		
@@ -485,17 +485,17 @@ var_decls		:
 var_decl		: type_ident var_ident assgn ';'	{
 				MakeInternalSym($2.s,
 					($1.type == C_STRING1PAR) ? S_STRING : S_NUMBER,
-					($1.type == C_STRING1PAR) ? (long)"" : 0);
-				PushAssign($2.s,$3.v.type,(long)$3.v.val);
+					($1.type == C_STRING1PAR) ? (intptr_t)"" : 0);
+				PushAssign($2.s,$3.v.type,(intptr_t)$3.v.val);
 				freeval(&$3.v);
 				vname_count = 0;
 			} | type_ident var_ident ';'	{
 				if ($1.type == C_STRING1PAR) {
-					MakeInternalSym($2.s, S_STRING, (long)"");
-					PushAssign($2.s, C_STRING1PAR, (long)"");
+					MakeInternalSym($2.s, S_STRING, (intptr_t)"");
+					PushAssign($2.s, C_STRING1PAR, (intptr_t)"");
 				} else {
-					MakeInternalSym($2.s, S_NUMBER, (long)0);
-					PushAssign($2.s,C_LONG1PAR,(long)0);
+					MakeInternalSym($2.s, S_NUMBER, (intptr_t)0);
+					PushAssign($2.s,C_LONG1PAR,(intptr_t)0);
 				}
 				vname_count = 0;
 			}
@@ -516,7 +516,7 @@ stmnt		:            	';'
 
 
 assignment	: var assgn 		{
-				PushAssign($1.s,$2.v.type,(long)$2.v.val);
+				PushAssign($1.s,$2.v.type,(intptr_t)$2.v.val);
 			}
 
 assgn		: T_ASSIGN arith 	{ 	$$.v = $2.v;	}
@@ -536,7 +536,7 @@ s_bterm: 		value			{ $$.v = $1.v; }
 				} else {
 					$$.v.type = C_LONGVAR;
 				}
-				$$.v.val = (long)"__ret__";
+				$$.v.val = (intptr_t)"__ret__";
 				((char*)$$.v.val)[6] = '0' + vname_count++;
 			}
 
@@ -583,7 +583,7 @@ op2			: { TestOp(); }
 
 optterm2		: { 	
 				if (_stringflg)
-					_recp = AddComSeq(_recp,_recpend,C_STRING1PAR,(long)"");
+					_recp = AddComSeq(_recp,_recpend,C_STRING1PAR,(intptr_t)"");
 				else
 					_recp = AddComSeq(_recp,_recpend,C_LONG1PAR,0L);
 				$$.type = CT_NE;
@@ -613,15 +613,15 @@ term			: fcall		{	$$.type = C_LONG1PAR; 	 	}
 
 value		: T_NUMVAR 	{
 				$$.v.type = C_LONGVAR;  
-				$$.v.val  = (long) $1.s;
+				$$.v.val  = (intptr_t) $1.s;
 			}
 			| T_STRINGVAR 	{
 				$$.v.type = C_STRINGVAR;  
-				$$.v.val  = (long) $1.s;
+				$$.v.val  = (intptr_t) $1.s;
 			}
 			| string 	{
 				$$.v.type = C_STRING1PAR;
-				$$.v.val  = (long) $1.s;
+				$$.v.val  = (intptr_t) $1.s;
 			}
 			| constexpr 	{	$$.v = $1.v;	}
 
@@ -629,8 +629,8 @@ string		: T_STRING	{	$$.s = $1.s;	}
 			| string	T_STRING { 
 				if (($$.s = malloc(strlen($1.s)+strlen($2.s)+1)) != 0) {
 					strcat(strcpy($$.s,$1.s),$2.s);
-					_free($1.s);
-					_free($2.s);
+					free($1.s);
+					free($2.s);
 				} else {
 					yyerror("buffer overlow");
 					$$.s = $2.s;
@@ -710,7 +710,7 @@ fcall		: T_FUNC {
 			} '(' parlist ')'
 			| T_IDENT {
 				_lastfuncp = 0;
-				_recp = AddComSeq(_recp,_recpend,C_MACRO,(long)$1.s);
+				_recp = AddComSeq(_recp,_recpend,C_MACRO,(intptr_t)$1.s);
 				freeitem(&$1.s);
 				$$.funcp = 0;
 			} '(' parlist ')'
@@ -777,7 +777,7 @@ constnum_or_string:
 			  constexpr 	{ $$.v = $1.v; }
 			| T_STRING	{
 				$$.v.type = C_STRING1PAR;
-				$$.v.val  = (long) $1.s;
+				$$.v.val  = (intptr_t) $1.s;
 			}
 
 constexpr		: constval 	{ $$.v = $1.v;	}
@@ -854,12 +854,15 @@ static void PushParam(struct typedval *vp)
 /*---------------------------------*/
 #ifdef YYDEBUG
 void YYtrace(char *fmt, ...)
-{	char *s,buf[128];
+{	char *s;
+	va_list ap;
 	static FILE *fp;
 
 	if (fp == 0 && (fp = fopen("O:\\PROT","w")) == 0)
 		return;
-	vfprintf(fp,fmt,&...);
+	va_start(fmt, ap);
+	vfprintf(fp,fmt,ap);
+	va_end(ap);
 	fflush(fp);
 }
 #endif
@@ -904,7 +907,7 @@ static void killabel(char *prefix, int level)
 static void freeitem(char **p)
 {
 	if (*p) {
-		_free(*p);
+		free(*p);
 		*p = 0;
 	}
 }
@@ -952,10 +955,10 @@ void freeval(struct typedval *v)
 static void startmacro(void)
 {
 #ifdef YYDEBUG
-	yydebug = 1;
+int	yydebug = 1;
 #endif
 	if (!_recspace) {
-		_recpend = ((_recspace = _alloc(REC_SPACE)) == 0) ? 
+		_recpend = ((_recspace = malloc(REC_SPACE)) == 0) ? 
 			_recspace : _recspace + REC_SPACE;
 	}
 	_nparam = 0;
@@ -973,7 +976,7 @@ static void startmacro(void)
 static void endmacro(void)
 {
 	if (_recspace) {
-		_free(_recspace);
+		free(_recspace);
 		_recspace = 0;
 		_recpend = 0;
 	}

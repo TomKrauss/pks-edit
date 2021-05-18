@@ -828,7 +828,7 @@ BOOL CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) 
 			nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
 			idCtrl = GET_WM_COMMAND_ID(wParam, lParam);
 			if ((nNotify == EN_CHANGE || ISFLAGDLGCTL(idCtrl)) &&
-					bInPropertySheet && !(GetParent(hDlg) == lParam)) {
+					bInPropertySheet && GetParent(hDlg) != lParam) {
 				PropSheet_Changed(GetParent(hDlg), hDlg);
 			}
 			if (DlgCommand(hDlg,wParam,lParam,_dp)) {

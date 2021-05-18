@@ -138,7 +138,7 @@ int displinwin(char *fn, long (*callback)(FILE *fp))
 	if ((*callback)(fp) != 0) {
 		fflush(fp);
 		fclose(fp);
-		if (selnfile(tmpfn)) {
+		if (ActivateWindowOfFileNamed(tmpfn)) {
 			EdFileAbandon(1);
 		}
 		else {
@@ -170,7 +170,7 @@ int macs_compile()
 		return yyfinish();
 	}
 
-	Alert("Bitte Öffnen Sie die Datei, die übersetzt werden soll");
+	Alert("Bitte öffnen Sie die Datei, die übersetzt werden soll");
 
 	return 0;
 }

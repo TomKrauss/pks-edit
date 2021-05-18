@@ -2,8 +2,8 @@
 # ifndef SMY_H
 
 typedef struct tagSYMBOL {
-	unsigned char	sym_type;
-	unsigned long  sym_data;
+	unsigned char		sym_type;
+	void*				sym_data;
 } SYMBOL;
 
 #define	TYPEOF(s)			((s).sym_type)
@@ -27,7 +27,7 @@ typedef struct tagSYMBOL {
 #define	HSIZE		697
 
 extern long 	sym_destroy(char *key);
-extern int 	sym_insert(char *key, int symtype, long symdata);
+extern int 	sym_insert(char *key, int symtype, intptr_t symdata);
 extern SYMBOL 	sym_find(char *key, char **key_ret);
 extern int 	hash_create(unsigned nel);
 extern int 	MakeInternalSym(char *name, char ed_typ, intptr_t value);

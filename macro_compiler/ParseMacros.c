@@ -27,14 +27,14 @@ int init_funcs(void)
 
 	for (ep = _functab, epend = ep+_nfunctions; ep < epend;  ep++) {
 		if ((pszCopy = stralloc(StaticLoadString(ep->idx+IDM_LOWFUNCNAME))) == 0 ||
-			!sym_insert(pszCopy,S_EDFUNC,(long)ep)) {
+			!sym_insert(pszCopy,S_EDFUNC,(intptr_t)ep)) {
 			return 0;
 		}
 	}
 
 	for (enp = _enelemtab, enpend = enp+_nenelems; enp < enpend; enp++) {
 		if ((pszCopy = stralloc(StaticLoadString(enp->te_name))) == 0 ||
-			!sym_insert(pszCopy,S_ENUM,(long)enp)) {
+			!sym_insert(pszCopy,S_ENUM,(intptr_t)enp)) {
 			return 0;
 		}
 	}

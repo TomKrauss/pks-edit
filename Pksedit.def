@@ -6,8 +6,6 @@ STACKSIZE    64000
 EXPORTS
 	FrameWndProc
 	EditWndProc
-	WorkAreaWndProc
-	RulerWndProc
 	IconWndProc
 	DlgStdProc
 	DlgError

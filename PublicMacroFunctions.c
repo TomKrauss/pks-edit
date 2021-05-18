@@ -35,6 +35,13 @@
 #include "edexec.h"
 #include "errordialogs.h"
 
+ /*------------------------------------------------------------
+  * EdGetActiveWindow()
+  */
+extern HWND EdGetActiveWindow(int includeicons);
+extern HWND ww_winid2hwnd(int winid);
+extern HWND ic_add(void* icp, LPSTR szTitle, LPSTR szParams, int x, int y);
+extern HWND ic_active(LPSTR szTitle, LPSTR szParams, void** icClass);
 extern int 		AbandonFile(FTABLE *fp, LINEAL *linp);
 extern int 		mac_runcmd(MACROREF *mp);
 extern int 		AlignText(char *finds, int scope, char filler, int flags);
@@ -53,23 +60,16 @@ extern int 		PrintMacs(char *macroname);
 extern int 		PrintMice(void);
 extern int 		PrintKeys(void);
 extern int 		PrintMenus(void);
+extern void* CreateDocumentType(void* llp);
 extern void 	fkey_visibilitychanged(void);
 extern int 		cursleftright(int dir, int mtype);
 extern int 		EdExecute(long flags, long unused, 
 					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
-extern BOOL GetDocumentTypeDescription(void* llp,
-		char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszFname,
-		int** pOwn);
-
-extern void 		SaveAllDocumentTypes(void *llp);
 extern int 		AssignDocumentTypeDescriptor(FTABLE *fp, LINEAL *linp);
 extern void *		GetPrivateDocumentType(char *);
-extern void *		CreateDocumentType(void *llp);
-extern LINEAL *	GetDocumentTypeDescriptor(void *);
 extern char *		TmpDir(void);
 extern void 		mac_switchtodefaulttables(void);
-extern void 		ic_enablecallbacks(HWND hwnd, void *icp);
 extern int 		linchange(void);
 extern void 		SendRedraw(HWND hwnd);
 extern int 		cursupdown(int dir, int mtype);
@@ -82,9 +82,7 @@ extern int 		macs_compile(void);
 extern char		_finds[500];
 extern char		_repls[500];
 extern long		_multiplier;
-extern int		_nundo,_asminutes;
 extern char		_kunde[30];
-
 extern int 		_findopt;
 
 static int		_scope = RNG_BLOCK;

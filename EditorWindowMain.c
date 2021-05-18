@@ -922,7 +922,7 @@ int do_slide(WINFO *wp, UINT message, WPARAM wParam, LONG lParam)
 /*------------------------------------------------------------
  * WorkAreaWndProc()
  */
-WINFUNC WorkAreaWndProc(
+static WINFUNC WorkAreaWndProc(
 	HWND hwnd,
 	UINT message,
 	WPARAM wParam,
@@ -1156,7 +1156,7 @@ static void shadow_area(HDC hdc, HWND hwnd)
 /*------------------------------------------------------------
  * RulersWndProc()
  */
-WINFUNC RulerWndProc(
+static WINFUNC RulerWndProc(
 	HWND hwnd,
 	UINT message,
 	WPARAM wParam,

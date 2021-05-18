@@ -13,21 +13,35 @@
 
 # pragma warn -rch
 
-# include <stdio.h>
-# include <string.h>
-# include <stdlib.h>
-# include <stdarg.h>
-# include "sym.h"
-# include "edfuncs.h"
-# include "scanner.h"
-# include "parser.h"
-# include "editab.h"
-# include "stringutil.h"
-# include "pkscc.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include "sym.h"
+#include "edfuncs.h"
+#include "scanner.h"
+#include "parser.h"
+#include "lineoperations.h"
+#include "pkscc.h"
 
-# undef  input
-# define input() (((yytchar=yysptr>yysbuf?U(*--yysptr):cmdgetc()))==EOF?\
-					0:yytchar)
+#define YY_FATAL_ERROR(msg) yyerror( msg )
+
+#define YY_INPUT(buf,result,max_size) \
+	if ( 1) \
+		{ \
+		int c = '*', n; \
+		for ( n = 0; n < max_size && \
+			     (c = cmdgetc()) != EOF && c != '\n'; ++n ) \
+			buf[n] = (char) c; \
+		if ( c == '\n' ) \
+			buf[n++] = (char) c; \
+		if ( c == EOF && ferror( yyin ) ) \
+			YY_FATAL_ERROR( "input in flex scanner failed" ); \
+		result = n; \
+		} \
+	else if ( ((result = fread( buf, 1, max_size, yyin )) == 0) \
+		  && ferror( yyin ) ) \
+		YY_FATAL_ERROR( "input in flex scanner failed" );
 
 typedef struct yyerrstruct {
 	char		*srcname;
@@ -45,7 +59,6 @@ int				_bDefiningConst;
 
 typedef void EDFUNCDEF;
 
-extern EDFUNCDEF 	*Name2Findex(char *name);
 extern FILE		*createtmp(char *fnd, char *fn);
 extern int 		init_funcs(void);
 extern long 		EnumValue(void *enp);
@@ -57,37 +70,11 @@ static FILE *_lexFp;
 #endif
 
 /*---------------------------------*/
-/* yyerror()					*/
-/*---------------------------------*/
-void yyerror(char *s, ...)
-{	char buf[512],buf2[512];
-	va_list	ap;
-
-	if (!yyerr.srcname)
-		yyerr.srcname = "STDIN";
-
-	if ( yyerr.errfp != 0 || 
-	    (yyerr.errfp = createtmp(yyerr.errname,"PKSMAKRO.ERR")) != 0) {
-		yyerrflg = 1;
-		sprintf(buf,"Error %s %d: %s\n",yyerr.srcname,yyerr.yylineno,s);
-	     va_start(ap, s);
-		vfprintf(yyerr.errfp,buf,ap);
-	     va_end(ap);
-		fflush(yyerr.errfp);
-		if (++yyerr.yynerr >= yyerr.yymaxerr) {
-			fprintf(yyerr.errfp,"\n*** too many errors ***\n");
-			if (yyerr.failpt)
-				longjmp(*yyerr.failpt,ERR_TOOMANYERR);
-		}
-	}
-}
-
-/*---------------------------------*/
 /* keyword()					*/
 /*---------------------------------*/
 static struct kw {
 	int			toknum;
-	char near *	name;
+	char *	name;
 } keywords[] = {
 	T_DEFMACRO,	"macro",
 	T_MENUPOPUP,	"POPUP",
@@ -151,7 +138,7 @@ static int cmdgetc(void )
 {	
 	int	c;
 
-	if (yyleng > YYLMAX-4) {
+	if (yyleng > YY_BUF_SIZE -4) {
 		yyerror("token too long");
 		yyleng = 0;
 	}
@@ -176,12 +163,36 @@ static void LexInit(LINE *lps, LINE *lpe)
 }
 
 /*---------------------------------*/
+/* yyerror()					*/
+/*---------------------------------*/
+void yyerror(char* s)
+{
+	char buf[512];
+
+	if (!yyerr.srcname)
+		yyerr.srcname = "STDIN";
+
+	if (yyerr.errfp != 0 ||
+		(yyerr.errfp = createtmp(yyerr.errname, "PKSMAKRO.ERR")) != 0) {
+		yyerrflg = 1;
+		sprintf(buf, "Error %s %d: %s\n", yyerr.srcname, yyerr.yylineno, s);
+		fprintf(yyerr.errfp, buf);
+		fflush(yyerr.errfp);
+		if (++yyerr.yynerr >= yyerr.yymaxerr) {
+			fprintf(yyerr.errfp, "\n*** too many errors ***\n");
+			if (yyerr.failpt)
+				longjmp(*yyerr.failpt, ERR_TOOMANYERR);
+		}
+	}
+}
+
+/*---------------------------------*/
 /* cmdgetc()					*/
 /*---------------------------------*/
 static int cmdgetc(void )
 {	LINE *lp;
 
-	if (yyleng > YYLMAX-4) {
+	if (yyleng > YY_BUF_SIZE-4) {
 		yyerror("token too long");
 		yyleng = 0;
 	}

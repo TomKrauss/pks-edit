@@ -10,4 +10,4 @@
 *.sbr
 *.sdf
 PKSEDIT.APS
-
+/macro_compiler/x64/

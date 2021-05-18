@@ -258,6 +258,39 @@ extern void ln_m(LINE *lpstart,LINE *lpend,int flg);
 extern void ln_um(LINE *lpstart,LINE *lpend,int flg);
 extern long ln_needbytes(LINE *lp, int nl, int cr);
 extern char* ft_visiblename(FTABLE* fp);
+extern void ft_CheckForChangedFiles(void);
+/* do an autosave */
+extern int TriggerAutosaveAllFiles(void);
+extern void ft_deleteautosave(FTABLE* fp);
+extern void ft_destroy(FTABLE* fp);
+extern FTABLE* ft_new(void);
+extern char* ft_visiblename(FTABLE* fp);
+/*------------------------------------------------------------
+ * ft_size()
+ * calculate current file size
+ */
+extern long ft_size(FTABLE* fp);
+/*------------------------------------------------------------
+ * ft_fpbyname()
+ * Find a filebuffer given the name of the file.
+ */
+extern FTABLE* ft_fpbyname(char* fn);
+/*------------------------------------------------------------
+ * ft_editing()
+ * Answer true, if we are editing the file named fn.
+ */
+extern int ft_editing(char* fn);
+/*------------------------------------------------------------
+ * ft_select()
+ * Make the passed filebuffer the "current" edited file in PKS Edit.
+ */
+extern int ft_select(FTABLE* fp);
+
+/*------------------------------------------------------------
+ * ActivateWindowOfFileNamed()
+ * Activate the window of the file with the given name.
+ */
+extern int ActivateWindowOfFileNamed(char* fn);
 
 /*--------------------------------------------------------------------------
  * ln_destroy()

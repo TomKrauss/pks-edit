@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="makroc\PARSER.C">
+    <ClCompile Include="macro_compiler\PARSER.C">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="makroc\SCANNER.C">
+    <ClCompile Include="macro_compiler\SCANNER.C">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StringUtil.c">
@@ -54,13 +54,13 @@
     <ClCompile Include="Clipboard.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="makroc\CommandFunctionTable.c">
+    <ClCompile Include="macro_compiler\CommandFunctionTable.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Compare.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="makroc\GenerateMacroCode.c">
+    <ClCompile Include="macro_compiler\GenerateMacroCode.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Encryption.c">
@@ -126,7 +126,7 @@
     <ClCompile Include="FunctionTable.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="makroc\ParseMacros.c">
+    <ClCompile Include="macro_compiler\ParseMacros.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MarkAndGoto.c">
@@ -144,7 +144,7 @@
     <ClCompile Include="Initialize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="makroc\BindKeys.c">
+    <ClCompile Include="macro_compiler\BindKeys.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="KeyBindingFileIO.c">
@@ -153,7 +153,7 @@
     <ClCompile Include="KeyBindings.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="makroc\JumpLabels.c">
+    <ClCompile Include="macro_compiler\JumpLabels.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EditorLineOperations.c">
@@ -171,7 +171,7 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="makroc\CompileMacros.c">
+    <ClCompile Include="macro_compiler\CompileMacros.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FilePattern.c">
@@ -201,10 +201,10 @@
     <ClCompile Include="PrintFiles.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="makroc\PrintBindings.c">
+    <ClCompile Include="macro_compiler\PrintBindings.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="makroc\DecompileMacros.c">
+    <ClCompile Include="macro_compiler\DecompileMacros.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SettingsIO.c">
@@ -255,13 +255,13 @@
     <ClCompile Include="StringTokenizer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="makroc\MacroSymbolMapping.c">
+    <ClCompile Include="macro_compiler\MacroSymbolMapping.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CrossReferenceLinks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="makroc\MacroExpressions.c">
+    <ClCompile Include="macro_compiler\MacroExpressions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NotYetImplemented.c">

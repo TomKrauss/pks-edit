@@ -584,7 +584,7 @@ BOOL CALLBACK DlgInstallPrtProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 								   sizeof szDriver);
 					if ((szOutput = strtok(szDriver,",")) != 0) {
 						wsprintf(szDriverName,"%s.DRV",szDriver);
-						if ((hLibrary = LoadLibrary(szDriverName)) >= 32) {
+						if ((hLibrary = LoadLibrary(szDriverName)) != NULL) {
 							lpfnDM = (DEVMODEPROC)GetProcAddress(hLibrary,"DEVICEMODE");
 							(*lpfnDM)(hDlg,hLibrary,(LPSTR)szDevice,(LPSTR)szOutput);
 							FreeLibrary(hLibrary);

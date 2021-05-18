@@ -1,7 +1,11 @@
 [files]
-"D:\source\pksedit\Clipboard.c", line 1: 0x0 0x1 -1 -1 -1 -1 0 0 1592 668
+"C:\Users\tom\AppData\Local\Temp\MACROS.PKC", line 6: 0x1 0x1 596 38 -8 -31 388 154 1106 763
+"D:\source\pksedit\Clipboard.c", line 64: 0x0 0x1 -1 -1 -1 -1 0 0 1592 668
 [find]
 [replace]
 [open]
+!C:\Users\tom\AppData\Local\Temp\MACROS.PKC
+!C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
+!C:\Users\tom\AppData\Local\Temp\Mac1.PKC
 [pathes]
 !D:\source\pksedit\*.*

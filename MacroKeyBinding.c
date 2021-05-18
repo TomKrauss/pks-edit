@@ -850,7 +850,7 @@ static LONG SelectedMacro(HWND hwnd)
 
 	if ((item = SendDlgItemMessage(hwnd, IDD_MACROLIST, LB_GETCURSEL, 0, 0)) < 0)
 		return -1;
-	SendDlgItemMessage(hwnd, IDD_MACROLIST, LB_GETTEXT, (WPARAM)item, (LONG)&nData);
+	SendDlgItemMessage(hwnd, IDD_MACROLIST, LB_GETTEXT, (WPARAM)item, (LPARAM)&nData);
 	return nData;
 }
 
@@ -865,7 +865,7 @@ static LONG SelectedKey(HWND hwnd)
 	if ((item = SendDlgItemMessage(hwnd, IDD_LISTBOX2, LB_GETCURSEL, 0, 0)) < 0) {
 		return K_DELETED;
 	}
-	SendDlgItemMessage(hwnd, IDD_LISTBOX2, LB_GETTEXT, (WPARAM)item, (LONG)&nKey);
+	SendDlgItemMessage(hwnd, IDD_LISTBOX2, LB_GETTEXT, (WPARAM)item, (LPARAM)&nKey);
 	return nKey;
 }
 
@@ -921,7 +921,7 @@ static BOOL MacroSelectByValue(HWND hwnd, LONG lValue)
 	nItems = SendMessage(hwndList, LB_GETCOUNT, 0, 0);
 
 	for (i = 0; i < nItems; i++) {
-		SendMessage(hwndList, LB_GETTEXT, (WPARAM)i, (LONG)&nData);
+		SendMessage(hwndList, LB_GETTEXT, (WPARAM)i, (LPARAM)&nData);
 		if (nData == lValue) {
 			SendMessage(hwndList, LB_SETCURSEL, i, 0);
 			return TRUE;
@@ -1070,7 +1070,7 @@ static void NewMacroSelected(HWND hwnd)
 	for (kp = _keytables->rt_data; kp < (KEYBIND*)_keytables->rt_end; kp++) {
 		if (MAKELONG(kp->macref.typ,kp->macref.index) == nSelected) {
 			nKeys++;
-			SendMessage(hwndList,LB_ADDSTRING,0,(LONG)kp->keycode);
+			SendMessage(hwndList,LB_ADDSTRING,0,(LPARAM)kp->keycode);
 		}
 	}
 	list_endfilling(hwndList,0);
@@ -1088,10 +1088,10 @@ static void FillKeyTables(HWND hwnd)
 
 	hwndList = list_startfilling(hwnd,IDD_LISTBOX,&nCurr);
 	for (rp = _keytables; rp; rp = rp->rt_next) {
-		SendMessage(hwndList,LB_ADDSTRING,0,(LONG)rp->rt_name);
+		SendMessage(hwndList,LB_ADDSTRING,0,(LPARAM)rp->rt_name);
 	}
 	list_endfilling(hwndList,0);
-	SendMessage(hwndList, LB_SELECTSTRING, -1, (LONG)_keytables->rt_name);
+	SendMessage(hwndList, LB_SELECTSTRING, -1, (LPARAM)_keytables->rt_name);
 }
 
 /*------------------------------------------------------------

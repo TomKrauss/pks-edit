@@ -25,7 +25,7 @@
 extern void 	Alert(char *, ...);
 extern long 	number(char *s);
 extern int 		IsStringType(unsigned char typ);
-extern int 		GetDollar(long offset, int *typ, long *value);
+extern int 		GetDollar(intptr_t offset, int *typ, intptr_t *value);
 
 static SYMBOL	nullSymbol;
 
@@ -149,7 +149,7 @@ SYMBOL sym_find(char *key,char **key_ret)
 /*--------------------------------------------------------------------------
  * sym_insert()
  */
-int sym_insert(char *key, int symtype, long symdata)
+int sym_insert(char *key, int symtype, intptr_t symdata)
 {
 	ENTRY	*ep;
 
@@ -237,7 +237,7 @@ long MakeInteger(char *symbolname)
 {
 	SYMBOL 	sym;
 	int		isString;
-	long		value;
+	long	value;
 
 	sym = GetVariable(symbolname);
 
@@ -268,7 +268,7 @@ long MakeString(char *symbolname)
 {
 	SYMBOL 	sym;
 	int		isString;
-	long		value;
+	intptr_t		value;
 	static char buf[20];
 
 	sym = GetVariable(symbolname);

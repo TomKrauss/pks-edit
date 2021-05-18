@@ -143,7 +143,7 @@ void ic_lboxfill(HWND hwnd, int nItem, long selValue)
 	 * type may not be used by the user
 	 */
 	for (icp = iconclasses; icp && icp->next; icp = icp->next)
-		SendDlgItemMessage(hwnd,nItem,LB_ADDSTRING,0,(LONG)icp);
+		SendDlgItemMessage(hwnd,nItem,LB_ADDSTRING,0,(LPARAM)icp);
 	SendDlgItemMessage(hwnd,nItem,LB_SELECTSTRING,(WPARAM)-1,selValue);
 	icp = (ICONCLASS *)selValue;
 	if (icp) {
@@ -570,13 +570,13 @@ static int		nButtonY;
  */
 static int ic_sel1(HWND hwnd)
 {
-	SendMessage(hwnd,WM_ICONSELECT,0,(LONG)ICID_CLIP);
+	SendMessage(hwnd,WM_ICONSELECT,0,(LPARAM)ICID_CLIP);
 	return 1;
 }
 
 static int ic_sel2(HWND hwnd)
 {
-	SendMessage(hwnd,WM_ICONSELECT,1,(LONG)ICID_TRASH);
+	SendMessage(hwnd,WM_ICONSELECT,1,(LPARAM)ICID_TRASH);
 	return 1;
 }
 

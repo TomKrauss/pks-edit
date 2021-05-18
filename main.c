@@ -701,7 +701,7 @@ WNDPROC FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case WM_TIMER:	
-			asfiles();
+			TriggerAutosaveAllFiles();
 			ww_timer();
 			ic_selecticons();
 			break;

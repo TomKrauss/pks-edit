@@ -601,7 +601,7 @@ int exprsub(unsigned char *pat,unsigned char *newpat,int maxlen)
 					} else goto normal;
 					break;
 			}
-			len += (qend-q);
+			len += (int) (qend-q);
 			if (len > maxlen) 
 				return -1;
 			while (q < qend)

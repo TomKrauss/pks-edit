@@ -69,7 +69,7 @@ int mac_insert(char *name, char *comment, void *data, int size)
  */
 static COM_FORM *_lastformstart;
 unsigned char *AddComSeq(unsigned char *sp, unsigned char *spend,
-				     unsigned char typ, long par)
+				     unsigned char typ, intptr_t par)
 {	long s;
 	unsigned char *spret;
 
@@ -154,7 +154,7 @@ unsigned char *AddComSeq(unsigned char *sp, unsigned char *spend,
 /*--------------------------------------------------------------------------
  * PushTypedAssign()
  */
-static void PushTypedAssign(int comType, char *name, int typ, long val)
+static void PushTypedAssign(int comType, char *name, int typ, intptr_t val)
 {
 	unsigned char *	p1;
 	COM_ASSIGN *		ap;
@@ -178,7 +178,7 @@ static void PushTypedAssign(int comType, char *name, int typ, long val)
 /*--------------------------------------------------------------------------
  * PushAssign()
  */
-void PushAssign(char *name, int typ, long val)
+void PushAssign(char *name, int typ, intptr_t val)
 {
 
 	PushTypedAssign(C_ASSIGN, name, typ, val);
@@ -187,7 +187,7 @@ void PushAssign(char *name, int typ, long val)
 /*--------------------------------------------------------------------------
  * PushAssign()
  */
-void PushCreateVariable(char *name, int typ, long val)
+void PushCreateVariable(char *name, int typ, intptr_t val)
 {
 	unsigned char *	p1;
 	COM_CREATESYM *	ap;
@@ -225,7 +225,7 @@ struct typedval PushBinop(int opd_typ, struct typedval *v1, struct typedval *v2)
 	bp->typ = C_BINOP;
 	bp->op = opd_typ;
 	sprintf(bp->result,"__ret%d",vname_count++);
-	ret.val = (long)bp->result;
+	ret.val = (intptr_t)bp->result;
 	ret.type = (IsStringType(v1->type) && (!v2 || IsStringType(v2->type))) ?
 		C_STRINGVAR : C_LONGVAR;
 	p1 = bp->result;

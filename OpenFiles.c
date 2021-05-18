@@ -31,8 +31,6 @@
 #include "edifsel.h"
 #include "edhist.h"
 #include "pksedit.h"
-#include "editorconfiguration.h"
-#include "errordialogs.h"
 #include "stringutil.h"
 
 extern void *	shareAlloc();
@@ -90,11 +88,11 @@ void ft_CheckForChangedFiles(void) {
 }
 
 /*---------------------------------*/
-/* asfiles()					*/
+/* TriggerAutosaveAllFiles()					*/
 /* do an autosave				*/
 /*---------------------------------*/
 #define 	HZ			1000L
-int asfiles(void)
+int TriggerAutosaveAllFiles(void)
 {	int	    		ret,flags,saved;
 	long     		now,dclicks;
 	register FTABLE *fp;
@@ -349,6 +347,7 @@ long ft_size(FTABLE *fp)
 
 /*------------------------------------------------------------
  * ft_fpbyname()
+ * Find a filebuffer given the name of the file.
  */
 FTABLE *ft_fpbyname(char *fn)
 {	FTABLE *fp;
@@ -363,6 +362,7 @@ FTABLE *ft_fpbyname(char *fn)
 
 /*------------------------------------------------------------
  * ft_editing()
+ * Answer true, if we are editing the file named fn.
  */
 int ft_editing(char *fn)
 {
@@ -469,6 +469,7 @@ int EdSelectWindow(int winid)
 
 /*------------------------------------------------------------
  * ft_select()
+ * Make the passed filebuffer the "current" edited file in PKS Edit.
  */
 int ft_select(FTABLE *fp)
 {
@@ -500,9 +501,9 @@ int txtfile_select(int title, char *result)
 
 
 /*------------------------------------------------------------
- * selnfile()
+ * ActivateWindowOfFileNamed()
  */
-int selnfile(char *fn)
+int ActivateWindowOfFileNamed(char *fn)
 {
 	FTABLE 	*fp;
 	char 	fullname[256];
@@ -556,7 +557,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 			return 0;
 		}
 		if (ret == IDNO) {
-			return selnfile(fn);
+			return ActivateWindowOfFileNamed(fn);
 		}
 	}
 #endif

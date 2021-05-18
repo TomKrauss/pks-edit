@@ -196,7 +196,7 @@ typedef struct c_int1 {
 typedef struct c_long1 {
 	unsigned char typ;		/* CMD_LONG1PAR */
 	unsigned char res;
-	long     	    val;
+	intptr_t  	  val;
 } COM_LONG1;
 
 typedef struct c_string1 {

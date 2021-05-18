@@ -16,6 +16,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
+#include <stdlib.h>
 #include "tos.h"
 #include "lineoperations.h"
 #include "project.h"
@@ -60,7 +61,7 @@ static int     _linealid = LIN_DEFCTX;
 static int	_ndoctypes;
 FSELINFO 		_linfsel = {	"", "DEFAULT.LIN", "*.LIN" };
 
-#define	LINSPACE			((long )&(((LINEAL *)0)->ts))
+#define	LINSPACE			((long)&(((LINEAL *)0)->ts))
 
 /*--------------------------------------------------------------------------
  * TabStop()
@@ -232,7 +233,7 @@ int AddDocumentTypesToListBox(HWND hwnd, int nItem)
 	int			nCnt;
 
 	for (llp = _linl, nCnt = 0; llp != 0; llp = llp->ll_next) {
-		SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, (LONG)llp);
+		SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, (LPARAM)llp);
 		nCnt++;
 	}
 	return nCnt;
@@ -304,9 +305,9 @@ int CreateTempFileForDocumentType(char *linfn, char *tmpfn)
  */
 int MergeDocumentTypes(char *pszLinealFile, char *pszDocMacFile)
 {
-	int		fd;
-	int		fdDocMac;
-	int		fdTmp;
+	HFILE		fd;
+	int			fdDocMac;
+	HFILE		fdTmp;
 	long		size;
 	char		tmpfn[512];
 

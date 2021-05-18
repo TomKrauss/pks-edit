@@ -20,7 +20,8 @@ running only on Atari ST.
 It was then integrated as a text editor into [ObjectStudio Smalltalk](https://www.cincomsmalltalk.com/main/products/objectstudio/) and ported to Unix, Windows and OS/2.
 
 Finally it was migrated to Microsoft Windows. The source code in this repo is the final
-Windows version of the editor.
+Windows version of the editor. It is currently available as a 64 bit Windows application
+and runs on recent Windows version (10...).
 
 ## Hacking
 
@@ -28,6 +29,13 @@ To change, edit, compile and run the source code of PKS Edit, we recommend to us
 [Microsoft Visual Studio 2019](https://visualstudio.microsoft.com/de/vs/). The community
 edition will do it - you do not need a professional or enterprise edition. Simply
 open the Pksedit.sln solution and run / debug / build it.
+
+To enhance the macro compiler, you need flex and bison. You may download flex and bison from
+here:
+- http://gnuwin32.sourceforge.net/packages/flex.htm
+- http://gnuwin32.sourceforge.net/packages/bison.htm
+Install flex and bison into a directory GNU_HOME and set the environment variable GNU_HOME to
+point to that directory (not the bin directory, which will be created below the GNU_HOME directory).
 
 ## Features
 

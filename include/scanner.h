@@ -23,17 +23,17 @@
 #endif
 
 typedef union yytype {
-	long		num;
+	long	num;
 	int		islocal;
-	char		*s;
-	void		*funcp;
-	char		c;
+	char	*s;
+	void	*funcp;
+	char	c;
 	unsigned char type;
 	MACROREF	macref;
 	MOUSECODE mousecode;
 	struct typedval {
 		unsigned char type;
-		long 		val;
+		intptr_t val;
 	} v;
 } _YYSTYPE;
 

@@ -525,7 +525,7 @@ char *tagword(unsigned char *d,unsigned char *dend)
 int tagopen(char *name, long line, WINDOWPLACEMENT *wsp) {	
 	int ret = 0;
 
-	if (selnfile(name)) {
+	if (ActivateWindowOfFileNamed(name)) {
 		if (line >= 0)
 			ret = centernewpos(line,0L);
 		else ret = 1;

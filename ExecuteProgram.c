@@ -21,6 +21,7 @@
 #include "edexec.h"
 #include "pksedit.h"
 #include "edierror.h"
+#include "errordialogs.h"
 #include "lineoperations.h"
 #include "winterf.h"
 
@@ -29,10 +30,6 @@ extern void stepnofsel(char *fn, int cmpflg);
 extern char *searchfile(char *s);
 extern void strdcpy(char *dest,char *source,char *fname);
 extern char *TmpDir(void);
-extern void alert(LPSTR fmt, ...);
-extern int ProgressMonitorCancel(BOOL bRedraw);
-extern void ProgressMonitorStart(WORD ids);
-extern void ProgressMonitorClose(int always);
 extern void u_init(FTABLE *fp);
 
 extern FTABLE 	_outfile;
