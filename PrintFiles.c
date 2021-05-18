@@ -58,9 +58,9 @@ static PRTPARAM _prtparams = {
 
 	0,0,0,0,			/* distances header, footer */
 	0,10,0,"Courier",	/* Header Font: oemmode,cheight,cwidth,name */
-	"",				/* header, footer templates */
-	"",
-	0,				/* header, footer align */
+	"",					/* header template. A PKS Edit template (see mysprintf) optionally containing multiple segments separated by '!' */
+	"%s$f - %D",		/* footer template */
+	0,					/* header, footer align */
 
 	0,10,0,"Courier",	/* Footnote Font: oemmode,cheight,cwidth,name */
 
@@ -403,11 +403,11 @@ static void DrawLine(HDC hdc, int x1, int x2, int y)
  */
 static int PrintFile(HDC hdc)
 {	char 		message[128];
-	long			oldpageno,lineno,pageno;
+	long		oldpageno,lineno,pageno;
 	int			yPos,ret = 1;
 	DEVEXTENTS	de;
 	LINE 		*lp,*lplast;
-	PRTPARAM		*pp = &_prtparams;
+	PRTPARAM	*pp = &_prtparams;
 	int			firstc,lastc;
 	RECT		pageRect;
 
@@ -509,6 +509,7 @@ BOOL CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 		case WM_INITDIALOG:
 			hwndPreview = hDlg;
 			form_move(hDlg);
+			SetDlgItemInt(hDlg, IDD_INT1, _previewpage, 0);
 			break;
 		case WM_COMMAND:
 			switch(GET_WM_COMMAND_ID(wParam, lParam)) {
@@ -563,11 +564,11 @@ BOOL CALLBACK DlgInstallPrtProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 			GetProfileString("devices", NULL, "", _linebuf, LINEBUFSIZE);
 			s = _linebuf;
 			while(*s) {
-				SendMessage(hwndList,LB_ADDSTRING,0,(LONG)s);
+				SendMessage(hwndList,LB_ADDSTRING,0,(LPARAM)s);
 				while(*s++)
 					;
 			}
-			SendMessage(hwndList, LB_SELECTSTRING, -1, (LONG)szPrtDevice);
+			SendMessage(hwndList, LB_SELECTSTRING, -1, (LPARAM)szPrtDevice);
 			form_move(hDlg);
 			break;
 		case WM_COMMAND:
@@ -730,12 +731,16 @@ again:
 			message,
 			&pp->startpage,&pp->endpage,&pp->pageoffs)) {
 		case IDD_BUT3:	
-			_previewpage = 1; break;		/* Preview.. */
-		default: 		goto byebye;
+			_previewpage = 1; break; /* Start Preview.. */
+		case IDD_BUT4:
+			break;
+		default:  goto byebye;
 		case IDOK: break;				/* Print.. */
 	}
 
-	if (_previewpage > 0) {
+	if (nFunc == IDD_BUT4) {
+		EdPrinterLayout();
+	} else if (_previewpage > 0) {
 		winfo.fnt_name[0] = 0;
 		DoDialog(DLGPREVIEW,DlgPreviewProc,(LPSTR)0);	
 	} else {
@@ -765,8 +770,9 @@ again:
 		if (errEscape)
 			goto byebye;
 	}
-	if (nFunc == IDD_BUT3)
+	if (nFunc == IDD_BUT3 || nFunc == IDD_BUT4) {
 		goto again;
+	}
 	ret = 1;
 byebye:
 	if (what == PRT_FILE && fp)
@@ -785,8 +791,7 @@ static void PrtInstall(void)
 /*--------------------------------------------------------------------------
  * EdPrinterLayout()
  */
-int EdPrinterLayout(void)
-{
+int EdPrinterLayout(void) {
 	static EDFONT	font;
 	static EDFONT	htfont;
 	static int 	hfalign;
@@ -805,7 +810,9 @@ int EdPrinterLayout(void)
 		IDD_INT2,			0,				&nchars,
 		IDD_INT3,			0,				&lmargin,
 		IDD_INT4,			0,				&rmargin,
-		IDD_FONTSELECT,	TRUE,			&font,
+		IDD_STRING1,		sizeof _prtparams.header,	_prtparams.header,
+		IDD_STRING2,		sizeof _prtparams.footer,	_prtparams.footer,
+		IDD_FONTSELECT,	TRUE,				&font,
 		IDD_FONTSELECT2,	TRUE,			&htfont,
 		IDD_CALLBACK1,		0,				PrtInstall,
 		0

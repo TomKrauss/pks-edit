@@ -202,7 +202,8 @@ static long CurrentNumVal(FTABLE *fp, char **fmt)
  * mysprintf()
  */
 /*
-	dollar handling:
+	One can append to %x formats the following $ place holders to format the corresponding value.
+	One sample would be %s$f - prints the file name of a file in string format.
 
 	$O		fileoffset
 	$C		current character
@@ -214,13 +215,17 @@ static long CurrentNumVal(FTABLE *fp, char **fmt)
 	$w		Window Handle
 	$h		Verweispfad - Hilfe
 	$t		Verweispfad
-	$*		ge„ndert : "*"
+	$*		geändert : "*"
 	$r		read only: "
+
+	Special % formats supported:
+	%D		current date
+	%T		current time
 */
 
 int mysprintf(FTABLE *fp, char *d, char *format,...)
 {
-static char *	_digits = "0123456789ABCDEFGHIJ";
+	static char *_digits = "0123456789ABCDEFGHIJ";
 	long 	val;
 	int		c;
 	int		l;

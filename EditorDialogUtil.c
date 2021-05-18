@@ -688,6 +688,9 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 			if (idCtrl != IDCANCEL && !DlgApplyChanges(hDlg, idCtrl, dp)) {
 				return FALSE;
 			}
+			if ((dp2 = GetItemDialListData(dp, idCtrl)) != 0) {
+				callback = (int (*)())dp2->dp_data;
+			}
 endd:		if (callback) {
 				(*callback)(hDlg,idCtrl);
 				return TRUE;
