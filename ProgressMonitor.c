@@ -27,7 +27,7 @@ extern int	_playing;
 
 HWND hwndAbort;
 
-static FARPROC lpfnAbort;
+static DLGPROC lpfnAbort;
 static int  	_cancelled;
 
 /*------------------------------------------------------------

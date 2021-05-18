@@ -13,15 +13,16 @@
 
 # pragma warn -rch
 
-# include	<stdio.h>
+# include <stdio.h>
 # include <string.h>
 # include <stdlib.h>
 # include <stdarg.h>
-# include	"sym.h"
-# include	"edfuncs.h"
-# include	"scanner.h"
+# include "sym.h"
+# include "edfuncs.h"
+# include "scanner.h"
 # include "parser.h"
-# include	"editab.h"
+# include "editab.h"
+# include "stringutil.h"
 # include "pkscc.h"
 
 # undef  input
@@ -44,7 +45,6 @@ int				_bDefiningConst;
 
 typedef void EDFUNCDEF;
 
-extern char 		*stralloc(char *s);
 extern EDFUNCDEF 	*Name2Findex(char *name);
 extern FILE		*createtmp(char *fnd, char *fn);
 extern int 		init_funcs(void);

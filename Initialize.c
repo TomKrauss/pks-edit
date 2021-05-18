@@ -17,11 +17,11 @@
 #include "lineoperations.h"
 #include "pathname.h"
 #include "editorconfiguration.h"
+#include "stringutil.h"
 
 #undef DELIVER
 
 extern int EdStat(char *s);
-extern LPSTR 	strmaxcpy(LPSTR pszDest, LPSTR pszSource, int nMax);
 extern void  	stepselectcompiler(char *pszName);
 extern int   	proj_init(void);
 extern void 	c2asc(char *start, char *source, unsigned char hi, unsigned char lo);
@@ -35,7 +35,7 @@ char _homedir[EDMAXPATHLEN];
 char _sysdir[EDMAXPATHLEN +8]  = "****TKR.";
 char _serial[10]      = "100000";
 char _cryptserial[32] = "?";
-char _kunde[30]       = "free version (by us a beer)";
+char _kunde[30]       = "free version (buy us a beer)";
 char _cryptkunde[80]  = "X";
 
 /*---------------------------------*/

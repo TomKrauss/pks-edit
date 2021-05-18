@@ -16,10 +16,9 @@
 #include "caretmovement.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
+#include "lineoperations.h"
 
 extern	int		_playing;
-extern	FTABLE	*_currfile;
-extern	LINE	*ln_cut();
 
 /*--------------------------------------------------------------------------
  * LOCALS

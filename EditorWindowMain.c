@@ -702,9 +702,9 @@ WINFUNC EditWndProc(
 		ShowWindow(hwnd, SW_HIDE);
 		MakeSubWis(hwnd,fp,&xyWork,&xyRuler);
 		ww_setwindowtitle(fp,wp);
-		SetWindowLongPtr(hwnd,GWL_ICPARAMS,fp->fname);
+		SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR) fp->fname);
 		SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,icEditIconClass);
-		SetWindowLongPtr(hwnd,GWL_FTABLE,fp);
+		SetWindowLongPtr(hwnd,GWL_FTABLE, (LONG_PTR) fp);
 		return 0;
 		}
 
@@ -937,7 +937,7 @@ WINFUNC WorkAreaWndProc(
 
 		fp = (FTABLE *)(((LPCREATESTRUCT)lParam)->lpCreateParams);
 		wp = WIPOI(fp);
-		SetWindowLongPtr(hwnd, 0, fp);
+		SetWindowLongPtr(hwnd, 0, (LONG_PTR) fp);
 		EdSelectStdFont(hwnd, wp);
 		return 0;
 		}
@@ -1179,7 +1179,7 @@ WINFUNC RulerWndProc(
 
 		case WM_CREATE:
 			fp = (FTABLE *)(((LPCREATESTRUCT)lParam)->lpCreateParams);
-			SetWindowLongPtr(hwnd,0,fp);
+			SetWindowLongPtr(hwnd,0, (LONG_PTR)fp);
 			return 0;
 
 		case WM_MOUSEMOVE:

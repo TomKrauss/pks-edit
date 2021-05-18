@@ -658,7 +658,7 @@ int EdCharInsert(int c)
 		return EdLineSplit(c == lnp->nl ? RET_SOFT : 0);
 	}
 
-	if ((GetConfiguration()->options & O_AUTODELBLOCK) && _chkblk(fp)) {
+	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && _chkblk(fp)) {
 		EdBlockDelete(0);
 		if (c == 8 || c == 127) {
 			return 1;

@@ -20,13 +20,11 @@
 
 #define	isblnk(c)			(c == ' ' || c == '\t' || c == '' || c == '' || c == '')
 
-extern long ln_cnt(LINE *lps,LINE *lpe);
 extern long cparagrph(long ln,int dir,int start);
 extern LINE *ln_relative(LINE *cl, long l);
 extern LINE *ln_goto(FTABLE *fp, long l);
 extern MARK *mark_set(FTABLE *fp, LINE *lp,int offs,int c);
 extern LINE *mark_goto(FTABLE *fp, int c, long *ln, long *col);
-extern long ln_find(FTABLE *fp,LINE *lp);
 extern int IsSpace(unsigned char c);
 
 static FTABLE 		_fmtfile;

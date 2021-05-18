@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include "stringutil.h"
+
 #define U(x) x
 #ifdef TURBO
 int yyback(int *p,int m);
@@ -75,7 +77,6 @@ int				_bDefiningConst;
 
 typedef void EDFUNCDEF;
 
-extern unsigned char* stralloc(unsigned char* buf);
 extern EDFUNCDEF 	*Name2Findex(char *name);
 extern FILE		*createtmp(char *fnd, char *fn);
 extern int 		init_funcs(void);

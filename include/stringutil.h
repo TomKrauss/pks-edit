@@ -87,5 +87,16 @@ extern char* OemAbbrevName(const char* fn);
  */
 extern char* FullPathName(const char* path, const char* fn);
 
+/*------------------------------------------------------------
+ * stralloc()
+ * allocate a copy of the passed string.
+ */
+unsigned char* stralloc(unsigned char* buf);
+
+/*
+ * Free the dereferenced pointer and initialize the space pointed to with NULL.
+ */
+extern void destroy(char** ap);
+
 #define STRINGUTIL_H
 #endif

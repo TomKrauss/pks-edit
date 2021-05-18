@@ -15,14 +15,6 @@
 #include "caretmovement.h"
 #include "edierror.h"
 
-/*----- EXTERNALS -----------*/
-
-extern FTABLE *_currfile;
-extern int	curpos(long ln,long col);
-extern long	ln_find(FTABLE *fp,LINE *lp);
-extern long 	ln_cnt(LINE *lps,LINE *lpe);
-extern void 	*ll_insert(void *head,long size);
-
 /*--------------------------------------------------------------------------
  * mark_find()
  */

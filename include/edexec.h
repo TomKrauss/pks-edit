@@ -22,7 +22,6 @@
 #define	EX_WCLIP		0x4000	/* write GEM clipboard before exec */
 #define	EX_RCLIP		0x8000	/* read GEM Clipboard after exec */
 #define	EX_SYMBOL		0x1
-#define	EX_WAIT			0x2
 #define	EX_CD			0x4
 #define	EX_RDNONE		0x10
 #define	EX_RDCONV		0x80

@@ -1,7 +1,7 @@
 /*
  * ColumnBlocks.c
  *
- * cut and copy of colomn blocks
+ * cut and copy of column blocks
  *
  * PROJECT: PKSEDIT
  *
@@ -17,11 +17,6 @@
 #include "edierror.h"
 
 #define	TAB		9
-
-/*-----------------------*/
-/* EXTERNALS			*/
-/*-----------------------*/
-extern FTABLE	*_currfile;
 
 /*---------------------------------*/
 /* tabcpy()					*/

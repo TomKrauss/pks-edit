@@ -16,13 +16,9 @@
 #include "resource.h"
 #include "edfuncs.h"
 #include "helpitem.h"
+#include "stringutil.h"
 
 #define	MENU_TABCHAR	(char)8
-
-extern void *	ll_find(void *Head, char *name);
-extern void *	ll_insert(void *head,long size);
-extern int 		ll_delete(void *Head, void *Elem);
-extern LPSTR 	strmaxcpy(LPSTR pszDest, LPSTR pszSource, int nMax);
 
 typedef struct tagMENUS {
 	struct tagMENUS *	next;

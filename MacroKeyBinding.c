@@ -57,7 +57,6 @@ extern int 		menu_addentry(char *pszString, int menutype,
 extern void 		menu_startdefine(char *szMenu);
 extern void 		st_switchtomenumode(BOOL bMenuMode);
 
-extern unsigned char *stralloc(unsigned char *buf);
 extern MACROREF *	menu_getuserdef(int nId);
 extern int 		CanExecute(int num, int warn);
 extern void 		SetMenuFor(char *pszContext);

@@ -22,6 +22,7 @@
 #include "winterf.h"
 #include "pksedit.h"
 #include "ftw.h"
+#include "stringutil.h"
 
 extern char *	_datadir;
 static FTABLE	*_outfile;
@@ -30,7 +31,6 @@ static int 		_abortOnFirstMatch,_trymatch;
 
 extern char		_expbuf[];
 extern int 		prnfl(FTABLE *fp, char *fn, long line, char *remark);
-extern char 	*AbbrevName(char *fn);
 extern void 	ShowMessage(WORD nId, ...);
 /*---------------------------------*/
 /* readfrags()					*/

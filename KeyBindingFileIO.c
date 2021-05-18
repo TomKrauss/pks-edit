@@ -26,10 +26,6 @@
 
 #define	MAX_CONTEXT	32
 
-extern	unsigned char *stralloc(unsigned char *buf);
-extern	LPSTR lstrchr(char *s, char c);
-extern	LINE *ln_modify(FTABLE *fp, LINE *lp, int o1, int o2);
-extern 	long ln_cnt(LINE *lps, LINE *lpe);
 extern 	char	*TmpDir();
 extern int DialogTemplate(unsigned char c, 
 			char *(*fpTextForTmplate)(char *s), char *s);
@@ -40,7 +36,6 @@ extern unsigned char *BlockAsBuffer(unsigned char *b, unsigned char *end,
  * EXTERNALS
  */
 extern 	char 	*_strtolend;
-extern	FTABLE 	*_currfile;
 extern	FSELINFO 	_linfsel;
 
 extern 	PASTE	*plistenq();

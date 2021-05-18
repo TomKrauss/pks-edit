@@ -34,8 +34,6 @@
 #include "pksedit.h"
 #include "stringutil.h"
 
-extern unsigned char* stralloc(unsigned char* buf);
-extern char *	FullPathName(char *path,char *fn);
 extern int  	GetPksProfileString(char *grp, char *ident, char *string, int maxlen);
 extern void 	GetSelectableDocumentFileTypes(LPSTR pszDest, int nMax);
 extern int 		DoDocumentTypes(int nDlg);

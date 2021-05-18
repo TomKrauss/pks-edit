@@ -22,6 +22,7 @@
 #include "caretmovement.h"
 #include "winfo.h"
 #include "pksedit.h"
+#include "edierror.h"
 
 #define	different(lp1,lp2)	cmpnormal(lp1->lbuf,lp1->len,lp2->lbuf,lp2->len)
 #define	mark(lp)			lp->lflg |= LNXMARKED

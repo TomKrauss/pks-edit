@@ -29,6 +29,7 @@
 #include "regexp.h"
 #include "edhist.h"
 #include "errordialogs.h"
+#include "lineoperations.h"
 
 #define	UCHAR	unsigned char
 
@@ -36,15 +37,10 @@
  * EXTERNALS
  */
 
-extern	FTABLE 	*_currfile;
-extern	LINE   	*ln_relgo(),*ln_goto(),
-				*ln_modify(),*ln_split(),*lninsblnk();
 extern 	MARK		*mark_set(FTABLE *fp, LINE *lp,int offs,int c);
 extern 	MARK		*mark_find(FTABLE *fp, int c);
 extern	int    	_playing,cursor_width;
 extern	long 	cparagrph(long ln,int dir,int start);
-
-extern	void 	*_alloc();
 
 extern	long	  	ln_find(FTABLE *fp, LINE *lp);
 

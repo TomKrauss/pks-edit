@@ -23,7 +23,6 @@ extern void 		Alert(char *s, ...);
 extern void 		protokoll(char *s, ...);
 extern int 		ActiveRulerContext(int ctx);
 extern void 		*_alloc(unsigned size);
-extern unsigned char* stralloc(unsigned char* buf);
 extern void 		_free(void *p);
 
 # ifdef __STDIO

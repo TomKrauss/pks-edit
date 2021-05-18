@@ -37,7 +37,6 @@
 
 extern int 		AbandonFile(FTABLE *fp, LINEAL *linp);
 extern int 		mac_runcmd(MACROREF *mp);
-extern unsigned char* stralloc(unsigned char* buf);
 extern int 		AlignText(char *finds, int scope, char filler, int flags);
 extern long 	ft_size(FTABLE *fp);
 extern char *	AbbrevName(char *fn);

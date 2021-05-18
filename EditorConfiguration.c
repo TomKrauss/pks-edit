@@ -40,7 +40,7 @@ static void AutosaveConfiguration() {
  * The default configuration.  
  */
 static EDITOR_CONFIGURATION _configuration = {
-	(UNDOENABLED | WARNINGS | E_BELL | O_CUTBUFEQCLIP | O_AUTODELBLOCK),
+	(UNDOENABLED | WARNINGS | E_BELL | O_CUTBUFEQCLIP | O_HIDE_BLOCK_ON_CARET_MOVE),
 	(OL_OPTIONBAR | OL_SHOWSTATUS),
 	1,
 	3,
@@ -55,7 +55,8 @@ static DIALPARS _dAutoSave[] = {
 	IDD_OPT1,		O_GARBAGE_AS,							& _configuration.options,
 	IDD_STRING1,	sizeof _configuration.pksEditTempPath,	_configuration.pksEditTempPath,
 	IDD_OPT2,		O_SAVE_SETTINGS_ON_EXIT,				&_configuration.options,
-	IDD_OPT3,		O_SAVESEQ,								& _configuration.options,
+	IDD_OPT3,		O_READPIC,								& _configuration.options,
+	IDD_OPT4,		O_SAVESEQ,								& _configuration.options,
 	// Terminate with 0
 	0
 };
@@ -84,7 +85,8 @@ static DIALPARS _dMisc[] = {
 	IDD_NOCHANGEONCANCEL,	0,	0,
 	IDD_OPT1,		UNDOENABLED,					& _configuration.options,
 	IDD_INT1,		sizeof _configuration.nundo,	&_configuration.nundo,
-	IDD_OPT2,		O_FORMFOLLOW,					& _configuration.options,
+	IDD_OPT2,		O_HIDE_BLOCK_ON_CARET_MOVE,		& _configuration.options,
+	IDD_OPT3,		O_FORMFOLLOW,					& _configuration.options,
 	// Terminate with 0
 	0
 };

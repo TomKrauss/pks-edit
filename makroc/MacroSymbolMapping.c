@@ -20,6 +20,7 @@
 #include "edfuncs.h"
 #include "pkscc.h"
 #include "sym.h"
+#include "stringutil.h"
 
 extern void 	Alert(char *, ...);
 extern long 	number(char *s);

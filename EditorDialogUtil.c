@@ -118,7 +118,7 @@ FARPROC SubClassWndProc(int set, HWND hDlg, int item, FARPROC lpfnNewProc)
 	if (set) {
 		lpfnNewProc = MakeProcInstance(lpfnNewProc,hInst);
 	} 
-	SetWindowLongPtr(hwndItem,GWLP_WNDPROC, lpfnNewProc);
+	SetWindowLongPtr(hwndItem,GWLP_WNDPROC, (LONG_PTR) lpfnNewProc);
 	if (!set) {
 		FreeProcInstance(lpfnNowProc);
 	}
@@ -893,7 +893,7 @@ static void list_lboxfill(HWND hwnd, int nItem, void* selValue)
 		dlp = dlp->next;
 	}
 	SendDlgItemMessage(hwnd, nItem, WM_SETREDRAW, TRUE, 0L);
-	SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING, -1, selValue);
+	SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING, -1, (LPARAM) selValue);
 }
 
 /*--------------------------------------------------------------------------

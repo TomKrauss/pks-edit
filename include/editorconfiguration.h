@@ -38,8 +38,8 @@
 #define	O_MESSAGES		0x800		/* message window */
 
 #define	UNDOENABLED		0x2000
-#define	O_CUTBUFEQCLIP		0x4000		/* clipboard == cut buffer */
-#define	O_AUTODELBLOCK		0x1000		/* delete marked block on insert */
+#define	O_CUTBUFEQCLIP	0x4000		/* clipboard == cut buffer */
+#define	O_HIDE_BLOCK_ON_CARET_MOVE	0x1000		/* hide block marks on caret movement */
 
  /*----- Option Flags assignable to EDITOR_CONFIGURATION.layoutoptions --------------*/
 /* layout options: fkeys, optionbar, statusline */

@@ -1,31 +1,7 @@
 [files]
-"D:\source\pksedit\TextBlocks.c", line 520: 0x0 0x1 -1 -1 -1 -1 0 0 1618 622
-"D:\source\pksedit\SettingsIO.c", line 36: 0x0 0x1 -1 -1 -1 -1 286 286 1904 908
-"D:\source\pksedit\ResourceFileIO.c", line 25: 0x0 0x1 -1 -1 -1 -1 260 260 1878 882
-"D:\source\pksedit\PublicMacroFunctions.c", line 1355: 0x0 0x1 -1 -1 -1 -1 234 234 1852 856
-"D:\source\pksedit\OpenFiles.c", line 37: 0x0 0x1 -1 -1 -1 -1 208 208 1826 830
-"D:\source\pksedit\MarkPositions.c", line 24: 0x0 0x1 -1 -1 -1 -1 182 182 1800 804
-"D:\source\pksedit\main.c", line 37: 0x0 0x1 -1 -1 -1 -1 156 156 1774 778
-"D:\source\pksedit\LinkedList.c", line 20: 0x0 0x1 -1 -1 -1 -1 130 130 1748 752
-"D:\source\pksedit\FileBufferIO.c", line 116: 0x0 0x1 -1 -1 -1 -1 104 104 1722 726
-"D:\source\pksedit\EditorWindowMain.c", line 195: 0x0 0x1 -1 -1 -1 -1 78 78 1696 700
-"D:\source\pksedit\DynamicMenus.c", line 22: 0x0 0x1 -1 -1 -1 -1 104 104 1722 726
-"D:\source\pksedit\DocumentTypes.c", line 34: 0x0 0x1 -1 -1 -1 -1 78 78 1696 700
-"D:\source\pksedit\DesktopIcons.c", line 628: 0x1 0x1 596 38 -8 -31 -1 0 717 609
-"D:\source\pksedit\CrossReferenceLinks.c", line 38: 0x1 0x1 596 68 -8 -31 -1 0 717 609
-"D:\source\pksedit\BracketMatching.c", line 101: 0x0 0x1 -1 -1 -1 -1 0 0 1592 668
+"D:\source\pksedit\Clipboard.c", line 1: 0x0 0x1 -1 -1 -1 -1 0 0 1592 668
 [find]
-!ll_
 [replace]
 [open]
-!D:\source\pksedit\MarkPositions.c
-!D:\source\pksedit\main.c
-!D:\source\pksedit\LinkedList.c
-!D:\source\pksedit\FileBufferIO.c
-!D:\source\pksedit\EditorWindowMain.c
-!D:\source\pksedit\DynamicMenus.c
-!D:\source\pksedit\DocumentTypes.c
-!D:\source\pksedit\DesktopIcons.c
-!D:\source\pksedit\CrossReferenceLinks.c
-!D:\source\pksedit\BracketMatching.c
 [pathes]
+!D:\source\pksedit\*.*

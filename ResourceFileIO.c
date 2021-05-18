@@ -21,10 +21,9 @@
 #include "edfuncs.h"
 #include "lineoperations.h"
 #include "resource.h"
+#include "stringutil.h"
 
-extern void 	*ll_insert(void *head,long size);
 extern MACRO 	*mac_byindex(int idx);
-extern char * 	strmaxcpy(char *pszDest, char *pszSource, int nMax);
 
 extern int	_nmacros;
 extern char	*_macroname;

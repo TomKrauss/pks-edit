@@ -22,12 +22,12 @@
 #include "winfo.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
+#include "stringutil.h"
 
 #define	MAXSEGMENTS			20
 
 extern int 		mysprintf(FTABLE *fp, char *d, char *fmt, ...);
 extern char *	lstrchr(const char *, const char);
-extern unsigned char *stralloc(unsigned char *buf);
 static char	*	pszStatusMessage;
 static BOOL		bSimpleMode;
 HWND			hwndStatus;

@@ -30,10 +30,7 @@
  * EXTERNALS
  */
 
-extern FTABLE	*_currfile;
 extern long	_multiplier;
-extern long	ln_cnt(LINE *lps,LINE *lpe);
-extern LINE 	*ln_gotouserel(FTABLE *fp,long ln);
 extern LINE	*optinswhite(FTABLE *fp, LINE *lp, int col, int *inserted);
 extern int	CalcTabs2Col(LINEAL *linp, int tabs);
 

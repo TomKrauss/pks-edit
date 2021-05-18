@@ -26,6 +26,7 @@
 #include "brackets.h"
 
 #include "resource.h"
+#include "stringutil.h"
 
 #if defined(WIN32)
 #define	_Windows

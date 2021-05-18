@@ -15,6 +15,8 @@
 #include <string.h>
 #include "lineoperations.h"
 #include "pksedit.h"
+#include "edierror.h"
+#include "stringutil.h"
 
 #define	NFILEMARKS		16
 
@@ -29,8 +31,6 @@ static FILEMARK
 		_tflist.tag, 
 		&_tflist.tag[NFILEMARKS-1]
 	};
-
-extern unsigned char* stralloc(unsigned char* buf);
 
 /*--------------------------------------------------------------------------
  * fm_freepos()

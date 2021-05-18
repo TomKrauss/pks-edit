@@ -45,7 +45,6 @@ typedef struct tagICONCLASS {
 
 extern int EdConfigureIcons(void);
 extern int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
-extern unsigned char* stralloc(unsigned char* buf);
 extern char *_strtolend;
 extern int  prof_savestring(char *grp, char *ident, char *string);
 extern void prof_adjustpoint(PPOINT pPoint);
@@ -260,7 +259,7 @@ char *ic_param(LPSTR szBuff, HWND hwnd,int n)
 {
 	char 	*s,szTmp[256];
 
-	s = (LPSTR)GetWindowLong(hwnd,GWL_ICPARAMS);
+	s = (LPSTR)GetWindowLongPtr(hwnd,GWL_ICPARAMS);
 
 	if (s != 0) {
 		if (n >= 0) {
@@ -326,7 +325,7 @@ HWND ic_active(LPSTR szTitle, LPSTR szParams, ICONCLASS **icClass)
 		return 0;
 	}
 	GetWindowText(hwnd,szTitle,32);
-	lstrcpy(szParams,(LPSTR)GetWindowLong(hwnd,GWL_ICPARAMS));
+	lstrcpy(szParams,(LPSTR)GetWindowLongPtr(hwnd,GWL_ICPARAMS));
 	*icClass = icp;
 	return hwnd;
 }
@@ -346,8 +345,8 @@ void ic_mod(LPSTR szTitle, LPSTR szParams, ICONCLASS *icClass)
 	if ((pp = (LPSTR)GetWindowLongPtr(hwnd,GWL_ICPARAMS)) != 0) {
 		_free(pp);
 	}
-	SetWindowLongPtr(hwnd,GWL_ICPARAMS,szParams);
-	SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,icClass);
+	SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR) szParams);
+	SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,(LONG_PTR) icClass);
 	SendMessage(hwnd,WM_ICONSELECT,0,icClass->ic_type);
 }
 
@@ -425,7 +424,7 @@ static int		nButtonY;
 				   	icp->ic_icon1 : icp->ic_icon2;
 			if (hIcon == holdIcon)
 				return 0;
-			SetWindowLongPtr(hwnd,GWL_ICICON,hIcon);
+			SetWindowLongPtr(hwnd,GWL_ICICON, (LONG_PTR) hIcon);
 			SendRedraw(hwnd);
 			/* drop through */
 
@@ -540,7 +539,7 @@ static int		nButtonY;
 		case WM_ERASEBKGND:
 			return 0;
 		case WM_DESTROY:
-			if ((param = (LPSTR)GetWindowLong(hwnd,GWL_ICPARAMS)) != 0) {
+			if ((param = (LPSTR)GetWindowLongPtr(hwnd,GWL_ICPARAMS)) != 0) {
 				_free(param);
 				SetWindowLongPtr(hwnd,GWL_ICPARAMS,0L);
 			}

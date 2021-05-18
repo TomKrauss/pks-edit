@@ -29,24 +29,14 @@ LONG GetWindowExt(HDC hdc) {
 	return MAKELONG((SHORT)size.cx, (SHORT)size.cy);
 }
 
+/*
+ * Free the dereferenced pointer and initialize the space pointed to with NULL.
+ */
 void destroy(char **ap) {
 	if (*ap) {
 		free(*ap);
 		*ap = 0;
 	}
-}
-
-unsigned char *stralloc(unsigned char *buf) {	
-	unsigned char *d;
-
-	if ((d = malloc(lstrlen(buf)+1)) != 0) {
-		lstrcpy(d,buf);
-	}
-	return d;
-}
-
-void nomemory(void) {
-	ed_error(IDS_MSGNOSPCE); 
 }
 
 #if 0

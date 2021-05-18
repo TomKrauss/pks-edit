@@ -42,15 +42,12 @@ extern LINE	*condexpline(FTABLE *fp, LINE *lp);
 extern int 	DialogTemplate(unsigned char c, 
 				char *(*fpTextForTmplate)(char *s), char *s);
 
-extern long	ln_find();
 extern int	p_redraw(void );
 extern LINE	*cadv_word(LINE *lp,long *ln,long *col,int dir);
 extern LINE	*cadv_space(LINE *lp,long *ln,long *col,int dir);
 extern LINE	*cadv_wordonly(LINE *lp,long *ln,long *col,int dir);
 extern long	cparagrph(long ln, int dir, int start);
-extern long	ln_cnt(LINE *lps,LINE *lpe);
 
-extern FTABLE	*_currfile;
 extern PASTE	*_undobuf;
 extern long	_multiplier;
 
@@ -268,7 +265,7 @@ EXPORT int EdBlockPaste(int which)
 
      fp = _currfile;
 	if ((pp = bl_getpaste(which)) != 0) {
-		if ((GetConfiguration()->options & O_AUTODELBLOCK) && _chkblk(fp)) {
+		if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && _chkblk(fp)) {
 			EdBlockDelete(0);
 		}
 		return paste(pp,0);

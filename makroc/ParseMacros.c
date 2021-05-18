@@ -12,6 +12,7 @@
 #include "funcdef.h"
 #include "sym.h"
 #include "pkscc.h"
+#include "stringutil.h"
 
 /*--------------------------------------------------------------------------
  * init_funcs()

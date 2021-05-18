@@ -33,8 +33,8 @@
 #include "pksedit.h"
 #include "editorconfiguration.h"
 #include "errordialogs.h"
+#include "stringutil.h"
 
-extern void *	ll_insert(void *head,long size);
 extern void *	shareAlloc();
 extern char *	AbbrevName(char *fn);
 extern char *	OemAbbrevName(char *fn);

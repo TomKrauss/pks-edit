@@ -34,6 +34,7 @@
 # include "edfuncs.h"
 # include "parsefu.h"
 # include "mylib.h"
+# include "stringutil.h"
 
 # define	EO_ARRAY(a)			&a[DIM(a)]
 
@@ -63,7 +64,6 @@ typedef union yystype {
 	struct mcode mousecode;
 } _YYSTYPE;
 
-extern char *stralloc(char *);
 extern void inskey(char *keystring, char *cmdname, int i);
 
 static int parse_flags(char *s);

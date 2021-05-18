@@ -32,15 +32,11 @@
 #define	PROF_OFFSET		1
 
 extern int  _findopt;
-extern char *_strtolend;
-extern void *ll_find(void *Head, char *name);
-extern unsigned char* stralloc(unsigned char* buf);
 extern void MouseBusy(void);
 extern void MouseNotBusy(void);
 extern int  EdStat(char *s, int mode);
 extern char *FullPathName(char *path, char *fn);
-
-LONG prof_getlong(char *grp,char *ident);
+extern LONG prof_getlong(char *grp,char *ident);
 
 typedef enum {	I_FLAG, I_WINDOW, I_VAL, I_STRING, I_INVAL } ITEMTYPE;
 typedef enum {	G_DESK, G_ENVIRON, G_HISTORY } GRPTYPE;

@@ -87,7 +87,7 @@ void strdcpy(char *dest, const char *pathname, const char *fname) {
  * return pointer to filename component of a pathName
  */
 char *basename(const char *fullname)
-{	register char *f = fullname;
+{	register const char *f = fullname;
 	register char c;
 
 	while ((c = *fullname++) != 0) 
@@ -205,5 +205,18 @@ char *OemAbbrevName(const char *fn) {
 	char *ret = AbbrevName(fn);
 	OemToAnsi(ret,ret);
 	return ret;
+}
+
+/*------------------------------------------------------------
+ * stralloc()
+ * allocate a copy of the passed string.
+ */
+unsigned char* stralloc(unsigned char* buf) {
+	unsigned char* d;
+
+	if ((d = malloc(lstrlen(buf) + 1)) != 0) {
+		lstrcpy(d, buf);
+	}
+	return d;
 }
 

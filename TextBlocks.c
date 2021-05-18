@@ -38,7 +38,6 @@
  * EXTERNALS
  */
 
-extern FTABLE	*_currfile;
 extern char	*TmpName(char *dst, char c);
 
 /*--------------------------------------------------------------------------

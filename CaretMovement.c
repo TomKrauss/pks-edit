@@ -30,7 +30,6 @@
 /*-----------------------*/
 /* EXTERNALS			*/
 /*-----------------------*/
-extern FTABLE *	_currfile;
 extern LINE *		ln_relgo(FTABLE *fp, long l);
 extern LINE *		ln_crelgo(FTABLE *fp, long l, long *o);
 extern int		isword(unsigned char c);
@@ -215,7 +214,7 @@ static void HideWindowsBlocks(FTABLE *fp)
 	long col;
 
 	if (!WIPOI(fp)->bXtndBlock &&
-		(GetConfiguration()->options & O_AUTODELBLOCK) &&
+		(GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) &&
 		_chkblk(fp)) {
 		col = fp->col;
 		Pastehide(1);

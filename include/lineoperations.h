@@ -328,6 +328,13 @@ extern int ll_delete(void** pointerLinkedList, void* element);
  */
 extern int ll_count(void* linkedList);
 
+/*--------------------------------------------------------------------------
+ * ll_find()
+ *
+ * Find an element in a linked list, with a given name.
+ */
+extern void* ll_find(void* linkedList, char* name);
+
 /*-------- FILE FLAGS ----------*/
 
 #define	F_INUSE			0x01 	/* Mark filestructure as used	  */ 

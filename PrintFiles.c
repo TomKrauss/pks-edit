@@ -73,7 +73,6 @@ static PRTPARAM _prtparams = {
 extern char 		*ft_visiblename(FTABLE *fp);
 extern char 		*AbbrevName(char *fn);
 extern FTABLE		*ww_stackwi(int num);
-extern long 		ln_cnt(LINE *lps,LINE *lpe);
 
 static int 		_printing;
 static int 		_previewpage = 1;
@@ -146,9 +145,9 @@ BOOL CALLBACK PrtAbortProc(HDC hdcPrn, short nCode)
 /*------------------------------------------------------------
  * prt_selectfont()
  */
-static HFONT prt_selectfont(HDC hdc, FONTSPEC *fsp)
-{
-	HFONT 		hFont,hOldfont;
+static HFONT prt_selectfont(HDC hdc, FONTSPEC *fsp) {
+	static HFONT previousFont = NULL;
+	HFONT 		hFont;
 	EDFONT		font;
 	TEXTMETRIC 	tm;
 
@@ -161,9 +160,17 @@ static HFONT prt_selectfont(HDC hdc, FONTSPEC *fsp)
 	font.width = fsp->fs_cwidth;
 	font.charset = fsp->fs_oemmode ? OEM_CHARSET : ANSI_CHARSET;
 	if ((hFont = EdCreateFont(&font)) != 0) {
-		hOldfont = SelectObject(hdc, hFont);
-		if (hOldfont) {
-			DeleteObject(hOldfont);
+		SelectObject(hdc, hFont);
+		if (previousFont) {
+			//
+			// Avoid running out of GDI resources and eliminate font handles
+			// allocated before and now not being used any more.
+			//
+			DeleteObject(previousFont);
+		}
+		previousFont = hFont;
+		if (PREVIEWING()) {
+			SetBkMode(hdc, TRANSPARENT);
 		}
 		GetTextMetrics(hdc,&tm);
 		_printwhat.wp->cwidth  = tm.tmAveCharWidth;
@@ -402,6 +409,7 @@ static int PrintFile(HDC hdc)
 	LINE 		*lp,*lplast;
 	PRTPARAM		*pp = &_prtparams;
 	int			firstc,lastc;
+	RECT		pageRect;
 
 	lp     = _printwhat.lp;
 	lplast = _printwhat.lplast;
@@ -414,7 +422,18 @@ static int PrintFile(HDC hdc)
 	oldpageno = 0;
 	pageno = lineno = 1;
 	yPos = 0;
-
+	if (PREVIEWING()) {
+		pageRect.left = 0;
+		pageRect.right = de.xPage;
+		pageRect.top = 0;
+		pageRect.bottom = de.yPage;
+		HGDIOBJ original = SelectObject(hdc, GetStockObject(DC_PEN));
+		SelectObject(hdc, GetStockObject(BLACK_PEN));
+		SelectObject(hdc, GetStockObject(DC_BRUSH));
+		SetDCBrushColor(hdc, RGB(255, 255, 255));
+		Rectangle(hdc, 0, 0, pageRect.right, pageRect.bottom);
+		SelectObject(hdc, original);
+	}
 	while (lp) {
 		if (oldpageno != pageno) {
 			if (PREVIEWING()) {
@@ -484,6 +503,7 @@ footerprint:
 BOOL CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	HDC			hdc;
+	int			newPage = _previewpage;
 
 	switch(message) {
 		case WM_INITDIALOG:
@@ -496,14 +516,16 @@ BOOL CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 					EndDialog(hDlg,1);
 					break;
 				case IDD_BUT3:
-					_previewpage++; break;
+					newPage++; break;
 				case IDD_BUT4:
-					_previewpage--; break;
+					newPage--; break;
 			}
 			break;
 		case WM_DRAWITEM:
 			hdc = ((LPDRAWITEMSTRUCT)lParam)->hDC;
+			int savedDc = SaveDC(hdc);
 			PrintFile(hdc);
+			RestoreDC(hdc, savedDc);
 			return TRUE;
 		case WM_DESTROY:
 			hwndPreview = 0;
@@ -511,11 +533,14 @@ BOOL CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 		default:
 			return FALSE;
 	}
-	SetDlgItemInt(hDlg,IDD_INT1,_previewpage,0);
-	EnableWindow(GetDlgItem(hDlg,IDD_BUT4),(_previewpage>1));
-	EnableWindow(GetDlgItem(hDlg,IDD_BUT3),
-		(_previewpage<=_printwhat.nlines/prt_ntextlines()));
-	SendRedraw(GetDlgItem(hDlg,IDD_PREVIEW));
+	if (newPage != _previewpage) {
+		_previewpage = newPage;
+		SetDlgItemInt(hDlg, IDD_INT1, _previewpage, 0);
+		EnableWindow(GetDlgItem(hDlg, IDD_BUT4), (_previewpage > 1));
+		EnableWindow(GetDlgItem(hDlg, IDD_BUT3),
+			(_previewpage <= _printwhat.nlines / prt_ntextlines()));
+		SendRedraw(GetDlgItem(hDlg, IDD_PREVIEW));
+	}
 	return TRUE;
 }
 
@@ -639,10 +664,12 @@ void PrinterDefaults(int save)
 int EdPrint(long what, long p1, LPSTR fname)
 {
 	HDC 			hdcPrn;
-	int 			ret = 0,nFunc,errEscape;
-	char 		message[128],ch;
-	WINFO		winfo;
-	FTABLE		*fp,_ft;
+	int 			ret = 0;
+	int				nFunc = 0;
+	int				errEscape;
+	char 			message[128],ch;
+	WINFO			winfo;
+	FTABLE			*fp,_ft;
 	PRTPARAM		*pp = &_prtparams;
 
 	blfill(&winfo,sizeof winfo, 0);

@@ -21,6 +21,7 @@
 #include "winterf.h"
 #include "editab.h"
 #include "winfo.h"
+#include "stringutil.h"
 
 #pragma hdrstop
 
@@ -41,7 +42,6 @@ typedef struct tagSTATUSSEGMENTS {
 extern int 	mysprintf(FTABLE *fp, char *d, char *fmt, ...);
 extern void 	DrawShadow(HDC hdc,RECT *rcp,int pressed);
 extern char *	lstrchr(const char *, const char);
-extern unsigned char *stralloc(unsigned char *buf);
 
 static int 	_psenabled;
 static HFONT	hStatusFont;

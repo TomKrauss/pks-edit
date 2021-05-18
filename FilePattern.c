@@ -107,8 +107,8 @@ int match(char *string,char *pat)
 	char *	pszPatCopy;
 	char *	pszStringCopy;
 
-	pszStringCopy = strdup(string);
-	pszPatCopy = strdup(pat);
+	pszStringCopy = _strdup(string);
+	pszPatCopy = _strdup(pat);
 	EdToUpper(pszStringCopy);
 	EdToUpper(pszPatCopy);
 	pszToken = strtok(pszPatCopy, ",;");

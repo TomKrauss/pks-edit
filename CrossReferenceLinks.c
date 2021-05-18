@@ -26,16 +26,10 @@
 extern char	_finds[];
 extern int 	_regcompile(char *ebuf, char *pat, int opt);
 extern char 	*searchfile(char *s);
-extern unsigned char *stralloc(unsigned char *buf);
-extern LINE 	*ln_goto(FTABLE *fp,long l);
-extern long 	ln_cnt(LINE *lps,LINE *lpe);
 extern int	isword(char c), isnospace(char c), isfname(char c);
-extern char	*lstrchr(char *,char);
 extern FTABLE 	*ww_stackwi(int num);
 extern void	*prof_llinsert(void *Head, int size, 
 						char *group, char *item, char **idata);
-extern void 	ShowError(LPSTR fmt, void *ap);
-extern void *	ll_find(void *Head, char *name);
 extern void 	strdcpy(char *dest,char *source,char *fname);
 
 #define	TCMD_EXEC				'!'

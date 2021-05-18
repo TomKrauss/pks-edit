@@ -20,7 +20,6 @@
 #include "pksedit.h"
 #include "errordialogs.h"
 
-extern void				nomemory(void);
 extern PASTE *			bl_addrbyid(int id,int insert);
 extern long 			ln_needbytes(LINE *lp, int nl, int cr);
 extern unsigned char *	BufAsLinelist(FTABLE *fp, unsigned char *p, 
@@ -75,7 +74,7 @@ static HANDLE clp_makebufferhandle(int whichBuffer)
 
 	if ((hMem = GlobalAlloc(GHND, (DWORD)size)) == 0 ||
 	    (lpMem = GlobalLock(hMem)) == 0) {
-		nomemory();
+		ed_error(IDS_MSGNOSPCE);
 		return 0;
 	}
 

@@ -14,8 +14,8 @@
 #include <string.h>
 #include "lineoperations.h"
 #include "edhist.h"
+#include "stringutil.h"
 
-extern unsigned char* stralloc(unsigned char* buf);
 extern char	_finds[];
 extern HWND 	GetHistoryMenu(int *pnPosition, int *piCmd);
 

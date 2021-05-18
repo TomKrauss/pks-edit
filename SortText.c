@@ -81,8 +81,6 @@ static RECORD	*_rectab;
 extern char	_expbuf[];
 extern char	*_strtolend;
 
-extern long	ln_cnt(LINE *lp1, LINE *lp2);
-
 extern int  cmpfold   (unsigned char *s1, int l1,unsigned char *s2, int l2);
 extern int  cmpnormal (unsigned char *s1, int l1,unsigned char *s2, int l2);
 extern int  crunchdict(unsigned char *d,  unsigned char *s,int l);
