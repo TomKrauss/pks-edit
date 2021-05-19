@@ -23,6 +23,8 @@
 #include "editorconfiguration.h"
 
 #define	SWAP(a,b)			{	a ^= b, b ^=a, a ^= b;  }
+#define	D_EBUG(x)		{/*ed_error(x); RedrawTotalWindow(fp);*/}
+#define	HARD_BREAK(lp)	((lp->lflg & LNNOCR) == 0)
 
 /*--------------------------------------------------------------------------
  * EXTERNALS
@@ -58,7 +60,7 @@ extern PASTE	*_undobuf;
  * a certain # of "blank" columns on start of the line
  * try using a maximum # of TABs
  */
-int CalcCol2TabsBlanks(DOCUMENT_DESCRIPTOR *linp, int col, int *add_blanks)
+static int CalcCol2TabsBlanks(DOCUMENT_DESCRIPTOR *linp, int col, int *add_blanks)
 {
 	int    i,ntabs;
 
@@ -91,7 +93,7 @@ static int CalcStartIndentation(FTABLE *fp,LINE *lp,
 {	int col;
 
 	col = CntSpaces(lp->lbuf,upto);
-	col = caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, col});
+	col = caret_lineOffset2screen(fp, &(CARET) { lp, col});
 	return CalcCol2TabsBlanks(fp->documentDescriptor,col,add_blanks);
 }
 
@@ -368,7 +370,7 @@ static int findwrap(FTABLE *fp, LINE *lp, int cursoffset, int *nextword,int rmar
 
 	wm = caret_screen2lineOffset(fp, &(CARET){lp, rmargin});
 
-	if (caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, wm}) < rmargin) {
+	if (caret_lineOffset2screen(fp, &(CARET) { lp, wm}) < rmargin) {
 		return 0;
 	}
 
@@ -433,12 +435,9 @@ static void dowrap(FTABLE *fp)
 }
 
 /*--------------------------------------------------------------------------
- * doauto()
+ * EdAutoFormat()
  */
-#define	D_EBUG(x)		{/*ed_error(x); RedrawTotalWindow(fp);*/}
-#define	HARD_BREAK(lp)	((lp->lflg & LNNOCR) == 0)
-
-int doauto(FTABLE *fp)
+static int EdAutoFormat(FTABLE *fp)
 {	register unsigned char *destbuf,*sourcebuf;
 	LINE *lp1,*lpnext,*lp;
 	int  indent,col;
@@ -446,9 +445,12 @@ int doauto(FTABLE *fp)
 	unsigned char c;
 	long ln, newln, newcol;
 
-	destbuf = _linebuf;
-	if ((fp->documentDescriptor->workmode & WM_AUTOFORMAT) == 0)
+	if ((fp->documentDescriptor->workmode & WM_AUTOFORMAT) == 0) {
 		return 0;
+	}
+
+	LINE* lpscratch = ln_create(MAXLINELEN);
+	destbuf = &lpscratch->lbuf;
 
 	rm = RightMargin(fp);
 	i_d = 0;
@@ -528,10 +530,12 @@ int doauto(FTABLE *fp)
 				}
 
 				/* this is for minimizing caret_lineOffset2screen - calls */
-				if (column < 0)
-					column = caret_lineOffset2screen(fp, destbuf, di);
-				else
-					column += (di-desti);
+				if (column < 0) {
+					column = caret_lineOffset2screen(fp, &(CARET){lpscratch, di});
+				}
+				else {
+					column += (di - desti);
+				}
 
 				/* fits into current line within wrapmargin ? */
 				if (column >= rm)
@@ -625,6 +629,7 @@ int doauto(FTABLE *fp)
 	}
 
 	curpos(newln,newcol);
+	free(lpscratch);
 	return 1;
 }
 
@@ -715,7 +720,7 @@ int EdCharInsert(int c)
 			showmatch(lp,fp->caret.offset);
 		}
 
-		if (!doauto(fp) &&
+		if (!EdAutoFormat(fp) &&
 		    (workmode & WM_AUTOWRAP) && 
 		    fp->col >= RightMargin(fp)) {
 			dowrap(fp);
@@ -786,7 +791,7 @@ int EdCharDelete(control)
 	} else {
 		redrawline();
 	}
-	doauto(fp);
+	EdAutoFormat(fp);
 
 	return 1;
 }

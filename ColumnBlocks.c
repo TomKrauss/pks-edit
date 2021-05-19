@@ -150,7 +150,7 @@ EXPORT int blpastecol(PASTE *pb,FTABLE *fp, LINE *lpd, int col)
 	int 		ctrl;
 
 	lps  = pb->pln;
-	col = caret_lineOffset2screen(fp, &(CARET) { lpd->lbuf, col });
+	col = caret_lineOffset2screen(fp, &(CARET) { lpd, col });
 	ctrl = PLAINCONTROL(fp->documentDescriptor->dispmode) ? 1 : 0;
 	while (lps) {
 		if (P_EQ(lpd,fp->lastl)) {

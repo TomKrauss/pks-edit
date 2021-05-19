@@ -756,7 +756,7 @@ static void _markcolomns(FTABLE *fp)
 {	MARK	 *mp;
 
 	if ((mp = fp->blstart) != 0L) {
-		fp->blcol1 = caret_lineOffset2screen(fp, &(CARET) { mp->lm->lbuf, mp->lc });
+		fp->blcol1 = caret_lineOffset2screen(fp, &(CARET) { mp->lm, mp->lc });
 	}
 	if ((mp = fp->blend) != 0L) {
 		fp->blcol2 = caret_lineOffset2screen(fp, &(CARET) {

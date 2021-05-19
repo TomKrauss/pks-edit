@@ -246,7 +246,7 @@ EXPORT int cphyspos(FTABLE *fp, long *ln,long *col,int newcol)
 		i = lp->len;
 	}
 
-	*col = caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, i});
+	*col = caret_lineOffset2screen(fp, &(CARET) { lp, i});
 
 	bXtnd = WIPOI(fp)->bXtndBlock;
 	if (bXtnd) {
@@ -299,13 +299,13 @@ EXPORT int cposvalid(FTABLE *fp, long *ln,long *col,int newcol)
 		o = lp->len;
 	}
 
-	i = caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, o});
+	i = caret_lineOffset2screen(fp, &(CARET) { lp, o});
 	if (!newcol && i != fp->col)
 		o = caret_screen2lineOffset(fp, &(CARET) {
 		lp, fp->col
 	});
 	if (lp->len < o) o = lp->len;
-	if (o != *col) i = caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, o});
+	if (o != *col) i = caret_lineOffset2screen(fp, &(CARET) { lp, o});
 
 	bXtnd = WIPOI(fp)->bXtndBlock;
 	if (bXtnd) {
@@ -463,7 +463,7 @@ EXPORT int isempty(LINE *lp)
  */
 EXPORT static int counttabs(LINE *lp)
 {
-	return caret_lineOffset2screen(NULL, &(CARET){ lp->lbuf,ln_leadspce(lp) });
+	return caret_lineOffset2screen(NULL, &(CARET){ lp,ln_leadspce(lp) });
 }
 
 /*--------------------------------------------------------------------------

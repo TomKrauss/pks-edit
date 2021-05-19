@@ -805,9 +805,7 @@ WINFUNC EditWndProc(
 /*------------------------------------------------------------
  * SetWiSize()
  */
-static int SetWiSize(FTABLE *fp, int w, int h)
-{	WINFO *wp = fp->wp;
-
+static int SetWiSize(WINFO *wp, int w, int h) {
 	wp->workarea.g_x = wp->workarea.g_y = 0;
 	wp->workarea.g_w = w;
 	wp->workarea.g_h = h;
@@ -930,16 +928,16 @@ static WINFUNC WorkAreaWndProc(
 	WPARAM wParam,
 	LPARAM lParam
 	)
-{    FTABLE *	fp;
+{    WINFO *	wp;
 
 	switch(message) {
 	case WM_CREATE:
 		{
 		WINFO *wp;
 
-		fp = (FTABLE *)(((LPCREATESTRUCT)lParam)->lpCreateParams);
+		FTABLE * fp = (FTABLE *)(((LPCREATESTRUCT)lParam)->lpCreateParams);
 		wp = WIPOI(fp);
-		SetWindowLongPtr(hwnd, 0, (LONG_PTR) fp);
+		SetWindowLongPtr(hwnd, 0, (LONG_PTR) wp);
 		EdSelectStdFont(hwnd, wp);
 		return 0;
 		}
@@ -969,8 +967,8 @@ static WINFUNC WorkAreaWndProc(
 
 	case WM_HSCROLL:
 	case WM_VSCROLL:
-		if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
-			if (do_slide(fp->wp,message,wParam,lParam) == 0) {
+		if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
+			if (do_slide(wp,message,wParam,lParam) == 0) {
 				break;
 			}
 		} else {
@@ -982,43 +980,27 @@ static WINFUNC WorkAreaWndProc(
 		return 0;
 
 	case WM_PAINT:
-		if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
-		   RedrawWmPaint(WIPOI(fp));
+		if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
+		   RedrawWmPaint(wp);
 		}
 		return 0;
 
 	case WM_SIZE:
-		if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
-#if 0
-			GetWindowRect(hwnd, &rect);
-			if ((rect.left & 0xF) || ((rect.right - rect.left) & 0xF) != 0xF) {
-				HWND hwndDaddy;
-				hwndDaddy = GetParent(hwnd);
-				GetWindowRect(hwndDaddy, &rectDaddy);
-				ScreenToClient(GetParent(hwndDaddy), (PPOINT)&rectDaddy.left);
-				ScreenToClient(GetParent(hwndDaddy), (PPOINT)&rectDaddy.right);
-				MoveWindow(hwndDaddy, 
-					rectDaddy.left - (rect.left & 0xF),
-					rectDaddy.top, 
-					rectDaddy.right - rectDaddy.left - 
-						((rect.right - rect.left) & 0xF) + 0xF, 
-					rectDaddy.bottom - rectDaddy.top, TRUE);
+		if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
+			if (!SetWiSize(wp, LOWORD(lParam), HIWORD(lParam))) {
 				return 0;
 			}
-# endif
-			if (!SetWiSize(fp, LOWORD(lParam), HIWORD(lParam))) {
-				return 0;
-			}
-			WIPOI(fp)->ww_handle = hwnd;
-			sl_size(WIPOI(fp));
+			wp->ww_handle = hwnd;
+			sl_size(wp);
 	    }
 	    break;
 
 	case WM_SETFOCUS:
-	    if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
-			wt_tcursor(fp->wp,1);
-			ft_select(fp);
+	    if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
+			wt_tcursor(wp,1);
+			ft_select(wp->fp);
 			op_updateall();
+			FTABLE* fp = wp->fp;
 			tagselect(fp->documentDescriptor->modename);
 			mac_switchtodefaulttables();
 	    }
@@ -1029,9 +1011,9 @@ static WINFUNC WorkAreaWndProc(
 	    return 0;
 
 	case WM_KILLFOCUS:
-		if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
-			if (fp->wp)
-				wt_tcursor(fp->wp,0);
+		if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
+			if (wp)
+				wt_tcursor(wp,0);
 		} else {
 			EdTRACE(Debug(DEBUG_TRACE,"WM_KILLFOCUS in WorkWndProc without file"));
 		}

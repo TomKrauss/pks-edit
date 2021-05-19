@@ -60,7 +60,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 		for (aligncol = 0, lp = mps->lm; lp != 0; lp = lp->next) {
 			i = caret_screen2lineOffset(lp,firstcol);
 			if (step(&lp->lbuf[i],_expbuf, &lp->lbuf[lp->len])) {
-				col = caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, (int)(*loc - lp->lbuf)});
+				col = caret_lineOffset2screen(fp, &(CARET) { lp, (int)(*loc - lp->lbuf)});
 				if (col > aligncol)
 					aligncol = col;
 			}
@@ -88,7 +88,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 			i++;
 		}
 		if (besti >= 0) {
-			bestcol = caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, besti});
+			bestcol = caret_lineOffset2screen(fp, &(CARET) { lp, besti});
 			nchars  = aligncol - bestcol;
 			if ((lp = ln_modify(fp,lp,besti,besti+nchars)) == 0L) {
 				ret = 0;
