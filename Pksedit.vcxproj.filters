@@ -216,9 +216,6 @@
     <ClCompile Include="EditorConfiguration.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EditorLinesIO.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PaintEditorWindow.c">
       <Filter>Source Files</Filter>
     </ClCompile>

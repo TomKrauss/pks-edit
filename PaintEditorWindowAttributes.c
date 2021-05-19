@@ -28,7 +28,7 @@
 #define	WP_SUB		0x20
 #define	HYPHEN		''
 
-extern int 	TabStop(int col, LINEAL *l);
+extern int 	TabStop(int col, DOCUMENT_DESCRIPTOR *l);
 
 /*--------------------------------------------------------------------------
  * SelectTextAttribute()
@@ -91,12 +91,12 @@ char *writeattrline(HDC hdc, int x, int y,
 	register 				col;
 	int 	    				ctrl;
      int					ind;
-	LINEAL *				lin;
+	DOCUMENT_DESCRIPTOR *				lin;
 
 	d    = b;
 	col  = 0;
 	olda	= 0;
-	lin = (FTPOI(wp))->lin;
+	lin = (FTPOI(wp))->documentDescriptor;
 	l    = lp->lbuf;
 	lend = &lp->lbuf[lp->len];
 	attribut = lp->attr;

@@ -28,9 +28,6 @@ extern MARK	*mark_find(FTABLE *fp, int id);
 extern MARK	*mark_set(FTABLE *fp, LINE *lp,int offs,int c);
 extern PASTE	*bl_addrbyid(int id,int insert);
 extern PASTE	*blgetundo(int num);
-extern LINE	*ln_relgo(FTABLE *fp,long l);
-extern LINE	*ln_gotouserel(FTABLE *fp,long ln);
-extern LINE	*ln_relative(LINE *cl, long l);
 extern void 	redrawlinepart(FTABLE *fp, long ln, int col1, int col2);
 extern void 	redrawspecificline(FTABLE *fp, LINE *lpWhich);
 extern unsigned char *BlockAsBuffer(unsigned char *b, unsigned char *end, 
@@ -71,7 +68,7 @@ EXPORT int Pastehide(flg)
 	wp = WIPOI(fp);
 
 	if (flg) {
-		curpos(fp->ln,(long)fp->lnoffset);
+		curpos(fp->ln,(long)fp->caret.offset);
 	}
 	lp = lpFirst = ln_relgo(fp, wp->minln - wp->ln);
 	for (ln = wp->minln; 
@@ -83,7 +80,7 @@ EXPORT int Pastehide(flg)
 		}
 	}
 	if (mps && mpe) {
-		ln_um(mps->lm,mpe->lm,LNCPMARKED);
+		ln_removeFlag(mps->lm,mpe->lm,LNCPMARKED);
 		if (flg) {
 			if (mps->lm == mpe->lm) {
 				if (mps->lc != mpe->lc) {
@@ -95,11 +92,11 @@ EXPORT int Pastehide(flg)
 		}
 	} else {
 		if (flg) {
-			ln_um(fp->firstl,fp->lastl,(LNCPMARKED|LNXMARKED|LNDIFFMARK));
+			ln_removeFlag(fp->firstl,fp->lastl,(LNCPMARKED|LNXMARKED|LNDIFFMARK));
 			p_redraw();
 		}
 	}
-	ln_um(lpFirst, lpLast, LNREPLACED);
+	ln_removeFlag(lpFirst, lpLast, LNREPLACED);
 	mcp_release(fp);
 	return 1;
 }
@@ -119,9 +116,9 @@ EXPORT int pasteblk(PASTE *buf, int colflg, int offset, int move)
 	fp = _currfile;
 	wp = WIPOI(fp);
 
-	if ((ret = bl_paste(buf,fp,fp->currl, offset,colflg)) == 0 || 
+	if ((ret = bl_paste(buf,fp,fp->caret.linePointer, offset,colflg)) == 0 ||
 		colflg ||
-		(fp->lin->workmode & BLK_LINES)) {
+		(fp->documentDescriptor->workmode & BLK_LINES)) {
 		if (ret == 0 || !move) {
 			RedrawTotalWindow(fp);
 		}
@@ -160,7 +157,7 @@ EXPORT int pasteblk(PASTE *buf, int colflg, int offset, int move)
 EXPORT int paste(PASTE *buf,int move)
 {
 	return pasteblk(buf,ww_blkcolomn(WIPOI(_currfile)),
-				_currfile->lnoffset, move);
+				_currfile->caret.offset, move);
 }
 
 /*--------------------------------------------------------------------------
@@ -425,7 +422,7 @@ static void upd_lines()
 	register	LINE *lp;
 	register	long ln = -1L;
 
-	lp = fp->currl;
+	lp = fp->caret.linePointer;
 	while(lp) {		    /* make the whole thing faster: test (lp) ! */ 
 		ln++, lp = lp->prev;
 	}
@@ -455,11 +452,11 @@ EXPORT int EdBlockCopy_mv(move)
 	 * due to positioning problems afterwards: expand destination line
 	 */
 	if (colflg) {
-		offs = cphys2scr(fp->currl->lbuf,fp->lnoffset);
-		if (condexpline(fp,fp->currl) == 0)
+		offs = caret_lineOffset2screen(fp, &fp->caret);
+		if (condexpline(fp,fp->caret.linePointer) == 0)
 			return 0;
 	} else {
-		offs = fp->lnoffset;
+		offs = fp->caret.offset;
 	}
 
 	delta = 0;
@@ -475,7 +472,7 @@ EXPORT int EdBlockCopy_mv(move)
 	if (move_nocolblk) {			/* valid move ??	*/
 		lp = ls;
 		while (!P_EQ(lp,le)) {
-			if (P_EQ(lp,fp->currl)) {	/* makes no sense	*/
+			if (P_EQ(lp,fp->caret.linePointer)) {	/* makes no sense	*/
 				if (!P_EQ(lp,ls) || offs >= cs) {
 nomove:				ed_error(IDS_MSGBADBLOCKMOVE);
 					return 0;
@@ -483,7 +480,7 @@ nomove:				ed_error(IDS_MSGBADBLOCKMOVE);
 			}
 			lp = lp->next;
 		}
-		if (P_EQ(fp->currl,le)) {
+		if (P_EQ(fp->caret.linePointer,le)) {
 			if (offs <= ce) {
 				if (P_EQ(ls,le)) {
 					if (offs >= cs) goto nomove;
@@ -511,7 +508,7 @@ nodelta:		;
 			dln	 = ln_cnt(bstart->lm,bend->lm) - 1;
 			Pastehide(0);
 		} else {
-			offs = fp->lnoffset;
+			offs = fp->caret.offset;
 		}
 
 		ret = pasteblk(&pbuf,colflg,offs,move);
@@ -519,8 +516,8 @@ nodelta:		;
 			curpos(fp->ln,(long)offs);
 			fp->blcol1 = offs;
 			fp->blcol2 = offs + delta;
-			markblk(fp,fp->currl,offs,
-				ln_relative(fp->currl,dln),fp->blcol2);
+			markblk(fp,fp->caret.linePointer,offs,
+				ln_relative(fp->caret.linePointer,dln),fp->blcol2);
 		}
 		RedrawTotalWindow(fp);
 	}
@@ -598,7 +595,7 @@ EXPORT int EdLinesYank()
 	PASTE *bp = bl_addrbyid(0,0);
 
 	if (bp == 0 ||_currfile == 0L) return 0;
-	ls = _currfile->currl;
+	ls = _currfile->caret.linePointer;
 	if ((le = ln_relgo(_currfile,n)) == 0) return 0;
 	
 	if (bl_cut(bp,ls,le,0,(P_EQ(ls,le)) ? ls->len : 0, 0, 0)) {
@@ -717,11 +714,11 @@ static void marklines(int changed,int colflg,
 	}
 
 	if (changed) {
-		ln_um(fp->firstl,lp1,LNCPMARKED);
+		ln_removeFlag(fp->firstl,lp1,LNCPMARKED);
 	}
-	ln_m (lp1,lp2,LNCPMARKED);
+	ln_addFlag (lp1,lp2,LNCPMARKED);
 	if (changed) {
-		ln_um(lp2->next,fp->lastl,LNCPMARKED);
+		ln_removeFlag(lp2->next,fp->lastl,LNCPMARKED);
 	}
 
 	lp = lpFirst;
@@ -738,7 +735,7 @@ static void marklines(int changed,int colflg,
 		} else {
 			lpLast = lpolde;
 		}
-		ln_m (lpFirst, lpLast, LNREPLACED);
+		ln_addFlag (lpFirst, lpLast, LNREPLACED);
 	} else for (ln = wp->minln; lp && ln <= wp->maxln; lp = lp->next, ln++) {
 		if ((P_EQ(lp,lpolds) && !P_EQ(lp, lp1)) || 
 		    (P_EQ(lp,lpolde) && !P_EQ(lp, lp2)) ||
@@ -749,7 +746,7 @@ static void marklines(int changed,int colflg,
 	}
 
 	p_redraw();
-	ln_um(lpFirst, lpLast, LNREPLACED);
+	ln_removeFlag(lpFirst, lpLast, LNREPLACED);
 }
 
 /*---------------------------------*/
@@ -759,10 +756,12 @@ static void _markcolomns(FTABLE *fp)
 {	MARK	 *mp;
 
 	if ((mp = fp->blstart) != 0L) {
-		fp->blcol1 = cphys2scr(mp->lm->lbuf,mp->lc);
+		fp->blcol1 = caret_lineOffset2screen(fp, &(CARET) { mp->lm->lbuf, mp->lc });
 	}
 	if ((mp = fp->blend) != 0L) {
-		fp->blcol2 = cphys2scr(mp->lm->lbuf,mp->lc);
+		fp->blcol2 = caret_lineOffset2screen(fp, &(CARET) {
+			mp->lm->lbuf, mp->lc
+		});
 		if (fp->blcol2 <= fp->blcol1)
 			fp->blcol2 = fp->blcol1	+ 1;
 	}
@@ -787,8 +786,8 @@ EXPORT int blcolcheck(int x,int y,int nx,int ny)
 
 	wp = WIPOI(_currfile);
 	if (ww_blkcolomn(wp)) {
-		scn2lncol(wp,x,y,&ln,&col1);
-		scn2lncol(wp,nx,ny,&ln,&col2);
+		caret_calculateOffsetFromScreen(wp,x,y,&ln,&col1);
+		caret_calculateOffsetFromScreen(wp,nx,ny,&ln,&col2);
 		if (col1 <= col2) {
 			_currfile->blcol1 = col1;
 			_currfile->blcol2 = col2;
@@ -811,7 +810,7 @@ EXPORT int markblk(FTABLE *fp, LINE *lps, int cs, LINE *lpe, int ce)
 	if (lpe) 
 		fp->blend   = mark_set(fp,lpe,ce,MARKEND);
 	if (lps && lpe) {
-		ln_m(lps,lpe,LNCPMARKED);
+		ln_addFlag(lps,lpe,LNCPMARKED);
 		return 1;
 	}
 	return 0;
@@ -820,8 +819,7 @@ EXPORT int markblk(FTABLE *fp, LINE *lps, int cs, LINE *lpe, int ce)
 /*---------------------------------*/
 /* SetBlockMark() 				*/
 /*---------------------------------*/
-int SetBlockMark(FTABLE *fp, LINE *lpMark, int nMarkOffset, 
-	int flags)
+int SetBlockMark(FTABLE *fp, CARET *lpCaret, int flags)
 {
 	MARK *		marks;
 	MARK *		marke;
@@ -832,9 +830,11 @@ int SetBlockMark(FTABLE *fp, LINE *lpMark, int nMarkOffset,
 	int  		type;
 	int			bSwap;
 	int			workmode;
+	int			nMarkOffset = lpCaret->offset;
+	LINE*		lpMark = lpCaret->linePointer;
 
 	type = (flags & (~(MARK_COLUMN|MARK_RECALCULATE)));
-	workmode = fp->lin->workmode;
+	workmode = fp->documentDescriptor->workmode;
 
 	if (type == MARK_ALL) {
 		lp2 = fp->lastl->prev;
@@ -929,8 +929,12 @@ int SetBlockMark(FTABLE *fp, LINE *lpMark, int nMarkOffset,
 					endx = marks->lc;
 				}
 			}
-			redrawlinepart(fp, fp->ln, cphys2scr(fp->currl->lbuf,startx),
-				cphys2scr(fp->currl->lbuf,endx));
+			redrawlinepart(fp, fp->ln, caret_lineOffset2screen(fp, &(CARET) {
+				fp->caret.linePointer, startx
+			}),
+				caret_lineOffset2screen(fp, &(CARET) {
+					fp->caret.linePointer, endx
+				}));
 		}
 		else {
 			marklines(wasmarked, colflg, lp1, lp2, markc);
@@ -972,7 +976,7 @@ EXPORT int EdMouseMarkParts(int type)
 		LINE *(*func)() = (type == MOT_SPACE) ? 
 			cadv_wordonly : cadv_word;
 
-		o2  = cscr2phys(lp,col);
+		o2  = caret_screen2lineOffset(lp,col);
 		lp2 = (*func)(lp,&ln,&o2,1);
 		o1  = o2;
 		lp  = (*func)(lp,&ln,&o1,-1);
@@ -988,8 +992,10 @@ EXPORT int EdMouseMarkParts(int type)
 			o2  = lp->len;
 		}
 	}
-	SetBlockMark(fp, lp, o1, MARK_START);
-	return SetBlockMark(fp, lp2, o2, MARK_END);
+	CARET c1 = { lp, o1 };
+	CARET c2 = { lp2, o2 };
+	SetBlockMark(fp, &c1, MARK_START);
+	return SetBlockMark(fp, &c2, MARK_END);
 }
 
 /*---------------------------------*/
@@ -1002,11 +1008,9 @@ EXPORT int EdBlockMark(int flags)
 	int			nMarkOffset;
 
 	fp = _currfile;
-	lpMark = fp->currl;
-	nMarkOffset = fp->lnoffset;
 	// for now: always consider to swap the block marks, if the end mark is placed
 	// before the start mark. In fact we should introduce the concept of a selection head instead
 	// of swapping marks.
-	return SetBlockMark(fp, lpMark, nMarkOffset, flags | MARK_RECALCULATE);
+	return SetBlockMark(fp, &fp->caret, flags | MARK_RECALCULATE);
 }
 

@@ -32,7 +32,7 @@
 
 extern long	_multiplier;
 extern LINE	*optinswhite(FTABLE *fp, LINE *lp, int col, int *inserted);
-extern int	CalcTabs2Col(LINEAL *linp, int tabs);
+extern int	CalcTabs2Col(DOCUMENT_DESCRIPTOR *linp, int tabs);
 
 extern PASTELIST 	*_esclist[];
 static BRACKET		*_brackets;
@@ -43,7 +43,7 @@ static UCLIST		*_undercursor;
  */
 static int eq_id(int ctx,int ctxlin)
 {
-	if (ctx == LIN_DEFCTX || ctx == ctxlin)
+	if (ctx == DEFAULT_DOCUMENT_DESCRIPTOR_CTX || ctx == ctxlin)
 		return 1;
 	return 0;
 }
@@ -95,7 +95,7 @@ EXPORT struct uclist *uc_find(int ctx, char *b, int col,int actype)
  */
 EXPORT void uc_init(void)
 {
-	ll_kill(&_undercursor,(void*)0);
+	ll_destroy(&_undercursor,(void*)0);
 }
 
 /*--------------------------------------------------------------------------
@@ -198,7 +198,7 @@ EXPORT int sm_define(char *l,char *r,int v,
  */
 EXPORT void sm_init(void)
 {
-	ll_kill(&_brackets,(void *)0);
+	ll_destroy(&_brackets,(void *)0);
 }
 
 /*--------------------------------------------------------------------------
@@ -225,7 +225,7 @@ static int bracketmatch(char *s, struct matchbox *mp)
  */
 static struct matchbox *_lastmatch;
 static struct matchbox *ismatch(char *s)
-{	int id = _currfile->lin->id;
+{	int id = _currfile->documentDescriptor->id;
 	struct matchbox *mp;
 
 	for (mp = _brackets; mp; mp = mp->next) {
@@ -374,7 +374,7 @@ static int br_indentsum(LINE *lps, LINE *lp, struct matchbox *mp,
  */
 EXPORT int sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
 				 int indent, int *di, int *hbr)
-{	int id = fp->lin->id;
+{	int id = fp->documentDescriptor->id;
 	struct matchbox *mp;
 
 	*di = 0;
@@ -422,8 +422,8 @@ EXPORT int EdShowMatch(void)
 	long 	 ln,col;
 
 	if (!fp) return 0;
-	ln = fp->ln, col = fp->lnoffset;
-	if (nextmatch(fp->currl,&ln,&col)) {
+	ln = fp->ln, col = fp->caret.offset;
+	if (nextmatch(fp->caret.linePointer,&ln,&col)) {
 		curpos(ln,col);
 		return 1;
 	} 
@@ -440,7 +440,7 @@ EXPORT int showmatch(LINE *lp,int Col)
 	long   col = Col;
 	struct uclist *up;
 
-	if ((up = uc_find(fp->lin->id,lp->lbuf,col,UA_SHOWMATCH)) != 0) {
+	if ((up = uc_find(fp->documentDescriptor->id,lp->lbuf,col,UA_SHOWMATCH)) != 0) {
 		long lsav=ln,csav=col;
 
 		col -= up->len;
@@ -471,8 +471,8 @@ EXPORT int EdCharUpToLow(void )
 	FTABLE *fp;
 
 	fp   = _currfile;
-	lp	= fp->currl;
-	offs = fp->lnoffset;
+	lp	= fp->caret.linePointer;
+	offs = fp->caret.offset;
 	c    = lp->lbuf[offs];
 	if (((c1 = _l2uset[c]) != c || (c1 = _u2lset[c]) != c) &&
 	    (lp = ln_modify(fp,lp,offs,offs)) != (LINE *)0) {
@@ -498,7 +498,7 @@ EXPORT int shift_lines(FTABLE *fp, long ln, long nlines, int dir)
 
 	for (i = 0; i < nlines; i++) {
 		if (!lp->next) break;
-		ind = CalcTabs2Col(fp->lin,abs(dir));
+		ind = CalcTabs2Col(fp->documentDescriptor,abs(dir));
 		if (dir > 0) {
 			if ((lp = optinswhite(fp,lp,ind,&dummy)) == 0L) {
 				return 0;
@@ -510,7 +510,7 @@ EXPORT int shift_lines(FTABLE *fp, long ln, long nlines, int dir)
 			while(col < ind && s < send) {
 				if (*s != ' ') {
 					if (*s == '\t')
-						col = TabStop(col,fp->lin);
+						col = TabStop(col,fp->documentDescriptor);
 					else
 						break;
 				} else {
@@ -528,7 +528,7 @@ EXPORT int shift_lines(FTABLE *fp, long ln, long nlines, int dir)
 	}
 	EdRedrawWindow(WIPOI(fp));
 
-	offset = fp->lnoffset;
+	offset = fp->caret.offset;
 	if (fp->ln >= ln && fp->ln < ln+nlines)
 		offset += dir;
 
@@ -547,9 +547,9 @@ EXPORT int EdShiftBetweenBrackets(int dir)
 	long ln,col;
 	
 	fp = _currfile;
-	ln = fp->ln, col = fp->lnoffset;
+	ln = fp->ln, col = fp->caret.offset;
 
-	if (!nextmatch(fp->currl,&ln,&col)) {
+	if (!nextmatch(fp->caret.linePointer,&ln,&col)) {
 		return 0;
 	}
 

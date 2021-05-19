@@ -115,7 +115,7 @@ int	nl2;	#
 int	cr;	# 
 ***
 Funktion:	EditDocMacros
-Beschreibung:	Editiert weitere Dokumenteinstellungen für das aktuelle Lineal
+Beschreibung:	Editiert weitere Dokumenteinstellungen für das aktuelle document descriptor
 Syntax:	bool EditDocMacros()
 ***
 Funktion:	EditFile
@@ -329,7 +329,7 @@ Syntax:	bool MarkLineOp(typ)
 MLNTYPE<macroc_type_MLNTYPE>	typ;	# 
 ***
 Funktion:	MergeDocMacrosWith
-Beschreibung:	Fügt weitere Dokumenteinstellungen einem Lineal hinzu
+Beschreibung:	Fügt weitere Dokumenteinstellungen einem document descriptor hinzu
 Syntax:	bool MergeDocMacrosWith(param1,filename)
 DIALOGOPT<macroc_type_DIALOGOPT>	param1;	# 
 string	filename;	# Name der Datei
@@ -467,7 +467,7 @@ DIALOGOPT<macroc_type_DIALOGOPT>	param2;	#
 RANGETYP<macroc_type_RANGETYP>	range;	# 
 ***
 Funktion:	RwLineal
-Beschreibung:	Sichert/Liest ein Lineal
+Beschreibung:	Sichert/Liest ein document descriptor
 Syntax:	bool RwLineal(param1,param2,filename)
 READ_OR_WRITE<macroc_type_READ_OR_WRITE>	param1;	# 
 DIALOGOPT<macroc_type_DIALOGOPT>	param2;	# 
@@ -775,7 +775,7 @@ Type:	SHO_MODE
 # SHO_MODE Modus Dokument-Anzeige
 SHO_CONTROL             =       0x1,            # Controlzeichen sichtbar
 SHO_HEX                 =       0x4,            # alternative Statuszeile
-SHO_RULER                       =       0x8,            # Lineal anzeigen
+SHO_RULER                       =       0x8,            # document descriptor anzeigen
 SHO_ATTR                        =       0x10,   # Attributierter Text
 SHO_OEM                 =       0x20,   # OEM Zeichensatz für Anzeige erzwingen
 SHO_FIXEDWI             =       0x80,   # feste Fensterlage
@@ -893,7 +893,7 @@ Type:	GOTOTEXTMARKACTION
 ***
 Type:	OPENOPTION
 # OPENOPTION 
-OPEN_LINEAL             =       0x1,            # öffnen mit Lineal..
+OPEN_LINEAL             =       0x1,            # öffnen mit document descriptor..
 ***
 Type:	PRINTOPTION
 # PRINTOPTION 
@@ -972,7 +972,7 @@ TGL_BACKUP          =   8,              # Erzeugen von Backup-Dateien ein/aus
 TGL_SHOWCONTROL     =   9,              # Anzeige von Controlzeichen ein/aus
 TGL_SHOWSTATUS      =   10,             # Statuszeile ein/aus
 TGL_ALTSTATUS       =   11,             # alternativer Status ein/aus
-TGL_SHOWRULER       =   12,             # Text-Lineal ein/aus
+TGL_SHOWRULER       =   12,             # Text-document descriptor ein/aus
 TGL_SHOWATTR        =   13,             # Anzeige Textattribute ein/aus
 ***
 Type:	FAOPT
@@ -1076,7 +1076,7 @@ QUERY_FILEMODIFIED              =       9,              # aktuelle Datei geänder
 @read-tagfile         Liest eine Verweisdatei
 @read-search-list     Liest eine Suchliste
 @read-compiler-errors Liest eine Compiler Fehler Liste
-@add-doc-macros       Fügt Dokumenteinstellungen (Abkürzungen, ...) zu einem Lineal hinzu
+@add-doc-macros       Fügt Dokumenteinstellungen (Abkürzungen, ...) zu einem document descriptor hinzu
 @record-macro         Startet/Stoppt eine Makro Aufnahme
 @dialog-macros        Editiert Makros und ihre Anbindungen
 @write-macros         Schreibt eine Makrodatei

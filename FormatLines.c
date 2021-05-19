@@ -21,8 +21,6 @@
 #define	isblnk(c)			(c == ' ' || c == '\t' || c == '' || c == '' || c == '')
 
 extern long cparagrph(long ln,int dir,int start);
-extern LINE *ln_relative(LINE *cl, long l);
-extern LINE *ln_goto(FTABLE *fp, long l);
 extern MARK *mark_set(FTABLE *fp, LINE *lp,int offs,int c);
 extern LINE *mark_goto(FTABLE *fp, int c, long *ln, long *col);
 extern int IsSpace(unsigned char c);
@@ -123,11 +121,11 @@ static int format(int type, int nwords, int rmar, int add,
 	if (type == FMT_ADJCENTER)	/* dont need the whole line */
 		l -= (delta - delta/2);
 
-	if (!createl(&_fmtfile,(char *)0,l,(lastline) ? 0 : LNNOCR))
+	if (!ln_createAndAdd(&_fmtfile,(char *)0,l,(lastline) ? 0 : LNNOCR))
 		return 0;
 	_fmtfile.nlines++;
 
-	buf2  = _fmtfile.currl->lbuf;
+	buf2  = _fmtfile.caret.linePointer->lbuf;
 
 	switch(type) {
 		case FMT_ADJCENTER:
@@ -222,7 +220,9 @@ start:		s = lps->lbuf;
 			 */
 			if (doindent) {
 				lmar = (int)(s-lps->lbuf);
-				lmar = cphys2scr(lps->lbuf,lmar);
+				lmar = caret_lineOffset2screen(NULL, &(CARET) {
+					lps->lbuf, lmar
+				});
 			}
 			spgrph = 0;
 		}
@@ -289,13 +289,13 @@ FormatText(int scope, int type, int flags)
 	flags |= type;
 
 	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID ||
-	    !mark_set(fp,fp->currl,0,MARKDOT))
+	    !mark_set(fp,fp->caret.linePointer,0,MARKDOT))
 		return 0;
 
 	startln  = ln_find(fp,mps->lm);
 	_deltaln = -1;
-	_currl   = fp->currl;
-	savecol  = cphys2scr(fp->currl->lbuf,fp->lnoffset);
+	_currl   = fp->caret.linePointer;
+	savecol  = caret_lineOffset2screen(fp->caret.linePointer->lbuf,fp->caret.offset);
 
 	if (flags & FMT_WPFORMAT) {
 		_fillc1 = '';
@@ -323,14 +323,14 @@ FormatText(int scope, int type, int flags)
 	 */
 	if (_currl == 0) {
 		fp->ln = startln+_deltaln;
-		fp->currl = ln_goto(fp,fp->ln);
+		fp->caret.linePointer = ln_goto(fp,fp->ln);
 	} else {
-		fp->currl = mark_goto(fp,MARKDOT,&fp->ln,&startln);
-		savecol = fp->lnoffset;
+		fp->caret.linePointer = mark_goto(fp,MARKDOT,&fp->ln,&startln);
+		savecol = fp->caret.offset;
 	}
 
-	if (fp->currl == 0) {
-		fp->currl = fp->firstl;
+	if (fp->caret.linePointer == 0) {
+		fp->caret.linePointer = fp->firstl;
 		fp->ln = 0;
 	}
 

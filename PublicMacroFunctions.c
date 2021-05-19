@@ -42,7 +42,7 @@ extern HWND EdGetActiveWindow(int includeicons);
 extern HWND ww_winid2hwnd(int winid);
 extern HWND ic_add(void* icp, LPSTR szTitle, LPSTR szParams, int x, int y);
 extern HWND ic_active(LPSTR szTitle, LPSTR szParams, void** icClass);
-extern int 		AbandonFile(FTABLE *fp, LINEAL *linp);
+extern int 		AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
 extern int 		mac_runcmd(MACROREF *mp);
 extern int 		AlignText(char *finds, int scope, char filler, int flags);
 extern long 	ft_size(FTABLE *fp);
@@ -62,11 +62,11 @@ extern int 		PrintKeys(void);
 extern int 		PrintMenus(void);
 extern void* CreateDocumentType(void* llp);
 extern void 	fkey_visibilitychanged(void);
-extern int 		cursleftright(int dir, int mtype);
+extern int 		caret_moveLeftRight(int dir, int mtype);
 extern int 		EdExecute(long flags, long unused, 
 					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
-extern int 		AssignDocumentTypeDescriptor(FTABLE *fp, LINEAL *linp);
+extern int 		AssignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
 extern void *		GetPrivateDocumentType(char *);
 extern char *		TmpDir(void);
 extern void 		mac_switchtodefaulttables(void);
@@ -137,7 +137,7 @@ void EdAlert(long unused1, long unused2, char *s)
  */
 int EdCursorLeft(int mtype)
 {
-	return cursleftright(-1, mtype);
+	return caret_moveLeftRight(-1, mtype);
 }
 
 /*--------------------------------------------------------------------------
@@ -145,7 +145,7 @@ int EdCursorLeft(int mtype)
  */
 int EdCursorRight(int mtype)
 {
-	return cursleftright(1, mtype);
+	return caret_moveLeftRight(1, mtype);
 }
 
 /*--------------------------------------------------------------------------
@@ -632,7 +632,7 @@ int EdMarkSet(void)
 
 	_lastmarkc = DialogCharInput(IDS_MARKSET,_lastmarkc);
 	return 
-		(mark_set(fp,fp->currl,fp->lnoffset,_lastmarkc) != 0);
+		(mark_set(fp,fp->caret.linePointer,fp->caret.offset,_lastmarkc) != 0);
 }
 
 /*--------------------------------------------------------------------------
@@ -989,7 +989,7 @@ static void DocTypeFillParams(DIALPARS *dp, void *par)
 void *lastSelectedDocType;
 static void DocTypeApply(void)
 {
-	LINEAL *	lp;
+	DOCUMENT_DESCRIPTOR *	lp;
 	FTABLE *	fp;
 
 	if ((fp = _currfile) == 0) {
@@ -999,7 +999,7 @@ static void DocTypeApply(void)
 		if (!(fp->flags & F_MODIFIED)) {
 			AbandonFile(fp, lp);
 		} else {
-			_free(fp->lin);
+			_free(fp->documentDescriptor);
 			AssignDocumentTypeDescriptor(fp, lp);
 			linchange();
 		}
@@ -1057,7 +1057,7 @@ int DoDocumentTypes(int nDlg)
 
 	docTypePars[NVDOCTYPEPARS].dp_data = &dlist;
 	lastSelectedDocType = GetPrivateDocumentType(
-		_currfile ? _currfile->lin->modename : "default");
+		_currfile ? _currfile->documentDescriptor->modename : "default");
 
 	DocTypeFillParams(docTypePars, (void*)lastSelectedDocType);
 	if ((nRet = DoDialog(nDlg, (FARPROC)DlgStdProc,docTypePars)) == IDCANCEL) {
@@ -1149,7 +1149,7 @@ static void color_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 /*--------------------------------------------------------------------------
  * color_getitem()
  */
-static int color_getitem(HWND hwnd, WORD id, char *szBuff)
+static int color_getitem(HWND hwnd, int id, char *szBuff)
 { 	
 	LRESULT	item;
 	HDC		hDC;
@@ -1233,13 +1233,13 @@ int EdDlgDispMode(void)
 		IDD_OPT9,		SHOWHIDEHSLIDER,	&dispmode,
 		0
 	};
-	LINEAL *linp;
+	DOCUMENT_DESCRIPTOR *linp;
 
 	if (_currfile == 0) {
 		return 0;
 	}
 
-	linp = _currfile->lin;
+	linp = _currfile->documentDescriptor;
 	lstrcpy(status,linp->statusline);
 	tabsize = 0;
 	rmargin = linp->rmargin;
@@ -1270,7 +1270,7 @@ int EdDlgDispMode(void)
  */
 int EdDlgWorkMode(void)
 {
-	static char vl[20];
+	static char creationMacroName[20];
 	static char cm[20];
 	static char cclass[64];
 	static char tabfill;
@@ -1282,7 +1282,7 @@ int EdDlgWorkMode(void)
 	static PARAMS	_fp   = { DIM(_i), P_MAYOPEN, _i	};
 	static DIALPARS _d[] = {
 		IDD_STRING1,	sizeof cclass,	cclass,
-		IDD_STRING2,	sizeof vl,	vl,
+		IDD_STRING2,	sizeof creationMacroName,	creationMacroName,
 		IDD_STRING3,	sizeof cm,	cm,
 		IDD_CHAR,		sizeof tabfill,&tabfill,
 		IDD_OPT1,		WM_INSERT,	&workmode,
@@ -1296,15 +1296,15 @@ int EdDlgWorkMode(void)
 		IDD_OPT9,		WM_BRINDENT,	&workmode,
 		0
 	};
-	LINEAL *linp;
+	DOCUMENT_DESCRIPTOR *linp;
 
 	if (_currfile == 0) {
 		return 0;
 	}
 
-	linp = _currfile->lin;
+	linp = _currfile->documentDescriptor;
 	lstrcpy(cclass, linp->u2lset);
-	lstrcpy(vl, linp->vl);
+	lstrcpy(creationMacroName, linp->creationMacroName);
 	lstrcpy(cm, linp->cm);
 	workmode = linp->workmode;
 	tabfill = linp->fillc;
@@ -1313,7 +1313,7 @@ int EdDlgWorkMode(void)
 	if (*cclass) {
 		lstrcpy(linp->u2lset,cclass);
 	}
-	lstrcpy(linp->vl, vl);
+	lstrcpy(linp->creationMacroName, creationMacroName);
 	lstrcpy(linp->cm, cm);
 	linp->workmode = workmode;
 	linp->fillc = tabfill;
@@ -1340,12 +1340,12 @@ int EdDlgCursTabs(void)
 		IDD_RADIO1,	CP_POSLOW-CP_POSTOP,&cursafter,
 		0
 	};
-	LINEAL *linp;
+	DOCUMENT_DESCRIPTOR *linp;
 
 	if (_currfile == 0)
 		return 0;
 
-	linp = _currfile->lin;
+	linp = _currfile->documentDescriptor;
 	flags = linp->scrollflags;
 	cursafter = linp->cursaftersearch;
 	scrollmin = linp->vscroll+1;
@@ -1362,7 +1362,7 @@ int EdDlgCursTabs(void)
 /*--------------------------------------------------------------------------
  * sel_ruler()
  */
-static LINEAL *_linp;
+static DOCUMENT_DESCRIPTOR *_linp;
 static void sel_ruler(HWND hDlg, WORD idCtrl)
 {
 	EndDialog(hDlg,idCtrl);
@@ -1372,7 +1372,7 @@ static void sel_ruler(HWND hDlg, WORD idCtrl)
 /*--------------------------------------------------------------------------
  * DlgModeVals()
  */
-int DlgModeVals(LINEAL *linp)
+int DlgModeVals(DOCUMENT_DESCRIPTOR *linp)
 {	static int 	nl1,nl2,cr;
 	static char 	bak[4];
 	static int	opt;
@@ -1429,7 +1429,7 @@ int EdDlgModeVals(void)
 {
 	if (_currfile == 0)
 		return 0;
-	return DlgModeVals(_currfile->lin);
+	return DlgModeVals(_currfile->documentDescriptor);
 }
 
 /*--------------------------------------------------------------------------
@@ -1906,10 +1906,10 @@ int EdIsDefined(long what)
 		return _currfile->blend ? 1 : 0;
 
 	case QUERY_WORKMODE:
-		return _currfile->lin->workmode;
+		return _currfile->documentDescriptor->workmode;
 
 	case QUERY_DISPLAYMODE:
-		return _currfile->lin->dispmode;
+		return _currfile->documentDescriptor->dispmode;
 
 	case QUERY_CURRENTFILE:
 		return 1;

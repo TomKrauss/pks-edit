@@ -16,7 +16,7 @@
 #include <windows.h>
 #include "trace.h"
 #include "functab.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "winfo.h"
 #include "edierror.h"
 #include "pksedit.h"
@@ -34,18 +34,16 @@ extern void 	setmatchfunc(int control, int ids_name, int *c);
 extern LINE 	*(*advmatchfunc)();
 extern int 	ln_leadspce(LINE *l);
 extern int 	IsSpace(unsigned char c);
-extern int 	TabStop(int col, LINEAL *l);
+extern int 	TabStop(int col, DOCUMENT_DESCRIPTOR *l);
 extern int 	CntSpaces(unsigned char *s, int pos);
 extern int 	undoenq(LINE *lnfirst,LINE *lnlast,int cfirst,int clast,int blockflg);
-extern int 	_cphys2scr(FTABLE *fp, char *lbuf, int lnoffs);
-extern int 	_cscr2phys(FTABLE *fp, LINE *lp, int col);
 extern int 	sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
 				 int indent, int *di, int *hbr);
 extern int 	shift_lines(FTABLE *fp, long ln, long nlines, int dir);
 extern int 	curpos(long ln, long col);
 extern void 	wt_insline(WINFO *wp, int nlines);
 extern void 	redrawline(void);
-extern void 	ln_mm(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark,
+extern void 	ln_changeFlag(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark,
 				int set);
 extern int 	doabbrev(FTABLE *fp, LINE *lp,int offs);
 extern void 	updatecursor(WINFO *wp);
@@ -60,7 +58,7 @@ extern PASTE	*_undobuf;
  * a certain # of "blank" columns on start of the line
  * try using a maximum # of TABs
  */
-int CalcCol2TabsBlanks(LINEAL *linp, int col, int *add_blanks)
+int CalcCol2TabsBlanks(DOCUMENT_DESCRIPTOR *linp, int col, int *add_blanks)
 {
 	int    i,ntabs;
 
@@ -76,7 +74,7 @@ int CalcCol2TabsBlanks(LINEAL *linp, int col, int *add_blanks)
 /*--------------------------------------------------------------------------
  * CalcTabs2Col()
  */
-int CalcTabs2Col(LINEAL *linp, int tabs)
+int CalcTabs2Col(DOCUMENT_DESCRIPTOR *linp, int tabs)
 {	int col;
 	
 	for (col = 0; tabs > 0; col = TabStop(col,linp))
@@ -93,8 +91,8 @@ static int CalcStartIndentation(FTABLE *fp,LINE *lp,
 {	int col;
 
 	col = CntSpaces(lp->lbuf,upto);
-	col = _cphys2scr(fp,lp->lbuf,col);
-	return CalcCol2TabsBlanks(fp->lin,col,add_blanks);
+	col = caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, col});
+	return CalcCol2TabsBlanks(fp->documentDescriptor,col,add_blanks);
 }
 
 /*--------------------------------------------------------------------------
@@ -103,9 +101,9 @@ static int CalcStartIndentation(FTABLE *fp,LINE *lp,
 LINE *optinswhite(FTABLE *fp, LINE *lp, int col, int *inserted)
 {	int t,b,fillc;
 
-	if ((fillc = fp->lin->fillc) == 0) {
+	if ((fillc = fp->documentDescriptor->fillc) == 0) {
 		fillc = ' ';
-		t = CalcCol2TabsBlanks(fp->lin,col,&b);
+		t = CalcCol2TabsBlanks(fp->documentDescriptor,col,&b);
 	} else {
 		t = 0;
 		b = col;
@@ -128,11 +126,11 @@ LINE *optinswhite(FTABLE *fp, LINE *lp, int col, int *inserted)
 static int  _deltaindent;
 static int InsIndent(FTABLE *fp, LINE *olp, LINE *nlp, int oldcol, int *newcol)
 {	
-	LINEAL *		linp;
+	DOCUMENT_DESCRIPTOR *		linp;
 	int 			t = 0;
 	int			b = 0;
 
-	linp = fp->lin;
+	linp = fp->documentDescriptor;
 	if (linp->workmode & WM_AUTOINDENT) {
 		/* calculate indentation of line we leave */
 		t = CalcStartIndentation(fp,olp,oldcol,&b);
@@ -141,7 +139,7 @@ static int InsIndent(FTABLE *fp, LINE *olp, LINE *nlp, int oldcol, int *newcol)
 	t += _deltaindent;
 	_deltaindent = 0;
 
-	oldcol = CalcTabs2Col(fp->lin,t)+b;
+	oldcol = CalcTabs2Col(fp->documentDescriptor,t)+b;
 	if ((nlp = optinswhite(fp,nlp,oldcol,newcol)) == 0) {
 		return 0;
 	}
@@ -155,7 +153,7 @@ static int InsIndent(FTABLE *fp, LINE *olp, LINE *nlp, int oldcol, int *newcol)
 static int do_brindent(FTABLE *fp, int dir, LINE *lp1, LINE *lp2)
 {	int indent,b,di1,di2,i1,i2,hbr1,hbr2;
 
-	if ((fp->lin->workmode & WM_BRINDENT) == 0) {
+	if ((fp->documentDescriptor->workmode & WM_BRINDENT) == 0) {
 		return 0;
 	}
 
@@ -197,7 +195,7 @@ static int do_brindent(FTABLE *fp, int dir, LINE *lp1, LINE *lp2)
 	 */
  
 	if (i2 || hbr2 || (hbr1 && indent != i1)) {
-		lp2 = fp->currl;
+		lp2 = fp->caret.linePointer;
 		indent = CalcStartIndentation(fp,lp2,lp2->len,&b);
 		if (indent != i2) {
 			shift_lines(fp,fp->ln,1L,i2-indent);
@@ -229,7 +227,7 @@ static int PostInsline(FTABLE *fp, int dir, long ln, long col)
 		}
 		redrawline();
 	}
-	lp = fp->currl;
+	lp = fp->caret.linePointer;
 	if (dir < 0) {
 		lp = lp->next;
 	}
@@ -251,12 +249,12 @@ int EdLineInsert(int control)
 	if ((fp = _currfile) == 0L) 
 		return 0;
 
-	olp = fp->currl;	
+	olp = fp->caret.linePointer;
 	if ((nlp = ln_settmp(fp,(LINE *)0L,&olp)) == 0L) 
 		return 0;
 	nlp->len = 0;
 
-	ln_insert(fp,((control) ? fp->currl : fp->currl->next),nlp);
+	ln_insert(fp,((control) ? fp->caret.linePointer : fp->caret.linePointer->next),nlp);
 	fp->tln = nlp;
 
 	ln = fp->ln;
@@ -287,7 +285,7 @@ int EdLineDelete(control)
 	if (control & 1) {
 		curpos((long)(fp->ln-1),0L);
 	} else curpos(fp->ln,0L);
-	clfirst = fp->currl;
+	clfirst = fp->caret.linePointer;
 	clast   = clfirst->next;
 	if (!clast->next) {
 		if (control & CUT_APPND) return 0;
@@ -318,7 +316,7 @@ int EdLineDelete(control)
  */
 int EdLinesJoin()
 {	WINFO *wp = WIPOI(_currfile);
-	LINE *lp = _currfile->currl;
+	LINE *lp = _currfile->caret.linePointer;
 
 	if (!ln_join(_currfile,lp,lp->next,1)) 
 		return 0;
@@ -338,21 +336,21 @@ static int cb_breakline(FTABLE *fp, int soft)
 {	LINE   *nlp;
 	int    ai;
 
-	if ((nlp = ln_break(fp,fp->currl,fp->lnoffset)) == 0L) 
+	if ((nlp = ln_break(fp,fp->caret.linePointer,fp->caret.offset)) == 0L)
 		return 0;
 
 	if (soft) {
-		fp->currl->lflg |= LNNOCR;
+		fp->caret.linePointer->lflg |= LNNOCR;
 	} else {
-		fp->currl->lflg &= ~LNNOCR;
+		fp->caret.linePointer->lflg &= ~LNNOCR;
 	}
 
-	if (fp->lin->nl >= 0) {
-		fp->currl->lflg &= ~LNNOTERM;
+	if (fp->documentDescriptor->nl >= 0) {
+		fp->caret.linePointer->lflg &= ~LNNOTERM;
 	}
 
 	redrawline();
-	InsIndent(fp,fp->currl,nlp,fp->lnoffset,&ai);
+	InsIndent(fp,fp->caret.linePointer,nlp,fp->caret.offset,&ai);
 
 	return PostInsline(fp,1,fp->ln+1L,(long)ai);
 }
@@ -368,9 +366,9 @@ static int findwrap(FTABLE *fp, LINE *lp, int cursoffset, int *nextword,int rmar
 	int		spacepos;	
 	char *	s;
 
-	wm = _cscr2phys(fp, lp, rmargin);
+	wm = caret_screen2lineOffset(fp, &(CARET){lp, rmargin});
 
-	if (_cphys2scr(fp, lp->lbuf,wm) < rmargin) {
+	if (caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, wm}) < rmargin) {
 		return 0;
 	}
 
@@ -411,7 +409,7 @@ int RightMargin(FTABLE *fp)
 {	int 		rmargin;
 	WINFO	*wp;
 
-	if ((rmargin = fp->lin->rmargin) == 0 && (wp = WIPOI(fp)) != 0)
+	if ((rmargin = fp->documentDescriptor->rmargin) == 0 && (wp = WIPOI(fp)) != 0)
 		rmargin = (wp->maxcol-wp->mincol)-RM_DELTA;
 	return rmargin;
 }
@@ -422,15 +420,15 @@ int RightMargin(FTABLE *fp)
 static void dowrap(FTABLE *fp)
 {	int nextword,delta;
 
-	if (findwrap(fp, fp->currl,fp->lnoffset,&nextword,RightMargin(fp)) > 0) {
-		delta = fp->lnoffset-nextword;
+	if (findwrap(fp, fp->caret.linePointer,fp->caret.offset,&nextword,RightMargin(fp)) > 0) {
+		delta = fp->caret.offset-nextword;
 		curpos(fp->ln,(long)nextword);
 		EdLineSplit(0);
 		if (delta < 0)
-			delta += fp->lnoffset;
+			delta += fp->caret.offset;
 		if (delta < 0)
 			delta = 0;
-		curpos(fp->ln,(long)(fp->lnoffset+delta));
+		curpos(fp->ln,(long)(fp->caret.offset+delta));
 	}
 }
 
@@ -449,14 +447,14 @@ int doauto(FTABLE *fp)
 	long ln, newln, newcol;
 
 	destbuf = _linebuf;
-	if ((fp->lin->workmode & WM_AUTOFORMAT) == 0)
+	if ((fp->documentDescriptor->workmode & WM_AUTOFORMAT) == 0)
 		return 0;
 
 	rm = RightMargin(fp);
 	i_d = 0;
-	lp = fp->currl;
+	lp = fp->caret.linePointer;
 	ln = newln = fp->ln;
-	newcol = fp->lnoffset;
+	newcol = fp->caret.offset;
 
 	/* watch also previous line */
 	if (lp->prev && !HARD_BREAK(lp->prev)) {
@@ -474,7 +472,7 @@ int doauto(FTABLE *fp)
 			if (lpnext == fp->lastl || HARD_BREAK(lpnext))
 				lpnext = lp;
 			indent = ln_leadspce(lpnext);
-			indent = _cphys2scr(fp, lpnext->lbuf, indent);
+			indent = caret_lineOffset2screen(fp, &(CARET) { lpnext, indent});
 
 			/* start of next word after word position defined:
 			   -> actual line too long 
@@ -529,9 +527,9 @@ int doauto(FTABLE *fp)
 					destbuf[di++] = c;
 				}
 
-				/* this is for minimizing cphys2scr - calls */
+				/* this is for minimizing caret_lineOffset2screen - calls */
 				if (column < 0)
-					column = _cphys2scr(fp, destbuf, di);
+					column = caret_lineOffset2screen(fp, destbuf, di);
 				else
 					column += (di-desti);
 
@@ -604,7 +602,7 @@ int doauto(FTABLE *fp)
 		lp = lp->next;
 		ln++;
 
-		if (lp != fp->currl && !modified)
+		if (lp != fp->caret.linePointer && !modified)
 			break;
 	}
 
@@ -615,11 +613,11 @@ int doauto(FTABLE *fp)
 		redrawline();
 	}
 
-	lp1 = fp->currl;
+	lp1 = fp->caret.linePointer;
 	if (lp1->prev)
 		lp1 = lp1->prev;
 
-	ln_um(lp1,lp,LNREPLACED);
+	ln_removeFlag(lp1,lp,LNREPLACED);
 
 	if (newln >= fp->nlines) {
 		newln = fp->nlines-1;
@@ -636,7 +634,7 @@ int doauto(FTABLE *fp)
  */
 int EdCharInsert(int c)
 {	FTABLE *		fp;
-	LINEAL *		lnp;
+	DOCUMENT_DESCRIPTOR *		lnp;
 	LINE *		lp;
 	int			len;
 	int			offs;
@@ -645,7 +643,7 @@ int EdCharInsert(int c)
 	extern int 	_playing;
 
 	fp   = _currfile;
-	lnp	= fp->lin;
+	lnp	= fp->documentDescriptor;
 	if (c < 32 && c != 8 && c != '\t' && c != 10 && c != lnp->nl && c != lnp->cr) {
 		return 0;
 	}
@@ -682,7 +680,7 @@ int EdCharInsert(int c)
 		c = *string2;
 	}
 
-	offs = fp->lnoffset;
+	offs = fp->caret.offset;
 
 	if (c == '\t' && lnp->fillc) {
 		nchars = TabStop(fp->col,lnp) - fp->col;
@@ -690,13 +688,13 @@ int EdCharInsert(int c)
 	} else
 		nchars = 1;
 
-	if (workmode & WM_INSERT || offs >= fp->currl->len) {
+	if (workmode & WM_INSERT || offs >= fp->caret.linePointer->len) {
 		len = nchars;
 	} else {
 		len = 0;
 	}
 
-	if ((lp = ln_modify(fp,fp->currl,offs,offs+len)) == 0L) return 0;
+	if ((lp = ln_modify(fp,fp->caret.linePointer,offs,offs+len)) == 0L) return 0;
 	blfill(&lp->lbuf[offs],nchars,c);
 
 #if 0
@@ -714,7 +712,7 @@ int EdCharInsert(int c)
 			doabbrev(fp,lp,offs);
 		}
 		if (workmode & WM_SHOWMATCH) {
-			showmatch(lp,fp->lnoffset);
+			showmatch(lp,fp->caret.offset);
 		}
 
 		if (!doauto(fp) &&
@@ -738,8 +736,8 @@ int EdCharDelete(control)
 
 	cursor_width = 1;
 	updatecursor(WIPOI(fp));
-	lp = lp1 = fp->currl;
-	o1 = o2  = fp->lnoffset;
+	lp = lp1 = fp->caret.linePointer;
+	o1 = o2  = fp->caret.offset;
 	ln = ln1 = fp->ln;
 
 	setmatchfunc(control,IDS_DELUNTILC,&matchc);
@@ -804,10 +802,10 @@ int EdLineSplit(int flags)
 	LINE	 *	lp;
 
 	fp = _currfile;
-	lp = fp->currl;
+	lp = fp->caret.linePointer;
 	control = flags & (RET_PLUS|RET_MINUS);
 
-	if (fp->lin->workmode & WM_INSERT) {
+	if (fp->documentDescriptor->workmode & WM_INSERT) {
 		if (control & RET_PLUS) {
 			_deltaindent = 1;
 		} else if (control & RET_MINUS) {
@@ -849,15 +847,15 @@ int EdMarkedLineOp(int op)
 		break;
 
 	case MLN_MAKESOFT:
-		ln_mm(lp,last,LNXMARKED,LNNOCR,1);
+		ln_changeFlag(lp,last,LNXMARKED,LNNOCR,1);
 		break;
 
 	case MLN_MAKEHARD:
-		ln_mm(lp,last,LNXMARKED,LNNOCR,0);
+		ln_changeFlag(lp,last,LNXMARKED,LNNOCR,0);
 		break;
 
 	case MLN_FINDSOFT:
-		ln_mm(lp,last,LNNOCR,LNXMARKED,1);
+		ln_changeFlag(lp,last,LNNOCR,LNXMARKED,1);
 		break;
 
 	default:
@@ -897,7 +895,7 @@ int EdHideLines(void)
 	Pastehide(0);
 
 	ln_hide(fp, lp1, lp2);
-	fp->ln = WIPOI(fp)->ln = ln_cnt(fp->firstl,fp->currl)-1;
+	fp->ln = WIPOI(fp)->ln = ln_cnt(fp->firstl,fp->caret.linePointer)-1;
 
 	RedrawTotalWindow(fp);
 	return 1;
@@ -914,7 +912,7 @@ int EdUnHideLine(void)
 		return 0;
 	}
 
-	if (ln_unhide(fp, fp->currl)) {
+	if (ln_unhide(fp, fp->caret.linePointer)) {
 		curpos(fp->ln,0L);
 		RedrawTotalWindow(fp);
 	}
@@ -925,7 +923,7 @@ int EdUnHideLine(void)
  * EdMouseSelectLines()
  */
 void EdMouseSelectLines(int flg)
-{	LINE *lp = _currfile->currl;
+{	LINE *lp = _currfile->caret.linePointer;
 	int  oflg;
 
 	oflg = lp->lflg;
@@ -944,7 +942,7 @@ int EdExpandAbbreviation(void)
 {
 	if (_currfile) {
 		return
-			doabbrev(_currfile,_currfile->currl,_currfile->lnoffset);
+			doabbrev(_currfile,_currfile->caret.linePointer,_currfile->caret.offset);
 	}
 	return 0;
 }

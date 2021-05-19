@@ -39,13 +39,12 @@ extern char *	OemAbbrevName(char *fn);
 extern FTABLE *ww_stackwi(int num);
 extern HWND 	ww_winid2hwnd(int winid);
 extern DWORD 	SendBrotherMessage(UINT message, LPARAM lParam);
-extern int 	GetFileDocumentType(LINEAL *linp, char *filename);
+extern int 	GetFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename);
 extern char *	searchfile(char *s);
 extern void 	prof_saveaspath(void);
 extern int 	PromptAsPath(char *path);
-extern LINEAL *GetDocumentTypeDescriptor(void *p);
+extern DOCUMENT_DESCRIPTOR *GetDocumentTypeDescriptor(void *p);
 extern char *	basename(char *s);
-extern int 	createl(FTABLE *fp, char *q, int len, int flags);
 
 extern char *	_datadir;
 extern void *	lastSelectedDocType;
@@ -57,21 +56,34 @@ char			*_hisfile = "PKSEDIT.HIS";
 int			_ExSave;
 
 /*--------------------------------------------------------------------------
- * make_aspath()
+ * GenerateBackupPathname()
  */
-static int make_aspath(char *dname, char *fname)
+static int GenerateBackupPathname(char *destinationName, char *fname)
 {	char fn[EDMAXPATHLEN];
 	char szBuff[EDMAXPATHLEN];
 
 	if (GetConfiguration()->pksEditTempPath[0]) {
 		sfsplit(fname,(char *)0,fn);
 		strdcpy(szBuff, GetConfiguration()->pksEditTempPath,fn);
-		FullPathName(dname,szBuff);
+		FullPathName(destinationName,szBuff);
 		return 1;
 	}
 	return 0;
 }
 
+
+/*
+ * Checks whether two file names describe two different files. Returns
+ * value != 0, if different
+ */
+static BOOL areFilenamesDifferent(char* fileName1, char* fileName2) {
+	char tempFn1[EDMAXPATHLEN];
+	char tempFn2[EDMAXPATHLEN];
+
+	GetLongPathName(fileName1, tempFn1, sizeof tempFn1);
+	GetLongPathName(fileName2, tempFn2, sizeof tempFn2);
+	return lstrcmpi(tempFn1, tempFn2);
+}
 
 void ft_CheckForChangedFiles(void) {
 	FTABLE *	fp;
@@ -80,7 +92,7 @@ void ft_CheckForChangedFiles(void) {
 	for (fp = _filelist; fp; fp = fp->next) {
 		if (fp->ti_created < (lCurrentTime = EdGetFileTime(fp->fname))) {
 			if (ed_yn(IDS_MSGFILESHAVECHANGED, OemAbbrevName(fp->fname)) == IDYES) {
-				AbandonFile(fp, (LINEAL *)0);			
+				AbandonFile(fp, (DOCUMENT_DESCRIPTOR *)0);			
 			}
 		}
 		fp->ti_created = lCurrentTime;
@@ -140,7 +152,7 @@ autosave:
 		/* "best before" date expired: do autosave */
 		strcpy(spath,fp->fname);
 
-		make_aspath(fp->fname,fp->fname);
+		GenerateBackupPathname(fp->fname,fp->fname);
 		ret = writefile(1, fp);
 
 		/* restore MODIFIED and ISBACKUPED - Flags */
@@ -175,17 +187,6 @@ autosave:
 	return saved;
 }
 
-/*--------------------------------------------------------------------------
- * prnfl()
- */
-int prnfl(FTABLE *fp, char *fn, long line, char *remark)
-{
-	char buf[EDMAXPATHLEN];
-
-	wsprintf(buf,"\"%s\", line %ld: %s",(LPSTR)fn,line+1L,(LPSTR)remark);
-	return createl(fp, buf, lstrlen(buf), 0);
-}
-
 /*---------------------------------*/
 /* picksave()					*/
 /*---------------------------------*/
@@ -196,7 +197,7 @@ void picksave(void )
 	WINDOWPLACEMENT 	ws;
 	char   				szBuff[EDMAXPATHLEN];
 
-	ft.currl = 0;
+	ft.caret.linePointer = 0;
 	putline(&ft,"[files]");
 
 	/* save names of bottom windows first !! */
@@ -204,7 +205,7 @@ void picksave(void )
 		if ((fp = ww_stackwi(s)) != 0) {
 			ww_getstate(WIPOI(fp),&ws);
 			prof_printws(szBuff,&ws);
-			prnfl(&ft,fp->fname,fp->ln,szBuff);
+			addLineWithLocationInfo(&ft,fp->fname,fp->ln,szBuff);
 		}
 	}
 
@@ -241,12 +242,12 @@ int pickread(void )
  */
 void ft_bufdestroy(FTABLE *fp)
 {
-	ll_kill(&fp->fmark,(int (*)(void *elem))0);
+	ll_destroy(&fp->fmark,(int (*)(void *elem))0);
 	fp->blstart = 0;
 	fp->blend = 0;
-	destroy(&fp->lin);
+	destroy(&fp->documentDescriptor);
 	lnlistfree(fp->firstl);
-	fp->tln = fp->firstl = fp->currl = 0;
+	fp->tln = fp->firstl = fp->caret.linePointer = 0;
 	closeF(&fp->lockFd);
 	u_destroy(fp);
 }
@@ -258,19 +259,6 @@ void ft_settime(EDTIME *tp)
 {	time (tp);
 }
 
-/*
- * Checks whether two file names describe two different files. Returns
- * value != 0, if different
- */
-int areFilenamesDifferent(char *fileName1, char *fileName2) {
-	char tempFn1[EDMAXPATHLEN];
-	char tempFn2[EDMAXPATHLEN];
-
-	GetLongPathName(fileName1, tempFn1, sizeof tempFn1);
-	GetLongPathName(fileName2, tempFn2, sizeof tempFn2);
-	return lstrcmpi(tempFn1, tempFn2);
-}
-
 /*------------------------------------------------------------
  * ft_deleteautosave()
  */
@@ -278,7 +266,7 @@ void ft_deleteautosave(FTABLE *fp)
 {
 	char as_name[EDMAXPATHLEN];
 
-	if ((GetConfiguration()->options & O_GARBAGE_AS) && make_aspath(as_name,fp->fname)) {
+	if ((GetConfiguration()->options & O_GARBAGE_AS) && GenerateBackupPathname(as_name,fp->fname)) {
 		if (areFilenamesDifferent(fp->fname,as_name)) {
 			unlink(as_name);
 		}
@@ -337,8 +325,8 @@ char *ft_visiblename(FTABLE *fp)
  * calculate current file size
  */
 long ft_size(FTABLE *fp)
-{	extern long ln_needbytes(LINE *lp, int nl, int cr);
-	long fsize = ln_needbytes(fp->firstl,fp->lin->nl,fp->lin->cr);
+{	
+	long fsize = ln_calculateMemorySizeRequired(fp->firstl,fp->documentDescriptor->nl,fp->documentDescriptor->cr);
 
 	if (fp->lastl) 
 		fsize -= fp->lastl->len;
@@ -383,9 +371,9 @@ static DWORD ft_globalediting(char *fn)
  */
 static int ft_openwin(FTABLE *fp, WINDOWPLACEMENT *wsp)
 {
-	if (wsp == 0 && fp->lin) {
-		if (fp->lin->dispmode & SHOWFIXEDWI) {
-			wsp = (WINDOWPLACEMENT*)&fp->lin->placement;
+	if (wsp == 0 && fp->documentDescriptor) {
+		if (fp->documentDescriptor->dispmode & SHOWFIXEDWI) {
+			wsp = (WINDOWPLACEMENT*)&fp->documentDescriptor->placement;
 		}
 	}
 	if (EdMdiCreate(szEditClass, fp->fname, ww_nwi()+1, (long)fp, wsp) == 0) {
@@ -399,8 +387,8 @@ static int ft_openwin(FTABLE *fp, WINDOWPLACEMENT *wsp)
  */
 int ft_wantclose(FTABLE *fp)
 {
-	if (fp->lin->cm[0]) {
-		if (!do_macbyname(fp->lin->cm)) {
+	if (fp->documentDescriptor->cm[0]) {
+		if (!do_macbyname(fp->documentDescriptor->cm)) {
 			return 0;
 		}
 	}
@@ -478,7 +466,7 @@ int ft_select(FTABLE *fp)
 	if (fp == 0) {
 		return 0;
 	}
-	fixsets(fp->lin->u2lset);
+	fixsets(fp->documentDescriptor->u2lset);
 	return 1;
 }
 
@@ -567,7 +555,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 		newfile = 1;
 	} else {
 		if ((GetConfiguration()->options & O_GARBAGE_AS) &&
-			make_aspath(szAsPath, fn) &&
+			GenerateBackupPathname(szAsPath, fn) &&
 			areFilenamesDifferent(szAsPath, fn) &&
 			EdStat(szAsPath, 0xFF) == 0 &&
 			ed_yn(IDS_MSGRECOVER) == IDYES) {
@@ -590,7 +578,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 		fp->flags |= F_NEWFILE;
 	}
 	if (AssignDocumentTypeDescriptor(fp, GetDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
-         readfile(fp, fp->lin) == 0 || 
+         readfile(fp, fp->documentDescriptor) == 0 || 
 	    (lstrcpy(fp->fname, fn), ft_openwin(fp, wsp) == 0)) {
 		ft_destroy(fp);
 		return 0;
@@ -602,8 +590,8 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 
 	curpos(line,0L);
 
-	if (newfile && fp->lin) {
-		do_macbyname(fp->lin->vl);
+	if (newfile && fp->documentDescriptor) {
+		do_macbyname(fp->documentDescriptor->creationMacroName);
 	}
 
 	return 1;
@@ -635,7 +623,7 @@ int EdEditFile(long editflags, long unused, char *filename)
 /*------------------------------------------------------------
  * AbandonFile()
  */
-int AbandonFile(FTABLE *fp, LINEAL *linp)
+int AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 {
 	long   	ln,col;
 
@@ -649,14 +637,14 @@ int AbandonFile(FTABLE *fp, LINEAL *linp)
 	}
 
 	ln = fp->ln;
-	col = fp->lnoffset;
+	col = fp->caret.offset;
 	fp->ln = 0;
 	fp->nlines = 0;
 	ft_bufdestroy(fp);
 
 	if (u_new(fp) == 0 || 
 	    !AssignDocumentTypeDescriptor(fp, linp) ||
-	    !readfile(fp,fp->lin)) {
+	    !readfile(fp,fp->documentDescriptor)) {
 		fp->flags = 0;
 		ww_close(WIPOI(fp));
 		return 0;
@@ -684,7 +672,7 @@ int AbandonFile(FTABLE *fp, LINEAL *linp)
  */
 void EdFileAbandon(void)
 {
-	AbandonFile(_currfile, (LINEAL *)0);
+	AbandonFile(_currfile, (DOCUMENT_DESCRIPTOR *)0);
 }
 
 /*------------------------------------------------------------
@@ -720,7 +708,7 @@ int EdSaveFile(int flg)
 			/* if ret == "APPEND".... fp->flags |= F_APPEND */
 		}
 		strcpy(fp->fname,newname);
-		ww_setwindowtitle(fp,WIPOI(fp));
+		ww_setwindowtitle(WIPOI(fp));
 		fp->flags |= F_CHANGEMARK;
 		if (!(fp->flags & F_APPEND)) fp->flags |= F_SAVEAS;
 		fp->flags &= ~F_NEWFILE;

@@ -37,8 +37,8 @@ int CurrentRulerContext(void)
 {	FTABLE *fp;
 
 	if ((fp = _currfile) != 0)
-		return fp->lin->id;
-	return LIN_DEFCTX;
+		return fp->documentDescriptor->id;
+	return DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
 }
 
 /*--------------------------------------------------------------------------
@@ -46,7 +46,7 @@ int CurrentRulerContext(void)
  */
 int ActiveRulerContext(int ctx)
 {
-	if (ctx != LIN_DEFCTX && ctx != CurrentRulerContext())
+	if (ctx != DEFAULT_DOCUMENT_DESCRIPTOR_CTX && ctx != CurrentRulerContext())
 		return 0;
 	
 	return 1;
@@ -105,7 +105,7 @@ void printesclist(FILE *fp, void *p)
 	int ctx;
 
 	prpastelist(fp,pp[0]);
-	if ((ctx = CurrentRulerContext()) != LIN_DEFCTX) {
+	if ((ctx = CurrentRulerContext()) != DEFAULT_DOCUMENT_DESCRIPTOR_CTX) {
 		prpastelist(fp,pp[ctx]);
 	}
 }
@@ -208,12 +208,12 @@ int macs_execute_string(char *string)
 
 	saveMacEdited = _macedited;
 	memset(&ft, 0, sizeof ft);
-	createl(&ft, "macro temp-block() {", -1, 0);
+	ln_createAndAdd(&ft, "macro temp-block() {", -1, 0);
 	UnEscape(chTemp, string);
-	createl(&ft, chTemp, -1, 0);
-	createl(&ft, "}", -1, 0);
+	ln_createAndAdd(&ft, chTemp, -1, 0);
+	ln_createAndAdd(&ft, "}", -1, 0);
 /* sigh: need an empty line here */
-	createl(&ft, "", -1, 0);
+	ln_createAndAdd(&ft, "", -1, 0);
 	if (!(nFail = setjmp(errb))) {
 		for (lp = ft.firstl; lp && lp->next; lp = lp->next) ;
 		yyinit(&errb, "\"DDE Command\"", ft.firstl, lp);

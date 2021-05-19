@@ -251,9 +251,9 @@ EXPORT int bl_write(char *fn, PASTE *pb,int mode)
 			lp  = lp->next;
 		lp->lflg = LNNOTERM;
 		rf.lastl = 0;
-		rf.lin = CreateDefaultDocumentTypeDescriptor();
+		rf.documentDescriptor = CreateDefaultDocumentTypeDescriptor();
 		ret = Writefile(&rf,fn,mode);
-		free(rf.lin);
+		free(rf.documentDescriptor);
 	}
 	return ret;
 }
@@ -277,15 +277,15 @@ EXPORT int bl_paste(PASTE *pb, FTABLE *fp, LINE *lpd, int col, int colflg)
 		return blpastecol(pb,fp,lpd,col);
 	}
 
-	bBlkLines = (fp->lin->workmode & BLK_LINES);
+	bBlkLines = (fp->documentDescriptor->workmode & BLK_LINES);
 
 	if (!bBlkLines) {
 		if ((lpd = ln_break(fp,lpd,col)) == 0L) {
 			return 0;
 		}
 
-		fp->currl = lpd->prev;
-		lpd = fp->currl;
+		fp->caret.linePointer = lpd->prev;
+		lpd = fp->caret.linePointer;
 		if ((lpd = ln_join(fp,lpd,lps,0)) == 0L) {
 			return 0;
 		}

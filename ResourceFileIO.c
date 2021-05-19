@@ -420,7 +420,7 @@ int rsc_switchtotable(RSCTABLE **Rp, char *pszTarget)
 
 	for (rp = *Rp ; rp; rp = rp->rt_next) {
 		if (strcmp(rp->rt_name,name) == 0) {
-			ll_top(Rp,rp);
+			ll_moveElementToFront(Rp,rp);
 			return 1;
 		} 
 	}

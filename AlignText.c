@@ -19,7 +19,6 @@
 #include "pksedit.h"
 
 extern int 	chkblk(FTABLE *fp);
-extern int	_cphys2scr(FTABLE *fp, char *lbuf,int lnoffs);
 
 extern char 	_expbuf[];
 
@@ -47,7 +46,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	ProgressMonitorStart(IDS_ABRTALIGN);
 
 	if (flags & (AL_CPOS|AL_FIX)) {
-		firstcol = _cphys2scr(fp,fp->currl->lbuf,fp->lnoffset);
+		firstcol = caret_lineOffset2screen(fp,&fp->caret);
 	}
 	else
 		firstcol = 0;
@@ -59,9 +58,9 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	else
 		/* looking for the right most position */
 		for (aligncol = 0, lp = mps->lm; lp != 0; lp = lp->next) {
-			i = cscr2phys(lp,firstcol);
+			i = caret_screen2lineOffset(lp,firstcol);
 			if (step(&lp->lbuf[i],_expbuf, &lp->lbuf[lp->len])) {
-				col = _cphys2scr(fp,lp->lbuf,(int)(*loc - lp->lbuf));
+				col = caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, (int)(*loc - lp->lbuf)});
 				if (col > aligncol)
 					aligncol = col;
 			}
@@ -72,7 +71,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	ret = 1;
 	for (lp = mps->lm; lp != 0; lp = lp->next) {
 		besti  = -1;
-		firsti = cscr2phys(lp,firstcol);
+		firsti = caret_screen2lineOffset(lp,firstcol);
 		if (flags & AL_FIX)
 			i = 0;		
 		else
@@ -89,7 +88,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 			i++;
 		}
 		if (besti >= 0) {
-			bestcol = _cphys2scr(fp,lp->lbuf,besti);
+			bestcol = caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, besti});
 			nchars  = aligncol - bestcol;
 			if ((lp = ln_modify(fp,lp,besti,besti+nchars)) == 0L) {
 				ret = 0;

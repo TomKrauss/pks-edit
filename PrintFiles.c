@@ -376,7 +376,7 @@ static void Line(HDC hdc, int xPos, int yPos, long lineno,
 	}
 
 	_printwhat.wp->mincol = firstc;
-	max = _cphys2scr(_printwhat.fp,lp->lbuf,lp->len);
+	max = caret_lineOffset2screen(_printwhat.fp, &(CARET) { lp, lp->len});
 	if (max > lastc)
 		max = lastc;
 	nMaxCharsPerLine = _prtparams.nchars - _prtparams.lmargin - _prtparams.rmargin;
@@ -696,7 +696,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 	 		return 0;
 		WIPOI(fp) = &winfo;
 		FTPOI((&winfo)) = fp;
-		ww_setwindowflags(fp,&winfo);
+		ww_setwindowflags(&winfo);
 	}
 
 	if (what == PRT_CURRWI || what == PRT_FILE) {

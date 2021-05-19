@@ -18,6 +18,7 @@
 #include "lineoperations.h"
 #include "edierror.h"
 
+extern int 	_flushing;
 extern PASTE *	_undobuf;
 extern PASTE *	bl_addrbyid(int id, int insert);
 
@@ -25,11 +26,11 @@ LINE *	ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold);
 LINE *	ln_modify(FTABLE *fp,LINE *lp,int col1,int col2);
 
 /*---------------------------------
- * ln_m()
+ * ln_addFlag()
  * 
  * Add a flag to all lines between lpstart and lpend. 
- *---------------------------------*/
-void ln_m(LINE *lpstart, LINE *lpend, int flg) {
+ */
+void ln_addFlag(LINE *lpstart, LINE *lpend, int flg) {
 
 	while (lpstart != 0) {	
 		lpstart->lflg |= flg;
@@ -39,12 +40,12 @@ void ln_m(LINE *lpstart, LINE *lpend, int flg) {
 }
 
 /*---------------------------------
- * ln_mm()
+ * ln_changeFlag()
  *
  * Add / remove flags from multiple lines - all lines having an expected flag
  * are considered.
- *---------------------------------*/
-void ln_mm(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark, int set) {
+ */
+void ln_changeFlag(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark, int set) {
 	if (!set)
 		flagmark = ~flagmark;
 
@@ -63,11 +64,11 @@ void ln_mm(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark, int set) {
 
 
 /*---------------------------------
- * ln_m()
+ * ln_removeFlag()
  *
  * Remove a flag from all lines between lpstart and lpend.
  *---------------------------------*/
-void ln_um(LINE *lpstart, LINE *lpend, int flg) {
+void ln_removeFlag(LINE *lpstart, LINE *lpend, int flg) {
 	flg = ~flg;
 	while (lpstart != 0) {
 		lpstart->lflg &= flg;
@@ -180,13 +181,13 @@ long ln_find(FTABLE *fp, LINE *lp)
 void ln_insert(FTABLE *fp, LINE *pos, LINE *lp)
 {
 	fp->flags |= F_CHANGEMARK;
-	if (fp->lin->nl < 0) {
+	if (fp->documentDescriptor->nl < 0) {
 		lp->lflg |= LNNOTERM;
 	}
 
 	fp->nlines++;
-	if (fp->currl == pos)
-		fp->currl = lp;
+	if (fp->caret.linePointer == pos)
+		fp->caret.linePointer = lp;
 
 	lp->next = pos;
 	if ((lp->prev = pos->prev) == 0) 			/* insert first line    */
@@ -232,8 +233,8 @@ int ln_delete(FTABLE *fp, LINE *lp)
 	if (lp == fp->tln) {
 		fp->tln = 0;
 	}
-	if (fp->currl == lp) {
-		fp->currl = next;
+	if (fp->caret.linePointer == lp) {
+		fp->caret.linePointer = next;
 	}
 	fp->nlines--;
 	return 1;
@@ -500,7 +501,7 @@ int lnjoin_lines(FTABLE *fp)
 
 /*----------------------------*/
 /* ln_goto()				*/
-/* goto line l in File		*/
+/* goto line deltaLines in File		*/
 /*----------------------------*/
 LINE *ln_goto(FTABLE *fp,long l)
 {	LINE *cl = fp->firstl;
@@ -534,38 +535,34 @@ LINE *ln_relative(LINE *cl, long l)
 /*---------------------------------*/
 /* ln_crelgo()					*/
 /*---------------------------------*/
-LINE *ln_crelgo(FTABLE *fp, long l, long *o)
-{	LINE *cl = fp->currl;
-	long off = fp->hexoffset;
+LINE *ln_crelgo(FTABLE *fp, long deltaLines)
+{	LINE *cl = fp->caret.linePointer;
 
-	if (l > 0L) {
-		while (l && cl != fp->lastl) { 
-			off += cl->len;
-			cl   = cl->next; l--;
+	if (deltaLines > 0L) {
+		while (deltaLines && cl != fp->lastl) { 
+			cl   = cl->next; 
+			deltaLines--;
 		}
 		if (cl == fp->lastl) {
-			off -= cl->prev->len;
 			return 0;
 		}
 	} else {
-		l = -l;
-		while (l) { 
-			cl = cl->prev; l--; 
+		deltaLines = -deltaLines;
+		while (deltaLines) { 
+			cl = cl->prev; deltaLines--; 
 			if (!cl) break;
-			off -= cl->len;
 		}
 	}
-	*o = off;
 	return cl;
 }
 
 /*----------------------------*/
 /* ln_relgo()				*/
-/* relativ goto line l in File*/
+/* relativ goto line deltaLines in File*/
 /*----------------------------*/
 LINE *ln_relgo(FTABLE *fp, long l)
 {
-	return ln_relative(fp->currl,l);
+	return ln_relative(fp->caret.linePointer,l);
 }
 
 /*----------------------------*/
@@ -574,7 +571,7 @@ LINE *ln_relgo(FTABLE *fp, long l)
 /*----------------------------*/
 LINE *ln_gotouserel(FTABLE *fp, long ln)
 {
-	return ln_relative(fp->currl,ln-fp->ln);
+	return ln_relative(fp->caret.linePointer,ln-fp->ln);
 }
 
 /*---------------------------------*/
@@ -628,7 +625,7 @@ void ln_replace(FTABLE *fp, LINE *oln, LINE *nl)
 	if ((nl->prev = oln->prev) != 0) nl->prev->next = nl;
 	nl->next->prev = nl;
 	if (oln -> lflg & LNMARKED) ln_repmark(fp,oln,nl);
-	if (fp->currl == oln)  fp->currl  = nl;
+	if (fp->caret.linePointer == oln)  fp->caret.linePointer  = nl;
 	if (fp->firstl == oln) fp->firstl = nl;
 }
 
@@ -778,8 +775,8 @@ LINE *ln_hide(FTABLE *fp, LINE *lp1, LINE *lp2)
 	u_cash(fp, lpind, (LINE*)0, O_HIDE);
 
 	for (lp = lp1, nTotalHidden = 0; lp; lp = lp->next) {
-		if (fp->currl == lp) {
-			fp->currl = lpind;
+		if (fp->caret.linePointer == lp) {
+			fp->caret.linePointer = lpind;
 		}
 		if (LpHasHiddenList(lp)) {
 			nTotalHidden += LpIndNTotal(lp);
@@ -814,9 +811,9 @@ int ln_unhide(FTABLE *fp, LINE *lpind)
 		;
 
 	if (lpind->lflg & LNCPMARKED) {
-		ln_m(lp1,lp2,LNCPMARKED);
+		ln_addFlag(lp1,lp2,LNCPMARKED);
 	} else {
-		ln_um(lp1,lp2,LNCPMARKED);
+		ln_removeFlag(lp1,lp2,LNCPMARKED);
 	}
 
 	nHidden = LpIndNHidden(lpind);
@@ -833,8 +830,8 @@ int ln_unhide(FTABLE *fp, LINE *lpind)
 
 	u_cash(fp, lp1, lp2, O_UNHIDE);
 
-	if (fp->currl == lpind) {
-		fp->currl = lp1;
+	if (fp->caret.linePointer == lpind) {
+		fp->caret.linePointer = lp1;
 	}
 
 	_free(lpind);
@@ -859,7 +856,7 @@ void ln_destroy(LINE *lp)
  * ln_needbytes()
  * Calculates the number of bytes needed for one line.
  */
-EXPORT long ln_needbytes(LINE *lp, int nl, int cr)
+EXPORT long ln_calculateMemorySizeRequired(LINE *lp, int nl, int cr)
 { 	
 	long fsize = 0L;
 	long ln = 0L;
@@ -878,4 +875,144 @@ EXPORT long ln_needbytes(LINE *lp, int nl, int cr)
 	}
 	return fsize;
 }
+
+/*----------------------------------------------
+ * ln_createAndAdd()
+ * create a line and add it to the editor model
+ */
+BOOL ln_createAndAdd(FTABLE* fp, char* q, int len, int flags) {
+	LINE* lp;
+
+	if (len < 0) {
+		len = (int)strlen(q);
+	}
+	if ((lp = _alloc(len + sizeof(LINE))) == 0L) {
+		lnlistfree(fp->firstl);
+		fp->firstl = 0;
+		return FALSE;
+	}
+	lp->len = len;
+	lp->lflg = flags;
+	lp->attr = 0;
+	lp->next = 0L;
+	lp->lbuf[len] = 0;
+	if (q) {
+		memmove(lp->lbuf, q, len);
+	}
+	if ((lp->prev = fp->caret.linePointer) != 0) {
+		fp->caret.linePointer->next = lp;
+	}
+	else {
+		fp->firstl = lp;
+	}
+	fp->caret.linePointer = lp;
+	return TRUE;
+}
+
+/*---------------------------------
+ * ln_createFromBuffer()
+ * Creates a line from a buffer p. The end of the buffer
+ * is passed in pend.
+ */
+unsigned char* ln_createFromBuffer(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor, unsigned char* p, unsigned char* pend) {
+	int  nl;
+	long size;
+	int rightMargin = documentDescriptor->rmargin;
+
+	nl = 0;
+	if (rightMargin <= 0)
+		rightMargin = 1;
+	while (p < pend) {
+		size = pend - p;
+		if (size >= rightMargin) {
+			size = rightMargin;
+		}
+		else if (!_flushing) {
+			break;
+		}
+		if (!ln_createAndAdd(fp, p, size, LNNOTERM)) {
+			return 0;
+		}
+		p += size;
+		nl++;
+	}
+	fp->nlines += nl;
+	return p;
+}
+
+/*------------------------------------
+ * ln_createMultipleLinesFromBuffer()
+ * Create multiple lines from a passed buffer p. The
+ * end of the buffer is passed in pend.
+ */
+unsigned char* ln_createMultipleLinesFromBuffer(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor, unsigned char* p, unsigned char* pend) {
+	unsigned char 		t1;
+
+	t1 = documentDescriptor->nl;
+	*pend = t1;
+	return ln_createMultipleLinesUsingSeparators(fp, p, pend, t1, documentDescriptor->nl2, documentDescriptor->cr);
+}
+
+/*-----------------------------------------
+ * ln_createMultipleLinesUsingSeparators()
+ * Split a passed buffer (end is marked by pend) with given line separator
+ * characters t1 and t2. If cr s
+ */
+unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, unsigned char* p,
+	unsigned char* pend, int t1, int t2, int cr) {
+	int 				flags;
+	int				nl;
+	int				len;
+	unsigned char* q;
+	unsigned char* pstart;
+
+	nl = 0;
+	pstart = p + 1;
+
+	for (;;) {
+		q = p;
+		if (t2 >= 0) {
+			while (*p != t1 && *p != t2) {
+				p++;
+			}
+			p++;
+		}
+		else {
+			while (*p++ != t1) {
+				;
+			}
+		}
+
+		len = p - q;
+
+		if (cr >= 0 && p > pstart && p[-2] == cr) {
+			len -= 2;
+			flags = 0;
+		}
+		else {
+			len--;
+			flags = LNNOCR;
+		}
+
+		/* is this line too long ? */
+		if (len > MAXLINELEN) {
+			p = q + MAXLINELEN;
+			len = MAXLINELEN;
+			fp->longLinesSplit++;
+			goto createline;
+		}
+
+		if (p > pend) {
+			fp->nlines += nl;
+			return q;
+		}
+
+	createline:
+		if (!ln_createAndAdd(fp, q, len, flags)) {
+			return 0;
+		}
+		nl++;
+	}
+}
+
 

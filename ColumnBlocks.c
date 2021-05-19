@@ -35,7 +35,7 @@ static LINE *tabcpy(FTABLE *fp, LINE **Lps, int cfirst, int clast,
 	len = lps->len;
 	for (i = 0, col = 0; col < MAXLINELEN && i < len; i++) {
 		if ((c = *s++) == TAB && !ctrlmode) {
-			size = TabStop(col, fp->lin);
+			size = TabStop(col, fp->documentDescriptor);
 			while(col < size) {
 				*d++ = ' ';
 				col++;
@@ -85,7 +85,7 @@ EXPORT int blcutcol(PASTE *pp,LINE *lnfirst,LINE *lnlast,int freeflg)
 	cnt    = ln_cnt(lp,lnlast);
 	cfirst = fp->blcol1;
 	clast  = fp->blcol2;
-	ctrl   = PLAINCONTROL(fp->lin->dispmode);
+	ctrl   = PLAINCONTROL(fp->documentDescriptor->dispmode);
 	if (clast - cfirst <= 0) return 0;
 	blfill(pp,sizeof(pp),0);
 	while(cnt > 0) {
@@ -150,8 +150,8 @@ EXPORT int blpastecol(PASTE *pb,FTABLE *fp, LINE *lpd, int col)
 	int 		ctrl;
 
 	lps  = pb->pln;
-	col  = cphys2scr(lpd->lbuf,col);
-	ctrl = PLAINCONTROL(fp->lin->dispmode) ? 1 : 0;
+	col = caret_lineOffset2screen(fp, &(CARET) { lpd->lbuf, col });
+	ctrl = PLAINCONTROL(fp->documentDescriptor->dispmode) ? 1 : 0;
 	while (lps) {
 		if (P_EQ(lpd,fp->lastl)) {
 			if ((lpnew = ln_create(0)) == (LINE *) 0) return 0;

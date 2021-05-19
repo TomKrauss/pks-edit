@@ -482,7 +482,7 @@ advance:
 	}
 	lpd  ->next	= lpend;
 	lpend->prev	= lpd;
-	fp->currl 	= fp->firstl;
+	fp->caret.linePointer = fp->firstl;
 	fp->flags	    |= F_CHANGEMARK;
 }
 
@@ -570,7 +570,7 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 			curpos(0L,0L);
 			ln_order(fp,_rectab,&rp);
 		}
-		ln_um(fp->firstl,fp->lastl,LNREPLACED);
+		ln_removeFlag(fp->firstl,fp->lastl,LNREPLACED);
 		ProgressMonitorClose(0);
 		RedrawTotalWindow(fp);
 		curpos(l1,0L);

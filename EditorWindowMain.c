@@ -18,6 +18,7 @@
 #include "trace.h"
 #include "lineoperations.h"
 #include "edierror.h"
+#include "errordialogs.h"
 #include "winfo.h"
 #include "winterf.h"
 #include "pksedit.h"
@@ -27,7 +28,7 @@
 
 #define	WT_WORKWIN		0
 #define	WT_RULERWIN		1
-#define	GWL_FTABLE		GWL_ICCLASSVALUES+sizeof(void*)
+#define	GWL_VIEWPTR		GWL_ICCLASSVALUES+sizeof(void*)
 
 #define	PROF_OFFSET		1
 
@@ -89,7 +90,7 @@ int ww_register(void)
 		      sizeof(void*)) ||
 		!EdMkWinClass(szEditClass,EditWndProc,
 		      (LPSTR)IDC_ARROW,NULL,"Edit",
-		      GWL_FTABLE+sizeof(void*)) ||
+		      GWL_VIEWPTR+sizeof(void*)) ||
 		!EdMkWinClass(szRulerClass,RulerWndProc,
 			 (LPSTR)IDC_CROSS,GetStockObject(WHITE_BRUSH),0,
 		      sizeof(void*))
@@ -527,7 +528,7 @@ void redrawallwi(int update)
 /*-----------------------------------------------------------
  * ww_setwindowtitle()
  */
-void ww_setwindowtitle(FTABLE *fp, WINFO *wp)
+void ww_setwindowtitle(WINFO *wp)
 {	int nr;
 	char buf[512];
 
@@ -536,10 +537,10 @@ void ww_setwindowtitle(FTABLE *fp, WINFO *wp)
 
 	nr = wp->win_id;
 	if (IsIconic(wp->edwin_handle)) {
-		wsprintf(buf,"%d %s",nr,(LPSTR)basename(ft_visiblename(fp)));
+		wsprintf(buf,"%d %s",nr,(LPSTR)basename(ft_visiblename(wp->fp)));
 	}
 	else {
-		wsprintf(buf,"#%d  %s",nr,(LPSTR)ft_visiblename(fp));
+		wsprintf(buf,"#%d  %s",nr,(LPSTR)ft_visiblename(wp->fp));
 	}
 	SetWindowText(wp->edwin_handle,buf);
 }
@@ -547,8 +548,9 @@ void ww_setwindowtitle(FTABLE *fp, WINFO *wp)
 /*-----------------------------------------------------------
  * ww_setwindowflags()
  */
-void ww_setwindowflags(FTABLE *fp, WINFO *wp)
-{	LINEAL *linp = fp->lin;
+void ww_setwindowflags(WINFO *wp) {
+	FTABLE* fp = wp->fp;
+	DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
 
 	if (linp->dispmode != wp->dispmode) {
 		wp->dispmode = linp->dispmode;
@@ -570,7 +572,7 @@ void ww_setwindowflags(FTABLE *fp, WINFO *wp)
 		SendRedraw(wp->ww_handle);
 		wt_tcursor(wp,0);
 		wt_tcursor(wp,1);
-		_curpos(fp,fp->ln,(long)fp->lnoffset);
+		_curpos(fp,fp->ln,fp->caret.offset);
 	}
 
 	wp->workmode = linp->workmode;
@@ -604,7 +606,7 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd)
 	wp->fp = fp;
 	wp->edwin_handle = hwnd;
 
-	ww_setwindowflags(fp,wp);
+	ww_setwindowflags(wp);
 
 	wp->hscroll   = 4;
 	wp->scroll_dx = 4;
@@ -635,7 +637,7 @@ void ww_destroy(FTABLE *fp)
 	for (wp = _winlist; wp; wp = wp->next) {
 		if (wp->win_id > nId) {
 			wp->win_id--;
-			ww_setwindowtitle(FTPOI(wp),wp);
+			ww_setwindowtitle(wp);
 		}
 	}
 	nwindows--;
@@ -677,11 +679,10 @@ WINFUNC EditWndProc(
 	LPARAM lParam
 	)
 {
-	FTABLE *			fp = (FTABLE*)GetWindowLongPtr(hwnd, GWL_FTABLE);
 	WINDOWPLACEMENT 	ws;
-	WINFO *				wp;
+	WINFO *				wp = (FTABLE*)GetWindowLongPtr(hwnd, GWL_VIEWPTR);
 
-	if (message == WM_CREATE || fp != NULL)
+	if (message == WM_CREATE || wp != NULL)
    	switch(message) {
 	case WM_CREATE:
 		{
@@ -691,20 +692,21 @@ WINFUNC EditWndProc(
 
 		cp = (LPCREATESTRUCT)lParam;
 		mp = (LPMDICREATESTRUCT)cp->lpCreateParams;
-		if (fp == NULL) {
-			fp = (FTABLE*) mp->lParam;
+		if (wp == NULL) {
+			FTABLE *fp = (FTABLE*) mp->lParam;
+			if ((wp = ww_new(fp, hwnd)) == 0) {
+				DestroyWindow(hwnd);
+				return 0;
+			}
 		}
 
-		if ((wp = ww_new(fp,hwnd)) == 0) {
-			DestroyWindow(hwnd);
-			return 0;
-		}
 		ShowWindow(hwnd, SW_HIDE);
-		MakeSubWis(hwnd,fp,&xyWork,&xyRuler);
-		ww_setwindowtitle(fp,wp);
-		SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR) fp->fname);
+		FTABLE* fp = wp->fp;
+		MakeSubWis(hwnd, fp,&xyWork,&xyRuler);
+		ww_setwindowtitle(wp);
+		SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR)fp->fname);
 		SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,icEditIconClass);
-		SetWindowLongPtr(hwnd,GWL_FTABLE, (LONG_PTR) fp);
+		SetWindowLongPtr(hwnd,GWL_VIEWPTR, (LONG_PTR) wp);
 		return 0;
 		}
 
@@ -720,9 +722,9 @@ WINFUNC EditWndProc(
 		if (wParam == 0)
 			break;
 	case WM_SETFOCUS:
-		ll_top(&_winlist,WIPOI(fp));
+		ll_moveElementToFront(&_winlist,wp);
 		if (!IsIconic(hwnd))
-			SetFocus(WIPOI(fp)->ww_handle);
+			SetFocus(wp->ww_handle);
 		break;
 #if 0
 		/* SETFOCUS must(!) be handled by MDIProc!! */
@@ -735,9 +737,9 @@ WINFUNC EditWndProc(
 	case WM_MOVE:
 		/* drop through */
 	case WM_SIZE:
-		wp = WIPOI(fp);
-		if (wParam == SIZEZOOMHIDE || wParam == SIZEZOOMSHOW)
+		if (wParam == SIZEZOOMHIDE || wParam == SIZEZOOMSHOW) {
 			break;
+		}
 		ww_getstate(wp,&ws);
 		if (ws.showCmd & SW_SHOWMINIMIZED) {
 			SetFocus(hwndFrame);
@@ -749,7 +751,7 @@ WINFUNC EditWndProc(
 		}
 		if (message == WM_MOVE)
 			break;
-		ww_setwindowtitle(fp,wp);
+		ww_setwindowtitle(wp);
 		if (wParam == SIZEICONIC) {
 			break;
 		}
@@ -758,8 +760,7 @@ WINFUNC EditWndProc(
 		{
 		XYWH  xyWork,xyRuler;
 
-		MakeSubWis(hwnd,fp,&xyWork,&xyRuler);
-		wp = WIPOI(fp);
+		MakeSubWis(hwnd, wp->fp,&xyWork,&xyRuler);
 		if (wp->ww_handle) {
 			MoveWindow(wp->ww_handle,xyWork.x,xyWork.y,
 					xyWork.w,xyWork.h,1);
@@ -776,14 +777,15 @@ WINFUNC EditWndProc(
 	case WM_CLOSE:
 		if (IsZoomed(hwnd))
 			SendMessage(hwndClient,WM_MDIRESTORE, (WPARAM)hwnd, (LPARAM)0);
-		if (!ft_wantclose(fp))
+		if (!ft_wantclose(wp->fp))
 			return 0;
  		break;
 
 	case WM_DESTROY:
-		ww_destroy(fp);
+		// TODO: should destroy the window - the document should be destroyed only if this is the last window.
+		ww_destroy(wp->fp);
 		/* if last window for this buffer ... */
-		ft_destroy(fp);
+		ft_destroy(wp->fp);
 		if (!ww_nwi()) {
 			SetMenuFor("initial");
 		}
@@ -1017,7 +1019,7 @@ static WINFUNC WorkAreaWndProc(
 			wt_tcursor(fp->wp,1);
 			ft_select(fp);
 			op_updateall();
-			tagselect(fp->lin->modename);
+			tagselect(fp->documentDescriptor->modename);
 			mac_switchtodefaulttables();
 	    }
 	    else {
@@ -1055,7 +1057,7 @@ static void draw_lin(FTABLE *fp)
 	int			nMiddle;
 	RECT			rect;
 	WINFO *		wp = WIPOI(fp);
-	LINEAL *		lin = fp->lin;
+	DOCUMENT_DESCRIPTOR *		lin = fp->documentDescriptor;
 	HDC 			hdc;
 	PAINTSTRUCT 	ps;
 	POINT		polyPoints[4];

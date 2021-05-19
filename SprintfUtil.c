@@ -27,6 +27,10 @@
 #include "stringutil.h"
 
 extern char *ft_visiblename(FTABLE *fp);
+/**
+ * Calculate the byte offset of the current caret in a file.
+ */
+extern long wi_getCaretByteOffset(WINFO* view);
 
 int  _psenabled = 1;
 
@@ -151,7 +155,7 @@ blanks:	return "              ";
 		break;
 
 	case 'r':
-		if (fp->lin->workmode & O_RDONLY)
+		if (fp->documentDescriptor->workmode & O_RDONLY)
 			return "Nur lesen";
 		goto blanks;
 
@@ -175,11 +179,11 @@ static long CurrentNumVal(FTABLE *fp, char **fmt)
 
 	switch(*format) {
 
-	case 'O':	
-		return fp->hexoffset + (long)fp->lnoffset;
+	case 'O':
+		return wi_getCaretByteOffset(WIPOI(fp));
 
 	case 'C':
-		return (long)((unsigned char)fp->currl->lbuf[fp->lnoffset]);
+		return (long)((unsigned char)fp->caret.linePointer->lbuf[fp->caret.offset]);
 
 	case 'l':
 		return WIPOI(fp)->ln + 1L;

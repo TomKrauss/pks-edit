@@ -292,7 +292,7 @@ int EdScrollScreen(int mtype)
 		ln >= fp->nlines)
 		return 0;
 
-	col = fp->lnoffset;
+	col = fp->caret.offset;
 	sl_moved(wp,dln,0,0);
 	ret = cposvalid(fp,&ln,&col,0);
 	wt_curpos(wp,ln,col);

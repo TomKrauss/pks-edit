@@ -41,9 +41,6 @@ extern 	MARK		*mark_set(FTABLE *fp, LINE *lp,int offs,int c);
 extern 	MARK		*mark_find(FTABLE *fp, int c);
 extern	int    	_playing,cursor_width;
 extern	long 	cparagrph(long ln,int dir,int start);
-
-extern	long	  	ln_find(FTABLE *fp, LINE *lp);
-
 unsigned char 		*tlcompile(unsigned char *transtab, 
 						 unsigned char *t,
 						 unsigned char *wt);
@@ -143,7 +140,7 @@ static int _repinit(unsigned char *pat, int findopt)
 		return 1;
 	}
 	if (_currfile) {
-		nlchar = _currfile->lin->nl;
+		nlchar = _currfile->documentDescriptor->nl;
 	} else {
 		nlchar = '\n';
 	}
@@ -310,7 +307,9 @@ static int searchcpos(FTABLE *fp,long ln,int col)
 
 	wp = WIPOI(fp);
 	centernewpos(ln,col);
-	col2 = cphys2scr(fp->currl->lbuf,(int)(__loc2-__loc1)+fp->lnoffset);
+	col2 = caret_lineOffset2screen(fp, &(CARET) {
+		fp->caret.linePointer, (int)(__loc2 - __loc1) + fp->caret.offset
+	});
 	cursor_width = dc = col2 - wp->col;
 	wt_curpos(wp,wp->ln,wp->col);
 	return dc;
@@ -328,8 +327,8 @@ int _findstr(int dir,UCHAR *ebuf,int options)
 	fp = _currfile;
 	MouseBusy();
 	ln  = fp->ln;
-	lp  = fp->currl;
-	col = fp->lnoffset;
+	lp  = fp->caret.linePointer;
+	col = fp->caret.offset;
 	if (dir > 0) {
 		if (P_EQ(&lp->lbuf[col],__loc1) && P_NE(__loc2,__loc1))
 			col = (long) (__loc2 - lp->lbuf);
@@ -426,7 +425,7 @@ int tab_expand(LINE *lp, long *nt)
 	while(s < send && d < dend) {
 		if ((c = *s++) == '\t') {
 			col = d - _linebuf;
-			col = TabStop(col,_currfile->lin) - col;
+			col = TabStop(col,_currfile->documentDescriptor) - col;
 			blfill(d,col,' ');
 			(*nt)++;
 			d += col;
@@ -460,7 +459,7 @@ static LINE *expline(FTABLE *fp, LINE *lp,long *nt)
 LINE *condexpline(FTABLE *fp, LINE *lp)
 {	long t;
 
-	if (PLAINCONTROL(fp->lin->dispmode)) {
+	if (PLAINCONTROL(fp->documentDescriptor->dispmode)) {
 		return lp;
 	}
 	return expline(fp,lp,&t);
@@ -472,7 +471,7 @@ LINE *condexpline(FTABLE *fp, LINE *lp)
 static LINE *compline(FTABLE *fp, LINE *lp,long *nt)
 {	char   *s;
 	int    i,col,tab,start,foundpos,n2,ntabs;
-	LINEAL *linp = fp->lin;
+	DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
 
 	s = lp->lbuf, i = 0, col = 0; 
 
@@ -628,7 +627,7 @@ static long breaklines(FTABLE *fp,int all, long start,long end)
 	long nl = start;
 
 	lc   = ln_goto(fp,start);
-	term = fp->lin->nl;
+	term = fp->documentDescriptor->nl;
 	while (lc && start <= end) {
 		if (all || (lc->lflg & LNREPLACED)) {
 rescan:
@@ -660,10 +659,10 @@ int EdPasteString(long dummy1, long dummy2, char *string)
 		return 0;
 	
 	len = (int) strlen(string);
-	if ((lp = ln_modify(fp,fp->currl,fp->lnoffset,fp->lnoffset+len)) == 0L)
+	if ((lp = ln_modify(fp,fp->caret.linePointer,fp->caret.offset,fp->caret.offset+len)) == 0L)
 		return 0;
 
-	memmove(&lp->lbuf[fp->lnoffset],string,len);
+	memmove(&lp->lbuf[fp->caret.offset],string,len);
 	breaklines(fp,1,fp->ln,fp->ln);
 
 	RedrawTotalWindow(fp);
@@ -727,7 +726,7 @@ int EdReplaceText(int scope, int action, int flags)
 
 	startln = ln;
 	lastfln = fp->ln;
-	lastfcol = fp->lnoffset;
+	lastfcol = fp->caret.offset;
 
 	query  = flags & OREP_INQ;
 	marked = flags & OREP_MARKED;
@@ -979,8 +978,8 @@ int SelectRange(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend) {
 	 * make range marks: initial is .,$ (RNG_FROMCURS,RNG_ONCE)
 	 */
 
-	lps = fp->currl;
-	ofs = fp->lnoffset;
+	lps = fp->caret.linePointer;
+	ofs = fp->caret.offset;
 	lpe = fp->lastl->prev;
 	ofe = lpe->len;
 
@@ -991,7 +990,7 @@ int SelectRange(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend) {
 			ofe = lpe->len;
 			break;
 		case RNG_CHAPTER:
-			lps = lpe = fp->currl;
+			lps = lpe = fp->caret.linePointer;
 			while(!isempty(lps) && lps->prev)
 				lps = lps->prev;
 			while(!isempty(lpe) && lpe->next != fp->lastl)
@@ -1013,8 +1012,8 @@ int SelectRange(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend) {
 			}
 			break;
 		case RNG_TOCURS:
-			lpe = fp->currl;
-			ofe = fp->lnoffset;
+			lpe = fp->caret.linePointer;
+			ofe = fp->caret.offset;
 			/* drop through */
 		case RNG_GLOBAL:
 			ofs = 0;

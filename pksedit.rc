@@ -667,10 +667,10 @@ FONT 8, "helv", 0, 0, 0x0
 BEGIN
     LTEXT           "Definierte &Typen:",-1,6,20,60,8
     LISTBOX         IDD_WINDOWLIST,6,32,324,64,LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_VSCROLL | WS_GROUP | WS_TABSTOP
-    GROUPBOX        "Lineal",IDD_CALLBACK3,6,98,324,48,WS_GROUP
+    GROUPBOX        "document descriptor",IDD_CALLBACK3,6,98,324,48,WS_GROUP
     LTEXT           "&Datei:",126,12,114,32,8,NOT WS_GROUP
     EDITTEXT        IDD_PATH1,48,112,276,12,ES_AUTOHSCROLL
-    CONTROL         "&Privates Lineal",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,130,64,12
+    CONTROL         "&Privates document descriptor",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,130,64,12
     LTEXT           "&Dateimuster:",226,6,170,52,8
     EDITTEXT        IDD_STRING5,60,168,270,12
     LTEXT           "&Beschreibung:",227,6,188,52,8
@@ -1740,7 +1740,7 @@ BEGIN
     1320                    "Bringt die aktuelle Zeile zur Ablage;Zeile -> Ablage"
     1321                    "Beeinflußt die Form des Textblocks;Block in Spaltenform"
     1322                    "Schaltet zum Controlzeichen-Anzeige-Modus;Zeige Control"
-    1323                    "Aktiviert die Tabulatorzeile; Zeige Lineal"
+    1323                    "Aktiviert die Tabulatorzeile; Zeige document descriptor"
     1324                    "Stellt Optionen und Layout fürs Drucken ein;Drucken Layout"
     1325                    "Verwendet die alternative Statuszeile;Alternativer Status"
     1326                    "Zeigt Text attributiert;Zeige Attribute"

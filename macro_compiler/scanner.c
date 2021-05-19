@@ -425,8 +425,6 @@ char *yytext;
  *									
  */
 
-# pragma warn -rch
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -473,7 +471,6 @@ int				_bDefiningConst;
 
 typedef void EDFUNCDEF;
 
-extern EDFUNCDEF 	*Name2Findex(char *name);
 extern FILE		*createtmp(char *fnd, char *fn);
 extern int 		init_funcs(void);
 extern long 		EnumValue(void *enp);

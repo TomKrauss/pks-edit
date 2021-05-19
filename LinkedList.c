@@ -18,11 +18,11 @@
 #include "lineoperations.h"
 
 /*--------------------------------------------------------------------------
- * ll_kill()
+ * ll_destroy()
  * destroy a linked list. Pass a pointer to the linkedList of the linked list and
  * an additional destruction function for one element in the list.
  */
-void ll_kill(void **pointerLinkedList,int (*destroy)(void *elem)) {
+void ll_destroy(void **pointerLinkedList,int (*destroy)(void *elem)) {
 	LINKED_LIST *lp,*lpnext = NULL;
 
 	for (lp = *pointerLinkedList; lp != 0; lp = lpnext) {
@@ -57,11 +57,11 @@ int ll_delete(void **pointerLinkedList, void *element) {
 }
 
 /*--------------------------------------------------------------------------
- * ll_top()
+ * ll_moveElementToFront()
  * put an element to the top of the linked list
  */
-int ll_top(void **pointerLinkedList, void *elem)
-{	LINKED_LIST *lp,*lpprev, **head;
+int ll_moveElementToFront(void **pointerLinkedList, void *elem) {
+	LINKED_LIST *lp,*lpprev, **head;
 
 	head = (LINKED_LIST**) pointerLinkedList;
 	for (lp = *head, lpprev = 0; lp != 0; lpprev = lp, lp = lp->next) {
@@ -111,10 +111,10 @@ void *ll_find(void *linkedList, char *name)
 }
 
 /*--------------------------------------------------------------------------
- * ll_count()
+ * ll_size()
  * Count the elements in a linked list.
  */
-int ll_count(void *linkedList)
+int ll_size(void *linkedList)
 {
 	int		nCnt;
 	LINKED_LIST *lp;

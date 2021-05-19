@@ -77,11 +77,11 @@ static void markline(HDC hdc, WINFO *wp,LINE *lp,int y,int lastcol)
 				return;
 			}
 			if (P_EQ(lp,fp->blstart->lm))
-				r.left = _cphys2scr(fp,lp->lbuf,fp->blstart->lc);
+				r.left = caret_lineOffset2screen(fp, &(CARET) { lp, fp->blstart->lc});
 			else r.left = wp->mincol;
 	
 			if (P_EQ(lp,fp->blend->lm))
-				r.right = _cphys2scr(fp,lp->lbuf,fp->blend->lc);
+				r.right = caret_lineOffset2screen(fp, &(CARET) { lp, fp->blend->lc});
 			else r.right = lastcol;
 		}
 		r.left -= wp->mincol; if (r.left < 0) r.left = 0;
@@ -107,7 +107,7 @@ static void markline(HDC hdc, WINFO *wp,LINE *lp,int y,int lastcol)
 int write_line(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 {	register int 			start,i,end,ind,textlen;
 	register unsigned char 	*d,*s,*send;
-	LINEAL 				*linp = ((FTABLE*)FTPOI(wp))->lin;
+	DOCUMENT_DESCRIPTOR 				*linp = ((FTABLE*)FTPOI(wp))->documentDescriptor;
 	/* limited linelength ! */
 	char 				buf[512];
 	int					flags;
@@ -365,7 +365,7 @@ EXPORT void RedrawFromTo(WINFO *wp,long min,long max)
 EXPORT void RedrawTotalWindow(FTABLE *fp)
 {
 	EdRedrawWindow(WIPOI(fp));
-	curpos(fp->ln, (long)fp->lnoffset);
+	curpos(fp->ln, fp->caret.offset);
 }
 
 /*--------------------------------------------------------------------------

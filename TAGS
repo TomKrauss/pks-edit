@@ -184,7 +184,7 @@ C:\Source\pksedit\DIFF.C findmatch ^static LINE \*findmatch\(L.+$
 * matchlines ^static long matchlines\(F.+$
 * EdFilesCompare ^EXPORT int EdFilesCompar.+$
 C:\Source\pksedit\EDIT.C CalcCol2TabsBlanks ^int CalcCol2TabsBlanks\(L.+$
-* CalcTabs2Col ^int CalcTabs2Col\(LINEAL .+$
+* CalcTabs2Col ^int CalcTabs2Col\(document descriptor .+$
 * CalcStartIndentation ^static int CalcStartInde.+$
 * optinswhite ^LINE \*optinswhite\(FTABLE.+$
 * InsIndent ^static int InsIndent\(FTA.+$
@@ -673,10 +673,10 @@ C:\Source\pksedit\PROJECT.C proj_mk ^static int proj_mk\(char .+$
 * proj_init ^int proj_init\(void\)$
 * pr_matchrootdir ^static int pr_matchrootd.+$
 * proj_finditem ^PROJECTITEM \*proj_findit.+$
-C:\Source\pksedit\READLINE.C createl ^int createl\(FTABLE \*fp, .+$
-* readnoterm ^unsigned char \*readnoter.+$
-* BufAsLinelist ^unsigned char \*BufAsLine.+$
-* readlines ^unsigned char \*readlines.+$
+C:\Source\pksedit\READLINE.C ln_create ^int ln_create\(FTABLE \*fp, .+$
+* ln_createFromBuffer ^unsigned char \*readnoter.+$
+* ln_createMultipleLinesUsingSeparators ^unsigned char \*BufAsLine.+$
+* ln_createMultipleLinesFromBuffer ^unsigned char \*ln_createMultipleLinesFromBuffer.+$
 C:\Source\pksedit\REDRAW.C markline ^static void markline\(HDC.+$
 * write_line ^int write_line\(HDC hdc, .+$
 * calcy ^static int calcy\(WINFO \*.+$
@@ -732,25 +732,25 @@ C:\Source\pksedit\RETREIVE.C present ^static void present\(char.+$
 * retreive ^int retreive\(char \*pathe.+$
 C:\Source\pksedit\RULER.C TabStop ^int TabStop\(int col, LIN.+$
 * initfastts ^static void initfastts\(L.+$
-* lininit ^void lininit\(LINEAL \*lp,.+$
-* tabtoggle ^void tabtoggle\(LINEAL \*l.+$
+* lininit ^void lininit\(document descriptor \*lp,.+$
+* tabtoggle ^void tabtoggle\(document descriptor \*l.+$
 * related_file_name ^void related_file_name\(c.+$
 * linealdocstrings ^void linealdocstrings\(LP.+$
-* linload ^static LINEAL \*linload\(L.+$
+* linload ^static document descriptor \*linload\(L.+$
 * linnrulers ^int linnrulers\(void\)$
 * linfilllbox ^int linfilllbox\(HWND hwn.+$
 * lingetdescription ^BOOL lingetdescription\(L.+$
 * lincreatekeytmp ^int lincreatekeytmp\(char.+$
 * linkeymerge ^int linkeymerge\(char \*ps.+$
 * linealread ^static int linealread\(ch.+$
-* lin_match ^int lin_match\(LINEAL \*li.+$
+* lin_match ^int lin_match\(document descriptor \*li.+$
 * linassign ^int linassign\(FTABLE \*fp.+$
 * dt_save ^static int dt_save\(LINLI.+$
 * linsaveall ^void linsaveall\(LINLIST .+$
 * linnew ^LINLIST \*linnew\(LINLIST .+$
 * lindelete ^void lindelete\(LINLIST \*.+$
 * lingetprivatefor ^void \*lingetprivatefor\(c.+$
-* linlinealfor ^LINEAL \*linlinealfor\(voi.+$
+* linlinealfor ^document descriptor \*linlinealfor\(voi.+$
 * dt_mk ^static int dt_mk\(char \*d.+$
 * dt_init ^int dt_init\(void\)$
 * EdLineal ^int EdLineal\(int wrflag,.+$
@@ -925,7 +925,7 @@ C:\Source\pksedit\USER.C EdCloseWindow ^int EdCloseWindow\(int wi.+$
 * EdDlgWorkMode ^int EdDlgWorkMode\(void\)$
 * EdDlgCursTabs ^int EdDlgCursTabs\(void\)$
 * sel_ruler ^static void sel_ruler\(HW.+$
-* DlgModeVals ^int DlgModeVals\(LINEAL \*.+$
+* DlgModeVals ^int DlgModeVals\(document descriptor \*.+$
 * EdDlgModeVals ^int EdDlgModeVals\(void\)$
 * ReplaceAction ^int ReplaceAction\(int id.+$
 * EdReplace ^int EdReplace\(void\)$

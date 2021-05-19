@@ -20,14 +20,12 @@
 
 #include "winterf.h"
 #include "caretmovement.h"
-#include "winfo.h"
 #include "pksedit.h"
 #include "edierror.h"
 
 #define	different(lp1,lp2)	cmpnormal(lp1->lbuf,lp1->len,lp2->lbuf,lp2->len)
 #define	mark(lp)			lp->lflg |= LNXMARKED
 
-extern LINE 	*ln_findbit(LINE *lp, int bit);
 extern FTABLE	*ww_stackwi(int num);
 
 /*--------------------------------------------------------------------------
@@ -108,8 +106,8 @@ static long matchlines(FTABLE *fp1,FTABLE *fp2,int dir)
 					dir = 0;
 				} else {
 					if (lnlast1) {
-						ln_um(lnlast1,lp1,LNXMARKED);
-						ln_um(lnlast2,lp2,LNXMARKED);
+						ln_removeFlag(lnlast1,lp1,LNXMARKED);
+						ln_removeFlag(lnlast2,lp2,LNXMARKED);
 					}
 					lnlast1 = lp1;
 					lnlast2 = lp2;
@@ -120,8 +118,8 @@ static long matchlines(FTABLE *fp1,FTABLE *fp2,int dir)
 					lps1 = fp1->firstl;
 					lps2 = fp2->firstl;
 				}
-				ln_um(lps1,(LINE *)0L,LNXMARKED|LNDIFFMARK);
-				ln_um(lps2,(LINE *)0L,LNXMARKED|LNDIFFMARK);
+				ln_removeFlag(lps1,(LINE *)0L,LNXMARKED|LNDIFFMARK);
+				ln_removeFlag(lps2,(LINE *)0L,LNXMARKED|LNDIFFMARK);
 				lp1->lflg |= LNDIFFMARK;
 				lp2->lflg |= LNDIFFMARK;
 				l1 = ln_cnt(fp1->firstl,lp1) - 1;

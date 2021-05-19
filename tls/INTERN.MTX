@@ -133,7 +133,7 @@ WM_CRYPTED		 = 0x1000,	# verschlüsselt lesen und schreiben
 enum SHO_MODE {
 SHO_CONTROL		=	0x1,		# Controlzeichen sichtbar
 SHO_HEX			=	0x4,		# alternative Statuszeile
-SHO_RULER			=	0x8,		# Lineal anzeigen
+SHO_RULER			=	0x8,		# document descriptor anzeigen
 SHO_ATTR			=	0x10,	# Attributierter Text
 SHO_OEM			=	0x20,	# OEM Zeichensatz für Anzeige erzwingen
 SHO_FIXEDWI		=	0x80,	# feste Fensterlage
@@ -272,7 +272,7 @@ TM_LASTINSERT		=	1,		# Position letzte Einfügung
 
 # OPENOPTION 
 option OPENOPTION {
-OPEN_LINEAL		=	0x1,		# öffnen mit Lineal..
+OPEN_LINEAL		=	0x1,		# öffnen mit document descriptor..
 }
 
 # PRINTOPTION 
@@ -359,7 +359,7 @@ TGL_BACKUP          =	8,		# Erzeugen von Backup-Dateien ein/aus
 TGL_SHOWCONTROL     =	9,		# Anzeige von Controlzeichen ein/aus
 TGL_SHOWSTATUS      =   10,		# Statuszeile ein/aus
 TGL_ALTSTATUS       =   11,		# alternativer Status ein/aus
-TGL_SHOWRULER       =   12,		# Text-Lineal ein/aus
+TGL_SHOWRULER       =   12,		# Text-document descriptor ein/aus
 TGL_SHOWATTR        =   13,		# Anzeige Textattribute ein/aus
 }
 

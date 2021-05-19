@@ -19,9 +19,9 @@
 #include "edierror.h"
 #include "editorconfiguration.h"
 
+#include "caretmovement.h"
 #include "winfo.h"
 #include "winterf.h"
-#include "caretmovement.h"
 
 #pragma hdrstop
 
@@ -31,33 +31,40 @@
 /* EXTERNALS			*/
 /*-----------------------*/
 extern LINE *		ln_relgo(FTABLE *fp, long l);
-extern LINE *		ln_crelgo(FTABLE *fp, long l, long *o);
+extern LINE *		ln_crelgo(FTABLE *fp, long l);
 extern int		isword(unsigned char c);
 extern int		isnospace(unsigned char c);
 extern int 		_chkblk(FTABLE *fp);
-extern int 		SetBlockMark(FTABLE *fp, LINE *lpMark, int nMarkOffset, 
-					int flags);
+extern int 		SetBlockMark(FTABLE *fp, CARET *caret, int flags);
 extern void 	graf_mkstate(int *x, int *y, int *but, int *shift);
 
 extern long		_multiplier;
 
 /*--------------------------------------------------------------------------
- * cphys2scr()
+ * caret_lineOffset2screen()
  * the following stuff is calculating the cursor screen position, out of
  * the internal offset to the line buffer
  */
-EXPORT int _cphys2scr(FTABLE *fp, char *lbuf,int lnoffs)
+EXPORT int caret_lineOffset2screen(FTABLE *fp, CARET *cp)
 {	register int  col = 0,flags;
-	register char *p = lbuf;
-	
-	lbuf += lnoffs;
-	flags = fp->lin->dispmode;
+	register char *p = cp->linePointer->lbuf;
+	register char* lbuf = p;
+	int lnoffset = cp->offset;
+
+	if (fp == NULL) {
+		if (!_currfile) {
+			return 0;
+		}
+		fp = _currfile;
+	}
+	lbuf += cp->offset;
+	flags = fp->documentDescriptor->dispmode;
 
 	if (flags & SHOWATTR) {
 		while (p < lbuf) {
 			if (*p++ == '\t') {
 				if ((flags & SHOWCONTROL) == 0) {
-					col = TabStop(col, fp->lin);
+					col = TabStop(col, fp->documentDescriptor);
 				} else {
 					col++;
 				}
@@ -73,43 +80,44 @@ EXPORT int _cphys2scr(FTABLE *fp, char *lbuf,int lnoffs)
 	}
 
 	if (PLAINCONTROL(flags)) {
-		col = lnoffs;
+		col = lnoffset;
 	} else {
 		while (p < lbuf) {
 			if (*p++ == '\t') 
-				col = TabStop(col,fp->lin);
+				col = TabStop(col,fp->documentDescriptor);
 			else col++;
 		}
 	}
 	return col;
 }
 
-EXPORT int cphys2scr(char *lbuf,int lnoffs)
-{
-	if (!_currfile)
-		return 0;
-	return _cphys2scr(_currfile,lbuf,lnoffs);
-}
-
 /*--------------------------------------------------------------------------
- * cscr2phys()
- * the following stuff is calculating the internal offset in the line buffer
+ * caret_screen2lineOffset()
+ * Calculate the internal offset in the line buffer
  * for a given cursor screen position
  */
-EXPORT int _cscr2phys(FTABLE *fp, LINE *lp,int col)
+EXPORT int caret_screen2lineOffset(FTABLE *fp, CARET *pCaret)
 {
 	int  	i=0;
 	int		flags;
+	int col = pCaret->offset;
+	LINE* lp = pCaret->linePointer;
 	char *	p = lp->lbuf;
 	char *	pend = &lp->lbuf[lp->len];
 
-	flags = fp->lin->dispmode;
+	if (fp == NULL) {
+		if (!_currfile) {
+			return 0;
+		}
+		fp = _currfile;
+	}
+	flags = fp->documentDescriptor->dispmode;
 
 	if (flags & SHOWATTR) {
 		while (i < col && p < pend) {
 			if (*p++ == '\t') {
 				if ((flags & SHOWCONTROL) == 0) {
-					i = TabStop(i, fp->lin);
+					i = TabStop(i, fp->documentDescriptor);
 				} else {
 					i++;
 				}
@@ -132,18 +140,11 @@ EXPORT int _cscr2phys(FTABLE *fp, LINE *lp,int col)
 	} else {
 		while (i < col && p < pend) {
 			if (*p++ == '\t')
-				i = TabStop(i,fp->lin);
+				i = TabStop(i,fp->documentDescriptor);
 			else i++;
 		}
 	}
 	return p-lp->lbuf;
-}
-
-EXPORT int cscr2phys(LINE *lp,int col)
-{
-	if (!_currfile)
-		return 0;
-	return _cscr2phys(_currfile,lp,col);
 }
 
 /*--------------------------------------------------------------------------
@@ -159,9 +160,9 @@ void XtndBlock(FTABLE *fp)
 	nSentinel = 1;
 	if (_xtndMark) {
 		if (_xtndMark == MARK_START && 
-			(fp->lin->workmode & BLK_LINES)) {
+			(fp->documentDescriptor->workmode & BLK_LINES)) {
 			if (fp->blend && 
-				ln_cnt(fp->currl, fp->blend->lm) < 2) {
+				ln_cnt(fp->caret.linePointer, fp->blend->lm) < 2) {
 				_xtndMark = MARK_END;
 			}
 		}
@@ -183,25 +184,25 @@ static void BegXtndBlock(FTABLE *fp)
 	if (nSentinel) {
 		return;
 	}
-	bMarkLines = fp->lin->workmode & BLK_LINES;
+	bMarkLines = fp->documentDescriptor->workmode & BLK_LINES;
 	nSentinel++;
 	if ((pMark = fp->blstart) != 0 && 
-		pMark->lm == fp->currl && 
-		(pMark->lc == fp->lnoffset ||
+		pMark->lm == fp->caret.linePointer &&
+		(pMark->lc == fp->caret.offset ||
 		 bMarkLines)) {
 		_xtndMark = MARK_START;
 	} else if ((pMark = fp->blend) != 0 && 
-		((pMark->lm == fp->currl && 
-		  pMark->lc == fp->lnoffset) ||
-		 (bMarkLines && fp->currl->next == pMark->lm))) {
+		((pMark->lm == fp->caret.linePointer &&
+		  pMark->lc == fp->caret.offset) ||
+		 (bMarkLines && fp->caret.linePointer->next == pMark->lm))) {
 		_xtndMark = MARK_END;
 	} else {
 		_xtndMark = 0;
 		if (fp->blstart || fp->blend) {
 			EdBlockHide();
 		}
-		SetBlockMark(fp, fp->currl, fp->lnoffset, MARK_RECALCULATE|MARK_START);
-		SetBlockMark(fp, fp->currl, fp->lnoffset, MARK_RECALCULATE|MARK_END);
+		SetBlockMark(fp, &fp->caret, MARK_RECALCULATE|MARK_START);
+		SetBlockMark(fp, &fp->caret, MARK_RECALCULATE|MARK_END);
 	}
 	nSentinel--;
 }
@@ -228,12 +229,11 @@ static void HideWindowsBlocks(FTABLE *fp)
  */
 EXPORT int cphyspos(FTABLE *fp, long *ln,long *col,int newcol)
 {
-	long			ho;
 	LINE	 *		lp;
 	int			i;
 	BOOL			bXtnd;
 
-	if ((lp = ln_crelgo(fp, *ln - fp->ln, &ho)) == 0) {
+	if ((lp = ln_crelgo(fp, *ln - fp->ln)) == 0) {
 		return 0;
 	}
 
@@ -241,12 +241,12 @@ EXPORT int cphyspos(FTABLE *fp, long *ln,long *col,int newcol)
 	if (!newcol && i < fp->col) {
 		i = fp->col;
 	}
-	i = _cscr2phys(fp,lp,i);
+	i = caret_screen2lineOffset(fp, &(CARET){lp, i});
 	if (lp->len < i) {
 		i = lp->len;
 	}
 
-	*col = _cphys2scr(fp,lp->lbuf,i);
+	*col = caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, i});
 
 	bXtnd = WIPOI(fp)->bXtndBlock;
 	if (bXtnd) {
@@ -254,9 +254,8 @@ EXPORT int cphyspos(FTABLE *fp, long *ln,long *col,int newcol)
 	}
 
 	fp->ln		= *ln;
-	fp->currl 	= lp;
-	fp->lnoffset	= i;
-	fp->hexoffset	= ho;
+	fp->caret.linePointer 	= lp;
+	fp->caret.offset	= i;
 	if (newcol) 
 		fp->col = *col;
 
@@ -271,10 +270,9 @@ EXPORT int cposvalid(FTABLE *fp, long *ln,long *col,int newcol)
 	LINE *		lp;
 	int 			i;
 	int			o;
-	long 		ho;
 	BOOL			bXtnd;
 
-	if ((lp = ln_crelgo(fp,*ln-fp->ln,&ho)) == 0L)
+	if ((lp = ln_crelgo(fp,*ln-fp->ln)) == 0L)
 		return 0;
 
 	o = *col;
@@ -283,7 +281,7 @@ EXPORT int cposvalid(FTABLE *fp, long *ln,long *col,int newcol)
 		o    = 0;
 	}
 
-	if (fp->lin->dispmode & SHOWATTR) {
+	if (fp->documentDescriptor->dispmode & SHOWATTR) {
 		while(1) {
 			if (o > 0 && lp->lbuf[o-1] == '\033')
 				o++;
@@ -301,11 +299,13 @@ EXPORT int cposvalid(FTABLE *fp, long *ln,long *col,int newcol)
 		o = lp->len;
 	}
 
-	i = _cphys2scr(fp,lp->lbuf,o);
+	i = caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, o});
 	if (!newcol && i != fp->col)
-		o = cscr2phys(lp,fp->col);
+		o = caret_screen2lineOffset(fp, &(CARET) {
+		lp, fp->col
+	});
 	if (lp->len < o) o = lp->len;
-	if (o != *col) i = _cphys2scr(fp,lp->lbuf,o);
+	if (o != *col) i = caret_lineOffset2screen(fp, &(CARET) { lp->lbuf, o});
 
 	bXtnd = WIPOI(fp)->bXtndBlock;
 	if (bXtnd) {
@@ -314,12 +314,32 @@ EXPORT int cposvalid(FTABLE *fp, long *ln,long *col,int newcol)
 
 	if (newcol) fp->col = i;
 	fp->ln = *ln;
-	fp->currl = lp;
-	fp->lnoffset = o;
-	fp->hexoffset = ho;
+	fp->caret.linePointer = lp;
+	fp->caret.offset = o;
 	*col = i;
 
 	return 1;
+}
+
+/**
+ * Calculate the byte offset of the current caret in a file. 
+ */
+long wi_getCaretByteOffset(WINFO* view) {
+	long offset = 0;
+	FTABLE* fp = view->fp;
+	LINE* lp = fp->firstl;
+
+	if (fp->caret.linePointer == NULL) {
+		return 0;
+	}
+	while (lp != NULL && lp != fp->caret.linePointer) {
+		offset += lp->len;
+		if (LINE_HAS_LINE_END(lp)) {
+			offset += LINE_HAS_CR(lp) ? 2 : 1;
+		}
+		lp = lp->next;
+	}
+	return offset + fp->caret.offset;
 }
 
 /*--------------------------------------------------------------------------
@@ -443,7 +463,7 @@ EXPORT int isempty(LINE *lp)
  */
 EXPORT static int counttabs(LINE *lp)
 {
-	return cphys2scr(lp->lbuf,ln_leadspce(lp));
+	return caret_lineOffset2screen(NULL, &(CARET){ lp->lbuf,ln_leadspce(lp) });
 }
 
 /*--------------------------------------------------------------------------
@@ -538,7 +558,7 @@ EXPORT int cursabsatz(int dir,int start)
 	cadv_section(&ln,dir,start,tabedstart,tabedend);
 	curpos(ln,0L);
 
-	return curpos(ln,(long)ln_leadspce(fp->currl));
+	return curpos(ln,(long)ln_leadspce(fp->caret.linePointer));
 }
 
 /*--------------------------------------------------------------------------
@@ -581,7 +601,7 @@ EXPORT int cursupdown(int dir, int mtype)
 	}
 	HideWindowsBlocks(fp);
 
-	col = fp->lnoffset, ln = fp->ln;
+	col = fp->caret.offset, ln = fp->ln;
 	switch(mtype & (~MOT_XTNDBLOCK)) {
 		case MOT_SINGLE:
 			ln += (dir * _multiplier);
@@ -724,7 +744,7 @@ EXPORT LINE *cadv_c(LINE *lp,long *ln,long *col,int dir,unsigned char match)
 EXPORT int l_advance(LINE *lp, int col)
 {
 	col--;
-	if (_currfile->lin->dispmode & SHOWATTR) {
+	if (_currfile->documentDescriptor->dispmode & SHOWATTR) {
 		while (col > 1) {
 			if (lp->lbuf[col-1] == '\033')
 				col--;
@@ -755,9 +775,11 @@ EXPORT void setmatchfunc(int mtype, int ids_name, int *c)
 }
 
 /*--------------------------------------------------------------------------
- * cursleftright()
+ * caret_moveLeftRight()
+ * Move the caret to the left or right. If motionFlags contains MOT_XTNDBLOCK
+ * the selection is extended.
  */
-EXPORT int cursleftright(int dir, int mtype)
+EXPORT int caret_moveLeftRight(int direction, int motionFlags)
 {
 	FTABLE *	fp;
 	WINFO *	wp;
@@ -771,19 +793,19 @@ EXPORT int cursleftright(int dir, int mtype)
 
 	fp = _currfile;
 	wp = WIPOI(fp);
-	col = fp->lnoffset;
+	col = fp->caret.offset;
+	lp = fp->caret.linePointer;
 	ln = fp->ln;
-	lp = fp->currl;
 	bXtnd = wp->bXtndBlock;
 	nRet = 0;
 
-	if (mtype & MOT_XTNDBLOCK) {
+	if (motionFlags & MOT_XTNDBLOCK) {
 		wp->bXtndBlock = TRUE;
 	}
 
 	HideWindowsBlocks(fp);
 
-	moving = dir * (mtype & (~MOT_XTNDBLOCK));
+	moving = direction * (motionFlags & (~MOT_XTNDBLOCK));
 	setmatchfunc(moving , IDS_CURSUNTILC, &matchc);
 
 	switch(moving) {
@@ -830,24 +852,29 @@ err:
 	return nRet;
 }
 
-/*---------------------------------*/
-/* scn2lncol()					*/
-/*---------------------------------*/
-EXPORT void scn2lncol(WINFO *wp,int x, int y, long *ln,long *col)
+/*---------------------------------*
+ * caret_calculateOffsetFromScreen()
+ * Calculate the offset in the file (line and column) given the X and Y coordinates
+ * on which a mouse was clicked. No validation regarding the validity of the column
+ * is performed at that point in time.
+ */
+EXPORT void caret_calculateOffsetFromScreen(WINFO *wp, int x, int y, long *line, long *column)
 {	FTABLE *fp = FTPOI(wp);
 
-	*col = x / wp->cwidth + wp->mincol;
-	*ln	= y / wp->cheight+ wp->minln;
-	if (*ln < 0)
-		*ln = 0;
-	else if (*ln >= fp->nlines)
-		*ln = fp->nlines - 1;
+	*column = x / wp->cwidth + wp->mincol;
+	*line	= y / wp->cheight + wp->minln;
+	if (*line < 0) {
+		*line = 0;
+	} else if (*line >= fp->nlines) {
+		*line = fp->nlines - 1;
+	}
 }
 
 /*--------------------------------------------------------------------------
- * find_curs()
+ * caret_moveToXY()
+ * move the caret to follow the mouse pressed on the screen coordinates x and y.
  */
-EXPORT int find_curs(WINFO *wp, int x,int y)
+EXPORT int caret_moveToXY(WINFO *wp, int x,int y)
 {	long col,ln;
 	int b=1,dummy;
 	UINT_PTR id;
@@ -855,7 +882,7 @@ EXPORT int find_curs(WINFO *wp, int x,int y)
 	SetCapture(wp->ww_handle);
 	id = SetTimer(0,0,100,0);
 	for (;;) {
-		scn2lncol(wp,x,y,&ln,&col);
+		caret_calculateOffsetFromScreen(wp,x,y,&ln,&col);
 		if (cphyspos(FTPOI(wp),&ln,&col,1)) {
 			wt_curpos(wp,ln,col);
 		}
@@ -891,7 +918,7 @@ EXPORT int MousePosition(FTABLE *fp, long bAsk)
 		CloseErrorWin();
 	}
 
-	ret = find_curs(wp,x,y);
+	ret = caret_moveToXY(wp,x,y);
 
 	if (bAsk && _playing) {
 		forceredraw();
@@ -938,7 +965,7 @@ int EdMousePositionUngrabbed(long bGrab)
 	wp = WIPOI(fp);
 	HideWindowsBlocks(fp);
 	MouseGetXYPos(wp->ww_handle,&x,&y);
-	scn2lncol(wp,x,y,&ln,&col);
+	caret_calculateOffsetFromScreen(wp,x,y,&ln,&col);
 	if (cphyspos(FTPOI(wp),&ln,&col,1)) {
 		wt_curpos(wp,ln,col);
 		return 1;

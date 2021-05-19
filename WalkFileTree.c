@@ -18,10 +18,9 @@
 #include <string.h>
 #include "edtypes.h"
 #include "ftw.h"
+#include "stringutil.h"
 
-extern void strdcpy(char *dest, char *source, char *fname);
 extern int match(char *string,char *pat);
-
 int __ftw(char *path,int depth);
 
 /* to be reset before every search - indicates minimum 1 file found */

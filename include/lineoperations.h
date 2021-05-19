@@ -13,7 +13,7 @@
  */
 
 
-# ifndef	EDITAB_H
+#ifndef	EDITAB_H
 #define	EDITAB_H
 
 #include <crtdefs.h>
@@ -22,17 +22,19 @@
 
 #define	ED_VERSION	0x20
 
-#define	LN_ALIGN		2		/* make sure a small linebuffer 	 */
-#define	FBUFSIZE		24000		/* maximum filebuffer- and linesize */
+#define	LN_ALIGN		2		/* minimum size of the linebuffer content area */
+#define	FBUFSIZE		24000	/* maximum filebuffer- and linesize */
 
 #define	LINEBUFSIZE		2*FBUFSIZE+160	/* sizeof of _linebuf		 */
 #define	MAXLINELEN		12000
 
-#define	MAXUNDO		10		/* maximum of UNDO-Buffers avail	 */
+#define	MAXUNDO			10		/* maximum of UNDO-Buffers avail	 */
 #define	MAXSHIFT		36		/* maximum shiftwidth 			 */
 #define	RM_DELTA		2		/* delta to automatic right margin  */
 
 /*-------- TYPES --------------*/
+
+typedef struct documentDescriptor DOCUMENT_DESCRIPTOR;
 
 typedef struct line   {
 	int  		len; 		/* linelength in chars */
@@ -90,14 +92,15 @@ typedef struct pastelist {
 #define	O_MODIFY			0		/* modify a line */
 #define	O_INSERT			1		/* insert a line */
 #define	O_DELETE			2		/* EdCharDelete a line */
-#define	O_MARK			3		/* mark a textblock */
-#define	O_LNORDER		4		/* reorder linelist according to a table */
-#define	O_HIDE			5		/* hide a list of lines */
+#define	O_MARK				3		/* mark a textblock */
+#define	O_LNORDER			4		/* reorder linelist according to a table */
+#define	O_HIDE				5		/* hide a list of lines */
 #define	O_UNHIDE			6		/* unhide a list of lines */
 
 /*---------------------------------*/
 /* MARKS						*/
 /*---------------------------------*/
+/* should ideally extend CARET */
 typedef struct mark {
 	struct mark	*next;
 	int  		mchar;		/* ID of mark (char || BLOCKSTART,-END)	*/
@@ -117,35 +120,35 @@ typedef struct mark {
 #define	MARKDOT		0x104
 
 /*---------------------------------*/
-/* LINEAL						*/
+/* DOCUMENT_DESCRIPTOR						*/
 /*---------------------------------*/
 #define	fnt_name		fnt.name
 #define	fnt_point		fnt.point
-#define	fnt_fgcolor	fnt.fgcolor
-#define	fnt_bgcolor	fnt.bgcolor
-#define	fnt_charset	fnt.charset
+#define	fnt_fgcolor		fnt.fgcolor
+#define	fnt_bgcolor		fnt.bgcolor
+#define	fnt_charset		fnt.charset
 
 #if defined(_WINUSER_)
 
-typedef struct lineal {
-	int			lmargin,rmargin;
-	int			tabsize,shiftwidth;
-	int			nl,nl2,cr;			/* Lineends */
+typedef struct documentDescriptor {
+	int			lmargin, rmargin;
+	int			tabsize, shiftwidth;
+	int			nl, nl2, cr;			/* Lineends */
 	int			dispmode;			/* show control... */
 	int			workmode;			/* watch brackets, abbrev... */
-	char		liname[32];		/* name of the lineal */
+	char		name[32];		/* name of the document descriptor */
 	int			id;					/* # ID for context check */
-	char		t1,fillc;		/* Tabulator Character (fill character) */
+	char		t1, fillc;		/* Tabulator Character (fill character) */
 	char			u2lset[32];		/* wordset and u2l ("abc=xyz") */
-	unsigned char 	tbits[MAXLINELEN/8];		/* Bitset real Tabstops */
+	unsigned char 	tbits[MAXLINELEN / 8];		/* Bitset real Tabstops */
 	unsigned char	statusline[60];	/* the special status */
 	WINDOWPLACEMENT	placement;		/* for windows with fixed size */
 	EDFONT			fnt;				/* font */
 	char			bak[4];			/* Backup extension */
 	unsigned char	modename[16];	/* document type name */
 	unsigned char  tagtag[12];		/* private tag tag */
-	unsigned char	vl[20];			/* "Vorlage" Makro on creation */
-	unsigned char	linkey[16];		/* key macro file */
+	unsigned char	creationMacroName[20];			/* "Vorlage" Makro on creation */
+	unsigned char	keyMacroFile[16];		/* key macro file */
 	int			scrollflags;		/* thumbtrack.. */
 	int			cursaftersearch;	/* postop, ... */
 	int			vscroll;			/* scroll n Lines */
@@ -153,25 +156,25 @@ typedef struct lineal {
 	unsigned char	cm[24];			/* makro for closing */
 	unsigned char	ts[256];		/* fast access 1st 256 Tabstops */
 	unsigned char	res2[256];		/* reserved too .... */
-} LINEAL;
+} DOCUMENT_DESCRIPTOR;
 
 /*--------------------------------------------------------------------------
  * TabStop()
  * calculate next Tabstop
  */
-extern int TabStop(int col, LINEAL* lp);
+extern int TabStop(int col, DOCUMENT_DESCRIPTOR* lp);
 
 /*--------------------------------------------------------------------------
  * Creates the default attributes for editing a document. The returned structure
  * must be freed, when done using it.
  */
-extern LINEAL* CreateDefaultDocumentTypeDescriptor();
+extern DOCUMENT_DESCRIPTOR* CreateDefaultDocumentTypeDescriptor();
 
 /*--------------------------------------------------------------------------
  * InitDocumentTypeDescriptor()
  * Initialize a document type descriptor with the proper tabsize settings.
  */
-extern void InitDocumentTypeDescriptor(LINEAL* lp, int ts);
+extern void InitDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* lp, int ts);
 
 #endif
 
@@ -181,10 +184,10 @@ extern char 	bittab[];
 #define	TABPLACE(lin,i)		(lin)->tbits[i >> 3] |= bittab[i & 07]
 #define	TABCLEAR(lin,i)		(lin)->tbits[i >> 3] &= (~bittab[i & 07])
 
-/* default Lineal context (Makros are global) */
-#define	LIN_DEFCTX	0
-#define	LIN_NOCTX		-1
-#define	LIN_NOTYETREAD(lp)	(lp->lmargin == -1)
+/* default document descriptor context (Makros are global) */
+#define	DEFAULT_DOCUMENT_DESCRIPTOR_CTX			0
+#define	DOCUMENT_DESCRIPTOR_NO_CTX				-1
+#define	DOCUMENT_DESCRIPTOR_NOT_YET_READ(lp)	(lp->lmargin == -1)
 
 typedef time_t EDTIME;
 
@@ -196,25 +199,31 @@ typedef void * HIDDENP;
 #define	WIPOI(fp)	((WINFO*)fp->wp)
 #define	UNDOPOI(fp)	((UNDOBLOCK*)fp->undo)
 
-typedef struct ftable 
-{
+/*
+ * Represents the position of one caret representing an insertion point in a file.
+ */
+typedef struct tagCARET {
+	LINE* linePointer;		/* the current line */
+	int   offset;			/* current offset in linebuffer memory */
+} CARET;
+
+typedef struct ftable {
 	struct ftable *next;
 	char 	fname[256];
 	long 	nlines,ln;
-	long	hexoffset;
 	long 	lastln,lastcol;	/* start of previous search .. */
-	int  	lastmodoffs,		/* last offset for last mdofikation */
+	int  	lastmodoffs,		/* last offset for last modification */
 			col;   
 	int  	flags;
-	int  	lnoffset; 		/* current Offset in Linebuffer Memory	*/
+	int		longLinesSplit;	/* Count of all long lines, which were split during read, as the lines were too long */
+	CARET  	caret; 		/* the caret - to be moved to the view */
 	LINE 	*tln;			/* Pointer to current edited line */	    
 	LINE 	*firstl,			/* first line */
-			*currl,			/* current line */
 			*lastl;			/* last line */
 	MARK 	*fmark;
 	MARK 	*blstart,*blend;   	/* Marks for Block Operations			*/
 	int  	blcol1,blcol2;		/* colomn for Blockmarks				*/
-	struct lineal	*lin;
+	DOCUMENT_DESCRIPTOR	*documentDescriptor;
 	HIDDENP	wp;
 	HIDDENP	undo;
 	long 	as_time;			/* next time for AUTOSAVE */
@@ -248,15 +257,35 @@ extern LINE *ln_join(FTABLE *fp,LINE *ln1,LINE *ln2,int flg);
 extern int lnjoin_lines(FTABLE *fp);
 extern LINE *ln_goto(FTABLE *fp,long l);
 extern LINE *ln_relative(LINE *cl, long l);
-extern LINE *ln_crelgo(FTABLE *fp, long l, long *o);
+extern LINE *ln_crelgo(FTABLE *fp, long l);
 extern LINE *ln_relgo(FTABLE *fp,long l);
 extern LINE *ln_gotouserel(FTABLE *fp,long ln);
 extern long ln_cnt(LINE *lps,LINE *lpe);
 extern LINE *ln_findbit(LINE *lp,int bit);
 extern void ln_replace(FTABLE *fp,LINE *oln,LINE *nl);
-extern void ln_m(LINE *lpstart,LINE *lpend,int flg);
-extern void ln_um(LINE *lpstart,LINE *lpend,int flg);
-extern long ln_needbytes(LINE *lp, int nl, int cr);
+
+/*---------------------------------
+ * ln_addFlag()
+ *
+ * Add a flag to all lines between lpstart and lpend.
+ */
+extern void ln_addFlag(LINE* lpstart, LINE* lpend, int flg);
+
+/*---------------------------------
+ * ln_changeFlag()
+ *
+ * Add / remove flags from multiple lines - all lines having an expected flag
+ * are considered.
+ */
+extern void ln_changeFlag(LINE* lpstart, LINE* lpend, int flagsearch, int flagmark, int set);
+
+/*---------------------------------
+ * ln_removeFlag()
+ *
+ * Remove a flag from all lines between lpstart and lpend.
+ *---------------------------------*/
+extern void ln_removeFlag(LINE* lpstart, LINE* lpend, int flg);
+
 extern char* ft_visiblename(FTABLE* fp);
 extern void ft_CheckForChangedFiles(void);
 /* do an autosave */
@@ -294,6 +323,8 @@ extern int ActivateWindowOfFileNamed(char* fn);
 
 /*--------------------------------------------------------------------------
  * ln_destroy()
+ * Destroy a line and free all resources occupied by the line.
+ * This will not remove the line from the document.
  */
 extern void ln_destroy(LINE* lp);
 
@@ -301,7 +332,7 @@ extern void ln_destroy(LINE* lp);
  * ln_needbytes()
  * Calculates the number of bytes needed for one line.
  */
-extern long ln_needbytes(LINE* lp, int nl, int cr);
+extern long ln_calculateMemorySizeRequired(LINE* lp, int nl, int cr);
 
 /*--------------------------------------------------------------------------
  * ln_unhide()
@@ -331,10 +362,10 @@ typedef struct linkedList {
 
 
 /*--------------------------------------------------------------------------
- * ll_top()
+ * ll_moveElementToFront()
  * put an element to the top of the linked list
  */
-extern int ll_top(void** pointerLinkedList, void* elem);
+extern int ll_moveElementToFront(void** pointerLinkedList, void* elem);
 
 /*--------------------------------------------------------------------------
  * ll_insert()
@@ -343,11 +374,11 @@ extern int ll_top(void** pointerLinkedList, void* elem);
 extern void* ll_insert(void** pointerLinkedList, long size);
 
 /*--------------------------------------------------------------------------
- * ll_kill()
+ * ll_destroy()
  * destroy a linked list. Pass a pointer to the head of the linked list and
  * an additional destruction function for one element in the list.
  */
-extern void ll_kill(void** pointerLinkedList, int (*destroy)(void* elem));
+extern void ll_destroy(void** pointerLinkedList, int (*destroy)(void* elem));
 
 /*--------------------------------------------------------------------------
  * ll_delete()
@@ -356,10 +387,10 @@ extern void ll_kill(void** pointerLinkedList, int (*destroy)(void* elem));
 extern int ll_delete(void** pointerLinkedList, void* element);
 
 /*--------------------------------------------------------------------------
- * ll_count()
+ * ll_size()
  * Count the elements in a linked list.
  */
-extern int ll_count(void* linkedList);
+extern int ll_size(void* linkedList);
 
 /*--------------------------------------------------------------------------
  * ll_find()
@@ -367,6 +398,34 @@ extern int ll_count(void* linkedList);
  * Find an element in a linked list, with a given name.
  */
 extern void* ll_find(void* linkedList, char* name);
+
+/*-----------------------------------------
+ * ln_createMultipleLinesUsingSeparators()
+ * Split a passed buffer (end is marked by pend) with given line separator
+ * characters t1 and t2. If cr is passed (not 0), the cr character
+ * is handled as such.
+ */
+extern unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, unsigned char* p, unsigned char* pend, int t1, int t2, int cr);
+
+/*------------------------------------
+ * ln_createMultipleLinesFromBuffer()
+ * Create multiple lines from a passed buffer p. The
+ * end of the buffer is passed in pend.
+ */
+extern unsigned char* ln_createMultipleLinesFromBuffer(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor, unsigned char* p, unsigned char* pend);
+
+/*---------------------------------
+ * ln_createFromBuffer()
+ * Creates a line from a buffer p. The end of the buffer
+ * is passed in pend.
+ */
+extern unsigned char* ln_createFromBuffer(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor, unsigned char* p, unsigned char* pend);
+
+/*----------------------------------------------
+ * ln_createAndAdd()
+ * create a line and add it to the editor model. Returns true, if successful.
+ */
+extern BOOL ln_createAndAdd(FTABLE* fp, char* q, int len, int flags);
 
 /*-------- FILE FLAGS ----------*/
 
@@ -378,7 +437,7 @@ extern void* ll_find(void* linkedList, char* name);
 #define	F_SAVEAS			0x20 	/* File is saved under new name */
 #define	F_WFORCED			0x40 	/* Forced writing, if not mod.  */
 #define	F_ISBACKUPPED		0x80		/* Backup already created	  */
-#define	F_STDLINEAL			0x200	/* Use a reasonable standard lineal */
+#define	F_STDLINEAL			0x200	/* Use a reasonable standard document descriptor */
 #define	F_HASWIN			0x400	/* file has an associated window */
 #define	F_NEEDSAUTOSAVE		0x800 	/* File is not autosaved 	  */
 #define	F_HIDDEN			0x1000	/* create File hidden		  */
@@ -389,13 +448,16 @@ extern void* ll_find(void* linkedList, char* name);
 /*---------- LINEFLAGS ---------*/
 
 #define	LNMARKED			0x01 	/* at least one lineposition marked */
-#define	LNDIFFMARK		0x02 	/* Mark for last EdFilesCompare action */
-#define	LNREPLACED		0x04 	/* something in line has been replaced */
-#define	LNCPMARKED		0x08 	/* Line is within CUT&PASTE-Block	 */
-#define	LNNOCR			0x10		/* mark not chapter lines */
-#define	LNINDIRECT		0x20		/* indirect flag */
+#define	LNDIFFMARK			0x02 	/* Mark for last EdFilesCompare action */
+#define	LNREPLACED			0x04 	/* something in line has been replaced */
+#define	LNCPMARKED			0x08 	/* Line is within CUT&PASTE-Block	 */
+#define	LNNOCR				0x10		/* mark not chapter lines */
+#define	LNINDIRECT			0x20		/* indirect flag */
 #define	LNNOTERM			0x40		/* unterminated line */
 #define	LNXMARKED			0x80		/* marked for EdCharDelete ...	*/
+
+#define LINE_HAS_LINE_END(lp)		((lp->lflg & LNNOTERM) == 0)
+#define LINE_HAS_CR(lp)				((lp->lflg & LNNOCR) == 0)
 
 /*---- SIZE OF EXPRESSION BUFFERS -----------------------------*/
 

@@ -17,8 +17,9 @@
 
 #if !defined(BOOL)
 #include <windows.h>
-extern int EdFsel(char *szFileNameIn, char *szSuffixes, char *szFileNameOut, BOOL bSaveAs);
 #endif
+
+extern int EdFsel(char* szFileNameIn, char* szSuffixes, char* szFileNameOut, BOOL bSaveAs);
 
 #define PATHNAME_H
 #endif

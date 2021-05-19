@@ -51,7 +51,7 @@ static	LINE      *_macroline;
 static	FTABLE	*_keyfile;
 
 /* allow context sensitive makros and mappings */
-static	int		_context     = LIN_DEFCTX;
+static	int		_context     = DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
 PASTELIST *_esclist[MAX_CONTEXT];
 
 
@@ -79,7 +79,7 @@ void ValidEscapeMacros(char *pszValid)
 {
 	PASTELIST *pl;
 
-	pl = _esclist[_currfile->lin->id];
+	pl = _esclist[_currfile->documentDescriptor->id];
 	while (pl != 0) {
 		*pszValid++ = pl->id;
 		pl = pl->next;
@@ -101,7 +101,7 @@ static PASTE *EscapePasteForId(int id)
 {
 	PASTE *		pp;
 
-	if ((pp = pp_find(id, _esclist[_currfile->lin->id])) != 0) {
+	if ((pp = pp_find(id, _esclist[_currfile->documentDescriptor->id])) != 0) {
 		return pp;
 	}
 	return 0 /*pp_find(id,_esclist[0]) */ ;
@@ -142,7 +142,7 @@ int EdMacroEscape(void)
 		ed_error(IDS_MSGESCAPEUNDEF);
 		return 0;
 	}
-	return pasteblk(pp, 0, _currfile->lnoffset, 0);
+	return pasteblk(pp, 0, _currfile->caret.offset, 0);
 }
 
 /*--------------------------------------------------------------------------
@@ -296,7 +296,7 @@ int doabbrev(FTABLE *fp, LINE *lp,int offs)
 {
 	struct uclist *up;
 	long 		o2;
-	int id = 		fp->lin->id;
+	int id = 		fp->documentDescriptor->id;
 	int			domacro = 0;
 
 	if ((up = uc_find(id,lp->lbuf,offs,UA_ABBREV)) != 0) {
@@ -348,8 +348,8 @@ static void parsekeydefs(FTABLE *fp)
 	lp = fp->firstl;
 	while(lp) {
 		if (lp->next && lp->len) {
-			if (_context == LIN_NOCTX)
-				_context = LIN_DEFCTX;
+			if (_context == DOCUMENT_DESCRIPTOR_NO_CTX)
+				_context = DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
 			_macroline = lp;
 			s = lp->lbuf;
 			c = *s++;
@@ -389,7 +389,7 @@ int Mapread(int context, char *target)
 			/*
 			 * remove old entries
 			 */
-			_context = LIN_DEFCTX;
+			_context = DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
 			_abid = 0;
 		}
 
@@ -444,7 +444,7 @@ int EdDocMacrosEdit(void)
 		return 0;
 	}
 	strdcpy(keyfile, _datadir, "MODI.TMP");
-	if (CreateTempFileForDocumentType(searchfile(_currfile->lin->liname), keyfile)) {
+	if (CreateTempFileForDocumentType(searchfile(_currfile->documentDescriptor->name), keyfile)) {
 		return tagopen(keyfile, -1L, (void*)0);
 	}
 	return 0;

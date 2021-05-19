@@ -13,7 +13,7 @@
 
 struct uclist {
 	struct uclist *next;
-	int		ctx;				/* -> current lineal */
+	int		ctx;				/* -> current document descriptor */
 	char		*pat;			/* pattern for scanning */
 	int		len;				/* len of pattern (or -1 for RE) */
 	int  	action;			/* type of action to perform */

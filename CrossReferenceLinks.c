@@ -13,10 +13,10 @@
 #include "edctype.h"
 #include "edifsel.h"
 #include "caretmovement.h"
-#include "winfo.h"
 #include "pksedit.h"
 #include "editorconfiguration.h"
 #include "edierror.h"
+#include "errordialogs.h"
 #include "iccall.h"
 #include "xdialog.h"
 #include "dial2.h"
@@ -30,7 +30,6 @@ extern int	isword(char c), isnospace(char c), isfname(char c);
 extern FTABLE 	*ww_stackwi(int num);
 extern void	*prof_llinsert(void *Head, int size, 
 						char *group, char *item, char **idata);
-extern void 	strdcpy(char *dest,char *source,char *fname);
 
 #define	TCMD_EXEC				'!'
 #define	TCMD_TAGFILE			'^'
@@ -137,7 +136,7 @@ void tagselect(char *tags)
 	if ((p = ll_find(_ttry, tags)) != 0 && p != _ttry) {
 		/* force tag file reread */
 		((TAGTRY *)p)->curr = -1;
-		ll_top(&_ttry, p);
+		ll_moveElementToFront(&_ttry, p);
 	}
 }
 
@@ -414,7 +413,7 @@ static TAG *findtag(char *s, FTABLE *fp)
 	for (lp = fp->firstl; lp; lp = lp->next) {
 		if (step(lp->lbuf, ebuf, &lp->lbuf[lp->len])) {
 			if ((dlpCurr = ll_insert(&dlp, sizeof *dlp)) == 0) {
-				ll_kill(&dlp, (int (*)(void *))0);
+				ll_destroy(&dlp, (int (*)(void *))0);
 				return 0;
 			}
 			if ((pszBlank = lstrchr(lp->lbuf, ' ')) != 0) {
@@ -431,7 +430,7 @@ static TAG *findtag(char *s, FTABLE *fp)
 		}
 	}
 
-	switch (ll_count(dlp)) {
+	switch (ll_size(dlp)) {
 
 	case 0: 
 		return 0;
@@ -459,13 +458,13 @@ static TAG *findtag(char *s, FTABLE *fp)
 	}
 
 	if (!dlpCurr) {
-		ll_kill(&dlp, (int (*)(void *))0);
+		ll_destroy(&dlp, (int (*)(void *))0);
 		_tagCancelled = TRUE;
 		return 0;
 	}
 
 	lp = dlpCurr->pAny;
-	ll_kill(&dlp, (int (*)(void *))0);
+	ll_destroy(&dlp, (int (*)(void *))0);
 	return taggetinfo(lp);
 }
 
@@ -491,8 +490,8 @@ static char *gettag(unsigned char *d,unsigned char *dend,
 
 	if ((fp = _currfile) == 0L) 
 		return (char *)0;
-	S = fp->currl->lbuf;
-	s = &S[fp->lnoffset];
+	S = fp->caret.linePointer->lbuf;
+	s = &S[fp->caret.offset];
 
 	if (scan2beg)
 		while(s > S && (*valid)(s[-1]))
@@ -642,7 +641,7 @@ int EdErrorNext(int dir)
 		_errfile = ww_stackwi(0);
 	}
 
-	if ((fp = _errfile) == 0 || (lp = fp->currl) == 0L) {
+	if ((fp = _errfile) == 0 || (lp = fp->caret.linePointer) == 0L) {
 notfile:	ed_error(IDS_MSGNOTAGFILE);
 		return 0;
 	}
@@ -691,11 +690,11 @@ doforward:
 		if ((wp = WIPOI(fp)) != 0) {
 			/* EdSelectWindow(wp->win_id); */
 			_curpos(fp,lineno,0);
-			ln_um(fp->firstl,fp->lastl,LNXMARKED);
+			ln_removeFlag(fp->firstl,fp->lastl,LNXMARKED);
 			lp->lflg |= LNXMARKED;
 			EdRedrawWindow(wp);
 		} else {
-			fp->currl = lp;
+			fp->caret.linePointer = lp;
 		}
 
 	/* make file name relativ to list file */

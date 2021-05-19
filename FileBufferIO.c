@@ -62,8 +62,8 @@ BOOL InitBuffers(void)
  * Returns the default document type descriptor for situations,
  * where no document type descriptor was assigned to a file.
  */
-static LINEAL* GetDefaultDocumentTypeDescriptor() {
-	static LINEAL* _defaultDocumentTypeDescriptor;
+static DOCUMENT_DESCRIPTOR* GetDefaultDocumentTypeDescriptor() {
+	static DOCUMENT_DESCRIPTOR* _defaultDocumentTypeDescriptor;
 	if (_defaultDocumentTypeDescriptor == NULL) {
 		_defaultDocumentTypeDescriptor = CreateDefaultDocumentTypeDescriptor();
 	}
@@ -122,7 +122,7 @@ static void list2_insert(P2LIST **head, char *p1, char *p2)
 static void list2_mk(P2LIST **head, char *p1, char *p2)
 {
 	if (p1 == 0) {
-		ll_kill(head,list2_destroy);
+		ll_destroy(head,list2_destroy);
 	} else {
 		list2_insert(head,p1,p2);
 	}
@@ -153,7 +153,7 @@ int ap_init(void)
  */
 EXPORT int putline(FTABLE *fp, char *b)
 {
-	return createl(fp,b,(int)strlen(b),0);
+	return ln_createAndAdd(fp,b,(int)strlen(b),0);
 }
 
 /*---------------------------------*/
@@ -168,8 +168,6 @@ EXPORT int closeF(int *fd)
 	*fd = -1;
 	return ret;
 }
-extern unsigned char *readlines(FTABLE *, LINEAL*, unsigned char *, unsigned char *);
-extern unsigned char *readnoterm(FTABLE *, LINEAL *, unsigned char *, unsigned char *);
 
 /*--------------------------------------------------------------------------
  * NoDiskSpace()
@@ -198,52 +196,52 @@ void OpenError(char *fname)
 /*---------------------------------*/
 /* readfrags()					*/
 /*---------------------------------*/
-EXPORT int readfrags(int fd, unsigned char * (*f)(FTABLE *, LINEAL*, unsigned char *, unsigned char *), void *par)
+EXPORT int readfrags(int fd, unsigned char * (*f)(FTABLE *, DOCUMENT_DESCRIPTOR*, unsigned char *, unsigned char *), void *par)
 {
 	int 	cflg,got,len,ofs;
-	long	fragsize;
+	long	bufferSize;
 	char	*q;
 	unsigned char *pend;
-	unsigned char *fragstart;
+	unsigned char *bufferStart;
 
 	len = 0;
-	fragsize = 2*FBUFSIZE;
-	fragstart = &_linebuf[128];
+	bufferSize = 2*FBUFSIZE;
+	bufferStart = &_linebuf[128];
 	_scratchlen = 0;
 	cflg = _crypting;
 	_crypting = 0;
-	while ((got = Fread(fd,fragsize,fragstart)) > 0) {
+	while ((got = Fread(fd,bufferSize,bufferStart)) > 0) {
 		if (cflg) {
 			char buf[2];
 			int cont = Fread(fd,1,buf);
 
 			if (cont)
 				Fseek(-1l,fd,1);
-			if ((got = crypt_de(fragstart, got, cont)) < 0) {
+			if ((got = crypt_de(bufferStart, got, cont)) < 0) {
 				ed_error(IDS_MSGWRONGPW);
 				return 0;
 			}
 		}
 
-		ofs  = fragsize;
-		pend = &fragstart[got];
+		ofs  = bufferSize;
+		pend = &bufferStart[got];
 
-		if ((q = (*f)(par,GetDefaultDocumentTypeDescriptor(),&fragstart[-len],pend)) == 0)
+		if ((q = (*f)(par,GetDefaultDocumentTypeDescriptor(),&bufferStart[-len],pend)) == 0)
 			return 0;
 		if ((len = (int)(pend-q)) != 0) {
 			if (len < 128) {
-				fragstart = _linebuf+128;
-				fragsize = 2*FBUFSIZE;
+				bufferStart = _linebuf+128;
+				bufferSize = 2*FBUFSIZE;
 			} else {
-				fragstart = _linebuf+FBUFSIZE;
-				fragsize = FBUFSIZE;
+				bufferStart = _linebuf+FBUFSIZE;
+				bufferSize = FBUFSIZE;
 			}
-			memmove(&fragstart[-len],q,len);
+			memmove(&bufferStart[-len],q,len);
 		}
 		if (ofs != got)
 			break;
 	}
-	_scratchstart 	= fragstart;
+	_scratchstart 	= bufferStart;
 	_scratchlen	= len;
 
 	if (got < 0) {
@@ -256,7 +254,7 @@ EXPORT int readfrags(int fd, unsigned char * (*f)(FTABLE *, LINEAL*, unsigned ch
 /*--------------------------------------*/
 /* init_pw()	 					*/
 /*--------------------------------------*/
-static int init_pw(LINEAL *linp, char *pw, int twice)
+static int init_pw(DOCUMENT_DESCRIPTOR *linp, char *pw, int twice)
 {
 	if ((linp->workmode & O_CRYPTED) == 0 ||
 	    CryptDialog(pw, twice) == 0 ||
@@ -271,35 +269,35 @@ static int init_pw(LINEAL *linp, char *pw, int twice)
 /*--------------------------------------*/
 /* readfile()						*/
 /*--------------------------------------*/
-int _broken,_flushing;
-EXPORT int readfile(FTABLE *fp, LINEAL *linp)
+int _flushing;
+EXPORT int readfile(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescriptor)
 {
 	int				ret;
 	int				nl;
 	int				fd;
 	register	char *	buf;
 	char				pw[32];
-	unsigned char *(*f)(FTABLE *par, LINEAL *linp, unsigned char *p, unsigned char *pend);
+	unsigned char *(*f)(FTABLE *par, DOCUMENT_DESCRIPTOR *linp, unsigned char *p, unsigned char *pend);
 
 	fd = -1;
-	_broken = 0;
+	fp->longLinesSplit = 0;
 	_flushing = 0;
-	fp->currl = fp->firstl;
+	fp->caret.linePointer = fp->firstl;
 	buf = _scratchstart;
 	if (_verbose)
 		MouseBusy();
 
-	f = readlines;
-	if (linp == 0) {
-		linp = GetDefaultDocumentTypeDescriptor();
+	f = ln_createMultipleLinesFromBuffer;
+	if (documentDescriptor == 0) {
+		documentDescriptor = GetDefaultDocumentTypeDescriptor();
 	}
 
-	if ((nl = linp->nl) < 0)
-		f = readnoterm;
+	if ((nl = documentDescriptor->nl) < 0)
+		f = ln_createFromBuffer;
 
 	if (fp->flags & F_NEWFILE) {
 nullfile:
-		if (!createl(fp,"",0,(nl < 0) ? LNNOTERM : 0)) {
+		if (!ln_createAndAdd(fp,"",0,(nl < 0) ? LNNOTERM : 0)) {
 			goto ret0;
 		}
 		fp->nlines = 1;
@@ -312,9 +310,9 @@ nullfile:
 				ret = 0;
 				goto readerr;
 			}
-			linp->workmode |= O_RDONLY;
+			documentDescriptor->workmode |= O_RDONLY;
 		}
-		_crypting = init_pw(linp, pw, 0);
+		_crypting = init_pw(documentDescriptor, pw, 0);
 		if ((ret = readfrags(fd,f,fp)) == 0) {
 			goto readerr;
 		}
@@ -327,24 +325,24 @@ nullfile:
 			buf = _scratchstart;
 			if (nl >= 0)
 				*buf++ = nl;
-			if ((*f)(fp,linp, &_scratchstart[-_scratchlen],buf) == 0) {
+			if ((*f)(fp,documentDescriptor, &_scratchstart[-_scratchlen],buf) == 0) {
 ret0:			ret = 0;
 				goto readerr;
 			}
-			fp->currl->lflg |= LNNOTERM;
+			fp->caret.linePointer->lflg |= LNNOTERM;
 		}
 	}
 
-	if (!createl(fp,_eof,sizeof _eof -2,LNNOTERM))
+	if (!ln_createAndAdd(fp,_eof,sizeof _eof -2,LNNOTERM))
 		goto ret0;
 
-	if (_broken && _verbose) {
+	if (fp->longLinesSplit > 0 && _verbose) {
 		ed_error(IDS_MSGWRAPPEDLINES);
 		fp->flags |= F_CHANGEMARK;
 	}
 
-	fp->lastl = fp->currl;
-	fp->currl = fp->firstl;
+	fp->lastl = fp->caret.linePointer;
+	fp->caret.linePointer = fp->firstl;
 
 readerr:
 
@@ -430,7 +428,7 @@ EXPORT int writefile(int quiet, FTABLE *fp)
 	int			cr;
 	int			fd = -1;
 	int			saveLockFd;
-	LINEAL		*linp = fp->lin;
+	DOCUMENT_DESCRIPTOR		*linp = fp->documentDescriptor;
 
 #ifdef DEMO
 	return 0;
@@ -491,13 +489,13 @@ EXPORT int writefile(int quiet, FTABLE *fp)
 		if ((no = offset+lp->len) < LINEBUFSIZE) {
 			memmove(&_linebuf[offset],lp->lbuf,lp->len);
 			offset = no;
-			if ((lp->lflg & LNNOTERM) == 0) {
-				if (cr >= 0) {
-					if ((lp->lflg & LNNOCR) == 0)
-						_linebuf[offset++] = cr;
+			if (LINE_HAS_LINE_END(lp)) {
+				if (cr >= 0 && LINE_HAS_CR(lp)) {
+					_linebuf[offset++] = cr;
 				}
-				if (nl >= 0)
+				if (nl >= 0) {
 					_linebuf[offset++] = nl;
+				}
 			}
 			lp = lp->next;
 		} else {
@@ -587,21 +585,21 @@ EXPORT int Writefile(FTABLE *fp,char *fn,int flags)
 EXPORT int Readfile(FTABLE *fp,char *fn,int linflag)
 {	int ret = 0;
 
-	/* linflag == 0 => take Lineal as usually */
-	/* linflag <  0 => Lineal is DEFAULT with '\n' as Terminator */
+	/* linflag == 0 => take document descriptor as usually */
+	/* linflag <  0 => document descriptor is DEFAULT with '\n' as Terminator */
 
 	fp->firstl = 0;
 	fp->nlines = 0L;
-	fp->lin    = 0;
+	fp->documentDescriptor    = 0;
 	fp->flags  = F_NORMOPEN;
 	fp->lockFd = 0;
 	strcpy(fp->fname,fn);
 
-	if (linflag >= 0 && !AssignDocumentTypeDescriptor(fp,(LINEAL*)0))
+	if (linflag >= 0 && !AssignDocumentTypeDescriptor(fp,(DOCUMENT_DESCRIPTOR*)0))
 		return 0;
 
 	_verbose = 0;
-	ret = readfile(fp, fp->lin);
+	ret = readfile(fp, fp->documentDescriptor);
 	_verbose = 1;
 	closeF(&fp->lockFd);
 
@@ -616,11 +614,11 @@ EXPORT int Writeandclose(FTABLE *fp,char *name, int flags)
 	int 		ret;
 
 	fp->lastl = 0;
-	fp->lin = 0;
+	fp->documentDescriptor = 0;
 	ret = Writefile(fp,name,flags);
 	lnlistfree(fp->firstl);
 	fp->firstl = 0;
-	fp->currl  = 0;
+	fp->caret.linePointer  = 0;
 	return ret;
 }
 

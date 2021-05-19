@@ -151,11 +151,11 @@ int			vname_count;
 extern 		int	yyerrflg;
 extern 		int	_bDefiningConst;
 
-void 		Alert(char *s, ...);
+void 			Alert(char *s, ...);
 int 			mac_insert(char *name, char *comment, unsigned char *data, int size);
 unsigned char 	*AddComSeq(unsigned char *sp, unsigned char *spend,
 				     	 unsigned char typ, intptr_t par);
-int 			FuncIdx(void *ep);
+int				FuncIdx(void *ep);
 int 			bind_key(KEYCODE keycode, MACROREFTYPE typ, MACROREFIDX idx, int augment);
 int 			bind_mouse(MOUSECODE code, MACROREFTYPE typ, MACROREFIDX idx, int flags, int augment);
 int 			MakeInternalSym(char *name, char ed_typ, long value);
@@ -2234,8 +2234,8 @@ int yydebug = 1;
     {
 				MakeInternalSym((yyvsp[(2) - (4)]).s,
 					((yyvsp[(1) - (4)]).type == C_STRING1PAR) ? S_STRING : S_NUMBER,
-					((yyvsp[(1) - (4)]).type == C_STRING1PAR) ? (long)"" : 0);
-				PushAssign((yyvsp[(2) - (4)]).s,(yyvsp[(3) - (4)]).v.type,(long)(yyvsp[(3) - (4)]).v.val);
+					((yyvsp[(1) - (4)]).type == C_STRING1PAR) ? (intptr_t)"" : 0);
+				PushAssign((yyvsp[(2) - (4)]).s,(yyvsp[(3) - (4)]).v.type,(intptr_t)(yyvsp[(3) - (4)]).v.val);
 				freeval(&(yyvsp[(3) - (4)]).v);
 				vname_count = 0;
 			;}
@@ -2247,11 +2247,11 @@ int yydebug = 1;
 #line 492 "Parser.y"
     {
 				if ((yyvsp[(1) - (3)]).type == C_STRING1PAR) {
-					MakeInternalSym((yyvsp[(2) - (3)]).s, S_STRING, (long)"");
-					PushAssign((yyvsp[(2) - (3)]).s, C_STRING1PAR, (long)"");
+					MakeInternalSym((yyvsp[(2) - (3)]).s, S_STRING, (intptr_t)"");
+					PushAssign((yyvsp[(2) - (3)]).s, C_STRING1PAR, (intptr_t)"");
 				} else {
-					MakeInternalSym((yyvsp[(2) - (3)]).s, S_NUMBER, (long)0);
-					PushAssign((yyvsp[(2) - (3)]).s,C_LONG1PAR,(long)0);
+					MakeInternalSym((yyvsp[(2) - (3)]).s, S_NUMBER, (intptr_t)0);
+					PushAssign((yyvsp[(2) - (3)]).s,C_LONG1PAR,(intptr_t)0);
 				}
 				vname_count = 0;
 			;}
@@ -2276,7 +2276,7 @@ int yydebug = 1;
 /* Line 1455 of yacc.c  */
 #line 518 "Parser.y"
     {
-				PushAssign((yyvsp[(1) - (2)]).s,(yyvsp[(2) - (2)]).v.type,(long)(yyvsp[(2) - (2)]).v.val);
+				PushAssign((yyvsp[(1) - (2)]).s,(yyvsp[(2) - (2)]).v.type,(intptr_t)(yyvsp[(2) - (2)]).v.val);
 			;}
     break;
 
@@ -2341,7 +2341,7 @@ int yydebug = 1;
 				} else {
 					(yyval).v.type = C_LONGVAR;
 				}
-				(yyval).v.val = (long)"__ret__";
+				(yyval).v.val = (intptr_t)"__ret__";
 				((char*)(yyval).v.val)[6] = '0' + vname_count++;
 			;}
     break;
@@ -2529,7 +2529,7 @@ int yydebug = 1;
 #line 584 "Parser.y"
     { 	
 				if (_stringflg)
-					_recp = AddComSeq(_recp,_recpend,C_STRING1PAR,(long)"");
+					_recp = AddComSeq(_recp,_recpend,C_STRING1PAR,(intptr_t)"");
 				else
 					_recp = AddComSeq(_recp,_recpend,C_LONG1PAR,0L);
 				(yyval).type = CT_NE;
@@ -2621,7 +2621,7 @@ int yydebug = 1;
 #line 614 "Parser.y"
     {
 				(yyval).v.type = C_LONGVAR;  
-				(yyval).v.val  = (long) (yyvsp[(1) - (1)]).s;
+				(yyval).v.val  = (intptr_t) (yyvsp[(1) - (1)]).s;
 			;}
     break;
 
@@ -2631,7 +2631,7 @@ int yydebug = 1;
 #line 618 "Parser.y"
     {
 				(yyval).v.type = C_STRINGVAR;  
-				(yyval).v.val  = (long) (yyvsp[(1) - (1)]).s;
+				(yyval).v.val  = (intptr_t) (yyvsp[(1) - (1)]).s;
 			;}
     break;
 
@@ -2641,7 +2641,7 @@ int yydebug = 1;
 #line 622 "Parser.y"
     {
 				(yyval).v.type = C_STRING1PAR;
-				(yyval).v.val  = (long) (yyvsp[(1) - (1)]).s;
+				(yyval).v.val  = (intptr_t) (yyvsp[(1) - (1)]).s;
 			;}
     break;
 
@@ -2825,7 +2825,7 @@ int yydebug = 1;
 #line 711 "Parser.y"
     {
 				_lastfuncp = 0;
-				_recp = AddComSeq(_recp,_recpend,C_MACRO,(long)(yyvsp[(1) - (1)]).s);
+				_recp = AddComSeq(_recp,_recpend,C_MACRO,(intptr_t)(yyvsp[(1) - (1)]).s);
 				freeitem(&(yyvsp[(1) - (1)]).s);
 				(yyval).funcp = 0;
 			;}
@@ -2971,7 +2971,7 @@ int yydebug = 1;
 #line 778 "Parser.y"
     {
 				(yyval).v.type = C_STRING1PAR;
-				(yyval).v.val  = (long) (yyvsp[(1) - (1)]).s;
+				(yyval).v.val  = (intptr_t) (yyvsp[(1) - (1)]).s;
 			;}
     break;
 
@@ -3277,7 +3277,7 @@ static void PushParam(struct typedval *vp)
 /*---------------------------------*/
 #ifdef YYDEBUG
 void YYtrace(char *fmt, ...)
-{	char *s,buf[128];
+{	char *s;
 	va_list ap;
 	static FILE *fp;
 

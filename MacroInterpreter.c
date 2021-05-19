@@ -380,7 +380,7 @@ void stopcash()
 /*---------------------------------*/
 int readonly(FTABLE *fp)
 {
-	if (fp->lin->workmode & O_RDONLY) {
+	if (fp->documentDescriptor->workmode & O_RDONLY) {
 		ed_error(IDS_MSGRDONLY);
 		return 1;
 	}
@@ -411,7 +411,7 @@ int CanExecute(int num, int warn)
 #endif
 	}
 
-	if ((fup->flags & EW_MODIFY) && (_currfile->lin->workmode & O_RDONLY)) {
+	if ((fup->flags & EW_MODIFY) && (_currfile->documentDescriptor->workmode & O_RDONLY)) {
 		if (warn) {
 			readonly(_currfile);
 		}

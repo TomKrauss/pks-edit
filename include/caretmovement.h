@@ -16,9 +16,27 @@
 
 #include "lineoperations.h"
 
-extern int cphys2scr(char* lbuf, int lnoffs);
+typedef struct wininfo WINFO;
 
-extern int cscr2phys(LINE* lp, int col);
+ /*--------------------------------------------------------------------------
+  * caret_lineOffset2screen()
+  * the following stuff is calculating the cursor screen position, out of
+  * the internal offset to the line buffer
+  */
+extern int caret_lineOffset2screen(FTABLE* fp, CARET* cp);
+
+/*--------------------------------------------------------------------------
+ * caret_screen2lineOffset()
+ * Calculate the internal offset in the line buffer
+ * for a given cursor screen position
+ */
+extern int caret_screen2lineOffset(FTABLE* fp, CARET* pCaret);
+
+/*--------------------------------------------------------------------------
+ * caret_moveToXY()
+ * move the caret to follow the mouse pressed on the screen coordinates x and y.
+ */
+extern int caret_moveToXY(WINFO* wp, int x, int y);
 
 /*--------------------------------------------------------------------------
  * curpos()

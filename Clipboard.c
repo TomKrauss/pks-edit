@@ -21,9 +21,6 @@
 #include "errordialogs.h"
 
 extern PASTE *			bl_addrbyid(int id,int insert);
-extern long 			ln_needbytes(LINE *lp, int nl, int cr);
-extern unsigned char *	BufAsLinelist(FTABLE *fp, unsigned char *p, 
-								unsigned char *pend, int t1, int t2, int cr);
 extern void				bl_free(PASTE *buf);
 
 /*------------------------------------------------------------
@@ -69,7 +66,7 @@ static HANDLE clp_makebufferhandle(int whichBuffer)
 	}
 
 	if (bp->pln == 0 ||
-	    (size = ln_needbytes(bp->pln, nl, cr)) == 0) 
+	    (size = ln_calculateMemorySizeRequired(bp->pln, nl, cr)) == 0) 
 		return 0;
 
 	if ((hMem = GlobalAlloc(GHND, (DWORD)size)) == 0 ||
@@ -158,7 +155,7 @@ EXPORT int clp_getdata(void)
 			}
 			lpTemp[size++] = '\n';
 			lpTemp[size] = '\n';
-			if (BufAsLinelist(&ft, lpTemp, lpTemp+size, '\n', -1, '\r')) {
+			if (ln_createMultipleLinesUsingSeparators(&ft, lpTemp, lpTemp+size, '\n', -1, '\r')) {
 				bl_free(bp);
 				bp->pln = ft.firstl;
 				bp->nlines = ft.nlines;

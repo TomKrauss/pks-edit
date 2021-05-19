@@ -252,7 +252,7 @@ int setwrange(HWND hwnd, int *rangetype, int first)
 /*--------------------------------------------------------------------------
  * CbGetText()
  */
-int CbGetText(HWND hwnd, WORD id, char *szBuff)
+int CbGetText(HWND hwnd, int id, char *szBuff)
 { 	LRESULT	  item;
 
 	item = SendDlgItemMessage(hwnd,id,CB_GETCURSEL,0,0);
@@ -267,7 +267,7 @@ int CbGetText(HWND hwnd, WORD id, char *szBuff)
 /*--------------------------------------------------------------------------
  * LbGetText()
  */
-int LbGetText(HWND hwnd, WORD id, char *szBuff)
+int LbGetText(HWND hwnd, int id, char *szBuff)
 { 	LRESULT	  item;
 
 	item = SendDlgItemMessage(hwnd,id,LB_GETCURSEL,0,0);

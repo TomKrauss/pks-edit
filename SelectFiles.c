@@ -73,7 +73,7 @@ void ChangeDirectory(LPSTR pszPath)
 		}
 	}
 
-	chdir(pszPath);
+	_chdir(pszPath);
 }
 
 /*------------------------------------------------------------

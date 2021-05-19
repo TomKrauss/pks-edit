@@ -124,7 +124,7 @@ int savecpos(void)
 
 	if ((fp = _currfile) != 0) {
 		fp->lastln  = fp->ln,
-		fp->lastcol = fp->lnoffset;
+		fp->lastcol = fp->caret.offset;
 		return 1;
 	}
 	return 0;
@@ -139,7 +139,7 @@ int newcpos(long ln,long col)
 	if ((fp = _currfile) == 0)
 		return 0;
 	
-	if (ln == fp->ln && col == fp->lnoffset)
+	if (ln == fp->ln && col == fp->caret.offset)
 		return 1;
 
 	savecpos();

@@ -78,9 +78,9 @@ int linchange(void)
 	   (wp = WIPOI(fp)) == 0)
 	    return 0;
 	
-	ww_setwindowflags(fp,wp);
-	ww_setwindowtitle(fp,wp);
-	fixsets(fp->lin->u2lset);
+	ww_setwindowflags(wp);
+	ww_setwindowtitle(wp);
+	fixsets(fp->documentDescriptor->u2lset);
 
 	SendMessage(wp->edwin_handle,WM_EDWINREORG,0,0L);
 
@@ -98,7 +98,7 @@ static int lincolchange(void)
     if ((fp = _currfile) == 0)
          return 0;
 
-    ww_setwindowflags(fp,WIPOI(fp));
+    ww_setwindowflags(WIPOI(fp));
     markcolomns(fp);
     return 1;
 }
@@ -111,7 +111,7 @@ static int *OpLocalAdr(int local)
 	
 	if (local > 0) {
 		if ((fp = _currfile) != 0) {
-			LINEAL *linp = fp->lin;
+			DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
 			
 			if (local == 2)
 				return &linp->workmode;

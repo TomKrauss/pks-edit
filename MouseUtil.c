@@ -15,8 +15,8 @@
 #include "caretmovement.h"
 #include "edierror.h"
 #include "errordialogs.h"
-
 #include "winfo.h"
+
 #include "winterf.h"
 #include "edfuncs.h"
 #include "pksedit.h"
@@ -27,10 +27,9 @@
 static HCURSOR   hHourGlass;		// Hour glass cursor
 static HCURSOR   hSaveCurs;
 
-extern void 	scn2lncol(WINFO *wp,int x, int y, long *ln,long *col);
+extern void 	caret_calculateOffsetFromScreen(WINFO *wp,int x, int y, long *ln,long *col);
 extern long 	ln_find(FTABLE *fp,LINE *lp);
 extern void 	st_seterrmsg(char *msg);
-extern int 		find_curs(WINFO *wp, int x,int y);
 extern int 		MousePosition(FTABLE *fp, long bAsk);
 extern HWND 	FindChildFromPoint(HWND hwnd, POINT *point);
 
@@ -159,8 +158,8 @@ EXPORT int EdBlockMouseMark(int typ)
 		nx = xx+x+4; ny = yy+y/* - wp->cheight/2 */;
 		if (ny > y) {
 			colflg = (blcolcheck(x,y,nx,ny)) ? MARK_COLUMN : 0;
-			if (find_curs(wp,x,y))   EdBlockMark(colflg);
-			if (find_curs(wp,nx,ny)) EdBlockMark(colflg|MARK_END);
+			if (caret_moveToXY(wp,x,y))   EdBlockMark(colflg);
+			if (caret_moveToXY(wp,nx,ny)) EdBlockMark(colflg|MARK_END);
 		}
 	}
 	else {
@@ -173,7 +172,7 @@ EXPORT int EdBlockMouseMark(int typ)
 		if (!b) {
 			break;
 		}
-		scn2lncol(wp,xx,yy,&ln,&col);
+		caret_calculateOffsetFromScreen(wp,xx,yy,&ln,&col);
 		colflg = 0;
 		if (markforward >= 0 && blcolcheck(x,y,xx,yy)) {
 			long lnx = ln, colx = col;
@@ -377,7 +376,7 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 		ShowError(mp->msg, NULL);
 	}
 	if (mp->flags & MO_FINDCURS) {
-		scn2lncol(wp, x, y, &ln, &col);
+		caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
 		if (cphyspos(FTPOI(wp),&ln,&col,1)) {
 			wt_curpos(wp,ln,col);
 		}
@@ -415,15 +414,15 @@ EXPORT int do_linbutton(FTABLE *fp, int x, int y, int msg, int shift)
 	long		col;
 	char		szBuf[100];
 
-	scn2lncol(wp,x + wp->cwidth / 2,y,&ln,&col);
+	caret_calculateOffsetFromScreen(wp,x + wp->cwidth / 2,y,&ln,&col);
 	wsprintf(szBuf, /*STR*/"SPALTE: %4ld", col+1);
 	st_seterrmsg(szBuf);
 
 	if (msg != WM_MOUSEMOVE) {
 		if (msg == WM_RBUTTONDOWN) {
-			fp->lin->rmargin = col;
+			fp->documentDescriptor->rmargin = col;
 		} else {
-			ToggleTabStop(fp->lin, col);
+			ToggleTabStop(fp->documentDescriptor, col);
 		}
 		SendRedraw(wp->ru_handle);
 		EdRedrawWindow(wp);

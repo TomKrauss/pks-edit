@@ -325,7 +325,7 @@ void mac_switchtodefaulttables(void)
 	char *pszMode;
 
 	if (_currfile) {
-		pszMode = _currfile->lin->modename;
+		pszMode = _currfile->documentDescriptor->modename;
 	} else {
 		pszMode = pszDefault;
 	}
@@ -550,7 +550,8 @@ int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped)
 	char		szB2[128];
 	WPARAM		dropped_type;
 	int    		dest_type;
-	int			i,funcnum,o1,o2;
+	int			i,funcnum;
+	intptr_t	o1, o2;
 
 	if (wParam == ICACT_DROPPED) {
 		icdropHwnd = dropped;

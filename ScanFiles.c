@@ -23,6 +23,7 @@
 #include "pksedit.h"
 #include "ftw.h"
 #include "stringutil.h"
+#include "pathname.h"
 
 extern char *	_datadir;
 static FTABLE	*_outfile;
@@ -30,12 +31,11 @@ static long 	_line;
 static int 		_abortOnFirstMatch,_trymatch;
 
 extern char		_expbuf[];
-extern int 		prnfl(FTABLE *fp, char *fn, long line, char *remark);
 extern void 	ShowMessage(WORD nId, ...);
 /*---------------------------------*/
 /* readfrags()					*/
 /*---------------------------------*/
-extern int readfrags(int fd, unsigned char* (*f)(FTABLE*, LINEAL*, unsigned char*, unsigned char*), void* par);
+extern int readfrags(int fd, unsigned char* (*f)(FTABLE*, DOCUMENT_DESCRIPTOR*, unsigned char*, unsigned char*), void* par);
 
 /*--------------------------------------------------------------------------
  * present()
@@ -46,14 +46,25 @@ static void present(char *fn)
 {
 	_nfound++;
 	ShowMessage(IDS_MSGNTIMESFOUND, _nfound);
-	prnfl(_outfile,fn,_line,"");
+	addLineWithLocationInfo(_outfile,fn,_line,"");
 }
+
+/*--------------------------------------------------------------------------
+ * addLineWithLocationInfo()
+ */
+int addLineWithLocationInfo(FTABLE* fp, char* fn, long line, char* remark) {
+	char buf[EDMAXPATHLEN];
+
+	wsprintf(buf, "\"%s\", line %ld: %s", (LPSTR)fn, line + 1L, (LPSTR)remark);
+	return ln_createAndAdd(fp, buf, lstrlen(buf), 0);
+}
+
 
 /*--------------------------------------------------------------------------
  * scanlines()
  * 
  */
-static unsigned char *scanlines(char *fn, LINEAL* linp, unsigned char *p, unsigned char *qend)
+static unsigned char *scanlines(char *fn, DOCUMENT_DESCRIPTOR* linp, unsigned char *p, unsigned char *qend)
 {
 	register char	*	q;
 	register char 		nl = '\n';

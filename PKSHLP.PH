@@ -1,4 +1,4 @@
-Öffnen & Lineal..
+Öffnen & document descriptor..
 öffnen.
 Anzeige
 Außerdem
@@ -22,7 +22,7 @@ Font
 Gruppe
 Hintergrund
 Legt fest,
-Lineal
+document descriptor
 MS-DOS
 Makromechanismus
 Maus

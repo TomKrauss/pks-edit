@@ -1,7 +1,7 @@
 @abandon-file:
 	Liest die aktuelle Datei neu
 @add-doc-macros:
-	Fügt Dokumenteinstellungen (Abkürzungen, ...) zu einem Lineal hinzu
+	Fügt Dokumenteinstellungen (Abkürzungen, ...) zu einem document descriptor hinzu
 @align-text:
 	Richtet Textbereiche aus
 @append-block-to-buffer:

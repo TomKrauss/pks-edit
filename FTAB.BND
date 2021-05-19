@@ -252,7 +252,7 @@ toggle-colomn-form:				EdOptionToggle("OPT_WMODE|BLK_COLOMN")
 toggle-show-control:			EdOptionToggle("OPT_DMODE|SHOWCONTROL")
 "Schaltet zum Controlzeichen-Anzeige-Modus;Zeige Control"					= [~\190
 toggle-show-ruler:				EdOptionToggle("OPT_DMODE|SHOWRULER")
-"Aktiviert die Tabulatorzeile; Zeige Lineal"							= [^L
+"Aktiviert die Tabulatorzeile; Zeige document descriptor"							= [^L
 dialog-printer-layout:	EdPrinterLayout()
 "Stellt Optionen und Layout fürs Drucken ein;Drucken Layout"				= [
 toggle-alternate-status:			EdOptionToggle("OPT_DMODE|SHOWHEX")

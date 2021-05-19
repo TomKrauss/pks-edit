@@ -170,7 +170,7 @@ EXPORT void u_init(FTABLE *fp)
 		fp->tln = 0;
 	}
 	ubp->ln  = fp->ln;
-	ubp->col = fp->lnoffset;
+	ubp->col = fp->caret.offset;
 	if ((mp = fp->blstart) != 0) {
 		ubp->bls = mp->lm;
 		ubp->bcs = mp->lc;
