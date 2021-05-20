@@ -399,28 +399,28 @@ int CanExecute(int num, int warn)
 		if (_currwindow == 0)
 			return 0;
 #ifdef	ASSERT
-		if (_currfile == (FTABLE *) 0) {
+		if (ft_CurrentDocument() == (FTABLE *) 0) {
 			EdAlert("oops: currwindow, but no file");
 			return 0;
 		}
 #endif
 #else
-		if (_currfile == 0) {
+		if (ft_CurrentDocument() == 0) {
 			return 0;
 		}
 #endif
 	}
 
-	if ((fup->flags & EW_MODIFY) && (_currfile->documentDescriptor->workmode & O_RDONLY)) {
+	if ((fup->flags & EW_MODIFY) && (ft_CurrentDocument()->documentDescriptor->workmode & O_RDONLY)) {
 		if (warn) {
-			readonly(_currfile);
+			readonly(ft_CurrentDocument());
 		}
 		return 0;
 	}
 
-	if (fup->flags & EW_NEEDSBLK && !_chkblk(_currfile)) {
+	if (fup->flags & EW_NEEDSBLK && !_chkblk(ft_CurrentDocument())) {
 		if (warn) {
-			chkblk(_currfile);
+			chkblk(ft_CurrentDocument());
 		}
 		return 0;
 	}
@@ -440,7 +440,7 @@ int cdecl do_func(int num, long p1, long p2, void *s1, void *s2, void *s3)
 	}
 
 	if (fup->flags & EW_UNDOFLSH) {
-		u_init(_currfile);
+		u_init(ft_CurrentDocument());
 	}
 
 	if ((fup->flags & EW_CCASH) == 0) {
@@ -458,8 +458,8 @@ int cdecl do_func(int num, long p1, long p2, void *s1, void *s2, void *s3)
 		ret = (* fup->func)(p1,p2,s1,s2,s3);
 	}
 
-	if (ret > 0 && _currfile && (fup->flags & EW_MODIFY)) {
-		ft_settime(&_currfile->ti_modified);
+	if (ret > 0 && ft_CurrentDocument() && (fup->flags & EW_MODIFY)) {
+		ft_settime(&ft_CurrentDocument()->ti_modified);
 	}
 
 	if (i > 1)
@@ -673,8 +673,8 @@ int EdMacroPlay(int macroindex)
 
 	level++;
 
-	if ((wasplaying = _playing) == 0 && _currfile) {
-		u_init(_currfile);
+	if ((wasplaying = _playing) == 0 && ft_CurrentDocument()) {
+		u_init(ft_CurrentDocument());
 # if defined(ATARI_ST)
 		rdcash(-2);					/* init redraw cash */
 # endif
@@ -717,8 +717,8 @@ int EdMacroPlay(int macroindex)
 		rdupdate(0);
 		changemouseform();
 # else
-		if (_currfile) {
-			SelectWindow(WIPOI(_currfile)->win_id, FALSE);
+		if (ft_CurrentDocument()) {
+			SelectWindow(WIPOI(ft_CurrentDocument())->win_id, FALSE);
 		}
 # if 0
 		redrawallwi(0);

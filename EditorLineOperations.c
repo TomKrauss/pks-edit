@@ -876,6 +876,14 @@ EXPORT long ln_calculateMemorySizeRequired(LINE *lp, int nl, int cr)
 	return fsize;
 }
 
+/*--------------------------------------------------------------------------
+ * ln_createAndAddSimple()
+ */
+EXPORT int ln_createAndAddSimple(FTABLE* fp, char* b)
+{
+	return ln_createAndAdd(fp, b, (int)strlen(b), 0);
+}
+
 /*----------------------------------------------
  * ln_createAndAdd()
  * create a line and add it to the editor model

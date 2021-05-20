@@ -157,7 +157,7 @@ static void hist_save(FTABLE *fp,struct history *hp)
 		i = (i >= MAXHIST-1) ? 0 : i+1;
 		if (hp->s[i]) {
 			wsprintf(buf,"!%s",hp->s[i]);
-			putline(fp,buf);
+			ln_createAndAddSimple(fp,buf);
 		}
 	} while (i != hp->where);
 }
@@ -180,7 +180,7 @@ EXPORT void hist_allsave(FTABLE *fp)
 {	struct histdes *hp = _histsavings;
 
 	while(hp->keyword) {
-		putline(fp,hp->keyword);
+		ln_createAndAddSimple(fp,hp->keyword);
 		hist_save(fp,hp->hist);
 		hp++;
 	}

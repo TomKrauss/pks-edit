@@ -233,7 +233,6 @@ typedef struct ftable {
 	int		lockFd;			/* Filedescriptor for locking - <= 0 if none */
 } FTABLE;
 
-extern FTABLE 	*_currfile,*_filetab;
 extern int 	_playing;				/* recorder plays its game ... */
 
 void 	edidebug(char *fmt,...);
@@ -263,6 +262,16 @@ extern LINE *ln_gotouserel(FTABLE *fp,long ln);
 extern long ln_cnt(LINE *lps,LINE *lpe);
 extern LINE *ln_findbit(LINE *lp,int bit);
 extern void ln_replace(FTABLE *fp,LINE *oln,LINE *nl);
+
+/*
+ * Returns the current active document. Should not be used any more to often
+ */
+extern FTABLE* ft_CurrentDocument();
+
+/*
+ * Returns the current error document. Should not be used any more to often
+ */
+extern FTABLE* ft_CurrentDocument();
 
 /*---------------------------------
  * ln_addFlag()
@@ -426,6 +435,12 @@ extern unsigned char* ln_createFromBuffer(FTABLE* fp, DOCUMENT_DESCRIPTOR* docum
  * create a line and add it to the editor model. Returns true, if successful.
  */
 extern BOOL ln_createAndAdd(FTABLE* fp, char* q, int len, int flags);
+
+/*--------------------------------------------------------------------------
+ * ln_createAndAddSimple()
+ * Similar to ln_createAndAdd() - default size and default flags.
+ */
+extern int ln_createAndAddSimple(FTABLE* fp, char* b);
 
 /*-------- FILE FLAGS ----------*/
 

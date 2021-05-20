@@ -139,8 +139,8 @@ static int _repinit(unsigned char *pat, int findopt)
 		strcpy(_replexbuf,pat);
 		return 1;
 	}
-	if (_currfile) {
-		nlchar = _currfile->documentDescriptor->nl;
+	if (ft_CurrentDocument()) {
+		nlchar = ft_CurrentDocument()->documentDescriptor->nl;
 	} else {
 		nlchar = '\n';
 	}
@@ -324,7 +324,7 @@ int _findstr(int dir,UCHAR *ebuf,int options)
 	LINE *lp;
 	FTABLE *fp;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	MouseBusy();
 	ln  = fp->ln;
 	lp  = fp->caret.linePointer;
@@ -425,7 +425,7 @@ int tab_expand(LINE *lp, long *nt)
 	while(s < send && d < dend) {
 		if ((c = *s++) == '\t') {
 			col = d - _linebuf;
-			col = TabStop(col,_currfile->documentDescriptor) - col;
+			col = TabStop(col,ft_CurrentDocument()->documentDescriptor) - col;
 			blfill(d,col,' ');
 			(*nt)++;
 			d += col;
@@ -556,7 +556,7 @@ int ReplaceTabs(int scope, int flg)
 		return 0;
 
 	ProgressMonitorStart(IDS_ABRTCONVERT);
-	modifypgr(_currfile,(flg) ? expline : compline,&nt,&nl,mps,mpe);
+	modifypgr(ft_CurrentDocument(),(flg) ? expline : compline,&nt,&nl,mps,mpe);
 	ProgressMonitorClose(0);
 
 	if (nt) 
@@ -651,7 +651,7 @@ rescan:
  */
 int EdPasteString(long dummy1, long dummy2, char *string)
 {
-	FTABLE *	fp = _currfile;
+	FTABLE *	fp = ft_CurrentDocument();
 	LINE *	lp;
 	int		len;
 
@@ -697,7 +697,7 @@ int EdReplaceText(int scope, int action, int flags)
 	int  	sc1flg = 1,splflg = _playing, column = 0, lastfcol,
 			query,marked;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 
 	if (readonly(fp) && action == REP_REPLACE) {
 		return 0;
@@ -1032,8 +1032,8 @@ int SelectRange(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend) {
  */
 int range(int rngdefault,MARK **mps, MARK **mpe)
 {
-	if (!_currfile || 
-	    SelectRange(rngdefault,_currfile,mps,mpe) == RNG_INVALID)
+	if (!ft_CurrentDocument() || 
+	    SelectRange(rngdefault,ft_CurrentDocument(),mps,mpe) == RNG_INVALID)
 		return 0;
 	return 1;
 }

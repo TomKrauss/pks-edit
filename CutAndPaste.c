@@ -62,7 +62,7 @@ EXPORT int Pastehide(flg)
 	MARK *		mpe;
 	long			ln;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	mps = fp->blstart;
 	mpe = fp->blend;
 	wp = WIPOI(fp);
@@ -113,7 +113,7 @@ EXPORT int pasteblk(PASTE *buf, int colflg, int offset, int move)
 	FTABLE *	fp;
 	WINFO *	wp;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	wp = WIPOI(fp);
 
 	if ((ret = bl_paste(buf,fp,fp->caret.linePointer, offset,colflg)) == 0 ||
@@ -156,8 +156,8 @@ EXPORT int pasteblk(PASTE *buf, int colflg, int offset, int move)
 /*-----------------------*/
 EXPORT int paste(PASTE *buf,int move)
 {
-	return pasteblk(buf,ww_blkcolomn(WIPOI(_currfile)),
-				_currfile->caret.offset, move);
+	return pasteblk(buf,ww_blkcolomn(WIPOI(ft_CurrentDocument())),
+				ft_CurrentDocument()->caret.offset, move);
 }
 
 /*--------------------------------------------------------------------------
@@ -260,7 +260,7 @@ EXPORT int EdBlockPaste(int which)
 {	PASTE *	pp;
 	FTABLE *	fp;
 
-     fp = _currfile;
+     fp = ft_CurrentDocument();
 	if ((pp = bl_getpaste(which)) != 0) {
 		if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && _chkblk(fp)) {
 			EdBlockDelete(0);
@@ -279,7 +279,7 @@ EXPORT int _EdBlockRead(char *fn)
 	char 	fname[256];
 	int		ret;
 
-	if (!_currfile) 
+	if (!ft_CurrentDocument()) 
 		return 0;
 	if (fn == 0) {
 		if (!txtfile_select(MREADF,fname))
@@ -324,7 +324,7 @@ EXPORT int CutBlock(MARK *ms, MARK *me, int flg, PASTE *pp)
 {
 	PASTE 	_p;
 	int	 	id;
-	int	 	colflg = ww_blkcolomn(WIPOI(_currfile));
+	int	 	colflg = ww_blkcolomn(WIPOI(ft_CurrentDocument()));
 
 	_p.pln = 0;
 	bl_free(&_p);
@@ -368,9 +368,9 @@ EXPORT int CutBlock(MARK *ms, MARK *me, int flg, PASTE *pp)
 /*----------------------------*/
 EXPORT int EdBlockCut(int flg,PASTE *pp)
 {
-	if (!chkblk(_currfile))
+	if (!chkblk(ft_CurrentDocument()))
 		return 0;
-	return CutBlock(_currfile->blstart,_currfile->blend,flg,pp);
+	return CutBlock(ft_CurrentDocument()->blstart,ft_CurrentDocument()->blend,flg,pp);
 }
 
 /*---------------------------------*/
@@ -418,7 +418,7 @@ EXPORT int block_rw(char *fn,int doread)
 /* upd_lines() 				*/
 /*---------------------------------*/
 static void upd_lines()
-{	register	FTABLE *fp = _currfile;
+{	register	FTABLE *fp = ft_CurrentDocument();
 	register	LINE *lp;
 	register	long ln = -1L;
 
@@ -427,7 +427,7 @@ static void upd_lines()
 		ln++, lp = lp->prev;
 	}
 	fp->ln = ln;
-	WIPOI(_currfile)->ln = ln;
+	WIPOI(ft_CurrentDocument())->ln = ln;
 }
 
 /*----------------------------*/
@@ -442,8 +442,8 @@ EXPORT int EdBlockCopy_mv(move)
 	MARK   *bstart,*bend;
 	int	  move_nocolblk,ret,colflg;
 
-	fp = _currfile;
-	colflg = ww_blkcolomn(WIPOI(_currfile));
+	fp = ft_CurrentDocument();
+	colflg = ww_blkcolomn(WIPOI(ft_CurrentDocument()));
 
 	if (!chkblk(fp))
 		return 0;
@@ -533,7 +533,7 @@ static int blfin(MARK *mp)
 {	long newln;
 
 	if (mp != 0) {
-		newln = ln_find(_currfile,mp->lm);
+		newln = ln_find(ft_CurrentDocument(),mp->lm);
 		newcpos(newln,(long)mp->lc);
 		return 1;
 	} else {
@@ -547,7 +547,7 @@ static int blfin(MARK *mp)
 /*---------------------------------*/
 EXPORT void EdBlockFindEnd(void)
 {
-	if (_currfile) blfin(_currfile->blend);
+	if (ft_CurrentDocument()) blfin(ft_CurrentDocument()->blend);
 }
 
 /*---------------------------------*/
@@ -555,7 +555,7 @@ EXPORT void EdBlockFindEnd(void)
 /*---------------------------------*/
 EXPORT int EdBlockFindStart()
 {
-	if (_currfile) return blfin(_currfile->blstart);
+	if (ft_CurrentDocument()) return blfin(ft_CurrentDocument()->blstart);
 	return 0;
 }
 
@@ -569,7 +569,7 @@ EXPORT int EdBlockDelete(int bSaveTrash)
 	FTABLE 	*	fp;
 	int 		ret;
 	
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	if (!chkblk(fp))
 		return 0;
 	ms = *fp->blstart;
@@ -594,9 +594,9 @@ EXPORT int EdLinesYank()
 	long n = _multiplier;
 	PASTE *bp = bl_addrbyid(0,0);
 
-	if (bp == 0 ||_currfile == 0L) return 0;
-	ls = _currfile->caret.linePointer;
-	if ((le = ln_relgo(_currfile,n)) == 0) return 0;
+	if (bp == 0 ||ft_CurrentDocument() == 0L) return 0;
+	ls = ft_CurrentDocument()->caret.linePointer;
+	if ((le = ln_relgo(ft_CurrentDocument(),n)) == 0) return 0;
 	
 	if (bl_cut(bp,ls,le,0,(P_EQ(ls,le)) ? ls->len : 0, 0, 0)) {
 		clp_setmine();
@@ -616,7 +616,7 @@ int blborders(int x,int y,GRECT *gp)
 	FTABLE *fp;
 	int colflg;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	wp = WIPOI(fp);
 	colflg = ww_blkcolomn(wp);
 
@@ -702,7 +702,7 @@ static void marklines(int changed,int colflg,
 	unsigned char 	flags[512];
 	long   		ln;
 
-	fp  = _currfile;
+	fp  = ft_CurrentDocument();
 	wp  = WIPOI(fp);
 	lp1 = fp->blstart->lm;
 	lp2 = fp->blend  ->lm;
@@ -784,16 +784,16 @@ EXPORT int blcolcheck(int x,int y,int nx,int ny)
 {	long 	ln,col1,col2;
 	WINFO	*wp;
 
-	wp = WIPOI(_currfile);
+	wp = WIPOI(ft_CurrentDocument());
 	if (ww_blkcolomn(wp)) {
 		caret_calculateOffsetFromScreen(wp,x,y,&ln,&col1);
 		caret_calculateOffsetFromScreen(wp,nx,ny,&ln,&col2);
 		if (col1 <= col2) {
-			_currfile->blcol1 = col1;
-			_currfile->blcol2 = col2;
+			ft_CurrentDocument()->blcol1 = col1;
+			ft_CurrentDocument()->blcol2 = col2;
 		} else {			
-			_currfile->blcol1 = col2;
-			_currfile->blcol2 = col1;
+			ft_CurrentDocument()->blcol1 = col2;
+			ft_CurrentDocument()->blcol2 = col1;
 		}
 		return 1;
 	}
@@ -957,7 +957,7 @@ EXPORT int EdMouseMarkParts(int type)
 	FTABLE *	fp;
 	int    	colflg;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	colflg = ww_blkcolomn(WIPOI(fp));
 
 	EdMousePosition(0L);
@@ -1007,7 +1007,7 @@ EXPORT int EdBlockMark(int flags)
 	LINE *		lpMark;
 	int			nMarkOffset;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	// for now: always consider to swap the block marks, if the end mark is placed
 	// before the start mark. In fact we should introduce the concept of a selection head instead
 	// of swapping marks.

@@ -165,7 +165,7 @@ static BOOL InitApplication(void)
 #endif
 
 	if ( !EdMkWinClass(szFrameClass,FrameWndProc,
-			    NULL,COLOR_APPWORKSPACE,"Pks",0) ||
+			    NULL,GetSysColorBrush(COLOR_3DFACE),"Pks",0) ||
 			!ic_register() ||
 		 	!ww_register() ||
 		 	!fkey_register() ||
@@ -617,7 +617,8 @@ static void FinalizePksEdit(void)
 /*------------------------------------------------------------
  * FrameWndProc()
  */
-WNDPROC FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+static BOOL appActivated = FALSE;
+LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	CLIENTCREATESTRUCT 	clientcreate;
 	WORD				fwMenu;
@@ -633,7 +634,7 @@ WNDPROC FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		
 		case WM_ACTIVATEAPP:
 			if ((BOOL)wParam) {
-				ft_CheckForChangedFiles();
+				appActivated = TRUE;
 			}
 			break;
 		case WM_CREATE:
@@ -701,6 +702,10 @@ WNDPROC FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case WM_TIMER:	
+			if (appActivated) {
+				appActivated = FALSE;
+				ft_CheckForChangedFiles();
+			}
 			TriggerAutosaveAllFiles();
 			ww_timer();
 			ic_selecticons();
@@ -740,7 +745,7 @@ WNDPROC FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		            lpttt = (LPTOOLTIPTEXT) lParam;
 		            lpttt->hinst = 0;
-                    lpttt->lpszText = MenuTipFor(lpttt->hdr.idFrom);
+                    lpttt->lpszText = MenuTipFor((int)lpttt->hdr.idFrom);
 	            }
 				case TBN_QUERYINSERT:
 				case TBN_QUERYDELETE:
@@ -809,7 +814,7 @@ WNDPROC FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0);
 			return 0;
 	}
-	return (DefFrameProc(hwnd, hwndClient, message, wParam, lParam));
+	return DefFrameProc(hwnd, hwndClient, message, wParam, lParam);
 }
 
 /*--------------------------------------------------------------------------

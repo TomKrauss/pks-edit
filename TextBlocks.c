@@ -162,7 +162,7 @@ EXPORT int blcut(PASTE *pp,LINE *lnfirst,LINE *lnlast,
 	lpnew = lnlast->prev; /* zum Checken ob sich lnlast bei ln_modify „ndert */
 	lpx   = lnlast->next; /* und auch wirklich nicht lnlast->prev !		*/
 	if (freeflg) {
-		if ((lps = ln_modify(_currfile,lnfirst,last,cfirst)) == 0L) 
+		if ((lps = ln_modify(ft_CurrentDocument(),lnfirst,last,cfirst)) == 0L) 
 			return 0;
 	} else lps = lnfirst;
 	if (P_EQ(lnlast,lnfirst)) return 1;
@@ -191,11 +191,11 @@ EXPORT int blcut(PASTE *pp,LINE *lnfirst,LINE *lnlast,
 		if (P_EQ(lps,lnlast)) break;
 		lpd = lpnew;
 		if (freeflg) 
-			ln_delete(_currfile,lps);
+			ln_delete(ft_CurrentDocument(),lps);
 	}
 	if (freeflg) {
-		if ((lps = ln_modify(_currfile,lps,clast,0)) == 0L) return 0;
-		if (!(ln_join(_currfile,lps->prev,lps,1))) return 0;
+		if ((lps = ln_modify(ft_CurrentDocument(),lps,clast,0)) == 0L) return 0;
+		if (!(ln_join(ft_CurrentDocument(),lps->prev,lps,1))) return 0;
 	}
 	return 1;
 }
@@ -422,7 +422,7 @@ EXPORT int undoenq(LINE *lnfirst,LINE *lnlast,int cfirst,int clast,int blockflg)
 	bl_free(_undobuf);
 	_blkflg = blockflg & 1;
 	
-	return bl_delete(_currfile, lnfirst, lnlast, cfirst, clast, _blkflg, 1);
+	return bl_delete(ft_CurrentDocument(), lnfirst, lnlast, cfirst, clast, _blkflg, 1);
 }
 
 /*--------------------------------------------------------------------------

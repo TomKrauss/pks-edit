@@ -110,8 +110,8 @@ int ProgressMonitorCancel(BOOL bRedraw)
 	if (PeekMessage(&msg,0,0,0,PM_REMOVE)) {
 		if (!IsDialogMessage(hwndAbort,&msg)) {
 			DispatchMessage(&msg);
-			if (bRedraw && _currfile && msg.message == WM_PAINT && (count++ & 0x3) == 0) {
-				SendRedraw(WIPOI(_currfile)->ww_handle);
+			if (bRedraw && ft_CurrentDocument() && msg.message == WM_PAINT && (count++ & 0x3) == 0) {
+				SendRedraw(WIPOI(ft_CurrentDocument())->ww_handle);
 			}
 		}
 	}

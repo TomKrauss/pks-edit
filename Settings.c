@@ -74,7 +74,7 @@ int linchange(void)
 	WINFO  *	wp;
 	FTABLE *	fp;
 	
-	if ((fp = _currfile) == 0 ||
+	if ((fp = ft_CurrentDocument()) == 0 ||
 	   (wp = WIPOI(fp)) == 0)
 	    return 0;
 	
@@ -95,7 +95,7 @@ static int lincolchange(void)
 {
 	FTABLE *fp;
     
-    if ((fp = _currfile) == 0)
+    if ((fp = ft_CurrentDocument()) == 0)
          return 0;
 
     ww_setwindowflags(WIPOI(fp));
@@ -110,7 +110,7 @@ static int *OpLocalAdr(int local)
 {	FTABLE *fp;
 	
 	if (local > 0) {
-		if ((fp = _currfile) != 0) {
+		if ((fp = ft_CurrentDocument()) != 0) {
 			DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
 			
 			if (local == 2)

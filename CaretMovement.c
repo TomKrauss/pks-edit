@@ -52,10 +52,10 @@ EXPORT int caret_lineOffset2screen(FTABLE *fp, CARET *cp)
 	int lnoffset = cp->offset;
 
 	if (fp == NULL) {
-		if (!_currfile) {
+		if (!ft_CurrentDocument()) {
 			return 0;
 		}
-		fp = _currfile;
+		fp = ft_CurrentDocument();
 	}
 	lbuf += cp->offset;
 	flags = fp->documentDescriptor->dispmode;
@@ -106,10 +106,10 @@ EXPORT int caret_screen2lineOffset(FTABLE *fp, CARET *pCaret)
 	char *	pend = &lp->lbuf[lp->len];
 
 	if (fp == NULL) {
-		if (!_currfile) {
+		if (!ft_CurrentDocument()) {
 			return 0;
 		}
-		fp = _currfile;
+		fp = ft_CurrentDocument();
 	}
 	flags = fp->documentDescriptor->dispmode;
 
@@ -359,7 +359,7 @@ EXPORT int _curpos(FTABLE *fp, long ln,long col)
  */
 EXPORT int curpos(long ln,long col)
 {
-	return (_currfile) ? _curpos(_currfile,ln,col) : 0;
+	return (ft_CurrentDocument()) ? _curpos(ft_CurrentDocument(),ln,col) : 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -389,9 +389,9 @@ EXPORT static int wi_adjust(WINFO *wp, long ln,int adjustflag)
 EXPORT int centernewpos(long ln,long col)
 {	WINFO *wp;
 
-	if (!_currfile)
+	if (!ft_CurrentDocument())
 		return 0;
-	wp = WIPOI(_currfile);
+	wp = WIPOI(ft_CurrentDocument());
 
 	return wi_adjust(wp,ln,1) ? 
 			curpos(ln,col) 
@@ -405,9 +405,9 @@ EXPORT int centernewpos(long ln,long col)
 EXPORT int centercpos(long ln,long col)
 {	WINFO *wp;
 
-	if (!_currfile)
+	if (!ft_CurrentDocument())
 		return 0;
-	wp = WIPOI(_currfile);
+	wp = WIPOI(ft_CurrentDocument());
 
 	wi_adjust(wp,ln,0);
 	return curpos(ln,col);
@@ -431,7 +431,7 @@ EXPORT int cadv_page(long *ln,int dir)
 	register FTABLE *fp;
 	WINFO    *wp;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	wp = WIPOI(fp);
 	ds = wp->maxcursln-wp->mincursln;
 	*ln = fp->ln + (dir * ds * _multiplier);
@@ -502,7 +502,7 @@ static void cadv_section(long *ln,int dir,int start,
 	register FTABLE *fp;
 	register long lnr,mul;
 
-	fp  = _currfile;
+	fp  = ft_CurrentDocument();
 	lnr = *ln;
 	if ((lp = ln_relgo(fp,lnr-fp->ln)) == 0)
 		return;
@@ -542,7 +542,7 @@ EXPORT long cparagrph(long ln,int dir,int start)
 EXPORT int curspgrph(int dir,int start)
 {	long ln;
 
-	ln = cparagrph(_currfile->ln,dir,start);
+	ln = cparagrph(ft_CurrentDocument()->ln,dir,start);
 	return newcpos(ln,0L);
 }
 
@@ -551,7 +551,7 @@ EXPORT int curspgrph(int dir,int start)
  */
 EXPORT int cursabsatz(int dir,int start)
 {	long ln;
-	FTABLE *fp = _currfile;
+	FTABLE *fp = ft_CurrentDocument();
 
 	savecpos();
 	ln = fp->ln;
@@ -591,7 +591,7 @@ EXPORT int cursupdown(int dir, int mtype)
 	int		nRet;
 	long 	col;
 	long 	ln;
-	FTABLE *	fp = _currfile; 
+	FTABLE *	fp = ft_CurrentDocument(); 
 	WINFO *	wp = WIPOI(fp);
 
 	bXtnd = wp->bXtndBlock;
@@ -663,7 +663,7 @@ static LINE *nextw(LINE *lp,long *ln,long *col,
 		}
 	} else {
 		if (c == len) {
-			if (++l >= _currfile->nlines) return 0;
+			if (++l >= ft_CurrentDocument()->nlines) return 0;
 			lp = lp->next;
 			c  = 0;
 		} else {
@@ -744,7 +744,7 @@ EXPORT LINE *cadv_c(LINE *lp,long *ln,long *col,int dir,unsigned char match)
 EXPORT int l_advance(LINE *lp, int col)
 {
 	col--;
-	if (_currfile->documentDescriptor->dispmode & SHOWATTR) {
+	if (ft_CurrentDocument()->documentDescriptor->dispmode & SHOWATTR) {
 		while (col > 1) {
 			if (lp->lbuf[col-1] == '\033')
 				col--;
@@ -791,7 +791,7 @@ EXPORT int caret_moveLeftRight(int direction, int motionFlags)
 	int		nRet;
 	BOOL		bXtnd;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	wp = WIPOI(fp);
 	col = fp->caret.offset;
 	lp = fp->caret.linePointer;
@@ -933,7 +933,7 @@ EXPORT int EdMousePosition(long bAsk)
 {	
 	FTABLE *	fp;
 
-	if ((fp = _currfile) == 0) {
+	if ((fp = ft_CurrentDocument()) == 0) {
 		return 0;
 	}
 
@@ -958,7 +958,7 @@ int EdMousePositionUngrabbed(long bGrab)
 		return EdMousePosition(1);
 	}
 
-	if ((fp = _currfile) == 0) {
+	if ((fp = ft_CurrentDocument()) == 0) {
 		return 0;
 	}
 
@@ -980,7 +980,7 @@ int EdBlockXtndMode(long bOn)
 {
 	FTABLE *	fp;
 
-	if ((fp = _currfile) == 0) {
+	if ((fp = ft_CurrentDocument()) == 0) {
 		return 0;
 	}
 

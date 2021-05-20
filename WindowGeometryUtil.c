@@ -74,10 +74,10 @@ EXPORT int form_textcursor(HWND hwnd)
 	WINFO 	*wp;
 	RECT		r;
 
-	if (!_currfile)
+	if (!ft_CurrentDocument())
 		return 0;
 
-	wp = WIPOI(_currfile);
+	wp = WIPOI(ft_CurrentDocument());
 
 	GetWindowRect(hwndFrame, &r);
 

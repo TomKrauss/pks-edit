@@ -134,7 +134,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 			lstrcpy(outfile, errfile);
 		}
 
-		putline(&_outfile, "@echo off");
+		ln_createAndAddSimple(&_outfile, "@echo off");
 		if (flags & EX_RDCONV) {
 			wsprintf(szTemp,"%s < %s > %s", cmdline, infile, outfile);
 		} else if (flags & EX_RDIN) {
@@ -144,7 +144,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		} else {
 			wsprintf(szTemp,"%s", cmdline);
 		}
-		putline(&_outfile, szTemp);
+		ln_createAndAddSimple(&_outfile, szTemp);
 		strdcpy(szRunBat, _datadir, "RUN.BAT");
 		Writeandclose(&_outfile, szRunBat, 0);
 
@@ -164,7 +164,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		return 0;
 	}
 	if (flags & EX_RDCONV) {
-		u_init(_currfile);
+		u_init(ft_CurrentDocument());
 		bUInited = TRUE;
 		EdBlockDelete(1);
 	}
@@ -200,9 +200,9 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 
 	if (errfile && errfile[0]) {
 		stepnofsel(errfile, 1);
-	} else if (_currfile && (flags & EX_RDIN)) {
+	} else if (ft_CurrentDocument() && (flags & EX_RDIN)) {
 		if (!bUInited) {
-			u_init(_currfile);
+			u_init(ft_CurrentDocument());
 		}
 		_EdBlockRead(outfile);
 	}

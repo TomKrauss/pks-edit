@@ -36,7 +36,7 @@ extern int		_macedited;
 int CurrentRulerContext(void)
 {	FTABLE *fp;
 
-	if ((fp = _currfile) != 0)
+	if ((fp = ft_CurrentDocument()) != 0)
 		return fp->documentDescriptor->id;
 	return DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
 }
@@ -58,7 +58,7 @@ int ActiveRulerContext(int ctx)
 void PrintListHeader(FILE *fp, char *itemname)
 {	FTABLE *ftp;
 
-	ftp = _currfile;
+	ftp = ft_CurrentDocument();
 
 	fprintf(fp,"\nList of active %s for file \"%s\"\n\n",itemname,
 		ftp ? basename(ftp->fname) : "(no file)");
@@ -161,7 +161,7 @@ int macs_compile()
 	FTABLE *		fp;
 	jmp_buf 		errb;
 
-	if ((fp = _currfile) != 0) {
+	if ((fp = ft_CurrentDocument()) != 0) {
 		if (!setjmp(errb)) {
 			yyinit(&errb, fp->fname, fp->firstl, fp->lastl->prev);
 			yyparse();

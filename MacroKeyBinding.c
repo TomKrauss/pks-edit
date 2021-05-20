@@ -324,8 +324,8 @@ void mac_switchtodefaulttables(void)
 	char	*pszDefault = "default";
 	char *pszMode;
 
-	if (_currfile) {
-		pszMode = _currfile->documentDescriptor->modename;
+	if (ft_CurrentDocument()) {
+		pszMode = ft_CurrentDocument()->documentDescriptor->modename;
 	} else {
 		pszMode = pszDefault;
 	}

@@ -225,7 +225,7 @@ static int bracketmatch(char *s, struct matchbox *mp)
  */
 static struct matchbox *_lastmatch;
 static struct matchbox *ismatch(char *s)
-{	int id = _currfile->documentDescriptor->id;
+{	int id = ft_CurrentDocument()->documentDescriptor->id;
 	struct matchbox *mp;
 
 	for (mp = _brackets; mp; mp = mp->next) {
@@ -418,7 +418,7 @@ matched:
  * show matching brackets
  */
 EXPORT int EdShowMatch(void)
-{	register FTABLE *fp = _currfile;
+{	register FTABLE *fp = ft_CurrentDocument();
 	long 	 ln,col;
 
 	if (!fp) return 0;
@@ -435,7 +435,7 @@ EXPORT int EdShowMatch(void)
  * showmatch(s)
  */
 EXPORT int showmatch(LINE *lp,int Col)
-{	FTABLE *fp = _currfile;
+{	FTABLE *fp = ft_CurrentDocument();
 	long   ln  = fp->ln;
 	long   col = Col;
 	struct uclist *up;
@@ -470,7 +470,7 @@ EXPORT int EdCharUpToLow(void )
 	int  offs;
 	FTABLE *fp;
 
-	fp   = _currfile;
+	fp   = ft_CurrentDocument();
 	lp	= fp->caret.linePointer;
 	offs = fp->caret.offset;
 	c    = lp->lbuf[offs];
@@ -546,7 +546,7 @@ EXPORT int EdShiftBetweenBrackets(int dir)
 	register long ln2;
 	long ln,col;
 	
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	ln = fp->ln, col = fp->caret.offset;
 
 	if (!nextmatch(fp->caret.linePointer,&ln,&col)) {
@@ -574,7 +574,7 @@ EXPORT int EdShiftBetweenBrackets(int dir)
  * shift _multiplier lines
  */
 EXPORT int EdLinesShift(int dir)
-{	FTABLE *fp = _currfile;
+{	FTABLE *fp = ft_CurrentDocument();
 
 	if (!fp)
 		return 0;
@@ -587,7 +587,7 @@ EXPORT int EdLinesShift(int dir)
  */
 EXPORT int RangeShift(int scope, int dir)
 {	MARK	*mps,*mpe;
-	FTABLE *fp = _currfile;
+	FTABLE *fp = ft_CurrentDocument();
 	long	ln1,ln2;
 	
 	if (!range(scope,&mps,&mpe))

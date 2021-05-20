@@ -285,7 +285,7 @@ FormatText(int scope, int type, int flags)
 	int    	ret;
 	long   	startln;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	flags |= type;
 
 	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID ||

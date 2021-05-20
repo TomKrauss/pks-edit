@@ -22,12 +22,12 @@
 #include "dial2.h"
 #include "regexp.h"
 #include "stringutil.h"
+#include "winfo.h"
 
 extern char	_finds[];
 extern int 	_regcompile(char *ebuf, char *pat, int opt);
 extern char 	*searchfile(char *s);
 extern int	isword(char c), isnospace(char c), isfname(char c);
-extern FTABLE 	*ww_stackwi(int num);
 extern void	*prof_llinsert(void *Head, int size, 
 						char *group, char *item, char **idata);
 
@@ -73,7 +73,7 @@ typedef struct tagexpression {
 static TAGTRY	*_ttry;
 
 static FTABLE	_tagfile,_stepfile;
-extern FTABLE 	*_errfile;
+extern FTABLE 	*ft_CurrentErrorDocument();
 
 static TAGEXPR __ge = { 
 0, "","\"([^\"]+)\", line ([0-9]+): *(.*)",	"\\1",	"\\2",	"\\3" };
@@ -488,7 +488,7 @@ static char *gettag(unsigned char *d,unsigned char *dend,
 	char     *s1=d;
 	register FTABLE *fp;
 
-	if ((fp = _currfile) == 0L) 
+	if ((fp = ft_CurrentDocument()) == 0L) 
 		return (char *)0;
 	S = fp->caret.linePointer->lbuf;
 	s = &S[fp->caret.offset];
@@ -578,7 +578,7 @@ int showtag(char *s)
 						strcpy(fnam,tp->fn);
 						fm_savepos(s);
 						tagopen(fnam,-1L,(WINDOWPLACEMENT*)0);
-						if (_currfile) {
+						if (ft_CurrentDocument()) {
 							if (_regcompile(ebuf, tp->rembuf, (int) RE_DOREX)) {
 								_findstr(1,ebuf,O_WRAPSCAN);
 								ret = 1;
@@ -635,13 +635,14 @@ int EdErrorNext(int dir)
 	char			fullname[256];
 	WINFO		*wp;
 
-	if ((dir & LIST_USETOPWINDOW) || !_errfile) {
+	if ((dir & LIST_USETOPWINDOW) || !ft_CurrentErrorDocument()) {
 	/* treat current window as error list */
 		_compflag = 1;
-		_errfile = ww_stackwi(0);
+		WINFO* wp = ww_stackwi(0);
+		ft_SetCurrentErrorDocument(wp ? wp->fp : NULL);
 	}
 
-	if ((fp = _errfile) == 0 || (lp = fp->caret.linePointer) == 0L) {
+	if ((fp = ft_CurrentErrorDocument()) == NULL || (lp = fp->caret.linePointer) == 0L) {
 notfile:	ed_error(IDS_MSGNOTAGFILE);
 		return 0;
 	}
@@ -749,14 +750,14 @@ static int s_t_open(int title, int st_type, FSELINFO *fsp)
 
 	switch(st_type) {
 		case ST_ERRORS:
-			if (tagopen(_fseltarget, 0L, (WINDOWPLACEMENT*)0) && _currfile) {
+			if (tagopen(_fseltarget, 0L, (WINDOWPLACEMENT*)0) && ft_CurrentDocument()) {
 				EdFileAbandon(1);
 			}
 			return EdErrorNext(LIST_START|LIST_USETOPWINDOW);
 		case ST_STEP:
 			if (readtagf(_fseltarget,&_stepfile)) {
 				_compflag = 0;
-				_errfile = &_stepfile;
+				ft_SetCurrentErrorDocument(&_stepfile);
 				return EdErrorNext(LIST_START);
 			}
 			return 0;

@@ -240,7 +240,7 @@ void EdScrollCursor(int mtype)
 {
 	long 	delta = 0;
 	extern long _multiplier;
-	WINFO *	wp = WIPOI(_currfile);
+	WINFO *	wp = WIPOI(ft_CurrentDocument());
 	
 	switch(mtype) {
 		case MOT_SINGLE:
@@ -262,7 +262,7 @@ int EdScrollScreen(int mtype)
 {	long		dln,ln,col;
 	int		ret;
 	WINFO	*wp;
-	FTABLE	*fp = _currfile;
+	FTABLE	*fp = ft_CurrentDocument();
 
 	if (!fp)
 		return 0;

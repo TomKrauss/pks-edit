@@ -345,7 +345,7 @@ void EdFormatPrint(long dummy1, long dummy2, char *format, char *p)
 	char buf[1024];
 
 	if (format) {
-		mysprintf(_currfile, buf, format, p, 0L);
+		mysprintf(ft_CurrentDocument(), buf, format, p, 0L);
 	} else {
 		buf[0] = 0;
 	}

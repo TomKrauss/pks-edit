@@ -148,14 +148,6 @@ int ap_init(void)
 	return prof_enum(szAltpath,listPathes_mk,0L);
 }
 
-/*--------------------------------------------------------------------------
- * putline()
- */
-EXPORT int putline(FTABLE *fp, char *b)
-{
-	return ln_createAndAdd(fp,b,(int)strlen(b),0);
-}
-
 /*---------------------------------*/
 /* closeF()					*/
 /*---------------------------------*/

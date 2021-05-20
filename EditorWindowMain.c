@@ -347,14 +347,14 @@ EXPORT void ww_popup(HWND hwndChild)
  * ww_stackwi()
  * get the num'th window from the top.
  */
-FTABLE *ww_stackwi(int num)
+WINFO *ww_stackwi(int num)
 {	WINFO *wp;
 
 	for (wp = _winlist; num > 0 && wp && wp->next; num--, wp = wp->next) 
 		;
-	if (num || !wp)
+	if (num)
 		return 0;
-	return FTPOI(wp);
+	return wp;
 }
 
 /*------------------------------------------------------------

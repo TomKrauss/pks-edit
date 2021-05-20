@@ -41,13 +41,13 @@ static int st_format(char *dest)
 	WINFO *	wp;
 
 	*dest = 0;
-	if (!_currfile) {
+	if (!ft_CurrentDocument()) {
 		return 0;
 	} else {
-		wp = WIPOI(_currfile);
+		wp = WIPOI(ft_CurrentDocument());
 	}
 
-	len = mysprintf(_currfile, dest,
+	len = mysprintf(ft_CurrentDocument(), dest,
 				 (wp && wp->statusline && (wp->dispmode & SHOWHEX)) ? 
 				 wp->statusline : 
 				 /*STR*/"Ln %2j$l, Col%2j$c!%s$&");

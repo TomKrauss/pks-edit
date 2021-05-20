@@ -131,7 +131,7 @@ EXPORT int EdBlockMouseMark(int typ)
 	FTABLE	*	fp;
 	UINT_PTR	id;
 
-	if ((fp =_currfile) == 0)
+	if ((fp =ft_CurrentDocument()) == 0)
 		return 0;
 
 	wp = WIPOI(fp);
@@ -226,7 +226,7 @@ EXPORT int EdMouseMoveText(int move)
 	FTABLE *	fp;
 
 	ret = 0;
-	if ((fp = _currfile) == 0) {
+	if ((fp = ft_CurrentDocument()) == 0) {
 		return 0;
 	}
 	wp = WIPOI(fp);

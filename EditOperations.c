@@ -248,7 +248,7 @@ int EdLineInsert(int control)
 	int      	dir,ai;
 	long 	ln;
 
-	if ((fp = _currfile) == 0L) 
+	if ((fp = ft_CurrentDocument()) == 0L) 
 		return 0;
 
 	olp = fp->caret.linePointer;
@@ -282,7 +282,7 @@ int EdLineDelete(control)
 	WINFO	*wp;
 	int 		lastlinelen;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	wp = WIPOI(fp);
 	if (control & 1) {
 		curpos((long)(fp->ln-1),0L);
@@ -317,10 +317,10 @@ int EdLineDelete(control)
  * first line to join
  */
 int EdLinesJoin()
-{	WINFO *wp = WIPOI(_currfile);
-	LINE *lp = _currfile->caret.linePointer;
+{	WINFO *wp = WIPOI(ft_CurrentDocument());
+	LINE *lp = ft_CurrentDocument()->caret.linePointer;
 
-	if (!ln_join(_currfile,lp,lp->next,1)) 
+	if (!ln_join(ft_CurrentDocument(),lp,lp->next,1)) 
 		return 0;
 	/* this makes sure current line is not drawn twice */
 	if (wp->cy + wp->cheight < wp->workarea.g_h) {
@@ -647,7 +647,7 @@ int EdCharInsert(int c)
 	int			workmode;
 	extern int 	_playing;
 
-	fp   = _currfile;
+	fp   = ft_CurrentDocument();
 	lnp	= fp->documentDescriptor;
 	if (c < 32 && c != 8 && c != '\t' && c != 10 && c != lnp->nl && c != lnp->cr) {
 		return 0;
@@ -735,7 +735,7 @@ int EdCharInsert(int c)
  */
 int EdCharDelete(control)
 {	register	LINE *lp,*lp1=0;
-	FTABLE 	*fp = _currfile;
+	FTABLE 	*fp = ft_CurrentDocument();
 	long		ln,ln1,o2,o1;
 	int		matchc;
 
@@ -806,7 +806,7 @@ int EdLineSplit(int flags)
 	FTABLE *	fp;
 	LINE	 *	lp;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	lp = fp->caret.linePointer;
 	control = flags & (RET_PLUS|RET_MINUS);
 
@@ -837,7 +837,7 @@ int EdMarkedLineOp(int op)
 	LINE *	lp;
 	LINE	*	last;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	last = fp->lastl->prev;
 	lp = fp->firstl;
 	switch(op) {
@@ -890,7 +890,7 @@ int EdHideLines(void)
 	LINE *	lp1;
 	LINE *	lp2;
 
-	if ((fp = _currfile) == 0 ||
+	if ((fp = ft_CurrentDocument()) == 0 ||
 		!_chkblk(fp)) {
 		return 0;
 	}
@@ -913,7 +913,7 @@ int EdUnHideLine(void)
 {
 	FTABLE *	fp;
 
-	if ((fp = _currfile) == 0) {
+	if ((fp = ft_CurrentDocument()) == 0) {
 		return 0;
 	}
 
@@ -928,7 +928,7 @@ int EdUnHideLine(void)
  * EdMouseSelectLines()
  */
 void EdMouseSelectLines(int flg)
-{	LINE *lp = _currfile->caret.linePointer;
+{	LINE *lp = ft_CurrentDocument()->caret.linePointer;
 	int  oflg;
 
 	oflg = lp->lflg;
@@ -945,9 +945,9 @@ void EdMouseSelectLines(int flg)
  */
 int EdExpandAbbreviation(void)
 {
-	if (_currfile) {
+	if (ft_CurrentDocument()) {
 		return
-			doabbrev(_currfile,_currfile->caret.linePointer,_currfile->caret.offset);
+			doabbrev(ft_CurrentDocument(),ft_CurrentDocument()->caret.linePointer,ft_CurrentDocument()->caret.offset);
 	}
 	return 0;
 }

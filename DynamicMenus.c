@@ -261,7 +261,7 @@ int EdMenuTrackPopup(long unused1, long unused2, char *szPopup)
 	WINFO *	wp;
 	int		buttonType;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	if (!fp) {
 		return 0;
 	}

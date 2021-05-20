@@ -122,7 +122,7 @@ LINE *mark_goto(FTABLE *fp, int c, long *ln, long *col)
 int savecpos(void)
 {	register FTABLE *fp;
 
-	if ((fp = _currfile) != 0) {
+	if ((fp = ft_CurrentDocument()) != 0) {
 		fp->lastln  = fp->ln,
 		fp->lastcol = fp->caret.offset;
 		return 1;
@@ -136,7 +136,7 @@ int savecpos(void)
 int newcpos(long ln,long col)
 {	register FTABLE *fp;
 
-	if ((fp = _currfile) == 0)
+	if ((fp = ft_CurrentDocument()) == 0)
 		return 0;
 	
 	if (ln == fp->ln && col == fp->caret.offset)
@@ -153,7 +153,7 @@ int EdGotoLastPos(int type)
 {	register FTABLE *fp;
 	long ln,col;
 
-	if ((fp = _currfile) != 0L) {
+	if ((fp = ft_CurrentDocument()) != 0L) {
 		/*
 		 * should do different things: last insert, last search,...
 		 */

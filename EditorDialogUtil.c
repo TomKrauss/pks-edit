@@ -43,7 +43,6 @@ extern char 		_fseltarget[];
 extern int 		_translatekeys;
 
 extern int		mysprintf(FTABLE *fp, char *d,char *format,...);
-extern FTABLE		*ww_stackwi(int num);
 extern void 		ReturnString(char *string);
 extern BOOL 		DlgChooseFont(HWND hWnd, EDFONT *ep, BOOL bPrinter);
 extern int 		cust_combood(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(), 
@@ -224,7 +223,7 @@ int setwrange(HWND hwnd, int *rangetype, int first)
 	char	  szBuf[64],szSel[64];
 	HWND	  hwndList;
 
-	blkvalid = _chkblk(_currfile);
+	blkvalid = _chkblk(ft_CurrentDocument());
 	if (*rangetype == RNG_BLOCK && !blkvalid)
 		*rangetype = RNG_CHAPTER;
 

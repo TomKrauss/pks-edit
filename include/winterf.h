@@ -64,7 +64,7 @@ extern char   szWorkAreaClass[];
 typedef long (FPE_FUNC *WINFUNCP)(HWND, UINT, WPARAM, LPARAM);
 typedef BOOL (FPE_FUNC *ENUMFUNCP)(HWND, DWORD);
 
-extern WNDPROC 	FrameWndProc(HWND, UINT, WPARAM, LPARAM);
+extern LRESULT	FrameWndProc(HWND, UINT, WPARAM, LPARAM);
 extern WINFUNC 	IconWndProc(HWND, UINT, WPARAM, LPARAM);
 extern WINFUNC 	EditWndProc(HWND, UINT, WPARAM, LPARAM);
 extern WINFUNC 	WorkAreaWndProc(HWND, UINT, WPARAM, LPARAM);

@@ -91,6 +91,12 @@ extern void RedrawWmPaint(WINFO* wp);
  */
 extern void RedrawTotalWindow(FTABLE* fp);
 
+/**
+ * Returns the view num steps from the step - 0 to return the current to level view, 1 to return
+ * the one below the top window.
+ */
+extern WINFO* ww_stackwi(int num);
+
 #define FTPOI(wp)		(FTABLE*)(wp->fp)
 
 int ww_blkcolomn(WINFO *wp);

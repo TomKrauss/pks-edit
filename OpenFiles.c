@@ -32,11 +32,11 @@
 #include "edhist.h"
 #include "pksedit.h"
 #include "stringutil.h"
+#include "winfo.h"
 
 extern void *	shareAlloc();
 extern char *	AbbrevName(char *fn);
 extern char *	OemAbbrevName(char *fn);
-extern FTABLE *ww_stackwi(int num);
 extern HWND 	ww_winid2hwnd(int winid);
 extern DWORD 	SendBrotherMessage(UINT message, LPARAM lParam);
 extern int 	GetFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename);
@@ -49,11 +49,12 @@ extern char *	basename(char *s);
 extern char *	_datadir;
 extern void *	lastSelectedDocType;
 
-FTABLE 		*_currfile,*_errfile;
+static	FTABLE 	*_currentFile,*_currentErrorFile;
 static FTABLE 	*_filelist;
 
-char			*_hisfile = "PKSEDIT.HIS";
-int			_ExSave;
+#define HISTORY_FILE_NAME "pksedit.his"
+static char		*_historyFileName = NULL;
+int				_ExSave;
 
 /*--------------------------------------------------------------------------
  * GenerateBackupPathname()
@@ -71,6 +72,23 @@ static int GenerateBackupPathname(char *destinationName, char *fname)
 	return 0;
 }
 
+/*
+ * Returns the current active document. Should not be used any more to often 
+ */
+FTABLE* ft_CurrentDocument() {
+	return _currentFile;
+}
+
+/*
+ * Returns the current error document. Should not be used any more to often
+ */
+FTABLE* ft_CurrentErrorDocument() {
+	return _currentErrorFile;
+}
+
+VOID ft_SetCurrentErrorDocument(FTABLE* fp) {
+	_currentErrorFile = fp;
+}
 
 /*
  * Checks whether two file names describe two different files. Returns
@@ -91,6 +109,7 @@ void ft_CheckForChangedFiles(void) {
 	
 	for (fp = _filelist; fp; fp = fp->next) {
 		if (fp->ti_created < (lCurrentTime = EdGetFileTime(fp->fname))) {
+			EdSelectWindow(WIPOI(fp)->win_id);
 			if (ed_yn(IDS_MSGFILESHAVECHANGED, OemAbbrevName(fp->fname)) == IDYES) {
 				AbandonFile(fp, (DOCUMENT_DESCRIPTOR *)0);			
 			}
@@ -193,26 +212,31 @@ autosave:
 void picksave(void )
 {	int    				s;
 	FTABLE 				ft;
-	FTABLE *			fp;
+	WINFO *				wp;
 	WINDOWPLACEMENT 	ws;
 	char   				szBuff[EDMAXPATHLEN];
+	char*				pszFilename;
 
 	ft.caret.linePointer = 0;
-	putline(&ft,"[files]");
+	ln_createAndAddSimple(&ft,"[files]");
 
 	/* save names of bottom windows first !! */
 	for (s = ww_nwi()-1; s >= 0; s--) {
-		if ((fp = ww_stackwi(s)) != 0) {
-			ww_getstate(WIPOI(fp),&ws);
+		if ((wp = ww_stackwi(s)) != 0) {
+			ww_getstate(wp, &ws);
 			prof_printws(szBuff,&ws);
+			FTABLE* fp = wp->fp;
 			addLineWithLocationInfo(&ft,fp->fname,fp->ln,szBuff);
 		}
 	}
 
-	hist_allsave(&ft);	
-
-	strdcpy(szBuff, _datadir, _hisfile);
-	Writeandclose(&ft, szBuff, FA_NORMAL);
+	hist_allsave(&ft);
+	pszFilename = _historyFileName;
+	if (pszFilename == NULL) {
+		strdcpy(szBuff, _datadir, HISTORY_FILE_NAME);
+		pszFilename = szBuff;
+	}
+	Writeandclose(&ft, pszFilename, FA_NORMAL);
 }
 
 /*---------------------------------*/
@@ -222,10 +246,14 @@ int pickread(void )
 {
 	FTABLE 	ft;
 	char *	pszFound;
+	char	szBuff[EDMAXPATHLEN];
 
 	if (GetConfiguration()->options & O_READPIC) {
-		if ((pszFound = searchfile(_hisfile)) != 0 &&
+		if ((pszFound = searchfile(HISTORY_FILE_NAME)) != 0 &&
 		    Readfile(&ft, pszFound, -1)) {
+			// save complete filename of history file.
+			GetFullPathName(pszFound, sizeof szBuff, szBuff, NULL);
+			_historyFileName = stralloc(szBuff);
 			if (_filelist == 0) {
 				picstep(ft.firstl);
 			}
@@ -285,10 +313,12 @@ void ft_destroy(FTABLE *fp)
 
 	ll_delete(&_filelist,fp);
 
-	if (!_filelist || P_EQ(fp,_currfile))
-		_currfile = 0;
-	if (P_EQ(fp,_errfile))
-		_errfile = 0;
+	if (!_filelist || P_EQ(fp, ft_CurrentDocument())) {
+		_currentFile = NULL;
+	}
+	if (P_EQ(fp, ft_CurrentErrorDocument())) {
+		_currentErrorFile = NULL;
+	}
 }
 
 /*------------------------------------------------------------
@@ -422,16 +452,16 @@ int ft_wantclose(FTABLE *fp)
 int SelectWindow(int winid, BOOL bPopup)
 {
 	HWND 	hwndChild;
-	FTABLE *	fp;
+	WINFO *	wp;
 
 	if (winid < 0) {
 		if (winid == SEL_CYCLE) {
 			winid = -(ww_nwi() - 1);
 		}
-		if ((fp = ww_stackwi(-winid)) == 0) {
+		if ((wp = ww_stackwi(-winid)) == 0) {
 			return 0;
 		}
-		winid = WIPOI(fp)->win_id;
+		winid = wp->win_id;
 	}
 
 	if ((hwndChild = ww_winid2hwnd(winid)) == 0) {
@@ -462,7 +492,7 @@ int EdSelectWindow(int winid)
 int ft_select(FTABLE *fp)
 {
 	EdTRACE(Debug(DEBUG_TRACE,"ft_select File 0x%lx",fp));
-	_currfile = fp;
+	_currentFile = fp;
 	if (fp == 0) {
 		return 0;
 	}
@@ -672,7 +702,7 @@ int AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
  */
 void EdFileAbandon(void)
 {
-	AbandonFile(_currfile, (DOCUMENT_DESCRIPTOR *)0);
+	AbandonFile(ft_CurrentDocument(), (DOCUMENT_DESCRIPTOR *)0);
 }
 
 /*------------------------------------------------------------
@@ -688,7 +718,7 @@ int EdSaveFile(int flg)
 		return 0;
 	}
 #else
-	if ((fp = _currfile) == 0) 
+	if ((fp = ft_CurrentDocument()) == 0) 
 		return(0);	 		/* currently no File open */
 
 	if (flg != SAV_QUIT && readonly(fp))

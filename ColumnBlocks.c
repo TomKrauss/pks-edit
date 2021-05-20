@@ -80,7 +80,7 @@ EXPORT int blcutcol(PASTE *pp,LINE *lnfirst,LINE *lnlast,int freeflg)
 	int		clast;
 	int		ctrl;
 
-	fp     = _currfile;
+	fp     = ft_CurrentDocument();
 	lp     = lnfirst;
 	cnt    = ln_cnt(lp,lnlast);
 	cfirst = fp->blcol1;

@@ -72,7 +72,6 @@ static PRTPARAM _prtparams = {
 
 extern char 		*ft_visiblename(FTABLE *fp);
 extern char 		*AbbrevName(char *fn);
-extern FTABLE		*ww_stackwi(int num);
 
 static int 		_printing;
 static int 		_previewpage = 1;
@@ -447,7 +446,7 @@ static int PrintFile(HDC hdc)
 			if (!PREVIEWING() && _printing) {
 				wsprintf(message,/*STR*/"%s - %s (Seite %d)",
 						(LPSTR)szAppName,
-					  	(LPSTR)AbbrevName(ft_visiblename(_currfile)),
+					  	(LPSTR)AbbrevName(ft_visiblename(ft_CurrentDocument())),
 					  	pageno);
 				ProgressMonitorShowMessage(message); 
 			}
@@ -670,6 +669,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 	int				errEscape;
 	char 			message[128],ch;
 	WINFO			winfo;
+	WINFO*			wp;
 	FTABLE			*fp,_ft;
 	PRTPARAM		*pp = &_prtparams;
 
@@ -678,11 +678,13 @@ int EdPrint(long what, long p1, LPSTR fname)
 	_printwhat.firstc = 0;
 	_printwhat.lastc = 1024;
 
-	fp = 0;
+	wp = 0;
 
 	if (what == PRT_CURRWI || what == PRT_CURRBLK) {
-		if ((fp = ww_stackwi(0)) == 0)
+		if ((wp = ww_stackwi(0)) == 0) {
 			return 0;
+		}
+		fp = wp->fp;
 	}
 
 	if (what == PRT_FILE) {

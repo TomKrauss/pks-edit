@@ -53,7 +53,6 @@ extern void 	ic_lboxmeasureitem(MEASUREITEMSTRUCT *mp);
 extern void		ic_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl);
 extern void		ic_lboxselchange(HWND hDlg, WORD nItem, LONG lParam, void* p);
 extern int 		LbGetText(HWND hwnd, WORD id, char *szBuff);
-extern FTABLE *	ww_stackwi(int num);
 extern FTABLE *	ww_winid2fp(int winid);
 extern int 		ww_nwi(void);
 extern int 		PrintMacs(char *macroname);
@@ -201,10 +200,10 @@ int EdParaGotoEnd(int dir)
  */
 int EdUndo(void)
 {
-	if (!_currfile) {
+	if (!ft_CurrentDocument()) {
 		return 0;
 	}
-	return un_do(_currfile);
+	return un_do(ft_CurrentDocument());
 }
 
 /*--------------------------------------------------------------------------
@@ -628,7 +627,7 @@ int EdGotoLine(void)
  */
 static unsigned char _lastmarkc;
 int EdMarkSet(void)
-{	FTABLE *fp = _currfile;
+{	FTABLE *fp = ft_CurrentDocument();
 
 	_lastmarkc = DialogCharInput(IDS_MARKSET,_lastmarkc);
 	return 
@@ -643,7 +642,7 @@ int EdMarkGoto(void)
 	long 		x,y;
 	FTABLE *		fp;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	_lastmarkc = DialogCharInput(IDS_MARKGOTO,_lastmarkc);
 	if (mark_goto(fp, _lastmarkc, &x, &y) == 0) {
 		ed_error(IDS_MSGMARKUNDEF); 
@@ -839,7 +838,7 @@ static int ShowWindowList(int nTitleId)
 	char	dmod[40],dsaved[40],nbytes[20],nlines[20];
 	int		nRet;
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 
 	if (!fp) {
 		return 0;
@@ -992,7 +991,7 @@ static void DocTypeApply(void)
 	DOCUMENT_DESCRIPTOR *	lp;
 	FTABLE *	fp;
 
-	if ((fp = _currfile) == 0) {
+	if ((fp = ft_CurrentDocument()) == 0) {
 		return;
 	}
 	if ((lp = GetDocumentTypeDescriptor(lastSelectedDocType)) != 0) {
@@ -1057,7 +1056,7 @@ int DoDocumentTypes(int nDlg)
 
 	docTypePars[NVDOCTYPEPARS].dp_data = &dlist;
 	lastSelectedDocType = GetPrivateDocumentType(
-		_currfile ? _currfile->documentDescriptor->modename : "default");
+		ft_CurrentDocument() ? ft_CurrentDocument()->documentDescriptor->modename : "default");
 
 	DocTypeFillParams(docTypePars, (void*)lastSelectedDocType);
 	if ((nRet = DoDialog(nDlg, (FARPROC)DlgStdProc,docTypePars)) == IDCANCEL) {
@@ -1235,11 +1234,11 @@ int EdDlgDispMode(void)
 	};
 	DOCUMENT_DESCRIPTOR *linp;
 
-	if (_currfile == 0) {
+	if (ft_CurrentDocument() == 0) {
 		return 0;
 	}
 
-	linp = _currfile->documentDescriptor;
+	linp = ft_CurrentDocument()->documentDescriptor;
 	lstrcpy(status,linp->statusline);
 	tabsize = 0;
 	rmargin = linp->rmargin;
@@ -1259,7 +1258,7 @@ int EdDlgDispMode(void)
 	linp->t1 = tabfill;
 	if ((linp->tabsize = tabsize) != 0) {
 		InitDocumentTypeDescriptor(linp, linp->tabsize);
-		SendRedraw(WIPOI(_currfile)->ru_handle);
+		SendRedraw(WIPOI(ft_CurrentDocument())->ru_handle);
 	}
 	linp->rmargin = rmargin;
 	return linchange();
@@ -1298,11 +1297,11 @@ int EdDlgWorkMode(void)
 	};
 	DOCUMENT_DESCRIPTOR *linp;
 
-	if (_currfile == 0) {
+	if (ft_CurrentDocument() == 0) {
 		return 0;
 	}
 
-	linp = _currfile->documentDescriptor;
+	linp = ft_CurrentDocument()->documentDescriptor;
 	lstrcpy(cclass, linp->u2lset);
 	lstrcpy(creationMacroName, linp->creationMacroName);
 	lstrcpy(cm, linp->cm);
@@ -1342,10 +1341,10 @@ int EdDlgCursTabs(void)
 	};
 	DOCUMENT_DESCRIPTOR *linp;
 
-	if (_currfile == 0)
+	if (ft_CurrentDocument() == 0)
 		return 0;
 
-	linp = _currfile->documentDescriptor;
+	linp = ft_CurrentDocument()->documentDescriptor;
 	flags = linp->scrollflags;
 	cursafter = linp->cursaftersearch;
 	scrollmin = linp->vscroll+1;
@@ -1427,9 +1426,9 @@ int DlgModeVals(DOCUMENT_DESCRIPTOR *linp)
 
 int EdDlgModeVals(void)
 {
-	if (_currfile == 0)
+	if (ft_CurrentDocument() == 0)
 		return 0;
-	return DlgModeVals(_currfile->documentDescriptor);
+	return DlgModeVals(ft_CurrentDocument()->documentDescriptor);
 }
 
 /*--------------------------------------------------------------------------
@@ -1887,38 +1886,38 @@ int EdIsDefined(long what)
 		return GetConfiguration()->layoutoptions;
 	}
 
-	if (!_currfile) {
+	if (!ft_CurrentDocument()) {
 		return 0;
 	}
 
 	switch(what) {
 
 	case QUERY_BLKMARKSTART:
-		return _currfile->blstart ? 1 : 0;
+		return ft_CurrentDocument()->blstart ? 1 : 0;
 
 	case QUERY_BLKMARKED:
-		if (!_currfile->blstart) {
+		if (!ft_CurrentDocument()->blstart) {
 			return 0;
 		}
 		/* drop through */
 
 	case QUERY_BLKMARKEND:
-		return _currfile->blend ? 1 : 0;
+		return ft_CurrentDocument()->blend ? 1 : 0;
 
 	case QUERY_WORKMODE:
-		return _currfile->documentDescriptor->workmode;
+		return ft_CurrentDocument()->documentDescriptor->workmode;
 
 	case QUERY_DISPLAYMODE:
-		return _currfile->documentDescriptor->dispmode;
+		return ft_CurrentDocument()->documentDescriptor->dispmode;
 
 	case QUERY_CURRENTFILE:
 		return 1;
 
 	case QUERY_FILEMODIFIED:
-		return (_currfile->flags & F_MODIFIED) ? 1 : 0;
+		return (ft_CurrentDocument()->flags & F_MODIFIED) ? 1 : 0;
 	
 	case QUERY_BLOCKXTNDMODE:
-		return WIPOI(_currfile)->bXtndBlock;
+		return WIPOI(ft_CurrentDocument())->bXtndBlock;
 	}
 	return 0;
 }

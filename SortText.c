@@ -541,7 +541,7 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 			return 0;
 	}
 
-	fp = _currfile;
+	fp = ft_CurrentDocument();
 	u_init(fp);
 	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID) {
 		return 0;

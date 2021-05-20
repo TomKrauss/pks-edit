@@ -343,7 +343,7 @@ EXPORT void p_redraw(void)
 {	FTABLE *fp;
 	WINFO  *wp;
 
-	if ((fp = _currfile) != 0L) {
+	if ((fp = ft_CurrentDocument()) != 0L) {
 		wp = WIPOI(fp);
 		SendRedraw(wp->ww_handle);
 		P_redraw(wp,wp->minln,wp->maxln,0);
@@ -400,7 +400,7 @@ EXPORT void redrawline(void)
 	WINFO *	wp;
 	FTABLE *	fp;
 
-	if ((fp = _currfile) != 0L) {
+	if ((fp = ft_CurrentDocument()) != 0L) {
 		wp = WIPOI(fp);
 		redrawlinepart(fp, wp->ln, wp->mincol, wp->maxcol);
 	}
@@ -433,7 +433,7 @@ EXPORT void OwnTextCursor(int on)
 	FTABLE 	*fp;
 	WINFO 	*wp;
 
-	if ((fp = _currfile) == 0 ||
+	if ((fp = ft_CurrentDocument()) == 0 ||
 	    (wp = WIPOI(fp)) == 0)
 		return;
 	if (on != wp->owncursor) {

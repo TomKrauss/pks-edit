@@ -22,11 +22,10 @@
 #include "caretmovement.h"
 #include "pksedit.h"
 #include "edierror.h"
+#include "winfo.h"
 
 #define	different(lp1,lp2)	cmpnormal(lp1->lbuf,lp1->len,lp2->lbuf,lp2->len)
 #define	mark(lp)			lp->lflg |= LNXMARKED
-
-extern FTABLE	*ww_stackwi(int num);
 
 /*--------------------------------------------------------------------------
  * findmatch()
@@ -165,13 +164,13 @@ out:
  * EdFilesCompare()
  */
 EXPORT int EdFilesCompare(int dir)
-{	FTABLE *fp0,*fp1;
+{	WINFO *wp0,*wp1;
 
-	if ((fp0 = ww_stackwi(0)) == 0 ||
-	    (fp1 = ww_stackwi(1)) == 0) {
+	if ((wp0 = ww_stackwi(0)) == NULL ||
+	    (wp1 = ww_stackwi(1)) == NULL) {
 		ed_error(IDS_MSGDIFFTWOWINDOWS);
 		return 0;
 	}
-	return matchlines(fp0,fp1,dir);
+	return matchlines(wp0->fp,wp1->fp,dir);
 }
 

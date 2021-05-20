@@ -26,7 +26,6 @@
 #define GWW_CUSTOMEXTRA		GWW_CUSTOMVAL+sizeof(WORD)
 
 extern HFONT EdCreateFont(EDFONT *pFont);
-extern FTABLE *ww_stackwi(int num);
 
 /*--------------------------------------------------------------------------
  * DrawShadow()
@@ -260,7 +259,6 @@ WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
 	EDFONT		font;
 	int			l,c,newc,oldc;
 	WINFO		*wp;
-	FTABLE		*fp;
 	static int	cw,ch;
 
 	switch(message) {
@@ -290,9 +288,9 @@ WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
 			break;
 
 		case WM_PAINT:
-			if ((fp = ww_stackwi(0)) == 0)
+			if ((wp = ww_stackwi(0)) == 0) {
 				break;
-			wp = WIPOI(fp);
+			}
 			hdc = BeginPaint(hwnd, &ps);
 
 			SetMapMode(hdc,MM_TEXT);

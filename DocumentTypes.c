@@ -636,7 +636,7 @@ int InitAllDocumentTypes(void)
 int EdLineal(int wrflag, DOCUMENT_DESCRIPTOR *documentDescriptor) {
 	int 		fd;
 	DOCUMENT_TYPE 	*llp;
-	FTABLE 	*fp = _currfile;
+	FTABLE 	*fp = ft_CurrentDocument();
 	char 	*fn;
 
 	if ((wrflag & 2) == 0 && fp) {

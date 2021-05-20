@@ -68,7 +68,7 @@ static void macro_error(int msgId)
 
 	if (LoadString(hInst,msgId,msg,sizeof msg)) {
 		wsprintf(b,/*STR*/"Error %s %ld: %s",(LPSTR)_keyfile->fname,n,(LPSTR)msg);
-		putline(&_outfile,b);
+		ln_createAndAddSimple(&_outfile,b);
 	}
 }
 
@@ -79,7 +79,7 @@ void ValidEscapeMacros(char *pszValid)
 {
 	PASTELIST *pl;
 
-	pl = _esclist[_currfile->documentDescriptor->id];
+	pl = _esclist[ft_CurrentDocument()->documentDescriptor->id];
 	while (pl != 0) {
 		*pszValid++ = pl->id;
 		pl = pl->next;
@@ -101,7 +101,7 @@ static PASTE *EscapePasteForId(int id)
 {
 	PASTE *		pp;
 
-	if ((pp = pp_find(id, _esclist[_currfile->documentDescriptor->id])) != 0) {
+	if ((pp = pp_find(id, _esclist[ft_CurrentDocument()->documentDescriptor->id])) != 0) {
 		return pp;
 	}
 	return 0 /*pp_find(id,_esclist[0]) */ ;
@@ -127,7 +127,7 @@ int EdMacroEscape(void)
 	static unsigned char id;
 	char 	cIdentChars[256];
 
-	if (!_currfile) {
+	if (!ft_CurrentDocument()) {
 		return 0;
 	}
      ValidEscapeMacros(cIdentChars);
@@ -142,7 +142,7 @@ int EdMacroEscape(void)
 		ed_error(IDS_MSGESCAPEUNDEF);
 		return 0;
 	}
-	return pasteblk(pp, 0, _currfile->caret.offset, 0);
+	return pasteblk(pp, 0, ft_CurrentDocument()->caret.offset, 0);
 }
 
 /*--------------------------------------------------------------------------
@@ -419,7 +419,7 @@ int EdDocMacrosAdd(void)
 {
 	char	*	fn;
 
-	if (!_currfile || (fn = rw_select(&_linfsel,MADDDOCMAC, TRUE)) == 0) {
+	if (!ft_CurrentDocument() || (fn = rw_select(&_linfsel,MADDDOCMAC, TRUE)) == 0) {
 		return 0;
 	}
 
@@ -427,7 +427,7 @@ int EdDocMacrosAdd(void)
 		return 0;
 	}
 
-	MergeDocumentTypes(fn, _currfile->fname);
+	MergeDocumentTypes(fn, ft_CurrentDocument()->fname);
 
 	return 0;
 }
@@ -440,11 +440,11 @@ int EdDocMacrosEdit(void)
 	char 	keyfile[256];
 	extern char *_datadir;
 
-	if (!_currfile) {
+	if (!ft_CurrentDocument()) {
 		return 0;
 	}
 	strdcpy(keyfile, _datadir, "MODI.TMP");
-	if (CreateTempFileForDocumentType(searchfile(_currfile->documentDescriptor->name), keyfile)) {
+	if (CreateTempFileForDocumentType(searchfile(ft_CurrentDocument()->documentDescriptor->name), keyfile)) {
 		return tagopen(keyfile, -1L, (void*)0);
 	}
 	return 0;

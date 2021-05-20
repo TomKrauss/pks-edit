@@ -56,7 +56,7 @@ static int Phase2Arg(char *arg)
 		arg += 2;
 		switch(arg[-1]) {
 		case '/':
-			if (_currfile != 0) {
+			if (ft_CurrentDocument() != 0) {
 				lstrcpy(_finds,arg);
 				findstr(1);
 			}
@@ -71,8 +71,8 @@ static int Phase2Arg(char *arg)
 			}
 			break;
 		case 'c':
-			if (_currfile) {
-				curpos(_currfile->ln,Atol(arg)-1L);
+			if (ft_CurrentDocument()) {
+				curpos(ft_CurrentDocument()->ln,Atol(arg)-1L);
 			}
 			break;
 		case 't':
