@@ -31,11 +31,20 @@
  */
 
 extern long	_multiplier;
-extern LINE	*optinswhite(FTABLE *fp, LINE *lp, int col, int *inserted);
+extern LINE	*ln_insertIndent(FTABLE *fp, LINE *lp, int col, int *inserted);
 extern int	CalcTabs2Col(DOCUMENT_DESCRIPTOR *linp, int tabs);
 
 extern PASTELIST 	*_esclist[];
 static BRACKET		*_brackets;
+static BRACKET		_defaultBracketRule = {
+	NULL,
+	DEFAULT_DOCUMENT_DESCRIPTOR_CTX,
+	"[{[(]",
+	"[}])]",
+	4,
+	-4,
+	0,1,-1,0
+};
 static UCLIST		*_undercursor;
 
 /*--------------------------------------------------------------------------
@@ -61,15 +70,29 @@ EXPORT void key_globs(BRACKET **bp, PASTELIST **pp[], UCLIST **up)
 }
 
 /*--------------------------------------------------------------------------
- * mcmp()
+ * matchBracket()
  */
-EXPORT int mcmp(char *buf,char *pat) 
-{	char c;
-
-	while ((c = *pat++) != 0)
-		if (c != *buf++)
-			return 0;
-	return 1;
+static BOOL matchBracket(char *lineBuf, char *bracketPattern) {	
+	char c;
+	int patternLength = strlen(bracketPattern) - 1;
+	c = lineBuf[0];
+	if (patternLength < 0) {
+		return FALSE;
+	}
+	if (bracketPattern[0] == '[' && bracketPattern[patternLength] == ']') {
+		for (int i = 1; i < patternLength; i++) {
+			if (c == bracketPattern[i]) {
+				return TRUE;
+			}
+		}
+		return FALSE;
+	}
+	while ((c = *bracketPattern++) != 0) {
+		if (c != *lineBuf++) {
+			return FALSE;
+		}
+	}
+	return TRUE;
 }
 
 /*--------------------------------------------------------------------------
@@ -83,7 +106,7 @@ EXPORT struct uclist *uc_find(int ctx, char *b, int col,int actype)
 		if (up->action == actype		&&
 		    eq_id(up->ctx,ctx)		&&
 		    (o = col - up->len) >= 0	&&
-		    mcmp(&b[o],up->pat)) 
+			matchBracket(&b[o],up->pat))
 		    return up;
 		up = up->next;
 	}
@@ -139,7 +162,7 @@ done:
  */
 EXPORT int sm_setup(void)
 {
-	struct matchbox *	mp;
+	struct tagBRACKET_RULE *	mp;
 	char *				rb;
 	char *				lb;
 
@@ -159,21 +182,24 @@ EXPORT int sm_setup(void)
 }
 
 /*--------------------------------------------------------------------------
- * sm_define()
+ * sm_defineBracketIndentation()
+ * Defines the indentation rules for auto-indent regarding brackets - is depending
+ * on programming language / document type,
  */
-EXPORT int sm_define(char *l,char *r,int v, 
+EXPORT int sm_defineBracketIndentation(char *leftBracketsCharacterClass, char *rightBracketsCharacterClass,
+			int indentationValue, 
 		    int up1, int down1, int up2, int down2, 
-		    int id) 
-{	struct matchbox *mp;
+		    int documentCtx) 
+{	struct tagBRACKET_RULE *mp;
 
-	if (!l || !r) {
+	if (!leftBracketsCharacterClass || !rightBracketsCharacterClass) {
 		return 0;
 	}
 
 	for (mp = _brackets; mp != 0;	mp = mp->next) {
-		if ((eq_id(mp->ctx,id) && 
-		     strcmp(l,mp->lefthand) == 0 && 
-			strcmp(r,mp->righthand) == 0)) {
+		if ((eq_id(mp->ctx,documentCtx) && 
+		     strcmp(leftBracketsCharacterClass,mp->lefthand) == 0 && 
+			strcmp(rightBracketsCharacterClass,mp->righthand) == 0)) {
 			break;
 		}
 	}
@@ -181,15 +207,15 @@ EXPORT int sm_define(char *l,char *r,int v,
 	if (!mp && (mp = ll_insert(&_brackets,sizeof *mp)) == 0)
 		return 0;
 
-	mp->lefthand  = l;
-	mp->righthand = r;
-	mp->d1 =  v;
-	mp->d2 = -v;
+	mp->lefthand  = leftBracketsCharacterClass;
+	mp->righthand = rightBracketsCharacterClass;
+	mp->d1 =  indentationValue;
+	mp->d2 = -indentationValue;
 	mp->ci1[0] = up1;
 	mp->ci1[1] = down1;
 	mp->ci2[0] = up2;
 	mp->ci2[1] = down2;
-	mp->ctx = id;
+	mp->ctx = documentCtx;
 	return 1;
 }
 
@@ -205,14 +231,14 @@ EXPORT void sm_init(void)
  * bracketmatch()
  */
 static int _righthand;
-static int bracketmatch(char *s, struct matchbox *mp)
+static int bracketmatch(char *s, struct tagBRACKET_RULE *mp)
 {
-	if (mcmp(s,mp->lefthand)) {
+	if (matchBracket(s,mp->lefthand)) {
 		_righthand = 0;
 		return 1;
 	}
 
-	if (mcmp(s,mp->righthand)) {
+	if (matchBracket(s,mp->righthand)) {
 		_righthand = 1;
 		return 1;
 	}
@@ -223,10 +249,10 @@ static int bracketmatch(char *s, struct matchbox *mp)
 /*--------------------------------------------------------------------------
  * ismatch()
  */
-static struct matchbox *_lastmatch;
-static struct matchbox *ismatch(char *s)
+static struct tagBRACKET_RULE *_lastmatch;
+static struct tagBRACKET_RULE *ismatch(char *s)
 {	int id = ft_CurrentDocument()->documentDescriptor->id;
-	struct matchbox *mp;
+	struct tagBRACKET_RULE *mp;
 
 	for (mp = _brackets; mp; mp = mp->next) {
 		if (eq_id(mp->ctx,id) && 
@@ -242,7 +268,7 @@ static struct matchbox *ismatch(char *s)
  * scanmatch()
  */
 static int scanmatch(int checkright, 
-				 LINE *line,  	struct matchbox *mp,
+				 LINE *line,  	struct tagBRACKET_RULE *mp,
 				 long *Ln,	long *Col)
 {	long ln = *Ln;
 	char *s = &line->lbuf[*Col],*send;
@@ -313,13 +339,10 @@ success:
 /*--------------------------------------------------------------------------
  * br_indentsum()
  */
-static int br_indentsum(LINE *lps, LINE *lp, struct matchbox *mp, 
-				    int *dcurr, int *hasind)
-{	unsigned char *s,*send,c1,c2;
+static int br_indentsum(LINE *lps, LINE *lp, BRACKET *mp, int *dcurr, int *hasind)
+{	unsigned char *s,*send;
 	int d1,d2,indent = 0;
 
-	c1 = mp->lefthand[0];
-	c2 = mp->righthand[0];
 	d1 = (mp->ci1[0]+mp->ci1[1]);
 	d2 = (mp->ci2[0]+mp->ci2[1]);
 
@@ -329,12 +352,12 @@ static int br_indentsum(LINE *lps, LINE *lp, struct matchbox *mp,
 	*hasind = 0;
 
 	while(s < send) {
-		if (mcmp(s,mp->lefthand)) {
+		if (matchBracket(s,mp->lefthand)) {
 			*dcurr = mp->ci1[0];
 			*hasind = 1;
 			break;
 		}
-		if (mcmp(s,mp->righthand)) {
+		if (matchBracket(s,mp->righthand)) {
 			*dcurr = mp->ci2[0];
 			*hasind = 1;
 			break;
@@ -348,18 +371,28 @@ static int br_indentsum(LINE *lps, LINE *lp, struct matchbox *mp,
 		send = lp->lbuf;
 		s = send + lp->len;
 		while (--s >= send) {
-			if (*s == c1 && mcmp(s,mp->lefthand)) {
+			if (matchBracket(s,mp->lefthand)) {
 				indent += d1;
-			}
-			if (*s == c2 && mcmp(s,mp->righthand)) {
+			} else if (matchBracket(s,mp->righthand)) {
 				indent += d2;
 			}
 		}
-		if (lp == lps)
+		if (lp == lps) {
 			break;
+		}
 		lp = lp->prev;
 	}
 	return indent;
+}
+
+/**
+ * Returns the bracket indentation rules.
+ */
+static BRACKET* sm_getBracketRules() {
+	if (_brackets) {
+		return _brackets;
+	}
+	return &_defaultBracketRule;
 }
 
 /*--------------------------------------------------------------------------
@@ -374,17 +407,19 @@ static int br_indentsum(LINE *lps, LINE *lp, struct matchbox *mp,
  */
 EXPORT int sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
 				 int indent, int *di, int *hbr)
-{	int id = fp->documentDescriptor->id;
-	struct matchbox *mp;
+{	
+	int returnValue = -1;
+	int id = fp->documentDescriptor->id;
+	struct tagBRACKET_RULE *mp;
 
 	*di = 0;
-	for (mp = _brackets; mp; mp = mp->next) {
+	for (mp = sm_getBracketRules(); mp; mp = mp->next) {
 		if (eq_id(mp->ctx,id) && *(long*)mp->ci1) {
-			indent += br_indentsum(lp1,lpcurr,mp,di,hbr);
+			returnValue = indent + br_indentsum(lp1,lpcurr,mp,di,hbr);
 		}
 	}
 
-	return indent;
+	return returnValue;
 }
 
 /*--------------------------------------------------------------------------
@@ -393,7 +428,7 @@ EXPORT int sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr,
 static int nextmatch(LINE *lp,long *ln,long *col)
 {	register char	*s;
 	register int	pos,j;
-	struct matchbox *mp;
+	struct tagBRACKET_RULE *mp;
 
 	pos = *col;
 	s = &lp->lbuf[pos];
@@ -444,7 +479,7 @@ EXPORT int showmatch(LINE *lp,int Col)
 		long lsav=ln,csav=col;
 
 		col -= up->len;
-		if (scanmatch(0,lp,(struct matchbox *)up->p,&ln,&col)) {
+		if (scanmatch(0,lp,(struct tagBRACKET_RULE *)up->p,&ln,&col)) {
 			if (ln >= WIPOI(fp)->minln) {
 				curpos(ln,col);
 				EdSleep();
@@ -490,7 +525,8 @@ EXPORT int shift_lines(FTABLE *fp, long ln, long nlines, int dir)
 {	register LINE	*lp;
 	register char	*s,*send;
 	register long  i,offset;
-	register int	ind,blcount,col;
+	size_t			blcount;
+	register int	ind,col;
 	int 			dummy;
 
 	if ((lp = ln_gotouserel(fp,ln)) == 0L) 
@@ -500,7 +536,7 @@ EXPORT int shift_lines(FTABLE *fp, long ln, long nlines, int dir)
 		if (!lp->next) break;
 		ind = CalcTabs2Col(fp->documentDescriptor,abs(dir));
 		if (dir > 0) {
-			if ((lp = optinswhite(fp,lp,ind,&dummy)) == 0L) {
+			if ((lp = ln_insertIndent(fp,lp,ind,&dummy)) == 0L) {
 				return 0;
 			}
 		} else {

@@ -110,7 +110,7 @@ void updatecursor(WINFO *wp) {
 /*------------------------------------------------------------
  * wt_cursrange()
  */
-int check_inbounds(register long val,  register long minval, 
+int wt_calculateScrollDelta(register long val,  register long minval, 
 			    register long maxval, int d)
 {	long delta;
 
@@ -125,16 +125,16 @@ int check_inbounds(register long val,  register long minval,
 }
 
 /*------------------------------------------------------------
- * cborder()
+ * wt_adjustScrollBounds()
  */
-static int cborder(register WINFO *wp)
-{	long dx,dy;
+static int wt_adjustScrollBounds(WINFO *wp) {
+	long dx,dy;
 
-	dy = check_inbounds(wp->ln,wp->mincursln,wp->maxcursln,wp->vscroll);
-	dx = check_inbounds(wp->col,wp->mincurscol,wp->maxcurscol,wp->hscroll);
+	dy = wt_calculateScrollDelta(wp->ln,wp->mincursln,wp->maxcursln,wp->vscroll);
+	dx = wt_calculateScrollDelta(wp->col,wp->mincurscol,wp->maxcurscol,wp->hscroll);
 
 	if (dx || dy) {
-		EdTRACE(Debug(DEBUG_WINMESS,"cborder -> (%ld,%ld)",dx,dy));
+		EdTRACE(Debug(DEBUG_WINMESS,"wt_adjustScrollBounds -> (%ld,%ld)",dx,dy));
 		if (sl_scrollwinrange(wp,&dy,&dx))
 			sl_winchanged(wp,dy,dx);
 		return 1;
@@ -149,7 +149,7 @@ void wt_curpos(WINFO *wp, long ln, long col)
 {
 	wp->ln = ln;
 	wp->col = col;
-	cborder(wp);
+	wt_adjustScrollBounds(wp);
 	updatecursor(wp);
 	if (wp->bXtndBlock) {
 		XtndBlock(FTPOI(wp));

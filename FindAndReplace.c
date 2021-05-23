@@ -712,7 +712,7 @@ int EdReplaceText(int scope, int action, int flags)
 	/* call before assigning firstline	*/
 	hist_enq(&_replhist, _repls);
 
-	u_init(fp);
+	undo_startModification(fp);
 	savecpos();
 
 	if (SelectRange(scope,fp,&markstart,&Markend) == RNG_INVALID)

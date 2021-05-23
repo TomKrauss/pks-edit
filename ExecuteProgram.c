@@ -30,7 +30,7 @@ extern void stepnofsel(char *fn, int cmpflg);
 extern char *searchfile(char *s);
 extern void strdcpy(char *dest,char *source,char *fname);
 extern char *TmpDir(void);
-extern void u_init(FTABLE *fp);
+extern void undo_startModification(FTABLE *fp);
 
 extern FTABLE 	_outfile;
 extern char * 	_datadir;
@@ -164,7 +164,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		return 0;
 	}
 	if (flags & EX_RDCONV) {
-		u_init(ft_CurrentDocument());
+		undo_startModification(ft_CurrentDocument());
 		bUInited = TRUE;
 		EdBlockDelete(1);
 	}
@@ -202,7 +202,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		stepnofsel(errfile, 1);
 	} else if (ft_CurrentDocument() && (flags & EX_RDIN)) {
 		if (!bUInited) {
-			u_init(ft_CurrentDocument());
+			undo_startModification(ft_CurrentDocument());
 		}
 		_EdBlockRead(outfile);
 	}

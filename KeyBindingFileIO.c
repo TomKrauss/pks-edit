@@ -38,10 +38,11 @@ extern unsigned char *BlockAsBuffer(unsigned char *b, unsigned char *end,
 extern 	char 	*_strtolend;
 extern	FSELINFO 	_linfsel;
 
+extern	int uc_add(char* pat, char* p, int type, int id);
 extern 	PASTE	*plistenq();
 extern	PASTE	*pp_find(int id, PASTELIST *pp);
 extern	void 	pp_listfree(PASTELIST **pp);
-extern 	int 		CreateTempFileForDocumentType(char *linfn, char *tmpfn);
+extern 	int 	CreateTempFileForDocumentType(char *linfn, char *tmpfn);
 extern 	char *	searchfile(char *);
 
 static 	PASTELIST *_abbrevlist;
@@ -275,7 +276,7 @@ static int setupccl(char *s)
 	i3 = Atol(_strtolend);
 	i4 = Atol(_strtolend);
 
-	return sm_define(c1,c2,v,i1,i2,i3,i4,_context);
+	return sm_defineBracketIndentation(c1,c2,v,i1,i2,i3,i4,_context);
 }
 
 /*--------------------------------------------------------------------------
@@ -493,7 +494,7 @@ void bind_escape(char id, char *s)
  * bind_ccldefinition()
  */
 void bind_ccldefinition(char *c1, char *c2, int v, int i1, int i2. int i3. int i4) {
-	sm_define(stralloc(c1), stralloc(c2), v, i1, i2, i3, i4, _context);
+	sm_defineBracketIndentation(stralloc(c1), stralloc(c2), v, i1, i2, i3, i4, _context);
 }
 
 # endif

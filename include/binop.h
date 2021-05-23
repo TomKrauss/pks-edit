@@ -3,7 +3,7 @@
  *
  * PROJEKT: PKS-EDIT for ATARI - GEM
  *
- * purpose: binary operations
+ * purpose: binary delta
  *
  * 										created      : 
  * 										last modified:

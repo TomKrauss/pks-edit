@@ -146,7 +146,7 @@ extern void ProgressMonitorStart(unsigned int ids);
 #define	PRT_TRASH			0x5
 #define	PRT_TYPES			(1|2|3|4|5)
 
-/* Flags for marked line operations */
+/* Flags for marked line delta */
 #define	MLN_DELETE		0
 #define	MLN_JOIN			1
 #define	MLN_TOGGLE		2

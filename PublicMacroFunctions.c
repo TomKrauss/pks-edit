@@ -75,7 +75,7 @@ extern int 		cursupdown(int dir, int mtype);
 extern int 		cursabsatz(int dir,int start);
 extern int 		curspgrph(int dir,int start);
 extern int 		EdCharInsert(int c);
-extern int 		un_do(FTABLE *fp);
+extern int 		undo_lastModification(FTABLE *fp);
 extern int 		macs_compile(void);
 
 extern char		_finds[500];
@@ -203,7 +203,7 @@ int EdUndo(void)
 	if (!ft_CurrentDocument()) {
 		return 0;
 	}
-	return un_do(ft_CurrentDocument());
+	return undo_lastModification(ft_CurrentDocument());
 }
 
 /*--------------------------------------------------------------------------

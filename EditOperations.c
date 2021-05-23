@@ -98,9 +98,13 @@ static int CalcStartIndentation(FTABLE *fp,LINE *lp,
 }
 
 /*--------------------------------------------------------------------------
- * optinswhite()
+ * ln_insertIndent()
+ * Insert white space characters at the beginning of the passed line so
+ * we fill up the space at the beginning of the line, so that the cursor
+ * would be visible in the passed column. Return the number of characters
+ * inserted parameter &inserted.
  */
-LINE *optinswhite(FTABLE *fp, LINE *lp, int col, int *inserted)
+LINE *ln_insertIndent(FTABLE *fp, LINE *lp, int col, int *inserted)
 {	int t,b,fillc;
 
 	if ((fillc = fp->documentDescriptor->fillc) == 0) {
@@ -126,7 +130,7 @@ LINE *optinswhite(FTABLE *fp, LINE *lp, int col, int *inserted)
  * do autoindenting and bracket indenting, if required
  */
 static int  _deltaindent;
-static int InsIndent(FTABLE *fp, LINE *olp, LINE *nlp, int oldcol, int *newcol)
+static int InsIndent(FTABLE *fp, LINE *pPreviousLine, LINE *nlp, int caretColumn, int *newcol)
 {	
 	DOCUMENT_DESCRIPTOR *		linp;
 	int 			t = 0;
@@ -135,14 +139,14 @@ static int InsIndent(FTABLE *fp, LINE *olp, LINE *nlp, int oldcol, int *newcol)
 	linp = fp->documentDescriptor;
 	if (linp->workmode & WM_AUTOINDENT) {
 		/* calculate indentation of line we leave */
-		t = CalcStartIndentation(fp,olp,oldcol,&b);
+		t = CalcStartIndentation(fp,pPreviousLine,caretColumn,&b);
 	}
 
 	t += _deltaindent;
 	_deltaindent = 0;
 
-	oldcol = CalcTabs2Col(fp->documentDescriptor,t)+b;
-	if ((nlp = optinswhite(fp,nlp,oldcol,newcol)) == 0) {
+	caretColumn = CalcTabs2Col(fp->documentDescriptor,t)+b;
+	if ((nlp = ln_insertIndent(fp,nlp,caretColumn,newcol)) == 0) {
 		return 0;
 	}
 
@@ -156,10 +160,13 @@ static int do_brindent(FTABLE *fp, int dir, LINE *lp1, LINE *lp2)
 {	int indent,b,di1,di2,i1,i2,hbr1,hbr2;
 
 	if ((fp->documentDescriptor->workmode & WM_BRINDENT) == 0) {
-		return 0;
+		return FALSE;
 	}
 
 	i1 = sm_bracketindent(fp,fp->firstl,lp1,0,&di1,&hbr1);
+	if (i1 < 0) {
+		return FALSE;
+	}
 	i2 = sm_bracketindent(fp,lp1,lp2,i1,&di2,&hbr2);
 
 	i1 += di1;
@@ -481,7 +488,7 @@ static int EdAutoFormat(FTABLE *fp)
 			 */
 			lp->lflg |= LNREPLACED;
 			if ((lp = ln_break(fp,lp,wstart)) == 0L ||
-			    (lp = optinswhite(fp,lp,indent,&col)) == 0)
+			    (lp = ln_insertIndent(fp,lp,indent,&col)) == 0)
 				break;
 			lp->prev->lflg |= LNNOCR;
 

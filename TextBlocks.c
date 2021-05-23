@@ -3,7 +3,7 @@
  *
  * PROJEKT: PKS-EDIT for ATARI - GEM
  *
- * purpose: textblock basic operations
+ * purpose: textblock basic delta
  *
  * 										created      : 04.02.89
  * 										last modified:

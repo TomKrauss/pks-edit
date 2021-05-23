@@ -194,7 +194,7 @@ void ln_insert(FTABLE *fp, LINE *pos, LINE *lp)
 		fp->firstl = lp;
 	else lp->prev->next = lp;				/* insert another	    */
 	pos->prev = lp;
-	u_cash(fp, lp, pos, O_INSERT);
+	undo_saveOperation(fp, lp, pos, O_INSERT);
 
 	if (pos->lflg & LNCPMARKED) {
 		if (fp->blstart->lm != pos) {
@@ -215,7 +215,7 @@ int ln_delete(FTABLE *fp, LINE *lp)
 		return 0;
 	}
 
-	u_cash(fp, lp, next, O_DELETE);
+	undo_saveOperation(fp, lp, next, O_DELETE);
 	fp->flags |= F_CHANGEMARK;
 	if (lp -> lflg & LNMARKED) {
 		ln_delmarks(fp,lp);
@@ -674,7 +674,7 @@ LINE *ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold)
 		lptmp->lbuf[lp->len] = 0;
 		lptmp->lflg = lp->lflg;
 		ln_replace(fp,lp,lptmp);	  /* replace old line */
-		u_cash(fp, lp, lptmp->prev, O_MODIFY);
+		undo_saveOperation(fp, lp, lptmp->prev, O_MODIFY);
 
 	} else {
 		/* create a temp line for several purposes 	*/
@@ -772,7 +772,7 @@ LINE *ln_hide(FTABLE *fp, LINE *lp1, LINE *lp2)
 		lp1->prev->next = lpind;
 	}
 	lp2->next = 0;
-	u_cash(fp, lpind, (LINE*)0, O_HIDE);
+	undo_saveOperation(fp, lpind, (LINE*)0, O_HIDE);
 
 	for (lp = lp1, nTotalHidden = 0; lp; lp = lp->next) {
 		if (fp->caret.linePointer == lp) {
@@ -828,7 +828,7 @@ int ln_unhide(FTABLE *fp, LINE *lpind)
 	lp2->next = lpind->next;
 	lp2->next->prev = lp2;
 
-	u_cash(fp, lp1, lp2, O_UNHIDE);
+	undo_saveOperation(fp, lp1, lp2, O_UNHIDE);
 
 	if (fp->caret.linePointer == lpind) {
 		fp->caret.linePointer = lp1;

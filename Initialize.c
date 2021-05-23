@@ -32,6 +32,7 @@ char	*_datadir;			/* Environment Editor-Data			*/
 
 char _homedir[EDMAXPATHLEN];
 
+
 char _sysdir[EDMAXPATHLEN +8]  = "****TKR.";
 char _serial[10]      = "100000";
 char _cryptserial[32] = "?";
@@ -59,6 +60,7 @@ static void Getenv(char *name,char *d,int maxlen)
 	char *env;
 
 	if ((env = getenv(name)) != 0) {
+
 		strmaxcpy(d, env, maxlen);
 	} else {
 		GetPksProfileString("environment",name,d,maxlen);

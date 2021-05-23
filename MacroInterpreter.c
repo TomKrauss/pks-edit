@@ -36,7 +36,7 @@ extern void 			Binop(COM_BINOP *sp);
 
 extern int 			ProgressMonitorCancel(BOOL bRedraw);
 extern void 			redrawallwi(int update);
-extern void 			u_init(FTABLE *fp);
+extern void 			undo_startModification(FTABLE *fp);
 extern int 			chkblk(FTABLE *fp);
 extern void 			ft_settime(EDTIME *tp);
 extern int 			do_macbyname(char *name);
@@ -118,7 +118,7 @@ int param_space(unsigned char typ, char *s)
  *
  * this is called, when recording
  * we do not need, to handle all command types, cause in ineractive
- * mode, commands like test or binop are not possible
+ * mode, delta like test or binop are not possible
  */
 static void push_sequence(unsigned char typ, void* par)
 {	char *spend;
@@ -354,7 +354,7 @@ void cash2(FTABLE *fp, int p)
 
 	if (_ccash.low < DIM(_ccash.b)-2) {
 		if (!_ccash.low) {
-			u_init(fp);
+			undo_startModification(fp);
 		}
 		cp = &_ccash.b[_ccash.low++];
 		cp->typ = C_1FUNC;
@@ -440,7 +440,7 @@ int cdecl do_func(int num, long p1, long p2, void *s1, void *s2, void *s3)
 	}
 
 	if (fup->flags & EW_UNDOFLSH) {
-		u_init(ft_CurrentDocument());
+		undo_startModification(ft_CurrentDocument());
 	}
 
 	if ((fup->flags & EW_CCASH) == 0) {
@@ -674,7 +674,7 @@ int EdMacroPlay(int macroindex)
 	level++;
 
 	if ((wasplaying = _playing) == 0 && ft_CurrentDocument()) {
-		u_init(ft_CurrentDocument());
+		undo_startModification(ft_CurrentDocument());
 # if defined(ATARI_ST)
 		rdcash(-2);					/* init redraw cash */
 # endif

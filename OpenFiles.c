@@ -277,7 +277,7 @@ void ft_bufdestroy(FTABLE *fp)
 	lnlistfree(fp->firstl);
 	fp->tln = fp->firstl = fp->caret.linePointer = 0;
 	closeF(&fp->lockFd);
-	u_destroy(fp);
+	undo_destroyManager(fp);
 }
 
 /*------------------------------------------------------------
@@ -330,7 +330,7 @@ FTABLE *ft_new(void)
 	if ((fp = ll_insert(&_filelist,sizeof *fp)) == 0)
 		return 0;
 
-	if (u_new(fp) == 0) {
+	if (undo_initializeManager(fp) == 0) {
 		ll_delete(&_filelist,fp);
 		return 0;
 	}
@@ -672,7 +672,7 @@ int AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 	fp->nlines = 0;
 	ft_bufdestroy(fp);
 
-	if (u_new(fp) == 0 || 
+	if (undo_initializeManager(fp) == 0 || 
 	    !AssignDocumentTypeDescriptor(fp, linp) ||
 	    !readfile(fp,fp->documentDescriptor)) {
 		fp->flags = 0;

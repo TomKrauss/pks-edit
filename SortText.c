@@ -516,7 +516,7 @@ static int undo_cash(FTABLE *fp, LINE *lpfirst, LINE *lplast)
 	recpar->lplast  = lplast ->next;
 	recpar->nrec    = nrec;
 
-	u_cash(fp,rec,recpar,O_LNORDER);
+	undo_saveOperation(fp,rec,recpar,O_LNORDER);
 
 	return 1;
 }
@@ -542,7 +542,7 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 	}
 
 	fp = ft_CurrentDocument();
-	u_init(fp);
+	undo_startModification(fp);
 	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID) {
 		return 0;
 	}

@@ -28,7 +28,7 @@
 #define	LINEBUFSIZE		2*FBUFSIZE+160	/* sizeof of _linebuf		 */
 #define	MAXLINELEN		12000
 
-#define	MAXUNDO			10		/* maximum of UNDO-Buffers avail	 */
+#define	MAXUNDO			10		/* maximum of UNDO_STEP-Buffers avail	 */
 #define	MAXSHIFT		36		/* maximum shiftwidth 			 */
 #define	RM_DELTA		2		/* delta to automatic right margin  */
 
@@ -197,7 +197,6 @@ typedef time_t EDTIME;
 typedef void * HIDDENP;
 
 #define	WIPOI(fp)	((WINFO*)fp->wp)
-#define	UNDOPOI(fp)	((UNDOBLOCK*)fp->undo)
 
 /*
  * Represents the position of one caret representing an insertion point in a file.
@@ -361,6 +360,30 @@ extern void lnlistfree(LINE* lp);
  */
 extern int SelectRange(int rngetype, FTABLE* fp, MARK** markstart, MARK** markend);
 
+/*--------------------------------------------------------------------------
+ * undo_initializeManager()
+ * Initialize the undo manager for text document.
+ */
+extern BOOL undo_initializeManager(FTABLE* fp);
+
+/*--------------------------------------------------------------------------
+ * undo_destroyManager()
+ * Removes the current undo manager and deallocates all undo buffers.
+ */
+extern void undo_destroyManager(FTABLE* fp);
+
+/*--------------------------------------------------------------------------
+ * undo_startModification()
+ * Invoked before a modification on a file is performed.
+ */
+extern void undo_startModification(FTABLE* fp);
+
+/*--------------------------------------------------------------------------
+ * undo_lastModification()
+ * Performs the actual undo reverting the last operation.
+ */
+extern BOOL undo_lastModification(FTABLE* fp);
+
 /*
  * Typical data structure for a linked list.
  */
@@ -369,6 +392,15 @@ typedef struct linkedList {
 	char name[4];
 } LINKED_LIST;
 
+
+/*--------------------------------------------------------------------------
+ * ln_insertIndent()
+ * Insert white space characters at the beginning of the passed line so
+ * we fill up the space at the beginning of the line, so that the cursor
+ * would be visible in the passed column. Return the number of characters
+ * inserted parameter &inserted.
+ */
+extern LINE* ln_insertIndent(FTABLE* fp, LINE* lp, int col, int* inserted);
 
 /*--------------------------------------------------------------------------
  * ll_moveElementToFront()

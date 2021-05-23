@@ -49,6 +49,8 @@ extern int curpos(long ln, long col);
  */
 extern int centernewpos(long ln, long col);
 
+int cposvalid(FTABLE* fp, long* ln, long* col, int newcol);
+
 /*--------------------------------------------------------------------------
  * center2cpos()
  */
