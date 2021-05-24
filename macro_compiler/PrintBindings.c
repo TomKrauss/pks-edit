@@ -14,8 +14,9 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <windows.h>
+
+#include "alloc.h"
 #include "winterf.h"
 #include "edfuncs.h"
 #include "pksmod.h"

@@ -103,7 +103,7 @@ void EdGetSelectedText(void)
  */
 EXPORT void bl_free(PASTE *buf)
 {
-	lnlistfree(buf->pln);
+	ln_listfree(buf->pln);
 	blfill((unsigned char*) buf,sizeof *buf,0);
 }
 

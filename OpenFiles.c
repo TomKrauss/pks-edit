@@ -258,7 +258,7 @@ int pickread(void )
 				picstep(ft.firstl);
 			}
 			hist_read(ft.firstl);
-			lnlistfree(ft.firstl);
+			ln_listfree(ft.firstl);
 			return 1;
 		}
 	}
@@ -274,7 +274,7 @@ void ft_bufdestroy(FTABLE *fp)
 	fp->blstart = 0;
 	fp->blend = 0;
 	destroy(&fp->documentDescriptor);
-	lnlistfree(fp->firstl);
+	ln_listfree(fp->firstl);
 	fp->tln = fp->firstl = fp->caret.linePointer = 0;
 	closeF(&fp->lockFd);
 	undo_destroyManager(fp);

@@ -13,9 +13,10 @@
 #include <windows.h>
 #include <stdio.h>
 #include <setjmp.h>
-#include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+
+#include "alloc.h"
 #include "lineoperations.h"
 #include "pkscc.h"
 #include "stringutil.h"

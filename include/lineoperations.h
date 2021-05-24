@@ -37,10 +37,11 @@
 typedef struct documentDescriptor DOCUMENT_DESCRIPTOR;
 
 typedef struct line   {
+	struct line* next;
+	struct line* prev;
 	int  		len; 		/* linelength in chars */
 	unsigned char	lflg;		/* line flags */
 	unsigned char	attr;		/* attribute byte */
-	struct line	*prev,*next;
 	char 		lbuf[LN_ALIGN];
 } LINE;
 
@@ -86,9 +87,9 @@ typedef struct pastelist {
 	PASTE			pbuf;
 } PASTELIST;
 
-/*---------------------------------*/
-/* EDIT-OPS					*/
-/*---------------------------------*/
+/*---------------------------------
+ * Undoable edit operations on one o more lines
+ */
 #define	O_MODIFY			0		/* modify a line */
 #define	O_INSERT			1		/* insert a line */
 #define	O_DELETE			2		/* EdCharDelete a line */
@@ -108,16 +109,15 @@ typedef struct mark {
 	int  		lc;
 } MARK;
 
-/* special marks */
-
-#define	CNOMARK		0x00		/* release mark without freeing it */
-#define	MARKSTART		0x100	/* cut&paste - start */
-#define	MARKEND		0x101	/*	  "	   - end */
+/* special marker IDs */
+#define	CNOMARK			0x00		/* release mark without freeing it */
+#define	MARKSTART		0x100		/* cut&paste - start */
+#define	MARKEND			0x101		/*	  "	   - end */
 
 #define	MARKSELSTART	0x102
 #define	MARKSELEND		0x103
 
-#define	MARKDOT		0x104
+#define	MARKDOT			0x104
 
 /*---------------------------------*/
 /* DOCUMENT_DESCRIPTOR						*/
@@ -245,7 +245,12 @@ extern LINE *ln_hide(FTABLE *fp, LINE *lp1, LINE *lp2);
 extern LINE *ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold);
 extern LINE *ln_modify(FTABLE *fp,LINE *lp,int col1,int col2);
 extern LINE *ln_create(int size);
-extern long ln_find(FTABLE *fp,LINE *lp);
+/*----------------------------
+ * ln_indexOf()
+ * Find the index of a line relative to the beginning or
+ * return -1 if not found.
+ */
+extern long ln_indexOf(FTABLE *fp,LINE *lp);
 extern void ln_insert(FTABLE *fp,LINE *pos,LINE *lp);
 extern int ln_delete(FTABLE *fp,LINE *lp);
 extern LINE *ln_cut(LINE *lp,int physize,int start,int end);
@@ -348,10 +353,10 @@ extern long ln_calculateMemorySizeRequired(LINE* lp, int nl, int cr);
 extern int ln_unhide(FTABLE* fp, LINE* lpind);
 
 /*------------------------------*
- * lnlistfree()	
+ * ln_listfree()	
  * Free a line list.
  *------------------------------*/
-extern void lnlistfree(LINE* lp);
+extern void ln_listfree(LINE* lp);
 
 /*--------------------------------------------------------------------------
  * SelectRange()
@@ -402,43 +407,54 @@ typedef struct linkedList {
  */
 extern LINE* ln_insertIndent(FTABLE* fp, LINE* lp, int col, int* inserted);
 
+/**
+ * Find the index of an element in a linked list or return -1 if not found.
+ */
+extern long ll_indexOf(LINKED_LIST* pHead, LINKED_LIST* lp);
+
 /*--------------------------------------------------------------------------
  * ll_moveElementToFront()
  * put an element to the top of the linked list
  */
-extern int ll_moveElementToFront(void** pointerLinkedList, void* elem);
+extern int ll_moveElementToFront(LINKED_LIST** pointerLinkedList, void* elem);
 
 /*--------------------------------------------------------------------------
  * ll_insert()
  * insert an element to a linked list
  */
-extern void* ll_insert(void** pointerLinkedList, long size);
+extern LINKED_LIST* ll_insert(LINKED_LIST** pointerLinkedList, long size);
 
 /*--------------------------------------------------------------------------
  * ll_destroy()
  * destroy a linked list. Pass a pointer to the head of the linked list and
  * an additional destruction function for one element in the list.
  */
-extern void ll_destroy(void** pointerLinkedList, int (*destroy)(void* elem));
+extern void ll_destroy(LINKED_LIST** pointerLinkedList, int (*destroy)(void* elem));
 
 /*--------------------------------------------------------------------------
  * ll_delete()
  * delete an element in a linked list.Return 1 if the element was successfully deleted.
  */
-extern int ll_delete(void** pointerLinkedList, void* element);
+extern int ll_delete(LINKED_LIST** pointerLinkedList, void* element);
+
+/**
+ * Return an element from the linked list at the given index or NULL
+ * if no element exists for the index.
+ */
+extern LINKED_LIST* ll_at(LINKED_LIST* head, int idx);
 
 /*--------------------------------------------------------------------------
  * ll_size()
  * Count the elements in a linked list.
  */
-extern int ll_size(void* linkedList);
+extern long ll_size(LINKED_LIST* linkedList);
 
 /*--------------------------------------------------------------------------
  * ll_find()
  *
  * Find an element in a linked list, with a given name.
  */
-extern void* ll_find(void* linkedList, char* name);
+extern LINKED_LIST* ll_find(LINKED_LIST* linkedList, char* name);
 
 /*-----------------------------------------
  * ln_createMultipleLinesUsingSeparators()

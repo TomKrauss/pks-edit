@@ -20,6 +20,7 @@
 
 extern int 	_flushing;
 extern PASTE *	_undobuf;
+char* _linebuf;
 extern PASTE *	bl_addrbyid(int id, int insert);
 
 LINE *	ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold);
@@ -141,45 +142,11 @@ walk:			mp2 = mp;
 }
 
 /*----------------------------*/
-/* ln_create() 			*/
-/* create a new line		*/
-/*----------------------------*/
-LINE *ln_create(int size)
-{
-	LINE *new;
-
-	if ((new = (LINE *) _alloc(size+sizeof(LINE))) == 0L) return(0);
-	new->prev = 0L;
-	new->next = 0L;
-	* (long *) new = 0;
-	if (size > 0) {
-		new->len	= size;
-		new->lbuf[0] = 0;
-	}
-	return(new);
-}
-
-/*----------------------------*/
-/* ln_find()				*/
-/*----------------------------*/
-long ln_find(FTABLE *fp, LINE *lp)
-{	LINE *	lc = fp->firstl;
-	long 	ln = 0;
-
-	while (lc != lp) {
-		if ((lc = lc->next) == 0) return -1L;
-		ln++;
-	}
-	return ln;
-}
-
-/*----------------------------*/
 /* ln_insert() 			*/
 /* insert a line at the given */
 /* position				*/
 /*----------------------------*/
-void ln_insert(FTABLE *fp, LINE *pos, LINE *lp)
-{
+void ln_insert(FTABLE *fp, LINE *pos, LINE *lp) {
 	fp->flags |= F_CHANGEMARK;
 	if (fp->documentDescriptor->nl < 0) {
 		lp->lflg |= LNNOTERM;
@@ -281,25 +248,6 @@ void mln_cutlines(FTABLE *fp, int op)
 		}
 		lp = lpnext;
 	} while(lp != 0);
-}
-
-/*----------------------------*/
-/* ln_cut()				*/
-/* cut a line to linebuffer	*/
-/*----------------------------*/
-LINE *ln_cut(LINE *lp, int physize, int start, int end)
-{	LINE *	new;
-	int		len = end-start;
-
-	if ((new = ln_create(physize)) == 0L) {
-		return 0;
-	}
-
-	memmove(new->lbuf,&lp->lbuf[start],len); 
-	new->len = len;
-	new->lbuf[len] = 0;
-	new->lflg = (lp->lflg & (LNNOTERM|LNNOCR));
-	return new;
 }
 
 /*--------------------------------------------------------------------------
@@ -846,7 +794,7 @@ void ln_destroy(LINE *lp)
 {
 	if (lp->lflg & LNINDIRECT) {
 		if (LpIndirectTyp(lp) == LI_HIDDENLIST) {
-			lnlistfree(LpIndHiddenList(lp));
+			ln_listfree(LpIndHiddenList(lp));
 		}
 	}
 	_free(lp);
@@ -876,46 +824,6 @@ EXPORT long ln_calculateMemorySizeRequired(LINE *lp, int nl, int cr)
 	return fsize;
 }
 
-/*--------------------------------------------------------------------------
- * ln_createAndAddSimple()
- */
-EXPORT int ln_createAndAddSimple(FTABLE* fp, char* b)
-{
-	return ln_createAndAdd(fp, b, (int)strlen(b), 0);
-}
-
-/*----------------------------------------------
- * ln_createAndAdd()
- * create a line and add it to the editor model
- */
-BOOL ln_createAndAdd(FTABLE* fp, char* q, int len, int flags) {
-	LINE* lp;
-
-	if (len < 0) {
-		len = (int)strlen(q);
-	}
-	if ((lp = _alloc(len + sizeof(LINE))) == 0L) {
-		lnlistfree(fp->firstl);
-		fp->firstl = 0;
-		return FALSE;
-	}
-	lp->len = len;
-	lp->lflg = flags;
-	lp->attr = 0;
-	lp->next = 0L;
-	lp->lbuf[len] = 0;
-	if (q) {
-		memmove(lp->lbuf, q, len);
-	}
-	if ((lp->prev = fp->caret.linePointer) != 0) {
-		fp->caret.linePointer->next = lp;
-	}
-	else {
-		fp->firstl = lp;
-	}
-	fp->caret.linePointer = lp;
-	return TRUE;
-}
 
 /*---------------------------------
  * ln_createFromBuffer()

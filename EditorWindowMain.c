@@ -619,19 +619,22 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd)
 /*-----------------------------------------------------------
  * ww_destroy()
  */
-void ww_destroy(FTABLE *fp)
-{	WINFO *wp = WIPOI(fp);
-	int   nId;
+void ww_destroy(WINFO *wp)
+{	int   nId;
 
-	if (wp == 0)
+	if (wp == NULL) {
 		return;
-
+	}
+	// If last window of FP
+	if (wp->fp != NULL) {
+		ft_destroy(wp->fp);
+	}
+	wp->fp = NULL;
 	nId = wp->win_id;
 	if (!ll_delete(&_winlist,wp)) {
 		EdTRACE(Debug(DEBUG_ERR,"failed deleting window props"));
 		;
 	}
-	WIPOI(fp) = 0;
 
 	/* update window handles */
 	for (wp = _winlist; wp; wp = wp->next) {
@@ -782,10 +785,8 @@ WINFUNC EditWndProc(
  		break;
 
 	case WM_DESTROY:
-		// TODO: should destroy the window - the document should be destroyed only if this is the last window.
-		ww_destroy(wp->fp);
-		/* if last window for this buffer ... */
-		ft_destroy(wp->fp);
+		// Destroy the view window - the document should be destroyed only if this is the last window.
+		ww_destroy(wp);
 		if (!ww_nwi()) {
 			SetMenuFor("initial");
 		}

@@ -29,7 +29,7 @@ EdShowMatch(long ), EdCharUpToLow(long ), EdDlgWorkMode(long ), EdDlgDispMode(lo
 EdDlgCursTabs(long ), EdDlgModeVals(long ), EdOptionToggle(long ), EdPasteString(long ),
 EdFindTag(long ), EdFindFileCursor(long ), EdErrorNext(long ), EdFindTagCursor(long ),
 EdFindWordCursor(long ), EdWinArrange(long ), EdWindowRegSet(long ), EdRangeShift(long ),
-EdUndo(long ), EdFilesCompare(long ), EdScrollScreen(long ), EdScrollCursor(long ),
+EdUndo(long ), EdRedo(long), EdFilesCompare(long ), EdScrollScreen(long ), EdScrollCursor(long ),
 EdGotoPreviousTag(long ), EdAlignText(long ), EdIconsQuit(long ), EdBlockMouseMark(long ),
 EdMouseMarkParts(long ), EdMouseMoveText(long ), EdMouseSelectLines(long ), EdMousePositionUngrabbed(long ),
 EdAlert(long ), Form_Alert(long ), EdPromptAssign(long ), EdFormatPrint(long ),
@@ -158,7 +158,9 @@ EDFUNC _edfunctab[] = {
 	EdCallWinHelp , '!',	0,
 	EdShowClipboard, '!',	0,
 	EdMenuTrackPopup, '!',	EW_NEEDSCURRF | 0,
-	EdBlockXtndMode, '!',	EW_NEEDSCURRF | 0};
+	EdBlockXtndMode, '!',	EW_NEEDSCURRF | 0,
+	EdRedo, '!', EW_MODIFY | EW_NEEDSCURRF | 0
+};
 
 int _nfuncs = 120;
 MENUBIND _menutab[] = {
@@ -523,7 +525,8 @@ COM_1FUNC _cmdseqtab[] = {
 /* 218 */ C_1FUNC, 17 /* EdCharInsert */, 10        ,
 /* 219 */ C_1FUNC, 117 /* EdShowClipboard */, 0         ,
 /* 220 */ C_1FUNC, 3  /* EdBlockDelete */, 0         ,
-/* 221 */ C_1FUNC, 111 /* EdListBindings */, LIST_MENUS
+/* 221 */ C_1FUNC, 111 /* EdListBindings */, LIST_MENUS,
+/* 222 */ C_0FUNC, 88 /* EdRedo     */, 0,
 };
 
 char _recorder[RECORDERSPACE];
@@ -663,6 +666,7 @@ KEYBIND _keymaptab[MAXMAPKEY] = {
 0x91  , CMD_CMDSEQ, 177 /* comm-seq */,
 0x420 , CMD_CMDSEQ, 178 /* comm-seq */,
 0x47b , CMD_CMDSEQ, 75 /* comm-seq */,
+0x854,	CMD_CMDSEQ, 222 /* comm-seq */,
 0x855 , CMD_CMDSEQ, 180 /* comm-seq */,
 0xb71 , CMD_CMDSEQ, 181 /* comm-seq */,
 0x437 , CMD_CMDSEQ, 182 /* comm-seq */,
@@ -682,7 +686,6 @@ KEYBIND _keymaptab[MAXMAPKEY] = {
 0x79  , CMD_CMDSEQ, 217 /* comm-seq */,
 0x84a , CMD_CMDSEQ, 218 /* comm-seq */,
 0x873 , CMD_CMDSEQ, 220 /* comm-seq */,
-0x0   , 0       , 220 /* unused */,
 0x0   , 0       , 220 /* unused */,
 0x0   , 0       , 220 /* unused */,
 0x0   , 0       , 220 /* unused */,

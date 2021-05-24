@@ -22,8 +22,6 @@ extern char *		StaticLoadString(int nId);
 extern void 		Alert(char *s, ...);
 extern void 		protokoll(char *s, ...);
 extern int 		ActiveRulerContext(int ctx);
-extern void 		*_alloc(unsigned size);
-extern void 		_free(void *p);
 
 # ifdef __STDIO
 extern int 		displinwin(char *fn, long (*callback)(FILE *fp));

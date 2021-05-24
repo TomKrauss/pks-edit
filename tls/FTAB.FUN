@@ -330,6 +330,9 @@ Defun(EdRangeShift(bool,"DIRECTION:dir",DIALOGOPT,"RANGETYP:range"),CUm,
 Defun(EdUndo(bool),Cm,
 	"Macht die letzte Änderung rückgängig",
 	"undo")
+Defun(EdRedo(bool),Cm,
+	"Wiederholt die letzte Änderung",
+	"redo")
 Defun(EdFilesCompare(bool,DIRECTION),C,
 	"Vergleicht die beiden obersten Bearbeitungsfenster",
 	"compare-windows")

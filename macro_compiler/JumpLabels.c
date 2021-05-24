@@ -11,8 +11,9 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+
+#include "alloc.h"
 #include "edfuncs.h"
 #include "pkscc.h"
 
@@ -45,7 +46,6 @@ static GOTOS _gotos[MAXLABEL];
 static int   _ngotos;
 
 void 	yyerror(char *s, ...);
-void	free(void *p);
 char 	*yystralloc(char *s);
 unsigned char *AddComSeq(unsigned char *sp, unsigned char *spend,
 				     unsigned char typ, long par);

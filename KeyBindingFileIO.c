@@ -395,7 +395,7 @@ int Mapread(int context, char *target)
 		}
 
 		parsekeydefs(&ft);
-		lnlistfree(ft.firstl);
+		ln_listfree(ft.firstl);
 
 		wehavemac = 1;
 	}

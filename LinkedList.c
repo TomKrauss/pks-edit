@@ -20,9 +20,10 @@
 /*--------------------------------------------------------------------------
  * ll_destroy()
  * destroy a linked list. Pass a pointer to the linkedList of the linked list and
- * an additional destruction function for one element in the list.
+ * an additional destruction function for one element in the list. If the destroy callback
+ * is passed it must return TRUE to cause the pointer itself being eliminated,
  */
-void ll_destroy(void **pointerLinkedList,int (*destroy)(void *elem)) {
+void ll_destroy(LINKED_LIST **pointerLinkedList, int (*destroy)(void *elem)) {
 	LINKED_LIST *lp,*lpnext = NULL;
 
 	for (lp = *pointerLinkedList; lp != 0; lp = lpnext) {
@@ -38,7 +39,7 @@ void ll_destroy(void **pointerLinkedList,int (*destroy)(void *elem)) {
  * ll_delete()
  * delete an element in a linked list.Return 1 if the element was successfully deleted.
  */
-int ll_delete(void **pointerLinkedList, void *element) {
+int ll_delete(LINKED_LIST **pointerLinkedList, void *element) {
 	LINKED_LIST *lp,*lpprev,**head;
 
 	head = (LINKED_LIST**) pointerLinkedList;
@@ -56,11 +57,25 @@ int ll_delete(void **pointerLinkedList, void *element) {
 	return 0;
 }
 
+/**
+ * Find the index of an element in a linked list or return -1 if not found. 
+ */
+long ll_indexOf(LINKED_LIST* pHead, LINKED_LIST *lp) {
+	LINKED_LIST* lc = pHead;
+	long 	ln = 0;
+
+	while (lc != lp) {
+		if ((lc = lc->next) == 0) return -1L;
+		ln++;
+	}
+	return ln;
+}
+
 /*--------------------------------------------------------------------------
  * ll_moveElementToFront()
  * put an element to the top of the linked list
  */
-int ll_moveElementToFront(void **pointerLinkedList, void *elem) {
+int ll_moveElementToFront(LINKED_LIST**pointerLinkedList, void *elem) {
 	LINKED_LIST *lp,*lpprev, **head;
 
 	head = (LINKED_LIST**) pointerLinkedList;
@@ -81,13 +96,13 @@ int ll_moveElementToFront(void **pointerLinkedList, void *elem) {
  * ll_insert()
  * insert an element to a linked list
  */
-void *ll_insert(void **pointerLinkedList,long size) {
+LINKED_LIST *ll_insert(LINKED_LIST **pointerLinkedList,long size) {
 	LINKED_LIST *lp;
 
 	if ((lp = malloc((size_t)size)) == 0)
 		return 0;
 
-	blfill(lp, (size_t)size,0);
+	memset(lp, 0, (size_t)size);
 
 	lp->next = *pointerLinkedList;
 	*pointerLinkedList = lp;
@@ -99,7 +114,7 @@ void *ll_insert(void **pointerLinkedList,long size) {
  * 
  * Find an element in a linked list, with a given name.
  */
-void *ll_find(void *linkedList, char *name)
+LINKED_LIST *ll_find(LINKED_LIST *linkedList, char *name)
 {
 	LINKED_LIST *lp;
 
@@ -107,16 +122,31 @@ void *ll_find(void *linkedList, char *name)
 		if (strcmp(lp->name,name) == 0)
 			return lp;
 	}
-	return (void*) 0;
+	return (LINKED_LIST*) 0;
+}
+
+/**
+ * Return an element from the linked list at the given index or NULL
+ * if no element exists for the index.
+ */
+LINKED_LIST* ll_at(LINKED_LIST* head, int idx) {
+	if (idx < 0) {
+		return 0;
+	}
+	while (head != 0 && idx > 0) {
+		head = head->next;
+		idx--;
+	}
+	return head;
 }
 
 /*--------------------------------------------------------------------------
  * ll_size()
  * Count the elements in a linked list.
  */
-int ll_size(void *linkedList)
+long ll_size(LINKED_LIST*linkedList)
 {
-	int		nCnt;
+	long		nCnt;
 	LINKED_LIST *lp;
 
 	for (lp = linkedList, nCnt = 0; lp != 0; lp = lp->next) {

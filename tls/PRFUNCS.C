@@ -12,9 +12,10 @@
 
 #define Extern
 
-# include <stdlib.h>
 # include <stdio.h>
 # include <string.h>
+
+#include "alloc.h"
 # include "edfuncs.h"
 # include "parsefu.h"
 

@@ -27,10 +27,11 @@
 
 
 # include <stdio.h>
-# include <stdlib.h>
 # include <string.h>
 # include <stdarg.h>
 # include <ctype.h>
+
+#include "alloc.h"
 # include "edfuncs.h"
 # include "parsefu.h"
 # include "mylib.h"
@@ -276,7 +277,7 @@ static const short yycheck[] = {    45,
 #include <string.h>
 #endif
 #if !defined(__STDLIB_H)
-#include <stdlib.h>
+#include "alloc.h"
 #endif
 
 void *alloca (unsigned size);

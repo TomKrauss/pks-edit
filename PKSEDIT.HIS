@@ -1,8 +1,9 @@
 [files]
 "D:\tom\desktop\readme.txt", line 1: 0x1 0x1 596 38 -8 -31 611 139 1329 748
-"D:\source\pksedit\Clipboard.c", line 9: 0x0 0x1 -1 -1 -1 -1 2 13 1594 681
+"D:\source\pksedit\Clipboard.c", line 188: 0x0 0x1 -1 -1 -1 -1 2 13 1594 681
 [find]
 !ed
+!undo
 [replace]
 [open]
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR

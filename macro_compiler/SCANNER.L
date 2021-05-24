@@ -13,8 +13,9 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <stdarg.h>
+
+#include "alloc.h"
 #include "sym.h"
 #include "edfuncs.h"
 #include "scanner.h"

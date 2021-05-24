@@ -282,6 +282,9 @@
     <ClCompile Include="EditorDialogUtil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EditorDocumentModel.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -408,6 +411,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\caretmovement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\alloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

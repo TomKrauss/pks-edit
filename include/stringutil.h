@@ -96,7 +96,7 @@ unsigned char* stralloc(unsigned char* buf);
 /*
  * Free the dereferenced pointer and initialize the space pointed to with NULL.
  */
-extern void destroy(char** ap);
+extern void destroy(void** ap);
 
 #define STRINGUTIL_H
 #endif

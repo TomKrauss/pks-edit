@@ -12,7 +12,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include <stdlib.h>
+#include "alloc.h"
 #include "pksedit.h"
 #include "caretmovement.h"
 #include "edierror.h"
@@ -89,6 +89,13 @@ static BOOL isUndoEnabled() {
  */
 static UNDO_COMMAND* undo_getCurrentCommand(UNDO_STACK* pStack) {
 	return pStack->current < 0 ? NULL : pStack->commands[pStack->current];
+}
+
+/*
+ * Returns the pointer of the "current" redo operation from the undo stack.
+ */
+static UNDO_COMMAND* undo_getCurrentRedoCommand(UNDO_STACK* pStack) {
+	return pStack->current < pStack->numberOfCommands ? pStack->commands[pStack->current+1] : NULL;
 }
 
 /*--------------------------------------------------------------------------
@@ -285,64 +292,75 @@ EXPORT void undo_startModification(FTABLE *fp)
 }
 
 /*--------------------------------------------------------------------------
- * undo_lastModification()
- * Performs the actual undo reverting the last operation.
+ * undo_redoLastModification()
+ * Redo the last modification undone the actual undo reverting the last operation.
  */
-EXPORT BOOL undo_lastModification(FTABLE *fp)
-{	register UNDO_OPERATION 		*pOperation;
-	register struct tagUNDO_DELTA	*pDelta;
-	register UNDO_COMMAND			*pCommand;
-	UNDO_STACK						*pStack;
-	register LINE 					*lp;
-	long	    					ln,col;
-	register int 					i;
+EXPORT BOOL undo_redoLastModification(FTABLE* fp) {
+	UNDO_STACK* pStack;
 
 	pStack = UNDOPOI(fp);
+	register UNDO_COMMAND* pCommand;
 	if (_playing ||
-		(pCommand = undo_getCurrentCommand(pStack)) == NULL) {
+		(pCommand = undo_getCurrentRedoCommand(pStack)) == NULL) {
 		ed_error(IDS_MSGNOUNDO);
 		return FALSE;
 	}
+	pStack->current++;
 	_undoOperationInProgress = TRUE;
-	ln  = 0; col = 0;
-	cposvalid(fp,&ln,&col,0);
+
+	_undoOperationInProgress = FALSE;
+	return TRUE;
+}
+
+/*
+ * applies a list of undo deltas on a file.
+ */
+static void applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
+	long	    					ln, col;
+	register int 					i;
+	register UNDO_OPERATION* pOperation;
+	register struct tagUNDO_DELTA* pDelta;
+	register LINE* lp;
+
+	ln = 0; col = 0;
+	cposvalid(fp, &ln, &col, 0);
 
 	fp->flags |= F_CHANGEMARK;
 
 	Pastehide(0);
-
 	pOperation = pCommand->atomicSteps;
-	while(pOperation != NULL) {
+	while (pOperation != NULL) {
 		for (i = pOperation->numberOfCommands; i > 0; ) {
 			i--;
 			pDelta = &pOperation->delta[i];
-			switch(pDelta->op) {
-			  case O_HIDE:
-			  	ln_unhide(fp, pDelta->lp);
+			switch (pDelta->op) {
+			case O_HIDE:
+				ln_unhide(fp, pDelta->lp);
 				break;
-			  case O_UNHIDE:
+			case O_UNHIDE:
 				ln_hide(fp, pDelta->lp, pDelta->lpAnchor);
 				break;
-			  case O_MODIFY:
-				  if ((lp = pDelta->lpAnchor) == 0) {
-					  lp = fp->firstl;
-				  } else {
-					  lp = lp->next;
-				  }
-			     pDelta->lp->lflg &= (LNINDIRECT|LNXMARKED|LNNOTERM|LNNOCR);
-				ln_replace(fp,lp,pDelta->lp);
+			case O_MODIFY:
+				if ((lp = pDelta->lpAnchor) == 0) {
+					lp = fp->firstl;
+				}
+				else {
+					lp = lp->next;
+				}
+				pDelta->lp->lflg &= (LNINDIRECT | LNXMARKED | LNNOTERM | LNNOCR);
+				ln_replace(fp, lp, pDelta->lp);
 				break;
-			  case O_DELETE:
-			     pDelta->lp->lflg &= (LNINDIRECT|LNXMARKED|LNNOTERM|LNNOCR);
+			case O_DELETE:
+				pDelta->lp->lflg &= (LNINDIRECT | LNXMARKED | LNNOTERM | LNNOCR);
 				ln_insert(fp, pDelta->lpAnchor, pDelta->lp);
 				break;
-			  case O_INSERT:
-				  if ((lp = pDelta->lpAnchor) != 0) {
-					   ln_delete(fp, lp->prev);
-				  }
+			case O_INSERT:
+				if ((lp = pDelta->lpAnchor) != 0) {
+					ln_delete(fp, lp->prev);
+				}
 				break;
-			  case O_LNORDER:
-				ln_order(fp,pDelta->lp,pDelta->lpAnchor);
+			case O_LNORDER:
+				ln_order(fp, pDelta->lp, pDelta->lpAnchor);
 				free(pDelta->lp);
 				free(pDelta->lpAnchor);
 				break;
@@ -353,17 +371,37 @@ EXPORT BOOL undo_lastModification(FTABLE *fp)
 	fp->blcol1 = pCommand->c1;
 	fp->blcol2 = pCommand->c2;
 
-	markblk(fp,pCommand->bls,pCommand->bcs,pCommand->ble,pCommand->bce);
+	markblk(fp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
 
-	curpos(pCommand->ln,pCommand->col);
+	curpos(pCommand->ln, pCommand->col);
 	RedrawTotalWindow(fp);
 
 	fp->tln = NULL;
 	if (!pCommand->fileChangedFlag) {
 		fp->flags &= ~F_MODIFIED;
-	} else {
+	}
+	else {
 		fp->flags |= F_MODIFIED;
 	}
+}
+
+/*--------------------------------------------------------------------------
+ * undo_lastModification()
+ * Performs the actual undo reverting the last operation.
+ */
+EXPORT BOOL undo_lastModification(FTABLE *fp)
+{
+	register UNDO_COMMAND			*pCommand;
+	UNDO_STACK						*pStack;
+
+	pStack = UNDOPOI(fp);
+	if (_playing ||
+		(pCommand = undo_getCurrentCommand(pStack)) == NULL) {
+		ed_error(IDS_MSGNOUNDO);
+		return FALSE;
+	}
+	_undoOperationInProgress = TRUE;
+	applyUndoDeltas(fp, pCommand);
 	pStack->current--;
 	undo_deallocateExecutedCommands(pStack);
 	_undoOperationInProgress = FALSE;

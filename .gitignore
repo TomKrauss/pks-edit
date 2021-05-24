@@ -5,6 +5,7 @@
 /windebug/
 /winrelease/
 /x64/
+/test/x64/
 *.OBJ
 *.bj
 *.sbr

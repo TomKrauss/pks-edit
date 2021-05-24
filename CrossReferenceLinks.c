@@ -474,7 +474,7 @@ static TAG *findtag(char *s, FTABLE *fp)
 static int readtagf(char *fn,FTABLE *fp)
 {	int ret;
 
-	lnlistfree(fp->firstl);
+	ln_listfree(fp->firstl);
 	ret = Readfile(fp,fn,-1);
 	return ret;
 }

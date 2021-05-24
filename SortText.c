@@ -13,7 +13,8 @@
  */
 
 #include <string.h>
-#include <stdlib.h>
+
+#include "alloc.h"
 #include "edctype.h"
 #include "caretmovement.h"
 #include "pksedit.h"

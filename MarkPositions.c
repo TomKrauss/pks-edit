@@ -159,7 +159,7 @@ int EdGotoLastPos(int type)
 		 */
 		switch(type) {
 			case TM_LASTINSERT:
-				if ((ln = ln_find(fp,fp->tln)) < 0)
+				if ((ln = ln_indexOf(fp,fp->tln)) < 0)
 					return 0;
 				col = fp->lastmodoffs;
 				break;

@@ -32,7 +32,7 @@ LONG GetWindowExt(HDC hdc) {
 /*
  * Free the dereferenced pointer and initialize the space pointed to with NULL.
  */
-void destroy(char **ap) {
+void destroy(void **ap) {
 	if (*ap) {
 		free(*ap);
 		*ap = 0;

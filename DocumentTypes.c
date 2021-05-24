@@ -16,7 +16,9 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include <stdlib.h>
+#include <stddef.h>
+
+#include "alloc.h"
 #include "tos.h"
 #include "lineoperations.h"
 #include "project.h"
@@ -43,9 +45,7 @@ typedef struct tagDOCUMENT_TYPE {
 	DOCUMENT_DESCRIPTOR * ll_documentDescriptor;
 } DOCUMENT_TYPE;
 
-extern void *	ll_find(void *Head, char *name);
 extern char 	*searchfile(char *fn);
-extern int 		ll_size(void *Head);
 extern void 	*prof_llinsert(void *Head, int size, char *group, 
 						char *item, char **idata);
 extern void 	prof_killsections(LPSTR pszFn, LPSTR pszSection);
@@ -60,7 +60,7 @@ static DOCUMENT_TYPE *_linl;
 static int	_ndoctypes;
 FSELINFO 		_linfsel = {	"", "DEFAULT.LIN", "*.LIN" };
 
-#define	LINSPACE			((long)&(((DOCUMENT_DESCRIPTOR *)0)->ts))
+#define	LINSPACE			offsetof(DOCUMENT_DESCRIPTOR, ts)
 
 /*--------------------------------------------------------------------------
  * TabStop()
@@ -535,6 +535,23 @@ DOCUMENT_TYPE *CreateDocumentType(DOCUMENT_TYPE *llp)
 		llpNew->ll_name[nLen] = 0;
 	}
 	return llpNew;
+}
+
+/**
+ * Cleanup: delete a document descriptor.
+ */
+static BOOL _DeleteDocumentType(DOCUMENT_TYPE* dt) {
+	if (dt->ll_privateDocumentDescriptor && dt->ll_documentDescriptor) {
+		free(dt->ll_documentDescriptor);
+	}
+	return TRUE;
+}
+
+/**
+ * Deletes and de-allocates all known document types. 
+ */
+void DeleteAllDocumentTypes() {
+	ll_destroy(&_linl, _DeleteDocumentType);
 }
 
 /*--------------------------------------------------------------------------

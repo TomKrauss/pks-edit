@@ -14,8 +14,9 @@
 #include <commctrl.h>
 #include <ddeml.h>
 #include <shellapi.h>
-#include "trace.h"
 
+#include "alloc.h"
+#include "trace.h"
 #include "winterf.h"
 #include "lineoperations.h"
 #include "winfo.h"
@@ -34,7 +35,6 @@ extern void 	ft_CheckForChangedFiles(void);
 extern void		GetPhase2Args(char *args);
 extern void		GetPhase1Args(char *args);
 extern void *	PksGetKeyBind(WPARAM key);
-extern void *	ll_insert(void **head,long size);
 extern void 	EditDroppedFiles(HDROP hdrop);
 extern BOOL 	InitBuffers(void);
 extern void 	ShowMenuHelp(int menId);
@@ -410,6 +410,8 @@ static void RegisterServerDDE(void) {
 int PASCAL WinMain(HANDLE hInstance, HANDLE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 	MSG msg;
 
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
 	hInst = hInstance;
 	if (!InitBuffers()) {
 		return FALSE;
@@ -612,6 +614,8 @@ static void FinalizePksEdit(void)
 	TmpJunk();
 	HelpQuit();
 	UnInitDDE();
+	DeleteAllDocumentTypes();
+
 }
 
 /*------------------------------------------------------------
@@ -803,11 +807,12 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	    case WM_QUERYENDSESSION:
 	    case WM_CLOSE:
-	    		FinalizePksEdit();
+	    	FinalizePksEdit();
 			EdCloseAll(1);
 	   		if (ww_nwi()) {
 	   			return 0;
 			}
+			_CrtDumpMemoryLeaks();
 			break;
 
 	    case WM_DESTROY:

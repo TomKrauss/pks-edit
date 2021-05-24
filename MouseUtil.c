@@ -28,7 +28,7 @@ static HCURSOR   hHourGlass;		// Hour glass cursor
 static HCURSOR   hSaveCurs;
 
 extern void 	caret_calculateOffsetFromScreen(WINFO *wp,int x, int y, long *ln,long *col);
-extern long 	ln_find(FTABLE *fp,LINE *lp);
+extern long 	ln_indexOf(FTABLE *fp,LINE *lp);
 extern void 	st_seterrmsg(char *msg);
 extern int 		MousePosition(FTABLE *fp, long bAsk);
 extern HWND 	FindChildFromPoint(HWND hwnd, POINT *point);
@@ -145,7 +145,7 @@ EXPORT int EdBlockMouseMark(int typ)
 		markforward = -1;
 	} else {
 		if (fp->blstart) {
-			ln1	= ln_find(fp,fp->blstart->lm);
+			ln1	= ln_indexOf(fp,fp->blstart->lm);
 			col1 = fp->blstart->lc;
 		}
 		markforward = 1;

@@ -722,7 +722,7 @@ int EdReplaceText(int scope, int action, int flags)
 
 	lp  = markstart->lm;
 	col = markstart->lc;
-	startln = ln = ln_find(fp,lp);
+	startln = ln = ln_indexOf(fp,lp);
 
 	startln = ln;
 	lastfln = fp->ln;

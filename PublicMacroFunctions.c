@@ -39,6 +39,9 @@
   * EdGetActiveWindow()
   */
 extern HWND EdGetActiveWindow(int includeicons);
+extern BOOL GetDocumentTypeDescription(void* llp,
+	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszFname,
+	int** pOwn);
 extern HWND ww_winid2hwnd(int winid);
 extern HWND ic_add(void* icp, LPSTR szTitle, LPSTR szParams, int x, int y);
 extern HWND ic_active(LPSTR szTitle, LPSTR szParams, void** icClass);
@@ -198,12 +201,23 @@ int EdParaGotoEnd(int dir)
 /*--------------------------------------------------------------------------
  * EdUndo()
  */
-int EdUndo(void)
-{
-	if (!ft_CurrentDocument()) {
+int EdUndo(void) {
+	FTABLE* fp = ft_CurrentDocument();
+	if (!fp) {
 		return 0;
 	}
-	return undo_lastModification(ft_CurrentDocument());
+	return undo_lastModification(fp);
+}
+
+/*--------------------------------------------------------------------------
+ * EdUndo()
+ */
+int EdRedo(void) {
+	FTABLE* fp = ft_CurrentDocument();
+	if (!fp) {
+		return 0;
+	}
+	return undo_redoLastModification(fp);
 }
 
 /*--------------------------------------------------------------------------
@@ -307,8 +321,8 @@ static void TmplateListboxFill(HWND hwnd, int nItem, long selValue)
 int DialogTemplate(unsigned char c, 
 	char *(*fpTextForTmplate)(char *s), char *s)
 {
-	static unsigned char text[30];
-	static unsigned char _c;
+	static unsigned char text[30] = { 0 };
+	static unsigned char _c = 0;
 	static ITEMS	_i   = { C_CHAR1PAR, &_c };
 	static PARAMS	_bgc = { DIM(_i), P_MAYOPEN, _i };
 	static DIALLIST tmplatelist = {

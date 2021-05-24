@@ -43,8 +43,6 @@ static int  _verbose = 1;
 static int 	_scratchlen = 0;
 static char _crypting;
 
-char * 	_linebuf;
-
 /*------------------------------*/
 /* InitBuffers()			  */
 /*------------------------------*/
@@ -68,18 +66,6 @@ static DOCUMENT_DESCRIPTOR* GetDefaultDocumentTypeDescriptor() {
 		_defaultDocumentTypeDescriptor = CreateDefaultDocumentTypeDescriptor();
 	}
 	return _defaultDocumentTypeDescriptor;
-}
-
-/*------------------------------*/
-/* lnlistfree()			  */
-/*------------------------------*/
-EXPORT void lnlistfree(register LINE *lp)
-{	LINE *lps;
-
-	while ((lps = lp) != 0) {
-		lp = lp->next;
-		_free(lps);
-	}
 }
 
 /*---------------------------------*/
@@ -608,7 +594,7 @@ EXPORT int Writeandclose(FTABLE *fp,char *name, int flags)
 	fp->lastl = 0;
 	fp->documentDescriptor = 0;
 	ret = Writefile(fp,name,flags);
-	lnlistfree(fp->firstl);
+	ln_listfree(fp->firstl);
 	fp->firstl = 0;
 	fp->caret.linePointer  = 0;
 	return ret;

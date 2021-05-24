@@ -10,9 +10,10 @@
  *									
  */
 
-#include <stdlib.h>
+
 #include <string.h>
 
+#include "alloc.h"
 #include "caretmovement.h"
 #include "edierror.h"
 
@@ -292,7 +293,7 @@ FormatText(int scope, int type, int flags)
 	    !mark_set(fp,fp->caret.linePointer,0,MARKDOT))
 		return 0;
 
-	startln  = ln_find(fp,mps->lm);
+	startln  = ln_indexOf(fp,mps->lm);
 	_deltaln = -1;
 	_currl   = fp->caret.linePointer;
 	savecol  = caret_lineOffset2screen(fp->caret.linePointer->lbuf,fp->caret.offset);
@@ -315,7 +316,7 @@ FormatText(int scope, int type, int flags)
 		if (blcut((PASTE *)0,mps->lm,mpe->lm,0,mpe->lm->len,1))
 			ret = bl_paste(&paste,fp,mps->lm,0,0);
 
-		lnlistfree(_fmtfile.firstl);
+		ln_listfree(_fmtfile.firstl);
 	}
 
 	/*

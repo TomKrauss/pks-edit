@@ -21,7 +21,7 @@
 
 #ifdef __cplusplus
 
-#include <stdlib.h>
+#include "alloc.h"
 #include <unistd.h>
 
 /* Use prototypes in function declarations. */
@@ -44,7 +44,7 @@
  #pragma warn -rch
  #pragma warn -use
 #include <io.h>
-#include <stdlib.h>
+#include "alloc.h"
 #define YY_USE_CONST
 #define YY_USE_PROTOS
 #endif
@@ -427,8 +427,9 @@ char *yytext;
 
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <stdarg.h>
+
+#include "alloc.h"
 #include "sym.h"
 #include "edfuncs.h"
 #include "scanner.h"
@@ -838,7 +839,7 @@ YY_MALLOC_DECL
 #else
 #if __STDC__
 #ifndef __cplusplus
-#include <stdlib.h>
+#include "alloc.h"
 #endif
 #else
 /* Just try to get by without declaring the routines.  This will fail

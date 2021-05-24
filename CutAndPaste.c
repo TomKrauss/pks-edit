@@ -288,7 +288,7 @@ EXPORT int _EdBlockRead(char *fn)
 	}
 	if ((ret = bl_read(fn,&pbuf,0)) != 0)
 		paste(&pbuf,0);
-	lnlistfree(pbuf.pln);
+	ln_listfree(pbuf.pln);
 	return ret;
 }
 
@@ -390,7 +390,7 @@ EXPORT int _EdBlockWrite(char *fn)
 		}
 		if (ret != 0)
 			ret = bl_write(fn,&pbuf,ret);
-		lnlistfree(pbuf.pln);
+		ln_listfree(pbuf.pln);
 		return ret;
 	}
 	return 0;
@@ -533,7 +533,7 @@ static int blfin(MARK *mp)
 {	long newln;
 
 	if (mp != 0) {
-		newln = ln_find(ft_CurrentDocument(),mp->lm);
+		newln = ln_indexOf(ft_CurrentDocument(),mp->lm);
 		newcpos(newln,(long)mp->lc);
 		return 1;
 	} else {
