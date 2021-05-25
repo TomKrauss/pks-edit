@@ -499,7 +499,7 @@ int PrintMacs(char *macroname)
 	} else {
 		strcpy(szBuf, "MACROS.PKC");
 	}
-	return displinwin(szBuf, PrintMacsCB);
+	return CreateFileAndDisplay(szBuf, PrintMacsCB);
 }
 
 

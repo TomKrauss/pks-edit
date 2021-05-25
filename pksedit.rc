@@ -1671,6 +1671,7 @@ BEGIN
     1243                    "show-std-clip"
     1244                    "erase-block"
     1245                    "menu-list"
+    IDS_REDO                "redo"
 END
 
 STRINGTABLE

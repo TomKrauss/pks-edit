@@ -24,7 +24,7 @@ extern void 		protokoll(char *s, ...);
 extern int 		ActiveRulerContext(int ctx);
 
 # ifdef __STDIO
-extern int 		displinwin(char *fn, long (*callback)(FILE *fp));
+extern int 		CreateFileAndDisplay(char *fn, long (*callback)(FILE *fp));
 extern int 		printpaste(FILE *fp, void *p);
 extern void 		printesclist(FILE *fp, void *p);
 # endif

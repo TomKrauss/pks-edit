@@ -526,7 +526,7 @@ COM_1FUNC _cmdseqtab[] = {
 /* 219 */ C_1FUNC, 117 /* EdShowClipboard */, 0         ,
 /* 220 */ C_1FUNC, 3  /* EdBlockDelete */, 0         ,
 /* 221 */ C_1FUNC, 111 /* EdListBindings */, LIST_MENUS,
-/* 222 */ C_0FUNC, 88 /* EdRedo     */, 0,
+/* 222 */ C_0FUNC, 120 /* EdRedo     */, 0,
 };
 
 char _recorder[RECORDERSPACE];

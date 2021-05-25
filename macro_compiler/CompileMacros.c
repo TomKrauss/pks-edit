@@ -126,15 +126,18 @@ FILE *createtmp(char *dest, char *filename)
 	return fp;
 }
 
-/*---------------------------------*/
-/* displinwin()				*/
-/*---------------------------------*/
-int displinwin(char *fn, long (*callback)(FILE *fp))
-{	char tmpfn[128];
+/*---------------------------------
+ * CreateFileAndDisplay()
+ * Invoke a callback to generate the contents of a file with
+ * the given file name. If successful, open the file in PKS Edit.
+ */
+BOOL CreateFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
+	char tmpfn[128];
 	FILE *fp;
 
-	if ((fp = createtmp(tmpfn,fn)) == 0)
-		return 0;
+	if ((fp = createtmp(tmpfn, fn)) == 0) {
+		return FALSE;
+	}
 
 	if ((*callback)(fp) != 0) {
 		fflush(fp);
@@ -151,7 +154,7 @@ int displinwin(char *fn, long (*callback)(FILE *fp))
 
 	unlink(tmpfn);
 
-	return 0;
+	return TRUE;
 }
 
 /*---------------------------------*/

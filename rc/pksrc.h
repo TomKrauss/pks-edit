@@ -12,6 +12,8 @@
 #define IDC_CUSTOM1                     1006
 #define IDD_PREVIEW_FRAME               1006
 #define IDC_STRING1                     1007
+#define IDS_STRING1246                  1246
+#define IDS_REDO                        1246
 
 // Next default values for new objects
 // 

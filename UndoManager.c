@@ -243,13 +243,14 @@ static void undo_allocateCommand(UNDO_STACK* pStack) {
 	if (pStack->numberOfCommands >= pStack->maximumUndoCommands) {
 		u_free(pStack->commands[0]);
 		memmove(&pStack->commands[0], &pStack->commands[1], sizeof pStack->commands[0] * (pStack->numberOfCommands - 1));
-		pStack->commands[pStack->maximumUndoCommands - 1] = NULL;
-	} else {
-		UNDO_COMMAND* pCommand = malloc(sizeof * pCommand);
-		memset(pCommand, 0, sizeof * pCommand);
-		pStack->commands[pStack->numberOfCommands++] = pCommand;
-		pStack->current++;
+		pStack->numberOfCommands = pStack->maximumUndoCommands - 1;
+		pStack->commands[pStack->numberOfCommands] = NULL;
+		pStack->current--;
 	}
+	UNDO_COMMAND* pCommand = malloc(sizeof * pCommand);
+	memset(pCommand, 0, sizeof * pCommand);
+	pStack->commands[pStack->numberOfCommands++] = pCommand;
+	pStack->current++;
 }
 
 /*--------------------------------------------------------------------------

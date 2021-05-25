@@ -1,8 +1,9 @@
 [files]
-"D:\tom\desktop\readme.txt", line 1: 0x1 0x1 596 38 -8 -31 611 139 1329 748
-"D:\source\pksedit\Clipboard.c", line 188: 0x0 0x1 -1 -1 -1 -1 2 13 1594 681
+"D:\source\pksedit\Clipboard.c", line 1: 0x0 0x1 -1 -1 -1 -1 0 0 952 908
+"D:\tom\desktop\readme.txt", line 7: 0x1 0x1 -1 -1 -8 -31 952 0 1904 908
 [find]
 !ed
+!red
 !undo
 [replace]
 [open]
@@ -15,8 +16,10 @@
 !D:\source\pksedit\.git\hooks\pre-push.sample
 !D:\source\pksedit\.git\hooks\pre-rebase.sample
 !D:\source\pksedit\.git\hooks\pre-receive.sample
-!C:\Users\tom\AppData\Local\Temp\MACROS.PKC
 !D:\tom\desktop\readme.txt
+!C:\Users\tom\AppData\Local\Temp\MACROS.PKC
+!C:\Users\tom\AppData\Local\Temp\KEYS
 [pathes]
 !D:\source\pksedit\*.*
 !D:\tom\desktop\*.*
+!D:\source\pksedit\pks_sys\*.MAC

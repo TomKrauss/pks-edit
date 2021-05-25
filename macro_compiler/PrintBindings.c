@@ -425,9 +425,8 @@ static int PrintKeysCB(FILE *fp)
 /*
  * PrintKeys
  */
-int PrintKeys(void)
-{
-	return displinwin("KEYS", PrintKeysCB);
+int PrintKeys(void) {
+	return CreateFileAndDisplay("KEYS", PrintKeysCB);
 }
 
 #if 0
@@ -612,7 +611,7 @@ static int PrintMiceCB(FILE *fp)
  */
 int PrintMice(void)
 {
-	return displinwin("MOUSE", PrintMiceCB);
+	return CreateFileAndDisplay("MOUSE", PrintMiceCB);
 }
 
 /*--------------------------------------------------------------------------
@@ -678,7 +677,7 @@ static int PrintMenuCB(FILE *fp)
  */
 int PrintMenus(void)
 {
-	return displinwin("MENU", PrintMenuCB);
+	return CreateFileAndDisplay("MENU", PrintMenuCB);
 }
 
 /*--------------------------------------------------------------------------

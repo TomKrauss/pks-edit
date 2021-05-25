@@ -58,13 +58,13 @@ typedef unsigned short KEYCODE;
 
 typedef struct keymap {
 	KEYCODE		keycode;
-	MACROREF		macref;
+	MACROREF	macref;
 } KEYBIND;
 
 KEYBIND *keygetbind(void);
 KEYBIND *keybound(KEYCODE code);
 char    *code2key(KEYCODE code);
-KEYCODE mac_addshift(KEYCODE code);
+KEYCODE mac_addModifierKeys(KEYCODE code);
 
 /*
  * MACROS -----------------------------------------------------------

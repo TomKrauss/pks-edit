@@ -669,10 +669,13 @@ int do_menu(int menunum)
 	return 0;
 }
 
-/*---------------------------------*/
-/* mac_addshift()				*/
-/*---------------------------------*/
-KEYCODE mac_addshift(KEYCODE key)
+/*---------------------------------
+ * mac_addModifierKeys()
+ * Add the modifier key bits dependingon whether
+ * Shift, Control or Alt was pressed together with
+ * the key passed as an argument.
+ */
+KEYCODE mac_addModifierKeys(KEYCODE key)
 {
 	if ( GetKeyState(VK_SHIFT) < 0)
 		key |= K_SHIFT;
@@ -688,7 +691,7 @@ KEYCODE mac_addshift(KEYCODE key)
 /*---------------------------------*/
 void* PksGetKeyBind(WPARAM key)
 {
-	key = mac_addshift(key);
+	key = mac_addModifierKeys(key);
 	return keybound(key);
 }
 

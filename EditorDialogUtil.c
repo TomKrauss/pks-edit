@@ -179,7 +179,7 @@ WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			    wParam == VK_SHIFT)
 		    		break;
 			if (message == WM_KEYDOWN || message == WM_SYSKEYDOWN) {
-				key = mac_addshift(wParam);
+				key = mac_addModifierKeys(wParam);
 				SendMessage(hwnd,WM_CHARCHANGE,key,0L);
 				down++;
 			} else if (down) {
