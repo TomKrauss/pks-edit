@@ -406,7 +406,8 @@ static int ft_openwin(FTABLE *fp, WINDOWPLACEMENT *wsp)
 			wsp = (WINDOWPLACEMENT*)&fp->documentDescriptor->placement;
 		}
 	}
-	if (EdMdiCreate(szEditClass, fp->fname, ww_nwi()+1, (long)fp, wsp) == 0) {
+
+	if (EdMdiCreate(szEditClass, fp->fname, ww_nwi()+1, (uintptr_t)fp, wsp) == 0) {
 		return 0;
 	}
 	return 1;

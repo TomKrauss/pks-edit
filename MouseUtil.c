@@ -407,12 +407,11 @@ EXPORT int do_mbutton(FTABLE *fp, int x, int y, int b, int nclicks, int shift)
 /*----------------------------*/
 /* do_linbutton()			*/
 /*----------------------------*/
-EXPORT int do_linbutton(FTABLE *fp, int x, int y, int msg, int shift)
-{
-	WINFO *	wp = WIPOI(fp);
+EXPORT int do_linbutton(WINFO *wp, int x, int y, int msg, int shift) {
 	long 	ln;
 	long		col;
 	char		szBuf[100];
+	FTABLE* fp = wp->fp;
 
 	caret_calculateOffsetFromScreen(wp,x + wp->cwidth / 2,y,&ln,&col);
 	wsprintf(szBuf, /*STR*/"SPALTE: %4ld", col+1);

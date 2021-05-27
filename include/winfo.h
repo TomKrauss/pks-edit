@@ -35,7 +35,7 @@ typedef struct tagFSTYLE {
 typedef struct wininfo {
 	struct wininfo *next;
 	int		win_id;
-    HWND      edwin_handle,ww_handle,ru_handle,st_handle;
+    HWND      edwin_handle,ww_handle,ru_handle,st_handle,lineNumbers_handle;
      
      int       dispmode;				/* flags see edierror.h... */
      int       workmode;

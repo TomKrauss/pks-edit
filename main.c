@@ -76,6 +76,7 @@ char   szEditClass[]  	= "EditWin";
 char   szStatusClass[]  	= "StatusWin";
 char   szRulerClass[]  	= "RulerWin";
 char   szWorkAreaClass[] = "WorkWin";
+char   szLineNumbersClass[] = "LineNumbers";
 char   szAppName[]    	= "PKSEDIT";
 
 int		_runInteractive = TRUE;

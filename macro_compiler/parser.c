@@ -186,7 +186,7 @@ int 			menu_addentry(char *pszString, int menutype,
 
 
 /* Line 189 of yacc.c  */
-#line 189 "Parser.tab.c"
+#line 190 "Parser.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -284,7 +284,7 @@ typedef int YYSTYPE;
 
 
 /* Line 264 of yacc.c  */
-#line 287 "Parser.tab.c"
+#line 288 "Parser.tab.c"
 
 #ifdef short
 # undef short
@@ -389,7 +389,7 @@ YYID (yyi)
 #    define YYSTACK_ALLOC alloca
 #    if ! defined _ALLOCA_H && ! defined _STDLIB_H && (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
-#include "alloc.h"
+#     include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
 #     ifndef _STDLIB_H
 #      define _STDLIB_H 1
 #     endif
@@ -417,7 +417,7 @@ YYID (yyi)
 #  if (defined __cplusplus && ! defined _STDLIB_H \
        && ! ((defined YYMALLOC || defined malloc) \
 	     && (defined YYFREE || defined free)))
-#include "alloc.h"
+#   include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
 #   ifndef _STDLIB_H
 #    define _STDLIB_H 1
 #   endif
@@ -645,27 +645,27 @@ static const yytype_int16 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   141,   141,   142,   142,   148,   149,   150,   151,   152,
-     153,   155,   156,   255,   254,   261,   262,   263,   266,   265,
-     276,   277,   279,   280,   281,   283,   287,   288,   289,   294,
-     295,   297,   298,   303,   303,   313,   314,   315,   317,   325,
-     327,   328,   330,   331,   332,   334,   335,   337,   346,   346,
-     356,   357,   358,   360,   371,   373,   379,   381,   381,   386,
-     387,   389,   390,   391,   395,   397,   398,   400,   408,   412,
-     414,   415,   417,   417,   417,   426,   427,   429,   430,   434,
-     434,   437,   438,   440,   441,   443,   452,   468,   469,   471,
-     472,   477,   482,   483,   485,   492,   503,   504,   505,   505,
-     506,   507,   508,   509,   510,   511,   512,   513,   514,   515,
-     518,   522,   524,   525,   527,   528,   530,   531,   531,   543,
-     544,   554,   555,   556,   557,   558,   559,   560,   561,   562,
-     566,   566,   566,   568,   569,   570,   570,   572,   572,   574,
-     575,   575,   577,   578,   580,   581,   580,   584,   591,   598,
-     599,   600,   601,   602,   608,   609,   611,   612,   614,   618,
-     622,   626,   628,   629,   640,   643,   646,   650,   651,   653,
-     655,   656,   658,   663,   667,   672,   674,   672,   685,   688,
-     685,   698,   699,   701,   702,   704,   704,   711,   711,   718,
-     719,   721,   724,   727,   731,   748,   750,   752,   753,   754,
-     755,   757,   765,   771,   777,   778,   783,   784
+       0,   142,   142,   143,   143,   149,   150,   151,   152,   153,
+     154,   156,   157,   256,   255,   262,   263,   264,   267,   266,
+     277,   278,   280,   281,   282,   284,   288,   289,   290,   295,
+     296,   298,   299,   304,   304,   314,   315,   316,   318,   326,
+     328,   329,   331,   332,   333,   335,   336,   338,   347,   347,
+     357,   358,   359,   361,   372,   374,   380,   382,   382,   387,
+     388,   390,   391,   392,   396,   398,   399,   401,   409,   413,
+     415,   416,   418,   418,   418,   427,   428,   430,   431,   435,
+     435,   438,   439,   441,   442,   444,   453,   469,   470,   472,
+     473,   478,   483,   484,   486,   493,   504,   505,   506,   506,
+     507,   508,   509,   510,   511,   512,   513,   514,   515,   516,
+     519,   523,   525,   526,   528,   529,   531,   532,   532,   544,
+     545,   555,   556,   557,   558,   559,   560,   561,   562,   563,
+     567,   567,   567,   569,   570,   571,   571,   573,   573,   575,
+     576,   576,   578,   579,   581,   582,   581,   585,   592,   599,
+     600,   601,   602,   603,   609,   610,   612,   613,   615,   619,
+     623,   627,   629,   630,   641,   644,   647,   651,   652,   654,
+     656,   657,   659,   664,   668,   673,   675,   673,   686,   689,
+     686,   699,   700,   702,   703,   705,   705,   712,   712,   719,
+     720,   722,   725,   728,   732,   749,   751,   753,   754,   755,
+     756,   758,   766,   772,   778,   779,   784,   785
 };
 #endif
 
@@ -1814,7 +1814,7 @@ yyreduce:
         case 3:
 
 /* Line 1455 of yacc.c  */
-#line 142 "Parser.y"
+#line 143 "Parser.y"
     { 
 #ifdef YYDEBUG
 int yydebug = 1; 
@@ -1825,7 +1825,7 @@ int yydebug = 1;
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 255 "Parser.y"
+#line 256 "Parser.y"
     {
 				menu_startdefine((yyvsp[(2) - (3)]).s);
 				freeitem(&(yyvsp[(2) - (3)]).s);
@@ -1835,7 +1835,7 @@ int yydebug = 1;
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 266 "Parser.y"
+#line 267 "Parser.y"
     {
 				protokoll("Defining sub-menu %s",(yyvsp[(2) - (2)]).s);
 				menu_addentry((yyvsp[(2) - (2)]).s, UM_POPUP, 0, 0);
@@ -1846,7 +1846,7 @@ int yydebug = 1;
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 272 "Parser.y"
+#line 273 "Parser.y"
     {
 				menu_addentry((char*)0, UM_ENDPOPUP, 0, 0);
 			;}
@@ -1855,7 +1855,7 @@ int yydebug = 1;
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 284 "Parser.y"
+#line 285 "Parser.y"
     {
 				menu_addentry((char *)0, UM_SEPARATOR, 0, 0);
 			;}
@@ -1864,7 +1864,7 @@ int yydebug = 1;
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 290 "Parser.y"
+#line 291 "Parser.y"
     {
 				menu_addentry((yyvsp[(1) - (4)]).s, UM_ITEM, (yyvsp[(4) - (4)]).macref.typ, (yyvsp[(4) - (4)]).macref.index);
 				freeitem(&(yyvsp[(1) - (4)]).s);
@@ -1874,14 +1874,14 @@ int yydebug = 1;
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 295 "Parser.y"
+#line 296 "Parser.y"
     { yyerror("invalid menu item"); ;}
     break;
 
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 303 "Parser.y"
+#line 304 "Parser.y"
     {
 				protokoll("Compile mouse table %s",(yyvsp[(3) - (3)]).s);
 				mouse_switchtotable((yyvsp[(3) - (3)]).s);
@@ -1895,7 +1895,7 @@ int yydebug = 1;
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 318 "Parser.y"
+#line 319 "Parser.y"
     {
 				if ((yyvsp[(1) - (4)]).mousecode.button && 
 				    (yyvsp[(3) - (4)]).macref.index != (MACROREFIDX)-1) {
@@ -1908,63 +1908,63 @@ int yydebug = 1;
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 325 "Parser.y"
+#line 326 "Parser.y"
     { yyerror("mouse binding"); ;}
     break;
 
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 327 "Parser.y"
+#line 328 "Parser.y"
     { (yyval).num = 0; ;}
     break;
 
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 328 "Parser.y"
+#line 329 "Parser.y"
     { (yyval).num = MO_FINDCURS; ;}
     break;
 
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 330 "Parser.y"
+#line 331 "Parser.y"
     { (yyval).num = MBUT_L; ;}
     break;
 
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 331 "Parser.y"
+#line 332 "Parser.y"
     { (yyval).num = MBUT_R; ;}
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 332 "Parser.y"
+#line 333 "Parser.y"
     { (yyval).num = MBUT_M; ;}
     break;
 
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 334 "Parser.y"
+#line 335 "Parser.y"
     { (yyval).num = (yyvsp[(1) - (1)]).num; 		  ;}
     break;
 
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 335 "Parser.y"
+#line 336 "Parser.y"
     { (yyval).num = (yyvsp[(1) - (3)]).num | (yyvsp[(3) - (3)]).num; ;}
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 338 "Parser.y"
+#line 339 "Parser.y"
     {
 				(yyval).mousecode.shift = (yyvsp[(1) - (3)]).num >> 8;
 				(yyval).mousecode.button = (yyvsp[(2) - (3)]).num;
@@ -1975,7 +1975,7 @@ int yydebug = 1;
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 346 "Parser.y"
+#line 347 "Parser.y"
     {
 				protokoll("Compile key table %s",(yyvsp[(3) - (3)]).s);
 				key_switchtotable((yyvsp[(3) - (3)]).s);
@@ -1989,7 +1989,7 @@ int yydebug = 1;
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 361 "Parser.y"
+#line 362 "Parser.y"
     {
 				if ((yyvsp[(1) - (3)]).num != K_INVALID && 
 				    (yyvsp[(3) - (3)]).macref.index != (MACROREFIDX) -1) {
@@ -2005,14 +2005,14 @@ int yydebug = 1;
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 371 "Parser.y"
+#line 372 "Parser.y"
     { yyerror("key binding"); ;}
     break;
 
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 374 "Parser.y"
+#line 375 "Parser.y"
     {
 				if (((yyval).num = key2code((yyvsp[(1) - (1)]).s,_kmod_control)) == K_INVALID)
 					yyerror("bad key %s",(yyvsp[(1) - (1)]).s);
@@ -2023,21 +2023,21 @@ int yydebug = 1;
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 379 "Parser.y"
+#line 380 "Parser.y"
     {	(yyval).num = (yyvsp[(1) - (1)]).num|_kmod_control; 	;}
     break;
 
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 381 "Parser.y"
+#line 382 "Parser.y"
     {	_kmod_control = (yyvsp[(1) - (1)]).num; ;}
     break;
 
   case 58:
 
 /* Line 1455 of yacc.c  */
-#line 382 "Parser.y"
+#line 383 "Parser.y"
     { 
 				(yyval).num = (yyvsp[(3) - (3)]).num;
 			;}
@@ -2046,42 +2046,42 @@ int yydebug = 1;
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 386 "Parser.y"
+#line 387 "Parser.y"
     {	(yyval).num = 0; ;}
     break;
 
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 387 "Parser.y"
+#line 388 "Parser.y"
     { (yyval).num = (yyvsp[(1) - (3)]).num | (yyvsp[(3) - (3)]).num; ;}
     break;
 
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 389 "Parser.y"
+#line 390 "Parser.y"
     { (yyval).num = /* K_SHIFT */ 0x300; ;}
     break;
 
   case 62:
 
 /* Line 1455 of yacc.c  */
-#line 390 "Parser.y"
+#line 391 "Parser.y"
     { (yyval).num = K_CONTROL; ;}
     break;
 
   case 63:
 
 /* Line 1455 of yacc.c  */
-#line 391 "Parser.y"
+#line 392 "Parser.y"
     { (yyval).num = K_ALTERNATE; ;}
     break;
 
   case 67:
 
 /* Line 1455 of yacc.c  */
-#line 401 "Parser.y"
+#line 402 "Parser.y"
     {	
 				protokoll("Defining icon for macro %s",(yyvsp[(5) - (5)]).s);
 				freeitem(&(yyvsp[(1) - (5)]).s);
@@ -2094,28 +2094,28 @@ int yydebug = 1;
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 408 "Parser.y"
+#line 409 "Parser.y"
     { yyerror("icon definition"); ;}
     break;
 
   case 72:
 
 /* Line 1455 of yacc.c  */
-#line 417 "Parser.y"
+#line 418 "Parser.y"
     { _bDefiningConst = 1; ;}
     break;
 
   case 73:
 
 /* Line 1455 of yacc.c  */
-#line 417 "Parser.y"
+#line 418 "Parser.y"
     { _bDefiningConst = 0; ;}
     break;
 
   case 74:
 
 /* Line 1455 of yacc.c  */
-#line 419 "Parser.y"
+#line 420 "Parser.y"
     {
 				MakeInternalSym((yyvsp[(2) - (5)]).s,
 					((yyvsp[(5) - (5)]).v.type == C_STRING1PAR) ? 
@@ -2127,49 +2127,49 @@ int yydebug = 1;
   case 75:
 
 /* Line 1455 of yacc.c  */
-#line 426 "Parser.y"
+#line 427 "Parser.y"
     {	(yyval).s = (yyvsp[(1) - (1)]).s; ;}
     break;
 
   case 76:
 
 /* Line 1455 of yacc.c  */
-#line 427 "Parser.y"
+#line 428 "Parser.y"
     {	(yyval).s	= (yyvsp[(1) - (1)]).s; ;}
     break;
 
   case 77:
 
 /* Line 1455 of yacc.c  */
-#line 429 "Parser.y"
+#line 430 "Parser.y"
     {	(yyval).s = (yyvsp[(1) - (1)]).s; ;}
     break;
 
   case 78:
 
 /* Line 1455 of yacc.c  */
-#line 430 "Parser.y"
+#line 431 "Parser.y"
     {	(yyval).s = (yyvsp[(1) - (1)]).s; ;}
     break;
 
   case 79:
 
 /* Line 1455 of yacc.c  */
-#line 434 "Parser.y"
+#line 435 "Parser.y"
     { startmacro(); ;}
     break;
 
   case 80:
 
 /* Line 1455 of yacc.c  */
-#line 435 "Parser.y"
+#line 436 "Parser.y"
     { (yyval).s = (yyvsp[(3) - (6)]).s; ;}
     break;
 
   case 85:
 
 /* Line 1455 of yacc.c  */
-#line 443 "Parser.y"
+#line 444 "Parser.y"
     {
 				int typ;
 				
@@ -2183,7 +2183,7 @@ int yydebug = 1;
   case 86:
 
 /* Line 1455 of yacc.c  */
-#line 453 "Parser.y"
+#line 454 "Parser.y"
     {
 				if (!yyerrflg) {
 					makelabel(lreturnid,0);
@@ -2203,35 +2203,35 @@ int yydebug = 1;
   case 87:
 
 /* Line 1455 of yacc.c  */
-#line 468 "Parser.y"
+#line 469 "Parser.y"
     {	(yyval).s = 0; ;}
     break;
 
   case 88:
 
 /* Line 1455 of yacc.c  */
-#line 469 "Parser.y"
+#line 470 "Parser.y"
     {	(yyval).s = (yyvsp[(1) - (1)]).s; ;}
     break;
 
   case 89:
 
 /* Line 1455 of yacc.c  */
-#line 471 "Parser.y"
+#line 472 "Parser.y"
     {	(yyval).s = ""; ;}
     break;
 
   case 90:
 
 /* Line 1455 of yacc.c  */
-#line 472 "Parser.y"
+#line 473 "Parser.y"
     {	(yyval).s = (yyvsp[(1) - (1)]).s; ;}
     break;
 
   case 94:
 
 /* Line 1455 of yacc.c  */
-#line 485 "Parser.y"
+#line 486 "Parser.y"
     {
 				MakeInternalSym((yyvsp[(2) - (4)]).s,
 					((yyvsp[(1) - (4)]).type == C_STRING1PAR) ? S_STRING : S_NUMBER,
@@ -2245,7 +2245,7 @@ int yydebug = 1;
   case 95:
 
 /* Line 1455 of yacc.c  */
-#line 492 "Parser.y"
+#line 493 "Parser.y"
     {
 				if ((yyvsp[(1) - (3)]).type == C_STRING1PAR) {
 					MakeInternalSym((yyvsp[(2) - (3)]).s, S_STRING, (intptr_t)"");
@@ -2261,21 +2261,21 @@ int yydebug = 1;
   case 98:
 
 /* Line 1455 of yacc.c  */
-#line 505 "Parser.y"
+#line 506 "Parser.y"
     { vname_count = 0; ;}
     break;
 
   case 109:
 
 /* Line 1455 of yacc.c  */
-#line 515 "Parser.y"
+#line 516 "Parser.y"
     { yyerror("invalid statement"); ;}
     break;
 
   case 110:
 
 /* Line 1455 of yacc.c  */
-#line 518 "Parser.y"
+#line 519 "Parser.y"
     {
 				PushAssign((yyvsp[(1) - (2)]).s,(yyvsp[(2) - (2)]).v.type,(intptr_t)(yyvsp[(2) - (2)]).v.val);
 			;}
@@ -2284,49 +2284,49 @@ int yydebug = 1;
   case 111:
 
 /* Line 1455 of yacc.c  */
-#line 522 "Parser.y"
+#line 523 "Parser.y"
     { 	(yyval).v = (yyvsp[(2) - (2)]).v;	;}
     break;
 
   case 112:
 
 /* Line 1455 of yacc.c  */
-#line 524 "Parser.y"
+#line 525 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v; ;}
     break;
 
   case 113:
 
 /* Line 1455 of yacc.c  */
-#line 525 "Parser.y"
+#line 526 "Parser.y"
     { (yyval).v = (yyvsp[(2) - (3)]).v; ;}
     break;
 
   case 114:
 
 /* Line 1455 of yacc.c  */
-#line 527 "Parser.y"
+#line 528 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v; ;}
     break;
 
   case 115:
 
 /* Line 1455 of yacc.c  */
-#line 528 "Parser.y"
+#line 529 "Parser.y"
     { (yyval).v = PushBinop(BIN_NOT,&(yyvsp[(2) - (2)]).v,0); 	;}
     break;
 
   case 116:
 
 /* Line 1455 of yacc.c  */
-#line 530 "Parser.y"
+#line 531 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v; ;}
     break;
 
   case 117:
 
 /* Line 1455 of yacc.c  */
-#line 531 "Parser.y"
+#line 532 "Parser.y"
     {
 				_recp = AddComSeq(_recp,_recpend,C_FURET,vname_count);
 			;}
@@ -2335,7 +2335,7 @@ int yydebug = 1;
   case 118:
 
 /* Line 1455 of yacc.c  */
-#line 533 "Parser.y"
+#line 534 "Parser.y"
     {
 				if ((yyvsp[(2) - (2)]).funcp && IsStringFunc((yyvsp[(2) - (2)]).funcp)) {
 					(yyval).v.type = C_STRINGVAR;
@@ -2350,14 +2350,14 @@ int yydebug = 1;
   case 119:
 
 /* Line 1455 of yacc.c  */
-#line 543 "Parser.y"
+#line 544 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v;	;}
     break;
 
   case 120:
 
 /* Line 1455 of yacc.c  */
-#line 544 "Parser.y"
+#line 545 "Parser.y"
     {
 				if (IsStringType((yyvsp[(1) - (2)]).type) ==
 				    IsStringType((yyvsp[(2) - (2)]).v.type)) {
@@ -2373,161 +2373,161 @@ int yydebug = 1;
   case 121:
 
 /* Line 1455 of yacc.c  */
-#line 554 "Parser.y"
+#line 555 "Parser.y"
     { (yyval).v = PushBinop(BIN_AND,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 122:
 
 /* Line 1455 of yacc.c  */
-#line 555 "Parser.y"
+#line 556 "Parser.y"
     { (yyval).v = PushBinop(BIN_OR,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 123:
 
 /* Line 1455 of yacc.c  */
-#line 556 "Parser.y"
+#line 557 "Parser.y"
     { (yyval).v = PushBinop(BIN_ADD,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 124:
 
 /* Line 1455 of yacc.c  */
-#line 557 "Parser.y"
+#line 558 "Parser.y"
     { (yyval).v = PushBinop(BIN_XOR,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 125:
 
 /* Line 1455 of yacc.c  */
-#line 558 "Parser.y"
+#line 559 "Parser.y"
     { (yyval).v = PushBinop(BIN_SUB,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 126:
 
 /* Line 1455 of yacc.c  */
-#line 559 "Parser.y"
+#line 560 "Parser.y"
     { (yyval).v = PushBinop(BIN_MUL,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 127:
 
 /* Line 1455 of yacc.c  */
-#line 560 "Parser.y"
+#line 561 "Parser.y"
     { (yyval).v = PushBinop(BIN_DIV,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 128:
 
 /* Line 1455 of yacc.c  */
-#line 561 "Parser.y"
+#line 562 "Parser.y"
     { (yyval).v = PushBinop(BIN_MOD,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 129:
 
 /* Line 1455 of yacc.c  */
-#line 562 "Parser.y"
+#line 563 "Parser.y"
     { (yyval).v = (yyvsp[(2) - (3)]).v; ;}
     break;
 
   case 130:
 
 /* Line 1455 of yacc.c  */
-#line 566 "Parser.y"
+#line 567 "Parser.y"
     { TestOp(); ;}
     break;
 
   case 131:
 
 /* Line 1455 of yacc.c  */
-#line 566 "Parser.y"
+#line 567 "Parser.y"
     { CloseTestOp(CT_BRACKETS); ;}
     break;
 
   case 135:
 
 /* Line 1455 of yacc.c  */
-#line 570 "Parser.y"
+#line 571 "Parser.y"
     { TestOp(); ;}
     break;
 
   case 136:
 
 /* Line 1455 of yacc.c  */
-#line 570 "Parser.y"
+#line 571 "Parser.y"
     { CloseTestOp(CT_NOT); ;}
     break;
 
   case 137:
 
 /* Line 1455 of yacc.c  */
-#line 572 "Parser.y"
+#line 573 "Parser.y"
     { TestOp(); ;}
     break;
 
   case 138:
 
 /* Line 1455 of yacc.c  */
-#line 572 "Parser.y"
+#line 573 "Parser.y"
     { CloseTestOp((yyvsp[(3) - (3)]).type); ;}
     break;
 
   case 139:
 
 /* Line 1455 of yacc.c  */
-#line 574 "Parser.y"
+#line 575 "Parser.y"
     { (yyval).type = CT_BRACKETS; ;}
     break;
 
   case 140:
 
 /* Line 1455 of yacc.c  */
-#line 575 "Parser.y"
+#line 576 "Parser.y"
     { (yyval).type = (yyvsp[(1) - (1)]).type; BinOp1((yyvsp[(1) - (1)]).type); ;}
     break;
 
   case 142:
 
 /* Line 1455 of yacc.c  */
-#line 577 "Parser.y"
+#line 578 "Parser.y"
     {	(yyval).type = CT_AND;	;}
     break;
 
   case 143:
 
 /* Line 1455 of yacc.c  */
-#line 578 "Parser.y"
+#line 579 "Parser.y"
     {	(yyval).type = CT_OR;	;}
     break;
 
   case 144:
 
 /* Line 1455 of yacc.c  */
-#line 580 "Parser.y"
+#line 581 "Parser.y"
     { TestOp(); ;}
     break;
 
   case 145:
 
 /* Line 1455 of yacc.c  */
-#line 581 "Parser.y"
+#line 582 "Parser.y"
     { BinOp1((yyvsp[(2) - (2)]).type);  ;}
     break;
 
   case 146:
 
 /* Line 1455 of yacc.c  */
-#line 582 "Parser.y"
+#line 583 "Parser.y"
     { CloseTestOp((yyvsp[(4) - (4)]).type); ;}
     break;
 
   case 147:
 
 /* Line 1455 of yacc.c  */
-#line 584 "Parser.y"
+#line 585 "Parser.y"
     { 	
 				if (_stringflg)
 					_recp = AddComSeq(_recp,_recpend,C_STRING1PAR,(intptr_t)"");
@@ -2540,7 +2540,7 @@ int yydebug = 1;
   case 148:
 
 /* Line 1455 of yacc.c  */
-#line 591 "Parser.y"
+#line 592 "Parser.y"
     {
 				int flg = STRINGTYPE((yyvsp[(2) - (2)]).type);
 				if (_stringflg != flg)
@@ -2552,35 +2552,35 @@ int yydebug = 1;
   case 149:
 
 /* Line 1455 of yacc.c  */
-#line 598 "Parser.y"
+#line 599 "Parser.y"
     {	(yyval).type = CT_LT;	;}
     break;
 
   case 150:
 
 /* Line 1455 of yacc.c  */
-#line 599 "Parser.y"
+#line 600 "Parser.y"
     {	(yyval).type = CT_GT;	;}
     break;
 
   case 151:
 
 /* Line 1455 of yacc.c  */
-#line 600 "Parser.y"
+#line 601 "Parser.y"
     {	(yyval).type = CT_EQ;	;}
     break;
 
   case 152:
 
 /* Line 1455 of yacc.c  */
-#line 601 "Parser.y"
+#line 602 "Parser.y"
     {	(yyval).type = CT_NE;	;}
     break;
 
   case 153:
 
 /* Line 1455 of yacc.c  */
-#line 602 "Parser.y"
+#line 603 "Parser.y"
     {
 				if (_stringflg == CT_NUM)
 					yyerror("match operator not allowed on numbers");
@@ -2591,35 +2591,35 @@ int yydebug = 1;
   case 154:
 
 /* Line 1455 of yacc.c  */
-#line 608 "Parser.y"
+#line 609 "Parser.y"
     {	(yyval).type = CT_MATCH;			;}
     break;
 
   case 155:
 
 /* Line 1455 of yacc.c  */
-#line 609 "Parser.y"
+#line 610 "Parser.y"
     {	(yyval).type = CT_NMATCH;		;}
     break;
 
   case 156:
 
 /* Line 1455 of yacc.c  */
-#line 611 "Parser.y"
+#line 612 "Parser.y"
     {	(yyval).type = C_LONG1PAR; 	 	;}
     break;
 
   case 157:
 
 /* Line 1455 of yacc.c  */
-#line 612 "Parser.y"
+#line 613 "Parser.y"
     {	(yyval).type = PushVal(&(yyvsp[(1) - (1)]).v);	;}
     break;
 
   case 158:
 
 /* Line 1455 of yacc.c  */
-#line 614 "Parser.y"
+#line 615 "Parser.y"
     {
 				(yyval).v.type = C_LONGVAR;  
 				(yyval).v.val  = (intptr_t) (yyvsp[(1) - (1)]).s;
@@ -2629,7 +2629,7 @@ int yydebug = 1;
   case 159:
 
 /* Line 1455 of yacc.c  */
-#line 618 "Parser.y"
+#line 619 "Parser.y"
     {
 				(yyval).v.type = C_STRINGVAR;  
 				(yyval).v.val  = (intptr_t) (yyvsp[(1) - (1)]).s;
@@ -2639,7 +2639,7 @@ int yydebug = 1;
   case 160:
 
 /* Line 1455 of yacc.c  */
-#line 622 "Parser.y"
+#line 623 "Parser.y"
     {
 				(yyval).v.type = C_STRING1PAR;
 				(yyval).v.val  = (intptr_t) (yyvsp[(1) - (1)]).s;
@@ -2649,21 +2649,21 @@ int yydebug = 1;
   case 161:
 
 /* Line 1455 of yacc.c  */
-#line 626 "Parser.y"
+#line 627 "Parser.y"
     {	(yyval).v = (yyvsp[(1) - (1)]).v;	;}
     break;
 
   case 162:
 
 /* Line 1455 of yacc.c  */
-#line 628 "Parser.y"
+#line 629 "Parser.y"
     {	(yyval).s = (yyvsp[(1) - (1)]).s;	;}
     break;
 
   case 163:
 
 /* Line 1455 of yacc.c  */
-#line 629 "Parser.y"
+#line 630 "Parser.y"
     { 
 				if (((yyval).s = malloc(strlen((yyvsp[(1) - (2)]).s)+strlen((yyvsp[(2) - (2)]).s)+1)) != 0) {
 					strcat(strcpy((yyval).s,(yyvsp[(1) - (2)]).s),(yyvsp[(2) - (2)]).s);
@@ -2679,21 +2679,21 @@ int yydebug = 1;
   case 164:
 
 /* Line 1455 of yacc.c  */
-#line 641 "Parser.y"
+#line 642 "Parser.y"
     {	gotolabel(lendid,_breaklevel-(yyvsp[(2) - (3)]).num,BRA_ALWAYS); ;}
     break;
 
   case 165:
 
 /* Line 1455 of yacc.c  */
-#line 644 "Parser.y"
+#line 645 "Parser.y"
     {	gotolabel(lstartid,_breaklevel-(yyvsp[(2) - (3)]).num,BRA_ALWAYS); ;}
     break;
 
   case 166:
 
 /* Line 1455 of yacc.c  */
-#line 646 "Parser.y"
+#line 647 "Parser.y"
     {
 				_recp = AddComSeq(_recp,_recpend,C_STOP,(yyvsp[(2) - (2)]).num);
 			;}
@@ -2702,21 +2702,21 @@ int yydebug = 1;
   case 167:
 
 /* Line 1455 of yacc.c  */
-#line 650 "Parser.y"
+#line 651 "Parser.y"
     {	(yyval).num = 1;	;}
     break;
 
   case 168:
 
 /* Line 1455 of yacc.c  */
-#line 651 "Parser.y"
+#line 652 "Parser.y"
     {	(yyval).num = (yyvsp[(1) - (1)]).num; ;}
     break;
 
   case 172:
 
 /* Line 1455 of yacc.c  */
-#line 658 "Parser.y"
+#line 659 "Parser.y"
     {
 				MakeLabel((yyvsp[(1) - (2)]).s,(COM_GOTO *)_recp);
 				freeitem(&(yyvsp[(1) - (2)]).s);
@@ -2726,7 +2726,7 @@ int yydebug = 1;
   case 173:
 
 /* Line 1455 of yacc.c  */
-#line 663 "Parser.y"
+#line 664 "Parser.y"
     {
 				_recp = GotoLabel((yyvsp[(2) - (2)]).s,_recp,_recpend,BRA_ALWAYS);
 				freeitem(&(yyvsp[(2) - (2)]).s);
@@ -2736,7 +2736,7 @@ int yydebug = 1;
   case 174:
 
 /* Line 1455 of yacc.c  */
-#line 667 "Parser.y"
+#line 668 "Parser.y"
     {
 				_recp = GotoLabel((yyvsp[(2) - (2)]).s,_recp,_recpend,BRA_EQ);
 				freeitem(&(yyvsp[(2) - (2)]).s);
@@ -2746,7 +2746,7 @@ int yydebug = 1;
   case 175:
 
 /* Line 1455 of yacc.c  */
-#line 672 "Parser.y"
+#line 673 "Parser.y"
     {
 				makelabel(lstartid,_breaklevel);
 			;}
@@ -2755,7 +2755,7 @@ int yydebug = 1;
   case 176:
 
 /* Line 1455 of yacc.c  */
-#line 674 "Parser.y"
+#line 675 "Parser.y"
     {
 				gotolabel(lendid,_breaklevel,BRA_EQ);
 				_breaklevel++;
@@ -2765,7 +2765,7 @@ int yydebug = 1;
   case 177:
 
 /* Line 1455 of yacc.c  */
-#line 677 "Parser.y"
+#line 678 "Parser.y"
     {
 				_breaklevel--;
 				gotolabel(lstartid,_breaklevel,BRA_ALWAYS);
@@ -2778,7 +2778,7 @@ int yydebug = 1;
   case 178:
 
 /* Line 1455 of yacc.c  */
-#line 685 "Parser.y"
+#line 686 "Parser.y"
     {
 				gotolabel(iffailid,_iflevel,BRA_EQ);
 				_iflevel++;
@@ -2788,7 +2788,7 @@ int yydebug = 1;
   case 179:
 
 /* Line 1455 of yacc.c  */
-#line 688 "Parser.y"
+#line 689 "Parser.y"
     {
 				_iflevel--;
 				gotolabel(ifdoneid,_iflevel,BRA_ALWAYS);
@@ -2800,7 +2800,7 @@ int yydebug = 1;
   case 180:
 
 /* Line 1455 of yacc.c  */
-#line 693 "Parser.y"
+#line 694 "Parser.y"
     {
 				makelabel(ifdoneid,_iflevel);
 				killabel(ifdoneid,_iflevel);
@@ -2810,7 +2810,7 @@ int yydebug = 1;
   case 185:
 
 /* Line 1455 of yacc.c  */
-#line 704 "Parser.y"
+#line 705 "Parser.y"
     {
 				_lastfuncp = (yyvsp[(1) - (1)]).funcp;
 				_parno = 0;
@@ -2823,7 +2823,7 @@ int yydebug = 1;
   case 187:
 
 /* Line 1455 of yacc.c  */
-#line 711 "Parser.y"
+#line 712 "Parser.y"
     {
 				_lastfuncp = 0;
 				_recp = AddComSeq(_recp,_recpend,C_MACRO,(intptr_t)(yyvsp[(1) - (1)]).s);
@@ -2835,7 +2835,7 @@ int yydebug = 1;
   case 191:
 
 /* Line 1455 of yacc.c  */
-#line 721 "Parser.y"
+#line 722 "Parser.y"
     {
 				PushParam(&(yyvsp[(1) - (1)]).v);
 			;}
@@ -2844,7 +2844,7 @@ int yydebug = 1;
   case 192:
 
 /* Line 1455 of yacc.c  */
-#line 724 "Parser.y"
+#line 725 "Parser.y"
     {
 				PushParam(&(yyvsp[(3) - (3)]).v);
 			;}
@@ -2853,7 +2853,7 @@ int yydebug = 1;
   case 193:
 
 /* Line 1455 of yacc.c  */
-#line 727 "Parser.y"
+#line 728 "Parser.y"
     {
 				yyerror("illegal parameters");
 			;}
@@ -2862,7 +2862,7 @@ int yydebug = 1;
   case 194:
 
 /* Line 1455 of yacc.c  */
-#line 731 "Parser.y"
+#line 732 "Parser.y"
     {
 				if (ISCONSTINT((yyvsp[(2) - (2)]).v.type)) {
 					if ((yyvsp[(1) - (2)]).type == C_CHAR1PAR &&
@@ -2885,49 +2885,49 @@ int yydebug = 1;
   case 195:
 
 /* Line 1455 of yacc.c  */
-#line 748 "Parser.y"
+#line 749 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v; ;}
     break;
 
   case 196:
 
 /* Line 1455 of yacc.c  */
-#line 750 "Parser.y"
+#line 751 "Parser.y"
     {	(yyval).type = (yyvsp[(2) - (3)]).type;		;}
     break;
 
   case 197:
 
 /* Line 1455 of yacc.c  */
-#line 752 "Parser.y"
+#line 753 "Parser.y"
     {	(yyval).type = C_CHAR1PAR;	;}
     break;
 
   case 198:
 
 /* Line 1455 of yacc.c  */
-#line 753 "Parser.y"
+#line 754 "Parser.y"
     {	(yyval).type = C_INT1PAR;	;}
     break;
 
   case 199:
 
 /* Line 1455 of yacc.c  */
-#line 754 "Parser.y"
+#line 755 "Parser.y"
     {	(yyval).type = C_LONG1PAR;	;}
     break;
 
   case 200:
 
 /* Line 1455 of yacc.c  */
-#line 755 "Parser.y"
+#line 756 "Parser.y"
     {	(yyval).type = C_STRING1PAR;	;}
     break;
 
   case 201:
 
 /* Line 1455 of yacc.c  */
-#line 757 "Parser.y"
+#line 758 "Parser.y"
     {
 				(yyval).macref.typ = CMD_MACRO; 
 				if (((yyval).macref.index = mac_getbyname((yyvsp[(1) - (1)]).s)) == 
@@ -2941,7 +2941,7 @@ int yydebug = 1;
   case 202:
 
 /* Line 1455 of yacc.c  */
-#line 765 "Parser.y"
+#line 766 "Parser.y"
     {
 				(yyval).macref.typ = CMD_CMDSEQ; 
 				(yyval).macref.index = mac_cmdseqbyname((yyvsp[(2) - (2)]).s); 
@@ -2952,7 +2952,7 @@ int yydebug = 1;
   case 203:
 
 /* Line 1455 of yacc.c  */
-#line 771 "Parser.y"
+#line 772 "Parser.y"
     {
 				(yyval).v.type = C_LONG1PAR; 
 				(yyval).v.val  = (yyvsp[(1) - (1)]).num;
@@ -2962,14 +2962,14 @@ int yydebug = 1;
   case 204:
 
 /* Line 1455 of yacc.c  */
-#line 777 "Parser.y"
+#line 778 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v; ;}
     break;
 
   case 205:
 
 /* Line 1455 of yacc.c  */
-#line 778 "Parser.y"
+#line 779 "Parser.y"
     {
 				(yyval).v.type = C_STRING1PAR;
 				(yyval).v.val  = (intptr_t) (yyvsp[(1) - (1)]).s;
@@ -2979,14 +2979,14 @@ int yydebug = 1;
   case 206:
 
 /* Line 1455 of yacc.c  */
-#line 783 "Parser.y"
+#line 784 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v;	;}
     break;
 
   case 207:
 
 /* Line 1455 of yacc.c  */
-#line 784 "Parser.y"
+#line 785 "Parser.y"
     {
 				(yyval).v.type = (yyvsp[(1) - (3)]).v.type;
 				(yyval).v.val = (yyvsp[(1) - (3)]).v.val | (yyvsp[(3) - (3)]).v.val;
@@ -2996,7 +2996,7 @@ int yydebug = 1;
 
 
 /* Line 1455 of yacc.c  */
-#line 2999 "Parser.tab.c"
+#line 3000 "Parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -3208,7 +3208,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 788 "Parser.y"
+#line 789 "Parser.y"
 
 
 /*---------------------------------*/

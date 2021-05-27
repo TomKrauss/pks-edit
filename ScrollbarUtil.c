@@ -41,17 +41,35 @@ static void SetWin32ScrollInfo(WINFO * wp, int nSlider,
 		scrollInfo.nPage = nVisible;
 		scrollInfo.nPos = lValue;
 		SetScrollInfo(wp->ww_handle, nSlider, &scrollInfo, TRUE);
+		ShowScrollBar(wp->ww_handle, nSlider, nVisible < lMaximum);
 	}
 }
 #endif
+
+/**
+ * Calculate the length of the longest line on the fly. 
+ * Dumb version, which does not yet handle tabs / formatting etc....
+ */
+static int calculateLongestLine(FTABLE *fp) {
+	LINE* lp = fp->firstl;
+	int max = 0;
+	while (lp) {
+		int len = caret_lineOffset2screen(fp, &(CARET){lp, lp->len});
+		if (max < len) {
+			max = len;
+		}
+		lp = lp->next;
+	}
+	return max;
+}
 
 /*------------------------------------------------------------
  * sl_size()
  */
 int sl_size(WINFO *wp)
 {
-	long  	n,top;
-	int   	oldrange,oldstart;
+	long  	n,maxColumns;
+	long	maxRows;
 	FTABLE	*fp;
 
 	if (!wp->ww_handle)
@@ -59,42 +77,38 @@ int sl_size(WINFO *wp)
 
 	fp = FTPOI(wp);
 	if (wp->dispmode & SHOWHIDEVSLIDER) {
-		n = top = 0;
+		n = maxRows = 0;
 	} else {
-		for (n = fp->nlines+1L, top = wp->minln; 
+		for (n = fp->nlines+1L, maxRows = wp->minln;
 		    n > 32000L; 
-		    n >>= 1, top >>= 1)
+		    n >>= 1, maxRows >>= 1)
 		;
 	}
 
 #if defined(WIN32)
-	SetWin32ScrollInfo(wp, SB_VERT, top, wp->maxln - wp->minln + 1, n);
+	SetWin32ScrollInfo(wp, SB_VERT, maxRows, wp->maxln - wp->minln + 1, n);
 #else
 	GetScrollRange(wp->ww_handle, SB_VERT, &oldstart, &oldrange);
 	oldstart = GetScrollPos(wp->ww_handle, SB_VERT);
 	SetScrollRange(wp->ww_handle, SB_VERT, 0, (int)n, FALSE);
-	SetScrollPos(wp->ww_handle, SB_VERT, (int)top, 
-			  (oldstart != top || oldrange != n));
+	SetScrollPos(wp->ww_handle, SB_VERT, (int)maxRows,
+			  (oldstart != maxRows || oldrange != n));
 #endif
 	if (wp->dispmode & SHOWHIDEHSLIDER) {
-		n = top = 0;
+		n = maxColumns = 0;
 	} else {
-		top = MAXCOL;
+		if (fp->nlines < 200) {
+			maxColumns = calculateLongestLine(fp);
+		} else {
+			maxColumns = MAXCOL;
+		}
 		n = wp->mincol;
-		if (n > top)
-			n = top;
+		if (n > maxColumns) {
+			n = maxColumns;
+		}
 	}
-
-#if 0
-/* PKS-EDIT does not know about the longest line in a file currently */
-	SetWin32ScrollInfo(wp, SB_HORZ, n, wp->maxcol - wp->mincol + 1, top);
-#else
-	GetScrollRange(wp->ww_handle, SB_HORZ, &oldstart, &oldrange);
-	oldstart = GetScrollPos(wp->ww_handle, SB_HORZ);
-	SetScrollRange(wp->ww_handle,SB_HORZ, 0, top, FALSE);
-	SetScrollPos(wp->ww_handle,SB_HORZ, (int)n, 
-			  (oldstart != n || oldrange != top));
-#endif
+	int visibleColumns = wp->maxcol - wp->mincol + 1;
+	SetWin32ScrollInfo(wp, SB_HORZ, n, visibleColumns, maxColumns);
 	return 1;
 }
 
@@ -187,8 +201,11 @@ void sl_winchanged(WINFO *wp,long dy, long dx) {
 	} else {
 		SendRedraw(wp->ww_handle);
 	}
-	if (dx) {
+	if (dx && wp->ru_handle) {
 		SendRedraw(wp->ru_handle);
+	}
+	if (dy && wp->lineNumbers_handle) {
+		SendRedraw(wp->lineNumbers_handle);
 	}
 	sl_size(wp);
 }

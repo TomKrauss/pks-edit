@@ -462,11 +462,11 @@ int RecordOptions(int *o)
 int EdAbout(void)
 { 	
 #if defined(_WIN64)
-	static char _architecture[] = "- 64 Bit Platform Version";
+	static char _architecture[] = "- 64 Bit Plattform";
 #elif
-	static char _architecture[] = "- 32 Bit Platform Version";
+	static char _architecture[] = "- 32 Bit Plattform";
 #endif
-	static char _versionInfo[] = "Version 1.4, 14.5.2021";
+	static char _versionInfo[] = "Version 1.5, 27.5.2021";
 
 	static DIALPARS _d[] = {
 		IDD_RO1,		sizeof _kunde,		_kunde,
@@ -1244,6 +1244,7 @@ int EdDlgDispMode(void)
 		IDD_OPT7,		SHOWFIXEDWI,		&dispmode,
 		IDD_OPT8,		SHOWHIDEVSLIDER,	&dispmode,
 		IDD_OPT9,		SHOWHIDEHSLIDER,	&dispmode,
+		IDD_OPT10,		SHOWLINENUMBERS,	& dispmode,
 		0
 	};
 	DOCUMENT_DESCRIPTOR *linp;

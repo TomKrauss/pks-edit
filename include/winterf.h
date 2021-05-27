@@ -59,6 +59,7 @@ extern char   szFrameClass[];
 extern char   szEditClass[];
 extern char   szStatusClass[];
 extern char   szRulerClass[];
+extern char   szLineNumbersClass[];
 extern char   szWorkAreaClass[];
 
 typedef long (FPE_FUNC *WINFUNCP)(HWND, UINT, WPARAM, LPARAM);

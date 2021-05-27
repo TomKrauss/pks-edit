@@ -55,6 +55,9 @@ extern long dumpallocated(void);
 
 static WINDOWPLACEMENT	_winstates[6];
 
+static int lineNumberWindowWidth = 50;
+static int rulerWindowHeight = 20;
+
 /*-----------------------------------------------------------
  * ww_winstate()
  */
@@ -80,46 +83,20 @@ EXPORT void ww_savewinstates(void)
 	}
 }
 
-/*-----------------------------------------------------------
- * ww_register()
- */
-int ww_register(void)
-{
-	if (!EdMkWinClass(szWorkAreaClass,WorkAreaWndProc,
-		      (LPSTR)IDC_IBEAM,GetStockObject(WHITE_BRUSH),0,
-		      sizeof(void*)) ||
-		!EdMkWinClass(szEditClass,EditWndProc,
-		      (LPSTR)IDC_ARROW,NULL,"Edit",
-		      GWL_VIEWPTR+sizeof(void*)) ||
-		!EdMkWinClass(szRulerClass,RulerWndProc,
-			 (LPSTR)IDC_CROSS,GetStockObject(WHITE_BRUSH),0,
-		      sizeof(void*))
-#if 0
-		       ||
-	     !EdMkWinClass(szStatusClass,StatusWndProc,
-		      (LPSTR)IDC_ARROW,NULL,0,
-		      2 * sizeof(LONG))
-#endif
-			) {
-		return 0;
-	}
-	return 1;
-}
- 
 /*------------------------------------------------------------
  * MakeOrKillEditChild()
  */
 static int MakeOrKillEditChild(
 	HWND  hwnd, 
 	DWORD winFlags,
-	int   living,
+	BOOL  visible,
 	HWND  *hwndChild,
 	char  *szClass, 
 	XYWH  *XYPxy,
-	FTABLE *fp
+	WINFO *wp
 )
 {
-	if (living == 0) {
+	if (visible == FALSE) {
 		if (*hwndChild) {
 			DestroyWindow(*hwndChild);
 			*hwndChild = 0;
@@ -127,54 +104,68 @@ static int MakeOrKillEditChild(
 		return 0;
 	}
 
-	if (*hwndChild)
+	if (*hwndChild) {
 		return 1;
-
+	}
 	*hwndChild = CreateWindow( szClass, NULL,
 		winFlags, XYPxy->x, XYPxy->y, XYPxy->w, XYPxy->h, 
-		hwnd, NULL, hInst, (LPVOID)fp);
+		hwnd, NULL, hInst, (LPVOID)wp);
 	return *hwndChild != 0;
 }
 
 /*-----------------------------------------------------------
  * MakeSubWis()
  */
-static int MakeSubWis(HWND hwnd, FTABLE *fp, XYWH *pWork, XYWH *pRuler)
-{
-	RECT    	rect;
-	int		living;
+static int MakeSubWis(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, XYWH *pLineInfo) {
+	RECT   	rect;
+	BOOL	rulerVisible;
+	BOOL	lineNumbersVisible;
 	int		w;
 	int		h;
 	int		rh;
-	WINFO *	wp;
+	int		rLineNumbers;
 
-	if ((wp = WIPOI(fp)) == 0)
+	if (wp == 0) {
 		return 0;
+	}
 
 	GetClientRect(hwnd,&rect);
 	w = rect.right-rect.left;
 	h = rect.bottom-rect.top;
 
-	rh = 20;
+	rh = rulerWindowHeight;
 	pRuler->x = 0;
 	pRuler->w = w;
 	pRuler->y = 0;
 	pRuler->h = rh;
 
-	living = (h > rh && (wp->dispmode & SHOWRULER));
+	rulerVisible = (h > rh && (wp->dispmode & SHOWRULER));
 	if (!MakeOrKillEditChild(hwnd,
 		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS,
-		living,&wp->ru_handle,szRulerClass,pRuler,fp)) {
+		rulerVisible, &wp->ru_handle, szRulerClass, pRuler, wp)) {
 		pRuler->h = 0;
 	}
 
-	pWork->x = 0;
-	pWork->w = w;
+	rLineNumbers = lineNumberWindowWidth;
+	pLineInfo->x = 0;
+	pLineInfo->w = rLineNumbers;
+	pLineInfo->y = pRuler->h;
+	pLineInfo->h = h - pRuler->h;
+	lineNumbersVisible = (w > rLineNumbers && (wp->dispmode & SHOWLINENUMBERS));
+	if (!MakeOrKillEditChild(hwnd,
+		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
+		lineNumbersVisible, &wp->lineNumbers_handle, szLineNumbersClass, pLineInfo, wp)) {
+		pLineInfo->w = 0;
+	}
+
+
+	pWork->x = pLineInfo->w;
+	pWork->w = w - pLineInfo->w;
 	pWork->y = pRuler->h;
 	pWork->h = h - pRuler->h;
 	return MakeOrKillEditChild(hwnd,
 		WS_HSCROLL|WS_VSCROLL|WS_BORDER|WS_CHILD|WS_VISIBLE/*|WS_CLIPSIBLINGS*/,
-		1,&wp->ww_handle,szWorkAreaClass,pWork,fp);
+		TRUE,&wp->ww_handle,szWorkAreaClass,pWork, wp);
 }
 
 /*-----------------------------------------------------------
@@ -683,29 +674,25 @@ WINFUNC EditWndProc(
 	)
 {
 	WINDOWPLACEMENT 	ws;
-	WINFO *				wp = (FTABLE*)GetWindowLongPtr(hwnd, GWL_VIEWPTR);
+	WINFO *				wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_VIEWPTR);
 
 	if (message == WM_CREATE || wp != NULL)
    	switch(message) {
 	case WM_CREATE:
 		{
 		LPCREATESTRUCT    	cp;
-		LPMDICREATESTRUCT 	mp;
-		XYWH 		   		xyWork,xyRuler;
+		XYWH 		   		xyWork,xyRuler,xyLineInfo;
+		FTABLE* fp;
 
 		cp = (LPCREATESTRUCT)lParam;
-		mp = (LPMDICREATESTRUCT)cp->lpCreateParams;
-		if (wp == NULL) {
-			FTABLE *fp = (FTABLE*) mp->lParam;
-			if ((wp = ww_new(fp, hwnd)) == 0) {
-				DestroyWindow(hwnd);
-				return 0;
-			}
+		fp = (FTABLE*)((LPMDICREATESTRUCT)cp->lpCreateParams)->lParam;
+		if ((wp = ww_new(fp, hwnd)) == 0) {
+			DestroyWindow(hwnd);
+			return 0;
 		}
 
 		ShowWindow(hwnd, SW_HIDE);
-		FTABLE* fp = wp->fp;
-		MakeSubWis(hwnd, fp,&xyWork,&xyRuler);
+		MakeSubWis(hwnd, wp, &xyWork, &xyRuler, &xyLineInfo);
 		ww_setwindowtitle(wp);
 		SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR)fp->fname);
 		SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,icEditIconClass);
@@ -761,9 +748,9 @@ WINFUNC EditWndProc(
 
 	case WM_EDWINREORG:
 		{
-		XYWH  xyWork,xyRuler;
+		XYWH xyWork, xyRuler, xyLineWindowSize;
 
-		MakeSubWis(hwnd, wp->fp,&xyWork,&xyRuler);
+		MakeSubWis(hwnd, wp,&xyWork,&xyRuler, &xyLineWindowSize);
 		if (wp->ww_handle) {
 			MoveWindow(wp->ww_handle,xyWork.x,xyWork.y,
 					xyWork.w,xyWork.h,1);
@@ -772,8 +759,19 @@ WINFUNC EditWndProc(
 			MoveWindow(wp->ru_handle,xyRuler.x,xyRuler.y,
 					xyRuler.w,xyRuler.h,1);
 		}
-		if (message == WM_EDWINREORG)
+		if (wp->lineNumbers_handle) {
+			MoveWindow(wp->lineNumbers_handle, xyLineWindowSize.x, xyLineWindowSize.y,
+				xyLineWindowSize.w, xyLineWindowSize.h, 1);
+		}
+		if (message == WM_EDWINREORG) {
+			if (wp->ru_handle) {
+				SendRedraw(wp->ru_handle);
+			}
 			return 1;
+		}
+		if (wp->ru_handle) {
+			RedrawWindow(wp->ru_handle, NULL, NULL, RDW_INVALIDATE);
+		}
 		break;
 		}
 	case WM_QUERYENDSESSION:
@@ -934,10 +932,7 @@ static WINFUNC WorkAreaWndProc(
 	switch(message) {
 	case WM_CREATE:
 		{
-		WINFO *wp;
-
-		FTABLE * fp = (FTABLE *)(((LPCREATESTRUCT)lParam)->lpCreateParams);
-		wp = WIPOI(fp);
+		wp = (WINFO *)(((LPCREATESTRUCT)lParam)->lpCreateParams);
 		SetWindowLongPtr(hwnd, 0, (LONG_PTR) wp);
 		EdSelectStdFont(hwnd, wp);
 		return 0;
@@ -1029,150 +1024,94 @@ static WINFUNC WorkAreaWndProc(
 }
 
 /*--------------------------------------------------------------------------
- * draw_lin()
+ * draw_ruler()
+ * Does the actual painting of the ruler.
  */
-static void draw_lin(FTABLE *fp)
-{
+static void draw_ruler(WINFO *wp) {
 	int 			col;
 	int			xPos;
 	int			rmargin;
 	int			width;
 	int			nMiddle;
 	RECT			rect;
-	WINFO *		wp = WIPOI(fp);
-	DOCUMENT_DESCRIPTOR *		lin = fp->documentDescriptor;
-	HDC 			hdc;
-	PAINTSTRUCT 	ps;
-	POINT		polyPoints[4];
+	FTABLE *		fp = wp->fp;
+	DOCUMENT_DESCRIPTOR *pDescriptor = fp->documentDescriptor;
+	HDC 		hdc;
+	PAINTSTRUCT ps;
 
+	memset(&ps, 0, sizeof ps);
 	hdc = BeginPaint(wp->ru_handle, &ps);
-
 	GetClientRect(wp->ru_handle, &rect);
 	nMiddle = rect.bottom / 2 - 3;
 	width = wp->cwidth;
 	rmargin = RightMargin(fp);
-	SetPolyFillMode(hdc, WINDING);
-	SelectObject(hdc, GetStockObject(BLACK_BRUSH));
 
-	SelectObject(hdc, GetStockObject(WHITE_PEN));
-	MoveTo(hdc, 3, nMiddle+1);
-	LineTo(hdc, rect.right - 3, nMiddle+1);
-
-	SelectObject(hdc, GetStockObject(BLACK_PEN));
-	MoveTo(hdc, 3, nMiddle);
-	LineTo(hdc, rect.right - 3, nMiddle);
-
-	for (xPos = 0, col = wp->mincol; col <= wp->maxcol; col++, xPos += width) {
-		SelectObject(hdc, GetStockObject(WHITE_PEN));
-		MoveTo(hdc, xPos+1, nMiddle - 3);
-		LineTo(hdc, xPos+1, nMiddle - 1);
-		SelectObject(hdc, GetStockObject(BLACK_PEN));
-		MoveTo(hdc, xPos, nMiddle - 3);
-		LineTo(hdc, xPos, nMiddle);
-		if (col == lin->lmargin || col == rmargin) {
-			polyPoints[0].x = xPos-3;
-			polyPoints[0].y = 3;
-			polyPoints[1].x = xPos;
-			polyPoints[1].y = 8;
-			polyPoints[2].x = xPos+3;
-			polyPoints[2].y = 3;
-			Polygon(hdc, polyPoints, 3);
+	HPEN markerPen = CreatePen(PS_SOLID, 3, RGB(80, 80, 80));
+	xPos = wp->lineNumbers_handle ? lineNumberWindowWidth : 0;
+	int xMin = ps.rcPaint.left - 20;
+	int xMax = ps.rcPaint.right + 20;
+	for (col = wp->mincol; col <= wp->maxcol; col++, xPos += width) {
+		if (xPos < xMin || xPos > xMax) {
+			continue;
 		}
-		if (TABTHERE(lin,col)) {
+		MoveTo(hdc, xPos, nMiddle - 3);
+		if (col == pDescriptor->lmargin || col == rmargin) {
+			SelectObject(hdc, markerPen);
+		}
+		else {
+			SelectObject(hdc, GetStockObject(BLACK_PEN));
+		}
+		LineTo(hdc, xPos, nMiddle);
+		if (TABTHERE(pDescriptor,col)) {
+			POINT polyPoints[3];
 			polyPoints[0].x = xPos;
 			polyPoints[0].y = rect.bottom - 5;
 			polyPoints[1].x = xPos + 3;
-			polyPoints[1].y = nMiddle + 3;
-			polyPoints[2].x = xPos - 3;
-			polyPoints[2].y = nMiddle + 3;
+			polyPoints[1].y = nMiddle + 2;
+			polyPoints[2].x = xPos - 2;
+			polyPoints[2].y = nMiddle + 2;
+			SelectObject(hdc, GetStockObject(WHITE_BRUSH));
+			SelectObject(hdc, GetStockObject(NULL_PEN));
 			Polygon(hdc, polyPoints, 3);
 		}
 	}
-
+	DeleteObject(markerPen);
 	EndPaint(wp->ru_handle,&ps);
 }
 
-/*--------------------------------------------------------------------------
- * shadow_area()
- */
-static void shadow_area(HDC hdc, HWND hwnd)
-{
-	HPEN				hPen;
-	RECT		  		rect;
-	int				top;
-	int				bottom;
-	int				left;
-	int				right;
-	DWORD			dwBottomShadow;
-
-	GetClientRect(hwnd,&rect);
-	SelectObject(hdc, GetStockObject(LTGRAY_BRUSH));
-	SelectObject(hdc, GetStockObject(BLACK_PEN));
-	Rectangle(hdc, 0, 0, rect.right, rect.bottom);
-
-	SelectObject(hdc, GetStockObject(WHITE_PEN));
-	top = 1;
-	bottom = rect.bottom - 1;
-	left = 1;
-	right = rect.right-1;
-	MoveTo(hdc, right, top);
-	LineTo(hdc, left, top);
-	LineTo(hdc, left, bottom);
-	
-	right -= 2;
-	MoveTo(hdc, right, top + 2);
-	LineTo(hdc, right, bottom - 2);
-	LineTo(hdc, left + 1, bottom - 2);
-
-	top += 2;
-	bottom -= 2;
-	dwBottomShadow = GetSysColor(COLOR_BTNSHADOW);
-	hPen = SelectObject(hdc, CreatePen(PS_SOLID, 1, dwBottomShadow));
-
-	left = 3;
-	right = rect.right-3;
-	MoveTo(hdc, right, top);
-	LineTo(hdc, left, top);
-	LineTo(hdc, left, bottom);
-
-	DeleteObject(SelectObject(hdc, hPen));
-}
-
 /*------------------------------------------------------------
- * RulersWndProc()
+ * RulerWndProc()
+ * Window Procedure for handling the ruler.
  */
 static WINFUNC RulerWndProc(
 	HWND hwnd,
 	UINT message,
 	WPARAM wParam,
 	LPARAM lParam
-)
-{	FTABLE *fp;
+) {
+	WINFO* wp;
 
 	switch(message) {
-		case WM_ERASEBKGND:
-			shadow_area((HDC)wParam,hwnd);
-			return 0;
 
-		case WM_PAINT:	
-			if ((fp = (FTABLE *)GetWindowLongPtr(hwnd,0)) != 0) {
-		   		draw_lin(fp);
+		case WM_PAINT:
+			if ((wp = (WINFO *)GetWindowLongPtr(hwnd,0)) != 0) {
+		   		draw_ruler(wp);
 			} else {
 				EdTRACE(Debug(DEBUG_TRACE,"WM_PAINT in RulerWndProc without file"));
 			}
 			break;
 
 		case WM_CREATE:
-			fp = (FTABLE *)(((LPCREATESTRUCT)lParam)->lpCreateParams);
-			SetWindowLongPtr(hwnd,0, (LONG_PTR)fp);
+			wp = (WINFO*)(((LPCREATESTRUCT)lParam)->lpCreateParams);
+			SetWindowLongPtr(hwnd, 0, (LONG_PTR)wp);
 			return 0;
 
 		case WM_MOUSEMOVE:
 		case WM_LBUTTONDOWN:
 		case WM_RBUTTONDOWN:
 		case WM_MBUTTONDOWN:
-			if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
-				do_linbutton(fp, (int)LOWORD(lParam), (int)HIWORD(lParam), 
+			if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
+				do_linbutton(wp, (int)LOWORD(lParam), (int)HIWORD(lParam), 
 					(int)message, (int)wParam);
 			}
 			return 0;
@@ -1181,5 +1120,111 @@ static WINFUNC RulerWndProc(
 			return 0;
 	}
 	return (DefWindowProc(hwnd, message, wParam, lParam));
+}
+
+/*--------------------------------------------------------------------------
+ * draw_LineNumbers()
+ * Does the painting of the line numbers.
+ */
+static void draw_lineNumbers(WINFO* wp) {
+	int 		row;
+	int			xPos;
+	int			yPos;
+	RECT			rect;
+	int			textLen;
+	FTABLE* fp = wp->fp;
+	int maxln = wp->maxln;
+	DOCUMENT_DESCRIPTOR* lin = fp->documentDescriptor;
+	HDC 		hdc;
+	PAINTSTRUCT ps;
+	HFONT		saveFont;
+
+	hdc = BeginPaint(wp->lineNumbers_handle, &ps);
+	GetClientRect(wp->lineNumbers_handle, &rect);
+
+	saveFont = EdSelectFont(wp, hdc);
+	SetTextColor(hdc, RGB(140,140,140));
+	/* SetBkColor(hdc,wp->fnt_bgcolor); */
+	SetBkMode(hdc, TRANSPARENT);
+	int padding = 3;
+	char text[20];
+	if (maxln > fp->nlines-1) {
+		maxln = fp->nlines-1;
+	}
+	for (yPos = rect.top, row = wp->minln; row <= maxln && yPos < rect.top+rect.bottom; row++, yPos += wp->cheight) {
+		sprintf(text, "%d:", row + 1);
+		RECT textRect;
+		textRect.left = rect.left + padding;
+		textRect.right = rect.right - padding;
+		textRect.top = yPos;
+		textRect.bottom = yPos + wp->cheight;
+		textLen = strlen(text);
+		DrawText(hdc, text, textLen, &textRect, DT_RIGHT|DT_END_ELLIPSIS);
+	}
+	EdUnselectFont(hdc);
+	EndPaint(wp->lineNumbers_handle, &ps);
+}
+
+/*------------------------------------------------------------
+ * LineNumberWndProc()
+ * Window Procedure for handling the ruler.
+ */
+static WINFUNC LineNumberWndProc(
+	HWND hwnd,
+	UINT message,
+	WPARAM wParam,
+	LPARAM lParam
+) {
+	WINFO* wp;
+
+	switch (message) {
+
+	case WM_PAINT:
+		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, 0)) != 0) {
+			draw_lineNumbers(wp);
+		}
+		else {
+			EdTRACE(Debug(DEBUG_TRACE, "WM_PAINT in RulerWndProc without file"));
+		}
+		break;
+
+	case WM_CREATE:
+		wp = (WINFO*)(((LPCREATESTRUCT)lParam)->lpCreateParams);
+		SetWindowLongPtr(hwnd, 0, (LONG_PTR)wp);
+		return 0;
+
+	case WM_DESTROY:
+		return 0;
+	}
+	return (DefWindowProc(hwnd, message, wParam, lParam));
+}
+
+/*-----------------------------------------------------------
+ * ww_register()
+ */
+int ww_register(void)
+{
+	if (!EdMkWinClass(szWorkAreaClass, WorkAreaWndProc,
+		(LPSTR)IDC_IBEAM, GetStockObject(WHITE_BRUSH), 0,
+		sizeof(void*)) ||
+		!EdMkWinClass(szEditClass, EditWndProc,
+			(LPSTR)IDC_ARROW, NULL, "Edit",
+			GWL_VIEWPTR + sizeof(void*)) ||
+		!EdMkWinClass(szRulerClass, RulerWndProc,
+			(LPSTR)IDC_CROSS, GetStockObject(LTGRAY_BRUSH), NULL,
+			sizeof(void*)) ||
+		!EdMkWinClass(szLineNumbersClass, LineNumberWndProc,
+			(LPSTR)IDC_ARROW, CreateSolidBrush(RGB(248,248,248)), NULL,
+			sizeof(void*))
+#if 0
+		||
+		!EdMkWinClass(szStatusClass, StatusWndProc,
+			(LPSTR)IDC_ARROW, NULL, 0,
+			2 * sizeof(LONG))
+#endif
+		) {
+		return 0;
+	}
+	return 1;
 }
 

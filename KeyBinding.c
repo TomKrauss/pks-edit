@@ -218,16 +218,17 @@ WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ShowWindow(hwndItem, bShow);
 		}
 		ShowWindow(GetDlgItem(hwnd, IDD_FKSTATE), bShow);
-
 		if (GetConfiguration()->layoutoptions & OL_OPTIONBAR) {
 			bShow = TRUE;
-		} else {
+		}
+		else {
 			bShow = FALSE;
 		}
 		for (x = 0, item = IDD_FKFLG1; item <= IDD_FKFLGLAST; item++) {
 			hwndItem = GetDlgItem(hwnd, item);
 			ShowWindow(hwndItem, bShow);
 		}
+
 		return TRUE;
 
 	case WM_COMMAND:

@@ -45,6 +45,7 @@ extern void ProgressMonitorStart(unsigned int ids);
 #define	SHOWHIDEHSLIDER	0x100
 #define	SHOWHIDEVSLIDER	0x200
 #define	SHOWSTATUSBOT		0x400
+#define	SHOWLINENUMBERS		0x800
 
 #define	PLAINCONTROL(mode)	(((mode) & SHOWCONTROL) && !((mode) & SHOWRULER))
 
