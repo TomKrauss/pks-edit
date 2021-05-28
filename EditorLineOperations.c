@@ -743,8 +743,7 @@ LINE *ln_hide(FTABLE *fp, LINE *lp1, LINE *lp2)
 /*--------------------------------------------------------------------------
  * ln_unhide()
  */
-int ln_unhide(FTABLE *fp, LINE *lpind)
-{
+int ln_unhide(FTABLE *fp, LINE *lpind) {
 	LINE *		lp1;
 	LINE *		lp2;
 	long			nHidden;

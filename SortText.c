@@ -461,8 +461,8 @@ static int mk2ndlist(LINE *lpfirst, LINE *lplast,int n)
 /*--------------------------------------------------------------------------
  * ln_order()
  */
-void ln_order(FTABLE *fp, RECORD *rectab, RECPARAMS *rp)
-{	int i,j,n;
+void ln_order(FTABLE *fp, RECORD *rectab, RECPARAMS *rp) {	
+	int i,j,n;
 	LINE *lpd,*lpend;
 
 	n	   = rp->nrec;

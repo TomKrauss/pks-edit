@@ -430,11 +430,12 @@ static void upd_lines()
 	WIPOI(ft_CurrentDocument())->ln = ln;
 }
 
-/*----------------------------*/
-/* EdBlockCopy_mv()			*/
-/*----------------------------*/
-EXPORT int EdBlockCopy_mv(move)
-{	LINE   *lp,*ls,*le;
+/*------------------------------
+ * EdBlockCopy_mv()
+ * Copy or move a block.
+ *----------------------------*/
+EXPORT int EdBlockCopy_mv(BOOL move) {	
+	LINE   *lp,*ls,*le;
 	int	  cs,ce,offs;
 	long   delta,dln;
 	PASTE  pbuf;

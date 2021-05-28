@@ -40,7 +40,7 @@ static void AutosaveConfiguration() {
  * The default configuration.  
  */
 static EDITOR_CONFIGURATION _configuration = {
-	(UNDOENABLED | WARNINGS | E_BELL | O_CUTBUFEQCLIP | O_HIDE_BLOCK_ON_CARET_MOVE),
+	(UNDOENABLED | WARNINGS | E_BELL | O_HIDE_BLOCK_ON_CARET_MOVE),
 	(OL_OPTIONBAR | OL_SHOWSTATUS),
 	1,
 	3,

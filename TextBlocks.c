@@ -360,7 +360,7 @@ EXPORT int bl_delete(FTABLE *fp, LINE *lnfirst, LINE *lnlast, int cfirst,
 
 	if (saveintrash) {
 		ppTrash = _undobuf;
-		bSaveOnClip = (GetConfiguration()->options & O_CUTBUFEQCLIP) ? 1 : 0;
+		bSaveOnClip = 1;
 	} else {
 		ppTrash = &ppDummy;
 		blfill(ppTrash, sizeof *ppTrash, 0);
