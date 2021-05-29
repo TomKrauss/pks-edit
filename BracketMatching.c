@@ -34,6 +34,16 @@ extern long	_multiplier;
 extern LINE	*ln_insertIndent(FTABLE *fp, LINE *lp, int col, int *inserted);
 extern int	CalcTabs2Col(DOCUMENT_DESCRIPTOR *linp, int tabs);
 
+struct tagBRACKET_RULE {
+	struct tagBRACKET_RULE *next;
+	int	ctx;			/* document descriptor context id */
+	char* lefthand;		/* lefthand bracket character class (group of characters enclosed in [] as [{(<]) or single word to mach */
+	char* righthand;	/* righthand bracket character class - see above */
+	char d1, d2;			/* add val for lefthand, ... */
+	char ci1[2];		/* automatic bracket indents (look up, down) indent 1-based of previous line and current line */
+	char ci2[2];		/* automatic bracket indents cl2 outdent 1-based of previous line and current line */
+};
+
 extern PASTELIST 	*_esclist[];
 static BRACKET		*_brackets;
 static BRACKET		_defaultBracketRule = {
@@ -74,7 +84,7 @@ EXPORT void key_globs(BRACKET **bp, PASTELIST **pp[], UCLIST **up)
  */
 static BOOL matchBracket(char *lineBuf, char *bracketPattern) {	
 	char c;
-	int patternLength = strlen(bracketPattern) - 1;
+	size_t patternLength = strlen(bracketPattern) - 1;
 	c = lineBuf[0];
 	if (patternLength < 0) {
 		return FALSE;
@@ -118,7 +128,7 @@ EXPORT struct uclist *uc_find(int ctx, char *b, int col,int actype)
  */
 EXPORT void uc_init(void)
 {
-	ll_destroy(&_undercursor,(void*)0);
+	ll_destroy((LINKED_LIST**)&_undercursor,(void*)0);
 }
 
 /*--------------------------------------------------------------------------
@@ -142,7 +152,7 @@ EXPORT int uc_add(char *pat,char *p,int type,int id)
 		}
 	}
 
-	if ((up = ll_insert(&_undercursor,sizeof *up)) == 0) {
+	if ((up = (struct uclist* )ll_insert((LINKED_LIST**)&_undercursor,sizeof *up)) == 0) {
 		return 0;
 	}
 
@@ -190,7 +200,7 @@ EXPORT int sm_defineBracketIndentation(char *leftBracketsCharacterClass, char *r
 			int indentationValue, 
 		    int up1, int down1, int up2, int down2, 
 		    int documentCtx) 
-{	struct tagBRACKET_RULE *mp;
+{	BRACKET *mp;
 
 	if (!leftBracketsCharacterClass || !rightBracketsCharacterClass) {
 		return 0;
@@ -204,7 +214,7 @@ EXPORT int sm_defineBracketIndentation(char *leftBracketsCharacterClass, char *r
 		}
 	}
 	
-	if (!mp && (mp = ll_insert(&_brackets,sizeof *mp)) == 0)
+	if (!mp && (mp = (BRACKET*)ll_insert((LINKED_LIST**)&_brackets,sizeof *mp)) == 0)
 		return 0;
 
 	mp->lefthand  = leftBracketsCharacterClass;
@@ -224,7 +234,7 @@ EXPORT int sm_defineBracketIndentation(char *leftBracketsCharacterClass, char *r
  */
 EXPORT void sm_init(void)
 {
-	ll_destroy(&_brackets,(void *)0);
+	ll_destroy((LINKED_LIST**) &_brackets,(void *)0);
 }
 
 /*--------------------------------------------------------------------------
@@ -556,7 +566,7 @@ EXPORT int shift_lines(FTABLE *fp, long ln, long nlines, int dir)
 			}
 			blcount = s - lp->lbuf;
 			if (blcount) {
-				if ((lp = ln_modify(fp,lp,blcount,0)) == 0L)
+				if ((lp = ln_modify(fp,lp,(int) blcount,0)) == 0L)
 					return 0;
 			} 
 		}

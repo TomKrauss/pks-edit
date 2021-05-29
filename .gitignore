@@ -4,7 +4,8 @@
 /_UpgradeReport_Files
 /windebug/
 /winrelease/
-/x64/
+/x64/**
+/pksedit.en/x64/**
 /test/x64/
 *.OBJ
 *.bj

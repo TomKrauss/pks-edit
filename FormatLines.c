@@ -222,7 +222,7 @@ start:		s = lps->lbuf;
 			if (doindent) {
 				lmar = (int)(s-lps->lbuf);
 				lmar = caret_lineOffset2screen(NULL, &(CARET) {
-					lps->lbuf, lmar
+					lps, lmar
 				});
 			}
 			spgrph = 0;
@@ -296,7 +296,7 @@ FormatText(int scope, int type, int flags)
 	startln  = ln_indexOf(fp,mps->lm);
 	_deltaln = -1;
 	_currl   = fp->caret.linePointer;
-	savecol  = caret_lineOffset2screen(fp->caret.linePointer->lbuf,fp->caret.offset);
+	savecol  = caret_lineOffset2screen(fp, &fp->caret);
 
 	if (flags & FMT_WPFORMAT) {
 		_fillc1 = '';

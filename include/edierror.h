@@ -24,6 +24,21 @@ extern void ProgressMonitorClose(int always);
  */
 extern void ProgressMonitorStart(unsigned int ids);
 
+/*--------------------------------------------------------------------------
+ * NoDiskSpace()
+ */
+extern void NoDiskSpace(void);
+
+/*--------------------------------------------------------------------------
+ * WriteError()
+ */
+extern void WriteError(void);
+
+/*--------------------------------------------------------------------------
+ * OpenError()
+ */
+extern void OpenError(char* fname);
+
 #define	E_SERIOUSC		'!'
 
 #define	OPT_WMODE			(2L<<16)

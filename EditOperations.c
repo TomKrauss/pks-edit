@@ -44,7 +44,6 @@ extern int 	sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr,
 extern int 	shift_lines(FTABLE *fp, long ln, long nlines, int dir);
 extern int 	curpos(long ln, long col);
 extern void 	wt_insline(WINFO *wp, int nlines);
-extern void 	redrawline(void);
 extern void 	ln_changeFlag(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark,
 				int set);
 extern int 	doabbrev(FTABLE *fp, LINE *lp,int offs);
@@ -457,7 +456,7 @@ static int EdAutoFormat(FTABLE *fp)
 	}
 
 	LINE* lpscratch = ln_create(MAXLINELEN);
-	destbuf = &lpscratch->lbuf;
+	destbuf = lpscratch->lbuf;
 
 	rm = RightMargin(fp);
 	i_d = 0;

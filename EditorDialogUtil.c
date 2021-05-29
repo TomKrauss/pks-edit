@@ -71,7 +71,7 @@ void SetXDialogParams(DIALPARS* (*func)(int pageIndex), boolean propertySheetFla
 /*--------------------------------------------------------------------------
  * DoDialog()
  */
-int DoDialog(int nIdDialog, FARPROC DlgProc, DIALPARS *dp)
+int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp)
 {
 	int 		nSave;
 	HWND		hwnd;
@@ -135,7 +135,7 @@ void SendParentCommand(HWND hwnd,  LPARAM lParam)
 /*------------------------------------------------------------
  * KeyInputWndProc()
  */
-static FARPROC lpfnOldCInput;
+static WNDPROC lpfnOldCInput;
 WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	HWND			h2;
@@ -251,12 +251,12 @@ int setwrange(HWND hwnd, int *rangetype, int first)
 /*--------------------------------------------------------------------------
  * CbGetText()
  */
-int CbGetText(HWND hwnd, int id, char *szBuff)
+int CbGetText(HWND hwnd, int id, void *szBuff)
 { 	LRESULT	  item;
 
 	item = SendDlgItemMessage(hwnd,id,CB_GETCURSEL,0,0);
 	if (item == LB_ERR) {
-		*szBuff = 0;
+		*((char *)szBuff) = 0;
 		return LB_ERR;
 	}
 	SendDlgItemMessage(hwnd,id,CB_GETLBTEXT,item,(LPARAM)szBuff);
@@ -266,12 +266,12 @@ int CbGetText(HWND hwnd, int id, char *szBuff)
 /*--------------------------------------------------------------------------
  * LbGetText()
  */
-int LbGetText(HWND hwnd, int id, char *szBuff)
-{ 	LRESULT	  item;
+int LbGetText(HWND hwnd, int id, void *szBuff) { 	
+	LRESULT	  item;
 
 	item = SendDlgItemMessage(hwnd,id,LB_GETCURSEL,0,0);
 	if (item == LB_ERR) {
-		*szBuff = 0;
+		*((char *)szBuff) = 0;
 		return LB_ERR;
 	}
 	SendDlgItemMessage(hwnd,id,LB_GETTEXT,item,(LPARAM)szBuff);
@@ -332,7 +332,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 			case IDD_ICONLIST:
 			case IDD_FONTSEL2COLOR:
 				dlp = (DIALLIST*)dp->dp_data;
-				(*dlp->li_fill)(hDlg,item,*dlp->li_param);
+				(*dlp->li_fill)(hDlg,item, *dlp->li_param);
 				break;
 			case IDD_CSEL:
 				SendDlgItemMessage(hDlg,item,WM_CHARCHANGE,
@@ -347,7 +347,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				break;
 			case IDD_FINDS2: case IDD_FINDS: case IDD_REPLS:
 				hist_2combo(hDlg,item,szBuff,(item != IDD_REPLS) ?
-						  &_findhist : &_replhist);
+					SEARCH_PATTERNS : SEARCH_AND_REPLACE);
 				if (!*(LPSTR)ip)
 					lstrcpy((LPSTR)ip,szBuff);
 			case IDD_RO1: case IDD_RO2: case IDD_RO3: 
@@ -377,14 +377,14 @@ donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 				break;
 			case IDD_KEYCODE:
 				lpfnOldCInput = SubClassWndProc(1,hDlg,item,
-								      (FARPROC)KeyInputWndProc);
+								      KeyInputWndProc);
 #if 0
 				SendDlgItemMessage(hDlg,item,WM_CHARCHANGE,
 								*(KEYCODE*)dp->dp_data,0L);
 # endif
 				break;
 			case IDD_RAWCHAR:
-				lpfnOldCInput = SubClassWndProc(1,hDlg,item,(FARPROC)CInput);
+				lpfnOldCInput = SubClassWndProc(1,hDlg,item,CInput);
 			case IDD_CHAR:
 				cbuf[0] = *(char*)dp->dp_data;
 				cbuf[1] = 0;
@@ -551,7 +551,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			if (idCtrl != IDCANCEL) {
 				if ((item == IDD_FINDS2 && *(char*)ip) ||
 				    (item == IDD_FINDS)) {
-					if (!exprinit((LPSTR)ip)) { 
+					if (!regex_compileWithDefault((LPSTR)ip)) { 
 						return FALSE;
 					}
 				}
@@ -771,7 +771,7 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 /*--------------------------------------------------------------------------
  * DlgStdProc()
  */
-BOOL CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
 	MEASUREITEMSTRUCT	*mp;
 	COMPAREITEMSTRUCT	*cp;
 	int					ic_lboxdrawitem();
@@ -827,7 +827,7 @@ BOOL CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) 
 			nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
 			idCtrl = GET_WM_COMMAND_ID(wParam, lParam);
 			if ((nNotify == EN_CHANGE || ISFLAGDLGCTL(idCtrl)) &&
-					bInPropertySheet && GetParent(hDlg) != lParam) {
+					bInPropertySheet && (LPARAM)GetParent(hDlg) != lParam) {
 				PropSheet_Changed(GetParent(hDlg), hDlg);
 			}
 			if (DlgCommand(hDlg,wParam,lParam,_dp)) {
@@ -846,7 +846,7 @@ int CallDialog(int nId, PARAMS *pp, DIALPARS *dp)
 { 	int ret = 1;
 
 	if (param_dialopen(pp)) {
-		ret = DoDialog(nId,(FARPROC)DlgStdProc,dp);
+		ret = DoDialog(nId, DlgStdProc,dp);
 		param_record(pp);
 		if (ret == IDCANCEL)
 			return 0;
@@ -857,7 +857,7 @@ int CallDialog(int nId, PARAMS *pp, DIALPARS *dp)
 /*--------------------------------------------------------------------------
  * CreateModelessDialog()
  */
-void CreateModelessDialog(HWND *hwnd,LPSTR szName, BOOL (FAR PASCAL *func)(),
+void CreateModelessDialog(HWND *hwnd,LPSTR szName, INT_PTR (CALLBACK *func)(HWND, UINT, WPARAM, LPARAM),
 				      DLGPROC *lplpfnDlgProc)
 {
 	if (*hwnd) {

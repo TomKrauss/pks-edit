@@ -291,7 +291,7 @@ int EdFsel(char *szFileSpecIn, char *szFileNameIn, char *szFullPathOut, BOOL bSa
 		lstrcpy(szFullPathOut, pszFileName);
 		sfsplit(pszFileName, pszPath, szFileNameIn);
 		strdcpy(szFileSpecIn, pszPath, pszExt);
-		hist_enq(&_pathhist, szFileSpecIn);
+		hist_enq(PATHES, szFileSpecIn);
 	}
 
 	fsel_optionsenable(0);

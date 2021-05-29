@@ -86,10 +86,33 @@ extern HFONT EdSelectFont(WINFO* wp, HDC hdc);
  */
 extern void RedrawWmPaint(WINFO* wp);
 
+extern void wt_tcursor(WINFO* wp, int type);
+
+/*------------------------------------------------------------
+ * wt_curpos()
+ */
+extern void wt_curpos(WINFO* wp, long ln, long col);
+
+/*------------------------------------------------------------
+ * wt_deleteline()
+ */
+extern void wt_deleteline(WINFO* wp, int additional, int nlines);
+
+/*------------------------------------------------------------
+ * wt_insline()
+ */
+extern void wt_insline(WINFO* wp, int nlines);
+
 /*--------------------------------------------------------------------------
  * RedrawTotalWindow()
  */
 extern void RedrawTotalWindow(FTABLE* fp);
+
+/*--------------------------------------------------------------------------
+ * redrawline()
+ * Redraw the line containing the cursor, in the "current active" editor window.
+ */
+extern void redrawline(void);
 
 /**
  * Returns the view num steps from the step - 0 to return the current to level view, 1 to return

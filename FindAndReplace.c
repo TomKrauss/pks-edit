@@ -45,43 +45,52 @@ unsigned char 		*tlcompile(unsigned char *transtab,
 						 unsigned char *t,
 						 unsigned char *wt);
 static unsigned char  *_transtabs[8];
-static unsigned char  _chartab[256];
+static unsigned char  _characterMappingTable[256];
 static char 		  _replexbuf[500];
 
 extern	unsigned char *_octalloc;
 
-UCHAR 	_expbuf[ESIZE];
+static UCHAR 	_expbuf[ESIZE];
 int  	_rflg = 0;			/* something replaced until now ? */
 char	_finds[500];
 char	_repls[500];
 int		_findopt;
 
+static RE_PATTERN	_lastCompiledPattern;
+
+/*
+ * Create an option object for compiling a regular expression. 
+ */
+static RE_OPTIONS *createREOptions(char* expression, char *ebuf, int flags, unsigned char eof) {
+	static RE_OPTIONS _options;
+	memset(&_options, 0, sizeof _options);
+	memset(ebuf, 0, ESIZE);
+	_options.patternBuf = ebuf;
+	_options.flags = flags;
+	_options.endOfPatternBuf = &ebuf[ESIZE];
+	_options.eof = eof;
+	_options.expression = expression;
+	return &_options;
+}
+
 /*--------------------------------------------------------------------------
  * RegError()
  */
-extern int _reerrmsg[];
-void RegError()
-{	ed_error(_reerrmsg[_regerror-1]); }
-
-static int doregerror(error) 
-int error; 
-{
-	_regerror = error;
-	RegError();
+int RegError(int errorCode) {	
+	ed_error(errorCode);
 	return 0;
 }
 
 /*--------------------------------------------------------------------------
  * _regcompile()
  */
-int _regcompile(char *ebuf, char *pat, int flags)
-{
+RE_PATTERN *_regcompile(char *ebuf, char *pat, int flags) {
 	flags &= (RE_DOREX|RE_IGNCASE|RE_SHELLWILD);
-	if (!compile(pat,ebuf,&ebuf[ESIZE],0,flags)) {
-		RegError();
+	if (!compile(createREOptions(pat, ebuf, flags, 0), &_lastCompiledPattern)) {
+		RegError(_lastCompiledPattern.errorCode);
 		return 0;
 	}
-	return 1;
+	return &_lastCompiledPattern;
 }
 
 /*--------------------------------------------------------------------------
@@ -90,29 +99,30 @@ int _regcompile(char *ebuf, char *pat, int flags)
 void setfinds(char *pat)
 {
 	strcpy(_finds, pat);
-	hist_enq(&_findhist,pat);
+	hist_enq(SEARCH_PATTERNS, pat);
 }
 
 /*--------------------------------------------------------------------------
- * exprinit()
- * call compile()
+ * regex_compileWithDefault()
+ * Compile a regular expression passed by argument with standard options.
  */
-int exprinit(char *pat)
-{
-	setfinds(pat);
-	return _regcompile(_expbuf,pat,_findopt);
+RE_PATTERN *regex_compileWithDefault(char *expression) {
+	setfinds(expression);
+	return _regcompile(_expbuf,expression,_findopt) ? &_lastCompiledPattern : NULL;
 }
 
 /*--------------------------------------------------------------------------
  * repinit()
  * init replace expression
- * should be calle after exprinit !
+ * should be calle after regex_compileWithDefault !
  */
 static unsigned char *newtab(tl) int tl;
 {	unsigned char *t;
 
-	if (tl >= DIM(_transtabs))
-		return (unsigned char *)doregerror(2);
+	if (tl >= DIM(_transtabs)) {
+		RegError(IDS_MSGREMACRORANGESYNTAX);
+		return (unsigned char*)NULL;
+	}
 	return ((t = _transtabs[tl]) != 0) ? 
 		    t 
 		    :
@@ -121,22 +131,22 @@ static unsigned char *newtab(tl) int tl;
 
 static int _roptim;		/* use special copyout routines for replace ? */
 
-static int _repinit(unsigned char *pat, int findopt)
-{
-	unsigned char 		c;
-	unsigned char 		nlchar;
+static int _repinit(unsigned char *searchPattern, int options) {
+	unsigned char 	c;
+	unsigned char 	nlchar;
 	unsigned char *	dest;
 	unsigned char *	trpat;
 	unsigned char *	tab;
-	int 				tl = 0;
+	int 			tl = 0;
 	int				i;
 
-	for (i = 0; i < 256; i++)		/* translation default */
-		_chartab[i] = i;
+	for (i = 0; i < 256; i++) {		/* translation default */
+		_characterMappingTable[i] = i;
+	}
 	_roptim = 0;
 	_rflg = 1;
-	if (!(findopt & RE_DOREX)) {
-		strcpy(_replexbuf,pat);
+	if (!(options & RE_DOREX)) {
+		strcpy(_replexbuf,searchPattern);
 		return 1;
 	}
 	if (ft_CurrentDocument()) {
@@ -146,9 +156,9 @@ static int _repinit(unsigned char *pat, int findopt)
 	}
 
 	dest = _replexbuf;
-	while ((c = *pat++) != 0) {
+	while ((c = *searchPattern++) != 0) {
 		if (c == '\\') {
-			switch ((c = *pat++)) {
+			switch ((c = *searchPattern++)) {
 				case 'u':
 					trpat = _l2uset;
 					goto mktrans;
@@ -162,19 +172,19 @@ mktrans:				if ((tab = newtab(tl++)) == 0)
 				case '[':
 					if ((tab = newtab(tl++)) == 0)
 						return 0;
-					if ((pat = tlcompile(tab,pat,
+					if ((searchPattern = tlcompile(tab,searchPattern,
 									 (unsigned char *)0)) == 0) 
-						return doregerror(4);
+						return RegError(IDS_MSGREMANYBRACKETS);
 				case 'e':
 				case '&':
 					goto special;
 				default:
 					if (c >= '1' && c <= '9') {
-						if ((c - '0') > _nbrackets) 
-							return doregerror(11);
+						if ((c - '0') > _lastCompiledPattern.nbrackets) 
+							return RegError(IDS_MSGREPIPEERR);
 					} else {
-						c   = octalinput(pat-1);
-						pat = _octalloc;
+						c   = octalinput(searchPattern-1);
+						searchPattern = _octalloc;
 						if (!c)
 							c = '0';
 						else
@@ -196,15 +206,14 @@ special:				_roptim |= 1;
 /*--------------------------------------------------------------------------
  * repinit()
  */
-int repinit(unsigned char *pat)
-{
-	return _repinit(pat, _findopt);
+int repinit(unsigned char *searchPattern) {
+	return _repinit(searchPattern, _findopt);
 }
 
 /*--------------------------------------------------------------------------
  * stepback()
  */
-static int stepback(UCHAR *sp, UCHAR *ebuf, int currcol, int maxLen)
+static int stepback(UCHAR *sp, RE_PATTERN *pPattern, int currcol, int maxLen, RE_MATCH* pMatch)
 {	register char	*	lsav=0;
 	register char *	olloc2 = 0;
 	register int 		i;
@@ -212,31 +221,31 @@ static int stepback(UCHAR *sp, UCHAR *ebuf, int currcol, int maxLen)
 	int				nLen;
 	char *			brsave[18];
 
-	while (step(&sp[col],ebuf, &sp[maxLen])) {
-		col = (int)(__loc2 - sp);
-		nLen = (int )(__loc2 - __loc1);
+	while (step(pPattern, &sp[col], &sp[maxLen], pMatch)) {
+		col = (int)(pMatch->loc2 - sp);
+		nLen = (int )(pMatch->loc2 - pMatch->loc1);
 		if (!nLen) {			/* x* */
 			col++;
 		}
 		if (col > currcol) {
 			break;
 		}
-		lsav = __loc1;
-		olloc2 = __loc2;
-		for (i = 0; i < _nbrackets; i++) {
-			brsave[i]   = _braslist[i];
-			brsave[i+9] = _braelist[i];
+		lsav = pMatch->loc1;
+		olloc2 = pMatch->loc2;
+		for (i = 0; i < pMatch->nbrackets; i++) {
+			brsave[i]   = pMatch->braslist[i];
+			brsave[i+9] = pMatch->braelist[i];
 		}
-		if (_circf || col >= maxLen) {
+		if (pMatch->circf || col >= maxLen) {
 			break;
 		}
 	}
 	if (lsav) {
-		__loc2 = olloc2;
-		__loc1 = lsav; 
-		for (i = 0; i < _nbrackets; i++) {
-			_braslist[i] = brsave[i];
-			_braelist[i] = brsave[i+9];
+		pMatch->loc2 = olloc2;
+		pMatch->loc1 = lsav;
+		for (i = 0; i < pMatch->nbrackets; i++) {
+			pMatch->braslist[i] = brsave[i];
+			pMatch->braelist[i] = brsave[i+9];
 		 }
 		 return 1;
 	}
@@ -261,27 +270,27 @@ static int xabort(void )
  * find_expr()
  * ensure there is a current file !
  */
-LINE *find_expr(int dir,long *Ln,long *Col,LINE *lp,UCHAR *ebuf)
-{	register	long ln;
+static LINE *find_expr(int dir,long *Ln,long *Col,LINE *lp,RE_PATTERN *pPattern, RE_MATCH *pMatch) {	
+	long ln;
 
 	ln = *Ln;
 	if (dir > 0) {
 		if (!*Col) goto fulline;
-		if (!_circf && 
-		     step(&lp->lbuf[*Col],ebuf, &lp->lbuf[lp->len])) 
+		if (!pMatch->circf && 
+		     step(pPattern, &lp->lbuf[*Col], &lp->lbuf[lp->len], pMatch))
 			goto fisuccess;
 		for (;;) {
 			if ((lp=lp->next) == 0) break;
 			ln++;
-fulline:		if (step(lp->lbuf,ebuf, &lp->lbuf[lp->len])) 
+fulline:		if (step(pPattern, lp->lbuf,&lp->lbuf[lp->len], pMatch))
 				goto fisuccess;
 		}
 	} else {
-		if (stepback(lp->lbuf, ebuf, (int ) *Col, lp->len)) { 
+		if (stepback(lp->lbuf, pPattern, (int ) *Col, lp->len, pMatch)) {
 			goto fisuccess;
 		}
 		while (ln--, (lp = lp->prev) != 0) {
-			if (stepback(lp->lbuf, ebuf, lp->len + 1, lp->len)) {
+			if (stepback(lp->lbuf, pPattern, lp->len + 1, lp->len, pMatch)) {
 				goto fisuccess;
 			}
 		}
@@ -294,21 +303,21 @@ fisuccess:
 	if (lp->next == 0) 
 		return 0;
 
-	*Ln = ln, *Col = (long)(__loc1 - lp->lbuf);
+	*Ln = ln, *Col = (long)(pMatch->loc1 - lp->lbuf);
 	return lp;
 }
 
 /*--------------------------------------------------------------------------
  * searchcpos()
  */
-static int searchcpos(FTABLE *fp,long ln,int col)
+static int searchcpos(FTABLE *fp,long ln,int col, RE_MATCH *pMatch)
 {	int col2,dc;
 	WINFO  *wp;
 
 	wp = WIPOI(fp);
 	centernewpos(ln,col);
 	col2 = caret_lineOffset2screen(fp, &(CARET) {
-		fp->caret.linePointer, (int)(__loc2 - __loc1) + fp->caret.offset
+		fp->caret.linePointer, (int)(pMatch->loc2 - pMatch->loc1) + fp->caret.offset
 	});
 	cursor_width = dc = col2 - wp->col;
 	wt_curpos(wp,wp->ln,wp->col);
@@ -318,22 +327,24 @@ static int searchcpos(FTABLE *fp,long ln,int col)
 /*--------------------------------------------------------------------------
  * _findstr()
  */
-int _findstr(int dir,UCHAR *ebuf,int options)
+int _findstr(int dir, RE_PATTERN *pPattern,int options)
 {	long ln,col;
 	int  ret = 0,wrap = 0,wrapped = 0;
 	LINE *lp;
 	FTABLE *fp;
+	RE_MATCH match;
 
+	memset(&match, 0, sizeof match);
 	fp = ft_CurrentDocument();
 	MouseBusy();
 	ln  = fp->ln;
 	lp  = fp->caret.linePointer;
 	col = fp->caret.offset;
 	if (dir > 0) {
-		if (P_EQ(&lp->lbuf[col],__loc1) && P_NE(__loc2,__loc1))
-			col = (long) (__loc2 - lp->lbuf);
+		if (P_EQ(&lp->lbuf[col], match.loc1) && P_NE(match.loc2, match.loc1))
+			col = (long) (match.loc2 - lp->lbuf);
 		else col++;
-		if (_circf || col > lp->len) {
+		if (match.circf || col > lp->len) {
 			ln++, lp = lp->next;
 			col = 0;
 		}
@@ -342,7 +353,7 @@ int _findstr(int dir,UCHAR *ebuf,int options)
 	if (options & O_WRAPSCAN)
 		wrap = 1;
 
-	if (find_expr(dir,&ln,&col,lp,ebuf))
+	if (find_expr(dir,&ln,&col,lp,pPattern, &match))
 		ret = 1;
 	else if (wrap) {
 		if (dir > 0) {
@@ -354,7 +365,7 @@ int _findstr(int dir,UCHAR *ebuf,int options)
 			lp  = fp->lastl->prev;
 			col = lp->len-1;
 		}
-		if (find_expr(dir,&ln,&col,lp,ebuf)) {
+		if (find_expr(dir,&ln,&col,lp,pPattern, &match)) {
 			wrapped++;
 			ret = 1;
 		}
@@ -362,7 +373,7 @@ int _findstr(int dir,UCHAR *ebuf,int options)
 	changemouseform();
 
 	if (ret == 1) {
-		searchcpos(fp,ln,col);
+		searchcpos(fp,ln,col, &match);
 		if (wrapped)
 			ed_error(IDS_MSGWRAPPED);
 	}
@@ -381,7 +392,9 @@ int _findstr(int dir,UCHAR *ebuf,int options)
  */
 int findstr(dir)
 {
-	return (exprinit(_finds) && _findstr(dir,_expbuf,_findopt));
+	RE_PATTERN* pPattern;
+
+	return ((pPattern = regex_compileWithDefault(_finds)) && _findstr(dir,pPattern,_findopt));
 }
 
 /*--------------------------------------------------------------------------
@@ -569,9 +582,9 @@ int ReplaceTabs(int scope, int flg)
  * create replace-target for replaced Expressions with \
  * return length of target
  */
-int exprsub(unsigned char *pat,unsigned char *newpat,int maxlen)
+int exprsub(unsigned char *pat,unsigned char *newpat,int maxlen, RE_MATCH *pMatch)
 {	int len = 0;
-	unsigned char *q,*qend,c,*trans = _chartab,tl=0;
+	unsigned char *q,*qend,c,*trans = _characterMappingTable,tl=0;
 
 	maxlen -= 2;
 	while (*pat) {
@@ -579,14 +592,14 @@ int exprsub(unsigned char *pat,unsigned char *newpat,int maxlen)
 			c = pat[1];
 			switch (c) {
 				case '&':
-					q	= __loc1;
-					qend = __loc2;
+					q	= pMatch->loc1;
+					qend = pMatch->loc2;
 					break;
 				case '[':
 					trans = _transtabs[tl++];
 					goto nocpy;
 				case 'e':
-					trans = _chartab;
+					trans = _characterMappingTable;
 					goto nocpy;
 				case '0':
 					*newpat++ = 0;
@@ -595,8 +608,8 @@ int exprsub(unsigned char *pat,unsigned char *newpat,int maxlen)
 				default:
 					if (c >= '1' && c <= '9') {
 						c   -= '1';
-						q    = _braslist[c];
-						qend = _braelist[c];
+						q    = pMatch->braslist[c];
+						qend = pMatch->braelist[c];
 					} else goto normal;
 					break;
 			}
@@ -693,10 +706,12 @@ int EdReplaceText(int scope, int action, int flags)
 	LINE		*oldxpnd = 0;
 	register size_t newlen;
 	register	maxlen,delta;
+	RE_MATCH	match;
 	register	olen;
 	int  	sc1flg = 1,splflg = _playing, column = 0, lastfcol,
 			query,marked;
 
+	memset(&match, 0, sizeof match);
 	fp = ft_CurrentDocument();
 
 	if (readonly(fp) && action == REP_REPLACE) {
@@ -704,13 +719,13 @@ int EdReplaceText(int scope, int action, int flags)
 	}
 	
 	if (_playing) {
-		exprinit(_finds);
+		regex_compileWithDefault(_finds);
 		repinit(_repls);
 	}
 	newlen = strlen(_replexbuf);
 
 	/* call before assigning firstline	*/
-	hist_enq(&_replhist, _repls);
+	hist_enq(SEARCH_AND_REPLACE, _repls);
 
 	undo_startModification(fp);
 	savecpos();
@@ -776,15 +791,14 @@ int EdReplaceText(int scope, int action, int flags)
 		}
 
 		if (col) {
-			if (!_circf && step(&lp->lbuf[col],_expbuf,
-							 &lp->lbuf[maxlen]))
+			if (!match.circf && step(&_lastCompiledPattern, &lp->lbuf[col], &lp->lbuf[maxlen], &match))
 				goto success;
 		} else {
 			if (marked && (lp->lflg & LNXMARKED) == 0)
 				goto nextline;
 			if (xabort())
 				break;
-			if (step(lp->lbuf,_expbuf, &lp->lbuf[maxlen])) 
+			if (step(&_lastCompiledPattern, lp->lbuf, &lp->lbuf[maxlen], &match))
 				goto success;
 		}
 
@@ -804,8 +818,8 @@ nextline:
 			break;
 		lp = lp->next; ln++; col = 0; continue;
 
-success:	olen = (int)(__loc2 - __loc1);
-		col  = (int)(__loc1 - lp->lbuf);
+success:	olen = (int)(match.loc2 - match.loc1);
+		col  = (int)(match.loc1 - lp->lbuf);
 
 		if (action == REP_MARK || action == REP_COUNT) {
 		if (action == REP_MARK) {
@@ -817,7 +831,7 @@ success:	olen = (int)(__loc2 - __loc1);
 		}
 
 		if (_roptim) {		/* substitute expressions with \1 ...	  */
-			if ((newlen = exprsub(_replexbuf,_linebuf,MAXLINELEN)) < 0) {
+			if ((newlen = exprsub(_replexbuf,_linebuf,MAXLINELEN, &match)) < 0) {
 				linetoolong();
 				break;
 			}
@@ -829,8 +843,8 @@ success:	olen = (int)(__loc2 - __loc1);
 		lastfcol = col;
 
 		if (query) {
-			cursor_width = searchcpos(fp,ln,col);
-			switch (QueryReplace(__loc1,olen,q,newlen)) {
+			cursor_width = searchcpos(fp,ln,col, &match);
+			switch (QueryReplace(match.loc1,olen,q,newlen)) {
 				case IDNO:
 					delta = olen;
 					goto advance;
@@ -916,12 +930,14 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
 	char *	send;
 	int		newlen;
 	char		replace[256];
+	RE_MATCH	match;
 
 	_linebuf[0] = 0;
+	RE_PATTERN* pPattern;
 	if (pattern &&
 	    string &&
 	    with &&
-	    _regcompile(ebuf, pattern, flags) &&
+	    (pPattern = _regcompile(ebuf, pattern, flags)) &&
 	    _repinit(with, flags)) {
 		src = string;
 		send = _linebuf;
@@ -932,20 +948,20 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
 		src = _linebuf;
 
 		while(nmax-- > 0) {
-			if (!step(src,ebuf,send)) {
+			if (!step(pPattern, src,send, &match)) {
 				break;
 			}
-			if (_circf && __loc1 != _linebuf) {
+			if (match.circf && match.loc1 != _linebuf) {
 				break;
 			}
-			if ((newlen = exprsub(_replexbuf,replace,sizeof replace)) < 0) {
+			if ((newlen = exprsub(_replexbuf,replace,sizeof replace, &match)) < 0) {
 				break;
 			}
-			memmove(__loc1+newlen,__loc2,(int)(send-__loc2));
-			send += (newlen - (__loc2 - __loc1));
+			memmove(match.loc1+newlen, match.loc2,(int)(send- match.loc2));
+			send += (newlen - (match.loc2 - match.loc1));
 			*send = 0;
-			strxcpy(__loc1,replace,newlen);
-			src = __loc2;
+			strxcpy(match.loc1,replace,newlen);
+			src = match.loc2;
 		}
 	}
 

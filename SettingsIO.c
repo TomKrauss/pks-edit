@@ -35,7 +35,6 @@ extern int  _findopt;
 extern void MouseBusy(void);
 extern void MouseNotBusy(void);
 extern int  EdStat(char *s, int mode);
-extern char *FullPathName(char *path, char *fn);
 extern LONG prof_getlong(char *grp,char *ident);
 
 typedef enum {	I_FLAG, I_WINDOW, I_VAL, I_STRING, I_INVAL } ITEMTYPE;
@@ -370,8 +369,8 @@ void *prof_llinsert(void *Head, int size, char *group, char *item, char **idata)
 		return 0;
 	}
 
-	if ((lp = ll_find(*(void**)Head,item)) == 0) {
-		if ((lp = ll_insert(Head,size)) == 0) {
+	if ((lp = (struct llist*)ll_find(*(void**)Head,item)) == 0) {
+		if ((lp = (struct llist*)ll_insert(Head,size)) == 0) {
 			_free(s);
 			return 0;
 		}

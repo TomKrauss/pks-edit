@@ -316,7 +316,7 @@ void EdSleep(void)
 }
 
 static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
-		HSZ hsz1, HSZ hsz2, HDDEDATA hdata, DWORD dw1, DWORD dw2) {
+		HSZ hsz1, HSZ hsz2, HDDEDATA hdata, ULONG_PTR dw1, ULONG_PTR dw2) {
 	char * pszData;
 
 	switch (uType) {
@@ -452,7 +452,7 @@ int PASCAL WinMain(HANDLE hInstance, HANDLE hPrevInstance, LPSTR lpCmdLine, int 
 		}
 	}
 
-	return (msg.wParam);
+	return (int)(msg.wParam);
 }
 
 /*-----------------------------------------------------------
@@ -519,7 +519,7 @@ int EdCloseAll(int ic_flag)
  */
 int EdArrangeWin(WORD style)
 {
-    return SendMessage(hwndClient, style, 0, 0L);
+    return (int)SendMessage(hwndClient, style, 0, 0L);
 }
 
 /*------------------------------------------------------------
@@ -566,7 +566,7 @@ void HiliteEditMenu(int menunr, int hilited)
 /*--------------------------------------------------------------------------
  * GetHistoryMenu()
  */
-HWND GetHistoryMenu(int *pnPosition, int *piCmd)
+HMENU GetHistoryMenu(int *pnPosition, int *piCmd)
 {
 	HMENU	hMenu;
 	int		i;
@@ -593,7 +593,7 @@ HWND GetHistoryMenu(int *pnPosition, int *piCmd)
 /*--------------------------------------------------------------------------
  * PksChangeMenuItem()
  */
-void PksChangeMenuItem(HWND hMenu, int nPosition, int nCmd, WORD wFlags,
+void PksChangeMenuItem(HMENU hMenu, int nPosition, int nCmd, WORD wFlags,
 	LPCSTR lpszItem)
 {
 	if (GetMenuItemCount(hMenu) <= nPosition) {

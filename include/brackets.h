@@ -14,16 +14,6 @@
 
 # ifndef 	BRACKETS_H
 
-struct tagBRACKET_RULE {
-	struct tagBRACKET_RULE *next;
-	int	ctx;			/* document descriptor context id */
-	char* lefthand;		/* lefthand bracket character class (group of characters enclosed in [] as [{(<]) or single word to mach */
-	char* righthand;	/* righthand bracket character class - see above */
-	char d1,d2;			/* add val for lefthand, ... */
-	char ci1[2];		/* automatic bracket indents (look up, down) indent 1-based of previous line and current line */
-	char ci2[2];		/* automatic bracket indents cl2 outdent 1-based of previous line and current line */
-};
-
 typedef struct tagBRACKET_RULE BRACKET;
 
 # ifdef	UC_H

@@ -234,11 +234,10 @@ static SYMBOL GetVariable(char *symbolname)
 /*--------------------------------------------------------------------------
  * MakeInteger()
  */
-long MakeInteger(char *symbolname)
-{
+long MakeInteger(char *symbolname) {
 	SYMBOL 	sym;
 	int		isString;
-	long	value;
+	intptr_t value;
 
 	sym = GetVariable(symbolname);
 
@@ -252,7 +251,7 @@ long MakeInteger(char *symbolname)
 			return 0;
 		}
 		if (!isString) {
-			return value;
+			return (long)value;
 		}
 		return number((char *)value);
 	case S_CONSTNUM: case S_NUMBER:
@@ -265,8 +264,7 @@ long MakeInteger(char *symbolname)
 /*--------------------------------------------------------------------------
  * MakeString()
  */
-long MakeString(char *symbolname)
-{
+intptr_t MakeString(char *symbolname) {
 	SYMBOL 	sym;
 	int		isString;
 	intptr_t		value;
@@ -275,7 +273,7 @@ long MakeString(char *symbolname)
 	sym = GetVariable(symbolname);
 
 	if (NULLSYM(sym)) {
-		return (long)"";
+		return (intptr_t)"";
 	}
 
 	switch(TYPEOF(sym)) {
@@ -291,10 +289,10 @@ long MakeString(char *symbolname)
 		if (TYPEOF(sym) == S_NUMBER || TYPEOF(sym) == S_CONSTNUM) {
 			value = (long)VALUE(sym);
 		}
-		sprintf(buf,"%ld", value);
-		return (long)buf;
+		sprintf(buf,"%ld", (long)value);
+		return (intptr_t)buf;
 	default:
-		return (long)VALUE(sym);
+		return (intptr_t)VALUE(sym);
 	}
 }
 

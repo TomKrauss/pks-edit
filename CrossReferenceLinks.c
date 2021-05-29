@@ -25,7 +25,7 @@
 #include "winfo.h"
 
 extern char	_finds[];
-extern int 	_regcompile(char *ebuf, char *pat, int opt);
+extern RE_PATTERN* 	_regcompile(char *ebuf, char *pat, int opt);
 extern char 	*searchfile(char *s);
 extern int	isword(char c), isnospace(char c), isfname(char c);
 extern void	*prof_llinsert(void *Head, int size, 
@@ -194,7 +194,7 @@ int compiler_init(void)
 /*---------------------------------*/
 /* tagexprinit()				*/
 /*---------------------------------*/
-static int tagexprinit(char *ebuf,TAGEXPR *s)
+static RE_PATTERN *tagexprinit(char *ebuf,TAGEXPR *s)
 {
 	_exprerror = s;
 	return _regcompile(ebuf,_exprerror->source,RE_DOREX);
@@ -203,11 +203,15 @@ static int tagexprinit(char *ebuf,TAGEXPR *s)
 /*---------------------------------*/
 /* dostep()					*/
 /*---------------------------------*/
-static TAG *dostep(LINE *lp,char *ebuf)
+static TAG *dostep(LINE *lp, RE_PATTERN *pattern)
 {
 	static TAG _tag;
+	RE_MATCH match;
 
-	if (step(lp->lbuf, ebuf, &lp->lbuf[lp->len])) {
+	if (pattern == NULL) {
+		return 0;
+	}
+	if (step(pattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
 		repinit(_exprerror->fnbsl);	/* assure a few initialiations */
 		exprsub(_exprerror->fnbsl, _tag.fn, sizeof _tag.fn);
 		exprsub(_exprerror->lnbsl, _linebuf, LINEBUFSIZE);
@@ -286,9 +290,9 @@ static TAG *taggetinfo(LINE *lp)
 {
 	TAG	*	tp;
 	char     	ebuf[ESIZE];
+	RE_PATTERN *pPattern = tagexprinit(ebuf, _tagerror);
 
-	tagexprinit(ebuf, _tagerror);
-	if ((tp = dostep(lp, ebuf)) == 0L) {
+	if (pPattern == NULL || (tp = dostep(lp, pPattern)) == 0L) {
 		/* bad format in tag file */
 		return 0;
 	}
@@ -401,18 +405,20 @@ static TAG *findtag(char *s, FTABLE *fp)
 	LPSTR			pszBlank;
 	char     			sbuf[ESIZE];
 	char     			ebuf[ESIZE];
+	RE_MATCH		match;
+	RE_PATTERN*		pPattern;
 	DLGSTRINGLIST *	dlp;
 	DLGSTRINGLIST *	dlpCurr;
 
 	dlp = 0;
 	wsprintf(sbuf,"^[^ ]+ <%s> [!^?&]", (LPSTR)s);
-	if (!_regcompile(ebuf, sbuf, (int)RE_DOREX)) {
+	if (!(pPattern = _regcompile(ebuf, sbuf, (int)RE_DOREX))) {
 		return 0;
 	}
 
 	for (lp = fp->firstl; lp; lp = lp->next) {
-		if (step(lp->lbuf, ebuf, &lp->lbuf[lp->len])) {
-			if ((dlpCurr = ll_insert(&dlp, sizeof *dlp)) == 0) {
+		if (step(pPattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
+			if ((dlpCurr = (DLGSTRINGLIST *)ll_insert((LINKED_LIST**)&dlp, sizeof *dlp)) == 0) {
 				ll_destroy(&dlp, (int (*)(void *))0);
 				return 0;
 			}
@@ -430,7 +436,7 @@ static TAG *findtag(char *s, FTABLE *fp)
 		}
 	}
 
-	switch (ll_size(dlp)) {
+	switch (ll_size((LINKED_LIST*)dlp)) {
 
 	case 0: 
 		return 0;
@@ -607,10 +613,10 @@ void picstep(LINE *lp)
 { 	register TAG  *tp;
 	WINDOWPLACEMENT ws,*wsp = 0;
 	char ebuf[ESIZE];
+	RE_PATTERN *pPattern = tagexprinit(ebuf,_greperror);
 
-	tagexprinit(ebuf,_greperror);
 	while((lp = lp->next) != 0L) {		/* we may skip 1st line ! */
-		if (lp->len && (tp = dostep(lp,ebuf)) != 0L) {
+		if (lp->len && (tp = dostep(lp,pPattern)) != 0L) {
 			if (tp->rembuf[0]) {
 				/* this means -> windowstate given */
 				wsp = &ws;
@@ -660,30 +666,30 @@ notfile:	ed_error(IDS_MSGNOTAGFILE);
 		goto notfile;
 	}
 
-	tagexprinit(ebuf,steperror);
+	RE_PATTERN *pPattern = tagexprinit(ebuf,steperror);
 
 	switch (dir) {
 	case LIST_PREV:
 dobackward:
 		while((lineno--, (lp = lp->prev) != 0L) && 
-		      (tp = dostep(lp,ebuf)) == 0L);
+		      (tp = dostep(lp, pPattern)) == 0L);
 		break;
 	case LIST_NEXT:
 doforward:
 		while((lineno++, (lp = lp->next) != 0L) &&
-		      (tp = dostep(lp,ebuf)) == 0L);
+		      (tp = dostep(lp, pPattern)) == 0L);
 		break;
 	case LIST_START:
 		lp     = fp->firstl;
 		lineno = 0;
-		if ((tp = dostep(lp,ebuf)) == 0L) goto doforward;
+		if ((tp = dostep(lp, pPattern)) == 0L) goto doforward;
 		break;
 	case LIST_END:
 		lp     = fp->lastl;
 		lineno = fp->nlines;
 		goto dobackward;
 	default:
-		if ((tp = dostep(lp,ebuf)) == 0L) 
+		if ((tp = dostep(lp, pPattern)) == 0L)
 			goto doforward;
 		break;
 	}

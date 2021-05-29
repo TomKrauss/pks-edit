@@ -26,7 +26,7 @@ static char szHelpFile[] = "pksedit.chm";
 /*--------------------------------------------------------------------------
  * EdCallWinHelp()
  */
-int EdCallWinHelp(char *szFile, UINT hType, DWORD param)
+int EdCallWinHelp(char *szFile, UINT hType, DWORD_PTR param)
 {
 	static int initialized = FALSE;
 	HWND		ret;
@@ -68,7 +68,7 @@ void HelpQuit(void)
  */
 int HelpKey(LPSTR szFile, LPSTR szKey)
 {
-	return EdCallWinHelp(szFile, HH_KEYWORD_LOOKUP, (DWORD)szKey);
+	return EdCallWinHelp(szFile, HH_KEYWORD_LOOKUP, (DWORD_PTR)szKey);
 }
 
 /*--------------------------------------------------------------------------

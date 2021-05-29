@@ -152,7 +152,7 @@ BOOL CreateFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 		fclose(fp);
 	}
 
-	unlink(tmpfn);
+	_unlink(tmpfn);
 
 	return TRUE;
 }

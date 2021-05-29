@@ -92,7 +92,7 @@ void key_delbindings(MACROREFTYPE typ, MACROREFIDX val)
 	KEYBIND  *kp;
 
 	for (rp = _keytables; rp; rp = rp->rt_next) {
-		for (kp = rp->rt_data; kp < rp->rt_end; kp++) {
+		for (kp = rp->rt_data; kp < (KEYBIND*)rp->rt_end; kp++) {
 			if (typ == kp->macref.typ && val == kp->macref.index) {
 				check_fkdirty(kp->keycode);
 				key_unbind(kp);

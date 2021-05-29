@@ -102,7 +102,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 	char				infile[256];
 	char				szRunBat[256];
 	char *			tmp = TmpDir();
-	char *			getenv(char *);
+	char *			getenv(const char *);
 	char *			pszPif;
 	BOOL				bUInited;
 

@@ -24,26 +24,27 @@
 #include "ftw.h"
 #include "stringutil.h"
 #include "pathname.h"
+#include "regexp.h"
 
 extern char *	_datadir;
 static FTABLE	*_outfile;
 static long 	_line;
 static int 		_abortOnFirstMatch,_trymatch;
-
-extern char		_expbuf[];
 extern void 	ShowMessage(WORD nId, ...);
 /*---------------------------------*/
 /* readfrags()					*/
 /*---------------------------------*/
 extern int readfrags(int fd, unsigned char* (*f)(FTABLE*, DOCUMENT_DESCRIPTOR*, unsigned char*, unsigned char*), void* par);
 
+
 /*--------------------------------------------------------------------------
  * present()
  * display info in abort dialog box and update .GRP-file
  */
 static int _nfound;
-static void present(char *fn)
-{
+static RE_PATTERN* _compiledPattern;
+
+static void present(char *fn) {
 	_nfound++;
 	ShowMessage(IDS_MSGNTIMESFOUND, _nfound);
 	addLineWithLocationInfo(_outfile,fn,_line,"");
@@ -64,11 +65,11 @@ int addLineWithLocationInfo(FTABLE* fp, char* fn, long line, char* remark) {
  * scanlines()
  * 
  */
-static unsigned char *scanlines(char *fn, DOCUMENT_DESCRIPTOR* linp, unsigned char *p, unsigned char *qend)
-{
+static unsigned char *scanlines(char *fn, DOCUMENT_DESCRIPTOR* linp, unsigned char *p, unsigned char *qend) {
 	register char	*	q;
 	register char 		nl = '\n';
 	char *			stepend;
+	RE_MATCH		match;
 
 	q = p;
 	while (p < qend) {
@@ -77,7 +78,7 @@ longline_scan:
 			stepend = p-2;
 			if (*stepend == '\r')
 				stepend--;
-			if (step(q,_expbuf,stepend)) {
+			if (_compiledPattern != NULL && step(_compiledPattern, q,stepend, &match)) {
 				present(fn);
 				if (_abortOnFirstMatch)
 					return 0;
@@ -101,8 +102,7 @@ longline_scan:
  * matchInFile()
  * scan for a search pattern in file fn
  */
-static int matchInFile(char *fn, DTA *stat)
-{	
+static int matchInFile(char *fn, DTA *stat) {	
 	int 	fd;
 
 #if defined(WIN32)
@@ -120,8 +120,9 @@ static int matchInFile(char *fn, DTA *stat)
 		return(0);
 	}
 
-	if ((fd = EdOpen(fn)) < 0)
+	if ((fd = EdOpen(fn)) < 0) {
 		return -1;
+	}
 
 	readfrags(fd,scanlines,fn);
 
@@ -133,8 +134,7 @@ static int matchInFile(char *fn, DTA *stat)
 /*--------------------------------------------------------------------------
  * retreive()
  */
-int retreive(char *pathes, char* filenamePattern, char *search, int sdepth, int abortOnFirstMatch)
-{
+int retreive(char *pathes, char* filenamePattern, char *search, int sdepth, int abortOnFirstMatch) {
 	char *		path;
 	char *		pathlist;
 	char		stepfile[256];
@@ -146,8 +146,9 @@ int retreive(char *pathes, char* filenamePattern, char *search, int sdepth, int 
 	if (!*search) {
 		_trymatch = 0;
 	} else {
-		if (!exprinit(search))
+		if ((_compiledPattern = regex_compileWithDefault(search)) != NULL) {
 			return 0;
+		}
 		_trymatch = 1;
 	}
 

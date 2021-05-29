@@ -56,7 +56,7 @@ static int checkkey(char *serial, char *key)
  * Getenv()
  */
 static void Getenv(char *name,char *d,int maxlen)
-{	extern char *getenv(char *s);
+{	extern char *getenv(const char *s);
 	char *env;
 
 	if ((env = getenv(name)) != 0) {
@@ -124,7 +124,7 @@ EXPORT BOOL InitEnv(void )
 		}
 	}
 	if (_homedir[0] == 0) {
-		getcwd(_homedir,sizeof _homedir);
+		_getcwd(_homedir,sizeof _homedir);
 	}
 	Getenv(pks_sys, datadir,sizeof(_datadir));
 	if (*datadir) {

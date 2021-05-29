@@ -39,7 +39,6 @@ extern RSCTABLE *	_mousetables;
 extern RSCTABLE *	_menutables;
 
 extern BOOL 		OptionSet(long nFlag);
-extern LPSTR 		lstrchr(char *str, char ch);
 extern long		rsc_wrmacros(int fd, long offset, char *buf, long maxbytes);
 extern long 		rsc_wrbuf(int fd, long offset, char *buf, long maxbytes);
 extern char *		rsc_rdmacros(char *param, unsigned char *p, unsigned char *pend);
@@ -486,7 +485,7 @@ int mac_recorder(void)
 	static  int _ndef;
 
 	if (!_recording) {		/* STOP */
-		if (_cmdfuncp && (size = _cmdparamp-_recorder) > 0) {
+		if (_cmdfuncp && (size = (int)(_cmdparamp-_recorder)) > 0) {
 			wsprintf(buf,"Mac%d",++_ndef);
 			if (!mac_getname(&scan,buf,-1)) {
 				return 0;
@@ -554,7 +553,7 @@ int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped)
 	intptr_t	o1, o2;
 
 	if (wParam == ICACT_DROPPED) {
-		icdropHwnd = dropped;
+		icdropHwnd = (HWND)dropped;
 		dropped_type = ic_type(icdropHwnd);
 	} else {						/* Textblock,... dropped */
 		dropped_type = wParam;
@@ -593,7 +592,7 @@ int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped)
 				if (ipbind->pflags & IPCF_DROPSTRING2)
 					ps2 = ic_param(szB2,icdropHwnd,1);
 				if (ipbind->pflags & IPCF_DROPHWND)
-					o1 = icdropHwnd;
+					o1 = (intptr_t)icdropHwnd;
 			}
 			funcnum = _cmdseqtab[ipbind->index].funcnum;
 			return do_func(funcnum, (long)(o1), (long)o2, ps1, ps2, ps3);
@@ -691,8 +690,8 @@ KEYCODE mac_addModifierKeys(KEYCODE key)
 /*---------------------------------*/
 void* PksGetKeyBind(WPARAM key)
 {
-	key = mac_addModifierKeys(key);
-	return keybound(key);
+	KEYCODE keycode = (KEYCODE)mac_addModifierKeys((KEYCODE)key);
+	return keybound(keycode);
 }
 
 /*---------------------------------*/
@@ -766,7 +765,7 @@ static KEYCODE mac_findkey(MACROREFTYPE typ, MACROREFIDX index)
 {
 	KEYBIND 	*kp;
 
-	for (kp = _keytables->rt_data; kp < _keytables->rt_end; kp++) {
+	for (kp = _keytables->rt_data; kp < (KEYBIND*)_keytables->rt_end; kp++) {
 		if (kp->macref.typ == typ && kp->macref.index == index)
 			return kp->keycode;
 	}
@@ -861,9 +860,8 @@ static LONG SelectedMacro(HWND hwnd)
 /*------------------------------------------------------------
  * SelectedKey()
  */
-static LONG SelectedKey(HWND hwnd)
-{
-	LONG		nKey = 0;
+static KEYCODE SelectedKey(HWND hwnd) {
+	KEYCODE		nKey = 0;
 	LRESULT		item;
 
 	if ((item = SendDlgItemMessage(hwnd, IDD_LISTBOX2, LB_GETCURSEL, 0, 0)) < 0) {
@@ -904,7 +902,7 @@ HWND list_startfilling(HWND hwnd, WORD nItem, LRESULT *nCurr)
 /*------------------------------------------------------------
  * list_endfilling()
  */
-void list_endfilling(HWND hwndList, WORD nCurr)
+void list_endfilling(HWND hwndList, WPARAM nCurr)
 {
 	SendMessage(hwndList, WM_SETREDRAW,TRUE,0L);
 	SendMessage(hwndList, LB_SETCURSEL, nCurr, 0L);
@@ -1031,13 +1029,14 @@ void ShowMenuHelp(int menId)
 static void UpdateCommentAndName(HWND hwnd)
 {
 	LONG		nSelected;
-	WORD		nIndex,type;
+	MACROREFIDX	nIndex;
+	MACROREFTYPE type;
 	BOOL		editable;
 	char		szName[64],szComment[256],szK[128];
 
 	nSelected = SelectedMacro(hwnd);
-	nIndex = HIWORD(nSelected);
-	type = LOWORD(nSelected);
+	nIndex = (MACROREFIDX)HIWORD(nSelected);
+	type = (MACROREFTYPE)LOWORD(nSelected);
 	DlgInitString(hwnd, IDD_STRING1, 
 				mac_name(szName,nIndex,type), MAC_NAMELEN);
 	DlgInitString(hwnd, IDD_STRING2, 
@@ -1062,11 +1061,11 @@ static void UpdateCommentAndName(HWND hwnd)
  */
 static void NewMacroSelected(HWND hwnd)
 {
-	HWND 	hwndList;
+	HWND 		hwndList;
 	LONG		nSelected;
-	KEYBIND	*kp;
-	int		nKeys = 0;
-	WORD		nCurr;
+	KEYBIND		*kp;
+	int			nKeys = 0;
+	LRESULT		nCurr;
 
 	UpdateCommentAndName(hwnd);
 	nSelected = SelectedMacro(hwnd);
@@ -1086,8 +1085,8 @@ static void NewMacroSelected(HWND hwnd)
  */
 static void FillKeyTables(HWND hwnd)
 {
-	HWND 	hwndList;
-	WORD		nCurr;
+	HWND 		hwndList;
+	LRESULT		nCurr;
 	RSCTABLE	*rp;
 
 	hwndList = list_startfilling(hwnd,IDD_LISTBOX,&nCurr);
@@ -1120,9 +1119,9 @@ static void mac_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem,
 	char	szBuf[128];
 
 	if (nID == IDD_LISTBOX2) {
-		lstrcpy(szBuf,code2key(par));
+		lstrcpy(szBuf,code2key((KEYCODE) par));
 	} else {
-		mac_name(szBuf, HIWORD(par), LOWORD(par));
+		mac_name(szBuf, (MACROREFIDX)HIWORD(par), (MACROREFTYPE)LOWORD(par));
 	}
 	TextOut(hdc, rcp->left, rcp->top, szBuf, lstrlen(szBuf));
 }
@@ -1136,7 +1135,7 @@ static KEYCODE mac_getkey(void)
 	static DIALPARS _d[] = { IDD_KEYCODE,	sizeof k,	&k, 0 };
 
 	k = K_DELETED;
-	if (DoDialog(DLGKEYCODE,(FARPROC)DlgStdProc,_d) == IDCANCEL ||
+	if (DoDialog(DLGKEYCODE, DlgStdProc,_d) == IDCANCEL ||
 		k == 0) {
 		return K_DELETED;
 	}
@@ -1173,7 +1172,7 @@ static int CharItemNextSelected(HWND hwndList, unsigned char ucKey)
 			nPos = 0;
 		}
 		lValue = SendMessage(hwndList, LB_GETITEMDATA, nPos, 0);
-		mac_name(szBuf, HIWORD(lValue), LOWORD(lValue));
+		mac_name(szBuf, (MACROREFIDX)HIWORD(lValue), (MACROREFTYPE)LOWORD(lValue));
 
 		ucCmp = (szBuf[0] == '@') ? szBuf[1] : szBuf[0];
 		if (ucCmp >= 'A' && ucCmp <= 'Z') {
@@ -1185,14 +1184,13 @@ static int CharItemNextSelected(HWND hwndList, unsigned char ucKey)
 
 	} while(nPos != nOrigPos);
 	
-	return nPos;
+	return (int)nPos;
 }
 
 /*------------------------------------------------------------
  * DlgMacEditProc()
  */
-BOOL CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
+INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	char 			szComment[MAC_COMMENTLEN];
 	char			szName[128];
 	char			szN2[64];
@@ -1232,8 +1230,8 @@ BOOL CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 		case WM_COMPAREITEM:
 			cp = (COMPAREITEMSTRUCT*)lParam;
 			return lstrcmp(
-				mac_name(szName,HIWORD(cp->itemData1),LOWORD(cp->itemData1)),
-				mac_name(szN2,HIWORD(cp->itemData2),LOWORD(cp->itemData2)));
+				mac_name(szName, (MACROREFIDX)HIWORD(cp->itemData1), (MACROREFTYPE)LOWORD(cp->itemData1)),
+				mac_name(szN2, (MACROREFIDX)HIWORD(cp->itemData2), (MACROREFTYPE)LOWORD(cp->itemData2)));
 
 		case WM_COMMAND:
 			nSelected = SelectedMacro(hwnd);
@@ -1269,8 +1267,8 @@ BOOL CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 						 mac_name(szName,kp->macref.index,
 						 		kp->macref.typ)) == IDNO)
 					break;
-				mac_scaninsert(keycode,HIWORD(nSelected),
-					LOWORD(nSelected));
+				mac_scaninsert(keycode, (MACROREFIDX)HIWORD(nSelected),
+					(MACROREFTYPE)LOWORD(nSelected));
 				goto upd;
 
 			case IDD_MACDELKEY:
@@ -1326,8 +1324,8 @@ upd: 				_macedited = 1;
 			case IDD_MACSTART:
 			case IDD_MACEDIT:
 				if (nSelected) {
-					currentSelectedMacro.typ = LOWORD(nSelected);
-					currentSelectedMacro.index = HIWORD(nSelected);
+					currentSelectedMacro.typ = (MACROREFTYPE)LOWORD(nSelected);
+					currentSelectedMacro.index = (MACROREFIDX)HIWORD(nSelected);
 				}
 				EndDialog(hwnd, wParam);
 				return TRUE;

@@ -48,7 +48,7 @@ extern int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
 extern char *_strtolend;
 extern int  prof_savestring(char *grp, char *ident, char *string);
 extern void prof_adjustpoint(PPOINT pPoint);
-extern int  LbGetText(HWND hwnd, WORD id, char *szBuff);
+extern int  LbGetText(HWND hwnd, int id, void *szBuff);
 extern HFONT EdSmallFont(void);
 
 ICONCLASS *icEditIconClass;
@@ -63,7 +63,7 @@ static HWND	hwndActive;
 /*------------------------------------------------------------
  * EdIconsQuit()
  */
-int EdIconsQuit(LONG hwnd) 
+int EdIconsQuit(HWND hwnd) 
 {
 	return CloseChildWindow((HWND)hwnd,1);
 }
@@ -133,7 +133,7 @@ void ic_enablecallbacks(HWND hwnd, ICONCLASS *icp)
 /*------------------------------------------------------------
  * ic_lboxfill()
  */
-void ic_lboxfill(HWND hwnd, int nItem, long selValue)
+void ic_lboxfill(HWND hwnd, int nItem, void* selValue)
 {
 	ICONCLASS	*icp;
 
@@ -144,7 +144,7 @@ void ic_lboxfill(HWND hwnd, int nItem, long selValue)
 	 */
 	for (icp = iconclasses; icp && icp->next; icp = icp->next)
 		SendDlgItemMessage(hwnd,nItem,LB_ADDSTRING,0,(LPARAM)icp);
-	SendDlgItemMessage(hwnd,nItem,LB_SELECTSTRING,(WPARAM)-1,selValue);
+	SendDlgItemMessage(hwnd,nItem,LB_SELECTSTRING,(WPARAM)-1,(LPARAM)selValue);
 	icp = (ICONCLASS *)selValue;
 	if (icp) {
 		EnableWindow(GetDlgItem(hwnd, IDD_PATH2SEL),
@@ -482,7 +482,7 @@ static int		nButtonY;
 				break;
 			}
 			SetCapture(hwnd);
-			if ((hIcon = (HICON) GetWindowLong(hwnd,GWL_ICICON)) != 0) {
+			if ((hIcon = (HICON) GetWindowLongPtr(hwnd,GWL_ICICON)) != 0) {
 				ShowWindow(hwnd, FALSE);
 				UpdateWindow(hwndClient);
 				hPreviousCursor = SetCursor(hIcon);
@@ -529,7 +529,7 @@ static int		nButtonY;
 			return 0;
 		case WM_KEYDOWN:
 			if (wParam == VK_DELETE) {
-				EdIconsQuit((LONG) hwnd);
+				EdIconsQuit((HWND) hwnd);
 				return 0;
 			}
 			if (wParam == VK_RETURN) {
@@ -624,7 +624,7 @@ static ICONCLASS *ic_createclass(LPSTR szIdClass,char szTypeChar,LPSTR szIconNam
 {
 	ICONCLASS *icp;
 
-	if ((icp = ll_insert(&iconclasses,sizeof *icp)) == 0) {
+	if ((icp = (ICONCLASS*)ll_insert((LINKED_LIST**)&iconclasses,sizeof *icp)) == 0) {
 	    	return 0;
 	}
 
@@ -642,7 +642,7 @@ static ICONCLASS *ic_createclass(LPSTR szIdClass,char szTypeChar,LPSTR szIconNam
 /*------------------------------------------------------------
  * ic_mk()
  */
-static int ic_mk(LPSTR szIdClass, LONG lParam)
+static intptr_t ic_mk(LPSTR szIdClass, LONG lParam)
 {
 	char		 szBuf[256],*szIconName,*szTypeString,*szCursor,*szIcon2;
 
@@ -692,16 +692,16 @@ HWND ic_add(ICONCLASS *icp, LPSTR szTitle, LPSTR szParams, int x, int y)
 	}
 	SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE |
 			SWP_NOSIZE | SWP_SHOWWINDOW | SWP_NOACTIVATE);
-	SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,icp);
-	SetWindowLongPtr(hwnd,GWL_ICPARAMS,szParams);
-	SetWindowLongPtr(hwnd,GWL_ICICON,icp->ic_icon1);
+	SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES, (LONG_PTR) icp);
+	SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR) szParams);
+	SetWindowLongPtr(hwnd,GWL_ICICON, (LONG_PTR)icp->ic_icon1);
 	return hwnd;
 }
 
 /*------------------------------------------------------------
  * ic_place()
  */
-static int ic_place(LPSTR szName, LONG lParam)
+static intptr_t ic_place(LPSTR szName, LONG lParam)
 {
 	char 	*szClassId,*szTitle,*szGeo,*szParams;
 	char	szBuff[512];
@@ -726,7 +726,7 @@ static int ic_place(LPSTR szName, LONG lParam)
 	y = (int)Atol(_strtolend);
 	hwnd = ic_add(icp,szTitle,szParams,x,y);
 
-	return (int)hwnd;
+	return (intptr_t)hwnd;
 }
 
 /*------------------------------------------------------------

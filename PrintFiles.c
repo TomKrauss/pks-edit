@@ -134,10 +134,10 @@ static void EscapeError(short errEscape)
 /*------------------------------------------------------------
  * PrtAbortProc()
  */
-BOOL CALLBACK PrtAbortProc(HDC hdcPrn, short nCode)
-{
-	if (nCode < 0)
+ABORTPROC PrtAbortProc(HDC hdcPrn, int nCode) {
+	if (nCode < 0) {
 		EscapeError(nCode);
+	}
 	return !ProgressMonitorCancel(FALSE);
 }
 
@@ -754,7 +754,7 @@ again:
 			docinfo.lpszDocName = message;
 			docinfo.lpszDatatype = "Text";
 			ProgressMonitorStart(IDS_ABRTPRINT);
-			SetAbortProc(hdcPrn, (LPSTR)PrtAbortProc);
+			SetAbortProc(hdcPrn, (ABORTPROC)PrtAbortProc);
 			if ((PREVIEWING() || (errEscape = StartDoc(hdcPrn, &docinfo))) >= 0 &&
 			    (errEscape = PrintFile(hdcPrn)) >= 0) {
 				if (!PREVIEWING()) {
@@ -787,7 +787,7 @@ byebye:
  */
 static void PrtInstall(void)
 {
-	DoDialog(DLGPRTINSTALL,(FARPROC)DlgInstallPrtProc,(LPSTR)0);
+	DoDialog(DLGPRTINSTALL, DlgInstallPrtProc,(LPSTR)0);
 }
 
 /*--------------------------------------------------------------------------
@@ -829,7 +829,7 @@ int EdPrinterLayout(void) {
 	lstrcpy(font.name, _prtparams.font.fs_name);
 	lstrcpy(htfont.name, _prtparams.htfont.fs_name);
 
-	if (DoDialog(DLGPRINTERLAYOUT, (FARPROC)DlgStdProc, _d) == IDCANCEL) {
+	if (DoDialog(DLGPRINTERLAYOUT, DlgStdProc, _d) == IDCANCEL) {
 		return 0;
 	}
 	PrinterDefaults(1);

@@ -34,14 +34,12 @@
 #include "pathname.h"
 #include "edexec.h"
 #include "errordialogs.h"
+#include "documenttypes.h"
 
  /*------------------------------------------------------------
   * EdGetActiveWindow()
   */
 extern HWND EdGetActiveWindow(int includeicons);
-extern BOOL GetDocumentTypeDescription(void* llp,
-	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszFname,
-	int** pOwn);
 extern HWND ww_winid2hwnd(int winid);
 extern HWND ic_add(void* icp, LPSTR szTitle, LPSTR szParams, int x, int y);
 extern HWND ic_active(LPSTR szTitle, LPSTR szParams, void** icClass);
@@ -50,26 +48,24 @@ extern int 		mac_runcmd(MACROREF *mp);
 extern int 		AlignText(char *finds, int scope, char filler, int flags);
 extern long 	ft_size(FTABLE *fp);
 extern char *	AbbrevName(char *fn);
-extern BOOL CALLBACK DlgMacEditProc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam);
-extern void 	ic_lboxfill(HWND hwnd, int nItem, long selValue);
+extern INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam);
+extern void 	ic_lboxfill(HWND hwnd, int nItem, void *selValue);
 extern void 	ic_lboxmeasureitem(MEASUREITEMSTRUCT *mp);
 extern void		ic_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl);
 extern void		ic_lboxselchange(HWND hDlg, WORD nItem, LONG lParam, void* p);
-extern int 		LbGetText(HWND hwnd, WORD id, char *szBuff);
+extern int 		LbGetText(HWND hwnd, int id, void *szBuff);
 extern FTABLE *	ww_winid2fp(int winid);
 extern int 		ww_nwi(void);
 extern int 		PrintMacs(char *macroname);
 extern int 		PrintMice(void);
 extern int 		PrintKeys(void);
 extern int 		PrintMenus(void);
-extern void* CreateDocumentType(void* llp);
 extern void 	fkey_visibilitychanged(void);
 extern int 		caret_moveLeftRight(int dir, int mtype);
 extern int 		EdExecute(long flags, long unused, 
 					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
 extern int 		AssignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
-extern void *		GetPrivateDocumentType(char *);
 extern char *		TmpDir(void);
 extern void 		mac_switchtodefaulttables(void);
 extern int 		linchange(void);
@@ -367,9 +363,8 @@ static void cpyout(char *d,char *s, int len)
  * DlgQueryReplaceProc()
  */
 static HWND hwndQueryReplace;
-static WORD _answer;
-BOOL CALLBACK DlgQueryReplaceProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
+static WPARAM _answer;
+INT_PTR CALLBACK DlgQueryReplaceProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch(message) {
 
 		case WM_COMMAND:
@@ -424,7 +419,7 @@ int QueryReplace(char *search, int slen, char *replace, int dlen)
 	}
 	OwnTextCursor(0);
 
-	return _answer;
+	return (int) _answer;
 }
 
 /*--------------------------------------------------------------------------
@@ -450,7 +445,7 @@ int RecordOptions(int *o)
 		0
 	};
 
-	if (!DoDialog(DLGRECORDER,(FARPROC)DlgStdProc,_d))
+	if (!DoDialog(DLGRECORDER,DlgStdProc,_d))
 		return 0;
 	*o = opt;
 	return 1;
@@ -475,7 +470,7 @@ int EdAbout(void)
 		0
 	};
 
-	return DoDialog(DLGABOUT,(FARPROC)DlgStdProc,_d);
+	return DoDialog(DLGABOUT,DlgStdProc,_d);
 }
 
 /*--------------------------------------------------------------------------
@@ -726,7 +721,7 @@ int PromptString(int strId, char *string, char *string2)
 		_d[2].dp_item = 0;
 	}
 	return DoDialog(string2 ? DLGQUERYRENAME : DLGQUERYDELETE,
-				 (FARPROC)DlgStdProc,_d);
+				 DlgStdProc,_d);
 }
 
 /*--------------------------------------------------------------------------
@@ -742,13 +737,13 @@ int PromptAsPath(char *path)
 	lstrcpy(path, TmpDir());
 	_d[0].dp_data = path;
 
-	return DoDialog(DLGNEWASPATH, (FARPROC)DlgStdProc,_d) == IDOK;
+	return DoDialog(DLGNEWASPATH, DlgStdProc,_d) == IDOK;
 }
 
 /*------------------------------------------------------------
  * winlist_lboxfill()
  */
-void winlist_lboxfill(HWND hwnd, int nItem, long selValue)
+void winlist_lboxfill(HWND hwnd, int nItem, void* selValue)
 {
 	int		nFile;
 	int		nMaxFiles;
@@ -766,7 +761,7 @@ void winlist_lboxfill(HWND hwnd, int nItem, long selValue)
 		}
 	}
 	SendDlgItemMessage(hwnd, nItem, WM_SETREDRAW, (WPARAM)TRUE, 0L);
-	SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING,-1, selValue);
+	SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING,-1, (LPARAM)selValue);
 }
 
 /*------------------------------------------------------------
@@ -865,7 +860,7 @@ static int ShowWindowList(int nTitleId)
 	infoDialListPars[6].dp_size = nTitleId;
 
 	InfoFillParams(infoDialListPars, fp);
-	nRet = DoDialog(DLGINFOFILE,(FARPROC)DlgStdProc,infoDialListPars);
+	nRet = DoDialog(DLGINFOFILE, DlgStdProc,infoDialListPars);
 	if (nRet == IDCANCEL || fp == 0) {
 		return 0;
 	}
@@ -923,7 +918,7 @@ static void doclist_command(HWND hDlg, WORD nItem, WORD nNotify, void *pUser)
 /*------------------------------------------------------------
  * DocTypelboxfill()
  */
-void DocTypelboxfill(HWND hwnd, int nItem, long selValue)
+void DocTypelboxfill(HWND hwnd, int nItem, void* selValue)
 {
 	SendDlgItemMessage(hwnd, nItem, LB_RESETCONTENT, 0, 0L);
 	if (AddDocumentTypesToListBox(hwnd, nItem)) {
@@ -1037,7 +1032,7 @@ static void DocDelete(HWND hDlg)
 {
 	DeleteDocumentType(lastSelectedDocType);
 	lastSelectedDocType = 0;
-	DocTypelboxfill(hDlg, IDD_WINDOWLIST, (long)lastSelectedDocType);
+	DocTypelboxfill(hDlg, IDD_WINDOWLIST, (void*)lastSelectedDocType);
 	DocTypeFillParams(docTypePars, (void*)lastSelectedDocType);
 }
 
@@ -1047,7 +1042,7 @@ static void DocDelete(HWND hDlg)
 static void DocTypeChange(HWND hDlg)
 {
 	DoDlgRetreivePars(hDlg, docTypePars, NVDOCTYPEPARS);
-	DocTypelboxfill(hDlg, IDD_WINDOWLIST, (long)lastSelectedDocType);
+	DocTypelboxfill(hDlg, IDD_WINDOWLIST, (void*)lastSelectedDocType);
 }
 
 /*--------------------------------------------------------------------------
@@ -1073,7 +1068,7 @@ int DoDocumentTypes(int nDlg)
 		ft_CurrentDocument() ? ft_CurrentDocument()->documentDescriptor->modename : "default");
 
 	DocTypeFillParams(docTypePars, (void*)lastSelectedDocType);
-	if ((nRet = DoDialog(nDlg, (FARPROC)DlgStdProc,docTypePars)) == IDCANCEL) {
+	if ((nRet = DoDialog(nDlg, DlgStdProc,docTypePars)) == IDCANCEL) {
 		lastSelectedDocType = 0;
 		return 0;
 	}
@@ -1583,7 +1578,7 @@ int DlgPrint(char *title, int *ps, int *pe, int *po)
 	dp++->dp_data = pe;
 	dp->dp_data = po;
 
-	return DoDialog(DLGPRINT,(FARPROC)DlgStdProc,_d);
+	return DoDialog(DLGPRINT, DlgStdProc,_d);
 }
 
 /*--------------------------------------------------------------------------
@@ -1623,7 +1618,7 @@ int mac_getname(KEYCODE *scan,char *name,int oldidx)
 	_d[0].dp_data = name;
 	_d[1].dp_data = scan;
 	do {
-		if (DoDialog(DLGMACNAME,(FARPROC)DlgStdProc,_d) == IDCANCEL)
+		if (DoDialog(DLGMACNAME, DlgStdProc,_d) == IDCANCEL)
 			return 0;
 	} while (!mac_isvalidname(name,oldidx));
 	return 1;
@@ -1667,7 +1662,7 @@ int EdMacrosEdit(void)
 	extern 	char *	_macroname;
 	extern 	MACROREF	currentSelectedMacro;
 
-	ret = DoDialog(DLGMACROS,(FARPROC)DlgMacEditProc,0);
+	ret = DoDialog(DLGMACROS, DlgMacEditProc,0);
 	mac_switchtodefaulttables();
 
 	if (ret == IDD_MACSTART) {
@@ -1776,7 +1771,7 @@ static int add_icon(HWND hDlg);
 static int del_icon(HWND hDlg);
 static int mod_icon(void);
 static char _title[32],_pars[64];
-static long _ictype;
+static UINT_PTR _ictype;
 static DIALLIST icondlist = {
 	&_ictype, ic_lboxfill, LbGetText, 
 	ic_lboxmeasureitem, ic_lboxdrawitem, ic_lboxselchange, 0  };
@@ -1796,7 +1791,7 @@ static int add_icon(HWND hDlg)
 
 	if ((p = stralloc(_pars)) != 0) {
 		hwnd = ic_add((void*)_ictype,_title,p,CW_USEDEFAULT,CW_USEDEFAULT);
-		SendMessage(hwndClient, WM_MDIACTIVATE, hwnd, 0L);
+		SendMessage(hwndClient, WM_MDIACTIVATE, (WPARAM)hwnd, (LPARAM)NULL);
 		SendRedraw(hwnd);
 		ic_enablecallbacks(hDlg, (void *)_ictype);
 	}
@@ -1848,7 +1843,7 @@ static void GetPassWord(LPSTR pszPW)
 
 	pszPW[0] = 0;
 	_d[0].dp_data = pszPW;
-	DoDialog(DLGCRYPT, (FARPROC)DlgStdProc, _d);
+	DoDialog(DLGCRYPT, DlgStdProc, _d);
 }
 
 /*--------------------------------------------------------------------------

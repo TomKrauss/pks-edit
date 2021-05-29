@@ -129,7 +129,7 @@ EXPORT int caret_screen2lineOffset(FTABLE *fp, CARET *pCaret)
 				i++;
 			}
 		}
-		return p - lp->lbuf;
+		return (int)(p - lp->lbuf);
 	}
 	
 	if (PLAINCONTROL(flags)) {
@@ -144,7 +144,7 @@ EXPORT int caret_screen2lineOffset(FTABLE *fp, CARET *pCaret)
 			else i++;
 		}
 	}
-	return p-lp->lbuf;
+	return (int)(p-lp->lbuf);
 }
 
 /*--------------------------------------------------------------------------

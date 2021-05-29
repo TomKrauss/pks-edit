@@ -38,10 +38,14 @@ typedef struct xywh {
 
 static WINFO *_winlist;
 
+/*--------------------------------------------------------------------------
+ * mkattlist()
+ */
+extern void mkattlist(LINE* lp);
 extern int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
 extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
 extern char *ft_visiblename(FTABLE *fp);
-extern int  do_linbutton(FTABLE *fp, int x, int y, int msg, int shift);
+extern int  do_linbutton(WINFO *fp, int x, int y, int msg, int shift);
 extern int  do_mbutton(FTABLE *fp, int x,int y,int b, int nclicks,int shift);
 extern void *icEditIconClass;
 extern BOOL ic_isicon(HWND hwnd);
@@ -587,7 +591,7 @@ static FSTYLE _fstyles[2] = {
 static WINFO *ww_new(FTABLE *fp,HWND hwnd)
 {	WINFO  *wp;
 
-	if ((wp = ll_insert(&_winlist,sizeof *wp)) == 0) {
+	if ((wp = (WINFO*)ll_insert((LINKED_LIST**)&_winlist,sizeof *wp)) == 0) {
 		return 0;
 	}
 
@@ -598,7 +602,7 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd)
 	wp->edwin_handle = hwnd;
 
 	ww_setwindowflags(wp);
-
+		 
 	wp->hscroll   = 4;
 	wp->scroll_dx = 4;
 
@@ -660,7 +664,7 @@ int ww_close(WINFO *wp)
 	if (!SendMessage(hwndEdit,WM_QUERYENDSESSION,(WPARAM)0,(LPARAM)0L))
 		return 0;
 	return
-		SendMessage(hwndClient,WM_MDIDESTROY,(WPARAM)hwndEdit,(LPARAM)0L);
+		(int) SendMessage(hwndClient,WM_MDIDESTROY,(WPARAM)hwndEdit,(LPARAM)0L);
 }
 
 /*------------------------------------------------------------
@@ -695,7 +699,7 @@ WINFUNC EditWndProc(
 		MakeSubWis(hwnd, wp, &xyWork, &xyRuler, &xyLineInfo);
 		ww_setwindowtitle(wp);
 		SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR)fp->fname);
-		SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,icEditIconClass);
+		SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,(LONG_PTR) icEditIconClass);
 		SetWindowLongPtr(hwnd,GWL_VIEWPTR, (LONG_PTR) wp);
 		return 0;
 		}
@@ -876,8 +880,7 @@ int do_mouse(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 /*------------------------------------------------------------
  * do_slide()
  */
-int do_slide(WINFO *wp, UINT message, WPARAM wParam, LONG lParam)
-{	
+int do_slide(WINFO *wp, UINT message, WPARAM wParam, LPARAM lParam) {	
 	int 	delta;
 	int		deltapage;
 	int		nScrollCode;
@@ -1128,10 +1131,9 @@ static WINFUNC RulerWndProc(
  */
 static void draw_lineNumbers(WINFO* wp) {
 	int 		row;
-	int			xPos;
 	int			yPos;
 	RECT			rect;
-	int			textLen;
+	size_t		textLen;
 	FTABLE* fp = wp->fp;
 	int maxln = wp->maxln;
 	DOCUMENT_DESCRIPTOR* lin = fp->documentDescriptor;
@@ -1159,7 +1161,7 @@ static void draw_lineNumbers(WINFO* wp) {
 		textRect.top = yPos;
 		textRect.bottom = yPos + wp->cheight;
 		textLen = strlen(text);
-		DrawText(hdc, text, textLen, &textRect, DT_RIGHT|DT_END_ELLIPSIS);
+		DrawText(hdc, text, (int)textLen, &textRect, DT_RIGHT|DT_END_ELLIPSIS);
 	}
 	EdUnselectFont(hdc);
 	EndPaint(wp->lineNumbers_handle, &ps);

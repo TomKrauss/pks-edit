@@ -12,6 +12,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
+#include <stdlib.h>
 #include <tos.h>
 #include "trace.h"
 #include "lineoperations.h"
@@ -96,7 +97,7 @@ static void list2_insert(P2LIST **head, char *p1, char *p2)
 
 	if ((p1 = stralloc(p1)) != 0 &&
 	    (p2 = stralloc(p2)) != 0 &&
-	    (pl = ll_insert(head,sizeof *pl)) != 0) {
+	    (pl = (P2LIST*)ll_insert((LINKED_LIST**)head,sizeof *pl)) != 0) {
 		pl->p1 = p1;
 		pl->p2 = p2;
 	}
@@ -134,11 +135,12 @@ int ap_init(void)
 	return prof_enum(szAltpath,listPathes_mk,0L);
 }
 
+/*---------------------------------
+ * closeF()
+ * close a file handle and report an error if unsuccessful. 
 /*---------------------------------*/
-/* closeF()					*/
-/*---------------------------------*/
-EXPORT int closeF(int *fd)
-{	int ret;
+EXPORT int closeF(int *fd) {
+	int ret;
 
 	if (*fd > 0 && (ret = Fclose(*fd)) < 0) {
 		form_error(-ret);
@@ -150,8 +152,7 @@ EXPORT int closeF(int *fd)
 /*--------------------------------------------------------------------------
  * NoDiskSpace()
  */
-void NoDiskSpace(void)
-{
+void NoDiskSpace(void) {
 	ed_error(IDS_MSGNODISKSPACE);
 }
 

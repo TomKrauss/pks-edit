@@ -66,9 +66,9 @@ void menu_startdefine(char *szMenu)
 		return;
 	}
 	menu_overridetable();
-	if ((pTitleMenu = ll_find(_titlemenus, szMenu)) != 0) {
+	if ((pTitleMenu = (PMENUS)ll_find((LINKED_LIST*)_titlemenus, szMenu)) != 0) {
 		hNextDestroy = pTitleMenu->hmenu;
-		ll_delete(&_titlemenus, pTitleMenu);
+		ll_delete((LINKED_LIST**)&_titlemenus, pTitleMenu);
 	}
 	if (hNextDestroy) {
 		DestroyMenu(hNextDestroy);
@@ -139,7 +139,7 @@ int menu_addentry(char *pszTemp, int menutype,
 	pMenu->macref.index = macidx;
 
 	if ((pMenu->type = menutype) == UM_ITEM) {
-		pMenu->handle = (mactype + 1) * IDM_USERDEF0 + macidx;
+		pMenu->handle = (void*)((mactype + 1) * IDM_USERDEF0 + macidx);
 	}
 
 	return 1;
@@ -173,7 +173,7 @@ static HMENU menu_createmenu(BOOL bSub)
 	 * is this menu already created ?
 	 * if, then just return handle
 	 */
-	if ((pTitleMenu = ll_find(_titlemenus, rp->rt_name)) != 0) {
+	if ((pTitleMenu = (PMENUS)ll_find((LINKED_LIST*)_titlemenus, rp->rt_name)) != 0) {
 		if (bSub) {
 			return (HMENU)pMenu->handle;
 		} else {
@@ -181,7 +181,7 @@ static HMENU menu_createmenu(BOOL bSub)
 		}
 	}
 	
-	if ((pTitleMenu = ll_insert(&_titlemenus, 
+	if ((pTitleMenu = (PMENUS)ll_insert((LINKED_LIST**)&_titlemenus,
 		sizeof *pTitleMenu)) == 0) {
 		return 0;
 	}
@@ -199,8 +199,8 @@ static HMENU menu_createmenu(BOOL bSub)
 		switch (pMenu->type) {
 	
 		case UM_POPUP:
-			pMenu->handle = (unsigned int)CreatePopupMenu();
-			AppendMenu(hMenu, MF_POPUP, pMenu->handle, pMenu->szString);
+			pMenu->handle = (void*)CreatePopupMenu();
+			AppendMenu(hMenu, MF_POPUP, (UINT_PTR)pMenu->handle, (LPCSTR) pMenu->szString);
 			if (!hMenuRet && bSub) {
 				hMenuRet = (HMENU)pMenu->handle;
 			}
@@ -210,7 +210,7 @@ static HMENU menu_createmenu(BOOL bSub)
 	
 		case UM_ITEM:
 			if (hMenu) {
-				AppendMenu(hMenu, MF_STRING, pMenu->handle, pMenu->szString);
+				AppendMenu(hMenu, MF_STRING, (UINT_PTR)pMenu->handle, (LPCSTR) pMenu->szString);
 			}
 			break;
 

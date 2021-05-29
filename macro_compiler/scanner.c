@@ -21,7 +21,7 @@
 
 #ifdef __cplusplus
 
-#include "alloc.h"
+#include <stdlib.h>
 #include <unistd.h>
 
 /* Use prototypes in function declarations. */
@@ -44,7 +44,7 @@
  #pragma warn -rch
  #pragma warn -use
 #include <io.h>
-#include "alloc.h"
+#include <stdlib.h>
 #define YY_USE_CONST
 #define YY_USE_PROTOS
 #endif
@@ -839,7 +839,7 @@ YY_MALLOC_DECL
 #else
 #if __STDC__
 #ifndef __cplusplus
-#include "alloc.h"
+#include <stdlib.h>
 #endif
 #else
 /* Just try to get by without declaring the routines.  This will fail
@@ -1827,7 +1827,7 @@ FILE *file;
 #if YY_NEVER_INTERACTIVE
 	b->yy_is_interactive = 0;
 #else
-	b->yy_is_interactive = file ? (isatty( fileno(file) ) > 0) : 0;
+	b->yy_is_interactive = file ? (isatty( _fileno(file) ) > 0) : 0;
 #endif
 #endif
 	}

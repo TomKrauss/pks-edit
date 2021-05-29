@@ -134,9 +134,8 @@ EXPORT int EdIsDir(char *s)
 /*--------------------------------------------------------------------------
  * EdOpen()
  */
-EXPORT int EdOpen(char *fn)
-{	int fd;
-
+EXPORT int EdOpen(char *fn) {	
+	int fd;
 
 	if ((fd = Fopen(fn, OF_READ)) < 0) {
 		tosfnerror(fn,fd);
@@ -295,6 +294,6 @@ EXPORT void TmpJunk(void)
 	sfsplit(tmpname,pathname,fn);
 	if ((szBang = strchr(fn, '!')) != 0) {
 		*szBang = '?';
-		_ftw(pathname,unlink,1,fn,0xFF);
+		_ftw(pathname,_unlink,1,fn,0xFF);
 	}
 }

@@ -356,7 +356,7 @@ void mouse_delbindings(MACROREFTYPE typ, MACROREFIDX val)
 	MOUSEBIND  *	mp;
 
 	for (rp = _mousetables; rp; rp = rp->rt_next) {
-		for (mp = (MOUSEBIND*)rp->rt_data; mp < rp->rt_end; mp++) {
+		for (mp = (MOUSEBIND*)rp->rt_data; mp < (MOUSEBIND*)rp->rt_end; mp++) {
 			if (typ == mp->macref.typ && val == mp->macref.index) {
 				mouse_unbind(mp);
 			}

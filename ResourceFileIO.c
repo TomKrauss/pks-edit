@@ -140,8 +140,8 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes)
 			}
 			seqp = (struct macrodata *) &buf[offs];
 			seqp->cmdbyte 	= CMD_MACRO;
-			seqp->namelen = strlen(mp->name)+1;
-			seqp->commentlen = strlen(MAC_COMMENT(mp))+1;
+			seqp->namelen = (unsigned char)(strlen(mp->name)+1);
+			seqp->commentlen = (unsigned char)strlen(MAC_COMMENT(mp))+1;
 			strcpy(seqp->name,mp->name);
 			comment = &seqp->name[seqp->namelen];
 			strcpy(comment,MAC_COMMENT(mp));
@@ -411,20 +411,20 @@ RSCTABLE *rsc_findtable(RSCTABLE *rp, char *pszTarget)
 /*------------------------------------------------------------
  * rsc_switchtotable()
  */
-int rsc_switchtotable(RSCTABLE **Rp, char *pszTarget)
+int rsc_switchtotable(RSCTABLE **pRSCTable, char *pszTarget)
 {
 	RSCTABLE	*rp;
 	char		name[RSC_NAMELEN];
 
 	strmaxcpy(name, pszTarget, RSC_NAMELEN);
 
-	for (rp = *Rp ; rp; rp = rp->rt_next) {
+	for (rp = *pRSCTable ; rp; rp = rp->rt_next) {
 		if (strcmp(rp->rt_name,name) == 0) {
-			ll_moveElementToFront(Rp,rp);
+			ll_moveElementToFront((LINKED_LIST**)pRSCTable,rp);
 			return 1;
 		} 
 	}
-	if ((rp = ll_insert(Rp,sizeof *rp)) == 0) {
+	if ((rp = (RSCTABLE*)ll_insert((LINKED_LIST**)pRSCTable,sizeof *rp)) == 0) {
 		return 0;
 	}
 

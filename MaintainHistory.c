@@ -17,22 +17,85 @@
 #include "stringutil.h"
 
 extern char	_finds[];
-extern HWND 	GetHistoryMenu(int *pnPosition, int *piCmd);
+extern HMENU GetHistoryMenu(int *pnPosition, int *piCmd);
 
-struct history _findhist, _replhist, _openhist, _pathhist;
+typedef struct history {
+	char* s[MAXHIST];
+	int  where;
+} HISTORY;
 
-void PksChangeMenuItem(HWND hMenu, int nPosition, int nCmd, WORD wFlags,
+static HISTORY _histories[PATHES+1];
+
+static struct histdes {
+	char* keyword;
+	struct history* hist;
+} _histsavings[] = {
+	"[find]",		&_histories[SEARCH_PATTERNS],
+	"[replace]",	&_histories[SEARCH_AND_REPLACE],
+	"[open]",		&_histories[OPEN_FILES],
+	"[pathes]",		&_histories[PATHES],
+	0
+};
+
+void PksChangeMenuItem(HMENU hMenu, int nPosition, int nCmd, WORD wFlags,
 	LPCSTR lpszItem);
 
 /*---------------------------------*/
 /* hist_enq()					*/
 /*---------------------------------*/
-EXPORT void hist_enq(struct history *h, char *string)
-{	char *s;
+static void hist_addEntry(HISTORY* h, char* string) {
+	char* s;
 	int  i;
+	if (*string == 0) {
+		return;
+	}
+	/*
+	 * first: if present in history, rearrange only
+	 */
+	for (i = h->where; ; ) {
+		if ((s = h->s[i]) != 0 && strcmp(s, string) == 0) {
+			if (i == h->where)
+				return;
+			/* free(slot) and insert actual string in position "where" */
+			h->s[i] = 0;
+			break;
+		}
+		s = 0;
+		if (--i < 0)
+			i = MAXHIST - 1;
+		if (i == h->where)
+			break;
+	}
 
-	if (*string == 0) return;
+	/*
+	 * not present: make new
+	 */
+	if (!s && (s = stralloc(string)) == 0)
+		return;
 
+	/*
+	 * insert and update new position
+	 */
+	i = (h->where >= MAXHIST - 1) ? 0 : h->where + 1;
+
+	if (h->s[i] != 0)
+		_free(h->s[i]);
+	h->s[i] = s;
+	h->where = i;
+}
+
+
+/*---------------------------------*/
+/* hist_enq()					*/
+/*---------------------------------*/
+EXPORT void hist_enq(HISTORY_TYPE type, char *string) {
+	HISTORY* h = &_histories[type];
+
+	char* s;
+	int  i;
+	if (*string == 0) {
+		return;
+	}
 	/*
 	 * first: if present in history, rearrange only
 	 */	
@@ -71,9 +134,10 @@ EXPORT void hist_enq(struct history *h, char *string)
 /*------------------------------------------------------------
  * hist_combo()
  */
-EXPORT void hist_2combo(HWND hDlg, WORD nItem, char *firstitem, struct history *hp)
+EXPORT void hist_2combo(HWND hDlg, WORD nItem, char *firstitem, HISTORY_TYPE type)
 {	int  i;
 	char *p,*q = 0;
+	HISTORY* hp = &_histories[type];
 
 	SendDlgItemMessage(hDlg, nItem, CB_RESETCONTENT, 0,0L);
 	i = hp->where;
@@ -81,8 +145,7 @@ EXPORT void hist_2combo(HWND hDlg, WORD nItem, char *firstitem, struct history *
 		if ((p = hp->s[i]) != 0) {
 			if (!q)
 				q = p;
-			if (SendDlgItemMessage(hDlg, nItem, CB_ADDSTRING, 0, 
-							   (LONG)p) < 0) {
+			if (SendDlgItemMessage(hDlg, nItem, CB_ADDSTRING, 0, (LPARAM)p) < 0) {
 				break;
 			}
 		}
@@ -95,8 +158,8 @@ EXPORT void hist_2combo(HWND hDlg, WORD nItem, char *firstitem, struct history *
 /*--------------------------------------------------------------------------
  * hist_getstring()
  */
-char *hist_getstring(struct history *hp, int nItem)
-{
+char *hist_getstring(HISTORY_TYPE type, int nItem) {
+	HISTORY* hp = &_histories[type];
 	int		i;
 	
 	i = hp->where;
@@ -114,9 +177,8 @@ char *hist_getstring(struct history *hp, int nItem)
 /*--------------------------------------------------------------------------
  * hist_2menu()
  */
-void hist_updatemenu(struct history *hp)
-{
-	HWND 	hMenu;
+void hist_updatemenu(HISTORY_TYPE type) {
+	HMENU 	hMenu;
 	int		iCmd;
 	int		nVisible;
 	int 		nPosition;
@@ -129,7 +191,7 @@ void hist_updatemenu(struct history *hp)
 	nVisible = 5;
 
 	for (i = 0; i < nVisible; i++) {
-		if ((p = hist_getstring(hp, i)) == 0) {
+		if ((p = hist_getstring(type, i)) == 0) {
 			return;
 		}
 		wsprintf(szTemp, "&%d %s", i + 1, p);
@@ -165,17 +227,6 @@ static void hist_save(FTABLE *fp,struct history *hp)
 /*---------------------------------*/
 /* save history()				*/
 /*---------------------------------*/
-static struct histdes {
-	char    *keyword;
-	struct history *hist;
-} _histsavings[] = {
-	"[find]",		&_findhist,
-	"[replace]", 	&_replhist,
-	"[open]", 	&_openhist,
-	"[pathes]",	&_pathhist,
-	0
-};
-
 EXPORT void hist_allsave(FTABLE *fp)
 {	struct histdes *hp = _histsavings;
 
@@ -205,10 +256,10 @@ EXPORT void hist_read(LINE *lp)
 		}
 		else { 
 			if (hp)
-				hist_enq(hp,lp->lbuf+1);		/* +1 -> skip ! mark */
+				hist_addEntry(hp,lp->lbuf+1);		/* +1 -> skip ! mark */
 		}
 		lp = lp->next;
 	}
-	hist_updatemenu(&_openhist);
+	hist_updatemenu(OPEN_FILES);
 }
 

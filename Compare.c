@@ -51,7 +51,7 @@ EXPORT int crunchdict(unsigned char *d,unsigned char *s,int l)
 			*d++ = c;
 		l--;
 	}
-	return d-D;
+	return (int)(d-D);
 }
 
 /*------------------------------------------------------------

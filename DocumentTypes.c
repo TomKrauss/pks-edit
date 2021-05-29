@@ -26,6 +26,7 @@
 #include "edierror.h"
 #include "stringutil.h"
 #include "pksedit.h"
+#include "documenttypes.h"
 
 /*
  * Description of one document type in PKS edit.
@@ -400,8 +401,7 @@ static int ReadDocumentType(char *fname, DOCUMENT_DESCRIPTOR *lp, int id, int fo
  * 	2. if common document descriptor, ...
  *	3. if neither, use standard document descriptor
  */
-int GetFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename)
-{
+BOOL GetFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename) {
 	char 			fname[1024];
 	char			linealname[1024];
 	DOCUMENT_TYPE *		llp;
@@ -436,7 +436,7 @@ int GetFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename)
 	} else {
 		memmove(linp, lp, sizeof * lp);
 	}
-	return 1;
+	return TRUE;
 }
 
 /*--------------------------------------------------------------------------
@@ -521,7 +521,7 @@ DOCUMENT_TYPE *CreateDocumentType(DOCUMENT_TYPE *llp)
 	DOCUMENT_TYPE * llpNew;
 	int		nLen;
 
-	if ((llpNew = ll_insert(&_linl, sizeof *llpNew)) == 0) {
+	if ((llpNew = (DOCUMENT_TYPE*)ll_insert((LINKED_LIST**)&_linl, sizeof *llpNew)) == 0) {
 		return 0;
 	}
 	if (llp) {

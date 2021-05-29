@@ -21,6 +21,7 @@
 #include "edfuncs.h"
 #include "edierror.h"
 #include "stringutil.h"
+#include "regexp.h"
 
 #define	MAXARG			128
 #define	MAXKEYS			8
@@ -80,7 +81,6 @@ static long	_nlines;
 static int	_sortflags;
 static RECORD	*_rectab;
 
-extern char	_expbuf[];
 extern char	*_strtolend;
 
 extern int  cmpfold   (unsigned char *s1, int l1,unsigned char *s2, int l2);
@@ -404,14 +404,16 @@ int sortlist(RECORD *tab,long n)
  * build a EdMacroRecord tab, using a line list
  */
 static int lp2rec(LINE *lpfirst, LINE *lplast, 
-			   char *selebuf, int sortflags,
+			   RE_PATTERN *pPattern, int sortflags,
 			   RECORD *rectab)
 {	int 	nrec,nl;
 	LINE *lpnext;
+	RE_MATCH match;
  
+	memset(&match, 0, sizeof match);
 	for (nrec = 0;;) {
 		if ((sortflags & SO_NOSELECT) || 
-			step(lpfirst->lbuf,selebuf,&lpfirst->lbuf[lpfirst->len])) {
+			step(pPattern, lpfirst->lbuf,&lpfirst->lbuf[lpfirst->len], &match)) {
 			if (nrec >= MAXREC) {
 				ed_error(IDS_MSGTOOMUCHRECORDS);
 				return 0;
@@ -424,7 +426,7 @@ static int lp2rec(LINE *lpfirst, LINE *lplast,
 					if (lpfirst == lplast)
 						break;
 					lpnext = lpfirst->next;
-					if (step(lpnext->lbuf,selebuf,&lpnext->lbuf[lpnext->len]))
+					if (step(pPattern, lpnext->lbuf,&lpnext->lbuf[lpnext->len], &match))
 						break;
 					lpfirst = lpnext;
 					nl++;
@@ -533,13 +535,15 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 	long  	l1;
 	LINE 	*lpfirst, *lplast;
 	MARK		*mps,*mpe;
+	RE_PATTERN* pattern;
 
 	if (!sel[0]) {
 		sortflags |= SO_NOSELECT;
 		sortflags &= ~SO_CLUSTERLINES;
 	} else {
-		if (!exprinit(sel))
+		if ((pattern = regex_compileWithDefault(sel)) == NULL) {
 			return 0;
+		}
 	}
 
 	fp = ft_CurrentDocument();
@@ -560,7 +564,7 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 		return 0;
 	}
 
-	if ((n  = lp2rec(lpfirst,lplast,_expbuf,_sortflags,_rectab)) != 0) {
+	if ((n  = lp2rec(lpfirst,lplast,pattern,_sortflags,_rectab)) != 0) {
 		n2 = mk2ndlist(lpfirst,lplast,n);
 		rp.lpfirst = lpfirst->prev;
 		rp.lplast  = lplast ->next;

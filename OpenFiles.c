@@ -33,6 +33,7 @@
 #include "pksedit.h"
 #include "stringutil.h"
 #include "winfo.h"
+#include "documenttypes.h"
 
 extern void *	shareAlloc();
 extern char *	AbbrevName(char *fn);
@@ -43,7 +44,6 @@ extern int 	GetFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename);
 extern char *	searchfile(char *s);
 extern void 	prof_saveaspath(void);
 extern int 	PromptAsPath(char *path);
-extern DOCUMENT_DESCRIPTOR *GetDocumentTypeDescriptor(void *p);
 extern char *	basename(char *s);
 
 extern char *	_datadir;
@@ -327,7 +327,7 @@ void ft_destroy(FTABLE *fp)
 FTABLE *ft_new(void)
 {	FTABLE *fp;
 
-	if ((fp = ll_insert(&_filelist,sizeof *fp)) == 0)
+	if ((fp = (FTABLE*)ll_insert((LINKED_LIST**)&_filelist,sizeof *fp)) == 0)
 		return 0;
 
 	if (undo_initializeManager(fp) == 0) {
@@ -442,8 +442,8 @@ int ft_wantclose(FTABLE *fp)
 			case IDCANCEL:  return (0);
 		}
 	}
-	hist_enq(&_openhist,fp->fname);
-	hist_updatemenu(&_openhist);
+	hist_enq(OPEN_FILES, fp->fname);
+	hist_updatemenu(OPEN_FILES);
 	return 1;
 }
 
@@ -642,7 +642,7 @@ int EdEditFile(long editflags, long unused, char *filename)
 	}
 	if (editflags & OPEN_HISTORY) {
 		nEntry = (editflags & 0xF000) >> 12;
-		if ((filename = hist_getstring(&_openhist, nEntry)) == 0) {
+		if ((filename = hist_getstring(OPEN_FILES, nEntry)) == 0) {
 			return 0;
 		}
 	}

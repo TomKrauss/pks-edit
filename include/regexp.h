@@ -17,35 +17,43 @@
 #define	RE_IGNCASE		0x2		/* ignore case */
 #define	RE_SHELLWILD	0x4		/* wildcards are: *?[] */
 
-extern unsigned char *compile(unsigned char *instring, 
-			 		     unsigned char *ep, 
-				   		unsigned char *endbuf,
-						unsigned char eof,
-				   		int flags);
+ /*
+  * Result of a matching operation.
+  */
+typedef struct tagRE_MATCH {
+	int		matches;
+	int		regerror;
+	char* loc1;
+	char* loc2;
+	int		nbrackets;
+	char** braslist;
+	char** braelist;
+	int		circf;
+} RE_MATCH;
 
-extern int step(unsigned char *linebuf,unsigned char *expbuf,
-			 unsigned char *endbuf);
+typedef struct tagRE_OPTIONS {
+	char* expression;			/* the actual expression to compile */
+	char* patternBuf;			/* space into which the regular expression is compiled */
+	char* endOfPatternBuf;		/* marks the end of the space into which the expression is compiled */
+	unsigned char eof;			/* "END OF INPUT" character if any */
+	int	flags;					/* some of the RE_CONSTANTS above */
+} RE_OPTIONS;
 
-extern	char   *__loc1,*__loc2,*__locs;    /* where the expression is found */
-extern	int    _nbrackets,_staronly;		/* # of \d */
-extern	char   *_braslist[],*_braelist[];	/* start and end of \.. */
+typedef struct tagRE_PATTERN {
+	int		errorCode;			// the resource ID in case of an error, which can be used for error reporting.
+	char*	compiledExpression;
+	int		circf;
+	int		nbrackets;
+} RE_PATTERN;
 
-extern	int	  _circf;
-extern	int	  _regerror,_regepos;
+extern int compile(RE_OPTIONS* input, RE_PATTERN* result);
+extern int step(RE_PATTERN* pPattern, unsigned char *linebuf, unsigned char *endbuf, RE_MATCH *pMatch);
 
-typedef struct tagREGCMP {
-	unsigned char *(*compile)(unsigned char *instring, unsigned char *ep, 
-		   		unsigned char *endbuf, unsigned char eof, int flags);
-	int    (*step)(unsigned char *linebuf,unsigned char *expbuf,unsigned char *endbuf);
-	char   **loc1,**loc2,**locs;
-	int    *nbrackets,*staronly;
-	char   **braslist[9],**braelist[9];
-	int	  *circf;
-	int	  *regerror,*regepos;
-	int	  *errmsg;
-} REGCMP;
-
-extern REGCMP	_regcmp;
+/*--------------------------------------------------------------------------
+ * regex_compileWithDefault()
+ * Compile a regular expression passed by argument with standard options.
+ */
+RE_PATTERN* regex_compileWithDefault(char* expression);
 
 #endif
 

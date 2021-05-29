@@ -143,7 +143,7 @@ static int pr_param(FILE *fp, unsigned char *sp, signed char partyp)
 	unsigned char typ;
 	long val;
 
-	if (((int)sp) & 1)
+	if (((intptr_t)sp) & 1)
 		goto err;
 
 	typ = ((COM_CHAR1 *)sp)->typ;

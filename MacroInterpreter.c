@@ -28,10 +28,14 @@ extern int 			SelectWindow(int winid, BOOL bPopup);
 extern void 			changemouseform(void);
 extern int 			RecordOptions(int *o);
 
-extern long 			MakeInteger(void *p);
-extern long 			MakeString(void *p);
+extern long 			MakeInteger(char *p);
+extern intptr_t			MakeString(char *p);
 extern long 			Assign(char *name, COM_LONG1 *v);
-extern int 			Test(COM_TEST *sp);
+/*--------------------------------------------------------------------------
+ * macro_testExpression()
+ * Test an expression in a macro.
+ */
+extern int macro_testExpression(COM_TEST* sp);
 extern void 			Binop(COM_BINOP *sp);
 
 extern int 			ProgressMonitorCancel(BOOL bRedraw);
@@ -91,8 +95,8 @@ int param_space(unsigned char typ, char *s)
 		case C_LONGVAR:
 		case C_MACRO:
 		case C_STRING1PAR:
-			size = (sizeof(struct c_ident) - 1 /* pad byte*/) +
-					(strlen(s)+1)*sizeof(*s);
+			size = (int)((sizeof(struct c_ident) - 1 /* pad byte*/) +
+					(strlen(s)+1)*sizeof(*s));
 			if (size & 1) size++;
 			return size;
 		case C_BINOP:
@@ -142,7 +146,7 @@ static void push_sequence(unsigned char typ, void* par)
 		case C_FURET:
 		case C_0FUNC:
 		case C_CHAR1PAR: 
-			((COM_CHAR1 *)sp)->val = par;
+			((COM_CHAR1 *)sp)->val = (unsigned char)par;
 			break;
 		case C_FORMSTART:
 			*(COM_FORM *)sp = *(COM_FORM *)par;
@@ -151,10 +155,10 @@ static void push_sequence(unsigned char typ, void* par)
 			*(COM_1FUNC *)sp = *(COM_1FUNC *)par;
 			break;
 		case C_INT1PAR:
-			((COM_INT1 *)sp)->val = par;
+			((COM_INT1 *)sp)->val = (int) par;
 			break;
 		case C_LONG1PAR:
-			((COM_LONG1 *)sp)->val = par;
+			((COM_LONG1 *)sp)->val = (long)par;
 			break;
 		case C_STRING1PAR:
 		case C_MACRO:
@@ -210,8 +214,8 @@ err:		return FORM_SHOW;
 		if (cp->options & FORM_INIT) {
 		   switch(dp->cmd_type) {
 			case C_INT1PAR:  *dp->p.i = par; break;
-			case C_CHAR1PAR: *dp->p.c = par; break;
-			case C_LONG1PAR: *dp->p.l = par; break;
+			case C_CHAR1PAR: *dp->p.c = (char) par; break;
+			case C_LONG1PAR: *dp->p.l = (long) par; break;
 			case C_STRING1PAR:
 				if ((type == C_STRING1PAR || type == C_STRINGVAR) && par) {
 					strcpy(dp->p.s,(char *)par);
@@ -328,7 +332,7 @@ intptr_t param_pop(unsigned char **Sp)
 /*---------------------------------*/
 /* cash()						*/
 /*---------------------------------*/
-static void cash(int fnum, int p, long p2, char *s1, char *s2)
+static void cash(int fnum, int p, intptr_t p2, char *s1, char *s2)
 {	COM_1FUNC c;
 
 	if (_edfunctab[fnum].flags & EW_NOCASH)	/* avoid recursion	*/
@@ -337,12 +341,12 @@ static void cash(int fnum, int p, long p2, char *s1, char *s2)
 	c.funcnum = fnum;
 	c.p = p;
 
-	push_sequence(C_1FUNC,(long) &c);
-	if (p2) push_sequence(C_LONG1PAR,p2);
+	push_sequence(C_1FUNC,(void*) &c);
+	if (p2) push_sequence(C_LONG1PAR, (void*) p2);
 	if (s1) {
-		push_sequence(C_STRING1PAR,(long)s1);
+		push_sequence(C_STRING1PAR,(void*)s1);
 		if (s2)
-			push_sequence(C_STRING1PAR,(long)s2);
+			push_sequence(C_STRING1PAR,(void*)s2);
 	}
 }
 
@@ -430,7 +434,7 @@ int CanExecute(int num, int warn)
 /*---------------------------------*/
 /* do_func()					*/
 /*---------------------------------*/
-int cdecl do_func(int num, long p1, long p2, void *s1, void *s2, void *s3)
+int cdecl do_func(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3)
 {
 	EDFUNC *	fup = &_edfunctab[num];
 	int 		ret,i;
@@ -448,7 +452,7 @@ int cdecl do_func(int num, long p1, long p2, void *s1, void *s2, void *s3)
 	}
 
 	if (_recording)
-		cash(num,p1,p2,s1,s2);
+		cash(num,(int)p1,p2,s1,s2);
 
 	if ((i = _multiplier) > 1 && (fup->flags & EW_MULTI) == 0) {
 		while (i-- > 0 && (ret = (* fup->func)(p1,p2,s1,s2,s3)) != 0)
@@ -487,10 +491,9 @@ int GetDollar(intptr_t offset, int *typ, intptr_t *value)
 /*---------------------------------*/
 /* do_macfunc()				*/
 /*---------------------------------*/
-long do_macfunc(COM_1FUNC **Cp, COM_1FUNC *cpmax)
-{
-	long 		stack[40];
-	long *		saveStack;
+intptr_t do_macfunc(COM_1FUNC **Cp, COM_1FUNC *cpmax) {
+	intptr_t 	stack[40];
+	intptr_t*	saveStack;
 	intptr_t	rc,*sp,*sp2;
 	unsigned char 	typ;
 	int  		funcnum;
@@ -558,7 +561,7 @@ out:
  * ReturnString()
  */
 static intptr_t _fncmarker = -1;
-static void ReturnFuncVal(unsigned char typ, long v)
+static void ReturnFuncVal(unsigned char typ, intptr_t v)
 {
 	char *		vname;
 	COM_STRING1  * value;
@@ -575,14 +578,14 @@ static void ReturnFuncVal(unsigned char typ, long v)
 	} else {
 		((COM_LONG1 *)value)->val = v;
 	}
-	vname[6] = '0' + _fncmarker;
+	vname[6] = '0' + (int)_fncmarker;
 	Assign(vname,(COM_LONG1 *)value);
 	_fncmarker = -1;
 }
 
 void ReturnString(char *string)
 {
-	ReturnFuncVal(C_STRING1PAR,(long)string);
+	ReturnFuncVal(C_STRING1PAR,(intptr_t)string);
 }
 
 /*---------------------------------*/
@@ -591,9 +594,8 @@ void ReturnString(char *string)
 #define COM1_INCR(cp,type,offset) (COM_1FUNC*)(((unsigned char *)cp)+((type *)cp)->offset)
 #define COM_PARAMINCR(cp)		(COM_1FUNC*)(((unsigned char *)cp)+param_space(cp->typ,&cp->funcnum));
 static int _macaborted;
-int do_seq(COM_1FUNC *cp,COM_1FUNC *cpmax)
-{
-	long 			val;
+int do_seq(COM_1FUNC *cp,COM_1FUNC *cpmax) {
+	intptr_t	val;
 
 	for (val = 1; cp < cpmax; ) {
 		if (_macaborted || (_macaborted = ProgressMonitorCancel(FALSE)) != 0)
@@ -609,7 +611,7 @@ int do_seq(COM_1FUNC *cp,COM_1FUNC *cpmax)
 				val = 1;
 				break;
 			case C_TEST:
-				val = Test((COM_TEST*)cp);
+				val = macro_testExpression((COM_TEST*)cp);
 				cp = COM1_INCR(cp,COM_TEST,size);
 				continue;
 			case C_BINOP:
@@ -644,7 +646,7 @@ int do_seq(COM_1FUNC *cp,COM_1FUNC *cpmax)
 				return 0;
 		}
 	}
-	return val;
+	return (int)val;
 }
 
 /*---------------------------------*/
@@ -652,7 +654,7 @@ int do_seq(COM_1FUNC *cp,COM_1FUNC *cpmax)
 /*---------------------------------*/
 int EdMacroPlay(int macroindex)
 {
-	int 			ret = 1;
+	int 		ret = 1;
 	int			i;
 	int			count;
 	int			wasplaying;

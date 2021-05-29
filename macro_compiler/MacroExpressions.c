@@ -52,7 +52,7 @@ long NumVal(unsigned char *sp,unsigned char *spend)
 		case C_INT1PAR:
 		case C_LONG1PAR:
 		case C_LONGVAR:
-			return param_pop(&sp);
+			return (long) param_pop(&sp);
 		case C_MACRO:
 		case C_0FUNC:
 		case C_1FUNC:
@@ -66,7 +66,7 @@ long NumVal(unsigned char *sp,unsigned char *spend)
  */
 char *StrVal(unsigned char *sp)
 {
-	long v;
+	intptr_t v;
 	static char buf[20];
 		
 
@@ -79,7 +79,7 @@ char *StrVal(unsigned char *sp)
 		case C_LONG1PAR:
 		case C_LONGVAR:
 			v = param_pop(&sp);
-			sprintf(buf,"%ld",v);
+			sprintf(buf,"%ld",(long)v);
 			return buf;
 	}
 	return "";
@@ -88,32 +88,40 @@ char *StrVal(unsigned char *sp)
 /*
  * strmatch()
  */
-int strmatch(char *s1,char *s2)
-{	REGCMP *rp = &_regcmp;
+static int strmatch(char *s1,char *s2) {	
 	char   ebuf[256],*eol;
+	RE_PATTERN pattern;
+	RE_OPTIONS options;
 
+	options.eof = 0;
+	options.patternBuf = ebuf;
+	options.endOfPatternBuf = &ebuf[sizeof ebuf];
+	options.flags = RE_DOREX;
+	options.expression = s2;
 	eol = &s1[strlen(s1)];
-	if ((*(rp->compile))(s2,ebuf,&ebuf[sizeof ebuf],0,RE_DOREX) == 0) {
+	if (compile(&options,&pattern) == 0) {
 		Alert("illegal RE");
 		return -1;
 	}
+	RE_MATCH match;
 
 #if defined(ATARI_ST)
-	if ((*(rp->step))(s1,ebuf,(long)eol) &&
+	if step(&pattern, s1, (long)eol) &&
 #else
-	if ((*(rp->step))(s1,ebuf,eol) &&
+	if (step(&pattern, s1, eol, &match) &&
 #endif
-	    *(rp->loc1) == s1 && *(rp->loc2) == eol)
+	    match.loc1 == s1 && match.loc2 == eol)
 		return 1;
 
 	return 0;
 }
 
 /*--------------------------------------------------------------------------
- * Test()
+ * macro_testExpression()
+ * Test an expression in a macro.
  */
-int Test(COM_TEST *sp)
-{	long r1,r2;
+int macro_testExpression(COM_TEST *sp) {	
+	long r1,r2;
 	unsigned char *s1,*s2,*p2,*pend;
 	unsigned char op;
 
@@ -154,10 +162,10 @@ notimpl:				Alert("test: ~ OP 0x%x not implemented",op);
 		}
 	} else
 		switch(op) {
-			case CT_NOT: return !Test(sp);
-			case CT_AND: return Test(sp) && Test((COM_TEST*)p2);
-			case CT_OR:  return Test(sp) || Test((COM_TEST*)p2);
-			case CT_BRACKETS: return Test(sp);
+			case CT_NOT: return !macro_testExpression(sp);
+			case CT_AND: return macro_testExpression(sp) && macro_testExpression((COM_TEST*)p2);
+			case CT_OR:  return macro_testExpression(sp) || macro_testExpression((COM_TEST*)p2);
+			case CT_BRACKETS: return macro_testExpression(sp);
 			default: goto notimpl;
 		}
 }
@@ -191,7 +199,7 @@ void Binop(COM_BINOP *sp)
 		if (IsStringType(typ1)) {
 			MakeInternalSym(sp->result,S_NUMBER,NumVal(p1,p2));
 		} else {
-			MakeInternalSym(sp->result,S_STRING,(long)StrVal(p1));
+			MakeInternalSym(sp->result,S_STRING,(intptr_t)StrVal(p1));
 		}
 		return;	
 	}
@@ -268,7 +276,7 @@ void Binop(COM_BINOP *sp)
 			Alert("string binop %c not impl.",op);
 
 		}
-		MakeInternalSym(sp->result,S_STRING,(long)buf);
+		MakeInternalSym(sp->result,S_STRING,(intptr_t)buf);
 	}
 }
 

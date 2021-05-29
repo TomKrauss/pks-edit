@@ -80,11 +80,12 @@
 /*															*/
 /***************************************************************************/
 
+extern unsigned char* tlcompile(unsigned char* transtab, unsigned char* t, unsigned char* wt);
+
 /*--------------------------------------------------------------------------
  * USER-DEFINES
  */
 
-#define	INIT		register unsigned char *sp = instring; int err;
 #define	GETC() 	(*sp++)
 #define	PEEKC()	(*sp)
 #define	UNGETC(c)	(--sp)
@@ -92,19 +93,18 @@
 #define	REGEX_ERROR(c)	{ err = c; goto endcompile; }
 
 static int 	_chsetinited;
-unsigned char 	bittab[] = { 1,2,4,8,16,32,64,128 };
-int			__size;
-int 			_staronly; 	/* expression is only stared expression ? */
+unsigned char bittab[] = { 1,2,4,8,16,32,64,128 };
+static int	__size;
+static int 	_staronly; 	/* expression is only stared expression ? */
 
 static int near advance(unsigned char *lp, unsigned char *ep, unsigned char *end);
 
 /*----------------- EXPORT ---------------------*/
 
-int		    _circf,_cnostart,_regerror,_regepos,_regspos;
-char 		*__loc1,*__loc2,*__locs;
-int		    _nbrackets;
+static int		    _cnostart,_regepos,_regspos;
+static char 		*__loc1,*__loc2,*__locs;
 
-unsigned char _asciitab[256] = 
+unsigned char _asciitab[256] =
 	"\0\0\0\0\0\0\0\0\0\020\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
 	"\0\0\0\0\0\020\0\0\0\0\0\0\0\0\0\040\0\0\0\040\0\051\051"
 	"\051\051\051\051\051\051\051\051\040\0\0\0\0\0\0\054\054"
@@ -119,11 +119,25 @@ unsigned char _asciitab[256] =
 	"\0\0\0\0\0\0\0\0\0\0\0\0";
 
 /* don't change order */
-char 		*_braslist[NBRA];
-char 		*_braelist[NBRA];
+static char 		*_braslist[NBRA];
+static char 		*_braelist[NBRA];
 
-unsigned char 	_l2uset[256],
-			_u2lset[256];
+unsigned char _l2uset[256], _u2lset[256];
+
+static int _reerrmsg[] = {
+	 IDS_MSGRENOTNULL,
+	 IDS_MSGRECOMPLEXEXPR,
+	 IDS_MSGREMACRORANGESYNTAX,
+	 IDS_MSGRERANGE,
+	 IDS_MSGREMANYBRACKETS,
+	 IDS_MSGRENOBRACKETMATCH,
+	 IDS_MSGREFROMTO,
+	 IDS_MSGREMINMAXOVL,
+	 IDS_MSGREMINMAXERR,
+	 IDS_MSGREBSLERR,
+	 IDS_MSGREBRUNDEF,
+	 IDS_MSGREPIPEERR
+};
 
 /*--------------------------------------------------------------------------
  * fixsets()
@@ -143,7 +157,7 @@ void fixsets(unsigned char *l2upat)
 
 	/* calculate the inverse tab */
 
-	blfill(_u2lset,sizeof(_u2lset),0);
+	memset(_u2lset,0 , sizeof(_u2lset));
 
 	for (i = 0; i < sizeof(_l2uset); i++)
 		if ((j = _l2uset[i]) != i)
@@ -280,48 +294,49 @@ out: *dest = 0;
  * compile an expression for fast
  * scan - Algorithm
  */
-unsigned char *compile(unsigned char *instring, 
-				   unsigned char *ep, 
-				   unsigned char *endbuf,
-				   unsigned char eof,
-				   int flags)
-{	INIT /* Dependent declarations and initializations */
+int compile(RE_OPTIONS *pOptions, RE_PATTERN *pResult) {
+	register unsigned char *sp = pOptions->expression; 
+	int err;
 	register unsigned char c;
 	int	    cflg;
 	register unsigned char *lastep;
 	unsigned char bracket[NBRA], *bracketp, closed[NBRA];
 	char     shellbuf[512];
 	int	    f1,neg;
+	char* ep = pOptions->patternBuf;
+	char* endbuf = pOptions->endOfPatternBuf;
 	unsigned char *firstep,*f2,*Cep;
 	register int i;
 
-	if (!_chsetinited)
-		fixsets((unsigned char *) 0);
-		
-	if (flags & RE_SHELLWILD) {
+	if (!_chsetinited) {
+		fixsets((unsigned char*)0);
+	}
+	pResult->errorCode = 0;
+	pResult->nbrackets = 0;
+	pResult->compiledExpression = pOptions->patternBuf;
+	if (pOptions->flags & RE_SHELLWILD) {
 		precompile(shellbuf,sp);
 		sp = shellbuf;
 	}
 
 	Cep = sp;
-	if ((c = GETC()) == eof) {
-		if (ep[1] == 0) REGEX_ERROR(1);
-		RETURN(ep);
+	if ((c = GETC()) == pOptions->eof) {
+		if (pOptions->patternBuf[1] == 0) REGEX_ERROR(1);
+		return 1;
 	}
 
 	bracketp = bracket;
 	lastep = 0;
-	blfill(closed,(int)sizeof(closed),0);
-	_nbrackets   = 0;
-	firstep = ep;
+	memset(closed,0, sizeof(closed));
+	firstep = pOptions->patternBuf;
 	
 	/* Space for: _circf, fastchar, .* - marker */
 	ep  += 3;
 
 	f1   = 1, f2 = 0;
 	_staronly = 1;
-	_compileflags = flags;
-	if (flags & (RE_DOREX|RE_SHELLWILD)) {
+	_compileflags = pOptions->flags;
+	if (pOptions->flags & (RE_DOREX|RE_SHELLWILD)) {
 		if (c == '^') {
 			*firstep = 1;			/* _circf */
 			goto nounget;
@@ -330,11 +345,11 @@ unsigned char *compile(unsigned char *instring,
 	*firstep = 0;					/* ! _circf */
 	UNGETC(c);
 nounget:
-	_circf = *firstep++;
+	pResult->circf = *firstep++;
 	for(;;) {
 		Cep = sp;
 		if(ep >= endbuf) REGEX_ERROR(2);
-		if((c = GETC()) == eof) {
+		if((c = GETC()) == pOptions->eof) {
 			if (bracketp != bracket)
 				REGEX_ERROR(6); 				/* brackets open	  */
 			if (f2 && (*f2 == CCHR || f2[2]))
@@ -347,11 +362,11 @@ nounget:
 				firstep[1] = 255;
 			}
 			else firstep[1] = 0;
-			_regepos	= sp -instring;
+			_regepos = (int)(sp - pOptions->expression);
 			*ep++ = CCEOF;
-			RETURN(ep);
+			return 1;
 		}
-		if (!(flags & (RE_DOREX|RE_SHELLWILD))) goto defchar;
+		if (!(pOptions->flags & (RE_DOREX|RE_SHELLWILD))) goto defchar;
 		if (c != '*' && c != '{' && c != '+' && c != '?') {
 			if (lastep && LENGTHGARANT(*lastep))
 				_staronly = 0;
@@ -369,7 +384,7 @@ nounget:
 			break;
 
 		case '$':
-			if(PEEKC() != eof) goto defchar;
+			if(PEEKC() != pOptions->eof) goto defchar;
 			*ep++ = CDOL;
 			break;
 
@@ -425,11 +440,11 @@ getcnt:
 			break;
 
 		case '(':
-			if(_nbrackets >= NBRA) REGEX_ERROR(5);
-			*bracketp++ = _nbrackets;
-			pipes[_nbrackets] = ep;
+			if(pResult->nbrackets >= NBRA) REGEX_ERROR(5);
+			*bracketp++ = pResult->nbrackets;
+			pipes[pResult->nbrackets] = ep;
 			*ep++ = CBRA;
-			*ep++ = _nbrackets++;
+			*ep++ = pResult->nbrackets++;
 			ep++;				/* space for optional | -> pointer */
 			break;
 
@@ -461,7 +476,7 @@ getcnt:
 			if ((i = *lastep) == CBRA || i == CPIPE)
 				REGEX_ERROR(1);
 #endif
-			i = _nbrackets-1;
+			i = pResult->nbrackets-1;
 			closed[i] |= 2;		
 			setpipe(i,ep);
 			lastep = ep;
@@ -473,7 +488,7 @@ getcnt:
 			if(&ep[MAXCTAB+1] >= endbuf)
 				REGEX_ERROR(2);
 			*ep++ 	= CCL;
-			blfill(ep,(int)MAXCTAB,0);
+			memset(ep,0,MAXCTAB);
 			cflg  	= -1;
 			f1 	 	= 0;
 			neg 		= 0;
@@ -513,7 +528,7 @@ getcnt:
 			break;
 
 		case '\\':
-			if ((c = (GETC() & 0xFF)) == eof && !eof) REGEX_ERROR(10);
+			if ((c = (GETC() & 0xFF)) == pOptions->eof && !pOptions->eof) REGEX_ERROR(10);
 			if (c >= '1' && c <= '9') {
 				c -= '1';
 				if(!(closed[c] & 1)) REGEX_ERROR(11);
@@ -535,7 +550,7 @@ getcnt:
 		default:
 		defchar:
 			/* lastep = ep; */
-			if (flags & RE_IGNCASE) {
+			if (pOptions->flags & RE_IGNCASE) {
 				c    = _l2uset[c];
 				cflg = _u2lset[c];
 				if (c == cflg)	/* no alpha char, don't distinguish cases */
@@ -554,9 +569,9 @@ nocase:
 		}
 	}
 endcompile:
-	_regerror = err;
-	_regspos	= Cep-instring;
-	_regepos	= sp -instring-1;
+	pResult->errorCode = _reerrmsg[err];
+	_regspos = (int)(Cep- pOptions->expression);
+	_regepos = (int)(sp - pOptions->expression -1);
 	return 0;
 }
 
@@ -599,7 +614,7 @@ int ecmp(unsigned char *s,unsigned char *p,unsigned char *send)
 /*--------------------------------------------------------------------------
  * advance()
  */
-static int near advance(unsigned char *lp, unsigned char *ep, unsigned char *end)
+static int advance(unsigned char *lp, unsigned char *ep, unsigned char *end)
 {
 	unsigned char 	c;
 	unsigned char 	c2;
@@ -748,7 +763,7 @@ _1:			c   = *ep++;
 
 		case CBACK | RNGE:
 docback:		bbeg  = _braslist[*ep];
-			c     = _braelist[*ep++] - bbeg;
+			c     = (int)(_braelist[*ep++] - bbeg);
 			e2    = &lp[c];
 			cnt1  = getrnge(0,ep);
 			cnt2  = cnt1 + __size;
@@ -791,16 +806,34 @@ star:
 	return 0;
 }
 
+/*
+ * Copy over the result of a match operation. 
+ */
+static int _initResult(RE_PATTERN *pPattern, RE_MATCH* result, int matches) {
+	result->braelist = _braelist;
+	result->braslist = _braslist;
+	result->circf = pPattern->circf;
+	result->loc1 = __loc1;
+	result->loc2 = __loc2;
+	result->matches = matches;
+	return matches;
+}
+
 /*--------------------------------------------------------------------------
  * step()
  */
-int step(unsigned char *lp, unsigned char *ep, unsigned char *end)
-{	unsigned char firstc,firstc2;
+int step(RE_PATTERN *pPattern, unsigned char *stringToMatch, unsigned char *endOfStringToMatch, RE_MATCH *result) {
+	unsigned char firstc,firstc2;
+	char* ep = pPattern->compiledExpression;
 
-	__locs = lp;
+	if (endOfStringToMatch == NULL) {
+		endOfStringToMatch = stringToMatch + strlen(stringToMatch);
+	}
+	__locs = stringToMatch;
 	if (*ep++) {
-		__loc1 = lp;
-		return advance(lp,ep+2,end);
+		__loc1 = stringToMatch;
+		int match = advance(stringToMatch,ep+2,endOfStringToMatch);
+		return _initResult(pPattern, result, match);
 	}
 
 	ep = &ep[2];
@@ -808,16 +841,16 @@ int step(unsigned char *lp, unsigned char *ep, unsigned char *end)
 	if ((firstc = ep[-2]) != 0) {
 		/* fast check: case sensitive */
 		do {
-			if (*lp++ == firstc || *lp++ == firstc || 
-			    *lp++ == firstc || *lp++ == firstc) {
-				if (P_LE(lp,end) && 
-				    advance(&lp[-1],ep,end)) {
-					__loc1 = &lp[-1];
-					return 1;
+			if (*stringToMatch++ == firstc || *stringToMatch++ == firstc || 
+			    *stringToMatch++ == firstc || *stringToMatch++ == firstc) {
+				if (stringToMatch <= endOfStringToMatch && 
+				    advance(&stringToMatch[-1],ep,endOfStringToMatch)) {
+					__loc1 = &stringToMatch[-1];
+					return _initResult(pPattern, result, 1);
 				}
 			}
-		} while (P_LT(lp,end));
-		return 0;
+		} while (stringToMatch < endOfStringToMatch);
+		return _initResult(pPattern, result, 0);
 	}
 
 	if (*ep == CCASE) {
@@ -825,94 +858,26 @@ int step(unsigned char *lp, unsigned char *ep, unsigned char *end)
 		firstc  = ep[1];
 		firstc2 = ep[2];
 
-		while (P_LT(lp,end)) {
-			if (*lp == firstc || *lp == firstc2) {
-				if (advance(lp,ep,end)) {
-					__loc1 = lp;
-					return 1;
+		while (stringToMatch < endOfStringToMatch) {
+			if (*stringToMatch == firstc || *stringToMatch == firstc2) {
+				if (advance(stringToMatch,ep,endOfStringToMatch)) {
+					__loc1 = stringToMatch;
+					return _initResult(pPattern, result, 1);
 				}
 			}
-			lp++;
+			stringToMatch++;
 		}
 	}
 
 	else
 
-	while(P_LE(lp,end)) {
-		if (advance(lp,ep,end)) {
-			__loc1 = lp;
-			return 1;
+	while(P_LE(stringToMatch,endOfStringToMatch)) {
+		if (advance(stringToMatch,ep,endOfStringToMatch)) {
+			__loc1 = stringToMatch;
+			return _initResult(pPattern, result, 1);
 		}
-		lp++;
+		stringToMatch++;
 	}
-	return 0;
+	return _initResult(pPattern, result, 0);
 }
-
-int _reerrmsg[] = {
-     IDS_MSGRENOTNULL,     
-     IDS_MSGRECOMPLEXEXPR,
-     IDS_MSGREMACRORANGESYNTAX,
-     IDS_MSGRERANGE,     
-     IDS_MSGREMANYBRACKETS,
-     IDS_MSGRENOBRACKETMATCH,
-     IDS_MSGREFROMTO,    
-     IDS_MSGREMINMAXOVL, 
-     IDS_MSGREMINMAXERR, 
-     IDS_MSGREBSLERR,    
-     IDS_MSGREBRUNDEF,   
-     IDS_MSGREPIPEERR    
-};                       
-
-REGCMP _regcmp = {
-	compile, step, 
-	&__loc1, &__loc2, &__locs,
-	&_nbrackets,&_staronly,
-	&_braslist,&_braelist,
-	&_circf,
-	&_regerror,&_regepos,
-	_reerrmsg
-};
-
-#ifdef	TEST
-/*--------------------------------------------------------------------------
- * MAIN
- */
-int main(int argc,char **argv)
-{	char buf[128],*p;
-	char ebuf[400];
-	int  i,flags = (RE_DOREX|RE_SHELLWILD);
-	
-	if (argc > 1) {
-		if (argc == 3 && strcmp(argv[1],"-y") == 0) {
-			flags |= RE_IGNCASE;
-			argv++;
-		}
-		if (!compile(argv[1],ebuf,&ebuf[sizeof ebuf],0,flags)) {
-			printf("re REGEX_ERROR %d at \n",_regerror);
-			printf("%s\n",argv[1]);
-			for (i = 0; i < _regepos; i++)
-				printf(">");
-			printf("\n");
-			return 1;
-		}
-		while(gets(buf)) {
-			if (step(buf,ebuf,(long )&buf[strlen(buf)])) {
-				printf("|");
-				for (p = buf; *p; p++)
-					printf("%c", *p == '\t' ? ' ': *p);
-				printf("\n>");
-				if (__loc2)
-					*__loc2 = 0;
-				else
-					printf("oops: no __loc2\n");
-				for (p = buf; p < __loc1; p++)
-					printf(">");
-				printf("%s<<<\n",__loc1);
-			}
-		}
-	}
-	return 0;
-}
-
-#endif
 

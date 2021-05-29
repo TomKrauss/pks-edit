@@ -25,7 +25,7 @@ typedef struct tagDIALPARS {
 typedef struct tagDIALLIST {
 	LONG		*li_param;
 	void		(*li_fill)(HWND hDlg, int item, void *param);
-	int			(*li_get) (HWND hDlg, int item, LONG *param);
+	int			(*li_get) (HWND hDlg, int item, void *param);
 	void		(*li_measure)(MEASUREITEMSTRUCT *mp);
 	void 		(*li_draw)(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl);
 	void		(*li_command)(HWND hDlg, int nItem, int nNotify, void *p);
@@ -50,9 +50,9 @@ typedef DIALPARS *LPDIALPARS;
 extern void			SetXDialogParams(DIALPARS* (*func)(int pageIndex), boolean propertySheetFlag);
 
 extern BOOL			DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams);
-extern int  		DoDialog(int nId, FARPROC DlgWndProc, DIALPARS *dp);
+extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALPARS *dp);
 extern void 		DlgInitString(HWND hwnd, int item, LPSTR szString, int nMax);
-extern BOOL CALLBACK DlgStdProc(HWND,UINT,WPARAM,LPARAM);
+extern INT_PTR CALLBACK DlgStdProc(HWND,UINT,WPARAM,LPARAM);
 # if defined(_EDFUNCS_H)
 extern int 			CallDialog(int nId, PARAMS *pp, DIALPARS *dp);
 # endif
@@ -61,12 +61,12 @@ extern DLGSTRINGLIST*	DoDlgSelectFromList(int nId, DLGSTRINGLIST *list, DIALLIST
 /*--------------------------------------------------------------------------
  * LbGetText()
  */
-extern int LbGetText(HWND hwnd, WORD id, char* szBuff);
+extern int LbGetText(HWND hwnd, int id, void* szBuff);
 
 /*--------------------------------------------------------------------------
  * CreateModelessDialog()
  */
-extern void CreateModelessDialog(HWND* hwnd, LPSTR szName, BOOL(FAR PASCAL* func)(),
+extern void CreateModelessDialog(HWND* hwnd, LPSTR szName, INT_PTR(CALLBACK* func)(HWND, UINT, WPARAM, LPARAM),
 	DLGPROC* lplpfnDlgProc);
 
 #define tedinit(hDlg,item,string)	DlgInitString(hDlg,item,string,sizeof string -1)

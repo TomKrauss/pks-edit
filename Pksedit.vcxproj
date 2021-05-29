@@ -22,6 +22,7 @@
     <ProjectGuid>{AA19957C-5CE3-459A-ACFC-B5CFE2C03B97}</ProjectGuid>
     <RootNamespace>Pksedit</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>pksedit</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -1181,6 +1182,7 @@
   <ItemGroup>
     <ClInclude Include="include\alloc.h" />
     <ClInclude Include="include\caretmovement.h" />
+    <ClInclude Include="include\documenttypes.h" />
     <ClInclude Include="include\editorconfiguration.h" />
     <ClInclude Include="include\editorfont.h" />
     <ClInclude Include="include\errordialogs.h" />

@@ -217,7 +217,7 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 	cf.nFontType = (bPrinter) ? 
 		PRINTER_FONTTYPE :
 		SCREEN_FONTTYPE;
-	cf.lpfnHook = MakeProcInstance((FARPROC) ChooseFontHookProc, hInst);
+	cf.lpfnHook = MakeProcInstance(ChooseFontHookProc, hInst);
 
 	if ((bRet = ChooseFont(&cf)) == TRUE) {
 		ep->fgcolor = (long)cf.rgbColors;

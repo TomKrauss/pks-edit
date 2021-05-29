@@ -22,6 +22,7 @@
 #include "edifsel.h"
 #include "uc.h"
 #include "winterf.h"
+#include "winfo.h"
 #include "stringutil.h"
 
 #define	MAX_CONTEXT	32

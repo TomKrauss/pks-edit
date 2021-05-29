@@ -20,8 +20,6 @@
 
 extern int 	chkblk(FTABLE *fp);
 
-extern char 	_expbuf[];
-
 /*---------------------------------*/
 /* AlignText()					*/
 /*---------------------------------*/
@@ -33,9 +31,12 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	LINE *lp;
 	MARK *mps,*mpe;
 	char **loc;
+	RE_MATCH match;
+	RE_PATTERN* pattern;
 
-	if (!exprinit(finds)) 
+	if (!(pattern = regex_compileWithDefault(finds))) {
 		return 0;
+	}
 
 	fp = ft_CurrentDocument();
 	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID)
@@ -51,15 +52,14 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	else
 		firstcol = 0;
 
-	loc = (flags & AL_END) ? &__loc2 : &__loc1;
-
 	if (flags & AL_FIX)
 		aligncol = firstcol;
 	else
 		/* looking for the right most position */
 		for (aligncol = 0, lp = mps->lm; lp != 0; lp = lp->next) {
-			i = caret_screen2lineOffset(lp,firstcol);
-			if (step(&lp->lbuf[i],_expbuf, &lp->lbuf[lp->len])) {
+			i = caret_screen2lineOffset(fp, &(CARET){ lp, firstcol });
+			if (step(pattern, &lp->lbuf[i],&lp->lbuf[lp->len], &match)) {
+				loc = (flags & AL_END) ? &match.loc1 : &match.loc2;
 				col = caret_lineOffset2screen(fp, &(CARET) { lp, (int)(*loc - lp->lbuf)});
 				if (col > aligncol)
 					aligncol = col;
@@ -71,13 +71,14 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	ret = 1;
 	for (lp = mps->lm; lp != 0; lp = lp->next) {
 		besti  = -1;
-		firsti = caret_screen2lineOffset(lp,firstcol);
+		firsti = caret_screen2lineOffset(fp, &(CARET){ lp, firstcol });
 		if (flags & AL_FIX)
 			i = 0;		
 		else
 			i = firsti;
-		while (step(&lp->lbuf[i],_expbuf,&lp->lbuf[lp->len])) {
-			i = *loc - lp->lbuf;
+		while (step(pattern, &lp->lbuf[i],&lp->lbuf[lp->len], &match)) {
+			loc = (flags & AL_END) ? &match.loc1 : &match.loc2;
+			i = (long)(*loc - lp->lbuf);
 			if (flags & AL_FIX) {
 				if (i > firsti)
 					break;

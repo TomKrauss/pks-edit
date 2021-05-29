@@ -977,7 +977,7 @@ EXPORT int EdMouseMarkParts(int type)
 		LINE *(*func)() = (type == MOT_SPACE) ? 
 			cadv_wordonly : cadv_word;
 
-		o2  = caret_screen2lineOffset(lp,col);
+		o2 = caret_screen2lineOffset(fp, &(CARET) { lp, col });
 		lp2 = (*func)(lp,&ln,&o2,1);
 		o1  = o2;
 		lp  = (*func)(lp,&ln,&o1,-1);
@@ -1005,8 +1005,6 @@ EXPORT int EdMouseMarkParts(int type)
 EXPORT int EdBlockMark(int flags)
 {	
 	FTABLE *		fp;
-	LINE *		lpMark;
-	int			nMarkOffset;
 
 	fp = ft_CurrentDocument();
 	// for now: always consider to swap the block marks, if the end mark is placed

@@ -397,7 +397,7 @@ typedef struct params {
 } PARAMS;
 
 extern int param_dialopen(PARAMS *p);
-extern int cdecl do_func(int num, long p1, long p2, void *s1, void *s2, void *s3);
+extern int cdecl do_func(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3);
 
 #define	_EDFUNCS_H
 # endif

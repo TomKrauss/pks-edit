@@ -42,6 +42,12 @@ static DWORD _ROPcodes[] = {
 };
 
 /*--------------------------------------------------------------------------
+ * writeattrline()
+ */
+extern char* writeattrline(HDC hdc, int x, int y,
+	unsigned char* b, LINE* lp, int start, int end, WINFO* wp);
+
+/*--------------------------------------------------------------------------
  * markline()
  * marked one line
  */
@@ -202,11 +208,11 @@ _output:
 		s++;
 		x += wp->cwidth;
 	}
-	if ((textlen = d-s) > 0) {
+	if ((textlen = (int)(d-s)) > 0) {
 		TextOut(hdc,x,y,s,textlen);
 	}
 _domark:
-	return start+d-buf;
+	return (int)(start+d-buf);
 }
 
 /*------------------------------------------------------------

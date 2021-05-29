@@ -235,7 +235,6 @@ typedef struct ftable {
 extern int 	_playing;				/* recorder plays its game ... */
 
 void 	edidebug(char *fmt,...);
-unsigned char *blfill(void *buf,int count,unsigned char fillbyte);
 int 	_chkblk(FTABLE *fp);
 int 	chkblk(FTABLE *fp);
 
@@ -298,6 +297,13 @@ extern void ln_changeFlag(LINE* lpstart, LINE* lpend, int flagsearch, int flagma
  * Remove a flag from all lines between lpstart and lpend.
  *---------------------------------*/
 extern void ln_removeFlag(LINE* lpstart, LINE* lpend, int flg);
+
+/*--------------------------------------------
+* blfill(char *buf,int count,int fillbyte)
+* Similar to memset, but return pointer to the end of
+* the filled area.
+*--------------------------------------------*/
+extern unsigned char* blfill(void* buf, int count, unsigned char fillbyte);
 
 extern char* ft_visiblename(FTABLE* fp);
 extern void ft_CheckForChangedFiles(void);

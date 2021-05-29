@@ -14,24 +14,18 @@
 
 #define	MAXHIST 	32
 
-struct history {
-	char *s[MAXHIST];
-	int  where;
-};
+typedef enum {
+	SEARCH_PATTERNS = 0,
+	SEARCH_AND_REPLACE = 1,
+	OPEN_FILES = 2,
+	PATHES = 3
+} HISTORY_TYPE;
 
-extern struct history _findhist, _replhist, _openhist, _pathhist;
-
-extern void hist_enq(struct history *h, char *string);
+extern void hist_enq(HISTORY_TYPE type, char *string);
 extern void hist_2combo(HWND hDlg, WORD nItem, char *firstitem, 
-				    struct history *hist);
-extern void hist_updatemenu(struct history *hist);
-extern char *hist_getstring(struct history *hp, int nItem);
-/*--------------------------------------------
-* blfill(char *buf,int count,int fillbyte)
-* Similar to memset, but return pointer to the end of
-* the filled area.
-*--------------------------------------------*/
-extern unsigned char* blfill(void* buf, int count, unsigned char fillbyte);
+	HISTORY_TYPE type);
+extern void hist_updatemenu(HISTORY_TYPE type);
+extern char *hist_getstring(HISTORY_TYPE type, int nItem);
 
 #define	EDHIST_H
 # endif	/* EDHIST_H */
