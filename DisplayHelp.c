@@ -17,8 +17,7 @@
 #include <windows.h>
 #include <HtmlHelp.h>
 #include "winterf.h"
-
-extern char *searchfile(char *s);
+#include "fileutil.h"
 
 static HWND hwndHelpRequested;
 static char szHelpFile[] = "pksedit.chm";

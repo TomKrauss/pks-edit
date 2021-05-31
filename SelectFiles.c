@@ -27,15 +27,16 @@
 #include "edhist.h"
 #include "editorconfiguration.h"
 
+#include "documenttypes.h"
 #include "edfuncs.h"
 #include "pathname.h"
 #include "edifsel.h"
 #include "fsel.h"
 #include "pksedit.h"
 #include "stringutil.h"
+#include "fileutil.h"
 
 extern int  	GetPksProfileString(char *grp, char *ident, char *string, int maxlen);
-extern void 	GetSelectableDocumentFileTypes(LPSTR pszDest, int nMax);
 extern int 		DoDocumentTypes(int nDlg);
 extern void 	GetStdMenuText(int menunr, char *text);
 /*------------------------------------------------------------
@@ -172,7 +173,6 @@ char *rw_select(FSELINFO *fp, int title, BOOL showSaveDialog)
 /*---------------------------------*/
 char *rw_init(FSELINFO *fp)
 {	char *fn;
-	extern char *searchfile(char *);
 
 	if ((fn = searchfile(fp->fname)) != 0) {
 		sfsplit(fn,fp->path,fp->fname);

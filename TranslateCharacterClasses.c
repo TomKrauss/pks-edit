@@ -62,7 +62,7 @@ ovl:/*		printf("too many chars in class\n");
  * tlcompile()
  * make a translation table out of a notation, used in the following example
  * 
- * [a-z1=A-Z!]	 =>  translate all chars a->A,b->B...z->Z,1->!
+ * a-z1=A-Z!	 =>  translate all chars a->A,b->B...z->Z,1->!
  *
  */
 unsigned char *tlcompile(unsigned char *_transtab, 

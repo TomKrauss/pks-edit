@@ -24,10 +24,10 @@
 #include "winterf.h"
 #include "winfo.h"
 #include "stringutil.h"
+#include "fileutil.h"
 
 #define	MAX_CONTEXT	32
 
-extern 	char	*TmpDir();
 extern int DialogTemplate(unsigned char c, 
 			char *(*fpTextForTmplate)(char *s), char *s);
 extern unsigned char *BlockAsBuffer(unsigned char *b, unsigned char *end, 
@@ -44,7 +44,6 @@ extern 	PASTE	*plistenq();
 extern	PASTE	*pp_find(int id, PASTELIST *pp);
 extern	void 	pp_listfree(PASTELIST **pp);
 extern 	int 	CreateTempFileForDocumentType(char *linfn, char *tmpfn);
-extern 	char *	searchfile(char *);
 
 static 	PASTELIST *_abbrevlist;
 
@@ -328,7 +327,7 @@ static int setabbrev(LINE **lp,char *s)
 	if ((shortie = cutquotes(&s)) == 0 ||
 	    (pp = getbuf(lp,s,&_abbrevlist,++_abid)) == 0L)
 		return 0;
-	return uc_add(shortie,pp,UA_ABBREV,_context);
+	return uc_add(shortie,pp->pln->lbuf,UA_ABBREV,_context);
 }
 
 /*--------------------------------------------------------------------------

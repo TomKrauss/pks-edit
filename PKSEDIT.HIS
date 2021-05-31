@@ -1,12 +1,17 @@
 [files]
 "D:\tom\desktop\readme.txt", line 90: 0x1 0x1 -1 -1 -8 -31 531 0 1904 908
-"D:\source\pksedit\Clipboard.c", line 126: 0x0 0x1 -1 -1 -8 -31 0 0 952 908
+"D:\source\pksedit\Clipboard.c", line 181: 0x0 0x1 -1 -1 -8 -31 0 0 952 908
 [find]
 !ed
 !red
 !undo
 !clp_
+!glob
+!clip
+!export
+!der
 [replace]
+!die
 [open]
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
 !C:\Users\tom\AppData\Local\Temp\Mac1.PKC
@@ -24,3 +29,4 @@
 !D:\source\pksedit\*.*
 !D:\tom\desktop\*.*
 !D:\source\pksedit\pks_sys\*.MAC
+!D:\source\pksedit\pks_sys\*.LIN

@@ -48,9 +48,6 @@
     <ClCompile Include="BracketMatching.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CharacterClasses.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Clipboard.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -417,6 +414,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\documenttypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\findandreplace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\fileutil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

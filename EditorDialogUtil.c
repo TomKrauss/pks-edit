@@ -557,7 +557,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 				}
 				if ( idCtrl == IDOK && 
 					item == IDD_REPLS && 
-					!repinit(dp->dp_data)) {
+					!find_initializeReplaceByExpression(dp->dp_data)) {
 					return FALSE;
 				}
 			}

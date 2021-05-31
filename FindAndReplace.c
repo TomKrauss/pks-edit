@@ -30,6 +30,7 @@
 #include "edhist.h"
 #include "errordialogs.h"
 #include "lineoperations.h"
+#include "findandreplace.h"
 
 #define	UCHAR	unsigned char
 
@@ -44,18 +45,10 @@ extern	long 	cparagrph(long ln,int dir,int start);
 unsigned char 		*tlcompile(unsigned char *transtab, 
 						 unsigned char *t,
 						 unsigned char *wt);
-static unsigned char  *_transtabs[8];
-static unsigned char  _characterMappingTable[256];
-static char 		  _replexbuf[500];
-
-extern	unsigned char *_octalloc;
 
 static UCHAR 	_expbuf[ESIZE];
-int  	_rflg = 0;			/* something replaced until now ? */
-char	_finds[500];
-char	_repls[500];
-int		_findopt;
 
+SEARCH_AND_REPLACE_PARAMETER _currentSearchAndReplaceParams;
 static RE_PATTERN	_lastCompiledPattern;
 
 /*
@@ -82,9 +75,9 @@ int RegError(int errorCode) {
 }
 
 /*--------------------------------------------------------------------------
- * _regcompile()
+ * regex_compile()
  */
-RE_PATTERN *_regcompile(char *ebuf, char *pat, int flags) {
+RE_PATTERN *regex_compile(char *ebuf, char *pat, int flags) {
 	flags &= (RE_DOREX|RE_IGNCASE|RE_SHELLWILD);
 	if (!compile(createREOptions(pat, ebuf, flags, 0), &_lastCompiledPattern)) {
 		RegError(_lastCompiledPattern.errorCode);
@@ -93,13 +86,42 @@ RE_PATTERN *_regcompile(char *ebuf, char *pat, int flags) {
 	return &_lastCompiledPattern;
 }
 
-/*--------------------------------------------------------------------------
- * setfinds()
+static REPLACEMENT_PATTERN _currentReplacementPattern;
+
+/*
+ * Answer TRUE if a replacement had been performed before. 
  */
-void setfinds(char *pat)
+BOOL find_replacementHadBeenPerformed() {
+	return _currentReplacementPattern.preparedReplacementString != NULL;
+}
+
+/*--------------------------------------------------------------------------
+ * find_initializeReplaceByExpression()
+ */
+int find_initializeReplaceByExpression(unsigned char* replaceByExpression) {
+	unsigned char nlchar;
+	if (ft_CurrentDocument()) {
+		nlchar = ft_CurrentDocument()->documentDescriptor->nl;
+	}
+	else {
+		nlchar = '\n';
+	}
+	int result = regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) { replaceByExpression, _currentSearchAndReplaceParams.options, nlchar, _lastCompiledPattern.nbrackets },
+		& _currentReplacementPattern);
+	if (_currentReplacementPattern.errorCode) {
+		RegError(_currentReplacementPattern.errorCode);
+	}
+	return result;
+}
+
+/*--------------------------------------------------------------------------
+ * find_setCurrentSearchExpression()
+ * Remember the last expression searched for by the user.
+ */
+void find_setCurrentSearchExpression(char *pExpression)
 {
-	strcpy(_finds, pat);
-	hist_enq(SEARCH_PATTERNS, pat);
+	strcpy(_currentSearchAndReplaceParams.searchPattern, pExpression);
+	hist_enq(SEARCH_PATTERNS, pExpression);
 }
 
 /*--------------------------------------------------------------------------
@@ -107,107 +129,8 @@ void setfinds(char *pat)
  * Compile a regular expression passed by argument with standard options.
  */
 RE_PATTERN *regex_compileWithDefault(char *expression) {
-	setfinds(expression);
-	return _regcompile(_expbuf,expression,_findopt) ? &_lastCompiledPattern : NULL;
-}
-
-/*--------------------------------------------------------------------------
- * repinit()
- * init replace expression
- * should be calle after regex_compileWithDefault !
- */
-static unsigned char *newtab(tl) int tl;
-{	unsigned char *t;
-
-	if (tl >= DIM(_transtabs)) {
-		RegError(IDS_MSGREMACRORANGESYNTAX);
-		return (unsigned char*)NULL;
-	}
-	return ((t = _transtabs[tl]) != 0) ? 
-		    t 
-		    :
-		    (_transtabs[tl] = _alloc(256));
-}
-
-static int _roptim;		/* use special copyout routines for replace ? */
-
-static int _repinit(unsigned char *searchPattern, int options) {
-	unsigned char 	c;
-	unsigned char 	nlchar;
-	unsigned char *	dest;
-	unsigned char *	trpat;
-	unsigned char *	tab;
-	int 			tl = 0;
-	int				i;
-
-	for (i = 0; i < 256; i++) {		/* translation default */
-		_characterMappingTable[i] = i;
-	}
-	_roptim = 0;
-	_rflg = 1;
-	if (!(options & RE_DOREX)) {
-		strcpy(_replexbuf,searchPattern);
-		return 1;
-	}
-	if (ft_CurrentDocument()) {
-		nlchar = ft_CurrentDocument()->documentDescriptor->nl;
-	} else {
-		nlchar = '\n';
-	}
-
-	dest = _replexbuf;
-	while ((c = *searchPattern++) != 0) {
-		if (c == '\\') {
-			switch ((c = *searchPattern++)) {
-				case 'u':
-					trpat = _l2uset;
-					goto mktrans;
-				case 'l':
-					trpat = _u2lset;
-mktrans:				if ((tab = newtab(tl++)) == 0)
-						return 0;
-					memmove(tab,trpat,256);
-					c = '[';
-					goto special;
-				case '[':
-					if ((tab = newtab(tl++)) == 0)
-						return 0;
-					if ((searchPattern = tlcompile(tab,searchPattern,
-									 (unsigned char *)0)) == 0) 
-						return RegError(IDS_MSGREMANYBRACKETS);
-				case 'e':
-				case '&':
-					goto special;
-				default:
-					if (c >= '1' && c <= '9') {
-						if ((c - '0') > _lastCompiledPattern.nbrackets) 
-							return RegError(IDS_MSGREPIPEERR);
-					} else {
-						c   = octalinput(searchPattern-1);
-						searchPattern = _octalloc;
-						if (!c)
-							c = '0';
-						else
-							break;
-					}
-special:				_roptim |= 1;
-						*dest++ = '\\';
-					break;
-			}
-		}
-		if (c == nlchar)
-			_roptim |= 2;
-		*dest++ = c;
-	}
-	*dest = 0;
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * repinit()
- */
-int repinit(unsigned char *searchPattern) {
-	return _repinit(searchPattern, _findopt);
+	find_setCurrentSearchExpression(expression);
+	return regex_compile(_expbuf,expression, _currentSearchAndReplaceParams.options) ? &_lastCompiledPattern : NULL;
 }
 
 /*--------------------------------------------------------------------------
@@ -325,9 +248,9 @@ static int searchcpos(FTABLE *fp,long ln,int col, RE_MATCH *pMatch)
 }
 
 /*--------------------------------------------------------------------------
- * _findstr()
+ * find_expressionInCurrentFile()
  */
-int _findstr(int dir, RE_PATTERN *pPattern,int options)
+int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options)
 {	long ln,col;
 	int  ret = 0,wrap = 0,wrapped = 0;
 	LINE *lp;
@@ -388,13 +311,12 @@ int _findstr(int dir, RE_PATTERN *pPattern,int options)
 }
 
 /*--------------------------------------------------------------------------
- * findstr()
+ * find_expressionAgainInCurrentFile()
  */
-int findstr(dir)
-{
+int find_expressionAgainInCurrentFile(dir) {
 	RE_PATTERN* pPattern;
 
-	return ((pPattern = regex_compileWithDefault(_finds)) && _findstr(dir,pPattern,_findopt));
+	return ((pPattern = regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern)) && find_expressionInCurrentFile(dir,pPattern, _currentSearchAndReplaceParams.options));
 }
 
 /*--------------------------------------------------------------------------
@@ -437,7 +359,7 @@ int tab_expand(LINE *lp, long *nt)
 
 	while(s < send && d < dend) {
 		if ((c = *s++) == '\t') {
-			col = d - _linebuf;
+			col = (int)(d - _linebuf);
 			col = TabStop(col,ft_CurrentDocument()->documentDescriptor) - col;
 			blfill(d,col,' ');
 			(*nt)++;
@@ -557,6 +479,17 @@ static void modifypgr(FTABLE *fp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
 }
 
 /*--------------------------------------------------------------------------
+ * find_selectRangeWithMarkers()
+ */
+int find_selectRangeWithMarkers(int rngdefault, MARK** mps, MARK** mpe)
+{
+	if (!ft_CurrentDocument() ||
+		SelectRange(rngdefault, ft_CurrentDocument(), mps, mpe) == RNG_INVALID)
+		return 0;
+	return 1;
+}
+
+/*--------------------------------------------------------------------------
  * ReplaceTabs()
  * flg = 1 : expand TABS to SPACES
  * flg = 0 : comp SPACES to TABS
@@ -565,7 +498,7 @@ int ReplaceTabs(int scope, int flg)
 {	long nt=0L,nl=0L;
 	MARK *mps,*mpe;
 
-	if (!range(scope,&mps,&mpe))
+	if (!find_selectRangeWithMarkers(scope,&mps,&mpe))
 		return 0;
 
 	ProgressMonitorStart(IDS_ABRTCONVERT);
@@ -575,59 +508,6 @@ int ReplaceTabs(int scope, int flg)
 	if (nt) 
 		ShowMessage(IDS_MSGEXPANDTABS,nt,nl);
 	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * exprsub()
- * create replace-target for replaced Expressions with \
- * return length of target
- */
-int exprsub(unsigned char *pat,unsigned char *newpat,int maxlen, RE_MATCH *pMatch)
-{	int len = 0;
-	unsigned char *q,*qend,c,*trans = _characterMappingTable,tl=0;
-
-	maxlen -= 2;
-	while (*pat) {
-		if (*pat == '\\') {
-			c = pat[1];
-			switch (c) {
-				case '&':
-					q	= pMatch->loc1;
-					qend = pMatch->loc2;
-					break;
-				case '[':
-					trans = _transtabs[tl++];
-					goto nocpy;
-				case 'e':
-					trans = _characterMappingTable;
-					goto nocpy;
-				case '0':
-					*newpat++ = 0;
-					len++;
-					goto nocpy;
-				default:
-					if (c >= '1' && c <= '9') {
-						c   -= '1';
-						q    = pMatch->braslist[c];
-						qend = pMatch->braelist[c];
-					} else goto normal;
-					break;
-			}
-			len += (int) (qend-q);
-			if (len > maxlen) 
-				return -1;
-			while (q < qend)
-				*newpat++ = trans[*q++];
-nocpy:
-			pat += 2;
-			continue;
-		}
-normal:
-		if (len++ > maxlen) return -1;
-		*newpat++ = trans[*pat++];
-	}
-	*newpat = 0;
-	return len;
 }
 
 /*--------------------------------------------------------------------------
@@ -719,13 +599,13 @@ int EdReplaceText(int scope, int action, int flags)
 	}
 	
 	if (_playing) {
-		regex_compileWithDefault(_finds);
-		repinit(_repls);
+		regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
+		find_initializeReplaceByExpression(_currentSearchAndReplaceParams.replaceWith);
 	}
-	newlen = strlen(_replexbuf);
+	newlen = strlen(_currentReplacementPattern.preparedReplacementString);
 
 	/* call before assigning firstline	*/
-	hist_enq(SEARCH_AND_REPLACE, _repls);
+	hist_enq(SEARCH_AND_REPLACE, _currentSearchAndReplaceParams.replaceWith);
 
 	undo_startModification(fp);
 	savecpos();
@@ -830,14 +710,11 @@ success:	olen = (int)(match.loc2 - match.loc1);
 			goto advance1;
 		}
 
-		if (_roptim) {		/* substitute expressions with \1 ...	  */
-			if ((newlen = exprsub(_replexbuf,_linebuf,MAXLINELEN, &match)) < 0) {
-				linetoolong();
-				break;
-			}
-			q = _linebuf;
-		} else 
-			q = _replexbuf;
+		if ((newlen = regex_replaceSearchString(&_currentReplacementPattern,_linebuf,MAXLINELEN, &match)) < 0) {
+			linetoolong();
+			break;
+		}
+		q = _linebuf;
 
 		lastfln  = ln;
 		lastfcol = col;
@@ -867,7 +744,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 		if (query)
 			redrawline();
 
-		delta = newlen;
+		delta = (int)newlen;
 advance1:	rp++;
 		lp->lflg |= LNREPLACED;
 		if (scope == RNG_ONCE)
@@ -891,7 +768,7 @@ endrep:
 
 	if (rp) {
 		if (action != REP_COUNT) {
-			if (_roptim & 2) {
+			if (_currentReplacementPattern.lineSplittingNeeded) {
 				curpos(startln,0L);
 				ln = breaklines(fp,0,startln,ln);
 				centernewpos(ln,col);
@@ -908,9 +785,9 @@ endrep:
 		/* countlines MUST be called to clear lineflags !!!! */
 		ln = countlines(fp,startln,1);
 		if (action != REP_REPLACE) {
-			ShowMessage(IDS_MSGNFOUND,_finds,ln,rp);
+			ShowMessage(IDS_MSGNFOUND, _currentSearchAndReplaceParams.searchPattern,ln,rp);
 		} else {
-			ShowMessage(IDS_MSGNREPL,_finds,rp,ln);
+			ShowMessage(IDS_MSGNREPL, _currentSearchAndReplaceParams.searchPattern,rp,ln);
 		}
 	} else if (sc1flg && !_playing) {
 		ed_error(IDS_MSGSTRINGNOTFOUND);
@@ -929,16 +806,23 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
 	char *	src;
 	char *	send;
 	int		newlen;
+	unsigned char nlchar;
 	char		replace[256];
 	RE_MATCH	match;
 
 	_linebuf[0] = 0;
 	RE_PATTERN* pPattern;
+	if (ft_CurrentDocument()) {
+		nlchar = ft_CurrentDocument()->documentDescriptor->nl;
+	}
+	else {
+		nlchar = '\n';
+	}
 	if (pattern &&
 	    string &&
 	    with &&
-	    (pPattern = _regcompile(ebuf, pattern, flags)) &&
-	    _repinit(with, flags)) {
+	    (pPattern = regex_compile(ebuf, pattern, flags)) &&
+		regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) {	with, flags, nlchar, pPattern->nbrackets}, & _currentReplacementPattern)) {
 		src = string;
 		send = _linebuf;
 		
@@ -954,7 +838,7 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
 			if (match.circf && match.loc1 != _linebuf) {
 				break;
 			}
-			if ((newlen = exprsub(_replexbuf,replace,sizeof replace, &match)) < 0) {
+			if ((newlen = regex_replaceSearchString(&_currentReplacementPattern, replace, sizeof replace, &match)) < 0) {
 				break;
 			}
 			memmove(match.loc1+newlen, match.loc2,(int)(send- match.loc2));
@@ -1041,16 +925,5 @@ int SelectRange(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend) {
 		return RNG_INVALID;
 
 	return rngetype;
-}
-
-/*--------------------------------------------------------------------------
- * range()
- */
-int range(int rngdefault,MARK **mps, MARK **mpe)
-{
-	if (!ft_CurrentDocument() || 
-	    SelectRange(rngdefault,ft_CurrentDocument(),mps,mpe) == RNG_INVALID)
-		return 0;
-	return 1;
 }
 

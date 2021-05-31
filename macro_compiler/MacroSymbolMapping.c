@@ -128,7 +128,7 @@ int hash_create(unsigned nel)
 		if ((_htab  = malloc(nel)) == 0)
 		    return 0;
 
-		blfill(_htab, nel, 0);
+		memset(_htab, 0, nel);
 	}
 	return 1;
 }
@@ -163,15 +163,16 @@ int sym_insert(char *key, int symtype, intptr_t symdata)
 
 /*--------------------------------------------------------------------------
  * sym_destroy()
+ * Currently not used.
  */
-long sym_destroy(char *key)
+static intptr_t sym_destroy(char *key)
 {
 	ENTRY	*ep;
-	long 	val;
+	intptr_t 	val;
 
 	if ((ep = hfind(key,DESTROY)) != 0) {
 		free(ep->key);
-		val = VALUE(ep->sym);
+		val = (intptr_t) VALUE(ep->sym);
 		CLEARSYM(ep->sym);
 		return val;
 	}
@@ -247,7 +248,7 @@ long MakeInteger(char *symbolname) {
 
 	switch (TYPEOF(sym)) {
 	case S_DOLNUMBER: case S_DOLSTRING:
-		if (GetDollar(VALUE(sym), &isString, &value) == 0) {
+		if (GetDollar((intptr_t) VALUE(sym), &isString, &value) == 0) {
 			return 0;
 		}
 		if (!isString) {
@@ -255,7 +256,7 @@ long MakeInteger(char *symbolname) {
 		}
 		return number((char *)value);
 	case S_CONSTNUM: case S_NUMBER:
-		return VALUE(sym);
+		return (long) (intptr_t)VALUE(sym);
 	default:
 		return number((char*)VALUE(sym));
 	}
@@ -278,7 +279,7 @@ intptr_t MakeString(char *symbolname) {
 
 	switch(TYPEOF(sym)) {
 	case S_DOLNUMBER: case S_DOLSTRING:
-		if (GetDollar(VALUE(sym), &isString, &value) == 0) {
+		if (GetDollar((intptr_t) VALUE(sym), &isString, &value) == 0) {
 			return 0;
 		}
 		if (isString) {
@@ -287,7 +288,7 @@ intptr_t MakeString(char *symbolname) {
 		/* drop through */
 	case S_CONSTNUM: case S_NUMBER:
 		if (TYPEOF(sym) == S_NUMBER || TYPEOF(sym) == S_CONSTNUM) {
-			value = (long)VALUE(sym);
+			value = (intptr_t)VALUE(sym);
 		}
 		sprintf(buf,"%ld", (long)value);
 		return (intptr_t)buf;

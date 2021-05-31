@@ -18,17 +18,17 @@
 #include "trace.h"
 #include "lineoperations.h"
 #include "stringutil.h"
+#include "findandreplace.h"
 
 #define iswhite(c)	(c == ' ' || c == '\t')
 
-extern int 		findstr(int dir);
+extern int 		find_expressionAgainInCurrentFile(int dir);
 extern void 	stepselectcompiler(char *pszName);
 extern int 		curpos(long ln,long col);
 extern int 		showtag(char *s);
 extern void 	stepnofsel(char *fn, int cmpflg);
 extern void 	prof_setinifile(char *fn);
 
-extern char		_finds[];
 extern int		_runInteractive;
 extern int		_openIconic;
 
@@ -57,8 +57,8 @@ static int Phase2Arg(char *arg)
 		switch(arg[-1]) {
 		case '/':
 			if (ft_CurrentDocument() != 0) {
-				lstrcpy(_finds,arg);
-				findstr(1);
+				lstrcpy(_currentSearchAndReplaceParams.searchPattern,arg);
+				find_expressionAgainInCurrentFile(1);
 			}
 			break;
 		case 'C':

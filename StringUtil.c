@@ -17,6 +17,7 @@
 #include <windows.h>
 #include <direct.h>
 
+#include "edctype.h"
 #include "pathname.h"
 #include "stringutil.h"
 
@@ -29,7 +30,7 @@ char* strrchr(const char *str, int ch) {
 
 	do {
 		if (ch == *str)
-			return str;
+			return (char*) str;
 		str = AnsiPrev(str,strl);
 	} while(strl > str);
 	return NULL;
@@ -42,7 +43,7 @@ char* strrchr(const char *str, int ch) {
 char *lstrchr(const char *str, char ch) {
 	while(*str) {
 		if (ch == *str)
-			return str;
+			return (char*)str;
 		str = AnsiNext(str);
 	}
 	return NULL;
@@ -92,7 +93,7 @@ char *basename(const char *fullname)
 
 	while ((c = *fullname++) != 0) 
 		if (c == DIRSEPARATOR) f = fullname;
-	return f;
+	return (char*)f;
 }
 
 /*--------------------------------------------------------------------------
@@ -174,7 +175,7 @@ char *FullPathName(const char *path, const char *fn) {
 	}
 	*dst = 0;
 #endif	
-	return path;
+	return (char*)path;
 }
 
 /*------------------------------------------------------------
@@ -185,7 +186,7 @@ char *AbbrevName(const char *fn) {
 	static char aname[64];
 	
 	if ((l = lstrlen(fn)) < sizeof aname)
-		return fn;
+		return (char*)fn;
 
 	for (i = 0; i < 20; i++) {
 		aname[i] = fn[i];
@@ -220,3 +221,64 @@ unsigned char* stralloc(unsigned char* buf) {
 	return d;
 }
 
+
+#define	isblnk(c)    (c == ' ' || c == '\t' || c == '' || c == '' || c == '')
+
+/*--------------------------------------------------------------------------
+ * IsSpace()
+ */
+BOOL IsSpace(unsigned char c) {
+	return c <= ' ' && isblnk(c);
+}
+
+/*---------------------------------*/
+/* skipblank()					*/
+/*---------------------------------*/
+unsigned char* skipblank(unsigned char* s, unsigned char* send) {
+	while (IsSpace(*s))
+		s++;
+	return (s > send) ? send : s;
+}
+
+/*---------------------------------*/
+/* skipnoblank()				*/
+/*---------------------------------*/
+unsigned char* skipnoblank(unsigned char* s, unsigned char* send) {
+	while (s < send && !IsSpace(*s))
+		s++;
+	return s;
+}
+
+/*--------------------------------------------------------------------------
+ * CntSpaces()
+ * count spaces up to a given position
+ * Spaces include attribute special spaces
+ */
+int CntSpaces(unsigned char* s, int pos) {
+	int n;
+
+	for (n = 0; n < pos && IsSpace(s[n]); n++)
+		;
+	return n;
+}
+
+/*
+ * Returns true if the passed character is a letter (a-z + umlauts). 
+ */
+BOOL isword(unsigned char c) {
+	return  (isalnum(c) || c == 'ö' || c == 'ä' || c == 'ü');
+}
+
+/*
+ * Returns TRUE, if the passed character is not a space.
+ */
+BOOL isnospace(unsigned char c) {
+	return !isspace(c);
+}
+
+/*
+ * Return true, if the character is a valid filename character on the current platform.
+ */
+BOOL isfname(unsigned char c) {
+	return (istosfname(c));
+}

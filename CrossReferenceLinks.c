@@ -20,14 +20,11 @@
 #include "iccall.h"
 #include "xdialog.h"
 #include "dial2.h"
-#include "regexp.h"
+#include "findandreplace.h"
 #include "stringutil.h"
 #include "winfo.h"
+#include "fileutil.h"
 
-extern char	_finds[];
-extern RE_PATTERN* 	_regcompile(char *ebuf, char *pat, int opt);
-extern char 	*searchfile(char *s);
-extern int	isword(char c), isnospace(char c), isfname(char c);
 extern void	*prof_llinsert(void *Head, int size, 
 						char *group, char *item, char **idata);
 
@@ -133,10 +130,10 @@ void tagselect(char *tags)
 		return;
 	}
 
-	if ((p = ll_find(_ttry, tags)) != 0 && p != _ttry) {
+	if ((p = ll_find((LINKED_LIST*)_ttry, tags)) != 0 && p != _ttry) {
 		/* force tag file reread */
 		((TAGTRY *)p)->curr = -1;
-		ll_moveElementToFront(&_ttry, p);
+		ll_moveElementToFront((LINKED_LIST**)&_ttry, p);
 	}
 }
 
@@ -197,7 +194,7 @@ int compiler_init(void)
 static RE_PATTERN *tagexprinit(char *ebuf,TAGEXPR *s)
 {
 	_exprerror = s;
-	return _regcompile(ebuf,_exprerror->source,RE_DOREX);
+	return regex_compile(ebuf,_exprerror->source,RE_DOREX);
 }
 
 /*---------------------------------*/
@@ -212,11 +209,11 @@ static TAG *dostep(LINE *lp, RE_PATTERN *pattern)
 		return 0;
 	}
 	if (step(pattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
-		repinit(_exprerror->fnbsl);	/* assure a few initialiations */
-		exprsub(_exprerror->fnbsl, _tag.fn, sizeof _tag.fn);
-		exprsub(_exprerror->lnbsl, _linebuf, LINEBUFSIZE);
+		find_initializeReplaceByExpression(_exprerror->fnbsl);	/* assure a few initialiations */
+		regex_getCapturingGroup(&match, 0, _tag.fn, sizeof _tag.fn);
+		regex_getCapturingGroup(&match, 1, _linebuf, LINEBUFSIZE);
 		_tag.ln = Atol(_linebuf);
-		exprsub(_exprerror->rembsl, _tag.rembuf, sizeof _tag.rembuf);
+		regex_getCapturingGroup(&match, 2, _tag.rembuf, sizeof _tag.rembuf);
 		return &_tag;
 	}
 	return 0;
@@ -412,14 +409,14 @@ static TAG *findtag(char *s, FTABLE *fp)
 
 	dlp = 0;
 	wsprintf(sbuf,"^[^ ]+ <%s> [!^?&]", (LPSTR)s);
-	if (!(pPattern = _regcompile(ebuf, sbuf, (int)RE_DOREX))) {
+	if (!(pPattern = regex_compile(ebuf, sbuf, (int)RE_DOREX))) {
 		return 0;
 	}
 
 	for (lp = fp->firstl; lp; lp = lp->next) {
 		if (step(pPattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
 			if ((dlpCurr = (DLGSTRINGLIST *)ll_insert((LINKED_LIST**)&dlp, sizeof *dlp)) == 0) {
-				ll_destroy(&dlp, (int (*)(void *))0);
+				ll_destroy((LINKED_LIST**)&dlp, (int (*)(void *))0);
 				return 0;
 			}
 			if ((pszBlank = lstrchr(lp->lbuf, ' ')) != 0) {
@@ -464,13 +461,13 @@ static TAG *findtag(char *s, FTABLE *fp)
 	}
 
 	if (!dlpCurr) {
-		ll_destroy(&dlp, (int (*)(void *))0);
+		ll_destroy((LINKED_LIST**)&dlp, (int (*)(void *))0);
 		_tagCancelled = TRUE;
 		return 0;
 	}
 
 	lp = dlpCurr->pAny;
-	ll_destroy(&dlp, (int (*)(void *))0);
+	ll_destroy((LINKED_LIST**)&dlp, (int (*)(void *))0);
 	return taggetinfo(lp);
 }
 
@@ -563,7 +560,7 @@ int showtag(char *s)
 
 	fp  = &_tagfile;
 
-	setfinds(s);
+	find_setCurrentSearchExpression(s);
 	_tagword = s;
 
 	_tagCancelled = FALSE;
@@ -585,8 +582,9 @@ int showtag(char *s)
 						fm_savepos(s);
 						tagopen(fnam,-1L,(WINDOWPLACEMENT*)0);
 						if (ft_CurrentDocument()) {
-							if (_regcompile(ebuf, tp->rembuf, (int) RE_DOREX)) {
-								_findstr(1,ebuf,O_WRAPSCAN);
+							RE_PATTERN* pPattern;
+							if (pPattern = regex_compile(ebuf, tp->rembuf, (int) RE_DOREX)) {
+								find_expressionInCurrentFile(1,pPattern,O_WRAPSCAN);
 								ret = 1;
 							}
 						}
@@ -826,8 +824,8 @@ int EdFindWordCursor(dir)
 {	char *s,buf[256];
 
 	if ((s = gettag(buf,&buf[sizeof buf],isword,0)) != 0L) {
-		strcpy(_finds,s);
-		return findstr(dir);
+		strcpy(_currentSearchAndReplaceParams.searchPattern,s);
+		return find_expressionAgainInCurrentFile(dir);
 	}
 	return 0;
 }

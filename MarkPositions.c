@@ -12,6 +12,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
+#include <stdlib.h>
 #include "caretmovement.h"
 #include "edierror.h"
 

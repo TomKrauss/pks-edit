@@ -13,6 +13,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
+#include <stdlib.h>
 #include "lineoperations.h"
 #include "edfuncs.h"
 #include "resource.h"

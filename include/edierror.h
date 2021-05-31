@@ -39,6 +39,12 @@ extern void WriteError(void);
  */
 extern void OpenError(char* fname);
 
+/*---------------------------------
+ * linetoolong()
+ * Display an error about the fact a line would become too long.
+ *---------------------------------*/
+extern void linetoolong(void);
+
 #define	E_SERIOUSC		'!'
 
 #define	OPT_WMODE			(2L<<16)
@@ -82,11 +88,6 @@ extern void OpenError(char* fname);
 
 /*----- ... --------------*/
 
-# ifndef RE_DOREX
-#define	RE_DOREX			0x1		/* use .{}*?+ and all the stuff */
-#define	RE_IGNCASE		0x2		/* ignore case */
-#define	RE_SHELLWILD		0x4		/* wildcards are: *?[] */
-# endif
 #define	O_WRAPSCAN 		0x8		/* wrap scan on search */
 
 /* Substitution dialog */

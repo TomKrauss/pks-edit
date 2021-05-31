@@ -636,7 +636,7 @@ EXPORT int RangeShift(int scope, int dir)
 	FTABLE *fp = ft_CurrentDocument();
 	long	ln1,ln2;
 	
-	if (!range(scope,&mps,&mpe))
+	if (!find_selectRangeWithMarkers(scope,&mps,&mpe))
 		return 0;
 
 	if (dir == 0)

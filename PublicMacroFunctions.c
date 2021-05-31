@@ -35,11 +35,17 @@
 #include "edexec.h"
 #include "errordialogs.h"
 #include "documenttypes.h"
+#include "findandreplace.h"
 
  /*------------------------------------------------------------
   * EdGetActiveWindow()
   */
 extern HWND EdGetActiveWindow(int includeicons);
+/*
+ * Answer TRUE if a replacement had been performed before.
+ */
+extern BOOL find_replacementHadBeenPerformed();
+
 extern HWND ww_winid2hwnd(int winid);
 extern HWND ic_add(void* icp, LPSTR szTitle, LPSTR szParams, int x, int y);
 extern HWND ic_active(LPSTR szTitle, LPSTR szParams, void** icClass);
@@ -77,11 +83,8 @@ extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		macs_compile(void);
 
-extern char		_finds[500];
-extern char		_repls[500];
 extern long		_multiplier;
 extern char		_kunde[30];
-extern int 		_findopt;
 
 static int		_scope = RNG_BLOCK;
 
@@ -500,29 +503,29 @@ int EdAlignText(void)
 		/* attention!!! FINDS must be placed after find options to
 		   make sure correct evalation of options during compile
 	      */
-		IDD_FINDS,	sizeof _finds,		&_finds,
+		IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
 		IDD_CHAR,		sizeof _alfiller,	&_alfiller,
 		IDD_RNGE,		RNG_LINE,			&_scope,
-		IDD_REGEXP,	RE_DOREX,			&_findopt,
-		IDD_SHELLJOKER,RE_SHELLWILD,		&_findopt,
-		IDD_IGNORECASE,RE_IGNCASE,		&_findopt,
+		IDD_REGEXP,	RE_DOREX,			& _currentSearchAndReplaceParams.options,
+		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
+		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
 		IDD_3S1,		AL_FIX,			&_alflags,
 		IDD_3S2,		AL_CPOS,			&_alflags,
 		IDD_OPT1,		AL_END,			&_alflags,
 		0
 	};
 	static ITEMS	_i   =  	{ 
-		{ C_STRING1PAR, _finds	 				}, 
+		{ C_STRING1PAR, _currentSearchAndReplaceParams.searchPattern	 				},
 		{ C_INT1PAR, (unsigned char *) &_alfiller 	},
 		{ C_INT1PAR, (unsigned char *) &_scope	 	},
-		{ C_INT1PAR, (unsigned char *) &_findopt 	},
+		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options 	},
 		{ C_INT1PAR, (unsigned char *) &_alflags	}
 	};
 	static PARAMS	_fp = { DIM(_i), P_MAYOPEN, _i	};
 
 	if (!CallDialog(DLGALIGN,&_fp,_d))
 		return 0;
-	return AlignText(_finds, _scope, _alfiller, _alflags);
+	return AlignText(_currentSearchAndReplaceParams.searchPattern, _scope, _alfiller, _alflags);
 }
 
 /*--------------------------------------------------------------------------
@@ -563,17 +566,17 @@ int EdSort(void)
 		IDD_RNGE,		RNG_LINE ,		&_scope,
 		IDD_STRING1,	sizeof fs,		&fs,
 		IDD_STRING2,	sizeof key,		&key,
-		IDD_REGEXP,	RE_DOREX,			&_findopt,
-		IDD_SHELLJOKER,RE_SHELLWILD,		&_findopt,
-		IDD_IGNORECASE,RE_IGNCASE,		&_findopt,
-		IDD_FINDS2,	sizeof _finds,		&_finds,
+		IDD_REGEXP,	RE_DOREX,			& _currentSearchAndReplaceParams.options,
+		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
+		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
+		IDD_FINDS2,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
 		IDD_OPT1,		SO_REVERSE,		&flags,
 		IDD_OPT2,		SO_CLUSTERLINES,	&flags,
 		IDD_OPT3,		SO_SKIPSEPS,		&flags,
 		0
 	};
 	static ITEMS	_i   = {
-		{ C_STRING1PAR,_finds },
+		{ C_STRING1PAR,_currentSearchAndReplaceParams.searchPattern },
 		{ C_STRING1PAR,fs },
 		{ C_STRING1PAR,key },
 		{ C_INT1PAR,	(unsigned char *)&flags },
@@ -584,7 +587,7 @@ int EdSort(void)
 	if (!CallDialog(DLGSORT,&_sp,_d))
 		return 0;
 
-	return Sort(_scope,fs,key,_finds,flags);
+	return Sort(_scope,fs,key, _currentSearchAndReplaceParams.searchPattern,flags);
 }
 
 /*--------------------------------------------------------------------------
@@ -665,16 +668,16 @@ int EdMarkGoto(void)
  * EdFindTag()
  */
 int EdFindTag(void)
-{	static ITEMS	 _i   = { C_STRING1PAR,  _finds 	};
+{	static ITEMS	 _i   = { C_STRING1PAR,  _currentSearchAndReplaceParams.searchPattern 	};
 	static PARAMS	 _tp  = { DIM(_i), P_MAYOPEN, _i	};
 	static DIALPARS _d[] = { 
-			IDD_FINDS,	sizeof _finds,	&_finds, 
+			IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern,	& _currentSearchAndReplaceParams.searchPattern,
 			0 
 	};
 
 	if (!CallDialog(DLGFINDTAG,&_tp,_d))
 		return 0;
-	return showtag(_finds);
+	return showtag(_currentSearchAndReplaceParams.searchPattern);
 }
 
 /*--------------------------------------------------------------------------
@@ -1461,21 +1464,22 @@ int EdReplace(void)
 {	static int ret;
 	static int flags;
 	static ITEMS	_i   =  	{ 
-		{ C_STRING1PAR, _finds }, 
-		{ C_STRING1PAR, _repls }, 
+		{ C_STRING1PAR, _currentSearchAndReplaceParams.searchPattern },
+		{ C_STRING1PAR, _currentSearchAndReplaceParams.replaceWith },
 		{ C_INT1PAR, (unsigned char *) &ret },
 		{ C_INT1PAR, (unsigned char *) &_scope },
-		{ C_INT1PAR, (unsigned char *) &_findopt   },
+		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options   },
 		{ C_INT1PAR, (unsigned char *) &flags },
 	};
 	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	static DIALPARS _d[] = {
 		IDD_RNGE,		RNG_ONCE,			&_scope,
-		IDD_REGEXP,	RE_DOREX,			&_findopt,
-		IDD_SHELLJOKER,RE_SHELLWILD,		&_findopt,
-		IDD_IGNORECASE,RE_IGNCASE,		&_findopt,
-		IDD_FINDS,	sizeof _finds,		&_finds,
-		IDD_REPLS,	sizeof _repls,		&_repls,
+		IDD_REGEXP,		RE_DOREX,			& _currentSearchAndReplaceParams.options,
+		IDD_SHELLJOKER,	RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
+		IDD_IGNORECASE,	RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
+		IDD_PRESERVE_CASE,RE_PRESERVE_CASE, & _currentSearchAndReplaceParams.options,
+		IDD_FINDS,		sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
+		IDD_REPLS,		sizeof _currentSearchAndReplaceParams.replaceWith,		& _currentSearchAndReplaceParams.replaceWith,
 		IDD_OPT1,		OREP_INQ,			&flags,
 		IDD_OPT2,		OREP_MARKED,		&flags,
 		IDD_RECORDRET,	sizeof ret,		&ret,
@@ -1495,19 +1499,19 @@ int EdReplace(void)
 static int _dir = 1;
 int EdFind(void)
 {	static ITEMS	_i   =  	{ 
-		{ C_STRING1PAR, _finds }, 
+		{ C_STRING1PAR, _currentSearchAndReplaceParams.searchPattern },
 		{ C_INT1PAR, (unsigned char *) &_dir   },
 		{ C_INT1PAR, (unsigned char *) &_scope },
-		{ C_INT1PAR, (unsigned char *) &_findopt   }
+		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options   }
 	};
 	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	static DIALPARS _d[] = {
 		IDD_RADIO1,	1,				&_dir,
-		IDD_REGEXP,	RE_DOREX,			&_findopt,
-		IDD_SHELLJOKER,RE_SHELLWILD,		&_findopt,
-		IDD_IGNORECASE,RE_IGNCASE,		&_findopt,
-		IDD_OPT1,		O_WRAPSCAN,		&_findopt,
-		IDD_FINDS,	sizeof _finds,		&_finds,
+		IDD_REGEXP,	RE_DOREX,			& _currentSearchAndReplaceParams.options,
+		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
+		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
+		IDD_OPT1,		O_WRAPSCAN,		& _currentSearchAndReplaceParams.options,
+		IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
 		0
 	};
 
@@ -1520,7 +1524,7 @@ int EdFind(void)
 	if (_dir == 0)
 		_dir = -1;
 
-	return findstr(_dir);
+	return find_expressionAgainInCurrentFile(_dir);
 }
 
 /*--------------------------------------------------------------------------
@@ -1531,21 +1535,21 @@ int EdFindInFileList(void)
 	static char filenamePattern[50];
 	static int once = 1,depth = -1;
 	static ITEMS	_i   =  	{ 
-		{ C_STRING1PAR, _finds }, 
+		{ C_STRING1PAR, _currentSearchAndReplaceParams.searchPattern },
 		{ C_STRING1PAR, pathlist }, 
 		{ C_INT1PAR, (unsigned char *) &once   },
 		{ C_INT1PAR, (unsigned char *) &depth },
-		{ C_INT1PAR, (unsigned char *) &_findopt }
+		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options }
 	};
 	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	static DIALPARS _d[] = {
-		IDD_REGEXP,	RE_DOREX,			&_findopt,
-		IDD_SHELLJOKER,RE_SHELLWILD,		&_findopt,
-		IDD_IGNORECASE,RE_IGNCASE,		&_findopt,
+		IDD_REGEXP,	RE_DOREX,			& _currentSearchAndReplaceParams.options,
+		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
+		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
 		IDD_OPT1,		1,				&once,
 		IDD_INT1,		sizeof depth,	&depth,
 		IDD_FILE_PATTERN, sizeof filenamePattern, &filenamePattern, 
-		IDD_FINDS2,	sizeof _finds,		&_finds,
+		IDD_FINDS2,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
 		IDD_PATH1,	sizeof pathlist,	&pathlist,
 		0
 	};
@@ -1557,7 +1561,7 @@ int EdFindInFileList(void)
 	if (!CallDialog(DLGRETREIVE,&_fp,_d)) {
 		return 0;
 	}
-	return retreive(pathlist,filenamePattern, _finds,depth < 0 ? 999 : depth,once);
+	return retreive(pathlist,filenamePattern, _currentSearchAndReplaceParams.searchPattern,depth < 0 ? 999 : depth,once);
 }
 
 /*--------------------------------------------------------------------------
@@ -1587,7 +1591,7 @@ int DlgPrint(char *title, int *ps, int *pe, int *po)
 int EdReplaceAgain(void)
 {	extern int _rflg;
 
-	if (_rflg) 
+	if (find_replacementHadBeenPerformed())
 		return EdReplaceText(RNG_ONCE,REP_REPLACE,0); 
 	ed_error(IDS_MSGNOREPLACESTRING);
 	return 0;
@@ -1598,11 +1602,11 @@ int EdReplaceAgain(void)
  */
 int EdFindAgain(int dir)
 {	
-	if (!_finds[0]) {
+	if (!_currentSearchAndReplaceParams.searchPattern[0]) {
 		ed_error(IDS_MSGNOSEARCHSTRING);
 		return 0;
 	}
-	return findstr((dir) ? (_dir = dir) : _dir);
+	return find_expressionAgainInCurrentFile((dir) ? (_dir = dir) : _dir);
 }
 
 /*--------------------------------------------------------------------------
@@ -1610,7 +1614,7 @@ int EdFindAgain(int dir)
  */
 int mac_getname(KEYCODE *scan,char *name,int oldidx)
 {	static DIALPARS  _d[] = {
-		IDD_STRING1,	MAC_NAMELEN,		_finds,
+		IDD_STRING1,	MAC_NAMELEN,		_currentSearchAndReplaceParams.searchPattern,
 		IDD_KEYCODE,	sizeof(KEYCODE),	0,
 		0
 	};

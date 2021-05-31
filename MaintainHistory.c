@@ -16,7 +16,6 @@
 #include "edhist.h"
 #include "stringutil.h"
 
-extern char	_finds[];
 extern HMENU GetHistoryMenu(int *pnPosition, int *piCmd);
 
 typedef struct history {

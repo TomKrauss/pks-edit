@@ -92,10 +92,13 @@ extern unsigned char* tlcompile(unsigned char* transtab, unsigned char* t, unsig
 #define	RETURN(c)	return(c)
 #define	REGEX_ERROR(c)	{ err = c; goto endcompile; }
 
+static unsigned char* _transtabs[8];
+static char 		  _replacedResultBuffer[500];
 static int 	_chsetinited;
 unsigned char bittab[] = { 1,2,4,8,16,32,64,128 };
 static int	__size;
 static int 	_staronly; 	/* expression is only stared expression ? */
+static unsigned char  _characterMappingTable[256];
 
 static int near advance(unsigned char *lp, unsigned char *ep, unsigned char *end);
 
@@ -812,6 +815,7 @@ star:
 static int _initResult(RE_PATTERN *pPattern, RE_MATCH* result, int matches) {
 	result->braelist = _braelist;
 	result->braslist = _braslist;
+	result->nbrackets = pPattern->nbrackets;
 	result->circf = pPattern->circf;
 	result->loc1 = __loc1;
 	result->loc2 = __loc2;
@@ -879,5 +883,260 @@ int step(RE_PATTERN *pPattern, unsigned char *stringToMatch, unsigned char *endO
 		stringToMatch++;
 	}
 	return _initResult(pPattern, result, 0);
+}
+
+#define	DIM(tab)		(sizeof(tab)/sizeof(tab[0]))
+
+/*--------------------------------------------------------------------------
+ * find_initializeReplaceByExpression()
+ * init replace expression
+ * should be called after regex_compileWithDefault !
+ */
+static unsigned char* createTranslationTable(int tl) {
+	unsigned char* t;
+
+	if (tl >= DIM(_transtabs)) {
+		return (unsigned char*)NULL;
+	}
+	return ((t = _transtabs[tl]) != 0) ?
+		t
+		:
+		(_transtabs[tl] = malloc(256));
+}
+
+/*-----------
+ * Returns the contents of a capturing group found in a match. 
+ */
+CAPTURING_GROUP_RESULT regex_getCapturingGroup(RE_MATCH* pMatch, int nGroup, char* result, int maxResultLen) {
+	if (nGroup < 0 || nGroup >= pMatch->nbrackets) {
+		return BAD_CAPTURING_GROUP;
+	}
+	int tSize = (int)(pMatch->braelist[nGroup] - pMatch->braslist[nGroup]);
+	if (tSize >= maxResultLen) {
+		return LINE_TOO_LONG;
+	}
+	memcpy(result, pMatch->braslist[nGroup], tSize);
+	result[tSize] = 0;
+	return SUCCESS;
+}
+
+/**
+ * Initializes a series of replacements with a given replace bx expression and some options regarding the replacent.
+ */
+int regex_initializeReplaceByExpressionOptions(REPLACEMENT_OPTIONS* pOptions, REPLACEMENT_PATTERN* pPattern) {
+	unsigned char 	c;
+	unsigned char* dest;
+	unsigned char* trpat;
+	unsigned char* tab;
+	int 			tl = 0;
+	int				i;
+
+	for (i = 0; i < 256; i++) {		/* translation default */
+		_characterMappingTable[i] = i;
+	}
+	pPattern->specialProcessingNeeded = 0;
+	pPattern->lineSplittingNeeded = 0;
+	pPattern->preserveCaseConversionNeeded = pOptions->flags & RE_PRESERVE_CASE ? 1 : 0;
+	pPattern->preparedReplacementString = _replacedResultBuffer;
+	pPattern->errorCode = 0;
+	char* replaceByExpression = pOptions->replacementPattern;
+	if (!(pOptions->flags & (RE_DOREX|RE_PRESERVE_CASE))) {
+		strcpy(_replacedResultBuffer, replaceByExpression);
+		return 1;
+	}
+
+	dest = _replacedResultBuffer;
+	while ((c = *replaceByExpression++) != 0) {
+		if (c == '\\') {
+			switch ((c = *replaceByExpression++)) {
+			case 'u':
+				trpat = _l2uset;
+				goto mktrans;
+			case 'l':
+				trpat = _u2lset;
+			mktrans:				
+				if ((tab = createTranslationTable(tl++)) == 0) {
+					pPattern->errorCode = IDS_MSGREMACRORANGESYNTAX;
+					return 0;
+				}
+			memmove(tab, trpat, 256);
+			c = '[';
+			goto special;
+			case '[':
+				if ((tab = createTranslationTable(tl++)) == 0)
+					return 0;
+				if ((replaceByExpression = tlcompile(tab, replaceByExpression,
+					(unsigned char*)0)) == 0) {
+					pPattern->errorCode = IDS_MSGREMANYBRACKETS;
+					return 0;
+				}
+			case 'e':
+			case '&':
+				goto special;
+			default:
+				if (c >= '1' && c <= '9') {
+					if ((c - '0') > pOptions->maxCaptureGroups) {
+						pPattern->errorCode = IDS_MSGREPIPEERR;
+						return 0;
+					}
+				}
+				else {
+					c = octalinput(replaceByExpression - 1);
+					replaceByExpression = _octalloc;
+					if (!c)
+						c = '0';
+					else
+						break;
+				}
+			special: pPattern->specialProcessingNeeded = 1;
+				*dest++ = '\\';
+				break;
+			}
+		}
+		if (c == pOptions->newlineCharacter) {
+			pPattern->lineSplittingNeeded = 1;
+		}
+		*dest++ = c;
+	}
+	*dest = 0;
+	return 1;
+}
+
+/* 
+ * Convert the character at idx in the destination string to upper or lower -
+ * if it has not the correct spelling.
+ */
+static void _convert(char* pDestination, int idx, BOOL upper, BOOL lower) {
+	char c1 = pDestination[idx];
+	if (upper) {
+		if (!isupper(c1)) {
+			pDestination[idx] = toupper(c1);
+		}
+	}
+	else {
+		if (!islower(c1)) {
+			pDestination[idx] = tolower(c1);
+		}
+	}
+}
+
+/**
+ * Implements the "preserve case" functionality.
+ * 
+ */
+static void adaptCase(char* pDestination, RE_MATCH* pMatch) {
+	char* matched = pMatch->loc1;
+	int matchedSize = (int)(pMatch->loc2 - pMatch->loc1);
+	int matchIdx = 0;
+	BOOL upper = FALSE;
+	BOOL lower = FALSE;
+	for (int i = 0; pDestination[i]; i++) {
+		char c1 = pDestination[i];
+		char c2 = matched[matchIdx];
+		if (!isalpha(c1) && !isalpha(c2)) {
+			while (!isalpha(c1) && c1) {
+				c1 = pDestination[i++];
+			}
+			while (!isalpha(c2) && matchIdx < matchedSize) {
+				c2 = matched[matchIdx++];
+			}
+			if (!c1) {
+				break;
+			}
+			i--;
+			matchIdx--;
+		}
+		if (isalpha(c2)) {
+			if (matchIdx < matchedSize) {
+				matchIdx++;
+				upper = FALSE;
+				lower = FALSE;
+			}
+			if (isupper(c2)) {
+				upper = TRUE;
+			} else if (islower(c2)) {
+				lower = TRUE;
+			}
+		}
+		_convert(pDestination, i, upper, lower);
+	}
+}
+
+/*--------------------------------------------------------------------------
+ * find_replaceSearchString()
+ * create replace-target for replaced Expressions with \
+ * return length of target. Before calling this method, you must once call
+ * find_initializeReplaceByExpressionOptions.
+ * Supports special escape syntax in replace pattern:
+ * - \1 (\2,...\9)  - insert capture groups of the regular expression searched 1-9
+ * - \& - insert the whole string found
+ * - \0 - insert a 0 character
+ * - \l - all successing characters in the replacement string are converted to lower case until the next case modifier is encountered
+ * - \u - all successing characters in the replacement string are converted to upper case until the next case modifier is encountered
+ * - \e - mark the end of a \l or a \u section and do not convert any more characters after this to lower or upper case
+ * Returns the length of the resulting string or -1, if an error occurs (target string would be too long etc...)
+ */
+int regex_replaceSearchString(REPLACEMENT_PATTERN* pPattern, unsigned char* pDestination, int destinationBufferSize, RE_MATCH* pMatch) {
+	int len = 0;
+	unsigned char* q, * qend, c, * trans = _characterMappingTable, tl = 0;
+	unsigned char* replacePattern = pPattern->preparedReplacementString;
+
+	if (!pPattern->specialProcessingNeeded) {
+		int len = strlen(pPattern->preparedReplacementString);
+		if (len >= destinationBufferSize) {
+			return -1;
+		}
+		strcpy(pDestination, pPattern->preparedReplacementString);
+		if (pPattern->preserveCaseConversionNeeded) {
+			adaptCase(pDestination, pMatch);
+		}
+		return len;
+	}
+	destinationBufferSize -= 2;
+	while (*replacePattern) {
+		if (*replacePattern == '\\') {
+			c = replacePattern[1];
+			switch (c) {
+			case '&':
+				q = pMatch->loc1;
+				qend = pMatch->loc2;
+				break;
+			case '[':
+				trans = _transtabs[tl++];
+				goto nocpy;
+			case 'e':
+				trans = _characterMappingTable;
+				goto nocpy;
+			case '0':
+				*pDestination++ = 0;
+				len++;
+				goto nocpy;
+			default:
+				if (c >= '1' && c <= '9') {
+					c -= '1';
+					q = pMatch->braslist[c];
+					qend = pMatch->braelist[c];
+				}
+				else goto normal;
+				break;
+			}
+			len += (int)(qend - q);
+			if (len > destinationBufferSize)
+				return -1;
+			while (q < qend)
+				*pDestination++ = trans[*q++];
+		nocpy:
+			replacePattern += 2;
+			continue;
+		}
+	normal:
+		if (len++ > destinationBufferSize) return -1;
+		*pDestination++ = trans[*replacePattern++];
+	}
+	*pDestination = 0;
+	if (pPattern->preserveCaseConversionNeeded) {
+		adaptCase(pDestination, pMatch);
+	}
+	return len;
 }
 

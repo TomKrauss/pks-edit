@@ -32,19 +32,14 @@
 #include "edhist.h"
 #include "pksedit.h"
 #include "stringutil.h"
+#include "fileutil.h"
 #include "winfo.h"
 #include "documenttypes.h"
+#include "editorconfiguration.h"
 
 extern void *	shareAlloc();
-extern char *	AbbrevName(char *fn);
-extern char *	OemAbbrevName(char *fn);
 extern HWND 	ww_winid2hwnd(int winid);
-extern DWORD 	SendBrotherMessage(UINT message, LPARAM lParam);
-extern int 	GetFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename);
-extern char *	searchfile(char *s);
-extern void 	prof_saveaspath(void);
 extern int 	PromptAsPath(char *path);
-extern char *	basename(char *s);
 
 extern char *	_datadir;
 extern void *	lastSelectedDocType;
@@ -184,7 +179,7 @@ autosave:
 			ShowMessage(IDS_MSGAUBE,ft_visiblename(fp));
 		} else if (PromptAsPath(GetConfiguration()->pksEditTempPath)) {
 		/* let the user correct invalid autosave pathes */
-			prof_saveaspath();
+			prof_saveaspath(GetConfiguration());
 			goto autosave;
 		}
 	
@@ -270,7 +265,7 @@ int pickread(void )
  */
 void ft_bufdestroy(FTABLE *fp)
 {
-	ll_destroy(&fp->fmark,(int (*)(void *elem))0);
+	ll_destroy((LINKED_LIST**)&fp->fmark,(int (*)(void *elem))0);
 	fp->blstart = 0;
 	fp->blend = 0;
 	destroy(&fp->documentDescriptor);
@@ -311,7 +306,7 @@ void ft_destroy(FTABLE *fp)
 	ft_deleteautosave(fp);
 	ft_bufdestroy(fp);
 
-	ll_delete(&_filelist,fp);
+	ll_delete((LINKED_LIST**)&_filelist,fp);
 
 	if (!_filelist || P_EQ(fp, ft_CurrentDocument())) {
 		_currentFile = NULL;
@@ -331,7 +326,7 @@ FTABLE *ft_new(void)
 		return 0;
 
 	if (undo_initializeManager(fp) == 0) {
-		ll_delete(&_filelist,fp);
+		ll_delete((LINKED_LIST**)&_filelist,fp);
 		return 0;
 	}
 	EdTRACE(Debug(DEBUG_TRACE,"ft_new File 0x%lx",fp));

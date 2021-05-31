@@ -178,7 +178,7 @@ EXPORT int clp_getdata(void)
 EXPORT int EdShowClipboard(int whichBuffer)
 {
 	HANDLE hMem;
-
+	
 	if (whichBuffer == 0 && !clp_ismine()) {
 		;
 	} else {

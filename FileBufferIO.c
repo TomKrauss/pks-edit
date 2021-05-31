@@ -25,12 +25,12 @@
 #include "edexec.h"
 #include "encryption.h"
 #include "errordialogs.h"
+#include "fileutil.h"
 
 /* #define DEMO 1 /* D E M O V E R S I O N */
 
 /*----- EXTERNALS -----------*/
 
-extern char *TmpName(char *dst, char c);
 extern int  CryptDialog(LPSTR password, int twice);
 extern EDTIME EdGetFileTime(char *fname);
 extern int EdMakeReadable(char *fn);

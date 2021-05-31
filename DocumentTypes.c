@@ -27,8 +27,9 @@
 #include "stringutil.h"
 #include "pksedit.h"
 #include "documenttypes.h"
+#include "fileutil.h"
 
-/*
+ /*
  * Description of one document type in PKS edit.
  */
 typedef struct tagDOCUMENT_TYPE {
@@ -46,11 +47,9 @@ typedef struct tagDOCUMENT_TYPE {
 	DOCUMENT_DESCRIPTOR * ll_documentDescriptor;
 } DOCUMENT_TYPE;
 
-extern char 	*searchfile(char *fn);
 extern void 	*prof_llinsert(void *Head, int size, char *group, 
 						char *item, char **idata);
 extern void 	prof_killsections(LPSTR pszFn, LPSTR pszSection);
-extern char *	TmpName(char *dst, char c);
 extern int 	Mapread(int context, char *target);
 
 extern char *	_datadir;

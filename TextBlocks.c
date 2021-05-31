@@ -86,7 +86,7 @@ unsigned char *BlockAsBuffer(unsigned char *b, unsigned char *end,
  */
 void EdGetSelectedText(void)
 {
-	char		buf[80];	/* _finds[] !!!! */
+	char		buf[80];	/* searchPattern[] !!!! */
 	PASTE *	pp;
 
 	*buf = 0;
@@ -516,7 +516,7 @@ EXPORT PASTE *plistenq(int id,int insert,PASTELIST **header)
 		return pp;
 	}
 
-	if ((pl = (PASTELIST *) ll_insert(header,sizeof *pl)) == 0L) 
+	if ((pl = (PASTELIST *) ll_insert((LINKED_LIST**)header,sizeof *pl)) == 0L) 
 		return 0;
 	pl->id = id;
 

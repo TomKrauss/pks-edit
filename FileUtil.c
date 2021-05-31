@@ -21,6 +21,7 @@
 #include "pksedit.h"
 #include "errordialogs.h"
 #include "stringutil.h"
+#include "fileutil.h"
 
 extern char *_datadir;
 static char _found[1024];
@@ -37,6 +38,7 @@ static struct _finddata_t _dta;
 
 /*--------------------------------------------------------------------------
  * EdStat()
+ * Test the existance of a file. If it exists, return 0 otherwise -1.
  */
 EXPORT int EdStat(char *s) 
 {
@@ -51,6 +53,7 @@ EXPORT int EdStat(char *s)
 
 /*--------------------------------------------------------------------------
  * EdFileMode()
+ * Return the "modes" (read write, A_NORMAL, A_READONLY, A_HIDDEN, A_SYSTEM, ...) of a file.
  */
 EXPORT int EdFileMode(char *s)
 {
@@ -89,12 +92,13 @@ EDTIME EdGetFileTime(char *fname) {
 
 /*--------------------------------------------------------------------------
  * EdIsDir()
+ * Returns true if the passed filename points to a directory.
  */
-EXPORT int EdIsDir(char *s)
+EXPORT int EdIsDir(char *filename)
 {
 	int ret;
 
-	return ((ret = EdFileMode(s)) >= 0 && (ret & _A_SUBDIR) != 0);
+	return ((ret = EdFileMode(filename)) >= 0 && (ret & _A_SUBDIR) != 0);
 }
 
 #else
@@ -198,6 +202,9 @@ static int pathstat(char *path,char *fn)
 
 /*--------------------------------------------------------------------------
  * searchfile()
+ * Searches a file in a "wellknown" PKS Edit location (PKS_SYS, home etc...) and
+ * returns the result - this is not re-entrant. Before calling again, one must
+ * save the result.
  */
 EXPORT char *searchfile(char *s)
 {
@@ -246,6 +253,7 @@ EXPORT char *pathsearch(char *fn,char *path) {
 
 /*------------------------------------------------------------
  * TmpName()
+ * Returns the name of a temp file.
  */
 EXPORT char *TmpName(char *dst, char c)
 {	char		temp[50];
@@ -264,6 +272,7 @@ EXPORT char *TmpName(char *dst, char c)
 
 /*------------------------------------------------------------
  * TmpDir()
+ * Returns the path to the temp directory.
  */
 EXPORT char *TmpDir(void)
 {	static char tmpdir[1024];

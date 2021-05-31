@@ -14,6 +14,10 @@
 
 #ifndef STRINGUTIL_H
 
+#ifndef BOOL
+#define BOOL int
+#endif
+
 
 extern char* _strtolend;
 
@@ -97,6 +101,43 @@ unsigned char* stralloc(unsigned char* buf);
  * Free the dereferenced pointer and initialize the space pointed to with NULL.
  */
 extern void destroy(void** ap);
+
+/*--------------------------------------------------------------------------
+ * IsSpace()
+ */
+extern BOOL IsSpace(unsigned char c);
+
+/*---------------------------------*/
+/* skipblank()					*/
+/*---------------------------------*/
+extern unsigned char* skipblank(unsigned char* s, unsigned char* send);
+
+/*---------------------------------*/
+/* skipnoblank()				*/
+/*---------------------------------*/
+extern unsigned char* skipnoblank(unsigned char* s, unsigned char* send);
+
+/*--------------------------------------------------------------------------
+ * CntSpaces()
+ * count spaces up to a given position
+ * Spaces include attribute special spaces
+ */
+extern int CntSpaces(unsigned char* s, int pos);
+
+/*
+ * Returns true if the passed character is a letter (a-z + umlauts).
+ */
+extern BOOL isword(unsigned char c);
+
+/*
+ * Returns TRUE, if the passed character is not a space.
+ */
+extern BOOL isnospace(unsigned char c);
+
+/*
+ * Return true, if the character is a valid filename character on the current platform.
+ */
+extern BOOL isfname(unsigned char c);
 
 #define STRINGUTIL_H
 #endif

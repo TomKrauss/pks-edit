@@ -24,12 +24,11 @@
 #include "errordialogs.h"
 #include "lineoperations.h"
 #include "winterf.h"
+#include "fileutil.h"
+#include "stringutil.h"
 
 extern void ChangeDirectory(LPSTR pszPath);
 extern void stepnofsel(char *fn, int cmpflg);
-extern char *searchfile(char *s);
-extern void strdcpy(char *dest,char *source,char *fname);
-extern char *TmpDir(void);
 extern void undo_startModification(FTABLE *fp);
 
 extern FTABLE 	_outfile;

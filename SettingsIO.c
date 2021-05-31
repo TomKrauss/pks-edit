@@ -28,10 +28,10 @@
 #include "edifsel.h"
 #include "pksedit.h"
 #include "editorconfiguration.h"
+#include "findandreplace.h"
 
 #define	PROF_OFFSET		1
 
-extern int  _findopt;
 extern void MouseBusy(void);
 extern void MouseNotBusy(void);
 extern int  EdStat(char *s, int mode);
@@ -240,7 +240,7 @@ int prof_getstdopt(void)
 	GetConfiguration()->options = prof_getlong(_desk,"Options");
 	GetConfiguration()->layoutoptions = prof_getlong(_desk,"Layout");
 
-	_findopt = (int)prof_getlong(_desk,"FindOptions");
+	_currentSearchAndReplaceParams.options = (int)prof_getlong(_desk,"FindOptions");
 	GetConfiguration()->asminutes = prof_getlong(_desk,"AsInterv");
 	GetConfiguration()->nundo = prof_getlong(_desk,"NUBuf");
 	GetPksProfileString(_desk,"AsPath", GetConfiguration()->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath) -1);
@@ -312,7 +312,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 
 	prof_savelong(_desk,"Options",(long)configuration->options);
 	prof_savelong(_desk,"Layout",(long)configuration->layoutoptions);
-	prof_savelong(_desk,"FindOptions",(long)_findopt);
+	prof_savelong(_desk,"FindOptions",(long)_currentSearchAndReplaceParams.options);
 	prof_savelong(_desk,"AsInterv",(long)configuration->asminutes);
 	prof_saveaspath(configuration);
 	prof_savelong(_desk,"NUBuf",(long)configuration->nundo);

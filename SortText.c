@@ -99,7 +99,7 @@ char *s2vec(struct dvec *v,char *s, char *e)
 			v->n = 0;
 		else {
 			v->n = Atol(s);
-			v->w = _strtolend-s;
+			v->w = (int)(_strtolend-s);
 			s    = _strtolend;
 		}
 		if (*s == '.')

@@ -761,7 +761,7 @@ static void _markcolomns(FTABLE *fp)
 	}
 	if ((mp = fp->blend) != 0L) {
 		fp->blcol2 = caret_lineOffset2screen(fp, &(CARET) {
-			mp->lm->lbuf, mp->lc
+			mp->lm, mp->lc
 		});
 		if (fp->blcol2 <= fp->blcol1)
 			fp->blcol2 = fp->blcol1	+ 1;
