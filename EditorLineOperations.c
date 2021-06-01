@@ -15,11 +15,10 @@
 #include <windows.h>
 #include <string.h>
 #include "pksedit.h"
-#include "lineoperations.h"
+#include "textblocks.h"
 #include "edierror.h"
 
 extern int 	_flushing;
-extern PASTE *	_undobuf;
 char* _linebuf;
 extern PASTE *	bl_addrbyid(int id, int insert);
 
@@ -228,7 +227,7 @@ void mln_cutlines(FTABLE *fp, int op)
 			}
 
 			if (lpnext->next == 0) {
-				blappnd(pb,lp,lp,0,lp->len);
+				bl_append(pb,lp,lp,0,lp->len);
 				if (op == MLN_DELETE) {
 					lp->len   = 0;
 					lp->lbuf[0] = 0;
@@ -237,7 +236,7 @@ void mln_cutlines(FTABLE *fp, int op)
 				return;
 			}
 
-			if (!blappnd(pb,lp,lpnext,0,0)) {
+			if (!bl_append(pb,lp,lpnext,0,0)) {
 				return;
 			}
 
@@ -684,7 +683,7 @@ LINE *ln_modify(FTABLE *fp, LINE *lp, int col1, int col2)
 		    fp->blstart->lm == fp->blend->lm && 
 		    fp->blstart->lc >= fp->blend->lc
 		   )
-			Pastehide(0);			   
+			bl_hideSelection(0);			   
 	}
 	return lp;
 }

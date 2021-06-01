@@ -555,6 +555,7 @@ void DeleteAllDocumentTypes() {
 
 /*--------------------------------------------------------------------------
  * DeleteDocumentType()
+ * Deletes a given document type.
  */
 void DeleteDocumentType(DOCUMENT_TYPE *llp)
 {
@@ -695,7 +696,7 @@ int EdLineal(int wrflag, DOCUMENT_DESCRIPTOR *documentDescriptor) {
 
 	if (ReadDocumentType(fn,documentDescriptor,documentDescriptor->id,1)) {
 		if ((wrflag & 2) == 0)
-			linchange();
+			doc_documentTypeChanged();
 		return 1;
 	}
 

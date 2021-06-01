@@ -422,6 +422,9 @@
     <ClInclude Include="include\fileutil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\textblocks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">

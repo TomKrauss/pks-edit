@@ -71,7 +71,6 @@ static PRTPARAM _prtparams = {
 };
 
 extern char 		*ft_visiblename(FTABLE *fp);
-extern char 		*AbbrevName(char *fn);
 
 static int 		_printing;
 static int 		_previewpage = 1;
@@ -499,7 +498,7 @@ footerprint:
 /*--------------------------------------------------------------------------
  * DlgPreviewProc()
  */
-BOOL CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	HDC			hdc;
 	int			newPage = _previewpage;
@@ -548,7 +547,7 @@ BOOL CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
  * DlgInstallPrtProc()
  */
 typedef VOID (FAR PASCAL *DEVMODEPROC)(HWND, HANDLE, LPSTR, LPSTR);
-BOOL CALLBACK DlgInstallPrtProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK DlgInstallPrtProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	HWND			hwndList;
 	HANDLE		hLibrary;
@@ -705,7 +704,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 		_printwhat.lp = fp->firstl;
 		_printwhat.lplast = fp->lastl->prev;
 	} else {
-		if (!chkblk(fp))
+		if (!ft_checkSelectionWithError(fp))
 			goto byebye;
 		if (ww_blkcolomn(fp->wp)) {
 			_printwhat.firstc =  fp->blcol1;
@@ -744,7 +743,7 @@ again:
 		EdPrinterLayout();
 	} else if (_previewpage > 0) {
 		winfo.fnt_name[0] = 0;
-		DoDialog(DLGPREVIEW,DlgPreviewProc,(LPSTR)0);	
+		DoDialog(DLGPREVIEW,DlgPreviewProc, NULL, NULL);
 	} else {
 		if ((hdcPrn = GetPrinterDC()) != NULL) {
 			DOCINFO		docinfo;
@@ -787,7 +786,7 @@ byebye:
  */
 static void PrtInstall(void)
 {
-	DoDialog(DLGPRTINSTALL, DlgInstallPrtProc,(LPSTR)0);
+	DoDialog(DLGPRTINSTALL, DlgInstallPrtProc, NULL, NULL);
 }
 
 /*--------------------------------------------------------------------------
@@ -829,7 +828,7 @@ int EdPrinterLayout(void) {
 	lstrcpy(font.name, _prtparams.font.fs_name);
 	lstrcpy(htfont.name, _prtparams.htfont.fs_name);
 
-	if (DoDialog(DLGPRINTERLAYOUT, DlgStdProc, _d) == IDCANCEL) {
+	if (DoDialog(DLGPRINTERLAYOUT, DlgStdProc, _d, NULL) == IDCANCEL) {
 		return 0;
 	}
 	PrinterDefaults(1);

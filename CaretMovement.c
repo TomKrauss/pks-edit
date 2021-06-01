@@ -20,6 +20,7 @@
 #include "editorconfiguration.h"
 
 #include "caretmovement.h"
+#include "textblocks.h"
 #include "winfo.h"
 #include "winterf.h"
 
@@ -34,8 +35,8 @@ extern LINE *		ln_relgo(FTABLE *fp, long l);
 extern LINE *		ln_crelgo(FTABLE *fp, long l);
 extern int		isword(unsigned char c);
 extern int		isnospace(unsigned char c);
-extern int 		_chkblk(FTABLE *fp);
-extern int 		SetBlockMark(FTABLE *fp, CARET *caret, int flags);
+extern int 		ft_checkSelection(FTABLE *fp);
+extern int 		bl_syncSelectionWithCaret(FTABLE *fp, CARET *caret, int flags);
 extern void 	graf_mkstate(int *x, int *y, int *but, int *shift);
 
 extern long		_multiplier;
@@ -166,9 +167,9 @@ void XtndBlock(FTABLE *fp)
 				_xtndMark = MARK_END;
 			}
 		}
-		EdBlockMark(_xtndMark | MARK_RECALCULATE);
+		EdSyncSelectionWithCaret(_xtndMark | MARK_RECALCULATE);
 	} else {
-		EdBlockMark(MARK_END | MARK_RECALCULATE);
+		EdSyncSelectionWithCaret(MARK_END | MARK_RECALCULATE);
 	}
 	nSentinel = 0;
 }
@@ -201,8 +202,8 @@ static void BegXtndBlock(FTABLE *fp)
 		if (fp->blstart || fp->blend) {
 			EdBlockHide();
 		}
-		SetBlockMark(fp, &fp->caret, MARK_RECALCULATE|MARK_START);
-		SetBlockMark(fp, &fp->caret, MARK_RECALCULATE|MARK_END);
+		bl_syncSelectionWithCaret(fp, &fp->caret, MARK_RECALCULATE|MARK_START);
+		bl_syncSelectionWithCaret(fp, &fp->caret, MARK_RECALCULATE|MARK_END);
 	}
 	nSentinel--;
 }
@@ -216,9 +217,9 @@ static void HideWindowsBlocks(FTABLE *fp)
 
 	if (!WIPOI(fp)->bXtndBlock &&
 		(GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) &&
-		_chkblk(fp)) {
+		ft_checkSelection(fp)) {
 		col = fp->col;
-		Pastehide(1);
+		bl_hideSelection(1);
 		fp->col = col;		/* save fix column position */
 	}
 }

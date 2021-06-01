@@ -225,7 +225,7 @@ extern void linetoolong(void);
 #define	MARK_DRAG			1
 #define	MARK_CONT			2
 
-/* flags for mark block (EdBlockMark) */
+/* flags for mark block (EdSyncSelectionWithCaret) */
 #define	MARK_START		3
 #define	MARK_END			4
 #define	MARK_ALL			5

@@ -64,12 +64,11 @@ static LINE *tabcpy(FTABLE *fp, LINE **Lps, int cfirst, int clast,
 	return lp;
 }
 
-/*----------------------------*/
-/* blcutcol()				*/
-/* cut out a colomn of text	*/
-/* and (opt) delete it		*/
-/*----------------------------*/
-EXPORT int blcutcol(PASTE *pp,LINE *lnfirst,LINE *lnlast,int freeflg)
+/*----------------------------
+ * bl_cutBlockInColumnMode()
+ * Cut out a colomn shaped block of text and optionally delete it
+ *----------------------------*/
+EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int freeflg)
 {
 	FTABLE *	fp;
 	LINE *	lpnew;
@@ -140,10 +139,10 @@ static LINE *tabinsl(FTABLE *fp, LINE *lpd, LINE *lps, int col, int ctrlmode)
 }
 
 /*--------------------------------------*/
-/* blpastecol()					*/
+/* bl_pastecol()					*/
 /* paste a textcol					*/
 /*--------------------------------------*/
-EXPORT int blpastecol(PASTE *pb,FTABLE *fp, LINE *lpd, int col)
+EXPORT int bl_pastecol(PASTE *pb,FTABLE *fp, LINE *lpd, int col)
 {
 	LINE *	lps;
 	LINE *	lpnew;

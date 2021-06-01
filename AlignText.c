@@ -18,7 +18,7 @@
 #include "edierror.h"
 #include "pksedit.h"
 
-extern int 	chkblk(FTABLE *fp);
+extern int 	ft_checkSelectionWithError(FTABLE *fp);
 
 /*---------------------------------*/
 /* AlignText()					*/

@@ -626,7 +626,7 @@ void ww_destroy(WINFO *wp)
 	}
 	wp->fp = NULL;
 	nId = wp->win_id;
-	if (!ll_delete(&_winlist,wp)) {
+	if (!ll_delete((LINKED_LIST**)&_winlist,wp)) {
 		EdTRACE(Debug(DEBUG_ERR,"failed deleting window props"));
 		;
 	}
@@ -716,7 +716,7 @@ WINFUNC EditWndProc(
 		if (wParam == 0)
 			break;
 	case WM_SETFOCUS:
-		ll_moveElementToFront(&_winlist,wp);
+		ll_moveElementToFront((LINKED_LIST**)&_winlist,wp);
 		if (!IsIconic(hwnd))
 			SetFocus(wp->ww_handle);
 		break;

@@ -17,9 +17,11 @@
 #include "trace.h"
 #include "functab.h"
 #include "caretmovement.h"
+#include "caretmovement.h"
 #include "winfo.h"
 #include "edierror.h"
 #include "pksedit.h"
+#include "textblocks.h"
 #include "editorconfiguration.h"
 
 #define	SWAP(a,b)			{	a ^= b, b ^=a, a ^= b;  }
@@ -38,7 +40,6 @@ extern int 	ln_leadspce(LINE *l);
 extern int 	IsSpace(unsigned char c);
 extern int 	TabStop(int col, DOCUMENT_DESCRIPTOR *l);
 extern int 	CntSpaces(unsigned char *s, int pos);
-extern int 	undoenq(LINE *lnfirst,LINE *lnlast,int cfirst,int clast,int blockflg);
 extern int 	sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
 				 int indent, int *di, int *hbr);
 extern int 	shift_lines(FTABLE *fp, long ln, long nlines, int dir);
@@ -51,7 +52,6 @@ extern void 	updatecursor(WINFO *wp);
 
 extern long 	_multiplier;
 extern int 		cursor_width;
-extern PASTE	*_undobuf;
 
 /*--------------------------------------------------------------------------
  * CalcCol2TabsBlanks()
@@ -301,10 +301,10 @@ int EdLineDelete(control)
 		if ((lastlinelen = clast->len) == 0L) return 0;
 	} else lastlinelen = 0;
 	if (control & CUT_APPND) {
-		blappnd(_undobuf,clfirst,clast,0,0);
+		bl_append(_undobuf,clfirst,clast,0,0);
 		ln_delete(fp,clfirst);
 	} else {
-		undoenq(clfirst, clast, (int) 0, (int) lastlinelen, (int) 0); 
+		bl_undoIntoUnqBuffer(clfirst, clast, (int) 0, (int) lastlinelen, (int) 0); 
 	}
 
 	if (lastlinelen) {
@@ -667,7 +667,7 @@ int EdCharInsert(int c)
 		return EdLineSplit(c == lnp->nl ? RET_SOFT : 0);
 	}
 
-	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && _chkblk(fp)) {
+	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ft_checkSelection(fp)) {
 		EdBlockDelete(0);
 		if (c == 8 || c == 127) {
 			return 1;
@@ -784,7 +784,7 @@ int EdCharDelete(control)
 		if (!ln_modify(fp,lp,o2,o1))
 			return 0;
 	} else {
-		if (!undoenq(lp1, lp, (int) o1, (int) o2, (int) 0)) {
+		if (!bl_undoIntoUnqBuffer(lp1, lp, (int) o1, (int) o2, (int) 0)) {
 			return 0;
 		}
 	}
@@ -897,13 +897,13 @@ int EdHideLines(void)
 	LINE *	lp2;
 
 	if ((fp = ft_CurrentDocument()) == 0 ||
-		!_chkblk(fp)) {
+		!ft_checkSelection(fp)) {
 		return 0;
 	}
 
 	lp1 = fp->blstart->lm;
 	lp2 = fp->blend->lm;
-	Pastehide(0);
+	bl_hideSelection(0);
 
 	ln_hide(fp, lp1, lp2);
 	fp->ln = WIPOI(fp)->ln = ln_cnt(fp->firstl,fp->caret.linePointer)-1;

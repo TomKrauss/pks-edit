@@ -17,6 +17,7 @@
 #include "alloc.h"
 #include "edctype.h"
 #include "caretmovement.h"
+#include "textblocks.h"
 #include "pksedit.h"
 #include "edfuncs.h"
 #include "edierror.h"
@@ -553,7 +554,7 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 	}
 	lpfirst = mps->lm;
 	lplast =  mpe->lm;
-	Pastehide(0);
+	bl_hideSelection(0);
 
 	initset(fs_set,fs);
 	initkeylist(keys,fs_set);

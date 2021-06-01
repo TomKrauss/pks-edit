@@ -26,7 +26,7 @@
 
 extern void 	XtndBlock(FTABLE *fp);
 extern void 	st_redraw(BOOL bErase);
-extern int 	_chkblk(FTABLE *fp);
+extern int 	ft_checkSelection(FTABLE *fp);
 
 int 	cursor_width = 1;
 
@@ -83,7 +83,7 @@ void updatecursor(WINFO *wp) {
 
 	type = wp->ctype;
 	if (type) {
-		type = (cursor_width > 1 || _chkblk(FTPOI(wp)) == 0) ?
+		type = (cursor_width > 1 || ft_checkSelection(FTPOI(wp)) == 0) ?
 			1 : 2;
 	}
 

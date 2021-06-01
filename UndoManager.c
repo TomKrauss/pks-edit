@@ -15,6 +15,7 @@
 #include "alloc.h"
 #include "pksedit.h"
 #include "caretmovement.h"
+#include "textblocks.h"
 #include "edierror.h"
 #include "errordialogs.h"
 #include "editorconfiguration.h"
@@ -327,7 +328,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	ln = 0; col = 0;
 	cposvalid(fp, &ln, &col, 0);
 
-	Pastehide(0);
+	bl_hideSelection(0);
 	pOperation = pCommand->atomicSteps;
 	while (pOperation != NULL) {
 		for (i = pOperation->numberOfCommands; i > 0; ) {
@@ -374,7 +375,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	fp->blcol1 = pCommand->c1;
 	fp->blcol2 = pCommand->c2;
 
-	markblk(fp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
+	bl_setSelection(fp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
 
 	curpos(pCommand->ln, pCommand->col);
 	RedrawTotalWindow(fp);

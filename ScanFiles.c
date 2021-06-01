@@ -65,7 +65,7 @@ int addLineWithLocationInfo(FTABLE* fp, char* fn, long line, char* remark) {
  * scanlines()
  * 
  */
-static unsigned char *scanlines(char *fn, DOCUMENT_DESCRIPTOR* linp, unsigned char *p, unsigned char *qend) {
+static unsigned char *scanlines(FTABLE *fp, DOCUMENT_DESCRIPTOR* linp, unsigned char *p, unsigned char *qend) {
 	register char	*	q;
 	register char 		nl = '\n';
 	char *			stepend;
@@ -79,7 +79,7 @@ longline_scan:
 			if (*stepend == '\r')
 				stepend--;
 			if (_compiledPattern != NULL && step(_compiledPattern, q,stepend, &match)) {
-				present(fn);
+				present(fp->fname);
 				if (_abortOnFirstMatch)
 					return 0;
 			}

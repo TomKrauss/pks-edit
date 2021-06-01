@@ -1135,7 +1135,7 @@ static KEYCODE mac_getkey(void)
 	static DIALPARS _d[] = { IDD_KEYCODE,	sizeof k,	&k, 0 };
 
 	k = K_DELETED;
-	if (DoDialog(DLGKEYCODE, DlgStdProc,_d) == IDCANCEL ||
+	if (DoDialog(DLGKEYCODE, DlgStdProc,_d, NULL) == IDCANCEL ||
 		k == 0) {
 		return K_DELETED;
 	}

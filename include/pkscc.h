@@ -19,7 +19,6 @@
 #define UNUSED(x)	(x) = (x)
 
 extern char *		StaticLoadString(int nId);
-extern void 		Alert(char *s, ...);
 extern void 		protokoll(char *s, ...);
 extern int 		ActiveRulerContext(int ctx);
 

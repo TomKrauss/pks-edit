@@ -109,7 +109,7 @@ static void list2_insert(P2LIST **head, char *p1, char *p2)
 static void list2_mk(P2LIST **head, char *p1, char *p2)
 {
 	if (p1 == 0) {
-		ll_destroy(head,list2_destroy);
+		ll_destroy((LINKED_LIST**)head,list2_destroy);
 	} else {
 		list2_insert(head,p1,p2);
 	}

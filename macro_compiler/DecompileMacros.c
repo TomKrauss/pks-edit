@@ -21,10 +21,11 @@
 #include "funcdef.h"
 #include "binop.h"
 #include "stringutil.h"
+#include "errordialogs.h"
 
 int  MakeAutoLabel(COM_GOTO *cp);
 void StartAutoLabel(void);
-void NextAutoLabel(char **name, unsigned char **cp);
+void NextAutoLabel(char **name, COM_GOTO **cp);
 void CloseAutoLabels(void);
 char *FindAutoLabel(COM_GOTO *cp);
 
@@ -96,7 +97,7 @@ static int pr_xlated(FILE *fp,long val,signed char partyp)
 
 	partyp -= PAR_USER;
 	if (partyp < 0 || partyp >= _ntypes) {
-		Alert("Bad Parameter type %x",(unsigned)partyp);
+		alert("Bad Parameter type %x",(unsigned)partyp);
 		return -1;
 	}
 
@@ -161,7 +162,7 @@ static int pr_param(FILE *fp, unsigned char *sp, signed char partyp)
 			val = ((COM_INT1 *)sp)->val;
 			break;
 		case C_LONG1PAR:
-			val = ((COM_LONG1 *)sp)->val;
+			val = (long)((COM_LONG1 *)sp)->val;
 			break;
 		case C_STRING1PAR:
 			if (partyp != PAR_STRING)
@@ -180,7 +181,7 @@ static int pr_param(FILE *fp, unsigned char *sp, signed char partyp)
 			return 1;
 		default:
 			err:
-			Alert("format error in params");
+			alert("format error in params");
 			return -1;
 	}
 
@@ -206,7 +207,7 @@ static void pr_func(FILE *fp, int idx)
 	EDFUNCDEF	*ep = idx2edfunc(idx);
 
 	if (!ep) {
-		Alert("format error: bad function");
+		alert("format error: bad function");
 		return;
 	}
 	fprintf(fp,"\t%s",StaticLoadString(ep->idx + IDM_LOWFUNCNAME));
@@ -310,7 +311,7 @@ static unsigned char *pr_expr(FILE *fp, COM_TEST *cp, int not)
 			if (p2 > (unsigned char *)p1)
 				pr_expr(fp,(COM_TEST*)p2,0);
 			else
-				Alert("expr: bad AND/OR|(p2 == 0x%lx)(p1 == 0x%lx)",
+				alert("expr: bad AND/OR|(p2 == 0x%lx)(p1 == 0x%lx)",
 					p2,p1);
 			break;
 		case CT_BRACKETS:
@@ -398,7 +399,7 @@ static void pr_mac(FILE *fp, MACRO *mp)
 	for (sp = data, spend = sp+mp->size; sp < spend; ) {
 		if (gop <= sp && lname) {
 			if (gop < sp) {
-				Alert("format error: bad goto");
+				alert("format error: bad goto");
 			}
 			fprintf(fp,"%s:\n",lname);
 			NextAutoLabel(&lname,&gop);
@@ -456,7 +457,7 @@ static void pr_mac(FILE *fp, MACRO *mp)
 		} else if (t == C_FURET) {
 		
 		} else {
-			Alert("format error in %s type=%x",MAC_NAME(mp),t);
+			alert("format error in %s type=%x",MAC_NAME(mp),t);
 		}
 		sp += param_space(*sp,sp+1);
 	}

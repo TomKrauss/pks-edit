@@ -97,6 +97,7 @@ BOOL find_replacementHadBeenPerformed() {
 
 /*--------------------------------------------------------------------------
  * find_initializeReplaceByExpression()
+ * Initialize the pattern used as the replace by pattern in find and replace.
  */
 int find_initializeReplaceByExpression(unsigned char* replaceByExpression) {
 	unsigned char nlchar;
@@ -899,7 +900,7 @@ int SelectRange(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend) {
 			ofe = lpe->len;
 			break;
 		case RNG_BLOCK:
-			if (!chkblk(fp))
+			if (!ft_checkSelectionWithError(fp))
 				return RNG_INVALID;
 			lps = fp->blstart->lm;
 			lpe = fp->blend->lm;

@@ -14,10 +14,7 @@
 
 #ifndef STRINGUTIL_H
 
-#ifndef BOOL
-#define BOOL int
-#endif
-
+typedef int					BOOL;
 
 extern char* _strtolend;
 

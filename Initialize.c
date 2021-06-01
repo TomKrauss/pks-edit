@@ -18,6 +18,7 @@
 #include "pathname.h"
 #include "editorconfiguration.h"
 #include "stringutil.h"
+#include "regexp.h"
 
 #undef DELIVER
 
@@ -154,6 +155,6 @@ EXPORT void ReadConfigFiles(void)
 	proj_init();
 	compiler_init();
 	PrinterDefaults(0);
-	fixsets((char *) 0);
+	regex_compileCharacterClasses((char *) 0);
 }
 

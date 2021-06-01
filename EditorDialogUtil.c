@@ -34,6 +34,7 @@
 #include "edfuncs.h"
 #include "edhist.h"
 #include "xdialog.h"
+#include "regexp.h"
 
 #define ISRADIODLGCTL(i) 	((i) >= IDD_LOWRADIO && (i) <= IDD_HIGHRADIO)
 #define ISFLAGDLGCTL(i) 		(((i) >= IDD_LOWOPT && (i) <= IDD_HIGHOPT) ||\
@@ -49,6 +50,7 @@ extern int 		cust_combood(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
 					void (*ShowSelection)(LPDRAWITEMSTRUCT lp));
 extern void 		fsel_title(char *title);
 
+static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
 static DIALPARS 	*_dp;
 static DIALPARS*	(*_dialogInitParameterCallback)(int pageIndex);
 static boolean		bInPropertySheet;
@@ -68,11 +70,57 @@ void SetXDialogParams(DIALPARS* (*func)(int pageIndex), boolean propertySheetFla
 	bPropertySheetMoved = FALSE;
 }
 
+// Description:
+//   Creates a tooltip for an item in a dialog box. 
+// Parameters:
+//   idTool - identifier of an dialog box item.
+//   nDlg - window handle of the dialog box.
+//   iTooltipItem - index of string resource to use as the tooltip text.
+// Returns:
+//   The handle to the tooltip.
+//
+static HWND CreateToolTip(int toolID, HWND hDlg, int iTooltipItem) {
+	if (!toolID || !hDlg || iTooltipItem < 0)
+	{
+		return FALSE;
+	}
+	// Get the window of the tool.
+	HWND hwndTool = GetDlgItem(hDlg, toolID);
+
+	// Create the tooltip. g_hInst is the global instance handle.
+	HWND hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
+		WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		hDlg, NULL,
+		hInst, NULL);
+
+	if (!hwndTool || !hwndTip)
+	{
+		return (HWND)NULL;
+	}
+
+	// Associate the tooltip with the tool.
+	TOOLINFO toolInfo = { 0 };
+	toolInfo.cbSize = sizeof(toolInfo);
+	toolInfo.hwnd = hDlg;
+	toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+	toolInfo.uId = (UINT_PTR)hwndTool;
+	char 	s[256];
+
+	if (!LoadString(hInst, iTooltipItem, s, sizeof s)) {
+		return (HWND)NULL;
+	}
+	toolInfo.lpszText = s;
+	SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
+	SendMessage(hwndTip, TTM_SETMAXTIPWIDTH, 0, 350);
+	return hwndTip;
+}
+
 /*--------------------------------------------------------------------------
  * DoDialog()
  */
-int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp)
-{
+int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips) {
 	int 		nSave;
 	HWND		hwnd;
 	INT_PTR		ret;
@@ -82,14 +130,15 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp)
 	if (dp)	{
 		_dp = dp;
 	}
+	_dtoolTips = pTooltips;
 	hwnd = GetActiveWindow();
 	nSave = nCurrentDialog;
 	nCurrentDialog = nIdDialog;
 	ret = DialogBox(hInst, MAKEINTRESOURCE(nIdDialog), hwndFrame, DlgProc);
 	nCurrentDialog = nSave;
-
-	if (hwnd)
+	if (hwnd) {
 		SetActiveWindow(hwnd);
+	}
 	_translatekeys = 1;
 
 	return (int)ret;
@@ -108,12 +157,12 @@ void DlgInitString(HWND hDlg, int item, LPSTR szString, int nMax)
 /*--------------------------------------------------------------------------
  * SubClassWndProc()
  */
-FARPROC SubClassWndProc(int set, HWND hDlg, int item, FARPROC lpfnNewProc)
+WNDPROC SubClassWndProc(int set, HWND hDlg, int item, WNDPROC lpfnNewProc)
 {	HWND hwndItem;
-	FARPROC lpfnNowProc;
+	WNDPROC lpfnNowProc;
 
 	hwndItem = GetDlgItem(hDlg,item);
-	lpfnNowProc = (FARPROC)GetWindowLongPtr(hwndItem,GWLP_WNDPROC);
+	lpfnNowProc = (WNDPROC)GetWindowLongPtr(hwndItem,GWLP_WNDPROC);
 	if (set) {
 		lpfnNewProc = MakeProcInstance(lpfnNewProc,hInst);
 	} 
@@ -155,7 +204,7 @@ WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return DLGC_WANTMESSAGE;
 
 		case WM_CHARCHANGE:
-			key = wParam;
+			key = (KEYCODE)wParam;
 			SetWindowText(hwnd,code2key(key));
 			SendRedraw(hwnd);
 			return TRUE;
@@ -206,7 +255,7 @@ WINFUNC CInput(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case WM_CHAR:
 			szBuff[1] = 0;
-			szBuff[0] = wParam;
+			szBuff[0] = (char)wParam;
 			SetWindowText(hwnd,szBuff);
 			SendRedraw(hwnd);
 			SendParentCommand(hwnd,0L);
@@ -223,7 +272,7 @@ int setwrange(HWND hwnd, int *rangetype, int first)
 	char	  szBuf[64],szSel[64];
 	HWND	  hwndList;
 
-	blkvalid = _chkblk(ft_CurrentDocument());
+	blkvalid = ft_checkSelection(ft_CurrentDocument());
 	if (*rangetype == RNG_BLOCK && !blkvalid)
 		*rangetype = RNG_CHAPTER;
 
@@ -458,8 +507,6 @@ static DIALPARS *GetItemDialListData(DIALPARS *dp, int nItem)
  */
 void DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax)
 {
-	int  	*ip;
-
 	while(--nMax >= 0 && dp->dp_item) {
 		switch(dp->dp_item) {
 
@@ -794,6 +841,11 @@ INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 			} else if (_dp != NULL) {
 				DlgInit(hDlg, _dp, TRUE);
 			}
+			if (_dtoolTips != NULL) {
+				for (int i = 0; _dtoolTips[i].m_itemId > 0; i++) {
+					CreateToolTip(_dtoolTips[i].m_itemId, hwndDlg, _dtoolTips[i].m_tooltipStringId);
+				}
+			}
 			return TRUE;
 
 		case WM_DESTROY:
@@ -842,11 +894,11 @@ INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 /*--------------------------------------------------------------------------
  * CallDialog()
  */
-int CallDialog(int nId, PARAMS *pp, DIALPARS *dp)
+int CallDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips)
 { 	int ret = 1;
 
 	if (param_dialopen(pp)) {
-		ret = DoDialog(nId, DlgStdProc,dp);
+		ret = DoDialog(nId, DlgStdProc,dp, pTooltips);
 		param_record(pp);
 		if (ret == IDCANCEL)
 			return 0;
@@ -917,7 +969,7 @@ DLGSTRINGLIST *DoDlgSelectFromList(int nId, DLGSTRINGLIST *list, DIALLIST *dlist
 	dlist->li_fill = list_lboxfill;
 	dlist->li_get = LbGetText;
 	elem = list;
-	if (DoDialog(nId, DlgStdProc, _d) == IDCANCEL) {
+	if (DoDialog(nId, DlgStdProc, _d, NULL) == IDCANCEL) {
 		return 0;
 	}
 	return elem;
@@ -949,7 +1001,7 @@ long EdPromptAssign(long unused1, long unused2, char *prompt, char *init)
 		buf[0] = 0;
 	}
 
-	if (CallDialog(DLGPROMPT,&_np,_d) != IDOK) {
+	if (CallDialog(DLGPROMPT,&_np,_d, NULL) != IDOK) {
 		*buf = 0;
 	}
 

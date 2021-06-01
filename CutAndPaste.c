@@ -12,6 +12,7 @@
 
 #include <tos.h>
 #include "caretmovement.h"
+#include "textblocks.h"
 #include "winfo.h"
 #include "pksedit.h"
 #include "edierror.h"
@@ -19,20 +20,16 @@
 #include "editorconfiguration.h"
 #include "errordialogs.h"
 
-/*-----------------------*/
+ /*-----------------------*/
 /* EXTERNALS			*/
 /*-----------------------*/
-extern int 	bl_delete(FTABLE *fp, LINE *lnfirst, LINE *lnlast, int cfirst,
-				int clast, int blkflg, int saveintrash);
 extern MARK	*mark_find(FTABLE *fp, int id);
 extern MARK	*mark_set(FTABLE *fp, LINE *lp,int offs,int c);
-extern PASTE	*bl_addrbyid(int id,int insert);
-extern PASTE	*blgetundo(int num);
 extern void 	redrawlinepart(FTABLE *fp, long ln, int col1, int col2);
 extern void 	redrawspecificline(FTABLE *fp, LINE *lpWhich);
-extern unsigned char *BlockAsBuffer(unsigned char *b, unsigned char *end, 
+extern unsigned char *bl_convertPasteBufferToText(unsigned char *b, unsigned char *end, 
 				PASTE *pp);
-extern void 	ValidTrashCans(char *pszValid);
+extern void 	bl_validateTrashCanName(char *pszValid);
 extern void 	ValidClipboards(char *pszValid);
 
 extern LINE	*condexpline(FTABLE *fp, LINE *lp);
@@ -45,14 +42,14 @@ extern LINE	*cadv_space(LINE *lp,long *ln,long *col,int dir);
 extern LINE	*cadv_wordonly(LINE *lp,long *ln,long *col,int dir);
 extern long	cparagrph(long ln, int dir, int start);
 
-extern PASTE	*_undobuf;
 extern long	_multiplier;
 
-/*----------------------------*/
-/* EdBlockHide() 			*/
-/*----------------------------*/
-EXPORT int Pastehide(flg)
-{
+/*----------------------------
+ * bl_hideSelection() 		
+ * Hide the current selection and optionally
+ * remove the selection marker from "marked lines"
+ *----------------------------*/
+EXPORT int bl_hideSelection(int removeLineSelectionFlag) {
 	FTABLE *		fp;
 	WINFO *		wp;
 	LINE *		lp;
@@ -67,7 +64,7 @@ EXPORT int Pastehide(flg)
 	mpe = fp->blend;
 	wp = WIPOI(fp);
 
-	if (flg) {
+	if (removeLineSelectionFlag) {
 		curpos(fp->ln,(long)fp->caret.offset);
 	}
 	lp = lpFirst = ln_relgo(fp, wp->minln - wp->ln);
@@ -81,7 +78,7 @@ EXPORT int Pastehide(flg)
 	}
 	if (mps && mpe) {
 		ln_removeFlag(mps->lm,mpe->lm,LNCPMARKED);
-		if (flg) {
+		if (removeLineSelectionFlag) {
 			if (mps->lm == mpe->lm) {
 				if (mps->lc != mpe->lc) {
 					redrawspecificline(fp, mps->lm);
@@ -91,7 +88,7 @@ EXPORT int Pastehide(flg)
 			}
 		}
 	} else {
-		if (flg) {
+		if (removeLineSelectionFlag) {
 			ln_removeFlag(fp->firstl,fp->lastl,(LNCPMARKED|LNXMARKED|LNDIFFMARK));
 			p_redraw();
 		}
@@ -146,7 +143,7 @@ EXPORT int pasteblk(PASTE *buf, int colflg, int offset, int move)
 		fp->blstart->lc++; /* get block marked afterwards (s. cpy_mv) */
 		curpos(ln,col);
 		RedrawTotalWindow(fp);
-		EdBlockMark(MARK_END);
+		EdSyncSelectionWithCaret(MARK_END);
 	}
 	return ret;
 }
@@ -167,8 +164,8 @@ static char *TextForTrash(char *s)
 {
 	PASTE *	pp;
 
-	pp = blgetundo(*s - '0');
-	return BlockAsBuffer(_linebuf, _linebuf + 256, pp);
+	pp = bl_getBlockFromUndoBuffer(*s - '0');
+	return bl_convertPasteBufferToText(_linebuf, _linebuf + 256, pp);
 }
 
 /*--------------------------------------------------------------------------
@@ -179,7 +176,7 @@ static char *TextForClip(char *s)
 	PASTE *	pp;
 
 	pp = bl_addrbyid(*s, 0);
-	return BlockAsBuffer(_linebuf, _linebuf + 256, pp);
+	return bl_convertPasteBufferToText(_linebuf, _linebuf + 256, pp);
 }
 
 
@@ -196,23 +193,22 @@ static int GetTmplateDlg(char * (*fpTextForTmplate)(char *s), void (*fpGetValid)
 }
 
 /*---------------------------------*/
-/* bl_getpaste()				*/
+/* bl_getPasteBuffer()				*/
 /*---------------------------------*/
-EXPORT PASTE *bl_getpaste(int which)
-{
+EXPORT PASTE *bl_getPasteBuffer(int which) {
 	PASTE *	pp;
 	char 	id;
 	int		err=0;
 	int		icon;
 	char *	(*getTextFunc)(char *s);
-	void		(*validCharFunc)(char *s);
+	void		(*validateNameFunction)(char *s);
 
 	if (which & PASTE_QUERYID) {
 		getTextFunc = (which & PASTE_XUNDO) ? 
 			TextForTrash : TextForClip; 
-		validCharFunc = (which & PASTE_XUNDO) ? 
-			ValidTrashCans : ValidClipboards; 
-		if ((id = GetTmplateDlg(getTextFunc, validCharFunc)) == 0) {
+		validateNameFunction = (which & PASTE_XUNDO) ? 
+			bl_validateTrashCanName : ValidClipboards; 
+		if ((id = GetTmplateDlg(getTextFunc, validateNameFunction)) == 0) {
 			return 0;
 		}
 		if (which & PASTE_XUNDO) {
@@ -230,7 +226,7 @@ EXPORT PASTE *bl_getpaste(int which)
 			break;
 		case PASTE_XUNDO:
 			icon = ICID_TRASH;
-			pp = blgetundo(id);
+			pp = bl_getBlockFromUndoBuffer(id);
 			err = IDS_MSGNOUNDOBLOCK;
 			break;
 		default:
@@ -261,8 +257,8 @@ EXPORT int EdBlockPaste(int which)
 	FTABLE *	fp;
 
      fp = ft_CurrentDocument();
-	if ((pp = bl_getpaste(which)) != 0) {
-		if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && _chkblk(fp)) {
+	if ((pp = bl_getPasteBuffer(which)) != 0) {
+		if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ft_checkSelection(fp)) {
 			EdBlockDelete(0);
 		}
 		return paste(pp,0);
@@ -271,10 +267,12 @@ EXPORT int EdBlockPaste(int which)
 	return 0;
 }
 
-/*----------------------------*/
-/* EdBlockRead()			*/
-/*----------------------------*/
-EXPORT int _EdBlockRead(char *fn)
+/*----------------------------
+ * bl_insertTextBlockFromFile()
+ * Read a text block from a file with the given name
+ * and insert it into the current document.
+ *----------------------------*/
+EXPORT int bl_insertTextBlockFromFile(char *fn)
 {	PASTE	pbuf;
 	char 	fname[256];
 	int		ret;
@@ -292,29 +290,18 @@ EXPORT int _EdBlockRead(char *fn)
 	return ret;
 }
 
-EXPORT int EdBlockRead(void ) { 	return _EdBlockRead((char *)0);	}
-EXPORT int EdBlockWrite(void ){ 	return _EdBlockWrite((char *)0);	}
-
-/*---------------------------------*/
-/* _chkblk()					*/
-/*---------------------------------*/
-EXPORT int _chkblk(FTABLE *fp)
-{
-	if (fp == 0 || fp->blstart == 0L || fp->blend == 0L)
-		return 0;
-	return 1;
+/*
+ * PKS Edit command to read a block from a default file name 
+ */
+EXPORT int EdBlockRead(void ) { 
+	return bl_insertTextBlockFromFile((char *)0);	
 }
 
-/*---------------------------------*/
-/* chkblk()					*/
-/*---------------------------------*/
-EXPORT int chkblk(FTABLE *fp)
-{
-	if (_chkblk(fp) == 0) {
-		ed_error(IDS_MSGNOBLOCKSELECTED);
-		return 0;
-	}
-	return 1;
+/*
+ * PKS Edit command to write a block to a default file name. 
+ */
+EXPORT int EdBlockWrite(void ){ 	
+	return EdBlockWriteToFile((char *)0);	
 }
 
 /*---------------------------------*/
@@ -368,15 +355,16 @@ EXPORT int CutBlock(MARK *ms, MARK *me, int flg, PASTE *pp)
 /*----------------------------*/
 EXPORT int EdBlockCut(int flg,PASTE *pp)
 {
-	if (!chkblk(ft_CurrentDocument()))
+	if (!ft_checkSelectionWithError(ft_CurrentDocument()))
 		return 0;
 	return CutBlock(ft_CurrentDocument()->blstart,ft_CurrentDocument()->blend,flg,pp);
 }
 
-/*---------------------------------*/
-/* _EdBlockWrite()				*/
-/*---------------------------------*/
-EXPORT int _EdBlockWrite(char *fn)
+/*---------------------------------*
+ * EdBlockWriteToFile()
+ * PKS Edit command to write a block to a file with the given name. 
+ *---------------------------------*/
+EXPORT int EdBlockWriteToFile(char *fn)
 {	PASTE  pbuf;
 	char   fname[256];
 	int	  ret;
@@ -431,10 +419,10 @@ static void upd_lines()
 }
 
 /*------------------------------
- * EdBlockCopy_mv()
- * Copy or move a block.
+ * EdBlockCopyOrMove()
+ * PKS Edit command to copy or move a block.
  *----------------------------*/
-EXPORT int EdBlockCopy_mv(BOOL move) {	
+EXPORT int EdBlockCopyOrMove(BOOL move) {	
 	LINE   *lp,*ls,*le;
 	int	  cs,ce,offs;
 	long   delta,dln;
@@ -446,7 +434,7 @@ EXPORT int EdBlockCopy_mv(BOOL move) {
 	fp = ft_CurrentDocument();
 	colflg = ww_blkcolomn(WIPOI(ft_CurrentDocument()));
 
-	if (!chkblk(fp))
+	if (!ft_checkSelectionWithError(fp))
 		return 0;
 
 	/*
@@ -499,15 +487,15 @@ nodelta:		;
 	if ((ret = bl_cut(&pbuf,ls,le,cs,ce,move,colflg)) != 0) {
 		if (move_nocolblk) {
 			curpos((long)(fp->ln+dln),(long)(offs + delta));
-			Pastehide(0);
-			EdBlockMark(MARK_START);
+			bl_hideSelection(0);
+			EdSyncSelectionWithCaret(MARK_START);
 			fp->blstart->lc--;
 			upd_lines();
 		}
 		if (colflg) {
 			delta = fp->blcol2 - fp->blcol1;
 			dln	 = ln_cnt(bstart->lm,bend->lm) - 1;
-			Pastehide(0);
+			bl_hideSelection(0);
 		} else {
 			offs = fp->caret.offset;
 		}
@@ -517,7 +505,7 @@ nodelta:		;
 			curpos(fp->ln,(long)offs);
 			fp->blcol1 = offs;
 			fp->blcol2 = offs + delta;
-			markblk(fp,fp->caret.linePointer,offs,
+			bl_setSelection(fp,fp->caret.linePointer,offs,
 				ln_relative(fp->caret.linePointer,dln),fp->blcol2);
 		}
 		RedrawTotalWindow(fp);
@@ -560,9 +548,11 @@ EXPORT int EdBlockFindStart()
 	return 0;
 }
 
-/*----------------------------*/
-/* EdBlockDelete()			*/
-/*----------------------------*/
+/*----------------------------
+ * EdBlockDelete()
+ * PKS Edit macro command to delete the current selection and
+ * optionally save the text in the trashcan clipboard of PKS Edit
+ *----------------------------*/
 EXPORT int EdBlockDelete(int bSaveTrash)
 {
 	MARK		ms;
@@ -571,14 +561,14 @@ EXPORT int EdBlockDelete(int bSaveTrash)
 	int 		ret;
 	
 	fp = ft_CurrentDocument();
-	if (!chkblk(fp))
+	if (!ft_checkSelectionWithError(fp))
 		return 0;
 	ms = *fp->blstart;
 	me = *fp->blend;
 	EdBlockFindStart();
-	Pastehide(0);
+	bl_hideSelection(0);
 	if (bSaveTrash) {
-		ret = undoenq(ms.lm,me.lm,ms.lc,me.lc,1);
+		ret = bl_undoIntoUnqBuffer(ms.lm,me.lm,ms.lc,me.lc,1);
 	} else {
 		ret = bl_delete(fp, ms.lm, me.lm, ms.lc, me.lc, 1, 0);
 	}
@@ -605,66 +595,6 @@ EXPORT int EdLinesYank()
 	}
 	return 0;
 }
-
-/*---------------------------------*/
-/* blborders() 				*/
-/*---------------------------------*/
-#if 0
-int blborders(int x,int y,GRECT *gp)
-{	register WINFO *wp;
-	register LINE *lp;
-	register int  start,end;
-	FTABLE *fp;
-	int colflg;
-
-	fp = ft_CurrentDocument();
-	wp = WIPOI(fp);
-	colflg = ww_blkcolomn(wp);
-
-	if (fp && fp->blstart && fp->blend) {
-		lp = ln_gotouserel(fp,wp->minln);
-		start = 0;
-		while(!(lp->lflg & LNCPMARKED)) {
-			start += wp->cheight;
-			if (start > wp->cmx || (lp = lp->next) == 0L) return 0;
-		}
-		end = start;
-		while (lp->lflg & LNCPMARKED) {
-			end += wp->cheight;
-			if (end > wp->cmy || (lp = lp->next) == 0L) break;
-		}
-		gp->g_y = start;
-		gp->g_h = end - start;
-		if (colflg) {
-			start = fp->blcol1;
-			end	 = fp->blcol2;
-dragprt:		if (start < wp->mincol) 
-				start = wp->mincol;
-			end	= (end <= wp->maxcol + 1) ? end : wp->maxcol + 1;
-			end -= start;
-			start -= (int ) wp->mincol;
-			gp->g_x = wp->rdarea.g_x + start * wp->cwidth;
-			gp->g_w = end * wp->cwidth;
-		} else {
-			if (gp->g_h == wp->cheight) {
-				lp	 = lp->prev;
-				start = cphys2scr(lp->lbuf,fp->blstart->lc);
-				end	 = cphys2scr(lp->lbuf,fp->blend->lc);
-				goto dragprt;
-			}
-			gp->g_x = wp->rdarea.g_x;
-			gp->g_w = wp->rdarea.g_w;
-		}
-		return (ingrect(gp,x,y));
-	}
-	return 0;
-}
-#else
-EXPORT int blborders(int x,int y)
-{
-	return 1;
-}
-#endif
 
 /*----------------------------*/
 /* isbefore()				*/
@@ -778,33 +708,37 @@ EXPORT int markcolomns(FTABLE *fp)
 	return 1;
 }
 
-/*---------------------------------*/
-/* blcolcheck()				*/
-/*---------------------------------*/
-EXPORT int blcolcheck(int x,int y,int nx,int ny)
+/*---------------------------------
+ * bl_defineColumnSelectionFromXY()
+ * Given two screen points, determine the start and end column
+ * of the current block shape selection.
+ *---------------------------------*/
+EXPORT int bl_defineColumnSelectionFromXY(int x,int y,int nx,int ny)
 {	long 	ln,col1,col2;
 	WINFO	*wp;
+	FTABLE* fp = ft_CurrentDocument();
 
-	wp = WIPOI(ft_CurrentDocument());
+	wp = WIPOI(fp);
 	if (ww_blkcolomn(wp)) {
 		caret_calculateOffsetFromScreen(wp,x,y,&ln,&col1);
 		caret_calculateOffsetFromScreen(wp,nx,ny,&ln,&col2);
 		if (col1 <= col2) {
-			ft_CurrentDocument()->blcol1 = col1;
-			ft_CurrentDocument()->blcol2 = col2;
+			fp->blcol1 = col1;
+			fp->blcol2 = col2;
 		} else {			
-			ft_CurrentDocument()->blcol1 = col2;
-			ft_CurrentDocument()->blcol2 = col1;
+			fp->blcol1 = col2;
+			fp->blcol2 = col1;
 		}
 		return 1;
 	}
 	return 0;
 }
 
-/*---------------------------------*/
-/* markblk()					*/
-/*---------------------------------*/
-EXPORT int markblk(FTABLE *fp, LINE *lps, int cs, LINE *lpe, int ce)
+/*---------------------------------
+ * bl_setSelection()
+ * Set the current selection on a given file.
+ *---------------------------------*/
+EXPORT int bl_setSelection(FTABLE *fp, LINE *lps, int cs, LINE *lpe, int ce)
 {
 	if (lps) 
 		fp->blstart = mark_set(fp,lps,cs,MARKSTART);
@@ -817,10 +751,12 @@ EXPORT int markblk(FTABLE *fp, LINE *lps, int cs, LINE *lpe, int ce)
 	return 0;
 }
 
-/*---------------------------------*/
-/* SetBlockMark() 				*/
-/*---------------------------------*/
-int SetBlockMark(FTABLE *fp, CARET *lpCaret, int flags)
+/*---------------------------------
+ * bl_syncSelectionWithCaret()
+ * Set the selection end to the passed caret. Use one of the MARK_XXXX flags
+ * to modify the request to e.g. change to block selection type etc...
+ *---------------------------------*/
+int bl_syncSelectionWithCaret(FTABLE *fp, CARET *lpCaret, int flags)
 {
 	MARK *		marks;
 	MARK *		marke;
@@ -839,7 +775,7 @@ int SetBlockMark(FTABLE *fp, CARET *lpCaret, int flags)
 
 	if (type == MARK_ALL) {
 		lp2 = fp->lastl->prev;
-		markblk(fp,fp->firstl,0,lp2,lp2->len);
+		bl_setSelection(fp,fp->firstl,0,lp2,lp2->len);
 		fp->blcol1 = 0;
 		fp->blcol2 = MAXLINELEN;
 		RedrawTotalWindow(fp);
@@ -995,14 +931,15 @@ EXPORT int EdMouseMarkParts(int type)
 	}
 	CARET c1 = { lp, o1 };
 	CARET c2 = { lp2, o2 };
-	SetBlockMark(fp, &c1, MARK_START);
-	return SetBlockMark(fp, &c2, MARK_END);
+	bl_syncSelectionWithCaret(fp, &c1, MARK_START);
+	return bl_syncSelectionWithCaret(fp, &c2, MARK_END);
 }
 
-/*---------------------------------*/
-/* EdBlockMark() 				*/
-/*---------------------------------*/
-EXPORT int EdBlockMark(int flags)
+/*---------------------------------
+ * EdSyncSelectionWithCaret()
+ * PKS Edit command to set the end of the current selection to the caret position.
+ *---------------------------------*/
+EXPORT int EdSyncSelectionWithCaret(int flags)
 {	
 	FTABLE *		fp;
 
@@ -1010,6 +947,6 @@ EXPORT int EdBlockMark(int flags)
 	// for now: always consider to swap the block marks, if the end mark is placed
 	// before the start mark. In fact we should introduce the concept of a selection head instead
 	// of swapping marks.
-	return SetBlockMark(fp, &fp->caret, flags | MARK_RECALCULATE);
+	return bl_syncSelectionWithCaret(fp, &fp->caret, flags | MARK_RECALCULATE);
 }
 

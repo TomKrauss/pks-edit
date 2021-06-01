@@ -41,7 +41,7 @@ extern void 			Binop(COM_BINOP *sp);
 extern int 			ProgressMonitorCancel(BOOL bRedraw);
 extern void 			redrawallwi(int update);
 extern void 			undo_startModification(FTABLE *fp);
-extern int 			chkblk(FTABLE *fp);
+extern int 			ft_checkSelectionWithError(FTABLE *fp);
 extern void 			ft_settime(EDTIME *tp);
 extern int 			do_macbyname(char *name);
 void 				stopcash(void);
@@ -213,7 +213,7 @@ err:		return FORM_SHOW;
 		par = param_pop(&_readparamp);
 		if (cp->options & FORM_INIT) {
 		   switch(dp->cmd_type) {
-			case C_INT1PAR:  *dp->p.i = par; break;
+			case C_INT1PAR:  *dp->p.i = (int)par; break;
 			case C_CHAR1PAR: *dp->p.c = (char) par; break;
 			case C_LONG1PAR: *dp->p.l = (long) par; break;
 			case C_STRING1PAR:
@@ -422,9 +422,9 @@ int CanExecute(int num, int warn)
 		return 0;
 	}
 
-	if (fup->flags & EW_NEEDSBLK && !_chkblk(ft_CurrentDocument())) {
+	if (fup->flags & EW_NEEDSBLK && !ft_checkSelection(ft_CurrentDocument())) {
 		if (warn) {
-			chkblk(ft_CurrentDocument());
+			ft_checkSelectionWithError(ft_CurrentDocument());
 		}
 		return 0;
 	}

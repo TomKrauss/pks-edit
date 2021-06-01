@@ -77,5 +77,11 @@ extern DOCUMENT_DESCRIPTOR* GetDocumentTypeDescriptor(DOCUMENT_TYPE* p);
  */
 extern void DeleteAllDocumentTypes();
 
+/*--------------------------------------------------------------------------
+ * DeleteDocumentType()
+ * Deletes a given document type.
+ */
+extern void DeleteDocumentType(DOCUMENT_TYPE* llp);
+
 #endif
 

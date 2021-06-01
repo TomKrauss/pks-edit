@@ -235,8 +235,8 @@ typedef struct ftable {
 extern int 	_playing;				/* recorder plays its game ... */
 
 void 	edidebug(char *fmt,...);
-int 	_chkblk(FTABLE *fp);
-int 	chkblk(FTABLE *fp);
+int 	ft_checkSelection(FTABLE *fp);
+int 	ft_checkSelectionWithError(FTABLE *fp);
 
 /*-------- line ops ----------*/
 
@@ -333,6 +333,19 @@ extern int ft_editing(char* fn);
  * Make the passed filebuffer the "current" edited file in PKS Edit.
  */
 extern int ft_select(FTABLE* fp);
+
+/*---------------------------------
+ * ft_checkSelection()
+ * Check whether a block selection exists.
+ *---------------------------------*/
+extern int ft_checkSelection(FTABLE* fp);
+
+/*---------------------------------
+ * ft_checkSelectionWithError()
+ * Check whether a block selection exists. If not
+ * report an error to the user.
+ *---------------------------------*/
+extern int ft_checkSelectionWithError(FTABLE* fp);
 
 /*------------------------------------------------------------
  * ActivateWindowOfFileNamed()

@@ -13,6 +13,7 @@
 #include <windowsx.h>
 #include "trace.h"
 #include "caretmovement.h"
+#include "textblocks.h"
 #include "edierror.h"
 #include "errordialogs.h"
 #include "winfo.h"
@@ -157,9 +158,9 @@ EXPORT int EdBlockMouseMark(int typ)
 		graf_rubberbox(x,y,-x,-y,&xx,&yy);
 		nx = xx+x+4; ny = yy+y/* - wp->cheight/2 */;
 		if (ny > y) {
-			colflg = (blcolcheck(x,y,nx,ny)) ? MARK_COLUMN : 0;
-			if (caret_moveToXY(wp,x,y))   EdBlockMark(colflg);
-			if (caret_moveToXY(wp,nx,ny)) EdBlockMark(colflg|MARK_END);
+			colflg = (bl_defineColumnSelectionFromXY(x,y,nx,ny)) ? MARK_COLUMN : 0;
+			if (caret_moveToXY(wp,x,y))   EdSyncSelectionWithCaret(colflg);
+			if (caret_moveToXY(wp,nx,ny)) EdSyncSelectionWithCaret(colflg|MARK_END);
 		}
 	}
 	else {
@@ -174,7 +175,7 @@ EXPORT int EdBlockMouseMark(int typ)
 		}
 		caret_calculateOffsetFromScreen(wp,xx,yy,&ln,&col);
 		colflg = 0;
-		if (markforward >= 0 && blcolcheck(x,y,xx,yy)) {
+		if (markforward >= 0 && bl_defineColumnSelectionFromXY(x,y,xx,yy)) {
 			long lnx = ln, colx = col;
 			cphyspos(fp,&lnx,&colx,1);
 			colflg = MARK_COLUMN;
@@ -191,18 +192,18 @@ EXPORT int EdBlockMouseMark(int typ)
 				wt_curpos(wp,ln,col);
 				ln1 = ln;
 				col1 = col;
-				EdBlockMark(colflg|MARKSTART);
+				EdSyncSelectionWithCaret(colflg|MARKSTART);
 				markforward = 1;
 			} else {
 				if ((ln > ln1 || (ln == ln1 && col > col1)) != markforward) {
 					/* marking direction changed */
 					cphyspos(fp,&ln1,&col1,1);
-					EdBlockMark((markforward ? MARK_END : MARK_START)|colflg);
+					EdSyncSelectionWithCaret((markforward ? MARK_END : MARK_START)|colflg);
 					markforward = !markforward;
 					continue;
 				} 
 				wt_curpos(wp,ln,col);
-				EdBlockMark((markforward ? MARK_END : MARK_START)|colflg);
+				EdSyncSelectionWithCaret((markforward ? MARK_END : MARK_START)|colflg);
 			}
 			UpdateWindow(wp->ww_handle);
 		}
@@ -247,23 +248,21 @@ EXPORT int EdMouseMoveText(int move)
 	} while(b);
 	ReleaseCapture();
 
-	if (blborders(x,y)) {
-		POINT p;
-		HWND  hwnd;
+	POINT p;
+	HWND  hwnd;
 
-		GetCursorPos(&p);
-		hwnd = FindChildFromPoint((HWND)0,&p);
+	GetCursorPos(&p);
+	hwnd = FindChildFromPoint((HWND)0,&p);
 
-		if (hwnd == wp->edwin_handle) {
-			if (MousePosition(fp, 0L)) {
-				if (move) 
-					ret = do_func(FUNC_EdBlockMove,0L,0L,(void*)0,(void*)0,(void*)0); 
-				else 
-					ret = do_func(FUNC_EdBlockCopy,0L,0L,(void*)0,(void*)0,(void*)0);
-			}
-		} else if (hwnd) {
-			ret = PostMessage(hwnd,WM_ICONDROP,ICACT_TEXTBLOCK,0L);
+	if (hwnd == wp->edwin_handle) {
+		if (MousePosition(fp, 0L)) {
+			if (move) 
+				ret = do_func(FUNC_EdBlockMove,0L,0L,(void*)0,(void*)0,(void*)0); 
+			else 
+				ret = do_func(FUNC_EdBlockCopy,0L,0L,(void*)0,(void*)0,(void*)0);
 		}
+	} else if (hwnd) {
+		ret = PostMessage(hwnd,WM_ICONDROP,ICACT_TEXTBLOCK,0L);
 	}
 	if (hSave)
 		SetCursor(hSave);

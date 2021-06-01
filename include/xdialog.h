@@ -40,6 +40,11 @@ typedef struct tagDLGSTRINGLIST {
 	long						nSize;
 } DLGSTRINGLIST;
 
+typedef struct tagITEM_TOOLTIP_MAPPING {
+	int			m_itemId;
+	int			m_tooltipStringId;
+} DLG_ITEM_TOOLTIP_MAPPING;
+
 typedef DIALPARS *LPDIALPARS;
 
 /*-----------------------------------------------
@@ -50,11 +55,11 @@ typedef DIALPARS *LPDIALPARS;
 extern void			SetXDialogParams(DIALPARS* (*func)(int pageIndex), boolean propertySheetFlag);
 
 extern BOOL			DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams);
-extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALPARS *dp);
+extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING *pTooltips);
 extern void 		DlgInitString(HWND hwnd, int item, LPSTR szString, int nMax);
 extern INT_PTR CALLBACK DlgStdProc(HWND,UINT,WPARAM,LPARAM);
 # if defined(_EDFUNCS_H)
-extern int 			CallDialog(int nId, PARAMS *pp, DIALPARS *dp);
+extern int 			CallDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
 # endif
 extern void 		DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax);
 extern DLGSTRINGLIST*	DoDlgSelectFromList(int nId, DLGSTRINGLIST *list, DIALLIST *dp);

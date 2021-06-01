@@ -22,10 +22,10 @@
 #include "binop.h"
 #include "sym.h"
 #include "pkscc.h"
+#include "errordialogs.h"
 
-extern intptr_t	param_pop(unsigned char **sp);
-extern long 	do_macfunc(unsigned char **sp,unsigned char *spend);
-extern void 	Alert(char *s, ...);
+extern intptr_t		param_pop(unsigned char **sp);
+extern intptr_t		do_macfunc(COM_1FUNC **sp, COM_1FUNC *spend);
 
 /*--------------------------------------------------------------------------
  * IsStringType()
@@ -100,7 +100,7 @@ static int strmatch(char *s1,char *s2) {
 	options.expression = s2;
 	eol = &s1[strlen(s1)];
 	if (compile(&options,&pattern) == 0) {
-		Alert("illegal RE");
+		alert("illegal RE");
 		return -1;
 	}
 	RE_MATCH match;
@@ -157,7 +157,7 @@ int macro_testExpression(COM_TEST *sp) {
 			case CT_SMATCH:  return r1 == 1;
 			case CT_SNMATCH: return r1 == 0;
 			default    : 
-notimpl:				Alert("test: ~ OP 0x%x not implemented",op);
+notimpl:				alert("test: ~ OP 0x%x not implemented",op);
 					return 0;
 		}
 	} else
@@ -212,7 +212,7 @@ void Binop(COM_BINOP *sp)
 		r2 = NumVal(p2,pend);
 
 # ifdef DEBUG
-	Alert("numeric binop %s = %ld %c %ld|t1:%d - t2:%d",
+	alert("numeric binop %s = %ld %c %ld|t1:%d - t2:%d",
 		  sp->result,r1,op,r2,typ1,typ2);
 # endif
 
@@ -227,7 +227,7 @@ void Binop(COM_BINOP *sp)
 		case BIN_MUL: r1 *= r2; break;
 		case BIN_DIV: 
 			if (!r2) {
-		zero:	Alert("division by zero");
+		zero:	alert("division by zero");
 				return;
 			}
 			r1 /= r2; 
@@ -239,7 +239,7 @@ void Binop(COM_BINOP *sp)
 			r1 %= r2; 
 			break;
 		default: 
-			Alert("binop: ~ OP %c not implemented",op);
+			alert("binop: ~ OP %c not implemented",op);
 			r1 = 0;
 		}
 		MakeInternalSym(sp->result,S_NUMBER,r1);
@@ -248,7 +248,7 @@ void Binop(COM_BINOP *sp)
 		p2 = StrVal(p2);
 
 # ifdef DEBUG
-	Alert("string binop %s = \"%s\" %c \"%s\"|t1:%d - t2:%d",
+	alert("string binop %s = \"%s\" %c \"%s\"|t1:%d - t2:%d",
 		  sp->result,p1,op,p2,typ1,typ2);
 # endif
 		*buf = 0;
@@ -257,14 +257,14 @@ void Binop(COM_BINOP *sp)
 
 		case BIN_ADD: 
 			if (strlen(p1) + strlen(p2) > sizeof buf) {
-				Alert("+: result to large");
+				alert("+: result to large");
 			} else {
 				strcat(strcpy(buf,p1),p2);
 			}
 			break;
 		case BIN_SUB:
 			if (strlen(p1) > sizeof buf) {
-				Alert("-: result to large");
+				alert("-: result to large");
 			} else {
 				strcpy(buf,p1);
 				if ((p1 = strstr(buf,p2)) != 0) {
@@ -273,7 +273,7 @@ void Binop(COM_BINOP *sp)
 			}
 			break;
 		default: 
-			Alert("string binop %c not impl.",op);
+			alert("string binop %c not impl.",op);
 
 		}
 		MakeInternalSym(sp->result,S_STRING,(intptr_t)buf);

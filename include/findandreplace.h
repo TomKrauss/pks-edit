@@ -30,6 +30,12 @@ extern RE_PATTERN* regex_compileWithDefault(char* expression);
 extern void find_setCurrentSearchExpression(char* pExpression);
 
 /*--------------------------------------------------------------------------
+ * find_initializeReplaceByExpression()
+ * Initialize the pattern used as the replace by pattern in find and replace.
+ */
+extern int find_initializeReplaceByExpression(unsigned char* replaceByExpression);
+
+/*--------------------------------------------------------------------------
  * find_expressionInCurrentFile()
  */
 extern int find_expressionInCurrentFile(int dir, RE_PATTERN* pPattern, int options);

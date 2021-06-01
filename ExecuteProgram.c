@@ -123,7 +123,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		strdcpy(outfile, tmp, "OUT.___");
 
 		if (flags & EX_RDOUT) {
-			if (!_EdBlockWrite(infile)) {
+			if (!EdBlockWriteToFile(infile)) {
 				return 0;
 			}
 		}
@@ -203,7 +203,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		if (!bUInited) {
 			undo_startModification(ft_CurrentDocument());
 		}
-		_EdBlockRead(outfile);
+		bl_insertTextBlockFromFile(outfile);
 	}
 
 	return 1;

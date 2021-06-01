@@ -15,6 +15,7 @@
 #include <windows.h>
 #include "trace.h"
 #include "caretmovement.h"
+#include "textblocks.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
 
@@ -74,7 +75,7 @@ extern int 		clp_getdata(void);
 extern int 		AssignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
 extern char *		TmpDir(void);
 extern void 		mac_switchtodefaulttables(void);
-extern int 		linchange(void);
+extern int 		doc_documentTypeChanged(void);
 extern void 		SendRedraw(HWND hwnd);
 extern int 		cursupdown(int dir, int mtype);
 extern int 		cursabsatz(int dir,int start);
@@ -82,6 +83,7 @@ extern int 		curspgrph(int dir,int start);
 extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		macs_compile(void);
+extern int		AddDocumentTypesToListBox(HWND hwnd, int nItem);
 
 extern long		_multiplier;
 extern char		_kunde[30];
@@ -223,19 +225,19 @@ int EdRedo(void) {
  * EdBlockCopy()
  */
 int EdBlockCopy(void)
-{	 return EdBlockCopy_mv(0);	}
+{	 return EdBlockCopyOrMove(0);	}
 
 /*--------------------------------------------------------------------------
  * EdBlockMove()
  */
 int EdBlockMove(void)
-{	return EdBlockCopy_mv(1);	}
+{	return EdBlockCopyOrMove(1);	}
 
 /*--------------------------------------------------------------------------
  * EdBlockHide()
  */
 int EdBlockHide(void)	
-{	return Pastehide(1);		}
+{	return bl_hideSelection(1);		}
 
 /*--------------------------------------------------------------------------
  * EdSetup()
@@ -261,7 +263,7 @@ int DialogCharInput(int promptfield, unsigned char c)
 
 	_d->dp_size = promptfield;
 	_c = c;
-	if (!CallDialog(DLGBOXC,&_bgc,_d))
+	if (!CallDialog(DLGBOXC,&_bgc,_d, NULL))
 		return -1L;
 	return _c;
 }
@@ -308,7 +310,7 @@ static void TmplateListboxFill(HWND hwnd, int nItem, long selValue)
 		SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, 
 			(LPARAM)(LPSTR)szBuf);
 	}
-	szBuf[0] = selValue;
+	szBuf[0] = (char)selValue;
 	SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING, -1, 
 		(LPARAM) szBuf);
 	TmplateSelchange(hwnd, nItem, MAKELONG(0, LBN_SELCHANGE), (void *)0);
@@ -338,7 +340,7 @@ int DialogTemplate(unsigned char c,
 	text[1] = 0;
 	tmplateStringList = s;
 	fpGetText = fpTextForTmplate;
-	if (!CallDialog(DLGSELTMPLATE, &_bgc, _d)) {
+	if (!CallDialog(DLGSELTMPLATE, &_bgc, _d, NULL)) {
 		return 0;
 	}
 	return _c;
@@ -392,7 +394,7 @@ int QueryReplace(char *search, int slen, char *replace, int dlen)
 {	
 	char   		sbuf[500],rbuf[500];
 	MSG			msg;
-	static FARPROC lpfnProc;
+	static DLGPROC lpfnProc;
 	BOOL			bFirstOpen;
 
 	cpyout(sbuf,search,slen);
@@ -448,7 +450,7 @@ int RecordOptions(int *o)
 		0
 	};
 
-	if (!DoDialog(DLGRECORDER,DlgStdProc,_d))
+	if (!DoDialog(DLGRECORDER,DlgStdProc,_d, NULL))
 		return 0;
 	*o = opt;
 	return 1;
@@ -473,7 +475,7 @@ int EdAbout(void)
 		0
 	};
 
-	return DoDialog(DLGABOUT,DlgStdProc,_d);
+	return DoDialog(DLGABOUT,DlgStdProc,_d, NULL);
 }
 
 /*--------------------------------------------------------------------------
@@ -488,7 +490,7 @@ long DialogGetNum(int nDialog)
 		0
 	};
 
-	if (!CallDialog(nDialog,&_np,_d))
+	if (!CallDialog(nDialog,&_np,_d, NULL))
 		return -1L;
 	return num;
 }
@@ -522,8 +524,12 @@ int EdAlignText(void)
 		{ C_INT1PAR, (unsigned char *) &_alflags	}
 	};
 	static PARAMS	_fp = { DIM(_i), P_MAYOPEN, _i	};
+	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
+		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
+		0
+	};
 
-	if (!CallDialog(DLGALIGN,&_fp,_d))
+	if (!CallDialog(DLGALIGN,&_fp,_d, _tt))
 		return 0;
 	return AlignText(_currentSearchAndReplaceParams.searchPattern, _scope, _alfiller, _alflags);
 }
@@ -550,7 +556,7 @@ int EdFormatText(void)
 	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i   };
 
 
-	if (!CallDialog(DLGFORMAT,&_fp,_d))
+	if (!CallDialog(DLGFORMAT,&_fp,_d, NULL))
 		return 0;
 
 	return FormatText(_scope,_fmttype,_fmtflags);
@@ -583,8 +589,12 @@ int EdSort(void)
 		{ C_INT1PAR,	(unsigned char *)&_scope }
 	};
 	static PARAMS	_sp = { DIM(_i), P_MAYOPEN, _i };
+	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
+		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
+		0
+	};
 
-	if (!CallDialog(DLGSORT,&_sp,_d))
+	if (!CallDialog(DLGSORT,&_sp,_d, _tt))
 		return 0;
 
 	return Sort(_scope,fs,key, _currentSearchAndReplaceParams.searchPattern,flags);
@@ -604,7 +614,7 @@ int EdKeycodeInsert(void)
 		0
 	};
 
-	if (!CallDialog(DLGKEYCODE,&_sp,_d))
+	if (!CallDialog(DLGKEYCODE,&_sp,_d, NULL))
 		return 0;
 
 	visible = code2key(k);
@@ -675,7 +685,7 @@ int EdFindTag(void)
 			0 
 	};
 
-	if (!CallDialog(DLGFINDTAG,&_tp,_d))
+	if (!CallDialog(DLGFINDTAG,&_tp,_d, NULL))
 		return 0;
 	return showtag(_currentSearchAndReplaceParams.searchPattern);
 }
@@ -696,7 +706,7 @@ int EdReplaceTabs(int expand)
 
 	_dconvert->dp_size = expand ? IDS_EXPANDTABS : IDS_COMPRESSTABS;
 
-	if (!CallDialog(DLGCONVERT,&_tp,_dconvert))
+	if (!CallDialog(DLGCONVERT,&_tp,_dconvert, NULL))
 		return 0;
 
 	return ReplaceTabs(_scope,expand);
@@ -724,7 +734,7 @@ int PromptString(int strId, char *string, char *string2)
 		_d[2].dp_item = 0;
 	}
 	return DoDialog(string2 ? DLGQUERYRENAME : DLGQUERYDELETE,
-				 DlgStdProc,_d);
+				 DlgStdProc,_d, NULL);
 }
 
 /*--------------------------------------------------------------------------
@@ -740,7 +750,7 @@ int PromptAsPath(char *path)
 	lstrcpy(path, TmpDir());
 	_d[0].dp_data = path;
 
-	return DoDialog(DLGNEWASPATH, DlgStdProc,_d) == IDOK;
+	return DoDialog(DLGNEWASPATH, DlgStdProc,_d, NULL) == IDOK;
 }
 
 /*------------------------------------------------------------
@@ -863,7 +873,7 @@ static int ShowWindowList(int nTitleId)
 	infoDialListPars[6].dp_size = nTitleId;
 
 	InfoFillParams(infoDialListPars, fp);
-	nRet = DoDialog(DLGINFOFILE, DlgStdProc,infoDialListPars);
+	nRet = DoDialog(DLGINFOFILE, DlgStdProc,infoDialListPars, NULL);
 	if (nRet == IDCANCEL || fp == 0) {
 		return 0;
 	}
@@ -1012,7 +1022,7 @@ static void DocTypeApply(void)
 		} else {
 			_free(fp->documentDescriptor);
 			AssignDocumentTypeDescriptor(fp, lp);
-			linchange();
+			doc_documentTypeChanged();
 		}
 	}
 }
@@ -1023,8 +1033,8 @@ static void DocTypeApply(void)
 static void DocNew(HWND hDlg)
 {
 	lastSelectedDocType = CreateDocumentType(lastSelectedDocType);
-	DocTypelboxfill(hDlg, IDD_WINDOWLIST, (long)lastSelectedDocType);
-	DocTypeFillParams(docTypePars, (void*)lastSelectedDocType);
+	DocTypelboxfill(hDlg, IDD_WINDOWLIST, lastSelectedDocType);
+	DocTypeFillParams(docTypePars, lastSelectedDocType);
 	DoDlgRetreivePars(hDlg, docTypePars, NVDOCTYPEPARS);
 }
 
@@ -1035,8 +1045,8 @@ static void DocDelete(HWND hDlg)
 {
 	DeleteDocumentType(lastSelectedDocType);
 	lastSelectedDocType = 0;
-	DocTypelboxfill(hDlg, IDD_WINDOWLIST, (void*)lastSelectedDocType);
-	DocTypeFillParams(docTypePars, (void*)lastSelectedDocType);
+	DocTypelboxfill(hDlg, IDD_WINDOWLIST, lastSelectedDocType);
+	DocTypeFillParams(docTypePars, lastSelectedDocType);
 }
 
 /*--------------------------------------------------------------------------
@@ -1071,7 +1081,7 @@ int DoDocumentTypes(int nDlg)
 		ft_CurrentDocument() ? ft_CurrentDocument()->documentDescriptor->modename : "default");
 
 	DocTypeFillParams(docTypePars, (void*)lastSelectedDocType);
-	if ((nRet = DoDialog(nDlg, DlgStdProc,docTypePars)) == IDCANCEL) {
+	if ((nRet = DoDialog(nDlg, DlgStdProc,docTypePars, NULL)) == IDCANCEL) {
 		lastSelectedDocType = 0;
 		return 0;
 	}
@@ -1101,7 +1111,7 @@ int EdRangeShift(int dir)
 	static PARAMS	 _tp  = { 1, P_MAYOPEN, _i };
 
 	_dconvert->dp_size = dir < 0 ? IDS_SHIFTLEFT : IDS_SHIFTRIGHT;
-	if (!CallDialog(DLGCONVERT,&_tp,_dconvert))
+	if (!CallDialog(DLGCONVERT,&_tp,_dconvert, NULL))
 		return 0;
 		
 	return RangeShift(_scope,dir);
@@ -1261,7 +1271,7 @@ int EdDlgDispMode(void)
 	_d[1].dp_data = &font;
 	memmove(&font, &linp->fnt, sizeof font);
 	bgcolor = linp->fnt_bgcolor;
-	if (CallDialog(DLGDISPMODE,&_fp,_d) == 0) {
+	if (CallDialog(DLGDISPMODE,&_fp,_d, NULL) == 0) {
 		return 0;
 	}
 	memmove(&linp->fnt, &font, sizeof font);
@@ -1274,7 +1284,7 @@ int EdDlgDispMode(void)
 		SendRedraw(WIPOI(ft_CurrentDocument())->ru_handle);
 	}
 	linp->rmargin = rmargin;
-	return linchange();
+	return doc_documentTypeChanged();
 }
 
 /*--------------------------------------------------------------------------
@@ -1320,7 +1330,7 @@ int EdDlgWorkMode(void)
 	lstrcpy(cm, linp->cm);
 	workmode = linp->workmode;
 	tabfill = linp->fillc;
-	if (CallDialog(DLGWORKMODE,&_fp,_d) == 0)
+	if (CallDialog(DLGWORKMODE,&_fp,_d, NULL) == 0)
 		return 0;
 	if (*cclass) {
 		lstrcpy(linp->u2lset,cclass);
@@ -1329,7 +1339,7 @@ int EdDlgWorkMode(void)
 	lstrcpy(linp->cm, cm);
 	linp->workmode = workmode;
 	linp->fillc = tabfill;
-	return linchange();
+	return doc_documentTypeChanged();
 }
 
 /*--------------------------------------------------------------------------
@@ -1362,13 +1372,13 @@ int EdDlgCursTabs(void)
 	cursafter = linp->cursaftersearch;
 	scrollmin = linp->vscroll+1;
 	mindelta = linp->scroll_dy;
-	if (CallDialog(DLGCURSTABS,&_fp,_d) == 0)
+	if (CallDialog(DLGCURSTABS,&_fp,_d, NULL) == 0)
 		return 0;
 	linp->scrollflags = flags;
 	linp->vscroll = scrollmin-1;
 	linp->scroll_dy = mindelta;
 	linp->cursaftersearch = cursafter;
-	return linchange();
+	return doc_documentTypeChanged();
 }
 
 /*--------------------------------------------------------------------------
@@ -1423,7 +1433,7 @@ int DlgModeVals(DOCUMENT_DESCRIPTOR *linp)
 	}
 	crypt = linp->workmode & O_CRYPTED;
 
-	if ((ret = CallDialog(DLGFILEFORMAT,&_fp,_d)) == 0 ||
+	if ((ret = CallDialog(DLGFILEFORMAT,&_fp,_d, NULL)) == 0 ||
 		ret == IDCANCEL) {
 		return 0;
 	}
@@ -1485,8 +1495,13 @@ int EdReplace(void)
 		IDD_RECORDRET,	sizeof ret,		&ret,
 		0
 	};
+	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
+		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
+		IDD_PRESERVE_CASE,	IDS_TT_PRESERVE_CASE,
+		0
+	};
 
-	if (CallDialog(DLGREPLACE,&_fp,_d) == 0) {
+	if (CallDialog(DLGREPLACE,&_fp,_d, _tt) == 0) {
 		return 0;
 	}
 
@@ -1514,11 +1529,15 @@ int EdFind(void)
 		IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
 		0
 	};
+	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
+		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
+		0
+	};
 
 	if (_dir == -1)
 		_dir = 0;
 
-	if (!CallDialog(DLGFIND,&_fp,_d))
+	if (!CallDialog(DLGFIND,&_fp,_d,_tt))
 		return 0;
 
 	if (_dir == 0)
@@ -1553,12 +1572,16 @@ int EdFindInFileList(void)
 		IDD_PATH1,	sizeof pathlist,	&pathlist,
 		0
 	};
+	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
+		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
+		0
+	};
 
 	if (!pathlist[0] || !filenamePattern[0]) {
 		getcwd(pathlist, sizeof pathlist);
 		strcpy(filenamePattern, "*.*");
 	}
-	if (!CallDialog(DLGRETREIVE,&_fp,_d)) {
+	if (!CallDialog(DLGRETREIVE,&_fp,_d, _tt)) {
 		return 0;
 	}
 	return retreive(pathlist,filenamePattern, _currentSearchAndReplaceParams.searchPattern,depth < 0 ? 999 : depth,once);
@@ -1582,7 +1605,7 @@ int DlgPrint(char *title, int *ps, int *pe, int *po)
 	dp++->dp_data = pe;
 	dp->dp_data = po;
 
-	return DoDialog(DLGPRINT, DlgStdProc,_d);
+	return DoDialog(DLGPRINT, DlgStdProc,_d, NULL);
 }
 
 /*--------------------------------------------------------------------------
@@ -1622,7 +1645,7 @@ int mac_getname(KEYCODE *scan,char *name,int oldidx)
 	_d[0].dp_data = name;
 	_d[1].dp_data = scan;
 	do {
-		if (DoDialog(DLGMACNAME, DlgStdProc,_d) == IDCANCEL)
+		if (DoDialog(DLGMACNAME, DlgStdProc,_d, NULL) == IDCANCEL)
 			return 0;
 	} while (!mac_isvalidname(name,oldidx));
 	return 1;
@@ -1641,7 +1664,7 @@ int EdCharControlInsert(void)
 		0
 	};
 
-   if (!CallDialog(DLGCONTROLINS,&_p,_d)) {
+   if (!CallDialog(DLGCONTROLINS,&_p,_d, NULL)) {
 		return 0;
 	}
 	return EdCharInsert(0x100|(int)(unsigned char)c);
@@ -1666,7 +1689,7 @@ int EdMacrosEdit(void)
 	extern 	char *	_macroname;
 	extern 	MACROREF	currentSelectedMacro;
 
-	ret = DoDialog(DLGMACROS, DlgMacEditProc,0);
+	ret = DoDialog(DLGMACROS, DlgMacEditProc,0, NULL);
 	mac_switchtodefaulttables();
 
 	if (ret == IDD_MACSTART) {
@@ -1760,7 +1783,7 @@ int EdCommandExecute(void)
 		0
 	};
 
-	if (!CallDialog(DLGEXEC,&_fp,_d)) {
+	if (!CallDialog(DLGEXEC,&_fp,_d, NULL)) {
 		return 0;
 	}
 
@@ -1832,7 +1855,7 @@ int EdConfigureIcons(void)
 
 	_ictype = 0;
 	ic_active(_title, _pars, &_ictype);
-	return CallDialog(DLGCONFICONS, &_fp, iconDialListPars);
+	return CallDialog(DLGCONFICONS, &_fp, iconDialListPars, NULL);
 }
 
 /*--------------------------------------------------------------------------
@@ -1847,7 +1870,7 @@ static void GetPassWord(LPSTR pszPW)
 
 	pszPW[0] = 0;
 	_d[0].dp_data = pszPW;
-	DoDialog(DLGCRYPT, DlgStdProc, _d);
+	DoDialog(DLGCRYPT, DlgStdProc, _d, NULL);
 }
 
 /*--------------------------------------------------------------------------

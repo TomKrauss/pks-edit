@@ -24,6 +24,7 @@
 #include "edtypes.h"
 #include "errordialogs.h"
 #include "stringutil.h"
+#include "textblocks.h"
 
 #pragma hdrstop
 
@@ -420,7 +421,7 @@ static int		nButtonY;
 				return 0;
 			param = ic_param(szBuf,hwnd,0);
 			holdIcon = (HICON)GetWindowLongPtr(hwnd,GWL_ICICON);
-			hIcon = bl_avail(wParam,*param) ? 
+			hIcon = bl_hasClipboardBlock(wParam,*param) ? 
 				   	icp->ic_icon1 : icp->ic_icon2;
 			if (hIcon == holdIcon)
 				return 0;

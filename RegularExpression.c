@@ -143,20 +143,26 @@ static int _reerrmsg[] = {
 };
 
 /*--------------------------------------------------------------------------
- * fixsets()
+ * regex_compileCharacterClasses()
+ * Compile a "lower to upper" character class pattern for subsequent use in regular
+ * expressions. a lower to upper character class mapping has the form lowerCharRange=upperCharRange,
+ * where a charRange may be defined like a regular expression character class. E.g a-z=A-Z will
+ * map all lower case alpha chars to all corresponding upper characters. The resulting character
+ * class will be used in PKS Edit for lower / upper case conversions as well to define the valid
+ * characters of an identifier used during "word" navigation.
  */
-void fixsets(unsigned char *l2upat)
-{	int i,j;
+void regex_compileCharacterClasses(unsigned char *pLowerToUpperPattern) {	
+	int i,j;
 
 	_chsetinited = 1;
 
-	if (!l2upat)
-		l2upat = "a-z=A-Z";
+	if (!pLowerToUpperPattern)
+		pLowerToUpperPattern = "a-z=A-Z";
 
 	for (i = 0; i < 256; i++)
 		_asciitab[i] &= (~_C);
 
-	tlcompile(_l2uset,l2upat,_asciitab);
+	tlcompile(_l2uset,pLowerToUpperPattern,_asciitab);
 
 	/* calculate the inverse tab */
 
@@ -312,7 +318,7 @@ int compile(RE_OPTIONS *pOptions, RE_PATTERN *pResult) {
 	register int i;
 
 	if (!_chsetinited) {
-		fixsets((unsigned char*)0);
+		regex_compileCharacterClasses((unsigned char*)0);
 	}
 	pResult->errorCode = 0;
 	pResult->nbrackets = 0;
@@ -888,9 +894,8 @@ int step(RE_PATTERN *pPattern, unsigned char *stringToMatch, unsigned char *endO
 #define	DIM(tab)		(sizeof(tab)/sizeof(tab[0]))
 
 /*--------------------------------------------------------------------------
- * find_initializeReplaceByExpression()
- * init replace expression
- * should be called after regex_compileWithDefault !
+ * createTranslationTable()
+ * init the character translation table.
  */
 static unsigned char* createTranslationTable(int tl) {
 	unsigned char* t;

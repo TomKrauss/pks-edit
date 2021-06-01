@@ -153,7 +153,7 @@ void EdSelectStdFont(HWND hwnd, WINFO *wp)
 /*--------------------------------------------------------------------------
  * ChooseFontHookProc()
  */
-UINT CALLBACK ChooseFontHookProc(HWND hDlg, UINT msg, WPARAM wParam,
+UINT_PTR CALLBACK ChooseFontHookProc(HWND hDlg, UINT msg, WPARAM wParam,
     LPARAM lParam)
 {
 	switch(msg) {

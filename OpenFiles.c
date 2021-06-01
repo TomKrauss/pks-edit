@@ -36,6 +36,7 @@
 #include "winfo.h"
 #include "documenttypes.h"
 #include "editorconfiguration.h"
+#include "regexp.h"
 
 extern void *	shareAlloc();
 extern HWND 	ww_winid2hwnd(int winid);
@@ -358,6 +359,29 @@ long ft_size(FTABLE *fp)
 	return fsize;
 }
 
+/*---------------------------------
+ * ft_checkSelection()
+ * Check whether a block selection exists.
+ *---------------------------------*/
+int ft_checkSelection(FTABLE* fp) {
+	if (fp == 0 || fp->blstart == 0L || fp->blend == 0L)
+		return 0;
+	return 1;
+}
+
+/*---------------------------------
+ * ft_checkSelectionWithError()
+ * Check whether a block selection exists. If not
+ * report an error to the user.
+ *---------------------------------*/
+EXPORT int ft_checkSelectionWithError(FTABLE* fp) {
+	if (ft_checkSelection(fp) == 0) {
+		ed_error(IDS_MSGNOBLOCKSELECTED);
+		return 0;
+	}
+	return 1;
+}
+
 /*------------------------------------------------------------
  * ft_fpbyname()
  * Find a filebuffer given the name of the file.
@@ -492,7 +516,7 @@ int ft_select(FTABLE *fp)
 	if (fp == 0) {
 		return 0;
 	}
-	fixsets(fp->documentDescriptor->u2lset);
+	regex_compileCharacterClasses(fp->documentDescriptor->u2lset);
 	return 1;
 }
 
@@ -575,7 +599,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 		}
 	}
 #endif
-	if (EdStat(fn,0xFF) < 0) {
+	if (EdStat(fn) < 0) {
 		if (ed_yn(IDS_MSGQUERYNEWFILE,OemAbbrevName(fn)) == IDNO)
 			return 0;
 		newfile = 1;
@@ -583,7 +607,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 		if ((GetConfiguration()->options & O_GARBAGE_AS) &&
 			GenerateBackupPathname(szAsPath, fn) &&
 			areFilenamesDifferent(szAsPath, fn) &&
-			EdStat(szAsPath, 0xFF) == 0 &&
+			EdStat(szAsPath) == 0 &&
 			ed_yn(IDS_MSGRECOVER) == IDYES) {
 			;
 		} else {
@@ -687,7 +711,7 @@ int AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 
 	curpos(ln,col);
 
-	linchange();
+	doc_documentTypeChanged();
 	RedrawTotalWindow(fp);
 
 	return 1;
@@ -728,7 +752,7 @@ int EdSaveFile(int flg)
 		if (txtfile_select(MSAVEAS, newname) == 0) {
 			return 0;
 		}
-		if (areFilenamesDifferent(newname,fp->fname) && EdStat(newname,0xFF) >= 0) {
+		if (areFilenamesDifferent(newname,fp->fname) && EdStat(newname) >= 0) {
 			if (ed_yn(IDS_MSGOVERWRITE,OemAbbrevName(newname)) == IDNO)
 				return 0;
 			/* if ret == "APPEND".... fp->flags |= F_APPEND */

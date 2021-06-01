@@ -16,6 +16,7 @@
 #include "alloc.h"
 #include "caretmovement.h"
 #include "edierror.h"
+#include "textblocks.h"
 
 #include "pksedit.h"
 
@@ -313,7 +314,7 @@ FormatText(int scope, int type, int flags)
 	if ((ret = formatlines(mps->lm,mpe->lm,flags & FMT_TYPEMASK,
 					   flags & FMT_INDENT,rmargin)) > 0) {
 		paste.pln = _fmtfile.firstl;
-		if (blcut((PASTE *)0,mps->lm,mpe->lm,0,mpe->lm->len,1))
+		if (bl_cutTextWithOptions((PASTE *)0,mps->lm,mpe->lm,0,mpe->lm->len,1))
 			ret = bl_paste(&paste,fp,mps->lm,0,0);
 
 		ln_listfree(_fmtfile.firstl);

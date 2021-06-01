@@ -4,9 +4,10 @@
 //
 #define DLG_OPT_AUTOSAVE                110
 #define IDD_OPT18                       117
-#define IDD_SHELLJOKER2                 135
 #define IDD_PRESERVE_CASE               135
 #define IDS_STRING148                   148
+#define IDS_TT_REGULAR_EXPRESSION       181
+#define IDS_TT_PRESERVE_CASE            182
 #define DLG_OPT_WARNINGS                556
 #define DLG_OPT_MISC                    557
 #define DLG_OPT_LAYOUT                  558

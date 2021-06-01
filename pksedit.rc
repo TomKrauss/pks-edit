@@ -1406,6 +1406,9 @@ BEGIN
     IDS_MSGNTIMESFOUND      "%d mal gefunden"
     IDS_WINDOWLIST          "Fensterliste"
     IDS_SELECTCOMPILEWINDOW "Datei - Auswahl für die Compilation"
+    IDS_TT_REGULAR_EXPRESSION 
+                            "Reguläre Ausdrücke unterstützen die folgenden Sonderzeichen:\r\n""."" - (alle Zeichen)\r\n""[a-z]"" - alle Zeichen a-z\r\n""*"" - (eine beliebige Anzahl Vorkommen)\r\n""+"" - 1 Vorkommen\r\n""{x,y}"" - mindestens x, maximal y Vorkommen"
+    IDS_TT_PRESERVE_CASE    "Beim Ersetzen bleibt die Groß- Kleinschreibung des Ausgangstextes erhalten.\r\nBeispiel: ersetzt man das Wort ""Der"" durch ""die"" entsteht ""Die""."
 END
 
 STRINGTABLE

@@ -27,6 +27,7 @@
 #include "pksedit.h"
 #include "dial2.h"
 #include "functab.h"
+#include "regexp.h"
 
 #/*---- GLOBALS ---------------*/
 
@@ -34,8 +35,8 @@
 extern int  _recording;
 extern int  _deadkey;
 
-int linchange(void);
-int lincolchange(void);
+int doc_documentTypeChanged(void);
+int doc_columnChanged(void);
 int mac_recorder(void);
 int markcolomns(FTABLE *fp);
 void op_updateall(void);
@@ -46,30 +47,30 @@ static struct optiontab {
     int  local;
     int  (*func)();
 } _optiontab[] = {
-     IDD_FKFLG1,    WM_INSERT,     2,   linchange,
-     IDD_FKFLG2,    WM_AUTOINDENT, 2,   linchange,
-     IDD_FKFLG3,    WM_AUTOWRAP,   2,   linchange,
-     IDD_FKFLG4,    WM_AUTOFORMAT, 2,   linchange,
-     IDD_FKFLG5,    WM_SHOWMATCH,  2,   linchange,
-     IDD_FKFLG6,    WM_BRINDENT,   2,   linchange,
-     IDD_FKFLG7,    WM_ABBREV,     2,   linchange,
-     IDD_FKFLG8,    BLK_COLOMN,    2,   lincolchange,
-     IDD_FKFLG9,    O_RDONLY,      2,   linchange,
-     IDD_FKFLG10,   WM_OEMMODE,    2,   linchange,
-     IDD_FKFLG10+1, SHOWOEM,       1,   linchange,
+     IDD_FKFLG1,    WM_INSERT,     2,   doc_documentTypeChanged,
+     IDD_FKFLG2,    WM_AUTOINDENT, 2,   doc_documentTypeChanged,
+     IDD_FKFLG3,    WM_AUTOWRAP,   2,   doc_documentTypeChanged,
+     IDD_FKFLG4,    WM_AUTOFORMAT, 2,   doc_documentTypeChanged,
+     IDD_FKFLG5,    WM_SHOWMATCH,  2,   doc_documentTypeChanged,
+     IDD_FKFLG6,    WM_BRINDENT,   2,   doc_documentTypeChanged,
+     IDD_FKFLG7,    WM_ABBREV,     2,   doc_documentTypeChanged,
+     IDD_FKFLG8,    BLK_COLOMN,    2,   doc_columnChanged,
+     IDD_FKFLG9,    O_RDONLY,      2,   doc_documentTypeChanged,
+     IDD_FKFLG10,   WM_OEMMODE,    2,   doc_documentTypeChanged,
+     IDD_FKFLG10+1, SHOWOEM,       1,   doc_documentTypeChanged,
      IDD_FKFLG10+2, 1,            -1,   mac_recorder,
-     0,             SHOWCONTROL,   1,   linchange,
-     0,             SHOWSTATUS,    1,   linchange,
-     0,             SHOWHEX,       1,   linchange,
-     0,             SHOWRULER,     1,   linchange,
-     0,             SHOWATTR,      1,   linchange,
+     0,             SHOWCONTROL,   1,   doc_documentTypeChanged,
+     0,             SHOWSTATUS,    1,   doc_documentTypeChanged,
+     0,             SHOWHEX,       1,   doc_documentTypeChanged,
+     0,             SHOWRULER,     1,   doc_documentTypeChanged,
+     0,             SHOWATTR,      1,   doc_documentTypeChanged,
      -1
 };
 
 /*--------------------------------------------------------------------------
- * linchange()
+ * doc_documentTypeChanged()
  */
-int linchange(void)
+int doc_documentTypeChanged(void)
 {
 	WINFO  *	wp;
 	FTABLE *	fp;
@@ -80,7 +81,7 @@ int linchange(void)
 	
 	ww_setwindowflags(wp);
 	ww_setwindowtitle(wp);
-	fixsets(fp->documentDescriptor->u2lset);
+	regex_compileCharacterClasses(fp->documentDescriptor->u2lset);
 
 	SendMessage(wp->edwin_handle,WM_EDWINREORG,0,0L);
 
@@ -89,9 +90,9 @@ int linchange(void)
 }
 
 /*--------------------------------------------------------------------------
- * lincolchange()
+ * doc_columnChanged()
  */
-static int lincolchange(void)
+static int doc_columnChanged(void)
 {
 	FTABLE *fp;
     

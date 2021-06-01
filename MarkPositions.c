@@ -81,7 +81,7 @@ void mcp_release(FTABLE *fp)
 static MARK *mark_alloc(FTABLE *fp, int c)
 {
 	mark_free(fp,mark_find(fp,c));
-	return (MARK*) ll_insert(&fp->fmark,sizeof(MARK));
+	return (MARK*) ll_insert((LINKED_LIST**)&fp->fmark,sizeof(MARK));
 }
 
 /*--------------------------------------------------------------------------

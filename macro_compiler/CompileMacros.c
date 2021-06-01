@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <string.h>
 
+#include "errordialogs.h"
 #include "alloc.h"
 #include "lineoperations.h"
 #include "pkscc.h"
@@ -26,7 +27,6 @@ void yyinit(jmp_buf *errb, char *sourcefile, LINE *lps,LINE *lpe);
 int  yyfinish(void);
 int  opennofsel(char *fn, long line, void *wsp);
 char *TmpDir(void);
-void alert(char * fmt, ...);
 void ShowError(char * fmt, va_list ap);
 
 extern int		_macedited;
@@ -120,7 +120,7 @@ FILE *createtmp(char *dest, char *filename)
 	strdcpy(dest, TmpDir(), filename);
 
 	if ((fp = fopen(dest,"w")) == 0) {
-		Alert(/*STR*/"kann %s nicht erzeugen", dest);
+		alert(/*STR*/"kann %s nicht erzeugen", dest);
 		return 0;
 	}
 	return fp;
@@ -174,7 +174,7 @@ int macs_compile()
 		return yyfinish();
 	}
 
-	Alert("Bitte öffnen Sie die Datei, die übersetzt werden soll");
+	alert("Bitte öffnen Sie die Datei, die übersetzt werden soll");
 
 	return 0;
 }
@@ -231,20 +231,6 @@ int macs_execute_string(char *string)
 	mac_delete("temp-block");
 	_macedited = saveMacEdited;
 	return 1;
-}
-
-/*---------------------------------*/
-/* Alert()					*/
-/*---------------------------------*/
-void Alert(char *s, ...)
-{	
-	va_list 	ap;
-	char 	b[256];
-
-	va_start(ap, s);
-	vsprintf(b, s, ap);
-	va_end(ap);
-	alert(b);
 }
 
 /*---------------------------------*/

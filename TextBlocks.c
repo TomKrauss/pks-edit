@@ -13,9 +13,10 @@
  */
 
 #include <windows.h>
+#include <tos.h>
 
 #include "trace.h"
-#include "lineoperations.h"
+#include "textblocks.h"
 #include "edierror.h"
 #include "errordialogs.h"
 #include "editorconfiguration.h"
@@ -25,27 +26,12 @@
 
 # pragma hdrstop
 
-#include <tos.h>
 #include "pksedit.h"
-
-# if 0
-#include "iccall.h"
-
-#define	FULLSELECTED	CHECKED		/* selected, cause not empty */
-# endif
-
-/*--------------------------------------------------------------------------
- * EXTERNALS
- */
-
-extern char	*TmpName(char *dst, char c);
+#include "fileutil.h"
 
 /*--------------------------------------------------------------------------
  * GLOBALS
  */
-
-PASTE *bl_addrbyid(int id,int insert);
-PASTE *blgetundo(int id);
 
 static PASTE 		_ubufs[1],_ubuf2;
 static PASTELIST *	_plist;
@@ -55,44 +41,46 @@ int				_nundo = 1;
 PASTE	*		_undobuf = _ubufs;
 
 /*--------------------------------------------------------------------------
- * BlockAsBuffer()
+ * bl_convertPasteBufferToText()
+ * Convert a paste buffer to a regular string buffer.
  */
-unsigned char *BlockAsBuffer(unsigned char *b, unsigned char *end, 
-	PASTE *pp)
-{
+unsigned char *bl_convertPasteBufferToText(unsigned char *pDestination, unsigned char *pDestinationEnd, 
+	PASTE *pPasteBuffer) {
 	unsigned char *	s;
-	unsigned char *	d = b;
+	unsigned char *	d = pDestination;
 	LINE *			lp;
 
-	end--;
-	lp = (pp) ? pp->pln : 0;
+	pDestinationEnd--;
+	lp = (pPasteBuffer) ? pPasteBuffer->pln : 0;
 	while(lp) {
 		s = lp->lbuf;
-		while(d < end && s < &lp->lbuf[lp->len]) {
+		while(d < pDestinationEnd && s < &lp->lbuf[lp->len]) {
 			*d++ = *s++;
 		}
 		lp = lp->next;
-		if (lp && d < end) {
+		if (lp && d < pDestinationEnd) {
 			*d++ = '\r';
 			*d++ = '\n';
 		}
 	}
 	*d = 0;
-	return b;
+	return pDestination;
 }
 
 /*--------------------------------------------------------------------------
  * EdGetSelectedText()
+ * PKS Edit macro commad which gets the selected text and makes it available
+ * to the macro interpreter.
  */
-void EdGetSelectedText(void)
-{
+void EdGetSelectedText(void) {
 	char		buf[80];	/* searchPattern[] !!!! */
 	PASTE *	pp;
+	PASTE  pbuf;
 
 	*buf = 0;
-	if (EdBlockCut(0)) {
+	if (EdBlockCut(0, &pbuf)) {
 		pp = bl_addrbyid(0, 0);
-		BlockAsBuffer(buf, &buf[sizeof buf -2], pp);
+		bl_convertPasteBufferToText(buf, &buf[sizeof buf -2], pp);
 	}
 	ReturnString(buf);
 }
@@ -108,9 +96,9 @@ EXPORT void bl_free(PASTE *buf)
 }
 
 /*--------------------------------------------------------------------------
- * pp_listfree()
+ * bl_freePasteList()
  */
-EXPORT void pp_listfree(PASTELIST **header) {	
+EXPORT void bl_freePasteList(PASTELIST **header) {	
 	register PASTELIST *pp = *header;
 	register PASTELIST* next;
 
@@ -132,19 +120,19 @@ EXPORT int EdBufferFree(void)
 	if (ed_yn(IDS_MSGCLEARBUFFERS) == IDYES) {
 		bl_free(_undobuf);
 		bl_free(&_ubuf2);
-		pp_listfree(&_plist);
+		bl_freePasteList(&_plist);
 		return 1;
 	}
 	return 0;
 }
 
 /*--------------------------------------------------------------------------
- * blcutbl()
+ * bl_cutTextWithOptions()
  * cut out a block of text
  * and (opt) delete it
- * pp == 0: only delete block
+ * pPasteBuffer == 0: only delete block
  */
-EXPORT int blcut(PASTE *pp,LINE *lnfirst,LINE *lnlast,
+EXPORT int bl_cutTextWithOptions(PASTE *pp,LINE *lnfirst,LINE *lnlast,
 		int cfirst,int clast,int freeflg)
 {	register LINE	*lpd,*lps,*lpnew,*lpx;
 	register int	last;
@@ -209,8 +197,8 @@ EXPORT int bl_cut(PASTE *pp,LINE *l1,LINE *l2,int c1,int c2,int freeflg,int colf
 
 	_icdirty = 1;
 	if (colflg)
-	    return blcutcol(pp,l1,l2,freeflg);
-	return blcut(pp,l1,l2,c1,c2,freeflg); 
+	    return bl_cutBlockInColumnMode(pp,l1,l2,freeflg);
+	return bl_cutTextWithOptions(pp,l1,l2,c1,c2,freeflg); 
 }
 
 /*--------------------------------------------------------------------------
@@ -274,7 +262,7 @@ EXPORT int bl_paste(PASTE *pb, FTABLE *fp, LINE *lpd, int col, int colflg)
 	}
 
 	if (colflg && (_blkflg || (!P_EQ(pb,_undobuf)))) {
-		return blpastecol(pb,fp,lpd,col);
+		return bl_pastecol(pb,fp,lpd,col);
 	}
 
 	bBlkLines = (fp->documentDescriptor->workmode & BLK_LINES);
@@ -369,20 +357,20 @@ EXPORT int bl_delete(FTABLE *fp, LINE *lnfirst, LINE *lnlast, int cfirst,
 
 	if (blkflg && ww_blkcolomn(WIPOI(fp))) {
 		if (bSaveOnClip) {
-			if (!blcutcol(bl_addrbyid(0,0), lnfirst, lnlast,0)) {
+			if (!bl_cutBlockInColumnMode(bl_addrbyid(0,0), lnfirst, lnlast,0)) {
 				return 0;
 			}
 		}
-		if (!blcutcol(ppTrash,lnfirst,lnlast,1)) {
+		if (!bl_cutBlockInColumnMode(ppTrash,lnfirst,lnlast,1)) {
 			return 0;
 		}
 	} else {
 		if (bSaveOnClip) {
-			if (!blcut (bl_addrbyid(0,0) ,lnfirst,lnlast,cfirst,clast,0)) {
+			if (!bl_cutTextWithOptions (bl_addrbyid(0,0) ,lnfirst,lnlast,cfirst,clast,0)) {
 				return 0;
 			}
 		}
-		if (!blcut (ppTrash,lnfirst,lnlast,cfirst,clast,1)) {
+		if (!bl_cutTextWithOptions (ppTrash,lnfirst,lnlast,cfirst,clast,1)) {
 			return 0;
 		}
 	}
@@ -398,10 +386,10 @@ EXPORT int bl_delete(FTABLE *fp, LINE *lnfirst, LINE *lnlast, int cfirst,
 }
 
 /*--------------------------------------------------------------------------
- * undoenq()
+ * bl_undoIntoUnqBuffer()
  * enqueue next Pastebuffer to undolist
  */
-EXPORT int undoenq(LINE *lnfirst,LINE *lnlast,int cfirst,int clast,int blockflg)
+EXPORT int bl_undoIntoUnqBuffer(LINE *lnfirst,LINE *lnlast,int cfirst,int clast,int blockflg)
 			/* pointer to first and last line to enq	*/
 			/* first column and last col to enq		*/
 {	char	*fn;
@@ -426,9 +414,9 @@ EXPORT int undoenq(LINE *lnfirst,LINE *lnlast,int cfirst,int clast,int blockflg)
 }
 
 /*--------------------------------------------------------------------------
- * blgetundo()
+ * bl_getBlockFromUndoBuffer()
  */
-EXPORT PASTE *blgetundo(int num)
+EXPORT PASTE *bl_getBlockFromUndoBuffer(int num)
 {
 	char	*fn;
 	char	tmpfile[512];
@@ -445,17 +433,18 @@ EXPORT PASTE *blgetundo(int num)
 	fn = TmpName(tmpfile,num+'0');
 	bl_free(&_ubuf2);
 
-	if (EdStat(fn,0) || bl_read(fn,&_ubuf2,-1) == 0)
+	if (EdStat(fn) || bl_read(fn,&_ubuf2,-1) == 0)
 		return 0;
 
 	return &_ubuf2;
 }
 
 /*--------------------------------------------------------------------------
- * ValidTrashCans()
+ * bl_validateTrashCanName()
+ * Validate / generate the name of a "logical" trash can in PKS edit, which may contain
+ * data accessible under that name.
  */
-void ValidTrashCans(char *pszValid)
-{
+void bl_validateTrashCanName(char *pszValid) {
 	int		i;
 	
 	for (i = 0; i < _nundo; i++) {
@@ -465,12 +454,12 @@ void ValidTrashCans(char *pszValid)
 }
 
 /*--------------------------------------------------------------------------
- * blappnd()
+ * bl_append()
  */
-EXPORT int blappnd(PASTE *pb,LINE *lnfirst,LINE *lnlast,int cfirst,int clast)
+EXPORT int bl_append(PASTE *pb,LINE *lnfirst,LINE *lnlast,int cfirst,int clast)
 {	PASTE _p;
 
-	if (!blcut(&_p,lnfirst,lnlast,cfirst,clast,0)) 
+	if (!bl_cutTextWithOptions(&_p,lnfirst,lnlast,cfirst,clast,0)) 
 		return 0;
 	return bl_join(pb,&_p);
 }
@@ -532,14 +521,14 @@ EXPORT PASTE *bl_addrbyid(int id,int insert)
 }
 
 /*--------------------------------------------------------------------------
- * bl_avail()
+ * bl_hasClipboardBlock()
+ * Check, whether the cut text block with the given number exists and can be inserted.
  */
-int bl_avail(int ubuf, int id)
-{
+BOOL bl_hasClipboardBlock(BOOL isTrashCan, int blockNumber) {
 	PASTE *pb;
 
-	pb  = (ubuf) ? _undobuf : bl_addrbyid(id,0);
-	if (!ubuf && !id && (!pb || !pb->pln))
+	pb  = (isTrashCan) ? _undobuf : bl_addrbyid(blockNumber,0);
+	if (!isTrashCan && !blockNumber && (!pb || !pb->pln))
 		return IsClipboardFormatAvailable(CF_TEXT);
 	return (pb && pb->pln) ? 1  : 0;
 }

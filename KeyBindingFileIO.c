@@ -25,12 +25,14 @@
 #include "winfo.h"
 #include "stringutil.h"
 #include "fileutil.h"
+#include "textblocks.h"
+#include "regexp.h"
 
 #define	MAX_CONTEXT	32
 
 extern int DialogTemplate(unsigned char c, 
 			char *(*fpTextForTmplate)(char *s), char *s);
-extern unsigned char *BlockAsBuffer(unsigned char *b, unsigned char *end, 
+extern unsigned char *bl_convertPasteBufferToText(unsigned char *b, unsigned char *end, 
 			PASTE *pp);
 
 /*--------------------------------------------------------------------------
@@ -42,7 +44,6 @@ extern	FSELINFO 	_linfsel;
 extern	int uc_add(char* pat, char* p, int type, int id);
 extern 	PASTE	*plistenq();
 extern	PASTE	*pp_find(int id, PASTELIST *pp);
-extern	void 	pp_listfree(PASTELIST **pp);
 extern 	int 	CreateTempFileForDocumentType(char *linfn, char *tmpfn);
 
 static 	PASTELIST *_abbrevlist;
@@ -116,7 +117,7 @@ static char *TextForEscapeMacro(char *s)
 	PASTE *	pp;
 
 	pp = EscapePasteForId(*s);
-	return BlockAsBuffer(_linebuf, _linebuf + 256, pp);
+	return bl_convertPasteBufferToText(_linebuf, _linebuf + 256, pp);
 }
 
 /*--------------------------------------------------------------------------
@@ -226,7 +227,7 @@ static int advtok(LINE **lp,PASTE *pp,char *s)
 	}
 	clast  = p1+_qulen;
 	*lp    = lnlast;
-	return blcut(pp,lnfirst,lnlast,cfirst,clast,0);
+	return bl_cutTextWithOptions(pp,lnfirst,lnlast,cfirst,clast,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -247,7 +248,7 @@ static PASTE *getbuf(LINE **lp,unsigned char *s,PASTELIST **pl,int id)
 		if ((s = skbl(s)) == 0L) return 0;
 		if (*s == '!') {
 			pp->pflg = 1;
-			if (blcut(pp,*lp,*lp,(int)(s-(*lp)->lbuf),(*lp)->len,0))
+			if (bl_cutTextWithOptions(pp,*lp,*lp,(int)(s-(*lp)->lbuf),(*lp)->len,0))
 				return pp;
 		}
 	}
@@ -401,7 +402,7 @@ int Mapread(int context, char *target)
 	}
 
 	sm_setup();
-	fixsets((char *) 0);
+	regex_compileCharacterClasses((char *) 0);
 
 	if (_outfile.firstl != 0) {
 		char protname[256];

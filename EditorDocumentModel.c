@@ -90,7 +90,7 @@ LINE* ln_create(int size) {
  * return -1 if not found.
  */
 long ln_indexOf(FTABLE* fp, LINE* lp) {
-	return ll_indexOf(fp->firstl, lp);
+	return ll_indexOf((LINKED_LIST*)fp->firstl, (LINKED_LIST*)lp);
 }
 
 

@@ -22,8 +22,8 @@
 #include "pkscc.h"
 #include "sym.h"
 #include "stringutil.h"
+#include "errordialogs.h"
 
-extern void 	Alert(char *, ...);
 extern long 	number(char *s);
 extern int 		IsStringType(unsigned char typ);
 extern int 		GetDollar(intptr_t offset, int *typ, intptr_t *value);
@@ -103,7 +103,7 @@ static ENTRY *hfind(char *key,ACTION action)
 	} while (sonde < _overflow);
 
 	if (action == ENTER)
-		Alert("hash table overflow\n");
+		alert("hash table overflow\n");
 	return 0;
 }
 
@@ -188,7 +188,7 @@ int MakeInternalSym(char *name, char ed_typ, intptr_t value) {
 
 	type = ed_typ;
 	if (ed_typ == S_STRING || ed_typ == S_CONSTSTRING) {
-		if ((value = stralloc((char*)value)) == 0) {
+		if ((value = (intptr_t) stralloc((char*)value)) == 0) {
 			return 0;
 		}
 	}
@@ -220,12 +220,12 @@ static SYMBOL GetVariable(char *symbolname)
 
 	sym = sym_find(symbolname,&tmp);
 	if (NULLSYM(sym)) {
-		Alert("undefined symbol %s",symbolname);
+		alert("undefined symbol %s",symbolname);
 		return sym;
 	}
 
 	if (TYPEOF(sym) < S_NUMBER || TYPEOF(sym) > S_DOLSTRING) {
-		Alert("bad symbol %s (%x)",symbolname,TYPEOF(sym));
+		alert("bad symbol %s (%x)",symbolname,TYPEOF(sym));
 		return nullSymbol;
 	}
 

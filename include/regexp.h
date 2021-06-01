@@ -108,5 +108,16 @@ extern int regex_initializeReplaceByExpressionOptions(REPLACEMENT_OPTIONS *pOpti
  */
 extern int regex_replaceSearchString(REPLACEMENT_PATTERN* pPattern, unsigned char* pDestination, int destinationBufferSize, RE_MATCH* pMatch);
 
+/*--------------------------------------------------------------------------
+ * regex_compileCharacterClasses()
+ * Compile a "lower to upper" character class pattern for subsequent use in regular
+ * expressions. a lower to upper character class mapping has the form lowerCharRange=upperCharRange,
+ * where a charRange may be defined like a regular expression character class. E.g a-z=A-Z will
+ * map all lower case alpha chars to all corresponding upper characters. The resulting character
+ * class will be used in PKS Edit for lower / upper case conversions as well to define the valid
+ * characters of an identifier used during "word" navigation.
+ */
+extern void regex_compileCharacterClasses(unsigned char* pLowerToUpperPattern);
+
 #endif
 

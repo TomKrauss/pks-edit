@@ -18,12 +18,9 @@
 #include "scanner.h"
 
 extern void 	yyerror(char *s, ...);
-extern KEYCODE	key2code(char *K);
-extern int  	macdelete(char *name);
 extern int 	mac_insert(char *name, char *comment, char *macdata, int size);
 extern int 	IsStringType(unsigned char typ);
 extern void 	freeval(struct typedval *v);
-
 static MACRO	**		_macrotab;
 extern unsigned char *	_recp;
 extern unsigned char *	_recpend;
@@ -108,7 +105,7 @@ unsigned char *AddComSeq(unsigned char *sp, unsigned char *spend,
 			*(COM_1FUNC *)sp = *(COM_1FUNC *)par;
 			break;
 		case C_INT1PAR:
-			((COM_INT1 *)sp)->val = par;
+			((COM_INT1 *)sp)->val = (int)par;
 			break;
 		case C_TEST:
 			((COM_TEST *)sp)->testop = (unsigned char)par;
@@ -171,8 +168,8 @@ static void PushTypedAssign(int comType, char *name, int typ, intptr_t val)
 	}
 
 	_recp = AddComSeq(p1,_recpend,typ,val);
-	ap->opoffset = (p1 - (unsigned char*)ap);
-	ap->size = (_recp - (unsigned char*)ap);
+	ap->opoffset = (int)(p1 - (unsigned char*)ap);
+	ap->size = (int)(_recp - (unsigned char*)ap);
 }
 
 /*--------------------------------------------------------------------------
@@ -195,7 +192,7 @@ void PushCreateVariable(char *name, int typ, intptr_t val)
 	ap = (COM_CREATESYM*)_recp;
 	ap->typ = C_CREATESYM;
 	ap->symtype = typ;
-	ap->value = val;
+	ap->value = (long)val;
 
 	p1 = ap->name;
 	while(*name) {
@@ -214,8 +211,7 @@ void PushCreateVariable(char *name, int typ, intptr_t val)
  * PushBinop()
  */
 extern int vname_count;
-struct typedval PushBinop(int opd_typ, struct typedval *v1, struct typedval *v2)
-{
+struct typedval PushBinop(int opd_typ, struct typedval *v1, struct typedval *v2) {
 	unsigned char *	p1;
 	unsigned char *	p2;
 	COM_BINOP *		bp;
