@@ -94,6 +94,9 @@ static BOOL areFilenamesDifferent(char* fileName1, char* fileName2) {
 	char tempFn1[EDMAXPATHLEN];
 	char tempFn2[EDMAXPATHLEN];
 
+	if (strcmp(fileName1, fileName2) == 0) {
+		return FALSE;
+	}
 	GetLongPathName(fileName1, tempFn1, sizeof tempFn1);
 	GetLongPathName(fileName2, tempFn2, sizeof tempFn2);
 	return lstrcmpi(tempFn1, tempFn2);
@@ -564,32 +567,16 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 	char 		szResultFn[EDMAXPATHLEN];
 	char		szAsPath[EDMAXPATHLEN];
 	FTABLE 		*fp;
-	int 		newfile,ret;
+	int 		ret;
+	int			fileflags = 0;
 
 	szAsPath[0] = 0;
 	lastSelectedDocType = 0;
 	if (fn) {
 		FullPathName(szResultFn,fn);
-	} else {
-		if (!txtfile_select(MOPENF,szResultFn)) {
-			return 0;
-		}
+		fn = szResultFn;
 	}
-	fn = szResultFn;
-	// EdToUpper(fn);
-#if !defined(WIN32)
-	if ((shareString = shareAlloc()) == 0)
-		return 0;
-	lstrcpy(shareString,fn);
-	if (ft_globalediting(shareString) != 0) {
-		ret = ed_ync(IDS_MSGINWORK,OemAbbrevName(fn));
-		if (ret == IDCANCEL)
-			return 0;
-		if (ret == IDNO)
-			return PostBrotherMessage(WMBRD_SELECTFILE,(LONG)shareString);
-	}
-#else
-	if (ft_editing(fn) != 0) {
+	if (fn && ft_editing(fn) != 0) {
 		ret = ed_ync(IDS_MSGINWORK,OemAbbrevName(fn));
 		if (ret == IDCANCEL) {
 			return 0;
@@ -598,12 +585,23 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 			return ActivateWindowOfFileNamed(fn);
 		}
 	}
-#endif
-	if (EdStat(fn) < 0) {
-		if (ed_yn(IDS_MSGQUERYNEWFILE,OemAbbrevName(fn)) == IDNO)
+	if (fn && EdStat(fn) < 0) {
+		if (ed_yn(IDS_MSGQUERYNEWFILE, OemAbbrevName(fn)) == IDNO) {
 			return 0;
-		newfile = 1;
+		}
+		fileflags = F_NEWFILE;
 	} else {
+		if (fn == NULL) {
+			char szBuf[80];
+			fileflags = F_NEWFILE|F_NAME_INPUT_REQUIRED;
+			for (int i = 1; i < 100; i++) {
+				sprintf(szBuf, "newfile%d.txt", i);
+				if (ft_fpbyname(szBuf) == NULL) {
+					break;
+				}
+			}
+			fn = szBuf;
+		}
 		if ((GetConfiguration()->options & O_GARBAGE_AS) &&
 			GenerateBackupPathname(szAsPath, fn) &&
 			areFilenamesDifferent(szAsPath, fn) &&
@@ -613,7 +611,6 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 		} else {
 			szAsPath[0] = 0;
 		}
-		newfile = 0;
 	}
 
 	if ((fp = ft_new()) == 0) {
@@ -624,9 +621,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 	} else {
 		lstrcpy(fp->fname, fn);
 	}
-	if (newfile) {
-		fp->flags |= F_NEWFILE;
-	}
+	fp->flags |= fileflags;
 	if (AssignDocumentTypeDescriptor(fp, GetDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
          readfile(fp, fp->documentDescriptor) == 0 || 
 	    (lstrcpy(fp->fname, fn), ft_openwin(fp, wsp) == 0)) {
@@ -640,7 +635,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 
 	curpos(line,0L);
 
-	if (newfile && fp->documentDescriptor) {
+	if (fileflags != 0 && fp->documentDescriptor) {
 		do_macbyname(fp->documentDescriptor->creationMacroName);
 	}
 
@@ -741,10 +736,11 @@ int EdSaveFile(int flg)
 	if ((fp = ft_CurrentDocument()) == 0) 
 		return(0);	 		/* currently no File open */
 
-	if (flg != SAV_QUIT && readonly(fp))
+	if (flg != SAV_QUIT && readonly(fp)) {
 		return 0;
+	}
 
-	if (flg & SAV_AS) {
+	if ((flg & SAV_AS) || (fp->flags & (F_NAME_INPUT_REQUIRED|F_MODIFIED)) == (F_NAME_INPUT_REQUIRED | F_MODIFIED)) {
 		char newname[512];
 
 		sfsplit(fp->fname,_txtfninfo.path,_txtfninfo.fname);
@@ -761,7 +757,7 @@ int EdSaveFile(int flg)
 		ww_setwindowtitle(WIPOI(fp));
 		fp->flags |= F_CHANGEMARK;
 		if (!(fp->flags & F_APPEND)) fp->flags |= F_SAVEAS;
-		fp->flags &= ~F_NEWFILE;
+		fp->flags &= ~(F_NEWFILE|F_NAME_INPUT_REQUIRED);
 		if (!write2ndpathfile(fp)) 	
 			return 0;
 	}

@@ -525,6 +525,7 @@ extern int ln_createAndAddSimple(FTABLE* fp, char* b);
 #define	F_HIDDEN			0x1000	/* create File hidden		  */
 #define	F_RDONLY			0x2000	/* create File read only		  */
 #define	F_ISHELPFILE		0x4000	/* File is a Help Window File   */
+#define F_NAME_INPUT_REQUIRED 0x8000 /* When the users presses Save the Save As dialog is being opened to force the input of a new file name */
 #define	F_CHANGEMARK		(F_NEEDSAUTOSAVE|F_MODIFIED)
 
 /*---------- LINEFLAGS ---------*/

@@ -164,6 +164,7 @@ EDFUNC _edfunctab[] = {
 
 int _nfuncs = 120;
 MENUBIND _menutab[] = {
+MNEWFILE	,1 ,
 MOPENF	,0 ,
 MOPENLIN	,3 ,
 MQUITF	,9 ,

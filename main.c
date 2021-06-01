@@ -22,6 +22,7 @@
 #include "winfo.h"
 #include "editorconfiguration.h"
 #include "errordialogs.h"
+#include "pksrc.h"
 
 #pragma hdrstop
 
@@ -166,7 +167,7 @@ static BOOL InitApplication(void)
 #endif
 
 	if ( !EdMkWinClass(szFrameClass,FrameWndProc,
-			    NULL,GetSysColorBrush(COLOR_3DFACE),"Pks",0) ||
+			    NULL,GetSysColorBrush(COLOR_3DFACE),MAIN_ICON, 0) ||
 			!ic_register() ||
 		 	!ww_register() ||
 		 	!fkey_register() ||

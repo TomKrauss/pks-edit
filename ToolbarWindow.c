@@ -71,7 +71,15 @@ void tb_init(HWND hwndDaddy)
 	tbabmp.nID = IDB_STD_SMALL_COLOR;
 	iIndex = SendMessage(hwndToolbar, TB_ADDBITMAP, 15, (LPARAM)&tbabmp);
 
-	nButton = 0;
+    nButton = 0;
+    tbb[nButton].iBitmap = (int)(iIndex + STD_FILENEW);
+    tbb[nButton].idCommand = MNEWFILE;
+    tbb[nButton].fsState = TBSTATE_ENABLED;
+    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
+    tbb[nButton].dwData = 0;
+    tbb[nButton].iString = 0;
+
+    nButton++;
     tbb[nButton].iBitmap = (int)(iIndex + STD_FILEOPEN);
     tbb[nButton].idCommand = MOPENF;
     tbb[nButton].fsState = TBSTATE_ENABLED;

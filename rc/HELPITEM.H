@@ -1,5 +1,6 @@
 #define DLGSELTMPLATE	555
 #define	MINFO    14
+#define	MNEWFILE 22
 #define	MOPENF   23
 #define	MOPENLIN 24	
 #define	MQUITF   25	

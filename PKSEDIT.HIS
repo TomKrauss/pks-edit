@@ -1,6 +1,6 @@
 [files]
-"D:\tom\desktop\readme.txt", line 90: 0x1 0x1 -1 -1 -8 -31 531 0 1904 908
-"D:\source\pksedit\Clipboard.c", line 144: 0x0 0x1 -1 -1 -8 -31 0 0 952 908
+"D:\tom\desktop\readme.txt", line 26: 0x1 0x2 104 713 -8 -31 557 129 1520 803
+"D:\source\pksedit\Clipboard.c", line 1: 0x1 0x1 104 713 -8 -31 31 30 994 704
 [find]
 !ed
 !red
@@ -25,6 +25,12 @@
 !D:\tom\desktop\readme.txt
 !C:\Users\tom\AppData\Local\Temp\MACROS.PKC
 !C:\Users\tom\AppData\Local\Temp\KEYS
+!NewFile.txt
+!D:\source\pksedit\Clipboard.c
+!newfile4.txt
+!newfile3.txt
+!newfile2.txt
+!newfile1.txt
 [pathes]
 !D:\source\pksedit\*.*
 !D:\tom\desktop\*.*

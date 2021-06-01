@@ -74,7 +74,7 @@ static HANDLE clp_makebufferhandle(int whichBuffer)
 		ed_error(IDS_MSGNOSPCE);
 		return 0;
 	}
-
+	
 	lp = bp->pln;
 
 	while(size > (DWORD)lp->len) {
