@@ -162,7 +162,7 @@ EDFUNC _edfunctab[] = {
 	EdRedo, '!', EW_MODIFY | EW_NEEDSCURRF | 0
 };
 
-int _nfuncs = 120;
+int _nfuncs = sizeof(_edfunctab)/sizeof(_edfunctab[0]);
 MENUBIND _menutab[] = {
 MNEWFILE	,1 ,
 MOPENF	,0 ,
@@ -259,7 +259,8 @@ IDM_HLPINDEX	,96,
 IDM_ABOUT	,97
 };
 
-int _nmenus = 92;
+int _nmenus = sizeof(_menutab) / sizeof(_menutab[0]);
+
 ICONBIND _ictab[] = {
 ICID_TRASH,	ICID_UNDO,	IPCF_DROPHWND, 201,
 ICID_TRASH,	ICID_EXEC,	IPCF_DROPHWND, 201,
@@ -285,7 +286,8 @@ ICID_PRINT,	ICACT_DCLICKED,	IPCF_NONE, 67,
 ICID_PRINT,	ICID_EDIT,	IPCF_NONE, 67
 };
 
-int _nicbind = 22;
+int _nicbind = sizeof(_ictab) / sizeof(_ictab[0]);
+
 MOUSEBIND _mousetab[MAXMAPMOUSE] = {
 {0x02,0x00,0x02,0,{CMD_CMDSEQ,213}, (char *)0},
 {0x02,0x08,0x01,0,{CMD_CMDSEQ,212}, (char *)0},
@@ -303,7 +305,8 @@ MOUSEBIND _mousetab[MAXMAPMOUSE] = {
 {0x01,0x00,0x01,0,{CMD_CMDSEQ,202}, (char *)0}
 };
 
-int _nmousebind = 14;
+int _nmousebind = sizeof(_mousetab)/sizeof(_mousetab[0]);
+
 COM_1FUNC _cmdseqtab[] = {
 /* 0 */ C_1FUNC, 58 /* EdEditFile */, 0         ,
 /* 1 */ C_1FUNC, 58 /* EdEditFile */, OPEN_NOFN ,
@@ -532,7 +535,7 @@ COM_1FUNC _cmdseqtab[] = {
 
 char _recorder[RECORDERSPACE];
 int _lcomseq = 1332;
-int _ncmdseq = 222;
+int _ncmdseq = sizeof(_cmdseqtab)/sizeof(_cmdseqtab[0]);
 
 KEYBIND _keymaptab[MAXMAPKEY] = {
 0x445 , CMD_CMDSEQ, 0 /* comm-seq */,
