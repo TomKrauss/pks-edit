@@ -5,9 +5,9 @@
  *
  * purpose: textblock basic delta
  *
- * 										created      : 04.02.89
+ * 										created: 04.02.89
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */
@@ -28,6 +28,7 @@
 
 #include "pksedit.h"
 #include "fileutil.h"
+#include "clipboard.h"
 
 /*--------------------------------------------------------------------------
  * GLOBALS

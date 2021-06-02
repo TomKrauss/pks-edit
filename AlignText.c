@@ -5,9 +5,9 @@
  *
  * purpose: align text fragments to screen columns
  *
- * 										created      : 28.09.90
+ * 										created: 28.09.90
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauß
  */
@@ -103,7 +103,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	ProgressMonitorClose(0);
 	RedrawTotalWindow(fp);
 	if ((ret & aligncol) >= 0) {
-		curpos(fp->ln,(long )aligncol);
+		caret_placeCursorInCurrentFile(fp->ln,(long )aligncol);
 	}
 	return ret;
 }

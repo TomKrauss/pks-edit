@@ -5,13 +5,12 @@
  *
  * purpose: pksedit macro and resource compiler - symbols
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 #include <stdio.h>

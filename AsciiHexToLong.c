@@ -5,9 +5,9 @@
  *
  * Ascii hex to long conversion.
  *
- * 										created      : 01.10.91
+ * 										created: 01.10.91
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */

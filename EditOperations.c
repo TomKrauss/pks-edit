@@ -6,9 +6,9 @@
  * purpose: inserting and deleting characters, words, lines ...
  * 		  autoformat, wrap and indent
  *
- * 										created      : 04.02.90
+ * 										created: 04.02.90
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauß
  */
@@ -36,14 +36,14 @@ extern LINE *	cadv_word(LINE *lp,long *ln,long *col,int dir);
 extern LINE *	cadv_c(LINE *lp,long *ln,long *col,int dir,unsigned char match);
 extern void 	setmatchfunc(int control, int ids_name, int *c);
 extern LINE 	*(*advmatchfunc)();
-extern int 	ln_leadspce(LINE *l);
+extern int 	ln_countLeadingSpaces(LINE *l);
 extern int 	IsSpace(unsigned char c);
 extern int 	TabStop(int col, DOCUMENT_DESCRIPTOR *l);
 extern int 	CntSpaces(unsigned char *s, int pos);
 extern int 	sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
 				 int indent, int *di, int *hbr);
 extern int 	shift_lines(FTABLE *fp, long ln, long nlines, int dir);
-extern int 	curpos(long ln, long col);
+extern int 	caret_placeCursorInCurrentFile(long ln, long col);
 extern void 	wt_insline(WINFO *wp, int nlines);
 extern void 	ln_changeFlag(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark,
 				int set);
@@ -208,7 +208,7 @@ static int do_brindent(FTABLE *fp, int dir, LINE *lp1, LINE *lp2)
 		if (indent != i2) {
 			shift_lines(fp,fp->ln,1L,i2-indent);
 		}
-		curpos(fp->ln,i2);
+		caret_placeCursorInCurrentFile(fp->ln,i2);
 	}
 
 	return 1;	
@@ -226,7 +226,7 @@ static int PostInsline(FTABLE *fp, int dir, long ln, long col)
 
 	omincol = wp->mincol;
 	ominln  = wp->minln;
-	curpos(ln,col);
+	caret_placeCursorInCurrentFile(ln,col);
 	if (omincol != wp->mincol) {
 		RedrawTotalWindow(fp);
 	} else {
@@ -291,8 +291,8 @@ int EdLineDelete(control)
 	fp = ft_CurrentDocument();
 	wp = WIPOI(fp);
 	if (control & 1) {
-		curpos((long)(fp->ln-1),0L);
-	} else curpos(fp->ln,0L);
+		caret_placeCursorInCurrentFile((long)(fp->ln-1),0L);
+	} else caret_placeCursorInCurrentFile(fp->ln,0L);
 	clfirst = fp->caret.linePointer;
 	clast   = clfirst->next;
 	if (!clast->next) {
@@ -430,13 +430,13 @@ static void dowrap(FTABLE *fp)
 
 	if (findwrap(fp, fp->caret.linePointer,fp->caret.offset,&nextword,RightMargin(fp)) > 0) {
 		delta = fp->caret.offset-nextword;
-		curpos(fp->ln,(long)nextword);
+		caret_placeCursorInCurrentFile(fp->ln,(long)nextword);
 		EdLineSplit(0);
 		if (delta < 0)
 			delta += fp->caret.offset;
 		if (delta < 0)
 			delta = 0;
-		curpos(fp->ln,(long)(fp->caret.offset+delta));
+		caret_placeCursorInCurrentFile(fp->ln,(long)(fp->caret.offset+delta));
 	}
 }
 
@@ -479,7 +479,7 @@ static int EdAutoFormat(FTABLE *fp)
 			lpnext = lp->next;
 			if (lpnext == fp->lastl || HARD_BREAK(lpnext))
 				lpnext = lp;
-			indent = ln_leadspce(lpnext);
+			indent = ln_countLeadingSpaces(lpnext);
 			indent = caret_lineOffset2screen(fp, &(CARET) { lpnext, indent});
 
 			/* start of next word after word position defined:
@@ -634,7 +634,7 @@ static int EdAutoFormat(FTABLE *fp)
 		newcol = lp1->len;
 	}
 
-	curpos(newln,newcol);
+	caret_placeCursorInCurrentFile(newln,newcol);
 	free(lpscratch);
 	return 1;
 }
@@ -715,7 +715,7 @@ int EdCharInsert(int c)
 #endif
 
 	offs += nchars;
-	curpos(fp->ln,(long)offs);
+	caret_placeCursorInCurrentFile(fp->ln,(long)offs);
 
 	if (!_playing) {
 
@@ -763,7 +763,7 @@ int EdCharDelete(control)
 			return 1;
 		if ((lp = lp->prev) == 0L) 
 			return 0;
-		curpos(ln-1L,(long) lp->len);
+		caret_placeCursorInCurrentFile(ln-1L,(long) lp->len);
 		return EdLinesJoin();
 	} else switch (control) {
 		case  MOT_SINGLE: o2++; break;
@@ -790,7 +790,7 @@ int EdCharDelete(control)
 	}
 
 	if (control < 0)
-		curpos(ln,o1);
+		caret_placeCursorInCurrentFile(ln,o1);
 
 	if (ln != ln1) {
 		RedrawTotalWindow(fp);
@@ -825,7 +825,7 @@ int EdLineSplit(int flags)
 		cb_breakline(fp, flags & RET_SOFT);
 	}
 	else if (lp->next != fp->lastl) {
-		curpos(fp->ln+1,0L);
+		caret_placeCursorInCurrentFile(fp->ln+1,0L);
 	}
 	else if (!control) {
 		EdLineInsert(0);
@@ -874,7 +874,7 @@ int EdMarkedLineOp(int op)
 			lp = lp->next, ln++);
 		if (!lp)
 			return 1;
-		newcpos(ln,0L);
+		caret_placeCursorAndSavePosition(ln,0L);
 		MouseBusy();
 		if (op == MLN_JOIN)
 			lnjoin_lines(fp);	
@@ -924,7 +924,7 @@ int EdUnHideLine(void)
 	}
 
 	if (ln_unhide(fp, fp->caret.linePointer)) {
-		curpos(fp->ln,0L);
+		caret_placeCursorInCurrentFile(fp->ln,0L);
 		RedrawTotalWindow(fp);
 	}
 	return 1;

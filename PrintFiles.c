@@ -5,9 +5,9 @@
  *
  * purpose: print files
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  */
@@ -16,7 +16,7 @@
 #include <windowsx.h>
 
 #include "trace.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "edierror.h"
 
 #include "winfo.h"
@@ -30,6 +30,7 @@
 #include "printing.h"
 #include "xdialog.h"
 #include "stringutil.h"
+#include "editorconfiguration.h"
 
 #define	PREVIEWING()		(hwndPreview != 0)
 #define	EVEN(p)			((p & 1) == 0)
@@ -642,7 +643,7 @@ void PrinterDefaults(int save)
 				prof_savelong(prt,name,(long)(*(int*)loc));
 			}
 		} else {
-			if (GetPksProfileString(prt,name,szBuff,sizeof szBuff)) {
+			if (prof_getPksProfileString(prt,name,szBuff,sizeof szBuff)) {
 				if (_pi[i].pr_isstring) {
 					lstrcpy((LPSTR)loc,szBuff);
 				}

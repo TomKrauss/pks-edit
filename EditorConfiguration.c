@@ -6,9 +6,9 @@
  * Configuration of global options of PKS edit. These are for now 
  * saved in a file PKSEDIT.INI by default located in the PKS_SYS folder.
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  */

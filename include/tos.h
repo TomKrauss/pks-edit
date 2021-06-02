@@ -5,9 +5,9 @@
  *
  * purpose: simulate TOS system calls with WINDOW calls
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *

@@ -7,9 +7,9 @@
  * 		  diffs are marked in both windows, last equal line is positioned
  * 		  corresponding to the current setting of "cursor after search"
  *
- * 										created      : 01.01.90
+ * 										created: 01.01.90
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauß
  */
@@ -123,8 +123,8 @@ static long matchlines(FTABLE *fp1,FTABLE *fp2,int dir)
 				lp2->lflg |= LNDIFFMARK;
 				l1 = ln_cnt(fp1->firstl,lp1) - 1;
 				l2 = ln_cnt(fp2->firstl,lp2) - 1;
-				center2cpos(fp1,l1,0L);
-				center2cpos(fp2,l2,0L);
+				caret_placeCursorAndMakevisibleWithSpace(fp1,l1,0L);
+				caret_placeCursorAndMakevisibleWithSpace(fp2,l2,0L);
 				if (!dir)
 					goto out;
 			}

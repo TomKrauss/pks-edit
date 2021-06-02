@@ -5,9 +5,9 @@
  *
  * purpose: utilities for window coordinate caluclation.
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  */

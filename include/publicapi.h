@@ -7,9 +7,9 @@
  * defines all macro callable editor API functions.
  * 
  *
- * 										created      : 20.02.87
+ * 										created: 20.02.87
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */

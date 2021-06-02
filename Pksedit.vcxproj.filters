@@ -425,6 +425,9 @@
     <ClInclude Include="include\textblocks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\clipboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">

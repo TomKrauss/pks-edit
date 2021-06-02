@@ -5,13 +5,12 @@
  *
  * purpose: special sprintf, printing status infos,...
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 #include <windows.h>

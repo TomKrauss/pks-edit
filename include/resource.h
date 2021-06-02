@@ -5,13 +5,12 @@
  *
  * purpose: definition of macro file structure
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 # ifndef RESOURCE_H

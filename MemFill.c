@@ -11,6 +11,7 @@
  *									
  */
 
+#include <stdlib.h>
 #include "lineoperations.h"
 
 #ifdef MC68000

@@ -5,13 +5,12 @@
  *
  * purpose: file tree walk
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 #include <malloc.h>

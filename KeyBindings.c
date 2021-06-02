@@ -6,9 +6,9 @@
  * purpose: translate key names 2 scan code and vc.vs.
  *		  maintain key-function bindings in a hash tab
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */

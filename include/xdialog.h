@@ -5,13 +5,12 @@
  *
  * purpose: extended dialog functions
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 # ifndef XDIALOG_H

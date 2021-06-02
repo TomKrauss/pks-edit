@@ -5,9 +5,9 @@
  *
  * purpose: maintain a list of the last "goto tag" positions
  *
- * 										created      : Jan. 1990
+ * 										created: Jan. 1990
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */

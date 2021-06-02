@@ -5,9 +5,9 @@
  *
  * purpose: Initializations
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  */
@@ -64,13 +64,13 @@ static void Getenv(char *name,char *d,int maxlen)
 
 		strmaxcpy(d, env, maxlen);
 	} else {
-		GetPksProfileString("environment",name,d,maxlen);
+		prof_getPksProfileString("environment",name,d,maxlen);
 	}
 
 }
 
 char* mystrrchr(char s[], int c) {
-	int tempLen = strlen(s);
+	size_t tempLen = strlen(s);
 	while(--tempLen >= 0) {
 		if (s[tempLen] == c) {
 			return &s[tempLen+1];

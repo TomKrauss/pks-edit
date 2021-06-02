@@ -5,9 +5,9 @@
  *
  * purpose: describes the PKS Edit document types
  *
- * 										created      : 15.03.91
+ * 										created: 15.03.91
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */
@@ -82,6 +82,14 @@ extern void DeleteAllDocumentTypes();
  * Deletes a given document type.
  */
 extern void DeleteDocumentType(DOCUMENT_TYPE* llp);
+
+/*--------------------------------------------------------------------------
+ * AssignDocumentTypeDescriptor()
+ * assign document type properties / descriptor to file
+ * if documentDescriptor == 0, read document descriptor from disc according to filename pattern
+ * match.
+ */
+extern int  AssignDocumentTypeDescriptor(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor);
 
 #endif
 

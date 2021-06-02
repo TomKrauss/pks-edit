@@ -82,7 +82,11 @@ FTABLE* ft_CurrentErrorDocument() {
 	return _currentErrorFile;
 }
 
-VOID ft_SetCurrentErrorDocument(FTABLE* fp) {
+/**
+ * Make the passed file the "current error file" - which can be used by clicking on
+ * lines displayed in that file to navigate to positions (compiler errors etc...).
+ */
+void ft_SetCurrentErrorDocument(FTABLE* fp) {
 	_currentErrorFile = fp;
 }
 
@@ -265,7 +269,8 @@ int pickread(void )
 }
 
 /*------------------------------------------------------------
- * ft_bufdestroy()
+ * ft_bufdestroy().
+ * Release all resources associated with a file.
  */
 void ft_bufdestroy(FTABLE *fp)
 {
@@ -436,9 +441,12 @@ static int ft_openwin(FTABLE *fp, WINDOWPLACEMENT *wsp)
 }
 
 /*------------------------------------------------------------
- * ft_wantclose()
+ * ft_requestToClose()
+ * The user requests to close a file (last window of a file). 
+ * If the file is modified and cannot be saved or some other error
+ * occurs, return 0, otherwise, if the file can be closed return 1.
  */
-int ft_wantclose(FTABLE *fp)
+int ft_requestToClose(FTABLE *fp)
 {
 	if (fp->documentDescriptor->cm[0]) {
 		if (!do_macbyname(fp->documentDescriptor->cm)) {
@@ -633,7 +641,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 		fp->flags |= F_MODIFIED;
 	}
 
-	curpos(line,0L);
+	caret_placeCursorInCurrentFile(line,0L);
 
 	if (fileflags != 0 && fp->documentDescriptor) {
 		do_macbyname(fp->documentDescriptor->creationMacroName);
@@ -704,7 +712,7 @@ int AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 		ln = fp->nlines-1;
 	}
 
-	curpos(ln,col);
+	caret_placeCursorInCurrentFile(ln,col);
 
 	doc_documentTypeChanged();
 	RedrawTotalWindow(fp);

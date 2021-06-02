@@ -5,9 +5,9 @@
  *
  * purpose: functions accessible in user defined macros.
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  */
@@ -77,8 +77,8 @@ extern char *		TmpDir(void);
 extern void 		mac_switchtodefaulttables(void);
 extern int 		doc_documentTypeChanged(void);
 extern void 		SendRedraw(HWND hwnd);
-extern int 		cursupdown(int dir, int mtype);
-extern int 		cursabsatz(int dir,int start);
+extern int 		caret_moveUpOrDown(int dir, int mtype);
+extern int 		caret_advanceSection(int dir,int start);
 extern int 		curspgrph(int dir,int start);
 extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
@@ -156,7 +156,7 @@ int EdCursorRight(int mtype)
  */
 int EdCursorUp(int mtype)
 {
-	return cursupdown(-1,mtype);
+	return caret_moveUpOrDown(-1,mtype);
 }
 
 /*--------------------------------------------------------------------------
@@ -164,7 +164,7 @@ int EdCursorUp(int mtype)
  */
 int EdCursorDown(int mtype)
 {
-	return cursupdown(1,mtype);
+	return caret_moveUpOrDown(1,mtype);
 }
 
 /*--------------------------------------------------------------------------
@@ -172,7 +172,7 @@ int EdCursorDown(int mtype)
  */
 int EdChapterGotoBegin(int dir)
 {
-	return cursabsatz(dir,1);
+	return caret_advanceSection(dir,1);
 }
 
 /*--------------------------------------------------------------------------
@@ -180,7 +180,7 @@ int EdChapterGotoBegin(int dir)
  */
 int EdChapterGotoEnd(int dir)
 {
-	return cursabsatz(dir,0);
+	return caret_advanceSection(dir,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -640,7 +640,7 @@ int EdGotoLine(void)
 {	long ln;
 
 	if ((ln = DialogGetNum(DLGGOTOLINE)) > 0L)
-		return centernewpos(ln-1L,0L);
+		return caret_placeCursorMakeVisibleAndSaveLocation(ln-1L,0L);
 	return 0;
 }
 
@@ -670,7 +670,7 @@ int EdMarkGoto(void)
 		ed_error(IDS_MSGMARKUNDEF); 
 		return 0;
 	} else {
-		return centernewpos(x,y);
+		return caret_placeCursorMakeVisibleAndSaveLocation(x,y);
 	}
 }
 
@@ -1122,7 +1122,6 @@ int EdRangeShift(int dir)
  */
 static void color_lboxfill(HWND hwnd, int nItem, long selValue)
 {
-	PLOGPALETTE 	pLogPal;
 	COLORREF		cColor;
 	HDC			hdc;
 	int			i;
@@ -1798,7 +1797,7 @@ static int add_icon(HWND hDlg);
 static int del_icon(HWND hDlg);
 static int mod_icon(void);
 static char _title[32],_pars[64];
-static UINT_PTR _ictype;
+static LONG _ictype;
 static DIALLIST icondlist = {
 	&_ictype, ic_lboxfill, LbGetText, 
 	ic_lboxmeasureitem, ic_lboxdrawitem, ic_lboxselchange, 0  };

@@ -5,9 +5,9 @@
  *
  * purpose: read the PKSEDIT.KEY File
  *
- * 										created      : 27.01.1991
+ * 										created: 27.01.1991
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauß
  * All Rights Reserved.
@@ -312,7 +312,7 @@ int doabbrev(FTABLE *fp, LINE *lp,int offs)
 	o2 = offs-up->len;
 	if ((lp = ln_modify(fp,lp,offs,o2)) == 0L)
 		return 0;
-	curpos(fp->ln,o2);
+	caret_placeCursorInCurrentFile(fp->ln,o2);
 	return (domacro) ? 
 		redrawline(), do_macbyname((char *)up->p) : pasteblk(up->p,0,o2,0);
 }

@@ -5,7 +5,7 @@
  *
  * purpose: toggle and set file editing settings
  *
- *                                               created      : 
+ *                                               created: 
  *                                               last modified:
  *                                               author       : TOM
  *

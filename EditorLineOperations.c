@@ -5,9 +5,9 @@
  *
  * maintain list of lines: delete, insert, modify,....
  *
- * 										created      : 10.02.87
+ * 										created: 10.02.87
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */

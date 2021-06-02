@@ -5,9 +5,9 @@
  *
  * purpose: save and restore settings
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  */
@@ -88,14 +88,15 @@ void prof_setinifile(char *fn)
 }
 
 /*------------------------------------------------------------
- * GetPksProfileString()
+ * prof_getPksProfileString()
+ * Fetches a string from the PKS profile ini file. 
  */
-int GetPksProfileString(char *grp, char *ident, char *string, int maxlen)
+int prof_getPksProfileString(char *pGroup, char *ident, char *string, int maxlen)
 {
 	if (!LocatePksEditIni())
 		return 0;
 	return
-		GetPrivateProfileString(grp, ident, "", string, maxlen ,_pksEditIniFilename);
+		GetPrivateProfileString(pGroup, ident, "", string, maxlen ,_pksEditIniFilename);
 }
 
 /*--------------------------------------------------------------------------
@@ -159,7 +160,7 @@ EXPORT int prof_getwinstate(char *wname, int nr, WINDOWPLACEMENT *wsp)
 	char	string[256];
 
 	wsprintf(ident,"%s%d",(LPSTR)wname,nr);
-	if (!GetPksProfileString(_desk,ident,string,sizeof string -1)) {
+	if (!prof_getPksProfileString(_desk,ident,string,sizeof string -1)) {
 		return 0;
 	}
 	return prof_getws(string,wsp);
@@ -224,7 +225,7 @@ int prof_savelong(char *grp, char *ident, LONG val)
 LONG prof_getlong(char *grp,char *ident)
 { 	char string[256];
 
-	GetPksProfileString(grp,ident,string,sizeof string -1);
+	prof_getPksProfileString(grp,ident,string,sizeof string -1);
 	return Atol(string);
 }
 
@@ -243,7 +244,7 @@ int prof_getstdopt(void)
 	_currentSearchAndReplaceParams.options = (int)prof_getlong(_desk,"FindOptions");
 	GetConfiguration()->asminutes = prof_getlong(_desk,"AsInterv");
 	GetConfiguration()->nundo = prof_getlong(_desk,"NUBuf");
-	GetPksProfileString(_desk,"AsPath", GetConfiguration()->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath) -1);
+	prof_getPksProfileString(_desk,"AsPath", GetConfiguration()->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath) -1);
 
 	return 1;
 }
@@ -335,7 +336,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 /*--------------------------------------------------------------------------
  * prof_enum()
  */
-int prof_enum(LPSTR grp, int (*lpfnEnum)(LPSTR, LONG), LONG lParam)
+int prof_enum(LPSTR grp, intptr_t (*lpfnEnum)(LPSTR, LONG), LONG lParam)
 {
 	char *s;
 
@@ -362,7 +363,7 @@ void *prof_llinsert(void *Head, int size, char *group, char *item, char **idata)
 	char			szBuf[256],*s;
 	struct llist 	*lp;
 
-	if (!GetPksProfileString(group, item, szBuf, sizeof szBuf))
+	if (!prof_getPksProfileString(group, item, szBuf, sizeof szBuf))
 		return 0;
 
 	if ((s = stralloc(szBuf)) == 0) {

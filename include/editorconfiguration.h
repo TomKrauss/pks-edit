@@ -6,9 +6,9 @@
  * Configuration of global options of PKS edit. These are for now
  * saved in a file PKSEDIT.INI by default located in the PKS_SYS folder.
  *
- * 										created      :
+ * 										created:
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  */
@@ -67,6 +67,72 @@ typedef struct {
  */
 extern EDITOR_CONFIGURATION* GetConfiguration();
 
+/*--------------------------------------------------------------------------
+ * prof_setinifile()
+ */
+void prof_setinifile(char* fn);
+
+/*--------------------------------------------------------------------------
+ * prof_adjustpoint()
+ */
+extern void prof_adjustpoint(PPOINT pPoint);
+
+/*------------------------------------------------------------
+ * prof_getws()
+ */
+extern int prof_getws(char* string, WINDOWPLACEMENT* wsp);
+
+/*------------------------------------------------------------
+ * prof_getwinstate()
+ */
+extern int prof_getwinstate(char* wname, int nr, WINDOWPLACEMENT* wsp);
+
+/*------------------------------------------------------------
+ * prof_printws()
+ */
+extern void prof_printws(char* buf, WINDOWPLACEMENT* wsp);
+
+/*------------------------------------------------------------
+ * prof_savestring()
+ */
+extern int prof_savestring(char* grp, char* ident, char* string);
+
+/*--------------------------------------------------------------------------
+ * prof_killentry()
+ */
+extern int prof_killentry(char* grp, char* ident);
+
+/*------------------------------------------------------------
+ * prof_savewinstate()
+ */
+extern int prof_savewinstate(char* wname, int nr, WINDOWPLACEMENT* wsp);
+
+/*------------------------------------------------------------
+ * prof_savelong()
+ */
+extern int prof_savelong(char* grp, char* ident, LONG val);
+
+/*------------------------------------------------------------
+ * prof_getlong()
+ */
+extern LONG prof_getlong(char* grp, char* ident);
+
+/*------------------------------------------------------------
+ * prof_getstdopt()
+ */
+extern int prof_getstdopt(void);
+
+/*--------------------------------------------------------------------------
+ * prof_killsections()
+ */
+extern void prof_killsections(LPSTR pszFn, LPSTR pszSection);
+
+/*--------------------------------------------------------------------------
+ * prof_saveaspath()
+ * Save the temp path of PKS editor to the pksedit.ini file.
+ */
+extern void prof_saveaspath(EDITOR_CONFIGURATION* configuration);
+
 /*------------------------------------------------------------
  * prof_save()
  * Save the configuration. If interactive is passed, then open
@@ -76,10 +142,20 @@ extern EDITOR_CONFIGURATION* GetConfiguration();
 extern int prof_save(EDITOR_CONFIGURATION* configuration, int interactive);
 
 /*--------------------------------------------------------------------------
- * prof_saveaspath()
- * Save the temp path of PKS editor to the pksedit.ini file.
+ * prof_enum()
  */
-extern void prof_saveaspath(EDITOR_CONFIGURATION* configuration);
+extern int prof_enum(LPSTR grp, intptr_t (*lpfnEnum)(LPSTR, LONG), LONG lParam);
+
+/*--------------------------------------------------------------------------
+ * prof_llinsert()
+ */
+extern void* prof_llinsert(void* Head, int size, char* group, char* item, char** idata);
+
+/*------------------------------------------------------------
+ * prof_getPksProfileString()
+ * Fetches a string from the PKS profile ini file.
+ */
+extern int prof_getPksProfileString(char* pGroup, char* ident, char* string, int maxlen);
 
 #define EDITORCONFIGURATION_H
 #endif

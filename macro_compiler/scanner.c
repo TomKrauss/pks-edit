@@ -1827,7 +1827,7 @@ FILE *file;
 #if YY_NEVER_INTERACTIVE
 	b->yy_is_interactive = 0;
 #else
-	b->yy_is_interactive = file ? (isatty( _fileno(file) ) > 0) : 0;
+	b->yy_is_interactive = file ? (isatty( fileno(file) ) > 0) : 0;
 #endif
 #endif
 	}

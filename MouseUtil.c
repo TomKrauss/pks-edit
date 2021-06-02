@@ -177,10 +177,10 @@ EXPORT int EdBlockMouseMark(int typ)
 		colflg = 0;
 		if (markforward >= 0 && bl_defineColumnSelectionFromXY(x,y,xx,yy)) {
 			long lnx = ln, colx = col;
-			cphyspos(fp,&lnx,&colx,1);
+			caret_updateLineColumn(fp,&lnx,&colx,1);
 			colflg = MARK_COLUMN;
 		} else {
-			if (!cphyspos(fp,&ln,&col,1))
+			if (!caret_updateLineColumn(fp,&ln,&col,1))
 				continue;
 		}
 		if (ln == saveln && col == savecol)
@@ -197,7 +197,7 @@ EXPORT int EdBlockMouseMark(int typ)
 			} else {
 				if ((ln > ln1 || (ln == ln1 && col > col1)) != markforward) {
 					/* marking direction changed */
-					cphyspos(fp,&ln1,&col1,1);
+					caret_updateLineColumn(fp,&ln1,&col1,1);
 					EdSyncSelectionWithCaret((markforward ? MARK_END : MARK_START)|colflg);
 					markforward = !markforward;
 					continue;
@@ -376,7 +376,7 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 	}
 	if (mp->flags & MO_FINDCURS) {
 		caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
-		if (cphyspos(FTPOI(wp),&ln,&col,1)) {
+		if (caret_updateLineColumn(FTPOI(wp),&ln,&col,1)) {
 			wt_curpos(wp,ln,col);
 		}
 	}

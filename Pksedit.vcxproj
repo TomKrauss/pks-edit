@@ -1172,6 +1172,7 @@
   <ItemGroup>
     <ClInclude Include="include\alloc.h" />
     <ClInclude Include="include\caretmovement.h" />
+    <ClInclude Include="include\clipboard.h" />
     <ClInclude Include="include\documenttypes.h" />
     <ClInclude Include="include\editorconfiguration.h" />
     <ClInclude Include="include\editorfont.h" />

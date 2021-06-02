@@ -8,9 +8,9 @@
  *
  * purpose: some WINDOWS dialogs for general and special purpose
  *
- * 										created      : 01.01.90
+ * 										created: 01.01.90
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauß
  */
@@ -228,7 +228,7 @@ WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			    wParam == VK_SHIFT)
 		    		break;
 			if (message == WM_KEYDOWN || message == WM_SYSKEYDOWN) {
-				key = mac_addModifierKeys(wParam);
+				key = mac_addModifierKeys((KEYCODE) wParam);
 				SendMessage(hwnd,WM_CHARCHANGE,key,0L);
 				down++;
 			} else if (down) {
@@ -381,7 +381,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 			case IDD_ICONLIST:
 			case IDD_FONTSEL2COLOR:
 				dlp = (DIALLIST*)dp->dp_data;
-				(*dlp->li_fill)(hDlg,item, *dlp->li_param);
+				(*dlp->li_fill)(hDlg,item, (void*) *dlp->li_param);
 				break;
 			case IDD_CSEL:
 				SendDlgItemMessage(hDlg,item,WM_CHARCHANGE,

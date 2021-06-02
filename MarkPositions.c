@@ -5,9 +5,9 @@
  *
  * purpose: setting marks 'a-....
  *
- * 										created      : 05.02.89
+ * 										created: 05.02.89
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauß
  */
@@ -118,9 +118,9 @@ LINE *mark_goto(FTABLE *fp, int c, long *ln, long *col)
 }
 
 /*--------------------------------------------------------------------------
- * savecpos()
+ * mark_saveCaretPosition()
  */
-int savecpos(void)
+int mark_saveCaretPosition(void)
 {	register FTABLE *fp;
 
 	if ((fp = ft_CurrentDocument()) != 0) {
@@ -129,22 +129,6 @@ int savecpos(void)
 		return 1;
 	}
 	return 0;
-}
-
-/*--------------------------------------------------------------------------
- * newcpos()
- */
-int newcpos(long ln,long col)
-{	register FTABLE *fp;
-
-	if ((fp = ft_CurrentDocument()) == 0)
-		return 0;
-	
-	if (ln == fp->ln && col == fp->caret.offset)
-		return 1;
-
-	savecpos();
-	return curpos(ln,col);
 }
 
 /*--------------------------------------------------------------------------
@@ -169,7 +153,7 @@ int EdGotoLastPos(int type)
 				col = fp->lastcol;
 		}
 
-		return centernewpos(ln,col);	   
+		return caret_placeCursorMakeVisibleAndSaveLocation(ln,col);	   
 	}
 	return 0;
 }

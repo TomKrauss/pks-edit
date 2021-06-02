@@ -5,7 +5,7 @@
  *
  * purpose: find, open, create Files
  *
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */

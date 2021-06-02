@@ -213,8 +213,7 @@ int mac_isvalidname(char *name, int origidx)
 /*--------------------------------------------------------------------------
  * check_fkdirty()
  */
-void check_fkdirty(KEYCODE key)
-{
+void check_fkdirty(KEYCODE key) {
 	key &= 0xFF;
 	if (key >= VK_F1 && key <= VK_F12) {
 		_fkeysdirty = 1;

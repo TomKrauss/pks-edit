@@ -9,9 +9,9 @@
  *		  link configuration files to file name extensions
  *		  tapstop calculating functions
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */
@@ -28,7 +28,7 @@
 #include "pksedit.h"
 #include "documenttypes.h"
 #include "fileutil.h"
-
+#include "editorconfiguration.h"
  /*
  * Description of one document type in PKS edit.
  */
@@ -220,7 +220,7 @@ static DOCUMENT_DESCRIPTOR *LoadDocumentTypeDescriptor(DOCUMENT_TYPE *llp)
  */
 int CountDocumentTypes(void)
 {
-	return ll_size(_linl);
+	return ll_size((LINKED_LIST*)_linl);
 }
 
 /*--------------------------------------------------------------------------
@@ -550,7 +550,7 @@ static BOOL _DeleteDocumentType(DOCUMENT_TYPE* dt) {
  * Deletes and de-allocates all known document types. 
  */
 void DeleteAllDocumentTypes() {
-	ll_destroy(&_linl, _DeleteDocumentType);
+	ll_destroy((LINKED_LIST**)&_linl, _DeleteDocumentType);
 }
 
 /*--------------------------------------------------------------------------
@@ -559,7 +559,7 @@ void DeleteAllDocumentTypes() {
  */
 void DeleteDocumentType(DOCUMENT_TYPE *llp)
 {
-	ll_delete(&_linl, llp);
+	ll_delete((LINKED_LIST**)&_linl, llp);
 }
 
 /*--------------------------------------------------------------------------

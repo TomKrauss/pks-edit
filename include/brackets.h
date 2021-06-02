@@ -5,9 +5,9 @@
  *
  * purpose: definition of brackets structure
  *
- * 										created      : 28.10.91
+ * 										created: 28.10.91
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */

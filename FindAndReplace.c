@@ -7,7 +7,7 @@
  *
  * 										adapted      : 01.12.91
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauß
  */
@@ -41,7 +41,6 @@
 extern 	MARK		*mark_set(FTABLE *fp, LINE *lp,int offs,int c);
 extern 	MARK		*mark_find(FTABLE *fp, int c);
 extern	int    	_playing,cursor_width;
-extern	long 	cparagrph(long ln,int dir,int start);
 unsigned char 		*tlcompile(unsigned char *transtab, 
 						 unsigned char *t,
 						 unsigned char *wt);
@@ -239,7 +238,7 @@ static int searchcpos(FTABLE *fp,long ln,int col, RE_MATCH *pMatch)
 	WINFO  *wp;
 
 	wp = WIPOI(fp);
-	centernewpos(ln,col);
+	caret_placeCursorMakeVisibleAndSaveLocation(ln,col);
 	col2 = caret_lineOffset2screen(fp, &(CARET) {
 		fp->caret.linePointer, (int)(pMatch->loc2 - pMatch->loc1) + fp->caret.offset
 	});
@@ -471,7 +470,7 @@ static void modifypgr(FTABLE *fp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
 		if (xabort() || lp == mpe->lm)
 			break;
 	}
-	curpos(fp->ln,0L);
+	caret_placeCursorInCurrentFile(fp->ln,0L);
 	if (*cntel) {
 		p_redraw();
 		*cntln = countlines(fp,*cntln,1);
@@ -609,7 +608,7 @@ int EdReplaceText(int scope, int action, int flags)
 	hist_enq(SEARCH_AND_REPLACE, _currentSearchAndReplaceParams.replaceWith);
 
 	undo_startModification(fp);
-	savecpos();
+	mark_saveCaretPosition();
 
 	if (SelectRange(scope,fp,&markstart,&Markend) == RNG_INVALID)
 		return 0;
@@ -770,12 +769,12 @@ endrep:
 	if (rp) {
 		if (action != REP_COUNT) {
 			if (_currentReplacementPattern.lineSplittingNeeded) {
-				curpos(startln,0L);
+				caret_placeCursorInCurrentFile(startln,0L);
 				ln = breaklines(fp,0,startln,ln);
-				centernewpos(ln,col);
+				caret_placeCursorMakeVisibleAndSaveLocation(ln,col);
 				RedrawTotalWindow(fp);
 			} else {
-				centernewpos(lastfln,lastfcol);
+				caret_placeCursorMakeVisibleAndSaveLocation(lastfln,lastfcol);
 				if (scope == RNG_ONCE && action == REP_REPLACE) {
 					redrawline();
 				} else {
@@ -892,9 +891,9 @@ int SelectRange(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend) {
 			break;
 		case RNG_CHAPTER:
 			lps = lpe = fp->caret.linePointer;
-			while(!isempty(lps) && lps->prev)
+			while(!ln_lineIsEmpty(lps) && lps->prev)
 				lps = lps->prev;
-			while(!isempty(lpe) && lpe->next != fp->lastl)
+			while(!ln_lineIsEmpty(lpe) && lpe->next != fp->lastl)
 				lpe = lpe->next;
 			ofs = 0;
 			ofe = lpe->len;

@@ -5,9 +5,9 @@
  *
  * purpose: string utility functions.
  *
- * 										created      :
+ * 										created:
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */

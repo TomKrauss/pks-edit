@@ -5,9 +5,9 @@
  *
  * purpose: memory managment 
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauž
  */

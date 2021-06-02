@@ -5,18 +5,17 @@
  *
  * purpose: ring the bell
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
- *
- * 								Author: TOM
  */
 
 #include <windows.h>
 #include "lineoperations.h"
 #include "stringutil.h"
+#include "editorconfiguration.h"
 
 #define	CHANNEL		1
 #define	PITCH		0			/* pitch + note == height */
@@ -55,7 +54,7 @@ static void ReadChimeParams()
 
 	for (i = 0; i < DIM(_notes); i++) {
 		wsprintf(name,"N%d",i);
-		if (GetPksProfileString("bell",name,
+		if (prof_getPksProfileString("bell",name,
 							string,sizeof string) == 0)
 			break;
 		np = &_v.v_notes[i];

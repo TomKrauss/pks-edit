@@ -5,9 +5,9 @@
  *
  * purpose: reading and writing file buffers
  *
- * 										created      : 10.02.87
+ * 										created: 10.02.87
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */
@@ -31,6 +31,7 @@
 
 /*----- EXTERNALS -----------*/
 
+extern void ft_settime(EDTIME* tp);
 extern int  CryptDialog(LPSTR password, int twice);
 extern EDTIME EdGetFileTime(char *fname);
 extern int EdMakeReadable(char *fn);
@@ -123,7 +124,7 @@ static void listPathes_mk(char *szPath)
 {
 	char	 szBuf[256];
 
-	GetPksProfileString(szAltpath, szPath, szBuf, sizeof szBuf);
+	prof_getPksProfileString(szAltpath, szPath, szBuf, sizeof szBuf);
 	list2_mk(&_p2list,szPath,szBuf);
 }
 

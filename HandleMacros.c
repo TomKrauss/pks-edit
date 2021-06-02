@@ -5,13 +5,12 @@
  *
  * purpose: common functions for macro handling
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 # if defined( _Windows ) || defined(WIN32)

@@ -36,7 +36,6 @@
 #include "stringutil.h"
 #include "fileutil.h"
 
-extern int  	GetPksProfileString(char *grp, char *ident, char *string, int maxlen);
 extern int 		DoDocumentTypes(int nDlg);
 extern void 	GetStdMenuText(int menunr, char *text);
 /*------------------------------------------------------------

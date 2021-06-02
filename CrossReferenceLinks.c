@@ -88,7 +88,7 @@ static int	_compflag;
 /* tags_mk()					*/
 /*---------------------------------*/
 static char *szTags = "tags";
-static int tags_mk(char *tag)
+static int tags_mk(char *tag, LONG unused)
 {
 	char		*s;
 	TAGTRY	*tp;
@@ -163,7 +163,7 @@ static char *get_quoted(char **src)
  * compiler_mk()
  */
 static char *szCompiler = "compiler";
-static int compiler_mk(char *compiler)
+static int compiler_mk(char *compiler, LONG unused)
 {
 	TAGEXPR 	*ct;
 	char		*s;
@@ -529,7 +529,7 @@ int tagopen(char *name, long line, WINDOWPLACEMENT *wsp) {
 
 	if (ActivateWindowOfFileNamed(name)) {
 		if (line >= 0)
-			ret = centernewpos(line,0L);
+			ret = caret_placeCursorMakeVisibleAndSaveLocation(line,0L);
 		else ret = 1;
 	} else {
 		ret = opennofsel(name,line,wsp);
@@ -694,7 +694,7 @@ doforward:
 	if (tp && lp) {
 		if ((wp = WIPOI(fp)) != 0) {
 			/* EdSelectWindow(wp->win_id); */
-			_curpos(fp,lineno,0);
+			caret_placeCursorForFile(fp,lineno,0);
 			ln_removeFlag(fp->firstl,fp->lastl,LNXMARKED);
 			lp->lflg |= LNXMARKED;
 			EdRedrawWindow(wp);

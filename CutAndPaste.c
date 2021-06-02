@@ -19,6 +19,7 @@
 #include "iccall.h"
 #include "editorconfiguration.h"
 #include "errordialogs.h"
+#include "clipboard.h"
 
  /*-----------------------*/
 /* EXTERNALS			*/
@@ -40,7 +41,6 @@ extern int	p_redraw(void );
 extern LINE	*cadv_word(LINE *lp,long *ln,long *col,int dir);
 extern LINE	*cadv_space(LINE *lp,long *ln,long *col,int dir);
 extern LINE	*cadv_wordonly(LINE *lp,long *ln,long *col,int dir);
-extern long	cparagrph(long ln, int dir, int start);
 
 extern long	_multiplier;
 
@@ -65,7 +65,7 @@ EXPORT int bl_hideSelection(int removeLineSelectionFlag) {
 	wp = WIPOI(fp);
 
 	if (removeLineSelectionFlag) {
-		curpos(fp->ln,(long)fp->caret.offset);
+		caret_placeCursorInCurrentFile(fp->ln,(long)fp->caret.offset);
 	}
 	lp = lpFirst = ln_relgo(fp, wp->minln - wp->ln);
 	for (ln = wp->minln; 
@@ -132,16 +132,16 @@ EXPORT int pasteblk(PASTE *buf, int colflg, int offset, int move)
 		col += offset;
 	if (!move) {
 		if (delta > 0 && (oln+delta) <= wp->maxln) {
-			curpos(fp->ln+1L,0L);
+			caret_placeCursorInCurrentFile(fp->ln+1L,0L);
 			wt_insline(wp,(int ) delta);
 		}
 		if (ln > wp->maxln) delta = wp->maxln;
 		else delta = ln;
 		RedrawFromTo(wp,oln,delta);
-		curpos(ln,col);		
+		caret_placeCursorInCurrentFile(ln,col);		
 	} else {
 		fp->blstart->lc++; /* get block marked afterwards (s. cpy_mv) */
-		curpos(ln,col);
+		caret_placeCursorInCurrentFile(ln,col);
 		RedrawTotalWindow(fp);
 		EdSyncSelectionWithCaret(MARK_END);
 	}
@@ -486,7 +486,7 @@ nodelta:		;
 	pbuf.pln = 0;
 	if ((ret = bl_cut(&pbuf,ls,le,cs,ce,move,colflg)) != 0) {
 		if (move_nocolblk) {
-			curpos((long)(fp->ln+dln),(long)(offs + delta));
+			caret_placeCursorInCurrentFile((long)(fp->ln+dln),(long)(offs + delta));
 			bl_hideSelection(0);
 			EdSyncSelectionWithCaret(MARK_START);
 			fp->blstart->lc--;
@@ -502,7 +502,7 @@ nodelta:		;
 
 		ret = pasteblk(&pbuf,colflg,offs,move);
 		if (colflg) {
-			curpos(fp->ln,(long)offs);
+			caret_placeCursorInCurrentFile(fp->ln,(long)offs);
 			fp->blcol1 = offs;
 			fp->blcol2 = offs + delta;
 			bl_setSelection(fp,fp->caret.linePointer,offs,
@@ -523,7 +523,7 @@ static int blfin(MARK *mp)
 
 	if (mp != 0) {
 		newln = ln_indexOf(ft_CurrentDocument(),mp->lm);
-		newcpos(newln,(long)mp->lc);
+		caret_placeCursorAndSavePosition(newln,(long)mp->lc);
 		return 1;
 	} else {
 		ed_error(IDS_MSGNOBLOCKSELECTED);
@@ -918,8 +918,8 @@ EXPORT int EdMouseMarkParts(int type)
 		o1  = o2;
 		lp  = (*func)(lp,&ln,&o1,-1);
 	} else if (type == MOT_PGRPH) {
-		col = cparagrph(ln,1,1);
-		ln  = cparagrph(col,-1,1);
+		col = caret_advanceParagraph(ln,1,1);
+		ln  = caret_advanceParagraph(col,-1,1);
 		lp  = ln_gotouserel(fp,ln);
 		lp2 = ln_gotouserel(fp,col);
 	} else {	/* MOT_TOEND */

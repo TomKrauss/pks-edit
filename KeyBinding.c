@@ -5,9 +5,9 @@
  *
  * purpose: Function Key Set
  *
- * 										created      : 01.01.90
+ * 										created: 01.01.90
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */

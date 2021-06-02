@@ -8,7 +8,7 @@
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
+ * 								Author: Tom
  */
 
 #include "funcdef.h"

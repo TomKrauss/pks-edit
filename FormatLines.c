@@ -22,7 +22,6 @@
 
 #define	isblnk(c)			(c == ' ' || c == '\t' || c == '' || c == '' || c == '')
 
-extern long cparagrph(long ln,int dir,int start);
 extern MARK *mark_set(FTABLE *fp, LINE *lp,int offs,int c);
 extern LINE *mark_goto(FTABLE *fp, int c, long *ln, long *col);
 extern int IsSpace(unsigned char c);
@@ -336,7 +335,7 @@ FormatText(int scope, int type, int flags)
 		fp->ln = 0;
 	}
 
-	curpos(fp->ln,savecol);
+	caret_placeCursorInCurrentFile(fp->ln,savecol);
 	RedrawTotalWindow(fp);
 	changemouseform();
 

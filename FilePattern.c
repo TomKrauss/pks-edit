@@ -6,9 +6,9 @@
  * purpose: TOS - like wildcard match for filenames
  * 		  special is: A,B,C => *.A|*.B|*.C
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */

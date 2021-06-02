@@ -5,9 +5,9 @@
  *
  * purpose: customized controls for PKS-EDIT
  *
- * 										created      : 01.01.90
+ * 										created: 01.01.90
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */
@@ -323,7 +323,7 @@ WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
 			hdc = GetDC( hwnd );
 			MarkSelection(hdc,oldc,cw,ch);
 			SetWindowWord(hwnd,GWW_CUSTOMVAL,(WORD)wParam);
-			MarkSelection(hdc,wParam,cw,ch);
+			MarkSelection(hdc,(int)wParam,cw,ch);
 			ReleaseDC( hwnd, hdc );
 			SendParentCommand(hwnd,
 					  MAKELONG(wParam,CSN_CHARSELECT));

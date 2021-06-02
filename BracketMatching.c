@@ -8,9 +8,9 @@
  * shift parts of text
  * translate character up 2 low and vc.vs.
  *
- * 										created      : 20.02.87
+ * 										created: 20.02.87
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauß
  */
@@ -469,7 +469,7 @@ EXPORT int EdShowMatch(void)
 	if (!fp) return 0;
 	ln = fp->ln, col = fp->caret.offset;
 	if (nextmatch(fp->caret.linePointer,&ln,&col)) {
-		curpos(ln,col);
+		caret_placeCursorInCurrentFile(ln,col);
 		return 1;
 	} 
 	ed_error(IDS_MSGNOBRACKETS);
@@ -491,9 +491,9 @@ EXPORT int showmatch(LINE *lp,int Col)
 		col -= up->len;
 		if (scanmatch(0,lp,(struct tagBRACKET_RULE *)up->p,&ln,&col)) {
 			if (ln >= WIPOI(fp)->minln) {
-				curpos(ln,col);
+				caret_placeCursorInCurrentFile(ln,col);
 				EdSleep();
-				curpos(lsav,csav);
+				caret_placeCursorInCurrentFile(lsav,csav);
 				return 1;
 			}
 		} else {
@@ -578,7 +578,7 @@ EXPORT int shift_lines(FTABLE *fp, long ln, long nlines, int dir)
 	if (fp->ln >= ln && fp->ln < ln+nlines)
 		offset += dir;
 
-	curpos(fp->ln,offset);
+	caret_placeCursorInCurrentFile(fp->ln,offset);
 
 	return 1;
 }

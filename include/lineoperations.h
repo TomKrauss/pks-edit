@@ -5,9 +5,9 @@
  *
  * maintain list of lines: delete, insert, modify,....
  *
- * 										created      : 10.02.87
+ * 										created: 10.02.87
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */
@@ -348,6 +348,26 @@ extern int ft_checkSelection(FTABLE* fp);
 extern int ft_checkSelectionWithError(FTABLE* fp);
 
 /*------------------------------------------------------------
+ * ft_bufdestroy().
+ * Release all resources associated with a file.
+ */
+extern void ft_bufdestroy(FTABLE* fp);
+
+/*------------------------------------------------------------
+ * ft_requestToClose()
+ * The user requests to close a file (last window of a file).
+ * If the file is modified and cannot be saved or some other error
+ * occurs, return 0, otherwise, if the file can be closed return 1.
+ */
+extern int ft_requestToClose(FTABLE* fp);
+
+/**
+ * Make the passed file the "current error file" - which can be used by clicking on
+ * lines displayed in that file to navigate to positions (compiler errors etc...).
+ */
+extern void ft_SetCurrentErrorDocument(FTABLE* fp);
+
+/*------------------------------------------------------------
  * ActivateWindowOfFileNamed()
  * Activate the window of the file with the given name.
  */
@@ -376,6 +396,16 @@ extern int ln_unhide(FTABLE* fp, LINE* lpind);
  * Free a line list.
  *------------------------------*/
 extern void ln_listfree(LINE* lp);
+
+/*--------------------------------------------------------------------------
+ * ln_countLeadingSpaces(l)
+ */
+extern int ln_countLeadingSpaces(LINE* lp);
+
+/*--------------------------------------------------------------------------
+ * ln_lineIsEmpty()
+ */
+extern int ln_lineIsEmpty(LINE* lp);
 
 /*--------------------------------------------------------------------------
  * SelectRange()

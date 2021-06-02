@@ -5,13 +5,12 @@
  *
  * purpose: get and put resources to resource file
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 #include <windows.h>

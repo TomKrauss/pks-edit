@@ -5,9 +5,9 @@
  *
  * purpose: file utilitities.
  *
- * 										created      : 28.10.91
+ * 										created: 28.10.91
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */
@@ -57,7 +57,6 @@ extern char* TmpDir(void);
  * close a file handle and report an error if unsuccessful.
 /*---------------------------------*/
 extern int closeF(int* fd);
-
 
 #define FILEUTIL_H
 #endif

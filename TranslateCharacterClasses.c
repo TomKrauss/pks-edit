@@ -5,9 +5,9 @@
  *
  * purpose: translate character classes
  *
- * 										created      : 25.08.90
+ * 										created: 25.08.90
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */

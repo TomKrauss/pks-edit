@@ -5,13 +5,12 @@
  *
  * purpose: executing programs
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 #include <windows.h>
@@ -26,6 +25,7 @@
 #include "winterf.h"
 #include "fileutil.h"
 #include "stringutil.h"
+#include "textblocks.h"
 
 extern void ChangeDirectory(LPSTR pszPath);
 extern void stepnofsel(char *fn, int cmpflg);

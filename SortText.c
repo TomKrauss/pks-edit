@@ -5,9 +5,9 @@
  *
  * purpose: sort text records of variable length (even multiline)
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauß
  */
@@ -573,13 +573,13 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 		ProgressMonitorStart(IDS_ABRTSORT);
 		undo_cash(fp,lpfirst,lplast);
 		if (sortlist(_rectab,n)) {
-			curpos(0L,0L);
+			caret_placeCursorInCurrentFile(0L,0L);
 			ln_order(fp,_rectab,&rp);
 		}
 		ln_removeFlag(fp->firstl,fp->lastl,LNREPLACED);
 		ProgressMonitorClose(0);
 		RedrawTotalWindow(fp);
-		curpos(l1,0L);
+		caret_placeCursorInCurrentFile(l1,0L);
 		ret = 1;
 	}
 

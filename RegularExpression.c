@@ -6,9 +6,9 @@
  * purpose: regular expression string scanning automata
  * 		  character class definitions
  *
- * 										created      : 04.02.97
+ * 										created: 04.02.97
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauß
  */
@@ -1087,7 +1087,7 @@ int regex_replaceSearchString(REPLACEMENT_PATTERN* pPattern, unsigned char* pDes
 	unsigned char* replacePattern = pPattern->preparedReplacementString;
 
 	if (!pPattern->specialProcessingNeeded) {
-		int len = strlen(pPattern->preparedReplacementString);
+		size_t len = strlen(pPattern->preparedReplacementString);
 		if (len >= destinationBufferSize) {
 			return -1;
 		}
@@ -1095,7 +1095,7 @@ int regex_replaceSearchString(REPLACEMENT_PATTERN* pPattern, unsigned char* pDes
 		if (pPattern->preserveCaseConversionNeeded) {
 			adaptCase(pDestination, pMatch);
 		}
-		return len;
+		return (int)len;
 	}
 	destinationBufferSize -= 2;
 	while (*replacePattern) {

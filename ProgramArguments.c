@@ -5,13 +5,12 @@
  *
  * purpose:
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 #include <windows.h>
@@ -24,7 +23,7 @@
 
 extern int 		find_expressionAgainInCurrentFile(int dir);
 extern void 	stepselectcompiler(char *pszName);
-extern int 		curpos(long ln,long col);
+extern int 		caret_placeCursorInCurrentFile(long ln,long col);
 extern int 		showtag(char *s);
 extern void 	stepnofsel(char *fn, int cmpflg);
 extern void 	prof_setinifile(char *fn);
@@ -66,13 +65,13 @@ static int Phase2Arg(char *arg)
 			break;
 		case 'g':	
 			line = Atol(arg) -1L;
-			if (curpos(line,0L)) {
+			if (caret_placeCursorInCurrentFile(line,0L)) {
 				line = -1L;
 			}
 			break;
 		case 'c':
 			if (ft_CurrentDocument()) {
-				curpos(ft_CurrentDocument()->ln,Atol(arg)-1L);
+				caret_placeCursorInCurrentFile(ft_CurrentDocument()->ln,Atol(arg)-1L);
 			}
 			break;
 		case 't':

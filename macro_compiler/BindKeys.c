@@ -5,13 +5,12 @@
  *
  * purpose: maintain keybind tables
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 #include <stdio.h>

@@ -5,13 +5,12 @@
  *
  * purpose: PKS-EDIT Desktop Icons
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 #include <windows.h>
@@ -25,6 +24,7 @@
 #include "errordialogs.h"
 #include "stringutil.h"
 #include "textblocks.h"
+#include "editorconfiguration.h"
 
 #pragma hdrstop
 
@@ -47,8 +47,6 @@ typedef struct tagICONCLASS {
 extern int EdConfigureIcons(void);
 extern int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
 extern char *_strtolend;
-extern int  prof_savestring(char *grp, char *ident, char *string);
-extern void prof_adjustpoint(PPOINT pPoint);
 extern int  LbGetText(HWND hwnd, int id, void *szBuff);
 extern HFONT EdSmallFont(void);
 
@@ -421,7 +419,7 @@ static int		nButtonY;
 				return 0;
 			param = ic_param(szBuf,hwnd,0);
 			holdIcon = (HICON)GetWindowLongPtr(hwnd,GWL_ICICON);
-			hIcon = bl_hasClipboardBlock(wParam,*param) ? 
+			hIcon = bl_hasClipboardBlock((int)wParam,*param) ? 
 				   	icp->ic_icon1 : icp->ic_icon2;
 			if (hIcon == holdIcon)
 				return 0;
@@ -647,7 +645,7 @@ static intptr_t ic_mk(LPSTR szIdClass, LONG lParam)
 {
 	char		 szBuf[256],*szIconName,*szTypeString,*szCursor,*szIcon2;
 
-	GetPksProfileString(szIconTypes, szIdClass, szBuf, sizeof szBuf);
+	prof_getPksProfileString(szIconTypes, szIdClass, szBuf, sizeof szBuf);
 
 	szTypeString = strtok(szBuf,",");
 	szIconName   = strtok((char*)0,",");
@@ -710,7 +708,7 @@ static intptr_t ic_place(LPSTR szName, LONG lParam)
 	HWND	hwnd;
 	ICONCLASS *icp;
 
-	if (!GetPksProfileString(szIconId,szName,szBuff,sizeof szBuff) ||
+	if (!prof_getPksProfileString(szIconId,szName,szBuff,sizeof szBuff) ||
 	    (szClassId = strtok(szBuff,",")) == 0 ||
 	    (szTitle = strtok((char*)0,",")) == 0||
 	    (szGeo  = strtok((char*)0,",")) == 0)

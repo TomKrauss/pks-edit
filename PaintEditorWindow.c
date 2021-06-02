@@ -5,9 +5,9 @@
  *
  * purpose: paint edit (work-)windos
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  */
@@ -371,7 +371,7 @@ EXPORT void RedrawFromTo(WINFO *wp,long min,long max)
 EXPORT void RedrawTotalWindow(FTABLE *fp)
 {
 	EdRedrawWindow(WIPOI(fp));
-	curpos(fp->ln, fp->caret.offset);
+	caret_placeCursorInCurrentFile(fp->ln, fp->caret.offset);
 }
 
 /*--------------------------------------------------------------------------

@@ -5,18 +5,17 @@
  *
  * purpose: editor windows - painting etc...
  *
- * 										created      :
+ * 										created:
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 #include <windows.h>
 #include "trace.h"
-#include "lineoperations.h"
+#include "caretmovement.h"
 #include "edierror.h"
 #include "errordialogs.h"
 #include "winfo.h"
@@ -25,6 +24,7 @@
 #include "context.h"
 #include "iccall.h"
 #include "stringutil.h"
+#include "editorconfiguration.h"
 
 #define	WT_WORKWIN		0
 #define	WT_RULERWIN		1
@@ -567,7 +567,7 @@ void ww_setwindowflags(WINFO *wp) {
 		SendRedraw(wp->ww_handle);
 		wt_tcursor(wp,0);
 		wt_tcursor(wp,1);
-		_curpos(fp,fp->ln,fp->caret.offset);
+		caret_placeCursorForFile(fp,fp->ln,fp->caret.offset);
 	}
 
 	wp->workmode = linp->workmode;
@@ -782,7 +782,7 @@ WINFUNC EditWndProc(
 	case WM_CLOSE:
 		if (IsZoomed(hwnd))
 			SendMessage(hwndClient,WM_MDIRESTORE, (WPARAM)hwnd, (LPARAM)0);
-		if (!ft_wantclose(wp->fp))
+		if (!ft_requestToClose(wp->fp))
 			return 0;
  		break;
 

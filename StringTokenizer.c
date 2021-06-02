@@ -5,9 +5,9 @@
  *
  * purpose: standard strtok substitute
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauß
  */

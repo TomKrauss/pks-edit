@@ -5,13 +5,12 @@
  *
  * purpose: handle slider update and messages
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 #include <windows.h>
@@ -235,7 +234,7 @@ int sl_moved(WINFO *wp, long dy, long dx, int cursor_adjust)
 			col = wp->maxcurscol;
 		}
 		if (col != wp->col || ln != wp->ln) {
-			if (!cphyspos(FTPOI(wp),&ln,&col,0)) {
+			if (!caret_updateLineColumn(FTPOI(wp),&ln,&col,0)) {
 				ln = wp->ln;
 			}
 			wp->ln  = ln;
@@ -311,7 +310,7 @@ int EdScrollScreen(int mtype)
 
 	col = fp->caret.offset;
 	sl_moved(wp,dln,0,0);
-	ret = cposvalid(fp,&ln,&col,0);
+	ret = caret_placeCursorAndValidate(fp,&ln,&col,0);
 	wt_curpos(wp,ln,col);
 	return ret;
 }

@@ -5,9 +5,9 @@
  *
  * purpose: undo changes of editor buffer
  *
- * 										created      : 28.01.90
+ * 										created: 28.01.90
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauß
  */
@@ -326,7 +326,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	memset(pRedoCommand, 0, sizeof * pRedoCommand);
 	initUndoCommand(fp, pRedoCommand);
 	ln = 0; col = 0;
-	cposvalid(fp, &ln, &col, 0);
+	caret_placeCursorAndValidate(fp, &ln, &col, 0);
 
 	bl_hideSelection(0);
 	pOperation = pCommand->atomicSteps;
@@ -377,7 +377,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 
 	bl_setSelection(fp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
 
-	curpos(pCommand->ln, pCommand->col);
+	caret_placeCursorInCurrentFile(pCommand->ln, pCommand->col);
 	RedrawTotalWindow(fp);
 
 	fp->tln = NULL;

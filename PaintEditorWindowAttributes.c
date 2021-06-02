@@ -5,9 +5,9 @@
  *
  * purpose: redraw attributed text
  *
- * 										created      : Mai 1990 
+ * 										created: Mai 1990 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauﬂ
  */

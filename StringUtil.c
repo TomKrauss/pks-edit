@@ -7,15 +7,16 @@
  *		  correspondant window functions
  * 		  filename string manipulations
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  */
 
 #include <windows.h>
 #include <direct.h>
+#include <ctype.h>
 
 #include "edctype.h"
 #include "pathname.h"
@@ -140,7 +141,7 @@ char *FullPathName(const char *path, const char *fn) {
 #if defined(WIN32)
 	char *		pszFn;
 
-	GetFullPathName(fn, 256, path, &pszFn);
+	GetFullPathName(fn, 256, (char *)path, &pszFn);
 #else
 	register char *f = fn,*dst = path,c;
 

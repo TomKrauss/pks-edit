@@ -5,13 +5,12 @@
  *
  * purpose: menu context,...
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 #ifndef CONTEXT_H

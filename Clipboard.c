@@ -5,13 +5,12 @@
  *
  * purpose: handle the standard clipboard
  *
- * 										created      : 
+ * 										created: 
  * 										last modified:
- *										author	   : TOM
+ *										author: Tom
  *
  * (c) Pahlen & Krauss
  *
- * 								Author: TOM
  */
 
 #include <windows.h>
@@ -19,9 +18,8 @@
 #include "lineoperations.h"
 #include "pksedit.h"
 #include "errordialogs.h"
-
-extern PASTE *			bl_addrbyid(int id,int insert);
-extern void				bl_free(PASTE *buf);
+#include "clipboard.h"
+#include "textblocks.h"
 
 /*------------------------------------------------------------
  * clp_ismine()
@@ -101,8 +99,7 @@ static HANDLE clp_makebufferhandle(int whichBuffer)
  * clp_setmine()
  * we are clipboard owner !
  */
-EXPORT void clp_setmine(void)
-{
+EXPORT void clp_setmine(void) {
 	clp_setclipboarddata((HANDLE)0);
 }
 
