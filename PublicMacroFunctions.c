@@ -1576,27 +1576,6 @@ int EdFindInFileList(void)
 }
 
 /*--------------------------------------------------------------------------
- * DlgPrint()
- */
-int DlgPrint(char *title, int *ps, int *pe, int *po)
-{	static DIALPARS _d[] = {
-		IDD_WINTITLE2,	0,				0,
-		IDD_INT1,		sizeof(int),		0,
-		IDD_INT2,		sizeof(int),		0,
-		IDD_INT3,		sizeof(int),		0,
-		0
-	};
-	DIALPARS *dp = _d;
-
-	dp++->dp_data = title;
-	dp++->dp_data = ps;
-	dp++->dp_data = pe;
-	dp->dp_data = po;
-
-	return DoDialog(DLGPRINT, DlgStdProc,_d, NULL);
-}
-
-/*--------------------------------------------------------------------------
  * EdReplaceAgain()
  */
 int EdReplaceAgain(void)

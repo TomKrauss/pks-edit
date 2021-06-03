@@ -2,6 +2,8 @@
 // Von Microsoft Visual C++ generierte Includedatei.
 // Verwendet durch D:\source\pksedit\PKSEDIT.RC
 //
+#define IDD_INT6                        61
+#define IDD_INT7                        59
 #define DLG_OPT_AUTOSAVE                110
 #define IDD_OPT18                       117
 #define IDD_PRESERVE_CASE               135
@@ -23,7 +25,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        150
+#define _APS_NEXT_RESOURCE_VALUE        151
 #define _APS_NEXT_COMMAND_VALUE         40002
 #define _APS_NEXT_CONTROL_VALUE         1008
 #define _APS_NEXT_SYMED_VALUE           101

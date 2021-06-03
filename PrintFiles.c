@@ -27,6 +27,7 @@
 
 #include "pksedit.h"
 #include "dial2.h"
+#include "pksrc.h"
 #include "printing.h"
 #include "xdialog.h"
 #include "stringutil.h"
@@ -74,6 +75,7 @@ static PRTPARAM _prtparams = {
 
 extern char 		*ft_visiblename(FTABLE *fp);
 
+static BOOL		_doPrint;
 static int 		_printing;
 static int 		_previewpage = 1;
 static HWND 		hwndPreview;
@@ -198,9 +200,10 @@ static int prt_ntextlines(void)
 {
 	PRTPARAM	*pp = &_prtparams;
 
-	return (pp->options & PRTO_HEADERS) ? 
+	int n = (pp->options & PRTO_HEADERS) ? 
 			(pp->pagelen - 2 - pp->d1 - pp->d2 - pp->d3 - pp->d4) :
 			pp->pagelen;
+	return n <= 0 ? 2 : n;
 }
 
 /*--------------------------------------------------------------------------
@@ -521,6 +524,15 @@ INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 	int			newPage = _previewpage;
 
 	switch(message) {
+		case WM_NOTIFY: {	
+			LPNMHDR		pNmhdr;
+
+			pNmhdr = (LPNMHDR)lParam;
+			if (pNmhdr->code == PSN_SETACTIVE) {
+				newPage = 1;
+			}
+			}
+			break;
 		case WM_INITDIALOG:
 			hwndPreview = hDlg;
 			form_move(hDlg);
@@ -569,30 +581,40 @@ INT_PTR CALLBACK DlgInstallPrtProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
 	HWND			hwndList;
 	HANDLE		hLibrary;
 	DEVMODEPROC	lpfnDM;
+	HWND		parent;
 	char			szDevice[64],szDriver[256],
 				szDriverName[64],*szOutput,*s;
 
+	parent = GetParent(hDlg);
 	switch(message) {
-		case WM_INITDIALOG:
-			hwndList = GetDlgItem(hDlg,IDD_INSTPRINTERS);
-			SendMessage(hwndList, LB_RESETCONTENT,0,0L);
+		case WM_NOTIFY:
+		{	LPNMHDR		pNmhdr;
+
+		pNmhdr = (LPNMHDR)lParam;
+		switch (pNmhdr->code) {
+		case PSN_SETACTIVE:
+			hwndList = GetDlgItem(hDlg, IDD_INSTPRINTERS);
+			SendMessage(hwndList, LB_RESETCONTENT, 0, 0L);
 			GetProfileString("devices", NULL, "", _linebuf, LINEBUFSIZE);
 			s = _linebuf;
-			while(*s) {
-				SendMessage(hwndList,LB_ADDSTRING,0,(LPARAM)s);
-				while(*s++)
+			while (*s) {
+				SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)s);
+				while (*s++)
 					;
 			}
 			SendMessage(hwndList, LB_SELECTSTRING, -1, (LPARAM)szPrtDevice);
-			form_move(hDlg);
 			break;
+		case PSN_APPLY:
+			LbGetText(hDlg, IDD_INSTPRINTERS, szPrtDevice);
+			PropSheet_UnChanged(parent, hDlg);
+			return TRUE;
+		}
+		}
+		break;
+		case WM_INITDIALOG:
 		case WM_COMMAND:
+			PropSheet_Changed(parent, hDlg);
 			switch(GET_WM_COMMAND_ID(wParam, lParam)) {
-				case IDOK:
-					LbGetText(hDlg,IDD_INSTPRINTERS,szPrtDevice);
-				case IDCANCEL:
-					EndDialog(hDlg,wParam == IDOK);
-					break;
 				case IDD_INSTINSTALL:
 					LbGetText(hDlg,IDD_INSTPRINTERS,szDevice);
 					GetProfileString("devices", szDevice,"",szDriver,
@@ -674,6 +696,102 @@ void PrinterDefaults(int save)
 		pp->lnspace.z = 1;
 }
 
+/*--------------------------------------------------------------------------
+ * DlgPrint()
+ */
+static EDFONT	font;
+static EDFONT	htfont;
+static void _triggerPrint(HWND hDlg, int idCtrl) {
+	_doPrint = TRUE;
+	HWND hwndParent = GetParent(hDlg);
+	HWND hwndOK = GetDlgItem(hwndParent, IDOK);
+	SendMessage(hwndOK, BM_CLICK, NULL, NULL);
+}
+static DIALPARS _dPrintLayout[] = {
+	IDD_INT5,		sizeof(int),		0,
+	IDD_INT6,		sizeof(int),		0,
+	IDD_INT7,		sizeof(int),		0,
+	IDD_CALLBACK1,	0,				_triggerPrint,
+	IDD_RADIO1,		PRA_RIGHT - PRA_LEFT,	&_prtparams.align,
+	IDD_OPT1,			PRTO_SWAP,& _prtparams.options,
+	IDD_OPT2,			PRTO_LINES,& _prtparams.options,
+	IDD_OPT3,			PRTO_HEADERS,& _prtparams.options,
+	IDD_OPT4,			PRTO_ULHEA,& _prtparams.options,
+	IDD_INT1,			0,& _prtparams.pagelen,
+	IDD_INT2,			0,& _prtparams.nchars,
+	IDD_INT3,			0,& _prtparams.lmargin,
+	IDD_INT4,			0,& _prtparams.rmargin,
+	IDD_STRING1,		sizeof _prtparams.header,	_prtparams.header,
+	IDD_STRING2,		sizeof _prtparams.footer,	_prtparams.footer,
+	IDD_FONTSELECT,	TRUE,				_prtparams.font.fs_name,
+	IDD_FONTSELECT2,	TRUE,			_prtparams.htfont.fs_name,
+	0
+};
+static DIALPARS* _getDialogParsForPage(int page) {
+	if (page == 0) {
+		return _dPrintLayout;
+	}
+	if (page == 2) {
+		_previewpage = 1;
+	}
+	return NULL;
+}
+static int DlgPrint(char* title, PRTPARAM *pp)
+{
+	DIALPARS* dp = _dPrintLayout;
+	//dp++->dp_data = title;
+	dp++->dp_data = &pp->startpage;
+	dp++->dp_data = &pp->endpage;
+	dp->dp_data = &pp->pageoffs;
+
+	lstrcpy(font.name, _prtparams.font.fs_name);
+	lstrcpy(htfont.name, _prtparams.htfont.fs_name);
+
+	PROPSHEETPAGE psp[3];
+	PROPSHEETHEADER psh;
+	INT_PTR tempRet;
+
+	InitCommonControls();
+	SetXDialogParams(_getDialogParsForPage, TRUE);
+	memset(&psh, 0, sizeof psh);
+	memset(psp, 0, sizeof psp);
+
+	psp[0].dwSize = sizeof(psp[1]);
+	psp[0].hInstance = hInst;
+	psp[0].pszTemplate = MAKEINTRESOURCE(DLGPRINTERLAYOUT);
+	psp[0].pfnDlgProc = DlgStdProc;
+
+	psp[1].dwSize = sizeof(psp[1]);
+	psp[1].hInstance = hInst;
+	psp[1].pszTemplate = MAKEINTRESOURCE(DLGPREVIEW);
+	psp[1].pfnDlgProc = DlgPreviewProc;
+
+	psp[2].dwSize = sizeof(psp[1]);
+	psp[2].hInstance = hInst;
+	psp[2].pszTemplate = MAKEINTRESOURCE(DLGPRTINSTALL);
+	psp[2].pfnDlgProc = DlgInstallPrtProc;
+
+	psh.dwSize = sizeof(psh);
+	psh.dwFlags = PSH_PROPSHEETPAGE;
+	psh.hwndParent = hwndFrame;
+	psh.hInstance = hInst;
+	psh.pszIcon = 0;
+	psh.pszCaption = (LPSTR)"Drucken...";
+	psh.nPages = sizeof(psp) / sizeof(psp[0]);
+	psh.nStartPage = 0;
+	psh.ppsp = (LPCPROPSHEETPAGE)&psp;
+	psh.pfnCallback = NULL;
+	_doPrint = FALSE;
+	tempRet = PropertySheet(&psh);
+	if (tempRet == 1) {
+		PrinterDefaults(1);
+		lstrcpy(_prtparams.font.fs_name, font.name);
+		lstrcpy(_prtparams.htfont.fs_name, htfont.name);
+	}
+	return tempRet;
+}
+
+
 /*------------------------------------------------------------
  * EdPrint()
  */
@@ -745,23 +863,10 @@ again:
 	lstrcpy(winfo.fnt_name,pp->font.fs_name);
 	winfo.fnt.height = pp->font.fs_cheight;
 	_previewpage = 0;
-	switch(nFunc = DlgPrint(
-			message,
-			&pp->startpage,&pp->endpage,&pp->pageoffs)) {
-		case IDD_BUT3:	
-			_previewpage = 1; break; /* Start Preview.. */
-		case IDD_BUT4:
-			break;
-		default:  goto byebye;
-		case IDOK: break;				/* Print.. */
-	}
-
-	if (nFunc == IDD_BUT4) {
-		EdPrinterLayout();
-	} else if (_previewpage > 0) {
-		winfo.fnt_name[0] = 0;
-		DoDialog(DLGPREVIEW,DlgPreviewProc, NULL, NULL);
-	} else {
+	DlgPrint(message, pp);
+	if (_doPrint) {
+		_doPrint = FALSE;
+		_previewpage = 0;
 		if ((hdcPrn = GetPrinterDC()) != NULL) {
 			DOCINFO		docinfo;
 
@@ -784,80 +889,14 @@ again:
 			ProgressMonitorClose(0);
 			DeleteDC(hdcPrn);
 		}
-	
 		if (errEscape)
 			goto byebye;
+		ret = 1;
 	}
-	if (nFunc == IDD_BUT3 || nFunc == IDD_BUT4) {
-		goto again;
-	}
-	ret = 1;
 byebye:
 	if (what == PRT_FILE && fp)
 		ft_bufdestroy(fp);
 	return ret;
 }
 
-/*--------------------------------------------------------------------------
- * PrtInstall()
- */
-static void PrtInstall(void)
-{
-	DoDialog(DLGPRTINSTALL, DlgInstallPrtProc, NULL, NULL);
-}
 
-/*--------------------------------------------------------------------------
- * EdPrinterLayout()
- */
-int EdPrinterLayout(void) {
-	static EDFONT	font;
-	static EDFONT	htfont;
-	static int 	hfalign;
-	static int	options;
-	static int	nchars;
-	static int	lmargin;
-	static int	rmargin;
-	static int	pagelen;
-	static DIALPARS _d[] = {
-		IDD_RADIO1,		PRA_RIGHT-PRA_LEFT,	&hfalign,
-		IDD_OPT1,			PRTO_SWAP,		&options,
-		IDD_OPT2,			PRTO_LINES,		&options,
-		IDD_OPT3,			PRTO_HEADERS,		&options,
-		IDD_OPT4,			PRTO_ULHEA,		&options,
-		IDD_INT1,			0,				&pagelen,
-		IDD_INT2,			0,				&nchars,
-		IDD_INT3,			0,				&lmargin,
-		IDD_INT4,			0,				&rmargin,
-		IDD_STRING1,		sizeof _prtparams.header,	_prtparams.header,
-		IDD_STRING2,		sizeof _prtparams.footer,	_prtparams.footer,
-		IDD_FONTSELECT,	TRUE,				&font,
-		IDD_FONTSELECT2,	TRUE,			&htfont,
-		IDD_CALLBACK1,		0,				PrtInstall,
-		0
-	};
-
-	hfalign = _prtparams.align;
-	options = _prtparams.options;
-	nchars = _prtparams.nchars;
-	pagelen = _prtparams.pagelen;
-	lmargin = _prtparams.lmargin;
-	rmargin = _prtparams.rmargin;
-	lstrcpy(font.name, _prtparams.font.fs_name);
-	lstrcpy(htfont.name, _prtparams.htfont.fs_name);
-
-	if (DoDialog(DLGPRINTERLAYOUT, DlgStdProc, _d, NULL) == IDCANCEL) {
-		return 0;
-	}
-	PrinterDefaults(1);
-	_prtparams.align = hfalign;
-	_prtparams.options = options;
-	_prtparams.nchars = nchars;
-	_prtparams.pagelen = pagelen;
-	_prtparams.lmargin = lmargin;
-	_prtparams.rmargin = rmargin;
-
-	lstrcpy(_prtparams.font.fs_name, font.name);
-	lstrcpy(_prtparams.htfont.fs_name, htfont.name);
-
-	return TRUE;
-}

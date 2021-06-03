@@ -35,7 +35,7 @@ EdMouseMarkParts(long ), EdMouseMoveText(long ), EdMouseSelectLines(long ), EdMo
 EdAlert(long ), Form_Alert(long ), EdPromptAssign(long ), EdFormatPrint(long ),
 EdGetSelectedText(long ), EdHideLines(long ), EdUnHideLine(long ), EdStringSubstitute(long ),
 EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdListBindings(long ),
-EdCompileMacros(long ), EdDocTypes(long ), EdPrinterLayout(long ), EdIsDefined(long ),
+EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ),
 EdCallWinHelp(long ), EdShowClipboard(long ), EdMenuTrackPopup(long ), EdBlockXtndMode(long );
 
 EDFUNC _edfunctab[] = {
@@ -153,7 +153,7 @@ EDFUNC _edfunctab[] = {
 	EdListBindings, '!',	0,
 	EdCompileMacros, '!',	EW_NEEDSCURRF | 0,
 	EdDocTypes    , '!',	0,
-	EdPrinterLayout, '!',	0,
+	0, '!',	0,
 	EdIsDefined   , '!',	0,
 	EdCallWinHelp , '!',	0,
 	EdShowClipboard, '!',	0,

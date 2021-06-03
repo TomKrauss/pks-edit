@@ -32,6 +32,7 @@
 #include "pksedit.h"
 #include "edierror.h"
 #include "dial2.h"
+#include "pksrc.h"
 #include "edfuncs.h"
 #include "edhist.h"
 #include "xdialog.h"
@@ -413,7 +414,8 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				wsprintf(numbuf,"%ld",*(long*)dp->dp_data);
 				goto donum;
 			case IDD_INT1: case IDD_INT2: case IDD_INT3: 
-			case IDD_INT4: case IDD_INT5:
+			case IDD_INT4: case IDD_INT5: case IDD_INT6:
+			case IDD_INT7: 
 				if (*ip < 0) {
 					numbuf[0] = 0;
 				} else {
@@ -610,11 +612,12 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			}
 			break;
 		case IDD_INT1: case IDD_INT2: case IDD_INT3: 
-		case IDD_INT4: case IDD_INT5:
+		case IDD_INT4: case IDD_INT5: case IDD_INT6:
+		case IDD_INT7: 
 		case IDD_LONG1: 
 			GetDlgItemText(hDlg,item,numbuf,sizeof numbuf-1);
 			if (item == IDD_LONG1) {
-				*(long*)dp->dp_data = Atol(numbuf);
+				*((long*)dp->dp_data) = Atol(numbuf);
 			} else {
 				*ip = numbuf[0] == 0 ? -1 : Atol(numbuf);
 			}
@@ -804,11 +807,15 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 	case PSN_SETACTIVE:
 		idx = PropSheet_HwndToIndex(parent, hDlg);
 		_dp = _dialogInitParameterCallback(idx);
-		DlgInit(hDlg, _dp, FALSE);
+		if (_dp != NULL) {
+			DlgInit(hDlg, _dp, FALSE);
+		}
 		PropSheet_UnChanged(parent, hDlg);
 		return TRUE;
 	case PSN_APPLY:
-		DlgApplyChanges(hDlg, IDOK, _dp);
+		if (_dp != NULL) {
+			DlgApplyChanges(hDlg, IDOK, _dp);
+		}
 		PropSheet_UnChanged(parent, hDlg);
 		return TRUE;
 	case PSN_KILLACTIVE:

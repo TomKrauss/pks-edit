@@ -155,6 +155,5 @@ void EdOptionSet(void) {
 		prof_save(GetConfiguration(), FALSE);
 		fkey_visibilitychanged();
 	}
-    return;
 }
 
