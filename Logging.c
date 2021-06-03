@@ -31,7 +31,7 @@ static void vdebug(int err, LPSTR fmt, va_list ap)
     		alert(buf);
     		return;
 	}
-    if (_debugfd < 0 && (_debugfd = _lcreat(TmpName(tmpfile,'L'),0)) < 0) {
+    if (_debugfd < 0 && (_debugfd = _lcreat(file_getTempFilename(tmpfile,'L'),0)) < 0) {
 	    return;
     }
     lstrcat(buf,"\r\n");

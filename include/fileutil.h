@@ -15,48 +15,83 @@
 # ifndef 	FILEUTIL_H
 
 /*--------------------------------------------------------------------------
- * EdStat()
+ * file_exists()
  * Test the existance of a file. If it exists, return 0 otherwise -1.
  */
-extern int EdStat(char* s);
+extern int file_exists(char* s);
 
 /*--------------------------------------------------------------------------
- * EdFileMode()
+ * file_getFileMode()
  * Return the "modes" (read write, A_NORMAL, A_READONLY, A_HIDDEN, A_SYSTEM, ...) of a file.
  */
-extern int EdFileMode(char* s);
+extern int file_getFileMode(char* s);
 
 /*--------------------------------------------------------------------------
- * EdIsDir()
+ * file_isDirectory()
  * Returns true if the passed filename points to a directory.
  */
-extern int EdIsDir(char* filename);
+extern int file_isDirectory(char* filename);
 
 /*--------------------------------------------------------------------------
- * searchfile()
+ * file_openFile()
+ * Open a file and return the file handle. If it cannot be opened, display an error.
+ */
+extern int file_openFile(char* fn);
+
+/*
+ * Make a file readable and writeable.
+ */
+extern int file_makeFileReadWrite(char* fn);
+
+/*--------------------------------------------------------------------------
+ * file_createFile()
+ * Create a file with a given name with a default read-write mode.
+ */
+extern int file_createFile(char* fn);
+
+/*--------------------------------------------------------------------------
+ * file_createFileWithMode()
+ * Create a file with a given mode.
+ */
+extern int file_createFileWithMode(char* fn, int mode);
+
+/*--------------------------------------------------------------------------
+ * file_searchFileInPKSEditLocation()
  * Searches a file in a "wellknown" PKS Edit location (PKS_SYS, home etc...) and
  * returns the result - this is not re-entrant. Before calling again, one must
  * save the result.
  */
-extern char* searchfile(char* s);
+extern char* file_searchFileInPKSEditLocation(char* s);
+
+/*--------------------------------------------------------------------------
+ * file_searchFileInPath()
+ * Search a file in a path list (pathes separated by ; or ,).
+ */
+extern char* file_searchFileInPath(char* fn, char* path);
 
 /*------------------------------------------------------------
- * TmpName()
+ * file_getTempFilename()
  * Returns the name of a temp file.
  */
-extern char* TmpName(char* dst, char c);
+extern char* file_getTempFilename(char* dst, char c);
 
 /*------------------------------------------------------------
- * TmpDir()
+ * file_getTempDirectory()
  * Returns the path to the temp directory.
  */
-extern char* TmpDir(void);
+extern char* file_getTempDirectory(void);
 
 /*---------------------------------
- * closeF()
+ * file_closeFile()
  * close a file handle and report an error if unsuccessful.
 /*---------------------------------*/
-extern int closeF(int* fd);
+extern int file_closeFile(int* fd);
+
+/*---------------------------------------------------------------
+ * file_clearTempFiles()
+ * Remove all files from the PKS Edit temp directory.
+ */
+extern void file_clearTempFiles(void);
 
 #define FILEUTIL_H
 #endif

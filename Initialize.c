@@ -22,7 +22,7 @@
 
 #undef DELIVER
 
-extern int EdStat(char *s);
+extern int file_exists(char *s);
 extern void  	stepselectcompiler(char *pszName);
 extern int   	proj_init(void);
 extern void 	c2asc(char *start, char *source, unsigned char hi, unsigned char lo);
@@ -85,7 +85,7 @@ char* mystrrchr(char s[], int c) {
 static BOOL _checkPksSys(char* pathName) {
 	char initFileName[1024];
 	strdcpy(initFileName, _homedir, "pksedit.ini");
-	return EdStat(initFileName) == 0;
+	return file_exists(initFileName) == 0;
 }
 
 /*--------------------------------------------------------------------------

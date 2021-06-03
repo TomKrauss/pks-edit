@@ -196,10 +196,10 @@ END
 
 DLGCONFICONS DIALOGEX 50, 67, 207, 224
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Sinnbilder"
+CAPTION "Desktop Icons"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "Sinnbildtyp:",114,4,8,48,8
+    LTEXT           "Icontyp:",114,4,8,48,8
     PUSHBUTTON      "&Neu",IDD_CALLBACK1,147,20,52,14,WS_GROUP
     PUSHBUTTON      "Abbruch",IDCANCEL,147,74,52,14
     LISTBOX         IDD_ICONLIST,4,21,140,135,LBS_OWNERDRAWFIXED | WS_VSCROLL
@@ -209,7 +209,7 @@ BEGIN
     EDITTEXT        IDD_PATH1,48,186,150,12,ES_AUTOHSCROLL
     PUSHBUTTON      "&Löschen",IDD_CALLBACK2,147,38,52,14,WS_GROUP
     DEFPUSHBUTTON   "&Ändern",IDD_CALLBACK3,147,56,52,14,WS_GROUP
-    PUSHBUTTON      "Durchsuchen..",IDD_PATH2SEL,144,204,56,14
+    PUSHBUTTON      "Pfad auswählen...",IDD_PATH2SEL,96,204,104,14
 END
 
 DLGCONTROLINS DIALOG 11, 19, 196, 136
@@ -1147,8 +1147,6 @@ BEGIN
 
     DLGCONFICONS, DIALOG
     BEGIN
-        RIGHTMARGIN, 180
-        BOTTOMMARGIN, 154
     END
 
     DLGDISPMODE, DIALOG
@@ -1222,6 +1220,45 @@ BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040704b0"
+        BEGIN
+            VALUE "CompanyName", "Pahlen & Krauß Software "
+            VALUE "FileDescription", "Famous Atari Editor"
+            VALUE "FileVersion", "1.6.1"
+            VALUE "InternalName", "pksedit.exe"
+            VALUE "LegalCopyright", "Copyright (C) 2021 Pahlen & Krauß"
+            VALUE "OriginalFilename", "pksedit.exe"
+            VALUE "ProductName", "PKS Edit"
+            VALUE "ProductVersion", "1.6.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x407, 1200
+    END
+END
 
 
 /////////////////////////////////////////////////////////////////////////////

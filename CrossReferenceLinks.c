@@ -11,7 +11,7 @@
 #include <string.h>
 #include "winterf.h"
 #include "edctype.h"
-#include "edifsel.h"
+#include "fileselector.h"
 #include "caretmovement.h"
 #include "pksedit.h"
 #include "editorconfiguration.h"
@@ -88,7 +88,7 @@ static int	_compflag;
 /* tags_mk()					*/
 /*---------------------------------*/
 static char *szTags = "tags";
-static int tags_mk(char *tag, LONG unused)
+static intptr_t tags_mk(char *tag, LONG unused)
 {
 	char		*s;
 	TAGTRY	*tp;
@@ -163,7 +163,7 @@ static char *get_quoted(char **src)
  * compiler_mk()
  */
 static char *szCompiler = "compiler";
-static int compiler_mk(char *compiler, LONG unused)
+static intptr_t compiler_mk(char *compiler, LONG unused)
 {
 	TAGEXPR 	*ct;
 	char		*s;
@@ -225,7 +225,7 @@ static TAG *dostep(LINE *lp, RE_PATTERN *pattern)
 static int istagfile(FTABLE *fp, char *lookfn)
 {	char   *fn;
 
-	if ((fn = searchfile(lookfn)) == 0L) {
+	if ((fn = file_searchFileInPKSEditLocation(lookfn)) == 0L) {
 		tosfnerror(lookfn,-33);
 		return 0;
 	}
@@ -748,7 +748,7 @@ static FSELINFO _grpfselinfo = { ".", "PKSEDIT.GRP", "*.GRP" };
 static FSELINFO _cmpfselinfo = { ".", "ERRORS.ERR", "*.ERR" };
 static int s_t_open(int title, int st_type, FSELINFO *fsp)
 {
-	if (title && rw_select(fsp, title, FALSE) == 0) {
+	if (title && fsel_selectFileWithOptions(fsp, title, FALSE) == 0) {
 		return 0;
 	}
 
@@ -798,7 +798,7 @@ int EdFindTagCursor(void)
 int EdFindFileCursor(void)
 {	char *fn,*found;
 	char	fselpath[512];
-	extern char *pathsearch();
+	extern char *file_searchFileInPath();
 
 	if ((fn = gettag(_linebuf,&_linebuf[LINEBUFSIZE],isfname,1)) == 0) 
 		return 0;
@@ -808,8 +808,8 @@ int EdFindFileCursor(void)
 #else
 	sfsplit(_fseltarget,fselpath,(char*)0);
 #endif
-	if ((found = pathsearch(fn,GetConfiguration()->includePath))   != 0 ||
-	    (found = pathsearch(fn,fselpath))   != 0) {
+	if ((found = file_searchFileInPath(fn,GetConfiguration()->includePath))   != 0 ||
+	    (found = file_searchFileInPath(fn,fselpath))   != 0) {
 		return tagopen(found, 0L, (WINDOWPLACEMENT*)0);
 	}
 

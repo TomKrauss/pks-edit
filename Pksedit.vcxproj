@@ -588,7 +588,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="SelectFiles.c">
+    <ClCompile Include="FileSelector.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1173,10 +1173,12 @@
     <ClInclude Include="include\alloc.h" />
     <ClInclude Include="include\caretmovement.h" />
     <ClInclude Include="include\clipboard.h" />
+    <ClInclude Include="include\desktopicons.h" />
     <ClInclude Include="include\documenttypes.h" />
     <ClInclude Include="include\editorconfiguration.h" />
     <ClInclude Include="include\editorfont.h" />
     <ClInclude Include="include\errordialogs.h" />
+    <ClInclude Include="include\fileselector.h" />
     <ClInclude Include="include\fileutil.h" />
     <ClInclude Include="include\findandreplace.h" />
     <ClInclude Include="include\publicapi.h" />
@@ -1193,7 +1195,6 @@
     <ClInclude Include="include\edfuncs.h" />
     <ClInclude Include="include\edhist.h" />
     <ClInclude Include="include\edierror.h" />
-    <ClInclude Include="include\edifsel.h" />
     <ClInclude Include="include\lineoperations.h" />
     <ClInclude Include="include\edtypes.h" />
     <ClInclude Include="include\ftw.h" />

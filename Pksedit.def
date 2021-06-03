@@ -6,7 +6,6 @@ STACKSIZE    64000
 EXPORTS
 	FrameWndProc
 	EditWndProc
-	IconWndProc
 	DlgStdProc
 	DlgError
 	KeyInputWndProc
@@ -14,7 +13,6 @@ EXPORTS
 	FkeysWndProc
 	ToggleWndProc
 	CharSetWndProc
-	DlgMacEditProc
 	DlgQueryReplaceProc
 	PrtAbortProc
 	DlgPreviewProc

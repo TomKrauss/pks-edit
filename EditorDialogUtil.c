@@ -21,7 +21,7 @@
 
 #include "trace.h"
 #include "lineoperations.h"
-#include "edierror.h"
+#include "fileselector.h"
 
 #include "winterf.h"
 #include "winfo.h"
@@ -30,6 +30,7 @@
 #pragma hdrstop
 
 #include "pksedit.h"
+#include "edierror.h"
 #include "dial2.h"
 #include "edfuncs.h"
 #include "edhist.h"
@@ -40,7 +41,6 @@
 #define ISFLAGDLGCTL(i) 		(((i) >= IDD_LOWOPT && (i) <= IDD_HIGHOPT) ||\
 						(i) == IDD_3S1 || (i) == IDD_3S2)
 
-extern char 		_fseltarget[];
 extern int 		_translatekeys;
 
 extern int		mysprintf(FTABLE *fp, char *d,char *format,...);
@@ -48,7 +48,7 @@ extern void 		ReturnString(char *string);
 extern BOOL 		DlgChooseFont(HWND hWnd, EDFONT *ep, BOOL bPrinter);
 extern int 		cust_combood(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(), 
 					void (*ShowSelection)(LPDRAWITEMSTRUCT lp));
-extern void 		fsel_title(char *title);
+extern void 		fsel_setDialogTitle(char *title);
 
 static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
 static DIALPARS 	*_dp;
@@ -667,8 +667,9 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 			fselbuf[0] = 0;
 			GetWindowText(GetDlgItem(hDlg, idCtrl), 
 				szButton, sizeof szButton);
-			fsel_title(szButton+1);
-			if (EdFsel(szBuff,fselbuf,_fseltarget, idCtrl != IDD_PATH1SEL)) {
+			char* pszTitle = (szButton[0] == '&') ? szButton + 1 : szButton;
+			fsel_setDialogTitle(pszTitle);
+			if (fsel_selectFile(szBuff,fselbuf,_fseltarget, idCtrl != IDD_PATH1SEL)) {
 				if (idCtrl == IDD_PATH1SEL) {
 					sfsplit(_fseltarget, fselbuf, NULL);
 					SetDlgItemText(hDlg, IDD_PATH1, fselbuf);
@@ -701,11 +702,13 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 			break;
 		case IDD_ICONLIST:
 		case IDD_WINDOWLIST:
-			if ((dp2 = GetItemDialListData(dp, idCtrl)) != 0 &&
-				((DIALLIST*)dp2->dp_data)->li_command) {
-				(*((DIALLIST*)dp2->dp_data)->li_command)(
-					hDlg, idCtrl, nNotify, 
-					((DIALLIST*)dp2->dp_data)->li_param);
+			if (nNotify == LBN_SELCHANGE) {
+				if ((dp2 = GetItemDialListData(dp, idCtrl)) != 0 &&
+					((DIALLIST*)dp2->dp_data)->li_command) {
+					(*((DIALLIST*)dp2->dp_data)->li_command)(
+						hDlg, idCtrl, nNotify,
+						((DIALLIST*)dp2->dp_data)->li_param);
+				}
 			}
 			break;
 		case IDD_STRING1:
@@ -821,7 +824,7 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
 	MEASUREITEMSTRUCT	*mp;
 	COMPAREITEMSTRUCT	*cp;
-	int					ic_lboxdrawitem();
+	int					ic_ownerDrawIconType();
 	int					nNotify;
 	int					idCtrl;
 	DRAWITEMSTRUCT		*drp;

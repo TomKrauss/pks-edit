@@ -12,6 +12,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <tos.h>
 #include "trace.h"
@@ -33,8 +34,8 @@
 
 extern void ft_settime(EDTIME* tp);
 extern int  CryptDialog(LPSTR password, int twice);
-extern EDTIME EdGetFileTime(char *fname);
-extern int EdMakeReadable(char *fn);
+extern EDTIME file_getAccessTime(char *fname);
+extern int file_makeFileReadWrite(char *fn);
 
 extern long _flushsize;
 
@@ -120,12 +121,13 @@ static void list2_mk(P2LIST **head, char *p1, char *p2)
 /* listPathes_mk()				*/
 /*---------------------------------*/
 static char *szAltpath = "altpath";
-static void listPathes_mk(char *szPath)
+static intptr_t listPathes_mk(char *szPath)
 {
 	char	 szBuf[256];
 
 	prof_getPksProfileString(szAltpath, szPath, szBuf, sizeof szBuf);
 	list2_mk(&_p2list,szPath,szBuf);
+	return 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -137,10 +139,10 @@ int ap_init(void)
 }
 
 /*---------------------------------
- * closeF()
+ * file_closeFile()
  * close a file handle and report an error if unsuccessful. 
 /*---------------------------------*/
-EXPORT int closeF(int *fd) {
+EXPORT int file_closeFile(int *fd) {
 	int ret;
 
 	if (*fd > 0 && (ret = Fclose(*fd)) < 0) {
@@ -282,11 +284,11 @@ nullfile:
 		}
 		fp->nlines = 1;
 	} else {
-		fp->ti_created = EdGetFileTime(fp->fname);
+		fp->ti_created = file_getAccessTime(fp->fname);
 		fd = CreateFile(fp->fname, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, 0,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0); 
 		if (fd < 0) {
-			if ((fd = EdOpen(fp->fname)) < 0) {
+			if ((fd = file_openFile(fp->fname)) < 0) {
 				ret = 0;
 				goto readerr;
 			}
@@ -327,7 +329,7 @@ ret0:			ret = 0;
 readerr:
 
 	if ((GetConfiguration()->options & O_LOCKFILES) == 0) {
-		closeF(&fd);
+		file_closeFile(&fd);
 	}
 
 	fp->lockFd = fd;
@@ -418,7 +420,7 @@ EXPORT int writefile(int quiet, FTABLE *fp)
 	}
 
 	if ((saveLockFd = fp->lockFd) > 0) {
-		closeF(&fp->lockFd);
+		file_closeFile(&fp->lockFd);
 	}
 	lp = fp->firstl;
 	if (! (fp->flags & (F_MODIFIED | F_NEWFILE | F_WFORCED | F_APPEND))) 
@@ -447,7 +449,7 @@ EXPORT int writefile(int quiet, FTABLE *fp)
 			crflags |= F_HIDDEN;
 		fd = Fcreate(fp->fname, crflags);
 		if (fd < 0) {
-			EdMakeReadable(fp->fname);
+			file_makeFileReadWrite(fp->fname);
 			fd = Fcreate(fp->fname, crflags);
 		}
 		if (fd < 0) {
@@ -495,9 +497,9 @@ wfail:	fp->flags |= F_CHANGEMARK;
 	ft_settime(&fp->ti_saved);
 
 wfail1:
-	closeF(&fd);
+	file_closeFile(&fd);
 	if (saveLockFd > 0) {
-		fp->lockFd = EdOpen(fp->fname);
+		fp->lockFd = file_openFile(fp->fname);
 	}
 	if (!quiet)
 		changemouseform();
@@ -507,7 +509,7 @@ wfail1:
 		}
 		return 0;
 	}
-	fp->ti_created = EdGetFileTime(fp->fname);
+	fp->ti_created = file_getAccessTime(fp->fname);
 	return 1;
 #endif
 }
@@ -581,7 +583,7 @@ EXPORT int Readfile(FTABLE *fp,char *fn,int linflag)
 	_verbose = 0;
 	ret = readfile(fp, fp->documentDescriptor);
 	_verbose = 1;
-	closeF(&fp->lockFd);
+	file_closeFile(&fp->lockFd);
 
 	return ret;
 }

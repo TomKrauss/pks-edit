@@ -22,7 +22,7 @@
 #include "tos.h"
 #include "lineoperations.h"
 #include "project.h"
-#include "edifsel.h"
+#include "fileselector.h"
 #include "edierror.h"
 #include "stringutil.h"
 #include "pksedit.h"
@@ -321,7 +321,7 @@ int MergeDocumentTypes(char *pszLinealFile, char *pszDocMacFile)
 	}
 
 	/* copy document descriptor to tempfile */
-	TmpName(tmpfn, 'K');
+	file_getTempFilename(tmpfn, 'K');
 	if ((fdTmp = Fcreate(tmpfn, 0)) < 0) {
 		return 0;
 	}
@@ -370,7 +370,7 @@ static int ReadDocumentType(char *fname, DOCUMENT_DESCRIPTOR *lp, int id, int fo
 	char *	fn;
 	int  	fd;
 
-	if ((fn = searchfile(fname)) != 0L && (fd = Fopen(fn,0)) > 0) {
+	if ((fn = file_searchFileInPKSEditLocation(fname)) != 0L && (fd = Fopen(fn,0)) > 0) {
 		if (Fread(fd,LINSPACE,lp) != LINSPACE) {
 			Fclose(fd);
 			return 0;
@@ -671,12 +671,12 @@ int EdLineal(int wrflag, DOCUMENT_DESCRIPTOR *documentDescriptor) {
 	}
 
 	BOOL saveAs = wrflag & 1;
-	if ((fn = rw_select(&_linfsel,saveAs ? MMWRITE : MMREAD, saveAs)) == 0) {
+	if ((fn = fsel_selectFileWithOptions(&_linfsel,saveAs ? MMWRITE : MMREAD, saveAs)) == 0) {
 		return 0;
 	}
 
 	if (saveAs) {
-		if ((fd = Fopen(fn, OF_READWRITE)) < 0 && (fd = EdCreate(fn)) < 0) {
+		if ((fd = Fopen(fn, OF_READWRITE)) < 0 && (fd = file_createFile(fn)) < 0) {
 			return 0;
 		}
 	   	sfsplit(fn,(char *)0,documentDescriptor->name);

@@ -25,6 +25,7 @@
 #include "stringutil.h"
 #include "textblocks.h"
 #include "editorconfiguration.h"
+#include "desktopicons.h"
 
 #pragma hdrstop
 
@@ -35,6 +36,7 @@
 #define	GWL_ICONEXTRA			GWL_ICICON+sizeof(void*)
 
 #define	PROP_NOTDRAGGED			-4711
+#define	IC_WIDTH	32
 
 typedef struct tagICONCLASS {
 	struct tagICONCLASS *next;
@@ -45,7 +47,7 @@ typedef struct tagICONCLASS {
 } ICONCLASS;
 
 extern int EdConfigureIcons(void);
-extern int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
+extern int mac_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
 extern char *_strtolend;
 extern int  LbGetText(HWND hwnd, int id, void *szBuff);
 extern HFONT EdSmallFont(void);
@@ -59,19 +61,59 @@ static ICONCLASS *iconclasses;
 static int  curric;
 static HWND	hwndActive;
 
-/*------------------------------------------------------------
- * EdIconsQuit()
+/*
+ * Get the icon class data from the desktop icon window. 
  */
-int EdIconsQuit(HWND hwnd) 
+static ICONCLASS* ic_getData(HWND hwnd) {
+	return (ICONCLASS*)GetWindowLongPtr(hwnd, GWL_ICCLASSVALUES);
+}
+
+/*------------------------------------------------------------
+ * ic_closeIconWindow()
+ * Close an icon window.
+ */
+int ic_closeIconWindow(HWND hwnd) 
 {
 	return CloseChildWindow((HWND)hwnd,1);
 }
 
-/*------------------------------------------------------------
- * ic_lboxdraw()
+static int _windowCount = 0;
+
+static WNDENUMPROC _countWindow(HWND hwnd, LPARAM unused) {
+	if (ic_isIconWindow(hwnd)) {
+		_windowCount++;
+	}
+	return TRUE;
+}
+
+/**
+ * Generate a new title for an icon to create on the desktop.
  */
-#define	IC_WIDTH	32
-void ic_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
+char* ic_generateIconTitle(ICONCLASS* icp) {
+	static char title[30];
+
+	_windowCount = 0;
+	EnumChildWindows(hwndClient, _countWindow, 0l);
+	_windowCount++;
+	switch (icp->ic_type) {
+	case ICID_FILE: sprintf(title, "File %d", _windowCount); break;
+	case ICID_CLIP: sprintf(title, "Clipboard %d", _windowCount); break;
+	case ICID_DIR: sprintf(title, "Folder %d", _windowCount); break;
+	case ICID_EXEC: sprintf(title, "Macro %d", _windowCount); break;
+	case ICID_HELP: sprintf(title, "Help %d", _windowCount); break;
+	case ICID_PRINT: sprintf(title, "Printer %d", _windowCount); break;
+	case ICID_TRASH: sprintf(title, "Trashcan %d", _windowCount); break;
+	case ICID_UNDO: sprintf(title, "Undo Buffer %d", _windowCount); break;
+	default: sprintf(title, "Icon %d", _windowCount); break;
+	}
+	return title;
+
+}
+
+/*------------------------------------------------------------
+ * ic_ownerDrawIconType()
+ */
+void ic_ownerDrawIconType(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 {
 	ICONCLASS	*icp;
 	char		atomname[32];
@@ -96,9 +138,9 @@ void ic_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 }
 
 /*--------------------------------------------------------------------------
- * ic_lboxselchange()
+ * ic_onIconTypeSelection()
  */
-void ic_lboxselchange(HWND hDlg, WORD nItem, LONG lParam, void *p)
+void ic_onIconTypeSelection(HWND hDlg, WORD nItem, LONG lParam, void *p)
 {
 	ICONCLASS	*icp;
 
@@ -107,32 +149,45 @@ void ic_lboxselchange(HWND hDlg, WORD nItem, LONG lParam, void *p)
 	if (icp == 0) {
 		return;
 	}
+	SetDlgItemText(hDlg, IDD_STRING1, ic_generateIconTitle(icp));
 	EnableWindow(GetDlgItem(hDlg, IDD_PATH2SEL),
 		(icp->ic_type == ICID_FILE || icp->ic_type == ICID_DIR) ?
-			TRUE : FALSE);
+		TRUE : FALSE);
+
+}
+
+/**
+ * Return the default space occupied by an icon (including padding).
+*/
+static SIZE ic_getDefaultIconSpace() {
+	SIZE size;
+
+	size.cx = GetSystemMetrics(SM_CXICON) + 30;
+	size.cy = GetSystemMetrics(SM_CYICON) + 24;
+	return size;
 }
 
 /*------------------------------------------------------------
- * ic_lboxmeasureitem()
+ * ic_measureIconTypeItem()
  */
-void ic_lboxmeasureitem(MEASUREITEMSTRUCT *mp)
+void ic_measureIconTypeItem(MEASUREITEMSTRUCT *mp)
 {
 	mp->itemHeight = IC_WIDTH * 3 / 2;
 }
 
 /*--------------------------------------------------------------------------
- * ic_enablecallbacks()
+ * ic_enableConfigurationDialogIcons()
  */
-void ic_enablecallbacks(HWND hwnd, ICONCLASS *icp)
+void ic_enableConfigurationDialogIcons(HWND hwnd, ICONCLASS *icp)
 {
 	EnableWindow(GetDlgItem(hwnd, IDD_CALLBACK2), icp ? TRUE: FALSE);
 	EnableWindow(GetDlgItem(hwnd, IDD_CALLBACK3), icp ? TRUE: FALSE);
 }
 
 /*------------------------------------------------------------
- * ic_lboxfill()
+ * ic_fillIconTypeList()
  */
-void ic_lboxfill(HWND hwnd, int nItem, void* selValue)
+void ic_fillIconTypeList(HWND hwnd, int nItem, void* selValue)
 {
 	ICONCLASS	*icp;
 
@@ -150,36 +205,40 @@ void ic_lboxfill(HWND hwnd, int nItem, void* selValue)
 			(icp->ic_type == ICID_FILE || icp->ic_type == ICID_DIR) ?
 				TRUE : FALSE);
 	}
-	ic_enablecallbacks(hwnd, icp);
+	ic_enableConfigurationDialogIcons(hwnd, icp);
 }
 
 /*------------------------------------------------------------
- * FindChildFromPoint()
+ * ic_findChildFromPoint()
+ * Find the desktop icon located at the point passed as an argument or
+ * 0, if that cannot be found.
  */
-HWND FindChildFromPoint(HWND hwnd, POINT *point)
+HWND ic_findChildFromPoint(HWND hwndParent, POINT *point)
 {
 	HWND	hwndFound;
-	HWND	hwndParent;
 
-	hwndFound = WindowFromPoint(*point);
-	if (hwndFound == hwnd) {
-		return 0;
+	hwndFound = ChildWindowFromPoint(hwndParent, *point);
+	if (hwndFound == hwndParent || hwndFound == NULL) {
+		return NULL;
+	}
+	if (ic_isIconWindow(hwndFound)) {
+		return hwndFound;
 	}
 	hwndParent = GetParent(hwndFound);
 	while(hwndParent != 0) {
-		if (hwndParent == hwndClient) {
-			return hwndFound;
+		if (ic_isIconWindow(hwndParent)) {
+			return hwndParent;
 		}
-		hwndFound = hwndParent;
 		hwndParent = GetParent(hwndParent);
 	}
 	return 0;
 }
 
 /*------------------------------------------------------------
- * ic_sp()
+ * ic_saveCurrentConfiguration()
+ * Save the current icon configuration.
  */
-static int ic_sp(HWND hwnd)
+static int ic_saveCurrentConfiguration(HWND hwnd)
 {
 	SendMessage(hwnd,WM_PROFSAVE,0,0L);
 	return 1;
@@ -194,8 +253,9 @@ static int ic_profsave(HWND hwnd)
 	RECT			r;
 	ICONCLASS		*icp;
 
-	if ((icp = (ICONCLASS*)GetWindowLongPtr(hwnd,GWL_ICCLASSVALUES)) == 0) 
+	if ((icp = ic_getData(hwnd)) == 0) {
 		return 1;
+	}
 
 	GetAtomName(icp->ic_name,atomname,sizeof atomname);
 	GetWindowText(hwnd,title,sizeof title);
@@ -203,7 +263,7 @@ static int ic_profsave(HWND hwnd)
 	ScreenToClient(hwndClient,(POINT*)&r);
 	wsprintf(szBuf,"%s,%s,%d %d,%s",
 		atomname,title,(int)r.left,(int)r.top,
-		ic_param(szB2,hwnd,-1));
+		ic_getParamForIcon(szB2,hwnd,-1));
 	wsprintf(id,"I%d",curric);
 	curric++;
 	prof_savestring(szIconId,id,szBuf);
@@ -211,12 +271,12 @@ static int ic_profsave(HWND hwnd)
 }
 
 /*------------------------------------------------------------
- * ic_profsavepos()
+ * ic_saveLocationInConfiguration()
  */
-int ic_profsavepos(char *pszFn)
+int ic_saveLocationInConfiguration()
 {
 	curric = 0;
-	EdEnumChildWindows(ic_sp);
+	EdEnumChildWindows(ic_saveCurrentConfiguration);
 	return 1;
 }
 
@@ -227,7 +287,7 @@ static int ic_dropped(HWND hwnd, POINT *pt)
 {
 	HWND		hwndDropped;
 
-	if ((hwndDropped = FindChildFromPoint(hwnd,pt)) != 0) {
+	if ((hwndDropped = ic_findChildFromPoint(hwnd,pt)) != 0) {
 		PostMessage(hwndDropped,WM_ICONDROP,ICACT_DROPPED,(LPARAM)hwnd);
 		return 1;
 	}
@@ -252,9 +312,9 @@ static ICONCLASS *ic_attribs(char *szName)
 }
 
 /*------------------------------------------------------------
- * ic_param()
+ * ic_getParamForIcon()
  */
-char *ic_param(LPSTR szBuff, HWND hwnd,int n)
+char *ic_getParamForIcon(LPSTR szBuff, HWND hwnd,int n)
 {
 	char 	*s,szTmp[256];
 
@@ -277,9 +337,9 @@ char *ic_param(LPSTR szBuff, HWND hwnd,int n)
 }
 
 /*------------------------------------------------------------
- * ic_type()
+ * ic_getIconType()
  */
-int ic_type(HWND hwnd)
+int ic_getIconType(HWND hwnd)
 {
 	ICONCLASS		*icp;
 
@@ -288,7 +348,7 @@ int ic_type(HWND hwnd)
 	return 0;
 }
 
-BOOL ic_isicon(HWND hwnd) {
+BOOL ic_isIconWindow(HWND hwnd) {
 	CHAR	szClass[64];
 
 	GetClassName(hwnd, szClass, sizeof szClass);
@@ -297,9 +357,9 @@ BOOL ic_isicon(HWND hwnd) {
 
 
 /*------------------------------------------------------------
- * ic_getactive()
+ * ic_getActiveIconWindow()
  */
-HWND ic_getactive(ICONCLASS **icp)
+HWND ic_getActiveIconWindow(ICONCLASS **icp)
 {
 	HWND		hwnd;
 
@@ -313,13 +373,14 @@ HWND ic_getactive(ICONCLASS **icp)
 
 /*------------------------------------------------------------
  * ic_active()
+ * Return the active icon with the given title, params and icon class.
  */
-HWND ic_active(LPSTR szTitle, LPSTR szParams, ICONCLASS **icClass)
+HWND ic_active(const char* szTitle, const char * szParams, ICONCLASS **icClass)
 {
 	HWND		hwnd;
 	ICONCLASS	*icp;
 
-	if ((hwnd = ic_getactive(&icp)) == 0) {
+	if ((hwnd = ic_getActiveIconWindow(&icp)) == 0) {
 		*icClass = 0;
 		return 0;
 	}
@@ -330,15 +391,16 @@ HWND ic_active(LPSTR szTitle, LPSTR szParams, ICONCLASS **icClass)
 }
 
 /*------------------------------------------------------------
- * ic_mod()
+ * ic_changeIcon()
+ * Assign a new title and new parameters to an icon.
  */
-void ic_mod(LPSTR szTitle, LPSTR szParams, ICONCLASS *icClass)
+void ic_changeIcon(const char* szTitle, const char* szParams, ICONCLASS *icClass)
 {
 	HWND		hwnd;
 	ICONCLASS	*icp;
-	LPSTR	pp;
+	char*		pp;
 
-	if (icClass == 0 || (hwnd = ic_getactive(&icp)) == 0)
+	if (icClass == 0 || (hwnd = ic_getActiveIconWindow(&icp)) == 0)
 		return;
 	SetWindowText(hwnd,szTitle);
 	if ((pp = (LPSTR)GetWindowLongPtr(hwnd,GWL_ICPARAMS)) != 0) {
@@ -347,6 +409,7 @@ void ic_mod(LPSTR szTitle, LPSTR szParams, ICONCLASS *icClass)
 	SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR) szParams);
 	SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,(LONG_PTR) icClass);
 	SendMessage(hwnd,WM_ICONSELECT,0,icClass->ic_type);
+	SendRedraw(hwnd);
 }
 
 static void ic_redrawrect(RECT *pRect) {
@@ -378,7 +441,7 @@ static void ic_setactive(HWND hwnd) {
 /*------------------------------------------------------------
  * IconWndProc()
  */
-WINFUNC IconWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+static WINFUNC IconWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int			ic_type;
 	HICON		hIcon,holdIcon;
@@ -398,12 +461,12 @@ static int		nButtonY;
 
 	switch(message) {
 		case WM_LBUTTONDBLCLK:
-			do_icon(hwnd, ICACT_DCLICKED, 0L);
+			mac_onIconAction(hwnd, ICACT_DCLICKED, 0L);
 			break;
 		case WM_SYSCOMMAND:
 			switch (wParam & 0xFFF0) {
 				case SC_RESTORE:
-					return do_icon(hwnd, ICACT_DCLICKED, 0L);
+					return mac_onIconAction(hwnd, ICACT_DCLICKED, 0L);
 				case SC_MOVE:			/* make the icon move */
 				case SC_TASKLIST:
 					break;
@@ -412,12 +475,12 @@ static int		nButtonY;
 			}
 			break;
 		case WM_ICONSELECT:
-			if ((icp = (ICONCLASS*)GetWindowLongPtr(hwnd,GWL_ICCLASSVALUES)) == 0)
+			if ((icp = ic_getData(hwnd)) == 0)
 				return 0;
 			ic_type = icp->ic_type;
 			if ( ic_type != lParam)
 				return 0;
-			param = ic_param(szBuf,hwnd,0);
+			param = ic_getParamForIcon(szBuf,hwnd,0);
 			holdIcon = (HICON)GetWindowLongPtr(hwnd,GWL_ICICON);
 			hIcon = bl_hasClipboardBlock((int)wParam,*param) ? 
 				   	icp->ic_icon1 : icp->ic_icon2;
@@ -428,7 +491,7 @@ static int		nButtonY;
 			/* drop through */
 
 		case WM_ICONCLASSVALUE:
-			return GetWindowLongPtr(hwnd,GWL_ICCLASSVALUES);
+			return ic_getData(hwnd);
 
 		case WM_PAINT:
 			hIcon = (HICON) GetWindowLongPtr(hwnd,GWL_ICICON);
@@ -519,7 +582,7 @@ static int		nButtonY;
 			return 1;
 
 		case WM_ICONDROP:
-			return do_icon(hwnd, wParam, lParam);
+			return mac_onIconAction(hwnd, wParam, lParam);
 
 		case WM_SYSKEYDOWN:
 			if (wParam == VK_RETURN) {
@@ -528,7 +591,7 @@ static int		nButtonY;
 			return 0;
 		case WM_KEYDOWN:
 			if (wParam == VK_DELETE) {
-				EdIconsQuit((HWND) hwnd);
+				ic_closeIconWindow((HWND) hwnd);
 				return 0;
 			}
 			if (wParam == VK_RETURN) {
@@ -564,27 +627,28 @@ static int		nButtonY;
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
-/*------------------------------------------------------------
- * ic_selecticons()
- */
-static int ic_sel1(HWND hwnd)
+static int ic_selectClipboardIcon(HWND hwnd)
 {
 	SendMessage(hwnd,WM_ICONSELECT,0,(LPARAM)ICID_CLIP);
 	return 1;
 }
 
-static int ic_sel2(HWND hwnd)
+static int ic_selectTrashIcon(HWND hwnd)
 {
 	SendMessage(hwnd,WM_ICONSELECT,1,(LPARAM)ICID_TRASH);
 	return 1;
 }
 
+/*------------------------------------------------------------
+ * ic_redisplayIcons()
+ * Update all icons to reflect the current editor state (clipboard has data etc...)
+ */
 int _icdirty = 1;
-void ic_selecticons(void)
+void ic_redisplayIcons(void)
 {
 	if (_icdirty) {
-		EdEnumChildWindows(ic_sel1);
-		EdEnumChildWindows(ic_sel2);
+		EdEnumChildWindows(ic_selectClipboardIcon);
+		EdEnumChildWindows(ic_selectTrashIcon);
 		_icdirty= 0;
 	}
 }
@@ -599,9 +663,9 @@ static char *ic_classname(LPSTR d, LPSTR szIconName)
 }
 
 /*------------------------------------------------------------
- * ic_register()
+ * ic_registerDesktopIconClass()
  */
-int ic_register(void)
+int ic_registerDesktopIconClass(void)
 {
 	WNDCLASS  wc;
 
@@ -656,14 +720,41 @@ static intptr_t ic_mk(LPSTR szIdClass, LONG lParam)
 		ic_createclass(szIdClass,*szTypeString,szIconName,szCursor,szIcon2) ? 1 : 0;
 }
 
-/*------------------------------------------------------------
- * ic_place()
+/*
+ * Find the next point on the screen, where an icon can be placed.
  */
-int ic_position(HWND hwnd, int x, int y)
+static POINT ic_findNextPoint(int width, int height) {
+	RECT rect;
+	POINT pt;
+	pt.x = 20;
+	pt.y = 20;
+	GetWindowRect(hwndClient, &rect);
+	for (int x1 = rect.right - width - 20; x1 > 20; x1 -= 2 * width) {
+		for (int y1 = 20; y1 < rect.bottom - 20; y1 += 2 * height) {
+			pt.x = x1;
+			pt.y = y1;
+			if (ic_findChildFromPoint(hwndClient, &pt) == NULL) {
+				return pt;
+			}
+		}
+	}
+	return pt;
+}
+
+/*------------------------------------------------------------
+ * ic_moveIcon()
+ * Move an icon to a given position. IF CW_USEDEFAULT is specified, the next free position will be used.
+ */
+int ic_moveIcon(HWND hwnd, int x, int y)
 {
 	RECT	r;
 
-	if (x < 0)
+	if (x == CW_USEDEFAULT && y == CW_USEDEFAULT) {
+		SIZE size = ic_getDefaultIconSpace();
+		POINT pt = ic_findNextPoint(size.cx, size.cy);
+		x = pt.x;
+		y = pt.y;
+	} else if (x < 0)
 		return 0;
 
 	GetClientRect(hwnd,&r);
@@ -672,21 +763,25 @@ int ic_position(HWND hwnd, int x, int y)
 }
 
 /*------------------------------------------------------------
- * ic_add()
+ * ic_addIcon()
+ * Adds an icon to the desktop with the given class descriptor, title and params.
+ * Set x and y to CW_USEDEFAULT for a default placement.
  */
-HWND ic_add(ICONCLASS *icp, LPSTR szTitle, LPSTR szParams, int x, int y)
+HWND ic_addIcon(ICONCLASS *icp, const char* szTitle, const char* szParams, int x, int y)
 {
-	INT			width;
-	INT			height;
 	HWND		hwnd;
 
 	if (!icp) {
 		return 0;
 	}
-	width = GetSystemMetrics(SM_CXICON) + 30;
-	height = GetSystemMetrics(SM_CYICON) + 24 ;
+	SIZE size = ic_getDefaultIconSpace();
+	if (x == CW_USEDEFAULT || y == CW_USEDEFAULT) {
+		POINT pt = ic_findNextPoint(size.cx, size.cy);
+		x = pt.x;
+		y = pt.y;
+	}
 	if ((hwnd = CreateWindowEx(WS_EX_TRANSPARENT, szIconClass,szTitle, WS_CHILD|WS_CLIPSIBLINGS,
-			x, y, width, height, hwndClient, 0, hInst, (LPVOID)szParams)) == 0) {
+			x, y, size.cx, size.cy, hwndClient, 0, hInst, (LPVOID)szParams)) == 0) {
 		return 0;
 	}
 	SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE |
@@ -723,13 +818,14 @@ static intptr_t ic_place(LPSTR szName, LONG lParam)
 	}
 	x = (int)Atol(szGeo);
 	y = (int)Atol(_strtolend);
-	hwnd = ic_add(icp,szTitle,szParams,x,y);
+	hwnd = ic_addIcon(icp,szTitle,szParams,x,y);
 
 	return (intptr_t)hwnd;
 }
 
 /*------------------------------------------------------------
  * ic_init()
+ * Initializes the PKS edit icons.
  */
 EXPORT int ic_init(void)
 {

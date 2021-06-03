@@ -18,7 +18,7 @@
 #include "textblocks.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
-
+#include "desktopicons.h"
 #include "winterf.h"
 #include "winfo.h"
 
@@ -37,6 +37,7 @@
 #include "errordialogs.h"
 #include "documenttypes.h"
 #include "findandreplace.h"
+#include "desktopicons.h"
 
  /*------------------------------------------------------------
   * EdGetActiveWindow()
@@ -48,18 +49,9 @@ extern HWND EdGetActiveWindow(int includeicons);
 extern BOOL find_replacementHadBeenPerformed();
 
 extern HWND ww_winid2hwnd(int winid);
-extern HWND ic_add(void* icp, LPSTR szTitle, LPSTR szParams, int x, int y);
-extern HWND ic_active(LPSTR szTitle, LPSTR szParams, void** icClass);
 extern int 		AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
 extern int 		mac_runcmd(MACROREF *mp);
 extern int 		AlignText(char *finds, int scope, char filler, int flags);
-extern long 	ft_size(FTABLE *fp);
-extern char *	AbbrevName(char *fn);
-extern INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message,WPARAM wParam, LPARAM lParam);
-extern void 	ic_lboxfill(HWND hwnd, int nItem, void *selValue);
-extern void 	ic_lboxmeasureitem(MEASUREITEMSTRUCT *mp);
-extern void		ic_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl);
-extern void		ic_lboxselchange(HWND hDlg, WORD nItem, LONG lParam, void* p);
 extern int 		LbGetText(HWND hwnd, int id, void *szBuff);
 extern FTABLE *	ww_winid2fp(int winid);
 extern int 		ww_nwi(void);
@@ -73,16 +65,13 @@ extern int 		EdExecute(long flags, long unused,
 					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
 extern int 		AssignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
-extern char *		TmpDir(void);
-extern void 		mac_switchtodefaulttables(void);
+extern char *		file_getTempDirectory(void);
 extern int 		doc_documentTypeChanged(void);
 extern void 		SendRedraw(HWND hwnd);
-extern int 		caret_moveUpOrDown(int dir, int mtype);
-extern int 		caret_advanceSection(int dir,int start);
 extern int 		curspgrph(int dir,int start);
 extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
-extern int 		macs_compile(void);
+extern int 		mac_compileMacros(void);
 extern int		AddDocumentTypesToListBox(HWND hwnd, int nItem);
 
 extern long		_multiplier;
@@ -466,7 +455,7 @@ int EdAbout(void)
 #elif
 	static char _architecture[] = "- 32 Bit Plattform";
 #endif
-	static char _versionInfo[] = "Version 1.5, 27.5.2021";
+	static char _versionInfo[] = "Version 1.6, 2.6.2021";
 
 	static DIALPARS _d[] = {
 		IDD_RO1,		sizeof _kunde,		_kunde,
@@ -747,7 +736,7 @@ int PromptAsPath(char *path)
 		0
 	};
 
-	lstrcpy(path, TmpDir());
+	lstrcpy(path, file_getTempDirectory());
 	_d[0].dp_data = path;
 
 	return DoDialog(DLGNEWASPATH, DlgStdProc,_d, NULL) == IDOK;
@@ -940,7 +929,7 @@ void DocTypelboxfill(HWND hwnd, int nItem, void* selValue)
 }
 
 /*------------------------------------------------------------
- * ic_lboxmeasureitem()
+ * ic_measureIconTypeItem()
  */
 void DocTypelboxmeasureitem(MEASUREITEMSTRUCT* mp)
 {
@@ -1680,43 +1669,12 @@ int getuntilc(int ids_num)
 }
 
 /*--------------------------------------------------------------------------
- * EdMacrosEdit()
- */
-int EdMacrosEdit(void)
-{	
-	int 				ret;
-	extern 	char *	_macroname;
-	extern 	MACROREF	currentSelectedMacro;
-
-	ret = DoDialog(DLGMACROS, DlgMacEditProc,0, NULL);
-	mac_switchtodefaulttables();
-
-	if (ret == IDD_MACSTART) {
-		long m = _multiplier;
-		int  ret;
-	
-		_multiplier = 1;
-		while(m-- > 0) {
-			ret = mac_runcmd(&currentSelectedMacro);
-		}
-		return ret;
-	}
-
-	if (_macroname) {
-		if (ret == IDD_MACEDIT) {
-			return PrintMacs(_macroname);
-		}
-	}
-	return 0;
-}
-
-/*--------------------------------------------------------------------------
  * EdCompileMacros()
  */
 int EdCompileMacros(int bShowList)
 {
 	if (!bShowList || ShowWindowList(IDS_SELECTCOMPILEWINDOW)) {
-		return macs_compile();
+		return mac_compileMacros();
 	}
 	return 0;
 }
@@ -1797,13 +1755,13 @@ static int add_icon(HWND hDlg);
 static int del_icon(HWND hDlg);
 static int mod_icon(void);
 static char _title[32],_pars[64];
-static LONG _ictype;
+static ICONCLASS* _ictype;
 static DIALLIST icondlist = {
-	&_ictype, ic_lboxfill, LbGetText, 
-	ic_lboxmeasureitem, ic_lboxdrawitem, ic_lboxselchange, 0  };
+	&_ictype, ic_fillIconTypeList, LbGetText, 
+	ic_measureIconTypeItem, ic_ownerDrawIconType, ic_onIconTypeSelection, 0  };
 static DIALPARS iconDialListPars[] = {
 	IDD_STRING1,	sizeof _title,		_title,
-	IDD_PATH1,	sizeof _pars,		_pars,
+	IDD_PATH1,		sizeof _pars,		_pars,
 	IDD_ICONLIST,	0,				&icondlist,
 	IDD_CALLBACK1,	0,				add_icon,
 	IDD_CALLBACK2,	0,				del_icon,
@@ -1816,10 +1774,10 @@ static int add_icon(HWND hDlg)
 	HWND		hwnd;
 
 	if ((p = stralloc(_pars)) != 0) {
-		hwnd = ic_add((void*)_ictype,_title,p,CW_USEDEFAULT,CW_USEDEFAULT);
+		hwnd = ic_addIcon((void*)_ictype,_title,p,CW_USEDEFAULT,CW_USEDEFAULT);
 		SendMessage(hwndClient, WM_MDIACTIVATE, (WPARAM)hwnd, (LPARAM)NULL);
 		SendRedraw(hwnd);
-		ic_enablecallbacks(hDlg, (void *)_ictype);
+		ic_enableConfigurationDialogIcons(hDlg, (void *)_ictype);
 	}
 	return 1;
 }
@@ -1829,7 +1787,7 @@ static int del_icon(HWND hDlg)
 	HWND hwnd;
 
 	if ((hwnd = ic_active(_title,_pars,&_ictype)) != 0) {
-		EdIconsQuit(hwnd);
+		ic_closeIconWindow(hwnd);
 	}
 	DoDlgInitPars(hDlg, iconDialListPars, 3);
 	return 1;
@@ -1840,7 +1798,7 @@ static int mod_icon(void)
 	void *p;
 
 	if ((p = stralloc(_pars)) != 0) {
-		ic_mod(_title,p,_ictype);
+		ic_changeIcon(_title,p,_ictype);
 	}
 	return 1;
 }

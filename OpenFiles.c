@@ -28,7 +28,7 @@
 
 #include "dos.h"
 #include "pathname.h"
-#include "edifsel.h"
+#include "fileselector.h"
 #include "edhist.h"
 #include "pksedit.h"
 #include "stringutil.h"
@@ -111,7 +111,7 @@ void ft_CheckForChangedFiles(void) {
 	EDTIME		lCurrentTime;
 	
 	for (fp = _filelist; fp; fp = fp->next) {
-		if (fp->ti_created < (lCurrentTime = EdGetFileTime(fp->fname))) {
+		if (fp->ti_created < (lCurrentTime = file_getAccessTime(fp->fname))) {
 			EdSelectWindow(WIPOI(fp)->win_id);
 			if (ed_yn(IDS_MSGFILESHAVECHANGED, OemAbbrevName(fp->fname)) == IDYES) {
 				AbandonFile(fp, (DOCUMENT_DESCRIPTOR *)0);			
@@ -252,7 +252,7 @@ int pickread(void )
 	char	szBuff[EDMAXPATHLEN];
 
 	if (GetConfiguration()->options & O_READPIC) {
-		if ((pszFound = searchfile(HISTORY_FILE_NAME)) != 0 &&
+		if ((pszFound = file_searchFileInPKSEditLocation(HISTORY_FILE_NAME)) != 0 &&
 		    Readfile(&ft, pszFound, -1)) {
 			// save complete filename of history file.
 			GetFullPathName(pszFound, sizeof szBuff, szBuff, NULL);
@@ -280,7 +280,7 @@ void ft_bufdestroy(FTABLE *fp)
 	destroy(&fp->documentDescriptor);
 	ln_listfree(fp->firstl);
 	fp->tln = fp->firstl = fp->caret.linePointer = 0;
-	closeF(&fp->lockFd);
+	file_closeFile(&fp->lockFd);
 	undo_destroyManager(fp);
 }
 
@@ -449,7 +449,7 @@ static int ft_openwin(FTABLE *fp, WINDOWPLACEMENT *wsp)
 int ft_requestToClose(FTABLE *fp)
 {
 	if (fp->documentDescriptor->cm[0]) {
-		if (!do_macbyname(fp->documentDescriptor->cm)) {
+		if (!mac_executeByName(fp->documentDescriptor->cm)) {
 			return 0;
 		}
 	}
@@ -541,7 +541,7 @@ int txtfile_select(int title, char *result)
 	BOOL	bRet;
 
 	bRet = FALSE;
-	if ((fn = rw_select(&_txtfninfo, title, FALSE)) != 0) {
+	if ((fn = fsel_selectFileWithOptions(&_txtfninfo, title, FALSE)) != 0) {
 		strcpy(result,fn);
 		bRet = TRUE;
 	}
@@ -593,7 +593,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 			return ActivateWindowOfFileNamed(fn);
 		}
 	}
-	if (fn && EdStat(fn) < 0) {
+	if (fn && file_exists(fn) < 0) {
 		if (ed_yn(IDS_MSGQUERYNEWFILE, OemAbbrevName(fn)) == IDNO) {
 			return 0;
 		}
@@ -613,7 +613,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 		if ((GetConfiguration()->options & O_GARBAGE_AS) &&
 			GenerateBackupPathname(szAsPath, fn) &&
 			areFilenamesDifferent(szAsPath, fn) &&
-			EdStat(szAsPath) == 0 &&
+			file_exists(szAsPath) == 0 &&
 			ed_yn(IDS_MSGRECOVER) == IDYES) {
 			;
 		} else {
@@ -644,7 +644,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 	caret_placeCursorInCurrentFile(line,0L);
 
 	if (fileflags != 0 && fp->documentDescriptor) {
-		do_macbyname(fp->documentDescriptor->creationMacroName);
+		mac_executeByName(fp->documentDescriptor->creationMacroName);
 	}
 
 	return 1;
@@ -668,7 +668,6 @@ int EdEditFile(long editflags, long unused, char *filename)
 			return 0;
 		}
 	}
-	fsel_optionsenable(1);
 	ret = opennofsel(filename, 0L, (WINDOWPLACEMENT*)0);
 	return ret;
 }
@@ -752,11 +751,10 @@ int EdSaveFile(int flg)
 		char newname[512];
 
 		sfsplit(fp->fname,_txtfninfo.path,_txtfninfo.fname);
-		fsel_optionsenable(1);
 		if (txtfile_select(MSAVEAS, newname) == 0) {
 			return 0;
 		}
-		if (areFilenamesDifferent(newname,fp->fname) && EdStat(newname) >= 0) {
+		if (areFilenamesDifferent(newname,fp->fname) && file_exists(newname) >= 0) {
 			if (ed_yn(IDS_MSGOVERWRITE,OemAbbrevName(newname)) == IDNO)
 				return 0;
 			/* if ret == "APPEND".... fp->flags |= F_APPEND */

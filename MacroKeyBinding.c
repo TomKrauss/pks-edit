@@ -20,7 +20,7 @@
 #include "pksedit.h"
 #include "winfo.h"
 #include "winterf.h"
-#include "edifsel.h"
+#include "fileselector.h"
 #include "edfuncs.h"
 #include "functab.h"
 #include "dial2.h"
@@ -42,7 +42,7 @@ extern BOOL 		OptionSet(long nFlag);
 extern long		rsc_wrmacros(int fd, long offset, char *buf, long maxbytes);
 extern long 		rsc_wrbuf(int fd, long offset, char *buf, long maxbytes);
 extern char *		rsc_rdmacros(char *param, unsigned char *p, unsigned char *pend);
-extern char *		TmpName(char *dst, char c);
+extern char *		file_getTempFilename(char *dst, char c);
 extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 extern void 		st_seterrmsg(char *msg);
 extern int 		cust_combood(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(), 
@@ -347,7 +347,7 @@ int mac_read(char *fn)
 	RSCFILE	*rp;
 
 	if (fn == 0) {
-		if ((fn = rw_init(&_seqfsel)) == 0)
+		if ((fn = fsel_initPathes(&_seqfsel)) == 0)
 			return 0;
 	}
 
@@ -509,7 +509,7 @@ int mac_recorder(void)
 int EdMacrosReadWrite(int wrflag)
 {	char *fn;
 
-	if ((fn = rw_select(&_seqfsel,(wrflag) ? MWRSEQ : MREADSEQ, wrflag)) == 0) {
+	if ((fn = fsel_selectFileWithOptions(&_seqfsel,(wrflag) ? MWRSEQ : MREADSEQ, wrflag)) == 0) {
 		return 0;
 	}
 
@@ -533,10 +533,9 @@ int EdMacroRecord(void)
 }
 
 /*---------------------------------*/
-/* do_icon()					*/
+/* mac_onIconAction()					*/
 /*---------------------------------*/
-int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped)
-{
+int mac_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped) {
 	HWND		icdropHwnd = 0;
 	ICONBIND  *ipbind;
 	char 	*icp0;
@@ -553,12 +552,12 @@ int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped)
 
 	if (wParam == ICACT_DROPPED) {
 		icdropHwnd = (HWND)dropped;
-		dropped_type = ic_type(icdropHwnd);
+		dropped_type = ic_getIconType(icdropHwnd);
 	} else {						/* Textblock,... dropped */
 		dropped_type = wParam;
 	}
 
-	dest_type = ic_type(icHwnd);
+	dest_type = ic_getIconType(icHwnd);
 
 	for (i = 0; i < _nicbind; i++) {
 		ipbind = &_ictab[i];
@@ -567,29 +566,29 @@ int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped)
 		}
 
 		if (ipbind->pflags & IPCF_USERDEF) {
-			return do_macbyname(ic_param(szB1, icHwnd, 0));
+			return mac_executeByName(ic_getParamForIcon(szB1, icHwnd, 0));
 		}
 
 		if (ipbind->dropped == dropped_type) {
 			o1 = _cmdseqtab[ipbind->index].p;
-			icp0 = ic_param(szB1,icHwnd,0);
+			icp0 = ic_getParamForIcon(szB1,icHwnd,0);
 			if (ipbind->pflags & IPCF_SRCLONG1)
-				o1 = Atol(ic_param(szBtmp,icHwnd,2));
+				o1 = Atol(ic_getParamForIcon(szBtmp,icHwnd,2));
 			if (ipbind->pflags & IPCF_SRCLONG1)
-				o2 = Atol(ic_param(szBtmp,icHwnd,3));
+				o2 = Atol(ic_getParamForIcon(szBtmp,icHwnd,3));
 			if (ipbind->pflags & IPCF_SRCSTRING1)
 				ps1 = icp0;
 			if (ipbind->pflags & IPCF_SRCSTRING2)
-				ps2 = ic_param(szB2,icHwnd,1);
+				ps2 = ic_getParamForIcon(szB2,icHwnd,1);
 			if (ipbind->pflags & IPCF_SRCCHAR)
 				o1 |= *icp0;
 			if (icdropHwnd) {
 				if (ipbind->pflags & IPCF_DROPCHAR)
-					o1 |= *(ic_param(szBtmp,icdropHwnd,0));
+					o1 |= *(ic_getParamForIcon(szBtmp,icdropHwnd,0));
 				if (ipbind->pflags & IPCF_DROPSTRING1)
-					ps1 = ic_param(szB1,icdropHwnd,0);
+					ps1 = ic_getParamForIcon(szB1,icdropHwnd,0);
 				if (ipbind->pflags & IPCF_DROPSTRING2)
-					ps2 = ic_param(szB2,icdropHwnd,1);
+					ps2 = ic_getParamForIcon(szB2,icdropHwnd,1);
 				if (ipbind->pflags & IPCF_DROPHWND)
 					o1 = (intptr_t)icdropHwnd;
 			}
@@ -655,9 +654,9 @@ WORD TranslateToOrigMenu(WORD wParam)
 }
 
 /*---------------------------------*/
-/* do_menu()					*/
+/* mac_onMenuAction()					*/
 /*---------------------------------*/
-int do_menu(int menunum)
+int mac_onMenuAction(int menunum)
 {
 	MACROREF *	mp;
 
@@ -719,10 +718,10 @@ int mac_runcmd(MACROREF *mp)
 }
 
 /*---------------------------------*
- * do_key()
+ * mac_onKeyPressed()
  * Execute a keybinding and return 1 if successful.
  *---------------------------------*/
-int do_key(void* keybind) {
+int mac_onKeyPressed(void* keybind) {
 	KEYBIND     *kp;
 
 	if ((kp = (KEYBIND*)keybind) == (KEYBIND *) 0) 
@@ -732,18 +731,18 @@ int do_key(void* keybind) {
 }
 
 /*------------------------------------------------------------
- * do_insertc()
+ * mac_onCharacterInserted()
  */
-int do_insertc(WORD c)
+int mac_onCharacterInserted(WORD c)
 {
 	return 
 		do_func(FUNC_EdCharInsert,c,0,(void*)0,(void*)0,(void*)0);
 }
 
 /*---------------------------------*/
-/* do_macbyname()				*/
+/* mac_executeByName()				*/
 /*---------------------------------*/
-int do_macbyname(char *name)
+int mac_executeByName(char *name)
 {	int i;
 
 	if (!name || !name[0])
@@ -871,9 +870,9 @@ static KEYCODE SelectedKey(HWND hwnd) {
 }
 
 /*------------------------------------------------------------
- * but_enable()
+ * mac_enableButton()
  */
-void but_enable(HWND hwnd, WORD nItem, BOOL nWhich)
+static void mac_enableButton(HWND hwnd, WORD nItem, BOOL nWhich)
 {
 	HWND 	hwndButton;
 
@@ -882,9 +881,9 @@ void but_enable(HWND hwnd, WORD nItem, BOOL nWhich)
 }
 
 /*------------------------------------------------------------
- * list_startfilling()
+ * mac_initializeListBox()
  */
-HWND list_startfilling(HWND hwnd, WORD nItem, LRESULT *nCurr)
+static HWND mac_initializeListBox(HWND hwnd, WORD nItem, LRESULT *nCurr)
 {
 	HWND hwndList;
 
@@ -941,7 +940,7 @@ static void UpdateMacroList(HWND hwnd)
 	int  	i,state;
 	LRESULT nCurr;
 
-	hwndList = list_startfilling(hwnd, IDD_MACROLIST, &nCurr);
+	hwndList = mac_initializeListBox(hwnd, IDD_MACROLIST, &nCurr);
 
 	for (i = 0; i < MAXMACRO; i++) {
 		if (_macrotab[i] != 0) {
@@ -991,12 +990,15 @@ char *mac_comment(LPSTR szBuf, LPSTR szB2, WORD nIndex, WORD type)
 	return szBuf;
 }
 
-char *MenuTipFor(int menId) {
+/*
+ * Returns a tool tip for a given menu id. 
+ */
+char *mac_getMenuTooltTip(int dMenuId) {
 	static char szBuf[256];
 	char szBuf2[32];
 	MACROREF *	mp;
 
-	if (menId != -1 && (mp = GetMacrorefForMenu(menId)) != 0) {
+	if (dMenuId != -1 && (mp = GetMacrorefForMenu(dMenuId)) != 0) {
 		mac_comment(szBuf, szBuf2, mp->index, mp->typ);
 	} else {
 		szBuf[0] = 0;
@@ -1005,16 +1007,17 @@ char *MenuTipFor(int menId) {
 }
 
 /*--------------------------------------------------------------------------
- * ShowMenuHelp()
+ * mac_showHelpForMenu()
+ * Display help for a given menu id
  */
-void ShowMenuHelp(int menId)
+void mac_showHelpForMenu(int dMenuId)
 {
 	char			szBuf[256];
 	char			szBuf2[32];
 	MACROREF *	mp;
 
-	st_switchtomenumode(menId != -1);
-	if (menId != -1 && (mp = GetMacrorefForMenu(menId)) != 0) {
+	st_switchtomenumode(dMenuId != -1);
+	if (dMenuId != -1 && (mp = GetMacrorefForMenu(dMenuId)) != 0) {
 		mac_comment(szBuf, szBuf2, mp->index, mp->typ);
 		st_seterrmsg(*szBuf ? szBuf : (char *)0);
 	} else {
@@ -1049,10 +1052,10 @@ static void UpdateCommentAndName(HWND hwnd)
 	SendDlgItemMessage(hwnd, IDD_STRING1, EM_SETREADONLY, !editable, 0);
 	SendDlgItemMessage(hwnd, IDD_STRING2, EM_SETREADONLY, !editable, 0);
 
-	/* but_enable(hwnd,IDD_MACSTART,editable); */
-	but_enable(hwnd,IDD_MACRENAME,editable);
-	but_enable(hwnd,IDD_MACDELETE,editable);
-	but_enable(hwnd,IDD_MACEDIT,editable);
+	/* mac_enableButton(hwnd,IDD_MACSTART,editable); */
+	mac_enableButton(hwnd,IDD_MACRENAME,editable);
+	mac_enableButton(hwnd,IDD_MACDELETE,editable);
+	mac_enableButton(hwnd,IDD_MACEDIT,editable);
 }
 
 /*------------------------------------------------------------
@@ -1068,7 +1071,7 @@ static void NewMacroSelected(HWND hwnd)
 
 	UpdateCommentAndName(hwnd);
 	nSelected = SelectedMacro(hwnd);
-	hwndList = list_startfilling(hwnd,IDD_LISTBOX2,&nCurr);
+	hwndList = mac_initializeListBox(hwnd,IDD_LISTBOX2,&nCurr);
 	for (kp = _keytables->rt_data; kp < (KEYBIND*)_keytables->rt_end; kp++) {
 		if (MAKELONG(kp->macref.typ,kp->macref.index) == nSelected) {
 			nKeys++;
@@ -1076,7 +1079,7 @@ static void NewMacroSelected(HWND hwnd)
 		}
 	}
 	list_endfilling(hwndList,0);
-	but_enable(hwnd,IDD_MACDELKEY,nKeys ? TRUE : FALSE);
+	mac_enableButton(hwnd,IDD_MACDELKEY,nKeys ? TRUE : FALSE);
 }
 
 /*------------------------------------------------------------
@@ -1088,7 +1091,7 @@ static void FillKeyTables(HWND hwnd)
 	LRESULT		nCurr;
 	RSCTABLE	*rp;
 
-	hwndList = list_startfilling(hwnd,IDD_LISTBOX,&nCurr);
+	hwndList = mac_initializeListBox(hwnd,IDD_LISTBOX,&nCurr);
 	for (rp = _keytables; rp; rp = rp->rt_next) {
 		SendMessage(hwndList,LB_ADDSTRING,0,(LPARAM)rp->rt_name);
 	}
@@ -1189,7 +1192,7 @@ static int CharItemNextSelected(HWND hwndList, unsigned char ucKey)
 /*------------------------------------------------------------
  * DlgMacEditProc()
  */
-INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	char 			szComment[MAC_COMMENTLEN];
 	char			szName[128];
 	char			szN2[64];
@@ -1333,5 +1336,37 @@ upd: 				_macedited = 1;
 	}
 	return FALSE;
 }
+
+/*--------------------------------------------------------------------------
+ * EdMacrosEdit()
+ */
+int EdMacrosEdit(void)
+{
+	int 				ret;
+	extern 	char* _macroname;
+	extern 	MACROREF	currentSelectedMacro;
+
+	ret = DoDialog(DLGMACROS, DlgMacEditProc, 0, NULL);
+	mac_switchtodefaulttables();
+
+	if (ret == IDD_MACSTART) {
+		long m = _multiplier;
+		int  ret;
+
+		_multiplier = 1;
+		while (m-- > 0) {
+			ret = mac_runcmd(&currentSelectedMacro);
+		}
+		return ret;
+	}
+
+	if (_macroname) {
+		if (ret == IDD_MACEDIT) {
+			return PrintMacs(_macroname);
+		}
+	}
+	return 0;
+}
+
 
 

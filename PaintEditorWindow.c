@@ -113,7 +113,7 @@ static void markline(HDC hdc, WINFO *wp,LINE *lp,int y,int lastcol)
 int write_line(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 {	register int 			start,i,end,ind,textlen;
 	register unsigned char 	*d,*s,*send;
-	DOCUMENT_DESCRIPTOR 				*linp = ((FTABLE*)FTPOI(wp))->documentDescriptor;
+	DOCUMENT_DESCRIPTOR 	*linp = ((FTABLE*)FTPOI(wp))->documentDescriptor;
 	/* limited linelength ! */
 	char 				buf[512];
 	int					flags;

@@ -108,7 +108,7 @@
     <ClCompile Include="WindowGeometryUtil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SelectFiles.c">
+    <ClCompile Include="FileSelector.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SelectFonts.c">
@@ -317,9 +317,6 @@
     <ClInclude Include="include\edierror.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\edifsel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\lineoperations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -426,6 +423,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\clipboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\fileselector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\desktopicons.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

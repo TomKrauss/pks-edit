@@ -34,7 +34,7 @@ int EdCallWinHelp(char *szFile, UINT hType, DWORD_PTR param)
 	if (!szFile)
 		szFile = szHelpFile;
 	
-	if (!(pszFound = searchfile(szFile))) {
+	if (!(pszFound = file_searchFileInPKSEditLocation(szFile))) {
 		pszFound = szFile;
 	}
 

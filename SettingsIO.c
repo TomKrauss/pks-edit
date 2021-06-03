@@ -25,16 +25,17 @@
 
 #pragma hdrstop
 
-#include "edifsel.h"
+#include "fileselector.h"
 #include "pksedit.h"
 #include "editorconfiguration.h"
 #include "findandreplace.h"
+#include "fileutil.h"
+#include "desktopicons.h"
 
 #define	PROF_OFFSET		1
 
 extern void MouseBusy(void);
 extern void MouseNotBusy(void);
-extern int  EdStat(char *s, int mode);
 extern LONG prof_getlong(char *grp,char *ident);
 
 typedef enum {	I_FLAG, I_WINDOW, I_VAL, I_STRING, I_INVAL } ITEMTYPE;
@@ -70,7 +71,7 @@ static int LocatePksEditIni(void)
 	if (_pksEditIniFilename[0]) {
 		return 1;
 	}
-	if ((fn = rw_init(&_setfselinfo)) == 0) {
+	if ((fn = fsel_initPathes(&_setfselinfo)) == 0) {
 		return 0;
 	}
 	GetFullPathName(fn, sizeof _pksEditIniFilename, _pksEditIniFilename, NULL);
@@ -82,7 +83,7 @@ static int LocatePksEditIni(void)
  */
 void prof_setinifile(char *fn)
 {
-	if (EdStat(fn, 0xFF) == 0) {
+	if (file_exists(fn, 0xFF) == 0) {
 		FullPathName(_pksEditIniFilename, fn);
 	}
 }
@@ -291,14 +292,14 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	} else {
 		LocatePksEditIni();
 		sfsplit(_pksEditIniFilename, _setfselinfo.path, _setfselinfo.fname);
-		if ((fn = rw_select(&_setfselinfo, MOPTION, TRUE)) == 0) {
+		if ((fn = fsel_selectFileWithOptions(&_setfselinfo, MOPTION, TRUE)) == 0) {
 			return 0;
 		}
 	}
 
 	/* create non existing profiles, others will be updated */
-	if (EdStat(fn,0xFF) < 0) {
-		if ((fd = EdCreate(fn)) < 0) {
+	if (file_exists(fn,0xFF) < 0) {
+		if ((fd = file_createFile(fn)) < 0) {
 			return 0;
 		}
 		bDidExist = FALSE;
@@ -323,7 +324,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	win_getstate(hwndFrame,&ws);
 	prof_savewinstate(szFrameClass,0,&ws);
 	ww_savewinstates();
-	ic_profsavepos();
+	ic_saveLocationInConfiguration();
 	
 	if (!bDidExist) {
 		SaveAllDocumentTypes((void *)0);

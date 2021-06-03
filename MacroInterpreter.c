@@ -43,7 +43,7 @@ extern void 			redrawallwi(int update);
 extern void 			undo_startModification(FTABLE *fp);
 extern int 			ft_checkSelectionWithError(FTABLE *fp);
 extern void 			ft_settime(EDTIME *tp);
-extern int 			do_macbyname(char *name);
+extern int 			mac_executeByName(char *name);
 void 				stopcash(void);
 
 int					_playing;
@@ -550,7 +550,7 @@ out:
 	else {
 		saveStack = currentParamStack;
 		currentParamStack = stack;
-		rc = do_macbyname(((COM_MAC*)*Cp)->name);
+		rc = mac_executeByName(((COM_MAC*)*Cp)->name);
 		currentParamStack = saveStack;
 		*Cp = cp;
 	}

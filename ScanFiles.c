@@ -120,13 +120,13 @@ static int matchInFile(char *fn, DTA *stat) {
 		return(0);
 	}
 
-	if ((fd = EdOpen(fn)) < 0) {
+	if ((fd = file_openFile(fn)) < 0) {
 		return -1;
 	}
 
 	readfrags(fd,scanlines,fn);
 
-	closeF(&fd);
+	file_closeFile(&fd);
 
 	return 0;
 }

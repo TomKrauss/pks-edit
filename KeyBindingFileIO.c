@@ -19,7 +19,7 @@
 #include "caretmovement.h"
 #include "edierror.h"
 #include "edfuncs.h"
-#include "edifsel.h"
+#include "fileselector.h"
 #include "uc.h"
 #include "winterf.h"
 #include "winfo.h"
@@ -314,7 +314,7 @@ int doabbrev(FTABLE *fp, LINE *lp,int offs)
 		return 0;
 	caret_placeCursorInCurrentFile(fp->ln,o2);
 	return (domacro) ? 
-		redrawline(), do_macbyname((char *)up->p) : pasteblk(up->p,0,o2,0);
+		redrawline(), mac_executeByName((char *)up->p) : pasteblk(up->p,0,o2,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -407,7 +407,7 @@ int Mapread(int context, char *target)
 	if (_outfile.firstl != 0) {
 		char protname[256];
 	
-		strdcpy(protname,TmpDir(),"KEY.ERR");
+		strdcpy(protname,file_getTempDirectory(),"KEY.ERR");
 		Writeandclose(&_outfile,protname,0);
 		stepnofsel(protname,1);
 	}
@@ -421,7 +421,7 @@ int EdDocMacrosAdd(void)
 {
 	char	*	fn;
 
-	if (!ft_CurrentDocument() || (fn = rw_select(&_linfsel,MADDDOCMAC, TRUE)) == 0) {
+	if (!ft_CurrentDocument() || (fn = fsel_selectFileWithOptions(&_linfsel,MADDDOCMAC, TRUE)) == 0) {
 		return 0;
 	}
 
@@ -446,7 +446,7 @@ int EdDocMacrosEdit(void)
 		return 0;
 	}
 	strdcpy(keyfile, _datadir, "MODI.TMP");
-	if (CreateTempFileForDocumentType(searchfile(ft_CurrentDocument()->documentDescriptor->name), keyfile)) {
+	if (CreateTempFileForDocumentType(file_searchFileInPKSEditLocation(ft_CurrentDocument()->documentDescriptor->name), keyfile)) {
 		return tagopen(keyfile, -1L, (void*)0);
 	}
 	return 0;

@@ -26,7 +26,7 @@ int  yyparse(void);
 void yyinit(jmp_buf *errb, char *sourcefile, LINE *lps,LINE *lpe);
 int  yyfinish(void);
 int  opennofsel(char *fn, long line, void *wsp);
-char *TmpDir(void);
+char *file_getTempDirectory(void);
 void ShowError(char * fmt, va_list ap);
 
 extern int		_macedited;
@@ -117,7 +117,7 @@ void printesclist(FILE *fp, void *p)
 FILE *createtmp(char *dest, char *filename)
 {	FILE *fp;
 
-	strdcpy(dest, TmpDir(), filename);
+	strdcpy(dest, file_getTempDirectory(), filename);
 
 	if ((fp = fopen(dest,"w")) == 0) {
 		alert(/*STR*/"kann %s nicht erzeugen", dest);
@@ -158,9 +158,9 @@ BOOL CreateFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 }
 
 /*---------------------------------*/
-/* macs_compile()				*/
+/* mac_compileMacros()				*/
 /*---------------------------------*/
-int macs_compile()
+int mac_compileMacros()
 {	
 	FTABLE *		fp;
 	jmp_buf 		errb;
@@ -201,8 +201,10 @@ static void UnEscape(char *dst, char *src) {
 	*dst = 0;
 }
 
-int macs_execute_string(char *string)
-{	
+/**
+* Execute a macro given a single line text to execute.
+ */
+int mac_executeSingleLineMacro(char *string) {	
 	char		chTemp[1024];
 	FTABLE 		ft;
 	LINE *		lp;
@@ -227,7 +229,7 @@ int macs_execute_string(char *string)
 		alert("Error in command: %s", string);
 		return 0;
 	}
-	do_macbyname("temp-block");
+	mac_executeByName("temp-block");
 	mac_delete("temp-block");
 	_macedited = saveMacEdited;
 	return 1;

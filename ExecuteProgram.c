@@ -27,7 +27,7 @@
 #include "stringutil.h"
 #include "textblocks.h"
 
-extern void ChangeDirectory(LPSTR pszPath);
+extern void fsel_changeDirectory(LPSTR pszPath);
 extern void stepnofsel(char *fn, int cmpflg);
 extern void undo_startModification(FTABLE *fp);
 
@@ -100,7 +100,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 	char				outfile[256];
 	char				infile[256];
 	char				szRunBat[256];
-	char *			tmp = TmpDir();
+	char *			tmp = file_getTempDirectory();
 	char *			getenv(const char *);
 	char *			pszPif;
 	BOOL				bUInited;
@@ -112,7 +112,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 	bUInited = FALSE;
 
 	if (newdir && newdir[0]) {
-		ChangeDirectory(newdir);
+		fsel_changeDirectory(newdir);
 	}
 
 	show = (flags & EX_SYMBOL) ? SW_SHOWMINIMIZED : SW_SHOWNORMAL;
@@ -147,7 +147,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		strdcpy(szRunBat, _datadir, "RUN.BAT");
 		Writeandclose(&_outfile, szRunBat, 0);
 
-		pszPif = searchfile(
+		pszPif = file_searchFileInPKSEditLocation(
 			(flags & EX_WAIT) ? "PKSRUNW.PIF" : "PKSRUN.PIF");
 		if (!pszPif) {
 			alert("PSZRUN(W).PIF not found");

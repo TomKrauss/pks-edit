@@ -31,16 +31,14 @@ static char _found[1024];
 #define		S_IWRITE	_S_IWRITE
 #endif
 
-#if defined(WIN32)
-
-#define	dostat(s)	(EdStat(s) == 0)
+#define	dostat(s)	(file_exists(s) == 0)
 static struct _finddata_t _dta;
 
 /*--------------------------------------------------------------------------
- * EdStat()
+ * file_exists()
  * Test the existance of a file. If it exists, return 0 otherwise -1.
  */
-EXPORT int EdStat(char *s) 
+EXPORT int file_exists(char *s) 
 {
 	intptr_t handle;
 
@@ -52,10 +50,10 @@ EXPORT int EdStat(char *s)
 }
 
 /*--------------------------------------------------------------------------
- * EdFileMode()
+ * file_getFileMode()
  * Return the "modes" (read write, A_NORMAL, A_READONLY, A_HIDDEN, A_SYSTEM, ...) of a file.
  */
-EXPORT int EdFileMode(char *s)
+EXPORT int file_getFileMode(char *s)
 {
 	if (dostat(s) < 0) {
 		return -1;
@@ -77,7 +75,7 @@ static EDTIME ConvertFileTimeToLTime(FILETIME *pTime) {
 }
 
 
-EDTIME EdGetFileTime(char *fname) {
+EDTIME file_getAccessTime(char *fname) {
 	HANDLE				lHandle;
 	EDTIME				lTime;
 	WIN32_FIND_DATA		findData;
@@ -91,54 +89,21 @@ EDTIME EdGetFileTime(char *fname) {
 }
 
 /*--------------------------------------------------------------------------
- * EdIsDir()
+ * file_isDirectory()
  * Returns true if the passed filename points to a directory.
  */
-EXPORT int EdIsDir(char *filename)
+EXPORT int file_isDirectory(char *filename)
 {
 	int ret;
 
-	return ((ret = EdFileMode(filename)) >= 0 && (ret & _A_SUBDIR) != 0);
-}
-
-#else
-#define	dostat(s)	(EdStat(s, 0xFF) == 0)
-static struct  ffblk _dta;
-
-/*--------------------------------------------------------------------------
- * EdStat()
- */
-EXPORT int EdStat(char *s, int mode) 
-{
-	return findfirst(s,&_dta,mode);
+	return ((ret = file_getFileMode(filename)) >= 0 && (ret & _A_SUBDIR) != 0);
 }
 
 /*--------------------------------------------------------------------------
- * EdFileMode()
+ * file_openFile()
+ * Open a file and return the file handle. If it cannot be opened, display an error.
  */
-EXPORT int EdFileMode(char *s)
-{
-	if (dostat(s) < 0)
-		return -1;
-	return _dta.ff_attrib;
-}
-
-/*--------------------------------------------------------------------------
- * EdIsDir()
- */
-EXPORT int EdIsDir(char *s)
-{
-	int ret;
-
-	return ((ret = EdFileMode(s)) >= 0 && (ret & FA_DIREC) != 0);
-}
-
-#endif
-
-/*--------------------------------------------------------------------------
- * EdOpen()
- */
-EXPORT int EdOpen(char *fn) {	
+EXPORT int file_openFile(char *fn) {	
 	int fd;
 
 	if ((fd = Fopen(fn, OF_READ)) < 0) {
@@ -147,25 +112,29 @@ EXPORT int EdOpen(char *fn) {
 	return fd;
 }
 
-EXPORT int EdMakeReadable(char *fn) {
+/*
+ * Make a file readable and writeable. 
+ */
+EXPORT int file_makeFileReadWrite(char *fn) {
 	return _chmod(fn,S_IREAD|S_IWRITE);
 }
 
 /*--------------------------------------------------------------------------
- * EdCreateWithMode()
+ * file_createFileWithMode()
+ * Create a file with a given mode.
  */
-EXPORT int EdCreateWithMode(char *fn,int mode)
+EXPORT int file_createFileWithMode(char *fn,int mode)
 {
 	int fd;
 
 	while(1) {
 		if ((fd = Fcreate(fn,mode)) < 0) {
-			if ( EdFileMode(fn) < 0) {
+			if ( file_getFileMode(fn) < 0) {
 				tosfnerror(fn,fd);
 				break;
 			} else {
 				if (ed_yn(IDS_MSGWPROTECT,(LPSTR)AbbrevName(fn)) == IDYES) {
-					if (EdMakeReadable(fn) < 0) {
+					if (file_makeFileReadWrite(fn) < 0) {
 						ed_error(IDS_MSGERRCHMOD);
 						break;
 					} else {
@@ -181,11 +150,12 @@ EXPORT int EdCreateWithMode(char *fn,int mode)
 }
 
 /*--------------------------------------------------------------------------
- * EdCreate()
+ * file_createFile()
+ * Create a file with a given name with a default read-write mode.
  */
-EXPORT int EdCreate(char *fn)
+EXPORT int file_createFile(char *fn)
 {
-	return EdCreateWithMode(fn,0);
+	return file_createFileWithMode(fn,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -201,12 +171,12 @@ static int pathstat(char *path,char *fn)
 }
 
 /*--------------------------------------------------------------------------
- * searchfile()
+ * file_searchFileInPKSEditLocation()
  * Searches a file in a "wellknown" PKS Edit location (PKS_SYS, home etc...) and
  * returns the result - this is not re-entrant. Before calling again, one must
  * save the result.
  */
-EXPORT char *searchfile(char *s)
+EXPORT char *file_searchFileInPKSEditLocation(char *s)
 {
 	if (dostat(s)) {
 		return s;
@@ -222,9 +192,10 @@ EXPORT char *searchfile(char *s)
 
 
 /*--------------------------------------------------------------------------
- * pathsearch()
+ * file_searchFileInPath()
+ * Search a file in a path list (pathes separated by ; or ,).
  */
-EXPORT char *pathsearch(char *fn,char *path) {	
+EXPORT char *file_searchFileInPath(char *fn,char *path) {	
 	char p[1024],p2[1024];
 
 	if (dostat(fn)) {
@@ -252,10 +223,10 @@ EXPORT char *pathsearch(char *fn,char *path) {
 }
 
 /*------------------------------------------------------------
- * TmpName()
+ * file_getTempFilename()
  * Returns the name of a temp file.
  */
-EXPORT char *TmpName(char *dst, char c)
+EXPORT char *file_getTempFilename(char *dst, char c)
 {	char		temp[50];
 	char		tempPath[1024];
 
@@ -271,10 +242,10 @@ EXPORT char *TmpName(char *dst, char c)
 }
 
 /*------------------------------------------------------------
- * TmpDir()
+ * file_getTempDirectory()
  * Returns the path to the temp directory.
  */
-EXPORT char *TmpDir(void)
+EXPORT char *file_getTempDirectory(void)
 {	static char tmpdir[1024];
 
 	if (!tmpdir[0]) {
@@ -290,15 +261,16 @@ EXPORT char *TmpDir(void)
 }
 
 /*---------------------------------------------------------------
- * TmpJunk()
+ * file_clearTempFiles()
+ * Remove all files from the PKS Edit temp directory.
  */
-EXPORT void TmpJunk(void)
+EXPORT void file_clearTempFiles(void)
 {	char tmpname[1024];
 	char pathname[1024];
 	char fn[1024];
 	char *szBang;
 
-	TmpName(tmpname,'!');
+	file_getTempFilename(tmpname,'!');
 	fn[0] = 0;
 	sfsplit(tmpname,pathname,fn);
 	if ((szBang = strchr(fn, '!')) != 0) {

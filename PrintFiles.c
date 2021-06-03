@@ -31,6 +31,7 @@
 #include "xdialog.h"
 #include "stringutil.h"
 #include "editorconfiguration.h"
+#include "pathname.h"
 
 #define	PREVIEWING()		(hwndPreview != 0)
 #define	EVEN(p)			((p & 1) == 0)
@@ -52,18 +53,18 @@ typedef struct tagPRINTWHAT {
 } PRINTWHAT;
 
 static PRTPARAM _prtparams = {
-	1,1,0,0,0,60, 		/* startpage,endpage,pageoffs,mode,options,pagelen */
-	0,10,0,"Tms Roman",	/* Std Font: oemmode,cheight,cwidth,name */
-	0,0,80,			/* lmargin,rmargin, nchars */
+	1,-1,0,0,0,60, 		/* startpage,endpage,pageoffs,mode,options,pagelen */
+	0,8,0,"Tms Roman",	/* Std Font: oemmode,cheight,cwidth,name */
+	0,0,120,			/* lmargin,rmargin, nchars */
 	5,1,1,			/* tabsize, lnspace */
 
 	0,0,0,0,			/* distances header, footer */
-	0,10,0,"Courier",	/* Header Font: oemmode,cheight,cwidth,name */
+	0,8,0,"Courier",	/* Header Font: oemmode,cheight,cwidth,name */
 	"",					/* header template. A PKS Edit template (see mysprintf) optionally containing multiple segments separated by '!' */
 	"%s$f - %D",		/* footer template */
 	0,					/* header, footer align */
 
-	0,10,0,"Courier",	/* Footnote Font: oemmode,cheight,cwidth,name */
+	0,8,0,"Courier",	/* Footnote Font: oemmode,cheight,cwidth,name */
 
 	1,1,				/* Line spacing footnotes */
 	0,				/* length of fn delimter line */
@@ -221,7 +222,7 @@ static void ResetDeviceMode(HDC hdc)
 	}
 
 	SetMapMode(hdc,MM_ANISOTROPIC);
-	SetWindowExt(hdc,14400,14400);
+	SetWindowExt(hdc, 14400, 14400);
 	SetViewportExt(hdc,x,y);
 
 }
@@ -229,8 +230,7 @@ static void ResetDeviceMode(HDC hdc)
 /*------------------------------------------------------------
  * GetDeviceExtents()
  */
-static void GetDeviceExtents(HDC hdc, DEVEXTENTS *dep)
-{
+static void GetDeviceExtents(HDC hdc, DEVEXTENTS *dep) {
 	PRTPARAM 	*pp = &_prtparams;
 	DWORD	ext;
 	int		textheight;
@@ -264,7 +264,7 @@ static void GetDeviceExtents(HDC hdc, DEVEXTENTS *dep)
 
 	pp->font.  fs_cwidth =
 	pp->htfont.fs_cwidth = 
-		(dep->xPage) / pp->nchars;
+		(dep->xPage / (pp->nchars + pp->lmargin + pp->rmargin)) * pp->nchars / 120;
 }
 
 /*---------------------------------*/
@@ -358,19 +358,20 @@ static void PrintHF(HDC hdc, DEVEXTENTS *dep, int y, long pageno,
 /*------------------------------------------------------------
  * Line()
  */
-static void Line(HDC hdc, int xPos, int yPos, long lineno,
+static int Line(HDC hdc, int xPos, int yPos, int charHeight, long lineno,
 		 	  LINE *lp, int firstc, int lastc)
 {
 	char 	szBuff[80];
 	int		nCount;
 	int		max;
 	int		nMaxCharsPerLine;
+	int		deltaHeight = charHeight;
 
 	nMaxCharsPerLine = 0;
 	if (_prtparams.options & PRTO_LINES) {
-		wsprintf(szBuff,"%-5ld: ",lineno);
-		TextOut(hdc,xPos,yPos,szBuff,nCount = lstrlen(szBuff));
-		xPos += LOWORD(GetTextExtent(hdc,szBuff,nCount));
+		wsprintf(szBuff, "%3ld: ", lineno);
+		TextOut(hdc, xPos, yPos, szBuff, nCount = lstrlen(szBuff));
+		xPos += LOWORD(GetTextExtent(hdc, szBuff, nCount));
 		nMaxCharsPerLine = -7;
 	}
 
@@ -378,14 +379,27 @@ static void Line(HDC hdc, int xPos, int yPos, long lineno,
 	max = caret_lineOffset2screen(_printwhat.fp, &(CARET) { lp, lp->len});
 	if (max > lastc)
 		max = lastc;
-	nMaxCharsPerLine = _prtparams.nchars - _prtparams.lmargin - _prtparams.rmargin;
+	nMaxCharsPerLine += _prtparams.nchars - _prtparams.lmargin - _prtparams.rmargin;
 	_printwhat.wp->maxcol = nMaxCharsPerLine;
-	if (max > nMaxCharsPerLine) {
-		max = nMaxCharsPerLine;
+	_printwhat.wp->maxcol = max;
+	if (_printwhat.wp->maxcol > nMaxCharsPerLine) {
+		_printwhat.wp->maxcol = nMaxCharsPerLine;
 	}
-	if ((_printwhat.wp->maxcol = max) > firstc) {
+	if (_printwhat.wp->maxcol > firstc) {
 		write_line(hdc, xPos, yPos, _printwhat.wp, lp);
+		while (_printwhat.wp->maxcol < max) {
+			int delta = max - _printwhat.wp->maxcol;
+			if (delta > nMaxCharsPerLine) {
+				delta = nMaxCharsPerLine;
+			}
+			_printwhat.wp->mincol = _printwhat.wp->maxcol+1;
+			_printwhat.wp->maxcol = _printwhat.wp->mincol+delta;
+			deltaHeight += charHeight;
+			yPos += charHeight;
+			write_line(hdc, xPos, yPos, _printwhat.wp, lp);
+		}
 	}
+	return deltaHeight;
 }
 
 /*------------------------------------------------------------
@@ -441,7 +455,7 @@ static int PrintFile(HDC hdc)
 				_printing = (pageno == _previewpage);
 			} else {
 				_printing = (pageno >= pp->startpage && 
-			       		   pageno <= pp->endpage);
+			       		   (pp->endpage <= 0 || pageno <= pp->endpage));
 			}
 			if (!PREVIEWING() && _printing) {
 				wsprintf(message,/*STR*/"%s - %s (Seite %d)",
@@ -484,9 +498,11 @@ footerprint:
 			pageno++;
 		} else {
 			if (_printing) {
-				Line(hdc,de.xLMargin,yPos,lineno,lp,firstc,lastc);
+				yPos += Line(hdc, de.xLMargin, yPos, de.lnSpace, lineno, lp, firstc, lastc);
 			}
-			yPos += de.lnSpace;
+			else {
+				yPos += de.lnSpace;
+			}
 			if (P_EQ(lp,lplast) || (lp = lp->next) == 0)
 				goto footerprint;
 			lineno++;
@@ -721,7 +737,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 	_printwhat.nlines = 
 		ln_cnt(_printwhat.lp,_printwhat.lplast);
 	ch = (what == PRT_CURRBLK) ? '*' : ' ';
-	wsprintf(message,"%c %s %c",ch,ft_visiblename(fp),ch);
+	wsprintf(message,"%c %s %c", ch, basename(ft_visiblename(fp)), ch);
 
 again:
 	memmove(&winfo,WIPOI(fp),sizeof winfo);

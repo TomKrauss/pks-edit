@@ -29,6 +29,7 @@
 #include "pksedit.h"
 #include "edierror.h"
 #include "context.h"
+#include "desktopicons.h"
 
 #define	PROF_OFFSET	1
 
@@ -38,7 +39,7 @@ extern void		GetPhase1Args(char *args);
 extern void *	PksGetKeyBind(WPARAM key);
 extern void 	EditDroppedFiles(HDROP hdrop);
 extern BOOL 	InitBuffers(void);
-extern void 	ShowMenuHelp(int menId);
+extern void 	mac_showHelpForMenu(int menId);
 extern BOOL 	ww_havefocus(void);
 extern void 	st_init(HWND hwndDaddy);
 extern void 	status_wh(WORD *width, WORD *height);
@@ -48,13 +49,13 @@ extern int 		clp_setdata(int whichBuffer);
 extern HMENU 	menu_getmenuforcontext(char *pszContext);
 extern WORD 	TranslateToOrigMenu(WORD wParam);
 extern BOOL 	InitEnv(void);
-extern EDTIME 	EdGetFileTime(char *fname);
-extern char *	MenuTipFor(int menId);
+extern EDTIME 	file_getAccessTime(char *fname);
+extern char *	mac_getMenuTooltTip(int menId);
 /*---------------------------------*
- * do_key()
+ * mac_onKeyPressed()
  * Execute a keybinding and return 1 if successful.
  *---------------------------------*/
-extern int do_key(void* keybind);
+extern int mac_onKeyPressed(void* keybind);
 
 extern BOOL	bTaskFinished;
 
@@ -168,7 +169,7 @@ static BOOL InitApplication(void)
 
 	if ( !EdMkWinClass(szFrameClass,FrameWndProc,
 			    NULL,GetSysColorBrush(COLOR_3DFACE),MAIN_ICON, 0) ||
-			!ic_register() ||
+			!ic_registerDesktopIconClass() ||
 		 	!ww_register() ||
 		 	!fkey_register() ||
 		 	!cust_register()) {
@@ -336,7 +337,7 @@ static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
 				if (hsz1 == hszDDECommandLine) {
 					GetPhase2Args(pszData);
 				} else {
-					macs_execute_string(pszData);
+					mac_executeSingleLineMacro(pszData);
 				}
 				DdeUnaccessData(hdata);
 				if (!DdeFreeDataHandle(hdata)) {
@@ -613,7 +614,7 @@ static void FinalizePksEdit(void)
 {
 	GetConfiguration()->autosaveOnExit();
 	picksave();
-	TmpJunk();
+	file_clearTempFiles();
 	HelpQuit();
 	UnInitDDE();
 	DeleteAllDocumentTypes();
@@ -714,7 +715,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			TriggerAutosaveAllFiles();
 			ww_timer();
-			ic_selecticons();
+			ic_redisplayIcons();
 			break;
 #ifdef DEBUG
 		case WM_COMPACTING:
@@ -732,9 +733,9 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (!GET_WM_MENUSELECT_HMENU(wParam, lParam) && 
 				(WORD)GET_WM_MENUSELECT_FLAGS(wParam, lParam) == 0xFFFF) {
 			/* Menu closed */
-				ShowMenuHelp(-1);
+				mac_showHelpForMenu(-1);
 			} else if ((fwMenu & (MF_SYSMENU|MF_SEPARATOR|MF_POPUP)) == 0) {
-				ShowMenuHelp((int)GET_WM_MENUSELECT_CMD(wParam, lParam));
+				mac_showHelpForMenu((int)GET_WM_MENUSELECT_CMD(wParam, lParam));
 			}
 			break;
 
@@ -751,7 +752,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		            lpttt = (LPTOOLTIPTEXT) lParam;
 		            lpttt->hinst = 0;
-                    lpttt->lpszText = MenuTipFor((int)lpttt->hdr.idFrom);
+                    lpttt->lpszText = mac_getMenuTooltTip((int)lpttt->hdr.idFrom);
 	            }
 				case TBN_QUERYINSERT:
 				case TBN_QUERYDELETE:
@@ -768,7 +769,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 				bHelp = FALSE;
 				return EdHelpContext(wParam);
 			}
-			if (do_menu(wParam)) {
+			if (mac_onMenuAction(wParam)) {
 				return 1;
 			}
 			if (!IsWindow(hwnd) || !IsWindow(hwndClient)) {
@@ -778,7 +779,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case WM_PKSKEY:
 			CloseErrorWin();
-			do_key(_executeKeyBinding);
+			mac_onKeyPressed(_executeKeyBinding);
 			return 0;
 
 		case WM_PKSOPTOGGLE:
@@ -787,7 +788,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case WM_CHAR:
 			CloseErrorWin();
-			do_insertc(wParam);
+			mac_onCharacterInserted(wParam);
 			return 0;
 
 	    case WM_RENDERALLFORMATS:

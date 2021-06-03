@@ -1,12 +1,12 @@
 /*
  * PROJEKT: PKS-EDIT for WINDOWS
  *
- * SelectFiles.c
+ * FileSelector.c
  *
- * maintain file selection
+ * all operations related to selecting a file.
  *
  * 						created: 07.06.91 
- *						Author : TOM
+ *						Author : Tom
  */
 
 #include <windows.h>
@@ -30,7 +30,7 @@
 #include "documenttypes.h"
 #include "edfuncs.h"
 #include "pathname.h"
-#include "edifsel.h"
+#include "fileselector.h"
 #include "fsel.h"
 #include "pksedit.h"
 #include "stringutil.h"
@@ -48,15 +48,14 @@ extern int	nCurrentDialog;
 extern char *	_datadir;
 
 static char *	sTitleSpec;
-static int	_optionsenabled;
 
 char _fseltarget[512];
 
 /*--------------------------------------------------------------------------
- * ChangeDirectory()
+ * fsel_changeDirectory()
+ * Change the current directory. Allow for drive specification and trailing slash.
  */
-void ChangeDirectory(LPSTR pszPath)
-{
+void fsel_changeDirectory(char* pszPath) {
 	char 	cDrv;
 	LPSTR	pszTrailer;
 
@@ -77,20 +76,10 @@ void ChangeDirectory(LPSTR pszPath)
 }
 
 /*------------------------------------------------------------
- * fsel_optionsenable
- * enable options button for next file selector
+ * fsel_setDialogTitle
+ * setting the idTitle for the next call of fsel_selectFile
  */
-void fsel_optionsenable(int mode)
-{
-	_optionsenabled = mode;
-}
-
-/*------------------------------------------------------------
- * fsel_title
- * setting the title for the next call of EdFsel
- */
-void fsel_title(char *title)
-{
+void fsel_setDialogTitle(char *title) {
 	if (sTitleSpec)
 		_free(sTitleSpec);
 	sTitleSpec = stralloc(title);
@@ -115,7 +104,7 @@ static void menu_fseltitle(int title)
 			*d++ = *s++;
 		}
 		*d = 0;
-		fsel_title(szTemp);
+		fsel_setDialogTitle(szTemp);
 	}
 }
 
@@ -132,7 +121,7 @@ static int SelectFile(int title, char *baseDirectory, char *filename, char *patt
 	strdcpy(pathname,baseDirectory,pattern);
 	nSave = nCurrentDialog;
 	nCurrentDialog = title;
-	ret = EdFsel(pathname, filename, _fseltarget, showSavedialog);
+	ret = fsel_selectFile(pathname, filename, _fseltarget, showSavedialog);
 	nCurrentDialog = nSave;
 	sfsplit(pathname,baseDirectory,pattern);
 	if (_fseltarget[0] == 0) {
@@ -142,10 +131,11 @@ static int SelectFile(int title, char *baseDirectory, char *filename, char *patt
 	return(ret);
 }
 
-/*---------------------------------*/
-/* rw_select()					*/
-/*---------------------------------*/
-char *rw_select(FSELINFO *fp, int title, BOOL showSaveDialog)
+/*---------------------------------
+ * fsel_selectFileWithOptions()
+ * Select a file given an info data structure and a resource ID to be used as the title.
+ *---------------------------------*/
+char *fsel_selectFileWithOptions(FSELINFO *fp, int idTitle, BOOL showSaveDialog)
 {
 	static ITEMS	_i = { C_STRING1PAR, _fseltarget };
 	static PARAMS	_p = { DIM(_i), P_MAYOPEN, _i	};
@@ -160,7 +150,7 @@ char *rw_select(FSELINFO *fp, int title, BOOL showSaveDialog)
 			lstrcpy(fp->search, "*.*");
 		}
 
-		if (!SelectFile(title,fp->path,fp->fname,fp->search, showSaveDialog))
+		if (!SelectFile(idTitle,fp->path,fp->fname,fp->search, showSaveDialog))
 			return (char *)0;
 		param_record(&_p);
 	}
@@ -168,12 +158,12 @@ char *rw_select(FSELINFO *fp, int title, BOOL showSaveDialog)
 }
 
 /*---------------------------------*/
-/* rw_init()					*/
+/* fsel_initPathes()					*/
 /*---------------------------------*/
-char *rw_init(FSELINFO *fp)
+char *fsel_initPathes(FSELINFO *fp)
 {	char *fn;
 
-	if ((fn = searchfile(fp->fname)) != 0) {
+	if ((fn = file_searchFileInPKSEditLocation(fp->fname)) != 0) {
 		sfsplit(fn,fp->path,fp->fname);
 		if (fp->path[0] == 0)
 			lstrcpy(fp->path,_datadir);
@@ -265,10 +255,11 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 }
 
 /*------------------------------------------------------------
- * EdFsel
- * selecting a file with a file browser
+ * fsel_selectFile
+ * select a file with a file open dialog. If bSaveAs is true, the
+ * dialog is opened for the purpose of saving files.
  */
-int EdFsel(char *szFileSpecIn, char *szFileNameIn, char *szFullPathOut, BOOL bSaveAs)
+int fsel_selectFile(char *szFileSpecIn, char *szFileNameIn, char *szFullPathOut, BOOL bSaveAs)
 {
  	int  	ret;
 	LPSTR 	pszExt;
@@ -283,7 +274,7 @@ int EdFsel(char *szFileSpecIn, char *szFileNameIn, char *szFullPathOut, BOOL bSa
 	sfsplit(szFileSpecIn, pszPath, pszExt);
 	sfsplit(szFileNameIn, (char *)0, pszFileName);
 
-	//ChangeDirectory(pszPath);
+	//fsel_changeDirectory(pszPath);
 
 	if ((ret = DoSelectPerCommonDialog(GetActiveWindow(), 
 		pszFileName, pszExt, pszPath, bSaveAs)) == TRUE) {
@@ -293,7 +284,6 @@ int EdFsel(char *szFileSpecIn, char *szFileNameIn, char *szFullPathOut, BOOL bSa
 		hist_enq(PATHES, szFileSpecIn);
 	}
 
-	fsel_optionsenable(0);
 	_free(pszFileName);
 	_free(pszExt);
 	_free(pszPath);

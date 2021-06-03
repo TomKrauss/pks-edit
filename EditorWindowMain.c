@@ -25,6 +25,7 @@
 #include "iccall.h"
 #include "stringutil.h"
 #include "editorconfiguration.h"
+#include "desktopicons.h"
 
 #define	WT_WORKWIN		0
 #define	WT_RULERWIN		1
@@ -42,13 +43,13 @@ static WINFO *_winlist;
  * mkattlist()
  */
 extern void mkattlist(LINE* lp);
-extern int do_icon(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
+extern int mac_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
 extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
 extern char *ft_visiblename(FTABLE *fp);
 extern int  do_linbutton(WINFO *fp, int x, int y, int msg, int shift);
 extern int  do_mbutton(FTABLE *fp, int x,int y,int b, int nclicks,int shift);
 extern void *icEditIconClass;
-extern BOOL ic_isicon(HWND hwnd);
+extern BOOL ic_isIconWindow(HWND hwnd);
 extern void st_redraw(BOOL bErase);
 extern void tagselect(char *tags);
 extern void mac_switchtodefaulttables(void);
@@ -398,7 +399,7 @@ static void ArrangeIcons(void)
 	nMax = nXMax * nYMax;
 	pszSlots = (char *)calloc(sizeof *pszSlots, nMax);
 	for (hwnd = GetWindow(hwndClient, GW_CHILD); hwnd != 0; hwnd = GetWindow(hwnd, GW_HWNDNEXT)) {
-		if (!ic_isicon(hwnd)) {
+		if (!ic_isIconWindow(hwnd)) {
 			continue;
 		}
 		GetWindowRect(hwnd,&r);
@@ -420,11 +421,10 @@ static void ArrangeIcons(void)
 			}
 		} while(nIndex != nStartIndex);
 		pszSlots[nIndex] = 1;
-		ic_position(hwnd, (nIndex % nXMax) * nIconWidth + nIconWidth / 2, 
+		ic_moveIcon(hwnd, (nIndex % nXMax) * nIconWidth + nIconWidth / 2, 
 				(nIndex / nXMax) * nIconHeight + nIconHeight / 2);
 	}
 	free(pszSlots);
-	return 1;
 }
 
 /*--------------------------------------------------------------------------
@@ -709,7 +709,7 @@ WINFUNC EditWndProc(
 
 	case WM_ICONDROP:
 		ww_popup(hwnd);
-		return do_icon(hwnd, wParam, lParam);
+		return mac_onIconAction(hwnd, wParam, lParam);
 
 	case WM_MDIACTIVATE:
 		/* EdSwitchContext(hwnd,LOWORD(lParam),CTX_EDIT); */

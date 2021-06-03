@@ -29,6 +29,7 @@
 #include "pksedit.h"
 #include "fileutil.h"
 #include "clipboard.h"
+#include "desktopicons.h"
 
 /*--------------------------------------------------------------------------
  * GLOBALS
@@ -194,8 +195,6 @@ EXPORT int bl_cutTextWithOptions(PASTE *pp,LINE *lnfirst,LINE *lnlast,
  */
 EXPORT int bl_cut(PASTE *pp,LINE *l1,LINE *l2,int c1,int c2,int freeflg,int colflg)
 {
-	extern int _icdirty;
-
 	_icdirty = 1;
 	if (colflg)
 	    return bl_cutBlockInColumnMode(pp,l1,l2,freeflg);
@@ -400,7 +399,7 @@ EXPORT int bl_undoIntoUnqBuffer(LINE *lnfirst,LINE *lnlast,int cfirst,int clast,
 		if (_nundo > 10) {
 			_nundo = 10;
 		}
-		fn = TmpName(tmpfile,_curru+'0');
+		fn = file_getTempFilename(tmpfile,_curru+'0');
 		bl_write(fn, _undobuf, 0);
 		_curru++;
 		if (_curru >= _nundo) {
@@ -431,10 +430,10 @@ EXPORT PASTE *bl_getBlockFromUndoBuffer(int num)
 	if (num < 0)
 		num += _nundo;
 
-	fn = TmpName(tmpfile,num+'0');
+	fn = file_getTempFilename(tmpfile,num+'0');
 	bl_free(&_ubuf2);
 
-	if (EdStat(fn) || bl_read(fn,&_ubuf2,-1) == 0)
+	if (file_exists(fn) || bl_read(fn,&_ubuf2,-1) == 0)
 		return 0;
 
 	return &_ubuf2;

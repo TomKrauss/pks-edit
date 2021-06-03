@@ -66,7 +66,7 @@ typedef struct edx {
 	/* Files */
 	int 		(*Readfile)(FTABLE *fp,char *fn,int linflag);
 	void 	(*lnlistfree)(LINE *lp);
-	char 	*(*searchfile)(char *s);
+	char 	*(*file_searchFileInPKSEditLocation)(char *s);
 	void 	(*stepnofsel)(char *fn,int cmpflg);
 	int 		(*opennofsel)(char *fn,long ln,int closeother);
 	char 	*(*mkpname)(char *path,char *fn);
@@ -75,7 +75,7 @@ typedef struct edx {
 
 	/* Fsel */
 	int		(*file_select)(char *path,char *fnam,char *pattern);
-	void 	(*fsel_title)(char *title);
+	void 	(*fsel_setDialogTitle)(char *title);
 	char 	*fseltarget;
 
 	/* black copy check */

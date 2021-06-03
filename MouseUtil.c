@@ -32,7 +32,7 @@ extern void 	caret_calculateOffsetFromScreen(WINFO *wp,int x, int y, long *ln,lo
 extern long 	ln_indexOf(FTABLE *fp,LINE *lp);
 extern void 	st_seterrmsg(char *msg);
 extern int 		MousePosition(FTABLE *fp, long bAsk);
-extern HWND 	FindChildFromPoint(HWND hwnd, POINT *point);
+extern HWND 	ic_findChildFromPoint(HWND hwnd, POINT *point);
 
 extern MOUSEBIND	_mousetab[MAXMAPMOUSE];
 
@@ -252,7 +252,7 @@ EXPORT int EdMouseMoveText(int move)
 	HWND  hwnd;
 
 	GetCursorPos(&p);
-	hwnd = FindChildFromPoint((HWND)0,&p);
+	hwnd = ic_findChildFromPoint((HWND)0,&p);
 
 	if (hwnd == wp->edwin_handle) {
 		if (MousePosition(fp, 0L)) {
