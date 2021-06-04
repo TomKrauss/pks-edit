@@ -13,7 +13,8 @@
  *
  */
 
-#include <windows.h>
+#include <stdio.h>
+#include "customcontrols.h"
 
 #include "trace.h"
 #include "dial2.h"
@@ -50,7 +51,6 @@ extern int EdConfigureIcons(void);
 extern int mac_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
 extern char *_strtolend;
 extern int  LbGetText(HWND hwnd, int id, void *szBuff);
-extern HFONT EdSmallFont(void);
 
 ICONCLASS *icEditIconClass;
 
@@ -502,7 +502,7 @@ static int		nButtonY;
 				DrawIcon(hdc,(rect.right - GetSystemMetrics(SM_CXICON)) / 2,0,hIcon);
 				GetWindowText(hwnd, szBuf, sizeof szBuf);
 				rect.top = GetSystemMetrics(SM_CYICON);
-				hFont = SelectObject(hdc, EdSmallFont());
+				hFont = SelectObject(hdc, cust_getSmallEditorFont());
 				if (hwndActive == hwnd) {
 					SetBkColor(hdc, GetSysColor(COLOR_HIGHLIGHT));
 					SetTextColor(hdc, GetSysColor(COLOR_HIGHLIGHTTEXT));
@@ -669,7 +669,7 @@ int ic_registerDesktopIconClass(void)
 {
 	WNDCLASS  wc;
 
-	class_defaults(&wc);
+	cust_initializeWindowClassDefaults(&wc);
 	wc.style |= CS_DBLCLKS;
 	wc.lpfnWndProc = IconWndProc;
 	wc.cbWndExtra = GWL_ICONEXTRA;

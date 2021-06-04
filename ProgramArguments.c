@@ -22,10 +22,10 @@
 #define iswhite(c)	(c == ' ' || c == '\t')
 
 extern int 		find_expressionAgainInCurrentFile(int dir);
-extern void 	stepselectcompiler(char *pszName);
+extern void 	xref_selectSearchListFormat(char *pszName);
 extern int 		caret_placeCursorInCurrentFile(long ln,long col);
-extern int 		showtag(char *s);
-extern void 	stepnofsel(char *fn, int cmpflg);
+extern int 		xref_navigateCrossReference(char *s);
+extern void 	xref_openSearchList(char *fn, int cmpflg);
 extern void 	prof_setinifile(char *fn);
 
 extern int		_runInteractive;
@@ -50,7 +50,7 @@ static int Phase2Arg(char *arg)
 	long line;
 
 	if (*arg != '-' && *arg != '/') {
-		tagopen(arg,0L,(void*)0);
+		xref_openFile(arg,0L,(void*)0);
 	} else {
 		arg += 2;
 		switch(arg[-1]) {
@@ -61,7 +61,7 @@ static int Phase2Arg(char *arg)
 			}
 			break;
 		case 'C':
-			stepselectcompiler(arg);
+			xref_selectSearchListFormat(arg);
 			break;
 		case 'g':	
 			line = Atol(arg) -1L;
@@ -75,7 +75,7 @@ static int Phase2Arg(char *arg)
 			}
 			break;
 		case 't':
-			showtag(arg);
+			xref_navigateCrossReference(arg);
 			break;
 		case 'i':
 			_openIconic = TRUE;
@@ -84,7 +84,7 @@ static int Phase2Arg(char *arg)
 			_runInteractive = FALSE;
 			return 0;
 		default:
-			stepnofsel(arg,1); 		/* Edit Compiler-Errors 	*/
+			xref_openSearchList(arg,1); 		/* Edit Compiler-Errors 	*/
 
 		}
 	}

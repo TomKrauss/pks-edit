@@ -8,6 +8,7 @@ typedef struct tagSYMBOL {
 
 #define	TYPEOF(s)			((s).sym_type)
 #define	VALUE(s)			((s).sym_data)
+#define	VALUE_AS_INT(s)		((int)((s).sym_data))
 #define	CLEARSYM(s)		{(s).sym_data = 0, (s).sym_type = 0;}
 #define	SETTYPE(s,type)	((s).sym_type = type)
 #define	SETSYMBOL(s,type,v)	((s).sym_type = type, (s).sym_data = v)

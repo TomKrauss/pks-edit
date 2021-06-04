@@ -162,7 +162,7 @@ BEGIN
     LTEXT           "Copyright  © 1993-2021 Pahlen && Krauß Software, Berlin",111,18,116,160,16,NOT WS_GROUP
     PUSHBUTTON      "&OK",1,210,116,38,14
     LTEXT           "?",IDD_RO1,20,76,122,8,NOT WS_GROUP
-    ICON            MAIN_ICON,3,19,18,20,20
+    ICON            "APP_ICON",3,19,18,20,20
     LTEXT           "Dieses Produkt wurde lizensiert für:",-1,20,63,122,8
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,55,232,1
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,92,232,1
@@ -1041,7 +1041,7 @@ CURSCOPY                CURSOR                  "rc\\copy.cur"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-MAIN_ICON               ICON                    "rc\\pks.ico"
+APP_ICON                ICON                    "rc\\pks.ico"
 
 EDIT                    ICON                    "rc\\edit.ico"
 

@@ -14,6 +14,8 @@
 
 # ifndef 	FILEUTIL_H
 
+typedef time_t EDTIME;
+
 /*--------------------------------------------------------------------------
  * file_exists()
  * Test the existance of a file. If it exists, return 0 otherwise -1.
@@ -92,6 +94,11 @@ extern int file_closeFile(int* fd);
  * Remove all files from the PKS Edit temp directory.
  */
 extern void file_clearTempFiles(void);
+
+/**
+ * Returns the last time, a file was accessed.
+ */
+extern EDTIME file_getAccessTime(char* fname);
 
 #define FILEUTIL_H
 #endif

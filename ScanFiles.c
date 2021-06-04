@@ -32,9 +32,9 @@ static long 	_line;
 static int 		_abortOnFirstMatch,_trymatch;
 extern void 	ShowMessage(WORD nId, ...);
 /*---------------------------------*/
-/* readfrags()					*/
+/* ft_readDocumentFromFile()					*/
 /*---------------------------------*/
-extern int readfrags(int fd, unsigned char* (*f)(FTABLE*, DOCUMENT_DESCRIPTOR*, unsigned char*, unsigned char*), void* par);
+extern int ft_readDocumentFromFile(int fd, unsigned char* (*f)(FTABLE*, DOCUMENT_DESCRIPTOR*, unsigned char*, unsigned char*), void* par);
 
 
 /*--------------------------------------------------------------------------
@@ -47,13 +47,15 @@ static RE_PATTERN* _compiledPattern;
 static void present(char *fn) {
 	_nfound++;
 	ShowMessage(IDS_MSGNTIMESFOUND, _nfound);
-	addLineWithLocationInfo(_outfile,fn,_line,"");
+	xref_addSearchListEntry(_outfile,fn,_line,"");
 }
 
 /*--------------------------------------------------------------------------
- * addLineWithLocationInfo()
+ * xref_addSearchListEntry()
+ * Add an entry to the "current search list" file in the standard PKS Edit search list
+ * navigation format ("filename", line lineNumer: remarks).
  */
-int addLineWithLocationInfo(FTABLE* fp, char* fn, long line, char* remark) {
+int xref_addSearchListEntry(FTABLE* fp, char* fn, long line, char* remark) {
 	char buf[EDMAXPATHLEN];
 
 	wsprintf(buf, "\"%s\", line %ld: %s", (LPSTR)fn, line + 1L, (LPSTR)remark);
@@ -124,7 +126,7 @@ static int matchInFile(char *fn, DTA *stat) {
 		return -1;
 	}
 
-	readfrags(fd,scanlines,fn);
+	ft_readDocumentFromFile(fd,scanlines,fn);
 
 	file_closeFile(&fd);
 
@@ -164,13 +166,13 @@ int retreive(char *pathes, char* filenamePattern, char *search, int sdepth, int 
 		} while ((path = strtok((char *)0,",;")) != 0);
 	}
 
-	Writeandclose(_outfile,stepfile,0);
+	ft_writeFileAndClose(_outfile,stepfile,0);
 	ProgressMonitorClose(0);
 
 	_free(pathlist);
 	_free(_outfile);
 
-	return stepnofsel(stepfile,0) , 1;
+	return xref_openSearchList(stepfile,0) , 1;
 }
 
 

@@ -15,7 +15,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include <windows.h>
+#include "customcontrols.h"
 #include <commctrl.h>
 #include <windowsx.h>
 
@@ -47,8 +47,6 @@ extern int 		_translatekeys;
 extern int		mysprintf(FTABLE *fp, char *d,char *format,...);
 extern void 		ReturnString(char *string);
 extern BOOL 		DlgChooseFont(HWND hWnd, EDFONT *ep, BOOL bPrinter);
-extern int 		cust_combood(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(), 
-					void (*ShowSelection)(LPDRAWITEMSTRUCT lp));
 extern void 		fsel_setDialogTitle(char *title);
 
 static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
@@ -883,7 +881,7 @@ INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 			if ((dlp = dlg_getitemdata(_dp, drp->CtlID)) == 0 ||
 			    (dlp->li_draw == 0))
 				break;
-			return cust_combood(drp, dlp->li_draw, dlp->li_selection);
+			return cust_drawComboBoxOwnerDraw(drp, dlp->li_draw, dlp->li_selection);
 
 		case WM_COMMAND:
 			nNotify = GET_WM_COMMAND_CMD(wParam, lParam);

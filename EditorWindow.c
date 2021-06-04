@@ -14,9 +14,7 @@
  */
 
 
-#include <windows.h>
-# pragma hdrstop
-
+#include "customcontrols.h"
 #include "lineoperations.h"
 #include "winfo.h"
 #include "trace.h"
@@ -67,7 +65,7 @@ void UpdateOwnCaret(WINFO *wp, HDC hdc)
 {
 	if (!wp->owncursor)
 		return;
-	DrawOutline(hdc,wp->cx,wp->cy,wp->cwidth*cursor_width,wp->cheight);
+	cust_drawOutline(hdc,wp->cx,wp->cy,wp->cwidth*cursor_width,wp->cheight);
 }
 
 /*------------------------------------------------------------

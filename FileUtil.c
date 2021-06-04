@@ -74,7 +74,9 @@ static EDTIME ConvertFileTimeToLTime(FILETIME *pTime) {
 	return tempResult;
 }
 
-
+/**
+ * Returns the last time, a file was accessed.
+ */
 EDTIME file_getAccessTime(char *fname) {
 	HANDLE				lHandle;
 	EDTIME				lTime;
@@ -234,7 +236,7 @@ EXPORT char *file_getTempFilename(char *dst, char c)
 	temp[1] = c;
 #if defined(WIN32)
 	GetTempPath(sizeof tempPath, tempPath);
-	GetTempFileName(tempPath, temp, (UINT)hInst, dst);
+	GetTempFileName(tempPath, temp, LOWORD((DWORD)hInst), dst);
 #else
 	GetTempFileName(0, temp, (UINT)hInst, dst);
 #endif

@@ -11,7 +11,7 @@
  */
 
 #include <tos.h>
-#include <windows.h>
+#include "customcontrols.h"
 #include <windowsx.h>
 #include <string.h>
 #include "trace.h"
@@ -45,8 +45,6 @@ extern char *		rsc_rdmacros(char *param, unsigned char *p, unsigned char *pend);
 extern char *		file_getTempFilename(char *dst, char c);
 extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 extern void 		st_seterrmsg(char *msg);
-extern int 		cust_combood(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(), 
-					void (*ShowSelection)(LPDRAWITEMSTRUCT lp));
 extern void 		key_overridetable(void);
 extern void 		mouse_overridetable(void);
 extern int 		bind_mouse(MOUSECODE mousecode, MACROREFTYPE typ, 
@@ -1226,7 +1224,7 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 			return CharItemNextSelected(hwndListBox, nKey);
 
 		case WM_DRAWITEM:
-			return cust_combood((DRAWITEMSTRUCT*)lParam,
+			return cust_drawComboBoxOwnerDraw((DRAWITEMSTRUCT*)lParam,
 				mac_lboxdrawitem, 0);
 
 		case WM_COMPAREITEM:

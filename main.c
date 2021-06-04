@@ -9,7 +9,7 @@
  *						Author : TOM
  */
 
-#include <windows.h>
+#include "customcontrols.h"
 #include <windowsx.h>
 #include <commctrl.h>
 #include <ddeml.h>
@@ -30,6 +30,7 @@
 #include "edierror.h"
 #include "context.h"
 #include "desktopicons.h"
+#include "fileutil.h"
 
 #define	PROF_OFFSET	1
 
@@ -38,7 +39,7 @@ extern void		GetPhase2Args(char *args);
 extern void		GetPhase1Args(char *args);
 extern void *	PksGetKeyBind(WPARAM key);
 extern void 	EditDroppedFiles(HDROP hdrop);
-extern BOOL 	InitBuffers(void);
+extern BOOL 	ft_initializeReadWriteBuffers(void);
 extern void 	mac_showHelpForMenu(int menId);
 extern BOOL 	ww_havefocus(void);
 extern void 	st_init(HWND hwndDaddy);
@@ -49,7 +50,6 @@ extern int 		clp_setdata(int whichBuffer);
 extern HMENU 	menu_getmenuforcontext(char *pszContext);
 extern WORD 	TranslateToOrigMenu(WORD wParam);
 extern BOOL 	InitEnv(void);
-extern EDTIME 	file_getAccessTime(char *fname);
 extern char *	mac_getMenuTooltTip(int menId);
 /*---------------------------------*
  * mac_onKeyPressed()
@@ -142,7 +142,7 @@ int EdMkWinClass(
 {
 	WNDCLASS  wc;
 	
-	class_defaults(&wc);
+	cust_initializeWindowClassDefaults(&wc);
 	wc.style = CS_DBLCLKS;
 	wc.lpfnWndProc = WinProc;
 	wc.cbWndExtra = nExtra;
@@ -168,11 +168,11 @@ static BOOL InitApplication(void)
 #endif
 
 	if ( !EdMkWinClass(szFrameClass,FrameWndProc,
-			    NULL,GetSysColorBrush(COLOR_3DFACE),MAIN_ICON, 0) ||
+			    NULL,GetSysColorBrush(COLOR_3DFACE),"APP_ICON", 0) ||
 			!ic_registerDesktopIconClass() ||
 		 	!ww_register() ||
 		 	!fkey_register() ||
-		 	!cust_register()) {
+		 	!cust_registerControls()) {
 	    return FALSE;
 	}
 	return TRUE;
@@ -416,7 +416,7 @@ int PASCAL WinMain(HANDLE hInstance, HANDLE hPrevInstance, LPSTR lpCmdLine, int 
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
 	hInst = hInstance;
-	if (!InitBuffers()) {
+	if (!ft_initializeReadWriteBuffers()) {
 		return FALSE;
 	}
 	if (!InitEnv()) {	/* need environment for sizing the frame window... */

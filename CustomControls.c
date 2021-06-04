@@ -12,7 +12,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include <windows.h>
+#include "customcontrols.h"
 
 #include "trace.h"
 #include "lineoperations.h"
@@ -28,9 +28,10 @@
 extern HFONT EdCreateFont(EDFONT *pFont);
 
 /*--------------------------------------------------------------------------
- * DrawShadow()
+ * cust_drawShadow()
+ * Draw a shadow around a control
  */
-void DrawShadow(HDC hdc,RECT *rcp,int pressed)
+void cust_drawShadow(HDC hdc,RECT *rcp,int pressed)
 {
 	int			left,right,top,bottom;
 	HPEN		hPen;
@@ -62,7 +63,7 @@ void DrawShadow(HDC hdc,RECT *rcp,int pressed)
 }
 
 /*------------------------------------------------------------
- * cust_paintbut()
+ * cust_paintButton()
  */
 static LOGFONT _lf =  {
     10,					// lfHeight;
@@ -84,7 +85,10 @@ static LOGFONT _lf =  {
     "Helv",	 			// lfFaceName[LF_FACESIZE];
 };
 
-HFONT EdSmallFont(void) {
+/**
+ * Return a handle to a small editor font.
+ */
+HFONT cust_getSmallEditorFont(void) {
 	static HFONT hSmallFont;
 
 	if (!hSmallFont) {
@@ -96,7 +100,11 @@ HFONT EdSmallFont(void) {
 
 #define STATE_CHECK		ODS_CHECKED
 #define STATE_SEL		ODS_SELECTED
-EXPORT void cust_paintbut(HDC hdc, RECT *rcp, HWND hwnd, int ww)
+
+/**
+ * Paint a custom button control.
+ */
+EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int ww)
 {
 	HBRUSH 	hBrush;
 	HFONT	hFont;
@@ -105,7 +113,7 @@ EXPORT void cust_paintbut(HDC hdc, RECT *rcp, HWND hwnd, int ww)
 	char 	szBuff[128];
 
 	SetMapMode(hdc,MM_TEXT);
-	hFont = SelectObject(hdc, EdSmallFont());
+	hFont = SelectObject(hdc, cust_getSmallEditorFont());
 	if (ww & STATE_CHECK) {
 		dwColwi = GetSysColor(COLOR_HIGHLIGHT);
 		dwColtext = GetSysColor(COLOR_HIGHLIGHTTEXT);
@@ -119,7 +127,7 @@ EXPORT void cust_paintbut(HDC hdc, RECT *rcp, HWND hwnd, int ww)
 
 	Rectangle(hdc, rcp->left, rcp->top, rcp->right, rcp->bottom);
 
-	DrawShadow(hdc,rcp,ww);
+	cust_drawShadow(hdc,rcp,ww);
 
 	SetTextColor(hdc,dwColtext);
 	rcp->left += 3, rcp->top += 2;
@@ -136,9 +144,10 @@ EXPORT void cust_paintbut(HDC hdc, RECT *rcp, HWND hwnd, int ww)
 }
 
 /*------------------------------------------------------------
- * DrawOutline()
+ * cust_drawOutline()
+ * Draw an outline rectanle.
  */
-void DrawOutline(HDC hDC, int left, int top, int w, int h)
+void cust_drawOutline(HDC hDC, int left, int top, int w, int h)
 {
 	int			wOldROP2;
 	int			wOldBkMode;
@@ -156,9 +165,10 @@ void DrawOutline(HDC hDC, int left, int top, int w, int h)
 }
 
 /*--------------------------------------------------------------------------
- * cust_buttoncharheight()
+ * cust_calculateButtonCharacterHeight()
+ * Calculates the height of a custom buttons character.
  */
-int cust_buttoncharheight(HWND hwnd)
+int cust_calculateButtonCharacterHeight(HWND hwnd)
 {
 	HFONT		hFont;
 	HDC			hdc;
@@ -167,7 +177,7 @@ int cust_buttoncharheight(HWND hwnd)
 
 	hdc = GetDC(hwnd);
 	SetMapMode(hdc,MM_TEXT);
-	hFont = SelectObject(hdc, EdSmallFont());
+	hFont = SelectObject(hdc, cust_getSmallEditorFont());
 	GetTextMetrics(hdc,&tm);
 	fkcharheight = tm.tmHeight + tm.tmExternalLeading;
 	SelectObject(hdc,hFont);
@@ -178,7 +188,7 @@ int cust_buttoncharheight(HWND hwnd)
 /*------------------------------------------------------------
  * ToggleWndProc()
  */
-WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
+static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
 {	
 	RECT		rc;
 	HDC			hdc;
@@ -193,7 +203,7 @@ WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
 			ww = GetWindowWord(hwnd,GWW_CUSTOMVAL);
 			GetClientRect(hwnd, &rc);
 			hdc = BeginPaint(hwnd, &ps);
-			cust_paintbut(hdc, &rc, hwnd, ww);
+			cust_paintButton(hdc, &rc, hwnd, ww);
 			EndPaint(hwnd,&ps);
 			return 0;
 		case BM_SETCHECK:
@@ -243,13 +253,13 @@ WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
 static void MarkSelection(HDC hdc, int c, int cw, int ch)
 {
 	if (c < 256)
-		DrawOutline(hdc,(c%N_COLS)*cw,(c/N_COLS)*ch,cw,ch);
+		cust_drawOutline(hdc,(c%N_COLS)*cw,(c/N_COLS)*ch,cw,ch);
 }
 
 /*------------------------------------------------------------
  * CharSetWndProc()
  */
-WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
+static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
 {	char 		buf[N_COLS];
 	HDC			hdc;
 	RECT		rect;
@@ -349,9 +359,10 @@ WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
 }
 
 /*--------------------------------------------------------------------------
- * class_defaults()
+ * cust_initializeWindowClassDefaults()
+ * Can be used to initialize the class defaults of a window class to create.
  */
-EXPORT void class_defaults(WNDCLASS *wcp)
+EXPORT void cust_initializeWindowClassDefaults(WNDCLASS *wcp)
 {
 	wcp->style = CS_HREDRAW | CS_VREDRAW;
 	wcp->hInstance = hInst;
@@ -363,13 +374,14 @@ EXPORT void class_defaults(WNDCLASS *wcp)
 }
 
 /*--------------------------------------------------------------------------
- * cust_register()
+ * cust_registerControls()
+ * Initialize the PKS edit custom controls registering the window classes.
  */
-EXPORT int cust_register(void)
+EXPORT int cust_registerControls(void)
 {
 	WNDCLASS  wc;
 
-	class_defaults(&wc);	
+	cust_initializeWindowClassDefaults(&wc);	
 	wc.style = CS_PARENTDC | CS_HREDRAW | CS_VREDRAW;
 	wc.cbWndExtra = GWW_CUSTOMEXTRA;
 	
@@ -387,20 +399,21 @@ EXPORT int cust_register(void)
 }
 
 /*--------------------------------------------------------------------------
- * cust_ownerselection()
+ * cust_drawOwnerSelection()
+ * Draw the selection of an owner draw listbox.
  */
-void cust_ownerselection(LPDRAWITEMSTRUCT lpdis)
+void cust_drawOwnerSelection(LPDRAWITEMSTRUCT lpdis)
 {
 	RECT		*rp;
 
 	rp = (LPRECT)&lpdis->rcItem;
-	DrawOutline(lpdis->hDC,rp->left,rp->top,rp->right-rp->left,rp->bottom-rp->top);
+	cust_drawOutline(lpdis->hDC,rp->left,rp->top,rp->right-rp->left,rp->bottom-rp->top);
 }
 
 /*--------------------------------------------------------------------------
- * cust_combood()
+ * cust_drawComboBoxOwnerDraw()
  */
-int cust_combood(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(), 
+int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(), 
 	void (*ShowSelection)(LPDRAWITEMSTRUCT lp))
 {
     if (lpdis->itemID == (UINT)-1) {
@@ -415,7 +428,7 @@ int cust_combood(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
 		DrawFocusRect(lpdis->hDC,&lpdis->rcItem);
     } else {
 		if (!ShowSelection) {
-			ShowSelection = cust_ownerselection;
+			ShowSelection = cust_drawOwnerSelection;
 		}
 		if (lpdis->itemAction & ODA_DRAWENTIRE) {
 	    		FrameRect(lpdis->hDC, &lpdis->rcItem, GetStockObject(WHITE_BRUSH));

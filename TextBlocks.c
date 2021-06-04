@@ -210,7 +210,7 @@ EXPORT int bl_read(char *fn, PASTE *pb, int rs /* Record Seperator */)
 
 	rf.firstl = 0;
 	pb->pln = 0;
-	if (Readfile(&rf,fn,rs)) {
+	if (ft_readfileWithOptions(&rf,fn,rs)) {
 		ll = rf.lastl->prev;
 		if (ll->lflg & LNNOTERM) {
 			ll->next = 0;
@@ -240,7 +240,7 @@ EXPORT int bl_write(char *fn, PASTE *pb,int mode)
 		lp->lflg = LNNOTERM;
 		rf.lastl = 0;
 		rf.documentDescriptor = CreateDefaultDocumentTypeDescriptor();
-		ret = Writefile(&rf,fn,mode);
+		ret = ft_writefileAsWithFlags(&rf,fn,mode);
 		free(rf.documentDescriptor);
 	}
 	return ret;

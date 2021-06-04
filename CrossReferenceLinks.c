@@ -109,20 +109,20 @@ static intptr_t tags_mk(char *tag, LONG unused)
 }
 
 /*--------------------------------------------------------------------------
- * tags_init()
+ * xref_initFileFormats()
  * init all compiler types
  */
-int tags_init(void)
+int xref_initFileFormats(void)
 {
 	return prof_enum(szTags,tags_mk,0L);
 }
 
 /*--------------------------------------------------------------------------
- * tagselect()
+ * xref_selectFileFormat()
  * activate a new source list for tag searches (e.g. when
  * changing document type of top level window)
  */
-void tagselect(char *tags)
+void xref_selectFileFormat(char *tags)
 {
 	void *p;
 
@@ -180,10 +180,10 @@ static intptr_t compiler_mk(char *compiler, LONG unused)
 }
 
 /*--------------------------------------------------------------------------
- * compiler_init()
+ * xref_restoreFromConfigFile()
  * init all compiler types
  */
-int compiler_init(void)
+int xref_restoreFromConfigFile(void)
 {
 	return prof_enum(szCompiler,compiler_mk,0L);
 }
@@ -307,7 +307,7 @@ static TAG *taggetinfo(LINE *lp)
  * taglist_measureitem()
  */
 #define		TAGLISTITEMHEIGHT			40
-void taglist_measureitem(MEASUREITEMSTRUCT *mp)
+static void taglist_measureitem(MEASUREITEMSTRUCT *mp)
 {
 	mp->itemHeight = TAGLISTITEMHEIGHT;
 	mp->itemWidth = 600;
@@ -316,7 +316,7 @@ void taglist_measureitem(MEASUREITEMSTRUCT *mp)
 /*------------------------------------------------------------
  * taglist_cmpitem()
  */
-int taglist_cmpitem(COMPAREITEMSTRUCT *cp)
+static int taglist_cmpitem(COMPAREITEMSTRUCT *cp)
 {
 	int 	nRet;
 	int	nSize;
@@ -478,7 +478,7 @@ static int readtagf(char *fn,FTABLE *fp)
 {	int ret;
 
 	ln_listfree(fp->firstl);
-	ret = Readfile(fp,fn,-1);
+	ret = ft_readfileWithOptions(fp,fn,-1);
 	return ret;
 }
 
@@ -508,10 +508,10 @@ static char *gettag(unsigned char *d,unsigned char *dend,
 }
 
 /*---------------------------------*/
-/* tagword()					*/
+/* xref_saveCrossReferenceWord()					*/
 /*---------------------------------*/
 static char *_tagword;
-char *tagword(unsigned char *d,unsigned char *dend)
+static char *xref_saveCrossReferenceWord(unsigned char *d,unsigned char *dend)
 {
 	if (_tagword) {
 		strcpy(d,_tagword);
@@ -522,9 +522,9 @@ char *tagword(unsigned char *d,unsigned char *dend)
 }
 
 /*------------------*/
-/* tagopen()		*/
+/* xref_openFile()		*/
 /*------------------*/
-int tagopen(char *name, long line, WINDOWPLACEMENT *wsp) {	
+int xref_openFile(char *name, long line, WINDOWPLACEMENT *wsp) {	
 	int ret = 0;
 
 	if (ActivateWindowOfFileNamed(name)) {
@@ -538,10 +538,12 @@ int tagopen(char *name, long line, WINDOWPLACEMENT *wsp) {
 	return ret;
 }
 
-/*---------------------------------*/
-/* showtag()					*/
-/*---------------------------------*/
-int showtag(char *s)
+/*---------------------------------*
+ * xref_navigateCrossReference()
+ * Navigate to the cross reference word given as an argument - no
+ * selection of multiple matches yet.
+ *---------------------------------*/
+int xref_navigateCrossReference(char *s)
 {
 	TAG *		tp;
 	char     		ebuf[ESIZE];
@@ -580,7 +582,7 @@ int showtag(char *s)
 					} else {
 						strcpy(fnam,tp->fn);
 						fm_savepos(s);
-						tagopen(fnam,-1L,(WINDOWPLACEMENT*)0);
+						xref_openFile(fnam,-1L,(WINDOWPLACEMENT*)0);
 						if (ft_CurrentDocument()) {
 							RE_PATTERN* pPattern;
 							if (pPattern = regex_compile(ebuf, tp->rembuf, (int) RE_DOREX)) {
@@ -604,10 +606,12 @@ int showtag(char *s)
 	return ret;
 }
 
-/*---------------------------------*/
-/* picstep()					*/
-/*---------------------------------*/
-void picstep(LINE *lp)
+/*---------------------------------
+ * xref_openSearchListResultFromLine()
+ * Parse the search list result in the current line and try to navigate to
+ * the file and line number which are obtained by parsing the line contents.
+ *---------------------------------*/
+void xref_openSearchListResultFromLine(LINE *lp)
 { 	register TAG  *tp;
 	WINDOWPLACEMENT ws,*wsp = 0;
 	char ebuf[ESIZE];
@@ -620,7 +624,7 @@ void picstep(LINE *lp)
 				wsp = &ws;
 				prof_getws(tp->rembuf,wsp);
 			}
-			tagopen(tp->fn, tp->ln-1L, wsp);
+			xref_openFile(tp->fn, tp->ln-1L, wsp);
 		}
 	}
 }
@@ -709,7 +713,7 @@ doforward:
 			sfsplit(fp->fname, fullname, (char *)0);
 			strdcpy(fullname, fullname, tp->fn);
 		}
-		if (tagopen(fullname, tp->ln-1L, (WINDOWPLACEMENT*)0)) {
+		if (xref_openFile(fullname, tp->ln-1L, (WINDOWPLACEMENT*)0)) {
 			if (tp->rembuf[0]) {
 				ShowError(tp->rembuf, (void*)0);
 			}
@@ -723,9 +727,12 @@ doforward:
 }
 
 /*--------------------------------------------------------------------------
- * stepselectcompiler()
+ * xref_selectSearchListFormat()
+ * Select a format for the search lists, that can be navigated. PKS Edit supports
+ * some built in compiler and other tool output formats which can be used to
+ * navigate along (file name + line number + ....).
  */
-void stepselectcompiler(char *pszName)
+void xref_selectSearchListFormat(char *pszName)
 {
 	TAGEXPR		*tp;
 
@@ -754,7 +761,7 @@ static int s_t_open(int title, int st_type, FSELINFO *fsp)
 
 	switch(st_type) {
 		case ST_ERRORS:
-			if (tagopen(_fseltarget, 0L, (WINDOWPLACEMENT*)0) && ft_CurrentDocument()) {
+			if (xref_openFile(_fseltarget, 0L, (WINDOWPLACEMENT*)0) && ft_CurrentDocument()) {
 				EdFileAbandon(1);
 			}
 			return EdErrorNext(LIST_START|LIST_USETOPWINDOW);
@@ -789,7 +796,7 @@ static int s_t_open(int title, int st_type, FSELINFO *fsp)
 /*---------------------------------*/
 int EdFindTagCursor(void)
 {
-	return showtag(tagword(_linebuf,&_linebuf[LINEBUFSIZE]));
+	return xref_navigateCrossReference(xref_saveCrossReferenceWord(_linebuf,&_linebuf[LINEBUFSIZE]));
 }
 
 /*---------------------------------*/
@@ -810,7 +817,7 @@ int EdFindFileCursor(void)
 #endif
 	if ((found = file_searchFileInPath(fn,GetConfiguration()->includePath))   != 0 ||
 	    (found = file_searchFileInPath(fn,fselpath))   != 0) {
-		return tagopen(found, 0L, (WINDOWPLACEMENT*)0);
+		return xref_openFile(found, 0L, (WINDOWPLACEMENT*)0);
 	}
 
 	ed_error(IDS_MSGFILENOTFOUND);
@@ -831,9 +838,9 @@ int EdFindWordCursor(dir)
 }
 
 /*---------------------------------*/
-/* stepnofsel()				*/
+/* xref_openSearchList()				*/
 /*---------------------------------*/
-void stepnofsel(char *fn, int cmpflg)
+void xref_openSearchList(char *fn, int cmpflg)
 {
 	strcpy(_fseltarget,fn);
 	s_t_open(0, cmpflg ? ST_ERRORS: ST_STEP, &_cmpfselinfo);
@@ -863,7 +870,7 @@ int EdErrorListRead(long dummy1, long dummy2, char *pszCompiler)
 
 	_compiler = _cmptags;
 	if (pszCompiler) {
-		stepselectcompiler(pszCompiler);
+		xref_selectSearchListFormat(pszCompiler);
 	}
 	return s_t_open(MREADCMP,ST_ERRORS,&_cmpfselinfo);
 }

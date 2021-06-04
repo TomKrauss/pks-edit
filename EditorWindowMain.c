@@ -14,6 +14,7 @@
  */
 
 #include <windows.h>
+#include <stdio.h>
 #include "trace.h"
 #include "caretmovement.h"
 #include "edierror.h"
@@ -51,7 +52,7 @@ extern int  do_mbutton(FTABLE *fp, int x,int y,int b, int nclicks,int shift);
 extern void *icEditIconClass;
 extern BOOL ic_isIconWindow(HWND hwnd);
 extern void st_redraw(BOOL bErase);
-extern void tagselect(char *tags);
+extern void xref_selectFileFormat(char *tags);
 extern void mac_switchtodefaulttables(void);
 extern void SetMenuFor(char *pszContext);
 #if defined(DEBUG_MEMORY_USAGE)
@@ -1000,7 +1001,7 @@ static WINFUNC WorkAreaWndProc(
 			ft_select(wp->fp);
 			op_updateall();
 			FTABLE* fp = wp->fp;
-			tagselect(fp->documentDescriptor->modename);
+			xref_selectFileFormat(fp->documentDescriptor->modename);
 			mac_switchtodefaulttables();
 	    }
 	    else {

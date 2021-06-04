@@ -64,10 +64,10 @@ typedef struct edx {
 	void 	(*_free)(void *p);
 
 	/* Files */
-	int 		(*Readfile)(FTABLE *fp,char *fn,int linflag);
+	int 		(*ft_readfileWithOptions)(FTABLE *fp,char *fn,int linflag);
 	void 	(*lnlistfree)(LINE *lp);
 	char 	*(*file_searchFileInPKSEditLocation)(char *s);
-	void 	(*stepnofsel)(char *fn,int cmpflg);
+	void 	(*xref_openSearchList)(char *fn,int cmpflg);
 	int 		(*opennofsel)(char *fn,long ln,int closeother);
 	char 	*(*mkpname)(char *path,char *fn);
 	int		(*selnfile)(char *name);

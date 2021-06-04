@@ -383,7 +383,7 @@ int Mapread(int context, char *target)
 	static 	wehavemac;
 	int 		ret = 0;
 
-	if (target != 0 && (ret = Readfile(&ft,target,-1)) != 0) {
+	if (target != 0 && (ret = ft_readfileWithOptions(&ft,target,-1)) != 0) {
 
 		if (context >= 0) {
 			_context = context;
@@ -408,8 +408,8 @@ int Mapread(int context, char *target)
 		char protname[256];
 	
 		strdcpy(protname,file_getTempDirectory(),"KEY.ERR");
-		Writeandclose(&_outfile,protname,0);
-		stepnofsel(protname,1);
+		ft_writeFileAndClose(&_outfile,protname,0);
+		xref_openSearchList(protname,1);
 	}
 	return ret;
 }
@@ -447,7 +447,7 @@ int EdDocMacrosEdit(void)
 	}
 	strdcpy(keyfile, _datadir, "MODI.TMP");
 	if (CreateTempFileForDocumentType(file_searchFileInPKSEditLocation(ft_CurrentDocument()->documentDescriptor->name), keyfile)) {
-		return tagopen(keyfile, -1L, (void*)0);
+		return xref_openFile(keyfile, -1L, (void*)0);
 	}
 	return 0;
 }

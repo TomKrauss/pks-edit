@@ -10,6 +10,7 @@
  */
 
 #include "tos.h"
+#include <stdio.h>
 #include <shellapi.h>
 #include <time.h>
 
@@ -175,7 +176,7 @@ autosave:
 		strcpy(spath,fp->fname);
 
 		GenerateBackupPathname(fp->fname,fp->fname);
-		ret = writefile(1, fp);
+		ret = ft_writefileMode(fp,1);
 
 		/* restore MODIFIED and ISBACKUPED - Flags */
 		fp->flags = flags;
@@ -229,7 +230,7 @@ void picksave(void )
 			ww_getstate(wp, &ws);
 			prof_printws(szBuff,&ws);
 			FTABLE* fp = wp->fp;
-			addLineWithLocationInfo(&ft,fp->fname,fp->ln,szBuff);
+			xref_addSearchListEntry(&ft,fp->fname,fp->ln,szBuff);
 		}
 	}
 
@@ -239,7 +240,7 @@ void picksave(void )
 		strdcpy(szBuff, _datadir, HISTORY_FILE_NAME);
 		pszFilename = szBuff;
 	}
-	Writeandclose(&ft, pszFilename, FA_NORMAL);
+	ft_writeFileAndClose(&ft, pszFilename, FA_NORMAL);
 }
 
 /*---------------------------------*/
@@ -253,12 +254,12 @@ int pickread(void )
 
 	if (GetConfiguration()->options & O_READPIC) {
 		if ((pszFound = file_searchFileInPKSEditLocation(HISTORY_FILE_NAME)) != 0 &&
-		    Readfile(&ft, pszFound, -1)) {
+		    ft_readfileWithOptions(&ft, pszFound, -1)) {
 			// save complete filename of history file.
 			GetFullPathName(pszFound, sizeof szBuff, szBuff, NULL);
 			_historyFileName = stralloc(szBuff);
 			if (_filelist == 0) {
-				picstep(ft.firstl);
+				xref_openSearchListResultFromLine(ft.firstl);
 			}
 			hist_read(ft.firstl);
 			ln_listfree(ft.firstl);
@@ -300,7 +301,7 @@ void ft_deleteautosave(FTABLE *fp)
 
 	if ((GetConfiguration()->options & O_GARBAGE_AS) && GenerateBackupPathname(as_name,fp->fname)) {
 		if (areFilenamesDifferent(fp->fname,as_name)) {
-			unlink(as_name);
+			_unlink(as_name);
 		}
 	}
 }
@@ -457,11 +458,11 @@ int ft_requestToClose(FTABLE *fp)
 		ShowWindow(hwndClient,SW_SHOW);
 		EdSelectWindow(WIPOI(fp)->win_id);
 		if (_ExSave || (GetConfiguration()->options & AUTOWRITE)) {
-	     	return write2ndpathfile(fp);
+	     	return ft_writeFileWithAlternateName(fp);
 		}
 		switch(ed_ync(IDS_MSGQUITORSAVE,ft_visiblename(fp))) {
 			case IDYES:
-				if (!write2ndpathfile(fp)) {
+				if (!ft_writeFileWithAlternateName(fp)) {
 					if (!(GetConfiguration()->options & WARNINGS)) {
 						fp->flags &= ~F_MODIFIED;
 					}
@@ -503,7 +504,7 @@ int SelectWindow(int winid, BOOL bPopup)
 	if (bPopup) {
 		ww_popup(hwndChild);
 	} else {
-		SendMessage(hwndClient,WM_MDIACTIVATE,hwndChild,0L);
+		SendMessage(hwndClient,WM_MDIACTIVATE,(WPARAM)hwndChild,(LPARAM)0L);
 	}
 	return 1;
 }
@@ -631,7 +632,7 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 	}
 	fp->flags |= fileflags;
 	if (AssignDocumentTypeDescriptor(fp, GetDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
-         readfile(fp, fp->documentDescriptor) == 0 || 
+         ft_readfile(fp, fp->documentDescriptor) == 0 || 
 	    (lstrcpy(fp->fname, fn), ft_openwin(fp, wsp) == 0)) {
 		ft_destroy(fp);
 		return 0;
@@ -696,7 +697,7 @@ int AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 
 	if (undo_initializeManager(fp) == 0 || 
 	    !AssignDocumentTypeDescriptor(fp, linp) ||
-	    !readfile(fp,fp->documentDescriptor)) {
+	    !ft_readfile(fp,fp->documentDescriptor)) {
 		fp->flags = 0;
 		ww_close(WIPOI(fp));
 		return 0;
@@ -764,7 +765,7 @@ int EdSaveFile(int flg)
 		fp->flags |= F_CHANGEMARK;
 		if (!(fp->flags & F_APPEND)) fp->flags |= F_SAVEAS;
 		fp->flags &= ~(F_NEWFILE|F_NAME_INPUT_REQUIRED);
-		if (!write2ndpathfile(fp)) 	
+		if (!ft_writeFileWithAlternateName(fp)) 	
 			return 0;
 	}
 
@@ -772,7 +773,7 @@ int EdSaveFile(int flg)
 		fp->flags |= F_WFORCED;  /* force to write even if 
 							   not edited */
 
-	if ((flg & SAV_SAVE) && !write2ndpathfile(fp)) return 0;
+	if ((flg & SAV_SAVE) && !ft_writeFileWithAlternateName(fp)) return 0;
 
 	if (flg & SAV_QUIT) {
 		ww_close(WIPOI(fp));

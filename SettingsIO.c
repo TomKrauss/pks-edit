@@ -83,7 +83,7 @@ static int LocatePksEditIni(void)
  */
 void prof_setinifile(char *fn)
 {
-	if (file_exists(fn, 0xFF) == 0) {
+	if (file_exists(fn) == 0) {
 		FullPathName(_pksEditIniFilename, fn);
 	}
 }
@@ -298,7 +298,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	}
 
 	/* create non existing profiles, others will be updated */
-	if (file_exists(fn,0xFF) < 0) {
+	if (file_exists(fn) < 0) {
 		if ((fd = file_createFile(fn)) < 0) {
 			return 0;
 		}

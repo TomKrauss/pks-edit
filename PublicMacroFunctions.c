@@ -281,10 +281,11 @@ static void TmplateSelchange(HWND hDlg, WORD nItem,  int nNotify,
 /*------------------------------------------------------------
  * TmplateListboxFill()
  */
-static void TmplateListboxFill(HWND hwnd, int nItem, long selValue)
+static void TmplateListboxFill(HWND hwnd, int nItem, void* selValue)
 {
 	char *	pszChars;
 	char		szBuf[10];
+	char	cCharToSelect;
 
 	pszChars = tmplateStringList;
 	szBuf[1] = 0;
@@ -292,14 +293,15 @@ static void TmplateListboxFill(HWND hwnd, int nItem, long selValue)
 	if (!pszChars) {
 		return;
 	}
-	if (!selValue) {
-		selValue = *pszChars;;
+	cCharToSelect = (char)(uintptr_t)selValue;
+	if (!cCharToSelect) {
+		cCharToSelect = *pszChars;;
 	}
 	while((szBuf[0] = *pszChars++) != 0) {
 		SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, 
 			(LPARAM)(LPSTR)szBuf);
 	}
-	szBuf[0] = (char)selValue;
+	szBuf[0] = cCharToSelect;
 	SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING, -1, 
 		(LPARAM) szBuf);
 	TmplateSelchange(hwnd, nItem, MAKELONG(0, LBN_SELCHANGE), (void *)0);
@@ -316,7 +318,7 @@ int DialogTemplate(unsigned char c,
 	static ITEMS	_i   = { C_CHAR1PAR, &_c };
 	static PARAMS	_bgc = { DIM(_i), P_MAYOPEN, _i };
 	static DIALLIST tmplatelist = {
-		text, TmplateListboxFill, LbGetText, 0, 0,
+		(long*)text, TmplateListboxFill, LbGetText, 0, 0,
 		TmplateSelchange};
 	static DIALPARS _d[] = {
 		IDD_POSITIONTCURS,	0,			0,
@@ -676,7 +678,7 @@ int EdFindTag(void)
 
 	if (!CallDialog(DLGFINDTAG,&_tp,_d, NULL))
 		return 0;
-	return showtag(_currentSearchAndReplaceParams.searchPattern);
+	return xref_navigateCrossReference(_currentSearchAndReplaceParams.searchPattern);
 }
 
 /*--------------------------------------------------------------------------
@@ -1109,7 +1111,7 @@ int EdRangeShift(int dir)
 /*--------------------------------------------------------------------------
  * color_lboxfill()
  */
-static void color_lboxfill(HWND hwnd, int nItem, long selValue)
+static void color_lboxfill(HWND hwnd, int nItem, void* selValue)
 {
 	COLORREF		cColor;
 	HDC			hdc;
@@ -1123,7 +1125,7 @@ static void color_lboxfill(HWND hwnd, int nItem, long selValue)
 	SendDlgItemMessage(hwnd, nItem, CB_RESETCONTENT,0,0L);
 	for (i = 0, nSelIndex = 0; i < nPaletteSize; i++) {
 		cColor = GetNearestColor (hdc, PALETTEINDEX (i));
-		if (cColor == (COLORREF)selValue) {
+		if (cColor == (COLORREF)(uintptr_t)selValue) {
 			nSelIndex = i;
 		}
 		SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, i);
@@ -1146,7 +1148,7 @@ static void color_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 	hPen = GetStockObject(BLACK_PEN);
 	hOldPen = SelectObject(hdc, hPen);
 
-	hBrush = CreateSolidBrush(PALETTEINDEX((int) par));
+	hBrush = CreateSolidBrush(PALETTEINDEX((intptr_t) par));
 	hOldBrush = SelectObject(hdc, hBrush);
 	Rectangle(hdc, rcp->left + 2, rcp->top + 2, rcp->right - 2, rcp->bottom - 2);
 	SelectObject(hdc, hOldBrush);

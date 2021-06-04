@@ -23,7 +23,7 @@
 #undef DELIVER
 
 extern int file_exists(char *s);
-extern void  	stepselectcompiler(char *pszName);
+extern void  	xref_selectSearchListFormat(char *pszName);
 extern int   	proj_init(void);
 extern void 	c2asc(char *start, char *source, unsigned char hi, unsigned char lo);
 extern char *	cryptXXXX(char *dest, char *source, 
@@ -134,7 +134,7 @@ EXPORT BOOL InitEnv(void )
 	compiler[0] = 0;
 	Getenv("PKS_COMPILER", compiler, sizeof(compiler));
 	if (compiler[0]) {
-		stepselectcompiler(compiler);
+		xref_selectSearchListFormat(compiler);
 	}
 	Getenv("PKS_INCLUDE_PATH", GetConfiguration()->includePath, member_size(EDITOR_CONFIGURATION, includePath));
 	Getenv("PKS_TMP", GetConfiguration()->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath));
@@ -151,10 +151,10 @@ EXPORT void ReadConfigFiles(void)
 	prof_getstdopt();
 	mac_read((char *)0);
 	InitAllDocumentTypes();
-	tags_init();
+	xref_initFileFormats();
 	proj_init();
-	compiler_init();
-	PrinterDefaults(0);
+	xref_restoreFromConfigFile();
+	print_readWriteConfigFile(0);
 	regex_compileCharacterClasses((char *) 0);
 }
 

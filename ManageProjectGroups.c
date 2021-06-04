@@ -47,7 +47,7 @@ static int proj_mk(char *project, long dummy)
 }
 
 /*--------------------------------------------------------------------------
- * tags_init()
+ * xref_initFileFormats()
  * init all compiler types
  */
 int proj_init(void)

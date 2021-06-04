@@ -11,8 +11,6 @@ EXPORTS
 	KeyInputWndProc
 	CInput
 	FkeysWndProc
-	ToggleWndProc
-	CharSetWndProc
 	DlgQueryReplaceProc
 	PrtAbortProc
 	DlgPreviewProc

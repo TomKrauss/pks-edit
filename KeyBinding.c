@@ -12,7 +12,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
-#include <windows.h>
+#include "customcontrols.h"
 #include <string.h>
 
 #include "trace.h"
@@ -43,7 +43,6 @@
 
 extern FARPROC SubClassWndProc(WORD set, HWND hDlg, WORD item, FARPROC lpfnNewProc);
 extern char *	mac_comment(LPSTR szBuf, LPSTR szB2, WORD nIndex, WORD type);
-extern int 	cust_buttoncharheight(HWND hwnd);
 
 HWND 		hwndFkeys;
 static int 	_fkeyshiftstate;
@@ -171,7 +170,7 @@ WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch(message) {
 
 	case WM_CREATE:
-		fkcharheight = cust_buttoncharheight(
+		fkcharheight = cust_calculateButtonCharacterHeight(
 			GetDlgItem(hwnd, IDD_FKFK1));
 		_fkoptheight = fkcharheight + FK_DELTA;
 		_fkfkheight = 2 * fkcharheight + FK_DELTA;
@@ -179,7 +178,7 @@ WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_DRAWITEM:
 		dp = (DRAWITEMSTRUCT*)lParam;
-		cust_paintbut(dp->hDC, &dp->rcItem, 
+		cust_paintButton(dp->hDC, &dp->rcItem, 
 				    dp->hwndItem, dp->itemState);
 		return 0;
 
@@ -278,7 +277,7 @@ static void fkey_show(HWND hwndPapa)
 int fkey_register(void)
 {	WNDCLASS wc;
 
-	class_defaults(&wc);
+	cust_initializeWindowClassDefaults(&wc);
 	wc.lpfnWndProc = FkeysWndProc;
 	wc.cbWndExtra = DLGWINDOWEXTRA;
 	wc.lpszClassName = szKeys;

@@ -132,7 +132,7 @@ int EdGotoPreviousTag(void)
 	}
 
 	avoidq = 1;	
-	ret = showtag(*tp);
+	ret = xref_navigateCrossReference(*tp);
 	avoidq = 0;
 
 	return  ret;

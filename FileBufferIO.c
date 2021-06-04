@@ -27,6 +27,7 @@
 #include "encryption.h"
 #include "errordialogs.h"
 #include "fileutil.h"
+#include "documenttypes.h"
 
 /* #define DEMO 1 /* D E M O V E R S I O N */
 
@@ -34,8 +35,6 @@
 
 extern void ft_settime(EDTIME* tp);
 extern int  CryptDialog(LPSTR password, int twice);
-extern EDTIME file_getAccessTime(char *fname);
-extern int file_makeFileReadWrite(char *fn);
 
 extern long _flushsize;
 
@@ -47,10 +46,10 @@ static int 	_scratchlen = 0;
 static char _crypting;
 
 /*------------------------------*/
-/* InitBuffers()			  */
+/* ft_initializeReadWriteBuffers()			  */
 /*------------------------------*/
 static unsigned char *_scratchstart;
-BOOL InitBuffers(void)
+BOOL ft_initializeReadWriteBuffers(void)
 {
 	if ((_linebuf = _alloc(LINEBUFSIZE)) == 0) {
 		return FALSE;
@@ -131,9 +130,9 @@ static intptr_t listPathes_mk(char *szPath)
 }
 
 /*--------------------------------------------------------------------------
- * ap_init()
+ * ft_initializeAlternatePath()
  */
-int ap_init(void)
+static int ft_initializeAlternatePath(void)
 {
 	return prof_enum(szAltpath,listPathes_mk,0L);
 }
@@ -175,10 +174,13 @@ void OpenError(char *fname)
 	tosfnerror(fname,0);
 }
 
-/*---------------------------------*/
-/* readfrags()					*/
-/*---------------------------------*/
-EXPORT int readfrags(int fd, unsigned char * (*f)(FTABLE *, DOCUMENT_DESCRIPTOR*, unsigned char *, unsigned char *), void *par)
+/*---------------------------------
+ * ft_readDocumentFromFile()
+ * Standard implementation to read a file in PKS Edit given the file descriptor,
+ * a callback method to invoked for each line read and an optional parameter (typically, but not neccessarily the filepointer itself) to
+ * be parsed as the first argument to the callback.
+ *---------------------------------*/
+EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallback)(FTABLE *, DOCUMENT_DESCRIPTOR*, unsigned char *, unsigned char *), void *par)
 {
 	int 	cflg,got,len,ofs;
 	long	bufferSize;
@@ -208,7 +210,7 @@ EXPORT int readfrags(int fd, unsigned char * (*f)(FTABLE *, DOCUMENT_DESCRIPTOR*
 		ofs  = bufferSize;
 		pend = &bufferStart[got];
 
-		if ((q = (*f)(par,GetDefaultDocumentTypeDescriptor(),&bufferStart[-len],pend)) == 0)
+		if ((q = (*lineExtractedCallback)(par,GetDefaultDocumentTypeDescriptor(),&bufferStart[-len],pend)) == 0)
 			return 0;
 		if ((len = (int)(pend-q)) != 0) {
 			if (len < 128) {
@@ -233,10 +235,12 @@ EXPORT int readfrags(int fd, unsigned char * (*f)(FTABLE *, DOCUMENT_DESCRIPTOR*
 	return 1;
 }
 
-/*--------------------------------------*/
-/* init_pw()	 					*/
-/*--------------------------------------*/
-static int init_pw(DOCUMENT_DESCRIPTOR *linp, char *pw, int twice)
+/*--------------------------------------
+ * ft_initializeEncryption()
+ * Checks, whether a file to read needs to be decrypted.
+ * If not, return 0, return 1 otherwise.
+ *--------------------------------------*/
+static int ft_initializeEncryption(DOCUMENT_DESCRIPTOR *linp, char *pw, int twice)
 {
 	if ((linp->workmode & O_CRYPTED) == 0 ||
 	    CryptDialog(pw, twice) == 0 ||
@@ -249,10 +253,10 @@ static int init_pw(DOCUMENT_DESCRIPTOR *linp, char *pw, int twice)
 }
 
 /*--------------------------------------*/
-/* readfile()						*/
+/* ft_readfile()						*/
 /*--------------------------------------*/
 int _flushing;
-EXPORT int readfile(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescriptor)
+EXPORT int ft_readfile(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescriptor)
 {
 	int				ret;
 	int				nl;
@@ -294,8 +298,8 @@ nullfile:
 			}
 			documentDescriptor->workmode |= O_RDONLY;
 		}
-		_crypting = init_pw(documentDescriptor, pw, 0);
-		if ((ret = readfrags(fd,f,fp)) == 0) {
+		_crypting = ft_initializeEncryption(documentDescriptor, pw, 0);
+		if ((ret = ft_readDocumentFromFile(fd,f,fp)) == 0) {
 			goto readerr;
 		}
 
@@ -340,10 +344,10 @@ readerr:
 }
 
 /*--------------------------------------*/
-/* creabackup()					*/
+/* createBackupFile()					*/
 /* create a Backup-File				*/
 /*--------------------------------------*/
-static void creabackup(char *name, char *bak)
+static void createBackupFile(char *name, char *bak)
 {	char backname[256];
 	char *ext,*bext = "BAK";
 
@@ -362,18 +366,18 @@ static void creabackup(char *name, char *bak)
 }
 
 /*---------------------------------*/
-/* flush()					*/
+/* ft_flushFile()					*/
 /*---------------------------------*/
 extern long _flushsize;
-int flush(int fd, int size, int rest)
+static int ft_flushFile(int fd, int size, int rest)
 {
 	return FlushBuffer(fd,_linebuf,size,rest);
 }
 
 /*--------------------------------------------------------------------------
- * FlushBufferAndCrypt()
+ * ft_flushBufferAndCrypt()
  */
-static int FlushBufferAndCrypt(int fd, int size, int rest, int cont, char *pw)
+static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, char *pw)
 {
 	if (*pw) {
 		int news;
@@ -386,21 +390,21 @@ static int FlushBufferAndCrypt(int fd, int size, int rest, int cont, char *pw)
 		size = news;
 	}
 
-	return flush(fd,size,rest);
+	return ft_flushFile(fd,size,rest);
 }
 
 /*--------------------------------------------------------------------------
- * getfn()
+ * ft_getBasenameOf()
  */
-static char* getfn(FTABLE* fp) {
+static char* ft_getBasenameOf(FTABLE* fp) {
 	return basename(ft_visiblename(fp));
 }
 
 
 /*--------------------------------------*/
-/* writefile() 					*/
+/* ft_writefileMode() 					*/
 /*--------------------------------------*/
-EXPORT int writefile(int quiet, FTABLE *fp)
+EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 {	int			offset;
 	int			no;
 	int			ret;
@@ -427,17 +431,17 @@ EXPORT int writefile(int quiet, FTABLE *fp)
 		return 1;
 	nl = linp->nl;
 	cr = linp->cr;
-	init_pw(linp,pw,1);
+	ft_initializeEncryption(linp,pw,1);
 
 	if (!quiet) {
-		char* printedFilename = getfn(fp);
+		char* printedFilename = ft_getBasenameOf(fp);
 		ShowMessage((fp->flags & F_NEWFILE) ? IDS_MSGNEWFILE : IDS_MSGSAVEFILE,
 				  printedFilename, fp->nlines);
 		MouseBusy();
 	}
 	if (linp->bak[0] &&
 	    !(fp-> flags & (F_NEWFILE | F_SAVEAS | F_APPEND | F_ISBACKUPPED))) {
-		creabackup(fp->fname, linp->bak);
+		createBackupFile(fp->fname, linp->bak);
 		fp->flags |= F_ISBACKUPPED;
 	}
 
@@ -483,11 +487,11 @@ EXPORT int writefile(int quiet, FTABLE *fp)
 		} else {
 			no = (offset > 2*FBUFSIZE) ? 2*FBUFSIZE : offset & (~0xF);
 			offset -= no;
-			if (!FlushBufferAndCrypt(fd,no,offset,1,pw))
+			if (!ft_flushBufferAndCrypt(fd,no,offset,1,pw))
 				goto wfail;
 		}
 	}
-	if (!FlushBufferAndCrypt(fd,offset,0,0,pw)) {
+	if (!ft_flushBufferAndCrypt(fd,offset,0,0,pw)) {
 wfail:	fp->flags |= F_CHANGEMARK;
 		ret = 100;
 		goto wfail1;
@@ -515,9 +519,9 @@ wfail1:
 }
 
 /*---------------------------------*/
-/* write2ndpathfile()			*/
+/* ft_writeFileWithAlternateName()			*/
 /*---------------------------------*/
-EXPORT int write2ndpathfile(FTABLE *fp)
+EXPORT int ft_writeFileWithAlternateName(FTABLE *fp)
 {	char dirname[512],savefn[512],fname[512];
 	int  ret,flags;
 	P2LIST *pl;
@@ -527,12 +531,12 @@ EXPORT int write2ndpathfile(FTABLE *fp)
 	flags = fp->flags;
 	pl = _p2list;
 
-	if ((ret = writefile(0,fp)) != 0) {
+	if ((ret = ft_writefileMode(fp,0)) != 0) {
 		while(pl) {
 			if (strcmp(pl->p1,dirname) == 0) {
 				strdcpy(fp->fname,pl->p2,fname);
 				fp->flags = flags;
-				if ((ret = writefile(0,fp)) == 0)
+				if ((ret = ft_writefileMode(fp,0)) == 0)
 					break;
 			}
 			pl = pl->next;
@@ -544,9 +548,9 @@ EXPORT int write2ndpathfile(FTABLE *fp)
 }
 
 /*---------------------------------*/
-/* Writefile()					*/
+/* ft_writefileAsWithFlags()					*/
 /*---------------------------------*/
-EXPORT int Writefile(FTABLE *fp,char *fn,int flags)
+EXPORT int ft_writefileAsWithFlags(FTABLE *fp,char *fn,int flags)
 {	int ret;
 
 	fp->lockFd = -1;
@@ -555,7 +559,7 @@ EXPORT int Writefile(FTABLE *fp,char *fn,int flags)
 		fp->flags  |= F_SAVEAS;
 	}
 	strcpy(fp->fname,fn);
-	ret = writefile(1,fp);
+	ret = ft_writefileMode(fp,1);
 	return ret;
 }
 
@@ -564,7 +568,7 @@ EXPORT int Writefile(FTABLE *fp,char *fn,int flags)
 /* been redrawn on screen		*/
 /* Macrofiles, ...				*/
 /*---------------------------------*/
-EXPORT int Readfile(FTABLE *fp,char *fn,int linflag)
+EXPORT int ft_readfileWithOptions(FTABLE *fp,char *fn,int linflag)
 {	int ret = 0;
 
 	/* linflag == 0 => take document descriptor as usually */
@@ -581,7 +585,7 @@ EXPORT int Readfile(FTABLE *fp,char *fn,int linflag)
 		return 0;
 
 	_verbose = 0;
-	ret = readfile(fp, fp->documentDescriptor);
+	ret = ft_readfile(fp, fp->documentDescriptor);
 	_verbose = 1;
 	file_closeFile(&fp->lockFd);
 
@@ -589,15 +593,15 @@ EXPORT int Readfile(FTABLE *fp,char *fn,int linflag)
 }
 
 /*---------------------------------*/
-/* Writeandclose()				*/
+/* ft_writeFileAndClose()				*/
 /*---------------------------------*/
-EXPORT int Writeandclose(FTABLE *fp,char *name, int flags)
+EXPORT int ft_writeFileAndClose(FTABLE *fp,char *name, int flags)
 {	
 	int 		ret;
 
 	fp->lastl = 0;
 	fp->documentDescriptor = 0;
-	ret = Writefile(fp,name,flags);
+	ret = ft_writefileAsWithFlags(fp,name,flags);
 	ln_listfree(fp->firstl);
 	fp->firstl = 0;
 	fp->caret.linePointer  = 0;

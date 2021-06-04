@@ -28,7 +28,7 @@
 #include "textblocks.h"
 
 extern void fsel_changeDirectory(LPSTR pszPath);
-extern void stepnofsel(char *fn, int cmpflg);
+extern void xref_openSearchList(char *fn, int cmpflg);
 extern void undo_startModification(FTABLE *fp);
 
 extern FTABLE 	_outfile;
@@ -145,7 +145,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		}
 		ln_createAndAddSimple(&_outfile, szTemp);
 		strdcpy(szRunBat, _datadir, "RUN.BAT");
-		Writeandclose(&_outfile, szRunBat, 0);
+		ft_writeFileAndClose(&_outfile, szRunBat, 0);
 
 		pszPif = file_searchFileInPKSEditLocation(
 			(flags & EX_WAIT) ? "PKSRUNW.PIF" : "PKSRUN.PIF");
@@ -198,7 +198,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 #endif
 
 	if (errfile && errfile[0]) {
-		stepnofsel(errfile, 1);
+		xref_openSearchList(errfile, 1);
 	} else if (ft_CurrentDocument() && (flags & EX_RDIN)) {
 		if (!bUInited) {
 			undo_startModification(ft_CurrentDocument());

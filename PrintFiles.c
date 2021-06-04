@@ -82,6 +82,8 @@ static HWND 		hwndPreview;
 static PRINTWHAT	_printwhat;
 static char 		szPrtDevice[64];
 
+extern int		mysprintf(FTABLE* fp, char* d, char* format, ...);
+
 /*------------------------------------------------------------
  * GetPrinterDC()
  */
@@ -137,7 +139,7 @@ static void EscapeError(short errEscape)
 /*------------------------------------------------------------
  * PrtAbortProc()
  */
-ABORTPROC PrtAbortProc(HDC hdcPrn, int nCode) {
+BOOL PrtAbortProc(HDC hdcPrn, int nCode) {
 	if (nCode < 0) {
 		EscapeError(nCode);
 	}
@@ -417,7 +419,7 @@ static void DrawLine(HDC hdc, int x1, int x2, int y)
 /*------------------------------------------------------------
  * PrintPage()
  */
-static int PrintFile(HDC hdc)
+static int print_file(HDC hdc)
 {	char 		message[128];
 	long		oldpageno,lineno,pageno;
 	int			yPos,ret = 1;
@@ -552,7 +554,7 @@ INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 		case WM_DRAWITEM:
 			hdc = ((LPDRAWITEMSTRUCT)lParam)->hDC;
 			int savedDc = SaveDC(hdc);
-			PrintFile(hdc);
+			print_file(hdc);
 			RestoreDC(hdc, savedDc);
 			return TRUE;
 		case WM_DESTROY:
@@ -636,9 +638,11 @@ INT_PTR CALLBACK DlgInstallPrtProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
 }
 
 /*------------------------------------------------------------
- * PrinterDefaults()
+ * print_readWriteConfigFile()
+ * Read / write the print configuration of PKS edit depending
+ * on the save flag passed as an argument.
  */
-void PrinterDefaults(int save)
+void print_readWriteConfigFile(int save)
 {
 	char 		*prt	= "print",*name;
 	char			szBuff[256];
@@ -705,7 +709,7 @@ static void _triggerPrint(HWND hDlg, int idCtrl) {
 	_doPrint = TRUE;
 	HWND hwndParent = GetParent(hDlg);
 	HWND hwndOK = GetDlgItem(hwndParent, IDOK);
-	SendMessage(hwndOK, BM_CLICK, NULL, NULL);
+	SendMessage(hwndOK, BM_CLICK, (WPARAM) NULL, (LPARAM)NULL);
 }
 static DIALPARS _dPrintLayout[] = {
 	IDD_INT5,		sizeof(int),		0,
@@ -784,11 +788,11 @@ static int DlgPrint(char* title, PRTPARAM *pp)
 	_doPrint = FALSE;
 	tempRet = PropertySheet(&psh);
 	if (tempRet == 1) {
-		PrinterDefaults(1);
+		print_readWriteConfigFile(1);
 		lstrcpy(_prtparams.font.fs_name, font.name);
 		lstrcpy(_prtparams.htfont.fs_name, htfont.name);
 	}
-	return tempRet;
+	return (int)tempRet;
 }
 
 
@@ -828,7 +832,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 		else
 			if (!txtfile_select(IDM_PRINTFILE,fp->fname))
 				return 0;
-		if (Readfile(fp,fp->fname,0) == 0)
+		if (ft_readfileWithOptions(fp,fp->fname,0) == 0)
 	 		return 0;
 		WIPOI(fp) = &winfo;
 		FTPOI((&winfo)) = fp;
@@ -838,6 +842,15 @@ int EdPrint(long what, long p1, LPSTR fname)
 	if (what == PRT_CURRWI || what == PRT_FILE) {
 		_printwhat.lp = fp->firstl;
 		_printwhat.lplast = fp->lastl->prev;
+		if (fp->documentDescriptor) {
+			BOOL showLineNumbers = fp->documentDescriptor->dispmode & SHOWLINENUMBERS;
+			if (showLineNumbers) {
+				_prtparams.options |= PRTO_LINES;
+			}
+			else {
+				_prtparams.options &= ~PRTO_LINES;
+			}
+		}
 	} else {
 		if (!ft_checkSelectionWithError(fp))
 			goto byebye;
@@ -857,7 +870,6 @@ int EdPrint(long what, long p1, LPSTR fname)
 	ch = (what == PRT_CURRBLK) ? '*' : ' ';
 	wsprintf(message,"%c %s %c", ch, basename(ft_visiblename(fp)), ch);
 
-again:
 	memmove(&winfo,WIPOI(fp),sizeof winfo);
 	_printwhat.wp = &winfo;
 	lstrcpy(winfo.fnt_name,pp->font.fs_name);
@@ -877,7 +889,7 @@ again:
 			ProgressMonitorStart(IDS_ABRTPRINT);
 			SetAbortProc(hdcPrn, (ABORTPROC)PrtAbortProc);
 			if ((PREVIEWING() || (errEscape = StartDoc(hdcPrn, &docinfo))) >= 0 &&
-			    (errEscape = PrintFile(hdcPrn)) >= 0) {
+			    (errEscape = print_file(hdcPrn)) >= 0) {
 				if (!PREVIEWING()) {
 					EndDoc(hdcPrn);
 				}

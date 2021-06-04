@@ -425,6 +425,7 @@ char *yytext;
  *									
  */
 
+#include <windows.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
@@ -436,6 +437,7 @@ char *yytext;
 #include "parser.h"
 #include "lineoperations.h"
 #include "pkscc.h"
+#include "stringutil.h"
 
 #define YY_FATAL_ERROR(msg) yyerror( msg )
 
@@ -578,17 +580,21 @@ static void LexInit(LINE *lps, LINE *lpe)
 /*---------------------------------*/
 /* yyerror()					*/
 /*---------------------------------*/
-void yyerror(char* s)
+void yyerror(char* s, ...)
 {
+	char buf1[512];
 	char buf[512];
+	va_list ap;
 
+    va_start(ap,s);
 	if (!yyerr.srcname)
 		yyerr.srcname = "STDIN";
 
 	if (yyerr.errfp != 0 ||
 		(yyerr.errfp = createtmp(yyerr.errname, "PKSMAKRO.ERR")) != 0) {
 		yyerrflg = 1;
-		sprintf(buf, "Error %s %d: %s\n", yyerr.srcname, yyerr.yylineno, s);
+		wvsprintf(buf1, s, ap);
+		sprintf(buf, "Error %s %d: %s\n", yyerr.srcname, yyerr.yylineno, buf1);
 		fprintf(yyerr.errfp, buf);
 		fflush(yyerr.errfp);
 		if (++yyerr.yynerr >= yyerr.yymaxerr) {
@@ -597,6 +603,7 @@ void yyerror(char* s)
 				longjmp(*yyerr.failpt, ERR_TOOMANYERR);
 		}
 	}
+	va_end(ap);
 }
 
 /*---------------------------------*/
@@ -683,8 +690,8 @@ int yyfinish(void)
 		fclose(yyerr.errfp);
 		yyerr.errfp = 0;
 		yyerr.failpt = 0;
-		stepselectcompiler("PKSMAKROC");
-		stepnofsel(yyerr.errname,1);
+		xref_selectSearchListFormat("PKSMAKROC");
+		xref_openSearchList(yyerr.errname,1);
 		return 0;
 	} else {
 		protokoll("No Errors detected");
@@ -743,7 +750,7 @@ static char *unquotealloc(char *name, int len)
 		}
 	}
 	*d++ = 0;
-	i = d-qbuf;
+	i = (int)(d-qbuf);
 	if ((d = _alloc(i)) == 0) {
 		if (yyerr.failpt)
 			longjmp(*yyerr.failpt,ERR_SPACE);
@@ -1140,11 +1147,11 @@ retIdent:				yylval.s = yystralloc(yytext);
 				}
 
 				if (TYPEOF(sym) == S_KEYWORD) {
-					if (VALUE(sym) == T_DEFKEYS || 
-					    VALUE(sym) == T_DEFMOUSE) {
+					if (VALUE_AS_INT(sym) == T_DEFKEYS || 
+					    VALUE_AS_INT(sym) == T_DEFMOUSE) {
 						BEGIN keys;
 					}
-					return VALUE(sym);
+					return VALUE_AS_INT(sym);
 				}
 
 				if (TYPEOF(sym) == S_EDFUNC) {

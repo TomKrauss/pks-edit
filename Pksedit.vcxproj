@@ -1173,6 +1173,7 @@
     <ClInclude Include="include\alloc.h" />
     <ClInclude Include="include\caretmovement.h" />
     <ClInclude Include="include\clipboard.h" />
+    <ClInclude Include="include\customcontrols.h" />
     <ClInclude Include="include\desktopicons.h" />
     <ClInclude Include="include\documenttypes.h" />
     <ClInclude Include="include\editorconfiguration.h" />
