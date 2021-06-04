@@ -25,8 +25,6 @@
 #define GWW_CUSTOMVAL		0
 #define GWW_CUSTOMEXTRA		GWW_CUSTOMVAL+sizeof(WORD)
 
-extern HFONT EdCreateFont(EDFONT *pFont);
-
 /*--------------------------------------------------------------------------
  * cust_drawShadow()
  * Draw a shadow around a control
@@ -223,7 +221,7 @@ static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam
 			ww = (wParam) ? (ww | bit) : (ww & (~bit));
 			SetWindowWord(hwnd,GWW_CUSTOMVAL, (WORD)ww);
 			if (ww != wwsav) {
-				SendRedraw(hwnd);
+				render_sendRedrawToWindow(hwnd);
 			}
 			return 0;
 		case WM_LBUTTONDOWN:
@@ -306,13 +304,13 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 			SetMapMode(hdc,MM_TEXT);
 			memmove(&font, &wp->fnt, sizeof font);
 			font.height = 8;
-			hFont = SelectObject(hdc, EdCreateFont(&font));
+			hFont = SelectObject(hdc, font_createFontWithStyle(&font, NULL));
 			GetTextMetrics(hdc,&tm);
 			ch = tm.tmHeight + tm.tmExternalLeading;
 			cw = tm.tmAveCharWidth;
 			for (l = 0; l < N_ROWS; l++) {
 				for (c = 0; c < DIM(buf); c++)
-					buf[c] = c+(l*DIM(buf));
+					buf[c] = c+(int)(l*DIM(buf));
 				TextOut(hdc,0,l*ch,buf,c);
 			}
 			DeleteObject(SelectObject(hdc,hFont));
@@ -344,7 +342,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 
 		case WM_SETFOCUS:
 		case WM_KILLFOCUS:
-			SendRedraw(hwnd);
+			render_sendRedrawToWindow(hwnd);
 			return 1;
 
 		case WM_LBUTTONDOWN:

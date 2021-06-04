@@ -97,7 +97,7 @@ static int pr_xlated(FILE *fp,long val,signed char partyp)
 
 	partyp -= PAR_USER;
 	if (partyp < 0 || partyp >= _ntypes) {
-		alert("Bad Parameter type %x",(unsigned)partyp);
+		error_displayAlertDialog("Bad Parameter type %x",(unsigned)partyp);
 		return -1;
 	}
 
@@ -181,7 +181,7 @@ static int pr_param(FILE *fp, unsigned char *sp, signed char partyp)
 			return 1;
 		default:
 			err:
-			alert("format error in params");
+			error_displayAlertDialog("format error in params");
 			return -1;
 	}
 
@@ -207,7 +207,7 @@ static void pr_func(FILE *fp, int idx)
 	EDFUNCDEF	*ep = idx2edfunc(idx);
 
 	if (!ep) {
-		alert("format error: bad function");
+		error_displayAlertDialog("format error: bad function");
 		return;
 	}
 	fprintf(fp,"\t%s",StaticLoadString(ep->idx + IDM_LOWFUNCNAME));
@@ -221,7 +221,7 @@ static void makeautolabels(char *start, char *end)
 	while(start < end && *start != C_STOP) {
 		if (*start == C_GOTO)
 			MakeAutoLabel((COM_GOTO*)(start+((COM_GOTO *)start)->offset));
-		start += param_space(*start,start+1);
+		start += macro_getParameterSize(*start,start+1);
 	}
 }
 
@@ -238,7 +238,7 @@ static unsigned char *pr_function(FILE *fp, unsigned char *sp,
 
 	if (cp->typ == C_MACRO) {
 		fprintf(fp,"\t%s()",((COM_MAC*)sp)->name);
-		return sp+param_space(*sp,sp+1);
+		return sp+macro_getParameterSize(*sp,sp+1);
 	}
 
 	pr_func(fp,cp->funcnum);
@@ -256,7 +256,7 @@ static unsigned char *pr_function(FILE *fp, unsigned char *sp,
 			npars++;
 		}
 	}
-	sp += param_space(*sp,sp+1);
+	sp += macro_getParameterSize(*sp,sp+1);
 
 	while(sp < spend && C_IS1PAR(*sp)) {
 		if ((partyp = ep->ftyps[npars+1]) != PAR_VOID) {
@@ -266,7 +266,7 @@ static unsigned char *pr_function(FILE *fp, unsigned char *sp,
 				return 0;
 			npars++;
 		}
-		sp += param_space(*sp,sp+1);
+		sp += macro_getParameterSize(*sp,sp+1);
 	}
 
 	fputc(')',fp);
@@ -283,7 +283,7 @@ static void pr_testopnd(FILE *fp, unsigned char *sp,unsigned char *spend)
 	if (C_ISCMD(t))
 		pr_function(fp,sp,spend);
 	else {
-		pr_param(fp,sp,IsStringType(*sp) ? PAR_STRING : PAR_INT);
+		pr_param(fp,sp,macro_isParameterStringType(*sp) ? PAR_STRING : PAR_INT);
 	}
 }
 
@@ -311,7 +311,7 @@ static unsigned char *pr_expr(FILE *fp, COM_TEST *cp, int not)
 			if (p2 > (unsigned char *)p1)
 				pr_expr(fp,(COM_TEST*)p2,0);
 			else
-				alert("expr: bad AND/OR|(p2 == 0x%lx)(p1 == 0x%lx)",
+				error_displayAlertDialog("expr: bad AND/OR|(p2 == 0x%lx)(p1 == 0x%lx)",
 					p2,p1);
 			break;
 		case CT_BRACKETS:
@@ -368,7 +368,7 @@ static unsigned char *pr_binop(FILE *fp, COM_BINOP *cp)
 		pr_testopnd(fp,p2,pend);
 		break;
 	case BIN_CONVERT:
-		fprintf(fp,"(%s) %s", (!IsStringType(*p1)) ? "string" : "long",
+		fprintf(fp,"(%s) %s", (!macro_isParameterStringType(*p1)) ? "string" : "long",
 			cp->result);
 		break;
 	}
@@ -399,7 +399,7 @@ static void pr_mac(FILE *fp, MACRO *mp)
 	for (sp = data, spend = sp+mp->size; sp < spend; ) {
 		if (gop <= sp && lname) {
 			if (gop < sp) {
-				alert("format error: bad goto");
+				error_displayAlertDialog("format error: bad goto");
 			}
 			fprintf(fp,"%s:\n",lname);
 			NextAutoLabel(&lname,&gop);
@@ -457,9 +457,9 @@ static void pr_mac(FILE *fp, MACRO *mp)
 		} else if (t == C_FURET) {
 		
 		} else {
-			alert("format error in %s type=%x",MAC_NAME(mp),t);
+			error_displayAlertDialog("format error in %s type=%x",MAC_NAME(mp),t);
 		}
-		sp += param_space(*sp,sp+1);
+		sp += macro_getParameterSize(*sp,sp+1);
 	}
 
 out:

@@ -19,8 +19,8 @@
 
 extern void 	yyerror(char *s, ...);
 extern int 	mac_insert(char *name, char *comment, char *macdata, int size);
-extern int 	IsStringType(unsigned char typ);
-extern void 	freeval(struct typedval *v);
+extern int 	macro_isParameterStringType(unsigned char typ);
+extern void 	freeval(TYPEDVAL *v);
 static MACRO	**		_macrotab;
 extern unsigned char *	_recp;
 extern unsigned char *	_recpend;
@@ -83,7 +83,7 @@ unsigned char *AddComSeq(unsigned char *sp, unsigned char *spend,
 			typ = C_CHAR1PAR;
 	}
 
-	s = param_space(typ,(char *)par);
+	s = macro_getParameterSize(typ,(char *)par);
 	if ((spret = sp+s) > spend) {
 		yyerror(/*STR*/"buffer overflow");
 		return 0;
@@ -204,25 +204,25 @@ void PushCreateVariable(char *name, int typ, intptr_t val)
 	}
 
 	_recp = p1;
-	ap->size = (_recp - (unsigned char*)ap);
+	ap->size = (int)(_recp - (unsigned char*)ap);
 }
 
 /*--------------------------------------------------------------------------
  * PushBinop()
  */
 extern int vname_count;
-struct typedval PushBinop(int opd_typ, struct typedval *v1, struct typedval *v2) {
+TYPEDVAL PushBinop(int opd_typ, TYPEDVAL*v1, TYPEDVAL*v2) {
 	unsigned char *	p1;
 	unsigned char *	p2;
 	COM_BINOP *		bp;
-	struct typedval	ret;
+	TYPEDVAL		ret;
 
 	bp = (COM_BINOP*)_recp;
 	bp->typ = C_BINOP;
 	bp->op = opd_typ;
 	sprintf(bp->result,"__ret%d",vname_count++);
 	ret.val = (intptr_t)bp->result;
-	ret.type = (IsStringType(v1->type) && (!v2 || IsStringType(v2->type))) ?
+	ret.type = (macro_isParameterStringType(v1->type) && (!v2 || macro_isParameterStringType(v2->type))) ?
 		C_STRINGVAR : C_LONGVAR;
 	p1 = bp->result;
 
@@ -241,9 +241,9 @@ struct typedval PushBinop(int opd_typ, struct typedval *v1, struct typedval *v2)
 		_recp = AddComSeq(p2,_recpend,C_LONG1PAR,0);
 	}
 
-	bp->op1offset = (p1 - (unsigned char*)bp);
-	bp->op2offset = (p2 - (unsigned char*)bp);
-	bp->size = (_recp - (unsigned char*)bp);
+	bp->op1offset = (int)(p1 - (unsigned char*)bp);
+	bp->op2offset = (int)(p2 - (unsigned char*)bp);
+	bp->size = (int)(_recp - (unsigned char*)bp);
 
 	return ret;
 }

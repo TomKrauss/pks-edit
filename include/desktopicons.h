@@ -34,7 +34,7 @@ extern HWND ic_addIcon(ICONCLASS* icp, const char* szTitle, const char* szParams
  * ic_active()
  * Return the active icon with the given title, params and icon class.
  */
-extern HWND ic_active(const char* szTitle, const char* szParams, ICONCLASS** icClass);
+extern HWND ic_active(char* szTitle, char* szParams, ICONCLASS** icClass);
 
 /*------------------------------------------------------------
  * ic_getActiveIconWindow()
@@ -44,7 +44,7 @@ extern HWND ic_getActiveIconWindow(ICONCLASS** icp);
 
 /*------------------------------------------------------------
  * ic_changeIcon()
- * Assign a new title and new parameters to an icon.
+ * sym_assignSymbol a new title and new parameters to an icon.
  */
 extern void ic_changeIcon(const char* szTitle, const char* szParams, ICONCLASS* icClass);
 

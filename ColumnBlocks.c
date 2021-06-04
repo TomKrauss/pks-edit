@@ -79,7 +79,7 @@ EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int free
 	int		clast;
 	int		ctrl;
 
-	fp     = ft_CurrentDocument();
+	fp     = ft_getCurrentDocument();
 	lp     = lnfirst;
 	cnt    = ln_cnt(lp,lnlast);
 	cfirst = fp->blcol1;

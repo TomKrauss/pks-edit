@@ -10,7 +10,7 @@
  *									
  */
 
-
+#include <windows.h>
 #include <string.h>
 
 #include "alloc.h"
@@ -19,12 +19,14 @@
 #include "textblocks.h"
 
 #include "pksedit.h"
+#include "mouseutil.h"
+#include "winfo.h"
 
 #define	isblnk(c)			(c == ' ' || c == '\t' || c == '' || c == '' || c == '')
 
 extern MARK *mark_set(FTABLE *fp, LINE *lp,int offs,int c);
 extern LINE *mark_goto(FTABLE *fp, int c, long *ln, long *col);
-extern int IsSpace(unsigned char c);
+extern int string_isSpace(unsigned char c);
 
 static FTABLE 		_fmtfile;
 static unsigned char _fillc1,_fillc2;
@@ -32,21 +34,21 @@ static long   		_deltaln;
 static LINE		*_currl;
 
 /*---------------------------------*/
-/* skipblank()					*/
+/* string_skipSpacesIn()					*/
 /*---------------------------------*/
-static unsigned char *skipblank(unsigned char *s, unsigned char *send)
+static unsigned char *string_skipSpacesIn(unsigned char *s, unsigned char *send)
 {
-	while(IsSpace(*s))
+	while(string_isSpace(*s))
 		s++;
 	return (s > send) ? send : s;
 }
 
 /*---------------------------------*/
-/* skipnoblank()				*/
+/* string_skipNonSpaceCharactersIn()				*/
 /*---------------------------------*/
-static unsigned char *skipnoblank(unsigned char *s,unsigned char *send)
+static unsigned char *string_skipNonSpaceCharactersIn(unsigned char *s,unsigned char *send)
 {
-	while(s < send && !IsSpace(*s))
+	while(s < send && !string_isSpace(*s))
 		s++;
 	return s;
 }
@@ -59,16 +61,16 @@ static void blkformat(unsigned char *d, unsigned char *s,
 {	long 		count;
 	long 		delta;
 
-	while(IsSpace(*s)) {
+	while(string_isSpace(*s)) {
 		*d++ = *s++;
 	}
 	delta = (inter > 0) ? 1000L * (long)needfill / (long)inter : 1000L;
 	count = 500L;
 	while(*s) {
 		/* copy a word */
-		while(*s && !IsSpace(*s))
+		while(*s && !string_isSpace(*s))
 			*d++ = *s++;
-		while(IsSpace(*s))
+		while(string_isSpace(*s))
 			*d++ = *s++;
 
 		/* 
@@ -209,7 +211,7 @@ start:		s = lps->lbuf;
 			_currl = 0;
 		}
 
-		s = skipblank(s,send);
+		s = string_skipSpacesIn(s,send);
 
 		/* 
 		 * start of new pgrph: recalculate left margin 
@@ -235,7 +237,7 @@ nextdline:	d = memset(_linebuf,_fillc1,lmar);
 		}
 
 		s1 = s;
-		s = skipnoblank(s,send);
+		s = string_skipNonSpaceCharactersIn(s,send);
 		if (s == s1)
 			continue;
 
@@ -286,7 +288,7 @@ FormatText(int scope, int type, int flags)
 	int    	ret;
 	long   	startln;
 
-	fp = ft_CurrentDocument();
+	fp = ft_getCurrentDocument();
 	flags |= type;
 
 	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID ||
@@ -306,7 +308,7 @@ FormatText(int scope, int type, int flags)
 		_fillc2 = ' ';
 	}
 	rmargin = RightMargin(fp);
-	MouseBusy();
+	mouse_setBusyCursor();
 
 	memset(&_fmtfile,0,sizeof _fmtfile);
 
@@ -336,8 +338,8 @@ FormatText(int scope, int type, int flags)
 	}
 
 	caret_placeCursorInCurrentFile(fp->ln,savecol);
-	RedrawTotalWindow(fp);
-	changemouseform();
+	render_repaintAllForFile(fp);
+	mouse_setDefaultCursor();
 
 	return ret;
 }

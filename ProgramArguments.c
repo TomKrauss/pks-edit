@@ -55,7 +55,7 @@ static int Phase2Arg(char *arg)
 		arg += 2;
 		switch(arg[-1]) {
 		case '/':
-			if (ft_CurrentDocument() != 0) {
+			if (ft_getCurrentDocument() != 0) {
 				lstrcpy(_currentSearchAndReplaceParams.searchPattern,arg);
 				find_expressionAgainInCurrentFile(1);
 			}
@@ -64,14 +64,14 @@ static int Phase2Arg(char *arg)
 			xref_selectSearchListFormat(arg);
 			break;
 		case 'g':	
-			line = Atol(arg) -1L;
+			line = string_convertToLong(arg) -1L;
 			if (caret_placeCursorInCurrentFile(line,0L)) {
 				line = -1L;
 			}
 			break;
 		case 'c':
-			if (ft_CurrentDocument()) {
-				caret_placeCursorInCurrentFile(ft_CurrentDocument()->ln,Atol(arg)-1L);
+			if (ft_getCurrentDocument()) {
+				caret_placeCursorInCurrentFile(ft_getCurrentDocument()->ln,string_convertToLong(arg)-1L);
 			}
 			break;
 		case 't':

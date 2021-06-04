@@ -74,7 +74,7 @@ int fm_savepos(char *tag)
 
 	fm_freepos(tp);
 
-	if ((*tp = stralloc(tag)) == 0)
+	if ((*tp = string_allocate(tag)) == 0)
 		return 0;
 
 	return 1;
@@ -127,7 +127,7 @@ int EdGotoPreviousTag(void)
 	tp = fm_getincr(-1);
 
 	if (*tp == 0) {
-		ed_error(IDS_MSGNOLASTTAG);
+		error_showErrorById(IDS_MSGNOLASTTAG);
 		return 0;
 	}
 

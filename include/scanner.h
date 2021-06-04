@@ -22,6 +22,11 @@
 #include <setjmp.h>
 #endif
 
+typedef struct tagTYPEDVAL {
+	unsigned char type;
+	intptr_t val;
+} TYPEDVAL;
+
 typedef union yytype {
 	long	num;
 	int		islocal;
@@ -31,10 +36,7 @@ typedef union yytype {
 	unsigned char type;
 	MACROREF	macref;
 	MOUSECODE mousecode;
-	struct typedval {
-		unsigned char type;
-		intptr_t val;
-	} v;
+	TYPEDVAL v;
 } _YYSTYPE;
 
 extern _YYSTYPE	yylval;

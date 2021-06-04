@@ -49,7 +49,7 @@ extern HWND EdGetActiveWindow(int includeicons);
 extern BOOL find_replacementHadBeenPerformed();
 
 extern HWND ww_winid2hwnd(int winid);
-extern int 		AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
+extern int 		ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
 extern int 		mac_runcmd(MACROREF *mp);
 extern int 		AlignText(char *finds, int scope, char filler, int flags);
 extern int 		LbGetText(HWND hwnd, int id, void *szBuff);
@@ -67,7 +67,7 @@ extern int 		clp_getdata(void);
 extern int 		AssignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
 extern char *		file_getTempDirectory(void);
 extern int 		doc_documentTypeChanged(void);
-extern void 		SendRedraw(HWND hwnd);
+extern void 		render_sendRedrawToWindow(HWND hwnd);
 extern int 		curspgrph(int dir,int start);
 extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
@@ -121,7 +121,7 @@ int EdExitAndSave(int rc)
 void EdAlert(long unused1, long unused2, char *s)
 {
 	if (s)
-		alert(s);
+		error_displayAlertDialog(s);
 }
 
 /*--------------------------------------------------------------------------
@@ -192,7 +192,7 @@ int EdParaGotoEnd(int dir)
  * EdUndo()
  */
 int EdUndo(void) {
-	FTABLE* fp = ft_CurrentDocument();
+	FTABLE* fp = ft_getCurrentDocument();
 	if (!fp) {
 		return 0;
 	}
@@ -203,7 +203,7 @@ int EdUndo(void) {
  * EdUndo()
  */
 int EdRedo(void) {
-	FTABLE* fp = ft_CurrentDocument();
+	FTABLE* fp = ft_getCurrentDocument();
 	if (!fp) {
 		return 0;
 	}
@@ -401,10 +401,10 @@ int QueryReplace(char *search, int slen, char *replace, int dlen)
 		return IDCANCEL;
 
 	if (!bFirstOpen) {
-		form_textcursor(hwndQueryReplace);
+		win_positionWindowRelativeToCaret(hwndQueryReplace);
 	}
 
-	OwnTextCursor(1);
+	render_selectCustomCaret(1);
 	SetDlgItemText(hwndQueryReplace,IDD_STRING1,sbuf);
 	SetDlgItemText(hwndQueryReplace,IDD_STRING2,rbuf);
 
@@ -413,7 +413,7 @@ int QueryReplace(char *search, int slen, char *replace, int dlen)
 		if (!IsDialogMessage(hwndQueryReplace,&msg))
 			DispatchMessage(&msg);
 	}
-	OwnTextCursor(0);
+	render_selectCustomCaret(0);
 
 	return (int) _answer;
 }
@@ -640,7 +640,7 @@ int EdGotoLine(void)
  */
 static unsigned char _lastmarkc;
 int EdMarkSet(void)
-{	FTABLE *fp = ft_CurrentDocument();
+{	FTABLE *fp = ft_getCurrentDocument();
 
 	_lastmarkc = DialogCharInput(IDS_MARKSET,_lastmarkc);
 	return 
@@ -655,10 +655,10 @@ int EdMarkGoto(void)
 	long 		x,y;
 	FTABLE *		fp;
 
-	fp = ft_CurrentDocument();
+	fp = ft_getCurrentDocument();
 	_lastmarkc = DialogCharInput(IDS_MARKGOTO,_lastmarkc);
 	if (mark_goto(fp, _lastmarkc, &x, &y) == 0) {
-		ed_error(IDS_MSGMARKUNDEF); 
+		error_showErrorById(IDS_MSGMARKUNDEF); 
 		return 0;
 	} else {
 		return caret_placeCursorMakeVisibleAndSaveLocation(x,y);
@@ -729,9 +729,10 @@ int PromptString(int strId, char *string, char *string2)
 }
 
 /*--------------------------------------------------------------------------
- * PromptAsPath()
+ * EdPromptAutosavePath()
+ * Public PKS Edit command to prompt for an auto-save path.
  */
-int PromptAsPath(char *path)
+int EdPromptAutosavePath(char *path)
 {
 	static DIALPARS _d[] = {
 		IDD_STRING1,	128, 		0,
@@ -747,7 +748,7 @@ int PromptAsPath(char *path)
 /*------------------------------------------------------------
  * winlist_lboxfill()
  */
-void winlist_lboxfill(HWND hwnd, int nItem, void* selValue)
+static void winlist_lboxfill(HWND hwnd, int nItem, void* selValue)
 {
 	int		nFile;
 	int		nMaxFiles;
@@ -787,7 +788,7 @@ static void winlist_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int n
 	x = rcp->left;
 	y = rcp->top;
 
-	pszName = AbbrevName(fp->fname);
+	pszName = string_abbreviateFileName(fp->fname);
 	cChanged = fp->flags & F_MODIFIED ? '*' : ' ';
 	wsprintf(szBuf,"%-3d: %c %s", nItem+1, cChanged, pszName);
 	TextOut(hdc, x, y, szBuf, lstrlen(szBuf));
@@ -798,7 +799,7 @@ static void winlist_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int n
  */
 static void InfoFillParams(DIALPARS *dp, FTABLE *fp)
 {
-	dp->dp_data = basename(fp->fname);			dp++;
+	dp->dp_data = string_getBaseFilename(fp->fname);			dp++;
 
      print_date(dp->dp_data, &fp->ti_modified); 	dp++;
      print_date(dp->dp_data, &fp->ti_saved);  	dp++;
@@ -851,7 +852,7 @@ static int ShowWindowList(int nTitleId)
 	char	dmod[40],dsaved[40],nbytes[20],nlines[20];
 	int		nRet;
 
-	fp = ft_CurrentDocument();
+	fp = ft_getCurrentDocument();
 
 	if (!fp) {
 		return 0;
@@ -883,11 +884,11 @@ int EdInfoFiles(void)
 /*--------------------------------------------------------------------------
  * DocTypecommand()
  */
-static void DocNew(HWND hDlg);
-static void DocDelete(HWND hDlg);
-static void DocTypeApply(void);
-static void DocTypeChange(HWND hDlg);
-static void DocTypeFillParams(DIALPARS *dp, void *par);
+static void docTypeNewType(HWND hDlg);
+static void docTypeDeleteType(HWND hDlg);
+static void docTypeApply(void);
+static void docTypeChangeType(HWND hDlg);
+static void docTypeFillParameters(DIALPARS *dp, void *par);
 #define	  NVDOCTYPEPARS						5
 static DIALPARS docTypePars[] = 
 {
@@ -897,10 +898,10 @@ static DIALPARS docTypePars[] =
 	IDD_STRING5,		84,						0,
 	IDD_OPT1,			1,						0,
 	IDD_WINDOWLIST,	0,						0,
-	IDD_CALLBACK1,		0,						DocTypeChange,
-	IDD_CALLBACK2,		0,						DocDelete,
-	IDD_CALLBACK3,		0,						DocTypeApply,
-	IDD_NOINITCALLBACK,	0,						DocNew,
+	IDD_CALLBACK1,		0,						docTypeChangeType,
+	IDD_CALLBACK2,		0,						docTypeDeleteType,
+	IDD_CALLBACK3,		0,						docTypeApply,
+	IDD_NOINITCALLBACK,	0,						docTypeNewType,
 	0
 };
 
@@ -911,7 +912,7 @@ static void doclist_command(HWND hDlg, WORD nItem, WORD nNotify, void *pUser)
 	case LBN_DBLCLK:
 		LbGetText(hDlg, nItem, pUser);
 		if (nNotify == LBN_SELCHANGE) {
-			DocTypeFillParams(docTypePars, *(FTABLE **)pUser);
+			docTypeFillParameters(docTypePars, *(FTABLE **)pUser);
 			DoDlgInitPars(hDlg, docTypePars, NVDOCTYPEPARS);
 		} else {
 			PostMessage(hDlg, WM_COMMAND, IDD_CALLBACK3, 0L);
@@ -920,9 +921,9 @@ static void doclist_command(HWND hDlg, WORD nItem, WORD nNotify, void *pUser)
 }
 
 /*------------------------------------------------------------
- * DocTypelboxfill()
+ * docTypeFillListbox()
  */
-void DocTypelboxfill(HWND hwnd, int nItem, void* selValue)
+static void docTypeFillListbox(HWND hwnd, int nItem, void* selValue)
 {
 	SendDlgItemMessage(hwnd, nItem, LB_RESETCONTENT, 0, 0L);
 	if (AddDocumentTypesToListBox(hwnd, nItem)) {
@@ -933,7 +934,7 @@ void DocTypelboxfill(HWND hwnd, int nItem, void* selValue)
 /*------------------------------------------------------------
  * ic_measureIconTypeItem()
  */
-void DocTypelboxmeasureitem(MEASUREITEMSTRUCT* mp)
+static void docTypeLboxMeasureitem(MEASUREITEMSTRUCT* mp)
 {
 	mp->itemHeight = 22;
 }
@@ -942,7 +943,7 @@ void DocTypelboxmeasureitem(MEASUREITEMSTRUCT* mp)
 /*------------------------------------------------------------
  * DocTypelboxdraw()
  */
-void DocTypelboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
+static void docTypeOwnerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 {
 	char	*	pszId;
 	char *	pszDescription;
@@ -973,9 +974,9 @@ void DocTypelboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 }
 
 /*--------------------------------------------------------------------------
- * DocTypeFillParams()
+ * docTypeFillParameters()
  */
-static void DocTypeFillParams(DIALPARS *dp, void *par)
+static void docTypeFillParameters(DIALPARS *dp, void *par)
 {
 	char *	pszId;
 	char *	pszDescription;
@@ -996,20 +997,20 @@ static void DocTypeFillParams(DIALPARS *dp, void *par)
 }
 
 /*--------------------------------------------------------------------------
- * DocTypeApply()
+ * docTypeApply()
  */
 void *lastSelectedDocType;
-static void DocTypeApply(void)
+static void docTypeApply(void)
 {
 	DOCUMENT_DESCRIPTOR *	lp;
 	FTABLE *	fp;
 
-	if ((fp = ft_CurrentDocument()) == 0) {
+	if ((fp = ft_getCurrentDocument()) == 0) {
 		return;
 	}
 	if ((lp = GetDocumentTypeDescriptor(lastSelectedDocType)) != 0) {
 		if (!(fp->flags & F_MODIFIED)) {
-			AbandonFile(fp, lp);
+			ft_abandonFile(fp, lp);
 		} else {
 			_free(fp->documentDescriptor);
 			AssignDocumentTypeDescriptor(fp, lp);
@@ -1019,49 +1020,49 @@ static void DocTypeApply(void)
 }
 
 /*--------------------------------------------------------------------------
- * DocNew()
+ * docTypeNewType()
  */
-static void DocNew(HWND hDlg)
+static void docTypeNewType(HWND hDlg)
 {
 	lastSelectedDocType = CreateDocumentType(lastSelectedDocType);
-	DocTypelboxfill(hDlg, IDD_WINDOWLIST, lastSelectedDocType);
-	DocTypeFillParams(docTypePars, lastSelectedDocType);
+	docTypeFillListbox(hDlg, IDD_WINDOWLIST, lastSelectedDocType);
+	docTypeFillParameters(docTypePars, lastSelectedDocType);
 	DoDlgRetreivePars(hDlg, docTypePars, NVDOCTYPEPARS);
 }
 
 /*--------------------------------------------------------------------------
- * DocDelete()
+ * docTypeDeleteType()
  */
-static void DocDelete(HWND hDlg)
+static void docTypeDeleteType(HWND hDlg)
 {
 	DeleteDocumentType(lastSelectedDocType);
 	lastSelectedDocType = 0;
-	DocTypelboxfill(hDlg, IDD_WINDOWLIST, lastSelectedDocType);
-	DocTypeFillParams(docTypePars, lastSelectedDocType);
+	docTypeFillListbox(hDlg, IDD_WINDOWLIST, lastSelectedDocType);
+	docTypeFillParameters(docTypePars, lastSelectedDocType);
 }
 
 /*--------------------------------------------------------------------------
- * DocTypeChange()
+ * docTypeChangeType()
  */
-static void DocTypeChange(HWND hDlg)
+static void docTypeChangeType(HWND hDlg)
 {
 	DoDlgRetreivePars(hDlg, docTypePars, NVDOCTYPEPARS);
-	DocTypelboxfill(hDlg, IDD_WINDOWLIST, (void*)lastSelectedDocType);
+	docTypeFillListbox(hDlg, IDD_WINDOWLIST, (void*)lastSelectedDocType);
 }
 
 /*--------------------------------------------------------------------------
- * DoDocumentTypes()
+ * doDocumentTypes()
  */
-int DoDocumentTypes(int nDlg)
+static int doDocumentTypes(int nDlg)
 {
 	int		nRet;
 	char		linname[128];
 	static DIALLIST dlist = {
 		(long*)&lastSelectedDocType, 
-		DocTypelboxfill, 
+		docTypeFillListbox, 
 		LbGetText, 
-		DocTypelboxmeasureitem, 
-		DocTypelboxdrawitem, 
+		docTypeLboxMeasureitem, 
+		docTypeOwnerDrawListboxItem, 
 		doclist_command
 	};
 
@@ -1069,9 +1070,9 @@ int DoDocumentTypes(int nDlg)
 
 	docTypePars[NVDOCTYPEPARS].dp_data = &dlist;
 	lastSelectedDocType = GetPrivateDocumentType(
-		ft_CurrentDocument() ? ft_CurrentDocument()->documentDescriptor->modename : "default");
+		ft_getCurrentDocument() ? ft_getCurrentDocument()->documentDescriptor->modename : "default");
 
-	DocTypeFillParams(docTypePars, (void*)lastSelectedDocType);
+	docTypeFillParameters(docTypePars, (void*)lastSelectedDocType);
 	if ((nRet = DoDialog(nDlg, DlgStdProc,docTypePars, NULL)) == IDCANCEL) {
 		lastSelectedDocType = 0;
 		return 0;
@@ -1091,7 +1092,7 @@ int DoDocumentTypes(int nDlg)
  */
 int EdDocTypes(void)
 {
-	return DoDocumentTypes(DLGDOCTYPES);
+	return doDocumentTypes(DLGDOCTYPES);
 }
 
 /*--------------------------------------------------------------------------
@@ -1247,11 +1248,11 @@ int EdDlgDispMode(void)
 	};
 	DOCUMENT_DESCRIPTOR *linp;
 
-	if (ft_CurrentDocument() == 0) {
+	if (ft_getCurrentDocument() == 0) {
 		return 0;
 	}
 
-	linp = ft_CurrentDocument()->documentDescriptor;
+	linp = ft_getCurrentDocument()->documentDescriptor;
 	lstrcpy(status,linp->statusline);
 	tabsize = 0;
 	rmargin = linp->rmargin;
@@ -1271,7 +1272,7 @@ int EdDlgDispMode(void)
 	linp->t1 = tabfill;
 	if ((linp->tabsize = tabsize) != 0) {
 		InitDocumentTypeDescriptor(linp, linp->tabsize);
-		SendRedraw(WIPOI(ft_CurrentDocument())->ru_handle);
+		render_sendRedrawToWindow(WIPOI(ft_getCurrentDocument())->ru_handle);
 	}
 	linp->rmargin = rmargin;
 	return doc_documentTypeChanged();
@@ -1310,11 +1311,11 @@ int EdDlgWorkMode(void)
 	};
 	DOCUMENT_DESCRIPTOR *linp;
 
-	if (ft_CurrentDocument() == 0) {
+	if (ft_getCurrentDocument() == 0) {
 		return 0;
 	}
 
-	linp = ft_CurrentDocument()->documentDescriptor;
+	linp = ft_getCurrentDocument()->documentDescriptor;
 	lstrcpy(cclass, linp->u2lset);
 	lstrcpy(creationMacroName, linp->creationMacroName);
 	lstrcpy(cm, linp->cm);
@@ -1354,10 +1355,10 @@ int EdDlgCursTabs(void)
 	};
 	DOCUMENT_DESCRIPTOR *linp;
 
-	if (ft_CurrentDocument() == 0)
+	if (ft_getCurrentDocument() == 0)
 		return 0;
 
-	linp = ft_CurrentDocument()->documentDescriptor;
+	linp = ft_getCurrentDocument()->documentDescriptor;
 	flags = linp->scrollflags;
 	cursafter = linp->cursaftersearch;
 	scrollmin = linp->vscroll+1;
@@ -1439,9 +1440,9 @@ int DlgModeVals(DOCUMENT_DESCRIPTOR *linp)
 
 int EdDlgModeVals(void)
 {
-	if (ft_CurrentDocument() == 0)
+	if (ft_getCurrentDocument() == 0)
 		return 0;
-	return DlgModeVals(ft_CurrentDocument()->documentDescriptor);
+	return DlgModeVals(ft_getCurrentDocument()->documentDescriptor);
 }
 
 /*--------------------------------------------------------------------------
@@ -1585,7 +1586,7 @@ int EdReplaceAgain(void)
 
 	if (find_replacementHadBeenPerformed())
 		return EdReplaceText(RNG_ONCE,REP_REPLACE,0); 
-	ed_error(IDS_MSGNOREPLACESTRING);
+	error_showErrorById(IDS_MSGNOREPLACESTRING);
 	return 0;
 }
 
@@ -1595,7 +1596,7 @@ int EdReplaceAgain(void)
 int EdFindAgain(int dir)
 {	
 	if (!_currentSearchAndReplaceParams.searchPattern[0]) {
-		ed_error(IDS_MSGNOSEARCHSTRING);
+		error_showErrorById(IDS_MSGNOSEARCHSTRING);
 		return 0;
 	}
 	return find_expressionAgainInCurrentFile((dir) ? (_dir = dir) : _dir);
@@ -1738,7 +1739,7 @@ static int mod_icon(void);
 static char _title[32],_pars[64];
 static ICONCLASS* _ictype;
 static DIALLIST icondlist = {
-	&_ictype, ic_fillIconTypeList, LbGetText, 
+	(LONG*)&_ictype, ic_fillIconTypeList, LbGetText, 
 	ic_measureIconTypeItem, ic_ownerDrawIconType, ic_onIconTypeSelection, 0  };
 static DIALPARS iconDialListPars[] = {
 	IDD_STRING1,	sizeof _title,		_title,
@@ -1754,10 +1755,10 @@ static int add_icon(HWND hDlg)
 	char 	*p;
 	HWND		hwnd;
 
-	if ((p = stralloc(_pars)) != 0) {
+	if ((p = string_allocate(_pars)) != 0) {
 		hwnd = ic_addIcon((void*)_ictype,_title,p,CW_USEDEFAULT,CW_USEDEFAULT);
 		SendMessage(hwndClient, WM_MDIACTIVATE, (WPARAM)hwnd, (LPARAM)NULL);
-		SendRedraw(hwnd);
+		render_sendRedrawToWindow(hwnd);
 		ic_enableConfigurationDialogIcons(hDlg, (void *)_ictype);
 	}
 	return 1;
@@ -1778,7 +1779,7 @@ static int mod_icon(void)
 {
 	void *p;
 
-	if ((p = stralloc(_pars)) != 0) {
+	if ((p = string_allocate(_pars)) != 0) {
 		ic_changeIcon(_title,p,_ictype);
 	}
 	return 1;
@@ -1797,9 +1798,9 @@ int EdConfigureIcons(void)
 }
 
 /*--------------------------------------------------------------------------
- * GetPassWord()
+ * inputPassWord()
  */
-static void GetPassWord(LPSTR pszPW)
+static void inputPassWord(LPSTR pszPW)
 {
 	static DIALPARS _d[] = {
 		IDD_STRING1,	20,		0,
@@ -1819,13 +1820,13 @@ int CryptDialog(LPSTR password, int twice)
 	char		pw1[128];
 
 	while(1) {
-		GetPassWord(password);
+		inputPassWord(password);
 		if (twice == 0) {
 			break;
 		}
-		GetPassWord(pw1);
+		inputPassWord(pw1);
 		if (lstrcmp(pw1, password)) {
-			ed_error(IDS_MSGDIFFERENTPW);
+			error_showErrorById(IDS_MSGDIFFERENTPW);
 		} else {
 			break;
 		}
@@ -1861,38 +1862,38 @@ int EdIsDefined(long what)
 		return GetConfiguration()->layoutoptions;
 	}
 
-	if (!ft_CurrentDocument()) {
+	if (!ft_getCurrentDocument()) {
 		return 0;
 	}
 
 	switch(what) {
 
 	case QUERY_BLKMARKSTART:
-		return ft_CurrentDocument()->blstart ? 1 : 0;
+		return ft_getCurrentDocument()->blstart ? 1 : 0;
 
 	case QUERY_BLKMARKED:
-		if (!ft_CurrentDocument()->blstart) {
+		if (!ft_getCurrentDocument()->blstart) {
 			return 0;
 		}
 		/* drop through */
 
 	case QUERY_BLKMARKEND:
-		return ft_CurrentDocument()->blend ? 1 : 0;
+		return ft_getCurrentDocument()->blend ? 1 : 0;
 
 	case QUERY_WORKMODE:
-		return ft_CurrentDocument()->documentDescriptor->workmode;
+		return ft_getCurrentDocument()->documentDescriptor->workmode;
 
 	case QUERY_DISPLAYMODE:
-		return ft_CurrentDocument()->documentDescriptor->dispmode;
+		return ft_getCurrentDocument()->documentDescriptor->dispmode;
 
 	case QUERY_CURRENTFILE:
 		return 1;
 
 	case QUERY_FILEMODIFIED:
-		return (ft_CurrentDocument()->flags & F_MODIFIED) ? 1 : 0;
+		return (ft_getCurrentDocument()->flags & F_MODIFIED) ? 1 : 0;
 	
 	case QUERY_BLOCKXTNDMODE:
-		return WIPOI(ft_CurrentDocument())->bXtndBlock;
+		return WIPOI(ft_getCurrentDocument())->bXtndBlock;
 	}
 	return 0;
 }

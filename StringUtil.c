@@ -70,11 +70,11 @@ char* strmaxcpy(char* pszDest, const char* pszSource, int nMax) {
 }
 
 /*--------------------------------------------------------------------------
- * strdcpy()
+ * string_concatPathAndFilename()
  * concat file and dirname and make sure there is one(1!) SLASH between
  * the both
  */
-void strdcpy(char *dest, const char *pathname, const char *fname) {
+void string_concatPathAndFilename(char *dest, const char *pathname, const char *fname) {
 	if (*pathname) {
 		while (*pathname)
 			*dest++ = *pathname++;
@@ -85,10 +85,10 @@ void strdcpy(char *dest, const char *pathname, const char *fname) {
 }
 
 /*--------------------------------------------------------------------------
- * basename()
+ * string_getBaseFilename()
  * return pointer to filename component of a pathName
  */
-char *basename(const char *fullname)
+char *string_getBaseFilename(const char *fullname)
 {	register const char *f = fullname;
 	register char c;
 
@@ -98,11 +98,11 @@ char *basename(const char *fullname)
 }
 
 /*--------------------------------------------------------------------------
- * extname()
+ * string_getFileExtension()
  * return pointer to the extension component of a pathName
  */
-char *extname(const char *fullname) {
-	char *base = basename(fullname);
+char *string_getFileExtension(const char *fullname) {
+	char *base = string_getBaseFilename(fullname);
 
 	while(*base == '.') base++;		/* skip . and .. */
 	while(*base != 0)
@@ -111,11 +111,11 @@ char *extname(const char *fullname) {
 }
 
 /*--------------------------------------------------------------------------
- * sfsplit()
+ * string_splitFilename()
  * split a pathname in pathName and filename components
  */
-void sfsplit(const char *completeFileName, char *pathName, char *fileName) {
-	char *fname = basename(completeFileName);
+void string_splitFilename(const char *completeFileName, char *pathName, char *fileName) {
+	char *fname = string_getBaseFilename(completeFileName);
 
 	if (pathName != NULL) {
 		while(completeFileName < fname)
@@ -134,10 +134,10 @@ void sfsplit(const char *completeFileName, char *pathName, char *fileName) {
 }
 
 /*------------------------------------------------------------
- * FullPathName()
+ * string_getFullPathName()
  * make full pathname
  */
-char *FullPathName(const char *path, const char *fn) {
+char *string_getFullPathName(const char *path, const char *fn) {
 #if defined(WIN32)
 	char *		pszFn;
 
@@ -180,9 +180,9 @@ char *FullPathName(const char *path, const char *fn) {
 }
 
 /*------------------------------------------------------------
- * AbbrevName()
+ * string_abbreviateFileName()
  */
-char *AbbrevName(const char *fn) {	
+char *string_abbreviateFileName(const char *fn) {	
 	int l,i;
 	static char aname[64];
 	
@@ -201,19 +201,19 @@ char *AbbrevName(const char *fn) {
 }
 
 /*------------------------------------------------------------
- * OemAbbrevName()
+ * string_abbreviateFileNameOem()
  */
-char *OemAbbrevName(const char *fn) {
-	char *ret = AbbrevName(fn);
+char *string_abbreviateFileNameOem(const char *fn) {
+	char *ret = string_abbreviateFileName(fn);
 	OemToAnsi(ret,ret);
 	return ret;
 }
 
 /*------------------------------------------------------------
- * stralloc()
+ * string_allocate()
  * allocate a copy of the passed string.
  */
-unsigned char* stralloc(unsigned char* buf) {
+unsigned char* string_allocate(unsigned char* buf) {
 	unsigned char* d;
 
 	if ((d = malloc(lstrlen(buf) + 1)) != 0) {
@@ -226,39 +226,39 @@ unsigned char* stralloc(unsigned char* buf) {
 #define	isblnk(c)    (c == ' ' || c == '\t' || c == '' || c == '' || c == '')
 
 /*--------------------------------------------------------------------------
- * IsSpace()
+ * string_isSpace()
  */
-BOOL IsSpace(unsigned char c) {
+BOOL string_isSpace(unsigned char c) {
 	return c <= ' ' && isblnk(c);
 }
 
 /*---------------------------------*/
-/* skipblank()					*/
+/* string_skipSpacesIn()					*/
 /*---------------------------------*/
-unsigned char* skipblank(unsigned char* s, unsigned char* send) {
-	while (IsSpace(*s))
+unsigned char* string_skipSpacesIn(unsigned char* s, unsigned char* send) {
+	while (string_isSpace(*s))
 		s++;
 	return (s > send) ? send : s;
 }
 
 /*---------------------------------*/
-/* skipnoblank()				*/
+/* string_skipNonSpaceCharactersIn()				*/
 /*---------------------------------*/
-unsigned char* skipnoblank(unsigned char* s, unsigned char* send) {
-	while (s < send && !IsSpace(*s))
+unsigned char* string_skipNonSpaceCharactersIn(unsigned char* s, unsigned char* send) {
+	while (s < send && !string_isSpace(*s))
 		s++;
 	return s;
 }
 
 /*--------------------------------------------------------------------------
- * CntSpaces()
+ * string_countSpacesIn()
  * count spaces up to a given position
  * Spaces include attribute special spaces
  */
-int CntSpaces(unsigned char* s, int pos) {
+int string_countSpacesIn(unsigned char* s, int pos) {
 	int n;
 
-	for (n = 0; n < pos && IsSpace(s[n]); n++)
+	for (n = 0; n < pos && string_isSpace(s[n]); n++)
 		;
 	return n;
 }
@@ -266,20 +266,20 @@ int CntSpaces(unsigned char* s, int pos) {
 /*
  * Returns true if the passed character is a letter (a-z + umlauts). 
  */
-BOOL isword(unsigned char c) {
+BOOL char_isLetter(unsigned char c) {
 	return  (isalnum(c) || c == 'ö' || c == 'ä' || c == 'ü');
 }
 
 /*
  * Returns TRUE, if the passed character is not a space.
  */
-BOOL isnospace(unsigned char c) {
+BOOL char_isNospace(unsigned char c) {
 	return !isspace(c);
 }
 
 /*
  * Return true, if the character is a valid filename character on the current platform.
  */
-BOOL isfname(unsigned char c) {
+BOOL char_isFilename(unsigned char c) {
 	return (istosfname(c));
 }

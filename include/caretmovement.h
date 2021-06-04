@@ -19,6 +19,13 @@
 typedef struct wininfo WINFO;
 
 /*--------------------------------------------------------------------------
+ * caret_getPreviousColumnInLine()
+ * Got back one screen column in a line and return the new column considering internal
+ * structure of the data and return the new offset into the line buffer.
+ */
+extern int caret_getPreviousColumnInLine(LINE* lp, int col);
+
+/*--------------------------------------------------------------------------
  * caret_lineOffset2screen()
  * the following stuff is calculating the cursor screen position, out of
  * the internal offset to the line buffer

@@ -107,12 +107,12 @@ KEYCODE mac_addModifierKeys(KEYCODE code);
 #define	FORM_INIT		0x1	/* form " and be prefilled */
 #define	FORM_REDRAW	0x2	/* force redraw */
 
-int  param_space(unsigned char typ, char *s);
+int  macro_getParameterSize(unsigned char typ, char *s);
 /*--------------------------------------------------------------------------
- * param_pop()
+ * macro_popParameter()
  * pop data from execution stack
  */
-intptr_t param_pop(unsigned char** sp);
+intptr_t macro_popParameter(unsigned char** sp);
 
 typedef struct c_1func {
 	unsigned char  typ;		/* C_1FUNC */
@@ -396,8 +396,8 @@ typedef struct params {
 	struct	des *el;
 } PARAMS;
 
-extern int param_dialopen(PARAMS *p);
-extern int cdecl do_func(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3);
+extern int macro_openDialog(PARAMS *p);
+extern int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3);
 
 #define	_EDFUNCS_H
 # endif

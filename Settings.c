@@ -75,7 +75,7 @@ int doc_documentTypeChanged(void)
 	WINFO  *	wp;
 	FTABLE *	fp;
 	
-	if ((fp = ft_CurrentDocument()) == 0 ||
+	if ((fp = ft_getCurrentDocument()) == 0 ||
 	   (wp = WIPOI(fp)) == 0)
 	    return 0;
 	
@@ -96,7 +96,7 @@ static int doc_columnChanged(void)
 {
 	FTABLE *fp;
     
-    if ((fp = ft_CurrentDocument()) == 0)
+    if ((fp = ft_getCurrentDocument()) == 0)
          return 0;
 
     ww_setwindowflags(WIPOI(fp));
@@ -111,7 +111,7 @@ static int *OpLocalAdr(int local)
 {	FTABLE *fp;
 	
 	if (local > 0) {
-		if ((fp = ft_CurrentDocument()) != 0) {
+		if ((fp = ft_getCurrentDocument()) != 0) {
 			DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
 			
 			if (local == 2)
@@ -205,7 +205,7 @@ EXPORT int op_checktoggle(int toggle)
 				EdOptionToggle(
 					MAKELONG(op->flag,op->local));
 			} else {
-				return do_func(
+				return macro_executeFunction(
 					FUNC_EdOptionToggle,
 						MAKELONG(op->flag,op->local),
 						0L,(LPSTR)0,(LPSTR)0);

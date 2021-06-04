@@ -21,6 +21,7 @@
 #include "winfo.h"
 #include "winterf.h"
 #include "errordialogs.h"
+#include "winutil.h"
 
 static DWORD _ROPcodes[] = {
 	BLACKNESS,          /* D = 0 */
@@ -42,9 +43,9 @@ static DWORD _ROPcodes[] = {
 };
 
 /*--------------------------------------------------------------------------
- * writeattrline()
+ * render_singleLineWithAttributesOnDevice()
  */
-extern char* writeattrline(HDC hdc, int x, int y,
+extern char* render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y,
 	unsigned char* b, LINE* lp, int start, int end, WINFO* wp);
 
 /*--------------------------------------------------------------------------
@@ -79,7 +80,7 @@ static void markline(HDC hdc, WINFO *wp,LINE *lp,int y,int lastcol)
 			r.right = fp->blcol2;
 		} else {
 			if (!fp->blstart || !fp->blend) {
-				alert("bad marked line");
+				error_displayAlertDialog("bad marked line");
 				return;
 			}
 			if (P_EQ(lp,fp->blstart->lm))
@@ -108,9 +109,9 @@ static void markline(HDC hdc, WINFO *wp,LINE *lp,int y,int lastcol)
 }
 
 /*--------------------------------------------------------------------------
- * write_line()
+ * render_singleLineOnDevice()
  */
-int write_line(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
+int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 {	register int 			start,i,end,ind,textlen;
 	register unsigned char 	*d,*s,*send;
 	DOCUMENT_DESCRIPTOR 	*linp = ((FTABLE*)FTPOI(wp))->documentDescriptor;
@@ -123,7 +124,7 @@ int write_line(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 	flags = wp->dispmode;
 
 	if (flags & SHOWATTR) {
-		d = writeattrline(hdc,x,y,buf,lp,start,end,wp);
+		d = render_singleLineWithAttributesOnDevice(hdc,x,y,buf,lp,start,end,wp);
 		goto _domark;
 	}
 
@@ -237,7 +238,7 @@ static void redraw_indirect(HDC hdc, WINFO *wp, int y, LINE *lp)
 	wsprintf(buf," skipped %ld... ", (long)LpIndNTotal(lp));
 
 	TextOut(hdc, wp->cwidth, y, buf, lstrlen(buf));
-	dwExtent = GetTextExtent(hdc, buf, lstrlen(buf));
+	dwExtent = win_getTextExtent(hdc, buf, lstrlen(buf));
 	nWidth = LOWORD(dwExtent) + 4;
 	y = y + wp->cheight/2-1;
 	x = wp->workarea.g_w;
@@ -250,9 +251,9 @@ static void redraw_indirect(HDC hdc, WINFO *wp, int y, LINE *lp)
 }
 
 /*--------------------------------------------------------------------------
- * P_redraw()
+ * render_paintWindowParams()
  */
-static void P_redraw(WINFO *wp,long min,long max,int flg)
+static void render_paintWindowParams(WINFO *wp,long min,long max,int flg)
 {
 	HBRUSH		hBrush;
 	HDC 			hdc;
@@ -268,7 +269,7 @@ static void P_redraw(WINFO *wp,long min,long max,int flg)
 	hwnd = wp->ww_handle;
 
 	hdc = BeginPaint(hwnd, &ps);
-	saveFont = EdSelectFont(wp,hdc);
+	saveFont = font_selectDefaultEditorFont(wp,hdc,NULL);
 	SetTextColor(hdc,wp->fnt_fgcolor);
 	/* SetBkColor(hdc,wp->fnt_bgcolor); */
 	SetBkMode(hdc, TRANSPARENT);
@@ -291,12 +292,12 @@ static void P_redraw(WINFO *wp,long min,long max,int flg)
 				redraw_indirect(hdc, wp, y, lp);
 				visLen = 1;
 			} else {
-				visLen = write_line(hdc,0,y,wp,lp);
+				visLen = render_singleLineOnDevice(hdc,0,y,wp,lp);
 			}
 			if (lp ->lflg & (LNCPMARKED|LNXMARKED)) 
 				markline(hdc,wp,lp,y,visLen);
 			if (ln == wp->ln)
-				UpdateOwnCaret(wp,hdc);
+				render_updateCustomCaret(wp,hdc);
 		}
 	}
 
@@ -308,15 +309,15 @@ static void P_redraw(WINFO *wp,long min,long max,int flg)
 	}
 
 	DeleteObject(hBrush);
-	EdUnselectFont(hdc);
+	font_selectSystemFixedFont(hdc);
 	EndPaint(hwnd,&ps);
 
 }
 
 /*--------------------------------------------------------------------------
- * SendRedraw()
+ * render_sendRedrawToWindow()
  */
-EXPORT void SendRedraw(HWND hwnd)
+EXPORT void render_sendRedrawToWindow(HWND hwnd)
 {
 	if (hwnd > 0) {
 		UpdateWindow(hwnd);
@@ -325,59 +326,53 @@ EXPORT void SendRedraw(HWND hwnd)
 }
 
 /*------------------------------------------------------------
- * RedrawWmPaint()
+ * render_paintWindow()
+ * Perform the actual rendering of window passed as an argument.
  */
-EXPORT void RedrawWmPaint(WINFO *wp)
+EXPORT void render_paintWindow(WINFO *wp)
 {
-	P_redraw(wp,wp->minln,wp->maxln,1);
-}
-
-/*--------------------------------------------------------------------------
- * EdRedrawWindow()
- */
-EXPORT void EdRedrawWindow(WINFO *wp)
-{
-	if (wp) {
-		SendRedraw(wp->ww_handle);
+	if (wp == NULL) {
+		return;
 	}
+	render_paintWindowParams(wp,wp->minln,wp->maxln,1);
 }
 
 /*--------------------------------------------------------------------------
- * p_redraw()
+ * render_redrawAndPaintCurrentFile()
  */
-EXPORT void p_redraw(void)
+EXPORT void render_redrawAndPaintCurrentFile(void)
 {	FTABLE *fp;
 	WINFO  *wp;
 
-	if ((fp = ft_CurrentDocument()) != 0L) {
+	if ((fp = ft_getCurrentDocument()) != 0L) {
 		wp = WIPOI(fp);
-		SendRedraw(wp->ww_handle);
-		P_redraw(wp,wp->minln,wp->maxln,0);
+		render_sendRedrawToWindow(wp->ww_handle);
+		render_paintWindowParams(wp,wp->minln,wp->maxln,0);
 	}
 }
 
 /*--------------------------------------------------------------------------
- * RedrawFromTo()
+ * render_paintFromLineTo()
  */
-EXPORT void RedrawFromTo(WINFO *wp,long min,long max)
+EXPORT void render_paintFromLineTo(WINFO *wp,long min,long max)
 {
-	SendRedraw(wp->ww_handle);
-	P_redraw(wp,min,max,1);
+	render_sendRedrawToWindow(wp->ww_handle);
+	render_paintWindowParams(wp,min,max,1);
 }
 
 /*--------------------------------------------------------------------------
- * RedrawTotalWindow()
+ * render_repaintAllForFile()
  */
-EXPORT void RedrawTotalWindow(FTABLE *fp)
+EXPORT void render_repaintAllForFile(FTABLE *fp)
 {
-	EdRedrawWindow(WIPOI(fp));
+	render_paintWindow(WIPOI(fp));
 	caret_placeCursorInCurrentFile(fp->ln, fp->caret.offset);
 }
 
 /*--------------------------------------------------------------------------
- * redrawlinepart()
+ * render_linePart()
  */
-EXPORT void redrawlinepart(FTABLE *fp, long ln, int col1, int col2)
+EXPORT void render_linePart(FTABLE *fp, long ln, int col1, int col2)
 {
 	WINFO *	wp;
 	RECT  	r;
@@ -399,23 +394,23 @@ EXPORT void redrawlinepart(FTABLE *fp, long ln, int col1, int col2)
 }
 
 /*--------------------------------------------------------------------------
- * redrawline()
+ * render_redrawCurrentLine()
  */
-EXPORT void redrawline(void)
+EXPORT void render_redrawCurrentLine(void)
 {	
 	WINFO *	wp;
 	FTABLE *	fp;
 
-	if ((fp = ft_CurrentDocument()) != 0L) {
+	if ((fp = ft_getCurrentDocument()) != 0L) {
 		wp = WIPOI(fp);
-		redrawlinepart(fp, wp->ln, wp->mincol, wp->maxcol);
+		render_linePart(fp, wp->ln, wp->mincol, wp->maxcol);
 	}
 }
 
 /*--------------------------------------------------------------------------
- * redrawspecificline()
+ * render_redrawLine()
  */
-EXPORT void redrawspecificline(FTABLE *fp, LINE *lpWhich)
+EXPORT void render_redrawLine(FTABLE *fp, LINE *lpWhich)
 {
 	LINE *		lp;
 	long			ln;
@@ -425,26 +420,26 @@ EXPORT void redrawspecificline(FTABLE *fp, LINE *lpWhich)
 	lp = ln_relgo(fp, wp->minln - wp->ln);
 	for (ln = wp->minln; lp && ln <= wp->maxln; lp = lp->next, ln++) {
 		if (lp == lpWhich) {
-			redrawlinepart(fp, ln, wp->mincol, wp->maxcol);
+			render_linePart(fp, ln, wp->mincol, wp->maxcol);
 			break;
 		}
 	}
 }
 
 /*--------------------------------------------------------------------------
- * OwnTextCursor()
+ * render_selectCustomCaret()
  */
-EXPORT void OwnTextCursor(int on)
+EXPORT void render_selectCustomCaret(int on)
 {
 	FTABLE 	*fp;
 	WINFO 	*wp;
 
-	if ((fp = ft_CurrentDocument()) == 0 ||
+	if ((fp = ft_getCurrentDocument()) == 0 ||
 	    (wp = WIPOI(fp)) == 0)
 		return;
 	if (on != wp->owncursor) {
 		wp->owncursor = on;
-		redrawline();
+		render_redrawCurrentLine();
 	}
 }
 

@@ -12,8 +12,10 @@
  * (c) Pahlen & Krauﬂ
  */
 
+#include <windows.h>
 #include <string.h>
 #include "caretmovement.h"
+#include "winfo.h"
 #include "regexp.h"
 #include "edierror.h"
 #include "pksedit.h"
@@ -38,13 +40,13 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 		return 0;
 	}
 
-	fp = ft_CurrentDocument();
+	fp = ft_getCurrentDocument();
 	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID)
 		return 0;
 	if (filler == 0)
 		filler = ' ';
 
-	ProgressMonitorStart(IDS_ABRTALIGN);
+	progress_startMonitor(IDS_ABRTALIGN);
 
 	if (flags & (AL_CPOS|AL_FIX)) {
 		firstcol = caret_lineOffset2screen(fp,&fp->caret);
@@ -64,7 +66,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 				if (col > aligncol)
 					aligncol = col;
 			}
-			if (lp == mpe->lm || ProgressMonitorCancel(1))
+			if (lp == mpe->lm || progress_cancelMonitor(1))
 				break;
 		}
 
@@ -97,11 +99,11 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 			}
 			blfill(&lp->lbuf[besti],nchars,filler);
 		}
-		if (lp == mpe->lm || ProgressMonitorCancel(1))
+		if (lp == mpe->lm || progress_cancelMonitor(1))
 			break;
 	}
-	ProgressMonitorClose(0);
-	RedrawTotalWindow(fp);
+	progress_closeMonitor(0);
+	render_repaintAllForFile(fp);
 	if ((ret & aligncol) >= 0) {
 		caret_placeCursorInCurrentFile(fp->ln,(long )aligncol);
 	}

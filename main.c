@@ -34,7 +34,7 @@
 
 #define	PROF_OFFSET	1
 
-extern void 	ft_CheckForChangedFiles(void);
+extern void 	ft_checkForChangedFiles(void);
 extern void		GetPhase2Args(char *args);
 extern void		GetPhase1Args(char *args);
 extern void *	PksGetKeyBind(WPARAM key);
@@ -162,7 +162,7 @@ static BOOL InitApplication(void)
 {
 #if !defined(WIN32)
 	if ((GetWinFlags() & WF_PMODE) == 0) {
-		alert("REAL MODE not supported");
+		error_displayAlertDialog("REAL MODE not supported");
 		return FALSE;
 	}
 #endif
@@ -244,7 +244,7 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine)
 	}
 	DragAcceptFiles(hwndFrame, TRUE);
 	while(!SetTimer(hwndFrame,TIM_FRAME,TIMER_INTERVALL,NULL)) {
-		ed_error(IDS_MSGNOTIMER);
+		error_showErrorById(IDS_MSGNOTIMER);
 		return FALSE;
 	}
 	if (_openIconic) {
@@ -331,7 +331,7 @@ static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
 		if (hsz1 == hszDDEExecuteMacro || (
 				hsz1 == hszDDECommandLine && hwndFrame != 0)) {
 			if ((pszData = DdeAccessData(hdata, 0)) == 0) {
-				alert("Cannot access DDE data handle, error %d", DdeGetLastError(hDDE));
+				error_displayAlertDialog("Cannot access DDE data handle, error %d", DdeGetLastError(hDDE));
 			} else {
 				ShowWindow(hwndFrame, SW_SHOW);
 				if (hsz1 == hszDDECommandLine) {
@@ -341,7 +341,7 @@ static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
 				}
 				DdeUnaccessData(hdata);
 				if (!DdeFreeDataHandle(hdata)) {
-					alert("Error freeing DDE data handle");
+					error_displayAlertDialog("Error freeing DDE data handle");
 				}
 			}
 			return (HDDEDATA) DDE_FACK;
@@ -364,7 +364,7 @@ static int InitDDE(void) {
 		CBF_SKIP_REGISTRATIONS, 
 		0);
 	if (result != DMLERR_NO_ERROR) {
-		alert("Got error %d initializing DDE");
+		error_displayAlertDialog("Got error %d initializing DDE");
 		hDDE = 0;
 	} else {
 		hszDDECommandLine = DdeCreateStringHandle(hDDE, "commandline", CP_WINANSI);
@@ -439,7 +439,7 @@ int PASCAL WinMain(HANDLE hInstance, HANDLE hPrevInstance, LPSTR lpCmdLine, int 
 	}
 	ic_init();
 	GetPhase2Args(lpCmdLine);
-	pickread();
+	ft_restorePreviouslyOpenedWindows();
 	/* show client window now! */
 	ShowWindow(hwndClient,SW_SHOW);
 
@@ -613,7 +613,7 @@ void PksChangeMenuItem(HMENU hMenu, int nPosition, int nCmd, WORD wFlags,
 static void FinalizePksEdit(void)
 {
 	GetConfiguration()->autosaveOnExit();
-	picksave();
+	ft_saveWindowStates();
 	file_clearTempFiles();
 	HelpQuit();
 	UnInitDDE();
@@ -711,15 +711,15 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_TIMER:	
 			if (appActivated) {
 				appActivated = FALSE;
-				ft_CheckForChangedFiles();
+				ft_checkForChangedFiles();
 			}
-			TriggerAutosaveAllFiles();
+			ft_triggerAutosaveAllFiles();
 			ww_timer();
 			ic_redisplayIcons();
 			break;
 #ifdef DEBUG
 		case WM_COMPACTING:
-			alert("compacting memory");
+			error_displayAlertDialog("compacting memory");
 			break;
 #endif
 
@@ -778,7 +778,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case WM_PKSKEY:
-			CloseErrorWin();
+			error_closeErrorWindow();
 			mac_onKeyPressed(_executeKeyBinding);
 			return 0;
 
@@ -787,7 +787,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return 0;
 
 		case WM_CHAR:
-			CloseErrorWin();
+			error_closeErrorWindow();
 			mac_onCharacterInserted(wParam);
 			return 0;
 

@@ -28,6 +28,7 @@
 #include "errordialogs.h"
 #include "fileutil.h"
 #include "documenttypes.h"
+#include "mouseutil.h"
 
 /* #define DEMO 1 /* D E M O V E R S I O N */
 
@@ -38,17 +39,19 @@ extern int  CryptDialog(LPSTR password, int twice);
 
 extern long _flushsize;
 
+int _flushing;
+
 /*----- LOCALS --------------*/
 
 static char _eof[] = "- eof -\n";
 static int  _verbose = 1;
 static int 	_scratchlen = 0;
 static char _crypting;
+static unsigned char* _scratchstart;
 
 /*------------------------------*/
 /* ft_initializeReadWriteBuffers()			  */
 /*------------------------------*/
-static unsigned char *_scratchstart;
 BOOL ft_initializeReadWriteBuffers(void)
 {
 	if ((_linebuf = _alloc(LINEBUFSIZE)) == 0) {
@@ -96,8 +99,8 @@ static int list2_destroy(void *elem)
 static void list2_insert(P2LIST **head, char *p1, char *p2)
 {	P2LIST *pl;
 
-	if ((p1 = stralloc(p1)) != 0 &&
-	    (p2 = stralloc(p2)) != 0 &&
+	if ((p1 = string_allocate(p1)) != 0 &&
+	    (p2 = string_allocate(p2)) != 0 &&
 	    (pl = (P2LIST*)ll_insert((LINKED_LIST**)head,sizeof *pl)) != 0) {
 		pl->p1 = p1;
 		pl->p2 = p2;
@@ -120,7 +123,7 @@ static void list2_mk(P2LIST **head, char *p1, char *p2)
 /* listPathes_mk()				*/
 /*---------------------------------*/
 static char *szAltpath = "altpath";
-static intptr_t listPathes_mk(char *szPath)
+static intptr_t listPathes_mk(char *szPath, long unused)
 {
 	char	 szBuf[256];
 
@@ -145,7 +148,7 @@ EXPORT int file_closeFile(int *fd) {
 	int ret;
 
 	if (*fd > 0 && (ret = Fclose(*fd)) < 0) {
-		form_error(-ret);
+		error_displayGenericErrorNumber(-ret);
 	}
 	*fd = -1;
 	return ret;
@@ -155,15 +158,15 @@ EXPORT int file_closeFile(int *fd) {
  * NoDiskSpace()
  */
 void NoDiskSpace(void) {
-	ed_error(IDS_MSGNODISKSPACE);
+	error_showErrorById(IDS_MSGNODISKSPACE);
 }
 
 /*--------------------------------------------------------------------------
- * WriteError()
+ * err_writeErrorOcurred()
  */
-void WriteError(void)
+void err_writeErrorOcurred(void)
 {
-	ed_error(IDS_MSGWRITEERR);
+	error_showErrorById(IDS_MSGWRITEERR);
 }
 
 /*--------------------------------------------------------------------------
@@ -171,7 +174,7 @@ void WriteError(void)
  */
 void OpenError(char *fname)
 {
-	tosfnerror(fname,0);
+	error_openingFileFailed(fname,0);
 }
 
 /*---------------------------------
@@ -202,7 +205,7 @@ EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallba
 			if (cont)
 				Fseek(-1l,fd,1);
 			if ((got = crypt_de(bufferStart, got, cont)) < 0) {
-				ed_error(IDS_MSGWRONGPW);
+				error_showErrorById(IDS_MSGWRONGPW);
 				return 0;
 			}
 		}
@@ -229,7 +232,7 @@ EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallba
 	_scratchlen	= len;
 
 	if (got < 0) {
-		ed_error(IDS_MSGREADERROR); 
+		error_showErrorById(IDS_MSGREADERROR); 
 		return 0;
 	}
 	return 1;
@@ -248,16 +251,16 @@ static int ft_initializeEncryption(DOCUMENT_DESCRIPTOR *linp, char *pw, int twic
 		pw[0] = 0;
 		return 0;
 	}
-	MouseBusy();
+	mouse_setBusyCursor();
 	return 1;
 }
 
 /*--------------------------------------*/
 /* ft_readfile()						*/
 /*--------------------------------------*/
-int _flushing;
 EXPORT int ft_readfile(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescriptor)
 {
+	HANDLE			fileHandle;
 	int				ret;
 	int				nl;
 	int				fd;
@@ -271,7 +274,7 @@ EXPORT int ft_readfile(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescriptor)
 	fp->caret.linePointer = fp->firstl;
 	buf = _scratchstart;
 	if (_verbose)
-		MouseBusy();
+		mouse_setBusyCursor();
 
 	f = ln_createMultipleLinesFromBuffer;
 	if (documentDescriptor == 0) {
@@ -289,14 +292,17 @@ nullfile:
 		fp->nlines = 1;
 	} else {
 		fp->ti_created = file_getAccessTime(fp->fname);
-		fd = CreateFile(fp->fname, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, 0,
+		fileHandle = CreateFile(fp->fname, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, 0,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0); 
-		if (fd < 0) {
+		if (fileHandle == INVALID_HANDLE_VALUE) {
 			if ((fd = file_openFile(fp->fname)) < 0) {
 				ret = 0;
 				goto readerr;
 			}
 			documentDescriptor->workmode |= O_RDONLY;
+		}
+		else {
+			fd = (int)(uintptr_t)fileHandle;
 		}
 		_crypting = ft_initializeEncryption(documentDescriptor, pw, 0);
 		if ((ret = ft_readDocumentFromFile(fd,f,fp)) == 0) {
@@ -323,7 +329,7 @@ ret0:			ret = 0;
 		goto ret0;
 
 	if (fp->longLinesSplit > 0 && _verbose) {
-		ed_error(IDS_MSGWRAPPEDLINES);
+		error_showErrorById(IDS_MSGWRAPPEDLINES);
 		fp->flags |= F_CHANGEMARK;
 	}
 
@@ -338,7 +344,7 @@ readerr:
 
 	fp->lockFd = fd;
 	if (_verbose) {
-		changemouseform();
+		mouse_setDefaultCursor();
 	}
 	return ret;
 }
@@ -352,7 +358,7 @@ static void createBackupFile(char *name, char *bak)
 	char *ext,*bext = "BAK";
 
 	strcpy(backname,name);
-	ext = extname(backname);
+	ext = string_getFileExtension(backname);
 	if (ext > backname && ext[-1] != '.') {
 		*ext++ = '.';
 		*ext = 0;
@@ -371,7 +377,7 @@ static void createBackupFile(char *name, char *bak)
 extern long _flushsize;
 static int ft_flushFile(int fd, int size, int rest)
 {
-	return FlushBuffer(fd,_linebuf,size,rest);
+	return rsc_flushBuffer(fd,_linebuf,size,rest);
 }
 
 /*--------------------------------------------------------------------------
@@ -384,7 +390,7 @@ static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, char *pw
 
 		news = crypt_en(_linebuf,size,cont);
 		if (cont && news != size) {
-			alert("bad flushbuffer size");
+			error_displayAlertDialog("bad flushbuffer size");
 			return 0;
 		}
 		size = news;
@@ -397,7 +403,7 @@ static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, char *pw
  * ft_getBasenameOf()
  */
 static char* ft_getBasenameOf(FTABLE* fp) {
-	return basename(ft_visiblename(fp));
+	return string_getBaseFilename(ft_visiblename(fp));
 }
 
 
@@ -435,9 +441,9 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 
 	if (!quiet) {
 		char* printedFilename = ft_getBasenameOf(fp);
-		ShowMessage((fp->flags & F_NEWFILE) ? IDS_MSGNEWFILE : IDS_MSGSAVEFILE,
+		error_showMessageInStatusbar((fp->flags & F_NEWFILE) ? IDS_MSGNEWFILE : IDS_MSGSAVEFILE,
 				  printedFilename, fp->nlines);
-		MouseBusy();
+		mouse_setBusyCursor();
 	}
 	if (linp->bak[0] &&
 	    !(fp-> flags & (F_NEWFILE | F_SAVEAS | F_APPEND | F_ISBACKUPPED))) {
@@ -457,7 +463,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 			fd = Fcreate(fp->fname, crflags);
 		}
 		if (fd < 0) {
-			tosfnerror(fp->fname,fd);
+			error_openingFileFailed(fp->fname,fd);
 			ret = 100;
 			goto wfail1;
 		}
@@ -465,7 +471,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 	} else {
 		if ((_flushsize = Fseek(0l,fd,2)) < 0L) {
 			ret = 100;
-			form_error(-_flushsize);
+			error_displayGenericErrorNumber(-_flushsize);
 			goto wfail1;
 		}
 	}
@@ -506,7 +512,7 @@ wfail1:
 		fp->lockFd = file_openFile(fp->fname);
 	}
 	if (!quiet)
-		changemouseform();
+		mouse_setDefaultCursor();
 	if (ret) {
 		if (_flushsize == -1) {	/* delete Files, if Disk is full */
 			Fdelete(fp->fname);
@@ -527,14 +533,14 @@ EXPORT int ft_writeFileWithAlternateName(FTABLE *fp)
 	P2LIST *pl;
 
 	strcpy(savefn,fp->fname);
-	sfsplit(savefn,dirname,fname);
+	string_splitFilename(savefn,dirname,fname);
 	flags = fp->flags;
 	pl = _p2list;
 
 	if ((ret = ft_writefileMode(fp,0)) != 0) {
 		while(pl) {
 			if (strcmp(pl->p1,dirname) == 0) {
-				strdcpy(fp->fname,pl->p2,fname);
+				string_concatPathAndFilename(fp->fname,pl->p2,fname);
 				fp->flags = flags;
 				if ((ret = ft_writefileMode(fp,0)) == 0)
 					break;

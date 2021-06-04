@@ -31,11 +31,11 @@
 #include "findandreplace.h"
 #include "fileutil.h"
 #include "desktopicons.h"
+#include "mouseutil.h"
+#include "winutil.h"
 
 #define	PROF_OFFSET		1
 
-extern void MouseBusy(void);
-extern void MouseNotBusy(void);
 extern LONG prof_getlong(char *grp,char *ident);
 
 typedef enum {	I_FLAG, I_WINDOW, I_VAL, I_STRING, I_INVAL } ITEMTYPE;
@@ -84,7 +84,7 @@ static int LocatePksEditIni(void)
 void prof_setinifile(char *fn)
 {
 	if (file_exists(fn) == 0) {
-		FullPathName(_pksEditIniFilename, fn);
+		string_getFullPathName(_pksEditIniFilename, fn);
 	}
 }
 
@@ -139,16 +139,16 @@ EXPORT int prof_getws(char *string, WINDOWPLACEMENT *wsp)
 {
 	GetScreenRatioValues();
 	wsp->length = sizeof *wsp;
-	wsp->flags = Atol(string);
-	wsp->showCmd = Atol(_strtolend);
-	wsp->ptMinPosition.x = Atol(_strtolend) * _newXScreen / _oldXScreen;
-	wsp->ptMinPosition.y = Atol(_strtolend) * _newYScreen / _oldYScreen;
-	wsp->ptMaxPosition.x = Atol(_strtolend) * _newXScreen / _oldXScreen;
-	wsp->ptMaxPosition.y = Atol(_strtolend) * _newYScreen / _oldYScreen;
-	wsp->rcNormalPosition.left = Atol(_strtolend) * _newXScreen / _oldXScreen;
-	wsp->rcNormalPosition.top = Atol(_strtolend) * _newYScreen / _oldYScreen;
-	wsp->rcNormalPosition.right = Atol(_strtolend) * _newXScreen / _oldXScreen;
-	wsp->rcNormalPosition.bottom = Atol(_strtolend) * _newYScreen / _oldYScreen;
+	wsp->flags = string_convertToLong(string);
+	wsp->showCmd = string_convertToLong(_strtolend);
+	wsp->ptMinPosition.x = string_convertToLong(_strtolend) * _newXScreen / _oldXScreen;
+	wsp->ptMinPosition.y = string_convertToLong(_strtolend) * _newYScreen / _oldYScreen;
+	wsp->ptMaxPosition.x = string_convertToLong(_strtolend) * _newXScreen / _oldXScreen;
+	wsp->ptMaxPosition.y = string_convertToLong(_strtolend) * _newYScreen / _oldYScreen;
+	wsp->rcNormalPosition.left = string_convertToLong(_strtolend) * _newXScreen / _oldXScreen;
+	wsp->rcNormalPosition.top = string_convertToLong(_strtolend) * _newYScreen / _oldYScreen;
+	wsp->rcNormalPosition.right = string_convertToLong(_strtolend) * _newXScreen / _oldXScreen;
+	wsp->rcNormalPosition.bottom = string_convertToLong(_strtolend) * _newYScreen / _oldYScreen;
 	return 1;
 }
 
@@ -227,7 +227,7 @@ LONG prof_getlong(char *grp,char *ident)
 { 	char string[256];
 
 	prof_getPksProfileString(grp,ident,string,sizeof string -1);
-	return Atol(string);
+	return string_convertToLong(string);
 }
 
 /*------------------------------------------------------------
@@ -291,7 +291,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 
 	} else {
 		LocatePksEditIni();
-		sfsplit(_pksEditIniFilename, _setfselinfo.path, _setfselinfo.fname);
+		string_splitFilename(_pksEditIniFilename, _setfselinfo.path, _setfselinfo.fname);
 		if ((fn = fsel_selectFileWithOptions(&_setfselinfo, MOPTION, TRUE)) == 0) {
 			return 0;
 		}
@@ -309,7 +309,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 		prof_killsections(fn, "icons");
 	}
 
-	MouseBusy();
+	mouse_setBusyCursor();
 	lstrcpy(_pksEditIniFilename,fn);
 
 	prof_savelong(_desk,"Options",(long)configuration->options);
@@ -330,7 +330,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 		SaveAllDocumentTypes((void *)0);
 	}
 
-	MouseNotBusy();
+	mouse_setDefaultCursor();
 	return 1;
 }
 
@@ -367,7 +367,7 @@ void *prof_llinsert(void *Head, int size, char *group, char *item, char **idata)
 	if (!prof_getPksProfileString(group, item, szBuf, sizeof szBuf))
 		return 0;
 
-	if ((s = stralloc(szBuf)) == 0) {
+	if ((s = string_allocate(szBuf)) == 0) {
 		return 0;
 	}
 

@@ -20,8 +20,9 @@
 #include "errordialogs.h"
 #include "editorconfiguration.h"
 #include "lineoperations.h"
+#include "winfo.h"
 
-/*--------------------------------------------------------------------------
+ /*--------------------------------------------------------------------------
  * LOCALS
  */
 #define	N_DELTAS		64
@@ -134,7 +135,7 @@ static BOOL add_stepToCommand(UNDO_COMMAND* pCommand, LINE* lp, LINE* lpAnchor, 
 	register struct tagUNDO_DELTA* pDelta;
 
 	if (pCommand == NULL) {
-		// alert("Bad undo state");
+		// error_displayAlertDialog("Bad undo state");
 		return FALSE;
 	}
 	pOperation = pCommand->atomicSteps;
@@ -378,7 +379,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	bl_setSelection(fp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
 
 	caret_placeCursorInCurrentFile(pCommand->ln, pCommand->col);
-	RedrawTotalWindow(fp);
+	render_repaintAllForFile(fp);
 
 	fp->tln = NULL;
 	if (!pCommand->fileChangedFlag) {
@@ -400,7 +401,7 @@ EXPORT BOOL undo_redoLastModification(FTABLE* fp) {
 	pStack = UNDOPOI(fp);
 	if (_playing ||
 		(pCommand = undo_getCurrentRedoCommand(pStack)) == NULL) {
-		ed_error(IDS_MSGNOUNDO);
+		error_showErrorById(IDS_MSGNOUNDO);
 		return FALSE;
 	}
 	_undoOperationInProgress = TRUE;
@@ -428,7 +429,7 @@ EXPORT BOOL undo_lastModification(FTABLE *fp)
 	pStack = UNDOPOI(fp);
 	if (_playing ||
 		(pCommand = undo_getCurrentCommand(pStack)) == NULL) {
-		ed_error(IDS_MSGNOUNDO);
+		error_showErrorById(IDS_MSGNOUNDO);
 		return FALSE;
 	}
 	_undoOperationInProgress = TRUE;

@@ -119,5 +119,8 @@ extern int regex_replaceSearchString(REPLACEMENT_PATTERN* pPattern, unsigned cha
  */
 extern void regex_compileCharacterClasses(unsigned char* pLowerToUpperPattern);
 
+extern unsigned char* _octalloc;
+extern int regex_parseOctalNumber(register unsigned char* s);
+
 #endif
 

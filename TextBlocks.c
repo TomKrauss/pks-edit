@@ -119,7 +119,7 @@ EXPORT void bl_freePasteList(PASTELIST **header) {
  */
 EXPORT int EdBufferFree(void)
 {
-	if (ed_yn(IDS_MSGCLEARBUFFERS) == IDYES) {
+	if (errorDisplayYesNoConfirmation(IDS_MSGCLEARBUFFERS) == IDYES) {
 		bl_free(_undobuf);
 		bl_free(&_ubuf2);
 		bl_freePasteList(&_plist);
@@ -152,7 +152,7 @@ EXPORT int bl_cutTextWithOptions(PASTE *pp,LINE *lnfirst,LINE *lnlast,
 	lpnew = lnlast->prev; /* zum Checken ob sich lnlast bei ln_modify „ndert */
 	lpx   = lnlast->next; /* und auch wirklich nicht lnlast->prev !		*/
 	if (freeflg) {
-		if ((lps = ln_modify(ft_CurrentDocument(),lnfirst,last,cfirst)) == 0L) 
+		if ((lps = ln_modify(ft_getCurrentDocument(),lnfirst,last,cfirst)) == 0L) 
 			return 0;
 	} else lps = lnfirst;
 	if (P_EQ(lnlast,lnfirst)) return 1;
@@ -181,11 +181,11 @@ EXPORT int bl_cutTextWithOptions(PASTE *pp,LINE *lnfirst,LINE *lnlast,
 		if (P_EQ(lps,lnlast)) break;
 		lpd = lpnew;
 		if (freeflg) 
-			ln_delete(ft_CurrentDocument(),lps);
+			ln_delete(ft_getCurrentDocument(),lps);
 	}
 	if (freeflg) {
-		if ((lps = ln_modify(ft_CurrentDocument(),lps,clast,0)) == 0L) return 0;
-		if (!(ln_join(ft_CurrentDocument(),lps->prev,lps,1))) return 0;
+		if ((lps = ln_modify(ft_getCurrentDocument(),lps,clast,0)) == 0L) return 0;
+		if (!(ln_join(ft_getCurrentDocument(),lps->prev,lps,1))) return 0;
 	}
 	return 1;
 }
@@ -410,7 +410,7 @@ EXPORT int bl_undoIntoUnqBuffer(LINE *lnfirst,LINE *lnlast,int cfirst,int clast,
 	bl_free(_undobuf);
 	_blkflg = blockflg & 1;
 	
-	return bl_delete(ft_CurrentDocument(), lnfirst, lnlast, cfirst, clast, _blkflg, 1);
+	return bl_delete(ft_getCurrentDocument(), lnfirst, lnlast, cfirst, clast, _blkflg, 1);
 }
 
 /*--------------------------------------------------------------------------

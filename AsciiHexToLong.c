@@ -17,9 +17,9 @@
 char *_strtolend;
 
 /*--------------------------------------------------------------------------
- * Atol()
+ * string_convertToLong()
  */
-EXPORT long Atol(char *s)
+EXPORT long string_convertToLong(char *s)
 {	long i = 0;
 	long minus = 1;
 	int  o;

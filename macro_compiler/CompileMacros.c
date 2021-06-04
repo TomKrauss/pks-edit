@@ -25,9 +25,9 @@
 int  yyparse(void);
 void yyinit(jmp_buf *errb, char *sourcefile, LINE *lps,LINE *lpe);
 int  yyfinish(void);
-int  opennofsel(char *fn, long line, void *wsp);
+int  ft_optionFileWithoutFileselector(char *fn, long line, void *wsp);
 char *file_getTempDirectory(void);
-void ShowError(char * fmt, va_list ap);
+void error_displayErrorToast(char * fmt, va_list ap);
 
 extern int		_macedited;
 
@@ -37,7 +37,7 @@ extern int		_macedited;
 int CurrentRulerContext(void)
 {	FTABLE *fp;
 
-	if ((fp = ft_CurrentDocument()) != 0)
+	if ((fp = ft_getCurrentDocument()) != 0)
 		return fp->documentDescriptor->id;
 	return DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
 }
@@ -59,10 +59,10 @@ int ActiveRulerContext(int ctx)
 void PrintListHeader(FILE *fp, char *itemname)
 {	FTABLE *ftp;
 
-	ftp = ft_CurrentDocument();
+	ftp = ft_getCurrentDocument();
 
 	fprintf(fp,"\nList of active %s for file \"%s\"\n\n",itemname,
-		ftp ? basename(ftp->fname) : "(no file)");
+		ftp ? string_getBaseFilename(ftp->fname) : "(no file)");
 }
 
 /*--------------------------------------------------------------------------
@@ -117,10 +117,10 @@ void printesclist(FILE *fp, void *p)
 FILE *createtmp(char *dest, char *filename)
 {	FILE *fp;
 
-	strdcpy(dest, file_getTempDirectory(), filename);
+	string_concatPathAndFilename(dest, file_getTempDirectory(), filename);
 
 	if ((fp = fopen(dest,"w")) == 0) {
-		alert(/*STR*/"kann %s nicht erzeugen", dest);
+		error_displayAlertDialog(/*STR*/"kann %s nicht erzeugen", dest);
 		return 0;
 	}
 	return fp;
@@ -142,11 +142,11 @@ BOOL CreateFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 	if ((*callback)(fp) != 0) {
 		fflush(fp);
 		fclose(fp);
-		if (ActivateWindowOfFileNamed(tmpfn)) {
+		if (ft_activateWindowOfFileNamed(tmpfn)) {
 			EdFileAbandon(1);
 		}
 		else {
-			opennofsel(tmpfn,-1L, (void *)0);
+			ft_optionFileWithoutFileselector(tmpfn,-1L, (void *)0);
 		}
 	} else {
 		fclose(fp);
@@ -165,7 +165,7 @@ int mac_compileMacros()
 	FTABLE *		fp;
 	jmp_buf 		errb;
 
-	if ((fp = ft_CurrentDocument()) != 0) {
+	if ((fp = ft_getCurrentDocument()) != 0) {
 		if (!setjmp(errb)) {
 			yyinit(&errb, fp->fname, fp->firstl, fp->lastl->prev);
 			yyparse();
@@ -174,7 +174,7 @@ int mac_compileMacros()
 		return yyfinish();
 	}
 
-	alert("Bitte öffnen Sie die Datei, die übersetzt werden soll");
+	error_displayAlertDialog("Bitte öffnen Sie die Datei, die übersetzt werden soll");
 
 	return 0;
 }
@@ -226,7 +226,7 @@ int mac_executeSingleLineMacro(char *string) {
 		yyparse();
 	}
 	if (!yyfinish() || nFail) {
-		alert("Error in command: %s", string);
+		error_displayAlertDialog("Error in command: %s", string);
 		return 0;
 	}
 	mac_executeByName("temp-block");
@@ -246,7 +246,7 @@ void protokoll(char *s, ...)
 	va_start(ap, s);
 	vsprintf(b, s, ap);
 	va_end(ap);
-	ShowError(b, (void*)0);
+	error_displayErrorToast(b, (void*)0);
 }
 
 

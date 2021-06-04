@@ -269,12 +269,45 @@ extern void ln_replace(FTABLE *fp,LINE *oln,LINE *nl);
 /*
  * Returns the current active document. Should not be used any more to often
  */
-extern FTABLE* ft_CurrentDocument();
+extern FTABLE* ft_getCurrentDocument();
 
 /*
  * Returns the current error document. Should not be used any more to often
  */
-extern FTABLE* ft_CurrentDocument();
+extern FTABLE* ft_getCurrentDocument();
+
+/*------------------------------------------------------------
+ * ft_activateWindowOfFileNamed()
+ * Activate the window of the file named...
+ */
+extern int ft_activateWindowOfFileNamed(char* fn);
+
+/*------------------------------------------------------------
+ * ft_abandonFile()
+ * Discard changes in a file and re-read.
+ */
+extern int ft_abandonFile(FTABLE* fp, DOCUMENT_DESCRIPTOR* linp);
+
+/*------------------------------------------------------------
+ * ft_select()
+ * Make the passed filebuffer the "current" edited file in PKS Edit.
+ */
+extern int ft_select(FTABLE* fp);
+
+/*---------------------------------*/
+/* ft_checkReadonlyWithError()					*/
+/*---------------------------------*/
+extern int ft_checkReadonlyWithError(FTABLE* fp);
+
+typedef struct tagWINDOWPLACEMENT WINDOWPLACEMENT;
+
+
+/*------------------------------------------------------------
+ * ft_optionFileWithoutFileselector()
+ * Open a file with a file name and jump into a line. Place the window to
+ * open as defined in the param wsp.
+ */
+int ft_optionFileWithoutFileselector(char* fn, long line, WINDOWPLACEMENT* wsp);
 
 /*---------------------------------
  * ln_addFlag()
@@ -306,12 +339,83 @@ extern void ln_removeFlag(LINE* lpstart, LINE* lpend, int flg);
 extern unsigned char* blfill(void* buf, int count, unsigned char fillbyte);
 
 extern char* ft_visiblename(FTABLE* fp);
-extern void ft_CheckForChangedFiles(void);
+extern void ft_checkForChangedFiles(void);
 /* do an autosave */
-extern int TriggerAutosaveAllFiles(void);
+extern int ft_triggerAutosaveAllFiles(void);
 extern void ft_deleteautosave(FTABLE* fp);
 extern void ft_destroy(FTABLE* fp);
 extern FTABLE* ft_new(void);
+
+/*------------------------------*/
+/* ft_initializeReadWriteBuffers()			  */
+/*------------------------------*/
+extern BOOL ft_initializeReadWriteBuffers(void);
+
+/*---------------------------------
+ * ft_readDocumentFromFile()
+ * Standard implementation to read a file in PKS Edit given the file descriptor,
+ * a callback method to invoked for each line read and an optional parameter (typically, but not neccessarily the filepointer itself) to
+ * be parsed as the first argument to the callback.
+ *---------------------------------*/
+extern int ft_readDocumentFromFile(int fd, unsigned char* (*lineExtractedCallback)(FTABLE*, DOCUMENT_DESCRIPTOR*, unsigned char*, unsigned char*), void* par);
+
+/*--------------------------------------*/
+/* ft_readfile()						*/
+/*--------------------------------------*/
+extern int ft_readfile(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor);
+
+/*--------------------------------------*/
+/* ft_writefileMode() 					*/
+/*--------------------------------------*/
+extern int ft_writefileMode(FTABLE* fp, int quiet);
+
+/*---------------------------------*/
+/* ft_writeFileWithAlternateName()			*/
+/*---------------------------------*/
+extern int ft_writeFileWithAlternateName(FTABLE* fp);
+
+/*---------------------------------*/
+/* ft_writefileAsWithFlags()
+/*---------------------------------*/
+extern int ft_writefileAsWithFlags(FTABLE* fp, char* fn, int flags);
+
+/*---------------------------------*/
+/* read a file, which is never	*/
+/* been redrawn on screen		*/
+/* Macrofiles, ...				*/
+/*---------------------------------*/
+extern int ft_readfileWithOptions(FTABLE* fp, char* fn, int linflag);
+
+/*---------------------------------*/
+/* ft_writeFileAndClose()				*/
+/*---------------------------------*/
+extern int ft_writeFileAndClose(FTABLE* fp, char* name, int flags);
+
+extern void ft_checkForChangedFiles(void);
+
+/*---------------------------------*/
+/* ft_triggerAutosaveAllFiles()					*/
+/* do an autosave				*/
+/*---------------------------------*/
+extern int ft_triggerAutosaveAllFiles(void);
+
+/*---------------------------------
+ * ft_saveWindowStates()
+ * Save the state of the currently opened windows in the config for restore.
+ ---------------------------------*/
+extern void ft_saveWindowStates(void);
+
+/*---------------------------------*/
+/* ft_restorePreviouslyOpenedWindows()					*/
+/*---------------------------------*/
+extern int ft_restorePreviouslyOpenedWindows(void);
+
+/*------------------------------------------------------------
+ * ft_selectWindowWithId()
+ * Select and activate the window with the given window id.
+ */
+extern int ft_selectWindowWithId(int winid, BOOL bPopup);
+
 extern char* ft_visiblename(FTABLE* fp);
 /*------------------------------------------------------------
  * ft_size()
@@ -328,11 +432,6 @@ extern FTABLE* ft_fpbyname(char* fn);
  * Answer true, if we are editing the file named fn.
  */
 extern int ft_editing(char* fn);
-/*------------------------------------------------------------
- * ft_select()
- * Make the passed filebuffer the "current" edited file in PKS Edit.
- */
-extern int ft_select(FTABLE* fp);
 
 /*---------------------------------
  * ft_checkSelection()
@@ -365,13 +464,13 @@ extern int ft_requestToClose(FTABLE* fp);
  * Make the passed file the "current error file" - which can be used by clicking on
  * lines displayed in that file to navigate to positions (compiler errors etc...).
  */
-extern void ft_SetCurrentErrorDocument(FTABLE* fp);
+extern void ft_setCurrentErrorDocument(FTABLE* fp);
 
 /*------------------------------------------------------------
- * ActivateWindowOfFileNamed()
+ * ft_activateWindowOfFileNamed()
  * Activate the window of the file with the given name.
  */
-extern int ActivateWindowOfFileNamed(char* fn);
+extern int ft_activateWindowOfFileNamed(char* fn);
 
 /*--------------------------------------------------------------------------
  * ln_destroy()

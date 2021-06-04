@@ -22,7 +22,10 @@
 #include "winterf.h"
 #include "pksedit.h"
 #include "ftw.h"
+#include "edierror.h"
 #include "stringutil.h"
+#include "errordialogs.h"
+#include "fileutil.h"
 #include "pathname.h"
 #include "regexp.h"
 
@@ -30,7 +33,7 @@ extern char *	_datadir;
 static FTABLE	*_outfile;
 static long 	_line;
 static int 		_abortOnFirstMatch,_trymatch;
-extern void 	ShowMessage(WORD nId, ...);
+
 /*---------------------------------*/
 /* ft_readDocumentFromFile()					*/
 /*---------------------------------*/
@@ -46,7 +49,7 @@ static RE_PATTERN* _compiledPattern;
 
 static void present(char *fn) {
 	_nfound++;
-	ShowMessage(IDS_MSGNTIMESFOUND, _nfound);
+	error_showMessageInStatusbar(IDS_MSGNTIMESFOUND, _nfound);
 	xref_addSearchListEntry(_outfile,fn,_line,"");
 }
 
@@ -115,7 +118,7 @@ static int matchInFile(char *fn, DTA *stat) {
 		return 0;
 
 	_line = 0L;
-	ProgressMonitorShowMessage(AbbrevName(fn));
+	progress_showMonitorMessage(string_abbreviateFileName(fn));
 
 	if (!_trymatch) {
 		present(fn);
@@ -143,7 +146,7 @@ int retreive(char *pathes, char* filenamePattern, char *search, int sdepth, int 
 
 	_abortOnFirstMatch = abortOnFirstMatch;
 	_nfound = 0;
-	strdcpy(stepfile, _datadir, "pksedit.grp");
+	string_concatPathAndFilename(stepfile, _datadir, "pksedit.grp");
 
 	if (!*search) {
 		_trymatch = 0;
@@ -158,7 +161,7 @@ int retreive(char *pathes, char* filenamePattern, char *search, int sdepth, int 
 	_outfile = _alloc(sizeof *_outfile);
 	blfill(_outfile, sizeof *_outfile, 0);
 	lstrcpy(pathlist,pathes);
-	ProgressMonitorStart(IDS_ABRTRETREIVE);
+	progress_startMonitor(IDS_ABRTRETREIVE);
 	if ((path = strtok(pathlist,",;")) != 0) {
 		do {	
 			if (_ftw(path,matchInFile,sdepth,
@@ -167,7 +170,7 @@ int retreive(char *pathes, char* filenamePattern, char *search, int sdepth, int 
 	}
 
 	ft_writeFileAndClose(_outfile,stepfile,0);
-	ProgressMonitorClose(0);
+	progress_closeMonitor(0);
 
 	_free(pathlist);
 	_free(_outfile);

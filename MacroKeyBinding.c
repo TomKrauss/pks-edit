@@ -29,6 +29,8 @@
 #include "xdialog.h"
 #include "errordialogs.h"
 #include "stringutil.h"
+#include "winutil.h"
+#include "mouseutil.h"
 
 #define	MENU_TABCHAR	'\010'
 
@@ -46,16 +48,14 @@ extern char *		file_getTempFilename(char *dst, char c);
 extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 extern void 		st_seterrmsg(char *msg);
 extern void 		key_overridetable(void);
-extern void 		mouse_overridetable(void);
-extern int 		bind_mouse(MOUSECODE mousecode, MACROREFTYPE typ, 
-					MACROREFIDX idx, int augment);
+extern void 		mouse_destroyMouseBindings(void);
 extern int 		menu_addentry(char *pszString, int menutype, 
 					MACROREFTYPE mactype, MACROREFTYPE macidx);
 extern void 		menu_startdefine(char *szMenu);
 extern void 		st_switchtomenumode(BOOL bMenuMode);
 
 extern MACROREF *	menu_getuserdef(int nId);
-extern int 		CanExecute(int num, int warn);
+extern int 		macro_canExecuteFunction(int num, int warn);
 extern void 		SetMenuFor(char *pszContext);
 
 int				_recording;
@@ -116,7 +116,7 @@ static int mac_write(int whichresource, char *name)
 	int 		ret = 1,fd;
 
 	if ((fd = rsc_create(name,1)) < 0) {
-		tosfnerror(name,fd);
+		error_openingFileFailed(name,fd);
 		return 0;
 	}
 
@@ -125,7 +125,7 @@ static int mac_write(int whichresource, char *name)
 
 	if (whichresource & (RSC_MACROS|RSC_SINGLEMACRO)) {
 		if (rsc_put(fd,"MACROS","",0,rsc_wrmacros,_linebuf,(long)FBUFSIZE) == 0) {
-err:			ed_error(IDS_MSGNODISKSPACE);
+err:			error_showErrorById(IDS_MSGNODISKSPACE);
 			ret = 0;
 			goto done;
 		}
@@ -163,11 +163,11 @@ void mac_autosave(int warnflg)
 
 	if (_macedited) {
 		if (warnflg == 0) {
-			strdcpy(fn,_seqfsel.path,_seqfsel.fname);
+			string_concatPathAndFilename(fn,_seqfsel.path,_seqfsel.fname);
 			if (mac_write(RSC_MACROS|RSC_KEYS|RSC_MICE|RSC_MENUS,fn))
 				_macedited = 0;
 		} else {
-			if (ed_yn(IDS_MSGSAVESEQ) == IDYES) {
+			if (errorDisplayYesNoConfirmation(IDS_MSGSAVESEQ) == IDYES) {
 				EdMacrosReadWrite(1);
 			}
 		}
@@ -200,7 +200,7 @@ int mac_isvalidname(char *name, int origidx)
 		return 0;
 	if (((index = mac_getbyname(name)) >= 0 && index != origidx)) {
 		if (origidx < 0)
-			ed_error(IDS_MSGMACDOUBLEDEF);
+			error_showErrorById(IDS_MSGMACDOUBLEDEF);
 		else
 			mac_delete(name);
 		return 0;
@@ -278,7 +278,7 @@ static char *mac_addmice(char *name, MOUSEBIND *mp, MOUSEBIND *mplast)
 		return 0;
 	}
 
-	mouse_overridetable();
+	mouse_destroyMouseBindings();
 
 	while (mp < mplast) {
 		MOUSECODE mcode;
@@ -320,8 +320,8 @@ void mac_switchtodefaulttables(void)
 	char	*pszDefault = "default";
 	char *pszMode;
 
-	if (ft_CurrentDocument()) {
-		pszMode = ft_CurrentDocument()->documentDescriptor->modename;
+	if (ft_getCurrentDocument()) {
+		pszMode = ft_getCurrentDocument()->documentDescriptor->modename;
 	} else {
 		pszMode = pszDefault;
 	}
@@ -365,7 +365,7 @@ int mac_read(char *fn)
 
 	/* load macros */
 	if (!rsc_load(rp, "MACROS", "", rsc_rdmacros)) {
-		ed_error(IDS_MSGBADMACFORMAT);
+		error_showErrorById(IDS_MSGBADMACFORMAT);
 		rsc_close(rp);
 		return 0;
 	}
@@ -439,7 +439,7 @@ void mac_nameupdate(int nIndex, LPSTR szName, LPSTR szComment)
  */
 void MacFormatErr(void)
 {
-	ed_error(IDS_MSGEXECERR);
+	error_showErrorById(IDS_MSGEXECERR);
 }
 
 /*------------------------------------------------------------
@@ -454,7 +454,7 @@ int mac_insert(char *name, char *comment, char *macdata, int size)
 	} else {
 		for (i = 0; ; i++) {
 			if (i >= DIM(_macrotab)) {
-				ed_error(IDS_MSGTOOMANYMACROS);
+				error_showErrorById(IDS_MSGTOOMANYMACROS);
 				return 0;
 			}
 			if (_macrotab[i] == 0) {
@@ -571,9 +571,9 @@ int mac_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped) {
 			o1 = _cmdseqtab[ipbind->index].p;
 			icp0 = ic_getParamForIcon(szB1,icHwnd,0);
 			if (ipbind->pflags & IPCF_SRCLONG1)
-				o1 = Atol(ic_getParamForIcon(szBtmp,icHwnd,2));
+				o1 = string_convertToLong(ic_getParamForIcon(szBtmp,icHwnd,2));
 			if (ipbind->pflags & IPCF_SRCLONG1)
-				o2 = Atol(ic_getParamForIcon(szBtmp,icHwnd,3));
+				o2 = string_convertToLong(ic_getParamForIcon(szBtmp,icHwnd,3));
 			if (ipbind->pflags & IPCF_SRCSTRING1)
 				ps1 = icp0;
 			if (ipbind->pflags & IPCF_SRCSTRING2)
@@ -591,11 +591,11 @@ int mac_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped) {
 					o1 = (intptr_t)icdropHwnd;
 			}
 			funcnum = _cmdseqtab[ipbind->index].funcnum;
-			return do_func(funcnum, (long)(o1), (long)o2, ps1, ps2, ps3);
+			return macro_executeFunction(funcnum, (long)(o1), (long)o2, ps1, ps2, ps3);
 		}
 	}
 
-	ed_error(IDS_MSGBADICONACTION);
+	error_showErrorById(IDS_MSGBADICONACTION);
 	return 0;
 }
 
@@ -701,16 +701,16 @@ int mac_runcmd(MACROREF *mp)
 	switch (mp->typ) {
 		case CMD_CMDSEQ:
 			cp = &_cmdseqtab[mp->index];
-			return do_seq(cp,cp+1);
+			return macro_executeSequence(cp,cp+1);
 		case CMD_MACRO:
 			return EdMacroPlay(mp->index);
 		case CMD_MENU:
 			menp = &_menutab[mp->index];
 			cp = &_cmdseqtab[menp->index];
-			do_seq(cp,cp+1);
+			macro_executeSequence(cp,cp+1);
 			break;
 		default:
-			alert("bad command or macro");
+			error_displayAlertDialog("bad command or macro");
 	}
 	return 0;
 }
@@ -734,7 +734,7 @@ int mac_onKeyPressed(void* keybind) {
 int mac_onCharacterInserted(WORD c)
 {
 	return 
-		do_func(FUNC_EdCharInsert,c,0,(void*)0,(void*)0,(void*)0);
+		macro_executeFunction(FUNC_EdCharInsert,c,0,(void*)0,(void*)0,(void*)0);
 }
 
 /*---------------------------------*/
@@ -747,7 +747,7 @@ int mac_executeByName(char *name)
 		return 0;
 
 	if ((i = mac_getbyname(name)) < 0) {
-		ed_error(IDS_MSGUNKNOWNMAC,name);
+		error_showErrorById(IDS_MSGUNKNOWNMAC,name);
 		return 0;
 	}
 
@@ -822,12 +822,12 @@ void mac_setmenukeys(HMENU hMenu)
 		}
 		if (mp->typ == CMD_CMDSEQ) {
 			if (mp->index >= _ncmdseq) {
-				alert("bad cmdseq");
+				error_displayAlertDialog("bad cmdseq");
 				continue;
 			}
 			nFuncnum = _cmdseqtab[mp->index].funcnum;
 			EnableMenuItem(hMenu, wItem, 
-				CanExecute(nFuncnum, 0) ?
+				macro_canExecuteFunction(nFuncnum, 0) ?
 			    		MF_BYPOSITION|MF_ENABLED : 
 					MF_BYPOSITION|MF_DISABLED|MF_GRAYED);
 			if (nFuncnum == FUNC_EdOptionToggle) {
@@ -902,7 +902,7 @@ void list_endfilling(HWND hwndList, WPARAM nCurr)
 {
 	SendMessage(hwndList, WM_SETREDRAW,TRUE,0L);
 	SendMessage(hwndList, LB_SETCURSEL, nCurr, 0L);
-	SendRedraw(hwndList);
+	render_sendRedrawToWindow(hwndList);
 }
 
 /*--------------------------------------------------------------------------
@@ -1207,7 +1207,7 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 
 	switch(message) {
 		case WM_INITDIALOG:
-			form_move(hwnd);
+			win_moveWindowToDefaultPosition(hwnd);
 			nSelected = MAKELONG(currentSelectedMacro.typ, 
 				currentSelectedMacro.index);
 			CheckDlgButton(hwnd,IDD_OPT1,showInternals);
@@ -1263,7 +1263,7 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 					break;
 				}
 				if ((kp = keybound(keycode)) != 0 &&
-				     ed_yn(IDS_MSGDELOLDKEYBIND,
+				     errorDisplayYesNoConfirmation(IDS_MSGDELOLDKEYBIND,
 						 mac_name(szName,kp->macref.index,
 						 		kp->macref.typ)) == IDNO)
 					break;
@@ -1298,7 +1298,7 @@ upd: 				_macedited = 1;
 					break;
 				}
 				if ((kp = keybound(keycode)) == 0) {
-					ed_error(IDS_MSGKEYNOTBOUND);
+					error_showErrorById(IDS_MSGKEYNOTBOUND);
 				} else {
 					nIndex = kp->macref.index;
 					nType = kp->macref.typ;
@@ -1314,7 +1314,7 @@ upd: 				_macedited = 1;
 				}
 				if (nSelected && 
 				    SendDlgItemMessage(hwnd, nId, EM_GETMODIFY, 0, 0) &&
-					ed_yn(IDS_MSGUPDATEMACNAME) == IDYES) {
+					errorDisplayYesNoConfirmation(IDS_MSGUPDATEMACNAME) == IDYES) {
 					SendMessage(hwnd, WM_COMMAND, IDD_MACRENAME, 0L);
 				}
 				break;

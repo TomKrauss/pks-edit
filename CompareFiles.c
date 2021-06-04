@@ -152,7 +152,7 @@ advance:
 		}
 	}
 out0:
-	ed_error(IDS_MSGNOMOREDIFFS);
+	error_showErrorById(IDS_MSGNOMOREDIFFS);
 	return nmatch;
 
 out:
@@ -168,7 +168,7 @@ EXPORT int EdFilesCompare(int dir)
 
 	if ((wp0 = ww_stackwi(0)) == NULL ||
 	    (wp1 = ww_stackwi(1)) == NULL) {
-		ed_error(IDS_MSGDIFFTWOWINDOWS);
+		error_showErrorById(IDS_MSGDIFFTWOWINDOWS);
 		return 0;
 	}
 	return matchlines(wp0->fp,wp1->fp,dir);

@@ -84,7 +84,7 @@ char* mystrrchr(char s[], int c) {
  */
 static BOOL _checkPksSys(char* pathName) {
 	char initFileName[1024];
-	strdcpy(initFileName, _homedir, "pksedit.ini");
+	string_concatPathAndFilename(initFileName, _homedir, "pksedit.ini");
 	return file_exists(initFileName) == 0;
 }
 
@@ -102,7 +102,7 @@ EXPORT BOOL InitEnv(void )
 #if defined(DELIVER)
 	if (!checkkey(_serial,_cryptserial) ||
 	    !checkkey(_kunde,_cryptkunde)) {
-		alert("Bitte erwerben oder importieren Sie eine Lizenz für PKS-EDIT");
+		error_displayAlertDialog("Bitte erwerben oder importieren Sie eine Lizenz für PKS-EDIT");
 		return FALSE;
 	}
 # endif
@@ -139,7 +139,7 @@ EXPORT BOOL InitEnv(void )
 	Getenv("PKS_INCLUDE_PATH", GetConfiguration()->includePath, member_size(EDITOR_CONFIGURATION, includePath));
 	Getenv("PKS_TMP", GetConfiguration()->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath));
 
-	strdcpy(_homedir,_homedir,"");
+	string_concatPathAndFilename(_homedir,_homedir,"");
 	return TRUE;
 }
 

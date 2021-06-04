@@ -17,12 +17,15 @@
 #include "trace.h"
 #include "lineoperations.h"
 #include "edierror.h"
+#include "errordialogs.h"
 #include "editorconfiguration.h"
 
 #include "caretmovement.h"
 #include "textblocks.h"
 #include "winfo.h"
 #include "winterf.h"
+#include "mouseutil.h"
+#include "stringutil.h"
 
 #pragma hdrstop
 
@@ -33,11 +36,10 @@
 /*-----------------------*/
 extern LINE *		ln_relgo(FTABLE *fp, long l);
 extern LINE *		ln_crelgo(FTABLE *fp, long l);
-extern int		isword(unsigned char c);
-extern int		isnospace(unsigned char c);
+extern int		char_isLetter(unsigned char c);
+extern int		char_isNospace(unsigned char c);
 extern int 		ft_checkSelection(FTABLE *fp);
 extern int 		bl_syncSelectionWithCaret(FTABLE *fp, CARET *caret, int flags);
-extern void 	graf_mkstate(int *x, int *y, int *but, int *shift);
 
 extern long		_multiplier;
 
@@ -53,10 +55,10 @@ EXPORT int caret_lineOffset2screen(FTABLE *fp, CARET *cp)
 	int lnoffset = cp->offset;
 
 	if (fp == NULL) {
-		if (!ft_CurrentDocument()) {
+		if (!ft_getCurrentDocument()) {
 			return 0;
 		}
-		fp = ft_CurrentDocument();
+		fp = ft_getCurrentDocument();
 	}
 	lbuf += cp->offset;
 	flags = fp->documentDescriptor->dispmode;
@@ -107,10 +109,10 @@ EXPORT int caret_screen2lineOffset(FTABLE *fp, CARET *pCaret)
 	char *	pend = &lp->lbuf[lp->len];
 
 	if (fp == NULL) {
-		if (!ft_CurrentDocument()) {
+		if (!ft_getCurrentDocument()) {
 			return 0;
 		}
-		fp = ft_CurrentDocument();
+		fp = ft_getCurrentDocument();
 	}
 	flags = fp->documentDescriptor->dispmode;
 
@@ -360,7 +362,7 @@ EXPORT int caret_placeCursorForFile(FTABLE *fp, long ln,long col)
  */
 EXPORT int caret_placeCursorInCurrentFile(long ln,long col)
 {
-	return (ft_CurrentDocument()) ? caret_placeCursorForFile(ft_CurrentDocument(),ln,col) : 0;
+	return (ft_getCurrentDocument()) ? caret_placeCursorForFile(ft_getCurrentDocument(),ln,col) : 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -392,9 +394,9 @@ EXPORT static int wi_adjust(WINFO *wp, long ln,int adjustflag)
 EXPORT int caret_placeCursorMakeVisibleAndSaveLocation(long ln,long col)
 {	WINFO *wp;
 
-	if (!ft_CurrentDocument())
+	if (!ft_getCurrentDocument())
 		return 0;
-	wp = WIPOI(ft_CurrentDocument());
+	wp = WIPOI(ft_getCurrentDocument());
 
 	return wi_adjust(wp,ln,1) ? 
 			caret_placeCursorInCurrentFile(ln,col) 
@@ -411,7 +413,7 @@ int caret_placeCursorAndSavePosition(long ln, long col)
 {
 	register FTABLE* fp;
 
-	if ((fp = ft_CurrentDocument()) == 0)
+	if ((fp = ft_getCurrentDocument()) == 0)
 		return 0;
 
 	if (ln == fp->ln && col == fp->caret.offset)
@@ -429,9 +431,9 @@ int caret_placeCursorAndSavePosition(long ln, long col)
 EXPORT int caret_placeCursorMakeVisible(long ln,long col)
 {	WINFO *wp;
 
-	if (!ft_CurrentDocument())
+	if (!ft_getCurrentDocument())
 		return 0;
-	wp = WIPOI(ft_CurrentDocument());
+	wp = WIPOI(ft_getCurrentDocument());
 
 	wi_adjust(wp,ln,0);
 	return caret_placeCursorInCurrentFile(ln,col);
@@ -457,7 +459,7 @@ EXPORT int caret_advancePage(long *ln,int dir)
 	register FTABLE *fp;
 	WINFO    *wp;
 
-	fp = ft_CurrentDocument();
+	fp = ft_getCurrentDocument();
 	wp = WIPOI(fp);
 	ds = wp->maxcursln-wp->mincursln;
 	*ln = fp->ln + (dir * ds * _multiplier);
@@ -471,7 +473,7 @@ EXPORT int caret_advancePage(long *ln,int dir)
  */
 EXPORT int ln_countLeadingSpaces(LINE *lp)
 {	
-	return CntSpaces(lp->lbuf,lp->len);
+	return string_countSpacesIn(lp->lbuf,lp->len);
 }
 
 /*--------------------------------------------------------------------------
@@ -528,7 +530,7 @@ static void cadv_section(long *ln,int dir,int start,
 	register FTABLE *fp;
 	register long lnr,mul;
 
-	fp  = ft_CurrentDocument();
+	fp  = ft_getCurrentDocument();
 	lnr = *ln;
 	if ((lp = ln_relgo(fp,lnr-fp->ln)) == 0)
 		return;
@@ -569,7 +571,7 @@ EXPORT long caret_advanceParagraph(long ln,int dir,int start)
 EXPORT int curspgrph(int dir,int start)
 {	long ln;
 
-	ln = caret_advanceParagraph(ft_CurrentDocument()->ln,dir,start);
+	ln = caret_advanceParagraph(ft_getCurrentDocument()->ln,dir,start);
 	return caret_placeCursorAndSavePosition(ln,0L);
 }
 
@@ -579,7 +581,7 @@ EXPORT int curspgrph(int dir,int start)
  */
 EXPORT int caret_advanceSection(int dir,int start)
 {	long ln;
-	FTABLE *fp = ft_CurrentDocument();
+	FTABLE *fp = ft_getCurrentDocument();
 
 	mark_saveCaretPosition();
 	ln = fp->ln;
@@ -619,7 +621,7 @@ EXPORT int caret_moveUpOrDown(int dir, int mtype)
 	int		nRet;
 	long 	col;
 	long 	ln;
-	FTABLE *	fp = ft_CurrentDocument(); 
+	FTABLE *	fp = ft_getCurrentDocument(); 
 	WINFO *	wp = WIPOI(fp);
 
 	bXtnd = wp->bXtndBlock;
@@ -691,7 +693,7 @@ static LINE *nextw(LINE *lp,long *ln,long *col,
 		}
 	} else {
 		if (c == len) {
-			if (++l >= ft_CurrentDocument()->nlines) return 0;
+			if (++l >= ft_getCurrentDocument()->nlines) return 0;
 			lp = lp->next;
 			c  = 0;
 		} else {
@@ -710,7 +712,7 @@ static LINE *nextw(LINE *lp,long *ln,long *col,
  */
 EXPORT LINE *cadv_wordonly(LINE *lp,long *ln,long *col,int dir)
 {
-	return nextw(lp,ln,col,isnospace,dir,0);
+	return nextw(lp,ln,col,char_isNospace,dir,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -718,7 +720,7 @@ EXPORT LINE *cadv_wordonly(LINE *lp,long *ln,long *col,int dir)
  */
 EXPORT LINE *cadv_space(LINE *lp,long *ln,long *col,int dir)
 {
-	return nextw(lp,ln,col,isnospace,dir,1);
+	return nextw(lp,ln,col,char_isNospace,dir,1);
 }
 
 /*--------------------------------------------------------------------------
@@ -726,7 +728,7 @@ EXPORT LINE *cadv_space(LINE *lp,long *ln,long *col,int dir)
  */
 EXPORT LINE *cadv_word(LINE *lp,long *ln,long *col,int dir)
 {
-	return nextw(lp,ln,col,isword,dir,1);
+	return nextw(lp,ln,col,char_isLetter,dir,1);
 }
 
 /*--------------------------------------------------------------------------
@@ -767,12 +769,14 @@ EXPORT LINE *cadv_c(LINE *lp,long *ln,long *col,int dir,unsigned char match)
 }
 
 /*--------------------------------------------------------------------------
- * l_advance()
+ * caret_getPreviousColumnInLine()
+ * Got back one screen column in a line and return the new column considering internal 
+ * structure of the data and return the new offset into the line buffer.
  */
-EXPORT int l_advance(LINE *lp, int col)
+EXPORT int caret_getPreviousColumnInLine(LINE *lp, int col)
 {
 	col--;
-	if (ft_CurrentDocument()->documentDescriptor->dispmode & SHOWATTR) {
+	if (ft_getCurrentDocument()->documentDescriptor->dispmode & SHOWATTR) {
 		while (col > 1) {
 			if (lp->lbuf[col-1] == '\033')
 				col--;
@@ -785,10 +789,10 @@ EXPORT int l_advance(LINE *lp, int col)
 }
 
 /*--------------------------------------------------------------------------
- * setmatchfunc()
+ * caret_setMatchFunction()
  */
 LINE * (*advmatchfunc)();
-EXPORT void setmatchfunc(int mtype, int ids_name, int *c)
+EXPORT void caret_setMatchFunction(int mtype, int ids_name, int *c)
 {
 	advmatchfunc = cadv_word;
 	switch (abs(mtype)) {
@@ -819,7 +823,7 @@ EXPORT int caret_moveLeftRight(int direction, int motionFlags)
 	int		nRet;
 	BOOL		bXtnd;
 
-	fp = ft_CurrentDocument();
+	fp = ft_getCurrentDocument();
 	wp = WIPOI(fp);
 	col = fp->caret.offset;
 	lp = fp->caret.linePointer;
@@ -834,7 +838,7 @@ EXPORT int caret_moveLeftRight(int direction, int motionFlags)
 	HideWindowsBlocks(fp);
 
 	moving = direction * (motionFlags & (~MOT_XTNDBLOCK));
-	setmatchfunc(moving , IDS_CURSUNTILC, &matchc);
+	caret_setMatchFunction(moving , IDS_CURSUNTILC, &matchc);
 
 	switch(moving) {
 		case  MOT_SINGLE:
@@ -865,7 +869,7 @@ EXPORT int caret_moveLeftRight(int direction, int motionFlags)
 				ln--;
 				col = lp->len;
 			} else {
-				col = l_advance(lp,col);
+				col = caret_getPreviousColumnInLine(lp,col);
 			}
 			break;
 		case -MOT_TOEND:
@@ -914,7 +918,7 @@ EXPORT int caret_moveToXY(WINFO *wp, int x,int y)
 		if (caret_updateLineColumn(FTPOI(wp),&ln,&col,1)) {
 			wt_curpos(wp,ln,col);
 		}
-		graf_mkstate(&x,&y,&b,&dummy);
+		mouse_dispatchUntilButtonRelease(&x,&y,&b,&dummy);
 		if (!b) break;
 	}
 	if (id)
@@ -926,7 +930,7 @@ EXPORT int caret_moveToXY(WINFO *wp, int x,int y)
 /*--------------------------------------------------------------------------
  * EdMousePosition()
  */
-EXPORT int MousePosition(FTABLE *fp, long bAsk)
+EXPORT int mouse_moveCaretToCurrentMousePosition(FTABLE *fp, long bAsk)
 {	
 	int 		x;
 	int		y;
@@ -935,15 +939,15 @@ EXPORT int MousePosition(FTABLE *fp, long bAsk)
 	WINFO *	wp;
 
 	wp = WIPOI(fp);
-	MouseGetXYPos(wp->ww_handle,&x,&y);
+	mouse_getXYPos(wp->ww_handle,&x,&y);
 
 	if (bAsk && _playing) {
 		forceredraw();
-		ed_error(IDS_MSGPOSITIONMOUSECURS);
+		error_showErrorById(IDS_MSGPOSITIONMOUSECURS);
 		do {
-			graf_mkstate(&x,&y,&b,&ret);
+			mouse_dispatchUntilButtonRelease(&x,&y,&b,&ret);
 		} while(!b);
-		CloseErrorWin();
+		error_closeErrorWindow();
 	}
 
 	ret = caret_moveToXY(wp,x,y);
@@ -961,12 +965,12 @@ EXPORT int EdMousePosition(long bAsk)
 {	
 	FTABLE *	fp;
 
-	if ((fp = ft_CurrentDocument()) == 0) {
+	if ((fp = ft_getCurrentDocument()) == 0) {
 		return 0;
 	}
 
 	HideWindowsBlocks(fp);
-	MousePosition(fp, bAsk);
+	mouse_moveCaretToCurrentMousePosition(fp, bAsk);
 	return 1;
 }
 
@@ -986,13 +990,13 @@ int EdMousePositionUngrabbed(long bGrab)
 		return EdMousePosition(1);
 	}
 
-	if ((fp = ft_CurrentDocument()) == 0) {
+	if ((fp = ft_getCurrentDocument()) == 0) {
 		return 0;
 	}
 
 	wp = WIPOI(fp);
 	HideWindowsBlocks(fp);
-	MouseGetXYPos(wp->ww_handle,&x,&y);
+	mouse_getXYPos(wp->ww_handle,&x,&y);
 	caret_calculateOffsetFromScreen(wp,x,y,&ln,&col);
 	if (caret_updateLineColumn(FTPOI(wp),&ln,&col,1)) {
 		wt_curpos(wp,ln,col);
@@ -1008,7 +1012,7 @@ int EdBlockXtndMode(long bOn)
 {
 	FTABLE *	fp;
 
-	if ((fp = ft_CurrentDocument()) == 0) {
+	if ((fp = ft_getCurrentDocument()) == 0) {
 		return 0;
 	}
 

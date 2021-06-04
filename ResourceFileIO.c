@@ -20,6 +20,7 @@
 #include "edfuncs.h"
 #include "lineoperations.h"
 #include "resource.h"
+#include "edierror.h"
 #include "stringutil.h"
 
 extern MACRO 	*mac_byindex(int idx);
@@ -36,10 +37,12 @@ typedef struct macrodata {
 } MACRODATA;
 
 /*--------------------------------------------------------------------------
- * FlushBuffer()
+ * rsc_flushBuffer()
+ * Flush a resource file buffer writing out the number of specified bytes and
+ * moving the ramainder of the unflushed data to the beginning of the buffer.
  */
 long _flushsize;
-int FlushBuffer(int fd, char *buffer, int size, int rest)
+int rsc_flushBuffer(int fd, char *buffer, int size, int rest)
 {
 	if (!size)
 		return 1;
@@ -56,7 +59,7 @@ int FlushBuffer(int fd, char *buffer, int size, int rest)
 			return 1;
 		}
 	} else {
-		WriteError();
+		err_writeErrorOcurred();
 	}
 	return 0;
 }
@@ -134,7 +137,7 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes)
 			if (offs >= maxbytes) {
 				offs -= maxbytes;
 				total += maxbytes;
-				if (!FlushBuffer((int)fd,buf,(int)maxbytes,offs))
+				if (!rsc_flushBuffer((int)fd,buf,(int)maxbytes,offs))
 					return -1;
 			}
 			seqp = (struct macrodata *) &buf[offs];
@@ -152,7 +155,7 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes)
 		}
 	}
 	total += offs;
-	FlushBuffer(fd,buf,offs,0);
+	rsc_flushBuffer(fd,buf,offs,0);
 	return total;
 }
 

@@ -21,30 +21,30 @@
 #include "pksedit.h"
 #include "edfuncs.h"
 #include "functab.h"
+#include "mouseutil.h"
 
 extern void 			MacFormatErr(void);
 extern int 			EdMacroRecord(void);
-extern int 			SelectWindow(int winid, BOOL bPopup);
-extern void 			changemouseform(void);
+extern int 			ft_selectWindowWithId(int winid, BOOL bPopup);
 extern int 			RecordOptions(int *o);
 
-extern long 			MakeInteger(char *p);
-extern intptr_t			MakeString(char *p);
-extern long 			Assign(char *name, COM_LONG1 *v);
+extern long 			sym_integerForSymbol(char *p);
+extern intptr_t			sym_stringForSymbol(char *p);
+extern long 			sym_assignSymbol(char *name, COM_LONG1 *v);
 /*--------------------------------------------------------------------------
  * macro_testExpression()
  * Test an expression in a macro.
  */
 extern int macro_testExpression(COM_TEST* sp);
-extern void 			Binop(COM_BINOP *sp);
+extern void 			macro_evaluateBinaryExpression(COM_BINOP *sp);
 
-extern int 			ProgressMonitorCancel(BOOL bRedraw);
+extern int 			progress_cancelMonitor(BOOL bRedraw);
 extern void 			redrawallwi(int update);
 extern void 			undo_startModification(FTABLE *fp);
 extern int 			ft_checkSelectionWithError(FTABLE *fp);
 extern void 			ft_settime(EDTIME *tp);
 extern int 			mac_executeByName(char *name);
-void 				stopcash(void);
+void 				macro_stopRecordingFunctions(void);
 
 int					_playing;
 
@@ -67,9 +67,9 @@ typedef struct ccash {
 static CCASH			_ccash;
 
 /*---------------------------------*/
-/* param_space()				*/
+/* macro_getParameterSize()				*/
 /*---------------------------------*/
-int param_space(unsigned char typ, char *s)
+int macro_getParameterSize(unsigned char typ, char *s)
 {	int size;
 
 	switch(typ) {
@@ -118,13 +118,13 @@ int param_space(unsigned char typ, char *s)
 }
 
 /*--------------------------------------------------------------------------
- * push_sequence()
+ * macro_pushSequence()
  *
  * this is called, when recording
  * we do not need, to handle all command types, cause in ineractive
  * mode, delta like test or binop are not possible
  */
-static void push_sequence(unsigned char typ, void* par)
+static void macro_pushSequence(unsigned char typ, void* par)
 {	char *spend;
 	char *sp;
 	int  s;
@@ -134,10 +134,10 @@ static void push_sequence(unsigned char typ, void* par)
 	}
 
 	sp = _cmdparamp;
-	s  = param_space(typ,(char *)par);
+	s  = macro_getParameterSize(typ,(char *)par);
 
 	if ((spend = sp+s) > _cmdmaxp) {
-		ed_error(IDS_MSGMACOVERFLOW);
+		error_showErrorById(IDS_MSGMACOVERFLOW);
 		EdMacroRecord();			/* STOP the recording machine */
 		return;
 	}
@@ -155,10 +155,10 @@ static void push_sequence(unsigned char typ, void* par)
 			*(COM_1FUNC *)sp = *(COM_1FUNC *)par;
 			break;
 		case C_INT1PAR:
-			((COM_INT1 *)sp)->val = (int) par;
+			((COM_INT1 *)sp)->val = (int) (intptr_t)par;
 			break;
 		case C_LONG1PAR:
-			((COM_LONG1 *)sp)->val = (long)par;
+			((COM_LONG1 *)sp)->val = (long) (intptr_t) par;
 			break;
 		case C_STRING1PAR:
 		case C_MACRO:
@@ -175,9 +175,9 @@ static void push_sequence(unsigned char typ, void* par)
 }
 
 /*---------------------------------*/
-/* param_dialopen()				*/
+/* macro_openDialog()				*/
 /*---------------------------------*/
-int param_dialopen(PARAMS *pp)
+int macro_openDialog(PARAMS *pp)
 {	int 		i;
 	struct des 	*dp;
 	intptr_t	par;
@@ -191,7 +191,7 @@ int param_dialopen(PARAMS *pp)
 err:		return FORM_SHOW;
 	}
 
-	cp = (COM_FORM *) param_pop(&_readparamp);
+	cp = (COM_FORM *) macro_popParameter(&_readparamp);
 
 	if (!cp)
 		goto err;
@@ -210,7 +210,7 @@ err:		return FORM_SHOW;
 
 	for (i = cp->nfields, dp = pp->el; i > 0; i--, dp++) {
 		type = *_readparamp;
-		par = param_pop(&_readparamp);
+		par = macro_popParameter(&_readparamp);
 		if (cp->options & FORM_INIT) {
 		   switch(dp->cmd_type) {
 			case C_INT1PAR:  *dp->p.i = (int)par; break;
@@ -221,7 +221,7 @@ err:		return FORM_SHOW;
 					strcpy(dp->p.s,(char *)par);
 				}
 				else {
-					ed_error(IDS_MSGMACFORMATERR);
+					error_showErrorById(IDS_MSGMACFORMATERR);
 				}
 				break;
 		   }
@@ -229,16 +229,16 @@ err:		return FORM_SHOW;
 	}
 	
 	if (_recording) {
-		param_record(pp);
+		macro_recordOperation(pp);
 	}
 
 	return cp->options & FORM_SHOW;
 }
 
 /*---------------------------------*/
-/* param_record()				*/
+/* macro_recordOperation()				*/
 /*---------------------------------*/
-int param_record(PARAMS *pp)
+int macro_recordOperation(PARAMS *pp)
 {	int 		i,opt;
 	struct 	des *dp;
 	char		*savepos;
@@ -248,7 +248,7 @@ int param_record(PARAMS *pp)
 	    _recording == 0)
 		return 0;
 
-	savepos = _cmdparamp - param_space(C_1FUNC,(char *)0);
+	savepos = _cmdparamp - macro_getParameterSize(C_1FUNC,(char *)0);
 	opt = 0;
 
 	if (pp->flags & P_MAYOPEN) {
@@ -272,22 +272,22 @@ int param_record(PARAMS *pp)
 	if ((opt & FORM_INIT) == 0)
 		cf.nfields = 0;
 
-	push_sequence(C_FORMSTART,&cf);
+	macro_pushSequence(C_FORMSTART,&cf);
 
 	dp = pp->el;
 	for (i = cf.nfields; i > 0; i--, dp++) {
 		switch(dp->cmd_type) {
 			case C_INT1PAR:
-				push_sequence(C_INT1PAR,*dp->p.i);
+				macro_pushSequence(C_INT1PAR,(void*)((intptr_t) *dp->p.i));
 				break;
 			case C_CHAR1PAR:
-				push_sequence(C_CHAR1PAR,*dp->p.c);
+				macro_pushSequence(C_CHAR1PAR, (void*)((intptr_t)*dp->p.c));
 				break;
 			case C_LONG1PAR:
-				push_sequence(C_LONG1PAR,*dp->p.l);
+				macro_pushSequence(C_LONG1PAR, (void*)((intptr_t)*dp->p.l));
 				break;
 			case C_STRING1PAR:
-				push_sequence(C_STRING1PAR,(long )dp->p.s);
+				macro_pushSequence(C_STRING1PAR, (void*)dp->p.s);
 				break;
 		}		
 	}
@@ -296,20 +296,20 @@ int param_record(PARAMS *pp)
 }
 
 /*--------------------------------------------------------------------------
- * param_pop()
+ * macro_popParameter()
  * pop data from execution stack
  */
-intptr_t param_pop(unsigned char **Sp)
+intptr_t macro_popParameter(unsigned char **Sp)
 {
 	unsigned char *sp = *Sp;
 	unsigned char typ = *sp;
 
-	*Sp += param_space(typ,&((COM_CHAR1 *)sp)->val);
+	*Sp += macro_getParameterSize(typ,&((COM_CHAR1 *)sp)->val);
 
 	switch(typ) {
 		case C_DATA:
 		case C_FORMSTART:
-			return sp;
+			return (intptr_t)sp;
 		case C_CHAR1PAR:
 		case C_FURET:
 			return ((COM_CHAR1 *)sp)->val;
@@ -318,11 +318,11 @@ intptr_t param_pop(unsigned char **Sp)
 		case C_LONG1PAR:
 			return ((COM_LONG1 *)sp)->val;
 		case C_LONGVAR:
-			return MakeInteger(((COM_VAR *)sp)->name);
+			return sym_integerForSymbol(((COM_VAR *)sp)->name);
 		case C_STRINGVAR:
-			return MakeString(((COM_VAR *)sp)->name);
+			return sym_stringForSymbol(((COM_VAR *)sp)->name);
 		case C_STRING1PAR:
-			return (long)&((COM_STRING1 *)sp)->s;
+			return (intptr_t)&((COM_STRING1 *)sp)->s;
 		default:
 			MacFormatErr();
 			return 0;
@@ -330,9 +330,9 @@ intptr_t param_pop(unsigned char **Sp)
 }
 
 /*---------------------------------*/
-/* cash()						*/
+/* macro_recordFunctionWithParameters()						*/
 /*---------------------------------*/
-static void cash(int fnum, int p, intptr_t p2, char *s1, char *s2)
+static void macro_recordFunctionWithParameters(int fnum, int p, intptr_t p2, char *s1, char *s2)
 {	COM_1FUNC c;
 
 	if (_edfunctab[fnum].flags & EW_NOCASH)	/* avoid recursion	*/
@@ -341,19 +341,19 @@ static void cash(int fnum, int p, intptr_t p2, char *s1, char *s2)
 	c.funcnum = fnum;
 	c.p = p;
 
-	push_sequence(C_1FUNC,(void*) &c);
-	if (p2) push_sequence(C_LONG1PAR, (void*) p2);
+	macro_pushSequence(C_1FUNC,(void*) &c);
+	if (p2) macro_pushSequence(C_LONG1PAR, (void*) p2);
 	if (s1) {
-		push_sequence(C_STRING1PAR,(void*)s1);
+		macro_pushSequence(C_STRING1PAR,(void*)s1);
 		if (s2)
-			push_sequence(C_STRING1PAR,(void*)s2);
+			macro_pushSequence(C_STRING1PAR,(void*)s2);
 	}
 }
 
 /*---------------------------------*/
-/* cash2()					*/
+/* macro_recordFunction()					*/
 /*---------------------------------*/
-void cash2(FTABLE *fp, int p)
+void macro_recordFunction(FTABLE *fp, int p)
 {	COM_1FUNC *cp;
 
 	if (_ccash.low < DIM(_ccash.b)-2) {
@@ -372,29 +372,17 @@ void cash2(FTABLE *fp, int p)
 }
 
 /*---------------------------------*/
-/* stopcash()					*/
+/* macro_stopRecordingFunctions()					*/
 /*---------------------------------*/
-void stopcash()
+void macro_stopRecordingFunctions()
 {
 	_ccash.low  = 0;
 }
 
-/*---------------------------------*/
-/* readonly()					*/
-/*---------------------------------*/
-int readonly(FTABLE *fp)
-{
-	if (fp->documentDescriptor->workmode & O_RDONLY) {
-		ed_error(IDS_MSGRDONLY);
-		return 1;
-	}
-	return 0;
-}
-
 /*--------------------------------------------------------------------------
- * CanExecute()
+ * macro_canExecuteFunction()
  */
-int CanExecute(int num, int warn)
+int macro_canExecuteFunction(int num, int warn)
 {
 	EDFUNC *	fup = &_edfunctab[num];
 
@@ -403,28 +391,28 @@ int CanExecute(int num, int warn)
 		if (_currwindow == 0)
 			return 0;
 #ifdef	ASSERT
-		if (ft_CurrentDocument() == (FTABLE *) 0) {
+		if (ft_getCurrentDocument() == (FTABLE *) 0) {
 			EdAlert("oops: currwindow, but no file");
 			return 0;
 		}
 #endif
 #else
-		if (ft_CurrentDocument() == 0) {
+		if (ft_getCurrentDocument() == 0) {
 			return 0;
 		}
 #endif
 	}
 
-	if ((fup->flags & EW_MODIFY) && (ft_CurrentDocument()->documentDescriptor->workmode & O_RDONLY)) {
+	if ((fup->flags & EW_MODIFY) && (ft_getCurrentDocument()->documentDescriptor->workmode & O_RDONLY)) {
 		if (warn) {
-			readonly(ft_CurrentDocument());
+			ft_checkReadonlyWithError(ft_getCurrentDocument());
 		}
 		return 0;
 	}
 
-	if (fup->flags & EW_NEEDSBLK && !ft_checkSelection(ft_CurrentDocument())) {
+	if (fup->flags & EW_NEEDSBLK && !ft_checkSelection(ft_getCurrentDocument())) {
 		if (warn) {
-			ft_checkSelectionWithError(ft_CurrentDocument());
+			ft_checkSelectionWithError(ft_getCurrentDocument());
 		}
 		return 0;
 	}
@@ -432,27 +420,27 @@ int CanExecute(int num, int warn)
 }
 
 /*---------------------------------*/
-/* do_func()					*/
+/* macro_executeFunction()					*/
 /*---------------------------------*/
-int cdecl do_func(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3)
+int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3)
 {
 	EDFUNC *	fup = &_edfunctab[num];
 	int 		ret,i;
 
-	if (!CanExecute(num, 1)) {
+	if (!macro_canExecuteFunction(num, 1)) {
 		return 0;
 	}
 
 	if (fup->flags & EW_UNDOFLSH) {
-		undo_startModification(ft_CurrentDocument());
+		undo_startModification(ft_getCurrentDocument());
 	}
 
 	if ((fup->flags & EW_CCASH) == 0) {
-		stopcash();
+		macro_stopRecordingFunctions();
 	}
 
 	if (_recording)
-		cash(num,(int)p1,p2,s1,s2);
+		macro_recordFunctionWithParameters(num,(int)p1,p2,s1,s2);
 
 	if ((i = _multiplier) > 1 && (fup->flags & EW_MULTI) == 0) {
 		while (i-- > 0 && (ret = (* fup->func)(p1,p2,s1,s2,s3)) != 0)
@@ -462,8 +450,8 @@ int cdecl do_func(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s
 		ret = (* fup->func)(p1,p2,s1,s2,s3);
 	}
 
-	if (ret > 0 && ft_CurrentDocument() && (fup->flags & EW_MODIFY)) {
-		ft_settime(&ft_CurrentDocument()->ti_modified);
+	if (ret > 0 && ft_getCurrentDocument() && (fup->flags & EW_MODIFY)) {
+		ft_settime(&ft_getCurrentDocument()->ti_modified);
 	}
 
 	if (i > 1)
@@ -472,13 +460,13 @@ int cdecl do_func(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s
 }
 
 /*--------------------------------------------------------------------------
- * GetDollar()
+ * macro_getDollarParameter()
  */
 static intptr_t * currentParamStack;
-int GetDollar(intptr_t offset, int *typ, intptr_t *value)
+int macro_getDollarParameter(intptr_t offset, int *typ, intptr_t *value)
 {
 	if (!currentParamStack || offset < 0 || offset >= 4) {
-		alert("no such parameter passed");
+		error_displayAlertDialog("no such parameter passed");
 		return 0;
 	}
 
@@ -489,9 +477,9 @@ int GetDollar(intptr_t offset, int *typ, intptr_t *value)
 }
 
 /*---------------------------------*/
-/* do_macfunc()				*/
+/* macro_doMacroFunctions()				*/
 /*---------------------------------*/
-intptr_t do_macfunc(COM_1FUNC **Cp, COM_1FUNC *cpmax) {
+intptr_t macro_doMacroFunctions(COM_1FUNC **Cp, COM_1FUNC *cpmax) {
 	intptr_t 	stack[40];
 	intptr_t*	saveStack;
 	intptr_t	rc,*sp,*sp2;
@@ -508,7 +496,7 @@ intptr_t do_macfunc(COM_1FUNC **Cp, COM_1FUNC *cpmax) {
 	}
 
 	funcnum = cp->funcnum;
-	cp = (COM_1FUNC*)((unsigned char *)cp + param_space(typ,&cp->funcnum));
+	cp = (COM_1FUNC*)((unsigned char *)cp + macro_getParameterSize(typ,&cp->funcnum));
 
 	while(cp < cpmax && C_IS1PAR(cp->typ)) {
 		switch(cp->typ) {
@@ -516,9 +504,9 @@ intptr_t do_macfunc(COM_1FUNC **Cp, COM_1FUNC *cpmax) {
 			case C_STRING1PAR:
 				if (typ == C_MACRO) {
 					*sp++ = 1;
-					*sp++ = param_pop((unsigned char **)&cp);
+					*sp++ = macro_popParameter((unsigned char **)&cp);
 				} else {
-					*sp2++ = param_pop((unsigned char **)&cp);
+					*sp2++ = macro_popParameter((unsigned char **)&cp);
 				}
 				break;
 			case C_LONGVAR:
@@ -528,7 +516,7 @@ intptr_t do_macfunc(COM_1FUNC **Cp, COM_1FUNC *cpmax) {
 				if (typ == C_MACRO) {
 					*sp++ = 0;
 				}
-				*sp++ = param_pop((unsigned char **)&cp);
+				*sp++ = macro_popParameter((unsigned char **)&cp);
 				break;
 			default:
 				goto out;
@@ -538,7 +526,7 @@ intptr_t do_macfunc(COM_1FUNC **Cp, COM_1FUNC *cpmax) {
 out:
 	if (typ != C_MACRO) {
 		_readparamp = (unsigned char *)cp;
-		rc = do_func(funcnum,stack[0],stack[1],
+		rc = macro_executeFunction(funcnum,stack[0],stack[1],
 						 (void*)stack[2],
 						 (void*)stack[3],
 						 (void*)stack[4]);
@@ -558,10 +546,10 @@ out:
 }
 
 /*--------------------------------------------------------------------------
- * ReturnString()
+ * macro_returnFunctionValue()
  */
 static intptr_t _fncmarker = -1;
-static void ReturnFuncVal(unsigned char typ, intptr_t v)
+static void macro_returnFunctionValue(unsigned char typ, intptr_t v)
 {
 	char *		vname;
 	COM_STRING1  * value;
@@ -579,26 +567,26 @@ static void ReturnFuncVal(unsigned char typ, intptr_t v)
 		((COM_LONG1 *)value)->val = v;
 	}
 	vname[6] = '0' + (int)_fncmarker;
-	Assign(vname,(COM_LONG1 *)value);
+	sym_assignSymbol(vname,(COM_LONG1 *)value);
 	_fncmarker = -1;
 }
 
 void ReturnString(char *string)
 {
-	ReturnFuncVal(C_STRING1PAR,(intptr_t)string);
+	macro_returnFunctionValue(C_STRING1PAR,(intptr_t)string);
 }
 
 /*---------------------------------*/
-/* do_seq()					*/
+/* macro_executeSequence()					*/
 /*---------------------------------*/
 #define COM1_INCR(cp,type,offset) (COM_1FUNC*)(((unsigned char *)cp)+((type *)cp)->offset)
-#define COM_PARAMINCR(cp)		(COM_1FUNC*)(((unsigned char *)cp)+param_space(cp->typ,&cp->funcnum));
+#define COM_PARAMINCR(cp)		(COM_1FUNC*)(((unsigned char *)cp)+macro_getParameterSize(cp->typ,&cp->funcnum));
 static int _macaborted;
-int do_seq(COM_1FUNC *cp,COM_1FUNC *cpmax) {
+int macro_executeSequence(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 	intptr_t	val;
 
 	for (val = 1; cp < cpmax; ) {
-		if (_macaborted || (_macaborted = ProgressMonitorCancel(FALSE)) != 0)
+		if (_macaborted || (_macaborted = progress_cancelMonitor(FALSE)) != 0)
 			return -1;
 		switch(cp->typ) {
 			case C_GOTO:
@@ -615,19 +603,19 @@ int do_seq(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 				cp = COM1_INCR(cp,COM_TEST,size);
 				continue;
 			case C_BINOP:
-				Binop((COM_BINOP*)cp);
+				macro_evaluateBinaryExpression((COM_BINOP*)cp);
 				val = 1;
 				cp = COM1_INCR(cp,COM_BINOP,size);
 				continue;
 			case C_CREATESYM:
-				MakeInternalSym(((COM_CREATESYM*)cp)->name,
+				sym_makeInternalSymbol(((COM_CREATESYM*)cp)->name,
 					((COM_CREATESYM*)cp)->symtype,
 					((COM_CREATESYM*)cp)->value);
 				cp = COM1_INCR(cp,COM_CREATESYM,size);
 				val = 1;
 				break;
 			case C_ASSIGN:
-				Assign(((COM_ASSIGN*)cp)->name,
+				sym_assignSymbol(((COM_ASSIGN*)cp)->name,
 					(COM_LONG1 *)COM1_INCR(cp,COM_ASSIGN,opoffset));
 				cp = COM1_INCR(cp,COM_ASSIGN,size);
 				val = 1;
@@ -635,11 +623,11 @@ int do_seq(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 			case C_STOP:
 				return ((COM_STOP *)cp)->rc;
 			case C_MACRO: case C_0FUNC: case C_1FUNC:
-				val = do_macfunc(&cp,cpmax);
-				ReturnFuncVal(C_LONG1PAR,val);
+				val = macro_doMacroFunctions(&cp,cpmax);
+				macro_returnFunctionValue(C_LONG1PAR,val);
 				continue;
 			case C_FURET:
-				_fncmarker = param_pop((unsigned char **)&cp);
+				_fncmarker = macro_popParameter((unsigned char **)&cp);
 				break;
 			default:
 				MacFormatErr();
@@ -669,21 +657,21 @@ int EdMacroPlay(int macroindex)
 		return 0;
 
 	if (level > 10) {
-		ed_error(IDS_MSGMACRORECURSION);
+		error_showErrorById(IDS_MSGMACRORECURSION);
 		return 0;
 	}
 
 	level++;
 
-	if ((wasplaying = _playing) == 0 && ft_CurrentDocument()) {
-		undo_startModification(ft_CurrentDocument());
+	if ((wasplaying = _playing) == 0 && ft_getCurrentDocument()) {
+		undo_startModification(ft_getCurrentDocument());
 # if defined(ATARI_ST)
-		rdcash(-2);					/* init redraw cash */
+		rdcash(-2);					/* init redraw macro_recordFunctionWithParameters */
 # endif
 	} 
 
 	if (hadrecstate && macroindex >= 0) {
-		push_sequence(C_MACRO,_macrotab[macroindex]->name);
+		macro_pushSequence(C_MACRO,_macrotab[macroindex]->name);
 		_recording = 0;
 	}
 
@@ -693,7 +681,7 @@ int EdMacroPlay(int macroindex)
 	for (i = 0; i < count; i++) {
 		switch(macroindex) {
 			case MAC_AUTO:	
-				stopcash();
+				macro_stopRecordingFunctions();
 				_playing = 2;
 				cp = (COM_1FUNC *) _ccash.b; 
 				cpmax = (COM_1FUNC *)(&_ccash.b[DIM(_ccash.b)]);
@@ -705,7 +693,7 @@ int EdMacroPlay(int macroindex)
 				cpmax = (COM_1FUNC *)((char *)cp+mp->size);
 				break;
 		}
-		if ((ret = do_seq(cp,cpmax)) <= 0) {
+		if ((ret = macro_executeSequence(cp,cpmax)) <= 0) {
 			ret = 0;
 			break;
 		}
@@ -717,10 +705,10 @@ int EdMacroPlay(int macroindex)
 # if defined(ATARI_ST)
 		EdSelectWindow(_cfileno);
 		rdupdate(0);
-		changemouseform();
+		mouse_setDefaultCursor();
 # else
-		if (ft_CurrentDocument()) {
-			SelectWindow(WIPOI(ft_CurrentDocument())->win_id, FALSE);
+		if (ft_getCurrentDocument()) {
+			ft_selectWindowWithId(WIPOI(ft_getCurrentDocument())->win_id, FALSE);
 		}
 # if 0
 		redrawallwi(0);

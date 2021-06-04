@@ -64,10 +64,10 @@ static int __ftw(char *path,int depth)
 	i = 0;
 	pdta = _alloc(sizeof *pdta);
 	target = _alloc(strlen(path) + 256);
-	strdcpy(target,path,"*");
+	string_concatPathAndFilename(target,path,"*");
 	if ((fhandle = _findfirst(target, pdta)) >= 0) {
 		do {
-			if (ProgressMonitorCancel(0)) {
+			if (progress_cancelMonitor(0)) {
 				_findclose(fhandle);
 				_free(pdta);
 				_free(target);
@@ -82,7 +82,7 @@ static int __ftw(char *path,int depth)
 				if ((pdta->attrib & _A_SUBDIR) || 
 					 match(pdta->name,_searchpattern)) {
 					_ftwflg++;
-					strdcpy(target,path,pdta->name);
+					string_concatPathAndFilename(target,path,pdta->name);
 					i = (*_func)(target,pdta);
 					if (i) {
 						_free(pdta);
@@ -94,7 +94,7 @@ static int __ftw(char *path,int depth)
 			}
 
 			if (depth > 0 && (pdta->attrib & _A_SUBDIR) != 0) {
-				strdcpy(target,path,pdta->name);
+				string_concatPathAndFilename(target,path,pdta->name);
 				i = __ftw(target,depth);
 				if (i != 0) {
 					_free(pdta);
@@ -121,7 +121,7 @@ int ftwalk(char *path,FTWFUNC func,int depth,int fmode)
 	char	fname[256];
 
 	_ftwflg = 0;
-	sfsplit(path,newPath,fname);
+	string_splitFilename(path,newPath,fname);
 	ret = _ftw(newPath,func,depth,fname,fmode);
 	return ((_ftwflg) ? ret : FTW_NOFILE); 
 }

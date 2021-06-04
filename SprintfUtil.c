@@ -114,10 +114,10 @@ static char *CurrentStringVal(FTABLE *fp, char **fmt, char *fname)
 	switch(*format) {
 
 	case 'f':
-		return basename(fp->fname);
+		return string_getBaseFilename(fp->fname);
 
 	case 'b':
-		lstrcpy(fname,basename(fp->fname));
+		lstrcpy(fname,string_getBaseFilename(fp->fname));
 		if ((ext = strrchr(fname,'.')) != 0) {
 			*ext = 0;
 		}
@@ -344,7 +344,7 @@ void EdFormatPrint(long dummy1, long dummy2, char *format, char *p)
 	char buf[1024];
 
 	if (format) {
-		mysprintf(ft_CurrentDocument(), buf, format, p, 0L);
+		mysprintf(ft_getCurrentDocument(), buf, format, p, 0L);
 	} else {
 		buf[0] = 0;
 	}

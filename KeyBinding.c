@@ -240,7 +240,7 @@ WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		if ((GetConfiguration()->layoutoptions & OL_FKEYS) &&
 			wParam >= IDD_FKFK1 && wParam <= IDD_FKFKLAST) {
-			k = VK_F1+wParam-IDD_FKFK1;
+			k = (KEYCODE)(VK_F1+wParam-IDD_FKFK1);
 			k |= _fkshifts[_fkeyshiftstate];
 			ww_toppostmessage(WM_SYSKEYDOWN, k , 0);
 			return 0;

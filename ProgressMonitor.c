@@ -42,7 +42,7 @@ static BOOL CALLBACK DlgProgressProc(HWND hDlg, UINT message,WPARAM wParam, LPAR
 
 		case WM_COMMAND:
 		case WM_CLOSE:
-			if (ed_yn(IDS_MSGABRT) == IDYES) {
+			if (errorDisplayYesNoConfirmation(IDS_MSGABRT) == IDYES) {
 				_cancelled = 1;
 			}
 			return TRUE;
@@ -55,9 +55,9 @@ static BOOL CALLBACK DlgProgressProc(HWND hDlg, UINT message,WPARAM wParam, LPAR
 }
 
 /*------------------------------------------------------------
- * ProgressMonitorStart()
+ * progress_startMonitor()
  */
-void ProgressMonitorStart(unsigned int ids) {
+void progress_startMonitor(unsigned int ids) {
 	char szB1[30],szBuff[256];
 
 	if (!_playing && !hwndAbort) {
@@ -74,18 +74,18 @@ void ProgressMonitorStart(unsigned int ids) {
 }
 
 /*------------------------------------------------------------
- * ProgressMonitorShowMessage()
+ * progress_showMonitorMessage()
  */
-void ProgressMonitorShowMessage(LPSTR message)
+void progress_showMonitorMessage(LPSTR message)
 {
 	if (hwndAbort)
 		SetDlgItemText(hwndAbort, IDD_STRING2, message);
 }
 
 /*------------------------------------------------------------
- * ProgressMonitorClose()
+ * progress_closeMonitor()
  */
-void ProgressMonitorClose(int always)
+void progress_closeMonitor(int always)
 {
 	if (hwndAbort) {
 		EnableWindow(hwndFrame,TRUE);
@@ -94,11 +94,11 @@ void ProgressMonitorClose(int always)
 }
 
 /*------------------------------------------------------------
- * ProgressMonitorCancel()
+ * progress_cancelMonitor()
  * optional force redraw to reflect changes in the current
  * top window due to a workin progress
  */
-int ProgressMonitorCancel(BOOL bRedraw)
+int progress_cancelMonitor(BOOL bRedraw)
 {
 	MSG			msg;
 	static int 	count;
@@ -110,8 +110,8 @@ int ProgressMonitorCancel(BOOL bRedraw)
 	if (PeekMessage(&msg,0,0,0,PM_REMOVE)) {
 		if (!IsDialogMessage(hwndAbort,&msg)) {
 			DispatchMessage(&msg);
-			if (bRedraw && ft_CurrentDocument() && msg.message == WM_PAINT && (count++ & 0x3) == 0) {
-				SendRedraw(WIPOI(ft_CurrentDocument())->ww_handle);
+			if (bRedraw && ft_getCurrentDocument() && msg.message == WM_PAINT && (count++ & 0x3) == 0) {
+				render_sendRedrawToWindow(WIPOI(ft_getCurrentDocument())->ww_handle);
 			}
 		}
 	}

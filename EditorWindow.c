@@ -59,9 +59,10 @@ static int EdUpdateCaret(WINFO *wp, int type, int visible)
 }
 
 /*------------------------------------------------------------
- * UpdateOwnCaret()
+ * render_updateCustomCaret()
+ * When a custom caret is being displayed - re-render it now.
  */
-void UpdateOwnCaret(WINFO *wp, HDC hdc)
+void render_updateCustomCaret(WINFO *wp, HDC hdc)
 {
 	if (!wp->owncursor)
 		return;
@@ -69,12 +70,14 @@ void UpdateOwnCaret(WINFO *wp, HDC hdc)
 }
 
 /*------------------------------------------------------------
- * upatecursor
+ * render_updateCaret()
+ * Update the current caret for the passed editor window (dependening on insert mode
+ * etc...)
  */
 static struct olc {
 	int type,width;
 } _olcurs = { 0, 1 };
-void updatecursor(WINFO *wp) {
+void render_updateCaret(WINFO *wp) {
 	struct olc *op = &_olcurs;
 	int type;
 
@@ -107,7 +110,7 @@ void updatecursor(WINFO *wp) {
 /*------------------------------------------------------------
  * wt_cursrange()
  */
-int wt_calculateScrollDelta(register long val,  register long minval, 
+int render_calculateScrollDelta(register long val,  register long minval, 
 			    register long maxval, int d)
 {	long delta;
 
@@ -122,16 +125,16 @@ int wt_calculateScrollDelta(register long val,  register long minval,
 }
 
 /*------------------------------------------------------------
- * wt_adjustScrollBounds()
+ * render_adjustScrollBounds()
  */
-static int wt_adjustScrollBounds(WINFO *wp) {
+static int render_adjustScrollBounds(WINFO *wp) {
 	long dx,dy;
 
-	dy = wt_calculateScrollDelta(wp->ln,wp->mincursln,wp->maxcursln,wp->vscroll);
-	dx = wt_calculateScrollDelta(wp->col,wp->mincurscol,wp->maxcurscol,wp->hscroll);
+	dy = render_calculateScrollDelta(wp->ln,wp->mincursln,wp->maxcursln,wp->vscroll);
+	dx = render_calculateScrollDelta(wp->col,wp->mincurscol,wp->maxcurscol,wp->hscroll);
 
 	if (dx || dy) {
-		EdTRACE(Debug(DEBUG_WINMESS,"wt_adjustScrollBounds -> (%ld,%ld)",dx,dy));
+		EdTRACE(Debug(DEBUG_WINMESS,"render_adjustScrollBounds -> (%ld,%ld)",dx,dy));
 		if (sl_scrollwinrange(wp,&dy,&dx))
 			sl_winchanged(wp,dy,dx);
 		return 1;
@@ -146,8 +149,8 @@ void wt_curpos(WINFO *wp, long ln, long col)
 {
 	wp->ln = ln;
 	wp->col = col;
-	wt_adjustScrollBounds(wp);
-	updatecursor(wp);
+	render_adjustScrollBounds(wp);
+	render_updateCaret(wp);
 	if (wp->bXtndBlock) {
 		XtndBlock(FTPOI(wp));
 	}
@@ -162,12 +165,13 @@ void wt_tcursor(WINFO *wp,int type)
 {
 	if (type != wp->ctype) {
 		wp->ctype = type;
-		updatecursor(wp);
+		render_updateCaret(wp);
 	}
 }
 
 /*------------------------------------------------------------
  * wt_scrollxy()
+ * Scroll the current window by a number of lines and columns.
  */
 void wt_scrollxy(WINFO *wp,int nlines, int ncolumns)
 {

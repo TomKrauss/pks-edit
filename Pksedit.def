@@ -7,7 +7,6 @@ EXPORTS
 	FrameWndProc
 	EditWndProc
 	DlgStdProc
-	DlgError
 	KeyInputWndProc
 	CInput
 	FkeysWndProc

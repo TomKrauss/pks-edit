@@ -12,11 +12,13 @@
  * (c) Pahlen & Krauﬂ
  */
 
+#include <windows.h>
 #include <string.h>
 
 #include "alloc.h"
 #include "edctype.h"
 #include "caretmovement.h"
+#include "winfo.h"
 #include "textblocks.h"
 #include "pksedit.h"
 #include "edfuncs.h"
@@ -99,7 +101,7 @@ char *s2vec(struct dvec *v,char *s, char *e)
 		if (s >= e)
 			v->n = 0;
 		else {
-			v->n = Atol(s);
+			v->n = string_convertToLong(s);
 			v->w = (int)(_strtolend-s);
 			s    = _strtolend;
 		}
@@ -171,7 +173,7 @@ static int tokenize(STRVEC *vec, unsigned char *s, unsigned char *fs_set, int sk
 				i++;
 		}
 		if (ac > MAXARG) {
-			ed_error(IDS_MSGTOOMUCHFIELDS);
+			error_showErrorById(IDS_MSGTOOMUCHFIELDS);
 			return 0;
 		}
 		vec->so[ac] = &s[i];
@@ -193,7 +195,6 @@ static int tokenize(STRVEC *vec, unsigned char *s, unsigned char *fs_set, int sk
  */
 static void initset(char *set, char *fs)
 {	unsigned char o;
-	extern char *_octalloc;
 
 	if (!*fs)
 		fs = " \t";
@@ -201,7 +202,7 @@ static void initset(char *set, char *fs)
 	blfill(set,256,0);
 	while((o=*fs++) != 0) {
 		if (o == '\\') {
-			o  = octalinput(fs);
+			o  = regex_parseOctalNumber(fs);
 			fs = _octalloc;
 		}
 		set[o] = 1;
@@ -231,7 +232,7 @@ static void initkeylist(char *s, char *fs_set)
 		initset(loc_set,",");
 		tokenize(&v, s, loc_set, 1);
 		if (v.ac > MAXKEYS) {
-			ed_error(IDS_MSGTOOMUCHSORTKEYS);
+			error_showErrorById(IDS_MSGTOOMUCHSORTKEYS);
 			v.ac = 8;
 		}
 		for (i = 0; i < v.ac; i++) {
@@ -251,7 +252,7 @@ static void initkeylist(char *s, char *fs_set)
 					case 'a': kp->flag |= K_SORTDICT; break;
 					case 'b': kp->flag |= K_SKIPWHITE; break;
 					case 'u': kp->flag |= K_UNIQ; break;
-					default : ed_error(IDS_MSGINVALSORTOPT);
+					default : error_showErrorById(IDS_MSGINVALSORTOPT);
 				}
 				s2++;
 			}
@@ -346,11 +347,11 @@ static int compare(RECORD *rp1, RECORD *rp2)
 			s2 = _linebuf+2048;
 		} else	/* is implied above */
 		if (kp->flag & K_SKIPWHITE) {
-			while (IsSpace(*s1)) {
+			while (string_isSpace(*s1)) {
 				s1++;
 				l1--;
 			}
-			while (IsSpace(*s2)) {
+			while (string_isSpace(*s2)) {
 				s2++;
 				l2--;
 			}
@@ -387,7 +388,7 @@ int sortlist(RECORD *tab,long n)
 					if (ret >= 0) break;
 				} else if (ret <= 0) break;
 	
-				if (ProgressMonitorCancel(0))
+				if (progress_cancelMonitor(0))
 					return 0;
 				/* swap these fellows */
 				tmp = tab[j]; 
@@ -416,7 +417,7 @@ static int lp2rec(LINE *lpfirst, LINE *lplast,
 		if ((sortflags & SO_NOSELECT) || 
 			step(pPattern, lpfirst->lbuf,&lpfirst->lbuf[lpfirst->len], &match)) {
 			if (nrec >= MAXREC) {
-				ed_error(IDS_MSGTOOMUCHRECORDS);
+				error_showErrorById(IDS_MSGTOOMUCHRECORDS);
 				return 0;
 			}
 			rectab[nrec].lp = lpfirst;
@@ -547,7 +548,7 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 		}
 	}
 
-	fp = ft_CurrentDocument();
+	fp = ft_getCurrentDocument();
 	undo_startModification(fp);
 	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID) {
 		return 0;
@@ -570,15 +571,15 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 		rp.lpfirst = lpfirst->prev;
 		rp.lplast  = lplast ->next;
 		rp.nrec    = n+n2;
-		ProgressMonitorStart(IDS_ABRTSORT);
+		progress_startMonitor(IDS_ABRTSORT);
 		undo_cash(fp,lpfirst,lplast);
 		if (sortlist(_rectab,n)) {
 			caret_placeCursorInCurrentFile(0L,0L);
 			ln_order(fp,_rectab,&rp);
 		}
 		ln_removeFlag(fp->firstl,fp->lastl,LNREPLACED);
-		ProgressMonitorClose(0);
-		RedrawTotalWindow(fp);
+		progress_closeMonitor(0);
+		render_repaintAllForFile(fp);
 		caret_placeCursorInCurrentFile(l1,0L);
 		ret = 1;
 	}

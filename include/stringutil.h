@@ -19,11 +19,11 @@ typedef int					BOOL;
 extern char* _strtolend;
 
 /*--------------------------------------------------------------------------
- * Atol()
+ * string_convertToLong()
  * Convert the first integer value from the passed String (interpret hex numbers and
  * normal numbers) set the resulting pointer after parsing to _strtolend.
  */
-extern long Atol(char* s);
+extern long string_convertToLong(char* s);
 
 /*
  * Return a pointer to the last matching position, where a character can be found in a String
@@ -44,55 +44,55 @@ extern char* lstrchr(const char* str, char ch);
 extern char* strmaxcpy(char* pszDest, const char* pszSource, int nMax);
 
 /*--------------------------------------------------------------------------
- * strdcpy()
+ * string_concatPathAndFilename()
  * concat file and dirname and make sure there is one(1!) SLASH between
  * the both
  */
-extern void strdcpy(char* dest, const char* pathname, const char* fname);
+extern void string_concatPathAndFilename(char* dest, const char* pathname, const char* fname);
 
 /*--------------------------------------------------------------------------
- * basename()
+ * string_getBaseFilename()
  * return pointer to filename component of a path
  */
-extern char* basename(const char* fullname);
+extern char* string_getBaseFilename(const char* fullname);
 
 /*--------------------------------------------------------------------------
- * extname()
+ * string_getFileExtension()
  * return pointer to the extension component of a path
  */
-extern char* extname(const char* fullname);
+extern char* string_getFileExtension(const char* fullname);
 
 
 /*--------------------------------------------------------------------------
- * sfsplit()
+ * string_splitFilename()
  * split a pathname in pathName and filename components
  */
-extern void sfsplit(const char* completeFileName, char* pathName, char* fileName);
+extern void string_splitFilename(const char* completeFileName, char* pathName, char* fileName);
 
 /*------------------------------------------------------------
- * AbbrevName()
+ * string_abbreviateFileName()
  * Return an abbreviated filename. Attention: you need to copy the generated
  * string. When calling this method again the old memory is overwritten.
  */
-extern char* AbbrevName(const char* filename);
+extern char* string_abbreviateFileName(const char* filename);
 
 /*------------------------------------------------------------
- * OemAbbrevName()
- * Same as AbbrevName, but all characters converted to ISO-8859-1.
+ * string_abbreviateFileNameOem()
+ * Same as string_abbreviateFileName, but all characters converted to ISO-8859-1.
  */
-extern char* OemAbbrevName(const char* fn);
+extern char* string_abbreviateFileNameOem(const char* fn);
 
 /*------------------------------------------------------------
- * FullPathName()
+ * string_getFullPathName()
  * make full pathname
  */
-extern char* FullPathName(const char* path, const char* fn);
+extern char* string_getFullPathName(const char* path, const char* fn);
 
 /*------------------------------------------------------------
- * stralloc()
+ * string_allocate()
  * allocate a copy of the passed string.
  */
-unsigned char* stralloc(unsigned char* buf);
+unsigned char* string_allocate(unsigned char* buf);
 
 /*
  * Free the dereferenced pointer and initialize the space pointed to with NULL.
@@ -100,41 +100,41 @@ unsigned char* stralloc(unsigned char* buf);
 extern void destroy(void** ap);
 
 /*--------------------------------------------------------------------------
- * IsSpace()
+ * string_isSpace()
  */
-extern BOOL IsSpace(unsigned char c);
+extern BOOL string_isSpace(unsigned char c);
 
 /*---------------------------------*/
-/* skipblank()					*/
+/* string_skipSpacesIn()					*/
 /*---------------------------------*/
-extern unsigned char* skipblank(unsigned char* s, unsigned char* send);
+extern unsigned char* string_skipSpacesIn(unsigned char* s, unsigned char* send);
 
 /*---------------------------------*/
-/* skipnoblank()				*/
+/* string_skipNonSpaceCharactersIn()				*/
 /*---------------------------------*/
-extern unsigned char* skipnoblank(unsigned char* s, unsigned char* send);
+extern unsigned char* string_skipNonSpaceCharactersIn(unsigned char* s, unsigned char* send);
 
 /*--------------------------------------------------------------------------
- * CntSpaces()
+ * string_countSpacesIn()
  * count spaces up to a given position
  * Spaces include attribute special spaces
  */
-extern int CntSpaces(unsigned char* s, int pos);
+extern int string_countSpacesIn(unsigned char* s, int pos);
 
 /*
  * Returns true if the passed character is a letter (a-z + umlauts).
  */
-extern BOOL isword(unsigned char c);
+extern BOOL char_isLetter(unsigned char c);
 
 /*
  * Returns TRUE, if the passed character is not a space.
  */
-extern BOOL isnospace(unsigned char c);
+extern BOOL char_isNospace(unsigned char c);
 
 /*
  * Return true, if the character is a valid filename character on the current platform.
  */
-extern BOOL isfname(unsigned char c);
+extern BOOL char_isFilename(unsigned char c);
 
 #define STRINGUTIL_H
 #endif

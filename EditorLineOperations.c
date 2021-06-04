@@ -81,14 +81,14 @@ void ln_removeFlag(LINE *lpstart, LINE *lpend, int flg) {
 /* linetoolong()				*/
 /*---------------------------------*/
 void linetoolong(void) {
-	ed_error(IDS_MSGLINETOOLONG); 
+	error_showErrorById(IDS_MSGLINETOOLONG); 
 }
 
 /*---------------------------------*/
 /* invalidhiddenop()			*/
 /*---------------------------------*/
 static void invalidhiddenop() {
-	ed_error(IDS_MSGINVALIDHIDEOP); 
+	error_showErrorById(IDS_MSGINVALIDHIDEOP); 
 }
 
 /*---------------------------------*/
@@ -837,7 +837,7 @@ unsigned char* ln_createFromBuffer(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDesc
 	if (rightMargin <= 0)
 		rightMargin = 1;
 	while (p < pend) {
-		size = pend - p;
+		size = (long)(pend - p);
 		if (size >= rightMargin) {
 			size = rightMargin;
 		}
@@ -876,7 +876,7 @@ unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, unsigned char* 
 	unsigned char* pend, int t1, int t2, int cr) {
 	int 				flags;
 	int				nl;
-	int				len;
+	size_t			len;
 	unsigned char* q;
 	unsigned char* pstart;
 

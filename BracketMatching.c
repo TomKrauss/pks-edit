@@ -261,7 +261,7 @@ static int bracketmatch(char *s, struct tagBRACKET_RULE *mp)
  */
 static struct tagBRACKET_RULE *_lastmatch;
 static struct tagBRACKET_RULE *ismatch(char *s)
-{	int id = ft_CurrentDocument()->documentDescriptor->id;
+{	int id = ft_getCurrentDocument()->documentDescriptor->id;
 	struct tagBRACKET_RULE *mp;
 
 	for (mp = _brackets; mp; mp = mp->next) {
@@ -463,7 +463,7 @@ matched:
  * show matching brackets
  */
 EXPORT int EdShowMatch(void)
-{	register FTABLE *fp = ft_CurrentDocument();
+{	register FTABLE *fp = ft_getCurrentDocument();
 	long 	 ln,col;
 
 	if (!fp) return 0;
@@ -472,7 +472,7 @@ EXPORT int EdShowMatch(void)
 		caret_placeCursorInCurrentFile(ln,col);
 		return 1;
 	} 
-	ed_error(IDS_MSGNOBRACKETS);
+	error_showErrorById(IDS_MSGNOBRACKETS);
 	return 0;
 }
 
@@ -480,7 +480,7 @@ EXPORT int EdShowMatch(void)
  * showmatch(s)
  */
 EXPORT int showmatch(LINE *lp,int Col)
-{	FTABLE *fp = ft_CurrentDocument();
+{	FTABLE *fp = ft_getCurrentDocument();
 	long   ln  = fp->ln;
 	long   col = Col;
 	struct uclist *up;
@@ -497,7 +497,7 @@ EXPORT int showmatch(LINE *lp,int Col)
 				return 1;
 			}
 		} else {
-			ed_error(IDS_MSGNOBRACKETS);
+			error_showErrorById(IDS_MSGNOBRACKETS);
 		}
 	}
 	return 0;
@@ -515,14 +515,14 @@ EXPORT int EdCharUpToLow(void )
 	int  offs;
 	FTABLE *fp;
 
-	fp   = ft_CurrentDocument();
+	fp   = ft_getCurrentDocument();
 	lp	= fp->caret.linePointer;
 	offs = fp->caret.offset;
 	c    = lp->lbuf[offs];
 	if (((c1 = _l2uset[c]) != c || (c1 = _u2lset[c]) != c) &&
 	    (lp = ln_modify(fp,lp,offs,offs)) != (LINE *)0) {
 		lp->lbuf[offs] = c1;
-		redrawline();
+		render_redrawCurrentLine();
 	}
 	return EdCursorRight(1);
 }
@@ -572,7 +572,7 @@ EXPORT int shift_lines(FTABLE *fp, long ln, long nlines, int dir)
 		}
 		lp = lp->next;
 	}
-	EdRedrawWindow(WIPOI(fp));
+	render_paintWindow(WIPOI(fp));
 
 	offset = fp->caret.offset;
 	if (fp->ln >= ln && fp->ln < ln+nlines)
@@ -592,7 +592,7 @@ EXPORT int EdShiftBetweenBrackets(int dir)
 	register long ln2;
 	long ln,col;
 	
-	fp = ft_CurrentDocument();
+	fp = ft_getCurrentDocument();
 	ln = fp->ln, col = fp->caret.offset;
 
 	if (!nextmatch(fp->caret.linePointer,&ln,&col)) {
@@ -620,7 +620,7 @@ EXPORT int EdShiftBetweenBrackets(int dir)
  * shift _multiplier lines
  */
 EXPORT int EdLinesShift(int dir)
-{	FTABLE *fp = ft_CurrentDocument();
+{	FTABLE *fp = ft_getCurrentDocument();
 
 	if (!fp)
 		return 0;
@@ -633,7 +633,7 @@ EXPORT int EdLinesShift(int dir)
  */
 EXPORT int RangeShift(int scope, int dir)
 {	MARK	*mps,*mpe;
-	FTABLE *fp = ft_CurrentDocument();
+	FTABLE *fp = ft_getCurrentDocument();
 	long	ln1,ln2;
 	
 	if (!find_selectRangeWithMarkers(scope,&mps,&mpe))

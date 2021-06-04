@@ -26,8 +26,8 @@
 #pragma hdrstop
 
 #include "dial2.h"
+#include "winutil.h"
 
-#define italic					res1
 #define	IDD_FONTSTRIKEOUT		1040
 #define	IDD_FONTUNDERLINE		1041
 
@@ -62,29 +62,18 @@ typedef struct tagenumfont {
 typedef ENUMFONT *LPENUMFONT;
 
 /*------------------------------------------------------------
- * EdSetTextEffects()
- */
-static BOOL _emBolden = FALSE;
-void EdSetTextEffects(int italic, int underline, int bold)
-{
-	_lf.lfItalic = italic;
-	_lf.lfUnderline = underline;
-	_emBolden = (bold) ? TRUE : FALSE;
-}
-
-/*------------------------------------------------------------
- * EdCreateFont()
+ * font_createFontWithStyle()
  * create a logical font
  */
-HFONT EdCreateFont(EDFONT *pFont)
+HFONT font_createFontWithStyle(EDFONT *pFont, EDFONTSTYLE *pStyle)
 {	HFONT hFont;
 
 	_lf.lfHeight = pFont->height;
 	_lf.lfWidth  = pFont->width;
-	_lf.lfCharSet = (pFont->bOem) ? OEM_CHARSET : pFont->charset;
-	_lf.lfWeight = (_emBolden) ? (FW_BOLD + pFont->weight) : pFont->weight;
-	_lf.lfStrikeOut = (unsigned char)pFont->strikeout;
-	/* _lf.lfItalic = pFont->italic; */
+	_lf.lfCharSet = (pFont->style.bOem) ? OEM_CHARSET : pFont->charset;
+	_lf.lfWeight = pStyle ? pStyle->weight : pFont->style.weight;
+	_lf.lfStrikeOut = (unsigned char)pFont->style.strikeout;
+	_lf.lfItalic = pStyle ? pStyle->italic : pFont->style.italic;
 
 	lstrcpy(_lf.lfFaceName,pFont->name);
 
@@ -96,16 +85,16 @@ HFONT EdCreateFont(EDFONT *pFont)
 }
 
 /*------------------------------------------------------------
- * EdSelectFont()
- * select a font and return handle to old Font
+ * font_selectDefaultEditorFont()
+ * select a font and return handle to old Font. Optionally pass a font style (may be NULL)
  */
-HFONT EdSelectFont(WINFO *wp, HDC hdc)
+HFONT font_selectDefaultEditorFont(WINFO *wp, HDC hdc, EDFONTSTYLE* pStyle)
 {
 	TEXTMETRIC tm;
 	HFONT      oldFont;
 
-	wp->fnt.bOem = (wp->dispmode & SHOWOEM) ? 1 : 0;
-	wp->fnt_handle = EdCreateFont(&wp->fnt);
+	wp->fnt.style.bOem = (wp->dispmode & SHOWOEM) ? 1 : 0;
+	wp->fnt_handle = font_createFontWithStyle(&wp->fnt, pStyle);
 
 	if (!wp->fnt_handle) {
 		return 0;
@@ -125,9 +114,9 @@ HFONT EdSelectFont(WINFO *wp, HDC hdc)
 }
 
 /*------------------------------------------------------------
- * EdUnselectFont()
+ * font_selectSystemFixedFont()
  */
-void EdUnselectFont(HDC hdc)
+void font_selectSystemFixedFont(HDC hdc)
 {	static HFONT stockFont;
 
 	if (!stockFont)
@@ -138,12 +127,12 @@ void EdUnselectFont(HDC hdc)
 }
 
 /*------------------------------------------------------------
- * EdSelectStdFont()
+ * font_selectStandardFont()
  */
-void EdSelectStdFont(HWND hwnd, WINFO *wp)
+void font_selectStandardFont(HWND hwnd, WINFO *wp)
 {
 	HDC hdc = GetDC(hwnd);
-	HFONT oldFont = EdSelectFont(wp,hdc);
+	HFONT oldFont = font_selectDefaultEditorFont(wp,hdc,NULL);
 
 	DeleteObject(SelectObject(hdc,oldFont));
 	ReleaseDC(hwnd,hdc);
@@ -158,7 +147,7 @@ UINT_PTR CALLBACK ChooseFontHookProc(HWND hDlg, UINT msg, WPARAM wParam,
 	switch(msg) {
 
 	case WM_INITDIALOG:
-		form_move(hDlg);
+		win_moveWindowToDefaultPosition(hDlg);
 		EnableWindow(GetDlgItem(hDlg, IDD_FONTSTRIKEOUT), FALSE);
 		EnableWindow(GetDlgItem(hDlg, IDD_FONTUNDERLINE), FALSE);
      	return TRUE;
@@ -186,18 +175,11 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 	blfill(&lf, sizeof lf, 0);
 
 	lf.lfHeight = ep->height;
-	lf.lfWeight = ep->weight;
+	lf.lfWeight = ep->style.weight;
 	lf.lfWidth = ep->width;
-	lf.lfItalic = ep->italic;
-
-#if 0
-	lf.lfStrikeOut = 0;
-	lf.lfEscapement = 0;
-	lf.lfOrientation = 0;
-	lf.lfUnderline = 0;
-	lf.lfStrikeOut = 0;
-#endif
-
+	lf.lfItalic = ep->style.italic;
+	lf.lfStrikeOut = ep->style.strikeout;
+	lf.lfUnderline = ep->style.underline;
 	lf.lfCharSet = (BYTE)ep->charset;
 	lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
 	lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
@@ -224,9 +206,9 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 		ep->charset = lf.lfCharSet;
 		ep->height= (short)lf.lfHeight;
 		ep->width = (short)lf.lfWidth;
-		ep->strikeout = 0;
-		ep->italic = lf.lfItalic;
-		ep->weight = (short)lf.lfWeight;
+		ep->style.strikeout = 0;
+		ep->style.italic = lf.lfItalic;
+		ep->style.weight = (short)lf.lfWeight;
 	}
 
 	if (cf.lpfnHook != NULL) {

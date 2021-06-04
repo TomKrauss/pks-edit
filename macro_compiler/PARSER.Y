@@ -81,7 +81,7 @@ static COM_TEST	*_exprstack[MAXEXPR];
 extern 		int mac_validatename(unsigned char *name);
 static 		void endmacro(void);
 static 		void startmacro(void);
-			void freeval(struct typedval *v);
+			void freeval(TYPEDVAL *v);
 static 		void freeitem(char **p);
 static 		char *gotolabel(char *prefix, int level, int bratyp);
 static		int makelabel(char *prefix,int level);
@@ -90,8 +90,8 @@ static 		void TestOp(void);
 static 		void CloseTestOp(unsigned char type);
 static 		int SetOverride(char *s);
 static 		void BinOp1(unsigned char type);
-static unsigned char PushVal(struct typedval *vp);
-static void 	PushParam(struct typedval *vp);
+static unsigned char PushVal(TYPEDVAL *vp);
+static void 	PushParam(TYPEDVAL *vp);
 
 static 		char *lstartid  = "%ls%",
 			     *lendid    = "%le%",
@@ -111,7 +111,7 @@ unsigned char 	*AddComSeq(unsigned char *sp, unsigned char *spend,
 int				FuncIdx(void *ep);
 int 			bind_key(KEYCODE keycode, MACROREFTYPE typ, MACROREFIDX idx, int augment);
 int 			bind_mouse(MOUSECODE code, MACROREFTYPE typ, MACROREFIDX idx, int flags, int augment);
-int 			MakeInternalSym(char *name, char ed_typ, long value);
+int 			MakeInternalSym(char *name, char ed_typ, intptr_t value);
 int 			IsFormStart(void *ep,int parno);
 int 			key_switchtotable(char *name);
 int 			mouse_switchtotable(char *name);
@@ -120,8 +120,8 @@ int 			mac_getbyname(char *name);
 int 			mac_cmdseqbyname(char *name);
 KEYCODE 		key2code(char *K, int control);
 void 		key_destroytable(char *name);
-struct typedval PushBinop(int opd_typ, struct typedval *v1, 
-					struct typedval *v2);
+TYPEDVAL		PushBinop(int opd_typ, TYPEDVAL *v1, 
+					TYPEDVAL *v2);
 void 		PushAssign(char *name, int typ, long val);
 void 		PushCreateVariable(char *name, int typ, long val);
 
@@ -832,7 +832,7 @@ static void TestOp()
 /*---------------------------------*/
 /* PushVal()					*/
 /*---------------------------------*/
-static unsigned char PushVal(struct typedval *vp)
+static unsigned char PushVal(TYPEDVAL *vp)
 {
 	_recp = AddComSeq(_recp,_recpend,vp->type,vp->val);
 	freeval(vp);
@@ -842,7 +842,7 @@ static unsigned char PushVal(struct typedval *vp)
 /*---------------------------------*/
 /* PushParam()					*/
 /*---------------------------------*/
-static void PushParam(struct typedval *vp)
+static void PushParam(TYPEDVAL *vp)
 {
 	if (_lastfuncp && IsFormStart(_lastfuncp,_parno))
 		vp->type = C_FORMSTART;
@@ -855,8 +855,7 @@ static void PushParam(struct typedval *vp)
 /*---------------------------------*/
 #ifdef YYDEBUG
 void YYtrace(char *fmt, ...)
-{	char *s;
-	va_list ap;
+{	va_list ap;
 	static FILE *fp;
 
 	if (fp == 0 && (fp = fopen("O:\\PROT","w")) == 0)
@@ -934,7 +933,7 @@ static int SetOverride(char *s)
 /*---------------------------------*/
 /* freeval()					*/
 /*---------------------------------*/
-void freeval(struct typedval *v)
+void freeval(TYPEDVAL *v)
 {
 	if ((v->type == C_STRING1PAR /*||
 	    v->type == C_STRINGVAR  ||

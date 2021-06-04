@@ -3,7 +3,7 @@
  *
  * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
  *
- * purpose: error alert message boxes and other
+ * purpose: error error_displayAlertDialog message boxes and other
  * type of user notification in case of errors.
  *
  * (c) Pahlen & Krauss
@@ -20,21 +20,27 @@
 #include "editorconfiguration.h"
 #include "winfo.h"
 #include "winterf.h"
-
+#include "winutil.h"
+#include "stringutil.h"
 # pragma hdrstop
 
 #include <stdarg.h>
 #include "dial2.h"
 #include "pksedit.h"
 
-extern char *	AbbrevName(char *fn);
+/*--------------------------------------------------------------------------
+ * sound_playChime()
+ * Play a chime sound.
+ */
+extern void sound_playChime(void);
+
 extern void 	st_seterrmsg(char *msg);
 extern void 	st_update(void);
 
 /*------------------------------------------------------------
- * nAlert()
+ * errror_openConfigurableAlert()
  */
-static int nAlert(int buttons, LPSTR fmt, LPSTR ap)
+static int errror_openConfigurableAlert(int buttons, LPSTR fmt, LPSTR ap)
 {   char buf[256];
 
     wvsprintf((LPSTR)buf,(LPSTR)fmt,(LPSTR)ap);
@@ -42,9 +48,9 @@ static int nAlert(int buttons, LPSTR fmt, LPSTR ap)
 }
 
 /*------------------------------------------------------------
- * Form_Alert()
+ * error_displayAlertBoxWithOptions()
  */
-int Form_Alert(long buttons, long nOptions, LPSTR fmt)
+int error_displayAlertBoxWithOptions(long buttons, long nOptions, const char* fmt)
 {
 	if (!fmt) {
 		return -1;
@@ -61,26 +67,28 @@ static int nIdAlert(int buttons, WORD nId, LPSTR ap)
 
 	if (!LoadString(hInst,nId,fmt,sizeof fmt))
 		return -1;
-    return nAlert(buttons,fmt,ap);
+    return errror_openConfigurableAlert(buttons, (LPSTR) fmt,ap);
 }
 
 /*------------------------------------------------------------
- * alert()
+ * error_displayAlertDialog()
+ * Display an alert dialog box.
  */
-void alert(LPSTR fmt, ...)
+void error_displayAlertDialog(const char* fmt, ...)
 {   va_list ap;
 
     va_start(ap,fmt);
     // make Alert boxes system modal, cause they may be opened
     // in situations, we should not use the input focus
-    (void)nAlert(MB_OK|MB_ICONEXCLAMATION,fmt,ap);
+    (void)errror_openConfigurableAlert(MB_OK|MB_ICONEXCLAMATION,fmt,ap);
     va_end(ap);
 }
 
 /*------------------------------------------------------------
- * ed_yn()
+ * errorDisplayYesNoConfirmation()
+ * Display a message box to be answered with yes/no or cancel.
  */
-int ed_yn(WORD nId, ...)
+int errorDisplayYesNoConfirmation(int nId, ...)
 {   va_list ap;
     int ret;
     
@@ -94,9 +102,10 @@ int ed_yn(WORD nId, ...)
 }
 
 /*------------------------------------------------------------
- * ed_ync()
+ * error_displayYesNoCancelConfirmation()
+ * Display a message box to be answered with yes/no or cancel.
  */
-int ed_ync(WORD nId, ...)
+int error_displayYesNoCancelConfirmation(int nId, ...)
 {	va_list ap;
 	int ret;
 
@@ -114,7 +123,7 @@ int ed_ync(WORD nId, ...)
  */
 void Panic(LPSTR s)
 {
-    alert(s);
+    error_displayAlertDialog(s);
 }
 
 /*------------------------------------------------------------
@@ -123,7 +132,7 @@ void Panic(LPSTR s)
 #define	NSEC		5		/* stay open maximum 10 seconds */
 static HWND hwndError;
 static UINT_PTR idTimer;
-BOOL CALLBACK DlgError(HWND hDlg,UINT message,WPARAM wParam, LPARAM lParam)
+static BOOL CALLBACK DlgError(HWND hDlg,UINT message,WPARAM wParam, LPARAM lParam)
 { 	
 	WINDOWPLACEMENT 	ws;
 
@@ -157,9 +166,10 @@ BOOL CALLBACK DlgError(HWND hDlg,UINT message,WPARAM wParam, LPARAM lParam)
 }
 
 /*------------------------------------------------------------
- * ShowError()
+ * error_displayErrorToast()
+ * If configured, popup a temporary dialog window showing an error.
  */
-void ShowError(LPSTR fmt, va_list ap)
+void error_displayErrorToast(const char* fmt, va_list ap)
 { 	static FARPROC lpfnDlgProc;
 	char buf[256];
 
@@ -191,27 +201,15 @@ static void err_show(int nId, va_list ap)
 	char		fmt[128];
 
 	if (LoadString(hInst,nId,fmt,sizeof fmt)) {
-		ShowError(fmt,ap);
+		error_displayErrorToast(fmt,ap);
 	}
 }
 
-/*--------------------------------------------------------------------------
- * Out()
- */
-void Out(char *fmt, ...)
-{
-	va_list 	ap;
-
-	va_start(ap,fmt);
-	ShowError(fmt, ap);
-	va_end(ap);
-}
-
 /*------------------------------------------------------------
- * ShowMessage()
+ * error_showMessageInStatusbar()
  * Show an info or error message - primarily in the status bar of PKS Edit.
  */
-void ShowMessage(WORD nId, ...) {
+void error_showMessageInStatusbar(int nId, ...) {
 	va_list 	ap;
 
 	va_start(ap,nId);
@@ -220,9 +218,9 @@ void ShowMessage(WORD nId, ...) {
 }
 
 /*------------------------------------------------------------
- * CloseErrorWin()
+ * error_closeErrorWindow()
  */
-void CloseErrorWin(void)
+void error_closeErrorWindow(void)
 {
 	st_seterrmsg((char *)0);
 	if (hwndError) {
@@ -231,19 +229,19 @@ void CloseErrorWin(void)
 }
 
 /*--------------------------------------------------------------------------
- * visiblebell()
+ * error_signalUsingFlashing()
  */
-static void visiblebell(void)
+static void error_signalUsingFlashing(void)
 {
 	FlashWindow(hwndFrame,1);
 	FlashWindow(hwndFrame,0);
 }
 
 /*------------------------------------------------------------
- * ed_error()
- * Display an error alert given a resource ID + optional arguments.
+ * error_showErrorById()
+ * Display an error error_displayAlertDialog given a resource ID + optional arguments.
  */
-void ed_error(int nId,...)
+void error_showErrorById(int nId,...)
 {
 	va_list 	ap;
 	char 	s[128];
@@ -254,32 +252,34 @@ void ed_error(int nId,...)
 	va_start(ap,nId);
 
 	if (*s == '!') {
-	    (void)nAlert(MB_OK|MB_ICONHAND,s+1,ap);
+	    (void)errror_openConfigurableAlert(MB_OK|MB_ICONHAND,s+1,ap);
 	} else {
 		if (GetConfiguration()->options & WARNINGS)
-			ShowError(s,ap);
+			error_displayErrorToast(s,ap);
 		if (GetConfiguration()->options & E_BELL)
-			chime();
+			sound_playChime();
 		if (GetConfiguration()->options & E_FLASH)
-			visiblebell();
+			error_signalUsingFlashing();
 	}
 	va_end(ap);
 }
 
 /*------------------------------------------------------------
- * form_error()
+ * error_displayGenericErrorNumber()
+ * Report an arbitrary error with an error number.
  */
-void form_error(int num)
+void error_displayGenericErrorNumber(int num)
 {	char buf[100];
 
-	wsprintf(buf,/*STR*/"Allgemeiner Fehler",num);
-	alert(buf);
+	wsprintf(buf,/*STR*/"Allgemeiner Fehler %d", num);
+	error_displayAlertDialog(buf);
 }
 
 /*------------------------------------------------------------
- * tosfnerror()
+ * error_openingFileFailed()
+ * Display an (OS level) error about a file.
  */
-void tosfnerror(char *fn,int fd)
+void error_openingFileFailed(char *fn, int fd)
 {
-	ed_error(IDS_MSGOPEN,(LPSTR)AbbrevName(fn));
+	error_showErrorById(IDS_MSGOPEN,(LPSTR)string_abbreviateFileName(fn));
 }

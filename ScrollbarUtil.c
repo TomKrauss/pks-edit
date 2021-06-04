@@ -198,13 +198,13 @@ void sl_winchanged(WINFO *wp,long dy, long dx) {
 	    (dx < mx && dx > -mx)) {
 		wt_scrollxy(wp,(int)dy,(int)dx);
 	} else {
-		SendRedraw(wp->ww_handle);
+		render_sendRedrawToWindow(wp->ww_handle);
 	}
 	if (dx && wp->ru_handle) {
-		SendRedraw(wp->ru_handle);
+		render_sendRedrawToWindow(wp->ru_handle);
 	}
 	if (dy && wp->lineNumbers_handle) {
-		SendRedraw(wp->lineNumbers_handle);
+		render_sendRedrawToWindow(wp->lineNumbers_handle);
 	}
 	sl_size(wp);
 }
@@ -239,10 +239,10 @@ int sl_moved(WINFO *wp, long dy, long dx, int cursor_adjust)
 			}
 			wp->ln  = ln;
 			wp->col = col;
-			updatecursor(wp);
+			render_updateCaret(wp);
 		}
 	} else {
-		updatecursor(wp);
+		render_updateCaret(wp);
 	}
 
 	return 1;
@@ -256,7 +256,7 @@ void EdScrollCursor(int mtype)
 {
 	long 	delta = 0;
 	extern long _multiplier;
-	WINFO *	wp = WIPOI(ft_CurrentDocument());
+	WINFO *	wp = WIPOI(ft_getCurrentDocument());
 	
 	switch(mtype) {
 		case MOT_SINGLE:
@@ -278,7 +278,7 @@ int EdScrollScreen(int mtype)
 {	long		dln,ln,col;
 	int		ret;
 	WINFO	*wp;
-	FTABLE	*fp = ft_CurrentDocument();
+	FTABLE	*fp = ft_getCurrentDocument();
 
 	if (!fp)
 		return 0;

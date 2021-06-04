@@ -28,7 +28,7 @@ static void vdebug(int err, LPSTR fmt, va_list ap)
 	char buf[1024],tmpfile[512];
     wvsprintf((LPSTR)buf,(LPSTR)fmt,(LPSTR)ap);
     if (err) {
-    		alert(buf);
+    		error_displayAlertDialog(buf);
     		return;
 	}
     if (_debugfd < 0 && (_debugfd = _lcreat(file_getTempFilename(tmpfile,'L'),0)) < 0) {

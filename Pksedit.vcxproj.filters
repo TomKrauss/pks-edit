@@ -434,6 +434,12 @@
     <ClInclude Include="include\customcontrols.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\mouseutil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\winutil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">

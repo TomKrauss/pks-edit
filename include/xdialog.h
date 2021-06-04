@@ -47,7 +47,7 @@ typedef struct tagITEM_TOOLTIP_MAPPING {
 typedef DIALPARS *LPDIALPARS;
 
 /*-----------------------------------------------
- * Assign a callback to be invoked to return the DIALOGPARS for a page (in a property sheet)
+ * sym_assignSymbol a callback to be invoked to return the DIALOGPARS for a page (in a property sheet)
  * for that particular page, if the page is activated. The callback is passed the index of the
  * property page activated.
  */

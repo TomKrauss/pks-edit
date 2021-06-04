@@ -69,7 +69,7 @@ static void hist_addEntry(HISTORY* h, char* string) {
 	/*
 	 * not present: make new
 	 */
-	if (!s && (s = stralloc(string)) == 0)
+	if (!s && (s = string_allocate(string)) == 0)
 		return;
 
 	/*
@@ -116,7 +116,7 @@ EXPORT void hist_enq(HISTORY_TYPE type, char *string) {
 	/*
 	 * not present: make new
 	 */
-	if (!s && (s = stralloc(string)) == 0) 
+	if (!s && (s = string_allocate(string)) == 0) 
 		return;
 
 	/*

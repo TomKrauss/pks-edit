@@ -3,10 +3,10 @@
  *
  * MouseUtil.c
  *
- * some mouse functions
+ * operations regarding mouse interaction with the user.
  *
  * 						created: 07.06.91 
- *						Author : TOM
+ *						author: Tom
  */
 
 #include <windows.h>
@@ -28,10 +28,8 @@
 static HCURSOR   hHourGlass;		// Hour glass cursor
 static HCURSOR   hSaveCurs;
 
-extern void 	caret_calculateOffsetFromScreen(WINFO *wp,int x, int y, long *ln,long *col);
-extern long 	ln_indexOf(FTABLE *fp,LINE *lp);
 extern void 	st_seterrmsg(char *msg);
-extern int 		MousePosition(FTABLE *fp, long bAsk);
+extern int 		mouse_moveCaretToCurrentMousePosition(FTABLE *fp, long bAsk);
 extern HWND 	ic_findChildFromPoint(HWND hwnd, POINT *point);
 
 extern MOUSEBIND	_mousetab[MAXMAPMOUSE];
@@ -44,9 +42,10 @@ static RSCTABLE __m = {
 RSCTABLE *_mousetables = &__m;
 
 /*------------------------------------------------------------
- * MouseGetXYPos()
+ * mouse_getXYPos()
+ * Get the current window relative mouse position.
  */
-EXPORT void MouseGetXYPos(HANDLE hwnd, int *x, int *y)
+EXPORT void mouse_getXYPos(HANDLE hwnd, int *x, int *y)
 {	POINT p;
 
 	if (!hwnd)
@@ -59,9 +58,12 @@ EXPORT void MouseGetXYPos(HANDLE hwnd, int *x, int *y)
 }
 
 /*------------------------------------------------------------
- * graf_mkstate()
+ * mouse_dispatchUntilButtonRelease()
+ * Dispatches mouse messages until a mouse button is released.
+ * Return the current mouse position / shift state etc... in the passed
+ * parameters.
  */
-EXPORT void graf_mkstate(int *x, int *y, int *but, int *shift)
+EXPORT void mouse_dispatchUntilButtonRelease(int *x, int *y, int *but, int *shift)
 { 	MSG msg;
 
 	while(1) {
@@ -95,9 +97,10 @@ fine:
 }
 
 /*------------------------------------------------------------
- * MouseBusy()
+ * mouse_setBusyCursor()
+ * Display the hourglass cursor.
  */
-EXPORT void MouseBusy(void)
+EXPORT void mouse_setBusyCursor(void)
 {
 	if (hHourGlass == NULL)
 		hHourGlass = LoadCursor(NULL, IDC_WAIT);
@@ -105,20 +108,13 @@ EXPORT void MouseBusy(void)
 }
 
 /*------------------------------------------------------------
- * MouseNotBusy()
+ * mouse_setDefaultCursor()
+ * Display the default cursor (arrow)
  */
-EXPORT void MouseNotBusy(void)
+EXPORT void mouse_setDefaultCursor(void)
 {
 	if (hSaveCurs != 0)
 		SetCursor(hSaveCurs);
-}
-
-/*------------------------------------------------------------
- * changemouseform()
- */
-EXPORT void changemouseform(void)
-{
-	MouseNotBusy();
 }
 
 /*------------------------------------------------------------
@@ -132,11 +128,11 @@ EXPORT int EdBlockMouseMark(int typ)
 	FTABLE	*	fp;
 	UINT_PTR	id;
 
-	if ((fp =ft_CurrentDocument()) == 0)
+	if ((fp =ft_getCurrentDocument()) == 0)
 		return 0;
 
 	wp = WIPOI(fp);
-	MouseGetXYPos(wp->ww_handle, &x, &y);
+	mouse_getXYPos(wp->ww_handle, &x, &y);
 	xx = x;
 	yy = y;
 
@@ -169,7 +165,7 @@ EXPORT int EdBlockMouseMark(int typ)
 	id = SetTimer(0,0,100,0);
 
 	while(1) {
-		graf_mkstate(&xx,&yy,&b,&k);
+		mouse_dispatchUntilButtonRelease(&xx,&yy,&b,&k);
 		if (!b) {
 			break;
 		}
@@ -227,7 +223,7 @@ EXPORT int EdMouseMoveText(int move)
 	FTABLE *	fp;
 
 	ret = 0;
-	if ((fp = ft_CurrentDocument()) == 0) {
+	if ((fp = ft_getCurrentDocument()) == 0) {
 		return 0;
 	}
 	wp = WIPOI(fp);
@@ -239,12 +235,12 @@ EXPORT int EdMouseMoveText(int move)
 	}
 
 #if 0
-	MouseGetXYPos(wp->ww_handle, &x, &y);
+	mouse_getXYPos(wp->ww_handle, &x, &y);
 # endif
 
 	SetCapture(wp->ww_handle);
 	do {
-		graf_mkstate(&x,&y,&b,&dum);
+		mouse_dispatchUntilButtonRelease(&x,&y,&b,&dum);
 	} while(b);
 	ReleaseCapture();
 
@@ -255,11 +251,11 @@ EXPORT int EdMouseMoveText(int move)
 	hwnd = ic_findChildFromPoint((HWND)0,&p);
 
 	if (hwnd == wp->edwin_handle) {
-		if (MousePosition(fp, 0L)) {
+		if (mouse_moveCaretToCurrentMousePosition(fp, 0L)) {
 			if (move) 
-				ret = do_func(FUNC_EdBlockMove,0L,0L,(void*)0,(void*)0,(void*)0); 
+				ret = macro_executeFunction(FUNC_EdBlockMove,0L,0L,(void*)0,(void*)0,(void*)0); 
 			else 
-				ret = do_func(FUNC_EdBlockCopy,0L,0L,(void*)0,(void*)0,(void*)0);
+				ret = macro_executeFunction(FUNC_EdBlockCopy,0L,0L,(void*)0,(void*)0,(void*)0);
 		}
 	} else if (hwnd) {
 		ret = PostMessage(hwnd,WM_ICONDROP,ICACT_TEXTBLOCK,0L);
@@ -270,17 +266,17 @@ EXPORT int EdMouseMoveText(int move)
 }
 
 /*--------------------------------------------------------------------------
- * mouseemptyslot()
+ * mouse_hasEmptySlot()
  */
-int mouseemptyslot(MOUSEBIND *mp)
+static int mouse_hasEmptySlot(MOUSEBIND *mp)
 {
 	return (mp->button == 0 && mp->nclicks == 0) ? 1 : 0;
 }
 
 /*------------------------------------------------------------
- * mouseslot()
+ * mouse_getMouseBind()
  */
-static MOUSEBIND *mouseslot(int nButton, int nShift, int nClicks)
+static MOUSEBIND *mouse_getMouseBind(int nButton, int nShift, int nClicks)
 {
 	MOUSEBIND *mp;
 
@@ -296,32 +292,32 @@ static MOUSEBIND *mouseslot(int nButton, int nShift, int nClicks)
 }
 
 /*--------------------------------------------------------------------------
- * mousebound()
+ * mouse_getMouseBindingForCode()
  */
-MOUSEBIND *mousebound(MOUSECODE mcode)
+MOUSEBIND *mouse_getMouseBindingForCode(MOUSECODE mcode)
 {
-	return mouseslot(mcode.button, mcode.shift, mcode.nclicks);
+	return mouse_getMouseBind(mcode.button, mcode.shift, mcode.nclicks);
 }
 
 /*-----------------------------------------------------------
- * mousegetbind()
+ * mouse_getDefaultMouseBinding()
  */
-MOUSEBIND *mousegetbind(void)
+MOUSEBIND *mouse_getDefaultMouseBinding(void)
 {
  	MOUSEBIND 	*mp;
 
-	if ((mp = mouseslot(0, 0, 0)) != 0) {
+	if ((mp = mouse_getMouseBind(0, 0, 0)) != 0) {
 		return mp;
 	}
 
 	return rsc_tableresize(_mousetables, sizeof *mp, 
-		_mousetab, (int (*)(void *))mouseemptyslot);
+		_mousetab, (int (*)(void *))mouse_hasEmptySlot);
 }
 
 /*---------------------------------*/
-/* mouse_unbind()				*/
+/* mouse_removeMouseBinding()				*/
 /*---------------------------------*/
-void mouse_unbind(MOUSEBIND *mp)
+void mouse_removeMouseBinding(MOUSEBIND *mp)
 {
 	if (mp == 0)
 		return;
@@ -333,9 +329,9 @@ void mouse_unbind(MOUSEBIND *mp)
 }
 
 /*--------------------------------------------------------------------------
- * mouse_overridetable()
+ * mouse_destroyMouseBindings()
  */
-void mouse_overridetable(void)
+void mouse_destroyMouseBindings(void)
 {
 	RSCTABLE *		rp;
 
@@ -345,11 +341,11 @@ void mouse_overridetable(void)
 }
 
 /*---------------------------------*/
-/* mouse_delbindings()			*/
+/* mouse_deleteBindingsUpTo()			*/
 /* delete all mouse bindings to a 	*/
 /* for inst. single macro,...		*/
 /*---------------------------------*/
-void mouse_delbindings(MACROREFTYPE typ, MACROREFIDX val)
+void mouse_deleteBindingsUpTo(MACROREFTYPE typ, MACROREFIDX val)
 {
 	RSCTABLE *	rp;
 	MOUSEBIND  *	mp;
@@ -357,7 +353,7 @@ void mouse_delbindings(MACROREFTYPE typ, MACROREFIDX val)
 	for (rp = _mousetables; rp; rp = rp->rt_next) {
 		for (mp = (MOUSEBIND*)rp->rt_data; mp < (MOUSEBIND*)rp->rt_end; mp++) {
 			if (typ == mp->macref.typ && val == mp->macref.index) {
-				mouse_unbind(mp);
+				mouse_removeMouseBinding(mp);
 			}
 		}
 	}
@@ -372,7 +368,7 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 	long 	col;
 
 	if (mp->msg && mp->msg[0]) {
-		ShowError(mp->msg, NULL);
+		error_displayErrorToast(mp->msg, NULL);
 	}
 	if (mp->flags & MO_FINDCURS) {
 		caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
@@ -385,9 +381,9 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 }
 
 /*----------------------------*/
-/* do_mbutton()			*/
+/* mouse_onMouseClicked()			*/
 /*----------------------------*/
-EXPORT int do_mbutton(FTABLE *fp, int x, int y, int b, int nclicks, int shift)
+EXPORT int mouse_onMouseClicked(FTABLE *fp, int x, int y, int b, int nclicks, int shift)
 {
 	MOUSEBIND *	mp;
 
@@ -395,8 +391,8 @@ EXPORT int do_mbutton(FTABLE *fp, int x, int y, int b, int nclicks, int shift)
 		shift |= 0x3;
 	}
 
-	if ((mp = mouseslot(b, shift, nclicks)) != 0) {
-		stopcash();
+	if ((mp = mouse_getMouseBind(b, shift, nclicks)) != 0) {
+		macro_stopRecordingFunctions();
 		mfunct(WIPOI(fp), mp, x, y);
 		return 1;
 	}
@@ -404,9 +400,9 @@ EXPORT int do_mbutton(FTABLE *fp, int x, int y, int b, int nclicks, int shift)
 }
 
 /*----------------------------*/
-/* do_linbutton()			*/
+/* mouse_onRulerClicked()			*/
 /*----------------------------*/
-EXPORT int do_linbutton(WINFO *wp, int x, int y, int msg, int shift) {
+EXPORT int mouse_onRulerClicked(WINFO *wp, int x, int y, int msg, int shift) {
 	long 	ln;
 	long		col;
 	char		szBuf[100];
@@ -422,8 +418,8 @@ EXPORT int do_linbutton(WINFO *wp, int x, int y, int msg, int shift) {
 		} else {
 			ToggleTabStop(fp->documentDescriptor, col);
 		}
-		SendRedraw(wp->ru_handle);
-		EdRedrawWindow(wp);
+		render_sendRedrawToWindow(wp->ru_handle);
+		render_paintWindow(wp);
 	}
 
 	return 1;

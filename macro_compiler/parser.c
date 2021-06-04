@@ -129,7 +129,7 @@ static COM_TEST	*_exprstack[MAXEXPR];
 extern 		int mac_validatename(unsigned char *name);
 static 		void endmacro(void);
 static 		void startmacro(void);
-			void freeval(struct typedval *v);
+			void freeval(TYPEDVAL *v);
 static 		void freeitem(char **p);
 static 		char *gotolabel(char *prefix, int level, int bratyp);
 static		int makelabel(char *prefix,int level);
@@ -138,8 +138,8 @@ static 		void TestOp(void);
 static 		void CloseTestOp(unsigned char type);
 static 		int SetOverride(char *s);
 static 		void BinOp1(unsigned char type);
-static unsigned char PushVal(struct typedval *vp);
-static void 	PushParam(struct typedval *vp);
+static unsigned char PushVal(TYPEDVAL *vp);
+static void 	PushParam(TYPEDVAL *vp);
 
 static 		char *lstartid  = "%ls%",
 			     *lendid    = "%le%",
@@ -159,17 +159,17 @@ unsigned char 	*AddComSeq(unsigned char *sp, unsigned char *spend,
 int				FuncIdx(void *ep);
 int 			bind_key(KEYCODE keycode, MACROREFTYPE typ, MACROREFIDX idx, int augment);
 int 			bind_mouse(MOUSECODE code, MACROREFTYPE typ, MACROREFIDX idx, int flags, int augment);
-int 			MakeInternalSym(char *name, char ed_typ, long value);
+int 			sym_makeInternalSymbol(char *name, char ed_typ, intptr_t value);
 int 			IsFormStart(void *ep,int parno);
 int 			key_switchtotable(char *name);
 int 			mouse_switchtotable(char *name);
-void 		mouse_overridetable(void);
+void 		mouse_destroyMouseBindings(void);
 int 			mac_getbyname(char *name);
 int 			mac_cmdseqbyname(char *name);
 KEYCODE 		key2code(char *K, int control);
 void 		key_destroytable(char *name);
-struct typedval PushBinop(int opd_typ, struct typedval *v1, 
-					struct typedval *v2);
+TYPEDVAL		PushBinop(int opd_typ, TYPEDVAL *v1, 
+					TYPEDVAL *v2);
 void 		PushAssign(char *name, int typ, long val);
 void 		PushCreateVariable(char *name, int typ, long val);
 
@@ -179,7 +179,7 @@ void 		CloseLabelList(void);
 void 		KillLabel(char *name);
 char			*LabelAutoName(char *prefix, int num);
 int 			IsStringFunc(void *ep);
-int 			IsStringType(unsigned char typ);
+int 			macro_isParameterStringType(unsigned char typ);
 void 		menu_startdefine(char *szMenu);
 int 			menu_addentry(char *pszString, int menutype, 
 				MACROREFTYPE mactype, MACROREFTYPE macidx);
@@ -1886,7 +1886,7 @@ int yydebug = 1;
 				protokoll("Compile mouse table %s",(yyvsp[(3) - (3)]).s);
 				mouse_switchtotable((yyvsp[(3) - (3)]).s);
 				if (SetOverride((yyvsp[(1) - (3)]).s) == MODE_OVERRIDE) {
-					mouse_overridetable();
+					mouse_destroyMouseBindings();
 				}
 				freeitem(&(yyvsp[(3) - (3)]).s);
 			;}
@@ -2117,7 +2117,7 @@ int yydebug = 1;
 /* Line 1455 of yacc.c  */
 #line 420 "Parser.y"
     {
-				MakeInternalSym((yyvsp[(2) - (5)]).s,
+				sym_makeInternalSymbol((yyvsp[(2) - (5)]).s,
 					((yyvsp[(5) - (5)]).v.type == C_STRING1PAR) ? 
 					S_CONSTSTRING : S_CONSTNUM, (yyvsp[(5) - (5)]).v.val);
 				freeval(&(yyvsp[(5) - (5)]).v);
@@ -2174,7 +2174,7 @@ int yydebug = 1;
 				int typ;
 				
 				typ = ((yyvsp[(1) - (2)]).type == C_STRING1PAR) ? S_DOLSTRING : S_DOLNUMBER;
-				MakeInternalSym((yyvsp[(2) - (2)]).s,typ,_nparam);
+				sym_makeInternalSymbol((yyvsp[(2) - (2)]).s,typ,_nparam);
 				PushCreateVariable((yyvsp[(2) - (2)]).s,typ,_nparam);
 				_nparam++;
 			;}
@@ -2233,7 +2233,7 @@ int yydebug = 1;
 /* Line 1455 of yacc.c  */
 #line 486 "Parser.y"
     {
-				MakeInternalSym((yyvsp[(2) - (4)]).s,
+				sym_makeInternalSymbol((yyvsp[(2) - (4)]).s,
 					((yyvsp[(1) - (4)]).type == C_STRING1PAR) ? S_STRING : S_NUMBER,
 					((yyvsp[(1) - (4)]).type == C_STRING1PAR) ? (intptr_t)"" : 0);
 				PushAssign((yyvsp[(2) - (4)]).s,(yyvsp[(3) - (4)]).v.type,(intptr_t)(yyvsp[(3) - (4)]).v.val);
@@ -2248,10 +2248,10 @@ int yydebug = 1;
 #line 493 "Parser.y"
     {
 				if ((yyvsp[(1) - (3)]).type == C_STRING1PAR) {
-					MakeInternalSym((yyvsp[(2) - (3)]).s, S_STRING, (intptr_t)"");
+					sym_makeInternalSymbol((yyvsp[(2) - (3)]).s, S_STRING, (intptr_t)"");
 					PushAssign((yyvsp[(2) - (3)]).s, C_STRING1PAR, (intptr_t)"");
 				} else {
-					MakeInternalSym((yyvsp[(2) - (3)]).s, S_NUMBER, (intptr_t)0);
+					sym_makeInternalSymbol((yyvsp[(2) - (3)]).s, S_NUMBER, (intptr_t)0);
 					PushAssign((yyvsp[(2) - (3)]).s,C_LONG1PAR,(intptr_t)0);
 				}
 				vname_count = 0;
@@ -2359,8 +2359,8 @@ int yydebug = 1;
 /* Line 1455 of yacc.c  */
 #line 545 "Parser.y"
     {
-				if (IsStringType((yyvsp[(1) - (2)]).type) ==
-				    IsStringType((yyvsp[(2) - (2)]).v.type)) {
+				if (macro_isParameterStringType((yyvsp[(1) - (2)]).type) ==
+				    macro_isParameterStringType((yyvsp[(2) - (2)]).v.type)) {
 					(yyval).v = (yyvsp[(2) - (2)]).v;
 				} else {
 					(yyval).v = PushBinop(BIN_CONVERT,&(yyvsp[(2) - (2)]).v,0);
@@ -3255,7 +3255,7 @@ static void TestOp()
 /*---------------------------------*/
 /* PushVal()					*/
 /*---------------------------------*/
-static unsigned char PushVal(struct typedval *vp)
+static unsigned char PushVal(TYPEDVAL *vp)
 {
 	_recp = AddComSeq(_recp,_recpend,vp->type,vp->val);
 	freeval(vp);
@@ -3265,7 +3265,7 @@ static unsigned char PushVal(struct typedval *vp)
 /*---------------------------------*/
 /* PushParam()					*/
 /*---------------------------------*/
-static void PushParam(struct typedval *vp)
+static void PushParam(TYPEDVAL *vp)
 {
 	if (_lastfuncp && IsFormStart(_lastfuncp,_parno))
 		vp->type = C_FORMSTART;
@@ -3278,8 +3278,7 @@ static void PushParam(struct typedval *vp)
 /*---------------------------------*/
 #ifdef YYDEBUG
 void YYtrace(char *fmt, ...)
-{	char *s;
-	va_list ap;
+{	va_list ap;
 	static FILE *fp;
 
 	if (fp == 0 && (fp = fopen("O:\\PROT","w")) == 0)
@@ -3357,7 +3356,7 @@ static int SetOverride(char *s)
 /*---------------------------------*/
 /* freeval()					*/
 /*---------------------------------*/
-void freeval(struct typedval *v)
+void freeval(TYPEDVAL *v)
 {
 	if ((v->type == C_STRING1PAR /*||
 	    v->type == C_STRINGVAR  ||

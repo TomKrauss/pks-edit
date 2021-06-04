@@ -374,7 +374,7 @@ char *tmpname(char *filename)
 		if ((tmpdir = getenv("TMPDIR")) == 0)
 			tmpdir = ".";
 	}
-	strdcpy(fn,tmpdir,filename);
+	string_concatPathAndFilename(fn,tmpdir,filename);
 	return fn;
 }
 	

@@ -3,7 +3,7 @@
  *
  * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
  *
- * purpose: error alert message boxes and other
+ * purpose: error error_displayAlertDialog message boxes and other
  * type of user notification in case of errors.
  *
  * (c) Pahlen & Krauss
@@ -15,49 +15,88 @@
 
 #include <windows.h>
  
-/*------------------------------------------------------------
- * alert()
- */
-extern void alert(LPSTR fmt, ...);
+ /*------------------------------------------------------------
+  * error_displayAlertDialog()
+  * Display an alert dialog box.
+  */
+extern void error_displayAlertDialog(const char* fmt, ...);
 
 /*------------------------------------------------------------
- * ed_yn()
+ * errorDisplayYesNoConfirmation()
  * Confirmation message box with yes no.
  */
-extern int ed_yn(WORD nId, ...);
+extern int errorDisplayYesNoConfirmation(int nId, ...);
 
 /*------------------------------------------------------------
- * ed_ync()
+ * error_displayYesNoCancelConfirmation()
  * Confirmation message box with yes no cancel.
  */
-extern int ed_ync(WORD nId, ...);
+extern int error_displayYesNoCancelConfirmation(int nId, ...);
 
 /*------------------------------------------------------------
- * ShowError()
- * Show an error message passing the string format and optional arguments
- * to be formatted with the string format.
+ * error_showErrorById()
+ * Display an error error_displayAlertDialog given a resource ID + optional arguments.
  */
-extern void ShowError(LPSTR fmt, va_list ap);
+extern void error_showErrorById(int nId, ...);
 
 /*------------------------------------------------------------
- * ShowMessage()
+ * error_openingFileFailed()
+ * Display an (OS level) error about a file.
+ */
+extern void error_openingFileFailed(char* fn, int fd);
+
+/*------------------------------------------------------------
+ * error_displayGenericErrorNumber()
+ * Report an arbitrary error with an error number.
+ */
+extern void error_displayGenericErrorNumber(int num);
+
+/*------------------------------------------------------------
+ * error_showErrorById()
+ * Display an error error_displayAlertDialog given a resource ID + optional arguments.
+ */
+extern void error_showErrorById(int nId, ...);
+
+/*------------------------------------------------------------
+ * error_displayErrorToast()
+ * If configured, popup a temporary dialog window showing an error.
+ */
+extern void error_displayErrorToast(const char* fmt, va_list ap);
+
+/*------------------------------------------------------------
+ * error_showMessageInStatusbar()
  * Show an info or error message - primarily in the status bar of PKS Edit.
- * Pass the resource ID and optional args.
  */
-extern void ShowMessage(WORD resourceID, ...);
+extern void error_showMessageInStatusbar(int nId, ...);
 
 /*------------------------------------------------------------
- * ed_error()
- * Display an error alert given a resource ID + optional arguments.
+ * error_closeErrorWindow()
  */
-extern void ed_error(int nId, ...);
+extern void error_closeErrorWindow(void);
 
 /*------------------------------------------------------------
- * tosfnerror()
+ * errorDisplayYesNoConfirmation()
+ * Display a message box to be answered with yes/no or cancel.
  */
-extern void tosfnerror(char* fn, int fd);
+extern int errorDisplayYesNoConfirmation(int nId, ...);
 
-extern void alert(LPSTR fmt, ...);
+/*------------------------------------------------------------
+ * error_displayYesNoCancelConfirmation()
+ * Display a message box to be answered with yes/no or cancel.
+ */
+extern int error_displayYesNoCancelConfirmation(int nId, ...);
+
+/*------------------------------------------------------------
+ * error_displayAlertBoxWithOptions()
+ */
+extern int error_displayAlertBoxWithOptions(long buttons, long nOptions, const char* fmt);
+
+/*--------------------------------------------------------------------------
+ * win_positionWindowRelativeToCaret()
+ * Move a window relative to the caret of the current active window.
+ */
+extern int win_positionWindowRelativeToCaret(HWND hwnd);
+
 
 #define ERRORDIALOGS_H
 #endif

@@ -33,6 +33,7 @@
 #include "stringutil.h"
 #include "editorconfiguration.h"
 #include "pathname.h"
+#include "winutil.h"
 
 #define	PREVIEWING()		(hwndPreview != 0)
 #define	EVEN(p)			((p & 1) == 0)
@@ -99,7 +100,7 @@ EXPORT HDC GetPrinterDC(void)
 	    (hdc = CreateDC(NULL,szPrtDevice, NULL, NULL)) != 0) {
 	    	return hdc;
 	}
-	ed_error(IDS_MSGNOPRINTER);
+	error_showErrorById(IDS_MSGNOPRINTER);
 	return 0;
 }
 
@@ -133,7 +134,7 @@ static void EscapeError(short errEscape)
 		default: 				nId = IDS_PRTERRABRT; break;
 	}
 
-	ed_error(nId);
+	error_showErrorById(nId);
 }
 
 /*------------------------------------------------------------
@@ -143,7 +144,7 @@ BOOL PrtAbortProc(HDC hdcPrn, int nCode) {
 	if (nCode < 0) {
 		EscapeError(nCode);
 	}
-	return !ProgressMonitorCancel(FALSE);
+	return !progress_cancelMonitor(FALSE);
 }
 
 /*------------------------------------------------------------
@@ -159,11 +160,11 @@ static HFONT prt_selectfont(HDC hdc, FONTSPEC *fsp) {
 	if (!PREVIEWING()) {
 		lstrcpy(font.name, fsp->fs_name);
 	}
-	font.weight = FW_NORMAL;
+	font.style.weight = FW_NORMAL;
 	font.height= fsp->fs_cheight;
 	font.width = fsp->fs_cwidth;
 	font.charset = fsp->fs_oemmode ? OEM_CHARSET : ANSI_CHARSET;
-	if ((hFont = EdCreateFont(&font)) != 0) {
+	if ((hFont = font_createFontWithStyle(&font, NULL)) != 0) {
 		SelectObject(hdc, hFont);
 		if (previousFont) {
 			//
@@ -227,8 +228,8 @@ static void ResetDeviceMode(HDC hdc)
 	}
 
 	SetMapMode(hdc,MM_ANISOTROPIC);
-	SetWindowExt(hdc, 14400, 14400);
-	SetViewportExt(hdc,x,y);
+	win_setWindowExtension(hdc, 14400, 14400);
+	win_setViewportExtension(hdc,x,y);
 
 }
 
@@ -241,7 +242,7 @@ static void GetDeviceExtents(HDC hdc, DEVEXTENTS *dep) {
 	int		textheight;
 
 	ResetDeviceMode(hdc);
-	ext = GetWindowExt(hdc);
+	ext = win_getWindowExtension(hdc);
 	dep->xPage = LOWORD(ext);
 	dep->yPage = HIWORD(ext);
 
@@ -282,7 +283,7 @@ static void mkwpheader(HDC hdc, int yPos, DEVEXTENTS *dep,
 
 	if ((nLen = lstrlen(szBuff)) == 0)
 		return;
-	w = LOWORD(GetTextExtent(hdc,szBuff,nLen));
+	w = LOWORD(win_getTextExtent(hdc,szBuff,nLen));
 
 	switch(align) {
 		default:	xPos = dep->xLMargin; break;
@@ -376,7 +377,7 @@ static int Line(HDC hdc, int xPos, int yPos, int charHeight, long lineno,
 	if (_prtparams.options & PRTO_LINES) {
 		wsprintf(szBuff, "%3ld: ", lineno);
 		TextOut(hdc, xPos, yPos, szBuff, nCount = lstrlen(szBuff));
-		xPos += LOWORD(GetTextExtent(hdc, szBuff, nCount));
+		xPos += LOWORD(win_getTextExtent(hdc, szBuff, nCount));
 		nMaxCharsPerLine = -7;
 	}
 
@@ -391,7 +392,7 @@ static int Line(HDC hdc, int xPos, int yPos, int charHeight, long lineno,
 		_printwhat.wp->maxcol = nMaxCharsPerLine;
 	}
 	if (_printwhat.wp->maxcol > firstc) {
-		write_line(hdc, xPos, yPos, _printwhat.wp, lp);
+		render_singleLineOnDevice(hdc, xPos, yPos, _printwhat.wp, lp);
 		while (_printwhat.wp->maxcol < max) {
 			int delta = max - _printwhat.wp->maxcol;
 			if (delta > nMaxCharsPerLine) {
@@ -401,7 +402,7 @@ static int Line(HDC hdc, int xPos, int yPos, int charHeight, long lineno,
 			_printwhat.wp->maxcol = _printwhat.wp->mincol+delta;
 			deltaHeight += charHeight;
 			yPos += charHeight;
-			write_line(hdc, xPos, yPos, _printwhat.wp, lp);
+			render_singleLineOnDevice(hdc, xPos, yPos, _printwhat.wp, lp);
 		}
 	}
 	return deltaHeight;
@@ -465,9 +466,9 @@ static int print_file(HDC hdc)
 			if (!PREVIEWING() && _printing) {
 				wsprintf(message,/*STR*/"%s - %s (Seite %d)",
 						(LPSTR)szAppName,
-					  	(LPSTR)AbbrevName(ft_visiblename(ft_CurrentDocument())),
+					  	(LPSTR)string_abbreviateFileName(ft_visiblename(ft_getCurrentDocument())),
 					  	pageno);
-				ProgressMonitorShowMessage(message); 
+				progress_showMonitorMessage(message); 
 			}
 			oldpageno = pageno;
 		}
@@ -513,7 +514,7 @@ footerprint:
 			lineno++;
 		}
 	}
-	EdUnselectFont(hdc);
+	font_selectSystemFixedFont(hdc);
 	return ret;
 }
 
@@ -537,7 +538,7 @@ INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 			break;
 		case WM_INITDIALOG:
 			hwndPreview = hDlg;
-			form_move(hDlg);
+			win_moveWindowToDefaultPosition(hDlg);
 			SetDlgItemInt(hDlg, IDD_INT1, _previewpage, 0);
 			break;
 		case WM_COMMAND:
@@ -569,7 +570,7 @@ INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 		EnableWindow(GetDlgItem(hDlg, IDD_BUT4), (_previewpage > 1));
 		EnableWindow(GetDlgItem(hDlg, IDD_BUT3),
 			(_previewpage <= _printwhat.nlines / prt_ntextlines()));
-		SendRedraw(GetDlgItem(hDlg, IDD_PREVIEW));
+		render_sendRedrawToWindow(GetDlgItem(hDlg, IDD_PREVIEW));
 	}
 	return TRUE;
 }
@@ -690,7 +691,7 @@ void print_readWriteConfigFile(int save)
 					lstrcpy((LPSTR)loc,szBuff);
 				}
 				else {
-					*(int*)loc = Atol(szBuff);
+					*(int*)loc = string_convertToLong(szBuff);
 				}
 			}
 		}
@@ -868,7 +869,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 	_printwhat.nlines = 
 		ln_cnt(_printwhat.lp,_printwhat.lplast);
 	ch = (what == PRT_CURRBLK) ? '*' : ' ';
-	wsprintf(message,"%c %s %c", ch, basename(ft_visiblename(fp)), ch);
+	wsprintf(message,"%c %s %c", ch, string_getBaseFilename(ft_visiblename(fp)), ch);
 
 	memmove(&winfo,WIPOI(fp),sizeof winfo);
 	_printwhat.wp = &winfo;
@@ -886,7 +887,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 			docinfo.cbSize = sizeof docinfo;
 			docinfo.lpszDocName = message;
 			docinfo.lpszDatatype = "Text";
-			ProgressMonitorStart(IDS_ABRTPRINT);
+			progress_startMonitor(IDS_ABRTPRINT);
 			SetAbortProc(hdcPrn, (ABORTPROC)PrtAbortProc);
 			if ((PREVIEWING() || (errEscape = StartDoc(hdcPrn, &docinfo))) >= 0 &&
 			    (errEscape = print_file(hdcPrn)) >= 0) {
@@ -898,7 +899,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 			}
 		}
 		if (hdcPrn) {
-			ProgressMonitorClose(0);
+			progress_closeMonitor(0);
 			DeleteDC(hdcPrn);
 		}
 		if (errEscape)

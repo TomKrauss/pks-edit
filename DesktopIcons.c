@@ -79,7 +79,7 @@ int ic_closeIconWindow(HWND hwnd)
 
 static int _windowCount = 0;
 
-static WNDENUMPROC _countWindow(HWND hwnd, LPARAM unused) {
+static BOOL _countWindow(HWND hwnd, LPARAM unused) {
 	if (ic_isIconWindow(hwnd)) {
 		_windowCount++;
 	}
@@ -375,7 +375,7 @@ HWND ic_getActiveIconWindow(ICONCLASS **icp)
  * ic_active()
  * Return the active icon with the given title, params and icon class.
  */
-HWND ic_active(const char* szTitle, const char * szParams, ICONCLASS **icClass)
+HWND ic_active(char* szTitle, char * szParams, ICONCLASS **icClass)
 {
 	HWND		hwnd;
 	ICONCLASS	*icp;
@@ -384,7 +384,7 @@ HWND ic_active(const char* szTitle, const char * szParams, ICONCLASS **icClass)
 		*icClass = 0;
 		return 0;
 	}
-	GetWindowText(hwnd,szTitle,32);
+	GetWindowText(hwnd, szTitle,32);
 	lstrcpy(szParams,(LPSTR)GetWindowLongPtr(hwnd,GWL_ICPARAMS));
 	*icClass = icp;
 	return hwnd;
@@ -392,7 +392,7 @@ HWND ic_active(const char* szTitle, const char * szParams, ICONCLASS **icClass)
 
 /*------------------------------------------------------------
  * ic_changeIcon()
- * Assign a new title and new parameters to an icon.
+ * sym_assignSymbol a new title and new parameters to an icon.
  */
 void ic_changeIcon(const char* szTitle, const char* szParams, ICONCLASS *icClass)
 {
@@ -409,7 +409,7 @@ void ic_changeIcon(const char* szTitle, const char* szParams, ICONCLASS *icClass
 	SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR) szParams);
 	SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,(LONG_PTR) icClass);
 	SendMessage(hwnd,WM_ICONSELECT,0,icClass->ic_type);
-	SendRedraw(hwnd);
+	render_sendRedrawToWindow(hwnd);
 }
 
 static void ic_redrawrect(RECT *pRect) {
@@ -487,11 +487,11 @@ static int		nButtonY;
 			if (hIcon == holdIcon)
 				return 0;
 			SetWindowLongPtr(hwnd,GWL_ICICON, (LONG_PTR) hIcon);
-			SendRedraw(hwnd);
+			render_sendRedrawToWindow(hwnd);
 			/* drop through */
 
 		case WM_ICONCLASSVALUE:
-			return ic_getData(hwnd);
+			return (LRESULT)ic_getData(hwnd);
 
 		case WM_PAINT:
 			hIcon = (HICON) GetWindowLongPtr(hwnd,GWL_ICICON);
@@ -613,7 +613,7 @@ static int		nButtonY;
 		case WM_QUERYENDSESSION:
 			if (wParam) {
 				GetWindowText(hwnd,szBuf,sizeof szBuf);
-				if (ed_yn(IDS_MSGDELICON,szBuf) == IDYES) 
+				if (errorDisplayYesNoConfirmation(IDS_MSGDELICON,szBuf) == IDYES) 
 					return 1;
 			}
 			return 2;
@@ -810,14 +810,14 @@ static intptr_t ic_place(LPSTR szName, LONG lParam)
 		return 0;
 	
 	if ((szParams = strtok((char*)0,",")) != 0) {
-		szParams = stralloc(szParams);
+		szParams = string_allocate(szParams);
 	}
 
 	if ((icp = ic_attribs(szClassId)) == 0) {
 		return 0;
 	}
-	x = (int)Atol(szGeo);
-	y = (int)Atol(_strtolend);
+	x = (int)string_convertToLong(szGeo);
+	y = (int)string_convertToLong(_strtolend);
 	hwnd = ic_addIcon(icp,szTitle,szParams,x,y);
 
 	return (intptr_t)hwnd;

@@ -36,7 +36,7 @@
 #include "stringutil.h"
 #include "fileutil.h"
 
-extern int 		DoDocumentTypes(int nDlg);
+extern int 		doDocumentTypes(int nDlg);
 extern void 	GetStdMenuText(int menunr, char *text);
 /*------------------------------------------------------------
  * EdGetActiveWindow()
@@ -82,7 +82,7 @@ void fsel_changeDirectory(char* pszPath) {
 void fsel_setDialogTitle(char *title) {
 	if (sTitleSpec)
 		_free(sTitleSpec);
-	sTitleSpec = stralloc(title);
+	sTitleSpec = string_allocate(title);
 }
 
 /*---------------------------------*/
@@ -118,12 +118,12 @@ static int SelectFile(int title, char *baseDirectory, char *filename, char *patt
 	char pathname[512];
 
 	menu_fseltitle(title);
-	strdcpy(pathname,baseDirectory,pattern);
+	string_concatPathAndFilename(pathname,baseDirectory,pattern);
 	nSave = nCurrentDialog;
 	nCurrentDialog = title;
 	ret = fsel_selectFile(pathname, filename, _fseltarget, showSavedialog);
 	nCurrentDialog = nSave;
-	sfsplit(pathname,baseDirectory,pattern);
+	string_splitFilename(pathname,baseDirectory,pattern);
 	if (_fseltarget[0] == 0) {
 		return 0;
 	}
@@ -140,7 +140,7 @@ char *fsel_selectFileWithOptions(FSELINFO *fp, int idTitle, BOOL showSaveDialog)
 	static ITEMS	_i = { C_STRING1PAR, _fseltarget };
 	static PARAMS	_p = { DIM(_i), P_MAYOPEN, _i	};
 
-	if (param_dialopen(&_p)) {
+	if (macro_openDialog(&_p)) {
 
 		if (fp->path[0] == 0) {	
 			lstrcpy(fp->path,_datadir);
@@ -152,7 +152,7 @@ char *fsel_selectFileWithOptions(FSELINFO *fp, int idTitle, BOOL showSaveDialog)
 
 		if (!SelectFile(idTitle,fp->path,fp->fname,fp->search, showSaveDialog))
 			return (char *)0;
-		param_record(&_p);
+		macro_recordOperation(&_p);
 	}
 	return _fseltarget;
 }
@@ -164,7 +164,7 @@ char *fsel_initPathes(FSELINFO *fp)
 {	char *fn;
 
 	if ((fn = file_searchFileInPKSEditLocation(fp->fname)) != 0) {
-		sfsplit(fn,fp->path,fp->fname);
+		string_splitFilename(fn,fp->path,fp->fname);
 		if (fp->path[0] == 0)
 			lstrcpy(fp->path,_datadir);
 		lstrcpy(_fseltarget,fn);
@@ -271,16 +271,16 @@ int fsel_selectFile(char *szFileSpecIn, char *szFileNameIn, char *szFullPathOut,
 	pszPath = _alloc(EDMAXPATHLEN);
 
 	// remember where we started
-	sfsplit(szFileSpecIn, pszPath, pszExt);
-	sfsplit(szFileNameIn, (char *)0, pszFileName);
+	string_splitFilename(szFileSpecIn, pszPath, pszExt);
+	string_splitFilename(szFileNameIn, (char *)0, pszFileName);
 
 	//fsel_changeDirectory(pszPath);
 
 	if ((ret = DoSelectPerCommonDialog(GetActiveWindow(), 
 		pszFileName, pszExt, pszPath, bSaveAs)) == TRUE) {
 		lstrcpy(szFullPathOut, pszFileName);
-		sfsplit(pszFileName, pszPath, szFileNameIn);
-		strdcpy(szFileSpecIn, pszPath, pszExt);
+		string_splitFilename(pszFileName, pszPath, szFileNameIn);
+		string_concatPathAndFilename(szFileSpecIn, pszPath, pszExt);
 		hist_enq(PATHES, szFileSpecIn);
 	}
 

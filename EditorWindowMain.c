@@ -47,8 +47,8 @@ extern void mkattlist(LINE* lp);
 extern int mac_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
 extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
 extern char *ft_visiblename(FTABLE *fp);
-extern int  do_linbutton(WINFO *fp, int x, int y, int msg, int shift);
-extern int  do_mbutton(FTABLE *fp, int x,int y,int b, int nclicks,int shift);
+extern int  mouse_onRulerClicked(WINFO *fp, int x, int y, int msg, int shift);
+extern int  mouse_onMouseClicked(FTABLE *fp, int x,int y,int b, int nclicks,int shift);
 extern void *icEditIconClass;
 extern BOOL ic_isIconWindow(HWND hwnd);
 extern void st_redraw(BOOL bErase);
@@ -227,6 +227,7 @@ EXPORT void SetScrollCheckBounds(WINFO *wp)
 
 /*--------------------------------------------------------------------------
  * win_getstate()
+ * Get the current window placement.
  */
 EXPORT void win_getstate(HWND hwnd, WINDOWPLACEMENT *wsp)
 {
@@ -365,7 +366,7 @@ int EdWindowRegSet(int num)
 		return 0;
 	ww_getstate(wp,&ws);
 	prof_savewinstate("WinReg",num,&ws);
-	ShowMessage(IDS_MSGWIREGDEF,num);
+	error_showMessageInStatusbar(IDS_MSGWIREGDEF,num);
 	return 1;
 }
 
@@ -489,7 +490,7 @@ int EdWinArrange(int func)
 			if (prof_getwinstate("WinReg",(int)func,&windowplacement)) {
 				SetWindowPlacement(hwnd, &windowplacement);
 			} else {
-				ed_error(IDS_MSGUNDEFWINREG);
+				error_showErrorById(IDS_MSGUNDEFWINREG);
 			}
 			return 1;
 	}
@@ -514,7 +515,7 @@ void redrawallwi(int update)
 {	WINFO *wp;
 
 	for (wp = _winlist; wp; wp = wp->next) {
-		SendRedraw(wp->ww_handle);
+		render_sendRedrawToWindow(wp->ww_handle);
 		if (update) {
 			UpdateWindow(wp->ww_handle);
 		}
@@ -533,7 +534,7 @@ void ww_setwindowtitle(WINFO *wp)
 
 	nr = wp->win_id;
 	if (IsIconic(wp->edwin_handle)) {
-		wsprintf(buf,"%d %s",nr,(LPSTR)basename(ft_visiblename(wp->fp)));
+		wsprintf(buf,"%d %s",nr,(LPSTR)string_getBaseFilename(ft_visiblename(wp->fp)));
 	}
 	else {
 		wsprintf(buf,"#%d  %s",nr,(LPSTR)ft_visiblename(wp->fp));
@@ -564,8 +565,8 @@ void ww_setwindowflags(WINFO *wp) {
 	wp->fnt_handle = 0;
 	if (wp->ww_handle) {
 		sl_size(wp);
-		EdSelectStdFont(wp->ww_handle, wp);
-		SendRedraw(wp->ww_handle);
+		font_selectStandardFont(wp->ww_handle, wp);
+		render_sendRedrawToWindow(wp->ww_handle);
 		wt_tcursor(wp,0);
 		wt_tcursor(wp,1);
 		caret_placeCursorForFile(fp,fp->ln,fp->caret.offset);
@@ -770,7 +771,7 @@ WINFUNC EditWndProc(
 		}
 		if (message == WM_EDWINREORG) {
 			if (wp->ru_handle) {
-				SendRedraw(wp->ru_handle);
+				render_sendRedrawToWindow(wp->ru_handle);
 			}
 			return 1;
 		}
@@ -874,7 +875,7 @@ int do_mouse(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	if (GetKeyState(VK_MENU) < 0) {
 		shift |= 8;
 	}
-	ret = do_mbutton(fp, x, y, but, ncl, shift);
+	ret = mouse_onMouseClicked(fp, x, y, but, ncl, shift);
 	return ret;
 }
 
@@ -938,7 +939,7 @@ static WINFUNC WorkAreaWndProc(
 		{
 		wp = (WINFO *)(((LPCREATESTRUCT)lParam)->lpCreateParams);
 		SetWindowLongPtr(hwnd, 0, (LONG_PTR) wp);
-		EdSelectStdFont(hwnd, wp);
+		font_selectStandardFont(hwnd, wp);
 		return 0;
 		}
 
@@ -981,7 +982,7 @@ static WINFUNC WorkAreaWndProc(
 
 	case WM_PAINT:
 		if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
-		   RedrawWmPaint(wp);
+		   render_paintWindow(wp);
 		}
 		return 0;
 
@@ -1115,7 +1116,7 @@ static WINFUNC RulerWndProc(
 		case WM_RBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 			if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
-				do_linbutton(wp, (int)LOWORD(lParam), (int)HIWORD(lParam), 
+				mouse_onRulerClicked(wp, (int)LOWORD(lParam), (int)HIWORD(lParam), 
 					(int)message, (int)wParam);
 			}
 			return 0;
@@ -1145,7 +1146,7 @@ static void draw_lineNumbers(WINFO* wp) {
 	hdc = BeginPaint(wp->lineNumbers_handle, &ps);
 	GetClientRect(wp->lineNumbers_handle, &rect);
 
-	saveFont = EdSelectFont(wp, hdc);
+	saveFont = font_selectDefaultEditorFont(wp, hdc,NULL);
 	SetTextColor(hdc, RGB(140,140,140));
 	/* SetBkColor(hdc,wp->fnt_bgcolor); */
 	SetBkMode(hdc, TRANSPARENT);
@@ -1164,7 +1165,7 @@ static void draw_lineNumbers(WINFO* wp) {
 		textLen = strlen(text);
 		DrawText(hdc, text, (int)textLen, &textRect, DT_RIGHT|DT_END_ELLIPSIS);
 	}
-	EdUnselectFont(hdc);
+	font_selectSystemFixedFont(hdc);
 	EndPaint(wp->lineNumbers_handle, &ps);
 }
 

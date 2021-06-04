@@ -31,6 +31,7 @@
 #include "errordialogs.h"
 #include "lineoperations.h"
 #include "findandreplace.h"
+#include "mouseutil.h"
 
 #define	UCHAR	unsigned char
 
@@ -69,7 +70,7 @@ static RE_OPTIONS *createREOptions(char* expression, char *ebuf, int flags, unsi
  * RegError()
  */
 int RegError(int errorCode) {	
-	ed_error(errorCode);
+	error_showErrorById(errorCode);
 	return 0;
 }
 
@@ -100,8 +101,8 @@ BOOL find_replacementHadBeenPerformed() {
  */
 int find_initializeReplaceByExpression(unsigned char* replaceByExpression) {
 	unsigned char nlchar;
-	if (ft_CurrentDocument()) {
-		nlchar = ft_CurrentDocument()->documentDescriptor->nl;
+	if (ft_getCurrentDocument()) {
+		nlchar = ft_getCurrentDocument()->documentDescriptor->nl;
 	}
 	else {
 		nlchar = '\n';
@@ -182,7 +183,7 @@ static int _cancelled;
 static int xabort(void )
 {	static int _abort;
 
-	if ((_abort++ & 0x3F) == 0 && ProgressMonitorCancel(TRUE)) {
+	if ((_abort++ & 0x3F) == 0 && progress_cancelMonitor(TRUE)) {
 		_cancelled = 1;
 		return 1;
 	}
@@ -258,8 +259,8 @@ int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options)
 	RE_MATCH match;
 
 	memset(&match, 0, sizeof match);
-	fp = ft_CurrentDocument();
-	MouseBusy();
+	fp = ft_getCurrentDocument();
+	mouse_setBusyCursor();
 	ln  = fp->ln;
 	lp  = fp->caret.linePointer;
 	col = fp->caret.offset;
@@ -293,18 +294,18 @@ int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options)
 			ret = 1;
 		}
 	}
-	changemouseform();
+	mouse_setDefaultCursor();
 
 	if (ret == 1) {
 		searchcpos(fp,ln,col, &match);
 		if (wrapped)
-			ed_error(IDS_MSGWRAPPED);
+			error_showErrorById(IDS_MSGWRAPPED);
 	}
 	else {
 		if (wrap)
-			ed_error(IDS_MSGSTRINGNOTFOUND);
+			error_showErrorById(IDS_MSGSTRINGNOTFOUND);
 		else
-			ed_error((dir > 0) ? IDS_MSGNOMATCHTOEND :
+			error_showErrorById((dir > 0) ? IDS_MSGNOMATCHTOEND :
 							 IDS_MSGNOMATCHTOSTART);
 	}
 	return ret;
@@ -360,7 +361,7 @@ int tab_expand(LINE *lp, long *nt)
 	while(s < send && d < dend) {
 		if ((c = *s++) == '\t') {
 			col = (int)(d - _linebuf);
-			col = TabStop(col,ft_CurrentDocument()->documentDescriptor) - col;
+			col = TabStop(col,ft_getCurrentDocument()->documentDescriptor) - col;
 			blfill(d,col,' ');
 			(*nt)++;
 			d += col;
@@ -472,10 +473,10 @@ static void modifypgr(FTABLE *fp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
 	}
 	caret_placeCursorInCurrentFile(fp->ln,0L);
 	if (*cntel) {
-		p_redraw();
+		render_redrawAndPaintCurrentFile();
 		*cntln = countlines(fp,*cntln,1);
 	}
-	changemouseform();
+	mouse_setDefaultCursor();
 }
 
 /*--------------------------------------------------------------------------
@@ -483,8 +484,8 @@ static void modifypgr(FTABLE *fp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
  */
 int find_selectRangeWithMarkers(int rngdefault, MARK** mps, MARK** mpe)
 {
-	if (!ft_CurrentDocument() ||
-		SelectRange(rngdefault, ft_CurrentDocument(), mps, mpe) == RNG_INVALID)
+	if (!ft_getCurrentDocument() ||
+		SelectRange(rngdefault, ft_getCurrentDocument(), mps, mpe) == RNG_INVALID)
 		return 0;
 	return 1;
 }
@@ -501,12 +502,12 @@ int ReplaceTabs(int scope, int flg)
 	if (!find_selectRangeWithMarkers(scope,&mps,&mpe))
 		return 0;
 
-	ProgressMonitorStart(IDS_ABRTCONVERT);
-	modifypgr(ft_CurrentDocument(),(flg) ? expline : compline,&nt,&nl,mps,mpe);
-	ProgressMonitorClose(0);
+	progress_startMonitor(IDS_ABRTCONVERT);
+	modifypgr(ft_getCurrentDocument(),(flg) ? expline : compline,&nt,&nl,mps,mpe);
+	progress_closeMonitor(0);
 
 	if (nt) 
-		ShowMessage(IDS_MSGEXPANDTABS,nt,nl);
+		error_showMessageInStatusbar(IDS_MSGEXPANDTABS,nt,nl);
 	return 1;
 }
 
@@ -544,7 +545,7 @@ rescan:
  */
 int EdPasteString(long dummy1, long dummy2, char *string)
 {
-	FTABLE *	fp = ft_CurrentDocument();
+	FTABLE *	fp = ft_getCurrentDocument();
 	LINE *	lp;
 	int		len;
 
@@ -558,7 +559,7 @@ int EdPasteString(long dummy1, long dummy2, char *string)
 	memmove(&lp->lbuf[fp->caret.offset],string,len);
 	breaklines(fp,1,fp->ln,fp->ln);
 
-	RedrawTotalWindow(fp);
+	render_repaintAllForFile(fp);
 
 	return 1;
 }
@@ -592,9 +593,9 @@ int EdReplaceText(int scope, int action, int flags)
 			query,marked;
 
 	memset(&match, 0, sizeof match);
-	fp = ft_CurrentDocument();
+	fp = ft_getCurrentDocument();
 
-	if (readonly(fp) && action == REP_REPLACE) {
+	if (ft_checkReadonlyWithError(fp) && action == REP_REPLACE) {
 		return 0;
 	}
 	
@@ -641,7 +642,7 @@ int EdReplaceText(int scope, int action, int flags)
 		_playing = 0;
 
 	if (!(query || scope == RNG_ONCE)) {
-		ProgressMonitorStart(IDS_ABRTREPLACE);
+		progress_startMonitor(IDS_ABRTREPLACE);
 	}
 
 	while(lp) {
@@ -742,7 +743,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 		strxcpy(&lp->lbuf[col],q,newlen);
 
 		if (query)
-			redrawline();
+			render_redrawCurrentLine();
 
 		delta = (int)newlen;
 advance1:	rp++;
@@ -761,7 +762,7 @@ advance:	if (delta <= 0 && olen <= 0)	/* empty expr. glitch */
 
 endrep:
 	if (!(query || scope == RNG_ONCE)) {
-		ProgressMonitorClose(0);
+		progress_closeMonitor(0);
 	}
 	CloseQueryReplace();
 	_playing = splflg;
@@ -772,25 +773,25 @@ endrep:
 				caret_placeCursorInCurrentFile(startln,0L);
 				ln = breaklines(fp,0,startln,ln);
 				caret_placeCursorMakeVisibleAndSaveLocation(ln,col);
-				RedrawTotalWindow(fp);
+				render_repaintAllForFile(fp);
 			} else {
 				caret_placeCursorMakeVisibleAndSaveLocation(lastfln,lastfcol);
 				if (scope == RNG_ONCE && action == REP_REPLACE) {
-					redrawline();
+					render_redrawCurrentLine();
 				} else {
-					RedrawTotalWindow(fp);
+					render_repaintAllForFile(fp);
 				}
 			}
 		}
 		/* countlines MUST be called to clear lineflags !!!! */
 		ln = countlines(fp,startln,1);
 		if (action != REP_REPLACE) {
-			ShowMessage(IDS_MSGNFOUND, _currentSearchAndReplaceParams.searchPattern,ln,rp);
+			error_showMessageInStatusbar(IDS_MSGNFOUND, _currentSearchAndReplaceParams.searchPattern,ln,rp);
 		} else {
-			ShowMessage(IDS_MSGNREPL, _currentSearchAndReplaceParams.searchPattern,rp,ln);
+			error_showMessageInStatusbar(IDS_MSGNREPL, _currentSearchAndReplaceParams.searchPattern,rp,ln);
 		}
 	} else if (sc1flg && !_playing) {
-		ed_error(IDS_MSGSTRINGNOTFOUND);
+		error_showErrorById(IDS_MSGSTRINGNOTFOUND);
 		return 0;
 	}
 	return 1;
@@ -812,8 +813,8 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
 
 	_linebuf[0] = 0;
 	RE_PATTERN* pPattern;
-	if (ft_CurrentDocument()) {
-		nlchar = ft_CurrentDocument()->documentDescriptor->nl;
+	if (ft_getCurrentDocument()) {
+		nlchar = ft_getCurrentDocument()->documentDescriptor->nl;
 	}
 	else {
 		nlchar = '\n';
@@ -870,7 +871,7 @@ int SelectRange(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend) {
 	if ( rngetype == RNG_FREE &&
 	   ((*markstart = mark_find(fp,MARKSELSTART)) == 0 ||
 	    (*markend   = mark_find(fp,MARKSELEND))   == 0)) {
-	    	ed_error(IDS_MSGNORANGESELECTED);
+	    	error_showErrorById(IDS_MSGNORANGESELECTED);
 		return RNG_INVALID;
 	}
 

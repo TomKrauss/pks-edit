@@ -233,5 +233,10 @@ extern int bl_hasClipboardBlock(int ubuf, int id);
  */
 extern int bl_append(PASTE* pb, LINE* lnfirst, LINE* lnlast, int cfirst, int clast);
 
+/*---------------------------------*/
+/* bl_pasteBlock()					*/
+/*---------------------------------*/
+extern int bl_pasteBlock(PASTE* buf, int colflg, int offset, int move);
+
 #define TEXTBLOCKS_H
 #endif // !TEXTBLOCKS_H

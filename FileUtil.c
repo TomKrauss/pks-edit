@@ -109,7 +109,7 @@ EXPORT int file_openFile(char *fn) {
 	int fd;
 
 	if ((fd = Fopen(fn, OF_READ)) < 0) {
-		tosfnerror(fn,fd);
+		error_openingFileFailed(fn,fd);
 	}
 	return fd;
 }
@@ -132,12 +132,12 @@ EXPORT int file_createFileWithMode(char *fn,int mode)
 	while(1) {
 		if ((fd = Fcreate(fn,mode)) < 0) {
 			if ( file_getFileMode(fn) < 0) {
-				tosfnerror(fn,fd);
+				error_openingFileFailed(fn,fd);
 				break;
 			} else {
-				if (ed_yn(IDS_MSGWPROTECT,(LPSTR)AbbrevName(fn)) == IDYES) {
+				if (errorDisplayYesNoConfirmation(IDS_MSGWPROTECT,(LPSTR)string_abbreviateFileName(fn)) == IDYES) {
 					if (file_makeFileReadWrite(fn) < 0) {
-						ed_error(IDS_MSGERRCHMOD);
+						error_showErrorById(IDS_MSGERRCHMOD);
 						break;
 					} else {
 						continue;
@@ -166,7 +166,7 @@ EXPORT int file_createFile(char *fn)
 static int pathstat(char *path,char *fn)
 {
 	if (path) {
-		strdcpy(_found,path,fn);
+		string_concatPathAndFilename(_found,path,fn);
 		return (dostat(_found));
 	}
 	return 0;
@@ -212,7 +212,7 @@ EXPORT char *file_searchFileInPath(char *fn,char *path) {
 	if ((path = strtok(p,",;")) != 0)
 	for (;;) {	
 		if (lstrchr(path,'*')) {
-			sfsplit(path,p2,(char *)0);
+			string_splitFilename(path,p2,(char *)0);
 			path = p2;
 		}
 		if (pathstat(path,fn)) {
@@ -256,7 +256,7 @@ EXPORT char *file_getTempDirectory(void)
 #else
 	char 		dst[1024];
 	GetTempFileName(0,"X",(UINT)hInst,dst);
-	sfsplit(dst,tmpdir,(char *)0);
+	string_splitFilename(dst,tmpdir,(char *)0);
 #endif
 	}
 	return tmpdir;
@@ -274,7 +274,7 @@ EXPORT void file_clearTempFiles(void)
 
 	file_getTempFilename(tmpname,'!');
 	fn[0] = 0;
-	sfsplit(tmpname,pathname,fn);
+	string_splitFilename(tmpname,pathname,fn);
 	if ((szBang = strchr(fn, '!')) != 0) {
 		*szBang = '?';
 		_ftw(pathname,_unlink,1,fn,0xFF);

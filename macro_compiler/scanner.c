@@ -705,7 +705,7 @@ int yyfinish(void)
 unsigned char *yystralloc(unsigned char *s)
 {	unsigned char *d;
 
-	if ((d = stralloc(s)) == 0) {
+	if ((d = string_allocate(s)) == 0) {
 		if (yyerr.failpt)
 			longjmp(*yyerr.failpt,ERR_SPACE);
 		return 0;

@@ -81,7 +81,7 @@ void ValidEscapeMacros(char *pszValid)
 {
 	PASTELIST *pl;
 
-	pl = _esclist[ft_CurrentDocument()->documentDescriptor->id];
+	pl = _esclist[ft_getCurrentDocument()->documentDescriptor->id];
 	while (pl != 0) {
 		*pszValid++ = pl->id;
 		pl = pl->next;
@@ -103,7 +103,7 @@ static PASTE *EscapePasteForId(int id)
 {
 	PASTE *		pp;
 
-	if ((pp = pp_find(id, _esclist[ft_CurrentDocument()->documentDescriptor->id])) != 0) {
+	if ((pp = pp_find(id, _esclist[ft_getCurrentDocument()->documentDescriptor->id])) != 0) {
 		return pp;
 	}
 	return 0 /*pp_find(id,_esclist[0]) */ ;
@@ -129,7 +129,7 @@ int EdMacroEscape(void)
 	static unsigned char id;
 	char 	cIdentChars[256];
 
-	if (!ft_CurrentDocument()) {
+	if (!ft_getCurrentDocument()) {
 		return 0;
 	}
      ValidEscapeMacros(cIdentChars);
@@ -141,10 +141,10 @@ int EdMacroEscape(void)
 	pp = EscapePasteForId(id);
 
 	if (!pp) {
-		ed_error(IDS_MSGESCAPEUNDEF);
+		error_showErrorById(IDS_MSGESCAPEUNDEF);
 		return 0;
 	}
-	return pasteblk(pp, 0, ft_CurrentDocument()->caret.offset, 0);
+	return bl_pasteBlock(pp, 0, ft_getCurrentDocument()->caret.offset, 0);
 }
 
 /*--------------------------------------------------------------------------
@@ -196,7 +196,7 @@ static char *cutquotes(char **S)
 	buf[_qulen] = 0;
 
 	*S = d;
-	return stralloc(buf);
+	return string_allocate(buf);
 }
 
 /*--------------------------------------------------------------------------
@@ -205,7 +205,7 @@ static char *cutquotes(char **S)
 static int advtok(LINE **lp,PASTE *pp,char *s)
 {	register LINE *lnlast;
 	LINE *lnfirst;
-	int cfirst,clast,p1;
+	intptr_t cfirst,clast,p1;
 
 	if ((s  = skbl(s)) == 0L)
 		return 0;
@@ -271,11 +271,11 @@ static int setupccl(char *s)
 	if ((c2 = cutquotes(&s)) == 0)
 		return 0;
 
-	v = Atol(s);
-	i1 = Atol(_strtolend);
-	i2 = Atol(_strtolend);
-	i3 = Atol(_strtolend);
-	i4 = Atol(_strtolend);
+	v = string_convertToLong(s);
+	i1 = string_convertToLong(_strtolend);
+	i2 = string_convertToLong(_strtolend);
+	i3 = string_convertToLong(_strtolend);
+	i4 = string_convertToLong(_strtolend);
 
 	return sm_defineBracketIndentation(c1,c2,v,i1,i2,i3,i4,_context);
 }
@@ -314,7 +314,7 @@ int doabbrev(FTABLE *fp, LINE *lp,int offs)
 		return 0;
 	caret_placeCursorInCurrentFile(fp->ln,o2);
 	return (domacro) ? 
-		redrawline(), mac_executeByName((char *)up->p) : pasteblk(up->p,0,o2,0);
+		render_redrawCurrentLine(), mac_executeByName((char *)up->p) : bl_pasteBlock(up->p,0,o2,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -407,7 +407,7 @@ int Mapread(int context, char *target)
 	if (_outfile.firstl != 0) {
 		char protname[256];
 	
-		strdcpy(protname,file_getTempDirectory(),"KEY.ERR");
+		string_concatPathAndFilename(protname,file_getTempDirectory(),"KEY.ERR");
 		ft_writeFileAndClose(&_outfile,protname,0);
 		xref_openSearchList(protname,1);
 	}
@@ -421,7 +421,7 @@ int EdDocMacrosAdd(void)
 {
 	char	*	fn;
 
-	if (!ft_CurrentDocument() || (fn = fsel_selectFileWithOptions(&_linfsel,MADDDOCMAC, TRUE)) == 0) {
+	if (!ft_getCurrentDocument() || (fn = fsel_selectFileWithOptions(&_linfsel,MADDDOCMAC, TRUE)) == 0) {
 		return 0;
 	}
 
@@ -429,7 +429,7 @@ int EdDocMacrosAdd(void)
 		return 0;
 	}
 
-	MergeDocumentTypes(fn, ft_CurrentDocument()->fname);
+	MergeDocumentTypes(fn, ft_getCurrentDocument()->fname);
 
 	return 0;
 }
@@ -442,11 +442,11 @@ int EdDocMacrosEdit(void)
 	char 	keyfile[256];
 	extern char *_datadir;
 
-	if (!ft_CurrentDocument()) {
+	if (!ft_getCurrentDocument()) {
 		return 0;
 	}
-	strdcpy(keyfile, _datadir, "MODI.TMP");
-	if (CreateTempFileForDocumentType(file_searchFileInPKSEditLocation(ft_CurrentDocument()->documentDescriptor->name), keyfile)) {
+	string_concatPathAndFilename(keyfile, _datadir, "MODI.TMP");
+	if (CreateTempFileForDocumentType(file_searchFileInPKSEditLocation(ft_getCurrentDocument()->documentDescriptor->name), keyfile)) {
 		return xref_openFile(keyfile, -1L, (void*)0);
 	}
 	return 0;
@@ -472,7 +472,7 @@ void bind_abbreviation(char *trigger, char *s)
 	if ((pp = getbuf(s, &_abbrevlist, ++_abid)) == 0L) {
 		return;
 	}
-	uc_add(stralloc(trigger), pp, UA_ABBREV, _context);
+	uc_add(string_allocate(trigger), pp, UA_ABBREV, _context);
 }
 
 /*--------------------------------------------------------------------------
@@ -480,7 +480,7 @@ void bind_abbreviation(char *trigger, char *s)
  */
 void bind_abbrevmacro(char *trigger, char *macroname)
 {
-	uc_add(stralloc(trigger), stralloc(macroname), UA_UCMACRO, _context);
+	uc_add(string_allocate(trigger), string_allocate(macroname), UA_UCMACRO, _context);
 }
 
 /*--------------------------------------------------------------------------
@@ -495,7 +495,7 @@ void bind_escape(char id, char *s)
  * bind_ccldefinition()
  */
 void bind_ccldefinition(char *c1, char *c2, int v, int i1, int i2. int i3. int i4) {
-	sm_defineBracketIndentation(stralloc(c1), stralloc(c2), v, i1, i2, i3, i4, _context);
+	sm_defineBracketIndentation(string_allocate(c1), string_allocate(c2), v, i1, i2, i3, i4, _context);
 }
 
 # endif

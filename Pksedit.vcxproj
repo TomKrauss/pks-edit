@@ -1182,9 +1182,11 @@
     <ClInclude Include="include\fileselector.h" />
     <ClInclude Include="include\fileutil.h" />
     <ClInclude Include="include\findandreplace.h" />
+    <ClInclude Include="include\mouseutil.h" />
     <ClInclude Include="include\publicapi.h" />
     <ClInclude Include="include\stringutil.h" />
     <ClInclude Include="include\textblocks.h" />
+    <ClInclude Include="include\winutil.h" />
     <ClInclude Include="rc\dial2.h" />
     <ClInclude Include="rc\fsel.h" />
     <ClInclude Include="include\binop.h" />

@@ -21,11 +21,13 @@
 #include "winterf.h"
 #include "winfo.h"
 #include "editorconfiguration.h"
+#include "mouseutil.h"
+#include "winutil.h"
 
 /*--------------------------------------------------------------------------
- * GetWindowWH()
+ * win_getWindowSize()
  */
-static void GetWindowWH(HWND hwnd, int *width, int *height)
+static void win_getWindowSize(HWND hwnd, int *width, int *height)
 {	RECT r;
 
 	GetWindowRect(hwnd,&r);
@@ -34,13 +36,13 @@ static void GetWindowWH(HWND hwnd, int *width, int *height)
 }
 
 /*--------------------------------------------------------------------------
- * form_xy()
+ * win_moveWindowToXY()
  */
-EXPORT void form_xy(HWND hwnd, int meetpoint, int x, int y)
+EXPORT void win_moveWindowToXY(HWND hwnd, int meetpoint, int x, int y)
 {
 	int 	delta,scheight,height,width;
 
-	GetWindowWH(hwnd,&width,&height);
+	win_getWindowSize(hwnd,&width,&height);
 	scheight = GetSystemMetrics(SM_CYSCREEN);
 
 	if (meetpoint) {		/* x/y is center of formular */
@@ -66,18 +68,19 @@ EXPORT void form_xy(HWND hwnd, int meetpoint, int x, int y)
 }
 
 /*--------------------------------------------------------------------------
- * form_textcursor()
+ * win_positionWindowRelativeToCaret()
+ * Move a window relative to the caret of the current active window.
  */
-EXPORT int form_textcursor(HWND hwnd)
+EXPORT int win_positionWindowRelativeToCaret(HWND hwnd)
 {	
 	POINT 	p;
 	WINFO 	*wp;
 	RECT		r;
 
-	if (!ft_CurrentDocument())
+	if (!ft_getCurrentDocument())
 		return 0;
 
-	wp = WIPOI(ft_CurrentDocument());
+	wp = WIPOI(ft_getCurrentDocument());
 
 	GetWindowRect(hwndFrame, &r);
 
@@ -85,41 +88,45 @@ EXPORT int form_textcursor(HWND hwnd)
 	// p.x = wp->cx;
 	ClientToScreen(wp->ww_handle,&p);
 
-	form_xy(hwnd,0,(r.left+r.right)/2,p.y);
+	win_moveWindowToXY(hwnd,0,(r.left+r.right)/2,p.y);
 	return 1;
 }
 
 /*--------------------------------------------------------------------------
- * form_mouse()
+ * win_moveWindowCloseToMousePosition()
+ * Move a window close to the current mouse position.
  */
-EXPORT int form_mouse(HWND hwnd)
+EXPORT int win_moveWindowCloseToMousePosition(HWND hwnd)
 {	int  x = 0, y = 0;
 
-	MouseGetXYPos(GetParent(hwnd),&x,&y);
-	form_xy(hwnd,1,x,y);
+	mouse_getXYPos(GetParent(hwnd),&x,&y);
+	win_moveWindowToXY(hwnd,1,x,y);
 	return 1;
 }
 
 /*--------------------------------------------------------------------------
- * form_center()
+ * win_centerWindow()
+ * Move the window into the center to the screen.
  */
-EXPORT int form_center(HWND hwnd)
+EXPORT int win_centerWindow(HWND hwnd)
 {	RECT r;
 
 	GetWindowRect(hwndFrame, &r);
-	form_xy(hwnd,1,(r.left+r.right)/2,(r.top+r.bottom)/2);
+	win_moveWindowToXY(hwnd,1,(r.left+r.right)/2,(r.top+r.bottom)/2);
 	return 1;
 }
 
 /*--------------------------------------------------------------------------
- * form_move()
+ * win_moveWindowToDefaultPosition()
+ * Move a window relative to either the mouse or position it to the center of
+ * the screen depending on the configuration.
  */
-EXPORT int form_move(HWND hDlg)
+EXPORT int win_moveWindowToDefaultPosition(HWND hDlg)
 {
 	if (GetConfiguration()->options & O_FORMFOLLOW)
-		return form_mouse(hDlg);
+		return win_moveWindowCloseToMousePosition(hDlg);
 
 	return
-		form_center(hDlg);
+		win_centerWindow(hDlg);
 }
 

@@ -24,8 +24,8 @@
 #include "errordialogs.h"
 
 extern long 	number(char *s);
-extern int 		IsStringType(unsigned char typ);
-extern int 		GetDollar(intptr_t offset, int *typ, intptr_t *value);
+extern int 		macro_isParameterStringType(unsigned char typ);
+extern int 		macro_getDollarParameter(intptr_t offset, int *typ, intptr_t *value);
 
 static SYMBOL	nullSymbol;
 
@@ -102,7 +102,7 @@ static ENTRY *hfind(char *key,ACTION action)
 	} while (sonde < _overflow);
 
 	if (action == ENTER)
-		alert("hash table overflow\n");
+		error_displayAlertDialog("hash table overflow\n");
 	return 0;
 }
 
@@ -179,15 +179,15 @@ static intptr_t sym_destroy(char *key)
 }
 
 /*--------------------------------------------------------------------------
- * MakeInternalSym()
+ * sym_makeInternalSymbol()
  */
-int MakeInternalSym(char *name, char ed_typ, intptr_t value) {
+int sym_makeInternalSymbol(char *name, char ed_typ, intptr_t value) {
 	ENTRY	*ep;
 	int		type;
 
 	type = ed_typ;
 	if (ed_typ == S_STRING || ed_typ == S_CONSTSTRING) {
-		if ((value = (intptr_t) stralloc((char*)value)) == 0) {
+		if ((value = (intptr_t) string_allocate((char*)value)) == 0) {
 			return 0;
 		}
 	}
@@ -201,7 +201,7 @@ int MakeInternalSym(char *name, char ed_typ, intptr_t value) {
 		SETSYMBOL(ep->sym,type,value);
 		return 1;
 	} else {
-		if ((name = stralloc(name)) == 0) {
+		if ((name = string_allocate(name)) == 0) {
 			return 0;
 		}
 	}
@@ -219,12 +219,12 @@ static SYMBOL GetVariable(char *symbolname)
 
 	sym = sym_find(symbolname,&tmp);
 	if (NULLSYM(sym)) {
-		alert("undefined symbol %s",symbolname);
+		error_displayAlertDialog("undefined symbol %s",symbolname);
 		return sym;
 	}
 
 	if (TYPEOF(sym) < S_NUMBER || TYPEOF(sym) > S_DOLSTRING) {
-		alert("bad symbol %s (%x)",symbolname,TYPEOF(sym));
+		error_displayAlertDialog("bad symbol %s (%x)",symbolname,TYPEOF(sym));
 		return nullSymbol;
 	}
 
@@ -232,9 +232,9 @@ static SYMBOL GetVariable(char *symbolname)
 }
 
 /*--------------------------------------------------------------------------
- * MakeInteger()
+ * sym_integerForSymbol()
  */
-long MakeInteger(char *symbolname) {
+long sym_integerForSymbol(char *symbolname) {
 	SYMBOL 	sym;
 	int		isString;
 	intptr_t value;
@@ -247,7 +247,7 @@ long MakeInteger(char *symbolname) {
 
 	switch (TYPEOF(sym)) {
 	case S_DOLNUMBER: case S_DOLSTRING:
-		if (GetDollar((intptr_t) VALUE(sym), &isString, &value) == 0) {
+		if (macro_getDollarParameter((intptr_t) VALUE(sym), &isString, &value) == 0) {
 			return 0;
 		}
 		if (!isString) {
@@ -262,9 +262,9 @@ long MakeInteger(char *symbolname) {
 }
 
 /*--------------------------------------------------------------------------
- * MakeString()
+ * sym_stringForSymbol()
  */
-intptr_t MakeString(char *symbolname) {
+intptr_t sym_stringForSymbol(char *symbolname) {
 	SYMBOL 	sym;
 	int		isString;
 	intptr_t		value;
@@ -278,7 +278,7 @@ intptr_t MakeString(char *symbolname) {
 
 	switch(TYPEOF(sym)) {
 	case S_DOLNUMBER: case S_DOLSTRING:
-		if (GetDollar((intptr_t) VALUE(sym), &isString, &value) == 0) {
+		if (macro_getDollarParameter((intptr_t) VALUE(sym), &isString, &value) == 0) {
 			return 0;
 		}
 		if (isString) {
@@ -297,14 +297,14 @@ intptr_t MakeString(char *symbolname) {
 }
 
 /*--------------------------------------------------------------------------
- * Assign()
+ * sym_assignSymbol()
  */
-long Assign(char *name, COM_LONG1 *v) {
+long sym_assignSymbol(char *name, COM_LONG1 *v) {
 	int 	typ;
 	intptr_t value;
 
-	typ = IsStringType(v->typ) ? S_STRING : S_NUMBER;
-	value = param_pop((unsigned char **)&v);
-	return MakeInternalSym(name,typ,value);
+	typ = macro_isParameterStringType(v->typ) ? S_STRING : S_NUMBER;
+	value = macro_popParameter((unsigned char **)&v);
+	return sym_makeInternalSymbol(name,typ,value);
 }
 

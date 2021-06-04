@@ -41,7 +41,7 @@
 
 extern void *	shareAlloc();
 extern HWND 	ww_winid2hwnd(int winid);
-extern int 	PromptAsPath(char *path);
+extern int 	EdPromptAutosavePath(char *path);
 
 extern char *	_datadir;
 extern void *	lastSelectedDocType;
@@ -54,16 +54,16 @@ static char		*_historyFileName = NULL;
 int				_ExSave;
 
 /*--------------------------------------------------------------------------
- * GenerateBackupPathname()
+ * ft_generateBackupPathname()
  */
-static int GenerateBackupPathname(char *destinationName, char *fname)
+static int ft_generateBackupPathname(char *destinationName, char *fname)
 {	char fn[EDMAXPATHLEN];
 	char szBuff[EDMAXPATHLEN];
 
 	if (GetConfiguration()->pksEditTempPath[0]) {
-		sfsplit(fname,(char *)0,fn);
-		strdcpy(szBuff, GetConfiguration()->pksEditTempPath,fn);
-		FullPathName(destinationName,szBuff);
+		string_splitFilename(fname,(char *)0,fn);
+		string_concatPathAndFilename(szBuff, GetConfiguration()->pksEditTempPath,fn);
+		string_getFullPathName(destinationName,szBuff);
 		return 1;
 	}
 	return 0;
@@ -72,14 +72,14 @@ static int GenerateBackupPathname(char *destinationName, char *fname)
 /*
  * Returns the current active document. Should not be used any more to often 
  */
-FTABLE* ft_CurrentDocument() {
+FTABLE* ft_getCurrentDocument() {
 	return _currentFile;
 }
 
 /*
  * Returns the current error document. Should not be used any more to often
  */
-FTABLE* ft_CurrentErrorDocument() {
+FTABLE* ft_getCurrentErrorDocument() {
 	return _currentErrorFile;
 }
 
@@ -87,7 +87,7 @@ FTABLE* ft_CurrentErrorDocument() {
  * Make the passed file the "current error file" - which can be used by clicking on
  * lines displayed in that file to navigate to positions (compiler errors etc...).
  */
-void ft_SetCurrentErrorDocument(FTABLE* fp) {
+void ft_setCurrentErrorDocument(FTABLE* fp) {
 	_currentErrorFile = fp;
 }
 
@@ -107,15 +107,15 @@ static BOOL areFilenamesDifferent(char* fileName1, char* fileName2) {
 	return lstrcmpi(tempFn1, tempFn2);
 }
 
-void ft_CheckForChangedFiles(void) {
+void ft_checkForChangedFiles(void) {
 	FTABLE *	fp;
 	EDTIME		lCurrentTime;
 	
 	for (fp = _filelist; fp; fp = fp->next) {
 		if (fp->ti_created < (lCurrentTime = file_getAccessTime(fp->fname))) {
 			EdSelectWindow(WIPOI(fp)->win_id);
-			if (ed_yn(IDS_MSGFILESHAVECHANGED, OemAbbrevName(fp->fname)) == IDYES) {
-				AbandonFile(fp, (DOCUMENT_DESCRIPTOR *)0);			
+			if (errorDisplayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
+				ft_abandonFile(fp, (DOCUMENT_DESCRIPTOR *)0);			
 			}
 		}
 		fp->ti_created = lCurrentTime;
@@ -123,11 +123,11 @@ void ft_CheckForChangedFiles(void) {
 }
 
 /*---------------------------------*/
-/* TriggerAutosaveAllFiles()					*/
+/* ft_triggerAutosaveAllFiles()					*/
 /* do an autosave				*/
 /*---------------------------------*/
 #define 	HZ			1000L
-int TriggerAutosaveAllFiles(void)
+int ft_triggerAutosaveAllFiles(void)
 {	int	    		ret,flags,saved;
 	long     		now,dclicks;
 	register FTABLE *fp;
@@ -175,7 +175,7 @@ autosave:
 		/* "best before" date expired: do autosave */
 		strcpy(spath,fp->fname);
 
-		GenerateBackupPathname(fp->fname,fp->fname);
+		ft_generateBackupPathname(fp->fname,fp->fname);
 		ret = ft_writefileMode(fp,1);
 
 		/* restore MODIFIED and ISBACKUPED - Flags */
@@ -185,8 +185,8 @@ autosave:
 		/* we autosaved into source file: set state to unmodified */
 			if (!GetConfiguration()->pksEditTempPath[0])
 				fp->flags &= ~F_MODIFIED;
-			ShowMessage(IDS_MSGAUBE,ft_visiblename(fp));
-		} else if (PromptAsPath(GetConfiguration()->pksEditTempPath)) {
+			error_showMessageInStatusbar(IDS_MSGAUBE,ft_visiblename(fp));
+		} else if (EdPromptAutosavePath(GetConfiguration()->pksEditTempPath)) {
 		/* let the user correct invalid autosave pathes */
 			prof_saveaspath(GetConfiguration());
 			goto autosave;
@@ -210,10 +210,11 @@ autosave:
 	return saved;
 }
 
-/*---------------------------------*/
-/* picksave()					*/
-/*---------------------------------*/
-void picksave(void )
+/*---------------------------------
+ * ft_saveWindowStates()			
+ * Save the state of the currently opened windows in the config for restore.
+ ---------------------------------*/
+void ft_saveWindowStates(void )
 {	int    				s;
 	FTABLE 				ft;
 	WINFO *				wp;
@@ -237,16 +238,16 @@ void picksave(void )
 	hist_allsave(&ft);
 	pszFilename = _historyFileName;
 	if (pszFilename == NULL) {
-		strdcpy(szBuff, _datadir, HISTORY_FILE_NAME);
+		string_concatPathAndFilename(szBuff, _datadir, HISTORY_FILE_NAME);
 		pszFilename = szBuff;
 	}
 	ft_writeFileAndClose(&ft, pszFilename, FA_NORMAL);
 }
 
 /*---------------------------------*/
-/* pickread()					*/
+/* ft_restorePreviouslyOpenedWindows()					*/
 /*---------------------------------*/
-int pickread(void )
+int ft_restorePreviouslyOpenedWindows(void )
 {
 	FTABLE 	ft;
 	char *	pszFound;
@@ -257,7 +258,7 @@ int pickread(void )
 		    ft_readfileWithOptions(&ft, pszFound, -1)) {
 			// save complete filename of history file.
 			GetFullPathName(pszFound, sizeof szBuff, szBuff, NULL);
-			_historyFileName = stralloc(szBuff);
+			_historyFileName = string_allocate(szBuff);
 			if (_filelist == 0) {
 				xref_openSearchListResultFromLine(ft.firstl);
 			}
@@ -299,7 +300,7 @@ void ft_deleteautosave(FTABLE *fp)
 {
 	char as_name[EDMAXPATHLEN];
 
-	if ((GetConfiguration()->options & O_GARBAGE_AS) && GenerateBackupPathname(as_name,fp->fname)) {
+	if ((GetConfiguration()->options & O_GARBAGE_AS) && ft_generateBackupPathname(as_name,fp->fname)) {
 		if (areFilenamesDifferent(fp->fname,as_name)) {
 			_unlink(as_name);
 		}
@@ -318,10 +319,10 @@ void ft_destroy(FTABLE *fp)
 
 	ll_delete((LINKED_LIST**)&_filelist,fp);
 
-	if (!_filelist || P_EQ(fp, ft_CurrentDocument())) {
+	if (!_filelist || P_EQ(fp, ft_getCurrentDocument())) {
 		_currentFile = NULL;
 	}
-	if (P_EQ(fp, ft_CurrentErrorDocument())) {
+	if (P_EQ(fp, ft_getCurrentErrorDocument())) {
 		_currentErrorFile = NULL;
 	}
 }
@@ -385,7 +386,7 @@ int ft_checkSelection(FTABLE* fp) {
  *---------------------------------*/
 EXPORT int ft_checkSelectionWithError(FTABLE* fp) {
 	if (ft_checkSelection(fp) == 0) {
-		ed_error(IDS_MSGNOBLOCKSELECTED);
+		error_showErrorById(IDS_MSGNOBLOCKSELECTED);
 		return 0;
 	}
 	return 1;
@@ -460,7 +461,7 @@ int ft_requestToClose(FTABLE *fp)
 		if (_ExSave || (GetConfiguration()->options & AUTOWRITE)) {
 	     	return ft_writeFileWithAlternateName(fp);
 		}
-		switch(ed_ync(IDS_MSGQUITORSAVE,ft_visiblename(fp))) {
+		switch(error_displayYesNoCancelConfirmation(IDS_MSGQUITORSAVE,ft_visiblename(fp))) {
 			case IDYES:
 				if (!ft_writeFileWithAlternateName(fp)) {
 					if (!(GetConfiguration()->options & WARNINGS)) {
@@ -479,9 +480,10 @@ int ft_requestToClose(FTABLE *fp)
 }
 
 /*------------------------------------------------------------
- * EdSelectWindow()
+ * ft_selectWindowWithId()
+ * Select and activate the window with the given window id.
  */
-int SelectWindow(int winid, BOOL bPopup)
+int ft_selectWindowWithId(int winid, BOOL bPopup)
 {
 	HWND 	hwndChild;
 	WINFO *	wp;
@@ -497,7 +499,7 @@ int SelectWindow(int winid, BOOL bPopup)
 	}
 
 	if ((hwndChild = ww_winid2hwnd(winid)) == 0) {
-		ed_error(IDS_MSGWRONGWINDOW);
+		error_showErrorById(IDS_MSGWRONGWINDOW);
 		return 0;
 	}
 
@@ -514,7 +516,7 @@ int SelectWindow(int winid, BOOL bPopup)
  */
 int EdSelectWindow(int winid)
 {
-	return SelectWindow(winid, TRUE);
+	return ft_selectWindowWithId(winid, TRUE);
 }
 
 /*------------------------------------------------------------
@@ -551,14 +553,15 @@ int txtfile_select(int title, char *result)
 
 
 /*------------------------------------------------------------
- * ActivateWindowOfFileNamed()
+ * ft_activateWindowOfFileNamed()
+ * Activate the window of the file named...
  */
-int ActivateWindowOfFileNamed(char *fn)
+int ft_activateWindowOfFileNamed(char *fn)
 {
 	FTABLE 	*fp;
 	char 	fullname[256];
 
-	FullPathName(fullname,fn);
+	string_getFullPathName(fullname,fn);
 	if ((fp = ft_fpbyname(fullname)) != 0 && WIPOI(fp) != NULL) {
 		return EdSelectWindow(WIPOI(fp)->win_id);
 	}
@@ -569,9 +572,11 @@ int ActivateWindowOfFileNamed(char *fn)
 }
 
 /*------------------------------------------------------------
- * opennofsel()
+ * ft_optionFileWithoutFileselector()
+ * Open a file with a file name and jump into a line. Place the window to
+ * open as defined in the param wsp.
  */
-int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
+int ft_optionFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
 {   
 	char 		szResultFn[EDMAXPATHLEN];
 	char		szAsPath[EDMAXPATHLEN];
@@ -582,20 +587,20 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 	szAsPath[0] = 0;
 	lastSelectedDocType = 0;
 	if (fn) {
-		FullPathName(szResultFn,fn);
+		string_getFullPathName(szResultFn,fn);
 		fn = szResultFn;
 	}
 	if (fn && ft_editing(fn) != 0) {
-		ret = ed_ync(IDS_MSGINWORK,OemAbbrevName(fn));
+		ret = error_displayYesNoCancelConfirmation(IDS_MSGINWORK,string_abbreviateFileNameOem(fn));
 		if (ret == IDCANCEL) {
 			return 0;
 		}
 		if (ret == IDNO) {
-			return ActivateWindowOfFileNamed(fn);
+			return ft_activateWindowOfFileNamed(fn);
 		}
 	}
 	if (fn && file_exists(fn) < 0) {
-		if (ed_yn(IDS_MSGQUERYNEWFILE, OemAbbrevName(fn)) == IDNO) {
+		if (errorDisplayYesNoConfirmation(IDS_MSGQUERYNEWFILE, string_abbreviateFileNameOem(fn)) == IDNO) {
 			return 0;
 		}
 		fileflags = F_NEWFILE;
@@ -612,10 +617,10 @@ int opennofsel(char *fn, long line, WINDOWPLACEMENT *wsp)
 			fn = szBuf;
 		}
 		if ((GetConfiguration()->options & O_GARBAGE_AS) &&
-			GenerateBackupPathname(szAsPath, fn) &&
+			ft_generateBackupPathname(szAsPath, fn) &&
 			areFilenamesDifferent(szAsPath, fn) &&
 			file_exists(szAsPath) == 0 &&
-			ed_yn(IDS_MSGRECOVER) == IDYES) {
+			errorDisplayYesNoConfirmation(IDS_MSGRECOVER) == IDYES) {
 			;
 		} else {
 			szAsPath[0] = 0;
@@ -660,7 +665,7 @@ int EdEditFile(long editflags, long unused, char *filename)
 	int		nEntry;
 
 	if ((editflags & OPEN_DIRGIVEN) && filename) {
-		sfsplit(filename,_txtfninfo.path,_txtfninfo.search);
+		string_splitFilename(filename,_txtfninfo.path,_txtfninfo.search);
 		filename = 0;
 	}
 	if (editflags & OPEN_HISTORY) {
@@ -669,14 +674,15 @@ int EdEditFile(long editflags, long unused, char *filename)
 			return 0;
 		}
 	}
-	ret = opennofsel(filename, 0L, (WINDOWPLACEMENT*)0);
+	ret = ft_optionFileWithoutFileselector(filename, 0L, (WINDOWPLACEMENT*)0);
 	return ret;
 }
 
 /*------------------------------------------------------------
- * AbandonFile()
+ * ft_abandonFile()
+ * Discard changes in a file and re-read.
  */
-int AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
+int ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 {
 	long   	ln,col;
 
@@ -685,7 +691,7 @@ int AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 	}
 
 	if (fp->flags & F_MODIFIED) {
-		if (ed_yn(IDS_MSGABANDON) == IDNO)
+		if (errorDisplayYesNoConfirmation(IDS_MSGABANDON) == IDNO)
 			return 1;
 	}
 
@@ -715,9 +721,21 @@ int AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 	caret_placeCursorInCurrentFile(ln,col);
 
 	doc_documentTypeChanged();
-	RedrawTotalWindow(fp);
+	render_repaintAllForFile(fp);
 
 	return 1;
+}
+
+/*---------------------------------*/
+/* ft_checkReadonlyWithError()					*/
+/*---------------------------------*/
+int ft_checkReadonlyWithError(FTABLE* fp)
+{
+	if (fp->documentDescriptor->workmode & O_RDONLY) {
+		error_showErrorById(IDS_MSGRDONLY);
+		return 1;
+	}
+	return 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -725,7 +743,7 @@ int AbandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
  */
 void EdFileAbandon(void)
 {
-	AbandonFile(ft_CurrentDocument(), (DOCUMENT_DESCRIPTOR *)0);
+	ft_abandonFile(ft_getCurrentDocument(), (DOCUMENT_DESCRIPTOR *)0);
 }
 
 /*------------------------------------------------------------
@@ -737,26 +755,26 @@ int EdSaveFile(int flg)
 
 #ifdef	DEMO
 	if (flg & ~SAV_QUIT) {
-		alert("Demoversion\nSichern nicht möglich");
+		error_displayAlertDialog("Demoversion\nSichern nicht möglich");
 		return 0;
 	}
 #else
-	if ((fp = ft_CurrentDocument()) == 0) 
+	if ((fp = ft_getCurrentDocument()) == 0) 
 		return(0);	 		/* currently no File open */
 
-	if (flg != SAV_QUIT && readonly(fp)) {
+	if (flg != SAV_QUIT && ft_checkReadonlyWithError(fp)) {
 		return 0;
 	}
 
 	if ((flg & SAV_AS) || (fp->flags & (F_NAME_INPUT_REQUIRED|F_MODIFIED)) == (F_NAME_INPUT_REQUIRED | F_MODIFIED)) {
 		char newname[512];
 
-		sfsplit(fp->fname,_txtfninfo.path,_txtfninfo.fname);
+		string_splitFilename(fp->fname,_txtfninfo.path,_txtfninfo.fname);
 		if (txtfile_select(MSAVEAS, newname) == 0) {
 			return 0;
 		}
 		if (areFilenamesDifferent(newname,fp->fname) && file_exists(newname) >= 0) {
-			if (ed_yn(IDS_MSGOVERWRITE,OemAbbrevName(newname)) == IDNO)
+			if (errorDisplayYesNoConfirmation(IDS_MSGOVERWRITE,string_abbreviateFileNameOem(newname)) == IDNO)
 				return 0;
 			/* if ret == "APPEND".... fp->flags |= F_APPEND */
 		}

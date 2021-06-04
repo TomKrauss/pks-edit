@@ -24,6 +24,7 @@
 #include "stringutil.h"
 #include "winfo.h"
 #include "fileutil.h"
+#include "winutil.h"
 
 extern void	*prof_llinsert(void *Head, int size, 
 						char *group, char *item, char **idata);
@@ -70,7 +71,7 @@ typedef struct tagexpression {
 static TAGTRY	*_ttry;
 
 static FTABLE	_tagfile,_stepfile;
-extern FTABLE 	*ft_CurrentErrorDocument();
+extern FTABLE 	*ft_getCurrentErrorDocument();
 
 static TAGEXPR __ge = { 
 0, "","\"([^\"]+)\", line ([0-9]+): *(.*)",	"\\1",	"\\2",	"\\3" };
@@ -212,7 +213,7 @@ static TAG *dostep(LINE *lp, RE_PATTERN *pattern)
 		find_initializeReplaceByExpression(_exprerror->fnbsl);	/* assure a few initialiations */
 		regex_getCapturingGroup(&match, 0, _tag.fn, sizeof _tag.fn);
 		regex_getCapturingGroup(&match, 1, _linebuf, LINEBUFSIZE);
-		_tag.ln = Atol(_linebuf);
+		_tag.ln = string_convertToLong(_linebuf);
 		regex_getCapturingGroup(&match, 2, _tag.rembuf, sizeof _tag.rembuf);
 		return &_tag;
 	}
@@ -226,7 +227,7 @@ static int istagfile(FTABLE *fp, char *lookfn)
 {	char   *fn;
 
 	if ((fn = file_searchFileInPKSEditLocation(lookfn)) == 0L) {
-		tosfnerror(lookfn,-33);
+		error_openingFileFailed(lookfn,-33);
 		return 0;
 	}
 
@@ -257,7 +258,7 @@ static LINE *xscan(LINE *lp, char wild, char *d, int max, int *cmd)
 
 	while(lp->lbuf[0] == '?' || lp->lbuf[0] == wild) {
 		if ((lp = lp->prev) == 0) {
-			ed_error(IDS_MSGWRONGTAGFORMAT);
+			error_showErrorById(IDS_MSGWRONGTAGFORMAT);
 			return 0;
 		}
 	}
@@ -356,7 +357,7 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 
 	lp = (LINE *) dlp->pAny;
 
-	lExtent = GetTextExtent(hdc, dlp->pszString, dlp->nSize);
+	lExtent = win_getTextExtent(hdc, dlp->pszString, dlp->nSize);
 	wDelta = LOWORD(lExtent) + 20;
 	hDelta = HIWORD(lExtent);
 	hDelta = (TAGLISTITEMHEIGHT - hDelta) / 2;
@@ -491,7 +492,7 @@ static char *gettag(unsigned char *d,unsigned char *dend,
 	char     *s1=d;
 	register FTABLE *fp;
 
-	if ((fp = ft_CurrentDocument()) == 0L) 
+	if ((fp = ft_getCurrentDocument()) == 0L) 
 		return (char *)0;
 	S = fp->caret.linePointer->lbuf;
 	s = &S[fp->caret.offset];
@@ -518,7 +519,7 @@ static char *xref_saveCrossReferenceWord(unsigned char *d,unsigned char *dend)
 		return _tagword;
 	}
 
-	return gettag(d,dend,isword,1);
+	return gettag(d,dend,char_isLetter,1);
 }
 
 /*------------------*/
@@ -527,12 +528,12 @@ static char *xref_saveCrossReferenceWord(unsigned char *d,unsigned char *dend)
 int xref_openFile(char *name, long line, WINDOWPLACEMENT *wsp) {	
 	int ret = 0;
 
-	if (ActivateWindowOfFileNamed(name)) {
+	if (ft_activateWindowOfFileNamed(name)) {
 		if (line >= 0)
 			ret = caret_placeCursorMakeVisibleAndSaveLocation(line,0L);
 		else ret = 1;
 	} else {
-		ret = opennofsel(name,line,wsp);
+		ret = ft_optionFileWithoutFileselector(name,line,wsp);
 	}
 
 	return ret;
@@ -583,7 +584,7 @@ int xref_navigateCrossReference(char *s)
 						strcpy(fnam,tp->fn);
 						fm_savepos(s);
 						xref_openFile(fnam,-1L,(WINDOWPLACEMENT*)0);
-						if (ft_CurrentDocument()) {
+						if (ft_getCurrentDocument()) {
 							RE_PATTERN* pPattern;
 							if (pPattern = regex_compile(ebuf, tp->rembuf, (int) RE_DOREX)) {
 								find_expressionInCurrentFile(1,pPattern,O_WRAPSCAN);
@@ -601,7 +602,7 @@ int xref_navigateCrossReference(char *s)
 
 	_tagword = 0;
 	if (!ret && !_tagCancelled) {
-		ed_error(IDS_MSGUNKNWONTAG,(LPSTR)s);
+		error_showErrorById(IDS_MSGUNKNWONTAG,(LPSTR)s);
 	}
 	return ret;
 }
@@ -643,15 +644,15 @@ int EdErrorNext(int dir)
 	char			fullname[256];
 	WINFO		*wp;
 
-	if ((dir & LIST_USETOPWINDOW) || !ft_CurrentErrorDocument()) {
+	if ((dir & LIST_USETOPWINDOW) || !ft_getCurrentErrorDocument()) {
 	/* treat current window as error list */
 		_compflag = 1;
 		WINFO* wp = ww_stackwi(0);
-		ft_SetCurrentErrorDocument(wp ? wp->fp : NULL);
+		ft_setCurrentErrorDocument(wp ? wp->fp : NULL);
 	}
 
-	if ((fp = ft_CurrentErrorDocument()) == NULL || (lp = fp->caret.linePointer) == 0L) {
-notfile:	ed_error(IDS_MSGNOTAGFILE);
+	if ((fp = ft_getCurrentErrorDocument()) == NULL || (lp = fp->caret.linePointer) == 0L) {
+notfile:	error_showErrorById(IDS_MSGNOTAGFILE);
 		return 0;
 	}
 
@@ -701,7 +702,7 @@ doforward:
 			caret_placeCursorForFile(fp,lineno,0);
 			ln_removeFlag(fp->firstl,fp->lastl,LNXMARKED);
 			lp->lflg |= LNXMARKED;
-			EdRedrawWindow(wp);
+			render_paintWindow(wp);
 		} else {
 			fp->caret.linePointer = lp;
 		}
@@ -710,18 +711,18 @@ doforward:
 		if (*tp->fn == '/' || tp->fn[1] == ':') {
 			lstrcpy(fullname, tp->fn);
 		} else {
-			sfsplit(fp->fname, fullname, (char *)0);
-			strdcpy(fullname, fullname, tp->fn);
+			string_splitFilename(fp->fname, fullname, (char *)0);
+			string_concatPathAndFilename(fullname, fullname, tp->fn);
 		}
 		if (xref_openFile(fullname, tp->ln-1L, (WINDOWPLACEMENT*)0)) {
 			if (tp->rembuf[0]) {
-				ShowError(tp->rembuf, (void*)0);
+				error_displayErrorToast(tp->rembuf, (void*)0);
 			}
 			return 1;
 		}
 		return 0;
 	}
-	ed_error(_compflag ? IDS_MSGNOMOREERRS : 
+	error_showErrorById(_compflag ? IDS_MSGNOMOREERRS : 
 					 IDS_MSGSTRINGNOTFOUND);
 	return 0;
 }
@@ -761,14 +762,14 @@ static int s_t_open(int title, int st_type, FSELINFO *fsp)
 
 	switch(st_type) {
 		case ST_ERRORS:
-			if (xref_openFile(_fseltarget, 0L, (WINDOWPLACEMENT*)0) && ft_CurrentDocument()) {
+			if (xref_openFile(_fseltarget, 0L, (WINDOWPLACEMENT*)0) && ft_getCurrentDocument()) {
 				EdFileAbandon(1);
 			}
 			return EdErrorNext(LIST_START|LIST_USETOPWINDOW);
 		case ST_STEP:
 			if (readtagf(_fseltarget,&_stepfile)) {
 				_compflag = 0;
-				ft_SetCurrentErrorDocument(&_stepfile);
+				ft_setCurrentErrorDocument(&_stepfile);
 				return EdErrorNext(LIST_START);
 			}
 			return 0;
@@ -784,7 +785,7 @@ static int s_t_open(int title, int st_type, FSELINFO *fsp)
 			_ttry->max++;
 		}
 		_ttry->t[0].type = TCMD_TAGFILE;
-		_ttry->t[0].fn = stralloc(_fseltarget);
+		_ttry->t[0].fn = string_allocate(_fseltarget);
 		_ttry->curr = 0;
 		return readtagf(_fseltarget,&_tagfile);
 	}
@@ -807,20 +808,20 @@ int EdFindFileCursor(void)
 	char	fselpath[512];
 	extern char *file_searchFileInPath();
 
-	if ((fn = gettag(_linebuf,&_linebuf[LINEBUFSIZE],isfname,1)) == 0) 
+	if ((fn = gettag(_linebuf,&_linebuf[LINEBUFSIZE],char_isFilename,1)) == 0) 
 		return 0;
 
 #if 0
 	fsel_outit(fselext,fselpath);
 #else
-	sfsplit(_fseltarget,fselpath,(char*)0);
+	string_splitFilename(_fseltarget,fselpath,(char*)0);
 #endif
 	if ((found = file_searchFileInPath(fn,GetConfiguration()->includePath))   != 0 ||
 	    (found = file_searchFileInPath(fn,fselpath))   != 0) {
 		return xref_openFile(found, 0L, (WINDOWPLACEMENT*)0);
 	}
 
-	ed_error(IDS_MSGFILENOTFOUND);
+	error_showErrorById(IDS_MSGFILENOTFOUND);
 	return 0;
 }
 
@@ -830,7 +831,7 @@ int EdFindFileCursor(void)
 int EdFindWordCursor(dir)
 {	char *s,buf[256];
 
-	if ((s = gettag(buf,&buf[sizeof buf],isword,0)) != 0L) {
+	if ((s = gettag(buf,&buf[sizeof buf],char_isLetter,0)) != 0L) {
 		strcpy(_currentSearchAndReplaceParams.searchPattern,s);
 		return find_expressionAgainInCurrentFile(dir);
 	}

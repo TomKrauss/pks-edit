@@ -59,7 +59,7 @@ BOOL FPE_FUNC ExecWaitNotify(WORD wID, DWORD dwData)
  */
 static void exec_error(char *cmd, int errcode)
 {
-	ed_error(IDS_MSGEXECERROR,errcode,cmd);
+	error_showErrorById(IDS_MSGEXECERROR,errcode,cmd);
 }
 
 /*--------------------------------------------------------------------------
@@ -119,8 +119,8 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 
 	if (flags & EX_DOS) {
 
-		strdcpy(infile, tmp, "IN.___");
-		strdcpy(outfile, tmp, "OUT.___");
+		string_concatPathAndFilename(infile, tmp, "IN.___");
+		string_concatPathAndFilename(outfile, tmp, "OUT.___");
 
 		if (flags & EX_RDOUT) {
 			if (!EdBlockWriteToFile(infile)) {
@@ -144,13 +144,13 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 			wsprintf(szTemp,"%s", cmdline);
 		}
 		ln_createAndAddSimple(&_outfile, szTemp);
-		strdcpy(szRunBat, _datadir, "RUN.BAT");
+		string_concatPathAndFilename(szRunBat, _datadir, "RUN.BAT");
 		ft_writeFileAndClose(&_outfile, szRunBat, 0);
 
 		pszPif = file_searchFileInPKSEditLocation(
 			(flags & EX_WAIT) ? "PKSRUNW.PIF" : "PKSRUN.PIF");
 		if (!pszPif) {
-			alert("PSZRUN(W).PIF not found");
+			error_displayAlertDialog("PSZRUN(W).PIF not found");
 			return 0;
 		}
 		wsprintf(szTemp,"%s /e:1024 /c %s", pszPif, szRunBat);
@@ -163,14 +163,14 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		return 0;
 	}
 	if (flags & EX_RDCONV) {
-		undo_startModification(ft_CurrentDocument());
+		undo_startModification(ft_getCurrentDocument());
 		bUInited = TRUE;
 		EdBlockDelete(1);
 	}
 
 #if !defined(WIN32)
 	if (!(hTask = GetTaskHandle((HINSTANCE) ret))) {
-		alert("invalid hInst %d", ret);
+		error_displayAlertDialog("invalid hInst %d", ret);
 	}
 
 	if (hTask) {
@@ -183,13 +183,13 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		if (flags & (EX_RDIN|EX_WAIT)) {
 			int savePlaying = _playing;
 			_playing = 0;
-			ProgressMonitorStart(IDS_ABRTCMDCOMPLETE);
+			progress_startMonitor(IDS_ABRTCMDCOMPLETE);
 			while (1) {
-				if (ProgressMonitorCancel(FALSE) || bTaskFinished) {
+				if (progress_cancelMonitor(FALSE) || bTaskFinished) {
 					break;
 				}
 			}
-			ProgressMonitorClose(0);
+			progress_closeMonitor(0);
 			_playing = savePlaying;
 		}
 		NotifyUnRegister(NULL);
@@ -199,9 +199,9 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 
 	if (errfile && errfile[0]) {
 		xref_openSearchList(errfile, 1);
-	} else if (ft_CurrentDocument() && (flags & EX_RDIN)) {
+	} else if (ft_getCurrentDocument() && (flags & EX_RDIN)) {
 		if (!bUInited) {
-			undo_startModification(ft_CurrentDocument());
+			undo_startModification(ft_getCurrentDocument());
 		}
 		bl_insertTextBlockFromFile(outfile);
 	}

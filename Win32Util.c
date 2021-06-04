@@ -1,8 +1,12 @@
 #include <windows.h>
 #include <malloc.h>
 #include "pksedit.h"
+#include "winutil.h"
 
-LONG GetTextExtent(HDC hdc, char *text, int len) {
+/**
+ * Calculate the dimensions of a text and return the size encoded as a LONG.
+ */
+LONG win_getTextExtent(HDC hdc, char *text, int len) {
 	SIZE size;
 
 	GetTextExtentPoint32(hdc, text, len, &size);
@@ -10,20 +14,29 @@ LONG GetTextExtent(HDC hdc, char *text, int len) {
 }
 
 
-LONG SetViewportExt(HDC hdc, int nx, int ny) {
+/*
+ * Set the logical extension of the viewport and return the size encoded as a LONG. 
+ */
+LONG win_setViewportExtension(HDC hdc, int nx, int ny) {
 	SIZE size;
  	SetViewportExtEx(hdc, nx, ny, &size);
 	return MAKELONG((SHORT)size.cx, (SHORT)size.cy);
 }
 
 
-LONG SetWindowExt(HDC hdc, int nx, int ny) {
+/*
+ * Set the extension of the window and return the size encoded as a LONG.
+ */
+LONG win_setWindowExtension(HDC hdc, int nx, int ny) {
 	SIZE size;
  	SetWindowExtEx(hdc, nx, ny, &size);
 	return MAKELONG((SHORT)size.cx, (SHORT)size.cy);
 }
 
-LONG GetWindowExt(HDC hdc) {
+/*
+ * Return the extension of the window encoded as a LONG.
+ */
+LONG win_getWindowExtension(HDC hdc) {
 	SIZE size;
  	GetWindowExtEx(hdc, &size);
 	return MAKELONG((SHORT)size.cx, (SHORT)size.cy);
@@ -39,18 +52,3 @@ void destroy(void **ap) {
 	}
 }
 
-#if 0
-void *shareAlloc(void) {	
-	static char *szRet;
-	
-	if (!szRet) {
-		HANDLE handle;
-
-		if ((handle = GlobalAlloc(GMEM_FIXED|GMEM_DDESHARE,256)) != 0)
-			szRet = GlobalLock(handle);
-		if (!szRet)
-			nomemory();
-	}
-	return szRet;
-}
-#endif

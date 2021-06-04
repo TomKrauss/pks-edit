@@ -40,13 +40,13 @@ static int st_format(char *dest)
 	WINFO *	wp;
 
 	*dest = 0;
-	if (!ft_CurrentDocument()) {
+	if (!ft_getCurrentDocument()) {
 		return 0;
 	} else {
-		wp = WIPOI(ft_CurrentDocument());
+		wp = WIPOI(ft_getCurrentDocument());
 	}
 
-	len = mysprintf(ft_CurrentDocument(), dest,
+	len = mysprintf(ft_getCurrentDocument(), dest,
 				 (wp && wp->statusline && (wp->dispmode & SHOWHEX)) ? 
 				 wp->statusline : 
 				 /*STR*/"Ln %2j$l, Col%2j$c!%s$&");
@@ -123,7 +123,7 @@ void st_seterrmsg(char *msg)
 	}
 
 	if (msg) {
-		pszStatusMessage = stralloc(msg);
+		pszStatusMessage = string_allocate(msg);
 	}
 	st_redraw(TRUE);
 }

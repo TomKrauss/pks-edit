@@ -58,10 +58,10 @@ static void ReadChimeParams()
 							string,sizeof string) == 0)
 			break;
 		np = &_v.v_notes[i];
-		np->n_note = (unsigned char) Atol(string);
-		np->n_duration = (unsigned char) Atol(_strtolend);
-		np->n_mode = (unsigned char) Atol(_strtolend);
-		np->n_volume = (unsigned char) Atol(_strtolend);
+		np->n_note = (unsigned char) string_convertToLong(string);
+		np->n_duration = (unsigned char) string_convertToLong(_strtolend);
+		np->n_mode = (unsigned char) string_convertToLong(_strtolend);
+		np->n_volume = (unsigned char) string_convertToLong(_strtolend);
 	}
 	if (i) {
 		_v.v_nnotes = i;
@@ -69,9 +69,10 @@ static void ReadChimeParams()
 }
 
 /*--------------------------------------------------------------------------
- * chime()
+ * sound_playChime()
+ * Play a chime sound.
  */
-EXPORT void chime(void)
+EXPORT void sound_playChime(void)
 {
 
 	ReadChimeParams();
@@ -81,35 +82,5 @@ EXPORT void chime(void)
 		return;
 	}
 
-#if !defined(WIN32)
-	int		n;
-	if (OpenSound() < 0) {
-		MessageBeep(-1);
-		return;
-	}
-
-	for (n = 0; n < _v.v_nnotes; n++) {
-		np = &_v.v_notes[n];
-		if (n == 0 || 
-		   (np-1)->n_mode != np->n_mode ||
-		   (np-1)->n_volume != np->n_volume) {
-			SetVoiceAccent(_v.v_channel, _v.v_tempo, 
-						np->n_volume, np->n_mode, PITCH);
-		}
-		if (np->n_duration &&
-		    SetVoiceNote(_v.v_channel, np->n_note, 
-					  QUANTIZE / np->n_duration, 1) != 0) {
-			MessageBeep(0);
-			CloseSound();
-			return;
-		}
-	}
-
-	StartSound();
-	WaitSoundState(S_QUEUEEMPTY);
-	StopSound();
-
-	CloseSound();
-#endif
 }
 

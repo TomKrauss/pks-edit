@@ -76,12 +76,6 @@ extern int 		EdMkWinClass( char *szClassName, WNDPROC WinProc,
 extern HWND   	hwndAbort,hwndFkeys,hwndFrame,hwndClient,hwndToolbar,
 				hwndDlg,hwndFkeys,hwndStatus;
 
-/*------------------------------------------------------------
- * EdCreateFont()
- * create a logical font
- */
-extern HFONT EdCreateFont(EDFONT* pFont);
-
 extern HINSTANCE hInst;
 extern UINT		WM_PKSBROADCAST;
 

@@ -11,7 +11,7 @@ typedef struct tagSYMBOL {
 #define	VALUE_AS_INT(s)		((int)((s).sym_data))
 #define	CLEARSYM(s)		{(s).sym_data = 0, (s).sym_type = 0;}
 #define	SETTYPE(s,type)	((s).sym_type = type)
-#define	SETSYMBOL(s,type,v)	((s).sym_type = type, (s).sym_data = v)
+#define	SETSYMBOL(s,type,v)	((s).sym_type = type, (s).sym_data = (void*)v)
 #define	NULLSYM(s)		(TYPEOF(s) == 0 && VALUE(s) == 0)
 
 #define	S_KEYWORD		1
@@ -30,7 +30,7 @@ typedef struct tagSYMBOL {
 extern int 	sym_insert(char *key, int symtype, intptr_t symdata);
 extern SYMBOL 	sym_find(char *key, char **key_ret);
 extern int 	hash_create(unsigned nel);
-extern int 	MakeInternalSym(char *name, char ed_typ, intptr_t value);
+extern int 	sym_makeInternalSymbol(char *name, char ed_typ, intptr_t value);
 
 #define	SYM_H
 # endif

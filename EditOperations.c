@@ -17,15 +17,15 @@
 #include "trace.h"
 #include "functab.h"
 #include "caretmovement.h"
-#include "caretmovement.h"
 #include "winfo.h"
 #include "edierror.h"
 #include "pksedit.h"
 #include "textblocks.h"
 #include "editorconfiguration.h"
+#include "mouseutil.h"
 
 #define	SWAP(a,b)			{	a ^= b, b ^=a, a ^= b;  }
-#define	D_EBUG(x)		{/*ed_error(x); RedrawTotalWindow(fp);*/}
+#define	D_EBUG(x)		{/*error_showErrorById(x); render_repaintAllForFile(fp);*/}
 #define	HARD_BREAK(lp)	((lp->lflg & LNNOCR) == 0)
 
 /*--------------------------------------------------------------------------
@@ -34,12 +34,12 @@
 
 extern LINE *	cadv_word(LINE *lp,long *ln,long *col,int dir);
 extern LINE *	cadv_c(LINE *lp,long *ln,long *col,int dir,unsigned char match);
-extern void 	setmatchfunc(int control, int ids_name, int *c);
+extern void 	caret_setMatchFunction(int control, int ids_name, int *c);
 extern LINE 	*(*advmatchfunc)();
 extern int 	ln_countLeadingSpaces(LINE *l);
-extern int 	IsSpace(unsigned char c);
+extern int 	string_isSpace(unsigned char c);
 extern int 	TabStop(int col, DOCUMENT_DESCRIPTOR *l);
-extern int 	CntSpaces(unsigned char *s, int pos);
+extern int 	string_countSpacesIn(unsigned char *s, int pos);
 extern int 	sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
 				 int indent, int *di, int *hbr);
 extern int 	shift_lines(FTABLE *fp, long ln, long nlines, int dir);
@@ -48,7 +48,7 @@ extern void 	wt_insline(WINFO *wp, int nlines);
 extern void 	ln_changeFlag(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark,
 				int set);
 extern int 	doabbrev(FTABLE *fp, LINE *lp,int offs);
-extern void 	updatecursor(WINFO *wp);
+extern void 	render_updateCaret(WINFO *wp);
 
 extern long 	_multiplier;
 extern int 		cursor_width;
@@ -91,7 +91,7 @@ static int CalcStartIndentation(FTABLE *fp,LINE *lp,
 						  int upto, int *add_blanks)
 {	int col;
 
-	col = CntSpaces(lp->lbuf,upto);
+	col = string_countSpacesIn(lp->lbuf,upto);
 	col = caret_lineOffset2screen(fp, &(CARET) { lp, col});
 	return CalcCol2TabsBlanks(fp->documentDescriptor,col,add_blanks);
 }
@@ -191,7 +191,7 @@ static int do_brindent(FTABLE *fp, int dir, LINE *lp1, LINE *lp2)
 		indent = CalcStartIndentation(fp,lp1,lp1->len,&b);
 		if (indent != i1) {
 			/* first delete all blank characters, then shift */
-			if ((lp1 = ln_modify(fp,lp1,CntSpaces(lp1->lbuf,lp1->len),0)) == 0) {
+			if ((lp1 = ln_modify(fp,lp1,string_countSpacesIn(lp1->lbuf,lp1->len),0)) == 0) {
 				return 0;
 			}
 			shift_lines(fp,fp->ln-(long)dir,1L,i1);
@@ -228,12 +228,12 @@ static int PostInsline(FTABLE *fp, int dir, long ln, long col)
 	ominln  = wp->minln;
 	caret_placeCursorInCurrentFile(ln,col);
 	if (omincol != wp->mincol) {
-		RedrawTotalWindow(fp);
+		render_repaintAllForFile(fp);
 	} else {
 		if (ominln == wp->minln) {
 			wt_insline(wp,1);
 		}
-		redrawline();
+		render_redrawCurrentLine();
 	}
 	lp = fp->caret.linePointer;
 	if (dir < 0) {
@@ -254,7 +254,7 @@ int EdLineInsert(int control)
 	int      	dir,ai;
 	long 	ln;
 
-	if ((fp = ft_CurrentDocument()) == 0L) 
+	if ((fp = ft_getCurrentDocument()) == 0L) 
 		return 0;
 
 	olp = fp->caret.linePointer;
@@ -288,7 +288,7 @@ int EdLineDelete(control)
 	WINFO	*wp;
 	int 		lastlinelen;
 
-	fp = ft_CurrentDocument();
+	fp = ft_getCurrentDocument();
 	wp = WIPOI(fp);
 	if (control & 1) {
 		caret_placeCursorInCurrentFile((long)(fp->ln-1),0L);
@@ -308,7 +308,7 @@ int EdLineDelete(control)
 	}
 
 	if (lastlinelen) {
-		RedrawFromTo(wp,wp->ln,wp->maxln);
+		render_paintFromLineTo(wp,wp->ln,wp->maxln);
 	} else {
 		wt_deleteline(wp,0,1);
 	}
@@ -323,15 +323,15 @@ int EdLineDelete(control)
  * first line to join
  */
 int EdLinesJoin()
-{	WINFO *wp = WIPOI(ft_CurrentDocument());
-	LINE *lp = ft_CurrentDocument()->caret.linePointer;
+{	WINFO *wp = WIPOI(ft_getCurrentDocument());
+	LINE *lp = ft_getCurrentDocument()->caret.linePointer;
 
-	if (!ln_join(ft_CurrentDocument(),lp,lp->next,1)) 
+	if (!ln_join(ft_getCurrentDocument(),lp,lp->next,1)) 
 		return 0;
 	/* this makes sure current line is not drawn twice */
 	if (wp->cy + wp->cheight < wp->workarea.g_h) {
 		wt_deleteline(wp,1,1);
-		redrawline();
+		render_redrawCurrentLine();
 	}
 	return 1;
 }
@@ -357,7 +357,7 @@ static int cb_breakline(FTABLE *fp, int soft)
 		fp->caret.linePointer->lflg &= ~LNNOTERM;
 	}
 
-	redrawline();
+	render_redrawCurrentLine();
 	InsIndent(fp,fp->caret.linePointer,nlp,fp->caret.offset,&ai);
 
 	return PostInsline(fp,1,fp->ln+1L,(long)ai);
@@ -385,11 +385,11 @@ static int findwrap(FTABLE *fp, LINE *lp, int cursoffset, int *nextword,int rmar
 	spacepos  = 0;
 	for (i = lp->len; i > 0; ) {
 		i--;
-		if (IsSpace(s[i])) {
+		if (string_isSpace(s[i])) {
 			wordpos = i+1;
 			do 
 				i--;
-			while (i > 0 && (IsSpace(s[i])));
+			while (i > 0 && (string_isSpace(s[i])));
 			if (i > 0) {
 				spacepos  = i+1;
 				*nextword = wordpos;
@@ -511,7 +511,7 @@ static int EdAutoFormat(FTABLE *fp)
 
 	join_next_words:
 
-			if (desti > 0 && !IsSpace(lp->lbuf[desti-1])) {
+			if (desti > 0 && !string_isSpace(lp->lbuf[desti-1])) {
 				destbuf[desti++] = ' ';
 			}
 			if (HARD_BREAK(lp))
@@ -522,13 +522,13 @@ static int EdAutoFormat(FTABLE *fp)
 
 			/* find out how many words we may steal from next line */
 			sourcebuf = lpnext->lbuf;
-			lpos = indent = CntSpaces(sourcebuf,lpnext->len);
+			lpos = indent = string_countSpacesIn(sourcebuf,lpnext->len);
 			wend = 0;
 			di = desti;
 			do {
 				/* scan next word */
 				while(lpos < lpnext->len) {
-					if (IsSpace(c = sourcebuf[lpos++])) {
+					if (string_isSpace(c = sourcebuf[lpos++])) {
 						lpos--;
 						break;			
 					}
@@ -551,7 +551,7 @@ static int EdAutoFormat(FTABLE *fp)
 
 				/* overread spaces */
 				while (lpos < lpnext->len) {
-					if (!IsSpace(c = sourcebuf[lpos++])) {
+					if (!string_isSpace(c = sourcebuf[lpos++])) {
 						lpos--;
 						break;			
 					}
@@ -617,10 +617,10 @@ static int EdAutoFormat(FTABLE *fp)
 	}
 
 	if (i_d) {
-		RedrawTotalWindow(fp);
+		render_repaintAllForFile(fp);
 	} else {
-		p_redraw();
-		redrawline();
+		render_redrawAndPaintCurrentFile();
+		render_redrawCurrentLine();
 	}
 
 	lp1 = fp->caret.linePointer;
@@ -653,14 +653,14 @@ int EdCharInsert(int c)
 	int			workmode;
 	extern int 	_playing;
 
-	fp   = ft_CurrentDocument();
+	fp   = ft_getCurrentDocument();
 	lnp	= fp->documentDescriptor;
 	if (c < 32 && c != 8 && c != '\t' && c != 10 && c != lnp->nl && c != lnp->cr) {
 		return 0;
 	}
 
 	if (_playing != 2) {
-		cash2(fp, c);
+		macro_recordFunction(fp, c);
 	}
 
 	if (c == lnp->nl || c == lnp->cr || (c == 10 && lnp->nl < 0)) {
@@ -709,9 +709,9 @@ int EdCharInsert(int c)
 	blfill(&lp->lbuf[offs],nchars,c);
 
 #if 0
-	redrawlinepart(offs,10000);
+	render_linePart(offs,10000);
 #else
-	redrawline();
+	render_redrawCurrentLine();
 #endif
 
 	offs += nchars;
@@ -741,17 +741,17 @@ int EdCharInsert(int c)
  */
 int EdCharDelete(control)
 {	register	LINE *lp,*lp1=0;
-	FTABLE 	*fp = ft_CurrentDocument();
+	FTABLE 	*fp = ft_getCurrentDocument();
 	long		ln,ln1,o2,o1;
 	int		matchc;
 
 	cursor_width = 1;
-	updatecursor(WIPOI(fp));
+	render_updateCaret(WIPOI(fp));
 	lp = lp1 = fp->caret.linePointer;
 	o1 = o2  = fp->caret.offset;
 	ln = ln1 = fp->ln;
 
-	setmatchfunc(control,IDS_DELUNTILC,&matchc);
+	caret_setMatchFunction(control,IDS_DELUNTILC,&matchc);
 
 	if (control > 0 && o1 == lp->len) {
 		if (control == MOT_TOEND)
@@ -769,7 +769,7 @@ int EdCharDelete(control)
 		case  MOT_SINGLE: o2++; break;
 		case  MOT_TOEND:  o2 = lp->len;
 			break;
-		case -MOT_SINGLE: o1 = l_advance(lp,o1); break;
+		case -MOT_SINGLE: o1 = caret_getPreviousColumnInLine(lp,o1); break;
 		case -MOT_TOEND:  o1=0; break;
 		case -MOT_WORD: case -MOT_UNTILC: case -MOT_SPACE:
 			if ((lp1 = (*advmatchfunc)(lp,&ln,&o1,-1,matchc)) == 0) 
@@ -793,9 +793,9 @@ int EdCharDelete(control)
 		caret_placeCursorInCurrentFile(ln,o1);
 
 	if (ln != ln1) {
-		RedrawTotalWindow(fp);
+		render_repaintAllForFile(fp);
 	} else {
-		redrawline();
+		render_redrawCurrentLine();
 	}
 	EdAutoFormat(fp);
 
@@ -812,7 +812,7 @@ int EdLineSplit(int flags)
 	FTABLE *	fp;
 	LINE	 *	lp;
 
-	fp = ft_CurrentDocument();
+	fp = ft_getCurrentDocument();
 	lp = fp->caret.linePointer;
 	control = flags & (RET_PLUS|RET_MINUS);
 
@@ -843,7 +843,7 @@ int EdMarkedLineOp(int op)
 	LINE *	lp;
 	LINE	*	last;
 
-	fp = ft_CurrentDocument();
+	fp = ft_getCurrentDocument();
 	last = fp->lastl->prev;
 	lp = fp->firstl;
 	switch(op) {
@@ -875,15 +875,15 @@ int EdMarkedLineOp(int op)
 		if (!lp)
 			return 1;
 		caret_placeCursorAndSavePosition(ln,0L);
-		MouseBusy();
+		mouse_setBusyCursor();
 		if (op == MLN_JOIN)
 			lnjoin_lines(fp);	
 		else
 			mln_cutlines(fp, op);
 	}
 
-	RedrawTotalWindow(fp);
-	changemouseform();
+	render_repaintAllForFile(fp);
+	mouse_setDefaultCursor();
 	return 1;
 }
 
@@ -896,7 +896,7 @@ int EdHideLines(void)
 	LINE *	lp1;
 	LINE *	lp2;
 
-	if ((fp = ft_CurrentDocument()) == 0 ||
+	if ((fp = ft_getCurrentDocument()) == 0 ||
 		!ft_checkSelection(fp)) {
 		return 0;
 	}
@@ -908,7 +908,7 @@ int EdHideLines(void)
 	ln_hide(fp, lp1, lp2);
 	fp->ln = WIPOI(fp)->ln = ln_cnt(fp->firstl,fp->caret.linePointer)-1;
 
-	RedrawTotalWindow(fp);
+	render_repaintAllForFile(fp);
 	return 1;
 }
 
@@ -919,13 +919,13 @@ int EdUnHideLine(void)
 {
 	FTABLE *	fp;
 
-	if ((fp = ft_CurrentDocument()) == 0) {
+	if ((fp = ft_getCurrentDocument()) == 0) {
 		return 0;
 	}
 
 	if (ln_unhide(fp, fp->caret.linePointer)) {
 		caret_placeCursorInCurrentFile(fp->ln,0L);
-		RedrawTotalWindow(fp);
+		render_repaintAllForFile(fp);
 	}
 	return 1;
 }
@@ -934,7 +934,7 @@ int EdUnHideLine(void)
  * EdMouseSelectLines()
  */
 void EdMouseSelectLines(int flg)
-{	LINE *lp = ft_CurrentDocument()->caret.linePointer;
+{	LINE *lp = ft_getCurrentDocument()->caret.linePointer;
 	int  oflg;
 
 	oflg = lp->lflg;
@@ -943,7 +943,7 @@ void EdMouseSelectLines(int flg)
 	else
 		lp->lflg &= ~LNXMARKED;
 	if (oflg != lp->lflg)
-		redrawline();
+		render_redrawCurrentLine();
 }
 
 /*--------------------------------------------------------------------------
@@ -951,9 +951,9 @@ void EdMouseSelectLines(int flg)
  */
 int EdExpandAbbreviation(void)
 {
-	if (ft_CurrentDocument()) {
+	if (ft_getCurrentDocument()) {
 		return
-			doabbrev(ft_CurrentDocument(),ft_CurrentDocument()->caret.linePointer,ft_CurrentDocument()->caret.offset);
+			doabbrev(ft_getCurrentDocument(),ft_getCurrentDocument()->caret.linePointer,ft_getCurrentDocument()->caret.offset);
 	}
 	return 0;
 }

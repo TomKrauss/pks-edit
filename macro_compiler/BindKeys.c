@@ -25,8 +25,8 @@ extern char *		code2key(KEYCODE k);
 extern char *		code2mouse(MOUSECODE code);
 extern void 		yyerror(char *,...);
 extern KEYBIND *	keybound(KEYCODE keycode);
-extern MOUSEBIND *	mousebound(MOUSECODE mcode);
-extern MOUSEBIND *	mousegetbind(void);
+extern MOUSEBIND *	mouse_getMouseBindingForCode(MOUSECODE mcode);
+extern MOUSEBIND *	mouse_getDefaultMouseBinding(void);
 
 extern	RSCTABLE *	_keytables;
 extern	RSCTABLE *	_mousetables;
@@ -62,13 +62,13 @@ int bind_mouse(MOUSECODE mousecode, MACROREFTYPE typ, MACROREFIDX idx,
 {
 	MOUSEBIND *		mp;
 
-	mp = mousebound(mousecode);
+	mp = mouse_getMouseBindingForCode(mousecode);
 	if (augment && mp) {
 		/* do not override existing bindings */
 		return 1;
 	}
 
-	if (!mp && (mp = mousegetbind()) == 0) {
+	if (!mp && (mp = mouse_getDefaultMouseBinding()) == 0) {
 		return 0;
 	}
 

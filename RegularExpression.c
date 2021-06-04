@@ -223,10 +223,10 @@ static void place(register unsigned char c)
 }
 
 /*--------------------------------------------------------------------------
- * octalinput()
+ * regex_parseOctalNumber()
  */
 unsigned char *_octalloc;
-int octalinput(register unsigned char *s)
+int regex_parseOctalNumber(register unsigned char *s)
 {	register unsigned char c,i;
 
 	switch (c = *s++) {
@@ -509,7 +509,7 @@ getcnt:
 			do {
 				if (c == '\0') REGEX_ERROR(4);
 				if (c == '\\') {
-					c  = octalinput(sp);
+					c  = regex_parseOctalNumber(sp);
 					sp = _octalloc;
 				}
 				else if (c == '-' && cflg >= 0) {
@@ -518,7 +518,7 @@ getcnt:
 						break;
 					}
 					if (c == '\\') {
-						c = octalinput(sp);
+						c = regex_parseOctalNumber(sp);
 						sp= _octalloc;
 					}
 					while(cflg < c ) {
@@ -551,7 +551,7 @@ getcnt:
 				goto docase;
 			}
 			sp--;
-			c 	= octalinput(sp);
+			c 	= regex_parseOctalNumber(sp);
 			sp 	= _octalloc;
 
 	/* Drop through to default to use \ to turn off special chars */
@@ -986,7 +986,7 @@ int regex_initializeReplaceByExpressionOptions(REPLACEMENT_OPTIONS* pOptions, RE
 					}
 				}
 				else {
-					c = octalinput(replaceByExpression - 1);
+					c = regex_parseOctalNumber(replaceByExpression - 1);
 					replaceByExpression = _octalloc;
 					if (!c)
 						c = '0';

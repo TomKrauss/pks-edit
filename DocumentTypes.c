@@ -16,6 +16,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
+#include <stdlib.h>
 #include <stddef.h>
 
 #include "alloc.h"
@@ -162,7 +163,7 @@ static void GetRelatedFileName(char *related_name, char *fname, char *newext)
 {	char *ext;
 
 	strcpy(related_name,fname);
-	ext = extname(related_name);
+	ext = string_getFileExtension(related_name);
 	if (ext[-1] != '.')
 		*ext++ = '.';
 	strcpy(ext,newext);
@@ -376,13 +377,13 @@ static int ReadDocumentType(char *fname, DOCUMENT_DESCRIPTOR *lp, int id, int fo
 			return 0;
 		}
 		Fclose(fd);
-		strdcpy(keyfn, _datadir, "MODI.XXX");
+		string_concatPathAndFilename(keyfn, _datadir, "MODI.XXX");
 		CreateTempFileForDocumentType(fn, keyfn);
 	} else {
 		return 0;
 	}
 
-	sfsplit(fname,(char *)0,lp->name);
+	string_splitFilename(fname,(char *)0,lp->name);
 	lp->id = id;
 	InitTabStops(lp);
 
@@ -412,7 +413,7 @@ BOOL GetFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename) {
 		lp = LoadDocumentTypeDescriptor((DOCUMENT_TYPE *)pip->pi_doctype);
 	} else {
 
-		sfsplit(filename,(char *)0, fname);
+		string_splitFilename(filename,(char *)0, fname);
 		for (llp = _linl, lp = 0; llp != 0 && lp == 0; llp = llp->ll_next) {
 			if (match(fname,llp->ll_match)) {
 				if (llp->ll_privateDocumentDescriptor) {
@@ -466,7 +467,7 @@ int linname2id(char *name)
 {	
 	LINLIST	*llp;
 
-	name = basename(name);
+	name = string_getBaseFilename(name);
 
 	if (strcmp(name,"default") == 0)
 		return LIN_DEFCTX;
@@ -631,7 +632,7 @@ static int InitDocumentType(char *docname)
 		if (szDesc) {
 			strmaxcpy(llp->ll_description, szDesc, sizeof llp->ll_description);
 		}
-		llp->ll_privateDocumentDescriptor = Atol(szOwn);
+		llp->ll_privateDocumentDescriptor = string_convertToLong(szOwn);
 	}
 	_free(s);
 	return 1;
@@ -653,7 +654,7 @@ int InitAllDocumentTypes(void)
 int EdLineal(int wrflag, DOCUMENT_DESCRIPTOR *documentDescriptor) {
 	int 		fd;
 	DOCUMENT_TYPE 	*llp;
-	FTABLE 	*fp = ft_CurrentDocument();
+	FTABLE 	*fp = ft_getCurrentDocument();
 	char 	*fn;
 
 	if ((wrflag & 2) == 0 && fp) {
@@ -679,7 +680,7 @@ int EdLineal(int wrflag, DOCUMENT_DESCRIPTOR *documentDescriptor) {
 		if ((fd = Fopen(fn, OF_READWRITE)) < 0 && (fd = file_createFile(fn)) < 0) {
 			return 0;
 		}
-	   	sfsplit(fn,(char *)0,documentDescriptor->name);
+	   	string_splitFilename(fn,(char *)0,documentDescriptor->name);
 		Fwrite(fd,LINSPACE,documentDescriptor);
 		Fclose(fd);
 

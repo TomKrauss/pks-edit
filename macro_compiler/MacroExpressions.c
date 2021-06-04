@@ -24,21 +24,21 @@
 #include "pkscc.h"
 #include "errordialogs.h"
 
-extern intptr_t		param_pop(unsigned char **sp);
-extern intptr_t		do_macfunc(COM_1FUNC **sp, COM_1FUNC *spend);
+extern intptr_t		macro_popParameter(unsigned char **sp);
+extern intptr_t		macro_doMacroFunctions(COM_1FUNC **sp, COM_1FUNC *spend);
 
 /*--------------------------------------------------------------------------
- * IsStringType()
+ * macro_isParameterStringType()
  */
-int IsStringType(unsigned char typ)
+int macro_isParameterStringType(unsigned char typ)
 {
 	return typ == C_STRING1PAR || typ == C_STRINGVAR;
 }
 
 /*
- * NumVal()
+ * macro_getNumberParameter()
  */
-long NumVal(unsigned char *sp,unsigned char *spend)
+long macro_getNumberParameter(unsigned char *sp,unsigned char *spend)
 {
 	char *		s;
 	extern long 	number(char *s);
@@ -46,25 +46,25 @@ long NumVal(unsigned char *sp,unsigned char *spend)
 	switch(*sp) {
 		case C_STRING1PAR:
 		case C_STRINGVAR:
-			s = (char *)param_pop(&sp);
+			s = (char *)macro_popParameter(&sp);
 			return number(s);
 		case C_CHAR1PAR:
 		case C_INT1PAR:
 		case C_LONG1PAR:
 		case C_LONGVAR:
-			return (long) param_pop(&sp);
+			return (long) macro_popParameter(&sp);
 		case C_MACRO:
 		case C_0FUNC:
 		case C_1FUNC:
-			return do_macfunc(&sp,spend);
+			return macro_doMacroFunctions(&sp,spend);
 	}
 	return 0L;
 }
 
 /*
- * StrVal()
+ * macro_getStringParameter()
  */
-char *StrVal(unsigned char *sp)
+char *macro_getStringParameter(unsigned char *sp)
 {
 	intptr_t v;
 	static char buf[20];
@@ -73,12 +73,12 @@ char *StrVal(unsigned char *sp)
 	switch(*sp) {
 		case C_STRING1PAR:
 		case C_STRINGVAR:
-			return (char *)param_pop(&sp);
+			return (char *)macro_popParameter(&sp);
 		case C_CHAR1PAR:
 		case C_INT1PAR:
 		case C_LONG1PAR:
 		case C_LONGVAR:
-			v = param_pop(&sp);
+			v = macro_popParameter(&sp);
 			sprintf(buf,"%ld",(long)v);
 			return buf;
 	}
@@ -100,7 +100,7 @@ static int strmatch(char *s1,char *s2) {
 	options.expression = s2;
 	eol = &s1[strlen(s1)];
 	if (compile(&options,&pattern) == 0) {
-		alert("illegal RE");
+		error_displayAlertDialog("illegal RE");
 		return -1;
 	}
 	RE_MATCH match;
@@ -133,8 +133,8 @@ int macro_testExpression(COM_TEST *sp) {
 	pend = (unsigned char *)(sp)+sp->size; 
 	sp++;
 	if (CT_HAS2NUMOPNDS(op)) {
-		r1 = NumVal((unsigned char *)sp,p2);
-		r2 = NumVal(p2,pend);
+		r1 = macro_getNumberParameter((unsigned char *)sp,p2);
+		r2 = macro_getNumberParameter(p2,pend);
 		switch(op) {
 			case CT_EQ: return r1 == r2;
 			case CT_NE: return r1 != r2;
@@ -143,8 +143,8 @@ int macro_testExpression(COM_TEST *sp) {
 			default   : goto notimpl;
 		}
 	} else if (CT_HAS2STROPNDS(op)) {
-		s1 = StrVal((unsigned char *)sp);
-		s2 = StrVal(p2);
+		s1 = macro_getStringParameter((unsigned char *)sp);
+		s2 = macro_getStringParameter(p2);
 		if (op != CT_SMATCH && op != CT_SNMATCH)
 			r1 = strcmp(s1,s2);
 		else
@@ -157,7 +157,7 @@ int macro_testExpression(COM_TEST *sp) {
 			case CT_SMATCH:  return r1 == 1;
 			case CT_SNMATCH: return r1 == 0;
 			default    : 
-notimpl:				alert("test: ~ OP 0x%x not implemented",op);
+notimpl:				error_displayAlertDialog("test: ~ OP 0x%x not implemented",op);
 					return 0;
 		}
 	} else
@@ -171,9 +171,9 @@ notimpl:				alert("test: ~ OP 0x%x not implemented",op);
 }
 
 /*--------------------------------------------------------------------------
- * Binop()
+ * macro_evaluateBinaryExpression()
  */
-void Binop(COM_BINOP *sp)
+void macro_evaluateBinaryExpression(COM_BINOP *sp)
 {	long 			r1;
 	long 			r2;
 	int				typ1;
@@ -196,23 +196,23 @@ void Binop(COM_BINOP *sp)
 	typ2 = *p2;
 
 	if (op == BIN_CONVERT) {
-		if (IsStringType(typ1)) {
-			MakeInternalSym(sp->result,S_NUMBER,NumVal(p1,p2));
+		if (macro_isParameterStringType(typ1)) {
+			sym_makeInternalSymbol(sp->result,S_NUMBER,macro_getNumberParameter(p1,p2));
 		} else {
-			MakeInternalSym(sp->result,S_STRING,(intptr_t)StrVal(p1));
+			sym_makeInternalSymbol(sp->result,S_STRING,(intptr_t)macro_getStringParameter(p1));
 		}
 		return;	
 	}
 
-	if (!IsStringType(typ1) || !IsStringType(typ2)) {
+	if (!macro_isParameterStringType(typ1) || !macro_isParameterStringType(typ2)) {
 
 	    	/* one operand at least is numeric - force numeric calculations */
 
-		r1 = NumVal(p1,p2);
-		r2 = NumVal(p2,pend);
+		r1 = macro_getNumberParameter(p1,p2);
+		r2 = macro_getNumberParameter(p2,pend);
 
 # ifdef DEBUG
-	alert("numeric binop %s = %ld %c %ld|t1:%d - t2:%d",
+	error_displayAlertDialog("numeric binop %s = %ld %c %ld|t1:%d - t2:%d",
 		  sp->result,r1,op,r2,typ1,typ2);
 # endif
 
@@ -227,7 +227,7 @@ void Binop(COM_BINOP *sp)
 		case BIN_MUL: r1 *= r2; break;
 		case BIN_DIV: 
 			if (!r2) {
-		zero:	alert("division by zero");
+		zero:	error_displayAlertDialog("division by zero");
 				return;
 			}
 			r1 /= r2; 
@@ -239,16 +239,16 @@ void Binop(COM_BINOP *sp)
 			r1 %= r2; 
 			break;
 		default: 
-			alert("binop: ~ OP %c not implemented",op);
+			error_displayAlertDialog("binop: ~ OP %c not implemented",op);
 			r1 = 0;
 		}
-		MakeInternalSym(sp->result,S_NUMBER,r1);
+		sym_makeInternalSymbol(sp->result,S_NUMBER,r1);
 	} else {
-		p1 = StrVal(p1);
-		p2 = StrVal(p2);
+		p1 = macro_getStringParameter(p1);
+		p2 = macro_getStringParameter(p2);
 
 # ifdef DEBUG
-	alert("string binop %s = \"%s\" %c \"%s\"|t1:%d - t2:%d",
+	error_displayAlertDialog("string binop %s = \"%s\" %c \"%s\"|t1:%d - t2:%d",
 		  sp->result,p1,op,p2,typ1,typ2);
 # endif
 		*buf = 0;
@@ -257,14 +257,14 @@ void Binop(COM_BINOP *sp)
 
 		case BIN_ADD: 
 			if (strlen(p1) + strlen(p2) > sizeof buf) {
-				alert("+: result to large");
+				error_displayAlertDialog("+: result to large");
 			} else {
 				strcat(strcpy(buf,p1),p2);
 			}
 			break;
 		case BIN_SUB:
 			if (strlen(p1) > sizeof buf) {
-				alert("-: result to large");
+				error_displayAlertDialog("-: result to large");
 			} else {
 				strcpy(buf,p1);
 				if ((p1 = strstr(buf,p2)) != 0) {
@@ -273,10 +273,10 @@ void Binop(COM_BINOP *sp)
 			}
 			break;
 		default: 
-			alert("string binop %c not impl.",op);
+			error_displayAlertDialog("string binop %c not impl.",op);
 
 		}
-		MakeInternalSym(sp->result,S_STRING,(intptr_t)buf);
+		sym_makeInternalSymbol(sp->result,S_STRING,(intptr_t)buf);
 	}
 }
 

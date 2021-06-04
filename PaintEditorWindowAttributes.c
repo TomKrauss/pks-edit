@@ -13,10 +13,11 @@
  */
 
 #include <windows.h>
-#include 	"trace.h"
-#include 	"edierror.h"
+#include "trace.h"
+#include "edierror.h"
 #include "lineoperations.h"
 #include "winfo.h"
+#include "winutil.h"
 
 #define  	ESCAPE		'\033'
 
@@ -38,15 +39,16 @@ static void SelectTextAttribute(HDC hdc,
 						  unsigned char attribut, 
 						  unsigned char olda)
 {	int   a;
+	EDFONTSTYLE fontStyle;
 
 	a = attribut & 0xF;
-	if (a == olda)
+	if (a == olda) {
 		return;
-
-	EdSetTextEffects(a&WP_KURSIVE,a&WP_UNDERLINED,a&WP_BOLD);
-	EdSelectFont(wp,hdc);
-	if (a)
-		EdSetTextEffects(0,0,wp->fnt.weight);
+	}
+	fontStyle.italic = a & WP_KURSIVE ? 1 : 0;
+	fontStyle.underline = a & WP_UNDERLINED ? 1 : 0;
+	fontStyle.weight = a & WP_BOLD ? FW_BOLD : FW_NORMAL;
+	font_selectDefaultEditorFont(wp,hdc,&fontStyle);
 }
 
 /*--------------------------------------------------------------------------
@@ -76,13 +78,13 @@ static int  graf_text(HDC hdc,
 	}
 	TextOut(hdc,x,y,b,delta);
 
-	return x + LOWORD(GetTextExtent(hdc, b, delta));
+	return x + LOWORD(win_getTextExtent(hdc, b, delta));
 }
 
 /*--------------------------------------------------------------------------
- * writeattrline()
+ * render_singleLineWithAttributesOnDevice()
  */
-char *writeattrline(HDC hdc, int x, int y,
+char *render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y,
 	unsigned char *b, LINE *lp, int start, int end, WINFO *wp)
 {
 	register unsigned char *	d,c;

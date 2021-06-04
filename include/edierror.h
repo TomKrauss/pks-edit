@@ -4,25 +4,25 @@
 
 #include "edtypes.h"
 
-extern void ed_error(int nId, ...);
+extern void error_showErrorById(int nId, ...);
 extern int EdOptionToggle(long option);
 
 /*------------------------------------------------------------
- * ProgressMonitorCancel()
+ * progress_cancelMonitor()
  * optional force redraw to reflect changes in the current
  * top window due to a workin progress
  */
-extern int ProgressMonitorCancel(BOOL bRedraw);
+extern int progress_cancelMonitor(BOOL bRedraw);
 
 /*------------------------------------------------------------
- * ProgressMonitorClose()
+ * progress_closeMonitor()
  */
-extern void ProgressMonitorClose(int always);
+extern void progress_closeMonitor(int always);
 
 /*------------------------------------------------------------
- * ProgressMonitorStart()
+ * progress_startMonitor()
  */
-extern void ProgressMonitorStart(unsigned int ids);
+extern void progress_startMonitor(unsigned int ids);
 
 /*--------------------------------------------------------------------------
  * NoDiskSpace()
@@ -30,9 +30,9 @@ extern void ProgressMonitorStart(unsigned int ids);
 extern void NoDiskSpace(void);
 
 /*--------------------------------------------------------------------------
- * WriteError()
+ * err_writeErrorOcurred()
  */
-extern void WriteError(void);
+extern void err_writeErrorOcurred(void);
 
 /*--------------------------------------------------------------------------
  * OpenError()

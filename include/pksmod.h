@@ -60,7 +60,7 @@ typedef struct edx {
 
 	/* Memory */
 	void 	*(*_alloc)(unsigned size);
-	unsigned char *(*stralloc)(unsigned char *buf);
+	unsigned char *(*string_allocate)(unsigned char *buf);
 	void 	(*_free)(void *p);
 
 	/* Files */
@@ -68,7 +68,7 @@ typedef struct edx {
 	void 	(*lnlistfree)(LINE *lp);
 	char 	*(*file_searchFileInPKSEditLocation)(char *s);
 	void 	(*xref_openSearchList)(char *fn,int cmpflg);
-	int 		(*opennofsel)(char *fn,long ln,int closeother);
+	int 		(*ft_optionFileWithoutFileselector)(char *fn,long ln,int closeother);
 	char 	*(*mkpname)(char *path,char *fn);
 	int		(*selnfile)(char *name);
 	int		(*EdFileAbandon)(int reopen);

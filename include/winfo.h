@@ -66,27 +66,66 @@ typedef struct wininfo {
 
 
 /*--------------------------------------------------------------------------
- * SendRedraw()
+ * render_sendRedrawToWindow()
  */
-extern void SendRedraw(HWND hwnd);
+extern void render_sendRedrawToWindow(HWND hwnd);
+
+/*------------------------------------------------------------
+ * render_paintWindow()
+ */
+extern void render_paintWindow(WINFO* wp);
 
 /*--------------------------------------------------------------------------
- * EdRedrawWindow()
+ * render_paintFromLineTo()
  */
-extern void EdRedrawWindow(WINFO* wp);
+extern void render_paintFromLineTo(WINFO* wp, long min, long max);
+
+/*--------------------------------------------------------------------------
+ * render_repaintAllForFile()
+ */
+extern void render_repaintAllForFile(FTABLE* fp);
+
+/*--------------------------------------------------------------------------
+ * render_redrawAndPaintCurrentFile()
+ */
+extern void render_redrawAndPaintCurrentFile(void);
+
+/*--------------------------------------------------------------------------
+ * render_linePart()
+ */
+extern void render_linePart(FTABLE* fp, long ln, int col1, int col2);
 
 /*------------------------------------------------------------
- * EdSelectFont()
- * select a font and return handle to old Font
+ * render_updateCaret()
+ * Update the current caret for the passed editor window (dependening on insert mode
+ * etc...)
  */
-extern HFONT EdSelectFont(WINFO* wp, HDC hdc);
+extern void render_updateCaret(WINFO* wp);
+
+/*--------------------------------------------------------------------------
+ * render_singleLineOnDevice()
+ */
+extern int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO* wp, LINE* lp);
+
+/*--------------------------------------------------------------------------
+ * render_selectCustomCaret()
+ * Select a non-standard caret symbol.
+ */
+extern void render_selectCustomCaret(int on);
 
 /*------------------------------------------------------------
- * RedrawWmPaint()
+ * render_updateCustomCaret()
+ * When a custom caret is being displayed - re-render it now.
  */
-extern void RedrawWmPaint(WINFO* wp);
+extern void render_updateCustomCaret(WINFO* wp, HDC hdc);
 
 extern void wt_tcursor(WINFO* wp, int type);
+
+/*------------------------------------------------------------
+ * wt_scrollxy()
+ * Scroll the current window by a number of lines and columns.
+ */
+void wt_scrollxy(WINFO* wp, int nlines, int ncolumns);
 
 /*------------------------------------------------------------
  * wt_curpos()
@@ -104,21 +143,50 @@ extern void wt_deleteline(WINFO* wp, int additional, int nlines);
 extern void wt_insline(WINFO* wp, int nlines);
 
 /*--------------------------------------------------------------------------
- * RedrawTotalWindow()
+ * render_repaintAllForFile()
  */
-extern void RedrawTotalWindow(FTABLE* fp);
+extern void render_repaintAllForFile(FTABLE* fp);
 
 /*--------------------------------------------------------------------------
- * redrawline()
+ * render_redrawCurrentLine()
  * Redraw the line containing the cursor, in the "current active" editor window.
  */
-extern void redrawline(void);
+extern void render_redrawCurrentLine(void);
 
 /**
  * Returns the view num steps from the step - 0 to return the current to level view, 1 to return
  * the one below the top window.
  */
 extern WINFO* ww_stackwi(int num);
+
+/*------------------------------------------------------------
+ * font_createFontWithStyle()
+ * create a logical font. If the style is present it is taken
+ * from the second parameter, if not, it is taken from the font.
+ */
+extern HFONT font_createFontWithStyle(EDFONT* pFont, EDFONTSTYLE* pStyle);
+
+/*------------------------------------------------------------
+ * font_selectSystemFixedFont()
+ */
+extern void font_selectSystemFixedFont(HDC hdc);
+
+/*------------------------------------------------------------
+ * font_selectDefaultEditorFont()
+ * select a font and return handle to old Font. Optionally pass a font style (may be NULL)
+ */
+extern HFONT font_selectDefaultEditorFont(WINFO* wp, HDC hdc, EDFONTSTYLE* pStyle);
+
+/*------------------------------------------------------------
+ * font_createFontWithStyle()
+ * create a logical font. If the style is present, it is used - otherwise use style info from the font.
+ */
+extern HFONT font_createFontWithStyle(EDFONT* pFont, EDFONTSTYLE* pStyle);
+
+/*------------------------------------------------------------
+ * font_selectStandardFont()
+ */
+extern void font_selectStandardFont(HWND hwnd, WINFO* wp);
 
 #define FTPOI(wp)		(FTABLE*)(wp->fp)
 

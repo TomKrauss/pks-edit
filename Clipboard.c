@@ -69,7 +69,7 @@ static HANDLE clp_makebufferhandle(int whichBuffer)
 
 	if ((hMem = GlobalAlloc(GHND, (DWORD)size)) == 0 ||
 	    (lpMem = GlobalLock(hMem)) == 0) {
-		ed_error(IDS_MSGNOSPCE);
+		error_showErrorById(IDS_MSGNOSPCE);
 		return 0;
 	}
 	
@@ -186,7 +186,7 @@ EXPORT int EdShowClipboard(int whichBuffer)
 	PROCESS_INFORMATION processInfo;
 
 	if (!CreateProcess("CLIPBRD.EXE", NULL, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)) {
-		alert("Clipbrd.exe konnte nicht gestartet werden. Eventuell ist die Anwendung unter dieser Windows Version nicht mehr verfügbar.");
+		error_displayAlertDialog("Clipbrd.exe konnte nicht gestartet werden. Eventuell ist die Anwendung unter dieser Windows Version nicht mehr verfügbar.");
 		return 0;
 	}
 	CloseHandle(processInfo.hProcess);

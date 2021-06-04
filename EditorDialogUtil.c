@@ -37,6 +37,7 @@
 #include "edhist.h"
 #include "xdialog.h"
 #include "regexp.h"
+#include "winutil.h"
 
 #define ISRADIODLGCTL(i) 	((i) >= IDD_LOWRADIO && (i) <= IDD_HIGHRADIO)
 #define ISFLAGDLGCTL(i) 		(((i) >= IDD_LOWOPT && (i) <= IDD_HIGHOPT) ||\
@@ -59,7 +60,7 @@ int	   nCurrentDialog;
 HWND   hwndDlg;
 
 /*-----------------------------------------------
- * Assign a callback to be invoked to return the DIALOGPARS for a page (in a property sheet)
+ * sym_assignSymbol a callback to be invoked to return the DIALOGPARS for a page (in a property sheet)
  * for that particular page, if the page is activated. The callback is passed the index of the 
  * property page activated.
  */
@@ -87,7 +88,7 @@ static HWND CreateToolTip(int toolID, HWND hDlg, int iTooltipItem) {
 	HWND hwndTool = GetDlgItem(hDlg, toolID);
 
 	// Create the tooltip. g_hInst is the global instance handle.
-	HWND hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
+	HWND hwndTip = CreateWindowEx(NULL, (LPCWSTR)TOOLTIPS_CLASS, NULL,
 		WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		CW_USEDEFAULT, CW_USEDEFAULT,
@@ -205,7 +206,7 @@ WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_CHARCHANGE:
 			key = (KEYCODE)wParam;
 			SetWindowText(hwnd,code2key(key));
-			SendRedraw(hwnd);
+			render_sendRedrawToWindow(hwnd);
 			return TRUE;
 
 		case CS_QUERYCHAR:
@@ -256,7 +257,7 @@ WINFUNC CInput(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			szBuff[1] = 0;
 			szBuff[0] = (char)wParam;
 			SetWindowText(hwnd,szBuff);
-			SendRedraw(hwnd);
+			render_sendRedrawToWindow(hwnd);
 			SendParentCommand(hwnd,0L);
 			return 0;
 	}
@@ -271,7 +272,7 @@ int setwrange(HWND hwnd, int *rangetype, int first)
 	char	  szBuf[64],szSel[64];
 	HWND	  hwndList;
 
-	blkvalid = ft_checkSelection(ft_CurrentDocument());
+	blkvalid = ft_checkSelection(ft_getCurrentDocument());
 	if (*rangetype == RNG_BLOCK && !blkvalid)
 		*rangetype = RNG_CHAPTER;
 
@@ -373,14 +374,14 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 		ip = (int*)dp->dp_data;
 		switch(item) {
 			case IDD_POSITIONTCURS:
-				moved = form_textcursor(hDlg);
-				OwnTextCursor(1);
+				moved = win_positionWindowRelativeToCaret(hDlg);
+				render_selectCustomCaret(1);
 				break;
 			case IDD_WINDOWLIST:
 			case IDD_ICONLIST:
 			case IDD_FONTSEL2COLOR:
 				dlp = (DIALLIST*)dp->dp_data;
-				(*dlp->li_fill)(hDlg,item, (void*) *dlp->li_param);
+				(*dlp->li_fill)(hDlg,item, (void*) (intptr_t) *dlp->li_param);
 				break;
 			case IDD_CSEL:
 				SendDlgItemMessage(hDlg,item,WM_CHARCHANGE,
@@ -464,7 +465,7 @@ static void DlgInit(HWND hDlg, DIALPARS *dp, BOOL initialFlag)
 	}
 	if (!DoDlgInitPars(hDlg, dp, nPars) && initialFlag) {
 		if (!bInPropertySheet) {
-			form_move(hDlg);
+			win_moveWindowToDefaultPosition(hDlg);
 		}
 	}
 }
@@ -544,7 +545,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			*ip = ReplaceAction(idCtrl);
 			break;
 		case IDD_POSITIONTCURS:
-			OwnTextCursor(0);
+			render_selectCustomCaret(0);
 			break;
 		case IDD_CSEL:
 			*(char*)dp->dp_data = (char)(short)(long)
@@ -615,9 +616,9 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 		case IDD_LONG1: 
 			GetDlgItemText(hDlg,item,numbuf,sizeof numbuf-1);
 			if (item == IDD_LONG1) {
-				*((long*)dp->dp_data) = Atol(numbuf);
+				*((long*)dp->dp_data) = string_convertToLong(numbuf);
 			} else {
-				*ip = numbuf[0] == 0 ? -1 : Atol(numbuf);
+				*ip = numbuf[0] == 0 ? -1 : string_convertToLong(numbuf);
 			}
 			break;
 		case IDD_RNGE:
@@ -672,7 +673,7 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 			fsel_setDialogTitle(pszTitle);
 			if (fsel_selectFile(szBuff,fselbuf,_fseltarget, idCtrl != IDD_PATH1SEL)) {
 				if (idCtrl == IDD_PATH1SEL) {
-					sfsplit(_fseltarget, fselbuf, NULL);
+					string_splitFilename(_fseltarget, fselbuf, NULL);
 					SetDlgItemText(hDlg, IDD_PATH1, fselbuf);
 				} else {
 					SetDlgItemText(hDlg, IDD_PATH1,
@@ -773,7 +774,7 @@ void dlg_help(void)
 		EdHelpContext(nCurrentDialog);
 		return;
 	}
-	ed_error(IDS_MSGNOHELP);
+	error_showErrorById(IDS_MSGNOHELP);
 }
 
 /*--------------------------------------------------------------------------
@@ -844,7 +845,7 @@ INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 			if (bInPropertySheet) {
 				if (!bPropertySheetMoved) {
 					bPropertySheetMoved = TRUE;
-					form_move(GetParent(hDlg));
+					win_moveWindowToDefaultPosition(GetParent(hDlg));
 				}
 			} else if (_dp != NULL) {
 				DlgInit(hDlg, _dp, TRUE);
@@ -905,9 +906,9 @@ INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 int CallDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips)
 { 	int ret = 1;
 
-	if (param_dialopen(pp)) {
+	if (macro_openDialog(pp)) {
 		ret = DoDialog(nId, DlgStdProc,dp, pTooltips);
-		param_record(pp);
+		macro_recordOperation(pp);
 		if (ret == IDCANCEL)
 			return 0;
 	}
