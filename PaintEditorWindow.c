@@ -365,7 +365,10 @@ EXPORT void render_paintFromLineTo(WINFO *wp,long min,long max)
  */
 EXPORT void render_repaintAllForFile(FTABLE *fp)
 {
-	render_paintWindow(WIPOI(fp));
+	WINFO* wp = WIPOI(fp);
+
+	render_sendRedrawToWindow(wp->ww_handle);
+	render_paintWindow(wp);
 	caret_placeCursorInCurrentFile(fp->ln, fp->caret.offset);
 }
 

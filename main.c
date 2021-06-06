@@ -31,16 +31,15 @@
 #include "context.h"
 #include "desktopicons.h"
 #include "fileutil.h"
+#include "edfuncs.h"
 
 #define	PROF_OFFSET	1
 
 extern void 	ft_checkForChangedFiles(void);
 extern void		GetPhase2Args(char *args);
 extern void		GetPhase1Args(char *args);
-extern void *	PksGetKeyBind(WPARAM key);
 extern void 	EditDroppedFiles(HDROP hdrop);
 extern BOOL 	ft_initializeReadWriteBuffers(void);
-extern void 	mac_showHelpForMenu(int menId);
 extern BOOL 	ww_havefocus(void);
 extern void 	st_init(HWND hwndDaddy);
 extern void 	status_wh(WORD *width, WORD *height);
@@ -48,14 +47,7 @@ extern void 	tb_wh(WORD *width, WORD *height);
 extern void 	ReadConfigFiles(void);
 extern int 		clp_setdata(int whichBuffer);
 extern HMENU 	menu_getmenuforcontext(char *pszContext);
-extern WORD 	TranslateToOrigMenu(WORD wParam);
 extern BOOL 	InitEnv(void);
-extern char *	mac_getMenuTooltTip(int menId);
-/*---------------------------------*
- * mac_onKeyPressed()
- * Execute a keybinding and return 1 if successful.
- *---------------------------------*/
-extern int mac_onKeyPressed(void* keybind);
 
 extern BOOL	bTaskFinished;
 
@@ -294,7 +286,7 @@ static int TranslatePksAccel(HWND hwnd, MSG *msg)
 					break;
 				}
 			}
-			if ((_executeKeyBinding = PksGetKeyBind(msg->wParam)) != 0) {
+			if ((_executeKeyBinding = macro_getKeyBinding(msg->wParam)) != 0) {
 				if (msg->message == WM_SYSKEYDOWN ||
 				    msg->message == WM_KEYDOWN) {
 					msg->message = WM_PKSKEY;
@@ -305,16 +297,6 @@ static int TranslatePksAccel(HWND hwnd, MSG *msg)
 			}
 	}
 	return 0;
-}
-
-/*------------------------------------------------------------
- * EdSleep()
- */
-void EdSleep(void)
-{ 	MSG msg;
-
-	GetMessage(&msg, 0, WM_TIMER, WM_TIMER);
-	DispatchMessage(&msg); 
 }
 
 static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
@@ -337,7 +319,7 @@ static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
 				if (hsz1 == hszDDECommandLine) {
 					GetPhase2Args(pszData);
 				} else {
-					mac_executeSingleLineMacro(pszData);
+					macro_executeSingleLineMacro(pszData);
 				}
 				DdeUnaccessData(hdata);
 				if (!DdeFreeDataHandle(hdata)) {
@@ -733,15 +715,15 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (!GET_WM_MENUSELECT_HMENU(wParam, lParam) && 
 				(WORD)GET_WM_MENUSELECT_FLAGS(wParam, lParam) == 0xFFFF) {
 			/* Menu closed */
-				mac_showHelpForMenu(-1);
+				macro_showHelpForMenu(-1);
 			} else if ((fwMenu & (MF_SYSMENU|MF_SEPARATOR|MF_POPUP)) == 0) {
-				mac_showHelpForMenu((int)GET_WM_MENUSELECT_CMD(wParam, lParam));
+				macro_showHelpForMenu((int)GET_WM_MENUSELECT_CMD(wParam, lParam));
 			}
 			break;
 
 		case WM_INITMENUPOPUP:
 			if (!(BOOL)HIWORD(lParam)) {
-				mac_setmenukeys((HMENU) wParam);
+				macro_assignAcceleratorTextOnMenu((HMENU) wParam);
 			}
 			break;
 
@@ -752,7 +734,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		            lpttt = (LPTOOLTIPTEXT) lParam;
 		            lpttt->hinst = 0;
-                    lpttt->lpszText = mac_getMenuTooltTip((int)lpttt->hdr.idFrom);
+                    lpttt->lpszText = macro_getMenuTooltTip((int)lpttt->hdr.idFrom);
 	            }
 				case TBN_QUERYINSERT:
 				case TBN_QUERYDELETE:
@@ -764,12 +746,12 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if ((int)(short)GET_WM_COMMAND_ID(wParam, lParam) < 0) {
 				break;
 			}
-			wParam = TranslateToOrigMenu(GET_WM_COMMAND_ID(wParam, lParam));
+			wParam = macro_translateToOriginalMenuIndex(GET_WM_COMMAND_ID(wParam, lParam));
 			if (bHelp) {
 				bHelp = FALSE;
 				return EdHelpContext(wParam);
 			}
-			if (mac_onMenuAction(wParam)) {
+			if (macro_onMenuAction(wParam)) {
 				return 1;
 			}
 			if (!IsWindow(hwnd) || !IsWindow(hwndClient)) {
@@ -779,7 +761,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case WM_PKSKEY:
 			error_closeErrorWindow();
-			mac_onKeyPressed(_executeKeyBinding);
+			macro_onKeyPressed(_executeKeyBinding);
 			return 0;
 
 		case WM_PKSOPTOGGLE:
@@ -788,7 +770,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case WM_CHAR:
 			error_closeErrorWindow();
-			mac_onCharacterInserted(wParam);
+			macro_onCharacterInserted(wParam);
 			return 0;
 
 	    case WM_RENDERALLFORMATS:

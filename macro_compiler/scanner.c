@@ -477,7 +477,7 @@ typedef void EDFUNCDEF;
 extern FILE		*createtmp(char *fnd, char *fn);
 extern int 		init_funcs(void);
 extern long 		EnumValue(void *enp);
-extern void 		mac_switchtodefaulttables(void);
+extern void 		macro_selectDefaultBindings(void);
 extern void 		stepselectcompiler(char *pszName);
 
 #if defined(STAND_ALONE)
@@ -683,8 +683,7 @@ int yyfinish(void)
 	}
 #endif
 
-	mac_setmenukeys();
-	mac_switchtodefaulttables();
+	macro_selectDefaultBindings();
 	if (yyerr.errfp) {
 		fprintf(yyerr.errfp,"\nTOTAL %d Errors\n",yyerr.yynerr);
 		fclose(yyerr.errfp);

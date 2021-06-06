@@ -37,7 +37,7 @@ extern int  _deadkey;
 
 int doc_documentTypeChanged(void);
 int doc_columnChanged(void);
-int mac_recorder(void);
+int macro_toggleRecordMaco(void);
 int markcolomns(FTABLE *fp);
 void op_updateall(void);
 
@@ -58,7 +58,7 @@ static struct optiontab {
      IDD_FKFLG9,    O_RDONLY,      2,   doc_documentTypeChanged,
      IDD_FKFLG10,   WM_OEMMODE,    2,   doc_documentTypeChanged,
      IDD_FKFLG10+1, SHOWOEM,       1,   doc_documentTypeChanged,
-     IDD_FKFLG10+2, 1,            -1,   mac_recorder,
+     IDD_FKFLG10+2, 1,            -1,   macro_toggleRecordMaco,
      0,             SHOWCONTROL,   1,   doc_documentTypeChanged,
      0,             SHOWSTATUS,    1,   doc_documentTypeChanged,
      0,             SHOWHEX,       1,   doc_documentTypeChanged,
@@ -198,7 +198,7 @@ EXPORT int op_checktoggle(int toggle)
 
 	for (op = _optiontab; op->flgkeynr >= 0; op++) {
 		if (op->flgkeynr == toggle) {
-			if (op->func == mac_recorder) {
+			if (op->func == macro_toggleRecordMaco) {
 				/* this glitch avoids caching of the record 
 				 * function itself
 				 */

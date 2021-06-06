@@ -50,25 +50,6 @@ void nomemory(void)
 }
 
 /*--------------------------------------------------------------------------
- * shareAlloc()
- */
-void *shareAlloc(void)
-{	
-	static char *szRet;
-	
-	if (!szRet) {
-		HANDLE handle;
-
-		if ((handle = GlobalAlloc(GMEM_FIXED|GMEM_DDESHARE,256)) != 0)
-			szRet = GlobalLock(handle);
-		if (!szRet)
-			nomemory();
-	}
-	return szRet;
-}
-
-
-/*--------------------------------------------------------------------------
  * destroy()
  */
 void destroy(char **ap)
@@ -78,22 +59,6 @@ void destroy(char **ap)
 		*ap = 0;
 	}
 }
-
-/*--------------------------------------------------------------------------
- * calloc()
- */
-EXPORT void *calloc(size_t nitems, size_t nbytes)
-{	void far *d;
-
-	nbytes *= nitems;
-
- 	d = _alloc(nbytes);
-	if (d) {
-		blfill(d,nbytes,0);
-	}
-	return d;
-}
-
 
 /*--------------------------------------------------------------------------
  * stralloc()

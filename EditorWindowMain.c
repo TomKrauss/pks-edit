@@ -15,9 +15,11 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "trace.h"
 #include "caretmovement.h"
 #include "edierror.h"
+#include "edfuncs.h"
 #include "errordialogs.h"
 #include "winfo.h"
 #include "winterf.h"
@@ -44,7 +46,6 @@ static WINFO *_winlist;
  * mkattlist()
  */
 extern void mkattlist(LINE* lp);
-extern int mac_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
 extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
 extern char *ft_visiblename(FTABLE *fp);
 extern int  mouse_onRulerClicked(WINFO *fp, int x, int y, int msg, int shift);
@@ -53,7 +54,7 @@ extern void *icEditIconClass;
 extern BOOL ic_isIconWindow(HWND hwnd);
 extern void st_redraw(BOOL bErase);
 extern void xref_selectFileFormat(char *tags);
-extern void mac_switchtodefaulttables(void);
+extern void macro_selectDefaultBindings(void);
 extern void SetMenuFor(char *pszContext);
 #if defined(DEBUG_MEMORY_USAGE)
 extern long dumpallocated(void);
@@ -711,7 +712,7 @@ WINFUNC EditWndProc(
 
 	case WM_ICONDROP:
 		ww_popup(hwnd);
-		return mac_onIconAction(hwnd, wParam, lParam);
+		return macro_onIconAction(hwnd, wParam, lParam);
 
 	case WM_MDIACTIVATE:
 		/* EdSwitchContext(hwnd,LOWORD(lParam),CTX_EDIT); */
@@ -1003,7 +1004,7 @@ static WINFUNC WorkAreaWndProc(
 			op_updateall();
 			FTABLE* fp = wp->fp;
 			xref_selectFileFormat(fp->documentDescriptor->modename);
-			mac_switchtodefaulttables();
+			macro_selectDefaultBindings();
 	    }
 	    else {
 			EdTRACE(Debug(DEBUG_TRACE,

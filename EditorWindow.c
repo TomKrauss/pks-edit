@@ -71,7 +71,7 @@ void render_updateCustomCaret(WINFO *wp, HDC hdc)
 
 /*------------------------------------------------------------
  * render_updateCaret()
- * Update the current caret for the passed editor window (dependening on insert mode
+ * macro_updateSelectedMacro the current caret for the passed editor window (dependening on insert mode
  * etc...)
  */
 static struct olc {

@@ -94,8 +94,8 @@ int bind_key(KEYCODE keycode, MACROREFTYPE typ, MACROREFIDX idx, int augment)
 		}
 	}
 
-	check_fkdirty(keycode);
-	return mac_scaninsert(keycode,idx,typ);
+	macro_onKeybindingChanged(keycode);
+	return macro_bindOrUnbindKey(keycode,idx,typ);
 }
 
 

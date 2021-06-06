@@ -17,7 +17,7 @@
 typedef struct tagBRACKET_RULE BRACKET;
 
 # ifdef	UC_H
-extern void key_globs(BRACKET **bp, PASTELIST **pp[], UCLIST **up);
+extern void uc_initializeUnderCursorActions(BRACKET **bp, PASTELIST **pp[], UCLIST **up);
 # endif
 
 #define	BRACKETS_H

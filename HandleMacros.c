@@ -24,8 +24,6 @@
 
 #include "edfuncs.h"
 
-extern	MACRO	*mac_byindex(int i);
-
 char *c2shift(char *s, KEYCODE code);
 
 /*------------------------------------------------------------
@@ -34,7 +32,7 @@ char *c2shift(char *s, KEYCODE code);
 char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
 {
 	switch(type) {
-		case CMD_MACRO:  sprintf(szBuf,"%s",mac_byindex(nIndex)->name); break;
+		case CMD_MACRO:  sprintf(szBuf,"%s",macro_getByIndex(nIndex)->name); break;
 		case CMD_CMDSEQ: 
 			if (LoadString(hInst,nIndex+IDM_CMDNAME,szBuf+1,250) <= 0) {
 				sprintf(szBuf,"@Unamed-%d",nIndex);
@@ -118,9 +116,9 @@ char *code2mouse(MOUSECODE code)
 }
 
 /*--------------------------------------------------------------------------
- * mac_cmdseqbyname()
+ * macro_getCmdIndexByName()
  */
-int mac_cmdseqbyname(char *name)
+int macro_getCmdIndexByName(char *name)
 {
 	char			szBuf[128];
 	char 		c = *name;

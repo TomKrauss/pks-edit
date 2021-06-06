@@ -32,6 +32,7 @@
 
 #include "iccall.h"
 #include "pksedit.h"
+#include "edfuncs.h"
 
 #define	GWL_ICICON				GWL_ICCLASSVALUES+sizeof(void*)
 #define	GWL_ICONEXTRA			GWL_ICICON+sizeof(void*)
@@ -48,7 +49,6 @@ typedef struct tagICONCLASS {
 } ICONCLASS;
 
 extern int EdConfigureIcons(void);
-extern int mac_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped);
 extern char *_strtolend;
 extern int  LbGetText(HWND hwnd, int id, void *szBuff);
 
@@ -461,12 +461,12 @@ static int		nButtonY;
 
 	switch(message) {
 		case WM_LBUTTONDBLCLK:
-			mac_onIconAction(hwnd, ICACT_DCLICKED, 0L);
+			macro_onIconAction(hwnd, ICACT_DCLICKED, 0L);
 			break;
 		case WM_SYSCOMMAND:
 			switch (wParam & 0xFFF0) {
 				case SC_RESTORE:
-					return mac_onIconAction(hwnd, ICACT_DCLICKED, 0L);
+					return macro_onIconAction(hwnd, ICACT_DCLICKED, 0L);
 				case SC_MOVE:			/* make the icon move */
 				case SC_TASKLIST:
 					break;
@@ -582,7 +582,7 @@ static int		nButtonY;
 			return 1;
 
 		case WM_ICONDROP:
-			return mac_onIconAction(hwnd, wParam, lParam);
+			return macro_onIconAction(hwnd, wParam, lParam);
 
 		case WM_SYSKEYDOWN:
 			if (wParam == VK_RETURN) {
@@ -641,7 +641,7 @@ static int ic_selectTrashIcon(HWND hwnd)
 
 /*------------------------------------------------------------
  * ic_redisplayIcons()
- * Update all icons to reflect the current editor state (clipboard has data etc...)
+ * macro_updateSelectedMacro all icons to reflect the current editor state (clipboard has data etc...)
  */
 int _icdirty = 1;
 void ic_redisplayIcons(void)

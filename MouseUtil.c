@@ -24,6 +24,7 @@
 #include "functab.h"
 #include "iccall.h" 
 #include "resource.h"
+#include "edfuncs.h"
 
 static HCURSOR   hHourGlass;		// Hour glass cursor
 static HCURSOR   hSaveCurs;
@@ -377,7 +378,7 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 		}
 	}
 
-	return mac_runcmd(&mp->macref);
+	return macro_executeMacro(&mp->macref);
 }
 
 /*----------------------------*/

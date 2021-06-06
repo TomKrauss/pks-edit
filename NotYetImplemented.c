@@ -1,2 +1,2 @@
 void forceredraw()	{}
-void iflash(void) {}
+void ic_flashIcon(void) {}

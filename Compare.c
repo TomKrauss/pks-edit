@@ -13,6 +13,7 @@
  *
  */
  
+#include <ctype.h>
 #include "edtypes.h"
  
 extern unsigned char 	_l2uset[256];

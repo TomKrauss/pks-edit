@@ -38,8 +38,8 @@
 #include "documenttypes.h"
 #include "editorconfiguration.h"
 #include "regexp.h"
+#include "edfuncs.h"
 
-extern void *	shareAlloc();
 extern HWND 	ww_winid2hwnd(int winid);
 extern int 	EdPromptAutosavePath(char *path);
 
@@ -451,7 +451,7 @@ static int ft_openwin(FTABLE *fp, WINDOWPLACEMENT *wsp)
 int ft_requestToClose(FTABLE *fp)
 {
 	if (fp->documentDescriptor->cm[0]) {
-		if (!mac_executeByName(fp->documentDescriptor->cm)) {
+		if (!macro_executeByName(fp->documentDescriptor->cm)) {
 			return 0;
 		}
 	}
@@ -650,7 +650,7 @@ int ft_optionFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
 	caret_placeCursorInCurrentFile(line,0L);
 
 	if (fileflags != 0 && fp->documentDescriptor) {
-		mac_executeByName(fp->documentDescriptor->creationMacroName);
+		macro_executeByName(fp->documentDescriptor->creationMacroName);
 	}
 
 	return 1;

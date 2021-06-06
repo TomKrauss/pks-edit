@@ -31,6 +31,7 @@
 #include "edhist.h"
 #include "xdialog.h"
 #include "publicapi.h"
+#include "fileutil.h"
 #include "stringutil.h"
 #include "pathname.h"
 #include "edexec.h"
@@ -49,8 +50,7 @@ extern HWND EdGetActiveWindow(int includeicons);
 extern BOOL find_replacementHadBeenPerformed();
 
 extern HWND ww_winid2hwnd(int winid);
-extern int 		ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
-extern int 		mac_runcmd(MACROREF *mp);
+extern int 		macro_executeMacro(MACROREF *mp);
 extern int 		AlignText(char *finds, int scope, char filler, int flags);
 extern int 		LbGetText(HWND hwnd, int id, void *szBuff);
 extern FTABLE *	ww_winid2fp(int winid);
@@ -59,16 +59,11 @@ extern int 		PrintMacs(char *macroname);
 extern int 		PrintMice(void);
 extern int 		PrintKeys(void);
 extern int 		PrintMenus(void);
-extern void 	fkey_visibilitychanged(void);
-extern int 		caret_moveLeftRight(int dir, int mtype);
 extern int 		EdExecute(long flags, long unused, 
 					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
 extern int 		AssignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
-extern char *		file_getTempDirectory(void);
 extern int 		doc_documentTypeChanged(void);
-extern void 		render_sendRedrawToWindow(HWND hwnd);
-extern int 		curspgrph(int dir,int start);
 extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		mac_compileMacros(void);
@@ -177,7 +172,7 @@ int EdChapterGotoEnd(int dir)
  */
 int EdParaGotoBegin(int dir)
 {
-	return curspgrph(dir,1);
+	return caret_advanceParagraphFromCurrentLine(dir,1);
 }
 
 /*--------------------------------------------------------------------------
@@ -185,7 +180,7 @@ int EdParaGotoBegin(int dir)
  */
 int EdParaGotoEnd(int dir)
 {
-	return curspgrph(dir,0);
+	return caret_advanceParagraphFromCurrentLine(dir,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -700,7 +695,7 @@ int EdReplaceTabs(int expand)
 	if (!CallDialog(DLGCONVERT,&_tp,_dconvert, NULL))
 		return 0;
 
-	return ReplaceTabs(_scope,expand);
+	return find_replaceTabsWithSpaces(_scope,expand);
 }
 
 /*--------------------------------------------------------------------------
@@ -1106,7 +1101,7 @@ int EdRangeShift(int dir)
 	if (!CallDialog(DLGCONVERT,&_tp,_dconvert, NULL))
 		return 0;
 		
-	return RangeShift(_scope,dir);
+	return uc_shiftRange(_scope,dir);
 }
 
 /*--------------------------------------------------------------------------
@@ -1603,9 +1598,10 @@ int EdFindAgain(int dir)
 }
 
 /*--------------------------------------------------------------------------
- * mac_getname()
+ * macro_getIndexForKeycode()
+ * Return the internall index for a given macro keycode and name.
  */
-int mac_getname(KEYCODE *scan,char *name,int oldidx)
+int macro_getIndexForKeycode(KEYCODE *scan,char *name,int oldidx)
 {	static DIALPARS  _d[] = {
 		IDD_STRING1,	MAC_NAMELEN,		_currentSearchAndReplaceParams.searchPattern,
 		IDD_KEYCODE,	sizeof(KEYCODE),	0,
@@ -1617,7 +1613,7 @@ int mac_getname(KEYCODE *scan,char *name,int oldidx)
 	do {
 		if (DoDialog(DLGMACNAME, DlgStdProc,_d, NULL) == IDCANCEL)
 			return 0;
-	} while (!mac_isvalidname(name,oldidx));
+	} while (!macro_validateMacroName(name,oldidx));
 	return 1;
 }
 
@@ -1641,9 +1637,9 @@ int EdCharControlInsert(void)
 }
 
 /*--------------------------------------------------------------------------
- * getuntilc()
+ * EdPromptForCharacter()
  */
-int getuntilc(int ids_num) 
+int EdPromptForCharacter(int ids_num) 
 {	static unsigned char c;
 
 	c = DialogCharInput(ids_num,c);

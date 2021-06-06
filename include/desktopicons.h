@@ -72,7 +72,7 @@ extern int ic_moveIcon(HWND hwnd, int x, int y);
 
 /*------------------------------------------------------------
  * ic_redisplayIcons()
- * Update all icons to reflect the current editor state (clipboard has data etc...)
+ * macro_updateSelectedMacro all icons to reflect the current editor state (clipboard has data etc...)
  */
 extern int _icdirty;
 extern void ic_redisplayIcons(void);

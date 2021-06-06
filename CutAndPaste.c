@@ -33,7 +33,7 @@ extern unsigned char *bl_convertPasteBufferToText(unsigned char *b, unsigned cha
 extern void 	bl_validateTrashCanName(char *pszValid);
 extern void 	ValidClipboards(char *pszValid);
 
-extern LINE	*condexpline(FTABLE *fp, LINE *lp);
+extern LINE	*find_expandTabsInFormattedLines(FTABLE *fp, LINE *lp);
 extern int 	DialogTemplate(unsigned char c, 
 				char *(*fpTextForTmplate)(char *s), char *s);
 
@@ -243,7 +243,7 @@ EXPORT PASTE *bl_getPasteBuffer(int which) {
 	}
 
 	if (which & PASTE_ICON)
-		iflash(icon,id);
+		ic_flashIcon(icon,id);
 	return pp;
 }
 
@@ -440,7 +440,7 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 	 */
 	if (colflg) {
 		offs = caret_lineOffset2screen(fp, &fp->caret);
-		if (condexpline(fp,fp->caret.linePointer) == 0)
+		if (find_expandTabsInFormattedLines(fp,fp->caret.linePointer) == 0)
 			return 0;
 	} else {
 		offs = fp->caret.offset;

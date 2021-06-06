@@ -100,6 +100,19 @@ unsigned char* string_allocate(unsigned char* buf);
 extern void destroy(void** ap);
 
 /*--------------------------------------------------------------------------
+ * allocAndInitialize()
+ * Allocate a number of items each having a number of bytes and initialize the
+ * result with null.
+ */
+extern void* allocAndInitialize(size_t nitems, size_t nbytes);
+
+/*--------------------------------------------------------------------------
+ * stralloc()
+ * Allocate a string and copy it.
+ */
+unsigned char* stralloc(unsigned char* buf);
+
+/*--------------------------------------------------------------------------
  * string_isSpace()
  */
 extern BOOL string_isSpace(unsigned char c);

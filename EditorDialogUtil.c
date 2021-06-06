@@ -46,9 +46,10 @@
 extern int 		_translatekeys;
 
 extern int		mysprintf(FTABLE *fp, char *d,char *format,...);
-extern void 		ReturnString(char *string);
-extern BOOL 		DlgChooseFont(HWND hWnd, EDFONT *ep, BOOL bPrinter);
-extern void 		fsel_setDialogTitle(char *title);
+extern void 	ReturnString(char *string);
+extern BOOL 	DlgChooseFont(HWND hWnd, EDFONT *ep, BOOL bPrinter);
+extern void 	fsel_setDialogTitle(char *title);
+extern int		macro_recordOperation(PARAMS* pp);
 
 static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
 static DIALPARS 	*_dp;
@@ -88,7 +89,7 @@ static HWND CreateToolTip(int toolID, HWND hDlg, int iTooltipItem) {
 	HWND hwndTool = GetDlgItem(hDlg, toolID);
 
 	// Create the tooltip. g_hInst is the global instance handle.
-	HWND hwndTip = CreateWindowEx(NULL, (LPCWSTR)TOOLTIPS_CLASS, NULL,
+	HWND hwndTip = CreateWindowEx(0L, TOOLTIPS_CLASS, NULL,
 		WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		CW_USEDEFAULT, CW_USEDEFAULT,
@@ -228,7 +229,7 @@ WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			    wParam == VK_SHIFT)
 		    		break;
 			if (message == WM_KEYDOWN || message == WM_SYSKEYDOWN) {
-				key = mac_addModifierKeys((KEYCODE) wParam);
+				key = macro_addModifierKeys((KEYCODE) wParam);
 				SendMessage(hwnd,WM_CHARCHANGE,key,0L);
 				down++;
 			} else if (down) {

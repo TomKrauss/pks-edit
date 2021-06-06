@@ -42,7 +42,7 @@ extern int 	TabStop(int col, DOCUMENT_DESCRIPTOR *l);
 extern int 	string_countSpacesIn(unsigned char *s, int pos);
 extern int 	sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
 				 int indent, int *di, int *hbr);
-extern int 	shift_lines(FTABLE *fp, long ln, long nlines, int dir);
+extern int 	uc_shiftLinesByIndent(FTABLE *fp, long ln, long nlines, int dir);
 extern int 	caret_placeCursorInCurrentFile(long ln, long col);
 extern void 	wt_insline(WINFO *wp, int nlines);
 extern void 	ln_changeFlag(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark,
@@ -194,7 +194,7 @@ static int do_brindent(FTABLE *fp, int dir, LINE *lp1, LINE *lp2)
 			if ((lp1 = ln_modify(fp,lp1,string_countSpacesIn(lp1->lbuf,lp1->len),0)) == 0) {
 				return 0;
 			}
-			shift_lines(fp,fp->ln-(long)dir,1L,i1);
+			uc_shiftLinesByIndent(fp,fp->ln-(long)dir,1L,i1);
 		}
 	}
 
@@ -206,7 +206,7 @@ static int do_brindent(FTABLE *fp, int dir, LINE *lp1, LINE *lp2)
 		lp2 = fp->caret.linePointer;
 		indent = CalcStartIndentation(fp,lp2,lp2->len,&b);
 		if (indent != i2) {
-			shift_lines(fp,fp->ln,1L,i2-indent);
+			uc_shiftLinesByIndent(fp,fp->ln,1L,i2-indent);
 		}
 		caret_placeCursorInCurrentFile(fp->ln,i2);
 	}
@@ -723,7 +723,7 @@ int EdCharInsert(int c)
 			doabbrev(fp,lp,offs);
 		}
 		if (workmode & WM_SHOWMATCH) {
-			showmatch(lp,fp->caret.offset);
+			uc_showMatchingBracket(lp,fp->caret.offset);
 		}
 
 		if (!EdAutoFormat(fp) &&

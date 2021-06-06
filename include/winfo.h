@@ -97,7 +97,7 @@ extern void render_linePart(FTABLE* fp, long ln, int col1, int col2);
 
 /*------------------------------------------------------------
  * render_updateCaret()
- * Update the current caret for the passed editor window (dependening on insert mode
+ * macro_updateSelectedMacro the current caret for the passed editor window (dependening on insert mode
  * etc...)
  */
 extern void render_updateCaret(WINFO* wp);

@@ -11,7 +11,6 @@ EXPORTS
 	CInput
 	FkeysWndProc
 	DlgQueryReplaceProc
-	PrtAbortProc
 	DlgPreviewProc
 	DlgInstallPrtProc
 	ChooseFontHookProc

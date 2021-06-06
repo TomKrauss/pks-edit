@@ -149,7 +149,7 @@ EXPORT BOOL InitEnv(void )
 EXPORT void ReadConfigFiles(void)
 {
 	prof_getstdopt();
-	mac_read((char *)0);
+	macro_readBindingsFromFile((char *)0);
 	InitAllDocumentTypes();
 	xref_initFileFormats();
 	proj_init();

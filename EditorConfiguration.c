@@ -21,6 +21,7 @@
 #include "pksrc.h"
 #include "xdialog.h"
 #include "editorconfiguration.h"
+#include "edfuncs.h"
 
 extern void fkey_visibilitychanged(void);
 
@@ -33,7 +34,7 @@ static void AutosaveConfiguration() {
 	if (config->options & O_SAVE_SETTINGS_ON_EXIT) {
 		prof_save(config, FALSE);
 	}
-	mac_autosave(config->options & O_SAVESEQ ? FALSE : TRUE);
+	macro_autosaveAllBindings(config->options & O_SAVESEQ ? FALSE : TRUE);
 }
 
 /*

@@ -42,7 +42,6 @@
 #define FKSTATE_SIZE		20
 
 extern FARPROC SubClassWndProc(WORD set, HWND hDlg, WORD item, FARPROC lpfnNewProc);
-extern char *	mac_comment(LPSTR szBuf, LPSTR szB2, WORD nIndex, WORD type);
 
 HWND 		hwndFkeys;
 static int 	_fkeyshiftstate;
@@ -91,7 +90,7 @@ void fkey_settext(int state)
 		kp = &_keymaptab[i];
 		k  = (int)kp->keycode - (int)keycode1;
 		if (k >= 0 && k < MAX_FKEYS) {
-			mac_comment(szComment,szKtext,kp->macref.index,kp->macref.typ);
+			macro_getComment(szComment,szKtext,kp->macref.index,kp->macref.typ);
 			wsprintf(szKey,"F%d %s",k+1,szKtext);
 			SetDlgItemText(hwndFkeys,k+IDD_FKFK1,szKey);
 		}

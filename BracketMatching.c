@@ -4,7 +4,7 @@
  * PROJEKT: PKS-EDIT for ATARI - GEM
  *
  * purpose:
- * check brackets, showmatch, bracket indent, shift between brackets...
+ * check brackets, uc_showMatchingBracket, bracket indent, shift between brackets...
  * shift parts of text
  * translate character up 2 low and vc.vs.
  *
@@ -68,9 +68,9 @@ static int eq_id(int ctx,int ctxlin)
 }
 
 /*--------------------------------------------------------------------------
- * key_globs()
+ * uc_initializeUnderCursorActions()
  */
-EXPORT void key_globs(BRACKET **bp, PASTELIST **pp[], UCLIST **up)
+EXPORT void uc_initializeUnderCursorActions(BRACKET **bp, PASTELIST **pp[], UCLIST **up)
 {
 	if (!bp)
 		return;
@@ -80,9 +80,9 @@ EXPORT void key_globs(BRACKET **bp, PASTELIST **pp[], UCLIST **up)
 }
 
 /*--------------------------------------------------------------------------
- * matchBracket()
+ * uc_matchBracket()
  */
-static BOOL matchBracket(char *lineBuf, char *bracketPattern) {	
+static BOOL uc_matchBracket(char *lineBuf, char *bracketPattern) {	
 	char c;
 	size_t patternLength = strlen(bracketPattern) - 1;
 	c = lineBuf[0];
@@ -116,7 +116,7 @@ EXPORT struct uclist *uc_find(int ctx, char *b, int col,int actype)
 		if (up->action == actype		&&
 		    eq_id(up->ctx,ctx)		&&
 		    (o = col - up->len) >= 0	&&
-			matchBracket(&b[o],up->pat))
+			uc_matchBracket(&b[o],up->pat))
 		    return up;
 		up = up->next;
 	}
@@ -243,12 +243,12 @@ EXPORT void sm_init(void)
 static int _righthand;
 static int bracketmatch(char *s, struct tagBRACKET_RULE *mp)
 {
-	if (matchBracket(s,mp->lefthand)) {
+	if (uc_matchBracket(s,mp->lefthand)) {
 		_righthand = 0;
 		return 1;
 	}
 
-	if (matchBracket(s,mp->righthand)) {
+	if (uc_matchBracket(s,mp->righthand)) {
 		_righthand = 1;
 		return 1;
 	}
@@ -362,12 +362,12 @@ static int br_indentsum(LINE *lps, LINE *lp, BRACKET *mp, int *dcurr, int *hasin
 	*hasind = 0;
 
 	while(s < send) {
-		if (matchBracket(s,mp->lefthand)) {
+		if (uc_matchBracket(s,mp->lefthand)) {
 			*dcurr = mp->ci1[0];
 			*hasind = 1;
 			break;
 		}
-		if (matchBracket(s,mp->righthand)) {
+		if (uc_matchBracket(s,mp->righthand)) {
 			*dcurr = mp->ci2[0];
 			*hasind = 1;
 			break;
@@ -381,9 +381,9 @@ static int br_indentsum(LINE *lps, LINE *lp, BRACKET *mp, int *dcurr, int *hasin
 		send = lp->lbuf;
 		s = send + lp->len;
 		while (--s >= send) {
-			if (matchBracket(s,mp->lefthand)) {
+			if (uc_matchBracket(s,mp->lefthand)) {
 				indent += d1;
-			} else if (matchBracket(s,mp->righthand)) {
+			} else if (uc_matchBracket(s,mp->righthand)) {
 				indent += d2;
 			}
 		}
@@ -458,6 +458,17 @@ matched:
 	*col = j; return 1;
 }
 
+/*------------------------------------------------------------
+ * uc_waitForTimerElapsed()
+ */
+static void uc_waitForTimerElapsed(void)
+{
+	MSG msg;
+
+	GetMessage(&msg, 0, WM_TIMER, WM_TIMER);
+	DispatchMessage(&msg);
+}
+
 /*--------------------------------------------------------------------------
  * EdShowMatch()
  * show matching brackets
@@ -477,9 +488,9 @@ EXPORT int EdShowMatch(void)
 }
 
 /*--------------------------------------------------------------------------
- * showmatch(s)
+ * uc_showMatchingBracket(s)
  */
-EXPORT int showmatch(LINE *lp,int Col)
+EXPORT int uc_showMatchingBracket(LINE *lp,int Col)
 {	FTABLE *fp = ft_getCurrentDocument();
 	long   ln  = fp->ln;
 	long   col = Col;
@@ -492,7 +503,7 @@ EXPORT int showmatch(LINE *lp,int Col)
 		if (scanmatch(0,lp,(struct tagBRACKET_RULE *)up->p,&ln,&col)) {
 			if (ln >= WIPOI(fp)->minln) {
 				caret_placeCursorInCurrentFile(ln,col);
-				EdSleep();
+				uc_waitForTimerElapsed();
 				caret_placeCursorInCurrentFile(lsav,csav);
 				return 1;
 			}
@@ -528,10 +539,10 @@ EXPORT int EdCharUpToLow(void )
 }
 
 /*--------------------------------------------------------------------------
- * shift_lines()
+ * uc_shiftLinesByIndent()
  * shift n lines
  */
-EXPORT int shift_lines(FTABLE *fp, long ln, long nlines, int dir)
+EXPORT int uc_shiftLinesByIndent(FTABLE *fp, long ln, long nlines, int dir)
 {	register LINE	*lp;
 	register char	*s,*send;
 	register long  i,offset;
@@ -612,7 +623,7 @@ EXPORT int EdShiftBetweenBrackets(int dir)
 		ln2 -= _lastmatch->ci2[1];
 	}
 
-	return shift_lines(fp,ln,ln2-ln,dir);
+	return uc_shiftLinesByIndent(fp,ln,ln2-ln,dir);
 }
 
 /*--------------------------------------------------------------------------
@@ -624,14 +635,14 @@ EXPORT int EdLinesShift(int dir)
 
 	if (!fp)
 		return 0;
-	return shift_lines(fp,fp->ln,_multiplier,dir);
+	return uc_shiftLinesByIndent(fp,fp->ln,_multiplier,dir);
 }
 
 /*--------------------------------------------------------------------------
- * RangeShift()
+ * uc_shiftRange()
  * shift text range
  */
-EXPORT int RangeShift(int scope, int dir)
+EXPORT int uc_shiftRange(int scope, int dir)
 {	MARK	*mps,*mpe;
 	FTABLE *fp = ft_getCurrentDocument();
 	long	ln1,ln2;
@@ -647,7 +658,7 @@ EXPORT int RangeShift(int scope, int dir)
 	if (mpe->lc == 0)
 		ln2--;
 
-	return shift_lines(fp,ln1,ln2,dir);
+	return uc_shiftLinesByIndent(fp,ln1,ln2,dir);
 }
 
 

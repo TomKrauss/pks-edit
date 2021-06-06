@@ -18,48 +18,12 @@
 #include "scanner.h"
 
 extern void 	yyerror(char *s, ...);
-extern int 	mac_insert(char *name, char *comment, char *macdata, int size);
+extern int 	macro_insertNewMacro(char *name, char *comment, char *macdata, int size);
 extern int 	macro_isParameterStringType(unsigned char typ);
 extern void 	freeval(TYPEDVAL *v);
 static MACRO	**		_macrotab;
 extern unsigned char *	_recp;
 extern unsigned char *	_recpend;
-
-#if defined(STAND_ALONE)
-int 	_nmacros;
-/*--------------------------------------------------------------------------
- * mac_insert()
- */
-int mac_insert(char *name, char *comment, void *data, int size)
-{
-	MACRO  *mp;
-	int    i;
-
-	protokoll("Defining Macro \"%s\" (%ld bytes)",name,(long)size);
-
-	for (i = 0; i < _nmacros && _macrotab; i++) {
-		if ((mp = mac_byindex(i)) == 0 ||
-			strcmp(mp->name,name) == 0) {
-			_free(mp);
-			_macrotab[i] = 0;
-			break;
-		}
-	}
-
-	if (!_macrotab) {
-		_macrotab = _calloc(64 * sizeof _macrotab[0]);
-		_nmacros = 64;
-	} else if (i >= _nmacros) {
-		_nmacros += 64;
-		_macrotab = _realloc(_macrotab,_nmacros * sizeof _macrotab[0]);
-	}
-
-	_macrotab[i] = mp = mac_new(name,comment,data,size);
-
-	return i;
-}
-
-# endif
 
 /*
  * AddComSeq()

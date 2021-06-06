@@ -94,7 +94,7 @@ extern int  crunchdict(unsigned char *d,  unsigned char *s,int l);
  * s2vec()
  * convert a string to a dig. arr
  */
-char *s2vec(struct dvec *v,char *s, char *e)
+static char *s2vec(struct dvec *v,char *s, char *e)
 {	int i;
 
 	for (i = 0; i < MAXDEPTH; i++,v++) {
@@ -521,7 +521,7 @@ static int undo_cash(FTABLE *fp, LINE *lpfirst, LINE *lplast)
 	recpar->lplast  = lplast ->next;
 	recpar->nrec    = nrec;
 
-	undo_saveOperation(fp,rec,recpar,O_LNORDER);
+	undo_saveOperation(fp,(LINE*)rec, (LINE*)recpar,O_LNORDER);
 
 	return 1;
 }
@@ -550,7 +550,7 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 
 	fp = ft_getCurrentDocument();
 	undo_startModification(fp);
-	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID) {
+	if (find_setTextSelection(scope,fp,&mps,&mpe) == RNG_INVALID) {
 		return 0;
 	}
 	lpfirst = mps->lm;

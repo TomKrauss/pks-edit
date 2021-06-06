@@ -294,6 +294,11 @@ extern int ft_abandonFile(FTABLE* fp, DOCUMENT_DESCRIPTOR* linp);
  */
 extern int ft_select(FTABLE* fp);
 
+/*--------------------------------------------------------------------------
+ * ft_countlinesStartingFromDirection()
+ */
+extern long ft_countlinesStartingFromDirection(FTABLE* fp, long start, int dir);
+
 /*---------------------------------*/
 /* ft_checkReadonlyWithError()					*/
 /*---------------------------------*/
@@ -507,11 +512,11 @@ extern int ln_countLeadingSpaces(LINE* lp);
 extern int ln_lineIsEmpty(LINE* lp);
 
 /*--------------------------------------------------------------------------
- * SelectRange()
+ * find_setTextSelection()
  *
  * Select a range of text in the file identified by fp.
  */
-extern int SelectRange(int rngetype, FTABLE* fp, MARK** markstart, MARK** markend);
+extern int find_setTextSelection(int rngetype, FTABLE* fp, MARK** markstart, MARK** markend);
 
 /*--------------------------------------------------------------------------
  * undo_initializeManager()
@@ -530,6 +535,12 @@ extern void undo_destroyManager(FTABLE* fp);
  * Invoked before a modification on a file is performed.
  */
 extern void undo_startModification(FTABLE* fp);
+
+/*--------------------------------------------------------------------------
+ * undo_saveOperation()
+ * Remembers the actual operation performed.
+ */
+extern BOOL undo_saveOperation(FTABLE* fp, LINE* lp, LINE* lpAnchor, int op);
 
 /*--------------------------------------------------------------------------
  * undo_lastModification()

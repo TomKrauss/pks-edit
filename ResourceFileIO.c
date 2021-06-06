@@ -23,7 +23,7 @@
 #include "edierror.h"
 #include "stringutil.h"
 
-extern MACRO 	*mac_byindex(int idx);
+extern MACRO 	*macro_getByIndex(int idx);
 
 extern int	_nmacros;
 extern char	*_macroname;
@@ -84,7 +84,7 @@ char *rsc_rdmacros(char *name, unsigned char *p, unsigned char *pend)
 		if (seqp->cmdbyte != CMD_MACRO) {
 			return 0;
 		}
-		if (mac_insert(seqp->name, comment, datap, len, 0) < 0) {
+		if (macro_insertNewMacro(seqp->name, comment, datap, len) < 0) {
 			return 0;
 		}
 	} while(p < pend);
@@ -132,7 +132,7 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes)
 	total = 0;
 
 	for (i = 0; i < _nmacros; i++) {
-		if ((mp = mac_byindex(i)) != 0 &&
+		if ((mp = macro_getByIndex(i)) != 0 &&
 		    (_macroname == 0 || strcmp(_macroname,mp->name) == 0)) {
 			if (offs >= maxbytes) {
 				offs -= maxbytes;

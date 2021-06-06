@@ -23,7 +23,7 @@
 #include "functab.h"
 #include "mouseutil.h"
 
-extern void 			MacFormatErr(void);
+extern void 			macro_reportError(void);
 extern int 			EdMacroRecord(void);
 extern int 			ft_selectWindowWithId(int winid, BOOL bPopup);
 extern int 			RecordOptions(int *o);
@@ -43,7 +43,7 @@ extern void 			redrawallwi(int update);
 extern void 			undo_startModification(FTABLE *fp);
 extern int 			ft_checkSelectionWithError(FTABLE *fp);
 extern void 			ft_settime(EDTIME *tp);
-extern int 			mac_executeByName(char *name);
+extern int 			macro_executeByName(char *name);
 void 				macro_stopRecordingFunctions(void);
 
 int					_playing;
@@ -113,7 +113,7 @@ int macro_getParameterSize(unsigned char typ, char *s)
 	/*
 	 * oops: this is an error
 	 */
-	MacFormatErr();
+	macro_reportError();
 	return 10000L;
 }
 
@@ -324,7 +324,7 @@ intptr_t macro_popParameter(unsigned char **Sp)
 		case C_STRING1PAR:
 			return (intptr_t)&((COM_STRING1 *)sp)->s;
 		default:
-			MacFormatErr();
+			macro_reportError();
 			return 0;
 	}
 }
@@ -538,7 +538,7 @@ out:
 	else {
 		saveStack = currentParamStack;
 		currentParamStack = stack;
-		rc = mac_executeByName(((COM_MAC*)*Cp)->name);
+		rc = macro_executeByName(((COM_MAC*)*Cp)->name);
 		currentParamStack = saveStack;
 		*Cp = cp;
 	}
@@ -630,7 +630,7 @@ int macro_executeSequence(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 				_fncmarker = macro_popParameter((unsigned char **)&cp);
 				break;
 			default:
-				MacFormatErr();
+				macro_reportError();
 				return 0;
 		}
 	}

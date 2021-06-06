@@ -35,6 +35,7 @@
 #include "pksedit.h"
 #include "stringutil.h"
 #include "fileutil.h"
+#include "edfuncs.h"
 
 extern int 		doDocumentTypes(int nDlg);
 extern void 	GetStdMenuText(int menunr, char *text);

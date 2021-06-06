@@ -227,7 +227,7 @@ static int advtok(LINE **lp,PASTE *pp,char *s)
 	}
 	clast  = p1+_qulen;
 	*lp    = lnlast;
-	return bl_cutTextWithOptions(pp,lnfirst,lnlast,cfirst,clast,0);
+	return bl_cutTextWithOptions(pp,lnfirst,lnlast,(int)cfirst,(int)clast,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -314,7 +314,7 @@ int doabbrev(FTABLE *fp, LINE *lp,int offs)
 		return 0;
 	caret_placeCursorInCurrentFile(fp->ln,o2);
 	return (domacro) ? 
-		render_redrawCurrentLine(), mac_executeByName((char *)up->p) : bl_pasteBlock(up->p,0,o2,0);
+		render_redrawCurrentLine(), macro_executeByName((char *)up->p) : bl_pasteBlock(up->p,0,o2,0);
 }
 
 /*--------------------------------------------------------------------------

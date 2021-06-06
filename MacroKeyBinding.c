@@ -80,23 +80,33 @@ EDBINDS _bindings = {
 };
 
 /*------------------------------------------------------------
- * mac_byindex()
+ * macro_reportError()
  */
-MACRO *mac_byindex(int idx)
+void macro_reportError(void)
+{
+	error_showErrorById(IDS_MSGEXECERR);
+}
+
+/*------------------------------------------------------------
+ * macro_getByIndex()
+ * Return a macro by its internal index.
+ */
+MACRO *macro_getByIndex(int idx)
 {
 	return _macrotab[idx];
 }
 
-/*---------------------------------*/
-/* mac_getbyname()				*/
-/*---------------------------------*/
-int mac_getbyname(char *name)
+/*---------------------------------
+ * macro_getInternalIndexByName()
+ * Return the internal index of a macro given its name.
+ */
+int macro_getInternalIndexByName(char *name)
 {	int i;
 	MACRO *mp;
 
 	if (name)
 	  for (i = 0; i < MAXMACRO; i++) {
-		if ((mp = mac_byindex(i)) != 0 && 
+		if ((mp = macro_getByIndex(i)) != 0 && 
 			strcmp(mp->name,name) == 0)
 				return i;
 	  }
@@ -104,14 +114,14 @@ int mac_getbyname(char *name)
 }
 
 /*------------------------------------------------------------
- * mac_write()
+ * macro_writeMacroBindingsToFile()
  */
 #define	RSC_MACROS		0x1
 #define	RSC_SINGLEMACRO	0x2
 #define	RSC_KEYS			0x4
 #define	RSC_MICE			0x8
 #define	RSC_MENUS			0x10
-static int mac_write(int whichresource, char *name)
+static int macro_writeMacroBindingsToFile(int whichresource, char *name)
 {
 	int 		ret = 1,fd;
 
@@ -155,16 +165,18 @@ done:Fclose(fd);
 }
 
 /*------------------------------------------------------------
- * mac_autosave()
+ * macro_autosaveAllBindings()
+ * Save all changed macro bindings and new macros to the corresponding file.
+ * If warnflag is specified ask user, whether macros should be saved.
  */
-void mac_autosave(int warnflg)
+void macro_autosaveAllBindings(int warnFlag)
 {
 	char fn[512];
 
 	if (_macedited) {
-		if (warnflg == 0) {
+		if (warnFlag == 0) {
 			string_concatPathAndFilename(fn,_seqfsel.path,_seqfsel.fname);
-			if (mac_write(RSC_MACROS|RSC_KEYS|RSC_MICE|RSC_MENUS,fn))
+			if (macro_writeMacroBindingsToFile(RSC_MACROS|RSC_KEYS|RSC_MICE|RSC_MENUS,fn))
 				_macedited = 0;
 		} else {
 			if (errorDisplayYesNoConfirmation(IDS_MSGSAVESEQ) == IDYES) {
@@ -176,12 +188,14 @@ void mac_autosave(int warnflg)
 }
 
 /*------------------------------------------------------------
- * mac_delete()
+ * macro_deleteByName()
+ * Delete the macro (including all its bindings) with the given name. Return
+ * 1 if successfully deleted.
  */
-int mac_delete(char *name)
+int macro_deleteByName(char *name)
 {	int idx;
 
-	if ((idx = mac_getbyname(name)) >= 0) {
+	if ((idx = macro_getInternalIndexByName(name)) >= 0) {
 		key_delbindings(CMD_MACRO,idx);
 		destroy(&_macrotab[idx]);
 		_macedited = 1;
@@ -191,27 +205,30 @@ int mac_delete(char *name)
 }
 
 /*------------------------------------------------------------
- * mac_isvalidname()
+ * macro_validateMacroName()
+ * Check, whether a mcro name is valid and whether it exists already.
  */
-int mac_isvalidname(char *name, int origidx)
+int macro_validateMacroName(char *name, int origidx)
 {	int index;
 
 	if (name[0] == 0)
 		return 0;
-	if (((index = mac_getbyname(name)) >= 0 && index != origidx)) {
+	if (((index = macro_getInternalIndexByName(name)) >= 0 && index != origidx)) {
 		if (origidx < 0)
 			error_showErrorById(IDS_MSGMACDOUBLEDEF);
 		else
-			mac_delete(name);
+			macro_deleteByName(name);
 		return 0;
 	}
 	return 1;
 }
 
 /*--------------------------------------------------------------------------
- * check_fkdirty()
+ * macro_onKeybindingChanged()
+ * invoked, when a keybinding has changed. May flag e.g. the function keyboard of PKSEDIT
+ * as dirty.
  */
-void check_fkdirty(KEYCODE key) {
+void macro_onKeybindingChanged(KEYCODE key) {
 	key &= 0xFF;
 	if (key >= VK_F1 && key <= VK_F12) {
 		_fkeysdirty = 1;
@@ -219,11 +236,11 @@ void check_fkdirty(KEYCODE key) {
 }
 
 /*------------------------------------------------------------
- * mac_scaninsert()
+ * macro_bindOrUnbindKey()
  * index < 0:	delete key-binding
  * index >=0:  add key-binding
  */
-int mac_scaninsert(KEYCODE key, int index, MACROREFTYPE typ)
+int macro_bindOrUnbindKey(KEYCODE key, int index, MACROREFTYPE typ)
 {	KEYBIND *kp;
 
 	if (key == K_DELETED)
@@ -242,7 +259,7 @@ int mac_scaninsert(KEYCODE key, int index, MACROREFTYPE typ)
 	if (index < 0) {
 		key_unbind(kp);
 	} else {
-		check_fkdirty(key);
+		macro_onKeybindingChanged(key);
 		kp->keycode = key;
 		kp->macref.index = index;
 		kp->macref.typ = typ;
@@ -251,9 +268,9 @@ int mac_scaninsert(KEYCODE key, int index, MACROREFTYPE typ)
 }
 
 /*------------------------------------------------------------
- * mac_addkeys()
+ * macro_addMultipleKeyBindings()
  */
-static char *mac_addkeys(char *name, KEYBIND *kp, KEYBIND *kplast)
+static char *macro_addMultipleKeyBindings(char *name, KEYBIND *kp, KEYBIND *kplast)
 {
 	if (!rsc_switchtotable(&_keytables,name)) {
 		return 0;
@@ -262,7 +279,7 @@ static char *mac_addkeys(char *name, KEYBIND *kp, KEYBIND *kplast)
 	key_overridetable();
 
 	while (kp < kplast) {
-		mac_scaninsert(kp->keycode,kp->macref.index,kp->macref.typ);
+		macro_bindOrUnbindKey(kp->keycode,kp->macref.index,kp->macref.typ);
 		kp++;
 	}
 	_fkeysdirty = 1;
@@ -270,9 +287,9 @@ static char *mac_addkeys(char *name, KEYBIND *kp, KEYBIND *kplast)
 }
 
 /*------------------------------------------------------------
- * mac_addmice()
+ * macro_addMultipleMouseBindings()
  */
-static char *mac_addmice(char *name, MOUSEBIND *mp, MOUSEBIND *mplast)
+static char *macro_addMultipleMouseBindings(char *name, MOUSEBIND *mp, MOUSEBIND *mplast)
 {
 	if (!rsc_switchtotable(&_mousetables,name)) {
 		return 0;
@@ -293,9 +310,9 @@ static char *mac_addmice(char *name, MOUSEBIND *mp, MOUSEBIND *mplast)
 }
 
 /*------------------------------------------------------------
- * mac_menus()
+ * macro_addMultipleMenuBindings()
  */
-static char *mac_menus(char *name, PUSERMENUBIND mp, 
+static char *macro_addMultipleMenuBindings(char *name, PUSERMENUBIND mp, 
 	PUSERMENUBIND mplast)
 {
 	menu_startdefine(name);
@@ -313,9 +330,10 @@ static char *mac_menus(char *name, PUSERMENUBIND mp,
 }
 
 /*--------------------------------------------------------------------------
- * mac_switchtodefaulttables()
+ * macro_selectDefaultBindings()
+ * Select the default key- / menu- / mouse bindings for PKS Edit.
  */
-void mac_switchtodefaulttables(void)
+void macro_selectDefaultBindings(void)
 {
 	char	*pszDefault = "default";
 	char *pszMode;
@@ -336,9 +354,11 @@ void mac_switchtodefaulttables(void)
 }
 
 /*------------------------------------------------------------
- * mac_read()
+ * macro_readBindingsFromFile()
+ * Read new bindings from a file. If the current bindings are "dirty" they
+ * are flushed before.
  */
-int mac_read(char *fn)
+int macro_readBindingsFromFile(char *fn)
 {
 	int 	 wasdirty = _macedited;
 	int	 	overwritebindings = 0;
@@ -353,7 +373,7 @@ int mac_read(char *fn)
 		return 0;
 	}
 
-	mac_autosave(1);
+	macro_autosaveAllBindings(1);
 
 	if (overwritebindings) {
 		int i;
@@ -371,26 +391,28 @@ int mac_read(char *fn)
 	}
 
 	/* load key bindings */
-	rsc_load(rp,"KEYS",(char*)0,mac_addkeys);
+	rsc_load(rp,"KEYS",(char*)0,macro_addMultipleKeyBindings);
 
 	/* load mouse bindings */
-	rsc_load(rp,"MOUSE",(char*)0,mac_addmice);
+	rsc_load(rp,"MOUSE",(char*)0,macro_addMultipleMouseBindings);
 
 	/* load menu bindings */
-	rsc_load(rp,"MENU",(char*)0,mac_menus);
+	rsc_load(rp,"MENU",(char*)0,macro_addMultipleMenuBindings);
 
 	rsc_close(rp);
 
-	mac_switchtodefaulttables();
+	macro_selectDefaultBindings();
 
 	_macedited = wasdirty;
 	return 1;
 }
 
 /*------------------------------------------------------------
- * mac_new()
+ * macro_createWithParams()
+ * create a new macro with a name, a comment and the actual byte codes
+ * to execute.
  */
-MACRO *mac_new(char* szName, char* szComment, char* bData, int size)
+MACRO *macro_createWithParams(char* szName, char* szComment, char* bData, int size)
 {
 	int   nLen,nNamelen,nCommentlen;
 	MACRO *mp;
@@ -421,35 +443,29 @@ MACRO *mac_new(char* szName, char* szComment, char* bData, int size)
 }
 
 /*------------------------------------------------------------
- * mac_nameupdate()
+ * macro_renameAndChangeComment()
  */
-void mac_nameupdate(int nIndex, LPSTR szName, LPSTR szComment)
+void macro_renameAndChangeComment(int nIndex, char* szName, char* szComment)
 {
 	MACRO *mp,*mpold;
 
 	mpold = _macrotab[nIndex];
-	if ((mp = mac_new(szName,szComment,MAC_DATA(mpold),mpold->size)) == 0)
+	if ((mp = macro_createWithParams(szName,szComment,MAC_DATA(mpold),mpold->size)) == 0)
 		return;
 	_macrotab[nIndex] = mp;
 	_free(mpold);
 }
 
 /*------------------------------------------------------------
- * MacFormatErr()
+ * macro_insertNewMacro()
+ * Insert a macro with a given name, comment and byte codes. If the named
+ * macro already exists, it is deleted.
  */
-void MacFormatErr(void)
-{
-	error_showErrorById(IDS_MSGEXECERR);
-}
-
-/*------------------------------------------------------------
- * mac_insert()
- */
-int mac_insert(char *name, char *comment, char *macdata, int size)
+int macro_insertNewMacro(char *name, char *comment, char *macdata, int size)
 {	MACRO  *mp;
 	int    i;
 
-	if ((i = mac_getbyname(name)) >= 0) {
+	if ((i = macro_getInternalIndexByName(name)) >= 0) {
 		destroy(&_macrotab[i]);
 	} else {
 		for (i = 0; ; i++) {
@@ -463,7 +479,7 @@ int mac_insert(char *name, char *comment, char *macdata, int size)
 		}
 	}
 
-	if ((mp = mac_new(name,comment,macdata,size)) == 0)
+	if ((mp = macro_createWithParams(name,comment,macdata,size)) == 0)
 		return -1;
 
 	_macrotab[i] = mp;
@@ -472,10 +488,11 @@ int mac_insert(char *name, char *comment, char *macdata, int size)
 }
 
 /*------------------------------------------------------------
- * mac_recorder()
+ * macro_toggleRecordMaco()
+ * start/stops the macro recorder.
  */
 static int _recsiz,_lastrecsiz=-1;
-int mac_recorder(void)
+int macro_toggleRecordMaco(void)
 {	int     size;
 	static KEYCODE scan = K_DELETED;
 	char    buf[100];
@@ -484,14 +501,14 @@ int mac_recorder(void)
 	if (!_recording) {		/* STOP */
 		if (_cmdfuncp && (size = (int)(_cmdparamp-_recorder)) > 0) {
 			wsprintf(buf,"Mac%d",++_ndef);
-			if (!mac_getname(&scan,buf,-1)) {
+			if (!macro_getIndexForKeycode(&scan,buf,-1)) {
 				return 0;
 			}
 			if (!scan) {
 				scan = K_DELETED;
 			}
-			if ((_lastinsertedmac = mac_insert(buf,"",_recorder,size)) >= 0) {
-				mac_scaninsert(scan,_lastinsertedmac,CMD_MACRO);
+			if ((_lastinsertedmac = macro_insertNewMacro(buf,"",_recorder,size)) >= 0) {
+				macro_bindOrUnbindKey(scan,_lastinsertedmac,CMD_MACRO);
 			}
 		}
 	} else {						/* START */
@@ -512,14 +529,14 @@ int EdMacrosReadWrite(int wrflag)
 	}
 
 	if (wrflag) {
-		if (mac_write(RSC_MACROS|RSC_KEYS|RSC_MICE|RSC_MENUS,fn)) {
+		if (macro_writeMacroBindingsToFile(RSC_MACROS|RSC_KEYS|RSC_MICE|RSC_MENUS,fn)) {
 			_macedited = 0;
 			return 1;
 		}
 		return 0;
 	}
 
-	return mac_read(fn);
+	return macro_readBindingsFromFile(fn);
 }
 
 /*------------------------------------------------------------
@@ -530,10 +547,11 @@ int EdMacroRecord(void)
 	return EdOptionToggle(MAKELONG(1,-1));
 }
 
-/*---------------------------------*/
-/* mac_onIconAction()					*/
-/*---------------------------------*/
-int mac_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped) {
+/*---------------------------------
+ * macro_onIconAction()
+ * Invoke a macro as a response to an icon action.
+ *---------------------------------*/
+int macro_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped) {
 	HWND		icdropHwnd = 0;
 	ICONBIND  *ipbind;
 	char 	*icp0;
@@ -564,7 +582,7 @@ int mac_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped) {
 		}
 
 		if (ipbind->pflags & IPCF_USERDEF) {
-			return mac_executeByName(ic_getParamForIcon(szB1, icHwnd, 0));
+			return macro_executeByName(ic_getParamForIcon(szB1, icHwnd, 0));
 		}
 
 		if (ipbind->dropped == dropped_type) {
@@ -600,9 +618,10 @@ int mac_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped) {
 }
 
 /*--------------------------------------------------------------------------
- * GetMacrorefForMenu()
+ * macro_getMacroIndexForMenu()
+ * Return the macro reference given a menu id.
  */
-MACROREF *GetMacrorefForMenu(int nId)
+MACROREF *macro_getMacroIndexForMenu(int nId)
 {
 static MACROREF 	macref;
 	MACROREF *	mpUser;
@@ -625,11 +644,11 @@ static MACROREF 	macref;
 }
 
 /*--------------------------------------------------------------------------
- * TranslateToOrigMenu()
+ * macro_translateToOriginalMenuIndex()
  * try to find an internal command/standard menu binding, which 
  * allows us to display an appropriate help for synthetic menus
  */
-WORD TranslateToOrigMenu(WORD wParam)
+WORD macro_translateToOriginalMenuIndex(WORD wParam)
 {
 	MACROREF *	mpUser;
 	int			i;
@@ -651,26 +670,27 @@ WORD TranslateToOrigMenu(WORD wParam)
 	return wParam;
 }
 
-/*---------------------------------*/
-/* mac_onMenuAction()					*/
-/*---------------------------------*/
-int mac_onMenuAction(int menunum)
+/*---------------------------------
+ * macro_onMenuAction()
+ * Invoke the macro bound to a menu index.
+ *---------------------------------*/
+int macro_onMenuAction(int menunum)
 {
 	MACROREF *	mp;
 
-	if ((mp = GetMacrorefForMenu(menunum)) != 0) {
-		return mac_runcmd(mp);
+	if ((mp = macro_getMacroIndexForMenu(menunum)) != 0) {
+		return macro_executeMacro(mp);
 	}
 	return 0;
 }
 
 /*---------------------------------
- * mac_addModifierKeys()
- * Add the modifier key bits dependingon whether
+ * macro_addModifierKeys()
+ * Add the modifier key bits depending on whether
  * Shift, Control or Alt was pressed together with
  * the key passed as an argument.
  */
-KEYCODE mac_addModifierKeys(KEYCODE key)
+KEYCODE macro_addModifierKeys(KEYCODE key)
 {
 	if ( GetKeyState(VK_SHIFT) < 0)
 		key |= K_SHIFT;
@@ -682,18 +702,18 @@ KEYCODE mac_addModifierKeys(KEYCODE key)
 }
 
 /*---------------------------------*/
-/* PksGetKeyBind()				*/
+/* macro_getKeyBinding()				*/
 /*---------------------------------*/
-void* PksGetKeyBind(WPARAM key)
+void* macro_getKeyBinding(WPARAM key)
 {
-	KEYCODE keycode = (KEYCODE)mac_addModifierKeys((KEYCODE)key);
+	KEYCODE keycode = (KEYCODE)macro_addModifierKeys((KEYCODE)key);
 	return keybound(keycode);
 }
 
 /*---------------------------------*/
-/* mac_runcmd()				*/
+/* macro_executeMacro()				*/
 /*---------------------------------*/
-int mac_runcmd(MACROREF *mp)
+int macro_executeMacro(MACROREF *mp)
 {
 	COM_1FUNC   *cp;
 	MENUBIND    *menp;
@@ -716,37 +736,37 @@ int mac_runcmd(MACROREF *mp)
 }
 
 /*---------------------------------*
- * mac_onKeyPressed()
+ * macro_onKeyPressed()
  * Execute a keybinding and return 1 if successful.
  *---------------------------------*/
-int mac_onKeyPressed(void* keybind) {
+int macro_onKeyPressed(void* keybind) {
 	KEYBIND     *kp;
 
 	if ((kp = (KEYBIND*)keybind) == (KEYBIND *) 0) 
 		return 0;
 
-	return mac_runcmd(&kp->macref);
+	return macro_executeMacro(&kp->macref);
 }
 
 /*------------------------------------------------------------
- * mac_onCharacterInserted()
+ * macro_onCharacterInserted()
  */
-int mac_onCharacterInserted(WORD c)
+int macro_onCharacterInserted(WORD c)
 {
 	return 
 		macro_executeFunction(FUNC_EdCharInsert,c,0,(void*)0,(void*)0,(void*)0);
 }
 
 /*---------------------------------*/
-/* mac_executeByName()				*/
+/* macro_executeByName()				*/
 /*---------------------------------*/
-int mac_executeByName(char *name)
+int macro_executeByName(char *name)
 {	int i;
 
 	if (!name || !name[0])
 		return 0;
 
-	if ((i = mac_getbyname(name)) < 0) {
+	if ((i = macro_getInternalIndexByName(name)) < 0) {
 		error_showErrorById(IDS_MSGUNKNOWNMAC,name);
 		return 0;
 	}
@@ -755,9 +775,9 @@ int mac_executeByName(char *name)
 }
 
 /*------------------------------------------------------------
- * mac_findkey()
+ * macro_findkey()
  */
-static KEYCODE mac_findkey(MACROREFTYPE typ, MACROREFIDX index)
+static KEYCODE macro_findkey(MACROREFTYPE typ, MACROREFIDX index)
 {
 	KEYBIND 	*kp;
 
@@ -769,11 +789,11 @@ static KEYCODE mac_findkey(MACROREFTYPE typ, MACROREFIDX index)
 }
 
 /*------------------------------------------------------------
- * mac_setmenukeys()
+ * macro_assignAcceleratorTextOnMenu()
  * this function sets the menu accelerator text, each time a
  * menu popup is opened
  */
-void mac_setmenukeys(HMENU hMenu)
+void macro_assignAcceleratorTextOnMenu(HMENU hMenu)
 {
 	KEYCODE	k;
 	int		wCount;
@@ -800,7 +820,7 @@ void mac_setmenukeys(HMENU hMenu)
 			continue;
 		}
 # endif
-		if ((mp = GetMacrorefForMenu(wID)) == 0) {
+		if ((mp = macro_getMacroIndexForMenu(wID)) == 0) {
 			continue;
 		}
 		if (GetMenuString(hMenu, wItem, string, sizeof string - 1,
@@ -813,7 +833,7 @@ void mac_setmenukeys(HMENU hMenu)
 			}
 		}
 		if (*d) {
-			if ((k = mac_findkey(mp->typ, mp->index)) != K_DELETED) {
+			if ((k = macro_findkey(mp->typ, mp->index)) != K_DELETED) {
 				strcpy(d+1,code2key(k));
 			} else {
 				d[1] = 0;
@@ -840,9 +860,9 @@ void mac_setmenukeys(HMENU hMenu)
 }
 
 /*------------------------------------------------------------
- * SelectedMacro()
+ * macro_getSelectedMacro()
  */
-static LONG SelectedMacro(HWND hwnd)
+static LONG macro_getSelectedMacro(HWND hwnd)
 {
 	LONG		nData;
 	LRESULT		item;
@@ -854,9 +874,9 @@ static LONG SelectedMacro(HWND hwnd)
 }
 
 /*------------------------------------------------------------
- * SelectedKey()
+ * macro_getSelectedKey()
  */
-static KEYCODE SelectedKey(HWND hwnd) {
+static KEYCODE macro_getSelectedKey(HWND hwnd) {
 	KEYCODE		nKey = 0;
 	LRESULT		item;
 
@@ -868,9 +888,9 @@ static KEYCODE SelectedKey(HWND hwnd) {
 }
 
 /*------------------------------------------------------------
- * mac_enableButton()
+ * macro_enableButton()
  */
-static void mac_enableButton(HWND hwnd, WORD nItem, BOOL nWhich)
+static void macro_enableButton(HWND hwnd, WORD nItem, BOOL nWhich)
 {
 	HWND 	hwndButton;
 
@@ -879,9 +899,9 @@ static void mac_enableButton(HWND hwnd, WORD nItem, BOOL nWhich)
 }
 
 /*------------------------------------------------------------
- * mac_initializeListBox()
+ * macro_initializeListBox()
  */
-static HWND mac_initializeListBox(HWND hwnd, WORD nItem, LRESULT *nCurr)
+static HWND macro_initializeListBox(HWND hwnd, WORD nItem, LRESULT *nCurr)
 {
 	HWND hwndList;
 
@@ -896,9 +916,9 @@ static HWND mac_initializeListBox(HWND hwnd, WORD nItem, LRESULT *nCurr)
 }
 
 /*------------------------------------------------------------
- * list_endfilling()
+ * macro_listEndFilling()
  */
-void list_endfilling(HWND hwndList, WPARAM nCurr)
+static void macro_listEndFilling(HWND hwndList, WPARAM nCurr)
 {
 	SendMessage(hwndList, WM_SETREDRAW,TRUE,0L);
 	SendMessage(hwndList, LB_SETCURSEL, nCurr, 0L);
@@ -906,9 +926,9 @@ void list_endfilling(HWND hwndList, WPARAM nCurr)
 }
 
 /*--------------------------------------------------------------------------
- * MacroSelectByValue()
+ * macro_selectByValue()
  */
-static BOOL MacroSelectByValue(HWND hwnd, LONG lValue)
+static BOOL macro_selectByValue(HWND hwnd, LONG lValue)
 {
 	int		i;
 	HWND 	hwndList;
@@ -929,16 +949,16 @@ static BOOL MacroSelectByValue(HWND hwnd, LONG lValue)
 }
 
 /*------------------------------------------------------------
- * UpdateMacroList()
+ * macro_updateMacroList()
  */
 static showInternals = 0;
-static void UpdateMacroList(HWND hwnd)
+static void macro_updateMacroList(HWND hwnd)
 {
 	HWND 	hwndList;
 	int  	i,state;
 	LRESULT nCurr;
 
-	hwndList = mac_initializeListBox(hwnd, IDD_MACROLIST, &nCurr);
+	hwndList = macro_initializeListBox(hwnd, IDD_MACROLIST, &nCurr);
 
 	for (i = 0; i < MAXMACRO; i++) {
 		if (_macrotab[i] != 0) {
@@ -953,13 +973,15 @@ static void UpdateMacroList(HWND hwnd)
 			SendMessage(hwndList,LB_ADDSTRING,0,MAKELONG(CMD_CMDSEQ,i));
 	}
 
-	list_endfilling(hwndList,nCurr);
+	macro_listEndFilling(hwndList,nCurr);
 }
 
 /*------------------------------------------------------------
- * mac_comment()
+ * macro_getComment()
+ * Returns the command for a given macro index and type.
+ * The result is copied into the space passed with szBuf.
  */
-char *mac_comment(LPSTR szBuf, LPSTR szB2, WORD nIndex, WORD type)
+char *macro_getComment(char* szBuf, char* szB2, int nIndex, int type)
 {
 	char *s;
 
@@ -991,13 +1013,13 @@ char *mac_comment(LPSTR szBuf, LPSTR szB2, WORD nIndex, WORD type)
 /*
  * Returns a tool tip for a given menu id. 
  */
-char *mac_getMenuTooltTip(int dMenuId) {
+char *macro_getMenuTooltTip(int dMenuId) {
 	static char szBuf[256];
 	char szBuf2[32];
 	MACROREF *	mp;
 
-	if (dMenuId != -1 && (mp = GetMacrorefForMenu(dMenuId)) != 0) {
-		mac_comment(szBuf, szBuf2, mp->index, mp->typ);
+	if (dMenuId != -1 && (mp = macro_getMacroIndexForMenu(dMenuId)) != 0) {
+		macro_getComment(szBuf, szBuf2, mp->index, mp->typ);
 	} else {
 		szBuf[0] = 0;
 	}
@@ -1005,18 +1027,18 @@ char *mac_getMenuTooltTip(int dMenuId) {
 }
 
 /*--------------------------------------------------------------------------
- * mac_showHelpForMenu()
+ * macro_showHelpForMenu()
  * Display help for a given menu id
  */
-void mac_showHelpForMenu(int dMenuId)
+void macro_showHelpForMenu(int dMenuId)
 {
 	char			szBuf[256];
 	char			szBuf2[32];
 	MACROREF *	mp;
 
 	st_switchtomenumode(dMenuId != -1);
-	if (dMenuId != -1 && (mp = GetMacrorefForMenu(dMenuId)) != 0) {
-		mac_comment(szBuf, szBuf2, mp->index, mp->typ);
+	if (dMenuId != -1 && (mp = macro_getMacroIndexForMenu(dMenuId)) != 0) {
+		macro_getComment(szBuf, szBuf2, mp->index, mp->typ);
 		st_seterrmsg(*szBuf ? szBuf : (char *)0);
 	} else {
 		st_seterrmsg((char *)0);
@@ -1024,9 +1046,9 @@ void mac_showHelpForMenu(int dMenuId)
 }
 
 /*------------------------------------------------------------
- * UpdateCommentAndName()
+ * macro_updateCommentAndName()
  */
-static void UpdateCommentAndName(HWND hwnd)
+static void macro_updateCommentAndName(HWND hwnd)
 {
 	LONG		nSelected;
 	MACROREFIDX	nIndex;
@@ -1034,13 +1056,13 @@ static void UpdateCommentAndName(HWND hwnd)
 	BOOL		editable;
 	char		szName[64],szComment[256],szK[128];
 
-	nSelected = SelectedMacro(hwnd);
+	nSelected = macro_getSelectedMacro(hwnd);
 	nIndex = (MACROREFIDX)HIWORD(nSelected);
 	type = (MACROREFTYPE)LOWORD(nSelected);
 	DlgInitString(hwnd, IDD_STRING1, 
 				mac_name(szName,nIndex,type), MAC_NAMELEN);
 	DlgInitString(hwnd, IDD_STRING2, 
-				mac_comment(szComment,szK,nIndex,type),MAC_COMMENTLEN);
+				macro_getComment(szComment,szK,nIndex,type),MAC_COMMENTLEN);
 
 	SendDlgItemMessage(hwnd, IDD_STRING1, EM_SETMODIFY, FALSE, 0);
 	SendDlgItemMessage(hwnd, IDD_STRING2, EM_SETMODIFY, FALSE, 0);
@@ -1050,16 +1072,16 @@ static void UpdateCommentAndName(HWND hwnd)
 	SendDlgItemMessage(hwnd, IDD_STRING1, EM_SETREADONLY, !editable, 0);
 	SendDlgItemMessage(hwnd, IDD_STRING2, EM_SETREADONLY, !editable, 0);
 
-	/* mac_enableButton(hwnd,IDD_MACSTART,editable); */
-	mac_enableButton(hwnd,IDD_MACRENAME,editable);
-	mac_enableButton(hwnd,IDD_MACDELETE,editable);
-	mac_enableButton(hwnd,IDD_MACEDIT,editable);
+	/* macro_enableButton(hwnd,IDD_MACSTART,editable); */
+	macro_enableButton(hwnd,IDD_MACRENAME,editable);
+	macro_enableButton(hwnd,IDD_MACDELETE,editable);
+	macro_enableButton(hwnd,IDD_MACEDIT,editable);
 }
 
 /*------------------------------------------------------------
- * NewMacroSelected()
+ * macro_newMacroSelected()
  */
-static void NewMacroSelected(HWND hwnd)
+static void macro_newMacroSelected(HWND hwnd)
 {
 	HWND 		hwndList;
 	LONG		nSelected;
@@ -1067,53 +1089,53 @@ static void NewMacroSelected(HWND hwnd)
 	int			nKeys = 0;
 	LRESULT		nCurr;
 
-	UpdateCommentAndName(hwnd);
-	nSelected = SelectedMacro(hwnd);
-	hwndList = mac_initializeListBox(hwnd,IDD_LISTBOX2,&nCurr);
+	macro_updateCommentAndName(hwnd);
+	nSelected = macro_getSelectedMacro(hwnd);
+	hwndList = macro_initializeListBox(hwnd,IDD_LISTBOX2,&nCurr);
 	for (kp = _keytables->rt_data; kp < (KEYBIND*)_keytables->rt_end; kp++) {
 		if (MAKELONG(kp->macref.typ,kp->macref.index) == nSelected) {
 			nKeys++;
 			SendMessage(hwndList,LB_ADDSTRING,0,(LPARAM)kp->keycode);
 		}
 	}
-	list_endfilling(hwndList,0);
-	mac_enableButton(hwnd,IDD_MACDELKEY,nKeys ? TRUE : FALSE);
+	macro_listEndFilling(hwndList,0);
+	macro_enableButton(hwnd,IDD_MACDELKEY,nKeys ? TRUE : FALSE);
 }
 
 /*------------------------------------------------------------
- * FillKeyTables()
+ * macro_fillKeyTables()
  */
-static void FillKeyTables(HWND hwnd)
+static void macro_fillKeyTables(HWND hwnd)
 {
 	HWND 		hwndList;
 	LRESULT		nCurr;
 	RSCTABLE	*rp;
 
-	hwndList = mac_initializeListBox(hwnd,IDD_LISTBOX,&nCurr);
+	hwndList = macro_initializeListBox(hwnd,IDD_LISTBOX,&nCurr);
 	for (rp = _keytables; rp; rp = rp->rt_next) {
 		SendMessage(hwndList,LB_ADDSTRING,0,(LPARAM)rp->rt_name);
 	}
-	list_endfilling(hwndList,0);
+	macro_listEndFilling(hwndList,0);
 	SendMessage(hwndList, LB_SELECTSTRING, -1, (LPARAM)_keytables->rt_name);
 }
 
 /*------------------------------------------------------------
- * Update()
+ * macro_updateSelectedMacro()
  */
-static void Update(HWND hwnd, LONG nSelected)
+static void macro_updateSelectedMacro(HWND hwnd, LONG nSelected)
 {
-	UpdateMacroList(hwnd);
+	macro_updateMacroList(hwnd);
 	if (nSelected) {
 		SendDlgItemMessage(hwnd, IDD_MACROLIST,
 			LB_SELECTSTRING, -1, nSelected);
 	}
-	NewMacroSelected(hwnd);
+	macro_newMacroSelected(hwnd);
 }
 
 /*------------------------------------------------------------
  * mac_lboxdraw()
  */
-static void mac_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, 
+static void macro_ownerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem, 
 					    int nID)
 {
 	char	szBuf[128];
@@ -1127,9 +1149,9 @@ static void mac_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem,
 }
 
 /*------------------------------------------------------------
- * mac_getkey()
+ * macro_getCurrentKeycode()
  */
-static KEYCODE mac_getkey(void)
+static KEYCODE macro_getCurrentKeycode(void)
 {
 	static KEYCODE k;
 	static DIALPARS _d[] = { IDD_KEYCODE,	sizeof k,	&k, 0 };
@@ -1143,9 +1165,9 @@ static KEYCODE mac_getkey(void)
 }
 	
 /*--------------------------------------------------------------------------
- * CharItemNextSelected()
+ * macro_charItemNextSelected()
  */
-static int CharItemNextSelected(HWND hwndList, unsigned char ucKey)
+static int macro_charItemNextSelected(HWND hwndList, unsigned char ucKey)
 {
 	LRESULT		nItems;
 	LRESULT		nOrigPos;
@@ -1211,8 +1233,8 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 			nSelected = MAKELONG(currentSelectedMacro.typ, 
 				currentSelectedMacro.index);
 			CheckDlgButton(hwnd,IDD_OPT1,showInternals);
-			FillKeyTables(hwnd);
-			Update(hwnd, nSelected);
+			macro_fillKeyTables(hwnd);
+			macro_updateSelectedMacro(hwnd, nSelected);
 			return TRUE;
 
 		case WM_VKEYTOITEM:
@@ -1221,11 +1243,11 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 		case WM_CHARTOITEM:
 			hwndListBox = GET_WM_CHARTOITEM_HWND(wParam, lParam);
 			nKey = GET_WM_CHARTOITEM_CHAR(wParam, lParam); 
-			return CharItemNextSelected(hwndListBox, nKey);
+			return macro_charItemNextSelected(hwndListBox, nKey);
 
 		case WM_DRAWITEM:
 			return cust_drawComboBoxOwnerDraw((DRAWITEMSTRUCT*)lParam,
-				mac_lboxdrawitem, 0);
+				macro_ownerDrawListboxItem, 0);
 
 		case WM_COMPAREITEM:
 			cp = (COMPAREITEMSTRUCT*)lParam;
@@ -1234,7 +1256,7 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 				mac_name(szN2, (MACROREFIDX)HIWORD(cp->itemData2), (MACROREFTYPE)LOWORD(cp->itemData2)));
 
 		case WM_COMMAND:
-			nSelected = SelectedMacro(hwnd);
+			nSelected = macro_getSelectedMacro(hwnd);
 			GetDlgItemText(hwnd,IDD_STRING1,szName,sizeof szName);
 			_macroname = (LOWORD(nSelected) == CMD_MACRO) ?
 				_macrotab[HIWORD(nSelected)]->name : 0;
@@ -1245,7 +1267,7 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 				if (nNotify == LBN_SELCHANGE) {
 					if (LbGetText(hwnd,IDD_LISTBOX,szName) > 0) {
 						rsc_switchtotable(&_keytables,szName);
-						NewMacroSelected(hwnd);
+						macro_newMacroSelected(hwnd);
 					}
 				}
 				break;
@@ -1254,12 +1276,12 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 				if (nNotify == LBN_DBLCLK) {
 					SendMessage(hwnd,WM_COMMAND,IDD_MACSTART,0L);
 				} else if (nNotify == LBN_SELCHANGE) {
-					NewMacroSelected(hwnd);
+					macro_newMacroSelected(hwnd);
 				}
 				break;
 
 			case IDD_MACADDKEY:
-				if ((keycode = mac_getkey()) == K_DELETED) {
+				if ((keycode = macro_getCurrentKeycode()) == K_DELETED) {
 					break;
 				}
 				if ((kp = keybound(keycode)) != 0 &&
@@ -1267,34 +1289,34 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 						 mac_name(szName,kp->macref.index,
 						 		kp->macref.typ)) == IDNO)
 					break;
-				mac_scaninsert(keycode, (MACROREFIDX)HIWORD(nSelected),
+				macro_bindOrUnbindKey(keycode, (MACROREFIDX)HIWORD(nSelected),
 					(MACROREFTYPE)LOWORD(nSelected));
 				goto upd;
 
 			case IDD_MACDELKEY:
-				keycode = SelectedKey(hwnd);
-				mac_scaninsert(keycode,-1,0);
+				keycode = macro_getSelectedKey(hwnd);
+				macro_bindOrUnbindKey(keycode,-1,0);
 				goto upd;
 
 			case IDD_MACDELETE:
-				mac_delete(szName);
+				macro_deleteByName(szName);
 
 			case IDD_OPT1:
-				Update(hwnd, 0);
+				macro_updateSelectedMacro(hwnd, 0);
 				break;
 
 			case IDD_MACRENAME:
 				if (nSelected >= 0) {
 					GetDlgItemText(hwnd,IDD_STRING2,szComment,
 								sizeof szComment);
-					mac_nameupdate(HIWORD(nSelected),szName,szComment);
+					macro_renameAndChangeComment(HIWORD(nSelected),szName,szComment);
 upd: 				_macedited = 1;
-					NewMacroSelected(hwnd);
+					macro_newMacroSelected(hwnd);
 				}
 				return TRUE;
 
 			case IDD_MACFINDKEY:
-				if ((keycode = mac_getkey()) == K_DELETED) {
+				if ((keycode = macro_getCurrentKeycode()) == K_DELETED) {
 					break;
 				}
 				if ((kp = keybound(keycode)) == 0) {
@@ -1302,8 +1324,8 @@ upd: 				_macedited = 1;
 				} else {
 					nIndex = kp->macref.index;
 					nType = kp->macref.typ;
-					MacroSelectByValue(hwnd, MAKELONG(nType, nIndex));
-					NewMacroSelected(hwnd);
+					macro_selectByValue(hwnd, MAKELONG(nType, nIndex));
+					macro_newMacroSelected(hwnd);
 				}
 				return TRUE;
 
@@ -1345,7 +1367,7 @@ int EdMacrosEdit(void)
 	extern 	MACROREF	currentSelectedMacro;
 
 	ret = DoDialog(DLGMACROS, DlgMacEditProc, 0, NULL);
-	mac_switchtodefaulttables();
+	macro_selectDefaultBindings();
 
 	if (ret == IDD_MACSTART) {
 		long m = _multiplier;
@@ -1353,7 +1375,7 @@ int EdMacrosEdit(void)
 
 		_multiplier = 1;
 		while (m-- > 0) {
-			ret = mac_runcmd(&currentSelectedMacro);
+			ret = macro_executeMacro(&currentSelectedMacro);
 		}
 		return ret;
 	}

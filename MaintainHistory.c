@@ -223,9 +223,10 @@ static void hist_save(FTABLE *fp,struct history *hp)
 	} while (i != hp->where);
 }
 
-/*---------------------------------*/
-/* save history()				*/
-/*---------------------------------*/
+/*---------------------------------
+ * save history()
+ * save all history entries to the file passed as an argument.
+ */
 EXPORT void hist_allsave(FTABLE *fp)
 {	struct histdes *hp = _histsavings;
 

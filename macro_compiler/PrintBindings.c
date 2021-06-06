@@ -39,10 +39,10 @@
 extern	EDBINDS 	_bindings;
 extern	RSCTABLE *_keytables;
 extern	RSCTABLE *_mousetables;
-extern	MACRO *	mac_byindex(int i);
+extern	MACRO *	macro_getByIndex(int i);
 extern	char *	code2key(KEYCODE code);
 extern 	char *	mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
-extern 	MACROREF *GetMacrorefForMenu(int nId);
+extern 	MACROREF *macro_getMacroIndexForMenu(int nId);
 
 void PrintListHeader(FILE *fp, char *itemname);
 
@@ -243,7 +243,7 @@ static char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
 	char *d,*s;
 
 	switch(type) {
-		case CMD_MACRO: sprintf(szBuf,"%s",mac_byindex(nIndex)->name); break;
+		case CMD_MACRO: sprintf(szBuf,"%s",macro_getByIndex(nIndex)->name); break;
 		case CMD_MENU:
 		case CMD_CMDSEQ: 
 			if (LoadString(hInst, nIndex+IDM_CMDNAME,szBuf+1,127) <= 0) {
@@ -462,7 +462,7 @@ int PrintBrackets(FILE *fp)
 	PASTELIST **pp;
 	UCLIST *up;
 
-	key_globs(&bp,&pp,&up);
+	uc_initializeUnderCursorActions(&bp,&pp,&up);
 
 	PrintListHeader(fp,"brackets");
 	fprintf(fp,"Left        Right       Nested   Indenting\n");
@@ -495,7 +495,7 @@ int PrintAbbrevs(FILE *fp)
 	PASTELIST **pp;
 	UCLIST *up;
 
-	key_globs(&bp,&pp,&up);
+	uc_initializeUnderCursorActions(&bp,&pp,&up);
 
 	PrintListHeader(fp,"abbreviations");
 	fprintf(fp,"Shortcut    ú String\n");
@@ -520,7 +520,7 @@ int PrintEscapes(FILE *fp)
 	PASTELIST **pp;
 	UCLIST *up;
 
-	key_globs(&bp,&pp,&up);
+	uc_initializeUnderCursorActions(&bp,&pp,&up);
 
 	PrintListHeader(fp,"ESC-macros");
 	fprintf(fp,"Escape     ú String\n");
@@ -644,7 +644,7 @@ static void PrintSubMenu(FILE *fp, HMENU hMenu)
 			GetMenuString(hMenu, nItem, szText, sizeof szText,
 				MF_BYPOSITION);
 			if ((wID = GetMenuItemID(hMenu, nItem)) <= 0 ||
-			    (mp = GetMacrorefForMenu(wID)) == 0) {
+			    (mp = macro_getMacroIndexForMenu(wID)) == 0) {
 				lstrcpy(command, "??");
 			} else {
 				mac_name(command, mp->index, mp->typ);

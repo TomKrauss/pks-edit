@@ -1,7 +1,7 @@
 
 # ifndef	_EDFUNCS_H
 
-#include <vcruntime.h>
+#include <windows.h>
 
 #define	EW_MODIFY		0x1		/* function modifies text */
 #define	EW_NOCASH		0x2		/* dont EdMacroRecord them */
@@ -64,7 +64,7 @@ typedef struct keymap {
 KEYBIND *keygetbind(void);
 KEYBIND *keybound(KEYCODE code);
 char    *code2key(KEYCODE code);
-KEYCODE mac_addModifierKeys(KEYCODE code);
+KEYCODE macro_addModifierKeys(KEYCODE code);
 
 /*
  * MACROS -----------------------------------------------------------
@@ -398,6 +398,190 @@ typedef struct params {
 
 extern int macro_openDialog(PARAMS *p);
 extern int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3);
+
+/*------------------------------------------------------------
+ * macro_getByIndex()
+ * Return a macro by its internal index.
+ */
+extern MACRO* macro_getByIndex(int idx);
+
+/*---------------------------------
+ * macro_getInternalIndexByName()
+ * Return the internal index of a macro given its name.
+ */
+extern int macro_getInternalIndexByName(char* name);
+
+/*------------------------------------------------------------
+ * macro_autosaveAllBindings()
+ * Save all changed macro bindings and new macros to the corresponding file.
+ * If warnflag is specified ask user, whether macros should be saved.
+ */
+extern void macro_autosaveAllBindings(int warnFlag);
+
+/*------------------------------------------------------------
+ * macro_deleteByName()
+ * Delete the macro (including all its bindings) with the given name. Return
+ * 1 if successfully deleted.
+ */
+extern int macro_deleteByName(char* name);
+
+/*------------------------------------------------------------
+ * macro_validateMacroName()
+ * Check, whether a mcro name is valid and whether it exists already.
+ */
+extern int macro_validateMacroName(char* name, int origidx);
+
+/*--------------------------------------------------------------------------
+ * macro_onKeybindingChanged()
+ * invoked, when a keybinding has changed. May flag e.g. the function keyboard of PKSEDIT
+ * as dirty.
+ */
+extern void macro_onKeybindingChanged(KEYCODE key);
+
+/*------------------------------------------------------------
+ * macro_bindOrUnbindKey()
+ * index < 0:	delete key-binding
+ * index >=0:  add key-binding
+ */
+extern int macro_bindOrUnbindKey(KEYCODE key, int index, MACROREFTYPE typ);
+
+/*--------------------------------------------------------------------------
+ * macro_selectDefaultBindings()
+ * Select the default key- / menu- / mouse bindings for PKS Edit.
+ */
+extern void macro_selectDefaultBindings(void);
+
+/*------------------------------------------------------------
+ * macro_readBindingsFromFile()
+ * Read new bindings from a file. If the current bindings are "dirty" they
+ * are flushed before.
+ */
+extern int macro_readBindingsFromFile(char* fn);
+
+/*------------------------------------------------------------
+ * macro_createWithParams()
+ * create a new macro with a name, a comment and the actual byte codes
+ * to execute.
+ */
+extern MACRO* macro_createWithParams(char* szName, char* szComment, char* bData, int size);
+
+/*------------------------------------------------------------
+ * macro_renameAndChangeComment()
+ */
+extern void macro_renameAndChangeComment(int nIndex, char* szName, char* szComment);
+
+/*------------------------------------------------------------
+ * macro_insertNewMacro()
+ * Insert a macro with a given name, comment and byte codes. If the named
+ * macro already exists, it is deleted.
+ */
+extern int macro_insertNewMacro(char* name, char* comment, char* macdata, int size);
+
+/*------------------------------------------------------------
+ * macro_toggleRecordMaco()
+ * start/stops the macro recorder.
+ */
+extern int macro_toggleRecordMaco(void);
+
+/*---------------------------------
+ * macro_onIconAction()
+ * Invoke a macro as a response to an icon action.
+ *---------------------------------*/
+extern int macro_onIconAction(HWND icHwnd, WPARAM wParam, LPARAM dropped);
+
+/*--------------------------------------------------------------------------
+ * macro_getMacroIndexForMenu()
+ * Return the macro reference given a menu id.
+ */
+extern MACROREF* macro_getMacroIndexForMenu(int nId);
+
+/*--------------------------------------------------------------------------
+ * macro_translateToOriginalMenuIndex()
+ * try to find an internal command/standard menu binding, which
+ * allows us to display an appropriate help for synthetic menus
+ */
+extern WORD macro_translateToOriginalMenuIndex(WORD wParam);
+
+/*---------------------------------
+ * macro_onMenuAction()
+ * Invoke the macro bound to a menu index.
+ *---------------------------------*/
+extern int macro_onMenuAction(int menunum);
+
+/*---------------------------------
+ * macro_addModifierKeys()
+ * Add the modifier key bits depending on whether
+ * Shift, Control or Alt was pressed together with
+ * the key passed as an argument.
+ */
+extern KEYCODE macro_addModifierKeys(KEYCODE key);
+
+/*---------------------------------*/
+/* macro_getKeyBinding()				*/
+/*---------------------------------*/
+extern void* macro_getKeyBinding(WPARAM key);
+
+/*---------------------------------*/
+/* macro_executeMacro()				*/
+/*---------------------------------*/
+extern int macro_executeMacro(MACROREF* mp);
+
+/*---------------------------------*
+ * macro_onKeyPressed()
+ * Execute a keybinding and return 1 if successful.
+ *---------------------------------*/
+extern int macro_onKeyPressed(void* keybind);
+
+/*------------------------------------------------------------
+ * macro_onCharacterInserted()
+ */
+extern int macro_onCharacterInserted(WORD c);
+
+/*---------------------------------*/
+/* macro_executeByName()				*/
+/*---------------------------------*/
+extern int macro_executeByName(char* name);
+
+/*------------------------------------------------------------
+ * macro_assignAcceleratorTextOnMenu()
+ * this function sets the menu accelerator text, each time a
+ * menu popup is opened
+ */
+extern void macro_assignAcceleratorTextOnMenu(HMENU hMenu);
+
+/*------------------------------------------------------------
+ * macro_getComment()
+ * Returns the command for a given macro index and type.
+ * The result is copied into the space passed with szBuf.
+ */
+extern char* macro_getComment(char* szBuf, char* szB2, int nIndex, int type);
+
+/*
+ * Returns a tool tip for a given menu id.
+ */
+extern char* macro_getMenuTooltTip(int dMenuId);
+
+/*--------------------------------------------------------------------------
+ * macro_showHelpForMenu()
+ * Display help for a given menu id
+ */
+extern void macro_showHelpForMenu(int dMenuId);
+
+/*--------------------------------------------------------------------------
+ * macro_getCmdIndexByName()
+ */
+extern int macro_getCmdIndexByName(char* name);
+
+/**
+* Execute a macro given a single line text to execute.
+ */
+extern int macro_executeSingleLineMacro(char* string);
+
+/*--------------------------------------------------------------------------
+ * macro_getIndexForKeycode()
+ * Return the internall index for a given macro keycode and name.
+ */
+extern int macro_getIndexForKeycode(KEYCODE* scan, char* name, int oldidx);
 
 #define	_EDFUNCS_H
 # endif

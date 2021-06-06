@@ -566,9 +566,9 @@ EXPORT long caret_advanceParagraph(long ln,int dir,int start)
 }
 
 /*--------------------------------------------------------------------------
- * curspgrph()
+ * caret_advanceParagraphFromCurrentLine()
  */
-EXPORT int curspgrph(int dir,int start)
+EXPORT int caret_advanceParagraphFromCurrentLine(int dir,int start)
 {	long ln;
 
 	ln = caret_advanceParagraph(ft_getCurrentDocument()->ln,dir,start);
@@ -797,7 +797,7 @@ EXPORT void caret_setMatchFunction(int mtype, int ids_name, int *c)
 	advmatchfunc = cadv_word;
 	switch (abs(mtype)) {
 		case MOT_UNTILC:
-			*c = getuntilc(ids_name);
+			*c = EdPromptForCharacter(ids_name);
 			advmatchfunc = cadv_c;
 			break;
 		case 5:

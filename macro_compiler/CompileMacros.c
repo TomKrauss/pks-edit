@@ -21,11 +21,11 @@
 #include "lineoperations.h"
 #include "pkscc.h"
 #include "stringutil.h"
+#include "edfuncs.h"
 
 int  yyparse(void);
 void yyinit(jmp_buf *errb, char *sourcefile, LINE *lps,LINE *lpe);
 int  yyfinish(void);
-int  ft_optionFileWithoutFileselector(char *fn, long line, void *wsp);
 char *file_getTempDirectory(void);
 void error_displayErrorToast(char * fmt, va_list ap);
 
@@ -204,7 +204,7 @@ static void UnEscape(char *dst, char *src) {
 /**
 * Execute a macro given a single line text to execute.
  */
-int mac_executeSingleLineMacro(char *string) {	
+int macro_executeSingleLineMacro(char *string) {	
 	char		chTemp[1024];
 	FTABLE 		ft;
 	LINE *		lp;
@@ -229,8 +229,8 @@ int mac_executeSingleLineMacro(char *string) {
 		error_displayAlertDialog("Error in command: %s", string);
 		return 0;
 	}
-	mac_executeByName("temp-block");
-	mac_delete("temp-block");
+	macro_executeByName("temp-block");
+	macro_deleteByName("temp-block");
 	_macedited = saveMacEdited;
 	return 1;
 }

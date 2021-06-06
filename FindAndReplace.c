@@ -321,12 +321,10 @@ int find_expressionAgainInCurrentFile(dir) {
 }
 
 /*--------------------------------------------------------------------------
- * countlines()
+ * ft_countlinesStartingFromDirection()
  */
-long countlines(fp,start,dir)
-FTABLE *fp;
-long   start;
-{	register long nl = 0;
+long ft_countlinesStartingFromDirection(FTABLE* fp, long start, int dir) {	
+	register long nl = 0;
 	register LINE *lp;
 	
 	lp = ln_goto(fp,start);
@@ -390,9 +388,9 @@ static LINE *expline(FTABLE *fp, LINE *lp,long *nt)
 }
 
 /*--------------------------------------------------------------------------
- * condexpline()
+ * find_expandTabsInFormattedLines()
  */
-LINE *condexpline(FTABLE *fp, LINE *lp)
+LINE *find_expandTabsInFormattedLines(FTABLE *fp, LINE *lp)
 {	long t;
 
 	if (PLAINCONTROL(fp->documentDescriptor->dispmode)) {
@@ -474,7 +472,7 @@ static void modifypgr(FTABLE *fp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
 	caret_placeCursorInCurrentFile(fp->ln,0L);
 	if (*cntel) {
 		render_redrawAndPaintCurrentFile();
-		*cntln = countlines(fp,*cntln,1);
+		*cntln = ft_countlinesStartingFromDirection(fp,*cntln,1);
 	}
 	mouse_setDefaultCursor();
 }
@@ -485,17 +483,17 @@ static void modifypgr(FTABLE *fp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
 int find_selectRangeWithMarkers(int rngdefault, MARK** mps, MARK** mpe)
 {
 	if (!ft_getCurrentDocument() ||
-		SelectRange(rngdefault, ft_getCurrentDocument(), mps, mpe) == RNG_INVALID)
+		find_setTextSelection(rngdefault, ft_getCurrentDocument(), mps, mpe) == RNG_INVALID)
 		return 0;
 	return 1;
 }
 
 /*--------------------------------------------------------------------------
- * ReplaceTabs()
+ * find_replaceTabsWithSpaces()
  * flg = 1 : expand TABS to SPACES
  * flg = 0 : comp SPACES to TABS
  */
-int ReplaceTabs(int scope, int flg)
+int find_replaceTabsWithSpaces(int scope, int flg)
 {	long nt=0L,nl=0L;
 	MARK *mps,*mpe;
 
@@ -611,7 +609,7 @@ int EdReplaceText(int scope, int action, int flags)
 	undo_startModification(fp);
 	mark_saveCaretPosition();
 
-	if (SelectRange(scope,fp,&markstart,&Markend) == RNG_INVALID)
+	if (find_setTextSelection(scope,fp,&markstart,&Markend) == RNG_INVALID)
 		return 0;
 	/* force register use */
 	markend = Markend;
@@ -651,7 +649,7 @@ int EdReplaceText(int scope, int action, int flags)
 			if (marked && (lp->lflg & LNXMARKED) == 0)
 				goto nextline;
 			if (P_NE(lp,oldxpnd)) {
-				if ((lp = condexpline(fp,lp)) == 0)
+				if ((lp = find_expandTabsInFormattedLines(fp,lp)) == 0)
 					break;
 				oldxpnd = lp;
 			}
@@ -783,8 +781,8 @@ endrep:
 				}
 			}
 		}
-		/* countlines MUST be called to clear lineflags !!!! */
-		ln = countlines(fp,startln,1);
+		/* ft_countlinesStartingFromDirection MUST be called to clear lineflags !!!! */
+		ln = ft_countlinesStartingFromDirection(fp,startln,1);
 		if (action != REP_REPLACE) {
 			error_showMessageInStatusbar(IDS_MSGNFOUND, _currentSearchAndReplaceParams.searchPattern,ln,rp);
 		} else {
@@ -854,11 +852,11 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
 }
 
 /*--------------------------------------------------------------------------
- * SelectRange()
+ * find_setTextSelection()
  * 
  * Select a range of text in the file identified by fp.
  */
-int SelectRange(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend) {
+int find_setTextSelection(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend) {
 	LINE *lps,*lpe;
 	int  ofs,ofe;
 

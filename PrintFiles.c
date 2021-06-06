@@ -140,7 +140,7 @@ static void EscapeError(short errEscape)
 /*------------------------------------------------------------
  * PrtAbortProc()
  */
-BOOL PrtAbortProc(HDC hdcPrn, int nCode) {
+static BOOL PrtAbortProc(HDC hdcPrn, int nCode) {
 	if (nCode < 0) {
 		EscapeError(nCode);
 	}

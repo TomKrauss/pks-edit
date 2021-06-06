@@ -20,8 +20,6 @@
 #include "edierror.h"
 #include "pksedit.h"
 
-extern int 	ft_checkSelectionWithError(FTABLE *fp);
-
 /*---------------------------------*/
 /* AlignText()					*/
 /*---------------------------------*/
@@ -41,7 +39,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	}
 
 	fp = ft_getCurrentDocument();
-	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID)
+	if (find_setTextSelection(scope,fp,&mps,&mpe) == RNG_INVALID)
 		return 0;
 	if (filler == 0)
 		filler = ' ';

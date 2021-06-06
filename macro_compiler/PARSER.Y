@@ -78,7 +78,6 @@ static int		_override,
 				_kmod_control;
 static COM_TEST	*_exprstack[MAXEXPR];
 
-extern 		int mac_validatename(unsigned char *name);
 static 		void endmacro(void);
 static 		void startmacro(void);
 			void freeval(TYPEDVAL *v);
@@ -105,19 +104,16 @@ extern 		int	yyerrflg;
 extern 		int	_bDefiningConst;
 
 void 			Alert(char *s, ...);
-int 			mac_insert(char *name, char *comment, unsigned char *data, int size);
 unsigned char 	*AddComSeq(unsigned char *sp, unsigned char *spend,
 				     	 unsigned char typ, intptr_t par);
 int				FuncIdx(void *ep);
 int 			bind_key(KEYCODE keycode, MACROREFTYPE typ, MACROREFIDX idx, int augment);
 int 			bind_mouse(MOUSECODE code, MACROREFTYPE typ, MACROREFIDX idx, int flags, int augment);
-int 			MakeInternalSym(char *name, char ed_typ, intptr_t value);
+int 			sym_sym_makeInternalSymbolbol(char *name, char ed_typ, intptr_t value);
 int 			IsFormStart(void *ep,int parno);
 int 			key_switchtotable(char *name);
 int 			mouse_switchtotable(char *name);
-void 		mouse_overridetable(void);
-int 			mac_getbyname(char *name);
-int 			mac_cmdseqbyname(char *name);
+void 		mouse_destroyMouseBindings(void);
 KEYCODE 		key2code(char *K, int control);
 void 		key_destroytable(char *name);
 TYPEDVAL		PushBinop(int opd_typ, TYPEDVAL *v1, 
@@ -131,7 +127,6 @@ void 		CloseLabelList(void);
 void 		KillLabel(char *name);
 char			*LabelAutoName(char *prefix, int num);
 int 			IsStringFunc(void *ep);
-int 			IsStringType(unsigned char typ);
 void 		menu_startdefine(char *szMenu);
 int 			menu_addentry(char *pszString, int menutype, 
 				MACROREFTYPE mactype, MACROREFTYPE macidx);
@@ -305,7 +300,7 @@ mouses		: opt_ident T_DEFMOUSE T_IDENT	{
 				protokoll("Compile mouse table %s",$3.s);
 				mouse_switchtotable($3.s);
 				if (SetOverride($1.s) == MODE_OVERRIDE) {
-					mouse_overridetable();
+					mouse_destroyMouseBindings();
 				}
 				freeitem(&$3.s);
 			}
@@ -418,7 +413,7 @@ constdefs		: constdef
 constdef		: { _bDefiningConst = 1; } var_ident { _bDefiningConst = 0; } 
 				T_ASSIGN constnum_or_string
 			{
-				MakeInternalSym($2.s,
+				sym_makeInternalSymbol($2.s,
 					($5.v.type == C_STRING1PAR) ? 
 					S_CONSTSTRING : S_CONSTNUM, $5.v.val);
 				freeval(&$5.v);
@@ -445,7 +440,7 @@ par_decl		: type_ident var_ident {
 				int typ;
 				
 				typ = ($1.type == C_STRING1PAR) ? S_DOLSTRING : S_DOLNUMBER;
-				MakeInternalSym($2.s,typ,_nparam);
+				sym_makeInternalSymbol($2.s,typ,_nparam);
 				PushCreateVariable($2.s,typ,_nparam);
 				_nparam++;
 			}
@@ -455,10 +450,10 @@ macros		:  macrostart opt_string block
 				if (!yyerrflg) {
 					makelabel(lreturnid,0);
 					killabel(lreturnid,0);
-					mac_validatename($1.s);
+					macro_validateMacroName($1.s, -1);
 					_recp = AddComSeq(_recp,_recpend,C_STOP,1);
 					protokoll("Defining macro %s",$1.s);
-					mac_insert($1.s,$2.s,_recspace,(int)(_recp-_recspace));
+					macro_insertNewMacro($1.s,$2.s,_recspace,(int)(_recp-_recspace));
 				}
 				freeitem(&$2.s);
 				freeitem(&$1.s);
@@ -484,7 +479,7 @@ var_decls		:
 			| var_decl var_decls
 
 var_decl		: type_ident var_ident assgn ';'	{
-				MakeInternalSym($2.s,
+				sym_makeInternalSymbol($2.s,
 					($1.type == C_STRING1PAR) ? S_STRING : S_NUMBER,
 					($1.type == C_STRING1PAR) ? (intptr_t)"" : 0);
 				PushAssign($2.s,$3.v.type,(intptr_t)$3.v.val);
@@ -492,10 +487,10 @@ var_decl		: type_ident var_ident assgn ';'	{
 				vname_count = 0;
 			} | type_ident var_ident ';'	{
 				if ($1.type == C_STRING1PAR) {
-					MakeInternalSym($2.s, S_STRING, (intptr_t)"");
+					sym_makeInternalSymbol($2.s, S_STRING, (intptr_t)"");
 					PushAssign($2.s, C_STRING1PAR, (intptr_t)"");
 				} else {
-					MakeInternalSym($2.s, S_NUMBER, (intptr_t)0);
+					sym_makeInternalSymbol($2.s, S_NUMBER, (intptr_t)0);
 					PushAssign($2.s,C_LONG1PAR,(intptr_t)0);
 				}
 				vname_count = 0;
@@ -543,8 +538,8 @@ s_bterm: 		value			{ $$.v = $1.v; }
 
 bterm		: s_bterm 		{ $$.v = $1.v;	}
 			| cast s_bterm		{
-				if (IsStringType($1.type) ==
-				    IsStringType($2.v.type)) {
+				if (macro_isParameterStringType($1.type) ==
+				    macro_isParameterStringType($2.v.type)) {
 					$$.v = $2.v;
 				} else {
 					$$.v = PushBinop(BIN_CONVERT,&$2.v,0);
@@ -757,7 +752,7 @@ type_ident	: T_TCHAR				{	$$.type = C_CHAR1PAR;	}
 
 cmd_or_macro	: T_IDENT	 {
 				$$.macref.typ = CMD_MACRO; 
-				if (($$.macref.index = mac_getbyname($1.s)) == 
+				if (($$.macref.index = macro_getInternalIndexByName($1.s)) == 
 					(MACROREFIDX)-1) {
 					yyerror("undefined macro %s",$1.s);
 				}
@@ -765,7 +760,7 @@ cmd_or_macro	: T_IDENT	 {
 			}
 			| T_CMDSEQPREFIX T_IDENT {
 				$$.macref.typ = CMD_CMDSEQ; 
-				$$.macref.index = mac_cmdseqbyname($2.s); 
+				$$.macref.index = macro_getCmdIndexByName($2.s); 
 				freeitem(&$2.s);
 			}
 

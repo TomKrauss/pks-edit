@@ -291,7 +291,7 @@ FormatText(int scope, int type, int flags)
 	fp = ft_getCurrentDocument();
 	flags |= type;
 
-	if (SelectRange(scope,fp,&mps,&mpe) == RNG_INVALID ||
+	if (find_setTextSelection(scope,fp,&mps,&mpe) == RNG_INVALID ||
 	    !mark_set(fp,fp->caret.linePointer,0,MARKDOT))
 		return 0;
 

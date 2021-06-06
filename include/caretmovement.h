@@ -19,6 +19,13 @@
 typedef struct wininfo WINFO;
 
 /*--------------------------------------------------------------------------
+ * caret_moveLeftRight()
+ * Move the caret to the left or right. If motionFlags contains MOT_XTNDBLOCK
+ * the selection is extended.
+ */
+extern int caret_moveLeftRight(int direction, int motionFlags);
+
+/*--------------------------------------------------------------------------
  * caret_getPreviousColumnInLine()
  * Got back one screen column in a line and return the new column considering internal
  * structure of the data and return the new offset into the line buffer.
@@ -37,6 +44,11 @@ extern int caret_lineOffset2screen(FTABLE* fp, CARET* cp);
  * Advance the cursor starting from a line by one paragraph.
  */
 extern long caret_advanceParagraph(long ln, int dir, int start);
+
+/*--------------------------------------------------------------------------
+ * caret_advanceParagraphFromCurrentLine()
+ */
+extern int caret_advanceParagraphFromCurrentLine(int dir, int start);
 
 /*--------------------------------------------------------------------------
   * caret_lineOffset2screen()
