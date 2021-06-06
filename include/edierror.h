@@ -24,6 +24,11 @@ extern void progress_closeMonitor(int always);
  */
 extern void progress_startMonitor(unsigned int ids);
 
+/*------------------------------------------------------------
+ * progress_showMonitorMessage()
+ */
+extern void progress_showMonitorMessage(const char* message);
+
 /*--------------------------------------------------------------------------
  * NoDiskSpace()
  */

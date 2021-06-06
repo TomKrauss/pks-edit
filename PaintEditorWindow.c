@@ -167,7 +167,7 @@ termline:
 				goto _output;
 
 			if (*s++ == '\t') {
-				if ((i = TabStop(i,linp)) > start) {
+				if ((i = doctypes_calculateTabStop(i,linp)) > start) {
 					if (i > end)
 						i = end;
 					d  += (i-start);
@@ -185,7 +185,7 @@ termline:
 					s++; i++;
 					continue;
 				}
-				ind = TabStop(i,linp);
+				ind = doctypes_calculateTabStop(i,linp);
 				if (ind > end) 
 					ind = end;
 				d = blfill(d, ind-i, linp->t1);
@@ -281,7 +281,7 @@ static void render_paintWindowParams(WINFO *wp,long min,long max,int flg)
 		lp = lp->next, ln++,  y = newy) {
 		newy = y + wp->cheight;
 		if (newy > ps.rcPaint.top && 			/* if in redraw area */
-		    (flg || (lp->lflg & LNREPLACED))) {	/* if Line is modified || we redraw all */
+		    (flg || (lp->lflg & LNREPLACED))) {	/* if print_singleLineOfText is modified || we redraw all */
 	
 			r.left = 0; r.right = wp->workarea.g_w;
 			r.top = y;

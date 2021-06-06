@@ -23,6 +23,7 @@
 #include "edierror.h"
 #include "lineoperations.h"
 #include "winfo.h"
+#include "edfuncs.h"
 #include "stringutil.h"
 
 extern char *ft_visiblename(FTABLE *fp);
@@ -35,12 +36,14 @@ int  _psenabled = 1;
 
 #define MAXSSIZE		256
 
-/*--------------------------------------------------------------------------
- * InitDateformats()
- */
 static char sDate[2], sTime[2];
 static int  iDate;
-void InitDateformats(void)
+
+/*--------------------------------------------------------------------------
+ * string_initDateformats()
+ * Initialize the PKS Edit date format.
+ */
+void string_initDateformats(void)
 {	static char *cGroup = "intl";
 
 	GetProfileString(cGroup, "sDate", "/", sDate, sizeof sDate);
@@ -81,9 +84,9 @@ static void agetdate(char *buf, struct tm *tp)
 }
 
 /*--------------------------------------------------------------------------
- * print_date()
+ * string_formatDate()
  */
-void print_date(char *szDbuf, EDTIME *ltime)
+void string_formatDate(char *szDbuf, EDTIME *ltime)
 {	char 		szBtime[64];
 	char		szBdate[64];
 	struct tm *	tp;
@@ -348,7 +351,7 @@ void EdFormatPrint(long dummy1, long dummy2, char *format, char *p)
 	} else {
 		buf[0] = 0;
 	}
-	ReturnString(buf);
+	macro_returnString(buf);
 }
 
 

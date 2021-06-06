@@ -68,7 +68,7 @@ BOOL ft_initializeReadWriteBuffers(void)
 static DOCUMENT_DESCRIPTOR* GetDefaultDocumentTypeDescriptor() {
 	static DOCUMENT_DESCRIPTOR* _defaultDocumentTypeDescriptor;
 	if (_defaultDocumentTypeDescriptor == NULL) {
-		_defaultDocumentTypeDescriptor = CreateDefaultDocumentTypeDescriptor();
+		_defaultDocumentTypeDescriptor = doctypes_createDefaultDocumentTypeDescriptor();
 	}
 	return _defaultDocumentTypeDescriptor;
 }
@@ -587,7 +587,7 @@ EXPORT int ft_readfileWithOptions(FTABLE *fp,char *fn,int linflag)
 	fp->lockFd = 0;
 	strcpy(fp->fname,fn);
 
-	if (linflag >= 0 && !AssignDocumentTypeDescriptor(fp,(DOCUMENT_DESCRIPTOR*)0))
+	if (linflag >= 0 && !doctypes_assignDocumentTypeDescriptor(fp,(DOCUMENT_DESCRIPTOR*)0))
 		return 0;
 
 	_verbose = 0;

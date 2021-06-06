@@ -127,6 +127,20 @@ extern void wt_tcursor(WINFO* wp, int type);
  */
 void wt_scrollxy(WINFO* wp, int nlines, int ncolumns);
 
+/*-----------------------------------------------------------
+ * ww_redrawAllWindows()
+ * Redraw all editor windows. If update is true, not only send
+ * a repaint message bu also update by painting right away.
+ */
+extern void ww_redrawAllWindows(int update);
+
+/*-----------------------------------------------------------
+ * ww_applyDisplayProperties()
+ * Apply all flags from the document descriptor of the edited document on the
+ * window referred to by the passed pointer.
+ */
+extern void ww_applyDisplayProperties(WINFO* wp);
+
 /*------------------------------------------------------------
  * wt_curpos()
  */
@@ -157,7 +171,60 @@ extern void render_redrawCurrentLine(void);
  * Returns the view num steps from the step - 0 to return the current to level view, 1 to return
  * the one below the top window.
  */
-extern WINFO* ww_stackwi(int num);
+extern WINFO* ww_getWindowFromStack(int num);
+
+/*------------------------------------------------------------
+ * ww_setScrollCheckBounds()
+ * calculate scrollops checking bounds
+ */
+extern void ww_setScrollCheckBounds(WINFO* wp);
+
+/*-----------------------------------------------------------
+ * ww_setwindowtitle()
+ * Update the title of a window.
+ */
+extern void ww_setwindowtitle(WINFO* wp);
+
+/*-----------------------------------------------------------
+ * ww_savewinstates()
+ * Save the state of the currently displayed editor windows for later restore.
+ */
+extern void ww_savewinstates(void);
+
+/*-----------------------------------------------------------
+ * ww_getNumberOfOpenWindows()
+ * Returns the number of currently open windows.
+ */
+extern int ww_getNumberOfOpenWindows(void);
+
+/*--------------------------------------------------------------------------
+ * ww_getstate()
+ * Return the window placement state for a window.
+ */
+extern void ww_getstate(WINFO* wp, WINDOWPLACEMENT* wsp);
+
+/*------------------------------------------------------------
+ * ww_requestFocusInTopWindow()
+ * Request focus in the top most window.
+ */
+extern void ww_requestFocusInTopWindow(void);
+
+/*------------------------------------------------------------
+ * ww_timer()
+ * Trigger a timer action.
+ */
+extern HWND ww_timer(void);
+
+/*-----------------------------------------------------------
+ * ww_winstate()
+ */
+extern void ww_winstate(int nId, WINDOWPLACEMENT* wsp);
+
+/*------------------------------------------------------------
+ * ww_close()
+ * Close the passed editor window.
+ */
+extern int ww_close(WINFO* wp);
 
 /*------------------------------------------------------------
  * font_createFontWithStyle()
@@ -165,6 +232,18 @@ extern WINFO* ww_stackwi(int num);
  * from the second parameter, if not, it is taken from the font.
  */
 extern HFONT font_createFontWithStyle(EDFONT* pFont, EDFONTSTYLE* pStyle);
+
+/*-----------------------------------------------------------
+ * ww_register()
+ * Register the window classes for PKS edit editor windows.
+ */
+extern int ww_register(void);
+
+/*------------------------------------------------------------
+ * ww_popup()
+ * Bring a child to top - if iconized restore.
+ */
+extern void ww_popup(HWND hwndChild);
 
 /*------------------------------------------------------------
  * font_selectSystemFixedFont()

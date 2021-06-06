@@ -13,6 +13,7 @@
  */
 
 #include <windows.h>
+#include <CommCtrl.h>
 #include <windowsx.h>
 
 #include "trace.h"
@@ -68,7 +69,7 @@ static PRTPARAM _prtparams = {
 
 	0,8,0,"Courier",	/* Footnote Font: oemmode,cheight,cwidth,name */
 
-	1,1,				/* Line spacing footnotes */
+	1,1,				/* print_singleLineOfText spacing footnotes */
 	0,				/* length of fn delimter line */
 	0,0,				/* distances to body and footer */
 	0,				/* offset of Fnote */
@@ -86,9 +87,9 @@ static char 		szPrtDevice[64];
 extern int		mysprintf(FTABLE* fp, char* d, char* format, ...);
 
 /*------------------------------------------------------------
- * GetPrinterDC()
+ * print_getPrinterDC()
  */
-EXPORT HDC GetPrinterDC(void)
+EXPORT HDC print_getPrinterDC(void)
 {
 	char szPrinter[256];
 	char *szDriver,*szOutput;
@@ -105,9 +106,9 @@ EXPORT HDC GetPrinterDC(void)
 }
 
 /*------------------------------------------------------------
- * InitPrinterDC()
+ * print_initPrinterDC()
  */
-EXPORT void InitPrinterDC(void)
+EXPORT void print_initPrinterDC(void)
 {
 	char *dev,szPrinter[256];
 
@@ -148,9 +149,9 @@ static BOOL PrtAbortProc(HDC hdcPrn, int nCode) {
 }
 
 /*------------------------------------------------------------
- * prt_selectfont()
+ * print_selectfont()
  */
-static HFONT prt_selectfont(HDC hdc, FONTSPEC *fsp) {
+static HFONT print_selectfont(HDC hdc, FONTSPEC *fsp) {
 	static HFONT previousFont = NULL;
 	HFONT 		hFont;
 	EDFONT		font;
@@ -187,9 +188,9 @@ static HFONT prt_selectfont(HDC hdc, FONTSPEC *fsp) {
 }
 
 /*------------------------------------------------------------
- * Ratio()
+ * print_calculateRatio()
  */
-static int Ratio(int total, int mul, int div)
+static int print_calculateRatio(int total, int mul, int div)
 {
 	if (div == 0)
 		div = 1;
@@ -197,9 +198,9 @@ static int Ratio(int total, int mul, int div)
 }
 
 /*------------------------------------------------------------
- * prt_ntextlines()
+ * print_ntextlines()
  */
-static int prt_ntextlines(void)
+static int print_ntextlines(void)
 {
 	PRTPARAM	*pp = &_prtparams;
 
@@ -210,9 +211,9 @@ static int prt_ntextlines(void)
 }
 
 /*--------------------------------------------------------------------------
- * ResetDeviceMode()
+ * print_resetDeviceMode()
  */
-static void ResetDeviceMode(HDC hdc)
+static void print_resetDeviceMode(HDC hdc)
 {
 	RECT r;
 	int	x;
@@ -234,27 +235,27 @@ static void ResetDeviceMode(HDC hdc)
 }
 
 /*------------------------------------------------------------
- * GetDeviceExtents()
+ * print_getDeviceExtents()
  */
-static void GetDeviceExtents(HDC hdc, DEVEXTENTS *dep) {
+static void print_getDeviceExtents(HDC hdc, DEVEXTENTS *dep) {
 	PRTPARAM 	*pp = &_prtparams;
 	DWORD	ext;
 	int		textheight;
 
-	ResetDeviceMode(hdc);
+	print_resetDeviceMode(hdc);
 	ext = win_getWindowExtension(hdc);
 	dep->xPage = LOWORD(ext);
 	dep->yPage = HIWORD(ext);
 
-	dep->xLMargin = Ratio(dep->xPage, pp->lmargin, pp->nchars);
-	dep->xRMargin = Ratio(dep->xPage, (pp->nchars-pp->rmargin), pp->nchars);
+	dep->xLMargin = print_calculateRatio(dep->xPage, pp->lmargin, pp->nchars);
+	dep->xRMargin = print_calculateRatio(dep->xPage, (pp->nchars-pp->rmargin), pp->nchars);
 
 	if (pp->options&PRTO_HEADERS) {
-		dep->yHeaderPos = Ratio(dep->yPage,pp->d1,pp->pagelen);
-		dep->yTop 	 = Ratio(dep->yPage,pp->d1+pp->d2+1,pp->pagelen);
-		dep->yFooterPos = Ratio(dep->yPage,(pp->pagelen-pp->d4-1),
+		dep->yHeaderPos = print_calculateRatio(dep->yPage,pp->d1,pp->pagelen);
+		dep->yTop 	 = print_calculateRatio(dep->yPage,pp->d1+pp->d2+1,pp->pagelen);
+		dep->yFooterPos = print_calculateRatio(dep->yPage,(pp->pagelen-pp->d4-1),
 						    pp->pagelen);
-		dep->yBottom    = Ratio(dep->yPage,(pp->pagelen-pp->d3-pp->d4-1),
+		dep->yBottom    = print_calculateRatio(dep->yPage,(pp->pagelen-pp->d3-pp->d4-1),
 				       	    pp->pagelen);
 	} else {
 		dep->yHeaderPos = dep->yTop = 0;
@@ -262,7 +263,7 @@ static void GetDeviceExtents(HDC hdc, DEVEXTENTS *dep) {
 	}
 
 	textheight = (dep->yBottom-dep->yTop);
-	dep->lnSpace = (textheight) / prt_ntextlines();
+	dep->lnSpace = (textheight) / print_ntextlines();
 
 	pp->font.fs_cheight = 
 	pp->htfont.fs_cheight = 
@@ -274,9 +275,9 @@ static void GetDeviceExtents(HDC hdc, DEVEXTENTS *dep) {
 }
 
 /*---------------------------------*/
-/* mkwpheader()				*/
+/* print_mkwpheader()				*/
 /*---------------------------------*/
-static void mkwpheader(HDC hdc, int yPos, DEVEXTENTS *dep,
+static void print_mkwpheader(HDC hdc, int yPos, DEVEXTENTS *dep,
 				   char *szBuff, int align)
 {
 	int  		nLen,xPos,w;
@@ -294,9 +295,9 @@ static void mkwpheader(HDC hdc, int yPos, DEVEXTENTS *dep,
 }
 
 /*---------------------------------*/
-/* formatheader()				*/
+/* print_formatheader()				*/
 /*---------------------------------*/
-static int formatheader(unsigned char *d1, unsigned char *d2, 
+static int print_formatheader(unsigned char *d1, unsigned char *d2, 
 			  	    unsigned char *d3, unsigned char *s,
 				    long pageno)
 {
@@ -322,9 +323,9 @@ static int formatheader(unsigned char *d1, unsigned char *d2,
 }
 
 /*------------------------------------------------------------
- * PrintHF()
+ * print_headerAndFooter()
  */
-static void PrintHF(HDC hdc, DEVEXTENTS *dep, int y, long pageno, 
+static void print_headerAndFooter(HDC hdc, DEVEXTENTS *dep, int y, long pageno, 
 				char *fmt,int align)
 {
 	unsigned char 	b1[256],b2[256],b3[256];
@@ -335,7 +336,7 @@ static void PrintHF(HDC hdc, DEVEXTENTS *dep, int y, long pageno,
 		return;
 
 	b1[0] = b2[0] = b3[0] = 0;
-	wpflg = formatheader(b1, b2, b3, fmt, pageno + pp->pageoffs);
+	wpflg = print_formatheader(b1, b2, b3, fmt, pageno + pp->pageoffs);
 
 	/* swap headings on alternate pages */
 
@@ -356,15 +357,15 @@ static void PrintHF(HDC hdc, DEVEXTENTS *dep, int y, long pageno,
 	} else {
 		a1 = 2, a2 = 0;
 	}
-	mkwpheader(hdc,y,dep,b1,a1);
-	mkwpheader(hdc,y,dep,b2,1);
-	mkwpheader(hdc,y,dep,b3,a2);
+	print_mkwpheader(hdc,y,dep,b1,a1);
+	print_mkwpheader(hdc,y,dep,b2,1);
+	print_mkwpheader(hdc,y,dep,b3,a2);
 }
 
 /*------------------------------------------------------------
- * Line()
+ * print_singleLineOfText()
  */
-static int Line(HDC hdc, int xPos, int yPos, int charHeight, long lineno,
+static int print_singleLineOfText(HDC hdc, int xPos, int yPos, int charHeight, long lineno,
 		 	  LINE *lp, int firstc, int lastc)
 {
 	char 	szBuff[80];
@@ -409,9 +410,9 @@ static int Line(HDC hdc, int xPos, int yPos, int charHeight, long lineno,
 }
 
 /*------------------------------------------------------------
- * DrawLine()
+ * print_drawLine()
  */
-static void DrawLine(HDC hdc, int x1, int x2, int y)
+static void print_drawLine(HDC hdc, int x1, int x2, int y)
 {
 	MoveTo(hdc,x1,y);
 	LineTo(hdc,x2,y);
@@ -435,8 +436,8 @@ static int print_file(HDC hdc)
 	firstc = _printwhat.firstc;
 	lastc  = _printwhat.lastc;
 
-	GetDeviceExtents(hdc, &de);
-	prt_selectfont(hdc,&pp->font);
+	print_getDeviceExtents(hdc, &de);
+	print_selectfont(hdc,&pp->font);
 
 	oldpageno = 0;
 	pageno = lineno = 1;
@@ -475,13 +476,13 @@ static int print_file(HDC hdc)
 		if (yPos == 0) {
 			if (_printing) {
 				StartPage(hdc);
-				ResetDeviceMode(hdc);
-				prt_selectfont(hdc,&pp->htfont);
-				PrintHF(hdc, &de, de.yHeaderPos, pageno,
+				print_resetDeviceMode(hdc);
+				print_selectfont(hdc,&pp->htfont);
+				print_headerAndFooter(hdc, &de, de.yHeaderPos, pageno,
 					pp->header, pp->align);
-				prt_selectfont(hdc,&pp->font);
+				print_selectfont(hdc,&pp->font);
 				if (pp->options & PRTO_ULHEA) {
-					DrawLine(hdc,de.xLMargin,de.xRMargin,
+					print_drawLine(hdc,de.xLMargin,de.xRMargin,
 						   (de.yTop+de.yHeaderPos)/2);
 				}
 			}
@@ -491,11 +492,11 @@ static int print_file(HDC hdc)
 footerprint:
 			if (_printing) {
 				if (pp->options & PRTO_ULHEA) {
-					DrawLine(hdc,de.xLMargin,de.xRMargin,
+					print_drawLine(hdc,de.xLMargin,de.xRMargin,
 						    (de.yBottom+de.yFooterPos)/2);
 				}
-				prt_selectfont(hdc,&pp->htfont);
-				PrintHF(hdc,&de,de.yFooterPos,pageno,pp->footer,pp->align);
+				print_selectfont(hdc,&pp->htfont);
+				print_headerAndFooter(hdc,&de,de.yFooterPos,pageno,pp->footer,pp->align);
 				EndPage(hdc);
 			}
 			if (!lp || P_EQ(lp,lplast))
@@ -504,7 +505,7 @@ footerprint:
 			pageno++;
 		} else {
 			if (_printing) {
-				yPos += Line(hdc, de.xLMargin, yPos, de.lnSpace, lineno, lp, firstc, lastc);
+				yPos += print_singleLineOfText(hdc, de.xLMargin, yPos, de.lnSpace, lineno, lp, firstc, lastc);
 			}
 			else {
 				yPos += de.lnSpace;
@@ -521,7 +522,7 @@ footerprint:
 /*--------------------------------------------------------------------------
  * DlgPreviewProc()
  */
-INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	HDC			hdc;
 	int			newPage = _previewpage;
@@ -569,7 +570,7 @@ INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 		SetDlgItemInt(hDlg, IDD_INT1, _previewpage, 0);
 		EnableWindow(GetDlgItem(hDlg, IDD_BUT4), (_previewpage > 1));
 		EnableWindow(GetDlgItem(hDlg, IDD_BUT3),
-			(_previewpage <= _printwhat.nlines / prt_ntextlines()));
+			(_previewpage <= _printwhat.nlines / print_ntextlines()));
 		render_sendRedrawToWindow(GetDlgItem(hDlg, IDD_PREVIEW));
 	}
 	return TRUE;
@@ -579,7 +580,7 @@ INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
  * DlgInstallPrtProc()
  */
 typedef VOID (FAR PASCAL *DEVMODEPROC)(HWND, HANDLE, LPSTR, LPSTR);
-INT_PTR CALLBACK DlgInstallPrtProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK DlgInstallPrtProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	HWND			hwndList;
 	HANDLE		hLibrary;
@@ -820,7 +821,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 	wp = 0;
 
 	if (what == PRT_CURRWI || what == PRT_CURRBLK) {
-		if ((wp = ww_stackwi(0)) == 0) {
+		if ((wp = ww_getWindowFromStack(0)) == 0) {
 			return 0;
 		}
 		fp = wp->fp;
@@ -837,7 +838,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 	 		return 0;
 		WIPOI(fp) = &winfo;
 		FTPOI((&winfo)) = fp;
-		ww_setwindowflags(&winfo);
+		ww_applyDisplayProperties(&winfo);
 	}
 
 	if (what == PRT_CURRWI || what == PRT_FILE) {
@@ -880,7 +881,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 	if (_doPrint) {
 		_doPrint = FALSE;
 		_previewpage = 0;
-		if ((hdcPrn = GetPrinterDC()) != NULL) {
+		if ((hdcPrn = print_getPrinterDC()) != NULL) {
 			DOCINFO		docinfo;
 
 			memset(&docinfo, 0, sizeof docinfo);

@@ -10,9 +10,6 @@ EXPORTS
 	KeyInputWndProc
 	CInput
 	FkeysWndProc
-	DlgQueryReplaceProc
-	DlgPreviewProc
-	DlgInstallPrtProc
 	ChooseFontHookProc
 	ExecWaitNotify
 

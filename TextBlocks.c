@@ -30,6 +30,7 @@
 #include "fileutil.h"
 #include "clipboard.h"
 #include "desktopicons.h"
+#include "edfuncs.h"
 
 /*--------------------------------------------------------------------------
  * GLOBALS
@@ -84,7 +85,7 @@ void EdGetSelectedText(void) {
 		pp = bl_addrbyid(0, 0);
 		bl_convertPasteBufferToText(buf, &buf[sizeof buf -2], pp);
 	}
-	ReturnString(buf);
+	macro_returnString(buf);
 }
 
 /*--------------------------------------------------------------------------
@@ -239,7 +240,7 @@ EXPORT int bl_write(char *fn, PASTE *pb,int mode)
 			lp  = lp->next;
 		lp->lflg = LNNOTERM;
 		rf.lastl = 0;
-		rf.documentDescriptor = CreateDefaultDocumentTypeDescriptor();
+		rf.documentDescriptor = doctypes_createDefaultDocumentTypeDescriptor();
 		ret = ft_writefileAsWithFlags(&rf,fn,mode);
 		free(rf.documentDescriptor);
 	}
@@ -465,10 +466,10 @@ EXPORT int bl_append(PASTE *pb,LINE *lnfirst,LINE *lnlast,int cfirst,int clast)
 }
 
 /*--------------------------------------------------------------------------
- * pp_find()
+ * bl_getTextBlock()
  * find a textblock in his linked list
  */
-EXPORT PASTE *pp_find(int id, PASTELIST *pl)
+EXPORT PASTE *bl_getTextBlock(int id, PASTELIST *pl)
 {
 	while (pl != 0 && pl->id != id)
 		pl = pl->next;
@@ -477,10 +478,10 @@ EXPORT PASTE *pp_find(int id, PASTELIST *pl)
 }
 
 /*--------------------------------------------------------------------------
- * ValidClipboards)
- * find a textblock in his linked list
+ * bl_collectClipboardIds)
+ * Collect all clipboard identifiers in the passed parameter.
  */
-EXPORT void ValidClipboards(char *pszValid)
+EXPORT void bl_collectClipboardIds(char *pszValid)
 {
 	PASTELIST *pl;
 
@@ -493,13 +494,13 @@ EXPORT void ValidClipboards(char *pszValid)
 }
 
 /*--------------------------------------------------------------------------
- * plistenq()
+ * bl_lookupPasteBuffer()
  */
-EXPORT PASTE *plistenq(int id,int insert,PASTELIST **header)
+EXPORT PASTE *bl_lookupPasteBuffer(int id,int insert,PASTELIST **header)
 {	PASTELIST *pl;
 	PASTE *pp;
 
-	if ((pp = pp_find(id, *header)) != (PASTE *) 0) {
+	if ((pp = bl_getTextBlock(id, *header)) != (PASTE *) 0) {
 		if (insert)
 			bl_free(pp);
 		return pp;
@@ -517,7 +518,7 @@ EXPORT PASTE *plistenq(int id,int insert,PASTELIST **header)
  */
 EXPORT PASTE *bl_addrbyid(int id,int insert)
 {
-	return plistenq(id,insert,&_plist);
+	return bl_lookupPasteBuffer(id,insert,&_plist);
 }
 
 /*--------------------------------------------------------------------------

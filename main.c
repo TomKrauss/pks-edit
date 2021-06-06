@@ -35,7 +35,10 @@
 
 #define	PROF_OFFSET	1
 
-extern void 	ft_checkForChangedFiles(void);
+ /*------------------------------------------------------------
+  * print_initPrinterDC()
+  */
+extern void		print_initPrinterDC(void);
 extern void		GetPhase2Args(char *args);
 extern void		GetPhase1Args(char *args);
 extern void 	EditDroppedFiles(HDROP hdrop);
@@ -44,10 +47,10 @@ extern BOOL 	ww_havefocus(void);
 extern void 	st_init(HWND hwndDaddy);
 extern void 	status_wh(WORD *width, WORD *height);
 extern void 	tb_wh(WORD *width, WORD *height);
-extern void 	ReadConfigFiles(void);
+extern void 	init_readConfigFiles(void);
 extern int 		clp_setdata(int whichBuffer);
 extern HMENU 	menu_getmenuforcontext(char *pszContext);
-extern BOOL 	InitEnv(void);
+extern BOOL 	init_initializeVariables(void);
 
 extern BOOL	bTaskFinished;
 
@@ -77,9 +80,9 @@ int		_runInteractive = TRUE;
 int		_openIconic = FALSE;
 
 /*------------------------------------------------------------
- * EdMdiCreate()
+ * win_createMdiChildWindow()
  */
-HWND EdMdiCreate(char *szClass, char *fn, int itemno, long lParam, WINDOWPLACEMENT *wsp)
+HWND win_createMdiChildWindow(char *szClass, char *fn, int itemno, long lParam, WINDOWPLACEMENT *wsp)
 {
 	MDICREATESTRUCT 	mdicreate;
 	HWND 				hwndChild;
@@ -121,9 +124,9 @@ HWND EdMdiCreate(char *szClass, char *fn, int itemno, long lParam, WINDOWPLACEME
 }
 
 /*------------------------------------------------------------
- * EdMkWinClass()
+ * win_registerWindowClass()
  */
-int EdMkWinClass(
+int win_registerWindowClass(
 	char   *szClassName,
 	WNDPROC WinProc,
 	LPSTR  lpCursorName,
@@ -159,7 +162,7 @@ static BOOL InitApplication(void)
 	}
 #endif
 
-	if ( !EdMkWinClass(szFrameClass,FrameWndProc,
+	if ( !win_registerWindowClass(szFrameClass,FrameWndProc,
 			    NULL,GetSysColorBrush(COLOR_3DFACE),"APP_ICON", 0) ||
 			!ic_registerDesktopIconClass() ||
 		 	!ww_register() ||
@@ -171,9 +174,9 @@ static BOOL InitApplication(void)
 }
 
 /*------------------------------------------------------------
- * CloseAllChildren()
+ * ww_closeAllChildrenOfWindow()
  */
-int CloseAllChildren(HWND hwndChild)
+int ww_closeAllChildrenOfWindow(HWND hwndChild)
 {
 	if (!hwndChild || !IsWindow(hwndChild))
 		return 0;
@@ -183,9 +186,9 @@ int CloseAllChildren(HWND hwndChild)
 }
 
 /*------------------------------------------------------------
- * CloseChildWindow()
+ * ww_closeChildWindow()
  */
-int CloseChildWindow(HWND hwndChild,int iconflag)
+int ww_closeChildWindow(HWND hwndChild,int iconflag)
 {	LRESULT ret;
 
 	if (!hwndChild || !IsWindow(hwndChild))
@@ -200,11 +203,11 @@ int CloseChildWindow(HWND hwndChild,int iconflag)
 }
 
 /*------------------------------------------------------------
- * CloseEditChild()
+ * ww_closeEditChild()
  */
-int CloseEditChild(HWND hwndChild)
+int ww_closeEditChild(HWND hwndChild)
 {
-	return CloseChildWindow(hwndChild,0);
+	return ww_closeChildWindow(hwndChild,0);
 }
 
 /*------------------------------------------------------------
@@ -216,10 +219,10 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine)
 	WINDOWPLACEMENT 	ws;
 	char				szTitle[64];
 
-	InitPrinterDC();
-	InitDateformats();
+	print_initPrinterDC();
+	string_initDateformats();
 	GetPhase1Args(lpCmdLine);
-	ReadConfigFiles();
+	init_readConfigFiles();
 	hDefaultMenu = LoadMenu(hInst, "PksEdEditMenu");
 	if (nInstanceCount > 1) {
 		wsprintf(szTitle, "* PKS EDIT * (%d)", nInstanceCount);
@@ -401,7 +404,7 @@ int PASCAL WinMain(HANDLE hInstance, HANDLE hPrevInstance, LPSTR lpCmdLine, int 
 	if (!ft_initializeReadWriteBuffers()) {
 		return FALSE;
 	}
-	if (!InitEnv()) {	/* need environment for sizing the frame window... */
+	if (!init_initializeVariables()) {	/* need environment for sizing the frame window... */
 		return FALSE;
 	}
 	if (!InitDDE()) {
@@ -425,7 +428,7 @@ int PASCAL WinMain(HANDLE hInstance, HANDLE hPrevInstance, LPSTR lpCmdLine, int 
 	/* show client window now! */
 	ShowWindow(hwndClient,SW_SHOW);
 
-	if (!ww_nwi() && _runInteractive) {
+	if (!ww_getNumberOfOpenWindows() && _runInteractive) {
 		EdEditFile(0L,0L,(char*)0);
 	}
 	while (GetMessage(&msg, 0, 0, 0)) {
@@ -484,16 +487,16 @@ HWND EdGetActiveWindow(int includeicons)
 int EdCloseAll(int ic_flag)
 {
 	ShowWindow(hwndClient,SW_HIDE);
-	EdEnumChildWindows(CloseEditChild,0);
+	EdEnumChildWindows(ww_closeEditChild,0);
 
-	if (ww_nwi() == 0 && ic_flag) {
-		EdEnumChildWindows(CloseAllChildren,0);
+	if (ww_getNumberOfOpenWindows() == 0 && ic_flag) {
+		EdEnumChildWindows(ww_closeAllChildrenOfWindow,0);
 	}
 
 	ShowWindow(hwndClient,SW_SHOW);
 
 	// no exit: still windows alive
-	if (ww_nwi() != 0)
+	if (ww_getNumberOfOpenWindows() != 0)
 		return 0;
 	return 1;
 }
@@ -507,28 +510,17 @@ int EdArrangeWin(WORD style)
 }
 
 /*------------------------------------------------------------
- * GetEditMenuText()
+ * win_getStdMenuText()
  */
-void GetEditMenuText(int menunr, char *text)
-{
-	HMENU	hCurrentMenu;
-
-	hCurrentMenu = GetMenu(hwndFrame);
-	GetMenuString(hCurrentMenu, menunr, text, 64, MF_BYCOMMAND);
-}
- 
-/*------------------------------------------------------------
- * GetStdMenuText()
- */
-void GetStdMenuText(int menunr, char *text)
+void win_getStdMenuText(int menunr, char *text)
 {
 	GetMenuString(hDefaultMenu, menunr, text, 64, MF_BYCOMMAND);
 }
  
 /*------------------------------------------------------------
- * SetEditMenuText()
+ * win_setEditMenuText()
  */
-void SetEditMenuText(int menunr, char *text)
+void win_setEditMenuText(int menunr, char *text)
 {
 	HMENU	hCurrentMenu;
 
@@ -548,9 +540,9 @@ void HiliteEditMenu(int menunr, int hilited)
 }
 
 /*--------------------------------------------------------------------------
- * GetHistoryMenu()
+ * his_getHistoryMenu()
  */
-HMENU GetHistoryMenu(int *pnPosition, int *piCmd)
+HMENU his_getHistoryMenu(int *pnPosition, int *piCmd)
 {
 	HMENU	hMenu;
 	int		i;
@@ -575,9 +567,9 @@ HMENU GetHistoryMenu(int *pnPosition, int *piCmd)
 }
 
 /*--------------------------------------------------------------------------
- * PksChangeMenuItem()
+ * win_changeMenuItem()
  */
-void PksChangeMenuItem(HMENU hMenu, int nPosition, int nCmd, WORD wFlags,
+void win_changeMenuItem(HMENU hMenu, int nPosition, int nCmd, WORD wFlags,
 	LPCSTR lpszItem)
 {
 	if (GetMenuItemCount(hMenu) <= nPosition) {
@@ -597,9 +589,9 @@ static void FinalizePksEdit(void)
 	GetConfiguration()->autosaveOnExit();
 	ft_saveWindowStates();
 	file_clearTempFiles();
-	HelpQuit();
+	help_quitHelpSystem();
 	UnInitDDE();
-	DeleteAllDocumentTypes();
+	doctypes_deleteAllDocumentTypes();
 
 }
 
@@ -706,8 +698,8 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
 
 		case WM_WININICHANGE:
-			InitPrinterDC();
-			InitDateformats();
+			print_initPrinterDC();
+			string_initDateformats();
 			break;
 
 		case WM_MENUSELECT:
@@ -751,7 +743,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 				bHelp = FALSE;
 				return EdHelpContext(wParam);
 			}
-			if (macro_onMenuAction(wParam)) {
+			if (macro_onMenuAction((int)wParam)) {
 				return 1;
 			}
 			if (!IsWindow(hwnd) || !IsWindow(hwndClient)) {
@@ -770,7 +762,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case WM_CHAR:
 			error_closeErrorWindow();
-			macro_onCharacterInserted(wParam);
+			macro_onCharacterInserted((WORD) wParam);
 			return 0;
 
 	    case WM_RENDERALLFORMATS:
@@ -794,7 +786,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	    case WM_CLOSE:
 	    	FinalizePksEdit();
 			EdCloseAll(1);
-	   		if (ww_nwi()) {
+	   		if (ww_getNumberOfOpenWindows()) {
 	   			return 0;
 			}
 			_CrtDumpMemoryLeaks();

@@ -31,10 +31,10 @@ extern void 	render_redrawLine(FTABLE *fp, LINE *lpWhich);
 extern unsigned char *bl_convertPasteBufferToText(unsigned char *b, unsigned char *end, 
 				PASTE *pp);
 extern void 	bl_validateTrashCanName(char *pszValid);
-extern void 	ValidClipboards(char *pszValid);
+extern void 	bl_collectClipboardIds(char *pszValid);
 
 extern LINE	*find_expandTabsInFormattedLines(FTABLE *fp, LINE *lp);
-extern int 	DialogTemplate(unsigned char c, 
+extern int 	dlg_displayDialogTemplate(unsigned char c, 
 				char *(*fpTextForTmplate)(char *s), char *s);
 
 extern LINE	*cadv_word(LINE *lp,long *ln,long *col,int dir);
@@ -186,7 +186,7 @@ static int GetTmplateDlg(char * (*fpTextForTmplate)(char *s), void (*fpGetValid)
 	char cIdentChars[256];
 
      (*fpGetValid)(cIdentChars);
-	c = DialogTemplate(c, fpTextForTmplate, cIdentChars);
+	c = dlg_displayDialogTemplate(c, fpTextForTmplate, cIdentChars);
 	return c;
 }
 
@@ -205,7 +205,7 @@ EXPORT PASTE *bl_getPasteBuffer(int which) {
 		getTextFunc = (which & PASTE_XUNDO) ? 
 			TextForTrash : TextForClip; 
 		validateNameFunction = (which & PASTE_XUNDO) ? 
-			bl_validateTrashCanName : ValidClipboards; 
+			bl_validateTrashCanName : bl_collectClipboardIds; 
 		if ((id = GetTmplateDlg(getTextFunc, validateNameFunction)) == 0) {
 			return 0;
 		}
@@ -314,7 +314,7 @@ EXPORT int CutBlock(MARK *ms, MARK *me, int flg, PASTE *pp)
 	_p.pln = 0;
 	bl_free(&_p);
 	if (flg & CUT_QUERYID) {
-		if ((id = GetTmplateDlg(TextForClip, ValidClipboards)) == 0) {
+		if ((id = GetTmplateDlg(TextForClip, bl_collectClipboardIds)) == 0) {
 			return 0;
 		}
 	} else {

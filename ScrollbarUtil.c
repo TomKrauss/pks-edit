@@ -181,7 +181,7 @@ int sl_scrollwinrange(WINFO *wp,long *DY, long *DX)
 	} 
 
 	if (*DY || *DX) {
-		SetScrollCheckBounds(wp);
+		ww_setScrollCheckBounds(wp);
 		return 1;
 	}
 	return 0;

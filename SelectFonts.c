@@ -31,7 +31,7 @@
 #define	IDD_FONTSTRIKEOUT		1040
 #define	IDD_FONTUNDERLINE		1041
 
-extern HDC GetPrinterDC(void);
+extern HDC print_getPrinterDC(void);
 
 static LOGFONT _lf =  {
     12,					// lfHeight;
@@ -167,7 +167,7 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 	HDC			hdc;
 	BOOL		bRet;
 
-	hdc = (bPrinter) ? GetPrinterDC() : CreateIC("DISPLAY",NULL,NULL,NULL);
+	hdc = (bPrinter) ? print_getPrinterDC() : CreateIC("DISPLAY",NULL,NULL,NULL);
 
 	/* Set all structure fields to zero. */
 

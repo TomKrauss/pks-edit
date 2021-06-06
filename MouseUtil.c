@@ -30,7 +30,6 @@ static HCURSOR   hHourGlass;		// Hour glass cursor
 static HCURSOR   hSaveCurs;
 
 extern void 	st_seterrmsg(char *msg);
-extern int 		mouse_moveCaretToCurrentMousePosition(FTABLE *fp, long bAsk);
 extern HWND 	ic_findChildFromPoint(HWND hwnd, POINT *point);
 
 extern MOUSEBIND	_mousetab[MAXMAPMOUSE];
@@ -252,7 +251,7 @@ EXPORT int EdMouseMoveText(int move)
 	hwnd = ic_findChildFromPoint((HWND)0,&p);
 
 	if (hwnd == wp->edwin_handle) {
-		if (mouse_moveCaretToCurrentMousePosition(fp, 0L)) {
+		if (caret_moveToCurrentMousePosition(fp, 0L)) {
 			if (move) 
 				ret = macro_executeFunction(FUNC_EdBlockMove,0L,0L,(void*)0,(void*)0,(void*)0); 
 			else 
@@ -277,7 +276,7 @@ static int mouse_hasEmptySlot(MOUSEBIND *mp)
 /*------------------------------------------------------------
  * mouse_getMouseBind()
  */
-static MOUSEBIND *mouse_getMouseBind(int nButton, int nShift, int nClicks)
+static MOUSEBIND* mouse_getMouseBind(int nButton, int nShift, int nClicks)
 {
 	MOUSEBIND *mp;
 
@@ -289,7 +288,7 @@ static MOUSEBIND *mouse_getMouseBind(int nButton, int nShift, int nClicks)
 			return mp;
 		}
 	}
-	return (char *)0;
+	return (MOUSEBIND*)0;
 }
 
 /*--------------------------------------------------------------------------
@@ -417,10 +416,10 @@ EXPORT int mouse_onRulerClicked(WINFO *wp, int x, int y, int msg, int shift) {
 		if (msg == WM_RBUTTONDOWN) {
 			fp->documentDescriptor->rmargin = col;
 		} else {
-			ToggleTabStop(fp->documentDescriptor, col);
+			doctypes_toggleTabStop(fp->documentDescriptor, col);
 		}
+		render_repaintAllForFile(fp);
 		render_sendRedrawToWindow(wp->ru_handle);
-		render_paintWindow(wp);
 	}
 
 	return 1;

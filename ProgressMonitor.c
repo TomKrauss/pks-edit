@@ -64,7 +64,7 @@ void progress_startMonitor(unsigned int ids) {
 		szB1[0] = 0;
 		LoadString(hInst,ids,szB1,sizeof szB1);
 		wsprintf(szBuff,"%s..",szB1);
-		CreateModelessDialog(&hwndAbort,"DLGABORT",
+		win_createModelessDialog(&hwndAbort,"DLGABORT",
 						  DlgProgressProc,&lpfnAbort);
 		if (hwndAbort) {
 			EnableWindow(hwndFrame,FALSE);
@@ -76,7 +76,7 @@ void progress_startMonitor(unsigned int ids) {
 /*------------------------------------------------------------
  * progress_showMonitorMessage()
  */
-void progress_showMonitorMessage(LPSTR message)
+void progress_showMonitorMessage(const char* message)
 {
 	if (hwndAbort)
 		SetDlgItemText(hwndAbort, IDD_STRING2, message);
@@ -89,7 +89,7 @@ void progress_closeMonitor(int always)
 {
 	if (hwndAbort) {
 		EnableWindow(hwndFrame,TRUE);
-		DestroyModelessDialog(&hwndAbort);
+		win_destroyModelessDialog(&hwndAbort);
 	}
 }
 

@@ -18,8 +18,9 @@
 #include "edtypes.h"
 #include "ftw.h"
 #include "stringutil.h"
+#include "edierror.h"
 
-extern int match(char *string,char *pat);
+extern int string_matchFilename(char *string,char *pat);
 int __ftw(char *path,int depth);
 
 /* to be reset before every search - indicates minimum 1 file found */
@@ -80,7 +81,7 @@ static int __ftw(char *path,int depth)
 			if (pdta->attrib == 0 || 
 			   (pdta->attrib & _mode) == pdta->attrib) {
 				if ((pdta->attrib & _A_SUBDIR) || 
-					 match(pdta->name,_searchpattern)) {
+					 string_matchFilename(pdta->name,_searchpattern)) {
 					_ftwflg++;
 					string_concatPathAndFilename(target,path,pdta->name);
 					i = (*_func)(target,pdta);

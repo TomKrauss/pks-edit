@@ -30,7 +30,7 @@
 
 #define	MAX_CONTEXT	32
 
-extern int DialogTemplate(unsigned char c, 
+extern int dlg_displayDialogTemplate(unsigned char c, 
 			char *(*fpTextForTmplate)(char *s), char *s);
 extern unsigned char *bl_convertPasteBufferToText(unsigned char *b, unsigned char *end, 
 			PASTE *pp);
@@ -38,13 +38,12 @@ extern unsigned char *bl_convertPasteBufferToText(unsigned char *b, unsigned cha
 /*--------------------------------------------------------------------------
  * EXTERNALS
  */
-extern 	char 	*_strtolend;
 extern	FSELINFO 	_linfsel;
 
 extern	int uc_add(char* pat, char* p, int type, int id);
-extern 	PASTE	*plistenq();
-extern	PASTE	*pp_find(int id, PASTELIST *pp);
-extern 	int 	CreateTempFileForDocumentType(char *linfn, char *tmpfn);
+extern 	PASTE	*bl_lookupPasteBuffer();
+extern	PASTE	*bl_getTextBlock(int id, PASTELIST *pp);
+extern 	int 	doctypes_createTempFileForDocumentType(char *linfn, char *tmpfn);
 
 static 	PASTELIST *_abbrevlist;
 
@@ -103,10 +102,10 @@ static PASTE *EscapePasteForId(int id)
 {
 	PASTE *		pp;
 
-	if ((pp = pp_find(id, _esclist[ft_getCurrentDocument()->documentDescriptor->id])) != 0) {
+	if ((pp = bl_getTextBlock(id, _esclist[ft_getCurrentDocument()->documentDescriptor->id])) != 0) {
 		return pp;
 	}
-	return 0 /*pp_find(id,_esclist[0]) */ ;
+	return 0 /*bl_getTextBlock(id,_esclist[0]) */ ;
 }
 
 /*--------------------------------------------------------------------------
@@ -133,7 +132,7 @@ int EdMacroEscape(void)
 		return 0;
 	}
      ValidEscapeMacros(cIdentChars);
-	if ((id = DialogTemplate(id, TextForEscapeMacro, 
+	if ((id = dlg_displayDialogTemplate(id, TextForEscapeMacro, 
 		cIdentChars)) == 0) {
 		return 0;
 	}
@@ -217,7 +216,7 @@ static int advtok(LINE **lp,PASTE *pp,char *s)
 	for (;;) {
 		if ((s = getquotes(s,s,32000)) != 0 &&
 		     *s == '"') break;
-		lnlast->len = p1+_qulen;
+		lnlast->len = (int)(p1+_qulen);
 		if ((lnlast = lnlast->next) == 0) {
 			macro_error(IDS_MSGMISSINGAPOSTRPOHE);
 			return 0;
@@ -241,7 +240,7 @@ static PASTE *getbuf(LINE **lp,unsigned char *s,PASTELIST **pl,int id)
 		if ((s = skbl(s)) == 0L) return 0;
 		id = *s++;
 	}
-	if ((pp = plistenq(id,1,pl)) == 0L)
+	if ((pp = bl_lookupPasteBuffer(id,1,pl)) == 0L)
 		return 0;
 
 	if (defmacro) {
@@ -429,7 +428,7 @@ int EdDocMacrosAdd(void)
 		return 0;
 	}
 
-	MergeDocumentTypes(fn, ft_getCurrentDocument()->fname);
+	doctypes_mergeDocumentTypes(fn, ft_getCurrentDocument()->fname);
 
 	return 0;
 }
@@ -446,7 +445,7 @@ int EdDocMacrosEdit(void)
 		return 0;
 	}
 	string_concatPathAndFilename(keyfile, _datadir, "MODI.TMP");
-	if (CreateTempFileForDocumentType(file_searchFileInPKSEditLocation(ft_getCurrentDocument()->documentDescriptor->name), keyfile)) {
+	if (doctypes_createTempFileForDocumentType(file_searchFileInPKSEditLocation(ft_getCurrentDocument()->documentDescriptor->name), keyfile)) {
 		return xref_openFile(keyfile, -1L, (void*)0);
 	}
 	return 0;

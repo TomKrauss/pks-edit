@@ -46,7 +46,7 @@
 extern int 		_translatekeys;
 
 extern int		mysprintf(FTABLE *fp, char *d,char *format,...);
-extern void 	ReturnString(char *string);
+extern void 	macro_returnString(char *string);
 extern BOOL 	DlgChooseFont(HWND hWnd, EDFONT *ep, BOOL bPrinter);
 extern void 	fsel_setDialogTitle(char *title);
 extern int		macro_recordOperation(PARAMS* pp);
@@ -175,14 +175,6 @@ WNDPROC SubClassWndProc(int set, HWND hDlg, int item, WNDPROC lpfnNewProc)
 }
 
 /*------------------------------------------------------------
- * SendParentCommand()
- */
-void SendParentCommand(HWND hwnd,  LPARAM lParam)
-{
-	SendMessage(GetParent(hwnd),WM_COMMAND,GetDlgCtrlID(hwnd),lParam);
-}
-
-/*------------------------------------------------------------
  * KeyInputWndProc()
  */
 static WNDPROC lpfnOldCInput;
@@ -259,7 +251,7 @@ WINFUNC CInput(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			szBuff[0] = (char)wParam;
 			SetWindowText(hwnd,szBuff);
 			render_sendRedrawToWindow(hwnd);
-			SendParentCommand(hwnd,0L);
+			win_sendParentCommand(hwnd,0L);
 			return 0;
 	}
 	return CallWindowProc(lpfnOldCInput,hwnd,message,wParam,lParam);
@@ -531,6 +523,19 @@ void DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax)
 }
 
 /*--------------------------------------------------------------------------
+ * macro_getReplaceActionForControlId()
+ */
+static int macro_getReplaceActionForControlId(int idCtrl)
+{
+	switch (idCtrl) {
+	case IDD_BUT3: return REP_MARK;
+	case IDD_BUT4: return REP_COUNT;
+	case IDCANCEL: return 0;
+	default:       return REP_REPLACE;
+	}
+}
+
+/*--------------------------------------------------------------------------
  * DlgCommand()
  */
 static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
@@ -543,7 +548,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 		ip = (int*)dp->dp_data;
 		switch(item) {
 		case IDD_RECORDRET:
-			*ip = ReplaceAction(idCtrl);
+			*ip = macro_getReplaceActionForControlId(idCtrl);
 			break;
 		case IDD_POSITIONTCURS:
 			render_selectCustomCaret(0);
@@ -902,9 +907,9 @@ INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 }
 
 /*--------------------------------------------------------------------------
- * CallDialog()
+ * win_callDialog()
  */
-int CallDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips)
+int win_callDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips)
 { 	int ret = 1;
 
 	if (macro_openDialog(pp)) {
@@ -917,9 +922,10 @@ int CallDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pToo
 }
 
 /*--------------------------------------------------------------------------
- * CreateModelessDialog()
+ * win_createModelessDialog()
+ * Create a modeless dialog, given a callback and a dialog proc.
  */
-void CreateModelessDialog(HWND *hwnd,LPSTR szName, INT_PTR (CALLBACK *func)(HWND, UINT, WPARAM, LPARAM),
+void win_createModelessDialog(HWND *hwnd,LPSTR szName, INT_PTR (CALLBACK *func)(HWND, UINT, WPARAM, LPARAM),
 				      DLGPROC *lplpfnDlgProc)
 {
 	if (*hwnd) {
@@ -933,9 +939,10 @@ void CreateModelessDialog(HWND *hwnd,LPSTR szName, INT_PTR (CALLBACK *func)(HWND
 }
 
 /*--------------------------------------------------------------------------
- * DestroyModelessDialog()
+ * win_destroyModelessDialog()
+ * Destroy the current modeless dialog. Pass a "pointer!" to a win handle.
  */
-void DestroyModelessDialog(HWND *hwnd)
+void win_destroyModelessDialog(HWND *hwnd)
 {
 	if (*hwnd) {
 		DestroyWindow(*hwnd);
@@ -1011,11 +1018,11 @@ long EdPromptAssign(long unused1, long unused2, char *prompt, char *init)
 		buf[0] = 0;
 	}
 
-	if (CallDialog(DLGPROMPT,&_np,_d, NULL) != IDOK) {
+	if (win_callDialog(DLGPROMPT,&_np,_d, NULL) != IDOK) {
 		*buf = 0;
 	}
 
-	ReturnString(buf);
+	macro_returnString(buf);
 
 	return 1;
 }

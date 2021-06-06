@@ -31,6 +31,8 @@
 #include "documenttypes.h"
 #include "fileutil.h"
 #include "editorconfiguration.h"
+#include "winfo.h"
+
  /*
  * Description of one document type in PKS edit.
  */
@@ -56,7 +58,7 @@ extern int 	Mapread(int context, char *target);
 
 extern char *	_datadir;
 
-DOCUMENT_TYPE *CreateDocumentType(DOCUMENT_TYPE *llp);
+DOCUMENT_TYPE *doctypes_createDocumentType(DOCUMENT_TYPE *llp);
 
 static DOCUMENT_TYPE *_linl;
 static int	_ndoctypes;
@@ -65,10 +67,10 @@ FSELINFO 		_linfsel = {	"", "DEFAULT.LIN", "*.LIN" };
 #define	LINSPACE			offsetof(DOCUMENT_DESCRIPTOR, ts)
 
 /*--------------------------------------------------------------------------
- * TabStop()
+ * doctypes_calculateTabStop()
  * calculate next Tabstop
  */
-int TabStop(int col, DOCUMENT_DESCRIPTOR* l) {
+int doctypes_calculateTabStop(int col, DOCUMENT_DESCRIPTOR* l) {
 	if (col < DIM(l->ts) && l->ts[col])
 		return l->ts[col];
 
@@ -102,9 +104,9 @@ static void InitTabStops(DOCUMENT_DESCRIPTOR* lp)
 }
 
 /*--------------------------------------------------------------------------
- * InitDocumentTypeDescriptor()
+ * doctypes_initDocumentTypeDescriptor()
  */
-void InitDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* lp, int ts) {
+void doctypes_initDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* lp, int ts) {
 	int i, ind;
 
 	lp->tabsize = ts;
@@ -123,7 +125,7 @@ void InitDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* lp, int ts) {
  * Creates the default attributes for editing a document. The returned structure
  * must be freed, when done using it.
  */
-DOCUMENT_DESCRIPTOR* CreateDefaultDocumentTypeDescriptor() {
+DOCUMENT_DESCRIPTOR* doctypes_createDefaultDocumentTypeDescriptor() {
 	DOCUMENT_DESCRIPTOR* lp = _alloc(sizeof *lp);
 
 	memset(lp, 0, sizeof * lp);
@@ -139,14 +141,14 @@ DOCUMENT_DESCRIPTOR* CreateDefaultDocumentTypeDescriptor() {
 	lp->fnt.height = 15;
 	lp->fnt.width = 7;
 	strcpy(lp->fnt.name, "consolas");
-	InitDocumentTypeDescriptor(lp, 8);
+	doctypes_initDocumentTypeDescriptor(lp, 8);
 	return lp;
 }
 
 /*--------------------------------------------------------------------------
- * ToggleTabStop()
+ * doctypes_toggleTabStop()
  */
-void ToggleTabStop(DOCUMENT_DESCRIPTOR *linp, int col)
+void doctypes_toggleTabStop(DOCUMENT_DESCRIPTOR *linp, int col)
 {
 	if (TABTHERE(linp,col))
 		TABCLEAR(linp,col);
@@ -171,12 +173,12 @@ static void GetRelatedFileName(char *related_name, char *fname, char *newext)
 }
 
 /*--------------------------------------------------------------------------
- * GetSelectableDocumentFileTypes()
+ * doctypes_getSelectableDocumentFileTypes()
  * Returns the list of document file types defined in PKS Edit in the format
  * that it can be passed on to the open file dialog for filtering of file types
  * (e.g. *.*|All Files|*.java|Java Files)
  */
-void GetSelectableDocumentFileTypes(LPSTR pszDest, int nMax) {
+void doctypes_getSelectableDocumentFileTypes(LPSTR pszDest, int nMax) {
 	LPSTR		pszEnd;
 	DOCUMENT_TYPE *	llp;
 	int			nCopied;
@@ -207,28 +209,28 @@ static DOCUMENT_DESCRIPTOR *LoadDocumentTypeDescriptor(DOCUMENT_TYPE *llp)
 	DOCUMENT_DESCRIPTOR *lp;
 
 	if ((lp = llp->ll_documentDescriptor) == 0) {
-		if ((lp = CreateDefaultDocumentTypeDescriptor()) == 0) {
+		if ((lp = doctypes_createDefaultDocumentTypeDescriptor()) == 0) {
 			return 0;
 		}
 		llp->ll_documentDescriptor = lp;
-		ReadDocumentType(llp->ll_documentDescriptorName, lp, llp->ll_ctx, 0);
+		doctypes_readDocumentType(llp->ll_documentDescriptorName, lp, llp->ll_ctx, 0);
 		lstrcpy(llp->ll_documentDescriptor->modename, llp->ll_name);
 	}
 	return lp;
 }
 
 /*--------------------------------------------------------------------------
- * CountDocumentTypes()
+ * doctypes_countDocumentTypes()
  */
-int CountDocumentTypes(void)
+int doctypes_countDocumentTypes(void)
 {
 	return ll_size((LINKED_LIST*)_linl);
 }
 
 /*--------------------------------------------------------------------------
- * AddDocumentTypesToListBox()
+ * doctypes_addDocumentTypesToListBox()
  */
-int AddDocumentTypesToListBox(HWND hwnd, int nItem)
+int doctypes_addDocumentTypesToListBox(HWND hwnd, int nItem)
 {
 	DOCUMENT_TYPE *		llp;
 	int			nCnt;
@@ -241,9 +243,9 @@ int AddDocumentTypesToListBox(HWND hwnd, int nItem)
 }
 
 /*--------------------------------------------------------------------------
- * GetDocumentTypeDescription()
+ * doctypes_getDocumentTypeDescription()
  */
-BOOL GetDocumentTypeDescription(DOCUMENT_TYPE *llp, 
+BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE *llp, 
 	char **ppszId,	char **ppszDescription, char **ppszMatch, char **ppszFname, 
 	int **pOwn)
 {
@@ -252,7 +254,7 @@ BOOL GetDocumentTypeDescription(DOCUMENT_TYPE *llp,
 		llp = _linl;
 	}
 	if (!llp) {
-		CreateDocumentType((DOCUMENT_TYPE *)0);
+		doctypes_createDocumentType((DOCUMENT_TYPE *)0);
 		llp = _linl;
 	}
 	if (ppszId) {
@@ -274,9 +276,9 @@ BOOL GetDocumentTypeDescription(DOCUMENT_TYPE *llp,
 }
 
 /*--------------------------------------------------------------------------
- * CreateTempFileForDocumentType()
+ * doctypes_createTempFileForDocumentType()
  */
-int CreateTempFileForDocumentType(char *linfn, char *tmpfn)
+int doctypes_createTempFileForDocumentType(char *linfn, char *tmpfn)
 {
 	int		fd;
 	int		fd2;
@@ -302,9 +304,9 @@ int CreateTempFileForDocumentType(char *linfn, char *tmpfn)
 }
 
 /*--------------------------------------------------------------------------
- * MergeDocumentTypes()
+ * doctypes_mergeDocumentTypes()
  */
-int MergeDocumentTypes(char *pszLinealFile, char *pszDocMacFile)
+int doctypes_mergeDocumentTypes(char *pszLinealFile, char *pszDocMacFile)
 {
 	HFILE		fd;
 	int			fdDocMac;
@@ -364,9 +366,9 @@ int MergeDocumentTypes(char *pszLinealFile, char *pszDocMacFile)
 }
 
 /*--------------------------------------------------------------------------
- * ReadDocumentType()
+ * doctypes_readDocumentType()
  */
-static int ReadDocumentType(char *fname, DOCUMENT_DESCRIPTOR *lp, int id, int forced)
+static int doctypes_readDocumentType(char *fname, DOCUMENT_DESCRIPTOR *lp, int id, int forced)
 {
 	char 	keyfn[512];
 	char *	fn;
@@ -379,7 +381,7 @@ static int ReadDocumentType(char *fname, DOCUMENT_DESCRIPTOR *lp, int id, int fo
 		}
 		Fclose(fd);
 		string_concatPathAndFilename(keyfn, _datadir, "MODI.XXX");
-		CreateTempFileForDocumentType(fn, keyfn);
+		doctypes_createTempFileForDocumentType(fn, keyfn);
 	} else {
 		return 0;
 	}
@@ -396,13 +398,13 @@ static int ReadDocumentType(char *fname, DOCUMENT_DESCRIPTOR *lp, int id, int fo
 }
 
 /*--------------------------------------------------------------------------
- * GetFileDocumentType()
+ * doctypes_getFileDocumentType()
  * find the correct document descriptor for a given file
  * 	1. if own document descriptor, try to read  own document descriptor from disc
  * 	2. if common document descriptor, ...
  *	3. if neither, use standard document descriptor
  */
-BOOL GetFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename) {
+BOOL doctypes_getFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename) {
 	char 			fname[1024];
 	char			linealname[1024];
 	DOCUMENT_TYPE *		llp;
@@ -416,10 +418,10 @@ BOOL GetFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename) {
 
 		string_splitFilename(filename,(char *)0, fname);
 		for (llp = _linl, lp = 0; llp != 0 && lp == 0; llp = llp->ll_next) {
-			if (match(fname,llp->ll_match)) {
+			if (string_matchFilename(fname,llp->ll_match)) {
 				if (llp->ll_privateDocumentDescriptor) {
 					GetRelatedFileName(filename,linealname,"LIN");
-					if (ReadDocumentType(linealname,linp,llp->ll_ctx,0) != 0) {
+					if (doctypes_readDocumentType(linealname,linp,llp->ll_ctx,0) != 0) {
 						lstrcpy(linp->modename, llp->ll_name);
 						return 1;
 					}
@@ -431,7 +433,7 @@ BOOL GetFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename) {
 		}
 	}
 	if (!lp) {
-		DOCUMENT_DESCRIPTOR* defaultLin = CreateDefaultDocumentTypeDescriptor();
+		DOCUMENT_DESCRIPTOR* defaultLin = doctypes_createDefaultDocumentTypeDescriptor();
 		memmove(linp, defaultLin, sizeof *defaultLin);
 		free(defaultLin);
 	} else {
@@ -441,12 +443,12 @@ BOOL GetFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename) {
 }
 
 /*--------------------------------------------------------------------------
- * AssignDocumentTypeDescriptor()
+ * doctypes_assignDocumentTypeDescriptor()
  * assign document type properties / descriptor to file
  * if documentDescriptor == 0, read document descriptor from disc according to filename pattern
  * match
  */
-int  AssignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescriptor)
+int  doctypes_assignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescriptor)
 {
 	if ((fp->documentDescriptor  = _alloc(sizeof *fp->documentDescriptor)) == 0)
 		return 0;
@@ -456,7 +458,7 @@ int  AssignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescr
 		return 1;
 	}
 
-	GetFileDocumentType(fp->documentDescriptor,fp->fname);
+	doctypes_getFileDocumentType(fp->documentDescriptor,fp->fname);
 	return 1;
 }
 
@@ -482,11 +484,11 @@ int linname2id(char *name)
 # endif
 
 /*--------------------------------------------------------------------------
- * SaveDocumentType()
+ * doctypes_saveDocumentType()
  * save a document type: name + linealfile + match-extensions
  */
 static char *szDocTypes = "doctypes";
-static int SaveDocumentType(DOCUMENT_TYPE *lp)
+static int doctypes_saveDocumentType(DOCUMENT_TYPE *lp)
 {
 	char		szBuf[1024];
 
@@ -496,28 +498,28 @@ static int SaveDocumentType(DOCUMENT_TYPE *lp)
 }
 
 /*--------------------------------------------------------------------------
- * SaveAllDocumentTypes()
+ * doctypes_saveAllDocumentTypes()
  */
-void SaveAllDocumentTypes(DOCUMENT_TYPE *llp)
+void doctypes_saveAllDocumentTypes(DOCUMENT_TYPE *llp)
 {
 	/*
 	 * recursive save of ruler list. called with param == 0 for start of saving
 	 */
 	if (!llp) {
 		prof_killsections((LPSTR)0, szDocTypes);
-		SaveAllDocumentTypes(_linl);
+		doctypes_saveAllDocumentTypes(_linl);
 	} else {
 		if (llp->ll_next) {
-			SaveAllDocumentTypes(llp->ll_next);
+			doctypes_saveAllDocumentTypes(llp->ll_next);
 		}
-		SaveDocumentType(llp);
+		doctypes_saveDocumentType(llp);
 	}
 }
 
 /*--------------------------------------------------------------------------
- * CreateDocumentType()
+ * doctypes_createDocumentType()
  */
-DOCUMENT_TYPE *CreateDocumentType(DOCUMENT_TYPE *llp)
+DOCUMENT_TYPE *doctypes_createDocumentType(DOCUMENT_TYPE *llp)
 {
 	DOCUMENT_TYPE * llpNew;
 	int		nLen;
@@ -551,25 +553,25 @@ static BOOL _DeleteDocumentType(DOCUMENT_TYPE* dt) {
 /**
  * Deletes and de-allocates all known document types. 
  */
-void DeleteAllDocumentTypes() {
+void doctypes_deleteAllDocumentTypes() {
 	ll_destroy((LINKED_LIST**)&_linl, _DeleteDocumentType);
 }
 
 /*--------------------------------------------------------------------------
- * DeleteDocumentType()
+ * doctypes_deleteDocumentType()
  * Deletes a given document type.
  */
-void DeleteDocumentType(DOCUMENT_TYPE *llp)
+void doctypes_deleteDocumentType(DOCUMENT_TYPE *llp)
 {
 	ll_delete((LINKED_LIST**)&_linl, llp);
 }
 
 /*--------------------------------------------------------------------------
- * GetPrivateDocumentType()
+ * doctypes_getPrivateDocumentType()
  * 
  * Return the private document type given the name of the document type.
  */
-DOCUMENT_TYPE* GetPrivateDocumentType(char *name)
+DOCUMENT_TYPE* doctypes_getPrivateDocumentType(char *name)
 {
 	DOCUMENT_TYPE *	llp;
 
@@ -583,9 +585,9 @@ DOCUMENT_TYPE* GetPrivateDocumentType(char *name)
 }
 
 /*--------------------------------------------------------------------------
- * GetDocumentTypeDescriptor()
+ * doctypes_getDocumentTypeDescriptor()
  */
-DOCUMENT_DESCRIPTOR *GetDocumentTypeDescriptor(DOCUMENT_TYPE*p)
+DOCUMENT_DESCRIPTOR *doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE*p)
 {
 	DOCUMENT_TYPE	*llp;
 
@@ -596,10 +598,10 @@ DOCUMENT_DESCRIPTOR *GetDocumentTypeDescriptor(DOCUMENT_TYPE*p)
 }
 
 /*--------------------------------------------------------------------------
- * InitDocumentType()
+ * doctypes_initDocumentType()
  * init a document type
  */
-static int InitDocumentType(char *docname)
+static intptr_t doctypes_initDocumentType(char *docname)
 {
 	char	 	*s,*szDesc,*szLinname,*szMatch,*szOwn;
 	DOCUMENT_TYPE	*llp;
@@ -640,12 +642,12 @@ static int InitDocumentType(char *docname)
 }
 
 /*--------------------------------------------------------------------------
- * InitAllDocumentTypes()
+ * doctypes_initAllDocumentTypes()
  * init all document types
  */
-int InitAllDocumentTypes(void)
+int doctypes_initAllDocumentTypes(void)
 {
-	return prof_enum(szDocTypes,InitDocumentType,0L);
+	return prof_enum(szDocTypes,doctypes_initDocumentType,0L);
 }
 
 /*--------------------------------------------------------------------------
@@ -696,7 +698,7 @@ int EdLineal(int wrflag, DOCUMENT_DESCRIPTOR *documentDescriptor) {
 		return 1;
 	}
 
-	if (ReadDocumentType(fn,documentDescriptor,documentDescriptor->id,1)) {
+	if (doctypes_readDocumentType(fn,documentDescriptor,documentDescriptor->id,1)) {
 		if ((wrflag & 2) == 0)
 			doc_documentTypeChanged();
 		return 1;

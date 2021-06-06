@@ -26,6 +26,7 @@
 #include <string.h>
 #include "pksedit.h"
 #include "edctype.h"
+#include "edfuncs.h"
 #include "regexp.h"
 #include "edhist.h"
 #include "errordialogs.h"
@@ -347,9 +348,10 @@ long ft_countlinesStartingFromDirection(FTABLE* fp, long start, int dir) {
 }
 
 /*--------------------------------------------------------------------------
- * tab_expand()
+ * ft_expandTabsWithSpaces()
+ * Expand tabs and replace with spaces.
  */
-int tab_expand(LINE *lp, long *nt)
+int ft_expandTabsWithSpaces(LINE *lp, long *nt)
 {	unsigned char *d    = _linebuf,
 			    *dend = &_linebuf[LINEBUFSIZE],c;
 	unsigned char *s    = lp->lbuf,
@@ -359,7 +361,7 @@ int tab_expand(LINE *lp, long *nt)
 	while(s < send && d < dend) {
 		if ((c = *s++) == '\t') {
 			col = (int)(d - _linebuf);
-			col = TabStop(col,ft_getCurrentDocument()->documentDescriptor) - col;
+			col = doctypes_calculateTabStop(col,ft_getCurrentDocument()->documentDescriptor) - col;
 			blfill(d,col,' ');
 			(*nt)++;
 			d += col;
@@ -370,13 +372,13 @@ int tab_expand(LINE *lp, long *nt)
 }
 
 /*--------------------------------------------------------------------------
- * expline()
+ * expandLine()
  */
-static LINE *expline(FTABLE *fp, LINE *lp,long *nt)
+static LINE *expandLine(FTABLE *fp, LINE *lp,long *nt)
 {	long t = 0;
 	int  size;
 
-	size = tab_expand(lp,&t);
+	size = ft_expandTabsWithSpaces(lp,&t);
 	if (t) {
 		*nt += t;
 		if ((lp = ln_modify(fp,lp,lp->len,size)) == 0L)
@@ -396,7 +398,7 @@ LINE *find_expandTabsInFormattedLines(FTABLE *fp, LINE *lp)
 	if (PLAINCONTROL(fp->documentDescriptor->dispmode)) {
 		return lp;
 	}
-	return expline(fp,lp,&t);
+	return expandLine(fp,lp,&t);
 }
 
 /*--------------------------------------------------------------------------
@@ -411,7 +413,7 @@ static LINE *compline(FTABLE *fp, LINE *lp,long *nt)
 
 	while (i < lp->len) {
 		ntabs = 0;
-		tab = TabStop(col,linp);
+		tab = doctypes_calculateTabStop(col,linp);
 		start = i;
 		while(i < lp->len) {
 			if (*s == '\t') {
@@ -425,7 +427,7 @@ static LINE *compline(FTABLE *fp, LINE *lp,long *nt)
 			if (col == tab) {
 				foundpos = i;
 				ntabs++;
-				tab = TabStop(col,linp);
+				tab = doctypes_calculateTabStop(col,linp);
 			}
 		}
 
@@ -501,7 +503,7 @@ int find_replaceTabsWithSpaces(int scope, int flg)
 		return 0;
 
 	progress_startMonitor(IDS_ABRTCONVERT);
-	modifypgr(ft_getCurrentDocument(),(flg) ? expline : compline,&nt,&nl,mps,mpe);
+	modifypgr(ft_getCurrentDocument(),(flg) ? expandLine : compline,&nt,&nl,mps,mpe);
 	progress_closeMonitor(0);
 
 	if (nt) 
@@ -720,7 +722,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 
 		if (query) {
 			cursor_width = searchcpos(fp,ln,col, &match);
-			switch (QueryReplace(match.loc1,olen,q,newlen)) {
+			switch (dlg_queryReplace(match.loc1,olen,q,newlen)) {
 				case IDNO:
 					delta = olen;
 					goto advance;
@@ -762,7 +764,7 @@ endrep:
 	if (!(query || scope == RNG_ONCE)) {
 		progress_closeMonitor(0);
 	}
-	CloseQueryReplace();
+	dlg_closeQueryReplace();
 	_playing = splflg;
 
 	if (rp) {
@@ -848,7 +850,7 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
 		}
 	}
 
-	ReturnString(_linebuf);
+	macro_returnString(_linebuf);
 }
 
 /*--------------------------------------------------------------------------

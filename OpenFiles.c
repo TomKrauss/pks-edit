@@ -40,6 +40,10 @@
 #include "regexp.h"
 #include "edfuncs.h"
 
+/*------------------------------------------------------------
+ * win_createMdiChildWindow()
+ */
+extern HWND win_createMdiChildWindow(char* szClass, char* fn, int itemno, long lParam, WINDOWPLACEMENT* wsp);
 extern HWND 	ww_winid2hwnd(int winid);
 extern int 	EdPromptAutosavePath(char *path);
 
@@ -226,8 +230,8 @@ void ft_saveWindowStates(void )
 	ln_createAndAddSimple(&ft,"[files]");
 
 	/* save names of bottom windows first !! */
-	for (s = ww_nwi()-1; s >= 0; s--) {
-		if ((wp = ww_stackwi(s)) != 0) {
+	for (s = ww_getNumberOfOpenWindows()-1; s >= 0; s--) {
+		if ((wp = ww_getWindowFromStack(s)) != 0) {
 			ww_getstate(wp, &ws);
 			prof_printws(szBuff,&ws);
 			FTABLE* fp = wp->fp;
@@ -436,7 +440,7 @@ static int ft_openwin(FTABLE *fp, WINDOWPLACEMENT *wsp)
 		}
 	}
 
-	if (EdMdiCreate(szEditClass, fp->fname, ww_nwi()+1, (uintptr_t)fp, wsp) == 0) {
+	if (win_createMdiChildWindow(szEditClass, fp->fname, ww_getNumberOfOpenWindows()+1, (uintptr_t)fp, wsp) == 0) {
 		return 0;
 	}
 	return 1;
@@ -490,9 +494,9 @@ int ft_selectWindowWithId(int winid, BOOL bPopup)
 
 	if (winid < 0) {
 		if (winid == SEL_CYCLE) {
-			winid = -(ww_nwi() - 1);
+			winid = -(ww_getNumberOfOpenWindows() - 1);
 		}
-		if ((wp = ww_stackwi(-winid)) == 0) {
+		if ((wp = ww_getWindowFromStack(-winid)) == 0) {
 			return 0;
 		}
 		winid = wp->win_id;
@@ -636,7 +640,7 @@ int ft_optionFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
 		lstrcpy(fp->fname, fn);
 	}
 	fp->flags |= fileflags;
-	if (AssignDocumentTypeDescriptor(fp, GetDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
+	if (doctypes_assignDocumentTypeDescriptor(fp, doctypes_getDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
          ft_readfile(fp, fp->documentDescriptor) == 0 || 
 	    (lstrcpy(fp->fname, fn), ft_openwin(fp, wsp) == 0)) {
 		ft_destroy(fp);
@@ -702,7 +706,7 @@ int ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 	ft_bufdestroy(fp);
 
 	if (undo_initializeManager(fp) == 0 || 
-	    !AssignDocumentTypeDescriptor(fp, linp) ||
+	    !doctypes_assignDocumentTypeDescriptor(fp, linp) ||
 	    !ft_readfile(fp,fp->documentDescriptor)) {
 		fp->flags = 0;
 		ww_close(WIPOI(fp));

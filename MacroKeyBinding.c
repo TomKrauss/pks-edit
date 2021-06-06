@@ -838,7 +838,7 @@ void macro_assignAcceleratorTextOnMenu(HMENU hMenu)
 			} else {
 				d[1] = 0;
 			}
-			SetEditMenuText(wID, string);
+			win_setEditMenuText(wID, string);
 		}
 		if (mp->typ == CMD_CMDSEQ) {
 			if (mp->index >= _ncmdseq) {
@@ -1382,7 +1382,7 @@ int EdMacrosEdit(void)
 
 	if (_macroname) {
 		if (ret == IDD_MACEDIT) {
-			return PrintMacs(_macroname);
+			return macro_saveMacrosAndDisplay(_macroname);
 		}
 	}
 	return 0;

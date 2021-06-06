@@ -567,7 +567,7 @@ EXPORT int uc_shiftLinesByIndent(FTABLE *fp, long ln, long nlines, int dir)
 			while(col < ind && s < send) {
 				if (*s != ' ') {
 					if (*s == '\t')
-						col = TabStop(col,fp->documentDescriptor);
+						col = doctypes_calculateTabStop(col,fp->documentDescriptor);
 					else
 						break;
 				} else {
@@ -583,7 +583,7 @@ EXPORT int uc_shiftLinesByIndent(FTABLE *fp, long ln, long nlines, int dir)
 		}
 		lp = lp->next;
 	}
-	render_paintWindow(WIPOI(fp));
+	render_repaintAllForFile(fp);
 
 	offset = fp->caret.offset;
 	if (fp->ln >= ln && fp->ln < ln+nlines)

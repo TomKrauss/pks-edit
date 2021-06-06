@@ -16,7 +16,7 @@
 #include "edhist.h"
 #include "stringutil.h"
 
-extern HMENU GetHistoryMenu(int *pnPosition, int *piCmd);
+extern HMENU his_getHistoryMenu(int *pnPosition, int *piCmd);
 
 typedef struct history {
 	char* s[MAXHIST];
@@ -36,7 +36,7 @@ static struct histdes {
 	0
 };
 
-void PksChangeMenuItem(HMENU hMenu, int nPosition, int nCmd, WORD wFlags,
+void win_changeMenuItem(HMENU hMenu, int nPosition, int nCmd, WORD wFlags,
 	LPCSTR lpszItem);
 
 /*---------------------------------*/
@@ -185,7 +185,7 @@ void hist_updatemenu(HISTORY_TYPE type) {
 	char		szTemp[512];
 	char *	p;
 
-	hMenu = GetHistoryMenu(&nPosition, &iCmd);
+	hMenu = his_getHistoryMenu(&nPosition, &iCmd);
 
 	nVisible = 5;
 
@@ -195,11 +195,11 @@ void hist_updatemenu(HISTORY_TYPE type) {
 		}
 		wsprintf(szTemp, "&%d %s", i + 1, p);
 		if (i == 0) {
-			PksChangeMenuItem(hMenu, nPosition, 0, 
+			win_changeMenuItem(hMenu, nPosition, 0, 
 				MF_BYPOSITION|MF_SEPARATOR, szTemp);
 			nPosition++;
 		}
-		PksChangeMenuItem(hMenu, nPosition, iCmd, 
+		win_changeMenuItem(hMenu, nPosition, iCmd, 
 			MF_BYPOSITION|MF_STRING, szTemp);
 		nPosition++;
 		iCmd++;

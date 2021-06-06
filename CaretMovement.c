@@ -67,7 +67,7 @@ EXPORT int caret_lineOffset2screen(FTABLE *fp, CARET *cp)
 		while (p < lbuf) {
 			if (*p++ == '\t') {
 				if ((flags & SHOWCONTROL) == 0) {
-					col = TabStop(col, fp->documentDescriptor);
+					col = doctypes_calculateTabStop(col, fp->documentDescriptor);
 				} else {
 					col++;
 				}
@@ -87,7 +87,7 @@ EXPORT int caret_lineOffset2screen(FTABLE *fp, CARET *cp)
 	} else {
 		while (p < lbuf) {
 			if (*p++ == '\t') 
-				col = TabStop(col,fp->documentDescriptor);
+				col = doctypes_calculateTabStop(col,fp->documentDescriptor);
 			else col++;
 		}
 	}
@@ -120,7 +120,7 @@ EXPORT int caret_screen2lineOffset(FTABLE *fp, CARET *pCaret)
 		while (i < col && p < pend) {
 			if (*p++ == '\t') {
 				if ((flags & SHOWCONTROL) == 0) {
-					i = TabStop(i, fp->documentDescriptor);
+					i = doctypes_calculateTabStop(i, fp->documentDescriptor);
 				} else {
 					i++;
 				}
@@ -143,7 +143,7 @@ EXPORT int caret_screen2lineOffset(FTABLE *fp, CARET *pCaret)
 	} else {
 		while (i < col && p < pend) {
 			if (*p++ == '\t')
-				i = TabStop(i,fp->documentDescriptor);
+				i = doctypes_calculateTabStop(i,fp->documentDescriptor);
 			else i++;
 		}
 	}
@@ -928,21 +928,20 @@ EXPORT int caret_moveToXY(WINFO *wp, int x,int y)
 }
 
 /*--------------------------------------------------------------------------
- * EdMousePosition()
+ * caret_moveToCurrentMousePosition()
  */
-EXPORT int mouse_moveCaretToCurrentMousePosition(FTABLE *fp, long bAsk)
+EXPORT int caret_moveToCurrentMousePosition(FTABLE *fp, long bAsk)
 {	
 	int 		x;
 	int		y;
-	int		b = 0;
 	int		ret;
+	int		b = 0;
 	WINFO *	wp;
 
 	wp = WIPOI(fp);
 	mouse_getXYPos(wp->ww_handle,&x,&y);
 
 	if (bAsk && _playing) {
-		forceredraw();
 		error_showErrorById(IDS_MSGPOSITIONMOUSECURS);
 		do {
 			mouse_dispatchUntilButtonRelease(&x,&y,&b,&ret);
@@ -950,12 +949,7 @@ EXPORT int mouse_moveCaretToCurrentMousePosition(FTABLE *fp, long bAsk)
 		error_closeErrorWindow();
 	}
 
-	ret = caret_moveToXY(wp,x,y);
-
-	if (bAsk && _playing) {
-		forceredraw();
-	}
-	return ret;
+	return caret_moveToXY(wp,x,y);
 }
 
 /*--------------------------------------------------------------------------
@@ -970,7 +964,7 @@ EXPORT int EdMousePosition(long bAsk)
 	}
 
 	HideWindowsBlocks(fp);
-	mouse_moveCaretToCurrentMousePosition(fp, bAsk);
+	caret_moveToCurrentMousePosition(fp, bAsk);
 	return 1;
 }
 

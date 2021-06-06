@@ -24,8 +24,10 @@
 #include "edierror.h"
 #include "winfo.h"
 
-#define	different(lp1,lp2)	cmpnormal(lp1->lbuf,lp1->len,lp2->lbuf,lp2->len)
+#define	different(lp1,lp2)	compare_strings(lp1->lbuf,lp1->len,lp2->lbuf,lp2->len)
 #define	mark(lp)			lp->lflg |= LNXMARKED
+
+extern int  compare_strings(unsigned char* s1, int l1, unsigned char* s2, int l2);
 
 /*--------------------------------------------------------------------------
  * findmatch()
@@ -156,7 +158,7 @@ out0:
 	return nmatch;
 
 out:
-	redrawallwi(0);
+	ww_redrawAllWindows(0);
 	return nmatch;
 }
 
@@ -166,8 +168,8 @@ out:
 EXPORT int EdFilesCompare(int dir)
 {	WINFO *wp0,*wp1;
 
-	if ((wp0 = ww_stackwi(0)) == NULL ||
-	    (wp1 = ww_stackwi(1)) == NULL) {
+	if ((wp0 = ww_getWindowFromStack(0)) == NULL ||
+	    (wp1 = ww_getWindowFromStack(1)) == NULL) {
 		error_showErrorById(IDS_MSGDIFFTWOWINDOWS);
 		return 0;
 	}

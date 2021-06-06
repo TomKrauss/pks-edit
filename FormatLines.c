@@ -275,12 +275,12 @@ nextdline:	d = memset(_linebuf,_fillc1,lmar);
 	}
 }
 
-/*---------------------------------*/
-/* EdFormatText()				*/
-/*---------------------------------*/
-FormatText(int scope, int type, int flags)
-{	FTABLE *fp;
-	PASTE  	paste;
+/*---------------------------------
+ * ft_formatText()	
+ * Formt the text in the current file.
+ *---------------------------------*/
+int ft_formatText(FTABLE* fp, int scope, int type, int flags)
+{	PASTE  	paste;
 	MARK *	mps;
 	MARK *	mpe;
 	int    	rmargin;
@@ -288,7 +288,6 @@ FormatText(int scope, int type, int flags)
 	int    	ret;
 	long   	startln;
 
-	fp = ft_getCurrentDocument();
 	flags |= type;
 
 	if (find_setTextSelection(scope,fp,&mps,&mpe) == RNG_INVALID ||
@@ -307,7 +306,7 @@ FormatText(int scope, int type, int flags)
 		_fillc1 = ' ';
 		_fillc2 = ' ';
 	}
-	rmargin = RightMargin(fp);
+	rmargin = ft_getRightMargin(fp);
 	mouse_setBusyCursor();
 
 	memset(&_fmtfile,0,sizeof _fmtfile);

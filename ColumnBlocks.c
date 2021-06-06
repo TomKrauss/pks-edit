@@ -35,7 +35,7 @@ static LINE *tabcpy(FTABLE *fp, LINE **Lps, int cfirst, int clast,
 	len = lps->len;
 	for (i = 0, col = 0; col < MAXLINELEN && i < len; i++) {
 		if ((c = *s++) == TAB && !ctrlmode) {
-			size = TabStop(col, fp->documentDescriptor);
+			size = doctypes_calculateTabStop(col, fp->documentDescriptor);
 			while(col < size) {
 				*d++ = ' ';
 				col++;
@@ -112,7 +112,7 @@ static LINE *tabinsl(FTABLE *fp, LINE *lpd, LINE *lps, int col, int ctrlmode)
 	long nt;
 
 	if (ctrlmode == 0) {
-		if ((oldsize = tab_expand(lpd,&nt)) < 0)
+		if ((oldsize = ft_expandTabsWithSpaces(lpd,&nt)) < 0)
 			return 0;
 	} else {
 		oldsize = lpd->len;

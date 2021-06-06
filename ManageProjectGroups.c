@@ -18,7 +18,7 @@
 
 extern void *	prof_llinsert(void *Head, int size, 
 				char *group, char *item, char **idata);
-extern void *	GetPrivateDocumentType(char *name);
+extern void *	doctypes_getPrivateDocumentType(char *name);
 extern int 	prof_enum(char *grp, int (*lpfnEnum)(char *, long), long lParam);
 
 static	PROJECT	*projectList;
@@ -40,7 +40,7 @@ static int proj_mk(char *project, long dummy)
 	pp->pr_description = strtok(s, ",");
 	pp->pr_rootdir = strtok((char *)0, ",");
 	if ((szDocType = strtok((char *)0, ",")) != 0) {
-		pp->pr_doctype = GetPrivateDocumentType(szDocType);
+		pp->pr_doctype = doctypes_getPrivateDocumentType(szDocType);
 	}
 
 	return 1;

@@ -16,6 +16,7 @@
 #include <sys\types.h>
 #include <sys\stat.h>
 #include <io.h>
+#include <ftw.h>
 #include "winterf.h"
 #include "lineoperations.h"
 #include "pksedit.h"

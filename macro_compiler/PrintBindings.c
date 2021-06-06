@@ -379,9 +379,9 @@ char *tmpname(char *filename)
 }
 	
 /*
- * PrintKeysCB()
+ * macro_printKeyBindingsCallback()
  */
-static int PrintKeysCB(FILE *fp)
+static int macro_printKeyBindingsCallback(FILE *fp)
 {
 	RSCTABLE *	rtp;
 	KEYBIND *		kps;
@@ -423,10 +423,10 @@ static int PrintKeysCB(FILE *fp)
 }
 
 /*
- * PrintKeys
+ * macro_saveKeyBindingsAndDisplay
  */
-int PrintKeys(void) {
-	return CreateFileAndDisplay("KEYS", PrintKeysCB);
+int macro_saveKeyBindingsAndDisplay(void) {
+	return macro_createFileAndDisplay("KEYS", macro_printKeyBindingsCallback);
 }
 
 #if 0
@@ -563,9 +563,9 @@ static int mousecomp(MOUSEBIND *mp1, MOUSEBIND *mp2)
 }
 
 /*
- * PrintMiceCB
+ * macro_printMouseBindingCallback
  */
-static int PrintMiceCB(FILE *fp)
+static int macro_printMouseBindingCallback(FILE *fp)
 {
 	RSCTABLE *	rtp;
 	MOUSEBIND *	mps;
@@ -607,11 +607,11 @@ static int PrintMiceCB(FILE *fp)
 }
 
 /*
- * PrintMice
+ * macro_saveMouseBindingsAndDisplay
  */
-int PrintMice(void)
+int macro_saveMouseBindingsAndDisplay(void)
 {
-	return CreateFileAndDisplay("MOUSE", PrintMiceCB);
+	return macro_createFileAndDisplay("MOUSE", macro_printMouseBindingCallback);
 }
 
 /*--------------------------------------------------------------------------
@@ -659,9 +659,9 @@ static void PrintSubMenu(FILE *fp, HMENU hMenu)
 }
 
 /*--------------------------------------------------------------------------
- * PrintMenuCB ()
+ * macro_printMenuCallback ()
  */
-static int PrintMenuCB(FILE *fp)
+static int macro_printMenuCallback(FILE *fp)
 {
 	HMENU 	hMenu;
 
@@ -673,11 +673,11 @@ static int PrintMenuCB(FILE *fp)
 }
 
 /*--------------------------------------------------------------------------
- * PrintMenus()
+ * macro_saveMenuBindingsAndDisplay()
  */
-int PrintMenus(void)
+int macro_saveMenuBindingsAndDisplay(void)
 {
-	return CreateFileAndDisplay("MENU", PrintMenuCB);
+	return macro_createFileAndDisplay("MENU", macro_printMenuCallback);
 }
 
 /*--------------------------------------------------------------------------

@@ -79,6 +79,7 @@ EXPORT void ww_winstate(int nId, WINDOWPLACEMENT *wsp)
 
 /*-----------------------------------------------------------
  * ww_savewinstates()
+ * Save the state of the currently displayed editor windows for later restore.
  */
 EXPORT void ww_savewinstates(void)
 {	int nId;
@@ -214,10 +215,10 @@ static void SetBounds(long min, int cheight, int h,
 }
 
 /*------------------------------------------------------------
- * SetScrollCheckBounds()
+ * ww_setScrollCheckBounds()
  * calculate scrollops checking bounds
  */
-EXPORT void SetScrollCheckBounds(WINFO *wp)
+EXPORT void ww_setScrollCheckBounds(WINFO *wp)
 {
 	SetBounds(wp->minln, wp->cheight, wp->workarea.g_h,
 			&wp->maxln, &wp->maxcursln, &wp->mincursln, &wp->scroll_dy); 
@@ -238,6 +239,7 @@ EXPORT void win_getstate(HWND hwnd, WINDOWPLACEMENT *wsp)
 
 /*--------------------------------------------------------------------------
  * ww_getstate()
+ * Return the window placement state for a window.
  */
 EXPORT void ww_getstate(WINFO *wp, WINDOWPLACEMENT *wsp)
 {
@@ -300,6 +302,7 @@ EXPORT FTABLE *ww_winid2fp(int winid)
 
 /*------------------------------------------------------------
  * ww_timer()
+ * Trigger a timer action.
  */
 EXPORT HWND ww_timer(void)
 {
@@ -308,9 +311,10 @@ EXPORT HWND ww_timer(void)
 }
 
 /*------------------------------------------------------------
- * ww_setfocus()
+ * ww_requestFocusInTopWindow()
+ * Request focus in the top most window.
  */
-void ww_setfocus(void)
+void ww_requestFocusInTopWindow(void)
 {
 	if (_winlist) {
 		SetFocus(_winlist->ww_handle);
@@ -318,16 +322,8 @@ void ww_setfocus(void)
 }
 
 /*------------------------------------------------------------
- * ww_toppostmessage()
- */
-EXPORT int ww_toppostmessage(UINT message, WPARAM wParam, LPARAM lParam)
-{
-	ww_setfocus();
-	return PostMessage(hwndFrame,message,wParam,lParam);
-}
-
-/*------------------------------------------------------------
  * ww_popup()
+ * Bring a child to top - if iconized restore.
  */
 EXPORT void ww_popup(HWND hwndChild)
 {
@@ -343,10 +339,10 @@ EXPORT void ww_popup(HWND hwndChild)
 }
 
 /*-----------------------------------------------------------
- * ww_stackwi()
+ * ww_getWindowFromStack()
  * get the num'th window from the top.
  */
-WINFO *ww_stackwi(int num)
+WINFO *ww_getWindowFromStack(int num)
 {	WINFO *wp;
 
 	for (wp = _winlist; num > 0 && wp && wp->next; num--, wp = wp->next) 
@@ -510,9 +506,11 @@ int EdWinArrange(int func)
 }
 
 /*-----------------------------------------------------------
- * redrawallwi()
+ * ww_redrawAllWindows()
+ * Redraw all editor windows. If update is true, not only send
+ * a repaint message bu also update by painting right away.
  */
-void redrawallwi(int update)
+void ww_redrawAllWindows(int update)
 {	WINFO *wp;
 
 	for (wp = _winlist; wp; wp = wp->next) {
@@ -525,6 +523,7 @@ void redrawallwi(int update)
 
 /*-----------------------------------------------------------
  * ww_setwindowtitle()
+ * Update the title of a window.
  */
 void ww_setwindowtitle(WINFO *wp)
 {	int nr;
@@ -544,9 +543,11 @@ void ww_setwindowtitle(WINFO *wp)
 }
 
 /*-----------------------------------------------------------
- * ww_setwindowflags()
+ * ww_applyDisplayProperties()
+ * Apply all flags from the document descriptor of the edited document on the 
+ * window referred to by the passed pointer.
  */
-void ww_setwindowflags(WINFO *wp) {
+void ww_applyDisplayProperties(WINFO *wp) {
 	FTABLE* fp = wp->fp;
 	DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
 
@@ -580,7 +581,7 @@ void ww_setwindowflags(WINFO *wp) {
 	wp->cursaftersearch = linp->cursaftersearch;
 	wp->vscroll = linp->vscroll;
 	wp->scroll_dy = linp->scroll_dy;
-	SetScrollCheckBounds(wp);
+	ww_setScrollCheckBounds(wp);
 }
 
 /*-----------------------------------------------------------
@@ -604,7 +605,7 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd)
 	wp->fp = fp;
 	wp->edwin_handle = hwnd;
 
-	ww_setwindowflags(wp);
+	ww_applyDisplayProperties(wp);
 		 
 	wp->hscroll   = 4;
 	wp->scroll_dx = 4;
@@ -649,15 +650,17 @@ void ww_destroy(WINFO *wp)
 }
 
 /*-----------------------------------------------------------
- * ww_nwi()
+ * ww_getNumberOfOpenWindows()
+ * Returns the number of currently open windows.
  */
-int ww_nwi(void)
+int ww_getNumberOfOpenWindows(void)
 {
 	return nwindows;
 }
 
 /*------------------------------------------------------------
  * ww_close()
+ * Close the passed editor window.
  */
 int ww_close(WINFO *wp)
 {	HWND hwndEdit;
@@ -792,7 +795,7 @@ WINFUNC EditWndProc(
 	case WM_DESTROY:
 		// Destroy the view window - the document should be destroyed only if this is the last window.
 		ww_destroy(wp);
-		if (!ww_nwi()) {
+		if (!ww_getNumberOfOpenWindows()) {
 			SetMenuFor("initial");
 		}
 #if defined(DEBUG_MEMORY_USAGE)
@@ -816,7 +819,7 @@ static int SetWiSize(WINFO *wp, int w, int h) {
 	wp->workarea.g_w = w;
 	wp->workarea.g_h = h;
 
-	SetScrollCheckBounds(wp);
+	ww_setScrollCheckBounds(wp);
 
 	EdTRACE(Debug(DEBUG_TRACE,"SetWiSize to (%ld,%ld,%ld,%ld)",
 		   wp->minln,wp->mincol,wp->maxln,wp->maxcol));
@@ -1050,7 +1053,7 @@ static void draw_ruler(WINFO *wp) {
 	GetClientRect(wp->ru_handle, &rect);
 	nMiddle = rect.bottom / 2 - 3;
 	width = wp->cwidth;
-	rmargin = RightMargin(fp);
+	rmargin = ft_getRightMargin(fp);
 
 	HPEN markerPen = CreatePen(PS_SOLID, 3, RGB(80, 80, 80));
 	xPos = wp->lineNumbers_handle ? lineNumberWindowWidth : 0;
@@ -1206,24 +1209,25 @@ static WINFUNC LineNumberWndProc(
 
 /*-----------------------------------------------------------
  * ww_register()
+ * Register the window classes for PKS edit editor windows.
  */
 int ww_register(void)
 {
-	if (!EdMkWinClass(szWorkAreaClass, WorkAreaWndProc,
+	if (!win_registerWindowClass(szWorkAreaClass, WorkAreaWndProc,
 		(LPSTR)IDC_IBEAM, GetStockObject(WHITE_BRUSH), 0,
 		sizeof(void*)) ||
-		!EdMkWinClass(szEditClass, EditWndProc,
+		!win_registerWindowClass(szEditClass, EditWndProc,
 			(LPSTR)IDC_ARROW, NULL, "Edit",
 			GWL_VIEWPTR + sizeof(void*)) ||
-		!EdMkWinClass(szRulerClass, RulerWndProc,
+		!win_registerWindowClass(szRulerClass, RulerWndProc,
 			(LPSTR)IDC_CROSS, GetStockObject(LTGRAY_BRUSH), NULL,
 			sizeof(void*)) ||
-		!EdMkWinClass(szLineNumbersClass, LineNumberWndProc,
+		!win_registerWindowClass(szLineNumbersClass, LineNumberWndProc,
 			(LPSTR)IDC_ARROW, CreateSolidBrush(RGB(248,248,248)), NULL,
 			sizeof(void*))
 #if 0
 		||
-		!EdMkWinClass(szStatusClass, StatusWndProc,
+		!win_registerWindowClass(szStatusClass, StatusWndProc,
 			(LPSTR)IDC_ARROW, NULL, 0,
 			2 * sizeof(LONG))
 #endif

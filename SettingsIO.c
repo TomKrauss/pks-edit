@@ -327,7 +327,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	ic_saveLocationInConfiguration();
 	
 	if (!bDidExist) {
-		SaveAllDocumentTypes((void *)0);
+		doctypes_saveAllDocumentTypes((void *)0);
 	}
 
 	mouse_setDefaultCursor();

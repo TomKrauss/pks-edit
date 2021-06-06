@@ -58,7 +58,7 @@ extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALPARS *dp, DLG_ITEM_TOOL
 extern void 		DlgInitString(HWND hwnd, int item, LPSTR szString, int nMax);
 extern INT_PTR CALLBACK DlgStdProc(HWND,UINT,WPARAM,LPARAM);
 # if defined(_EDFUNCS_H)
-extern int 			CallDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
+extern int 			win_callDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
 # endif
 extern void 		DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax);
 extern DLGSTRINGLIST*	DoDlgSelectFromList(int nId, DLGSTRINGLIST *list, DIALLIST *dp);
@@ -68,10 +68,36 @@ extern DLGSTRINGLIST*	DoDlgSelectFromList(int nId, DLGSTRINGLIST *list, DIALLIST
 extern int LbGetText(HWND hwnd, int id, void* szBuff);
 
 /*--------------------------------------------------------------------------
- * CreateModelessDialog()
+ * win_createModelessDialog()
  */
-extern void CreateModelessDialog(HWND* hwnd, LPSTR szName, INT_PTR(CALLBACK* func)(HWND, UINT, WPARAM, LPARAM),
+extern void win_createModelessDialog(HWND* hwnd, LPSTR szName, INT_PTR(CALLBACK* func)(HWND, UINT, WPARAM, LPARAM),
 	DLGPROC* lplpfnDlgProc);
+
+/*--------------------------------------------------------------------------
+ * dlg_queryReplace()
+ * Open a modeless dialog to query for replacing a text.
+ */
+extern int dlg_queryReplace(char* search, int slen, char* replace, int dlen);
+
+/*--------------------------------------------------------------------------
+ * dlg_displayRecordMacroOptions()
+ * Open a window to start recording macro. Returns 1, if the action to record the
+ * macro should really start.
+ */
+extern int dlg_displayRecordMacroOptions(int* o);
+
+
+/*--------------------------------------------------------------------------
+ * dlg_displayDialogTemplate()
+ */
+extern int dlg_displayDialogTemplate(unsigned char c, char* (*fpTextForTmplate)(char* s), char* s);
+
+/*--------------------------------------------------------------------------
+ * dlg_closeQueryReplace()
+ * Closes the query replace dialog.
+ */
+extern void dlg_closeQueryReplace(void);
+
 
 #define tedinit(hDlg,item,string)	DlgInitString(hDlg,item,string,sizeof string -1)
 

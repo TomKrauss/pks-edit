@@ -80,7 +80,7 @@ void error_displayAlertDialog(const char* fmt, ...)
     va_start(ap,fmt);
     // make Alert boxes system modal, cause they may be opened
     // in situations, we should not use the input focus
-    (void)errror_openConfigurableAlert(MB_OK|MB_ICONEXCLAMATION,fmt,ap);
+    (void)errror_openConfigurableAlert(MB_OK|MB_ICONEXCLAMATION,(char*)fmt,ap);
     va_end(ap);
 }
 
@@ -181,7 +181,7 @@ void error_displayErrorToast(const char* fmt, va_list ap)
 		return;
 	}
 
-	CreateModelessDialog(&hwndError,"DLGERROR",
+	win_createModelessDialog(&hwndError,"DLGERROR",
 					  DlgError,&lpfnDlgProc);
 	if (hwndError) {
 		ShowWindow(hwndError,SW_SHOWNOACTIVATE);

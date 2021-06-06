@@ -84,11 +84,48 @@ static long	_nlines;
 static int	_sortflags;
 static RECORD	*_rectab;
 
-extern char	*_strtolend;
+extern int  compare_strings(unsigned char* s1, int l1, unsigned char* s2, int l2);
 
-extern int  cmpfold   (unsigned char *s1, int l1,unsigned char *s2, int l2);
-extern int  cmpnormal (unsigned char *s1, int l1,unsigned char *s2, int l2);
-extern int  crunchdict(unsigned char *d,  unsigned char *s,int l);
+/*------------------------------------------------------------
+ * compare_stringsCaseIgnore()
+ * Like compare strings, but case ignore.
+ */
+static int compare_stringsCaseIgnore(unsigned char* s1, int l1, unsigned char* s2, int l2)
+{
+	int      len;
+
+	if (l1 > l2)
+		len = l2;
+	else len = l1;
+
+	while (len > 0) {
+		if (_l2uset[*s1++] != _l2uset[*s2++]) {
+			l1 = _l2uset[s1[-1]];
+			l2 = _l2uset[s2[-1]];
+			break;
+		}
+		else
+			len--;
+	}
+	return l1 - l2;
+}
+
+/*------------------------------------------------------------
+ * compare_extractKeyLetterWord()
+ */
+static int compare_extractKeyLetterWord(unsigned char* d, unsigned char* s, int l)
+{
+	unsigned char* bufferStart = d, c;
+
+	if (l > 2048) l = 2048;			/* may fail on large keys */
+	while (l > 0) {
+		if (isalnum((c = *s++)))
+			*d++ = c;
+		l--;
+	}
+	return (int)(d - bufferStart);
+}
+
 
 /*--------------------------------------------------------------------------
  * s2vec()
@@ -226,7 +263,7 @@ static void initkeylist(char *s, char *fs_set)
 
 	if (!*s) {
 		i = 1;
-		_keytab.k[0].cmp = cmpnormal;
+		_keytab.k[0].cmp = compare_strings;
 	} else {
 
 		initset(loc_set,",");
@@ -241,14 +278,14 @@ static void initkeylist(char *s, char *fs_set)
 			kp->ln   = d[0].n;
 			kp->fld  = d[1].n;
 			kp->off  = d[2].n;
-			cmp      = cmpnormal;
+			cmp      = compare_strings;
 			if (d[1].n)
 				_keytab.fl |= KT_MKTOKEN;
 			while (s2 < v.eo[i]) {
 				switch(*s2) {
 					case 'd':	cmp = cmpdigit; break;
 					case 'D': cmp = cmpdate;	 break;
-					case 'i': cmp = cmpfold;  break;
+					case 'i': cmp = compare_stringsCaseIgnore;  break;
 					case 'a': kp->flag |= K_SORTDICT; break;
 					case 'b': kp->flag |= K_SKIPWHITE; break;
 					case 'u': kp->flag |= K_UNIQ; break;
@@ -341,9 +378,9 @@ static int compare(RECORD *rp1, RECORD *rp2)
 
 	/* skip 2 first key line of each rec */
 		if (kp->flag & K_SORTDICT) {
-			l1 = crunchdict(_linebuf,s1,l1);
+			l1 = compare_extractKeyLetterWord(_linebuf,s1,l1);
 			s1 = _linebuf;
-			l2 = crunchdict(_linebuf+2048,s2,l2);
+			l2 = compare_extractKeyLetterWord(_linebuf+2048,s2,l2);
 			s2 = _linebuf+2048;
 		} else	/* is implied above */
 		if (kp->flag & K_SKIPWHITE) {
@@ -527,13 +564,13 @@ static int undo_cash(FTABLE *fp, LINE *lpfirst, LINE *lplast)
 }
 
 /*--------------------------------------------------------------------------
- * sort()
+ * ft_sortFile()
+ * Sort the current file / document.
  */
-int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
+int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sortflags)
 {	int  	ret = 0, n,n2;
 	char		fs_set[256];
 	RECPARAMS rp;
-	FTABLE	*fp;
 	long  	l1;
 	LINE 	*lpfirst, *lplast;
 	MARK		*mps,*mpe;
@@ -548,7 +585,6 @@ int Sort(int scope, char *fs, char *keys, char *sel, int sortflags)
 		}
 	}
 
-	fp = ft_getCurrentDocument();
 	undo_startModification(fp);
 	if (find_setTextSelection(scope,fp,&mps,&mpe) == RNG_INVALID) {
 		return 0;

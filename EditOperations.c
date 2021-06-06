@@ -38,7 +38,7 @@ extern void 	caret_setMatchFunction(int control, int ids_name, int *c);
 extern LINE 	*(*advmatchfunc)();
 extern int 	ln_countLeadingSpaces(LINE *l);
 extern int 	string_isSpace(unsigned char c);
-extern int 	TabStop(int col, DOCUMENT_DESCRIPTOR *l);
+extern int 	doctypes_calculateTabStop(int col, DOCUMENT_DESCRIPTOR *l);
 extern int 	string_countSpacesIn(unsigned char *s, int pos);
 extern int 	sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
 				 int indent, int *di, int *hbr);
@@ -65,7 +65,7 @@ static int CalcCol2TabsBlanks(DOCUMENT_DESCRIPTOR *linp, int col, int *add_blank
 
 	/* calculate # of tabstops up to given position */
 	for (i = 0, ntabs = 0; 
-	     *add_blanks = col - i, (i = TabStop(i,linp)) <= col; 
+	     *add_blanks = col - i, (i = doctypes_calculateTabStop(i,linp)) <= col; 
 	     ntabs++)
 	     ;
 
@@ -78,7 +78,7 @@ static int CalcCol2TabsBlanks(DOCUMENT_DESCRIPTOR *linp, int col, int *add_blank
 int CalcTabs2Col(DOCUMENT_DESCRIPTOR *linp, int tabs)
 {	int col;
 	
-	for (col = 0; tabs > 0; col = TabStop(col,linp))
+	for (col = 0; tabs > 0; col = doctypes_calculateTabStop(col,linp))
 		tabs--;
 	return col;
 }
@@ -411,9 +411,10 @@ static int findwrap(FTABLE *fp, LINE *lp, int cursoffset, int *nextword,int rmar
 }
 
 /*--------------------------------------------------------------------------
- * RightMargin()
+ * ft_getRightMargin()
+ * Returns the right margin as current configured the way it should be used for e.g. painting.
  */
-int RightMargin(FTABLE *fp)
+int ft_getRightMargin(FTABLE *fp)
 {	int 		rmargin;
 	WINFO	*wp;
 
@@ -428,7 +429,7 @@ int RightMargin(FTABLE *fp)
 static void dowrap(FTABLE *fp)
 {	int nextword,delta;
 
-	if (findwrap(fp, fp->caret.linePointer,fp->caret.offset,&nextword,RightMargin(fp)) > 0) {
+	if (findwrap(fp, fp->caret.linePointer,fp->caret.offset,&nextword,ft_getRightMargin(fp)) > 0) {
 		delta = fp->caret.offset-nextword;
 		caret_placeCursorInCurrentFile(fp->ln,(long)nextword);
 		EdLineSplit(0);
@@ -458,7 +459,7 @@ static int EdAutoFormat(FTABLE *fp)
 	LINE* lpscratch = ln_create(MAXLINELEN);
 	destbuf = lpscratch->lbuf;
 
-	rm = RightMargin(fp);
+	rm = ft_getRightMargin(fp);
 	i_d = 0;
 	lp = fp->caret.linePointer;
 	ln = newln = fp->ln;
@@ -694,7 +695,7 @@ int EdCharInsert(int c)
 	offs = fp->caret.offset;
 
 	if (c == '\t' && lnp->fillc) {
-		nchars = TabStop(fp->col,lnp) - fp->col;
+		nchars = doctypes_calculateTabStop(fp->col,lnp) - fp->col;
 		c = lnp->fillc;
 	} else
 		nchars = 1;
@@ -728,7 +729,7 @@ int EdCharInsert(int c)
 
 		if (!EdAutoFormat(fp) &&
 		    (workmode & WM_AUTOWRAP) && 
-		    fp->col >= RightMargin(fp)) {
+		    fp->col >= ft_getRightMargin(fp)) {
 			dowrap(fp);
 		}
 	}

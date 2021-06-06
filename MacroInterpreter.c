@@ -26,7 +26,7 @@
 extern void 			macro_reportError(void);
 extern int 			EdMacroRecord(void);
 extern int 			ft_selectWindowWithId(int winid, BOOL bPopup);
-extern int 			RecordOptions(int *o);
+extern int 			dlg_displayRecordMacroOptions(int *o);
 
 extern long 			sym_integerForSymbol(char *p);
 extern intptr_t			sym_stringForSymbol(char *p);
@@ -39,7 +39,7 @@ extern int macro_testExpression(COM_TEST* sp);
 extern void 			macro_evaluateBinaryExpression(COM_BINOP *sp);
 
 extern int 			progress_cancelMonitor(BOOL bRedraw);
-extern void 			redrawallwi(int update);
+extern void 			ww_redrawAllWindows(int update);
 extern void 			undo_startModification(FTABLE *fp);
 extern int 			ft_checkSelectionWithError(FTABLE *fp);
 extern void 			ft_settime(EDTIME *tp);
@@ -197,11 +197,7 @@ err:		return FORM_SHOW;
 		goto err;
 
 	if (cp->options & FORM_REDRAW) {
-#if defined(ATARI_ST)
-		forceredraw();
-#else
-		redrawallwi(1);
-#endif
+		ww_redrawAllWindows(1);
 	}
 
 	/*
@@ -255,7 +251,7 @@ int macro_recordOperation(PARAMS *pp)
 #if defined(ATARI_ST)
 		if (recopt(&opt) == 0) {
 #else
-		if (RecordOptions(&opt) == 0) {
+		if (dlg_displayRecordMacroOptions(&opt) == 0) {
 #endif
 			/* dialog is cancelled */
 			_cmdparamp = savepos;
@@ -571,7 +567,11 @@ static void macro_returnFunctionValue(unsigned char typ, intptr_t v)
 	_fncmarker = -1;
 }
 
-void ReturnString(char *string)
+/**
+ * macro_returnString()
+ * Return the passed String to the macro interpreter so it can be used for further processing.
+ */
+void macro_returnString(char *string)
 {
 	macro_returnFunctionValue(C_STRING1PAR,(intptr_t)string);
 }
@@ -711,7 +711,7 @@ int EdMacroPlay(int macroindex)
 			ft_selectWindowWithId(WIPOI(ft_getCurrentDocument())->win_id, FALSE);
 		}
 # if 0
-		redrawallwi(0);
+		ww_redrawAllWindows(0);
 # endif
 # endif
 	}

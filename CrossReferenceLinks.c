@@ -221,9 +221,22 @@ static TAG *dostep(LINE *lp, RE_PATTERN *pattern)
 }
 
 /*---------------------------------*/
-/* istagfile()					*/
+/* xref_readTagFile()					*/
 /*---------------------------------*/
-static int istagfile(FTABLE *fp, char *lookfn)
+static int xref_readTagFile(char* fn, FTABLE* fp)
+{
+	int ret;
+
+	ln_listfree(fp->firstl);
+	ret = ft_readfileWithOptions(fp, fn, -1);
+	return ret;
+}
+
+
+/*---------------------------------*/
+/* xref_isTagFile()					*/
+/*---------------------------------*/
+static int xref_isTagFile(FTABLE *fp, char *lookfn)
 {	char   *fn;
 
 	if ((fn = file_searchFileInPKSEditLocation(lookfn)) == 0L) {
@@ -231,13 +244,13 @@ static int istagfile(FTABLE *fp, char *lookfn)
 		return 0;
 	}
 
-	return readtagf(fn,fp);
+	return xref_readTagFile(fn,fp);
 }
 
 /*---------------------------------*/
-/* istagcmd()					*/
+/* xref_isTagCommand()					*/
 /*---------------------------------*/
-static int istagcmd(unsigned char c)
+static int xref_isTagCommand(unsigned char c)
 {
 	if (c == TCMD_TAGFILE ||	/* normal tag command */
 	    c == TCMD_EXEC ||	/* execute ... */
@@ -248,12 +261,12 @@ static int istagcmd(unsigned char c)
 }
 
 /*---------------------------------*/
-/* xscan()					*/
+/* xref_processTagExpressions()					*/
 /* handle tag optimizations:		*/
 /* - * tag ^search				*/
 /* - ? tag ^					*/
 /*---------------------------------*/
-static LINE *xscan(LINE *lp, char wild, char *d, int max, int *cmd)
+static LINE *xref_processTagExpressions(LINE *lp, char wild, char *d, int max, int *cmd)
 {	char *s,*dend,lim;
 
 	while(lp->lbuf[0] == '?' || lp->lbuf[0] == wild) {
@@ -265,7 +278,7 @@ static LINE *xscan(LINE *lp, char wild, char *d, int max, int *cmd)
 	s    = lp->lbuf;
 
 	if (wild == '?') {
-		while(*s && !istagcmd(*s))
+		while(*s && !xref_isTagCommand(*s))
 			s++;
 		lim  = 0;
 		*cmd = *s;
@@ -294,11 +307,11 @@ static TAG *taggetinfo(LINE *lp)
 		/* bad format in tag file */
 		return 0;
 	}
-	if ((lp = xscan(lp, '?', tp->rembuf,
+	if ((lp = xref_processTagExpressions(lp, '?', tp->rembuf,
 		sizeof(tp->rembuf), &tp->cmd)) == 0) {
 		return 0;
 	}
-	if (xscan(lp, '*', tp->fn, sizeof(tp->fn), &tp->cmd) == 0) {
+	if (xref_processTagExpressions(lp, '*', tp->fn, sizeof(tp->fn), &tp->cmd) == 0) {
 		return 0;
 	}
 	return tp;
@@ -473,17 +486,6 @@ static TAG *findtag(char *s, FTABLE *fp)
 }
 
 /*---------------------------------*/
-/* readtagf()					*/
-/*---------------------------------*/
-static int readtagf(char *fn,FTABLE *fp)
-{	int ret;
-
-	ln_listfree(fp->firstl);
-	ret = ft_readfileWithOptions(fp,fn,-1);
-	return ret;
-}
-
-/*---------------------------------*/
 /* gettag()					*/
 /*---------------------------------*/
 static char *gettag(unsigned char *d,unsigned char *dend,
@@ -573,13 +575,13 @@ int xref_navigateCrossReference(char *s)
 		switch(ttl->type) {
 			case TCMD_TAGFILE:
 				if (tnum != ttp->curr) {
-					if (istagfile(fp,ttl->fn) == 0)
+					if (xref_isTagFile(fp,ttl->fn) == 0)
 						break;
 					ttp->curr = tnum;
 				}
 				if ((tp = findtag(s,fp)) != 0L) {
 					if (tp->cmd == TCMD_WINHELP) {
-						ret = HelpKey(tp->fn, tp->rembuf+1);
+						ret = help_showHelpForKey(tp->fn, tp->rembuf+1);
 					} else {
 						strcpy(fnam,tp->fn);
 						fm_savepos(s);
@@ -595,7 +597,7 @@ int xref_navigateCrossReference(char *s)
 				}
 				break;
 			case TCMD_WINHELP:
-				ret = HelpKey(ttl->fn, s);
+				ret = help_showHelpForKey(ttl->fn, s);
 				break;
 			}
 	}
@@ -647,7 +649,7 @@ int EdErrorNext(int dir)
 	if ((dir & LIST_USETOPWINDOW) || !ft_getCurrentErrorDocument()) {
 	/* treat current window as error list */
 		_compflag = 1;
-		WINFO* wp = ww_stackwi(0);
+		WINFO* wp = ww_getWindowFromStack(0);
 		ft_setCurrentErrorDocument(wp ? wp->fp : NULL);
 	}
 
@@ -702,7 +704,7 @@ doforward:
 			caret_placeCursorForFile(fp,lineno,0);
 			ln_removeFlag(fp->firstl,fp->lastl,LNXMARKED);
 			lp->lflg |= LNXMARKED;
-			render_paintWindow(wp);
+			render_repaintAllForFile(fp);
 		} else {
 			fp->caret.linePointer = lp;
 		}
@@ -767,7 +769,7 @@ static int s_t_open(int title, int st_type, FSELINFO *fsp)
 			}
 			return EdErrorNext(LIST_START|LIST_USETOPWINDOW);
 		case ST_STEP:
-			if (readtagf(_fseltarget,&_stepfile)) {
+			if (xref_readTagFile(_fseltarget,&_stepfile)) {
 				_compflag = 0;
 				ft_setCurrentErrorDocument(&_stepfile);
 				return EdErrorNext(LIST_START);
@@ -787,7 +789,7 @@ static int s_t_open(int title, int st_type, FSELINFO *fsp)
 		_ttry->t[0].type = TCMD_TAGFILE;
 		_ttry->t[0].fn = string_allocate(_fseltarget);
 		_ttry->curr = 0;
-		return readtagf(_fseltarget,&_tagfile);
+		return xref_readTagFile(_fseltarget,&_tagfile);
 	}
 	return 0;
 }

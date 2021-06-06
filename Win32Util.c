@@ -23,6 +23,14 @@ LONG win_setViewportExtension(HDC hdc, int nx, int ny) {
 	return MAKELONG((SHORT)size.cx, (SHORT)size.cy);
 }
 
+/*------------------------------------------------------------
+ * win_sendParentCommand()
+ */
+void win_sendParentCommand(HWND hwnd, LPARAM lParam)
+{
+	SendMessage(GetParent(hwnd), WM_COMMAND, GetDlgCtrlID(hwnd), lParam);
+}
+
 
 /*
  * Set the extension of the window and return the size encoded as a LONG.

@@ -22,12 +22,11 @@
 #include "pkscc.h"
 #include "stringutil.h"
 #include "edfuncs.h"
+#include "fileutil.h"
 
 int  yyparse(void);
 void yyinit(jmp_buf *errb, char *sourcefile, LINE *lps,LINE *lpe);
 int  yyfinish(void);
-char *file_getTempDirectory(void);
-void error_displayErrorToast(char * fmt, va_list ap);
 
 extern int		_macedited;
 
@@ -127,11 +126,11 @@ FILE *createtmp(char *dest, char *filename)
 }
 
 /*---------------------------------
- * CreateFileAndDisplay()
+ * macro_createFileAndDisplay()
  * Invoke a callback to generate the contents of a file with
  * the given file name. If successful, open the file in PKS Edit.
  */
-BOOL CreateFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
+BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 	char tmpfn[128];
 	FILE *fp;
 

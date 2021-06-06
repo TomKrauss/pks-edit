@@ -922,7 +922,7 @@ unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, unsigned char* 
 		}
 
 	createline:
-		if (!ln_createAndAdd(fp, q, len, flags)) {
+		if (!ln_createAndAdd(fp, q, (int)len, flags)) {
 			return 0;
 		}
 		nl++;

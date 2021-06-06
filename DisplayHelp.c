@@ -51,9 +51,9 @@ int EdCallWinHelp(char *szFile, UINT hType, DWORD_PTR param)
 }
 
 /*--------------------------------------------------------------------------
- * HelpQuit()
+ * help_quitHelpSystem()
  */
-void HelpQuit(void)
+void help_quitHelpSystem(void)
 {
 	if (hwndHelpRequested) {
 		HtmlHelp(hwndHelpRequested, szHelpFile, HH_CLOSE_ALL, 0);
@@ -62,9 +62,9 @@ void HelpQuit(void)
 }
 
 /*--------------------------------------------------------------------------
- * HelpKey()
+ * help_showHelpForKey()
  */
-int HelpKey(LPSTR szFile, LPSTR szKey)
+int help_showHelpForKey(LPSTR szFile, LPSTR szKey)
 {
 	return EdCallWinHelp(szFile, HH_KEYWORD_LOOKUP, (DWORD_PTR)szKey);
 }
@@ -84,25 +84,4 @@ int EdHelpContext(WORD nCtx)
 {
 	return EdHelp(HH_DISPLAY_TOC,(DWORD)nCtx);
 }
-
-#if 0
-/*--------------------------------------------------------------------------
- * HelpMultiKey()
- */
-int HelpMultiKey(LPSTR szFile, char nC, LPSTR szKey)
-{	int ret;
-	char schlunz[512];
-	MULTIKEYHELP *mk;
-
-	mk = (MULTIKEYHELP*)schlunz;
-	mk->mkSize = sizeof *mk + (WORD)lstrlen(szKey);
-	lstrcpy(mk->szKeyphrase,szKey);
-	mk->mkKeylist = nC;
-	if (!szFile)
-		szFile = _szHelpFile;
-	ret = WinHelp(hwndFrame,szFile,HELP_MULTIKEY,(DWORD)mk);
-	hwndHelpRequested = hwndFrame;
-	return ret;
-}
-# endif
 

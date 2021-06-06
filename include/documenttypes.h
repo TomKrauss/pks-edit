@@ -18,78 +18,78 @@
 typedef struct tagDOCUMENT_TYPE DOCUMENT_TYPE;
 
 /*--------------------------------------------------------------------------
- * InitDocumentTypeDescriptor()
+ * doctypes_initDocumentTypeDescriptor()
  */
-extern void InitDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* pDescriptor, int tabSize);
+extern void doctypes_initDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* pDescriptor, int tabSize);
 
 /*--------------------------------------------------------------------------
  * Creates the default attributes for editing a document. The returned structure
  * must be freed, when done using it.
  */
-extern DOCUMENT_DESCRIPTOR* CreateDefaultDocumentTypeDescriptor();
+extern DOCUMENT_DESCRIPTOR* doctypes_createDefaultDocumentTypeDescriptor();
 
 /*--------------------------------------------------------------------------
- * ToggleTabStop()
+ * doctypes_toggleTabStop()
  */
-extern void ToggleTabStop(DOCUMENT_DESCRIPTOR* pDescriptor, int column);
+extern void doctypes_toggleTabStop(DOCUMENT_DESCRIPTOR* pDescriptor, int column);
 
 /*--------------------------------------------------------------------------
- * CountDocumentTypes()
+ * doctypes_countDocumentTypes()
  */
-extern int CountDocumentTypes(void);
+extern int doctypes_countDocumentTypes(void);
 
-extern BOOL GetDocumentTypeDescription(DOCUMENT_TYPE* llp,
+extern BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
 	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszFname,
 	int** pOwn);
 
-extern int CreateTempFileForDocumentType(char* linfn, char* tmpfn);
+extern int doctypes_createTempFileForDocumentType(char* linfn, char* tmpfn);
 
-extern int MergeDocumentTypes(char* pszLinealFile, char* pszDocMacFile);
+extern int doctypes_mergeDocumentTypes(char* pszLinealFile, char* pszDocMacFile);
 
 /*--------------------------------------------------------------------------
- * GetFileDocumentType()
+ * doctypes_getFileDocumentType()
  * find the correct document descriptor for a given file
  * 	1. if own document descriptor, try to read  own document descriptor from disc
  * 	2. if common document descriptor, ...
  *	3. if neither, use standard document descriptor
  */
-extern BOOL GetFileDocumentType(DOCUMENT_DESCRIPTOR* linp, char* filename);
+extern BOOL doctypes_getFileDocumentType(DOCUMENT_DESCRIPTOR* linp, char* filename);
 
 /*--------------------------------------------------------------------------
- * CreateDocumentType()
+ * doctypes_createDocumentType()
  */
-extern DOCUMENT_TYPE* CreateDocumentType(DOCUMENT_TYPE* llp);
+extern DOCUMENT_TYPE* doctypes_createDocumentType(DOCUMENT_TYPE* llp);
 
 /*--------------------------------------------------------------------------
- * GetPrivateDocumentType()
+ * doctypes_getPrivateDocumentType()
  *
  * Return the private document type given the name of the document type.
  */
-extern DOCUMENT_TYPE* GetPrivateDocumentType(char* name);
+extern DOCUMENT_TYPE* doctypes_getPrivateDocumentType(char* name);
 
 /*--------------------------------------------------------------------------
- * GetDocumentTypeDescriptor()
+ * doctypes_getDocumentTypeDescriptor()
  */
-extern DOCUMENT_DESCRIPTOR* GetDocumentTypeDescriptor(DOCUMENT_TYPE* p);
+extern DOCUMENT_DESCRIPTOR* doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE* p);
 
 /**
  * Deletes and de-allocates all known document types.
  */
-extern void DeleteAllDocumentTypes();
+extern void doctypes_deleteAllDocumentTypes();
 
 /*--------------------------------------------------------------------------
- * DeleteDocumentType()
+ * doctypes_deleteDocumentType()
  * Deletes a given document type.
  */
-extern void DeleteDocumentType(DOCUMENT_TYPE* llp);
+extern void doctypes_deleteDocumentType(DOCUMENT_TYPE* llp);
 
 /*--------------------------------------------------------------------------
- * AssignDocumentTypeDescriptor()
+ * doctypes_assignDocumentTypeDescriptor()
  * assign document type properties / descriptor to file
  * if documentDescriptor == 0, read document descriptor from disc according to filename pattern
  * match.
  */
-extern int  AssignDocumentTypeDescriptor(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor);
+extern int  doctypes_assignDocumentTypeDescriptor(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor);
 
 #endif
 

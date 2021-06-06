@@ -235,7 +235,7 @@ static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam
 			SendMessage(hwnd, BM_SETSTATE, 0, 0L);
 			SendMessage(hwnd, BM_SETCHECK, 
 					GetWindowWord(hwnd,GWW_CUSTOMVAL) ^ STATE_CHECK, 0L);
-			SendParentCommand(hwnd,
+			win_sendParentCommand(hwnd,
 					(LONG)GetWindowWord(hwnd,GWW_CUSTOMVAL));
 			ReleaseCapture();
 			return 0;
@@ -296,7 +296,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 			break;
 
 		case WM_PAINT:
-			if ((wp = ww_stackwi(0)) == 0) {
+			if ((wp = ww_getWindowFromStack(0)) == 0) {
 				break;
 			}
 			hdc = BeginPaint(hwnd, &ps);
@@ -333,7 +333,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 			SetWindowWord(hwnd,GWW_CUSTOMVAL,(WORD)wParam);
 			MarkSelection(hdc,(int)wParam,cw,ch);
 			ReleaseDC( hwnd, hdc );
-			SendParentCommand(hwnd,
+			win_sendParentCommand(hwnd,
 					  MAKELONG(wParam,CSN_CHARSELECT));
 			return 0;
 

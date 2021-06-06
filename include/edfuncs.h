@@ -583,6 +583,17 @@ extern int macro_executeSingleLineMacro(char* string);
  */
 extern int macro_getIndexForKeycode(KEYCODE* scan, char* name, int oldidx);
 
+/**
+ * macro_returnString()
+ * Return the passed String to the macro interpreter so it can be used for further processing.
+ */
+extern void macro_returnString(char* string);
+
+/*--------------------------------------------------------------------------
+ * macro_isParameterStringType()
+ */
+extern int macro_isParameterStringType(unsigned char typ);
+
 #define	_EDFUNCS_H
 # endif
 

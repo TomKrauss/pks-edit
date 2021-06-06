@@ -150,6 +150,15 @@ static int ResizeSubWindow(HWND hwnd, int item, int x, int width, BOOL bOptButto
 }
 
 /*------------------------------------------------------------
+ * ww_toppostmessage()
+ */
+static int ww_toppostmessage(UINT message, WPARAM wParam, LPARAM lParam)
+{
+	ww_requestFocusInTopWindow();
+	return PostMessage(hwndFrame, message, wParam, lParam);
+}
+
+/*------------------------------------------------------------
  * FkeysWndProc()
  */
 WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -246,7 +255,7 @@ WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 
 		if (wParam == IDD_FKSTATE) {
-			ww_setfocus();
+			ww_requestFocusInTopWindow();
 			return EdFkeysSwitch(1);
 		}
 		break;

@@ -137,9 +137,9 @@ static int matchInFile(char *fn, DTA *stat) {
 }
 
 /*--------------------------------------------------------------------------
- * retreive()
+ * find_matchesInFiles()
  */
-int retreive(char *pathes, char* filenamePattern, char *search, int sdepth, int abortOnFirstMatch) {
+int find_matchesInFiles(char *pathes, char* filenamePattern, char *search, int sdepth, int abortOnFirstMatch) {
 	char *		path;
 	char *		pathlist;
 	char		stepfile[256];

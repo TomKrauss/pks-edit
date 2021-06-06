@@ -468,10 +468,10 @@ out:
 }
 
 /*
- * PrintMacsCB
+ * macro_printMacrosCallback
  */
 static char *_macroname;
-static long PrintMacsCB(FILE *fp)
+static long macro_printMacrosCallback(FILE *fp)
 {	EDBINDS	*ep = &_bindings;
 	MACRO	**mtable,*mp;
 	int	    	i;
@@ -487,9 +487,9 @@ static long PrintMacsCB(FILE *fp)
 }
 
 /*
- * PrintMacs
+ * macro_saveMacrosAndDisplay
  */
-int PrintMacs(char *macroname)
+int macro_saveMacrosAndDisplay(char *macroname)
 {
 	char szBuf[16];
 
@@ -500,7 +500,7 @@ int PrintMacs(char *macroname)
 	} else {
 		strcpy(szBuf, "MACROS.PKC");
 	}
-	return CreateFileAndDisplay(szBuf, PrintMacsCB);
+	return macro_createFileAndDisplay(szBuf, macro_printMacrosCallback);
 }
 
 

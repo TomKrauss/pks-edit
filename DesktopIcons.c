@@ -49,7 +49,6 @@ typedef struct tagICONCLASS {
 } ICONCLASS;
 
 extern int EdConfigureIcons(void);
-extern char *_strtolend;
 extern int  LbGetText(HWND hwnd, int id, void *szBuff);
 
 ICONCLASS *icEditIconClass;
@@ -74,7 +73,7 @@ static ICONCLASS* ic_getData(HWND hwnd) {
  */
 int ic_closeIconWindow(HWND hwnd) 
 {
-	return CloseChildWindow((HWND)hwnd,1);
+	return ww_closeChildWindow((HWND)hwnd,1);
 }
 
 static int _windowCount = 0;

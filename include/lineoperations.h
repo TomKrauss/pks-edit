@@ -159,22 +159,22 @@ typedef struct documentDescriptor {
 } DOCUMENT_DESCRIPTOR;
 
 /*--------------------------------------------------------------------------
- * TabStop()
+ * doctypes_calculateTabStop()
  * calculate next Tabstop
  */
-extern int TabStop(int col, DOCUMENT_DESCRIPTOR* lp);
+extern int doctypes_calculateTabStop(int col, DOCUMENT_DESCRIPTOR* lp);
 
 /*--------------------------------------------------------------------------
  * Creates the default attributes for editing a document. The returned structure
  * must be freed, when done using it.
  */
-extern DOCUMENT_DESCRIPTOR* CreateDefaultDocumentTypeDescriptor();
+extern DOCUMENT_DESCRIPTOR* doctypes_createDefaultDocumentTypeDescriptor();
 
 /*--------------------------------------------------------------------------
- * InitDocumentTypeDescriptor()
+ * doctypes_initDocumentTypeDescriptor()
  * Initialize a document type descriptor with the proper tabsize settings.
  */
-extern void InitDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* lp, int ts);
+extern void doctypes_initDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* lp, int ts);
 
 #endif
 
@@ -439,6 +439,31 @@ extern FTABLE* ft_fpbyname(char* fn);
 extern int ft_editing(char* fn);
 
 /*---------------------------------
+ * ft_formatText()
+ * Formt the text in the current file.
+ *---------------------------------*/
+int ft_formatText(FTABLE* fp, int scope, int type, int flags);
+
+/*--------------------------------------------------------------------------
+ * ft_sortFile()
+ * Sort the current file / document.
+ */
+int ft_sortFile(FTABLE* fp, int scope, char* fs, char* keys, char* sel, int sortflags);
+
+/*--------------------------------------------------------------------------
+ * ft_expandTabsWithSpaces()
+ * Expand tabs and replace with spaces.
+ * Return the number of expanded tabs.
+ */
+extern int ft_expandTabsWithSpaces(LINE* lp, long* nt);
+
+/*--------------------------------------------------------------------------
+ * ft_getRightMargin()
+ * Returns the right margin as current configured the way it should be used for e.g. painting.
+ */
+extern int ft_getRightMargin(FTABLE* fp);
+
+/*---------------------------------
  * ft_checkSelection()
  * Check whether a block selection exists.
  *---------------------------------*/
@@ -547,6 +572,13 @@ extern BOOL undo_saveOperation(FTABLE* fp, LINE* lp, LINE* lpAnchor, int op);
  * Performs the actual undo reverting the last operation.
  */
 extern BOOL undo_lastModification(FTABLE* fp);
+
+extern void macro_recordFunction(FTABLE* fp, int p);
+
+/*--------------------------------------------------------------------------
+ * string_formatDate()
+ */
+extern void string_formatDate(char* szDbuf, EDTIME* ltime);
 
 /*
  * Typical data structure for a linked list.
@@ -673,7 +705,7 @@ extern int ln_createAndAddSimple(FTABLE* fp, char* b);
 #define	LNMARKED			0x01 	/* at least one lineposition marked */
 #define	LNDIFFMARK			0x02 	/* Mark for last EdFilesCompare action */
 #define	LNREPLACED			0x04 	/* something in line has been replaced */
-#define	LNCPMARKED			0x08 	/* Line is within CUT&PASTE-Block	 */
+#define	LNCPMARKED			0x08 	/* print_singleLineOfText is within CUT&PASTE-Block	 */
 #define	LNNOCR				0x10		/* mark not chapter lines */
 #define	LNINDIRECT			0x20		/* indirect flag */
 #define	LNNOTERM			0x40		/* unterminated line */

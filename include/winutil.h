@@ -47,6 +47,12 @@ extern int win_centerWindow(HWND hwnd);
 extern int win_moveWindowToDefaultPosition(HWND hDlg);
 
 /*--------------------------------------------------------------------------
+ * win_destroyModelessDialog()
+ * Destroy the current modeless dialog. Pass a "pointer!" to a win handle.
+ */
+extern void win_destroyModelessDialog(HWND* hwnd);
+
+/*--------------------------------------------------------------------------
  * win_getstate()
  * Get the current window placement.
  */
@@ -72,6 +78,17 @@ extern LONG win_setWindowExtension(HDC hdc, int nx, int ny);
  */
 extern LONG win_getWindowExtension(HDC hdc);
 
+/*------------------------------------------------------------
+ * win_sendParentCommand()
+ */
+extern void win_sendParentCommand(HWND hwnd, LPARAM lParam);
+
+/*--------------------------------------------------------------------------
+ * win_createModelessDialog()
+ * Create a modeless dialog, given a callback and a dialog proc.
+ */
+extern void win_createModelessDialog(HWND* hwnd, LPSTR szName, INT_PTR(CALLBACK* func)(HWND, UINT, WPARAM, LPARAM),
+	DLGPROC* lplpfnDlgProc);
 
 #define WINUTIL_H
 

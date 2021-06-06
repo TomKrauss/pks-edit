@@ -38,7 +38,7 @@
 #include "edfuncs.h"
 
 extern int 		doDocumentTypes(int nDlg);
-extern void 	GetStdMenuText(int menunr, char *text);
+extern void 	win_getStdMenuText(int menunr, char *text);
 /*------------------------------------------------------------
  * EdGetActiveWindow()
  */
@@ -93,7 +93,7 @@ static void menu_fseltitle(int title)
 {	char *d,*s,szTemp[512];
 
 	if (title > 0) {
-		GetStdMenuText(title,szTemp);
+		win_getStdMenuText(title,szTemp);
 		/* skip & - menu marks and key idents */
 		for (s = szTemp, d = s; *s; ) {
 			if (*s == '\010' || *s == '\t') {
@@ -212,7 +212,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	*pszRun = 0;
 
 	*pszFilter = 0;
-	GetSelectableDocumentFileTypes(pszFilter, EDMAXPATHLEN);
+	doctypes_getSelectableDocumentFileTypes(pszFilter, EDMAXPATHLEN);
 	for (pszRun = pszFilter; *pszRun; pszRun++) {
 		if (*pszRun == '|') {
 			*pszRun = (char) 0;

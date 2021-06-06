@@ -79,7 +79,7 @@ int doc_documentTypeChanged(void)
 	   (wp = WIPOI(fp)) == 0)
 	    return 0;
 	
-	ww_setwindowflags(wp);
+	ww_applyDisplayProperties(wp);
 	ww_setwindowtitle(wp);
 	regex_compileCharacterClasses(fp->documentDescriptor->u2lset);
 
@@ -99,7 +99,7 @@ static int doc_columnChanged(void)
     if ((fp = ft_getCurrentDocument()) == 0)
          return 0;
 
-    ww_setwindowflags(WIPOI(fp));
+    ww_applyDisplayProperties(WIPOI(fp));
     markcolomns(fp);
     return 1;
 }

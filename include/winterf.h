@@ -69,7 +69,7 @@ extern LRESULT	FrameWndProc(HWND, UINT, WPARAM, LPARAM);
 extern WINFUNC 	EditWndProc(HWND, UINT, WPARAM, LPARAM);
 extern WINFUNC 	WorkAreaWndProc(HWND, UINT, WPARAM, LPARAM);
 extern WINFUNC 	RulerWndProc(HWND, UINT, WPARAM, LPARAM);
-extern int 		EdMkWinClass( char *szClassName, WNDPROC WinProc, 
+extern int 		win_registerWindowClass( char *szClassName, WNDPROC WinProc, 
 					LPSTR lpCursorName, HANDLE hbrBackground, 
 					LPSTR szIcon, int nExtra);
 

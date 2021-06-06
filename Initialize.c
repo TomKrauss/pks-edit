@@ -89,9 +89,9 @@ static BOOL _checkPksSys(char* pathName) {
 }
 
 /*--------------------------------------------------------------------------
- * InitEnv()
+ * init_initializeVariables()
  */
-EXPORT BOOL InitEnv(void ) 
+EXPORT BOOL init_initializeVariables(void ) 
 {
 	char 	compiler[32];
 	char	datadir[EDMAXPATHLEN];
@@ -144,13 +144,13 @@ EXPORT BOOL InitEnv(void )
 }
 
 /*--------------------------------------------------------------------------
- * ReadConfigFiles()
+ * init_readConfigFiles()
  */
-EXPORT void ReadConfigFiles(void)
+EXPORT void init_readConfigFiles(void)
 {
 	prof_getstdopt();
 	macro_readBindingsFromFile((char *)0);
-	InitAllDocumentTypes();
+	doctypes_initAllDocumentTypes();
 	xref_initFileFormats();
 	proj_init();
 	xref_restoreFromConfigFile();

@@ -100,11 +100,11 @@ unsigned char* string_allocate(unsigned char* buf);
 extern void destroy(void** ap);
 
 /*--------------------------------------------------------------------------
- * allocAndInitialize()
- * Allocate a number of items each having a number of bytes and initialize the
- * result with null.
+ * string_matchFilename()
+ * Match a filename using ATARI TOS matching rules. Multiple patterns may be
+ * specified separated by "," of ";"
  */
-extern void* allocAndInitialize(size_t nitems, size_t nbytes);
+extern int string_matchFilename(char* string, char* pattern);
 
 /*--------------------------------------------------------------------------
  * stralloc()
@@ -148,6 +148,12 @@ extern BOOL char_isNospace(unsigned char c);
  * Return true, if the character is a valid filename character on the current platform.
  */
 extern BOOL char_isFilename(unsigned char c);
+
+/*--------------------------------------------------------------------------
+ * string_initDateformats()
+ * Initialize the PKS Edit date format.
+ */
+extern void string_initDateformats(void);
 
 #define STRINGUTIL_H
 #endif

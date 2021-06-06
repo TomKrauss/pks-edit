@@ -3,7 +3,7 @@
  *
  * PROJEKT: PKS-EDIT for ATARI - GEM
  *
- * purpose: TOS - like wildcard match for filenames
+ * purpose: TOS - like wildcard string_matchFilename for filenames
  * 		  special is: A,B,C => *.A|*.B|*.C
  *
  * 										created: 
@@ -16,12 +16,12 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "stringutil.h"
 
 /*--------------------------------------------------------------------------
- * EdToUpper()
+ * string_convertToUpperCase()
  */
-void EdToUpper(char *s)
+static void string_convertToUpperCase(char *s)
 {
 	while (*s) {
 		if (*s >= 'a' && *s <= 'z')
@@ -59,7 +59,7 @@ static char *cclass(register char *p, register int sub)
 
 /*------------------------------------------------------
  * gmatch()
- * UNIX filename match (may use *, ?, [], [!...])
+ * UNIX filename string_matchFilename (may use *, ?, [], [!...])
  */
 static int gmatch(char *s, char *p)
 {	
@@ -98,20 +98,19 @@ static int gmatch(char *s, char *p)
 }
 
 /*--------------------------------------------------------------------------
- * match()
- * Filenamen in TOS-Schreibweise
- * (8 Chars, 3 Chars) leer == ' '
- * auf ein Suchpattern matchen
+ * string_matchFilename()
+ * Match a filename using ATARI TOS matching rules. Multiple patterns may be 
+ * specified separated by "," of ";"
  */
-int match(char *string,char *pat)
+int string_matchFilename(char *string,char *pattern)
 {	char *	pszToken;
 	char *	pszPatCopy;
 	char *	pszStringCopy;
 
 	pszStringCopy = _strdup(string);
-	pszPatCopy = _strdup(pat);
-	EdToUpper(pszStringCopy);
-	EdToUpper(pszPatCopy);
+	pszPatCopy = _strdup(pattern);
+	string_convertToUpperCase(pszStringCopy);
+	string_convertToUpperCase(pszPatCopy);
 	pszToken = strtok(pszPatCopy, ",;");
 	while(pszToken) {
 		if (gmatch(pszStringCopy, pszToken)) {
@@ -168,7 +167,7 @@ char *argv[];
 		if (gets(buf) == (char *) 0 || buf[0] == 0) break;
 		fncpyin(buf,b2,0);
 		/*printf("\nMATCH `%s`\n",b2);*/
-		if (match(b2,argv[1]) == 1) printf("yes\n");
+		if (string_matchFilename(b2,argv[1]) == 1) printf("yes\n");
 		else printf("no\n");
 	}
 }

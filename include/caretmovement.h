@@ -160,5 +160,10 @@ extern int caret_advanceSection(int dir, int start);
  */
 extern int caret_moveUpOrDown(int dir, int mtype);
 
+/*--------------------------------------------------------------------------
+ * caret_moveToCurrentMousePosition()
+ */
+extern int caret_moveToCurrentMousePosition(FTABLE* fp, long bAsk);
+
 #define CARETMOVEMENT_H
 #endif

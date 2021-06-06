@@ -29,7 +29,7 @@
 #define	WP_SUB		0x20
 #define	HYPHEN		''
 
-extern int 	TabStop(int col, DOCUMENT_DESCRIPTOR *l);
+extern int 	doctypes_calculateTabStop(int col, DOCUMENT_DESCRIPTOR *l);
 
 /*--------------------------------------------------------------------------
  * SelectTextAttribute()
@@ -110,7 +110,7 @@ char *render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y,
 		if (c == ESCAPE) { 
 			attribut = *l++; 
 		} else if (c == '\t' && ctrl == 0) {
-			if ((col = TabStop(col, lin)) > start) {
+			if ((col = doctypes_calculateTabStop(col, lin)) > start) {
 				if (col > end) {
 					col = end;
 				}
@@ -136,7 +136,7 @@ char *render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y,
 				if (c == HYPHEN) {
 					c = '-';
 				} else if (c == '\t') {
-					ind = TabStop(col, lin);
+					ind = doctypes_calculateTabStop(col, lin);
 					if (ind > end) {
 						ind = end;
 					}

@@ -139,7 +139,7 @@ int menu_addentry(char *pszTemp, int menutype,
 	pMenu->macref.index = macidx;
 
 	if ((pMenu->type = menutype) == UM_ITEM) {
-		pMenu->handle = (void*)((mactype + 1) * IDM_USERDEF0 + macidx);
+		pMenu->handle = (void*)(intptr_t)((mactype + 1) * IDM_USERDEF0 + macidx);
 	}
 
 	return 1;
