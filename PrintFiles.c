@@ -35,6 +35,9 @@
 #include "editorconfiguration.h"
 #include "pathname.h"
 #include "winutil.h"
+#include "fileselector.h"
+
+#define myoffsetof(typ,offs)	(unsigned char)offsetof(typ, offs)
 
 #define	PREVIEWING()		(hwndPreview != 0)
 #define	EVEN(p)			((p & 1) == 0)
@@ -157,7 +160,7 @@ static HFONT print_selectfont(HDC hdc, FONTSPEC *fsp) {
 	EDFONT		font;
 	TEXTMETRIC 	tm;
 
-	blfill(&font, sizeof font, 0);
+	memset(&font, 0, sizeof font);
 	if (!PREVIEWING()) {
 		lstrcpy(font.name, fsp->fs_name);
 	}
@@ -656,23 +659,23 @@ void print_readWriteConfigFile(int save)
 		unsigned char	pr_offs;
 		char			*pr_name;
 	} _pi[] = {
-		0,	offsetof(PRTPARAM,mode),				"mode",
-		0,	offsetof(PRTPARAM,options),			"options",
-		0,	offsetof(PRTPARAM,pagelen),			"pagelen",
-		1,	offsetof(PRTPARAM,font.fs_name),		"font",
-		1,	offsetof(PRTPARAM,htfont.fs_name),		"htfont",
-		0,	offsetof(PRTPARAM,lnspace.n),			"space_n",
-		0,	offsetof(PRTPARAM,lnspace.z),			"space_z",
-		1,	offsetof(PRTPARAM,header),			"header",
-		1,	offsetof(PRTPARAM,footer),			"footer",
-		0,	offsetof(PRTPARAM,lmargin),			"lmargin",
-		0,	offsetof(PRTPARAM,rmargin),			"rmargin",
-		0,	offsetof(PRTPARAM,nchars),			"chars",
-		0,	offsetof(PRTPARAM,d1),				"dhtop",
-		0,	offsetof(PRTPARAM,d2),				"dhbot",
-		0,	offsetof(PRTPARAM,d3),				"dftop",
-		0,	offsetof(PRTPARAM,d4),				"dfbot",
-		0,	offsetof(PRTPARAM,align),			"align"
+		0,	myoffsetof(PRTPARAM,mode),				"mode",
+		0,	myoffsetof(PRTPARAM,options),			"options",
+		0,	myoffsetof(PRTPARAM,pagelen),			"pagelen",
+		1,	myoffsetof(PRTPARAM,font.fs_name),		"font",
+		1,	myoffsetof(PRTPARAM,htfont.fs_name),		"htfont",
+		0,	myoffsetof(PRTPARAM,lnspace.n),			"space_n",
+		0,	myoffsetof(PRTPARAM,lnspace.z),			"space_z",
+		1,	myoffsetof(PRTPARAM,header),			"header",
+		1,	myoffsetof(PRTPARAM,footer),			"footer",
+		0,	myoffsetof(PRTPARAM,lmargin),			"lmargin",
+		0,	myoffsetof(PRTPARAM,rmargin),			"rmargin",
+		0,	myoffsetof(PRTPARAM,nchars),			"chars",
+		0,	myoffsetof(PRTPARAM,d1),				"dhtop",
+		0,	myoffsetof(PRTPARAM,d2),				"dhbot",
+		0,	myoffsetof(PRTPARAM,d3),				"dftop",
+		0,	myoffsetof(PRTPARAM,d4),				"dfbot",
+		0,	myoffsetof(PRTPARAM,align),			"align"
 	};
 
 
@@ -813,8 +816,8 @@ int EdPrint(long what, long p1, LPSTR fname)
 	FTABLE			*fp,_ft;
 	PRTPARAM		*pp = &_prtparams;
 
-	blfill(&winfo,sizeof winfo, 0);
-	blfill(&_ft,sizeof _ft, 0);
+	memset(&winfo,0,sizeof winfo);
+	memset(&_ft,0,sizeof _ft);
 	_printwhat.firstc = 0;
 	_printwhat.lastc = 1024;
 
@@ -832,7 +835,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 		if (fname)
 			lstrcpy(fp->fname,fname);
 		else
-			if (!txtfile_select(IDM_PRINTFILE,fp->fname))
+			if (!fsel_selectFileWithTitle(IDM_PRINTFILE,fp->fname))
 				return 0;
 		if (ft_readfileWithOptions(fp,fp->fname,0) == 0)
 	 		return 0;

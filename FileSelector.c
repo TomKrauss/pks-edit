@@ -220,7 +220,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	}
 	*++pszRun = (char) 0;
 
-	blfill(&ofn, sizeof ofn, 0);
+	memset(&ofn, 0, sizeof ofn);
 
 	ofn.hInstance = hInst;
 	ofn.lStructSize = sizeof( OPENFILENAME );

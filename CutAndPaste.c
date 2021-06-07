@@ -20,8 +20,10 @@
 #include "editorconfiguration.h"
 #include "errordialogs.h"
 #include "clipboard.h"
+#include "fileselector.h"
+#include "markpositions.h"
 
- /*-----------------------*/
+/*-----------------------*/
 /* EXTERNALS			*/
 /*-----------------------*/
 extern MARK	*mark_find(FTABLE *fp, int id);
@@ -93,7 +95,7 @@ EXPORT int bl_hideSelection(int removeLineSelectionFlag) {
 		}
 	}
 	ln_removeFlag(lpFirst, lpLast, LNREPLACED);
-	mcp_release(fp);
+	mark_killSelection(fp);
 	return 1;
 }
 
@@ -242,8 +244,6 @@ EXPORT PASTE *bl_getPasteBuffer(int which) {
 		return 0;
 	}
 
-	if (which & PASTE_ICON)
-		ic_flashIcon(icon,id);
 	return pp;
 }
 
@@ -278,7 +278,7 @@ EXPORT int bl_insertTextBlockFromFile(char *fn)
 	if (!ft_getCurrentDocument()) 
 		return 0;
 	if (fn == 0) {
-		if (!txtfile_select(MREADF,fname))
+		if (!fsel_selectFileWithTitle(MREADF,fname))
 			return 0;
 		fn = fname;
 	}
@@ -371,7 +371,7 @@ EXPORT int EdBlockWriteToFile(char *fn)
 		if (fn != 0) {
 			ret = F_NORMOPEN;
 		} else {
-			ret = txtfile_select(MWRITEF,fname);
+			ret = fsel_selectFileWithTitle(MWRITEF,fname);
 			fn  = fname;
 		}
 		if (ret != 0)
@@ -895,7 +895,7 @@ EXPORT int EdMouseMarkParts(int type)
 	fp = ft_getCurrentDocument();
 	colflg = ww_blkcolomn(WIPOI(fp));
 
-	EdMousePosition(0L);
+	caret_positionCloseToMouseWithConfirmation(0L);
 
 	ln  = fp->ln;
 	col = fp->col;

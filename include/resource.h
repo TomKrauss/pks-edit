@@ -54,13 +54,23 @@ typedef struct tagRSCFILE {
 	RSCHEADER	*rf_hdr;
 } RSCFILE;
 
-RSCFILE *	rsc_open(char *fn, int mode);
-int 		rsc_close(RSCFILE *rp);
-int 		rsc_load(RSCFILE *rp, char *itemtyp, char *itemname, char *(*cnvfunc)());
-void *	rsc_tablefindcode(RSCTABLE *rp, int itemsize, unsigned code);
-void *	rsc_tableresize(RSCTABLE *rp, int itemsize, void *noalloc, int (*empty)(void *p));
-RSCTABLE *rsc_findtable(RSCTABLE *rp, char *pszTarget);
-int 		rsc_switchtotable(RSCTABLE **Rp, char *pszTarget);
+extern RSCFILE*	rsc_open(char *fn, int mode);
+extern int 		rsc_close(RSCFILE *rp);
+extern int 		rsc_load(RSCFILE *rp, char *itemtyp, char *itemname, char *(*cnvfunc)());
+extern void *	rsc_tablefindcode(RSCTABLE *rp, int itemsize, unsigned code);
+extern void*	rsc_tableresize(RSCTABLE* rp, int itemsize, void* noalloc, BOOL(*emptyFunc)(void*));
+extern RSCTABLE* rsc_findtable(RSCTABLE *rp, char *pszTarget);
+extern int 		rsc_switchtotable(RSCTABLE **Rp, char *pszTarget);
+extern int		rsc_create(char* fname, int trunc);
+extern int rsc_put(int fd, char* itemtyp, char* itemname, int replace,
+	long (*wrfunc)(int, long, char*, long), char* buffer, long bufsize);
+/*--------------------------------------------------------------------------
+ * rsc_flushBuffer()
+ * Flush a resource file buffer writing out the number of specified bytes and
+ * moving the ramainder of the unflushed data to the beginning of the buffer.
+ */
+extern int rsc_flushBuffer(int fd, char* buffer, int size, int rest);
+extern int rsc_wrtables(int fd, char* itemtype, RSCTABLE* rp);
 
 #define	RESOURCE_H
 # endif

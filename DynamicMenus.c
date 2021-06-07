@@ -52,7 +52,7 @@ void menu_overridetable(void)
 			pMenu[nIdx].handle != 0) {
 		}
 	}
-	blfill(rp->rt_data, (int)((char *)rp->rt_end - (char *)rp->rt_data), 0);
+	memset(rp->rt_data, 0, (int)((char *)rp->rt_end - (char *)rp->rt_data));
 }
 
 /*--------------------------------------------------------------------------
@@ -192,7 +192,7 @@ static HMENU menu_createmenu(BOOL bSub)
 	}
 
 	nCascade = 0;
-	blfill(phSubMenu, sizeof phSubMenu, 0);
+	memset(phSubMenu, 0, sizeof phSubMenu);
 
 	for (nIdx = 0; pMenu->szString[0]; nIdx++, pMenu++) {
 

@@ -25,6 +25,7 @@
 #include "winfo.h"
 #include "edfuncs.h"
 #include "stringutil.h"
+#include "markpositions.h"
 
 extern char *ft_visiblename(FTABLE *fp);
 /**
@@ -285,8 +286,7 @@ int mysprintf(FTABLE *fp, char *d, char *format,...)
 					format++;
 					stack[0] = 0;
 					if (*format == 't' || *format == 'h') {
-						fm_mktagstring(stack,&stack[sizeof stack],
-							*format == '?');
+						fm_mktagstring(stack,&stack[sizeof stack]);
 						x = stack;
 					} else {
 						x = CurrentStringVal(fp, &format, fname);
@@ -302,7 +302,8 @@ cpyout:			if (d + l > dend)
 				if (f0) {
 					l -= lstrlen(x);
 					if (l > 0) {
-						d  = blfill(d,l,f0);
+						memset(d,f0,l);
+						d += l;
 					}
 					l  = 0;
 					while(*x)
@@ -313,7 +314,8 @@ cpyout:			if (d + l > dend)
 						*d++ = *x++;
 					}
 					if (l > 0) {
-						d = blfill(d,l,' ');
+						d = memset(d,' ', l);
+						d += l;
 					}
 				}
 			} else if (c == 'T') {

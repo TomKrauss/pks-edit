@@ -411,6 +411,11 @@ extern MACRO* macro_getByIndex(int idx);
  */
 extern int macro_getInternalIndexByName(char* name);
 
+extern int 		macro_saveMacrosAndDisplay(char* macroname);
+extern int 		macro_saveMouseBindingsAndDisplay(void);
+extern int 		macro_saveKeyBindingsAndDisplay(void);
+extern int 		macro_saveMenuBindingsAndDisplay(void);
+
 /*------------------------------------------------------------
  * macro_autosaveAllBindings()
  * Save all changed macro bindings and new macros to the corresponding file.
@@ -588,6 +593,13 @@ extern int macro_getIndexForKeycode(KEYCODE* scan, char* name, int oldidx);
  * Return the passed String to the macro interpreter so it can be used for further processing.
  */
 extern void macro_returnString(char* string);
+
+/*---------------------------------*/
+/* macro_recordOperation()				*/
+/*---------------------------------*/
+extern int macro_recordOperation(PARAMS* pp);
+
+extern void macro_stopRecordingFunctions();
 
 /*--------------------------------------------------------------------------
  * macro_isParameterStringType()

@@ -48,6 +48,11 @@ typedef struct tagICONCLASS {
 	HCURSOR	ic_cursor;
 } ICONCLASS;
 
+/*-----------------------------------------------------------
+ * EdEnumChildWindows()
+ */
+extern int EdEnumChildWindows(int (*funcp)(), LONG lParam);
+extern int ww_closeChildWindow(HWND hwndChild, int iconflag);
 extern int EdConfigureIcons(void);
 extern int  LbGetText(HWND hwnd, int id, void *szBuff);
 
@@ -139,7 +144,7 @@ void ic_ownerDrawIconType(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 /*--------------------------------------------------------------------------
  * ic_onIconTypeSelection()
  */
-void ic_onIconTypeSelection(HWND hDlg, WORD nItem, LONG lParam, void *p)
+void ic_onIconTypeSelection(HWND hDlg, int nItem, int lParam, void *p)
 {
 	ICONCLASS	*icp;
 
@@ -275,7 +280,7 @@ static int ic_profsave(HWND hwnd)
 int ic_saveLocationInConfiguration()
 {
 	curric = 0;
-	EdEnumChildWindows(ic_saveCurrentConfiguration);
+	EdEnumChildWindows(ic_saveCurrentConfiguration, 0L);
 	return 1;
 }
 
@@ -646,8 +651,8 @@ int _icdirty = 1;
 void ic_redisplayIcons(void)
 {
 	if (_icdirty) {
-		EdEnumChildWindows(ic_selectClipboardIcon);
-		EdEnumChildWindows(ic_selectTrashIcon);
+		EdEnumChildWindows(ic_selectClipboardIcon, 0L);
+		EdEnumChildWindows(ic_selectTrashIcon, 0L);
 		_icdirty= 0;
 	}
 }

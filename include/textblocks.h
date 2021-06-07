@@ -238,5 +238,11 @@ extern int bl_append(PASTE* pb, LINE* lnfirst, LINE* lnlast, int cfirst, int cla
 /*---------------------------------*/
 extern int bl_pasteBlock(PASTE* buf, int colflg, int offset, int move);
 
+/*--------------------------------------------------------------------------
+ * EdBlockHide()
+ * Hide the current selection in the current file.
+ */
+extern int EdBlockHide(void);
+
 #define TEXTBLOCKS_H
 #endif // !TEXTBLOCKS_H

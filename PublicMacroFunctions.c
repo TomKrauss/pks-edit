@@ -13,6 +13,7 @@
  */
 
 #include <windows.h>
+#include <direct.h>
 #include "trace.h"
 #include "caretmovement.h"
 #include "textblocks.h"
@@ -39,6 +40,10 @@
 #include "documenttypes.h"
 #include "findandreplace.h"
 #include "desktopicons.h"
+#include "winutil.h"
+#include "crossreferencelinks.h"
+#include "brackets.h"
+#include "markpositions.h"
 
  /*------------------------------------------------------------
   * EdGetActiveWindow()
@@ -55,15 +60,10 @@ extern int 		macro_executeMacro(MACROREF *mp);
 extern int 		AlignText(char *finds, int scope, char filler, int flags);
 extern int 		LbGetText(HWND hwnd, int id, void *szBuff);
 extern FTABLE *	ww_winid2fp(int winid);
-extern int 		macro_saveMacrosAndDisplay(char *macroname);
-extern int 		macro_saveMouseBindingsAndDisplay(void);
-extern int 		macro_saveKeyBindingsAndDisplay(void);
-extern int 		macro_saveMenuBindingsAndDisplay(void);
 extern int 		EdExecute(long flags, long unused, 
 					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
 extern int 		doctypes_assignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
-extern int 		doc_documentTypeChanged(void);
 extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		mac_compileMacros(void);
@@ -253,11 +253,11 @@ int DialogCharInput(int promptfield, unsigned char c)
 }
 
 /*--------------------------------------------------------------------------
- * TmplateSelchange()
+ * templateOnSelectionChange()
  */
 static char *(*fpGetText)(char *s);
 static char *tmplateStringList;
-static void TmplateSelchange(HWND hDlg, WORD nItem,  int nNotify, 
+static void templateOnSelectionChange(HWND hDlg, int nItem,  int nNotify, 
 	void *p)
 {
 	char		szText[128];
@@ -274,9 +274,9 @@ static void TmplateSelchange(HWND hDlg, WORD nItem,  int nNotify,
 }
 
 /*------------------------------------------------------------
- * TmplateListboxFill()
+ * templateFillListbox()
  */
-static void TmplateListboxFill(HWND hwnd, int nItem, void* selValue)
+static void templateFillListbox(HWND hwnd, int nItem, void* selValue)
 {
 	char *	pszChars;
 	char		szBuf[10];
@@ -299,7 +299,7 @@ static void TmplateListboxFill(HWND hwnd, int nItem, void* selValue)
 	szBuf[0] = cCharToSelect;
 	SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING, -1, 
 		(LPARAM) szBuf);
-	TmplateSelchange(hwnd, nItem, MAKELONG(0, LBN_SELCHANGE), (void *)0);
+	templateOnSelectionChange(hwnd, nItem, MAKELONG(0, LBN_SELCHANGE), (void *)0);
 }
 
 /*--------------------------------------------------------------------------
@@ -313,8 +313,7 @@ int dlg_displayDialogTemplate(unsigned char c,
 	static ITEMS	_i   = { C_CHAR1PAR, &_c };
 	static PARAMS	_bgc = { DIM(_i), P_MAYOPEN, _i };
 	static DIALLIST tmplatelist = {
-		(long*)text, TmplateListboxFill, LbGetText, 0, 0,
-		TmplateSelchange};
+		(long*)text, templateFillListbox, LbGetText, 0, 0, templateOnSelectionChange};
 	static DIALPARS _d[] = {
 		IDD_POSITIONTCURS,	0,			0,
 		IDD_ICONLIST,		0,			&tmplatelist,
@@ -820,7 +819,7 @@ static DIALPARS infoDialListPars[] = {
 	IDD_WINTITLE,		0,			0,
 	0
 };
-static void winlist_command(HWND hDlg, WORD nItem,  int nNotify, void *pUser)
+static void winlist_command(HWND hDlg, int nItem,  int nNotify, void *pUser)
 {
 	switch(nNotify) {
 	case LBN_SELCHANGE:
@@ -905,7 +904,7 @@ static DIALPARS docTypePars[] =
 	0
 };
 
-static void doclist_command(HWND hDlg, WORD nItem, WORD nNotify, void *pUser)
+static void doclist_command(HWND hDlg, int nItem, int nNotify, void *pUser)
 {
 	switch(nNotify) {
 	case LBN_SELCHANGE:
@@ -1014,7 +1013,7 @@ static void docTypeApply(void)
 		} else {
 			_free(fp->documentDescriptor);
 			doctypes_assignDocumentTypeDescriptor(fp, lp);
-			doc_documentTypeChanged();
+			doctypes_documentTypeChanged();
 		}
 	}
 }
@@ -1275,7 +1274,7 @@ int EdDlgDispMode(void)
 		render_sendRedrawToWindow(WIPOI(ft_getCurrentDocument())->ru_handle);
 	}
 	linp->rmargin = rmargin;
-	return doc_documentTypeChanged();
+	return doctypes_documentTypeChanged();
 }
 
 /*--------------------------------------------------------------------------
@@ -1330,7 +1329,7 @@ int EdDlgWorkMode(void)
 	lstrcpy(linp->cm, cm);
 	linp->workmode = workmode;
 	linp->fillc = tabfill;
-	return doc_documentTypeChanged();
+	return doctypes_documentTypeChanged();
 }
 
 /*--------------------------------------------------------------------------
@@ -1369,7 +1368,7 @@ int EdDlgCursTabs(void)
 	linp->vscroll = scrollmin-1;
 	linp->scroll_dy = mindelta;
 	linp->cursaftersearch = cursafter;
-	return doc_documentTypeChanged();
+	return doctypes_documentTypeChanged();
 }
 
 /*--------------------------------------------------------------------------
@@ -1556,7 +1555,7 @@ int EdFindInFileList(void)
 	};
 
 	if (!pathlist[0] || !filenamePattern[0]) {
-		getcwd(pathlist, sizeof pathlist);
+		_getcwd(pathlist, sizeof pathlist);
 		strcpy(filenamePattern, "*.*");
 	}
 	if (!win_callDialog(DLGRETREIVE,&_fp,_d, _tt)) {
@@ -1630,6 +1629,8 @@ int EdCharControlInsert(void)
 
 /*--------------------------------------------------------------------------
  * EdPromptForCharacter()
+ * Prompt for a character. The prompt message is defined via resource ID passed
+ * as a parameter.
  */
 int EdPromptForCharacter(int ids_num) 
 {	static unsigned char c;

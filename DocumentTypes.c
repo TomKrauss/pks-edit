@@ -110,7 +110,7 @@ void doctypes_initDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* lp, int ts) {
 	int i, ind;
 
 	lp->tabsize = ts;
-	blfill(lp->tbits, sizeof(lp->tbits), 0);
+	memset(lp->tbits, 0, sizeof(lp->tbits));
 
 	for (i = 0, ind = ts; i < MAXLINELEN; i++) {
 		if (i == ind) {
@@ -126,23 +126,22 @@ void doctypes_initDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* lp, int ts) {
  * must be freed, when done using it.
  */
 DOCUMENT_DESCRIPTOR* doctypes_createDefaultDocumentTypeDescriptor() {
-	DOCUMENT_DESCRIPTOR* lp = _alloc(sizeof *lp);
+	DOCUMENT_DESCRIPTOR* pDescriptor = calloc(1, sizeof *pDescriptor);
 
-	memset(lp, 0, sizeof * lp);
-	lp->rmargin = 80;
-	lp->tabsize = 8;
-	lp->shiftwidth = 4;
-	lp->dispmode = WM_INSERT;
-	lp->cr = '\r';
-	lp->nl = '\n';
-	lp->t1 = ' ';
-	strcpy(lp->name, "default.lin");
-	strcpy(lp->statusline, "0x%6p$O: 0x%2p$C 0%h$C");
-	lp->fnt.height = 15;
-	lp->fnt.width = 7;
-	strcpy(lp->fnt.name, "consolas");
-	doctypes_initDocumentTypeDescriptor(lp, 8);
-	return lp;
+	pDescriptor->rmargin = 80;
+	pDescriptor->tabsize = 8;
+	pDescriptor->shiftwidth = 4;
+	pDescriptor->dispmode = WM_INSERT;
+	pDescriptor->cr = '\r';
+	pDescriptor->nl = '\n';
+	pDescriptor->t1 = ' ';
+	strcpy(pDescriptor->name, "default.lin");
+	strcpy(pDescriptor->statusline, "0x%6p$O: 0x%2p$C 0%h$C");
+	pDescriptor->fnt.height = 15;
+	pDescriptor->fnt.width = 7;
+	strcpy(pDescriptor->fnt.name, "consolas");
+	doctypes_initDocumentTypeDescriptor(pDescriptor, 8);
+	return pDescriptor;
 }
 
 /*--------------------------------------------------------------------------
@@ -178,7 +177,7 @@ static void GetRelatedFileName(char *related_name, char *fname, char *newext)
  * that it can be passed on to the open file dialog for filtering of file types
  * (e.g. *.*|All Files|*.java|Java Files)
  */
-void doctypes_getSelectableDocumentFileTypes(LPSTR pszDest, int nMax) {
+void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 	LPSTR		pszEnd;
 	DOCUMENT_TYPE *	llp;
 	int			nCopied;
@@ -199,6 +198,39 @@ void doctypes_getSelectableDocumentFileTypes(LPSTR pszDest, int nMax) {
 			nCopied++;
 		}
 	}
+}
+
+/*--------------------------------------------------------------------------
+ * doctypes_readDocumentType()
+ */
+static int doctypes_readDocumentType(char* fname, DOCUMENT_DESCRIPTOR* lp, int id, int forced)
+{
+	char 	keyfn[512];
+	char* fn;
+	int  	fd;
+
+	if ((fn = file_searchFileInPKSEditLocation(fname)) != 0L && (fd = Fopen(fn, 0)) > 0) {
+		if (Fread(fd, LINSPACE, lp) != LINSPACE) {
+			Fclose(fd);
+			return 0;
+		}
+		Fclose(fd);
+		string_concatPathAndFilename(keyfn, _datadir, "MODI.XXX");
+		doctypes_createTempFileForDocumentType(fn, keyfn);
+	}
+	else {
+		return 0;
+	}
+
+	string_splitFilename(fname, (char*)0, lp->name);
+	lp->id = id;
+	InitTabStops(lp);
+
+	if (keyfn[0] != 0) {
+		Mapread(id, keyfn);
+	}
+
+	return 1;
 }
 
 /*--------------------------------------------------------------------------
@@ -366,38 +398,6 @@ int doctypes_mergeDocumentTypes(char *pszLinealFile, char *pszDocMacFile)
 }
 
 /*--------------------------------------------------------------------------
- * doctypes_readDocumentType()
- */
-static int doctypes_readDocumentType(char *fname, DOCUMENT_DESCRIPTOR *lp, int id, int forced)
-{
-	char 	keyfn[512];
-	char *	fn;
-	int  	fd;
-
-	if ((fn = file_searchFileInPKSEditLocation(fname)) != 0L && (fd = Fopen(fn,0)) > 0) {
-		if (Fread(fd,LINSPACE,lp) != LINSPACE) {
-			Fclose(fd);
-			return 0;
-		}
-		Fclose(fd);
-		string_concatPathAndFilename(keyfn, _datadir, "MODI.XXX");
-		doctypes_createTempFileForDocumentType(fn, keyfn);
-	} else {
-		return 0;
-	}
-
-	string_splitFilename(fname,(char *)0,lp->name);
-	lp->id = id;
-	InitTabStops(lp);
-
-	if (keyfn[0] != 0) {
-		Mapread(id, keyfn);
-	}
-
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
  * doctypes_getFileDocumentType()
  * find the correct document descriptor for a given file
  * 	1. if own document descriptor, try to read  own document descriptor from disc
@@ -450,7 +450,7 @@ BOOL doctypes_getFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename) {
  */
 int  doctypes_assignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescriptor)
 {
-	if ((fp->documentDescriptor  = _alloc(sizeof *fp->documentDescriptor)) == 0)
+	if ((fp->documentDescriptor  = malloc(sizeof *fp->documentDescriptor)) == 0)
 		return 0;
 
 	if (documentDescriptor) {
@@ -499,6 +499,7 @@ static int doctypes_saveDocumentType(DOCUMENT_TYPE *lp)
 
 /*--------------------------------------------------------------------------
  * doctypes_saveAllDocumentTypes()
+ * Save all document types - pass the pointer to the "HEAD" of the doctype list.
  */
 void doctypes_saveAllDocumentTypes(DOCUMENT_TYPE *llp)
 {
@@ -601,7 +602,7 @@ DOCUMENT_DESCRIPTOR *doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE*p)
  * doctypes_initDocumentType()
  * init a document type
  */
-static intptr_t doctypes_initDocumentType(char *docname)
+static intptr_t doctypes_initDocumentType(char *docname, long unused)
 {
 	char	 	*s,*szDesc,*szLinname,*szMatch,*szOwn;
 	DOCUMENT_TYPE	*llp;
@@ -700,7 +701,7 @@ int EdLineal(int wrflag, DOCUMENT_DESCRIPTOR *documentDescriptor) {
 
 	if (doctypes_readDocumentType(fn,documentDescriptor,documentDescriptor->id,1)) {
 		if ((wrflag & 2) == 0)
-			doc_documentTypeChanged();
+			doctypes_documentTypeChanged();
 		return 1;
 	}
 

@@ -18,6 +18,17 @@
 typedef struct tagDOCUMENT_TYPE DOCUMENT_TYPE;
 
 /*--------------------------------------------------------------------------
+ * doctypes_initAllDocumentTypes()
+ * init all document types
+ */
+extern int doctypes_initAllDocumentTypes(void);
+
+/**
+ * Deletes and de-allocates all known document types.
+ */
+extern void doctypes_deleteAllDocumentTypes();
+
+/*--------------------------------------------------------------------------
  * doctypes_initDocumentTypeDescriptor()
  */
 extern void doctypes_initDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* pDescriptor, int tabSize);
@@ -90,6 +101,26 @@ extern void doctypes_deleteDocumentType(DOCUMENT_TYPE* llp);
  * match.
  */
 extern int  doctypes_assignDocumentTypeDescriptor(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor);
+
+/*--------------------------------------------------------------------------
+ * doctypes_saveAllDocumentTypes()
+ * Save all document types - pass the pointer to the "HEAD" of the doctype list.
+ */
+extern void doctypes_saveAllDocumentTypes(DOCUMENT_TYPE* llp);
+
+/*--------------------------------------------------------------------------
+ * doctypes_getSelectableDocumentFileTypes()
+ * Returns the list of document file types defined in PKS Edit in the format
+ * that it can be passed on to the open file dialog for filtering of file types
+ * (e.g. *.*|All Files|*.java|Java Files)
+ */
+extern void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax);
+
+/*--------------------------------------------------------------------------
+ * doctypes_documentTypeChanged()
+ * One document has changed - apply the changes to the current editor.
+ */
+extern int doctypes_documentTypeChanged(void);
 
 #endif
 

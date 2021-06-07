@@ -245,6 +245,35 @@ extern int ww_register(void);
  */
 extern void ww_popup(HWND hwndChild);
 
+/*-----------------------------------------------------------
+ * sl_winchanged()
+ */
+extern void sl_winchanged(WINFO* wp, long dy, long dx);
+
+/*-----------------------------------------------------------
+ * sl_scrollwinrange()
+ */
+int sl_scrollwinrange(WINFO* wp, long* dy, long* dx);
+
+/*-----------------------------------------------------------
+ * sl_winchanged()
+ */
+extern void sl_winchanged(WINFO* wp, long dy, long dx);
+
+/*------------------------------------------------------------
+ * sl_moved
+ * Invoked, when a scrollbar had been dragged - update the WINFO
+ * data structure.
+ */
+extern int sl_moved(WINFO* wp, long dy, long dx, int cursor_adjust);
+
+/*------------------------------------------------------------
+ * sl_size()
+ * Update the internal sizeds of the WINFO structure (maxrows etc...).
+ * Also update slider thumbs for the window.
+ */
+int sl_size(WINFO* wp);
+
 /*------------------------------------------------------------
  * font_selectSystemFixedFont()
  */

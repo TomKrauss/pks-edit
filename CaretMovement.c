@@ -26,9 +26,7 @@
 #include "winterf.h"
 #include "mouseutil.h"
 #include "stringutil.h"
-
-#pragma hdrstop
-
+#include "xdialog.h"
 #include "pksedit.h"
 
 /*-----------------------*/
@@ -366,6 +364,22 @@ EXPORT int caret_placeCursorInCurrentFile(long ln,long col)
 }
 
 /*--------------------------------------------------------------------------
+ * caret_saveLastPosition()
+ * Store the last cursor position so one can navigate "back" for the current
+ * editor window.
+ */
+int caret_saveLastPosition(void) {
+	register FTABLE* fp;
+
+	if ((fp = ft_getCurrentDocument()) != 0) {
+		fp->lastln = fp->ln,
+			fp->lastcol = fp->caret.offset;
+		return 1;
+	}
+	return 0;
+}
+
+/*--------------------------------------------------------------------------
  * wi_adjust()
  * justify to middle of screen
  */
@@ -373,7 +387,7 @@ EXPORT static int wi_adjust(WINFO *wp, long ln,int adjustflag)
 {	long pos,dy,dx;
 
 	if (ln < wp->mincursln || ln > wp->maxcursln || (adjustflag & 2)) {
-		if (adjustflag & 1) mark_saveCaretPosition();
+		if (adjustflag & 1) caret_saveLastPosition();
 		if (wp->cursaftersearch == CP_POSTOP) pos = wp->mincursln;
 		else if (wp->cursaftersearch == CP_POSLOW) pos = wp->maxcursln;
 		else pos = ((wp->maxcursln+wp->mincursln)>>1);
@@ -419,7 +433,7 @@ int caret_placeCursorAndSavePosition(long ln, long col)
 	if (ln == fp->ln && col == fp->caret.offset)
 		return 1;
 
-	mark_saveCaretPosition();
+	caret_saveLastPosition();
 	return caret_placeCursorInCurrentFile(ln, col);
 }
 
@@ -583,7 +597,7 @@ EXPORT int caret_advanceSection(int dir,int start)
 {	long ln;
 	FTABLE *fp = ft_getCurrentDocument();
 
-	mark_saveCaretPosition();
+	caret_saveLastPosition();
 	ln = fp->ln;
 	cadv_section(&ln,dir,start,tabedstart,tabedend);
 	caret_placeCursorInCurrentFile(ln,0L);
@@ -953,9 +967,9 @@ EXPORT int caret_moveToCurrentMousePosition(FTABLE *fp, long bAsk)
 }
 
 /*--------------------------------------------------------------------------
- * EdMousePosition()
+ * caret_positionCloseToMouseWithConfirmation()
  */
-EXPORT int EdMousePosition(long bAsk)
+EXPORT int caret_positionCloseToMouseWithConfirmation(long bAsk)
 {	
 	FTABLE *	fp;
 
@@ -981,7 +995,7 @@ int EdMousePositionUngrabbed(long bGrab)
 	long		col;
 
 	if (bGrab) {
-		return EdMousePosition(1);
+		return caret_positionCloseToMouseWithConfirmation(1);
 	}
 
 	if ((fp = ft_getCurrentDocument()) == 0) {

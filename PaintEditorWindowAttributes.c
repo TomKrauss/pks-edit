@@ -140,7 +140,8 @@ char *render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y,
 					if (ind > end) {
 						ind = end;
 					}
-					d = blfill(d, ind-col, lin->t1);
+					memset(d, lin->t1, ind-col);
+					d += ind - col;
 					col = ind;
 					continue;
 				} else {

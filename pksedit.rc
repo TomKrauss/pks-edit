@@ -825,7 +825,7 @@ CAPTION "Autosave"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     LTEXT           "&Zeit [min]:",-1,12,12,36,8,NOT WS_GROUP
-    EDITTEXT        IDD_INT1,190,12,42,12,ES_AUTOHSCROLL
+    EDITTEXT        IDD_INT1,174,12,42,12,ES_AUTOHSCROLL
     CONTROL         "Einstellungen beim &Verlassen speichern",IDD_OPT2,
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,204,10
     LTEXT           "&Pfad:",-1,12,48,20,8,NOT WS_GROUP
@@ -1134,6 +1134,10 @@ BEGIN
     END
 
     DLGDISPMODE, DIALOG
+    BEGIN
+    END
+
+    DLGOPTIONS, DIALOG
     BEGIN
     END
 

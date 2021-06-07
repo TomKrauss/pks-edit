@@ -18,6 +18,7 @@
 #include "lineoperations.h"
 #include "stringutil.h"
 #include "findandreplace.h"
+#include "crossreferencelinks.h"
 
 #define iswhite(c)	(c == ' ' || c == '\t')
 

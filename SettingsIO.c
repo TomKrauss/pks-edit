@@ -18,6 +18,7 @@
 #include "trace.h"
 #include "lineoperations.h"
 #include "edierror.h"
+#include "documenttypes.h"
 
 #include "winfo.h"
 #include "winterf.h"

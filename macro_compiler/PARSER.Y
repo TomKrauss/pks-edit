@@ -102,8 +102,7 @@ int			vname_count;
 
 extern 		int	yyerrflg;
 extern 		int	_bDefiningConst;
-
-void 			Alert(char *s, ...);
+extern void yyerror(char* s, ...);
 unsigned char 	*AddComSeq(unsigned char *sp, unsigned char *spend,
 				     	 unsigned char typ, intptr_t par);
 int				FuncIdx(void *ep);
@@ -118,7 +117,8 @@ KEYCODE 		key2code(char *K, int control);
 void 		key_destroytable(char *name);
 TYPEDVAL		PushBinop(int opd_typ, TYPEDVAL *v1, 
 					TYPEDVAL *v2);
-void 		PushAssign(char *name, int typ, long val);
+extern int yylex(void );
+void 		PushAssign(char *name, int typ, intptr_t val);
 void 		PushCreateVariable(char *name, int typ, long val);
 
 char		 	*GotoLabel(char *name, char *sp, char *spend, int typ);
@@ -234,7 +234,7 @@ docdefs		:
 
 doctype		: T_IDENT T_ASSIGN T_STRING strlist
 			{
-				protokoll("Defining documenttype %s",$1.s);
+				macro_showStatus("Defining documenttype %s",$1.s);
 				freeitem(&$1.s);
 				freeitem(&$3.s);
 			}
@@ -260,7 +260,7 @@ menudefs		:
 
 submenu		: T_MENUPOPUP T_STRING 
 			{
-				protokoll("Defining sub-menu %s",$2.s);
+				macro_showStatus("Defining sub-menu %s",$2.s);
 				menu_addentry($2.s, UM_POPUP, 0, 0);
 				freeitem(&$2.s);
 			}
@@ -297,7 +297,7 @@ menuoptions	:
 /*-- MOUSE -------------------------------------------*/
 
 mouses		: opt_ident T_DEFMOUSE T_IDENT	{
-				protokoll("Compile mouse table %s",$3.s);
+				macro_showStatus("Compile mouse table %s",$3.s);
 				mouse_switchtotable($3.s);
 				if (SetOverride($1.s) == MODE_OVERRIDE) {
 					mouse_destroyMouseBindings();
@@ -340,7 +340,7 @@ mouse_button	: kmod_list buttons T_NUM
 /*-- KEYS -------------------------------------------*/
 
 keys			: opt_ident T_DEFKEYS T_IDENT	  {
-				protokoll("Compile key table %s",$3.s);
+				macro_showStatus("Compile key table %s",$3.s);
 				key_switchtotable($3.s);
 				if (SetOverride($1.s) == MODE_OVERRIDE) {
 					key_destroytable($3.s);
@@ -395,7 +395,7 @@ icondefs		:
 
 icon			: T_IDENT T_IDENT T_IDENT T_ASSIGN T_IDENT
 			{	
-				protokoll("Defining icon for macro %s",$5.s);
+				macro_showStatus("Defining icon for macro %s",$5.s);
 				freeitem(&$1.s);
 				freeitem(&$2.s);
 				freeitem(&$3.s);
@@ -452,7 +452,7 @@ macros		:  macrostart opt_string block
 					killabel(lreturnid,0);
 					macro_validateMacroName($1.s, -1);
 					_recp = AddComSeq(_recp,_recpend,C_STOP,1);
-					protokoll("Defining macro %s",$1.s);
+					macro_showStatus("Defining macro %s",$1.s);
 					macro_insertNewMacro($1.s,$2.s,_recspace,(int)(_recp-_recspace));
 				}
 				freeitem(&$2.s);
@@ -934,12 +934,6 @@ void freeval(TYPEDVAL *v)
 	    v->type == C_STRINGVAR  ||
 	    v->type == C_LONGVAR*/) &&
 	    *(char*)v->val) {
-# if 0
-	    	char buf[128];
-	    	sprintf(buf,"freeing %d|%s",v->type,
-			v->val ? (char*)v->val : "(null)");
-		Alert(buf);
-# endif
 		freeitem((char **)(&v->val));
 	}
 }

@@ -95,7 +95,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 				ret = 0;
 				break;
 			}
-			blfill(&lp->lbuf[besti],nchars,filler);
+			memset(&lp->lbuf[besti],filler,nchars);
 		}
 		if (lp == mpe->lm || progress_cancelMonitor(1))
 			break;

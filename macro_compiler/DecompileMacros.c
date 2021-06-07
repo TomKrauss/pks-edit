@@ -110,7 +110,7 @@ static int pr_xlated(FILE *fp,long val,signed char partyp)
 			if (val & ep->te_val) {
 				if (printed)
 					fputc('|',fp);
-				fputs(StaticLoadString(ep->te_name),fp);
+				fputs(macro_loadStringResource(ep->te_name),fp);
 				printed++;
 				val &= (~ep->te_val);
 				if (!val)
@@ -122,7 +122,7 @@ static int pr_xlated(FILE *fp,long val,signed char partyp)
 		/* OT_ENUM */
 		while(ep < epend) {
 			if (val == ep->te_val) {
-				fputs(StaticLoadString(ep->te_name),fp);
+				fputs(macro_loadStringResource(ep->te_name),fp);
 				return 1;
 			}
 			ep++;
@@ -210,7 +210,7 @@ static void pr_func(FILE *fp, int idx)
 		error_displayAlertDialog("format error: bad function");
 		return;
 	}
-	fprintf(fp,"\t%s",StaticLoadString(ep->idx + IDM_LOWFUNCNAME));
+	fprintf(fp,"\t%s",macro_loadStringResource(ep->idx + IDM_LOWFUNCNAME));
 }
 
 /*
@@ -394,7 +394,7 @@ static void pr_mac(FILE *fp, MACRO *mp)
 
 	makeautolabels(data,&data[mp->size]);
 	StartAutoLabel();
-	NextAutoLabel(&lname,&gop);
+	NextAutoLabel(&lname,(COM_GOTO**)&gop);
 
 	for (sp = data, spend = sp+mp->size; sp < spend; ) {
 		if (gop <= sp && lname) {
@@ -402,7 +402,7 @@ static void pr_mac(FILE *fp, MACRO *mp)
 				error_displayAlertDialog("format error: bad goto");
 			}
 			fprintf(fp,"%s:\n",lname);
-			NextAutoLabel(&lname,&gop);
+			NextAutoLabel(&lname, (COM_GOTO**)&gop);
 		}
 
 		t = ((COM_1FUNC*)sp)->typ;

@@ -28,6 +28,7 @@
 #include "fileutil.h"
 #include "pathname.h"
 #include "regexp.h"
+#include "crossreferencelinks.h"
 
 extern char *	_datadir;
 static FTABLE	*_outfile;
@@ -55,7 +56,7 @@ static void present(char *fn) {
 
 /*--------------------------------------------------------------------------
  * xref_addSearchListEntry()
- * Add an entry to the "current search list" file in the standard PKS Edit search list
+ * Add an entry to the "current pSearchExpression list" file in the standard PKS Edit pSearchExpression list
  * navigation format ("filename", line lineNumer: remarks).
  */
 int xref_addSearchListEntry(FTABLE* fp, char* fn, long line, char* remark) {
@@ -105,7 +106,7 @@ longline_scan:
 
 /*--------------------------------------------------------------------------
  * matchInFile()
- * scan for a search pattern in file fn
+ * scan for a pSearchExpression pattern in file fn
  */
 static int matchInFile(char *fn, DTA *stat) {	
 	int 	fd;
@@ -138,34 +139,34 @@ static int matchInFile(char *fn, DTA *stat) {
 
 /*--------------------------------------------------------------------------
  * find_matchesInFiles()
+ * Perform a recursive pSearchExpression in a list of pates with a given filename pattern.
  */
-int find_matchesInFiles(char *pathes, char* filenamePattern, char *search, int sdepth, int abortOnFirstMatch) {
+int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpression, int nMaxRecursion, int bAbortOnFirstMatch) {
 	char *		path;
 	char *		pathlist;
 	char		stepfile[256];
 
-	_abortOnFirstMatch = abortOnFirstMatch;
+	_abortOnFirstMatch = bAbortOnFirstMatch;
 	_nfound = 0;
 	string_concatPathAndFilename(stepfile, _datadir, "pksedit.grp");
 
-	if (!*search) {
+	if (!*pSearchExpression) {
 		_trymatch = 0;
 	} else {
-		if ((_compiledPattern = regex_compileWithDefault(search)) != NULL) {
+		if ((_compiledPattern = regex_compileWithDefault(pSearchExpression)) != NULL) {
 			return 0;
 		}
 		_trymatch = 1;
 	}
 
 	pathlist = _alloc(300);
-	_outfile = _alloc(sizeof *_outfile);
-	blfill(_outfile, sizeof *_outfile, 0);
-	lstrcpy(pathlist,pathes);
+	_outfile = calloc(1, sizeof *_outfile);
+	lstrcpy(pathlist,pPathes);
 	progress_startMonitor(IDS_ABRTRETREIVE);
 	if ((path = strtok(pathlist,",;")) != 0) {
 		do {	
-			if (_ftw(path,matchInFile,sdepth,
-					 filenamePattern, NORMALFILE|ARCHIV|WPROTECT) == 1) break;
+			if (_ftw(path,matchInFile,nMaxRecursion,
+					 pFilenamePattern, NORMALFILE|ARCHIV|WPROTECT) == 1) break;
 		} while ((path = strtok((char *)0,",;")) != 0);
 	}
 

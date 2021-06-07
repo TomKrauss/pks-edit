@@ -40,8 +40,16 @@ extern RSCTABLE *	_keytables;
 extern RSCTABLE *	_mousetables;
 extern RSCTABLE *	_menutables;
 
-extern BOOL 		OptionSet(long nFlag);
-extern long		rsc_wrmacros(int fd, long offset, char *buf, long maxbytes);
+extern void win_setEditMenuText(int menunr, char* text);
+extern BOOL op_defineOption(long nFlag);
+/*---------------------------------*/
+/* key_delbindings()			*/
+/* delete all key bindings to a 	*/
+/* for inst. single macro,...		*/
+/*---------------------------------*/
+extern void key_delbindings(MACROREFTYPE typ, MACROREFIDX val);
+extern void key_unbind(KEYBIND* kp);
+extern long			rsc_wrmacros(int fd, long offset, char *buf, long maxbytes);
 extern long 		rsc_wrbuf(int fd, long offset, char *buf, long maxbytes);
 extern char *		rsc_rdmacros(char *param, unsigned char *p, unsigned char *pend);
 extern char *		file_getTempFilename(char *dst, char c);
@@ -49,13 +57,18 @@ extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 extern void 		st_seterrmsg(char *msg);
 extern void 		key_overridetable(void);
 extern void 		mouse_destroyMouseBindings(void);
-extern int 		menu_addentry(char *pszString, int menutype, 
+extern int 			menu_addentry(char *pszString, int menutype, 
 					MACROREFTYPE mactype, MACROREFTYPE macidx);
 extern void 		menu_startdefine(char *szMenu);
 extern void 		st_switchtomenumode(BOOL bMenuMode);
-
+extern int			macro_executeSequence(COM_1FUNC* cp, COM_1FUNC* cpmax);
+/*------------------------------------------------------------
+ * bind_mouse()
+ * bind a mouse to current key table context
+ */
+extern 	int bind_mouse(MOUSECODE mousecode, MACROREFTYPE typ, MACROREFIDX idx, int flags, int augment);
 extern MACROREF *	menu_getuserdef(int nId);
-extern int 		macro_canExecuteFunction(int num, int warn);
+extern int 			macro_canExecuteFunction(int num, int warn);
 extern void 		SetMenuFor(char *pszContext);
 
 int				_recording;
@@ -180,7 +193,7 @@ void macro_autosaveAllBindings(int warnFlag)
 				_macedited = 0;
 		} else {
 			if (errorDisplayYesNoConfirmation(IDS_MSGSAVESEQ) == IDYES) {
-				EdMacrosReadWrite(1);
+				macros_readWriteWithFileSelection(1);
 			}
 		}
 	}
@@ -303,7 +316,7 @@ static char *macro_addMultipleMouseBindings(char *name, MOUSEBIND *mp, MOUSEBIND
 		mcode.button = mp->button;
 		mcode.nclicks = mp->nclicks;
 		mcode.shift = mp->shift;
-		bind_mouse(mcode, mp->macref.typ, mp->macref.index, 0);
+		bind_mouse(mcode, mp->macref.typ, mp->macref.index, 0, 1);
 		mp++;
 	}
 	return (char *)mplast;
@@ -519,9 +532,9 @@ int macro_toggleRecordMaco(void)
 }
 
 /*------------------------------------------------------------
- * EdMacrosReadWrite()
+ * macros_readWriteWithFileSelection()
  */
-int EdMacrosReadWrite(int wrflag)
+int macros_readWriteWithFileSelection(int wrflag)
 {	char *fn;
 
 	if ((fn = fsel_selectFileWithOptions(&_seqfsel,(wrflag) ? MWRSEQ : MREADSEQ, wrflag)) == 0) {
@@ -851,7 +864,7 @@ void macro_assignAcceleratorTextOnMenu(HMENU hMenu)
 			    		MF_BYPOSITION|MF_ENABLED : 
 					MF_BYPOSITION|MF_DISABLED|MF_GRAYED);
 			if (nFuncnum == FUNC_EdOptionToggle) {
-				if (OptionSet(_cmdseqtab[mp->index].p)) {
+				if (op_defineOption(_cmdseqtab[mp->index].p)) {
 					CheckMenuItem(hMenu, wItem, MF_CHECKED|MF_BYPOSITION);
 				}
 			}

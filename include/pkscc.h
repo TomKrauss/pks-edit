@@ -12,21 +12,54 @@
 
 #ifndef PKSCC_H
 
+#include <stdio.h>
+
 #ifndef DIM
 #define DIM(x)		sizeof(x)/sizeof(x[0])
 #endif
 
 #define UNUSED(x)	(x) = (x)
 
-extern char *		StaticLoadString(int nId);
-extern void 		protokoll(char *s, ...);
-extern int 		ActiveRulerContext(int ctx);
+typedef int BOOL;
 
-# ifdef __STDIO
-extern int 		macro_createFileAndDisplay(char *fn, long (*callback)(FILE *fp));
-extern int 		printpaste(FILE *fp, void *p);
-extern void 		printesclist(FILE *fp, void *p);
-# endif
+extern char *		macro_loadStringResource(int nId);
+extern void 		macro_showStatus(char *s, ...);
+
+/*--------------------------------------------------------------------------
+ * macro_printListHeader()
+ */
+extern void macro_printListHeader(FILE* fp, char* itemname);
+
+/*
+ * print the current mouse bindings to a file and display them to the user.
+ */
+extern int macro_saveMouseBindingsAndDisplay(void);
+
+/*---------------------------------
+ * macro_createFileAndDisplay()
+ * Invoke a callback to generate the contents of a file with
+ * the given file name. If successful, open the file in PKS Edit.
+ */
+extern BOOL macro_createFileAndDisplay(char* fn, long (*callback)(FILE* fp));
+
+/*--------------------------------------------------------------------------
+ * macro_isInCurrentDocumentContext()
+ * Check, whether the passed document context identifier matches the document
+ * context of the current open file.
+ */
+extern int 		macro_isInCurrentDocumentContext(int ctx);
+
+/*--------------------------------------------------------------------------
+ * macro_saveMenuBindingsAndDisplay()
+ */
+extern int macro_saveMenuBindingsAndDisplay(void);
+
+extern int macros_readWriteWithFileSelection(int wrflag);
+
+/*------------------------------------------------------------
+ * macros_readWriteWithFileSelection()
+ */
+extern int macros_readWriteWithFileSelection(int wrflag);
 
 # ifdef _PKSMOD_H
 extern EDXPORTS 	*edx;

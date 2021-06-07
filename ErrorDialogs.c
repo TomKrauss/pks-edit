@@ -132,7 +132,7 @@ void Panic(LPSTR s)
 #define	NSEC		5		/* stay open maximum 10 seconds */
 static HWND hwndError;
 static UINT_PTR idTimer;
-static BOOL CALLBACK DlgError(HWND hDlg,UINT message,WPARAM wParam, LPARAM lParam)
+static INT_PTR DlgError(HWND hDlg,UINT message,WPARAM wParam, LPARAM lParam)
 { 	
 	WINDOWPLACEMENT 	ws;
 
@@ -170,7 +170,7 @@ static BOOL CALLBACK DlgError(HWND hDlg,UINT message,WPARAM wParam, LPARAM lPara
  * If configured, popup a temporary dialog window showing an error.
  */
 void error_displayErrorToast(const char* fmt, va_list ap)
-{ 	static FARPROC lpfnDlgProc;
+{ 	static DLGPROC lpfnDlgProc;
 	char buf[256];
 
 	wvsprintf(buf,fmt,ap);

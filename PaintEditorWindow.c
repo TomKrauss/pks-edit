@@ -134,7 +134,7 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 		end = textlen+start;
 	}
 #if 1
-	blfill(buf,textlen,' ');
+	memset(buf,' ', textlen);
 # endif
 
 	d = buf;
@@ -188,7 +188,8 @@ termline:
 				ind = doctypes_calculateTabStop(i,linp);
 				if (ind > end) 
 					ind = end;
-				d = blfill(d, ind-i, linp->t1);
+				memset(d, linp->t1, ind-i);
+				d += (ind - i);
 				if (flags & SHOWCONTROL) {
 					d[-1] = '»';
 				}

@@ -23,7 +23,6 @@
 
 #include "pkscc.h"
 #include "funcdef.h"
-#include "uc.h"
 #include "brackets.h"
 
 #include "resource.h"
@@ -44,7 +43,7 @@ extern	char *	code2key(KEYCODE code);
 extern 	char *	mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 extern 	MACROREF *macro_getMacroIndexForMenu(int nId);
 
-void PrintListHeader(FILE *fp, char *itemname);
+void macro_printListHeader(FILE *fp, char *itemname);
 
 /*
  * c2shift()
@@ -429,107 +428,6 @@ int macro_saveKeyBindingsAndDisplay(void) {
 	return macro_createFileAndDisplay("KEYS", macro_printKeyBindingsCallback);
 }
 
-#if 0
-/*--------------------------------------------------------------------------
- * boolean2string()
- */
-static char *boolean2string(int cond)
-{
-	return (cond) ? "+" : "-";
-}
-
-/*
- * printbrackets()
- * BEGIN		END		HIERARCHICAL?		INDENTING?
- */
-static void printbrackets(FILE *fp, BRACKET *bp)
-{
-	if (!ActiveRulerContext(bp->ctx)) 
-		return;
-
- 	fprintf(fp,"%-12s%-12s%    -10s%s\n",
-		   bp->lefthand, bp->righthand,
-		   boolean2string(bp->d1 || bp->d2),
-		   boolean2string((*(long*)bp->ci1) != 0));
-}
-
-/*
- * PrintBrackets
- */
-int PrintBrackets(FILE *fp)
-{
-	BRACKET *bp;
-	PASTELIST **pp;
-	UCLIST *up;
-
-	uc_initializeUnderCursorActions(&bp,&pp,&up);
-
-	PrintListHeader(fp,"brackets");
-	fprintf(fp,"Left        Right       Nested   Indenting\n");
-	fprintf(fp,"ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ\n");
-	for ( ; bp; bp = bp->next) {
-		printbrackets(fp,bp);		
-	}
-	return 1;
-}
-
-/*
- * printabbrev()
- * SHORTCUT	...........
- */
-static void printabbrev(FILE *fp, UCLIST *up)
-{
-	if (!ActiveRulerContext(up->ctx))
-		return;
-
- 	fprintf(fp,"%-12sú ",up->pat);
-	printpaste(fp,up->p);
-}
-
-/*
- * PrintAbbrevs
- */
-int PrintAbbrevs(FILE *fp)
-{
-	BRACKET *bp;
-	PASTELIST **pp;
-	UCLIST *up;
-
-	uc_initializeUnderCursorActions(&bp,&pp,&up);
-
-	PrintListHeader(fp,"abbreviations");
-	fprintf(fp,"Shortcut    ú String\n");
-	fprintf(fp,"ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ\n");
-
-	while(up) {
-		if (up->action == UA_ABBREV) {
-			printabbrev(fp,up);
-		}
-		up = up->next;
-	}
-
-	return 1;
-}
-
-/*
- * PrintEscapes
- */
-int PrintEscapes(FILE *fp)
-{
-	BRACKET *bp;
-	PASTELIST **pp;
-	UCLIST *up;
-
-	uc_initializeUnderCursorActions(&bp,&pp,&up);
-
-	PrintListHeader(fp,"ESC-macros");
-	fprintf(fp,"Escape     ú String\n");
-	fprintf(fp,"ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ\n");
-	printesclist(fp,pp);
-	return 1;
-}
-
-#endif
 
 /*
  * printmousebind()
@@ -607,7 +505,7 @@ static int macro_printMouseBindingCallback(FILE *fp)
 }
 
 /*
- * macro_saveMouseBindingsAndDisplay
+ * print the current mouse bindings to a file and display them to the user.
  */
 int macro_saveMouseBindingsAndDisplay(void)
 {
@@ -681,9 +579,9 @@ int macro_saveMenuBindingsAndDisplay(void)
 }
 
 /*--------------------------------------------------------------------------
- * StaticLoadString()
+ * macro_loadStringResource()
  */
-char *StaticLoadString(int nIndex)
+char *macro_loadStringResource(int nIndex)
 {
 	static char	name[40];
 

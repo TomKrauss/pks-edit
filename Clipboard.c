@@ -142,9 +142,9 @@ EXPORT int clp_getdata(void)
 	    (hClip = GetClipboardData(CF_TEXT)) != 0 &&
 	    (lpClip = GlobalLock(hClip)) != 0) {
 
-		blfill(&ft,sizeof ft,0);
+		memset(&ft,0,sizeof ft);
 		size = GlobalSize(hClip);
-		if ((lpTemp = _alloc(size+10)) != 0) {
+		if ((lpTemp = malloc(size+10)) != 0) {
 			memmove(lpTemp, lpClip, (int)size);
 			if (size > 0 && lpTemp[size-1] == 0) {
 				// Get rid of trailing 0 char.

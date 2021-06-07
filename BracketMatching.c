@@ -21,7 +21,7 @@
 #include "winfo.h"
 #include "edierror.h"
 #include "regexp.h"
-#include "uc.h"
+#include "findandreplace.h"
 #include "brackets.h"
 #include "pksedit.h"
 #include "publicapi.h"
@@ -167,8 +167,7 @@ done:
 
 /*--------------------------------------------------------------------------
  * sm_setup()
- * put brackets to uclist, to allow
- * uc_finds on them
+ * Add the bracket matching definition to our internal matchlist (uclist), to prepare for bracket matching
  */
 EXPORT int sm_setup(void)
 {
@@ -490,10 +489,10 @@ EXPORT int EdShowMatch(void)
 /*--------------------------------------------------------------------------
  * uc_showMatchingBracket(s)
  */
-EXPORT int uc_showMatchingBracket(LINE *lp,int Col)
+EXPORT int uc_showMatchingBracket(LINE *lp,int iStartColumn)
 {	FTABLE *fp = ft_getCurrentDocument();
 	long   ln  = fp->ln;
-	long   col = Col;
+	long   col = iStartColumn;
 	struct uclist *up;
 
 	if ((up = uc_find(fp->documentDescriptor->id,lp->lbuf,col,UA_SHOWMATCH)) != 0) {

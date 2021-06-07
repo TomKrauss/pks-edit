@@ -64,6 +64,8 @@ static int calculateLongestLine(FTABLE *fp) {
 
 /*------------------------------------------------------------
  * sl_size()
+ * Update the internal sizeds of the WINFO structure (maxrows etc...).
+ * Also update slider thumbs for the window.
  */
 int sl_size(WINFO *wp)
 {
@@ -211,6 +213,8 @@ void sl_winchanged(WINFO *wp,long dy, long dx) {
 
 /*------------------------------------------------------------
  * sl_moved
+ * Invoked, when a scrollbar had been dragged - update the WINFO 
+ * data structure.
  */
 int sl_moved(WINFO *wp, long dy, long dx, int cursor_adjust) 
 {

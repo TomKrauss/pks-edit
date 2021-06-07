@@ -15,9 +15,12 @@
 #include <stdlib.h>
 #include "caretmovement.h"
 #include "edierror.h"
+#include "lineoperations.h"
+#include "markpositions.h"
 
 /*--------------------------------------------------------------------------
  * mark_find()
+ * Find a mark given the identifier character.
  */
 MARK *mark_find(FTABLE *fp, int c)
 {	register MARK *mp = fp->fmark;
@@ -62,11 +65,10 @@ static void mark_free(FTABLE *fp, MARK *mp)
 }
 
 /*--------------------------------------------------------------------------
- * mcp_release()
- * release C&P - Marks for a
- * file
+ * mark_killSelection()
+ * release the copy and paste - marks for a file
  */
-void mcp_release(FTABLE *fp)
+void mark_killSelection(FTABLE *fp)
 {
 
 	mark_free(fp,fp->blstart);
@@ -85,7 +87,8 @@ static MARK *mark_alloc(FTABLE *fp, int c)
 }
 
 /*--------------------------------------------------------------------------
- * markset()
+ * mark_set()
+ * Sets a mark in the line and offset named "c",
  */
 MARK *mark_set(FTABLE *fp, LINE *lp,int offs,int c)
 {	MARK *mp;
@@ -115,20 +118,6 @@ LINE *mark_goto(FTABLE *fp, int c, long *ln, long *col)
 	*ln  = ln_cnt(fp->firstl,mp->lm)-1;
 	*col = (long)mp->lc;
 	return mp->lm;
-}
-
-/*--------------------------------------------------------------------------
- * mark_saveCaretPosition()
- */
-int mark_saveCaretPosition(void)
-{	register FTABLE *fp;
-
-	if ((fp = ft_getCurrentDocument()) != 0) {
-		fp->lastln  = fp->ln,
-		fp->lastcol = fp->caret.offset;
-		return 1;
-	}
-	return 0;
 }
 
 /*--------------------------------------------------------------------------

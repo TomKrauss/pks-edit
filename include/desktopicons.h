@@ -95,7 +95,7 @@ extern void ic_fillIconTypeList(HWND hwnd, int nItem, void* selValue);
 /*--------------------------------------------------------------------------
  * ic_onIconTypeSelection()
  */
-extern void ic_onIconTypeSelection(HWND hDlg, WORD nItem, LONG lParam, void* p);
+extern void ic_onIconTypeSelection(HWND hDlg, int nItem, int lParam, void* p);
 
 /*------------------------------------------------------------
  * ic_measureIconTypeItem()

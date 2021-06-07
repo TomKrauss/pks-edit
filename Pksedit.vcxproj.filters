@@ -39,9 +39,6 @@
     <ClCompile Include="ColumnBlocks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MemFill.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TextBlocks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -258,9 +255,6 @@
     <ClCompile Include="macro_compiler\MacroExpressions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NotYetImplemented.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ToolbarWindow.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -374,9 +368,6 @@
     <ClInclude Include="include\trace.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\uc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\winfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -438,6 +429,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\winutil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\crossreferencelinks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\markpositions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,6 +19,7 @@
 
 #include "winterf.h"
 #include "winfo.h"
+#include "winutil.h"
 
 #pragma hdrstop
 

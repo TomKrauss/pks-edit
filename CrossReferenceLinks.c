@@ -25,9 +25,8 @@
 #include "winfo.h"
 #include "fileutil.h"
 #include "winutil.h"
-
-extern void	*prof_llinsert(void *Head, int size, 
-						char *group, char *item, char **idata);
+#include "crossreferencelinks.h"
+#include "markpositions.h"
 
 #define	TCMD_EXEC				'!'
 #define	TCMD_TAGFILE			'^'
@@ -84,6 +83,8 @@ static TAGEXPR	*_cmptags;
 static TAGEXPR *_compiler;
 
 static int	_compflag;
+
+extern int help_showHelpForKey(LPSTR szFile, LPSTR szKey);
 
 /*---------------------------------*/
 /* tags_mk()					*/
@@ -765,7 +766,7 @@ static int s_t_open(int title, int st_type, FSELINFO *fsp)
 	switch(st_type) {
 		case ST_ERRORS:
 			if (xref_openFile(_fseltarget, 0L, (WINDOWPLACEMENT*)0) && ft_getCurrentDocument()) {
-				EdFileAbandon(1);
+				EdFileAbandon();
 			}
 			return EdErrorNext(LIST_START|LIST_USETOPWINDOW);
 		case ST_STEP:

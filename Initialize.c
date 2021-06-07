@@ -19,6 +19,10 @@
 #include "editorconfiguration.h"
 #include "stringutil.h"
 #include "regexp.h"
+#include "crossreferencelinks.h"
+#include "documenttypes.h"
+#include "edfuncs.h"
+#include "printing.h"
 
 #undef DELIVER
 

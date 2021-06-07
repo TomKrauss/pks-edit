@@ -165,5 +165,18 @@ extern int caret_moveUpOrDown(int dir, int mtype);
  */
 extern int caret_moveToCurrentMousePosition(FTABLE* fp, long bAsk);
 
+/*--------------------------------------------------------------------------
+ * caret_saveLastPosition()
+ * Store the last cursor position so one can navigate "back" for the current
+ * editor window.
+ */
+extern int caret_saveLastPosition(void);
+
+/*--------------------------------------------------------------------------
+ * caret_positionCloseToMouseWithConfirmation()
+ * Position the caret in the current window potentially asking the user before doing so.
+ */
+extern int caret_positionCloseToMouseWithConfirmation(long bAsk);
+
 #define CARETMOVEMENT_H
 #endif

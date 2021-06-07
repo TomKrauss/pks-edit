@@ -17,13 +17,15 @@
 #include "pksedit.h"
 #include "textblocks.h"
 #include "edierror.h"
+#include "lineoperations.h"
+#include "markpositions.h"
 
 extern int 	_flushing;
-char* _linebuf;
-extern PASTE *	bl_addrbyid(int id, int insert);
+extern PASTE* bl_addrbyid(int id, int insert);
 
-LINE *	ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold);
-LINE *	ln_modify(FTABLE *fp,LINE *lp,int col1,int col2);
+// TODO: get rid of this hack.
+char* _linebuf;
+
 
 /*---------------------------------
  * ln_addFlag()
@@ -121,7 +123,7 @@ static void ln_delmarks(FTABLE *fp, LINE *lp)
 	int  	blflg = (fp->blstart && fp->blend);
 
 	if (blflg && fp->blstart->lm == lp && fp->blend->lm == lp) {
-		mcp_release(fp);
+		mark_killSelection(fp);
 		mp = fp->fmark;
 		blflg = 0;
 	}
@@ -206,10 +208,12 @@ int ln_delete(FTABLE *fp, LINE *lp)
 	return 1;
 }
 
-/*---------------------------------*/
-/* mln_cutlines()				*/
-/*---------------------------------*/
-void mln_cutlines(FTABLE *fp, int op)
+/*---------------------------------
+ * ft_cutMarkedLines()
+ * Cut out the lines which which have a line marker flag.
+ * The cut operation is one of the MLN_... constants defined for files.
+ *---------------------------------*/
+void ft_cutMarkedLines(FTABLE *fp, int op)
 {	LINE *		lp;
 	LINE *		lpnext;
 	PASTE *		pb;
@@ -626,7 +630,7 @@ LINE *ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold)
 	} else {
 		/* create a temp line for several purposes 	*/
 
-		blfill(lptmp,sizeof(LINE),0);
+		memset(lptmp,0,sizeof(LINE));
 	}
 	return lptmp;
 }

@@ -46,6 +46,24 @@ extern int find_expressionInCurrentFile(int dir, RE_PATTERN* pPattern, int optio
 extern int find_expressionAgainInCurrentFile(dir);
 
 /*--------------------------------------------------------------------------
+ * find_matchesInFiles()
+ * Perform a recursive pSearchExpression in a list of pates with a given filename pattern.
+ */
+extern int find_matchesInFiles(char* pPathes, char* pFilenamePattern, char* pSearchExpression, int nMaxRecursion, int bAbortOnFirstMatch);
+
+/*--------------------------------------------------------------------------
+ * find_replaceTabsWithSpaces()
+ * flg = 1 : expand TABS to SPACES
+ * flg = 0 : comp SPACES to TABS
+ */
+extern int find_replaceTabsWithSpaces(int scope, int flg);
+
+/*--------------------------------------------------------------------------
+ * find_selectRangeWithMarkers()
+ */
+extern int find_selectRangeWithMarkers(int rngdefault, MARK** mps, MARK** mpe);
+
+/*--------------------------------------------------------------------------
  * EdReplaceText()
  * replace, mark, count... lines with RE
  */

@@ -236,7 +236,7 @@ static void initset(char *set, char *fs)
 	if (!*fs)
 		fs = " \t";
 
-	blfill(set,256,0);
+	memset(set,0,256);
 	while((o=*fs++) != 0) {
 		if (o == '\\') {
 			o  = regex_parseOctalNumber(fs);
@@ -259,7 +259,7 @@ static void initkeylist(char *s, char *fs_set)
 	int		(*cmp)(unsigned char *s1,int l1, unsigned char *s2, int l2);
 
 	/* init to zero */
-	blfill(&_keytab,sizeof(_keytab),0);
+	memset(&_keytab,0,sizeof(_keytab));
 
 	if (!*s) {
 		i = 1;

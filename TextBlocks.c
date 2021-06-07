@@ -95,7 +95,7 @@ void EdGetSelectedText(void) {
 EXPORT void bl_free(PASTE *buf)
 {
 	ln_listfree(buf->pln);
-	blfill((unsigned char*) buf,sizeof *buf,0);
+	memset((unsigned char*) buf,0,sizeof *buf);
 }
 
 /*--------------------------------------------------------------------------
@@ -352,7 +352,7 @@ EXPORT int bl_delete(FTABLE *fp, LINE *lnfirst, LINE *lnlast, int cfirst,
 		bSaveOnClip = 1;
 	} else {
 		ppTrash = &ppDummy;
-		blfill(ppTrash, sizeof *ppTrash, 0);
+		memset(ppTrash, 0, sizeof *ppTrash);
 		bSaveOnClip = 0;
 	}
 

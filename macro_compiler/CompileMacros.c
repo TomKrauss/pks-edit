@@ -31,9 +31,9 @@ int  yyfinish(void);
 extern int		_macedited;
 
 /*--------------------------------------------------------------------------
- * CurrentRulerContext(()
+ * getCurrentDocumentTypeContext(()
  */
-int CurrentRulerContext(void)
+static int getCurrentDocumentTypeContext(void)
 {	FTABLE *fp;
 
 	if ((fp = ft_getCurrentDocument()) != 0)
@@ -42,20 +42,22 @@ int CurrentRulerContext(void)
 }
 
 /*--------------------------------------------------------------------------
- * ActiveRulerContext()
+ * macro_isInCurrentDocumentContext()
+ * Check, whether the passed document context identifier matches the document
+ * context of the current open file.
  */
-int ActiveRulerContext(int ctx)
+int macro_isInCurrentDocumentContext(int ctx)
 {
-	if (ctx != DEFAULT_DOCUMENT_DESCRIPTOR_CTX && ctx != CurrentRulerContext())
+	if (ctx != DEFAULT_DOCUMENT_DESCRIPTOR_CTX && ctx != getCurrentDocumentTypeContext())
 		return 0;
 	
 	return 1;
 }
 
 /*--------------------------------------------------------------------------
- * PrintListHeader()
+ * macro_printListHeader()
  */
-void PrintListHeader(FILE *fp, char *itemname)
+void macro_printListHeader(FILE *fp, char *itemname)
 {	FTABLE *ftp;
 
 	ftp = ft_getCurrentDocument();
@@ -83,31 +85,6 @@ int printpaste(FILE *fp, void *p)
 		fprintf(fp," ...");
 	fprintf(fp,"\n");
 	return maxlen;
-}
-
-/*--------------------------------------------------------------------------
- * prpastelist()
- */
-static void prpastelist(FILE *fp, PASTELIST *pp)
-{
-	while(pp) {
-		fprintf(fp,"'%c'        ú ",(pp->id & 0xFF));
-		printpaste(fp,&pp->pbuf);
-		pp = pp->next;
-	}
-}
-
-/*--------------------------------------------------------------------------
- * printesclist()
- */
-void printesclist(FILE *fp, void *p)
-{	PASTELIST **pp = (PASTELIST**)p;
-	int ctx;
-
-	prpastelist(fp,pp[0]);
-	if ((ctx = CurrentRulerContext()) != DEFAULT_DOCUMENT_DESCRIPTOR_CTX) {
-		prpastelist(fp,pp[ctx]);
-	}
 }
 
 /*
@@ -142,7 +119,7 @@ BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 		fflush(fp);
 		fclose(fp);
 		if (ft_activateWindowOfFileNamed(tmpfn)) {
-			EdFileAbandon(1);
+			EdFileAbandon();
 		}
 		else {
 			ft_optionFileWithoutFileselector(tmpfn,-1L, (void *)0);
@@ -234,10 +211,11 @@ int macro_executeSingleLineMacro(char *string) {
 	return 1;
 }
 
-/*---------------------------------*/
-/* protokoll()					*/
-/*---------------------------------*/
-void protokoll(char *s, ...)
+/*---------------------------------
+ * macro_showStatus()
+ * Display a status message while compiling a macro.
+ *---------------------------------*/
+void macro_showStatus(char *s, ...)
 {
 	va_list 	ap;
 	char 	b[256];

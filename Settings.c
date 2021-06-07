@@ -27,6 +27,7 @@
 #include "pksedit.h"
 #include "dial2.h"
 #include "functab.h"
+#include "edfuncs.h"
 #include "regexp.h"
 
 #/*---- GLOBALS ---------------*/
@@ -35,7 +36,7 @@
 extern int  _recording;
 extern int  _deadkey;
 
-int doc_documentTypeChanged(void);
+int doctypes_documentTypeChanged(void);
 int doc_columnChanged(void);
 int macro_toggleRecordMaco(void);
 int markcolomns(FTABLE *fp);
@@ -47,30 +48,31 @@ static struct optiontab {
     int  local;
     int  (*func)();
 } _optiontab[] = {
-     IDD_FKFLG1,    WM_INSERT,     2,   doc_documentTypeChanged,
-     IDD_FKFLG2,    WM_AUTOINDENT, 2,   doc_documentTypeChanged,
-     IDD_FKFLG3,    WM_AUTOWRAP,   2,   doc_documentTypeChanged,
-     IDD_FKFLG4,    WM_AUTOFORMAT, 2,   doc_documentTypeChanged,
-     IDD_FKFLG5,    WM_SHOWMATCH,  2,   doc_documentTypeChanged,
-     IDD_FKFLG6,    WM_BRINDENT,   2,   doc_documentTypeChanged,
-     IDD_FKFLG7,    WM_ABBREV,     2,   doc_documentTypeChanged,
+     IDD_FKFLG1,    WM_INSERT,     2,   doctypes_documentTypeChanged,
+     IDD_FKFLG2,    WM_AUTOINDENT, 2,   doctypes_documentTypeChanged,
+     IDD_FKFLG3,    WM_AUTOWRAP,   2,   doctypes_documentTypeChanged,
+     IDD_FKFLG4,    WM_AUTOFORMAT, 2,   doctypes_documentTypeChanged,
+     IDD_FKFLG5,    WM_SHOWMATCH,  2,   doctypes_documentTypeChanged,
+     IDD_FKFLG6,    WM_BRINDENT,   2,   doctypes_documentTypeChanged,
+     IDD_FKFLG7,    WM_ABBREV,     2,   doctypes_documentTypeChanged,
      IDD_FKFLG8,    BLK_COLOMN,    2,   doc_columnChanged,
-     IDD_FKFLG9,    O_RDONLY,      2,   doc_documentTypeChanged,
-     IDD_FKFLG10,   WM_OEMMODE,    2,   doc_documentTypeChanged,
-     IDD_FKFLG10+1, SHOWOEM,       1,   doc_documentTypeChanged,
+     IDD_FKFLG9,    O_RDONLY,      2,   doctypes_documentTypeChanged,
+     IDD_FKFLG10,   WM_OEMMODE,    2,   doctypes_documentTypeChanged,
+     IDD_FKFLG10+1, SHOWOEM,       1,   doctypes_documentTypeChanged,
      IDD_FKFLG10+2, 1,            -1,   macro_toggleRecordMaco,
-     0,             SHOWCONTROL,   1,   doc_documentTypeChanged,
-     0,             SHOWSTATUS,    1,   doc_documentTypeChanged,
-     0,             SHOWHEX,       1,   doc_documentTypeChanged,
-     0,             SHOWRULER,     1,   doc_documentTypeChanged,
-     0,             SHOWATTR,      1,   doc_documentTypeChanged,
+     0,             SHOWCONTROL,   1,   doctypes_documentTypeChanged,
+     0,             SHOWSTATUS,    1,   doctypes_documentTypeChanged,
+     0,             SHOWHEX,       1,   doctypes_documentTypeChanged,
+     0,             SHOWRULER,     1,   doctypes_documentTypeChanged,
+     0,             SHOWATTR,      1,   doctypes_documentTypeChanged,
      -1
 };
 
 /*--------------------------------------------------------------------------
- * doc_documentTypeChanged()
+ * doctypes_documentTypeChanged()
+ * One document has changed - apply the changes to the current editor.
  */
-int doc_documentTypeChanged(void)
+int doctypes_documentTypeChanged(void)
 {
 	WINFO  *	wp;
 	FTABLE *	fp;
@@ -149,9 +151,9 @@ static void ChangeFlag(struct optiontab *op,int dofunc)
 }
 
 /*--------------------------------------------------------------------------
- * OptionSet()
+ * op_defineOption()
  */
-BOOL OptionSet(long nFlag)
+BOOL op_defineOption(long nFlag)
 {
 	int	*pOpt;
 
@@ -208,7 +210,7 @@ EXPORT int op_checktoggle(int toggle)
 				return macro_executeFunction(
 					FUNC_EdOptionToggle,
 						MAKELONG(op->flag,op->local),
-						0L,(LPSTR)0,(LPSTR)0);
+						0L,(LPSTR)0,(LPSTR)0, (LPSTR)0);
 			}
           }
 	}

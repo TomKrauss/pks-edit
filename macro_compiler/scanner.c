@@ -438,6 +438,7 @@ char *yytext;
 #include "lineoperations.h"
 #include "pkscc.h"
 #include "stringutil.h"
+#include "crossreferencelinks.h"
 
 #define YY_FATAL_ERROR(msg) yyerror( msg )
 
@@ -693,7 +694,7 @@ int yyfinish(void)
 		xref_openSearchList(yyerr.errname,1);
 		return 0;
 	} else {
-		protokoll("No Errors detected");
+		macro_showStatus("No Errors detected");
 	}
 	return 1;
 }
@@ -1167,7 +1168,7 @@ retIdent:				yylval.s = yystralloc(yytext);
 					if (_bDefiningConst) {
 						goto retIdent;
 					}
-					yylval.num = VALUE(sym);
+					yylval.num = VALUE_AS_INT(sym);
 					return T_NUM;
 				}
 	

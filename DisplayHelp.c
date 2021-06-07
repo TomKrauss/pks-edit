@@ -80,7 +80,7 @@ int EdHelp(UINT hType, DWORD p)
 /*--------------------------------------------------------------------------
  * EdHelpContext()
  */
-int EdHelpContext(WORD nCtx)
+int EdHelpContext(DWORD nCtx)
 {
 	return EdHelp(HH_DISPLAY_TOC,(DWORD)nCtx);
 }

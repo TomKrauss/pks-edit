@@ -17,6 +17,7 @@
 #include "edierror.h"
 #include "errordialogs.h"
 #include "winfo.h"
+#include "documenttypes.h"
 
 #include "winterf.h"
 #include "edfuncs.h"
@@ -336,7 +337,7 @@ void mouse_destroyMouseBindings(void)
 	RSCTABLE *		rp;
 
 	if ((rp = _mousetables) != 0 && rp->rt_data) {
-		blfill(rp->rt_data, (int)((char *)rp->rt_end - (char *)rp->rt_data), 0);
+		memset(rp->rt_data, 0, (int)((char *)rp->rt_end - (char *)rp->rt_data));
 	}
 }
 

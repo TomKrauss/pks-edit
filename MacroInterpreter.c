@@ -22,6 +22,7 @@
 #include "edfuncs.h"
 #include "functab.h"
 #include "mouseutil.h"
+#include "sym.h"
 
 extern void 			macro_reportError(void);
 extern int 			EdMacroRecord(void);

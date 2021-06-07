@@ -283,7 +283,7 @@ int rsc_create(char *fname, int trunc)
 	if ((fd = Fcreate(fname,0)) < 0)
 		return fd;
 
-	blfill(&h,sizeof h,0);
+	memset(&h,0,sizeof h);
 
 	h.rs_version = RS_VERSION;
 	h.rs_nentities = 0;
@@ -461,7 +461,7 @@ void *rsc_tableresize(RSCTABLE *rp, int itemsize, void *noalloc, BOOL (*emptyFun
 	if ((data = _alloc(size)) == 0) {
 		return 0;
 	}
-	blfill(data, size, 0);
+	memset(data, 0,size);
 	kp2 = data;
 	for (kp = rp->rt_data; kp < (char *)rp->rt_end; ) {
 		if (!(*emptyFunc)(kp)) {

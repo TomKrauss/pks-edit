@@ -32,6 +32,9 @@
 #include "desktopicons.h"
 #include "fileutil.h"
 #include "edfuncs.h"
+#include "stringutil.h"
+#include "documenttypes.h"
+#include "xdialog.h"
 
 #define	PROF_OFFSET	1
 
@@ -51,6 +54,7 @@ extern void 	init_readConfigFiles(void);
 extern int 		clp_setdata(int whichBuffer);
 extern HMENU 	menu_getmenuforcontext(char *pszContext);
 extern BOOL 	init_initializeVariables(void);
+extern void		help_quitHelpSystem(void);
 
 extern BOOL	bTaskFinished;
 
@@ -82,7 +86,7 @@ int		_openIconic = FALSE;
 /*------------------------------------------------------------
  * win_createMdiChildWindow()
  */
-HWND win_createMdiChildWindow(char *szClass, char *fn, int itemno, long lParam, WINDOWPLACEMENT *wsp)
+HWND win_createMdiChildWindow(char *szClass, char *fn, int itemno, LPARAM lParam, WINDOWPLACEMENT *wsp)
 {
 	MDICREATESTRUCT 	mdicreate;
 	HWND 				hwndChild;
@@ -395,7 +399,7 @@ static void RegisterServerDDE(void) {
 /*------------------------------------------------------------
  * WinMain()
  */
-int PASCAL WinMain(HANDLE hInstance, HANDLE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow) {
 	MSG msg;
 
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
@@ -429,7 +433,7 @@ int PASCAL WinMain(HANDLE hInstance, HANDLE hPrevInstance, LPSTR lpCmdLine, int 
 	ShowWindow(hwndClient,SW_SHOW);
 
 	if (!ww_getNumberOfOpenWindows() && _runInteractive) {
-		EdEditFile(0L,0L,(char*)0);
+		EdEditFile(0L,(char*)0);
 	}
 	while (GetMessage(&msg, 0, 0, 0)) {
 		if ((!_translatekeys || !TranslatePksAccel(hwndFrame,&msg)) &&
@@ -741,7 +745,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			wParam = macro_translateToOriginalMenuIndex(GET_WM_COMMAND_ID(wParam, lParam));
 			if (bHelp) {
 				bHelp = FALSE;
-				return EdHelpContext(wParam);
+				return EdHelpContext((DWORD)wParam);
 			}
 			if (macro_onMenuAction((int)wParam)) {
 				return 1;

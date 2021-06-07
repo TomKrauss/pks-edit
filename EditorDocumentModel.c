@@ -43,7 +43,7 @@ BOOL ln_createAndAdd(FTABLE* fp, char* q, int len, int flags) {
 	if (len < 0) {
 		len = (int)strlen(q);
 	}
-	if ((lp = _alloc(len + sizeof(LINE))) == 0L) {
+	if ((lp = malloc(len + sizeof(LINE))) == 0L) {
 		ln_listfree(fp->firstl);
 		fp->firstl = 0;
 		return FALSE;
@@ -71,17 +71,13 @@ BOOL ln_createAndAdd(FTABLE* fp, char* q, int len, int flags) {
 /* create a new line. Pass the number of bytes required to hold the character content */
 /*----------------------------*/
 LINE* ln_create(int size) {
-	LINE* new;
+	LINE* pNew;
 
-	if ((new = (LINE*)_alloc(size + sizeof(LINE))) == 0L) return(0);
-	new->prev = 0L;
-	new->next = 0L;
-	*(long*) new = 0;
-	if (size > 0) {
-		new->len = size;
-		new->lbuf[0] = 0;
+	if ((pNew = (LINE*)calloc(1, size + sizeof(LINE))) == 0L) {
+		return(0);
 	}
-	return(new);
+	pNew->len = size;
+	return pNew;
 }
 
 /*----------------------------

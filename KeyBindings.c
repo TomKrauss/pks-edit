@@ -33,7 +33,7 @@ void key_overridetable(void)
 	RSCTABLE *		rp;
 
 	if ((rp = _keytables) != 0 && rp->rt_data) {
-		blfill(rp->rt_data, (int)((char *)rp->rt_end - (char *)rp->rt_data), 0);
+		memset(rp->rt_data, 0, (int)((char *)rp->rt_end - (char *)rp->rt_data));
 	}
 }
 
@@ -55,7 +55,7 @@ void key_destroytables(void)
 		}
 	}
 	_keytables = &__k;
-	blfill(_keymaptab,sizeof _keymaptab,0);
+	memset(_keymaptab,0,sizeof _keymaptab);
 }
 
 /*---------------------------------*/
@@ -66,7 +66,7 @@ void key_destroytable(char *name)
 	RSCTABLE 	*rp;
 
 	if ((rp = rsc_findtable(_keytables, name)) != 0) {
-		blfill(rp->rt_data, (int)((char *)rp->rt_end-(char *)rp->rt_data), 0);
+		memset(rp->rt_data, 0, (int)((char *)rp->rt_end-(char *)rp->rt_data));
 	}
 }
 

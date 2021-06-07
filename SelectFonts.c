@@ -171,8 +171,8 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 
 	/* Set all structure fields to zero. */
 
-	blfill(&cf, sizeof cf, 0);
-	blfill(&lf, sizeof lf, 0);
+	memset(&cf, 0, sizeof cf);
+	memset(&lf, 0, sizeof lf);
 
 	lf.lfHeight = ep->height;
 	lf.lfWeight = ep->style.weight;

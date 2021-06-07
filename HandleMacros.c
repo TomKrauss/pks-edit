@@ -26,6 +26,8 @@
 
 char *c2shift(char *s, KEYCODE code);
 
+extern void yyerror(char* s, ...);
+
 /*------------------------------------------------------------
  * mac_name()
  */

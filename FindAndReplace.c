@@ -13,6 +13,7 @@
  */
 
 #include <windows.h>
+#include <string.h>
 
 #include "trace.h"
 #include "caretmovement.h"
@@ -20,10 +21,10 @@
 
 #include "winfo.h"
 #include "winterf.h"
+#include "xdialog.h"
 
 #pragma hdrstop
 
-#include <string.h>
 #include "pksedit.h"
 #include "edctype.h"
 #include "edfuncs.h"
@@ -362,7 +363,7 @@ int ft_expandTabsWithSpaces(LINE *lp, long *nt)
 		if ((c = *s++) == '\t') {
 			col = (int)(d - _linebuf);
 			col = doctypes_calculateTabStop(col,ft_getCurrentDocument()->documentDescriptor) - col;
-			blfill(d,col,' ');
+			memset(d,' ', col);
 			(*nt)++;
 			d += col;
 		} else
@@ -439,7 +440,7 @@ static LINE *compline(FTABLE *fp, LINE *lp,long *nt)
 				if ((lp = ln_modify(fp,lp,foundpos,start+ntabs)) == 0L) 
 					return 0;
 				lp->lflg |= LNREPLACED;
-				blfill(&lp->lbuf[start],ntabs,'\t');
+				memset(&lp->lbuf[start],'\t',ntabs);
 				(*nt) += ntabs;
 				i -= n2;
 				s = lp->lbuf+i;
@@ -585,7 +586,7 @@ int EdReplaceText(int scope, int action, int flags)
 	MARK		*markstart,*Markend;
 	register MARK *markend;
 	LINE		*oldxpnd = 0;
-	register size_t newlen;
+	size_t newlen;
 	register	maxlen,delta;
 	RE_MATCH	match;
 	register	olen;
@@ -609,7 +610,7 @@ int EdReplaceText(int scope, int action, int flags)
 	hist_enq(SEARCH_AND_REPLACE, _currentSearchAndReplaceParams.replaceWith);
 
 	undo_startModification(fp);
-	mark_saveCaretPosition();
+	caret_saveLastPosition();
 
 	if (find_setTextSelection(scope,fp,&markstart,&Markend) == RNG_INVALID)
 		return 0;
@@ -722,7 +723,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 
 		if (query) {
 			cursor_width = searchcpos(fp,ln,col, &match);
-			switch (dlg_queryReplace(match.loc1,olen,q,newlen)) {
+			switch (dlg_queryReplace(match.loc1,olen,q,(int)newlen)) {
 				case IDNO:
 					delta = olen;
 					goto advance;
@@ -740,7 +741,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 		                   (int)(col+newlen))) == 0L)
 			break;
 
-		strxcpy(&lp->lbuf[col],q,newlen);
+		strxcpy(&lp->lbuf[col],q, (int)newlen);
 
 		if (query)
 			render_redrawCurrentLine();

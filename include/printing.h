@@ -75,6 +75,13 @@ typedef struct prtparams {			/* print params */
 #define	PRTL_COND			2
 #define	PRTL_EXPANDED		3
 
+/*------------------------------------------------------------
+ * print_readWriteConfigFile()
+ * Read / write the print configuration of PKS edit depending
+ * on the save flag passed as an argument.
+ */
+extern void print_readWriteConfigFile(int save);
+
 #define	PRT_H
 
 #endif

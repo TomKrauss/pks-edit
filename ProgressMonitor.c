@@ -17,6 +17,7 @@
 #include "trace.h"
 #include "lineoperations.h"
 #include "winfo.h"
+#include "winutil.h"
 #include "errordialogs.h"
 
 #include "pksedit.h"
@@ -33,25 +34,25 @@ static int  	_cancelled;
 /*------------------------------------------------------------
  * DlgProgressProc()
  */
-static BOOL CALLBACK DlgProgressProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
+static INT_PTR DlgProgressProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
 	switch(message) {
 		case WM_INITDIALOG:
 			_cancelled = 0;
-			return TRUE;
+			return (INT_PTR)TRUE;
 
 		case WM_COMMAND:
 		case WM_CLOSE:
 			if (errorDisplayYesNoConfirmation(IDS_MSGABRT) == IDYES) {
 				_cancelled = 1;
 			}
-			return TRUE;
+			return (INT_PTR)TRUE;
 
 		case WM_DESTROY:
 			hwndAbort = 0;
-			return TRUE;
+			return (INT_PTR)TRUE;
 	}
-	return FALSE;
+	return (INT_PTR)FALSE;
 }
 
 /*------------------------------------------------------------

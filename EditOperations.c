@@ -18,6 +18,7 @@
 #include "functab.h"
 #include "caretmovement.h"
 #include "winfo.h"
+#include "brackets.h"
 #include "edierror.h"
 #include "pksedit.h"
 #include "textblocks.h"
@@ -52,6 +53,12 @@ extern void 	render_updateCaret(WINFO *wp);
 
 extern long 	_multiplier;
 extern int 		cursor_width;
+
+/*--------------------------------------------------------------------------
+ * EdCharDelete()
+ * delete character(s), words, ....
+ */
+int EdCharDelete(int control);
 
 /*--------------------------------------------------------------------------
  * CalcCol2TabsBlanks()
@@ -116,8 +123,8 @@ LINE *ln_insertIndent(FTABLE *fp, LINE *lp, int col, int *inserted)
 
 	if ((*inserted = t+b) != 0) {
 		if ((lp = ln_modify(fp,lp,0,*inserted)) != 0L) {
-			blfill(lp->lbuf,t,'\t');
-			blfill(lp->lbuf+t,b,fillc);
+			memset(lp->lbuf,'\t', t);
+			memset(lp->lbuf+t,fillc,b);
 		}
 	}
 
@@ -707,7 +714,7 @@ int EdCharInsert(int c)
 	}
 
 	if ((lp = ln_modify(fp,fp->caret.linePointer,offs,offs+len)) == 0L) return 0;
-	blfill(&lp->lbuf[offs],nchars,c);
+	memset(&lp->lbuf[offs],c,nchars);
 
 #if 0
 	render_linePart(offs,10000);
@@ -740,7 +747,7 @@ int EdCharInsert(int c)
  * EdCharDelete()
  * delete character(s), words, ....
  */
-int EdCharDelete(control)
+int EdCharDelete(int control)
 {	register	LINE *lp,*lp1=0;
 	FTABLE 	*fp = ft_getCurrentDocument();
 	long		ln,ln1,o2,o1;
@@ -880,7 +887,7 @@ int EdMarkedLineOp(int op)
 		if (op == MLN_JOIN)
 			lnjoin_lines(fp);	
 		else
-			mln_cutlines(fp, op);
+			ft_cutMarkedLines(fp, op);
 	}
 
 	render_repaintAllForFile(fp);

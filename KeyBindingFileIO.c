@@ -20,13 +20,15 @@
 #include "edierror.h"
 #include "edfuncs.h"
 #include "fileselector.h"
-#include "uc.h"
+#include "brackets.h"
 #include "winterf.h"
 #include "winfo.h"
 #include "stringutil.h"
 #include "fileutil.h"
 #include "textblocks.h"
 #include "regexp.h"
+#include "documenttypes.h"
+#include "crossreferencelinks.h"
 
 #define	MAX_CONTEXT	32
 

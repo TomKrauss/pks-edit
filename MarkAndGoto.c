@@ -17,6 +17,7 @@
 #include "pksedit.h"
 #include "edierror.h"
 #include "stringutil.h"
+#include "crossreferencelinks.h"
 
 #define	NFILEMARKS		16
 
@@ -62,6 +63,7 @@ static char **fm_getincr(int incr)
 
 /*--------------------------------------------------------------------------
  * fm_savepos()
+ * Save a filemark position, so one can later navigate back to the position.
  */
 static int avoidq;
 int fm_savepos(char *tag)
@@ -82,6 +84,7 @@ int fm_savepos(char *tag)
 
 /*--------------------------------------------------------------------------
  * fm_mktagstring()
+ * Create a String for a file mark.
  */
 void fm_mktagstring(char *buf, char *bufend)
 {	char *s,**tp,*bufstart;

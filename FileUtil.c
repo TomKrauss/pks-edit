@@ -235,12 +235,8 @@ EXPORT char *file_getTempFilename(char *dst, char c)
 
 	strcpy(temp, "PKS");
 	temp[1] = c;
-#if defined(WIN32)
 	GetTempPath(sizeof tempPath, tempPath);
-	GetTempFileName(tempPath, temp, LOWORD((DWORD)hInst), dst);
-#else
-	GetTempFileName(0, temp, (UINT)hInst, dst);
-#endif
+	GetTempFileName(tempPath, temp, LOWORD((intptr_t)hInst), dst);
 	return dst;
 }
 
@@ -252,15 +248,16 @@ EXPORT char *file_getTempDirectory(void)
 {	static char tmpdir[1024];
 
 	if (!tmpdir[0]) {
-#if defined(WIN32)
-	GetTempPath(sizeof tmpdir, tmpdir);
-#else
-	char 		dst[1024];
-	GetTempFileName(0,"X",(UINT)hInst,dst);
-	string_splitFilename(dst,tmpdir,(char *)0);
-#endif
+		GetTempPath(sizeof tmpdir, tmpdir);
 	}
 	return tmpdir;
+}
+
+/*
+ * Callback used to delete temp files recursively. 
+ */
+static int file_removeCb(char* filename, DTA* dta) {
+	return _unlink(filename);
 }
 
 /*---------------------------------------------------------------
@@ -278,6 +275,6 @@ EXPORT void file_clearTempFiles(void)
 	string_splitFilename(tmpname,pathname,fn);
 	if ((szBang = strchr(fn, '!')) != 0) {
 		*szBang = '?';
-		_ftw(pathname,_unlink,1,fn,0xFF);
+		_ftw(pathname, file_removeCb,1,fn,0xFF);
 	}
 }

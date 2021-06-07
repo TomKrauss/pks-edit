@@ -56,7 +56,7 @@ long macro_getNumberParameter(unsigned char *sp,unsigned char *spend)
 		case C_MACRO:
 		case C_0FUNC:
 		case C_1FUNC:
-			return (long)macro_doMacroFunctions(&sp,spend);
+			return (long)macro_doMacroFunctions((COM_1FUNC**)&sp, (COM_1FUNC*)spend);
 	}
 	return 0L;
 }

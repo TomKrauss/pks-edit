@@ -40,7 +40,7 @@ void key_destroytables(void)
 		}
 	}
 	_keytables = &__k;
-	blfill(_keymaptab,sizeof _keymaptab,0);
+	memset(_keymaptab,0,sizeof _keymaptab);
 }
 
 /*---------------------------------*/

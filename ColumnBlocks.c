@@ -86,7 +86,7 @@ EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int free
 	clast  = fp->blcol2;
 	ctrl   = PLAINCONTROL(fp->documentDescriptor->dispmode);
 	if (clast - cfirst <= 0) return 0;
-	blfill(pp,sizeof(pp),0);
+	memset(pp,0,sizeof(pp));
 	while(cnt > 0) {
 		if ((lpnew = tabcpy(fp, &lp,cfirst,clast,freeflg,ctrl)) == (LINE *) 0) 
 			return 0;
@@ -126,7 +126,7 @@ static LINE *tabinsl(FTABLE *fp, LINE *lpd, LINE *lps, int col, int ctrlmode)
 
 	if (col > oldsize) {
 		memmove(lpd->lbuf,_linebuf,oldsize);
-		blfill(&lpd->lbuf[oldsize],col-oldsize,' ');
+		memset(&lpd->lbuf[oldsize],' ', col - oldsize);
 		memmove(&lpd->lbuf[col],lps->lbuf,lps->len);
 	}
 	else {

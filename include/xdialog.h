@@ -86,6 +86,11 @@ extern int dlg_queryReplace(char* search, int slen, char* replace, int dlen);
  */
 extern int dlg_displayRecordMacroOptions(int* o);
 
+/*--------------------------------------------------------------------------
+ * dlg_help()
+ * Shows the help system.
+ */
+extern void dlg_help(void);
 
 /*--------------------------------------------------------------------------
  * dlg_displayDialogTemplate()
@@ -98,6 +103,17 @@ extern int dlg_displayDialogTemplate(unsigned char c, char* (*fpTextForTmplate)(
  */
 extern void dlg_closeQueryReplace(void);
 
+/*--------------------------------------------------------------------------
+ * EdPromptForCharacter()
+ * Prompt for a character. The prompt message is defined via resource ID passed
+ * as a parameter.
+ */
+extern int EdPromptForCharacter(int ids_num);
+
+/*--------------------------------------------------------------------------
+ * EdHelpContext()
+ */
+extern int EdHelpContext(DWORD nCtx);
 
 #define tedinit(hDlg,item,string)	DlgInitString(hDlg,item,string,sizeof string -1)
 

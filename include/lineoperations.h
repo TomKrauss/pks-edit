@@ -87,26 +87,12 @@ typedef struct pastelist {
 	PASTE			pbuf;
 } PASTELIST;
 
-/*---------------------------------
- * Undoable edit operations on one o more lines
- */
-#define	O_MODIFY			0		/* modify a line */
-#define	O_INSERT			1		/* insert a line */
-#define	O_DELETE			2		/* EdCharDelete a line */
-#define	O_MARK				3		/* mark a textblock */
-#define	O_LNORDER			4		/* reorder linelist according to a table */
-#define	O_HIDE				5		/* hide a list of lines */
-#define	O_UNHIDE			6		/* unhide a list of lines */
-
-/*---------------------------------*/
-/* MARKS						*/
-/*---------------------------------*/
 /* should ideally extend CARET */
-typedef struct mark {
-	struct mark	*next;
-	int  		mchar;		/* ID of mark (char || BLOCKSTART,-END)	*/
-	LINE 		*lm;
-	int  		lc;
+typedef struct tagMARK {
+	struct tagMARK* next;
+	int  			mchar;		/* ID of mark (char || BLOCKSTART,-END)	*/
+	LINE* lm;
+	int  			lc;
 } MARK;
 
 /* special marker IDs */
@@ -118,6 +104,17 @@ typedef struct mark {
 #define	MARKSELEND		0x103
 
 #define	MARKDOT			0x104
+
+/*---------------------------------
+ * Undoable edit operations on one o more lines
+ */
+#define	O_MODIFY			0		/* modify a line */
+#define	O_INSERT			1		/* insert a line */
+#define	O_DELETE			2		/* EdCharDelete a line */
+#define	O_MARK				3		/* mark a textblock */
+#define	O_LNORDER			4		/* reorder linelist according to a table */
+#define	O_HIDE				5		/* hide a list of lines */
+#define	O_UNHIDE			6		/* unhide a list of lines */
 
 /*---------------------------------*/
 /* DOCUMENT_DESCRIPTOR						*/
@@ -282,6 +279,13 @@ extern FTABLE* ft_getCurrentDocument();
  */
 extern int ft_activateWindowOfFileNamed(char* fn);
 
+/*---------------------------------
+ * ft_cutMarkedLines()
+ * Cut out the lines which which have a line marker flag.
+ * The cut operation is one of the MLN_... constants defined for files.
+ *---------------------------------*/
+void ft_cutMarkedLines(FTABLE* fp, int op);
+
 /*------------------------------------------------------------
  * ft_abandonFile()
  * Discard changes in a file and re-read.
@@ -335,13 +339,6 @@ extern void ln_changeFlag(LINE* lpstart, LINE* lpend, int flagsearch, int flagma
  * Remove a flag from all lines between lpstart and lpend.
  *---------------------------------*/
 extern void ln_removeFlag(LINE* lpstart, LINE* lpend, int flg);
-
-/*--------------------------------------------
-* blfill(char *buf,int count,int fillbyte)
-* Similar to memset, but return pointer to the end of
-* the filled area.
-*--------------------------------------------*/
-extern unsigned char* blfill(void* buf, int count, unsigned char fillbyte);
 
 extern char* ft_visiblename(FTABLE* fp);
 extern void ft_checkForChangedFiles(void);
@@ -420,6 +417,11 @@ extern int ft_restorePreviouslyOpenedWindows(void);
  * Select and activate the window with the given window id.
  */
 extern int ft_selectWindowWithId(int winid, BOOL bPopup);
+
+/*------------------------------------------------------------
+ * EdSelectWindow()
+ */
+int EdSelectWindow(int winid);
 
 extern char* ft_visiblename(FTABLE* fp);
 /*------------------------------------------------------------
@@ -550,6 +552,12 @@ extern int find_setTextSelection(int rngetype, FTABLE* fp, MARK** markstart, MAR
 extern BOOL undo_initializeManager(FTABLE* fp);
 
 /*--------------------------------------------------------------------------
+ * undo_redoLastModification()
+ * Redo the last modification undone the actual undo reverting the last operation.
+ */
+extern BOOL undo_redoLastModification(FTABLE* fp);
+
+/*--------------------------------------------------------------------------
  * undo_destroyManager()
  * Removes the current undo manager and deallocates all undo buffers.
  */
@@ -579,6 +587,32 @@ extern void macro_recordFunction(FTABLE* fp, int p);
  * string_formatDate()
  */
 extern void string_formatDate(char* szDbuf, EDTIME* ltime);
+
+/*------------------------------------------------------------
+ * EdEditFile()
+ * Edit a file with a filename and with potential flags.
+ */
+extern int EdEditFile(long editflags, char* filename);
+
+/*------------------------------------------------------------
+ * EdSaveFile()
+ * Save the current editor window. Depending on the passed options
+ * this may require the user to enter a file name or to do nothing (if the file
+ * is unchanged) etc...
+ */
+extern int EdSaveFile(int flg);
+
+/*--------------------------------------------------------------------------
+ * EdFileAbandon()
+ * Cancel all changes in he current file.
+ */
+extern void EdFileAbandon(void);
+
+/*--------------------------------------------------------------------------
+ * EdLineSplit()
+ * do cr+lf-Actions
+ */
+extern int EdLineSplit(int flags);
 
 /*
  * Typical data structure for a linked list.

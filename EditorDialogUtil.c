@@ -37,6 +37,7 @@
 #include "edhist.h"
 #include "xdialog.h"
 #include "regexp.h"
+#include "findandreplace.h"
 #include "winutil.h"
 
 #define ISRADIODLGCTL(i) 	((i) >= IDD_LOWRADIO && (i) <= IDD_HIGHRADIO)
@@ -49,7 +50,6 @@ extern int		mysprintf(FTABLE *fp, char *d,char *format,...);
 extern void 	macro_returnString(char *string);
 extern BOOL 	DlgChooseFont(HWND hWnd, EDFONT *ep, BOOL bPrinter);
 extern void 	fsel_setDialogTitle(char *title);
-extern int		macro_recordOperation(PARAMS* pp);
 
 static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
 static DIALPARS 	*_dp;
@@ -773,6 +773,7 @@ endd:		if (callback) {
 	
 /*--------------------------------------------------------------------------
  * dlg_help()
+ * Shows the help system.
  */
 void dlg_help(void)
 {

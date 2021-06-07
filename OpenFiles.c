@@ -39,11 +39,12 @@
 #include "editorconfiguration.h"
 #include "regexp.h"
 #include "edfuncs.h"
+#include "crossreferencelinks.h"
 
 /*------------------------------------------------------------
  * win_createMdiChildWindow()
  */
-extern HWND win_createMdiChildWindow(char* szClass, char* fn, int itemno, long lParam, WINDOWPLACEMENT* wsp);
+extern HWND win_createMdiChildWindow(char* szClass, char* fn, int itemno, LPARAM lParam, WINDOWPLACEMENT* wsp);
 extern HWND 	ww_winid2hwnd(int winid);
 extern int 	EdPromptAutosavePath(char *path);
 
@@ -440,7 +441,7 @@ static int ft_openwin(FTABLE *fp, WINDOWPLACEMENT *wsp)
 		}
 	}
 
-	if (win_createMdiChildWindow(szEditClass, fp->fname, ww_getNumberOfOpenWindows()+1, (uintptr_t)fp, wsp) == 0) {
+	if (win_createMdiChildWindow(szEditClass, fp->fname, ww_getNumberOfOpenWindows()+1, (LPARAM)(uintptr_t)fp, wsp) == 0) {
 		return 0;
 	}
 	return 1;
@@ -539,10 +540,12 @@ int ft_select(FTABLE *fp)
 }
 
 /*------------------------------------------------------------
- * txtfile_select()
+ * fsel_selectFileWithTitle()
+ * Select a file given a resource id for the title and return the selected
+ * filename in "result" (must be large enough to hold the pathname (EDMAXPATHLEN)).
  */
 static FSELINFO _txtfninfo = {"."};
-int txtfile_select(int title, char *result)
+int fsel_selectFileWithTitle(int title, char *result)
 {
 	char *fn;
 	BOOL	bRet;
@@ -662,8 +665,9 @@ int ft_optionFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
 
 /*------------------------------------------------------------
  * EdEditFile()
+ * Edit a file with a filename and with potential flags.
  */
-int EdEditFile(long editflags, long unused, char *filename)
+int EdEditFile(long editflags, char *filename)
 {
 	int		ret;
 	int		nEntry;
@@ -724,7 +728,7 @@ int ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 
 	caret_placeCursorInCurrentFile(ln,col);
 
-	doc_documentTypeChanged();
+	doctypes_documentTypeChanged();
 	render_repaintAllForFile(fp);
 
 	return 1;
@@ -744,6 +748,7 @@ int ft_checkReadonlyWithError(FTABLE* fp)
 
 /*--------------------------------------------------------------------------
  * EdFileAbandon()
+ * Cancel all changes in he current file.
  */
 void EdFileAbandon(void)
 {
@@ -752,6 +757,9 @@ void EdFileAbandon(void)
 
 /*------------------------------------------------------------
  * EdSaveFile()
+ * Save the current editor window. Depending on the passed options
+ * this may require the user to enter a file name or to do nothing (if the file
+ * is unchanged) etc...
  */
 int EdSaveFile(int flg)
 {
@@ -774,7 +782,7 @@ int EdSaveFile(int flg)
 		char newname[512];
 
 		string_splitFilename(fp->fname,_txtfninfo.path,_txtfninfo.fname);
-		if (txtfile_select(MSAVEAS, newname) == 0) {
+		if (fsel_selectFileWithTitle(MSAVEAS, newname) == 0) {
 			return 0;
 		}
 		if (areFilenamesDifferent(newname,fp->fname) && file_exists(newname) >= 0) {
@@ -822,7 +830,7 @@ void EditDroppedFiles(HDROP hDrop)
 		nFileLength  = DragQueryFile( hDrop , i , NULL, 0 );
 		pszFileName = _alloc(nFileLength + 1);
 		DragQueryFile( hDrop , i, pszFileName, nFileLength + 1 );
-		if (!EdEditFile(OPEN_NOFN, (LONG)0, pszFileName)) {
+		if (!EdEditFile(OPEN_NOFN, pszFileName)) {
 			break;
 		}
 		_free(pszFileName);
