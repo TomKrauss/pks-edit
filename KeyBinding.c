@@ -60,10 +60,11 @@ static void setkeylabel(void )
 		SetDlgItemText(hwndFkeys,IDD_FKSTATE,_fkmods[_fkeyshiftstate]);
 }
 
-/*----------------------------*/
-/* fkey_settext()             */
-/*----------------------------*/
-void fkey_settext(int state)
+/*----------------------------
+ * fkey_updateTextOfFunctionKeys()
+ * Update the text on the FKEYS keyboard.
+ *----------------------------*/
+void fkey_updateTextOfFunctionKeys(int state)
 {
 	int     	i;
 	int			shift;
@@ -101,9 +102,10 @@ void fkey_settext(int state)
 }
 
 /*------------------------------------------------------------
- * fkey_wh()
+ * fkey_getKeyboardSize()
+ * Get the size of the FKEY keyboard of PKS Edit.
  */
-EXPORT int fkey_wh(WORD *w, WORD *h)
+EXPORT int fkey_getKeyboardSize(WORD *w, WORD *h)
 {
 	RECT 	rectK;
 	RECT	rectClient;
@@ -256,7 +258,7 @@ WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		if (wParam == IDD_FKSTATE) {
 			ww_requestFocusInTopWindow();
-			return EdFkeysSwitch(1);
+			return fkey_keyModifierStateChanged(1);
 		}
 		break;
 
@@ -275,12 +277,13 @@ static void fkey_show(HWND hwndPapa)
 {
 	if ((GetConfiguration()->layoutoptions & (OL_FKEYS|OL_OPTIONBAR)) && hwndFkeys == 0) {
 		hwndFkeys = CreateDialog(hInst, szKeys, hwndPapa, NULL);
-		fkey_settext(-1);
+		fkey_updateTextOfFunctionKeys(-1);
 	}
 }
 
 /*--------------------------------------------------------------------------
  * fkey_register()
+ * Register the window class for the PKS Edit function keys widgets.
  */
 int fkey_register(void)
 {	WNDCLASS wc;
@@ -293,29 +296,32 @@ int fkey_register(void)
 }
 
 /*--------------------------------------------------------------------------
- * fkey_init()
+ * fkey_initKeyboardWidget()
+ * Initialize the FKEYs keyboard widget.
  */
-int fkey_init(HWND hwndPapa)
+int fkey_initKeyboardWidget(HWND hwndPapa)
 {
 	fkey_show(hwndPapa);
 	op_updateall();
 	return hwndFkeys ? 1 : 0;
 }
 
-/*---------------------------------*/
-/* EdFkeysSwitch()                 */
-/*---------------------------------*/
-int EdFkeysSwitch(int delta)
+/*---------------------------------
+ * fkey_keyModifierStateChanged()
+ * Update the PKS edit FKEYs to display the next
+ * group of FKEYS (for alternate modifiers).
+ *---------------------------------*/
+int fkey_keyModifierStateChanged(int delta)
 {
 	int keys;
 
-    	keys = (_fkeyshiftstate + delta);
-	if (keys < 0)
+    keys = (_fkeyshiftstate + delta);
+	if (keys < 0) {
 		keys = SHIFTFKEY;
-	else
-		if (keys > SHIFTFKEY)
-			keys = 0;
-     fkey_settext(keys);
+	} else if (keys > SHIFTFKEY) {
+		keys = 0;
+	}
+     fkey_updateTextOfFunctionKeys(keys);
 	return 1;
 }
 

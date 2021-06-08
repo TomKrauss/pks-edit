@@ -652,10 +652,10 @@ int doctypes_initAllDocumentTypes(void)
 }
 
 /*--------------------------------------------------------------------------
- * EdLineal()
- * wrflag & 2 -> documentDescriptor is given as par
+ * doctypes_readWriteDocumentDescriptor()
+ * Read or write the passed document descriptor to a file. wrflag & 2 -> documentDescriptor is given as par
  */
-int EdLineal(int wrflag, DOCUMENT_DESCRIPTOR *documentDescriptor) {
+int doctypes_readWriteDocumentDescriptor(int wrflag, DOCUMENT_DESCRIPTOR *documentDescriptor) {
 	int 		fd;
 	DOCUMENT_TYPE 	*llp;
 	FTABLE 	*fp = ft_getCurrentDocument();

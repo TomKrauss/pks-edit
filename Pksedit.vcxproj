@@ -1169,6 +1169,7 @@
     <ClInclude Include="include\findandreplace.h" />
     <ClInclude Include="include\markpositions.h" />
     <ClInclude Include="include\mouseutil.h" />
+    <ClInclude Include="include\propertychange.h" />
     <ClInclude Include="include\publicapi.h" />
     <ClInclude Include="include\stringutil.h" />
     <ClInclude Include="include\textblocks.h" />

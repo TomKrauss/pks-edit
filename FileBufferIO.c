@@ -331,7 +331,7 @@ ret0:			ret = 0;
 
 	if (fp->longLinesSplit > 0 && _verbose) {
 		error_showErrorById(IDS_MSGWRAPPEDLINES);
-		fp->flags |= F_CHANGEMARK;
+		ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 	}
 
 	fp->lastl = fp->caret.linePointer;
@@ -499,12 +499,13 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 		}
 	}
 	if (!ft_flushBufferAndCrypt(fd,offset,0,0,pw)) {
-wfail:	fp->flags |= F_CHANGEMARK;
+	wfail:	
+		ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 		ret = 100;
 		goto wfail1;
 	}
 	ret = 0;
-	fp->flags &= ~(F_CHANGEMARK | F_WFORCED);
+	ft_setFlags(fp, fp->flags & ~(F_CHANGEMARK | F_WFORCED));
 	ft_settime(&fp->ti_saved);
 
 wfail1:
@@ -561,11 +562,12 @@ EXPORT int ft_writefileAsWithFlags(FTABLE *fp,char *fn,int flags)
 {	int ret;
 
 	fp->lockFd = -1;
-	fp->flags	= (flags | F_MODIFIED);
+	int newFlags = (flags | F_MODIFIED);
 	if (!(fp->flags & F_APPEND)) {
-		fp->flags  |= F_SAVEAS;
+		newFlags  |= F_SAVEAS;
 	}
-	strcpy(fp->fname,fn);
+	ft_setFlags(fp, newFlags);
+	ft_setOutputFilename(fp, fn);
 	ret = ft_writefileMode(fp,1);
 	return ret;
 }

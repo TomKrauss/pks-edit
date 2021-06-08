@@ -1988,7 +1988,7 @@ int yydebug = 1;
     {
 				if ((yyvsp[(1) - (3)]).num != K_INVALID && 
 				    (yyvsp[(3) - (3)]).macref.index != (MACROREFIDX) -1) {
-					if (!bind_key((yyvsp[(1) - (3)]).num, (yyvsp[(3) - (3)]).macref.typ, 
+					if (!bind_key((KEYCODE)(yyvsp[(1) - (3)]).num, (yyvsp[(3) - (3)]).macref.typ, 
 							   (yyvsp[(3) - (3)]).macref.index,
 							   _override == MODE_AUGMENT)) {
 						yyerror("cannot bind key 0x%lx",(yyvsp[(1) - (3)]).num);

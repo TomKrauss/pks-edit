@@ -51,7 +51,7 @@ extern void fsel_changeDirectory(char* pszPath);
  * Select a file given a resource id for the title and return the selected
  * filename in "result" (must be large enough to hold the pathname (EDMAXPATHLEN)).
  */
-extern int fsel_selectFileWithTitle(int title, char* result);
+extern int fsel_selectFileWithTitle(int title, char* result, BOOL bSaveAs);
 
 #define FILESELECTOR_H
 

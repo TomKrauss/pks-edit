@@ -835,7 +835,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 		if (fname)
 			lstrcpy(fp->fname,fname);
 		else
-			if (!fsel_selectFileWithTitle(IDM_PRINTFILE,fp->fname))
+			if (!fsel_selectFileWithTitle(IDM_PRINTFILE,fp->fname, FALSE))
 				return 0;
 		if (ft_readfileWithOptions(fp,fp->fname,0) == 0)
 	 		return 0;

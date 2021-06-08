@@ -278,7 +278,7 @@ EXPORT int bl_insertTextBlockFromFile(char *fn)
 	if (!ft_getCurrentDocument()) 
 		return 0;
 	if (fn == 0) {
-		if (!fsel_selectFileWithTitle(MREADF,fname))
+		if (!fsel_selectFileWithTitle(MREADF,fname, FALSE))
 			return 0;
 		fn = fname;
 	}
@@ -371,7 +371,7 @@ EXPORT int EdBlockWriteToFile(char *fn)
 		if (fn != 0) {
 			ret = F_NORMOPEN;
 		} else {
-			ret = fsel_selectFileWithTitle(MWRITEF,fname);
+			ret = fsel_selectFileWithTitle(MWRITEF,fname,TRUE);
 			fn  = fname;
 		}
 		if (ret != 0)

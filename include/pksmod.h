@@ -68,7 +68,7 @@ typedef struct edx {
 	void 	(*lnlistfree)(LINE *lp);
 	char 	*(*file_searchFileInPKSEditLocation)(char *s);
 	void 	(*xref_openSearchList)(char *fn,int cmpflg);
-	int 		(*ft_optionFileWithoutFileselector)(char *fn,long ln,int closeother);
+	int 		(*ft_openFileWithoutFileselector)(char *fn,long ln,int closeother);
 	char 	*(*mkpname)(char *path,char *fn);
 	int		(*selnfile)(char *name);
 	int		(*EdFileAbandon)(int reopen);

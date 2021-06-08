@@ -18,6 +18,12 @@
 typedef struct tagDOCUMENT_TYPE DOCUMENT_TYPE;
 
 /*--------------------------------------------------------------------------
+ * doctypes_readWriteDocumentDescriptor()
+ * Read or write the passed document descriptor to a file. wrflag & 2 -> documentDescriptor is given as par
+ */
+extern int doctypes_readWriteDocumentDescriptor(int wrflag, DOCUMENT_DESCRIPTOR* documentDescriptor);
+
+/*--------------------------------------------------------------------------
  * doctypes_initAllDocumentTypes()
  * init all document types
  */

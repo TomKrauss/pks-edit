@@ -29,6 +29,12 @@
 
 #define	UNDOPOI(fp)	((UNDO_STACK*)fp->undo)
 
+ /*--------------------------------------------------------------------------
+  * ln_order gets passed an opaque data structure which it can use to re-order
+  * the lines in a file.
+  */
+extern void ln_order(FTABLE* fp, void* p1, void* p2);
+
  /**
   * Represents a sequence of undo deltas - each delta is the operation on one line in the editor (in one special case two lines)
   */
@@ -383,9 +389,9 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 
 	fp->tln = NULL;
 	if (!pCommand->fileChangedFlag) {
-		fp->flags &= ~F_MODIFIED;
+		ft_setFlags(fp, fp->flags & ~F_MODIFIED);
 	} else {
-		fp->flags |= F_MODIFIED;
+		ft_setFlags(fp, fp->flags | F_MODIFIED);
 	}
 	return pRedoCommand;
 }

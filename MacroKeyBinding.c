@@ -31,6 +31,8 @@
 #include "stringutil.h"
 #include "winutil.h"
 #include "mouseutil.h"
+#include "pkscc.h"
+#include "editorconfiguration.h"
 
 #define	MENU_TABCHAR	'\010'
 
@@ -193,7 +195,7 @@ void macro_autosaveAllBindings(int warnFlag)
 				_macedited = 0;
 		} else {
 			if (errorDisplayYesNoConfirmation(IDS_MSGSAVESEQ) == IDYES) {
-				macros_readWriteWithFileSelection(1);
+				macro_readWriteWithFileSelection(1);
 			}
 		}
 	}
@@ -532,9 +534,9 @@ int macro_toggleRecordMaco(void)
 }
 
 /*------------------------------------------------------------
- * macros_readWriteWithFileSelection()
+ * macro_readWriteWithFileSelection()
  */
-int macros_readWriteWithFileSelection(int wrflag)
+int macro_readWriteWithFileSelection(int wrflag)
 {	char *fn;
 
 	if ((fn = fsel_selectFileWithOptions(&_seqfsel,(wrflag) ? MWRSEQ : MREADSEQ, wrflag)) == 0) {
@@ -736,7 +738,7 @@ int macro_executeMacro(MACROREF *mp)
 			cp = &_cmdseqtab[mp->index];
 			return macro_executeSequence(cp,cp+1);
 		case CMD_MACRO:
-			return EdMacroPlay(mp->index);
+			return macro_executeMacroByIndex(mp->index);
 		case CMD_MENU:
 			menp = &_menutab[mp->index];
 			cp = &_cmdseqtab[menp->index];
@@ -784,7 +786,7 @@ int macro_executeByName(char *name)
 		return 0;
 	}
 
-	return EdMacroPlay(i);
+	return macro_executeMacroByIndex(i);
 }
 
 /*------------------------------------------------------------
@@ -818,7 +820,7 @@ void macro_assignAcceleratorTextOnMenu(HMENU hMenu)
 	MACROREF *mp;
 
 	if (_fkeysdirty) {
-		fkey_settext(-1);
+		fkey_updateTextOfFunctionKeys(-1);
 	}
 
 	wCount = GetMenuItemCount(hMenu);

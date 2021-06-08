@@ -502,10 +502,14 @@ static int mk2ndlist(LINE *lpfirst, LINE *lplast,int n)
 /*--------------------------------------------------------------------------
  * ln_order()
  */
-void ln_order(FTABLE *fp, RECORD *rectab, RECPARAMS *rp) {	
+void ln_order(FTABLE *fp, void *p1, void *p2) {	
 	int i,j,n;
 	LINE *lpd,*lpend;
+	RECORD* rectab;
+	RECPARAMS* rp;
 
+	rectab = p1;
+	rp = p2;
 	n	   = rp->nrec;
 	lpend   = rp->lplast;
 	i       = 0;
@@ -525,7 +529,7 @@ advance:
 	lpd  ->next	= lpend;
 	lpend->prev	= lpd;
 	fp->caret.linePointer = fp->firstl;
-	fp->flags	    |= F_CHANGEMARK;
+	ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 }
 
 /*--------------------------------------------------------------------------

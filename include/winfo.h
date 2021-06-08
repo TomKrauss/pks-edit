@@ -17,6 +17,7 @@ typedef struct tagFSTYLE {
 	WORD mode,style;
 } FSTYLE;
 
+
 #define	FS_BMARKED		0
 #define	FS_XMARKED		1
 
@@ -31,6 +32,8 @@ typedef struct tagFSTYLE {
 #define CP_POSTOP			0x0 		/* pos cursor on window after */
 #define CP_POSMID			0x1 		/* long pos jumps */
 #define CP_POSLOW			0x2 		/* " */
+
+typedef struct tagPROPERTY_CHANGE PROPERTY_CHANGE;
 
 typedef struct wininfo {
 	struct wininfo *next;
@@ -101,6 +104,11 @@ extern void render_linePart(FTABLE* fp, long ln, int col1, int col2);
  * etc...)
  */
 extern void render_updateCaret(WINFO* wp);
+
+/**
+ * A property of our editor document has changed. Update the window appropriately.
+ */
+extern void ww_documentPropertyChanged(WINFO* wp, PROPERTY_CHANGE* pChange);
 
 /*--------------------------------------------------------------------------
  * render_singleLineOnDevice()

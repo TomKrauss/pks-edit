@@ -312,11 +312,11 @@ typedef struct tagWINDOWPLACEMENT WINDOWPLACEMENT;
 
 
 /*------------------------------------------------------------
- * ft_optionFileWithoutFileselector()
+ * ft_openFileWithoutFileselector()
  * Open a file with a file name and jump into a line. Place the window to
  * open as defined in the param wsp.
  */
-int ft_optionFileWithoutFileselector(char* fn, long line, WINDOWPLACEMENT* wsp);
+int ft_openFileWithoutFileselector(char* fn, long line, WINDOWPLACEMENT* wsp);
 
 /*---------------------------------
  * ln_addFlag()
@@ -510,6 +510,17 @@ extern int ft_activateWindowOfFileNamed(char* fn);
  * This will not remove the line from the document.
  */
 extern void ln_destroy(LINE* lp);
+
+/*
+ * ft_setFlags()
+ * Assign new flags to the file. If the flags have changed, notify all our views of the change.
+ */
+extern void ft_setFlags(FTABLE* fp, int newFlags);
+
+/*
+ * Assign a new file name.
+ */
+extern void ft_setOutputFilename(FTABLE* fp, char* pNewName);
 
 /*------------------------------------------------------------
  * ln_needbytes()

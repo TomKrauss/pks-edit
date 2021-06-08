@@ -536,7 +536,7 @@ int xref_openFile(char *name, long line, WINDOWPLACEMENT *wsp) {
 			ret = caret_placeCursorMakeVisibleAndSaveLocation(line,0L);
 		else ret = 1;
 	} else {
-		ret = ft_optionFileWithoutFileselector(name,line,wsp);
+		ret = ft_openFileWithoutFileselector(name,line,wsp);
 	}
 
 	return ret;

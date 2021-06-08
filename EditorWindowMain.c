@@ -29,6 +29,7 @@
 #include "stringutil.h"
 #include "editorconfiguration.h"
 #include "desktopicons.h"
+#include "propertychange.h"
 
 #define	WT_WORKWIN		0
 #define	WT_RULERWIN		1
@@ -531,15 +532,27 @@ void ww_setwindowtitle(WINFO *wp)
 
 	if (!wp->edwin_handle)
 		return;
-
+	FTABLE* fp = wp->fp;
 	nr = wp->win_id;
+	char* pName = ft_visiblename(fp);
 	if (IsIconic(wp->edwin_handle)) {
-		wsprintf(buf,"%d %s",nr,(LPSTR)string_getBaseFilename(ft_visiblename(wp->fp)));
+		wsprintf(buf,"%d %s",nr,(LPSTR)string_getBaseFilename(pName));
+	} else {
+		wsprintf(buf,"#%d %s",nr,(LPSTR)pName);
 	}
-	else {
-		wsprintf(buf,"#%d  %s",nr,(LPSTR)ft_visiblename(wp->fp));
+	if (fp->flags & F_MODIFIED) {
+		memmove(buf + 2, buf, sizeof buf - 2);
+		buf[0] = '*';
+		buf[1] = ' ';
 	}
 	SetWindowText(wp->edwin_handle,buf);
+}
+
+/**
+ * A property of our editor document has changed. Update the window appropriately.
+ */
+void ww_documentPropertyChanged(WINFO* wp, PROPERTY_CHANGE* pChange) {
+	ww_setwindowtitle(wp);
 }
 
 /*-----------------------------------------------------------

@@ -122,7 +122,7 @@ BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 			EdFileAbandon();
 		}
 		else {
-			ft_optionFileWithoutFileselector(tmpfn,-1L, (void *)0);
+			ft_openFileWithoutFileselector(tmpfn,-1L, (void *)0);
 		}
 	} else {
 		fclose(fp);

@@ -543,6 +543,7 @@ rescan:
 
 /*--------------------------------------------------------------------------
  * EdPasteString()
+ * Paste a String at the current cursor location in the currently open window.
  */
 int EdPasteString(long dummy1, long dummy2, char *string)
 {

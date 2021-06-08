@@ -35,7 +35,13 @@ extern int EdBlockRead(void);
  *----------------------------*/
 extern int EdBlockCopyOrMove(BOOL move);
 
-	/*----------------------------
+/*--------------------------------------------------------------------------
+ * EdPasteString()
+ * Paste a String at the current cursor location in the currently open window.
+ */
+extern int EdPasteString(long dummy1, long dummy2, char* string);
+
+/*----------------------------
  * EdBlockDelete()
  * PKS Edit command to delete the current selection and
  * optionally save the text in the trashcan clipboard of PKS Edit

@@ -1378,7 +1378,7 @@ static DOCUMENT_DESCRIPTOR *_linp;
 static void sel_ruler(HWND hDlg, WORD idCtrl)
 {
 	EndDialog(hDlg,idCtrl);
-	EdLineal(2,_linp);
+	doctypes_readWriteDocumentDescriptor(2,_linp);
 }
 
 /*--------------------------------------------------------------------------

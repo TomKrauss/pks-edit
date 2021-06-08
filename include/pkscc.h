@@ -30,6 +30,18 @@ extern void 		macro_showStatus(char *s, ...);
  */
 extern void macro_printListHeader(FILE* fp, char* itemname);
 
+/*------------------------------------------------------------
+ * macro_readWriteWithFileSelection()
+ */
+extern int macro_readWriteWithFileSelection(int wrflag);
+
+/*---------------------------------
+ * macro_executeMacroByIndex()
+ * Execute a macro given its logical
+ * internal macro number.
+ */
+extern int macro_executeMacroByIndex(int macroindex);
+
 /*
  * print the current mouse bindings to a file and display them to the user.
  */
@@ -54,12 +66,12 @@ extern int 		macro_isInCurrentDocumentContext(int ctx);
  */
 extern int macro_saveMenuBindingsAndDisplay(void);
 
-extern int macros_readWriteWithFileSelection(int wrflag);
+extern int macro_readWriteWithFileSelection(int wrflag);
 
 /*------------------------------------------------------------
- * macros_readWriteWithFileSelection()
+ * macro_readWriteWithFileSelection()
  */
-extern int macros_readWriteWithFileSelection(int wrflag);
+extern int macro_readWriteWithFileSelection(int wrflag);
 
 # ifdef _PKSMOD_H
 extern EDXPORTS 	*edx;

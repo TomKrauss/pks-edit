@@ -1,6 +1,6 @@
 [files]
-"D:\tom\desktop\readme.txt", line 26: 0x1 0x2 104 713 -8 -31 557 129 1520 803
-"D:\source\pksedit\Clipboard.c", line 4: 0x1 0x1 104 713 -8 -31 31 30 688 727
+"D:\source\pksedit\Clipboard.c", line 26: 0x1 0x1 104 713 -8 -31 31 30 688 727
+"D:\tom\desktop\readme.txt", line 26: 0x1 0x1 104 713 -8 -31 557 129 1520 803
 [find]
 !ed
 !red
@@ -31,8 +31,9 @@
 !newfile3.txt
 !newfile2.txt
 !newfile1.txt
+!D:\source\pksedit\HandleMacros.c
 [pathes]
-!D:\source\pksedit\*.*
 !D:\tom\desktop\*.*
 !D:\source\pksedit\pks_sys\*.MAC
 !D:\source\pksedit\pks_sys\*.LIN
+!D:\source\pksedit\*.*

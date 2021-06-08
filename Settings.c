@@ -40,7 +40,6 @@ int doctypes_documentTypeChanged(void);
 int doc_columnChanged(void);
 int macro_toggleRecordMaco(void);
 int markcolomns(FTABLE *fp);
-void op_updateall(void);
 
 static struct optiontab {
     int  flgkeynr;
@@ -194,8 +193,9 @@ int EdOptionToggle(long par)
 
 /*--------------------------------------------------------------------------
  * op_checktoggles()
+ * One of the "option" widgets was selected.
  */
-EXPORT int op_checktoggle(int toggle)
+EXPORT int op_onOptionWidgetSelected(int toggle)
 {   	struct optiontab *op;
 
 	for (op = _optiontab; op->flgkeynr >= 0; op++) {
@@ -219,6 +219,7 @@ EXPORT int op_checktoggle(int toggle)
 
 /*--------------------------------------------------------------------------
  * op_updateall()
+ * The options have changed. Update all UI elements depending on an option.
  */
 EXPORT void op_updateall(void)
 {   struct optiontab *op;

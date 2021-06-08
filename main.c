@@ -646,13 +646,13 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (!IsWindowVisible(hwnd)) {
 				return 0;
 			}
-			fkey_init(hwnd);
+			fkey_initKeyboardWidget(hwnd);
 			st_init(hwnd);
-			tb_init(hwnd);
+			tb_initToolbar(hwnd);
 			GetClientRect(hwnd,&rect);
 			tb_wh(&w, &nToolbarHeight);
 			status_wh(&w, &nStatusHeight);
-			fkey_wh(&w,&nFkeyHeight);
+			fkey_getKeyboardSize(&w,&nFkeyHeight);
 			rect.top = nToolbarHeight;
 			rect.bottom -= (nFkeyHeight + nStatusHeight + nToolbarHeight);
 			if (hwndToolbar) {
@@ -761,7 +761,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return 0;
 
 		case WM_PKSOPTOGGLE:
-			op_checktoggle(wParam);		
+			op_onOptionWidgetSelected((int)wParam);		
 			return 0;
 
 		case WM_CHAR:

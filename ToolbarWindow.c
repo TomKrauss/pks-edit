@@ -41,9 +41,10 @@ void tb_wh(WORD *width, WORD *height)
 }
 
 /*--------------------------------------------------------------------------
- * tb_init()
+ * tb_initToolbar()
+ * Initialize the PKS Edit toolbar.
  */
-void tb_init(HWND hwndDaddy)
+void tb_initToolbar(HWND hwndDaddy)
 {
 	TBADDBITMAP	tbabmp;
 	TBBUTTON	tbb[20];

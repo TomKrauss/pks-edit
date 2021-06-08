@@ -40,6 +40,7 @@
 #include "regexp.h"
 #include "edfuncs.h"
 #include "crossreferencelinks.h"
+#include "propertychange.h"
 
 /*------------------------------------------------------------
  * win_createMdiChildWindow()
@@ -127,6 +128,20 @@ void ft_checkForChangedFiles(void) {
 	}
 }
 
+/*
+ * Invoke a callback for every view of a file.
+ */
+static void ft_forAllViews(FTABLE* fp, void (*callback)(WINFO* wp, void* p), void* parameter) {
+	(*callback)(WIPOI(fp), parameter);
+}
+
+/*
+ * Fire a property change event. 
+ */
+static void ft_firePropertyChange(FTABLE* fp, PROPERTY_CHANGE* pChange) {
+	ft_forAllViews(fp, ww_documentPropertyChanged, pChange);
+}
+
 /*---------------------------------*/
 /* ft_triggerAutosaveAllFiles()					*/
 /* do an autosave				*/
@@ -189,7 +204,7 @@ autosave:
 		if (ret > 0) {
 		/* we autosaved into source file: set state to unmodified */
 			if (!GetConfiguration()->pksEditTempPath[0])
-				fp->flags &= ~F_MODIFIED;
+				flags &= ~F_MODIFIED;
 			error_showMessageInStatusbar(IDS_MSGAUBE,ft_visiblename(fp));
 		} else if (EdPromptAutosavePath(GetConfiguration()->pksEditTempPath)) {
 		/* let the user correct invalid autosave pathes */
@@ -205,7 +220,8 @@ autosave:
 		 * cause autosave probably will fail on next cycle(in 5 sec.)
 		 * too
 		 */
-		fp->flags &= ~F_NEEDSAUTOSAVE;
+		flags &= ~F_NEEDSAUTOSAVE;
+		ft_setFlags(fp, flags);
 		fp->as_time = 0;
 		saved = ret;
 
@@ -470,7 +486,7 @@ int ft_requestToClose(FTABLE *fp)
 			case IDYES:
 				if (!ft_writeFileWithAlternateName(fp)) {
 					if (!(GetConfiguration()->options & WARNINGS)) {
-						fp->flags &= ~F_MODIFIED;
+						ft_setFlags(fp, fp->flags & ~F_MODIFIED);
 					}
 					return 0;
 				}
@@ -545,13 +561,13 @@ int ft_select(FTABLE *fp)
  * filename in "result" (must be large enough to hold the pathname (EDMAXPATHLEN)).
  */
 static FSELINFO _txtfninfo = {"."};
-int fsel_selectFileWithTitle(int title, char *result)
+int fsel_selectFileWithTitle(int title, char *result, BOOL bSaveAs)
 {
 	char *fn;
 	BOOL	bRet;
 
 	bRet = FALSE;
-	if ((fn = fsel_selectFileWithOptions(&_txtfninfo, title, FALSE)) != 0) {
+	if ((fn = fsel_selectFileWithOptions(&_txtfninfo, title, bSaveAs)) != 0) {
 		strcpy(result,fn);
 		bRet = TRUE;
 	}
@@ -579,11 +595,11 @@ int ft_activateWindowOfFileNamed(char *fn)
 }
 
 /*------------------------------------------------------------
- * ft_optionFileWithoutFileselector()
+ * ft_openFileWithoutFileselector()
  * Open a file with a file name and jump into a line. Place the window to
  * open as defined in the param wsp.
  */
-int ft_optionFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
+int ft_openFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
 {   
 	char 		szResultFn[EDMAXPATHLEN];
 	char		szAsPath[EDMAXPATHLEN];
@@ -651,7 +667,7 @@ int ft_optionFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
 	}
 
 	if (szAsPath[0]) {
-		fp->flags |= F_MODIFIED;
+		ft_setFlags(fp, fp->flags | F_MODIFIED);
 	}
 
 	caret_placeCursorInCurrentFile(line,0L);
@@ -682,7 +698,13 @@ int EdEditFile(long editflags, char *filename)
 			return 0;
 		}
 	}
-	ret = ft_optionFileWithoutFileselector(filename, 0L, (WINDOWPLACEMENT*)0);
+	if ((editflags && OPEN_NOFN) == 0) {
+		if (!fsel_selectFileWithTitle(IDS_MSGOPEN, _fseltarget, FALSE)) {
+			return 0;
+		}
+		filename = _fseltarget;
+	}
+	ret = ft_openFileWithoutFileselector(filename, 0L, (WINDOWPLACEMENT*)0);
 	return ret;
 }
 
@@ -717,7 +739,7 @@ int ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 		return 0;
 	}
 
-	fp->flags &= ~F_CHANGEMARK;
+	ft_setFlags(fp, fp->flags & ~F_CHANGEMARK);
 
 	/*
 	 * uses currfile----
@@ -782,7 +804,7 @@ int EdSaveFile(int flg)
 		char newname[512];
 
 		string_splitFilename(fp->fname,_txtfninfo.path,_txtfninfo.fname);
-		if (fsel_selectFileWithTitle(MSAVEAS, newname) == 0) {
+		if (fsel_selectFileWithTitle(MSAVEAS, newname, TRUE) == 0) {
 			return 0;
 		}
 		if (areFilenamesDifferent(newname,fp->fname) && file_exists(newname) >= 0) {
@@ -790,17 +812,19 @@ int EdSaveFile(int flg)
 				return 0;
 			/* if ret == "APPEND".... fp->flags |= F_APPEND */
 		}
-		strcpy(fp->fname,newname);
+		strcpy(fp->fname, newname);
+		int flags = fp->flags;
 		ww_setwindowtitle(WIPOI(fp));
-		fp->flags |= F_CHANGEMARK;
-		if (!(fp->flags & F_APPEND)) fp->flags |= F_SAVEAS;
-		fp->flags &= ~(F_NEWFILE|F_NAME_INPUT_REQUIRED);
+		flags |= F_CHANGEMARK;
+		if (!(flags & F_APPEND)) flags |= F_SAVEAS;
+		flags &= ~(F_NEWFILE|F_NAME_INPUT_REQUIRED);
+		ft_setFlags(fp, flags);
 		if (!ft_writeFileWithAlternateName(fp)) 	
 			return 0;
 	}
 
 	if (flg & SAV_FORCED)
-		fp->flags |= F_WFORCED;  /* force to write even if 
+		ft_setFlags(fp, fp->flags | F_WFORCED);  /* force to write even if 
 							   not edited */
 
 	if ((flg & SAV_SAVE) && !ft_writeFileWithAlternateName(fp)) return 0;
@@ -809,8 +833,40 @@ int EdSaveFile(int flg)
 		ww_close(WIPOI(fp));
 	}
 #endif
-
 	return(1);
+}
+
+/*
+ * ft_setFlags()  
+ * Assign new flags to the file. If the flags have changed, notify all our views of the change.
+ */
+void ft_setFlags(FTABLE *fp, int newFlags) {
+	int oldFlags = fp->flags;
+	if (oldFlags != newFlags) {
+		PROPERTY_CHANGE change;
+		change.prop_type = FT_FLAGS;
+		change.prop_oldValue.v_simpleValue = oldFlags;
+		change.prop_newValue.v_simpleValue = newFlags;
+		fp->flags = newFlags;
+		ft_firePropertyChange(fp, &change);
+	}
+}
+
+/*
+ * Assign a new file name. 
+ */
+void ft_setOutputFilename(FTABLE* fp, char* pNewName) {
+	char oldName[sizeof fp->fname];
+	if (strcmp(fp->fname, pNewName) == 0) {
+		return;
+	}
+	strcpy(oldName, pNewName);
+	PROPERTY_CHANGE change;
+	change.prop_type = FT_NAME;
+	change.prop_oldValue.v_string = oldName;
+	change.prop_newValue.v_string = pNewName;
+	strcpy(fp->fname, pNewName);
+	ft_firePropertyChange(fp, &change);
 }
 
 /*--------------------------------------------------------------------------

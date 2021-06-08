@@ -638,10 +638,12 @@ int macro_executeSequence(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 	return (int)val;
 }
 
-/*---------------------------------*/
-/* EdMacroPlay()				*/
-/*---------------------------------*/
-int EdMacroPlay(int macroindex)
+/*---------------------------------
+ * macro_executeMacroByIndex()
+ * Execute a macro given its logical
+ * internal macro number.
+ */
+int macro_executeMacroByIndex(int macroindex)
 {
 	int 		ret = 1;
 	int			i;

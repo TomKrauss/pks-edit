@@ -437,6 +437,9 @@
     <ClInclude Include="include\markpositions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\propertychange.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">

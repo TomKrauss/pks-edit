@@ -10,8 +10,8 @@
  */
 
 #include <windows.h>
-#include <windowsx.h>
 #include <commdlg.h>
+#include <commctrl.h>
 #include <direct.h>
 #include <string.h>
 
@@ -50,7 +50,7 @@ extern char *	_datadir;
 
 static char *	sTitleSpec;
 
-char _fseltarget[512];
+char _fseltarget[EDMAXPATHLEN];
 
 /*--------------------------------------------------------------------------
  * fsel_changeDirectory()
@@ -116,7 +116,7 @@ static int SelectFile(int title, char *baseDirectory, char *filename, char *patt
 {
 	int	nSave;
 	int 	ret;
-	char pathname[512];
+	char pathname[EDMAXPATHLEN];
 
 	menu_fseltitle(title);
 	string_concatPathAndFilename(pathname,baseDirectory,pattern);
@@ -189,11 +189,11 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	BOOL		bRet;
 	char 		szTemp[128];
 
-	pszFilter = _alloc(EDMAXPATHLEN);
+	pszFilter = calloc(1, EDMAXPATHLEN);
 	if (!pszFilter) {
 		return FALSE;
 	}
-	pszCustomFilter = _alloc(EDMAXPATHLEN);
+	pszCustomFilter = calloc(1, EDMAXPATHLEN);
 	if (!pszCustomFilter) {
 		_free(pszFilter);
 		return FALSE;
@@ -211,7 +211,6 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	}
 	*pszRun = 0;
 
-	*pszFilter = 0;
 	doctypes_getSelectableDocumentFileTypes(pszFilter, EDMAXPATHLEN);
 	for (pszRun = pszFilter; *pszRun; pszRun++) {
 		if (*pszRun == '|') {
@@ -221,9 +220,8 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	*++pszRun = (char) 0;
 
 	memset(&ofn, 0, sizeof ofn);
-
+	ofn.lStructSize = sizeof ofn;
 	ofn.hInstance = hInst;
-	ofn.lStructSize = sizeof( OPENFILENAME );
 	ofn.hwndOwner = hWnd;			// An invalid hWnd causes non-modality
 	ofn.lpstrFilter = (LPSTR)pszFilter;
 	ofn.nFilterIndex = 0;
@@ -234,7 +232,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	ofn.nMaxFile = EDMAXPATHLEN - 1;
 	ofn.lpstrTitle = sTitleSpec;
 	ofn.Flags = OFN_PATHMUSTEXIST;
-
+	InitCommonControls();
 	if ((bSaveAs && GetSaveFileName( &ofn ) ) || (!bSaveAs && GetOpenFileName( &ofn ))) {
 		bRet = TRUE;
 		lstrcpy(szExt, pszCustomOffset[0] ? pszCustomOffset : "*.*");

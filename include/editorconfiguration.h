@@ -157,5 +157,54 @@ extern void* prof_llinsert(void* Head, int size, char* group, char* item, char**
  */
 extern int prof_getPksProfileString(char* pGroup, char* ident, char* string, int maxlen);
 
+/*--------------------------------------------------------------------------
+ * op_updateall()
+ * The options have changed. Update all UI elements depending on an option.
+ */
+extern void op_updateall(void);
+
+/*--------------------------------------------------------------------------
+ * op_checktoggles()
+ * One of the "option" widgets was selected.
+ */
+extern int op_onOptionWidgetSelected(int toggle);
+
+/*---------------------------------
+ * fkey_keyModifierStateChanged()
+ * Update the PKS edit FKEYs to display the next
+ * group of FKEYS (for alternate modifiers).
+ *---------------------------------*/
+extern int fkey_keyModifierStateChanged(int delta);
+
+/*--------------------------------------------------------------------------
+ * fkey_register()
+ * Register the window class for the PKS Edit function keys widgets.
+ */
+extern int fkey_register(void);
+
+/*------------------------------------------------------------
+ * fkey_getKeyboardSize()
+ * Get the size of the FKEY keyboard of PKS Edit.
+ */
+extern int fkey_getKeyboardSize(WORD* w, WORD* h);
+
+/*--------------------------------------------------------------------------
+ * fkey_initKeyboardWidget()
+ * Initialize the FKEYs keyboard widget.
+ */
+extern int fkey_initKeyboardWidget(HWND hwndPapa);
+
+/*----------------------------
+ * fkey_updateTextOfFunctionKeys()
+ * Update the text on the FKEYS keyboard.
+ *----------------------------*/
+extern void fkey_updateTextOfFunctionKeys(int state);
+
+/*--------------------------------------------------------------------------
+ * tb_initToolbar()
+ * Initialize the PKS Edit toolbar.
+ */
+extern void tb_initToolbar(HWND hwndDaddy);
+
 #define EDITORCONFIGURATION_H
 #endif

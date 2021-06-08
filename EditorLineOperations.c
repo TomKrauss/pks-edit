@@ -148,7 +148,7 @@ walk:			mp2 = mp;
 /* position				*/
 /*----------------------------*/
 void ln_insert(FTABLE *fp, LINE *pos, LINE *lp) {
-	fp->flags |= F_CHANGEMARK;
+	ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 	if (fp->documentDescriptor->nl < 0) {
 		lp->lflg |= LNNOTERM;
 	}
@@ -184,7 +184,7 @@ int ln_delete(FTABLE *fp, LINE *lp)
 	}
 
 	undo_saveOperation(fp, lp, next, O_DELETE);
-	fp->flags |= F_CHANGEMARK;
+	ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 	if (lp -> lflg & LNMARKED) {
 		ln_delmarks(fp,lp);
 	}
@@ -651,7 +651,7 @@ LINE *ln_modify(FTABLE *fp, LINE *lp, int col1, int col2)
 			return 0;
 		}
 	}
-	fp->flags |= F_CHANGEMARK;
+	ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 	fp->lastmodoffs = col2;
 
 	/* little to do */

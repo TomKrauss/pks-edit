@@ -357,7 +357,7 @@ key			: key_ident T_ASSIGN cmd_or_macro
 			{
 				if ($1.num != K_INVALID && 
 				    $3.macref.index != (MACROREFIDX) -1) {
-					if (!bind_key($1.num, $3.macref.typ, 
+					if (!bind_key((KEYCODE)$1.num, $3.macref.typ, 
 							   $3.macref.index,
 							   _override == MODE_AUGMENT)) {
 						yyerror("cannot bind key 0x%lx",$1.num);
