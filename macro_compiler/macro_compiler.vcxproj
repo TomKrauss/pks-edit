@@ -142,8 +142,7 @@
       </Command>
     </CustomBuild>
     <CustomBuild>
-      <Message>
-      </Message>
+      <Message>Performing Custom Build Tools</Message>
     </CustomBuild>
     <CustomBuild>
       <Outputs>
@@ -152,10 +151,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CustomBuild Include="PARSER.Y">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">set path=$(GNU_HOME)\bin;%PATH%
- &amp;&amp; bison -d Parser.y &amp;&amp; move parser.tab.c parser.c</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">set path=$(GNU_HOME)\bin;%PATH% &amp;&amp; bison -d Parser.y &amp;&amp; move parser.tab.c parser.c</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Running Bison</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">parser.c;parser.tab.h</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">parser.c;parser.tab.h</Outputs>
@@ -163,7 +162,8 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">set path=$(GNU_HOME)\bin;%PATH% &amp;&amp; bison -d Parser.y &amp;&amp; move parser.tab.c parser.c</Command>
     </CustomBuild>
     <CustomBuild Include="SCANNER.L">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GNU_HOME)\bin\flex.exe -L scanner.l -&amp;&amp; move lex.yy.c scanner.c</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Running Flex</Message>
