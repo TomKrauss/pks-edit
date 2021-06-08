@@ -1228,12 +1228,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Pahlen & Krauﬂ Software "
             VALUE "FileDescription", "Famous Atari Editor"
-            VALUE "FileVersion", "1.6.1"
+            VALUE "FileVersion", "1.7.0"
             VALUE "InternalName", "pksedit.exe"
             VALUE "LegalCopyright", "Copyright (C) 2021 Pahlen & Krauﬂ"
             VALUE "OriginalFilename", "pksedit.exe"
             VALUE "ProductName", "PKS Edit"
-            VALUE "ProductVersion", "1.6.1"
+            VALUE "ProductVersion", "1.7.0"
         END
     END
     BLOCK "VarFileInfo"
