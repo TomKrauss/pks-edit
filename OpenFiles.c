@@ -132,7 +132,11 @@ void ft_checkForChangedFiles(void) {
  * Invoke a callback for every view of a file.
  */
 static void ft_forAllViews(FTABLE* fp, void (*callback)(WINFO* wp, void* p), void* parameter) {
-	(*callback)(WIPOI(fp), parameter);
+	WINFO* wp = WIPOI(fp);
+
+	if (wp != NULL) {
+		(*callback)(wp, parameter);
+	}
 }
 
 /*
@@ -243,6 +247,7 @@ void ft_saveWindowStates(void )
 	char   				szBuff[EDMAXPATHLEN];
 	char*				pszFilename;
 
+	memset(&ft, 0, sizeof ft);
 	ft.caret.linePointer = 0;
 	ln_createAndAddSimple(&ft,"[files]");
 
