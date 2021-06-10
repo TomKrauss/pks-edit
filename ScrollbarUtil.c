@@ -205,9 +205,6 @@ void sl_winchanged(WINFO *wp,long dy, long dx) {
 	if (dx && wp->ru_handle) {
 		render_sendRedrawToWindow(wp->ru_handle);
 	}
-	if (dy && wp->lineNumbers_handle) {
-		render_sendRedrawToWindow(wp->lineNumbers_handle);
-	}
 	sl_size(wp);
 }
 

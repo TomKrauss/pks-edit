@@ -276,6 +276,9 @@
     <ClCompile Include="EditorDocumentModel.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="include\ArrayList.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -438,6 +441,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\propertychange.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\arraylist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\themes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

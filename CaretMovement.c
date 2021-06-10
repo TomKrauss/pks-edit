@@ -65,7 +65,7 @@ EXPORT int caret_lineOffset2screen(FTABLE *fp, CARET *cp)
 		while (p < lbuf) {
 			if (*p++ == '\t') {
 				if ((flags & SHOWCONTROL) == 0) {
-					col = doctypes_calculateTabStop(col, fp->documentDescriptor);
+					col = doctypes_calculateNextTabStop(col, fp->documentDescriptor);
 				} else {
 					col++;
 				}
@@ -80,14 +80,10 @@ EXPORT int caret_lineOffset2screen(FTABLE *fp, CARET *cp)
 		return col;
 	}
 
-	if (PLAINCONTROL(flags)) {
-		col = lnoffset;
-	} else {
-		while (p < lbuf) {
-			if (*p++ == '\t') 
-				col = doctypes_calculateTabStop(col,fp->documentDescriptor);
-			else col++;
-		}
+	while (p < lbuf) {
+		if (*p++ == '\t') 
+			col = doctypes_calculateNextTabStop(col,fp->documentDescriptor);
+		else col++;
 	}
 	return col;
 }
@@ -107,10 +103,10 @@ EXPORT int caret_screen2lineOffset(FTABLE *fp, CARET *pCaret)
 	char *	pend = &lp->lbuf[lp->len];
 
 	if (fp == NULL) {
-		if (!ft_getCurrentDocument()) {
+		fp = ft_getCurrentDocument();
+		if (fp == NULL) {
 			return 0;
 		}
-		fp = ft_getCurrentDocument();
 	}
 	flags = fp->documentDescriptor->dispmode;
 
@@ -118,7 +114,7 @@ EXPORT int caret_screen2lineOffset(FTABLE *fp, CARET *pCaret)
 		while (i < col && p < pend) {
 			if (*p++ == '\t') {
 				if ((flags & SHOWCONTROL) == 0) {
-					i = doctypes_calculateTabStop(i, fp->documentDescriptor);
+					i = doctypes_calculateNextTabStop(i, fp->documentDescriptor);
 				} else {
 					i++;
 				}
@@ -133,17 +129,10 @@ EXPORT int caret_screen2lineOffset(FTABLE *fp, CARET *pCaret)
 		return (int)(p - lp->lbuf);
 	}
 	
-	if (PLAINCONTROL(flags)) {
-		if (col < 0) {
-			return 0;
-		}
-		return col > lp->len ? lp->len : col;
-	} else {
-		while (i < col && p < pend) {
-			if (*p++ == '\t')
-				i = doctypes_calculateTabStop(i,fp->documentDescriptor);
-			else i++;
-		}
+	while (i < col && p < pend) {
+		if (*p++ == '\t')
+			i = doctypes_calculateNextTabStop(i,fp->documentDescriptor);
+		else i++;
 	}
 	return (int)(p-lp->lbuf);
 }

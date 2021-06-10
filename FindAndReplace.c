@@ -474,7 +474,7 @@ static void modifypgr(FTABLE *fp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
 	}
 	caret_placeCursorInCurrentFile(fp->ln,0L);
 	if (*cntel) {
-		render_redrawAndPaintCurrentFile();
+		render_repaintCurrentFile();
 		*cntln = ft_countlinesStartingFromDirection(fp,*cntln,1);
 	}
 	mouse_setDefaultCursor();
@@ -745,7 +745,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 		strxcpy(&lp->lbuf[col],q, (int)newlen);
 
 		if (query)
-			render_redrawCurrentLine();
+			render_repaintCurrentLine();
 
 		delta = (int)newlen;
 advance1:	rp++;
@@ -779,7 +779,7 @@ endrep:
 			} else {
 				caret_placeCursorMakeVisibleAndSaveLocation(lastfln,lastfcol);
 				if (scope == RNG_ONCE && action == REP_REPLACE) {
-					render_redrawCurrentLine();
+					render_repaintCurrentLine();
 				} else {
 					render_repaintAllForFile(fp);
 				}

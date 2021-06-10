@@ -292,6 +292,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="EditorDocumentModel.c" />
+    <ClCompile Include="include\ArrayList.c" />
     <ClCompile Include="ProgressMonitor.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -1155,6 +1156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\alloc.h" />
+    <ClInclude Include="include\arraylist.h" />
     <ClInclude Include="include\caretmovement.h" />
     <ClInclude Include="include\clipboard.h" />
     <ClInclude Include="include\crossreferencelinks.h" />
@@ -1173,6 +1175,7 @@
     <ClInclude Include="include\publicapi.h" />
     <ClInclude Include="include\stringutil.h" />
     <ClInclude Include="include\textblocks.h" />
+    <ClInclude Include="include\themes.h" />
     <ClInclude Include="include\winutil.h" />
     <ClInclude Include="rc\dial2.h" />
     <ClInclude Include="rc\fsel.h" />

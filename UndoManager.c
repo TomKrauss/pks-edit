@@ -328,6 +328,8 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	register struct tagUNDO_DELTA* pDelta;
 	register LINE* lp;
 	register LINE* lpNext;
+	LINE* lpRedraw = NULL;
+	BOOL bRedrawAll = FALSE;
 	UNDO_COMMAND* pRedoCommand = malloc(sizeof * pRedoCommand);
 
 	memset(pRedoCommand, 0, sizeof * pRedoCommand);
@@ -346,10 +348,12 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 				ln_unhide(fp, pDelta->lp);
 				lp = pDelta->lp->next;
 				add_stepToCommand(pRedoCommand, lp, lp->next->prev, O_UNHIDE);
+				bRedrawAll = TRUE;
 				break;
 			case O_UNHIDE:
 				lp = ln_hide(fp, pDelta->lp, pDelta->lpAnchor);
 				add_stepToCommand(pRedoCommand, lp, NULL, O_HIDE);
+				bRedrawAll = TRUE;
 				break;
 			case O_MODIFY:
 				if ((lp = pDelta->lpAnchor) == 0) {
@@ -358,22 +362,26 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 					lp = lp->next;
 				}
 				pDelta->lp->lflg &= (LNINDIRECT | LNXMARKED | LNNOTERM | LNNOCR);
-				ln_replace(fp, lp, pDelta->lp);
+				lpRedraw = pDelta->lp;
+				ln_replace(fp, lp, lpRedraw);
 				add_stepToCommand(pRedoCommand, lp, pDelta->lp->prev, pDelta->op);
 				break;
 			case O_DELETE:
 				pDelta->lp->lflg &= (LNINDIRECT | LNXMARKED | LNNOTERM | LNNOCR);
 				ln_insert(fp, pDelta->lpAnchor, pDelta->lp);
 				add_stepToCommand(pRedoCommand, pDelta->lp, pDelta->lpAnchor, O_INSERT);
+				bRedrawAll = TRUE;
 				break;
 			case O_INSERT:
 				if ((lp = pDelta->lpAnchor) != NULL && (lp = lp->prev) != NULL && (lpNext = lp->next) != NULL && ln_delete(fp, lp)) {
 					add_stepToCommand(pRedoCommand, lp, lpNext, O_DELETE);
 				}
+				bRedrawAll = TRUE;
 				break;
 			case O_LNORDER:
 				ln_order(fp, pDelta->lp, pDelta->lpAnchor);
 				add_stepToCommand(pRedoCommand, pDelta->lpAnchor, pDelta->lp, O_LNORDER);
+				bRedrawAll = TRUE;
 				break;
 			}
 		}
@@ -385,7 +393,11 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	bl_setSelection(fp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
 
 	caret_placeCursorInCurrentFile(pCommand->ln, pCommand->col);
-	render_repaintAllForFile(fp);
+	if (bRedrawAll) {
+		render_repaintAllForFile(fp);
+	} else if (lpRedraw) {
+		render_repaintLine(fp, lpRedraw);
+	}
 
 	fp->tln = NULL;
 	if (!pCommand->fileChangedFlag) {

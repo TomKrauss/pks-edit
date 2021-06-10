@@ -4,6 +4,7 @@
 extern "C" {
 #include "../include/lineoperations.h"
 #include "../include/regexp.h"
+#include "../include/arraylist.h"
 }
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -16,12 +17,12 @@ namespace pkseditTests
 		TEST_METHOD(LinkedLists)
 		{
 			LINKED_LIST* p = NULL;
-			LINKED_LIST* p1 = ll_insert(&p, sizeof *p);
+			LINKED_LIST* p1 = ll_insert(&p, sizeof * p);
 			Assert::IsNotNull(p);
 			Assert::IsNotNull(p1);
 			strcpy_s(p1->name, "p1");
 			Assert::AreEqual(1l, ll_size(p));
-			LINKED_LIST *p2 = ll_insert(&p, sizeof * p);
+			LINKED_LIST* p2 = ll_insert(&p, sizeof * p);
 			strcpy_s(p2->name, "x2");
 			Assert::AreEqual(2l, ll_size(p));
 			p2 = ll_find(p, "x2");
@@ -46,7 +47,7 @@ namespace pkseditTests
 			Assert::AreEqual(1l, ll_size((LINKED_LIST*)ftable.firstl));
 			ln_createAndAddSimple(&ftable, "Hello world2");
 			Assert::AreEqual(2l, ll_size((LINKED_LIST*)ftable.firstl));
-			LINE* pLast = (LINE*) ll_at((LINKED_LIST*) ftable.firstl, 1);
+			LINE* pLast = (LINE*)ll_at((LINKED_LIST*)ftable.firstl, 1);
 			Assert::IsNotNull(pLast);
 			Assert::AreEqual(1l, ln_indexOf(&ftable, pLast));
 		}
@@ -54,17 +55,17 @@ namespace pkseditTests
 	TEST_CLASS(regularExpressions)
 	{
 	private:
-	RE_OPTIONS * createOptions(char* expression, int flags) {
-		static RE_OPTIONS options;
-		static char patternBuf[256];
+		RE_OPTIONS* createOptions(char* expression, int flags) {
+			static RE_OPTIONS options;
+			static char patternBuf[256];
 
-		options.patternBuf = patternBuf;
-		options.endOfPatternBuf = &patternBuf[sizeof patternBuf];
-		options.eof = 0;
-		options.flags = flags;
-		options.expression = expression;
-		return &options;
-	}
+			options.patternBuf = patternBuf;
+			options.endOfPatternBuf = &patternBuf[sizeof patternBuf];
+			options.eof = 0;
+			options.flags = flags;
+			options.expression = expression;
+			return &options;
+		}
 
 	public:
 		TEST_METHOD(SimpleTests)
@@ -83,13 +84,13 @@ namespace pkseditTests
 			options = createOptions("[a-z]{2,3}", RE_DOREX);
 			Assert::AreEqual(1, compile(options, &pattern));
 			const char* expr = "99abcX";
-			Assert::AreEqual(1, step(&pattern, (unsigned char*) expr, NULL, &match));
+			Assert::AreEqual(1, step(&pattern, (unsigned char*)expr, NULL, &match));
 			Assert::AreEqual(2, (int)(match.loc1 - expr));
 			Assert::AreEqual(5, (int)(match.loc2 - expr));
 		}
 		TEST_METHOD(CompilerErrorParsing)
 		{
-			RE_OPTIONS *options;
+			RE_OPTIONS* options;
 			RE_PATTERN pattern;
 			RE_MATCH match;
 			options = createOptions("\"([^\"]+)\", line ([0-9]+): *(.*)", RE_DOREX);
@@ -105,7 +106,7 @@ namespace pkseditTests
 
 		TEST_METHOD(MatchWithOptions)
 		{
-			RE_OPTIONS *options;
+			RE_OPTIONS* options;
 			RE_PATTERN pattern;
 			RE_MATCH match;
 			options = createOptions("(fritz|franz)", RE_DOREX | RE_IGNCASE);
@@ -128,7 +129,7 @@ namespace pkseditTests
 			RE_OPTIONS* options;
 			RE_PATTERN pattern;
 			RE_MATCH match;
-			options = createOptions("(ape|cat)", RE_DOREX|RE_IGNCASE);
+			options = createOptions("(ape|cat)", RE_DOREX | RE_IGNCASE);
 			Assert::AreEqual(1, compile(options, &pattern));
 			Assert::AreEqual(1, step(&pattern, (unsigned char*)"The Ape and the Cat are walking along the beach", NULL, &match));
 			REPLACEMENT_OPTIONS reOptions;
@@ -197,5 +198,50 @@ namespace pkseditTests
 			Assert::AreEqual(3, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("diE", (const char*)result);
 		}
-		};
+	};
+	TEST_CLASS(arrayList)
+	{
+
+	public:
+		TEST_METHOD(BasicOperations)
+		{
+			ARRAY_LIST* pList = arraylist_create(0);
+			char* p1 = "hans";
+			char* p2 = "otto";
+			char* p3 = "katja";
+			arraylist_add(pList, p1);
+			Assert::AreEqual((size_t)1, arraylist_size(pList));
+			arraylist_add(pList, p3);
+			Assert::AreEqual((size_t)2, arraylist_size(pList));
+			arraylist_add(pList, p2);
+			Assert::AreEqual((size_t)3, arraylist_size(pList));
+			for (int i = 0; i < 1000; i++) {
+				arraylist_add(pList, p2);
+			}
+			Assert::AreEqual((size_t)1003, arraylist_size(pList));
+			int idx = arraylist_indexOf(pList, p3);
+			Assert::AreEqual(1, idx);
+			arraylist_remove(pList, p3);
+			Assert::AreEqual((size_t)1002, arraylist_size(pList));
+
+			arraylist_remove(pList, p2);
+			Assert::AreEqual((size_t)1001, arraylist_size(pList));
+			arraylist_remove(pList, p2);
+			Assert::AreEqual((size_t)1000, arraylist_size(pList));
+			int ret = arraylist_remove(pList, p2);
+			Assert::AreEqual(1, ret);
+			ret = arraylist_remove(pList, "erna");
+			Assert::AreEqual(0, ret);
+
+			arraylist_remove(pList, p1);
+			ARRAY_ITERATOR iterator = arraylist_iterator(pList);
+			void** p = iterator.i_buffer;
+			while (p < iterator.i_bufferEnd) {
+				void *szString = *p++;
+				Assert::AreEqual((char*)szString, p2);
+			}
+			arraylist_destroy(pList);
+
+		}
+	};
 }

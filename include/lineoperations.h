@@ -162,6 +162,12 @@ typedef struct documentDescriptor {
 extern int doctypes_calculateTabStop(int col, DOCUMENT_DESCRIPTOR* lp);
 
 /*--------------------------------------------------------------------------
+ * doctypes_calculateNextTabStop()
+ * calculate next tabstop after the given column.
+ */
+extern int doctypes_calculateNextTabStop(int col, DOCUMENT_DESCRIPTOR* l);
+
+/*--------------------------------------------------------------------------
  * Creates the default attributes for editing a document. The returned structure
  * must be freed, when done using it.
  */

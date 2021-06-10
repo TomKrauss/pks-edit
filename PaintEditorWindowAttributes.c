@@ -82,25 +82,55 @@ static int  graf_text(HDC hdc,
 }
 
 /*--------------------------------------------------------------------------
+ * ww_calculateLineAttributes()
+ * In preparation for rendering "attributed rendering" - calculate the line rendering
+ * attributes for a line.
+ */
+static void ww_calculateLineAttributes(LINE* lp)
+{
+	unsigned char* s, * send, a, e;
+
+	a = 0;
+	e = ESCAPE;
+	lp->attr = a;
+	s = lp->lbuf;
+	send = &lp->lbuf[lp->len];
+	while (s < send) {
+		if (*s++ == e) {
+			a = *s++;
+		}
+	}
+}
+
+/*--------------------------------------------------------------------------
  * render_singleLineWithAttributesOnDevice()
  */
-char *render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y,
-	unsigned char *b, LINE *lp, int start, int end, WINFO *wp)
-{
-	register unsigned char *	d,c;
-	register unsigned char *	l,*lend,*ret;
-	unsigned char 			attribut,olda;
-	register 				col;
-	int 	    				ctrl;
-     int					ind;
-	DOCUMENT_DESCRIPTOR *				lin;
+int render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE* lp) {
+	char 				buf[512];
+	unsigned char *		d,c;
+	unsigned char *		l,*lend,*ret;
+	unsigned char 		attribut,olda;
+	register 			col;
+	int 	    		ctrl;
+    int					ind;
+	DOCUMENT_DESCRIPTOR* lin;
+	unsigned char* b = buf;
+	int start, end;
 
+	start = wp->mincol;
+	end = wp->maxcol + 1;
+	int textlen = end - start;
+	if (textlen >= sizeof buf) {
+		textlen = sizeof buf - 1;
+		end = textlen + start;
+	}
 	d    = b;
 	col  = 0;
 	olda	= 0;
 	lin = (FTPOI(wp))->documentDescriptor;
 	l    = lp->lbuf;
 	lend = &lp->lbuf[lp->len];
+	ww_calculateLineAttributes(lp);
 	attribut = lp->attr;
 	ctrl = PLAINCONTROL(wp->dispmode);
 	ret  = b;
@@ -157,27 +187,7 @@ char *render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y,
 		col++;
 	}
 	x = graf_text(hdc,b,d,wp,x,y,attribut,olda);
-	ret += (d-b);
 	SelectTextAttribute(hdc,wp,0,olda);
-	return ret;
-}
-
-/*--------------------------------------------------------------------------
- * mkattlist()
- */
-void mkattlist(LINE *lp)
-{	unsigned char *s,*send,a,e;
-
-	a = 0;
-	e = ESCAPE;
-	while(lp) {
-		lp->attr = a;
-		s    = lp->lbuf;
-		send = &lp->lbuf[lp->len];
-		while (s < send)
-			if (*s++ == e)
-				a = *s++;
-		lp = lp->next;
-	}
+	return (int)(d - b);
 }
 

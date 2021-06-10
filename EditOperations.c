@@ -240,7 +240,7 @@ static int PostInsline(FTABLE *fp, int dir, long ln, long col)
 		if (ominln == wp->minln) {
 			wt_insline(wp,1);
 		}
-		render_redrawCurrentLine();
+		render_repaintCurrentLine();
 	}
 	lp = fp->caret.linePointer;
 	if (dir < 0) {
@@ -315,7 +315,7 @@ int EdLineDelete(control)
 	}
 
 	if (lastlinelen) {
-		render_paintFromLineTo(wp,wp->ln,wp->maxln);
+		render_repaintFromLineTo(wp,wp->ln,wp->maxln);
 	} else {
 		wt_deleteline(wp,0,1);
 	}
@@ -338,7 +338,7 @@ int EdLinesJoin()
 	/* this makes sure current line is not drawn twice */
 	if (wp->cy + wp->cheight < wp->workarea.g_h) {
 		wt_deleteline(wp,1,1);
-		render_redrawCurrentLine();
+		render_repaintCurrentLine();
 	}
 	return 1;
 }
@@ -364,7 +364,7 @@ static int cb_breakline(FTABLE *fp, int soft)
 		fp->caret.linePointer->lflg &= ~LNNOTERM;
 	}
 
-	render_redrawCurrentLine();
+	render_repaintCurrentLine();
 	InsIndent(fp,fp->caret.linePointer,nlp,fp->caret.offset,&ai);
 
 	return PostInsline(fp,1,fp->ln+1L,(long)ai);
@@ -627,8 +627,8 @@ static int EdAutoFormat(FTABLE *fp)
 	if (i_d) {
 		render_repaintAllForFile(fp);
 	} else {
-		render_redrawAndPaintCurrentFile();
-		render_redrawCurrentLine();
+		render_repaintCurrentFile();
+		render_repaintCurrentLine();
 	}
 
 	lp1 = fp->caret.linePointer;
@@ -717,9 +717,9 @@ int EdCharInsert(int c)
 	memset(&lp->lbuf[offs],c,nchars);
 
 #if 0
-	render_linePart(offs,10000);
+	render_repaintLinePart(offs,10000);
 #else
-	render_redrawCurrentLine();
+	render_repaintCurrentLine();
 #endif
 
 	offs += nchars;
@@ -803,7 +803,7 @@ int EdCharDelete(int control)
 	if (ln != ln1) {
 		render_repaintAllForFile(fp);
 	} else {
-		render_redrawCurrentLine();
+		render_repaintCurrentLine();
 	}
 	EdAutoFormat(fp);
 
@@ -951,7 +951,7 @@ void EdMouseSelectLines(int flg)
 	else
 		lp->lflg &= ~LNXMARKED;
 	if (oflg != lp->lflg)
-		render_redrawCurrentLine();
+		render_repaintCurrentLine();
 }
 
 /*--------------------------------------------------------------------------

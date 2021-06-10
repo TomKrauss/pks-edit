@@ -282,7 +282,8 @@ BEGIN
     EDITTEXT        IDD_INT1,100,127,16,12,ES_AUTOHSCROLL
     LTEXT           "&Rechter Rand:",220,6,143,50,8
     EDITTEXT        IDD_INT2,100,142,16,12,ES_AUTOHSCROLL
-    CONTROL         "&Zeilennummern anzeigen",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,89,182,10
+    CONTROL         "&Zeilennummern anzeigen",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,80,182,10
+    CONTROL         "&Zeile mit Cursor markieren",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,91,182,10
 END
 
 DLGEXEC DIALOG 7, 68, 245, 134
@@ -1228,12 +1229,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Pahlen & Krauﬂ Software "
             VALUE "FileDescription", "Famous Atari Editor"
-            VALUE "FileVersion", "1.7.0"
+            VALUE "FileVersion", "1.7.2"
             VALUE "InternalName", "pksedit.exe"
             VALUE "LegalCopyright", "Copyright (C) 2021 Pahlen & Krauﬂ"
             VALUE "OriginalFilename", "pksedit.exe"
             VALUE "ProductName", "PKS Edit"
-            VALUE "ProductVersion", "1.7.0"
+            VALUE "ProductVersion", "1.7.2"
         END
     END
     BLOCK "VarFileInfo"

@@ -28,8 +28,6 @@
 /*-----------------------*/
 extern MARK	*mark_find(FTABLE *fp, int id);
 extern MARK	*mark_set(FTABLE *fp, LINE *lp,int offs,int c);
-extern void 	render_linePart(FTABLE *fp, long ln, int col1, int col2);
-extern void 	render_redrawLine(FTABLE *fp, LINE *lpWhich);
 extern unsigned char *bl_convertPasteBufferToText(unsigned char *b, unsigned char *end, 
 				PASTE *pp);
 extern void 	bl_validateTrashCanName(char *pszValid);
@@ -82,16 +80,16 @@ EXPORT int bl_hideSelection(int removeLineSelectionFlag) {
 		if (removeLineSelectionFlag) {
 			if (mps->lm == mpe->lm) {
 				if (mps->lc != mpe->lc) {
-					render_redrawLine(fp, mps->lm);
+					render_repaintLine(fp, mps->lm);
 				}
 			} else {
-				render_redrawAndPaintCurrentFile();
+				render_repaintCurrentFile();
 			}
 		}
 	} else {
 		if (removeLineSelectionFlag) {
 			ln_removeFlag(fp->firstl,fp->lastl,(LNCPMARKED|LNXMARKED|LNDIFFMARK));
-			render_redrawAndPaintCurrentFile();
+			render_repaintCurrentFile();
 		}
 	}
 	ln_removeFlag(lpFirst, lpLast, LNREPLACED);
@@ -137,7 +135,7 @@ EXPORT int bl_pasteBlock(PASTE *buf, int colflg, int offset, int move) {
 		}
 		if (ln > wp->maxln) delta = wp->maxln;
 		else delta = ln;
-		render_paintFromLineTo(wp,oln,delta);
+		render_repaintFromLineTo(wp,oln,delta);
 		caret_placeCursorInCurrentFile(ln,col);		
 	} else {
 		fp->blstart->lc++; /* get block marked afterwards (s. cpy_mv) */
@@ -674,7 +672,7 @@ static void marklines(int changed,int colflg,
 			lp->lflg |= LNREPLACED;
 	}
 
-	render_redrawAndPaintCurrentFile();
+	render_repaintCurrentFile();
 	ln_removeFlag(lpFirst, lpLast, LNREPLACED);
 }
 
@@ -864,7 +862,7 @@ int bl_syncSelectionWithCaret(FTABLE *fp, CARET *lpCaret, int flags)
 					endx = marks->lc;
 				}
 			}
-			render_linePart(fp, fp->ln, caret_lineOffset2screen(fp, &(CARET) {
+			render_repaintLinePart(fp, fp->ln, caret_lineOffset2screen(fp, &(CARET) {
 				fp->caret.linePointer, startx
 			}),
 				caret_lineOffset2screen(fp, &(CARET) {

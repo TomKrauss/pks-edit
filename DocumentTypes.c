@@ -80,6 +80,22 @@ int doctypes_calculateTabStop(int col, DOCUMENT_DESCRIPTOR* l) {
 }
 
 /*--------------------------------------------------------------------------
+ * doctypes_calculateNextTabStop()
+ * calculate next tabstop after the given column.
+ */
+int doctypes_calculateNextTabStop(int col, DOCUMENT_DESCRIPTOR* l) {
+	if (col < DIM(l->ts) && l->ts[col]) {
+		int i = l->ts[col];
+		if (i != col) {
+			return i;
+		}
+	}
+	while (++col < MAXLINELEN && !TABTHERE(l, col))
+		;
+	return col;
+}
+
+/*--------------------------------------------------------------------------
  * InitTabStops()
  */
 static void InitTabStops(DOCUMENT_DESCRIPTOR* lp)
@@ -93,7 +109,7 @@ static void InitTabStops(DOCUMENT_DESCRIPTOR* lp)
 			ts++;
 		if (ts >= DIM(lp->ts))
 			return;
-		while (i < ts) {
+		while (i <= ts) {
 			if (i >= DIM(lp->ts))
 				return;
 			lp->ts[i] = ts;

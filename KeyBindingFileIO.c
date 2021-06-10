@@ -315,7 +315,7 @@ int doabbrev(FTABLE *fp, LINE *lp,int offs)
 		return 0;
 	caret_placeCursorInCurrentFile(fp->ln,o2);
 	return (domacro) ? 
-		render_redrawCurrentLine(), macro_executeByName((char *)up->p) : bl_pasteBlock(up->p,0,o2,0);
+		render_repaintCurrentLine(), macro_executeByName((char *)up->p) : bl_pasteBlock(up->p,0,o2,0);
 }
 
 /*--------------------------------------------------------------------------

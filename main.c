@@ -46,7 +46,7 @@ extern void		GetPhase2Args(char *args);
 extern void		GetPhase1Args(char *args);
 extern void 	EditDroppedFiles(HDROP hdrop);
 extern BOOL 	ft_initializeReadWriteBuffers(void);
-extern BOOL 	ww_havefocus(void);
+extern BOOL 	ww_workWinHasFocus(void);
 extern void 	st_init(HWND hwndDaddy);
 extern void 	status_wh(WORD *width, WORD *height);
 extern void 	tb_wh(WORD *width, WORD *height);
@@ -288,7 +288,7 @@ static int TranslatePksAccel(HWND hwnd, MSG *msg)
 			    msg->wParam == VK_CONTROL ||
 			    msg->wParam == VK_SHIFT)
 		    		break;
-			if (!ww_havefocus()) {
+			if (!ww_workWinHasFocus()) {
 				if (!(msg->hwnd == hwndClient || GetKeyState(VK_CONTROL) < 0)) {
 					break;
 				}
@@ -625,7 +625,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_CREATE:
 			clientcreate.hWindowMenu  = 0;
 			clientcreate.idFirstChild = (unsigned int)-1;
-			dwStyle = WS_CHILD | WS_CLIPCHILDREN ;
+			dwStyle = WS_CHILD | WS_CLIPCHILDREN;
 
 			if (GetConfiguration()->options & O_MDISCROLL) {
 				dwStyle |= (WS_HSCROLL | WS_VSCROLL);

@@ -532,7 +532,7 @@ EXPORT int EdCharUpToLow(void )
 	if (((c1 = _l2uset[c]) != c || (c1 = _u2lset[c]) != c) &&
 	    (lp = ln_modify(fp,lp,offs,offs)) != (LINE *)0) {
 		lp->lbuf[offs] = c1;
-		render_redrawCurrentLine();
+		render_repaintCurrentLine();
 	}
 	return EdCursorRight(1);
 }

@@ -147,6 +147,7 @@ static int render_adjustScrollBounds(WINFO *wp) {
  */
 void wt_curpos(WINFO *wp, long ln, long col)
 {
+	int oldln = wp->ln;
 	wp->ln = ln;
 	wp->col = col;
 	render_adjustScrollBounds(wp);
@@ -155,6 +156,10 @@ void wt_curpos(WINFO *wp, long ln, long col)
 		XtndBlock(FTPOI(wp));
 	}
 
+	if (oldln != wp->ln) {
+		render_repaintFromLineTo(wp, oldln, oldln);
+		render_repaintFromLineTo(wp, wp->ln, wp->ln);
+	}
 }
 
 /*------------------------------------------------------------
@@ -176,11 +181,15 @@ void wt_tcursor(WINFO *wp,int type)
 void wt_scrollxy(WINFO *wp,int nlines, int ncolumns)
 {
      EdTRACE(Debug(DEBUG_TRACE,"wt_scrollxy (%lx,%d,%d)",wp,nlines,ncolumns));
-     
-	ScrollWindow(wp->ww_handle,-ncolumns*wp->cwidth,-nlines*wp->cheight,
+	 int yDelta = -nlines * wp->cheight;
+	ScrollWindow(wp->ww_handle,-ncolumns*wp->cwidth,yDelta,
 			   (LPRECT)0,(LPRECT)0);
-
 	UpdateWindow(wp->ww_handle);
+
+	if (ncolumns == 0 && wp->lineNumbers_handle) {
+		ScrollWindow(wp->lineNumbers_handle, 0, yDelta,
+			(LPRECT)0, (LPRECT)0);
+	}
 }
 
 	

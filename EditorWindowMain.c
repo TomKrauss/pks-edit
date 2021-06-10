@@ -43,10 +43,7 @@ typedef struct xywh {
 
 static WINFO *_winlist;
 
-/*--------------------------------------------------------------------------
- * mkattlist()
- */
-extern void mkattlist(LINE* lp);
+extern int render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y, WINFO* wp, LINE* lp);
 extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
 extern char *ft_visiblename(FTABLE *fp);
 extern int  mouse_onRulerClicked(WINFO *fp, int x, int y, int msg, int shift);
@@ -93,9 +90,9 @@ EXPORT void ww_savewinstates(void)
 }
 
 /*------------------------------------------------------------
- * MakeOrKillEditChild()
+ * ww_createOrDestroyChildWindowOfEditor()
  */
-static int MakeOrKillEditChild(
+static int ww_createOrDestroyChildWindowOfEditor(
 	HWND  hwnd, 
 	DWORD winFlags,
 	BOOL  visible,
@@ -123,9 +120,9 @@ static int MakeOrKillEditChild(
 }
 
 /*-----------------------------------------------------------
- * MakeSubWis()
+ * ww_createSubWindows()
  */
-static int MakeSubWis(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, XYWH *pLineInfo) {
+static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, XYWH *pLineInfo) {
 	RECT   	rect;
 	BOOL	rulerVisible;
 	BOOL	lineNumbersVisible;
@@ -149,7 +146,7 @@ static int MakeSubWis(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, XYWH *pLi
 	pRuler->h = rh;
 
 	rulerVisible = (h > rh && (wp->dispmode & SHOWRULER));
-	if (!MakeOrKillEditChild(hwnd,
+	if (!ww_createOrDestroyChildWindowOfEditor(hwnd,
 		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS,
 		rulerVisible, &wp->ru_handle, szRulerClass, pRuler, wp)) {
 		pRuler->h = 0;
@@ -161,7 +158,7 @@ static int MakeSubWis(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, XYWH *pLi
 	pLineInfo->y = pRuler->h;
 	pLineInfo->h = h - pRuler->h;
 	lineNumbersVisible = (w > rLineNumbers && (wp->dispmode & SHOWLINENUMBERS));
-	if (!MakeOrKillEditChild(hwnd,
+	if (!ww_createOrDestroyChildWindowOfEditor(hwnd,
 		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
 		lineNumbersVisible, &wp->lineNumbers_handle, szLineNumbersClass, pLineInfo, wp)) {
 		pLineInfo->w = 0;
@@ -172,15 +169,15 @@ static int MakeSubWis(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, XYWH *pLi
 	pWork->w = w - pLineInfo->w;
 	pWork->y = pRuler->h;
 	pWork->h = h - pRuler->h;
-	return MakeOrKillEditChild(hwnd,
-		WS_HSCROLL|WS_VSCROLL|WS_BORDER|WS_CHILD|WS_VISIBLE/*|WS_CLIPSIBLINGS*/,
+	return ww_createOrDestroyChildWindowOfEditor(hwnd,
+		WS_HSCROLL|WS_VSCROLL|WS_CHILD|WS_VISIBLE/*|WS_CLIPSIBLINGS*/,
 		TRUE,&wp->ww_handle,szWorkAreaClass,pWork, wp);
 }
 
 /*-----------------------------------------------------------
- * chRound()
+ * ww_snapPositionToCharGrid()
  */
-static int chRound(int x, int grid)
+static int ww_snapPositionToCharGrid(int x, int grid)
 {
 	if (grid <= 0)
 		return 0;
@@ -188,17 +185,17 @@ static int chRound(int x, int grid)
 }
 
 /*------------------------------------------------------------
- * SetBounds()
+ * ww_updateRangeAndCheckBounds()
  * calculate scrollops checking bounds
  */
-static void SetBounds(long min, int cheight, int h,
+static void ww_updateRangeAndCheckBounds(long min, int cheight, int h,
 				  long *max, long *maxcurs, long *mincurs, 
 				  int *scroll_d)
 {	int delta,d2;
 
 	if (!cheight)
 		return;
-	*max = min + (delta = chRound(h,cheight));
+	*max = min + (delta = ww_snapPositionToCharGrid(h,cheight));
 	delta /= 2;
 	d2 = (h % cheight) ? 2 : 1;
 	delta -= d2;
@@ -221,10 +218,10 @@ static void SetBounds(long min, int cheight, int h,
  */
 EXPORT void ww_setScrollCheckBounds(WINFO *wp)
 {
-	SetBounds(wp->minln, wp->cheight, wp->workarea.g_h,
+	ww_updateRangeAndCheckBounds(wp->minln, wp->cheight, wp->workarea.g_h,
 			&wp->maxln, &wp->maxcursln, &wp->mincursln, &wp->scroll_dy); 
 			
-	SetBounds(wp->mincol, wp->cwidth, wp->workarea.g_w,
+	ww_updateRangeAndCheckBounds(wp->mincol, wp->cwidth, wp->workarea.g_w,
 			&wp->maxcol, &wp->maxcurscol, &wp->mincurscol, &wp->scroll_dx); 
 }
 
@@ -272,10 +269,10 @@ EXPORT WINFO *ww_findwinid(int winid)
 }
 
 /*--------------------------------------------------------------------------
- * ww_havefocus()
+ * ww_workWinHasFocus()
  * return TRUE, when a work window has the input focus
  */
-EXPORT BOOL ww_havefocus(void)
+EXPORT BOOL ww_workWinHasFocus(void)
 {
 	if (!_winlist || _winlist->ww_handle != GetFocus()) {
 		return FALSE;
@@ -369,9 +366,9 @@ int EdWindowRegSet(int num)
 }
 
 /*------------------------------------------------------------
- * ArrangeIcons()
+ * ww_arrangeIcons()
  */
-static void ArrangeIcons(void)
+static void ww_arrangeIcons(void)
 {
 	int		nMax;
 	int		nIconHeight;
@@ -428,9 +425,9 @@ static void ArrangeIcons(void)
 }
 
 /*--------------------------------------------------------------------------
- * EnableNotTopmost()
+ * ww_enableNotTopmostWindow()
  */
-static void EnableNotTopmost(int nTopMost, BOOL bHow)
+static void ww_enableNotTopmostWindow(int nTopMost, BOOL bHow)
 {
 	int		nWindow;
 	WINFO *	wp;
@@ -467,7 +464,7 @@ int EdWinArrange(int func)
 		case WIN_PAIRS:
 			message = WM_MDITILE;
 			wParam = MDITILE_SKIPDISABLED;
-			EnableNotTopmost(2, FALSE);
+			ww_enableNotTopmostWindow(2, FALSE);
 			break;
 		case WIN_HOR:
 			message = WM_MDITILE;
@@ -495,13 +492,13 @@ int EdWinArrange(int func)
 
 	ShowWindow(hwndClient,SW_HIDE);
 	if (func == WIN_ICONARRANGE) {
-		ArrangeIcons();
+		ww_arrangeIcons();
 	}
 	ret = SendMessage(hwndClient, message, wParam, 0L);
 	ShowWindow(hwndClient,SW_SHOW);
 
 	if (func == WIN_PAIRS) {
-		EnableNotTopmost(2, TRUE);
+		ww_enableNotTopmostWindow(2, TRUE);
 	}
 	return (int) ret;
 }
@@ -566,10 +563,8 @@ void ww_applyDisplayProperties(WINFO *wp) {
 
 	if (linp->dispmode != wp->dispmode) {
 		wp->dispmode = linp->dispmode;
-		if (wp->dispmode & SHOWATTR) {
-			mkattlist(fp->firstl);
-		} 
 	}
+	wp->renderFunction = (wp->dispmode & SHOWATTR) ? render_singleLineWithAttributesOnDevice : render_singleLineOnDevice;
 
 	memmove(&wp->fnt, &linp->fnt, sizeof wp->fnt);
 	if (wp->fnt.fgcolor == wp->fnt.bgcolor) {
@@ -715,7 +710,7 @@ WINFUNC EditWndProc(
 		}
 
 		ShowWindow(hwnd, SW_HIDE);
-		MakeSubWis(hwnd, wp, &xyWork, &xyRuler, &xyLineInfo);
+		ww_createSubWindows(hwnd, wp, &xyWork, &xyRuler, &xyLineInfo);
 		ww_setwindowtitle(wp);
 		SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR)fp->fname);
 		SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,(LONG_PTR) icEditIconClass);
@@ -773,7 +768,7 @@ WINFUNC EditWndProc(
 		{
 		XYWH xyWork, xyRuler, xyLineWindowSize;
 
-		MakeSubWis(hwnd, wp,&xyWork,&xyRuler, &xyLineWindowSize);
+		ww_createSubWindows(hwnd, wp,&xyWork,&xyRuler, &xyLineWindowSize);
 		if (wp->ww_handle) {
 			MoveWindow(wp->ww_handle,xyWork.x,xyWork.y,
 					xyWork.w,xyWork.h,1);
@@ -825,9 +820,9 @@ WINFUNC EditWndProc(
 }
 
 /*------------------------------------------------------------
- * SetWiSize()
+ * ww_updateWindowBounds()
  */
-static int SetWiSize(WINFO *wp, int w, int h) {
+static int ww_updateWindowBounds(WINFO *wp, int w, int h) {
 	wp->workarea.g_x = wp->workarea.g_y = 0;
 	wp->workarea.g_w = w;
 	wp->workarea.g_h = h;
@@ -1005,7 +1000,7 @@ static WINFUNC WorkAreaWndProc(
 
 	case WM_SIZE:
 		if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
-			if (!SetWiSize(wp, LOWORD(lParam), HIWORD(lParam))) {
+			if (!ww_updateWindowBounds(wp, LOWORD(lParam), HIWORD(lParam))) {
 				return 0;
 			}
 			wp->ww_handle = hwnd;

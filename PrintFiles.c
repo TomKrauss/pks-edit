@@ -396,7 +396,7 @@ static int print_singleLineOfText(HDC hdc, int xPos, int yPos, int charHeight, l
 		_printwhat.wp->maxcol = nMaxCharsPerLine;
 	}
 	if (_printwhat.wp->maxcol > firstc) {
-		render_singleLineOnDevice(hdc, xPos, yPos, _printwhat.wp, lp);
+		_printwhat.wp->renderFunction(hdc, xPos, yPos, _printwhat.wp, lp);
 		while (_printwhat.wp->maxcol < max) {
 			int delta = max - _printwhat.wp->maxcol;
 			if (delta > nMaxCharsPerLine) {
@@ -406,7 +406,7 @@ static int print_singleLineOfText(HDC hdc, int xPos, int yPos, int charHeight, l
 			_printwhat.wp->maxcol = _printwhat.wp->mincol+delta;
 			deltaHeight += charHeight;
 			yPos += charHeight;
-			render_singleLineOnDevice(hdc, xPos, yPos, _printwhat.wp, lp);
+			_printwhat.wp->renderFunction(hdc, xPos, yPos, _printwhat.wp, lp);
 		}
 	}
 	return deltaHeight;

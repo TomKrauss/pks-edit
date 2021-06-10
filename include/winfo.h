@@ -35,13 +35,17 @@ typedef struct tagFSTYLE {
 
 typedef struct tagPROPERTY_CHANGE PROPERTY_CHANGE;
 
+typedef struct wininfo WINFO;
+
+typedef int (*RENDER_LINE_FUNCTION)(HDC hdc, int x, int y, WINFO* wp, LINE* lp);
+
 typedef struct wininfo {
 	struct wininfo *next;
 	int		win_id;
     HWND      edwin_handle,ww_handle,ru_handle,st_handle,lineNumbers_handle;
      
-     int       dispmode;				/* flags see edierror.h... */
-     int       workmode;
+    int       dispmode;				/* flags see edierror.h... */
+    int       workmode;
      BOOL		bXtndBlock;			/* Xtending blocks */
      int		scrollflags;
      int		cursaftersearch;
@@ -52,13 +56,14 @@ typedef struct wininfo {
      int       cx,cy,cmx,cmy,cheight,cwidth;
      int       owncursor,ctype;        	/* owncursor and caret - type */
 
-	EDFONT	fnt;
-	HFONT	fnt_handle;     
+	 EDFONT	fnt;
+     HFONT	fnt_handle;
 	
 	int		vscroll,hscroll;		/* # of lines and columns to scroll */
 	int		scroll_dx,			/* distance cursor-window border */
 			scroll_dy;			/* for scrolling */
-			
+	
+    RENDER_LINE_FUNCTION renderFunction;
      long      ln,minln,maxln,mincursln,maxcursln,
                col,mincol,maxcol,mincurscol,maxcurscol;
      GRECT     workarea;
@@ -75,28 +80,39 @@ extern void render_sendRedrawToWindow(HWND hwnd);
 
 /*------------------------------------------------------------
  * render_paintWindow()
+ * Performs the actual painting of the window.
  */
 extern void render_paintWindow(WINFO* wp);
 
 /*--------------------------------------------------------------------------
- * render_paintFromLineTo()
+ * render_repaintFromLineTo()
+ * Send a repaint to the given range of lines.
  */
-extern void render_paintFromLineTo(WINFO* wp, long min, long max);
+extern void render_repaintFromLineTo(WINFO* wp, long min, long max);
 
 /*--------------------------------------------------------------------------
  * render_repaintAllForFile()
+ * Send a repaint to all windows / views on a file
  */
 extern void render_repaintAllForFile(FTABLE* fp);
 
 /*--------------------------------------------------------------------------
- * render_redrawAndPaintCurrentFile()
+ * render_repaintCurrentFile()
+ * Send a repaint to the current file.
  */
-extern void render_redrawAndPaintCurrentFile(void);
+extern void render_repaintCurrentFile(void);
 
 /*--------------------------------------------------------------------------
- * render_linePart()
+ * render_repaintLinePart()
+ * Send a repaint to a part of a line.
  */
-extern void render_linePart(FTABLE* fp, long ln, int col1, int col2);
+extern void render_repaintLinePart(FTABLE* fp, long ln, int col1, int col2);
+
+/*--------------------------------------------------------------------------
+ * render_repaintLine()
+ * Send a repaint to the specific line.
+ */
+extern void render_repaintLine(FTABLE* fp, LINE* lpWhich);
 
 /*------------------------------------------------------------
  * render_updateCaret()
@@ -170,10 +186,10 @@ extern void wt_insline(WINFO* wp, int nlines);
 extern void render_repaintAllForFile(FTABLE* fp);
 
 /*--------------------------------------------------------------------------
- * render_redrawCurrentLine()
+ * render_repaintCurrentLine()
  * Redraw the line containing the cursor, in the "current active" editor window.
  */
-extern void render_redrawCurrentLine(void);
+extern void render_repaintCurrentLine(void);
 
 /**
  * Returns the view num steps from the step - 0 to return the current to level view, 1 to return

@@ -60,18 +60,19 @@ extern void linetoolong(void);
 
 /*----- display modes --------------*/
 
-#define	SHOWCONTROL		0x1
-#define	SHOWSTATUS		0x2
-#define	SHOWHEX			0x4
-#define	SHOWRULER			0x8
-#define	SHOWATTR			0x10
-#define	SHOWOEM			0x20
-#define	SHOWHIDELINES		0x40
-#define	SHOWFIXEDWI		0x80
-#define	SHOWHIDEHSLIDER	0x100
-#define	SHOWHIDEVSLIDER	0x200
-#define	SHOWSTATUSBOT		0x400
-#define	SHOWLINENUMBERS		0x800
+#define	SHOWCONTROL		            0x1
+#define	SHOWSTATUS		            0x2
+#define	SHOWHEX			            0x4
+#define	SHOWRULER			        0x8
+#define	SHOWATTR			        0x10
+#define	SHOWOEM			            0x20
+#define	SHOWHIDELINES		        0x40
+#define	SHOWFIXEDWI		            0x80
+#define	SHOWHIDEHSLIDER	            0x100
+#define	SHOWHIDEVSLIDER	            0x200
+#define	SHOWSTATUSBOT		        0x400
+#define	SHOWLINENUMBERS		        0x800
+#define	SHOWCARET_LINE_HIGHLIGHT	0x1000
 
 #define	PLAINCONTROL(mode)	(((mode) & SHOWCONTROL) && !((mode) & SHOWRULER))
 
