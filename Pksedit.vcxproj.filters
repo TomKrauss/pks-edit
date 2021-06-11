@@ -279,6 +279,9 @@
     <ClCompile Include="include\ArrayList.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Themes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">

@@ -16,10 +16,20 @@
 
 typedef enum { FS_NORMAL, FS_CONTROL_CHARS, FS_COMMENT, FS_IDENTIFIER, FS_KEYWORD, FS_OPERATOR, FS_STRING } FONT_STYLE_CLASS;
 
-#define DEFAULT_CONTROL_COLOR 0x00AAAAAA
-#define CARET_LINE_COLOR RGB(235, 255, 235)
-#define MARKED_LINE_COLOR RGB(200, 200, 255)
+typedef struct tagTHEME_DATA {
+	unsigned char* th_name;
+	COLORREF th_defaultControlColor;
+	COLORREF th_caretLineColor;
+	COLORREF th_markedLineColor;
+	COLORREF th_rulerBorderColor;
+	COLORREF th_rulerForegroundColor;
+	COLORREF th_rulerBackgroundColor;
+} THEME_DATA;
 
+/*
+ * Returns the theme with the given name. If not found, a default theme is returned. 
+ */
+extern THEME_DATA* theme_getByName(unsigned char* pThemeName);
 
 #define THEMES_H
 

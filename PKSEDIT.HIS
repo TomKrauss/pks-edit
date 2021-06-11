@@ -1,6 +1,6 @@
 [files]
 "D:\tom\desktop\readme.txt", line 150: 0x1 0x1 104 713 -8 -31 557 129 1520 803
-"D:\source\pksedit\Clipboard.c", line 180: 0x1 0x1 104 713 -8 -31 31 30 688 727
+"D:\source\pksedit\Clipboard.c", line 67: 0x1 0x1 104 713 -8 -31 31 30 1042 732
 [find]
 !ed
 !red
@@ -36,5 +36,6 @@
 [pathes]
 !D:\tom\desktop\*.*
 !D:\source\pksedit\pks_sys\*.MAC
-!D:\source\pksedit\pks_sys\*.LIN
 !D:\source\pksedit\*.*
+!D:\dvltools\pksedit\pks_sys\*.LIN
+!D:\source\pksedit\pks_sys\*.LIN

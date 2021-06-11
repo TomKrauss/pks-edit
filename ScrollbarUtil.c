@@ -200,6 +200,9 @@ void sl_winchanged(WINFO *wp,long dy, long dx) {
 	    (dx < mx && dx > -mx)) {
 		wt_scrollxy(wp,(int)dy,(int)dx);
 	} else {
+		if (wp->lineNumbers_handle && dy != 0) {
+			win_sendRedrawToWindow(wp->lineNumbers_handle);
+		}
 		win_sendRedrawToWindow(wp->ww_handle);
 	}
 	if (dx && wp->ru_handle) {

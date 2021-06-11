@@ -52,7 +52,7 @@ typedef struct wininfo {
      int		tfillchar;			/* Tab fill char */
      
      char		*statusline;			/* alt. status line */
-
+     char* win_themeName;
      int       cx,cy,cmx,cmy,cheight,cwidth;
      int       owncursor,ctype;        	/* owncursor and caret - type */
 

@@ -32,6 +32,7 @@
 #include "desktopicons.h"
 #include "propertychange.h"
 #include "winutil.h"
+#include "themes.h"
 
 #define	WT_WORKWIN		0
 #define	WT_RULERWIN		1
@@ -584,6 +585,7 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	wp->workmode = linp->workmode;
 	wp->tfillchar = linp->t1;
 	wp->statusline = linp->statusline;
+	wp->win_themeName = "default";
 	wp->scrollflags = linp->scrollflags;
 	wp->cursaftersearch = linp->cursaftersearch;
 	wp->vscroll = linp->vscroll;
@@ -1052,15 +1054,21 @@ static void draw_ruler(WINFO *wp) {
 	DOCUMENT_DESCRIPTOR *pDescriptor = fp->documentDescriptor;
 	HDC 		hdc;
 	PAINTSTRUCT ps;
+	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
 
 	memset(&ps, 0, sizeof ps);
 	hdc = BeginPaint(wp->ru_handle, &ps);
 	GetClientRect(wp->ru_handle, &rect);
+	HBRUSH bgBrush = CreateSolidBrush(pTheme->th_rulerBackgroundColor);
+	FillRect(hdc, &ps.rcPaint, bgBrush);
+	DeleteObject(bgBrush);
 	nMiddle = rect.bottom / 2 - 3;
 	width = wp->cwidth;
 	rmargin = ft_getRightMargin(fp);
 
-	HPEN markerPen = CreatePen(PS_SOLID, 3, RGB(80, 80, 80));
+	HPEN fatMarkerPen = CreatePen(PS_SOLID, 3, pTheme->th_rulerForegroundColor);
+	HPEN markerPen = CreatePen(PS_SOLID, 1, pTheme->th_rulerForegroundColor);
+	HPEN hPenOld = SelectObject(hdc, markerPen);
 	xPos = wp->lineNumbers_handle ? lineNumberWindowWidth : 0;
 	int xMin = ps.rcPaint.left - 20;
 	int xMax = ps.rcPaint.right + 20;
@@ -1068,27 +1076,24 @@ static void draw_ruler(WINFO *wp) {
 		if (xPos < xMin || xPos > xMax) {
 			continue;
 		}
-		MoveTo(hdc, xPos, nMiddle - 3);
-		if (col == pDescriptor->lmargin || col == rmargin) {
-			SelectObject(hdc, markerPen);
-		}
-		else {
-			SelectObject(hdc, GetStockObject(BLACK_PEN));
-		}
-		LineTo(hdc, xPos, nMiddle);
-		if (TABTHERE(pDescriptor,col)) {
-			POINT polyPoints[3];
-			polyPoints[0].x = xPos;
-			polyPoints[0].y = rect.bottom - 5;
-			polyPoints[1].x = xPos + 3;
-			polyPoints[1].y = nMiddle + 2;
-			polyPoints[2].x = xPos - 2;
-			polyPoints[2].y = nMiddle + 2;
-			SelectObject(hdc, GetStockObject(WHITE_BRUSH));
-			SelectObject(hdc, GetStockObject(NULL_PEN));
-			Polygon(hdc, polyPoints, 3);
+		if (TABTHERE(pDescriptor,col) || col == pDescriptor->lmargin || col == pDescriptor->rmargin) {
+			MoveTo(hdc, xPos, nMiddle - 3);
+			if (col == pDescriptor->lmargin || col == rmargin) {
+				SelectObject(hdc, fatMarkerPen);
+			}
+			else {
+				SelectObject(hdc, markerPen);
+			}
+			LineTo(hdc, xPos, nMiddle + 3);
 		}
 	}
+	HPEN borderPen = CreatePen(PS_SOLID, 1, pTheme->th_rulerBorderColor);
+	SelectObject(hdc, borderPen);
+	MoveTo(hdc, rect.left, rect.bottom-1);
+	LineTo(hdc, rect.right, rect.bottom-1);
+	SelectObject(hdc, hPenOld);
+	DeleteObject(fatMarkerPen);
+	DeleteObject(borderPen);
 	DeleteObject(markerPen);
 	EndPaint(wp->ru_handle,&ps);
 }
@@ -1107,7 +1112,9 @@ static WINFUNC RulerWndProc(
 
 	switch(message) {
 
-		case WM_PAINT:
+	case WM_ERASEBKGND:
+		return 1;
+	case WM_PAINT:
 			if ((wp = (WINFO *)GetWindowLongPtr(hwnd,0)) != 0) {
 		   		draw_ruler(wp);
 			} else {
@@ -1151,13 +1158,16 @@ static void draw_lineNumbers(WINFO* wp) {
 	HDC 		hdc;
 	PAINTSTRUCT ps;
 	HFONT		saveFont;
+	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
 
 	hdc = BeginPaint(wp->lineNumbers_handle, &ps);
 	GetClientRect(wp->lineNumbers_handle, &rect);
+	HBRUSH bgBrush = CreateSolidBrush(pTheme->th_rulerBackgroundColor);
+	FillRect(hdc, &ps.rcPaint, bgBrush);
+	DeleteObject(bgBrush);
 
 	saveFont = font_selectDefaultEditorFont(wp, hdc,NULL);
-	SetTextColor(hdc, RGB(140,140,140));
-	/* SetBkColor(hdc,wp->fnt_bgcolor); */
+	SetTextColor(hdc, pTheme->th_rulerForegroundColor);
 	SetBkMode(hdc, TRANSPARENT);
 	int padding = 3;
 	char text[20];
@@ -1174,6 +1184,12 @@ static void draw_lineNumbers(WINFO* wp) {
 		textLen = strlen(text);
 		DrawText(hdc, text, (int)textLen, &textRect, DT_RIGHT|DT_END_ELLIPSIS);
 	}
+	HPEN markerPen = CreatePen(PS_SOLID, 1, pTheme->th_rulerBorderColor);
+	HPEN hPenOld = SelectObject(hdc, markerPen);
+	MoveTo(hdc, rect.right-1, rect.top);
+	LineTo(hdc, rect.right-1, rect.bottom);
+	SelectObject(hdc, hPenOld);
+	DeleteObject(markerPen);
 	font_selectSystemFixedFont(hdc);
 	EndPaint(wp->lineNumbers_handle, &ps);
 }
@@ -1192,12 +1208,15 @@ static WINFUNC LineNumberWndProc(
 
 	switch (message) {
 
+	case WM_ERASEBKGND:
+		return 1;
+
 	case WM_PAINT:
 		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, 0)) != 0) {
 			draw_lineNumbers(wp);
 		}
 		else {
-			EdTRACE(Debug(DEBUG_TRACE, "WM_PAINT in RulerWndProc without file"));
+			EdTRACE(Debug(DEBUG_TRACE, "WM_PAINT in LineNumberProc without WINFO pointer"));
 		}
 		break;
 
@@ -1225,10 +1244,10 @@ int ww_register(void)
 			(LPSTR)IDC_ARROW, NULL, "Edit",
 			GWL_VIEWPTR + sizeof(void*)) ||
 		!win_registerWindowClass(szRulerClass, RulerWndProc,
-			(LPSTR)IDC_CROSS, GetStockObject(LTGRAY_BRUSH), NULL,
+			(LPSTR)IDC_CROSS, NULL, NULL,
 			sizeof(void*)) ||
 		!win_registerWindowClass(szLineNumbersClass, LineNumberWndProc,
-			(LPSTR)IDC_ARROW, CreateSolidBrush(RGB(248,248,248)), NULL,
+			(LPSTR)IDC_ARROW, NULL, NULL,
 			sizeof(void*))
 #if 0
 		||

@@ -46,8 +46,8 @@ static DWORD _ROPcodes[] = {
 /*-----------------------------------------
  * Render some control characters in control-mode. 
  */
-static int render_formattedString(HDC hdc, WINFO* wp, int x, int y, unsigned char* cBuf, size_t nLength, FONT_STYLE_CLASS nStyle) {
-	COLORREF	hControlColor = nStyle == FS_NORMAL ? wp->fnt.fgcolor : DEFAULT_CONTROL_COLOR;
+static int render_formattedString(HDC hdc, WINFO* wp, int x, int y, unsigned char* cBuf, size_t nLength, THEME_DATA *pTheme, FONT_STYLE_CLASS nStyle) {
+	COLORREF	hControlColor = nStyle == FS_NORMAL ? wp->fnt.fgcolor : pTheme->th_defaultControlColor;
 
 	SetTextColor(hdc, hControlColor);
 	TextOut(hdc, x, y, cBuf, (int)nLength);
@@ -114,6 +114,7 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 	int					startX = x;
 	RENDER_STATE		state = RS_START;
 	int					showcontrol;
+	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
 
 	startColumn = wp->mincol;
 	endColumn = wp->maxcol+1;
@@ -160,7 +161,7 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 		if (newstate != state) {
 			textlen = (int)(d - buf);
 			if (textlen > 0) {
-				render_formattedString(hdc, wp, x, y, buf, textlen, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : FS_NORMAL);
+				render_formattedString(hdc, wp, x, y, buf, textlen, pTheme, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : FS_NORMAL);
 				x += textlen * wp->cwidth;
 			}
 			state = newstate;
@@ -175,11 +176,11 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 				x += wp->cwidth;
 			}
 		} else if (state == RS_CONTROL) {
-			render_formattedString(hdc, wp, x, y, "?", 1, FS_CONTROL_CHARS);
+			render_formattedString(hdc, wp, x, y, "?", 1, pTheme, FS_CONTROL_CHARS);
 			x += wp->cwidth;
 		} else if (state == RS_TAB) {
 			if (showcontrol) {
-				render_formattedString(hdc, wp, x, y, "»", 1, FS_CONTROL_CHARS);
+				render_formattedString(hdc, wp, x, y, "»", 1, pTheme, FS_CONTROL_CHARS);
 			}
 			x += (indent - i) * wp->cwidth;
 			i = indent;
@@ -187,12 +188,12 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 	}
 	textlen = (int)(d - buf);
 	if (textlen > 0) {
-		render_formattedString(hdc, wp, x, y, buf, textlen, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : FS_NORMAL);
+		render_formattedString(hdc, wp, x, y, buf, textlen, pTheme, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : FS_NORMAL);
 		x += textlen * wp->cwidth;
 		i += textlen;
 	}
-	if (showcontrol && endColumn > lp->len && !(lp->lflg & LNNOTERM)) {
-		render_formattedString(hdc, wp, x, y, (lp->lflg & LNNOCR) ? "¬" : "¶", 1, FS_CONTROL_CHARS);
+	if (showcontrol && i >= wp->mincol && !(lp->lflg & LNNOTERM)) {
+		render_formattedString(hdc, wp, x, y, (lp->lflg & LNNOCR) ? "¬" : "¶", 1, pTheme, FS_CONTROL_CHARS);
 	}
 	return (x-startX)/wp->cwidth;
 }
@@ -234,7 +235,7 @@ static void redraw_indirect(HDC hdc, WINFO *wp, int y, LINE *lp)
 /*--------------------------------------------------------------------------
  * render_paintWindowParams()
  */
-static void render_paintWindowParams(WINFO *wp,long min,long max,int flg)
+static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 {
 	HBRUSH		hBrushBg;
 	HBRUSH		hBrushCaretLine;
@@ -248,6 +249,7 @@ static void render_paintWindowParams(WINFO *wp,long min,long max,int flg)
 	long			ln;
 	FTABLE *		fp = FTPOI(wp);
 	LINE *		lp;
+	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
 
 	hwnd = wp->ww_handle;
 
@@ -256,8 +258,8 @@ static void render_paintWindowParams(WINFO *wp,long min,long max,int flg)
 	SetTextColor(hdc,wp->fnt_fgcolor);
 	SetBkMode(hdc, TRANSPARENT);
 	hBrushBg = CreateSolidBrush(wp->fnt_bgcolor);
-	hBrushCaretLine = CreateSolidBrush(CARET_LINE_COLOR);
-	hBrushMarkedLines = CreateSolidBrush(MARKED_LINE_COLOR);
+	hBrushCaretLine = CreateSolidBrush(pTheme->th_caretLineColor);
+	hBrushMarkedLines = CreateSolidBrush(pTheme->th_markedLineColor);
 
 	y = calcy(wp,min);
 	lp = ln_relgo(fp,min-wp->ln);
@@ -374,9 +376,10 @@ EXPORT void render_repaintLinePart(FTABLE *fp, long ln, int col1, int col2)
 		if (col2 > wp->maxcol) {
 			col2 = wp->maxcol;
 		}
-		r.left = wp->workarea.g_x + (col1 - wp->mincol) * wp->cwidth;
+		GetClientRect(wp->ww_handle, &r);
+		r.left += (col1 - wp->mincol) * wp->cwidth;
 		r.right = r.left + (col2 - col1) * wp->cwidth;
-		r.top = wp->cheight * (ln - wp->minln);
+		r.top += wp->cheight * (ln - wp->minln);
 		r.bottom = r.top + wp->cheight;
 		InvalidateRect(wp->ww_handle, &r, 0);
 	}
