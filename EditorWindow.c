@@ -162,8 +162,16 @@ void wt_curpos(WINFO *wp, long ln, long col)
 	}
 
 	if (oldln != wp->ln) {
-		render_repaintFromLineTo(wp, oldln, oldln);
-		render_repaintFromLineTo(wp, wp->ln, wp->ln);
+		int ln1;
+		int ln2;
+		if (oldln < wp->ln) {
+			ln1 = oldln;
+			ln2 = wp -> ln;
+		} else {
+			ln1 = wp->ln;
+			ln2 = oldln;
+		}
+		render_repaintFromLineTo(wp, ln1, ln2);
 	}
 }
 

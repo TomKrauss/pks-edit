@@ -1,6 +1,7 @@
 [files]
 "D:\tom\desktop\readme.txt", line 150: 0x1 0x1 104 713 -8 -31 557 129 1520 803
-"D:\source\pksedit\Clipboard.c", line 67: 0x1 0x1 104 713 -8 -31 31 30 1042 732
+"D:\source\pksedit\Clipboard.c", line 52: 0x1 0x1 104 713 -8 -31 31 30 1042 732
+"D:\dvltools\JetBrains\IntelliJ IDEA Community Edition 2019.3.4\IntelliJ IDEA 2020.2\bin\idea.properties", line 175: 0x0 0x1 -1 -1 -1 -1 274 252 1407 780
 [find]
 !ed
 !red

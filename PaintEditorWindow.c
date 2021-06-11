@@ -325,16 +325,16 @@ EXPORT void render_paintWindow(WINFO* wp)
  */
 EXPORT void render_repaintFromLineTo(WINFO* wp, long minln, long maxln)
 {
-	if (wp != NULL && wp->edwin_handle) {
+	if (wp != NULL && wp->ww_handle) {
 		RECT rect;
-		GetClientRect(wp->edwin_handle, &rect);
+		GetClientRect(wp->ww_handle, &rect);
 		if (minln > wp->minln) {
 			rect.top += (minln-wp->minln) * wp->cheight;
 		}
 		if (maxln < wp->maxln - 1) {
-			rect.bottom -= (wp->maxln - maxln - 1) * wp->cheight;
+			rect.bottom = rect.top + (maxln - minln + 1) * wp->cheight;
 		}
-		InvalidateRect(wp->edwin_handle, &rect, 1);
+		InvalidateRect(wp->ww_handle, &rect, 0);
 	}
 }
 
