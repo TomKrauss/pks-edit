@@ -163,7 +163,7 @@ extern int caret_moveUpOrDown(int dir, int mtype);
 /*--------------------------------------------------------------------------
  * caret_moveToCurrentMousePosition()
  */
-extern int caret_moveToCurrentMousePosition(FTABLE* fp, long bAsk);
+extern int caret_moveToCurrentMousePosition(WINFO* wp, long bAsk);
 
 /*--------------------------------------------------------------------------
  * caret_saveLastPosition()

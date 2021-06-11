@@ -138,11 +138,11 @@ EXPORT int caret_screen2lineOffset(FTABLE *fp, CARET *pCaret)
 }
 
 /*--------------------------------------------------------------------------
- * XtndBlock()
+ * caret_extendSelection()
  */
 static int _xtndMark;
 static int nSentinel;
-void XtndBlock(FTABLE *fp)
+void caret_extendSelection(FTABLE *fp)
 {
 	if (nSentinel) {
 		return;
@@ -500,25 +500,25 @@ static int counttabs(LINE *lp)
 /*--------------------------------------------------------------------------
  * tabedstart()
  */
-EXPORT int tabedstart(LINE *lp) 
+static int tabedstart(LINE *lp) 
 {	 return (counttabs(lp) != counttabs(lp->prev)); }
 
 /*--------------------------------------------------------------------------
  * tabedend()
  */
-EXPORT int tabedend(LINE *lp)
+static int tabedend(LINE *lp)
 {	return (!lp->next || (counttabs(lp->next) != counttabs(lp))); }
 
 /*--------------------------------------------------------------------------
  * pgrstart()
  */
-EXPORT int pgrend(LINE *lp)
+static int pgrend(LINE *lp)
 {	return (ln_lineIsEmpty(lp) && !ln_lineIsEmpty(lp->prev)); }
 
 /*--------------------------------------------------------------------------
  * pgrstart()
  */
-EXPORT int pgrstart(LINE *lp)
+static int pgrstart(LINE *lp)
 {	return (ln_lineIsEmpty(lp->prev) && !ln_lineIsEmpty(lp)); }
 
 /*--------------------------------------------------------------------------
@@ -922,10 +922,13 @@ EXPORT int caret_moveToXY(WINFO *wp, int x,int y)
 			wt_curpos(wp,ln,col);
 		}
 		mouse_dispatchUntilButtonRelease(&x,&y,&b,&dummy);
-		if (!b) break;
+		if (!b) {
+			break;
+		}
 	}
-	if (id)
-		KillTimer(0,id);
+	if (id) {
+		KillTimer(0, id);
+	}
 	ReleaseCapture();
 	return 1;
 }
@@ -933,15 +936,13 @@ EXPORT int caret_moveToXY(WINFO *wp, int x,int y)
 /*--------------------------------------------------------------------------
  * caret_moveToCurrentMousePosition()
  */
-EXPORT int caret_moveToCurrentMousePosition(FTABLE *fp, long bAsk)
+EXPORT int caret_moveToCurrentMousePosition(WINFO *wp, long bAsk)
 {	
 	int 		x;
 	int		y;
 	int		ret;
 	int		b = 0;
-	WINFO *	wp;
 
-	wp = WIPOI(fp);
 	mouse_getXYPos(wp->ww_handle,&x,&y);
 
 	if (bAsk && _playing) {
@@ -967,7 +968,7 @@ EXPORT int caret_positionCloseToMouseWithConfirmation(long bAsk)
 	}
 
 	HideWindowsBlocks(fp);
-	caret_moveToCurrentMousePosition(fp, bAsk);
+	caret_moveToCurrentMousePosition(WIPOI(fp), bAsk);
 	return 1;
 }
 

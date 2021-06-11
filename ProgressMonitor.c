@@ -112,7 +112,7 @@ int progress_cancelMonitor(BOOL bRedraw)
 		if (!IsDialogMessage(hwndAbort,&msg)) {
 			DispatchMessage(&msg);
 			if (bRedraw && ft_getCurrentDocument() && msg.message == WM_PAINT && (count++ & 0x3) == 0) {
-				render_sendRedrawToWindow(WIPOI(ft_getCurrentDocument())->ww_handle);
+				win_sendRedrawToWindow(WIPOI(ft_getCurrentDocument())->ww_handle);
 			}
 		}
 	}

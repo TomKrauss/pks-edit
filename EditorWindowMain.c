@@ -14,6 +14,7 @@
  */
 
 #include <windows.h>
+#include <windowsx.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "trace.h"
@@ -30,6 +31,7 @@
 #include "editorconfiguration.h"
 #include "desktopicons.h"
 #include "propertychange.h"
+#include "winutil.h"
 
 #define	WT_WORKWIN		0
 #define	WT_RULERWIN		1
@@ -47,16 +49,13 @@ extern int render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y, WINFO*
 extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
 extern char *ft_visiblename(FTABLE *fp);
 extern int  mouse_onRulerClicked(WINFO *fp, int x, int y, int msg, int shift);
-extern int  mouse_onMouseClicked(FTABLE *fp, int x,int y,int b, int nclicks,int shift);
+extern int  mouse_onMouseClicked(WINFO *fp, int x,int y,int b, int nclicks,int shift);
 extern void *icEditIconClass;
 extern BOOL ic_isIconWindow(HWND hwnd);
 extern void st_redraw(BOOL bErase);
 extern void xref_selectFileFormat(char *tags);
 extern void macro_selectDefaultBindings(void);
 extern void SetMenuFor(char *pszContext);
-#if defined(DEBUG_MEMORY_USAGE)
-extern long dumpallocated(void);
-#endif
 
 static WINDOWPLACEMENT	_winstates[6];
 
@@ -512,7 +511,7 @@ void ww_redrawAllWindows(int update)
 {	WINFO *wp;
 
 	for (wp = _winlist; wp; wp = wp->next) {
-		render_sendRedrawToWindow(wp->ww_handle);
+		win_sendRedrawToWindow(wp->ww_handle);
 		if (update) {
 			UpdateWindow(wp->ww_handle);
 		}
@@ -576,7 +575,7 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	if (wp->ww_handle) {
 		sl_size(wp);
 		font_selectStandardFont(wp->ww_handle, wp);
-		render_sendRedrawToWindow(wp->ww_handle);
+		win_sendRedrawToWindow(wp->ww_handle);
 		wt_tcursor(wp,0);
 		wt_tcursor(wp,1);
 		caret_placeCursorForFile(fp,fp->ln,fp->caret.offset);
@@ -590,6 +589,7 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	wp->vscroll = linp->vscroll;
 	wp->scroll_dy = linp->scroll_dy;
 	ww_setScrollCheckBounds(wp);
+	render_updateCaret(wp);
 }
 
 /*-----------------------------------------------------------
@@ -783,7 +783,7 @@ WINFUNC EditWndProc(
 		}
 		if (message == WM_EDWINREORG) {
 			if (wp->ru_handle) {
-				render_sendRedrawToWindow(wp->ru_handle);
+				win_sendRedrawToWindow(wp->ru_handle);
 			}
 			return 1;
 		}
@@ -841,40 +841,37 @@ int do_mouse(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int 		ncl = 1;
 	int			ret;
-	int			but;
+	int			button;
 	int			shift;
 	int			x;
 	int			y;
-	FTABLE *	fp;
+	WINFO *		wp;
 
-	if ((fp = (FTABLE *) GetWindowLongPtr(hwnd,0)) != 0) {
-		x = LOWORD(lParam), y = HIWORD(lParam);
+	if ((wParam & (MK_LBUTTON | MK_RBUTTON | MK_MBUTTON)) == 0) {
+		return 0;
+	}
+	if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
+		x = GET_X_LPARAM(lParam), y = GET_Y_LPARAM(lParam);
 	} else {
 		return 0;
 	}
 
+	if (wParam & MK_RBUTTON) {
+		button = 2;
+	} else if (wParam & MK_MBUTTON) {
+		button = 3;
+	} else {
+		button = 1;
+	}
 	switch(message) {
 		case WM_LBUTTONDBLCLK:
-			ncl = 2;
-		case WM_LBUTTONDOWN: 
-			but = 1; break;
 		case WM_RBUTTONDBLCLK:
-			ncl = 2;
-		case WM_RBUTTONDOWN: 
-			but = 2; break;
 		case WM_MBUTTONDBLCLK:
 			ncl = 2;
-		case WM_MBUTTONDOWN: 
-			but = 3; break;
+			break;
 		case WM_MOUSEMOVE:
-			if ((wParam & (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON)) == 0)
-				return 0;
-			else
-				but = (wParam & MK_RBUTTON) ? 2 : 1;
 			ncl = 0;
 			break;
-		default:
-			return 0;
 	}
 
 	shift = 0;
@@ -887,7 +884,7 @@ int do_mouse(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	if (GetKeyState(VK_MENU) < 0) {
 		shift |= 8;
 	}
-	ret = mouse_onMouseClicked(fp, x, y, but, ncl, shift);
+	ret = mouse_onMouseClicked(wp, x, y, button, ncl, shift);
 	return ret;
 }
 

@@ -937,7 +937,7 @@ static void macro_listEndFilling(HWND hwndList, WPARAM nCurr)
 {
 	SendMessage(hwndList, WM_SETREDRAW,TRUE,0L);
 	SendMessage(hwndList, LB_SETCURSEL, nCurr, 0L);
-	render_sendRedrawToWindow(hwndList);
+	win_sendRedrawToWindow(hwndList);
 }
 
 /*--------------------------------------------------------------------------

@@ -18,7 +18,7 @@
 #include "trace.h"
 #include "winfo.h"
 #include "edierror.h"
-
+#include "winutil.h"
 #define MAXCOL		2*MAXLINELEN
 
 /*! MODIFY HERE !*/
@@ -200,10 +200,10 @@ void sl_winchanged(WINFO *wp,long dy, long dx) {
 	    (dx < mx && dx > -mx)) {
 		wt_scrollxy(wp,(int)dy,(int)dx);
 	} else {
-		render_sendRedrawToWindow(wp->ww_handle);
+		win_sendRedrawToWindow(wp->ww_handle);
 	}
 	if (dx && wp->ru_handle) {
-		render_sendRedrawToWindow(wp->ru_handle);
+		win_sendRedrawToWindow(wp->ru_handle);
 	}
 	sl_size(wp);
 }

@@ -222,7 +222,7 @@ static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam
 			ww = (wParam) ? (ww | bit) : (ww & (~bit));
 			SetWindowWord(hwnd,GWW_CUSTOMVAL, (WORD)ww);
 			if (ww != wwsav) {
-				render_sendRedrawToWindow(hwnd);
+				win_sendRedrawToWindow(hwnd);
 			}
 			return 0;
 		case WM_LBUTTONDOWN:
@@ -245,11 +245,11 @@ static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam
 }
 
 /*------------------------------------------------------------
- * MarkSelection()
+ * cust_drawItemSelection()
  */
 #define N_ROWS		8
 #define N_COLS		32
-static void MarkSelection(HDC hdc, int c, int cw, int ch)
+static void cust_drawItemSelection(HDC hdc, int c, int cw, int ch)
 {
 	if (c < 256)
 		cust_drawOutline(hdc,(c%N_COLS)*cw,(c/N_COLS)*ch,cw,ch);
@@ -316,7 +316,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 			}
 			DeleteObject(SelectObject(hdc,hFont));
 			newc = GetWindowWord(hwnd,GWW_CUSTOMVAL);
-			MarkSelection(hdc,newc,cw,ch);
+			cust_drawItemSelection(hdc,newc,cw,ch);
 			if (hwnd == GetFocus()) {
 				GetClientRect(hwnd,&rect);
 				DrawFocusRect(hdc,&rect);
@@ -330,9 +330,9 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 				return 0;
 			}
 			hdc = GetDC( hwnd );
-			MarkSelection(hdc,oldc,cw,ch);
+			cust_drawItemSelection(hdc,oldc,cw,ch);
 			SetWindowWord(hwnd,GWW_CUSTOMVAL,(WORD)wParam);
-			MarkSelection(hdc,(int)wParam,cw,ch);
+			cust_drawItemSelection(hdc,(int)wParam,cw,ch);
 			ReleaseDC( hwnd, hdc );
 			win_sendParentCommand(hwnd,
 					  MAKELONG(wParam,CSN_CHARSELECT));
@@ -343,7 +343,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 
 		case WM_SETFOCUS:
 		case WM_KILLFOCUS:
-			render_sendRedrawToWindow(hwnd);
+			win_sendRedrawToWindow(hwnd);
 			return 1;
 
 		case WM_LBUTTONDOWN:

@@ -15,6 +15,12 @@
 #ifndef WINUTIL_H
 #include <windows.h>
 
+ /*--------------------------------------------------------------------------
+  * win_sendRedrawToWindow()
+  * Send a repaint to the window with the passed handle and update it.
+  */
+extern void win_sendRedrawToWindow(HWND hwnd);
+
 /*--------------------------------------------------------------------------
  * win_moveWindowToXY()
  */

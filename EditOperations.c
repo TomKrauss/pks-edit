@@ -72,7 +72,7 @@ static int CalcCol2TabsBlanks(DOCUMENT_DESCRIPTOR *linp, int col, int *add_blank
 
 	/* calculate # of tabstops up to given position */
 	for (i = 0, ntabs = 0; 
-	     *add_blanks = col - i, (i = doctypes_calculateTabStop(i,linp)) <= col; 
+	     *add_blanks = col - i, (i = doctypes_calculateNextTabStop(i,linp)) <= col; 
 	     ntabs++)
 	     ;
 
@@ -85,7 +85,7 @@ static int CalcCol2TabsBlanks(DOCUMENT_DESCRIPTOR *linp, int col, int *add_blank
 int CalcTabs2Col(DOCUMENT_DESCRIPTOR *linp, int tabs)
 {	int col;
 	
-	for (col = 0; tabs > 0; col = doctypes_calculateTabStop(col,linp))
+	for (col = 0; tabs > 0; col = doctypes_calculateNextTabStop(col,linp))
 		tabs--;
 	return col;
 }

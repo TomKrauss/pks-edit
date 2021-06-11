@@ -1272,7 +1272,7 @@ int EdDlgDispMode(void)
 	linp->t1 = tabfill;
 	if ((linp->tabsize = tabsize) != 0) {
 		doctypes_initDocumentTypeDescriptor(linp, linp->tabsize);
-		render_sendRedrawToWindow(WIPOI(ft_getCurrentDocument())->ru_handle);
+		win_sendRedrawToWindow(WIPOI(ft_getCurrentDocument())->ru_handle);
 	}
 	linp->rmargin = rmargin;
 	return doctypes_documentTypeChanged();
@@ -1748,7 +1748,7 @@ static int add_icon(HWND hDlg)
 	if ((p = string_allocate(_pars)) != 0) {
 		hwnd = ic_addIcon((void*)_ictype,_title,p,CW_USEDEFAULT,CW_USEDEFAULT);
 		SendMessage(hwndClient, WM_MDIACTIVATE, (WPARAM)hwnd, (LPARAM)NULL);
-		render_sendRedrawToWindow(hwnd);
+		win_sendRedrawToWindow(hwnd);
 		ic_enableConfigurationDialogIcons(hDlg, (void *)_ictype);
 	}
 	return 1;

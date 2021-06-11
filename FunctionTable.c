@@ -302,7 +302,7 @@ MOUSEBIND _mousetab[MAXMAPMOUSE] = {
 {0x01,0x08,0x01,MO_FINDCURS,{CMD_CMDSEQ,205}, (char *)0},
 {0x01,0x04,0x01,0,{CMD_CMDSEQ,204}, (char *)0},
 {0x01,0x03,0x01,0,{CMD_CMDSEQ,203}, (char *)0},
-{0x01,0x00,0x01,0,{CMD_CMDSEQ,202}, (char *)0}
+{0x01,0x00,0x01,0,{CMD_CMDSEQ,208}, (char *)0}
 };
 
 int _nmousebind = sizeof(_mousetab)/sizeof(_mousetab[0]);

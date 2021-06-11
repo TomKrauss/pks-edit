@@ -31,6 +31,17 @@ void win_sendParentCommand(HWND hwnd, LPARAM lParam)
 	SendMessage(GetParent(hwnd), WM_COMMAND, GetDlgCtrlID(hwnd), lParam);
 }
 
+/*--------------------------------------------------------------------------
+ * win_sendRedrawToWindow()
+ */
+void win_sendRedrawToWindow(HWND hwnd)
+{
+	if (hwnd > 0) {
+		UpdateWindow(hwnd);
+		InvalidateRect(hwnd, (LPRECT)0, 1);
+	}
+}
+
 
 /*
  * Set the extension of the window and return the size encoded as a LONG.

@@ -19,7 +19,7 @@
 #include "trace.h"
 #include "dial2.h"
 #include "winterf.h"
-#include "winfo.h"
+#include "winutil.h"
 #include "lineoperations.h"
 #include "edtypes.h"
 #include "errordialogs.h"
@@ -413,7 +413,7 @@ void ic_changeIcon(const char* szTitle, const char* szParams, ICONCLASS *icClass
 	SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR) szParams);
 	SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,(LONG_PTR) icClass);
 	SendMessage(hwnd,WM_ICONSELECT,0,icClass->ic_type);
-	render_sendRedrawToWindow(hwnd);
+	win_sendRedrawToWindow(hwnd);
 }
 
 static void ic_redrawrect(RECT *pRect) {
@@ -491,7 +491,7 @@ static int		nButtonY;
 			if (hIcon == holdIcon)
 				return 0;
 			SetWindowLongPtr(hwnd,GWL_ICICON, (LONG_PTR) hIcon);
-			render_sendRedrawToWindow(hwnd);
+			win_sendRedrawToWindow(hwnd);
 			/* drop through */
 
 		case WM_ICONCLASSVALUE:

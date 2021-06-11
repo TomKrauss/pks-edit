@@ -26,6 +26,7 @@
 #include "iccall.h" 
 #include "resource.h"
 #include "edfuncs.h"
+#include "winutil.h"
 
 static HCURSOR   hHourGlass;		// Hour glass cursor
 static HCURSOR   hSaveCurs;
@@ -74,6 +75,7 @@ EXPORT void mouse_dispatchUntilButtonRelease(int *x, int *y, int *but, int *shif
 				if (msg.wParam == TIM_FRAME)
 					break;
 				return;
+			case WM_ERASEBKGND:
 			case WM_PAINT:
 				DispatchMessage(&msg);
 				break;
@@ -252,7 +254,7 @@ EXPORT int EdMouseMoveText(int move)
 	hwnd = ic_findChildFromPoint((HWND)0,&p);
 
 	if (hwnd == wp->edwin_handle) {
-		if (caret_moveToCurrentMousePosition(fp, 0L)) {
+		if (caret_moveToCurrentMousePosition(wp, 0L)) {
 			if (move) 
 				ret = macro_executeFunction(FUNC_EdBlockMove,0L,0L,(void*)0,(void*)0,(void*)0); 
 			else 
@@ -384,7 +386,7 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 /*----------------------------*/
 /* mouse_onMouseClicked()			*/
 /*----------------------------*/
-EXPORT int mouse_onMouseClicked(FTABLE *fp, int x, int y, int b, int nclicks, int shift)
+EXPORT int mouse_onMouseClicked(WINFO *wp, int x, int y, int b, int nclicks, int shift)
 {
 	MOUSEBIND *	mp;
 
@@ -394,7 +396,7 @@ EXPORT int mouse_onMouseClicked(FTABLE *fp, int x, int y, int b, int nclicks, in
 
 	if ((mp = mouse_getMouseBind(b, shift, nclicks)) != 0) {
 		macro_stopRecordingFunctions();
-		mfunct(WIPOI(fp), mp, x, y);
+		mfunct(wp, mp, x, y);
 		return 1;
 	}
 	return 0;
@@ -420,7 +422,7 @@ EXPORT int mouse_onRulerClicked(WINFO *wp, int x, int y, int msg, int shift) {
 			doctypes_toggleTabStop(fp->documentDescriptor, col);
 		}
 		render_repaintAllForFile(fp);
-		render_sendRedrawToWindow(wp->ru_handle);
+		win_sendRedrawToWindow(wp->ru_handle);
 	}
 
 	return 1;

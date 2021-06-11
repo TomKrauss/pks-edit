@@ -18,12 +18,15 @@
 #include "lineoperations.h"
 #include "winfo.h"
 #include "trace.h"
+#include "edierror.h"
 
 #define MAXCOL		FBUFSIZE/2
 
-extern void 	XtndBlock(FTABLE *fp);
+extern void 	caret_extendSelection(FTABLE *fp);
 extern void 	st_redraw(BOOL bErase);
 extern int 	ft_checkSelection(FTABLE *fp);
+
+typedef enum { CUR_HIDDEN, CUR_INSERT, CUR_OVERRIDE } CURSOR_TYPE;
 
 int 	cursor_width = 1;
 
@@ -40,10 +43,10 @@ static int EdHideCaret(HWND hwnd)
 /*------------------------------------------------------------
  * EdUpdateCaret()
  */
-static int EdUpdateCaret(WINFO *wp, int type, int visible)
+static int EdUpdateCaret(WINFO *wp, CURSOR_TYPE type, int visible)
 {
      if (!visible) {
-		if (type == 1) {
+		if (type == CUR_OVERRIDE) {
 			CreateCaret(wp->ww_handle,NULL,wp->cwidth*cursor_width,wp->cheight);
 		} else {
 			CreateCaret(wp->ww_handle, NULL, 2, wp->cheight);
@@ -75,16 +78,18 @@ void render_updateCustomCaret(WINFO *wp, HDC hdc)
  * etc...)
  */
 static struct olc {
-	int type,width;
+	CURSOR_TYPE type;
+	int width;
 } _olcurs = { 0, 1 };
 void render_updateCaret(WINFO *wp) {
 	struct olc *op = &_olcurs;
-	int type;
+	CURSOR_TYPE type;
 
 	type = wp->ctype;
 	if (type) {
-		type = (cursor_width > 1 || ft_checkSelection(FTPOI(wp)) == 0) ?
-			1 : 2;
+		type = (cursor_width == 1 && (wp->workmode & WM_INSERT)) ?
+			CUR_INSERT : CUR_OVERRIDE;
+
 	}
 
 	if (type != op->type || cursor_width != op->width) {
@@ -153,7 +158,7 @@ void wt_curpos(WINFO *wp, long ln, long col)
 	render_adjustScrollBounds(wp);
 	render_updateCaret(wp);
 	if (wp->bXtndBlock) {
-		XtndBlock(FTPOI(wp));
+		caret_extendSelection(FTPOI(wp));
 	}
 
 	if (oldln != wp->ln) {

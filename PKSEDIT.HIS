@@ -1,6 +1,6 @@
 [files]
 "D:\tom\desktop\readme.txt", line 150: 0x1 0x1 104 713 -8 -31 557 129 1520 803
-"D:\source\pksedit\Clipboard.c", line 110: 0x1 0x1 104 713 -8 -31 31 30 688 727
+"D:\source\pksedit\Clipboard.c", line 180: 0x1 0x1 104 713 -8 -31 31 30 688 727
 [find]
 !ed
 !red
@@ -10,6 +10,7 @@
 !clip
 !export
 !der
+!HWND
 [replace]
 !die
 [open]

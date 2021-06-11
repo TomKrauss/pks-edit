@@ -73,11 +73,6 @@ typedef struct wininfo {
 } WINFO;
 
 
-/*--------------------------------------------------------------------------
- * render_sendRedrawToWindow()
- */
-extern void render_sendRedrawToWindow(HWND hwnd);
-
 /*------------------------------------------------------------
  * render_paintWindow()
  * Performs the actual painting of the window.

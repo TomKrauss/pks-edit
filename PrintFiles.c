@@ -574,7 +574,7 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 		EnableWindow(GetDlgItem(hDlg, IDD_BUT4), (_previewpage > 1));
 		EnableWindow(GetDlgItem(hDlg, IDD_BUT3),
 			(_previewpage <= _printwhat.nlines / print_ntextlines()));
-		render_sendRedrawToWindow(GetDlgItem(hDlg, IDD_PREVIEW));
+		win_sendRedrawToWindow(GetDlgItem(hDlg, IDD_PREVIEW));
 	}
 	return TRUE;
 }

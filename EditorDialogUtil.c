@@ -199,7 +199,7 @@ WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_CHARCHANGE:
 			key = (KEYCODE)wParam;
 			SetWindowText(hwnd,code2key(key));
-			render_sendRedrawToWindow(hwnd);
+			win_sendRedrawToWindow(hwnd);
 			return TRUE;
 
 		case CS_QUERYCHAR:
@@ -250,7 +250,7 @@ WINFUNC CInput(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			szBuff[1] = 0;
 			szBuff[0] = (char)wParam;
 			SetWindowText(hwnd,szBuff);
-			render_sendRedrawToWindow(hwnd);
+			win_sendRedrawToWindow(hwnd);
 			win_sendParentCommand(hwnd,0L);
 			return 0;
 	}
@@ -748,7 +748,7 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 			if ((dp2 = GetItemDialListData(dp, idCtrl)) != 0) {
 				callback = (int (*)())dp2->dp_data;
 			}
-endd:		if (callback) {
+endd:		if (callback && idCtrl != IDD_RAWCHAR) {
 				(*callback)(hDlg,idCtrl);
 				return TRUE;
 			}

@@ -24,6 +24,25 @@
 #include "winutil.h"
 #include "themes.h"
 
+static DWORD _ROPcodes[] = {
+	BLACKNESS,          /* D = 0 */
+	0x00500A9UL,        /* ~(P|D) */
+	0x00A0329UL,        /* ~P & D */
+	0x00F0001UL,        /* ~P */
+	0x00500325UL,       /* P&~D */
+	DSTINVERT,          /* ~D */
+	PATINVERT,          /* P^D */
+	0x005F00E9UL,       /* ~(P&D) */
+	0x00A000C9UL,		/* P&D */
+	0x00A50065UL, 		/* ~(P^D) */
+	0x00AA0029UL, 		/* D */
+	0x00AF0029UL, 		/* ~P|D */
+	PATCOPY, 			/* P */
+	0x00F50225UL,       /* P|~D */
+	0x00FA0089UL,       /* P|D */
+	WHITENESS			/* D = 1 */
+};
+
 /*-----------------------------------------
  * Render some control characters in control-mode. 
  */
@@ -38,6 +57,51 @@ static int render_formattedString(HDC hdc, WINFO* wp, int x, int y, unsigned cha
 typedef enum { RS_WORD, RS_SPACE, RS_CONTROL, RS_START, RS_TAB } RENDER_STATE;
 
 /*--------------------------------------------------------------------------
+ * markline()
+ * Paint the selection in a line.
+ */
+static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
+{
+	RECT 	r;
+	FTABLE* fp = FTPOI(wp);
+
+	r.top = y;
+	r.bottom = y + wp->cheight;
+	r.left = 0;
+	if (ww_blkcolomn(wp) != 0) {
+		r.left = fp->blcol1;
+		r.right = fp->blcol2;
+	}
+	else {
+		if (!fp->blstart || !fp->blend) {
+			error_displayAlertDialog("bad marked line");
+			return;
+		}
+		if (P_EQ(lp, fp->blstart->lm))
+			r.left = caret_lineOffset2screen(fp, &(CARET) { lp, fp->blstart->lc});
+		else r.left = wp->mincol;
+
+		if (P_EQ(lp, fp->blend->lm))
+			r.right = caret_lineOffset2screen(fp, &(CARET) { lp, fp->blend->lc});
+		else r.right = lastcol;
+	}
+	r.left -= wp->mincol; if (r.left < 0) r.left = 0;
+
+	if (r.right > wp->maxcol + 1)
+		r.right = wp->maxcol + 1;
+	r.right -= wp->mincol;
+
+	r.left = r.left * wp->cwidth;
+	r.right = r.right * wp->cwidth;
+	if (r.right > r.left) {
+		SelectObject(hdc, GetStockObject(wp->markstyles[FS_BMARKED].style));
+		PatBlt(hdc, r.left, r.top,
+			r.right - r.left, r.bottom - r.top,
+			_ROPcodes[wp->markstyles[FS_BMARKED].mode]);
+	}
+}
+
+/*--------------------------------------------------------------------------
  * render_singleLineOnDevice()
  */
 int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
@@ -47,6 +111,7 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 	/* limited linelength ! */
 	char 				buf[1024];
 	int					flags;
+	int					startX = x;
 	RENDER_STATE		state = RS_START;
 	int					showcontrol;
 
@@ -129,7 +194,7 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 	if (showcontrol && endColumn > lp->len && !(lp->lflg & LNNOTERM)) {
 		render_formattedString(hdc, wp, x, y, (lp->lflg & LNNOCR) ? "¬" : "¶", 1, FS_CONTROL_CHARS);
 	}
-	return (int)(startColumn+d-buf);
+	return (x-startX)/wp->cwidth;
 }
 
 /*------------------------------------------------------------
@@ -202,7 +267,7 @@ static void render_paintWindowParams(WINFO *wp,long min,long max,int flg)
 		if (newy > ps.rcPaint.top && 			/* if in redraw area */
 		    (flg || (lp->lflg & LNREPLACED))) {	/* if print_singleLineOfText is modified || we redraw all */
 			HBRUSH      hBrush = hBrushBg;
-			if (lp->lflg & (LNCPMARKED | LNXMARKED)) {
+			if (lp->lflg & LNXMARKED) {
 				hBrush = hBrushMarkedLines;
 			} else if (lp == fp->caret.linePointer && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
 				hBrush = hBrushCaretLine;
@@ -217,6 +282,9 @@ static void render_paintWindowParams(WINFO *wp,long min,long max,int flg)
 				visLen = 1;
 			} else if (wp->renderFunction) {
 				visLen = wp->renderFunction(hdc,0,y,wp,lp);
+			}
+			if (lp->lflg & LNCPMARKED) {
+				paintSelection(hdc, wp, lp, y, visLen);
 			}
 			if (ln == wp->ln)
 				render_updateCustomCaret(wp,hdc);
@@ -345,17 +413,6 @@ EXPORT void render_repaintLine(FTABLE *fp, LINE *lpWhich)
 			render_repaintLinePart(fp, ln, wp->mincol, wp->maxcol);
 			break;
 		}
-	}
-}
-
-/*--------------------------------------------------------------------------
- * render_sendRedrawToWindow()
- */
-EXPORT void render_sendRedrawToWindow(HWND hwnd)
-{
-	if (hwnd > 0) {
-		UpdateWindow(hwnd);
-		InvalidateRect(hwnd, (LPRECT)0, 1);
 	}
 }
 
