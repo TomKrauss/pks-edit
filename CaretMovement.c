@@ -37,7 +37,6 @@ extern LINE *		ln_crelgo(FTABLE *fp, long l);
 extern int		char_isLetter(unsigned char c);
 extern int		char_isNospace(unsigned char c);
 extern int 		ft_checkSelection(FTABLE *fp);
-extern int 		bl_syncSelectionWithCaret(FTABLE *fp, CARET *caret, int flags);
 
 extern long		_multiplier;
 
@@ -191,8 +190,8 @@ static void BegXtndBlock(FTABLE *fp)
 		if (fp->blstart || fp->blend) {
 			EdBlockHide();
 		}
-		bl_syncSelectionWithCaret(fp, &fp->caret, MARK_RECALCULATE|MARK_START);
-		bl_syncSelectionWithCaret(fp, &fp->caret, MARK_RECALCULATE|MARK_END);
+		bl_syncSelectionWithCaret(fp, &fp->caret, MARK_RECALCULATE|MARK_START, NULL);
+		bl_syncSelectionWithCaret(fp, &fp->caret, MARK_RECALCULATE|MARK_END, NULL);
 	}
 	nSentinel--;
 }
@@ -896,41 +895,13 @@ err:
 EXPORT void caret_calculateOffsetFromScreen(WINFO *wp, int x, int y, long *line, long *column)
 {	FTABLE *fp = FTPOI(wp);
 
-	*column = x / wp->cwidth + wp->mincol;
+	*column = (x + wp->cwidth/2) / wp->cwidth + wp->mincol;
 	*line	= y / wp->cheight + wp->minln;
 	if (*line < 0) {
 		*line = 0;
 	} else if (*line >= fp->nlines) {
 		*line = fp->nlines - 1;
 	}
-}
-
-/*--------------------------------------------------------------------------
- * caret_moveToXY()
- * move the caret to follow the mouse pressed on the screen coordinates x and y.
- */
-EXPORT int caret_moveToXY(WINFO *wp, int x,int y)
-{	long col,ln;
-	int b=1,dummy;
-	UINT_PTR id;
-
-	SetCapture(wp->ww_handle);
-	id = SetTimer(0,0,100,0);
-	for (;;) {
-		caret_calculateOffsetFromScreen(wp,x,y,&ln,&col);
-		if (caret_updateLineColumn(FTPOI(wp),&ln,&col,1)) {
-			wt_curpos(wp,ln,col);
-		}
-		mouse_dispatchUntilButtonRelease(&x,&y,&b,&dummy);
-		if (!b) {
-			break;
-		}
-	}
-	if (id) {
-		KillTimer(0, id);
-	}
-	ReleaseCapture();
-	return 1;
 }
 
 /*--------------------------------------------------------------------------
@@ -967,7 +938,6 @@ EXPORT int caret_positionCloseToMouseWithConfirmation(long bAsk)
 		return 0;
 	}
 
-	HideWindowsBlocks(fp);
 	caret_moveToCurrentMousePosition(WIPOI(fp), bAsk);
 	return 1;
 }
@@ -975,32 +945,8 @@ EXPORT int caret_positionCloseToMouseWithConfirmation(long bAsk)
 /*--------------------------------------------------------------------------
  * EdMousePositionUngrabbed()
  */
-int EdMousePositionUngrabbed(long bGrab)
-{
-	FTABLE *	fp;
-	WINFO *	wp;
-	int		x;
-	int		y;
-	long		ln;
-	long		col;
-
-	if (bGrab) {
-		return caret_positionCloseToMouseWithConfirmation(1);
-	}
-
-	if ((fp = ft_getCurrentDocument()) == 0) {
-		return 0;
-	}
-
-	wp = WIPOI(fp);
-	HideWindowsBlocks(fp);
-	mouse_getXYPos(wp->ww_handle,&x,&y);
-	caret_calculateOffsetFromScreen(wp,x,y,&ln,&col);
-	if (caret_updateLineColumn(FTPOI(wp),&ln,&col,1)) {
-		wt_curpos(wp,ln,col);
-		return 1;
-	}
-	return 0;
+int EdMousePositionUngrabbed(long bGrab) {
+	return caret_positionCloseToMouseWithConfirmation(1);
 }
 
 /*--------------------------------------------------------------------------

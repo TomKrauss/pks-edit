@@ -121,8 +121,10 @@ extern int bl_insertTextBlockFromFile(char* fn);
  * bl_syncSelectionWithCaret()
  * Set the selection end to the passed caret. Use one of the MARK_XXXX flags
  * to modify the request to e.g. change to block selection type etc...
+ * If pMarkSet != NULL, returns either "MARK_START" or "MARK_END" in pMarkSet depending
+ * on whether the start or the end mark had been set.
  *---------------------------------*/
-extern int bl_syncSelectionWithCaret(FTABLE* fp, CARET* lpCaret, int flags);
+extern int bl_syncSelectionWithCaret(FTABLE* fp, CARET* lpCaret, int flags, int* pMarkSet);
 
 /*--------------------------------------------------------------------------
  * blcutbl()

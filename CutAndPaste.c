@@ -662,17 +662,27 @@ static void marklines(int changed,int colflg,
 		} else {
 			lpLast = lpolde;
 		}
-		ln_addFlag (lpFirst, lpLast, LNREPLACED);
+		while(lp) {
+			if (!(lp->lflg & LNREPLACED)) {
+				lp->lflg |= LNREPLACED;
+				render_repaintLine(fp, lp);
+			}
+			if (lp == lpLast) {
+				break;
+			}
+			lp = lp->next;
+		}
 	} else for (ln = wp->minln; lp && ln <= wp->maxln; lp = lp->next, ln++) {
-		if ((P_EQ(lp,lpolds) && !P_EQ(lp, lp1)) || 
-		    (P_EQ(lp,lpolde) && !P_EQ(lp, lp2)) ||
-		    (P_EQ(lp,lp1) && markc == MARKSTART) ||
-		    (P_EQ(lp,lp2) && markc == MARKEND) || 
-		    flags[ln-wp->minln] != lp->lflg)
+		if ((P_EQ(lp, lpolds) && !P_EQ(lp, lp1)) ||
+			(P_EQ(lp, lpolde) && !P_EQ(lp, lp2)) ||
+			(P_EQ(lp, lp1) && markc == MARKSTART) ||
+			(P_EQ(lp, lp2) && markc == MARKEND) ||
+			flags[ln - wp->minln] != lp->lflg) {
 			lp->lflg |= LNREPLACED;
+			render_repaintLine(fp, lp);
+		}
 	}
 
-	render_repaintCurrentFile();
 	ln_removeFlag(lpFirst, lpLast, LNREPLACED);
 }
 
@@ -751,8 +761,10 @@ EXPORT int bl_setSelection(FTABLE *fp, LINE *lps, int cs, LINE *lpe, int ce)
  * bl_syncSelectionWithCaret()
  * Set the selection end to the passed caret. Use one of the MARK_XXXX flags
  * to modify the request to e.g. change to block selection type etc...
+ * If pMarkSet != NULL, returns either "MARK_START" or "MARK_END" in pMarkSet depending
+ * on whether the start or the end mark had been set.
  *---------------------------------*/
-int bl_syncSelectionWithCaret(FTABLE *fp, CARET *lpCaret, int flags)
+int bl_syncSelectionWithCaret(FTABLE *fp, CARET *lpCaret, int flags, int *pMarkSet)
 {
 	MARK *		marks;
 	MARK *		marke;
@@ -766,7 +778,7 @@ int bl_syncSelectionWithCaret(FTABLE *fp, CARET *lpCaret, int flags)
 	int			nMarkOffset = lpCaret->offset;
 	LINE*		lpMark = lpCaret->linePointer;
 
-	type = (flags & (~(MARK_COLUMN|MARK_RECALCULATE)));
+	type = (flags & (~(MARK_COLUMN|MARK_RECALCULATE|MARK_NO_HIDE)));
 	workmode = fp->documentDescriptor->workmode;
 
 	if (type == MARK_ALL) {
@@ -814,7 +826,7 @@ int bl_syncSelectionWithCaret(FTABLE *fp, CARET *lpCaret, int flags)
 		isbefore(fp, marks, lpMark, nMarkOffset, type == MARK_END)) {
 		if (flags & MARK_RECALCULATE) {
 			bSwap = 1;
-		} else {
+		} else if (!(flags & MARK_NO_HIDE)) {
 			EdBlockHide();
 		}
 	}
@@ -830,12 +842,17 @@ int bl_syncSelectionWithCaret(FTABLE *fp, CARET *lpCaret, int flags)
 		if (marke) {
 			marke->mchar = MARKSTART;
 		}
+		
 		mark = marks;
 		marks = marke;
 		marke = mark;
 		markc = (markc == MARKSTART) ? MARKEND : MARKSTART;
+		type = markc;
 	}
 
+	if (pMarkSet != NULL) {
+		*pMarkSet = type;
+	}
 	fp->blstart = marks;
 	fp->blend = marke;
 
@@ -927,8 +944,8 @@ EXPORT int EdMouseMarkParts(int type)
 	}
 	CARET c1 = { lp, o1 };
 	CARET c2 = { lp2, o2 };
-	bl_syncSelectionWithCaret(fp, &c1, MARK_START);
-	return bl_syncSelectionWithCaret(fp, &c2, MARK_END);
+	bl_syncSelectionWithCaret(fp, &c1, MARK_START, NULL);
+	return bl_syncSelectionWithCaret(fp, &c2, MARK_END, NULL);
 }
 
 /*---------------------------------
@@ -943,6 +960,6 @@ EXPORT int EdSyncSelectionWithCaret(int flags)
 	// for now: always consider to swap the block marks, if the end mark is placed
 	// before the start mark. In fact we should introduce the concept of a selection head instead
 	// of swapping marks.
-	return bl_syncSelectionWithCaret(fp, &fp->caret, flags | MARK_RECALCULATE);
+	return bl_syncSelectionWithCaret(fp, &fp->caret, flags | MARK_RECALCULATE, NULL);
 }
 

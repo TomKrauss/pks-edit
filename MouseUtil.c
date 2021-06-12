@@ -11,6 +11,7 @@
 
 #include <windows.h>
 #include <windowsx.h>
+#include <WinUser.h>
 #include "trace.h"
 #include "caretmovement.h"
 #include "textblocks.h"
@@ -42,6 +43,145 @@ static RSCTABLE __m = {
 };
 
 RSCTABLE *_mousetables = &__m;
+
+/**
+ * Data structure for implementing mouse drag operations. 
+ */
+typedef struct tag_MOUSE_DRAG_HANDLER {
+	// Called when the drag is initiated. Return 0 to cancel the drag operation.
+	int (*dragInit)(WINFO* wp, int x, int y);
+	// Called for every mouse move during the drag.
+	int (*drag)(WINFO* wp, int x, int y);
+	// Called when the mouse drag ends.
+	int (*dragEnd)(WINFO* wp, int x, int y, int bCancel);
+} MOUSE_DRAG_HANDLER;
+
+/**------------------------------------------------------------------------------------------------
+ * Implements text selection using the mouse.
+ */
+struct tagDRAG_SELECTION_DATA {
+	CARET c1;
+	CARET c2;
+	POINT start;
+};
+
+static struct tagDRAG_SELECTION_DATA _dragSelectionData;
+
+static int mouse_selectionDragInit(WINFO* wp, int x, int y) {
+	FTABLE* fp = wp->fp;
+
+	_dragSelectionData.c1 = fp->caret;
+	_dragSelectionData.start = (POINT){ x, y };
+	EdBlockHide();
+	bl_syncSelectionWithCaret(fp, &_dragSelectionData.c1, MARK_START, NULL);
+	return 1;
+}
+
+static int mouse_selectionDrag(WINFO* wp, int x, int y) {
+	struct tagDRAG_SELECTION_DATA* pData = &_dragSelectionData;
+	FTABLE* fp = wp->fp;
+
+	pData->c2 = fp->caret;
+	if (pData->c1.linePointer == pData->c2.linePointer && pData->c1.offset < pData->c2.offset || pData->start.y < y) {
+		bl_syncSelectionWithCaret(fp, &pData->c1, MARK_START | MARK_NO_HIDE, NULL);
+		bl_syncSelectionWithCaret(fp, &pData->c2, MARK_END | MARK_NO_HIDE, NULL);
+	}
+	else {
+		bl_syncSelectionWithCaret(fp, &pData->c1, MARK_END | MARK_NO_HIDE, NULL);
+		bl_syncSelectionWithCaret(fp, &pData->c2, MARK_START | MARK_NO_HIDE, NULL);
+	}
+	return 1;
+}
+
+static MOUSE_DRAG_HANDLER _mouse_selectionDragHandler = {
+	mouse_selectionDragInit,
+	mouse_selectionDrag,
+	NULL
+};
+
+/**------------------------------------------------------------------------------------------------
+ * Implements text block movement using the mouse.
+ */
+static struct tagTEXT_BLOCK_MOVE {
+	HCURSOR saveCursor;
+	BOOL moving;
+} _dragTextBlockMoveData;
+
+static int mouse_textBlockMoveDragInit(WINFO* wp, int x, int y) {
+	FTABLE* fp = wp->fp;
+	HCURSOR 	hCursor;
+
+	_dragTextBlockMoveData.moving = GetAsyncKeyState(VK_SHIFT) == 0;
+	HMODULE l = LoadLibrary("ole32.dll");
+	hCursor = LoadCursor(l, MAKEINTRESOURCE(_dragTextBlockMoveData.moving ? 5 : 6));
+	if (hCursor == 0) {
+		_dragTextBlockMoveData.saveCursor = 0;
+	} else {
+		_dragTextBlockMoveData.saveCursor = SetCursor(hCursor);
+		SetClassLongPtr(wp->ww_handle, /*does not work: GCL_HCURSOR*/ -12, (LONG_PTR)hCursor);
+	}
+	return 1;
+}
+
+static int mouse_textBlockMoveDrag(WINFO* wp, int x, int y) {
+	return 1;
+}
+
+static int mouse_textBlockEndDrag(WINFO* wp, int x, int y, int bCancel) {
+	HWND hwnd;
+	POINT p;
+	int ret = 1;
+
+	if (bCancel) {
+		return 0;
+	}
+	GetCursorPos(&p);
+	hwnd = WindowFromPoint(p);
+
+	if (hwnd == wp->ww_handle) {
+		if (_dragTextBlockMoveData.moving) {
+			ret = macro_executeFunction(FUNC_EdBlockMove, 0L, 0L, (void*)0, (void*)0, (void*)0);
+		} else {
+			ret = macro_executeFunction(FUNC_EdBlockCopy, 0L, 0L, (void*)0, (void*)0, (void*)0);
+		}
+	} else if (hwnd) {
+		ret = PostMessage(hwnd, WM_ICONDROP, ICACT_TEXTBLOCK, 0L);
+	}
+	if (_dragTextBlockMoveData.saveCursor) {
+		SetClassLongPtr(wp->ww_handle, /*does not work: GCL_HCURSOR*/ -12, (LONG_PTR)_dragTextBlockMoveData.saveCursor);
+	}
+	return 1;
+}
+
+static MOUSE_DRAG_HANDLER _mouse_textBlockMovement = {
+	mouse_textBlockMoveDragInit,
+	mouse_textBlockMoveDrag,
+	mouse_textBlockEndDrag
+};
+
+
+/**
+ * Return a drag handler for handling mouse drags depending on the current context.
+ */
+static MOUSE_DRAG_HANDLER* mouse_getDragHandler(WINFO* wp, int x, int y) {
+	if (ft_checkSelection(wp->fp)) {
+		// TODO: should check, whether x and y is "inside the text block"
+		return &_mouse_textBlockMovement;
+	}
+	return &_mouse_selectionDragHandler;
+}
+
+/**
+ * Utility function to place the caret according to screen coordinates.
+ */
+static void caret_placeToXY(WINFO* wp, int x, int y) {
+	long col, ln;
+
+	caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
+	if (caret_updateLineColumn(FTPOI(wp), &ln, &col, 1)) {
+		wt_curpos(wp, ln, col);
+	}
+}
 
 /*------------------------------------------------------------
  * mouse_getXYPos()
@@ -122,150 +262,74 @@ EXPORT void mouse_setDefaultCursor(void)
 
 /*------------------------------------------------------------
  * EdBlockMouseMark()
+ * NOT USED ANY MORE.
  */
 EXPORT int EdBlockMouseMark(int typ)
-{	register	markforward;
-	int			xx,yy,b,colflg,k,x,y;
-	long		ln,col,ln1,col1,saveln = -1,savecol;
-	WINFO	*	wp;
-	FTABLE	*	fp;
-	UINT_PTR	id;
+{
+	return 0;
+}
 
-	if ((fp =ft_getCurrentDocument()) == 0)
-		return 0;
+/*--------------------------------------------------------------------------
+ * caret_moveToXY()
+ * move the caret to follow the mouse pressed on the screen coordinates x and y.
+ */
+EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
+{
+	int b = 1, dummy;
+	UINT_PTR id;
+	POINT pStart = (POINT){ x, y };
+	FTABLE* fp = wp->fp;
 
-	wp = WIPOI(fp);
-	mouse_getXYPos(wp->ww_handle, &x, &y);
-	xx = x;
-	yy = y;
-
-	ln1 = -1;
-	if (typ != MARK_CONT) {
-		EdBlockHide();
-		markforward = -1;
-	} else {
-		if (fp->blstart) {
-			ln1	= ln_indexOf(fp,fp->blstart->lm);
-			col1 = fp->blstart->lc;
-		}
-		markforward = 1;
-	}
-#if 0
-	if (typ == MARK_RUBBER) {
-		unsetmouseevent();
-		mf(POINT_HAND);
-		graf_rubberbox(x,y,-x,-y,&xx,&yy);
-		nx = xx+x+4; ny = yy+y/* - wp->cheight/2 */;
-		if (ny > y) {
-			colflg = (bl_defineColumnSelectionFromXY(x,y,nx,ny)) ? MARK_COLUMN : 0;
-			if (caret_moveToXY(wp,x,y))   EdSyncSelectionWithCaret(colflg);
-			if (caret_moveToXY(wp,nx,ny)) EdSyncSelectionWithCaret(colflg|MARK_END);
-		}
-	}
-	else {
-#endif
+	caret_placeToXY(wp, x, y);
 	SetCapture(wp->ww_handle);
-	id = SetTimer(0,0,100,0);
-
-	while(1) {
-		mouse_dispatchUntilButtonRelease(&xx,&yy,&b,&k);
-		if (!b) {
-			break;
+	if (!DragDetect(wp->ww_handle, pStart)) {
+		bl_hideSelection(1);
+	} else {
+		CARET c1 = fp->caret;
+		CARET c2;
+		LINE* lpPrevious;
+		int cPrevious;
+		MOUSE_DRAG_HANDLER* pHandler = mouse_getDragHandler(wp, x, y);
+		if (pHandler == NULL || !pHandler->dragInit(wp, x, y)) {
+			ReleaseCapture();
+			return 0;
 		}
-		caret_calculateOffsetFromScreen(wp,xx,yy,&ln,&col);
-		colflg = 0;
-		if (markforward >= 0 && bl_defineColumnSelectionFromXY(x,y,xx,yy)) {
-			long lnx = ln, colx = col;
-			caret_updateLineColumn(fp,&lnx,&colx,1);
-			colflg = MARK_COLUMN;
-		} else {
-			if (!caret_updateLineColumn(fp,&ln,&col,1))
-				continue;
-		}
-		if (ln == saveln && col == savecol)
-			continue;
-		saveln = ln;
-		savecol = col;
-		if (ln != ln1 || col != col1) {
-			if (markforward < 0) {
-				wt_curpos(wp,ln,col);
-				ln1 = ln;
-				col1 = col;
-				EdSyncSelectionWithCaret(colflg|MARKSTART);
-				markforward = 1;
-			} else {
-				if ((ln > ln1 || (ln == ln1 && col > col1)) != markforward) {
-					/* marking direction changed */
-					caret_updateLineColumn(fp,&ln1,&col1,1);
-					EdSyncSelectionWithCaret((markforward ? MARK_END : MARK_START)|colflg);
-					markforward = !markforward;
-					continue;
-				} 
-				wt_curpos(wp,ln,col);
-				EdSyncSelectionWithCaret((markforward ? MARK_END : MARK_START)|colflg);
+		cPrevious = c1.offset;
+		lpPrevious = c1.linePointer;
+		id = SetTimer(0, 0, 100, 0);
+		for (;;) {
+			mouse_dispatchUntilButtonRelease(&x, &y, &b, &dummy);
+			if (!b) {
+				break;
 			}
-			UpdateWindow(wp->ww_handle);
+			caret_placeToXY(wp, x, y);
+			c2 = fp->caret;
+			if (cPrevious != c2.offset || lpPrevious != c2.linePointer) {
+				cPrevious = c2.offset;
+				lpPrevious = c2.linePointer;
+				if (!pHandler->drag(wp, x, y)) {
+					break;
+				}
+			}
 		}
+		if (id) {
+			KillTimer(0, id);
+		}
+		if (pHandler->dragEnd) {
+			pHandler->dragEnd(wp, x, y, FALSE);
+		}
+		ReleaseCapture();
 	}
-
-	if (id)
-		KillTimer(0,id);
-	ReleaseCapture();
-
 	return 1;
 }
 
 /*------------------------------------------------------------
  * EdMouseMoveText()
+ * NOT USED ANY MORE
  */
 EXPORT int EdMouseMoveText(int move)
 {
-	HCURSOR 	hSave,hCursor;
-	int	   	b,ret,dum,x,y;
-	WINFO *	wp;
-	FTABLE *	fp;
-
-	ret = 0;
-	if ((fp = ft_getCurrentDocument()) == 0) {
-		return 0;
-	}
-	wp = WIPOI(fp);
-
-	if ((hCursor = LoadCursor(hInst, move ? "CursMove" : "CursCopy")) == 0) {
-		hSave = 0;
-	} else {
-		hSave = SetCursor(hCursor);
-	}
-
-#if 0
-	mouse_getXYPos(wp->ww_handle, &x, &y);
-# endif
-
-	SetCapture(wp->ww_handle);
-	do {
-		mouse_dispatchUntilButtonRelease(&x,&y,&b,&dum);
-	} while(b);
-	ReleaseCapture();
-
-	POINT p;
-	HWND  hwnd;
-
-	GetCursorPos(&p);
-	hwnd = ic_findChildFromPoint((HWND)0,&p);
-
-	if (hwnd == wp->edwin_handle) {
-		if (caret_moveToCurrentMousePosition(wp, 0L)) {
-			if (move) 
-				ret = macro_executeFunction(FUNC_EdBlockMove,0L,0L,(void*)0,(void*)0,(void*)0); 
-			else 
-				ret = macro_executeFunction(FUNC_EdBlockCopy,0L,0L,(void*)0,(void*)0,(void*)0);
-		}
-	} else if (hwnd) {
-		ret = PostMessage(hwnd,WM_ICONDROP,ICACT_TEXTBLOCK,0L);
-	}
-	if (hSave)
-		SetCursor(hSave);
-	return ret;
+	return 0;
 }
 
 /*--------------------------------------------------------------------------

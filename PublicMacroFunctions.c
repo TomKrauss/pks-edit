@@ -448,7 +448,7 @@ int dlg_displayRecordMacroOptions(int *o)
  * EdAbout()
  */
 int EdAbout(void)
-{ 	
+{
 #if defined(_WIN64)
 	static char _architecture[] = "- 64 Bit Plattform";
 #elif
@@ -463,7 +463,7 @@ int EdAbout(void)
 		0
 	};
 
-	return DoDialog(DLGABOUT,DlgStdProc,_d, NULL);
+	return DoDialog(DLGABOUT, DlgStdProc, _d, NULL);
 }
 
 /*--------------------------------------------------------------------------

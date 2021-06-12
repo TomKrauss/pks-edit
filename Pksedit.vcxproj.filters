@@ -502,6 +502,15 @@
     <None Include="rc\UNDO.ICO">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="RC\CURSOR1.CUR">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\link.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\mini move.cur">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">

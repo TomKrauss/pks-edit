@@ -3,8 +3,8 @@
 //
 #ifndef TRACE_H
 
-#ifdef DEBUG
-#define EdASSERT(expr)		edidebug("Assertion failed |%s|file %s, line %d",\
+#ifdef _DEBUG
+#define EdASSERT(expr)		log_vsprintf("Assertion failed |%s|file %s, line %d",\
                  				#expr, __FILE__, __LINE__ );
 #define EdTRACE(x)			x
 #else
@@ -20,8 +20,8 @@
 #define DEBUG_MALLOC		0x20
 #define DEBUG_ALL			0xFF
 
-void Debug(int dbg_mask, char *fmt, ...);
-void edidebug(char *fmt, ...);
+extern void Debug(int dbg_mask, char *fmt, ...);
+extern void log_vsprintf(char *fmt, ...);
 
 #define TRACE_H
 #endif

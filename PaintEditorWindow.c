@@ -335,6 +335,7 @@ EXPORT void render_repaintFromLineTo(WINFO* wp, long minln, long maxln)
 			rect.bottom = rect.top + (maxln - minln + 1) * wp->cheight;
 		}
 		InvalidateRect(wp->ww_handle, &rect, 0);
+
 	}
 }
 
@@ -405,17 +406,11 @@ EXPORT void render_repaintCurrentLine(void)
  */
 EXPORT void render_repaintLine(FTABLE *fp, LINE *lpWhich)
 {
-	LINE *		lp;
-	long			ln;
-     WINFO *		wp;
+	WINFO* wp = WIPOI(fp);
 
-	wp = WIPOI(fp);
-	lp = ln_relgo(fp, wp->minln - wp->ln);
-	for (ln = wp->minln; lp && ln <= wp->maxln; lp = lp->next, ln++) {
-		if (lp == lpWhich) {
-			render_repaintLinePart(fp, ln, wp->mincol, wp->maxcol);
-			break;
-		}
+	int idx = ln_indexOf(fp, lpWhich);
+	if (idx <= wp->maxln && idx >= wp->minln) {
+		render_repaintLinePart(fp, idx, wp->mincol, wp->maxcol);
 	}
 }
 

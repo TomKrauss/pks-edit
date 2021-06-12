@@ -226,17 +226,13 @@ extern void linetoolong(void);
 #define	FMT_DIALOG		0x80
 #define	FMT_STOPIFDONE		0x100
 
-/* Flags for mouse mark textblock */
-#define	MARK_RUBBER		0
-#define	MARK_DRAG			1
-#define	MARK_CONT			2
-
 /* flags for mark block (EdSyncSelectionWithCaret) */
 #define	MARK_START		3
 #define	MARK_END			4
 #define	MARK_ALL			5
 #define	MARK_COLUMN		0x80		/* for internal use only */
 #define	MARK_RECALCULATE	0x100	/* recalculate start/end relationship */
+#define	MARK_NO_HIDE	0x200	/* do not hide the selection, if start mark is placed before an end mark - used internally only */
 
 /* valid working range types */
 #define	RNG_INVALID		-1

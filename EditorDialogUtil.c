@@ -842,7 +842,7 @@ INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	int					idCtrl;
 	DRAWITEMSTRUCT		*drp;
 	DIALLIST			*dlp;
-	
+
 	switch(message) {
 		case WM_NOTIFY:
 			return DlgNotify(hDlg, wParam, lParam);

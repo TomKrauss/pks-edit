@@ -328,7 +328,6 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	register struct tagUNDO_DELTA* pDelta;
 	register LINE* lp;
 	register LINE* lpNext;
-	LINE* lpRedraw = NULL;
 	BOOL bRedrawAll = FALSE;
 	UNDO_COMMAND* pRedoCommand = malloc(sizeof * pRedoCommand);
 
@@ -362,8 +361,8 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 					lp = lp->next;
 				}
 				pDelta->lp->lflg &= (LNINDIRECT | LNXMARKED | LNNOTERM | LNNOCR);
-				lpRedraw = pDelta->lp;
-				ln_replace(fp, lp, lpRedraw);
+				ln_replace(fp, lp, pDelta->lp);
+				render_repaintLine(fp, pDelta->lp);
 				add_stepToCommand(pRedoCommand, lp, pDelta->lp->prev, pDelta->op);
 				break;
 			case O_DELETE:
@@ -395,8 +394,6 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	caret_placeCursorInCurrentFile(pCommand->ln, pCommand->col);
 	if (bRedrawAll) {
 		render_repaintAllForFile(fp);
-	} else if (lpRedraw) {
-		render_repaintLine(fp, lpRedraw);
 	}
 
 	fp->tln = NULL;

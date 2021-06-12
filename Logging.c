@@ -16,7 +16,7 @@
 #include "trace.h"
 #include "lineoperations.h"
 
-static int _debugmask = /* DEBUG_ALL */ 0;
+static int _debugmask = DEBUG_ALL;
 static int _debugfd = -1;
 
 /*-----------------------------------------------------------
@@ -24,19 +24,10 @@ static int _debugfd = -1;
  */
 static void vdebug(int err, LPSTR fmt, va_list ap)
 {
-#ifdef DEBUG
-	char buf[1024],tmpfile[512];
+	char buf[1024];
     wvsprintf((LPSTR)buf,(LPSTR)fmt,(LPSTR)ap);
-    if (err) {
-    		error_displayAlertDialog(buf);
-    		return;
-	}
-    if (_debugfd < 0 && (_debugfd = _lcreat(file_getTempFilename(tmpfile,'L'),0)) < 0) {
-	    return;
-    }
-    lstrcat(buf,"\r\n");
-    _lwrite(_debugfd,buf,lstrlen(buf));
-#endif
+	strcat(buf, "\r\n");
+	OutputDebugString(buf);
 }
 
 /*-----------------------------------------------------------
@@ -44,7 +35,7 @@ static void vdebug(int err, LPSTR fmt, va_list ap)
  */
 EXPORT void Debug(int dbgmask, char *fmt, ...)
 {
-#ifdef DEBUG
+#ifdef _DEBUG
 	va_list ap;
 	if ((_debugmask & dbgmask) == 0)
 		return;
@@ -56,24 +47,21 @@ EXPORT void Debug(int dbgmask, char *fmt, ...)
 }
 
 /*-----------------------------------------------------------
- * edidebug()
+ * log_vsprintf()
  */
-EXPORT void edidebug(char *fmt, ...)
+EXPORT void log_vsprintf(char *fmt, ...)
 {
-#ifdef DEBUG
 	va_list ap;
 	va_start(ap,fmt);
 	vdebug(0,fmt,ap);	
 	va_end(ap);
-#endif
 }
 
 /*------------------------------------------------------------
- * DebugWinMessag()
+ * log_printWinMessage()
  */
-EXPORT void DebugWinMessag(char *funcname, HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-#ifdef DEBUG
+EXPORT void log_printWinMessage(char *funcname, HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+#ifdef _DEBUG
 char messagename[64];
 char* s;
 	switch(message) {
@@ -99,7 +87,7 @@ char* s;
 		case WM_SYSCOLORCHANGE: s = "WM_SYSCOLORCHANGE"; break;
 		case WM_ENDSESSION: s = "WM_ENDSESSION"; break;
 		case WM_SHOWWINDOW: s = "WM_SHOWWINDOW"; break;
-		case WM_CTLCOLOR: s = "WM_CTLCOLOR"; break;
+		case WM_CTLCOLORBTN: s = "WM_CTLCOLORBTN"; break;
 		case WM_WININICHANGE: s = "WM_WININICHANGE"; break;
 		case WM_DEVMODECHANGE: s = "WM_DEVMODECHANGE"; break;
 		case WM_ACTIVATEAPP: s = "WM_ACTIVATEAPP"; break;

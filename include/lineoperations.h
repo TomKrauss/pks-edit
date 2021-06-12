@@ -237,7 +237,7 @@ typedef struct ftable {
 
 extern int 	_playing;				/* recorder plays its game ... */
 
-void 	edidebug(char *fmt,...);
+void 	log_vsprintf(char *fmt,...);
 int 	ft_checkSelection(FTABLE *fp);
 int 	ft_checkSelectionWithError(FTABLE *fp);
 

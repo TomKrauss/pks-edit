@@ -405,7 +405,7 @@ LINE *ln_join(FTABLE *fp, LINE *lp1, LINE *lp2, int bRemove)
 
 	if (lp1 != fp->tln && (lp1 = ln_settmp(fp,lp1,&lp2)) == 0L) {
 #ifdef DEBUG
-		edidebug("error in ln_join");
+		log_vsprintf("error in ln_join");
 #endif
 		return 0;
 	}
@@ -482,6 +482,7 @@ LINE *ln_relative(LINE *cl, long l)
 	}
 	return((cl && cl->next) ? cl : 0);
 }
+
 
 /*---------------------------------*/
 /* ln_crelgo()					*/

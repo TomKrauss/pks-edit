@@ -1218,12 +1218,15 @@
     <None Include="rc\CLIP.ICO" />
     <None Include="rc\CLIPEMPT.ICO" />
     <None Include="rc\COPY.CUR" />
+    <None Include="RC\CURSOR1.CUR" />
     <None Include="rc\EDIT.ICO" />
     <None Include="rc\EXEC.ICO" />
     <None Include="rc\FILE.ICO" />
     <None Include="rc\FOLDER.ICO" />
     <None Include="rc\HELP.ICO" />
+    <None Include="rc\link.cur" />
     <None Include="rc\MACRO.ICO" />
+    <None Include="rc\mini move.cur" />
     <None Include="rc\MOVE.CUR" />
     <None Include="rc\PKS.ICO" />
     <None Include="rc\PKS2.ICO" />

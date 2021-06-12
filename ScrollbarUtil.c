@@ -169,7 +169,7 @@ int sl_scrollwinrange(WINFO *wp,long *DY, long *DX)
 
 	dy = *DY, dx = *DX;
 	EdTRACE(Debug(DEBUG_FUNCS,"sl_scrollwinrange(%ld,%ld) fp = %lx",
-				 dy,dx,(long)fp));
+				 dy,dx,(long)(intptr_t)fp));
 	if (dx) {
 		val = sl_calcnewmin(dx,MAXCOL,wp->mincol);
 		*DX = val-wp->mincol;
