@@ -454,7 +454,7 @@ int EdAbout(void)
 #elif
 	static char _architecture[] = "- 32 Bit Plattform";
 #endif
-	static char _versionInfo[] = "Version 1.7.2, 10.6.2021";
+	static char _versionInfo[] = "Version 1.7.3, 12.6.2021";
 
 	static DIALPARS _d[] = {
 		IDD_RO1,		sizeof _kunde,		_kunde,

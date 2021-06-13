@@ -39,9 +39,11 @@
 
 #define myoffsetof(typ,offs)	(unsigned char)offsetof(typ, offs)
 
-#define	PREVIEWING()		(hwndPreview != 0)
+#define	PREVIEWING()	(hwndPreview != 0)
 #define	EVEN(p)			((p & 1) == 0)
 #define	WP_FMTLCHAR		'|'
+
+#define DEFAULT_PRINT_COLOR RGB(0,0,0)
 
 typedef struct tagDEVEXTENTS {
 	int			xPage,yPage;
@@ -80,8 +82,6 @@ static PRTPARAM _prtparams = {
 
 extern char 		*ft_visiblename(FTABLE *fp);
 
-static BOOL		_doPrint;
-static int 		_printing;
 static int 		_previewpage = 1;
 static HWND 		hwndPreview;
 static PRINTWHAT	_printwhat;
@@ -118,6 +118,15 @@ EXPORT void print_initPrinterDC(void)
 	GetProfileString("windows", "device", ",,,", szPrinter, sizeof szPrinter);
 	if ((dev = strtok(szPrinter,",")) != 0)
 		lstrcpy(szPrtDevice,dev);
+}
+
+/*------------------------------------------------------------
+ * print_drawLine()
+ */
+static void print_drawLine(HDC hdc, int x1, int x2, int y)
+{
+	MoveTo(hdc, x1, y);
+	LineTo(hdc, x2, y);
 }
 
 /*------------------------------------------------------------
@@ -255,7 +264,7 @@ static void print_getDeviceExtents(HDC hdc, DEVEXTENTS *dep) {
 
 	if (pp->options&PRTO_HEADERS) {
 		dep->yHeaderPos = print_calculateRatio(dep->yPage,pp->d1,pp->pagelen);
-		dep->yTop 	 = print_calculateRatio(dep->yPage,pp->d1+pp->d2+1,pp->pagelen);
+		dep->yTop 	 = print_calculateRatio(dep->yPage,pp->d1+pp->d2,pp->pagelen);
 		dep->yFooterPos = print_calculateRatio(dep->yPage,(pp->pagelen-pp->d4-1),
 						    pp->pagelen);
 		dep->yBottom    = print_calculateRatio(dep->yPage,(pp->pagelen-pp->d3-pp->d4-1),
@@ -283,18 +292,22 @@ static void print_getDeviceExtents(HDC hdc, DEVEXTENTS *dep) {
 static void print_mkwpheader(HDC hdc, int yPos, DEVEXTENTS *dep,
 				   char *szBuff, int align)
 {
-	int  		nLen,xPos,w;
+	int  nLen,xPos;
+	SIZE size;
+	TEXTMETRIC metrics;
 
 	if ((nLen = lstrlen(szBuff)) == 0)
 		return;
-	w = LOWORD(win_getTextExtent(hdc,szBuff,nLen));
+	GetTextExtentPoint32(hdc, szBuff, nLen, &size);
 
 	switch(align) {
 		default:	xPos = dep->xLMargin; break;
-		case 1:	xPos = (dep->xPage - w) / 2; break;
-		case 2:	xPos = (dep->xRMargin - w); break;
+		case PRA_CENTER:	xPos = (dep->xPage - size.cx) / 2; break;
+		case PRA_RIGHT:		xPos = (dep->xRMargin - size.cx); break;
 	}
-	TextOut(hdc,xPos,yPos,szBuff,nLen);
+	SetTextColor(hdc, DEFAULT_PRINT_COLOR);
+	GetTextMetrics(hdc, &metrics);
+	TextOut(hdc,xPos,yPos+ metrics.tmAscent,szBuff,nLen);
 }
 
 /*---------------------------------*/
@@ -310,7 +323,8 @@ static int print_formatheader(unsigned char *d1, unsigned char *d2,
 	if (lstrlen(s) >= sizeof buf)
 		return 0;
 	lstrcpy(buf,s);
-
+	nParts = 1;
+	// TODO: allow using character ! in headers and footers.
 	if ((s = strtok(buf,"!")) != 0) {
 		mysprintf(_printwhat.fp,d1,s,pageno);
 		if ((s = strtok((char *)0,"!")) != 0) {
@@ -326,50 +340,59 @@ static int print_formatheader(unsigned char *d1, unsigned char *d2,
 }
 
 /*------------------------------------------------------------
- * print_headerAndFooter()
+ * print_headerOrFooter()
  */
-static void print_headerAndFooter(HDC hdc, DEVEXTENTS *dep, int y, long pageno, 
-				char *fmt,int align)
+static void print_headerOrFooter(HDC hdc, DEVEXTENTS *dep, int y, long pageno, 
+				char *fmt, PRTPARAM * pp, DEVEXTENTS *pExtent, BOOL bHeader)
 {
 	unsigned char 	b1[256],b2[256],b3[256];
-	int  			wpflg,a1,a2;
-	PRTPARAM		*pp = &_prtparams;
+	int  			numberOfSegments,a1,a2;
+	int				align = pp->align;
 
-	if (!(pp->options & PRTO_HEADERS))
+	if ((bHeader && !pp->header[0]) || (!bHeader && !pp->footer[0])) {
 		return;
+	}
+	if (pp->options & PRTO_ULHEA) {
+		if (bHeader) {
+			print_drawLine(hdc, pExtent->xLMargin, pExtent->xRMargin,
+				(pExtent->yTop + pExtent->yHeaderPos) / 2);
+		} else {
+			print_drawLine(hdc, pExtent->xLMargin, pExtent->xRMargin,
+				(pExtent->yBottom + pExtent->yFooterPos) / 2);
+		}
+	}
+	if (!(pp->options & PRTO_HEADERS)) {
+		return;
+	}
 
 	b1[0] = b2[0] = b3[0] = 0;
-	wpflg = print_formatheader(b1, b2, b3, fmt, pageno + pp->pageoffs);
+	numberOfSegments = print_formatheader(b1, b2, b3, fmt, pageno + pp->pageoffs);
 
 	/* swap headings on alternate pages */
 
-	if (!wpflg) {
-		switch (align) {
-			case PRA_LEFT:
-				break;
-			case PRA_CENTER:
-				lstrcpy(b2,b1); b1[0] = 0; break;
-			case PRA_RIGHT:
-				lstrcpy(b3,b1); b1[0] = 0; break;
+	if (numberOfSegments == 1 && align == PRA_CENTER) {
+		a1 = align;
+	} else {
+		if (align != PRA_CENTER && ((pp->options & PRTO_SWAP) && EVEN(pageno))) {
+			a1 = PRA_LEFT, a2 = PRA_RIGHT;
+		}
+		else {
+			a1 = PRA_RIGHT, a2 = PRA_LEFT;
 		}
 	}
-
-	if (align != PRA_CENTER && 
-	    ((pp->options & PRTO_SWAP) && EVEN(pageno))) {
-	    	a1 = 0, a2 = 2;
-	} else {
-		a1 = 2, a2 = 0;
-	}
+	print_selectfont(hdc, &pp->htfont);
 	print_mkwpheader(hdc,y,dep,b1,a1);
-	print_mkwpheader(hdc,y,dep,b2,1);
-	print_mkwpheader(hdc,y,dep,b3,a2);
+	if (numberOfSegments > 1) {
+		print_mkwpheader(hdc, y, dep, b2, PRA_CENTER);
+		print_mkwpheader(hdc, y, dep, b3, a2);
+	}
 }
 
 /*------------------------------------------------------------
  * print_singleLineOfText()
  */
 static int print_singleLineOfText(HDC hdc, int xPos, int yPos, int charHeight, long lineno,
-		 	  LINE *lp, int firstc, int lastc)
+		 	  LINE *lp, int firstc, int lastc, BOOL printing)
 {
 	char 	szBuff[80];
 	int		nCount;
@@ -380,7 +403,10 @@ static int print_singleLineOfText(HDC hdc, int xPos, int yPos, int charHeight, l
 	nMaxCharsPerLine = 0;
 	if (_prtparams.options & PRTO_LINES) {
 		wsprintf(szBuff, "%3ld: ", lineno);
-		TextOut(hdc, xPos, yPos, szBuff, nCount = lstrlen(szBuff));
+		if (printing) {
+			SetTextColor(hdc, DEFAULT_PRINT_COLOR);
+			TextOut(hdc, xPos, yPos, szBuff, nCount = lstrlen(szBuff));
+		}
 		xPos += LOWORD(win_getTextExtent(hdc, szBuff, nCount));
 		nMaxCharsPerLine = -7;
 	}
@@ -396,7 +422,9 @@ static int print_singleLineOfText(HDC hdc, int xPos, int yPos, int charHeight, l
 		_printwhat.wp->maxcol = nMaxCharsPerLine;
 	}
 	if (_printwhat.wp->maxcol > firstc) {
-		_printwhat.wp->renderFunction(hdc, xPos, yPos, _printwhat.wp, lp);
+		if (printing) {
+			_printwhat.wp->renderFunction(hdc, xPos, yPos, _printwhat.wp, lp);
+		}
 		while (_printwhat.wp->maxcol < max) {
 			int delta = max - _printwhat.wp->maxcol;
 			if (delta > nMaxCharsPerLine) {
@@ -406,33 +434,30 @@ static int print_singleLineOfText(HDC hdc, int xPos, int yPos, int charHeight, l
 			_printwhat.wp->maxcol = _printwhat.wp->mincol+delta;
 			deltaHeight += charHeight;
 			yPos += charHeight;
-			_printwhat.wp->renderFunction(hdc, xPos, yPos, _printwhat.wp, lp);
+			if (printing) {
+				_printwhat.wp->renderFunction(hdc, xPos, yPos, _printwhat.wp, lp);
+			}
 		}
 	}
 	return deltaHeight;
 }
 
 /*------------------------------------------------------------
- * print_drawLine()
- */
-static void print_drawLine(HDC hdc, int x1, int x2, int y)
-{
-	MoveTo(hdc,x1,y);
-	LineTo(hdc,x2,y);
-}
-
-/*------------------------------------------------------------
  * PrintPage()
+
+ * Print the current document / file. Returns the number of lines actually printed.
  */
-static int print_file(HDC hdc)
+static int print_file(HDC hdc, BOOL measureOnly)
 {	char 		message[128];
 	long		oldpageno,lineno,pageno;
-	int			yPos,ret = 1;
+	long		linesPrinted = 0;
+	int			yPos;
+	BOOL		printing = TRUE;
+	BOOL		produceOutput;
 	DEVEXTENTS	de;
 	LINE 		*lp,*lplast;
 	PRTPARAM	*pp = &_prtparams;
 	int			firstc,lastc;
-	RECT		pageRect;
 
 	lp     = _printwhat.lp;
 	lplast = _printwhat.lplast;
@@ -445,29 +470,20 @@ static int print_file(HDC hdc)
 	oldpageno = 0;
 	pageno = lineno = 1;
 	yPos = 0;
-	if (PREVIEWING()) {
-		pageRect.left = 0;
-		pageRect.right = de.xPage;
-		pageRect.top = 0;
-		pageRect.bottom = de.yPage;
-		HGDIOBJ original = SelectObject(hdc, GetStockObject(DC_PEN));
-		SelectObject(hdc, GetStockObject(BLACK_PEN));
-		SelectObject(hdc, GetStockObject(DC_BRUSH));
-		SetDCBrushColor(hdc, RGB(255, 255, 255));
-		Rectangle(hdc, 0, 0, pageRect.right, pageRect.bottom);
-		SelectObject(hdc, original);
-	}
 	while (lp) {
 		if (oldpageno != pageno) {
-			if (PREVIEWING()) {
+			if (measureOnly) {
+				printing = TRUE;
+			} else if (PREVIEWING()) {
 				if (pageno > _previewpage)
 					break;
-				_printing = (pageno == _previewpage);
+				printing = (pageno == _previewpage);
 			} else {
-				_printing = (pageno >= pp->startpage && 
+				printing = (pageno >= pp->startpage && 
 			       		   (pp->endpage <= 0 || pageno <= pp->endpage));
 			}
-			if (!PREVIEWING() && _printing) {
+			produceOutput = printing && !measureOnly;
+			if (!PREVIEWING() && produceOutput) {
 				wsprintf(message,/*STR*/"%s - %s (Seite %d)",
 						(LPSTR)szAppName,
 					  	(LPSTR)string_abbreviateFileName(ft_visiblename(ft_getCurrentDocument())),
@@ -477,29 +493,19 @@ static int print_file(HDC hdc)
 			oldpageno = pageno;
 		}
 		if (yPos == 0) {
-			if (_printing) {
+			if (produceOutput) {
 				StartPage(hdc);
 				print_resetDeviceMode(hdc);
-				print_selectfont(hdc,&pp->htfont);
-				print_headerAndFooter(hdc, &de, de.yHeaderPos, pageno,
-					pp->header, pp->align);
+				print_headerOrFooter(hdc, &de, de.yHeaderPos, pageno,
+					pp->header, pp, &de, TRUE);
 				print_selectfont(hdc,&pp->font);
-				if (pp->options & PRTO_ULHEA) {
-					print_drawLine(hdc,de.xLMargin,de.xRMargin,
-						   (de.yTop+de.yHeaderPos)/2);
-				}
 			}
 			yPos = de.yTop;
 		}
 		if (yPos+de.lnSpace > de.yBottom) {
 footerprint:
-			if (_printing) {
-				if (pp->options & PRTO_ULHEA) {
-					print_drawLine(hdc,de.xLMargin,de.xRMargin,
-						    (de.yBottom+de.yFooterPos)/2);
-				}
-				print_selectfont(hdc,&pp->htfont);
-				print_headerAndFooter(hdc,&de,de.yFooterPos,pageno,pp->footer,pp->align);
+			if (produceOutput) {
+				print_headerOrFooter(hdc,&de,de.yFooterPos,pageno,pp->footer,pp,&de,FALSE);
 				EndPage(hdc);
 			}
 			if (!lp || P_EQ(lp,lplast))
@@ -507,19 +513,22 @@ footerprint:
 			yPos = 0;
 			pageno++;
 		} else {
-			if (_printing) {
-				yPos += print_singleLineOfText(hdc, de.xLMargin, yPos, de.lnSpace, lineno, lp, firstc, lastc);
-			}
-			else {
-				yPos += de.lnSpace;
-			}
+			int lineHeight = print_singleLineOfText(hdc, de.xLMargin, yPos, de.lnSpace, lineno, lp, firstc, lastc, produceOutput);
+			yPos += lineHeight;
+			linesPrinted += lineHeight / de.lnSpace;
 			if (P_EQ(lp,lplast) || (lp = lp->next) == 0)
 				goto footerprint;
 			lineno++;
+			// hack - cope with wrapping lines
+			if (linesPrinted > _printwhat.nlines) {
+				_printwhat.nlines = linesPrinted;
+			}
 		}
 	}
-	font_selectSystemFixedFont(hdc);
-	return ret;
+	if (produceOutput) {
+		font_selectSystemFixedFont(hdc);
+	}
+	return linesPrinted;
 }
 
 /*--------------------------------------------------------------------------
@@ -529,6 +538,7 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 {
 	HDC			hdc;
 	int			newPage = _previewpage;
+	static int  numberOfPreviewPages;
 
 	switch(message) {
 		case WM_NOTIFY: {	
@@ -542,6 +552,7 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 			break;
 		case WM_INITDIALOG:
 			hwndPreview = hDlg;
+			numberOfPreviewPages = -1;
 			win_moveWindowToDefaultPosition(hDlg);
 			SetDlgItemInt(hDlg, IDD_INT1, _previewpage, 0);
 			break;
@@ -559,7 +570,23 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 		case WM_DRAWITEM:
 			hdc = ((LPDRAWITEMSTRUCT)lParam)->hDC;
 			int savedDc = SaveDC(hdc);
-			print_file(hdc);
+			if (numberOfPreviewPages <= 0) {
+				numberOfPreviewPages = print_file(hdc, TRUE) / print_ntextlines();
+			}
+			RECT pageRect;
+			DEVEXTENTS de;
+			print_getDeviceExtents(hdc, &de);
+			pageRect.top = 0;
+			pageRect.bottom = de.yPage;
+			pageRect.left = de.xLMargin;
+			pageRect.right = de.xPage;
+			HGDIOBJ original = SelectObject(hdc, GetStockObject(DC_PEN));
+			SelectObject(hdc, GetStockObject(BLACK_PEN));
+			SelectObject(hdc, GetStockObject(DC_BRUSH));
+			SetDCBrushColor(hdc, RGB(255, 255, 255));
+			Rectangle(hdc, 0, 0, pageRect.right, pageRect.bottom);
+			SelectObject(hdc, original);
+			print_file(hdc, FALSE);
 			RestoreDC(hdc, savedDc);
 			return TRUE;
 		case WM_DESTROY:
@@ -572,72 +599,9 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 		_previewpage = newPage;
 		SetDlgItemInt(hDlg, IDD_INT1, _previewpage, 0);
 		EnableWindow(GetDlgItem(hDlg, IDD_BUT4), (_previewpage > 1));
-		EnableWindow(GetDlgItem(hDlg, IDD_BUT3),
-			(_previewpage <= _printwhat.nlines / print_ntextlines()));
+		int maxPages = numberOfPreviewPages > 0 ? numberOfPreviewPages : _printwhat.nlines / print_ntextlines();
+		EnableWindow(GetDlgItem(hDlg, IDD_BUT3), _previewpage <= maxPages);
 		win_sendRedrawToWindow(GetDlgItem(hDlg, IDD_PREVIEW));
-	}
-	return TRUE;
-}
-
-/*--------------------------------------------------------------------------
- * DlgInstallPrtProc()
- */
-typedef VOID (FAR PASCAL *DEVMODEPROC)(HWND, HANDLE, LPSTR, LPSTR);
-static INT_PTR CALLBACK DlgInstallPrtProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	HWND			hwndList;
-	HANDLE		hLibrary;
-	DEVMODEPROC	lpfnDM;
-	HWND		parent;
-	char			szDevice[64],szDriver[256],
-				szDriverName[64],*szOutput,*s;
-
-	parent = GetParent(hDlg);
-	switch(message) {
-		case WM_NOTIFY:
-		{	LPNMHDR		pNmhdr;
-
-		pNmhdr = (LPNMHDR)lParam;
-		switch (pNmhdr->code) {
-		case PSN_SETACTIVE:
-			hwndList = GetDlgItem(hDlg, IDD_INSTPRINTERS);
-			SendMessage(hwndList, LB_RESETCONTENT, 0, 0L);
-			GetProfileString("devices", NULL, "", _linebuf, LINEBUFSIZE);
-			s = _linebuf;
-			while (*s) {
-				SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)s);
-				while (*s++)
-					;
-			}
-			SendMessage(hwndList, LB_SELECTSTRING, -1, (LPARAM)szPrtDevice);
-			break;
-		case PSN_APPLY:
-			LbGetText(hDlg, IDD_INSTPRINTERS, szPrtDevice);
-			PropSheet_UnChanged(parent, hDlg);
-			return TRUE;
-		}
-		}
-		break;
-		case WM_INITDIALOG:
-		case WM_COMMAND:
-			PropSheet_Changed(parent, hDlg);
-			switch(GET_WM_COMMAND_ID(wParam, lParam)) {
-				case IDD_INSTINSTALL:
-					LbGetText(hDlg,IDD_INSTPRINTERS,szDevice);
-					GetProfileString("devices", szDevice,"",szDriver,
-								   sizeof szDriver);
-					if ((szOutput = strtok(szDriver,",")) != 0) {
-						wsprintf(szDriverName,"%s.DRV",szDriver);
-						if ((hLibrary = LoadLibrary(szDriverName)) != NULL) {
-							lpfnDM = (DEVMODEPROC)GetProcAddress(hLibrary,"DEVICEMODE");
-							(*lpfnDM)(hDlg,hLibrary,(LPSTR)szDevice,(LPSTR)szOutput);
-							FreeLibrary(hLibrary);
-						}
-					}
-			}
-			break;
-		default:
-			return FALSE;
 	}
 	return TRUE;
 }
@@ -710,17 +674,7 @@ void print_readWriteConfigFile(int save)
  */
 static EDFONT	font;
 static EDFONT	htfont;
-static void _triggerPrint(HWND hDlg, int idCtrl) {
-	_doPrint = TRUE;
-	HWND hwndParent = GetParent(hDlg);
-	HWND hwndOK = GetDlgItem(hwndParent, IDOK);
-	SendMessage(hwndOK, BM_CLICK, (WPARAM) NULL, (LPARAM)NULL);
-}
 static DIALPARS _dPrintLayout[] = {
-	IDD_INT5,		sizeof(int),		0,
-	IDD_INT6,		sizeof(int),		0,
-	IDD_INT7,		sizeof(int),		0,
-	IDD_CALLBACK1,	0,				_triggerPrint,
 	IDD_RADIO1,		PRA_RIGHT - PRA_LEFT,	&_prtparams.align,
 	IDD_OPT1,			PRTO_SWAP,& _prtparams.options,
 	IDD_OPT2,			PRTO_LINES,& _prtparams.options,
@@ -737,35 +691,26 @@ static DIALPARS _dPrintLayout[] = {
 	0
 };
 static DIALPARS* _getDialogParsForPage(int page) {
-	if (page == 0) {
+	if (page == 1) {
 		return _dPrintLayout;
-	}
-	if (page == 2) {
-		_previewpage = 1;
 	}
 	return NULL;
 }
-static int DlgPrint(char* title, PRTPARAM *pp)
+static HDC DlgPrint(char* title, PRTPARAM *pp)
 {
 	DIALPARS* dp = _dPrintLayout;
-	//dp++->dp_data = title;
-	dp++->dp_data = &pp->startpage;
-	dp++->dp_data = &pp->endpage;
-	dp->dp_data = &pp->pageoffs;
-
 	lstrcpy(font.name, _prtparams.font.fs_name);
 	lstrcpy(htfont.name, _prtparams.htfont.fs_name);
 
-	PROPSHEETPAGE psp[3];
+	PROPSHEETPAGE psp[2];
 	PROPSHEETHEADER psh;
-	INT_PTR tempRet;
 
 	InitCommonControls();
-	SetXDialogParams(_getDialogParsForPage, TRUE);
+	SetXDialogParams(_getDialogParsForPage, FALSE);
 	memset(&psh, 0, sizeof psh);
 	memset(psp, 0, sizeof psp);
 
-	psp[0].dwSize = sizeof(psp[1]);
+	psp[0].dwSize = sizeof(psp[0]);
 	psp[0].hInstance = hInst;
 	psp[0].pszTemplate = MAKEINTRESOURCE(DLGPRINTERLAYOUT);
 	psp[0].pfnDlgProc = DlgStdProc;
@@ -775,29 +720,58 @@ static int DlgPrint(char* title, PRTPARAM *pp)
 	psp[1].pszTemplate = MAKEINTRESOURCE(DLGPREVIEW);
 	psp[1].pfnDlgProc = DlgPreviewProc;
 
-	psp[2].dwSize = sizeof(psp[1]);
-	psp[2].hInstance = hInst;
-	psp[2].pszTemplate = MAKEINTRESOURCE(DLGPRTINSTALL);
-	psp[2].pfnDlgProc = DlgInstallPrtProc;
-
-	psh.dwSize = sizeof(psh);
-	psh.dwFlags = PSH_PROPSHEETPAGE;
-	psh.hwndParent = hwndFrame;
-	psh.hInstance = hInst;
-	psh.pszIcon = 0;
-	psh.pszCaption = (LPSTR)"Drucken...";
-	psh.nPages = sizeof(psp) / sizeof(psp[0]);
-	psh.nStartPage = 0;
-	psh.ppsp = (LPCPROPSHEETPAGE)&psp;
-	psh.pfnCallback = NULL;
-	_doPrint = FALSE;
-	tempRet = PropertySheet(&psh);
-	if (tempRet == 1) {
-		print_readWriteConfigFile(1);
-		lstrcpy(_prtparams.font.fs_name, font.name);
-		lstrcpy(_prtparams.htfont.fs_name, htfont.name);
+	LPPRINTDLGEXA prtDlg = calloc(1, sizeof *prtDlg);
+	PRINTPAGERANGE pageRange;
+	HPROPSHEETPAGE pPage1 = CreatePropertySheetPage(&psp[0]);
+	HPROPSHEETPAGE pPage2 = CreatePropertySheetPage(&psp[1]);
+	HPROPSHEETPAGE pages[2];
+	pages[0] = pPage1;
+	pages[1] = pPage2;
+	pageRange.nFromPage = 1;
+	pageRange.nToPage = 5;
+	prtDlg->lStructSize = sizeof *prtDlg;
+	prtDlg->hwndOwner = hwndFrame;
+	prtDlg->lphPropertyPages = pages;
+	prtDlg->Flags = PD_ALLPAGES | PD_RETURNDC | PD_PAGENUMS;
+	prtDlg->nPageRanges = 1;
+	prtDlg->lpPageRanges = &pageRange;
+	pageRange.nFromPage = 1;
+	pageRange.nToPage = 999;
+	prtDlg->nMinPage = 1;
+	prtDlg->nMaxPage = 999;
+	prtDlg->nCopies = 1;
+	prtDlg->nMaxPageRanges = 1;
+	prtDlg->nStartPage = START_PAGE_GENERAL;
+	prtDlg->nPropertyPages = 2;
+	int nRet = PrintDlgEx(prtDlg);
+	if (prtDlg->hDevNames) {
+		GlobalFree(prtDlg->hDevNames);
 	}
-	return (int)tempRet;
+	if (prtDlg->hDevMode) {
+		GlobalFree(prtDlg->hDevMode);
+	}
+	if (nRet == S_OK) {
+		if (prtDlg->dwResultAction != PD_RESULT_CANCEL) {
+			_prtparams.pageoffs = prtDlg->lpPageRanges[0].nFromPage;
+			_prtparams.endpage = prtDlg->lpPageRanges[0].nToPage;
+			print_readWriteConfigFile(1);
+		}
+		HDC hdc = prtDlg->hDC;
+		DWORD dwResult = prtDlg->dwResultAction;
+		free(prtDlg);
+		return dwResult == PD_RESULT_PRINT ? hdc : NULL;
+	}
+	free(prtDlg);
+	if (nRet == E_INVALIDARG) {
+		log_vsprintf("invalid arg");
+	}
+	if (nRet == E_POINTER) {
+		log_vsprintf("invalid pointer");
+	}
+	if (nRet == E_HANDLE) {
+		log_vsprintf("invalid handle");
+	}
+	return 0;
 }
 
 
@@ -820,9 +794,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 	memset(&_ft,0,sizeof _ft);
 	_printwhat.firstc = 0;
 	_printwhat.lastc = 1024;
-
 	wp = 0;
-
 	if (what == PRT_CURRWI || what == PRT_CURRBLK) {
 		if ((wp = ww_getWindowFromStack(0)) == 0) {
 			return 0;
@@ -880,32 +852,26 @@ int EdPrint(long what, long p1, LPSTR fname)
 	lstrcpy(winfo.fnt_name,pp->font.fs_name);
 	winfo.fnt.height = pp->font.fs_cheight;
 	_previewpage = 0;
-	DlgPrint(message, pp);
-	if (_doPrint) {
-		_doPrint = FALSE;
+	hdcPrn = DlgPrint(message, pp);
+	if (hdcPrn) {
 		_previewpage = 0;
-		if ((hdcPrn = print_getPrinterDC()) != NULL) {
 			DOCINFO		docinfo;
-
-			memset(&docinfo, 0, sizeof docinfo);
-			docinfo.cbSize = sizeof docinfo;
-			docinfo.lpszDocName = message;
-			docinfo.lpszDatatype = "Text";
-			progress_startMonitor(IDS_ABRTPRINT);
-			SetAbortProc(hdcPrn, (ABORTPROC)PrtAbortProc);
-			if ((PREVIEWING() || (errEscape = StartDoc(hdcPrn, &docinfo))) >= 0 &&
-			    (errEscape = print_file(hdcPrn)) >= 0) {
-				if (!PREVIEWING()) {
-					EndDoc(hdcPrn);
-				}
-			} else {
-				EscapeError(errEscape);
+		memset(&docinfo, 0, sizeof docinfo);
+		docinfo.cbSize = sizeof docinfo;
+		docinfo.lpszDocName = message;
+		docinfo.lpszDatatype = "Text";
+		progress_startMonitor(IDS_ABRTPRINT);
+		SetAbortProc(hdcPrn, (ABORTPROC)PrtAbortProc);
+		if ((PREVIEWING() || (errEscape = StartDoc(hdcPrn, &docinfo))) >= 0 &&
+			(errEscape = print_file(hdcPrn, FALSE)) >= 0) {
+			if (!PREVIEWING()) {
+				EndDoc(hdcPrn);
 			}
+		} else {
+			EscapeError(errEscape);
 		}
-		if (hdcPrn) {
-			progress_closeMonitor(0);
-			DeleteDC(hdcPrn);
-		}
+		progress_closeMonitor(0);
+		DeleteDC(hdcPrn);
 		if (errEscape)
 			goto byebye;
 		ret = 1;

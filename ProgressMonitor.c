@@ -12,14 +12,14 @@
  * (c) Pahlen & Krauss
  */
 #include <windows.h>
-
+#include <commctrl.h>
 #include "winterf.h"
 #include "trace.h"
 #include "lineoperations.h"
 #include "winfo.h"
 #include "winutil.h"
 #include "errordialogs.h"
-
+#include "pksrc.h"
 #include "pksedit.h"
 #include "dial2.h"
 #include "xdialog.h"
@@ -79,8 +79,15 @@ void progress_startMonitor(unsigned int ids) {
  */
 void progress_showMonitorMessage(const char* message)
 {
-	if (hwndAbort)
+	if (hwndAbort) {
 		SetDlgItemText(hwndAbort, IDD_STRING2, message);
+		HWND hwndPB = GetDlgItem(hwndAbort, IDC_PROGRESS);
+		SendMessage(hwndPB, PBM_STEPIT, (WPARAM)1, 0);
+		MSG msg;
+		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE | PM_NOYIELD)) {
+			DispatchMessage(&msg);
+		}
+	}
 }
 
 /*------------------------------------------------------------

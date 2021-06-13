@@ -55,7 +55,7 @@ static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
 static DIALPARS 	*_dp;
 static DIALPARS*	(*_dialogInitParameterCallback)(int pageIndex);
 static boolean		bInPropertySheet;
-static boolean		bPropertySheetMoved;
+static boolean		bPropertySheetMove;
 
 int	   nCurrentDialog;
 HWND   hwndDlg;
@@ -65,10 +65,10 @@ HWND   hwndDlg;
  * for that particular page, if the page is activated. The callback is passed the index of the 
  * property page activated.
  */
-void SetXDialogParams(DIALPARS* (*func)(int pageIndex), boolean propertySheetFlag) {
+void SetXDialogParams(DIALPARS* (*func)(int pageIndex), boolean positionDialogOnInit) {
 	_dialogInitParameterCallback = func;
-	bInPropertySheet = propertySheetFlag;
-	bPropertySheetMoved = FALSE;
+	bInPropertySheet = TRUE;
+	bPropertySheetMove = positionDialogOnInit;
 }
 
 // Description:
@@ -116,6 +116,21 @@ static HWND CreateToolTip(int toolID, HWND hDlg, int iTooltipItem) {
 	SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
 	SendMessage(hwndTip, TTM_SETMAXTIPWIDTH, 0, 350);
 	return hwndTip;
+}
+
+static void applyRadioButtons(int idCtrl, DIALPARS* dp) {
+	int item;
+	if (ISRADIODLGCTL(idCtrl)) {
+		while ((item = dp->dp_item) != 0) {
+			if (ISRADIODLGCTL(item)) {
+				if (idCtrl >= item && idCtrl <= item + dp->dp_size) {
+					*(int*)dp->dp_data = idCtrl - item;
+					break;
+				}
+			}
+			dp++;
+		}
+	}
 }
 
 /*--------------------------------------------------------------------------
@@ -646,6 +661,8 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 				*ip = (IsDlgButtonChecked(hDlg, item)) ?
 					*ip | dp->dp_size : 
 					*ip & ~dp->dp_size;
+			} else {
+				applyRadioButtons(idCtrl, dp);
 			}
 			break;
 		} /*end switch */
@@ -755,17 +772,7 @@ endd:		if (callback && idCtrl != IDD_RAWCHAR) {
 			EndDialog(hDlg,idCtrl);
 			return TRUE;
 		default:
-			if (ISRADIODLGCTL(idCtrl)) {
-				while((item = dp->dp_item) != 0) {
-					if (ISRADIODLGCTL(item)) {
-						if (idCtrl >= item && idCtrl <= item+dp->dp_size) {
-							*(int*)dp->dp_data = idCtrl-item;
-							break;
-						}
-					}
-					dp++;
-				}
-			}
+			applyRadioButtons(idCtrl, dp);
 			break;
 	}
 	return FALSE;
@@ -849,11 +856,9 @@ INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		case WM_INITDIALOG:
 			hwndDlg = hDlg;
-			if (bInPropertySheet) {
-				if (!bPropertySheetMoved) {
-					bPropertySheetMoved = TRUE;
-					win_moveWindowToDefaultPosition(GetParent(hDlg));
-				}
+			if (bPropertySheetMove) {
+				bPropertySheetMove = FALSE;
+				win_moveWindowToDefaultPosition(GetParent(hDlg));
 			} else if (_dp != NULL) {
 				DlgInit(hDlg, _dp, TRUE);
 			}
@@ -865,7 +870,7 @@ INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 			return TRUE;
 
 		case WM_DESTROY:
-			bPropertySheetMoved = TRUE;
+			bPropertySheetMove = FALSE;
 			bInPropertySheet = FALSE;
 			return FALSE;
 
@@ -894,7 +899,7 @@ INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		case WM_COMMAND:
 			nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
 			idCtrl = GET_WM_COMMAND_ID(wParam, lParam);
-			if ((nNotify == EN_CHANGE || ISFLAGDLGCTL(idCtrl)) &&
+			if ((nNotify == EN_CHANGE || ISFLAGDLGCTL(idCtrl) || ISRADIODLGCTL(idCtrl)) &&
 					bInPropertySheet && (LPARAM)GetParent(hDlg) != lParam) {
 				PropSheet_Changed(GetParent(hDlg), hDlg);
 			}

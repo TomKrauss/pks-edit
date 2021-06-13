@@ -19,6 +19,8 @@
 #define IDC_CUSTOM1                     1006
 #define IDD_PREVIEW_FRAME               1006
 #define IDC_STRING1                     1007
+#define IDC_PROGRESS1                   1009
+#define IDC_PROGRESS                    1009
 #define IDS_REDO                        1246
 
 // Next default values for new objects
@@ -28,7 +30,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        155
 #define _APS_NEXT_COMMAND_VALUE         40002
-#define _APS_NEXT_CONTROL_VALUE         1009
+#define _APS_NEXT_CONTROL_VALUE         1010
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
