@@ -2,8 +2,7 @@
 // Von Microsoft Visual C++ generierte Includedatei.
 // Verwendet durch D:\source\pksedit\PKSEDIT.RC
 //
-#define IDD_INT7                        59
-#define IDD_INT6                        61
+#define IDD_FONTSELECT3                 94
 #define DLG_OPT_AUTOSAVE                110
 #define IDD_OPT18                       117
 #define IDD_PRESERVE_CASE               135
@@ -19,8 +18,11 @@
 #define IDC_CUSTOM1                     1006
 #define IDD_PREVIEW_FRAME               1006
 #define IDC_STRING1                     1007
-#define IDC_PROGRESS1                   1009
 #define IDC_PROGRESS                    1009
+#define IDD_BACK_PAGE                   1010
+#define IDD_NEXT_PAGE                   1011
+#define IDD_FIRST_PAGE                  1012
+#define IDD_LAST_PAGE                   1013
 #define IDS_REDO                        1246
 
 // Next default values for new objects
@@ -30,7 +32,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        155
 #define _APS_NEXT_COMMAND_VALUE         40002
-#define _APS_NEXT_CONTROL_VALUE         1010
+#define _APS_NEXT_CONTROL_VALUE         1014
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -24,11 +24,17 @@ typedef struct tagLNSPACE {
 	int 		n;
 } LNSPACE;
 
+typedef enum { PRTR_ALL, PRTR_SELECTION, PRTR_CURRENT_PAGE, PRTR_PAGES} PRINTRANGETYPE;
+
+typedef struct tagPRINTRANGE {
+	PRINTRANGETYPE prtr_type;		// Print selection, Print everything, Print the "current page", Print the range of pages specified below
+	int   prtr_fromPage;			// If prtr_pages is true, this is the 1-based first page to print.
+	int   prtr_toPage;				// If prtr_pages is true, this is the 1-based last page to print.
+} PRINTRANGE;
+
 typedef struct prtparams {			/* print params */
 	/* params */
-	int		startpage,
-			endpage,
-			pageoffs;
+	PRINTRANGE printRange;
 	int		mode;
 	int		options;
 	int		pagelen;
@@ -38,7 +44,10 @@ typedef struct prtparams {			/* print params */
 	int		tabsize;
 	LNSPACE	lnspace;				/* 1, 1«, 2 Lines */
 
-	int		d1,d2,d3,d4;			/* distances header, footer */
+	int		marginTop;				// The number of lines to leave space at the top of the page.
+	int		headerSize;				// The height of the header in lines
+	int		marginBottom;			// The number of lines to leave space at the bottom of the page
+	int		footerSize;				// The height of the footer in lines
 	FONTSPEC htfont;				/* Font header - footer */
 	char	header[512],
 			footer[512];			/* text of header and footer */

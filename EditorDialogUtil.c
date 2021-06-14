@@ -422,7 +422,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				goto donum;
 			case IDD_INT1: case IDD_INT2: case IDD_INT3: 
 			case IDD_INT4: case IDD_INT5: case IDD_INT6:
-			case IDD_INT7: 
+			case IDD_INT7: case IDD_INT8:
 				if (*ip < 0) {
 					numbuf[0] = 0;
 				} else {
@@ -633,7 +633,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			break;
 		case IDD_INT1: case IDD_INT2: case IDD_INT3: 
 		case IDD_INT4: case IDD_INT5: case IDD_INT6:
-		case IDD_INT7: 
+		case IDD_INT7:  case IDD_INT8:
 		case IDD_LONG1: 
 			GetDlgItemText(hDlg,item,numbuf,sizeof numbuf-1);
 			if (item == IDD_LONG1) {
@@ -678,7 +678,7 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 {
 	int		idCtrl;
 	char 	fselbuf[256],szBuff[256],szButton[28];
-	int  	nNotify,item,(*callback)();
+	int  	nNotify,(*callback)();
 	LONG 	c;
 	DIALPARS *dp2;
 

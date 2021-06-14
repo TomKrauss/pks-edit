@@ -58,11 +58,14 @@
 #define IDD_INT2 54
 #define IDD_INT3 55
 #define IDD_INT4 58
-#define IDD_INT5 62
+#define IDD_INT5 59
+#define IDD_INT6 60
+#define IDD_INT7 61
+#define IDD_INT8 62
+#define IDD_LONG1 65
 #define IDD_KEYCODE 40
 #define IDD_LISTBOX 95
 #define IDD_LISTBOX2 96
-#define IDD_LONG1 60
 #define IDD_LOWOPT 100
 #define IDD_LOWRADIO 200
 #define IDD_MACADDKEY 10
