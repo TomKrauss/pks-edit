@@ -722,7 +722,7 @@ EXPORT LINE *cadv_wordonly(LINE *lp,long *ln,long *col,int dir)
  */
 EXPORT LINE *cadv_space(LINE *lp,long *ln,long *col,int dir)
 {
-	return nextw(lp,ln,col,char_isNospace,dir,1);
+	return nextw(lp,ln,col, char_isLetter,dir,1);
 }
 
 /*--------------------------------------------------------------------------
@@ -730,7 +730,7 @@ EXPORT LINE *cadv_space(LINE *lp,long *ln,long *col,int dir)
  */
 EXPORT LINE *cadv_word(LINE *lp,long *ln,long *col,int dir)
 {
-	return nextw(lp,ln,col,char_isLetter,dir,1);
+	return nextw(lp,ln,col,char_isLetter,dir,0);
 }
 
 /*--------------------------------------------------------------------------

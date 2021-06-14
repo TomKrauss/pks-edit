@@ -2,7 +2,7 @@
 "D:\tom\desktop\readme.txt", line 141: 0x1 0x1 104 713 -8 -31 557 129 1520 803
 "D:\dvltools\JetBrains\IntelliJ IDEA Community Edition 2019.3.4\IntelliJ IDEA 2020.2\bin\idea.properties", line 1: 0x0 0x1 -1 -1 -1 -1 274 252 1407 780
 "D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java", line 4075: 0x0 0x1 -1 -1 -1 -1 182 182 1800 804
-"D:\source\pksedit\Clipboard.c", line 1: 0x1 0x1 104 713 -8 -31 31 30 1042 732
+"D:\source\pksedit\Clipboard.c", line 32: 0x1 0x1 104 713 -8 -31 31 30 1042 732
 [find]
 !ed
 !red
@@ -38,10 +38,11 @@
 !D:\source\pksedit\HandleMacros.c
 !D:\dvltools\JetBrains\IntelliJ IDEA Community Edition 2019.3.4\IntelliJ IDEA 2020.2\bin\idea.properties
 !D:\source\pksedit\pks_sys\PKSEDIT.INI
+!C:\Users\tom\AppData\Local\Temp\MOUSE
 [pathes]
 !D:\tom\desktop\*.*
-!D:\source\pksedit\pks_sys\*.MAC
 !D:\source\pksedit\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
 !D:\source\pksedit\pks_sys\*.LIN
 !D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
+!D:\source\pksedit\pks_sys\*.MAC

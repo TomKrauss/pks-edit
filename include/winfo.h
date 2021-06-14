@@ -104,6 +104,13 @@ extern void render_repaintCurrentFile(void);
 extern void render_repaintLinePart(FTABLE* fp, long ln, int col1, int col2);
 
 /*--------------------------------------------------------------------------
+ * render_repaintLineRange()
+ * Send a repaint to a range of lines specified by line pointer. We assume,
+ * the first line is before the last line.
+ */
+extern void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd);
+
+/*--------------------------------------------------------------------------
  * render_repaintLine()
  * Send a repaint to the specific line.
  */

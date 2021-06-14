@@ -839,9 +839,8 @@ static int ww_updateWindowBounds(WINFO *wp, int w, int h) {
 /*----------------------------------------------------------
  * do_mouse()
  */
-int do_mouse(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+int do_mouse(HWND hwnd, int nClicks, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	int 		ncl = 1;
 	int			ret;
 	int			button;
 	int			shift;
@@ -865,16 +864,6 @@ int do_mouse(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	} else {
 		button = 1;
 	}
-	switch(message) {
-		case WM_LBUTTONDBLCLK:
-		case WM_RBUTTONDBLCLK:
-		case WM_MBUTTONDBLCLK:
-			ncl = 2;
-			break;
-		case WM_MOUSEMOVE:
-			ncl = 0;
-			break;
-	}
 
 	shift = 0;
 	if (wParam & MK_CONTROL) {
@@ -886,7 +875,7 @@ int do_mouse(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	if (GetKeyState(VK_MENU) < 0) {
 		shift |= 8;
 	}
-	ret = mouse_onMouseClicked(wp, x, y, button, ncl, shift);
+	ret = mouse_onMouseClicked(wp, x, y, button, nClicks, shift);
 	return ret;
 }
 
@@ -934,6 +923,34 @@ int do_slide(WINFO *wp, UINT message, WPARAM wParam, LPARAM lParam) {
 	return 1;
 }
 
+/*
+ * Button down handler, which will helps listening to tripple clicks.
+ */
+static void onButtonDown(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	static RECT _lastMouseClickRect = {0};
+	static DWORD _tmLastClick = 0;
+	static int _cClicks = 0;
+	int x = GET_X_LPARAM(lParam);
+	int y = GET_Y_LPARAM(lParam);
+	POINT pt = { x, y };
+
+	DWORD tmClick = GetMessageTime();
+	if (message == WM_LBUTTONDBLCLK || message == WM_RBUTTONDBLCLK || message == WM_MBUTTONDBLCLK) {
+		_cClicks = 1; 
+	} else if (!PtInRect(&_lastMouseClickRect, pt) ||
+		tmClick - _tmLastClick > GetDoubleClickTime()) {
+		_cClicks = 0;
+	}
+	_cClicks++;
+
+	_tmLastClick = tmClick;
+	SetRect(&_lastMouseClickRect, x, y, x, y);
+	InflateRect(&_lastMouseClickRect,
+		GetSystemMetrics(SM_CXDOUBLECLK) / 2,
+		GetSystemMetrics(SM_CYDOUBLECLK) / 2);
+	do_mouse(hwnd, _cClicks, message, wParam, lParam);
+}
+
 /*------------------------------------------------------------
  * WorkAreaWndProc()
  */
@@ -941,9 +958,8 @@ static WINFUNC WorkAreaWndProc(
 	HWND hwnd,
 	UINT message,
 	WPARAM wParam,
-	LPARAM lParam
-	)
-{    WINFO *	wp;
+	LPARAM lParam) {
+	WINFO *	wp;
 
 	switch(message) {
 	case WM_CREATE:
@@ -968,13 +984,12 @@ static WINFUNC WorkAreaWndProc(
 		if (GetFocus() != hwnd) {
 			SetFocus(hwnd);
 		}
-	case WM_MOUSEMOVE:
-	case WM_LBUTTONDBLCLK:
 	case WM_RBUTTONDOWN:
-	case WM_RBUTTONDBLCLK:
 	case WM_MBUTTONDOWN:
+	case WM_LBUTTONDBLCLK:
+	case WM_RBUTTONDBLCLK:
 	case WM_MBUTTONDBLCLK:
-		do_mouse(hwnd,message,wParam,lParam);
+		onButtonDown(hwnd, message, wParam, lParam);
 		return 0;
 
 	case WM_HSCROLL:

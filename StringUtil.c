@@ -267,7 +267,7 @@ int string_countSpacesIn(unsigned char* s, int pos) {
  * Returns true if the passed character is a letter (a-z + umlauts). 
  */
 BOOL char_isLetter(unsigned char c) {
-	return  (isalnum(c) || c == 'ö' || c == 'ä' || c == 'ü');
+	return  (isalnum(c) || c == 'ö' || c == 'ä' || c == 'ü' || c == '_');
 }
 
 /*

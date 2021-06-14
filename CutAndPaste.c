@@ -83,13 +83,14 @@ EXPORT int bl_hideSelection(int removeLineSelectionFlag) {
 					render_repaintLine(fp, mps->lm);
 				}
 			} else {
-				render_repaintCurrentFile();
+				render_repaintLineRange(fp, mps->lm, mpe->lm);
 			}
 		}
 	} else {
-		if (removeLineSelectionFlag) {
-			ln_removeFlag(fp->firstl,fp->lastl,(LNCPMARKED|LNXMARKED|LNDIFFMARK));
-			render_repaintCurrentFile();
+		if (removeLineSelectionFlag && (mps || mpe)) {
+			LINE* lp = mps ? mps->lm : mpe->lm;
+			ln_removeFlag(lp, lp, (LNCPMARKED|LNXMARKED|LNDIFFMARK));
+			render_repaintLine(fp, lp);
 		}
 	}
 	ln_removeFlag(lpFirst, lpLast, LNREPLACED);

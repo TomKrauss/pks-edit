@@ -415,6 +415,28 @@ EXPORT void render_repaintLine(FTABLE *fp, LINE *lpWhich)
 }
 
 /*--------------------------------------------------------------------------
+ * render_repaintLineRange()
+ * Send a repaint to a range of lines specified by line pointer. We assume,
+ * the first line is before the last line.
+ */
+EXPORT void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd)
+{
+	WINFO* wp = WIPOI(fp);
+
+	int idx = ln_indexOf(fp, lpStart);
+	if (idx < 0) {
+		render_repaintAllForFile(fp);
+		return;
+	}
+	int startIdx = idx;
+	while (lpStart != NULL && lpStart != lpEnd) {
+		idx++;
+		lpStart = lpStart->next;
+	}
+	render_repaintFromLineTo(fp, startIdx, idx);
+}
+
+/*--------------------------------------------------------------------------
  * render_selectCustomCaret()
  */
 EXPORT void render_selectCustomCaret(int on)
