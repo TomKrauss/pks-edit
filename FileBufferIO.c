@@ -38,8 +38,6 @@
 extern void ft_settime(EDTIME* tp);
 extern int  CryptDialog(LPSTR password, int twice);
 
-extern long _flushsize;
-
 int _flushing;
 
 /*----- LOCALS --------------*/
@@ -184,7 +182,7 @@ void OpenError(char *fname)
  * a callback method to invoked for each line read and an optional parameter (typically, but not neccessarily the filepointer itself) to
  * be parsed as the first argument to the callback.
  *---------------------------------*/
-EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallback)(FTABLE *, DOCUMENT_DESCRIPTOR*, unsigned char *, unsigned char *), void *par)
+EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallback)(void *, DOCUMENT_DESCRIPTOR*, unsigned char *, unsigned char *), void *par)
 {
 	int 	cflg,got,len,ofs;
 	long	bufferSize;
@@ -372,13 +370,34 @@ static void createBackupFile(char *name, char *bak)
 	Frename(0,name,backname);
 }
 
-/*---------------------------------*/
-/* ft_flushFile()					*/
-/*---------------------------------*/
-extern long _flushsize;
-static int ft_flushFile(int fd, int size, int rest)
-{
-	return rsc_flushBuffer(fd,_linebuf,size,rest);
+/*--------------------------------------------------------------------------
+ * file_flushBuffer()
+ * Flush a resource file buffer writing out the number of specified bytes and
+ * moving the ramainder of the unflushed data to the beginning of the buffer.
+ * Return -2, if the disk is full, 1 upon success and 0 for other failures.
+ */
+int file_flushBuffer(int fd, char* buffer, int size, int rest)
+{	
+	UINT lWritten;
+	if (!size) {
+		return 1;
+	}
+	lWritten = Fwrite(fd, size, buffer);
+	if (lWritten != size) {
+		if (GetLastError() == ERROR_DISK_FULL) {
+			NoDiskSpace();
+			return -2;
+		}
+		else {
+			err_writeErrorOcurred();
+		}
+	} else {
+		if (rest) {
+			memmove(buffer, &buffer[size], rest);
+		}
+		return 1;
+	}
+	return 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -397,7 +416,7 @@ static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, char *pw
 		size = news;
 	}
 
-	return ft_flushFile(fd,size,rest);
+	return file_flushBuffer(fd, _linebuf, size, rest);
 }
 
 /*--------------------------------------------------------------------------
@@ -421,6 +440,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 	int			cr;
 	int			fd = -1;
 	int			saveLockFd;
+	int			nFlushResult = 0;
 	DOCUMENT_DESCRIPTOR		*linp = fp->documentDescriptor;
 
 #ifdef DEMO
@@ -468,11 +488,12 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 			ret = 100;
 			goto wfail1;
 		}
-		_flushsize = 0;
 	} else {
-		if ((_flushsize = Fseek(0l,fd,2)) < 0L) {
+		LONG flushSize;
+		if ((flushSize = Fseek(0l,fd,2)) < 0L) {
 			ret = 100;
-			error_displayGenericErrorNumber(-_flushsize);
+			nFlushResult = -2;
+			error_displayGenericErrorNumber(-flushSize);
 			goto wfail1;
 		}
 	}
@@ -494,11 +515,13 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 		} else {
 			no = (offset > 2*FBUFSIZE) ? 2*FBUFSIZE : offset & (~0xF);
 			offset -= no;
-			if (!ft_flushBufferAndCrypt(fd,no,offset,1,pw))
+			nFlushResult = ft_flushBufferAndCrypt(fd, no, offset, 1, pw);
+			if (nFlushResult < 1)
 				goto wfail;
 		}
 	}
-	if (!ft_flushBufferAndCrypt(fd,offset,0,0,pw)) {
+	nFlushResult = ft_flushBufferAndCrypt(fd, offset, 0, 0, pw);
+	if (nFlushResult < 1) {
 	wfail:	
 		ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 		ret = 100;
@@ -516,7 +539,7 @@ wfail1:
 	if (!quiet)
 		mouse_setDefaultCursor();
 	if (ret) {
-		if (_flushsize == -1) {	/* delete Files, if Disk is full */
+		if (nFlushResult == -2) {	/* delete Files, if Disk is full */
 			Fdelete(fp->fname);
 		}
 		return 0;

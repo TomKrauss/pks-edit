@@ -69,9 +69,9 @@ static RE_OPTIONS *createREOptions(char* expression, char *ebuf, int flags, unsi
 }
 
 /*--------------------------------------------------------------------------
- * RegError()
+ * regex_compilationFailed()
  */
-int RegError(int errorCode) {	
+static int regex_compilationFailed(int errorCode) {	
 	error_showErrorById(errorCode);
 	return 0;
 }
@@ -82,7 +82,7 @@ int RegError(int errorCode) {
 RE_PATTERN *regex_compile(char *ebuf, char *pat, int flags) {
 	flags &= (RE_DOREX|RE_IGNCASE|RE_SHELLWILD);
 	if (!compile(createREOptions(pat, ebuf, flags, 0), &_lastCompiledPattern)) {
-		RegError(_lastCompiledPattern.errorCode);
+		regex_compilationFailed(_lastCompiledPattern.errorCode);
 		return 0;
 	}
 	return &_lastCompiledPattern;
@@ -112,7 +112,7 @@ int find_initializeReplaceByExpression(unsigned char* replaceByExpression) {
 	int result = regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) { replaceByExpression, _currentSearchAndReplaceParams.options, nlchar, _lastCompiledPattern.nbrackets },
 		& _currentReplacementPattern);
 	if (_currentReplacementPattern.errorCode) {
-		RegError(_currentReplacementPattern.errorCode);
+		regex_compilationFailed(_currentReplacementPattern.errorCode);
 	}
 	return result;
 }

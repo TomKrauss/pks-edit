@@ -34,8 +34,6 @@
 /*-----------------------*/
 extern LINE *		ln_relgo(FTABLE *fp, long l);
 extern LINE *		ln_crelgo(FTABLE *fp, long l);
-extern int		char_isLetter(unsigned char c);
-extern int		char_isNospace(unsigned char c);
 extern int 		ft_checkSelection(FTABLE *fp);
 
 extern long		_multiplier;
@@ -667,7 +665,7 @@ err:
 }
 
 /*--------------------------------------------------------------------------
- * cadv_word()
+ * cadv_gotoIdentifierEnd()
  * cursor advance one word
  */
 static LINE *nextw(LINE *lp,long *ln,long *col,
@@ -718,19 +716,19 @@ EXPORT LINE *cadv_wordonly(LINE *lp,long *ln,long *col,int dir)
 }
 
 /*--------------------------------------------------------------------------
- * cadv_space()
+ * cadv_gotoIdentifierSkipSpace()
  */
-EXPORT LINE *cadv_space(LINE *lp,long *ln,long *col,int dir)
+EXPORT LINE *cadv_gotoIdentifierSkipSpace(LINE *lp,long *ln,long *col,int dir)
 {
-	return nextw(lp,ln,col, char_isLetter,dir,1);
+	return nextw(lp,ln,col, char_isIdentifier,dir,1);
 }
 
 /*--------------------------------------------------------------------------
- * cadv_word()
+ * cadv_gotoIdentifierEnd()
  */
-EXPORT LINE *cadv_word(LINE *lp,long *ln,long *col,int dir)
+EXPORT LINE *cadv_gotoIdentifierEnd(LINE *lp,long *ln,long *col,int dir)
 {
-	return nextw(lp,ln,col,char_isLetter,dir,0);
+	return nextw(lp,ln,col,char_isIdentifier,dir,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -796,14 +794,14 @@ EXPORT int caret_getPreviousColumnInLine(LINE *lp, int col)
 LINE * (*advmatchfunc)();
 EXPORT void caret_setMatchFunction(int mtype, int ids_name, int *c)
 {
-	advmatchfunc = cadv_word;
+	advmatchfunc = cadv_gotoIdentifierEnd;
 	switch (abs(mtype)) {
 		case MOT_UNTILC:
 			*c = EdPromptForCharacter(ids_name);
 			advmatchfunc = cadv_c;
 			break;
-		case 5:
-			advmatchfunc = cadv_space;
+		case MOT_SPACE:
+			advmatchfunc = cadv_gotoIdentifierSkipSpace;
 			break;
 	}
 }
@@ -856,10 +854,10 @@ EXPORT int caret_moveLeftRight(int direction, int motionFlags)
 		case  MOT_TOEND:
 			col = lp->len;
 			break;
-		case  MOT_WORD:	case -MOT_WORD:
-		case  MOT_UNTILC:	case -MOT_UNTILC:
-		case	 MOT_SPACE:	case -MOT_SPACE:
-			if ((lp =	(*advmatchfunc)(lp,&ln,&col,
+		case MOT_WORD:    case -MOT_WORD:
+		case MOT_UNTILC:  case -MOT_UNTILC:
+		case MOT_SPACE:   case -MOT_SPACE:
+			if ((lp = (*advmatchfunc)(lp,&ln,&col,
 				(moving > 0) ? 1 : -1,matchc)) == 0) {
 				goto err;
 			}

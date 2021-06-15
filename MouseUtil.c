@@ -134,6 +134,7 @@ static int mouse_textBlockEndDrag(WINFO* wp, int x, int y, int bCancel) {
 	int ret = 1;
 
 	if (bCancel) {
+		SetClassLongPtr(wp->ww_handle, /*does not work: GCL_HCURSOR*/ -12, (LONG_PTR)_dragTextBlockMoveData.saveCursor);
 		return 0;
 	}
 	GetCursorPos(&p);
@@ -204,10 +205,12 @@ EXPORT void mouse_getXYPos(HANDLE hwnd, int *x, int *y)
  * mouse_dispatchUntilButtonRelease()
  * Dispatches mouse messages until a mouse button is released.
  * Return the current mouse position / shift state etc... in the passed
- * parameters.
+ * parameters. Return 0, if the user aborted the operation by pressing
+ * the ESC key, 1 otherwise.
  */
-EXPORT void mouse_dispatchUntilButtonRelease(int *x, int *y, int *but, int *shift)
+EXPORT int mouse_dispatchUntilButtonRelease(int *x, int *y, int *but, int *shift)
 { 	MSG msg;
+	int ret = 1;
 
 	while(1) {
 		PeekMessage(&msg, 0, 0, 0, PM_REMOVE|PM_NOYIELD);
@@ -215,7 +218,13 @@ EXPORT void mouse_dispatchUntilButtonRelease(int *x, int *y, int *but, int *shif
 			case WM_TIMER:
 				if (msg.wParam == TIM_FRAME)
 					break;
-				return;
+				return 1;
+			case WM_KEYDOWN:
+				if (msg.wParam == VK_ESCAPE) {
+					ret = 0;
+					goto fine;
+				}
+				break;
 			case WM_ERASEBKGND:
 			case WM_PAINT:
 				DispatchMessage(&msg);
@@ -238,6 +247,7 @@ EXPORT void mouse_dispatchUntilButtonRelease(int *x, int *y, int *but, int *shif
 	}
 fine:
 	*shift = (msg.wParam & (MK_CONTROL|MK_SHIFT));
+	return ret;
 }
 
 /*------------------------------------------------------------
@@ -282,10 +292,10 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 	FTABLE* fp = wp->fp;
 
 	caret_placeToXY(wp, x, y);
-	SetCapture(wp->ww_handle);
 	if (!DragDetect(wp->ww_handle, pStart)) {
 		bl_hideSelection(1);
 	} else {
+		SetCapture(wp->ww_handle);
 		CARET c1 = fp->caret;
 		CARET c2;
 		LINE* lpPrevious;
@@ -299,7 +309,11 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 		lpPrevious = c1.linePointer;
 		id = SetTimer(0, 0, 100, 0);
 		for (;;) {
-			mouse_dispatchUntilButtonRelease(&x, &y, &b, &dummy);
+			if (!mouse_dispatchUntilButtonRelease(&x, &y, &b, &dummy)) {
+				x = pStart.x;
+				y = pStart.y;
+				b = 0;
+			}
 			if (!b) {
 				break;
 			}
@@ -317,7 +331,7 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 			KillTimer(0, id);
 		}
 		if (pHandler->dragEnd) {
-			pHandler->dragEnd(wp, x, y, FALSE);
+			pHandler->dragEnd(wp, x, y, x == pStart.x || y == pStart.y);
 		}
 		ReleaseCapture();
 	}

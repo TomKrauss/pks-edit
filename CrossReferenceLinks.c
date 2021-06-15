@@ -522,7 +522,7 @@ static char *xref_saveCrossReferenceWord(unsigned char *d,unsigned char *dend)
 		return _tagword;
 	}
 
-	return gettag(d,dend,char_isLetter,1);
+	return gettag(d,dend,char_isIdentifier,1);
 }
 
 /*------------------*/
@@ -834,7 +834,7 @@ int EdFindFileCursor(void)
 int EdFindWordCursor(dir)
 {	char *s,buf[256];
 
-	if ((s = gettag(buf,&buf[sizeof buf],char_isLetter,0)) != 0L) {
+	if ((s = gettag(buf,&buf[sizeof buf],char_isIdentifier,0)) != 0L) {
 		strcpy(_currentSearchAndReplaceParams.searchPattern,s);
 		return find_expressionAgainInCurrentFile(dir);
 	}

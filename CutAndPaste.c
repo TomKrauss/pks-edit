@@ -37,8 +37,8 @@ extern LINE	*find_expandTabsInFormattedLines(FTABLE *fp, LINE *lp);
 extern int 	dlg_displayDialogTemplate(unsigned char c, 
 				char *(*fpTextForTmplate)(char *s), char *s);
 
-extern LINE	*cadv_word(LINE *lp,long *ln,long *col,int dir);
-extern LINE	*cadv_space(LINE *lp,long *ln,long *col,int dir);
+extern LINE	*cadv_gotoIdentifierEnd(LINE *lp,long *ln,long *col,int dir);
+extern LINE	*cadv_gotoIdentifierSkipSpace(LINE *lp,long *ln,long *col,int dir);
 extern LINE	*cadv_wordonly(LINE *lp,long *ln,long *col,int dir);
 
 extern long	_multiplier;
@@ -925,7 +925,7 @@ EXPORT int EdMouseMarkParts(int type)
 	o2 = 0;
 	if (type == MOT_SPACE || type == MOT_WORD) {
 		LINE *(*func)() = (type == MOT_SPACE) ? 
-			cadv_wordonly : cadv_word;
+			cadv_wordonly : cadv_gotoIdentifierEnd;
 
 		o2 = caret_screen2lineOffset(fp, &(CARET) { lp, col });
 		lp2 = (*func)(lp,&ln,&o2,1);

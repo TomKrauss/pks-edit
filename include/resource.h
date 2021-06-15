@@ -64,12 +64,14 @@ extern int 		rsc_switchtotable(RSCTABLE **Rp, char *pszTarget);
 extern int		rsc_create(char* fname, int trunc);
 extern int rsc_put(int fd, char* itemtyp, char* itemname, int replace,
 	long (*wrfunc)(int, long, char*, long), char* buffer, long bufsize);
+
 /*--------------------------------------------------------------------------
- * rsc_flushBuffer()
+ * file_flushBuffer()
  * Flush a resource file buffer writing out the number of specified bytes and
  * moving the ramainder of the unflushed data to the beginning of the buffer.
+ * Return -2, if the disk is full, 1 upon success and 0 for other failures.
  */
-extern int rsc_flushBuffer(int fd, char* buffer, int size, int rest);
+extern int file_flushBuffer(int fd, char* buffer, int size, int rest);
 extern int rsc_wrtables(int fd, char* itemtype, RSCTABLE* rp);
 
 #define	RESOURCE_H

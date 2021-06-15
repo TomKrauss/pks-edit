@@ -35,12 +35,6 @@ static FTABLE	*_outfile;
 static long 	_line;
 static int 		_abortOnFirstMatch,_trymatch;
 
-/*---------------------------------*/
-/* ft_readDocumentFromFile()					*/
-/*---------------------------------*/
-extern int ft_readDocumentFromFile(int fd, unsigned char* (*f)(FTABLE*, DOCUMENT_DESCRIPTOR*, unsigned char*, unsigned char*), void* par);
-
-
 /*--------------------------------------------------------------------------
  * present()
  * display info in abort dialog box and update .GRP-file
@@ -71,7 +65,7 @@ int xref_addSearchListEntry(FTABLE* fp, char* fn, long line, char* remark) {
  * scanlines()
  * 
  */
-static unsigned char *scanlines(FTABLE *fp, DOCUMENT_DESCRIPTOR* linp, unsigned char *p, unsigned char *qend) {
+static unsigned char *scanlines(void *pFilename, DOCUMENT_DESCRIPTOR* linp, unsigned char *p, unsigned char *qend) {
 	register char	*	q;
 	register char 		nl = '\n';
 	char *			stepend;
@@ -85,7 +79,7 @@ longline_scan:
 			if (*stepend == '\r')
 				stepend--;
 			if (_compiledPattern != NULL && step(_compiledPattern, q,stepend, &match)) {
-				present(fp->fname);
+				present((char*)pFilename);
 				if (_abortOnFirstMatch)
 					return 0;
 			}
@@ -153,7 +147,7 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 	if (!*pSearchExpression) {
 		_trymatch = 0;
 	} else {
-		if ((_compiledPattern = regex_compileWithDefault(pSearchExpression)) != NULL) {
+		if ((_compiledPattern = regex_compileWithDefault(pSearchExpression)) == NULL) {
 			return 0;
 		}
 		_trymatch = 1;

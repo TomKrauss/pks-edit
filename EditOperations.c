@@ -33,7 +33,7 @@
  * EXTERNALS
  */
 
-extern LINE *	cadv_word(LINE *lp,long *ln,long *col,int dir);
+extern LINE *	cadv_gotoIdentifierEnd(LINE *lp,long *ln,long *col,int dir);
 extern LINE *	cadv_c(LINE *lp,long *ln,long *col,int dir,unsigned char match);
 extern void 	caret_setMatchFunction(int control, int ids_name, int *c);
 extern LINE 	*(*advmatchfunc)();

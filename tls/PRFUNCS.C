@@ -1048,12 +1048,12 @@ static void pr_help(int komma)
 
 	for (i = 0; i < _currfunc; i++) {
 		fprintf(_fpout,"\t%-4d,\t\"%s\"%c\n",
-		   	   i+IDM_LOWFUNCNAME,_allfuncs[i].ident,k);
+		   	   i,_allfuncs[i].ident,k);
 	}
 
 	for (i = 0; i < _currenelem; i++) {
 		fprintf(_fpout,"\t%-4d,\t\"%s\"%c\n",
-		   	   i+IDM_LOWENUMNAME,_localenelemtab[i].te_name,k);
+		   	   i,_localenelemtab[i].te_name,k);
      }
 }
 

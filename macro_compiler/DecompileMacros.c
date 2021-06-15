@@ -210,7 +210,7 @@ static void pr_func(FILE *fp, int idx)
 		error_displayAlertDialog("format error: bad function");
 		return;
 	}
-	fprintf(fp,"\t%s",macro_loadStringResource(ep->idx + IDM_LOWFUNCNAME));
+	fprintf(fp,"\t%s",macro_loadStringResource(ep->idx));
 }
 
 /*

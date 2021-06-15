@@ -36,34 +36,6 @@ typedef struct macrodata {
 	unsigned char 	name[1];
 } MACRODATA;
 
-/*--------------------------------------------------------------------------
- * rsc_flushBuffer()
- * Flush a resource file buffer writing out the number of specified bytes and
- * moving the ramainder of the unflushed data to the beginning of the buffer.
- */
-long _flushsize;
-int rsc_flushBuffer(int fd, char *buffer, int size, int rest)
-{
-	if (!size)
-		return 1;
-
-	if (Fwrite(fd,size,buffer) >= 0) {
-		_flushsize += size;
-		if (Fseek(0l,fd,SEEK_CUR) != _flushsize) {
-			_flushsize = -1;
-			NoDiskSpace();
-		} else {
-			if (rest) {
-				memmove(buffer,&buffer[size],rest);
-			}
-			return 1;
-		}
-	} else {
-		err_writeErrorOcurred();
-	}
-	return 0;
-}
-
 /*------------------------------------------------------------
  * rsc_rdmacros()
  */
@@ -128,7 +100,6 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes)
 	unsigned char *datap,*comment;
 
 	offs = 0;
-	_flushsize = offset;
 	total = 0;
 
 	for (i = 0; i < _nmacros; i++) {
@@ -137,7 +108,7 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes)
 			if (offs >= maxbytes) {
 				offs -= maxbytes;
 				total += maxbytes;
-				if (!rsc_flushBuffer((int)fd,buf,(int)maxbytes,offs))
+				if (file_flushBuffer((int)fd,buf,(int)maxbytes,offs) < 1)
 					return -1;
 			}
 			seqp = (struct macrodata *) &buf[offs];
@@ -155,7 +126,9 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes)
 		}
 	}
 	total += offs;
-	rsc_flushBuffer(fd,buf,offs,0);
+	if (file_flushBuffer(fd, buf, offs, 0) < 1) {
+		return -1;
+	}
 	return total;
 }
 

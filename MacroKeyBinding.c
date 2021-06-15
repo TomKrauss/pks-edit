@@ -601,7 +601,7 @@ int macro_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped) {
 		}
 
 		if (ipbind->dropped == dropped_type) {
-			o1 = _cmdseqtab[ipbind->index].p;
+			o1 = _cmdseqtab[ipbind->index].c_functionDef.p;
 			icp0 = ic_getParamForIcon(szB1,icHwnd,0);
 			if (ipbind->pflags & IPCF_SRCLONG1)
 				o1 = string_convertToLong(ic_getParamForIcon(szBtmp,icHwnd,2));
@@ -623,7 +623,7 @@ int macro_onIconAction(HWND icHwnd, WPARAM wParam,  LPARAM dropped) {
 				if (ipbind->pflags & IPCF_DROPHWND)
 					o1 = (intptr_t)icdropHwnd;
 			}
-			funcnum = _cmdseqtab[ipbind->index].funcnum;
+			funcnum = _cmdseqtab[ipbind->index].c_functionDef.funcnum;
 			return macro_executeFunction(funcnum, (long)(o1), (long)o2, ps1, ps2, ps3);
 		}
 	}
@@ -735,13 +735,13 @@ int macro_executeMacro(MACROREF *mp)
 
 	switch (mp->typ) {
 		case CMD_CMDSEQ:
-			cp = &_cmdseqtab[mp->index];
+			cp = &_cmdseqtab[mp->index].c_functionDef;
 			return macro_executeSequence(cp,cp+1);
 		case CMD_MACRO:
 			return macro_executeMacroByIndex(mp->index);
 		case CMD_MENU:
 			menp = &_menutab[mp->index];
-			cp = &_cmdseqtab[menp->index];
+			cp = &_cmdseqtab[menp->index].c_functionDef;
 			macro_executeSequence(cp,cp+1);
 			break;
 		default:
@@ -860,13 +860,13 @@ void macro_assignAcceleratorTextOnMenu(HMENU hMenu)
 				error_displayAlertDialog("bad cmdseq");
 				continue;
 			}
-			nFuncnum = _cmdseqtab[mp->index].funcnum;
+			nFuncnum = _cmdseqtab[mp->index].c_functionDef.funcnum;
 			EnableMenuItem(hMenu, wItem, 
 				macro_canExecuteFunction(nFuncnum, 0) ?
 			    		MF_BYPOSITION|MF_ENABLED : 
 					MF_BYPOSITION|MF_DISABLED|MF_GRAYED);
 			if (nFuncnum == FUNC_EdOptionToggle) {
-				if (op_defineOption(_cmdseqtab[mp->index].p)) {
+				if (op_defineOption(_cmdseqtab[mp->index].c_functionDef.p)) {
 					CheckMenuItem(hMenu, wItem, MF_CHECKED|MF_BYPOSITION);
 				}
 			}
@@ -1013,8 +1013,13 @@ char *macro_getComment(char* szBuf, char* szB2, int nIndex, int type)
 			nIndex = _menutab[nIndex].index;
 			/* drop through */
 		default:
-			if (LoadString(hInst,nIndex+IDM_CMDCOMMENT,szBuf,256) <= 0)
+			s = NULL;
+			if (nIndex >= 0 && nIndex < _ncmdseq) {
+				s = _cmdseqtab[nIndex].c_description;
+			}
+			if (s == NULL) {
 				return "";
+			}
 	}
 
 	if ((s = lstrchr(szBuf,';')) != 0) {

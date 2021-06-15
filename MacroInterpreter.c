@@ -440,11 +440,11 @@ int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, voi
 		macro_recordFunctionWithParameters(num,(int)p1,p2,s1,s2);
 
 	if ((i = _multiplier) > 1 && (fup->flags & EW_MULTI) == 0) {
-		while (i-- > 0 && (ret = (* fup->func)(p1,p2,s1,s2,s3)) != 0)
+		while (i-- > 0 && (ret = (* fup->execute)(p1,p2,s1,s2,s3)) != 0)
 			;
 		_multiplier = 1;
 	} else {
-		ret = (* fup->func)(p1,p2,s1,s2,s3);
+		ret = (* fup->execute)(p1,p2,s1,s2,s3);
 	}
 
 	if (ret > 0 && ft_getCurrentDocument() && (fup->flags & EW_MODIFY)) {

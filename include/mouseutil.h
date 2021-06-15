@@ -23,9 +23,10 @@ extern void mouse_getXYPos(HANDLE hwnd, int* x, int* y);
  * mouse_dispatchUntilButtonRelease()
  * Dispatches mouse messages until a mouse button is released.
  * Return the current mouse position / shift state etc... in the passed
- * parameters.
+ * parameters. Return 0, if the user aborted the operation by pressing
+ * the ESC key, 1 otherwise.
  */
-extern void mouse_dispatchUntilButtonRelease(int* x, int* y, int* but, int* shift);
+extern int mouse_dispatchUntilButtonRelease(int* x, int* y, int* but, int* shift);
 
 /*------------------------------------------------------------
  * mouse_setBusyCursor()

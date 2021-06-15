@@ -135,9 +135,10 @@ extern unsigned char* string_skipNonSpaceCharactersIn(unsigned char* s, unsigned
 extern int string_countSpacesIn(unsigned char* s, int pos);
 
 /*
- * Returns true if the passed character is a letter (a-z + umlauts).
+ * Returns true if the passed character is an identifier in typical programming languages (including umlauts).
+ * TODO: add a context sensitive variant of this.
  */
-extern BOOL char_isLetter(unsigned char c);
+extern BOOL char_isIdentifier(unsigned char c);
 
 /*
  * Returns TRUE, if the passed character is not a space.

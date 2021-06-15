@@ -26,7 +26,7 @@ int init_funcs(void)
 	char *			pszCopy;
 
 	for (ep = _functab, epend = ep+_nfunctions; ep < epend;  ep++) {
-		if ((pszCopy = string_allocate(macro_loadStringResource(ep->idx+IDM_LOWFUNCNAME))) == 0 ||
+		if ((pszCopy = string_allocate(macro_loadStringResource(ep->idx))) == 0 ||
 			!sym_insert(pszCopy,S_EDFUNC,(intptr_t)ep)) {
 			return 0;
 		}

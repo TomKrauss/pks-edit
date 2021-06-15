@@ -433,7 +433,7 @@ EXPORT void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd)
 		idx++;
 		lpStart = lpStart->next;
 	}
-	render_repaintFromLineTo(fp, startIdx, idx);
+	render_repaintFromLineTo(fp->wp, startIdx, idx);
 }
 
 /*--------------------------------------------------------------------------

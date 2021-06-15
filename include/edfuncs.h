@@ -115,10 +115,19 @@ int  macro_getParameterSize(unsigned char typ, char *s);
 intptr_t macro_popParameter(unsigned char** sp);
 
 typedef struct c_1func {
-	unsigned char  typ;		/* C_1FUNC */
-	unsigned char  funcnum;	/* index in function table */
-	long			p;
+	unsigned char  typ;		/* C_1FUNC or C_0FUNC - defines the number of parameters to pass */
+	unsigned char  funcnum;	/* index into editor function table _edfunctab */
+	long			p;		/* optional parameter to pass */
 } COM_1FUNC;
+
+/*
+ * Describes an editor command. 
+ */
+typedef struct tagCOMMAND {
+	COM_1FUNC c_functionDef;			// the actual functionto execute including flags.
+	char* c_name;						// name of the command used in macros
+	char* c_description;				// documentation of the command
+} COMMAND;
 
 typedef struct c_0func {
 	unsigned char typ;		/* C_0FUNC */
@@ -231,8 +240,8 @@ typedef union c_seq {
 } COM_SEQ;
 
 typedef struct edfunc {
-	int	(*func)();
-	unsigned char id;		/* for ref. */
+	int	(*execute)();		/* the actual callback to invoke */
+	unsigned char id;		/* logical id for referencing it */
 	unsigned char flags;	/* see above */
 } EDFUNC;
 
@@ -343,7 +352,7 @@ typedef struct mousebind {
  */
 typedef struct edbinds {
 	EDFUNC		*ep;
-	COM_1FUNC		*cp;
+	COMMAND		*cp;
 	MACRO		**macp;
 	KEYBIND		*kp;
 	MENUBIND		*mp;
@@ -353,7 +362,7 @@ typedef struct edbinds {
 } EDBINDS;
 
 extern EDFUNC		_edfunctab[];
-extern COM_1FUNC	_cmdseqtab[];
+extern COMMAND		_cmdseqtab[];
 extern KEYBIND		_keymaptab[MAXMAPKEY];
 extern MENUBIND	_menutab[];
 extern ICONBIND	_ictab[];
@@ -370,8 +379,6 @@ extern unsigned char _cfdisable[],_blkdisable[],_rdodisable[];
 extern KEYBIND		_cmdorig[];
 
 #define	IDM_CMDNAME		1024
-#define	IDM_CMDCOMMENT		1270
-#define	IDM_LOWFUNCNAME	2048
 #define	IDM_LOWENUMNAME	2512
 
 /*

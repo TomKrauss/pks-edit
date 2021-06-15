@@ -233,30 +233,6 @@ void prf3(FILE *fp,char markc,char *s1,char *s2, char *s3)
 							    COL_KEYCODE,COL_KEYCODE,s2,markc,s3);
 }
 
-/*------------------------------------------------------------
- * mac_name()
- */
-#if 0
-static char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
-{
-	char *d,*s;
-
-	switch(type) {
-		case CMD_MACRO: sprintf(szBuf,"%s",macro_getByIndex(nIndex)->name); break;
-		case CMD_MENU:
-		case CMD_CMDSEQ: 
-			if (LoadString(hInst, nIndex+IDM_CMDNAME,szBuf+1,127) <= 0) {
-				sprintf(szBuf,"@Unamed-%d",nIndex);
-			} else {
-				szBuf[0] = '@';
-			}
-			break;
-		default:	sprintf(szBuf,"??"); break;
-	}
-	return szBuf;
-}
-# endif
-
 /*--------------------------------------------------------------------------
  * pr_cmddelim()
  */
@@ -583,8 +559,5 @@ int macro_saveMenuBindingsAndDisplay(void)
  */
 char *macro_loadStringResource(int nIndex)
 {
-	static char	name[40];
-
-	LoadString(hInst, nIndex, name, sizeof name);
-	return name;
+	return nIndex >= 0 && nIndex < _ncmdseq ? _cmdseqtab[nIndex].c_name : "unknown";
 }

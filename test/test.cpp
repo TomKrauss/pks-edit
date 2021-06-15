@@ -5,6 +5,8 @@ extern "C" {
 #include "../include/lineoperations.h"
 #include "../include/regexp.h"
 #include "../include/arraylist.h"
+
+extern int string_matchFilename(char* string, char* pattern);
 }
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -197,6 +199,28 @@ namespace pkseditTests
 			regex_initializeReplaceByExpressionOptions(&reOptions, &rePattern);
 			Assert::AreEqual(3, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("diE", (const char*)result);
+		}
+	};
+	TEST_CLASS(filePattern)
+	{
+
+	public:
+		TEST_METHOD(matching)
+		{
+			int result = string_matchFilename("test.ipch", "*.ipch");
+			Assert::AreEqual(1, result);
+			result = string_matchFilename("test.ipch", "!*.ipch");
+			Assert::AreEqual(0, result);
+			result = string_matchFilename("test.ipch", "!*.pch;!*.ipch");
+			Assert::AreEqual(0, result);
+			result = string_matchFilename("test.x", "!*.pch;!*.ipch");
+			Assert::AreEqual(1, result);
+			result = string_matchFilename("test.x", "*;!*.x");
+			Assert::AreEqual(0, result);
+			result = string_matchFilename("3sfdsdfs.xxx", "![0-9]*");
+			Assert::AreEqual(0, result);
+			result = string_matchFilename("23234242", "!*[0-9][0-9][0-9]");
+			Assert::AreEqual(0, result);
 		}
 	};
 	TEST_CLASS(arrayList)

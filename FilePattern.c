@@ -112,63 +112,26 @@ int string_matchFilename(char *string,char *pattern)
 	string_convertToUpperCase(pszStringCopy);
 	string_convertToUpperCase(pszPatCopy);
 	pszToken = strtok(pszPatCopy, ",;");
+	BOOL matchedAny = 1;
 	while(pszToken) {
-		if (gmatch(pszStringCopy, pszToken)) {
-			free(pszStringCopy);
-			free(pszPatCopy);
-			return 1;
+		BOOL invertMatch = 0;
+		char* pszMatch = pszToken;
+		if (pszMatch[0] == '!') {
+			pszMatch++;
+			invertMatch = 1;
+		}
+		if (gmatch(pszStringCopy, pszMatch)) {
+			if (invertMatch) {
+				matchedAny = 0;
+				break;
+			}
+			matchedAny = 1;
 		}
 		pszToken = strtok((char *)0, ",;");
 	}
 	free(pszPatCopy);
 	free(pszStringCopy);
-	return 0;
+	return matchedAny;
 }
 	
 
-/***************************************************************************/
-#ifdef TEST
-static fillb2(s,d)
-char *s,*d;
-{	int i;
-	
-	for (i = 0; i < 8; i++) {
-		if (!*s || *s == '.') break;
-		*d++ = *s++;
-	}
-	while(i < 8) {
-		*d++ = ' ';
-		i++;
-	}
-	while(*s && *s != '.') s++;
-	if (*s == '.') {
-		s++;
-		for (i = 0; i < 3; i++) {
-			if (!*s) break;
-			*d++ = *s++;
-		}
-		i += 8;
-	}
-	while(i < 11) {
-		*d++ = ' ';
-		i++;
-	}
-	*d = 0;
-}
-
-main(argc,argv)
-int argc;
-char *argv[];
-{	char buf[100],b2[256];
-
-	if (argc != 2) exit(1);
-	for (;;) {
-		printf("%s > ",argv[1]);
-		if (gets(buf) == (char *) 0 || buf[0] == 0) break;
-		fncpyin(buf,b2,0);
-		/*printf("\nMATCH `%s`\n",b2);*/
-		if (string_matchFilename(b2,argv[1]) == 1) printf("yes\n");
-		else printf("no\n");
-	}
-}
-#endif

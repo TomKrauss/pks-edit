@@ -365,7 +365,7 @@ extern BOOL ft_initializeReadWriteBuffers(void);
  * a callback method to invoked for each line read and an optional parameter (typically, but not neccessarily the filepointer itself) to
  * be parsed as the first argument to the callback.
  *---------------------------------*/
-extern int ft_readDocumentFromFile(int fd, unsigned char* (*lineExtractedCallback)(FTABLE*, DOCUMENT_DESCRIPTOR*, unsigned char*, unsigned char*), void* par);
+extern int ft_readDocumentFromFile(int fd, unsigned char* (*lineExtractedCallback)(void*, DOCUMENT_DESCRIPTOR*, unsigned char*, unsigned char*), void* par);
 
 /*--------------------------------------*/
 /* ft_readfile()						*/

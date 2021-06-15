@@ -264,10 +264,11 @@ int string_countSpacesIn(unsigned char* s, int pos) {
 }
 
 /*
- * Returns true if the passed character is a letter (a-z + umlauts). 
+ * Returns true if the passed character is an identifier in typical programming languages (including umlauts).
+ * TODO: add a context sensitive variant of this.
  */
-BOOL char_isLetter(unsigned char c) {
-	return  (isalnum(c) || c == 'ö' || c == 'ä' || c == 'ü' || c == '_');
+BOOL char_isIdentifier(unsigned char c) {
+	return  (isalnum(c) || (char)c == 'ö' || (char)c == 'ä' || (char)c == 'ü' || (char)c== 'Ü' || (char)c == 'Ö' || (char)c == 'Ä' || (char)c == 'ß' || c == '_');
 }
 
 /*

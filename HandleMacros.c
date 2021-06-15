@@ -36,9 +36,10 @@ char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
 	switch(type) {
 		case CMD_MACRO:  sprintf(szBuf,"%s",macro_getByIndex(nIndex)->name); break;
 		case CMD_CMDSEQ: 
-			if (LoadString(hInst,nIndex+IDM_CMDNAME,szBuf+1,250) <= 0) {
-				sprintf(szBuf,"@Unamed-%d",nIndex);
+			if (nIndex < 0 || nIndex >= _ncmdseq) {
+				sprintf(szBuf,"@Unnamed-%d",nIndex);
 			} else {
+				strcpy(szBuf + 1, _cmdseqtab[nIndex].c_name);
 				szBuf[0] = '@';
 			}
 			break;
@@ -122,13 +123,13 @@ char *code2mouse(MOUSECODE code)
  */
 int macro_getCmdIndexByName(char *name)
 {
-	char			szBuf[128];
-	char 		c = *name;
 	int			id;
 
-	for (id = IDM_CMDNAME; LoadString(hInst, id, szBuf, sizeof szBuf); id++) {
-		if (c == szBuf[0] && strcmp(szBuf,name) == 0)
-	    		return id-IDM_CMDNAME;
+	// TODO: should perform a hash lookup on a long term run.
+	for (id = 0; id < _ncmdseq; id++) {
+		if (strcmp(_cmdseqtab[id].c_name, name) == 0) {
+			return id;
+		}
 	}
 	yyerror("undefined internal macro %s",name);
 	return -1;
