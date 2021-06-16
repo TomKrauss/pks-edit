@@ -224,7 +224,7 @@ typedef struct ftable {
 			*lastl;			/* last line */
 	MARK 	*fmark;
 	MARK 	*blstart,*blend;   	/* Marks for Block Operations			*/
-	int  	blcol1,blcol2;		/* colomn for Blockmarks				*/
+	int  	blcol1,blcol2;		/* column for Blockmarks				*/
 	DOCUMENT_DESCRIPTOR	*documentDescriptor;
 	HIDDENP	wp;
 	HIDDENP	undo;

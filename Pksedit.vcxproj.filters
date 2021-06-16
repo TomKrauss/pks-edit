@@ -282,6 +282,9 @@
     <ClCompile Include="Themes.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Actions.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -450,6 +453,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\themes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\actions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1022,8 +1022,7 @@ char *macro_getComment(char* szBuf, char* szB2, int nIndex, int type)
 			}
 	}
 
-	if ((s = lstrchr(szBuf,';')) != 0) {
-		*s = 0;
+	if ((s = lstrchr(s,';')) != 0) {
 		lstrcpy(szB2,s+1);
 	}
 

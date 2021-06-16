@@ -88,7 +88,7 @@ extern void linetoolong(void);
 #define	BLK_LINES		0x80
 #define	WM_AUTOFORMAT	0x100
 #define	WM_BRINDENT	0x200
-#define	BLK_COLOMN	0x400
+#define	BLK_COLUMN_SELECTION	0x400
 #define	WM_OEMMODE	0x800
 #define	O_CRYPTED		0x1000
 

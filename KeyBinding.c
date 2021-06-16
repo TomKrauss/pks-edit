@@ -28,6 +28,7 @@
 #include "pksedit.h"
 #include "dial2.h"
 #include "edfuncs.h"
+#include "actions.h"
 
 # undef IDD_FKFKLAST
 # undef IDD_FKFLGLAST
@@ -302,7 +303,7 @@ int fkey_register(void)
 int fkey_initKeyboardWidget(HWND hwndPapa)
 {
 	fkey_show(hwndPapa);
-	op_updateall();
+	action_commandEnablementChanged();
 	return hwndFkeys ? 1 : 0;
 }
 
@@ -336,7 +337,7 @@ void fkey_visibilitychanged(void)
 		fkey_show(hwndFrame);
 		if (hwndFkeys) {
 			SendMessage(hwndFkeys,WM_EDWINREORG,0,0L);
-			op_updateall();
+			action_commandEnablementChanged();
 		}
 	}
 	SendMessage(hwndFrame, WM_EDWINREORG,0,0L);

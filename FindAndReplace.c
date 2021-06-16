@@ -628,7 +628,7 @@ int EdReplaceText(int scope, int action, int flags)
 
 	query  = flags & OREP_INQ;
 	marked = flags & OREP_MARKED;
-	if (ww_blkcolomn(WIPOI(fp)) && scope == RNG_BLOCK)
+	if (ww_hasColumnSelection(WIPOI(fp)) && scope == RNG_BLOCK)
 		column = 1;
 
 	/*
@@ -906,7 +906,7 @@ int find_setTextSelection(int rngetype, FTABLE *fp, MARK **markstart, MARK **mar
 				return RNG_INVALID;
 			lps = fp->blstart->lm;
 			lpe = fp->blend->lm;
-			if (ww_blkcolomn(WIPOI(fp))) {
+			if (ww_hasColumnSelection(WIPOI(fp))) {
 				ofs = fp->blcol1;
 				ofe = fp->blcol2;
 			} else {

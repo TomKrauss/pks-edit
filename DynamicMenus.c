@@ -17,6 +17,7 @@
 #include "edfuncs.h"
 #include "helpitem.h"
 #include "stringutil.h"
+#include "actions.h"
 
 #define	MENU_TABCHAR	(char)8
 
@@ -33,7 +34,7 @@ RSCTABLE *	_menutables;
 /*--------------------------------------------------------------------------
  * menu_overridetable()
  */
-void menu_overridetable(void)
+static void menu_overridetable(void)
 {
 	RSCTABLE 	*	rp;
 	int			nIdx;
@@ -77,9 +78,9 @@ void menu_startdefine(char *szMenu)
 }
 
 /*--------------------------------------------------------------------------
- * menuemptyslot()
+ * menu_isEmptySlot()
  */
-int menuemptyslot(PUSERMENUBIND mp)
+static int menu_isEmptySlot(PUSERMENUBIND mp)
 {
 	if (!mp->szString[0]) {
 		return 1;
@@ -110,7 +111,7 @@ int menu_addentry(char *pszTemp, int menutype,
 	for (nIdx = 0; ; nIdx++) {
 		if (!pMenu || &pMenu[nIdx] >= (PUSERMENUBIND)rp->rt_end) {
 			if (rsc_tableresize(_menutables, sizeof *pMenu, (void*)0,
-				(int (*)(void*))menuemptyslot) == 0) {
+				(int (*)(void*))menu_isEmptySlot) == 0) {
 				return 0;
 			}
 			pMenu = (PUSERMENUBIND)rp->rt_data;
@@ -287,18 +288,41 @@ int EdMenuTrackPopup(long unused1, long unused2, char *szPopup)
 /*--------------------------------------------------------------------------
  * menu_getmenuforcontext()
  */
-HMENU menu_getmenuforcontext(char *pszContext)
-{
-
+HMENU menu_getmenuforcontext(char *pszContext) {
 
 	if (!rsc_findtable(_menutables, pszContext)) {
 		return 0;
 	}
-
 	rsc_switchtotable(&_menutables, pszContext);
-
 	return menu_createmenu(FALSE);
 }
 
+/*
+ * Callback to enable / disable toolbar buttons.
+ */
+static void menu_propertyChanged(ACTION_BINDING* pActionBinding, PROPERTY_CHANGE_TYPE type, int newVal) {
+	if (type == PC_ENABLED) {
+		EnableMenuItem((HMENU)pActionBinding->ab_hwnd, pActionBinding->ab_item, newVal);
+	}
+}
+
+/*
+ * Register a toolbar action binding.
+ */
+static void menu_registerBinding(HMENU hMenu, int nCommand, int nMenuIdx) {
+	ACTION_BINDING binding = { menu_propertyChanged, (HWND) hMenu, nMenuIdx };
+	action_registerAction(nCommand, binding);
+}
+
+
+/*
+ * Create the menu action bindings. 
+ */
+void menu_createActionBindings(HMENU hMenu) {
+	for (int i = 0; i < _nmenus; i++) {
+		menu_registerBinding(hMenu, _menutab[i].index, _menutab[i].menunum);
+	}
+
+}
 
 

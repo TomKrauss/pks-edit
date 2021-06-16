@@ -269,24 +269,6 @@ int rsc_create(char *fname, int trunc)
 }
 
 /*--------------------------------------------------------------------------
- * rsc_enumitems()
- */
-int rsc_enumitems(RSCFILE *rp, char *itemtyp, int (*func)(char *, ENTITY *))
-{
-	ENTITY *	ep;
-	int 		i;
-
-	for (i = 0; i < (int)rp->rf_hdr->rs_nentities; i++) {
-		ep = &rp->rf_hdr->rs_ent[i];
-		if (strcmp(itemtyp,ep->en_typ) == 0) {
-			if (!(*func)(ep->en_name,ep))
-				return 0;
-		}
-	}
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
  * rsc_open()
  */
 RSCFILE *rsc_open(char *fn, int mode)

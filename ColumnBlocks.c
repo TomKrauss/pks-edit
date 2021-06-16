@@ -66,7 +66,7 @@ static LINE *tabcpy(FTABLE *fp, LINE **Lps, int cfirst, int clast,
 
 /*----------------------------
  * bl_cutBlockInColumnMode()
- * Cut out a colomn shaped block of text and optionally delete it
+ * Cut out a column shaped block of text and optionally delete it
  *----------------------------*/
 EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int freeflg)
 {

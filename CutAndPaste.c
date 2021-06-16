@@ -22,8 +22,9 @@
 #include "clipboard.h"
 #include "fileselector.h"
 #include "markpositions.h"
+#include "actions.h"
 
-/*-----------------------*/
+ /*-----------------------*/
 /* EXTERNALS			*/
 /*-----------------------*/
 extern MARK	*mark_find(FTABLE *fp, int id);
@@ -42,6 +43,22 @@ extern LINE	*cadv_gotoIdentifierSkipSpace(LINE *lp,long *ln,long *col,int dir);
 extern LINE	*cadv_wordonly(LINE *lp,long *ln,long *col,int dir);
 
 extern long	_multiplier;
+
+/*
+ * Sets a block mark - if the "has current selection" property has changed, fire an action change.
+ */
+void bl_setBlockMark(FTABLE* fp, MARK* pMark, BOOL bStart) {
+	BOOL bHasSelection = fp->blstart && fp->blend;
+	if (bStart) {
+		fp->blstart = pMark;
+	}
+	else {
+		fp->blend = pMark;
+	}
+	if (bHasSelection != (fp->blstart && fp->blend)) {
+		action_commandEnablementChanged();
+	}
+}
 
 /*----------------------------
  * bl_hideSelection() 		
@@ -152,7 +169,7 @@ EXPORT int bl_pasteBlock(PASTE *buf, int colflg, int offset, int move) {
 /*-----------------------*/
 EXPORT int paste(PASTE *buf,int move)
 {
-	return bl_pasteBlock(buf,ww_blkcolomn(WIPOI(ft_getCurrentDocument())),
+	return bl_pasteBlock(buf,ww_hasColumnSelection(WIPOI(ft_getCurrentDocument())),
 				ft_getCurrentDocument()->caret.offset, move);
 }
 
@@ -308,7 +325,7 @@ EXPORT int CutBlock(MARK *ms, MARK *me, int flg, PASTE *pp)
 {
 	PASTE 	_p;
 	int	 	id;
-	int	 	colflg = ww_blkcolomn(WIPOI(ft_getCurrentDocument()));
+	int	 	colflg = ww_hasColumnSelection(WIPOI(ft_getCurrentDocument()));
 
 	_p.pln = 0;
 	bl_free(&_p);
@@ -429,7 +446,7 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 	int	  move_nocolblk,ret,colflg;
 
 	fp = ft_getCurrentDocument();
-	colflg = ww_blkcolomn(WIPOI(ft_getCurrentDocument()));
+	colflg = ww_hasColumnSelection(WIPOI(ft_getCurrentDocument()));
 
 	if (!ft_checkSelectionWithError(fp))
 		return 0;
@@ -688,9 +705,9 @@ static void marklines(int changed,int colflg,
 }
 
 /*---------------------------------*/
-/* markcolomns()				*/
+/* bl_setColumnSelection()				*/
 /*---------------------------------*/
-static void _markcolomns(FTABLE *fp)
+static void bl_setColumnSelectionNoRepaint(FTABLE *fp)
 {	MARK	 *mp;
 
 	if ((mp = fp->blstart) != 0L) {
@@ -706,39 +723,13 @@ static void _markcolomns(FTABLE *fp)
 }
 
 /*------------------------------------------------------------
- * markcolomns()
+ * bl_setColumnSelection()
  */
-EXPORT int markcolomns(FTABLE *fp)
+EXPORT int bl_setColumnSelection(FTABLE *fp)
 {
-	_markcolomns(fp);
+	bl_setColumnSelectionNoRepaint(fp);
 	render_repaintAllForFile(fp);
 	return 1;
-}
-
-/*---------------------------------
- * bl_defineColumnSelectionFromXY()
- * Given two screen points, determine the start and end column
- * of the current block shape selection.
- *---------------------------------*/
-EXPORT int bl_defineColumnSelectionFromXY(int x,int y,int nx,int ny)
-{	long 	ln,col1,col2;
-	WINFO	*wp;
-	FTABLE* fp = ft_getCurrentDocument();
-
-	wp = WIPOI(fp);
-	if (ww_blkcolomn(wp)) {
-		caret_calculateOffsetFromScreen(wp,x,y,&ln,&col1);
-		caret_calculateOffsetFromScreen(wp,nx,ny,&ln,&col2);
-		if (col1 <= col2) {
-			fp->blcol1 = col1;
-			fp->blcol2 = col2;
-		} else {			
-			fp->blcol1 = col2;
-			fp->blcol2 = col1;
-		}
-		return 1;
-	}
-	return 0;
 }
 
 /*---------------------------------
@@ -748,9 +739,9 @@ EXPORT int bl_defineColumnSelectionFromXY(int x,int y,int nx,int ny)
 EXPORT int bl_setSelection(FTABLE *fp, LINE *lps, int cs, LINE *lpe, int ce)
 {
 	if (lps) 
-		fp->blstart = mark_set(fp,lps,cs,MARKSTART);
+		bl_setBlockMark(fp, mark_set(fp,lps,cs,MARKSTART), TRUE);
 	if (lpe) 
-		fp->blend   = mark_set(fp,lpe,ce,MARKEND);
+		bl_setBlockMark(fp, mark_set(fp,lpe,ce,MARKEND), FALSE);
 	if (lps && lpe) {
 		ln_addFlag(lps,lpe,LNCPMARKED);
 		return 1;
@@ -791,7 +782,7 @@ int bl_syncSelectionWithCaret(FTABLE *fp, CARET *lpCaret, int flags, int *pMarkS
 		return 1;
 	}
 
-	colflg = ww_blkcolomn(WIPOI(fp));
+	colflg = ww_hasColumnSelection(WIPOI(fp));
 
 	if (fp->blstart) {
 		lp1	  = fp->blstart->lm;
@@ -854,11 +845,11 @@ int bl_syncSelectionWithCaret(FTABLE *fp, CARET *lpCaret, int flags, int *pMarkS
 	if (pMarkSet != NULL) {
 		*pMarkSet = type;
 	}
-	fp->blstart = marks;
-	fp->blend = marke;
+	bl_setBlockMark(fp, marks, TRUE);
+	bl_setBlockMark(fp, marke, FALSE);
 
 	if (colflg && !(flags & MARK_COLUMN)) {
-		_markcolomns(fp);
+		bl_setColumnSelectionNoRepaint(fp);
 	}
 
 	if (marks && marke) {		/* mark in a line */
@@ -909,7 +900,7 @@ EXPORT int EdMouseMarkParts(int type)
 	int    	colflg;
 
 	fp = ft_getCurrentDocument();
-	colflg = ww_blkcolomn(WIPOI(fp));
+	colflg = ww_hasColumnSelection(WIPOI(fp));
 
 	caret_positionCloseToMouseWithConfirmation(0L);
 

@@ -213,7 +213,7 @@ static void HideWindowsBlocks(FTABLE *fp)
 /*--------------------------------------------------------------------------
  * caret_updateLineColumn()
  * Invoked, when the cursor is positioned using slider or mouse to update the
- * caret position.
+ * caret position. 
  */
 EXPORT int caret_updateLineColumn(FTABLE *fp, long *ln, long *col, int newcol) {
 	LINE *	lp;

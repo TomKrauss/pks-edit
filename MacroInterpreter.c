@@ -444,7 +444,9 @@ int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, voi
 			;
 		_multiplier = 1;
 	} else {
-		ret = (* fup->execute)(p1,p2,s1,s2,s3);
+		if (fup->execute) {
+			ret = (*fup->execute)(p1, p2, s1, s2, s3);
+		}
 	}
 
 	if (ret > 0 && ft_getCurrentDocument() && (fup->flags & EW_MODIFY)) {

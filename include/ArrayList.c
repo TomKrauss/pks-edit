@@ -105,6 +105,17 @@ int arraylist_remove(ARRAY_LIST* pList, void* pElement) {
 }
 
 /*
+ * Returns the element at index. If the index is out of range NULL is returned.
+ */
+void* arraylist_get(ARRAY_LIST* pList, int nIndex) {
+	buf_t* pBuffer = pList->li_buffer;
+	if (nIndex >= 0 && nIndex < pList->li_size) {
+		return (*pBuffer)[nIndex];
+	}
+	return NULL;
+}
+
+/*
  * Returns the index of an element in the list. If it cannot be found, -1 is returned.
  */
 int arraylist_indexOf(ARRAY_LIST* pList, void* pElement) {

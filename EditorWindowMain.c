@@ -32,6 +32,7 @@
 #include "desktopicons.h"
 #include "propertychange.h"
 #include "winutil.h"
+#include "actions.h"
 #include "themes.h"
 
 #define	WT_WORKWIN		0
@@ -247,11 +248,11 @@ EXPORT void ww_getstate(WINFO *wp, WINDOWPLACEMENT *wsp)
 }
 
 /*-----------------------------------------------------------
- * ww_blkcolomn()
+ * ww_hasColumnSelection()
  */
-EXPORT int ww_blkcolomn(WINFO *wp)
+EXPORT int ww_hasColumnSelection(WINFO *wp)
 {
-	return (wp->workmode & BLK_COLOMN) ? 1 : 0;
+	return (wp->workmode & BLK_COLUMN_SELECTION) ? 1 : 0;
 }
 
 /*------------------------------------------------------------
@@ -657,6 +658,7 @@ void ww_destroy(WINFO *wp)
 		if (nwindows == 0 && _winlist)
 			Debug(DEBUG_ERR,"bad winlist");
 	});
+	action_commandEnablementChanged();
 }
 
 /*-----------------------------------------------------------
@@ -694,7 +696,7 @@ WINFUNC EditWndProc(
 	)
 {
 	WINDOWPLACEMENT 	ws;
-	WINFO *				wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_VIEWPTR);
+	WINFO * wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_VIEWPTR);
 
 	if (message == WM_CREATE || wp != NULL)
    	switch(message) {
@@ -736,14 +738,6 @@ WINFUNC EditWndProc(
 		if (!IsIconic(hwnd))
 			SetFocus(wp->ww_handle);
 		break;
-#if 0
-		/* SETFOCUS must(!) be handled by MDIProc!! */
-		if (message == WM_SETFOCUS)
-			break;
-
-		return 0;
-# endif
-
 	case WM_MOVE:
 		/* drop through */
 	case WM_SIZE:
@@ -960,6 +954,7 @@ static WINFUNC WorkAreaWndProc(
 	WPARAM wParam,
 	LPARAM lParam) {
 	WINFO *	wp;
+	int zDelta;
 
 	switch(message) {
 	case WM_CREATE:
@@ -979,6 +974,16 @@ static WINFUNC WorkAreaWndProc(
 	case WM_CHAR:
 	case WM_KEYUP:
 		return SendMessage(hwndFrame,message,wParam,lParam);
+
+	case WM_MOUSEWHEEL:
+		zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, 0)) != 0) {
+			long dx = 0;
+			long dy = zDelta > 0 ? 1 : -1;
+			sl_scrollwinrange(wp, &dy, &dx);
+			sl_winchanged(wp, dy, dx);
+		}
+		return TRUE;
 
 	case WM_LBUTTONDOWN:
 		if (GetFocus() != hwnd) {
@@ -1026,7 +1031,6 @@ static WINFUNC WorkAreaWndProc(
 	    if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
 			wt_tcursor(wp,1);
 			ft_select(wp->fp);
-			op_updateall();
 			FTABLE* fp = wp->fp;
 			xref_selectFileFormat(fp->documentDescriptor->modename);
 			macro_selectDefaultBindings();

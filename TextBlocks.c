@@ -356,7 +356,7 @@ EXPORT int bl_delete(FTABLE *fp, LINE *lnfirst, LINE *lnlast, int cfirst,
 		bSaveOnClip = 0;
 	}
 
-	if (blkflg && ww_blkcolomn(WIPOI(fp))) {
+	if (blkflg && ww_hasColumnSelection(WIPOI(fp))) {
 		if (bSaveOnClip) {
 			if (!bl_cutBlockInColumnMode(bl_addrbyid(0,0), lnfirst, lnlast,0)) {
 				return 0;

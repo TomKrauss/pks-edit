@@ -291,6 +291,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Actions.c" />
     <ClCompile Include="EditorDocumentModel.c" />
     <ClCompile Include="include\ArrayList.c" />
     <ClCompile Include="ProgressMonitor.c">
@@ -1156,6 +1157,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\actions.h" />
     <ClInclude Include="include\alloc.h" />
     <ClInclude Include="include\arraylist.h" />
     <ClInclude Include="include\caretmovement.h" />

@@ -68,7 +68,7 @@ static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
 	r.top = y;
 	r.bottom = y + wp->cheight;
 	r.left = 0;
-	if (ww_blkcolomn(wp) != 0) {
+	if (ww_hasColumnSelection(wp) != 0) {
 		r.left = fp->blcol1;
 		r.right = fp->blcol2;
 	}

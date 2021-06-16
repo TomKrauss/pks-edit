@@ -19,6 +19,7 @@
 #include "errordialogs.h"
 #include "winfo.h"
 #include "documenttypes.h"
+#include "trace.h"
 
 #include "winterf.h"
 #include "edfuncs.h"
@@ -82,12 +83,12 @@ static int mouse_selectionDrag(WINFO* wp, int x, int y) {
 	FTABLE* fp = wp->fp;
 
 	pData->c2 = fp->caret;
+	Debug(DEBUG_ERR, "x == %d -> offset == %d", x, pData->c2.offset);
 	if ((pData->c1.linePointer == pData->c2.linePointer && pData->c1.offset < pData->c2.offset) || 
 		(pData->c1.linePointer != pData->c2.linePointer && pData->start.y < y)) {
 		bl_syncSelectionWithCaret(fp, &pData->c1, MARK_START | MARK_NO_HIDE, NULL);
 		bl_syncSelectionWithCaret(fp, &pData->c2, MARK_END | MARK_NO_HIDE, NULL);
-	}
-	else {
+	} else {
 		bl_syncSelectionWithCaret(fp, &pData->c1, MARK_END | MARK_NO_HIDE, NULL);
 		bl_syncSelectionWithCaret(fp, &pData->c2, MARK_START | MARK_NO_HIDE, NULL);
 	}
@@ -318,6 +319,12 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 				break;
 			}
 			caret_placeToXY(wp, x, y);
+			if (ww_hasColumnSelection(wp)) {
+				long ln;
+				long col;
+				caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
+				fp->caret.offset = col;
+			}
 			c2 = fp->caret;
 			if (cPrevious != c2.offset || lpPrevious != c2.linePointer) {
 				cPrevious = c2.offset;

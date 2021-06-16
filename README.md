@@ -2,6 +2,18 @@
 
 The famous arcade times text editor from Pahlen & Krauß.
 
+## Release Notes
+
+### 1.8.0
+
+* New
+- Support for mousewheel scrolling added
+- Block selection with the mouse will now work independently of line length
+- Toolbar and Menu actions are now properly enabled / disabled depending on availability
+- Toolbar Buttons display Tooltips now
+- Redo Button in Toolbar actually does a redo.
+- File Patterns support now ! as in !*.obj (everything but files ending with .obj)
+
 ## History
 
 PKS Edit was originally implemented on an Atari ST computer as 

@@ -22,6 +22,7 @@
 
 #include "winfo.h"
 #include "winterf.h"
+#include "actions.h"
 
 /* #define DEMO 1 /* D E M O V E R S I O N */
 
@@ -551,8 +552,12 @@ int EdSelectWindow(int winid)
  */
 int ft_select(FTABLE *fp)
 {
+	if (fp == _currentFile) {
+		return 1;
+	}
 	EdTRACE(Debug(DEBUG_TRACE,"ft_select File 0x%lx",fp));
 	_currentFile = fp;
+	action_commandEnablementChanged();
 	if (fp == 0) {
 		return 0;
 	}

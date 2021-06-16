@@ -22,9 +22,9 @@
 typedef unsigned short OFFSET;
 
 typedef struct tagRSCTABLE  {
-	struct tagRSCTABLE *rt_next;
+	struct		tagRSCTABLE *rt_next;
 	char		rt_name[RSC_NAMELEN];
-	int		rt_size;
+	int			rt_size;
 	void		*rt_data;
 	void 	*rt_end;
 } RSCTABLE;

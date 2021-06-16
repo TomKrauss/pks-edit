@@ -324,7 +324,7 @@ extern void font_selectStandardFont(HWND hwnd, WINFO* wp);
 
 #define FTPOI(wp)		(FTABLE*)(wp->fp)
 
-int ww_blkcolomn(WINFO *wp);
+int ww_hasColumnSelection(WINFO *wp);
 
 #define	_WINFO_H
 #endif	_WINFO_H

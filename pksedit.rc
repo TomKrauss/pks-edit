@@ -168,7 +168,7 @@ BEGIN
     LTEXT           "Dieses Produkt wurde lizensiert für:",-1,20,63,122,8
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,55,232,1
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,92,232,1
-    RTEXT           "Gestaltung: Rolf-D. Pahlen",127,96,98,94,8,NOT WS_GROUP
+    RTEXT           "Gestaltung: Rolf-D. Pahlen",127,97,98,94,8,NOT WS_GROUP
     LTEXT           "Plattform:",IDD_STRING1,174,20,80,8,NOT WS_GROUP
 END
 
@@ -879,7 +879,6 @@ BEGIN
             MENUITEM "&Block...\a",                 IDM_PRINTBLOCK
             MENUITEM "&Datei...\a",                 IDM_PRINTFILE
         END
-        MENUITEM "Drucker&einrichtung...\a",    IDM_PRINTERLAYOUT
         MENUITEM SEPARATOR
         MENUITEM "Spe&ichern && beenden\a",     MSAVEALL
         MENUITEM "&Beenden\a",                  MEXIT
@@ -887,7 +886,8 @@ BEGIN
     POPUP "&Bearbeiten"
     BEGIN
         MENUITEM "&Rückgängig\a",               IDM_UNDO
-        MENUITEM "&Wiederholen\a",              IDM_DOAGAIN
+        MENUITEM "&Wiederholen\a",              IDM_REDO
+        MENUITEM "&Nochmal einfügen\a",         IDM_DOAGAIN
         MENUITEM SEPARATOR
         MENUITEM "K&opieren\a",                 MTCUT
         MENUITEM "Einf&ügen\a",                 MTPASTE
@@ -1436,7 +1436,6 @@ BEGIN
                             "Reguläre Ausdrücke unterstützen die folgenden Sonderzeichen:\r\n""."" - (alle Zeichen)\r\n""[a-z]"" - alle Zeichen a-z\r\n""*"" - (eine beliebige Anzahl Vorkommen)\r\n""+"" - 1 Vorkommen\r\n""{x,y}"" - mindestens x, maximal y Vorkommen"
     IDS_TT_PRESERVE_CASE    "Beim Ersetzen bleibt die Groß- Kleinschreibung des Ausgangstextes erhalten.\r\nBeispiel: ersetzt man das Wort ""Der"" durch ""die"" entsteht ""Die""."
 END
-
 
 STRINGTABLE
 BEGIN

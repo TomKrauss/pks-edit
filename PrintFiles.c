@@ -919,7 +919,7 @@ int EdPrint(long what, long p1, LPSTR fname)
 			if (!ft_checkSelectionWithError(fp)) {
 				goto byebye;
 			}
-			if (ww_blkcolomn(fp->wp)) {
+			if (ww_hasColumnSelection(fp->wp)) {
 				_printwhat.firstColumn = fp->blcol1;
 				_printwhat.lastColumn = fp->blcol2;
 			}

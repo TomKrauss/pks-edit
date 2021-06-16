@@ -68,13 +68,12 @@ static void mark_free(FTABLE *fp, MARK *mp)
  * mark_killSelection()
  * release the copy and paste - marks for a file
  */
-void mark_killSelection(FTABLE *fp)
+void mark_killSelection(FTABLE* fp)
 {
-
-	mark_free(fp,fp->blstart);
-	fp->blstart = 0;
-	mark_free(fp,fp->blend);
-	fp->blend = 0;
+	mark_free(fp, fp->blstart);
+	bl_setBlockMark(fp, NULL, 1);
+	mark_free(fp, fp->blend);
+	bl_setBlockMark(fp, NULL, 0);
 }
 
 /*--------------------------------------------------------------------------
@@ -95,8 +94,6 @@ MARK *mark_set(FTABLE *fp, LINE *lp,int offs,int c)
 
 	if ((mp = mark_alloc(fp,c)) != (MARK *) 0) {
 		mp->lm 	= lp;
-		if (offs > lp->len)
-			offs = lp->len;
 		mp->lc 	= offs;
 		mp->mchar = c;
 		lp->lflg |= LNMARKED;

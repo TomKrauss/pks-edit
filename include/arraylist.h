@@ -57,6 +57,11 @@ extern void arraylist_add(ARRAY_LIST* pList, void* pElement);
 extern int arraylist_indexOf(ARRAY_LIST* pList, void* pElement);
 
 /*
+ * Returns the element at index. If the index is out of range NULL is returned.
+ */
+extern void* arraylist_get(ARRAY_LIST* pList, int nIndex);
+
+/*
  * Remove one element from the array list - the array lists capacity is not shrinked.
  * Return 1, if the element was successfully removed or 0, if it was not removed.
  * If it is contained multiple times in the list, remove only the 1st occurrence.

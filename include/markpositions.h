@@ -29,6 +29,11 @@ extern MARK* mark_find(FTABLE* fp, int c);
  */
 extern void mark_killSelection(FTABLE* fp);
 
+/*
+ * Sets a block mark - if the "has current selection" property has changed, fire an action change.
+ */
+extern void bl_setBlockMark(FTABLE* fp, MARK* pMark, BOOL bStart);
+
 /*--------------------------------------------------------------------------
  * mark_set()
  * Sets a mark in the line and offset named "c",

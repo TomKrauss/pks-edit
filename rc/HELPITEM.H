@@ -108,8 +108,9 @@
 #define	IDM_HISTORY5		205
 
 #define	IDM_UNDO			210
-#define	IDM_DOAGAIN		211
+#define	IDM_DOAGAIN			211
 #define	IDM_ERASEBLOCK		212
+#define	IDM_REDO			213
 
 #define IDM_TOOLBAR			512
 

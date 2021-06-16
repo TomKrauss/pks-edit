@@ -1,6 +1,5 @@
 [files]
-"D:\source\pksedit\FunctionTable.c", line 311: 0x0 0x1 -1 -1 -1 -1 274 252 1407 780
-"D:\source\pksedit\PKSEDIT.RC", line 1410: 0x0 0x1 -1 -1 -1 -1 78 78 1336 668
+"D:\tom\desktop\readme.txt", line 47: 0x2 0x3 -1 -1 -8 -31 1 2 1426 797
 [find]
 !ed
 !red
@@ -25,7 +24,6 @@
 !D:\source\pksedit\rc\DIAL2.RES
 !D:\source\pksedit\rc\DIAL2.DLG
 !D:\source\pksedit\PKSEDIT.RES
-!D:\source\pksedit\PKSEDIT.RC
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
 !D:\source\pksedit\makros\WINDOWS.PKC
 !D:\source\pksedit\makros\TURBO_C.PKC
@@ -41,8 +39,9 @@
 !D:\source\pksedit\FTAB.FUN
 !D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java
 !D:\dvltools\JetBrains\IntelliJ IDEA Community Edition 2019.3.4\IntelliJ IDEA 2020.2\bin\idea.properties
-!D:\tom\desktop\readme.txt
+!D:\source\pksedit\PKSEDIT.RC
 !D:\source\pksedit\FunctionTable.c
+!D:\tom\desktop\readme.txt
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN

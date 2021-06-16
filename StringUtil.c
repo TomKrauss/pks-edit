@@ -15,12 +15,24 @@
  */
 
 #include <windows.h>
-#include <direct.h>
+#include <stdlib.h>
 #include <ctype.h>
 
 #include "edctype.h"
 #include "pathname.h"
 #include "stringutil.h"
+
+ /*--------------------------------------------------------------------------
+  * stralloc()
+  */
+unsigned char* stralloc(unsigned char* buf) {
+	unsigned char* d;
+
+	if ((d = malloc(lstrlen(buf) + 1)) != 0) {
+		lstrcpy(d, buf);
+	}
+	return d;
+}
 
 /*
  * Return a pointer to the last matching position, where a character can be found in a String 

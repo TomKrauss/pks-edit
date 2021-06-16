@@ -135,13 +135,6 @@ extern int bl_syncSelectionWithCaret(FTABLE* fp, CARET* lpCaret, int flags, int*
 extern int bl_cutTextWithOptions(PASTE* pp, LINE* lnfirst, LINE* lnlast,
 	int cfirst, int clast, int freeflg);
 
-/*---------------------------------
- * bl_defineColumnSelectionFromXY()
- * Given two screen points, determine the start and end column
- * of the current block shape selection.
- *---------------------------------*/
-extern int bl_defineColumnSelectionFromXY(int x, int y, int nx, int ny);
-
 /*----------------------------
  * bl_hideSelection()
  * Hide the current selection and optionally
@@ -156,7 +149,7 @@ extern int bl_read(char* fn, PASTE* pb, int rs /* Record Seperator */);
 
 /*----------------------------
  * bl_cutBlockInColumnMode()
- * Cut out a colomn shaped block of text and optionally delete it
+ * Cut out a column shaped selection of text and optionally delete it
  *----------------------------*/
 extern int bl_cutBlockInColumnMode(PASTE* pp, LINE* lnfirst, LINE* lnlast, int freeflg);
 

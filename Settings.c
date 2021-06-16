@@ -29,6 +29,7 @@
 #include "functab.h"
 #include "edfuncs.h"
 #include "regexp.h"
+#include "actions.h"
 
 #/*---- GLOBALS ---------------*/
 
@@ -39,7 +40,7 @@ extern int  _deadkey;
 int doctypes_documentTypeChanged(void);
 int doc_columnChanged(void);
 int macro_toggleRecordMaco(void);
-int markcolomns(FTABLE *fp);
+int bl_setColumnSelection(FTABLE *fp);
 
 static struct optiontab {
     int  flgkeynr;
@@ -54,7 +55,7 @@ static struct optiontab {
      IDD_FKFLG5,    WM_SHOWMATCH,  2,   doctypes_documentTypeChanged,
      IDD_FKFLG6,    WM_BRINDENT,   2,   doctypes_documentTypeChanged,
      IDD_FKFLG7,    WM_ABBREV,     2,   doctypes_documentTypeChanged,
-     IDD_FKFLG8,    BLK_COLOMN,    2,   doc_columnChanged,
+     IDD_FKFLG8,    BLK_COLUMN_SELECTION,    2,   doc_columnChanged,
      IDD_FKFLG9,    O_RDONLY,      2,   doctypes_documentTypeChanged,
      IDD_FKFLG10,   WM_OEMMODE,    2,   doctypes_documentTypeChanged,
      IDD_FKFLG10+1, SHOWOEM,       1,   doctypes_documentTypeChanged,
@@ -86,7 +87,7 @@ int doctypes_documentTypeChanged(void)
 
 	SendMessage(wp->edwin_handle,WM_EDWINREORG,0,0L);
 
-	op_updateall();
+	action_commandEnablementChanged();
 	return 1;
 }
 
@@ -101,7 +102,7 @@ static int doc_columnChanged(void)
          return 0;
 
     ww_applyDisplayProperties(WIPOI(fp));
-    markcolomns(fp);
+    bl_setColumnSelection(fp);
     return 1;
 }
 	
