@@ -533,6 +533,16 @@ COMMAND _cmdseqtab[] = {
 /* 221 */ C_1FUNC, 111 /* EdListBindings */, LIST_MENUS, "menu-list", "Listet das aktuelle Menu in PKS-MakroC Format;Listen Menü",
 /* 222 */ C_0FUNC, 120 /* EdRedo */, 0, "redo", "Wiederholt das Kommando vor dem letzten Undo;Letztes Kommando wiederholen",
 /* 223 */ C_1FUNC, 78 /* EdOptionToggle */, OPT_DMODE | SHOWLINENUMBERS, "toggle-show-linenumbers", "Zeigt Zeilennummern an; Zeilennummern anzeigen",
+/* 224 */ C_1FUNC, 38 /* EdCursorLeft */, MOT_SINGLE|MOT_XTNDBLOCK, "select-left", "Wählt ein Zeichen weiter links aus;Auswahl links",
+/* 225 */ C_1FUNC, 38 /* EdCursorLeft */, MOT_TOEND | MOT_XTNDBLOCK, "select-left-to-start", "Wählt bis Anfang der Zeile aus;Auswahl Anfang",
+/* 226 */ C_1FUNC, 38 /* EdCursorLeft */, MOT_SPACE | MOT_XTNDBLOCK, "select-left-word", "Selektiert das Wort links vom Cursor;Auswahl Wort links",
+/* 227 */ C_1FUNC, 37 /* EdCursorRight */, MOT_SINGLE | MOT_XTNDBLOCK, "select-right", "Wählt das nächste Zeichen aus;Auswahl rechts",
+/* 228 */ C_1FUNC, 37 /* EdCursorRight */, MOT_SPACE | MOT_XTNDBLOCK, "select-right-word", "Wählt das Wort zum nächsten Zeichen aus;Auswahl Wort rechts",
+/* 229 */ C_1FUNC, 37 /* EdCursorRight */, MOT_TOEND | MOT_XTNDBLOCK, "select-right-to-end", "Wählt zum Ende der Zeile aus;Auswahl Zeile rechts",
+/* 230 */ C_1FUNC, 39 /* EdCursorUp */, MOT_SINGLE | MOT_XTNDBLOCK, "select-up", "Wählt eine Zeile weiter nach open aus;Auswahl oben",
+/* 231 */ C_1FUNC, 40 /* EdCursorDown */, MOT_SINGLE | MOT_XTNDBLOCK, "select-down", "Wählt eine Zeile weiter nach unten aus;Auswahl unten",
+/* 232 */ C_1FUNC, 39 /* EdCursorUp */, MOT_PAGE | MOT_XTNDBLOCK, "select-page-up", "Wählt eine Seite weiter nach open aus;Auswahl Seite hoch",
+/* 233 */ C_1FUNC, 40 /* EdCursorDown */, MOT_PAGE | MOT_XTNDBLOCK, "select-page-down", "Wählt eine Seite weiter nach unten aus;Auswahl Seite runter",
 };
 
 char _recorder[RECORDERSPACE];

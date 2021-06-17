@@ -1,5 +1,5 @@
 [files]
-"D:\tom\desktop\readme.txt", line 1: 0x0 0x1 -1 -1 -8 -31 1 2 1426 797
+"D:\tom\desktop\readme.txt", line 15: 0x0 0x1 -1 -1 -8 -31 1 2 1426 797
 [find]
 !ed
 !red
@@ -16,6 +16,8 @@
 !shift-ra
 !$
 ! +
+!HOME
+!PAGE
 [replace]
 !die
 !,
@@ -24,7 +26,6 @@
 !D:\source\pksedit\rc\DIAL2.RES
 !D:\source\pksedit\rc\DIAL2.DLG
 !D:\source\pksedit\PKSEDIT.RES
-!C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
 !D:\source\pksedit\makros\WINDOWS.PKC
 !D:\source\pksedit\makros\TURBO_C.PKC
 !D:\source\pksedit\FTAB.BND
@@ -43,6 +44,9 @@
 !D:\source\pksedit\newfile1.txt
 !D:\source\pksedit\FunctionTable.c
 !D:\tom\desktop\readme.txt
+!C:\Users\tom\AppData\Local\Temp\MACROS.PKC
+!C:\Users\tom\AppData\Local\Temp\KEYS
+!C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
