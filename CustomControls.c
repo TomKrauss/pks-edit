@@ -30,7 +30,7 @@
  * cust_drawShadow()
  * Draw a shadow around a control
  */
-void cust_drawShadow(HDC hdc,RECT *rcp,int pressed)
+void cust_drawShadow(HDC hdc,RECT *rcp,int odItemState)
 {
 	int			left,right,top,bottom;
 	HPEN		hPen;
@@ -39,7 +39,7 @@ void cust_drawShadow(HDC hdc,RECT *rcp,int pressed)
 	HPEN		hBottomColorPen;
 
 	hBottomColorPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_BTNSHADOW));
-	if (pressed) {
+	if ((odItemState & ODS_FOCUS| ODS_DISABLED) == ODS_FOCUS) {
 		hPenTop = hBottomColorPen;
 		hPenBottom = GetStockObject(WHITE_PEN);
 	} else {
@@ -100,10 +100,14 @@ HFONT cust_getSmallEditorFont(void) {
 #define STATE_CHECK		ODS_CHECKED
 #define STATE_SEL		ODS_SELECTED
 
+static BOOL cust_drawText(HDC hdc, LPARAM pString, WPARAM wParam, int cx, int cy) {
+	return TextOut(hdc, 0, 0, (LPCSTR)pString, (int)strlen((LPCSTR)pString));
+}
+
 /**
  * Paint a custom button control.
  */
-EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int ww)
+EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 {
 	HBRUSH 	hBrush;
 	HFONT	hFont;
@@ -113,7 +117,7 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int ww)
 
 	SetMapMode(hdc,MM_TEXT);
 	hFont = SelectObject(hdc, cust_getSmallEditorFont());
-	if (ww & STATE_CHECK) {
+	if (odItemState & STATE_CHECK) {
 		dwColwi = GetSysColor(COLOR_HIGHLIGHT);
 		dwColtext = GetSysColor(COLOR_HIGHLIGHTTEXT);
 	} else {
@@ -126,17 +130,21 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int ww)
 
 	Rectangle(hdc, rcp->left, rcp->top, rcp->right, rcp->bottom);
 
-	cust_drawShadow(hdc,rcp,ww);
+	cust_drawShadow(hdc,rcp,odItemState);
 
 	SetTextColor(hdc,dwColtext);
 	rcp->left += 3, rcp->top += 2;
 	rcp->right -= 3; rcp->bottom -= 2;
-	if (ww) {
+	if ((odItemState & (ODS_FOCUS|ODS_DISABLED)) == ODS_FOCUS) {
 		rcp->left++;
 		rcp->top++;
 	}
-	DrawText(hdc, szBuff, -1, rcp, 
-			DT_NOPREFIX|DT_WORDBREAK|DT_LEFT|DT_VCENTER);
+	if (odItemState & ODS_DISABLED) {
+		DrawState(hdc, NULL, cust_drawText, (LPARAM)szBuff, strlen(szBuff), rcp->left, rcp->top, rcp->right - rcp->left, rcp->bottom - rcp->top, DSS_DISABLED);
+	} else {
+		DrawText(hdc, szBuff, -1, rcp,
+			DT_NOPREFIX | DT_WORDBREAK | DT_LEFT | DT_VCENTER);
+	}
 
 	DeleteObject(SelectObject(hdc,hBrush));
 	SelectObject(hdc,hFont);
@@ -278,7 +286,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 		case WM_GETDLGCODE:
 			return DLGC_WANTARROWS;		
 			
-		case WM_KEYDOWN : /* key being pressed */
+		case WM_KEYDOWN : /* key being odItemState */
 			/* process virtual key codes */
 			newc = GetWindowWord(hwnd,GWW_CUSTOMVAL);
 			switch( wParam ) {

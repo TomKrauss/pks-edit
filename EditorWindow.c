@@ -139,7 +139,7 @@ static int render_adjustScrollBounds(WINFO *wp) {
 	dx = render_calculateScrollDelta(wp->col,wp->mincurscol,wp->maxcurscol,wp->hscroll);
 
 	if (dx || dy) {
-		EdTRACE(Debug(DEBUG_WINMESS,"render_adjustScrollBounds -> (%ld,%ld)",dx,dy));
+		EdTRACE(log_errorArgs(DEBUG_WINMESS,"render_adjustScrollBounds -> (%ld,%ld)",dx,dy));
 		if (sl_scrollwinrange(wp,&dy,&dx))
 			sl_winchanged(wp,dy,dx);
 		return 1;
@@ -193,7 +193,7 @@ void wt_tcursor(WINFO *wp,int type)
  */
 void wt_scrollxy(WINFO *wp,int nlines, int ncolumns)
 {
-     EdTRACE(Debug(DEBUG_TRACE,"wt_scrollxy (%lx,%d,%d)",wp,nlines,ncolumns));
+     EdTRACE(log_errorArgs(DEBUG_TRACE,"wt_scrollxy (%lx,%d,%d)",wp,nlines,ncolumns));
 	 int yDelta = -nlines * wp->cheight;
 	ScrollWindow(wp->ww_handle,-ncolumns*wp->cwidth,yDelta,
 			   (LPRECT)0,(LPRECT)0);
@@ -205,7 +205,6 @@ void wt_scrollxy(WINFO *wp,int nlines, int ncolumns)
 	}
 }
 
-	
 /*------------------------------------------------------------
  * wt_scrollpart()
  */
@@ -225,7 +224,9 @@ void wt_scrollpart(WINFO *wp,int from_top, int nlines)
 		r.top = (int)(wp->ln-wp->minln)*wp->cheight;
 		InvalidateRect(wp->ww_handle,&r,1);
 	}
-
+	if (wp->lineNumbers_handle) {
+		InvalidateRect(wp->lineNumbers_handle, NULL,0);
+	}
      UpdateWindow(wp->ww_handle);
 
 }

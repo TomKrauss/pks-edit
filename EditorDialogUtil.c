@@ -671,6 +671,14 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 	return TRUE;
 }
 
+/*
+ * Utility to retrieve a title text from a dialog component. 
+ */
+static char* dialog_getTitleResource(HWND hDlg, int idCtrl, char* szButton, size_t nSize) {
+	GetWindowText(GetDlgItem(hDlg, idCtrl), szButton, (int)nSize);
+	return (szButton[0] == '&') ? szButton + 1 : szButton;
+}
+
 /*--------------------------------------------------------------------------
  * DlgCommand()
  */
@@ -681,27 +689,25 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 	int  	nNotify,(*callback)();
 	LONG 	c;
 	DIALPARS *dp2;
+	char* pszTitle;
 
 	callback = 0;
 	idCtrl = GET_WM_COMMAND_ID(wParam, lParam);
 	nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
 	switch(idCtrl) {
-		case IDD_PATH2SEL:
 		case IDD_PATH1SEL:
+			pszTitle = dialog_getTitleResource(hDlg, idCtrl, szBuff, sizeof szBuff);
+			if (fsel_selectFolder(pszTitle, _fseltarget)) {
+				SetDlgItemText(hDlg, IDD_PATH1, _fseltarget);
+			}
+			break;
+		case IDD_PATH2SEL:
 			lstrcpy(szBuff,".\\");
 			fselbuf[0] = 0;
-			GetWindowText(GetDlgItem(hDlg, idCtrl), 
-				szButton, sizeof szButton);
-			char* pszTitle = (szButton[0] == '&') ? szButton + 1 : szButton;
+			pszTitle = dialog_getTitleResource(hDlg, idCtrl, szButton, sizeof szButton);
 			fsel_setDialogTitle(pszTitle);
-			if (fsel_selectFile(szBuff,fselbuf,_fseltarget, idCtrl != IDD_PATH1SEL)) {
-				if (idCtrl == IDD_PATH1SEL) {
-					string_splitFilename(_fseltarget, fselbuf, NULL);
-					SetDlgItemText(hDlg, IDD_PATH1, fselbuf);
-				} else {
-					SetDlgItemText(hDlg, IDD_PATH1,
-						_fseltarget);
-				}
+			if (fsel_selectFile(szBuff,fselbuf,_fseltarget, TRUE)) {
+				SetDlgItemText(hDlg, IDD_PATH1, 	_fseltarget);
 			}
 			break;
 		case IDD_FONTSELECT2:

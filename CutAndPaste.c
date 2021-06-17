@@ -56,7 +56,7 @@ void bl_setBlockMark(FTABLE* fp, MARK* pMark, BOOL bStart) {
 		fp->blend = pMark;
 	}
 	if (bHasSelection != (fp->blstart && fp->blend)) {
-		action_commandEnablementChanged();
+		action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
 	}
 }
 

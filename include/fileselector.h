@@ -27,6 +27,12 @@ extern char* fsel_selectFileWithOptions(FSELINFO* fp, int idTitle, BOOL showSave
 extern char* fsel_initPathes(FSELINFO* fp);
 extern char	_fseltarget[];
 
+/*
+ * Select a folder using a browse for folder dialog. Return TRUE,
+ * if the folder was selected. pResult will contain the resulting folder name.
+ */
+extern BOOL fsel_selectFolder(char* pTitle, char* pResult);
+
 /*------------------------------------------------------------
  * fsel_selectFile
  * select a file with a file open dialog. If bSaveAs is true, the

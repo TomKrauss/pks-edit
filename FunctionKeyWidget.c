@@ -1,9 +1,9 @@
 /*
- * KeyBinding.c
+ * FunctionKeyWidget.c
  *
  * PROJEKT: PKS-EDIT for ATARI - WINDOWS
  *
- * purpose: Function Key Set
+ * purpose: Function Key Widget implementation
  *
  * 										created: 01.01.90
  * 										last modified:
@@ -42,9 +42,9 @@
 
 #define FKSTATE_SIZE		20
 
-extern FARPROC SubClassWndProc(WORD set, HWND hDlg, WORD item, FARPROC lpfnNewProc);
+extern WNDPROC SubClassWndProc(int set, HWND hDlg, int item, WNDPROC lpfnNewProc);
 
-HWND 		hwndFkeys;
+HWND  hwndFkeys;
 static int 	_fkeyshiftstate;
 static int	_fkoptheight;
 static int	_fkfkheight;
@@ -60,6 +60,24 @@ static void setkeylabel(void )
 	if (hwndFkeys)
 		SetDlgItemText(hwndFkeys,IDD_FKSTATE,_fkmods[_fkeyshiftstate]);
 }
+
+/*
+ * Callback to enable / disable toolbar buttons.
+ */
+static void fk_propertyChanged(ACTION_BINDING* pActionBinding, PROPERTY_CHANGE_TYPE type, int newVal) {
+	if (type == PC_ENABLED) {
+		EnableWindow(GetDlgItem(hwndFkeys, pActionBinding->ab_item + IDD_FKFK1), newVal);
+	}
+}
+
+/*
+ * Register a toolbar action binding.
+ */
+static void fk_registerBinding(int nIdx, int nCommand) {
+	ACTION_BINDING binding = { fk_propertyChanged, hwndFkeys, nIdx };
+	action_registerAction(nCommand, binding, TRUE);
+}
+
 
 /*----------------------------
  * fkey_updateTextOfFunctionKeys()
@@ -84,18 +102,24 @@ void fkey_updateTextOfFunctionKeys(int state)
 	shift = _fkshifts[state];
 	keycode1 = VK_F1|shift;
 
+	action_deregisterAllActionsWithListener(fk_propertyChanged);
 	for (i = 0; i < MAX_FKEYS; i++) {
-		SetDlgItemText(hwndFkeys,i+IDD_FKFK1,"");
+		wsprintf(szKey, "F%d", i + 1);
+		SetDlgItemText(hwndFkeys, i + IDD_FKFK1, szKey);
+		EnableWindow(GetDlgItem(hwndFkeys, i + IDD_FKFK1), FALSE);
 	}
 
 	for (i = 0; i < MAXMAPKEY; i++) {
 		kp = &_keymaptab[i];
 		k  = (int)kp->keycode - (int)keycode1;
 		if (k >= 0 && k < MAX_FKEYS) {
+			fk_registerBinding(k, kp->macref.index);
 			macro_getComment(szComment,szKtext,kp->macref.index,kp->macref.typ);
 			wsprintf(szKey,"F%d %s",k+1,szKtext);
-			SetDlgItemText(hwndFkeys,k+IDD_FKFK1,szKey);
+		} else {
+			continue;
 		}
+		SetDlgItemText(hwndFkeys, k + IDD_FKFK1, szKey);
 	}
 
 	setkeylabel();
@@ -303,7 +327,7 @@ int fkey_register(void)
 int fkey_initKeyboardWidget(HWND hwndPapa)
 {
 	fkey_show(hwndPapa);
-	action_commandEnablementChanged();
+	action_commandEnablementChanged((ACTION_CHANGE_TYPE) {0,0,1,-1});
 	return hwndFkeys ? 1 : 0;
 }
 
@@ -333,11 +357,12 @@ void fkey_visibilitychanged(void)
 {
 	if ((GetConfiguration()->layoutoptions & (OL_FKEYS|OL_OPTIONBAR)) == 0 && hwndFkeys) {
 		SendMessage(hwndFkeys,WM_CLOSE,0,0L);
+		hwndFkeys = NULL;
 	} else {
 		fkey_show(hwndFrame);
 		if (hwndFkeys) {
 			SendMessage(hwndFkeys,WM_EDWINREORG,0,0L);
-			action_commandEnablementChanged();
+			action_commandEnablementChanged((ACTION_CHANGE_TYPE) { 0, 0, 1, -1 });
 		}
 	}
 	SendMessage(hwndFrame, WM_EDWINREORG,0,0L);

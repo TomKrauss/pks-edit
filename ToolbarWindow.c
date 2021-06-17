@@ -45,7 +45,7 @@ static void tb_registerBinding(int nCommand, TBBUTTON *pButton) {
     MACROREF *pMref = macro_getMacroIndexForMenu(nCommand);
     if (pMref != NULL) {
         ACTION_BINDING binding = { tb_propertyChanged, hwndToolbar, nCommand };
-        action_registerAction(pMref->index, binding);
+        action_registerAction(pMref->index, binding, FALSE);
         macro_getComment(szComment, szKtext, pMref->index, pMref->typ);
         if (szKtext[0]) {
             pButton->iString = (intptr_t)stralloc(szKtext);
@@ -208,7 +208,7 @@ void tb_initToolbar(HWND hwndDaddy)
 
 	nButton++;
     tbb[nButton].iBitmap = (int)(iIndex + STD_REDOW);
-    tbb[nButton].idCommand = IDM_DOAGAIN;
+    tbb[nButton].idCommand = IDM_REDO;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
     tbb[nButton].dwData = 0;

@@ -31,9 +31,9 @@ static void vdebug(int err, LPSTR fmt, va_list ap)
 }
 
 /*-----------------------------------------------------------
- * Debug()
+ * log_errorArgs()
  */
-EXPORT void Debug(int dbgmask, char *fmt, ...)
+EXPORT void log_errorArgs(int dbgmask, char *fmt, ...)
 {
 #ifdef _DEBUG
 	va_list ap;
@@ -201,7 +201,7 @@ char* s;
 		s = messagename;
 	}
 	
-	Debug(DEBUG_WINMESS,"%s(%d,%s,%d,0x%lx)",
+	log_errorArgs(DEBUG_WINMESS,"%s(%d,%s,%d,0x%lx)",
 		   funcname,hwnd,s,wParam,lParam);
 #endif
 }

@@ -21,6 +21,7 @@
 #include "editorconfiguration.h"
 #include "lineoperations.h"
 #include "winfo.h"
+#include "actions.h"
 
  /*--------------------------------------------------------------------------
  * LOCALS
@@ -315,6 +316,7 @@ EXPORT void undo_startModification(FTABLE *fp)
 	undo_allocateCommand(pUndoStack);
 	pCommand = undo_getCurrentCommand(pUndoStack);
 	initUndoCommand(fp, pCommand);
+	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
 }
 
 /*
@@ -429,7 +431,25 @@ EXPORT BOOL undo_redoLastModification(FTABLE* fp) {
 		undo_deallocateExecutedCommands(pStack);
 	}
 	_undoOperationInProgress = FALSE;
+	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
 	return TRUE;
+}
+
+/*
+ * Answer true, if redo is available for the given file.
+ */
+EXPORT BOOL undo_isRedoAvailable(FTABLE* fp) {
+	UNDO_STACK* pStack = UNDOPOI(fp);
+	return isUndoEnabled() && undo_getCurrentRedoCommand(pStack) != NULL;
+}
+
+
+/*
+ * Answer true, if undo is available for the given file. 
+ */
+EXPORT BOOL undo_isUndoAvailable(FTABLE* fp) {
+	UNDO_STACK* pStack = UNDOPOI(fp);
+	return isUndoEnabled() && undo_getCurrentCommand(pStack) != NULL;
 }
 
 /*--------------------------------------------------------------------------
@@ -457,6 +477,7 @@ EXPORT BOOL undo_lastModification(FTABLE *fp)
 		undo_deallocateExecutedCommands(pStack);
 	}
 	_undoOperationInProgress = FALSE;
+	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
 	return isUndoEnabled();
 }
 

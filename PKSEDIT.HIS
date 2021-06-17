@@ -1,5 +1,5 @@
 [files]
-"D:\tom\desktop\readme.txt", line 47: 0x2 0x3 -1 -1 -8 -31 1 2 1426 797
+"D:\tom\desktop\readme.txt", line 11: 0x0 0x1 -1 -1 -8 -31 1 2 1426 797
 [find]
 !ed
 !red
@@ -40,6 +40,7 @@
 !D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java
 !D:\dvltools\JetBrains\IntelliJ IDEA Community Edition 2019.3.4\IntelliJ IDEA 2020.2\bin\idea.properties
 !D:\source\pksedit\PKSEDIT.RC
+!D:\source\pksedit\newfile1.txt
 !D:\source\pksedit\FunctionTable.c
 !D:\tom\desktop\readme.txt
 [pathes]

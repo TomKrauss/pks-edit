@@ -598,6 +598,16 @@ extern BOOL undo_saveOperation(FTABLE* fp, LINE* lp, LINE* lpAnchor, int op);
  */
 extern BOOL undo_lastModification(FTABLE* fp);
 
+/*
+ * Answer true, if redo is available for the given file.
+ */
+extern BOOL undo_isRedoAvailable(FTABLE* fp);
+
+/*
+ * Answer true, if undo is available for the given file.
+ */
+extern BOOL undo_isUndoAvailable(FTABLE* fp);
+
 extern void macro_recordFunction(FTABLE* fp, int p);
 
 /*--------------------------------------------------------------------------

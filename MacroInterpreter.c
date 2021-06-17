@@ -376,44 +376,45 @@ void macro_stopRecordingFunctions()
 	_ccash.low  = 0;
 }
 
-/*--------------------------------------------------------------------------
- * macro_canExecuteFunction()
+/*
+ * Returns FALSE; if the function described by the function pointer cannot 
+ * be executed.
  */
-int macro_canExecuteFunction(int num, int warn)
-{
-	EDFUNC *	fup = &_edfunctab[num];
+int macro_isFunctionEnabled(EDFUNC* fup, int warn) {
+	FTABLE* fp = ft_getCurrentDocument();
 
-	if (fup->flags & EW_NEEDSCURRF) {
-#if defined(ATARI_ST)
-		if (_currwindow == 0)
-			return 0;
-#ifdef	ASSERT
-		if (ft_getCurrentDocument() == (FTABLE *) 0) {
-			EdAlert("oops: currwindow, but no file");
-			return 0;
-		}
-#endif
-#else
-		if (ft_getCurrentDocument() == 0) {
-			return 0;
-		}
-#endif
+	if (fup->flags & EW_NEEDSCURRF && fp == 0) {
+		return 0;
 	}
 
-	if ((fup->flags & EW_MODIFY) && (ft_getCurrentDocument()->documentDescriptor->workmode & O_RDONLY)) {
-		if (warn) {
-			ft_checkReadonlyWithError(ft_getCurrentDocument());
+	if ((fup->flags & EW_MODIFY) && (fp->documentDescriptor->workmode & O_RDONLY)) {
+		if (warn && (fp->documentDescriptor->workmode & O_RDONLY)) {
+			ft_checkReadonlyWithError(fp);
 		}
 		return 0;
 	}
 
-	if (fup->flags & EW_NEEDSBLK && !ft_checkSelection(ft_getCurrentDocument())) {
+	if (fup->flags & EW_NEEDSBLK && !ft_checkSelection(fp)) {
+		return 0;
+	}
+	if ((fup->flags & EW_REDO_AVAILABLE) && !undo_isRedoAvailable(fp)) {
+		return 0;
+	}
+	if ((fup->flags & EW_UNDO_AVAILABLE) && !undo_isUndoAvailable(fp)) {
 		if (warn) {
-			ft_checkSelectionWithError(ft_getCurrentDocument());
+			ft_checkSelectionWithError(fp);
 		}
 		return 0;
 	}
 	return 1;
+}
+
+/*--------------------------------------------------------------------------
+ * macro_canExecuteFunction()
+ */
+int macro_canExecuteFunction(int num, int warn) {
+	EDFUNC *	fup = &_edfunctab[num];
+	return macro_isFunctionEnabled(fup, warn);
 }
 
 /*---------------------------------*/

@@ -642,7 +642,7 @@ void ww_destroy(WINFO *wp)
 	wp->fp = NULL;
 	nId = wp->win_id;
 	if (!ll_delete((LINKED_LIST**)&_winlist,wp)) {
-		EdTRACE(Debug(DEBUG_ERR,"failed deleting window props"));
+		EdTRACE(log_errorArgs(DEBUG_ERR,"failed deleting window props"));
 		;
 	}
 
@@ -656,9 +656,9 @@ void ww_destroy(WINFO *wp)
 	nwindows--;
 	EdTRACE({
 		if (nwindows == 0 && _winlist)
-			Debug(DEBUG_ERR,"bad winlist");
+			log_errorArgs(DEBUG_ERR,"bad winlist");
 	});
-	action_commandEnablementChanged();
+	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
 }
 
 /*-----------------------------------------------------------
@@ -825,7 +825,7 @@ static int ww_updateWindowBounds(WINFO *wp, int w, int h) {
 
 	ww_setScrollCheckBounds(wp);
 
-	EdTRACE(Debug(DEBUG_TRACE,"SetWiSize to (%ld,%ld,%ld,%ld)",
+	EdTRACE(log_errorArgs(DEBUG_TRACE,"SetWiSize to (%ld,%ld,%ld,%ld)",
 		   wp->minln,wp->mincol,wp->maxln,wp->maxcol));
 	return 1;
 }
@@ -1004,7 +1004,7 @@ static WINFUNC WorkAreaWndProc(
 				break;
 			}
 		} else {
-			EdTRACE(Debug(DEBUG_TRACE,"WM_SLIDE in WorkWndProc without file"));
+			EdTRACE(log_errorArgs(DEBUG_TRACE,"WM_SLIDE in WorkWndProc without file"));
 		}
 		return 0;
 
@@ -1036,7 +1036,7 @@ static WINFUNC WorkAreaWndProc(
 			macro_selectDefaultBindings();
 	    }
 	    else {
-			EdTRACE(Debug(DEBUG_TRACE,
+			EdTRACE(log_errorArgs(DEBUG_TRACE,
 				"WM_SETFOCUS in WorkWndProc without file"));
 	    }
 	    return 0;
@@ -1046,7 +1046,7 @@ static WINFUNC WorkAreaWndProc(
 			if (wp)
 				wt_tcursor(wp,0);
 		} else {
-			EdTRACE(Debug(DEBUG_TRACE,"WM_KILLFOCUS in WorkWndProc without file"));
+			EdTRACE(log_errorArgs(DEBUG_TRACE,"WM_KILLFOCUS in WorkWndProc without file"));
 		}
 		return 0;
 
@@ -1137,7 +1137,7 @@ static WINFUNC RulerWndProc(
 			if ((wp = (WINFO *)GetWindowLongPtr(hwnd,0)) != 0) {
 		   		draw_ruler(wp);
 			} else {
-				EdTRACE(Debug(DEBUG_TRACE,"WM_PAINT in RulerWndProc without file"));
+				EdTRACE(log_errorArgs(DEBUG_TRACE,"WM_PAINT in RulerWndProc without file"));
 			}
 			break;
 
@@ -1235,7 +1235,7 @@ static WINFUNC LineNumberWndProc(
 			draw_lineNumbers(wp);
 		}
 		else {
-			EdTRACE(Debug(DEBUG_TRACE, "WM_PAINT in LineNumberProc without WINFO pointer"));
+			EdTRACE(log_errorArgs(DEBUG_TRACE, "WM_PAINT in LineNumberProc without WINFO pointer"));
 		}
 		break;
 

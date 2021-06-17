@@ -139,7 +139,7 @@ long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb)
 static long sl_calcnewmin(long da,long max,long val)
 {	register long b;
 
-	EdTRACE(Debug(DEBUG_FUNCS,"sl_calcnewmin(%ld,%ld)",da,max));
+	EdTRACE(log_errorArgs(DEBUG_FUNCS,"sl_calcnewmin(%ld,%ld)",da,max));
 	max--;
 	if (da < 0L) {
 		if ((b = val + da) < 0L) {
@@ -168,7 +168,7 @@ int sl_scrollwinrange(WINFO *wp,long *DY, long *DX)
 	FTABLE *fp = FTPOI(wp);
 
 	dy = *DY, dx = *DX;
-	EdTRACE(Debug(DEBUG_FUNCS,"sl_scrollwinrange(%ld,%ld) fp = %lx",
+	EdTRACE(log_errorArgs(DEBUG_FUNCS,"sl_scrollwinrange(%ld,%ld) fp = %lx",
 				 dy,dx,(long)(intptr_t)fp));
 	if (dx) {
 		val = sl_calcnewmin(dx,MAXCOL,wp->mincol);

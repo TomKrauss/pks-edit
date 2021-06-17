@@ -83,7 +83,7 @@ static int mouse_selectionDrag(WINFO* wp, int x, int y) {
 	FTABLE* fp = wp->fp;
 
 	pData->c2 = fp->caret;
-	Debug(DEBUG_ERR, "x == %d -> offset == %d", x, pData->c2.offset);
+	log_errorArgs(DEBUG_ERR, "x == %d -> offset == %d", x, pData->c2.offset);
 	if ((pData->c1.linePointer == pData->c2.linePointer && pData->c1.offset < pData->c2.offset) || 
 		(pData->c1.linePointer != pData->c2.linePointer && pData->start.y < y)) {
 		bl_syncSelectionWithCaret(fp, &pData->c1, MARK_START | MARK_NO_HIDE, NULL);

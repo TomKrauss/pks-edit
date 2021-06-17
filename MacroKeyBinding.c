@@ -819,10 +819,6 @@ void macro_assignAcceleratorTextOnMenu(HMENU hMenu)
 	char *	d;
 	MACROREF *mp;
 
-	if (_fkeysdirty) {
-		fkey_updateTextOfFunctionKeys(-1);
-	}
-
 	wCount = GetMenuItemCount(hMenu);
 	for (wItem = 0; wItem < wCount; wItem++) {
 		if ((wID = GetMenuItemID(hMenu, wItem)) <= 0) {

@@ -6,11 +6,13 @@
 #define	EW_MODIFY		0x1		/* function modifies text */
 #define	EW_NOCASH		0x2		/* dont EdMacroRecord them */
 #define	EW_NEEDSCURRF	0x4		/* needs a current file */
-#define	EW_UNDOFLSH	0x8		/* flush undo buffer before */
-#define	EW_NEEDSBLK	0x10		/* needs a current text block */
-#define	EW_HASFORM	0x20		/* has a formula */
+#define	EW_UNDOFLSH		0x8		/* flush undo buffer before */
+#define	EW_NEEDSBLK		0x10		/* needs a current text block */
+#define	EW_HASFORM		0x20		/* has a formula */
 #define	EW_CCASH		0x40		/* put them into char buffer */
 #define	EW_MULTI		0x80		/* has a Multiplier */
+#define EW_UNDO_AVAILABLE 0x100	/* undo must be possible */
+#define EW_REDO_AVAILABLE 0x200	/* redo must be possible */
 
 #define	MAXMOUSEBIND	32
 #define	MAXMAPMOUSE	MAXMOUSEBIND
@@ -242,7 +244,7 @@ typedef union c_seq {
 typedef struct edfunc {
 	int	(*execute)();		/* the actual callback to invoke */
 	unsigned char id;		/* logical id for referencing it */
-	unsigned char flags;	/* see above */
+	int		 flags;			/* see EW_... flags above */
 } EDFUNC;
 
 typedef struct macro {
@@ -422,6 +424,11 @@ extern int 		macro_saveMacrosAndDisplay(char* macroname);
 extern int 		macro_saveMouseBindingsAndDisplay(void);
 extern int 		macro_saveKeyBindingsAndDisplay(void);
 extern int 		macro_saveMenuBindingsAndDisplay(void);
+/*
+ * Returns FALSE; if the function described by the function pointer cannot
+ * be executed.
+ */
+extern int macro_isFunctionEnabled(EDFUNC* fup, int warn);
 
 /*------------------------------------------------------------
  * macro_autosaveAllBindings()

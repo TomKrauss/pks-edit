@@ -42,29 +42,31 @@ int doc_columnChanged(void);
 int macro_toggleRecordMaco(void);
 int bl_setColumnSelection(FTABLE *fp);
 
+typedef enum { OP_EDIT_MODE, OP_DISPLAY_MODE, OP_MACRO, OP_OPTIONS} OP_FLAGTYPE;
+
 static struct optiontab {
     int  flgkeynr;
     int  flag;
-    int  local;
+	OP_FLAGTYPE  op_type;
     int  (*func)();
 } _optiontab[] = {
-     IDD_FKFLG1,    WM_INSERT,     2,   doctypes_documentTypeChanged,
-     IDD_FKFLG2,    WM_AUTOINDENT, 2,   doctypes_documentTypeChanged,
-     IDD_FKFLG3,    WM_AUTOWRAP,   2,   doctypes_documentTypeChanged,
-     IDD_FKFLG4,    WM_AUTOFORMAT, 2,   doctypes_documentTypeChanged,
-     IDD_FKFLG5,    WM_SHOWMATCH,  2,   doctypes_documentTypeChanged,
-     IDD_FKFLG6,    WM_BRINDENT,   2,   doctypes_documentTypeChanged,
-     IDD_FKFLG7,    WM_ABBREV,     2,   doctypes_documentTypeChanged,
-     IDD_FKFLG8,    BLK_COLUMN_SELECTION,    2,   doc_columnChanged,
-     IDD_FKFLG9,    O_RDONLY,      2,   doctypes_documentTypeChanged,
-     IDD_FKFLG10,   WM_OEMMODE,    2,   doctypes_documentTypeChanged,
-     IDD_FKFLG10+1, SHOWOEM,       1,   doctypes_documentTypeChanged,
-     IDD_FKFLG10+2, 1,            -1,   macro_toggleRecordMaco,
-     0,             SHOWCONTROL,   1,   doctypes_documentTypeChanged,
-     0,             SHOWSTATUS,    1,   doctypes_documentTypeChanged,
-     0,             SHOWHEX,       1,   doctypes_documentTypeChanged,
-     0,             SHOWRULER,     1,   doctypes_documentTypeChanged,
-     0,             SHOWATTR,      1,   doctypes_documentTypeChanged,
+     IDD_FKFLG1,    WM_INSERT,     OP_EDIT_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG2,    WM_AUTOINDENT, OP_EDIT_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG3,    WM_AUTOWRAP,   OP_EDIT_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG4,    WM_AUTOFORMAT, OP_EDIT_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG5,    WM_SHOWMATCH,  OP_EDIT_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG6,    WM_BRINDENT,   OP_EDIT_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG7,    WM_ABBREV,     OP_EDIT_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG8,    BLK_COLUMN_SELECTION,  OP_EDIT_MODE,   doc_columnChanged,
+     IDD_FKFLG9,    O_RDONLY,      OP_EDIT_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG10,   WM_OEMMODE,    OP_EDIT_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG10+1, SHOWOEM,       OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG10+2, 1,            OP_MACRO,   macro_toggleRecordMaco,
+     0,             SHOWCONTROL,   OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
+     0,             SHOWSTATUS,    OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
+     0,             SHOWHEX,       OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
+     0,             SHOWRULER,     OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
+     0,             SHOWATTR,      OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
      -1
 };
 
@@ -87,7 +89,7 @@ int doctypes_documentTypeChanged(void)
 
 	SendMessage(wp->edwin_handle,WM_EDWINREORG,0,0L);
 
-	action_commandEnablementChanged();
+	action_commandEnablementChanged((ACTION_CHANGE_TYPE) {0,0,1,-1});
 	return 1;
 }
 
@@ -107,35 +109,35 @@ static int doc_columnChanged(void)
 }
 	
 /*--------------------------------------------------------------------------
- * OpLocalAdr()
+ * op_getFlagToToggle()
  */
-static int *OpLocalAdr(int local)
+static int *op_getFlagToToggle(OP_FLAGTYPE flagType)
 {	FTABLE *fp;
 	
-	if (local > 0) {
+	if (flagType != OP_MACRO && flagType != OP_OPTIONS) {
 		if ((fp = ft_getCurrentDocument()) != 0) {
 			DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
 			
-			if (local == 2)
+			if (flagType == OP_EDIT_MODE)
 				return &linp->workmode;
-			if (local == 1)
+			if (flagType == OP_DISPLAY_MODE)
 				return &linp->dispmode;
 		}
 	}
 	else {
-		return (local == -1) ? &_recording : &(GetConfiguration()->options);
+		return (flagType == OP_MACRO) ? &_recording : &(GetConfiguration()->options);
 	}
 	return (int*)0;
 }
 
 /*--------------------------------------------------------------------------
- * ChangeFlag()
+ * op_changeFlag()
  */
-static void ChangeFlag(struct optiontab *op,int dofunc)
+static void op_changeFlag(struct optiontab *op, int dofunc)
 {	register state = 0;
 	int *flg;
 	
-	if ((flg = OpLocalAdr(op->local)) != 0) {
+	if ((flg = op_getFlagToToggle(op->op_type)) != 0) {
 		if (*flg & op->flag) {
 			state = 1;
 		}
@@ -157,21 +159,21 @@ BOOL op_defineOption(long nFlag)
 {
 	int	*pOpt;
 
-	if ((pOpt = OpLocalAdr(HIWORD(nFlag))) != 0) {
+	if ((pOpt = op_getFlagToToggle(HIWORD(nFlag))) != 0) {
 		return *pOpt & LOWORD(nFlag);
 	}
 	return 0;
 }
 
 /*--------------------------------------------------------------------------
- * ToggleOption()
+ * op_toggleOption()
  */
-static int ToggleOption(struct optiontab *op)
+static int op_toggleOption(struct optiontab *op)
 {    int *flg;
 
-	if ((flg = OpLocalAdr(op->local)) != 0) {
+	if ((flg = op_getFlagToToggle(op->op_type)) != 0) {
 		*flg ^= op->flag;
-		ChangeFlag(op,1);
+		op_changeFlag(op,1);
 		return 1;
 	}
 	return 0;
@@ -183,11 +185,11 @@ static int ToggleOption(struct optiontab *op)
 int EdOptionToggle(long par)
 {	struct optiontab *op;
 	int flag = LOWORD(par);
-	int local = (int)(short)HIWORD(par);
+	OP_FLAGTYPE local = (OP_FLAGTYPE)(short)HIWORD(par);
 
 	for (op = _optiontab; op->flgkeynr >= 0;  op++)
-		if (op->flag == flag && op->local == local)
-			return ToggleOption(op);
+		if (op->flag == flag && op->op_type == local)
+			return op_toggleOption(op);
 		
 	return 0;
 }
@@ -206,11 +208,11 @@ EXPORT int op_onOptionWidgetSelected(int toggle)
 				 * function itself
 				 */
 				EdOptionToggle(
-					MAKELONG(op->flag,op->local));
+					MAKELONG(op->flag,op->op_type));
 			} else {
 				return macro_executeFunction(
 					FUNC_EdOptionToggle,
-						MAKELONG(op->flag,op->local),
+						MAKELONG(op->flag,op->op_type),
 						0L,(LPSTR)0,(LPSTR)0, (LPSTR)0);
 			}
           }
@@ -226,7 +228,7 @@ EXPORT void op_updateall(void)
 {   struct optiontab *op;
 
 	for (op = _optiontab; op->flgkeynr >= 0; op++) {
-     	ChangeFlag(op,0);
+     	op_changeFlag(op,0);
 	}
 }
 

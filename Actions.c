@@ -15,6 +15,7 @@
 
 #include "actions.h"
 #include "lineoperations.h"
+#include "edierror.h"
 #include "trace.h"
 #include "edfuncs.h"
 #include "arraylist.h"
@@ -26,32 +27,30 @@ static ARRAY_LIST* _allActions;
  * One of the flags defining the enablement of a command has changed. Recalculate the action enablement
  * and notify all action bindings of the change.
  */
-void action_commandEnablementChanged() {
+void action_commandEnablementChanged(ACTION_CHANGE_TYPE type) {
 	// for now: on a long term run - make this part of the action protocol.
-	op_updateall();
+	if (type.act_optionsChanged) {
+		op_updateall();
+	}
 	if (_allActions == NULL) {
 		return;
 	}
 	ARRAY_ITERATOR pIterator = arraylist_iterator(_allActions);
-	BOOL bHasFile = ft_getCurrentDocument() != NULL;
-	BOOL bHasSelection = ft_checkSelection(ft_getCurrentDocument());
 	while (pIterator.i_buffer < pIterator.i_bufferEnd) {
 		ACTION* pAction = *pIterator.i_buffer;
+		if (type.act_commandId >= 0 && pAction->ac_commandId != type.act_commandId) {
+			continue;
+		}
 		EDFUNC* pFunc = &_edfunctab[_cmdseqtab[pAction->ac_commandId].c_functionDef.funcnum];
-		int flags = pFunc->flags;
-		BOOL bEnabled = TRUE;
-		if ((flags & EW_NEEDSCURRF) && !bHasFile) {
-			bEnabled = FALSE;
-		}
-		if ((flags & EW_NEEDSBLK) && !bHasSelection) {
-			bEnabled = FALSE;
-		}
-		if (bEnabled != pAction->ac_enabled) {
-			pAction->ac_enabled = bEnabled;
-			for (int j = 0; j < DIM(pAction->ac_bindings); j++) {
-				PROPERTY_CHANGE_LISTENER pListener = pAction->ac_bindings[j].ab_propertyChanged;
-				if (pListener) {
-					(*pListener)(&pAction->ac_bindings[j], PC_ENABLED, bEnabled);
+		if (type.act_commandEnablement) {
+			int  bEnabled = macro_isFunctionEnabled(pFunc, 0);
+			if (bEnabled != pAction->ac_enabled) {
+				pAction->ac_enabled = bEnabled;
+				for (int j = 0; j < DIM(pAction->ac_bindings); j++) {
+					PROPERTY_CHANGE_LISTENER pListener = pAction->ac_bindings[j].ab_propertyChanged;
+					if (pListener) {
+						(*pListener)(&pAction->ac_bindings[j], PC_ENABLED, bEnabled);
+					}
 				}
 			}
 		}
@@ -59,10 +58,35 @@ void action_commandEnablementChanged() {
 	}
 }
 
+/*
+ * Deregister all action property change listeners of a given type. 
+ */
+void action_deregisterAllActionsWithListener(PROPERTY_CHANGE_LISTENER aListener) { 
+	if (_allActions == NULL) {
+		return;
+	}
+	ARRAY_ITERATOR pIterator = arraylist_iterator(_allActions);
+	while (pIterator.i_buffer < pIterator.i_bufferEnd) {
+		ACTION* pAction = *pIterator.i_buffer;
+		for (int j = 0; j < DIM(pAction->ac_bindings); j++) {
+			if (pAction->ac_bindings[j].ab_propertyChanged == aListener) {
+				pAction->ac_bindings[j].ab_propertyChanged = NULL;
+			}
+		}
+		pIterator.i_buffer++;
+	}
+}
+
+static void action_reevaluate(ACTION * pAction, ACTION_BINDING* pBinding) {
+	EDFUNC* pFunc = &_edfunctab[_cmdseqtab[pAction->ac_commandId].c_functionDef.funcnum];
+	pAction->ac_enabled  = macro_isFunctionEnabled(pFunc, 0);
+	(*pBinding->ab_propertyChanged)(pBinding, PC_ENABLED, pAction->ac_enabled);
+}
+
 /**
  * Register an action binding for a command.
  */
-void action_registerAction(int commandId, ACTION_BINDING binding) {
+void action_registerAction(int commandId, ACTION_BINDING binding, BOOL bEvaluate) {
 	if (_allActions == NULL) {
 		_allActions = arraylist_create(33);
 	}
@@ -73,10 +97,13 @@ void action_registerAction(int commandId, ACTION_BINDING binding) {
 			for (int j = 0; j < DIM(pAction->ac_bindings); j++) {
 				if (pAction->ac_bindings[j].ab_propertyChanged == NULL) {
 					pAction->ac_bindings[j] = binding;
+					if (bEvaluate) {
+						action_reevaluate(pAction, &pAction->ac_bindings[j]);
+					}
 					return;
 				}
 			}
-			EdTRACE(Debug(DEBUG_ERR, "No space left for action binding. Maximum 3 bindings allowed."));
+			EdTRACE(log_errorArgs(DEBUG_ERR, "No space left for action binding. Maximum 3 bindings allowed."));
 			return;
 		}
 	}
@@ -85,4 +112,7 @@ void action_registerAction(int commandId, ACTION_BINDING binding) {
 	pNew->ac_commandId = commandId;
 	pNew->ac_enabled = -1;
 	pNew->ac_bindings[0] = binding;
+	if (bEvaluate) {
+		action_reevaluate(pNew, pNew->ac_bindings);
+	}
 }

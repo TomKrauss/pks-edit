@@ -52,7 +52,6 @@ extern void 	status_wh(WORD *width, WORD *height);
 extern void 	tb_wh(WORD *width, WORD *height);
 extern void 	init_readConfigFiles(void);
 extern int 		clp_setdata(int whichBuffer);
-extern void		menu_createActionBindings(HMENU hMenu);
 extern HMENU 	menu_getmenuforcontext(char *pszContext);
 extern BOOL 	init_initializeVariables(void);
 extern void		help_quitHelpSystem(void);
@@ -826,7 +825,6 @@ void SetMenuFor(char *pszContext)
 	if (hNew == hCurrentMenu) {
 		return;
 	}
-	menu_createActionBindings(hCurrentMenu);
 	SendMessage(hwndClient, WM_MDISETMENU, (WPARAM)hNew, 0);
 	DrawMenuBar(hwndFrame);
 }

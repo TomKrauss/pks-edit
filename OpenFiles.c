@@ -339,7 +339,7 @@ void ft_deleteautosave(FTABLE *fp)
  */
 void ft_destroy(FTABLE *fp)
 {
-	EdTRACE(Debug(DEBUG_TRACE,"ft_destroy File 0x%lx",fp));
+	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_destroy File 0x%lx",fp));
 
 	ft_deleteautosave(fp);
 	ft_bufdestroy(fp);
@@ -367,7 +367,7 @@ FTABLE *ft_new(void)
 		ll_delete((LINKED_LIST**)&_filelist,fp);
 		return 0;
 	}
-	EdTRACE(Debug(DEBUG_TRACE,"ft_new File 0x%lx",fp));
+	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_new File 0x%lx",fp));
 
 	return fp;
 }
@@ -555,9 +555,9 @@ int ft_select(FTABLE *fp)
 	if (fp == _currentFile) {
 		return 1;
 	}
-	EdTRACE(Debug(DEBUG_TRACE,"ft_select File 0x%lx",fp));
+	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_select File 0x%lx",fp));
 	_currentFile = fp;
-	action_commandEnablementChanged();
+	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ALL);
 	if (fp == 0) {
 		return 0;
 	}

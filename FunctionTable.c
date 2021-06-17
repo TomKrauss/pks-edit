@@ -127,7 +127,7 @@ EDFUNC _edfunctab[] = {
 	EdWinArrange  , '!',	0,
 	EdWindowRegSet, '!',	EW_NEEDSCURRF | 0,
 	EdRangeShift  , '!',	EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,
-	EdUndo        , '!',	EW_MODIFY | EW_NEEDSCURRF | 0,
+	EdUndo        , '!',	EW_MODIFY | EW_NEEDSCURRF | EW_UNDO_AVAILABLE,
 	EdFilesCompare, '!',	EW_NEEDSCURRF | 0,
 	EdScrollScreen, '!',	EW_NEEDSCURRF | 0,
 	EdScrollCursor, '!',	EW_NEEDSCURRF | 0,
@@ -159,7 +159,7 @@ EDFUNC _edfunctab[] = {
 	EdShowClipboard, '!',	0,
 	EdMenuTrackPopup, '!',	EW_NEEDSCURRF | 0,
 	EdBlockXtndMode, '!',	EW_NEEDSCURRF | 0,
-	EdRedo, '!', EW_MODIFY | EW_NEEDSCURRF | 0
+	EdRedo, '!', EW_MODIFY | EW_NEEDSCURRF | EW_REDO_AVAILABLE
 };
 
 int _nfuncs = sizeof(_edfunctab)/sizeof(_edfunctab[0]);

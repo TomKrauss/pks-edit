@@ -320,6 +320,24 @@ EXPORT void render_paintWindow(WINFO* wp)
 	render_paintWindowParams(wp, wp->minln, wp->maxln, 1);
 }
 
+/*
+ * Invalidate an area of the work window to cause a repaint and possibly
+ * "associated" windows.
+ */
+static void render_invalidateRect(WINFO* wp, RECT* pRect) {
+	RECT r2;
+	InvalidateRect(wp->ww_handle, pRect, 0);
+	if (wp->lineNumbers_handle != NULL) {
+		if (pRect) {
+			GetClientRect(wp->lineNumbers_handle, &r2);
+			pRect->right = r2.right;
+		}
+		InvalidateRect(wp->lineNumbers_handle, pRect, 0);
+	}
+
+}
+
+
 /*--------------------------------------------------------------------------
  * render_repaintFromLineTo()
  */
@@ -334,8 +352,7 @@ EXPORT void render_repaintFromLineTo(WINFO* wp, long minln, long maxln)
 		if (maxln < wp->maxln - 1) {
 			rect.bottom = rect.top + (maxln - minln + 1) * wp->cheight;
 		}
-		InvalidateRect(wp->ww_handle, &rect, 0);
-
+		render_invalidateRect(wp, &rect);
 	}
 }
 
@@ -356,8 +373,8 @@ EXPORT void render_repaintCurrentFile(void)
 EXPORT void render_repaintAllForFile(FTABLE *fp)
 {
 	WINFO* wp = WIPOI(fp);
-	if (wp != NULL && wp->edwin_handle != NULL) {
-		InvalidateRect(wp->edwin_handle, NULL, 1);
+	if (wp != NULL && wp->ww_handle != NULL) {
+		render_invalidateRect(wp, NULL);
 	}
 }
 
@@ -382,7 +399,7 @@ EXPORT void render_repaintLinePart(FTABLE *fp, long ln, int col1, int col2)
 		r.right = r.left + (col2 - col1) * wp->cwidth;
 		r.top += wp->cheight * (ln - wp->minln);
 		r.bottom = r.top + wp->cheight;
-		InvalidateRect(wp->ww_handle, &r, 0);
+		render_invalidateRect(wp, &r);
 	}
 }
 

@@ -14,6 +14,7 @@
 #include <commctrl.h>
 #include <direct.h>
 #include <string.h>
+#include <ShlObj_core.h>
 
 #include "alloc.h"
 #include "trace.h"
@@ -51,6 +52,40 @@ extern char *	_datadir;
 static char *	sTitleSpec;
 
 char _fseltarget[EDMAXPATHLEN];
+
+static INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData) {
+	char szDir[MAX_PATH];
+
+	switch (uMsg)
+	{
+	case BFFM_INITIALIZED:
+		_getcwd(szDir, MAX_PATH);
+		SendMessage(hwnd, BFFM_SETSELECTION, TRUE, (LPARAM)szDir);
+		break;
+	}
+
+	return 0;
+}
+
+/*
+ * Select a folder using a browse for folder dialog. Return TRUE,
+ * if the folder was selected. pResult will contain the resulting folder name.
+ */
+BOOL fsel_selectFolder(char* pTitle, char* pResult) {
+	BROWSEINFO browseinfo;
+	memset(&browseinfo, 0, sizeof browseinfo);
+	browseinfo.hwndOwner = hwndClient;
+	browseinfo.lpszTitle = pTitle;
+	browseinfo.ulFlags = BIF_EDITBOX | BIF_RETURNONLYFSDIRS ;
+	browseinfo.lpfn = BrowseCallbackProc;
+	PIDLIST_ABSOLUTE pPids = SHBrowseForFolder(&browseinfo);
+	if (pPids == NULL) {
+		return FALSE;
+	}
+	SHGetPathFromIDList(pPids, pResult);
+	CoTaskMemFree(pPids);
+	return TRUE;
+}
 
 /*--------------------------------------------------------------------------
  * fsel_changeDirectory()
