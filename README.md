@@ -4,6 +4,15 @@ The famous arcade times text editor from Pahlen & Krauß.
 
 ## Release Notes
 
+### 1.8.1
+
+* Improved
+- Find in Files displays a folder browser now to select a path
+- Actions are now consistently enabled/disabled in the PKS Edit UI (also the virtual function keyboard etc...)
+
+* Fix
+- A repaint bug in the line number area caused linenumbers to not update correctly, when lines where inserted or deleted.
+
 ### 1.8.0
 
 * New

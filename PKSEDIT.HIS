@@ -1,5 +1,5 @@
 [files]
-"D:\tom\desktop\readme.txt", line 11: 0x0 0x1 -1 -1 -8 -31 1 2 1426 797
+"D:\tom\desktop\readme.txt", line 1: 0x0 0x1 -1 -1 -8 -31 1 2 1426 797
 [find]
 !ed
 !red
@@ -48,5 +48,5 @@
 !D:\dvltools\pksedit\pks_sys\*.LIN
 !D:\source\pksedit\pks_sys\*.LIN
 !D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
-!D:\source\pksedit\pks_sys\*.MAC
 !D:\source\pksedit\*.*
+!D:\source\pksedit\pks_sys\*.MAC

@@ -66,6 +66,7 @@
 #define	MMSHOWST 105	
 #define	MMSTATHE 106	
 #define	MMSHOWAT 107	
+#define	MMSHOWLINENUMBERS 108
 
 #define	IDM_TILE			111
 #define	IDM_CASCADE		112

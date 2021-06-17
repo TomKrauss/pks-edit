@@ -29,13 +29,6 @@
 #include "xdialog.h"
 #include "pksedit.h"
 
-/*-----------------------*/
-/* EXTERNALS			*/
-/*-----------------------*/
-extern LINE *		ln_relgo(FTABLE *fp, long l);
-extern LINE *		ln_crelgo(FTABLE *fp, long l);
-extern int 		ft_checkSelection(FTABLE *fp);
-
 extern long		_multiplier;
 
 /*--------------------------------------------------------------------------

@@ -210,6 +210,9 @@ static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam
 			ww = GetWindowWord(hwnd,GWW_CUSTOMVAL);
 			GetClientRect(hwnd, &rc);
 			hdc = BeginPaint(hwnd, &ps);
+			if (!IsWindowEnabled(hwnd)) {
+				ww |= ODS_DISABLED;
+			}
 			cust_paintButton(hdc, &rc, hwnd, ww);
 			EndPaint(hwnd,&ps);
 			return 0;

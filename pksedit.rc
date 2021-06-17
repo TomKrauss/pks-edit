@@ -962,6 +962,7 @@ BEGIN
         MENUITEM "Tabulator&leiste anzeigen\a", MMSHOWLI
         MENUITEM "Alte&rnative Statuszeile verwenden\a", MMSTATHE
         MENUITEM "Te&xtattribute anzeigen\a",   MMSHOWAT
+        MENUITEM "Zeilennummern &anzeigen",     MMSHOWLINENUMBERS
         MENUITEM SEPARATOR
         POPUP "&Sonstige Optionen"
         BEGIN
@@ -1143,6 +1144,10 @@ BEGIN
     END
 
     DLGFKEYSET, DIALOG
+    BEGIN
+    END
+
+    DLGGOTOLINE, DIALOG
     BEGIN
     END
 

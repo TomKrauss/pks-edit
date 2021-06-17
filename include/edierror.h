@@ -5,6 +5,10 @@
 #include "edtypes.h"
 
 extern void error_showErrorById(int nId, ...);
+
+/**
+ * 
+ */
 extern int EdOptionToggle(long option);
 
 /*------------------------------------------------------------

@@ -792,6 +792,9 @@ int EdCharDelete(int control)
 		if (!ln_modify(fp,lp,o2,o1))
 			return 0;
 	} else {
+		if (o1 == o2) {
+			return 0;
+		}
 		if (!bl_undoIntoUnqBuffer(lp1, lp, (int) o1, (int) o2, (int) 0)) {
 			return 0;
 		}

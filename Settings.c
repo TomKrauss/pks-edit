@@ -66,7 +66,8 @@ static struct optiontab {
      0,             SHOWSTATUS,    OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
      0,             SHOWHEX,       OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
      0,             SHOWRULER,     OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
-     0,             SHOWATTR,      OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
+	 0,             SHOWATTR,      OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
+	 0,             SHOWLINENUMBERS,OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
      -1
 };
 
@@ -194,6 +195,13 @@ int EdOptionToggle(long par)
 	return 0;
 }
 
+/*
+ * Start the recorder. 
+ */
+int op_startMacroRecording() {
+	return EdOptionToggle(MAKELONG(1, OP_MACRO));
+}
+
 /*--------------------------------------------------------------------------
  * op_checktoggles()
  * One of the "option" widgets was selected.
@@ -220,15 +228,41 @@ EXPORT int op_onOptionWidgetSelected(int toggle)
 	return 0;
 }
 
+/*
+ * The enablement of the set edit or set display mode flags has changed. 
+ */
+static void op_propertyChanged(ACTION_BINDING* pBinding, PROPERTY_CHANGE_TYPE type, int newValue) {
+	struct optiontab* op;
+
+	if (type != PC_ENABLED) {
+		return;
+	}
+	for (op = _optiontab; op->flgkeynr >= 0; op++) {
+		if (op->op_type == OP_DISPLAY_MODE || op->op_type == OP_EDIT_MODE) {
+			HWND hwnd = GetDlgItem(hwndFkeys, op->flgkeynr);
+			if (!newValue) {
+				op_changeFlag(op, 0);
+			}
+			EnableWindow(hwnd, newValue);
+		}
+	}
+	InvalidateRect(hwndFkeys, NULL, FALSE);
+}
+
 /*--------------------------------------------------------------------------
  * op_updateall()
  * The options have changed. Update all UI elements depending on an option.
  */
 EXPORT void op_updateall(void)
 {   struct optiontab *op;
+	static BOOL actionListenerRegistered = FALSE;
 
 	for (op = _optiontab; op->flgkeynr >= 0; op++) {
      	op_changeFlag(op,0);
+	}
+	if (!actionListenerRegistered) {
+		actionListenerRegistered = TRUE;
+		action_registerAction(CMD_EdOptionToggleBLK_COLUMN_SELECTION, (ACTION_BINDING) { op_propertyChanged , 0L, 0}, TRUE);
 	}
 }
 

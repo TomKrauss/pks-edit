@@ -85,6 +85,11 @@ int				_lastinsertedmac = -1;
 int				_macedited;
 int				_fkeysdirty;
 MACROREF			currentSelectedMacro;
+/*
+ * Start the recorder.
+ */
+extern int op_startMacroRecording();
+
 
 static FSELINFO 	_seqfsel = {	"","PKSEDIT.MAC", "*.MAC" };
 static int 		_nkeys = MAXMAPKEY;
@@ -559,7 +564,7 @@ int macro_readWriteWithFileSelection(int wrflag)
  */
 int EdMacroRecord(void)
 {
-	return EdOptionToggle(MAKELONG(1,-1));
+	return op_startMacroRecording();
 }
 
 /*---------------------------------
