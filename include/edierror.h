@@ -56,12 +56,6 @@ extern void linetoolong(void);
 
 #define	E_SERIOUSC		'!'
 
-#define	OPT_WMODE			(2L<<16)
-#define	OPT_DMODE			(1L<<16)
-#define	OPT_GLOBSET		(0L)
-#define  OPT_RECORD		(-1L<<16L)
-
-
 /*----- display modes --------------*/
 
 #define	SHOWCONTROL		            0x1

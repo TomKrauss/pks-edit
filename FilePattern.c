@@ -112,7 +112,7 @@ int string_matchFilename(char *string,char *pattern)
 	string_convertToUpperCase(pszStringCopy);
 	string_convertToUpperCase(pszPatCopy);
 	pszToken = strtok(pszPatCopy, ",;");
-	BOOL matchedAny = 1;
+	BOOL matchedAny = 0;
 	while(pszToken) {
 		BOOL invertMatch = 0;
 		char* pszMatch = pszToken;
@@ -125,6 +125,8 @@ int string_matchFilename(char *string,char *pattern)
 				matchedAny = 0;
 				break;
 			}
+			matchedAny = 1;
+		} else if (invertMatch) {
 			matchedAny = 1;
 		}
 		pszToken = strtok((char *)0, ",;");

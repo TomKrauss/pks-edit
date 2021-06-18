@@ -13,7 +13,7 @@
 #include <windows.h>
 #include <string.h>
 #include "lineoperations.h"
-#include "edhist.h"
+#include "history.h"
 #include "stringutil.h"
 
 extern HMENU his_getHistoryMenu(int *pnPosition, int *piCmd);
@@ -30,6 +30,7 @@ static struct histdes {
 	struct history* hist;
 } _histsavings[] = {
 	"[find]",		&_histories[SEARCH_PATTERNS],
+	"[filePatterns]",& _histories[FILE_PATTERNS],
 	"[replace]",	&_histories[SEARCH_AND_REPLACE],
 	"[open]",		&_histories[OPEN_FILES],
 	"[pathes]",		&_histories[PATHES],
@@ -40,7 +41,7 @@ void win_changeMenuItem(HMENU hMenu, int nPosition, int nCmd, WORD wFlags,
 	LPCSTR lpszItem);
 
 /*---------------------------------*/
-/* hist_enq()					*/
+/* hist_saveString()					*/
 /*---------------------------------*/
 static void hist_addEntry(HISTORY* h, char* string) {
 	char* s;
@@ -85,9 +86,9 @@ static void hist_addEntry(HISTORY* h, char* string) {
 
 
 /*---------------------------------*/
-/* hist_enq()					*/
+/* hist_saveString()					*/
 /*---------------------------------*/
-EXPORT void hist_enq(HISTORY_TYPE type, char *string) {
+EXPORT void hist_saveString(HISTORY_TYPE type, char *string) {
 	HISTORY* h = &_histories[type];
 
 	char* s;
@@ -133,7 +134,7 @@ EXPORT void hist_enq(HISTORY_TYPE type, char *string) {
 /*------------------------------------------------------------
  * hist_combo()
  */
-EXPORT void hist_2combo(HWND hDlg, WORD nItem, char *firstitem, HISTORY_TYPE type)
+EXPORT void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type)
 {	int  i;
 	char *p,*q = 0;
 	HISTORY* hp = &_histories[type];
@@ -150,14 +151,15 @@ EXPORT void hist_2combo(HWND hDlg, WORD nItem, char *firstitem, HISTORY_TYPE typ
 		}
 		i = (i <= 0) ? MAXHIST-1 : i-1;
 	} while (i != hp->where);
-	if (q && firstitem)
-		lstrcpy(firstitem,q);
+	if (q) {
+		SetDlgItemText(hDlg, nItem, q);
+	}
 }
 
 /*--------------------------------------------------------------------------
- * hist_getstring()
+ * hist_getString()
  */
-char *hist_getstring(HISTORY_TYPE type, int nItem) {
+char *hist_getString(HISTORY_TYPE type, int nItem) {
 	HISTORY* hp = &_histories[type];
 	int		i;
 	
@@ -176,7 +178,7 @@ char *hist_getstring(HISTORY_TYPE type, int nItem) {
 /*--------------------------------------------------------------------------
  * hist_2menu()
  */
-void hist_updatemenu(HISTORY_TYPE type) {
+void hist_updateMenu(HISTORY_TYPE type) {
 	HMENU 	hMenu;
 	int		iCmd;
 	int		nVisible;
@@ -190,7 +192,7 @@ void hist_updatemenu(HISTORY_TYPE type) {
 	nVisible = 5;
 
 	for (i = 0; i < nVisible; i++) {
-		if ((p = hist_getstring(type, i)) == 0) {
+		if ((p = hist_getString(type, i)) == 0) {
 			return;
 		}
 		wsprintf(szTemp, "&%d %s", i + 1, p);
@@ -227,7 +229,7 @@ static void hist_save(FTABLE *fp,struct history *hp)
  * save history()
  * save all history entries to the file passed as an argument.
  */
-EXPORT void hist_allsave(FTABLE *fp)
+EXPORT void hist_saveAllEntriesTo(FTABLE *fp)
 {	struct histdes *hp = _histsavings;
 
 	while(hp->keyword) {
@@ -238,9 +240,9 @@ EXPORT void hist_allsave(FTABLE *fp)
 }
 
 /*---------------------------------*/
-/* hist_read()					*/
+/* hist_readLine()					*/
 /*---------------------------------*/
-EXPORT void hist_read(LINE *lp)
+EXPORT void hist_readLine(LINE *lp)
 {	struct history *hp = 0;
 
 	while (lp != 0 && lp->next != 0) {
@@ -260,6 +262,6 @@ EXPORT void hist_read(LINE *lp)
 		}
 		lp = lp->next;
 	}
-	hist_updatemenu(OPEN_FILES);
+	hist_updateMenu(OPEN_FILES);
 }
 

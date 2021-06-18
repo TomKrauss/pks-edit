@@ -314,7 +314,7 @@
     <ClInclude Include="include\edfuncs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\edhist.h">
+    <ClInclude Include="include\history.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\edierror.h">

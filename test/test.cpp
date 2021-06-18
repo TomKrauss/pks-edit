@@ -221,6 +221,10 @@ namespace pkseditTests
 			Assert::AreEqual(0, result);
 			result = string_matchFilename("23234242", "!*[0-9][0-9][0-9]");
 			Assert::AreEqual(0, result);
+			result = string_matchFilename("23234242", "*.txt;*.c");
+			Assert::AreEqual(0, result);
+			result = string_matchFilename("x.cpp", "*.c");
+			Assert::AreEqual(0, result);
 		}
 	};
 	TEST_CLASS(arrayList)

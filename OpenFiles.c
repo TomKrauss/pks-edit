@@ -31,7 +31,7 @@
 #include "dos.h"
 #include "pathname.h"
 #include "fileselector.h"
-#include "edhist.h"
+#include "history.h"
 #include "pksedit.h"
 #include "stringutil.h"
 #include "fileutil.h"
@@ -262,7 +262,7 @@ void ft_saveWindowStates(void )
 		}
 	}
 
-	hist_allsave(&ft);
+	hist_saveAllEntriesTo(&ft);
 	pszFilename = _historyFileName;
 	if (pszFilename == NULL) {
 		string_concatPathAndFilename(szBuff, _datadir, HISTORY_FILE_NAME);
@@ -289,7 +289,7 @@ int ft_restorePreviouslyOpenedWindows(void )
 			if (_filelist == 0) {
 				xref_openSearchListResultFromLine(ft.firstl);
 			}
-			hist_read(ft.firstl);
+			hist_readLine(ft.firstl);
 			ln_listfree(ft.firstl);
 			return 1;
 		}
@@ -501,8 +501,8 @@ int ft_requestToClose(FTABLE *fp)
 			case IDCANCEL:  return (0);
 		}
 	}
-	hist_enq(OPEN_FILES, fp->fname);
-	hist_updatemenu(OPEN_FILES);
+	hist_saveString(OPEN_FILES, fp->fname);
+	hist_updateMenu(OPEN_FILES);
 	return 1;
 }
 
@@ -704,7 +704,7 @@ int EdEditFile(long editflags, char *filename)
 	}
 	if (editflags & OPEN_HISTORY) {
 		nEntry = (editflags & 0xF000) >> 12;
-		if ((filename = hist_getstring(OPEN_FILES, nEntry)) == 0) {
+		if ((filename = hist_getString(OPEN_FILES, nEntry)) == 0) {
 			return 0;
 		}
 	}

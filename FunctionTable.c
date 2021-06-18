@@ -1,5 +1,6 @@
 #include <windows.h>
 #include "edfuncs.h"
+#include "functab.h"
 #include "pksedit.h"
 #include "pksedith.h"
 #include "edierror.h"

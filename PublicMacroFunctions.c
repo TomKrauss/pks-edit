@@ -29,7 +29,7 @@
 #include "dial2.h"
 #include "pksrc.h"
 #include "edfuncs.h"
-#include "edhist.h"
+#include "history.h"
 #include "xdialog.h"
 #include "publicapi.h"
 #include "fileutil.h"
@@ -499,6 +499,7 @@ int EdAlignText(void)
 		IDD_REGEXP,	RE_DOREX,			& _currentSearchAndReplaceParams.options,
 		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
 		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
+		IDD_OPT2,		RE_IGNORE_BINARY,& _currentSearchAndReplaceParams.options,
 		IDD_3S1,		AL_FIX,			&_alflags,
 		IDD_3S2,		AL_CPOS,			&_alflags,
 		IDD_OPT1,		AL_END,			&_alflags,
@@ -1544,6 +1545,7 @@ int EdFindInFileList(void)
 		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
 		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
 		IDD_OPT1,		1,				&once,
+		IDD_OPT2,		RE_IGNORE_BINARY, & _currentSearchAndReplaceParams.options,
 		IDD_INT1,		sizeof depth,	&depth,
 		IDD_FILE_PATTERN, sizeof filenamePattern, &filenamePattern, 
 		IDD_FINDS2,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
@@ -1562,7 +1564,8 @@ int EdFindInFileList(void)
 	if (!win_callDialog(DLGRETREIVE,&_fp,_d, _tt)) {
 		return 0;
 	}
-	return find_matchesInFiles(pathlist,filenamePattern, _currentSearchAndReplaceParams.searchPattern,depth < 0 ? 999 : depth,once);
+	return find_matchesInFiles(pathlist,filenamePattern, _currentSearchAndReplaceParams.searchPattern, _currentSearchAndReplaceParams.options, 
+		depth < 0 ? 999 : depth,once);
 }
 
 /*--------------------------------------------------------------------------

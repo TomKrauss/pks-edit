@@ -25,7 +25,7 @@
 #include "winterf.h"
 
 #include "tos.h"
-#include "edhist.h"
+#include "history.h"
 #include "editorconfiguration.h"
 
 #include "documenttypes.h"
@@ -315,7 +315,7 @@ int fsel_selectFile(char *szFileSpecIn, char *szFileNameIn, char *szFullPathOut,
 		lstrcpy(szFullPathOut, pszFileName);
 		string_splitFilename(pszFileName, pszPath, szFileNameIn);
 		string_concatPathAndFilename(szFileSpecIn, pszPath, pszExt);
-		hist_enq(PATHES, szFileSpecIn);
+		hist_saveString(PATHES, szFileSpecIn);
 	}
 
 	_free(pszFileName);

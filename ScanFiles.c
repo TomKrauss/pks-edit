@@ -21,6 +21,7 @@
 #include "winfo.h"
 #include "winterf.h"
 #include "pksedit.h"
+#include "history.h"
 #include "ftw.h"
 #include "edierror.h"
 #include "stringutil.h"
@@ -33,7 +34,7 @@
 extern char *	_datadir;
 static FTABLE	*_outfile;
 static long 	_line;
-static int 		_abortOnFirstMatch,_trymatch;
+static int 		_abortOnFirstMatch,_trymatch,_ignoreBinary;
 
 /*--------------------------------------------------------------------------
  * present()
@@ -98,6 +99,25 @@ longline_scan:
 	return q;
 }
 
+/*
+ * Heuristic attempt to test, whether a file is a binary file.
+ */
+static int scan_isBinaryFile(int fd) {
+	char buffer[1024];
+	int nBytesRead;
+	int nControl = 0;
+
+	nBytesRead = _lread(fd, buffer, sizeof buffer);
+	for (int i = 0; i < nBytesRead; i++) {
+		unsigned char c = (unsigned char)buffer[i];
+		if (c != '\n' && c != '\t' && c != '\r' && iscntrl(c)) {
+			nControl++;
+		}
+	}
+	_llseek(fd, 0l, SEEK_SET);
+	return nControl > 5;
+}
+
 /*--------------------------------------------------------------------------
  * matchInFile()
  * scan for a pSearchExpression pattern in file fn
@@ -113,18 +133,19 @@ static int matchInFile(char *fn, DTA *stat) {
 		return 0;
 
 	_line = 0L;
-	progress_showMonitorMessage(string_abbreviateFileName(fn));
 
-	if (!_trymatch) {
-		present(fn);
-		return(0);
-	}
-
-	if ((fd = file_openFile(fn)) < 0) {
+	if ((fd = file_openFile(fn)) <= 0) {
 		return -1;
 	}
 
-	ft_readDocumentFromFile(fd,scanlines,fn);
+	if (!_ignoreBinary || !scan_isBinaryFile(fd)) {
+		progress_showMonitorMessage(string_abbreviateFileName(fn));
+		if (!_trymatch) {
+			present(fn);
+		} else {
+			ft_readDocumentFromFile(fd, scanlines, fn);
+		}
+	}
 
 	file_closeFile(&fd);
 
@@ -135,14 +156,16 @@ static int matchInFile(char *fn, DTA *stat) {
  * find_matchesInFiles()
  * Perform a recursive pSearchExpression in a list of pates with a given filename pattern.
  */
-int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpression, int nMaxRecursion, int bAbortOnFirstMatch) {
+int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpression, int nOptions, int nMaxRecursion, int bAbortOnFirstMatch) {
 	char *		path;
 	char *		pathlist;
 	char		stepfile[256];
 
 	_abortOnFirstMatch = bAbortOnFirstMatch;
 	_nfound = 0;
+	_ignoreBinary = nOptions & RE_IGNORE_BINARY;
 	string_concatPathAndFilename(stepfile, _datadir, "pksedit.grp");
+	hist_saveString(FILE_PATTERNS, pFilenamePattern);
 
 	if (!*pSearchExpression) {
 		_trymatch = 0;

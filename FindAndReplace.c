@@ -29,7 +29,7 @@
 #include "edctype.h"
 #include "edfuncs.h"
 #include "regexp.h"
-#include "edhist.h"
+#include "history.h"
 #include "errordialogs.h"
 #include "lineoperations.h"
 #include "findandreplace.h"
@@ -124,7 +124,7 @@ int find_initializeReplaceByExpression(unsigned char* replaceByExpression) {
 void find_setCurrentSearchExpression(char *pExpression)
 {
 	strcpy(_currentSearchAndReplaceParams.searchPattern, pExpression);
-	hist_enq(SEARCH_PATTERNS, pExpression);
+	hist_saveString(SEARCH_PATTERNS, pExpression);
 }
 
 /*--------------------------------------------------------------------------
@@ -608,7 +608,7 @@ int EdReplaceText(int scope, int action, int flags)
 	newlen = strlen(_currentReplacementPattern.preparedReplacementString);
 
 	/* call before assigning firstline	*/
-	hist_enq(SEARCH_AND_REPLACE, _currentSearchAndReplaceParams.replaceWith);
+	hist_saveString(SEARCH_AND_REPLACE, _currentSearchAndReplaceParams.replaceWith);
 
 	undo_startModification(fp);
 	caret_saveLastPosition();

@@ -34,7 +34,7 @@
 #include "dial2.h"
 #include "pksrc.h"
 #include "edfuncs.h"
-#include "edhist.h"
+#include "history.h"
 #include "xdialog.h"
 #include "regexp.h"
 #include "findandreplace.h"
@@ -376,6 +376,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 	int 	item,*ip;
 	BOOL	moved;
 	DIALLIST	*dlp;
+	HISTORY_TYPE ht;
 
 	moved = FALSE;
 	while(--nParams >= 0 && (item = dp->dp_item) != 0) {
@@ -402,11 +403,16 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				LoadString(hInst,(WORD)dp->dp_size,szBuff, sizeof szBuff -1);
 				SetWindowText(hDlg,szBuff);
 				break;
+			case IDD_FILE_PATTERN:
+				ht = FILE_PATTERNS;
 			case IDD_FINDS2: case IDD_FINDS: case IDD_REPLS:
-				hist_2combo(hDlg,item,szBuff,(item != IDD_REPLS) ?
-					SEARCH_PATTERNS : SEARCH_AND_REPLACE);
-				if (!*(LPSTR)ip)
-					lstrcpy((LPSTR)ip,szBuff);
+				if (item == IDD_REPLS) {
+					ht = SEARCH_AND_REPLACE;
+				} else if (item != IDD_FILE_PATTERN) {
+					ht = SEARCH_PATTERNS;
+				}
+				hist_fillComboBox(hDlg, item, ht);
+				break;
 			case IDD_RO1: case IDD_RO2: case IDD_RO3: 
 			case IDD_RO4: case IDD_RO5:
 				SetDlgItemText(hDlg,item,(LPSTR)ip);
@@ -414,7 +420,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 			case IDD_PATH1:
 			case IDD_STRING1: case IDD_STRING2: case IDD_STRING3:
 			case IDD_STRING4: case IDD_STRING5: case IDD_STRING6:
-			case IDD_STRING7: case IDD_FILE_PATTERN:
+			case IDD_STRING7: 
 				DlgInitString(hDlg,item,(LPSTR)ip,dp->dp_size);
 				break;
 			case IDD_LONG1:

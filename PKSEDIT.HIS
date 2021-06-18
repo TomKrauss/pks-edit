@@ -1,5 +1,6 @@
 [files]
 "D:\tom\desktop\readme.txt", line 15: 0x0 0x1 -1 -1 -8 -31 1 2 1426 797
+"D:\source\pksedit\CaretMovement.c", line 481: 0x0 0x1 -1 -1 -1 -1 78 78 1336 668
 [find]
 !ed
 !red
@@ -18,6 +19,11 @@
 ! +
 !HOME
 !PAGE
+!toggle-
+!counttabs
+[filePatterns]
+!*.c
+!*.*
 [replace]
 !die
 !,
@@ -28,7 +34,6 @@
 !D:\source\pksedit\PKSEDIT.RES
 !D:\source\pksedit\makros\WINDOWS.PKC
 !D:\source\pksedit\makros\TURBO_C.PKC
-!D:\source\pksedit\FTAB.BND
 !D:\source\pksedit\pksedit.en\pksedit.en.rc
 !D:\source\pksedit\Clipboard.c
 !D:\source\pksedit\makros\TESTMOUS.PKC
@@ -45,8 +50,9 @@
 !D:\source\pksedit\FunctionTable.c
 !D:\tom\desktop\readme.txt
 !C:\Users\tom\AppData\Local\Temp\MACROS.PKC
-!C:\Users\tom\AppData\Local\Temp\KEYS
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
+!C:\Users\tom\AppData\Local\Temp\KEYS
+!D:\source\pksedit\FTAB.BND
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN

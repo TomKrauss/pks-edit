@@ -17,7 +17,7 @@
 #define	RE_IGNCASE		0x2		/* ignore case */
 #define	RE_SHELLWILD	0x4		/* wildcards are: *?[] */
 #define	RE_PRESERVE_CASE	0x8	/* applies to replacement only: if set, try to preserve upper lower case spelling of replaced words Dog -> Cat, DOG -> CAT, etc... */
-
+#define RE_IGNORE_BINARY	0x10 /* applies to find in files only - if set, do not traverse "binary files". */
  /*
   * Result of a matching operation.
   */

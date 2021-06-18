@@ -42,8 +42,6 @@ int doc_columnChanged(void);
 int macro_toggleRecordMaco(void);
 int bl_setColumnSelection(FTABLE *fp);
 
-typedef enum { OP_EDIT_MODE, OP_DISPLAY_MODE, OP_MACRO, OP_OPTIONS} OP_FLAGTYPE;
-
 static struct optiontab {
     int  flgkeynr;
     int  flag;

@@ -6,6 +6,11 @@ The famous arcade times text editor from Pahlen & Krauß.
 
 ### 1.8.1
 
+* New
+- A new option "Ignore Binary Files" was added to the find in files dialog, allowing to easily exclude
+  unwanted matches.
+- The find in files dialog remembers now in addition the file name patterns entered before.
+
 * Improved
 - Find in Files displays a folder browser now to select a path
 - Actions are now consistently enabled/disabled in the PKS Edit UI (also the virtual function keyboard etc...)
