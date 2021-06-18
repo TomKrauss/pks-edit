@@ -1,6 +1,6 @@
 [files]
-"D:\tom\desktop\readme.txt", line 15: 0x0 0x1 -1 -1 -8 -31 1 2 1426 797
-"D:\source\pksedit\CaretMovement.c", line 481: 0x0 0x1 -1 -1 -1 -1 78 78 1336 668
+"D:\tom\desktop\readme.txt", line 30: 0x0 0x1 -1 -1 -1 -1 35 21 1456 788
+"D:\source\pksedit\CaretMovement.c", line 456: 0x0 0x1 -1 -1 -1 -1 78 78 1336 668
 [find]
 !ed
 !red
@@ -48,11 +48,11 @@
 !D:\source\pksedit\PKSEDIT.RC
 !D:\source\pksedit\newfile1.txt
 !D:\source\pksedit\FunctionTable.c
-!D:\tom\desktop\readme.txt
 !C:\Users\tom\AppData\Local\Temp\MACROS.PKC
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
-!C:\Users\tom\AppData\Local\Temp\KEYS
 !D:\source\pksedit\FTAB.BND
+!D:\tom\desktop\readme.txt
+!C:\Users\tom\AppData\Local\Temp\KEYS
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN

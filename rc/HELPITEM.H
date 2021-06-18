@@ -8,6 +8,7 @@
 #define	MSAVEF   27	
 #define	MSAVERES 28	
 #define	MSAVEAS  29	
+#define	MSAVEALL_NO_EXIT 30	
 #define	MREADF   31	
 #define	MWRITEF  32	
 #define	MABANDON 33	

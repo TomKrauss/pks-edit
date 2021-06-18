@@ -979,7 +979,7 @@ static WINFUNC WorkAreaWndProc(
 		zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, 0)) != 0) {
 			long dx = 0;
-			long dy = zDelta > 0 ? 1 : -1;
+			long dy = zDelta > 0 ? -1 : 1;
 			sl_scrollwinrange(wp, &dy, &dx);
 			sl_winchanged(wp, dy, dx);
 		}

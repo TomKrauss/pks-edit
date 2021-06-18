@@ -787,6 +787,20 @@ void EdFileAbandon(void)
 	ft_abandonFile(ft_getCurrentDocument(), (DOCUMENT_DESCRIPTOR *)0);
 }
 
+/**
+ * Save all files currently in state modified. 
+ */
+int EdSaveAllFiles() {
+	for (FTABLE* fp = _filelist; fp; fp = fp->next) {
+		if (!ft_checkReadonlyWithError(fp) && (fp->flags & (F_NAME_INPUT_REQUIRED | F_MODIFIED)) == F_MODIFIED) {
+			if (!ft_writefileMode(fp, 1)) {
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
 /*------------------------------------------------------------
  * EdSaveFile()
  * Save the current editor window. Depending on the passed options

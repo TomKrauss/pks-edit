@@ -870,6 +870,7 @@ BEGIN
         MENUITEM "Speichern && schlie&ßen\a",   MSAVEF
         MENUITEM "S&peichern\a",                MSAVERES
         MENUITEM "Speichern &unter...\a",       MSAVEAS
+        MENUITEM "Alle ge&änderten speichern\a", MSAVEALL_NO_EXIT
         MENUITEM SEPARATOR
         MENUITEM "Einf&ügen...\a",              MREADF
         MENUITEM "&Neu lesen\a",                MABANDON

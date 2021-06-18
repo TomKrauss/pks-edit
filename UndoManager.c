@@ -56,6 +56,7 @@ typedef struct tagUNDO_OPERATION {
 typedef struct tagUNDO_COMMAND {
 	UNDO_OPERATION*		atomicSteps;
 	BOOL				fileChangedFlag;
+	EDTIME				fileSaveTime;
 	LINE	*			bls;
 	LINE *				ble;		/* start and end marker line- if a current selection exists */
 	int					bcs,bce,c1,c2;
@@ -277,6 +278,7 @@ static void initUndoCommand(FTABLE* fp, UNDO_COMMAND* pCommand) {
 	MARK* pMark;
 	LINE* lp1, * lptmp;
 	pCommand->fileChangedFlag = fp->flags & F_MODIFIED ? TRUE : FALSE;
+	pCommand->fileSaveTime = fp->ti_saved;
 	lptmp = fp->tln;
 	if (lptmp != 0 && (lp1 = ln_cut(lptmp, lptmp->len, 0, lptmp->len)) != 0L) {
 		ln_replace(fp, lptmp, lp1);
@@ -399,9 +401,10 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	}
 
 	fp->tln = NULL;
-	if (!pCommand->fileChangedFlag) {
+	if (!pCommand->fileChangedFlag && fp->ti_saved == pCommand->fileSaveTime) {
 		ft_setFlags(fp, fp->flags & ~F_MODIFIED);
-	} else {
+	}
+	else {
 		ft_setFlags(fp, fp->flags | F_MODIFIED);
 	}
 	return pRedoCommand;
