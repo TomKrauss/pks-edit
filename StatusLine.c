@@ -49,7 +49,7 @@ static int st_format(char *dest)
 	len = mysprintf(ft_getCurrentDocument(), dest,
 				 (wp && wp->statusline && (wp->dispmode & SHOWHEX)) ? 
 				 wp->statusline : 
-				 /*STR*/"Ln %2j$l, Col%2j$c!%s$&");
+				 /*STR*/"Z: %2j$l, S: %2j$c!%s$&");
 	return len;
 }
 

@@ -39,17 +39,17 @@ void cust_drawShadow(HDC hdc,RECT *rcp,int odItemState)
 	HPEN		hBottomColorPen;
 
 	hBottomColorPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_BTNSHADOW));
-	if ((odItemState & ODS_FOCUS| ODS_DISABLED) == ODS_FOCUS) {
+	if ((odItemState & (ODS_FOCUS| ODS_DISABLED)) == ODS_FOCUS) {
 		hPenTop = hBottomColorPen;
 		hPenBottom = GetStockObject(WHITE_PEN);
 	} else {
 		hPenBottom = hBottomColorPen;
 		hPenTop = GetStockObject(WHITE_PEN);
 	}
-	left = rcp->left + 1;
-	right = rcp->right + rcp->left - 2;
-	top = rcp->top + 1;
-	bottom = rcp->top+rcp->bottom - 2;
+	left = rcp->left;
+	right = rcp->right + rcp->left - 1;
+	top = rcp->top;
+	bottom = rcp->top+rcp->bottom - 1;
 	hPen = SelectObject(hdc,hPenTop);
 	MoveTo(hdc,right-1,top);
 	LineTo(hdc,left,top);
@@ -125,11 +125,13 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 		dwColtext = GetSysColor(COLOR_BTNTEXT);
 	}
 	GetWindowText(hwnd,szBuff,sizeof szBuff);
-	hBrush = SelectObject(hdc,CreateSolidBrush(dwColwi));
-	SetBkColor(hdc,dwColwi);
+	hBrush = CreateSolidBrush(dwColwi);
+	SetBkMode(hdc,TRANSPARENT);
 
-	Rectangle(hdc, rcp->left, rcp->top, rcp->right, rcp->bottom);
+	InflateRect(rcp, -1, -1);
+	FillRect(hdc, rcp, hBrush);
 
+	InflateRect(rcp, 1, 1);
 	cust_drawShadow(hdc,rcp,odItemState);
 
 	SetTextColor(hdc,dwColtext);
@@ -142,11 +144,10 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 	if (odItemState & ODS_DISABLED) {
 		DrawState(hdc, NULL, cust_drawText, (LPARAM)szBuff, strlen(szBuff), rcp->left, rcp->top, rcp->right - rcp->left, rcp->bottom - rcp->top, DSS_DISABLED);
 	} else {
-		DrawText(hdc, szBuff, -1, rcp,
-			DT_NOPREFIX | DT_WORDBREAK | DT_LEFT | DT_VCENTER);
+		DrawText(hdc, szBuff, -1, rcp, DT_NOPREFIX | DT_WORDBREAK | DT_LEFT | DT_VCENTER);
 	}
 
-	DeleteObject(SelectObject(hdc,hBrush));
+	DeleteObject(hBrush);
 	SelectObject(hdc,hFont);
 }
 
