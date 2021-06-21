@@ -1,5 +1,5 @@
 [files]
-"D:\tom\desktop\readme.txt", line 8: 0x0 0x1 -1 -1 -1 -1 35 21 1412 788
+"C:\source\pksedit\AlignText.c", line 1: 0x2 0x3 -1 -1 -8 -31 177 141 1435 731
 [find]
 !ed
 !red
@@ -71,3 +71,4 @@
 !D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
 !D:\source\pksedit\*.*
 !D:\source\pksedit\pks_sys\*.MAC
+!C:\source\pksedit\*.*

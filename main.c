@@ -634,6 +634,9 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			hwndClient = CreateWindow("MDICLIENT", 0, dwStyle,
 				0,0,rect.right,rect.bottom,
 				hwnd, (HMENU)0xCAC, hInst, (LPSTR) &clientcreate);
+			fkey_initKeyboardWidget(hwnd);
+			st_init(hwnd);
+			tb_initToolbar(hwnd);
 			return 0;
 
 		case WM_DROPFILES:
@@ -646,29 +649,26 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (!IsWindowVisible(hwnd)) {
 				return 0;
 			}
-			fkey_initKeyboardWidget(hwnd);
-			st_init(hwnd);
-			tb_initToolbar(hwnd);
 			GetClientRect(hwnd,&rect);
 			tb_wh(&w, &nToolbarHeight);
 			status_wh(&w, &nStatusHeight);
 			fkey_getKeyboardSize(&w,&nFkeyHeight);
 			rect.top = nToolbarHeight;
 			rect.bottom -= (nFkeyHeight + nStatusHeight + nToolbarHeight);
-			if (hwndToolbar) {
+			if (hwndToolbar && message == WM_SIZE) {
 				ShowWindow(hwndToolbar, nToolbarHeight ? SW_SHOW : SW_HIDE);
 				SendMessage(hwndToolbar, message, wParam, lParam);
 			}
-			if (hwndFkeys) {
+			if (hwndFkeys && message == WM_SIZE) {
 				ShowWindow(hwndFkeys, TRUE);
 				MoveWindow(hwndFkeys, 0, rect.bottom + rect.top,
 					rect.right, nFkeyHeight, 1);
 			}
-			if (hwndClient) {
+			if (hwndClient && message == WM_SIZE) {
 				MoveWindow(hwndClient, 0, rect.top, 
 					rect.right, rect.bottom - 1, 1);
 			}
-			if (hwndStatus) {
+			if (hwndStatus && message == WM_SIZE) {
 				ShowWindow(hwndStatus, nStatusHeight ? SW_SHOW : SW_HIDE);
 				MoveWindow(hwndStatus, 0, rect.bottom + rect.top + nFkeyHeight + 1,
 					rect.right, nStatusHeight, 1);
