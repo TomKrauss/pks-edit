@@ -58,6 +58,11 @@ extern int find_incrementally(char* pszString, int nOptions, int nDirection, BOO
  */
 extern int find_startIncrementalSearch();
 
+/*
+ * Move the input focus to the incremental search UI entry field.
+ */
+extern int find_initiateIncrementalSearch();
+
 /*--------------------------------------------------------------------------
  * find_matchesInFiles()
  * Perform a recursive pSearchExpression in a list of pates with a given filename pattern.

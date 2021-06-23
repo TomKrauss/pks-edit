@@ -2,26 +2,8 @@
 "C:\source\pksedit\AlignText.c", line 92: 0x0 0x1 -1 -1 -8 -31 38 53 970 539
 "C:\source\pksedit\pksedit.rc", line 1: 0x0 0x1 -1 -1 -8 -31 16 0 1142 618
 "C:\source\pksedit\PrintFiles.c", line 1: 0x0 0x1 -1 -1 -1 -1 162 72 1288 694
-"C:\source\pksedit\ProgressMonitor.c", line 1: 0x1 0x1 104 713 -8 -31 31 30 1042 732
+"C:\source\pksedit\ProgressMonitor.c", line 121: 0x1 0x1 104 713 -8 -31 31 30 1042 732
 [find]
-!P
-!alig
-!align
-!c
-!ca
-!car
-!care
-!caret
-!ali
-!al
-!a
-!regex_
-!regex
-!rege
-!reg
-!re
-!r
-!fp
 !f
 !FONT
 !MS Sans
@@ -31,6 +13,27 @@
 !sdf
 !sd
 !s
+!d
+!di
+!dia
+!dialo2
+!dialo
+!dial
+!dial2
+!_
+!_p
+!_pl
+!_pla
+!_play
+!_playi
+!_playin
+!_playing
+!r
+!re
+!ret
+!retu
+!retur
+!return
 [filePatterns]
 !*.c
 !*.*

@@ -21,6 +21,8 @@
 #include "pksedit.h"
 #include "edfuncs.h"
 #include "pksrc.h"
+#include "functab.h"
+#include "actions.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
 #include "actions.h"
@@ -260,7 +262,7 @@ static HWND tb_initToolbar(HWND hwndOwner) {
  * Custom window procedure subclass for the incremental search edit field.
  */
 static WNDPROC oldEditProc;
-LRESULT CALLBACK incrementalSearchEditWndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     static HWND previousFocusWnd;
     LRESULT nRet;
     char pszBuf[256];
@@ -270,19 +272,20 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND wnd, UINT msg, WPARAM wParam,
         if (wParam == VK_RETURN || wParam == VK_ESCAPE) {
             return 0;
         }
-        nRet = CallWindowProc(oldEditProc, wnd, msg, wParam, lParam);
-        Edit_GetText(wnd, pszBuf, sizeof pszBuf);
+        nRet = CallWindowProc(oldEditProc, hwnd, msg, wParam, lParam);
+        Edit_GetText(hwnd, pszBuf, sizeof pszBuf);
         find_incrementally(pszBuf, RE_IGNCASE, 1, FALSE);
         return nRet;
     case WM_SETFOCUS:
         previousFocusWnd = (HWND)wParam;
+        PostMessage(hwnd, EM_SETSEL, 0, -1);
         find_startIncrementalSearch();
         break;
     case WM_KEYDOWN:
         switch (wParam) {
         case VK_RETURN:
             //Do your stuff
-            Edit_GetText(wnd, pszBuf, sizeof pszBuf);
+            Edit_GetText(hwnd, pszBuf, sizeof pszBuf);
             find_incrementally(pszBuf, RE_IGNCASE| O_WRAPSCAN, 1, TRUE);
             return 0;
         case VK_ESCAPE:
@@ -295,22 +298,37 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND wnd, UINT msg, WPARAM wParam,
         //If not your key, skip to default:
         }
     }
-    return CallWindowProc(oldEditProc, wnd, msg, wParam, lParam);
+    return CallWindowProc(oldEditProc, hwnd, msg, wParam, lParam);
 }
 /*
  * Creates the entry field for incremental search in the PKS Edit toolbar. 
  */
+static HWND hwndSearchIncrementallyField;
+static void tb_enableEntryField(ACTION_BINDING * pBinding, PROPERTY_CHANGE_TYPE type, int newValue) {
+    if (type == PC_ENABLED) {
+        EnableWindow(hwndSearchIncrementallyField, newValue);
+    }
+}
 static HWND tb_initSearchEntryField(HWND hwndOwner) {
-    HWND hwndEntryField;
 
-    hwndEntryField = CreateWindowEx(0, "EDIT", "",
+    hwndSearchIncrementallyField = CreateWindowEx(0, "EDIT", "",
         WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_LEFT | ES_NOHIDESEL | ES_WANTRETURN,
         0, 0, 180, CW_USEDEFAULT,
         hwndOwner, (HMENU)IDM_INCREMENTAL_SEARCH,
         hInst, NULL);
-    SendMessage(hwndEntryField, WM_SETFONT, (WPARAM)cust_getDefaultEditorFont(), 0);
-    oldEditProc = (WNDPROC)SetWindowLongPtr(hwndEntryField, GWLP_WNDPROC, (LONG_PTR)incrementalSearchEditWndProc);
-    return hwndEntryField;
+    SendMessage(hwndSearchIncrementallyField, WM_SETFONT, (WPARAM)cust_getDefaultEditorFont(), 0);
+    oldEditProc = (WNDPROC)SetWindowLongPtr(hwndSearchIncrementallyField, GWLP_WNDPROC, (LONG_PTR)incrementalSearchEditWndProc);
+    action_registerAction(CMD_INITIATE_INCREMENTAL_SEARCH, (ACTION_BINDING) { tb_enableEntryField, 0L, 0 }, TRUE);
+    return hwndSearchIncrementallyField;
+}
+
+
+/*
+ * Move the input focus to the incremental search UI entry field. 
+ */
+int find_initiateIncrementalSearch() {
+    SetFocus(hwndSearchIncrementallyField);
+    return 1;
 }
 
 /*

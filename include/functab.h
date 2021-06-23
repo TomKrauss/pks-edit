@@ -7,6 +7,7 @@
 #define 	FUNC_EdCharInsert			17
 #define 	FUNC_EdOptionToggle			78
 #define		CMD_EdOptionToggleBLK_COLUMN_SELECTION 51
+#define		CMD_INITIATE_INCREMENTAL_SEARCH 235
 
 typedef enum { OP_EDIT_MODE, OP_DISPLAY_MODE, OP_MACRO, OP_OPTIONS } OP_FLAGTYPE;
 
