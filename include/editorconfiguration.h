@@ -202,9 +202,9 @@ extern void fkey_updateTextOfFunctionKeys(int state);
 
 /*--------------------------------------------------------------------------
  * tb_initToolbar()
- * Initialize the PKS Edit toolbar.
+ * Initialize the PKS Edit top level rebar.
  */
-extern void tb_initToolbar(HWND hwndDaddy);
+extern HWND tb_initRebar(HWND hwndDaddy);
 
 #define EDITORCONFIGURATION_H
 #endif

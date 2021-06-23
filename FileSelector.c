@@ -267,7 +267,6 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	ofn.nMaxFile = EDMAXPATHLEN - 1;
 	ofn.lpstrTitle = sTitleSpec;
 	ofn.Flags = OFN_PATHMUSTEXIST;
-	InitCommonControls();
 	if ((bSaveAs && GetSaveFileName( &ofn ) ) || (!bSaveAs && GetOpenFileName( &ofn ))) {
 		bRet = TRUE;
 		lstrcpy(szExt, pszCustomOffset[0] ? pszCustomOffset : "*.*");

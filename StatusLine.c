@@ -151,7 +151,6 @@ void status_wh(WORD *width, WORD *height)
 void st_init(HWND hwndDaddy)
 {
 	if (!hwndStatus) {
-		InitCommonControls();
 		hwndStatus = CreateStatusWindow(WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS,
 			"", hwndDaddy, (UINT)-1);
 	}

@@ -528,4 +528,7 @@
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <Xsd Include="pksedit.xsd" />
+  </ItemGroup>
 </Project>

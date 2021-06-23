@@ -14,6 +14,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pksedit.en", "pksedit.en\pksedit.en.vcxproj", "{6628EACE-4A8F-4997-A5C4-B1C061DC3152}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2BD4A763-8095-4093-BA7F-16030E7A6AFF}"
+	ProjectSection(SolutionItems) = preProject
+		pksedit.manifest = pksedit.manifest
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

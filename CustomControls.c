@@ -78,10 +78,10 @@ static LOGFONT _lf =  {
     
     ANSI_CHARSET,			// lfCharSet;
     OUT_DEFAULT_PRECIS,		// lfOutPrecision;
-    CLIP_DEFAULT_PRECIS,		// lfClipPrecision;
+    CLIP_DEFAULT_PRECIS,	// lfClipPrecision;
     PROOF_QUALITY,			// lfQuality;
     FF_DONTCARE, 			// lfPitchAndFamily;
-    "Helv",	 			// lfFaceName[LF_FACESIZE];
+    "helv",					// lfFaceName[LF_FACESIZE];
 };
 
 /**
@@ -91,9 +91,23 @@ HFONT cust_getSmallEditorFont(void) {
 	static HFONT hSmallFont;
 
 	if (!hSmallFont) {
+		_lf.lfHeight = 6;
 		hSmallFont = CreateFontIndirect(&_lf);
 	}
 	return hSmallFont;
+}
+
+/**
+ * Return a handle to a default font used by controls in PKS Edit.
+ */
+HFONT cust_getDefaultEditorFont(void) {
+	static HFONT hNormalFont;
+
+	if (!hNormalFont) {
+		_lf.lfHeight = 8;
+		hNormalFont = CreateFontIndirect(&_lf);
+	}
+	return hNormalFont;
 }
 
 

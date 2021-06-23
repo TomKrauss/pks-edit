@@ -1,29 +1,36 @@
 [files]
-"C:\source\pksedit\AlignText.c", line 1: 0x2 0x3 -1 -1 -8 -31 177 141 1435 731
+"C:\source\pksedit\AlignText.c", line 92: 0x0 0x1 -1 -1 -8 -31 38 53 970 539
+"C:\source\pksedit\pksedit.rc", line 1: 0x0 0x1 -1 -1 -8 -31 16 0 1142 618
+"C:\source\pksedit\PrintFiles.c", line 1: 0x0 0x1 -1 -1 -1 -1 162 72 1288 694
+"C:\source\pksedit\ProgressMonitor.c", line 1: 0x1 0x1 104 713 -8 -31 31 30 1042 732
 [find]
-!ed
-!red
-!undo
-!clp_
-!glob
-!clip
-!export
-!der
-!HWND
-!other
-!cursor-
-!1023
-!shift-ra
-!$
-! +
-!HOME
-!PAGE
-!toggle-
-!counttabs
-!ln_order
-!ft_modified
-!ft_mod
-!<ft_
+!P
+!alig
+!align
+!c
+!ca
+!car
+!care
+!caret
+!ali
+!al
+!a
+!regex_
+!regex
+!rege
+!reg
+!re
+!r
+!fp
+!f
+!FONT
+!MS Sans
+!sdfsfd
+!sdfsf
+!sdfs
+!sdf
+!sd
+!s
 [filePatterns]
 !*.c
 !*.*
@@ -32,15 +39,6 @@
 !,
 ! 
 [open]
-!D:\source\pksedit\ProgressMonitor.c
-!D:\source\pksedit\ProgramArguments.c
-!D:\source\pksedit\PrintFiles.c
-!D:\source\pksedit\PaintEditorWindow.c
-!D:\source\pksedit\OpenFiles.c
-!D:\source\pksedit\MouseUtil.c
-!D:\source\pksedit\MarkPositions.c
-!D:\source\pksedit\main.c
-!D:\source\pksedit\macro_compiler\CompileMacros.c
 !D:\source\pksedit\MacroKeyBinding.c
 !D:\source\pksedit\MacroInterpreter.c
 !D:\source\pksedit\KeyBindingFileIO.c
@@ -64,6 +62,14 @@
 !D:\source\pksedit\CaretMovement.c
 !D:\source\pksedit\BracketMatching.c
 !D:\source\pksedit\AlignText.c
+!C:\Users\tom\AppData\Local\Temp\7zE0F06D3FB\ReBarRes.h
+!newfile5.txt
+!newfile6.txt
+!newfile3.txt
+!newfile4.txt
+!newfile1.txt
+!newfile2.txt
+!C:\source\pksedit\pksedit.rc
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN

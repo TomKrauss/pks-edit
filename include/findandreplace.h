@@ -2,6 +2,8 @@
 
 #include "regexp.h"
 
+typedef struct tagMARK MARK;
+
 typedef struct tagSEARCH_AND_REPLACE_PARAMETER {
 	char	searchPattern[500];
 	char	replaceWith[500];	// the replacement string or pattern for replace operations - otherwise empty.
@@ -44,6 +46,17 @@ extern int find_expressionInCurrentFile(int dir, RE_PATTERN* pPattern, int optio
  * find_expressionAgainInCurrentFile()
  */
 extern int find_expressionAgainInCurrentFile(dir);
+
+/*
+ * Find a string incremental with given options either forward or backward depending on nDirection.
+ */
+extern int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bContinue);
+
+/*
+ * Start an incremental search operation. This will set the current search position start to the position
+ * of the caret in the current file.
+ */
+extern int find_startIncrementalSearch();
 
 /*--------------------------------------------------------------------------
  * find_matchesInFiles()

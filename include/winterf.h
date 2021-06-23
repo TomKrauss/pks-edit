@@ -73,7 +73,7 @@ extern int 		win_registerWindowClass( char *szClassName, WNDPROC WinProc,
 					LPSTR lpCursorName, HANDLE hbrBackground, 
 					LPSTR szIcon, int nExtra);
 
-extern HWND   	hwndAbort,hwndFkeys,hwndFrame,hwndClient,hwndToolbar,
+extern HWND   	hwndAbort,hwndFkeys,hwndFrame,hwndClient,hwndRebar,
 				hwndDlg,hwndFkeys,hwndStatus;
 
 extern HINSTANCE hInst;

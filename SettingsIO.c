@@ -150,6 +150,12 @@ EXPORT int prof_getws(char *string, WINDOWPLACEMENT *wsp)
 	wsp->rcNormalPosition.top = string_convertToLong(_strtolend) * _newYScreen / _oldYScreen;
 	wsp->rcNormalPosition.right = string_convertToLong(_strtolend) * _newXScreen / _oldXScreen;
 	wsp->rcNormalPosition.bottom = string_convertToLong(_strtolend) * _newYScreen / _oldYScreen;
+	if (wsp->rcNormalPosition.left < -10) {
+		wsp->rcNormalPosition.left = 0;
+	}
+	if (wsp->rcNormalPosition.top < -1) {
+		wsp->rcNormalPosition.top = 0;
+	}
 	return 1;
 }
 

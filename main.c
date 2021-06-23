@@ -35,6 +35,7 @@
 #include "stringutil.h"
 #include "documenttypes.h"
 #include "xdialog.h"
+#include "findandreplace.h"
 
 #define	PROF_OFFSET	1
 
@@ -426,6 +427,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	if (!InitInstance(nCmdShow, lpCmdLine)) {
 		return (FALSE);
 	}
+	// Initialize common controls.
+	INITCOMMONCONTROLSEX icex;
+	icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
+	icex.dwICC = ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_PROGRESS_CLASS | ICC_STANDARD_CLASSES | ICC_TAB_CLASSES;
+	InitCommonControlsEx(&icex);
+
 	ic_init();
 	GetPhase2Args(lpCmdLine);
 	ft_restorePreviouslyOpenedWindows();
@@ -605,6 +612,7 @@ static void FinalizePksEdit(void)
 static BOOL appActivated = FALSE;
 LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	static BOOL			bHelp = FALSE;
 	CLIENTCREATESTRUCT 	clientcreate;
 	WORD				fwMenu;
 	RECT				rect;
@@ -612,7 +620,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	WORD				nFkeyHeight;
 	WORD				nStatusHeight;
 	WORD				nToolbarHeight;
-	static BOOL			bHelp = FALSE;
+	int					idCtrl;
 	DWORD				dwStyle;
 
 	switch (message) {
@@ -636,7 +644,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 				hwnd, (HMENU)0xCAC, hInst, (LPSTR) &clientcreate);
 			fkey_initKeyboardWidget(hwnd);
 			st_init(hwnd);
-			tb_initToolbar(hwnd);
+			tb_initRebar(hwnd);
 			return 0;
 
 		case WM_DROPFILES:
@@ -655,9 +663,9 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			fkey_getKeyboardSize(&w,&nFkeyHeight);
 			rect.top = nToolbarHeight;
 			rect.bottom -= (nFkeyHeight + nStatusHeight + nToolbarHeight);
-			if (hwndToolbar && message == WM_SIZE) {
-				ShowWindow(hwndToolbar, nToolbarHeight ? SW_SHOW : SW_HIDE);
-				SendMessage(hwndToolbar, message, wParam, lParam);
+			if (hwndRebar && message == WM_SIZE) {
+				ShowWindow(hwndRebar, nToolbarHeight ? SW_SHOW : SW_HIDE);
+				SendMessage(hwndRebar, message, wParam, lParam);
 			}
 			if (hwndFkeys && message == WM_SIZE) {
 				ShowWindow(hwndFkeys, TRUE);
@@ -739,10 +747,14 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		     }
 			 break;
 		case WM_COMMAND:
-			if ((int)(short)GET_WM_COMMAND_ID(wParam, lParam) < 0) {
+			idCtrl = (int)(short)GET_WM_COMMAND_ID(wParam, lParam);
+			if (idCtrl < 0) {
 				break;
 			}
-			wParam = macro_translateToOriginalMenuIndex(GET_WM_COMMAND_ID(wParam, lParam));
+			if (idCtrl == IDM_INCREMENTAL_SEARCH) {
+				break;
+			}
+			wParam = macro_translateToOriginalMenuIndex(idCtrl);
 			if (bHelp) {
 				bHelp = FALSE;
 				return EdHelpContext((DWORD)wParam);

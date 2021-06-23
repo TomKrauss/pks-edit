@@ -1043,8 +1043,7 @@ static WINFUNC WorkAreaWndProc(
 
 	case WM_KILLFOCUS:
 		if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
-			if (wp)
-				wt_tcursor(wp,0);
+			wt_tcursor(wp,0);
 		} else {
 			EdTRACE(log_errorArgs(DEBUG_TRACE,"WM_KILLFOCUS in WorkWndProc without file"));
 		}

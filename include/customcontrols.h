@@ -32,6 +32,11 @@ extern void cust_paintButton(HDC hdc, RECT* rcp, HWND hwnd, int ww);
  */
 extern HFONT cust_getSmallEditorFont(void);
 
+/**
+ * Return a handle to a default font used by controls in PKS Edit.
+ */
+extern HFONT cust_getDefaultEditorFont(void);
+
 /*------------------------------------------------------------
  * cust_drawOutline()
  * Draw an outline rectanle.

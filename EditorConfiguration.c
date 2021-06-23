@@ -115,7 +115,6 @@ void EdOptionSet(void) {
     PROPSHEETHEADER psh;
 	INT_PTR tempRet;
 
-	InitCommonControls();
 	SetXDialogParams(_getDialogParsForPage, TRUE);
 	memset(&psh, 0, sizeof psh);
 	memset(psp, 0, sizeof psp);

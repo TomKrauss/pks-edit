@@ -761,7 +761,6 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, FTABLE* fp)
 	PROPSHEETPAGE psp[2];
 	PROPSHEETHEADER psh;
 
-	InitCommonControls();
 	SetXDialogParams(_getDialogParsForPage, FALSE);
 	memset(&psh, 0, sizeof psh);
 	memset(psp, 0, sizeof psp);

@@ -15,6 +15,8 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include <windowsx.h>
+#include "customcontrols.h"
 #include "winterf.h"
 #include "pksedit.h"
 #include "edfuncs.h"
@@ -23,8 +25,11 @@
 #include "editorconfiguration.h"
 #include "actions.h"
 #include "stringutil.h"
+#include "findandreplace.h"
 
-HWND	hwndToolbar;
+static HWND	hwndToolbar;
+static int nToolbarButtons;
+HWND    hwndRebar;
 
 /*
  * Callback to enable / disable toolbar buttons. 
@@ -60,39 +65,37 @@ void tb_wh(WORD *width, WORD *height)
 {
 	RECT		rect;
 
-	if (hwndToolbar == 0 || (GetConfiguration()->layoutoptions & OL_TOOLBAR) == 0) {
+	if (hwndRebar == 0 || (GetConfiguration()->layoutoptions & OL_TOOLBAR) == 0) {
 		*width = 0;
 		*height = 0;
 		return;
 	}
-	GetWindowRect(hwndToolbar, &rect);
+	GetWindowRect(hwndRebar, &rect);
 	*width = (WORD)(rect.right - rect.left) + 1;
 	*height = (WORD)(rect.bottom - rect.top) + 1;
 }
 
 /*--------------------------------------------------------------------------
  * tb_initToolbar()
- * Initialize the PKS Edit toolbar.
+ * Initialize the actual toolbar toolbar.
  */
-void tb_initToolbar(HWND hwndDaddy)
-{
+static HWND tb_initToolbar(HWND hwndOwner) {
 	TBADDBITMAP	tbabmp;
 	TBBUTTON	tbb[20];
 	LRESULT		iIndex;
 	int			nButton;
 
 	if (hwndToolbar) {
-		return;
+		return hwndToolbar;
 	}
 
     memset(tbb, 0, sizeof tbb);
     memset(&tbabmp, 0, sizeof tbabmp);
-    InitCommonControls();
     hwndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, (LPSTR) NULL, 
-		WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | CCS_ADJUSTABLE,
-        0, 0, 0, 0, hwndDaddy, (HMENU) IDM_TOOLBAR, hInst, NULL);
+		WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | CCS_NORESIZE,
+        0, 0, 0, 0, hwndOwner, (HMENU) IDM_TOOLBAR, hInst, NULL);
 	if (!hwndToolbar) {
-		return;
+		return NULL;
 	}
     SendMessage(hwndToolbar, TB_BUTTONSTRUCTSIZE, 
         (WPARAM) sizeof(TBBUTTON), 0);
@@ -240,8 +243,9 @@ void tb_initToolbar(HWND hwndDaddy)
     tbb[nButton].dwData = 0;
     tbb[nButton].iString = 0;
     tb_registerBinding(IDM_HLPINDEX, &tbb[nButton]);
-
 	nButton++;
+    nToolbarButtons = nButton;
+
     SendMessage(hwndToolbar, TB_ADDBUTTONS, (WPARAM) nButton, (LPARAM) (LPTBBUTTON) &tbb);
     for (int i = 0; i < nButton; i++) {
         if (tbb[nButton].iString) {
@@ -249,6 +253,168 @@ void tb_initToolbar(HWND hwndDaddy)
         }
     }
     SendMessage(hwndToolbar, TB_SETMAXTEXTROWS, 0, 0);
-    ShowWindow(hwndToolbar, SW_SHOW);
+    return hwndToolbar;
 }
+
+/*
+ * Custom window procedure subclass for the incremental search edit field.
+ */
+static WNDPROC oldEditProc;
+LRESULT CALLBACK incrementalSearchEditWndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    static HWND previousFocusWnd;
+    LRESULT nRet;
+    char pszBuf[256];
+
+    switch (msg) {
+    case WM_CHAR:
+        if (wParam == VK_RETURN || wParam == VK_ESCAPE) {
+            return 0;
+        }
+        nRet = CallWindowProc(oldEditProc, wnd, msg, wParam, lParam);
+        Edit_GetText(wnd, pszBuf, sizeof pszBuf);
+        find_incrementally(pszBuf, RE_IGNCASE, 1, FALSE);
+        return nRet;
+    case WM_SETFOCUS:
+        previousFocusWnd = (HWND)wParam;
+        find_startIncrementalSearch();
+        break;
+    case WM_KEYDOWN:
+        switch (wParam) {
+        case VK_RETURN:
+            //Do your stuff
+            Edit_GetText(wnd, pszBuf, sizeof pszBuf);
+            find_incrementally(pszBuf, RE_IGNCASE| O_WRAPSCAN, 1, TRUE);
+            return 0;
+        case VK_ESCAPE:
+            if (previousFocusWnd != NULL) {
+                SetFocus(previousFocusWnd);
+                previousFocusWnd = NULL;
+                return 0;
+            }
+            break;
+        //If not your key, skip to default:
+        }
+    }
+    return CallWindowProc(oldEditProc, wnd, msg, wParam, lParam);
+}
+/*
+ * Creates the entry field for incremental search in the PKS Edit toolbar. 
+ */
+static HWND tb_initSearchEntryField(HWND hwndOwner) {
+    HWND hwndEntryField;
+
+    hwndEntryField = CreateWindowEx(0, "EDIT", "",
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_LEFT | ES_NOHIDESEL | ES_WANTRETURN,
+        0, 0, 180, CW_USEDEFAULT,
+        hwndOwner, (HMENU)IDM_INCREMENTAL_SEARCH,
+        hInst, NULL);
+    SendMessage(hwndEntryField, WM_SETFONT, (WPARAM)cust_getDefaultEditorFont(), 0);
+    oldEditProc = (WNDPROC)SetWindowLongPtr(hwndEntryField, GWLP_WNDPROC, (LONG_PTR)incrementalSearchEditWndProc);
+    return hwndEntryField;
+}
+
+/*
+ * Creates a filler to be added to the toolbar.
+ */
+static HWND tb_initFiller(HWND hwndOwner) {
+    HWND hwndFiller;
+
+    hwndFiller = CreateWindowEx(0, "static", "",
+        WS_CHILD | WS_VISIBLE,
+        0, 0, 200, CW_USEDEFAULT,
+        hwndOwner, (HMENU)0,
+        hInst, NULL);
+    return hwndFiller;
+}
+
+/*--------------------------------------------------------------------------
+ * tb_initRebar()
+ * Initialize the PKS Edit top bar (rebar).
+ */
+HWND tb_initRebar(HWND hwndOwner) {
+    HWND hwndEntryField;
+    HWND hwndToolbar;
+
+    if (hwndRebar) {
+        return hwndRebar;
+    }
+
+    // Create the rebar.
+    hwndRebar = CreateWindowEx(WS_EX_TOOLWINDOW,
+        REBARCLASSNAME,
+        NULL,
+        WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS |
+        WS_CLIPCHILDREN | RBS_BANDBORDERS ,
+        0, 0, 0, 0,
+        hwndOwner,
+        NULL,
+        hInst, // global instance handle
+        NULL);
+
+    if (!hwndRebar)
+    {
+        return NULL;
+    }
+    hwndToolbar = tb_initToolbar(hwndRebar);
+    hwndEntryField = tb_initSearchEntryField(hwndRebar);
+
+    // Initialize band info used by both bands.
+    // this should actually be {sizeof (REBARBANDINFO) - 0x64 } - but for some
+    // reasons the old rebar band info size (which is 0x50) must be used here - obviously
+    // the used common ctrl library is an elder version.
+    REBARBANDINFO rbBand = { REBARBANDINFO_V3_SIZE };
+    rbBand.fMask =
+        RBBIM_STYLE       // fStyle is valid.
+        | RBBIM_TEXT        // lpText is valid.
+        | RBBIM_CHILD       // hwndChild is valid.
+        | RBBIM_CHILDSIZE   // child size members are valid.
+        | RBBIM_SIZE;       // cx is valid
+    rbBand.fStyle = RBBS_CHILDEDGE | RBBS_GRIPPERALWAYS;
+
+    // Get the height of the toolbar.
+    DWORD dwBtnSize = (DWORD)SendMessage(hwndToolbar, TB_GETBUTTONSIZE, 0, 0);
+
+    // Set values unique to the band with the toolbar.
+    rbBand.lpText = TEXT("");
+    rbBand.hwndChild = hwndToolbar;
+    rbBand.cyChild = LOWORD(dwBtnSize);
+    rbBand.cxMinChild = (nToolbarButtons -2) * HIWORD(dwBtnSize);
+    rbBand.cyMinChild = LOWORD(dwBtnSize);
+    // The default width is the width of the buttons.
+    rbBand.cx = 0;
+
+    // Add the band that has the toolbar.
+    SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
+
+    RECT rc;
+    GetWindowRect(hwndEntryField, &rc);
+    rbBand.lpText = TEXT("Suche:");
+    rbBand.hwndChild = hwndEntryField;
+    rbBand.cxMinChild = 0;
+    rbBand.cyMinChild = 20;
+    // The default width should be set to some value wider than the text. The entry field itself will expand to fill the band.
+    rbBand.cx = 230;
+
+    // Add the band that has the entry field.
+    SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
+
+    HWND hwndFiller = tb_initFiller(hwndRebar);
+
+    rbBand.lpText = TEXT("");
+    rbBand.hwndChild = hwndFiller;
+    rbBand.cxMinChild = 0;
+    rbBand.cyMinChild = rc.bottom - rc.top;
+    // The default width should be set to some value wider than the text. The entry field itself will expand to fill the band.
+    rbBand.cx = 250;
+    rbBand.fStyle = 0;
+
+    // Add the band that has the entry field.
+    SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
+
+    return (hwndRebar);
+}
+
+
+
+
 

@@ -10,6 +10,7 @@ The famous arcade times text editor from Pahlen & Krauß.
 - A new option "Ignore Binary Files" was added to the find in files dialog, allowing to easily exclude
   unwanted matches.
 - The find in files dialog remembers now in addition the file name patterns entered before.
+- A new "incremental search" field was added to the toolbar area allowing to type in text to find in the current file.
 
 * Improved
 - Find in Files displays a folder browser now to select a path

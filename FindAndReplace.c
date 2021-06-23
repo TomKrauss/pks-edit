@@ -34,6 +34,7 @@
 #include "lineoperations.h"
 #include "findandreplace.h"
 #include "mouseutil.h"
+#include "textblocks.h"
 
 #define	UCHAR	unsigned char
 
@@ -234,43 +235,39 @@ fisuccess:
 }
 
 /*--------------------------------------------------------------------------
- * searchcpos()
+ * find_updateCursorToShowMatch()
  */
-static int searchcpos(FTABLE *fp,long ln,int col, RE_MATCH *pMatch)
-{	int col2,dc;
-	WINFO  *wp;
+static int find_updateSelectionToShowMatch(FTABLE *fp,long ln,int col, RE_MATCH *pMatch)
+{	int    dc;
+	WINFO* wp;
 
 	wp = WIPOI(fp);
 	caret_placeCursorMakeVisibleAndSaveLocation(ln,col);
-	col2 = caret_lineOffset2screen(fp, &(CARET) {
-		fp->caret.linePointer, (int)(pMatch->loc2 - pMatch->loc1) + fp->caret.offset
-	});
-	cursor_width = dc = col2 - wp->col;
-	wt_curpos(wp,wp->ln,wp->col);
+	dc = (int)(pMatch->loc2 - pMatch->loc1);
+	bl_hideSelection(1);
+	bl_setSelection(fp, fp->caret.linePointer, fp->caret.offset, fp->caret.linePointer, dc + fp->caret.offset);
 	return dc;
 }
 
 /*--------------------------------------------------------------------------
  * find_expressionInCurrentFile()
  */
-int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options)
-{	long ln,col;
-	int  ret = 0,wrap = 0,wrapped = 0;
-	LINE *lp;
-	FTABLE *fp;
-	RE_MATCH match;
+static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, long lnStart, int dir, RE_PATTERN* pPattern, int options, long *pFoundLine, long *pFoundCol,
+	RE_MATCH *pMatch)
+{
+	long ln, col;
+	int  ret = 0, wrap = 0, wrapped = 0;
+	LINE* lp;
 
-	memset(&match, 0, sizeof match);
-	fp = ft_getCurrentDocument();
-	mouse_setBusyCursor();
-	ln  = fp->ln;
-	lp  = fp->caret.linePointer;
-	col = fp->caret.offset;
+	memset(pMatch, 0, sizeof *pMatch);
+	ln = lnStart;
+	lp = cCaret.linePointer;
+	col = cCaret.offset;
 	if (dir > 0) {
-		if (P_EQ(&lp->lbuf[col], match.loc1) && P_NE(match.loc2, match.loc1))
-			col = (long) (match.loc2 - lp->lbuf);
+		if (P_EQ(&lp->lbuf[col], pMatch->loc1) && P_NE(pMatch->loc2, pMatch->loc1))
+			col = (long)(pMatch->loc2 - lp->lbuf);
 		else col++;
-		if (match.circf || col > lp->len) {
+		if (pMatch->circf || col > lp->len) {
 			ln++, lp = lp->next;
 			col = 0;
 		}
@@ -279,27 +276,50 @@ int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options)
 	if (options & O_WRAPSCAN)
 		wrap = 1;
 
-	if (find_expr(dir,&ln,&col,lp,pPattern, &match))
+	if (find_expr(dir, &ln, &col, lp, pPattern, pMatch))
 		ret = 1;
 	else if (wrap) {
 		if (dir > 0) {
-			ln  = 0;
+			ln = 0;
 			col = 0;
-			lp  = fp->firstl;
-		} else {
-			ln  = fp->nlines-1;
-			lp  = fp->lastl->prev;
-			col = lp->len-1;
+			lp = fp->firstl;
 		}
-		if (find_expr(dir,&ln,&col,lp,pPattern, &match)) {
+		else {
+			ln = fp->nlines - 1;
+			lp = fp->lastl->prev;
+			col = lp->len - 1;
+		}
+		if (find_expr(dir, &ln, &col, lp, pPattern, pMatch)) {
 			wrapped++;
 			ret = 1;
 		}
 	}
+	if (ret) {
+		*pFoundLine = ln;
+		*pFoundCol = col;
+	}
+	return ret;
+}
+
+/*--------------------------------------------------------------------------
+ * find_expressionInCurrentFile()
+ */
+int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options)
+{	long ln,col;
+	int  ret = 0,wrap = 0,wrapped = 0;
+	FTABLE *fp;
+	RE_MATCH match;
+
+	fp = ft_getCurrentDocument();
+	if (fp == NULL) {
+		return 0;
+	}
+	mouse_setBusyCursor();
+	ret = find_expressionInCurrentFileStartingFrom(fp, fp->caret, fp->ln, dir, pPattern, options, &ln, &col, &match);
 	mouse_setDefaultCursor();
 
 	if (ret == 1) {
-		searchcpos(fp,ln,col, &match);
+		find_updateSelectionToShowMatch(fp,ln,col, &match);
 		if (wrapped)
 			error_showErrorById(IDS_MSGWRAPPED);
 	}
@@ -311,6 +331,58 @@ int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options)
 							 IDS_MSGNOMATCHTOSTART);
 	}
 	return ret;
+}
+
+/*
+ * Find a string incremental with given options either forward or backward depending on nDirection.
+ */
+static CARET incrementalStart;
+int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bContinue) {
+	RE_PATTERN* pPattern;
+	int ret;
+	long ln;
+	long col;
+	RE_MATCH match;
+
+	FTABLE* fp = ft_getCurrentDocument();
+	if (fp == NULL) {
+		return 0;
+	}
+	_currentSearchAndReplaceParams.options = nOptions;
+	long incrementalLine;
+	if (bContinue && ft_checkSelection(fp)) {
+		incrementalLine = ln_indexOf(fp, fp->blstart->lm);
+		incrementalStart = (CARET){ fp->blstart->lm, fp->blstart->lc };
+	} else if (incrementalStart.linePointer == NULL ||(incrementalLine = ln_indexOf(fp, incrementalStart.linePointer)) < 0) {
+		incrementalLine = fp->ln;
+		incrementalStart = fp->caret;
+	}
+	if (*pszString == 0) {
+		if (incrementalStart.linePointer != NULL) {
+			EdBlockHide();
+			caret_placeCursorMakeVisibleAndSaveLocation(incrementalLine, incrementalStart.offset);
+		}
+		return 1;
+	}
+	if (!(pPattern = regex_compileWithDefault(pszString))) {
+		return 0;
+	}
+	ret = find_expressionInCurrentFileStartingFrom(fp, incrementalStart, incrementalLine, nDirection, pPattern, nOptions, &ln, &col, &match);
+	if (ret) {
+		find_updateSelectionToShowMatch(fp, ln, col, &match);
+	} else if (pszString[0]) {
+		error_showErrorById(IDS_MSGSTRINGNOTFOUND);
+	}
+	return ret;
+}
+
+/*
+ * Start an incremental search operation. This will set the current search position start to the position
+ * of the caret in the current file.
+ */
+int find_startIncrementalSearch() {
+	incrementalStart.linePointer = NULL;
+	return TRUE;
 }
 
 /*--------------------------------------------------------------------------
@@ -723,7 +795,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 		lastfcol = col;
 
 		if (query) {
-			cursor_width = searchcpos(fp,ln,col, &match);
+			cursor_width = find_updateSelectionToShowMatch(fp,ln,col, &match);
 			switch (dlg_queryReplace(match.loc1,olen,q,(int)newlen)) {
 				case IDNO:
 					delta = olen;
