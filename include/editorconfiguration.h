@@ -80,7 +80,7 @@ extern void prof_adjustpoint(PPOINT pPoint);
 /*------------------------------------------------------------
  * prof_getws()
  */
-extern int prof_getws(char* string, WINDOWPLACEMENT* wsp);
+extern int prof_getWindowSettings(char* string, WINDOWPLACEMENT* wsp);
 
 /*------------------------------------------------------------
  * prof_getwinstate()

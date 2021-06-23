@@ -135,8 +135,9 @@ EXPORT void prof_adjustpoint(PPOINT pPoint)
 
 /*------------------------------------------------------------
  * prof_getws()
+ * Returns the window settings from the pksedit.ini file.
  */
-EXPORT int prof_getws(char *string, WINDOWPLACEMENT *wsp)
+EXPORT int prof_getWindowSettings(char *string, WINDOWPLACEMENT *wsp)
 {
 	GetScreenRatioValues();
 	wsp->length = sizeof *wsp;
@@ -171,7 +172,7 @@ EXPORT int prof_getwinstate(char *wname, int nr, WINDOWPLACEMENT *wsp)
 	if (!prof_getPksProfileString(_desk,ident,string,sizeof string -1)) {
 		return 0;
 	}
-	return prof_getws(string,wsp);
+	return prof_getWindowSettings(string,wsp);
 }
 
 /*------------------------------------------------------------

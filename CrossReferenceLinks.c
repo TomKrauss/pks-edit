@@ -626,7 +626,7 @@ void xref_openSearchListResultFromLine(LINE *lp)
 			if (tp->rembuf[0]) {
 				/* this means -> windowstate given */
 				wsp = &ws;
-				prof_getws(tp->rembuf,wsp);
+				prof_getWindowSettings(tp->rembuf,wsp);
 			}
 			xref_openFile(tp->fn, tp->ln-1L, wsp);
 		}
