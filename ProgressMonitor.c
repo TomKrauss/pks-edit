@@ -65,6 +65,7 @@ void progress_startMonitor(unsigned int ids) {
 		szB1[0] = 0;
 		LoadString(hInst,ids,szB1,sizeof szB1);
 		wsprintf(szBuff,"%s..",szB1);
+		// This is an example for a long long long long long long long long long long long long long long long long long long long long long long long line to print
 		win_createModelessDialog(&hwndAbort,"DLGABORT",
 						  DlgProgressProc,&lpfnAbort);
 		if (hwndAbort) {

@@ -215,14 +215,11 @@ static int print_calculateRatio(int total, int mul, int div)
 /*------------------------------------------------------------
  * print_ntextlines()
  */
-static int print_ntextlines(void)
+static int print_ntextlines(DEVEXTENTS* dep)
 {
 	PRTPARAM	*pp = &_prtparams;
 
-	int n = (pp->options & PRTO_HEADERS) ? 
-			(pp->pagelen - pp->headerSize - pp->footerSize - pp->marginTop - pp->marginBottom) :
-			pp->pagelen - pp->marginTop - pp->marginBottom;
-	return n <= 0 ? 2 : n;
+	return (dep->yFooterPos - dep->yHeaderPos) / pp->font.fs_cheight;
 }
 
 /*--------------------------------------------------------------------------
@@ -266,7 +263,7 @@ static void print_getDeviceExtents(HDC hdc, DEVEXTENTS *dep) {
 	dep->xRMargin = print_calculateRatio(dep->xPage, (pp->nchars-pp->rmargin), pp->nchars);
 
 	totalHeight = dep->yPage;
-	dep->lineHeight = totalHeight / print_ntextlines();
+	dep->lineHeight = totalHeight / _prtparams.pagelen;
 
 	int cFontHeight = dep->lineHeight * pp->lnspace.n / pp->lnspace.z;
 	pp->font.fs_cheight =
@@ -393,43 +390,63 @@ static void print_headerOrFooter(HDC hdc, DEVEXTENTS *dep, int y, long pageno,
 	}
 }
 
+typedef struct tagPRINT_LINE {
+	int wrappedLineOffset;	// normally 0. WHen a line is printed, which is wrapped print_signleLineOfText is called for every "segment line" with this being the
+							// offset of the lines printed before.
+	LINE* lp;				// current line to print.
+	int charHeight;			// character / line height
+	int firstc;				// first character index to print (mostly 0)
+	int lastc;				// last character index to print (mostly lp->len)
+	long lineNumber;		// number of line to print
+	int xPos;				// x position, where the printing starts
+	int yPos;				// y position, where the printing starts
+	int maxYPos;			// the available space in y direction
+} PRINT_LINE;
+
 /*------------------------------------------------------------
  * print_singleLineOfText()
  */
-static int print_singleLineOfText(HDC hdc, int xPos, int yPos, int charHeight, long lineno,
-		 	  LINE *lp, int firstc, int lastc, BOOL printing)
+static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 {
 	char 	szBuff[80];
 	int		nCount;
 	int		max;
+	int		xPos = pLine->xPos;
 	int		nMaxCharsPerLine;
-	int		deltaHeight = charHeight;
+	int		nActualLine = 0;
+	int		nFirstActualLineToPrint = pLine->wrappedLineOffset;
+	int		nLinesPrinted = 0;
 
+	pLine->wrappedLineOffset = 0;
 	nMaxCharsPerLine = 0;
 	if (_prtparams.options & PRTO_LINES) {
-		wsprintf(szBuff, "%3ld: ", lineno);
+		wsprintf(szBuff, "%3ld: ", pLine->lineNumber);
 		nCount = lstrlen(szBuff);
-		if (printing) {
+		if (printing && nActualLine >= nFirstActualLineToPrint) {
 			SetTextColor(hdc, DEFAULT_PRINT_COLOR);
-			TextOut(hdc, xPos, yPos, szBuff, nCount);
+			TextOut(hdc, pLine->xPos, pLine->yPos, szBuff, nCount);
 		}
 		xPos += LOWORD(win_getTextExtent(hdc, szBuff, nCount));
-		nMaxCharsPerLine = -7;
+		nMaxCharsPerLine = -nCount;
 	}
 
-	_printwhat.wp->mincol = firstc;
-	max = caret_lineOffset2screen(_printwhat.fp, &(CARET) { lp, lp->len});
-	if (max > lastc)
-		max = lastc;
+	_printwhat.wp->mincol = pLine->firstc;
+	max = caret_lineOffset2screen(_printwhat.fp, &(CARET) { pLine->lp, pLine->lp->len});
+	if (max > pLine->lastc) {
+		max = pLine->lastc;
+	}
 	nMaxCharsPerLine += _prtparams.nchars - _prtparams.lmargin - _prtparams.rmargin;
 	_printwhat.wp->maxcol = nMaxCharsPerLine;
 	_printwhat.wp->maxcol = max;
 	if (_printwhat.wp->maxcol > nMaxCharsPerLine) {
 		_printwhat.wp->maxcol = nMaxCharsPerLine;
 	}
-	if (_printwhat.wp->maxcol > firstc) {
-		if (printing) {
-			_printwhat.wp->renderFunction(hdc, xPos, yPos, _printwhat.wp, lp);
+	if (_printwhat.wp->maxcol > pLine->firstc) {
+		if (nActualLine >= nFirstActualLineToPrint) {
+			nLinesPrinted++;
+			if (printing) {
+				_printwhat.wp->renderFunction(hdc, xPos, pLine->yPos, _printwhat.wp, pLine->lp);
+			}
 		}
 		while (_printwhat.wp->maxcol < max) {
 			int delta = max - _printwhat.wp->maxcol;
@@ -438,14 +455,22 @@ static int print_singleLineOfText(HDC hdc, int xPos, int yPos, int charHeight, l
 			}
 			_printwhat.wp->mincol = _printwhat.wp->maxcol+1;
 			_printwhat.wp->maxcol = _printwhat.wp->mincol+delta;
-			deltaHeight += charHeight;
-			yPos += charHeight;
-			if (printing) {
-				_printwhat.wp->renderFunction(hdc, xPos, yPos, _printwhat.wp, lp);
+			if (pLine->yPos + (2*pLine->charHeight) > pLine->maxYPos) {
+				pLine->wrappedLineOffset = nActualLine+1;
+				break;
+			}
+			pLine->yPos += pLine->charHeight;
+			nActualLine++;
+			if (nActualLine >= nFirstActualLineToPrint) {
+				nLinesPrinted++;
+				if (printing) {
+					_printwhat.wp->renderFunction(hdc, xPos, pLine->yPos, _printwhat.wp, pLine->lp);
+				}
 			}
 		}
 	}
-	return deltaHeight;
+	pLine->yPos += pLine->charHeight;
+	return nLinesPrinted++;
 }
 
 /**
@@ -483,35 +508,39 @@ static int print_isInPrintRange(PRTPARAM *pParams, WINFO *wp, int nCurrentPage, 
  */
 static int print_file(HDC hdc, BOOL measureOnly)
 {	char 		message[128];
-	long		oldpageno,lineno,pageno;
+	long		oldpageno,pageno;
 	long		linesPrinted = 0;
-	int			yPos;
 	BOOL		printing = TRUE;
 	BOOL		produceOutput;
 	DEVEXTENTS	de;
 	TEXTMETRIC	textMetrics;
 	FTABLE*		fp = _printwhat.fp;
-	LINE 		*lp,*lplast;
+	LINE 		*lplast;
 	PRTPARAM	*pp = &_prtparams;
-	int			firstc,lastc;
+	PRINT_LINE	printLineParam;
 
-	lp     = _printwhat.lp;
 	lplast = _printwhat.lplast;
-	firstc = _printwhat.firstColumn;
-	lastc  = _printwhat.lastColumn;
 
 	print_getDeviceExtents(hdc, &de);
 	print_selectfont(hdc,&pp->font);
 	GetTextMetrics(hdc, &textMetrics);
 	oldpageno = 0;
-	pageno = lineno = 1;
-	yPos = 0;
-	while (lp) {
+	pageno = 1;
+	printLineParam.wrappedLineOffset = 0;
+	printLineParam.yPos = 0;
+	printLineParam.xPos = de.xLMargin;
+	printLineParam.lp = _printwhat.lp;
+	printLineParam.charHeight = de.lineHeight;
+	printLineParam.firstc = _printwhat.firstColumn;
+	printLineParam.lastc = _printwhat.lastColumn;
+	printLineParam.lineNumber = 1;
+	printLineParam.maxYPos = de.yBottom;
+	while (printLineParam.lp) {
 		if (oldpageno != pageno) {
 			if (measureOnly) {
 				printing = TRUE;
 			} else {
-				printing = print_isInPrintRange(pp, fp->wp, pageno, lineno);
+				printing = print_isInPrintRange(pp, fp->wp, pageno, printLineParam.lineNumber);
 				if (printing < 0) {
 					break;
 				}
@@ -526,7 +555,7 @@ static int print_file(HDC hdc, BOOL measureOnly)
 			}
 			oldpageno = pageno;
 		}
-		if (yPos == 0) {
+		if (printLineParam.yPos == 0) {
 			if (produceOutput) {
 				StartPage(hdc);
 				print_resetDeviceMode(hdc);
@@ -534,31 +563,46 @@ static int print_file(HDC hdc, BOOL measureOnly)
 					pp->header, pp, TRUE);
 				print_selectfont(hdc,&pp->font);
 			}
-			yPos = de.yTop;
+			printLineParam.yPos = de.yTop;
 		}
-		if (yPos+de.lineHeight > de.yBottom) {
+		if (printLineParam.yPos+de.lineHeight > printLineParam.maxYPos) {
 footerprint:
 			if (produceOutput) {
 				print_headerOrFooter(hdc,&de,de.yFooterPos,pageno,pp->footer, pp, FALSE);
 				EndPage(hdc);
 			}
-			if (!lp || P_EQ(lp,lplast))
+			if (!printLineParam.lp || P_EQ(printLineParam.lp,lplast))
 				break;
-			yPos = 0;
+			printLineParam.yPos = 0;
 			pageno++;
 		} else {
-			int lineHeight = print_singleLineOfText(hdc, de.xLMargin, yPos, de.lineHeight, lineno, lp, firstc, lastc, produceOutput);
-			yPos += lineHeight;
-			linesPrinted += lineHeight / de.lineHeight;
-			if (P_EQ(lp,lplast) || (lp = lp->next) == 0)
-				goto footerprint;
-			lineno++;
+			int nLinesPrinted = print_singleLineOfText(hdc, &printLineParam, produceOutput);
+			linesPrinted += nLinesPrinted;
+			if (printLineParam.wrappedLineOffset == 0) {
+				if (P_EQ(printLineParam.lp, lplast) || (printLineParam.lp = printLineParam.lp->next) == 0)
+					goto footerprint;
+				printLineParam.lineNumber++;
+			}
 		}
 	}
 	if (produceOutput) {
 		font_selectSystemFixedFont(hdc);
 	}
 	return linesPrinted;
+}
+
+/*
+ * Enable / disable the preview next/previous buttons. 
+ */
+static prt_enablePreviewButtons(HWND hDlg, int numberOfPreviewPages, int newPage) {
+	_prtparams.printRange.prtr_fromPage = _prtparams.printRange.prtr_toPage = newPage;
+	SetDlgItemInt(hDlg, IDD_INT1, newPage, 0);
+	EnableWindow(GetDlgItem(hDlg, IDD_FIRST_PAGE), newPage > 1);
+	EnableWindow(GetDlgItem(hDlg, IDD_BACK_PAGE), newPage > 1);
+	int maxPages = numberOfPreviewPages;
+	EnableWindow(GetDlgItem(hDlg, IDD_NEXT_PAGE), newPage < maxPages);
+	EnableWindow(GetDlgItem(hDlg, IDD_LAST_PAGE), newPage < maxPages);
+	win_sendRedrawToWindow(GetDlgItem(hDlg, IDD_PREVIEW));
 }
 
 /*--------------------------------------------------------------------------
@@ -611,13 +655,14 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 		case WM_DRAWITEM:
 			hdc = ((LPDRAWITEMSTRUCT)lParam)->hDC;
 			int savedDc = SaveDC(hdc);
-			if (numberOfPreviewPages <= 0) {
-				int nTotal = print_ntextlines();
-				numberOfPreviewPages = (print_file(hdc, TRUE) + nTotal - 1) / nTotal;
-			}
 			RECT pageRect;
 			DEVEXTENTS de;
 			print_getDeviceExtents(hdc, &de);
+			if (numberOfPreviewPages <= 0) {
+				int nTotal = print_ntextlines(&de);
+				numberOfPreviewPages = (print_file(hdc, TRUE) + nTotal - 1) / nTotal;
+				prt_enablePreviewButtons(hDlg, numberOfPreviewPages, newPage);
+			}
 			pageRect.top = 0;
 			pageRect.bottom = de.yPage;
 			pageRect.left = de.xLMargin;
@@ -638,14 +683,7 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 			return FALSE;
 	}
 	if (newPage != _prtparams.printRange.prtr_fromPage) {
-		_prtparams.printRange.prtr_fromPage = _prtparams.printRange.prtr_toPage  = newPage;
-		SetDlgItemInt(hDlg, IDD_INT1, newPage, 0);
-		EnableWindow(GetDlgItem(hDlg, IDD_FIRST_PAGE), newPage > 1);
-		EnableWindow(GetDlgItem(hDlg, IDD_BACK_PAGE), newPage > 1);
-		int maxPages = numberOfPreviewPages > 0 ? numberOfPreviewPages : _printwhat.nlines / print_ntextlines();
-		EnableWindow(GetDlgItem(hDlg, IDD_NEXT_PAGE), newPage < maxPages);
-		EnableWindow(GetDlgItem(hDlg, IDD_LAST_PAGE), newPage < maxPages);
-		win_sendRedrawToWindow(GetDlgItem(hDlg, IDD_PREVIEW));
+		prt_enablePreviewButtons(hDlg, numberOfPreviewPages, newPage);
 	}
 	return FALSE;
 }

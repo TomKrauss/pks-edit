@@ -44,7 +44,7 @@
 
 extern 	MARK		*mark_set(FTABLE *fp, LINE *lp,int offs,int c);
 extern 	MARK		*mark_find(FTABLE *fp, int c);
-extern	int    	_playing,cursor_width;
+extern	int    	_playing;
 unsigned char 		*tlcompile(unsigned char *transtab, 
 						 unsigned char *t,
 						 unsigned char *wt);
@@ -795,7 +795,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 		lastfcol = col;
 
 		if (query) {
-			cursor_width = find_updateSelectionToShowMatch(fp,ln,col, &match);
+			find_updateSelectionToShowMatch(fp,ln,col, &match);
 			switch (dlg_queryReplace(match.loc1,olen,q,(int)newlen)) {
 				case IDNO:
 					delta = olen;

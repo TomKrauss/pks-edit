@@ -126,21 +126,8 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 	i = 0;
 	s = lp->lbuf;
 	send = &lp->lbuf[lp->len];
-	while (i < startColumn) {
-		if (s >= send) 
-			break;
-
-		if (*s++ == '\t') {
-			if ((i = doctypes_calculateTabStop(i,linp)) > startColumn) {
-				if (i > endColumn) {
-					i = endColumn;
-				}
-				x  += (i-startColumn)*wp->cwidth;
-				break;
-			}
-		} else i++;
-	}
 	RENDER_STATE newstate = state;
+	x -= startColumn * wp->cwidth;
 	while (i < endColumn && s < send) {
 		unsigned char c = *s++;
 		i++;
@@ -161,8 +148,11 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 		if (newstate != state) {
 			textlen = (int)(d - buf);
 			if (textlen > 0) {
-				render_formattedString(hdc, wp, x, y, buf, textlen, pTheme, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : FS_NORMAL);
-				x += textlen * wp->cwidth;
+				int x2 = x + textlen * wp->cwidth;
+				if (x2 >= startX) {
+					render_formattedString(hdc, wp, x, y, buf, textlen, pTheme, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : FS_NORMAL);
+				}
+				x = x2;
 			}
 			state = newstate;
 			d = buf;
@@ -176,10 +166,12 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 				x += wp->cwidth;
 			}
 		} else if (state == RS_CONTROL) {
-			render_formattedString(hdc, wp, x, y, "?", 1, pTheme, FS_CONTROL_CHARS);
+			if (x >= startX) {
+				render_formattedString(hdc, wp, x, y, "?", 1, pTheme, FS_CONTROL_CHARS);
+			}
 			x += wp->cwidth;
 		} else if (state == RS_TAB) {
-			if (showcontrol) {
+			if (showcontrol && x >= startX) {
 				render_formattedString(hdc, wp, x, y, "»", 1, pTheme, FS_CONTROL_CHARS);
 			}
 			x += (indent - i) * wp->cwidth;
@@ -188,11 +180,14 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 	}
 	textlen = (int)(d - buf);
 	if (textlen > 0) {
-		render_formattedString(hdc, wp, x, y, buf, textlen, pTheme, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : FS_NORMAL);
-		x += textlen * wp->cwidth;
+		int x2 = x+textlen * wp->cwidth;
+		if (x2 >= startX) {
+			render_formattedString(hdc, wp, x, y, buf, textlen, pTheme, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : FS_NORMAL);
+		}
+		x = x2;
 		i += textlen;
 	}
-	if (showcontrol && i >= wp->mincol && !(lp->lflg & LNNOTERM)) {
+	if (showcontrol && i >= wp->mincol && !(lp->lflg & LNNOTERM) && x >= startX) {
 		render_formattedString(hdc, wp, x, y, (lp->lflg & LNNOCR) ? "¬" : "¶", 1, pTheme, FS_CONTROL_CHARS);
 	}
 	return (x-startX)/wp->cwidth;

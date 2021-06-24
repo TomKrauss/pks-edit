@@ -28,8 +28,6 @@ extern int 	ft_checkSelection(FTABLE *fp);
 
 typedef enum { CUR_HIDDEN, CUR_INSERT, CUR_OVERRIDE } CURSOR_TYPE;
 
-int 	cursor_width = 1;
-
 /*------------------------------------------------------------
  * EdHideCaret()
  */
@@ -47,7 +45,7 @@ static int EdUpdateCaret(WINFO *wp, CURSOR_TYPE type, int visible)
 {
      if (!visible) {
 		if (type == CUR_OVERRIDE) {
-			CreateCaret(wp->ww_handle,NULL,wp->cwidth*cursor_width,wp->cheight);
+			CreateCaret(wp->ww_handle,NULL,wp->cwidth, wp->cheight);
 		} else {
 			CreateCaret(wp->ww_handle, NULL, 2, wp->cheight);
 		}
@@ -69,7 +67,7 @@ void render_updateCustomCaret(WINFO *wp, HDC hdc)
 {
 	if (!wp->owncursor)
 		return;
-	cust_drawOutline(hdc,wp->cx,wp->cy,wp->cwidth*cursor_width,wp->cheight);
+	cust_drawOutline(hdc,wp->cx,wp->cy,wp->cwidth,wp->cheight);
 }
 
 /*------------------------------------------------------------
@@ -79,20 +77,19 @@ void render_updateCustomCaret(WINFO *wp, HDC hdc)
  */
 static struct olc {
 	CURSOR_TYPE type;
-	int width;
-} _olcurs = { 0, 1 };
+} _olcurs = { CUR_HIDDEN };
 void render_updateCaret(WINFO *wp) {
 	struct olc *op = &_olcurs;
 	CURSOR_TYPE type;
 
 	type = wp->ctype;
 	if (type) {
-		type = (cursor_width == 1 && (wp->workmode & WM_INSERT)) ?
+		type = (wp->workmode & WM_INSERT) ?
 			CUR_INSERT : CUR_OVERRIDE;
 
 	}
 
-	if (type != op->type || cursor_width != op->width) {
+	if (type != op->type) {
 		if (op->type) {
 			EdHideCaret(wp->ww_handle);
 			op->type = 0;
@@ -108,8 +105,6 @@ void render_updateCaret(WINFO *wp) {
 	}
 
 	op->type = type;
-	op->width = cursor_width;
-	cursor_width = 1;
 }
 
 /*------------------------------------------------------------

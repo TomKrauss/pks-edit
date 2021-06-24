@@ -742,7 +742,7 @@ EXPORT LINE *cadv_c(LINE *lp,long *ln,long *col,int dir,unsigned char match)
 				c  = lp->len;
 			} else
 				if (lp->lbuf[c] == match)
-					break;;
+					break;
 		}
 	} else {
 		for (;;) {

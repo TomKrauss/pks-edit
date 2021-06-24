@@ -2,18 +2,8 @@
 "C:\source\pksedit\AlignText.c", line 92: 0x0 0x1 -1 -1 -8 -31 38 53 970 539
 "C:\source\pksedit\pksedit.rc", line 1: 0x0 0x1 -1 -1 -8 -31 16 0 1142 618
 "C:\source\pksedit\PrintFiles.c", line 1: 0x0 0x1 -1 -1 -1 -1 162 72 1288 694
-"C:\source\pksedit\ProgressMonitor.c", line 121: 0x1 0x1 104 713 -8 -31 31 30 1042 732
+"C:\source\pksedit\ProgressMonitor.c", line 82: 0x3 0x3 104 713 -8 -31 31 30 1042 703
 [find]
-!f
-!FONT
-!MS Sans
-!sdfsfd
-!sdfsf
-!sdfs
-!sdf
-!sd
-!s
-!d
 !di
 !dia
 !dialo2
@@ -34,6 +24,14 @@
 !retu
 !retur
 !return
+!w
+!wi
+!winterf
+!winter
+!winte
+!wint
+!win
+!record
 [filePatterns]
 !*.c
 !*.*
@@ -73,6 +71,7 @@
 !newfile1.txt
 !newfile2.txt
 !C:\source\pksedit\pksedit.rc
+!C:\source\pksedit\MODI.TMP
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -81,3 +80,4 @@
 !D:\source\pksedit\*.*
 !D:\source\pksedit\pks_sys\*.MAC
 !C:\source\pksedit\*.*
+!C:\source\pksedit\pks_sys\*.MAC

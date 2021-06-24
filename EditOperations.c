@@ -52,7 +52,6 @@ extern int 	doabbrev(FTABLE *fp, LINE *lp,int offs);
 extern void 	render_updateCaret(WINFO *wp);
 
 extern long 	_multiplier;
-extern int 		cursor_width;
 
 /*--------------------------------------------------------------------------
  * EdCharDelete()
@@ -753,7 +752,6 @@ int EdCharDelete(int control)
 	long		ln,ln1,o2,o1;
 	int		matchc;
 
-	cursor_width = 1;
 	render_updateCaret(WIPOI(fp));
 	lp = lp1 = fp->caret.linePointer;
 	o1 = o2  = fp->caret.offset;
