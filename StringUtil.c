@@ -196,18 +196,18 @@ char *string_getFullPathName(const char *path, const char *fn) {
  */
 char *string_abbreviateFileName(const char *fn) {	
 	int l,i;
-	static char aname[64];
+	static char aname[90];
 	
 	if ((l = lstrlen(fn)) < sizeof aname)
 		return (char*)fn;
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < (sizeof aname / 2) - 4; i++) {
 		aname[i] = fn[i];
 	}
 	aname[i++] = '.';
 	aname[i++] = '.';
 	aname[i++] = '.';
-	l = l - 40;
+	l = l - (sizeof aname / 2);
 	strcpy(aname + i, fn + l);
 	return aname;
 }

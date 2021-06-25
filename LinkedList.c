@@ -37,7 +37,7 @@ void ll_destroy(LINKED_LIST **pointerLinkedList, int (*destroy)(void *elem)) {
 
 /*--------------------------------------------------------------------------
  * ll_delete()
- * delete an element in a linked list.Return 1 if the element was successfully deleted.
+ * delete an element in a linked list. Return 1 if the element was successfully deleted.
  */
 int ll_delete(LINKED_LIST **pointerLinkedList, void *element) {
 	LINKED_LIST *lp,*lpprev,**head;

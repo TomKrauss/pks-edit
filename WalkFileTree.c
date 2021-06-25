@@ -57,6 +57,7 @@ static int __ftw(char *path,int depth)
 {	struct _finddata_t  *	pdta;
 	char 				*	target;
 	intptr_t				fhandle;
+	int						nFiles = 0;
 	register int			i;
 
 	if (--depth < 0) {
@@ -78,6 +79,7 @@ static int __ftw(char *path,int depth)
 			if (strcmp(pdta->name, ".") == 0 || strcmp(pdta->name, "..") == 0) {
 				continue;
 			}
+			nFiles++;
 			if (pdta->attrib == 0 || 
 			   (pdta->attrib & _mode) == pdta->attrib) {
 				if ((pdta->attrib & _A_SUBDIR) || 
@@ -91,6 +93,8 @@ static int __ftw(char *path,int depth)
 						_findclose(fhandle);
 						return i;
 					}
+				} else if (nFiles % 10 == 9) {
+					progress_stepIndicator();
 				}
 			}
 

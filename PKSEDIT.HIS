@@ -1,8 +1,5 @@
 [files]
-"C:\source\pksedit\CaretMovement.c", line 10: 0x0 0x1 -1 -1 -1 -1 234 234 1021 804
-"C:\source\pksedit\BracketMatching.c", line 13: 0x0 0x1 -1 -1 -1 -1 260 260 1047 830
-"C:\source\pksedit\AsciiHexToLong.c", line 10: 0x0 0x1 -1 -1 -1 -1 0 0 787 570
-"C:\source\pksedit\AlignText.c", line 10: 0x0 0x1 -1 -1 -1 -1 26 26 813 596
+"C:\source\pksedit\DisplayHelp.c", line 1: 0x0 0x1 -1 -1 -1 -1 30 12 1067 795
 [find]
 !winte
 !wint
@@ -29,46 +26,48 @@
 !cancelle
 !cancelled
 !author: Tom
+!author: Trend
+!@author.*Trend
 [filePatterns]
 !*.c
 !*.*
+!*.java
 [replace]
 !die
 !,
 ! 
 [open]
-!C:\source\pksedit\include\desktopicons.h
-!C:\source\pksedit\include\customcontrols.h
-!C:\source\pksedit\include\context.h
-!C:\source\pksedit\include\clipboard.h
-!C:\source\pksedit\include\caretmovement.h
-!C:\source\pksedit\include\brackets.h
-!C:\source\pksedit\include\binop.h
-!C:\source\pksedit\include\arraylist.h
-!C:\source\pksedit\include\ArrayList.c
-!C:\source\pksedit\include\actions.h
-!C:\source\pksedit\HandleMacros.c
-!C:\source\pksedit\FunctionKeyWidget.c
-!C:\source\pksedit\FindAndReplace.c
-!C:\source\pksedit\FileUtil.c
-!C:\source\pksedit\FilePattern.c
-!C:\source\pksedit\FileBufferIO.c
-!C:\source\pksedit\ExecuteProgram.c
-!C:\source\pksedit\ErrorDialogs.c
-!C:\source\pksedit\EditorWindowMain.c
-!C:\source\pksedit\EditorWindow.c
-!C:\source\pksedit\EditorLineOperations.c
-!C:\source\pksedit\EditorDialogUtil.c
-!C:\source\pksedit\EditorConfiguration.c
-!C:\source\pksedit\EditOperations.c
-!C:\source\pksedit\DocumentTypes.c
-!C:\source\pksedit\DisplayHelp.c
-!C:\source\pksedit\DesktopIcons.c
-!C:\source\pksedit\CustomControls.c
-!C:\source\pksedit\CompareFiles.c
-!C:\source\pksedit\Compare.c
-!C:\source\pksedit\Clipboard.c
-!C:\source\pksedit\Actions.c
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\config-yaml\src\de\gebit\trend\config\yaml\YAMLConfigLoaderFactory.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\config-yaml\src\de\gebit\trend\config\yaml\YAMLConfigLoader.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\config-doclet\src\de\gebit\trend\tools\config\ConfigDoclet.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\bootsfaces\src\de\gebit\trend\bootsfaces\types\BFSimpleDateEditorFactory.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\bootsfaces\src\de\gebit\trend\bootsfaces\list\BDataTable.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\bootsfaces\src\de\gebit\trend\bootsfaces\GlyphIconMapping.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\bootsfaces\src\de\gebit\trend\bootsfaces\generic\list\Factory.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\bootsfaces\src\de\gebit\trend\bootsfaces\generic\list\BootsfacesDataTableWrapper.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\bootsfaces\src\de\gebit\trend\bootsfaces\BootstrapMenuBean.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\bootsfaces\src\de\gebit\trend\bootsfaces\BootstrapGuiFactory.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\bootsfaces\src\de\gebit\trend\bootsfaces\boeditor\BootsfacesTabbedLayoutPolicy.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\birt-runtime\src\de\gebit\trend\report\birt\service\BasicReportTemplateCreationService.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\birt-runtime\src\de\gebit\trend\report\birt\runtime\RunReportServiceException.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\birt-runtime\src\de\gebit\trend\report\birt\runtime\ReportingConfigurationObject.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\birt-runtime\src\de\gebit\trend\report\birt\runtime\JavaClientRunner.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\birt-runtime\src\de\gebit\trend\report\birt\runtime\Factory.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\VisibilityActivationAction.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\ValueActivationCondition.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\TextChangedActivationListener.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\NotACExpression.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\ListSelectionActivationCondition.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\ItemSelectionActivationListener.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\GModelChangedActivationListener.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\ConstraintsCheckActivationCondition.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\ActivationGroup.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\ActivationEngineViewWeaver.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\AbstractActivationListener.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\ActivationAction.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\ActivationCondition.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\ActivationEngineView.java
+!C:\source\trend-master-eclipse-4.20\trend\add-ons\activation-groups\src\de\gebit\trend\gui\application\activation\AbstractActivationCondition.java
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -76,5 +75,5 @@
 !D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
 !D:\source\pksedit\*.*
 !D:\source\pksedit\pks_sys\*.MAC
-!C:\source\pksedit\*.*
 !C:\source\pksedit\pks_sys\*.MAC
+!C:\source\pksedit\*.*

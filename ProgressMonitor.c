@@ -68,6 +68,8 @@ void progress_startMonitor(unsigned int ids) {
 		win_createModelessDialog(&hwndAbort,"DLGABORT",
 						  DlgProgressProc,&lpfnAbort);
 		if (hwndAbort) {
+			HWND hwndPB = GetDlgItem(hwndAbort, IDC_PROGRESS);
+			SendMessage(hwndPB, PBM_SETMARQUEE, (WPARAM)1, 40);
 			EnableWindow(hwndFrame,FALSE);
 			SetDlgItemText(hwndAbort, IDD_STRING1, szBuff);
 		}
@@ -75,18 +77,28 @@ void progress_startMonitor(unsigned int ids) {
 }
 
 /*------------------------------------------------------------
+ * progress_stepIndicator()
+ * Animate the actual progress bar displayed in the progress dialog.
+ */
+void progress_stepIndicator() {
+	if (hwndAbort) {
+		HWND hwndPB = GetDlgItem(hwndAbort, IDC_PROGRESS);
+		MSG msg;
+		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE | PM_NOYIELD)) {
+			DispatchMessage(&msg);
+		}
+	}
+}
+
+/*------------------------------------------------------------
  * progress_showMonitorMessage()
+ * Show a progress message and animate the progress control.
  */
 void progress_showMonitorMessage(const char* message)
 {
 	if (hwndAbort) {
 		SetDlgItemText(hwndAbort, IDD_STRING2, message);
-		HWND hwndPB = GetDlgItem(hwndAbort, IDC_PROGRESS);
-		SendMessage(hwndPB, PBM_STEPIT, (WPARAM)1, 0);
-		MSG msg;
-		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE | PM_NOYIELD)) {
-			DispatchMessage(&msg);
-		}
+		progress_stepIndicator();
 	}
 }
 

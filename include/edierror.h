@@ -33,6 +33,12 @@ extern void progress_startMonitor(unsigned int ids);
  */
 extern void progress_showMonitorMessage(const char* message);
 
+/*------------------------------------------------------------
+ * progress_stepIndicator()
+ * Animate the actual progress bar displayed in the progress dialog.
+ */
+extern void progress_stepIndicator();
+
 /*--------------------------------------------------------------------------
  * NoDiskSpace()
  */
