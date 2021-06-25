@@ -146,10 +146,12 @@ EXPORT int bl_pastecol(PASTE *pb,FTABLE *fp, LINE *lpd, int col)
 {
 	LINE *	lps;
 	LINE *	lpnew;
+	WINFO* wp;
 	int 		ctrl;
 
 	lps  = pb->pln;
-	col = caret_lineOffset2screen(fp, &(CARET) { lpd, col });
+	wp = WIPOI(fp);
+	col = caret_lineOffset2screen(wp, &(CARET) { lpd, col });
 	ctrl = PLAINCONTROL(fp->documentDescriptor->dispmode) ? 1 : 0;
 	while (lps) {
 		if (P_EQ(lpd,fp->lastl)) {

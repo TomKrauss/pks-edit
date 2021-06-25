@@ -219,10 +219,12 @@ static void ww_updateRangeAndCheckBounds(long min, int cheight, int h,
  */
 EXPORT void ww_setScrollCheckBounds(WINFO *wp)
 {
-	ww_updateRangeAndCheckBounds(wp->minln, wp->cheight, wp->workarea.g_h,
+	RECT rect;
+	GetClientRect(wp->ww_handle, &rect);
+	ww_updateRangeAndCheckBounds(wp->minln, wp->cheight, rect.bottom-rect.top,
 			&wp->maxln, &wp->maxcursln, &wp->mincursln, &wp->scroll_dy); 
 			
-	ww_updateRangeAndCheckBounds(wp->mincol, wp->cwidth, wp->workarea.g_w,
+	ww_updateRangeAndCheckBounds(wp->mincol, wp->cwidth, rect.right - rect.left,
 			&wp->maxcol, &wp->maxcurscol, &wp->mincurscol, &wp->scroll_dx); 
 }
 
@@ -538,7 +540,7 @@ void ww_setwindowtitle(WINFO *wp)
 	} else {
 		wsprintf(buf,"#%d %s",nr,(LPSTR)pName);
 	}
-	if (fp->flags & F_MODIFIED) {
+	if (ft_isFileModified(fp)) {
 		memmove(buf + 2, buf, sizeof buf - 2);
 		buf[0] = '*';
 		buf[1] = ' ';
@@ -580,7 +582,7 @@ void ww_applyDisplayProperties(WINFO *wp) {
 		win_sendRedrawToWindow(wp->ww_handle);
 		wt_tcursor(wp,0);
 		wt_tcursor(wp,1);
-		caret_placeCursorForFile(fp,fp->ln,fp->caret.offset);
+		caret_placeCursorForFile(wp,fp->ln,fp->caret.offset);
 	}
 
 	wp->workmode = linp->workmode;
@@ -595,6 +597,21 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	render_updateCaret(wp);
 }
 
+/*
+ * Close a window 
+ */
+static void ww_recycleWindow() {
+	WINFO* wpFound = NULL;
+	for (WINFO* wp = _winlist; wp; wp = wp->next) {
+		if (wp->fp && !ft_isFileModified(wp->fp)) {
+			wpFound = wp;
+		}
+	}
+	if (wpFound) {
+		ww_close(wpFound);
+	}
+}
+
 /*-----------------------------------------------------------
  * ww_new()
  */
@@ -603,9 +620,13 @@ static FSTYLE _fstyles[2] = {
 	5,			BLACK_BRUSH,		/* Or */
 	5,			BLACK_BRUSH		/* Invert */
 };
-static WINFO *ww_new(FTABLE *fp,HWND hwnd)
-{	WINFO  *wp;
+static WINFO *ww_new(FTABLE *fp,HWND hwnd) {
+	WINFO  *wp;
 
+	int nMax = GetConfiguration()->maximumNumberOfOpenWindows;
+	if (nMax > 0 && nwindows >= nMax) {
+		ww_recycleWindow();
+	}
 	if ((wp = (WINFO*)ll_insert((LINKED_LIST**)&_winlist,sizeof *wp)) == 0) {
 		return 0;
 	}
@@ -683,6 +704,13 @@ int ww_close(WINFO *wp)
 		return 0;
 	return
 		(int) SendMessage(hwndClient,WM_MDIDESTROY,(WPARAM)hwndEdit,(LPARAM)0L);
+}
+
+/*
+ * Returns the "active" editor window having the focus. 
+ */
+WINFO* ww_getCurrentEditorWindow() {
+	return _winlist;
 }
 
 /*------------------------------------------------------------
@@ -819,10 +847,6 @@ WINFUNC EditWndProc(
  * ww_updateWindowBounds()
  */
 static int ww_updateWindowBounds(WINFO *wp, int w, int h) {
-	wp->workarea.g_x = wp->workarea.g_y = 0;
-	wp->workarea.g_w = w;
-	wp->workarea.g_h = h;
-
 	ww_setScrollCheckBounds(wp);
 
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"SetWiSize to (%ld,%ld,%ld,%ld)",
@@ -1030,10 +1054,8 @@ static WINFUNC WorkAreaWndProc(
 	case WM_SETFOCUS:
 	    if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
 			wt_tcursor(wp,1);
-			ft_select(wp->fp);
 			FTABLE* fp = wp->fp;
-			xref_selectFileFormat(fp->documentDescriptor->modename);
-			macro_selectDefaultBindings();
+			ft_currentFileChanged(fp);
 	    }
 	    else {
 			EdTRACE(log_errorArgs(DEBUG_TRACE,

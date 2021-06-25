@@ -125,8 +125,8 @@ static long matchlines(FTABLE *fp1,FTABLE *fp2,int dir)
 				lp2->lflg |= LNDIFFMARK;
 				l1 = ln_cnt(fp1->firstl,lp1) - 1;
 				l2 = ln_cnt(fp2->firstl,lp2) - 1;
-				caret_placeCursorAndMakevisibleWithSpace(fp1,l1,0L);
-				caret_placeCursorAndMakevisibleWithSpace(fp2,l2,0L);
+				caret_placeCursorAndMakevisibleWithSpace(WIPOI(fp1),l1,0L);
+				caret_placeCursorAndMakevisibleWithSpace(WIPOI(fp2),l2,0L);
 				if (!dir)
 					goto out;
 			}

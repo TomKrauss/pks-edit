@@ -78,11 +78,11 @@ static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
 			return;
 		}
 		if (P_EQ(lp, fp->blstart->lm))
-			r.left = caret_lineOffset2screen(fp, &(CARET) { lp, fp->blstart->lc});
+			r.left = caret_lineOffset2screen(wp, &(CARET) { lp, fp->blstart->lc});
 		else r.left = wp->mincol;
 
 		if (P_EQ(lp, fp->blend->lm))
-			r.right = caret_lineOffset2screen(fp, &(CARET) { lp, fp->blend->lc});
+			r.right = caret_lineOffset2screen(wp, &(CARET) { lp, fp->blend->lc});
 		else r.right = lastcol;
 	}
 	r.left -= wp->mincol; if (r.left < 0) r.left = 0;
@@ -218,7 +218,9 @@ static void redraw_indirect(HDC hdc, WINFO *wp, int y, LINE *lp)
 	dwExtent = win_getTextExtent(hdc, buf, lstrlen(buf));
 	nWidth = LOWORD(dwExtent) + 4;
 	y = y + wp->cheight/2-1;
-	x = wp->workarea.g_w;
+	RECT rect;
+	GetClientRect(wp->ww_handle, &rect);
+	x = rect.right;
 	MoveTo(hdc, nWidth, y);
 	LineTo(hdc, x, y);
 
@@ -258,6 +260,8 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 
 	y = calcy(wp,min);
 	lp = ln_relgo(fp,min-wp->ln);
+	RECT rect;
+	GetClientRect(wp->ww_handle, &rect);
 	for (ln = min; lp && ln <= max && y < ps.rcPaint.bottom;
 		lp = lp->next, ln++,  y = newy) {
 		newy = y + wp->cheight;
@@ -269,7 +273,7 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 			} else if (lp == fp->caret.linePointer && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
 				hBrush = hBrushCaretLine;
 			}
-			r.left = 0; r.right = wp->workarea.g_w;
+			r.left = rect.left; r.right = rect.right;
 			r.top = y;
 			r.bottom = min(ps.rcPaint.bottom,y+wp->cheight);
 			FillRect(hdc,&r,hBrush);
@@ -289,7 +293,7 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 	}
 
 	if (!lp) {
-		r.left = 0; r.right = wp->workarea.g_w;
+		r.left = rect.left; r.right = rect.right;
 		r.top = y;
 		r.bottom = min(ps.rcPaint.bottom,y+(max-ln)*wp->cheight);
 		FillRect(hdc,&r,hBrushBg);

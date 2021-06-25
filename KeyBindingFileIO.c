@@ -301,6 +301,7 @@ int doabbrev(FTABLE *fp, LINE *lp,int offs)
 	long 		o2;
 	int id = 		fp->documentDescriptor->id;
 	int			domacro = 0;
+	WINFO* wp = WIPOI(fp);
 
 	if ((up = uc_find(id,lp->lbuf,offs,UA_ABBREV)) != 0) {
 		domacro = 0;
@@ -313,7 +314,7 @@ int doabbrev(FTABLE *fp, LINE *lp,int offs)
 	o2 = offs-up->len;
 	if ((lp = ln_modify(fp,lp,offs,o2)) == 0L)
 		return 0;
-	caret_placeCursorInCurrentFile(fp->ln,o2);
+	caret_placeCursorInCurrentFile(wp, fp->ln,o2);
 	return (domacro) ? 
 		render_repaintCurrentLine(), macro_executeByName((char *)up->p) : bl_pasteBlock(up->p,0,o2,0);
 }

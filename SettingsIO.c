@@ -253,6 +253,7 @@ int prof_getstdopt(void)
 	_currentSearchAndReplaceParams.options = (int)prof_getlong(_desk,"FindOptions");
 	GetConfiguration()->asminutes = prof_getlong(_desk,"AsInterv");
 	GetConfiguration()->nundo = prof_getlong(_desk,"NUBuf");
+	GetConfiguration()->maximumNumberOfOpenWindows = prof_getlong(_desk, "maxOpenWindows");
 	prof_getPksProfileString(_desk,"AsPath", GetConfiguration()->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath) -1);
 
 	return 1;
@@ -324,6 +325,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	prof_savelong(_desk,"Layout",(long)configuration->layoutoptions);
 	prof_savelong(_desk,"FindOptions",(long)_currentSearchAndReplaceParams.options);
 	prof_savelong(_desk,"AsInterv",(long)configuration->asminutes);
+	prof_savelong(_desk, "maxOpenWindows", (long)configuration->maximumNumberOfOpenWindows);
 	prof_saveaspath(configuration);
 	prof_savelong(_desk,"NUBuf",(long)configuration->nundo);
 	prof_savelong(_desk, _cxscreen, (long)GetSystemMetrics(SM_CXSCREEN));

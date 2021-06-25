@@ -299,10 +299,14 @@ void ft_cutMarkedLines(FTABLE* fp, int op);
 extern int ft_abandonFile(FTABLE* fp, DOCUMENT_DESCRIPTOR* linp);
 
 /*------------------------------------------------------------
- * ft_select()
- * Make the passed filebuffer the "current" edited file in PKS Edit.
+ * The current active file (window of active file) has changed.
  */
-extern int ft_select(FTABLE* fp);
+extern int ft_currentFileChanged(FTABLE* fp);
+
+/*
+ *  Answer 1, if the passed file is modified.
+ */
+extern int ft_isFileModified(FTABLE* fp);
 
 /*--------------------------------------------------------------------------
  * ft_countlinesStartingFromDirection()

@@ -473,13 +473,14 @@ static void uc_waitForTimerElapsed(void)
  * show matching brackets
  */
 EXPORT int EdShowMatch(void)
-{	register FTABLE *fp = ft_getCurrentDocument();
+{	WINFO *wp = ww_getCurrentEditorWindow();
 	long 	 ln,col;
 
-	if (!fp) return 0;
+	if (!wp) return 0;
+	FTABLE* fp = wp->fp;
 	ln = fp->ln, col = fp->caret.offset;
 	if (nextmatch(fp->caret.linePointer,&ln,&col)) {
-		caret_placeCursorInCurrentFile(ln,col);
+		caret_placeCursorInCurrentFile(wp, ln,col);
 		return 1;
 	} 
 	error_showErrorById(IDS_MSGNOBRACKETS);
@@ -490,7 +491,8 @@ EXPORT int EdShowMatch(void)
  * uc_showMatchingBracket(s)
  */
 EXPORT int uc_showMatchingBracket(LINE *lp,int iStartColumn)
-{	FTABLE *fp = ft_getCurrentDocument();
+{	WINFO *wp = ww_getCurrentEditorWindow();
+	FTABLE* fp = wp->fp;
 	long   ln  = fp->ln;
 	long   col = iStartColumn;
 	struct uclist *up;
@@ -500,10 +502,10 @@ EXPORT int uc_showMatchingBracket(LINE *lp,int iStartColumn)
 
 		col -= up->len;
 		if (scanmatch(0,lp,(struct tagBRACKET_RULE *)up->p,&ln,&col)) {
-			if (ln >= WIPOI(fp)->minln) {
-				caret_placeCursorInCurrentFile(ln,col);
+			if (ln >= wp->minln) {
+				caret_placeCursorInCurrentFile(wp, ln,col);
 				uc_waitForTimerElapsed();
-				caret_placeCursorInCurrentFile(lsav,csav);
+				caret_placeCursorInCurrentFile(wp, lsav,csav);
 				return 1;
 			}
 		} else {
@@ -548,6 +550,7 @@ EXPORT int uc_shiftLinesByIndent(FTABLE *fp, long ln, long nlines, int dir)
 	size_t			blcount;
 	register int	ind,col;
 	int 			dummy;
+	WINFO* wp = WIPOI(fp);
 
 	if ((lp = ln_gotouserel(fp,ln)) == 0L) 
 		return 0;
@@ -588,7 +591,7 @@ EXPORT int uc_shiftLinesByIndent(FTABLE *fp, long ln, long nlines, int dir)
 	if (fp->ln >= ln && fp->ln < ln+nlines)
 		offset += dir;
 
-	caret_placeCursorInCurrentFile(fp->ln,offset);
+	caret_placeCursorInCurrentFile(wp, fp->ln,offset);
 
 	return 1;
 }

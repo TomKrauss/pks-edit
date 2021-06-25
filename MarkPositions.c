@@ -13,10 +13,12 @@
  */
 
 #include <stdlib.h>
+#include <windows.h>
 #include "caretmovement.h"
 #include "edierror.h"
 #include "lineoperations.h"
 #include "markpositions.h"
+#include "winfo.h"
 
 /*--------------------------------------------------------------------------
  * mark_find()
@@ -123,23 +125,24 @@ LINE *mark_goto(FTABLE *fp, int c, long *ln, long *col)
 int EdGotoLastPos(int type)
 {	register FTABLE *fp;
 	long ln,col;
+	WINFO* wp = ww_getCurrentEditorWindow();
 
-	if ((fp = ft_getCurrentDocument()) != 0L) {
-		/*
-		 * should do different things: last insert, last search,...
-		 */
-		switch(type) {
-			case TM_LASTINSERT:
-				if ((ln = ln_indexOf(fp,fp->tln)) < 0)
-					return 0;
-				col = fp->lastmodoffs;
-				break;
-			default:
-				ln = fp->lastln;
-				col = fp->lastcol;
-		}
-
-		return caret_placeCursorMakeVisibleAndSaveLocation(ln,col);	   
+	if (wp == NULL) {
+		return 0;
 	}
-	return 0;
+	fp = wp->fp;
+	/*
+		* should do different things: last insert, last search,...
+		*/
+	switch(type) {
+		case TM_LASTINSERT:
+			if ((ln = ln_indexOf(fp,fp->tln)) < 0)
+				return 0;
+			col = fp->lastmodoffs;
+			break;
+		default:
+			ln = fp->lastln;
+			col = fp->lastcol;
+	}
+	return caret_placeCursorMakeVisibleAndSaveLocation(wp, ln,col);	   
 }

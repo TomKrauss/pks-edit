@@ -52,8 +52,10 @@ static void SetWin32ScrollInfo(WINFO * wp, int nSlider,
 static int calculateLongestLine(FTABLE *fp) {
 	LINE* lp = fp->firstl;
 	int max = 0;
+	WINFO* wp = WIPOI(fp);
+
 	while (lp) {
-		int len = caret_lineOffset2screen(fp, &(CARET){lp, lp->len});
+		int len = caret_lineOffset2screen(wp, &(CARET){lp, lp->len});
 		if (max < len) {
 			max = len;
 		}
@@ -238,7 +240,7 @@ int sl_moved(WINFO *wp, long dy, long dx, int cursor_adjust)
 			col = wp->maxcurscol;
 		}
 		if (col != wp->col || ln != wp->ln) {
-			if (!caret_updateLineColumn(FTPOI(wp),&ln,&col,0)) {
+			if (!caret_updateLineColumn(wp, &ln, &col, 0)) {
 				ln = wp->ln;
 			}
 			wp->ln  = ln;
@@ -314,7 +316,7 @@ int EdScrollScreen(int mtype)
 
 	col = fp->caret.offset;
 	sl_moved(wp,dln,0,0);
-	ret = caret_placeCursorAndValidate(fp,&ln,&col,0);
+	ret = caret_placeCursorAndValidate(wp,&ln,&col,0);
 	wt_curpos(wp,ln,col);
 	return ret;
 }

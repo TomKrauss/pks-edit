@@ -75,13 +75,13 @@ EXPORT int bl_hideSelection(int removeLineSelectionFlag) {
 	MARK *		mpe;
 	long			ln;
 
-	fp = ft_getCurrentDocument();
+	wp = ww_getCurrentEditorWindow();
+	fp = wp->fp;
 	mps = fp->blstart;
 	mpe = fp->blend;
-	wp = WIPOI(fp);
 
 	if (removeLineSelectionFlag) {
-		caret_placeCursorInCurrentFile(fp->ln,(long)fp->caret.offset);
+		caret_placeCursorInCurrentFile(wp, fp->ln,(long)fp->caret.offset);
 	}
 	lp = lpFirst = ln_relgo(fp, wp->minln - wp->ln);
 	for (ln = wp->minln; 
@@ -124,11 +124,9 @@ EXPORT int bl_pasteBlock(PASTE *buf, int colflg, int offset, int move) {
 	long 	delta,oln;
 	int	    	ret;
 	FTABLE *	fp;
-	WINFO *	wp;
+	WINFO *	wp = ww_getCurrentEditorWindow();
 
-	fp = ft_getCurrentDocument();
-	wp = WIPOI(fp);
-
+	fp = wp->fp;
 	if ((ret = bl_paste(buf,fp,fp->caret.linePointer, offset,colflg)) == 0 ||
 		colflg ||
 		(fp->documentDescriptor->workmode & BLK_LINES)) {
@@ -148,16 +146,16 @@ EXPORT int bl_pasteBlock(PASTE *buf, int colflg, int offset, int move) {
 		col += offset;
 	if (!move) {
 		if (delta > 0 && (oln+delta) <= wp->maxln) {
-			caret_placeCursorInCurrentFile(fp->ln+1L,0L);
+			caret_placeCursorInCurrentFile(wp, fp->ln+1L,0L);
 			wt_insline(wp,(int ) delta);
 		}
 		if (ln > wp->maxln) delta = wp->maxln;
 		else delta = ln;
 		render_repaintFromLineTo(wp,oln,delta);
-		caret_placeCursorInCurrentFile(ln,col);		
+		caret_placeCursorInCurrentFile(wp, ln,col);		
 	} else {
 		fp->blstart->lc++; /* get block marked afterwards (s. cpy_mv) */
-		caret_placeCursorInCurrentFile(ln,col);
+		caret_placeCursorInCurrentFile(wp, ln,col);
 		render_repaintAllForFile(fp);
 		EdSyncSelectionWithCaret(MARK_END);
 	}
@@ -442,11 +440,13 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 	long   delta,dln;
 	PASTE  pbuf;
 	FTABLE *fp;
+	WINFO* wp;
 	MARK   *bstart,*bend;
 	int	  move_nocolblk,ret,colflg;
 
-	fp = ft_getCurrentDocument();
-	colflg = ww_hasColumnSelection(WIPOI(ft_getCurrentDocument()));
+	wp = ww_getCurrentEditorWindow();
+	fp = wp->fp;
+	colflg = ww_hasColumnSelection(wp);
 
 	if (!ft_checkSelectionWithError(fp))
 		return 0;
@@ -455,7 +455,7 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 	 * due to positioning problems afterwards: expand destination line
 	 */
 	if (colflg) {
-		offs = caret_lineOffset2screen(fp, &fp->caret);
+		offs = caret_lineOffset2screen(wp, &fp->caret);
 		if (find_expandTabsInFormattedLines(fp,fp->caret.linePointer) == 0)
 			return 0;
 	} else {
@@ -500,7 +500,7 @@ nodelta:		;
 	pbuf.pln = 0;
 	if ((ret = bl_cut(&pbuf,ls,le,cs,ce,move,colflg)) != 0) {
 		if (move_nocolblk) {
-			caret_placeCursorInCurrentFile((long)(fp->ln+dln),(long)(offs + delta));
+			caret_placeCursorInCurrentFile(wp, (long)(fp->ln+dln),(long)(offs + delta));
 			bl_hideSelection(0);
 			EdSyncSelectionWithCaret(MARK_START);
 			fp->blstart->lc--;
@@ -516,7 +516,7 @@ nodelta:		;
 
 		ret = bl_pasteBlock(&pbuf,colflg,offs,move);
 		if (colflg) {
-			caret_placeCursorInCurrentFile(fp->ln,(long)offs);
+			caret_placeCursorInCurrentFile(wp, fp->ln,(long)offs);
 			fp->blcol1 = offs;
 			fp->blcol2 = offs + delta;
 			bl_setSelection(fp,fp->caret.linePointer,offs,
@@ -532,12 +532,13 @@ nodelta:		;
 /*---------------------------------*/
 /* blfin()					*/
 /*---------------------------------*/
-static int blfin(MARK *mp)
-{	long newln;
+static int blfin(MARK *mp) {	
+	long newln;
+	WINFO* wp = ww_getCurrentEditorWindow();
 
 	if (mp != 0) {
-		newln = ln_indexOf(ft_getCurrentDocument(),mp->lm);
-		caret_placeCursorAndSavePosition(newln,(long)mp->lc);
+		newln = ln_indexOf(wp->fp,mp->lm);
+		caret_placeCursorAndSavePosition(wp, newln,(long)mp->lc);
 		return 1;
 	} else {
 		error_showErrorById(IDS_MSGNOBLOCKSELECTED);
@@ -708,13 +709,15 @@ static void marklines(int changed,int colflg,
 /* bl_setColumnSelection()				*/
 /*---------------------------------*/
 static void bl_setColumnSelectionNoRepaint(FTABLE *fp)
-{	MARK	 *mp;
+{	
+	MARK	 *mp;
+	WINFO*   wp = WIPOI(fp);
 
 	if ((mp = fp->blstart) != 0L) {
-		fp->blcol1 = caret_lineOffset2screen(fp, &(CARET) { mp->lm, mp->lc });
+		fp->blcol1 = caret_lineOffset2screen(wp, &(CARET) { mp->lm, mp->lc });
 	}
 	if ((mp = fp->blend) != 0L) {
-		fp->blcol2 = caret_lineOffset2screen(fp, &(CARET) {
+		fp->blcol2 = caret_lineOffset2screen(wp, &(CARET) {
 			mp->lm, mp->lc
 		});
 		if (fp->blcol2 <= fp->blcol1)
@@ -769,6 +772,7 @@ int bl_syncSelectionWithCaret(FTABLE *fp, CARET *lpCaret, int flags, int *pMarkS
 	int			workmode;
 	int			nMarkOffset = lpCaret->offset;
 	LINE*		lpMark = lpCaret->linePointer;
+	WINFO*		wp;
 
 	type = (flags & (~(MARK_COLUMN|MARK_RECALCULATE|MARK_NO_HIDE)));
 	workmode = fp->documentDescriptor->workmode;
@@ -782,7 +786,8 @@ int bl_syncSelectionWithCaret(FTABLE *fp, CARET *lpCaret, int flags, int *pMarkS
 		return 1;
 	}
 
-	colflg = ww_hasColumnSelection(WIPOI(fp));
+	wp = WIPOI(fp);
+	colflg = ww_hasColumnSelection(wp);
 
 	if (fp->blstart) {
 		lp1	  = fp->blstart->lm;
@@ -871,10 +876,10 @@ int bl_syncSelectionWithCaret(FTABLE *fp, CARET *lpCaret, int flags, int *pMarkS
 					endx = marks->lc;
 				}
 			}
-			render_repaintLinePart(fp, fp->ln, caret_lineOffset2screen(fp, &(CARET) {
+			render_repaintLinePart(fp, fp->ln, caret_lineOffset2screen(wp, &(CARET) {
 				fp->caret.linePointer, startx
 			}),
-				caret_lineOffset2screen(fp, &(CARET) {
+				caret_lineOffset2screen(wp, &(CARET) {
 					fp->caret.linePointer, endx
 				}));
 		}
@@ -896,11 +901,13 @@ EXPORT int EdMouseMarkParts(int type)
 	LINE *	lp2;
 	long   	o1;
 	long 	o2;
+	WINFO* wp;
 	FTABLE *	fp;
 	int    	colflg;
 
-	fp = ft_getCurrentDocument();
-	colflg = ww_hasColumnSelection(WIPOI(fp));
+	wp = ww_getCurrentEditorWindow();
+	fp = wp->fp;
+	colflg = ww_hasColumnSelection(wp);
 
 	caret_positionCloseToMouseWithConfirmation(0L);
 
@@ -918,13 +925,13 @@ EXPORT int EdMouseMarkParts(int type)
 		LINE *(*func)() = (type == MOT_SPACE) ? 
 			cadv_wordonly : cadv_gotoIdentifierEnd;
 
-		o2 = caret_screen2lineOffset(fp, &(CARET) { lp, col });
+		o2 = caret_screen2lineOffset(wp, &(CARET) { lp, col });
 		lp2 = (*func)(lp,&ln,&o2,1);
 		o1  = o2;
 		lp  = (*func)(lp,&ln,&o1,-1);
 	} else if (type == MOT_PGRPH) {
-		col = caret_advanceParagraph(ln,1,1);
-		ln  = caret_advanceParagraph(col,-1,1);
+		col = caret_advanceParagraph(wp, ln,1,1);
+		ln  = caret_advanceParagraph(wp, col,-1,1);
 		lp  = ln_gotouserel(fp,ln);
 		lp2 = ln_gotouserel(fp,col);
 	} else {	/* MOT_TOEND */

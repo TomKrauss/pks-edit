@@ -9,6 +9,7 @@
 
 #include <windows.h>
 #include <string.h>
+#include <stdio.h>
 #include "winterf.h"
 #include "edctype.h"
 #include "fileselector.h"
@@ -27,6 +28,7 @@
 #include "winutil.h"
 #include "crossreferencelinks.h"
 #include "markpositions.h"
+#include "textblocks.h"
 
 #define	TCMD_EXEC				'!'
 #define	TCMD_TAGFILE			'^'
@@ -526,14 +528,14 @@ static char *xref_saveCrossReferenceWord(unsigned char *d,unsigned char *dend)
 }
 
 /*------------------*/
-/* xref_openFile()		*/
+/* xref_openFile()	*/
 /*------------------*/
 int xref_openFile(char *name, long line, WINDOWPLACEMENT *wsp) {	
 	int ret = 0;
 
 	if (ft_activateWindowOfFileNamed(name)) {
 		if (line >= 0)
-			ret = caret_placeCursorMakeVisibleAndSaveLocation(line,0L);
+			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line,0L);
 		else ret = 1;
 	} else {
 		ret = ft_openFileWithoutFileselector(name,line,wsp);
@@ -633,11 +635,23 @@ void xref_openSearchListResultFromLine(LINE *lp)
 	}
 }
 
+/*
+ * Highlight a match in a file opened as a result of a navigation. 
+ */
+static xref_highlightMatch(long ln, int col, int len) {
+	WINFO* wpFound = ww_getCurrentEditorWindow();
+	caret_placeCursorInCurrentFile(wpFound, ln, col);
+	bl_hideSelection(1);
+	FTABLE* fpFound = wpFound->fp;
+	CARET caret = fpFound->caret;
+	bl_setSelection(fpFound, caret.linePointer, caret.offset, caret.linePointer, len + caret.offset);
+	render_repaintCurrentLine();
+}
+
 /*---------------------------------*/
 /* EdErrorNext()				*/
 /*---------------------------------*/
-int EdErrorNext(int dir)
-{
+int EdErrorNext(int dir) {
 	register LINE 	*lp;
  	register TAG  	*tp=0;
 	FTABLE	    	*fp;
@@ -702,7 +716,7 @@ doforward:
 	if (tp && lp) {
 		if ((wp = WIPOI(fp)) != 0) {
 			/* EdSelectWindow(wp->win_id); */
-			caret_placeCursorForFile(fp,lineno,0);
+			caret_placeCursorForFile(wp,lineno,0);
 			ln_removeFlag(fp->firstl,fp->lastl,LNXMARKED);
 			lp->lflg |= LNXMARKED;
 			render_repaintAllForFile(fp);
@@ -719,7 +733,11 @@ doforward:
 		}
 		if (xref_openFile(fullname, tp->ln-1L, (WINDOWPLACEMENT*)0)) {
 			if (tp->rembuf[0]) {
-				error_displayErrorToast(tp->rembuf, (void*)0);
+				int col;
+				int len;
+				if (sscanf(tp->rembuf, "%d/%d", &col, &len) != EOF && len > 0) {
+					xref_highlightMatch(tp->ln-1L, col, len);
+				}
 			}
 			return 1;
 		}

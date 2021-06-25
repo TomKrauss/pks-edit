@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Von Microsoft Visual C++ generierte Includedatei.
-// Verwendet durch D:\source\pksedit\PKSEDIT.RC
+// Verwendet durch C:\source\pksedit\PKSEDIT.RC
 //
 #define IDD_FONTSELECT3                 94
 #define IDD_LOWOPT2                     101

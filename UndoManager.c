@@ -334,11 +334,12 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	register LINE* lpNext;
 	BOOL bRedrawAll = FALSE;
 	UNDO_COMMAND* pRedoCommand = malloc(sizeof * pRedoCommand);
+	WINFO* wp = WIPOI(fp);
 
 	memset(pRedoCommand, 0, sizeof * pRedoCommand);
 	initUndoCommand(fp, pRedoCommand);
 	ln = 0; col = 0;
-	caret_placeCursorAndValidate(fp, &ln, &col, 0);
+	caret_placeCursorAndValidate(wp, &ln, &col, 0);
 
 	bl_hideSelection(0);
 	pOperation = pCommand->atomicSteps;
@@ -395,7 +396,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 
 	bl_setSelection(fp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
 
-	caret_placeCursorInCurrentFile(pCommand->ln, pCommand->col);
+	caret_placeCursorInCurrentFile(wp, pCommand->ln, pCommand->col);
 	if (bRedrawAll) {
 		render_repaintAllForFile(fp);
 	}

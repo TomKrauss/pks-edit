@@ -208,22 +208,19 @@ void wt_scrollpart(WINFO *wp,int from_top, int nlines)
 	RECT r;
 	int  dh;
 
-	r.left = 0; r.right = wp->workarea.g_w;
+	GetClientRect(wp->ww_handle, &r);
 	r.top  = (int)(wp->ln-wp->minln+from_top)*wp->cheight;
-	r.bottom = wp->workarea.g_h;
 	dh = (nlines)*wp->cheight;
 
 	if (r.top+dh <= r.bottom-2*wp->cheight) {
 		ScrollWindow(wp->ww_handle,0,dh,&r,(LPRECT)0);
      } else {
 		r.top = (int)(wp->ln-wp->minln)*wp->cheight;
-		InvalidateRect(wp->ww_handle,&r,1);
+		InvalidateRect(wp->ww_handle, &r, 0);
 	}
 	if (wp->lineNumbers_handle) {
 		InvalidateRect(wp->lineNumbers_handle, NULL,0);
 	}
-     UpdateWindow(wp->ww_handle);
-
 }
 
 /*------------------------------------------------------------

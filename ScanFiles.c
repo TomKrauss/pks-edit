@@ -37,16 +37,22 @@ static long 	_line;
 static int 		_abortOnFirstMatch,_trymatch,_ignoreBinary;
 
 /*--------------------------------------------------------------------------
- * present()
- * display info in abort dialog box and update .GRP-file
+ * find_inFilesMatchFound()
+ * display info in abort dialog box and update the cross reference list.
  */
 static int _nfound;
 static RE_PATTERN* _compiledPattern;
+static void find_inFilesMatchFound(char *fn, int nStartCol, int nLength) {
+	char szBuf[128];
 
-static void present(char *fn) {
 	_nfound++;
 	error_showMessageInStatusbar(IDS_MSGNTIMESFOUND, _nfound);
-	xref_addSearchListEntry(_outfile,fn,_line,"");
+	if (nStartCol >= 0) {
+		wsprintf(szBuf, "%d/%d", nStartCol, nLength);
+	} else {
+		szBuf[0] = 0;
+	}
+	xref_addSearchListEntry(_outfile, fn, _line, szBuf);
 }
 
 /*--------------------------------------------------------------------------
@@ -63,10 +69,10 @@ int xref_addSearchListEntry(FTABLE* fp, char* fn, long line, char* remark) {
 
 
 /*--------------------------------------------------------------------------
- * scanlines()
+ * find_inLine()
  * 
  */
-static unsigned char *scanlines(void *pFilename, DOCUMENT_DESCRIPTOR* linp, unsigned char *p, unsigned char *qend) {
+static unsigned char *find_inLine(void *pFilename, DOCUMENT_DESCRIPTOR* linp, unsigned char *p, unsigned char *qend) {
 	register char	*	q;
 	register char 		nl = '\n';
 	char *			stepend;
@@ -76,11 +82,11 @@ static unsigned char *scanlines(void *pFilename, DOCUMENT_DESCRIPTOR* linp, unsi
 	while (p < qend) {
 		if (*p++ == nl) {
 longline_scan:
-			stepend = p-2;
-			if (*stepend == '\r')
+			stepend = p-1;
+			if (stepend > q && stepend[-1] == '\r')
 				stepend--;
 			if (_compiledPattern != NULL && step(_compiledPattern, q,stepend, &match)) {
-				present((char*)pFilename);
+				find_inFilesMatchFound((char*)pFilename, (int)(match.loc1-q), (int)(match.loc2-match.loc1));
 				if (_abortOnFirstMatch)
 					return 0;
 			}
@@ -111,7 +117,9 @@ static int scan_isBinaryFile(int fd) {
 	for (int i = 0; i < nBytesRead; i++) {
 		unsigned char c = (unsigned char)buffer[i];
 		if (c != '\n' && c != '\t' && c != '\r' && iscntrl(c)) {
-			nControl++;
+			if (++nControl > 5) {
+				return 1;
+			}
 		}
 	}
 	_llseek(fd, 0l, SEEK_SET);
@@ -141,9 +149,9 @@ static int matchInFile(char *fn, DTA *stat) {
 	if (!_ignoreBinary || !scan_isBinaryFile(fd)) {
 		progress_showMonitorMessage(string_abbreviateFileName(fn));
 		if (!_trymatch) {
-			present(fn);
+			find_inFilesMatchFound(fn, -1, 0);
 		} else {
-			ft_readDocumentFromFile(fd, scanlines, fn);
+			ft_readDocumentFromFile(fd, find_inLine, fn);
 		}
 	}
 

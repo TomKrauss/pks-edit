@@ -181,7 +181,7 @@ static void caret_placeToXY(WINFO* wp, int x, int y) {
 	long col, ln;
 
 	caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
-	if (caret_updateLineColumn(FTPOI(wp), &ln, &col, 1)) {
+	if (caret_updateLineColumn(wp, &ln, &col, 1)) {
 		wt_curpos(wp, ln, col);
 	}
 }
@@ -461,7 +461,7 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 	}
 	if (mp->flags & MO_FINDCURS) {
 		caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
-		if (caret_updateLineColumn(FTPOI(wp),&ln,&col,1)) {
+		if (caret_updateLineColumn(wp,&ln,&col,1)) {
 			wt_curpos(wp,ln,col);
 		}
 	}

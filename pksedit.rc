@@ -819,7 +819,7 @@ CAPTION "Autosave"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
     LTEXT           "&Zeit [min]:",-1,12,12,36,8,NOT WS_GROUP
-    EDITTEXT        IDD_INT1,174,12,42,12,ES_AUTOHSCROLL
+    EDITTEXT        IDD_INT1,174,12,42,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "Einstellungen beim &Verlassen speichern",IDD_OPT2,
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,204,10
     LTEXT           "&Pfad:",-1,12,48,20,8,NOT WS_GROUP
@@ -830,17 +830,19 @@ BEGIN
     CONTROL         "&Makros beim Verlassen speichern",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,102,204,10
 END
 
-DLG_OPT_MISC DIALOGEX 0, 0, 241, 100
+DLG_OPT_MISC DIALOGEX 0, 0, 241, 140
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Verschiedenes"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "&Anzahl Undo-Schritte:",-1,12,30,84,8,NOT WS_GROUP
-    EDITTEXT        IDD_INT1,96,30,120,12,ES_AUTOHSCROLL
-    CONTROL         "Undo &möglich",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,12,204,8
+    LTEXT           "&Anzahl Undo-Schritte:",-1,12,29,84,12,NOT WS_GROUP
+    EDITTEXT        IDD_INT1,156,29,60,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
+    CONTROL         "Undo &möglich",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,13,204,10
     CONTROL         "Textmarkierungen bei Cursorpositionierung entfernen",IDD_OPT2,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,48,204,10
-    CONTROL         "Formulare nahe Mauszeiger öffnen",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,204,10
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,62,204,12
+    CONTROL         "Formulare nahe Mauszeiger öffnen",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,79,204,12
+    LTEXT           "&Maximale Anzahl Fenster:",-1,12,46,84,12,NOT WS_GROUP
+    EDITTEXT        IDD_INT2,156,46,60,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
 END
 
 DLG_OPT_LAYOUT DIALOGEX 69, 15, 279, 85
@@ -1210,8 +1212,7 @@ BEGIN
 
     DLG_OPT_MISC, DIALOG
     BEGIN
-        RIGHTMARGIN, 174
-        BOTTOMMARGIN, 72
+        BOTTOMMARGIN, 137
     END
 
     DLG_OPT_LAYOUT, DIALOG

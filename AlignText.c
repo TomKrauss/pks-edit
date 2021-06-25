@@ -33,6 +33,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	char **loc;
 	RE_MATCH match;
 	RE_PATTERN* pattern;
+	WINFO* wp;
 
 	if (!(pattern = regex_compileWithDefault(finds))) {
 		return 0;
@@ -43,11 +44,11 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 		return 0;
 	if (filler == 0)
 		filler = ' ';
-
+	wp = WIPOI(fp);
 	progress_startMonitor(IDS_ABRTALIGN);
 
 	if (flags & (AL_CPOS|AL_FIX)) {
-		firstcol = caret_lineOffset2screen(fp,&fp->caret);
+		firstcol = caret_lineOffset2screen(wp,&fp->caret);
 	}
 	else
 		firstcol = 0;
@@ -57,10 +58,10 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	else
 		/* looking for the right most position */
 		for (aligncol = 0, lp = mps->lm; lp != 0; lp = lp->next) {
-			i = caret_screen2lineOffset(fp, &(CARET){ lp, firstcol });
+			i = caret_screen2lineOffset(wp, &(CARET){ lp, firstcol });
 			if (step(pattern, &lp->lbuf[i],&lp->lbuf[lp->len], &match)) {
 				loc = (flags & AL_END) ? &match.loc1 : &match.loc2;
-				col = caret_lineOffset2screen(fp, &(CARET) { lp, (int)(*loc - lp->lbuf)});
+				col = caret_lineOffset2screen(wp, &(CARET) { lp, (int)(*loc - lp->lbuf)});
 				if (col > aligncol)
 					aligncol = col;
 			}
@@ -71,7 +72,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	ret = 1;
 	for (lp = mps->lm; lp != 0; lp = lp->next) {
 		besti  = -1;
-		firsti = caret_screen2lineOffset(fp, &(CARET){ lp, firstcol });
+		firsti = caret_screen2lineOffset(wp, &(CARET){ lp, firstcol });
 		if (flags & AL_FIX)
 			i = 0;		
 		else
@@ -89,7 +90,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 			i++;
 		}
 		if (besti >= 0) {
-			bestcol = caret_lineOffset2screen(fp, &(CARET) { lp, besti});
+			bestcol = caret_lineOffset2screen(wp, &(CARET) { lp, besti});
 			nchars  = aligncol - bestcol;
 			if ((lp = ln_modify(fp,lp,besti,besti+nchars)) == 0L) {
 				ret = 0;
@@ -103,7 +104,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	progress_closeMonitor(0);
 	render_repaintAllForFile(fp);
 	if ((ret & aligncol) >= 0) {
-		caret_placeCursorInCurrentFile(fp->ln,(long )aligncol);
+		caret_placeCursorInCurrentFile(wp, fp->ln,(long )aligncol);
 	}
 	return ret;
 }

@@ -45,6 +45,7 @@ static EDITOR_CONFIGURATION _configuration = {
 	(OL_OPTIONBAR | OL_SHOWSTATUS),
 	1,
 	3,
+	-1,
 	"",
 	"INCLUCDE;INC",
 	AutosaveConfiguration
@@ -86,6 +87,7 @@ static DIALPARS _dMisc[] = {
 	IDD_NOCHANGEONCANCEL,	0,	0,
 	IDD_OPT1,		UNDOENABLED,					& _configuration.options,
 	IDD_INT1,		sizeof _configuration.nundo,	&_configuration.nundo,
+	IDD_INT2,		sizeof _configuration.maximumNumberOfOpenWindows,& _configuration.maximumNumberOfOpenWindows,
 	IDD_OPT2,		O_HIDE_BLOCK_ON_CARET_MOVE,		& _configuration.options,
 	IDD_OPT3,		O_FORMFOLLOW,					& _configuration.options,
 	// Terminate with 0

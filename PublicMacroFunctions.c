@@ -124,7 +124,7 @@ void EdAlert(long unused1, long unused2, char *s)
  */
 int EdCursorLeft(int mtype)
 {
-	return caret_moveLeftRight(-1, mtype);
+	return caret_moveLeftRight(ww_getCurrentEditorWindow(), -1, mtype);
 }
 
 /*--------------------------------------------------------------------------
@@ -132,7 +132,7 @@ int EdCursorLeft(int mtype)
  */
 int EdCursorRight(int mtype)
 {
-	return caret_moveLeftRight(1, mtype);
+	return caret_moveLeftRight(ww_getCurrentEditorWindow(), 1, mtype);
 }
 
 /*--------------------------------------------------------------------------
@@ -140,7 +140,7 @@ int EdCursorRight(int mtype)
  */
 int EdCursorUp(int mtype)
 {
-	return caret_moveUpOrDown(-1,mtype);
+	return caret_moveUpOrDown(ww_getCurrentEditorWindow(), -1,mtype);
 }
 
 /*--------------------------------------------------------------------------
@@ -148,7 +148,7 @@ int EdCursorUp(int mtype)
  */
 int EdCursorDown(int mtype)
 {
-	return caret_moveUpOrDown(1,mtype);
+	return caret_moveUpOrDown(ww_getCurrentEditorWindow(), 1,mtype);
 }
 
 /*--------------------------------------------------------------------------
@@ -156,7 +156,7 @@ int EdCursorDown(int mtype)
  */
 int EdChapterGotoBegin(int dir)
 {
-	return caret_advanceSection(dir,1);
+	return caret_advanceSection(ww_getCurrentEditorWindow(), dir,1);
 }
 
 /*--------------------------------------------------------------------------
@@ -164,7 +164,7 @@ int EdChapterGotoBegin(int dir)
  */
 int EdChapterGotoEnd(int dir)
 {
-	return caret_advanceSection(dir,0);
+	return caret_advanceSection(ww_getCurrentEditorWindow(), dir,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -172,7 +172,7 @@ int EdChapterGotoEnd(int dir)
  */
 int EdParaGotoBegin(int dir)
 {
-	return caret_advanceParagraphFromCurrentLine(dir,1);
+	return caret_advanceParagraphFromCurrentLine(ww_getCurrentEditorWindow(), dir,1);
 }
 
 /*--------------------------------------------------------------------------
@@ -180,7 +180,7 @@ int EdParaGotoBegin(int dir)
  */
 int EdParaGotoEnd(int dir)
 {
-	return caret_advanceParagraphFromCurrentLine(dir,0);
+	return caret_advanceParagraphFromCurrentLine(ww_getCurrentEditorWindow(), dir,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -629,7 +629,7 @@ int EdGotoLine(void)
 {	long ln;
 
 	if ((ln = dialogGetNumber(DLGGOTOLINE)) > 0L)
-		return caret_placeCursorMakeVisibleAndSaveLocation(ln-1L,0L);
+		return caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), ln-1L,0L);
 	return 0;
 }
 
@@ -651,15 +651,16 @@ int EdMarkSet(void)
 int EdMarkGoto(void)
 {
 	long 		x,y;
+	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE *		fp;
 
-	fp = ft_getCurrentDocument();
+	fp = wp->fp;
 	_lastmarkc = DialogCharInput(IDS_MARKGOTO,_lastmarkc);
 	if (mark_goto(fp, _lastmarkc, &x, &y) == 0) {
 		error_showErrorById(IDS_MSGMARKUNDEF); 
 		return 0;
 	} else {
-		return caret_placeCursorMakeVisibleAndSaveLocation(x,y);
+		return caret_placeCursorMakeVisibleAndSaveLocation(wp, x,y);
 	}
 }
 

@@ -579,6 +579,7 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 	LINE 	*lpfirst, *lplast;
 	MARK		*mps,*mpe;
 	RE_PATTERN* pattern;
+	WINFO* wp = WIPOI(fp);
 
 	if (!sel[0]) {
 		sortflags |= SO_NOSELECT;
@@ -614,13 +615,13 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 		progress_startMonitor(IDS_ABRTSORT);
 		undo_cash(fp,lpfirst,lplast);
 		if (sortlist(_rectab,n)) {
-			caret_placeCursorInCurrentFile(0L,0L);
+			caret_placeCursorInCurrentFile(wp,0L,0L);
 			ln_order(fp,_rectab,&rp);
 		}
 		ln_removeFlag(fp->firstl,fp->lastl,LNREPLACED);
 		progress_closeMonitor(0);
 		render_repaintAllForFile(fp);
-		caret_placeCursorInCurrentFile(l1,0L);
+		caret_placeCursorInCurrentFile(wp,l1,0L);
 		ret = 1;
 	}
 

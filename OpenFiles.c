@@ -550,17 +550,18 @@ int EdSelectWindow(int winid)
  * ft_select()
  * Make the passed filebuffer the "current" edited file in PKS Edit.
  */
-int ft_select(FTABLE *fp)
-{
+int ft_currentFileChanged(FTABLE *fp) {
 	if (fp == _currentFile) {
 		return 1;
 	}
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_select File 0x%lx",fp));
 	_currentFile = fp;
 	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ALL);
+	macro_selectDefaultBindings();
 	if (fp == 0) {
 		return 0;
 	}
+	xref_selectFileFormat(fp->documentDescriptor->modename);
 	regex_compileCharacterClasses(fp->documentDescriptor->u2lset);
 	return 1;
 }
@@ -680,7 +681,7 @@ int ft_openFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
 		ft_setFlags(fp, fp->flags | F_MODIFIED);
 	}
 
-	caret_placeCursorInCurrentFile(line,0L);
+	caret_placeCursorInCurrentFile(WIPOI(fp), line,0L);
 
 	if (fileflags != 0 && fp->documentDescriptor) {
 		macro_executeByName(fp->documentDescriptor->creationMacroName);
@@ -729,6 +730,7 @@ int ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 	if  (fp == 0) {
 		return 0;
 	}
+	WINFO* wp = WIPOI(fp);
 
 	if (fp->flags & F_MODIFIED) {
 		if (errorDisplayYesNoConfirmation(IDS_MSGABANDON) == IDNO)
@@ -745,7 +747,7 @@ int ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 	    !doctypes_assignDocumentTypeDescriptor(fp, linp) ||
 	    !ft_readfile(fp,fp->documentDescriptor)) {
 		fp->flags = 0;
-		ww_close(WIPOI(fp));
+		ww_close(wp);
 		return 0;
 	}
 
@@ -758,12 +760,19 @@ int ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 		ln = fp->nlines-1;
 	}
 
-	caret_placeCursorInCurrentFile(ln,col);
+	caret_placeCursorInCurrentFile(wp, ln,col);
 
 	doctypes_documentTypeChanged();
 	render_repaintAllForFile(fp);
 
 	return 1;
+}
+
+/*
+ *  Answer 1, if the passed file is modified.
+ */
+int ft_isFileModified(FTABLE* fp) {
+	return fp->flags & F_MODIFIED;
 }
 
 /*---------------------------------*/

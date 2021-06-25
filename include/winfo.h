@@ -7,10 +7,6 @@
 #include "editorfont.h"
 #include "lineoperations.h"
 
-typedef struct tagGRECT {
-	int g_x,g_y,g_w,g_h;
-} GRECT;
-
 /*--- Fill styles for marked text ----*/
 
 typedef struct tagFSTYLE {
@@ -64,9 +60,8 @@ typedef struct wininfo {
 			scroll_dy;			/* for scrolling */
 	
     RENDER_LINE_FUNCTION renderFunction;
-     long      ln,minln,maxln,mincursln,maxcursln,
+    long      ln,minln,maxln,mincursln,maxcursln,
                col,mincol,maxcol,mincurscol,maxcurscol;
-     GRECT     workarea;
      FSTYLE	markstyles[2];			/* text block appearance */
      void	*	fp;
      int		win_state;
@@ -251,6 +246,11 @@ extern void ww_winstate(int nId, WINDOWPLACEMENT* wsp);
  * Close the passed editor window.
  */
 extern int ww_close(WINFO* wp);
+
+/*
+ * Returns the "active" editor window having the focus.
+ */
+extern WINFO* ww_getCurrentEditorWindow();
 
 /*------------------------------------------------------------
  * font_createFontWithStyle()

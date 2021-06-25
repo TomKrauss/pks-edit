@@ -242,8 +242,8 @@ static int find_updateSelectionToShowMatch(FTABLE *fp,long ln,int col, RE_MATCH 
 	WINFO* wp;
 
 	wp = WIPOI(fp);
-	caret_placeCursorMakeVisibleAndSaveLocation(ln,col);
 	dc = (int)(pMatch->loc2 - pMatch->loc1);
+	caret_placeCursorMakeVisibleAndSaveLocation(wp, ln,col);
 	bl_hideSelection(1);
 	bl_setSelection(fp, fp->caret.linePointer, fp->caret.offset, fp->caret.linePointer, dc + fp->caret.offset);
 	return dc;
@@ -342,12 +342,14 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 	int ret;
 	long ln;
 	long col;
+	WINFO* wp;
 	RE_MATCH match;
 
 	FTABLE* fp = ft_getCurrentDocument();
 	if (fp == NULL) {
 		return 0;
 	}
+	wp = WIPOI(fp);
 	_currentSearchAndReplaceParams.options = nOptions;
 	long incrementalLine;
 	if (bContinue && ft_checkSelection(fp)) {
@@ -360,7 +362,7 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 	if (*pszString == 0) {
 		if (incrementalStart.linePointer != NULL) {
 			EdBlockHide();
-			caret_placeCursorMakeVisibleAndSaveLocation(incrementalLine, incrementalStart.offset);
+			caret_placeCursorMakeVisibleAndSaveLocation(wp, incrementalLine, incrementalStart.offset);
 		}
 		return 1;
 	}
@@ -535,7 +537,7 @@ static LINE *compline(FTABLE *fp, LINE *lp,long *nt)
 static void modifypgr(FTABLE *fp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
 				  long *cntel,long *cntln,MARK *mps, MARK *mpe)
 {	LINE     *lp;
-
+	WINFO*	wp = WIPOI(fp);
 	lp = mps->lm;
 
 	for (; lp != 0 && (mpe->lc != 0 || lp != mpe->lm); lp = lp->next) {
@@ -544,7 +546,7 @@ static void modifypgr(FTABLE *fp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
 		if (xabort() || lp == mpe->lm)
 			break;
 	}
-	caret_placeCursorInCurrentFile(fp->ln,0L);
+	caret_placeCursorInCurrentFile(wp, fp->ln,0L);
 	if (*cntel) {
 		render_repaintCurrentFile();
 		*cntln = ft_countlinesStartingFromDirection(fp,*cntln,1);
@@ -662,17 +664,17 @@ int EdReplaceText(int scope, int action, int flags)
 	size_t newlen;
 	register	maxlen,delta;
 	RE_MATCH	match;
+	WINFO* wp = ww_getCurrentEditorWindow();
 	register	olen;
 	int  	sc1flg = 1,splflg = _playing, column = 0, lastfcol,
 			query,marked;
 
 	memset(&match, 0, sizeof match);
-	fp = ft_getCurrentDocument();
+	fp = wp->fp;
 
 	if (ft_checkReadonlyWithError(fp) && action == REP_REPLACE) {
 		return 0;
 	}
-	
 	if (_playing) {
 		regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
 		find_initializeReplaceByExpression(_currentSearchAndReplaceParams.replaceWith);
@@ -700,7 +702,7 @@ int EdReplaceText(int scope, int action, int flags)
 
 	query  = flags & OREP_INQ;
 	marked = flags & OREP_MARKED;
-	if (ww_hasColumnSelection(WIPOI(fp)) && scope == RNG_BLOCK)
+	if (ww_hasColumnSelection(wp) && scope == RNG_BLOCK)
 		column = 1;
 
 	/*
@@ -844,12 +846,12 @@ endrep:
 	if (rp) {
 		if (action != REP_COUNT) {
 			if (_currentReplacementPattern.lineSplittingNeeded) {
-				caret_placeCursorInCurrentFile(startln,0L);
+				caret_placeCursorInCurrentFile(wp, startln,0L);
 				ln = breaklines(fp,0,startln,ln);
-				caret_placeCursorMakeVisibleAndSaveLocation(ln,col);
+				caret_placeCursorMakeVisibleAndSaveLocation(wp, ln,col);
 				render_repaintAllForFile(fp);
 			} else {
-				caret_placeCursorMakeVisibleAndSaveLocation(lastfln,lastfcol);
+				caret_placeCursorMakeVisibleAndSaveLocation(wp, lastfln,lastfcol);
 				if (scope == RNG_ONCE && action == REP_REPLACE) {
 					render_repaintCurrentLine();
 				} else {

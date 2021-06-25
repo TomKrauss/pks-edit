@@ -287,6 +287,7 @@ int ft_formatText(FTABLE* fp, int scope, int type, int flags)
 	int		savecol;
 	int    	ret;
 	long   	startln;
+	WINFO* wp = WIPOI(fp);
 
 	flags |= type;
 
@@ -297,7 +298,7 @@ int ft_formatText(FTABLE* fp, int scope, int type, int flags)
 	startln  = ln_indexOf(fp,mps->lm);
 	_deltaln = -1;
 	_currl   = fp->caret.linePointer;
-	savecol  = caret_lineOffset2screen(fp, &fp->caret);
+	savecol  = caret_lineOffset2screen(wp, &fp->caret);
 
 	if (flags & FMT_WPFORMAT) {
 		_fillc1 = '';
@@ -336,7 +337,7 @@ int ft_formatText(FTABLE* fp, int scope, int type, int flags)
 		fp->ln = 0;
 	}
 
-	caret_placeCursorInCurrentFile(fp->ln,savecol);
+	caret_placeCursorInCurrentFile(wp, fp->ln, savecol);
 	render_repaintAllForFile(fp);
 	mouse_setDefaultCursor();
 

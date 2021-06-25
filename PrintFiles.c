@@ -431,7 +431,7 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 	}
 
 	_printwhat.wp->mincol = pLine->firstc;
-	max = caret_lineOffset2screen(_printwhat.fp, &(CARET) { pLine->lp, pLine->lp->len});
+	max = caret_lineOffset2screen(_printwhat.wp, &(CARET) { pLine->lp, pLine->lp->len});
 	if (max > pLine->lastc) {
 		max = pLine->lastc;
 	}
@@ -661,6 +661,9 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 			if (numberOfPreviewPages <= 0) {
 				int nTotal = print_ntextlines(&de);
 				numberOfPreviewPages = (print_file(hdc, TRUE) + nTotal - 1) / nTotal;
+				if (numberOfPreviewPages <= 0) {
+					numberOfPreviewPages = 1;
+				}
 				prt_enablePreviewButtons(hDlg, numberOfPreviewPages, newPage);
 			}
 			pageRect.top = 0;
