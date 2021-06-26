@@ -24,8 +24,8 @@
 
 #define	isblnk(c)			(c == ' ' || c == '\t' || c == '' || c == '' || c == '')
 
-extern MARK *mark_set(FTABLE *fp, LINE *lp,int offs,int c);
-extern LINE *mark_goto(FTABLE *fp, int c, long *ln, long *col);
+extern MARK *mark_set(WINFO *wp, LINE *lp,int offs,int c);
+extern LINE *mark_goto(WINFO *wp, int c, long *ln, long *col);
 extern int string_isSpace(unsigned char c);
 
 static FTABLE 		_fmtfile;
@@ -128,7 +128,7 @@ static int format(int type, int nwords, int rmar, int add,
 		return 0;
 	_fmtfile.nlines++;
 
-	buf2  = _fmtfile.caret.linePointer->lbuf;
+	buf2  = _fmtfile.lpReadPointer->lbuf;
 
 	switch(type) {
 		case FMT_ADJCENTER:
@@ -279,7 +279,7 @@ nextdline:	d = memset(_linebuf,_fillc1,lmar);
  * ft_formatText()	
  * Formt the text in the current file.
  *---------------------------------*/
-int ft_formatText(FTABLE* fp, int scope, int type, int flags)
+int ft_formatText(WINFO* wp, int scope, int type, int flags)
 {	PASTE  	paste;
 	MARK *	mps;
 	MARK *	mpe;
@@ -287,18 +287,19 @@ int ft_formatText(FTABLE* fp, int scope, int type, int flags)
 	int		savecol;
 	int    	ret;
 	long   	startln;
-	WINFO* wp = WIPOI(fp);
+	FTABLE* fp;
 
 	flags |= type;
 
-	if (find_setTextSelection(scope,fp,&mps,&mpe) == RNG_INVALID ||
-	    !mark_set(fp,fp->caret.linePointer,0,MARKDOT))
+	if (find_setTextSelection(scope,wp,&mps,&mpe) == RNG_INVALID ||
+	    !mark_set(wp,wp->caret.linePointer,0,MARKDOT))
 		return 0;
 
+	fp = wp->fp;
 	startln  = ln_indexOf(fp,mps->lm);
 	_deltaln = -1;
-	_currl   = fp->caret.linePointer;
-	savecol  = caret_lineOffset2screen(wp, &fp->caret);
+	_currl   = wp->caret.linePointer;
+	savecol  = caret_lineOffset2screen(wp, &wp->caret);
 
 	if (flags & FMT_WPFORMAT) {
 		_fillc1 = '';
@@ -307,16 +308,15 @@ int ft_formatText(FTABLE* fp, int scope, int type, int flags)
 		_fillc1 = ' ';
 		_fillc2 = ' ';
 	}
-	rmargin = ft_getRightMargin(fp);
+	rmargin = ww_getRightMargin(wp);
 	mouse_setBusyCursor();
-
 	memset(&_fmtfile,0,sizeof _fmtfile);
 
 	if ((ret = formatlines(mps->lm,mpe->lm,flags & FMT_TYPEMASK,
 					   flags & FMT_INDENT,rmargin)) > 0) {
 		paste.pln = _fmtfile.firstl;
 		if (bl_cutTextWithOptions((PASTE *)0,mps->lm,mpe->lm,0,mpe->lm->len,1))
-			ret = bl_paste(&paste,fp,mps->lm,0,0);
+			ret = bl_paste(&paste,wp,mps->lm,0,0);
 
 		ln_listfree(_fmtfile.firstl);
 	}
@@ -325,19 +325,19 @@ int ft_formatText(FTABLE* fp, int scope, int type, int flags)
 	 * text cursor position was in working area
 	 */
 	if (_currl == 0) {
-		fp->ln = startln+_deltaln;
-		fp->caret.linePointer = ln_goto(fp,fp->ln);
+		caret_moveToLine(wp, startln+_deltaln);
+		wp->caret.linePointer = ln_goto(fp,wp->caret.ln);
 	} else {
-		fp->caret.linePointer = mark_goto(fp,MARKDOT,&fp->ln,&startln);
-		savecol = fp->caret.offset;
+		wp->caret.linePointer = mark_goto(wp,MARKDOT,&wp->caret.ln,&startln);
+		savecol = wp->caret.offset;
 	}
 
-	if (fp->caret.linePointer == 0) {
-		fp->caret.linePointer = fp->firstl;
-		fp->ln = 0;
+	if (wp->caret.linePointer == 0) {
+		wp->caret.linePointer = fp->firstl;
+		caret_moveToLine(wp, 0);
 	}
 
-	caret_placeCursorInCurrentFile(wp, fp->ln, savecol);
+	caret_placeCursorInCurrentFile(wp, wp->caret.ln, savecol);
 	render_repaintAllForFile(fp);
 	mouse_setDefaultCursor();
 

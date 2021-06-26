@@ -69,28 +69,25 @@ struct tagDRAG_SELECTION_DATA {
 static struct tagDRAG_SELECTION_DATA _dragSelectionData;
 
 static int mouse_selectionDragInit(WINFO* wp, int x, int y) {
-	FTABLE* fp = wp->fp;
-
-	_dragSelectionData.c1 = fp->caret;
+	_dragSelectionData.c1 = wp->caret;
 	_dragSelectionData.start = (POINT){ x, y };
 	EdBlockHide();
-	bl_syncSelectionWithCaret(fp, &_dragSelectionData.c1, MARK_START, NULL);
+	bl_syncSelectionWithCaret(wp, &_dragSelectionData.c1, MARK_START, NULL);
 	return 1;
 }
 
 static int mouse_selectionDrag(WINFO* wp, int x, int y) {
 	struct tagDRAG_SELECTION_DATA* pData = &_dragSelectionData;
-	FTABLE* fp = wp->fp;
 
-	pData->c2 = fp->caret;
+	pData->c2 = wp->caret;
 	log_errorArgs(DEBUG_ERR, "x == %d -> offset == %d", x, pData->c2.offset);
 	if ((pData->c1.linePointer == pData->c2.linePointer && pData->c1.offset < pData->c2.offset) || 
 		(pData->c1.linePointer != pData->c2.linePointer && pData->start.y < y)) {
-		bl_syncSelectionWithCaret(fp, &pData->c1, MARK_START | MARK_NO_HIDE, NULL);
-		bl_syncSelectionWithCaret(fp, &pData->c2, MARK_END | MARK_NO_HIDE, NULL);
+		bl_syncSelectionWithCaret(wp, &pData->c1, MARK_START | MARK_NO_HIDE, NULL);
+		bl_syncSelectionWithCaret(wp, &pData->c2, MARK_END | MARK_NO_HIDE, NULL);
 	} else {
-		bl_syncSelectionWithCaret(fp, &pData->c1, MARK_END | MARK_NO_HIDE, NULL);
-		bl_syncSelectionWithCaret(fp, &pData->c2, MARK_START | MARK_NO_HIDE, NULL);
+		bl_syncSelectionWithCaret(wp, &pData->c1, MARK_END | MARK_NO_HIDE, NULL);
+		bl_syncSelectionWithCaret(wp, &pData->c2, MARK_START | MARK_NO_HIDE, NULL);
 	}
 	return 1;
 }
@@ -167,7 +164,7 @@ static MOUSE_DRAG_HANDLER _mouse_textBlockMovement = {
  * Return a drag handler for handling mouse drags depending on the current context.
  */
 static MOUSE_DRAG_HANDLER* mouse_getDragHandler(WINFO* wp, int x, int y) {
-	if (ft_checkSelection(wp->fp)) {
+	if (ft_checkSelection(wp)) {
 		// TODO: should check, whether x and y is "inside the text block"
 		return &_mouse_textBlockMovement;
 	}
@@ -294,10 +291,10 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 
 	caret_placeToXY(wp, x, y);
 	if (!DragDetect(wp->ww_handle, pStart)) {
-		bl_hideSelection(1);
+		bl_hideSelection(wp, 1);
 	} else {
 		SetCapture(wp->ww_handle);
-		CARET c1 = fp->caret;
+		CARET c1 = wp->caret;
 		CARET c2;
 		LINE* lpPrevious;
 		int cPrevious;
@@ -323,9 +320,9 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 				long ln;
 				long col;
 				caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
-				fp->caret.offset = col;
+				wp->caret.offset = col;
 			}
-			c2 = fp->caret;
+			c2 = wp->caret;
 			if (cPrevious != c2.offset || lpPrevious != c2.linePointer) {
 				cPrevious = c2.offset;
 				lpPrevious = c2.linePointer;

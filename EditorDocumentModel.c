@@ -11,6 +11,7 @@
  */
 #include <windows.h>
 #include "lineoperations.h"
+#include "winfo.h"
 
  /*------------------------------
   * ln_listfree()
@@ -56,13 +57,12 @@ BOOL ln_createAndAdd(FTABLE* fp, char* q, int len, int flags) {
 	if (q) {
 		memmove(lp->lbuf, q, len);
 	}
-	if ((lp->prev = fp->caret.linePointer) != 0) {
-		fp->caret.linePointer->next = lp;
-	}
-	else {
+	if ((lp->prev = fp->lpReadPointer) != 0) {
+		fp->lpReadPointer->next = lp;
+	} else {
 		fp->firstl = lp;
 	}
-	fp->caret.linePointer = lp;
+	fp->lpReadPointer = lp;
 	return TRUE;
 }
 

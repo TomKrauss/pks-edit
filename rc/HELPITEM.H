@@ -1,4 +1,5 @@
 #define DLGSELTMPLATE	555
+#define MCLONEWINDOW 13
 #define	MINFO    14
 #define	MNEWFILE 22
 #define	MOPENF   23

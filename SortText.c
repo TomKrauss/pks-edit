@@ -528,7 +528,8 @@ advance:
 	}
 	lpd  ->next	= lpend;
 	lpend->prev	= lpd;
-	fp->caret.linePointer = fp->firstl;
+	WINFO* wp = WIPOI(fp);
+	wp->caret.linePointer = fp->firstl;
 	ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 }
 
@@ -591,18 +592,18 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 	}
 
 	undo_startModification(fp);
-	if (find_setTextSelection(scope,fp,&mps,&mpe) == RNG_INVALID) {
+	if (find_setTextSelection(scope,wp,&mps,&mpe) == RNG_INVALID) {
 		return 0;
 	}
 	lpfirst = mps->lm;
 	lplast =  mpe->lm;
-	bl_hideSelection(0);
+	bl_hideSelection(wp, 0);
 
 	initset(fs_set,fs);
 	initkeylist(keys,fs_set);
 	_sortflags = sortflags;
 
-	l1 = fp->ln;
+	l1 = wp->caret.ln;
 	if ((_rectab = _alloc((unsigned )(MAXREC*sizeof(RECORD)))) == 0) {
 		return 0;
 	}

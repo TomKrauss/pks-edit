@@ -270,7 +270,7 @@ EXPORT int ft_readfile(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescriptor)
 	fd = -1;
 	fp->longLinesSplit = 0;
 	_flushing = 0;
-	fp->caret.linePointer = fp->firstl;
+	fp->lpReadPointer = fp->firstl;
 	buf = _scratchstart;
 	if (_verbose)
 		mouse_setBusyCursor();
@@ -320,7 +320,7 @@ nullfile:
 ret0:			ret = 0;
 				goto readerr;
 			}
-			fp->caret.linePointer->lflg |= LNNOTERM;
+			fp->lpReadPointer->lflg |= LNNOTERM;
 		}
 	}
 
@@ -332,8 +332,8 @@ ret0:			ret = 0;
 		ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 	}
 
-	fp->lastl = fp->caret.linePointer;
-	fp->caret.linePointer = fp->firstl;
+	fp->lastl = fp->lpReadPointer;
+	fp->lpReadPointer = fp->firstl;
 
 readerr:
 
@@ -636,7 +636,7 @@ EXPORT int ft_writeFileAndClose(FTABLE *fp,char *name, int flags)
 	ret = ft_writefileAsWithFlags(fp,name,flags);
 	ln_listfree(fp->firstl);
 	fp->firstl = 0;
-	fp->caret.linePointer  = 0;
+	fp->lpReadPointer = 0;
 	return ret;
 }
 

@@ -868,6 +868,7 @@ BEGIN
     BEGIN
         MENUITEM "&Neu...",                     40001
         MENUITEM "Ö&ffnen...\a",                MOPENF
+        MENUITEM "Neues Fenster für aktuelle Datei\a", MCLONEWINDOW
         MENUITEM "&Schließen\a",                MQUITF
         MENUITEM "Speichern && schlie&ßen\a",   MSAVEF
         MENUITEM "S&peichern\a",                MSAVERES

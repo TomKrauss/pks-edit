@@ -46,7 +46,7 @@
 
 extern int 		_translatekeys;
 
-extern int		mysprintf(FTABLE *fp, char *d,char *format,...);
+extern int		mysprintf(WINFO *wp, char *d,char *format,...);
 extern void 	macro_returnString(char *string);
 extern BOOL 	DlgChooseFont(HWND hWnd, EDFONT *ep, BOOL bPrinter);
 extern void 	fsel_setDialogTitle(char *title);
@@ -280,7 +280,7 @@ int setwrange(HWND hwnd, int *rangetype, int first)
 	char	  szBuf[64],szSel[64];
 	HWND	  hwndList;
 
-	blkvalid = ft_checkSelection(ft_getCurrentDocument());
+	blkvalid = ft_checkSelection(ww_getCurrentEditorWindow());
 	if (*rangetype == RNG_BLOCK && !blkvalid)
 		*rangetype = RNG_CHAPTER;
 
@@ -732,7 +732,7 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 		case IDD_CSEL:
 			if (nNotify == CSN_CHARSELECT) {
 				c = (LONG)LOWORD(lParam);
-				mysprintf((FTABLE*)0,szBuff,
+				mysprintf((WINFO*)0,szBuff,
 					"DEZ: %03j  OKT: %03i  HEX: 0x%02p  BIN: %08b",c,c,c,c);
 				SetDlgItemText(hDlg,IDD_CSELT1,szBuff);
 			}

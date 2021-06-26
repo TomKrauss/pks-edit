@@ -42,6 +42,7 @@
 #include "edfuncs.h"
 #include "crossreferencelinks.h"
 #include "propertychange.h"
+#include "arraylist.h"
 
 /*------------------------------------------------------------
  * win_createMdiChildWindow()
@@ -122,21 +123,10 @@ void ft_checkForChangedFiles(void) {
 		if (fp->ti_created < (lCurrentTime = file_getAccessTime(fp->fname))) {
 			EdSelectWindow(WIPOI(fp)->win_id);
 			if (errorDisplayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
-				ft_abandonFile(fp, (DOCUMENT_DESCRIPTOR *)0);			
+				ft_abandonFile(fp, (DOCUMENT_DESCRIPTOR *)0);
 			}
 		}
 		fp->ti_created = lCurrentTime;
-	}
-}
-
-/*
- * Invoke a callback for every view of a file.
- */
-static void ft_forAllViews(FTABLE* fp, void (*callback)(WINFO* wp, void* p), void* parameter) {
-	WINFO* wp = WIPOI(fp);
-
-	if (wp != NULL) {
-		(*callback)(wp, parameter);
 	}
 }
 
@@ -249,8 +239,7 @@ void ft_saveWindowStates(void )
 	char*				pszFilename;
 
 	memset(&ft, 0, sizeof ft);
-	ft.caret.linePointer = 0;
-	ln_createAndAddSimple(&ft,"[files]");
+	ln_createAndAddSimple(&ft, "[files]");
 
 	/* save names of bottom windows first !! */
 	for (s = ww_getNumberOfOpenWindows()-1; s >= 0; s--) {
@@ -258,7 +247,7 @@ void ft_saveWindowStates(void )
 			ww_getstate(wp, &ws);
 			prof_printws(szBuff,&ws);
 			FTABLE* fp = wp->fp;
-			xref_addSearchListEntry(&ft,fp->fname,fp->ln,szBuff);
+			xref_addSearchListEntry(&ft,fp->fname,wp->caret.ln,szBuff);
 		}
 	}
 
@@ -303,12 +292,9 @@ int ft_restorePreviouslyOpenedWindows(void )
  */
 void ft_bufdestroy(FTABLE *fp)
 {
-	ll_destroy((LINKED_LIST**)&fp->fmark,(int (*)(void *elem))0);
-	fp->blstart = 0;
-	fp->blend = 0;
 	destroy(&fp->documentDescriptor);
 	ln_listfree(fp->firstl);
-	fp->tln = fp->firstl = fp->caret.linePointer = 0;
+	fp->tln = fp->firstl = 0;
 	file_closeFile(&fp->lockFd);
 	undo_destroyManager(fp);
 }
@@ -340,7 +326,9 @@ void ft_deleteautosave(FTABLE *fp)
 void ft_destroy(FTABLE *fp)
 {
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_destroy File 0x%lx",fp));
-
+	if (fp->views) {
+		arraylist_destroy(fp->views);
+	}
 	ft_deleteautosave(fp);
 	ft_bufdestroy(fp);
 
@@ -400,8 +388,8 @@ long ft_size(FTABLE *fp)
  * ft_checkSelection()
  * Check whether a block selection exists.
  *---------------------------------*/
-int ft_checkSelection(FTABLE* fp) {
-	if (fp == 0 || fp->blstart == 0L || fp->blend == 0L)
+int ft_checkSelection(WINFO* wp) {
+	if (wp == 0 || wp->blstart == 0L || wp->blend == 0L)
 		return 0;
 	return 1;
 }
@@ -411,8 +399,8 @@ int ft_checkSelection(FTABLE* fp) {
  * Check whether a block selection exists. If not
  * report an error to the user.
  *---------------------------------*/
-EXPORT int ft_checkSelectionWithError(FTABLE* fp) {
-	if (ft_checkSelection(fp) == 0) {
+EXPORT int ft_checkSelectionWithError(WINFO* wp) {
+	if (ft_checkSelection(wp) == 0) {
 		error_showErrorById(IDS_MSGNOBLOCKSELECTED);
 		return 0;
 	}
@@ -467,6 +455,18 @@ static int ft_openwin(FTABLE *fp, WINDOWPLACEMENT *wsp)
 		return 0;
 	}
 	return 1;
+}
+
+
+/*
+ * Open a second window for the current open file. 
+ */
+int ft_cloneWindow() {
+	FTABLE* fp = ft_getCurrentDocument();
+	if (fp == NULL) {
+		return 0;
+	}
+	return ft_openwin(fp, NULL);
 }
 
 /*------------------------------------------------------------
@@ -590,19 +590,17 @@ int fsel_selectFileWithTitle(int title, char *result, BOOL bSaveAs)
  * ft_activateWindowOfFileNamed()
  * Activate the window of the file named...
  */
-int ft_activateWindowOfFileNamed(char *fn)
-{
+int ft_activateWindowOfFileNamed(char *fn) {
 	FTABLE 	*fp;
-	char 	fullname[256];
+	char 	fullname[EDMAXPATHLEN];
 
 	string_getFullPathName(fullname,fn);
-	if ((fp = ft_fpbyname(fullname)) != 0 && WIPOI(fp) != NULL) {
-		return EdSelectWindow(WIPOI(fp)->win_id);
+	fp = ft_fpbyname(fullname);
+	if (fp == NULL) {
+		return 0;
 	}
-	if (fp != NULL) {
-		return 1;
-	}
-	return 0;
+	WINFO* wp = WIPOI(fp);
+	return EdSelectWindow(wp->win_id);
 }
 
 /*------------------------------------------------------------
@@ -737,9 +735,9 @@ int ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 			return 1;
 	}
 
-	ln = fp->ln;
-	col = fp->caret.offset;
-	fp->ln = 0;
+	ln = wp->caret.ln;
+	col = wp->caret.offset;
+	caret_moveToLine(wp, 0);
 	fp->nlines = 0;
 	ft_bufdestroy(fp);
 
@@ -780,11 +778,18 @@ int ft_isFileModified(FTABLE* fp) {
 /*---------------------------------*/
 int ft_checkReadonlyWithError(FTABLE* fp)
 {
-	if (fp->documentDescriptor->workmode & O_RDONLY) {
+	if (ft_isReadonly(fp)) {
 		error_showErrorById(IDS_MSGRDONLY);
 		return 1;
 	}
 	return 0;
+}
+
+/*
+ * Checks whether the passed file buffer can be modified or whether it is readonly. 
+ */
+int ft_isReadonly(FTABLE* fp) {
+	return fp->documentDescriptor->workmode & O_RDONLY ? 1 : 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -816,8 +821,11 @@ int EdSaveAllFiles() {
  * this may require the user to enter a file name or to do nothing (if the file
  * is unchanged) etc...
  */
-int EdSaveFile(int flg)
-{
+static int ft_closeView(WINFO* wp, void* pUnused) {
+	ww_close(wp);
+	return 1;
+}
+int EdSaveFile(int flg) {
 	FTABLE *fp;
 
 #ifdef	DEMO
@@ -847,7 +855,7 @@ int EdSaveFile(int flg)
 		}
 		strcpy(fp->fname, newname);
 		int flags = fp->flags;
-		ww_setwindowtitle(WIPOI(fp));
+		ft_forAllViews(fp, ww_setwindowtitle, NULL);
 		flags |= F_CHANGEMARK;
 		if (!(flags & F_APPEND)) flags |= F_SAVEAS;
 		flags &= ~(F_NEWFILE|F_NAME_INPUT_REQUIRED);
@@ -863,7 +871,7 @@ int EdSaveFile(int flg)
 	if ((flg & SAV_SAVE) && !ft_writeFileWithAlternateName(fp)) return 0;
 
 	if (flg & SAV_QUIT) {
-		ww_close(WIPOI(fp));
+		ft_forAllViews(fp, ft_closeView, NULL);
 	}
 #endif
 	return(1);

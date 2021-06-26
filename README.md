@@ -12,6 +12,8 @@ The famous arcade times text editor from Pahlen & Krauß.
 - The find in files dialog remembers now in addition the file name patterns entered before.
 - A new "incremental search" field was added to the toolbar area allowing to type in text to find in the current file.
 - A new option "maximumNumberOfOpenWindows" was added to allow to recycle windows, when too many windows are opened.
+- First draft implementation of "cloning" multiple windows for one file. Some open issues remain (text selection does
+  not yet work correctly).
 
 * Improved
 - Find in Files displays a folder browser now to select a path

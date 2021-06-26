@@ -26,6 +26,24 @@ extern PASTE* bl_addrbyid(int id, int insert);
 // TODO: get rid of this hack.
 char* _linebuf;
 
+/*
+ * Invoked, when a line pointer was replaced. Update all dependents on that particular
+ * line.
+ */
+struct tagLINE_CHANGED {
+	LINE* lpChanged;
+	LINE* lpNew;
+};
+static int ln_changedInView(WINFO* wp, struct tagLINE_CHANGED* pChanged) {
+	if (wp->caret.linePointer == pChanged->lpChanged) {
+		wp->caret.linePointer = pChanged->lpNew;
+	}
+	return 1;
+}
+static void ln_replacedBy(FTABLE* fp, LINE* lp, LINE* pNewLine) {
+	struct tagLINE_CHANGED param = { lp, pNewLine };
+	ft_forAllViews(fp, ln_changedInView, &param);
+}
 
 /*---------------------------------
  * ln_addFlag()
@@ -98,11 +116,11 @@ static void invalidhiddenop() {
 /* CUT&PASTE-marked line deleted	*/
 /*---------------------------------*/
 /* return Blockmarks modified => true */
-static int  ln_newbl(FTABLE *fp, MARK *mp) {	
-	if (fp->blstart == mp) {
+static int  ln_newbl(WINFO *wp, MARK *mp) {	
+	if (wp->blstart == mp) {
 		mp->lm = mp->lm->next; 
 		mp->lc = 0; 
-	} else if (fp->blend == mp) {
+	} else if (wp->blend == mp) {
 		mp->lm = mp->lm->prev; 
 		mp->lc = mp->lm->len;
 	} else return 0;
@@ -116,30 +134,31 @@ static int  ln_newbl(FTABLE *fp, MARK *mp) {
 /* to a specific line		*/
 /* lnew == 0 => free them	*/
 /*----------------------------*/
-static void ln_delmarks(FTABLE *fp, LINE *lp)
+static int ln_delmarks(WINFO *wp, LINE *lp)
 {
-	MARK *	mp = fp->fmark;
+	MARK *	mp = wp->fmark;
 	MARK *	mp2=0;
-	int  	blflg = (fp->blstart && fp->blend);
+	int  	blflg = (wp->blstart && wp->blend);
 
-	if (blflg && fp->blstart->lm == lp && fp->blend->lm == lp) {
-		mark_killSelection(fp);
-		mp = fp->fmark;
+	if (blflg && wp->blstart->lm == lp && wp->blend->lm == lp) {
+		mark_killSelection(wp);
+		mp = wp->fmark;
 		blflg = 0;
 	}
 	while (mp) {
 		if (mp -> lm == lp) {
-			if (blflg && ln_newbl(fp,mp)) goto walk;
+			if (blflg && ln_newbl(wp,mp)) goto walk;
 			if (mp2) mp2->next = mp->next;
-			else fp->fmark = mp->next;
-			if (mp == fp->blstart) fp->blstart = 0;
-			if (mp == fp->blend)   fp->blend = 0;
+			else wp->fmark = mp->next;
+			if (mp == wp->blstart) wp->blstart = 0;
+			if (mp == wp->blend)   wp->blend = 0;
 			_free(mp); mp = mp->next;
 		} else {
 walk:			mp2 = mp;
 				mp = mp->next;
 		}
 	}
+	return 1;
 }
 
 /*----------------------------*/
@@ -154,8 +173,7 @@ void ln_insert(FTABLE *fp, LINE *pos, LINE *lp) {
 	}
 
 	fp->nlines++;
-	if (fp->caret.linePointer == pos)
-		fp->caret.linePointer = lp;
+	ln_replacedBy(fp, pos, lp);
 
 	lp->next = pos;
 	if ((lp->prev = pos->prev) == 0) 			/* insert first line    */
@@ -164,8 +182,10 @@ void ln_insert(FTABLE *fp, LINE *pos, LINE *lp) {
 	pos->prev = lp;
 	undo_saveOperation(fp, lp, pos, O_INSERT);
 
+	// TODO: to support multiple views, we cannot use a line flag to define the selection.
 	if (pos->lflg & LNCPMARKED) {
-		if (fp->blstart->lm != pos) {
+		WINFO* wp = WIPOI(fp);
+		if (wp->blstart->lm != pos) {
 			lp->lflg |= LNCPMARKED;
 		}
 	}
@@ -186,7 +206,7 @@ int ln_delete(FTABLE *fp, LINE *lp)
 	undo_saveOperation(fp, lp, next, O_DELETE);
 	ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 	if (lp -> lflg & LNMARKED) {
-		ln_delmarks(fp,lp);
+		ft_forAllViews(fp, ln_delmarks, lp);
 	}
 	if (!lp->prev) {
 		if (next == fp->lastl) {
@@ -201,9 +221,7 @@ int ln_delete(FTABLE *fp, LINE *lp)
 	if (lp == fp->tln) {
 		fp->tln = 0;
 	}
-	if (fp->caret.linePointer == lp) {
-		fp->caret.linePointer = next;
-	}
+	ln_replacedBy(fp, lp, next);
 	fp->nlines--;
 	return 1;
 }
@@ -295,24 +313,32 @@ LINE *ln_deepcopy(LINE *lp, int physize, int start, int end)
 /* ln_break()						*/
 /* break a line into two pieces		*/
 /*--------------------------------------*/
-static void ln_breakmarks(FTABLE *fp,LINE *lp,LINE *lnext,int col)
-{	MARK *	mp = fp->fmark;
-	int 		flg;
+struct tag_MARK_BREAK {
+	LINE* lp;
+	LINE* lnext;
+	int col;
+};
+static int ln_markBrokenInView(WINFO* wp, struct tag_MARK_BREAK* pParam) {
+	MARK* mp = wp->fmark;
+	int  flg;
+	LINE* lnext = pParam->lnext;
+	LINE* lp = pParam->lp;
 
 	lp->lflg &= ~LNMARKED;
 	flg = lp->lflg;
 	while (mp) {
 		if (mp->lm == lp) {
-			if (mp->lc >= col) {
-				mp->lc -= col;
+			if (mp->lc >= pParam->col) {
+				mp->lc -= pParam->col;
 				mp->lm = lnext;
 				lnext->lflg |= LNMARKED;
 				if (mp->mchar == MARKSTART) {
-					lp->lflg 	  &= ~LNCPMARKED;
+					lp->lflg &= ~LNCPMARKED;
 					lnext->lflg |= flg;
 				}
-			}  else {
-				if (mp->mchar == MARKEND) 
+			}
+			else {
+				if (mp->mchar == MARKEND)
 					flg &= ~LNCPMARKED;
 				lp->lflg |= LNMARKED;
 			}
@@ -320,10 +346,16 @@ static void ln_breakmarks(FTABLE *fp,LINE *lp,LINE *lnext,int col)
 		mp = mp->next;
 	}
 	lnext->lflg |= flg;
+	return 1;
+}
+static void ln_breakmarks(FTABLE *fp,LINE *lp,LINE *lnext,int col) {
+	struct tag_MARK_BREAK param = {lp, lnext, col};
+
+	ft_forAllViews(fp, ln_markBrokenInView, &param);
 }
 
-LINE *ln_break(FTABLE *fp, LINE *linep, int col)
-{	LINE *	nlp = 0;
+LINE *ln_break(FTABLE *fp, LINE *linep, int col) {
+	LINE *	nlp = 0;
 	LINE *	lp;
 	int  	len;
 
@@ -362,18 +394,29 @@ LINE *ln_split(FTABLE *fp, LINE *lc, int pos2, int pos1)
 /*--------------------------------------------------------------------------
  * ln_joinmarks()
  */
-static void ln_joinmarks(FTABLE *fp, LINE *lp1, LINE *lp2)
-{	MARK *	mp = fp->fmark;
-	int		delta = lp1->len;
+struct tagMARK_JOIN {
+	LINE* lp1;
+	LINE* lp2;
+};
+static int ln_marksJoinedInView(WINFO* wp, struct tagMARK_JOIN* pParam) {
+
+	MARK* mp = wp->fmark;
+	int		delta = pParam->lp1->len;
 
 	while (mp) {
-		if (mp->lm == lp2) {
-			mp->lm = lp1;
+		if (mp->lm == pParam->lp2) {
+			mp->lm = pParam->lp1;
 			mp->lc += delta;
 		}
 		mp = mp->next;
 	}
-	lp1->lflg |= lp2->lflg;
+	pParam->lp1->lflg |= pParam->lp2->lflg;
+	return 1;
+}
+
+static void ln_joinmarks(FTABLE *fp, LINE *lp1, LINE *lp2) {
+	struct tagMARK_JOIN param = { lp1, lp2 };
+	ft_forAllViews(fp, ln_marksJoinedInView, &param);
 }
 
 /*--------------------------------------------------------------------------
@@ -452,15 +495,31 @@ int lnjoin_lines(FTABLE *fp)
 
 /*----------------------------*/
 /* ln_goto()				*/
-/* goto line deltaLines in File		*/
+/* goto line l in File and return the corresponding line pointer */
 /*----------------------------*/
-LINE *ln_goto(FTABLE *fp,long l)
-{	LINE *cl = fp->firstl;
+LINE *ln_goto(FTABLE *fp, long l)
+{	LINE *cl;
 
-	if (l < 0 || l >= fp->nlines) return 0L;
-	while (l > 0) {
-		if ((cl = cl->next) == 0L) break;
-		l--;
+	if (l < 0 || l >= fp->nlines) {
+		return 0L;
+	}
+	if (l > fp->nlines / 2) {
+		cl = fp->lastl;
+		l = fp->nlines - l;
+		while (l > 0) {
+			if ((cl = cl->prev) == NULL) {
+				break;
+			}
+			l--;
+		}
+	} else {
+		cl = fp->firstl;
+		while (l > 0) {
+			if ((cl = cl->next) == NULL) {
+				break;
+			}
+			l--;
+		}
 	}
 	return cl;
 }
@@ -481,49 +540,6 @@ LINE *ln_relative(LINE *cl, long l)
 		}
 	}
 	return((cl && cl->next) ? cl : 0);
-}
-
-
-/*---------------------------------*/
-/* ln_crelgo()					*/
-/*---------------------------------*/
-LINE *ln_crelgo(FTABLE *fp, long deltaLines)
-{	LINE *cl = fp->caret.linePointer;
-
-	if (deltaLines > 0L) {
-		while (deltaLines && cl != fp->lastl) { 
-			cl   = cl->next; 
-			deltaLines--;
-		}
-		if (cl == fp->lastl) {
-			return 0;
-		}
-	} else {
-		deltaLines = -deltaLines;
-		while (deltaLines) { 
-			cl = cl->prev; deltaLines--; 
-			if (!cl) break;
-		}
-	}
-	return cl;
-}
-
-/*----------------------------*/
-/* ln_relgo()				*/
-/* relativ goto line deltaLines in File*/
-/*----------------------------*/
-LINE *ln_relgo(FTABLE *fp, long l)
-{
-	return ln_relative(fp->caret.linePointer,l);
-}
-
-/*----------------------------*/
-/* ln_gotouserel()			*/
-/* goto, using relativ mv	*/
-/*----------------------------*/
-LINE *ln_gotouserel(FTABLE *fp, long ln)
-{
-	return ln_relative(fp->caret.linePointer,ln-fp->ln);
 }
 
 /*---------------------------------*/
@@ -558,14 +574,17 @@ LINE *ln_findbit(LINE *lp, int bit)
 /*---------------------------------*/
 /* ln_repmark()				*/
 /*---------------------------------*/
-static void ln_repmark(FTABLE *fp, LINE *oldln, LINE *newln)
+static int ln_repmark(WINFO *wp, struct tagLINE_CHANGED *pChanged)
 {
-	MARK *mp = fp->fmark;
+	MARK *mp = wp->fmark;
 
 	while (mp) {
-		if (mp->lm == oldln) mp->lm = newln;
+		if (mp->lm == pChanged->lpChanged) {
+			mp->lm = pChanged->lpNew;
+		}
 		mp = mp->next;
 	}
+	return 1;
 }
 
 /*----------------------------*/
@@ -576,8 +595,10 @@ void ln_replace(FTABLE *fp, LINE *oln, LINE *nl)
 	nl->next = oln->next;
 	if ((nl->prev = oln->prev) != 0) nl->prev->next = nl;
 	nl->next->prev = nl;
-	if (oln -> lflg & LNMARKED) ln_repmark(fp,oln,nl);
-	if (fp->caret.linePointer == oln)  fp->caret.linePointer  = nl;
+	if (oln->lflg & LNMARKED) {
+		ft_forAllViews(fp, ln_repmark, &(struct tagLINE_CHANGED) { oln, nl });
+	}
+	ln_replacedBy(fp, oln, nl);
 	if (fp->firstl == oln) fp->firstl = nl;
 }
 
@@ -639,12 +660,34 @@ LINE *ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold)
 /*---------------------------------*/
 /* ln_modify()					*/
 /*---------------------------------*/
-LINE *ln_modify(FTABLE *fp, LINE *lp, int col1, int col2)
-{
+struct tagLINE_MODIFIED {
+	LINE* lp;
+	int col1;
+	int col2;
+	int len;
+};
+static int ln_modifiedInView(WINFO* wp, struct tagLINE_MODIFIED* pParam) {
+	MARK* mp = wp->fmark;
+	while (mp) {
+		if (mp->lm == pParam->lp) {
+			/* if (mp != wp->blstart && mp != wp->blend) { */
+			if (mp->lc >= pParam->col1) mp->lc += pParam->len;
+			else if (mp->lc > pParam->col2) mp->lc = pParam->col2;
+			/* } */
+		}
+		mp = mp->next;
+	}
+	if (wp->blstart && wp->blend &&
+		wp->blstart->lm == wp->blend->lm &&
+		wp->blstart->lc >= wp->blend->lc
+		)
+		bl_hideSelection(wp, 0);
+	return 1;
+}
+LINE *ln_modify(FTABLE *fp, LINE *lp, int col1, int col2) {
 	int		len;
 	int		lplen;
 	int		copylen;
-	MARK *	mp;
 	char *	s;
 
 	if (lp != fp->tln) {
@@ -674,21 +717,7 @@ LINE *ln_modify(FTABLE *fp, LINE *lp, int col1, int col2)
 	s[lplen] = 0;
 
 	if (lp->lflg & LNMARKED) {
-		mp = fp->fmark;
-		while (mp) {
-			if (mp->lm == lp) {
-				/* if (mp != fp->blstart && mp != fp->blend) { */
-					if (mp->lc >= col1) mp->lc += len;
-					else if (mp->lc > col2) mp->lc = col2;
-				/* } */
-			}
-			mp = mp->next;
-		}
-		if (fp->blstart && fp->blend &&
-		    fp->blstart->lm == fp->blend->lm && 
-		    fp->blstart->lc >= fp->blend->lc
-		   )
-			bl_hideSelection(0);			   
+		ft_forAllViews(fp, ln_modifiedInView, &(struct tagLINE_MODIFIED) {lp, col1, col2, len});
 	}
 	return lp;
 }
@@ -727,9 +756,7 @@ LINE *ln_hide(FTABLE *fp, LINE *lp1, LINE *lp2)
 	undo_saveOperation(fp, lpind, (LINE*)0, O_HIDE);
 
 	for (lp = lp1, nTotalHidden = 0; lp; lp = lp->next) {
-		if (fp->caret.linePointer == lp) {
-			fp->caret.linePointer = lpind;
-		}
+		ln_replacedBy(fp, lp, lpind);
 		if (LpHasHiddenList(lp)) {
 			nTotalHidden += LpIndNTotal(lp);
 		} else {
@@ -781,9 +808,7 @@ int ln_unhide(FTABLE *fp, LINE *lpind) {
 
 	undo_saveOperation(fp, lp1, lp2, O_UNHIDE);
 
-	if (fp->caret.linePointer == lpind) {
-		fp->caret.linePointer = lp1;
-	}
+	ln_replacedBy(fp, lpind, lp1);
 
 	_free(lpind);
 	return 1;
@@ -933,5 +958,4 @@ unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, unsigned char* 
 		nl++;
 	}
 }
-
 

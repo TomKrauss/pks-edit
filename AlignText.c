@@ -39,16 +39,16 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 		return 0;
 	}
 
-	fp = ft_getCurrentDocument();
-	if (find_setTextSelection(scope,fp,&mps,&mpe) == RNG_INVALID)
+	wp = ww_getCurrentEditorWindow();
+	fp = wp->fp;
+	if (find_setTextSelection(scope,wp,&mps,&mpe) == RNG_INVALID)
 		return 0;
 	if (filler == 0)
 		filler = ' ';
-	wp = WIPOI(fp);
 	progress_startMonitor(IDS_ABRTALIGN);
 
 	if (flags & (AL_CPOS|AL_FIX)) {
-		firstcol = caret_lineOffset2screen(wp,&fp->caret);
+		firstcol = caret_lineOffset2screen(wp,&wp->caret);
 	}
 	else
 		firstcol = 0;
@@ -104,7 +104,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	progress_closeMonitor(0);
 	render_repaintAllForFile(fp);
 	if ((ret & aligncol) >= 0) {
-		caret_placeCursorInCurrentFile(wp, fp->ln,(long )aligncol);
+		caret_placeCursorInCurrentFile(wp, wp->caret.ln,(long )aligncol);
 	}
 	return ret;
 }

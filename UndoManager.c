@@ -12,6 +12,7 @@
  * (c) Pahlen & Krauﬂ
  */
 
+#include <windows.h>
 #include "alloc.h"
 #include "pksedit.h"
 #include "caretmovement.h"
@@ -275,6 +276,7 @@ static void undo_allocateCommand(UNDO_STACK* pStack) {
  * Initialize the and undo command saving the current editing state to restore later. 
  */
 static void initUndoCommand(FTABLE* fp, UNDO_COMMAND* pCommand) {
+	WINFO* wp = ww_getCurrentEditorWindow();
 	MARK* pMark;
 	LINE* lp1, * lptmp;
 	pCommand->fileChangedFlag = fp->flags & F_MODIFIED ? TRUE : FALSE;
@@ -286,20 +288,20 @@ static void initUndoCommand(FTABLE* fp, UNDO_COMMAND* pCommand) {
 		free(lptmp);
 		fp->tln = NULL;
 	}
-	pCommand->ln = fp->ln;
-	pCommand->col = fp->caret.offset;
-	if ((pMark = fp->blstart) != 0) {
+	pCommand->ln = wp->caret.ln;
+	pCommand->col = wp->caret.offset;
+	if ((pMark = wp->blstart) != 0) {
 		pCommand->bls = pMark->lm;
 		pCommand->bcs = pMark->lc;
 	}
 	else pCommand->bls = 0;
-	if ((pMark = fp->blend) != 0) {
+	if ((pMark = wp->blend) != 0) {
 		pCommand->ble = pMark->lm;
 		pCommand->bce = pMark->lc;
 	}
 	else pCommand->ble = 0;
-	pCommand->c1 = fp->blcol1;
-	pCommand->c2 = fp->blcol2;
+	pCommand->c1 = wp->blcol1;
+	pCommand->c2 = wp->blcol2;
 }
 
 /*--------------------------------------------------------------------------
@@ -341,7 +343,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	ln = 0; col = 0;
 	caret_placeCursorAndValidate(wp, &ln, &col, 0);
 
-	bl_hideSelection(0);
+	bl_hideSelection(wp, 0);
 	pOperation = pCommand->atomicSteps;
 	while (pOperation != NULL) {
 		for (i = pOperation->numberOfCommands; i > 0; ) {
@@ -391,10 +393,9 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 		}
 		pOperation = pOperation->prev;
 	}
-	fp->blcol1 = pCommand->c1;
-	fp->blcol2 = pCommand->c2;
-
-	bl_setSelection(fp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
+	wp->blcol1 = pCommand->c1;
+	wp->blcol2 = pCommand->c2;
+	bl_setSelection(wp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
 
 	caret_placeCursorInCurrentFile(wp, pCommand->ln, pCommand->col);
 	if (bRedrawAll) {

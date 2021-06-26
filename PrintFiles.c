@@ -85,7 +85,7 @@ static HWND 		hwndPreview;
 static PRINTWHAT	_printwhat;
 static char 		szPrtDevice[64];
 
-extern int		mysprintf(FTABLE* fp, char* d, char* format, ...);
+extern int		mysprintf(WINFO* wp, char* d, char* format, ...);
 
 /*------------------------------------------------------------
  * print_getPrinterDC()
@@ -323,13 +323,13 @@ static int print_formatheader(unsigned char *d1, unsigned char *d2,
 	nParts = 1;
 	// TODO: allow using character ! in headers and footers.
 	if ((s = strtok(buf,"!")) != 0) {
-		mysprintf(_printwhat.fp,d1,s,pageno);
+		mysprintf(_printwhat.wp,d1,s,pageno);
 		if ((s = strtok((char *)0,"!")) != 0) {
 			nParts++;
-			mysprintf(_printwhat.fp,d2,s,pageno);
+			mysprintf(_printwhat.wp,d2,s,pageno);
 			if ((s = strtok((char *)0,"!")) != 0) {
 				nParts++;
-				mysprintf(_printwhat.fp,d3,s,pageno);
+				mysprintf(_printwhat.wp,d3,s,pageno);
 			}
 		}
 	}
@@ -540,7 +540,7 @@ static int print_file(HDC hdc, BOOL measureOnly)
 			if (measureOnly) {
 				printing = TRUE;
 			} else {
-				printing = print_isInPrintRange(pp, fp->wp, pageno, printLineParam.lineNumber);
+				printing = print_isInPrintRange(pp, WIPOI(fp), pageno, printLineParam.lineNumber);
 				if (printing < 0) {
 					break;
 				}
@@ -793,8 +793,7 @@ static DIALPARS* _getDialogParsForPage(int page) {
 	}
 	return NULL;
 }
-static HDC DlgPrint(char* title, PRTPARAM *pp, FTABLE* fp)
-{
+static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	DIALPARS* dp = _dPrintLayout;
 	lstrcpy(font.name, _prtparams.font.fs_name);
 	lstrcpy(htfont.name, _prtparams.htfont.fs_name);
@@ -829,7 +828,7 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, FTABLE* fp)
 	prtDlg->hwndOwner = hwndFrame;
 	prtDlg->lphPropertyPages = pages;
 	prtDlg->Flags = PD_ALLPAGES | PD_RETURNDC | PD_PAGENUMS;
-	if (!ft_checkSelection(fp)) {
+	if (wp == NULL || !ft_checkSelection(wp)) {
 		prtDlg->Flags |= PD_NOSELECTION;
 	}
 	prtDlg->nPageRanges = 1;
@@ -884,8 +883,8 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, FTABLE* fp)
 /*------------------------------------------------------------
  * EdPrint()
  */
-int EdPrint(long what, long p1, LPSTR fname)
-{
+int EdPrint(long what, long p1, LPSTR fname) {
+	BOOL			bFileRead = FALSE;
 	HDC 			hdcPrn;
 	int 			ret = 0;
 	int				nFunc = 0;
@@ -903,7 +902,8 @@ int EdPrint(long what, long p1, LPSTR fname)
 	_printwhat.lastColumn = 1024;
 	wp = 0;
 	if (what == PRT_CURRWI || what == PRT_CURRBLK) {
-		if ((wp = ww_getWindowFromStack(0)) != 0) {
+		wp = ww_getCurrentEditorWindow();
+		if (wp) {
 			fp = wp->fp;
 		}
 	}
@@ -918,16 +918,17 @@ int EdPrint(long what, long p1, LPSTR fname)
 		}
 		if (ft_readfileWithOptions(fp,fp->fname,0) == 0)
 	 		return 0;
-		WIPOI(fp) = &winfo;
-		FTPOI((&winfo)) = fp;
+		bFileRead = TRUE;
+		ft_connectViewWithFT(fp, &winfo);
 		ww_applyDisplayProperties(&winfo);
+		wp = &winfo;
 	}
 
 	if (what == PRT_CURRWI || what == PRT_FILE) {
 		_printwhat.lp = fp->firstl;
 		_printwhat.lplast = fp->lastl->prev;
 		if (fp->documentDescriptor) {
-			BOOL showLineNumbers = fp->documentDescriptor->dispmode & SHOWLINENUMBERS;
+			BOOL showLineNumbers = wp->dispmode & SHOWLINENUMBERS;
 			if (showLineNumbers) {
 				_prtparams.options |= PRTO_LINES;
 			}
@@ -949,22 +950,22 @@ int EdPrint(long what, long p1, LPSTR fname)
 		strcpy(message, pBasename);
 	}
 
-	memmove(&winfo,WIPOI(fp),sizeof winfo);
+	memmove(&winfo, wp, sizeof winfo);
 	_printwhat.wp = &winfo;
 	lstrcpy(winfo.fnt_name,pp->font.fs_name);
 	winfo.fnt.height = pp->font.fs_cheight;
-	hdcPrn = DlgPrint(message, pp, fp);
+	hdcPrn = DlgPrint(message, pp, wp);
 	if (hdcPrn) {
 		if (pp->printRange.prtr_type == PRTR_SELECTION ||what == PRT_CURRBLK) {
-			if (!ft_checkSelectionWithError(fp)) {
+			if (wp == NULL || !ft_checkSelectionWithError(wp)) {
 				goto byebye;
 			}
-			if (ww_hasColumnSelection(fp->wp)) {
-				_printwhat.firstColumn = fp->blcol1;
-				_printwhat.lastColumn = fp->blcol2;
+			if (ww_hasColumnSelection(wp)) {
+				_printwhat.firstColumn = wp->blcol1;
+				_printwhat.lastColumn = wp->blcol2;
 			}
-			_printwhat.lp = fp->blstart->lm;
-			_printwhat.lplast = fp->blend->lm;
+			_printwhat.lp = wp->blstart->lm;
+			_printwhat.lplast = wp->blend->lm;
 		}
 		DOCINFO docinfo;
 		memset(&docinfo, 0, sizeof docinfo);
@@ -988,8 +989,9 @@ int EdPrint(long what, long p1, LPSTR fname)
 		ret = 1;
 	}
 byebye:
-	if (what == PRT_FILE && fp)
+	if (bFileRead) {
 		ft_bufdestroy(fp);
+	}
 	return ret;
 }
 

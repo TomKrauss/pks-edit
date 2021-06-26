@@ -126,11 +126,13 @@ static char *TextForEscapeMacro(char *s)
  */
 int EdMacroEscape(void)
 {
+	WINFO* wp;
 	PASTE  *	pp;
 	static unsigned char id;
 	char 	cIdentChars[256];
 
-	if (!ft_getCurrentDocument()) {
+	wp = ww_getCurrentEditorWindow();
+	if (wp == NULL) {
 		return 0;
 	}
      ValidEscapeMacros(cIdentChars);
@@ -145,7 +147,7 @@ int EdMacroEscape(void)
 		error_showErrorById(IDS_MSGESCAPEUNDEF);
 		return 0;
 	}
-	return bl_pasteBlock(pp, 0, ft_getCurrentDocument()->caret.offset, 0);
+	return bl_pasteBlock(pp, 0, wp->caret.offset, 0);
 }
 
 /*--------------------------------------------------------------------------
@@ -295,13 +297,13 @@ static void set2pars(char *s,void (*func)(char *s1,char *s2))
 /*--------------------------------------------------------------------------
  * doabbrev()
  */
-int doabbrev(FTABLE *fp, LINE *lp,int offs)
+int doabbrev(WINFO *wp, LINE *lp,int offs)
 {
 	struct uclist *up;
 	long 		o2;
-	int id = 		fp->documentDescriptor->id;
 	int			domacro = 0;
-	WINFO* wp = WIPOI(fp);
+	FTABLE* fp = wp->fp;
+	int id = fp->documentDescriptor->id;
 
 	if ((up = uc_find(id,lp->lbuf,offs,UA_ABBREV)) != 0) {
 		domacro = 0;
@@ -314,9 +316,9 @@ int doabbrev(FTABLE *fp, LINE *lp,int offs)
 	o2 = offs-up->len;
 	if ((lp = ln_modify(fp,lp,offs,o2)) == 0L)
 		return 0;
-	caret_placeCursorInCurrentFile(wp, fp->ln,o2);
+	caret_placeCursorInCurrentFile(wp, wp->caret.ln,o2);
 	return (domacro) ? 
-		render_repaintCurrentLine(), macro_executeByName((char *)up->p) : bl_pasteBlock(up->p,0,o2,0);
+		render_repaintCurrentLine(wp), macro_executeByName((char *)up->p) : bl_pasteBlock(up->p,0,o2,0);
 }
 
 /*--------------------------------------------------------------------------

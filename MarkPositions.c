@@ -24,8 +24,8 @@
  * mark_find()
  * Find a mark given the identifier character.
  */
-MARK *mark_find(FTABLE *fp, int c)
-{	register MARK *mp = fp->fmark;
+MARK *mark_find(WINFO *wp, int c)
+{	register MARK *mp = wp->fmark;
 
 	while(mp) {
 		if (mp->mchar == c) break;
@@ -37,7 +37,7 @@ MARK *mark_find(FTABLE *fp, int c)
 /*--------------------------------------------------------------------------
  * mark_free()
  */
-static void mark_free(FTABLE *fp, MARK *mp)
+static void mark_free(WINFO *wp, MARK *mp)
 {	MARK *mprun,*mp1;
 	LINE *lp;
 	int  unmark;
@@ -45,7 +45,7 @@ static void mark_free(FTABLE *fp, MARK *mp)
 	if (!mp)
 		return;
 
-	for (mp1 = 0, mprun = fp->fmark, unmark = 1, lp = mp->lm; 
+	for (mp1 = 0, mprun = wp->fmark, unmark = 1, lp = mp->lm; 
 		mprun != 0; mp1 = mprun, mprun = mprun->next) {
 
 		/* delete from list */
@@ -53,7 +53,7 @@ static void mark_free(FTABLE *fp, MARK *mp)
 			if (mp1)
 				mp1->next = mp->next;
 			else
-				fp->fmark = mp->next;
+				wp->fmark = mp->next;
 		} else {
 			/* is there another mark for same line ? */
 			if (P_EQ(mprun->lm,lp))
@@ -70,31 +70,31 @@ static void mark_free(FTABLE *fp, MARK *mp)
  * mark_killSelection()
  * release the copy and paste - marks for a file
  */
-void mark_killSelection(FTABLE* fp)
+void mark_killSelection(WINFO* wp)
 {
-	mark_free(fp, fp->blstart);
-	bl_setBlockMark(fp, NULL, 1);
-	mark_free(fp, fp->blend);
-	bl_setBlockMark(fp, NULL, 0);
+	mark_free(wp, wp->blstart);
+	bl_setBlockMark(wp, NULL, 1);
+	mark_free(wp, wp->blend);
+	bl_setBlockMark(wp, NULL, 0);
 }
 
 /*--------------------------------------------------------------------------
  * mark_alloc()
  */
-static MARK *mark_alloc(FTABLE *fp, int c)
+static MARK *mark_alloc(WINFO *wp, int c)
 {
-	mark_free(fp,mark_find(fp,c));
-	return (MARK*) ll_insert((LINKED_LIST**)&fp->fmark,sizeof(MARK));
+	mark_free(wp,mark_find(wp,c));
+	return (MARK*) ll_insert((LINKED_LIST**)&wp->fmark,sizeof(MARK));
 }
 
 /*--------------------------------------------------------------------------
  * mark_set()
  * Sets a mark in the line and offset named "c",
  */
-MARK *mark_set(FTABLE *fp, LINE *lp,int offs,int c)
+MARK *mark_set(WINFO *wp, LINE *lp,int offs,int c)
 {	MARK *mp;
 
-	if ((mp = mark_alloc(fp,c)) != (MARK *) 0) {
+	if ((mp = mark_alloc(wp,c)) != (MARK *) 0) {
 		mp->lm 	= lp;
 		mp->lc 	= offs;
 		mp->mchar = c;
@@ -107,13 +107,14 @@ MARK *mark_set(FTABLE *fp, LINE *lp,int offs,int c)
 /*--------------------------------------------------------------------------
  * mark_goto()
  */
-LINE *mark_goto(FTABLE *fp, int c, long *ln, long *col)
-{	MARK *mp;
+LINE *mark_goto(WINFO *wp, int c, long *ln, long *col) {	
+	MARK *mp;
 
-	if (fp == 0) 
+	if (wp == 0) 
 		return 0;
-	if ((mp = mark_find(fp,c)) == 0)
+	if ((mp = mark_find(wp,c)) == 0)
 		return 0;
+	FTABLE* fp = wp->fp;
 	*ln  = ln_cnt(fp->firstl,mp->lm)-1;
 	*col = (long)mp->lc;
 	return mp->lm;

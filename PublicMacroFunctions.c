@@ -221,7 +221,7 @@ int EdBlockMove(void)
  * EdBlockHide()
  */
 int EdBlockHide(void)	
-{	return bl_hideSelection(1);		}
+{	return bl_hideSelection(ww_getCurrentEditorWindow(), 1);		}
 
 /*--------------------------------------------------------------------------
  * EdSetup()
@@ -548,7 +548,7 @@ int EdFormatText(void)
 	if (!win_callDialog(DLGFORMAT,&_fp,_d, NULL))
 		return 0;
 
-	return ft_formatText(ft_getCurrentDocument(), _scope,_fmttype,_fmtflags);
+	return ft_formatText(ww_getCurrentEditorWindow(), _scope,_fmttype,_fmtflags);
 }
 
 /*--------------------------------------------------------------------------
@@ -638,11 +638,11 @@ int EdGotoLine(void)
  */
 static unsigned char _lastmarkc;
 int EdMarkSet(void)
-{	FTABLE *fp = ft_getCurrentDocument();
+{	WINFO *wp = ww_getCurrentEditorWindow();
 
 	_lastmarkc = DialogCharInput(IDS_MARKSET,_lastmarkc);
 	return 
-		(mark_set(fp,fp->caret.linePointer,fp->caret.offset,_lastmarkc) != 0);
+		(mark_set(wp,wp->caret.linePointer,wp->caret.offset,_lastmarkc) != 0);
 }
 
 /*--------------------------------------------------------------------------
@@ -652,11 +652,9 @@ int EdMarkGoto(void)
 {
 	long 		x,y;
 	WINFO* wp = ww_getCurrentEditorWindow();
-	FTABLE *		fp;
 
-	fp = wp->fp;
 	_lastmarkc = DialogCharInput(IDS_MARKGOTO,_lastmarkc);
-	if (mark_goto(fp, _lastmarkc, &x, &y) == 0) {
+	if (mark_goto(wp, _lastmarkc, &x, &y) == 0) {
 		error_showErrorById(IDS_MSGMARKUNDEF); 
 		return 0;
 	} else {
@@ -1208,8 +1206,14 @@ static void color_showselection(DRAWITEMSTRUCT *dp)
 /*--------------------------------------------------------------------------
  * EdDlgDispMode()
  */
-int EdDlgDispMode(void)
-{
+static int redrawRuler(WINFO* wp, void* pUnused) {
+	if (wp->ru_handle != NULL) {
+		win_sendRedrawToWindow(wp->ru_handle);
+	}
+	return 1;
+}
+
+int EdDlgDispMode(void) {
 	EDFONT		font;
 	static char 	status[64];
 	static long 	bgcolor;
@@ -1249,12 +1253,13 @@ int EdDlgDispMode(void)
 		0
 	};
 	DOCUMENT_DESCRIPTOR *linp;
+	FTABLE* fp = ft_getCurrentDocument();
 
-	if (ft_getCurrentDocument() == 0) {
+	if (fp == 0) {
 		return 0;
 	}
 
-	linp = ft_getCurrentDocument()->documentDescriptor;
+	linp = fp->documentDescriptor;
 	lstrcpy(status,linp->statusline);
 	tabsize = 0;
 	rmargin = linp->rmargin;
@@ -1274,7 +1279,7 @@ int EdDlgDispMode(void)
 	linp->t1 = tabfill;
 	if ((linp->tabsize = tabsize) != 0) {
 		doctypes_initDocumentTypeDescriptor(linp, linp->tabsize);
-		win_sendRedrawToWindow(WIPOI(ft_getCurrentDocument())->ru_handle);
+		ft_forAllViews(fp, redrawRuler, NULL);
 	}
 	linp->rmargin = rmargin;
 	return doctypes_documentTypeChanged();
@@ -1856,38 +1861,39 @@ int EdIsDefined(long what)
 		return GetConfiguration()->layoutoptions;
 	}
 
-	if (!ft_getCurrentDocument()) {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (!wp) {
 		return 0;
 	}
 
 	switch(what) {
 
 	case QUERY_BLKMARKSTART:
-		return ft_getCurrentDocument()->blstart ? 1 : 0;
+		return wp->blstart ? 1 : 0;
 
 	case QUERY_BLKMARKED:
-		if (!ft_getCurrentDocument()->blstart) {
+		if (!wp->blstart) {
 			return 0;
 		}
 		/* drop through */
 
 	case QUERY_BLKMARKEND:
-		return ft_getCurrentDocument()->blend ? 1 : 0;
+		return wp->blend ? 1 : 0;
 
 	case QUERY_WORKMODE:
-		return ft_getCurrentDocument()->documentDescriptor->workmode;
+		return wp->workmode;
 
 	case QUERY_DISPLAYMODE:
-		return ft_getCurrentDocument()->documentDescriptor->dispmode;
+		return wp->dispmode;
 
 	case QUERY_CURRENTFILE:
 		return 1;
 
 	case QUERY_FILEMODIFIED:
-		return (ft_getCurrentDocument()->flags & F_MODIFIED) ? 1 : 0;
+		return ft_isFileModified(wp->fp) ? 1 : 0;
 	
 	case QUERY_BLOCKXTNDMODE:
-		return WIPOI(ft_getCurrentDocument())->bXtndBlock;
+		return wp->bXtndBlock;
 	}
 	return 0;
 }

@@ -687,7 +687,7 @@ int doctypes_readWriteDocumentDescriptor(int wrflag, DOCUMENT_DESCRIPTOR *docume
 	if (wrflag & 1) {
 		strcpy(_linfsel.fname, documentDescriptor->name);
 		if (fp) {
-			ww_getstate(fp->wp,&documentDescriptor->placement);
+			ww_getstate(WIPOI(fp),&documentDescriptor->placement);
 		}
 	}
 

@@ -19,7 +19,12 @@
 #include "winfo.h"
 #include "edierror.h"
 #include "winutil.h"
+
 #define MAXCOL		2*MAXLINELEN
+
+// Maximum number of lines in a file for which the max line length is correctly calculated to update
+// horizontal scrollbars.
+#define MAXLINES_TO_CALCULATE_COLUMNS 1024
 
 /*! MODIFY HERE !*/
 long		_multiplier = 1;
@@ -47,12 +52,14 @@ static void SetWin32ScrollInfo(WINFO * wp, int nSlider,
 
 /**
  * Calculate the length of the longest line on the fly. 
- * Dumb version, which does not yet handle tabs / formatting etc....
+ * Dumb version, which does not yet handle tabs / formatting etc.
+ * Should cache the result and be notified by the model, when the model
+ * changes to remove the cache.
  */
-static int calculateLongestLine(FTABLE *fp) {
+static int calculateLongestLine(WINFO *wp) {
+	FTABLE* fp = wp->fp;
 	LINE* lp = fp->firstl;
 	int max = 0;
-	WINFO* wp = WIPOI(fp);
 
 	while (lp) {
 		int len = caret_lineOffset2screen(wp, &(CARET){lp, lp->len});
@@ -100,8 +107,8 @@ int sl_size(WINFO *wp)
 	if (wp->dispmode & SHOWHIDEHSLIDER) {
 		n = maxColumns = 0;
 	} else {
-		if (fp->nlines < 200) {
-			maxColumns = calculateLongestLine(fp);
+		if (fp->nlines < MAXLINES_TO_CALCULATE_COLUMNS) {
+			maxColumns = calculateLongestLine(wp);
 		} else {
 			maxColumns = MAXCOL;
 		}
@@ -220,8 +227,8 @@ void sl_winchanged(WINFO *wp,long dy, long dx) {
  */
 int sl_moved(WINFO *wp, long dy, long dx, int cursor_adjust) 
 {
-	long col = wp->col;
-	long	ln  = wp->ln;
+	long col = wp->caret.col;
+	long	ln  = wp->caret.ln;
 
 	if (!sl_scrollwinrange(wp,&dy,&dx))
 		return 0;
@@ -239,12 +246,12 @@ int sl_moved(WINFO *wp, long dy, long dx, int cursor_adjust)
 		} else if (col > wp->maxcurscol) {
 			col = wp->maxcurscol;
 		}
-		if (col != wp->col || ln != wp->ln) {
+		if (col != wp->caret.col || ln != wp->caret.ln) {
 			if (!caret_updateLineColumn(wp, &ln, &col, 0)) {
-				ln = wp->ln;
+				ln = wp->caret.ln;
 			}
-			wp->ln  = ln;
-			wp->col = col;
+			wp->caret.ln  = ln;
+			wp->caret.col = col;
 			render_updateCaret(wp);
 		}
 	} else {
@@ -262,15 +269,18 @@ void EdScrollCursor(int mtype)
 {
 	long 	delta = 0;
 	extern long _multiplier;
-	WINFO *	wp = WIPOI(ft_getCurrentDocument());
+	WINFO *	wp = ww_getCurrentEditorWindow();
 	
+	if (wp == NULL) {
+		return;
+	}
 	switch(mtype) {
 		case MOT_SINGLE:
 			delta = _multiplier; break;
 		case -MOT_SINGLE:
 			delta = -_multiplier; break;
 		case MOT_CENTER:
-			delta = wp->ln-(wp->maxln+wp->minln) / 2;
+			delta = wp->caret.ln-(wp->maxln+wp->minln) / 2;
 			break;
 	}
 	sl_moved(wp, delta, 0, (wp->scrollflags & SC_CURSORCATCH));
@@ -281,15 +291,13 @@ void EdScrollCursor(int mtype)
  * Scroll - cursor sticks to screen
  */
 int EdScrollScreen(int mtype)
-{	long		dln,ln,col;
+{	long	dln,ln,col;
 	int		ret;
-	WINFO	*wp;
-	FTABLE	*fp = ft_getCurrentDocument();
+	WINFO	*wp = ww_getCurrentEditorWindow();
 
-	if (!fp)
+	if (!wp)
 		return 0;
-
-	wp = WIPOI(fp);
+	FTABLE* fp = wp->fp;
 
 	switch(mtype) {
 		case MOT_SINGLE:
@@ -310,11 +318,11 @@ int EdScrollScreen(int mtype)
 
 	dln *= _multiplier;
 
-	if ((ln = fp->ln+dln) < 0 ||
+	if ((ln = wp->caret.ln+dln) < 0 ||
 		ln >= fp->nlines)
 		return 0;
 
-	col = fp->caret.offset;
+	col = wp->caret.offset;
 	sl_moved(wp,dln,0,0);
 	ret = caret_placeCursorAndValidate(wp,&ln,&col,0);
 	wt_curpos(wp,ln,col);

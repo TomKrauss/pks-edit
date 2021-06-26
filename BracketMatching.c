@@ -478,8 +478,8 @@ EXPORT int EdShowMatch(void)
 
 	if (!wp) return 0;
 	FTABLE* fp = wp->fp;
-	ln = fp->ln, col = fp->caret.offset;
-	if (nextmatch(fp->caret.linePointer,&ln,&col)) {
+	ln = wp->caret.ln, col = wp->caret.offset;
+	if (nextmatch(wp->caret.linePointer,&ln,&col)) {
 		caret_placeCursorInCurrentFile(wp, ln,col);
 		return 1;
 	} 
@@ -493,7 +493,7 @@ EXPORT int EdShowMatch(void)
 EXPORT int uc_showMatchingBracket(LINE *lp,int iStartColumn)
 {	WINFO *wp = ww_getCurrentEditorWindow();
 	FTABLE* fp = wp->fp;
-	long   ln  = fp->ln;
+	long   ln  = wp->caret.ln;
 	long   col = iStartColumn;
 	struct uclist *up;
 
@@ -525,16 +525,16 @@ EXPORT int EdCharUpToLow(void )
 {	LINE	 *lp;
 	unsigned char c,c1;
 	int  offs;
-	FTABLE *fp;
+	WINFO* wp = ww_getCurrentEditorWindow();
+	FTABLE *fp = wp->fp;
 
-	fp   = ft_getCurrentDocument();
-	lp	= fp->caret.linePointer;
-	offs = fp->caret.offset;
+	lp	= wp->caret.linePointer;
+	offs = wp->caret.offset;
 	c    = lp->lbuf[offs];
 	if (((c1 = _l2uset[c]) != c || (c1 = _u2lset[c]) != c) &&
 	    (lp = ln_modify(fp,lp,offs,offs)) != (LINE *)0) {
 		lp->lbuf[offs] = c1;
-		render_repaintCurrentLine();
+		render_repaintCurrentLine(wp);
 	}
 	return EdCursorRight(1);
 }
@@ -543,16 +543,16 @@ EXPORT int EdCharUpToLow(void )
  * uc_shiftLinesByIndent()
  * shift n lines
  */
-EXPORT int uc_shiftLinesByIndent(FTABLE *fp, long ln, long nlines, int dir)
+EXPORT int uc_shiftLinesByIndent(WINFO *wp, long ln, long nlines, int dir)
 {	register LINE	*lp;
 	register char	*s,*send;
 	register long  i,offset;
 	size_t			blcount;
 	register int	ind,col;
 	int 			dummy;
-	WINFO* wp = WIPOI(fp);
+	FTABLE* fp = wp->fp;
 
-	if ((lp = ln_gotouserel(fp,ln)) == 0L) 
+	if ((lp = ln_goto(fp,ln)) == 0L) 
 		return 0;
 
 	for (i = 0; i < nlines; i++) {
@@ -587,11 +587,11 @@ EXPORT int uc_shiftLinesByIndent(FTABLE *fp, long ln, long nlines, int dir)
 	}
 	render_repaintAllForFile(fp);
 
-	offset = fp->caret.offset;
-	if (fp->ln >= ln && fp->ln < ln+nlines)
+	offset = wp->caret.offset;
+	if (wp->caret.ln >= ln && wp->caret.ln < ln+nlines)
 		offset += dir;
 
-	caret_placeCursorInCurrentFile(wp, fp->ln,offset);
+	caret_placeCursorInCurrentFile(wp, wp->caret.ln,offset);
 
 	return 1;
 }
@@ -602,21 +602,22 @@ EXPORT int uc_shiftLinesByIndent(FTABLE *fp, long ln, long nlines, int dir)
  */
 EXPORT int EdShiftBetweenBrackets(int dir)
 {	register FTABLE *fp;
+	WINFO* wp = ww_getCurrentEditorWindow();
 	register long ln2;
 	long ln,col;
 	
-	fp = ft_getCurrentDocument();
-	ln = fp->ln, col = fp->caret.offset;
+	fp = wp->fp;
+	ln = wp->caret.ln, col = wp->caret.offset;
 
-	if (!nextmatch(fp->caret.linePointer,&ln,&col)) {
+	if (!nextmatch(wp->caret.linePointer,&ln,&col)) {
 		return 0;
 	}
 
-	if (ln > fp->ln) {
+	if (ln > wp->caret.ln) {
 		ln2 = ln;
-		ln  = fp->ln;
+		ln  = wp->caret.ln;
 	} else {
-		ln2 = fp->ln;
+		ln2 = wp->caret.ln;
 	}
 	
 	/* care indentation style */
@@ -625,7 +626,7 @@ EXPORT int EdShiftBetweenBrackets(int dir)
 		ln2 -= _lastmatch->ci2[1];
 	}
 
-	return uc_shiftLinesByIndent(fp,ln,ln2-ln,dir);
+	return uc_shiftLinesByIndent(wp,ln,ln2-ln,dir);
 }
 
 /*--------------------------------------------------------------------------
@@ -633,11 +634,11 @@ EXPORT int EdShiftBetweenBrackets(int dir)
  * shift _multiplier lines
  */
 EXPORT int EdLinesShift(int dir)
-{	FTABLE *fp = ft_getCurrentDocument();
+{	WINFO *wp = ww_getCurrentEditorWindow();
 
-	if (!fp)
+	if (!wp)
 		return 0;
-	return uc_shiftLinesByIndent(fp,fp->ln,_multiplier,dir);
+	return uc_shiftLinesByIndent(wp->fp,wp->caret.ln,_multiplier,dir);
 }
 
 /*--------------------------------------------------------------------------
@@ -646,7 +647,7 @@ EXPORT int EdLinesShift(int dir)
  */
 EXPORT int uc_shiftRange(int scope, int dir)
 {	MARK	*mps,*mpe;
-	FTABLE *fp = ft_getCurrentDocument();
+	WINFO *wp = ww_getCurrentEditorWindow();
 	long	ln1,ln2;
 	
 	if (!find_selectRangeWithMarkers(scope,&mps,&mpe))
@@ -655,12 +656,13 @@ EXPORT int uc_shiftRange(int scope, int dir)
 	if (dir == 0)
 		dir = -1;
 
+	FTABLE* fp = wp->fp;
 	ln1 = ln_cnt(fp->firstl,mps->lm)-1;
 	ln2 = ln_cnt(mps->lm,mpe->lm);
 	if (mpe->lc == 0)
 		ln2--;
 
-	return uc_shiftLinesByIndent(fp,ln1,ln2,dir);
+	return uc_shiftLinesByIndent(wp,ln1,ln2,dir);
 }
 
 

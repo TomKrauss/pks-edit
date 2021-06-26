@@ -117,6 +117,11 @@ extern int caret_placeCursorMakeVisible(WINFO* wp, long ln, long col);
  */
 extern int caret_updateLineColumn(WINFO* wp, long* ln, long* col, int newcol);
 
+/*
+ * Move the caret to the given line.
+ */
+extern void caret_moveToLine(WINFO* wp, long ln);
+
 /*--------------------------------------------------------------------------
  * caret_updateLineColumn()
  * Invoked, when the cursor is positioned using slider or mouse to update the

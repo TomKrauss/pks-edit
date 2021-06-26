@@ -40,7 +40,7 @@ extern int  _deadkey;
 int doctypes_documentTypeChanged(void);
 int doc_columnChanged(void);
 int macro_toggleRecordMaco(void);
-int bl_setColumnSelection(FTABLE *fp);
+int bl_setColumnSelection(WINFO* wp);
 
 static struct optiontab {
     int  flgkeynr;
@@ -75,15 +75,15 @@ static struct optiontab {
  */
 int doctypes_documentTypeChanged(void)
 {
-	WINFO  *	wp;
+	WINFO  *	wp = ww_getCurrentEditorWindow();
 	FTABLE *	fp;
 	
-	if ((fp = ft_getCurrentDocument()) == 0 ||
-	   (wp = WIPOI(fp)) == 0)
-	    return 0;
-	
+	if (wp == 0) {
+		return 0;
+	}
+	fp = wp->fp;
 	ww_applyDisplayProperties(wp);
-	ww_setwindowtitle(wp);
+	ww_setwindowtitle(wp, NULL);
 	regex_compileCharacterClasses(fp->documentDescriptor->u2lset);
 
 	SendMessage(wp->edwin_handle,WM_EDWINREORG,0,0L);
@@ -97,13 +97,13 @@ int doctypes_documentTypeChanged(void)
  */
 static int doc_columnChanged(void)
 {
-	FTABLE *fp;
+	WINFO *wp;
     
-    if ((fp = ft_getCurrentDocument()) == 0)
+    if ((wp = ww_getCurrentEditorWindow()) == 0)
          return 0;
 
-    ww_applyDisplayProperties(WIPOI(fp));
-    bl_setColumnSelection(fp);
+    ww_applyDisplayProperties(wp);
+    bl_setColumnSelection(wp);
     return 1;
 }
 	

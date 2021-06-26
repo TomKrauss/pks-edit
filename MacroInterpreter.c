@@ -42,7 +42,6 @@ extern void 			macro_evaluateBinaryExpression(COM_BINOP *sp);
 extern int 			progress_cancelMonitor(BOOL bRedraw);
 extern void 			ww_redrawAllWindows(int update);
 extern void 			undo_startModification(FTABLE *fp);
-extern int 			ft_checkSelectionWithError(FTABLE *fp);
 extern void 			ft_settime(EDTIME *tp);
 extern int 			macro_executeByName(char *name);
 void 				macro_stopRecordingFunctions(void);
@@ -382,19 +381,19 @@ void macro_stopRecordingFunctions()
  */
 int macro_isFunctionEnabled(EDFUNC* fup, int warn) {
 	FTABLE* fp = ft_getCurrentDocument();
+	WINFO* wp = ww_getCurrentEditorWindow();
 
 	if (fup->flags & EW_NEEDSCURRF && fp == 0) {
 		return 0;
 	}
-
-	if ((fup->flags & EW_MODIFY) && (fp->documentDescriptor->workmode & O_RDONLY)) {
-		if (warn && (fp->documentDescriptor->workmode & O_RDONLY)) {
+	if ((fup->flags & EW_MODIFY) && ft_isReadonly(fp)) {
+		if (warn && ft_isReadonly(fp)) {
 			ft_checkReadonlyWithError(fp);
 		}
 		return 0;
 	}
 
-	if (fup->flags & EW_NEEDSBLK && !ft_checkSelection(fp)) {
+	if (fup->flags & EW_NEEDSBLK && (!wp || !ft_checkSelection(wp))) {
 		return 0;
 	}
 	if ((fup->flags & EW_REDO_AVAILABLE) && !undo_isRedoAvailable(fp)) {
@@ -402,7 +401,7 @@ int macro_isFunctionEnabled(EDFUNC* fup, int warn) {
 	}
 	if ((fup->flags & EW_UNDO_AVAILABLE) && !undo_isUndoAvailable(fp)) {
 		if (warn) {
-			ft_checkSelectionWithError(fp);
+			ft_checkSelectionWithError(wp);
 		}
 		return 0;
 	}
@@ -713,8 +712,9 @@ int macro_executeMacroByIndex(int macroindex)
 		rdupdate(0);
 		mouse_setDefaultCursor();
 # else
-		if (ft_getCurrentDocument()) {
-			ft_selectWindowWithId(WIPOI(ft_getCurrentDocument())->win_id, FALSE);
+		WINFO* wp = ww_getCurrentEditorWindow();
+		if (wp) {
+			ft_selectWindowWithId(wp->win_id, FALSE);
 		}
 # if 0
 		ww_redrawAllWindows(0);

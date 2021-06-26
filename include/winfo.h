@@ -13,7 +13,6 @@ typedef struct tagFSTYLE {
 	WORD mode,style;
 } FSTYLE;
 
-
 #define	FS_BMARKED		0
 #define	FS_XMARKED		1
 
@@ -42,13 +41,18 @@ typedef struct wininfo {
      
     int       dispmode;				/* flags see edierror.h... */
     int       workmode;
-     BOOL		bXtndBlock;			/* Xtending blocks */
-     int		scrollflags;
-     int		cursaftersearch;
-     int		tfillchar;			/* Tab fill char */
+    BOOL		bXtndBlock;			/* Xtending blocks */
+    int		scrollflags;
+    int		cursaftersearch;
+    int		tfillchar;			    /* Tab fill char */
      
-     char		*statusline;			/* alt. status line */
-     char* win_themeName;
+    CARET caret; 		/* the caret - to be moved to the view */
+    MARK* fmark;
+    MARK* blstart, * blend;   	/* Marks for Block Operations			*/
+    int  	blcol1, blcol2;		/* column for Blockmarks				*/
+    
+    char		*statusline;			/* alt. status line */
+     char*  win_themeName;
      int       cx,cy,cmx,cmy,cheight,cwidth;
      int       owncursor,ctype;        	/* owncursor and caret - type */
 
@@ -60,13 +64,19 @@ typedef struct wininfo {
 			scroll_dy;			/* for scrolling */
 	
     RENDER_LINE_FUNCTION renderFunction;
-    long      ln,minln,maxln,mincursln,maxcursln,
-               col,mincol,maxcol,mincurscol,maxcurscol;
+    long      minln,maxln,mincursln,maxcursln,
+              mincol,maxcol,mincurscol,maxcurscol;
      FSTYLE	markstyles[2];			/* text block appearance */
      void	*	fp;
      int		win_state;
 } WINFO;
 
+/*--------------------------------------------------------------------------
+ * find_setTextSelection()
+ *
+ * Select a range of text in the file identified by fp.
+ */
+extern int find_setTextSelection(int rngetype, WINFO* fp, MARK** markstart, MARK** markend);
 
 /*------------------------------------------------------------
  * render_paintWindow()
@@ -78,7 +88,7 @@ extern void render_paintWindow(WINFO* wp);
  * render_repaintFromLineTo()
  * Send a repaint to the given range of lines.
  */
-extern void render_repaintFromLineTo(WINFO* wp, long min, long max);
+extern void render_repaintFromLineTo(FTABLE* wp, long min, long max);
 
 /*--------------------------------------------------------------------------
  * render_repaintAllForFile()
@@ -121,7 +131,29 @@ extern void render_updateCaret(WINFO* wp);
 /**
  * A property of our editor document has changed. Update the window appropriately.
  */
-extern void ww_documentPropertyChanged(WINFO* wp, PROPERTY_CHANGE* pChange);
+extern int ww_documentPropertyChanged(WINFO* wp, PROPERTY_CHANGE* pChange);
+
+/*----------------------------
+ * bl_hideSelection()
+ * Hide the current selection and optionally
+ * remove the selection marker from "marked lines"
+ *----------------------------*/
+extern int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag);
+
+/* pointer to first and last line to enq	*/
+/* first column and last col to enq		*/
+/*--------------------------------------------------------------------------
+ * bl_undoIntoUnqBuffer()
+ * enqueue next Pastebuffer to undolist
+ */
+extern int bl_undoIntoUnqBuffer(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfirst, int clast, int blockflg);
+
+/*--------------------------------------------------------------------------
+ * bl_delete()
+ * Delete the text of the current selection.
+ */
+extern int bl_delete(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfirst,
+    int clast, int blkflg, int saveintrash);
 
 /*--------------------------------------------------------------------------
  * render_singleLineOnDevice()
@@ -155,6 +187,19 @@ void wt_scrollxy(WINFO* wp, int nlines, int ncolumns);
  */
 extern void ww_redrawAllWindows(int update);
 
+/*---------------------------------
+ * ft_checkSelection()
+ * Check whether a block selection exists.
+ *---------------------------------*/
+extern int ft_checkSelection(WINFO* fp);
+
+/*---------------------------------
+ * ft_checkSelectionWithError()
+ * Check whether a block selection exists. If not
+ * report an error to the user.
+ *---------------------------------*/
+extern int 	ft_checkSelectionWithError(WINFO* fp);
+
 /*-----------------------------------------------------------
  * ww_applyDisplayProperties()
  * Apply all flags from the document descriptor of the edited document on the
@@ -170,12 +215,12 @@ extern void wt_curpos(WINFO* wp, long ln, long col);
 /*------------------------------------------------------------
  * wt_deleteline()
  */
-extern void wt_deleteline(WINFO* wp, int additional, int nlines);
+extern void wt_deleteline(FTABLE* fp, int caretLine, int additional, int nlines);
 
 /*------------------------------------------------------------
  * wt_insline()
  */
-extern void wt_insline(WINFO* wp, int nlines);
+extern void wt_insline(FTABLE* fp, int caretLine, int nlines);
 
 /*--------------------------------------------------------------------------
  * render_repaintAllForFile()
@@ -186,7 +231,7 @@ extern void render_repaintAllForFile(FTABLE* fp);
  * render_repaintCurrentLine()
  * Redraw the line containing the cursor, in the "current active" editor window.
  */
-extern void render_repaintCurrentLine(void);
+extern void render_repaintCurrentLine(WINFO* wp);
 
 /**
  * Returns the view num steps from the step - 0 to return the current to level view, 1 to return
@@ -204,7 +249,7 @@ extern void ww_setScrollCheckBounds(WINFO* wp);
  * ww_setwindowtitle()
  * Update the title of a window.
  */
-extern void ww_setwindowtitle(WINFO* wp);
+extern int ww_setwindowtitle(WINFO* wp, void *pUnused);
 
 /*-----------------------------------------------------------
  * ww_savewinstates()
@@ -247,10 +292,47 @@ extern void ww_winstate(int nId, WINDOWPLACEMENT* wsp);
  */
 extern int ww_close(WINFO* wp);
 
+/*--------------------------------------------------------------------------
+ * ww_getRightMargin()
+ * Returns the right margin as current configured the way it should be used for e.g. painting.
+ */
+extern int ww_getRightMargin(WINFO* fp);
+
+/*---------------------------------
+ * ft_formatText()
+ * Formt the text in the current file.
+ *---------------------------------*/
+extern int ft_formatText(WINFO* wp, int scope, int type, int flags);
+
+/*
+ * Invoke a callback for every view of a editor document model.
+ * The callback may return 0 to abort the iteration process.
+ * The callback is invoked with the WINFO pointer an an optional parameter
+ * passed as the last argument.
+ */
+extern void ft_forAllViews(FTABLE* fp, int (*callback)(WINFO* wp, void* pParameterPassed), void* parameter);
+
+/*
+ * Return the primary view displaying a file - if any.
+ */
+extern WINFO* ft_getPrimaryView(FTABLE* fp);
+
+/*
+ * Connect a view with a file - set the model and add the view as a dependent.
+ */
+extern void ft_connectViewWithFT(FTABLE* fp, WINFO* wp);
+
 /*
  * Returns the "active" editor window having the focus.
  */
 extern WINFO* ww_getCurrentEditorWindow();
+
+extern int 	uc_shiftLinesByIndent(WINFO* fp, long ln, long nlines, int dir);
+
+/*
+ * Invoked, when one of the views viewing on this document is closed.
+ */
+extern void ft_windowClosed(FTABLE* fp, WINFO* wp);
 
 /*------------------------------------------------------------
  * font_createFontWithStyle()

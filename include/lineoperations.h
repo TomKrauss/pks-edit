@@ -199,7 +199,7 @@ typedef time_t EDTIME;
 /*---------------------------------*/
 typedef void * HIDDENP;
 
-#define	WIPOI(fp)	((WINFO*)fp->wp)
+#define	WIPOI(fp)	ft_getPrimaryView(fp)
 
 /*
  * Represents the position of one caret representing an insertion point in a file.
@@ -207,26 +207,26 @@ typedef void * HIDDENP;
 typedef struct tagCARET {
 	LINE* linePointer;		/* the current line */
 	int   offset;			/* current offset in linebuffer memory */
+	int	  virtualOffset;	/* the virtual offset into the linebuffer. That is used to have the cursor try to stay in the same column as it is moved 
+							   up and down the screen and will eventually pass by "short lines" forcing it to jump to smaller column positions. */
+	long ln;				/* zero based line index into the list of lines */
+	long  col;				/* The column index in screen coordinates (not into the buffer) */
 } CARET;
 
 typedef struct ftable {
 	struct ftable *next;
 	char 	fname[256];
-	long 	nlines,ln;
+	long 	nlines;
 	long 	lastln,lastcol;	/* start of previous search .. */
-	int  	lastmodoffs,		/* last offset for last modification */
-			col;   
+	int  	lastmodoffs;		/* last offset for last modification */
 	int  	flags;
 	int		longLinesSplit;	/* Count of all long lines, which were split during read, as the lines were too long */
-	CARET  	caret; 		/* the caret - to be moved to the view */
 	LINE 	*tln;			/* Pointer to current edited line */	    
 	LINE 	*firstl,			/* first line */
 			*lastl;			/* last line */
-	MARK 	*fmark;
-	MARK 	*blstart,*blend;   	/* Marks for Block Operations			*/
-	int  	blcol1,blcol2;		/* column for Blockmarks				*/
+	LINE* lpReadPointer;	/* used during read operations temporarily */
 	DOCUMENT_DESCRIPTOR	*documentDescriptor;
-	HIDDENP	wp;
+	HIDDENP	views;			/* the list of our views */
 	HIDDENP	undo;
 	long 	as_time;			/* next time for AUTOSAVE */
 	EDTIME	ti_modified;		/* last modification time */
@@ -238,8 +238,6 @@ typedef struct ftable {
 extern int 	_playing;				/* recorder plays its game ... */
 
 void 	log_vsprintf(char *fmt,...);
-int 	ft_checkSelection(FTABLE *fp);
-int 	ft_checkSelectionWithError(FTABLE *fp);
 
 /*-------- line ops ----------*/
 
@@ -262,9 +260,6 @@ extern LINE *ln_join(FTABLE *fp,LINE *ln1,LINE *ln2,int flg);
 extern int lnjoin_lines(FTABLE *fp);
 extern LINE *ln_goto(FTABLE *fp,long l);
 extern LINE *ln_relative(LINE *cl, long l);
-extern LINE *ln_crelgo(FTABLE *fp, long l);
-extern LINE *ln_relgo(FTABLE *fp,long l);
-extern LINE *ln_gotouserel(FTABLE *fp,long ln);
 extern long ln_cnt(LINE *lps,LINE *lpe);
 extern LINE *ln_findbit(LINE *lp,int bit);
 extern void ln_replace(FTABLE *fp,LINE *oln,LINE *nl);
@@ -312,6 +307,11 @@ extern int ft_isFileModified(FTABLE* fp);
  * ft_countlinesStartingFromDirection()
  */
 extern long ft_countlinesStartingFromDirection(FTABLE* fp, long start, int dir);
+
+/*
+ * Checks whether the passed file buffer can be modified or whether it is readonly.
+ */
+extern int ft_isReadonly(FTABLE* fp);
 
 /*---------------------------------*/
 /* ft_checkReadonlyWithError()					*/
@@ -450,12 +450,6 @@ extern FTABLE* ft_fpbyname(char* fn);
  */
 extern int ft_editing(char* fn);
 
-/*---------------------------------
- * ft_formatText()
- * Formt the text in the current file.
- *---------------------------------*/
-int ft_formatText(FTABLE* fp, int scope, int type, int flags);
-
 /*--------------------------------------------------------------------------
  * ft_sortFile()
  * Sort the current file / document.
@@ -468,25 +462,6 @@ int ft_sortFile(FTABLE* fp, int scope, char* fs, char* keys, char* sel, int sort
  * Return the number of expanded tabs.
  */
 extern int ft_expandTabsWithSpaces(LINE* lp, long* nt);
-
-/*--------------------------------------------------------------------------
- * ft_getRightMargin()
- * Returns the right margin as current configured the way it should be used for e.g. painting.
- */
-extern int ft_getRightMargin(FTABLE* fp);
-
-/*---------------------------------
- * ft_checkSelection()
- * Check whether a block selection exists.
- *---------------------------------*/
-extern int ft_checkSelection(FTABLE* fp);
-
-/*---------------------------------
- * ft_checkSelectionWithError()
- * Check whether a block selection exists. If not
- * report an error to the user.
- *---------------------------------*/
-extern int ft_checkSelectionWithError(FTABLE* fp);
 
 /*------------------------------------------------------------
  * ft_bufdestroy().
@@ -558,13 +533,6 @@ extern int ln_countLeadingSpaces(LINE* lp);
  * ln_lineIsEmpty()
  */
 extern int ln_lineIsEmpty(LINE* lp);
-
-/*--------------------------------------------------------------------------
- * find_setTextSelection()
- *
- * Select a range of text in the file identified by fp.
- */
-extern int find_setTextSelection(int rngetype, FTABLE* fp, MARK** markstart, MARK** markend);
 
 /*--------------------------------------------------------------------------
  * undo_initializeManager()
@@ -738,7 +706,7 @@ extern unsigned char* ln_createFromBuffer(FTABLE* fp, DOCUMENT_DESCRIPTOR* docum
  * ln_createAndAdd()
  * create a line and add it to the editor model. Returns true, if successful.
  */
-extern BOOL ln_createAndAdd(FTABLE* fp, char* q, int len, int flags);
+extern int ln_createAndAdd(FTABLE* fp, char* q, int len, int flags);
 
 /*--------------------------------------------------------------------------
  * ln_createAndAddSimple()

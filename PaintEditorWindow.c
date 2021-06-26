@@ -69,20 +69,20 @@ static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
 	r.bottom = y + wp->cheight;
 	r.left = 0;
 	if (ww_hasColumnSelection(wp) != 0) {
-		r.left = fp->blcol1;
-		r.right = fp->blcol2;
+		r.left = wp->blcol1;
+		r.right = wp->blcol2;
 	}
 	else {
-		if (!fp->blstart || !fp->blend) {
+		if (!wp->blstart || !wp->blend) {
 			error_displayAlertDialog("bad marked line");
 			return;
 		}
-		if (P_EQ(lp, fp->blstart->lm))
-			r.left = caret_lineOffset2screen(wp, &(CARET) { lp, fp->blstart->lc});
+		if (P_EQ(lp, wp->blstart->lm))
+			r.left = caret_lineOffset2screen(wp, &(CARET) { lp, wp->blstart->lc});
 		else r.left = wp->mincol;
 
-		if (P_EQ(lp, fp->blend->lm))
-			r.right = caret_lineOffset2screen(wp, &(CARET) { lp, fp->blend->lc});
+		if (P_EQ(lp, wp->blend->lm))
+			r.right = caret_lineOffset2screen(wp, &(CARET) { lp, wp->blend->lc});
 		else r.right = lastcol;
 	}
 	r.left -= wp->mincol; if (r.left < 0) r.left = 0;
@@ -259,7 +259,7 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 	hBrushMarkedLines = CreateSolidBrush(pTheme->th_markedLineColor);
 
 	y = calcy(wp,min);
-	lp = ln_relgo(fp,min-wp->ln);
+	lp = ln_goto(fp,min);
 	RECT rect;
 	GetClientRect(wp->ww_handle, &rect);
 	for (ln = min; lp && ln <= max && y < ps.rcPaint.bottom;
@@ -270,7 +270,7 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 			HBRUSH      hBrush = hBrushBg;
 			if (lp->lflg & LNXMARKED) {
 				hBrush = hBrushMarkedLines;
-			} else if (lp == fp->caret.linePointer && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
+			} else if (lp == wp->caret.linePointer && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
 				hBrush = hBrushCaretLine;
 			}
 			r.left = rect.left; r.right = rect.right;
@@ -287,7 +287,7 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 			if (lp->lflg & LNCPMARKED) {
 				paintSelection(hdc, wp, lp, y, visLen);
 			}
-			if (ln == wp->ln)
+			if (ln == wp->caret.ln)
 				render_updateCustomCaret(wp,hdc);
 		}
 	}
@@ -340,53 +340,75 @@ static void render_invalidateRect(WINFO* wp, RECT* pRect) {
 /*--------------------------------------------------------------------------
  * render_repaintFromLineTo()
  */
-EXPORT void render_repaintFromLineTo(WINFO* wp, long minln, long maxln)
-{
-	if (wp != NULL && wp->ww_handle) {
+struct tagLINE_FROM_TO {
+	long minln;
+	long maxln;
+};
+static int render_repaintWindowFromLineTo(WINFO* wp, struct tagLINE_FROM_TO* pParam) {
+	if (wp->ww_handle) {
 		RECT rect;
 		GetClientRect(wp->ww_handle, &rect);
-		if (minln > wp->minln) {
-			rect.top += (minln-wp->minln) * wp->cheight;
+		if (pParam->minln > wp->minln) {
+			rect.top += (pParam->minln - wp->minln) * wp->cheight;
 		}
-		if (maxln < wp->maxln - 1) {
-			rect.bottom = rect.top + (maxln - minln + 1) * wp->cheight;
+		if (pParam->maxln < wp->maxln - 1) {
+			rect.bottom = rect.top + (pParam->maxln - pParam->minln + 1) * wp->cheight;
 		}
 		render_invalidateRect(wp, &rect);
 	}
+	return 1;
+}
+
+EXPORT void render_repaintFromLineTo(FTABLE* fp, long minln, long maxln) {
+	struct tagLINE_FROM_TO param = { minln, maxln };
+	ft_forAllViews(fp, render_repaintWindowFromLineTo, &param);
 }
 
 /*--------------------------------------------------------------------------
  * render_repaintCurrentFile()
  */
-EXPORT void render_repaintCurrentFile(void)
-{	FTABLE *fp;
+EXPORT void render_repaintCurrentFile(void) {	
+	FTABLE *fp;
 
 	if ((fp = ft_getCurrentDocument()) != 0L) {
 		render_repaintAllForFile(fp);
 	}
 }
 
-/*--------------------------------------------------------------------------
- * render_repaintAllForFile()
+/*
+ * Repaint one window. 
  */
-EXPORT void render_repaintAllForFile(FTABLE *fp)
-{
-	WINFO* wp = WIPOI(fp);
-	if (wp != NULL && wp->ww_handle != NULL) {
+static int render_repaintForWindow(WINFO* wp, void* pUnused) {
+	if (wp->ww_handle != NULL) {
 		render_invalidateRect(wp, NULL);
 	}
+	return 1;
 }
 
 /*--------------------------------------------------------------------------
- * render_repaintLinePart()
+ * render_repaintAllForFile()
  */
-EXPORT void render_repaintLinePart(FTABLE *fp, long ln, int col1, int col2)
-{
-	WINFO *	wp;
-	RECT  	r;
+EXPORT void render_repaintAllForFile(FTABLE *fp) {
+	ft_forAllViews(fp, render_repaintForWindow, NULL);
+}
 
-	wp = WIPOI(fp);
-	if (wp->ww_handle > 0 && ln >= wp->minln && ln <= wp->maxln) {
+/*
+ * Redraw part of a line in a window.
+ */
+struct tagLINE_REDRAW {
+	long ln;
+	int col1;
+	int col2;
+};
+
+static int render_repaintLineForWindow(WINFO* wp, struct tagLINE_REDRAW* pRedraw) {
+	RECT  	r;
+	int col1 = pRedraw->col1;
+	int col2 = pRedraw->col2;
+	if (col2 < 0) {
+		col2 = wp->maxcol;
+	}
+	if (wp->ww_handle > 0 && pRedraw->ln >= wp->minln && pRedraw->ln <= wp->maxln) {
 		if (col1 < wp->mincol) {
 			col1 = wp->mincol;
 		}
@@ -396,23 +418,32 @@ EXPORT void render_repaintLinePart(FTABLE *fp, long ln, int col1, int col2)
 		GetClientRect(wp->ww_handle, &r);
 		r.left += (col1 - wp->mincol) * wp->cwidth;
 		r.right = r.left + (col2 - col1) * wp->cwidth;
-		r.top += wp->cheight * (ln - wp->minln);
+		r.top += wp->cheight * (pRedraw->ln - wp->minln);
 		r.bottom = r.top + wp->cheight;
 		render_invalidateRect(wp, &r);
 	}
+	return 1;
+}
+
+/*--------------------------------------------------------------------------
+ * render_repaintLinePart()
+ * Redraw the line with the given index in the range between col1 and col2.
+ * If col2 is negative the whole line is repainted.
+ */
+EXPORT void render_repaintLinePart(FTABLE *fp, long ln, int col1, int col2)
+{
+	struct tagLINE_REDRAW param = {ln, col1, col2};
+	ft_forAllViews(fp, render_repaintLineForWindow, &param);
 }
 
 /*--------------------------------------------------------------------------
  * render_repaintCurrentLine()
+ * Repaint the current line in all windows for a file, where "current" is the
+ * line containing the caret in the window passed as a parameter.
  */
-EXPORT void render_repaintCurrentLine(void)
-{	
-	WINFO *	wp;
-	FTABLE *	fp;
-
-	if ((fp = ft_getCurrentDocument()) != 0L) {
-		wp = WIPOI(fp);
-		render_repaintLinePart(fp, wp->ln, wp->mincol, wp->maxcol);
+EXPORT void render_repaintCurrentLine(WINFO* wp) {
+	if (wp != 0L) {
+		render_repaintLinePart(wp->fp, wp->caret.ln, 0, -1);
 	}
 }
 
@@ -422,12 +453,8 @@ EXPORT void render_repaintCurrentLine(void)
  */
 EXPORT void render_repaintLine(FTABLE *fp, LINE *lpWhich)
 {
-	WINFO* wp = WIPOI(fp);
-
 	int idx = ln_indexOf(fp, lpWhich);
-	if (idx <= wp->maxln && idx >= wp->minln) {
-		render_repaintLinePart(fp, idx, wp->mincol, wp->maxcol);
-	}
+	render_repaintLinePart(fp, idx, 0, -1);
 }
 
 /*--------------------------------------------------------------------------
@@ -437,8 +464,6 @@ EXPORT void render_repaintLine(FTABLE *fp, LINE *lpWhich)
  */
 EXPORT void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd)
 {
-	WINFO* wp = WIPOI(fp);
-
 	int idx = ln_indexOf(fp, lpStart);
 	if (idx < 0) {
 		render_repaintAllForFile(fp);
@@ -449,7 +474,7 @@ EXPORT void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd)
 		idx++;
 		lpStart = lpStart->next;
 	}
-	render_repaintFromLineTo(fp->wp, startIdx, idx);
+	render_repaintFromLineTo(fp, startIdx, idx);
 }
 
 /*--------------------------------------------------------------------------
@@ -457,15 +482,13 @@ EXPORT void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd)
  */
 EXPORT void render_selectCustomCaret(int on)
 {
-	FTABLE 	*fp;
-	WINFO 	*wp;
+	WINFO 	*wp = ww_getCurrentEditorWindow();
 
-	if ((fp = ft_getCurrentDocument()) == 0 ||
-	    (wp = WIPOI(fp)) == 0)
+	if (wp == 0)
 		return;
 	if (on != wp->owncursor) {
 		wp->owncursor = on;
-		render_repaintCurrentLine();
+		render_repaintCurrentLine(wp);
 	}
 }
 

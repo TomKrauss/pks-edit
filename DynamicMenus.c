@@ -257,14 +257,13 @@ MACROREF *menu_getuserdef(int nId)
 
 int EdMenuTrackPopup(long unused1, long unused2, char *szPopup)
 {
-	FTABLE *	fp;
 	HMENU	hMenu;
 	POINT 	pt;
 	WINFO *	wp;
 	int		buttonType;
 
-	fp = ft_getCurrentDocument();
-	if (!fp) {
+	wp = ww_getCurrentEditorWindow();
+	if (!wp) {
 		return 0;
 	}
 	if (!rsc_findtable(_menutables, szPopup)) {
@@ -272,7 +271,6 @@ int EdMenuTrackPopup(long unused1, long unused2, char *szPopup)
 	}
 	rsc_switchtotable(&_menutables, szPopup);
 
-	wp = WIPOI(fp);
 	GetCursorPos(&pt);
 
 	if ((hMenu = menu_createmenu(TRUE)) == 0) {

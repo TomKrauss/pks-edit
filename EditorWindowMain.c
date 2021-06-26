@@ -28,6 +28,7 @@
 #include "context.h"
 #include "iccall.h"
 #include "stringutil.h"
+#include "arraylist.h"
 #include "editorconfiguration.h"
 #include "desktopicons.h"
 #include "propertychange.h"
@@ -526,12 +527,12 @@ void ww_redrawAllWindows(int update)
  * ww_setwindowtitle()
  * Update the title of a window.
  */
-void ww_setwindowtitle(WINFO *wp)
-{	int nr;
+int ww_setwindowtitle(WINFO *wp, void* pUnused) {	
+	int nr;
 	char buf[512];
 
 	if (!wp->edwin_handle)
-		return;
+		return 1;
 	FTABLE* fp = wp->fp;
 	nr = wp->win_id;
 	char* pName = ft_visiblename(fp);
@@ -546,13 +547,14 @@ void ww_setwindowtitle(WINFO *wp)
 		buf[1] = ' ';
 	}
 	SetWindowText(wp->edwin_handle,buf);
+	return 1;
 }
 
 /**
  * A property of our editor document has changed. Update the window appropriately.
  */
-void ww_documentPropertyChanged(WINFO* wp, PROPERTY_CHANGE* pChange) {
-	ww_setwindowtitle(wp);
+int ww_documentPropertyChanged(WINFO* wp, PROPERTY_CHANGE* pChange) {
+	return ww_setwindowtitle(wp, NULL);
 }
 
 /*-----------------------------------------------------------
@@ -564,9 +566,7 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	FTABLE* fp = wp->fp;
 	DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
 
-	if (linp->dispmode != wp->dispmode) {
-		wp->dispmode = linp->dispmode;
-	}
+	wp->dispmode = linp->dispmode;
 	wp->renderFunction = (wp->dispmode & SHOWATTR) ? render_singleLineWithAttributesOnDevice : render_singleLineOnDevice;
 
 	memmove(&wp->fnt, &linp->fnt, sizeof wp->fnt);
@@ -582,7 +582,7 @@ void ww_applyDisplayProperties(WINFO *wp) {
 		win_sendRedrawToWindow(wp->ww_handle);
 		wt_tcursor(wp,0);
 		wt_tcursor(wp,1);
-		caret_placeCursorForFile(wp,fp->ln,fp->caret.offset);
+		caret_placeCursorForFile(wp,wp->caret.ln,wp->caret.offset);
 	}
 
 	wp->workmode = linp->workmode;
@@ -612,6 +612,19 @@ static void ww_recycleWindow() {
 	}
 }
 
+/*
+ * Connect a view with a file - set the model and add the view as a dependent. 
+ */
+void ft_connectViewWithFT(FTABLE* fp, WINFO* wp) {
+	ARRAY_LIST* pViews;
+	if ((pViews = fp->views) == NULL) {
+		pViews = arraylist_create(3);
+		fp->views = pViews;
+	}
+	arraylist_add(pViews, wp);
+	wp->fp = fp;
+}
+
 /*-----------------------------------------------------------
  * ww_new()
  */
@@ -633,8 +646,7 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd) {
 
 	wp->markstyles[FS_XMARKED] = _fstyles[0];
 	wp->markstyles[FS_BMARKED] = _fstyles[1];
-	fp->wp = wp;
-	wp->fp = fp;
+	ft_connectViewWithFT(fp, wp);
 	wp->edwin_handle = hwnd;
 
 	ww_applyDisplayProperties(wp);
@@ -647,6 +659,52 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd) {
 	return wp;
 }
 
+/*
+ * Invoke a callback for every view of a editor document model.
+ * The callback may return 0 to abort the iteration process.
+ * The callback is invoked with the WINFO pointer an an optional parameter
+ * passed as the last argument.
+ */
+void ft_forAllViews(FTABLE* fp, int (*callback)(WINFO* wp, void* pParameterPassed), void* parameter) {
+	ARRAY_LIST* pViews;
+	if ((pViews = fp->views) == NULL) {
+		return;
+	}
+	ARRAY_ITERATOR pIter = arraylist_iterator(pViews);
+	while (pIter.i_buffer < pIter.i_bufferEnd) {
+		WINFO* wp = *pIter.i_buffer;
+		if (!(*callback)(wp, parameter)) {
+			return;
+		}
+		pIter.i_buffer++;
+	}
+}
+
+/*
+ * Return the primary view displaying a file - if any. 
+ */
+WINFO* ft_getPrimaryView(FTABLE* fp) {
+	ARRAY_LIST* pList = fp->views;
+	if (pList == NULL) {
+		return NULL;
+	}
+	return arraylist_get(pList, 0);
+}
+
+/*
+ * Invoked, when one of the views viewing on this document is closed.
+ */
+void ft_windowClosed(FTABLE* fp, WINFO* wp) {
+	ARRAY_LIST* pList = fp->views;
+	if (pList == NULL) {
+		return;
+	}
+	arraylist_remove(pList, wp);
+	if (arraylist_size(pList) == 0) {
+		ft_destroy(fp);
+	}
+}
+
 /*-----------------------------------------------------------
  * ww_destroy()
  */
@@ -656,10 +714,12 @@ void ww_destroy(WINFO *wp)
 	if (wp == NULL) {
 		return;
 	}
-	// If last window of FP
 	if (wp->fp != NULL) {
-		ft_destroy(wp->fp);
+		ft_windowClosed(wp->fp, wp);
 	}
+	ll_destroy((LINKED_LIST**)&wp->fmark, (int (*)(void* elem))0);
+	wp->blstart = 0;
+	wp->blend = 0;
 	wp->fp = NULL;
 	nId = wp->win_id;
 	if (!ll_delete((LINKED_LIST**)&_winlist,wp)) {
@@ -671,7 +731,7 @@ void ww_destroy(WINFO *wp)
 	for (wp = _winlist; wp; wp = wp->next) {
 		if (wp->win_id > nId) {
 			wp->win_id--;
-			ww_setwindowtitle(wp);
+			ww_setwindowtitle(wp, NULL);
 		}
 	}
 	nwindows--;
@@ -743,7 +803,7 @@ WINFUNC EditWndProc(
 
 		ShowWindow(hwnd, SW_HIDE);
 		ww_createSubWindows(hwnd, wp, &xyWork, &xyRuler, &xyLineInfo);
-		ww_setwindowtitle(wp);
+		ww_setwindowtitle(wp, NULL);
 		SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR)fp->fname);
 		SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,(LONG_PTR) icEditIconClass);
 		SetWindowLongPtr(hwnd,GWL_VIEWPTR, (LONG_PTR) wp);
@@ -783,7 +843,7 @@ WINFUNC EditWndProc(
 		}
 		if (message == WM_MOVE)
 			break;
-		ww_setwindowtitle(wp);
+		ww_setwindowtitle(wp, NULL);
 		if (wParam == SIZEICONIC) {
 			break;
 		}
@@ -1104,7 +1164,7 @@ static void draw_ruler(WINFO *wp) {
 	DeleteObject(bgBrush);
 	nMiddle = rect.bottom / 2 - 3;
 	width = wp->cwidth;
-	rmargin = ft_getRightMargin(fp);
+	rmargin = ww_getRightMargin(wp);
 
 	HPEN fatMarkerPen = CreatePen(PS_SOLID, 3, pTheme->th_rulerForegroundColor);
 	HPEN markerPen = CreatePen(PS_SOLID, 1, pTheme->th_rulerForegroundColor);

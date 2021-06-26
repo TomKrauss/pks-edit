@@ -25,7 +25,7 @@
 
 #define	MAXSEGMENTS			20
 
-extern int 		mysprintf(FTABLE *fp, char *d, char *fmt, ...);
+extern int 		mysprintf(WINFO *wp, char *d, char *fmt, ...);
 extern char *	lstrchr(const char *, const char);
 static char	*	pszStatusMessage;
 static BOOL		bSimpleMode;
@@ -37,16 +37,13 @@ HWND			hwndStatus;
 static int st_format(char *dest)
 {
 	int 	len;
-	WINFO *	wp;
+	WINFO *	wp = ww_getCurrentEditorWindow();
 
 	*dest = 0;
-	if (!ft_getCurrentDocument()) {
+	if (!wp) {
 		return 0;
-	} else {
-		wp = WIPOI(ft_getCurrentDocument());
 	}
-
-	len = mysprintf(ft_getCurrentDocument(), dest,
+	len = mysprintf(wp, dest,
 				 (wp && wp->statusline && (wp->dispmode & SHOWHEX)) ? 
 				 wp->statusline : 
 				 /*STR*/"Z: %2j$l, S: %2j$c!%s$&");

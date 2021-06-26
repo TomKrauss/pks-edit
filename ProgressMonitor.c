@@ -130,8 +130,9 @@ int progress_cancelMonitor(BOOL bRedraw)
 	if (PeekMessage(&msg,0,0,0,PM_REMOVE)) {
 		if (!IsDialogMessage(hwndAbort,&msg)) {
 			DispatchMessage(&msg);
-			if (bRedraw && ft_getCurrentDocument() && msg.message == WM_PAINT && (count++ & 0x3) == 0) {
-				win_sendRedrawToWindow(WIPOI(ft_getCurrentDocument())->ww_handle);
+			WINFO* wp = ww_getCurrentEditorWindow();
+			if (bRedraw && wp && msg.message == WM_PAINT && (count++ & 0x3) == 0) {
+				win_sendRedrawToWindow(wp->ww_handle);
 			}
 		}
 	}

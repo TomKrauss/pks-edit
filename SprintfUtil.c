@@ -147,18 +147,18 @@ static char *CurrentStringVal(FTABLE *fp, char **fmt, char *fname)
 		return ft_visiblename(fp);
 
 	case '&':
-		if (fp->flags & F_MODIFIED)
+		if (ft_isFileModified(fp))
 			return "Geändert";
 blanks:	return "              ";
 		break;
 
 	case '*':
-		if (fp->flags & F_MODIFIED)
+		if (ft_isFileModified(fp))
 			return "*";
 		break;
 
 	case 'r':
-		if (fp->documentDescriptor->workmode & O_RDONLY)
+		if (ft_isReadonly(fp))
 			return "Nur lesen";
 		goto blanks;
 
@@ -170,11 +170,9 @@ blanks:	return "              ";
 /*--------------------------------------------------------------------------
  * CurrentNumVal()
  */
-static long CurrentNumVal(FTABLE *fp, char **fmt)
-{
+static long CurrentNumVal(WINFO *wp, char **fmt) {
 	char *	format;
-
-	if (fp == 0) {
+	if (wp == 0) {
 		return 0;
 	}
 
@@ -183,19 +181,19 @@ static long CurrentNumVal(FTABLE *fp, char **fmt)
 	switch(*format) {
 
 	case 'O':
-		return wi_getCaretByteOffset(WIPOI(fp));
+		return wi_getCaretByteOffset(wp);
 
 	case 'C':
-		return (long)((unsigned char)fp->caret.linePointer->lbuf[fp->caret.offset]);
+		return (long)((unsigned char)wp->caret.linePointer->lbuf[wp->caret.offset]);
 
 	case 'l':
-		return WIPOI(fp)->ln + 1L;
+		return wp->caret.ln + 1L;
 
 	case 'c':
-		return WIPOI(fp)->col + 1L;
+		return wp->caret.col + 1L;
 
 	case 'w':
-		return WIPOI(fp)->win_id;
+		return wp->win_id;
 
 	default:
 		*fmt -= 2;
@@ -230,8 +228,7 @@ static long CurrentNumVal(FTABLE *fp, char **fmt)
 	%T		current time
 */
 
-int mysprintf(FTABLE *fp, char *d, char *format,...)
-{
+int mysprintf(WINFO *wp, char *d, char *format,...) {
 	static char *_digits = "0123456789ABCDEFGHIJ";
 	long 	val;
 	int		c;
@@ -265,7 +262,7 @@ int mysprintf(FTABLE *fp, char *d, char *format,...)
 				base = c - 'a' + 1;
 				if (*format == '$') {
 					format++;
-					val = CurrentNumVal(fp, &format);
+					val = CurrentNumVal(wp, &format);
 					format++;
 				} else {
 					val  = va_arg(args,long);
@@ -289,7 +286,7 @@ int mysprintf(FTABLE *fp, char *d, char *format,...)
 						fm_mktagstring(stack,&stack[sizeof stack]);
 						x = stack;
 					} else {
-						x = CurrentStringVal(fp, &format, fname);
+						x = CurrentStringVal(wp->fp, &format, fname);
 					}
 					format++;
 				} else {
@@ -349,7 +346,7 @@ void EdFormatPrint(long dummy1, long dummy2, char *format, char *p)
 	char buf[1024];
 
 	if (format) {
-		mysprintf(ft_getCurrentDocument(), buf, format, p, 0L);
+		mysprintf(ww_getCurrentEditorWindow(), buf, format, p, 0L);
 	} else {
 		buf[0] = 0;
 	}

@@ -50,7 +50,7 @@ EXPORT int caret_lineOffset2screen(WINFO *wp, CARET *cp)
 	}
 	lbuf += cp->offset;
 	FTABLE* fp = wp->fp;
-	flags = fp->documentDescriptor->dispmode;
+	flags = wp->dispmode;
 
 	if (flags & SHOWATTR) {
 		while (p < lbuf) {
@@ -100,7 +100,7 @@ EXPORT int caret_screen2lineOffset(WINFO *wp, CARET *pCaret)
 		}
 	}
 	FTABLE* fp = wp->fp;
-	flags = fp->documentDescriptor->dispmode;
+	flags = wp->dispmode;
 
 	if (flags & SHOWATTR) {
 		while (i < col && p < pend) {
@@ -134,7 +134,7 @@ EXPORT int caret_screen2lineOffset(WINFO *wp, CARET *pCaret)
  */
 static int _xtndMark;
 static int nSentinel;
-void caret_extendSelection(FTABLE *fp)
+void caret_extendSelection(WINFO *wp)
 {
 	if (nSentinel) {
 		return;
@@ -142,9 +142,9 @@ void caret_extendSelection(FTABLE *fp)
 	nSentinel = 1;
 	if (_xtndMark) {
 		if (_xtndMark == MARK_START && 
-			(fp->documentDescriptor->workmode & BLK_LINES)) {
-			if (fp->blend && 
-				ln_cnt(fp->caret.linePointer, fp->blend->lm) < 2) {
+			(wp->workmode & BLK_LINES)) {
+			if (wp->blend && 
+				ln_cnt(wp->caret.linePointer, wp->blend->lm) < 2) {
 				_xtndMark = MARK_END;
 			}
 		}
@@ -158,7 +158,7 @@ void caret_extendSelection(FTABLE *fp)
 /*--------------------------------------------------------------------------
  * BegXtndBlock()
  */
-static void BegXtndBlock(FTABLE *fp)
+static void BegXtndBlock(WINFO *wp)
 {
 	MARK	*		pMark;
 	int			bMarkLines;
@@ -166,25 +166,25 @@ static void BegXtndBlock(FTABLE *fp)
 	if (nSentinel) {
 		return;
 	}
-	bMarkLines = fp->documentDescriptor->workmode & BLK_LINES;
+	bMarkLines = wp->workmode & BLK_LINES;
 	nSentinel++;
-	if ((pMark = fp->blstart) != 0 && 
-		pMark->lm == fp->caret.linePointer &&
-		(pMark->lc == fp->caret.offset ||
+	if ((pMark = wp->blstart) != 0 && 
+		pMark->lm == wp->caret.linePointer &&
+		(pMark->lc == wp->caret.offset ||
 		 bMarkLines)) {
 		_xtndMark = MARK_START;
-	} else if ((pMark = fp->blend) != 0 && 
-		((pMark->lm == fp->caret.linePointer &&
-		  pMark->lc == fp->caret.offset) ||
-		 (bMarkLines && fp->caret.linePointer->next == pMark->lm))) {
+	} else if ((pMark = wp->blend) != 0 && 
+		((pMark->lm == wp->caret.linePointer &&
+		  pMark->lc == wp->caret.offset) ||
+		 (bMarkLines && wp->caret.linePointer->next == pMark->lm))) {
 		_xtndMark = MARK_END;
 	} else {
 		_xtndMark = 0;
-		if (fp->blstart || fp->blend) {
+		if (wp->blstart || wp->blend) {
 			EdBlockHide();
 		}
-		bl_syncSelectionWithCaret(fp, &fp->caret, MARK_RECALCULATE|MARK_START, NULL);
-		bl_syncSelectionWithCaret(fp, &fp->caret, MARK_RECALCULATE|MARK_END, NULL);
+		bl_syncSelectionWithCaret(wp, &wp->caret, MARK_RECALCULATE|MARK_START, NULL);
+		bl_syncSelectionWithCaret(wp, &wp->caret, MARK_RECALCULATE|MARK_END, NULL);
 	}
 	nSentinel--;
 }
@@ -192,16 +192,40 @@ static void BegXtndBlock(FTABLE *fp)
 /*--------------------------------------------------------------------------
  * HideWindowsBlocks()
  */
-static void HideWindowsBlocks(FTABLE *fp)
+static void HideWindowsBlocks(WINFO *wp)
 {
 	long col;
 
-	if (!WIPOI(fp)->bXtndBlock &&
+	if (!wp->bXtndBlock &&
 		(GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) &&
-		ft_checkSelection(fp)) {
-		col = fp->col;
-		bl_hideSelection(1);
-		fp->col = col;		/* save fix column position */
+		ft_checkSelection(wp)) {
+		col = wp->caret.virtualOffset;
+		bl_hideSelection(wp, 1);
+		wp->caret.virtualOffset = col;		/* restore virtual column position */
+	}
+}
+
+/*
+ * Move the caret to the given line. 
+ */
+void caret_moveToLine(WINFO* wp, long ln) {
+	if (wp->caret.ln == ln) {
+		return;
+	}
+	long oldln = wp->caret.ln;
+	wp->caret.ln = ln;
+	if (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT) {
+		int ln1;
+		int ln2;
+		if (oldln < wp->caret.ln) {
+			ln1 = oldln;
+			ln2 = wp->caret.ln;
+		}
+		else {
+			ln1 = wp->caret.ln;
+			ln2 = oldln;
+		}
+		render_repaintFromLineTo(wp->fp, ln1, ln2);
 	}
 }
 
@@ -210,19 +234,19 @@ static void HideWindowsBlocks(FTABLE *fp)
  * Invoked, when the cursor is positioned using slider or mouse to update the
  * caret position. 
  */
-EXPORT int caret_updateLineColumn(WINFO *wp, long *ln, long *col, int newcol) {
+EXPORT int caret_updateLineColumn(WINFO *wp, long *ln, long *col, int updateVirtualColumn) {
 	LINE *	lp;
 	int		i;
 	BOOL	bXtnd;
 	FTABLE* fp = wp->fp;
 
-	if ((lp = ln_crelgo(fp, *ln - fp->ln)) == 0) {
+	if ((lp = ln_goto(fp, *ln)) == 0) {
 		return 0;
 	}
 
 	i = *col;
-	if (!newcol && i < fp->col) {
-		i = fp->col;
+	if (!updateVirtualColumn && i < wp->caret.virtualOffset) {
+		i = wp->caret.virtualOffset;
 	}
 	i = caret_screen2lineOffset(wp, &(CARET) {lp, i});
 	if (lp->len < i) {
@@ -233,30 +257,32 @@ EXPORT int caret_updateLineColumn(WINFO *wp, long *ln, long *col, int newcol) {
 
 	bXtnd = wp->bXtndBlock;
 	if (bXtnd) {
-		BegXtndBlock(fp);
+		BegXtndBlock(wp);
 	}
 
-	fp->ln	= *ln;
-	fp->caret.linePointer = lp;
-	fp->caret.offset = i;
-	if (newcol) 
-		fp->col = *col;
+	wp->caret.linePointer = lp;
+	wp->caret.offset = i;
+	caret_moveToLine(wp, *ln);
+	if (updateVirtualColumn) {
+		wp->caret.virtualOffset = *col;
+	}
 
 	return 1;
 }
 
+
 /*--------------------------------------------------------------------------
  * caret_placeCursorAndValidate()
  */
-EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int newcol)
+EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int updateVirtualOffset)
 {
 	LINE *		lp;
-	int 			i;
+	int 		i;
 	int			o;
-	BOOL			bXtnd;
+	BOOL		bXtnd;
 	FTABLE* fp = wp->fp;
 
-	if ((lp = ln_crelgo(fp,*ln-fp->ln)) == 0L)
+	if ((lp = ln_goto(fp,*ln)) == 0L)
 		return 0;
 
 	o = *col;
@@ -265,7 +291,7 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int newcol
 		o    = 0;
 	}
 
-	if (fp->documentDescriptor->dispmode & SHOWATTR) {
+	if (wp->dispmode & SHOWATTR) {
 		while(1) {
 			if (o > 0 && lp->lbuf[o-1] == '\033')
 				o++;
@@ -284,22 +310,23 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int newcol
 	}
 
 	i = caret_lineOffset2screen(wp, &(CARET) { lp, o});
-	if (!newcol && i != fp->col)
+	if (!updateVirtualOffset && i != wp->caret.virtualOffset)
 		o = caret_screen2lineOffset(wp, &(CARET) {
-		lp, fp->col
+		lp, wp->caret.virtualOffset
 	});
 	if (lp->len < o) o = lp->len;
 	if (o != *col) i = caret_lineOffset2screen(wp, &(CARET) { lp, o});
 
-	bXtnd = WIPOI(fp)->bXtndBlock;
+	bXtnd = wp->bXtndBlock;
 	if (bXtnd) {
-		BegXtndBlock(fp);
+		BegXtndBlock(wp);
 	}
-
-	if (newcol) fp->col = i;
-	fp->ln = *ln;
-	fp->caret.linePointer = lp;
-	fp->caret.offset = o;
+	if (updateVirtualOffset) {
+		wp->caret.virtualOffset = i;
+	}
+	wp->caret.linePointer = lp;
+	wp->caret.offset = o;
+	caret_moveToLine(wp, *ln);
 	*col = i;
 
 	return 1;
@@ -308,22 +335,22 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int newcol
 /**
  * Calculate the byte offset of the current caret in a file. 
  */
-long wi_getCaretByteOffset(WINFO* view) {
+long wi_getCaretByteOffset(WINFO* wp) {
 	long offset = 0;
-	FTABLE* fp = view->fp;
+	FTABLE* fp = wp->fp;
 	LINE* lp = fp->firstl;
 
-	if (fp->caret.linePointer == NULL) {
+	if (wp->caret.linePointer == NULL) {
 		return 0;
 	}
-	while (lp != NULL && lp != fp->caret.linePointer) {
+	while (lp != NULL && lp != wp->caret.linePointer) {
 		offset += lp->len;
 		if (LINE_HAS_LINE_END(lp)) {
 			offset += LINE_HAS_CR(lp) ? 2 : 1;
 		}
 		lp = lp->next;
 	}
-	return offset + fp->caret.offset;
+	return offset + wp->caret.offset;
 }
 
 /*--------------------------------------------------------------------------
@@ -352,11 +379,13 @@ EXPORT int caret_placeCursorInCurrentFile(WINFO* wp, long ln,long col)
  * editor window.
  */
 int caret_saveLastPosition(void) {
+	WINFO* wp = ww_getCurrentEditorWindow();
 	register FTABLE* fp;
 
-	if ((fp = ft_getCurrentDocument()) != 0) {
-		fp->lastln = fp->ln,
-		fp->lastcol = fp->caret.offset;
+	if (wp != 0) {
+		fp = wp->fp;
+		fp->lastln = wp->caret.ln,
+		fp->lastcol = wp->caret.offset;
 		return 1;
 	}
 	return 0;
@@ -412,7 +441,7 @@ int caret_placeCursorAndSavePosition(WINFO* wp, long ln, long col)
 	if (wp == NULL)
 		return 0;
 	fp = wp->fp;
-	if (ln == fp->ln && col == fp->caret.offset)
+	if (ln == wp->caret.ln && col == wp->caret.offset)
 		return 1;
 
 	caret_saveLastPosition();
@@ -457,7 +486,7 @@ EXPORT int caret_advancePage(WINFO* wp, long *ln,int dir)
 	}
 	fp = wp->fp;
 	ds = wp->maxcursln-wp->mincursln;
-	*ln = fp->ln + (dir * ds * _multiplier);
+	*ln = wp->caret.ln + (dir * ds * _multiplier);
 	if (*ln < 0L) *ln = 0L;
 	else if (*ln >= fp->nlines) *ln = fp->nlines-1L;
 	return 1;
@@ -527,7 +556,7 @@ static void cadv_section(WINFO* wp, long *ln,int dir,int start,
 
 	fp  = wp->fp;
 	lnr = *ln;
-	if ((lp = ln_relgo(fp,lnr-fp->ln)) == 0)
+	if ((lp = ln_goto(fp,lnr)) == 0)
 		return;
 
 	if (dir > 0 && !start) {
@@ -567,7 +596,7 @@ EXPORT int caret_advanceParagraphFromCurrentLine(WINFO* wp, int dir,int start)
 {	long ln;
 	FTABLE* fp = wp->fp;
 
-	ln = caret_advanceParagraph(wp, fp->ln,dir,start);
+	ln = caret_advanceParagraph(wp, wp->caret.ln,dir,start);
 	return caret_placeCursorAndSavePosition(wp, ln,0L);
 }
 
@@ -580,11 +609,11 @@ EXPORT int caret_advanceSection(WINFO* wp, int dir,int start)
 	FTABLE *fp = wp->fp;
 
 	caret_saveLastPosition();
-	ln = fp->ln;
+	ln = wp->caret.ln;
 	cadv_section(wp, &ln,dir,start,tabedstart,tabedend);
 	caret_placeCursorInCurrentFile(wp, ln,0L);
 
-	return caret_placeCursorInCurrentFile(wp, ln,(long)ln_countLeadingSpaces(fp->caret.linePointer));
+	return caret_placeCursorInCurrentFile(wp, ln,(long)ln_countLeadingSpaces(wp->caret.linePointer));
 }
 
 /*--------------------------------------------------------------------------
@@ -624,9 +653,9 @@ EXPORT int caret_moveUpOrDown(WINFO* wp, int dir, int mtype)
 	if (mtype & MOT_XTNDBLOCK) {
 		wp->bXtndBlock = TRUE;
 	}
-	HideWindowsBlocks(fp);
+	HideWindowsBlocks(wp);
 
-	col = fp->caret.offset, ln = fp->ln;
+	col = wp->caret.offset, ln = wp->caret.ln;
 	switch(mtype & (~MOT_XTNDBLOCK)) {
 		case MOT_SINGLE:
 			ln += (dir * _multiplier);
@@ -772,7 +801,7 @@ EXPORT int caret_getPreviousColumnInLine(WINFO* wp, LINE *lp, int col) {
 	FTABLE* fp = wp->fp;
 
 	col--;
-	if (fp->documentDescriptor->dispmode & SHOWATTR) {
+	if (wp->dispmode & SHOWATTR) {
 		while (col > 1) {
 			if (lp->lbuf[col-1] == '\033')
 				col--;
@@ -819,9 +848,9 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags)
 	BOOL		bXtnd;
 
 	fp = wp->fp;
-	col = fp->caret.offset;
-	lp = fp->caret.linePointer;
-	ln = fp->ln;
+	col = wp->caret.offset;
+	lp = wp->caret.linePointer;
+	ln = wp->caret.ln;
 	bXtnd = wp->bXtndBlock;
 	nRet = 0;
 
@@ -829,7 +858,7 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags)
 		wp->bXtndBlock = TRUE;
 	}
 
-	HideWindowsBlocks(fp);
+	HideWindowsBlocks(wp);
 
 	moving = direction * (motionFlags & (~MOT_XTNDBLOCK));
 	caret_setMatchFunction(moving , IDS_CURSUNTILC, &matchc);
@@ -924,13 +953,13 @@ EXPORT int caret_moveToCurrentMousePosition(WINFO *wp, long bAsk)
  */
 EXPORT int caret_positionCloseToMouseWithConfirmation(long bAsk)
 {	
-	FTABLE *	fp;
+	WINFO *	wp;
 
-	if ((fp = ft_getCurrentDocument()) == 0) {
+	if ((wp = ww_getCurrentEditorWindow()) == 0) {
 		return 0;
 	}
 
-	caret_moveToCurrentMousePosition(WIPOI(fp), bAsk);
+	caret_moveToCurrentMousePosition(wp, bAsk);
 	return 1;
 }
 
@@ -946,13 +975,13 @@ int EdMousePositionUngrabbed(long bGrab) {
  */
 int EdBlockXtndMode(long bOn)
 {
-	FTABLE *	fp;
+	WINFO *	wp;
 
-	if ((fp = ft_getCurrentDocument()) == 0) {
+	if ((wp = ww_getCurrentEditorWindow()) == 0) {
 		return 0;
 	}
 
-	WIPOI(fp)->bXtndBlock = bOn ? TRUE : FALSE;
+	wp->bXtndBlock = bOn ? TRUE : FALSE;
 
 	return 1;
 }

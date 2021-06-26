@@ -15,6 +15,7 @@
 
 
 #include "customcontrols.h"
+#include "caretmovement.h"
 #include "lineoperations.h"
 #include "winfo.h"
 #include "trace.h"
@@ -22,9 +23,8 @@
 
 #define MAXCOL		FBUFSIZE/2
 
-extern void 	caret_extendSelection(FTABLE *fp);
+extern void 	caret_extendSelection(WINFO *wp);
 extern void 	st_redraw(BOOL bErase);
-extern int 	ft_checkSelection(FTABLE *fp);
 
 typedef enum { CUR_HIDDEN, CUR_INSERT, CUR_OVERRIDE } CURSOR_TYPE;
 
@@ -96,8 +96,8 @@ void render_updateCaret(WINFO *wp) {
 		}
 	}
 
-	wp->cx = (int) (wp->col-wp->mincol) * wp->cwidth;
-	wp->cy = (int) (wp->ln -wp->minln)  * wp->cheight;
+	wp->cx = (int) (wp->caret.col-wp->mincol) * wp->cwidth;
+	wp->cy = (int) (wp->caret.ln -wp->minln)  * wp->cheight;
 
 	if (type) {
 		st_redraw(FALSE);
@@ -130,8 +130,8 @@ int render_calculateScrollDelta(register long val,  register long minval,
 static int render_adjustScrollBounds(WINFO *wp) {
 	long dx,dy;
 
-	dy = render_calculateScrollDelta(wp->ln,wp->mincursln,wp->maxcursln,wp->vscroll);
-	dx = render_calculateScrollDelta(wp->col,wp->mincurscol,wp->maxcurscol,wp->hscroll);
+	dy = render_calculateScrollDelta(wp->caret.ln,wp->mincursln,wp->maxcursln,wp->vscroll);
+	dx = render_calculateScrollDelta(wp->caret.col,wp->mincurscol,wp->maxcurscol,wp->hscroll);
 
 	if (dx || dy) {
 		EdTRACE(log_errorArgs(DEBUG_WINMESS,"render_adjustScrollBounds -> (%ld,%ld)",dx,dy));
@@ -147,27 +147,15 @@ static int render_adjustScrollBounds(WINFO *wp) {
  */
 void wt_curpos(WINFO *wp, long ln, long col)
 {
-	int oldln = wp->ln;
-	wp->ln = ln;
-	wp->col = col;
+	int oldln = wp->caret.ln;
+	caret_moveToLine(wp, ln);
+	wp->caret.col = col;
 	render_adjustScrollBounds(wp);
 	render_updateCaret(wp);
 	if (wp->bXtndBlock) {
-		caret_extendSelection(FTPOI(wp));
+		caret_extendSelection(wp);
 	}
 
-	if (oldln != wp->ln) {
-		int ln1;
-		int ln2;
-		if (oldln < wp->ln) {
-			ln1 = oldln;
-			ln2 = wp -> ln;
-		} else {
-			ln1 = wp->ln;
-			ln2 = oldln;
-		}
-		render_repaintFromLineTo(wp, ln1, ln2);
-	}
 }
 
 /*------------------------------------------------------------
@@ -203,19 +191,18 @@ void wt_scrollxy(WINFO *wp,int nlines, int ncolumns)
 /*------------------------------------------------------------
  * wt_scrollpart()
  */
-void wt_scrollpart(WINFO *wp,int from_top, int nlines)
-{
+void wt_scrollpart(WINFO *wp, int nCaretLine, int from_top, int nlines) {
 	RECT r;
 	int  dh;
 
 	GetClientRect(wp->ww_handle, &r);
-	r.top  = (int)(wp->ln-wp->minln+from_top)*wp->cheight;
+	r.top  = (int)(nCaretLine-wp->minln+from_top)*wp->cheight;
 	dh = (nlines)*wp->cheight;
 
 	if (r.top+dh <= r.bottom-2*wp->cheight) {
 		ScrollWindow(wp->ww_handle,0,dh,&r,(LPRECT)0);
      } else {
-		r.top = (int)(wp->ln-wp->minln)*wp->cheight;
+		r.top = (int)(nCaretLine-wp->minln)*wp->cheight;
 		InvalidateRect(wp->ww_handle, &r, 0);
 	}
 	if (wp->lineNumbers_handle) {
@@ -226,15 +213,22 @@ void wt_scrollpart(WINFO *wp,int from_top, int nlines)
 /*------------------------------------------------------------
  * wt_insline()
  */
-void wt_insline(WINFO *wp,int nlines)
-{
-	wt_scrollpart(wp,0,nlines);
+struct tagLINES_SCROLLED {
+	long caretLine;
+	long lnfirst;
+	long nlines;
+};
+static int wt_linesScrolled(WINFO* wp, struct tagLINES_SCROLLED* pParam) {
+	wt_scrollpart(wp, pParam->caretLine, pParam->lnfirst, pParam->nlines);
+	return 1;
+}
+void wt_insline(FTABLE *fp, int caretLine, int nlines) {
+	ft_forAllViews(fp, wt_linesScrolled, &(struct tagLINES_SCROLLED){caretLine, 0, nlines});
 }
 
 /*------------------------------------------------------------
  * wt_deleteline()
  */
-void wt_deleteline(WINFO *wp,int additional, int nlines)
-{
-	wt_scrollpart(wp, additional+nlines,-nlines);
+void wt_deleteline(FTABLE *fp, int caretLine, int additional, int nlines) {
+	ft_forAllViews(fp, wt_linesScrolled, &(struct tagLINES_SCROLLED){caretLine, additional + nlines, -nlines});
 }

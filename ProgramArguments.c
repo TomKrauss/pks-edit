@@ -15,16 +15,16 @@
 
 #include <windows.h>
 #include "trace.h"
+#include "caretmovement.h"
 #include "lineoperations.h"
 #include "stringutil.h"
 #include "findandreplace.h"
 #include "crossreferencelinks.h"
+#include "winfo.h"
 
 #define iswhite(c)	(c == ' ' || c == '\t')
 
-extern int 		find_expressionAgainInCurrentFile(int dir);
 extern void 	xref_selectSearchListFormat(char *pszName);
-extern int 		caret_placeCursorInCurrentFile(long ln,long col);
 extern int 		xref_navigateCrossReference(char *s);
 extern void 	xref_openSearchList(char *fn, int cmpflg);
 extern void 	prof_setinifile(char *fn);
@@ -49,6 +49,7 @@ static int Phase1Arg(char *arg)
 static int Phase2Arg(char *arg)
 {
 	long line;
+	WINFO* wp;
 
 	if (*arg != '-' && *arg != '/') {
 		xref_openFile(arg,0L,(void*)0);
@@ -66,13 +67,15 @@ static int Phase2Arg(char *arg)
 			break;
 		case 'g':	
 			line = string_convertToLong(arg) -1L;
-			if (caret_placeCursorInCurrentFile(line,0L)) {
-				line = -1L;
+			if ((wp = ww_getCurrentEditorWindow()) != NULL) {
+				if (caret_placeCursorInCurrentFile(wp, line, 0L)) {
+					line = -1L;
+				}
 			}
 			break;
 		case 'c':
-			if (ft_getCurrentDocument()) {
-				caret_placeCursorInCurrentFile(ft_getCurrentDocument()->ln,string_convertToLong(arg)-1L);
+			if ((wp = ww_getCurrentEditorWindow()) != NULL) {
+				caret_placeCursorInCurrentFile(wp, wp->caret.ln,string_convertToLong(arg)-1L);
 			}
 			break;
 		case 't':

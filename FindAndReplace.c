@@ -42,8 +42,8 @@
  * EXTERNALS
  */
 
-extern 	MARK		*mark_set(FTABLE *fp, LINE *lp,int offs,int c);
-extern 	MARK		*mark_find(FTABLE *fp, int c);
+extern 	MARK		*mark_set(WINFO *wp, LINE *lp,int offs,int c);
+extern 	MARK		*mark_find(WINFO *wp, int c);
 extern	int    	_playing;
 unsigned char 		*tlcompile(unsigned char *transtab, 
 						 unsigned char *t,
@@ -237,22 +237,20 @@ fisuccess:
 /*--------------------------------------------------------------------------
  * find_updateCursorToShowMatch()
  */
-static int find_updateSelectionToShowMatch(FTABLE *fp,long ln,int col, RE_MATCH *pMatch)
+static int find_updateSelectionToShowMatch(WINFO *wp,long ln,int col, RE_MATCH *pMatch)
 {	int    dc;
-	WINFO* wp;
 
-	wp = WIPOI(fp);
 	dc = (int)(pMatch->loc2 - pMatch->loc1);
 	caret_placeCursorMakeVisibleAndSaveLocation(wp, ln,col);
-	bl_hideSelection(1);
-	bl_setSelection(fp, fp->caret.linePointer, fp->caret.offset, fp->caret.linePointer, dc + fp->caret.offset);
+	bl_hideSelection(wp, 1);
+	bl_setSelection(wp, wp->caret.linePointer, wp->caret.offset, wp->caret.linePointer, dc + wp->caret.offset);
 	return dc;
 }
 
 /*--------------------------------------------------------------------------
  * find_expressionInCurrentFile()
  */
-static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, long lnStart, int dir, RE_PATTERN* pPattern, int options, long *pFoundLine, long *pFoundCol,
+static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, int dir, RE_PATTERN* pPattern, int options, long *pFoundLine, long *pFoundCol,
 	RE_MATCH *pMatch)
 {
 	long ln, col;
@@ -260,7 +258,7 @@ static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, lo
 	LINE* lp;
 
 	memset(pMatch, 0, sizeof *pMatch);
-	ln = lnStart;
+	ln = cCaret.ln;
 	lp = cCaret.linePointer;
 	col = cCaret.offset;
 	if (dir > 0) {
@@ -307,19 +305,20 @@ static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, lo
 int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options)
 {	long ln,col;
 	int  ret = 0,wrap = 0,wrapped = 0;
+	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE *fp;
 	RE_MATCH match;
 
-	fp = ft_getCurrentDocument();
-	if (fp == NULL) {
+	if (wp == NULL) {
 		return 0;
 	}
+	fp = wp->fp;
 	mouse_setBusyCursor();
-	ret = find_expressionInCurrentFileStartingFrom(fp, fp->caret, fp->ln, dir, pPattern, options, &ln, &col, &match);
+	ret = find_expressionInCurrentFileStartingFrom(fp, wp->caret, dir, pPattern, options, &ln, &col, &match);
 	mouse_setDefaultCursor();
 
 	if (ret == 1) {
-		find_updateSelectionToShowMatch(fp,ln,col, &match);
+		find_updateSelectionToShowMatch(wp,ln,col, &match);
 		if (wrapped)
 			error_showErrorById(IDS_MSGWRAPPED);
 	}
@@ -345,33 +344,31 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 	WINFO* wp;
 	RE_MATCH match;
 
-	FTABLE* fp = ft_getCurrentDocument();
-	if (fp == NULL) {
+	wp = ww_getCurrentEditorWindow();
+	if (wp == NULL) {
 		return 0;
 	}
-	wp = WIPOI(fp);
+	FTABLE* fp = wp->fp;
 	_currentSearchAndReplaceParams.options = nOptions;
-	long incrementalLine;
-	if (bContinue && ft_checkSelection(fp)) {
-		incrementalLine = ln_indexOf(fp, fp->blstart->lm);
-		incrementalStart = (CARET){ fp->blstart->lm, fp->blstart->lc };
-	} else if (incrementalStart.linePointer == NULL ||(incrementalLine = ln_indexOf(fp, incrementalStart.linePointer)) < 0) {
-		incrementalLine = fp->ln;
-		incrementalStart = fp->caret;
+	if (bContinue && ft_checkSelection(wp)) {
+		incrementalStart = (CARET){ wp->blstart->lm, wp->blstart->lc };
+		incrementalStart.ln = ln_indexOf(fp, wp->blstart->lm);
+	} else if (incrementalStart.linePointer == NULL ||(incrementalStart.ln = ln_indexOf(fp, incrementalStart.linePointer)) < 0) {
+		incrementalStart = wp->caret;
 	}
 	if (*pszString == 0) {
 		if (incrementalStart.linePointer != NULL) {
 			EdBlockHide();
-			caret_placeCursorMakeVisibleAndSaveLocation(wp, incrementalLine, incrementalStart.offset);
+			caret_placeCursorMakeVisibleAndSaveLocation(wp, incrementalStart.ln, incrementalStart.offset);
 		}
 		return 1;
 	}
 	if (!(pPattern = regex_compileWithDefault(pszString))) {
 		return 0;
 	}
-	ret = find_expressionInCurrentFileStartingFrom(fp, incrementalStart, incrementalLine, nDirection, pPattern, nOptions, &ln, &col, &match);
+	ret = find_expressionInCurrentFileStartingFrom(fp, incrementalStart, nDirection, pPattern, nOptions, &ln, &col, &match);
 	if (ret) {
-		find_updateSelectionToShowMatch(fp, ln, col, &match);
+		find_updateSelectionToShowMatch(wp, ln, col, &match);
 	} else if (pszString[0]) {
 		error_showErrorById(IDS_MSGSTRINGNOTFOUND);
 	}
@@ -467,13 +464,13 @@ static LINE *expandLine(FTABLE *fp, LINE *lp,long *nt)
 /*--------------------------------------------------------------------------
  * find_expandTabsInFormattedLines()
  */
-LINE *find_expandTabsInFormattedLines(FTABLE *fp, LINE *lp)
+LINE *find_expandTabsInFormattedLines(WINFO *wp, LINE *lp)
 {	long t;
 
-	if (PLAINCONTROL(fp->documentDescriptor->dispmode)) {
+	if (PLAINCONTROL(wp->dispmode)) {
 		return lp;
 	}
-	return expandLine(fp,lp,&t);
+	return expandLine(wp->fp,lp,&t);
 }
 
 /*--------------------------------------------------------------------------
@@ -534,10 +531,10 @@ static LINE *compline(FTABLE *fp, LINE *lp,long *nt)
  * modifypgr()
  * modify a block of text
  */
-static void modifypgr(FTABLE *fp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
-				  long *cntel,long *cntln,MARK *mps, MARK *mpe)
-{	LINE     *lp;
-	WINFO*	wp = WIPOI(fp);
+static void modifypgr(WINFO *wp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
+				  long *cntel,long *cntln,MARK *mps, MARK *mpe) {
+	LINE     *lp;
+	FTABLE* fp = wp->fp;
 	lp = mps->lm;
 
 	for (; lp != 0 && (mpe->lc != 0 || lp != mpe->lm); lp = lp->next) {
@@ -546,7 +543,7 @@ static void modifypgr(FTABLE *fp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
 		if (xabort() || lp == mpe->lm)
 			break;
 	}
-	caret_placeCursorInCurrentFile(wp, fp->ln,0L);
+	caret_placeCursorInCurrentFile(wp, wp->caret.ln,0L);
 	if (*cntel) {
 		render_repaintCurrentFile();
 		*cntln = ft_countlinesStartingFromDirection(fp,*cntln,1);
@@ -559,8 +556,10 @@ static void modifypgr(FTABLE *fp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
  */
 int find_selectRangeWithMarkers(int rngdefault, MARK** mps, MARK** mpe)
 {
-	if (!ft_getCurrentDocument() ||
-		find_setTextSelection(rngdefault, ft_getCurrentDocument(), mps, mpe) == RNG_INVALID)
+	WINFO* wp = ww_getCurrentEditorWindow();
+
+	if (!wp ||
+		find_setTextSelection(rngdefault, wp, mps, mpe) == RNG_INVALID)
 		return 0;
 	return 1;
 }
@@ -578,7 +577,7 @@ int find_replaceTabsWithSpaces(int scope, int flg)
 		return 0;
 
 	progress_startMonitor(IDS_ABRTCONVERT);
-	modifypgr(ft_getCurrentDocument(),(flg) ? expandLine : compline,&nt,&nl,mps,mpe);
+	modifypgr(ww_getCurrentEditorWindow(),(flg) ? expandLine : compline,&nt,&nl,mps,mpe);
 	progress_closeMonitor(0);
 
 	if (nt) 
@@ -621,19 +620,20 @@ rescan:
  */
 int EdPasteString(long dummy1, long dummy2, char *string)
 {
-	FTABLE *	fp = ft_getCurrentDocument();
+	WINFO* wp = ww_getCurrentEditorWindow();
+	FTABLE *	fp;
 	LINE *	lp;
 	int		len;
 
-	if (!fp || string == 0)
+	if (!wp || string == 0)
 		return 0;
-	
+	fp = wp->fp;
 	len = (int) strlen(string);
-	if ((lp = ln_modify(fp,fp->caret.linePointer,fp->caret.offset,fp->caret.offset+len)) == 0L)
+	if ((lp = ln_modify(fp,wp->caret.linePointer,wp->caret.offset,wp->caret.offset+len)) == 0L)
 		return 0;
 
-	memmove(&lp->lbuf[fp->caret.offset],string,len);
-	breaklines(fp,1,fp->ln,fp->ln);
+	memmove(&lp->lbuf[wp->caret.offset],string,len);
+	breaklines(fp,1,wp->caret.ln,wp->caret.ln);
 
 	render_repaintAllForFile(fp);
 
@@ -687,7 +687,7 @@ int EdReplaceText(int scope, int action, int flags)
 	undo_startModification(fp);
 	caret_saveLastPosition();
 
-	if (find_setTextSelection(scope,fp,&markstart,&Markend) == RNG_INVALID)
+	if (find_setTextSelection(scope,wp,&markstart,&Markend) == RNG_INVALID)
 		return 0;
 	/* force register use */
 	markend = Markend;
@@ -697,8 +697,8 @@ int EdReplaceText(int scope, int action, int flags)
 	startln = ln = ln_indexOf(fp,lp);
 
 	startln = ln;
-	lastfln = fp->ln;
-	lastfcol = fp->caret.offset;
+	lastfln = wp->caret.ln;
+	lastfcol = wp->caret.offset;
 
 	query  = flags & OREP_INQ;
 	marked = flags & OREP_MARKED;
@@ -727,13 +727,13 @@ int EdReplaceText(int scope, int action, int flags)
 			if (marked && (lp->lflg & LNXMARKED) == 0)
 				goto nextline;
 			if (P_NE(lp,oldxpnd)) {
-				if ((lp = find_expandTabsInFormattedLines(fp,lp)) == 0)
+				if ((lp = find_expandTabsInFormattedLines(wp,lp)) == 0)
 					break;
 				oldxpnd = lp;
 			}
-			if (col < fp->blcol1)
-				col = fp->blcol1;
-			maxlen = (fp->blcol2 < lp->len) ? fp->blcol2 : lp->len;
+			if (col < wp->blcol1)
+				col = wp->blcol1;
+			maxlen = (wp->blcol2 < lp->len) ? wp->blcol2 : lp->len;
 		} else
 			maxlen = lp->len;
 
@@ -797,7 +797,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 		lastfcol = col;
 
 		if (query) {
-			find_updateSelectionToShowMatch(fp,ln,col, &match);
+			find_updateSelectionToShowMatch(wp,ln,col, &match);
 			switch (dlg_queryReplace(match.loc1,olen,q,(int)newlen)) {
 				case IDNO:
 					delta = olen;
@@ -819,7 +819,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 		strxcpy(&lp->lbuf[col],q, (int)newlen);
 
 		if (query)
-			render_repaintCurrentLine();
+			render_repaintCurrentLine(wp);
 
 		delta = (int)newlen;
 advance1:	rp++;
@@ -853,7 +853,7 @@ endrep:
 			} else {
 				caret_placeCursorMakeVisibleAndSaveLocation(wp, lastfln,lastfcol);
 				if (scope == RNG_ONCE && action == REP_REPLACE) {
-					render_repaintCurrentLine();
+					render_repaintCurrentLine(wp);
 				} else {
 					render_repaintAllForFile(fp);
 				}
@@ -934,9 +934,10 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
  * 
  * Select a range of text in the file identified by fp.
  */
-int find_setTextSelection(int rngetype, FTABLE *fp, MARK **markstart, MARK **markend) {
+int find_setTextSelection(int rngetype, WINFO *wp, MARK **markstart, MARK **markend) {
 	LINE *lps,*lpe;
 	int  ofs,ofe;
+	FTABLE* fp = wp->fp;
 
 	/*
 	 * if rnge == RNG_FREE, range is already selected, return MARK positions
@@ -945,8 +946,8 @@ int find_setTextSelection(int rngetype, FTABLE *fp, MARK **markstart, MARK **mar
 		return RNG_INVALID;
 
 	if ( rngetype == RNG_FREE &&
-	   ((*markstart = mark_find(fp,MARKSELSTART)) == 0 ||
-	    (*markend   = mark_find(fp,MARKSELEND))   == 0)) {
+	   ((*markstart = mark_find(wp,MARKSELSTART)) == 0 ||
+	    (*markend   = mark_find(wp,MARKSELEND))   == 0)) {
 	    	error_showErrorById(IDS_MSGNORANGESELECTED);
 		return RNG_INVALID;
 	}
@@ -955,8 +956,8 @@ int find_setTextSelection(int rngetype, FTABLE *fp, MARK **markstart, MARK **mar
 	 * make range marks: initial is .,$ (RNG_FROMCURS,RNG_ONCE)
 	 */
 
-	lps = fp->caret.linePointer;
-	ofs = fp->caret.offset;
+	lps = wp->caret.linePointer;
+	ofs = wp->caret.offset;
 	lpe = fp->lastl->prev;
 	ofe = lpe->len;
 
@@ -967,7 +968,7 @@ int find_setTextSelection(int rngetype, FTABLE *fp, MARK **markstart, MARK **mar
 			ofe = lpe->len;
 			break;
 		case RNG_CHAPTER:
-			lps = lpe = fp->caret.linePointer;
+			lps = lpe = wp->caret.linePointer;
 			while(!ln_lineIsEmpty(lps) && lps->prev)
 				lps = lps->prev;
 			while(!ln_lineIsEmpty(lpe) && lpe->next != fp->lastl)
@@ -976,29 +977,29 @@ int find_setTextSelection(int rngetype, FTABLE *fp, MARK **markstart, MARK **mar
 			ofe = lpe->len;
 			break;
 		case RNG_BLOCK:
-			if (!ft_checkSelectionWithError(fp))
+			if (!ft_checkSelectionWithError(wp))
 				return RNG_INVALID;
-			lps = fp->blstart->lm;
-			lpe = fp->blend->lm;
-			if (ww_hasColumnSelection(WIPOI(fp))) {
-				ofs = fp->blcol1;
-				ofe = fp->blcol2;
+			lps = wp->blstart->lm;
+			lpe = wp->blend->lm;
+			if (ww_hasColumnSelection(wp)) {
+				ofs = wp->blcol1;
+				ofe = wp->blcol2;
 			} else {
-				ofs = fp->blstart->lc;
-				ofe = fp->blend->lc;
+				ofs = wp->blstart->lc;
+				ofe = wp->blend->lc;
 			}
 			break;
 		case RNG_TOCURS:
-			lpe = fp->caret.linePointer;
-			ofe = fp->caret.offset;
+			lpe = wp->caret.linePointer;
+			ofe = wp->caret.offset;
 			/* drop through */
 		case RNG_GLOBAL:
 			ofs = 0;
 			lps = fp->firstl;
 	}
 
-	if ((*markstart = mark_set(fp,lps,ofs,MARKSELSTART)) == 0 ||
-	    (*markend = mark_set(fp,lpe,ofe,MARKSELEND)) == 0)
+	if ((*markstart = mark_set(wp,lps,ofs,MARKSELSTART)) == 0 ||
+	    (*markend = mark_set(wp,lpe,ofe,MARKSELEND)) == 0)
 		return RNG_INVALID;
 
 	return rngetype;

@@ -21,29 +21,29 @@ typedef struct tagMARK MARK;
  * mark_find()
  * Find a mark given the identifier character.
  */
-extern MARK* mark_find(FTABLE* fp, int c);
+extern MARK* mark_find(WINFO* wp, int c);
 
 /*--------------------------------------------------------------------------
  * mark_killSelection()
  * release the copy and paste - marks for a file
  */
-extern void mark_killSelection(FTABLE* fp);
+extern void mark_killSelection(WINFO* wp);
 
 /*
  * Sets a block mark - if the "has current selection" property has changed, fire an action change.
  */
-extern void bl_setBlockMark(FTABLE* fp, MARK* pMark, BOOL bStart);
+extern void bl_setBlockMark(WINFO* wp, MARK* pMark, BOOL bStart);
 
 /*--------------------------------------------------------------------------
  * mark_set()
  * Sets a mark in the line and offset named "c",
  */
-extern MARK* mark_set(FTABLE* fp, LINE* lp, int offs, int c);
+extern MARK* mark_set(WINFO* wp, LINE* lp, int offs, int c);
 
 /*--------------------------------------------------------------------------
  * mark_goto()
  */
-extern LINE* mark_goto(FTABLE* fp, int c, long* ln, long* col);
+extern LINE* mark_goto(WINFO* fp, int c, long* ln, long* col);
 
 /*--------------------------------------------------------------------------
  * EdGotoLastPos()

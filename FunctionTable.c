@@ -35,7 +35,7 @@ EdMouseMarkParts(long ), EdMouseMoveText(long ), EdMouseSelectLines(long ), EdMo
 EdAlert(long ), error_displayAlertBoxWithOptions(long ), EdPromptAssign(long ), EdFormatPrint(long ),
 EdGetSelectedText(long ), EdHideLines(long ), EdUnHideLine(long ), EdStringSubstitute(long ),
 EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdListBindings(long ),
-EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ),
+EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(),
 EdCallWinHelp(long ), EdShowClipboard(long ), EdSaveAllFiles(), EdMenuTrackPopup(long ), EdBlockXtndMode(long );
 
 EDFUNC _edfunctab[] = {
@@ -154,13 +154,14 @@ EdListBindings, '!', 0,
 EdCompileMacros, '!', EW_NEEDSCURRF | 0,
 EdDocTypes, '!', 0,
 find_initiateIncrementalSearch, '!', EW_NEEDSCURRF,
-	EdIsDefined, '!', 0,
-	EdCallWinHelp, '!', 0,
-	EdShowClipboard, '!', 0,
-	EdMenuTrackPopup, '!', EW_NEEDSCURRF | 0,
-	EdBlockXtndMode, '!', EW_NEEDSCURRF | 0,
-	EdRedo, '!', EW_MODIFY | EW_NEEDSCURRF | EW_REDO_AVAILABLE,
-	EdSaveAllFiles, '!', EW_NEEDSCURRF | 0,
+EdIsDefined, '!', 0,
+EdCallWinHelp, '!', 0,
+EdShowClipboard, '!', 0,
+EdMenuTrackPopup, '!', EW_NEEDSCURRF | 0,
+EdBlockXtndMode, '!', EW_NEEDSCURRF | 0,
+EdRedo, '!', EW_MODIFY | EW_NEEDSCURRF | EW_REDO_AVAILABLE,
+EdSaveAllFiles, '!', EW_NEEDSCURRF | 0,
+ft_cloneWindow, '!', EW_NEEDSCURRF,
 };
 
 int _nfuncs = sizeof(_edfunctab)/sizeof(_edfunctab[0]);
@@ -175,6 +176,7 @@ MSAVERES	,12,
 MREADF	,13,
 MWRITEF	,14,
 MABANDON	,167,
+MCLONEWINDOW, 236,
 MSAVEALL	,15,
 MEXIT	,16,
 IDM_HISTORY	,4 ,
@@ -547,6 +549,7 @@ COMMAND _cmdseqtab[] = {
 /* 233 */ C_1FUNC, 40 /* EdCursorDown */, MOT_PAGE | MOT_XTNDBLOCK, "select-page-down", "Wählt eine Seite weiter nach unten aus;Auswahl Seite runter",
 /* 234 */ C_1FUNC, 121 /* EdSaveAllFiles*/, 0, "save-all-files", "Speichert alle ungeänderten Dateien;Alle Dateien speichern",
 /* 235 */ C_1FUNC, 114 /* find_initiateIncrementalSearch */, 0, "search-incrementally", "Inkrementelle Suche starten;Inkrementelle Suche starten",
+/* 236 */ C_1FUNC, 122 /* ft_cloneWindow */, 0, "clone-window", "Zusätzliches Fenster öffnen;Zusätzliches Fenster",
 };
 
 char _recorder[RECORDERSPACE];

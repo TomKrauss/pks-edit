@@ -252,29 +252,30 @@ EXPORT int bl_write(char *fn, PASTE *pb,int mode)
  * paste a textblock
  */
 static _blkflg = 0;
-EXPORT int bl_paste(PASTE *pb, FTABLE *fp, LINE *lpd, int col, int colflg)
+EXPORT int bl_paste(PASTE *pb, WINFO *wp, LINE *lpd, int col, int colflg)
 {
 	LINE *	lps;
 	LINE *	lsav;
 	int		bBlkLines;
+	FTABLE* fp;
 
 	if ((lps = pb->pln) == 0L) {
 		return 0;
 	}
-
+	fp = wp->fp;
 	if (colflg && (_blkflg || (!P_EQ(pb,_undobuf)))) {
-		return bl_pastecol(pb,fp,lpd,col);
+		return bl_pastecol(pb,wp,lpd,col);
 	}
 
-	bBlkLines = (fp->documentDescriptor->workmode & BLK_LINES);
+	bBlkLines = (wp->workmode & BLK_LINES);
 
 	if (!bBlkLines) {
 		if ((lpd = ln_break(fp,lpd,col)) == 0L) {
 			return 0;
 		}
 
-		fp->caret.linePointer = lpd->prev;
-		lpd = fp->caret.linePointer;
+		wp->caret.linePointer = lpd->prev;
+		lpd = wp->caret.linePointer;
 		if ((lpd = ln_join(fp,lpd,lps,0)) == 0L) {
 			return 0;
 		}
@@ -340,7 +341,7 @@ EXPORT int bl_join(PASTE *pd,PASTE *p2)
 /*--------------------------------------------------------------------------
  * bl_delete()
  */
-EXPORT int bl_delete(FTABLE *fp, LINE *lnfirst, LINE *lnlast, int cfirst,
+EXPORT int bl_delete(WINFO *wp, LINE *lnfirst, LINE *lnlast, int cfirst,
 	int clast, int blkflg, int saveintrash)
 {
 	PASTE	*	ppTrash;
@@ -356,7 +357,7 @@ EXPORT int bl_delete(FTABLE *fp, LINE *lnfirst, LINE *lnlast, int cfirst,
 		bSaveOnClip = 0;
 	}
 
-	if (blkflg && ww_hasColumnSelection(WIPOI(fp))) {
+	if (blkflg && ww_hasColumnSelection(wp)) {
 		if (bSaveOnClip) {
 			if (!bl_cutBlockInColumnMode(bl_addrbyid(0,0), lnfirst, lnlast,0)) {
 				return 0;
@@ -390,7 +391,7 @@ EXPORT int bl_delete(FTABLE *fp, LINE *lnfirst, LINE *lnlast, int cfirst,
  * bl_undoIntoUnqBuffer()
  * enqueue next Pastebuffer to undolist
  */
-EXPORT int bl_undoIntoUnqBuffer(LINE *lnfirst,LINE *lnlast,int cfirst,int clast,int blockflg)
+EXPORT int bl_undoIntoUnqBuffer(WINFO* wp, LINE *lnfirst,LINE *lnlast,int cfirst,int clast,int blockflg)
 			/* pointer to first and last line to enq	*/
 			/* first column and last col to enq		*/
 {	char	*fn;
@@ -411,7 +412,7 @@ EXPORT int bl_undoIntoUnqBuffer(LINE *lnfirst,LINE *lnlast,int cfirst,int clast,
 	bl_free(_undobuf);
 	_blkflg = blockflg & 1;
 	
-	return bl_delete(ft_getCurrentDocument(), lnfirst, lnlast, cfirst, clast, _blkflg, 1);
+	return bl_delete(wp, lnfirst, lnlast, cfirst, clast, _blkflg, 1);
 }
 
 /*--------------------------------------------------------------------------

@@ -74,13 +74,12 @@ EXPORT void win_moveWindowToXY(HWND hwnd, int meetpoint, int x, int y)
 EXPORT int win_positionWindowRelativeToCaret(HWND hwnd)
 {	
 	POINT 	p;
-	WINFO 	*wp;
-	RECT		r;
+	RECT	r;
+	WINFO*	wp = ww_getCurrentEditorWindow();
 
-	if (!ft_getCurrentDocument())
+	if (wp == NULL) {
 		return 0;
-
-	wp = WIPOI(ft_getCurrentDocument());
+	}
 
 	GetWindowRect(hwndFrame, &r);
 

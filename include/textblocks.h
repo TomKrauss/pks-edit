@@ -15,6 +15,7 @@
 
 #ifndef TEXTBLOCKS_H
 #include "lineoperations.h"
+#include "winfo.h"
 
 extern int _nundo;
 extern PASTE* _undobuf;
@@ -108,7 +109,7 @@ extern void bl_freePasteList(PASTELIST** header);
  * bl_setSelection()
  * Set the current selection on a given file.
  *---------------------------------*/
-extern int bl_setSelection(FTABLE* fp, LINE* lps, int cs, LINE* lpe, int ce);
+extern int bl_setSelection(WINFO* wp, LINE* lps, int cs, LINE* lpe, int ce);
 
 /*----------------------------
  * bl_insertTextBlockFromFile()
@@ -124,7 +125,7 @@ extern int bl_insertTextBlockFromFile(char* fn);
  * If pMarkSet != NULL, returns either "MARK_START" or "MARK_END" in pMarkSet depending
  * on whether the start or the end mark had been set.
  *---------------------------------*/
-extern int bl_syncSelectionWithCaret(FTABLE* fp, CARET* lpCaret, int flags, int* pMarkSet);
+extern int bl_syncSelectionWithCaret(WINFO* fp, CARET* lpCaret, int flags, int* pMarkSet);
 
 /*--------------------------------------------------------------------------
  * blcutbl()
@@ -134,13 +135,6 @@ extern int bl_syncSelectionWithCaret(FTABLE* fp, CARET* lpCaret, int flags, int*
  */
 extern int bl_cutTextWithOptions(PASTE* pp, LINE* lnfirst, LINE* lnlast,
 	int cfirst, int clast, int freeflg);
-
-/*----------------------------
- * bl_hideSelection()
- * Hide the current selection and optionally
- * remove the selection marker from "marked lines"
- *----------------------------*/
-extern int bl_hideSelection(int removeLineSelectionFlag);
 
 /*--------------------------------------------------------------------------
  * bl_read()
@@ -162,7 +156,7 @@ extern int bl_write(char* fn, PASTE* pb, int mode);
  * bl_paste()
  * paste a textblock
  */
-extern int bl_paste(PASTE* pb, FTABLE* fp, LINE* lpd, int col, int colflg);
+extern int bl_paste(PASTE* pb, WINFO* fp, LINE* lpd, int col, int colflg);
 
 /*--------------------------------------------------------------------------
  * bl_hasClipboardBlock()
@@ -190,33 +184,12 @@ extern int bl_cut(PASTE* pp, LINE* l1, LINE* l2, int c1, int c2, int freeflg, in
 /* bl_pastecol()					*/
 /* paste a textcol					*/
 /*--------------------------------------*/
-extern int bl_pastecol(PASTE* pb, FTABLE* fp, LINE* lpd, int col);
-
-/*--------------------------------------------------------------------------
- * bl_delete()
- */
-extern int bl_delete(FTABLE* fp, LINE* lnfirst, LINE* lnlast, int cfirst,
-	int clast, int blkflg, int saveintrash);
-
-
-/*--------------------------------------------------------------------------
- * bl_undoIntoUnqBuffer()
- * enqueue next Pastebuffer to undolist
- */
-extern int bl_undoIntoUnqBuffer(LINE* lnfirst, LINE* lnlast, int cfirst, int clast, int blockflg);
-/* pointer to first and last line to enq	*/
-/* first column and last col to enq		*/
+extern int bl_pastecol(PASTE* pb, WINFO* wp, LINE* lpd, int col);
 
 /*--------------------------------------------------------------------------
  * bl_addrbyid()
  */
 extern 	PASTE* bl_addrbyid(int id, int insert);
-
-/*--------------------------------------------------------------------------
- * bl_undoIntoUnqBuffer()
- * enqueue next Pastebuffer to undolist
- */
-extern int bl_undoIntoUnqBuffer(LINE* lnfirst, LINE* lnlast, int cfirst, int clast, int blockflg);
 
 /*--------------------------------------------------------------------------
  * bl_getBlockFromUndoBuffer()

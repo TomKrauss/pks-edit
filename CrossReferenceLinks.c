@@ -495,12 +495,12 @@ static char *gettag(unsigned char *d,unsigned char *dend,
 			     int (*valid)(),int scan2beg)
 {	register char *s,*S;
 	char     *s1=d;
-	register FTABLE *fp;
+	register WINFO *wp;
 
-	if ((fp = ft_getCurrentDocument()) == 0L) 
+	if ((wp = ww_getCurrentEditorWindow()) == 0L) 
 		return (char *)0;
-	S = fp->caret.linePointer->lbuf;
-	s = &S[fp->caret.offset];
+	S = wp->caret.linePointer->lbuf;
+	s = &S[wp->caret.offset];
 
 	if (scan2beg)
 		while(s > S && (*valid)(s[-1]))
@@ -641,11 +641,10 @@ void xref_openSearchListResultFromLine(LINE *lp)
 static xref_highlightMatch(long ln, int col, int len) {
 	WINFO* wpFound = ww_getCurrentEditorWindow();
 	caret_placeCursorInCurrentFile(wpFound, ln, col);
-	bl_hideSelection(1);
-	FTABLE* fpFound = wpFound->fp;
-	CARET caret = fpFound->caret;
-	bl_setSelection(fpFound, caret.linePointer, caret.offset, caret.linePointer, len + caret.offset);
-	render_repaintCurrentLine();
+	bl_hideSelection(wpFound, 1);
+	CARET caret = wpFound->caret;
+	bl_setSelection(wpFound, caret.linePointer, caret.offset, caret.linePointer, len + caret.offset);
+	render_repaintCurrentLine(wpFound);
 }
 
 /*---------------------------------*/
@@ -655,7 +654,7 @@ int EdErrorNext(int dir) {
 	register LINE 	*lp;
  	register TAG  	*tp=0;
 	FTABLE	    	*fp;
-	long			lineno;
+	long			lineno = 0;
 	TAGEXPR  		*steperror;
 	char 		ebuf[ESIZE];
 	char			fullname[256];
@@ -666,14 +665,15 @@ int EdErrorNext(int dir) {
 		_compflag = 1;
 		WINFO* wp = ww_getWindowFromStack(0);
 		ft_setCurrentErrorDocument(wp ? wp->fp : NULL);
+		if (wp) {
+			lineno = wp->caret.ln;
+		}
 	}
 
-	if ((fp = ft_getCurrentErrorDocument()) == NULL || (lp = fp->caret.linePointer) == 0L) {
+	if ((fp = ft_getCurrentErrorDocument()) == NULL || (lp = fp->lpReadPointer) == 0L) {
 notfile:	error_showErrorById(IDS_MSGNOTAGFILE);
 		return 0;
 	}
-
-	lineno = fp->ln;
 	if (_compflag) {
 		if (!_compiler) {
 			_compiler = _cmptags;
@@ -721,7 +721,7 @@ doforward:
 			lp->lflg |= LNXMARKED;
 			render_repaintAllForFile(fp);
 		} else {
-			fp->caret.linePointer = lp;
+			fp->lpReadPointer = lp;
 		}
 
 	/* make file name relativ to list file */

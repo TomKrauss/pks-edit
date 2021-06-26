@@ -15,6 +15,8 @@ typedef void PASTE;
 typedef void MARK;
 #endif
 
+typedef struct tagWINFO WINFO;
+
 #ifndef	_EDFUNCS_H
 #define	EDBINDS	long
 #define	KEYCODE	unsigned
@@ -117,8 +119,8 @@ typedef struct edx {
 	LINE 	*(*ln_findbit)(LINE *lp,int bit);
 
 	/* marks */
-	LINE		*(*mark_goto)(FTABLE *fp, int c, long *ln, long *col);
-	MARK		*(*mark_set)(FTABLE *fp, LINE *lp,int offs,int c);
+	LINE		*(*mark_goto)(WINFO *wp, int c, long *ln, long *col);
+	MARK		*(*mark_set)(WINFO *wp, LINE *lp,int offs,int c);
 
 	/* Icons */
 	int 		(*ic_isicon)(int obnu);

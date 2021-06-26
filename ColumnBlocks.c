@@ -15,6 +15,7 @@
 #include "caretmovement.h"
 #include "pksedit.h"
 #include "edierror.h"
+#include "winfo.h"
 
 #define	TAB		9
 
@@ -70,6 +71,7 @@ static LINE *tabcpy(FTABLE *fp, LINE **Lps, int cfirst, int clast,
  *----------------------------*/
 EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int freeflg)
 {
+	WINFO* wp;
 	FTABLE *	fp;
 	LINE *	lpnew;
 	LINE *	lpd = 0;
@@ -79,12 +81,13 @@ EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int free
 	int		clast;
 	int		ctrl;
 
-	fp     = ft_getCurrentDocument();
+	wp = ww_getCurrentEditorWindow();
+	fp     = wp->fp;
 	lp     = lnfirst;
 	cnt    = ln_cnt(lp,lnlast);
-	cfirst = fp->blcol1;
-	clast  = fp->blcol2;
-	ctrl   = PLAINCONTROL(fp->documentDescriptor->dispmode);
+	cfirst = wp->blcol1;
+	clast  = wp->blcol2;
+	ctrl   = PLAINCONTROL(wp->dispmode);
 	if (clast - cfirst <= 0) return 0;
 	memset(pp,0,sizeof(pp));
 	while(cnt > 0) {
@@ -142,17 +145,16 @@ static LINE *tabinsl(FTABLE *fp, LINE *lpd, LINE *lps, int col, int ctrlmode)
 /* bl_pastecol()					*/
 /* paste a textcol					*/
 /*--------------------------------------*/
-EXPORT int bl_pastecol(PASTE *pb,FTABLE *fp, LINE *lpd, int col)
+EXPORT int bl_pastecol(PASTE *pb,WINFO *wp, LINE *lpd, int col)
 {
 	LINE *	lps;
 	LINE *	lpnew;
-	WINFO* wp;
+	FTABLE* fp = wp->fp;
 	int 		ctrl;
 
 	lps  = pb->pln;
-	wp = WIPOI(fp);
 	col = caret_lineOffset2screen(wp, &(CARET) { lpd, col });
-	ctrl = PLAINCONTROL(fp->documentDescriptor->dispmode) ? 1 : 0;
+	ctrl = PLAINCONTROL(wp->dispmode) ? 1 : 0;
 	while (lps) {
 		if (P_EQ(lpd,fp->lastl)) {
 			if ((lpnew = ln_create(0)) == (LINE *) 0) return 0;
