@@ -155,6 +155,15 @@ extern int bl_undoIntoUnqBuffer(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfir
 extern int bl_delete(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfirst,
     int clast, int blkflg, int saveintrash);
 
+/*------------------------------------------------------------
+ * ft_requestToClose()
+ * The user requests to close a file (last window of a file).
+ * If the file is modified and cannot be saved or some other error
+ * occurs, return 0, otherwise, if the file can be closed return 1.
+ */
+extern int ft_requestToClose(WINFO* fp);
+
+
 /*--------------------------------------------------------------------------
  * render_singleLineOnDevice()
  */

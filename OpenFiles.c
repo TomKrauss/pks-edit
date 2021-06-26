@@ -475,16 +475,17 @@ int ft_cloneWindow() {
  * If the file is modified and cannot be saved or some other error
  * occurs, return 0, otherwise, if the file can be closed return 1.
  */
-int ft_requestToClose(FTABLE *fp)
+int ft_requestToClose(WINFO *wp)
 {
+	FTABLE* fp = wp->fp;
 	if (fp->documentDescriptor->cm[0]) {
 		if (!macro_executeByName(fp->documentDescriptor->cm)) {
 			return 0;
 		}
 	}
-	if (fp->flags & F_MODIFIED) {
+	if (ft_isFileModified(fp)) {
 		ShowWindow(hwndClient,SW_SHOW);
-		EdSelectWindow(WIPOI(fp)->win_id);
+		EdSelectWindow(wp->win_id);
 		if (_ExSave || (GetConfiguration()->options & AUTOWRITE)) {
 	     	return ft_writeFileWithAlternateName(fp);
 		}
@@ -497,7 +498,7 @@ int ft_requestToClose(FTABLE *fp)
 					return 0;
 				}
 				break;
-			case IDNO:	 break;
+			case IDNO: ft_setFlags(fp, fp->flags & ~F_MODIFIED);  break;
 			case IDCANCEL:  return (0);
 		}
 	}
@@ -821,10 +822,6 @@ int EdSaveAllFiles() {
  * this may require the user to enter a file name or to do nothing (if the file
  * is unchanged) etc...
  */
-static int ft_closeView(WINFO* wp, void* pUnused) {
-	ww_close(wp);
-	return 1;
-}
 int EdSaveFile(int flg) {
 	FTABLE *fp;
 
@@ -871,7 +868,10 @@ int EdSaveFile(int flg) {
 	if ((flg & SAV_SAVE) && !ft_writeFileWithAlternateName(fp)) return 0;
 
 	if (flg & SAV_QUIT) {
-		ft_forAllViews(fp, ft_closeView, NULL);
+		// Close only one of the cloned windows.
+		// B.t.w.: do not use ft_forAllWindows(close....) -> won't work, as ft_forAll cannot handle the case windows are added or closed
+		// while iterating.
+		ww_close(WIPOI(fp));
 	}
 #endif
 	return(1);

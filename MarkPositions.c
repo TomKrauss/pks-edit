@@ -60,8 +60,6 @@ static void mark_free(WINFO *wp, MARK *mp)
 				unmark = 0;
 		}
 	}
-	if (unmark)
-		lp->lflg &= ~LNMARKED;
 
 	_free(mp);
 }
@@ -98,7 +96,6 @@ MARK *mark_set(WINFO *wp, LINE *lp,int offs,int c)
 		mp->lm 	= lp;
 		mp->lc 	= offs;
 		mp->mchar = c;
-		lp->lflg |= LNMARKED;
 		return mp;
 	}
 	return 0;

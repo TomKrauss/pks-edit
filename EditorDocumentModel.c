@@ -89,7 +89,6 @@ long ln_indexOf(FTABLE* fp, LINE* lp) {
 	return ll_indexOf((LINKED_LIST*)fp->firstl, (LINKED_LIST*)lp);
 }
 
-
 /*----------------------------*/
 /* ln_cut()				*/
 /* cut a line to linebuffer	*/

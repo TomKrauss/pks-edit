@@ -83,13 +83,12 @@ EXPORT int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag) {
 	for (ln = wp->minln; 
 		lp && ln <= wp->maxln; 
 		lp = lp->next, ln++) {
-		if (lp->lflg & (LNCPMARKED|LNXMARKED|LNDIFFMARK)) {
+		if (lp->lflg & (LNXMARKED|LNDIFFMARK)) {
 			lp->lflg |= LNREPLACED;
 			lpLast = lp;
 		}
 	}
 	if (mps && mpe) {
-		ln_removeFlag(mps->lm,mpe->lm,LNCPMARKED);
 		if (removeLineSelectionFlag) {
 			if (mps->lm == mpe->lm) {
 				if (mps->lc != mpe->lc) {
@@ -102,7 +101,7 @@ EXPORT int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag) {
 	} else {
 		if (removeLineSelectionFlag && (mps || mpe)) {
 			LINE* lp = mps ? mps->lm : mpe->lm;
-			ln_removeFlag(lp, lp, (LNCPMARKED|LNXMARKED|LNDIFFMARK));
+			ln_removeFlag(lp, lp, (LNXMARKED|LNDIFFMARK));
 			render_repaintLine(fp, lp);
 		}
 	}
@@ -660,14 +659,6 @@ static void marklines(int changed,int colflg,
 		flags[ln-wp->minln] = lp->lflg;
 	}
 
-	if (changed) {
-		ln_removeFlag(fp->firstl,lp1,LNCPMARKED);
-	}
-	ln_addFlag (lp1,lp2,LNCPMARKED);
-	if (changed) {
-		ln_removeFlag(lp2->next,fp->lastl,LNCPMARKED);
-	}
-
 	lp = lpFirst;
 	if (colflg) {
 		ln = ln_cnt(fp->firstl, lp1);
@@ -746,7 +737,6 @@ EXPORT int bl_setSelection(WINFO *wp, LINE *lps, int cs, LINE *lpe, int ce)
 	if (lpe) 
 		bl_setBlockMark(wp, mark_set(wp,lpe,ce,MARKEND), FALSE);
 	if (lps && lpe) {
-		ln_addFlag(lps,lpe,LNCPMARKED);
 		return 1;
 	}
 	return 0;

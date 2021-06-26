@@ -1,6 +1,8 @@
 [files]
-"C:\source\pksedit\ColumnBlocks.c", line 21: 0x0 0x1 -1 -1 -8 -31 0 0 537 820
-"C:\source\pksedit\ColumnBlocks.c", line 78: 0x0 0x1 -1 -1 -8 -31 537 0 1074 820
+"C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java", line 1: 0x0 0x1 -1 -1 -8 -31 0 462 960 924
+"C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java", line 17: 0x0 0x1 -1 -1 -1 -1 0 0 960 462
+"C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java", line 20: 0x0 0x1 -1 -1 -1 -1 960 462 1920 924
+"C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java", line 20: 0x0 0x1 -1 -1 -8 -31 960 0 1920 462
 [find]
 !winte
 !wint
@@ -39,8 +41,6 @@
 !,
 ! 
 [open]
-!C:\source\pksedit\macro_compiler\scanner.c
-!C:\source\pksedit\macro_compiler\PrintBindings.c
 !C:\source\pksedit\macro_compiler\parser.c
 !C:\source\pksedit\macro_compiler\ParseMacros.c
 !C:\source\pksedit\macro_compiler\MacroSymbolMapping.c
@@ -71,6 +71,8 @@
 !C:\source\pksedit\FileSelector.c
 !C:\source\pksedit\AsciiHexToLong.c
 !C:\source\pksedit\Clipboard.c
+!C:\source\pksedit\ColumnBlocks.c
+!C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -80,3 +82,4 @@
 !D:\source\pksedit\pks_sys\*.MAC
 !C:\source\pksedit\pks_sys\*.MAC
 !C:\source\pksedit\*.*
+!C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*

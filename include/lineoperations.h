@@ -469,14 +469,6 @@ extern int ft_expandTabsWithSpaces(LINE* lp, long* nt);
  */
 extern void ft_bufdestroy(FTABLE* fp);
 
-/*------------------------------------------------------------
- * ft_requestToClose()
- * The user requests to close a file (last window of a file).
- * If the file is modified and cannot be saved or some other error
- * occurs, return 0, otherwise, if the file can be closed return 1.
- */
-extern int ft_requestToClose(FTABLE* fp);
-
 /**
  * Make the passed file the "current error file" - which can be used by clicking on
  * lines displayed in that file to navigate to positions (compiler errors etc...).
@@ -735,10 +727,8 @@ extern int ln_createAndAddSimple(FTABLE* fp, char* b);
 
 /*---------- LINEFLAGS ---------*/
 
-#define	LNMARKED			0x01 	/* at least one lineposition marked */
 #define	LNDIFFMARK			0x02 	/* Mark for last EdFilesCompare action */
 #define	LNREPLACED			0x04 	/* something in line has been replaced */
-#define	LNCPMARKED			0x08 	/* print_singleLineOfText is within CUT&PASTE-Block	 */
 #define	LNNOCR				0x10		/* mark not chapter lines */
 #define	LNINDIRECT			0x20		/* indirect flag */
 #define	LNNOTERM			0x40		/* unterminated line */

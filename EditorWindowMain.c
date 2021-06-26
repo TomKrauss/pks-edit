@@ -600,7 +600,7 @@ void ww_applyDisplayProperties(WINFO *wp) {
 /*
  * Close a window 
  */
-static void ww_recycleWindow() {
+static int ww_recycleWindow() {
 	WINFO* wpFound = NULL;
 	for (WINFO* wp = _winlist; wp; wp = wp->next) {
 		if (wp->fp && !ft_isFileModified(wp->fp)) {
@@ -609,7 +609,9 @@ static void ww_recycleWindow() {
 	}
 	if (wpFound) {
 		ww_close(wpFound);
+		return 1;
 	}
+	return 0;
 }
 
 /*
@@ -630,15 +632,17 @@ void ft_connectViewWithFT(FTABLE* fp, WINFO* wp) {
  */
 static int nwindows;
 static FSTYLE _fstyles[2] = {
-	5,			BLACK_BRUSH,		/* Or */
+	5,			BLACK_BRUSH,	/* Or */
 	5,			BLACK_BRUSH		/* Invert */
 };
 static WINFO *ww_new(FTABLE *fp,HWND hwnd) {
 	WINFO  *wp;
 
 	int nMax = GetConfiguration()->maximumNumberOfOpenWindows;
-	if (nMax > 0 && nwindows >= nMax) {
-		ww_recycleWindow();
+	while (nMax > 0 && nwindows >= nMax) {
+		if (!ww_recycleWindow()) {
+			break;
+		}
 	}
 	if ((wp = (WINFO*)ll_insert((LINKED_LIST**)&_winlist,sizeof *wp)) == 0) {
 		return 0;
@@ -880,8 +884,9 @@ WINFUNC EditWndProc(
 	case WM_CLOSE:
 		if (IsZoomed(hwnd))
 			SendMessage(hwndClient,WM_MDIRESTORE, (WPARAM)hwnd, (LPARAM)0);
-		if (!ft_requestToClose(wp->fp))
+		if (!ft_requestToClose(wp)) {
 			return 0;
+		}
  		break;
 
 	case WM_DESTROY:

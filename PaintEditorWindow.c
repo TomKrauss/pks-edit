@@ -262,6 +262,12 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 	lp = ln_goto(fp,min);
 	RECT rect;
 	GetClientRect(wp->ww_handle, &rect);
+	int minMarkedLine = -1;
+	int maxMarkedLine = -1;
+	if (wp->blstart && wp->blend) {
+		minMarkedLine = ln_indexOf(fp, wp->blstart->lm);
+		maxMarkedLine = ll_indexOf((LINKED_LIST*)wp->blstart->lm, (LINKED_LIST*)wp->blend->lm)+minMarkedLine;
+	}
 	for (ln = min; lp && ln <= max && y < ps.rcPaint.bottom;
 		lp = lp->next, ln++,  y = newy) {
 		newy = y + wp->cheight;
@@ -284,7 +290,7 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 			} else if (wp->renderFunction) {
 				visLen = wp->renderFunction(hdc,0,y,wp,lp);
 			}
-			if (lp->lflg & LNCPMARKED) {
+			if (ln >= minMarkedLine && ln <= maxMarkedLine) {
 				paintSelection(hdc, wp, lp, y, visLen);
 			}
 			if (ln == wp->caret.ln)
