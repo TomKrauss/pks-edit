@@ -6,7 +6,7 @@ The famous arcade times text editor from Pahlen & Krauß.
 
 ### 1.8.1
 
-* New
+#### New
 - A new option "Ignore Binary Files" was added to the find in files dialog, allowing to easily exclude
   unwanted matches.
 - The find in files dialog remembers now in addition the file name patterns entered before.
@@ -15,19 +15,19 @@ The famous arcade times text editor from Pahlen & Krauß.
 - First draft implementation of "cloning" multiple windows for one file. Some open issues remain (text selection does
   not yet work correctly).
 
-* Improved
+#### Improved
 - Find in Files displays a folder browser now to select a path
 - Find in Files will now highlight matches, when stepping through the results.
 - Actions are now consistently enabled/disabled in the PKS Edit UI (also the virtual function keyboard etc...)
 
-* Fix
+#### Fixed
 - A repaint bug in the line number area caused linenumbers to not update correctly, when lines where inserted or deleted.
 - Find in Files did not find regular expressions matching to the end of line.
 - Printing files: when the last line on a page was wrapped, it wrapped into the footer area rather than to the next page.
 
 ### 1.8.0
 
-* New
+#### New
 - Support for mousewheel scrolling added
 - Block selection with the mouse will now work independently of line length
 - Toolbar and Menu actions are now properly enabled / disabled depending on availability
