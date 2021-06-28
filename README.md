@@ -36,6 +36,6 @@ to register some default types (*.java, *.txt) to be edited by PKS-Edit.
 
 ## Release Notes
 
--   Here is the link to the [Release Notes](doc/release_notes.html)
+-   Here is the link to the [Release Notes](doc/release_notes.md)
 
 Enjoy Tom & Rolf
