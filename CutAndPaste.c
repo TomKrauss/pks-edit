@@ -474,7 +474,7 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 		lp = ls;
 		while (!P_EQ(lp,le)) {
 			if (P_EQ(lp,wp->caret.linePointer)) {	/* makes no sense	*/
-				if (!P_EQ(lp,ls) || offs >= cs) {
+				if (lp == NULL || !P_EQ(lp,ls) || offs >= cs) {
 nomove:				error_showErrorById(IDS_MSGBADBLOCKMOVE);
 					return 0;
 				}

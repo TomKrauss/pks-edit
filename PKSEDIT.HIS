@@ -1,8 +1,5 @@
 [files]
-"C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java", line 1: 0x0 0x1 -1 -1 -8 -31 0 462 960 924
-"C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java", line 17: 0x0 0x1 -1 -1 -1 -1 0 0 960 462
-"C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java", line 20: 0x0 0x1 -1 -1 -1 -1 960 462 1920 924
-"C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java", line 20: 0x0 0x1 -1 -1 -8 -31 960 0 1920 462
+"C:\temp\JdbcSessionBig.java", line 12193: 0x0 0x1 -1 -1 -8 -31 0 0 1858 905
 [find]
 !winte
 !wint
@@ -83,3 +80,4 @@
 !C:\source\pksedit\pks_sys\*.MAC
 !C:\source\pksedit\*.*
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
+!C:\temp\*.*

@@ -76,49 +76,37 @@ static int calculateLongestLine(WINFO *wp) {
  * Update the internal sizeds of the WINFO structure (maxrows etc...).
  * Also update slider thumbs for the window.
  */
-int sl_size(WINFO *wp)
-{
-	long  	n,maxColumns;
-	long	maxRows;
+int sl_size(WINFO *wp) {
+	long  	n;
+	long	screenTop;
 	FTABLE	*fp;
 
-	if (!wp->ww_handle)
+	if (!wp->ww_handle) {
 		return 0;
+	}
 
 	fp = FTPOI(wp);
 	if (wp->dispmode & SHOWHIDEVSLIDER) {
-		n = maxRows = 0;
+		n = screenTop = 0;
 	} else {
-		for (n = fp->nlines+1L, maxRows = wp->minln;
-		    n > 32000L; 
-		    n >>= 1, maxRows >>= 1)
-		;
+		screenTop = wp->minln;
+		n = fp->nlines+1L;
 	}
+	SetWin32ScrollInfo(wp, SB_VERT, screenTop, wp->maxln - wp->minln + 1, n);
 
-#if defined(WIN32)
-	SetWin32ScrollInfo(wp, SB_VERT, maxRows, wp->maxln - wp->minln + 1, n);
-#else
-	GetScrollRange(wp->ww_handle, SB_VERT, &oldstart, &oldrange);
-	oldstart = GetScrollPos(wp->ww_handle, SB_VERT);
-	SetScrollRange(wp->ww_handle, SB_VERT, 0, (int)n, FALSE);
-	SetScrollPos(wp->ww_handle, SB_VERT, (int)maxRows,
-			  (oldstart != maxRows || oldrange != n));
-#endif
 	if (wp->dispmode & SHOWHIDEHSLIDER) {
-		n = maxColumns = 0;
+		n = 0;
 	} else {
-		if (fp->nlines < MAXLINES_TO_CALCULATE_COLUMNS) {
-			maxColumns = calculateLongestLine(wp);
-		} else {
-			maxColumns = MAXCOL;
+		if (wp->maxVisibleLineLen < 0) {
+			wp->maxVisibleLineLen = calculateLongestLine(wp);
 		}
 		n = wp->mincol;
-		if (n > maxColumns) {
-			n = maxColumns;
+		if (n > wp->maxVisibleLineLen) {
+			n = wp->maxVisibleLineLen;
 		}
 	}
 	int visibleColumns = wp->maxcol - wp->mincol + 1;
-	SetWin32ScrollInfo(wp, SB_HORZ, n, visibleColumns, maxColumns);
+	SetWin32ScrollInfo(wp, SB_HORZ, n, visibleColumns, (wp->dispmode & SHOWHIDEHSLIDER) ? 0 : wp->maxVisibleLineLen);
 	return 1;
 }
 
@@ -172,26 +160,26 @@ static long sl_calcnewmin(long da,long max,long val)
 /*-----------------------------------------------------------
  * sl_scrollwinrange()
  */
-int sl_scrollwinrange(WINFO *wp,long *DY, long *DX)
+int sl_scrollwinrange(WINFO *wp, long *pDeltaY, long *pDeltaX)
 { 	long   dy,dx,val;
 	FTABLE *fp = FTPOI(wp);
 
-	dy = *DY, dx = *DX;
+	dy = *pDeltaY, dx = *pDeltaX;
 	EdTRACE(log_errorArgs(DEBUG_FUNCS,"sl_scrollwinrange(%ld,%ld) fp = %lx",
 				 dy,dx,(long)(intptr_t)fp));
 	if (dx) {
 		val = sl_calcnewmin(dx,MAXCOL,wp->mincol);
-		*DX = val-wp->mincol;
+		*pDeltaX = val-wp->mincol;
 		wp->mincol = val;
 	} 
 
 	if (dy) {
 		val = sl_calcnewmin(dy,fp->nlines,wp->minln);
-		*DY = val-wp->minln;
+		*pDeltaY = val-wp->minln;
 		wp->minln = val;
 	} 
 
-	if (*DY || *DX) {
+	if (*pDeltaY || *pDeltaX) {
 		ww_setScrollCheckBounds(wp);
 		return 1;
 	}

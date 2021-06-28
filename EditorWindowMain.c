@@ -659,6 +659,7 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd) {
 	wp->scroll_dx = 4;
 
 	wp->win_id = ++nwindows;
+	wp->maxVisibleLineLen = -1;
 
 	return wp;
 }
@@ -682,6 +683,16 @@ void ft_forAllViews(FTABLE* fp, int (*callback)(WINFO* wp, void* pParameterPasse
 		}
 		pIter.i_buffer++;
 	}
+}
+
+/**
+ * Checks, whether the given window is a view of the file
+ */
+BOOL ft_hasView(FTABLE* fp, WINFO* wp) {
+	if (fp->views == NULL) {
+		return FALSE;
+	}
+	return arraylist_indexOf(fp->views, wp) >= 0;
 }
 
 /*
@@ -965,19 +976,10 @@ int do_mouse(HWND hwnd, int nClicks, UINT message, WPARAM wParam, LPARAM lParam)
 /*------------------------------------------------------------
  * do_slide()
  */
-int do_slide(WINFO *wp, UINT message, WPARAM wParam, LPARAM lParam) {	
+static int do_slide(WINFO *wp, UINT message, int nScrollCode, int nScrollPos) {	
 	int 	delta;
 	int		deltapage;
-	int		nScrollCode;
-	int		nScrollPos;
 
-#if defined(WIN32)
-	nScrollCode = LOWORD(wParam);
-	nScrollPos = HIWORD(wParam);
-#else
-	nScrollCode = wParam;
-	nScrollPos = LOWORD(lParam);
-#endif
 	if (message == WM_HSCROLL) {
 		deltapage = (wp->maxcol - wp->mincol);
 	} else {
@@ -1089,7 +1091,20 @@ static WINFUNC WorkAreaWndProc(
 	case WM_HSCROLL:
 	case WM_VSCROLL:
 		if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
-			if (do_slide(wp,message,wParam,lParam) == 0) {
+			int nCode = LOWORD(wParam);
+			int nPos = HIWORD(wParam);
+			if (nCode == SB_THUMBTRACK || nCode == SB_THUMBPOSITION) {
+				SCROLLINFO info;
+				ZeroMemory(&info, sizeof info);
+				info.cbSize = sizeof info;
+				info.fMask = SIF_TRACKPOS;
+				if (!GetScrollInfo(hwnd, message == WM_HSCROLL ? SB_HORZ : SB_VERT, &info)) {
+					break;
+				}
+				nPos = info.nTrackPos;
+				log_debug1("thumbtrack getscrollinfo returns: %d", nPos);
+			}
+			if (do_slide(wp,message,nCode, nPos) == 0) {
 				break;
 			}
 		} else {

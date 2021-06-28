@@ -28,7 +28,6 @@
 #define	LINEBUFSIZE		2*FBUFSIZE+160	/* sizeof of _linebuf		 */
 #define	MAXLINELEN		12000
 
-#define	MAXUNDO			10		/* maximum of UNDO_STEP-Buffers avail	 */
 #define	MAXSHIFT		36		/* maximum shiftwidth 			 */
 #define	RM_DELTA		2		/* delta to automatic right margin  */
 
@@ -362,6 +361,7 @@ extern FTABLE* ft_new(void);
 /* ft_initializeReadWriteBuffers()			  */
 /*------------------------------*/
 extern BOOL ft_initializeReadWriteBuffers(void);
+
 
 /*---------------------------------
  * ft_readDocumentFromFile()

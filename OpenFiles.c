@@ -287,19 +287,6 @@ int ft_restorePreviouslyOpenedWindows(void )
 }
 
 /*------------------------------------------------------------
- * ft_bufdestroy().
- * Release all resources associated with a file.
- */
-void ft_bufdestroy(FTABLE *fp)
-{
-	destroy(&fp->documentDescriptor);
-	ln_listfree(fp->firstl);
-	fp->tln = fp->firstl = 0;
-	file_closeFile(&fp->lockFd);
-	undo_destroyManager(fp);
-}
-
-/*------------------------------------------------------------
  * ft_settime()
  */
 void ft_settime(EDTIME *tp)
@@ -722,8 +709,15 @@ int EdEditFile(long editflags, char *filename)
  * ft_abandonFile()
  * Discard changes in a file and re-read.
  */
-int ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
-{
+struct tagPOSITION {
+	long ln;
+	long col;
+};
+static int ft_abandoned(WINFO* wp, struct tagPOSITION* pPosition) {
+	caret_placeCursorInCurrentFile(wp, pPosition->ln, pPosition->col);
+	return 1;
+}
+int ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp) {
 	long   	ln,col;
 
 	if  (fp == 0) {
@@ -759,7 +753,7 @@ int ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp)
 		ln = fp->nlines-1;
 	}
 
-	caret_placeCursorInCurrentFile(wp, ln,col);
+	ft_forAllViews(fp, ft_abandoned, &(struct tagPOSITION){ln, col});
 
 	doctypes_documentTypeChanged();
 	render_repaintAllForFile(fp);

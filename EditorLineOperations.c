@@ -19,6 +19,8 @@
 #include "edierror.h"
 #include "lineoperations.h"
 #include "markpositions.h"
+#include "stringutil.h"
+#include "fileutil.h"
 
 extern int 	_flushing;
 extern PASTE* bl_addrbyid(int id, int insert);
@@ -26,23 +28,173 @@ extern PASTE* bl_addrbyid(int id, int insert);
 // TODO: get rid of this hack.
 char* _linebuf;
 
-/*
- * Invoked, when a line pointer was replaced. Update all dependents on that particular
- * line.
- */
-struct tagLINE_CHANGED {
-	LINE* lpChanged;
-	LINE* lpNew;
-};
-static int ln_changedInView(WINFO* wp, struct tagLINE_CHANGED* pChanged) {
-	if (wp->caret.linePointer == pChanged->lpChanged) {
-		wp->caret.linePointer = pChanged->lpNew;
+typedef enum { LINE_MODIFIED, LINE_REPLACED, LINE_INSERTED, LINE_DELETED, LINE_SPLIT, LINES_JOINED, EVERYTHING_CHANGED} MODEL_CHANGE_TYPE;
+
+typedef struct tagMODEL_CHANGE {
+	MODEL_CHANGE_TYPE type;	// The type of change
+	LINE* lp;				// single line modified
+	LINE* lpNew;			// If a line was replaced this is the new line.
+	int col1;				// modification "point" - the place where the modification starts
+	int col2;				// the second point in the line - if left to col1, chars are deleted if right to it chars are inserted
+	int len;				// number of characters inserted / removed
+} MODEL_CHANGE;
+
+/*---------------------------------*/
+/* ln_newbl()					*/
+/* CUT&PASTE-marked line deleted	*/
+/*---------------------------------*/
+/* return Blockmarks modified => true */
+static int  ln_newbl(WINFO* wp, MARK* mp) {
+	if (wp->blstart == mp) {
+		mp->lm = mp->lm->next;
+		mp->lc = 0;
+	}
+	else if (wp->blend == mp) {
+		mp->lm = mp->lm->prev;
+		mp->lc = mp->lm->len;
+	}
+	else return 0;
+	return 1;
+}
+
+/*----------------------------*/
+/* ln_delmarks()			*/
+/* release the marks related	*/
+/* to a specific line		*/
+/* lnew == 0 => free them	*/
+/*----------------------------*/
+static int ln_delmarks(WINFO* wp, LINE* lp)
+{
+	MARK* mp = wp->fmark;
+	MARK* mp2 = 0;
+	int  	blflg = (wp->blstart && wp->blend);
+
+	if (blflg && wp->blstart->lm == lp && wp->blend->lm == lp) {
+		mark_killSelection(wp);
+		mp = wp->fmark;
+		blflg = 0;
+	}
+	while (mp) {
+		if (mp->lm == lp) {
+			if (blflg && ln_newbl(wp, mp)) goto walk;
+			if (mp2) mp2->next = mp->next;
+			else wp->fmark = mp->next;
+			if (mp == wp->blstart) wp->blstart = 0;
+			if (mp == wp->blend)   wp->blend = 0;
+			_free(mp); mp = mp->next;
+		}
+		else {
+		walk:			mp2 = mp;
+			mp = mp->next;
+		}
 	}
 	return 1;
 }
-static void ln_replacedBy(FTABLE* fp, LINE* lp, LINE* pNewLine) {
-	struct tagLINE_CHANGED param = { lp, pNewLine };
-	ft_forAllViews(fp, ln_changedInView, &param);
+
+static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
+	switch (pChanged->type) {
+	case EVERYTHING_CHANGED:
+		bl_hideSelection(wp, 0);
+		wp->caret.linePointer = NULL;
+		ll_destroy((LINKED_LIST**)&wp->fmark, (int (*)(void* elem))0);
+		break;
+	case LINE_MODIFIED: {
+		MARK* mp = wp->fmark;
+		while (mp) {
+			if (mp->lm == pChanged->lp) {
+				/* if (mp != wp->blstart && mp != wp->blend) { */
+				if (mp->lc >= pChanged->col1) mp->lc += pChanged->len;
+				else if (mp->lc > pChanged->col2) mp->lc = pChanged->col2;
+				/* } */
+			}
+			mp = mp->next;
+		}
+		if (wp->blstart && wp->blend &&
+			wp->blstart->lm == wp->blend->lm &&
+			wp->blstart->lc >= wp->blend->lc
+			)
+			bl_hideSelection(wp, 0);
+	}
+    break;
+	case LINE_REPLACED: {
+			MARK* mp = wp->fmark;
+
+			while (mp) {
+				if (mp->lm == pChanged->lp) {
+					mp->lm = pChanged->lpNew;
+				}
+				mp = mp->next;
+			}
+			if (wp->caret.linePointer == pChanged->lp) {
+				wp->caret.linePointer = pChanged->lpNew;
+			}
+	}
+		break;
+	case LINES_JOINED: {
+		MARK* mp = wp->fmark;
+		int		delta = pChanged->lp->len;
+
+		while (mp) {
+			if (mp->lm == pChanged->lpNew) {
+				mp->lm = pChanged->lp;
+				mp->lc += delta;
+			}
+			mp = mp->next;
+		}
+	}
+	break;
+	case LINE_SPLIT: {
+			MARK* mp = wp->fmark;
+			LINE* lnext = pChanged->lpNew;
+			LINE* lp = pChanged->lp;
+
+			while (mp) {
+				if (mp->lm == lp) {
+					if (mp->lc >= pChanged->col1) {
+						mp->lc -= pChanged->col1;
+						mp->lm = lnext;
+					}
+				}
+				mp = mp->next;
+			}
+		}
+		break;
+	case LINE_DELETED:
+		ln_delmarks(wp, pChanged->lp);
+		// drop through
+	case LINE_INSERTED:
+		if (wp->caret.linePointer == pChanged->lp) {
+			wp->caret.linePointer = pChanged->lpNew;
+		}
+		break;
+	}
+	wp->maxVisibleLineLen = -1;
+	return 1;
+}
+
+/*
+ * Invoked, when a line pointer was replaced / inserted / deleted. Update all dependents on that particular
+ * line.
+ */
+static void ln_singleLineChanged(FTABLE* fp, MODEL_CHANGE_TYPE type, LINE* lp, LINE* pNewLine) {
+	MODEL_CHANGE param = {type};
+	param.lp = lp;
+	param.lpNew = pNewLine;
+	ft_forAllViews(fp, ln_modelChanged, &param);
+}
+
+/*------------------------------------------------------------
+ * ft_bufdestroy().
+ * Release all resources associated with a file.
+ */
+void ft_bufdestroy(FTABLE* fp) {
+	destroy(&fp->documentDescriptor);
+	ln_listfree(fp->firstl);
+	fp->tln = fp->firstl = 0;
+	file_closeFile(&fp->lockFd);
+	undo_destroyManager(fp);
+	MODEL_CHANGE change = {EVERYTHING_CHANGED};
+	ft_forAllViews(fp, ln_modelChanged, &change);
 }
 
 /*---------------------------------
@@ -111,55 +263,6 @@ static void invalidhiddenop() {
 	error_showErrorById(IDS_MSGINVALIDHIDEOP); 
 }
 
-/*---------------------------------*/
-/* ln_newbl()					*/
-/* CUT&PASTE-marked line deleted	*/
-/*---------------------------------*/
-/* return Blockmarks modified => true */
-static int  ln_newbl(WINFO *wp, MARK *mp) {	
-	if (wp->blstart == mp) {
-		mp->lm = mp->lm->next; 
-		mp->lc = 0; 
-	} else if (wp->blend == mp) {
-		mp->lm = mp->lm->prev; 
-		mp->lc = mp->lm->len;
-	} else return 0;
-	return 1;
-}
-
-/*----------------------------*/
-/* ln_delmarks()			*/
-/* release the marks related	*/
-/* to a specific line		*/
-/* lnew == 0 => free them	*/
-/*----------------------------*/
-static int ln_delmarks(WINFO *wp, LINE *lp)
-{
-	MARK *	mp = wp->fmark;
-	MARK *	mp2=0;
-	int  	blflg = (wp->blstart && wp->blend);
-
-	if (blflg && wp->blstart->lm == lp && wp->blend->lm == lp) {
-		mark_killSelection(wp);
-		mp = wp->fmark;
-		blflg = 0;
-	}
-	while (mp) {
-		if (mp -> lm == lp) {
-			if (blflg && ln_newbl(wp,mp)) goto walk;
-			if (mp2) mp2->next = mp->next;
-			else wp->fmark = mp->next;
-			if (mp == wp->blstart) wp->blstart = 0;
-			if (mp == wp->blend)   wp->blend = 0;
-			_free(mp); mp = mp->next;
-		} else {
-walk:			mp2 = mp;
-				mp = mp->next;
-		}
-	}
-	return 1;
-}
-
 /*----------------------------*/
 /* ln_insert() 			*/
 /* insert a line at the given */
@@ -172,13 +275,12 @@ void ln_insert(FTABLE *fp, LINE *pos, LINE *lp) {
 	}
 
 	fp->nlines++;
-	ln_replacedBy(fp, pos, lp);
-
 	lp->next = pos;
 	if ((lp->prev = pos->prev) == 0) 			/* insert first line    */
 		fp->firstl = lp;
 	else lp->prev->next = lp;				/* insert another	    */
 	pos->prev = lp;
+	ln_singleLineChanged(fp, LINE_INSERTED, pos, lp);
 	undo_saveOperation(fp, lp, pos, O_INSERT);
 }
 
@@ -196,7 +298,6 @@ int ln_delete(FTABLE *fp, LINE *lp)
 
 	undo_saveOperation(fp, lp, next, O_DELETE);
 	ft_setFlags(fp, fp->flags | F_CHANGEMARK);
-	ft_forAllViews(fp, ln_delmarks, lp);
 	if (!lp->prev) {
 		if (next == fp->lastl) {
 			return 0;
@@ -210,7 +311,7 @@ int ln_delete(FTABLE *fp, LINE *lp)
 	if (lp == fp->tln) {
 		fp->tln = 0;
 	}
-	ln_replacedBy(fp, lp, next);
+	ln_singleLineChanged(fp, LINE_DELETED, lp, next);
 	fp->nlines--;
 	return 1;
 }
@@ -302,33 +403,6 @@ LINE *ln_deepcopy(LINE *lp, int physize, int start, int end)
 /* ln_break()						*/
 /* break a line into two pieces		*/
 /*--------------------------------------*/
-struct tag_MARK_BREAK {
-	LINE* lp;
-	LINE* lnext;
-	int col;
-};
-static int ln_markBrokenInView(WINFO* wp, struct tag_MARK_BREAK* pParam) {
-	MARK* mp = wp->fmark;
-	LINE* lnext = pParam->lnext;
-	LINE* lp = pParam->lp;
-
-	while (mp) {
-		if (mp->lm == lp) {
-			if (mp->lc >= pParam->col) {
-				mp->lc -= pParam->col;
-				mp->lm = lnext;
-			}
-		}
-		mp = mp->next;
-	}
-	return 1;
-}
-static void ln_breakmarks(FTABLE *fp,LINE *lp,LINE *lnext,int col) {
-	struct tag_MARK_BREAK param = {lp, lnext, col};
-
-	ft_forAllViews(fp, ln_markBrokenInView, &param);
-}
-
 LINE *ln_break(FTABLE *fp, LINE *linep, int col) {
 	LINE *	nlp = 0;
 	LINE *	lp;
@@ -344,7 +418,11 @@ LINE *ln_break(FTABLE *fp, LINE *linep, int col) {
 		nlp->lflg = linep->lflg & (LNNOTERM|LNNOCR);
 		len++;
 		memmove(nlp->lbuf,&linep->lbuf[col],len);
-		ln_breakmarks(fp,linep,nlp,col);
+		MODEL_CHANGE change = {LINE_SPLIT};
+		change.col1 = col;
+		change.lp = linep;
+		change.lpNew = nlp;
+		ft_forAllViews(fp, ln_modelChanged, &change);
 		ln_insert(fp,linep->next,nlp);
 
 		if ((linep = ln_modify(fp,linep,linep->len,col)) != 0L) {
@@ -363,34 +441,6 @@ LINE *ln_split(FTABLE *fp, LINE *lc, int pos2, int pos1)
 	if ((lc = ln_break(fp,lc,pos2)) != 0L)
      	lc = ln_modify(fp,lc->prev,pos2,pos1);
 	return lc;
-}
-
-/*--------------------------------------------------------------------------
- * ln_joinmarks()
- */
-struct tagMARK_JOIN {
-	LINE* lp1;
-	LINE* lp2;
-};
-static int ln_marksJoinedInView(WINFO* wp, struct tagMARK_JOIN* pParam) {
-
-	MARK* mp = wp->fmark;
-	int		delta = pParam->lp1->len;
-
-	while (mp) {
-		if (mp->lm == pParam->lp2) {
-			mp->lm = pParam->lp1;
-			mp->lc += delta;
-		}
-		mp = mp->next;
-	}
-	pParam->lp1->lflg |= pParam->lp2->lflg;
-	return 1;
-}
-
-static void ln_joinmarks(FTABLE *fp, LINE *lp1, LINE *lp2) {
-	struct tagMARK_JOIN param = { lp1, lp2 };
-	ft_forAllViews(fp, ln_marksJoinedInView, &param);
 }
 
 /*--------------------------------------------------------------------------
@@ -431,7 +481,11 @@ LINE *ln_join(FTABLE *fp, LINE *lp1, LINE *lp2, int bRemove)
 	lp1->lbuf[len] = 0;
 
 	if (bRemove) {
-		ln_joinmarks(fp,lp1,lp2);
+		MODEL_CHANGE change = { LINES_JOINED };
+		change.lp = lp1;
+		change.lpNew = lp2;
+		ft_forAllViews(fp, ln_modelChanged, &change);
+		lp1->lflg |= lp2->lflg;
 		ln_delete(fp,lp2);
 	}
 	lp1->len = len;			/* modify lp1->len after joinmarks !!	*/
@@ -545,22 +599,6 @@ LINE *ln_findbit(LINE *lp, int bit)
 	return lp;
 }
 
-/*---------------------------------*/
-/* ln_repmark()				*/
-/*---------------------------------*/
-static int ln_repmark(WINFO *wp, struct tagLINE_CHANGED *pChanged)
-{
-	MARK *mp = wp->fmark;
-
-	while (mp) {
-		if (mp->lm == pChanged->lpChanged) {
-			mp->lm = pChanged->lpNew;
-		}
-		mp = mp->next;
-	}
-	return 1;
-}
-
 /*----------------------------*/
 /* ln_replace()			*/
 /*----------------------------*/
@@ -569,8 +607,7 @@ void ln_replace(FTABLE *fp, LINE *oln, LINE *nl)
 	nl->next = oln->next;
 	if ((nl->prev = oln->prev) != 0) nl->prev->next = nl;
 	nl->next->prev = nl;
-	ft_forAllViews(fp, ln_repmark, &(struct tagLINE_CHANGED) { oln, nl });
-	ln_replacedBy(fp, oln, nl);
+	ln_singleLineChanged(fp, LINE_REPLACED, oln, nl);
 	if (fp->firstl == oln) fp->firstl = nl;
 }
 
@@ -632,30 +669,6 @@ LINE *ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold)
 /*---------------------------------*/
 /* ln_modify()					*/
 /*---------------------------------*/
-struct tagLINE_MODIFIED {
-	LINE* lp;
-	int col1;
-	int col2;
-	int len;
-};
-static int ln_modifiedInView(WINFO* wp, struct tagLINE_MODIFIED* pParam) {
-	MARK* mp = wp->fmark;
-	while (mp) {
-		if (mp->lm == pParam->lp) {
-			/* if (mp != wp->blstart && mp != wp->blend) { */
-			if (mp->lc >= pParam->col1) mp->lc += pParam->len;
-			else if (mp->lc > pParam->col2) mp->lc = pParam->col2;
-			/* } */
-		}
-		mp = mp->next;
-	}
-	if (wp->blstart && wp->blend &&
-		wp->blstart->lm == wp->blend->lm &&
-		wp->blstart->lc >= wp->blend->lc
-		)
-		bl_hideSelection(wp, 0);
-	return 1;
-}
 LINE *ln_modify(FTABLE *fp, LINE *lp, int col1, int col2) {
 	int		len;
 	int		lplen;
@@ -687,8 +700,12 @@ LINE *ln_modify(FTABLE *fp, LINE *lp, int col1, int col2) {
 	s = lp->lbuf;
 	memmove(s+col2,s+col1,copylen);
 	s[lplen] = 0;
-
-	ft_forAllViews(fp, ln_modifiedInView, &(struct tagLINE_MODIFIED) {lp, col1, col2, len});
+	MODEL_CHANGE change = {LINE_MODIFIED};
+	change.lp = lp;
+	change.col1 = col1;
+	change.col2 = col2;
+	change.len = len;
+	ft_forAllViews(fp, ln_modelChanged, &change);
 	return lp;
 }
 
@@ -726,7 +743,7 @@ LINE *ln_hide(FTABLE *fp, LINE *lp1, LINE *lp2)
 	undo_saveOperation(fp, lpind, (LINE*)0, O_HIDE);
 
 	for (lp = lp1, nTotalHidden = 0; lp; lp = lp->next) {
-		ln_replacedBy(fp, lp, lpind);
+		ln_singleLineChanged(fp, LINE_REPLACED, lp, lpind);
 		if (LpHasHiddenList(lp)) {
 			nTotalHidden += LpIndNTotal(lp);
 		} else {
@@ -772,8 +789,7 @@ int ln_unhide(FTABLE *fp, LINE *lpind) {
 
 	undo_saveOperation(fp, lp1, lp2, O_UNHIDE);
 
-	ln_replacedBy(fp, lpind, lp1);
-
+	ln_singleLineChanged(fp, LINE_REPLACED, lpind, lp1);
 	_free(lpind);
 	return 1;
 

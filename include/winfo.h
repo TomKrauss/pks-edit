@@ -37,11 +37,11 @@ typedef int (*RENDER_LINE_FUNCTION)(HDC hdc, int x, int y, WINFO* wp, LINE* lp);
 typedef struct wininfo {
 	struct wininfo *next;
 	int		win_id;
-    HWND      edwin_handle,ww_handle,ru_handle,st_handle,lineNumbers_handle;
+    HWND    edwin_handle,ww_handle,ru_handle,st_handle,lineNumbers_handle;
      
-    int       dispmode;				/* flags see edierror.h... */
-    int       workmode;
-    BOOL		bXtndBlock;			/* Xtending blocks */
+    int     dispmode;				/* flags see edierror.h... */
+    int     workmode;
+    BOOL	bXtndBlock;			/* Xtending blocks */
     int		scrollflags;
     int		cursaftersearch;
     int		tfillchar;			    /* Tab fill char */
@@ -49,12 +49,12 @@ typedef struct wininfo {
     CARET caret; 		/* the caret - to be moved to the view */
     MARK* fmark;
     MARK* blstart, * blend;   	/* Marks for Block Operations			*/
-    int  	blcol1, blcol2;		/* column for Blockmarks				*/
+    int   blcol1, blcol2;		/* column for Blockmarks				*/
     
-    char		*statusline;			/* alt. status line */
-     char*  win_themeName;
-     int       cx,cy,cmx,cmy,cheight,cwidth;
-     int       owncursor,ctype;        	/* owncursor and caret - type */
+    char*   statusline;			/* alt. status line */
+    char*   win_themeName;
+     int    cx,cy,cmx,cmy,cheight,cwidth;
+     int    owncursor,ctype;        	/* owncursor and caret - type */
 
 	 EDFONT	fnt;
      HFONT	fnt_handle;
@@ -66,6 +66,8 @@ typedef struct wininfo {
     RENDER_LINE_FUNCTION renderFunction;
     long      minln,maxln,mincursln,maxcursln,
               mincol,maxcol,mincurscol,maxcurscol;
+    long   maxVisibleLineLen;       // The maximum length of a line in columns - used to calculate the size of the horizontal scrollbar
+                                    // Is reset to -1 on model changes and recalculated when needed.
      FSTYLE	markstyles[2];			/* text block appearance */
      void	*	fp;
      int		win_state;
@@ -330,6 +332,11 @@ extern WINFO* ft_getPrimaryView(FTABLE* fp);
  * Connect a view with a file - set the model and add the view as a dependent.
  */
 extern void ft_connectViewWithFT(FTABLE* fp, WINFO* wp);
+
+/**
+ * Checks, whether the given window is a view of the file
+ */
+BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 
 /*
  * Returns the "active" editor window having the focus.

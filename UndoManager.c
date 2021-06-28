@@ -62,6 +62,7 @@ typedef struct tagUNDO_COMMAND {
 	LINE *				ble;		/* start and end marker line- if a current selection exists */
 	int					bcs,bce,c1,c2;
 	long				ln,col;		/* current cursor position */
+	WINFO*				wp;			// the window for which the caret position and the selection was saved.
 } UNDO_COMMAND;
 
 /*
@@ -288,6 +289,7 @@ static void initUndoCommand(FTABLE* fp, UNDO_COMMAND* pCommand) {
 		free(lptmp);
 		fp->tln = NULL;
 	}
+	pCommand->wp = wp;
 	pCommand->ln = wp->caret.ln;
 	pCommand->col = wp->caret.offset;
 	if ((pMark = wp->blstart) != 0) {
@@ -328,22 +330,26 @@ EXPORT void undo_startModification(FTABLE *fp)
  * Return an undo-command to redo the changes.
  */
 static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
-	long	    					ln, col;
-	register int 					i;
+	long ln, col;
+	register int i;
 	register UNDO_OPERATION* pOperation;
 	register struct tagUNDO_DELTA* pDelta;
 	register LINE* lp;
 	register LINE* lpNext;
 	BOOL bRedrawAll = FALSE;
 	UNDO_COMMAND* pRedoCommand = malloc(sizeof * pRedoCommand);
-	WINFO* wp = WIPOI(fp);
+	WINFO* wp = pCommand->wp;
 
+	if (!ft_hasView(fp, wp)) {
+		wp = NULL;
+	}
 	memset(pRedoCommand, 0, sizeof * pRedoCommand);
 	initUndoCommand(fp, pRedoCommand);
 	ln = 0; col = 0;
-	caret_placeCursorAndValidate(wp, &ln, &col, 0);
-
-	bl_hideSelection(wp, 0);
+	if (wp) {
+		caret_placeCursorAndValidate(wp, &ln, &col, 0);
+		bl_hideSelection(wp, 0);
+	}
 	pOperation = pCommand->atomicSteps;
 	while (pOperation != NULL) {
 		for (i = pOperation->numberOfCommands; i > 0; ) {
@@ -393,11 +399,13 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 		}
 		pOperation = pOperation->prev;
 	}
-	wp->blcol1 = pCommand->c1;
-	wp->blcol2 = pCommand->c2;
-	bl_setSelection(wp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
-
-	caret_placeCursorInCurrentFile(wp, pCommand->ln, pCommand->col);
+	if (wp) {
+		ft_selectWindowWithId(wp->win_id, TRUE);
+		wp->blcol1 = pCommand->c1;
+		wp->blcol2 = pCommand->c2;
+		bl_setSelection(wp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
+		caret_placeCursorInCurrentFile(wp, pCommand->ln, pCommand->col);
+	}
 	if (bRedrawAll) {
 		render_repaintAllForFile(fp);
 	}
