@@ -5,14 +5,15 @@
  *
  * purpose:
  * check brackets, uc_showMatchingBracket, bracket indent, shift between brackets...
- * shift parts of text
- * translate character up 2 low and vc.vs.
+ * shift parts of text translate character up 2 low and vc.vs.
  *
  * 										created: 20.02.87
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauﬂ
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 #include <windows.h>

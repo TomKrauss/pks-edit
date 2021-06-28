@@ -1,13 +1,16 @@
 /*
- * SETLEX.H
+ * scanner.h
  *
  * scanner definitions
  *
  * PROJECT: PKSEDIT/Command Editor
  *
- * (c) Pahlen & Krauﬂ					Author : TOM
- * All Rights Reserved.					created: 03.02.1991
- *									
+ *This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * 
+ * author: Tom
+ * created: 03.02.1991
  */
 
 # ifndef SETLEX_H

@@ -1,13 +1,16 @@
 /*
- * PROJECT.H
+ * project.h
  *
  * comment: manage project groups in PKS-EDIT
  *
  * PROJECT: PKSEDIT
  *
- * (c) Pahlen & Krauﬂ					Author : TOM
- * All Rights Reserved.					created:  08.01.1993
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *
+ * author: Tom
+ * created:  08.01.1993
  */
 
 # if !defined( __PROJECT_H )

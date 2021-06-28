@@ -3,13 +3,15 @@
  *
  * PROJEKT: PKS-EDIT for ATARI - GEM
  *
- * purpose: textblock basic delta
+ * purpose: text selection handling
  *
  * 										created: 04.02.89
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauﬂ
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 #include <windows.h>

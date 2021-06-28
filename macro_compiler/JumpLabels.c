@@ -5,9 +5,12 @@
  *
  * PROJECT: PKSEDIT
  *
- * (c) Pahlen & Krauﬂ					Author : TOM
- * All Rights Reserved.					created: 18.05.1991
- *									
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.					
+ * 
+ * author: Tom
+ * created: 18.05.1991
  */
 
 #include <stdio.h>

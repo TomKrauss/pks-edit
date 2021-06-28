@@ -3,8 +3,12 @@
  *
  * maintain tags and do "under cursor actions"
  *
- *											TOM 28. Dec. 1990
- * (c) Pahlen & Krauﬂ
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * 
+ * author: Tom 
+ * created: 28. Dec. 1990
  */
 
 #include <windows.h>

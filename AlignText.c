@@ -1,15 +1,17 @@
 /*
- * ALIGN.C
+ * AlignText.C
  *
  * PROJEKT: PKS-EDIT for ATARI - GEM
  *
  * purpose: align text fragments to screen columns
  *
  * 										created: 28.09.90
- * 										last modified:
+ * 										last modified: 20.6.2021
  *										author: Tom
  *
- * (c) Pahlen & Krauﬂ
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 #include <windows.h>

@@ -1,13 +1,17 @@
 /*
- * MAKROC.C
+ * CompileMacros.c
  *
  * makro compiler module
  *
  * PROJECT: PKSEDIT
  *
- * (c) Pahlen & Krauﬂ					Author : TOM
- * All Rights Reserved.					created: 13.03.1991
- *									
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * 
+ * author : TOM
+ * created: 13.03.1991
+ * 
  */
 
 #include <windows.h>

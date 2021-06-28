@@ -1,15 +1,17 @@
 /*
- * TEXTBLOCKS.H
+ * textblocks.h
  *
  * PROJEKT: PKS-EDIT for ATARI - GEM
  *
- * purpose: operations on textblocks.
+ * purpose: operations on selected text ranges.
  *
  * 										created: 28.10.91
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauﬂ
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 

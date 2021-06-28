@@ -5,9 +5,12 @@
  *
  * PROJECT: PKSEDIT/Command Editor
  *
- * (c) Pahlen & Krauﬂ					Author : TOM
- * All Rights Reserved.					created: 29.12.1990
- *									
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * 
+ * author: Tom
+ * created: 29.12.1990
  */
 #include <windows.h>
 #include "lineoperations.h"
