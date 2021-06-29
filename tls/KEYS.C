@@ -255,6 +255,7 @@ int s2shift(char **k)
 		switch (*K) {
 			case CTL_MARK:	control |= (K_CONTROL>>8); break;
 			case SFT_MARK: control |= (K_SHIFT>>8); break;
+			case SELECTED_MARK: control |= (K_HAS_SELECTION >> 8); break;
 			case ALT_MARK: control |= (K_ALTERNATE>>8); break;
 			default : goto out;
 		}
@@ -321,6 +322,8 @@ char *code2key(KEYCODE code)
 		*s++ = CTL_MARK;
 	if (code & K_SHIFT)
 		*s++ = SFT_MARK;
+	if (code & K_HAS_SELECTION)
+		*s++ = CTL_MARK;
 
 	code &= 0xFF;
 

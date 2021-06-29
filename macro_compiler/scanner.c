@@ -438,6 +438,7 @@ char *yytext;
 #include "sym.h"
 #include "edfuncs.h"
 #include "scanner.h"
+#define YYSTYPE _YYSTYPE
 #include "parser.h"
 #include "lineoperations.h"
 #include "pkscc.h"
@@ -1036,6 +1037,8 @@ YY_RULE_SETUP
 {
 				if (strcmp(yytext,"Alt") == 0)
 					return T_ALT;
+				if (strcmp(yytext, "Selected") == 0)
+					return T_HAS_SELECTION;
 				if (strcmp(yytext,"Ctrl") == 0)
 					return T_CTRL;
 				if (strcmp(yytext,"Shift") == 0)

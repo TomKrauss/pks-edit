@@ -7,6 +7,8 @@
 #### New
 - A new option "Ignore Binary Files" was added to the find in files dialog, allowing to easily exclude
   unwanted matches.
+- A new option "Delete multiple spaces" was added, which better supports "space indentation mode" in that
+  during editing the editor handles spaces inserted instead of tabs like a tab.
 - The find in files dialog now remembers the file name patterns for the next invocation.
 - A new "incremental search" field was added to the toolbar area allowing to type in text to find in the current file.
 - A new option "maximumNumberOfOpenWindows" was added to allow to recycle windows, when too many windows are opened.
@@ -20,6 +22,7 @@
 #### Fixed
 - A repaint bug in the line number area caused linenumbers to not update correctly, when lines where inserted or deleted.
 - Find in Files did not find regular expressions matching to the end of line.
+- Space indentation did not correctly indent sometimes.
 - Printing files: when the last line on a page was wrapped, it wrapped into the footer area rather than to the next page.
 - Scrolling with the trackthumb in long files (> 32000 lines) was fixed and should work now as expected.
 

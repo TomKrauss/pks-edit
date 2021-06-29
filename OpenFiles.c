@@ -680,8 +680,7 @@ int ft_openFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
  * EdEditFile()
  * Edit a file with a filename and with potential flags.
  */
-int EdEditFile(long editflags, char *filename)
-{
+int EdEditFile(long editflags, char *filename) {
 	int		ret;
 	int		nEntry;
 
@@ -784,16 +783,15 @@ int ft_checkReadonlyWithError(FTABLE* fp)
  * Checks whether the passed file buffer can be modified or whether it is readonly. 
  */
 int ft_isReadonly(FTABLE* fp) {
-	return fp->documentDescriptor->workmode & O_RDONLY ? 1 : 0;
+	return fp->flags & F_RDONLY ? 1 : 0;
 }
 
 /*--------------------------------------------------------------------------
  * EdFileAbandon()
  * Cancel all changes in he current file.
  */
-void EdFileAbandon(void)
-{
-	ft_abandonFile(ft_getCurrentDocument(), (DOCUMENT_DESCRIPTOR *)0);
+int EdFileAbandon(void) {
+	return ft_abandonFile(ft_getCurrentDocument(), (DOCUMENT_DESCRIPTOR *)0);
 }
 
 /**

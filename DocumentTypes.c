@@ -70,7 +70,18 @@ FSELINFO 		_linfsel = {	"", "DEFAULT.LIN", "*.LIN" };
 
 /*--------------------------------------------------------------------------
  * doctypes_calculateTabStop()
- * calculate next Tabstop
+ * calculate the previous tabstop for a column given in screen indentation units.
+ * Let's assume, the column is 7 and one has a tab size of 4, then 4 is returned.
+ */
+int doctypes_calculatePreviousTabStop(int col, DOCUMENT_DESCRIPTOR* l) {
+	while (col-- > 0 && !TABTHERE(l, col))
+		;
+	return col;
+}
+
+/*--------------------------------------------------------------------------
+ * doctypes_calculateTabStop()
+ * calculate next tabstop for a column given in screen indentation units.
  */
 int doctypes_calculateTabStop(int col, DOCUMENT_DESCRIPTOR* l) {
 	if (col < DIM(l->ts) && l->ts[col])

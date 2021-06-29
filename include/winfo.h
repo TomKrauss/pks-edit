@@ -7,6 +7,39 @@
 #include "editorfont.h"
 #include "lineoperations.h"
 
+/*----- display modes --------------*/
+
+#define	SHOWCONTROL		            0x1
+#define	SHOWSTATUS		            0x2
+#define	SHOWHEX			            0x4
+#define	SHOWRULER			        0x8
+#define	SHOWATTR			        0x10
+#define	SHOWOEM			            0x20
+#define	SHOWHIDELINES		        0x40
+#define	SHOWFIXEDWI		            0x80
+#define	SHOWHIDEHSLIDER	            0x100
+#define	SHOWHIDEVSLIDER	            0x200
+#define	SHOWSTATUSBOT		        0x400
+#define	SHOWLINENUMBERS		        0x800
+#define	SHOWCARET_LINE_HIGHLIGHT	0x1000
+
+#define	PLAINCONTROL(mode)	(((mode) & SHOWCONTROL) && !((mode) & SHOWRULER))
+
+/*----- working modes --------------*/
+
+#define	WM_INSERT		0x1
+#define	WM_SHOWMATCH	0x2
+#define	WM_ABBREV		0x4
+#define	WM_AUTOWRAP	    0x8
+#define	WM_AUTOINDENT	0x10
+#define	O_FIXEDWI		0x40
+#define	BLK_LINES		0x80
+#define	WM_AUTOFORMAT	0x100
+#define	WM_BRINDENT	    0x200
+#define	BLK_COLUMN_SELECTION	0x400
+#define	WM_OEMMODE	    0x800
+#define WM_DELETE_MULTIPLE_SPACES  0x2000
+
 /*--- Fill styles for marked text ----*/
 
 typedef struct tagFSTYLE {
@@ -302,6 +335,12 @@ extern void ww_winstate(int nId, WINDOWPLACEMENT* wsp);
  * Close the passed editor window.
  */
 extern int ww_close(WINFO* wp);
+
+/*
+ * Returns the indices of the first selected line and the last selected line.
+ * If no selection exists, return 0 and return -1 in pFirstIndex and pLastIndex.
+ */
+extern int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex);
 
 /*--------------------------------------------------------------------------
  * ww_getRightMargin()

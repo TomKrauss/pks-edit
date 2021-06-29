@@ -23,7 +23,7 @@
 %token T_LOCAL T_SWITCH T_BREAK T_CONTINUE T_RETURN 
 %token T_NUMVAR T_STRINGVAR
 %token T_NMATCH
-%token T_SHIFT T_CTRL T_ALT T_LEFT T_MIDDLE T_RIGHT
+%token T_SHIFT T_CTRL T_ALT T_LEFT T_MIDDLE T_RIGHT T_HAS_SELECTION
 %token T_MENUPOPUP T_MENUSEPERATOR T_MENUBREAK T_MENUBARBREAK
 %token T_ASSIGN T_NE T_EQ
 %token T_OR T_AND
@@ -389,6 +389,7 @@ kmod_list		:  {	$$.num = 0; }
 k_modifier	: T_SHIFT { $$.num = /* K_SHIFT */ 0x300; }
 			| T_CTRL	{ $$.num = K_CONTROL; }
 			| T_ALT	{ $$.num = K_ALTERNATE; }
+			| T_HAS_SELECTION { $$.num = K_HAS_SELECTION; }
 
 /*-- ICONS -----------------------------------------------------*/
 
@@ -471,13 +472,7 @@ opt_string	:			{	$$.s = 0; }
 opt_ident	:				{	$$.s = ""; }
 			| T_IDENT		{	$$.s = $1.s; }
 
-class		:			{	$$.islocal = 0;	}
-			| T_LOCAL		{	$$.islocal = 1;	}
-
 block		: '{' var_decls stmntlist '}'
-
-stmtlist		:
-			| stmnt stmtlist
 
 var_decls		:
 			| var_decl var_decls

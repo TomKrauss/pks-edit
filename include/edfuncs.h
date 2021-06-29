@@ -50,10 +50,12 @@ typedef unsigned short KEYCODE;
 #define ALT_MARK		'~'
 #define CTL_MARK		'^'
 #define SFT_MARK		'#'
+#define SELECTED_MARK	'*'
 
 #define	K_SHIFT		0x300
 #define	K_CONTROL		0x400
 #define	K_ALTERNATE	0x800
+#define	K_HAS_SELECTION 0x1000
 
 #define	K_DELETED		0x1FFF		/* Impossible Key Combination	*/
 #define	K_INVALID		K_DELETED

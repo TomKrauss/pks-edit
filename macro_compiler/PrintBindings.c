@@ -57,6 +57,9 @@ char *c2shift(char *s, KEYCODE code)
 	if (code & K_ALTERNATE) {
 		strcpy(s,"Alt+"); s += 4;
 	}
+	if (code & K_HAS_SELECTION) {
+		strcpy(s, "Selected+"); s += 4;
+	}
 	if (code & K_CONTROL) {
 		strcpy(s,"Ctrl+"); s += 5;
 	}

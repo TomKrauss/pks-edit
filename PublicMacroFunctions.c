@@ -1295,6 +1295,7 @@ int EdDlgWorkMode(void)
 	static char cclass[64];
 	static char tabfill;
 	static int  workmode;
+	static int fileflag;
 	static ITEMS	_i   =  	{ 
 		{ C_STRING1PAR, cclass }, 
 		{ C_INT1PAR, (unsigned char *) &workmode }
@@ -1311,23 +1312,26 @@ int EdDlgWorkMode(void)
 		IDD_OPT4,		WM_AUTOWRAP,	&workmode,
 		IDD_OPT5,		WM_AUTOFORMAT,	&workmode,
 		IDD_OPT6,		WM_OEMMODE,	&workmode,
-		IDD_OPT7,		O_RDONLY,		&workmode,
+		IDD_OPT7,		F_RDONLY,		&fileflag,
 		IDD_OPT8,		WM_SHOWMATCH,	&workmode,
 		IDD_OPT9,		WM_BRINDENT,	&workmode,
+		IDD_OPT10,		WM_DELETE_MULTIPLE_SPACES, &workmode,
 		0
 	};
 	DOCUMENT_DESCRIPTOR *linp;
+	FTABLE* fp;
 
-	if (ft_getCurrentDocument() == 0) {
+	if ((fp = ft_getCurrentDocument()) == 0) {
 		return 0;
 	}
 
-	linp = ft_getCurrentDocument()->documentDescriptor;
+	linp = fp->documentDescriptor;
 	lstrcpy(cclass, linp->u2lset);
 	lstrcpy(creationMacroName, linp->creationMacroName);
 	lstrcpy(cm, linp->cm);
 	workmode = linp->workmode;
 	tabfill = linp->fillc;
+	fileflag = fp->flags;
 	if (win_callDialog(DLGWORKMODE,&_fp,_d, NULL) == 0)
 		return 0;
 	if (*cclass) {
@@ -1337,6 +1341,7 @@ int EdDlgWorkMode(void)
 	lstrcpy(linp->cm, cm);
 	linp->workmode = workmode;
 	linp->fillc = tabfill;
+	fp->flags = fileflag;
 	return doctypes_documentTypeChanged();
 }
 

@@ -244,6 +244,8 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 	PAINTSTRUCT 	ps;
 	int  		y,newy,visLen;
 	long			ln;
+	long		minMarkedLine;
+	long		maxMarkedLine;
 	FTABLE *		fp = FTPOI(wp);
 	LINE *		lp;
 	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
@@ -262,12 +264,7 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 	lp = ln_goto(fp,min);
 	RECT rect;
 	GetClientRect(wp->ww_handle, &rect);
-	int minMarkedLine = -1;
-	int maxMarkedLine = -1;
-	if (wp->blstart && wp->blend) {
-		minMarkedLine = ln_indexOf(fp, wp->blstart->lm);
-		maxMarkedLine = ll_indexOf((LINKED_LIST*)wp->blstart->lm, (LINKED_LIST*)wp->blend->lm)+minMarkedLine;
-	}
+	ww_getSelectionLines(wp, &minMarkedLine, &maxMarkedLine);
 	for (ln = min; lp && ln <= max && y < ps.rcPaint.bottom;
 		lp = lp->next, ln++,  y = newy) {
 		newy = y + wp->cheight;

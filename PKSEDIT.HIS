@@ -1,5 +1,5 @@
 [files]
-"C:\temp\JdbcSessionBig.java", line 60298: 0x2 0x3 -1 -1 -8 -31 0 0 1858 905
+"C:\temp\JdbcSessionBig.java", line 60919: 0x0 0x1 -1 -1 -8 -31 0 0 1858 905
 [find]
 !winte
 !wint
@@ -29,6 +29,8 @@
 !author: Trend
 !@author.*Trend
 !author.*tom
+!xx
+!Tab
 [filePatterns]
 !*.*
 !*.java
@@ -38,8 +40,6 @@
 !,
 ! 
 [open]
-!C:\source\pksedit\macro_compiler\parser.c
-!C:\source\pksedit\macro_compiler\ParseMacros.c
 !C:\source\pksedit\macro_compiler\MacroSymbolMapping.c
 !C:\source\pksedit\macro_compiler\MacroExpressions.c
 !C:\source\pksedit\macro_compiler\JumpLabels.c
@@ -68,8 +68,10 @@
 !C:\source\pksedit\FileSelector.c
 !C:\source\pksedit\AsciiHexToLong.c
 !C:\source\pksedit\Clipboard.c
-!C:\source\pksedit\ColumnBlocks.c
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java
+!C:\source\pksedit\ColumnBlocks.c
+!C:\Users\tom\AppData\Local\Temp\KEYS
+!C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -77,7 +79,7 @@
 !D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
 !D:\source\pksedit\*.*
 !D:\source\pksedit\pks_sys\*.MAC
-!C:\source\pksedit\pks_sys\*.MAC
 !C:\source\pksedit\*.*
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
 !C:\temp\*.*
+!C:\source\pksedit\pks_sys\*.MAC

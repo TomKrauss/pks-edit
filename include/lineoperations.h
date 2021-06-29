@@ -57,6 +57,9 @@ typedef struct tagLINEINDIRECT {
 	} u;
 } LINEINDIRECT;
 
+/// Currently defined via "working mode" in document type descriptor  
+#define	O_CRYPTED		0x1000              // not really a workmode
+
 #define	LI_HIDDENLIST		0x0
 #define	LI_RULER			0x10
 
@@ -599,7 +602,7 @@ extern int EdSaveFile(int flg);
  * EdFileAbandon()
  * Cancel all changes in he current file.
  */
-extern void EdFileAbandon(void);
+extern int EdFileAbandon(void);
 
 /*--------------------------------------------------------------------------
  * EdLineSplit()
@@ -722,7 +725,7 @@ extern int ln_createAndAddSimple(FTABLE* fp, char* b);
 #define	F_HASWIN			0x400	/* file has an associated window */
 #define	F_NEEDSAUTOSAVE		0x800 	/* File is not autosaved 	  */
 #define	F_HIDDEN			0x1000	/* create File hidden		  */
-#define	F_RDONLY			0x2000	/* create File read only		  */
+#define	F_RDONLY			0x2000	/* File is read only		  */
 #define	F_ISHELPFILE		0x4000	/* File is a Help Window File   */
 #define F_NAME_INPUT_REQUIRED 0x8000 /* When the users presses Save the Save As dialog is being opened to force the input of a new file name */
 #define	F_CHANGEMARK		(F_NEEDSAUTOSAVE|F_MODIFIED)

@@ -300,7 +300,7 @@ nullfile:
 				ret = 0;
 				goto readerr;
 			}
-			documentDescriptor->workmode |= O_RDONLY;
+			fp->flags |= F_RDONLY;
 		}
 		else {
 			fd = (int)(uintptr_t)fileHandle;

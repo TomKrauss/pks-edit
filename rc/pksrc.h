@@ -12,6 +12,7 @@
 #define IDC_CURSOR2                     154
 #define IDS_TT_REGULAR_EXPRESSION       181
 #define IDS_TT_PRESERVE_CASE            182
+#define DLGCURSOROPTIONS                529
 #define DLG_OPT_WARNINGS                556
 #define DLG_OPT_MISC                    557
 #define DLG_OPT_LAYOUT                  558

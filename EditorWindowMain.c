@@ -625,6 +625,32 @@ void ft_connectViewWithFT(FTABLE* fp, WINFO* wp) {
 	}
 	arraylist_add(pViews, wp);
 	wp->fp = fp;
+	// Ensure caret does not point into nirwana.
+	wp->caret.linePointer = fp->firstl;
+	wp->caret.col = 0;
+}
+
+/*
+ * Returns the indices of the first selected line and the last selected line.
+ * If no selection exists, return 0 and return -1 in pFirstIndex and pLastIndex.
+ */
+int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex) {
+	*pFirstIndex = -1;
+	*pLastIndex = -1;
+	if (wp->blstart && wp->blend) {
+		*pFirstIndex = ln_indexOf(wp->fp, wp->blstart->lm);
+		if (wp->blstart->lm == wp->blend->lm) {
+			*pLastIndex = *pFirstIndex;
+		} else {
+			int nDelta = ll_indexOf((LINKED_LIST*)wp->blstart->lm, (LINKED_LIST*)wp->blend->lm);
+			if (wp->blend->lc == 0) {
+				nDelta--;
+			}
+			*pLastIndex = nDelta +*pFirstIndex;
+		}
+		return 1;
+	}
+	return 0;
 }
 
 /*-----------------------------------------------------------
@@ -660,7 +686,6 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd) {
 
 	wp->win_id = ++nwindows;
 	wp->maxVisibleLineLen = -1;
-
 	return wp;
 }
 

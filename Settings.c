@@ -56,7 +56,7 @@ static struct optiontab {
      IDD_FKFLG6,    WM_BRINDENT,   OP_EDIT_MODE,   doctypes_documentTypeChanged,
      IDD_FKFLG7,    WM_ABBREV,     OP_EDIT_MODE,   doctypes_documentTypeChanged,
      IDD_FKFLG8,    BLK_COLUMN_SELECTION,  OP_EDIT_MODE,   doc_columnChanged,
-     IDD_FKFLG9,    O_RDONLY,      OP_EDIT_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG9,    F_RDONLY,      OP_FILEFLAG,   doctypes_documentTypeChanged,
      IDD_FKFLG10,   WM_OEMMODE,    OP_EDIT_MODE,   doctypes_documentTypeChanged,
      IDD_FKFLG10+1, SHOWOEM,       OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
      IDD_FKFLG10+2, 1,            OP_MACRO,   macro_toggleRecordMaco,
@@ -116,7 +116,8 @@ static int *op_getFlagToToggle(OP_FLAGTYPE flagType)
 	if (flagType != OP_MACRO && flagType != OP_OPTIONS) {
 		if ((fp = ft_getCurrentDocument()) != 0) {
 			DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
-			
+			if (flagType == OP_FILEFLAG)
+				return &fp->flags;
 			if (flagType == OP_EDIT_MODE)
 				return &linp->workmode;
 			if (flagType == OP_DISPLAY_MODE)
@@ -236,7 +237,7 @@ static void op_propertyChanged(ACTION_BINDING* pBinding, PROPERTY_CHANGE_TYPE ty
 		return;
 	}
 	for (op = _optiontab; op->flgkeynr >= 0; op++) {
-		if (op->op_type == OP_DISPLAY_MODE || op->op_type == OP_EDIT_MODE) {
+		if (op->op_type == OP_DISPLAY_MODE || op->op_type == OP_EDIT_MODE || op->op_type == OP_FILEFLAG) {
 			HWND hwnd = GetDlgItem(hwndFkeys, op->flgkeynr);
 			if (!newValue) {
 				op_changeFlag(op, 0);

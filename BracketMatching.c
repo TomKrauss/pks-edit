@@ -33,7 +33,7 @@
 
 extern long	_multiplier;
 extern LINE	*ln_insertIndent(FTABLE *fp, LINE *lp, int col, int *inserted);
-extern int	CalcTabs2Col(DOCUMENT_DESCRIPTOR *linp, int tabs);
+extern int	edit_calculateTabs2Columns(DOCUMENT_DESCRIPTOR *linp, int tabs);
 
 struct tagBRACKET_RULE {
 	struct tagBRACKET_RULE *next;
@@ -558,7 +558,7 @@ EXPORT int uc_shiftLinesByIndent(WINFO *wp, long ln, long nlines, int dir)
 
 	for (i = 0; i < nlines; i++) {
 		if (!lp->next) break;
-		ind = CalcTabs2Col(fp->documentDescriptor,abs(dir));
+		ind = edit_calculateTabs2Columns(fp->documentDescriptor,abs(dir));
 		if (dir > 0) {
 			if ((lp = ln_insertIndent(fp,lp,ind,&dummy)) == 0L) {
 				return 0;
@@ -637,9 +637,10 @@ EXPORT int EdShiftBetweenBrackets(int dir)
 EXPORT int EdLinesShift(int dir)
 {	WINFO *wp = ww_getCurrentEditorWindow();
 
-	if (!wp)
+	if (!wp) {
 		return 0;
-	return uc_shiftLinesByIndent(wp->fp,wp->caret.ln,_multiplier,dir);
+	}
+	return uc_shiftLinesByIndent(wp,wp->caret.ln,_multiplier,dir);
 }
 
 /*--------------------------------------------------------------------------
@@ -664,6 +665,13 @@ EXPORT int uc_shiftRange(int scope, int dir)
 		ln2--;
 
 	return uc_shiftLinesByIndent(wp,ln1,ln2,dir);
+}
+
+/*
+ * Either insert a tab or shift the selected lines back and forth.
+ */
+EXPORT int EdShiftSelection(int aDirection) {
+	return uc_shiftRange(RNG_BLOCK, aDirection);
 }
 
 

@@ -730,7 +730,14 @@ KEYCODE macro_addModifierKeys(KEYCODE key)
 void* macro_getKeyBinding(WPARAM key)
 {
 	KEYCODE keycode = (KEYCODE)macro_addModifierKeys((KEYCODE)key);
-	return keybound(keycode);
+	void *pResult = keybound(keycode);
+	if (pResult == NULL) {
+		WINFO* wp = ww_getCurrentEditorWindow();
+		if (wp && ft_checkSelection(wp)) {
+			pResult = keybound(keycode | K_HAS_SELECTION);
+		}
+	}
+	return pResult;
 }
 
 /*---------------------------------*/

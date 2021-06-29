@@ -1,3 +1,21 @@
+/*
+ * FunctionTable.c
+ *
+ * PROJEKT: PKS-EDIT for ATARI / MS Windows
+ *
+ * purpose:
+ * definition of all functions and commands callable in PKS Edit,
+ * which can be used either in macros or bound to menus / keyboard etc...
+ *
+ * 										created: 20.02.87
+ * 										last modified:
+ *										author: Tom
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 #include <windows.h>
 #include "edfuncs.h"
 #include "functab.h"
@@ -6,6 +24,7 @@
 #include "publicapi.h"
 #include "findandreplace.h"
 #include "iccall.h"
+#include "winfo.h"
 
 extern int
 EdFileAbandon(), EdAbout(long ), EdBlockCopy(long ), EdBlockDelete(long ),
@@ -16,14 +35,14 @@ EdKeycodeInsert(long ), EdCharInsert(long ), EdFormatText(long ), EdLineInsert(l
 EdMarkedLineOp(long ), EdSearchListRead(long ), EdErrorListRead(long ), doctypes_readWriteDocumentDescriptor(long ),
 EdMacrosEdit(long ), EdDocMacrosEdit(long ), EdDocMacrosAdd(long ), macro_readWriteWithFileSelection(long ),
 EdTagfileRead(long ), EdSetup(long ), EdSetMultiplier(long ), EdReplaceTabs(long ),
-EdLineSplit(long ), EdParaGotoBegin(long ),
+EdLineSplit(int), EdParaGotoBegin(long ), EdShiftSelection(int aDirection),
 EdParaGotoEnd(long ), EdCharDelete(long ), fkey_keyModifierStateChanged(long ), EdMacroEscape(long ),
 macro_executeMacroByIndex(long ), EdMacroRecord(long ), EdFindInFileList(long ), EdFind(long ),
 EdReplace(long ), EdFindAgain(long ), EdReplaceAgain(long ), EdCharControlInsert(long ),
 EdGotoLastPos(long ), EdGotoLine(long ), EdMarkSet(long ), EdMarkGoto(long ),
-EdHelp(long ), EdLinesJoin(long ), EdEditFile(long ), EdOptionSet(long ),
+EdHelp(long ), EdLinesJoin(long ), EdEditFile(long, char* filename), EdOptionSet(long ),
 EdPrint(long ), EdExitAndSave(long ), EdExit(long ), EdCloseAll(long ),
-EdSaveFile(int ), EdSelectWindow(long ), EdCommandExecute(long ), EdExecute(long ),
+EdSaveFile(int ), EdSelectWindow(int), EdCommandExecute(long ), EdExecute(long ),
 EdShiftBetweenBrackets(long ), EdSort(long ), EdLinesShift(long ), EdInfoFiles(long ),
 EdShowMatch(long ), EdCharUpToLow(long ), EdDlgWorkMode(long ), EdDlgDispMode(long ),
 EdDlgCursTabs(long ), EdDlgModeVals(long ), EdOptionToggle(long ), EdPasteString(long ),
@@ -161,7 +180,8 @@ EdMenuTrackPopup, '!', EW_NEEDSCURRF | 0,
 EdBlockXtndMode, '!', EW_NEEDSCURRF | 0,
 EdRedo, '!', EW_MODIFY | EW_NEEDSCURRF | EW_REDO_AVAILABLE,
 EdSaveAllFiles, '!', EW_NEEDSCURRF | 0,
-ft_cloneWindow, '!', EW_NEEDSCURRF,
+/*122*/ft_cloneWindow, '!', EW_NEEDSCURRF,
+/*123*/EdShiftSelection, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH,
 };
 
 int _nfuncs = sizeof(_edfunctab)/sizeof(_edfunctab[0]);
@@ -550,6 +570,8 @@ COMMAND _cmdseqtab[] = {
 /* 234 */ C_1FUNC, 121 /* EdSaveAllFiles*/, 0, "save-all-files", "Speichert alle ungeänderten Dateien;Alle Dateien speichern",
 /* 235 */ C_1FUNC, 114 /* find_initiateIncrementalSearch */, 0, "search-incrementally", "Inkrementelle Suche starten;Inkrementelle Suche starten",
 /* 236 */ C_1FUNC, 122 /* ft_cloneWindow */, 0, "clone-window", "Zusätzliches Fenster öffnen;Zusätzliches Fenster",
+/* 237 */ C_1FUNC, 123 /* EdShiftSelection */, 1, "tab-shift-right", "Tab einfügen oder nach rechts schieben;Selektion nach rechts",
+/* 238 */ C_1FUNC, 123 /* EdShiftSelection */, -1, "tab-shift-left", "Nach links schieben;Selektion nach links",
 };
 
 char _recorder[RECORDERSPACE];

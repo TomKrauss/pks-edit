@@ -1202,7 +1202,6 @@
     <ClInclude Include="include\funcdef.h" />
     <ClInclude Include="include\functab.h" />
     <ClInclude Include="include\iccall.h" />
-    <ClInclude Include="include\parser.h" />
     <ClInclude Include="include\pathname.h" />
     <ClInclude Include="include\pkscc.h" />
     <ClInclude Include="include\pksmod.h" />
