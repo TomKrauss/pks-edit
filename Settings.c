@@ -64,7 +64,6 @@ static struct optiontab {
      0,             SHOWSTATUS,    OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
      0,             SHOWHEX,       OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
      0,             SHOWRULER,     OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
-	 0,             SHOWATTR,      OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
 	 0,             SHOWLINENUMBERS,OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
      -1
 };

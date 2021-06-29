@@ -389,7 +389,7 @@ COMMAND _cmdseqtab[] = {
 /* 53 */ C_1FUNC, 78 /* EdOptionToggle */, OPT_DMODE|SHOWRULER, "toggle-show-ruler", "Aktiviert die Tabulatorzeile; Zeige document descriptor",
 /* 54 */ C_0FUNC, 114 /* EdPrinterLayout */, 0 , "dialog-printer-layout", "Stellt Optionen und Layout fürs Drucken ein;Drucken Layout",
 /* 55 */ C_1FUNC, 78 /* EdOptionToggle */, OPT_DMODE|SHOWHEX, "toggle-alternate-status", "Verwendet die alternative Statuszeile;Alternativer Status",
-/* 56 */ C_1FUNC, 78 /* EdOptionToggle */, OPT_DMODE|SHOWATTR, "toggle-show-attributes", "Zeigt Text attributiert;Zeige Attribute",
+/* 56 */ C_1FUNC, 78 /* EdOptionToggle */, OPT_WMODE|WM_DELETE_MULTIPLE_SPACES, "delete-multiple-spaces", "Smart Verarbeitung Indentierung mit Leerzeichen;Smarte Indentierung",
 /* 57 */ C_1FUNC, 78 /* EdOptionToggle */, OPT_WMODE|WM_INSERT, "toggle-insert-mode", "Schaltet zwischen Einfügen und Überschreiben um;Einfügen / Überschreiben",
 /* 58 */ C_0FUNC, 59 /* EdOptionSet */, 0 , "set-options", "Konfiguration des allgemeinen Betriebsmodus von PKS-EDIT;Einstellen",
 /* 59 */ C_0FUNC, 18 /* EdFormatText */, 0 , "format-text", "Formatiert einen Textbereich;Format Text",

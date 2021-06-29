@@ -1241,7 +1241,6 @@ int EdDlgDispMode(void) {
 		IDD_INT1,		sizeof tabsize,	&tabsize,
 		IDD_INT2,		sizeof rmargin,	&rmargin,
 		IDD_OPT1,		SHOWCONTROL,		&dispmode,
-		IDD_OPT2,		SHOWATTR,			&dispmode,
 		IDD_OPT4,		SHOWHEX,			&dispmode,
 		IDD_OPT5,		SHOWRULER,		&dispmode,
 		IDD_OPT6,		SHOWOEM,			&dispmode,

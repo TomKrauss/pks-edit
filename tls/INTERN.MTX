@@ -362,7 +362,6 @@ TGL_SHOWCONTROL     =	9,		# Anzeige von Controlzeichen ein/aus
 TGL_SHOWSTATUS      =   10,		# Statuszeile ein/aus
 TGL_ALTSTATUS       =   11,		# alternativer Status ein/aus
 TGL_SHOWRULER       =   12,		# Text-document descriptor ein/aus
-TGL_SHOWATTR        =   13,		# Anzeige Textattribute ein/aus
 }
 
 # FAOPT Optionen FormAlert

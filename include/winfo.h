@@ -13,7 +13,6 @@
 #define	SHOWSTATUS		            0x2
 #define	SHOWHEX			            0x4
 #define	SHOWRULER			        0x8
-#define	SHOWATTR			        0x10
 #define	SHOWOEM			            0x20
 #define	SHOWHIDELINES		        0x40
 #define	SHOWFIXEDWI		            0x80

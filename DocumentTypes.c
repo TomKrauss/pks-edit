@@ -56,7 +56,7 @@ typedef struct tagDOCUMENT_TYPE {
 extern void 	*prof_llinsert(void *Head, int size, char *group, 
 						char *item, char **idata);
 extern void 	prof_killsections(LPSTR pszFn, LPSTR pszSection);
-extern int 	Mapread(int context, char *target);
+extern int 	macro_readMappingFile(int context, char *target);
 
 extern char *	_datadir;
 
@@ -109,10 +109,9 @@ int doctypes_calculateNextTabStop(int col, DOCUMENT_DESCRIPTOR* l) {
 }
 
 /*--------------------------------------------------------------------------
- * InitTabStops()
+ * indent_initTabStopBits()
  */
-static void InitTabStops(DOCUMENT_DESCRIPTOR* lp)
-{
+static void indent_initTabStopBits(DOCUMENT_DESCRIPTOR* lp) {
 	int i, ts;
 
 	ts = 0;
@@ -147,7 +146,7 @@ void doctypes_initDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* lp, int ts) {
 			ind += ts;
 		}
 	}
-	InitTabStops(lp);
+	indent_initTabStopBits(lp);
 }
 
 /*--------------------------------------------------------------------------
@@ -183,7 +182,7 @@ void doctypes_toggleTabStop(DOCUMENT_DESCRIPTOR *linp, int col)
 	else
 		TABPLACE(linp,col);
 
-	InitTabStops(linp);
+	indent_initTabStopBits(linp);
 
 }
 
@@ -232,11 +231,9 @@ void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 /*--------------------------------------------------------------------------
  * doctypes_readDocumentType()
  */
-static int doctypes_readDocumentType(char* fname, DOCUMENT_DESCRIPTOR* lp, int id, int forced)
-{
-	char 	keyfn[512];
-	char* fn;
-	int  	fd;
+static int doctypes_readDocumentType(char* fname, DOCUMENT_DESCRIPTOR* lp, int id) {
+	char*	fn;
+	int		fd;
 
 	if ((fn = file_searchFileInPKSEditLocation(fname)) != 0L && (fd = Fopen(fn, 0)) > 0) {
 		if (Fread(fd, LINSPACE, lp) != LINSPACE) {
@@ -244,20 +241,13 @@ static int doctypes_readDocumentType(char* fname, DOCUMENT_DESCRIPTOR* lp, int i
 			return 0;
 		}
 		Fclose(fd);
-		string_concatPathAndFilename(keyfn, _datadir, "MODI.XXX");
-		doctypes_createTempFileForDocumentType(fn, keyfn);
-	}
-	else {
+	} else {
 		return 0;
 	}
 
 	string_splitFilename(fname, (char*)0, lp->name);
 	lp->id = id;
-	InitTabStops(lp);
-
-	if (keyfn[0] != 0) {
-		Mapread(id, keyfn);
-	}
+	indent_initTabStopBits(lp);
 
 	return 1;
 }
@@ -274,7 +264,7 @@ static DOCUMENT_DESCRIPTOR *LoadDocumentTypeDescriptor(DOCUMENT_TYPE *llp)
 			return 0;
 		}
 		llp->ll_documentDescriptor = lp;
-		doctypes_readDocumentType(llp->ll_documentDescriptorName, lp, llp->ll_ctx, 0);
+		doctypes_readDocumentType(llp->ll_documentDescriptorName, lp, llp->ll_ctx);
 		lstrcpy(llp->ll_documentDescriptor->modename, llp->ll_name);
 	}
 	return lp;
@@ -334,34 +324,6 @@ BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE *llp,
 		*pOwn = &llp->ll_privateDocumentDescriptor;
 	}
 	return TRUE;
-}
-
-/*--------------------------------------------------------------------------
- * doctypes_createTempFileForDocumentType()
- */
-int doctypes_createTempFileForDocumentType(char *linfn, char *tmpfn)
-{
-	int		fd;
-	int		fd2;
-	long		size;
-
-	if ((fd = Fopen(linfn, OF_READ)) < 0) {
-		return 0;
-	}
-
-	if ((fd2 = Fcreate(tmpfn, 0)) < 0) {
-		tmpfn[0] = 0;
-	} else if (Fseek(LINSPACE + 1, fd, 0) > LINSPACE) {
-		Fseek(LINSPACE, fd, 0);
-		while((size = Fread(fd, FBUFSIZE, _linebuf)) > 0) {
-			Fwrite(fd2, size, _linebuf);
-		}
-	}
-	if (fd2 > 0) {
-		Fclose(fd2);
-	}
-	Fclose(fd);
-	return tmpfn[0] ? 1 : 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -450,7 +412,7 @@ BOOL doctypes_getFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename) {
 			if (string_matchFilename(fname,llp->ll_match)) {
 				if (llp->ll_privateDocumentDescriptor) {
 					GetRelatedFileName(filename,linealname,"LIN");
-					if (doctypes_readDocumentType(linealname,linp,llp->ll_ctx,0) != 0) {
+					if (doctypes_readDocumentType(linealname,linp,llp->ll_ctx) != 0) {
 						lstrcpy(linp->modename, llp->ll_name);
 						return 1;
 					}
@@ -728,7 +690,7 @@ int doctypes_readWriteDocumentDescriptor(int wrflag, DOCUMENT_DESCRIPTOR *docume
 		return 1;
 	}
 
-	if (doctypes_readDocumentType(fn,documentDescriptor,documentDescriptor->id,1)) {
+	if (doctypes_readDocumentType(fn,documentDescriptor,documentDescriptor->id)) {
 		if ((wrflag & 2) == 0)
 			doctypes_documentTypeChanged();
 		return 1;

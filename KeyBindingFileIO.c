@@ -16,6 +16,7 @@
 
 #include <windows.h>
 #include <string.h>
+#include "tos.h"
 #include "pksedit.h"
 #include "caretmovement.h"
 #include "edierror.h"
@@ -46,7 +47,7 @@ extern	FSELINFO 	_linfsel;
 extern	int uc_add(char* pat, char* p, int type, int id);
 extern 	PASTE	*bl_lookupPasteBuffer();
 extern	PASTE	*bl_getTextBlock(int id, PASTELIST *pp);
-extern 	int 	doctypes_createTempFileForDocumentType(char *linfn, char *tmpfn);
+extern 	int 	macro_createTempFile(char *linfn, char *tmpfn);
 
 static 	PASTELIST *_abbrevlist;
 
@@ -77,9 +78,9 @@ static void macro_error(int msgId)
 }
 
 /*--------------------------------------------------------------------------
- * ValidEscapeMacros()
+ * macro_getValidEscapeMacros()
  */
-void ValidEscapeMacros(char *pszValid)
+static void macro_getValidEscapeMacros(char *pszValid)
 {
 	PASTELIST *pl;
 
@@ -99,9 +100,9 @@ void ValidEscapeMacros(char *pszValid)
 }
 
 /*--------------------------------------------------------------------------
- * EscapePasteForId()
+ * macro_escapePasteForId()
  */
-static PASTE *EscapePasteForId(int id)
+static PASTE *macro_escapePasteForId(int id)
 {
 	PASTE *		pp;
 
@@ -112,13 +113,13 @@ static PASTE *EscapePasteForId(int id)
 }
 
 /*--------------------------------------------------------------------------
- * TextForEscapeMacro()
+ * macro_textForEscapeMacro()
  */
-static char *TextForEscapeMacro(char *s)
+static char *macro_textForEscapeMacro(char *s)
 {
 	PASTE *	pp;
 
-	pp = EscapePasteForId(*s);
+	pp = macro_escapePasteForId(*s);
 	return bl_convertPasteBufferToText(_linebuf, _linebuf + 256, pp);
 }
 
@@ -136,13 +137,13 @@ int EdMacroEscape(void)
 	if (wp == NULL) {
 		return 0;
 	}
-     ValidEscapeMacros(cIdentChars);
-	if ((id = dlg_displayDialogTemplate(id, TextForEscapeMacro, 
+     macro_getValidEscapeMacros(cIdentChars);
+	if ((id = dlg_displayDialogTemplate(id, macro_textForEscapeMacro, 
 		cIdentChars)) == 0) {
 		return 0;
 	}
 
-	pp = EscapePasteForId(id);
+	pp = macro_escapePasteForId(id);
 
 	if (!pp) {
 		error_showErrorById(IDS_MSGESCAPEUNDEF);
@@ -152,19 +153,19 @@ int EdMacroEscape(void)
 }
 
 /*--------------------------------------------------------------------------
- * skbl()
+ * macro_skipBlanks()
  */
-unsigned char *skbl(register unsigned char *s)
+static unsigned char *macro_skipBlanks(register unsigned char *s)
 {
 	while (*s == ' ' || *s == '\t') s++;
 	return (*s ? s : 0L);
 }
 
 /*--------------------------------------------------------------------------
- * getquotes()
+ * macro_getTextInQuotes()
  */
-int _qulen;
-char *getquotes(char *d,char *s,int maxlen)
+static int _quotedLength;
+char *macro_getTextInQuotes(char *d,char *s,int maxlen)
 {	char *start = d;
 
 	while (*s && *s != '"') {
@@ -176,42 +177,42 @@ char *getquotes(char *d,char *s,int maxlen)
 		}
 		*d++ = *s++;
 	}
-	_qulen = (int)(d-start);
+	_quotedLength = (int)(d-start);
 	return s;
 }
 
 /*--------------------------------------------------------------------------
- * cutquotes()
+ * macro_cutTextWithQuotes()
  */
 static int _mandatory = 1;
-static char *cutquotes(char **S)
+static char *macro_cutTextWithQuotes(char **pszText)
 {	char buf[256],*d,*s;
 
-	if ((s = skbl(*S)) == 0 || *s++ != '"') {
+	if ((s = macro_skipBlanks(*pszText)) == 0 || *s++ != '"') {
 		if (_mandatory)
 			macro_error(IDS_MSGMISSINGAPOSTRPOHE);
 		return 0;
 	}
-	if ((d = getquotes(buf,s,sizeof(buf))) == 0)
+	if ((d = macro_getTextInQuotes(buf,s,sizeof(buf))) == 0)
 		return 0;
 
 	if (*d == '"')
 		d++;
-	buf[_qulen] = 0;
+	buf[_quotedLength] = 0;
 
-	*S = d;
+	*pszText = d;
 	return string_allocate(buf);
 }
 
 /*--------------------------------------------------------------------------
- * advtok()
+ * macro_advanceToNextToken()
  */
-static int advtok(LINE **lp,PASTE *pp,char *s)
+static int macro_advanceToNextToken(LINE **lp,PASTE *pp,char *s)
 {	register LINE *lnlast;
 	LINE *lnfirst;
 	intptr_t cfirst,clast,p1;
 
-	if ((s  = skbl(s)) == 0L)
+	if ((s  = macro_skipBlanks(s)) == 0L)
 		return 0;
 
 	s++;				/* skip \" */
@@ -219,9 +220,9 @@ static int advtok(LINE **lp,PASTE *pp,char *s)
 	lnlast  = lnfirst;
 	cfirst  = p1 = s-lnlast->lbuf;
 	for (;;) {
-		if ((s = getquotes(s,s,32000)) != 0 &&
+		if ((s = macro_getTextInQuotes(s,s,32000)) != 0 &&
 		     *s == '"') break;
-		lnlast->len = (int)(p1+_qulen);
+		lnlast->len = (int)(p1+_quotedLength);
 		if ((lnlast = lnlast->next) == 0) {
 			macro_error(IDS_MSGMISSINGAPOSTRPOHE);
 			return 0;
@@ -229,27 +230,27 @@ static int advtok(LINE **lp,PASTE *pp,char *s)
 		s  = lnlast->lbuf;
 		p1 = 0;
 	}
-	clast  = p1+_qulen;
+	clast  = p1+_quotedLength;
 	*lp    = lnlast;
 	return bl_cutTextWithOptions(pp,lnfirst,lnlast,(int)cfirst,(int)clast,0);
 }
 
 /*--------------------------------------------------------------------------
- * getbuf()
+ * macro_findTextBuffer()
  */
-static PASTE *getbuf(LINE **lp,unsigned char *s,PASTELIST **pl,int id)
+static PASTE *macro_findTextBuffer(LINE **lp,unsigned char *s,PASTELIST **pl,int id)
 {	PASTE *pp;
 	int   defmacro = (id == 0);
 
 	if (id == 0) {
-		if ((s = skbl(s)) == 0L) return 0;
+		if ((s = macro_skipBlanks(s)) == 0L) return 0;
 		id = *s++;
 	}
 	if ((pp = bl_lookupPasteBuffer(id,1,pl)) == 0L)
 		return 0;
 
 	if (defmacro) {
-		if ((s = skbl(s)) == 0L) return 0;
+		if ((s = macro_skipBlanks(s)) == 0L) return 0;
 		if (*s == '!') {
 			pp->pflg = 1;
 			if (bl_cutTextWithOptions(pp,*lp,*lp,(int)(s-(*lp)->lbuf),(*lp)->len,0))
@@ -257,22 +258,22 @@ static PASTE *getbuf(LINE **lp,unsigned char *s,PASTELIST **pl,int id)
 		}
 	}
 
-	if (advtok(lp,pp,(char *)s))
+	if (macro_advanceToNextToken(lp,pp,(char *)s))
 		return pp;
 
 	return 0;
 }
 
 /*--------------------------------------------------------------------------
- * setupccl()
+ * macro_defineBracketDefinitions()
  */
-static int setupccl(char *s)
-{	char *c1,*c2;
+static int macro_defineBracketDefinitions(char *s) {
+	char *c1,*c2;
 	int  v,i1,i2,i3,i4;
 
-	if ((c1 = cutquotes(&s)) == 0)
+	if ((c1 = macro_cutTextWithQuotes(&s)) == 0)
 		return 0;
-	if ((c2 = cutquotes(&s)) == 0)
+	if ((c2 = macro_cutTextWithQuotes(&s)) == 0)
 		return 0;
 
 	v = string_convertToLong(s);
@@ -285,20 +286,9 @@ static int setupccl(char *s)
 }
 
 /*--------------------------------------------------------------------------
- * set2pars()
+ * macro_expandAbbreviation()
  */
-static void set2pars(char *s,void (*func)(char *s1,char *s2))
-{	char *c1,*c2;
-
-	if ((c1 = cutquotes(&s)) != 0 &&
-	    (c2 = cutquotes(&s)) != 0) 
-		(*func)(c1,c2);
-}
-
-/*--------------------------------------------------------------------------
- * doabbrev()
- */
-int doabbrev(WINFO *wp, LINE *lp,int offs)
+int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs)
 {
 	struct uclist *up;
 	long 		o2;
@@ -323,33 +313,34 @@ int doabbrev(WINFO *wp, LINE *lp,int offs)
 }
 
 /*--------------------------------------------------------------------------
- * setabbrev()
+ * macro_defineAbbreviation()
  */
-static int _abid;
-static int setabbrev(LINE **lp,char *s)
-{	char *shortie;
+static int _actionBufferId;
+static int macro_defineAbbreviation(LINE **lp,char *s)
+{	char *pszInputMatch;
 	PASTE *pp;
 
-	if ((shortie = cutquotes(&s)) == 0 ||
-	    (pp = getbuf(lp,s,&_abbrevlist,++_abid)) == 0L)
+	if ((pszInputMatch = macro_cutTextWithQuotes(&s)) == 0 ||
+	    (pp = macro_findTextBuffer(lp,s,&_abbrevlist,++_actionBufferId)) == 0L)
 		return 0;
-	return uc_add(shortie,pp->pln->lbuf,UA_ABBREV,_context);
+	return uc_add(pszInputMatch,pp->pln->lbuf,UA_ABBREV,_context);
 }
 
 /*--------------------------------------------------------------------------
- * setuc_macro()
+ * uc_defineMacroWithTrigger()
  */
-static void setuc_macro(char *trigger, char *macroname)
+static void uc_defineMacroWithTrigger(char *trigger, char *macroname)
 {
 	uc_add(trigger,macroname,UA_UCMACRO,_context);
 }
 
 /*--------------------------------------------------------------------------
- * parsekeydefs()
+ * macro_parseKeyDefinitions()
  */
-static void parsekeydefs(FTABLE *fp)
-{	LINE *lp;
-	register char *s,c;
+static void macro_parseKeyDefinitions(FTABLE *fp) {	
+	LINE *lp;
+	char* s;
+	char c;
 
 	_keyfile = fp;
 	lp = fp->firstl;
@@ -361,17 +352,22 @@ static void parsekeydefs(FTABLE *fp)
 			s = lp->lbuf;
 			c = *s++;
 			switch(c) {
-				case 'A':
-					set2pars(s,setuc_macro);
+				case 'A': {
+					char* c1, * c2;
+
+					if ((c1 = macro_cutTextWithQuotes(&s)) != 0 &&
+						(c2 = macro_cutTextWithQuotes(&s)) != 0)
+						uc_defineMacroWithTrigger(c1, c2);
+					}
 					break;
 				case 'a':
-					setabbrev(&lp,s);
+					macro_defineAbbreviation(&lp,s);
 					break;
 				case 'T':
-					getbuf(&lp,s,&_esclist[_context],0);
+					macro_findTextBuffer(&lp,s,&_esclist[_context],0);
 					break;
 				case 'k':
-					setupccl(s);
+					macro_defineBracketDefinitions(s);
 					break;
 			}
 		}
@@ -380,15 +376,15 @@ static void parsekeydefs(FTABLE *fp)
 }
 
 /*--------------------------------------------------------------------------
- * Mapread()
+ * macro_readMappingFile()
+ * Read a menu mapping/keybinding/mouse mapping definition file.
  */
-int Mapread(int context, char *target)
-{
+int macro_readMappingFile(int context, char *pszFilename) {
 	FTABLE 	ft;
-	static 	wehavemac;
+	static 	BOOL bMacrosDefined;
 	int 		ret = 0;
 
-	if (target != 0 && (ret = ft_readfileWithOptions(&ft,target,-1)) != 0) {
+	if (pszFilename != 0 && (ret = ft_readfileWithOptions(&ft,pszFilename,-1)) != 0) {
 
 		if (context >= 0) {
 			_context = context;
@@ -397,13 +393,13 @@ int Mapread(int context, char *target)
 			 * remove old entries
 			 */
 			_context = DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
-			_abid = 0;
+			_actionBufferId = 0;
 		}
 
-		parsekeydefs(&ft);
+		macro_parseKeyDefinitions(&ft);
 		ln_listfree(ft.firstl);
 
-		wehavemac = 1;
+		bMacrosDefined = 1;
 	}
 
 	sm_setup();
@@ -440,6 +436,33 @@ int EdDocMacrosAdd(void)
 }
 
 /*--------------------------------------------------------------------------
+ * macro_createTempFile()
+ */
+static int macro_createTempFile(char* linfn, char* tmpfn) {
+	int		fd;
+	int		fd2;
+	long		size;
+
+	if ((fd = Fopen(linfn, OF_READ)) < 0) {
+		return 0;
+	}
+
+	if ((fd2 = Fcreate(tmpfn, 0)) < 0) {
+		tmpfn[0] = 0;
+	} else {
+		while ((size = Fread(fd, FBUFSIZE, _linebuf)) > 0) {
+			Fwrite(fd2, size, _linebuf);
+		}
+	}
+	if (fd2 > 0) {
+		Fclose(fd2);
+	}
+	Fclose(fd);
+	return tmpfn[0] ? 1 : 0;
+}
+
+
+/*--------------------------------------------------------------------------
  * EdDocMacrosEdit()
  */
 int EdDocMacrosEdit(void)
@@ -451,57 +474,9 @@ int EdDocMacrosEdit(void)
 		return 0;
 	}
 	string_concatPathAndFilename(keyfile, _datadir, "MODI.TMP");
-	if (doctypes_createTempFileForDocumentType(file_searchFileInPKSEditLocation(ft_getCurrentDocument()->documentDescriptor->name), keyfile)) {
+	if (macro_createTempFile(file_searchFileInPKSEditLocation(ft_getCurrentDocument()->documentDescriptor->name), keyfile)) {
 		return xref_openFile(keyfile, -1L, (void*)0);
 	}
 	return 0;
 }
-
-#if defined(MACROS20)
-/*--------------------------------------------------------------------------
- * SetRulerContext()
- */
-SetRulerContext(char *s)
-{
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * bind_abbreviation()
- */
-static int _abid;
-void bind_abbreviation(char *trigger, char *s)
-{
-	PASTE *pp;
-
-	if ((pp = getbuf(s, &_abbrevlist, ++_abid)) == 0L) {
-		return;
-	}
-	uc_add(string_allocate(trigger), pp, UA_ABBREV, _context);
-}
-
-/*--------------------------------------------------------------------------
- * bind_abbrevmacro()
- */
-void bind_abbrevmacro(char *trigger, char *macroname)
-{
-	uc_add(string_allocate(trigger), string_allocate(macroname), UA_UCMACRO, _context);
-}
-
-/*--------------------------------------------------------------------------
- * bind_escape()
- */
-void bind_escape(char id, char *s)
-{
-	getbuf(s, &_esclist[_context], id);
-}
-
-/*--------------------------------------------------------------------------
- * bind_ccldefinition()
- */
-void bind_ccldefinition(char *c1, char *c2, int v, int i1, int i2. int i3. int i4) {
-	sm_defineBracketIndentation(string_allocate(c1), string_allocate(c2), v, i1, i2, i3, i4, _context);
-}
-
-# endif
 

@@ -61,8 +61,6 @@ extern BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
 	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszFname,
 	int** pOwn);
 
-extern int doctypes_createTempFileForDocumentType(char* linfn, char* tmpfn);
-
 extern int doctypes_mergeDocumentTypes(char* pszLinealFile, char* pszDocMacFile);
 
 /*--------------------------------------------------------------------------

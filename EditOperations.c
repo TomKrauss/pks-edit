@@ -49,7 +49,7 @@ extern int 	sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr,
 extern void 	wt_insline(FTABLE *fp, int caretLine, int nlines);
 extern void 	ln_changeFlag(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark,
 				int set);
-extern int 	doabbrev(WINFO *fp, LINE *lp,int offs);
+extern int 	macro_expandAbbreviation(WINFO *fp, LINE *lp,int offs);
 extern void 	render_updateCaret(WINFO *wp);
 
 extern long 	_multiplier;
@@ -740,7 +740,7 @@ int EdCharInsert(int c)
 	if (!_playing) {
 
 		if (workmode & WM_ABBREV) {
-			doabbrev(wp,lp,offs);
+			macro_expandAbbreviation(wp,lp,offs);
 		}
 		if (workmode & WM_SHOWMATCH) {
 			uc_showMatchingBracket(lp,wp->caret.offset);
@@ -1030,7 +1030,7 @@ int EdExpandAbbreviation(void)
 
 	if (wp) {
 		return
-			doabbrev(wp->fp,wp->caret.linePointer,wp->caret.offset);
+			macro_expandAbbreviation(wp->fp,wp->caret.linePointer,wp->caret.offset);
 	}
 	return 0;
 }

@@ -1,5 +1,5 @@
 [files]
-"C:\temp\JdbcSessionBig.java", line 60919: 0x0 0x1 -1 -1 -8 -31 0 0 1858 905
+"C:\temp\JdbcSessionBig.java", line 53162: 0x0 0x1 -1 -1 -8 -31 0 0 1858 905
 [find]
 !winte
 !wint
@@ -40,7 +40,6 @@
 !,
 ! 
 [open]
-!C:\source\pksedit\macro_compiler\MacroSymbolMapping.c
 !C:\source\pksedit\macro_compiler\MacroExpressions.c
 !C:\source\pksedit\macro_compiler\JumpLabels.c
 !C:\source\pksedit\macro_compiler\GenerateMacroCode.c
@@ -72,6 +71,7 @@
 !C:\source\pksedit\ColumnBlocks.c
 !C:\Users\tom\AppData\Local\Temp\KEYS
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
+!C:\Users\tom\AppData\Local\Temp\MACROS.PKC
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN

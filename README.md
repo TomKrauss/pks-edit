@@ -21,18 +21,28 @@ Ultra Edit:
 
 ## Installing and Using PKS Edit
 
-To install PKS-Edit, copy the executable ``PKSEDIT.EXE`` along with the
-directory PKS_SYS to a directory of your choice. The directory PKS_SYS
-must be published in the ``WIN.INI`` file in an entry similar to the following:
-
-```
-[PksEdit]
-PKS_SYS=C:\TOOLS\PKSEDIT\PKS_SYS
-```
+To install PKS-Edit, you may use the provided INNO Setup based installer.
 
 Usually you will use PKS-Edit by associating it with certain file types.
 The registry file pksedit.reg contains an example on how 
 to register some default types (*.java, *.txt) to be edited by PKS-Edit.
+
+## Hacking
+
+To change, edit, compile and run the source code of PKS Edit, we recommend to use
+[Microsoft Visual Studio 2019](https://visualstudio.microsoft.com/de/vs/). The community
+edition will do it - you do not need a professional or enterprise edition. Simply
+open the Pksedit.sln solution and run / debug / build it.
+
+To enhance the macro compiler, you need flex and bison. You may download flex and bison from
+here:
+- http://gnuwin32.sourceforge.net/packages/flex.htm
+- http://gnuwin32.sourceforge.net/packages/bison.htm
+Install flex and bison into a directory GNU_HOME and set the environment variable GNU_HOME to
+point to that directory: The bin directory containing the files should be below GNU_HOME.
+
+In order to edit the or execute the installation script (pksedit.iss), you need to download
+[Inno Setup](https://jrsoftware.org/ishelp/index.php) (we use currently the latest version 6.2).
 
 ## Release Notes
 

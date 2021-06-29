@@ -213,9 +213,6 @@
     <ClCompile Include="PaintEditorWindow.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PaintEditorWindowAttributes.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RegularExpression.c">
       <Filter>Source Files</Filter>
     </ClCompile>

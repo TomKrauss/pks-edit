@@ -48,7 +48,6 @@ typedef struct xywh {
 
 static WINFO *_winlist;
 
-extern int render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y, WINFO* wp, LINE* lp);
 extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
 extern char *ft_visiblename(FTABLE *fp);
 extern int  mouse_onRulerClicked(WINFO *fp, int x, int y, int msg, int shift);
@@ -567,7 +566,7 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
 
 	wp->dispmode = linp->dispmode;
-	wp->renderFunction = (wp->dispmode & SHOWATTR) ? render_singleLineWithAttributesOnDevice : render_singleLineOnDevice;
+	wp->renderFunction = render_singleLineOnDevice;
 
 	memmove(&wp->fnt, &linp->fnt, sizeof wp->fnt);
 	if (wp->fnt.fgcolor == wp->fnt.bgcolor) {

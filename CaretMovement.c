@@ -39,7 +39,7 @@ extern long		_multiplier;
  * the internal offset to the line buffer
  */
 EXPORT int caret_lineOffset2screen(WINFO *wp, CARET *cp)
-{	register int  col = 0,flags;
+{	register int  col = 0;
 	register char *p = cp->linePointer->lbuf;
 	register char* lbuf = p;
 	int lnoffset = cp->offset;
@@ -52,26 +52,6 @@ EXPORT int caret_lineOffset2screen(WINFO *wp, CARET *cp)
 	}
 	lbuf += cp->offset;
 	FTABLE* fp = wp->fp;
-	flags = wp->dispmode;
-
-	if (flags & SHOWATTR) {
-		while (p < lbuf) {
-			if (*p++ == '\t') {
-				if ((flags & SHOWCONTROL) == 0) {
-					col = doctypes_calculateNextTabStop(col, fp->documentDescriptor);
-				} else {
-					col++;
-				}
-				continue;
-			}
-			if (p[-1] == '\033') {
-				p++;
-			} else {
-				col++;
-			}
-		}
-		return col;
-	}
 
 	while (p < lbuf) {
 		if (*p++ == '\t') 
@@ -89,7 +69,6 @@ EXPORT int caret_lineOffset2screen(WINFO *wp, CARET *cp)
 EXPORT int caret_screen2lineOffset(WINFO *wp, CARET *pCaret)
 {
 	int  	i=0;
-	int		flags;
 	int col = pCaret->offset;
 	LINE* lp = pCaret->linePointer;
 	char *	p = lp->lbuf;
@@ -102,27 +81,7 @@ EXPORT int caret_screen2lineOffset(WINFO *wp, CARET *pCaret)
 		}
 	}
 	FTABLE* fp = wp->fp;
-	flags = wp->dispmode;
 
-	if (flags & SHOWATTR) {
-		while (i < col && p < pend) {
-			if (*p++ == '\t') {
-				if ((flags & SHOWCONTROL) == 0) {
-					i = doctypes_calculateNextTabStop(i, fp->documentDescriptor);
-				} else {
-					i++;
-				}
-				continue;
-			}
-			if (p[-1] == '\033') {
-				p++;
-			} else {
-				i++;
-			}
-		}
-		return (int)(p - lp->lbuf);
-	}
-	
 	while (i < col && p < pend) {
 		if (*p++ == '\t')
 			i = doctypes_calculateNextTabStop(i,fp->documentDescriptor);
@@ -291,20 +250,6 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int update
 	if (o < 0) {
 		*col = 0;
 		o    = 0;
-	}
-
-	if (wp->dispmode & SHOWATTR) {
-		while(1) {
-			if (o > 0 && lp->lbuf[o-1] == '\033')
-				o++;
-			else if (lp->lbuf[o] == '\033')
-				o += 2;
-			else
-				break;
-			if (o >= lp->len) {
-				break;
-			}
-		}
 	}
 
 	if (o > lp->len) {
@@ -800,19 +745,7 @@ EXPORT LINE *cadv_c(LINE *lp,long *ln,long *col,int dir,unsigned char match)
  * structure of the data and return the new offset into the line buffer.
  */
 EXPORT int caret_getPreviousColumnInLine(WINFO* wp, LINE *lp, int col) {
-	FTABLE* fp = wp->fp;
-
-	col--;
-	if (wp->dispmode & SHOWATTR) {
-		while (col > 1) {
-			if (lp->lbuf[col-1] == '\033')
-				col--;
-			if (lp->lbuf[col] == '\033')
-				col--;
-			else break;
-		}
-	}
-	return col;
+	return col-1;
 }
 
 /*--------------------------------------------------------------------------
