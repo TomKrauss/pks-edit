@@ -149,7 +149,8 @@ static LINE *tabinsl(FTABLE *fp, LINE *lpd, LINE *lps, int col, int ctrlmode)
 /* bl_pastecol()					*/
 /* paste a textcol					*/
 /*--------------------------------------*/
-EXPORT int bl_pastecol(PASTE *pb,WINFO *wp, LINE *lpd, int col) {
+EXPORT int bl_pastecol(PASTE *pb,WINFO *wp, LINE *lpd, int col)
+{
 	LINE *	lps;
 	LINE *	lpnew;
 	FTABLE* fp = wp->fp;

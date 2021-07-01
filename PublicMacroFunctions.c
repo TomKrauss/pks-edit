@@ -1266,12 +1266,12 @@ int EdDlgDispMode(void) {
 	tabfill = linp->t1;
 	_d[1].dp_data = &font;
 	memmove(&font, &linp->editFontStyle, sizeof font);
-	bgcolor = linp->fnt_bgcolor;
+	bgcolor = linp->editFontStyle->bgcolor;
 	if (win_callDialog(DLGDISPMODE,&_fp,_d, NULL) == 0) {
 		return 0;
 	}
 	memmove(&linp->editFontStyle, &font, sizeof font);
-	linp->fnt_bgcolor = bgcolor;
+	linp->editFontStyle->bgcolor = bgcolor;
 	lstrcpy(linp->statusline,status);
 	linp->dispmode = dispmode;
 	linp->t1 = tabfill;

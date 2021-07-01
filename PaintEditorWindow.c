@@ -256,9 +256,10 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 
 	hdc = BeginPaint(hwnd, &ps);
 	saveFont = font_selectDefaultEditorFont(wp,hdc,NULL);
-	SetTextColor(hdc,wp->fnt_fgcolor);
+	EDTEXTSTYLE* pStyle = &wp->editFontStyle;
+	SetTextColor(hdc,pStyle->fgcolor);
 	SetBkMode(hdc, TRANSPARENT);
-	hBrushBg = CreateSolidBrush(wp->fnt_bgcolor);
+	hBrushBg = CreateSolidBrush(pStyle->bgcolor);
 	hBrushCaretLine = CreateSolidBrush(pTheme->th_caretLineColor);
 	hBrushMarkedLines = CreateSolidBrush(pTheme->th_markedLineColor);
 

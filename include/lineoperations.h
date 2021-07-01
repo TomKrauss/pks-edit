@@ -146,13 +146,15 @@ typedef struct tagEDIT_CONFIGURATION {
 	unsigned char 	tbits[MAXLINELEN / 8];	/* Bitset real Tabstops */
 	unsigned char	statusline[60];	/* the special status */
 	WINDOWPLACEMENT	placement;		/* for windows with fixed size */
-	EDTEXTSTYLE			editFontStyle;			/* font */
+	EDTEXTSTYLE*	editFontStyle;			/* font */
+	char			editFontStyleName[16];	/* Name of the font style to use*/
 	char		   backupExtension[10];		/* Backup extension */
 	unsigned char  tagtag[12];		/* private tag tag */
 	unsigned char	creationMacroName[24];	/* "Vorlage" Makro on creation */
 	unsigned char	closingMacroName[24];	/* makro to execute before closing */
 	int				scrollflags;		/* thumbtrack.. */
 	int				cursaftersearch;	/* CP_POSTOP, CP_POSLOW, ... */
+	int				hscroll;			/* scroll n columns */
 	int				vscroll;			/* scroll n Lines */
 	int				scroll_dy;			/* scroll on dist dy to screen */
 	unsigned char	ts[256];		/* fast access 1st 256 Tabstops */

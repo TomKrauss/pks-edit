@@ -31,20 +31,23 @@ ChangesAssociations = yes
 [Files]
 Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"
 Source: "pks_sys\pksedit.ini"; DestDir: "{app}\pks_sys"
-Source: "pks_sys\pksconfig.json"; DestDir: "{app}\pks_sys"
+Source: "pks_sys\pkseditconfig.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\pksedit.reg"; DestDir: "{app}\pks_sys"
+Source: "pks_sys\pksedit.mac"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\pksedit.chm"; DestDir: "{app}\pks_sys"
 Source: "readme.md"; DestDir: "{app}"; Flags: isreadme
 Source: "doc\release_notes.md"; DestDir: "{app}\doc" 
 
 [INI]
-Filename: "win.ini"; Section: "PksEdit"; Key: "PKS_SYS"; String: "{app}"
+Filename: "win.ini"; Section: "PksEdit"; Key: "PKS_SYS"; String: "{app}\PKS_SYS"
 
 [Icons]
 Name: "{group}\PKS Edit"; Filename: "{app}\{#MyAppExeName}"
 
 [Registry]
 Root: HKCR; Subkey: ".txt"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: ".md"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: ".json"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKCR; Subkey: ".jsp"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKCR; Subkey: ".log"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKCR; Subkey: "{#MyAppName}"; ValueData: "Program {#MyAppName}"; Flags: uninsdeletekey;   ValueType: string;  ValueName: ""

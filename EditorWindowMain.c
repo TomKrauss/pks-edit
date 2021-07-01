@@ -223,8 +223,9 @@ EXPORT void ww_setScrollCheckBounds(WINFO *wp)
 {
 	RECT rect;
 	GetClientRect(wp->ww_handle, &rect);
+	int dy = wp->scroll_dy;
 	ww_updateRangeAndCheckBounds(wp->minln, wp->cheight, rect.bottom-rect.top,
-			&wp->maxln, &wp->maxcursln, &wp->mincursln, &wp->scroll_dy); 
+			&wp->maxln, &wp->maxcursln, &wp->mincursln, &dy); 
 			
 	ww_updateRangeAndCheckBounds(wp->mincol, wp->cwidth, rect.right - rect.left,
 			&wp->maxcol, &wp->maxcurscol, &wp->mincurscol, &wp->scroll_dx); 
@@ -570,7 +571,7 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	wp->dispmode = linp->dispmode;
 	wp->renderFunction = render_singleLineOnDevice;
 
-	memmove(&wp->editFontStyle, &linp->editFontStyle, sizeof wp->editFontStyle);
+	memmove(&wp->editFontStyle, linp->editFontStyle, sizeof wp->editFontStyle);
 	if (wp->editFontStyle.fgcolor == wp->editFontStyle.bgcolor) {
 		wp->editFontStyle.fgcolor = RGB(0,0,0);
 		wp->editFontStyle.bgcolor = RGB(255,255,255);
@@ -594,6 +595,9 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	wp->cursaftersearch = linp->cursaftersearch;
 	wp->vscroll = linp->vscroll;
 	wp->scroll_dy = linp->scroll_dy;
+	wp->hscroll = linp->hscroll;
+	wp->scroll_dx = 4;
+
 	ww_setScrollCheckBounds(wp);
 	render_updateCaret(wp);
 }
@@ -682,9 +686,6 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd) {
 
 	ww_applyDisplayProperties(wp);
 		 
-	wp->hscroll   = 4;
-	wp->scroll_dx = 4;
-
 	wp->win_id = ++nwindows;
 	wp->maxVisibleLineLen = -1;
 	return wp;

@@ -36,10 +36,10 @@ typedef struct tagEDTEXTSTYLE {
 	struct tagEDTEXTSTYLE* next;
 	char		styleName[32];
 	char		faceName[32];
-	short		size;
+	char		charset;
+	int			size;
 	long		fgcolor;
 	long		bgcolor;
-	short		charset;
 	EDFONTATTRIBUTES style;
 } EDTEXTSTYLE;
 

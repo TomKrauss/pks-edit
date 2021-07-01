@@ -90,7 +90,7 @@ char* mystrrchr(char s[], int c) {
  */
 static BOOL _checkPksSys(char* pathName) {
 	char initFileName[1024];
-	string_concatPathAndFilename(initFileName, _homedir, "pksedit.ini");
+	string_concatPathAndFilename(initFileName, pathName, "pksedit.ini");
 	return file_exists(initFileName) == 0;
 }
 
@@ -115,27 +115,35 @@ EXPORT BOOL init_initializeVariables(void )
 	_datadir = _sysdir+8;
 	tempLen = GetModuleFileName(NULL, _homedir, EDMAXPATHLEN);
 	_homedir[tempLen] = 0;
-	GetProfileString("PksEdit", pks_sys, "", _datadir, EDMAXPATHLEN);
-	if (!*_datadir || !_checkPksSys(_datadir)) {
-		tempFound = mystrrchr(_homedir, '\\');
-		if (tempFound != NULL && (tempFound - _homedir) > 1) {
-			tempFound[-1] = 0;
-			strcat(_homedir, "\\");
-			strcat(_homedir, pks_sys);
-			if (_checkPksSys(_homedir)) {
-				strcpy(_datadir, _homedir);
+	// PKS_SYS environment var first
+	Getenv(pks_sys, datadir, sizeof(_datadir));
+	if (*datadir) {
+		lstrcpy(_datadir, datadir);
+	} else {
+		// current directory - PKS_SYS sub-directory next
+		_getcwd(_datadir, EDMAXPATHLEN);
+		string_concatPathAndFilename(_datadir, _datadir, pks_sys);
+		if (!_checkPksSys(_datadir)) {
+			// Next: config from win.ini
+			GetProfileString("PksEdit", pks_sys, "", _datadir, EDMAXPATHLEN);
+			if (!*_datadir || !_checkPksSys(_datadir)) {
+				// Finally: PKS_SYS from the path of the exe executed.
+				tempFound = mystrrchr(_homedir, '\\');
+				if (tempFound != NULL && (tempFound - _homedir) > 1) {
+					tempFound[-1] = 0;
+					string_concatPathAndFilename(_homedir, _homedir, pks_sys);
+					if (_checkPksSys(_homedir)) {
+						strcpy(_datadir, _homedir);
+					}
+				}
+				else {
+					_homedir[0] = '\0';
+				}
 			}
-		}
-		else {
-			_homedir[0] = '\0';
 		}
 	}
 	if (_homedir[0] == 0) {
 		_getcwd(_homedir,sizeof _homedir);
-	}
-	Getenv(pks_sys, datadir,sizeof(_datadir));
-	if (*datadir) {
-		lstrcpy(_datadir, datadir);
 	}
 	compiler[0] = 0;
 	Getenv("PKS_COMPILER", compiler, sizeof(compiler));
@@ -144,7 +152,6 @@ EXPORT BOOL init_initializeVariables(void )
 	}
 	Getenv("PKS_INCLUDE_PATH", GetConfiguration()->includePath, member_size(EDITOR_CONFIGURATION, includePath));
 	Getenv("PKS_TMP", GetConfiguration()->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath));
-
 	string_concatPathAndFilename(_homedir,_homedir,"");
 	return TRUE;
 }

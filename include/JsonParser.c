@@ -89,12 +89,12 @@ static int json_matches(const char* json, jsmntok_t* tok, JSON_MAPPING_RULE* pRu
 /*
  * Find a mapping rule for a JSON token input. 
  */
-static JSON_MAPPING_RULE* json_findRule(char* pJsonInput, jsmntok_t* pToken, JSON_MAPPING_RULE* pRules) {
-	while (pRules->r_type != RT_END) {
-		if (json_matches(pJsonInput, pToken, pRules)) {
-			return pRules;
+static JSON_MAPPING_RULE* json_findRule(char* pJsonInput, jsmntok_t* pToken, JSON_MAPPING_RULE* pRule) {
+	while (pRule->r_type != RT_END) {
+		if (json_matches(pJsonInput, pToken, pRule)) {
+			return pRule;
 		}
-		pRules++;
+		pRule++;
 	}
 	return NULL;
 }
@@ -131,7 +131,7 @@ static int json_getObjectList(char* pszBuf, jsmntok_t* tokens, int firstToken, i
 
 	while (i < numberOfTokens) {
 		if (tokens[i].start > bEnd) {
-			break;
+			return i;
 		}
 		if (tokens[i].type == JSMN_OBJECT) {
 			void* pNested = pArrayDescriptor->ro_createInstance();
@@ -243,7 +243,11 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 				break;
 			case RT_FLAG:
 				if (strcmp("true", tokenContents) == 0) {
-					(*(int*)pTargetSlot) |= pRule->r_descriptor.r_t_flag;
+					int bit = pRule->r_descriptor.r_t_flag;
+					if (bit == 0) {
+						bit = 1;
+					}
+					(*(int*)pTargetSlot) |= bit;
 				}
 				break;
 			}
@@ -374,6 +378,7 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 	void * pSourceSlot = ((char*)pSourceObject + pRule->r_targetOffset);
 	char	tokenContents[MAX_TOKEN_SIZE + 1];
 	char b[64];
+	int bit;
 
 	switch (pRule->r_type) {
 	case RT_ALLOC_STRING:
@@ -387,7 +392,8 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 		sprintf(tokenContents, "%d", (int)*((short*)pSourceSlot));
 		break;
 	case RT_FLAG:
-		if ((*(int*)pSourceSlot) & pRule->r_descriptor.r_t_flag) {
+		bit = pRule->r_descriptor.r_t_flag;
+		if ((bit == 0 && (*(int*)pSourceSlot)) || (bit != 0 && ((*(int*)pSourceSlot) & bit))) {
 			strcpy(tokenContents, "true");
 		} else {
 			return 0;

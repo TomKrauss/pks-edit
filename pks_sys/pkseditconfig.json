@@ -44,13 +44,13 @@
     }
     ],
     "editorConfigurations": [
-    {
+      {
         "name": "default",
         "id": 1,
         "leftMargin": 0,
         "rightMargin": 100,
         "tabSize": 4,
-        "tabulatorSizes": [4],
+        "tabulatorSizes": [ 4 ],
         "shiftWidth": 4,
         "showWhitespace": true,
         "showRuler": true,
@@ -65,17 +65,14 @@
         "fillCharacter": " ",
         "newlineCharacter": "\n",
         "crCharacter": "\r",
-        "fontFace": "Consolas",
-        "fontSize": 15,
-        "scrollBy": 1,
-        "scrollTopDelta": 3,
+        "editFontStyleName": "default",
+        "scrollVerticallyBy": 0,
+        "scrollVerticalBorder": 5,
         "cursorSearchPlacement": 1,
         "scrollSupportTrackThumb": true,
         "caretFollowsScrollbar": true,
-        "backgroundColor": "#faffff",
-        "foregroundColor": "#000088",
         "backupExtension": "bak"
-    },
+      },
     {
         "name": "encrypted",
         "id": 2,
@@ -90,12 +87,29 @@
         "tabCharacter": " ",
         "newlineCharacter": "\n",
         "crCharacter": "\r",
-        "fontFace": "consolas",
-        "fontSize": 15,
+        "editFontStyleName": "default",
         "scrollBy": 0,
         "scrollTopDelta": 0,
-        "cursorSearchPlacement": 0,
-        "backgroundColor": "#000000",
-        "foregroundColor": "#000000"
+        "cursorSearchPlacement": 0
+    }
+    ],
+    "textStyles": [
+    {
+        "styleName": "default",
+        "faceName": "Consolas",
+        "size": 15,
+        "backgroundColor": "#fefefe",
+        "foregroundColor": "#000066",
+        "weight": 0
+    },
+    {
+        "styleName": "small",
+        "faceName": "Consolas",
+        "size": 14,
+        "backgroundColor": "#fdfdfd",
+        "foregroundColor": "#002200",
+        "italic": true,
+        "underline": true,
+        "weight": 300
     }
     ]}
