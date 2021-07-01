@@ -31,7 +31,7 @@
 #define	WP_SUB		0x20
 #define	HYPHEN		''
 
-extern int 	doctypes_calculateTabStop(int col, DOCUMENT_DESCRIPTOR *l);
+extern int 	doctypes_calculateTabStop(int col, EDIT_CONFIGURATION *l);
 
 /*--------------------------------------------------------------------------
  * SelectTextAttribute()
@@ -41,7 +41,7 @@ static void SelectTextAttribute(HDC hdc,
 						  unsigned char attribut, 
 						  unsigned char olda)
 {	int   a;
-	EDFONTSTYLE fontStyle;
+	EDFONTATTRIBUTES fontStyle;
 
 	a = attribut & 0xF;
 	if (a == olda) {
@@ -115,7 +115,7 @@ int render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y, WINFO *wp, LI
 	register 			col;
 	int 	    		ctrl;
     int					ind;
-	DOCUMENT_DESCRIPTOR* lin;
+	EDIT_CONFIGURATION* lin;
 	unsigned char* b = buf;
 	int start, end;
 

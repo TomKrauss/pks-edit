@@ -1,14 +1,16 @@
 /*
  * ErrorDialogs.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
+ * PROJEKT: PKS-EDIT for MS - WINDOWS
  *
  * purpose: error error_displayAlertDialog message boxes and other
  * type of user notification in case of errors.
  *
- * (c) Pahlen & Krauss
- *
- * 								Author: Tom
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * 
+ * author: Tom
  */
 
 #include <windows.h>

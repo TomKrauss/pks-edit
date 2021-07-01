@@ -23,7 +23,7 @@ typedef struct tagDOCUMENT_TYPE DOCUMENT_TYPE;
  * doctypes_readWriteDocumentDescriptor()
  * Read or write the passed document descriptor to a file. wrflag & 2 -> documentDescriptor is given as par
  */
-extern int doctypes_readWriteDocumentDescriptor(int wrflag, DOCUMENT_DESCRIPTOR* documentDescriptor);
+extern int doctypes_readWriteDocumentDescriptor(int wrflag, EDIT_CONFIGURATION* documentDescriptor);
 
 /*--------------------------------------------------------------------------
  * doctypes_initAllDocumentTypes()
@@ -34,23 +34,23 @@ extern int doctypes_initAllDocumentTypes(void);
 /**
  * Deletes and de-allocates all known document types.
  */
-extern void doctypes_deleteAllDocumentTypes();
+extern void doctypes_destroyAllDocumentTypes();
 
 /*--------------------------------------------------------------------------
  * doctypes_initDocumentTypeDescriptor()
  */
-extern void doctypes_initDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* pDescriptor, int tabSize);
+extern void doctypes_initDocumentTypeDescriptor(EDIT_CONFIGURATION* pDescriptor, int tabSize);
 
 /*--------------------------------------------------------------------------
  * Creates the default attributes for editing a document. The returned structure
  * must be freed, when done using it.
  */
-extern DOCUMENT_DESCRIPTOR* doctypes_createDefaultDocumentTypeDescriptor();
+extern EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor();
 
 /*--------------------------------------------------------------------------
  * doctypes_toggleTabStop()
  */
-extern void doctypes_toggleTabStop(DOCUMENT_DESCRIPTOR* pDescriptor, int column);
+extern void doctypes_toggleTabStop(EDIT_CONFIGURATION* pDescriptor, int column);
 
 /*--------------------------------------------------------------------------
  * doctypes_countDocumentTypes()
@@ -70,7 +70,7 @@ extern int doctypes_mergeDocumentTypes(char* pszLinealFile, char* pszDocMacFile)
  * 	2. if common document descriptor, ...
  *	3. if neither, use standard document descriptor
  */
-extern BOOL doctypes_getFileDocumentType(DOCUMENT_DESCRIPTOR* linp, char* filename);
+extern BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION* linp, char* filename);
 
 /*--------------------------------------------------------------------------
  * doctypes_createDocumentType()
@@ -87,12 +87,12 @@ extern DOCUMENT_TYPE* doctypes_getPrivateDocumentType(char* name);
 /*--------------------------------------------------------------------------
  * doctypes_getDocumentTypeDescriptor()
  */
-extern DOCUMENT_DESCRIPTOR* doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE* p);
+extern EDIT_CONFIGURATION* doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE* p);
 
 /**
  * Deletes and de-allocates all known document types.
  */
-extern void doctypes_deleteAllDocumentTypes();
+extern void doctypes_destroyAllDocumentTypes();
 
 /*--------------------------------------------------------------------------
  * doctypes_deleteDocumentType()
@@ -106,13 +106,13 @@ extern void doctypes_deleteDocumentType(DOCUMENT_TYPE* llp);
  * if documentDescriptor == 0, read document descriptor from disc according to filename pattern
  * match.
  */
-extern int  doctypes_assignDocumentTypeDescriptor(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor);
+extern int  doctypes_assignDocumentTypeDescriptor(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor);
 
 /*--------------------------------------------------------------------------
  * doctypes_saveAllDocumentTypes()
  * Save all document types - pass the pointer to the "HEAD" of the doctype list.
  */
-extern void doctypes_saveAllDocumentTypes(DOCUMENT_TYPE* llp);
+extern int doctypes_saveAllDocumentTypes(char* pFileName);
 
 /*--------------------------------------------------------------------------
  * doctypes_getSelectableDocumentFileTypes()

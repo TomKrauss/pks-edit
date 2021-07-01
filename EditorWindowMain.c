@@ -1,7 +1,7 @@
 /*
  * EditorWindowMain.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
+ * PROJEKT: PKS-EDIT for MS Windows
  *
  * purpose: editor windows - painting etc...
  *
@@ -9,7 +9,9 @@
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauss
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *
  */
 
@@ -563,15 +565,15 @@ int ww_documentPropertyChanged(WINFO* wp, PROPERTY_CHANGE* pChange) {
  */
 void ww_applyDisplayProperties(WINFO *wp) {
 	FTABLE* fp = wp->fp;
-	DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
+	EDIT_CONFIGURATION *linp = fp->documentDescriptor;
 
 	wp->dispmode = linp->dispmode;
 	wp->renderFunction = render_singleLineOnDevice;
 
-	memmove(&wp->fnt, &linp->fnt, sizeof wp->fnt);
-	if (wp->fnt.fgcolor == wp->fnt.bgcolor) {
-		wp->fnt.fgcolor = RGB(0,0,0);
-		wp->fnt.bgcolor = RGB(255,255,255);
+	memmove(&wp->editFontStyle, &linp->editFontStyle, sizeof wp->editFontStyle);
+	if (wp->editFontStyle.fgcolor == wp->editFontStyle.bgcolor) {
+		wp->editFontStyle.fgcolor = RGB(0,0,0);
+		wp->editFontStyle.bgcolor = RGB(255,255,255);
 	}
 
 	wp->fnt_handle = 0;
@@ -1195,7 +1197,7 @@ static void draw_ruler(WINFO *wp) {
 	int			nMiddle;
 	RECT			rect;
 	FTABLE *		fp = wp->fp;
-	DOCUMENT_DESCRIPTOR *pDescriptor = fp->documentDescriptor;
+	EDIT_CONFIGURATION *pDescriptor = fp->documentDescriptor;
 	HDC 		hdc;
 	PAINTSTRUCT ps;
 	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
@@ -1298,7 +1300,7 @@ static void draw_lineNumbers(WINFO* wp) {
 	size_t		textLen;
 	FTABLE* fp = wp->fp;
 	int maxln = wp->maxln;
-	DOCUMENT_DESCRIPTOR* lin = fp->documentDescriptor;
+	EDIT_CONFIGURATION* lin = fp->documentDescriptor;
 	HDC 		hdc;
 	PAINTSTRUCT ps;
 	HFONT		saveFont;

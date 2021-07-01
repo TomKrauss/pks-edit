@@ -481,7 +481,7 @@ LINE *find_expandTabsInFormattedLines(WINFO *wp, LINE *lp)
 static LINE *compline(FTABLE *fp, LINE *lp,long *nt)
 {	char   *s;
 	int    i,col,tab,start,foundpos,n2,ntabs;
-	DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
+	EDIT_CONFIGURATION *linp = fp->documentDescriptor;
 
 	s = lp->lbuf, i = 0, col = 0; 
 

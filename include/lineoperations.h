@@ -35,7 +35,7 @@
 
 /*-------- TYPES --------------*/
 
-typedef struct documentDescriptor DOCUMENT_DESCRIPTOR;
+typedef struct tagEDIT_CONFIGURATION EDIT_CONFIGURATION;
 
 typedef struct line   {
 	struct line* next;
@@ -121,67 +121,66 @@ typedef struct tagMARK {
 #define	O_UNHIDE			6		/* unhide a list of lines */
 
 /*---------------------------------*/
-/* DOCUMENT_DESCRIPTOR						*/
+/* EDIT_CONFIGURATION			*/
 /*---------------------------------*/
-#define	fnt_name		fnt.name
-#define	fnt_point		fnt.point
-#define	fnt_fgcolor		fnt.fgcolor
-#define	fnt_bgcolor		fnt.bgcolor
-#define	fnt_charset		fnt.charset
+#define	fnt_name		editFontStyle.faceName
+#define	fnt_fgcolor		editFontStyle.fgcolor
+#define	fnt_bgcolor		editFontStyle.bgcolor
+#define	fnt_charset		editFontStyle.charset
 
 #if defined(_WINUSER_)
 
-typedef struct documentDescriptor {
+typedef struct tagEDIT_CONFIGURATION {
+	struct tagEDIT_CONFIGURATION* next;
+	unsigned char  modename[16];	/* configuration name */
+	char		name[32];			/* base name of the file defining this configuration */
+	int			id;					/* # ID for context check */
 	int			lmargin, rmargin;
 	int			tabsize, shiftwidth;
-	int			nl, nl2, cr;			/* Lineends */
+	int			nl, nl2, cr;		/* Lineends */
 	int			dispmode;			/* show control... */
 	int			workmode;			/* watch brackets, abbrev... */
-	char		name[32];		/* name of the document descriptor */
-	int			id;					/* # ID for context check */
-	char		t1, fillc;		/* Tabulator Character (fill character) */
-	char			u2lset[32];		/* wordset and u2l ("abc=xyz") */
-	unsigned char 	tbits[MAXLINELEN / 8];		/* Bitset real Tabstops */
+	char		t1, fillc;			/* Tabulator Character (fill character) */
+	char		u2lset[32];			/* wordset and u2l ("abc=xyz") */
+	int			tabulatorSizes[32];	/* arbitrary tab stops - allowing us to have have tabs at positions 2, 5, 9, 15, ...*/
+	unsigned char 	tbits[MAXLINELEN / 8];	/* Bitset real Tabstops */
 	unsigned char	statusline[60];	/* the special status */
 	WINDOWPLACEMENT	placement;		/* for windows with fixed size */
-	EDFONT			fnt;				/* font */
-	char			bak[4];			/* Backup extension */
-	unsigned char	modename[16];	/* document type name */
+	EDTEXTSTYLE			editFontStyle;			/* font */
+	char		   backupExtension[10];		/* Backup extension */
 	unsigned char  tagtag[12];		/* private tag tag */
-	unsigned char	creationMacroName[20];			/* "Vorlage" Makro on creation */
-	unsigned char	keyMacroFile[16];		/* key macro file */
-	int			scrollflags;		/* thumbtrack.. */
-	int			cursaftersearch;	/* postop, ... */
-	int			vscroll;			/* scroll n Lines */
-	int			scroll_dy;			/* scroll on dist dy to screen */
-	unsigned char	cm[24];			/* makro for closing */
+	unsigned char	creationMacroName[24];	/* "Vorlage" Makro on creation */
+	unsigned char	closingMacroName[24];	/* makro to execute before closing */
+	int				scrollflags;		/* thumbtrack.. */
+	int				cursaftersearch;	/* CP_POSTOP, CP_POSLOW, ... */
+	int				vscroll;			/* scroll n Lines */
+	int				scroll_dy;			/* scroll on dist dy to screen */
 	unsigned char	ts[256];		/* fast access 1st 256 Tabstops */
-	unsigned char	res2[256];		/* reserved too .... */
-} DOCUMENT_DESCRIPTOR;
+} EDIT_CONFIGURATION;
 
 /*--------------------------------------------------------------------------
  * doctypes_calculateTabStop()
  * calculate next Tabstop
  */
-extern int doctypes_calculateTabStop(int col, DOCUMENT_DESCRIPTOR* lp);
+extern int doctypes_calculateTabStop(int col, EDIT_CONFIGURATION* lp);
 
 /*--------------------------------------------------------------------------
  * doctypes_calculateNextTabStop()
  * calculate next tabstop after the given column.
  */
-extern int doctypes_calculateNextTabStop(int col, DOCUMENT_DESCRIPTOR* l);
+extern int doctypes_calculateNextTabStop(int col, EDIT_CONFIGURATION* l);
 
 /*--------------------------------------------------------------------------
  * Creates the default attributes for editing a document. The returned structure
  * must be freed, when done using it.
  */
-extern DOCUMENT_DESCRIPTOR* doctypes_createDefaultDocumentTypeDescriptor();
+extern EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor();
 
 /*--------------------------------------------------------------------------
  * doctypes_initDocumentTypeDescriptor()
  * Initialize a document type descriptor with the proper tabsize settings.
  */
-extern void doctypes_initDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* lp, int ts);
+extern void doctypes_initDocumentTypeDescriptor(EDIT_CONFIGURATION* lp, int ts);
 
 #endif
 
@@ -229,7 +228,7 @@ typedef struct ftable {
 	LINE 	*firstl,			/* first line */
 			*lastl;			/* last line */
 	LINE* lpReadPointer;	/* used during read operations temporarily */
-	DOCUMENT_DESCRIPTOR	*documentDescriptor;
+	EDIT_CONFIGURATION	*documentDescriptor;
 	HIDDENP	views;			/* the list of our views */
 	HIDDENP	undo;
 	long 	as_time;			/* next time for AUTOSAVE */
@@ -295,7 +294,7 @@ void ft_cutMarkedLines(FTABLE* fp, int op);
  * ft_abandonFile()
  * Discard changes in a file and re-read.
  */
-extern int ft_abandonFile(FTABLE* fp, DOCUMENT_DESCRIPTOR* linp);
+extern int ft_abandonFile(FTABLE* fp, EDIT_CONFIGURATION* linp);
 
 /*------------------------------------------------------------
  * The current active file (window of active file) has changed.
@@ -374,12 +373,12 @@ extern BOOL ft_initializeReadWriteBuffers(void);
  * a callback method to invoked for each line read and an optional parameter (typically, but not neccessarily the filepointer itself) to
  * be parsed as the first argument to the callback.
  *---------------------------------*/
-extern int ft_readDocumentFromFile(int fd, unsigned char* (*lineExtractedCallback)(void*, DOCUMENT_DESCRIPTOR*, unsigned char*, unsigned char*), void* par);
+extern int ft_readDocumentFromFile(int fd, unsigned char* (*lineExtractedCallback)(void*, EDIT_CONFIGURATION*, unsigned char*, unsigned char*), void* par);
 
 /*--------------------------------------*/
 /* ft_readfile()						*/
 /*--------------------------------------*/
-extern int ft_readfile(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor);
+extern int ft_readfile(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor);
 
 /*--------------------------------------*/
 /* ft_writefileMode() 					*/
@@ -641,9 +640,16 @@ extern int ll_moveElementToFront(LINKED_LIST** pointerLinkedList, void* elem);
 
 /*--------------------------------------------------------------------------
  * ll_insert()
- * insert an element to a linked list
+ * insert an element with the given size into a linked list. The head of the list
+ * will be updated to point to the new element and existing elements will be pushed back.
  */
 extern LINKED_LIST* ll_insert(LINKED_LIST** pointerLinkedList, long size);
+
+/**
+ * Add an element to the end of a linked list. If the linked list does not yet exist,
+ * the HEAD pointer is updated to point to the new element.
+ */
+extern void ll_add(LINKED_LIST** pointerLinkedList, LINKED_LIST* pElement);
 
 /*--------------------------------------------------------------------------
  * ll_destroy()
@@ -690,14 +696,14 @@ extern unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, unsigned
  * Create multiple lines from a passed buffer p. The
  * end of the buffer is passed in pend.
  */
-extern unsigned char* ln_createMultipleLinesFromBuffer(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor, unsigned char* p, unsigned char* pend);
+extern unsigned char* ln_createMultipleLinesFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor, unsigned char* p, unsigned char* pend);
 
 /*---------------------------------
  * ln_createFromBuffer()
  * Creates a line from a buffer p. The end of the buffer
  * is passed in pend.
  */
-extern unsigned char* ln_createFromBuffer(FTABLE* fp, DOCUMENT_DESCRIPTOR* documentDescriptor, unsigned char* p, unsigned char* pend);
+extern unsigned char* ln_createFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor, unsigned char* p, unsigned char* pend);
 
 /*----------------------------------------------
  * ln_createAndAdd()

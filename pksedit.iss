@@ -31,7 +31,7 @@ ChangesAssociations = yes
 [Files]
 Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"
 Source: "pks_sys\pksedit.ini"; DestDir: "{app}\pks_sys"
-Source: "pks_sys\default.lin"; DestDir: "{app}\pks_sys"
+Source: "pks_sys\pksconfig.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\pksedit.reg"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\pksedit.chm"; DestDir: "{app}\pks_sys"
 Source: "readme.md"; DestDir: "{app}"; Flags: isreadme

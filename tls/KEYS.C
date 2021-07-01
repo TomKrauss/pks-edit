@@ -1,7 +1,7 @@
 /*
  * KEYS.C
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for MS Windows
  *
  * purpose: translate key names 2 scan code and vc.vs.
  *		  maintain key-function bindings in a hash tab
@@ -10,7 +10,9 @@
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauž
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 # include	"edfuncs.h"

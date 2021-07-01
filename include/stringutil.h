@@ -27,6 +27,10 @@ extern char* _strtolend;
  */
 extern long string_convertToLong(char* s);
 
+/**
+ * Convert a string input to long assuming hexadecimal encoding.
+ */
+extern long string_convertToLongBase16(char* s);
 /*
  * Return a pointer to the last matching position, where a character can be found in a String
  * or NULL if it cannot be found at all.

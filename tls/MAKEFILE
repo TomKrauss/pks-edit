@@ -2,7 +2,7 @@
 #
 # Makefile PARSEFU.TTP - internal compiler for PKSEDIT
 #
-# (c) Pahlen & Krauss 							author: Tom Krauss
+# author: Tom Krauss
 ###########################################################################
 
 EDDIR		= \TED

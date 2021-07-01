@@ -1,6 +1,19 @@
-/*------------------------*/
-/* WINDOW - Flags         */
-/*------------------------*/
+/*
+ * winfo.h
+ *
+ * PROJEKT: PKS-EDIT for WINDOWS 10
+ *
+ * purpose: view model for PKS Edit
+ *
+ * 										created:
+ * 										last modified:
+ *										author: Tom
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 
 # ifndef 	_WINFO_H
 
@@ -88,7 +101,7 @@ typedef struct wininfo {
      int    cx,cy,cmx,cmy,cheight,cwidth;
      int    owncursor,ctype;        	/* owncursor and caret - type */
 
-	 EDFONT	fnt;
+	 EDTEXTSTYLE	editFontStyle;
      HFONT	fnt_handle;
 	
 	int		vscroll,hscroll;		/* # of lines and columns to scroll */
@@ -393,7 +406,7 @@ extern void ft_windowClosed(FTABLE* fp, WINFO* wp);
  * create a logical font. If the style is present it is taken
  * from the second parameter, if not, it is taken from the font.
  */
-extern HFONT font_createFontWithStyle(EDFONT* pFont, EDFONTSTYLE* pStyle);
+extern HFONT font_createFontWithStyle(EDTEXTSTYLE* pFont, EDFONTATTRIBUTES* pStyle);
 
 /*-----------------------------------------------------------
  * ww_register()
@@ -445,13 +458,13 @@ extern void font_selectSystemFixedFont(HDC hdc);
  * font_selectDefaultEditorFont()
  * select a font and return handle to old Font. Optionally pass a font style (may be NULL)
  */
-extern HFONT font_selectDefaultEditorFont(WINFO* wp, HDC hdc, EDFONTSTYLE* pStyle);
+extern HFONT font_selectDefaultEditorFont(WINFO* wp, HDC hdc, EDFONTATTRIBUTES* pStyle);
 
 /*------------------------------------------------------------
  * font_createFontWithStyle()
  * create a logical font. If the style is present, it is used - otherwise use style info from the font.
  */
-extern HFONT font_createFontWithStyle(EDFONT* pFont, EDFONTSTYLE* pStyle);
+extern HFONT font_createFontWithStyle(EDTEXTSTYLE* pFont, EDFONTATTRIBUTES* pStyle);
 
 /*------------------------------------------------------------
  * font_selectStandardFont()

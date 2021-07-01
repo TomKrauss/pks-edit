@@ -282,6 +282,9 @@
     <ClCompile Include="Actions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="include\JsonParser.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -450,6 +453,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\actions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\jsmn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\jsonparser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

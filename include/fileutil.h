@@ -102,5 +102,12 @@ extern void file_clearTempFiles(void);
  */
 extern EDTIME file_getAccessTime(char* fname);
 
+/*
+ * Read the file identified by the file descriptor into a single 0-terminated string and return it.
+ * Returns NULL, if the file is too large and malloc fails. It is the responsibility of the caller
+ * to free the memory returned.
+ */
+extern char* file_readFileAsString(int fd);
+
 #define FILEUTIL_H
 #endif

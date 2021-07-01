@@ -5,6 +5,10 @@
 ### 1.9.0
 
 #### New
+- PKS Edit can now be installed using an InnoSetup based installer.
+- The configuration of document types is now placed in a more modern JSON format file (pks_sys\pksconfig.json) and
+  is not any longer in a non editable binary set of .lin-files. Changes to the editor configuration are always
+  persisted right away in the corresponding config file.
 - A new option "Ignore Binary Files" was added to the find in files dialog, allowing to easily exclude
   unwanted matches.
 - A new option "Delete multiple spaces" was added, which better supports "space indentation mode" in that

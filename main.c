@@ -602,7 +602,7 @@ static void FinalizePksEdit(void)
 	file_clearTempFiles();
 	help_quitHelpSystem();
 	UnInitDDE();
-	doctypes_deleteAllDocumentTypes();
+	doctypes_destroyAllDocumentTypes();
 
 }
 

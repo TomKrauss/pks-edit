@@ -66,8 +66,8 @@ BOOL ft_initializeReadWriteBuffers(void)
  * Returns the default document type descriptor for situations,
  * where no document type descriptor was assigned to a file.
  */
-static DOCUMENT_DESCRIPTOR* GetDefaultDocumentTypeDescriptor() {
-	static DOCUMENT_DESCRIPTOR* _defaultDocumentTypeDescriptor;
+static EDIT_CONFIGURATION* GetDefaultDocumentTypeDescriptor() {
+	static EDIT_CONFIGURATION* _defaultDocumentTypeDescriptor;
 	if (_defaultDocumentTypeDescriptor == NULL) {
 		_defaultDocumentTypeDescriptor = doctypes_createDefaultDocumentTypeDescriptor();
 	}
@@ -178,13 +178,44 @@ void OpenError(char *fname)
 	error_openingFileFailed(fname,0);
 }
 
+/*
+ * Read the file identified by the file descriptor into a single 0-terminated string and return it.
+ * Returns NULL, if the file is too large and malloc fails. It is the responsibility of the caller
+ * to free the memory returned.
+ */
+EXPORT char* file_readFileAsString(int fd) {
+	size_t	bufSize = 0;
+	size_t	bytesRead;
+	size_t  nOffset = 0;
+	char* pszBuf = NULL;
+
+	while ((bytesRead = Fread(fd, FBUFSIZE, _linebuf)) > 0) {
+		if (pszBuf == NULL) {
+			bufSize = bytesRead;
+			pszBuf = malloc(bufSize+1);
+			if (pszBuf == NULL) {
+				return NULL;
+			}
+		} else {
+			bufSize += bytesRead;
+			pszBuf = realloc(pszBuf, bufSize + 1);
+		}
+		memcpy(pszBuf+nOffset, _linebuf, bytesRead);
+		nOffset = bytesRead;
+	}
+	if (pszBuf) {
+		pszBuf[bufSize] = 0;
+	}
+	return pszBuf;
+}
+
 /*---------------------------------
  * ft_readDocumentFromFile()
  * Standard implementation to read a file in PKS Edit given the file descriptor,
  * a callback method to invoked for each line read and an optional parameter (typically, but not neccessarily the filepointer itself) to
  * be parsed as the first argument to the callback.
  *---------------------------------*/
-EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallback)(void *, DOCUMENT_DESCRIPTOR*, unsigned char *, unsigned char *), void *par)
+EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallback)(void *, EDIT_CONFIGURATION*, unsigned char *, unsigned char *), void *par)
 {
 	int 	cflg,got,len,ofs;
 	long	bufferSize;
@@ -244,7 +275,7 @@ EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallba
  * Checks, whether a file to read needs to be decrypted.
  * If not, return 0, return 1 otherwise.
  *--------------------------------------*/
-static int ft_initializeEncryption(DOCUMENT_DESCRIPTOR *linp, char *pw, int twice)
+static int ft_initializeEncryption(EDIT_CONFIGURATION *linp, char *pw, int twice)
 {
 	if ((linp->workmode & O_CRYPTED) == 0 ||
 	    CryptDialog(pw, twice) == 0 ||
@@ -259,7 +290,7 @@ static int ft_initializeEncryption(DOCUMENT_DESCRIPTOR *linp, char *pw, int twic
 /*--------------------------------------*/
 /* ft_readfile()						*/
 /*--------------------------------------*/
-EXPORT int ft_readfile(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescriptor)
+EXPORT int ft_readfile(FTABLE *fp, EDIT_CONFIGURATION *documentDescriptor)
 {
 	HANDLE			fileHandle;
 	int				ret;
@@ -267,7 +298,7 @@ EXPORT int ft_readfile(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescriptor)
 	int				fd;
 	register	char *	buf;
 	char				pw[32];
-	unsigned char *(*f)(FTABLE *par, DOCUMENT_DESCRIPTOR *linp, unsigned char *p, unsigned char *pend);
+	unsigned char *(*f)(FTABLE *par, EDIT_CONFIGURATION *linp, unsigned char *p, unsigned char *pend);
 
 	fd = -1;
 	fp->longLinesSplit = 0;
@@ -354,7 +385,7 @@ readerr:
 /* createBackupFile()					*/
 /* create a Backup-File				*/
 /*--------------------------------------*/
-static void createBackupFile(char *name, char *bak)
+static void createBackupFile(char *name, char *backupExtension)
 {	char backname[256];
 	char *ext,*bext = "BAK";
 
@@ -365,8 +396,8 @@ static void createBackupFile(char *name, char *bak)
 		*ext = 0;
 	}
 
-	if (bak[0])
-		bext = bak;
+	if (backupExtension[0])
+		bext = backupExtension;
 	strcpy(ext,bext); 
 	Fdelete(backname);
 	Frename(0,name,backname);
@@ -443,7 +474,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 	int			fd = -1;
 	int			saveLockFd;
 	int			nFlushResult = 0;
-	DOCUMENT_DESCRIPTOR		*linp = fp->documentDescriptor;
+	EDIT_CONFIGURATION		*linp = fp->documentDescriptor;
 
 #ifdef DEMO
 	return 0;
@@ -468,9 +499,9 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 				  printedFilename, fp->nlines);
 		mouse_setBusyCursor();
 	}
-	if (linp->bak[0] &&
+	if (linp->backupExtension[0] &&
 	    !(fp-> flags & (F_NEWFILE | F_SAVEAS | F_APPEND | F_ISBACKUPPED))) {
-		createBackupFile(fp->fname, linp->bak);
+		createBackupFile(fp->fname, linp->backupExtension);
 		fp->flags |= F_ISBACKUPPED;
 	}
 
@@ -615,7 +646,7 @@ EXPORT int ft_readfileWithOptions(FTABLE *fp,char *fn,int linflag)
 	fp->lockFd = 0;
 	strcpy(fp->fname,fn);
 
-	if (linflag >= 0 && !doctypes_assignDocumentTypeDescriptor(fp,(DOCUMENT_DESCRIPTOR*)0))
+	if (linflag >= 0 && !doctypes_assignDocumentTypeDescriptor(fp,(EDIT_CONFIGURATION*)0))
 		return 0;
 
 	_verbose = 0;

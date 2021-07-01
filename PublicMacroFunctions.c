@@ -9,7 +9,9 @@
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauss
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 #include <windows.h>
@@ -63,7 +65,7 @@ extern FTABLE *	ww_winid2fp(int winid);
 extern int 		EdExecute(long flags, long unused, 
 					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
-extern int 		doctypes_assignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp);
+extern int 		doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *linp);
 extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		mac_compileMacros(void);
@@ -989,7 +991,7 @@ static void docTypeFillParameters(DIALPARS *dp, void *par)
 	}
 
 	dp->dp_data = pszId;					dp++;
-	dp->dp_data = pszDescription;				dp++;
+	dp->dp_data = pszDescription;			dp++;
 	dp->dp_data = pszFname;					dp++;
 	dp->dp_data = pszMatch;					dp++;
 	dp->dp_data = pOwn;
@@ -1001,7 +1003,7 @@ static void docTypeFillParameters(DIALPARS *dp, void *par)
 void *lastSelectedDocType;
 static void docTypeApply(void)
 {
-	DOCUMENT_DESCRIPTOR *	lp;
+	EDIT_CONFIGURATION *	lp;
 	FTABLE *	fp;
 
 	if ((fp = ft_getCurrentDocument()) == 0) {
@@ -1052,8 +1054,7 @@ static void docTypeChangeType(HWND hDlg)
 /*--------------------------------------------------------------------------
  * doDocumentTypes()
  */
-static int doDocumentTypes(int nDlg)
-{
+static int doDocumentTypes(int nDlg) {
 	int		nRet;
 	char		linname[128];
 	static DIALLIST dlist = {
@@ -1081,9 +1082,7 @@ static int doDocumentTypes(int nDlg)
 		return TRUE;
 	}
 
-	doctypes_saveAllDocumentTypes((void *)0);
-
-	return TRUE;
+	return doctypes_saveAllDocumentTypes((char *)0);
 }
 
 /*--------------------------------------------------------------------------
@@ -1214,7 +1213,7 @@ static int redrawRuler(WINFO* wp, void* pUnused) {
 }
 
 int EdDlgDispMode(void) {
-	EDFONT		font;
+	EDTEXTSTYLE		font;
 	static char 	status[64];
 	static long 	bgcolor;
 	static char 	tabfill;
@@ -1251,7 +1250,7 @@ int EdDlgDispMode(void) {
 		IDD_OPT11,		SHOWCARET_LINE_HIGHLIGHT, &dispmode,
 		0
 	};
-	DOCUMENT_DESCRIPTOR *linp;
+	EDIT_CONFIGURATION *linp;
 	FTABLE* fp = ft_getCurrentDocument();
 
 	if (fp == 0) {
@@ -1266,12 +1265,12 @@ int EdDlgDispMode(void) {
 	dispmode = linp->dispmode;
 	tabfill = linp->t1;
 	_d[1].dp_data = &font;
-	memmove(&font, &linp->fnt, sizeof font);
+	memmove(&font, &linp->editFontStyle, sizeof font);
 	bgcolor = linp->fnt_bgcolor;
 	if (win_callDialog(DLGDISPMODE,&_fp,_d, NULL) == 0) {
 		return 0;
 	}
-	memmove(&linp->fnt, &font, sizeof font);
+	memmove(&linp->editFontStyle, &font, sizeof font);
 	linp->fnt_bgcolor = bgcolor;
 	lstrcpy(linp->statusline,status);
 	linp->dispmode = dispmode;
@@ -1317,7 +1316,7 @@ int EdDlgWorkMode(void)
 		IDD_OPT10,		WM_DELETE_MULTIPLE_SPACES, &workmode,
 		0
 	};
-	DOCUMENT_DESCRIPTOR *linp;
+	EDIT_CONFIGURATION *linp;
 	FTABLE* fp;
 
 	if ((fp = ft_getCurrentDocument()) == 0) {
@@ -1327,7 +1326,7 @@ int EdDlgWorkMode(void)
 	linp = fp->documentDescriptor;
 	lstrcpy(cclass, linp->u2lset);
 	lstrcpy(creationMacroName, linp->creationMacroName);
-	lstrcpy(cm, linp->cm);
+	lstrcpy(cm, linp->closingMacroName);
 	workmode = linp->workmode;
 	tabfill = linp->fillc;
 	fileflag = fp->flags;
@@ -1337,7 +1336,7 @@ int EdDlgWorkMode(void)
 		lstrcpy(linp->u2lset,cclass);
 	}
 	lstrcpy(linp->creationMacroName, creationMacroName);
-	lstrcpy(linp->cm, cm);
+	lstrcpy(linp->closingMacroName, cm);
 	linp->workmode = workmode;
 	linp->fillc = tabfill;
 	fp->flags = fileflag;
@@ -1364,7 +1363,7 @@ int EdDlgCursTabs(void)
 		IDD_RADIO1,	CP_POSLOW-CP_POSTOP,&cursafter,
 		0
 	};
-	DOCUMENT_DESCRIPTOR *linp;
+	EDIT_CONFIGURATION *linp;
 
 	if (ft_getCurrentDocument() == 0)
 		return 0;
@@ -1386,7 +1385,7 @@ int EdDlgCursTabs(void)
 /*--------------------------------------------------------------------------
  * sel_ruler()
  */
-static DOCUMENT_DESCRIPTOR *_linp;
+static EDIT_CONFIGURATION *_linp;
 static void sel_ruler(HWND hDlg, WORD idCtrl)
 {
 	EndDialog(hDlg,idCtrl);
@@ -1396,20 +1395,20 @@ static void sel_ruler(HWND hDlg, WORD idCtrl)
 /*--------------------------------------------------------------------------
  * DlgModeVals()
  */
-int DlgModeVals(DOCUMENT_DESCRIPTOR *linp)
+int DlgModeVals(EDIT_CONFIGURATION *linp)
 {	static int 	nl1,nl2,cr;
-	static char 	bak[4];
+	static char 	backupExtension[4];
 	static int	opt;
 	static int	crypt;
 	static ITEMS	_i   =  	{ 
-		{ C_STRING1PAR,(unsigned char *) bak },
+		{ C_STRING1PAR,(unsigned char *) backupExtension },
 		{ C_INT1PAR, 	(unsigned char *) &nl1 },
 		{ C_INT1PAR, 	(unsigned char *) &nl2 },
 		{ C_INT1PAR, 	(unsigned char *) &cr }
 	};
 	static PARAMS	_fp   = { DIM(_i), P_MAYOPEN, _i	};
 	static DIALPARS _d[] = {
-		IDD_STRING1,	sizeof bak,	bak,
+		IDD_STRING1,	sizeof backupExtension,	backupExtension,
 		IDD_INT1,		sizeof nl1,	&nl1,
 		IDD_INT2,		sizeof nl2,	&nl2,
 		IDD_INT3,		sizeof cr,	&cr,
@@ -1422,7 +1421,7 @@ int DlgModeVals(DOCUMENT_DESCRIPTOR *linp)
 	int	ret;
 
 	_linp = linp;
-	lstrcpy(bak,linp->bak);
+	lstrcpy(backupExtension,linp->backupExtension);
 	opt = 0;
 	if ((nl1 = linp->nl) >= 0) {
 		opt |= 1;
@@ -1441,7 +1440,7 @@ int DlgModeVals(DOCUMENT_DESCRIPTOR *linp)
 	}
 
 	linp->workmode = (linp->workmode & (~O_CRYPTED)) | crypt;
-	lstrcpy(linp->bak,bak);
+	lstrcpy(linp->backupExtension,backupExtension);
 	linp->nl = (opt & 1) ? nl1 : -1;
 	linp->nl2 = (opt & 2) ? nl2 : -1;
 	linp->cr = (opt & 4) ? cr : -1;

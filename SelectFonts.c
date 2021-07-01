@@ -9,7 +9,9 @@
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauss
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *
  */
 
@@ -65,17 +67,17 @@ typedef ENUMFONT *LPENUMFONT;
  * font_createFontWithStyle()
  * create a logical font
  */
-HFONT font_createFontWithStyle(EDFONT *pFont, EDFONTSTYLE *pStyle)
+HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont, EDFONTATTRIBUTES *pStyle)
 {	HFONT hFont;
 
-	_lf.lfHeight = pFont->height;
-	_lf.lfWidth  = pFont->width;
+	_lf.lfHeight = pFont->size;
+	_lf.lfWidth = 0;
 	_lf.lfCharSet = (pFont->style.bOem) ? OEM_CHARSET : pFont->charset;
 	_lf.lfWeight = pStyle ? pStyle->weight : pFont->style.weight;
 	_lf.lfStrikeOut = (unsigned char)pFont->style.strikeout;
 	_lf.lfItalic = pStyle ? pStyle->italic : pFont->style.italic;
 
-	lstrcpy(_lf.lfFaceName,pFont->name);
+	lstrcpy(_lf.lfFaceName,pFont->faceName);
 
 	if ((hFont = CreateFontIndirect(&_lf)) == NULL) {
 		return 0;
@@ -88,13 +90,13 @@ HFONT font_createFontWithStyle(EDFONT *pFont, EDFONTSTYLE *pStyle)
  * font_selectDefaultEditorFont()
  * select a font and return handle to old Font. Optionally pass a font style (may be NULL)
  */
-HFONT font_selectDefaultEditorFont(WINFO *wp, HDC hdc, EDFONTSTYLE* pStyle)
+HFONT font_selectDefaultEditorFont(WINFO *wp, HDC hdc, EDFONTATTRIBUTES* pStyle)
 {
 	TEXTMETRIC tm;
 	HFONT      oldFont;
 
-	wp->fnt.style.bOem = (wp->dispmode & SHOWOEM) ? 1 : 0;
-	wp->fnt_handle = font_createFontWithStyle(&wp->fnt, pStyle);
+	wp->editFontStyle.style.bOem = (wp->dispmode & SHOWOEM) ? 1 : 0;
+	wp->fnt_handle = font_createFontWithStyle(&wp->editFontStyle, pStyle);
 
 	if (!wp->fnt_handle) {
 		return 0;
@@ -160,7 +162,7 @@ UINT_PTR CALLBACK ChooseFontHookProc(HWND hDlg, UINT msg, WPARAM wParam,
 /*--------------------------------------------------------------------------
  * DlgChooseFont()
  */
-BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
+BOOL DlgChooseFont(HWND hwnd, EDTEXTSTYLE *ep, BOOL bPrinter)
 {
 	LOGFONT 	lf;
 	CHOOSEFONT 	cf;
@@ -174,9 +176,9 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 	memset(&cf, 0, sizeof cf);
 	memset(&lf, 0, sizeof lf);
 
-	lf.lfHeight = ep->height;
+	lf.lfHeight = ep->size;
 	lf.lfWeight = ep->style.weight;
-	lf.lfWidth = ep->width;
+	lf.lfWidth = 0;
 	lf.lfItalic = ep->style.italic;
 	lf.lfStrikeOut = ep->style.strikeout;
 	lf.lfUnderline = ep->style.underline;
@@ -185,7 +187,7 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 	lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 	lf.lfQuality = DEFAULT_QUALITY;
 	lf.lfPitchAndFamily = DEFAULT_PITCH|FF_DONTCARE;
-	lstrcpy(lf.lfFaceName, ep->name);
+	lstrcpy(lf.lfFaceName, ep->faceName);
 
 	cf.lStructSize = sizeof(CHOOSEFONT);
 	cf.hwndOwner = hwnd;
@@ -202,10 +204,9 @@ BOOL DlgChooseFont(HWND hwnd, EDFONT *ep, BOOL bPrinter)
 
 	if ((bRet = ChooseFont(&cf)) == TRUE) {
 		ep->fgcolor = (long)cf.rgbColors;
-		lstrcpy(ep->name, lf.lfFaceName);
+		lstrcpy(ep->faceName, lf.lfFaceName);
 		ep->charset = lf.lfCharSet;
-		ep->height= (short)lf.lfHeight;
-		ep->width = (short)lf.lfWidth;
+		ep->size = (short)lf.lfHeight;
 		ep->style.strikeout = 0;
 		ep->style.italic = lf.lfItalic;
 		ep->style.weight = (short)lf.lfWeight;

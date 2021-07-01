@@ -9,7 +9,9 @@
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauss
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 #include <windows.h>
@@ -169,16 +171,15 @@ static BOOL PrtAbortProc(HDC hdcPrn, int nCode) {
 static HFONT print_selectfont(HDC hdc, FONTSPEC *fsp) {
 	static HFONT previousFont = NULL;
 	HFONT 		hFont;
-	EDFONT		font;
+	EDTEXTSTYLE		font;
 	TEXTMETRIC 	tm;
 
 	memset(&font, 0, sizeof font);
 	if (!PREVIEWING()) {
-		lstrcpy(font.name, fsp->fs_name);
+		lstrcpy(font.faceName, fsp->fs_name);
 	}
 	font.style.weight = FW_NORMAL;
-	font.height= fsp->fs_cheight;
-	font.width = fsp->fs_cwidth;
+	font.size = fsp->fs_cheight;
 	font.charset = fsp->fs_oemmode ? OEM_CHARSET : ANSI_CHARSET;
 	if ((hFont = font_createFontWithStyle(&font, NULL)) != 0) {
 		SelectObject(hdc, hFont);
@@ -764,8 +765,8 @@ static void print_saveSettings() {
 /*--------------------------------------------------------------------------
  * DlgPrint()
  */
-static EDFONT	font;
-static EDFONT	htfont;
+static EDTEXTSTYLE	font;
+static EDTEXTSTYLE	htfont;
 static DIALPARS _dPrintLayout[] = {
 	IDD_RADIO1,		PRA_RIGHT - PRA_LEFT,	&_prtparams.align,
 	IDD_OPT1,			PRTO_SWAP,& _prtparams.options,
@@ -795,8 +796,8 @@ static DIALPARS* _getDialogParsForPage(int page) {
 }
 static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	DIALPARS* dp = _dPrintLayout;
-	lstrcpy(font.name, _prtparams.font.fs_name);
-	lstrcpy(htfont.name, _prtparams.htfont.fs_name);
+	lstrcpy(font.faceName, _prtparams.font.fs_name);
+	lstrcpy(htfont.faceName, _prtparams.htfont.fs_name);
 
 	PROPSHEETPAGE psp[2];
 	PROPSHEETHEADER psh;
@@ -953,7 +954,7 @@ int EdPrint(long what, long p1, LPSTR fname) {
 	memmove(&winfo, wp, sizeof winfo);
 	_printwhat.wp = &winfo;
 	lstrcpy(winfo.fnt_name,pp->font.fs_name);
-	winfo.fnt.height = pp->font.fs_cheight;
+	winfo.editFontStyle.size = pp->font.fs_cheight;
 	hdcPrn = DlgPrint(message, pp, wp);
 	if (hdcPrn) {
 		if (pp->printRange.prtr_type == PRTR_SELECTION ||what == PRT_CURRBLK) {

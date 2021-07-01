@@ -18,22 +18,24 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
 
 #include "alloc.h"
 #include "tos.h"
+#include "jsonparser.h"
 #include "lineoperations.h"
 #include "project.h"
 #include "fileselector.h"
 #include "edierror.h"
 #include "stringutil.h"
 #include "pksedit.h"
+#include "errordialogs.h"
 #include "documenttypes.h"
 #include "fileutil.h"
 #include "editorconfiguration.h"
 #include "winfo.h"
+
 
  /*
  * Description of one document type in PKS edit.
@@ -43,17 +45,16 @@ typedef struct tagDOCUMENT_TYPE {
 	 * Next Document Type - they are maintained in a linked list.
 	 */
 	struct tagDOCUMENT_TYPE *	ll_next;
-	char				ll_name[32];
-	// Description for file selector.
-	char				ll_description[50];
-	int					ll_ctx;
-	int					ll_privateDocumentDescriptor;
-	char				ll_documentDescriptorName[256];
-	char   				ll_match[256];
-	DOCUMENT_DESCRIPTOR * ll_documentDescriptor;
+	char				ll_name[32];						// name of the document type.
+	char				ll_description[80];					// Description for file selector.
+	int					ll_ctx;								// Context ID - for selecting macros to execute
+	int					ll_privateEditorConfiguration;		// Whether this is a private configuration. If true, this is used for single files explicitly
+	char				ll_editorConfigurationName[32];		// Editor configuration name
+	char   				ll_match[64];						// file name pattern to match
+	EDIT_CONFIGURATION * ll_documentDescriptor;
 } DOCUMENT_TYPE;
 
-extern void 	*prof_llinsert(void *Head, int size, char *group, 
+extern void 	*prof_llinsert(void *Head, int size, char *group,
 						char *item, char **idata);
 extern void 	prof_killsections(LPSTR pszFn, LPSTR pszSection);
 extern int 	macro_readMappingFile(int context, char *target);
@@ -62,18 +63,92 @@ extern char *	_datadir;
 
 DOCUMENT_TYPE *doctypes_createDocumentType(DOCUMENT_TYPE *llp);
 
-static DOCUMENT_TYPE *_linl;
-static int	_ndoctypes;
-FSELINFO 		_linfsel = {	"", "DEFAULT.LIN", "*.LIN" };
+FSELINFO _linfsel = {	"", "pkseditconfig.json", "*.json" };
 
-#define	LINSPACE			offsetof(DOCUMENT_DESCRIPTOR, ts)
+#define	LINSPACE	offsetof(EDIT_CONFIGURATION, ts)
+
+static JSON_MAPPING_RULE _documentTypeRules[] = {
+	{	RT_CHAR_ARRAY, "name", offsetof(DOCUMENT_TYPE, ll_name), sizeof(((DOCUMENT_TYPE*)NULL)->ll_name)},
+	{	RT_CHAR_ARRAY, "description", offsetof(DOCUMENT_TYPE, ll_description), sizeof(((DOCUMENT_TYPE*)NULL)->ll_description)},
+	{	RT_CHAR_ARRAY, "editorConfiguration", offsetof(DOCUMENT_TYPE, ll_editorConfigurationName), sizeof(((DOCUMENT_TYPE*)NULL)->ll_editorConfigurationName)},
+	{	RT_CHAR_ARRAY, "filenamePatterns", offsetof(DOCUMENT_TYPE, ll_match), sizeof(((DOCUMENT_TYPE*)NULL)->ll_match)},
+	{	RT_INTEGER, "id", offsetof(DOCUMENT_TYPE, ll_ctx)},
+	{	RT_FLAG, "isPrivate", offsetof(DOCUMENT_TYPE, ll_privateEditorConfiguration), 1},
+	{	RT_END}
+};
+
+static JSON_MAPPING_RULE _editorConfigurationRules[] = {
+	{	RT_CHAR_ARRAY, "name", offsetof(EDIT_CONFIGURATION, modename), sizeof(((EDIT_CONFIGURATION*)NULL)->modename)},
+	{	RT_INTEGER, "id", offsetof(EDIT_CONFIGURATION, id)},
+	{	RT_INTEGER, "leftMargin", offsetof(EDIT_CONFIGURATION, lmargin) },
+	{	RT_INTEGER, "rightMargin", offsetof(EDIT_CONFIGURATION, rmargin)},
+	{	RT_INTEGER, "tabSize", offsetof(EDIT_CONFIGURATION, tabsize)},
+	{	RT_INTEGER_ARRAY, "tabulatorSizes", offsetof(EDIT_CONFIGURATION, tabulatorSizes), DIM(((EDIT_CONFIGURATION*)NULL)->tabulatorSizes)},
+	{	RT_INTEGER, "shiftWidth", offsetof(EDIT_CONFIGURATION, shiftwidth)},
+	{	RT_FLAG, "showWhitespace", offsetof(EDIT_CONFIGURATION, dispmode), SHOWCONTROL},
+	{	RT_FLAG, "showHexadecimalChars", offsetof(EDIT_CONFIGURATION, dispmode), SHOWHEX},
+	{	RT_FLAG, "showRuler", offsetof(EDIT_CONFIGURATION, dispmode), SHOWRULER},
+	{	RT_FLAG, "showLineNumbers", offsetof(EDIT_CONFIGURATION, dispmode), SHOWLINENUMBERS},
+	{	RT_FLAG, "showStatus", offsetof(EDIT_CONFIGURATION, dispmode), SHOWSTATUS},
+	{	RT_FLAG, "hideVerticalSlider", offsetof(EDIT_CONFIGURATION, dispmode), SHOWHIDEVSLIDER},
+	{	RT_FLAG, "hideHorizontalSlider", offsetof(EDIT_CONFIGURATION, dispmode), SHOWHIDEHSLIDER},
+	{	RT_FLAG, "insertMode", offsetof(EDIT_CONFIGURATION, workmode), WM_INSERT},
+	{	RT_FLAG, "autoIndent", offsetof(EDIT_CONFIGURATION, workmode), WM_AUTOINDENT},
+	{	RT_FLAG, "autoWrap", offsetof(EDIT_CONFIGURATION, workmode), WM_AUTOWRAP},
+	{	RT_FLAG, "autoFormat", offsetof(EDIT_CONFIGURATION, workmode), WM_AUTOFORMAT},
+	{	RT_FLAG, "codeFormat", offsetof(EDIT_CONFIGURATION, workmode), WM_BRINDENT},
+	{	RT_FLAG, "expandAbbreviations", offsetof(EDIT_CONFIGURATION, workmode), WM_ABBREV},
+	{	RT_FLAG, "encrypted", offsetof(EDIT_CONFIGURATION, workmode), O_CRYPTED},
+	{	RT_FLAG, "oemEncoding", offsetof(EDIT_CONFIGURATION, workmode), WM_OEMMODE},
+	{	RT_FLAG, "smartSpaceDelete", offsetof(EDIT_CONFIGURATION, workmode), WM_DELETE_MULTIPLE_SPACES},
+	{	RT_CHAR_ARRAY, "wordCharacterClass", offsetof(EDIT_CONFIGURATION, u2lset), sizeof(((EDIT_CONFIGURATION*)NULL)->u2lset)},
+	{	RT_CHAR_ARRAY, "statuslineFormat", offsetof(EDIT_CONFIGURATION, statusline), sizeof(((EDIT_CONFIGURATION*)NULL)->statusline)},
+	{	RT_CHAR, "tabCharacter", offsetof(EDIT_CONFIGURATION, t1)},
+	{	RT_CHAR, "fillCharacter", offsetof(EDIT_CONFIGURATION, fillc)},
+	{	RT_CHAR, "newlineCharacter", offsetof(EDIT_CONFIGURATION, nl)},
+	{	RT_CHAR, "alternateNewlineCharacter", offsetof(EDIT_CONFIGURATION, nl2)},
+	{	RT_CHAR, "crCharacter", offsetof(EDIT_CONFIGURATION, cr)},
+	{	RT_CHAR_ARRAY, "fontFace", offsetof(EDIT_CONFIGURATION, editFontStyle.faceName), sizeof(((EDIT_CONFIGURATION*)NULL)->editFontStyle.faceName)},
+	{	RT_INTEGER, "fontSize", offsetof(EDIT_CONFIGURATION, editFontStyle.size)},
+	{	RT_INTEGER, "scrollBy", offsetof(EDIT_CONFIGURATION, vscroll)},
+	{	RT_INTEGER, "scrollTopDelta", offsetof(EDIT_CONFIGURATION, scroll_dy)},
+	{	RT_INTEGER, "cursorSearchPlacement", offsetof(EDIT_CONFIGURATION, cursaftersearch)},
+	{	RT_FLAG, "scrollSupportTrackThumb", offsetof(EDIT_CONFIGURATION, scrollflags), SC_THUMBTRACK},
+	{	RT_FLAG, "caretFollowsScrollbar", offsetof(EDIT_CONFIGURATION, scrollflags), SC_CURSORCATCH},
+	{	RT_COLOR, "backgroundColor", offsetof(EDIT_CONFIGURATION, editFontStyle.bgcolor)},
+	{	RT_COLOR, "foregroundColor", offsetof(EDIT_CONFIGURATION, editFontStyle.fgcolor)},
+	{	RT_CHAR_ARRAY, "backupExtension", offsetof(EDIT_CONFIGURATION, backupExtension), sizeof(((EDIT_CONFIGURATION*)NULL)->backupExtension)},
+	{	RT_CHAR_ARRAY, "executeOnLoad", offsetof(EDIT_CONFIGURATION, creationMacroName), sizeof(((EDIT_CONFIGURATION*)NULL)->creationMacroName)},
+	{	RT_CHAR_ARRAY, "executeOnSave", offsetof(EDIT_CONFIGURATION, closingMacroName), sizeof(((EDIT_CONFIGURATION*)NULL)->closingMacroName)},
+	{	RT_END}
+};
+
+typedef struct tagDOCTYPE_CONFIGURATION {
+	EDIT_CONFIGURATION* dc_editorConfigurations;
+	DOCUMENT_TYPE* dc_types;
+	EDIT_CONFIGURATION* dc_defaultEditorConfiguration;
+} DOCTYPE_CONFIGURATION;
+
+static void* doctypes_create() {
+	return calloc(sizeof (struct tagDOCUMENT_TYPE), 1);
+}
+
+static JSON_MAPPING_RULE _doctypeConfigurationRules[] = {
+	{	RT_OBJECT_LIST, "documentTypes", offsetof(DOCTYPE_CONFIGURATION, dc_types), 
+			{.r_t_arrayDescriptor = {doctypes_create, _documentTypeRules}}},
+	{	RT_OBJECT_LIST, "editorConfigurations", offsetof(DOCTYPE_CONFIGURATION, dc_editorConfigurations), 
+			{.r_t_arrayDescriptor = {doctypes_createDefaultDocumentTypeDescriptor, _editorConfigurationRules}}},
+	{	RT_END}
+};
+
+static DOCTYPE_CONFIGURATION config;
 
 /*--------------------------------------------------------------------------
  * doctypes_calculateTabStop()
  * calculate the previous tabstop for a column given in screen indentation units.
  * Let's assume, the column is 7 and one has a tab size of 4, then 4 is returned.
  */
-int doctypes_calculatePreviousTabStop(int col, DOCUMENT_DESCRIPTOR* l) {
+int doctypes_calculatePreviousTabStop(int col, EDIT_CONFIGURATION* l) {
 	while (col-- > 0 && !TABTHERE(l, col))
 		;
 	return col;
@@ -83,7 +158,7 @@ int doctypes_calculatePreviousTabStop(int col, DOCUMENT_DESCRIPTOR* l) {
  * doctypes_calculateTabStop()
  * calculate next tabstop for a column given in screen indentation units.
  */
-int doctypes_calculateTabStop(int col, DOCUMENT_DESCRIPTOR* l) {
+int doctypes_calculateTabStop(int col, EDIT_CONFIGURATION* l) {
 	if (col < DIM(l->ts) && l->ts[col])
 		return l->ts[col];
 
@@ -96,7 +171,7 @@ int doctypes_calculateTabStop(int col, DOCUMENT_DESCRIPTOR* l) {
  * doctypes_calculateNextTabStop()
  * calculate next tabstop after the given column.
  */
-int doctypes_calculateNextTabStop(int col, DOCUMENT_DESCRIPTOR* l) {
+int doctypes_calculateNextTabStop(int col, EDIT_CONFIGURATION* l) {
 	if (col < DIM(l->ts) && l->ts[col]) {
 		int i = l->ts[col];
 		if (i != col) {
@@ -111,7 +186,7 @@ int doctypes_calculateNextTabStop(int col, DOCUMENT_DESCRIPTOR* l) {
 /*--------------------------------------------------------------------------
  * indent_initTabStopBits()
  */
-static void indent_initTabStopBits(DOCUMENT_DESCRIPTOR* lp) {
+static void indent_initTabStopBits(EDIT_CONFIGURATION* lp) {
 	int i, ts;
 
 	ts = 0;
@@ -134,16 +209,30 @@ static void indent_initTabStopBits(DOCUMENT_DESCRIPTOR* lp) {
 /*--------------------------------------------------------------------------
  * doctypes_initDocumentTypeDescriptor()
  */
-void doctypes_initDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* lp, int ts) {
-	int i, ind;
+void doctypes_initDocumentTypeDescriptor(EDIT_CONFIGURATION* lp, int ts) {
+	int i, nextIndent;
+	int iTabSizes = 0;
+	int tDelta;
 
 	lp->tabsize = ts;
 	memset(lp->tbits, 0, sizeof(lp->tbits));
-
-	for (i = 0, ind = ts; i < MAXLINELEN; i++) {
-		if (i == ind) {
+	tDelta = lp->tabulatorSizes[iTabSizes];
+	if (tDelta == 0) {
+		tDelta = ts;
+	} else {
+		iTabSizes++;
+	}
+	nextIndent = tDelta;
+	for (i = 0, nextIndent = ts; i < MAXLINELEN; i++) {
+		if (i == nextIndent) {
 			TABPLACE(lp, i);
-			ind += ts;
+			tDelta = lp->tabulatorSizes[iTabSizes];
+			if (tDelta == 0) {
+				tDelta = ts;
+			} else {
+				iTabSizes++;
+			}
+			nextIndent += tDelta;
 		}
 	}
 	indent_initTabStopBits(lp);
@@ -153,8 +242,8 @@ void doctypes_initDocumentTypeDescriptor(DOCUMENT_DESCRIPTOR* lp, int ts) {
  * Creates the default attributes for editing a document. The returned structure
  * must be freed, when done using it.
  */
-DOCUMENT_DESCRIPTOR* doctypes_createDefaultDocumentTypeDescriptor() {
-	DOCUMENT_DESCRIPTOR* pDescriptor = calloc(1, sizeof *pDescriptor);
+EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor() {
+	EDIT_CONFIGURATION* pDescriptor = calloc(1, sizeof *pDescriptor);
 
 	pDescriptor->rmargin = 80;
 	pDescriptor->tabsize = 8;
@@ -163,11 +252,10 @@ DOCUMENT_DESCRIPTOR* doctypes_createDefaultDocumentTypeDescriptor() {
 	pDescriptor->cr = '\r';
 	pDescriptor->nl = '\n';
 	pDescriptor->t1 = ' ';
-	strcpy(pDescriptor->name, "default.lin");
+	strcpy(pDescriptor->name, "default");
 	strcpy(pDescriptor->statusline, "0x%6p$O: 0x%2p$C 0%h$C");
-	pDescriptor->fnt.height = 15;
-	pDescriptor->fnt.width = 7;
-	strcpy(pDescriptor->fnt.name, "consolas");
+	pDescriptor->editFontStyle.size = 15;
+	strcpy(pDescriptor->editFontStyle.faceName, "consolas");
 	doctypes_initDocumentTypeDescriptor(pDescriptor, 8);
 	return pDescriptor;
 }
@@ -175,7 +263,7 @@ DOCUMENT_DESCRIPTOR* doctypes_createDefaultDocumentTypeDescriptor() {
 /*--------------------------------------------------------------------------
  * doctypes_toggleTabStop()
  */
-void doctypes_toggleTabStop(DOCUMENT_DESCRIPTOR *linp, int col)
+void doctypes_toggleTabStop(EDIT_CONFIGURATION *linp, int col)
 {
 	if (TABTHERE(linp,col))
 		TABCLEAR(linp,col);
@@ -187,9 +275,9 @@ void doctypes_toggleTabStop(DOCUMENT_DESCRIPTOR *linp, int col)
 }
 
 /*--------------------------------------------------------------------------
- * GetRelatedFileName()
+ * doctypes_getRelatedFilename()
  */
-static void GetRelatedFileName(char *related_name, char *fname, char *newext)
+static void doctypes_getRelatedFilename(char *related_name, char *fname, char *newext)
 {	char *ext;
 
 	strcpy(related_name,fname);
@@ -211,7 +299,7 @@ void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 	int			nCopied;
 
 	pszEnd = pszDest + nMax - 2;
-	for (nCopied = 0, llp = _linl; llp != 0; llp = llp->ll_next) {
+	for (nCopied = 0, llp = config.dc_types; llp != 0; llp = llp->ll_next) {
 		if (nCopied > 0) {
 			*pszDest++ = '|';
 		}
@@ -229,53 +317,11 @@ void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 }
 
 /*--------------------------------------------------------------------------
- * doctypes_readDocumentType()
- */
-static int doctypes_readDocumentType(char* fname, DOCUMENT_DESCRIPTOR* lp, int id) {
-	char*	fn;
-	int		fd;
-
-	if ((fn = file_searchFileInPKSEditLocation(fname)) != 0L && (fd = Fopen(fn, 0)) > 0) {
-		if (Fread(fd, LINSPACE, lp) != LINSPACE) {
-			Fclose(fd);
-			return 0;
-		}
-		Fclose(fd);
-	} else {
-		return 0;
-	}
-
-	string_splitFilename(fname, (char*)0, lp->name);
-	lp->id = id;
-	indent_initTabStopBits(lp);
-
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * LoadDocumentTypeDescriptor()
- */
-static DOCUMENT_DESCRIPTOR *LoadDocumentTypeDescriptor(DOCUMENT_TYPE *llp)
-{
-	DOCUMENT_DESCRIPTOR *lp;
-
-	if ((lp = llp->ll_documentDescriptor) == 0) {
-		if ((lp = doctypes_createDefaultDocumentTypeDescriptor()) == 0) {
-			return 0;
-		}
-		llp->ll_documentDescriptor = lp;
-		doctypes_readDocumentType(llp->ll_documentDescriptorName, lp, llp->ll_ctx);
-		lstrcpy(llp->ll_documentDescriptor->modename, llp->ll_name);
-	}
-	return lp;
-}
-
-/*--------------------------------------------------------------------------
  * doctypes_countDocumentTypes()
  */
 int doctypes_countDocumentTypes(void)
 {
-	return ll_size((LINKED_LIST*)_linl);
+	return ll_size((LINKED_LIST*)config.dc_types);
 }
 
 /*--------------------------------------------------------------------------
@@ -286,7 +332,7 @@ int doctypes_addDocumentTypesToListBox(HWND hwnd, int nItem)
 	DOCUMENT_TYPE *		llp;
 	int			nCnt;
 
-	for (llp = _linl, nCnt = 0; llp != 0; llp = llp->ll_next) {
+	for (llp = config.dc_types, nCnt = 0; llp != 0; llp = llp->ll_next) {
 		SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, (LPARAM)llp);
 		nCnt++;
 	}
@@ -302,11 +348,11 @@ BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE *llp,
 {
 
 	if (!llp) {
-		llp = _linl;
+		llp = config.dc_types;
 	}
 	if (!llp) {
 		doctypes_createDocumentType((DOCUMENT_TYPE *)0);
-		llp = _linl;
+		llp = config.dc_types;
 	}
 	if (ppszId) {
 		*ppszId = llp->ll_name;
@@ -318,10 +364,10 @@ BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE *llp,
 		*ppszMatch = llp->ll_match;
 	}	
 	if (ppszFname) {
-		*ppszFname = llp->ll_documentDescriptorName;
+		*ppszFname = llp->ll_editorConfigurationName;
 	}
 	if (pOwn) {
-		*pOwn = &llp->ll_privateDocumentDescriptor;
+		*pOwn = &llp->ll_privateEditorConfiguration;
 	}
 	return TRUE;
 }
@@ -395,36 +441,30 @@ int doctypes_mergeDocumentTypes(char *pszLinealFile, char *pszDocMacFile)
  * 	2. if common document descriptor, ...
  *	3. if neither, use standard document descriptor
  */
-BOOL doctypes_getFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename) {
+BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename) {
 	char 			fname[1024];
-	char			linealname[1024];
-	DOCUMENT_TYPE *		llp;
-	DOCUMENT_DESCRIPTOR *		lp;
+	DOCUMENT_TYPE *			llp;
+	EDIT_CONFIGURATION*	lp;
 	PROJECTITEM *	pip;
 
 	if ((pip = proj_finditem(filename)) != 0 &&
 		pip->pi_doctype != 0) {
-		lp = LoadDocumentTypeDescriptor((DOCUMENT_TYPE *)pip->pi_doctype);
+		llp = (DOCUMENT_TYPE *)pip->pi_doctype;
+		;
 	} else {
-
 		string_splitFilename(filename,(char *)0, fname);
-		for (llp = _linl, lp = 0; llp != 0 && lp == 0; llp = llp->ll_next) {
+		for (llp = config.dc_types, lp = 0; llp != 0 && lp == 0; llp = llp->ll_next) {
 			if (string_matchFilename(fname,llp->ll_match)) {
-				if (llp->ll_privateDocumentDescriptor) {
-					GetRelatedFileName(filename,linealname,"LIN");
-					if (doctypes_readDocumentType(linealname,linp,llp->ll_ctx) != 0) {
-						lstrcpy(linp->modename, llp->ll_name);
-						return 1;
-					}
-				}
-				if ((lp = LoadDocumentTypeDescriptor(llp)) == 0) {
-					break;
-				}
+				lp = llp->ll_documentDescriptor;
+				break;
 			}
 		}
 	}
+	if (lp == NULL && config.dc_defaultEditorConfiguration != NULL) {
+		lp = config.dc_defaultEditorConfiguration;
+	}
 	if (!lp) {
-		DOCUMENT_DESCRIPTOR* defaultLin = doctypes_createDefaultDocumentTypeDescriptor();
+		EDIT_CONFIGURATION* defaultLin = doctypes_createDefaultDocumentTypeDescriptor();
 		memmove(linp, defaultLin, sizeof *defaultLin);
 		free(defaultLin);
 	} else {
@@ -439,9 +479,8 @@ BOOL doctypes_getFileDocumentType(DOCUMENT_DESCRIPTOR *linp, char *filename) {
  * if documentDescriptor == 0, read document descriptor from disc according to filename pattern
  * match
  */
-int  doctypes_assignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *documentDescriptor)
-{
-	if ((fp->documentDescriptor  = malloc(sizeof *fp->documentDescriptor)) == 0)
+int  doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *documentDescriptor) {
+	if ((fp->documentDescriptor = malloc(sizeof *fp->documentDescriptor)) == 0)
 		return 0;
 
 	if (documentDescriptor) {
@@ -454,58 +493,19 @@ int  doctypes_assignDocumentTypeDescriptor(FTABLE *fp, DOCUMENT_DESCRIPTOR *docu
 }
 
 /*--------------------------------------------------------------------------
- * linname2id()
- */
-#if 0
-int linname2id(char *name)
-{	
-	LINLIST	*llp;
-
-	name = string_getBaseFilename(name);
-
-	if (strcmp(name,"default") == 0)
-		return LIN_DEFCTX;
-
-	if ((llp = ll_find(_linl,name)) != (LINLIST *) 0) {
-		return llp->ll_ctx;
-	}
-
-	return DOCUMENT_DESCRIPTOR_NO_CTX;
-}
-# endif
-
-/*--------------------------------------------------------------------------
- * doctypes_saveDocumentType()
- * save a document type: name + linealfile + match-extensions
- */
-static char *szDocTypes = "doctypes";
-static int doctypes_saveDocumentType(DOCUMENT_TYPE *lp)
-{
-	char		szBuf[1024];
-
-	wsprintf(szBuf,"%s,%s,%d,%s", lp->ll_documentDescriptorName, lp->ll_match, 
-		lp->ll_privateDocumentDescriptor, lp->ll_description);
-	return prof_savestring(szDocTypes,lp->ll_name,szBuf);
-}
-
-/*--------------------------------------------------------------------------
  * doctypes_saveAllDocumentTypes()
  * Save all document types - pass the pointer to the "HEAD" of the doctype list.
  */
-void doctypes_saveAllDocumentTypes(DOCUMENT_TYPE *llp)
-{
-	/*
-	 * recursive save of ruler list. called with param == 0 for start of saving
-	 */
-	if (!llp) {
-		prof_killsections((LPSTR)0, szDocTypes);
-		doctypes_saveAllDocumentTypes(_linl);
-	} else {
-		if (llp->ll_next) {
-			doctypes_saveAllDocumentTypes(llp->ll_next);
-		}
-		doctypes_saveDocumentType(llp);
+int doctypes_saveAllDocumentTypes(char *pszFilename) {
+
+	if (pszFilename == NULL) {
+		pszFilename = _linfsel.fname;
 	}
+	if (!json_marshal(pszFilename, &config, _doctypeConfigurationRules)) {
+		error_displayAlertDialog("Fehler beim Schreiben der Dokumentkonfigurationsdatei");
+		return 0;
+	}
+	return 1;
 }
 
 /*--------------------------------------------------------------------------
@@ -516,7 +516,7 @@ DOCUMENT_TYPE *doctypes_createDocumentType(DOCUMENT_TYPE *llp)
 	DOCUMENT_TYPE * llpNew;
 	int		nLen;
 
-	if ((llpNew = (DOCUMENT_TYPE*)ll_insert((LINKED_LIST**)&_linl, sizeof *llpNew)) == 0) {
+	if ((llpNew = (DOCUMENT_TYPE*)ll_insert((LINKED_LIST**)&config.dc_types, sizeof *llpNew)) == 0) {
 		return 0;
 	}
 	if (llp) {
@@ -535,27 +535,27 @@ DOCUMENT_TYPE *doctypes_createDocumentType(DOCUMENT_TYPE *llp)
 /**
  * Cleanup: delete a document descriptor.
  */
-static BOOL _DeleteDocumentType(DOCUMENT_TYPE* dt) {
-	if (dt->ll_privateDocumentDescriptor && dt->ll_documentDescriptor) {
+static BOOL doctypes_freeDocumentType(DOCUMENT_TYPE* dt) {
+	if (dt->ll_privateEditorConfiguration && dt->ll_documentDescriptor) {
 		free(dt->ll_documentDescriptor);
 	}
 	return TRUE;
 }
 
 /**
- * Deletes and de-allocates all known document types. 
+ * Deletes and de-allocates all known document types and editor configurations. 
  */
-void doctypes_deleteAllDocumentTypes() {
-	ll_destroy((LINKED_LIST**)&_linl, _DeleteDocumentType);
+void doctypes_destroyAllDocumentTypes() {
+	ll_destroy((LINKED_LIST**)&config.dc_types, doctypes_freeDocumentType);
+	ll_destroy((LINKED_LIST**)&config.dc_editorConfigurations, NULL);
 }
 
 /*--------------------------------------------------------------------------
  * doctypes_deleteDocumentType()
  * Deletes a given document type.
  */
-void doctypes_deleteDocumentType(DOCUMENT_TYPE *llp)
-{
-	ll_delete((LINKED_LIST**)&_linl, llp);
+void doctypes_deleteDocumentType(DOCUMENT_TYPE *llp) {
+	ll_delete((LINKED_LIST**)&config.dc_types, llp);
 }
 
 /*--------------------------------------------------------------------------
@@ -563,138 +563,60 @@ void doctypes_deleteDocumentType(DOCUMENT_TYPE *llp)
  * 
  * Return the private document type given the name of the document type.
  */
-DOCUMENT_TYPE* doctypes_getPrivateDocumentType(char *name)
-{
+DOCUMENT_TYPE* doctypes_getPrivateDocumentType(char *name) {
 	DOCUMENT_TYPE *	llp;
 
-	for (llp = _linl; llp; llp = llp->ll_next) {
+	for (llp = config.dc_types; llp; llp = llp->ll_next) {
 		if (lstrcmp(llp->ll_name, name) == 0) {
 			return llp;
 		}
 	}
 
-	return (DOCUMENT_TYPE*)_linl;
+	return (DOCUMENT_TYPE*)config.dc_types;
 }
 
 /*--------------------------------------------------------------------------
  * doctypes_getDocumentTypeDescriptor()
  */
-DOCUMENT_DESCRIPTOR *doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE*p)
+EDIT_CONFIGURATION *doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE*p)
 {
 	DOCUMENT_TYPE	*llp;
 
 	if ((llp = (DOCUMENT_TYPE *)p) == 0) {
 		return 0;
 	}
-	return LoadDocumentTypeDescriptor(llp);
+	return llp->ll_documentDescriptor;
 }
 
-/*--------------------------------------------------------------------------
- * doctypes_initDocumentType()
- * init a document type
- */
-static intptr_t doctypes_initDocumentType(char *docname, long unused)
-{
-	char	 	*s,*szDesc,*szLinname,*szMatch,*szOwn;
-	DOCUMENT_TYPE	*llp;
-
-	if ((llp = prof_llinsert(&_linl,sizeof *llp,szDocTypes,docname,&s)) == 0) {
-		return 0;
-	}
-
-	/*
-	 * if new inserted: generate context id
-	 */
-	if (llp->ll_ctx == 0)
-		llp->ll_ctx = ++_ndoctypes;
-
-	szLinname = strtok(s,",");
-	szMatch = strtok((char*)0,",");
-	szOwn = strtok((char*)0,",");
-	szDesc = strtok((char *)0, ",");
-
-	if (szOwn != 0) {
-		/*
-		 * if document descriptor name has changed for wellknown document,
-		 * force reload of document descriptor
-		 */
-		if (llp->ll_documentDescriptorName[0] &&
-		    strcmp(llp->ll_documentDescriptorName,szLinname)) {
-			destroy(&llp->ll_documentDescriptor);
-		}
-		strcpy(llp->ll_documentDescriptorName,szLinname);
-		strcpy(llp->ll_match,szMatch);
-		if (szDesc) {
-			strmaxcpy(llp->ll_description, szDesc, sizeof llp->ll_description);
-		}
-		llp->ll_privateDocumentDescriptor = string_convertToLong(szOwn);
-	}
-	_free(s);
-	return 1;
-}
 
 /*--------------------------------------------------------------------------
  * doctypes_initAllDocumentTypes()
- * init all document types
+ * init all document types and editor configurations by reading our JSON 
+ * config file.
  */
-int doctypes_initAllDocumentTypes(void)
-{
-	return prof_enum(szDocTypes,doctypes_initDocumentType,0L);
-}
+int doctypes_initAllDocumentTypes(void) {
+	EDIT_CONFIGURATION* lp;
+	DOCUMENT_TYPE* dp;
 
-/*--------------------------------------------------------------------------
- * doctypes_readWriteDocumentDescriptor()
- * Read or write the passed document descriptor to a file. wrflag & 2 -> documentDescriptor is given as par
- */
-int doctypes_readWriteDocumentDescriptor(int wrflag, DOCUMENT_DESCRIPTOR *documentDescriptor) {
-	int 		fd;
-	DOCUMENT_TYPE 	*llp;
-	FTABLE 	*fp = ft_getCurrentDocument();
-	char 	*fn;
-
-	if ((wrflag & 2) == 0 && fp) {
-		documentDescriptor = fp->documentDescriptor;
-	}
-
-	if (!documentDescriptor)
-		return 0;
-
-	if (wrflag & 1) {
-		strcpy(_linfsel.fname, documentDescriptor->name);
-		if (fp) {
-			ww_getstate(WIPOI(fp),&documentDescriptor->placement);
-		}
-	}
-
-	BOOL saveAs = wrflag & 1;
-	if ((fn = fsel_selectFileWithOptions(&_linfsel,saveAs ? MMWRITE : MMREAD, saveAs)) == 0) {
-		return 0;
-	}
-
-	if (saveAs) {
-		if ((fd = Fopen(fn, OF_READWRITE)) < 0 && (fd = file_createFile(fn)) < 0) {
-			return 0;
-		}
-	   	string_splitFilename(fn,(char *)0,documentDescriptor->name);
-		Fwrite(fd,LINSPACE,documentDescriptor);
-		Fclose(fd);
-
-		/*
-		 * use as prototype
-		 */
-		for (llp = _linl; llp; llp = llp->ll_next) {
-			if (llp->ll_documentDescriptor && lstrcmp(llp->ll_documentDescriptorName, documentDescriptor->name) == 0) {
-				memmove(llp->ll_documentDescriptor,documentDescriptor,sizeof *documentDescriptor);
-               }
+	memset(&config, 0, sizeof config);
+	if (json_parse(_linfsel.fname, &config, _doctypeConfigurationRules)) {
+		lp = config.dc_editorConfigurations;
+		while(lp != NULL) {
+			doctypes_initDocumentTypeDescriptor(lp, lp->tabsize);
+			indent_initTabStopBits(lp);
+			if (strcmp("default", lp->modename) == 0) {
+				config.dc_defaultEditorConfiguration = lp;
+			}
+			for (dp = config.dc_types; dp != NULL; dp = dp->ll_next) {
+				if (strcmp(dp->ll_editorConfigurationName, lp->modename) == 0) {
+					dp->ll_documentDescriptor = lp;
+					break;
+				}
+			}
+			lp = lp->next;
 		}
 		return 1;
 	}
-
-	if (doctypes_readDocumentType(fn,documentDescriptor,documentDescriptor->id)) {
-		if ((wrflag & 2) == 0)
-			doctypes_documentTypeChanged();
-		return 1;
-	}
-
 	return 0;
 }
+

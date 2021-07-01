@@ -1,15 +1,17 @@
 /*
  * ScanFiles.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
+ * PROJEKT: PKS-EDIT for MS - WINDOWS
  *
- * purpose:
+ * purpose: search in files and folders
  *
  * 										created: 
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauss
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 #include <windows.h>
@@ -72,7 +74,7 @@ int xref_addSearchListEntry(FTABLE* fp, char* fn, long line, char* remark) {
  * find_inLine()
  * 
  */
-static unsigned char *find_inLine(void *pFilename, DOCUMENT_DESCRIPTOR* linp, unsigned char *p, unsigned char *qend) {
+static unsigned char *find_inLine(void *pFilename, EDIT_CONFIGURATION* linp, unsigned char *p, unsigned char *qend) {
 	register char	*	q;
 	register char 		nl = '\n';
 	char *			stepend;

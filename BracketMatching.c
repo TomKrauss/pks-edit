@@ -33,7 +33,7 @@
 
 extern long	_multiplier;
 extern LINE	*ln_insertIndent(FTABLE *fp, LINE *lp, int col, int *inserted);
-extern int	edit_calculateTabs2Columns(DOCUMENT_DESCRIPTOR *linp, int tabs);
+extern int	edit_calculateTabs2Columns(EDIT_CONFIGURATION *linp, int tabs);
 
 struct tagBRACKET_RULE {
 	struct tagBRACKET_RULE *next;

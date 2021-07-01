@@ -50,7 +50,7 @@ extern int 		_translatekeys;
 
 extern int		mysprintf(WINFO *wp, char *d,char *format,...);
 extern void 	macro_returnString(char *string);
-extern BOOL 	DlgChooseFont(HWND hWnd, EDFONT *ep, BOOL bPrinter);
+extern BOOL 	DlgChooseFont(HWND hWnd, EDTEXTSTYLE *ep, BOOL bPrinter);
 extern void 	fsel_setDialogTitle(char *title);
 
 static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
@@ -721,7 +721,7 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 		case IDD_FONTSELECT2:
 		case IDD_FONTSELECT:
 			if ((dp2 = GetItemDialListData(dp, idCtrl)) != 0) {
-				DlgChooseFont(hDlg, (EDFONT *)dp2->dp_data, 
+				DlgChooseFont(hDlg, (EDTEXTSTYLE *)dp2->dp_data, 
 					(BOOL)dp2->dp_size);
 			}
 			break;

@@ -9,7 +9,9 @@
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauss
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 #include <windows.h>
@@ -47,7 +49,7 @@ static DWORD _ROPcodes[] = {
  * Render some control characters in control-mode. 
  */
 static int render_formattedString(HDC hdc, WINFO* wp, int x, int y, unsigned char* cBuf, size_t nLength, THEME_DATA *pTheme, FONT_STYLE_CLASS nStyle) {
-	COLORREF	hControlColor = nStyle == FS_NORMAL ? wp->fnt.fgcolor : pTheme->th_defaultControlColor;
+	COLORREF	hControlColor = nStyle == FS_NORMAL ? wp->editFontStyle.fgcolor : pTheme->th_defaultControlColor;
 
 	SetTextColor(hdc, hControlColor);
 	TextOut(hdc, x, y, cBuf, (int)nLength);
@@ -107,7 +109,7 @@ static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
 int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 {	register int 			startColumn,i,endColumn,indent,textlen;
 	register unsigned char 	*d,*s,*send;
-	DOCUMENT_DESCRIPTOR 	*linp = ((FTABLE*)FTPOI(wp))->documentDescriptor;
+	EDIT_CONFIGURATION 	*linp = ((FTABLE*)FTPOI(wp))->documentDescriptor;
 	/* limited linelength ! */
 	char 				buf[1024];
 	int					flags;

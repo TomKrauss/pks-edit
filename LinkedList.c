@@ -96,7 +96,8 @@ int ll_moveElementToFront(LINKED_LIST**pointerLinkedList, void *elem) {
 
 /*--------------------------------------------------------------------------
  * ll_insert()
- * insert an element to a linked list
+ * insert an element with the given size into a linked list. The head of the list
+ * will be updated to point to the new element and existing elements will be pushed back.
  */
 LINKED_LIST *ll_insert(LINKED_LIST **pointerLinkedList,long size) {
 	LINKED_LIST *lp;
@@ -109,6 +110,25 @@ LINKED_LIST *ll_insert(LINKED_LIST **pointerLinkedList,long size) {
 	lp->next = *pointerLinkedList;
 	*pointerLinkedList = lp;
 	return lp;
+}
+
+/**
+ * Add an element to the end of a linked list. If the linked list does not yet exist,
+ * the HEAD pointer is updated to point to the new element.
+ */
+void ll_add(LINKED_LIST** pointerLinkedList, LINKED_LIST* pElement) {
+	LINKED_LIST* lp = *pointerLinkedList;
+
+	pElement->next = NULL;
+	if (!lp) {
+		*pointerLinkedList = pElement;
+	}
+	else {
+		while (lp->next) {
+			lp = lp->next;
+		}
+		lp->next = pElement;
+	}
 }
 
 /*--------------------------------------------------------------------------

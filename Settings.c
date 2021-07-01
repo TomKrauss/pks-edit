@@ -1,7 +1,7 @@
 /*
  * Settings.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
+ * PROJEKT: PKS-EDIT for MS - WINDOWS
  *
  * purpose: toggle and set file editing settings
  *
@@ -9,7 +9,9 @@
  *                                               last modified:
  *                                               author       : TOM
  *
- * (c) Pahlen & Krauss
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 #include <windows.h>
@@ -18,7 +20,7 @@
 #include "lineoperations.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
-
+#include "documenttypes.h"
 #include "winfo.h"
 #include "winterf.h"
 
@@ -70,10 +72,10 @@ static struct optiontab {
 
 /*--------------------------------------------------------------------------
  * doctypes_documentTypeChanged()
- * One document has changed - apply the changes to the current editor.
+ * One document has changed - apply the changes to the current editor and make
+ * the changes persistent.
  */
-int doctypes_documentTypeChanged(void)
-{
+int doctypes_documentTypeChanged(void) {
 	WINFO  *	wp = ww_getCurrentEditorWindow();
 	FTABLE *	fp;
 	
@@ -88,7 +90,7 @@ int doctypes_documentTypeChanged(void)
 	SendMessage(wp->edwin_handle,WM_EDWINREORG,0,0L);
 
 	action_commandEnablementChanged((ACTION_CHANGE_TYPE) {0,0,1,-1});
-	return 1;
+	return doctypes_saveAllDocumentTypes((char*)0);
 }
 
 /*--------------------------------------------------------------------------
@@ -114,7 +116,7 @@ static int *op_getFlagToToggle(OP_FLAGTYPE flagType)
 	
 	if (flagType != OP_MACRO && flagType != OP_OPTIONS) {
 		if ((fp = ft_getCurrentDocument()) != 0) {
-			DOCUMENT_DESCRIPTOR *linp = fp->documentDescriptor;
+			EDIT_CONFIGURATION *linp = fp->documentDescriptor;
 			if (flagType == OP_FILEFLAG)
 				return &fp->flags;
 			if (flagType == OP_EDIT_MODE)

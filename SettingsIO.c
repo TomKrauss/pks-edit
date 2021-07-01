@@ -1,7 +1,7 @@
 /*
  * SettingsIO.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
+ * PROJEKT: PKS-EDIT for MS - WINDOWS
  *
  * purpose: save and restore settings
  *
@@ -9,7 +9,9 @@
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauss
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 #include <windows.h>
@@ -290,7 +292,6 @@ void prof_saveaspath(EDITOR_CONFIGURATION* configuration)
  */
 int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 {
-	BOOL		bDidExist;
 	int  	fd;
 	char *	fn;
 	WINDOWPLACEMENT 	ws;
@@ -311,10 +312,8 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 		if ((fd = file_createFile(fn)) < 0) {
 			return 0;
 		}
-		bDidExist = FALSE;
 		_lclose(fd);
 	} else {
-		bDidExist = TRUE;
 		prof_killsections(fn, "icons");
 	}
 
@@ -336,10 +335,6 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	ww_savewinstates();
 	ic_saveLocationInConfiguration();
 	
-	if (!bDidExist) {
-		doctypes_saveAllDocumentTypes((void *)0);
-	}
-
 	mouse_setDefaultCursor();
 	return 1;
 }

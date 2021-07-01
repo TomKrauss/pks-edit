@@ -1,7 +1,7 @@
 /*
  * editorconfiguration.h
  *
- * PROJEKT: PKS-EDIT for Windows 95
+ * PROJEKT: PKS-EDIT for Windows
  *
  * Configuration of global options of PKS edit. These are for now
  * saved in a file PKSEDIT.INI by default located in the PKS_SYS folder.
@@ -10,7 +10,9 @@
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauss
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 #ifndef EDITORCONFIGURATION_H

@@ -123,7 +123,7 @@ void ft_checkForChangedFiles(void) {
 		if (fp->ti_created < (lCurrentTime = file_getAccessTime(fp->fname))) {
 			EdSelectWindow(WIPOI(fp)->win_id);
 			if (errorDisplayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
-				ft_abandonFile(fp, (DOCUMENT_DESCRIPTOR *)0);
+				ft_abandonFile(fp, (EDIT_CONFIGURATION *)0);
 			}
 		}
 		fp->ti_created = lCurrentTime;
@@ -465,8 +465,8 @@ int ft_cloneWindow() {
 int ft_requestToClose(WINFO *wp)
 {
 	FTABLE* fp = wp->fp;
-	if (fp->documentDescriptor->cm[0]) {
-		if (!macro_executeByName(fp->documentDescriptor->cm)) {
+	if (fp->documentDescriptor->closingMacroName[0]) {
+		if (!macro_executeByName(fp->documentDescriptor->closingMacroName)) {
 			return 0;
 		}
 	}
@@ -716,7 +716,7 @@ static int ft_abandoned(WINFO* wp, struct tagPOSITION* pPosition) {
 	caret_placeCursorInCurrentFile(wp, pPosition->ln, pPosition->col);
 	return 1;
 }
-int ft_abandonFile(FTABLE *fp, DOCUMENT_DESCRIPTOR *linp) {
+int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *linp) {
 	long   	ln,col;
 
 	if  (fp == 0) {
@@ -791,7 +791,7 @@ int ft_isReadonly(FTABLE* fp) {
  * Cancel all changes in he current file.
  */
 int EdFileAbandon(void) {
-	return ft_abandonFile(ft_getCurrentDocument(), (DOCUMENT_DESCRIPTOR *)0);
+	return ft_abandonFile(ft_getCurrentDocument(), (EDIT_CONFIGURATION *)0);
 }
 
 /**

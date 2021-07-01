@@ -41,8 +41,8 @@ extern void 	caret_setMatchFunction(int control, int ids_name, int *c);
 extern LINE 	*(*advmatchfunc)();
 extern int 	ln_countLeadingSpaces(LINE *l);
 extern int 	string_isSpace(unsigned char c);
-extern int 	doctypes_calculateTabStop(int col, DOCUMENT_DESCRIPTOR *l);
-extern int 	doctypes_calculatePreviousTabStop(int col, DOCUMENT_DESCRIPTOR* l);
+extern int 	doctypes_calculateTabStop(int col, EDIT_CONFIGURATION *l);
+extern int 	doctypes_calculatePreviousTabStop(int col, EDIT_CONFIGURATION* l);
 extern int 	string_countSpacesIn(unsigned char *s, int pos);
 extern int 	sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
 				 int indent, int *di, int *hbr);
@@ -66,7 +66,7 @@ int EdCharDelete(int control);
  * a certain # of "blank" columns on start of the line
  * try using a maximum # of TABs
  */
-static int edit_calculateColumns2TabsBlanks(DOCUMENT_DESCRIPTOR *linp, int col, int *add_blanks)
+static int edit_calculateColumns2TabsBlanks(EDIT_CONFIGURATION *linp, int col, int *add_blanks)
 {
 	int    i,ntabs;
 
@@ -82,7 +82,7 @@ static int edit_calculateColumns2TabsBlanks(DOCUMENT_DESCRIPTOR *linp, int col, 
 /*--------------------------------------------------------------------------
  * edit_calculateTabs2Columns()
  */
-int edit_calculateTabs2Columns(DOCUMENT_DESCRIPTOR *linp, int tabs)
+int edit_calculateTabs2Columns(EDIT_CONFIGURATION *linp, int tabs)
 {	int col;
 	
 	for (col = 0; tabs > 0; col = doctypes_calculateNextTabStop(col,linp))
@@ -660,7 +660,7 @@ static int edit_autoFormat(WINFO *wp)
  */
 int EdCharInsert(int c)
 {	FTABLE *		fp;
-	DOCUMENT_DESCRIPTOR *		lnp;
+	EDIT_CONFIGURATION *		lnp;
 	LINE *		lp;
 	int			len;
 	int			offs;

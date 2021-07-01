@@ -1,7 +1,7 @@
 /*
  * ResourceFileIO.c
  *
- * PROJEKT: PKS-EDIT/Resource Compiler for MS - WINDOWS 3.0.1
+ * PROJEKT: PKS-EDIT/Resource Compiler for MS - WINDOWS
  *
  * purpose: get and put resources to resource file
  *
@@ -9,8 +9,9 @@
  * 										last modified:
  *										author: Tom
  *
- * (c) Pahlen & Krauss
- *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 #include <windows.h>

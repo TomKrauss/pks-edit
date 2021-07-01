@@ -5,9 +5,12 @@
  *
  * PROJECT: PKSEDIT/Tools
  *
- * (c) Pahlen & Krauž					Author : TOM
- * All Rights Reserved.					created: 28.01.1991
- *									
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * 
+ * author: Tom
+ * created: 28.01.1991
  */
 
 #define Extern
