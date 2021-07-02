@@ -167,7 +167,7 @@ EXPORT int paste(PASTE *buf,int move)
 {
 	WINFO* wp = ww_getCurrentEditorWindow();
 
-	return bl_pasteBlock(buf,ww_hasColumnSelection(wp), wp->caret.offset, move);
+	return bl_pasteBlock(buf,ww_isColumnSelectionMode(wp), wp->caret.offset, move);
 }
 
 /*--------------------------------------------------------------------------
@@ -269,7 +269,7 @@ EXPORT int EdBlockPaste(int which)
 
      wp = ww_getCurrentEditorWindow();
 	if ((pp = bl_getPasteBuffer(which)) != 0) {
-		if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ft_checkSelection(wp)) {
+		if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_checkSelection(wp)) {
 			EdBlockDelete(0);
 		}
 		return paste(pp,0);
@@ -322,7 +322,7 @@ EXPORT int CutBlock(MARK *ms, MARK *me, int flg, PASTE *pp)
 {
 	PASTE 	_p;
 	int	 	id;
-	int	 	colflg = ww_hasColumnSelection(ww_getCurrentEditorWindow());
+	int	 	colflg = ww_isColumnSelectionMode(ww_getCurrentEditorWindow());
 
 	_p.pln = 0;
 	bl_free(&_p);
@@ -368,7 +368,7 @@ EXPORT int EdBlockCut(int flg,PASTE *pp)
 {
 	WINFO* wp = ww_getCurrentEditorWindow();
 
-	if (!ft_checkSelectionWithError(wp))
+	if (!ww_checkSelectionWithError(wp))
 		return 0;
 	return CutBlock(wp->blstart,wp->blend,flg,pp);
 }
@@ -447,9 +447,9 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 
 	wp = ww_getCurrentEditorWindow();
 	fp = wp->fp;
-	colflg = ww_hasColumnSelection(wp);
+	colflg = ww_isColumnSelectionMode(wp);
 
-	if (!ft_checkSelectionWithError(wp))
+	if (!ww_checkSelectionWithError(wp))
 		return 0;
 
 	/*
@@ -579,7 +579,7 @@ EXPORT int EdBlockDelete(int bSaveTrash)
 	
 	wp = ww_getCurrentEditorWindow();
 	fp = wp->fp;
-	if (!ft_checkSelectionWithError(wp))
+	if (!ww_checkSelectionWithError(wp))
 		return 0;
 	ms = *wp->blstart;
 	me = *wp->blend;
@@ -779,7 +779,7 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 		return 1;
 	}
 
-	colflg = ww_hasColumnSelection(wp);
+	colflg = ww_isColumnSelectionMode(wp);
 
 	if (wp->blstart) {
 		lp1	  = wp->blstart->lm;
@@ -899,7 +899,7 @@ EXPORT int EdMouseMarkParts(int type)
 
 	wp = ww_getCurrentEditorWindow();
 	fp = wp->fp;
-	colflg = ww_hasColumnSelection(wp);
+	colflg = ww_isColumnSelectionMode(wp);
 
 	caret_positionCloseToMouseWithConfirmation(0L);
 

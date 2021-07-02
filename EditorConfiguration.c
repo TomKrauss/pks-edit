@@ -146,7 +146,7 @@ void EdOptionSet(void) {
 
 	psh.dwSize = sizeof(psh);
     psh.dwFlags = PSH_PROPSHEETPAGE;
-    psh.hwndParent = hwndFrame;
+    psh.hwndParent = hwndMDIFrameWindow;
     psh.hInstance = hInst;
     psh.pszIcon = 0;
     psh.pszCaption = (LPSTR) "Sonstige Einstellungen...";

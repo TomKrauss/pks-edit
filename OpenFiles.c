@@ -15,6 +15,7 @@
 #include <time.h>
 
 #include "trace.h"
+#include "linkedlist.h"
 #include "caretmovement.h"
 #include "edierror.h"
 #include "errordialogs.h"
@@ -51,7 +52,7 @@ extern HWND win_createMdiChildWindow(char* szClass, char* fn, int itemno, LPARAM
 extern HWND 	ww_winid2hwnd(int winid);
 extern int 	EdPromptAutosavePath(char *path);
 
-extern char *	_datadir;
+extern char *	_pksSysFolder;
 extern void *	lastSelectedDocType;
 
 static	FTABLE 	*_currentFile,*_currentErrorFile;
@@ -254,7 +255,7 @@ void ft_saveWindowStates(void )
 	hist_saveAllEntriesTo(&ft);
 	pszFilename = _historyFileName;
 	if (pszFilename == NULL) {
-		string_concatPathAndFilename(szBuff, _datadir, HISTORY_FILE_NAME);
+		string_concatPathAndFilename(szBuff, _pksSysFolder, HISTORY_FILE_NAME);
 		pszFilename = szBuff;
 	}
 	ft_writeFileAndClose(&ft, pszFilename, FA_NORMAL);
@@ -372,22 +373,22 @@ long ft_size(FTABLE *fp)
 }
 
 /*---------------------------------
- * ft_checkSelection()
+ * ww_checkSelection()
  * Check whether a block selection exists.
  *---------------------------------*/
-int ft_checkSelection(WINFO* wp) {
+int ww_checkSelection(WINFO* wp) {
 	if (wp == 0 || wp->blstart == 0L || wp->blend == 0L)
 		return 0;
 	return 1;
 }
 
 /*---------------------------------
- * ft_checkSelectionWithError()
+ * ww_checkSelectionWithError()
  * Check whether a block selection exists. If not
  * report an error to the user.
  *---------------------------------*/
-EXPORT int ft_checkSelectionWithError(WINFO* wp) {
-	if (ft_checkSelection(wp) == 0) {
+EXPORT int ww_checkSelectionWithError(WINFO* wp) {
+	if (ww_checkSelection(wp) == 0) {
 		error_showErrorById(IDS_MSGNOBLOCKSELECTED);
 		return 0;
 	}
@@ -457,12 +458,12 @@ int ft_cloneWindow() {
 }
 
 /*------------------------------------------------------------
- * ft_requestToClose()
+ * ww_requestToClose()
  * The user requests to close a file (last window of a file). 
  * If the file is modified and cannot be saved or some other error
  * occurs, return 0, otherwise, if the file can be closed return 1.
  */
-int ft_requestToClose(WINFO *wp)
+int ww_requestToClose(WINFO *wp)
 {
 	FTABLE* fp = wp->fp;
 	if (fp->documentDescriptor->closingMacroName[0]) {
@@ -471,7 +472,7 @@ int ft_requestToClose(WINFO *wp)
 		}
 	}
 	if (ft_isFileModified(fp)) {
-		ShowWindow(hwndClient,SW_SHOW);
+		ShowWindow(hwndMDIClientWindow,SW_SHOW);
 		EdSelectWindow(wp->win_id);
 		if (_ExSave || (GetConfiguration()->options & AUTOWRITE)) {
 	     	return ft_writeFileWithAlternateName(fp);
@@ -521,7 +522,7 @@ int ft_selectWindowWithId(int winid, BOOL bPopup)
 	if (bPopup) {
 		ww_popup(hwndChild);
 	} else {
-		SendMessage(hwndClient,WM_MDIACTIVATE,(WPARAM)hwndChild,(LPARAM)0L);
+		SendMessage(hwndMDIClientWindow,WM_MDIACTIVATE,(WPARAM)hwndChild,(LPARAM)0L);
 	}
 	return 1;
 }

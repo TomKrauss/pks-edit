@@ -28,8 +28,8 @@
 
 /* PKS global private message */
 #define	WM_PKSBROADCAST		_wm_pksbroadcast	/* talk with brothers */
-#define	WMBRD_BYEBYE		0			/* ask for hwndFrame */
-#define	WMBRD_HELLO			1			/* ask for hwndFrame */
+#define	WMBRD_BYEBYE		0			/* ask for hwndMDIFrameWindow */
+#define	WMBRD_HELLO			1			/* ask for hwndMDIFrameWindow */
 #define	WMBRD_SELECTFILE	2			/* top an editing window */
 #define	WMBRD_FINDFILE		3			/* editing file(lParam) ? */
 
@@ -73,7 +73,7 @@ extern int 		win_registerWindowClass( char *szClassName, WNDPROC WinProc,
 					LPSTR lpCursorName, HANDLE hbrBackground, 
 					LPSTR szIcon, int nExtra);
 
-extern HWND   	hwndAbort,hwndFkeys,hwndFrame,hwndClient,hwndRebar,
+extern HWND   	hwndAbort,hwndFkeys,hwndMDIFrameWindow,hwndMDIClientWindow,hwndRebar,
 				hwndDlg,hwndFkeys,hwndStatus;
 
 extern HINSTANCE hInst;

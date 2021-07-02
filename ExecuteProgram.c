@@ -34,7 +34,7 @@ extern void xref_openSearchList(char *fn, int cmpflg);
 extern void undo_startModification(FTABLE *fp);
 
 extern FTABLE 	_outfile;
-extern char * 	_datadir;
+extern char * 	_pksSysFolder;
 extern int	_playing;
 
 BOOL	  		bTaskFinished;
@@ -146,7 +146,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 			wsprintf(szTemp,"%s", cmdline);
 		}
 		ln_createAndAddSimple(&_outfile, szTemp);
-		string_concatPathAndFilename(szRunBat, _datadir, "RUN.BAT");
+		string_concatPathAndFilename(szRunBat, _pksSysFolder, "RUN.BAT");
 		ft_writeFileAndClose(&_outfile, szRunBat, 0);
 
 		pszPif = file_searchFileInPKSEditLocation(

@@ -70,7 +70,7 @@ static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
 	r.top = y;
 	r.bottom = y + wp->cheight;
 	r.left = 0;
-	if (ww_hasColumnSelection(wp) != 0) {
+	if (ww_isColumnSelectionMode(wp) != 0) {
 		r.left = wp->blcol1;
 		r.right = wp->blcol2;
 	}
@@ -138,7 +138,7 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 		} else if (c >= ' ') {
 			newstate = RS_WORD;
 		} else if (c == '\t') {
-			indent = doctypes_calculateTabStop(i, linp);
+			indent = indent_calculateTabStop(i, &wp->indentation);
 			i--;
 			if (indent > endColumn) {
 				indent = endColumn;

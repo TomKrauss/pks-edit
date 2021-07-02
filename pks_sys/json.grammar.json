@@ -1,0 +1,35 @@
+{
+  "grammars": [
+    {
+      "scopeName": "json",
+      "patterns": [
+        {
+          "match": "<\"[a-z0-9_-]\">",
+          "name": "string.json.key"
+        },
+        {
+          "match": "<(true|false|null)>",
+          "name": "keyword.control.json"
+        },
+        {
+          "match": "[\\[\\]{}]",
+          "name": "keyword.operator.json"
+        },
+        {
+          "match": "<[0-9.]+>",
+          "name": "constant.numeric"
+        }
+      ]
+    }
+  ],
+  "styles": [
+    {
+      "styleName": "default",
+      "patternName": "keyword"
+    },
+    {
+      "styleName": "green",
+      "patternName": "constant.numeric"
+    }
+  ]
+}

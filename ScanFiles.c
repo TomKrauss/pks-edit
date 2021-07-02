@@ -33,7 +33,7 @@
 #include "regexp.h"
 #include "crossreferencelinks.h"
 
-extern char *	_datadir;
+extern char *	_pksSysFolder;
 static FTABLE	*_outfile;
 static long 	_line;
 static int 		_abortOnFirstMatch,_trymatch,_ignoreBinary;
@@ -174,7 +174,7 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 	_abortOnFirstMatch = bAbortOnFirstMatch;
 	_nfound = 0;
 	_ignoreBinary = nOptions & RE_IGNORE_BINARY;
-	string_concatPathAndFilename(stepfile, _datadir, "pksedit.grp");
+	string_concatPathAndFilename(stepfile, _pksSysFolder, "pksedit.grp");
 	hist_saveString(FILE_PATTERNS, pFilenamePattern);
 
 	if (!*pSearchExpression) {

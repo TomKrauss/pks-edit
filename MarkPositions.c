@@ -1,7 +1,7 @@
 /*
  * MarkPositions.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: setting marks 'a-....
  *
@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 #include <windows.h>
+#include "linkedlist.h"
 #include "caretmovement.h"
 #include "edierror.h"
 #include "lineoperations.h"

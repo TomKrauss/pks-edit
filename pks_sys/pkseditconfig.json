@@ -1,48 +1,50 @@
 {
-    "documentTypes": [
+  "documentTypes": [
     {
-        "name": "encrypted",
-        "description": "Verschlüsselte Dateien (*.crpt)",
-        "editorConfiguration": "encrypted",
-        "filenamePatterns": "*.crpt",
-        "id": 0
+      "name": "default",
+      "description": "Alle Dateien (*.*)",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.*",
+      "id": 0
     },
     {
-        "name": "default",
-        "description": "Alle Dateien (*.*)",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.*",
-        "id": 0
+      "name": "encrypted",
+      "description": "Verschlüsselte Dateien (*.crpt)",
+      "editorConfiguration": "encrypted",
+      "filenamePatterns": "*.crpt"
     },
     {
-        "name": "c+cpp",
-        "description": "C/ C++-Dateien (*.c, *.h, *.cpp)",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.c;*.h;*.cpp",
-        "id": 0
+      "name": "c+cpp",
+      "description": "C/ C++-Dateien (*.c, *.h, *.cpp)",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.c;*.h;*.cpp"
     },
     {
-        "name": "java",
-        "description": "Java Dateien (*.java)",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.java",
-        "id": 0
+      "name": "java",
+      "description": "Java Dateien (*.java)",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.java"
     },
     {
-        "name": "batch-files",
-        "description": "Batch Files und Shell Scripte (*.bat, *.cmd, *.sh)",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.bat;*.cmd;*.sh",
-        "id": 0
+      "name": "batch-files",
+      "description": "Batch Files und Shell Scripte (*.bat, *.cmd, *.sh)",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.bat;*.cmd;*.sh"
     },
     {
-        "name": "hacking-mode",
-        "description": "Programming (*.json; *.md; *.ts)",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.json;*.md;*.ts",
-        "id": 0
+      "name": "json-files",
+      "grammar": "json",
+      "description": "Json Files (*.json)",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.json"
+    },
+    {
+      "name": "hacking-mode",
+      "description": "Programming (*.md; *.ts; *.xml)",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.md;*.ts;*.xml"
     }
-    ],
+  ],
     "editorConfigurations": [
       {
         "name": "default",
@@ -58,6 +60,7 @@
         "showStatus": true,
         "insertMode": true,
         "autoIndent": true,
+        "highlightCaretLine": true,
         "smartSpaceDelete": true,
         "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9",
         "statuslineFormat": "0x%6p$O: 0x%2p$C 0%h$C",
@@ -67,6 +70,7 @@
         "crCharacter": "\r",
         "editFontStyleName": "default",
         "scrollVerticallyBy": 0,
+        "scrollHorizontallyBy": 0,
         "scrollVerticalBorder": 5,
         "cursorSearchPlacement": 1,
         "scrollSupportTrackThumb": true,
@@ -88,8 +92,9 @@
         "newlineCharacter": "\n",
         "crCharacter": "\r",
         "editFontStyleName": "default",
-        "scrollBy": 0,
-        "scrollTopDelta": 0,
+        "scrollVerticallyBy": 0,
+        "scrollHorizontallyBy": 0,
+        "scrollVerticalBorder": 0,
         "cursorSearchPlacement": 0
     }
     ],
@@ -97,19 +102,17 @@
     {
         "styleName": "default",
         "faceName": "Consolas",
-        "size": 15,
-        "backgroundColor": "#fefefe",
-        "foregroundColor": "#000066",
-        "weight": 0
+        "size": -12,
+        "backgroundColor": "#c0dcc0",
+        "foregroundColor": "#000080",
+        "weight": 400
     },
     {
         "styleName": "small",
         "faceName": "Consolas",
-        "size": 14,
+        "size": 10,
         "backgroundColor": "#fdfdfd",
         "foregroundColor": "#002200",
-        "italic": true,
-        "underline": true,
         "weight": 300
     }
     ]}

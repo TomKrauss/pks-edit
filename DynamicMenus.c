@@ -6,11 +6,16 @@
  * Handle dynamic menus depending on defined macros etc...
  *
  * 						created: 07.06.91 
- *						Author : TOM
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * 
+ * author: Tom
  */
 
 #include <windows.h>
 
+#include "linkedlist.h"
 #include "lineoperations.h"
 #include "winfo.h"
 #include "resource.h"
@@ -33,9 +38,9 @@ static HMENU	hNextDestroy;
 RSCTABLE *	_menutables;
 
 /*--------------------------------------------------------------------------
- * menu_overridetable()
+ * menu_overrideMenuBinding()
  */
-static void menu_overridetable(void)
+static void menu_overrideMenuBinding(void)
 {
 	RSCTABLE 	*	rp;
 	int			nIdx;
@@ -58,16 +63,15 @@ static void menu_overridetable(void)
 }
 
 /*--------------------------------------------------------------------------
- * menu_startdefine()
+ * menu_initializeDefinition()
  */
-void menu_startdefine(char *szMenu)
-{
+void menu_initializeDefinition(char *szMenu) {
 	PMENUS pTitleMenu;
 
 	if (rsc_switchtotable(&_menutables, szMenu) == 0) {
 		return;
 	}
-	menu_overridetable();
+	menu_overrideMenuBinding();
 	if ((pTitleMenu = (PMENUS)ll_find((LINKED_LIST*)_titlemenus, szMenu)) != 0) {
 		hNextDestroy = pTitleMenu->hmenu;
 		ll_delete((LINKED_LIST**)&_titlemenus, pTitleMenu);
@@ -90,11 +94,9 @@ static int menu_isEmptySlot(PUSERMENUBIND mp)
 }
 
 /*--------------------------------------------------------------------------
- * menu_addentry()
+ * menu_addMenuMacroItem()
  */
-int menu_addentry(char *pszTemp, int menutype, 
-	MACROREFTYPE mactype, MACROREFTYPE macidx)
-{
+int menu_addMenuMacroItem(char *pszTemp, int menutype, MACROREFTYPE mactype, MACROREFTYPE macidx) {
 	RSCTABLE 	*	rp;
 	int				nIdx;
 	PUSERMENUBIND	pMenu;
@@ -149,9 +151,9 @@ int menu_addentry(char *pszTemp, int menutype,
 
 
 /*--------------------------------------------------------------------------
- * menu_createmenu()
+ * menu_createMenu()
  */
-static HMENU menu_createmenu(BOOL bSub)
+static HMENU menu_createMenu(BOOL bSub)
 {
 	RSCTABLE 	*	rp;
 	HMENU		hMenu;
@@ -234,12 +236,12 @@ static HMENU menu_createmenu(BOOL bSub)
 }
 
 /*--------------------------------------------------------------------------
- * menu_getuserdef()
+ * menu_getUserDefinedMacro()
  * user defined Ids of menus are calculated in the following way:
  *
  * the macroref - index is added to the (macroref-type+1) times IDM_USERDEF0
  */
-MACROREF *menu_getuserdef(int nId)
+MACROREF *menu_getUserDefinedMacro(int nId)
 {
 	static MACROREF	macref;
 
@@ -273,7 +275,7 @@ int EdMenuTrackPopup(long unused1, long unused2, char *szPopup)
 
 	GetCursorPos(&pt);
 
-	if ((hMenu = menu_createmenu(TRUE)) == 0) {
+	if ((hMenu = menu_createMenu(TRUE)) == 0) {
 		return 0;
 	}
 
@@ -285,15 +287,15 @@ int EdMenuTrackPopup(long unused1, long unused2, char *szPopup)
 }
 
 /*--------------------------------------------------------------------------
- * menu_getmenuforcontext()
+ * menu_getMenuForContext()
  */
-HMENU menu_getmenuforcontext(char *pszContext) {
+HMENU menu_getMenuForContext(char *pszContext) {
 
 	if (!rsc_findtable(_menutables, pszContext)) {
 		return 0;
 	}
 	rsc_switchtotable(&_menutables, pszContext);
-	return menu_createmenu(FALSE);
+	return menu_createMenu(FALSE);
 }
 
 

@@ -1,7 +1,7 @@
 /*
  * FileBufferIO.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: reading and writing file buffers
  *
@@ -22,6 +22,7 @@
 #include "edierror.h"
 #include "editorconfiguration.h"
 #include "stringutil.h"
+#include "linkedlist.h"
 
 #include "pksedit.h"
 

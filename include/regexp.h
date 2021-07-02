@@ -1,7 +1,7 @@
 /*
  * regexp.h
  *
- * PROJECT: PKSEDIT for ATARI TOS
+ * PROJECT: PKSEDIT for Windows 
  *
  * purpose: regular expression defines
  *

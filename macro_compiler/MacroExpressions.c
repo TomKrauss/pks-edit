@@ -22,7 +22,6 @@
 #include "regexp.h"
 #include "pksmod.h"
 #include "test.h"
-#include "binop.h"
 #include "sym.h"
 #include "pkscc.h"
 #include "errordialogs.h"

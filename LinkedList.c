@@ -1,7 +1,7 @@
 /*
  * LinkedList.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: handle linked lists - these are used quite often
  * for different purpose in PKS Edit.
@@ -17,7 +17,7 @@
 
 #include <malloc.h>
 #include <string.h>
-#include "lineoperations.h"
+#include "linkedlist.h"
 
 /*--------------------------------------------------------------------------
  * ll_destroy()

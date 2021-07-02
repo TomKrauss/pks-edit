@@ -843,7 +843,6 @@ BEGIN
         POPUP "&Drucken"
         BEGIN
             MENUITEM "&Text...\a",                  IDM_PRINTTEXT
-            MENUITEM "&Block...\a",                 IDM_PRINTBLOCK
             MENUITEM "&Datei...\a",                 IDM_PRINTFILE
         END
         MENUITEM SEPARATOR
@@ -959,7 +958,7 @@ BEGIN
     END
     POPUP "&?"
     BEGIN
-        MENUITEM "&Index\a",                    IDM_HLPINDEX, MENUBREAK
+        MENUITEM "&Index\a",                    IDM_HLPINDEX
         MENUITEM "&Menüs\a",                    IDM_HLPONMENUS
         MENUITEM "&Tastatur + Maus\a",          IDM_HLPONKEYS
         MENUITEM "&Desktop\a",                  IDM_HLPONDESKTOP

@@ -33,11 +33,6 @@ extern void 		macro_showStatus(char *s, ...);
  */
 extern void macro_printListHeader(FILE* fp, char* itemname);
 
-/*------------------------------------------------------------
- * macro_readWriteWithFileSelection()
- */
-extern int macro_readWriteWithFileSelection(int wrflag);
-
 /*---------------------------------
  * macro_executeMacroByIndex()
  * Execute a macro given its logical
@@ -68,8 +63,6 @@ extern int 		macro_isInCurrentDocumentContext(int ctx);
  * macro_saveMenuBindingsAndDisplay()
  */
 extern int macro_saveMenuBindingsAndDisplay(void);
-
-extern int macro_readWriteWithFileSelection(int wrflag);
 
 /*------------------------------------------------------------
  * macro_readWriteWithFileSelection()

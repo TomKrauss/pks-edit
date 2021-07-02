@@ -1,7 +1,7 @@
 /*
  * brackets.h
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: definition of brackets structure
  *

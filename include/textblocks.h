@@ -1,7 +1,7 @@
 /*
  * textblocks.h
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: operations on selected text ranges.
  *

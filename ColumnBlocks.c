@@ -24,15 +24,16 @@
 #define	TAB		9
 
 /*---------------------------------*/
-/* tabcpy()					*/
+/* caret_copyIndent()					*/
 /*---------------------------------*/
-static LINE *tabcpy(FTABLE *fp, LINE **Lps, int cfirst, int clast,
+static LINE *caret_copyIndent(WINFO *wp, LINE **Lps, int cfirst, int clast,
 	int freeflg, int ctrlmode)
 {
 	LINE *		lp;
 	LINE *		lps;
 	unsigned char *s,*d,c;
 	int			i,col,len,size;
+	FTABLE* fp = wp->fp;
 
 	d = _linebuf;
 	lps = *Lps;
@@ -40,7 +41,7 @@ static LINE *tabcpy(FTABLE *fp, LINE **Lps, int cfirst, int clast,
 	len = lps->len;
 	for (i = 0, col = 0; col < MAXLINELEN && i < len; i++) {
 		if ((c = *s++) == TAB && !ctrlmode) {
-			size = doctypes_calculateTabStop(col, fp->documentDescriptor);
+			size = indent_calculateTabStop(col, &wp->indentation);
 			while(col < size) {
 				*d++ = ' ';
 				col++;
@@ -95,7 +96,7 @@ EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int free
 	if (clast - cfirst <= 0) return 0;
 	memset(pp,0,sizeof(pp));
 	while(cnt > 0) {
-		if ((lpnew = tabcpy(fp, &lp,cfirst,clast,freeflg,ctrl)) == (LINE *) 0) 
+		if ((lpnew = caret_copyIndent(wp, &lp,cfirst,clast,freeflg,ctrl)) == (LINE *) 0) 
 			return 0;
 		pp->size   += lpnew->len;
 		pp->nlines++;

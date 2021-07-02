@@ -1,7 +1,7 @@
 /*
  * AsciiHexToLong.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * Ascii hex to long conversion.
  *

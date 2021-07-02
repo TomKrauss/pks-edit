@@ -1,7 +1,7 @@
 /*
  * BracketMatching.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose:
  * check brackets, uc_showMatchingBracket, bracket indent, shift between brackets...
@@ -21,6 +21,7 @@
 #include "caretmovement.h"
 #include "winfo.h"
 #include "edierror.h"
+#include "linkedlist.h"
 #include "regexp.h"
 #include "findandreplace.h"
 #include "brackets.h"
@@ -32,8 +33,7 @@
  */
 
 extern long	_multiplier;
-extern LINE	*ln_insertIndent(FTABLE *fp, LINE *lp, int col, int *inserted);
-extern int	edit_calculateTabs2Columns(EDIT_CONFIGURATION *linp, int tabs);
+extern int	edit_calculateTabs2Columns(INDENTATION *pIndent, int tabs);
 
 struct tagBRACKET_RULE {
 	struct tagBRACKET_RULE *next;
@@ -558,9 +558,9 @@ EXPORT int uc_shiftLinesByIndent(WINFO *wp, long ln, long nlines, int dir)
 
 	for (i = 0; i < nlines; i++) {
 		if (!lp->next) break;
-		ind = edit_calculateTabs2Columns(fp->documentDescriptor,abs(dir));
+		ind = edit_calculateTabs2Columns(&wp->indentation,abs(dir));
 		if (dir > 0) {
-			if ((lp = ln_insertIndent(fp,lp,ind,&dummy)) == 0L) {
+			if ((lp = ln_insertIndent(wp,lp,ind,&dummy)) == 0L) {
 				return 0;
 			}
 		} else {
@@ -570,7 +570,7 @@ EXPORT int uc_shiftLinesByIndent(WINFO *wp, long ln, long nlines, int dir)
 			while(col < ind && s < send) {
 				if (*s != ' ') {
 					if (*s == '\t')
-						col = doctypes_calculateTabStop(col,fp->documentDescriptor);
+						col = indent_calculateTabStop(col, &wp->indentation);
 					else
 						break;
 				} else {

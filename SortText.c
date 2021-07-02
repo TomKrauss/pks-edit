@@ -1,7 +1,7 @@
 /*
  * SortText.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: sort text records of variable length (even multiline)
  *

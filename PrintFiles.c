@@ -826,10 +826,10 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	pageRange.nFromPage = 1;
 	pageRange.nToPage = 5;
 	prtDlg->lStructSize = sizeof *prtDlg;
-	prtDlg->hwndOwner = hwndFrame;
+	prtDlg->hwndOwner = hwndMDIFrameWindow;
 	prtDlg->lphPropertyPages = pages;
 	prtDlg->Flags = PD_ALLPAGES | PD_RETURNDC | PD_PAGENUMS;
-	if (wp == NULL || !ft_checkSelection(wp)) {
+	if (wp == NULL || !ww_checkSelection(wp)) {
 		prtDlg->Flags |= PD_NOSELECTION;
 	}
 	prtDlg->nPageRanges = 1;
@@ -958,10 +958,10 @@ int EdPrint(long what, long p1, LPSTR fname) {
 	hdcPrn = DlgPrint(message, pp, wp);
 	if (hdcPrn) {
 		if (pp->printRange.prtr_type == PRTR_SELECTION ||what == PRT_CURRBLK) {
-			if (wp == NULL || !ft_checkSelectionWithError(wp)) {
+			if (wp == NULL || !ww_checkSelectionWithError(wp)) {
 				goto byebye;
 			}
-			if (ww_hasColumnSelection(wp)) {
+			if (ww_isColumnSelectionMode(wp)) {
 				_printwhat.firstColumn = wp->blcol1;
 				_printwhat.lastColumn = wp->blcol2;
 			}

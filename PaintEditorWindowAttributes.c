@@ -1,7 +1,7 @@
 /*
  * PaintEditorWindowAttributes.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: redraw attributed text
  *
@@ -31,7 +31,7 @@
 #define	WP_SUB		0x20
 #define	HYPHEN		''
 
-extern int 	doctypes_calculateTabStop(int col, EDIT_CONFIGURATION *l);
+extern int 	indent_calculateTabStop(int col, EDIT_CONFIGURATION *l);
 
 /*--------------------------------------------------------------------------
  * SelectTextAttribute()
@@ -142,7 +142,7 @@ int render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y, WINFO *wp, LI
 		if (c == ESCAPE) { 
 			attribut = *l++; 
 		} else if (c == '\t' && ctrl == 0) {
-			if ((col = doctypes_calculateTabStop(col, lin)) > start) {
+			if ((col = indent_calculateTabStop(col, lin)) > start) {
 				if (col > end) {
 					col = end;
 				}
@@ -168,7 +168,7 @@ int render_singleLineWithAttributesOnDevice(HDC hdc, int x, int y, WINFO *wp, LI
 				if (c == HYPHEN) {
 					c = '-';
 				} else if (c == '\t') {
-					ind = doctypes_calculateTabStop(col, lin);
+					ind = indent_calculateTabStop(col, lin);
 					if (ind > end) {
 						ind = end;
 					}

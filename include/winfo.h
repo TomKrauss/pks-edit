@@ -17,8 +17,8 @@
 
 # ifndef 	_WINFO_H
 
-#include "editorfont.h"
 #include "lineoperations.h"
+#include "editorfont.h"
 
 /*----- display modes --------------*/
 
@@ -75,12 +75,54 @@ typedef struct tagFSTYLE {
 
 typedef struct tagPROPERTY_CHANGE PROPERTY_CHANGE;
 
-typedef struct wininfo WINFO;
+typedef struct tagINDENTATION {
+    int tabsize;                            // The tab size - if no custom tab positions are specified, multiples of this size define the "stops" in the UI
+                                            // Currently tab stops are defined in units of column indices, assuming every column occupies a fixed width.
+    unsigned char   ts[256];		        // individual 1st 256 Tabstops
+    unsigned char   tbits[MAXLINELEN / 8];	// Bitset Tabstops - allows us to have individual tab sizes (non standard).
+} INDENTATION;
+
+extern char 	bittab[];
+
+#define	TABTHERE(indent,i)		(indent->tbits[i >> 3] &  bittab[i & 07])
+#define	TABPLACE(indent,i)		indent->tbits[i >> 3] |= bittab[i & 07]
+#define	TABCLEAR(indent,i)		indent->tbits[i >> 3] &= (~bittab[i & 07])
 
 typedef int (*RENDER_LINE_FUNCTION)(HDC hdc, int x, int y, WINFO* wp, LINE* lp);
 
-typedef struct wininfo {
-	struct wininfo *next;
+/*--------------------------------------------------------------------------
+ * indent_calculateTabStop()
+ * calculate the previous tabstop for a column given in screen indentation units.
+ * Let's assume, the column is 7 and one has a tab size of 4, then 4 is returned.
+ */
+extern int 	indent_calculatePreviousTabStop(int col, INDENTATION* pIndentation);
+
+/*--------------------------------------------------------------------------
+ * indent_calculateTabStop()
+ * calculate next Tabstop
+ */
+extern int 	indent_calculateTabStop(int col, INDENTATION* pIndentation);
+
+/*--------------------------------------------------------------------------
+ * indent_calculateNextTabStop()
+ * calculate next tabstop after the given column.
+ */
+extern int indent_calculateNextTabStop(int col, INDENTATION* l);
+
+/*--------------------------------------------------------------------------
+ * indent_toggleTabStop()
+ */
+extern void indent_toggleTabStop(INDENTATION* indentation, int col);
+
+/*--------------------------------------------------------------------------
+ * ww_tabsChanged()
+ * The tab configuration has changed. Update our internal data structures
+ * and possibly repaint.
+ */
+int ww_tabsChanged(WINFO* wp, EDIT_CONFIGURATION* lp);
+
+typedef struct tagWINFO {
+	struct tagWINFO *next;
 	int		win_id;
     HWND    edwin_handle,ww_handle,ru_handle,st_handle,lineNumbers_handle;
      
@@ -96,18 +138,20 @@ typedef struct wininfo {
     MARK* blstart, * blend;   	/* Marks for Block Operations			*/
     int   blcol1, blcol2;		/* column for Blockmarks				*/
     
-    char*   statusline;			/* alt. status line */
-    char*   win_themeName;
-     int    cx,cy,cmx,cmy,cheight,cwidth;
-     int    owncursor,ctype;        	/* owncursor and caret - type */
+    char*  statusline;			/* alt. status line */
+    char*  win_themeName;
+    int    cx,cy,cmx,cmy,cheight,cwidth;
+    int    owncursor,ctype;        	/* owncursor and caret - type */
 
-	 EDTEXTSTYLE	editFontStyle;
+	 EDTEXTSTYLE editFontStyle;
      HFONT	fnt_handle;
 	
 	int		vscroll,hscroll;		/* # of lines and columns to scroll */
 	int		scroll_dx,			/* distance cursor-window border */
 			scroll_dy;			/* for scrolling */
-	
+    INDENTATION indentation;
+    int     lmargin;
+    int     rmargin;
     RENDER_LINE_FUNCTION renderFunction;
     long      minln,maxln,mincursln,maxcursln,
               mincol,maxcol,mincurscol,maxcurscol;
@@ -202,15 +246,6 @@ extern int bl_undoIntoUnqBuffer(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfir
 extern int bl_delete(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfirst,
     int clast, int blkflg, int saveintrash);
 
-/*------------------------------------------------------------
- * ft_requestToClose()
- * The user requests to close a file (last window of a file).
- * If the file is modified and cannot be saved or some other error
- * occurs, return 0, otherwise, if the file can be closed return 1.
- */
-extern int ft_requestToClose(WINFO* fp);
-
-
 /*--------------------------------------------------------------------------
  * render_singleLineOnDevice()
  */
@@ -242,19 +277,6 @@ void wt_scrollxy(WINFO* wp, int nlines, int ncolumns);
  * a repaint message bu also update by painting right away.
  */
 extern void ww_redrawAllWindows(int update);
-
-/*---------------------------------
- * ft_checkSelection()
- * Check whether a block selection exists.
- *---------------------------------*/
-extern int ft_checkSelection(WINFO* fp);
-
-/*---------------------------------
- * ft_checkSelectionWithError()
- * Check whether a block selection exists. If not
- * report an error to the user.
- *---------------------------------*/
-extern int 	ft_checkSelectionWithError(WINFO* fp);
 
 /*-----------------------------------------------------------
  * ww_applyDisplayProperties()
@@ -331,11 +353,32 @@ extern void ww_getstate(WINFO* wp, WINDOWPLACEMENT* wsp);
  */
 extern void ww_requestFocusInTopWindow(void);
 
-/*------------------------------------------------------------
- * ww_timer()
- * Trigger a timer action.
+/*---------------------------------
+ * ww_checkSelection()
+ * Check whether a block selection exists in the given window.
+ *---------------------------------*/
+extern int ww_checkSelection(WINFO* fp);
+
+/*---------------------------------
+ * ww_checkSelectionWithError()
+ * Check whether a block selection exists. If not
+ * report an error to the user.
+ *---------------------------------*/
+extern int 	ww_checkSelectionWithError(WINFO* fp);
+
+/*
+ * Answer 1, if a possible selection in the given window
+ * has a "column layout".
  */
-extern HWND ww_timer(void);
+extern int ww_isColumnSelectionMode(WINFO* wp);
+
+/*------------------------------------------------------------
+ * ww_requestToClose()
+ * The user requests to close a window of a file.
+ * If the file is modified and cannot be saved or some other error
+ * occurs, return 0, otherwise, if the window can be closed return 1.
+ */
+extern int ww_requestToClose(WINFO* fp);
 
 /*-----------------------------------------------------------
  * ww_winstate()
@@ -360,53 +403,12 @@ extern int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex);
  */
 extern int ww_getRightMargin(WINFO* fp);
 
-/*---------------------------------
- * ft_formatText()
- * Formt the text in the current file.
- *---------------------------------*/
-extern int ft_formatText(WINFO* wp, int scope, int type, int flags);
-
-/*
- * Invoke a callback for every view of a editor document model.
- * The callback may return 0 to abort the iteration process.
- * The callback is invoked with the WINFO pointer an an optional parameter
- * passed as the last argument.
- */
-extern void ft_forAllViews(FTABLE* fp, int (*callback)(WINFO* wp, void* pParameterPassed), void* parameter);
-
-/*
- * Return the primary view displaying a file - if any.
- */
-extern WINFO* ft_getPrimaryView(FTABLE* fp);
-
-/*
- * Connect a view with a file - set the model and add the view as a dependent.
- */
-extern void ft_connectViewWithFT(FTABLE* fp, WINFO* wp);
-
-/**
- * Checks, whether the given window is a view of the file
- */
-BOOL ft_hasView(FTABLE* fp, WINFO* wp);
-
 /*
  * Returns the "active" editor window having the focus.
  */
 extern WINFO* ww_getCurrentEditorWindow();
 
 extern int 	uc_shiftLinesByIndent(WINFO* fp, long ln, long nlines, int dir);
-
-/*
- * Invoked, when one of the views viewing on this document is closed.
- */
-extern void ft_windowClosed(FTABLE* fp, WINFO* wp);
-
-/*------------------------------------------------------------
- * font_createFontWithStyle()
- * create a logical font. If the style is present it is taken
- * from the second parameter, if not, it is taken from the font.
- */
-extern HFONT font_createFontWithStyle(EDTEXTSTYLE* pFont, EDFONTATTRIBUTES* pStyle);
 
 /*-----------------------------------------------------------
  * ww_register()
@@ -449,31 +451,8 @@ extern int sl_moved(WINFO* wp, long dy, long dx, int cursor_adjust);
  */
 int sl_size(WINFO* wp);
 
-/*------------------------------------------------------------
- * font_selectSystemFixedFont()
- */
-extern void font_selectSystemFixedFont(HDC hdc);
-
-/*------------------------------------------------------------
- * font_selectDefaultEditorFont()
- * select a font and return handle to old Font. Optionally pass a font style (may be NULL)
- */
-extern HFONT font_selectDefaultEditorFont(WINFO* wp, HDC hdc, EDFONTATTRIBUTES* pStyle);
-
-/*------------------------------------------------------------
- * font_createFontWithStyle()
- * create a logical font. If the style is present, it is used - otherwise use style info from the font.
- */
-extern HFONT font_createFontWithStyle(EDTEXTSTYLE* pFont, EDFONTATTRIBUTES* pStyle);
-
-/*------------------------------------------------------------
- * font_selectStandardFont()
- */
-extern void font_selectStandardFont(HWND hwnd, WINFO* wp);
-
 #define FTPOI(wp)		(FTABLE*)(wp->fp)
 
-int ww_hasColumnSelection(WINFO *wp);
 
 #define	_WINFO_H
 #endif	_WINFO_H

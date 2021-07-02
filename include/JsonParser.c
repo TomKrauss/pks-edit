@@ -1,7 +1,7 @@
 /*
  * JsonParser.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: generic JSON parser mapping data structures
  * against JSON files.
@@ -20,6 +20,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "tos.h"
+#include "linkedlist.h"
 #include "jsonparser.h"
 #define JSMN_PARENT_LINKS
 #include "jsmn.h"

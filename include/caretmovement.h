@@ -18,8 +18,6 @@
 
 #include "lineoperations.h"
 
-typedef struct wininfo WINFO;
-
 /*--------------------------------------------------------------------------
  * caret_moveLeftRight()
  * Move the caret to the left or right. If motionFlags contains MOT_XTNDBLOCK

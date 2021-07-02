@@ -47,7 +47,7 @@ extern HWND EdGetActiveWindow(int includeicons);
 
 extern int	nCurrentDialog;
 
-extern char *	_datadir;
+extern char *	_pksSysFolder;
 
 static char *	sTitleSpec;
 
@@ -74,7 +74,7 @@ static INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM p
 BOOL fsel_selectFolder(char* pTitle, char* pResult) {
 	BROWSEINFO browseinfo;
 	memset(&browseinfo, 0, sizeof browseinfo);
-	browseinfo.hwndOwner = hwndClient;
+	browseinfo.hwndOwner = hwndMDIClientWindow;
 	browseinfo.lpszTitle = pTitle;
 	browseinfo.ulFlags = BIF_EDITBOX | BIF_RETURNONLYFSDIRS ;
 	browseinfo.lpfn = BrowseCallbackProc;
@@ -179,7 +179,7 @@ char *fsel_selectFileWithOptions(FSELINFO *fp, int idTitle, BOOL showSaveDialog)
 	if (macro_openDialog(&_p)) {
 
 		if (fp->path[0] == 0) {	
-			lstrcpy(fp->path,_datadir);
+			lstrcpy(fp->path,_pksSysFolder);
 		}
 
 		if (fp->search[0] == 0) {
@@ -202,7 +202,7 @@ char *fsel_initPathes(FSELINFO *fp)
 	if ((fn = file_searchFileInPKSEditLocation(fp->fname)) != 0) {
 		string_splitFilename(fn,fp->path,fp->fname);
 		if (fp->path[0] == 0)
-			lstrcpy(fp->path,_datadir);
+			lstrcpy(fp->path,_pksSysFolder);
 		lstrcpy(_fseltarget,fn);
 		fn = _fseltarget;
 	}

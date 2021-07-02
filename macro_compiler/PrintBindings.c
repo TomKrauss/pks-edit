@@ -58,7 +58,7 @@ char *c2shift(char *s, KEYCODE code)
 		strcpy(s,"Alt+"); s += 4;
 	}
 	if (code & K_HAS_SELECTION) {
-		strcpy(s, "Selected+"); s += 4;
+		strcpy(s, "Selected+"); s += 9;
 	}
 	if (code & K_CONTROL) {
 		strcpy(s,"Ctrl+"); s += 5;
@@ -546,7 +546,7 @@ static int macro_printMenuCallback(FILE *fp)
 	HMENU 	hMenu;
 
 	fprintf(fp,"\n\nMENU default\n");
-	hMenu = GetMenu(hwndFrame);
+	hMenu = GetMenu(hwndMDIFrameWindow);
 	PrintSubMenu(fp, hMenu);
 	fprintf(fp,";\n");
 	return 1;

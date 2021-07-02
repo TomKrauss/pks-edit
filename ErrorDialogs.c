@@ -46,7 +46,7 @@ static int errror_openConfigurableAlert(int buttons, LPSTR fmt, LPSTR ap)
 {   char buf[256];
 
     wvsprintf((LPSTR)buf,(LPSTR)fmt,(LPSTR)ap);
-    return MessageBox(hwndFrame,buf,szAppName,MB_APPLMODAL|buttons); 
+    return MessageBox(hwndMDIFrameWindow,buf,szAppName,MB_APPLMODAL|buttons); 
 }
 
 /*------------------------------------------------------------
@@ -57,7 +57,7 @@ int error_displayAlertBoxWithOptions(long buttons, long nOptions, const char* fm
 	if (!fmt) {
 		return -1;
 	}
-	return MessageBox(hwndFrame, fmt, szAppName, MB_APPLMODAL|buttons); 
+	return MessageBox(hwndMDIFrameWindow, fmt, szAppName, MB_APPLMODAL|buttons); 
 }
 
 /*------------------------------------------------------------
@@ -235,8 +235,8 @@ void error_closeErrorWindow(void)
  */
 static void error_signalUsingFlashing(void)
 {
-	FlashWindow(hwndFrame,1);
-	FlashWindow(hwndFrame,0);
+	FlashWindow(hwndMDIFrameWindow,1);
+	FlashWindow(hwndMDIFrameWindow,0);
 }
 
 /*------------------------------------------------------------

@@ -301,6 +301,7 @@
     <ClCompile Include="Actions.c" />
     <ClCompile Include="EditorDocumentModel.c" />
     <ClCompile Include="include\ArrayList.c" />
+    <ClCompile Include="Grammar.c" />
     <ClCompile Include="include\JsonParser.c" />
     <ClCompile Include="ProgressMonitor.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -1170,8 +1171,10 @@
     <ClInclude Include="include\fileselector.h" />
     <ClInclude Include="include\fileutil.h" />
     <ClInclude Include="include\findandreplace.h" />
+    <ClInclude Include="include\grammar.h" />
     <ClInclude Include="include\jsmn.h" />
     <ClInclude Include="include\jsonparser.h" />
+    <ClInclude Include="include\linkedlist.h" />
     <ClInclude Include="include\markpositions.h" />
     <ClInclude Include="include\mouseutil.h" />
     <ClInclude Include="include\propertychange.h" />
@@ -1182,7 +1185,6 @@
     <ClInclude Include="include\winutil.h" />
     <ClInclude Include="rc\dial2.h" />
     <ClInclude Include="rc\fsel.h" />
-    <ClInclude Include="include\binop.h" />
     <ClInclude Include="include\brackets.h" />
     <ClInclude Include="include\context.h" />
     <ClInclude Include="include\encryption.h" />

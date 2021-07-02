@@ -1,7 +1,7 @@
 /*
  * StringTokenizer.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: standard strtok substitute
  *

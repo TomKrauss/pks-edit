@@ -1,7 +1,7 @@
 /*
  * FunctionKeyWidget.c
  *
- * PROJEKT: PKS-EDIT for ATARI - WINDOWS
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: Function Key Widget implementation
  *
@@ -184,7 +184,7 @@ static int ResizeSubWindow(HWND hwnd, int item, int x, int width, BOOL bOptButto
 static int ww_toppostmessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	ww_requestFocusInTopWindow();
-	return PostMessage(hwndFrame, message, wParam, lParam);
+	return PostMessage(hwndMDIFrameWindow, message, wParam, lParam);
 }
 
 /*------------------------------------------------------------
@@ -361,12 +361,12 @@ void fkey_visibilitychanged(void)
 		SendMessage(hwndFkeys,WM_CLOSE,0,0L);
 		hwndFkeys = NULL;
 	} else {
-		fkey_show(hwndFrame);
+		fkey_show(hwndMDIFrameWindow);
 		if (hwndFkeys) {
 			SendMessage(hwndFkeys,WM_EDWINREORG,0,0L);
 			action_commandEnablementChanged((ACTION_CHANGE_TYPE) { 0, 0, 1, -1 });
 		}
 	}
-	SendMessage(hwndFrame, WM_EDWINREORG,0,0L);
+	SendMessage(hwndMDIFrameWindow, WM_EDWINREORG,0,0L);
 }
 

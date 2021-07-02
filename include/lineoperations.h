@@ -1,7 +1,7 @@
 /*
  * lineoperations.h
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * maintain list of lines: delete, insert, modify,....
  *
@@ -20,7 +20,6 @@
 
 #include <crtdefs.h>
 #include "edtypes.h"
-#include "editorfont.h"
 
 #define	ED_VERSION	0x20
 
@@ -36,6 +35,8 @@
 /*-------- TYPES --------------*/
 
 typedef struct tagEDIT_CONFIGURATION EDIT_CONFIGURATION;
+
+typedef struct tagEDTEXTSTYLE EDTEXTSTYLE;
 
 typedef struct line   {
 	struct line* next;
@@ -99,6 +100,8 @@ typedef struct tagMARK {
 	int  			lc;
 } MARK;
 
+typedef struct tagWINFO WINFO;
+
 /* special marker IDs */
 #define	CNOMARK			0x00		/* release mark without freeing it */
 #define	MARKSTART		0x100		/* cut&paste - start */
@@ -130,26 +133,27 @@ typedef struct tagMARK {
 
 #if defined(_WINUSER_)
 
+typedef struct tagGRAMMAR GRAMMAR;
+
 typedef struct tagEDIT_CONFIGURATION {
 	struct tagEDIT_CONFIGURATION* next;
-	unsigned char  modename[16];	/* configuration name */
-	char		name[32];			/* base name of the file defining this configuration */
-	int			id;					/* # ID for context check */
-	int			lmargin, rmargin;
-	int			tabsize, shiftwidth;
-	int			nl, nl2, cr;		/* Lineends */
-	int			dispmode;			/* show control... */
-	int			workmode;			/* watch brackets, abbrev... */
-	char		t1, fillc;			/* Tabulator Character (fill character) */
-	char		u2lset[32];			/* wordset and u2l ("abc=xyz") */
-	int			tabulatorSizes[32];	/* arbitrary tab stops - allowing us to have have tabs at positions 2, 5, 9, 15, ...*/
-	unsigned char 	tbits[MAXLINELEN / 8];	/* Bitset real Tabstops */
+	unsigned char	modename[16];		/* configuration name */
+	char			name[32];			/* base name of the file defining this configuration */
+	GRAMMAR*		grammar;			// the grammar itself.
+	int				id;					/* # ID for context check */
+	int				lmargin, rmargin;
+	int				tabsize, shiftwidth;
+	int				nl, nl2, cr;		/* Lineends */
+	int				dispmode;			/* show control... */
+	int				workmode;			/* watch brackets, abbrev... */
+	char			t1, fillc;			/* Tabulator Character (fill character) */
+	char			u2lset[32];			/* wordset and u2l ("abc=xyz") */
+	int				tabulatorSizes[32];	/* arbitrary tab stops - allowing us to have have tabs at positions 2, 5, 9, 15, ...*/
 	unsigned char	statusline[60];	/* the special status */
 	WINDOWPLACEMENT	placement;		/* for windows with fixed size */
 	EDTEXTSTYLE*	editFontStyle;			/* font */
 	char			editFontStyleName[16];	/* Name of the font style to use*/
-	char		   backupExtension[10];		/* Backup extension */
-	unsigned char  tagtag[12];		/* private tag tag */
+	char			backupExtension[10];	/* Backup extension */
 	unsigned char	creationMacroName[24];	/* "Vorlage" Makro on creation */
 	unsigned char	closingMacroName[24];	/* makro to execute before closing */
 	int				scrollflags;		/* thumbtrack.. */
@@ -157,20 +161,7 @@ typedef struct tagEDIT_CONFIGURATION {
 	int				hscroll;			/* scroll n columns */
 	int				vscroll;			/* scroll n Lines */
 	int				scroll_dy;			/* scroll on dist dy to screen */
-	unsigned char	ts[256];		/* fast access 1st 256 Tabstops */
 } EDIT_CONFIGURATION;
-
-/*--------------------------------------------------------------------------
- * doctypes_calculateTabStop()
- * calculate next Tabstop
- */
-extern int doctypes_calculateTabStop(int col, EDIT_CONFIGURATION* lp);
-
-/*--------------------------------------------------------------------------
- * doctypes_calculateNextTabStop()
- * calculate next tabstop after the given column.
- */
-extern int doctypes_calculateNextTabStop(int col, EDIT_CONFIGURATION* l);
 
 /*--------------------------------------------------------------------------
  * Creates the default attributes for editing a document. The returned structure
@@ -178,19 +169,7 @@ extern int doctypes_calculateNextTabStop(int col, EDIT_CONFIGURATION* l);
  */
 extern EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor();
 
-/*--------------------------------------------------------------------------
- * doctypes_initDocumentTypeDescriptor()
- * Initialize a document type descriptor with the proper tabsize settings.
- */
-extern void doctypes_initDocumentTypeDescriptor(EDIT_CONFIGURATION* lp, int ts);
-
 #endif
-
-extern char 	bittab[];
-
-#define	TABTHERE(lin,i)		(lin->tbits[i >> 3] &  bittab[i & 07])
-#define	TABPLACE(lin,i)		(lin)->tbits[i >> 3] |= bittab[i & 07]
-#define	TABCLEAR(lin,i)		(lin)->tbits[i >> 3] &= (~bittab[i & 07])
 
 /* default document descriptor context (Makros are global) */
 #define	DEFAULT_DOCUMENT_DESCRIPTOR_CTX			0
@@ -611,15 +590,6 @@ extern int EdFileAbandon(void);
  */
 extern int EdLineSplit(int flags);
 
-/*
- * Typical data structure for a linked list.
- */
-typedef struct linkedList {
-	struct linkedList* next;
-	char name[4];
-} LINKED_LIST;
-
-
 /*--------------------------------------------------------------------------
  * ln_insertIndent()
  * Insert white space characters at the beginning of the passed line so
@@ -627,63 +597,7 @@ typedef struct linkedList {
  * would be visible in the passed column. Return the number of characters
  * inserted parameter &inserted.
  */
-extern LINE* ln_insertIndent(FTABLE* fp, LINE* lp, int col, int* inserted);
-
-/**
- * Find the index of an element in a linked list or return -1 if not found.
- */
-extern long ll_indexOf(LINKED_LIST* pHead, LINKED_LIST* lp);
-
-/*--------------------------------------------------------------------------
- * ll_moveElementToFront()
- * put an element to the top of the linked list
- */
-extern int ll_moveElementToFront(LINKED_LIST** pointerLinkedList, void* elem);
-
-/*--------------------------------------------------------------------------
- * ll_insert()
- * insert an element with the given size into a linked list. The head of the list
- * will be updated to point to the new element and existing elements will be pushed back.
- */
-extern LINKED_LIST* ll_insert(LINKED_LIST** pointerLinkedList, long size);
-
-/**
- * Add an element to the end of a linked list. If the linked list does not yet exist,
- * the HEAD pointer is updated to point to the new element.
- */
-extern void ll_add(LINKED_LIST** pointerLinkedList, LINKED_LIST* pElement);
-
-/*--------------------------------------------------------------------------
- * ll_destroy()
- * destroy a linked list. Pass a pointer to the head of the linked list and
- * an additional destruction function for one element in the list.
- */
-extern void ll_destroy(LINKED_LIST** pointerLinkedList, int (*destroy)(void* elem));
-
-/*--------------------------------------------------------------------------
- * ll_delete()
- * delete an element in a linked list.Return 1 if the element was successfully deleted.
- */
-extern int ll_delete(LINKED_LIST** pointerLinkedList, void* element);
-
-/**
- * Return an element from the linked list at the given index or NULL
- * if no element exists for the index.
- */
-extern LINKED_LIST* ll_at(LINKED_LIST* head, int idx);
-
-/*--------------------------------------------------------------------------
- * ll_size()
- * Count the elements in a linked list.
- */
-extern long ll_size(LINKED_LIST* linkedList);
-
-/*--------------------------------------------------------------------------
- * ll_find()
- *
- * Find an element in a linked list, with a given name.
- */
-extern LINKED_LIST* ll_find(LINKED_LIST* linkedList, char* name);
+extern LINE* ln_insertIndent(WINFO* wp, LINE* lp, int col, int* inserted);
 
 /*-----------------------------------------
  * ln_createMultipleLinesUsingSeparators()
@@ -718,6 +632,35 @@ extern int ln_createAndAdd(FTABLE* fp, char* q, int len, int flags);
  * Similar to ln_createAndAdd() - default size and default flags.
  */
 extern int ln_createAndAddSimple(FTABLE* fp, char* b);
+
+/*---------------------------------
+ * ft_formatText()
+ * Formt the text in the current file.
+ *---------------------------------*/
+extern int ft_formatText(WINFO* wp, int scope, int type, int flags);
+
+/*
+ * Invoke a callback for every view of a editor document model.
+ * The callback may return 0 to abort the iteration process.
+ * The callback is invoked with the WINFO pointer an an optional parameter
+ * passed as the last argument.
+ */
+extern void ft_forAllViews(FTABLE* fp, int (*callback)(WINFO* wp, void* pParameterPassed), void* parameter);
+
+/*
+ * Return the primary view displaying a file - if any.
+ */
+extern WINFO* ft_getPrimaryView(FTABLE* fp);
+
+/*
+ * Connect a view with a file - set the model and add the view as a dependent.
+ */
+extern void ft_connectViewWithFT(FTABLE* fp, WINFO* wp);
+
+/**
+ * Checks, whether the given window is a view of the file
+ */
+extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 
 /*-------- FILE FLAGS ----------*/
 

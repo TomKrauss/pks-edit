@@ -31,6 +31,7 @@ ChangesAssociations = yes
 [Files]
 Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"
 Source: "pks_sys\pksedit.ini"; DestDir: "{app}\pks_sys"
+Source: "pks_sys\json.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\pkseditconfig.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\pksedit.reg"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\pksedit.mac"; DestDir: "{app}\pks_sys"

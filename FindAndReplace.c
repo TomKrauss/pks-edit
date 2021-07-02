@@ -352,7 +352,7 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 	}
 	FTABLE* fp = wp->fp;
 	_currentSearchAndReplaceParams.options = nOptions;
-	if (bContinue && ft_checkSelection(wp)) {
+	if (bContinue && ww_checkSelection(wp)) {
 		incrementalStart = (CARET){ wp->blstart->lm, wp->blstart->lc };
 		incrementalStart.ln = ln_indexOf(fp, wp->blstart->lm);
 	} else if (incrementalStart.linePointer == NULL ||(incrementalStart.ln = ln_indexOf(fp, incrementalStart.linePointer)) < 0) {
@@ -432,10 +432,11 @@ int ft_expandTabsWithSpaces(LINE *lp, long *nt)
 			    *send = &lp->lbuf[lp->len];
 	int col;
 
+	WINFO* wp = ww_getCurrentEditorWindow();
 	while(s < send && d < dend) {
 		if ((c = *s++) == '\t') {
 			col = (int)(d - _linebuf);
-			col = doctypes_calculateTabStop(col,ft_getCurrentDocument()->documentDescriptor) - col;
+			col = indent_calculateTabStop(col, &wp->indentation) - col;
 			memset(d,' ', col);
 			(*nt)++;
 			d += col;
@@ -448,14 +449,14 @@ int ft_expandTabsWithSpaces(LINE *lp, long *nt)
 /*--------------------------------------------------------------------------
  * expandLine()
  */
-static LINE *expandLine(FTABLE *fp, LINE *lp,long *nt)
+static LINE *expandLine(WINFO *wp, LINE *lp,long *nt)
 {	long t = 0;
 	int  size;
 
 	size = ft_expandTabsWithSpaces(lp,&t);
 	if (t) {
 		*nt += t;
-		if ((lp = ln_modify(fp,lp,lp->len,size)) == 0L)
+		if ((lp = ln_modify(wp->fp,lp,lp->len,size)) == 0L)
 			return 0;
 		lp->lflg |= LNREPLACED;
 		memmove(lp->lbuf,_linebuf,size);
@@ -478,16 +479,14 @@ LINE *find_expandTabsInFormattedLines(WINFO *wp, LINE *lp)
 /*--------------------------------------------------------------------------
  * compline()
  */
-static LINE *compline(FTABLE *fp, LINE *lp,long *nt)
+static LINE *compline(WINFO *wp, LINE *lp,long *nt)
 {	char   *s;
 	int    i,col,tab,start,foundpos,n2,ntabs;
-	EDIT_CONFIGURATION *linp = fp->documentDescriptor;
 
 	s = lp->lbuf, i = 0, col = 0; 
-
 	while (i < lp->len) {
 		ntabs = 0;
-		tab = doctypes_calculateTabStop(col,linp);
+		tab = indent_calculateTabStop(col,&wp->indentation);
 		start = i;
 		while(i < lp->len) {
 			if (*s == '\t') {
@@ -501,7 +500,7 @@ static LINE *compline(FTABLE *fp, LINE *lp,long *nt)
 			if (col == tab) {
 				foundpos = i;
 				ntabs++;
-				tab = doctypes_calculateTabStop(col,linp);
+				tab = indent_calculateTabStop(col, &wp->indentation);
 			}
 		}
 
@@ -510,7 +509,7 @@ static LINE *compline(FTABLE *fp, LINE *lp,long *nt)
 			/* worth compressing ? */
 			n2 = foundpos-start-ntabs;
 			if (n2 > 0) {
-				if ((lp = ln_modify(fp,lp,foundpos,start+ntabs)) == 0L) 
+				if ((lp = ln_modify(wp->fp,lp,foundpos,start+ntabs)) == 0L) 
 					return 0;
 				lp->lflg |= LNREPLACED;
 				memset(&lp->lbuf[start],'\t',ntabs);
@@ -530,17 +529,17 @@ static LINE *compline(FTABLE *fp, LINE *lp,long *nt)
 }
 
 /*--------------------------------------------------------------------------
- * modifypgr()
- * modify a block of text
+ * find_modifyTextSection()
+ * modify a section of a text (identified by block marks).
  */
-static void modifypgr(WINFO *wp, LINE *(*func)(FTABLE *fp, LINE *lp, long *nt),
+static void find_modifyTextSection(WINFO *wp, LINE *(*func)(WINFO *wp, LINE *lp, long *nt),
 				  long *cntel,long *cntln,MARK *mps, MARK *mpe) {
 	LINE     *lp;
 	FTABLE* fp = wp->fp;
 	lp = mps->lm;
 
 	for (; lp != 0 && (mpe->lc != 0 || lp != mpe->lm); lp = lp->next) {
-		if ((lp = (*func)(fp,lp,cntel)) == 0)
+		if ((lp = (*func)(wp,lp,cntel)) == 0)
 			break;
 		if (xabort() || lp == mpe->lm)
 			break;
@@ -579,7 +578,7 @@ int find_replaceTabsWithSpaces(int scope, int flg)
 		return 0;
 
 	progress_startMonitor(IDS_ABRTCONVERT);
-	modifypgr(ww_getCurrentEditorWindow(),(flg) ? expandLine : compline,&nt,&nl,mps,mpe);
+	find_modifyTextSection(ww_getCurrentEditorWindow(),(flg) ? expandLine : compline,&nt,&nl,mps,mpe);
 	progress_closeMonitor(0);
 
 	if (nt) 
@@ -704,7 +703,7 @@ int EdReplaceText(int scope, int action, int flags)
 
 	query  = flags & OREP_INQ;
 	marked = flags & OREP_MARKED;
-	if (ww_hasColumnSelection(wp) && scope == RNG_BLOCK)
+	if (ww_isColumnSelectionMode(wp) && scope == RNG_BLOCK)
 		column = 1;
 
 	/*
@@ -979,11 +978,11 @@ int find_setTextSelection(int rngetype, WINFO *wp, MARK **markstart, MARK **mark
 			ofe = lpe->len;
 			break;
 		case RNG_BLOCK:
-			if (!ft_checkSelectionWithError(wp))
+			if (!ww_checkSelectionWithError(wp))
 				return RNG_INVALID;
 			lps = wp->blstart->lm;
 			lpe = wp->blend->lm;
-			if (ww_hasColumnSelection(wp)) {
+			if (ww_isColumnSelectionMode(wp)) {
 				ofs = wp->blcol1;
 				ofe = wp->blcol2;
 			} else {

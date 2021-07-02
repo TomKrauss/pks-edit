@@ -1,7 +1,7 @@
 /*
  * FilePattern.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: TOS - like wildcard string_matchFilename for filenames
  * 		  special is: A,B,C => *.A|*.B|*.C
@@ -101,11 +101,14 @@ static int gmatch(char *s, char *p)
 
 /*--------------------------------------------------------------------------
  * string_matchFilename()
- * Match a filename using ATARI TOS matching rules. Multiple patterns may be 
- * specified separated by "," of ";"
+ * 
+ * Match a filename using typical file name pattern matching rules (using * and ?). 
+ * Multiple patterns may be  specified separated by "," of ";". One may precede
+ * a pattern with '!' to explicitly not match a given pattern - e.g. !*.obj will
+ * explicitly exclude all files named *.obj.
  */
-int string_matchFilename(char *string,char *pattern)
-{	char *	pszToken;
+int string_matchFilename(char *string,char *pattern) {	
+	char *	pszToken;
 	char *	pszPatCopy;
 	char *	pszStringCopy;
 

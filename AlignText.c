@@ -1,7 +1,7 @@
 /*
  * AlignText.C
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: align text fragments to screen columns
  *

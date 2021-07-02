@@ -1,7 +1,7 @@
 /*
  * CaretMovement.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: caret positioning
  *
@@ -51,11 +51,9 @@ EXPORT int caret_lineOffset2screen(WINFO *wp, CARET *cp)
 		}
 	}
 	lbuf += cp->offset;
-	FTABLE* fp = wp->fp;
-
 	while (p < lbuf) {
 		if (*p++ == '\t') 
-			col = doctypes_calculateNextTabStop(col,fp->documentDescriptor);
+			col = indent_calculateNextTabStop(col, &wp->indentation);
 		else col++;
 	}
 	return col;
@@ -80,11 +78,9 @@ EXPORT int caret_screen2lineOffset(WINFO *wp, CARET *pCaret)
 			return 0;
 		}
 	}
-	FTABLE* fp = wp->fp;
-
 	while (i < col && p < pend) {
 		if (*p++ == '\t')
-			i = doctypes_calculateNextTabStop(i,fp->documentDescriptor);
+			i = indent_calculateNextTabStop(i, &wp->indentation);
 		else i++;
 	}
 	return (int)(p-lp->lbuf);
@@ -159,7 +155,7 @@ static void HideWindowsBlocks(WINFO *wp)
 
 	if (!wp->bXtndBlock &&
 		(GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) &&
-		ft_checkSelection(wp)) {
+		ww_checkSelection(wp)) {
 		col = wp->caret.virtualOffset;
 		bl_hideSelection(wp, 1);
 		wp->caret.virtualOffset = col;		/* restore virtual column position */

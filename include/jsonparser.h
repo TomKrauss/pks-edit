@@ -1,7 +1,7 @@
 /*
  * jsonparser.h
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: generic JSON parser mapping data structures
  * against JSON files.

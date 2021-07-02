@@ -72,7 +72,6 @@ extern int 		mac_compileMacros(void);
 extern int		doctypes_addDocumentTypesToListBox(HWND hwnd, int nItem);
 
 extern long		_multiplier;
-extern char		_kunde[30];
 
 static int		_scope = RNG_BLOCK;
 
@@ -95,7 +94,7 @@ int EdCloseWindow(int winid)
  */
 int EdExit(int rc)
 {
-	PostMessage(hwndFrame, WM_CLOSE, rc, 0L); 
+	PostMessage(hwndMDIFrameWindow, WM_CLOSE, rc, 0L); 
 	return 1;
 }
 
@@ -388,7 +387,7 @@ int dlg_queryReplace(char *search, int slen, char *replace, int dlen)
 	cpyout(sbuf,search,slen);
 	cpyout(rbuf,replace,dlen);
 
-	EnableWindow(hwndFrame,FALSE);
+	EnableWindow(hwndMDIFrameWindow,FALSE);
 	bFirstOpen = hwndQueryReplace ? FALSE : TRUE;
 
 	win_createModelessDialog(&hwndQueryReplace,MAKEINTRESOURCE(DLGQUERYREPLACE),
@@ -421,7 +420,7 @@ int dlg_queryReplace(char *search, int slen, char *replace, int dlen)
 void dlg_closeQueryReplace(void)
 {
 	if (hwndQueryReplace) {
-		EnableWindow(hwndFrame,TRUE);
+		EnableWindow(hwndMDIFrameWindow,TRUE);
 		win_destroyModelessDialog(&hwndQueryReplace);
 	}
 }
@@ -451,6 +450,8 @@ int dlg_displayRecordMacroOptions(int *o)
  */
 int EdAbout(void)
 {
+	static char _customerMessage[] = "free version (buy us a beer)";
+
 #if defined(_WIN64)
 	static char _architecture[] = "- 64 Bit Plattform";
 #elif
@@ -459,7 +460,7 @@ int EdAbout(void)
 	static char _versionInfo[] = "Version 1.9.0, 28.6.2021";
 
 	static DIALPARS _d[] = {
-		IDD_RO1,		sizeof _kunde,		_kunde,
+		IDD_RO1,		sizeof _customerMessage, _customerMessage,
 		IDD_STRING1,	sizeof _architecture, _architecture,
 		IDD_STRING2,	sizeof _versionInfo, _versionInfo,
 		0
@@ -1205,13 +1206,6 @@ static void color_showselection(DRAWITEMSTRUCT *dp)
 /*--------------------------------------------------------------------------
  * EdDlgDispMode()
  */
-static int redrawRuler(WINFO* wp, void* pUnused) {
-	if (wp->ru_handle != NULL) {
-		win_sendRedrawToWindow(wp->ru_handle);
-	}
-	return 1;
-}
-
 int EdDlgDispMode(void) {
 	EDTEXTSTYLE		font;
 	static char 	status[64];
@@ -1261,23 +1255,21 @@ int EdDlgDispMode(void) {
 	lstrcpy(status,linp->statusline);
 	tabsize = 0;
 	rmargin = linp->rmargin;
-
 	dispmode = linp->dispmode;
 	tabfill = linp->t1;
 	_d[1].dp_data = &font;
-	memmove(&font, &linp->editFontStyle, sizeof font);
+	memmove(&font, linp->editFontStyle, sizeof font);
 	bgcolor = linp->editFontStyle->bgcolor;
 	if (win_callDialog(DLGDISPMODE,&_fp,_d, NULL) == 0) {
 		return 0;
 	}
-	memmove(&linp->editFontStyle, &font, sizeof font);
+	memmove(linp->editFontStyle, &font, sizeof font);
 	linp->editFontStyle->bgcolor = bgcolor;
 	lstrcpy(linp->statusline,status);
 	linp->dispmode = dispmode;
 	linp->t1 = tabfill;
 	if ((linp->tabsize = tabsize) != 0) {
-		doctypes_initDocumentTypeDescriptor(linp, linp->tabsize);
-		ft_forAllViews(fp, redrawRuler, NULL);
+		ft_forAllViews(fp, ww_tabsChanged, linp);
 	}
 	linp->rmargin = rmargin;
 	return doctypes_documentTypeChanged();
@@ -1383,16 +1375,6 @@ int EdDlgCursTabs(void)
 }
 
 /*--------------------------------------------------------------------------
- * sel_ruler()
- */
-static EDIT_CONFIGURATION *_linp;
-static void sel_ruler(HWND hDlg, WORD idCtrl)
-{
-	EndDialog(hDlg,idCtrl);
-	doctypes_readWriteDocumentDescriptor(2,_linp);
-}
-
-/*--------------------------------------------------------------------------
  * DlgModeVals()
  */
 int DlgModeVals(EDIT_CONFIGURATION *linp)
@@ -1420,7 +1402,6 @@ int DlgModeVals(EDIT_CONFIGURATION *linp)
 	};
 	int	ret;
 
-	_linp = linp;
 	lstrcpy(backupExtension,linp->backupExtension);
 	opt = 0;
 	if ((nl1 = linp->nl) >= 0) {
@@ -1759,7 +1740,7 @@ static int add_icon(HWND hDlg)
 
 	if ((p = string_allocate(_pars)) != 0) {
 		hwnd = ic_addIcon((void*)_ictype,_title,p,CW_USEDEFAULT,CW_USEDEFAULT);
-		SendMessage(hwndClient, WM_MDIACTIVATE, (WPARAM)hwnd, (LPARAM)NULL);
+		SendMessage(hwndMDIClientWindow, WM_MDIACTIVATE, (WPARAM)hwnd, (LPARAM)NULL);
 		win_sendRedrawToWindow(hwnd);
 		ic_enableConfigurationDialogIcons(hDlg, (void *)_ictype);
 	}

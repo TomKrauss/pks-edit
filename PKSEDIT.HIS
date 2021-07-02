@@ -1,36 +1,30 @@
 [files]
-"C:\source\pksedit\ColumnBlocks.c", line 152: 0x0 0x1 -1 -1 -8 -31 0 0 1288 780
+"C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java", line 33: 0x0 0x1 -1 -1 -8 -31 0 0 1297 844
+"C:\source\pksedit\pks_sys\pkseditconfig.json", line 51: 0x0 0x1 -1 -1 -8 -31 0 0 725 844
 [find]
-!winte
-!wint
-!record
-!cr
-!cre
-!crea
-!creat
-!create
-!windows
-!window
-!windo
-!wind
-!win
-!wi
-!w
-!c
-!ca
-!can
-!canc
-!cance
-!cancel
-!cancell
-!cancelle
-!cancelled
-!author: Tom
-!author: Trend
 !@author.*Trend
 !author.*tom
 !xx
 !Tab
+!optionally
+!optionall
+!optional
+!optiona
+!option
+!optio
+!opti
+!opt
+!op
+!o
+!L
+!LI
+!LIN
+!LINE
+!c
+!ca
+!car
+!care
+!caret
 [filePatterns]
 !*.*
 !*.java
@@ -40,8 +34,6 @@
 !,
 ! 
 [open]
-!C:\source\pksedit\macro_compiler\MacroExpressions.c
-!C:\source\pksedit\macro_compiler\JumpLabels.c
 !C:\source\pksedit\macro_compiler\GenerateMacroCode.c
 !C:\source\pksedit\macro_compiler\DecompileMacros.c
 !C:\source\pksedit\macro_compiler\CompileMacros.c
@@ -68,10 +60,11 @@
 !C:\source\pksedit\AsciiHexToLong.c
 !C:\source\pksedit\Clipboard.c
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java
-!C:\source\pksedit\ColumnBlocks.c
-!C:\Users\tom\AppData\Local\Temp\KEYS
-!C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
 !C:\Users\tom\AppData\Local\Temp\MACROS.PKC
+!C:\Users\tom\AppData\Local\Temp\KEYS
+!C:\source\pksedit\ColumnBlocks.c
+!C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
+!C:\source\pksedit\pks_sys\pkseditconfig.json
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -83,3 +76,4 @@
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
 !C:\temp\*.*
 !C:\source\pksedit\pks_sys\*.MAC
+!C:\source\pksedit\pks_sys\*.*

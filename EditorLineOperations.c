@@ -1,7 +1,7 @@
 /*
  * EditorLineOperations.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * maintain list of lines: delete, insert, modify,....
  *
@@ -19,6 +19,7 @@
 #include "pksedit.h"
 #include "textblocks.h"
 #include "edierror.h"
+#include "linkedlist.h"
 #include "lineoperations.h"
 #include "markpositions.h"
 #include "stringutil.h"

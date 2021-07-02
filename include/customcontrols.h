@@ -1,7 +1,7 @@
 /*
  * customcontrols.h
  *
- * PROJEKT: PKS-EDIT for ATARI - WINDOWS
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: utilities for implementing custom controls in PKS-EDIT
  *

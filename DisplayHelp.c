@@ -46,8 +46,8 @@ int EdCallWinHelp(char *szFile, UINT hType, DWORD_PTR param)
 	if (hType == HH_DISPLAY_SEARCH) {
 		hType = HH_DISPLAY_TOC;
 	}
-	ret = HtmlHelp(hwndFrame, pszFound, hType, (DWORD_PTR)&m_dwCookie);
-	hwndHelpRequested = hwndFrame;
+	ret = HtmlHelp(hwndMDIFrameWindow, pszFound, hType, (DWORD_PTR)&m_dwCookie);
+	hwndHelpRequested = hwndMDIFrameWindow;
 	return ret == NULL ? 0 : 1;
 }
 

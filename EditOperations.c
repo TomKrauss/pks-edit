@@ -41,8 +41,6 @@ extern void 	caret_setMatchFunction(int control, int ids_name, int *c);
 extern LINE 	*(*advmatchfunc)();
 extern int 	ln_countLeadingSpaces(LINE *l);
 extern int 	string_isSpace(unsigned char c);
-extern int 	doctypes_calculateTabStop(int col, EDIT_CONFIGURATION *l);
-extern int 	doctypes_calculatePreviousTabStop(int col, EDIT_CONFIGURATION* l);
 extern int 	string_countSpacesIn(unsigned char *s, int pos);
 extern int 	sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
 				 int indent, int *di, int *hbr);
@@ -66,13 +64,13 @@ int EdCharDelete(int control);
  * a certain # of "blank" columns on start of the line
  * try using a maximum # of TABs
  */
-static int edit_calculateColumns2TabsBlanks(EDIT_CONFIGURATION *linp, int col, int *add_blanks)
+static int edit_calculateColumns2TabsBlanks(INDENTATION *pIndentation, int col, int *add_blanks)
 {
 	int    i,ntabs;
 
 	/* calculate # of tabstops up to given position */
 	for (i = 0, ntabs = 0; 
-	     *add_blanks = col - i, (i = doctypes_calculateNextTabStop(i,linp)) <= col; 
+	     *add_blanks = col - i, (i = indent_calculateNextTabStop(i, pIndentation)) <= col;
 	     ntabs++)
 	     ;
 
@@ -82,10 +80,10 @@ static int edit_calculateColumns2TabsBlanks(EDIT_CONFIGURATION *linp, int col, i
 /*--------------------------------------------------------------------------
  * edit_calculateTabs2Columns()
  */
-int edit_calculateTabs2Columns(EDIT_CONFIGURATION *linp, int tabs)
+int edit_calculateTabs2Columns(INDENTATION* pIndentation, int tabs)
 {	int col;
 	
-	for (col = 0; tabs > 0; col = doctypes_calculateNextTabStop(col,linp))
+	for (col = 0; tabs > 0; col = indent_calculateNextTabStop(col, pIndentation))
 		tabs--;
 	return col;
 }
@@ -101,7 +99,7 @@ static int edit_calculateStartIndentation(WINFO* wp,LINE *lp,
 
 	col = string_countSpacesIn(lp->lbuf,upto);
 	col = caret_lineOffset2screen(wp, &(CARET) { lp, col});
-	return edit_calculateColumns2TabsBlanks(fp->documentDescriptor,col,add_blanks);
+	return edit_calculateColumns2TabsBlanks(&wp->indentation,col,add_blanks);
 }
 
 /*--------------------------------------------------------------------------
@@ -111,12 +109,13 @@ static int edit_calculateStartIndentation(WINFO* wp,LINE *lp,
  * would be visible in the passed column. Return the number of characters
  * inserted parameter &inserted.
  */
-LINE *ln_insertIndent(FTABLE *fp, LINE *lp, int col, int *inserted)
+LINE *ln_insertIndent(WINFO* wp, LINE *lp, int col, int *inserted)
 {	int t,b,fillc;
+	FTABLE* fp = wp->fp;
 
 	if ((fillc = fp->documentDescriptor->fillc) == 0) {
 		fillc = ' ';
-		t = edit_calculateColumns2TabsBlanks(fp->documentDescriptor,col,&b);
+		t = edit_calculateColumns2TabsBlanks(&wp->indentation,col,&b);
 	} else {
 		t = 0;
 		b = col;
@@ -151,8 +150,8 @@ static int edit_insertIndent(WINFO *wp, LINE *pPreviousLine, LINE *nlp, int care
 	t += _deltaindent;
 	_deltaindent = 0;
 
-	caretColumn = edit_calculateTabs2Columns(fp->documentDescriptor,t)+b;
-	if ((nlp = ln_insertIndent(fp,nlp,caretColumn,newcol)) == 0) {
+	caretColumn = edit_calculateTabs2Columns(&wp->indentation, t)+b;
+	if ((nlp = ln_insertIndent(wp,nlp,caretColumn,newcol)) == 0) {
 		return 0;
 	}
 
@@ -428,9 +427,8 @@ static int edit_findWrappingPosition(WINFO *wp, LINE *lp, int cursoffset, int *n
  */
 int ww_getRightMargin(WINFO *wp) {	
 	int 		rmargin;
-	FTABLE* fp = wp->fp;
 
-	if ((rmargin = fp->documentDescriptor->rmargin) == 0) {
+	if ((rmargin = wp->rmargin) == 0) {
 		rmargin = (wp->maxcol - wp->mincol) - RM_DELTA;
 	}
 	return rmargin;
@@ -502,7 +500,7 @@ static int edit_autoFormat(WINFO *wp)
 			 */
 			lp->lflg |= LNREPLACED;
 			if ((lp = ln_break(fp,lp,wstart)) == 0L ||
-			    (lp = ln_insertIndent(fp,lp,indent,&col)) == 0)
+			    (lp = ln_insertIndent(wp,lp,indent,&col)) == 0)
 				break;
 			lp->prev->lflg |= LNNOCR;
 
@@ -683,7 +681,7 @@ int EdCharInsert(int c)
 		return EdLineSplit(c == lnp->nl ? RET_SOFT : 0);
 	}
 
-	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ft_checkSelection(wp)) {
+	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_checkSelection(wp)) {
 		EdBlockDelete(0);
 		if (c == 8 || c == 127) {
 			return 1;
@@ -711,7 +709,7 @@ int EdCharInsert(int c)
 
 	if (c == '\t' && lnp->fillc) {
 		int n2 = caret_lineOffset2screen(wp, &wp->caret);
-		int n = doctypes_calculateNextTabStop(n2, lnp);
+		int n = indent_calculateNextTabStop(n2, &wp->indentation);
 		nchars = n - n2;
 		c = lnp->fillc;
 	} else {
@@ -763,7 +761,7 @@ static int edit_findNextOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) {
 		FTABLE* fp = wp->fp;
 		CARET caret;
 		int currentScreenCol = caret_lineOffset2screen(wp, &wp->caret);
-		int screenColNextTab = doctypes_calculateNextTabStop(currentScreenCol, fp->documentDescriptor);
+		int screenColNextTab = indent_calculateNextTabStop(currentScreenCol, &wp->indentation);
 		caret.linePointer = lp;
 		caret.offset = screenColNextTab;
 		int lineOffsetNextTab = caret_screen2lineOffset(wp, &caret);
@@ -785,7 +783,7 @@ static int edit_findPreviousOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) 
 		FTABLE* fp = wp->fp;
 		CARET caret;
 		int currentScreenCol = caret_lineOffset2screen(wp, &wp->caret);
-		int screenColPreviousTab = doctypes_calculatePreviousTabStop(currentScreenCol, fp->documentDescriptor);
+		int screenColPreviousTab = indent_calculatePreviousTabStop(currentScreenCol, &wp->indentation);
 		caret.linePointer = lp;
 		caret.offset = screenColPreviousTab;
 		int lineOffsetPreviousTab = caret_screen2lineOffset(wp, &caret);
@@ -969,7 +967,7 @@ int EdHideLines(void)
 
 	if (wp == 0 ||
 		(fp = wp->fp) == 0 ||
-		!ft_checkSelection(wp)) {
+		!ww_checkSelection(wp)) {
 		return 0;
 	}
 

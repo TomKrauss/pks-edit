@@ -1,7 +1,36 @@
+/*
+ * edfuncs.h
+ *
+ * PROJEKT: PKS-EDIT for Windows
+ *
+ * purpose: macro language related definitions.
+ *
+ * 										created:
+ * 										last modified:
+ *										author: Tom
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
 # ifndef	_EDFUNCS_H
 
 #include <windows.h>
+
+#define	BIN_ADD			'+'
+#define	BIN_AND			'&'
+#define	BIN_OR			'|'
+#define	BIN_MUL			'*'
+#define	BIN_DIV			'/'
+#define	BIN_MOD			'%'
+#define	BIN_OR			'|'
+#define	BIN_AND			'&'
+#define	BIN_BRACKETS		'('
+#define	BIN_SUB			'-'
+#define	BIN_NOT			'~'
+#define	BIN_XOR			'^'
+#define	BIN_CONVERT		'C'
 
 #define	EW_MODIFY		0x1		/* function modifies text */
 #define	EW_NOCASH		0x2		/* dont EdMacroRecord them */
@@ -181,7 +210,7 @@ typedef struct c_test {
 
 typedef struct c_binop {
 	unsigned char typ;		/* C_BINOP */
-	unsigned char op;		/* see binop.h */
+	unsigned char op;		/* see above BIN_ADD etc... */
 	int           op1offset;	/* points to COM_1STRING,.... */
 	int           op2offset;	/* points to COM_1STRING,.... */
 	int		    size;		/* total size of binop */

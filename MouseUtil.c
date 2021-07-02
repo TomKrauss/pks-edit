@@ -33,7 +33,6 @@
 static HCURSOR   hHourGlass;		// Hour glass cursor
 static HCURSOR   hSaveCurs;
 
-extern void 	st_seterrmsg(char *msg);
 extern HWND 	ic_findChildFromPoint(HWND hwnd, POINT *point);
 
 extern MOUSEBIND	_mousetab[MAXMAPMOUSE];
@@ -164,7 +163,7 @@ static MOUSE_DRAG_HANDLER _mouse_textBlockMovement = {
  * Return a drag handler for handling mouse drags depending on the current context.
  */
 static MOUSE_DRAG_HANDLER* mouse_getDragHandler(WINFO* wp, int x, int y) {
-	if (ft_checkSelection(wp)) {
+	if (ww_checkSelection(wp)) {
 		// TODO: should check, whether x and y is "inside the text block"
 		return &_mouse_textBlockMovement;
 	}
@@ -316,7 +315,7 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 				break;
 			}
 			caret_placeToXY(wp, x, y);
-			if (ww_hasColumnSelection(wp)) {
+			if (ww_isColumnSelectionMode(wp)) {
 				long ln;
 				long col;
 				caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
@@ -483,31 +482,5 @@ EXPORT int mouse_onMouseClicked(WINFO *wp, int x, int y, int b, int nclicks, int
 		return 1;
 	}
 	return 0;
-}
-
-/*----------------------------*/
-/* mouse_onRulerClicked()			*/
-/*----------------------------*/
-EXPORT int mouse_onRulerClicked(WINFO *wp, int x, int y, int msg, int shift) {
-	long 	ln;
-	long		col;
-	char		szBuf[100];
-	FTABLE* fp = wp->fp;
-
-	caret_calculateOffsetFromScreen(wp,x + wp->cwidth / 2,y,&ln,&col);
-	wsprintf(szBuf, /*STR*/"SPALTE: %4ld", col+1);
-	st_seterrmsg(szBuf);
-
-	if (msg != WM_MOUSEMOVE) {
-		if (msg == WM_RBUTTONDOWN) {
-			fp->documentDescriptor->rmargin = col;
-		} else {
-			doctypes_toggleTabStop(fp->documentDescriptor, col);
-		}
-		render_repaintAllForFile(fp);
-		win_sendRedrawToWindow(wp->ru_handle);
-	}
-
-	return 1;
 }
 

@@ -23,9 +23,8 @@
 #include "editorconfiguration.h"
 #include "errordialogs.h"
 #include "pksrc.h"
-
-#pragma hdrstop
-
+#include "grammar.h"
+#include "crossreferencelinks.h"
 #include "pksedit.h"
 #include "edierror.h"
 #include "context.h"
@@ -46,21 +45,22 @@ extern void		print_initPrinterDC(void);
 extern void		GetPhase2Args(char *args);
 extern void		GetPhase1Args(char *args);
 extern void 	EditDroppedFiles(HDROP hdrop);
-extern BOOL 	ft_initializeReadWriteBuffers(void);
 extern BOOL 	ww_workWinHasFocus(void);
 extern void 	st_init(HWND hwndDaddy);
+extern void		st_redraw(BOOL bErase);
 extern void 	status_wh(WORD *width, WORD *height);
 extern void 	tb_wh(WORD *width, WORD *height);
 extern void 	init_readConfigFiles(void);
 extern int 		clp_setdata(int whichBuffer);
-extern HMENU 	menu_getmenuforcontext(char *pszContext);
+extern HMENU 	menu_getMenuForContext(char *pszContext);
 extern BOOL 	init_initializeVariables(void);
 extern void		help_quitHelpSystem(void);
 
 extern BOOL	bTaskFinished;
 
 HINSTANCE		hInst;
-HWND   			hwndFrame,hwndClient;
+HWND   			hwndMDIFrameWindow;
+HWND			hwndMDIClientWindow;
 static DWORD	hDDE;
 static HDDEDATA	hDDEService;
 static HSZ		hszDDECommandLine;
@@ -73,13 +73,13 @@ static int		nInstanceCount;
 
 static HMENU	hDefaultMenu;
 
-char   szFrameClass[] 	= "DeskWin";
-char   szEditClass[]  	= "EditWin";
-char   szStatusClass[]  	= "StatusWin";
-char   szRulerClass[]  	= "RulerWin";
+char   szFrameClass[] = "DeskWin";
+char   szEditClass[] = "EditWin";
+char   szStatusClass[] = "StatusWin";
+char   szRulerClass[] = "RulerWin";
 char   szWorkAreaClass[] = "WorkWin";
 char   szLineNumbersClass[] = "LineNumbers";
-char   szAppName[]    	= "PKSEDIT";
+char   szAppName[] = "PKSEDIT";
 
 int		_runInteractive = TRUE;
 int		_openIconic = FALSE;
@@ -117,7 +117,7 @@ HWND win_createMdiChildWindow(char *szClass, char *fn, int itemno, LPARAM lParam
 		mdicreate.cy = CW_USEDEFAULT;
 	}
     mdicreate.lParam = lParam;
-	hwndChild = (HWND) SendMessage(hwndClient, WM_MDICREATE, 0,
+	hwndChild = (HWND) SendMessage(hwndMDIClientWindow, WM_MDICREATE, 0,
 		PtrToLong((LPMDICREATESTRUCT)&mdicreate));
 
 	if (hwndChild && ws.length) {
@@ -186,7 +186,7 @@ int ww_closeAllChildrenOfWindow(HWND hwndChild)
 	if (!hwndChild || !IsWindow(hwndChild))
 		return 0;
 
-	SendMessage(hwndClient, WM_MDIDESTROY, (WPARAM)hwndChild, (LPARAM)0L);
+	SendMessage(hwndMDIClientWindow, WM_MDIDESTROY, (WPARAM)hwndChild, (LPARAM)0L);
 	return 1;
 }
 
@@ -200,7 +200,7 @@ int ww_closeChildWindow(HWND hwndChild,int iconflag)
 		return 0;
 
 	if ((ret = SendMessage(hwndChild, WM_QUERYENDSESSION,iconflag,0L)) == 1) {
-		SendMessage(hwndClient, WM_MDIDESTROY, (WPARAM) hwndChild, (LPARAM)0L);
+		SendMessage(hwndMDIClientWindow, WM_MDIDESTROY, (WPARAM) hwndChild, (LPARAM)0L);
 		return 1;
 	}
 
@@ -236,14 +236,14 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine)
 	}
 
 	dwStyle = WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN;
-	hwndFrame = CreateWindow(szFrameClass, szTitle, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, 
+	hwndMDIFrameWindow = CreateWindow(szFrameClass, szTitle, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, 
 		CW_USEDEFAULT, CW_USEDEFAULT, 0, hDefaultMenu, hInst, 0);
 
-	if (!hwndFrame) {
+	if (!hwndMDIFrameWindow) {
 		return FALSE;
 	}
-	DragAcceptFiles(hwndFrame, TRUE);
-	while(!SetTimer(hwndFrame,TIM_FRAME,TIMER_INTERVALL,NULL)) {
+	DragAcceptFiles(hwndMDIFrameWindow, TRUE);
+	while(!SetTimer(hwndMDIFrameWindow,TIM_FRAME,TIMER_INTERVALL,NULL)) {
 		error_showErrorById(IDS_MSGNOTIMER);
 		return FALSE;
 	}
@@ -265,10 +265,10 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine)
 		if (ws.rcNormalPosition.top < rect.top) {
 			ws.rcNormalPosition.top = rect.top;
 		}
-		SetWindowPlacement(hwndFrame, &ws);
+		SetWindowPlacement(hwndMDIFrameWindow, &ws);
 	}
-	ShowWindow(hwndFrame, nCmdShow);
-	PostMessage(hwndFrame, WM_EDWINREORG, 0, 0L);
+	ShowWindow(hwndMDIFrameWindow, nCmdShow);
+	PostMessage(hwndMDIFrameWindow, WM_EDWINREORG, 0, 0L);
 	return TRUE;
 }
 
@@ -290,7 +290,7 @@ static int TranslatePksAccel(HWND hwnd, MSG *msg)
 			    msg->wParam == VK_SHIFT)
 		    		break;
 			if (!ww_workWinHasFocus()) {
-				if (!(msg->hwnd == hwndClient || GetKeyState(VK_CONTROL) < 0)) {
+				if (!(msg->hwnd == hwndMDIClientWindow || GetKeyState(VK_CONTROL) < 0)) {
 					break;
 				}
 			}
@@ -319,11 +319,11 @@ static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
 		return FALSE;
 	case XTYP_EXECUTE:
 		if (hsz1 == hszDDEExecuteMacro || (
-				hsz1 == hszDDECommandLine && hwndFrame != 0)) {
+				hsz1 == hszDDECommandLine && hwndMDIFrameWindow != 0)) {
 			if ((pszData = DdeAccessData(hdata, 0)) == 0) {
 				error_displayAlertDialog("Cannot access DDE data handle, error %d", DdeGetLastError(hDDE));
 			} else {
-				ShowWindow(hwndFrame, SW_SHOW);
+				ShowWindow(hwndMDIFrameWindow, SW_SHOW);
 				if (hsz1 == hszDDECommandLine) {
 					GetPhase2Args(pszData);
 				} else {
@@ -437,14 +437,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	GetPhase2Args(lpCmdLine);
 	ft_restorePreviouslyOpenedWindows();
 	/* show client window now! */
-	ShowWindow(hwndClient,SW_SHOW);
+	ShowWindow(hwndMDIClientWindow,SW_SHOW);
 
 	if (!ww_getNumberOfOpenWindows() && _runInteractive) {
 		EdEditFile(0L,(char*)0);
 	}
 	while (GetMessage(&msg, 0, 0, 0)) {
-		if ((!_translatekeys || !TranslatePksAccel(hwndFrame,&msg)) &&
-		    !TranslateMDISysAccel(hwndClient,&msg)) {
+		if ((!_translatekeys || !TranslatePksAccel(hwndMDIFrameWindow,&msg)) &&
+		    !TranslateMDISysAccel(hwndMDIClientWindow,&msg)) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg); 
 		}
@@ -460,7 +460,7 @@ int EdEnumChildWindows(int (*funcp)(),LONG lParam)
 {    int ret;
 	HWND hwndT,hwndNext;
 
-    	for ( hwndT = GetWindow (hwndClient, GW_CHILD); hwndT;
+    	for ( hwndT = GetWindow (hwndMDIClientWindow, GW_CHILD); hwndT;
 	  	 hwndT = hwndNext) {
 
 	  	hwndNext = hwndT;
@@ -485,7 +485,7 @@ HWND EdGetActiveWindow(int includeicons)
 	HWND hwndChild;
 	WORD isWindow;
 
-	hwndChild = (HWND) SendMessage(hwndClient,WM_MDIGETACTIVE, 0, (LPARAM)&isWindow);
+	hwndChild = (HWND) SendMessage(hwndMDIClientWindow,WM_MDIGETACTIVE, 0, (LPARAM)&isWindow);
 	if (!hwndChild || (!includeicons && !isWindow)) {
 		return 0;
 	}
@@ -497,14 +497,14 @@ HWND EdGetActiveWindow(int includeicons)
  */
 int EdCloseAll(int ic_flag)
 {
-	ShowWindow(hwndClient,SW_HIDE);
+	ShowWindow(hwndMDIClientWindow,SW_HIDE);
 	EdEnumChildWindows(ww_closeEditChild,0);
 
 	if (ww_getNumberOfOpenWindows() == 0 && ic_flag) {
 		EdEnumChildWindows(ww_closeAllChildrenOfWindow,0);
 	}
 
-	ShowWindow(hwndClient,SW_SHOW);
+	ShowWindow(hwndMDIClientWindow,SW_SHOW);
 
 	// no exit: still windows alive
 	if (ww_getNumberOfOpenWindows() != 0)
@@ -517,7 +517,7 @@ int EdCloseAll(int ic_flag)
  */
 int EdArrangeWin(WORD style)
 {
-    return (int)SendMessage(hwndClient, style, 0, 0L);
+    return (int)SendMessage(hwndMDIClientWindow, style, 0, 0L);
 }
 
 /*------------------------------------------------------------
@@ -535,19 +535,8 @@ void win_setEditMenuText(int menunr, char *text)
 {
 	HMENU	hCurrentMenu;
 
-	hCurrentMenu = GetMenu(hwndFrame);
+	hCurrentMenu = GetMenu(hwndMDIFrameWindow);
 	ModifyMenu(hCurrentMenu, menunr, MF_BYCOMMAND|MF_STRING, menunr, text );
-}
-
-/*------------------------------------------------------------
- * HiliteEditMenu()
- */
-void HiliteEditMenu(int menunr, int hilited)
-{
-#if 0
-	HiliteMenuItem(hwndClient,hDefaultMenu, menunr, hilited ? 
-			    MF_HILITE : MF_UNHILITE);
-#endif
 }
 
 /*--------------------------------------------------------------------------
@@ -558,9 +547,8 @@ HMENU his_getHistoryMenu(int *pnPosition, int *piCmd)
 	HMENU	hMenu;
 	int		i;
 
-	*pnPosition = 14;
 	*piCmd = IDM_HISTORY;
-	hMenu = GetMenu(hwndFrame);
+	hMenu = GetMenu(hwndMDIFrameWindow);
 	if (hMenu == hDefaultMenu) {
 		return GetSubMenu(hDefaultMenu, 0);
 	}
@@ -603,7 +591,16 @@ static void FinalizePksEdit(void)
 	help_quitHelpSystem();
 	UnInitDDE();
 	doctypes_destroyAllDocumentTypes();
+	grammar_destroyAll();
+	xref_destroyAllCrossReferenceLists();
+}
 
+/*------------------------------------------------------------
+ * ww_onTimerAction()
+ * Triggered, when the timer of the frame window "hits".
+ */
+static void ww_onTimerAction(void) {
+	st_redraw(FALSE);
 }
 
 /*------------------------------------------------------------
@@ -639,7 +636,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 				dwStyle |= (WS_HSCROLL | WS_VSCROLL);
 			}
 			GetClientRect(hwnd,&rect);
-			hwndClient = CreateWindow("MDICLIENT", 0, dwStyle,
+			hwndMDIClientWindow = CreateWindow("MDICLIENT", 0, dwStyle,
 				0,0,rect.right,rect.bottom,
 				hwnd, (HMENU)0xCAC, hInst, (LPSTR) &clientcreate);
 			fkey_initKeyboardWidget(hwnd);
@@ -672,8 +669,8 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 				MoveWindow(hwndFkeys, 0, rect.bottom + rect.top,
 					rect.right, nFkeyHeight, 1);
 			}
-			if (hwndClient && message == WM_SIZE) {
-				MoveWindow(hwndClient, 0, rect.top, 
+			if (hwndMDIClientWindow && message == WM_SIZE) {
+				MoveWindow(hwndMDIClientWindow, 0, rect.top, 
 					rect.right, rect.bottom - 1, 1);
 			}
 			if (hwndStatus && message == WM_SIZE) {
@@ -700,7 +697,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 				ft_checkForChangedFiles();
 			}
 			ft_triggerAutosaveAllFiles();
-			ww_timer();
+			ww_onTimerAction();
 			ic_redisplayIcons();
 			break;
 #ifdef DEBUG
@@ -762,7 +759,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (macro_onMenuAction((int)wParam)) {
 				return 1;
 			}
-			if (!IsWindow(hwnd) || !IsWindow(hwndClient)) {
+			if (!IsWindow(hwnd) || !IsWindow(hwndMDIClientWindow)) {
 				return 0;
 			}
 			break;
@@ -784,14 +781,14 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	    case WM_RENDERALLFORMATS:
 	    		OpenClipboard(hwnd);
 	    		EmptyClipboard();
-			clp_setdata(0);
+				clp_setdata(0);
 	    		CloseClipboard();
 	    		return 0;
 	    		
 	    case WM_RENDERFORMAT:
 	    		if (wParam == CF_TEXT) {
-				clp_setdata(0);
-			}			
+					clp_setdata(0);
+				}			
 	    		return 0;
 
 	    case WM_TASKFINISHED:
@@ -812,32 +809,31 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0);
 			return 0;
 	}
-	return DefFrameProc(hwnd, hwndClient, message, wParam, lParam);
+	return DefFrameProc(hwnd, hwndMDIClientWindow, message, wParam, lParam);
 }
 
 /*--------------------------------------------------------------------------
- * SetMenuFor()
+ * menu_switchMenusToContext()
  */
-void SetMenuFor(char *pszContext)
-{
+void menu_switchMenusToContext(char *pszContext) {
 	HMENU		hCurrentMenu;
 	HMENU		hNew;
 
-	if (!hwndFrame) {
+	if (!hwndMDIFrameWindow) {
 		return;
 	}
-	hNew = menu_getmenuforcontext(pszContext);
+	hNew = menu_getMenuForContext(pszContext);
 	if (!hNew) {
-		hNew = menu_getmenuforcontext("default");
+		hNew = menu_getMenuForContext("default");
 	}
 	if (!hNew) {
 		hNew = hDefaultMenu;
 	}
-	hCurrentMenu = GetMenu(hwndFrame);
+	hCurrentMenu = GetMenu(hwndMDIFrameWindow);
 	if (hNew == hCurrentMenu) {
 		return;
 	}
-	SendMessage(hwndClient, WM_MDISETMENU, (WPARAM)hNew, 0);
-	DrawMenuBar(hwndFrame);
+	SendMessage(hwndMDIClientWindow, WM_MDISETMENU, (WPARAM)hNew, 0);
+	DrawMenuBar(hwndMDIFrameWindow);
 }
 

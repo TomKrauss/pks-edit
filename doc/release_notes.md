@@ -6,6 +6,8 @@
 
 #### New
 - PKS Edit can now be installed using an InnoSetup based installer.
+- PKS Edit supports now the definition of grammars for languages of text edited with PKS edit for the purpose
+  of syntax highlighting and folding (not yet fully implemented).
 - The configuration of document types is now placed in a more modern JSON format file (pks_sys\pksconfig.json) and
   is not any longer in a non editable binary set of .lin-files. Changes to the editor configuration are always
   persisted right away in the corresponding config file.

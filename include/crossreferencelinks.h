@@ -35,6 +35,11 @@ extern int xref_restoreFromConfigFile(void);
 
 extern int xref_openFile(char* name, long line, WINDOWPLACEMENT* wsp);
 
+/*
+ * Free all memory occupied by the cross reference lists.
+ */
+extern void xref_destroyAllCrossReferenceLists();
+
 /*---------------------------------*
  * xref_navigateCrossReference()
  * Navigate to the cross reference word given as an argument - no

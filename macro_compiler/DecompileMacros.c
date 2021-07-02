@@ -22,7 +22,6 @@
 #include "pkscc.h"
 #include "test.h"
 #include "funcdef.h"
-#include "binop.h"
 #include "stringutil.h"
 #include "errordialogs.h"
 

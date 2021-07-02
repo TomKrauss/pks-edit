@@ -1,7 +1,7 @@
 /*
  * FileUtil.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: find, open, create Files
  *
@@ -26,7 +26,7 @@
 #include "stringutil.h"
 #include "fileutil.h"
 
-extern char *_datadir;
+extern char *_pksSysFolder;
 static char _found[1024];
 
 #if !defined(S_IREAD)
@@ -186,7 +186,7 @@ EXPORT char *file_searchFileInPKSEditLocation(char *s)
 	if (dostat(s)) {
 		return s;
 	}
-	if (pathstat(_datadir, s)) {
+	if (pathstat(_pksSysFolder, s)) {
 		return _found;
 	}
 	if (pathstat("PKS_SYS", s)) {

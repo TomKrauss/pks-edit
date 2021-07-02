@@ -26,6 +26,7 @@
 #include "xdialog.h"
 #include "dial2.h"
 #include "findandreplace.h"
+#include "linkedlist.h"
 #include "stringutil.h"
 #include "winfo.h"
 #include "fileutil.h"
@@ -51,14 +52,14 @@ typedef struct tag {
 
 #define	TAGMAXTRY			5
 
-typedef struct tagtrylist {
-	int type;
+typedef struct tagTAGTRYLIST {
+	int		type;
 	char	*fn;
 } TAGTRYLIST;
 
 typedef struct tagtry {
 	struct tagtry *next;
-	char			name[32];
+	char		name[32];
 	int			max;
 	int  		curr;
 	TAGTRYLIST 	t[TAGMAXTRY];
@@ -98,22 +99,42 @@ extern int help_showHelpForKey(LPSTR szFile, LPSTR szKey);
 static char *szTags = "tags";
 static intptr_t tags_mk(char *tag, LONG unused)
 {
-	char		*s;
+	char	*s;
+	char* files;
 	TAGTRY	*tp;
 
-	if ((tp = prof_llinsert(&_ttry,sizeof *tp,szTags,tag,&s)) == 0)
+	if ((tp = prof_llinsert(&_ttry,sizeof *tp,szTags,tag,&files)) == 0)
 		return 0;
 
-	s = strtok(s,",");
+	s = strtok(files,",");
 	for (tp->max = 0; tp->max < TAGMAXTRY && s; tp->max++) {
 		tp->t[tp->max].type = *s++;
 
 		/* is already malloced , dont free old ! */
-		tp->t[tp->max].fn = s;
+		tp->t[tp->max].fn = stralloc(s);
 		s = strtok((char *)0,",");
 	}
 	tp->curr = -1;
+	free(files);
 	return 1;
+}
+
+/*
+ * Destroy one tagtry element. 
+ */
+static xref_destroy(TAGTRY* pTry) {
+	for (int i = 0; i < DIM(pTry->t); i++) {
+		if (pTry->t[i].fn) {
+			free(pTry->t[i].fn);
+		}
+	}
+}
+
+/*
+ * Free all memory occupied by the cross reference lists. 
+ */
+void xref_destroyAllCrossReferenceLists() {
+	ll_destroy((LINKED_LIST**)&_ttry, xref_destroy);
 }
 
 /*--------------------------------------------------------------------------

@@ -18,6 +18,7 @@
 #include <dos.h>
 
 #include "trace.h"
+#include "linkedlist.h"
 #include "lineoperations.h"
 #include "edierror.h"
 #include "documenttypes.h"
@@ -330,7 +331,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	prof_savelong(_desk, _cxscreen, (long)GetSystemMetrics(SM_CXSCREEN));
 	prof_savelong(_desk, _cyscreen, (long)GetSystemMetrics(SM_CYSCREEN));
 
-	win_getstate(hwndFrame,&ws);
+	win_getstate(hwndMDIFrameWindow,&ws);
 	prof_savewinstate(szFrameClass,0,&ws);
 	ww_savewinstates();
 	ic_saveLocationInConfiguration();

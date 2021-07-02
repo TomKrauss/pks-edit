@@ -49,7 +49,6 @@
 #include "edfuncs.h"
 #include "scanner.h"
 #include "test.h"
-#include "binop.h"
 #include "pkscc.h"
 #include "sym.h"
 
@@ -131,8 +130,8 @@ void 		CloseLabelList(void);
 void 		KillLabel(char *name);
 char			*LabelAutoName(char *prefix, int num);
 int 			IsStringFunc(void *ep);
-void 		menu_startdefine(char *szMenu);
-int 			menu_addentry(char *pszString, int menutype, 
+void 		menu_initializeDefinition(char *szMenu);
+int 			menu_addMenuMacroItem(char *pszString, int menutype, 
 				MACROREFTYPE mactype, MACROREFTYPE macidx);
 %}
 
@@ -253,7 +252,7 @@ strings		:
 
 menus		: T_DEFMENUS T_IDENT inherit 
 			{
-				menu_startdefine($2.s);
+				menu_initializeDefinition($2.s);
 				freeitem(&$2.s);
 			}
 			menudefs ';'
@@ -265,12 +264,12 @@ menudefs		:
 submenu		: T_MENUPOPUP T_STRING 
 			{
 				macro_showStatus("Defining sub-menu %s",$2.s);
-				menu_addentry($2.s, UM_POPUP, 0, 0);
+				menu_addMenuMacroItem($2.s, UM_POPUP, 0, 0);
 				freeitem(&$2.s);
 			}
 			menuconnect '{' menuitems '}'
 			{
-				menu_addentry((char*)0, UM_ENDPOPUP, 0, 0);
+				menu_addMenuMacroItem((char*)0, UM_ENDPOPUP, 0, 0);
 			}
 
 menuconnect	:
@@ -282,13 +281,13 @@ menuitems		:
 
 menuitem		: T_MENUSEPERATOR
 			{
-				menu_addentry((char *)0, UM_SEPARATOR, 0, 0);
+				menu_addMenuMacroItem((char *)0, UM_SEPARATOR, 0, 0);
 			}
 			| T_MENUBARBREAK
 			| T_MENUBREAK
 			| T_STRING menuoptions T_ASSIGN cmd_or_macro
 			{
-				menu_addentry($1.s, UM_ITEM, $4.macref.typ, $4.macref.index);
+				menu_addMenuMacroItem($1.s, UM_ITEM, $4.macref.typ, $4.macref.index);
 				freeitem(&$1.s);
 			}
 			| submenu

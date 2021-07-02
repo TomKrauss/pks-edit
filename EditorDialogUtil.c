@@ -1,10 +1,8 @@
 /*
  * EditorDialogUtil.c
  * 
- * 
- * 
  *
- * PROJEKT: PKS-EDIT for ATARI - WINDOWS
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: some WINDOWS dialogs for general and special purpose
  *
@@ -152,7 +150,7 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPP
 	hwnd = GetActiveWindow();
 	nSave = nCurrentDialog;
 	nCurrentDialog = nIdDialog;
-	ret = DialogBox(hInst, MAKEINTRESOURCE(nIdDialog), hwndFrame, DlgProc);
+	ret = DialogBox(hInst, MAKEINTRESOURCE(nIdDialog), hwndMDIFrameWindow, DlgProc);
 	nCurrentDialog = nSave;
 	if (hwnd) {
 		SetActiveWindow(hwnd);
@@ -282,7 +280,7 @@ int setwrange(HWND hwnd, int *rangetype, int first)
 	char	  szBuf[64],szSel[64];
 	HWND	  hwndList;
 
-	blkvalid = ft_checkSelection(ww_getCurrentEditorWindow());
+	blkvalid = ww_checkSelection(ww_getCurrentEditorWindow());
 	if (*rangetype == RNG_BLOCK && !blkvalid)
 		*rangetype = RNG_CHAPTER;
 
@@ -955,7 +953,7 @@ void win_createModelessDialog(HWND *hwnd,LPSTR szName, INT_PTR (CALLBACK *func)(
 	if (!*lplpfnDlgProc) {
 		*lplpfnDlgProc = MakeProcInstance(func, hInst);
 	}
-	*hwnd = CreateDialog(hInst,szName,hwndFrame,*lplpfnDlgProc);
+	*hwnd = CreateDialog(hInst,szName,hwndMDIFrameWindow,*lplpfnDlgProc);
 }
 
 /*--------------------------------------------------------------------------

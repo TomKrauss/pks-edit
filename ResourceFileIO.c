@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <tos.h>
 #include "edfuncs.h"
+#include "linkedlist.h"
 #include "lineoperations.h"
 #include "resource.h"
 #include "edierror.h"

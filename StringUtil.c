@@ -277,6 +277,21 @@ int string_countSpacesIn(unsigned char* s, int pos) {
 	return n;
 }
 
+/*--------------------------------------------------------------------------
+ * string_countCharacters()
+ * Count the number of occurrences of a character in a string.
+ */
+int string_countCharacters(char* s, char c) {
+	int n = 0;
+
+	while (*s) {
+		if (*s++ == c) {
+			n++;
+		}
+	}
+	return n;
+}
+
 /*
  * Returns true if the passed character is an identifier in typical programming languages (including umlauts).
  * TODO: add a context sensitive variant of this.

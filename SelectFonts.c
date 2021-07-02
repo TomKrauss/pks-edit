@@ -74,8 +74,9 @@ HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont, EDFONTATTRIBUTES *pStyle)
 	_lf.lfWidth = 0;
 	_lf.lfCharSet = (pFont->style.bOem) ? OEM_CHARSET : pFont->charset;
 	_lf.lfWeight = pStyle ? pStyle->weight : pFont->style.weight;
-	_lf.lfStrikeOut = (unsigned char)pFont->style.strikeout;
+	_lf.lfStrikeOut = pStyle ? pStyle->strikeout : (BYTE)pFont->style.strikeout;
 	_lf.lfItalic = pStyle ? pStyle->italic : pFont->style.italic;
+	_lf.lfUnderline = pStyle ? pStyle->underline : (BYTE)pFont->style.underline;
 
 	lstrcpy(_lf.lfFaceName,pFont->faceName);
 
@@ -206,8 +207,9 @@ BOOL DlgChooseFont(HWND hwnd, EDTEXTSTYLE *ep, BOOL bPrinter)
 		ep->fgcolor = (long)cf.rgbColors;
 		lstrcpy(ep->faceName, lf.lfFaceName);
 		ep->charset = lf.lfCharSet;
-		ep->size = (short)lf.lfHeight;
-		ep->style.strikeout = 0;
+		ep->size = lf.lfHeight;
+		ep->style.underline = lf.lfUnderline;
+		ep->style.strikeout = lf.lfStrikeOut;
 		ep->style.italic = lf.lfItalic;
 		ep->style.weight = (short)lf.lfWeight;
 	}

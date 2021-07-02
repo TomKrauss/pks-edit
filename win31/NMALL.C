@@ -1,7 +1,7 @@
 /*
  * NMALL.C
  *
- * PROJEKT: PKS-EDIT for MS Windows
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: memory managment 
  *

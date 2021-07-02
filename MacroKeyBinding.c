@@ -62,9 +62,9 @@ extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 extern void 		st_seterrmsg(char *msg);
 extern void 		key_overridetable(void);
 extern void 		mouse_destroyMouseBindings(void);
-extern int 			menu_addentry(char *pszString, int menutype, 
+extern int 			menu_addMenuMacroItem(char *pszString, int menutype, 
 					MACROREFTYPE mactype, MACROREFTYPE macidx);
-extern void 		menu_startdefine(char *szMenu);
+extern void 		menu_initializeDefinition(char *szMenu);
 extern void 		st_switchtomenumode(BOOL bMenuMode);
 extern int			macro_executeSequence(COM_1FUNC* cp, COM_1FUNC* cpmax);
 /*------------------------------------------------------------
@@ -72,9 +72,9 @@ extern int			macro_executeSequence(COM_1FUNC* cp, COM_1FUNC* cpmax);
  * bind a mouse to current key table context
  */
 extern 	int bind_mouse(MOUSECODE mousecode, MACROREFTYPE typ, MACROREFIDX idx, int flags, int augment);
-extern MACROREF *	menu_getuserdef(int nId);
+extern MACROREF *	menu_getUserDefinedMacro(int nId);
 extern int 			macro_canExecuteFunction(int num, int warn);
-extern void 		SetMenuFor(char *pszContext);
+extern void 		menu_switchMenusToContext(char *pszContext);
 
 int				_recording;
 int				_nmacros = MAXMACRO;
@@ -305,7 +305,6 @@ static char *macro_addMultipleKeyBindings(char *name, KEYBIND *kp, KEYBIND *kpla
 		macro_bindOrUnbindKey(kp->keycode,kp->macref.index,kp->macref.typ);
 		kp++;
 	}
-	_fkeysdirty = 1;
 	return (char *)kplast;
 }
 
@@ -338,11 +337,11 @@ static char *macro_addMultipleMouseBindings(char *name, MOUSEBIND *mp, MOUSEBIND
 static char *macro_addMultipleMenuBindings(char *name, PUSERMENUBIND mp, 
 	PUSERMENUBIND mplast)
 {
-	menu_startdefine(name);
+	menu_initializeDefinition(name);
 
 	while (mp < mplast) {
 		if (*mp->szString) {
-			if (!menu_addentry(mp->szString, mp->type, 
+			if (!menu_addMenuMacroItem(mp->szString, mp->type, 
 				mp->macref.typ, mp->macref.index)) {
 				return 0;
 			}
@@ -373,7 +372,7 @@ void macro_selectDefaultBindings(void)
 	rsc_switchtotable(&_mousetables,
 		rsc_findtable(_mousetables, pszMode) ? pszMode : pszDefault);
 
-	SetMenuFor(pszMode);
+	menu_switchMenusToContext(pszMode);
 }
 
 /*------------------------------------------------------------
@@ -651,7 +650,7 @@ static MACROREF 	macref;
 	int			i;
 
 	if (nId >= IDM_USERDEF0) {
-		if ((mpUser = menu_getuserdef(nId)) != 0) {
+		if ((mpUser = menu_getUserDefinedMacro(nId)) != 0) {
 			return mpUser;
 		}
 	} else {
@@ -679,7 +678,7 @@ WORD macro_translateToOriginalMenuIndex(WORD wParam)
 	if (wParam < IDM_USERDEF0) {
 		return wParam;
 	}
-	if ((mpUser = menu_getuserdef(wParam)) == 0) {
+	if ((mpUser = menu_getUserDefinedMacro(wParam)) == 0) {
 		return wParam;
 	}
 
@@ -733,7 +732,7 @@ void* macro_getKeyBinding(WPARAM key)
 	void *pResult = keybound(keycode);
 	if (pResult == NULL) {
 		WINFO* wp = ww_getCurrentEditorWindow();
-		if (wp && ft_checkSelection(wp)) {
+		if (wp && ww_checkSelection(wp)) {
 			pResult = keybound(keycode | K_HAS_SELECTION);
 		}
 	}

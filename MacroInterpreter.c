@@ -396,7 +396,7 @@ int macro_isFunctionEnabled(EDFUNC* fup, int warn) {
 		return 0;
 	}
 
-	if (fup->flags & EW_NEEDSBLK && (!wp || !ft_checkSelection(wp))) {
+	if (fup->flags & EW_NEEDSBLK && (!wp || !ww_checkSelection(wp))) {
 		return 0;
 	}
 	if ((fup->flags & EW_REDO_AVAILABLE) && !undo_isRedoAvailable(fp)) {
@@ -404,7 +404,7 @@ int macro_isFunctionEnabled(EDFUNC* fup, int warn) {
 	}
 	if ((fup->flags & EW_UNDO_AVAILABLE) && !undo_isUndoAvailable(fp)) {
 		if (warn) {
-			ft_checkSelectionWithError(wp);
+			ww_checkSelectionWithError(wp);
 		}
 		return 0;
 	}

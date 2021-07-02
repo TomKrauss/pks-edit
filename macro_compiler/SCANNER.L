@@ -26,18 +26,20 @@
 #include "scanner.h"
 #define YYSTYPE _YYSTYPE
 #include "parser.h"
+#include "linkedlist.h"
 #include "lineoperations.h"
 #include "pkscc.h"
 #include "stringutil.h"
 #include "crossreferencelinks.h"
 
+#define fileno(x)		_fileno(x)
 #define YY_FATAL_ERROR(msg) yyerror( msg )
 
 #define YY_INPUT(buf,result,max_size) \
 	if ( 1) \
 		{ \
 		int c = '*', n; \
-		for ( n = 0; n < max_size && \
+		for ( n = 0; n < (int)max_size && \
 			     (c = cmdgetc()) != EOF && c != '\n'; ++n ) \
 			buf[n] = (char) c; \
 		if ( c == '\n' ) \
@@ -46,7 +48,7 @@
 			YY_FATAL_ERROR( "input in flex scanner failed" ); \
 		result = n; \
 		} \
-	else if ( ((result = fread( buf, 1, max_size, yyin )) == 0) \
+	else if ( ((result = (int)fread( buf, 1, max_size, yyin )) == 0) \
 		  && ferror( yyin ) ) \
 		YY_FATAL_ERROR( "input in flex scanner failed" );
 

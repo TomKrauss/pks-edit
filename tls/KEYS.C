@@ -1,7 +1,7 @@
 /*
  * KEYS.C
  *
- * PROJEKT: PKS-EDIT for MS Windows
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: translate key names 2 scan code and vc.vs.
  *		  maintain key-function bindings in a hash tab

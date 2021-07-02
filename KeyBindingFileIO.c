@@ -1,7 +1,7 @@
 /*
  * KeyBindingFileIO.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: read the PKSEDIT.KEY File
  *
@@ -430,8 +430,6 @@ int EdDocMacrosAdd(void)
 		return 0;
 	}
 
-	doctypes_mergeDocumentTypes(fn, ft_getCurrentDocument()->fname);
-
 	return 0;
 }
 
@@ -468,12 +466,12 @@ static int macro_createTempFile(char* linfn, char* tmpfn) {
 int EdDocMacrosEdit(void)
 {
 	char 	keyfile[256];
-	extern char *_datadir;
+	extern char *_pksSysFolder;
 
 	if (!ft_getCurrentDocument()) {
 		return 0;
 	}
-	string_concatPathAndFilename(keyfile, _datadir, "MODI.TMP");
+	string_concatPathAndFilename(keyfile, _pksSysFolder, "MODI.TMP");
 	if (macro_createTempFile(file_searchFileInPKSEditLocation(ft_getCurrentDocument()->documentDescriptor->name), keyfile)) {
 		return xref_openFile(keyfile, -1L, (void*)0);
 	}

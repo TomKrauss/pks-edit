@@ -21,6 +21,7 @@
 #include "dial2.h"
 #include "winterf.h"
 #include "winutil.h"
+#include "linkedlist.h"
 #include "lineoperations.h"
 #include "edtypes.h"
 #include "errordialogs.h"
@@ -98,7 +99,7 @@ char* ic_generateIconTitle(ICONCLASS* icp) {
 	static char title[30];
 
 	_windowCount = 0;
-	EnumChildWindows(hwndClient, _countWindow, 0l);
+	EnumChildWindows(hwndMDIClientWindow, _countWindow, 0l);
 	_windowCount++;
 	switch (icp->ic_type) {
 	case ICID_FILE: sprintf(title, "File %d", _windowCount); break;
@@ -265,7 +266,7 @@ static int ic_profsave(HWND hwnd)
 	GetAtomName(icp->ic_name,atomname,sizeof atomname);
 	GetWindowText(hwnd,title,sizeof title);
 	GetWindowRect(hwnd,&r);
-	ScreenToClient(hwndClient,(POINT*)&r);
+	ScreenToClient(hwndMDIClientWindow,(POINT*)&r);
 	wsprintf(szBuf,"%s,%s,%d %d,%s",
 		atomname,title,(int)r.left,(int)r.top,
 		ic_getParamForIcon(szB2,hwnd,-1));
@@ -418,7 +419,7 @@ void ic_changeIcon(const char* szTitle, const char* szParams, ICONCLASS *icClass
 }
 
 static void ic_redrawrect(RECT *pRect) {
-	RedrawWindow(hwndClient, pRect, 0, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+	RedrawWindow(hwndMDIClientWindow, pRect, 0, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
 }
 
 
@@ -551,7 +552,7 @@ static int		nButtonY;
 			SetCapture(hwnd);
 			if ((hIcon = (HICON) GetWindowLongPtr(hwnd,GWL_ICICON)) != 0) {
 				ShowWindow(hwnd, FALSE);
-				UpdateWindow(hwndClient);
+				UpdateWindow(hwndMDIClientWindow);
 				hPreviousCursor = SetCursor(hIcon);
 			}
 			break;
@@ -733,12 +734,12 @@ static POINT ic_findNextPoint(int width, int height) {
 	POINT pt;
 	pt.x = 20;
 	pt.y = 20;
-	GetWindowRect(hwndClient, &rect);
+	GetWindowRect(hwndMDIClientWindow, &rect);
 	for (int x1 = rect.right - width - 20; x1 > 20; x1 -= 2 * width) {
 		for (int y1 = 20; y1 < rect.bottom - 20; y1 += 2 * height) {
 			pt.x = x1;
 			pt.y = y1;
-			if (ic_findChildFromPoint(hwndClient, &pt) == NULL) {
+			if (ic_findChildFromPoint(hwndMDIClientWindow, &pt) == NULL) {
 				return pt;
 			}
 		}
@@ -786,7 +787,7 @@ HWND ic_addIcon(ICONCLASS *icp, const char* szTitle, const char* szParams, int x
 		y = pt.y;
 	}
 	if ((hwnd = CreateWindowEx(WS_EX_TRANSPARENT, szIconClass,szTitle, WS_CHILD|WS_CLIPSIBLINGS,
-			x, y, size.cx, size.cy, hwndClient, 0, hInst, (LPVOID)szParams)) == 0) {
+			x, y, size.cx, size.cy, hwndMDIClientWindow, 0, hInst, (LPVOID)szParams)) == 0) {
 		return 0;
 	}
 	SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE |

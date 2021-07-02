@@ -1,7 +1,7 @@
 /*
  * MarkAndGoto.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: maintain a list of the last "goto tag" positions
  *

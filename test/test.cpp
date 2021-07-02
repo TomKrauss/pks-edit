@@ -5,6 +5,7 @@ extern "C" {
 #include "../include/lineoperations.h"
 #include "../include/regexp.h"
 #include "../include/arraylist.h"
+#include "../include/linkedlist.h"
 
 extern int string_matchFilename(char* string, char* pattern);
 }

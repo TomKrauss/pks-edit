@@ -1,7 +1,7 @@
 /*
  * TextBlocks.c
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: text selection handling
  *
@@ -18,6 +18,7 @@
 #include <tos.h>
 
 #include "trace.h"
+#include "linkedlist.h"
 #include "textblocks.h"
 #include "edierror.h"
 #include "errordialogs.h"
@@ -359,7 +360,7 @@ EXPORT int bl_delete(WINFO *wp, LINE *lnfirst, LINE *lnlast, int cfirst,
 		bSaveOnClip = 0;
 	}
 
-	if (blkflg && ww_hasColumnSelection(wp)) {
+	if (blkflg && ww_isColumnSelectionMode(wp)) {
 		if (bSaveOnClip) {
 			if (!bl_cutBlockInColumnMode(bl_addrbyid(0,0), lnfirst, lnlast,0)) {
 				return 0;

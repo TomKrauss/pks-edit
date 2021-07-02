@@ -1,7 +1,7 @@
 /*
  * stringutil.h
  *
- * PROJEKT: PKS-EDIT for ATARI - GEM
+ * PROJEKT: PKS-EDIT for Windows
  *
  * purpose: string utility functions.
  *
@@ -31,6 +31,13 @@ extern long string_convertToLong(char* s);
  * Convert a string input to long assuming hexadecimal encoding.
  */
 extern long string_convertToLongBase16(char* s);
+
+/*--------------------------------------------------------------------------
+ * string_countCharacters()
+ * Count the number of occurrences of a character in a string.
+ */
+extern int string_countCharacters(char* s, char c);
+
 /*
  * Return a pointer to the last matching position, where a character can be found in a String
  * or NULL if it cannot be found at all.
@@ -107,8 +114,11 @@ extern void destroy(void** ap);
 
 /*--------------------------------------------------------------------------
  * string_matchFilename()
- * Match a filename using ATARI TOS matching rules. Multiple patterns may be
- * specified separated by "," of ";"
+ *
+ * Match a filename using typical file name pattern matching rules (using * and ?).
+ * Multiple patterns may be  specified separated by "," of ";". One may precede
+ * a pattern with '!' to explicitly not match a given pattern - e.g. !*.obj will
+ * explicitly exclude all files named *.obj.
  */
 extern int string_matchFilename(char* string, char* pattern);
 
