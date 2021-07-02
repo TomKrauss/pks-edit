@@ -1,6 +1,5 @@
 [files]
 "C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java", line 33: 0x0 0x1 -1 -1 -8 -31 0 0 1297 844
-"C:\source\pksedit\pks_sys\pkseditconfig.json", line 51: 0x0 0x1 -1 -1 -8 -31 0 0 725 844
 [find]
 !@author.*Trend
 !author.*tom
@@ -34,7 +33,6 @@
 !,
 ! 
 [open]
-!C:\source\pksedit\macro_compiler\GenerateMacroCode.c
 !C:\source\pksedit\macro_compiler\DecompileMacros.c
 !C:\source\pksedit\macro_compiler\CompileMacros.c
 !C:\source\pksedit\macro_compiler\CommandFunctionTable.c
@@ -62,8 +60,8 @@
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java
 !C:\Users\tom\AppData\Local\Temp\MACROS.PKC
 !C:\Users\tom\AppData\Local\Temp\KEYS
-!C:\source\pksedit\ColumnBlocks.c
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
+!C:\source\pksedit\ColumnBlocks.c
 !C:\source\pksedit\pks_sys\pkseditconfig.json
 [pathes]
 !D:\tom\desktop\*.*

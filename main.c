@@ -546,13 +546,16 @@ HMENU his_getHistoryMenu(int *pnPosition, int *piCmd)
 {
 	HMENU	hMenu;
 	int		i;
+	static int fileMenuItemCount;
 
 	*piCmd = IDM_HISTORY;
 	hMenu = GetMenu(hwndMDIFrameWindow);
-	if (hMenu == hDefaultMenu) {
-		return GetSubMenu(hDefaultMenu, 0);
-	}
+	// Access the file menu.
 	hMenu = GetSubMenu(hMenu, 0);
+	if (fileMenuItemCount == 0) {
+		fileMenuItemCount = GetMenuItemCount(hMenu);
+	}
+	*pnPosition = fileMenuItemCount;
 	if (!hMenu) {
 		return 0;
 	}
