@@ -456,6 +456,7 @@ EXPORT void render_repaintCurrentLine(WINFO* wp) {
 /*--------------------------------------------------------------------------
  * render_repaintLine()
  * Send a repaint to the specific line.
+ * TODO: currently very expensive for long files.
  */
 EXPORT void render_repaintLine(FTABLE *fp, LINE *lpWhich)
 {

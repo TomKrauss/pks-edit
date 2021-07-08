@@ -124,8 +124,7 @@ int find_initializeReplaceByExpression(unsigned char* replaceByExpression) {
  * find_setCurrentSearchExpression()
  * Remember the last expression searched for by the user.
  */
-void find_setCurrentSearchExpression(char *pExpression)
-{
+void find_setCurrentSearchExpression(char *pExpression) {
 	strcpy(_currentSearchAndReplaceParams.searchPattern, pExpression);
 	hist_saveString(SEARCH_PATTERNS, pExpression);
 }
@@ -135,8 +134,14 @@ void find_setCurrentSearchExpression(char *pExpression)
  * Compile a regular expression passed by argument with standard options.
  */
 RE_PATTERN *regex_compileWithDefault(char *expression) {
+	static RE_PATTERN* pLastPattern;
+
+	if (pLastPattern != 0 && strcmp(expression, _currentSearchAndReplaceParams.searchPattern) == 0) {
+		return pLastPattern;
+	}
 	find_setCurrentSearchExpression(expression);
-	return find_regexCompile(_expbuf,expression, _currentSearchAndReplaceParams.options) ? &_lastCompiledPattern : NULL;
+	pLastPattern = find_regexCompile(_expbuf,expression, _currentSearchAndReplaceParams.options) ? &_lastCompiledPattern : NULL;
+	return pLastPattern;
 }
 
 /*--------------------------------------------------------------------------
@@ -259,7 +264,6 @@ static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, in
 	int  ret = 0, wrap = 0, wrapped = 0;
 	LINE* lp;
 
-	memset(pMatch, 0, sizeof *pMatch);
 	ln = cCaret.ln;
 	lp = cCaret.linePointer;
 	col = cCaret.offset;
@@ -309,10 +313,15 @@ int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options)
 	int  ret = 0,wrap = 0,wrapped = 0;
 	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE *fp;
-	RE_MATCH match;
+	static RE_MATCH match;
+	static WINFO* lastWP;
 
 	if (wp == NULL) {
 		return 0;
+	}
+	if (lastWP != wp) {
+		memset(&match, 0, sizeof match);
+		lastWP = wp;
 	}
 	fp = wp->fp;
 	mouse_setBusyCursor();
@@ -368,6 +377,7 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 	if (!(pPattern = regex_compileWithDefault(pszString))) {
 		return 0;
 	}
+	memset(&match, 0, sizeof match);
 	ret = find_expressionInCurrentFileStartingFrom(fp, incrementalStart, nDirection, pPattern, nOptions, &ln, &col, &match);
 	if (ret) {
 		find_updateSelectionToShowMatch(wp, ln, col, &match);

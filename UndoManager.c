@@ -115,22 +115,24 @@ static UNDO_COMMAND* undo_getCurrentRedoCommand(UNDO_STACK* pStack) {
 /*--------------------------------------------------------------------------
  * upfree()
  */
-static void upfree(UNDO_OPERATION *up) {
+static void upfree(UNDO_OPERATION *up, BOOLEAN freeLines) {
 	struct tagUNDO_DELTA*	p;
 	UNDO_OPERATION *		prev;
 	int    		i;
 
 	while(up) {
-		for (i = 0; i < up->numberOfCommands; i++) {
-			p = &up->delta[i];
-			if (p->lp == NULL) {
-				continue;
-			}
-			if (p->op != O_INSERT && p->op <= O_LNORDER) {
-				ln_destroy(p->lp);
-			}
-			if (p->op == O_LNORDER) {
-				free(p->lpAnchor);
+		if (freeLines) {
+			for (i = 0; i < up->numberOfCommands; i++) {
+				p = &up->delta[i];
+				if (p->lp == NULL) {
+					continue;
+				}
+				if (p->op != O_INSERT && p->op <= O_LNORDER) {
+					ln_destroy(p->lp);
+				}
+				if (p->op == O_LNORDER) {
+					free(p->lpAnchor);
+				}
 			}
 		}
 		prev = up->prev;
@@ -138,6 +140,7 @@ static void upfree(UNDO_OPERATION *up) {
 		up = prev;
 	}
 }
+
 
 /**
  * Add one step to an undo command. 
@@ -192,12 +195,12 @@ EXPORT BOOL undo_saveOperation(FTABLE *fp, LINE *lp, LINE *lpAnchor,int op) {
 /*--------------------------------------------------------------------------
  * u_free()
  */
-static void u_free(UNDO_COMMAND *ubp)
+static void u_free(UNDO_COMMAND *ubp, BOOLEAN freelines)
 {
 	if (ubp == 0) {
 		return;
 	}
-	upfree(ubp->atomicSteps);
+	upfree(ubp->atomicSteps, freelines);
 	free(ubp);
 }
 
@@ -230,7 +233,7 @@ EXPORT void undo_destroyManager(FTABLE *fp)
 
 	if (pUndoStack) {
 		for (int i = 0; i < pUndoStack->numberOfCommands; i++) {
-			u_free(pUndoStack->commands[i]);
+			u_free(pUndoStack->commands[i], TRUE);
 		}
 		_free(pUndoStack);
 		UNDOPOI(fp) = 0;
@@ -244,13 +247,7 @@ static void undo_deallocateExecutedCommands(UNDO_STACK* pStack) {
 			continue;
 		}
 		UNDO_OPERATION* pStep = pCommand->atomicSteps;
-		while (pStep != NULL) {
-			for (int j = 0; j < pStep->numberOfCommands; j++) {
-				pStep->delta[j].lp = NULL;
-			}
-			pStep = pStep->prev;
-		}
-		u_free(pStack->commands[i]);
+		u_free(pStack->commands[i], FALSE);
 		pStack->commands[i] = NULL;
 	}
 }
@@ -263,7 +260,7 @@ static void undo_allocateCommand(UNDO_STACK* pStack) {
 	undo_deallocateExecutedCommands(pStack);
 	pStack->numberOfCommands = pStack->current+1;
 	if (pStack->numberOfCommands >= pStack->maximumUndoCommands) {
-		u_free(pStack->commands[0]);
+		u_free(pStack->commands[0], TRUE);
 		memmove(&pStack->commands[0], &pStack->commands[1], sizeof pStack->commands[0] * (pStack->numberOfCommands - 1));
 		pStack->numberOfCommands = pStack->maximumUndoCommands - 1;
 		pStack->commands[pStack->numberOfCommands] = NULL;
@@ -337,6 +334,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	register UNDO_OPERATION* pOperation;
 	register struct tagUNDO_DELTA* pDelta;
 	register LINE* lp;
+	LINE* lpRedraw = 0;
 	register LINE* lpNext;
 	BOOL bRedrawAll = FALSE;
 	UNDO_COMMAND* pRedoCommand = malloc(sizeof * pRedoCommand);
@@ -377,7 +375,15 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 				}
 				pDelta->lp->lflg &= (LNINDIRECT | LNXMARKED | LNNOTERM | LNNOCR);
 				ln_replace(fp, lp, pDelta->lp);
-				render_repaintLine(fp, pDelta->lp);
+				if (!bRedrawAll) {
+					if (lpRedraw == FALSE) {
+						// TODO: currently very expensive for long files.
+						render_repaintLine(fp, pDelta->lp);
+						lpRedraw = pDelta->lp;
+					} else {
+						bRedrawAll = TRUE;
+					}
+				}
 				add_stepToCommand(pRedoCommand, lp, pDelta->lp->prev, pDelta->op);
 				break;
 			case O_DELETE:
@@ -422,6 +428,16 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	return pRedoCommand;
 }
 
+/*
+ * Replace an undo command in the undo stack possibly freeing the old undo command. 
+ */
+static void undo_replace(UNDO_STACK* pStack, UNDO_COMMAND* pCommand) {
+	if (pStack->commands[pStack->current]) {
+		u_free(pStack->commands[pStack->current], FALSE);
+	}
+	pStack->commands[pStack->current] = pCommand;
+}
+
 /*--------------------------------------------------------------------------
  * undo_redoLastModification()
  * Redo the last modification undone the actual undo reverting the last operation.
@@ -440,9 +456,7 @@ EXPORT BOOL undo_redoLastModification(FTABLE* fp) {
 	UNDO_COMMAND* pUndoCommand = applyUndoDeltas(fp, pCommand);
 	pStack->current++;
 	if (pUndoCommand != NULL) {
-		pStack->commands[pStack->current] = pUndoCommand;
-	}
-	if (pUndoCommand == NULL) {
+		undo_replace(pStack, pUndoCommand);
 		undo_deallocateExecutedCommands(pStack);
 	}
 	_undoOperationInProgress = FALSE;
@@ -485,7 +499,7 @@ EXPORT BOOL undo_lastModification(FTABLE *fp)
 	_undoOperationInProgress = TRUE;
 	UNDO_COMMAND *pRedoCommand = applyUndoDeltas(fp, pCommand);
 	if (pRedoCommand != NULL) {
-		pStack->commands[pStack->current] = pRedoCommand;
+		undo_replace(pStack, pRedoCommand);
 	}
 	pStack->current--;
 	if (pRedoCommand == NULL) {

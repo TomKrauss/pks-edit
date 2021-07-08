@@ -249,8 +249,8 @@ static void adaptCase(char* pDestination, RE_MATCH* pMatch) {
 	int upper = 0;
 	int lower = 0;
 	for (int i = 0; pDestination[i]; i++) {
-		char c1 = pDestination[i];
-		char c2 = matched[matchIdx];
+		unsigned char c1 = pDestination[i];
+		unsigned char c2 = matched[matchIdx];
 		if (!isalpha(c1) && !isalpha(c2)) {
 			while (!isalpha(c1) && c1) {
 				c1 = pDestination[i++];
@@ -1051,8 +1051,12 @@ static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char*
 				} else {
 					stringToMatch = newPos;
 					if (i >= nLow) {
-						newPos = regex_advance(newPos, endOfStringToMatch, nextExpression, pExpressionEnd, pMatch);
-						pMatch->braelist[pMatch->nbrackets] = 0;
+						if (*nextExpression == END_OF_MATCH) {
+							pMatch->loc2 = newPos;
+						} else {
+							newPos = regex_advance(newPos, endOfStringToMatch, nextExpression, pExpressionEnd, pMatch);
+							pMatch->braelist[pMatch->nbrackets] = 0;
+						}
 						if (newPos) {
 							lastMatch = newPos;
 							if (pRange->m_lazy) {
