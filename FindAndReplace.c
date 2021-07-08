@@ -187,10 +187,10 @@ static int stepback(UCHAR *sp, RE_PATTERN *pPattern, int currcol, int maxLen, RE
 }
 
 /*--------------------------------------------------------------------------
- * xabort()
+ * find_abortProgress()
  */
 static int _cancelled;
-static int xabort(void )
+static int find_abortProgress(void )
 {	static int _abort;
 
 	if ((_abort++ & 0x3F) == 0 && progress_cancelMonitor(TRUE)) {
@@ -201,10 +201,10 @@ static int xabort(void )
 }
 
 /*--------------------------------------------------------------------------
- * find_expr()
+ * find_expression()
  * ensure there is a current file !
  */
-static LINE *find_expr(int dir,long *Ln,long *Col,LINE *lp,RE_PATTERN *pPattern, RE_MATCH *pMatch) {	
+static LINE *find_expression(int dir,long *Ln,long *Col,LINE *lp,RE_PATTERN *pPattern, RE_MATCH *pMatch) {	
 	long ln;
 
 	ln = *Ln;
@@ -280,7 +280,7 @@ static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, in
 	if (options & O_WRAPSCAN)
 		wrap = 1;
 
-	if (find_expr(dir, &ln, &col, lp, pPattern, pMatch))
+	if (find_expression(dir, &ln, &col, lp, pPattern, pMatch))
 		ret = 1;
 	else if (wrap) {
 		if (dir > 0) {
@@ -293,7 +293,7 @@ static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, in
 			lp = fp->lastl->prev;
 			col = lp->len - 1;
 		}
-		if (find_expr(dir, &ln, &col, lp, pPattern, pMatch)) {
+		if (find_expression(dir, &ln, &col, lp, pPattern, pMatch)) {
 			wrapped++;
 			ret = 1;
 		}
@@ -457,9 +457,9 @@ int ft_expandTabsWithSpaces(LINE *lp, long *nt)
 }
 
 /*--------------------------------------------------------------------------
- * expandLine()
+ * edit_expandTabsInLineWithSpaces()
  */
-static LINE *expandLine(WINFO *wp, LINE *lp,long *nt)
+static LINE *edit_expandTabsInLineWithSpaces(WINFO *wp, LINE *lp,long *nt)
 {	long t = 0;
 	int  size;
 
@@ -483,13 +483,13 @@ LINE *find_expandTabsInFormattedLines(WINFO *wp, LINE *lp)
 	if (PLAINCONTROL(wp->dispmode)) {
 		return lp;
 	}
-	return expandLine(wp->fp,lp,&t);
+	return edit_expandTabsInLineWithSpaces(wp->fp,lp,&t);
 }
 
 /*--------------------------------------------------------------------------
  * compline()
  */
-static LINE *compline(WINFO *wp, LINE *lp,long *nt)
+static LINE *edit_compactLineSpacingWithTabs(WINFO *wp, LINE *lp,long *nt)
 {	char   *s;
 	int    i,col,tab,start,foundpos,n2,ntabs;
 
@@ -551,7 +551,7 @@ static void find_modifyTextSection(WINFO *wp, LINE *(*func)(WINFO *wp, LINE *lp,
 	for (; lp != 0 && (mpe->lc != 0 || lp != mpe->lm); lp = lp->next) {
 		if ((lp = (*func)(wp,lp,cntel)) == 0)
 			break;
-		if (xabort() || lp == mpe->lm)
+		if (find_abortProgress() || lp == mpe->lm)
 			break;
 	}
 	caret_placeCursorInCurrentFile(wp, wp->caret.ln,0L);
@@ -588,7 +588,7 @@ int find_replaceTabsWithSpaces(int scope, int flg)
 		return 0;
 
 	progress_startMonitor(IDS_ABRTCONVERT);
-	find_modifyTextSection(ww_getCurrentEditorWindow(),(flg) ? expandLine : compline,&nt,&nl,mps,mpe);
+	find_modifyTextSection(ww_getCurrentEditorWindow(),(flg) ? edit_expandTabsInLineWithSpaces : edit_compactLineSpacingWithTabs,&nt,&nl,mps,mpe);
 	progress_closeMonitor(0);
 
 	if (nt) 
@@ -764,7 +764,7 @@ int EdReplaceText(int scope, int action, int flags)
 		} else {
 			if (marked && (lp->lflg & LNXMARKED) == 0)
 				goto nextline;
-			if (xabort())
+			if (find_abortProgress())
 				break;
 			if (regex_match(&_lastCompiledPattern, lp->lbuf, &lp->lbuf[maxlen], &match))
 				goto success;

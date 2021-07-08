@@ -2,6 +2,14 @@
 
 ## Release Notes
 
+### 1.9.1
+
+#### Fixed
+
+- Some performance issues with undo and redo in large files was fixed.
+- Find next will now always skip correctly over previously matched text (and not increment simply by 1).
+- Search & replace with preserve case could lead to an exception - this is fixed.
+
 ### 1.9.0
 
 #### New
