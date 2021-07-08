@@ -239,6 +239,18 @@ static void error_signalUsingFlashing(void)
 	FlashWindow(hwndMDIFrameWindow,0);
 }
 
+/*
+ * Display an error in a "non-intrusive way" (status line etc...). 
+ */
+void error_showError(char* s, va_list ap) {
+	if (GetConfiguration()->options & WARNINGS)
+		error_displayErrorToast(s, ap);
+	if (GetConfiguration()->options & E_BELL)
+		sound_playChime();
+	if (GetConfiguration()->options & E_FLASH)
+		error_signalUsingFlashing();
+}
+
 /*------------------------------------------------------------
  * error_showErrorById()
  * Display an error error_displayAlertDialog given a resource ID + optional arguments.
@@ -256,12 +268,7 @@ void error_showErrorById(int nId,...)
 	if (*s == '!') {
 	    (void)errror_openConfigurableAlert(MB_OK|MB_ICONHAND,s+1,ap);
 	} else {
-		if (GetConfiguration()->options & WARNINGS)
-			error_displayErrorToast(s,ap);
-		if (GetConfiguration()->options & E_BELL)
-			sound_playChime();
-		if (GetConfiguration()->options & E_FLASH)
-			error_signalUsingFlashing();
+		error_showError(s, ap);
 	}
 	va_end(ap);
 }

@@ -6,6 +6,13 @@
 
 #### New
 - PKS Edit can now be installed using an InnoSetup based installer.
+- Regular Expressions in PKS Edit were improved and support now in addition to the old simple UNIX 3 style regular expressions:
+-- (?:...) non - capturing groups
+-- {...}?, +?, *? - lazy quantifiers
+-- \s - to match whitespaces
+-- \S - to match non-whitespaces
+-- \w - to match PKS Edit identifiers.
+-- \d - to match digits
 - PKS Edit supports now the definition of grammars for languages of text edited with PKS edit for the purpose
   of syntax highlighting and folding (not yet fully implemented).
 - The configuration of document types is now placed in a more modern JSON format file (pks_sys\pksconfig.json) and

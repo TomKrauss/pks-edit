@@ -223,7 +223,7 @@ int xref_restoreFromConfigFile(void)
 static RE_PATTERN *tagexprinit(char *ebuf,TAGEXPR *s)
 {
 	_exprerror = s;
-	return regex_compile(ebuf,_exprerror->source,RE_DOREX);
+	return find_regexCompile(ebuf,_exprerror->source,RE_DOREX);
 }
 
 /*---------------------------------*/
@@ -237,7 +237,7 @@ static TAG *dostep(LINE *lp, RE_PATTERN *pattern)
 	if (pattern == NULL) {
 		return 0;
 	}
-	if (step(pattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
+	if (regex_match(pattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
 		find_initializeReplaceByExpression(_exprerror->fnbsl);	/* assure a few initialiations */
 		regex_getCapturingGroup(&match, 0, _tag.fn, sizeof _tag.fn);
 		regex_getCapturingGroup(&match, 1, _linebuf, LINEBUFSIZE);
@@ -451,12 +451,12 @@ static TAG *findtag(char *s, FTABLE *fp)
 
 	dlp = 0;
 	wsprintf(sbuf,"^[^ ]+ <%s> [!^?&]", (LPSTR)s);
-	if (!(pPattern = regex_compile(ebuf, sbuf, (int)RE_DOREX))) {
+	if (!(pPattern = find_regexCompile(ebuf, sbuf, (int)RE_DOREX))) {
 		return 0;
 	}
 
 	for (lp = fp->firstl; lp; lp = lp->next) {
-		if (step(pPattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
+		if (regex_match(pPattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
 			if ((dlpCurr = (DLGSTRINGLIST *)ll_insert((LINKED_LIST**)&dlp, sizeof *dlp)) == 0) {
 				ll_destroy((LINKED_LIST**)&dlp, (int (*)(void *))0);
 				return 0;
@@ -616,7 +616,7 @@ int xref_navigateCrossReference(char *s)
 						xref_openFile(fnam,-1L,(WINDOWPLACEMENT*)0);
 						if (ft_getCurrentDocument()) {
 							RE_PATTERN* pPattern;
-							if (pPattern = regex_compile(ebuf, tp->rembuf, (int) RE_DOREX)) {
+							if (pPattern = find_regexCompile(ebuf, tp->rembuf, (int) RE_DOREX)) {
 								find_expressionInCurrentFile(1,pPattern,O_WRAPSCAN);
 								ret = 1;
 							}

@@ -3,7 +3,7 @@
  *
  * PROJEKT: PKS-EDIT for MS-WINDOWS 3.0
  *
- * purpose: compare the lines of two windows
+ * purpose: sort_compareRecords the lines of two windows
  * 		  diffs are marked in both windows, last equal line is positioned
  * 		  corresponding to the current setting of "cursor after search"
  *

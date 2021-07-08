@@ -61,7 +61,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 		/* looking for the right most position */
 		for (aligncol = 0, lp = mps->lm; lp != 0; lp = lp->next) {
 			i = caret_screen2lineOffset(wp, &(CARET){ lp, firstcol });
-			if (step(pattern, &lp->lbuf[i],&lp->lbuf[lp->len], &match)) {
+			if (regex_match(pattern, &lp->lbuf[i],&lp->lbuf[lp->len], &match)) {
 				loc = (flags & AL_END) ? &match.loc1 : &match.loc2;
 				col = caret_lineOffset2screen(wp, &(CARET) { lp, (int)(*loc - lp->lbuf)});
 				if (col > aligncol)
@@ -79,7 +79,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 			i = 0;		
 		else
 			i = firsti;
-		while (step(pattern, &lp->lbuf[i],&lp->lbuf[lp->len], &match)) {
+		while (regex_match(pattern, &lp->lbuf[i],&lp->lbuf[lp->len], &match)) {
 			loc = (flags & AL_END) ? &match.loc1 : &match.loc2;
 			i = (long)(*loc - lp->lbuf);
 			if (flags & AL_FIX) {

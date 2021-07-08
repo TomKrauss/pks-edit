@@ -101,16 +101,16 @@ static int strmatch(char *s1,char *s2) {
 	options.flags = RE_DOREX;
 	options.expression = s2;
 	eol = &s1[strlen(s1)];
-	if (compile(&options,&pattern) == 0) {
+	if (regex_compile(&options,&pattern) == 0) {
 		error_displayAlertDialog("illegal RE");
 		return -1;
 	}
 	RE_MATCH match;
 
 #if defined(ATARI_ST)
-	if step(&pattern, s1, (long)eol) &&
+	if regex_match(&pattern, s1, (long)eol) &&
 #else
-	if (step(&pattern, s1, eol, &match) &&
+	if (regex_match(&pattern, s1, eol, &match) &&
 #endif
 	    match.loc1 == s1 && match.loc2 == eol)
 		return 1;

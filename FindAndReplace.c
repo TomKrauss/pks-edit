@@ -80,11 +80,11 @@ static int regex_compilationFailed(int errorCode) {
 }
 
 /*--------------------------------------------------------------------------
- * regex_compile()
+ * find_regexCompile()
  */
-RE_PATTERN *regex_compile(char *ebuf, char *pat, int flags) {
+RE_PATTERN *find_regexCompile(char *ebuf, char *pat, int flags) {
 	flags &= (RE_DOREX|RE_IGNCASE|RE_SHELLWILD);
-	if (!compile(createREOptions(pat, ebuf, flags, 0), &_lastCompiledPattern)) {
+	if (!regex_compile(createREOptions(pat, ebuf, flags, 0), &_lastCompiledPattern)) {
 		regex_compilationFailed(_lastCompiledPattern.errorCode);
 		return 0;
 	}
@@ -136,7 +136,7 @@ void find_setCurrentSearchExpression(char *pExpression)
  */
 RE_PATTERN *regex_compileWithDefault(char *expression) {
 	find_setCurrentSearchExpression(expression);
-	return regex_compile(_expbuf,expression, _currentSearchAndReplaceParams.options) ? &_lastCompiledPattern : NULL;
+	return find_regexCompile(_expbuf,expression, _currentSearchAndReplaceParams.options) ? &_lastCompiledPattern : NULL;
 }
 
 /*--------------------------------------------------------------------------
@@ -150,7 +150,7 @@ static int stepback(UCHAR *sp, RE_PATTERN *pPattern, int currcol, int maxLen, RE
 	int				nLen;
 	char *			brsave[18];
 
-	while (step(pPattern, &sp[col], &sp[maxLen], pMatch)) {
+	while (regex_match(pPattern, &sp[col], &sp[maxLen], pMatch)) {
 		col = (int)(pMatch->loc2 - sp);
 		nLen = (int )(pMatch->loc2 - pMatch->loc1);
 		if (!nLen) {			/* x* */
@@ -206,12 +206,12 @@ static LINE *find_expr(int dir,long *Ln,long *Col,LINE *lp,RE_PATTERN *pPattern,
 	if (dir > 0) {
 		if (!*Col) goto fulline;
 		if (!pMatch->circf && 
-		     step(pPattern, &lp->lbuf[*Col], &lp->lbuf[lp->len], pMatch))
+			regex_match(pPattern, &lp->lbuf[*Col], &lp->lbuf[lp->len], pMatch))
 			goto fisuccess;
 		for (;;) {
 			if ((lp=lp->next) == 0) break;
 			ln++;
-fulline:		if (step(pPattern, lp->lbuf,&lp->lbuf[lp->len], pMatch))
+fulline:		if (regex_match(pPattern, lp->lbuf,&lp->lbuf[lp->len], pMatch))
 				goto fisuccess;
 		}
 	} else {
@@ -749,14 +749,14 @@ int EdReplaceText(int scope, int action, int flags)
 		}
 
 		if (col) {
-			if (!match.circf && step(&_lastCompiledPattern, &lp->lbuf[col], &lp->lbuf[maxlen], &match))
+			if (!match.circf && regex_match(&_lastCompiledPattern, &lp->lbuf[col], &lp->lbuf[maxlen], &match))
 				goto success;
 		} else {
 			if (marked && (lp->lflg & LNXMARKED) == 0)
 				goto nextline;
 			if (xabort())
 				break;
-			if (step(&_lastCompiledPattern, lp->lbuf, &lp->lbuf[maxlen], &match))
+			if (regex_match(&_lastCompiledPattern, lp->lbuf, &lp->lbuf[maxlen], &match))
 				goto success;
 		}
 
@@ -899,7 +899,7 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
 	if (pattern &&
 	    string &&
 	    with &&
-	    (pPattern = regex_compile(ebuf, pattern, flags)) &&
+	    (pPattern = find_regexCompile(ebuf, pattern, flags)) &&
 		regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) {	with, flags, nlchar, pPattern->nbrackets}, & _currentReplacementPattern)) {
 		src = string;
 		send = _linebuf;
@@ -910,7 +910,7 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
 		src = _linebuf;
 
 		while(nmax-- > 0) {
-			if (!step(pPattern, src,send, &match)) {
+			if (!regex_match(pPattern, src,send, &match)) {
 				break;
 			}
 			if (match.circf && match.loc1 != _linebuf) {

@@ -37,7 +37,7 @@ typedef struct tagMODEL_CHANGE {
 	MODEL_CHANGE_TYPE type;	// The type of change
 	LINE* lp;				// single line modified
 	LINE* lpNew;			// If a line was replaced this is the new line.
-	int col1;				// modification "point" - the place where the modification starts
+	int col1;				// modification "point" - the regex_addCharacterToCharacterClass where the modification starts
 	int col2;				// the second point in the line - if left to col1, chars are deleted if right to it chars are inserted
 	int len;				// number of characters inserted / removed
 } MODEL_CHANGE;

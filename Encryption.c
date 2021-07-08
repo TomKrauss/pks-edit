@@ -248,8 +248,8 @@ static void desdone()
 void setkey(key)
 char *key;			/* 64 bits (will use only 56) */
 {
-	char pc1m[56];		/* place to modify pc1 into */
-	char pcr[56];		/* place to rotate pc1 into */
+	char pc1m[56];		/* regex_addCharacterToCharacterClass to modify pc1 into */
+	char pcr[56];		/* regex_addCharacterToCharacterClass to rotate pc1 into */
 	register int i,j,l;
 	int m;
 
@@ -293,7 +293,7 @@ char *key;			/* 64 bits (will use only 56) */
 		}
 	}
 }
-/* In-place encryption of 64-bit block */
+/* In-regex_addCharacterToCharacterClass encryption of 64-bit block */
 static void endes(block)
 char *block;
 {
@@ -322,7 +322,7 @@ char *block;
 #endif
 	permute((char *)work,fperm,block);	/* Inverse initial permutation */
 }
-/* In-place decryption of 64-bit block */
+/* In-regex_addCharacterToCharacterClass decryption of 64-bit block */
 static void dedes(block)
 char *block;
 {

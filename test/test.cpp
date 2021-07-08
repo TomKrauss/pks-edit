@@ -60,7 +60,7 @@ namespace pkseditTests
 	private:
 		RE_OPTIONS* createOptions(char* expression, int flags) {
 			static RE_OPTIONS options;
-			static char patternBuf[256];
+			static char patternBuf[512];
 
 			options.patternBuf = patternBuf;
 			options.endOfPatternBuf = &patternBuf[sizeof patternBuf];
@@ -77,29 +77,183 @@ namespace pkseditTests
 			RE_PATTERN pattern;
 			RE_MATCH match;
 			options = createOptions("^[a-z]{1,9}(.)$", RE_DOREX);
-			Assert::AreEqual(1, compile(options, &pattern));
+			Assert::AreEqual(1, regex_compile(options, &pattern));
 			Assert::AreEqual(1, pattern.nbrackets);
-			Assert::AreEqual(1, step(&pattern, (unsigned char*)"abcX", NULL, &match));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"abcX", NULL, &match));
 			Assert::AreEqual(1, match.matches);
-			Assert::AreEqual(0, step(&pattern, (unsigned char*)"??abcX", NULL, &match));
+			Assert::AreEqual(0, regex_match(&pattern, (unsigned char*)"??abcX", NULL, &match));
 			Assert::AreEqual(0, match.matches);
 
 			options = createOptions("[a-z]{2,3}", RE_DOREX);
-			Assert::AreEqual(1, compile(options, &pattern));
+			Assert::AreEqual(1, regex_compile(options, &pattern));
 			const char* expr = "99abcX";
-			Assert::AreEqual(1, step(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
 			Assert::AreEqual(2, (int)(match.loc1 - expr));
 			Assert::AreEqual(5, (int)(match.loc2 - expr));
+
+			options = createOptions("abcd+", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			expr = "abcddddd";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(0, (int)(match.loc1 - expr));
+			Assert::AreEqual(8, (int)(match.loc2 - expr));
+
+			options = createOptions("([a-z]{2,3})\\1", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			expr = "xxababc";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(2, (int)(match.loc1 - expr));
+			expr = "xxabfabc";
+			options = createOptions("([a-z]{2,3}).*\\1", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(2, (int)(match.loc1 - expr));
 		}
-		TEST_METHOD(CompilerErrorParsing)
-		{
+		TEST_METHOD(RegularExpressionsSizes) {
+			char group[200];
+			RE_OPTIONS* options;
+			RE_PATTERN pattern;
+			RE_MATCH match;
+			options = createOptions("\"([^\"])+\"", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(3, regex_getMinimumMatchLength(&pattern));
+		}
+
+		TEST_METHOD(RegularExpressionsWithGroups) {
+			char group[200];
+			RE_OPTIONS* options;
+			RE_PATTERN pattern;
+			RE_MATCH match;
+			options = createOptions("\"([^\"])+\"", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, pattern.nbrackets);
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"\"hhhh\"", NULL, &match));
+			Assert::AreEqual(0, regex_match(&pattern, (unsigned char*)"\"abc\"", NULL, &match));
+			options = createOptions("\"(?:[^\"])+\"", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"\"abc\"", NULL, &match));
+			options = createOptions("\"(?:[^a-zX?]){3,}?\"", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			options = createOptions("\"(?:a|bb)+\"\\1", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			// Bad back-reference
+			options = createOptions("\"(?:a|bb)+\"\\2", RE_DOREX);
+			Assert::AreEqual(0, regex_compile(options, &pattern));
+			// Unclosed bracket
+			options = createOptions("(x", RE_DOREX);
+			Assert::AreEqual(0, regex_compile(options, &pattern));
+			// Unclosed bracket
+			options = createOptions("[a-z", RE_DOREX);
+			Assert::AreEqual(0, regex_compile(options, &pattern));
+			options = createOptions("[a-z]+", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			const char* expr = "hello";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(5, (int)(match.loc2 - match.loc1));
+
+			expr = "  123hello123  ";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(5, (int)(match.loc2 - match.loc1));
+			Assert::AreEqual(5, (int)(match.loc1 - expr));
+
+			options = createOptions("\\s{1,2}[0-9]+[a-z]+", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(0, (int)(match.loc1 - expr));
+			Assert::AreEqual(10, (int)(match.loc2 - match.loc1));
+
+			// lazy versus greedy match of last number
+			options = createOptions("\\s{1,2}[0-9]+?", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(0, (int)(match.loc1 - expr));
+			Assert::AreEqual(3, (int)(match.loc2 - match.loc1));
+
+			// lazy versus greedy match of last number in combination with range spec.
+			options = createOptions("\\s{1,2}[0-9]+[a-z]+[0-9]{2,}?", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(0, (int)(match.loc1 - expr));
+			Assert::AreEqual(12, (int)(match.loc2 - match.loc1));
+
+			// ignore case
+			options = createOptions("a+b+c+", RE_DOREX|RE_IGNCASE);
+			expr = "  Abc  ";
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(2, (int)(match.loc1 - expr));
+			Assert::AreEqual(3, (int)(match.loc2 - match.loc1));
+
+			// character classes
+			options = createOptions("\\d+\\w+", RE_DOREX);
+			expr = "  0123abc  ";
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(2, (int)(match.loc1 - expr));
+			Assert::AreEqual(7, (int)(match.loc2 - match.loc1));
+
+			options = createOptions("\\S+", RE_DOREX);
+			expr = "  0123abc  ";
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(2, (int)(match.loc1 - expr));
+			Assert::AreEqual(7, (int)(match.loc2 - match.loc1));
+
+			// groups
+			options = createOptions("(\\d+ )+", RE_DOREX);
+			expr = "  0123 0123 xxxxx";
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(2, (int)(match.loc1 - expr));
+			Assert::AreEqual(10, (int)(match.loc2 - match.loc1));
+
+			options = createOptions("(ab+)+", RE_DOREX);
+			expr = "  ababbabb  ";
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(2, (int)(match.loc1 - expr));
+			Assert::AreEqual(4, (int)(match.loc2 - match.loc1));
+
+			options = createOptions("(?:ab+)+", RE_DOREX);
+			expr = "  ababbabb  ";
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(2, (int)(match.loc1 - expr));
+			Assert::AreEqual(8, (int)(match.loc2 - match.loc1));
+
+			// alternatives
+			options = createOptions("(aa+|bb)", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			expr = "  aaabbabb  ";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			regex_getCapturingGroup(&match, 0, group, sizeof group);
+			Assert::AreEqual("aaa", group);
+
+			expr = "  ababbabb  ";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(5, (int)(match.loc1 - expr));
+			Assert::AreEqual(2, (int)(match.loc2 - match.loc1));
+			regex_getCapturingGroup(&match, 0, group, sizeof group);
+			Assert::AreEqual("bb", group);
+
+			// alternatives with non-capturing groups
+			options = createOptions("(\"(?:\\\"|[^\"])+\")", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			expr = "xx\"abc\\\"def\"";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(2, (int)(match.loc1 - expr));
+			Assert::AreEqual(10, (int)(match.loc2 - match.loc1));
+			regex_getCapturingGroup(&match, 0, group, sizeof group);
+			Assert::AreEqual("\"abc\\\"def\"", group);
+		}
+		TEST_METHOD(CompilerErrorParsing) {
 			RE_OPTIONS* options;
 			RE_PATTERN pattern;
 			RE_MATCH match;
 			options = createOptions("\"([^\"]+)\", line ([0-9]+): *(.*)", RE_DOREX);
-			Assert::AreEqual(1, compile(options, &pattern));
+			Assert::AreEqual(1, regex_compile(options, &pattern));
 			Assert::AreEqual(3, pattern.nbrackets);
-			Assert::AreEqual(1, step(&pattern, (unsigned char*)"\"D:\\tom\\desktop\\readme.txt\", line 90: 0x1 0x1 -1 -1 -8 -31 531 0 1904", NULL, &match));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"\"D:\\tom\\desktop\\readme.txt\", line 90: 0x1 0x1 -1 -1 -8 -31 531 0 1904", NULL, &match));
 			char group[200];
 			regex_getCapturingGroup(&match, 0, group, sizeof group);
 			Assert::AreEqual("D:\\tom\\desktop\\readme.txt", group);
@@ -113,19 +267,19 @@ namespace pkseditTests
 			RE_PATTERN pattern;
 			RE_MATCH match;
 			options = createOptions("(fritz|franz)", RE_DOREX | RE_IGNCASE);
-			Assert::AreEqual(1, compile(options, &pattern));
-			Assert::AreEqual(1, step(&pattern, (unsigned char*)"This is Fritz the cat", NULL, &match));
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"This is Fritz the cat", NULL, &match));
 			char group[200];
 			regex_getCapturingGroup(&match, 0, group, sizeof group);
 			Assert::AreEqual("Fritz", group);
-			Assert::AreEqual(1, step(&pattern, (unsigned char*)"This is FRANZ the cat", NULL, &match));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"This is FRANZ the cat", NULL, &match));
 			regex_getCapturingGroup(&match, 0, group, sizeof group);
 			Assert::AreEqual("FRANZ", group);
 
 			options = createOptions("*.txt", RE_SHELLWILD | RE_IGNCASE);
-			Assert::AreEqual(1, compile(options, &pattern));
-			Assert::AreEqual(1, step(&pattern, (unsigned char*)"MYFILE.TXT", NULL, &match));
-			Assert::AreEqual(0, step(&pattern, (unsigned char*)"myfile.bmp", NULL, &match));
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"MYFILE.TXT", NULL, &match));
+			Assert::AreEqual(0, regex_match(&pattern, (unsigned char*)"myfile.bmp", NULL, &match));
 		}
 
 		TEST_METHOD(ReplaceRegex) {
@@ -133,8 +287,8 @@ namespace pkseditTests
 			RE_PATTERN pattern;
 			RE_MATCH match;
 			options = createOptions("(ape|cat)", RE_DOREX | RE_IGNCASE);
-			Assert::AreEqual(1, compile(options, &pattern));
-			Assert::AreEqual(1, step(&pattern, (unsigned char*)"The Ape and the Cat are walking along the beach", NULL, &match));
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"The Ape and the Cat are walking along the beach", NULL, &match));
 			REPLACEMENT_OPTIONS reOptions;
 			REPLACEMENT_PATTERN rePattern;
 			reOptions.flags = RE_DOREX | RE_IGNCASE;
@@ -163,7 +317,7 @@ namespace pkseditTests
 			Assert::AreEqual(7, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("Giraffe", (const char*)result);
 
-			Assert::AreEqual(1, step(&pattern, (unsigned char*)"The ApE and the Cat are walking along the beach", NULL, &match));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"The ApE and the Cat are walking along the beach", NULL, &match));
 			Assert::AreEqual(7, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("GiRAFFE", (const char*)result);
 
@@ -174,8 +328,8 @@ namespace pkseditTests
 			Assert::AreEqual("LaME DUCK", (const char*)result);
 
 			options = createOptions("ape,cat", RE_DOREX | RE_IGNCASE);
-			Assert::AreEqual(1, compile(options, &pattern));
-			Assert::AreEqual(1, step(&pattern, (unsigned char*)"The Ape,Cat and the lion are walking along the beach", NULL, &match));
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"The Ape,Cat and the lion are walking along the beach", NULL, &match));
 
 			reOptions.replacementPattern = "bird,snake";
 			reOptions.flags = RE_DOREX | RE_PRESERVE_CASE | RE_IGNCASE;
@@ -183,20 +337,20 @@ namespace pkseditTests
 			Assert::AreEqual(10, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("Bird,Snake", (const char*)result);
 
-			Assert::AreEqual(1, step(&pattern, (unsigned char*)"The ApE,CAT and the lion are walking along the beach", NULL, &match));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"The ApE,CAT and the lion are walking along the beach", NULL, &match));
 			Assert::AreEqual(10, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("BiRD,SNAKE", (const char*)result);
 
 			options = createOptions("der", RE_DOREX | RE_IGNCASE);
-			Assert::AreEqual(1, compile(options, &pattern));
+			Assert::AreEqual(1, regex_compile(options, &pattern));
 			reOptions.replacementPattern = "die";
 			reOptions.flags = RE_PRESERVE_CASE | RE_IGNCASE;
-			Assert::AreEqual(1, step(&pattern, (unsigned char*)"DEr", NULL, &match));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"DEr", NULL, &match));
 			regex_initializeReplaceByExpressionOptions(&reOptions, &rePattern);
 			Assert::AreEqual(3, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("DIe", (const char*)result);
 
-			Assert::AreEqual(1, step(&pattern, (unsigned char*)"deR", NULL, &match));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"deR", NULL, &match));
 			regex_initializeReplaceByExpressionOptions(&reOptions, &rePattern);
 			Assert::AreEqual(3, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("diE", (const char*)result);

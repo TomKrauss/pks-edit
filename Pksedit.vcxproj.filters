@@ -213,9 +213,6 @@
     <ClCompile Include="PaintEditorWindow.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RegularExpression.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ResourceFileIO.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -286,6 +283,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Grammar.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RegularExpression.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

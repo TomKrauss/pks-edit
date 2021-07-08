@@ -65,6 +65,11 @@ extern void error_showErrorById(int nId, ...);
  */
 extern void error_displayErrorToast(const char* fmt, va_list ap);
 
+/*
+ * Display an error in a "non-intrusive way" (status line etc...).
+ */
+extern void error_showError(char* s, va_list ap);
+
 /*------------------------------------------------------------
  * error_showMessageInStatusbar()
  * Show an info or error message - primarily in the status bar of PKS Edit.

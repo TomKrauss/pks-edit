@@ -171,7 +171,7 @@ static MOUSE_DRAG_HANDLER* mouse_getDragHandler(WINFO* wp, int x, int y) {
 }
 
 /**
- * Utility function to place the caret according to screen coordinates.
+ * Utility function to regex_addCharacterToCharacterClass the caret according to screen coordinates.
  */
 static void caret_placeToXY(WINFO* wp, int x, int y) {
 	long col, ln;

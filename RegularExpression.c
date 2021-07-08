@@ -16,53 +16,47 @@
  */
 
 #include <stdio.h>
-#include <tos.h>
-#include <dos.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "regexp.h"
 #include "pksedit.h"
 #include "edctype.h"
 
-#if defined(WIN32)
-#define near
-#endif
+#define	REGEX_ERROR(c)	{ err = c; goto endcompile; }
 
-/*
-	-	all Flags with Bit 0 set arent to be combined with range
-	-	only on Flags with (flags & 0x3 == 0) garant a length of the
-		resulting match
-	-	CCEOF and CDOL must be last (2nd last) Flags in expression
-*/
+#define	ISTHERE(ep, c)			(ep[(c & 0xff) >> 3] & bittab[c & 07])
+#define	MAXCTAB					32		/* maximum byte length of chartestset */
+#define	makeUpperCase(c)		_l2uset[(c)]
+#define	makeLowerCase(c)		_u2lset[(c)]
+#define	BIG						512		/* big Range Size used by: +,*,{x,} */
 
-#define	RANGEINVALID		1
-#define	LENGTHGARANT(c)	(! (c & 3))
+static int 	_chsetinited;
+unsigned char bittab[] = { 1,2,4,8,16,32,64,128 };
+unsigned char _asciitab[256] =
+"\0\0\0\0\0\0\0\0\0\020\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\020\0\0\0\0\0\0\0\0\0\040\0\0\0\040\0\051\051"
+"\051\051\051\051\051\051\051\051\040\0\0\0\0\0\0\054\054"
+"\054\054\054\054\054\054\054\054\054\054\054\054\054\054"
+"\054\054\054\054\054\054\054\054\054\054\0\040\0\0\050\0"
+"\052\052\052\052\052\052\052\052\052\052\052\052\052\052"
+"\052\052\052\052\052\052\052\052\052\052\052\052\0\0\0\0"
+"\0\0€\0\0€\0\0\0\0\0\0\0\0\0@\0\0\0\0\0€\0\0\0\0@@\0\0\0"
+"€\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\040\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0";
 
-#define	RNGE				(0 | RANGEINVALID)
-#define	CBRA				(2 | RANGEINVALID)
-#define	CCHR				4
-#define	CDOT				8
-#define	CKET				10
-#define	CIDS				(12 | RANGEINVALID)
-#define	CCL				16
-#define	CIDE				(24 | RANGEINVALID)
-#define	CDOL				26
-#define	CCEOF			30
-#define	CCASE			64
-#define	CBACK			66
-#define	CPBAR			128
-#define	CPIPE			(CPBAR | RANGEINVALID)
+unsigned char _l2uset[256], _u2lset[256];
+static unsigned char  _characterMappingTable[256];
+static char 		  _replacedResultBuffer[500];
+static unsigned char* _transtabs[8];
 
-#define	NBRA				9		/* maximum number of brackets	*/
-#define	ISTHERE(c)		(ep[(c & 0xff) >> 3] & bittab[c & 07])
-#define	MAXCTAB			32		/* maximum byte length of chartestset */
-#define	BIG				512		/* big Range Size used by: +,*,{x,} */
+#define	DIM(tab)		(sizeof(tab)/sizeof(tab[0]))
 
-#define	upcase(c)			_l2uset[(c)]
+#define	upcase(c)		_l2uset[(c)]
 #define	lowcase(c)		_u2lset[(c)]
-
-#define P_LE(p1,p2)			((char near *)p1 <= (char near *)p2)
-#define P_GE(p1,p2)			((char near *)p1 >= (char near *)p2)
-#define P_LT(p1,p2)			((char near *)p1 <  (char near *)p2)
-#define P_GT(p1,p2)			((char near *)p1 >  (char near *)p2)
 
 /***************************************************************************/
 /* ERRORS:													*/
@@ -82,53 +76,6 @@
 /*															*/
 /***************************************************************************/
 
-extern unsigned char* tlcompile(unsigned char* transtab, unsigned char* t, unsigned char* wt);
-
-/*--------------------------------------------------------------------------
- * USER-DEFINES
- */
-
-#define	GETC() 	(*sp++)
-#define	PEEKC()	(*sp)
-#define	UNGETC(c)	(--sp)
-#define	RETURN(c)	return(c)
-#define	REGEX_ERROR(c)	{ err = c; goto endcompile; }
-
-static unsigned char* _transtabs[8];
-static char 		  _replacedResultBuffer[500];
-static int 	_chsetinited;
-unsigned char bittab[] = { 1,2,4,8,16,32,64,128 };
-static int	__size;
-static int 	_staronly; 	/* expression is only stared expression ? */
-static unsigned char  _characterMappingTable[256];
-
-static int near advance(unsigned char *lp, unsigned char *ep, unsigned char *end);
-
-/*----------------- EXPORT ---------------------*/
-
-static int		    _cnostart,_regepos,_regspos;
-static char 		*__loc1,*__loc2,*__locs;
-
-unsigned char _asciitab[256] =
-	"\0\0\0\0\0\0\0\0\0\020\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-	"\0\0\0\0\0\020\0\0\0\0\0\0\0\0\0\040\0\0\0\040\0\051\051"
-	"\051\051\051\051\051\051\051\051\040\0\0\0\0\0\0\054\054"
-	"\054\054\054\054\054\054\054\054\054\054\054\054\054\054"
-	"\054\054\054\054\054\054\054\054\054\054\0\040\0\0\050\0"
-	"\052\052\052\052\052\052\052\052\052\052\052\052\052\052"
-	"\052\052\052\052\052\052\052\052\052\052\052\052\0\0\0\0"
-	"\0\0€\0\0€\0\0\0\0\0\0\0\0\0@\0\0\0\0\0€\0\0\0\0@@\0\0\0"
-	"€\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-	"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-	"\0\0\0\0\0\040\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-	"\0\0\0\0\0\0\0\0\0\0\0\0";
-
-/* don't change order */
-static char 		*_braslist[NBRA];
-static char 		*_braelist[NBRA];
-
-unsigned char _l2uset[256], _u2lset[256];
-
 static int _reerrmsg[] = {
 	 IDS_MSGRENOTNULL,
 	 IDS_MSGRECOMPLEXEXPR,
@@ -144,756 +91,118 @@ static int _reerrmsg[] = {
 	 IDS_MSGREPIPEERR
 };
 
-/*--------------------------------------------------------------------------
- * regex_compileCharacterClasses()
- * Compile a "lower to upper" character class pattern for subsequent use in regular
- * expressions. a lower to upper character class mapping has the form lowerCharRange=upperCharRange,
- * where a charRange may be defined like a regular expression character class. E.g a-z=A-Z will
- * map all lower case alpha chars to all corresponding upper characters. The resulting character
- * class will be used in PKS Edit for lower / upper case conversions as well to define the valid
- * characters of an identifier used during "word" navigation.
- */
-void regex_compileCharacterClasses(unsigned char *pLowerToUpperPattern) {	
-	int i,j;
 
-	_chsetinited = 1;
-
-	if (!pLowerToUpperPattern)
-		pLowerToUpperPattern = "a-z=A-Z";
-
-	for (i = 0; i < 256; i++)
-		_asciitab[i] &= (~_C);
-
-	tlcompile(_l2uset,pLowerToUpperPattern,_asciitab);
-
-	/* calculate the inverse tab */
-
-	memset(_u2lset,0 , sizeof(_u2lset));
-
-	for (i = 0; i < sizeof(_l2uset); i++)
-		if ((j = _l2uset[i]) != i)
-			_u2lset[j] = i;
-	for (i = 0; i < sizeof(_u2lset); i++)
-		if (_u2lset[i] == 0)
-			_u2lset[i] = i;
-}
-
-/*--------------------------------------------------------------------------
- * getrnge()
- * returns minimum character range
- * count in D0
- * maximum less minimum count
- * -> var size
- */
-unsigned getrnge(char *padd, unsigned char *s)
-{	unsigned i;
-
-	if ((i = s[1]) == 255) {
-		__size = BIG;
-	} else {
-		__size = i;
-	}
-#if defined(WIN32)
-	return *s;
-#else
-	{
-	unsigned max;
-	max = ((unsigned)-1)-FP_OFF(padd)-1;
-	if (__size > max)
-		__size = max;
-	return (*s > max) ? max : *s;
-	}
-#endif
-}
-
-/*--------------------------------------------------------------------------
- * place()
- */
-static unsigned char *_placeloc;
-static int		  _compileflags;
-static void place(register unsigned char c)
-{	register unsigned char *l;
-	int c2;
-
-	l = _placeloc;
-	if (_compileflags & RE_IGNCASE) {
-		c2 = upcase(c);
-		l[c2 >> 3] |= bittab[c2 & 07];
-		c  = lowcase(c);
-	}
-	l[c >> 3] |= bittab[c & 07];
-}
-
-/*--------------------------------------------------------------------------
- * regex_parseOctalNumber()
- */
-unsigned char *_octalloc;
-int regex_parseOctalNumber(register unsigned char *s)
-{	register unsigned char c,i;
-
-	switch (c = *s++) {
-	  case 'n':	i = '\n';	break;
-	  case 't':	i = '\t';	break;
-	  case 'r':	i = '\r'; break;
-	  case '0':  	i = 0;
-	  	/* maximum 3 digits \0ddd */
-	  	if ((c = *s++) <= '7' && c >= '0') {
-			i <<= 3; i += (c-'0');
-		  	if ((c = *s++) <= '7' && c >= '0') {
-				i <<= 3; i += (c-'0');
-			  	if ((c = *s++) <= '7' && c >= '0') {
-					s++;	i <<= 3; i += (c-'0');
-				}
-			}
-		}
-		s--;
-		break;
-	  default:	i = c;
-	}
-	_octalloc = s;
-	return i;
-}
-
-/*--------------------------------------------------------------------------
- * setpipe()
- */
-static unsigned char *pipes[NBRA];
-static void setpipe(register int i,unsigned char *ep)
-{	register unsigned char *pip;
-
-	pip 		= pipes[i];
-	pip[0]   |= CPIPE;
-	pip[1]	= i;				/* () - level #				*/
-	pip[2]	= (char )(ep-pip);	/* current ep - last cpipe (br) ep */
-	pipes[i]	= ep;
-}
-
-/*--------------------------------------------------------------------------
- * precompile()
- * precompile shell meta format to a regular expression
- * wildcards are: *, ?
- */
-static void precompile(char *dest, char *src)
-{
-	while(*src) {
-		switch(*src) {
-			case '?': *dest++ = '.'; break;
-			case '*': *dest++ = '.', *dest++ = '*'; break;
-			case '.': case '[': case ']': case '$': case '^':
-			case '{': case '}': case '(': case ')':
-			case '+': case '<': case '>': case '|':
-				*dest++ = '\\', *dest++ = *src; break;
-			case '\\':
-				if (src[1] > '0' && src[1] <='9' || src[1] == 'T') {
-					src++;
-				} else {
-					*dest++ = *src++;
-					if (!*src)
-						goto out;
-				}
-				/* drop through */
-			default:
-				*dest++ = *src;
-		}
-		src++;
-	}
-out: *dest = 0;
-}
-
-/*--------------------------------------------------------------------------
- * compile()
- * compile an expression for fast
- * scan - Algorithm
- */
-int compile(RE_OPTIONS *pOptions, RE_PATTERN *pResult) {
-	register unsigned char *sp = pOptions->expression; 
-	int err;
-	register unsigned char c;
-	int	    cflg;
-	register unsigned char *lastep;
-	unsigned char bracket[NBRA], *bracketp, closed[NBRA];
-	char     shellbuf[512];
-	int	    f1,neg;
-	char* ep = pOptions->patternBuf;
-	char* endbuf = pOptions->endOfPatternBuf;
-	unsigned char *firstep,*f2,*Cep;
-	register int i;
-
-	if (!_chsetinited) {
-		regex_compileCharacterClasses((unsigned char*)0);
-	}
-	pResult->errorCode = 0;
-	pResult->nbrackets = 0;
-	pResult->compiledExpression = pOptions->patternBuf;
-	if (pOptions->flags & RE_SHELLWILD) {
-		precompile(shellbuf,sp);
-		sp = shellbuf;
-	}
-
-	Cep = sp;
-	if ((c = GETC()) == pOptions->eof) {
-		if (pOptions->patternBuf[1] == 0) REGEX_ERROR(1);
-		return 1;
-	}
-
-	bracketp = bracket;
-	lastep = 0;
-	memset(closed,0, sizeof(closed));
-	firstep = pOptions->patternBuf;
-	
-	/* Space for: _circf, fastchar, .* - marker */
-	ep  += 3;
-
-	f1   = 1, f2 = 0;
-	_staronly = 1;
-	_compileflags = pOptions->flags;
-	if (pOptions->flags & (RE_DOREX|RE_SHELLWILD)) {
-		if (c == '^') {
-			*firstep = 1;			/* _circf */
-			goto nounget;
-		}
-	}
-	*firstep = 0;					/* ! _circf */
-	UNGETC(c);
-nounget:
-	pResult->circf = *firstep++;
-	for(;;) {
-		Cep = sp;
-		if(ep >= endbuf) REGEX_ERROR(2);
-		if((c = GETC()) == pOptions->eof) {
-			if (bracketp != bracket)
-				REGEX_ERROR(6); 				/* brackets open	  */
-			if (f2 && (*f2 == CCHR || f2[2]))
-				*firstep = f2[1];
-			else *firstep = 0;
-		/* optimizing expressions wich force starvation 
-		   in the form ".* ...",	
-		 */
-			if (firstep[2] == (CDOT|RNGE) && firstep[3] && firstep[4] == 255) {
-				firstep[1] = 255;
-			}
-			else firstep[1] = 0;
-			_regepos = (int)(sp - pOptions->expression);
-			*ep++ = CCEOF;
-			return 1;
-		}
-		if (!(pOptions->flags & (RE_DOREX|RE_SHELLWILD))) goto defchar;
-		if (c != '*' && c != '{' && c != '+' && c != '?') {
-			if (lastep && LENGTHGARANT(*lastep))
-				_staronly = 0;
-			if (c != '|') lastep = ep;
-		} else {
-			if (lastep == 0L || (*lastep & RANGEINVALID) != 0)
-				REGEX_ERROR(3);
-			*lastep |= RNGE;
-		}
-		switch(c) {
-
-		case '.':
-			f1 = 0;
-			*ep++ = CDOT;
-			break;
-
-		case '$':
-			if(PEEKC() != pOptions->eof) goto defchar;
-			*ep++ = CDOL;
-			break;
-
-		case '<':
-			*ep++ = CIDS;
-			break;
-
-		case '>':
-			*ep++ = CIDE;
-			break;
-
-		case '*':
-			*ep++ = 0;
-			*ep++ = 255;
-			break;
-
-		case '+':
-			*ep++ = 1;
-			*ep++ = 255;
-			break;
-
-		case '?':
-			*ep++ = 0;
-			*ep++ = 1;
-			break;
-
-		case '{':
-			cflg = 0;
-			c = GETC();
-getcnt:
-			i = 0;
-			do {
-				if(c >= '0' && c <= '9')
-					i = 10 * i + c - '0';
-				else REGEX_ERROR(7);
-			} while((c = GETC()) != ',' && c != '}');
-			if(i > 255) REGEX_ERROR(8);
-			*ep++ = i;
-			if(c == ',') {
-				if (cflg++) REGEX_ERROR(7);
-				if((c = GETC()) == '}') {
-					*ep++ = 255;		/* open end -> size = 255 */
-					break;
-				} else goto getcnt;
-			}
-			if(!cflg) 				/* one number -> size = 0 */
-				*ep++ = 0;
-			else	{
-				if ((i = ep[-1] - ep[-2]) < 0)
-					REGEX_ERROR(9);
-				ep[-1] = i;
-			}
-			break;
-
-		case '(':
-			if(pResult->nbrackets >= NBRA) REGEX_ERROR(5);
-			*bracketp++ = pResult->nbrackets;
-			pipes[pResult->nbrackets] = ep;
-			*ep++ = CBRA;
-			*ep++ = pResult->nbrackets++;
-			ep++;				/* space for optional | -> pointer */
-			break;
-
-		case ')':
-			/* all brackets already closed ?? 	*/
-			if (bracketp <= bracket) REGEX_ERROR(6);
-
-			/* avoid 0-Expressions			*/
-			if ((i = ep[-3]) == CBRA || i == CPIPE)
-				REGEX_ERROR(1);
-			i = *(--bracketp);
-			if (closed[i]) setpipe(i,ep);
-			closed[i] |= 1;
-			*ep++ = CKET;
-			*ep++ = i;
-			break;
-
-		case '|':
-		/* - 	On bracket open reserve one more char in ep
-		   - 	Insert at last opened bracket (resp on last opened pipe)
-				delta to current ep
-		   - 	Reserve on current ep place for delta to next opened pipe
-				resp to next closed bracket and # of current sub expr
-		*/
-			f1 = 0;	f2 = 0;		/* disable fastchecks			*/
-			if (bracket == bracketp)
-				REGEX_ERROR(12);
-#if 0
-			if ((i = *lastep) == CBRA || i == CPIPE)
-				REGEX_ERROR(1);
-#endif
-			i = pResult->nbrackets-1;
-			closed[i] |= 2;		
-			setpipe(i,ep);
-			lastep = ep;
-			*ep 	  = CPIPE;
-			ep 	 += 3;
-			break;
-
-		case '[':
-			if(&ep[MAXCTAB+1] >= endbuf)
-				REGEX_ERROR(2);
-			*ep++ 	= CCL;
-			memset(ep,0,MAXCTAB);
-			cflg  	= -1;
-			f1 	 	= 0;
-			neg 		= 0;
-			_placeloc = ep;
-			if((c = GETC()) == '^') {
-				neg = 1;
-				c = GETC();
-			}
-			do {
-				if (c == '\0') REGEX_ERROR(4);
-				if (c == '\\') {
-					c  = regex_parseOctalNumber(sp);
-					sp = _octalloc;
-				}
-				else if (c == '-' && cflg >= 0) {
-					if ((c = GETC()) == ']') {
-						place('-');
-						break;
-					}
-					if (c == '\\') {
-						c = regex_parseOctalNumber(sp);
-						sp= _octalloc;
-					}
-					while(cflg < c ) {
-						place(cflg);
-						cflg++;
-					}
-				}
-				cflg = c;
-				place(c);
-			} while((c = GETC()) != ']');
-			if (neg) {
-				for (i = 0; i < MAXCTAB; i++) ep[i] ^= -1;
-				*ep &= 0xFE;
-			}
-			ep += MAXCTAB;
-			break;
-
-		case '\\':
-			if ((c = (GETC() & 0xFF)) == pOptions->eof && !pOptions->eof) REGEX_ERROR(10);
-			if (c >= '1' && c <= '9') {
-				c -= '1';
-				if(!(closed[c] & 1)) REGEX_ERROR(11);
-				*ep++ = CBACK;
-				*ep++ = c;
-				continue;
-			}
-			if (c == 'T') {
-				c = ' ';
-				cflg = '\t';
-				goto docase;
-			}
-			sp--;
-			c 	= regex_parseOctalNumber(sp);
-			sp 	= _octalloc;
-
-	/* Drop through to default to use \ to turn off special chars */
-
-		default:
-		defchar:
-			/* lastep = ep; */
-			if (pOptions->flags & RE_IGNCASE) {
-				c    = _l2uset[c];
-				cflg = _u2lset[c];
-				if (c == cflg)	/* no alpha char, don't distinguish cases */
-					goto nocase;
-docase:
-				f1 = 0;
-				*ep++ = CCASE;
-				*ep++ = c;
-				*ep++ = cflg;
-			} else {
-nocase:
-				if (f1 && !f2) f2 = ep;
-				*ep++ = CCHR;
-				*ep++ = c;
-			}
-		}
-	}
-endcompile:
-	pResult->errorCode = _reerrmsg[err];
-	_regspos = (int)(Cep- pOptions->expression);
-	_regepos = (int)(sp - pOptions->expression -1);
-	return 0;
-}
-
-/*--------------------------------------------------------------------------
- * advpipe()
- */
-static int advpipe(unsigned char *lp, unsigned char *ep, unsigned char *end)
-{	char *sbra[2*NBRA];
-	unsigned char *l2sav = 0;
-
-	memmove(sbra,_braslist,sizeof sbra);
-	while (ep[-3] & CPBAR) {
-		if (advance(lp,ep,end)) {
-			if (__loc2 > l2sav) {
-				l2sav = __loc2;
-				memmove(sbra,_braslist,sizeof sbra);
-			}
-		}
-		ep += ep[-1];
-	}
-	memmove(_braslist,sbra,sizeof sbra);
-	if (l2sav) {
-		__loc2 = l2sav;
-		return 1;
-	}
-	return 0;
-}
-
-/*--------------------------------------------------------------------------
- * ecmp()
- */
-int ecmp(unsigned char *s,unsigned char *p,unsigned char *send)
-{
-	while(s < (unsigned char *)send)
-		if (*s++ != *p++)
-			return 0;
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * advance()
- */
-static int advance(unsigned char *lp, unsigned char *ep, unsigned char *end)
-{
-	unsigned char 	c;
-	unsigned char 	c2;
-	int	    		cnt1;
-	int	    		cnt2;
-	unsigned char *	e2;
-	unsigned char *	curlp;
-	unsigned char *	bbeg;
-
-	while(lp <= end) {
-	  switch(*ep++) {
-		case CCHR:
-			if(*ep++ == *lp++) continue;
-			return(0);
-
-		case CCASE:
-			c = *lp++;
-			if (*ep == c || ep[1] == c) {
-				ep += 2;
-				continue;
-			}
-			return 0;
-
-		case CDOT:
-			if (lp++ < end) continue;
-			return(0);
-
-		case CIDS:
-			if (lp == __locs)
-				continue;
-			if (!isident(lp[-1]))
-				continue;
-			return 0;
-
-		case CIDE:
-			if (lp == end || !isident(*lp)) 
-			    break;
-			return 0;
-
-		case CCL:
-			c = *lp++;
-			if (ISTHERE(c)) {
-				ep += MAXCTAB;
-				continue;
-			}
-			return(0);
-
-		case CDOL:
-			if (lp == end) continue;
-			return(0);
-
-		case CCEOF:
-			__loc2 = lp;
-			return(1);
-
-		case CBRA:
-			_braslist[*ep++] = lp;
-			ep++;
-			continue;
-
-		case CKET:
-			_braelist[*ep++] = lp;
-			continue;
-
-		case CBACK:
-			bbeg = _braslist[*ep];
-			e2   = &lp[_braelist[*ep++]-bbeg];
-			if (e2 <= end && ecmp(lp, bbeg, e2)) {
-				lp = e2;
-				continue;
-			}
-			return(0);
-
-		case CBRA | CPIPE:
-			_braslist[*ep] = lp;
-			ep += 2;
-			if (advpipe(lp,ep,end))
-				return 1;
-			return 0;
-		
-		case CPIPE:
-			ep--;
-			ep += ep[2];
-			break;
-
-		case CCASE | RNGE:
-			c2  = *ep++;
-			goto _1;
-
-		case CCHR | RNGE:
-			c2  = *ep;
-_1:			c   = *ep++;
-			e2  = lp + getrnge(lp,ep);
-			ep += 2;
-			if (e2 > end)
-				return 0;
-			while(lp < e2) {
-				if(*lp != c && *lp != c2)
-					return(0);
-				lp++;
-			}
-			curlp = lp;
-			e2   += __size;
-			if (e2 > end)
-				e2 = end;
-			while(lp < (unsigned char *) e2) {
-				if(*lp != c && *lp != c2)
-					goto star;
-				lp++;
-			}
-			goto star;
-
-		case CDOT | RNGE:
-			lp = lp + getrnge(lp,ep);
-			ep += 2;
-			if (lp > end)
-				return 0;
-			curlp = lp;
-			lp  += __size;
-			if (lp > end)
-				lp = (unsigned char *) end;
-			goto star;
-
-		case CCL | RNGE:
-			e2 = lp + getrnge(lp,&ep[MAXCTAB]);
-			if (e2 > end)
-				return 0;
-			while(lp < e2) {
-				c = *lp++;
-				if(!ISTHERE(c))
-					return(0);
-			}
-			curlp = lp;
-			e2   += __size;
-			if (e2 > end)
-				e2 = end;
-			while(lp < e2) {
-				c = *lp++;
-				if(!ISTHERE(c)) {
-					lp--;
-					break;
-				}
-			}
-			ep += (MAXCTAB + 2) ;
-			goto star;
-
-		case CBACK | RNGE:
-docback:		bbeg  = _braslist[*ep];
-			c     = (int)(_braelist[*ep++] - bbeg);
-			e2    = &lp[c];
-			cnt1  = getrnge(0,ep);
-			cnt2  = cnt1 + __size;
-			ep   += 2;
-			curlp = lp;
-			while(P_LE(e2,end) && --cnt2 >= 0 && ecmp(lp, bbeg, e2)) {
-				cnt1--;
-				lp += c;
-				e2 += c;
-			}
-			if (cnt1 <= 0)
-				while(P_GE(lp,curlp)) {
-					if(advance(lp, ep, end)) 
-						return(1);
-					lp -= c;
-				}
-			return(0);
-
-		
-		case CKET | RNGE:
-			_braelist[*ep] = lp;
-			lp             = _braslist[*ep];
-			goto docback;	
-
-		default:
-			/* INTERNAL REGEX_ERROR !!!! */
-			return 0;
-star:
-		lp++;
-		do {
-			lp--;
-			if (P_LT(lp,__locs))
-				break;
-			if (advance(lp, ep, end))
-				return(1);
-		} while (P_GT(lp,curlp));
-		return(0);
-	  }
-	}
-	return 0;
-}
-
-/*
- * Copy over the result of a match operation. 
- */
-static int _initResult(RE_PATTERN *pPattern, RE_MATCH* result, int matches) {
-	result->braelist = _braelist;
-	result->braslist = _braslist;
-	result->nbrackets = pPattern->nbrackets;
-	result->circf = pPattern->circf;
-	result->loc1 = __loc1;
-	result->loc2 = __loc2;
-	result->matches = matches;
-	return matches;
-}
-
-/*--------------------------------------------------------------------------
- * step()
- */
-int step(RE_PATTERN *pPattern, unsigned char *stringToMatch, unsigned char *endOfStringToMatch, RE_MATCH *result) {
-	unsigned char firstc,firstc2;
-	char* ep = pPattern->compiledExpression;
-
-	if (endOfStringToMatch == NULL) {
-		endOfStringToMatch = stringToMatch + strlen(stringToMatch);
-	}
-	__locs = stringToMatch;
-	if (*ep++) {
-		__loc1 = stringToMatch;
-		int match = advance(stringToMatch,ep+2,endOfStringToMatch);
-		return _initResult(pPattern, result, match);
-	}
-
-	ep = &ep[2];
-
-	if ((firstc = ep[-2]) != 0) {
-		/* fast check: case sensitive */
-		do {
-			if (*stringToMatch++ == firstc || *stringToMatch++ == firstc || 
-			    *stringToMatch++ == firstc || *stringToMatch++ == firstc) {
-				if (stringToMatch <= endOfStringToMatch && 
-				    advance(&stringToMatch[-1],ep,endOfStringToMatch)) {
-					__loc1 = &stringToMatch[-1];
-					return _initResult(pPattern, result, 1);
-				}
-			}
-		} while (stringToMatch < endOfStringToMatch);
-		return _initResult(pPattern, result, 0);
-	}
-
-	if (*ep == CCASE) {
-		/* fast check: ignore case */
-		firstc  = ep[1];
-		firstc2 = ep[2];
-
-		while (stringToMatch < endOfStringToMatch) {
-			if (*stringToMatch == firstc || *stringToMatch == firstc2) {
-				if (advance(stringToMatch,ep,endOfStringToMatch)) {
-					__loc1 = stringToMatch;
-					return _initResult(pPattern, result, 1);
-				}
-			}
-			stringToMatch++;
-		}
-	}
-
-	else
-
-	while(P_LE(stringToMatch,endOfStringToMatch)) {
-		if (advance(stringToMatch,ep,endOfStringToMatch)) {
-			__loc1 = stringToMatch;
-			return _initResult(pPattern, result, 1);
-		}
-		stringToMatch++;
-	}
-	return _initResult(pPattern, result, 0);
-}
-
-#define	DIM(tab)		(sizeof(tab)/sizeof(tab[0]))
+typedef enum {
+	START_OF_LINE = 0,
+	END_OF_LINE = 1,
+	START_OF_IDENTIFIER = 2,
+	END_OF_IDENTIFIER = 3,
+	ANY_CHAR = 4,
+	STRING = 5,
+	CHAR_CLASS = 6,
+	SINGLE_CHAR = 7,
+	CASE_IGNORE_CHAR = 8,
+	WHITE_SPACE_CCLASS = 9,
+	BACK_REFERENCE = 10,
+	GROUP = 11,
+	GROUP_END = 12,
+	ALTERNATIVE = 13,
+	DIGIT_CCLASS = 14,
+	WORD_CCLASS = 15,
+	END_OF_MATCH = 16,			// marks the end of the pattern
+	NON_WHITE_SPACE_CCLASS = 17,
+	HEADER = 18,
+} MATCH_TYPE;
+
+typedef struct tag_MATCH_RANGE {
+	char m_minOccurrence : 7;		// minimum number of occurrence - only define in case of ..._RANGE types
+	char m_lazy : 1;				// non gridy match, if != 0 try to match minOccurrence times.
+	char m_maxOccurrence;			// max number of occurrence- only define in case of ..._RANGE types
+} MATCH_RANGE;
+
+typedef struct tagMATCHER {
+	char m_type	 : 7;					// MATCH_TYPE as defined above
+	char m_range : 1;					// whether this type has a range information attached.
+	union {
+		struct tagMATCH_HEADER {
+			unsigned char m_minMatchSize;		// Defines the minimum number of bytes matched by the expression.
+		} m_header;
+		struct tagMATCH_GROUP {
+			char m_offsetNext;			// if alternatives ("a|b") are defined - the offset to the next alternative definition - must be first element in structure.
+			char m_nonCapturing : 1;	// for groups - if non capturing this is true.
+			char m_bracketNumber : 7;	// The bracket number
+			char m_groupEnd;			// the end of the group
+		} m_group;
+		struct tagMATCH_GROUP_END {
+			char m_nonCapturing : 1;	// for groups - if non capturing this is true.
+			char m_bracketNumber : 7;	// The bracket number
+			char m_groupStart;			// the number of bytes back to the group start.
+		} m_groupEnd;
+		struct tagCASE_CHAR {
+			char m_c1;
+			char m_c2;
+		} m_caseChar;
+		struct tagSTRING {
+			char m_length;
+			char m_chars[1];
+		} m_string;
+		struct tagALTERNATIVE {
+			char m_offsetNext;				// for alternatives - the offset to the next alternative definition or 0, if there is no next 
+		} m_alternative;
+		char m_char;						// single character to match
+		char m_reference;					// A group reference used by back-references.
+		char m_characterClass[MAXCTAB];		// character class to match
+	} m_param;
+} MATCHER;
+
+static int matcherSizes[HEADER + 1] = {
+	/*START_OF_LINE*/		1,
+	/*END_OF_LINE */		1,
+	/*START_OF_IDENTIFIER*/	1,
+	/*END_OF_IDENTIFIER*/	1,
+	/* ANY_CHAR */			2,
+	/* STRING */			-1,			// dynamic
+	/* CHAR_CLASS */		sizeof(MATCHER),
+	/* SINGLE_CHAR */		2,
+	/* CASE_IGNORE_CHAR*/	3,
+	/* WHITE_SPACE_CCLASS */ 2,
+	/* BACK_REFERENCE */	offsetof(MATCHER, m_param.m_reference)+1,
+	/* GROUP */				offsetof(MATCHER, m_param.m_group) + sizeof(struct tagMATCH_GROUP),
+	/* GROUP_END */			3,
+	/* ALTERNATIVE */		2,
+	/* DIGIT_CCLASS */		2,
+	/* WORD_CCLASS */		2,
+	/* END_OF_MATCH */		1,
+	/* NON_WHITE_SPACE_CCLASS */ 2,
+	/* HEADER */			2
+};
+
+static int matcherSimpleLength[HEADER + 1] = {
+	/*START_OF_LINE*/		0,
+	/*END_OF_LINE */		0,
+	/*START_OF_IDENTIFIER*/	0,
+	/*END_OF_IDENTIFIER*/	0,
+	/* ANY_CHAR */			1,
+	/* STRING */			-1,			// dynamic
+	/* CHAR_CLASS */		1,
+	/* SINGLE_CHAR */		1,
+	/* CASE_IGNORE_CHAR*/	1,
+	/* WHITE_SPACE_CCLASS */ 1,
+	/* BACK_REFERENCE */	255,
+	/* GROUP */				255,
+	/* GROUP_END */			0,
+	/* ALTERNATIVE */		255,
+	/* DIGIT_CCLASS */		1,
+	/* WORD_CCLASS */		1,
+	/* END_OF_MATCH */		0,
+	/* NON_WHITE_SPACE_CCLASS*/ 1,
+	/* HEADER */			0
+};
+
+extern unsigned char* tlcompile(unsigned char* transtab, unsigned char* t, unsigned char* wt);
+static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char* endOfStringToMatch, unsigned char* pExpression, unsigned char* pExpressionEnd, RE_MATCH* pMatch);
+extern unsigned char _l2uset[256], _u2lset[256];
+extern unsigned char bittab[];
 
 /*--------------------------------------------------------------------------
  * createTranslationTable()
@@ -911,109 +220,11 @@ static unsigned char* createTranslationTable(int tl) {
 		(_transtabs[tl] = malloc(256));
 }
 
-/*-----------
- * Returns the contents of a capturing group found in a match. 
- */
-CAPTURING_GROUP_RESULT regex_getCapturingGroup(RE_MATCH* pMatch, int nGroup, char* result, int maxResultLen) {
-	if (nGroup < 0 || nGroup >= pMatch->nbrackets) {
-		return BAD_CAPTURING_GROUP;
-	}
-	int tSize = (int)(pMatch->braelist[nGroup] - pMatch->braslist[nGroup]);
-	if (tSize >= maxResultLen) {
-		return LINE_TOO_LONG;
-	}
-	memcpy(result, pMatch->braslist[nGroup], tSize);
-	result[tSize] = 0;
-	return SUCCESS;
-}
-
-/**
- * Initializes a series of replacements with a given replace bx expression and some options regarding the replacent.
- */
-int regex_initializeReplaceByExpressionOptions(REPLACEMENT_OPTIONS* pOptions, REPLACEMENT_PATTERN* pPattern) {
-	unsigned char 	c;
-	unsigned char* dest;
-	unsigned char* trpat;
-	unsigned char* tab;
-	int 			tl = 0;
-	int				i;
-
-	for (i = 0; i < 256; i++) {		/* translation default */
-		_characterMappingTable[i] = i;
-	}
-	pPattern->specialProcessingNeeded = 0;
-	pPattern->lineSplittingNeeded = 0;
-	pPattern->preserveCaseConversionNeeded = pOptions->flags & RE_PRESERVE_CASE ? 1 : 0;
-	pPattern->preparedReplacementString = _replacedResultBuffer;
-	pPattern->errorCode = 0;
-	char* replaceByExpression = pOptions->replacementPattern;
-	if (!(pOptions->flags & (RE_DOREX|RE_PRESERVE_CASE))) {
-		strcpy(_replacedResultBuffer, replaceByExpression);
-		return 1;
-	}
-
-	dest = _replacedResultBuffer;
-	while ((c = *replaceByExpression++) != 0) {
-		if (c == '\\') {
-			switch ((c = *replaceByExpression++)) {
-			case 'u':
-				trpat = _l2uset;
-				goto mktrans;
-			case 'l':
-				trpat = _u2lset;
-			mktrans:				
-				if ((tab = createTranslationTable(tl++)) == 0) {
-					pPattern->errorCode = IDS_MSGREMACRORANGESYNTAX;
-					return 0;
-				}
-			memmove(tab, trpat, 256);
-			c = '[';
-			goto special;
-			case '[':
-				if ((tab = createTranslationTable(tl++)) == 0)
-					return 0;
-				if ((replaceByExpression = tlcompile(tab, replaceByExpression,
-					(unsigned char*)0)) == 0) {
-					pPattern->errorCode = IDS_MSGREMANYBRACKETS;
-					return 0;
-				}
-			case 'e':
-			case '&':
-				goto special;
-			default:
-				if (c >= '1' && c <= '9') {
-					if ((c - '0') > pOptions->maxCaptureGroups) {
-						pPattern->errorCode = IDS_MSGREPIPEERR;
-						return 0;
-					}
-				}
-				else {
-					c = regex_parseOctalNumber(replaceByExpression - 1);
-					replaceByExpression = _octalloc;
-					if (!c)
-						c = '0';
-					else
-						break;
-				}
-			special: pPattern->specialProcessingNeeded = 1;
-				*dest++ = '\\';
-				break;
-			}
-		}
-		if (c == pOptions->newlineCharacter) {
-			pPattern->lineSplittingNeeded = 1;
-		}
-		*dest++ = c;
-	}
-	*dest = 0;
-	return 1;
-}
-
-/* 
+/*
  * Convert the character at idx in the destination string to upper or lower -
  * if it has not the correct spelling.
  */
-static void _convert(char* pDestination, int idx, BOOL upper, BOOL lower) {
+static void _convert(char* pDestination, int idx, int upper, int lower) {
 	char c1 = pDestination[idx];
 	if (upper) {
 		if (!isupper(c1)) {
@@ -1029,14 +240,14 @@ static void _convert(char* pDestination, int idx, BOOL upper, BOOL lower) {
 
 /**
  * Implements the "preserve case" functionality.
- * 
+ *
  */
 static void adaptCase(char* pDestination, RE_MATCH* pMatch) {
 	char* matched = pMatch->loc1;
 	int matchedSize = (int)(pMatch->loc2 - pMatch->loc1);
 	int matchIdx = 0;
-	BOOL upper = FALSE;
-	BOOL lower = FALSE;
+	int upper = 0;
+	int lower = 0;
 	for (int i = 0; pDestination[i]; i++) {
 		char c1 = pDestination[i];
 		char c2 = matched[matchIdx];
@@ -1056,13 +267,14 @@ static void adaptCase(char* pDestination, RE_MATCH* pMatch) {
 		if (isalpha(c2)) {
 			if (matchIdx < matchedSize) {
 				matchIdx++;
-				upper = FALSE;
-				lower = FALSE;
+				upper = 0;
+				lower = 0;
 			}
 			if (isupper(c2)) {
-				upper = TRUE;
-			} else if (islower(c2)) {
-				lower = TRUE;
+				upper = 1;
+			}
+			else if (islower(c2)) {
+				lower = 1;
 			}
 		}
 		_convert(pDestination, i, upper, lower);
@@ -1070,7 +282,7 @@ static void adaptCase(char* pDestination, RE_MATCH* pMatch) {
 }
 
 /*--------------------------------------------------------------------------
- * find_replaceSearchString()
+ * regex_replaceSearchString()
  * create replace-target for replaced Expressions with \
  * return length of target. Before calling this method, you must once call
  * find_initializeReplaceByExpressionOptions.
@@ -1145,5 +357,902 @@ int regex_replaceSearchString(REPLACEMENT_PATTERN* pPattern, unsigned char* pDes
 		adaptCase(pDestination, pMatch);
 	}
 	return len;
+}
+
+static int regex_getOccurrence(char size) {
+	return size < 0 ? BIG : size;
+}
+
+/*--------------------------------------------------------------------------
+ * regex_compileCharacterClasses()
+ * Compile a "lower to upper" character class pattern for subsequent use in regular
+ * expressions. a lower to upper character class mapping has the form lowerCharRange=upperCharRange,
+ * where a charRange may be defined like a regular expression character class. E.g a-z=A-Z will
+ * map all lower case alpha chars to all corresponding upper characters. The resulting character
+ * class will be used in PKS Edit for lower / upper case conversions as well to define the valid
+ * characters of an identifier used during "word" navigation.
+ */
+void regex_compileCharacterClasses(unsigned char* pLowerToUpperPattern) {
+	int i, j;
+
+	if (_chsetinited && pLowerToUpperPattern == NULL) {
+		return;
+	}
+	_chsetinited = 1;
+
+	if (!pLowerToUpperPattern)
+		pLowerToUpperPattern = "a-z=A-Z";
+
+	for (i = 0; i < 256; i++)
+		_asciitab[i] &= (~_C);
+
+	tlcompile(_l2uset, pLowerToUpperPattern, _asciitab);
+
+	/* calculate the inverse tab */
+
+	memset(_u2lset, 0, sizeof(_u2lset));
+
+	for (i = 0; i < sizeof(_l2uset); i++)
+		if ((j = _l2uset[i]) != i)
+			_u2lset[j] = i;
+	for (i = 0; i < sizeof(_u2lset); i++)
+		if (_u2lset[i] == 0)
+			_u2lset[i] = i;
+}
+
+/*--------------------------------------------------------------------------
+ * regex_addCharacterToCharacterClass()
+ */
+void regex_addCharacterToCharacterClass(unsigned char* pCharTable, unsigned char c, int flags) {
+	int c2;
+
+	if (flags & RE_IGNCASE) {
+		c2 = upcase(c);
+		pCharTable[c2 >> 3] |= bittab[c2 & 07];
+		c = lowcase(c);
+	}
+	pCharTable[c >> 3] |= bittab[c & 07];
+}
+
+/*--------------------------------------------------------------------------
+ * regex_parseOctalNumber()
+ */
+unsigned char* _octalloc;
+int regex_parseOctalNumber(register unsigned char* s)
+{
+	register unsigned char c, i;
+
+	switch (c = *s++) {
+	case 'n':	i = '\n';	break;
+	case 't':	i = '\t';	break;
+	case 'r':	i = '\r'; break;
+	case '0':  	i = 0;
+		/* maximum 3 digits \0ddd */
+		if ((c = *s++) <= '7' && c >= '0') {
+			i <<= 3; i += (c - '0');
+			if ((c = *s++) <= '7' && c >= '0') {
+				i <<= 3; i += (c - '0');
+				if ((c = *s++) <= '7' && c >= '0') {
+					s++;	i <<= 3; i += (c - '0');
+				}
+			}
+		}
+		s--;
+		break;
+	default:	i = c;
+	}
+	_octalloc = s;
+	return i;
+}
+
+/*
+ * Create a matcher for a single character. 
+ */
+static char* regex_singleChar(MATCHER* pPattern, int options, char c) {
+	if (options & RE_IGNCASE) {
+		pPattern->m_type = CASE_IGNORE_CHAR;
+		pPattern->m_param.m_caseChar.m_c1 = makeUpperCase(c);
+		pPattern->m_param.m_caseChar.m_c2 = makeLowerCase(c);
+	} else {
+		pPattern->m_param.m_char = c;
+		pPattern->m_type = SINGLE_CHAR;
+	}
+	return ((char*)pPattern) + matcherSizes[pPattern->m_type];
+}
+
+/*
+ * Calculate the offset in the matcher to skip, when traversing match patterns.
+ */
+static int regex_expressionOffset(MATCHER* pMatcher, RE_MATCH* pResult) {
+	if (pMatcher->m_type == GROUP) {
+		if (!pMatcher->m_param.m_group.m_nonCapturing && pMatcher->m_param.m_group.m_offsetNext == 0 && 
+				(pResult && pResult->braelist[pMatcher->m_param.m_group.m_bracketNumber] == 0)) {
+			return matcherSizes[GROUP] + sizeof(MATCH_RANGE);
+		}
+		return pMatcher->m_param.m_group.m_groupEnd;
+	}
+	if (pMatcher->m_type == STRING) {
+		return pMatcher->m_param.m_string.m_length + 2;
+	}
+	int tDelta = matcherSizes[pMatcher->m_type];
+	if (pMatcher->m_range) {
+		tDelta += sizeof(MATCH_RANGE);
+	}
+	return tDelta;
+}
+
+/*
+ * Calculate the minimum numbers of character matched by the following sequence of expressions.
+ * Only the most simple cases are handled - others will return a high number. This method is
+ * used for optimization purpose to limit the number of attempts necessary to
+ */
+static int regex_calculateMinMatchLen(unsigned char* pExpression, unsigned char* pExpressionEnd) {
+	MATCHER* pMatcher;
+	int nLen = 0;
+	int nDelta;
+	while (pExpression < pExpressionEnd && nLen < 255) {
+		pMatcher = (MATCHER*)pExpression;
+		if (pMatcher->m_type == GROUP) {
+			char* pExpressionEndGroup = pExpression + pMatcher->m_param.m_group.m_groupEnd;
+			if (pMatcher->m_param.m_group.m_offsetNext) {
+				pExpression = pExpressionEndGroup;
+				continue;
+			}
+			pExpression += matcherSizes[GROUP];
+			nDelta = regex_calculateMinMatchLen(pExpression + sizeof(MATCH_RANGE), pExpressionEndGroup);
+			if (pMatcher->m_range) {
+				MATCH_RANGE* pRange = (MATCH_RANGE*)pExpression;
+				nDelta *= pRange->m_minOccurrence;
+			}
+			pExpression = pExpressionEndGroup;
+		} else {
+			if (pMatcher->m_type == STRING) {
+				nDelta = pMatcher->m_param.m_string.m_length;
+				pExpression += nDelta+2;
+			}
+			else {
+				nDelta = matcherSimpleLength[pMatcher->m_type];
+				pExpression += matcherSizes[pMatcher->m_type];
+			}
+			if (nDelta == 255) {
+				// dont know
+				continue;
+			}
+			if (pMatcher->m_range) {
+				MATCH_RANGE* pRange = (MATCH_RANGE*)pExpression;
+				nDelta *= pRange->m_minOccurrence;
+				pExpression += sizeof(MATCH_RANGE);
+			}
+		}
+		nLen += nDelta;
+	}
+	return nLen > 255 ? 255 : nLen;
+}
+
+/*--------------------------------------------------------------------------
+ * regex_compileShellPattern()
+ * precompile shell meta format to a regular expression
+ * wildcards are: *, ?
+ */
+static void regex_compileShellPattern(char* dest, char* src) {
+	while (*src) {
+		switch (*src) {
+		case '?': *dest++ = '.'; break;
+		case '*': *dest++ = '.', *dest++ = '*'; break;
+		case '.': case '[': case ']': case '$': case '^':
+		case '{': case '}': case '(': case ')':
+		case '+': case '<': case '>': case '|':
+			*dest++ = '\\', *dest++ = *src; break;
+		case '\\':
+			if (src[1] > '0' && src[1] <= '9' || src[1] == 'T') {
+				src++;
+			}
+			else {
+				*dest++ = *src++;
+				if (!*src)
+					goto out;
+			}
+			/* drop through */
+		default:
+			*dest++ = *src;
+		}
+		src++;
+	}
+out: *dest = 0;
+}
+
+/*
+ * Compile a sub-expression of an expression (0 for top-level, > 1 for groups 2,... for nested groups). 
+ */
+static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pResult, char* pExprStart, char* pPatternStart, char**pExprEnd, char **pPatternEnd, int level) {
+	int err = 0;
+	int flags = pOptions->flags;
+	char* pPatternRun = pPatternStart;
+	unsigned char* pInput = pExprStart;
+	MATCH_RANGE* pRange = NULL;
+	MATCHER* pLastAlternativeStart = level == 0 ? NULL : (MATCHER *)(pPatternStart - matcherSizes[GROUP] - sizeof(MATCH_RANGE));
+	MATCHER* pLastPattern = NULL;
+
+	while (1) {
+		if (pPatternRun >= pOptions->endOfPatternBuf) {
+			REGEX_ERROR(2);
+		}
+		MATCHER* pMatcher = (MATCHER*)pPatternRun;
+		unsigned char c = *pInput++;
+		if (c == pOptions->eof) {
+			if (level > 0) {
+				REGEX_ERROR(6);
+			}
+			pMatcher->m_type = END_OF_MATCH;
+			pResult->compiledExpressionEnd = ((char*) pMatcher)+matcherSizes[END_OF_MATCH];
+			*pPatternEnd = pPatternRun + 1;
+			*pExprEnd = pInput;
+			return (MATCHER*)(pPatternRun);
+
+		}
+		// remember last pattern not being a range spec.
+		if (c != '?' && c != '{' && c != '*' && c != '+') {
+			pLastPattern = pMatcher;
+		} else {
+			if (pLastPattern == NULL) {
+				REGEX_ERROR(5);
+			}
+			if (!pLastPattern->m_range) {
+				if (pLastPattern->m_type == GROUP) {
+					pRange = (MATCH_RANGE*)(((char*)pLastPattern)+matcherSizes[GROUP]);
+				} else {
+					pRange = (MATCH_RANGE*)pPatternRun;
+					pPatternRun += sizeof(MATCH_RANGE);
+				}
+				pLastPattern->m_range = 1;
+			} else if (c == '?') {
+				// non gridy operator - e.g. {2,5}?
+				pRange->m_lazy = 1;
+				continue;
+			}
+		}
+		switch (c) {
+		case '.':
+			pMatcher->m_type = ANY_CHAR;
+			pPatternRun += matcherSizes[ANY_CHAR];
+			break;
+
+		case '|': {
+			char cOffset;
+			if (pLastAlternativeStart == NULL) {
+				REGEX_ERROR(9);
+			}
+			cOffset = (char)(size_t)(pPatternRun - (char*)pLastAlternativeStart);
+			pLastAlternativeStart->m_param.m_alternative.m_offsetNext = cOffset;
+			pLastAlternativeStart = pMatcher;
+			pMatcher->m_type = ALTERNATIVE;
+			pPatternRun += matcherSizes[ALTERNATIVE];
+			break;
+		}
+
+		case '\\':
+			if (*pInput != pOptions->eof) {
+				char cNext = *pInput++;
+				if (cNext == 's') {
+					pMatcher->m_type = WHITE_SPACE_CCLASS;
+					pPatternRun += matcherSizes[WHITE_SPACE_CCLASS];
+				} else if (cNext == 'S') {
+					pMatcher->m_type = NON_WHITE_SPACE_CCLASS;
+					pPatternRun += matcherSizes[NON_WHITE_SPACE_CCLASS];
+				} else if (cNext == 'd') {
+					pMatcher->m_type = DIGIT_CCLASS;
+					pPatternRun += matcherSizes[DIGIT_CCLASS];
+				} else if (cNext == 'w') {
+					pMatcher->m_type = WORD_CCLASS;
+					pPatternRun += matcherSizes[WORD_CCLASS];
+				} else if (cNext >= '1' && cNext <= '9') {
+					cNext -= '1';
+					if (cNext > pResult->nbrackets) {
+						REGEX_ERROR(9);
+					}
+					pMatcher->m_type = BACK_REFERENCE;
+					pMatcher->m_param.m_reference = cNext;
+					pPatternRun += matcherSizes[BACK_REFERENCE];
+				} else {
+					pPatternRun = regex_singleChar(pMatcher, flags, cNext);
+				}
+			}
+			break;
+		case '<':
+			pMatcher->m_type = START_OF_IDENTIFIER;
+			pPatternRun += matcherSizes[START_OF_IDENTIFIER];
+			break;
+
+		case '>':
+			pMatcher->m_type = END_OF_IDENTIFIER;
+			pPatternRun += matcherSizes[END_OF_IDENTIFIER];
+			break;
+
+		case '$':
+			if (*pInput == pOptions->eof) {
+				pMatcher->m_type = END_OF_LINE;
+				pPatternRun += matcherSizes[END_OF_LINE];
+			} else {
+				pPatternRun = regex_singleChar(pMatcher, flags, c);
+			}
+			break;
+
+		case '^':
+			pMatcher->m_type = START_OF_LINE;
+			pPatternRun += matcherSizes[START_OF_LINE];
+			break;
+
+		case '[': {
+			int lastCharacterForClass = -1;
+			int negated = 0;
+			if ((char*)(pMatcher + 1) >= pOptions->endOfPatternBuf) {
+				REGEX_ERROR(2);
+			}
+			pMatcher->m_type = CHAR_CLASS;
+			memset(pMatcher->m_param.m_characterClass, 0, sizeof(pMatcher->m_param.m_characterClass));
+			if ((c = *pInput++) == '^') {
+				negated = 1;
+				c = *pInput++;
+			}
+			do {
+				if (c == '\0') REGEX_ERROR(4);
+				if (c == '\\') {
+					c = regex_parseOctalNumber(pInput);
+					pInput = _octalloc;
+				}
+				else if (c == '-' && lastCharacterForClass >= 0) {
+					if ((c = *pInput++) == ']') {
+						regex_addCharacterToCharacterClass(pMatcher->m_param.m_characterClass, '-', flags);
+						break;
+					}
+					if (c == '\\') {
+						c = regex_parseOctalNumber(pInput);
+						pInput = _octalloc;
+					}
+					while (lastCharacterForClass < c) {
+						regex_addCharacterToCharacterClass(pMatcher->m_param.m_characterClass, lastCharacterForClass, flags);
+						lastCharacterForClass++;
+					}
+				}
+				lastCharacterForClass = c;
+				regex_addCharacterToCharacterClass(pMatcher->m_param.m_characterClass, c, flags);
+			} while ((c = *pInput++) != ']');
+			if (negated) {
+				for (int i = 0; i < MAXCTAB; i++) pMatcher->m_param.m_characterClass[i] ^= -1;
+				pMatcher->m_param.m_characterClass[0] &= 0xFE;
+			}
+			pPatternRun += matcherSizes[CHAR_CLASS];
+			break;
+		}
+		case '*':
+			pRange->m_minOccurrence = 0;
+			pRange->m_maxOccurrence = 255;
+			break;
+
+		case '+':
+			pRange->m_minOccurrence = 1;
+			pRange->m_maxOccurrence = 255;
+			break;
+
+		case '?':
+			pRange->m_minOccurrence = 0;
+			pRange->m_maxOccurrence = 1;
+			break;
+
+
+		case '{': { 
+			int nRangeSeen = 0;
+			int nNumber = 0;
+			pRange->m_minOccurrence = 0;
+			while ((c = *pInput++) != '}') {
+				if (c == pOptions->eof) {
+					REGEX_ERROR(6);
+				}
+				if (c == ',') {
+					pRange->m_maxOccurrence = 0;
+					pRange->m_minOccurrence = nNumber;
+					nRangeSeen = 1;
+					nNumber = 0;
+				} else if (c >= '0' && c <= '9') {
+					nNumber = nNumber * 10 + (c - '0');
+				}
+			}
+			if (!nRangeSeen) {
+				pRange->m_maxOccurrence = pRange->m_minOccurrence = nNumber;
+			} else {
+				pRange->m_maxOccurrence = nNumber == 0 ? 255 : nNumber;
+			}
+			pRange->m_lazy = 0;
+			if (regex_getOccurrence(pRange->m_minOccurrence) > regex_getOccurrence(pRange->m_maxOccurrence)) {
+				REGEX_ERROR(8);
+			}
+			}
+			break;
+
+		case '(':
+			pMatcher->m_type = GROUP;
+			pLastPattern = pMatcher;
+			if (*pInput == '?' && pInput[1] == ':') {
+				pInput += 2;
+				pMatcher->m_param.m_group.m_nonCapturing = 1;
+			} else {
+				pMatcher->m_param.m_group.m_bracketNumber = pResult->nbrackets++;
+			}
+			// always leave space for range spec of groups.
+			pPatternRun += matcherSizes[GROUP] + sizeof (MATCH_RANGE);
+			if (regex_compileSubExpression(pOptions, pResult, pInput, pPatternRun, &pInput, &pPatternRun, level + 1) == NULL) {
+				return 0;
+			}
+			char delta = (char)(size_t)(pPatternRun - (unsigned char*)pMatcher);
+			pMatcher->m_param.m_group.m_groupEnd = delta;
+			if (pMatcher->m_param.m_group.m_groupEnd == 0) {
+				// 0-size sub-expression.
+				REGEX_ERROR(1);
+			}
+			{
+				MATCHER* pPatternGroupEnd = (MATCHER * )(pPatternRun-matcherSizes[GROUP_END]);
+				pPatternGroupEnd->m_param.m_groupEnd.m_nonCapturing = pMatcher->m_param.m_group.m_nonCapturing;
+				pPatternGroupEnd->m_param.m_groupEnd.m_bracketNumber = pMatcher->m_param.m_group.m_bracketNumber;
+			}
+			break;
+		case ')':
+			if (level <= 0) {
+				REGEX_ERROR(6);
+			}
+			if (pLastAlternativeStart && pLastAlternativeStart->m_type == ALTERNATIVE) {
+				char* pszStart = ((char*)pLastAlternativeStart) + matcherSizes[ALTERNATIVE];
+			}
+			pMatcher->m_type = GROUP_END;
+			pPatternRun += matcherSizes[GROUP_END];
+			*pPatternEnd = pPatternRun;
+			*pExprEnd = pInput;
+			return pMatcher;
+		default: {
+			if (!(flags & RE_IGNCASE)) {
+				char* pStart = pInput;
+				char c2;
+				while ((c2 = *pStart++) != 0) {
+					if (!(isalnum(c2) || isblank(c2))) {
+						break;
+					}
+				}
+				int len = (int)(pStart - pInput)-1;
+				if (len > 2) {
+					pMatcher->m_type = STRING;
+					pMatcher->m_param.m_string.m_length = len;
+					memcpy(pMatcher->m_param.m_string.m_chars, pInput - 1, len);
+					pPatternRun += regex_expressionOffset(pMatcher, 0);
+				}
+			}
+			pPatternRun = regex_singleChar(pMatcher, flags, c);
+			break;
+
+		}
+		}
+	}
+endcompile:
+	pResult->errorCode = _reerrmsg[err];
+	return 0;
+}
+
+/*--------------------------------------------------------------------------
+ * regex_compile()
+ * Compile a regular expression - return 1 - if successful. The pMatch of the 
+ * compilation will be stored in the pMatch pattern.
+ */
+int regex_compile(RE_OPTIONS* pOptions, RE_PATTERN* pResult) {
+	MATCHER* pMatcher = (MATCHER*) pOptions->patternBuf;
+	char* pInput = pOptions->expression;
+	char* pExprEnd = NULL;
+	char* pPatternEnd = NULL;
+	char* pPatternStart;
+	char shellbuf[512];
+
+	regex_compileCharacterClasses((unsigned char*)0);
+	if (pOptions->flags & RE_SHELLWILD) {
+		regex_compileShellPattern(shellbuf, pInput);
+		pInput = shellbuf;
+	}
+	memset(pResult, 0, sizeof * pResult);
+	memset(pOptions->patternBuf, 0, (size_t)(pOptions->endOfPatternBuf-pOptions->patternBuf));
+	pResult->compiledExpression = pOptions->patternBuf;
+	pMatcher->m_type = HEADER;
+	pPatternStart = (char*)pMatcher;
+	pPatternStart += matcherSizes[HEADER];
+	int ret = regex_compileSubExpression(pOptions, pResult, pInput, pPatternStart, &pExprEnd, &pPatternEnd, 0) == NULL ? 0 : 1;
+	if (ret) {
+		pMatcher->m_param.m_header.m_minMatchSize = regex_calculateMinMatchLen(pPatternStart, pPatternEnd);
+	}
+	return ret;
+}
+
+/*
+ * Try a single match of the given expression. We handle here all matches possibly combined with a range (multiplication) specifier.
+ * Return the pointer to the next position in the input string to match if successful or 0 on failure.
+ */
+static unsigned char* advanceSubGroup(unsigned char* stringToMatch, unsigned char* endOfStringToMatch, unsigned char* pExpression, RE_MATCH* pResult) {
+	MATCHER* pMatcher;
+	unsigned char c;
+	
+	pMatcher = (MATCHER*)pExpression;
+	switch (pMatcher->m_type) {
+	case SINGLE_CHAR:
+		if (pMatcher->m_param.m_char == *stringToMatch++) {
+			return stringToMatch;
+		}
+		return(0);
+
+	case CASE_IGNORE_CHAR:
+		c = *stringToMatch++;
+		if (pMatcher->m_param.m_caseChar.m_c1 == c || pMatcher->m_param.m_caseChar.m_c2 == c) {
+			return stringToMatch;
+		}
+		return 0;
+
+	case STRING: {
+		char* pString = pMatcher->m_param.m_string.m_chars;
+		char* pEnd = stringToMatch + pMatcher->m_param.m_string.m_length;
+		if (pEnd <= endOfStringToMatch && memcmp(stringToMatch, pString, pMatcher->m_param.m_string.m_length) == 0) {
+			return pEnd;
+		}
+		return 0;
+	}
+	case ANY_CHAR:
+		if (stringToMatch++ < endOfStringToMatch) {
+			return stringToMatch;
+		}
+		return(0);
+
+	case CHAR_CLASS:
+		c = *stringToMatch++;
+		if (ISTHERE(pMatcher->m_param.m_characterClass, c)) {
+			return stringToMatch;
+		}
+		return(0);
+
+	case WORD_CCLASS:
+		c = *stringToMatch++;
+		if (isident(c)) {
+			return stringToMatch;
+		}
+		return(0);
+
+	case DIGIT_CCLASS:
+		c = *stringToMatch++;
+		if (pks_isdigit(c)) {
+			return stringToMatch;
+		}
+		return(0);
+
+	case WHITE_SPACE_CCLASS:
+		c = *stringToMatch++;
+		if (pks_isspace(c)) {
+			return stringToMatch;
+		}
+		return(0);
+
+	case NON_WHITE_SPACE_CCLASS:
+		c = *stringToMatch++;
+		if (!pks_isspace(c)) {
+			return stringToMatch;
+		}
+		return(0);
+
+	case GROUP_END: {
+		if (!pMatcher->m_param.m_group.m_nonCapturing) {
+			int nGroup = pMatcher->m_param.m_groupEnd.m_bracketNumber;
+			pResult->braelist[nGroup] = stringToMatch;
+			pResult->nbrackets = nGroup + 1;
+			return stringToMatch;
+		}
+		break;
+	}
+
+	case GROUP: {
+		unsigned char* pExprEnd = pExpression + pMatcher->m_param.m_group.m_groupEnd;
+		unsigned char* pExprStart = pExpression + matcherSizes[GROUP];
+		unsigned char* pExprNext = pExpression + pMatcher->m_param.m_group.m_offsetNext;
+		unsigned char* pExprStop = pMatcher->m_param.m_group.m_offsetNext ? pExprNext : pExprEnd;
+		pExprStart += sizeof(MATCH_RANGE);
+		int nGroup = 0;
+		if (!pMatcher->m_param.m_group.m_nonCapturing) {
+			nGroup = pMatcher->m_param.m_group.m_bracketNumber;
+			pResult->braslist[nGroup] = stringToMatch;
+			pResult->nbrackets = nGroup;
+			if (pMatcher->m_param.m_group.m_offsetNext == 0) {
+				return stringToMatch;
+			}
+		}
+		unsigned char* pLongestMatch = 0;
+		int matchedLen = 0;
+		int nSubGroup = 0;
+		while(1) {
+			unsigned char* e2;
+			e2 = regex_advance(stringToMatch, endOfStringToMatch, pExprStart, pExprStop, pResult);
+			if (e2 > pLongestMatch) {
+				pLongestMatch = e2;
+				matchedLen = (int)(pLongestMatch - stringToMatch);
+			}
+			if (pExprStop >= pExprEnd) {
+				break;
+			}
+			MATCHER* pAlt = (MATCHER*)pExprStop;
+			pExprStart = ((unsigned char*)pAlt)+matcherSizes[pAlt->m_type];
+			pExprStop = pAlt->m_param.m_alternative.m_offsetNext ? (pExprStart + pAlt->m_param.m_alternative.m_offsetNext) : pExprEnd;
+		}
+		if (pLongestMatch && !pMatcher->m_param.m_group.m_nonCapturing) {
+			pResult->braelist[nGroup] = pLongestMatch;
+			pResult->nbrackets = nGroup + 1;
+		}
+		return pLongestMatch;
+	}
+
+	case BACK_REFERENCE: {
+		unsigned char* e2;
+		unsigned char* bbeg;
+		int nRef = pMatcher->m_param.m_reference;
+		bbeg = pResult->braslist[nRef];
+		size_t nOffset = pResult->braelist[nRef] - bbeg;
+		e2 = &stringToMatch[nOffset];
+		if (e2 <= endOfStringToMatch && memcmp(stringToMatch, bbeg, nOffset) == 0) {
+			return e2;
+		}
+		return(0);
+	}
+	}
+	return 0;
+}
+
+/*
+ * Try the next sub-expression match to match the input string. 
+ */
+static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char* endOfStringToMatch, unsigned char* pExpression, unsigned char* pExpressionEnd, RE_MATCH* pMatch) {
+	MATCHER* pMatcher;
+	unsigned char* newPos;
+	unsigned char* nextExpression;
+	unsigned char* lastMatch;
+
+	if (pExpression >= pExpressionEnd) {
+		return stringToMatch;
+	}
+	while (stringToMatch <= endOfStringToMatch) {
+		pMatcher = (MATCHER*)pExpression;
+		if (pMatcher->m_range) {
+			MATCH_RANGE* pRange = (MATCH_RANGE*)(pExpression + matcherSizes[pMatcher->m_type]);
+			int nLow = regex_getOccurrence(pRange->m_minOccurrence);
+			int nHigh = regex_getOccurrence(pRange->m_maxOccurrence);
+			nextExpression = pExpression + regex_expressionOffset(pMatcher, pMatch);
+			lastMatch = 0;
+			for (int i = 1; i <= nHigh; i++) {
+				if (i >= 2 && pMatcher->m_type == GROUP && !pMatcher->m_param.m_group.m_nonCapturing) {
+					char* e2 = pMatch->braelist[pMatcher->m_param.m_group.m_bracketNumber];
+					if (e2 == 0) {
+						newPos = 0;
+					} else {
+						nextExpression = pExpression + regex_expressionOffset(pMatcher, pMatch);
+						char* bbeg = pMatch->braslist[pMatcher->m_param.m_group.m_bracketNumber];
+						size_t nSize = e2 - bbeg;
+						e2 = stringToMatch + nSize;
+						if (e2 <= endOfStringToMatch && memcmp(stringToMatch, bbeg, nSize) == 0) {
+							newPos = e2;
+						}
+						else {
+							newPos = 0;
+						}
+					}
+				} else {
+					newPos = advanceSubGroup(stringToMatch, endOfStringToMatch, pExpression, pMatch);
+				}
+				if (newPos == 0) {
+					if (i < nLow) {
+						return 0;
+					}
+					break;
+				} else {
+					stringToMatch = newPos;
+					if (i >= nLow) {
+						newPos = regex_advance(newPos, endOfStringToMatch, nextExpression, pExpressionEnd, pMatch);
+						pMatch->braelist[pMatch->nbrackets] = 0;
+						if (newPos) {
+							lastMatch = newPos;
+							if (pRange->m_lazy) {
+								break;
+							}
+						}
+					}
+				}
+			}
+			return lastMatch;
+		}
+		switch (pMatcher->m_type) {
+		case END_OF_LINE:
+			if (stringToMatch == endOfStringToMatch) {
+				break;
+			}
+			return(0);
+
+		case START_OF_IDENTIFIER:
+			if (stringToMatch == pMatch->loc1 || !isident(stringToMatch[-1])) {
+				break;
+			}
+			return 0;
+
+		case END_OF_IDENTIFIER:
+			if (stringToMatch == endOfStringToMatch || !isident(*stringToMatch)) {
+				break;
+			}
+			return 0;
+
+		case END_OF_MATCH:
+			pMatch->loc2 = stringToMatch;
+			return stringToMatch;
+
+		default:
+			stringToMatch = advanceSubGroup(stringToMatch, endOfStringToMatch, pExpression, pMatch);
+			if (stringToMatch == NULL) {
+				return NULL;
+			}
+			break;
+		}
+		pExpression += regex_expressionOffset(pMatcher, pMatch);
+		if (pExpression >= pExpressionEnd) {
+			pMatch->loc2 = stringToMatch;
+			return stringToMatch;
+		}
+	}
+	return 0;
+}
+
+/*--------------------------------------------------------------------------
+ * regex_match()
+ * The workhorse of the regular expression matching feature - try to match an input string
+ * against a pattern.
+ */
+int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsigned char* endOfStringToMatch, RE_MATCH* pMatch) {
+	memset(pMatch, 0, sizeof * pMatch);
+	if (endOfStringToMatch == NULL) {
+		endOfStringToMatch = stringToMatch + strlen(stringToMatch);
+	}
+	int minLen = 0;
+	MATCHER* pMatcher = (MATCHER*)pPattern->compiledExpression;
+	if (pMatcher->m_type == HEADER) {
+		minLen = pMatcher->m_param.m_header.m_minMatchSize;
+		pMatcher = (MATCHER*)(((char*)pMatcher) + matcherSizes[HEADER]);
+		if (minLen > (int)(endOfStringToMatch - stringToMatch)) {
+			return 0;
+		}
+	}
+	pMatch->loc1 = stringToMatch;
+	if (pMatcher->m_type == START_OF_LINE) {
+		pMatch->circf = 1;
+		pMatcher = (MATCHER*)(((char*)pMatcher) + matcherSizes[START_OF_LINE]);
+		if (regex_advance(stringToMatch, endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
+			pMatch->matches = 1;
+			return 1;
+		}
+	} else {
+		while (stringToMatch < endOfStringToMatch) {
+			if (regex_advance(stringToMatch, endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
+				pMatch->loc1 = stringToMatch;
+				pMatch->matches = 1;
+				return 1;
+			}
+			memset(pMatch->braelist, 0, sizeof pMatch->braelist);
+			stringToMatch++;
+		}
+	}
+	pMatch->loc1 = NULL;
+	return 0;
+}
+
+/*
+ * Returns the minimum length a string must have to be able tobe matched by a compiled
+ * pattern. Note, that the returned size is currently not yet completely correct, as alternatives ( (a|b) ) 
+ * are currently not handled.
+ */
+int regex_getMinimumMatchLength(RE_PATTERN* pPattern) {
+	MATCHER* pMatcher = (MATCHER*)pPattern->compiledExpression;
+	if (pMatcher->m_type == HEADER) {
+		return pMatcher->m_param.m_header.m_minMatchSize;
+	}
+	return 0;
+}
+
+/*-----------
+ * Returns the contents of a capturing group found in a match.
+ */
+CAPTURING_GROUP_RESULT regex_getCapturingGroup(RE_MATCH* pMatch, int nGroup, char* result, int maxResultLen) {
+	if (nGroup < 0 || nGroup >= pMatch->nbrackets) {
+		return BAD_CAPTURING_GROUP;
+	}
+	int tSize = (int)(pMatch->braelist[nGroup] - pMatch->braslist[nGroup]);
+	if (tSize >= maxResultLen) {
+		return LINE_TOO_LONG;
+	}
+	memcpy(result, pMatch->braslist[nGroup], tSize);
+	result[tSize] = 0;
+	return SUCCESS;
+}
+
+/**
+ * Initializes a series of replacements with a given replace bx expression and some options regarding the replacent.
+ */
+int regex_initializeReplaceByExpressionOptions(REPLACEMENT_OPTIONS* pOptions, REPLACEMENT_PATTERN* pPattern) {
+	unsigned char 	c;
+	unsigned char* dest;
+	unsigned char* trpat;
+	unsigned char* tab;
+	int 			tl = 0;
+	int				i;
+
+	for (i = 0; i < 256; i++) {		/* translation default */
+		_characterMappingTable[i] = i;
+	}
+	pPattern->specialProcessingNeeded = 0;
+	pPattern->lineSplittingNeeded = 0;
+	pPattern->preserveCaseConversionNeeded = pOptions->flags & RE_PRESERVE_CASE ? 1 : 0;
+	pPattern->preparedReplacementString = _replacedResultBuffer;
+	pPattern->errorCode = 0;
+	char* replaceByExpression = pOptions->replacementPattern;
+	if (!(pOptions->flags & (RE_DOREX | RE_PRESERVE_CASE))) {
+		strcpy(_replacedResultBuffer, replaceByExpression);
+		return 1;
+	}
+
+	dest = _replacedResultBuffer;
+	while ((c = *replaceByExpression++) != 0) {
+		if (c == '\\') {
+			switch ((c = *replaceByExpression++)) {
+			case 'u':
+				trpat = _l2uset;
+				goto mktrans;
+			case 'l':
+				trpat = _u2lset;
+			mktrans:
+				if ((tab = createTranslationTable(tl++)) == 0) {
+					pPattern->errorCode = IDS_MSGREMACRORANGESYNTAX;
+					return 0;
+				}
+				memmove(tab, trpat, 256);
+				c = '[';
+				goto special;
+			case '[':
+				if ((tab = createTranslationTable(tl++)) == 0)
+					return 0;
+				if ((replaceByExpression = tlcompile(tab, replaceByExpression,
+					(unsigned char*)0)) == 0) {
+					pPattern->errorCode = IDS_MSGREMANYBRACKETS;
+					return 0;
+				}
+			case 'e':
+			case '&':
+				goto special;
+			default:
+				if (c >= '1' && c <= '9') {
+					if ((c - '0') > pOptions->maxCaptureGroups) {
+						pPattern->errorCode = IDS_MSGREPIPEERR;
+						return 0;
+					}
+				}
+				else {
+					c = regex_parseOctalNumber(replaceByExpression - 1);
+					replaceByExpression = _octalloc;
+					if (!c)
+						c = '0';
+					else
+						break;
+				}
+			special: pPattern->specialProcessingNeeded = 1;
+				*dest++ = '\\';
+				break;
+			}
+		}
+		if (c == pOptions->newlineCharacter) {
+			pPattern->lineSplittingNeeded = 1;
+		}
+		*dest++ = c;
+	}
+	*dest = 0;
+	return 1;
 }
 

@@ -13,11 +13,11 @@ typedef struct tagSEARCH_AND_REPLACE_PARAMETER {
 extern SEARCH_AND_REPLACE_PARAMETER _currentSearchAndReplaceParams;
 
 /*--------------------------------------------------------------------------
- * regex_compile()
+ * find_regexCompile()
  * Compiles a regular expression passing in a char array into which the appropriate compiled expression is placed (should be big enough - typically 500 bytes
  * the pattern to compile and the RE_... flags as specified in regexp.h
  */
-extern RE_PATTERN* regex_compile(char* compiledExpression, char* pattern, int flags);
+extern RE_PATTERN* find_regexCompile(char* compiledExpression, char* pattern, int flags);
 
 /*--------------------------------------------------------------------------
  * regex_compileWithDefault()

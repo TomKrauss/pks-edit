@@ -705,7 +705,7 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 #define HIDDEN		0x2
 #endif
 
-/* far modell pointer compare ... bargh..! */
+/* far modell pointer sort_compareRecords ... bargh..! */
 #define P_GT(p1,p2)		((void EDFAR*)(p1) > (void EDFAR*)(p2))
 #define P_LT(p1,p2)		((void EDFAR*)(p1) < (void EDFAR*)(p2))
 #define P_EQ(p1,p2)		((void EDFAR*)(p1) == (void EDFAR*)(p2))

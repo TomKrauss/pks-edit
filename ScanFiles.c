@@ -87,7 +87,7 @@ longline_scan:
 			stepend = p-1;
 			if (stepend > q && stepend[-1] == '\r')
 				stepend--;
-			if (_compiledPattern != NULL && step(_compiledPattern, q,stepend, &match)) {
+			if (_compiledPattern != NULL && regex_match(_compiledPattern, q,stepend, &match)) {
 				find_inFilesMatchFound((char*)pFilename, (int)(match.loc1-q), (int)(match.loc2-match.loc1));
 				if (_abortOnFirstMatch)
 					return 0;

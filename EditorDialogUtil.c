@@ -22,6 +22,7 @@
 #include "trace.h"
 #include "lineoperations.h"
 #include "fileselector.h"
+#include "errordialogs.h"
 
 #include "winterf.h"
 #include "winfo.h"
@@ -626,7 +627,8 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			if (idCtrl != IDCANCEL) {
 				if ((item == IDD_FINDS2 && *(char*)ip) ||
 				    (item == IDD_FINDS)) {
-					if (!regex_compileWithDefault((LPSTR)ip)) { 
+					if (!regex_compileWithDefault((LPSTR)ip)) {
+						error_showError("Falscher regulärer Ausdruck.", NULL);
 						return FALSE;
 					}
 				}

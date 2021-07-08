@@ -209,7 +209,7 @@ static long CurrentNumVal(WINFO *wp, char **fmt) {
  * mysprintf()
  */
 /*
-	One can append to %x formats the following $ place holders to format the corresponding value.
+	One can append to %x formats the following $ regex_addCharacterToCharacterClass holders to format the corresponding value.
 	One sample would be %s$f - prints the file name of a file in string format.
 
 	$O		fileoffset

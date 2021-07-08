@@ -89,10 +89,10 @@ static RECORD	*_rectab;
 extern int  compare_strings(unsigned char* s1, int l1, unsigned char* s2, int l2);
 
 /*------------------------------------------------------------
- * compare_stringsCaseIgnore()
- * Like compare strings, but case ignore.
+ * sor_compareStringsCaseIgnore()
+ * Like sort_compareRecords strings, but case ignore.
  */
-static int compare_stringsCaseIgnore(unsigned char* s1, int l1, unsigned char* s2, int l2)
+static int sor_compareStringsCaseIgnore(unsigned char* s1, int l1, unsigned char* s2, int l2)
 {
 	int      len;
 
@@ -113,9 +113,9 @@ static int compare_stringsCaseIgnore(unsigned char* s1, int l1, unsigned char* s
 }
 
 /*------------------------------------------------------------
- * compare_extractKeyLetterWord()
+ * sort_compareExtractKeyLetterWord()
  */
-static int compare_extractKeyLetterWord(unsigned char* d, unsigned char* s, int l)
+static int sort_compareExtractKeyLetterWord(unsigned char* d, unsigned char* s, int l)
 {
 	unsigned char* bufferStart = d, c;
 
@@ -130,10 +130,10 @@ static int compare_extractKeyLetterWord(unsigned char* d, unsigned char* s, int 
 
 
 /*--------------------------------------------------------------------------
- * s2vec()
+ * sort_convertStringToDigitArray()
  * convert a string to a dig. arr
  */
-static char *s2vec(struct dvec *v,char *s, char *e)
+static char *sort_convertStringToDigitArray(struct dvec *v,char *s, char *e)
 {	int i;
 
 	for (i = 0; i < MAXDEPTH; i++,v++) {
@@ -151,15 +151,15 @@ static char *s2vec(struct dvec *v,char *s, char *e)
 }
 
 /*--------------------------------------------------------------------------
- * cmpdigit()
- * compare 2 digits
+ * sort_compareDigit()
+ * sort_compareRecords 2 digits
  */
-static int dcmp(char *s1, int l1, char *s2, int l2, int digwise)
+static int sort_genericDigitCompare(char *s1, int l1, char *s2, int l2, int digwise)
 {	struct dvec v1[MAXDEPTH],v2[MAXDEPTH],*vp;
 	int i,n;
 
-	s2vec(v1,s1,s1+l1);
-	s2vec(v2,s2,s2+l2);
+	sort_convertStringToDigitArray(v1,s1,s1+l1);
+	sort_convertStringToDigitArray(v2,s2,s2+l2);
 	for (i = 0; i < MAXDEPTH; i++) {
 		if (v1[i].n != v2[i].n) {
 			if (i != 0 && digwise) {
@@ -179,25 +179,25 @@ static int dcmp(char *s1, int l1, char *s2, int l2, int digwise)
 }
 
 /*--------------------------------------------------------------------------
- * cmpdigit()
+ * sort_compareDigit()
  */
-static int cmpdigit(unsigned char *s1, int l1, unsigned char *s2, int l2)
+static int sort_compareDigit(unsigned char *s1, int l1, unsigned char *s2, int l2)
 {
-	return dcmp(s1, l1, s2, l2, 1);
+	return sort_genericDigitCompare(s1, l1, s2, l2, 1);
 }
 
 /*--------------------------------------------------------------------------
- * cmpdate()
+ * sort_compareDate()
  */
-static int cmpdate(unsigned char *s1, int l1, unsigned char *s2, int l2)
+static int sort_compareDate(unsigned char *s1, int l1, unsigned char *s2, int l2)
 {
-	return dcmp(s1, l1, s2, l2, 0);
+	return sort_genericDigitCompare(s1, l1, s2, l2, 0);
 }
 
 /*--------------------------------------------------------------------------
- * tokenize()
+ * sort_tokenize()
  */
-static int tokenize(STRVEC *vec, unsigned char *s, unsigned char *fs_set, int skipseps)
+static int sort_tokenize(STRVEC *vec, unsigned char *s, unsigned char *fs_set, int skipseps)
 {	int  i,i1;
 	int  ac;
 	unsigned char c;
@@ -230,28 +230,28 @@ static int tokenize(STRVEC *vec, unsigned char *s, unsigned char *fs_set, int sk
 }
 
 /*--------------------------------------------------------------------------
- * initset()
+ * sort_initializeFieldSeparators()
  */
-static void initset(char *set, char *fs)
+static void sort_initializeFieldSeparators(char *set, char *pFieldSeparators)
 {	unsigned char o;
 
-	if (!*fs)
-		fs = " \t";
+	if (!*pFieldSeparators)
+		pFieldSeparators = " \t";
 
 	memset(set,0,256);
-	while((o=*fs++) != 0) {
+	while((o=*pFieldSeparators++) != 0) {
 		if (o == '\\') {
-			o  = regex_parseOctalNumber(fs);
-			fs = _octalloc;
+			o  = regex_parseOctalNumber(pFieldSeparators);
+			pFieldSeparators = _octalloc;
 		}
 		set[o] = 1;
 	}
 }
 
 /*--------------------------------------------------------------------------
- * initkeylist()
+ * sort_initializeKeyList()
  */
-static void initkeylist(char *s, char *fs_set)
+static void sort_initializeKeyList(char *s, char *fs_set)
 {	STRVEC 	v;
 	DVEC		d;
 	char		*s2;
@@ -268,14 +268,14 @@ static void initkeylist(char *s, char *fs_set)
 		_keytab.k[0].cmp = compare_strings;
 	} else {
 
-		initset(loc_set,",");
-		tokenize(&v, s, loc_set, 1);
+		sort_initializeFieldSeparators(loc_set,",");
+		sort_tokenize(&v, s, loc_set, 1);
 		if (v.ac > MAXKEYS) {
 			error_showErrorById(IDS_MSGTOOMUCHSORTKEYS);
 			v.ac = 8;
 		}
 		for (i = 0; i < v.ac; i++) {
-			s2 = s2vec(d,v.so[i],v.eo[i]);
+			s2 = sort_convertStringToDigitArray(d,v.so[i],v.eo[i]);
 			kp = &_keytab.k[i];
 			kp->ln   = d[0].n;
 			kp->fld  = d[1].n;
@@ -285,9 +285,9 @@ static void initkeylist(char *s, char *fs_set)
 				_keytab.fl |= KT_MKTOKEN;
 			while (s2 < v.eo[i]) {
 				switch(*s2) {
-					case 'd':	cmp = cmpdigit; break;
-					case 'D': cmp = cmpdate;	 break;
-					case 'i': cmp = compare_stringsCaseIgnore;  break;
+					case 'd':	cmp = sort_compareDigit; break;
+					case 'D': cmp = sort_compareDate;	 break;
+					case 'i': cmp = sor_compareStringsCaseIgnore;  break;
 					case 'a': kp->flag |= K_SORTDICT; break;
 					case 'b': kp->flag |= K_SKIPWHITE; break;
 					case 'u': kp->flag |= K_UNIQ; break;
@@ -303,9 +303,9 @@ static void initkeylist(char *s, char *fs_set)
 }
 
 /*--------------------------------------------------------------------------
- * gtln()
+ * sort_getLineFromRecord()
  */
-static LINE *gtln(RECORD *rp, int num)
+static LINE *sort_getLineFromRecord(RECORD *rp, int num)
 {	LINE *lp = rp->lp;
 
 	while (num > 0) {
@@ -316,9 +316,9 @@ static LINE *gtln(RECORD *rp, int num)
 }
 
 /*--------------------------------------------------------------------------
- * compare()
+ * sort_compareRecords()
  */
-static int compare(RECORD *rp1, RECORD *rp2)
+static int sort_compareRecords(RECORD *rp1, RECORD *rp2)
 {	int 		i,off,ret,l1,l2;
 	LINE 	*lp1,*lp2,*lp;
 	KEY		*kp;
@@ -339,15 +339,15 @@ static int compare(RECORD *rp1, RECORD *rp2)
 					continue;
 			} else if (l1 >= rp2->nl)
 				return 1;
-			lp1 = gtln(rp1,l1);
-			lp2 = gtln(rp2,l1);
+			lp1 = sort_getLineFromRecord(rp1,l1);
+			lp2 = sort_getLineFromRecord(rp2,l1);
 		}
 
 	/* evtl. split the lines according to IFS */
 		if (_keytab.fl & KT_MKTOKEN) {
 			if (i == 0 || kp[-1].ln != kp->ln) {
-				tokenize(&v1, lp1->lbuf, _keytab.fs_set, _sortflags & SO_SKIPSEPS);
-				tokenize(&v2, lp2->lbuf, _keytab.fs_set, _sortflags & SO_SKIPSEPS);
+				sort_tokenize(&v1, lp1->lbuf, _keytab.fs_set, _sortflags & SO_SKIPSEPS);
+				sort_tokenize(&v2, lp2->lbuf, _keytab.fs_set, _sortflags & SO_SKIPSEPS);
 			}
 		}
 		off = kp->fld;
@@ -380,9 +380,9 @@ static int compare(RECORD *rp1, RECORD *rp2)
 
 	/* skip 2 first key line of each rec */
 		if (kp->flag & K_SORTDICT) {
-			l1 = compare_extractKeyLetterWord(_linebuf,s1,l1);
+			l1 = sort_compareExtractKeyLetterWord(_linebuf,s1,l1);
 			s1 = _linebuf;
-			l2 = compare_extractKeyLetterWord(_linebuf+2048,s2,l2);
+			l2 = sort_compareExtractKeyLetterWord(_linebuf+2048,s2,l2);
 			s2 = _linebuf+2048;
 		} else	/* is implied above */
 		if (kp->flag & K_SKIPWHITE) {
@@ -407,11 +407,11 @@ static int compare(RECORD *rp1, RECORD *rp2)
 }
 
 /*--------------------------------------------------------------------------
- * sortlist()
+ * sort_quickSortList()
  * Sortieren der Zeilenliste
  * (Quicksort nach K&R)
  */
-int sortlist(RECORD *tab,long n)
+int sort_quickSortList(RECORD *tab,long n)
 {    long	gap,i,j,jplusgap;
 	int  ret;
 	RECORD tmp;
@@ -421,7 +421,7 @@ int sortlist(RECORD *tab,long n)
 			for (j = i-gap; j >= 0; j -= gap) {
 				jplusgap = j+gap;
 				
-				ret = compare(&tab[j],&tab[jplusgap]);
+				ret = sort_compareRecords(&tab[j],&tab[jplusgap]);
 				
 				if (_sortflags & SO_REVERSE) {
 					if (ret >= 0) break;
@@ -441,10 +441,10 @@ int sortlist(RECORD *tab,long n)
 }
 
 /*--------------------------------------------------------------------------
- * lp2rec()
+ * sort_createRecordsFromLines()
  * build a EdMacroRecord tab, using a line list
  */
-static int lp2rec(LINE *lpfirst, LINE *lplast, 
+static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast, 
 			   RE_PATTERN *pPattern, int sortflags,
 			   RECORD *rectab)
 {	int 	nrec,nl;
@@ -454,7 +454,7 @@ static int lp2rec(LINE *lpfirst, LINE *lplast,
 	memset(&match, 0, sizeof match);
 	for (nrec = 0;;) {
 		if ((sortflags & SO_NOSELECT) || 
-			step(pPattern, lpfirst->lbuf,&lpfirst->lbuf[lpfirst->len], &match)) {
+			regex_match(pPattern, lpfirst->lbuf,&lpfirst->lbuf[lpfirst->len], &match)) {
 			if (nrec >= MAXREC) {
 				error_showErrorById(IDS_MSGTOOMUCHRECORDS);
 				return 0;
@@ -467,7 +467,7 @@ static int lp2rec(LINE *lpfirst, LINE *lplast,
 					if (lpfirst == lplast)
 						break;
 					lpnext = lpfirst->next;
-					if (step(pPattern, lpnext->lbuf,&lpnext->lbuf[lpnext->len], &match))
+					if (regex_match(pPattern, lpnext->lbuf,&lpnext->lbuf[lpnext->len], &match))
 						break;
 					lpfirst = lpnext;
 					nl++;
@@ -486,7 +486,7 @@ static int lp2rec(LINE *lpfirst, LINE *lplast,
  * mk2cndlist()
  * group the not selected lines
  */
-static int mk2ndlist(LINE *lpfirst, LINE *lplast,int n)
+static int sort_groupUnselectedLines(LINE *lpfirst, LINE *lplast,int n)
 {	int i;
 
 	for (i = n; ;lpfirst = lpfirst->next) {
@@ -601,8 +601,8 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 	lplast =  mpe->lm;
 	bl_hideSelection(wp, 0);
 
-	initset(fs_set,fs);
-	initkeylist(keys,fs_set);
+	sort_initializeFieldSeparators(fs_set,fs);
+	sort_initializeKeyList(keys,fs_set);
 	_sortflags = sortflags;
 
 	l1 = wp->caret.ln;
@@ -610,14 +610,14 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 		return 0;
 	}
 
-	if ((n  = lp2rec(lpfirst,lplast,pattern,_sortflags,_rectab)) != 0) {
-		n2 = mk2ndlist(lpfirst,lplast,n);
+	if ((n  = sort_createRecordsFromLines(lpfirst,lplast,pattern,_sortflags,_rectab)) != 0) {
+		n2 = sort_groupUnselectedLines(lpfirst,lplast,n);
 		rp.lpfirst = lpfirst->prev;
 		rp.lplast  = lplast ->next;
 		rp.nrec    = n+n2;
 		progress_startMonitor(IDS_ABRTSORT);
 		undo_cash(fp,lpfirst,lplast);
-		if (sortlist(_rectab,n)) {
+		if (sort_quickSortList(_rectab,n)) {
 			caret_placeCursorInCurrentFile(wp,0L,0L);
 			ln_order(fp,_rectab,&rp);
 		}

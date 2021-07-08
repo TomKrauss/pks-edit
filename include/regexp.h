@@ -21,17 +21,20 @@
 #define	RE_SHELLWILD	0x4		/* wildcards are: *?[] */
 #define	RE_PRESERVE_CASE	0x8	/* applies to replacement only: if set, try to preserve upper lower case spelling of replaced words Dog -> Cat, DOG -> CAT, etc... */
 #define RE_IGNORE_BINARY	0x10 /* applies to find in files only - if set, do not traverse "binary files". */
- /*
-  * Result of a matching operation.
-  */
+
+#define	NBRA			9		/* maximum number of brackets	*/
+
+/*
+ * Result of a matching operation.
+ */
 typedef struct tagRE_MATCH {
 	int		matches;
 	int		regerror;
-	char* loc1;
-	char* loc2;
+	char*	loc1;
+	char*	loc2;
 	int		nbrackets;
-	char** braslist;
-	char** braelist;
+	char*	braslist[NBRA];
+	char*	braelist[NBRA];
 	int		circf;
 } RE_MATCH;
 
@@ -46,12 +49,10 @@ typedef struct tagRE_OPTIONS {
 typedef struct tagRE_PATTERN {
 	int		errorCode;			// the resource ID in case of an error, which can be used for error reporting.
 	char*	compiledExpression;
+	char*	compiledExpressionEnd;
 	int		circf;
 	int		nbrackets;
 } RE_PATTERN;
-
-extern int compile(RE_OPTIONS* input, RE_PATTERN* result);
-extern int step(RE_PATTERN* pPattern, unsigned char *linebuf, unsigned char *endbuf, RE_MATCH *pMatch);
 
 typedef enum enumCAPTURING_GROUP_RESULT {
 	SUCCESS = 0,
@@ -124,6 +125,26 @@ extern void regex_compileCharacterClasses(unsigned char* pLowerToUpperPattern);
 
 extern unsigned char* _octalloc;
 extern int regex_parseOctalNumber(register unsigned char* s);
+
+/*--------------------------------------------------------------------------
+ * regex_compile()
+ * Compile a regular expression - return 1 - if successful. The result of the
+ * compilation will be stored in the result pattern.
+ */
+extern int regex_compile(RE_OPTIONS* pOptions, RE_PATTERN* pResult);
+
+/*--------------------------------------------------------------------------
+ * regex_match()
+ * Perform the actual matching.
+ */
+extern int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsigned char* endOfStringToMatch, RE_MATCH* result);
+
+/*
+ * Returns the minimum length a string must have to be able tobe matched by a compiled
+ * pattern. Note, that the returned size is currently not yet completely correct, as alternatives ( (a|b) )
+ * are currently not handled.
+ */
+extern int regex_getMinimumMatchLength(RE_PATTERN* pPattern);
 
 #endif
 

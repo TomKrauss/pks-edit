@@ -3,7 +3,7 @@
  *
  * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
  *
- * purpose: some compare functions
+ * purpose: some sort_compareRecords functions
  *
  * 										created: 
  * 										last modified:
