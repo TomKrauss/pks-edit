@@ -144,7 +144,8 @@ typedef struct tagEDIT_CONFIGURATION {
 	int				nl, nl2, cr;		/* Lineends */
 	int				dispmode;			/* show control... */
 	int				workmode;			/* watch brackets, abbrev... */
-	char			t1, fillc;			/* Tabulator Character (fill character) */
+	char			tabDisplayFillCharacter;					// Display tabs filled with this.
+	char			fillc;				// when inserting a tabulator - replace with this (fill character)
 	char			u2lset[32];			/* wordset and u2l ("abc=xyz") */
 	int				tabulatorSizes[32];	/* arbitrary tab stops - allowing us to have have tabs at positions 2, 5, 9, 15, ...*/
 	unsigned char	statusline[60];	/* the special status */

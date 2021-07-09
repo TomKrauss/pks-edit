@@ -103,7 +103,7 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_FLAG, "smartSpaceDelete", offsetof(EDIT_CONFIGURATION, workmode), WM_DELETE_MULTIPLE_SPACES},
 	{	RT_CHAR_ARRAY, "wordCharacterClass", offsetof(EDIT_CONFIGURATION, u2lset), sizeof(((EDIT_CONFIGURATION*)NULL)->u2lset)},
 	{	RT_CHAR_ARRAY, "statuslineFormat", offsetof(EDIT_CONFIGURATION, statusline), sizeof(((EDIT_CONFIGURATION*)NULL)->statusline)},
-	{	RT_CHAR, "tabCharacter", offsetof(EDIT_CONFIGURATION, t1)},
+	{	RT_CHAR, "tabCharacter", offsetof(EDIT_CONFIGURATION, tabDisplayFillCharacter)},
 	{	RT_CHAR, "fillCharacter", offsetof(EDIT_CONFIGURATION, fillc)},
 	{	RT_CHAR, "newlineCharacter", offsetof(EDIT_CONFIGURATION, nl)},
 	{	RT_CHAR, "alternateNewlineCharacter", offsetof(EDIT_CONFIGURATION, nl2)},
@@ -156,7 +156,7 @@ EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor() {
 	pDescriptor->dispmode = WM_INSERT;
 	pDescriptor->cr = '\r';
 	pDescriptor->nl = '\n';
-	pDescriptor->t1 = ' ';
+	pDescriptor->tabDisplayFillCharacter = ' ';
 	strcpy(pDescriptor->name, DEFAULT);
 	strcpy(pDescriptor->statusline, "0x%6p$O: 0x%2p$C 0%h$C");
 	strcpy(pDescriptor->editFontStyleName, DEFAULT);

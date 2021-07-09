@@ -688,7 +688,7 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	}
 
 	wp->workmode = linp->workmode;
-	wp->tfillchar = linp->t1;
+	wp->tabDisplayFillCharacter = linp->tabDisplayFillCharacter;
 	wp->statusline = linp->statusline;
 	wp->win_themeName = "default";
 	wp->scrollflags = linp->scrollflags;

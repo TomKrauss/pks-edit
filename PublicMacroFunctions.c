@@ -1209,7 +1209,7 @@ static void color_showselection(DRAWITEMSTRUCT *dp)
 int EdDlgDispMode(void) {
 	static char 	status[64];
 	static long 	bgcolor;
-	static char 	tabfill;
+	static char 	tabDisplayFillCharacter;
 	static int  	dispmode;
 	static int	tabsize;
 	static int	rmargin;
@@ -1217,7 +1217,7 @@ int EdDlgDispMode(void) {
 		{ C_STRING1PAR, 	status }, 
 		{ C_INT1PAR, 		(unsigned char *) &tabsize },
 		{ C_INT1PAR, 		(unsigned char *) &rmargin },
-		{ C_CHAR1PAR, 		(unsigned char *) &tabfill },
+		{ C_CHAR1PAR, 		(unsigned char *) &tabDisplayFillCharacter },
 		{ C_LONG1PAR, 		(unsigned char *) &bgcolor },
 		{ C_INT1PAR, 		(unsigned char *) &dispmode }
 	};
@@ -1227,7 +1227,7 @@ int EdDlgDispMode(void) {
 		0, 0, color_showselection };
 	static DIALPARS _d[] = {
 		IDD_STRING1,	sizeof status,		status,
-		IDD_CHAR,		sizeof tabfill,	&tabfill,
+		IDD_CHAR,		sizeof tabDisplayFillCharacter,	& tabDisplayFillCharacter,
 		IDD_FONTSEL2COLOR,	0,			&dlist,
 		IDD_INT1,		sizeof tabsize,	&tabsize,
 		IDD_INT2,		sizeof rmargin,	&rmargin,
@@ -1251,16 +1251,19 @@ int EdDlgDispMode(void) {
 
 	linp = fp->documentDescriptor;
 	lstrcpy(status,linp->statusline);
-	tabsize = 0;
+	tabsize = linp->tabsize;
 	rmargin = linp->rmargin;
 	dispmode = linp->dispmode;
-	tabfill = linp->t1;
+	tabDisplayFillCharacter = linp->tabDisplayFillCharacter;
 	if (win_callDialog(DLGDISPMODE,&_fp,_d, NULL) == 0) {
 		return 0;
 	}
 	lstrcpy(linp->statusline,status);
+	if (tabsize == 0) {
+		tabsize = 8;
+	}
 	linp->dispmode = dispmode;
-	linp->t1 = tabfill;
+	linp->tabDisplayFillCharacter = tabDisplayFillCharacter;
 	if ((linp->tabsize = tabsize) != 0) {
 		ft_forAllViews(fp, ww_tabsChanged, linp);
 	}

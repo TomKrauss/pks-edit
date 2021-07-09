@@ -101,6 +101,16 @@ static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
 	}
 }
 
+static void render_fillBuf(char* pszBuf, int fillChar, int nLen) {
+	if (nLen >= 20) {
+		nLen = 19;
+	}
+	for (int i = 0; i < nLen; i++) {
+		pszBuf[i] = fillChar;
+	}
+	pszBuf[nLen] = 0;
+}
+
 /*--------------------------------------------------------------------------
  * render_singleLineOnDevice()
  */
@@ -108,12 +118,13 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 {	register int 			startColumn,i,endColumn,indent,textlen;
 	register unsigned char 	*d,*s,*send;
 	EDIT_CONFIGURATION 	*linp = ((FTABLE*)FTPOI(wp))->documentDescriptor;
-	/* limited linelength ! */
-	char 				buf[1024];
+	char fillbuf[20];
+	char buf[1024];
 	int					flags;
 	int					startX = x;
 	RENDER_STATE		state = RS_START;
 	int					showcontrol;
+	int					tabFiller = wp->tabDisplayFillCharacter;
 	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
 
 	startColumn = wp->mincol;
@@ -122,6 +133,9 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 	showcontrol = flags & SHOWCONTROL;
 	textlen = endColumn-startColumn;
 
+	if (showcontrol) {
+		render_fillBuf(fillbuf, tabFiller != ' ' && tabFiller && tabFiller != '\t' ? tabFiller : '»', 1);
+	}
 	d = buf;
 	i = 0;
 	s = lp->lbuf;
@@ -171,8 +185,13 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp)
 			}
 			x += wp->cwidth;
 		} else if (state == RS_TAB) {
-			if (showcontrol && x >= startX) {
-				render_formattedString(hdc, wp, x, y, "»", 1, pTheme, FS_CONTROL_CHARS);
+			if (showcontrol) {
+				if (x >= startX) {
+					render_formattedString(hdc, wp, x, y, fillbuf, 1, pTheme, FS_CONTROL_CHARS);
+				}
+			} else if (tabFiller && tabFiller != ' ') {
+				render_fillBuf(fillbuf, tabFiller, indent - i);
+				render_formattedString(hdc, wp, x, y, fillbuf, indent-i, pTheme, FS_CONTROL_CHARS);
 			}
 			x += (indent - i) * wp->cwidth;
 			i = indent;

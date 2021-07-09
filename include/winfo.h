@@ -131,7 +131,7 @@ typedef struct tagWINFO {
     BOOL	bXtndBlock;			/* Xtending blocks */
     int		scrollflags;
     int		cursaftersearch;
-    int		tfillchar;			    /* Tab fill char */
+    int		tabDisplayFillCharacter;			    /* Tab fill char */
      
     CARET caret; 		/* the caret - to be moved to the view */
     MARK* fmark;
