@@ -108,7 +108,7 @@
     <ClCompile Include="FileSelector.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SelectFonts.c">
+    <ClCompile Include="ThemesAndStyles.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FormatLines.c">
@@ -271,9 +271,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="include\ArrayList.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Themes.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Actions.c">

@@ -102,6 +102,9 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 		ll_destroy((LINKED_LIST**)&wp->fmark, (int (*)(void* elem))0);
 		break;
 	case LINE_MODIFIED: {
+		if (wp->lpMinln == pChanged->lp) {
+			wp->lpMinln = 0;
+		}
 		MARK* mp = wp->fmark;
 		while (mp) {
 			if (mp->lm == pChanged->lp) {

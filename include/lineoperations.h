@@ -36,8 +36,6 @@
 
 typedef struct tagEDIT_CONFIGURATION EDIT_CONFIGURATION;
 
-typedef struct tagEDTEXTSTYLE EDTEXTSTYLE;
-
 typedef struct line   {
 	struct line* next;
 	struct line* prev;
@@ -151,7 +149,6 @@ typedef struct tagEDIT_CONFIGURATION {
 	int				tabulatorSizes[32];	/* arbitrary tab stops - allowing us to have have tabs at positions 2, 5, 9, 15, ...*/
 	unsigned char	statusline[60];	/* the special status */
 	WINDOWPLACEMENT	placement;		/* for windows with fixed size */
-	EDTEXTSTYLE*	editFontStyle;			/* font */
 	char			editFontStyleName[16];	/* Name of the font style to use*/
 	char			backupExtension[10];	/* Backup extension */
 	unsigned char	creationMacroName[24];	/* "Vorlage" Makro on creation */

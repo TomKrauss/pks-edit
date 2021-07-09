@@ -117,6 +117,14 @@ namespace pkseditTests
 			options = createOptions("\"([^\"])+\"", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			Assert::AreEqual(3, regex_getMinimumMatchLength(&pattern));
+
+			options = createOptions("abcdefg{3,7}a+", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(10, regex_getMinimumMatchLength(&pattern));
+
+			options = createOptions("abcd(efg){3,7}\\d+", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(14, regex_getMinimumMatchLength(&pattern));
 		}
 
 		TEST_METHOD(RegularExpressionsWithGroups) {

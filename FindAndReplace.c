@@ -5,7 +5,7 @@
  *
  * purpose: find and replace, substitution of tabs->spaces
  *
- * 										adapted      : 01.12.91
+ * 										migrated from ATARI ST: 01.12.91
  * 										last modified:
  *										author: Tom
  *

@@ -1,0 +1,27 @@
+{
+  "grammars": [
+    {
+      "scopeName": "default",
+      "patterns": [
+        {
+          "match": "\\s+",
+          "name": "control"
+        },
+        {
+          "match": "\\S+",
+          "name": "default"
+        }
+      ]
+    }
+  ],
+  "styles": [
+    {
+      "styleName": "default",
+      "patternName": "default"
+    },
+    {
+      "styleName": "control",
+      "patternName": "control"
+    }
+  ]
+}

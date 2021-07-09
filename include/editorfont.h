@@ -18,56 +18,31 @@
 
 #define EDITORFONT_H
 
+typedef enum { FS_NORMAL = 0, FS_CONTROL_CHARS = 1, FS_COMMENT = 2, FS_IDENTIFIER = 3, FS_KEYWORD = 4, FS_OPERATOR = 5, FS_STRING = 6, FS_LAST } FONT_STYLE_CLASS;
+
 typedef struct tagWINFO WINFO;
 
 /*
  * The style of a selected font 
  */
-typedef struct tagEDFONTATTRIBUTES {
-	int			strikeout;
-	int			bOem;
-	int			italic;
-	int			underline;
-	int			weight;			// 0 == default font everything else between 0 and 999 bolden factor
-} EDFONTATTRIBUTES;
+typedef struct tagEDFONTATTRIBUTES EDFONTATTRIBUTES;
 
 /*
  * Reusable font/color style object.
  */
-typedef struct tagEDTEXTSTYLE {
-	struct tagEDTEXTSTYLE* next;
-	char		styleName[32];
-	char		faceName[32];
-	char		charset;
-	int			size;
-	long		fgcolor;
-	long		bgcolor;
-	EDFONTATTRIBUTES style;
-} EDTEXTSTYLE;
+typedef struct tagEDTEXTSTYLE EDTEXTSTYLE;
 
 /*------------------------------------------------------------
- * font_createFontWithStyle()
- * create a logical font. If the style is present it is taken
- * from the second parameter, if not, it is taken from the font.
- */
-extern HFONT font_createFontWithStyle(EDTEXTSTYLE* pFont, EDFONTATTRIBUTES* pStyle);
-
-/*------------------------------------------------------------
- * font_selectSystemFixedFont()
- */
-extern void font_selectSystemFixedFont(HDC hdc);
-
-/*------------------------------------------------------------
- * font_selectDefaultEditorFont()
+ * font_selectFontStyle()
  * select a font and return handle to old Font. Optionally pass a font style (may be NULL)
  */
-extern HFONT font_selectDefaultEditorFont(WINFO* wp, HDC hdc, EDFONTATTRIBUTES* pStyle);
+extern void font_selectFontStyle(WINFO* wp, FONT_STYLE_CLASS nStyleIndex, HDC hdc);
 
 /*------------------------------------------------------------
- * font_createFontWithStyle()
- * create a logical font. If the style is present, it is used - otherwise use style info from the font.
+ * Create a font with a name (possible empty) and a given size.
+ * If 'bOem' is true, use an OEM_CHARSET.
  */
-extern HFONT font_createFontWithStyle(EDTEXTSTYLE* pFont, EDFONTATTRIBUTES* pStyle);
+extern HFONT font_createFontHandle(char* pszFontName, int size, int bOem);
 
 /*------------------------------------------------------------
  * font_selectStandardFont()

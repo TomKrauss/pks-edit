@@ -49,9 +49,7 @@ static DWORD _ROPcodes[] = {
  * Render some control characters in control-mode. 
  */
 static int render_formattedString(HDC hdc, WINFO* wp, int x, int y, unsigned char* cBuf, size_t nLength, THEME_DATA *pTheme, FONT_STYLE_CLASS nStyle) {
-	COLORREF	hControlColor = nStyle == FS_NORMAL ? wp->editFontStyle.fgcolor : pTheme->th_defaultControlColor;
-
-	SetTextColor(hdc, hControlColor);
+	font_selectFontStyle(wp, nStyle, hdc);
 	TextOut(hdc, x, y, cBuf, (int)nLength);
 	return x + wp->cwidth;
 }
@@ -231,17 +229,26 @@ static void redraw_indirect(HDC hdc, WINFO *wp, int y, LINE *lp)
 	LineTo(hdc, x, y);
 }
 
+/*
+ * Returns the LINE pointer of the first line visible on the screen.
+ */
+static LINE* ww_getMinLine(WINFO* wp, int idx) {
+	if (idx != wp->cachedLineIndex || wp->lpMinln == 0) {
+		wp->lpMinln = ln_goto(wp->fp, idx);
+		wp->cachedLineIndex = idx;
+	}
+	return wp->lpMinln;
+}
+
 /*--------------------------------------------------------------------------
  * render_paintWindowParams()
  */
-static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
-{
+static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 	HBRUSH		hBrushBg;
 	HBRUSH		hBrushCaretLine;
 	HBRUSH		hBrushMarkedLines;
 	HDC 			hdc;
 	HWND			hwnd;
-	HFONT 		saveFont;
 	RECT 		r;
 	PAINTSTRUCT 	ps;
 	int  		y,newy,visLen;
@@ -255,16 +262,13 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 	hwnd = wp->ww_handle;
 
 	hdc = BeginPaint(hwnd, &ps);
-	saveFont = font_selectDefaultEditorFont(wp,hdc,NULL);
-	EDTEXTSTYLE* pStyle = &wp->editFontStyle;
-	SetTextColor(hdc,pStyle->fgcolor);
-	SetBkMode(hdc, TRANSPARENT);
-	hBrushBg = CreateSolidBrush(pStyle->bgcolor);
+	font_selectFontStyle(wp, FS_NORMAL, hdc);
+	hBrushBg = CreateSolidBrush(pTheme->th_defaultBackgroundColor);
 	hBrushCaretLine = CreateSolidBrush(pTheme->th_caretLineColor);
 	hBrushMarkedLines = CreateSolidBrush(pTheme->th_markedLineColor);
 
 	y = calcy(wp,min);
-	lp = ln_goto(fp,min);
+	lp = ww_getMinLine(wp, min);
 	RECT rect;
 	GetClientRect(wp->ww_handle, &rect);
 	ww_getSelectionLines(wp, &minMarkedLine, &maxMarkedLine);
@@ -302,13 +306,14 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg)
 		r.left = rect.left; r.right = rect.right;
 		r.top = y;
 		r.bottom = min(ps.rcPaint.bottom,y+(max-ln)*wp->cheight);
-		FillRect(hdc,&r,hBrushBg);
+		if (r.bottom > r.top) {
+			FillRect(hdc, &r, hBrushBg);
+		}
 	}
 
 	DeleteObject(hBrushBg);
 	DeleteObject(hBrushCaretLine);
 	DeleteObject(hBrushMarkedLines);
-	font_selectSystemFixedFont(hdc);
 	EndPaint(hwnd,&ps);
 
 }
@@ -443,6 +448,17 @@ EXPORT void render_repaintLinePart(FTABLE *fp, long ln, int col1, int col2)
 }
 
 /*--------------------------------------------------------------------------
+ * render_repaintWindowLine()
+ * Repaint the given line in the window passed as a parameter.
+ */
+EXPORT void render_repaintWindowLine(WINFO* wp, long ln) {
+	if (wp != 0L) {
+		struct tagLINE_REDRAW redraw = { ln, 0, -1};
+		render_repaintLineForWindow(wp, &redraw);
+	}
+}
+
+/*--------------------------------------------------------------------------
  * render_repaintCurrentLine()
  * Repaint the current line in all windows for a file, where "current" is the
  * line containing the caret in the window passed as a parameter.
@@ -453,6 +469,27 @@ EXPORT void render_repaintCurrentLine(WINFO* wp) {
 	}
 }
 
+/*
+ * Repaint a specific line (line pointer).
+ */
+static int render_repaintLinePointerForWindow(WINFO* wp, LINE* lpWhich) {
+	int idx = wp->minln;
+	struct tagLINE_REDRAW redraw;
+	redraw.col1 = 0;
+	redraw.col2 = -1;
+	LINE* lpFirst = ww_getMinLine(wp, idx);
+	while (lpFirst && idx <= wp->maxln) {
+		if (lpFirst == lpWhich) {
+			redraw.ln = idx;
+			render_repaintLineForWindow(wp, &redraw);
+			break;
+		}
+		idx++;
+		lpFirst = lpFirst->next;
+	}
+	return 1;
+}
+
 /*--------------------------------------------------------------------------
  * render_repaintLine()
  * Send a repaint to the specific line.
@@ -460,8 +497,7 @@ EXPORT void render_repaintCurrentLine(WINFO* wp) {
  */
 EXPORT void render_repaintLine(FTABLE *fp, LINE *lpWhich)
 {
-	int idx = ln_indexOf(fp, lpWhich);
-	render_repaintLinePart(fp, idx, 0, -1);
+	ft_forAllViews(fp, render_repaintLinePointerForWindow, lpWhich);
 }
 
 /*--------------------------------------------------------------------------

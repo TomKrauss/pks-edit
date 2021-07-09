@@ -171,17 +171,9 @@ static BOOL PrtAbortProc(HDC hdcPrn, int nCode) {
 static HFONT print_selectfont(HDC hdc, FONTSPEC *fsp) {
 	static HFONT previousFont = NULL;
 	HFONT 		hFont;
-	EDTEXTSTYLE		font;
 	TEXTMETRIC 	tm;
 
-	memset(&font, 0, sizeof font);
-	if (!PREVIEWING()) {
-		lstrcpy(font.faceName, fsp->fs_name);
-	}
-	font.style.weight = FW_NORMAL;
-	font.size = fsp->fs_cheight;
-	font.charset = fsp->fs_oemmode ? OEM_CHARSET : ANSI_CHARSET;
-	if ((hFont = font_createFontWithStyle(&font, NULL)) != 0) {
+	if ((hFont = font_createFontHandle(fsp->fs_name, fsp->fs_cheight, fsp->fs_oemmode)) != 0) {
 		SelectObject(hdc, hFont);
 		if (previousFont) {
 			//
@@ -586,9 +578,6 @@ footerprint:
 			}
 		}
 	}
-	if (produceOutput) {
-		font_selectSystemFixedFont(hdc);
-	}
 	return linesPrinted;
 }
 
@@ -765,8 +754,6 @@ static void print_saveSettings() {
 /*--------------------------------------------------------------------------
  * DlgPrint()
  */
-static EDTEXTSTYLE	font;
-static EDTEXTSTYLE	htfont;
 static DIALPARS _dPrintLayout[] = {
 	IDD_RADIO1,		PRA_RIGHT - PRA_LEFT,	&_prtparams.align,
 	IDD_OPT1,			PRTO_SWAP,& _prtparams.options,
@@ -796,8 +783,6 @@ static DIALPARS* _getDialogParsForPage(int page) {
 }
 static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	DIALPARS* dp = _dPrintLayout;
-	lstrcpy(font.faceName, _prtparams.font.fs_name);
-	lstrcpy(htfont.faceName, _prtparams.htfont.fs_name);
 
 	PROPSHEETPAGE psp[2];
 	PROPSHEETHEADER psh;
@@ -953,8 +938,6 @@ int EdPrint(long what, long p1, LPSTR fname) {
 
 	memmove(&winfo, wp, sizeof winfo);
 	_printwhat.wp = &winfo;
-	lstrcpy(winfo.fnt_name,pp->font.fs_name);
-	winfo.editFontStyle.size = pp->font.fs_cheight;
 	hdcPrn = DlgPrint(message, pp, wp);
 	if (hdcPrn) {
 		if (pp->printRange.prtr_type == PRTR_SELECTION ||what == PRT_CURRBLK) {

@@ -172,17 +172,8 @@ void caret_moveToLine(WINFO* wp, long ln) {
 	long oldln = wp->caret.ln;
 	wp->caret.ln = ln;
 	if (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT) {
-		int ln1;
-		int ln2;
-		if (oldln < wp->caret.ln) {
-			ln1 = oldln;
-			ln2 = wp->caret.ln;
-		}
-		else {
-			ln1 = wp->caret.ln;
-			ln2 = oldln;
-		}
-		render_repaintFromLineTo(wp->fp, ln1, ln2);
+		render_repaintWindowLine(wp, oldln);
+		render_repaintWindowLine(wp, ln);
 	}
 }
 

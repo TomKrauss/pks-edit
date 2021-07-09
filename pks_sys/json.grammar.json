@@ -24,11 +24,19 @@
   ],
   "styles": [
     {
-      "styleName": "default",
-      "patternName": "keyword"
+      "styleName": "string",
+      "patternName": "string"
     },
     {
-      "styleName": "green",
+      "styleName": "keyword",
+      "patternName": "keyword.control"
+    },
+    {
+      "styleName": "operator",
+      "patternName": "keyword.operator"
+    },
+    {
+      "styleName": "comment",
       "patternName": "constant.numeric"
     }
   ]

@@ -293,7 +293,6 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 	HFONT		hFont;
 	PAINTSTRUCT	ps;
 	TEXTMETRIC 	tm;
-	EDTEXTSTYLE		font;
 	int			l,c,newc,oldc;
 	WINFO		*wp;
 	static int	cw,ch;
@@ -331,9 +330,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 			hdc = BeginPaint(hwnd, &ps);
 
 			SetMapMode(hdc,MM_TEXT);
-			memmove(&font, &wp->editFontStyle, sizeof font);
-			font.size = 8;
-			hFont = SelectObject(hdc, font_createFontWithStyle(&font, NULL));
+			hFont = SelectObject(hdc, font_createFontHandle("Consolas", 8, 0));
 			GetTextMetrics(hdc,&tm);
 			ch = tm.tmHeight + tm.tmExternalLeading;
 			cw = tm.tmAveCharWidth;

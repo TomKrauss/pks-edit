@@ -34,6 +34,7 @@
 #include "stringutil.h"
 #include "documenttypes.h"
 #include "xdialog.h"
+#include "themes.h"
 #include "findandreplace.h"
 
 #define	PROF_OFFSET	1
@@ -594,6 +595,7 @@ static void FinalizePksEdit(void)
 	help_quitHelpSystem();
 	UnInitDDE();
 	doctypes_destroyAllDocumentTypes();
+	theme_destroyAllThemeData();
 	grammar_destroyAll();
 	xref_destroyAllCrossReferenceLists();
 }

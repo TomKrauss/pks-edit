@@ -1207,7 +1207,6 @@ static void color_showselection(DRAWITEMSTRUCT *dp)
  * EdDlgDispMode()
  */
 int EdDlgDispMode(void) {
-	EDTEXTSTYLE		font;
 	static char 	status[64];
 	static long 	bgcolor;
 	static char 	tabfill;
@@ -1228,7 +1227,6 @@ int EdDlgDispMode(void) {
 		0, 0, color_showselection };
 	static DIALPARS _d[] = {
 		IDD_STRING1,	sizeof status,		status,
-		IDD_FONTSELECT,0,				0,
 		IDD_CHAR,		sizeof tabfill,	&tabfill,
 		IDD_FONTSEL2COLOR,	0,			&dlist,
 		IDD_INT1,		sizeof tabsize,	&tabsize,
@@ -1257,14 +1255,9 @@ int EdDlgDispMode(void) {
 	rmargin = linp->rmargin;
 	dispmode = linp->dispmode;
 	tabfill = linp->t1;
-	_d[1].dp_data = &font;
-	memmove(&font, linp->editFontStyle, sizeof font);
-	bgcolor = linp->editFontStyle->bgcolor;
 	if (win_callDialog(DLGDISPMODE,&_fp,_d, NULL) == 0) {
 		return 0;
 	}
-	memmove(linp->editFontStyle, &font, sizeof font);
-	linp->editFontStyle->bgcolor = bgcolor;
 	lstrcpy(linp->statusline,status);
 	linp->dispmode = dispmode;
 	linp->t1 = tabfill;

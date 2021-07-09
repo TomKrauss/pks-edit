@@ -143,9 +143,6 @@ typedef struct tagWINFO {
     int    cx,cy,cmx,cmy,cheight,cwidth;
     int    owncursor,ctype;        	/* owncursor and caret - type */
 
-	 EDTEXTSTYLE editFontStyle;
-     HFONT	fnt_handle;
-	
 	int		vscroll,hscroll;		/* # of lines and columns to scroll */
 	int		scroll_dx,			/* distance cursor-window border */
 			scroll_dy;			/* for scrolling */
@@ -153,6 +150,8 @@ typedef struct tagWINFO {
     int     lmargin;
     int     rmargin;
     RENDER_LINE_FUNCTION renderFunction;
+    LINE*     lpMinln;                  // caching line pointer allowing us, to quickly access the line pointer for the minimum line.
+    long      cachedLineIndex;          // line index of the caching line pointer.      
     long      minln,maxln,mincursln,maxcursln,
               mincol,maxcol,mincurscol,maxcurscol;
     long   maxVisibleLineLen;       // The maximum length of a line in columns - used to calculate the size of the horizontal scrollbar
@@ -310,6 +309,12 @@ extern void render_repaintAllForFile(FTABLE* fp);
  * Redraw the line containing the cursor, in the "current active" editor window.
  */
 extern void render_repaintCurrentLine(WINFO* wp);
+
+/*--------------------------------------------------------------------------
+ * render_repaintWindowLine()
+ * Repaint the given line in the window passed as a parameter.
+ */
+extern void render_repaintWindowLine(WINFO* wp, long ln);
 
 /**
  * Returns the view num steps from the step - 0 to return the current to level view, 1 to return

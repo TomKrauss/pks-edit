@@ -1,0 +1,47 @@
+{
+  "themes": [
+    {
+      "name": "default",
+      "backgroundColor": "#fcfcfc",
+      "editorConfiguration": "default",
+      "caretLineColor": "#eeffee",
+      "markedLineColor": "#cfcfff",
+      "rulerBorderColor": "#e0e0e0",
+      "rulerForegroundColor": "#aaaaaa",
+      "rulerBackgroundColor": "#fafafa",
+      "id": 0
+    }
+  ],
+  "textStyles": [
+    {
+      "styleName": "default",
+      "faceName": "Consolas",
+      "size": -12,
+      "foregroundColor": "#000080",
+      "weight": 400
+    },
+    {
+      "styleName": "control",
+      "foregroundColor": "#aaaaaa"
+    },
+    {
+      "styleName": "identifier",
+      "foregroundColor": "#AAAA33"
+    },
+    {
+      "styleName": "keyword",
+      "foregroundColor": "#AA0000"
+    },
+    {
+      "styleName": "operator",
+      "foregroundColor": "#bb88bb"
+    },
+    {
+      "styleName": "string",
+      "foregroundColor": "#8888ee"
+    },
+    {
+      "styleName": "comment",
+      "foregroundColor": "#00aa00"
+    }
+  ]}

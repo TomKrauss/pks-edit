@@ -334,7 +334,6 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	register UNDO_OPERATION* pOperation;
 	register struct tagUNDO_DELTA* pDelta;
 	register LINE* lp;
-	LINE* lpRedraw = 0;
 	register LINE* lpNext;
 	BOOL bRedrawAll = FALSE;
 	UNDO_COMMAND* pRedoCommand = malloc(sizeof * pRedoCommand);
@@ -375,15 +374,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 				}
 				pDelta->lp->lflg &= (LNINDIRECT | LNXMARKED | LNNOTERM | LNNOCR);
 				ln_replace(fp, lp, pDelta->lp);
-				if (!bRedrawAll) {
-					if (lpRedraw == FALSE) {
-						// TODO: currently very expensive for long files.
-						render_repaintLine(fp, pDelta->lp);
-						lpRedraw = pDelta->lp;
-					} else {
-						bRedrawAll = TRUE;
-					}
-				}
+				render_repaintLine(fp, pDelta->lp);
 				add_stepToCommand(pRedoCommand, lp, pDelta->lp->prev, pDelta->op);
 				break;
 			case O_DELETE:
@@ -457,6 +448,7 @@ EXPORT BOOL undo_redoLastModification(FTABLE* fp) {
 	pStack->current++;
 	if (pUndoCommand != NULL) {
 		undo_replace(pStack, pUndoCommand);
+	} else {
 		undo_deallocateExecutedCommands(pStack);
 	}
 	_undoOperationInProgress = FALSE;

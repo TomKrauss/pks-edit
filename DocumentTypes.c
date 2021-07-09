@@ -64,19 +64,6 @@ DOCUMENT_TYPE *doctypes_createDocumentType(DOCUMENT_TYPE *llp);
 FSELINFO _linfsel = {	"", "pkseditconfig.json", "*.json" };
 
 #define	LINSPACE	offsetof(EDIT_CONFIGURATION, ts)
-static JSON_MAPPING_RULE _edTextStyleRules[] = {
-	{	RT_CHAR_ARRAY, "styleName", offsetof(EDTEXTSTYLE, styleName), sizeof(((EDTEXTSTYLE*)NULL)->styleName)},
-	{	RT_CHAR_ARRAY, "faceName", offsetof(EDTEXTSTYLE, faceName), sizeof(((EDTEXTSTYLE*)NULL)->faceName)},
-	{	RT_INTEGER, "size", offsetof(EDTEXTSTYLE, size)},
-	{	RT_COLOR, "backgroundColor", offsetof(EDTEXTSTYLE, bgcolor)},
-	{	RT_COLOR, "foregroundColor", offsetof(EDTEXTSTYLE, fgcolor)},
-	{	RT_FLAG, "italic", offsetof(EDTEXTSTYLE, style.italic)},
-	{	RT_FLAG, "underline", offsetof(EDTEXTSTYLE, style.underline)},
-	{	RT_FLAG, "strikeout", offsetof(EDTEXTSTYLE, style.strikeout)},
-	{	RT_INTEGER, "weight", offsetof(EDTEXTSTYLE, style.weight)},
-	{	RT_END}
-};
-
 
 static JSON_MAPPING_RULE _documentTypeRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(DOCUMENT_TYPE, ll_name), sizeof(((DOCUMENT_TYPE*)NULL)->ll_name)},
@@ -137,7 +124,6 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 typedef struct tagDOCTYPE_CONFIGURATION {
 	EDIT_CONFIGURATION* dc_editorConfigurations;
 	DOCUMENT_TYPE* dc_types;
-	EDTEXTSTYLE* dc_styles;
 	EDIT_CONFIGURATION* dc_defaultEditorConfiguration;
 } DOCTYPE_CONFIGURATION;
 
@@ -145,51 +131,17 @@ static void* doctypes_create() {
 	return calloc(sizeof(DOCUMENT_TYPE), 1);
 }
 
-static EDTEXTSTYLE defaultTextStyle = {
-	NULL,
-	"default",
-	"Consolas",
-	15,
-	RGB(0, 0, 0),
-	RGB(255, 255, 255)
-};
-
-static EDTEXTSTYLE* doctypes_createStyle() {
-	EDTEXTSTYLE* pStyle = calloc(sizeof(EDTEXTSTYLE), 1);
-	memcpy(pStyle, &defaultTextStyle, sizeof defaultTextStyle);
-	return pStyle;
-}
+static const char* DEFAULT = "default";
 
 static JSON_MAPPING_RULE _doctypeConfigurationRules[] = {
 	{	RT_OBJECT_LIST, "documentTypes", offsetof(DOCTYPE_CONFIGURATION, dc_types), 
 			{.r_t_arrayDescriptor = {doctypes_create, _documentTypeRules}}},
 	{	RT_OBJECT_LIST, "editorConfigurations", offsetof(DOCTYPE_CONFIGURATION, dc_editorConfigurations), 
 			{.r_t_arrayDescriptor = {doctypes_createDefaultDocumentTypeDescriptor, _editorConfigurationRules}}},
-	{	RT_OBJECT_LIST, "textStyles", offsetof(DOCTYPE_CONFIGURATION, dc_styles),
-			{.r_t_arrayDescriptor = {doctypes_createStyle, _edTextStyleRules}}},
 	{	RT_END}
 };
 
 static DOCTYPE_CONFIGURATION config;
-
-/*
- * Lookup a text style from our style list. 
- */
-static EDTEXTSTYLE* doctypes_lookupTextStyle(char* pszStylename) {
-	EDTEXTSTYLE* pFound = NULL;
-	EDTEXTSTYLE* pFirst = config.dc_styles;
-
-	while (pFirst) {
-		if (strcmp(pszStylename, pFirst->styleName) == 0) {
-			return pFirst;
-		}
-		if (strcmp("default", pFirst->styleName) == 0) {
-			pFound = pFirst;
-		}
-		pFirst = pFirst->next;
-	}
-	return pFound ? pFound : &defaultTextStyle;
-}
 
 /*--------------------------------------------------------------------------
  * Creates the default attributes for editing a document. The returned structure
@@ -205,9 +157,9 @@ EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor() {
 	pDescriptor->cr = '\r';
 	pDescriptor->nl = '\n';
 	pDescriptor->t1 = ' ';
-	strcpy(pDescriptor->name, "default");
+	strcpy(pDescriptor->name, DEFAULT);
 	strcpy(pDescriptor->statusline, "0x%6p$O: 0x%2p$C 0%h$C");
-	strcpy(pDescriptor->editFontStyleName, "default");
+	strcpy(pDescriptor->editFontStyleName, DEFAULT);
 	return pDescriptor;
 }
 
@@ -350,8 +302,6 @@ BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename) {
 	}
 	if (!lp) {
 		EDIT_CONFIGURATION* defaultLin = doctypes_createDefaultDocumentTypeDescriptor();
-		EDTEXTSTYLE* pStyle = doctypes_lookupTextStyle("default");
-		defaultLin->editFontStyle = pStyle;
 		memmove(linp, defaultLin, sizeof *defaultLin);
 		free(defaultLin);
 	} else {
@@ -438,7 +388,6 @@ static BOOL doctypes_freeDocumentType(DOCUMENT_TYPE* dt) {
 void doctypes_destroyAllDocumentTypes() {
 	ll_destroy((LINKED_LIST**)&config.dc_types, doctypes_freeDocumentType);
 	ll_destroy((LINKED_LIST**)&config.dc_editorConfigurations, NULL);
-	ll_destroy((LINKED_LIST**)&config.dc_styles, NULL);
 }
 
 /*--------------------------------------------------------------------------
@@ -477,7 +426,6 @@ EDIT_CONFIGURATION *doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE*p)
 	return p->ll_documentDescriptor;
 }
 
-
 /*--------------------------------------------------------------------------
  * doctypes_initAllDocumentTypes()
  * init all document types and editor configurations by reading our JSON 
@@ -491,7 +439,7 @@ int doctypes_initAllDocumentTypes(void) {
 	if (json_parse(_linfsel.fname, &config, _doctypeConfigurationRules)) {
 		lp = config.dc_editorConfigurations;
 		while(lp != NULL) {
-			if (strcmp("default", lp->modename) == 0) {
+			if (strcmp(DEFAULT, lp->modename) == 0) {
 				config.dc_defaultEditorConfiguration = lp;
 			}
 			for (dp = config.dc_types; dp != NULL; dp = dp->ll_next) {
@@ -500,7 +448,6 @@ int doctypes_initAllDocumentTypes(void) {
 					break;
 				}
 			}
-			lp->editFontStyle = doctypes_lookupTextStyle(lp->editFontStyleName);
 			lp = lp->next;
 		}
 		return 1;

@@ -38,7 +38,7 @@ void win_sendRedrawToWindow(HWND hwnd)
 {
 	if (hwnd > 0) {
 		UpdateWindow(hwnd);
-		InvalidateRect(hwnd, (LPRECT)0, 1);
+		InvalidateRect(hwnd, (LPRECT)0, 0);
 	}
 }
 

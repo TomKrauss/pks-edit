@@ -678,13 +678,6 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	wp->dispmode = linp->dispmode;
 	wp->renderFunction = render_singleLineOnDevice;
 
-	memmove(&wp->editFontStyle, linp->editFontStyle, sizeof wp->editFontStyle);
-	if (wp->editFontStyle.fgcolor == wp->editFontStyle.bgcolor) {
-		wp->editFontStyle.fgcolor = RGB(0,0,0);
-		wp->editFontStyle.bgcolor = RGB(255,255,255);
-	}
-
-	wp->fnt_handle = 0;
 	if (wp->ww_handle) {
 		sl_size(wp);
 		font_selectStandardFont(wp->ww_handle, wp);
@@ -1446,7 +1439,6 @@ static void draw_lineNumbers(WINFO* wp) {
 	EDIT_CONFIGURATION* lin = fp->documentDescriptor;
 	HDC 		hdc;
 	PAINTSTRUCT ps;
-	HFONT		saveFont;
 	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
 
 	hdc = BeginPaint(wp->lineNumbers_handle, &ps);
@@ -1455,7 +1447,7 @@ static void draw_lineNumbers(WINFO* wp) {
 	FillRect(hdc, &ps.rcPaint, bgBrush);
 	DeleteObject(bgBrush);
 
-	saveFont = font_selectDefaultEditorFont(wp, hdc,NULL);
+	font_selectFontStyle(wp, 0, hdc);
 	SetTextColor(hdc, pTheme->th_rulerForegroundColor);
 	SetBkMode(hdc, TRANSPARENT);
 	int padding = 3;
@@ -1464,6 +1456,12 @@ static void draw_lineNumbers(WINFO* wp) {
 		maxln = fp->nlines-1;
 	}
 	for (yPos = rect.top, row = wp->minln; row <= maxln && yPos < rect.top+rect.bottom; row++, yPos += wp->cheight) {
+		if (yPos + wp->cheight < ps.rcPaint.top) {
+			continue;
+		}
+		if (yPos > ps.rcPaint.bottom+wp->cheight) {
+			break;
+		}
 		sprintf(text, "%d:", row + 1);
 		RECT textRect;
 		textRect.left = rect.left + padding;
@@ -1479,7 +1477,6 @@ static void draw_lineNumbers(WINFO* wp) {
 	LineTo(hdc, rect.right-1, rect.bottom);
 	SelectObject(hdc, hPenOld);
 	DeleteObject(markerPen);
-	font_selectSystemFixedFont(hdc);
 	EndPaint(wp->lineNumbers_handle, &ps);
 }
 

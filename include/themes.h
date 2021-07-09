@@ -16,11 +16,10 @@
 
 #ifndef THEMES_H
 
-typedef enum { FS_NORMAL, FS_CONTROL_CHARS, FS_COMMENT, FS_IDENTIFIER, FS_KEYWORD, FS_OPERATOR, FS_STRING } FONT_STYLE_CLASS;
-
 typedef struct tagTHEME_DATA {
-	unsigned char* th_name;
-	COLORREF th_defaultControlColor;
+	struct tagTHEME_DATA* th_next;
+	unsigned char th_name[32];
+	COLORREF th_defaultBackgroundColor;
 	COLORREF th_caretLineColor;
 	COLORREF th_markedLineColor;
 	COLORREF th_rulerBorderColor;
@@ -32,6 +31,11 @@ typedef struct tagTHEME_DATA {
  * Returns the theme with the given name. If not found, a default theme is returned. 
  */
 extern THEME_DATA* theme_getByName(unsigned char* pThemeName);
+
+/*
+ * Destroy all theme data loaded.
+ */
+void theme_destroyAllThemeData();
 
 #define THEMES_H
 
