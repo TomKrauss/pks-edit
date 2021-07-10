@@ -17,7 +17,8 @@ UninstallDisplayIcon={app}\{#MyAppExeName},1
 Compression=lzma2
 SolidCompression=yes
 OutputDir=c:\temp
-SetupIconFile=rc\pks2.ico
+LanguageDetectionMethod=locale
+SetupIconFile=rc\pks.ico
 OutputBaseFilename=Setup PKS Edit
 ; "ArchitecturesAllowed=x64" specifies that Setup cannot run on
 ; anything but x64.
@@ -27,6 +28,14 @@ ArchitecturesAllowed=x64
 ; 64-bit Program Files directory and the 64-bit view of the registry.
 ArchitecturesInstallIn64BitMode=x64
 ChangesAssociations = yes
+
+[Languages]
+Name: "en"; MessagesFile: "compiler:Default.isl"
+Name: "de"; MessagesFile: "compiler:Languages\German.isl"
+Name: "nl"; MessagesFile: "compiler:Languages\Dutch.isl"
+Name: "fr"; MessagesFile: "compiler:Languages\French.isl"
+Name: "it"; MessagesFile: "compiler:Languages\Italian.isl"
+Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Files]
 Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"
