@@ -20,7 +20,7 @@
 #include "textblocks.h"
 #include "edierror.h"
 #include "linkedlist.h"
-#include "lineoperations.h"
+#include "syntaxhighlighting.h"
 #include "markpositions.h"
 #include "stringutil.h"
 #include "fileutil.h"
@@ -100,11 +100,14 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 		bl_hideSelection(wp, 0);
 		wp->caret.linePointer = NULL;
 		ll_destroy((LINKED_LIST**)&wp->fmark, (int (*)(void* elem))0);
+		wp->lpMinln = 0;
+		highlight_invalidate(wp->highlighter, NULL);
 		break;
 	case LINE_MODIFIED: {
 		if (wp->lpMinln == pChanged->lp) {
 			wp->lpMinln = 0;
 		}
+		highlight_invalidate(wp->highlighter, pChanged->lp);
 		MARK* mp = wp->fmark;
 		while (mp) {
 			if (mp->lm == pChanged->lp) {

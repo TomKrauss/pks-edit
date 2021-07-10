@@ -17,7 +17,7 @@
 
 # ifndef 	_WINFO_H
 
-#include "lineoperations.h"
+#include "syntaxhighlighting.h"
 #include "editorfont.h"
 
 /*----- display modes --------------*/
@@ -88,7 +88,7 @@ extern char 	bittab[];
 #define	TABPLACE(indent,i)		indent->tbits[i >> 3] |= bittab[i & 07]
 #define	TABCLEAR(indent,i)		indent->tbits[i >> 3] &= (~bittab[i & 07])
 
-typedef int (*RENDER_LINE_FUNCTION)(HDC hdc, int x, int y, WINFO* wp, LINE* lp);
+typedef int (*RENDER_LINE_FUNCTION)(HDC hdc, int x, int y, WINFO* wp, LINE* lp, long lineNo);
 
 /*--------------------------------------------------------------------------
  * indent_calculateTabStop()
@@ -150,6 +150,7 @@ typedef struct tagWINFO {
     int     lmargin;
     int     rmargin;
     RENDER_LINE_FUNCTION renderFunction;
+    HIGHLIGHTER* highlighter;
     LINE*     lpMinln;                  // caching line pointer allowing us, to quickly access the line pointer for the minimum line.
     long      cachedLineIndex;          // line index of the caching line pointer.      
     long      minln,maxln,mincursln,maxcursln,
@@ -248,7 +249,7 @@ extern int bl_delete(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfirst,
 /*--------------------------------------------------------------------------
  * render_singleLineOnDevice()
  */
-extern int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO* wp, LINE* lp);
+extern int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO* wp, LINE* lp, long lineNo);
 
 /*--------------------------------------------------------------------------
  * render_selectCustomCaret()

@@ -125,23 +125,20 @@ int find_initializeReplaceByExpression(unsigned char* replaceByExpression) {
  * Remember the last expression searched for by the user.
  */
 void find_setCurrentSearchExpression(char *pExpression) {
-	strcpy(_currentSearchAndReplaceParams.searchPattern, pExpression);
 	hist_saveString(SEARCH_PATTERNS, pExpression);
+	strcpy(_currentSearchAndReplaceParams.searchPattern, pExpression);
 }
 
 /*--------------------------------------------------------------------------
  * regex_compileWithDefault()
  * Compile a regular expression passed by argument with standard options.
  */
+static RE_PATTERN* lastPattern;
 RE_PATTERN *regex_compileWithDefault(char *expression) {
-	static RE_PATTERN* pLastPattern;
 
-	if (pLastPattern != 0 && strcmp(expression, _currentSearchAndReplaceParams.searchPattern) == 0) {
-		return pLastPattern;
-	}
 	find_setCurrentSearchExpression(expression);
-	pLastPattern = find_regexCompile(_expbuf,expression, _currentSearchAndReplaceParams.options) ? &_lastCompiledPattern : NULL;
-	return pLastPattern;
+	lastPattern = find_regexCompile(_expbuf,expression, _currentSearchAndReplaceParams.options) ? &_lastCompiledPattern : NULL;
+	return lastPattern;
 }
 
 /*--------------------------------------------------------------------------
@@ -402,7 +399,8 @@ int find_startIncrementalSearch() {
 int find_expressionAgainInCurrentFile(dir) {
 	RE_PATTERN* pPattern;
 
-	return ((pPattern = regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern)) && find_expressionInCurrentFile(dir,pPattern, _currentSearchAndReplaceParams.options));
+	pPattern = lastPattern ? lastPattern : regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
+	return pPattern && find_expressionInCurrentFile(dir,pPattern, _currentSearchAndReplaceParams.options);
 }
 
 /*--------------------------------------------------------------------------

@@ -17,7 +17,7 @@
       "styleName": "default",
       "faceName": "Consolas",
       "size": -12,
-      "foregroundColor": "#000080",
+      "foregroundColor": "#000030",
       "weight": 400
     },
     {
@@ -38,10 +38,10 @@
     },
     {
       "styleName": "string",
-      "foregroundColor": "#8888ee"
+      "foregroundColor": "#44aaaa"
     },
     {
       "styleName": "comment",
-      "foregroundColor": "#00aa00"
+      "foregroundColor": "#007700"
     }
   ]}

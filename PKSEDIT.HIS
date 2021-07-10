@@ -1,5 +1,5 @@
 [files]
-"C:\temp\JdbcSessionBig.java", line 29507: 0x2 0x3 -1 -1 -8 -31 725 0 1450 812
+"C:\temp\JdbcSessionBig.java", line 4535: 0x2 0x3 -1 -1 -8 -31 725 0 1450 812
 [find]
 !jdbcsessio
 !jdbcsessi
@@ -30,6 +30,8 @@
 !sessionexcepti
 !sessionexceptio
 !sessionexception
+!???
+!.
 [filePatterns]
 !*.*
 !*.java

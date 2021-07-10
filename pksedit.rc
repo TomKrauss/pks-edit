@@ -149,7 +149,7 @@ FONT 8, "helv", 0, 0, 0x0
 BEGIN
     LTEXT           "Der Text wird konvertiert..",IDD_STRING1,6,6,396,8,NOT WS_GROUP
     DEFPUSHBUTTON   "&Abbruch",2,439,6,40,14
-    LTEXT           " Dies ist eine Meldung, die den Fortschritt beschreibt",IDD_STRING2,6,24,431,8,NOT WS_GROUP
+    LTEXT           "PKS Edit braucht für diesen Vorgang etwas länger. Wir bitten um Geduld.",IDD_STRING2,6,24,431,8,NOT WS_GROUP
     CONTROL         "",IDC_PROGRESS,"msctls_progress32",PBS_MARQUEE | WS_BORDER,6,40,473,11
 END
 

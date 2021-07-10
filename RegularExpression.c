@@ -450,9 +450,16 @@ int regex_parseOctalNumber(register unsigned char* s)
  */
 static char* regex_singleChar(MATCHER* pPattern, int options, char c) {
 	if (options & RE_IGNCASE) {
-		pPattern->m_type = CASE_IGNORE_CHAR;
-		pPattern->m_param.m_caseChar.m_c1 = makeUpperCase(c);
-		pPattern->m_param.m_caseChar.m_c2 = makeLowerCase(c);
+		char c1 = makeUpperCase(c);
+		char c2 = makeLowerCase(c);
+		if (c1 == c2) {
+			pPattern->m_param.m_char = c1;
+			pPattern->m_type = SINGLE_CHAR;
+		} else {
+			pPattern->m_type = CASE_IGNORE_CHAR;
+			pPattern->m_param.m_caseChar.m_c1 = c1;
+			pPattern->m_param.m_caseChar.m_c2 = c2;
+		}
 	} else {
 		pPattern->m_param.m_char = c;
 		pPattern->m_type = SINGLE_CHAR;
@@ -835,6 +842,31 @@ endcompile:
 	return 0;
 }
 
+/*
+ * Produce a pre-compiled expression, when matching simple strings.
+ */
+static int regex_compileSimpleStringMatch(RE_OPTIONS* pOptions, RE_PATTERN* pResult, char* pExpression, char* pPatternStart) {
+	MATCHER* pMatcher = (MATCHER*)pPatternStart;
+	size_t len = strlen(pExpression);
+	if (len) {
+		if (pOptions->flags & RE_IGNCASE) {
+			while (*pExpression) {
+				char c = *pExpression++;
+				pMatcher = (MATCHER*)regex_singleChar(pMatcher, pOptions->flags, c);
+			}
+		}
+		else {
+			pMatcher->m_type = STRING;
+			pMatcher->m_param.m_string.m_length = (char)strlen(pExpression);
+			memcpy(pMatcher->m_param.m_string.m_chars, pExpression, pMatcher->m_param.m_string.m_length);
+			pMatcher = (MATCHER*)(pPatternStart + regex_expressionOffset(pMatcher, 0));
+		}
+	}
+	pMatcher->m_type = END_OF_MATCH;
+	pResult->compiledExpressionEnd = ((char*)pMatcher) + matcherSizes[END_OF_MATCH];
+	return 1;
+}
+
 /*--------------------------------------------------------------------------
  * regex_compile()
  * Compile a regular expression - return 1 - if successful. The pMatch of the 
@@ -859,7 +891,12 @@ int regex_compile(RE_OPTIONS* pOptions, RE_PATTERN* pResult) {
 	pMatcher->m_type = HEADER;
 	pPatternStart = (char*)pMatcher;
 	pPatternStart += matcherSizes[HEADER];
-	int ret = regex_compileSubExpression(pOptions, pResult, pInput, pPatternStart, &pExprEnd, &pPatternEnd, 0) == NULL ? 0 : 1;
+	int ret;
+	if ((pOptions->flags & (RE_SHELLWILD | RE_DOREX)) == 0) {
+		ret = regex_compileSimpleStringMatch(pOptions, pResult, pInput, pPatternStart);
+	} else {
+		ret = regex_compileSubExpression(pOptions, pResult, pInput, pPatternStart, &pExprEnd, &pPatternEnd, 0) == NULL ? 0 : 1;
+	}
 	if (ret) {
 		pMatcher->m_param.m_header.m_minMatchSize = regex_calculateMinMatchLen(pPatternStart, pPatternEnd);
 	}
@@ -1135,7 +1172,18 @@ int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsigned cha
 			return 1;
 		}
 	} else {
-		while (stringToMatch < endOfStringToMatch) {
+		char* pszMax = minLen == 0 ? endOfStringToMatch : (endOfStringToMatch - minLen + 1);
+		char fastC = 0;
+		if (pMatcher->m_type == STRING) {
+			fastC = pMatcher->m_param.m_string.m_chars[0];
+		} else if (pMatcher->m_type == SINGLE_CHAR) {
+			fastC = pMatcher->m_param.m_char;
+		}
+		while (stringToMatch < pszMax) {
+			if (fastC && *stringToMatch != fastC) {
+				stringToMatch++;
+				continue;
+			}
 			if (regex_advance(stringToMatch, endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
 				pMatch->loc1 = stringToMatch;
 				pMatch->matches = 1;

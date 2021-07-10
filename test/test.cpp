@@ -288,6 +288,24 @@ namespace pkseditTests
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"MYFILE.TXT", NULL, &match));
 			Assert::AreEqual(0, regex_match(&pattern, (unsigned char*)"myfile.bmp", NULL, &match));
+
+			options = createOptions("???", RE_IGNCASE);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+
+			options = createOptions("a??", RE_IGNCASE);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"A??", NULL, &match));
+			Assert::AreEqual(0, regex_match(&pattern, (unsigned char*)"xxx", NULL, &match));
+
+			options = createOptions("a??", 0);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"a??", NULL, &match));
+			Assert::AreEqual(3, (int)(match.loc2 - match.loc1));
+			Assert::AreEqual(0, regex_match(&pattern, (unsigned char*)"A??", NULL, &match));
+			Assert::AreEqual(0, regex_match(&pattern, (unsigned char*)"xxx", NULL, &match));
+
+			options = createOptions("a\\1", RE_IGNCASE);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
 		}
 
 		TEST_METHOD(ReplaceRegex) {

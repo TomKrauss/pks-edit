@@ -121,6 +121,14 @@ static int ww_createOrDestroyChildWindowOfEditor(
 	return *hwndChild != 0;
 }
 
+static int ruler_getLeft(WINFO* wp) {
+	if ((wp->dispmode & SHOWLINENUMBERS) == 0) {
+		return 0;
+	}
+	FTABLE* fp = wp->fp;
+	return fp->nlines > 99999 ? (lineNumberWindowWidth * 5 / 4) : lineNumberWindowWidth;
+}
+
 /*-----------------------------------------------------------
  * ww_createSubWindows()
  */
@@ -153,8 +161,7 @@ static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, 
 		rulerVisible, &wp->ru_handle, szRulerClass, pRuler, wp)) {
 		pRuler->h = 0;
 	}
-
-	rLineNumbers = lineNumberWindowWidth;
+	rLineNumbers = ruler_getLeft(wp);
 	pLineInfo->x = 0;
 	pLineInfo->w = rLineNumbers;
 	pLineInfo->y = pRuler->h;
@@ -677,7 +684,10 @@ void ww_applyDisplayProperties(WINFO *wp) {
 
 	wp->dispmode = linp->dispmode;
 	wp->renderFunction = render_singleLineOnDevice;
-
+	if (wp->highlighter) {
+		highlight_destroy(wp->highlighter);
+	}
+	wp->highlighter = highlight_getHighlighter(linp->grammar);
 	if (wp->ww_handle) {
 		sl_size(wp);
 		font_selectStandardFont(wp->ww_handle, wp);
@@ -863,6 +873,9 @@ void ww_destroy(WINFO *wp)
 	}
 	if (wp->fp != NULL) {
 		ww_windowClosed(wp);
+	}
+	if (wp->highlighter) {
+		highlight_destroy(wp->highlighter);
 	}
 	ll_destroy((LINKED_LIST**)&wp->fmark, (int (*)(void* elem))0);
 	wp->blstart = 0;
@@ -1289,10 +1302,6 @@ static WINFUNC WorkAreaWndProc(
     }
 
     return DefWindowProc(hwnd, message, wParam, lParam);
-}
-
-static int ruler_getLeft(WINFO* wp) {
-	return wp->lineNumbers_handle ? lineNumberWindowWidth : 0;
 }
 
 /*----------------------------*/
