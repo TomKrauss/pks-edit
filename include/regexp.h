@@ -21,6 +21,7 @@
 #define	RE_SHELLWILD	0x4		/* wildcards are: *?[] */
 #define	RE_PRESERVE_CASE	0x8	/* applies to replacement only: if set, try to preserve upper lower case spelling of replaced words Dog -> Cat, DOG -> CAT, etc... */
 #define RE_IGNORE_BINARY	0x10 /* applies to find in files only - if set, do not traverse "binary files". */
+#define	RE_NOADVANCE		0x20	/* match at the current position passed without trying to find a match later in line. */
 
 #define	NBRA			9		/* maximum number of brackets	*/
 
@@ -52,6 +53,7 @@ typedef struct tagRE_PATTERN {
 	char*	compiledExpressionEnd;
 	char*	beginOfLine;		// may be set to the beginning of a line to make <> matches more correct.
 	int		circf;				// set to true to not advance during matching, but to match only the beginning of the string.
+	int		noAdvance;			// set to true to only match exactly at the current position.
 	int		nbrackets;
 } RE_PATTERN;
 

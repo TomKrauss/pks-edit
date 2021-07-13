@@ -550,7 +550,7 @@ int ft_currentFileChanged(FTABLE *fp) {
 	if (fp == 0) {
 		return 0;
 	}
-	xref_selectFileFormat(fp->documentDescriptor->modename);
+	xref_selectFileFormat(fp->documentDescriptor->name);
 	regex_compileCharacterClasses(fp->documentDescriptor->u2lset);
 	return 1;
 }

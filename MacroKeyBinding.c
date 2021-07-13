@@ -361,7 +361,7 @@ void macro_selectDefaultBindings(void)
 	char *pszMode;
 
 	if (ft_getCurrentDocument()) {
-		pszMode = ft_getCurrentDocument()->documentDescriptor->modename;
+		pszMode = ft_getCurrentDocument()->documentDescriptor->name;
 	} else {
 		pszMode = pszDefault;
 	}

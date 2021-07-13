@@ -135,8 +135,7 @@ typedef struct tagGRAMMAR GRAMMAR;
 
 typedef struct tagEDIT_CONFIGURATION {
 	struct tagEDIT_CONFIGURATION* next;
-	unsigned char	modename[16];		/* configuration name */
-	char			name[32];			/* base name of the file defining this configuration */
+	unsigned char	name[16];		/* configuration name */
 	GRAMMAR*		grammar;			// the grammar itself.
 	int				id;					/* # ID for context check */
 	int				lmargin, rmargin;

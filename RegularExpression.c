@@ -946,6 +946,7 @@ int regex_compile(RE_OPTIONS* pOptions, RE_PATTERN* pResult) {
 		ret = regex_compileSubExpression(pOptions, pResult, pInput, pPatternStart, &pExprEnd, &pPatternEnd, 0) == NULL ? 0 : 1;
 	}
 	if (ret) {
+		pResult->noAdvance = (pOptions->flags & RE_NOADVANCE) ? 1 : 0;
 		pMatcher->m_param.m_header.m_minMatchSize = regex_calculateMinMatchLen(pPatternStart, pPatternEnd);
 	}
 	return ret;
@@ -1279,9 +1280,9 @@ int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsigned cha
 	if (pszBegin == NULL) {
 		pszBegin = stringToMatch;
 	}
-	if (pPattern->circf) {
-		pMatch->circf = 1;
-		if (stringToMatch > pszBegin) {
+	if (pPattern->circf || pPattern->noAdvance) {
+		pMatch->circf = pPattern->circf;
+		if (pMatch->circf && stringToMatch > pszBegin) {
 			return 0;
 		}
 		if (regex_advance(pszBegin, stringToMatch, endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {

@@ -63,6 +63,12 @@
       "italic": true
     },
     {
+      "styleName": "italic",
+      "faceName": "Consolas",
+      "size": -12,
+      "italic": true
+    },
+    {
       "styleName": "code",
       "faceName": "Consolas",
       "size": -12,

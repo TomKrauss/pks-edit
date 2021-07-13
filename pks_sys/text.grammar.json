@@ -1,0 +1,29 @@
+{
+  "grammars": [
+    {
+      "scopeName": "text",
+      "patterns": [
+        {
+          "match": "^\\* +.*",
+          "name": "text.title",
+          "style": "keyword"
+        },
+        {
+          "match": "\"[^\"]+\"",
+          "name": "text.quote",
+          "style": "code"
+        },
+        {
+          "match": "^\\-\\s.*",
+          "name": "text.bullet",
+          "style": "bold"
+        },
+        {
+          "match": "^\\s+\\-\\s.*",
+          "name": "text.bullet.secondary",
+          "style": "italic"
+        }
+      ]
+    }
+  ]
+}

@@ -145,7 +145,7 @@ RE_PATTERN* grammar_compile(GRAMMAR_PATTERN* pGrammarPattern) {
 	pGrammarPattern->rePatternBuf = malloc(512);
 	RE_OPTIONS options;
 	memset(&options, 0, sizeof options);
-	options.flags = RE_DOREX;
+	options.flags = RE_DOREX|RE_NOADVANCE;
 	options.patternBuf = pGrammarPattern->rePatternBuf;
 	options.endOfPatternBuf = pGrammarPattern->rePatternBuf + 512;
 	options.expression = pGrammarPattern->match;

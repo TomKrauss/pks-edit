@@ -263,7 +263,11 @@ static void redraw_indirect(HDC hdc, WINFO *wp, int y, LINE *lp)
  * Returns the LINE pointer of the first line visible on the screen.
  */
 static LINE* ww_getMinLine(WINFO* wp, int idx) {
-	if (idx != wp->cachedLineIndex || wp->lpMinln == 0) {
+	if (idx == 0) {
+		FTABLE* fp = wp->fp;
+		wp->lpMinln = fp->firstl;
+		wp->cachedLineIndex = 0;
+	} else  if (idx != wp->cachedLineIndex || wp->lpMinln == 0) {
 		wp->lpMinln = ln_goto(wp->fp, idx);
 		wp->cachedLineIndex = idx;
 	}

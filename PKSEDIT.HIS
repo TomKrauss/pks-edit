@@ -1,7 +1,8 @@
 [files]
-"C:\temp\JdbcSessionBig.java", line 3852: 0x0 0x1 -1 -1 -8 -31 725 0 1450 812
-"C:\source\pksedit\CaretMovement.c", line 910: 0x0 0x1 -1 -1 -8 -31 0 0 725 812
+"C:\temp\JdbcSessionBig.java", line 183: 0x0 0x1 -1 -1 -8 -31 725 0 1450 812
+"C:\source\pksedit\CaretMovement.c", line 269: 0x0 0x1 -1 -1 -8 -31 0 0 725 812
 "C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
+"C:\Users\tom\Desktop\readme.txt", line 1: 0x0 0x1 -1 -1 -8 -31 0 0 960 462
 [find]
 !jdbcsessi
 !jdbcsess
@@ -90,3 +91,4 @@
 !C:\source\*.*
 !C:\source\pksedit\pks_sys\*.*
 !C:\source\pksedit\*.*
+!C:\Users\tom\Desktop\*.*

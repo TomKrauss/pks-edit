@@ -1071,7 +1071,7 @@ static int doDocumentTypes(int nDlg) {
 
 	docTypePars[NVDOCTYPEPARS].dp_data = &dlist;
 	lastSelectedDocType = doctypes_getPrivateDocumentType(
-		ft_getCurrentDocument() ? ft_getCurrentDocument()->documentDescriptor->modename : "default");
+		ft_getCurrentDocument() ? ft_getCurrentDocument()->documentDescriptor->name : "default");
 
 	docTypeFillParameters(docTypePars, (void*)lastSelectedDocType);
 	if ((nRet = DoDialog(nDlg, DlgStdProc,docTypePars, NULL)) == IDCANCEL) {

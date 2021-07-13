@@ -52,7 +52,6 @@ typedef struct tagDOCUMENT_TYPE {
 	char				ll_name[32];						// name of the document type.
 	char				ll_grammarScope[32];					// name of the grammar associated with this file type.
 	char				ll_description[80];					// Description for file selector.
-	int					ll_ctx;								// Context ID - for selecting macros to execute
 	int					ll_privateEditorConfiguration;		// Whether this is a private configuration. If true, this is used for single files explicitly
 	char				ll_editorConfigurationName[32];		// Editor configuration name
 	char   				ll_match[64];						// file name pattern to match
@@ -71,13 +70,12 @@ static JSON_MAPPING_RULE _documentTypeRules[] = {
 	{	RT_CHAR_ARRAY, "grammar", offsetof(DOCUMENT_TYPE, ll_grammarScope), sizeof(((DOCUMENT_TYPE*)NULL)->ll_grammarScope)},
 	{	RT_CHAR_ARRAY, "editorConfiguration", offsetof(DOCUMENT_TYPE, ll_editorConfigurationName), sizeof(((DOCUMENT_TYPE*)NULL)->ll_editorConfigurationName)},
 	{	RT_CHAR_ARRAY, "filenamePatterns", offsetof(DOCUMENT_TYPE, ll_match), sizeof(((DOCUMENT_TYPE*)NULL)->ll_match)},
-	{	RT_INTEGER, "id", offsetof(DOCUMENT_TYPE, ll_ctx)},
 	{	RT_FLAG, "isPrivate", offsetof(DOCUMENT_TYPE, ll_privateEditorConfiguration), 1},
 	{	RT_END}
 };
 
 static JSON_MAPPING_RULE _editorConfigurationRules[] = {
-	{	RT_CHAR_ARRAY, "name", offsetof(EDIT_CONFIGURATION, modename), sizeof(((EDIT_CONFIGURATION*)NULL)->modename)},
+	{	RT_CHAR_ARRAY, "name", offsetof(EDIT_CONFIGURATION, name), sizeof(((EDIT_CONFIGURATION*)NULL)->name)},
 	{	RT_INTEGER, "id", offsetof(EDIT_CONFIGURATION, id)},
 	{	RT_INTEGER, "leftMargin", offsetof(EDIT_CONFIGURATION, lmargin) },
 	{	RT_INTEGER, "rightMargin", offsetof(EDIT_CONFIGURATION, rmargin)},
@@ -157,7 +155,6 @@ EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor() {
 	pDescriptor->cr = '\r';
 	pDescriptor->nl = '\n';
 	pDescriptor->tabDisplayFillCharacter = ' ';
-	strcpy(pDescriptor->name, DEFAULT);
 	strcpy(pDescriptor->statusline, "0x%6p$O: 0x%2p$C 0%h$C");
 	strcpy(pDescriptor->editFontStyleName, DEFAULT);
 	return pDescriptor;
@@ -437,18 +434,18 @@ int doctypes_initAllDocumentTypes(void) {
 
 	memset(&config, 0, sizeof config);
 	if (json_parse(_linfsel.fname, &config, _doctypeConfigurationRules)) {
-		lp = config.dc_editorConfigurations;
-		while(lp != NULL) {
-			if (strcmp(DEFAULT, lp->modename) == 0) {
-				config.dc_defaultEditorConfiguration = lp;
-			}
-			for (dp = config.dc_types; dp != NULL; dp = dp->ll_next) {
-				if (strcmp(dp->ll_editorConfigurationName, lp->modename) == 0) {
+		for (dp = config.dc_types; dp != NULL; dp = dp->ll_next) {
+			lp = config.dc_editorConfigurations;
+			while (lp != NULL) {
+				if (strcmp(DEFAULT, lp->name) == 0) {
+					config.dc_defaultEditorConfiguration = lp;
+				}
+				if (strcmp(dp->ll_editorConfigurationName, lp->name) == 0) {
 					dp->ll_documentDescriptor = lp;
 					break;
 				}
+				lp = lp->next;
 			}
-			lp = lp->next;
 		}
 		return 1;
 	}

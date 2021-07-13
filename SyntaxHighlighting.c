@@ -124,6 +124,13 @@ static LEXICAL_STATE highlight_getPreviousLineTokenType(HIGHLIGHTER* pHighlighte
 		tType = UNKNOWN;
 	}
 	if (tType == UNKNOWN) {
+		if (lpPrev == NULL) {
+			if (nPreviousIdx == 0) {
+				lpPrev = fp->firstl;
+			} else {
+				return UNKNOWN;
+			}
+		}
 		highlight_calculateMissingLineEndStates(pHighlighter, nPreviousIdx, fp, lpPrev);
 		return tlp->s_lineEndType;
 	}

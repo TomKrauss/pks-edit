@@ -178,8 +178,8 @@ void wt_scrollxy(WINFO *wp,int nlines, int ncolumns)
 {
      EdTRACE(log_errorArgs(DEBUG_TRACE,"wt_scrollxy (%lx,%d,%d)",wp,nlines,ncolumns));
 	 int yDelta = -nlines * wp->cheight;
-	ScrollWindow(wp->ww_handle,-ncolumns*wp->cwidth,yDelta,
-			   (LPRECT)0,(LPRECT)0);
+	ScrollWindowEx(wp->ww_handle,-ncolumns*wp->cwidth,yDelta,
+			   (LPRECT)0,(LPRECT)0,(HRGN)0,(LPRECT)0, SW_INVALIDATE);
 	UpdateWindow(wp->ww_handle);
 
 	if (ncolumns == 0 && wp->lineNumbers_handle) {
