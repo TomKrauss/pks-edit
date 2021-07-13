@@ -418,7 +418,7 @@ DOCUMENT_TYPE* doctypes_getPrivateDocumentType(char *name) {
 /*--------------------------------------------------------------------------
  * doctypes_getDocumentTypeDescriptor()
  */
-EDIT_CONFIGURATION *doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE*p)
+EDIT_CONFIGURATION *doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE *p)
 {
 	if (p == 0) {
 		return 0;

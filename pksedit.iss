@@ -6,7 +6,7 @@
 
 [Setup]
 AppName=PKS-Edit
-AppVersion=1.9.1
+AppVersion=2.0.0
 WizardStyle=modern
 DefaultDirName={autopf}\pksedit
 UsePreviousAppDir=yes
@@ -42,6 +42,7 @@ Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeNa
 Source: "pks_sys\pksedit.ini"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\batch.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\cpp.grammar.json"; DestDir: "{app}\pks_sys"
+Source: "pks_sys\markdown.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\java.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\json.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\default.grammar.json"; DestDir: "{app}\pks_sys"

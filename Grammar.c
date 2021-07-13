@@ -156,7 +156,6 @@ RE_PATTERN* grammar_compile(GRAMMAR_PATTERN* pGrammarPattern) {
 		pGrammarPattern->rePatternBuf = NULL;
 		return NULL;
 	}
-	pGrammarPattern->rePattern->circf = 1;
 	return pGrammarPattern->rePattern;
 }
 
@@ -320,9 +319,10 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 					if (!pPattern) {
 						break;
 					}
-					if (pPattern->rePattern) {
-						pPattern->rePattern->beginOfLine = pszBuf;
-						if (regex_match(pPattern->rePattern, &pszBuf[i], &pszBuf[lLength], &match)) {
+					RE_PATTERN* pRePattern = pPattern->rePattern;
+					if (pRePattern) {
+						pRePattern->beginOfLine = pszBuf;
+						if (regex_match(pRePattern, &pszBuf[i], &pszBuf[lLength], &match)) {
 							if (!grammar_matchKeyword(pPattern->keywords, match.loc1, match.loc2)) {
 								i += (int)(match.loc2 - match.loc1-1);
 								skipSize = 0;

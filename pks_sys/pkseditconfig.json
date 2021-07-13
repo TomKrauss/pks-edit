@@ -47,10 +47,18 @@
         "id": 0
     },
     {
+        "name": "markdown",
+        "description": "Markdown Files (*.md)",
+        "grammar": "markdown",
+        "editorConfiguration": "readme",
+        "filenamePatterns": "*.md",
+        "id": 0
+    },
+    {
         "name": "hacking-mode",
-        "description": "Programming (*.md; *.ts; *.xml)",
+        "description": "Programming (*.ts; *.xml)",
         "editorConfiguration": "default",
-        "filenamePatterns": "*.md;*.ts;*.xml",
+        "filenamePatterns": "*.ts;*.xml",
         "id": 0
     }
     ],
@@ -87,8 +95,35 @@
         "backupExtension": "bak"
     },
     {
-        "name": "encrypted",
+        "name": "readme",
         "id": 2,
+        "leftMargin": 0,
+        "rightMargin": 100,
+        "tabSize": 4,
+        "tabulatorSizes": [4],
+        "shiftWidth": 4,
+        "showWhitespace": false,
+        "showStatus": true,
+        "insertMode": true,
+        "autoIndent": true,
+        "smartSpaceDelete": true,
+        "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9",
+        "statuslineFormat": "0x%6p$O: 0x%2p$C 0%h$C",
+        "tabCharacter": "\t",
+        "fillCharacter": " ",
+        "newlineCharacter": "\n",
+        "crCharacter": "\r",
+        "editFontStyleName": "default",
+        "scrollVerticallyBy": 0,
+        "scrollHorizontallyBy": 0,
+        "scrollVerticalBorder": 5,
+        "cursorSearchPlacement": 1,
+        "scrollSupportTrackThumb": true,
+        "caretFollowsScrollbar": true
+    },
+    {
+        "name": "encrypted",
+        "id": 3,
         "leftMargin": 0,
         "rightMargin": 100,
         "tabSize": 4,

@@ -270,15 +270,19 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 					*((long*)pTargetSlot) = i;
 				}
 				break;
-			case RT_FLAG:
+			case RT_FLAG: {
+				int bit = pRule->r_descriptor.r_t_flag;
+				if (bit == 0) {
+					bit = 1;
+				}
 				if (strcmp("true", tokenContents) == 0) {
-					int bit = pRule->r_descriptor.r_t_flag;
-					if (bit == 0) {
-						bit = 1;
-					}
 					(*(int*)pTargetSlot) |= bit;
 				}
+				else if (strcmp("false", tokenContents) == 0) {
+					(*(int*)pTargetSlot) &= ~bit;
+				}
 				break;
+			}
 			}
 		}
 	}

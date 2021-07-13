@@ -1,6 +1,7 @@
 [files]
-"C:\source\pksedit\CaretMovement.c", line 910: 0x0 0x1 -1 -1 -8 -31 0 0 725 812
 "C:\temp\JdbcSessionBig.java", line 3852: 0x0 0x1 -1 -1 -8 -31 725 0 1450 812
+"C:\source\pksedit\CaretMovement.c", line 910: 0x0 0x1 -1 -1 -8 -31 0 0 725 812
+"C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
 [find]
 !jdbcsessi
 !jdbcsess
@@ -44,7 +45,6 @@
 ! 
 !xxxxxx
 [open]
-!C:\source\pksedit\macro_compiler\DecompileMacros.c
 !C:\source\pksedit\macro_compiler\CompileMacros.c
 !C:\source\pksedit\macro_compiler\CommandFunctionTable.c
 !C:\source\pksedit\macro_compiler\BindKeys.c
@@ -76,6 +76,7 @@
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java
 !C:\temp\JdbcSessionBig.java
 !C:\source\setenvj8.bat
+!C:\source\pksedit\pks_sys\default.grammar.json
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -85,7 +86,7 @@
 !D:\source\pksedit\pks_sys\*.MAC
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
 !C:\source\pksedit\pks_sys\*.MAC
-!C:\source\pksedit\pks_sys\*.*
 !C:\temp\*.*
-!C:\source\pksedit\*.*
 !C:\source\*.*
+!C:\source\pksedit\pks_sys\*.*
+!C:\source\pksedit\*.*

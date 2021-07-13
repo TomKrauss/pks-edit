@@ -4,9 +4,14 @@
       "scopeName": "json",
       "patterns": [
         {
-          "match": "<\"[a-z0-9_-]\">",
+          "match": "<\"[A-Za-z0-9_-]+\":>",
           "name": "string.json.key",
           "style": "string"
+        },
+        {
+          "match": "<\"[^\"]+\">",
+          "name": "string.json.value",
+          "style": "literal"
         },
         {
           "match": "<(true|false|null)>",
@@ -16,12 +21,12 @@
         {
           "match": "[\\[\\]{}]",
           "name": "keyword.operator.json",
-          "style": "identifier"
+          "style": "operator"
         },
         {
           "match": "<[0-9.]+>",
           "name": "constant.numeric",
-          "style":  "literal"
+          "style": "literal"
         }
       ]
     }

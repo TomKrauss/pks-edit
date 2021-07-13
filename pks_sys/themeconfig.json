@@ -50,11 +50,35 @@
       "foregroundColor": "#007777"
     },
     {
+      "styleName": "bold",
+      "faceName": "Consolas",
+      "size": -12,
+      "weight": 700
+    },
+    {
+      "styleName": "bold-italic",
+      "faceName": "Consolas",
+      "size": -12,
+      "weight": 700,
+      "italic": true
+    },
+    {
+      "styleName": "code",
+      "faceName": "Consolas",
+      "size": -12,
+      "weight": 700,
+      "backgroundColor": "#efefef"
+    },
+    {
       "styleName": "literal",
       "faceName": "Consolas",
       "size": -12,
       "weight": 700,
       "foregroundColor": "#770077"
+    },
+    {
+      "styleName": "hyperlink",
+      "foregroundColor": "#2222aa"
     },
     {
       "styleName": "string",

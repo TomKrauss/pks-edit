@@ -1,0 +1,49 @@
+{
+  "grammars": [
+    {
+      "scopeName": "markdown",
+      "patterns": [
+        {
+          "match": "^#+.*",
+          "name": "markdown.header",
+          "style": "keyword"
+        },
+        {
+          "match": "`[^`]+`",
+          "name": "markdown.code",
+          "style": "code"
+        },
+        {
+          "match": "[\\*_]{2}[^* ,]+[\\*_]{2}",
+          "name": "markdown.bold_italic",
+          "style": "bold-italic"
+        },
+        {
+          "match": "[\\*_][^* ,]+[\\*_]",
+          "name": "markdown.bold",
+          "style": "bold"
+        },
+        {
+          "match": "\\[[^]]+\\]",
+          "name": "markdown.url.title",
+          "style": "literal"
+        },
+        {
+          "match": "^\\>\\s.*",
+          "name": "markdown.blockquote",
+          "style": "control"
+        },
+        {
+          "match": "^[*-].*",
+          "name": "markdown.bullet",
+          "style": "bold"
+        },
+        {
+          "match": "\\([/a-zA-Z0-9_.:]+\\)",
+          "name": "markdown.url",
+          "style": "hyperlink"
+        }
+      ]
+    }
+  ]
+}

@@ -1229,6 +1229,10 @@ int regex_matchesFirstChar(RE_PATTERN* pPattern, unsigned char c) {
 	unsigned char buf[1];
 	buf[0] = c;
 	while (pMatcher->m_type != END_OF_MATCH) {
+		if (pMatcher->m_type == START_OF_LINE) {
+			pMatcher = (MATCHER*)((unsigned char*)pMatcher+matcherSizes[pMatcher->m_type]);
+			continue;
+		}
 		if (pMatcher->m_type == STRING) {
 			return pMatcher->m_param.m_string.m_chars[0] == c;
 		} 
@@ -1277,6 +1281,9 @@ int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsigned cha
 	}
 	if (pPattern->circf) {
 		pMatch->circf = 1;
+		if (stringToMatch > pszBegin) {
+			return 0;
+		}
 		if (regex_advance(pszBegin, stringToMatch, endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
 			pMatch->matches = 1;
 			return 1;

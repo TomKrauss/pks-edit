@@ -56,7 +56,7 @@ typedef struct tagEDFONTATTRIBUTES {
 	int			bOem;
 	int			italic;
 	int			underline;
-	int			weight;			// 0 == default font everything else between 0 and 999 bolden factor
+	int			weight;			// 0 == default font everything else between 0 and 999 is interpreted as weight
 } EDFONTATTRIBUTES;
 
 /*
@@ -138,9 +138,9 @@ static JSON_MAPPING_RULE _edTextStyleRules[] = {
 	{	RT_INTEGER, "size", offsetof(EDTEXTSTYLE, size)},
 	{	RT_COLOR, "backgroundColor", offsetof(EDTEXTSTYLE, bgcolor)},
 	{	RT_COLOR, "foregroundColor", offsetof(EDTEXTSTYLE, fgcolor)},
-	{	RT_FLAG, "italic", offsetof(EDTEXTSTYLE, style.italic)},
-	{	RT_FLAG, "underline", offsetof(EDTEXTSTYLE, style.underline)},
-	{	RT_FLAG, "strikeout", offsetof(EDTEXTSTYLE, style.strikeout)},
+	{	RT_FLAG, "italic", offsetof(EDTEXTSTYLE, style.italic), 1},
+	{	RT_FLAG, "underline", offsetof(EDTEXTSTYLE, style.underline), 1},
+	{	RT_FLAG, "strikeout", offsetof(EDTEXTSTYLE, style.strikeout), 1},
 	{	RT_INTEGER, "weight", offsetof(EDTEXTSTYLE, style.weight)},
 	{	RT_END}
 };

@@ -1,15 +1,16 @@
 # PKS Edit
 
-The famous arcade times text editor from Pahlen & Krau√ü.
+The famous arcade times text editor from Pahlen & Krauﬂ.
 
 ## Features
 
 The editor contains only some basic features compared to modern text editors such as 
-Ultra Edit:
+`Ultra Edit`:
 
 - search & replace with options like regular expression matching
 - search & replace in multiple files
 - compare files
+- syntax highlighting
 - sort files
 - follow cross references in code (requires a tag file - e.g. created using ctags)
 - auto-indentation and formatting
@@ -21,7 +22,7 @@ Ultra Edit:
 
 ## Installing and Using PKS Edit
 
-To install PKS-Edit, you may use the provided INNO Setup based installer.
+To install **PKS-Edit**, you may use the provided `INNO` Setup based installer.
 
 Usually you will use PKS-Edit by associating it with certain file types.
 The registry file pksedit.reg contains an example on how 

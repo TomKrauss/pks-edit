@@ -173,6 +173,10 @@ namespace pkseditTests
 			options = createOptions("REM.*", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			Assert::AreEqual(1, regex_matchesFirstChar(&pattern, 'R'));
+
+			options = createOptions("^#", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_matchesFirstChar(&pattern, '#'));
 		}
 
 		TEST_METHOD(RegularExpressionsWithGroups) {
