@@ -302,7 +302,7 @@
     <ClCompile Include="EditorDocumentModel.c" />
     <ClCompile Include="include\ArrayList.c" />
     <ClCompile Include="Grammar.c" />
-    <ClCompile Include="include\JsonParser.c" />
+    <ClCompile Include="JsonParser.c" />
     <ClCompile Include="ProgressMonitor.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

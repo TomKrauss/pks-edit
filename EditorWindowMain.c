@@ -1197,6 +1197,7 @@ static WINFUNC WorkAreaWndProc(
 		{
 		wp = (WINFO *)(((LPCREATESTRUCT)lParam)->lpCreateParams);
 		SetWindowLongPtr(hwnd, 0, (LONG_PTR) wp);
+		wp->ww_handle = hwnd;
 		font_selectStandardFont(hwnd, wp);
 		return 0;
 		}
@@ -1271,7 +1272,6 @@ static WINFUNC WorkAreaWndProc(
 			if (!ww_updateWindowBounds(wp, LOWORD(lParam), HIWORD(lParam))) {
 				return 0;
 			}
-			wp->ww_handle = hwnd;
 			sl_size(wp);
 	    }
 	    break;

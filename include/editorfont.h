@@ -18,7 +18,7 @@
 
 #define EDITORFONT_H
 
-typedef enum { FS_NORMAL = 0, FS_CONTROL_CHARS = 1, FS_COMMENT = 2, FS_IDENTIFIER = 3, FS_KEYWORD = 4, FS_OPERATOR = 5, FS_STRING = 6, FS_LAST } FONT_STYLE_CLASS;
+typedef enum { FS_NORMAL = 0, FS_CONTROL_CHARS = 1 } FONT_STYLE_CLASS;
 
 typedef struct tagWINFO WINFO;
 
@@ -48,5 +48,10 @@ extern HFONT font_createFontHandle(char* pszFontName, int size, int bOem);
  * font_selectStandardFont()
  */
 extern void font_selectStandardFont(HWND hwnd, WINFO* wp);
+
+/*
+ * Determine the logical style class index for a style name.
+ */
+extern FONT_STYLE_CLASS font_getStyleClassIndexFor(char* pszStyleName);
 
 #endif

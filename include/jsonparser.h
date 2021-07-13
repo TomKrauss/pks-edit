@@ -24,6 +24,8 @@ typedef enum {
 	RT_FLAG,				// we expect a boolean value in the JSON input. If true, we will use the 
 	RT_INTEGER,				// we expect an "int" value in the JSON input.
 	RT_INTEGER_ARRAY,		// we expect an array of int values in the JSON input and will assume the target object to contain an int[] data structure to fill.
+	RT_STRING_ARRAY,		// we expect an list of String values in the JSON input and will assume the target object to contain an arraylist of string data structure to fill.
+							// note, that the strings and array list are allocated and must be possibly freed later.
 	RT_SHORT,				// we expect a "short" value in the JSON input.
 	RT_COLOR,				// we expect a color specification (e.g.: #EEFF00 or red, green, blue).
 	RT_OBJECT_LIST,			// a nested array of objects. Mapped to a linked list of objects. The r_descriptor contains a pointer to the mapping rules.

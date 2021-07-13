@@ -276,7 +276,7 @@
     <ClCompile Include="Actions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\JsonParser.c">
+    <ClCompile Include="JsonParser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Grammar.c">

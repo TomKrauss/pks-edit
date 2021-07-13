@@ -591,6 +591,9 @@ static void FinalizePksEdit(void)
 {
 	GetConfiguration()->autosaveOnExit();
 	ft_saveWindowStates();
+}
+
+static void main_cleanup(void) {
 	file_clearTempFiles();
 	help_quitHelpSystem();
 	UnInitDDE();
@@ -807,6 +810,7 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	   		if (ww_getNumberOfOpenWindows()) {
 	   			return 0;
 			}
+			main_cleanup();
 			_CrtDumpMemoryLeaks();
 			break;
 

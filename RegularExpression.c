@@ -52,6 +52,7 @@ unsigned char _l2uset[256], _u2lset[256];
 static unsigned char  _characterMappingTable[256];
 static char 		  _replacedResultBuffer[500];
 static unsigned char* _transtabs[8];
+static char			  _reSpecialChars[MAXCTAB];
 
 #define	DIM(tab)		(sizeof(tab)/sizeof(tab[0]))
 
@@ -128,10 +129,10 @@ typedef struct tagMATCHER {
 			unsigned char m_minMatchSize;		// Defines the minimum number of bytes matched by the expression.
 		} m_header;
 		struct tagMATCH_GROUP {
-			char m_offsetNext;			// if alternatives ("a|b") are defined - the offset to the next alternative definition - must be first element in structure.
+			unsigned char m_offsetNext;			// if alternatives ("a|b") are defined - the offset to the next alternative definition - must be first element in structure.
 			char m_nonCapturing : 1;	// for groups - if non capturing this is true.
 			char m_bracketNumber : 7;	// The bracket number
-			char m_groupEnd;			// the end of the group
+			unsigned char m_groupEnd;	// the end of the group
 		} m_group;
 		struct tagMATCH_GROUP_END {
 			char m_nonCapturing : 1;	// for groups - if non capturing this is true.
@@ -147,7 +148,7 @@ typedef struct tagMATCHER {
 			char m_chars[1];
 		} m_string;
 		struct tagALTERNATIVE {
-			char m_offsetNext;				// for alternatives - the offset to the next alternative definition or 0, if there is no next 
+			unsigned char m_offsetNext;				// for alternatives - the offset to the next alternative definition or 0, if there is no next 
 		} m_alternative;
 		char m_char;						// single character to match
 		char m_reference;					// A group reference used by back-references.
@@ -218,6 +219,17 @@ static unsigned char* createTranslationTable(int tl) {
 		t
 		:
 		(_transtabs[tl] = malloc(256));
+}
+
+/*
+ * Returns the actual first matcher segment from a pattern.
+ */
+static MATCHER* regex_getFirstMatchSection(RE_PATTERN* pPattern) {
+	MATCHER* pMatcher = (MATCHER*)pPattern->compiledExpression;
+	if (pMatcher->m_type == HEADER) {
+		return (MATCHER*)(pPattern->compiledExpression + matcherSizes[HEADER]);
+	}
+	return pMatcher;
 }
 
 /*
@@ -364,6 +376,20 @@ static int regex_getOccurrence(char size) {
 }
 
 /*--------------------------------------------------------------------------
+ * regex_addCharacterToCharacterClass()
+ */
+static void regex_addCharacterToCharacterClass(unsigned char* pCharTable, unsigned char c, int flags) {
+	int c2;
+
+	if (flags & RE_IGNCASE) {
+		c2 = upcase(c);
+		pCharTable[c2 >> 3] |= bittab[c2 & 07];
+		c = lowcase(c);
+	}
+	pCharTable[c >> 3] |= bittab[c & 07];
+}
+
+/*--------------------------------------------------------------------------
  * regex_compileCharacterClasses()
  * Compile a "lower to upper" character class pattern for subsequent use in regular
  * expressions. a lower to upper character class mapping has the form lowerCharRange=upperCharRange,
@@ -379,7 +405,11 @@ void regex_compileCharacterClasses(unsigned char* pLowerToUpperPattern) {
 		return;
 	}
 	_chsetinited = 1;
-
+	unsigned char* pRegexSpecial = "[{*.?(<^$+|";
+	memset(_reSpecialChars, 0, sizeof _reSpecialChars);
+	while (*pRegexSpecial) {
+		regex_addCharacterToCharacterClass(_reSpecialChars, *pRegexSpecial++, 0);
+	}
 	if (!pLowerToUpperPattern)
 		pLowerToUpperPattern = "a-z=A-Z";
 
@@ -398,20 +428,6 @@ void regex_compileCharacterClasses(unsigned char* pLowerToUpperPattern) {
 	for (i = 0; i < sizeof(_u2lset); i++)
 		if (_u2lset[i] == 0)
 			_u2lset[i] = i;
-}
-
-/*--------------------------------------------------------------------------
- * regex_addCharacterToCharacterClass()
- */
-void regex_addCharacterToCharacterClass(unsigned char* pCharTable, unsigned char c, int flags) {
-	int c2;
-
-	if (flags & RE_IGNCASE) {
-		c2 = upcase(c);
-		pCharTable[c2 >> 3] |= bittab[c2 & 07];
-		c = lowcase(c);
-	}
-	pCharTable[c >> 3] |= bittab[c & 07];
 }
 
 /*--------------------------------------------------------------------------
@@ -448,7 +464,7 @@ int regex_parseOctalNumber(register unsigned char* s)
 /*
  * Create a matcher for a single character. 
  */
-static char* regex_singleChar(MATCHER* pPattern, int options, char c) {
+static char* regex_compileSingleChar(MATCHER* pPattern, int options, char c) {
 	if (options & RE_IGNCASE) {
 		char c1 = makeUpperCase(c);
 		char c2 = makeLowerCase(c);
@@ -579,6 +595,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 	MATCH_RANGE* pRange = NULL;
 	MATCHER* pLastAlternativeStart = level == 0 ? NULL : (MATCHER *)(pPatternStart - matcherSizes[GROUP] - sizeof(MATCH_RANGE));
 	MATCHER* pLastPattern = NULL;
+	size_t delta;
 
 	while (1) {
 		if (pPatternRun >= pOptions->endOfPatternBuf) {
@@ -625,12 +642,14 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 			break;
 
 		case '|': {
-			char cOffset;
 			if (pLastAlternativeStart == NULL) {
 				REGEX_ERROR(9);
 			}
-			cOffset = (char)(size_t)(pPatternRun - (char*)pLastAlternativeStart);
-			pLastAlternativeStart->m_param.m_alternative.m_offsetNext = cOffset;
+			delta = (pPatternRun - (char*)pLastAlternativeStart);
+			if (delta == 0 || delta >= 256) {
+				REGEX_ERROR(1);
+			}
+			pLastAlternativeStart->m_param.m_alternative.m_offsetNext = (unsigned char)delta;
 			pLastAlternativeStart = pMatcher;
 			pMatcher->m_type = ALTERNATIVE;
 			pPatternRun += matcherSizes[ALTERNATIVE];
@@ -661,7 +680,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 					pMatcher->m_param.m_reference = cNext;
 					pPatternRun += matcherSizes[BACK_REFERENCE];
 				} else {
-					pPatternRun = regex_singleChar(pMatcher, flags, cNext);
+					pPatternRun = regex_compileSingleChar(pMatcher, flags, cNext);
 				}
 			}
 			break;
@@ -680,7 +699,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 				pMatcher->m_type = END_OF_LINE;
 				pPatternRun += matcherSizes[END_OF_LINE];
 			} else {
-				pPatternRun = regex_singleChar(pMatcher, flags, c);
+				pPatternRun = regex_compileSingleChar(pMatcher, flags, c);
 			}
 			break;
 
@@ -790,12 +809,12 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 			if (regex_compileSubExpression(pOptions, pResult, pInput, pPatternRun, &pInput, &pPatternRun, level + 1) == NULL) {
 				return 0;
 			}
-			char delta = (char)(size_t)(pPatternRun - (unsigned char*)pMatcher);
-			pMatcher->m_param.m_group.m_groupEnd = delta;
-			if (pMatcher->m_param.m_group.m_groupEnd == 0) {
-				// 0-size sub-expression.
+			delta = (size_t)(pPatternRun - (unsigned char*)pMatcher);
+			if (delta <= 0 || delta >= 256) {
+				// 0-size sub-expression or expression to complicated.
 				REGEX_ERROR(1);
 			}
+			pMatcher->m_param.m_group.m_groupEnd = (unsigned char)delta;
 			{
 				MATCHER* pPatternGroupEnd = (MATCHER * )(pPatternRun-matcherSizes[GROUP_END]);
 				pPatternGroupEnd->m_param.m_groupEnd.m_nonCapturing = pMatcher->m_param.m_group.m_nonCapturing;
@@ -806,9 +825,6 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 			if (level <= 0) {
 				REGEX_ERROR(6);
 			}
-			if (pLastAlternativeStart && pLastAlternativeStart->m_type == ALTERNATIVE) {
-				char* pszStart = ((char*)pLastAlternativeStart) + matcherSizes[ALTERNATIVE];
-			}
 			pMatcher->m_type = GROUP_END;
 			pPatternRun += matcherSizes[GROUP_END];
 			*pPatternEnd = pPatternRun;
@@ -816,24 +832,40 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 			return pMatcher;
 		default: {
 			if (!(flags & RE_IGNCASE)) {
-				char* pStart = pInput;
+				char* pStart = pInput-1;
 				char c2;
 				while ((c2 = *pStart++) != 0) {
-					if (!(isalnum(c2) || isblank(c2))) {
+					if (c2 == '\\') {
+						c2 = *pStart++;
+						if (c2 != '\\' && !ISTHERE(_reSpecialChars, c2)) {
+							break;
+						}
+					} else if (ISTHERE(_reSpecialChars, c2)) {
 						break;
 					}
 				}
 				int len = (int)(pStart - pInput)-1;
-				if (len > 2) {
+				if (len >= 2) {
 					pMatcher->m_type = STRING;
-					pMatcher->m_param.m_string.m_length = len;
-					memcpy(pMatcher->m_param.m_string.m_chars, pInput - 1, len);
+					pStart = pInput-1;
+					c = *pStart;
+					int i = 0;
+					while (--len >= 0) {
+						c2 = *pStart++;
+						if (c2 == '\\') {
+							c2 = *pStart++;
+						}
+						pMatcher->m_param.m_string.m_chars[i++] = c2;
+					}
+					pMatcher->m_param.m_string.m_length = i;
 					pPatternRun += regex_expressionOffset(pMatcher, 0);
+					pMatcher = (MATCHER*)pPatternRun;
+					pInput = pStart;
+					break;
 				}
 			}
-			pPatternRun = regex_singleChar(pMatcher, flags, c);
+			pPatternRun = regex_compileSingleChar(pMatcher, flags, c);
 			break;
-
 		}
 		}
 	}
@@ -852,7 +884,7 @@ static int regex_compileSimpleStringMatch(RE_OPTIONS* pOptions, RE_PATTERN* pRes
 		if (pOptions->flags & RE_IGNCASE) {
 			while (*pExpression) {
 				char c = *pExpression++;
-				pMatcher = (MATCHER*)regex_singleChar(pMatcher, pOptions->flags, c);
+				pMatcher = (MATCHER*)regex_compileSingleChar(pMatcher, pOptions->flags, c);
 			}
 		}
 		else {
@@ -865,6 +897,21 @@ static int regex_compileSimpleStringMatch(RE_OPTIONS* pOptions, RE_PATTERN* pRes
 	pMatcher->m_type = END_OF_MATCH;
 	pResult->compiledExpressionEnd = ((char*)pMatcher) + matcherSizes[END_OF_MATCH];
 	return 1;
+}
+
+/*
+ * If the regular expression is represented by a simple string (not iterations and character classes etc...),
+ * extract this string and place it into the result and return 1.
+ */
+int regex_getPatternString(char* pResult, RE_PATTERN* pPattern) {
+	MATCHER* pMatcher = (MATCHER*)regex_getFirstMatchSection(pPattern);
+	if (pMatcher->m_type == STRING) {
+		strncpy(pResult, pMatcher->m_param.m_string.m_chars, pMatcher->m_param.m_string.m_length);
+		pResult[pMatcher->m_param.m_string.m_length] = 0;
+		// TODO: was that it? or is more coming?
+		return 1;
+	}
+	return 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -1014,8 +1061,8 @@ static unsigned char* advanceSubGroup(unsigned char* stringToMatch, unsigned cha
 				break;
 			}
 			MATCHER* pAlt = (MATCHER*)pExprStop;
-			pExprStart = ((unsigned char*)pAlt)+matcherSizes[pAlt->m_type];
-			pExprStop = pAlt->m_param.m_alternative.m_offsetNext ? (pExprStart + pAlt->m_param.m_alternative.m_offsetNext) : pExprEnd;
+			pExprStart = ((unsigned char*)pAlt) + matcherSizes[pAlt->m_type];
+			pExprStop = pAlt->m_param.m_alternative.m_offsetNext ? (((unsigned char*)pAlt) + pAlt->m_param.m_alternative.m_offsetNext) : pExprEnd;
 		}
 		if (pLongestMatch && !pMatcher->m_param.m_group.m_nonCapturing) {
 			pResult->braelist[nGroup] = pLongestMatch;
@@ -1060,6 +1107,9 @@ static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char*
 			int nHigh = regex_getOccurrence(pRange->m_maxOccurrence);
 			nextExpression = pExpression + regex_expressionOffset(pMatcher, pMatch);
 			lastMatch = 0;
+			char* lastLoc2 = 0;
+			char* lastBracket = 0;
+			int nBracket = pMatch->nbrackets;
 			for (int i = 1; i <= nHigh; i++) {
 				if (i >= 2 && pMatcher->m_type == GROUP && !pMatcher->m_param.m_group.m_nonCapturing) {
 					char* e2 = pMatch->braelist[pMatcher->m_param.m_group.m_bracketNumber];
@@ -1080,6 +1130,10 @@ static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char*
 				} else {
 					newPos = advanceSubGroup(stringToMatch, endOfStringToMatch, pExpression, pMatch);
 				}
+				if (newPos == 0 && nLow == 0 && i == 1) {
+					// for ? matches try to advance nevertheless.
+					newPos = stringToMatch;
+				}
 				if (newPos == 0) {
 					if (i < nLow) {
 						return 0;
@@ -1096,11 +1150,28 @@ static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char*
 						}
 						if (newPos) {
 							lastMatch = newPos;
+							lastLoc2 = pMatch->loc2;
+							if (nBracket >= 0) {
+								lastBracket = pMatch->braelist[nBracket];
+							}
 							if (pRange->m_lazy) {
 								break;
 							}
 						}
 					}
+				}
+			}
+			if (!lastMatch && nLow == 0 && pMatcher->m_type == GROUP) {
+				// for ? matches try to advance nevertheless.
+				lastMatch = stringToMatch;
+				lastLoc2 = stringToMatch;
+			}
+			if (lastMatch) {
+				if (lastLoc2) {
+					pMatch->loc2 = lastLoc2;
+				}
+				if (lastBracket) {
+					pMatch->braelist[nBracket] = lastBracket;
 				}
 			}
 			return lastMatch;
@@ -1113,7 +1184,7 @@ static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char*
 			return(0);
 
 		case START_OF_IDENTIFIER:
-			if (stringToMatch == pMatch->loc1 || !isident(stringToMatch[-1])) {
+			if (stringToMatch == pMatch->loc1 || (stringToMatch > pMatch->loc1 && !isident(stringToMatch[-1]))) {
 				break;
 			}
 			return 0;
@@ -1144,6 +1215,36 @@ static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char*
 	return 0;
 }
 
+/*
+ * Checks, whether the passed first character matches a regular expression.
+ */
+int regex_matchesFirstChar(RE_PATTERN* pPattern, unsigned char c) {
+	RE_MATCH match;
+	MATCHER* pMatcher = (MATCHER*)regex_getFirstMatchSection(pPattern);
+	if (pMatcher->m_type == START_OF_IDENTIFIER) {
+		pMatcher =(MATCHER*)(((unsigned char*)pMatcher) + matcherSizes[pMatcher->m_type]);
+	}
+	unsigned char buf[1];
+	buf[0] = c;
+	while (pMatcher->m_type != END_OF_MATCH) {
+		if (pMatcher->m_type == STRING) {
+			return pMatcher->m_param.m_string.m_chars[0] == c;
+		} 
+		if (advanceSubGroup(buf, buf + 1, (unsigned char*)pMatcher, &match)) {
+			return 1;
+		}
+		if (!pMatcher->m_range) {
+			break;
+		}
+		MATCH_RANGE* pRange = (MATCH_RANGE*) ((unsigned char*)pMatcher + matcherSizes[pMatcher->m_type]);
+		if (pRange->m_minOccurrence > 0) {
+			break;
+		}
+		pMatcher = (MATCHER*) ((unsigned char*)pRange + sizeof(MATCH_RANGE));
+	}
+	return 0;
+}
+
 /*--------------------------------------------------------------------------
  * regex_match()
  * The workhorse of the regular expression matching feature - try to match an input string
@@ -1165,8 +1266,11 @@ int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsigned cha
 	}
 	pMatch->loc1 = stringToMatch;
 	if (pMatcher->m_type == START_OF_LINE) {
-		pMatch->circf = 1;
+		pPattern->circf = 1;
 		pMatcher = (MATCHER*)(((char*)pMatcher) + matcherSizes[START_OF_LINE]);
+	}
+	if (pPattern->circf) {
+		pMatch->circf = 1;
 		if (regex_advance(stringToMatch, endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
 			pMatch->matches = 1;
 			return 1;

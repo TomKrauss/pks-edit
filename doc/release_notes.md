@@ -2,6 +2,16 @@
 
 ## Release Notes
 
+### 2.0.0
+
+#### New
+- PKS Edit supports now syntax highlighting based on syntax rules defined in a mylanguage.grammar.json file. Rules
+  are for now limited to applying lexical analysis only. 
+
+#### Fixed
+- Some issues with regular expressions (in particular a possible endless loop when compiling complex syntax) have been
+  fixed.
+
 ### 1.9.1
 
 #### Fixed

@@ -30,11 +30,31 @@
     },
     {
       "styleName": "keyword",
+      "faceName": "Consolas",
+      "size": -12,
+      "weight": 700,
       "foregroundColor": "#AA0000"
     },
     {
       "styleName": "operator",
+      "faceName": "Consolas",
+      "size": -12,
+      "weight": 700,
       "foregroundColor": "#883333"
+    },
+    {
+      "styleName": "annotation",
+      "faceName": "Consolas",
+      "size": -12,
+      "weight": 700,
+      "foregroundColor": "#007777"
+    },
+    {
+      "styleName": "literal",
+      "faceName": "Consolas",
+      "size": -12,
+      "weight": 700,
+      "foregroundColor": "#770077"
     },
     {
       "styleName": "string",

@@ -1,0 +1,62 @@
+{
+  "grammars": [
+    {
+      "scopeName": "batch",
+      "patterns": [
+        {
+          "match": "REM.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "%[^%]+%",
+          "style": "string",
+          "name": "batch.variable"
+        },
+        {
+          "match": "@[a-z]+",
+          "style": "control",
+          "name": "batch.noecho"
+        },
+        {
+          "match": "<[a-z]+>",
+          "keywords": [
+            "break",
+            "by",
+            "call",
+            "callext",
+            "case",
+            "debug",
+            "drop",
+            "doskey",
+            "else",
+            "echo",
+            "end",
+            "endfor",
+            "endfunction",
+            "endif",
+            "endselect",
+            "endswitch",
+            "endwhile",
+            "exit",
+            "for",
+            "gosub",
+            "goto",
+            "if",
+            "include",
+            "next",
+            "return",
+            "set",
+            "select",
+            "switch",
+            "then",
+            "to",
+            "while"
+          ],
+          "style": "keyword",
+          "name": "keyword.cpp"
+        }
+      ]
+    }
+  ]
+}

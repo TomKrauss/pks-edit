@@ -50,7 +50,7 @@ typedef struct tagRE_PATTERN {
 	int		errorCode;			// the resource ID in case of an error, which can be used for error reporting.
 	char*	compiledExpression;
 	char*	compiledExpressionEnd;
-	int		circf;
+	int		circf;				// set to true to not advance during matching, but to match only the beginning of the string.
 	int		nbrackets;
 } RE_PATTERN;
 
@@ -145,6 +145,17 @@ extern int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsig
  * are currently not handled.
  */
 extern int regex_getMinimumMatchLength(RE_PATTERN* pPattern);
+
+/*
+ * If the regular expression is represented by a simple string (not iterations and character classes etc...),
+ * extract this string and place it into the result and return 1.
+ */
+extern int regex_getPatternString(char* pResult, RE_PATTERN* pPattern);
+
+/*
+ * Checks, whether the passed first character matches a regular expression.
+ */
+extern int regex_matchesFirstChar(RE_PATTERN* pPattern, unsigned char c);
 
 #endif
 

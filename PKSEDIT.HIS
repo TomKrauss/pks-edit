@@ -1,5 +1,6 @@
 [files]
-"C:\temp\JdbcSessionBig.java", line 4535: 0x2 0x3 -1 -1 -8 -31 725 0 1450 812
+"C:\temp\JdbcSessionBig.java", line 316: 0x0 0x1 -1 -1 -8 -31 725 0 1450 812
+"C:\source\pksedit\CaretMovement.c", line 910: 0x0 0x1 -1 -1 -8 -31 0 0 725 812
 [find]
 !jdbcsessio
 !jdbcsessi
@@ -73,6 +74,7 @@
 !C:\source\pksedit\pks_sys\pkseditconfig.json
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java
 !C:\temp\JdbcSessionBig.java
+!C:\source\setenvj8.bat
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -80,8 +82,9 @@
 !D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
 !D:\source\pksedit\*.*
 !D:\source\pksedit\pks_sys\*.MAC
-!C:\source\pksedit\*.*
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
 !C:\source\pksedit\pks_sys\*.MAC
 !C:\source\pksedit\pks_sys\*.*
 !C:\temp\*.*
+!C:\source\pksedit\*.*
+!C:\source\*.*

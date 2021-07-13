@@ -186,33 +186,9 @@ static THEME_CONFIGURATION themeConfiguration;
 
 static char* _styleNames[] = {
 	"default",
-	"control",
-	"comment",
-	"identifier",
-	"keyword",
-	"operator",
-	"string"
+	"control"
 };
-static EDTEXTSTYLE* _styles[FS_LAST];
-
-/*
- * Lookup a text style from our style list.
- */
-static EDTEXTSTYLE* font_lookupTextStyle(const char* pszStylename) {
-	EDTEXTSTYLE* pFound = NULL;
-	EDTEXTSTYLE* pFirst = themeConfiguration.th_styles;
-
-	while (pFirst) {
-		if (strcmp(pszStylename, pFirst->styleName) == 0) {
-			return pFirst;
-		}
-		if (strcmp(DEFAULT, pFirst->styleName) == 0) {
-			pFound = pFirst;
-		}
-		pFirst = pFirst->next;
-	}
-	return pFound ? pFound : &defaultTextStyle;
-}
+static EDTEXTSTYLE* _styles[50];
 
 /*--------------------------------------------------------------------------
  * theme_initThemes()
@@ -228,12 +204,18 @@ int theme_initThemes(void) {
 	memset(&themeConfiguration, 0, sizeof themeConfiguration);
 	if (json_parse("themeconfig.json", &themeConfiguration, _themeConfigurationRules)) {
 		EDTEXTSTYLE* pStyle = themeConfiguration.th_styles;
+		int nNextStyle = DIM(_styleNames);
 		while (pStyle) {
+			int bFound = 0;
 			for (int i = 0; i < DIM(_styleNames); i++) {
 				if (strcmp(_styleNames[i], pStyle->styleName) == 0) {
 					_styles[i] = pStyle;
+					bFound = 1;
 					break;
 				}
+			}
+			if (!bFound) {
+				_styles[nNextStyle++] = pStyle;
 			}
 			pStyle = pStyle->next;
 		}
@@ -247,8 +229,28 @@ int theme_initThemes(void) {
  */
 static EDTEXTSTYLE* font_getTextStyleForIndex(FONT_STYLE_CLASS nIndex) {
 	theme_initThemes();
+	if (nIndex < 0 || nIndex >= DIM(_styles)) {
+		return &defaultTextStyle;
+	}
 	EDTEXTSTYLE* pStyle = _styles[nIndex];
 	return pStyle ? pStyle : &defaultTextStyle;
+}
+
+/*
+ * Determine the logical style class index for a style name.
+ */
+FONT_STYLE_CLASS font_getStyleClassIndexFor(char* pszStyleName) {
+	theme_initThemes();
+	for (int i = 0; i < DIM(_styles); i++) {
+		EDTEXTSTYLE* pStyle = _styles[i];
+		if (!pStyle) {
+			break;
+		}
+		if (strcmp(pStyle->styleName, pszStyleName) == 0) {
+			return i;
+		}
+	}
+	return FS_NORMAL;
 }
 
 /*
@@ -288,9 +290,6 @@ void font_selectFontStyle(WINFO *wp, FONT_STYLE_CLASS nStyleIndex, HDC hdc) {
 	int bOem = (wp->dispmode & SHOWOEM) ? 1 : 0;
 	if (pStyle->style.bOem != bOem || pStyle->hfont == NULL) {
 		pStyle->hfont = font_createFontWithStyle(pStyle);
-	} else {
-		SelectObject(hdc, pStyle->hfont);
-		return;
 	}
 
 	if (!pStyle->hfont) {

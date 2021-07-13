@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include "tos.h"
 #include "linkedlist.h"
+#include "arraylist.h"
 #include "jsonparser.h"
 #define JSMN_PARENT_LINKS
 #include "jsmn.h"
@@ -174,6 +175,28 @@ static int json_getIntArray(char* pszBuf, jsmntok_t* tokens, int firstToken, int
 }
 
 /*
+ * Returns a String array_list. Returns the index to the token array containing all tokens "after the array definition".
+ */
+static int json_getStringArray(char* pszBuf, jsmntok_t* tokens, int firstToken, int numberOfTokens, int bEnd, void** pTargetSlot, size_t maxElements) {
+	char tokenContents[MAX_TOKEN_SIZE + 1];
+	int i = firstToken;
+
+	for (; i < numberOfTokens; i++) {
+		if (tokens[i].start > bEnd) {
+			break;
+		}
+		if (tokens[i].type == JSMN_STRING) {
+			json_tokenContents(pszBuf, &tokens[i], tokenContents);
+			if (*pTargetSlot == 0) {
+				*pTargetSlot = arraylist_create(5);
+			}
+			arraylist_add((ARRAY_LIST*)*pTargetSlot, stralloc(tokenContents));
+		}
+	}
+	return i;
+}
+
+/*
  * Process the tokens found in a JSON object defining the values of the pTargetObject object. 
  */
 static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, char* pszBuf, int bStart, size_t bEnd, jsmntok_t* tokens, 
@@ -225,6 +248,11 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 			case RT_INTEGER_ARRAY:
 				if (tokens[i].type == JSMN_ARRAY) {
 					i = json_getIntArray(pszBuf, tokens, i+1, numberOfTokens, tokens[i].end, pTargetSlot, pRule->r_descriptor.r_t_maxElements)-1;
+				}
+				break;
+			case RT_STRING_ARRAY:
+				if (tokens[i].type == JSMN_ARRAY) {
+					i = json_getStringArray(pszBuf, tokens, i + 1, numberOfTokens, tokens[i].end, pTargetSlot, pRule->r_descriptor.r_t_maxElements) - 1;
 				}
 				break;
 			case RT_INTEGER: {

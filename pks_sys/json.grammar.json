@@ -5,39 +5,25 @@
       "patterns": [
         {
           "match": "<\"[a-z0-9_-]\">",
-          "name": "string.json.key"
+          "name": "string.json.key",
+          "style": "string"
         },
         {
           "match": "<(true|false|null)>",
-          "name": "keyword.control.json"
+          "name": "keyword.control.json",
+          "style": "keyword"
         },
         {
           "match": "[\\[\\]{}]",
-          "name": "keyword.operator.json"
+          "name": "keyword.operator.json",
+          "style": "identifier"
         },
         {
           "match": "<[0-9.]+>",
-          "name": "constant.numeric"
+          "name": "constant.numeric",
+          "style":  "literal"
         }
       ]
-    }
-  ],
-  "styles": [
-    {
-      "styleName": "string",
-      "patternName": "string"
-    },
-    {
-      "styleName": "keyword",
-      "patternName": "keyword.control"
-    },
-    {
-      "styleName": "operator",
-      "patternName": "keyword.operator"
-    },
-    {
-      "styleName": "comment",
-      "patternName": "constant.numeric"
     }
   ]
 }
