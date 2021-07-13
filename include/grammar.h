@@ -43,7 +43,7 @@ typedef struct tagLEXICAL_ELEMENT {
  * tokens defined as LEXICAL_ELEMENTs to be placed in the result buffer. If successful return the number of
  * lexical elements actually found.
  */
-extern int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT], LEXICAL_STATE starState, char* pszBuf, size_t lLength);
+extern int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT], LEXICAL_STATE starState, char* pszBuf, size_t lLength, int* pLineSpanningEndDetected);
 
 /*
  * Destroy all loaded grammars and style selectors.

@@ -88,8 +88,29 @@ static void highlight_adjustCachedLineWindow(HIGHLIGHTER* pHighlighter, FTABLE* 
 	}
 }
 
+static void highlight_calculateMissingLineEndStates(HIGHLIGHTER* pHighlighter, int startIndex, FTABLE* fp, LINE* lp) {
+	LEXICAL_ELEMENT lexicalElements[MAX_LEXICAL_ELEMENT];
+	int detectedEnd = 0;
+	LINE* lpCurrent = lp;
+	
+	for (int i = startIndex; i > 0 && lpCurrent->prev; i--) {
+		lpCurrent = lpCurrent->prev;
+	}
+	LEXICAL_STATE lastState = UNKNOWN;
+	for (int i = 0; i <= startIndex; i++) {
+		int nElements = grammar_parse(pHighlighter->h_grammar, lexicalElements, lastState, lpCurrent->lbuf, lpCurrent->len, &detectedEnd);
+		if (nElements > 0) {
+			lastState = lexicalElements[nElements - 1].le_state;
+		}
+		pHighlighter->h_lines[i].s_lineEndType = lastState;
+		pHighlighter->h_lines[i].s_lineNumber = i + pHighlighter->h_minLine;
+		pHighlighter->h_lines[i].s_linePointer = lpCurrent;
+		lpCurrent = lpCurrent->next;
+	}
+}
+
 static LEXICAL_STATE highlight_getPreviousLineTokenType(HIGHLIGHTER* pHighlighter, FTABLE* fp, LINE* lp, long nLine) {
-	if (nLine == 0) {
+	if (nLine == 0 || pHighlighter->h_grammar == NULL) {
 		return INITIAL;
 	}
 	int nPreviousIdx = nLine - pHighlighter->h_minLine - 1;
@@ -98,13 +119,13 @@ static LEXICAL_STATE highlight_getPreviousLineTokenType(HIGHLIGHTER* pHighlighte
 	}
 	LINE* lpPrev = lp->prev;
 	TOKEN_LINE_CACHE* tlp = &pHighlighter->h_lines[nPreviousIdx];
-	if (tlp->s_linePointer != lpPrev) {
-		// TODO: determine line-spanning tokens from previous lines, when the cache is invalidated.
-		return UNKNOWN;
-	}
 	LEXICAL_STATE tType = tlp->s_lineEndType;
+	if (tlp->s_linePointer != lpPrev) {
+		tType = UNKNOWN;
+	}
 	if (tType == UNKNOWN) {
-		return INITIAL;
+		highlight_calculateMissingLineEndStates(pHighlighter, nPreviousIdx, fp, lpPrev);
+		return tlp->s_lineEndType;
 	}
 	return tType;
 }
@@ -116,6 +137,7 @@ static unsigned char* highlight_usingGrammar(HIGHLIGHTER* pHighlighter, FTABLE* 
 	highlight_adjustCachedLineWindow(pHighlighter, fp, nLine);
 	LEXICAL_STATE lexicalState = highlight_getPreviousLineTokenType(pHighlighter, fp, lp, nLine);
 	if (nLine != pHighlighter->h_lastLine || lp != pHighlighter->h_lastLinePointer) {
+		int detectedEnd = 0;
 		if (pHighlighter->h_styles) {
 			if (lp->len >= pHighlighter->h_styleCapacity - 10) {
 				pHighlighter->h_styleCapacity = lp->len+30;
@@ -129,7 +151,7 @@ static unsigned char* highlight_usingGrammar(HIGHLIGHTER* pHighlighter, FTABLE* 
 		pHighlighter->h_lastLinePointer = lp;
 		pHighlighter->h_lastLine = nLine;
 		LEXICAL_ELEMENT lexicalElements[MAX_LEXICAL_ELEMENT];
-		int nElements = grammar_parse(pHighlighter->h_grammar, lexicalElements, lexicalState, lp->lbuf, lp->len);
+		int nElements = grammar_parse(pHighlighter->h_grammar, lexicalElements, lexicalState, lp->lbuf, lp->len, &detectedEnd);
 		int nPreviousOffset = 0;
 		if (nElements == 0) {
 			for (int i = 0; i < lp->len; i++) {

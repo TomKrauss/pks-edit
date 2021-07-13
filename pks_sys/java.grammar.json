@@ -37,6 +37,7 @@
             "import",
             "extends",
             "interface",
+            "package",
             "enum",
             "strictfp",
             "transient",

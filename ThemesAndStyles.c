@@ -295,8 +295,11 @@ void font_selectFontStyle(WINFO *wp, FONT_STYLE_CLASS nStyleIndex, HDC hdc) {
 	if (!pStyle->hfont) {
 		return;
 	}
-
-	SelectObject(hdc, pStyle->hfont);
+	if (GetMapMode(hdc) != MM_ANISOTROPIC) {
+		// Only if not in printing or preview mode.
+		// TODO: kind of hacky way to detect printing mode.
+		SelectObject(hdc, pStyle->hfont);
+	}
 
 	GetTextMetrics(hdc,&tm);
 	wp->cwidth  = tm.tmAveCharWidth;

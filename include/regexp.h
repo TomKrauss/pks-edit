@@ -50,6 +50,7 @@ typedef struct tagRE_PATTERN {
 	int		errorCode;			// the resource ID in case of an error, which can be used for error reporting.
 	char*	compiledExpression;
 	char*	compiledExpressionEnd;
+	char*	beginOfLine;		// may be set to the beginning of a line to make <> matches more correct.
 	int		circf;				// set to true to not advance during matching, but to match only the beginning of the string.
 	int		nbrackets;
 } RE_PATTERN;

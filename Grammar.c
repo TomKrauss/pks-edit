@@ -279,11 +279,11 @@ static int grammar_matchKeyword(ARRAY_LIST* pKeywords, char* pKey, char* pKeyEnd
  * tokens defined as LEXICAL_ELEMENTs to be placed in the result buffer. If successful return the state at the
  * end of the line.
  */
-int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT], LEXICAL_STATE startState, char* pszBuf, size_t lLength) {
+int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT], LEXICAL_STATE startState, char* pszBuf, size_t lLength, int *pLineSpanningEndDetected) {
 	if (pGrammar == 0) {
 		return 0;
 	}
-	LEXICAL_STATE lexicalState = startState == pGrammar->lineSpanningState ? startState : INITIAL;
+	LEXICAL_STATE lexicalState = (startState == pGrammar->lineSpanningState || startState == UNKNOWN) ? startState : INITIAL;
 	LEXICAL_STATE nextState = lexicalState;
 	RE_MATCH match;
 	int nElementCount = 0;
@@ -294,6 +294,7 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 		unsigned char c = pszBuf[i];
 		if (lexicalState == pGrammar->lineSpanningState && pszEnd) {
 			if (c == pszEnd[0] && strncmp(&pszBuf[i], pszEnd, strlen(pszEnd)) == 0) {
+				*pLineSpanningEndDetected = 1;
 				if (nElementCount >= MAX_LEXICAL_ELEMENT - 1) {
 					return nElementCount;
 				}
@@ -309,7 +310,7 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 				i++;
 				continue;
 			}
-		} else if (lexicalState == INITIAL) {
+		} else if (lexicalState == INITIAL || lexicalState == UNKNOWN) {
 			short possibleStates = pGrammar->transitions[c];
 			if (possibleStates) {
 				int matched = 0;
@@ -320,6 +321,7 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 						break;
 					}
 					if (pPattern->rePattern) {
+						pPattern->rePattern->beginOfLine = pszBuf;
 						if (regex_match(pPattern->rePattern, &pszBuf[i], &pszBuf[lLength], &match)) {
 							if (!grammar_matchKeyword(pPattern->keywords, match.loc1, match.loc2)) {
 								i += (int)(match.loc2 - match.loc1-1);

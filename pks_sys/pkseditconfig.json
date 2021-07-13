@@ -14,14 +14,14 @@
         "filenamePatterns": "*.crpt",
         "id": 0
     },
-      {
+    {
         "name": "c+cpp",
         "description": "C/ C++-Dateien (*.c, *.h, *.cpp)",
         "grammar": "cpp",
         "editorConfiguration": "default",
         "filenamePatterns": "*.c;*.h;*.cpp",
         "id": 0
-      },
+    },
     {
         "name": "java",
         "description": "Java Dateien (*.java)",
@@ -30,14 +30,14 @@
         "filenamePatterns": "*.java",
         "id": 0
     },
-      {
+    {
         "name": "batch-files",
-        "grammar": "batch",
         "description": "Batch Files und Shell Scripte (*.bat, *.cmd, *.sh)",
+        "grammar": "batch",
         "editorConfiguration": "default",
         "filenamePatterns": "*.bat;*.cmd;*.sh",
         "id": 0
-      },
+    },
     {
         "name": "json-files",
         "description": "Json Files (*.json)",

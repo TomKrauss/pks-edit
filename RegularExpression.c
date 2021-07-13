@@ -201,7 +201,8 @@ static int matcherSimpleLength[HEADER + 1] = {
 };
 
 extern unsigned char* tlcompile(unsigned char* transtab, unsigned char* t, unsigned char* wt);
-static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char* endOfStringToMatch, unsigned char* pExpression, unsigned char* pExpressionEnd, RE_MATCH* pMatch);
+static unsigned char* regex_advance(unsigned char* pszBeginOfLine, unsigned char* stringToMatch, unsigned char* endOfStringToMatch, 
+	unsigned char* pExpression, unsigned char* pExpressionEnd, RE_MATCH* pMatch);
 extern unsigned char _l2uset[256], _u2lset[256];
 extern unsigned char bittab[];
 
@@ -954,7 +955,7 @@ int regex_compile(RE_OPTIONS* pOptions, RE_PATTERN* pResult) {
  * Try a single match of the given expression. We handle here all matches possibly combined with a range (multiplication) specifier.
  * Return the pointer to the next position in the input string to match if successful or 0 on failure.
  */
-static unsigned char* advanceSubGroup(unsigned char* stringToMatch, unsigned char* endOfStringToMatch, unsigned char* pExpression, RE_MATCH* pResult) {
+static unsigned char* advanceSubGroup(unsigned char* pszBeginOfLine, unsigned char* stringToMatch, unsigned char* endOfStringToMatch, unsigned char* pExpression, RE_MATCH* pResult) {
 	MATCHER* pMatcher;
 	unsigned char c;
 	
@@ -1052,7 +1053,7 @@ static unsigned char* advanceSubGroup(unsigned char* stringToMatch, unsigned cha
 		int nSubGroup = 0;
 		while(1) {
 			unsigned char* e2;
-			e2 = regex_advance(stringToMatch, endOfStringToMatch, pExprStart, pExprStop, pResult);
+			e2 = regex_advance(pszBeginOfLine, stringToMatch, endOfStringToMatch, pExprStart, pExprStop, pResult);
 			if (e2 > pLongestMatch) {
 				pLongestMatch = e2;
 				matchedLen = (int)(pLongestMatch - stringToMatch);
@@ -1090,7 +1091,8 @@ static unsigned char* advanceSubGroup(unsigned char* stringToMatch, unsigned cha
 /*
  * Try the next sub-expression match to match the input string. 
  */
-static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char* endOfStringToMatch, unsigned char* pExpression, unsigned char* pExpressionEnd, RE_MATCH* pMatch) {
+static unsigned char* regex_advance(unsigned char* pBeginOfLine, unsigned char* stringToMatch, unsigned char* endOfStringToMatch, 
+			unsigned char* pExpression, unsigned char* pExpressionEnd, RE_MATCH* pMatch) {
 	MATCHER* pMatcher;
 	unsigned char* newPos;
 	unsigned char* nextExpression;
@@ -1128,7 +1130,7 @@ static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char*
 						}
 					}
 				} else {
-					newPos = advanceSubGroup(stringToMatch, endOfStringToMatch, pExpression, pMatch);
+					newPos = advanceSubGroup(pBeginOfLine, stringToMatch, endOfStringToMatch, pExpression, pMatch);
 				}
 				if (newPos == 0 && nLow == 0 && i == 1) {
 					// for ? matches try to advance nevertheless.
@@ -1145,7 +1147,7 @@ static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char*
 						if (*nextExpression == END_OF_MATCH) {
 							pMatch->loc2 = newPos;
 						} else {
-							newPos = regex_advance(newPos, endOfStringToMatch, nextExpression, pExpressionEnd, pMatch);
+							newPos = regex_advance(pBeginOfLine, newPos, endOfStringToMatch, nextExpression, pExpressionEnd, pMatch);
 							pMatch->braelist[pMatch->nbrackets] = 0;
 						}
 						if (newPos) {
@@ -1184,7 +1186,7 @@ static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char*
 			return(0);
 
 		case START_OF_IDENTIFIER:
-			if (stringToMatch == pMatch->loc1 || (stringToMatch > pMatch->loc1 && !isident(stringToMatch[-1]))) {
+			if (stringToMatch == pBeginOfLine || (stringToMatch > pBeginOfLine && !isident(stringToMatch[-1]))) {
 				break;
 			}
 			return 0;
@@ -1200,7 +1202,7 @@ static unsigned char* regex_advance(unsigned char* stringToMatch, unsigned char*
 			return stringToMatch;
 
 		default:
-			stringToMatch = advanceSubGroup(stringToMatch, endOfStringToMatch, pExpression, pMatch);
+			stringToMatch = advanceSubGroup(pBeginOfLine, stringToMatch, endOfStringToMatch, pExpression, pMatch);
 			if (stringToMatch == NULL) {
 				return NULL;
 			}
@@ -1230,7 +1232,7 @@ int regex_matchesFirstChar(RE_PATTERN* pPattern, unsigned char c) {
 		if (pMatcher->m_type == STRING) {
 			return pMatcher->m_param.m_string.m_chars[0] == c;
 		} 
-		if (advanceSubGroup(buf, buf + 1, (unsigned char*)pMatcher, &match)) {
+		if (advanceSubGroup(buf, buf, buf + 1, (unsigned char*)pMatcher, &match)) {
 			return 1;
 		}
 		if (!pMatcher->m_range) {
@@ -1269,9 +1271,13 @@ int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsigned cha
 		pPattern->circf = 1;
 		pMatcher = (MATCHER*)(((char*)pMatcher) + matcherSizes[START_OF_LINE]);
 	}
+	char* pszBegin = pPattern->beginOfLine;
+	if (pszBegin == NULL) {
+		pszBegin = stringToMatch;
+	}
 	if (pPattern->circf) {
 		pMatch->circf = 1;
-		if (regex_advance(stringToMatch, endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
+		if (regex_advance(pszBegin, stringToMatch, endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
 			pMatch->matches = 1;
 			return 1;
 		}
@@ -1288,7 +1294,7 @@ int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsigned cha
 				stringToMatch++;
 				continue;
 			}
-			if (regex_advance(stringToMatch, endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
+			if (regex_advance(pszBegin, stringToMatch, endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
 				pMatch->loc1 = stringToMatch;
 				pMatch->matches = 1;
 				return 1;

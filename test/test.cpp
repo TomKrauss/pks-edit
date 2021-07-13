@@ -151,10 +151,8 @@ namespace pkseditTests
 			Assert::AreEqual("/*", extracted);
 		}
 		TEST_METHOD(RegularExpressionsOtherFunctions) {
-			char group[200];
 			RE_OPTIONS* options;
 			RE_PATTERN pattern;
-			RE_MATCH match;
 			options = createOptions("\"([^\"])+\"", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			Assert::AreEqual(3, regex_getMinimumMatchLength(&pattern));
