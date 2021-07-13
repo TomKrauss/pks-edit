@@ -1,0 +1,68 @@
+{
+  "grammars": [
+    {
+      "scopeName": "shell",
+      "patterns": [
+        {
+          "match": "#!.*",
+          "style": "annotation",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "#.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "\\$[a-zA-Z0-9_]+",
+          "style": "string",
+          "name": "shell.variable"
+        },
+        {
+          "match": "<-[a-zA-Z-]+",
+          "style": "operator",
+          "name": "shell.argument"
+        },
+        {
+          "match": "^[A-Z]+=",
+          "style": "identifier",
+          "name": "shell.variable"
+        },
+        {
+          "match": "`[^`]+`",
+          "style": "code",
+          "name": "shell.exec"
+        },
+        {
+          "match": "<[a-z]+>",
+          "keywords": [
+            "alias",
+            "break",
+            "exec",
+            "cd",
+            "pwd",
+            "ls",
+            "else",
+            "echo",
+            "end",
+            "export",
+            "if",
+            "elif",
+            "exit",
+            "for",
+            "goto",
+            "set",
+            "unset",
+            "test",
+            "switch",
+            "then",
+            "until",
+            "while"
+          ],
+          "style": "keyword",
+          "name": "keyword.shell"
+        }
+      ]
+    }
+  ]
+}

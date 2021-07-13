@@ -1,75 +1,73 @@
 {
-  "documentTypes": [
+    "documentTypes": [
     {
-      "name": "default",
-      "description": "Alle Dateien (*.*)",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.*",
-      "id": 0
+        "name": "default",
+        "description": "Alle Dateien (*.*)",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.*"
     },
     {
-      "name": "encrypted",
-      "description": "Verschlüsselte Dateien (*.crpt)",
-      "editorConfiguration": "encrypted",
-      "filenamePatterns": "*.crpt",
-      "id": 0
+        "name": "encrypted",
+        "description": "Verschlüsselte Dateien (*.crpt)",
+        "editorConfiguration": "encrypted",
+        "filenamePatterns": "*.crpt"
     },
     {
-      "name": "c+cpp",
-      "description": "C/ C++-Dateien (*.c, *.h, *.cpp)",
-      "grammar": "cpp",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.c;*.h;*.cpp",
-      "id": 0
+        "name": "c+cpp",
+        "description": "C/ C++-Dateien (*.c, *.h, *.cpp)",
+        "grammar": "cpp",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.c;*.h;*.cpp"
     },
     {
-      "name": "java",
-      "description": "Java Dateien (*.java)",
-      "grammar": "java",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.java",
-      "id": 0
+        "name": "java",
+        "description": "Java Dateien (*.java)",
+        "grammar": "java",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.java"
     },
     {
-      "name": "batch-files",
-      "description": "Batch Files und Shell Scripte (*.bat, *.cmd, *.sh)",
-      "grammar": "batch",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.bat;*.cmd;*.sh",
-      "id": 0
+        "name": "batch-files",
+        "description": "Batch Files (*.bat, *.cmd)",
+        "grammar": "batch",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.bat;*.cmd"
     },
     {
-      "name": "json-files",
-      "description": "Json Files (*.json)",
-      "grammar": "json",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.json",
-      "id": 0
+        "name": "shell-files",
+        "description": "Shell Files (*.sh, *.ora)",
+        "grammar": "shell",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.sh;*.ora"
     },
     {
-      "name": "markdown",
-      "description": "Markdown Files (*.md)",
-      "grammar": "markdown",
-      "editorConfiguration": "readme",
-      "filenamePatterns": "*.md",
-      "id": 0
+        "name": "json-files",
+        "description": "Json Files (*.json)",
+        "grammar": "json",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.json"
     },
     {
-      "name": "text",
-      "grammar": "text",
-      "description": "Text Files (*.txt)",
-      "editorConfiguration": "readme",
-      "filenamePatterns": "*.txt",
-      "id": 0
+        "name": "markdown",
+        "description": "Markdown Files (*.md)",
+        "grammar": "markdown",
+        "editorConfiguration": "readme",
+        "filenamePatterns": "*.md"
     },
     {
-      "name": "hacking-mode",
-      "description": "Programming (*.ts; *.xml)",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.ts;*.xml",
-      "id": 0
+        "name": "text",
+        "description": "Text Files (*.txt)",
+        "grammar": "text",
+        "editorConfiguration": "readme",
+        "filenamePatterns": "*.txt"
+    },
+    {
+        "name": "hacking-mode",
+        "description": "Programming (*.ts; *.xml)",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.ts;*.xml"
     }
-  ],
+    ],
     "editorConfigurations": [
     {
         "name": "default",
@@ -80,7 +78,6 @@
         "tabulatorSizes": [4],
         "shiftWidth": 4,
         "showWhitespace": true,
-        "showRuler": false,
         "showLineNumbers": true,
         "showStatus": true,
         "highlightCaretLine": true,
@@ -102,15 +99,15 @@
         "caretFollowsScrollbar": true,
         "backupExtension": "bak"
     },
-      {
+    {
         "name": "readme",
         "id": 2,
         "leftMargin": 0,
         "rightMargin": 100,
         "tabSize": 4,
-        "tabulatorSizes": [ 4 ],
+        "tabulatorSizes": [4],
         "shiftWidth": 4,
-        "showWhitespace": false,
+        "showWhitespace": true,
         "showRuler": true,
         "showStatus": true,
         "insertMode": true,
@@ -129,7 +126,7 @@
         "cursorSearchPlacement": 1,
         "scrollSupportTrackThumb": true,
         "caretFollowsScrollbar": true
-      },
+    },
     {
         "name": "encrypted",
         "id": 3,

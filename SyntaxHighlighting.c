@@ -17,13 +17,14 @@
 #include <windows.h>
 #include <stdlib.h>
 
+#include "winfo.h"
 #include "grammar.h"
 #include "syntaxhighlighting.h"
 #include "editorfont.h"
 
 #define WINDOW_SIZE		100
 
-typedef unsigned char* (*HIGHLIGHT_CALCULATE)(HIGHLIGHTER* pData, FTABLE* fp, LINE* lp, long nLine);
+typedef unsigned char* (*HIGHLIGHT_CALCULATE)(HIGHLIGHTER* pData, WINFO* wp, LINE* lp, long nLine);
 
 typedef struct tagTOKEN_LINE_CACHE {
 	long s_lineNumber;
@@ -140,7 +141,8 @@ static LEXICAL_STATE highlight_getPreviousLineTokenType(HIGHLIGHTER* pHighlighte
 /*
  * A highlighter which passes on tokenization to a generic grammar driven tokenizer.
  */
-static unsigned char* highlight_usingGrammar(HIGHLIGHTER* pHighlighter, FTABLE* fp, LINE* lp, long nLine) {
+static unsigned char* highlight_usingGrammar(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp, long nLine) {
+	FTABLE* fp = wp->fp;
 	highlight_adjustCachedLineWindow(pHighlighter, fp, nLine);
 	LEXICAL_STATE lexicalState = highlight_getPreviousLineTokenType(pHighlighter, fp, lp, nLine);
 	if (nLine != pHighlighter->h_lastLine || lp != pHighlighter->h_lastLinePointer) {
@@ -160,10 +162,11 @@ static unsigned char* highlight_usingGrammar(HIGHLIGHTER* pHighlighter, FTABLE* 
 		LEXICAL_ELEMENT lexicalElements[MAX_LEXICAL_ELEMENT];
 		int nElements = grammar_parse(pHighlighter->h_grammar, lexicalElements, lexicalState, lp->lbuf, lp->len, &detectedEnd);
 		int nPreviousOffset = 0;
+		int bShowControl = wp->dispmode & SHOWCONTROL;
 		if (nElements == 0) {
 			for (int i = 0; i < lp->len; i++) {
 				unsigned char c = lp->lbuf[i];
-				pStyles[i] = (c <= ' ') ? FS_CONTROL_CHARS : FS_NORMAL;
+				pStyles[i] = (bShowControl && c <= ' ') ? FS_CONTROL_CHARS : FS_NORMAL;
 			}
 		} else {
 			for (int i = 0; i < nElements; i++) {
@@ -171,7 +174,7 @@ static unsigned char* highlight_usingGrammar(HIGHLIGHTER* pHighlighter, FTABLE* 
 				lexicalState = lexicalElements[i].le_state;
 				for (int j = nPreviousOffset; j < nNextOffset && j < lp->len; j++) {
 					unsigned char c = lp->lbuf[j];
-					pStyles[j] = (c <= ' ') ? FS_CONTROL_CHARS : pHighlighter->h_tokenTypeToStyleTable[lexicalState];
+					pStyles[j] = (bShowControl && c <= ' ') ? FS_CONTROL_CHARS : pHighlighter->h_tokenTypeToStyleTable[lexicalState];
 				}
 				nPreviousOffset = nNextOffset;
 			}
@@ -202,8 +205,8 @@ void highlight_invalidate(HIGHLIGHTER* pHighlighter, LINE* lp) {
 /*
  * Calculates the actual styles per character contained in the line passed as an argument.
  */
-unsigned char* highlight_calculate(HIGHLIGHTER* pData, FTABLE* fp, LINE* lp, long nLine) {
-	return pData->h_calculate(pData, fp, lp, nLine);
+unsigned char* highlight_calculate(HIGHLIGHTER* pData, WINFO* wp, LINE* lp, long nLine) {
+	return pData->h_calculate(pData, wp, lp, nLine);
 }
 
 /*

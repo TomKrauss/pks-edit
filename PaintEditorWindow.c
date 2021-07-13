@@ -150,12 +150,12 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long l
 	x -= startColumn * wp->cwidth;
 	FONT_STYLE_CLASS fsPreviousClass = -1;
 	FONT_STYLE_CLASS fsClass = FS_NORMAL;
-	pszStyles = highlight_calculate(wp->highlighter, fp, lp, lineNo);
+	pszStyles = highlight_calculate(wp->highlighter, wp, lp, lineNo);
 	while (i < endColumn && s < send) {
 		unsigned char c = *s++;
 		FONT_STYLE_CLASS fsNext = (int)*pszStyles++;
 		i++;
-		if (c == ' ') {
+		if (c == ' ' && showcontrol) {
 			newstate = RS_SPACE;
 		} else if (c >= ' ') {
 			newstate = RS_WORD;

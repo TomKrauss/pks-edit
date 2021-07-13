@@ -1,8 +1,7 @@
 [files]
-"C:\temp\JdbcSessionBig.java", line 183: 0x0 0x1 -1 -1 -8 -31 725 0 1450 812
-"C:\source\pksedit\CaretMovement.c", line 269: 0x0 0x1 -1 -1 -8 -31 0 0 725 812
-"C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
-"C:\Users\tom\Desktop\readme.txt", line 1: 0x0 0x1 -1 -1 -8 -31 0 0 960 462
+"C:\source\pksedit\OpenFiles.c", line 1: 0x0 0x1 -1 -1 -8 -31 725 0 1450 812
+"C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 0 0 725 812
+"C:\Users\tom\Desktop\readme.txt", line 8: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
 [find]
 !jdbcsessi
 !jdbcsess
@@ -46,7 +45,6 @@
 ! 
 !xxxxxx
 [open]
-!C:\source\pksedit\macro_compiler\CompileMacros.c
 !C:\source\pksedit\macro_compiler\CommandFunctionTable.c
 !C:\source\pksedit\macro_compiler\BindKeys.c
 !C:\source\pksedit\MacroKeyBinding.c
@@ -78,6 +76,7 @@
 !C:\temp\JdbcSessionBig.java
 !C:\source\setenvj8.bat
 !C:\source\pksedit\pks_sys\default.grammar.json
+!C:\source\trend-master-eclipse-4.20\trend\bin\setTrendEnv.sh
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -92,3 +91,4 @@
 !C:\source\pksedit\pks_sys\*.*
 !C:\source\pksedit\*.*
 !C:\Users\tom\Desktop\*.*
+!C:\source\trend-master-eclipse-4.20\trend\bin\*.*

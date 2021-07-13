@@ -37,7 +37,7 @@ extern void highlight_destroy(HIGHLIGHTER *pHighlighter);
 /*
  * Calculates the actual styles per character contained in the line passed as an argument.
  */
-extern unsigned char* highlight_calculate(HIGHLIGHTER* pData, FTABLE* fp, LINE* lp, long nLine);
+extern unsigned char* highlight_calculate(HIGHLIGHTER* pData, WINFO* wp, LINE* lp, long nLine);
 
 #define SYNTAXHIGHLIGHTING_H
 #endif // !SYNTAXHIGHLIGHTING_H
