@@ -90,7 +90,7 @@ int doctypes_documentTypeChanged(void) {
 	SendMessage(wp->edwin_handle,WM_EDWINREORG,0,0L);
 
 	action_commandEnablementChanged((ACTION_CHANGE_TYPE) {0,0,1,-1});
-	return doctypes_saveAllDocumentTypes((char*)0);
+	return doctypes_saveAllDocumentTypes(fp->documentDescriptor, (char*)0);
 }
 
 /*--------------------------------------------------------------------------

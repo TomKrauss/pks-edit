@@ -891,13 +891,13 @@ static void docTypeDeleteType(HWND hDlg);
 static void docTypeApply(void);
 static void docTypeChangeType(HWND hDlg);
 static void docTypeFillParameters(DIALPARS *dp, void *par);
-#define	  NVDOCTYPEPARS						5
 static DIALPARS docTypePars[] = 
 {
 	IDD_STRING6,		16,						0,
 	IDD_STRING4,		50,						0,
 	IDD_PATH1,		84,						0,
 	IDD_STRING5,		84,						0,
+	IDD_STRING3,		32,						0,
 	IDD_OPT1,			1,						0,
 	IDD_WINDOWLIST,	0,						0,
 	IDD_CALLBACK1,		0,						docTypeChangeType,
@@ -906,6 +906,8 @@ static DIALPARS docTypePars[] =
 	IDD_NOINITCALLBACK,	0,						docTypeNewType,
 	0
 };
+
+#define	  NVDOCTYPEPARS						6
 
 static void doclist_command(HWND hDlg, int nItem, int nNotify, void *pUser)
 {
@@ -956,7 +958,7 @@ static void docTypeOwnerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem
 	int		spacing = 3;
 
 	if (!doctypes_getDocumentTypeDescription(par, 
-		&pszId, &pszDescription, (char **)0, (char **)0, (int **)0)) {
+		&pszId, &pszDescription, (char **)0, (char **)0, (char**)0, (int **)0)) {
 		return;
 	}
 	nLen = lstrlen(pszId);
@@ -984,10 +986,11 @@ static void docTypeFillParameters(DIALPARS *dp, void *par)
 	char *	pszDescription;
 	char *	pszMatch;
 	char *	pszFname;
+	char*	pszGrammar;
 	int *	pOwn;
 
 	if (!doctypes_getDocumentTypeDescription(par, &pszId, &pszDescription, &pszMatch, 
-		&pszFname, &pOwn)) {
+		&pszFname, &pszGrammar, &pOwn)) {
 		return;
 	}
 
@@ -995,6 +998,7 @@ static void docTypeFillParameters(DIALPARS *dp, void *par)
 	dp->dp_data = pszDescription;			dp++;
 	dp->dp_data = pszFname;					dp++;
 	dp->dp_data = pszMatch;					dp++;
+	dp->dp_data = pszGrammar;				dp++;
 	dp->dp_data = pOwn;
 }
 
@@ -1070,8 +1074,10 @@ static int doDocumentTypes(int nDlg) {
 	linname[0] = 0;
 
 	docTypePars[NVDOCTYPEPARS].dp_data = &dlist;
+	FTABLE* fp = ft_getCurrentDocument();
+	EDIT_CONFIGURATION* pConfig = fp ? fp->documentDescriptor : NULL;
 	lastSelectedDocType = doctypes_getPrivateDocumentType(
-		ft_getCurrentDocument() ? ft_getCurrentDocument()->documentDescriptor->name : "default");
+		pConfig ? pConfig->name : "default");
 
 	docTypeFillParameters(docTypePars, (void*)lastSelectedDocType);
 	if ((nRet = DoDialog(nDlg, DlgStdProc,docTypePars, NULL)) == IDCANCEL) {
@@ -1082,8 +1088,8 @@ static int doDocumentTypes(int nDlg) {
 	if (nDlg != DLGDOCTYPES) {
 		return TRUE;
 	}
-
-	return doctypes_saveAllDocumentTypes((char *)0);
+	doctypes_documentTypeChanged();
+	return TRUE;
 }
 
 /*--------------------------------------------------------------------------

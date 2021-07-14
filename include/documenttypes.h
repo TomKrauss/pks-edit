@@ -42,7 +42,7 @@ extern EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor();
 extern int doctypes_countDocumentTypes(void);
 
 extern BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
-	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszFname,
+	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszGrammar, char** ppszFname,
 	int** pOwn);
 
 /*--------------------------------------------------------------------------
@@ -89,7 +89,7 @@ extern int  doctypes_assignDocumentTypeDescriptor(FTABLE* fp, EDIT_CONFIGURATION
  * doctypes_saveAllDocumentTypes()
  * Save all document types - pass the pointer to the "HEAD" of the doctype list.
  */
-extern int doctypes_saveAllDocumentTypes(char* pFileName);
+extern int doctypes_saveAllDocumentTypes(EDIT_CONFIGURATION* pChangedConfiguration, char* pFileName);
 
 /*--------------------------------------------------------------------------
  * doctypes_getSelectableDocumentFileTypes()

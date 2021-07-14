@@ -151,7 +151,7 @@ EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor() {
 	pDescriptor->rmargin = 80;
 	pDescriptor->tabsize = 8;
 	pDescriptor->shiftwidth = 4;
-	pDescriptor->dispmode = WM_INSERT;
+	pDescriptor->workmode = WM_INSERT;
 	pDescriptor->cr = '\r';
 	pDescriptor->nl = '\n';
 	pDescriptor->tabDisplayFillCharacter = ' ';
@@ -230,6 +230,7 @@ int doctypes_addDocumentTypesToListBox(HWND hwnd, int nItem)
  */
 BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE *llp, 
 	char **ppszId,	char **ppszDescription, char **ppszMatch, char **ppszFname, 
+	char **ppszGrammar,
 	int **pOwn)
 {
 
@@ -251,6 +252,9 @@ BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE *llp,
 	}	
 	if (ppszFname) {
 		*ppszFname = llp->ll_editorConfigurationName;
+	}
+	if (ppszGrammar) {
+		*ppszGrammar = llp->ll_grammarScope;
 	}
 	if (pOwn) {
 		*pOwn = &llp->ll_privateEditorConfiguration;
@@ -332,9 +336,20 @@ int  doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *pDocu
 /*--------------------------------------------------------------------------
  * doctypes_saveAllDocumentTypes()
  * Save all document types - pass the pointer to the "HEAD" of the doctype list.
+ * If a pointer of a changed configuration is passed, the configuration will be
+ * copied back to our prototype configuration.
  */
-int doctypes_saveAllDocumentTypes(char *pszFilename) {
+int doctypes_saveAllDocumentTypes(EDIT_CONFIGURATION* pChangedConfiguration, char *pszFilename) {
 
+	if (pChangedConfiguration) {
+		for (EDIT_CONFIGURATION* pConfiguration = config.dc_editorConfigurations; pConfiguration; pConfiguration = pConfiguration->next) {
+			if (strcmp(pChangedConfiguration->name, pConfiguration->name) == 0) {
+				size_t nOffset = sizeof pConfiguration->next;
+				memcpy(((unsigned char*)pConfiguration) + nOffset, ((unsigned char*)pChangedConfiguration) + nOffset, sizeof * pConfiguration - nOffset);
+				break;
+			}
+		}
+	}
 	if (pszFilename == NULL) {
 		pszFilename = _linfsel.fname;
 	}

@@ -1,5 +1,5 @@
 [files]
-"C:\source\mx-graph-modeller\ui\src\app\theme.ts", line 1: 0x0 0x1 -1 -1 -1 -1 79 15 1270 567
+"C:\source\pksedit\README.md", line 4: 0x0 0x1 -1 -1 -1 -1 79 15 1270 567
 [find]
 !jdbcsessi
 !jdbcsess
@@ -74,6 +74,7 @@
 !C:\source\trend-master-eclipse-4.20\trend\bin\setTrendEnv.sh
 !C:\source\pksedit\README.md
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\bloc\domain_event_handler.dart
+!C:\source\mx-graph-modeller\ui\src\app\theme.ts
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -86,9 +87,9 @@
 !C:\temp\*.*
 !C:\source\*.*
 !C:\source\pksedit\pks_sys\*.*
-!C:\source\pksedit\*.*
 !C:\Users\tom\Desktop\*.*
 !C:\source\trend-master-eclipse-4.20\trend\bin\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\bloc\*.*
 !C:\source\mx-graph-modeller\ui\src\*.*
 !C:\source\mx-graph-modeller\ui\src\app\*.*
+!C:\source\pksedit\*.*
