@@ -90,6 +90,9 @@ unsigned char *tlcompile(unsigned char *_transtab,
 		_transtab[b1[i]] = *p;
 		if (p[1]) p++;
 	}
+	while (*p) {
+		wtable[*p++] |= _C;
+	}
 	return t+1;
 }
 

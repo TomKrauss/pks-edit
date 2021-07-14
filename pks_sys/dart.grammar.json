@@ -1,0 +1,110 @@
+{
+  "grammars": [
+    {
+      "scopeName": "dart",
+      "patterns": [
+        {
+          "begin": "/*",
+          "end": "*/",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "//.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "r?[\"']'(?:\\\"|[^\"])+[\"']",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "<_[a-zA-Z][a-zA-Z_0-9]*>",
+          "style": "identifier",
+          "name": "private.identifier"
+        },
+        {
+          "match": "<[a-z*]+>",
+          "keywords": [
+            "async",
+            "async*",
+            "abstract",
+            "continue",
+            "false",
+            "new",
+            "as",
+            "default",
+            "final",
+            "null",
+            "throw",
+            "assert",
+            "deferred",
+            "finally",
+            "operator",
+            "true",
+            "part",
+            "try",
+            "do",
+            "await",
+            "dynamic",
+            "get",
+            "set",
+            "rethrow",
+            "typedef",
+            "else",
+            "if",
+            "return",
+            "var",
+            "break",
+            "enum",
+            "implements",
+            "void",
+            "case",
+            "export",
+            "import",
+            "static",
+            "while",
+            "catch",
+            "external",
+            "in",
+            "super",
+            "with",
+            "class",
+            "extends",
+            "is",
+            "switch",
+            "yield",
+            "yield*"
+            "const",
+            "factory",
+            "library",
+            "synch"
+          ],
+          "style": "keyword",
+          "name": "keyword.dart"
+        },
+        {
+          "match": "@\\s*[a-zA-Z0-9_]+",
+          "style": "annotation",
+          "name": "annotation.dart"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "'(?:\\\\'|\\\\u\\\\d+|[^'])'",
+          "style": "literal",
+          "name": "literal.char"
+        },
+        {
+          "match": "[-+&|<>=]{1,3}",
+          "style": "operator",
+          "name": "keyword.operator"
+        }
+      ]
+    }
+  ]
+}

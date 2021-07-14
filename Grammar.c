@@ -34,6 +34,7 @@ typedef struct tagGRAMMAR_PATTERN {
 	char  name[32];						// The name of the match - should use hierarchical names as for example 'comment.line' or 'keyword.control.java'
 										// The names may be "matched" against style selectors specified below
 	char* match;						// a simple RE pattern to match this pattern
+	int   group;						// can use 1,2... to use only the group part of the match. 
 	char  begin[12];					// mutually exclusive with match, one may define a begin and end marker to match. May span multiple lines
 	char  end[12];						// the end marker maybe e.g. '$' to match the end of line. Currently only one multi-line pattern supported.
 	ARRAY_LIST* keywords;				// If an array list of keywords exists, these are matched after the pattern has matched.
@@ -79,6 +80,7 @@ static GRAMMAR_PATTERN* grammar_createGrammarPattern() {
 static JSON_MAPPING_RULE _patternRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(GRAMMAR_PATTERN, name), sizeof(((GRAMMAR_PATTERN*)NULL)->name)},
 	{	RT_ALLOC_STRING, "match", offsetof(GRAMMAR_PATTERN, match)},
+	{	RT_INTEGER, "group", offsetof(GRAMMAR_PATTERN, group)},
 	{	RT_STRING_ARRAY, "keywords", offsetof(GRAMMAR_PATTERN, keywords)},
 	{	RT_CHAR_ARRAY, "style", offsetof(GRAMMAR_PATTERN, style), sizeof(((GRAMMAR_PATTERN*)NULL)->style)},
 	{	RT_CHAR_ARRAY, "begin", offsetof(GRAMMAR_PATTERN, begin), sizeof(((GRAMMAR_PATTERN*)NULL)->begin)},
@@ -165,14 +167,14 @@ RE_PATTERN* grammar_compile(GRAMMAR_PATTERN* pGrammarPattern) {
  */
 static void grammar_addCharTransition(GRAMMAR* pGrammar, unsigned char cChar, LEXICAL_STATE state) {
 	short oldState = pGrammar->transitions[cChar];
-	if (oldState & 0xFF0000) {
+	if (oldState & 0xF00) {
 		state <<= 12;
-	} else if (oldState & 0xFF00) {
+	} else if (oldState & 0xF0) {
 		state <<= 8;
-	} else if (oldState & 0xFF) {
+	} else if (oldState & 0xF) {
 		state <<= 4;
 	}
-	pGrammar->transitions[cChar] = oldState + state;
+	pGrammar->transitions[cChar] = oldState | state;
 }
 
 /*
@@ -196,7 +198,7 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 			RE_PATTERN* pREPattern = grammar_compile(pPattern);
 			if (pREPattern) {
 				for (int i = 0; i < 256; i++) {
-					if (regex_matchesFirstChar(pREPattern, (unsigned char)i)) {
+					if (regex_matchesFirstChar(pREPattern, (unsigned char) i)) {
 						grammar_addCharTransition(pGrammar, (unsigned char)i, state);
 					}
 				}
@@ -323,15 +325,21 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 					if (pRePattern) {
 						pRePattern->beginOfLine = pszBuf;
 						if (regex_match(pRePattern, &pszBuf[i], &pszBuf[lLength], &match)) {
-							if (!grammar_matchKeyword(pPattern->keywords, match.loc1, match.loc2)) {
-								i += (int)(match.loc2 - match.loc1-1);
-								skipSize = 0;
+							int delta;
+							if (pPattern->group > 0) {
+								delta = (int)(match.braelist[pPattern->group - 1] - match.braslist[pPattern->group - 1]);
+								if (delta <= 0) {
+									delta = 1;
+								}
 							} else {
-								nextState = state;
-								skipSize = match.loc2 - match.loc1;
-								matched = 1;
+								delta = (int)(match.loc2 - match.loc1);
 							}
-							break;
+							if (grammar_matchKeyword(pPattern->keywords, match.loc1, match.loc2)) {
+								nextState = state;
+								skipSize = delta;
+								matched = 1;
+								break;
+							}
 						}
 					} else if (strncmp(&pszBuf[i], pPattern->begin, strlen(pPattern->begin)) == 0) {
 						nextState = state;

@@ -1,0 +1,105 @@
+{
+  "grammars": [
+    {
+      "scopeName": "typescript",
+      "patterns": [
+        {
+          "begin": "/*",
+          "end": "*/",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "//.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "/[^/]+/",
+          "style": "regexp",
+          "name": "regexp"
+        },
+        {
+          "match": "r?[\"'`](?:\\\"|[^\"`'])+[\"'`]",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "<[a-z]+>",
+          "keywords": [
+            "break",
+            "boolean",
+            "as",
+            "readonly",
+            "any",
+            "switch",
+            "case",
+            "if",
+            "this",
+            "throw",
+            "else",
+            "var",
+            "number",
+            "string",
+            "get",
+            "module",
+            "type",
+            "instanceof",
+            "typeof",
+            "public",
+            "private",
+            "enum",
+            "export",
+            "finally",
+            "for",
+            "while",
+            "void",
+            "null",
+            "super",
+            "new",
+            "in",
+            "undefined",
+            "return",
+            "true",
+            "false",
+            "any",
+            "extends",
+            "static",
+            "let",
+            "package",
+            "implements",
+            "interface",
+            "function"
+          ],
+          "style": "keyword",
+          "name": "keyword.dart"
+        },
+        {
+          "match": "<[a-zA-Z_0-9$?]+:>",
+          "style": "hyperlink",
+          "name": "typescript.named.parameter"
+        },
+        {
+          "match": "<[A-Z][a-zA-Z_0-9$]*>",
+          "style": "identifier",
+          "name": "typescript.class.identifier"
+        },
+        {
+          "match": "@\\s*[a-zA-Z0-9_]+",
+          "style": "annotation",
+          "name": "decorator.typescript"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "[-+&|<>=]{1,3}",
+          "style": "operator",
+          "name": "keyword.operator"
+        }
+      ]
+    }
+  ]
+}

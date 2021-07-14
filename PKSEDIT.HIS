@@ -1,7 +1,5 @@
 [files]
-"C:\source\pksedit\OpenFiles.c", line 1: 0x0 0x1 -1 -1 -8 -31 725 0 1450 812
-"C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 0 0 725 812
-"C:\Users\tom\Desktop\readme.txt", line 8: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
+"C:\source\mx-graph-modeller\ui\src\app\theme.ts", line 1: 0x0 0x1 -1 -1 -1 -1 79 15 1270 567
 [find]
 !jdbcsessi
 !jdbcsess
@@ -45,12 +43,6 @@
 ! 
 !xxxxxx
 [open]
-!C:\source\pksedit\macro_compiler\CommandFunctionTable.c
-!C:\source\pksedit\macro_compiler\BindKeys.c
-!C:\source\pksedit\MacroKeyBinding.c
-!C:\source\pksedit\MacroInterpreter.c
-!C:\source\pksedit\Logging.c
-!C:\source\pksedit\LinkedList.c
 !C:\source\pksedit\KeyBindings.c
 !C:\source\pksedit\KeyBindingFileIO.c
 !C:\source\pksedit\Initialize.c
@@ -76,7 +68,12 @@
 !C:\temp\JdbcSessionBig.java
 !C:\source\setenvj8.bat
 !C:\source\pksedit\pks_sys\default.grammar.json
+!C:\source\pksedit\OpenFiles.c
+!C:\source\mx-graph-modeller\ui\src\polyfills.ts
+!C:\Users\tom\Desktop\readme.txt
 !C:\source\trend-master-eclipse-4.20\trend\bin\setTrendEnv.sh
+!C:\source\pksedit\README.md
+!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\bloc\domain_event_handler.dart
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -92,3 +89,6 @@
 !C:\source\pksedit\*.*
 !C:\Users\tom\Desktop\*.*
 !C:\source\trend-master-eclipse-4.20\trend\bin\*.*
+!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\bloc\*.*
+!C:\source\mx-graph-modeller\ui\src\*.*
+!C:\source\mx-graph-modeller\ui\src\app\*.*

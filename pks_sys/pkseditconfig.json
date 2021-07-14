@@ -20,6 +20,13 @@
         "filenamePatterns": "*.c;*.h;*.cpp"
     },
     {
+        "name": "dart",
+        "description": "Dart-Dateien (*.dart)",
+        "grammar": "dart",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.dart"
+    },
+    {
         "name": "java",
         "description": "Java Dateien (*.java)",
         "grammar": "java",
@@ -32,6 +39,13 @@
         "grammar": "batch",
         "editorConfiguration": "default",
         "filenamePatterns": "*.bat;*.cmd"
+    },
+    {
+        "name": "typescript",
+        "description": "Typescript Files (*.ts)",
+        "grammar": "typescript",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.ts"
     },
     {
         "name": "shell-files",
@@ -62,10 +76,10 @@
         "filenamePatterns": "*.txt"
     },
     {
-        "name": "hacking-mode",
-        "description": "Programming (*.ts; *.xml)",
+        "name": "web",
+        "description": "Web Programming (*.css; *.html; *.xml)",
         "editorConfiguration": "default",
-        "filenamePatterns": "*.ts;*.xml"
+        "filenamePatterns": "*.css;*.html;*.htm;*.xml"
     }
     ],
     "editorConfigurations": [

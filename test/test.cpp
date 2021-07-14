@@ -84,6 +84,12 @@ namespace pkseditTests
 			Assert::AreEqual(0, (int)(match.loc1 - expr));
 			Assert::AreEqual(1, (int)(match.loc2 - expr));
 
+			options = createOptions("<[a-z]+>", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			expr = "_lib_";
+			pattern.beginOfLine = (char*) expr;
+			Assert::AreEqual(0, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+
 			options = createOptions("^[a-z]{1,9}(.)$", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			Assert::AreEqual(1, pattern.nbrackets);
@@ -177,6 +183,21 @@ namespace pkseditTests
 			options = createOptions("^#", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			Assert::AreEqual(1, regex_matchesFirstChar(&pattern, '#'));
+
+			options = createOptions("([a-z])", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_matchesFirstChar(&pattern, 'a'));
+			Assert::AreEqual(0, regex_matchesFirstChar(&pattern, 0));
+
+			options = createOptions("^([A-Z]+)=", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_matchesFirstChar(&pattern, 'A'));
+			Assert::AreEqual(0, regex_matchesFirstChar(&pattern, 0));
+
+			options = createOptions("<[a-zA-Z_0-9$?]+:>", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(0, regex_matchesFirstChar(&pattern, '/'));
+			Assert::AreEqual(1, regex_matchesFirstChar(&pattern, 'A'));
 		}
 
 		TEST_METHOD(RegularExpressionsWithGroups) {

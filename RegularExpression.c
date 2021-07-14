@@ -411,11 +411,13 @@ void regex_compileCharacterClasses(unsigned char* pLowerToUpperPattern) {
 	while (*pRegexSpecial) {
 		regex_addCharacterToCharacterClass(_reSpecialChars, *pRegexSpecial++, 0);
 	}
-	if (!pLowerToUpperPattern)
-		pLowerToUpperPattern = "a-z=A-Z";
+	if (!pLowerToUpperPattern) {
+		pLowerToUpperPattern = "a-z=A-Z_";
+	}
 
-	for (i = 0; i < 256; i++)
+	for (i = 0; i < 256; i++) {
 		_asciitab[i] &= (~_C);
+	}
 
 	tlcompile(_l2uset, pLowerToUpperPattern, _asciitab);
 
@@ -1220,6 +1222,7 @@ static unsigned char* regex_advance(unsigned char* pBeginOfLine, unsigned char* 
 
 /*
  * Checks, whether the passed first character matches a regular expression.
+ * TODO: groups with alternatives are currently not handled correctly.
  */
 int regex_matchesFirstChar(RE_PATTERN* pPattern, unsigned char c) {
 	RE_MATCH match;
@@ -1231,7 +1234,11 @@ int regex_matchesFirstChar(RE_PATTERN* pPattern, unsigned char c) {
 	buf[0] = c;
 	while (pMatcher->m_type != END_OF_MATCH) {
 		if (pMatcher->m_type == START_OF_LINE) {
-			pMatcher = (MATCHER*)((unsigned char*)pMatcher+matcherSizes[pMatcher->m_type]);
+			pMatcher = (MATCHER*)((unsigned char*)pMatcher + matcherSizes[pMatcher->m_type]);
+			continue;
+		}
+		if (pMatcher->m_type == GROUP) {
+			pMatcher = (MATCHER*)((unsigned char*)pMatcher + matcherSizes[pMatcher->m_type] + sizeof(MATCH_RANGE));
 			continue;
 		}
 		if (pMatcher->m_type == STRING) {

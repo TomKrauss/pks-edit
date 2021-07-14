@@ -6,7 +6,7 @@
         {
           "match": "#!.*",
           "style": "annotation",
-          "name": "comment.singleLine"
+          "name": "comment.bangCommand"
         },
         {
           "match": "#.*",
@@ -24,7 +24,8 @@
           "name": "shell.argument"
         },
         {
-          "match": "^[A-Z]+=",
+          "match": "^([A-Z]+)\\s*=",
+          "group": 1,
           "style": "identifier",
           "name": "shell.variable"
         },

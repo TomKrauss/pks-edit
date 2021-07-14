@@ -29,7 +29,7 @@
 
 #define	SWAP(a,b)			{	a ^= b, b ^=a, a ^= b;  }
 #define	D_EBUG(x)		{/*error_showErrorById(x); render_repaintAllForFile(fp);*/}
-#define	HARD_BREAK(lp)	((lp->lflg & LNNOCR) == 0)
+#define	HARD_BREAK(lp)	(lp->len == 0)
 
 /*--------------------------------------------------------------------------
  * EXTERNALS
@@ -375,53 +375,6 @@ static int edit_breakline(WINFO* wp, int soft)
 }
 
 /*--------------------------------------------------------------------------
- * edit_findWrappingPosition()
- */
-static int edit_findWrappingPosition(WINFO *wp, LINE *lp, int cursoffset, int *nextword,int rmargin)
-{	
-	int  	i;
-	int		wm;
-	int		wordpos;
-	int		spacepos;	
-	char *	s;
-
-	wm = caret_screen2lineOffset(wp, &(CARET){lp, rmargin});
-
-	if (caret_lineOffset2screen(wp, &(CARET) { lp, wm}) < rmargin) {
-		return 0;
-	}
-
-	s = lp->lbuf;
-	*nextword = 0;
-	spacepos  = 0;
-	for (i = lp->len; i > 0; ) {
-		i--;
-		if (string_isSpace(s[i])) {
-			wordpos = i+1;
-			do 
-				i--;
-			while (i > 0 && (string_isSpace(s[i])));
-			if (i > 0) {
-				spacepos  = i+1;
-				*nextword = wordpos;
-			}
-			if (i < wm) {
-				/*
-				 * seems to be a reasonable position -
-				 * skip due to cursor is behind a word which
-				 * user is editing, so wrapping would cut
-				 * this word into 2 pieces
-				 */
-				if (i == cursoffset-1)
-					return 0;
-				break;
-			}
-		}
-	}
-	return spacepos;
-}
-
-/*--------------------------------------------------------------------------
  * ww_getRightMargin()
  * Returns the right margin as current configured the way it should be used for e.g. painting.
  */
@@ -432,6 +385,53 @@ int ww_getRightMargin(WINFO *wp) {
 		rmargin = (wp->maxcol - wp->mincol) - RM_DELTA;
 	}
 	return rmargin;
+}
+
+/*--------------------------------------------------------------------------
+ * edit_findWrappingPosition()
+ */
+static int edit_findWrappingPosition(WINFO* wp, LINE* lp, int cursoffset, int* nextword, int rmargin)
+{
+	int  	i;
+	int		wm;
+	int		wordpos;
+	int		spacepos;
+	char* s;
+
+	wm = caret_screen2lineOffset(wp, &(CARET){lp, rmargin});
+
+	if (caret_lineOffset2screen(wp, &(CARET) { lp, wm}) < rmargin) {
+		return 0;
+	}
+
+	s = lp->lbuf;
+	*nextword = 0;
+	spacepos = 0;
+	for (i = lp->len; i > 0; ) {
+		i--;
+		if (string_isSpace(s[i])) {
+			wordpos = i + 1;
+			do
+				i--;
+			while (i > 0 && (string_isSpace(s[i])));
+			if (i > 0) {
+				spacepos = i + 1;
+				*nextword = wordpos;
+			}
+			if (i < wm) {
+				/*
+				 * seems to be a reasonable position -
+				 * skip due to cursor is behind a word which
+				 * user is editing, so wrapping would cut
+				 * this word into 2 pieces
+				 */
+				if (i == cursoffset - 1)
+					return 0;
+				break;
+			}
+		}
+	}
+	return spacepos;
 }
 
 /*--------------------------------------------------------------------------
@@ -459,9 +459,9 @@ static int edit_autoFormat(WINFO *wp)
 {	register unsigned char *destbuf,*sourcebuf;
 	LINE *lp1,*lpnext,*lp;
 	int  indent,col;
-	int  i_d,desti,di,rm,lpos,wend,wstart,modified,column;
+	int  numberOfLinesHasChanged,desti,di,rm,lpos,wend,wstart,modified,column;
 	unsigned char c;
-	long ln, newln, newcol;
+	long ln, caretLine, caretColumn;
 	FTABLE *fp = wp->fp;
 
 	if ((wp->workmode & WM_AUTOFORMAT) == 0) {
@@ -472,13 +472,13 @@ static int edit_autoFormat(WINFO *wp)
 	destbuf = lpscratch->lbuf;
 
 	rm = ww_getRightMargin(wp);
-	i_d = 0;
+	numberOfLinesHasChanged = 0;
 	lp = wp->caret.linePointer;
-	ln = newln = wp->caret.ln;
-	newcol = wp->caret.offset;
+	ln = caretLine = wp->caret.ln;
+	caretColumn = wp->caret.offset;
 
-	/* watch also previous line */
-	if (lp->prev && !HARD_BREAK(lp->prev)) {
+	/* watch also previous lines */
+	while (lp->prev && !HARD_BREAK(lp->prev)) {
 		lp = lp->prev;
 		ln--;
 	}
@@ -505,14 +505,16 @@ static int edit_autoFormat(WINFO *wp)
 			lp->prev->lflg |= LNNOCR;
 
 			/* Cursor Position affected ? */
-			if (ln == newln && newcol >= wstart) {
-				newln++;
-				newcol += (col-wstart);
+			if (ln < caretLine || (ln == caretLine && caretColumn >= wstart)) {
+				if (ln == caretLine && caretColumn >= wstart) {
+					caretColumn = indent+caretColumn - wstart;
+				}
+				caretLine++;
 			}
 			ln++;
 
 			lp->lflg |= LNREPLACED;
-			i_d++;
+			numberOfLinesHasChanged++;
 	D_EBUG("!WRAPPED");
 			continue;
 		} else {
@@ -520,7 +522,6 @@ static int edit_autoFormat(WINFO *wp)
 			modified = 0;
 			memmove(destbuf,lp->lbuf,lp->len);
 			desti = lp->len;
-			column = -1;
 
 	join_next_words:
 
@@ -543,33 +544,24 @@ static int edit_autoFormat(WINFO *wp)
 				while(lpos < lpnext->len) {
 					if (string_isSpace(c = sourcebuf[lpos++])) {
 						lpos--;
-						break;			
+						break;
 					}
 					destbuf[di++] = c;
 				}
-
-				/* this is for minimizing caret_lineOffset2screen - calls */
-				if (column < 0) {
-					column = caret_lineOffset2screen(wp, &(CARET){lpscratch, di});
-				}
-				else {
-					column += (di - desti);
-				}
-
+				column = caret_lineOffset2screen(wp, &(CARET){lpscratch, di});
 				/* fits into current line within wrapmargin ? */
-				if (column >= rm)
+				if (column >= rm) {
 					break;
+				}
 				wend = lpos;
 				desti = di;
 
-				/* overread spaces */
+				/* skip spaces */
 				while (lpos < lpnext->len) {
 					if (!string_isSpace(c = sourcebuf[lpos++])) {
 						lpos--;
 						break;			
 					}
-					if (c == '\t')
-						column = -1;
 					destbuf[di++] = c;
 				}
 				wstart = lpos;
@@ -579,15 +571,17 @@ static int edit_autoFormat(WINFO *wp)
 			if (wend > 0) {
 
 				/* Cursor Position affected ? */
-				if (ln+1 == newln) {
-					if (newcol < wstart) {
-						newln--;
-						newcol += lp->len;
+				if (ln + 1 < caretLine) {
+					caretLine--;
+				} else if (ln + 1 == caretLine) {
+					if (caretColumn < wstart) {
+						caretColumn += (lp->len-indent);
+						caretLine--;
 					} else {
-						if (newcol > wstart) {
-							newcol -= (wstart-indent);
+						if (caretColumn > wstart) {
+							caretColumn -= (wstart-indent);
 						} else {
-							newcol = indent;
+							caretColumn = indent;
 						}
 					}
 				}
@@ -595,6 +589,7 @@ static int edit_autoFormat(WINFO *wp)
 				if ((lp = ln_modify(fp,lp,lp->len,desti)) == 0) {
 					break;
 				}
+				render_repaintLine(fp, lp);
 				memmove(lp->lbuf,destbuf,desti);
 				lp->lflg |= LNREPLACED;
 				modified = 1;
@@ -605,16 +600,18 @@ static int edit_autoFormat(WINFO *wp)
 					/* the whole line was appended */
 					lp->lflg = (lp->lflg & ~(LNNOTERM|LNNOCR))|
 							 (lpnext->lflg & (LNNOTERM|LNNOCR));
-					if (!ln_delete(fp,lpnext))
+					if (!ln_delete(fp, lpnext)) {
 						break;
-					i_d--;
+					}
+					numberOfLinesHasChanged++;
 	D_EBUG("!DELETED");
 
 					/* look for more */
 					goto join_next_words;
 				} else {
-					if ((lpnext = ln_modify(fp,lpnext,wstart,indent)) == 0)
+					if ((lpnext = ln_modify(fp, lpnext, wstart, indent)) == 0) {
 						break;
+					}
 					lpnext->lflg |= LNREPLACED;
 					lp = lpnext->prev;
 	D_EBUG("!JOINED WORDS");
@@ -624,16 +621,10 @@ static int edit_autoFormat(WINFO *wp)
 
 		lp = lp->next;
 		ln++;
-
-		if (lp != wp->caret.linePointer && !modified)
-			break;
 	}
 
-	if (i_d) {
+	if (numberOfLinesHasChanged) {
 		render_repaintAllForFile(fp);
-	} else {
-		render_repaintCurrentFile();
-		render_repaintCurrentLine(wp);
 	}
 
 	lp1 = wp->caret.linePointer;
@@ -642,12 +633,12 @@ static int edit_autoFormat(WINFO *wp)
 
 	ln_removeFlag(lp1,lp,LNREPLACED);
 
-	if (newln >= fp->nlines) {
-		newln = fp->nlines-1;
-		newcol = lp1->len;
+	if (caretLine >= fp->nlines) {
+		caretLine = fp->nlines-1;
+		caretColumn = lp1->len;
 	}
 
-	caret_placeCursorInCurrentFile(wp, newln,newcol);
+	caret_placeCursorInCurrentFile(wp, caretLine,caretColumn);
 	free(lpscratch);
 	return 1;
 }
@@ -787,10 +778,11 @@ static int edit_findPreviousOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) 
 		caret.linePointer = lp;
 		caret.offset = screenColPreviousTab;
 		int lineOffsetPreviousTab = caret_screen2lineOffset(wp, &caret);
-		while (--nOffset > lineOffsetPreviousTab) {
-			char c = lp->lbuf[nOffset];
+		int nNewOffset = nOffset;
+		while (--nNewOffset > lineOffsetPreviousTab) {
+			char c = lp->lbuf[nNewOffset];
 			if (c != '\t' && c != fp->documentDescriptor->fillc) {
-				return nOffset;
+				return nOffset-nNewOffset > 1 ? nNewOffset+1 : nNewOffset;
 			}
 		}
 		return lineOffsetPreviousTab;

@@ -56,6 +56,13 @@
       "weight": 700
     },
     {
+      "styleName": "regexp",
+      "faceName": "Consolas",
+      "size": -12,
+      "foregroundColor": "#AA4444",
+      "weight": 700
+    },
+    {
       "styleName": "bold-italic",
       "faceName": "Consolas",
       "size": -12,
