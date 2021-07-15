@@ -15,7 +15,7 @@
  */
 
 #include <windows.h>
-#include <stdlib.h>
+#include "alloc.h"
 
 #include "winfo.h"
 #include "grammar.h"

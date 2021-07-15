@@ -102,19 +102,19 @@ EXPORT void bl_free(PASTE *buf)
 }
 
 /*--------------------------------------------------------------------------
- * bl_freePasteList()
+ * bl_destroyPasteList()
  */
-EXPORT void bl_freePasteList(PASTELIST **header) {	
-	register PASTELIST *pp = *header;
+void bl_destroyPasteList() {	
+	register PASTELIST *pp = _plist;
 	register PASTELIST* next;
 
 	while (pp) {
 		bl_free(&pp->pbuf);
 		next = pp->next;
-		_free(pp);
+		free(pp);
 		pp = next;
 	}
-	*header = 0;
+	_plist = 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -126,7 +126,7 @@ EXPORT int EdBufferFree(void)
 	if (errorDisplayYesNoConfirmation(IDS_MSGCLEARBUFFERS) == IDYES) {
 		bl_free(_undobuf);
 		bl_free(&_ubuf2);
-		bl_freePasteList(&_plist);
+		bl_destroyPasteList();
 		return 1;
 	}
 	return 0;
@@ -218,7 +218,7 @@ EXPORT int bl_read(char *fn, PASTE *pb, int rs /* Record Seperator */)
 		ll = rf.lastl->prev;
 		if (ll->lflg & LNNOTERM) {
 			ll->next = 0;
-			_free(rf.lastl);			/* rm -eof- Mark		*/
+			free(rf.lastl);			/* rm -eof- Mark		*/
 		} else {
 			rf.lastl->len = 0;
 			rf.nlines++;
@@ -336,8 +336,8 @@ EXPORT int bl_join(PASTE *pd,PASTE *p2)
 	if (lps->next)
 		lps->next->prev = lptmp;
 
-	_free(lp);
-	_free(lps);
+	free(lp);
+	free(lps);
 	return 1;
 }
 

@@ -450,7 +450,7 @@ MACRO *macro_createWithParams(char* szName, char* szComment, char* bData, int si
 		nLen++;
 	}
 
-	if ((mp = _alloc(MAC_SIZE(nLen+size))) == 0)
+	if ((mp = malloc(MAC_SIZE(nLen+size))) == 0)
 		return (MACRO*)0;
 
 	mp->dstart = (unsigned char)(nLen+sizeof(*mp));
@@ -475,7 +475,7 @@ void macro_renameAndChangeComment(int nIndex, char* szName, char* szComment)
 	if ((mp = macro_createWithParams(szName,szComment,MAC_DATA(mpold),mpold->size)) == 0)
 		return;
 	_macrotab[nIndex] = mp;
-	_free(mpold);
+	free(mpold);
 }
 
 /*------------------------------------------------------------

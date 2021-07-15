@@ -16,7 +16,7 @@
 
 #include <windows.h>
 #include <string.h>
-#include <malloc.h>
+#include "alloc.h"
 
 #include "trace.h"
 #include "lineoperations.h"
@@ -186,7 +186,7 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 		_trymatch = 1;
 	}
 
-	pathlist = _alloc(300);
+	pathlist = malloc(300);
 	_outfile = calloc(1, sizeof *_outfile);
 	lstrcpy(pathlist,pPathes);
 	progress_startMonitor(IDS_ABRTRETREIVE);
@@ -200,8 +200,8 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 	ft_writeFileAndClose(_outfile,stepfile,0);
 	progress_closeMonitor(0);
 
-	_free(pathlist);
-	_free(_outfile);
+	free(pathlist);
+	free(_outfile);
 
 	return xref_openSearchList(stepfile,0) , 1;
 }

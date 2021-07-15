@@ -15,6 +15,7 @@
  */
 
 #include <windows.h>
+#include "alloc.h"
 #include <edtypes.h>
 #include <stdio.h>
 #include <tos.h>
@@ -289,8 +290,8 @@ RSCFILE *rsc_open(char *fn, int mode)
 	if (rsc_loadheader(fd,&hdr) < 0)
 		return 0;
 
-	if ((rp = (RSCFILE *)_alloc(sizeof *rp)) == 0 ||
-	    (rp->rf_hdr = (RSCHEADER *)_alloc(sizeof *rp->rf_hdr)) == 0) {
+	if ((rp = (RSCFILE *)malloc(sizeof *rp)) == 0 ||
+	    (rp->rf_hdr = (RSCHEADER *)malloc(sizeof *rp->rf_hdr)) == 0) {
 		Fclose(fd);
 		return 0;
 	}
@@ -308,8 +309,8 @@ int rsc_close(RSCFILE *rp)
 {
 	int ret = Fclose(rp->rf_fd);
 
-	_free(rp->rf_hdr);
-	_free(rp);
+	free(rp->rf_hdr);
+	free(rp);
 	return ret;
 }
 
@@ -330,7 +331,7 @@ int rsc_load(RSCFILE *rp, char *itemtyp, char *itemname, char *(*cnvfunc)())
 
 	while((nItem = rsc_seektoitem(rp->rf_fd, nItem, itemtyp, itemname, rp->rf_hdr)) >= 0) {
 		ep = &rp->rf_hdr->rs_ent[nItem];
-		if ((p = _alloc(ep->en_size)) == 0) {
+		if ((p = malloc(ep->en_size)) == 0) {
 			return 0;
 		}
 
@@ -340,7 +341,7 @@ int rsc_load(RSCFILE *rp, char *itemtyp, char *itemname, char *(*cnvfunc)())
 			ret = 0;
 		}
 
-		_free(p);
+		free(p);
 		if (!ret || itemname)
 			break;
 
@@ -415,7 +416,7 @@ void *rsc_tableresize(RSCTABLE *rp, int itemsize, void *noalloc, BOOL (*emptyFun
 	char *		data;
 	char *		kp2;
 
-	if ((data = _alloc(size)) == 0) {
+	if ((data = malloc(size)) == 0) {
 		return 0;
 	}
 	memset(data, 0,size);
@@ -429,7 +430,7 @@ void *rsc_tableresize(RSCTABLE *rp, int itemsize, void *noalloc, BOOL (*emptyFun
 	}
 
 	if (rp->rt_data && rp->rt_data != noalloc) {
-		_free(rp->rt_data);
+		free(rp->rt_data);
 	}
 	rp->rt_data = data;
 	rp->rt_size = size;

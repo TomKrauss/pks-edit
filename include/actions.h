@@ -62,5 +62,10 @@ extern void action_registerAction(int commandId, ACTION_BINDING binding, BOOL bE
  */
 extern void action_deregisterAllActionsWithListener(PROPERTY_CHANGE_LISTENER aListener);
 
+/*
+ * Remove all actions and action bindings.
+ */
+extern void action_destroyAll();
+
 #define ACTIONS_H
 #endif

@@ -204,9 +204,6 @@
     <ClCompile Include="SettingsIO.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ManageProjectGroups.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="EditorConfiguration.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -345,9 +342,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\pksmod.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\project.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\printing.h">

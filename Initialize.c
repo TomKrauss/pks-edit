@@ -30,7 +30,6 @@
 
 extern int file_exists(char *s);
 extern void  	xref_selectSearchListFormat(char *pszName);
-extern int   	proj_init(void);
 extern void 	c2asc(char *start, char *source, unsigned char hi, unsigned char lo);
 extern char *	cryptXXXX(char *dest, char *source, 
 	 			void (*f)(char *start, char *s, unsigned char hi, unsigned char lo));
@@ -138,7 +137,6 @@ EXPORT void init_readConfigFiles(void)
 	macro_readBindingsFromFile((char *)0);
 	doctypes_initAllDocumentTypes();
 	xref_initFileFormats();
-	proj_init();
 	xref_restoreFromConfigFile();
 	print_readWriteConfigFile(0);
 	regex_compileCharacterClasses((char *) 0);

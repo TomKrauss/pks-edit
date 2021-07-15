@@ -235,7 +235,7 @@ EXPORT void undo_destroyManager(FTABLE *fp)
 		for (int i = 0; i < pUndoStack->numberOfCommands; i++) {
 			u_free(pUndoStack->commands[i], TRUE);
 		}
-		_free(pUndoStack);
+		free(pUndoStack);
 		UNDOPOI(fp) = 0;
 	}
 }

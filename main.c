@@ -36,12 +36,15 @@
 #include "xdialog.h"
 #include "themes.h"
 #include "findandreplace.h"
+#include "history.h"
+#include "actions.h"
 
 #define	PROF_OFFSET	1
 
  /*------------------------------------------------------------
   * print_initPrinterDC()
   */
+extern void		bl_destroyPasteList();
 extern void		print_initPrinterDC(void);
 extern void		GetPhase2Args(char *args);
 extern void		GetPhase1Args(char *args);
@@ -593,6 +596,9 @@ static void FinalizePksEdit(void)
 	ft_saveWindowStates();
 }
 
+/*
+ * Remove all data structures, clear temp files and dump memory for debugging purpose.
+ */
 static void main_cleanup(void) {
 	file_clearTempFiles();
 	help_quitHelpSystem();
@@ -601,6 +607,11 @@ static void main_cleanup(void) {
 	theme_destroyAllThemeData();
 	grammar_destroyAll();
 	xref_destroyAllCrossReferenceLists();
+	ft_destroyCaches();
+	hist_destroy();
+	action_destroyAll();
+	bl_destroyPasteList();
+	ic_destroyClasses();
 }
 
 /*------------------------------------------------------------
@@ -811,7 +822,6 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	   			return 0;
 			}
 			main_cleanup();
-			_CrtDumpMemoryLeaks();
 			break;
 
 	    case WM_DESTROY:

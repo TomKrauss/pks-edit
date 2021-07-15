@@ -73,7 +73,7 @@ static void hist_addEntry(HISTORY* h, char* string) {
 	/*
 	 * not present: make new
 	 */
-	if (!s && (s = string_allocate(string)) == 0)
+	if (!s && (s = _strdup(string)) == 0)
 		return;
 
 	/*
@@ -82,7 +82,7 @@ static void hist_addEntry(HISTORY* h, char* string) {
 	i = (h->where >= MAXHIST - 1) ? 0 : h->where + 1;
 
 	if (h->s[i] != 0)
-		_free(h->s[i]);
+		free(h->s[i]);
 	h->s[i] = s;
 	h->where = i;
 }
@@ -120,7 +120,7 @@ EXPORT void hist_saveString(HISTORY_TYPE type, char *string) {
 	/*
 	 * not present: make new
 	 */
-	if (!s && (s = string_allocate(string)) == 0) 
+	if (!s && (s = _strdup(string)) == 0)
 		return;
 
 	/*
@@ -129,7 +129,7 @@ EXPORT void hist_saveString(HISTORY_TYPE type, char *string) {
 	i = (h->where >= MAXHIST-1) ? 0 : h->where + 1;
 
  	if (h->s[i] != 0) 
-		_free(h->s[i]); 
+		free(h->s[i]); 
 	h->s[i]  = s;
 	h->where = i;
 }
@@ -268,3 +268,22 @@ EXPORT void hist_readLine(LINE *lp)
 	hist_updateMenu(OPEN_FILES);
 }
 
+/*
+ * Destroy all data structures related to the PKS Edit history. 
+ */
+void hist_destroy() {
+	struct histdes* h = _histsavings;
+	
+	while (h->keyword) {
+		if (h->hist) {
+			char** pStrings = h->hist->s;
+			for (int i = 0; i < MAXHIST; i++) {
+				if (pStrings[i]) {
+					free(pStrings[i]);
+					pStrings[i] = NULL;
+				}
+			}
+		}
+		h++;
+	}
+}

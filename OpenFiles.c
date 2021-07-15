@@ -10,9 +10,9 @@
  */
 
 #include "tos.h"
-#include <stdio.h>
 #include <shellapi.h>
 #include <time.h>
+#include "alloc.h"
 
 #include "trace.h"
 #include "linkedlist.h"
@@ -59,7 +59,7 @@ static	FTABLE 	*_currentFile,*_currentErrorFile;
 static FTABLE 	*_filelist;
 
 #define HISTORY_FILE_NAME "pksedit.his"
-static char		*_historyFileName = NULL;
+static char		_historyFileName[EDMAXPATHLEN];
 int				_ExSave;
 
 /*--------------------------------------------------------------------------
@@ -268,14 +268,12 @@ int ft_restorePreviouslyOpenedWindows(void )
 {
 	FTABLE 	ft;
 	char *	pszFound;
-	char	szBuff[EDMAXPATHLEN];
 
 	if (GetConfiguration()->options & O_READPIC) {
 		if ((pszFound = file_searchFileInPKSEditLocation(HISTORY_FILE_NAME)) != 0 &&
 		    ft_readfileWithOptions(&ft, pszFound, -1)) {
 			// save complete filename of history file.
-			GetFullPathName(pszFound, sizeof szBuff, szBuff, NULL);
-			_historyFileName = string_allocate(szBuff);
+			GetFullPathName(pszFound, sizeof _historyFileName, _historyFileName, NULL);
 			if (_filelist == 0) {
 				xref_openSearchListResultFromLine(ft.firstl);
 			}
@@ -314,9 +312,6 @@ void ft_deleteautosave(FTABLE *fp)
 void ft_destroy(FTABLE *fp)
 {
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_destroy File 0x%lx",fp));
-	if (fp->views) {
-		arraylist_destroy(fp->views);
-	}
 	ft_deleteautosave(fp);
 	ft_bufdestroy(fp);
 
@@ -918,12 +913,12 @@ void EditDroppedFiles(HDROP hDrop)
 	for ( i = 0; i < nTotal; i++ )
 	{
 		nFileLength  = DragQueryFile( hDrop , i , NULL, 0 );
-		pszFileName = _alloc(nFileLength + 1);
+		pszFileName = malloc(nFileLength + 1);
 		DragQueryFile( hDrop , i, pszFileName, nFileLength + 1 );
 		if (!EdEditFile(OPEN_NOFN, pszFileName)) {
 			break;
 		}
-		_free(pszFileName);
+		free(pszFileName);
 	}
 }
 

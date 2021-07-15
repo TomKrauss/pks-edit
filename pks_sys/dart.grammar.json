@@ -25,10 +25,11 @@
           "name": "private.identifier"
         },
         {
-          "match": "<[a-z*]+>",
+          "match": "<[a-z]+\\*{0,2}>",
           "keywords": [
             "async",
             "async*",
+            "async**",
             "abstract",
             "continue",
             "false",
@@ -75,7 +76,8 @@
             "is",
             "switch",
             "yield",
-            "yield*"
+            "yield*",
+            "yield**",
             "const",
             "factory",
             "library",

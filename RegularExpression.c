@@ -17,7 +17,7 @@
 
 #include <stdio.h>
 #include <stddef.h>
-#include <stdlib.h>
+#include "alloc.h"
 #include <string.h>
 #include <ctype.h>
 #include "regexp.h"

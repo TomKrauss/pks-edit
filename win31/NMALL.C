@@ -41,7 +41,7 @@ typedef struct tagHEADER {
 } HEADER;
 
 void alert(LPSTR fmt, ...);
-void _free(void far *Ap);
+void free(void far *Ap);
 
 /*--------------------------------------------------------------------------
  * nomemory()
@@ -57,20 +57,8 @@ void nomemory(void)
 void destroy(char **ap)
 {
 	if (*ap) {
-		_free(*ap);
+		free(*ap);
 		*ap = 0;
 	}
-}
-
-/*--------------------------------------------------------------------------
- * stralloc()
- */
-unsigned char *stralloc(unsigned char *buf)
-{	unsigned char *d;
-
-	if ((d = _alloc(lstrlen(buf)+1)) != 0) {
-		lstrcpy(d,buf);
-	}
-	return d;
 }
 

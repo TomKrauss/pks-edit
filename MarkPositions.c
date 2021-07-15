@@ -14,7 +14,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include <stdlib.h>
+#include "alloc.h"
 #include <windows.h>
 #include "linkedlist.h"
 #include "caretmovement.h"
@@ -22,6 +22,7 @@
 #include "lineoperations.h"
 #include "markpositions.h"
 #include "winfo.h"
+#include "actions.h"
 
 /*--------------------------------------------------------------------------
  * mark_find()
@@ -64,7 +65,22 @@ static void mark_free(WINFO *wp, MARK *mp)
 		}
 	}
 
-	_free(mp);
+	free(mp);
+}
+
+/*
+ * Sets a block mark - if the "has current selection" property has changed, fire an action change.
+ */
+void bl_setBlockMark(WINFO* wp, MARK* pMark, BOOL bStart) {
+	BOOL bHasSelection = wp->blstart && wp->blend;
+	if (bStart) {
+		wp->blstart = pMark;
+	} else {
+		wp->blend = pMark;
+	}
+	if (bHasSelection != (wp->blstart && wp->blend)) {
+		action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
+	}
 }
 
 /*--------------------------------------------------------------------------

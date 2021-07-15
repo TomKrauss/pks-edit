@@ -25,7 +25,6 @@
 #include "clipboard.h"
 #include "fileselector.h"
 #include "markpositions.h"
-#include "actions.h"
 
  /*-----------------------*/
 /* EXTERNALS			*/
@@ -44,22 +43,6 @@ extern LINE	*cadv_gotoIdentifierSkipSpace(LINE *lp,long *ln,long *col,int dir);
 extern LINE	*cadv_wordonly(LINE *lp,long *ln,long *col,int dir);
 
 extern long	_multiplier;
-
-/*
- * Sets a block mark - if the "has current selection" property has changed, fire an action change.
- */
-void bl_setBlockMark(WINFO* wp, MARK* pMark, BOOL bStart) {
-	BOOL bHasSelection = wp->blstart && wp->blend;
-	if (bStart) {
-		wp->blstart = pMark;
-	}
-	else {
-		wp->blend = pMark;
-	}
-	if (bHasSelection != (wp->blstart && wp->blend)) {
-		action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
-	}
-}
 
 /*----------------------------
  * bl_hideSelection() 		

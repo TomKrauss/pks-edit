@@ -214,6 +214,13 @@ void ic_fillIconTypeList(HWND hwnd, int nItem, void* selValue)
 	ic_enableConfigurationDialogIcons(hwnd, icp);
 }
 
+/*
+ * Destroy all registered icon classes.
+ */
+void ic_destroyClasses() {
+	ll_destroy((LINKED_LIST**)&iconclasses, NULL);
+}
+
 /*------------------------------------------------------------
  * ic_findChildFromPoint()
  * Find the desktop icon located at the point passed as an argument or
@@ -410,7 +417,7 @@ void ic_changeIcon(const char* szTitle, const char* szParams, ICONCLASS *icClass
 		return;
 	SetWindowText(hwnd,szTitle);
 	if ((pp = (LPSTR)GetWindowLongPtr(hwnd,GWL_ICPARAMS)) != 0) {
-		_free(pp);
+		free(pp);
 	}
 	SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR) szParams);
 	SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,(LONG_PTR) icClass);
@@ -608,7 +615,7 @@ static int		nButtonY;
 			return 0;
 		case WM_DESTROY:
 			if ((param = (LPSTR)GetWindowLongPtr(hwnd,GWL_ICPARAMS)) != 0) {
-				_free(param);
+				free(param);
 				SetWindowLongPtr(hwnd,GWL_ICPARAMS,0L);
 			}
 			if (hwnd == hwndActive) {
@@ -816,7 +823,7 @@ static intptr_t ic_place(LPSTR szName, LONG lParam)
 		return 0;
 	
 	if ((szParams = strtok((char*)0,",")) != 0) {
-		szParams = string_allocate(szParams);
+		szParams = _strdup(szParams);
 	}
 
 	if ((icp = ic_attribs(szClassId)) == 0) {

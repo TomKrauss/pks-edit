@@ -24,6 +24,7 @@
 #include "markpositions.h"
 #include "stringutil.h"
 #include "fileutil.h"
+#include "arraylist.h"
 
 extern int 	_flushing;
 extern PASTE* bl_addrbyid(int id, int insert);
@@ -84,7 +85,7 @@ static int ln_delmarks(WINFO* wp, LINE* lp)
 			else wp->fmark = mp->next;
 			if (mp == wp->blstart) wp->blstart = 0;
 			if (mp == wp->blend)   wp->blend = 0;
-			_free(mp); mp = mp->next;
+			free(mp); mp = mp->next;
 		}
 		else {
 		walk:			mp2 = mp;
@@ -197,6 +198,10 @@ static void ln_singleLineChanged(FTABLE* fp, MODEL_CHANGE_TYPE type, LINE* lp, L
  * Release all resources associated with a file.
  */
 void ft_bufdestroy(FTABLE* fp) {
+	if (fp->views) {
+		arraylist_destroy(fp->views);
+		fp->views = NULL;
+	}
 	destroy(&fp->documentDescriptor);
 	ln_listfree(fp->firstl);
 	fp->tln = fp->firstl = 0;
@@ -799,7 +804,7 @@ int ln_unhide(FTABLE *fp, LINE *lpind) {
 	undo_saveOperation(fp, lp1, lp2, O_UNHIDE);
 
 	ln_singleLineChanged(fp, LINE_REPLACED, lpind, lp1);
-	_free(lpind);
+	free(lpind);
 	return 1;
 
 }
@@ -814,7 +819,7 @@ void ln_destroy(LINE *lp)
 			ln_listfree(LpIndHiddenList(lp));
 		}
 	}
-	_free(lp);
+	free(lp);
 }
 
 /*------------------------------------------------------------

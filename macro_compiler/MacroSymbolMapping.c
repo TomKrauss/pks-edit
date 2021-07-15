@@ -189,7 +189,7 @@ int sym_makeInternalSymbol(char *name, char ed_typ, intptr_t value) {
 
 	type = ed_typ;
 	if (ed_typ == S_STRING || ed_typ == S_CONSTSTRING) {
-		if ((value = (intptr_t) string_allocate((char*)value)) == 0) {
+		if ((value = (intptr_t)_strdup((char*)value)) == 0) {
 			return 0;
 		}
 	}
@@ -203,7 +203,7 @@ int sym_makeInternalSymbol(char *name, char ed_typ, intptr_t value) {
 		SETSYMBOL(ep->sym,type,value);
 		return 1;
 	} else {
-		if ((name = string_allocate(name)) == 0) {
+		if ((name = _strdup(name)) == 0) {
 			return 0;
 		}
 	}

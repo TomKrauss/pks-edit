@@ -105,7 +105,7 @@ extern void bl_free(PASTE* buf);
 /*--------------------------------------------------------------------------
  * bl_freePasteList()
  */
-extern void bl_freePasteList(PASTELIST** header);
+extern void bl_destroyPasteList();
 
 /*---------------------------------
  * bl_setSelection()

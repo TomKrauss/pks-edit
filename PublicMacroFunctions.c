@@ -379,7 +379,7 @@ static INT_PTR CALLBACK DlgQueryReplaceProc(HWND hDlg, UINT message, WPARAM wPar
  */
 int dlg_queryReplace(char *search, int slen, char *replace, int dlen)
 {	
-	char   		sbuf[500],rbuf[500];
+	char   		sbuf[50],rbuf[50];
 	MSG			msg;
 	static DLGPROC lpfnProc;
 	BOOL			bFirstOpen;
@@ -1018,7 +1018,7 @@ static void docTypeApply(void)
 		if (!(fp->flags & F_MODIFIED)) {
 			ft_abandonFile(fp, lp);
 		} else {
-			_free(fp->documentDescriptor);
+			free(fp->documentDescriptor);
 			doctypes_assignDocumentTypeDescriptor(fp, lp);
 			doctypes_documentTypeChanged();
 		}
@@ -1740,7 +1740,7 @@ static int add_icon(HWND hDlg)
 	char 	*p;
 	HWND		hwnd;
 
-	if ((p = string_allocate(_pars)) != 0) {
+	if ((p = _strdup(_pars)) != 0) {
 		hwnd = ic_addIcon((void*)_ictype,_title,p,CW_USEDEFAULT,CW_USEDEFAULT);
 		SendMessage(hwndMDIClientWindow, WM_MDIACTIVATE, (WPARAM)hwnd, (LPARAM)NULL);
 		win_sendRedrawToWindow(hwnd);
@@ -1764,7 +1764,7 @@ static int mod_icon(void)
 {
 	void *p;
 
-	if ((p = string_allocate(_pars)) != 0) {
+	if ((p = _strdup(_pars)) != 0) {
 		ic_changeIcon(_title,p,_ictype);
 	}
 	return 1;

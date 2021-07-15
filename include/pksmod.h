@@ -62,7 +62,6 @@ typedef struct edx {
 
 	/* Memory */
 	void 	*(*_alloc)(unsigned size);
-	unsigned char *(*string_allocate)(unsigned char *buf);
 	void 	(*_free)(void *p);
 
 	/* Files */

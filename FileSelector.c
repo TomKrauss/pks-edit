@@ -49,7 +49,7 @@ extern int	nCurrentDialog;
 
 extern char *	_pksSysFolder;
 
-static char *	sTitleSpec;
+static char		sTitleSpec[100];
 
 char _fseltarget[EDMAXPATHLEN];
 
@@ -116,9 +116,7 @@ void fsel_changeDirectory(char* pszPath) {
  * setting the idTitle for the next call of fsel_selectFile
  */
 void fsel_setDialogTitle(char *title) {
-	if (sTitleSpec)
-		_free(sTitleSpec);
-	sTitleSpec = string_allocate(title);
+	strmaxcpy(sTitleSpec, title, sizeof sTitleSpec);
 }
 
 /*---------------------------------*/
@@ -230,7 +228,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	}
 	pszCustomFilter = calloc(1, EDMAXPATHLEN);
 	if (!pszCustomFilter) {
-		_free(pszFilter);
+		free(pszFilter);
 		return FALSE;
 	}
 
@@ -282,8 +280,8 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	if (ofn.lpfnHook) {
 		FreeProcInstance((FARPROC)ofn.lpfnHook);
 	}
-	_free(pszFilter);
-	_free(pszCustomFilter);
+	free(pszFilter);
+	free(pszCustomFilter);
 	return bRet;
 }
 
@@ -299,9 +297,9 @@ int fsel_selectFile(char *szFileSpecIn, char *szFileNameIn, char *szFullPathOut,
 	LPSTR	pszFileName;
 	LPSTR	pszPath;
 
-	pszExt = _alloc(EDMAXPATHLEN);
-	pszFileName = _alloc(EDMAXPATHLEN);
-	pszPath = _alloc(EDMAXPATHLEN);
+	pszExt = malloc(EDMAXPATHLEN);
+	pszFileName = malloc(EDMAXPATHLEN);
+	pszPath = malloc(EDMAXPATHLEN);
 
 	// remember where we started
 	string_splitFilename(szFileSpecIn, pszPath, pszExt);
@@ -317,9 +315,9 @@ int fsel_selectFile(char *szFileSpecIn, char *szFileNameIn, char *szFullPathOut,
 		hist_saveString(PATHES, szFileSpecIn);
 	}
 
-	_free(pszFileName);
-	_free(pszExt);
-	_free(pszPath);
+	free(pszFileName);
+	free(pszExt);
+	free(pszPath);
 
 	return ret;
 }

@@ -29,14 +29,14 @@ int init_funcs(void)
 	char *			pszCopy;
 
 	for (ep = _functab, epend = ep+_nfunctions; ep < epend;  ep++) {
-		if ((pszCopy = string_allocate(macro_loadStringResource(ep->idx))) == 0 ||
+		if ((pszCopy = _strdup(macro_loadStringResource(ep->idx))) == 0 ||
 			!sym_insert(pszCopy,S_EDFUNC,(intptr_t)ep)) {
 			return 0;
 		}
 	}
 
 	for (enp = _enelemtab, enpend = enp+_nenelems; enp < enpend; enp++) {
-		if ((pszCopy = string_allocate(macro_loadStringResource(enp->te_name))) == 0 ||
+		if ((pszCopy = _strdup(macro_loadStringResource(enp->te_name))) == 0 ||
 			!sym_insert(pszCopy,S_ENUM,(intptr_t)enp)) {
 			return 0;
 		}

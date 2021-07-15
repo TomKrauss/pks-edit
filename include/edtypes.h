@@ -4,8 +4,6 @@
 #define EDNEAR		/**/
 
 #define EDFAR
-#define _alloc(x)			malloc(x)
-#define _free(x)			free(x)
 #define MoveTo(hdc,x,y)		MoveToEx(hdc, x, y, 0)
 
 #define EXPORT		/**/

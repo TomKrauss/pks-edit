@@ -14,7 +14,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include <malloc.h>
+#include "alloc.h"
 #include <string.h>
 #include "edtypes.h"
 #include "ftw.h"
@@ -65,15 +65,15 @@ static int __ftw(char *path,int depth)
 		return 0;
 	}
 	i = 0;
-	pdta = _alloc(sizeof *pdta);
-	target = _alloc(strlen(path) + 256);
+	pdta = malloc(sizeof *pdta);
+	target = malloc(strlen(path) + 256);
 	string_concatPathAndFilename(target,path,"*");
 	if ((fhandle = _findfirst(target, pdta)) >= 0) {
 		do {
 			if (progress_cancelMonitor(0)) {
 				_findclose(fhandle);
-				_free(pdta);
-				_free(target);
+				free(pdta);
+				free(target);
 				return 1;
 			}
 
@@ -89,8 +89,8 @@ static int __ftw(char *path,int depth)
 					string_concatPathAndFilename(target,path,pdta->name);
 					i = (*_func)(target,pdta);
 					if (i) {
-						_free(pdta);
-						_free(target);
+						free(pdta);
+						free(target);
 						_findclose(fhandle);
 						return i;
 					}
@@ -103,18 +103,18 @@ static int __ftw(char *path,int depth)
 				string_concatPathAndFilename(target,path,pdta->name);
 				i = __ftw(target,depth);
 				if (i != 0) {
-					_free(pdta);
-					_free(target);
+					free(pdta);
+					free(target);
 					return i;
 				}
 			}
 
 		} while (!_findnext(fhandle, pdta));
+		_findclose(fhandle);
 	}
 
-	_free(pdta);
-	_findclose(fhandle);
-	_free(target);
+	free(pdta);
+	free(target);
 	return i;
 }
 

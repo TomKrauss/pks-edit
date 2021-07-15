@@ -78,7 +78,7 @@ int fm_savepos(char *tag)
 
 	fm_freepos(tp);
 
-	if ((*tp = string_allocate(tag)) == 0)
+	if ((*tp = _strdup(tag)) == 0)
 		return 0;
 
 	return 1;

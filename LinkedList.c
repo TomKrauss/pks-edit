@@ -15,7 +15,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include <malloc.h>
+#include "alloc.h"
 #include <string.h>
 #include "linkedlist.h"
 
@@ -102,10 +102,9 @@ int ll_moveElementToFront(LINKED_LIST**pointerLinkedList, void *elem) {
 LINKED_LIST *ll_insert(LINKED_LIST **pointerLinkedList,long size) {
 	LINKED_LIST *lp;
 
-	if ((lp = malloc((size_t)size)) == 0)
+	if ((lp = calloc(1, (size_t)size)) == 0) {
 		return 0;
-
-	memset(lp, 0, (size_t)size);
+	}
 
 	lp->next = *pointerLinkedList;
 	*pointerLinkedList = lp;

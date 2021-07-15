@@ -1116,16 +1116,16 @@ int yylex(void )
 				return NUMBER;
 			case '[':
 				yygets(c,isnospace);
-				yylval.string = stralloc(yytext);
+				yylval.string = _strdup(yytext);
 				return KEY;
 			case '<':
 				yygets(c,isnoclose);
-				yylval.string = stralloc(yytext+1);
+				yylval.string = _strdup(yytext+1);
 				lookahead = 0;
 				return STRING;
 			case '"': 
 				yygets(c,isnoquote);
-				yylval.string = stralloc(yytext+1);
+				yylval.string = _strdup(yytext+1);
 				lookahead = 0;
 				return STRING;
 			default:
@@ -1164,7 +1164,7 @@ gotid:
 						state = S_MOUSE;
 						return MOUSE;
 					}
-					yylval.string = stralloc(yytext);
+					yylval.string = _strdup(yytext);
 					return IDENT;
 				}
 		}
@@ -1182,9 +1182,8 @@ struct llist *make_list(struct llist* list,char *name)
 		;
 
 	if ((lp = malloc(sizeof *lp)) == 0 ||
-	    (lp->name = stralloc(name)) == 0) {
-		fprintf(stderr,"no mem\n");
-		exit(1);
+	    (lp->name = _strdup(name)) == 0) {
+		return 0;
 	}
 	lp->next = 0;
 

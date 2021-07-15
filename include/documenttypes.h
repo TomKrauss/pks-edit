@@ -105,5 +105,11 @@ extern void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax);
  */
 extern int doctypes_documentTypeChanged(void);
 
+/*--------------------------------------
+ * Returns the default document type descriptor for situations,
+ * where no document type descriptor was assigned to a file.
+ */
+extern EDIT_CONFIGURATION* doctypes_getDefaultDocumentTypeDescriptor();
+
 #endif
 

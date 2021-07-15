@@ -712,7 +712,7 @@ int yyfinish(void)
 unsigned char *yystralloc(unsigned char *s)
 {	unsigned char *d;
 
-	if ((d = string_allocate(s)) == 0) {
+	if ((d = _strdup(s)) == 0) {
 		if (yyerr.failpt)
 			longjmp(*yyerr.failpt,ERR_SPACE);
 		return 0;
@@ -758,7 +758,7 @@ static char *unquotealloc(char *name, int len)
 	}
 	*d++ = 0;
 	i = (int)(d-qbuf);
-	if ((d = _alloc(i)) == 0) {
+	if ((d = malloc(i)) == 0) {
 		if (yyerr.failpt)
 			longjmp(*yyerr.failpt,ERR_SPACE);
 		return 0;

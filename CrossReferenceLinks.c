@@ -69,9 +69,9 @@ typedef struct tagexpression {
 	struct tagexpression *next;
 	char compiler[32];	/* Name of Compiler				*/
 	char *source;		/* expression in words			*/
-	char *fnbsl;		/* which \? is filename			*/
-	char *lnbsl;		/* which \? is linenumber		*/
-	char *rembsl;		/* which bsl is remark			*/
+	char fnbsl[10];		/* which \? is filename			*/
+	char lnbsl[10];		/* which \? is linenumber		*/
+	char rembsl[10];	/* which bsl is remark			*/
 } TAGEXPR;
 
 static TAGTRY	*_ttry;
@@ -111,7 +111,7 @@ static intptr_t tags_mk(char *tag, LONG unused)
 		tp->t[tp->max].type = *s++;
 
 		/* is already malloced , dont free old ! */
-		tp->t[tp->max].fn = stralloc(s);
+		tp->t[tp->max].fn = _strdup(s);
 		s = strtok((char *)0,",");
 	}
 	tp->curr = -1;
@@ -122,12 +122,18 @@ static intptr_t tags_mk(char *tag, LONG unused)
 /*
  * Destroy one tagtry element. 
  */
-static xref_destroy(TAGTRY* pTry) {
+static int xref_destroy(TAGTRY* pTry) {
 	for (int i = 0; i < DIM(pTry->t); i++) {
 		if (pTry->t[i].fn) {
 			free(pTry->t[i].fn);
 		}
 	}
+	return 1;
+}
+
+static int xref_destroyCmpTag(TAGEXPR* ct) {
+	free(ct->source);
+	return 1;
 }
 
 /*
@@ -135,6 +141,8 @@ static xref_destroy(TAGTRY* pTry) {
  */
 void xref_destroyAllCrossReferenceLists() {
 	ll_destroy((LINKED_LIST**)&_ttry, xref_destroy);
+	ll_destroy((LINKED_LIST**)&_compiler, xref_destroy);
+	ll_destroy((LINKED_LIST**)&_cmptags, xref_destroyCmpTag);
 }
 
 /*--------------------------------------------------------------------------
@@ -195,16 +203,17 @@ static char *szCompiler = "compiler";
 static intptr_t compiler_mk(char *compiler, LONG unused)
 {
 	TAGEXPR 	*ct;
-	char		*s;
+	char		*s, *pszLine;
 
-	if ((ct = prof_llinsert(&_cmptags,sizeof *ct,szCompiler,compiler,&s)) == 0) {
+	if ((ct = prof_llinsert(&_cmptags,sizeof *ct,szCompiler,compiler,&pszLine)) == 0) {
 		return 0;
 	}
-
-	ct->source   = get_quoted(&s);
-	ct->fnbsl    = get_quoted(&s);
-	ct->lnbsl    = get_quoted(&s);
-	ct->rembsl   = get_quoted(&s);
+	s = pszLine;
+	ct->source   = _strdup(get_quoted(&s));
+	strmaxcpy(ct->fnbsl, get_quoted(&s), sizeof ct->fnbsl);
+	strmaxcpy(ct->lnbsl, get_quoted(&s), sizeof ct->lnbsl);
+	strmaxcpy(ct->rembsl, get_quoted(&s), sizeof ct->rembsl);
+	free(pszLine);
 	return 1;
 }
 
@@ -831,7 +840,7 @@ static int s_t_open(int title, int st_type, FSELINFO *fsp)
 			_ttry->max++;
 		}
 		_ttry->t[0].type = TCMD_TAGFILE;
-		_ttry->t[0].fn = string_allocate(_fseltarget);
+		_ttry->t[0].fn = _strdup(_fseltarget);
 		_ttry->curr = 0;
 		return xref_readTagFile(_fseltarget,&_tagfile);
 	}
@@ -878,8 +887,8 @@ int EdFindWordCursor(dir)
 {	char *s,buf[256];
 
 	if ((s = gettag(buf,&buf[sizeof buf],char_isIdentifier,0)) != 0L) {
-		strcpy(_currentSearchAndReplaceParams.searchPattern,s);
-		return find_expressionAgainInCurrentFile(dir);
+		RE_PATTERN *pPattern = regex_compileWithDefault(s);
+		return pPattern && find_expressionInCurrentFile(dir, pPattern, _currentSearchAndReplaceParams.options);
 	}
 	return 0;
 }

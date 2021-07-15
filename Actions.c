@@ -118,3 +118,15 @@ void action_registerAction(int commandId, ACTION_BINDING binding, BOOL bEvaluate
 		action_reevaluate(pNew, pNew->ac_bindings);
 	}
 }
+
+/*
+ * Remove all actions and action bindings. 
+ */
+void action_destroyAll() {
+	size_t nActions = arraylist_size(_allActions);
+	for (int i = 0; i < nActions; i++) {
+		free(arraylist_get(_allActions, i));
+	}
+	arraylist_destroy(_allActions);
+	_allActions = NULL;
+}

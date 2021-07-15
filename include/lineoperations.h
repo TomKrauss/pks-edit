@@ -194,8 +194,8 @@ typedef struct tagCARET {
 	long  col;				/* The column index in screen coordinates (not into the buffer) */
 } CARET;
 
-typedef struct ftable {
-	struct ftable *next;
+typedef struct tagFTABLE {
+	struct tagFTABLE*next;
 	char 	fname[256];
 	long 	nlines;
 	long 	lastln,lastcol;	/* start of previous search .. */
@@ -450,6 +450,12 @@ extern int ft_expandTabsWithSpaces(LINE* lp, long* nt);
  * Release all resources associated with a file.
  */
 extern void ft_bufdestroy(FTABLE* fp);
+
+/*
+ * Release the scratch buffer as soon as we are done.
+ * Note, that afterwards PKS Edit is not functionable any more.
+ */
+void ft_destroyCaches();
 
 /**
  * Make the passed file the "current error file" - which can be used by clicking on

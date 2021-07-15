@@ -109,6 +109,11 @@ extern void ic_measureIconTypeItem(MEASUREITEMSTRUCT* mp);
  */
 extern void ic_ownerDrawIconType(HDC hdc, RECT* rcp, void* par, int nItem, int nCtl);
 
+/*
+ * Destroy all registered icon classes.
+ */
+extern void ic_destroyClasses();
+
 #define DESKTOPICONS_H
 
 #endif // !DESKTOPICONS_H

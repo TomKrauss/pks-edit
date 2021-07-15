@@ -14,7 +14,7 @@
  */
 
 #include <windows.h>
-
+#include "alloc.h"
 #include "trace.h"
 #include "lineoperations.h"
 #include "edierror.h"

@@ -125,7 +125,6 @@ int find_initializeReplaceByExpression(unsigned char* replaceByExpression) {
  * Remember the last expression searched for by the user.
  */
 void find_setCurrentSearchExpression(char *pExpression) {
-	hist_saveString(SEARCH_PATTERNS, pExpression);
 	strcpy(_currentSearchAndReplaceParams.searchPattern, pExpression);
 }
 
@@ -248,6 +247,7 @@ static int find_updateSelectionToShowMatch(WINFO *wp,long ln,int col, RE_MATCH *
 	caret_placeCursorMakeVisibleAndSaveLocation(wp, ln,col);
 	bl_hideSelection(wp, 1);
 	bl_setSelection(wp, wp->caret.linePointer, wp->caret.offset, wp->caret.linePointer, dc + wp->caret.offset);
+	render_repaintWindowLine(wp, wp->caret.ln);
 	return dc;
 }
 

@@ -60,7 +60,7 @@ static int __ftw(char *path,int depth)
 		return 0;
 	}
 
-	pdta = _alloc(sizeof *pdta);
+	pdta = malloc(sizeof *pdta);
 
 	strdcpy(target,path,"*.*");
 
@@ -68,7 +68,7 @@ static int __ftw(char *path,int depth)
 		do {
 
 			if (ed_abort(0)) {
-				_free(pdta);
+				free(pdta);
 				return 1;
 			}
 
@@ -83,7 +83,7 @@ static int __ftw(char *path,int depth)
 						strdcpy(target,path,pdta->ff_name);
 						i = (*_func)(target,pdta);
 						if (i) {
-							_free(pdta);
+							free(pdta);
 							return i;
 						}
 					}
@@ -93,7 +93,7 @@ static int __ftw(char *path,int depth)
 					strdcpy(newpath,path,pdta->ff_name);
 					i = __ftw(newpath,depth);
 					if (i != 0) {
-						_free(pdta);
+						free(pdta);
 						return i;
 					}
 				}
@@ -102,7 +102,7 @@ static int __ftw(char *path,int depth)
 		} while (!findnext(pdta));
 	}
 
-	_free(pdta);
+	free(pdta);
 	return i;
 }
 

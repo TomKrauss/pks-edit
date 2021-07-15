@@ -15,7 +15,7 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
+#include "alloc.h"
 #include <tos.h>
 #include "trace.h"
 #include "lineoperations.h"
@@ -56,23 +56,19 @@ static unsigned char* _scratchstart;
 /*------------------------------*/
 BOOL ft_initializeReadWriteBuffers(void)
 {
-	if ((_linebuf = _alloc(LINEBUFSIZE)) == 0) {
+	if ((_linebuf = malloc(LINEBUFSIZE)) == 0) {
 		return FALSE;
 	}
 	_scratchstart = _linebuf+FBUFSIZE;
 	return TRUE;
 }
 
-/*--------------------------------------
- * Returns the default document type descriptor for situations,
- * where no document type descriptor was assigned to a file.
+/*
+ * Release the scratch buffer as soon as we are done. 
  */
-static EDIT_CONFIGURATION* GetDefaultDocumentTypeDescriptor() {
-	static EDIT_CONFIGURATION* _defaultDocumentTypeDescriptor;
-	if (_defaultDocumentTypeDescriptor == NULL) {
-		_defaultDocumentTypeDescriptor = doctypes_createDefaultDocumentTypeDescriptor();
-	}
-	return _defaultDocumentTypeDescriptor;
+void ft_destroyCaches() {
+	free(_linebuf);
+	_linebuf = NULL;
 }
 
 /*---------------------------------*/
@@ -90,8 +86,8 @@ static P2LIST *_p2list;
 /*---------------------------------*/
 static int list2_destroy(void *elem)
 {
-	_free(((P2LIST*)elem)->p1);
-	_free(((P2LIST*)elem)->p2);
+	free(((P2LIST*)elem)->p1);
+	free(((P2LIST*)elem)->p2);
 	return 1;
 }
 
@@ -101,8 +97,8 @@ static int list2_destroy(void *elem)
 static void list2_insert(P2LIST **head, char *p1, char *p2)
 {	P2LIST *pl;
 
-	if ((p1 = string_allocate(p1)) != 0 &&
-	    (p2 = string_allocate(p2)) != 0 &&
+	if ((p1 = _strdup(p1)) != 0 &&
+	    (p2 = _strdup(p2)) != 0 &&
 	    (pl = (P2LIST*)ll_insert((LINKED_LIST**)head,sizeof *pl)) != 0) {
 		pl->p1 = p1;
 		pl->p2 = p2;
@@ -246,7 +242,7 @@ EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallba
 		ofs  = bufferSize;
 		pend = &bufferStart[got];
 
-		if ((q = (*lineExtractedCallback)(par,GetDefaultDocumentTypeDescriptor(),&bufferStart[-len],pend)) == 0)
+		if ((q = (*lineExtractedCallback)(par,doctypes_getDefaultDocumentTypeDescriptor(),&bufferStart[-len],pend)) == 0)
 			return 0;
 		if ((len = (int)(pend-q)) != 0) {
 			if (len < 128) {
@@ -311,7 +307,7 @@ EXPORT int ft_readfile(FTABLE *fp, EDIT_CONFIGURATION *documentDescriptor)
 
 	f = ln_createMultipleLinesFromBuffer;
 	if (documentDescriptor == 0) {
-		documentDescriptor = GetDefaultDocumentTypeDescriptor();
+		documentDescriptor = doctypes_getDefaultDocumentTypeDescriptor();
 	}
 
 	if ((nl = documentDescriptor->nl) < 0)
@@ -481,7 +477,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 	return 0;
 #else
 	if (!linp) {
-		linp = GetDefaultDocumentTypeDescriptor();
+		linp = doctypes_getDefaultDocumentTypeDescriptor();
 	}
 
 	if ((saveLockFd = fp->lockFd) > 0) {

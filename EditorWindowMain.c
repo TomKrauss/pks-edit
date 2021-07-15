@@ -18,7 +18,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include "alloc.h"
 #include "trace.h"
 #include "linkedlist.h"
 #include "caretmovement.h"
@@ -836,6 +836,7 @@ static void ww_windowClosed(WINFO* wp) {
 	}
 	arraylist_remove(pList, wp);
 	if (arraylist_size(pList) == 0) {
+		arraylist_destroy(fp->views);
 		fp->views = NULL;
 		ft_destroy(fp);
 	}

@@ -15,10 +15,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+#include	"alloc.h"
 # include	"edfuncs.h"
 # include	"resource.h"
 
-extern char	*_alloc();
+extern char	*malloc();
 
 static RSCTABLE __k = {
 	0,	"default",	sizeof _keymaptab, 	_keymaptab,
@@ -38,7 +39,7 @@ void key_destroytables(void)
 	
 	for (rp = _keytables; rp; rp = rp->rt_next) {
 		if (rp != &__k) {
-			_free(rp);
+			free(rp);
 		}
 	}
 	_keytables = &__k;

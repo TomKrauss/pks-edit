@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <malloc.h>
+#include "alloc.h"
 #include "pksedit.h"
 #include "winutil.h"
 

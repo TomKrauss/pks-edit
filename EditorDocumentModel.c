@@ -14,6 +14,7 @@
  */
 
 #include <windows.h>
+#include "alloc.h"
 #include "linkedlist.h"
 #include "lineoperations.h"
 #include "winfo.h"
@@ -27,7 +28,7 @@ EXPORT void ln_listfree(register LINE* lp) {
 
 	while ((lps = lp) != 0) {
 		lp = lp->next;
-		_free(lps);
+		free(lps);
 	}
 }
 

@@ -12,7 +12,7 @@
 
 #include "encryption.h"
 #include <string.h>
-#include <malloc.h>
+#include "alloc.h"
 
 #define	LITTLE_ENDIAN		1
 

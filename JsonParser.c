@@ -16,7 +16,7 @@
  */
 
 #include <string.h>
-#include <stdlib.h>
+#include "alloc.h"
 #include <ctype.h>
 #include <stdio.h>
 #include "tos.h"
@@ -190,7 +190,7 @@ static int json_getStringArray(char* pszBuf, jsmntok_t* tokens, int firstToken, 
 			if (*pTargetSlot == 0) {
 				*pTargetSlot = arraylist_create(5);
 			}
-			arraylist_add((ARRAY_LIST*)*pTargetSlot, stralloc(tokenContents));
+			arraylist_add((ARRAY_LIST*)*pTargetSlot, _strdup(tokenContents));
 		}
 	}
 	return i;
@@ -229,7 +229,7 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 				break;
 			case RT_ALLOC_STRING:
 				if (tokens[i].type == JSMN_STRING) {
-					*((char**)pTargetSlot) = string_allocate(tokenContents);
+					*((char**)pTargetSlot) = _strdup(tokenContents);
 				}
 				break;
 			case RT_CHAR: 

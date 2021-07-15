@@ -16,6 +16,7 @@
  */
 
 #include <windows.h>
+#include "alloc.h"
 #include "winterf.h"
 #include "lineoperations.h"
 #include "pksedit.h"
@@ -160,7 +161,7 @@ EXPORT int clp_getdata(void)
 				bp->nlines = ft.nlines;
 				ret = 1;
 			}
-            _free(lpTemp);
+            free(lpTemp);
 		}
 		GlobalUnlock(hClip);
 	}

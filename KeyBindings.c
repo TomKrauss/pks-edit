@@ -15,7 +15,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include <stdlib.h>
+#include "alloc.h"
 #include "lineoperations.h"
 #include "edfuncs.h"
 #include "resource.h"
@@ -49,11 +49,11 @@ void key_destroytables(void)
 	
 	for (rp = _keytables; rp; rp = rpnext) {
 		if (rp->rt_data != _keymaptab) {
-			_free(rp->rt_data);
+			free(rp->rt_data);
 		}
 		rpnext = rp->rt_next;
 		if (rp != &__k) {
-			_free(rp);
+			free(rp);
 		}
 	}
 	_keytables = &__k;

@@ -101,12 +101,6 @@ extern char* string_abbreviateFileNameOem(const char* fn);
  */
 extern char* string_getFullPathName(const char* path, const char* fn);
 
-/*------------------------------------------------------------
- * string_allocate()
- * allocate a copy of the passed string.
- */
-unsigned char* string_allocate(unsigned char* buf);
-
 /*
  * Free the dereferenced pointer and initialize the space pointed to with NULL.
  */
@@ -121,12 +115,6 @@ extern void destroy(void** ap);
  * explicitly exclude all files named *.obj.
  */
 extern int string_matchFilename(char* string, char* pattern);
-
-/*--------------------------------------------------------------------------
- * stralloc()
- * Allocate a string and copy it.
- */
-unsigned char* stralloc(unsigned char* buf);
 
 /*--------------------------------------------------------------------------
  * string_isSpace()

@@ -547,7 +547,7 @@ static int undo_cash(FTABLE *fp, LINE *lpfirst, LINE *lplast)
 	size  = ln_cnt(lpfirst,lplast);
 	nrec  = size;
 	size *= sizeof(RECORD);
-	if ((rec  = _alloc(size)) == 0)
+	if ((rec  = malloc(size)) == 0)
 		return 0;
 
 	for (lp = lpfirst, rp = rec; ; lp = lp->next, rp++) {
@@ -557,8 +557,8 @@ static int undo_cash(FTABLE *fp, LINE *lpfirst, LINE *lplast)
 			break;
 	}
 
-	if ((recpar = _alloc(sizeof(RECPARAMS))) == 0) {
-		_free(rec);
+	if ((recpar = malloc(sizeof(RECPARAMS))) == 0) {
+		free(rec);
 		return 0;
 	}
 	recpar->lpfirst = lpfirst->prev;
@@ -606,7 +606,7 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 	_sortflags = sortflags;
 
 	l1 = wp->caret.ln;
-	if ((_rectab = _alloc((unsigned )(MAXREC*sizeof(RECORD)))) == 0) {
+	if ((_rectab = malloc((unsigned )(MAXREC*sizeof(RECORD)))) == 0) {
 		return 0;
 	}
 
@@ -628,7 +628,7 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 		ret = 1;
 	}
 
-	_free(_rectab);
+	free(_rectab);
 	_rectab = 0;
 
 	return ret;

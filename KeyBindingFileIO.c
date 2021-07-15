@@ -201,7 +201,7 @@ static char *macro_cutTextWithQuotes(char **pszText)
 	buf[_quotedLength] = 0;
 
 	*pszText = d;
-	return string_allocate(buf);
+	return _strdup(buf);
 }
 
 /*--------------------------------------------------------------------------

@@ -36,6 +36,11 @@ extern void hist_readLine(LINE* lp);
  */
 extern void hist_saveAllEntriesTo(FTABLE* fp);
 
+/*
+ * Destroy all data structures related to the PKS Edit history.
+ */
+extern void hist_destroy();
+
 #define	EDHIST_H
 # endif	/* EDHIST_H */
 

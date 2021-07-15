@@ -17,24 +17,12 @@
  */
 
 #include <windows.h>
-#include <stdlib.h>
+#include "alloc.h"
 #include <ctype.h>
 
 #include "edctype.h"
 #include "pathname.h"
 #include "stringutil.h"
-
- /*--------------------------------------------------------------------------
-  * stralloc()
-  */
-unsigned char* stralloc(unsigned char* buf) {
-	unsigned char* d;
-
-	if ((d = malloc(lstrlen(buf) + 1)) != 0) {
-		lstrcpy(d, buf);
-	}
-	return d;
-}
 
 /*
  * Return a pointer to the last matching position, where a character can be found in a String 
@@ -221,19 +209,6 @@ char *string_abbreviateFileNameOem(const char *fn) {
 	char *ret = string_abbreviateFileName(fn);
 	OemToAnsi(ret,ret);
 	return ret;
-}
-
-/*------------------------------------------------------------
- * string_allocate()
- * allocate a copy of the passed string.
- */
-unsigned char* string_allocate(unsigned char* buf) {
-	unsigned char* d;
-
-	if ((d = malloc(lstrlen(buf) + 1)) != 0) {
-		lstrcpy(d, buf);
-	}
-	return d;
 }
 
 

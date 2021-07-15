@@ -16,6 +16,7 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include "alloc.h"
 #include "trace.h"
 #include "winterf.h"
 #include "lineoperations.h"
@@ -114,14 +115,14 @@ void st_redraw(BOOL bUpdateMessageOnly)
 void st_seterrmsg(char *msg)
 {
 	if (pszStatusMessage) {
-		_free(pszStatusMessage);
+		free(pszStatusMessage);
 		pszStatusMessage = 0;
 	} else if (!msg) {
 		return;
 	}
 
 	if (msg) {
-		pszStatusMessage = string_allocate(msg);
+		pszStatusMessage = _strdup(msg);
 	}
 	st_redraw(TRUE);
 }

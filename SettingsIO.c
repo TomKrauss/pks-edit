@@ -373,13 +373,13 @@ void *prof_llinsert(void *Head, int size, char *group, char *item, char **idata)
 	if (!prof_getPksProfileString(group, item, szBuf, sizeof szBuf))
 		return 0;
 
-	if ((s = string_allocate(szBuf)) == 0) {
+	if ((s = _strdup(szBuf)) == 0) {
 		return 0;
 	}
 
 	if ((lp = (struct llist*)ll_find(*(void**)Head,item)) == 0) {
 		if ((lp = (struct llist*)ll_insert(Head,size)) == 0) {
-			_free(s);
+			free(s);
 			return 0;
 		}
 

@@ -631,6 +631,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 						error_showError("Falscher regulärer Ausdruck.", NULL);
 						return FALSE;
 					}
+					hist_saveString(SEARCH_PATTERNS, (LPSTR)ip);
 				}
 				if ( idCtrl == IDOK && 
 					item == IDD_REPLS && 

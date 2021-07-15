@@ -28,7 +28,6 @@
 #include "linkedlist.h"
 #include "lineoperations.h"
 #include "grammar.h"
-#include "project.h"
 #include "fileselector.h"
 #include "edierror.h"
 #include "stringutil.h"
@@ -160,6 +159,14 @@ EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor() {
 	return pDescriptor;
 }
 
+/*--------------------------------------
+ * Returns the default document type descriptor for situations,
+ * where no document type descriptor was assigned to a file.
+ */
+EDIT_CONFIGURATION* doctypes_getDefaultDocumentTypeDescriptor() {
+	return config.dc_defaultEditorConfiguration;
+}
+
 /*--------------------------------------------------------------------------
  * doctypes_getRelatedFilename()
  */
@@ -273,30 +280,24 @@ BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename) {
 	char 			fname[1024];
 	DOCUMENT_TYPE *		llp;
 	EDIT_CONFIGURATION*	lp;
-	PROJECTITEM *	pip;
 
-	if ((pip = proj_finditem(filename)) != 0 &&
-		pip->pi_doctype != 0) {
-		llp = (DOCUMENT_TYPE *)pip->pi_doctype;
-	} else {
-		int nRanking = 100;
-		int nMatchRanking;
-		DOCUMENT_TYPE* pFound = NULL;
-		string_splitFilename(filename,(char *)0, fname);
-		for (llp = config.dc_types, lp = 0; llp != 0 && lp == 0; llp = llp->ll_next) {
-			if (string_matchFilename(fname,llp->ll_match)) {
-				// Select most explicit file name pattern - e.g. prefer *.c over *.* and prefer *.cpp over *.cpp;*.h
-				nMatchRanking = string_countCharacters(llp->ll_match, '*');
-				if (nMatchRanking < nRanking) {
-					nMatchRanking = nRanking;
-					pFound = llp;
-				}
+	int nRanking = 100;
+	int nMatchRanking;
+	DOCUMENT_TYPE* pFound = NULL;
+	string_splitFilename(filename,(char *)0, fname);
+	for (llp = config.dc_types, lp = 0; llp != 0 && lp == 0; llp = llp->ll_next) {
+		if (string_matchFilename(fname,llp->ll_match)) {
+			// Select most explicit file name pattern - e.g. prefer *.c over *.* and prefer *.cpp over *.cpp;*.h
+			nMatchRanking = string_countCharacters(llp->ll_match, '*');
+			if (nMatchRanking < nRanking) {
+				nMatchRanking = nRanking;
+				pFound = llp;
 			}
 		}
-		if (pFound) {
-			lp = pFound->ll_documentDescriptor;
-			llp = pFound;
-		}
+	}
+	if (pFound) {
+		lp = pFound->ll_documentDescriptor;
+		llp = pFound;
 	}
 	if (lp == NULL && config.dc_defaultEditorConfiguration != NULL) {
 		lp = config.dc_defaultEditorConfiguration;
@@ -448,6 +449,7 @@ int doctypes_initAllDocumentTypes(void) {
 	DOCUMENT_TYPE* dp;
 
 	memset(&config, 0, sizeof config);
+	int ret = 0;
 	if (json_parse(_linfsel.fname, &config, _doctypeConfigurationRules)) {
 		for (dp = config.dc_types; dp != NULL; dp = dp->ll_next) {
 			lp = config.dc_editorConfigurations;
@@ -462,8 +464,11 @@ int doctypes_initAllDocumentTypes(void) {
 				lp = lp->next;
 			}
 		}
-		return 1;
+		ret = 1;
 	}
-	return 0;
+	if (!config.dc_defaultEditorConfiguration) {
+		config.dc_defaultEditorConfiguration = doctypes_createDefaultDocumentTypeDescriptor();
+	}
+	return 1;
 }
 
