@@ -1,5 +1,5 @@
 [files]
-"C:\temp\JdbcSessionBig.java", line 2916: 0x2 0x3 -1 -1 -8 -31 79 15 1270 567
+"C:\Users\tom\AppData\Local\Temp\KEYS", line 1: 0x0 0x1 -1 -1 -8 -31 79 15 1270 567
 [find]
 !sessi
 !sessio
@@ -30,6 +30,7 @@
 !pack
 !DomainEvent
 !EventStore
+!ADD
 !.
 [filePatterns]
 !*.*
@@ -56,8 +57,6 @@
 !C:\source\pksedit\AsciiHexToLong.c
 !C:\source\pksedit\Clipboard.c
 !C:\Users\tom\AppData\Local\Temp\MACROS.PKC
-!C:\Users\tom\AppData\Local\Temp\KEYS
-!C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
 !C:\source\pksedit\ColumnBlocks.c
 !C:\source\pksedit\pks_sys\pkseditconfig.json
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java
@@ -71,6 +70,8 @@
 !C:\source\pksedit\BracketMatching.c
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\bloc\domain_event_handler.dart
 !C:\source\pksedit\README.md
+!C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
+!C:\Users\tom\AppData\Local\Temp\KEYS
 !C:\temp\JdbcSessionBig.java
 [pathes]
 !D:\tom\desktop\*.*
@@ -80,7 +81,6 @@
 !D:\source\pksedit\*.*
 !D:\source\pksedit\pks_sys\*.MAC
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
-!C:\source\pksedit\pks_sys\*.MAC
 !C:\source\*.*
 !C:\source\pksedit\pks_sys\*.*
 !C:\Users\tom\Desktop\*.*
@@ -90,3 +90,4 @@
 !C:\source\mx-graph-modeller\ui\src\app\*.*
 !C:\source\pksedit\*.*
 !C:\temp\*.*
+!C:\source\pksedit\pks_sys\*.MAC

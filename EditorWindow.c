@@ -42,8 +42,7 @@ static int EdHideCaret(HWND hwnd)
 /*------------------------------------------------------------
  * EdUpdateCaret()
  */
-static int EdUpdateCaret(WINFO *wp, CURSOR_TYPE type, int visible)
-{
+static int EdUpdateCaret(WINFO *wp, CURSOR_TYPE type, int visible) {
      if (!visible) {
 		if (type == CUR_OVERRIDE) {
 			CreateCaret(wp->ww_handle,NULL,wp->cwidth, wp->cheight);

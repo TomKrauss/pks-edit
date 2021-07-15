@@ -54,7 +54,7 @@ EdMouseMarkParts(long ), EdMouseMoveText(long ), EdMouseSelectLines(long ), EdMo
 EdAlert(long ), error_displayAlertBoxWithOptions(long ), EdPromptAssign(long ), EdFormatPrint(long ),
 EdGetSelectedText(long ), EdHideLines(long ), EdUnHideLine(long ), EdStringSubstitute(long ),
 EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdListBindings(long ),
-EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(),
+EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(), ww_zoomWindow(int anIncreaseFactor),
 EdCallWinHelp(long ), EdShowClipboard(long ), EdSaveAllFiles(), EdMenuTrackPopup(long ), EdBlockXtndMode(long );
 
 EDFUNC _edfunctab[] = {
@@ -81,7 +81,7 @@ EDFUNC _edfunctab[] = {
 EdMarkedLineOp, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,
 EdSearchListRead, '!', EW_HASFORM | 0,
 EdErrorListRead, '!', 0,
-0, '!', EW_NEEDSCURRF | EW_HASFORM | 0,
+ww_zoomWindow, '!', EW_NEEDSCURRF | 0,
 EdMacrosEdit, '!', EW_MULTI | 0,
 EdDocMacrosEdit, '!', 0,
 EdDocMacrosAdd, '!', EW_HASFORM | 0,
@@ -569,6 +569,8 @@ COMMAND _cmdseqtab[] = {
 /* 236 */ C_1FUNC, 122 /* ft_cloneWindow */, 0, "clone-window", "Zusätzliches Fenster öffnen;Zusätzliches Fenster",
 /* 237 */ C_1FUNC, 123 /* EdShiftSelection */, 1, "tab-shift-right", "Tab einfügen oder nach rechts schieben;Selektion nach rechts",
 /* 238 */ C_1FUNC, 123 /* EdShiftSelection */, -1, "tab-shift-left", "Nach links schieben;Selektion nach links",
+/* 239 */ C_1FUNC, 23 /* ww_zoomWindow */, 1, "zoom-increase", "Zoomfaktor ++;Zoomfaktor ++",
+/* 240 */ C_1FUNC, 23 /* ww_zoomWindow */, 0, "zoom-decrease", "Zoomfaktor --;Zoomfaktor --"
 };
 
 char _recorder[RECORDERSPACE];

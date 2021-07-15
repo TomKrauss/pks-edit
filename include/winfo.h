@@ -160,6 +160,7 @@ typedef struct tagWINFO {
      FSTYLE	markstyles[2];			/* text block appearance */
      void	*	fp;
      int		win_state;
+     float      zoomFactor;         // The text font size zoom factor.
 } WINFO;
 
 /*--------------------------------------------------------------------------

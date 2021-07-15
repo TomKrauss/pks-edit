@@ -207,6 +207,7 @@ static void test_highlight(HIGHLIGHTER* pHighlighter, WINFO* wp) {
  */
 void highlight_modelChange(HIGHLIGHTER* pHighlighter, MODEL_CHANGE* mp) {
 	if (pHighlighter->h_grammar == NULL) {
+		pHighlighter->h_lastLine = -1;
 		return;
 	}
 	switch (mp->type) {

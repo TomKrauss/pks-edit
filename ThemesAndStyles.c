@@ -70,6 +70,7 @@ typedef struct tagEDTEXTSTYLE {
 	int			size;
 	long		fgcolor;
 	long		bgcolor;
+	float		zoomFactor;
 	HFONT		hfont;				// cached font handle.
 	EDFONTATTRIBUTES style;
 } EDTEXTSTYLE;
@@ -100,7 +101,11 @@ static HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont) {
 		""					// lfFaceName[LF_FACESIZE];
 	};
 
-	_lf.lfHeight = pFont->size;
+	int size = pFont->size;
+	if (pFont->zoomFactor > 0.01) {
+		size = (int)(size * pFont->zoomFactor);
+	}
+	_lf.lfHeight = size;
 	_lf.lfWidth = 0;
 	_lf.lfCharSet = (pFont->style.bOem) ? OEM_CHARSET : pFont->charset;
 	_lf.lfWeight = pFont->style.weight;
@@ -286,21 +291,26 @@ void font_selectFontStyle(WINFO *wp, FONT_STYLE_CLASS nStyleIndex, HDC hdc) {
 	if (pStyle->faceName[0] == 0) {
 		pStyle = pDefaultStyle;
 	}
-	TEXTMETRIC tm;
-	int bOem = (wp->dispmode & SHOWOEM) ? 1 : 0;
-	if (pStyle->style.bOem != bOem || pStyle->hfont == NULL) {
-		pStyle->hfont = font_createFontWithStyle(pStyle);
-	}
-
-	if (!pStyle->hfont) {
-		return;
-	}
 	if (GetMapMode(hdc) != MM_ANISOTROPIC) {
+		int bOem = (wp->dispmode & SHOWOEM) ? 1 : 0;
+		if (pStyle->style.bOem != bOem || pStyle->hfont == NULL || pStyle->zoomFactor != wp->zoomFactor) {
+			if (pStyle->hfont) {
+				DeleteObject(pStyle->hfont);
+			}
+			pStyle->zoomFactor = wp->zoomFactor;
+			pStyle->style.bOem = bOem;
+			pStyle->hfont = font_createFontWithStyle(pStyle);
+		}
+
+		if (!pStyle->hfont) {
+			return;
+		}
 		// Only if not in printing or preview mode.
 		// TODO: kind of hacky way to detect printing mode.
 		SelectObject(hdc, pStyle->hfont);
 	}
 
+	TEXTMETRIC tm;
 	GetTextMetrics(hdc,&tm);
 	wp->cwidth  = tm.tmAveCharWidth;
 	wp->cheight = tm.tmHeight/* + tm.tmExternalLeading */;

@@ -278,16 +278,9 @@ static void undo_allocateCommand(UNDO_STACK* pStack, FTABLE* fp, BOOLEAN bFreeLi
 static void initUndoCommand(FTABLE* fp, UNDO_COMMAND* pCommand) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	MARK* pMark;
-	LINE* lp1, * lptmp;
 	pCommand->fileChangedFlag = fp->flags & F_MODIFIED ? TRUE : FALSE;
 	pCommand->fileSaveTime = fp->ti_saved;
-	lptmp = fp->tln;
-	if (lptmp != 0 && (lp1 = ln_cut(lptmp, lptmp->len, 0, lptmp->len)) != 0L) {
-		ln_replace(fp, lptmp, lp1);
-		lp1->lflg = lptmp->lflg;
-		free(lptmp);
-		fp->tln = lp1;
-	}
+
 	pCommand->wp = wp;
 	pCommand->ln = wp->caret.ln;
 	pCommand->col = wp->caret.offset;

@@ -126,6 +126,7 @@ static int xref_destroy(TAGTRY* pTry) {
 	for (int i = 0; i < DIM(pTry->t); i++) {
 		if (pTry->t[i].fn) {
 			free(pTry->t[i].fn);
+			pTry->t[i].fn = NULL;
 		}
 	}
 	return 1;

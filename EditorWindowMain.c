@@ -798,7 +798,7 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd) {
 	wp->edwin_handle = hwnd;
 
 	ww_applyDisplayProperties(wp);
-		 
+	wp->zoomFactor = 1.0;
 	wp->win_id = ++nwindows;
 	wp->maxVisibleLineLen = -1;
 	return wp;

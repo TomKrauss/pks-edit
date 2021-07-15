@@ -294,8 +294,8 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
 
 	hwnd = wp->ww_handle;
-
 	hdc = BeginPaint(hwnd, &ps);
+
 	font_selectFontStyle(wp, FS_NORMAL, hdc);
 	hBrushBg = CreateSolidBrush(pTheme->th_defaultBackgroundColor);
 	hBrushCaretLine = CreateSolidBrush(pTheme->th_caretLineColor);
@@ -370,7 +370,7 @@ EXPORT void render_paintWindow(WINFO* wp)
  */
 static void render_invalidateRect(WINFO* wp, RECT* pRect) {
 	RECT r2;
-	InvalidateRect(wp->ww_handle, pRect, 0);
+	InvalidateRect(wp->ww_handle, pRect, 1);
 	if (wp->lineNumbers_handle != NULL) {
 		if (pRect) {
 			GetClientRect(wp->lineNumbers_handle, &r2);
@@ -569,3 +569,28 @@ EXPORT void render_selectCustomCaret(int on)
 	}
 }
 
+/*
+ * Increase / decrease the zoom factor of the current window. 
+ */
+int ww_zoomWindow(int anIncreaseFactor) {
+	WINFO* wp = ww_getCurrentEditorWindow();
+
+	if (wp == 0) {
+		return 0;
+	}
+	if (anIncreaseFactor) {
+		wp->zoomFactor = 5 * wp->zoomFactor / 4;
+	} else {
+		wp->zoomFactor = 4 * wp->zoomFactor / 5;
+	}
+	PAINTSTRUCT ps;
+	HDC hdc = BeginPaint(wp->ww_handle, &ps);
+	font_selectFontStyle(wp, FS_NORMAL, hdc);
+	EndPaint(wp->ww_handle, &ps);
+	wt_tcursor(wp, 0);
+	wt_tcursor(wp, 1);
+	ww_setScrollCheckBounds(wp);
+	render_repaintForWindow(wp, NULL);
+
+	return 1;
+}

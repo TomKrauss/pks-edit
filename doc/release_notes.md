@@ -6,11 +6,15 @@
 
 #### New
 - PKS Edit supports now syntax highlighting based on syntax rules defined in a mylanguage.grammar.json file. Rules
-  are for now limited to applying lexical analysis only. 
+  are for now limited to applying lexical analysis only. For some of the most common programming languages grammar files
+  are provided (C/C++, Java, Typescript, Dart, JSON, Shell, Batch-Files)
+- Zooming works now by pressing Ctrl+ and Ctrl-
 
 #### Fixed
 - Some issues with regular expressions (in particular a possible endless loop when compiling complex syntax) have been
   fixed.
+- Some memory leaks were fixed, which could in particular observed when performing complex operations on large files (like global 
+  search&replace with many replacements).
 
 ### 1.9.1
 

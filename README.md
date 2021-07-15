@@ -11,13 +11,14 @@ The editor contains only some basic features compared to modern text editors suc
 - search & replace in multiple files
 - compare files
 - syntax highlighting
-- sort files
+- multiple windows to edit one file
 - follow cross references in code (requires a tag file - e.g. created using ctags)
 - auto-indentation and formatting
+- sorting files
 - record & play of macros
 - it is pretty fast, if files do not get too big (no memory mapped files support yet)
 - different selection styles (block, ...)
-- basic support for different file types
+- support for different file types and for user-defined grammars
 - and some more - but that's it
 
 ## Installing and Using PKS Edit
