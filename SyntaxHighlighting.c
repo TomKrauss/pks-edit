@@ -43,6 +43,7 @@ typedef struct tagHIGHLIGHTER {
 	LINE* h_lastLinePointer;
 	TOKEN_LINE_CACHE h_lines[WINDOW_SIZE];
 } HIGHLIGHTER;
+
 /*
  * Destroy the caches of the highlighter.
  */
@@ -189,15 +190,37 @@ static unsigned char* highlight_usingGrammar(HIGHLIGHTER* pHighlighter, WINFO* w
 	}
 	return pHighlighter->h_styles;
 }
-	
+
+#ifdef _DEBUG
+static void test_highlight(HIGHLIGHTER* pHighlighter, WINFO* wp) {
+	FTABLE* fp = wp->fp;
+	LINE* lpFirst = fp->firstl;
+	for (long ln = 0; lpFirst && lpFirst != fp->lastl; lpFirst = lpFirst->next, ln++) {
+		highlight_usingGrammar(pHighlighter, wp, lpFirst, ln);
+	}
+}
+#endif
+
 /*
  * Invalidates the highlighter data for the given line.
  * Note, that lp might be null, in which case all highlight data is discarded.
  */
-void highlight_invalidate(HIGHLIGHTER* pHighlighter, LINE* lp) {
-	pHighlighter->h_lastLine = -1;
-	if (lp == pHighlighter->h_lastLinePointer) {
-		pHighlighter->h_lastLinePointer = 0;
+void highlight_modelChange(HIGHLIGHTER* pHighlighter, MODEL_CHANGE* mp) {
+	if (pHighlighter->h_grammar == NULL) {
+		return;
+	}
+	switch (mp->type) {
+	case EVERYTHING_CHANGED:
+		highlight_destroyCaches(pHighlighter);
+		break;
+	case LINE_MODIFIED:
+	case LINE_REPLACED:
+		//test_highlight(pHighlighter, WIPOI(mp->fp));
+		pHighlighter->h_lastLine = -1;
+		if (mp->lp == pHighlighter->h_lastLinePointer) {
+			pHighlighter->h_lastLinePointer = 0;
+		}
+		break;
 	}
 }
 
@@ -213,11 +236,11 @@ unsigned char* highlight_calculate(HIGHLIGHTER* pData, WINFO* wp, LINE* lp, long
  * Return a syntax highlighter for a given grammar;
  */
 HIGHLIGHTER* highlight_getHighlighter(GRAMMAR* pGrammar) {
-	HIGHLIGHTER* pResult = calloc(1, sizeof(HIGHLIGHTER));
-	pResult->h_grammar = pGrammar;
-	pResult->h_calculate = highlight_usingGrammar;
-	grammar_initTokenTypeToStyleTable(pGrammar, pResult->h_tokenTypeToStyleTable);
-	highlight_invalidate(pResult, 0);
-	return pResult;
+	HIGHLIGHTER* pHighlighter = calloc(1, sizeof(HIGHLIGHTER));
+	pHighlighter->h_grammar = pGrammar;
+	pHighlighter->h_calculate = highlight_usingGrammar;
+	grammar_initTokenTypeToStyleTable(pGrammar, pHighlighter->h_tokenTypeToStyleTable);
+	pHighlighter->h_lastLine = -1;
+	return pHighlighter;
 }
 

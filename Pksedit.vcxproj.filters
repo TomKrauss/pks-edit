@@ -267,7 +267,7 @@
     <ClCompile Include="EditorDocumentModel.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\ArrayList.c">
+    <ClCompile Include="ArrayList.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Actions.c">
@@ -283,6 +283,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SyntaxHighlighting.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HashMap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -462,6 +465,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\syntaxhighlighting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\hashmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -22,6 +22,7 @@
 #include "tos.h"
 #include "linkedlist.h"
 #include "arraylist.h"
+#include "hashmap.h"
 #include "jsonparser.h"
 #define JSMN_PARENT_LINKS
 #include "jsmn.h"
@@ -177,7 +178,7 @@ static int json_getIntArray(char* pszBuf, jsmntok_t* tokens, int firstToken, int
 /*
  * Returns a String array_list. Returns the index to the token array containing all tokens "after the array definition".
  */
-static int json_getStringArray(char* pszBuf, jsmntok_t* tokens, int firstToken, int numberOfTokens, int bEnd, void** pTargetSlot, size_t maxElements) {
+static int json_getSet(char* pszBuf, jsmntok_t* tokens, int firstToken, int numberOfTokens, int bEnd, void** pTargetSlot, size_t maxElements) {
 	char tokenContents[MAX_TOKEN_SIZE + 1];
 	int i = firstToken;
 
@@ -188,9 +189,9 @@ static int json_getStringArray(char* pszBuf, jsmntok_t* tokens, int firstToken, 
 		if (tokens[i].type == JSMN_STRING) {
 			json_tokenContents(pszBuf, &tokens[i], tokenContents);
 			if (*pTargetSlot == 0) {
-				*pTargetSlot = arraylist_create(5);
+				*pTargetSlot = hash_create(19, NULL, NULL);
 			}
-			arraylist_add((ARRAY_LIST*)*pTargetSlot, _strdup(tokenContents));
+			hash_put((HASH_MAP*)*pTargetSlot, (intptr_t)_strdup(tokenContents), 1);
 		}
 	}
 	return i;
@@ -250,9 +251,9 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 					i = json_getIntArray(pszBuf, tokens, i+1, numberOfTokens, tokens[i].end, pTargetSlot, pRule->r_descriptor.r_t_maxElements)-1;
 				}
 				break;
-			case RT_STRING_ARRAY:
+			case RT_SET:
 				if (tokens[i].type == JSMN_ARRAY) {
-					i = json_getStringArray(pszBuf, tokens, i + 1, numberOfTokens, tokens[i].end, pTargetSlot, pRule->r_descriptor.r_t_maxElements) - 1;
+					i = json_getSet(pszBuf, tokens, i + 1, numberOfTokens, tokens[i].end, pTargetSlot, pRule->r_descriptor.r_t_maxElements) - 1;
 				}
 				break;
 			case RT_INTEGER: {

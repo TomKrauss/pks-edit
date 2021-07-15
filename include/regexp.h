@@ -160,5 +160,10 @@ extern int regex_getPatternString(char* pResult, RE_PATTERN* pPattern);
  */
 extern int regex_matchesFirstChar(RE_PATTERN* pPattern, unsigned char c);
 
+/*
+ * Checks, whether the pattern starts with a '<' to match words.
+ */
+extern int regex_matchWordStart(RE_PATTERN* pPattern);
+
 #endif
 

@@ -20,6 +20,8 @@
 #include <string.h>
 #include <stddef.h>
 #include "alloc.h"
+#include "hashmap.h"
+#include "edctype.h"
 #include "regexp.h"
 #include "grammar.h"
 #include "jsonparser.h"
@@ -34,10 +36,11 @@ typedef struct tagGRAMMAR_PATTERN {
 	char  name[32];						// The name of the match - should use hierarchical names as for example 'comment.line' or 'keyword.control.java'
 										// The names may be "matched" against style selectors specified below
 	char* match;						// a simple RE pattern to match this pattern
+	int   wordmatch;					// set to true for patterns defined with <.... - used for optimization.
 	int   group;						// can use 1,2... to use only the group part of the match. 
 	char  begin[12];					// mutually exclusive with match, one may define a begin and end marker to match. May span multiple lines
 	char  end[12];						// the end marker maybe e.g. '$' to match the end of line. Currently only one multi-line pattern supported.
-	ARRAY_LIST* keywords;				// If an array list of keywords exists, these are matched after the pattern has matched.
+	HASH_MAP* keywords;					// If an array list of keywords exists, these are matched after the pattern has matched.
 	char* rePatternBuf;
 	char  style[32];					// Name of the style class to use.
 	RE_PATTERN* rePattern;
@@ -81,7 +84,7 @@ static JSON_MAPPING_RULE _patternRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(GRAMMAR_PATTERN, name), sizeof(((GRAMMAR_PATTERN*)NULL)->name)},
 	{	RT_ALLOC_STRING, "match", offsetof(GRAMMAR_PATTERN, match)},
 	{	RT_INTEGER, "group", offsetof(GRAMMAR_PATTERN, group)},
-	{	RT_STRING_ARRAY, "keywords", offsetof(GRAMMAR_PATTERN, keywords)},
+	{	RT_SET, "keywords", offsetof(GRAMMAR_PATTERN, keywords)},
 	{	RT_CHAR_ARRAY, "style", offsetof(GRAMMAR_PATTERN, style), sizeof(((GRAMMAR_PATTERN*)NULL)->style)},
 	{	RT_CHAR_ARRAY, "begin", offsetof(GRAMMAR_PATTERN, begin), sizeof(((GRAMMAR_PATTERN*)NULL)->begin)},
 	{	RT_CHAR_ARRAY, "end", offsetof(GRAMMAR_PATTERN, end), sizeof(((GRAMMAR_PATTERN*)NULL)->end)},
@@ -103,6 +106,11 @@ static JSON_MAPPING_RULE _grammarDefinitionsRules[] = {
 	{	RT_END}
 };
 
+static int grammar_destroyHashEntry(intptr_t key, intptr_t value) {
+	free((void*)key);
+	return 1;
+}
+
 static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {
 	if (pPattern->match) {
 		free(pPattern->match);
@@ -114,10 +122,7 @@ static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {
 		free(pPattern->rePatternBuf);
 	}
 	if (pPattern->keywords) {
-		for (int i = 0; i < arraylist_size(pPattern->keywords); i++) {
-			free(arraylist_get(pPattern->keywords, i));
-		}
-		arraylist_destroy(pPattern->keywords);
+		hash_destroy(pPattern->keywords, grammar_destroyHashEntry);
 	}
 	return 1;
 }
@@ -203,6 +208,7 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 					}
 				}
 			}
+			pPattern->wordmatch = regex_matchWordStart(pREPattern);
 		}
 		pPattern = pPattern->next;
 		state++;
@@ -255,7 +261,7 @@ GRAMMAR* grammar_findNamed(char* pszGrammarName) {
 /*
  * Stupid simple linear search to match a keyword in a list of given keywords. 
  */
-static int grammar_matchKeyword(ARRAY_LIST* pKeywords, char* pKey, char* pKeyEnd) {
+static int grammar_matchKeyword(HASH_MAP* pKeywords, char* pKey, char* pKeyEnd) {
 	if (!pKeywords) {
 		return 1;
 	}
@@ -266,13 +272,7 @@ static int grammar_matchKeyword(ARRAY_LIST* pKeywords, char* pKey, char* pKeyEnd
 	}
 	strncpy(szBuf, pKey, nLen);
 	szBuf[nLen] = 0;
-	size_t nMax = arraylist_size(pKeywords);
-	for (int i = 0; i < nMax; i++) {
-		if (strcmp(szBuf, arraylist_get(pKeywords, i)) == 0) {
-			return 1;
-		}
-	}
-	return 0;
+	return hash_containsKey(pKeywords, (intptr_t)szBuf);
 }
 
 /*
@@ -315,11 +315,15 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 			short possibleStates = pGrammar->transitions[c];
 			if (possibleStates) {
 				int matched = 0;
-				for (int nStateOption = 0; nStateOption < 4; nStateOption++) {
+				while (possibleStates) {
 					LEXICAL_STATE state = possibleStates & 0xF;
 					GRAMMAR_PATTERN* pPattern = pGrammar->patternsByState[state];
 					if (!pPattern) {
 						break;
+					}
+					if (pPattern->wordmatch && i > 0 && pks_isalnum(pszBuf[i - 1])) {
+						possibleStates >>= 4;
+						continue;
 					}
 					RE_PATTERN* pRePattern = pPattern->rePattern;
 					if (pRePattern) {

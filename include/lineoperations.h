@@ -216,6 +216,20 @@ typedef struct tagFTABLE {
 	int		lockFd;			/* Filedescriptor for locking - <= 0 if none */
 } FTABLE;
 
+typedef enum { LINE_MODIFIED, LINE_REPLACED, LINE_INSERTED, LINE_DELETED, LINE_SPLIT, LINES_JOINED, EVERYTHING_CHANGED } MODEL_CHANGE_TYPE;
+
+// Sent, when changes occur in the data model.
+typedef struct tagMODEL_CHANGE {
+	MODEL_CHANGE_TYPE type;	// The type of change
+	FTABLE* fp;				// the file pointer
+	LINE* lp;				// single line modified
+	LINE* lpNew;			// If a line was replaced this is the new line.
+	int col1;				// modification "point" - the regex_addCharacterToCharacterClass where the modification starts
+	int col2;				// the second point in the line - if left to col1, chars are deleted if right to it chars are inserted
+	int len;				// number of characters inserted / removed
+} MODEL_CHANGE;
+
+
 extern int 	_playing;				/* recorder plays its game ... */
 
 void 	log_vsprintf(char *fmt,...);

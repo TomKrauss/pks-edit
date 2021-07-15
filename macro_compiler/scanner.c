@@ -648,7 +648,7 @@ int yyinit(jmp_buf *errb, char *sourcefile, LINE *lps, LINE *lpe)
 	static tables_inited;
 
 	if (!tables_inited) {
-		if (hash_create(HSIZE) == 0 ||
+		if (sym_create(HSIZE) == 0 ||
 		    !init_keywords()	   ||
 		    !init_funcs()) {
 			return 0;

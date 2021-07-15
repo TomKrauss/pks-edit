@@ -69,7 +69,7 @@ static ENTRY *hfind(char *key,ACTION action)
 	static 	ENTRY _ep;
 
 	if (!_htab) {
-		if (!hash_create(HSIZE)) {
+		if (!sym_create(HSIZE)) {
 			return 0;
 		}
 	}
@@ -109,11 +109,11 @@ static ENTRY *hfind(char *key,ACTION action)
 }
 
 /*---------------------------------*/
-/* hash_create()				*/
+/* sym_create()				*/
 /* neue Tabelle erzeugen			*/
 /* mit nel == 0, alte zerstoeren	*/
 /*---------------------------------*/
-int hash_create(unsigned nel)
+int sym_create(unsigned nel)
 {
 	if (_htab) {
 		if (_hsize == nel) {

@@ -29,7 +29,7 @@ typedef struct tagSYMBOL {
 
 extern int 	sym_insert(char *key, int symtype, intptr_t symdata);
 extern SYMBOL 	sym_find(char *key, char **key_ret);
-extern int 	hash_create(unsigned nel);
+extern int 	sym_create(unsigned nel);
 extern int 	sym_makeInternalSymbol(char *name, char ed_typ, intptr_t value);
 
 #define	SYM_H

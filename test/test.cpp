@@ -6,6 +6,7 @@ extern "C" {
 #include "../include/regexp.h"
 #include "../include/arraylist.h"
 #include "../include/linkedlist.h"
+#include "../include/hashmap.h"
 
 extern int string_matchFilename(char* string, char* pattern);
 }
@@ -523,6 +524,24 @@ namespace pkseditTests
 				Assert::AreEqual((char*)szString, p2);
 			}
 			arraylist_destroy(pList);
+
+		}
+	};
+
+	TEST_CLASS(hashMap)
+	{
+
+	public:
+		TEST_METHOD(BasicOperations)
+		{
+			HASH_MAP* pMap = hash_create(13, NULL, NULL);
+			hash_put(pMap, (intptr_t)"hans", 1);
+			hash_put(pMap, (intptr_t)"erwin", 1);
+			Assert::AreEqual(1, hash_put(pMap, (intptr_t)"gabi", 1));
+			Assert::AreEqual(0, hash_put(pMap, (intptr_t)"hans", 2));
+			Assert::AreEqual(3, hash_size(pMap));
+			Assert::AreEqual(1, hash_containsKey(pMap, (intptr_t)"hans"));
+			Assert::AreEqual(0, hash_containsKey(pMap, (intptr_t)"oscar"));
 
 		}
 	};

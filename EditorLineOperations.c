@@ -32,17 +32,6 @@ extern PASTE* bl_addrbyid(int id, int insert);
 // TODO: get rid of this hack.
 char* _linebuf;
 
-typedef enum { LINE_MODIFIED, LINE_REPLACED, LINE_INSERTED, LINE_DELETED, LINE_SPLIT, LINES_JOINED, EVERYTHING_CHANGED} MODEL_CHANGE_TYPE;
-
-typedef struct tagMODEL_CHANGE {
-	MODEL_CHANGE_TYPE type;	// The type of change
-	LINE* lp;				// single line modified
-	LINE* lpNew;			// If a line was replaced this is the new line.
-	int col1;				// modification "point" - the regex_addCharacterToCharacterClass where the modification starts
-	int col2;				// the second point in the line - if left to col1, chars are deleted if right to it chars are inserted
-	int len;				// number of characters inserted / removed
-} MODEL_CHANGE;
-
 /*---------------------------------*/
 /* ln_newbl()					*/
 /* CUT&PASTE-marked line deleted	*/
@@ -96,19 +85,18 @@ static int ln_delmarks(WINFO* wp, LINE* lp)
 }
 
 static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
+	highlight_modelChange(wp->highlighter, pChanged);
 	switch (pChanged->type) {
 	case EVERYTHING_CHANGED:
 		bl_hideSelection(wp, 0);
 		wp->caret.linePointer = NULL;
 		ll_destroy((LINKED_LIST**)&wp->fmark, (int (*)(void* elem))0);
 		wp->lpMinln = 0;
-		highlight_invalidate(wp->highlighter, NULL);
 		break;
 	case LINE_MODIFIED: {
 		if (wp->lpMinln == pChanged->lp) {
 			wp->lpMinln = 0;
 		}
-		highlight_invalidate(wp->highlighter, pChanged->lp);
 		MARK* mp = wp->fmark;
 		while (mp) {
 			if (mp->lm == pChanged->lp) {
@@ -187,7 +175,7 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
  * line.
  */
 static void ln_singleLineChanged(FTABLE* fp, MODEL_CHANGE_TYPE type, LINE* lp, LINE* pNewLine) {
-	MODEL_CHANGE param = {type};
+	MODEL_CHANGE param = {type, fp};
 	param.lp = lp;
 	param.lpNew = pNewLine;
 	ft_forAllViews(fp, ln_modelChanged, &param);
@@ -207,7 +195,7 @@ void ft_bufdestroy(FTABLE* fp) {
 	fp->tln = fp->firstl = 0;
 	file_closeFile(&fp->lockFd);
 	undo_destroyManager(fp);
-	MODEL_CHANGE change = {EVERYTHING_CHANGED};
+	MODEL_CHANGE change = {EVERYTHING_CHANGED, fp};
 	ft_forAllViews(fp, ln_modelChanged, &change);
 }
 
@@ -432,7 +420,7 @@ LINE *ln_break(FTABLE *fp, LINE *linep, int col) {
 		nlp->lflg = linep->lflg & (LNNOTERM|LNNOCR);
 		len++;
 		memmove(nlp->lbuf,&linep->lbuf[col],len);
-		MODEL_CHANGE change = {LINE_SPLIT};
+		MODEL_CHANGE change = {LINE_SPLIT, fp};
 		change.col1 = col;
 		change.lp = linep;
 		change.lpNew = nlp;
@@ -495,7 +483,7 @@ LINE *ln_join(FTABLE *fp, LINE *lp1, LINE *lp2, int bRemove)
 	lp1->lbuf[len] = 0;
 
 	if (bRemove) {
-		MODEL_CHANGE change = { LINES_JOINED };
+		MODEL_CHANGE change = { LINES_JOINED, fp };
 		change.lp = lp1;
 		change.lpNew = lp2;
 		ft_forAllViews(fp, ln_modelChanged, &change);
@@ -714,7 +702,7 @@ LINE *ln_modify(FTABLE *fp, LINE *lp, int col1, int col2) {
 	s = lp->lbuf;
 	memmove(s+col2,s+col1,copylen);
 	s[lplen] = 0;
-	MODEL_CHANGE change = {LINE_MODIFIED};
+	MODEL_CHANGE change = {LINE_MODIFIED, fp};
 	change.lp = lp;
 	change.col1 = col1;
 	change.col2 = col2;

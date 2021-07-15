@@ -240,14 +240,9 @@ static MATCHER* regex_getFirstMatchSection(RE_PATTERN* pPattern) {
 static void _convert(char* pDestination, int idx, int upper, int lower) {
 	char c1 = pDestination[idx];
 	if (upper) {
-		if (!isupper(c1)) {
-			pDestination[idx] = toupper(c1);
-		}
-	}
-	else {
-		if (!islower(c1)) {
-			pDestination[idx] = tolower(c1);
-		}
+		pDestination[idx] = toupper(c1);
+	} else {
+		pDestination[idx] = tolower(c1);
 	}
 }
 
@@ -264,11 +259,11 @@ static void adaptCase(char* pDestination, RE_MATCH* pMatch) {
 	for (int i = 0; pDestination[i]; i++) {
 		unsigned char c1 = pDestination[i];
 		unsigned char c2 = matched[matchIdx];
-		if (!isalpha(c1) && !isalpha(c2)) {
-			while (!isalpha(c1) && c1) {
+		if (!pks_isalpha(c1) && !pks_isalpha(c2)) {
+			while (c1 && !pks_isalpha(c1)) {
 				c1 = pDestination[i++];
 			}
-			while (!isalpha(c2) && matchIdx < matchedSize) {
+			while (matchIdx < matchedSize && !pks_isalpha(c2)) {
 				c2 = matched[matchIdx++];
 			}
 			if (!c1) {
@@ -277,16 +272,16 @@ static void adaptCase(char* pDestination, RE_MATCH* pMatch) {
 			i--;
 			matchIdx--;
 		}
-		if (isalpha(c2)) {
+		if (pks_isalpha(c2)) {
 			if (matchIdx < matchedSize) {
 				matchIdx++;
 				upper = 0;
 				lower = 0;
 			}
-			if (isupper(c2)) {
+			if (pks_isupper(c2)) {
 				upper = 1;
 			}
-			else if (islower(c2)) {
+			else if (pks_islower(c2)) {
 				lower = 1;
 			}
 		}
@@ -1257,6 +1252,14 @@ int regex_matchesFirstChar(RE_PATTERN* pPattern, unsigned char c) {
 		pMatcher = (MATCHER*) ((unsigned char*)pRange + sizeof(MATCH_RANGE));
 	}
 	return 0;
+}
+
+/*
+ * Checks, whether the pattern starts with a '<' to match words.
+ */
+int regex_matchWordStart(RE_PATTERN* pPattern) {
+	MATCHER* pMatcher = (MATCHER*)regex_getFirstMatchSection(pPattern);
+	return pMatcher->m_type == START_OF_IDENTIFIER;
 }
 
 /*--------------------------------------------------------------------------

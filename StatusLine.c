@@ -102,11 +102,16 @@ static void st_setparts(char *text, BOOL bUpdateMessageOnly)
 }
 
 
-void st_redraw(BOOL bUpdateMessageOnly)
-{	static char	szBuf[1024];
+void st_redraw(BOOL bUpdateMessageOnly) {	
+	static char	szBuf[1024];
+	char szNew[sizeof szBuf];
 
-	st_format(szBuf);
-	st_setparts(szBuf, bUpdateMessageOnly);
+	st_format(szNew);
+	if (strcmp(szNew, szBuf) != 0) {
+		strcpy(szBuf, szNew);
+		st_setparts(szBuf, bUpdateMessageOnly);
+		strcpy(szBuf, szNew);
+	}
 }
 
 /*--------------------------------------------------------------------------

@@ -27,7 +27,7 @@ extern HIGHLIGHTER* highlight_getHighlighter(GRAMMAR* pszGrammar);
 /*
  * Invalidates the highlighter data for the given line.
  */
-extern void highlight_invalidate(HIGHLIGHTER* pData, LINE* lp);
+extern void highlight_modelChange(HIGHLIGHTER* pData, MODEL_CHANGE* mp);
 
 /*
  * Destroy a syntax highlighter, when it not used any more.

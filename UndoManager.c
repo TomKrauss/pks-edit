@@ -115,7 +115,7 @@ static UNDO_COMMAND* undo_getCurrentRedoCommand(UNDO_STACK* pStack) {
 /*--------------------------------------------------------------------------
  * upfree()
  */
-static void upfree(UNDO_OPERATION *up, BOOLEAN freeLines) {
+static void upfree(UNDO_OPERATION *up, FTABLE* fp, BOOLEAN freeLines) {
 	struct tagUNDO_DELTA*	p;
 	UNDO_OPERATION *		prev;
 	int    		i;
@@ -124,7 +124,7 @@ static void upfree(UNDO_OPERATION *up, BOOLEAN freeLines) {
 		if (freeLines) {
 			for (i = 0; i < up->numberOfCommands; i++) {
 				p = &up->delta[i];
-				if (p->lp == NULL) {
+				if (p->lp == NULL || p->lp == fp->tln) {
 					continue;
 				}
 				if (p->op != O_INSERT && p->op <= O_LNORDER) {
@@ -195,12 +195,12 @@ EXPORT BOOL undo_saveOperation(FTABLE *fp, LINE *lp, LINE *lpAnchor,int op) {
 /*--------------------------------------------------------------------------
  * u_free()
  */
-static void u_free(UNDO_COMMAND *ubp, BOOLEAN freelines)
+static void u_free(UNDO_COMMAND *ubp, FTABLE* fp, BOOLEAN freelines)
 {
 	if (ubp == 0) {
 		return;
 	}
-	upfree(ubp->atomicSteps, freelines);
+	upfree(ubp->atomicSteps, fp, freelines);
 	free(ubp);
 }
 
@@ -233,21 +233,21 @@ EXPORT void undo_destroyManager(FTABLE *fp)
 
 	if (pUndoStack) {
 		for (int i = 0; i < pUndoStack->numberOfCommands; i++) {
-			u_free(pUndoStack->commands[i], TRUE);
+			u_free(pUndoStack->commands[i], fp, TRUE);
 		}
 		free(pUndoStack);
 		UNDOPOI(fp) = 0;
 	}
 }
 
-static void undo_deallocateExecutedCommands(UNDO_STACK* pStack) {
+static void undo_deallocateExecutedCommands(UNDO_STACK* pStack, FTABLE* fp, BOOLEAN bFreeLines) {
 	for (int i = pStack->current + 1; i < pStack->numberOfCommands; i++) {
 		UNDO_COMMAND* pCommand = pStack->commands[i];
 		if (pCommand == NULL) {
 			continue;
 		}
 		UNDO_OPERATION* pStep = pCommand->atomicSteps;
-		u_free(pStack->commands[i], FALSE);
+		u_free(pStack->commands[i], fp, bFreeLines);
 		pStack->commands[i] = NULL;
 	}
 }
@@ -255,12 +255,12 @@ static void undo_deallocateExecutedCommands(UNDO_STACK* pStack) {
 /*
  * Start a new undo command buffer.
  */
-static void undo_allocateCommand(UNDO_STACK* pStack) {
+static void undo_allocateCommand(UNDO_STACK* pStack, FTABLE* fp, BOOLEAN bFreeLines) {
 	// If we have possible "re-dos" - cancel them at this point, because we begin something new
-	undo_deallocateExecutedCommands(pStack);
+	undo_deallocateExecutedCommands(pStack, fp, bFreeLines);
 	pStack->numberOfCommands = pStack->current+1;
 	if (pStack->numberOfCommands >= pStack->maximumUndoCommands) {
-		u_free(pStack->commands[0], TRUE);
+		u_free(pStack->commands[0], fp, TRUE);
 		memmove(&pStack->commands[0], &pStack->commands[1], sizeof pStack->commands[0] * (pStack->numberOfCommands - 1));
 		pStack->numberOfCommands = pStack->maximumUndoCommands - 1;
 		pStack->commands[pStack->numberOfCommands] = NULL;
@@ -286,7 +286,7 @@ static void initUndoCommand(FTABLE* fp, UNDO_COMMAND* pCommand) {
 		ln_replace(fp, lptmp, lp1);
 		lp1->lflg = lptmp->lflg;
 		free(lptmp);
-		fp->tln = NULL;
+		fp->tln = lp1;
 	}
 	pCommand->wp = wp;
 	pCommand->ln = wp->caret.ln;
@@ -318,7 +318,7 @@ EXPORT void undo_startModification(FTABLE *fp)
 		return;
 
 	pUndoStack = UNDOPOI(fp);
-	undo_allocateCommand(pUndoStack);
+	undo_allocateCommand(pUndoStack, fp, TRUE);
 	pCommand = undo_getCurrentCommand(pUndoStack);
 	initUndoCommand(fp, pCommand);
 	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
@@ -412,8 +412,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	fp->tln = NULL;
 	if (!pCommand->fileChangedFlag && fp->ti_saved == pCommand->fileSaveTime) {
 		ft_setFlags(fp, fp->flags & ~F_MODIFIED);
-	}
-	else {
+	} else {
 		ft_setFlags(fp, fp->flags | F_MODIFIED);
 	}
 	return pRedoCommand;
@@ -422,9 +421,9 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 /*
  * Replace an undo command in the undo stack possibly freeing the old undo command. 
  */
-static void undo_replace(UNDO_STACK* pStack, UNDO_COMMAND* pCommand) {
+static void undo_replace(UNDO_STACK* pStack, UNDO_COMMAND* pCommand, FTABLE* fp) {
 	if (pStack->commands[pStack->current]) {
-		u_free(pStack->commands[pStack->current], FALSE);
+		u_free(pStack->commands[pStack->current], fp, FALSE);
 	}
 	pStack->commands[pStack->current] = pCommand;
 }
@@ -447,9 +446,9 @@ EXPORT BOOL undo_redoLastModification(FTABLE* fp) {
 	UNDO_COMMAND* pUndoCommand = applyUndoDeltas(fp, pCommand);
 	pStack->current++;
 	if (pUndoCommand != NULL) {
-		undo_replace(pStack, pUndoCommand);
+		undo_replace(pStack, pUndoCommand, fp);
 	} else {
-		undo_deallocateExecutedCommands(pStack);
+		undo_deallocateExecutedCommands(pStack, fp, FALSE);
 	}
 	_undoOperationInProgress = FALSE;
 	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
@@ -491,11 +490,11 @@ EXPORT BOOL undo_lastModification(FTABLE *fp)
 	_undoOperationInProgress = TRUE;
 	UNDO_COMMAND *pRedoCommand = applyUndoDeltas(fp, pCommand);
 	if (pRedoCommand != NULL) {
-		undo_replace(pStack, pRedoCommand);
+		undo_replace(pStack, pRedoCommand, fp);
 	}
 	pStack->current--;
 	if (pRedoCommand == NULL) {
-		undo_deallocateExecutedCommands(pStack);
+		undo_deallocateExecutedCommands(pStack, fp, FALSE);
 	}
 	_undoOperationInProgress = FALSE;
 	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);

@@ -300,8 +300,9 @@
   <ItemGroup>
     <ClCompile Include="Actions.c" />
     <ClCompile Include="EditorDocumentModel.c" />
-    <ClCompile Include="include\ArrayList.c" />
+    <ClCompile Include="ArrayList.c" />
     <ClCompile Include="Grammar.c" />
+    <ClCompile Include="HashMap.c" />
     <ClCompile Include="JsonParser.c" />
     <ClCompile Include="ProgressMonitor.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -1162,6 +1163,7 @@
     <ClInclude Include="include\fileutil.h" />
     <ClInclude Include="include\findandreplace.h" />
     <ClInclude Include="include\grammar.h" />
+    <ClInclude Include="include\hashmap.h" />
     <ClInclude Include="include\jsmn.h" />
     <ClInclude Include="include\jsonparser.h" />
     <ClInclude Include="include\linkedlist.h" />
