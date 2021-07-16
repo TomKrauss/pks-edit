@@ -25,7 +25,6 @@
           "name": "private.identifier"
         },
         {
-          "match": "<[a-z]+\\*{0,2}>",
           "keywords": [
             "async",
             "async*",

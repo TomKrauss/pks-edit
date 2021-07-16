@@ -25,9 +25,13 @@
         },
         {
           "match": "^([A-Z]+)\\s*=",
-          "group": 1,
-          "style": "identifier",
-          "name": "shell.variable"
+          "groups": [
+            {
+              "pattern": "shell.variable"
+            }
+          ],
+           "style": "identifier",
+            "name": "shell.variable"
         },
         {
           "match": "`[^`]+`",
@@ -35,7 +39,6 @@
           "name": "shell.exec"
         },
         {
-          "match": "<[a-z]+>",
           "keywords": [
             "alias",
             "break",

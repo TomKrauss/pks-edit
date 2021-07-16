@@ -16,7 +16,7 @@
 
 #ifndef HASHTABLE_H
 
-typedef struct tagHASH_MAP HASH_MAP;
+typedef struct tagHASHMAP HASHMAP;
 typedef unsigned int (*HASH_CODE)(intptr_t aKey);
 typedef int (*HASH_COMPARE)(intptr_t anObj1, intptr_t anObj2);
 typedef int (*HASH_DESTROY_ENTRY)(intptr_t anObj1, intptr_t anObj2);
@@ -24,7 +24,7 @@ typedef int (*HASH_DESTROY_ENTRY)(intptr_t anObj1, intptr_t anObj2);
 /*
  * Returns the size of a hash table.
  */
-extern int hash_size(HASH_MAP* pTable);
+extern int hashmap_size(HASHMAP* pTable);
 
 /*
  * Create a hash table with a desired capacity and a hash function
@@ -32,24 +32,31 @@ extern int hash_size(HASH_MAP* pTable);
  * keys. If NULL is passed for the hashCode, we assume the keys are
  * strings.
  */
-extern HASH_MAP* hash_create(int nCapacity, HASH_CODE hashCode, HASH_COMPARE compareFunction);
+extern HASHMAP* hashmap_create(int nCapacity, HASH_CODE hashCode, HASH_COMPARE compareFunction);
 
 /*
  * Destroy a hashtable. One may pass a callback to be invoked for
  * every entry in the table.
  */
-extern void hash_destroy(HASH_MAP* pTable, HASH_DESTROY_ENTRY destroyEntryCallback);
+extern void hashmap_destroy(HASHMAP* pTable, HASH_DESTROY_ENTRY destroyEntryCallback);
 
 /*
  * Put an element into the hash table. Return 0 if an element with the named
  * key existed or 1 if a new entry was added.
  */
-extern int hash_put(HASH_MAP* pTable, intptr_t key, intptr_t value);
+extern int hashmap_put(HASHMAP* pTable, intptr_t key, intptr_t value);
 
 /*
  * Check, whether a given key is present in the hash table.
  */
-int hash_containsKey(HASH_MAP* pTable, intptr_t key);
+extern int hashmap_containsKey(HASHMAP* pTable, intptr_t key);
+
+/*
+ * Can be used to execute a callback for each key defined in a hashmap.
+ * The callback is invoked with each key and the additional param passed as an argument.
+ */
+extern void hashmap_forEachKey(HASHMAP* pTable, void (*function)(intptr_t k, void* pParam), void* pParam);
+
 
 #define HASHTABLE_H
 

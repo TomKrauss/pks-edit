@@ -24,6 +24,7 @@
 #include "caretmovement.h"
 #include "edierror.h"
 #include "edfuncs.h"
+#include "regexp.h"
 #include "errordialogs.h"
 #include "winfo.h"
 #include "winterf.h"
@@ -38,6 +39,10 @@
 #include "winutil.h"
 #include "actions.h"
 #include "themes.h"
+
+#define	TABTHERE(indent,i)		(indent->tbits[i >> 3] &  bittab[i & 07])
+#define	TABPLACE(indent,i)		indent->tbits[i >> 3] |= bittab[i & 07]
+#define	TABCLEAR(indent,i)		indent->tbits[i >> 3] &= (~bittab[i & 07])
 
 #define	WT_WORKWIN		0
 #define	WT_RULERWIN		1

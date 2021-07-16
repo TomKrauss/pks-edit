@@ -165,5 +165,10 @@ extern int regex_matchesFirstChar(RE_PATTERN* pPattern, unsigned char c);
  */
 extern int regex_matchWordStart(RE_PATTERN* pPattern);
 
+/*
+ * Contains the 1st 8 bit values for fast use.
+ */
+extern unsigned char bittab[8];
+
 #endif
 

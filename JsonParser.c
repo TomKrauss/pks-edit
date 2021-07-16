@@ -189,9 +189,9 @@ static int json_getSet(char* pszBuf, jsmntok_t* tokens, int firstToken, int numb
 		if (tokens[i].type == JSMN_STRING) {
 			json_tokenContents(pszBuf, &tokens[i], tokenContents);
 			if (*pTargetSlot == 0) {
-				*pTargetSlot = hash_create(19, NULL, NULL);
+				*pTargetSlot = hashmap_create(19, NULL, NULL);
 			}
-			hash_put((HASH_MAP*)*pTargetSlot, (intptr_t)_strdup(tokenContents), 1);
+			hashmap_put((HASHMAP*)*pTargetSlot, (intptr_t)_strdup(tokenContents), 1);
 		}
 	}
 	return i;

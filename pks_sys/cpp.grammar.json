@@ -30,7 +30,6 @@
           "name": "constant.identifier"
         },
         {
-          "match": "<[a-z]+>",
           "keywords": [
             "if",
             "else",

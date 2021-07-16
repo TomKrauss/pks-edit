@@ -33,7 +33,7 @@
 #define	BIG						512		/* big Range Size used by: +,*,{x,} */
 
 static int 	_chsetinited;
-unsigned char bittab[] = { 1,2,4,8,16,32,64,128 };
+unsigned char bittab[8] = { 1,2,4,8,16,32,64,128 };
 unsigned char _asciitab[256] =
 "\0\0\0\0\0\0\0\0\0\020\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
 "\0\0\0\0\0\020\0\0\0\0\0\0\0\0\0\040\0\0\0\040\0\051\051"
@@ -76,22 +76,6 @@ static char			  _reSpecialChars[MAXCTAB];
 /* 12	= Pipe outside () - Pairs								*/
 /*															*/
 /***************************************************************************/
-
-static int _reerrmsg[] = {
-	 IDS_MSGRENOTNULL,
-	 IDS_MSGRECOMPLEXEXPR,
-	 IDS_MSGREMACRORANGESYNTAX,
-	 IDS_MSGRERANGE,
-	 IDS_MSGREMANYBRACKETS,
-	 IDS_MSGRENOBRACKETMATCH,
-	 IDS_MSGREFROMTO,
-	 IDS_MSGREMINMAXOVL,
-	 IDS_MSGREMINMAXERR,
-	 IDS_MSGREBSLERR,
-	 IDS_MSGREBRUNDEF,
-	 IDS_MSGREPIPEERR
-};
-
 
 typedef enum {
 	START_OF_LINE = 0,
@@ -204,7 +188,6 @@ extern unsigned char* tlcompile(unsigned char* transtab, unsigned char* t, unsig
 static unsigned char* regex_advance(unsigned char* pszBeginOfLine, unsigned char* stringToMatch, unsigned char* endOfStringToMatch, 
 	unsigned char* pExpression, unsigned char* pExpressionEnd, RE_MATCH* pMatch);
 extern unsigned char _l2uset[256], _u2lset[256];
-extern unsigned char bittab[];
 
 /*--------------------------------------------------------------------------
  * createTranslationTable()
@@ -401,7 +384,7 @@ void regex_compileCharacterClasses(unsigned char* pLowerToUpperPattern) {
 		return;
 	}
 	_chsetinited = 1;
-	unsigned char* pRegexSpecial = "[{*.?(<^$+|";
+	unsigned char* pRegexSpecial = "[{*.?(<^$+|])";
 	memset(_reSpecialChars, 0, sizeof _reSpecialChars);
 	while (*pRegexSpecial) {
 		regex_addCharacterToCharacterClass(_reSpecialChars, *pRegexSpecial++, 0);
@@ -597,13 +580,13 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 
 	while (1) {
 		if (pPatternRun >= pOptions->endOfPatternBuf) {
-			REGEX_ERROR(2);
+			REGEX_ERROR(IDS_MSGRERANGE);
 		}
 		MATCHER* pMatcher = (MATCHER*)pPatternRun;
 		unsigned char c = *pInput++;
 		if (c == pOptions->eof) {
 			if (level > 0) {
-				REGEX_ERROR(6);
+				REGEX_ERROR(IDS_MSGREFROMTO);
 			}
 			pMatcher->m_type = END_OF_MATCH;
 			pResult->compiledExpressionEnd = ((char*) pMatcher)+matcherSizes[END_OF_MATCH];
@@ -617,7 +600,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 			pLastPattern = pMatcher;
 		} else {
 			if (pLastPattern == NULL) {
-				REGEX_ERROR(5);
+				REGEX_ERROR(IDS_MSGRENOBRACKETMATCH);
 			}
 			if (!pLastPattern->m_range) {
 				if (pLastPattern->m_type == GROUP) {
@@ -641,11 +624,11 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 
 		case '|': {
 			if (pLastAlternativeStart == NULL) {
-				REGEX_ERROR(9);
+				REGEX_ERROR(IDS_MSGREPIPEERR);
 			}
 			delta = (pPatternRun - (char*)pLastAlternativeStart);
 			if (delta == 0 || delta >= 256) {
-				REGEX_ERROR(1);
+				REGEX_ERROR(IDS_MSGRECOMPLEXEXPR);
 			}
 			pLastAlternativeStart->m_param.m_alternative.m_offsetNext = (unsigned char)delta;
 			pLastAlternativeStart = pMatcher;
@@ -672,7 +655,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 				} else if (cNext >= '1' && cNext <= '9') {
 					cNext -= '1';
 					if (cNext > pResult->nbrackets) {
-						REGEX_ERROR(9);
+						REGEX_ERROR(IDS_MSGREBSLERR);
 					}
 					pMatcher->m_type = BACK_REFERENCE;
 					pMatcher->m_param.m_reference = cNext;
@@ -710,7 +693,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 			int lastCharacterForClass = -1;
 			int negated = 0;
 			if ((char*)(pMatcher + 1) >= pOptions->endOfPatternBuf) {
-				REGEX_ERROR(2);
+				REGEX_ERROR(IDS_MSGREMACRORANGESYNTAX);
 			}
 			pMatcher->m_type = CHAR_CLASS;
 			memset(pMatcher->m_param.m_characterClass, 0, sizeof(pMatcher->m_param.m_characterClass));
@@ -719,12 +702,11 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 				c = *pInput++;
 			}
 			do {
-				if (c == '\0') REGEX_ERROR(4);
+				if (c == '\0') REGEX_ERROR(IDS_MSGREMANYBRACKETS);
 				if (c == '\\') {
 					c = regex_parseOctalNumber(pInput);
 					pInput = _octalloc;
-				}
-				else if (c == '-' && lastCharacterForClass >= 0) {
+				} else if (c == '-' && lastCharacterForClass >= 0) {
 					if ((c = *pInput++) == ']') {
 						regex_addCharacterToCharacterClass(pMatcher->m_param.m_characterClass, '-', flags);
 						break;
@@ -770,7 +752,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 			pRange->m_minOccurrence = 0;
 			while ((c = *pInput++) != '}') {
 				if (c == pOptions->eof) {
-					REGEX_ERROR(6);
+					REGEX_ERROR(IDS_MSGREFROMTO);
 				}
 				if (c == ',') {
 					pRange->m_maxOccurrence = 0;
@@ -788,7 +770,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 			}
 			pRange->m_lazy = 0;
 			if (regex_getOccurrence(pRange->m_minOccurrence) > regex_getOccurrence(pRange->m_maxOccurrence)) {
-				REGEX_ERROR(8);
+				REGEX_ERROR(IDS_MSGREMINMAXERR);
 			}
 			}
 			break;
@@ -810,7 +792,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 			delta = (size_t)(pPatternRun - (unsigned char*)pMatcher);
 			if (delta <= 0 || delta >= 256) {
 				// 0-size sub-expression or expression to complicated.
-				REGEX_ERROR(1);
+				REGEX_ERROR(IDS_MSGRECOMPLEXEXPR);
 			}
 			pMatcher->m_param.m_group.m_groupEnd = (unsigned char)delta;
 			{
@@ -821,7 +803,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 			break;
 		case ')':
 			if (level <= 0) {
-				REGEX_ERROR(6);
+				REGEX_ERROR(IDS_MSGREFROMTO);
 			}
 			pMatcher->m_type = GROUP_END;
 			pPatternRun += matcherSizes[GROUP_END];
@@ -868,7 +850,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 		}
 	}
 endcompile:
-	pResult->errorCode = _reerrmsg[err];
+	pResult->errorCode = err;
 	return 0;
 }
 
@@ -1222,13 +1204,10 @@ static unsigned char* regex_advance(unsigned char* pBeginOfLine, unsigned char* 
 int regex_matchesFirstChar(RE_PATTERN* pPattern, unsigned char c) {
 	RE_MATCH match;
 	MATCHER* pMatcher = (MATCHER*)regex_getFirstMatchSection(pPattern);
-	if (pMatcher->m_type == START_OF_IDENTIFIER) {
-		pMatcher =(MATCHER*)(((unsigned char*)pMatcher) + matcherSizes[pMatcher->m_type]);
-	}
 	unsigned char buf[1];
 	buf[0] = c;
 	while (pMatcher->m_type != END_OF_MATCH) {
-		if (pMatcher->m_type == START_OF_LINE) {
+		if (pMatcher->m_type == START_OF_IDENTIFIER || pMatcher->m_type == START_OF_LINE) {
 			pMatcher = (MATCHER*)((unsigned char*)pMatcher + matcherSizes[pMatcher->m_type]);
 			continue;
 		}

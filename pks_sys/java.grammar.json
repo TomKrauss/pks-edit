@@ -25,7 +25,6 @@
           "name": "constant.identifier"
         },
         {
-          "match": "<[a-z]+>",
           "keywords": [
             "true",
             "false",

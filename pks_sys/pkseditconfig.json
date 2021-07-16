@@ -69,6 +69,13 @@
         "filenamePatterns": "*.md"
     },
     {
+        "name": "pksedit",
+        "description": "PKS Edit Macro Files (*.mac)",
+        "grammar": "pksedit",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.mac"
+    },
+    {
         "name": "text",
         "description": "Text Files (*.txt)",
         "grammar": "text",
@@ -76,10 +83,18 @@
         "filenamePatterns": "*.txt"
     },
     {
-        "name": "web",
-        "description": "Web Programming (*.css; *.html; *.xml)",
+        "name": "css",
+        "description": "CSS Files (*.css; *.scss)",
+        "grammar": "css",
         "editorConfiguration": "default",
-        "filenamePatterns": "*.css;*.html;*.htm;*.xml"
+        "filenamePatterns": "*.css;*.scss"
+    },
+    {
+        "name": "xmlmarkup",
+        "description": "HTML and XML (*.html; *.htm; *.xml)",
+        "grammar": "xml",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.html;*.htm;*.xml"
     }
     ],
     "editorConfigurations": [
@@ -91,7 +106,6 @@
         "tabSize": 4,
         "tabulatorSizes": [4],
         "shiftWidth": 4,
-        "showWhitespace": true,
         "showLineNumbers": true,
         "showStatus": true,
         "highlightCaretLine": true,

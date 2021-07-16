@@ -1,0 +1,60 @@
+{
+  "grammars": [
+    {
+      "scopeName": "xml",
+      "patterns": [
+        {
+          "match": "\\<![^>]+\\>",
+          "style": "hyperlink",
+          "name": "xml.meta"
+        },
+        {
+          "match": "\\</[^>]+\\>",
+          "style": "regexp",
+          "name": "xml.end"
+        },
+        {
+          "match": "\\<[a-zA-Z0-9_>-]+",
+          "style": "regexp",
+          "name": "xml.start"
+        },
+        {
+          "match": "\\>",
+          "style": "regexp",
+          "name": "xml.start"
+        },
+        {
+          "begin": "<!--",
+          "end": "-->",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "(<[a-zA-Z_0-9-]+>)\\s*=\\s*(\"[^\"]+\")",
+          "name": "string.xml.propertyDefinition",
+          "groups": [
+            {
+              "pattern": "string.xml.attribute"
+            },
+            {
+              "pattern": "string.xml.value"
+            }
+          ]
+        },
+        {
+          "name": "string.xml.attribute",
+          "style": "literal"
+        },
+        {
+          "name": "string.xml.value",
+          "style": "bold-italic"
+        },
+        {
+          "match": "[\"'](?:\\\"|[^\"])+[\"']",
+          "style": "string",
+          "name": "string"
+        }
+      ]
+    }
+  ]
+}

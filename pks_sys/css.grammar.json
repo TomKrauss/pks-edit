@@ -1,0 +1,80 @@
+{
+  "grammars": [
+    {
+      "scopeName": "css",
+      "patterns": [
+        {
+          "match": "\\.[a-zA-Z0-9-]+>",
+          "name": "string.css.selector",
+          "style": "italic"
+        },
+        {
+          "match": "[\"'](?:\\\"|[^\"])+[\"']",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "(<[a-zA-Z_0-9-]+:>)\\s+([^;]+);",
+          "name": "string.css.propertyDefinition",
+          "groups": [
+            {
+              "pattern": "string.css.property"
+            },
+            {
+              "pattern": "string.css.value"
+            }
+          ]
+        },
+        {
+          "name": "string.css.property",
+          "style": "literal"
+        },
+        {
+          "name": "string.css.value",
+          "style": "bold-italic"
+        },
+        {
+          "match": "rgba?\\([^)]+\\)",
+          "name": "css.colorValue",
+          "style": "operator"
+        },
+        {
+          "match": "#[a-fA-F0-9]{3,8}",
+          "name": "css.colorValue2",
+          "style": "operator"
+        },
+        {
+          "match": "<[A-Za-z]{1,5}>",
+          "name": "string.css.html_selector",
+          "style": "bold"
+        },
+        {
+          "begin": "/*",
+          "end": "*/",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "//.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "#.*",
+          "style": "comment",
+          "name": "comment.singleLine2"
+        },
+        {
+          "name": "keyword.meta.css",
+          "style": "keyword",
+          "keywords": [
+            "@import",
+            "@page",
+            "@media",
+            "@charset"
+          ]
+        }
+      ]
+    }
+  ]
+}

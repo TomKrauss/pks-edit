@@ -29,7 +29,16 @@
 #include "arraylist.h"
 #include "editorfont.h"
 
+#define	HAS_CHAR(ep, c)			(ep[(c & 0xff) >> 3] & bittab[c & 07])
+#define PLACE_CHAR(ep, c)		ep[c >> 3] |= bittab[c & 07];
+
 #define	DIM(x)		(sizeof(x)/sizeof(x[0]))
+
+typedef struct tagPATTERN_GROUP {
+	struct tagPATTERN_GROUP* next;
+	LEXICAL_STATE state;				// The lexical state matched by this subgroup - is calculated from the patternName
+	char  patternName[32];				// Name of the pattern representing this group.
+} PATTERN_GROUP;
 
 typedef struct tagGRAMMAR_PATTERN {
 	struct tagGRAMMAR_PATTERN* next;	// linked list of grammar patterns.
@@ -37,10 +46,10 @@ typedef struct tagGRAMMAR_PATTERN {
 										// The names may be "matched" against style selectors specified below
 	char* match;						// a simple RE pattern to match this pattern
 	int   wordmatch;					// set to true for patterns defined with <.... - used for optimization.
-	int   group;						// can use 1,2... to use only the group part of the match. 
+	PATTERN_GROUP* groups;				// can use 1,2... to use only the group part of the match. 
 	char  begin[12];					// mutually exclusive with match, one may define a begin and end marker to match. May span multiple lines
 	char  end[12];						// the end marker maybe e.g. '$' to match the end of line. Currently only one multi-line pattern supported.
-	HASH_MAP* keywords;					// If an array list of keywords exists, these are matched after the pattern has matched.
+	HASHMAP* keywords;					// If an array list of keywords exists, these are matched after the pattern has matched.
 	char* rePatternBuf;
 	char  style[32];					// Name of the style class to use.
 	RE_PATTERN* rePattern;
@@ -80,10 +89,20 @@ static GRAMMAR_PATTERN* grammar_createGrammarPattern() {
 	return calloc(1, sizeof(GRAMMAR_PATTERN));
 }
 
+static PATTERN_GROUP* grammar_createPatternGroup() {
+	return calloc(1, sizeof(PATTERN_GROUP));
+}
+
+static JSON_MAPPING_RULE _patternGroupRules[] = {
+	{	RT_CHAR_ARRAY, "pattern", offsetof(PATTERN_GROUP, patternName), sizeof(((PATTERN_GROUP*)NULL)->patternName)},
+	{	RT_END}
+};
+
 static JSON_MAPPING_RULE _patternRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(GRAMMAR_PATTERN, name), sizeof(((GRAMMAR_PATTERN*)NULL)->name)},
 	{	RT_ALLOC_STRING, "match", offsetof(GRAMMAR_PATTERN, match)},
-	{	RT_INTEGER, "group", offsetof(GRAMMAR_PATTERN, group)},
+	{	RT_OBJECT_LIST, "groups", offsetof(GRAMMAR_PATTERN, groups),
+			{.r_t_arrayDescriptor = {grammar_createPatternGroup, _patternGroupRules}}},
 	{	RT_SET, "keywords", offsetof(GRAMMAR_PATTERN, keywords)},
 	{	RT_CHAR_ARRAY, "style", offsetof(GRAMMAR_PATTERN, style), sizeof(((GRAMMAR_PATTERN*)NULL)->style)},
 	{	RT_CHAR_ARRAY, "begin", offsetof(GRAMMAR_PATTERN, begin), sizeof(((GRAMMAR_PATTERN*)NULL)->begin)},
@@ -122,7 +141,7 @@ static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {
 		free(pPattern->rePatternBuf);
 	}
 	if (pPattern->keywords) {
-		hash_destroy(pPattern->keywords, grammar_destroyHashEntry);
+		hashmap_destroy(pPattern->keywords, grammar_destroyHashEntry);
 	}
 	return 1;
 }
@@ -140,13 +159,98 @@ void grammar_destroyAll() {
 		ll_destroy((LINKED_LIST**)&_grammarDefinitions.gd_grammars, grammar_destroyGrammar);
 	}
 }
-  
+
+struct tagCHAR_LOOKUP {
+	char char1Table[32];
+	char char2Table[32];
+	int singleCharKeywordExists;
+};
+
+static void grammar_collectChars(intptr_t k, void* pParam) {
+	unsigned char* pKey = (unsigned char*)k;
+	struct tagCHAR_LOOKUP * pLookup = pParam;
+
+	PLACE_CHAR(pLookup->char1Table, pKey[0]);
+	pKey++;
+	if (!*pKey) {
+		pLookup->singleCharKeywordExists = 1;
+	} else {
+		while (*pKey) {
+			char c2 = *pKey++;
+			PLACE_CHAR(pLookup->char2Table, c2);
+		}
+	}
+}
+
+/*
+ * Utility function used to check, whether a char should be added to a char class
+ * RE Pattern.
+ */
+static int grammar_takeChar(unsigned char table[], unsigned char c) {
+	return c != '-' && c != '^' && c != ']' && HAS_CHAR(table, c);
+}
+
+static unsigned char* grammar_calcCharClassCharacters(unsigned char* pResult, unsigned char table[]) {
+	for (int i = 0; i < 256; ) {
+		if (grammar_takeChar(table, i)) {
+			int j = i++;
+			while (i < 256 && grammar_takeChar(table, i)) {
+				i++;
+			}
+			if (i - j > 2) {
+				*pResult++ = j;
+				*pResult++ = '-';
+				*pResult++ = i - 1;
+			} else {
+				*pResult++ = j;
+				i = j + 1;
+			}
+		}
+		else {
+			i++;
+		}
+	}
+	// TODO: handle keywords starting with '^' and ']'
+	if (HAS_CHAR(table, '-')) {
+		*pResult++ = '-';
+	}
+	return pResult;
+}
+
+/**
+ * This method exists to make the life of the person defining a grammar file easier and 
+ * to make keyword parsing more efficient. When defining keywords, one needs to define the
+ * keywords only and this method calculates a regular expression from a list of keywords to
+ * be matched, so the keywords are matched.
+ */
+static void grammar_createPatternFromKeywords(GRAMMAR_PATTERN* pGrammarPattern) {
+	struct tagCHAR_LOOKUP lookup;
+	memset(&lookup, 0, sizeof lookup);
+	hashmap_forEachKey(pGrammarPattern->keywords, grammar_collectChars, &lookup);
+	char result[256];
+	// Assumption: keywords always start on word boundaries.
+	strcpy(result, "<[");
+	unsigned char* pResult = grammar_calcCharClassCharacters(result+2, lookup.char1Table);
+	*pResult++ = ']';
+	*pResult++ = '[';
+	pResult = grammar_calcCharClassCharacters(pResult, lookup.char2Table);
+	*pResult++ = ']';
+	*pResult++ = lookup.singleCharKeywordExists ? '*' : '+';
+	*pResult++ = '>';
+	*pResult = 0;
+	pGrammarPattern->match = strdup(result);
+}
+
 /*
  * Util to compile a regular expression. 
  */
 RE_PATTERN* grammar_compile(GRAMMAR_PATTERN* pGrammarPattern) {
-	if (!pGrammarPattern->match[0]) {
-		return NULL;
+	if (!pGrammarPattern->match) {
+		if (pGrammarPattern->keywords) {
+			grammar_createPatternFromKeywords(pGrammarPattern);
+		} else {
+			return NULL;
+		}
 	}
 	pGrammarPattern->rePattern = calloc(1, sizeof(RE_PATTERN));
 	pGrammarPattern->rePatternBuf = malloc(512);
@@ -183,6 +287,19 @@ static void grammar_addCharTransition(GRAMMAR* pGrammar, unsigned char cChar, LE
 }
 
 /*
+ * Calculate the lexical state index corresponding to a match pattern. 
+ */
+static LEXICAL_STATE grammar_patternIndex(GRAMMAR* pGrammar, char* pszPatternName) {
+	for (int i = 0; i < DIM(pGrammar->patternsByState); i++) {
+		GRAMMAR_PATTERN* pPattern = pGrammar->patternsByState[i];
+		if (pPattern && strcmp(pszPatternName, pPattern->name) == 0) {
+			return i;
+		}
+	}
+	return INITIAL;
+}
+
+/*
  * Initialize the grammar by constructing the basic knowledge necessary to make a fast
  * parsing of the grammar more simple.
  */
@@ -199,19 +316,30 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 			pGrammar->pszStartMarker = pPattern->begin;
 			pGrammar->pszEndMarker = pPattern->end;
 			grammar_addCharTransition(pGrammar, pGrammar->pszStartMarker[0], state);
-		} else {
+		}
+		else {
 			RE_PATTERN* pREPattern = grammar_compile(pPattern);
 			if (pREPattern) {
 				for (int i = 0; i < 256; i++) {
-					if (regex_matchesFirstChar(pREPattern, (unsigned char) i)) {
+					if (regex_matchesFirstChar(pREPattern, (unsigned char)i)) {
 						grammar_addCharTransition(pGrammar, (unsigned char)i, state);
 					}
 				}
+				pPattern->wordmatch = regex_matchWordStart(pREPattern);
 			}
-			pPattern->wordmatch = regex_matchWordStart(pREPattern);
 		}
 		pPattern = pPattern->next;
 		state++;
+	}
+	pPattern = pGrammar->patterns;
+	while (pPattern && state < DIM(pGrammar->patternsByState)) {
+		PATTERN_GROUP* pGroup = pPattern->groups;
+		while (pGroup) {
+			pGroup->state = grammar_patternIndex(pGrammar, pGroup->patternName);
+			pGroup = pGroup->next;
+		}
+		pPattern = pPattern->next;
+
 	}
 }
 
@@ -261,7 +389,7 @@ GRAMMAR* grammar_findNamed(char* pszGrammarName) {
 /*
  * Stupid simple linear search to match a keyword in a list of given keywords. 
  */
-static int grammar_matchKeyword(HASH_MAP* pKeywords, char* pKey, char* pKeyEnd) {
+static int grammar_matchKeyword(HASHMAP* pKeywords, char* pKey, char* pKeyEnd) {
 	if (!pKeywords) {
 		return 1;
 	}
@@ -272,7 +400,45 @@ static int grammar_matchKeyword(HASH_MAP* pKeywords, char* pKey, char* pKeyEnd) 
 	}
 	strncpy(szBuf, pKey, nLen);
 	szBuf[nLen] = 0;
-	return hash_containsKey(pKeywords, (intptr_t)szBuf);
+	return hashmap_containsKey(pKeywords, (intptr_t)szBuf);
+}
+
+/**
+ * Adds a new token delta found during tokenization of the input stream.
+ */
+static int grammar_addDelta(LEXICAL_STATE newState, int nDelta, int nElementCount, LEXICAL_ELEMENT *pResult) {
+	if (nElementCount >= MAX_LEXICAL_ELEMENT - 1) {
+		return nElementCount;
+	}
+	if (nDelta < 0) {
+		return nElementCount;
+	}
+	if (nElementCount > 0 && (pResult[nElementCount - 1].le_state == newState || pResult[nElementCount - 1].le_length == 0)) {
+		pResult[nElementCount - 1].le_length += nDelta;
+		pResult[nElementCount - 1].le_state = newState;
+	} else {
+		pResult[nElementCount].le_length = nDelta;
+		pResult[nElementCount].le_state = newState;
+		nElementCount++;
+	}
+	return nElementCount;
+}
+
+static int grammar_addStyledGroups(int nElementCount, RE_MATCH* pMatch, PATTERN_GROUP* pGroup,
+			LEXICAL_STATE defaultState, LEXICAL_ELEMENT* pResult) {
+	int nBracket = 0;
+	char* pPrevious = pMatch->loc1;
+
+	while (pGroup) {
+		char* p1 = pMatch->braslist[nBracket];
+		char* p2 = pMatch->braelist[nBracket];
+		nElementCount = grammar_addDelta(defaultState, (int)(p1 - pPrevious), nElementCount, pResult);
+		nElementCount = grammar_addDelta(pGroup->state, (int)(p2 - p1), nElementCount, pResult);
+		pPrevious = p2;
+		pGroup = pGroup->next;
+		nBracket++;
+	}
+	return nElementCount;
 }
 
 /*
@@ -290,22 +456,14 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 	int nElementCount = 0;
 	size_t nStateOffset = 0;
 	char* pszEnd = pGrammar->pszEndMarker;
-	size_t skipSize = 0;
 	for (size_t i = 0; i < lLength; ) {
 		unsigned char c = pszBuf[i];
 		if (lexicalState == pGrammar->lineSpanningState && pszEnd) {
 			if (c == pszEnd[0] && strncmp(&pszBuf[i], pszEnd, strlen(pszEnd)) == 0) {
 				*pLineSpanningEndDetected = 1;
-				if (nElementCount >= MAX_LEXICAL_ELEMENT - 1) {
-					return nElementCount;
-				}
 				i += 2;
-				pResult[nElementCount].le_state = lexicalState;
-				pResult[nElementCount].le_length = (int)(i - nStateOffset);
-				nElementCount++;
-				pResult[nElementCount].le_state = INITIAL;
-				pResult[nElementCount].le_length = 0;
-				nElementCount++;
+				nElementCount = grammar_addDelta(lexicalState, (int)(i - nStateOffset), nElementCount, pResult);
+				nElementCount = grammar_addDelta(INITIAL, 0, nElementCount, pResult);
 				nextState = lexicalState = INITIAL;
 			} else {
 				i++;
@@ -329,25 +487,28 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 					if (pRePattern) {
 						pRePattern->beginOfLine = pszBuf;
 						if (regex_match(pRePattern, &pszBuf[i], &pszBuf[lLength], &match)) {
-							int delta;
-							if (pPattern->group > 0) {
-								delta = (int)(match.braelist[pPattern->group - 1] - match.braslist[pPattern->group - 1]);
-								if (delta <= 0) {
-									delta = 1;
-								}
-							} else {
-								delta = (int)(match.loc2 - match.loc1);
-							}
-							if (grammar_matchKeyword(pPattern->keywords, match.loc1, match.loc2)) {
-								nextState = state;
-								skipSize = delta;
+							int delta = (int)(match.loc2 - match.loc1);
+							int nNewOffset = (int)(match.loc2 - pszBuf);
+							if (pPattern->groups) {
+								nElementCount = grammar_addDelta(lexicalState, (int)(i - nStateOffset), nElementCount, pResult);
+								nElementCount = grammar_addStyledGroups(nElementCount, &match, pPattern->groups, lexicalState, pResult);
+								nStateOffset = nNewOffset;
+								i = nNewOffset;
 								matched = 1;
 								break;
+							} else {
+								if (grammar_matchKeyword(pPattern->keywords, match.loc1, match.loc2)) {
+									nElementCount = grammar_addDelta(lexicalState, (int)(i - nStateOffset), nElementCount, pResult);
+									nElementCount = grammar_addDelta(state, delta, nElementCount, pResult);
+									nStateOffset = nNewOffset;
+									i = nNewOffset;
+									matched = 1;
+									break;
+								}
 							}
 						}
 					} else if (strncmp(&pszBuf[i], pPattern->begin, strlen(pPattern->begin)) == 0) {
 						nextState = state;
-						skipSize = 0;
 						matched = 1;
 						break;
 					}
@@ -365,22 +526,8 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 			i++;
 		}
 		if (nextState != lexicalState) {
-			if (nElementCount >= MAX_LEXICAL_ELEMENT - 1) {
-				return nElementCount;
-			}
-			if (i > nStateOffset) {
-				pResult[nElementCount].le_state = lexicalState;
-				pResult[nElementCount].le_length = (int)(i - nStateOffset);
-				nElementCount++;
-			}
+			nElementCount = grammar_addDelta(lexicalState, (int)(i - nStateOffset), nElementCount, pResult);
 			lexicalState = nextState;
-			if (skipSize > 0) {
-				pResult[nElementCount].le_state = lexicalState;
-				pResult[nElementCount].le_length = (int)skipSize;
-				nElementCount++;
-				i += skipSize;
-				lexicalState = nextState = INITIAL;
-			}
 			nStateOffset = i;
 		}
 	}

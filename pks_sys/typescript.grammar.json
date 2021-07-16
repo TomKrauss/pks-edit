@@ -25,7 +25,6 @@
           "name": "string"
         },
         {
-          "match": "<[a-z]+>",
           "keywords": [
             "break",
             "boolean",

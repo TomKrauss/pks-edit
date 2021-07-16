@@ -19,7 +19,6 @@
           "name": "batch.noecho"
         },
         {
-          "match": "<[a-z]+>",
           "keywords": [
             "break",
             "by",

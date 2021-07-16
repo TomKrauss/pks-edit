@@ -1,0 +1,66 @@
+{
+  "grammars": [
+    {
+      "scopeName": "pksedit",
+      "patterns": [
+        {
+          "match": "//.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "#.*",
+          "style": "comment",
+          "name": "comment.singleLine2"
+        },
+        {
+          "match": "<@[A-Za-z0-9_-]+>",
+          "name": "string.pksedit.command",
+          "style": "string"
+        },
+        {
+          "name": "keyword.pksedit",
+          "style": "keyword",
+          "keywords": [
+            "macro",
+            "do",
+            "while",
+            "if",
+            "else",
+            "elif",
+            "switch",
+            "while",
+            "continue",
+            "break",
+            "return",
+            "local",
+            "goto",
+            "char",
+            "int",
+            "string",
+            "long",
+            "POPUP",
+            "MENU",
+            "ICONS",
+            "KEYS",
+            "MOUSE",
+            "TAGS",
+            "ABBREVS",
+            "BRACKETS",
+            "TEXTBUFFER"
+          ]
+        },
+        {
+          "match": "[\\[\\]{}]",
+          "name": "keyword.operator.json",
+          "style": "operator"
+        },
+        {
+          "match": "<[0-9.]+>",
+          "name": "constant.numeric",
+          "style": "literal"
+        }
+      ]
+    }
+  ]
+}

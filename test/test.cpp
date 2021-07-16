@@ -160,6 +160,13 @@ namespace pkseditTests
 		TEST_METHOD(RegularExpressionsOtherFunctions) {
 			RE_OPTIONS* options;
 			RE_PATTERN pattern;
+
+			options = createOptions("(<[a-zA-Z_0-9-]+:>)\\s+([^;]+);", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(1, regex_matchesFirstChar(&pattern, '-'));
+			Assert::AreEqual(1, regex_matchesFirstChar(&pattern, 'a'));
+
+
 			options = createOptions("\"([^\"])+\"", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			Assert::AreEqual(3, regex_getMinimumMatchLength(&pattern));
@@ -534,14 +541,14 @@ namespace pkseditTests
 	public:
 		TEST_METHOD(BasicOperations)
 		{
-			HASH_MAP* pMap = hash_create(13, NULL, NULL);
-			hash_put(pMap, (intptr_t)"hans", 1);
-			hash_put(pMap, (intptr_t)"erwin", 1);
-			Assert::AreEqual(1, hash_put(pMap, (intptr_t)"gabi", 1));
-			Assert::AreEqual(0, hash_put(pMap, (intptr_t)"hans", 2));
-			Assert::AreEqual(3, hash_size(pMap));
-			Assert::AreEqual(1, hash_containsKey(pMap, (intptr_t)"hans"));
-			Assert::AreEqual(0, hash_containsKey(pMap, (intptr_t)"oscar"));
+			HASHMAP* pMap = hashmap_create(13, NULL, NULL);
+			hashmap_put(pMap, (intptr_t)"hans", 1);
+			hashmap_put(pMap, (intptr_t)"erwin", 1);
+			Assert::AreEqual(1, hashmap_put(pMap, (intptr_t)"gabi", 1));
+			Assert::AreEqual(0, hashmap_put(pMap, (intptr_t)"hans", 2));
+			Assert::AreEqual(3, hashmap_size(pMap));
+			Assert::AreEqual(1, hashmap_containsKey(pMap, (intptr_t)"hans"));
+			Assert::AreEqual(0, hashmap_containsKey(pMap, (intptr_t)"oscar"));
 
 		}
 	};

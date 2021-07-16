@@ -82,12 +82,6 @@ typedef struct tagINDENTATION {
     unsigned char   tbits[MAXLINELEN / 8];	// Bitset Tabstops - allows us to have individual tab sizes (non standard).
 } INDENTATION;
 
-extern char 	bittab[];
-
-#define	TABTHERE(indent,i)		(indent->tbits[i >> 3] &  bittab[i & 07])
-#define	TABPLACE(indent,i)		indent->tbits[i >> 3] |= bittab[i & 07]
-#define	TABCLEAR(indent,i)		indent->tbits[i >> 3] &= (~bittab[i & 07])
-
 typedef int (*RENDER_LINE_FUNCTION)(HDC hdc, int x, int y, WINFO* wp, LINE* lp, long lineNo);
 
 /*--------------------------------------------------------------------------
