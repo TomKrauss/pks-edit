@@ -46,11 +46,12 @@ typedef struct tagGRAMMAR_PATTERN {
 										// The names may be "matched" against style selectors specified below
 	char* match;						// a simple RE pattern to match this pattern
 	int   wordmatch;					// set to true for patterns defined with <.... - used for optimization.
-	PATTERN_GROUP* groups;				// can use 1,2... to use only the group part of the match. 
+	PATTERN_GROUP* captures;			// describes the captures to be matched against a pattern. 
 	char  begin[12];					// mutually exclusive with match, one may define a begin and end marker to match. May span multiple lines
 	char  end[12];						// the end marker maybe e.g. '$' to match the end of line. Currently only one multi-line pattern supported.
 	HASHMAP* keywords;					// If an array list of keywords exists, these are matched after the pattern has matched.
 	char* rePatternBuf;
+	BOOL spansLines;					// true, if this pattern spans multiple lines
 	char  style[32];					// Name of the style class to use.
 	RE_PATTERN* rePattern;
 } GRAMMAR_PATTERN;
@@ -66,20 +67,38 @@ typedef struct tagGRAMMAR {
 										// in the document type definition.
 	char* folderStartMarker;			// regular expression to define the start of foldable regions.
 	char* folderEndMarker;				// regular expression to define the end of foldable regions.
-	char* pszStartMarker;				// If a multiline pattern is defined - this is the pointer to the start marker.
-	char* pszEndMarker;					// If a multiline pattern is defined - this is the pointer to the end marker.
+	char indentNextLinePattern[32];		// A regular expression defining the condition on which the next line should indented.
+	char unIndentLinePattern[32];		// A regular expression defining the condition on which the next line should unindented.
+	char increaseIndentPattern[32];		// A regular expression defining the condition on which the indent should be increased.
+	char decreaseIndentPattern[32];		// A regular expression defining the condition on which the indent should be decreased.
+	BRACKET_RULE* highlightBrackets;	// The rule patterns for "highlight" bracket matching.
 	GRAMMAR_PATTERN* patterns;			// The patterns defined for this grammar.
 	short transitions[256];				// The indices into the state transition table. We allow a maximum of 16 re_patterns to match from the initial state.
 										// for each character we allow a maximum of two possibilities to match.
-	LEXICAL_STATE lineSpanningState;	// the index of the line spanning state (currently only one supported).
 	GRAMMAR_PATTERN* patternsByState[16];
+	UCLIST* undercursorActions;			// The list of actions to perform on input (either bracket matching or code template insertion etc...).
 } GRAMMAR;
+
+static BRACKET_RULE _defaultBracketRule = {
+	NULL,
+	"",
+	"",
+	1,
+	-1,
+	0,4,-4,0
+};
 
 typedef struct tagGRAMMAR_DEFINITIONS {
 	GRAMMAR* gd_grammars;
 } GRAMMAR_DEFINITIONS;
 
 static GRAMMAR_DEFINITIONS _grammarDefinitions;
+
+static BRACKET_RULE* grammar_createBracketRule() {
+	BRACKET_RULE* pRule = calloc(1, sizeof(*pRule));
+	memcpy(pRule, &_defaultBracketRule, sizeof _defaultBracketRule);
+	return pRule;
+}
 
 static GRAMMAR* grammar_createGrammar() {
 	return calloc(1, sizeof(GRAMMAR));
@@ -93,6 +112,13 @@ static PATTERN_GROUP* grammar_createPatternGroup() {
 	return calloc(1, sizeof(PATTERN_GROUP));
 }
 
+static JSON_MAPPING_RULE _bracketRules[] = {
+	{	RT_CHAR_ARRAY, "left", offsetof(BRACKET_RULE, lefthand), sizeof(((BRACKET_RULE*)NULL)->lefthand)},
+	{	RT_CHAR_ARRAY, "right", offsetof(BRACKET_RULE, righthand), sizeof(((BRACKET_RULE*)NULL)->righthand)},
+	{	RT_END}
+};
+
+
 static JSON_MAPPING_RULE _patternGroupRules[] = {
 	{	RT_CHAR_ARRAY, "pattern", offsetof(PATTERN_GROUP, patternName), sizeof(((PATTERN_GROUP*)NULL)->patternName)},
 	{	RT_END}
@@ -101,7 +127,7 @@ static JSON_MAPPING_RULE _patternGroupRules[] = {
 static JSON_MAPPING_RULE _patternRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(GRAMMAR_PATTERN, name), sizeof(((GRAMMAR_PATTERN*)NULL)->name)},
 	{	RT_ALLOC_STRING, "match", offsetof(GRAMMAR_PATTERN, match)},
-	{	RT_OBJECT_LIST, "groups", offsetof(GRAMMAR_PATTERN, groups),
+	{	RT_OBJECT_LIST, "captures", offsetof(GRAMMAR_PATTERN, captures),
 			{.r_t_arrayDescriptor = {grammar_createPatternGroup, _patternGroupRules}}},
 	{	RT_SET, "keywords", offsetof(GRAMMAR_PATTERN, keywords)},
 	{	RT_CHAR_ARRAY, "style", offsetof(GRAMMAR_PATTERN, style), sizeof(((GRAMMAR_PATTERN*)NULL)->style)},
@@ -114,6 +140,12 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_CHAR_ARRAY, "scopeName", offsetof(GRAMMAR, scopeName), sizeof(((GRAMMAR*)NULL)->scopeName)},
 	{	RT_ALLOC_STRING, "folderStartMarker", offsetof(GRAMMAR, folderStartMarker)},
 	{	RT_ALLOC_STRING, "folderEndMarker", offsetof(GRAMMAR, folderEndMarker)},
+	{	RT_CHAR_ARRAY, "indentNextLinePattern", offsetof(GRAMMAR, indentNextLinePattern), sizeof(((GRAMMAR*)NULL)->indentNextLinePattern)},
+	{	RT_CHAR_ARRAY, "unIndentLinePattern", offsetof(GRAMMAR, unIndentLinePattern), sizeof(((GRAMMAR*)NULL)->unIndentLinePattern)},
+	{	RT_CHAR_ARRAY, "increaseIndentPattern", offsetof(GRAMMAR, increaseIndentPattern), sizeof(((GRAMMAR*)NULL)->increaseIndentPattern)},
+	{	RT_CHAR_ARRAY, "decreaseIndentPattern", offsetof(GRAMMAR, decreaseIndentPattern), sizeof(((GRAMMAR*)NULL)->decreaseIndentPattern)},
+	{	RT_OBJECT_LIST, "highlightBrackets", offsetof(GRAMMAR, highlightBrackets),
+			{.r_t_arrayDescriptor = {grammar_createBracketRule, _bracketRules}}},
 	{	RT_OBJECT_LIST, "patterns", offsetof(GRAMMAR, patterns),
 			{.r_t_arrayDescriptor = {grammar_createGrammarPattern, _patternRules}}},
 	{	RT_END}
@@ -148,6 +180,8 @@ static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {
 
 static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
 	ll_destroy((LINKED_LIST**)&pGrammar->patterns, grammar_destroyPattern);
+	ll_destroy((LINKED_LIST**)&pGrammar->undercursorActions, NULL);
+	ll_destroy((LINKED_LIST**)&pGrammar->highlightBrackets, NULL);
 	return 1;
 }
 
@@ -238,7 +272,7 @@ static void grammar_createPatternFromKeywords(GRAMMAR_PATTERN* pGrammarPattern) 
 	*pResult++ = lookup.singleCharKeywordExists ? '*' : '+';
 	*pResult++ = '>';
 	*pResult = 0;
-	pGrammarPattern->match = strdup(result);
+	pGrammarPattern->match = _strdup(result);
 }
 
 /*
@@ -308,14 +342,11 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 	memset(pGrammar->transitions, 0, sizeof pGrammar->transitions);
 	memset(pGrammar->patternsByState, 0, sizeof pGrammar->patternsByState);
 	LEXICAL_STATE state = CUSTOM_STATE;
-	pGrammar->lineSpanningState = -1;
 	while (pPattern && state < DIM(pGrammar->patternsByState)) {
 		pGrammar->patternsByState[state] = pPattern;
 		if (pPattern->begin[0] && pPattern->end[0]) {
-			pGrammar->lineSpanningState = state;
-			pGrammar->pszStartMarker = pPattern->begin;
-			pGrammar->pszEndMarker = pPattern->end;
-			grammar_addCharTransition(pGrammar, pGrammar->pszStartMarker[0], state);
+			pPattern->spansLines = TRUE;
+			grammar_addCharTransition(pGrammar, pPattern->begin[0], state);
 		}
 		else {
 			RE_PATTERN* pREPattern = grammar_compile(pPattern);
@@ -333,7 +364,7 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 	}
 	pPattern = pGrammar->patterns;
 	while (pPattern && state < DIM(pGrammar->patternsByState)) {
-		PATTERN_GROUP* pGroup = pPattern->groups;
+		PATTERN_GROUP* pGroup = pPattern->captures;
 		while (pGroup) {
 			pGroup->state = grammar_patternIndex(pGrammar, pGroup->patternName);
 			pGroup = pGroup->next;
@@ -450,21 +481,24 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 	if (pGrammar == 0) {
 		return 0;
 	}
-	LEXICAL_STATE lexicalState = (startState == pGrammar->lineSpanningState || startState == UNKNOWN) ? startState : INITIAL;
+	GRAMMAR_PATTERN* pStartPattern = pGrammar->patternsByState[startState];
+	BOOL spansLines = pStartPattern && pStartPattern->spansLines;
+	LEXICAL_STATE lexicalState = (startState == UNKNOWN || spansLines) ? startState : INITIAL;
 	LEXICAL_STATE nextState = lexicalState;
 	RE_MATCH match;
 	int nElementCount = 0;
 	size_t nStateOffset = 0;
-	char* pszEnd = pGrammar->pszEndMarker;
+	char* pszEnd = spansLines ? pStartPattern->end : NULL;
 	for (size_t i = 0; i < lLength; ) {
 		unsigned char c = pszBuf[i];
-		if (lexicalState == pGrammar->lineSpanningState && pszEnd) {
+		if (pszEnd) {
 			if (c == pszEnd[0] && strncmp(&pszBuf[i], pszEnd, strlen(pszEnd)) == 0) {
 				*pLineSpanningEndDetected = 1;
 				i += 2;
 				nElementCount = grammar_addDelta(lexicalState, (int)(i - nStateOffset), nElementCount, pResult);
 				nElementCount = grammar_addDelta(INITIAL, 0, nElementCount, pResult);
 				nextState = lexicalState = INITIAL;
+				pszEnd = NULL;
 			} else {
 				i++;
 				continue;
@@ -489,9 +523,9 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 						if (regex_match(pRePattern, &pszBuf[i], &pszBuf[lLength], &match)) {
 							int delta = (int)(match.loc2 - match.loc1);
 							int nNewOffset = (int)(match.loc2 - pszBuf);
-							if (pPattern->groups) {
+							if (pPattern->captures) {
 								nElementCount = grammar_addDelta(lexicalState, (int)(i - nStateOffset), nElementCount, pResult);
-								nElementCount = grammar_addStyledGroups(nElementCount, &match, pPattern->groups, lexicalState, pResult);
+								nElementCount = grammar_addStyledGroups(nElementCount, &match, pPattern->captures, lexicalState, pResult);
 								nStateOffset = nNewOffset;
 								i = nNewOffset;
 								matched = 1;
@@ -508,6 +542,7 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 							}
 						}
 					} else if (strncmp(&pszBuf[i], pPattern->begin, strlen(pPattern->begin)) == 0) {
+						pszEnd = pPattern->end;
 						nextState = state;
 						matched = 1;
 						break;
@@ -557,3 +592,22 @@ void grammar_initTokenTypeToStyleTable(GRAMMAR* pGrammar, unsigned char tokenTyp
 	}
 }
 
+/*
+ * Returns all "under cursor actions" for the given grammar.
+ */
+UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar) {
+	if (pGrammar == NULL) {
+		return 0;
+	}
+	if (!pGrammar->undercursorActions) {
+		BRACKET_RULE* pRule = pGrammar->highlightBrackets;
+		while (pRule) {
+			UCLIST* pList = (UCLIST*)ll_insert((LINKED_LIST**)&pGrammar->undercursorActions, sizeof(UCLIST));
+			pList->action = UA_SHOWMATCH;
+			pList->len = 0;
+			pList->p.uc_bracket = pRule;
+			pRule = pRule->next;
+		}
+	}
+	return pGrammar->undercursorActions;
+}

@@ -1,6 +1,6 @@
 [files]
-"C:\source\mx-graph-modeller\ui\src\styles.css", line 1: 0x0 0x1 -1 -1 -1 -1 101 0 1292 533
-"C:\source\mx-graph-modeller\ui\src\index.html", line 3: 0x0 0x1 -1 -1 -1 -1 101 0 1292 533
+"C:\source\pksedit\FormatLines.c", line 56: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
+"C:\temp\sample.pas", line 1: 0x0 0x1 -1 -1 -1 -1 101 0 1292 533
 [find]
 !sessi
 !sessio
@@ -44,7 +44,6 @@
 !xxxxxx
 !x
 [open]
-!C:\source\pksedit\include\ArrayList.c
 !C:\source\pksedit\HandleMacros.c
 !C:\source\pksedit\FunctionKeyWidget.c
 !C:\source\pksedit\FormatLines.c
@@ -74,6 +73,9 @@
 !C:\temp\JdbcSessionBig.java
 !C:\source\pksedit\AsciiHexToLong.c
 !C:\Users\tom\Desktop\readme.txt
+!C:\temp\trend-build.log
+!C:\source\mx-graph-modeller\ui\src\index.html
+!C:\source\mx-graph-modeller\ui\src\styles.css
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -87,8 +89,8 @@
 !C:\source\trend-master-eclipse-4.20\trend\bin\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\bloc\*.*
 !C:\source\mx-graph-modeller\ui\src\app\*.*
-!C:\temp\*.*
 !C:\source\pksedit\pks_sys\*.MAC
-!C:\source\pksedit\*.*
 !C:\Users\tom\Desktop\*.*
 !C:\source\mx-graph-modeller\ui\src\*.*
+!C:\source\pksedit\*.*
+!C:\temp\*.*

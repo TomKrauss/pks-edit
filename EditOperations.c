@@ -732,7 +732,7 @@ int EdCharInsert(int c)
 			macro_expandAbbreviation(wp,lp,offs);
 		}
 		if (workmode & WM_SHOWMATCH) {
-			uc_showMatchingBracket(lp,wp->caret.offset);
+			uc_showMatchingBracket(wp);
 		}
 
 		if (!edit_autoFormat(wp) &&

@@ -1,11 +1,11 @@
 {
   "grammars": [
     {
-      "scopeName": "cpp",
+      "scopeName": "pascal",
       "highlightBrackets": [
         {
-          "left": "{",
-          "right": "}"
+          "left": "BEGIN",
+          "right": "END"
         },
         {
           "left": "(",
@@ -15,28 +15,24 @@
           "left": "[",
           "right": "]"
         }
-      ],      
+      ],
       "patterns": [
         {
-          "begin": "/*",
-          "end": "*/",
+          "begin": "(*",
+          "end": "*)",
           "style": "comment",
           "name": "comment.multiLine"
         },
         {
-          "match": "//.*",
+          "begin": "{",
+          "end": "}",
           "style": "comment",
-          "name": "comment.singleLine"
+          "name": "comment.multiLine2"
         },
         {
           "match": "\"(?:\\\"|[^\"])+\"",
           "style": "string",
           "name": "string"
-        },
-        {
-          "match": "\\<[a-z.A-Z0-9]+\\>",
-          "style": "string",
-          "name": "include.file"
         },
         {
           "match": "<[A-Z_][A-Z_0-9]*>",
@@ -45,37 +41,35 @@
         },
         {
           "keywords": [
-            "if",
-            "else",
-            "import",
-            "extern",
-            "static",
-            "register",
-            "struct",
-            "typedef",
-            "enum",
-            "for",
-            "while",
-            "do",
-            "continue",
-            "break",
-            "const",
-            "float",
-            "long",
-            "double",
-            "int",
-            "short",
-            "void",
-            "byte",
-            "char"
+            "BEGIN",
+            "END",
+            "IF",
+            "ELSE",
+            "FUNCTION",
+            "TYPE",
+            "PROCEDURE",
+            "WHILE",
+            "AND",
+            "INTERFACE",
+            "NOT",
+            "PROGRAM",
+            "VAR",
+            "TEXT",
+            "THEN",
+            "ELSE",
+            "ELIF",
+            "UNIT",
+            "CONST",
+            "TYPE",
+            "FOR",
+            "DO",
+            "REPEAT",
+            "UNTIL",
+            "CASE",
+            "OF"
           ],
           "style": "keyword",
-          "name": "keyword.cpp"
-        },
-        {
-          "match": "#\\s*[a-z]+",
-          "style": "annotation",
-          "name": "preprocessor.cpp"
+          "name": "keyword.pascal"
         },
         {
           "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
@@ -88,9 +82,9 @@
           "name": "literal.char"
         },
         {
-          "match": "[-+&|<>=]{1,2}",
+          "match": ":=",
           "style": "operator",
-          "name": "keyword.operator"
+          "name": "keyword.assignment"
         }
       ]
     }

@@ -25,7 +25,7 @@
         },
         {
           "match": "^([A-Z]+)\\s*=",
-          "groups": [
+          "captures": [
             {
               "pattern": "shell.variable"
             }

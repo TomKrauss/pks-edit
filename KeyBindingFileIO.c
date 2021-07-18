@@ -22,9 +22,9 @@
 #include "edierror.h"
 #include "edfuncs.h"
 #include "fileselector.h"
-#include "brackets.h"
 #include "winterf.h"
 #include "winfo.h"
+#include "grammar.h"
 #include "stringutil.h"
 #include "fileutil.h"
 #include "textblocks.h"
@@ -265,27 +265,6 @@ static PASTE *macro_findTextBuffer(LINE **lp,unsigned char *s,PASTELIST **pl,int
 }
 
 /*--------------------------------------------------------------------------
- * macro_defineBracketDefinitions()
- */
-static int macro_defineBracketDefinitions(char *s) {
-	char *c1,*c2;
-	int  v,i1,i2,i3,i4;
-
-	if ((c1 = macro_cutTextWithQuotes(&s)) == 0)
-		return 0;
-	if ((c2 = macro_cutTextWithQuotes(&s)) == 0)
-		return 0;
-
-	v = string_convertToLong(s);
-	i1 = string_convertToLong(_strtolend);
-	i2 = string_convertToLong(_strtolend);
-	i3 = string_convertToLong(_strtolend);
-	i4 = string_convertToLong(_strtolend);
-
-	return sm_defineBracketIndentation(c1,c2,v,i1,i2,i3,i4,_context);
-}
-
-/*--------------------------------------------------------------------------
  * macro_expandAbbreviation()
  */
 int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs)
@@ -294,11 +273,14 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs)
 	long 		o2;
 	int			domacro = 0;
 	FTABLE* fp = wp->fp;
-	int id = fp->documentDescriptor->id;
+	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
 
-	if ((up = uc_find(id,lp->lbuf,offs,UA_ABBREV)) != 0) {
+	if ((up = uc_find(pGrammar, lp->lbuf, offs)) == 0) {
+		return 0;
+	}
+	if (up->action == UA_ABBREV) {
 		domacro = 0;
-	} else if ((up = uc_find(id,lp->lbuf,offs,UA_UCMACRO)) != 0) {
+	} else if (up->action == UA_UCMACRO) {
 		domacro = 1;
 	} else {
 		return 0;
@@ -309,29 +291,7 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs)
 		return 0;
 	caret_placeCursorInCurrentFile(wp, wp->caret.ln,o2);
 	return (domacro) ? 
-		render_repaintCurrentLine(wp), macro_executeByName((char *)up->p) : bl_pasteBlock(up->p,0,o2,0);
-}
-
-/*--------------------------------------------------------------------------
- * macro_defineAbbreviation()
- */
-static int _actionBufferId;
-static int macro_defineAbbreviation(LINE **lp,char *s)
-{	char *pszInputMatch;
-	PASTE *pp;
-
-	if ((pszInputMatch = macro_cutTextWithQuotes(&s)) == 0 ||
-	    (pp = macro_findTextBuffer(lp,s,&_abbrevlist,++_actionBufferId)) == 0L)
-		return 0;
-	return uc_add(pszInputMatch,pp->pln->lbuf,UA_ABBREV,_context);
-}
-
-/*--------------------------------------------------------------------------
- * uc_defineMacroWithTrigger()
- */
-static void uc_defineMacroWithTrigger(char *trigger, char *macroname)
-{
-	uc_add(trigger,macroname,UA_UCMACRO,_context);
+		render_repaintCurrentLine(wp), macro_executeByName(up->p.uc_macro) : bl_pasteBlock((PASTE*)up->p.uc_template,0,o2,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -352,22 +312,8 @@ static void macro_parseKeyDefinitions(FTABLE *fp) {
 			s = lp->lbuf;
 			c = *s++;
 			switch(c) {
-				case 'A': {
-					char* c1, * c2;
-
-					if ((c1 = macro_cutTextWithQuotes(&s)) != 0 &&
-						(c2 = macro_cutTextWithQuotes(&s)) != 0)
-						uc_defineMacroWithTrigger(c1, c2);
-					}
-					break;
-				case 'a':
-					macro_defineAbbreviation(&lp,s);
-					break;
 				case 'T':
 					macro_findTextBuffer(&lp,s,&_esclist[_context],0);
-					break;
-				case 'k':
-					macro_defineBracketDefinitions(s);
 					break;
 			}
 		}
@@ -393,7 +339,6 @@ int macro_readMappingFile(int context, char *pszFilename) {
 			 * remove old entries
 			 */
 			_context = DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
-			_actionBufferId = 0;
 		}
 
 		macro_parseKeyDefinitions(&ft);
@@ -402,7 +347,6 @@ int macro_readMappingFile(int context, char *pszFilename) {
 		bMacrosDefined = 1;
 	}
 
-	sm_setup();
 	regex_compileCharacterClasses((char *) 0);
 
 	if (_outfile.firstl != 0) {

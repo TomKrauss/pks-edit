@@ -16,7 +16,7 @@
         {
           "match": "(<[a-zA-Z_0-9-]+:>)\\s+([^;]+);",
           "name": "string.css.propertyDefinition",
-          "groups": [
+          "captures": [
             {
               "pattern": "string.css.property"
             },

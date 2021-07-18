@@ -32,7 +32,7 @@
         {
           "match": "(<[a-zA-Z_0-9-]+>)\\s*=\\s*(\"[^\"]+\")",
           "name": "string.xml.propertyDefinition",
-          "groups": [
+          "captures": [
             {
               "pattern": "string.xml.attribute"
             },

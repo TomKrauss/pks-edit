@@ -17,6 +17,11 @@
 
 #ifndef GRAMMAR_H
 
+#define	UA_SHOWMATCH	1
+#define	UA_ABBREV		2
+#define	UA_BRINDENT	3
+#define	UA_UCMACRO	4
+
 /*
  * A grammar describes the grammar of a "language" of an input file editable by PKS Edit
  * for purpose like syntax highlighting or section folding etc. Grammars are loaded from
@@ -37,6 +42,27 @@ typedef struct tagLEXICAL_ELEMENT {
 	LEXICAL_STATE le_state;			// the lexical state determined for the next le_length characaters.
 	int le_length;					// the length of the lexical state.
 } LEXICAL_ELEMENT;
+
+typedef struct tagBRACKET_RULE {
+	struct tagBRACKET_RULE* next;
+	char lefthand[10];		/* lefthand single word to match */
+	char righthand[10];		/* righthand single word to match */
+	char d1, d2;			/* delta to add to current bracket level - typically 1 and -1 for left hand and right hand brackets. */
+	char ci1[2];			/* automatic bracket indents (look up, down) indent 1-based of previous line and current line */
+	char ci2[2];			/* automatic bracket indents cl2 outdent 1-based of previous line and current line */
+} BRACKET_RULE;
+
+typedef struct uclist {
+	struct uclist* next;
+	char	pat[20];		/* pattern for scanning */
+	int		len;			/* length of of pattern to scan left to the cursor to match */
+	int  	action;			/* type of action to perform */
+	union {
+		BRACKET_RULE* uc_bracket;	/* if type == UA_SHOWMATCH */
+		unsigned char* uc_template;	/* if type == UA_ABBREV - the template to insert */
+		unsigned char* uc_macro;	/* if type == UA_MACRO - the name of the macro */
+	} p;
+} UCLIST;
 
 /*
  * This method will parse the characters in pszBuf (assumed length is lLength) and determine the lexial
@@ -60,6 +86,16 @@ extern GRAMMAR* grammar_findNamed(char* pszGrammarName);
  * Initialize the style translation table for a given grammar.
  */
 extern void grammar_initTokenTypeToStyleTable(GRAMMAR* pGrammar, unsigned char tokenTypeToStyleTable[MAX_TOKEN_TYPE]);
+
+/*
+ * Returns all "under cursor actions" for the given grammar.
+ */
+extern UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar);
+
+/*
+ * Find an action descriptor to perform given a line buffer and an offset into that buffer. 
+ */
+extern UCLIST* uc_find(GRAMMAR* pGrammar, char* lineBuffer, int column);
 
 #define GRAMMAR_H
 #endif

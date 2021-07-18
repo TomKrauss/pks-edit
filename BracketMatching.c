@@ -25,6 +25,7 @@
 #include "regexp.h"
 #include "findandreplace.h"
 #include "brackets.h"
+#include "grammar.h"
 #include "pksedit.h"
 #include "publicapi.h"
 
@@ -35,50 +36,7 @@
 extern long	_multiplier;
 extern int	edit_calculateTabs2Columns(INDENTATION *pIndent, int tabs);
 
-struct tagBRACKET_RULE {
-	struct tagBRACKET_RULE *next;
-	int	ctx;			/* document descriptor context id */
-	char* lefthand;		/* lefthand bracket character class (group of characters enclosed in [] as [{(<]) or single word to mach */
-	char* righthand;	/* righthand bracket character class - see above */
-	char d1, d2;			/* add val for lefthand, ... */
-	char ci1[2];		/* automatic bracket indents (look up, down) indent 1-based of previous line and current line */
-	char ci2[2];		/* automatic bracket indents cl2 outdent 1-based of previous line and current line */
-};
-
 extern PASTELIST 	*_esclist[];
-static BRACKET		*_brackets;
-static BRACKET		_defaultBracketRule = {
-	NULL,
-	DEFAULT_DOCUMENT_DESCRIPTOR_CTX,
-	"[{[(]",
-	"[}])]",
-	4,
-	-4,
-	0,1,-1,0
-};
-static UCLIST		*_undercursor;
-
-/*--------------------------------------------------------------------------
- * eq_id()
- */
-static int eq_id(int ctx,int ctxlin)
-{
-	if (ctx == DEFAULT_DOCUMENT_DESCRIPTOR_CTX || ctx == ctxlin)
-		return 1;
-	return 0;
-}
-
-/*--------------------------------------------------------------------------
- * uc_initializeUnderCursorActions()
- */
-EXPORT void uc_initializeUnderCursorActions(BRACKET **bp, PASTELIST **pp[], UCLIST **up)
-{
-	if (!bp)
-		return;
-	*bp = _brackets;
-	*pp = _esclist;
-	*up = _undercursor;
-}
 
 /*--------------------------------------------------------------------------
  * uc_matchBracket()
@@ -88,14 +46,6 @@ static BOOL uc_matchBracket(char *lineBuf, char *bracketPattern) {
 	size_t patternLength = strlen(bracketPattern) - 1;
 	c = lineBuf[0];
 	if (patternLength < 0) {
-		return FALSE;
-	}
-	if (bracketPattern[0] == '[' && bracketPattern[patternLength] == ']') {
-		for (int i = 1; i < patternLength; i++) {
-			if (c == bracketPattern[i]) {
-				return TRUE;
-			}
-		}
 		return FALSE;
 	}
 	while ((c = *bracketPattern++) != 0) {
@@ -109,139 +59,32 @@ static BOOL uc_matchBracket(char *lineBuf, char *bracketPattern) {
 /*--------------------------------------------------------------------------
  * uc_find()
  */
-EXPORT struct uclist *uc_find(int ctx, char *b, int col,int actype)
-{	struct uclist *up = _undercursor;
+EXPORT UCLIST *uc_find(GRAMMAR* pGrammar, char *lineBuffer, int column)
+{	UCLIST *up = grammar_getUndercursorActions(pGrammar);
 	int o;
 
 	while (up) {
-		if (up->action == actype		&&
-		    eq_id(up->ctx,ctx)		&&
-		    (o = col - up->len) >= 0	&&
-			uc_matchBracket(&b[o],up->pat))
-		    return up;
+		if ((o = column - up->len) < 0) {
+			continue;
+		}
+		unsigned char* pszString = &lineBuffer[o];
+		if (up->action == UA_SHOWMATCH) {
+			if (uc_matchBracket(pszString, up->p.uc_bracket->lefthand) || uc_matchBracket(pszString, up->p.uc_bracket->righthand)) {
+				return up;
+			}
+		} else if (uc_matchBracket(pszString, up->pat)) {
+			return up;
+		}
 		up = up->next;
 	}
 	return 0;
 }
 
 /*--------------------------------------------------------------------------
- * uc_init()
- */
-EXPORT void uc_init(void)
-{
-	ll_destroy((LINKED_LIST**)&_undercursor,(void*)0);
-}
-
-/*--------------------------------------------------------------------------
- * uc_add()
- */
-EXPORT int uc_add(char *pat,char *p,int type,int id)
-{	struct uclist *up;
-	size_t len;
-	
-	if (!pat || !p) {
-		return 0;
-	}
-
-	len = strlen(pat);
-	for (up = _undercursor; up != 0; up = up->next) {
-		if (up->action == type 	&&
-		    up->len == len 		&& 
-		    eq_id(up->ctx,id) 	&& 
-		    strcmp(up->pat,pat) 	== 0) {
-			goto done;
-		}
-	}
-
-	if ((up = (struct uclist* )ll_insert((LINKED_LIST**)&_undercursor,sizeof *up)) == 0) {
-		return 0;
-	}
-
-	up->pat    = pat;
-	up->len	   = (int) len;
-	up->action = type;
-done:
-	up->ctx	   = id;
-	up->p	   = p;
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * sm_setup()
- * Add the bracket matching definition to our internal matchlist (uclist), to prepare for bracket matching
- */
-EXPORT int sm_setup(void)
-{
-	struct tagBRACKET_RULE *	mp;
-	char *				rb;
-	char *				lb;
-
-	for (mp = _brackets; mp; mp = mp->next) {
-
-		rb = mp->righthand;
-		lb = mp->lefthand;
-		if (rb == 0 || lb == 0)
-			continue;
-
-		if (strcmp(rb,lb) &&				/* skip " .. " ! */
-		    uc_add(rb,(char *)mp,UA_SHOWMATCH,mp->ctx) == 0)
-			return 0;
-
-	}
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * sm_defineBracketIndentation()
- * Defines the indentation rules for auto-indent regarding brackets - is depending
- * on programming language / document type,
- */
-EXPORT int sm_defineBracketIndentation(char *leftBracketsCharacterClass, char *rightBracketsCharacterClass,
-			int indentationValue, 
-		    int up1, int down1, int up2, int down2, 
-		    int documentCtx) 
-{	BRACKET *mp;
-
-	if (!leftBracketsCharacterClass || !rightBracketsCharacterClass) {
-		return 0;
-	}
-
-	for (mp = _brackets; mp != 0;	mp = mp->next) {
-		if ((eq_id(mp->ctx,documentCtx) && 
-		     strcmp(leftBracketsCharacterClass,mp->lefthand) == 0 && 
-			strcmp(rightBracketsCharacterClass,mp->righthand) == 0)) {
-			break;
-		}
-	}
-	
-	if (!mp && (mp = (BRACKET*)ll_insert((LINKED_LIST**)&_brackets,sizeof *mp)) == 0)
-		return 0;
-
-	mp->lefthand  = leftBracketsCharacterClass;
-	mp->righthand = rightBracketsCharacterClass;
-	mp->d1 =  indentationValue;
-	mp->d2 = -indentationValue;
-	mp->ci1[0] = up1;
-	mp->ci1[1] = down1;
-	mp->ci2[0] = up2;
-	mp->ci2[1] = down2;
-	mp->ctx = documentCtx;
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * sm_init()
- */
-EXPORT void sm_init(void)
-{
-	ll_destroy((LINKED_LIST**) &_brackets,(void *)0);
-}
-
-/*--------------------------------------------------------------------------
  * bracketmatch()
  */
 static int _righthand;
-static int bracketmatch(char *s, struct tagBRACKET_RULE *mp)
+static int bracketmatch(char *s, BRACKET_RULE *mp)
 {
 	if (uc_matchBracket(s,mp->lefthand)) {
 		_righthand = 0;
@@ -259,16 +102,12 @@ static int bracketmatch(char *s, struct tagBRACKET_RULE *mp)
 /*--------------------------------------------------------------------------
  * ismatch()
  */
-static struct tagBRACKET_RULE *_lastmatch;
-static struct tagBRACKET_RULE *ismatch(char *s)
-{	int id = ft_getCurrentDocument()->documentDescriptor->id;
-	struct tagBRACKET_RULE *mp;
-
-	for (mp = _brackets; mp; mp = mp->next) {
-		if (eq_id(mp->ctx,id) && 
-		    bracketmatch(s,mp)) {
-			_lastmatch = mp;
-			return mp;
+static BRACKET_RULE *_lastmatch;
+static BRACKET_RULE *ismatch(UCLIST* mp, char *s) {	
+	for (; mp; mp = mp->next) {
+		if (mp->action == UA_SHOWMATCH && bracketmatch(s,mp->p.uc_bracket)) {
+			_lastmatch = mp->p.uc_bracket;
+			return _lastmatch;
 		}
 	}
 	return 0;
@@ -349,7 +188,7 @@ success:
 /*--------------------------------------------------------------------------
  * br_indentsum()
  */
-static int br_indentsum(LINE *lps, LINE *lp, BRACKET *mp, int *dcurr, int *hasind)
+static int br_indentsum(LINE *lps, LINE *lp, BRACKET_RULE *mp, int *dcurr, int *hasind)
 {	unsigned char *s,*send;
 	int d1,d2,indent = 0;
 
@@ -395,16 +234,6 @@ static int br_indentsum(LINE *lps, LINE *lp, BRACKET *mp, int *dcurr, int *hasin
 	return indent;
 }
 
-/**
- * Returns the bracket indentation rules.
- */
-static BRACKET* sm_getBracketRules() {
-	if (_brackets) {
-		return _brackets;
-	}
-	return &_defaultBracketRule;
-}
-
 /*--------------------------------------------------------------------------
  * sm_bracketindent()
  *
@@ -419,14 +248,14 @@ EXPORT int sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr,
 				 int indent, int *di, int *hbr)
 {	
 	int returnValue = -1;
-	int id = fp->documentDescriptor->id;
-	struct tagBRACKET_RULE *mp;
 
+	UCLIST* up = grammar_getUndercursorActions(fp->documentDescriptor->grammar);
 	*di = 0;
-	for (mp = sm_getBracketRules(); mp; mp = mp->next) {
-		if (eq_id(mp->ctx,id) && *(long*)mp->ci1) {
-			returnValue = indent + br_indentsum(lp1,lpcurr,mp,di,hbr);
+	while(up) {
+		if (up->action == UA_BRINDENT && *(long*)up->p.uc_bracket->ci1) {
+			returnValue = indent + br_indentsum(lp1,lpcurr, up->p.uc_bracket,di,hbr);
 		}
+		up = up->next;
 	}
 
 	return returnValue;
@@ -435,21 +264,21 @@ EXPORT int sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr,
 /*--------------------------------------------------------------------------
  * nextmatch()
  */
-static int nextmatch(LINE *lp,long *ln,long *col)
+static int nextmatch(UCLIST* pList, LINE *lp,long *ln,long *col)
 {	register char	*s;
 	register int	pos,j;
-	struct tagBRACKET_RULE *mp;
+	BRACKET_RULE *mp;
 
 	pos = *col;
 	s = &lp->lbuf[pos];
-	if ((mp = ismatch(s)) != 0) 
+	if ((mp = ismatch(pList, s)) != 0) 
 		return (scanmatch(!_righthand,lp,mp,ln,col));
 	s = lp->lbuf;
 	for ( j = pos; --j >= 0; )
-		if (ismatch(&s[j]) != 0) 
+		if (ismatch(pList, &s[j]) != 0)
 			goto matched;
 	for ( j = pos; ++j < lp->len; )
-		if (ismatch(&s[j]) != 0) 
+		if (ismatch(pList, &s[j]) != 0)
 			goto matched;
 
 	return 0;
@@ -480,7 +309,8 @@ EXPORT int EdShowMatch(void)
 	if (!wp) return 0;
 	FTABLE* fp = wp->fp;
 	ln = wp->caret.ln, col = wp->caret.offset;
-	if (nextmatch(wp->caret.linePointer,&ln,&col)) {
+	UCLIST* up = grammar_getUndercursorActions(fp->documentDescriptor->grammar);
+	if (up && nextmatch(up, wp->caret.linePointer,&ln,&col)) {
 		caret_placeCursorInCurrentFile(wp, ln,col);
 		return 1;
 	} 
@@ -490,19 +320,22 @@ EXPORT int EdShowMatch(void)
 
 /*--------------------------------------------------------------------------
  * uc_showMatchingBracket(s)
+ * tries to highlight the matching bracket after a character had been inserted.
  */
-EXPORT int uc_showMatchingBracket(LINE *lp,int iStartColumn)
-{	WINFO *wp = ww_getCurrentEditorWindow();
+EXPORT int uc_showMatchingBracket(WINFO* wp) {	
 	FTABLE* fp = wp->fp;
+	LINE* lp = wp->caret.linePointer;
 	long   ln  = wp->caret.ln;
-	long   col = iStartColumn;
-	struct uclist *up;
+	long   col = wp->caret.offset;
+	UCLIST *up;
+	long lsav = ln, csav = col;
 
-	if ((up = uc_find(fp->documentDescriptor->id,lp->lbuf,col,UA_SHOWMATCH)) != 0) {
-		long lsav=ln,csav=col;
-
-		col -= up->len;
-		if (scanmatch(0,lp,(struct tagBRACKET_RULE *)up->p,&ln,&col)) {
+	if (col > 0) {
+		// check character left to cursor.
+		col--;
+	}
+	if ((up = uc_find(fp->documentDescriptor->grammar,lp->lbuf,col)) != 0 && up->action == UA_SHOWMATCH) {
+		if (scanmatch(0,lp, up->p.uc_bracket,&ln,&col)) {
 			if (ln >= wp->minln) {
 				caret_placeCursorInCurrentFile(wp, ln,col);
 				uc_waitForTimerElapsed();
@@ -610,7 +443,8 @@ EXPORT int EdShiftBetweenBrackets(int dir)
 	fp = wp->fp;
 	ln = wp->caret.ln, col = wp->caret.offset;
 
-	if (!nextmatch(wp->caret.linePointer,&ln,&col)) {
+	UCLIST* up = uc_find(fp->documentDescriptor->grammar, wp->caret.linePointer->lbuf, col);
+	if (!nextmatch(up, wp->caret.linePointer,&ln,&col)) {
 		return 0;
 	}
 
