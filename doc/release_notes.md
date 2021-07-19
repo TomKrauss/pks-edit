@@ -8,7 +8,7 @@
 - PKS Edit supports now syntax highlighting based on syntax rules defined in a mylanguage.grammar.json file. Rules
   are for now limited to applying lexical analysis only. For some of the most common programming languages grammar files
   are provided (C/C++, Java, Typescript, Dart, JSON, Shell, Batch-Files)
-- Zooming Font Sizes works now by pressing Ctrl+ and Ctrl-
+- Zooming in and out of the current text window works now by pressing Ctrl+ and Ctrl- or by using Ctrl+Mousewheel.
 - PKS Edit supports hyperlink navigation, where the syntax for detecting hyperlinks is defined in the grammar file. Hyperlinking
   may include opening a linked file (e.g. #import "myfile.h" in a C-source file), where linked files are looked up on an
   include path (by default "include;inc" - can be defined in an environment variable PKS_INCLUDE_PATH) and/or navigation to

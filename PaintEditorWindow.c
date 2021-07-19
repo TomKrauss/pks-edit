@@ -582,9 +582,9 @@ int ww_zoomWindow(int anIncreaseFactor) {
 		return 0;
 	}
 	if (anIncreaseFactor) {
-		wp->zoomFactor = 5 * wp->zoomFactor / 4;
+		wp->zoomFactor = 11 * wp->zoomFactor / 10;
 	} else {
-		wp->zoomFactor = 4 * wp->zoomFactor / 5;
+		wp->zoomFactor = 10 * wp->zoomFactor / 11;
 	}
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(wp->ww_handle, &ps);

@@ -435,6 +435,11 @@ extern void sl_winchanged(WINFO* wp, long dy, long dx);
  */
 extern int sl_moved(WINFO* wp, long dy, long dx, int cursor_adjust);
 
+/*
+ * Increase / decrease the zoom factor of the current window.
+ */
+extern int ww_zoomWindow(int anIncreaseFactor);
+
 /*------------------------------------------------------------
  * sl_size()
  * Update the internal sizeds of the WINFO structure (maxrows etc...).

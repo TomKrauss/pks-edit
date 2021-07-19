@@ -1233,10 +1233,14 @@ static WINFUNC WorkAreaWndProc(
 	case WM_MOUSEWHEEL:
 		zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, 0)) != 0) {
-			long dx = 0;
-			long dy = zDelta > 0 ? -1 : 1;
-			sl_scrollwinrange(wp, &dy, &dx);
-			sl_winchanged(wp, dy, dx);
+			if (GetAsyncKeyState(VK_CONTROL)) {
+				ww_zoomWindow(zDelta > 0);
+			} else {
+				long dy = zDelta > 0 ? -1 : 1;
+				long dx = 0;
+				sl_scrollwinrange(wp, &dy, &dx);
+				sl_winchanged(wp, dy, dx);
+			}
 		}
 		return TRUE;
 
