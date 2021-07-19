@@ -30,82 +30,61 @@
     },
     {
       "styleName": "keyword",
-      "faceName": "Consolas",
-      "size": -12,
       "weight": 700,
       "foregroundColor": "#AA0000"
     },
     {
       "styleName": "error",
-      "faceName": "Consolas",
-      "size": -12,
       "weight": 700,
       "foregroundColor": "#FF2222"
     },
     {
       "styleName": "warning",
-      "faceName": "Consolas",
-      "size": -12,
       "weight": 700,
       "foregroundColor": "#2222FF"
     },
     {
       "styleName": "operator",
-      "faceName": "Consolas",
-      "size": -12,
       "weight": 700,
       "foregroundColor": "#883333"
     },
     {
       "styleName": "annotation",
-      "faceName": "Consolas",
-      "size": -12,
       "weight": 700,
       "foregroundColor": "#007777"
     },
     {
       "styleName": "bold",
-      "faceName": "Consolas",
-      "size": -12,
       "weight": 700
     },
     {
       "styleName": "regexp",
-      "faceName": "Consolas",
-      "size": -12,
       "foregroundColor": "#AA4444",
       "weight": 700
     },
     {
       "styleName": "bold-italic",
-      "faceName": "Consolas",
-      "size": -12,
       "weight": 700,
       "italic": true
     },
     {
       "styleName": "italic",
-      "faceName": "Consolas",
-      "size": -12,
       "italic": true
     },
     {
       "styleName": "code",
-      "faceName": "Consolas",
-      "size": -12,
       "weight": 700,
       "backgroundColor": "#efefef"
     },
     {
       "styleName": "literal",
-      "faceName": "Consolas",
-      "size": -12,
       "weight": 700,
       "foregroundColor": "#770077"
     },
     {
       "styleName": "hyperlink",
-      "foregroundColor": "#2222aa"
+      "underline": true,
+      "foregroundColor": "#2222FF"
     },
     {
       "styleName": "string",

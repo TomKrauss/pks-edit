@@ -1924,7 +1924,7 @@ int yydebug = 1;
 
 /* Line 1455 of yacc.c  */
 #line 327 "Parser.y"
-    { (yyval).num = MO_FINDCURS; ;}
+    { (yyval).num = 0; ;}
     break;
 
   case 42:

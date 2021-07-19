@@ -2,6 +2,13 @@
   "grammars": [
     {
       "scopeName": "cpp",
+      "navigation": [
+        {
+          "name": "include-link",
+          "pattern": "^#\\s*include\\s+[\"<]([^>\"]+)[\">]",
+          "filenameCapture": 1
+        }
+      ],
       "highlightBrackets": [
         {
           "left": "{",
@@ -15,7 +22,7 @@
           "left": "[",
           "right": "]"
         }
-      ],      
+      ],
       "patterns": [
         {
           "begin": "/*",

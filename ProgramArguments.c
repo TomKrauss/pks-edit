@@ -25,7 +25,6 @@
 
 #define iswhite(c)	(c == ' ' || c == '\t')
 
-extern void 	xref_selectSearchListFormat(char *pszName);
 extern int 		xref_navigateCrossReference(char *s);
 extern void 	xref_openSearchList(char *fn, int cmpflg);
 extern void 	prof_setinifile(char *fn);
@@ -62,9 +61,6 @@ static int Phase2Arg(char *arg)
 				lstrcpy(_currentSearchAndReplaceParams.searchPattern,arg);
 				find_expressionAgainInCurrentFile(1);
 			}
-			break;
-		case 'C':
-			xref_selectSearchListFormat(arg);
 			break;
 		case 'g':	
 			line = string_convertToLong(arg) -1L;

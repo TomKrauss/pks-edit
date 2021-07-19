@@ -324,7 +324,7 @@ mouse		: mouse_button T_ASSIGN opt_plus cmd_or_macro
 			| error { yyerror("mouse binding"); }
 
 opt_plus		:		{ $$.num = 0; }
-			| '+'	{ $$.num = MO_FINDCURS; }
+			| '+'	{ $$.num = 0; }
 
 m_button		: T_LEFT 	{ $$.num = MBUT_L; }
 			| T_RIGHT	{ $$.num = MBUT_R; }

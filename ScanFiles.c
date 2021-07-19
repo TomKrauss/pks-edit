@@ -174,7 +174,7 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 	_abortOnFirstMatch = bAbortOnFirstMatch;
 	_nfound = 0;
 	_ignoreBinary = nOptions & RE_IGNORE_BINARY;
-	string_concatPathAndFilename(stepfile, _pksSysFolder, "pksedit.grp");
+	string_concatPathAndFilename(stepfile, _pksSysFolder, "pksedit.grep");
 	hist_saveString(FILE_PATTERNS, pFilenamePattern);
 
 	if (!*pSearchExpression) {

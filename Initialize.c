@@ -29,7 +29,6 @@
 #undef DELIVER
 
 extern int file_exists(char *s);
-extern void  	xref_selectSearchListFormat(char *pszName);
 extern void 	c2asc(char *start, char *source, unsigned char hi, unsigned char lo);
 extern char *	cryptXXXX(char *dest, char *source, 
 	 			void (*f)(char *start, char *s, unsigned char hi, unsigned char lo));
@@ -83,6 +82,7 @@ EXPORT BOOL init_initializeVariables(void )
 	char *	pks_sys = "PKS_SYS";
 	char *  tempFound;
 	int     tempLen;
+	EDITOR_CONFIGURATION* pConfig = GetConfiguration();
 
 	_pksSysFolder = _sysdir;
 	tempLen = GetModuleFileName(NULL, homeDirectory, EDMAXPATHLEN);
@@ -118,12 +118,11 @@ EXPORT BOOL init_initializeVariables(void )
 		_getcwd(homeDirectory,sizeof homeDirectory);
 	}
 	compiler[0] = 0;
-	Getenv("PKS_COMPILER", compiler, sizeof(compiler));
-	if (compiler[0]) {
-		xref_selectSearchListFormat(compiler);
+	Getenv("PKS_INCLUDE_PATH", pConfig->includePath, member_size(EDITOR_CONFIGURATION, includePath));
+	if (pConfig->includePath[0] == 0) {
+		strcpy(pConfig->includePath, "include;inc");
 	}
-	Getenv("PKS_INCLUDE_PATH", GetConfiguration()->includePath, member_size(EDITOR_CONFIGURATION, includePath));
-	Getenv("PKS_TMP", GetConfiguration()->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath));
+	Getenv("PKS_TMP", pConfig->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath));
 	string_concatPathAndFilename(homeDirectory,homeDirectory,"");
 	return TRUE;
 }

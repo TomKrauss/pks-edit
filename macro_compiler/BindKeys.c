@@ -79,7 +79,6 @@ int bind_mouse(MOUSECODE mousecode, MACROREFTYPE typ, MACROREFIDX idx,
 	mp->button = mousecode.button;
 	mp->nclicks = mousecode.nclicks;
 	mp->shift = mousecode.shift;
-	mp->flags = flags;
 	return 1;
 }
 

@@ -25,6 +25,7 @@
 #include "iccall.h"
 #include "xdialog.h"
 #include "dial2.h"
+#include "grammar.h"
 #include "findandreplace.h"
 #include "linkedlist.h"
 #include "stringutil.h"
@@ -65,30 +66,19 @@ typedef struct tagtry {
 	TAGTRYLIST 	t[TAGMAXTRY];
 } TAGTRY;
 
-typedef struct tagexpression {
-	struct tagexpression *next;
-	char compiler[32];	/* Name of Compiler				*/
-	char *source;		/* expression in words			*/
-	char fnbsl[10];		/* which \? is filename			*/
-	char lnbsl[10];		/* which \? is linenumber		*/
-	char rembsl[10];	/* which bsl is remark			*/
-} TAGEXPR;
-
 static TAGTRY	*_ttry;
 
 static FTABLE	_tagfile,_stepfile;
 extern FTABLE 	*ft_getCurrentErrorDocument();
 
-static TAGEXPR __ge = { 
-0, "","\"([^\"]+)\", line ([0-9]+): *(.*)",	"\\1",	"\\2",	"\\3" };
-static TAGEXPR __te = { 
-0, "", "^([^ ]+) ([^ ]+) ([!?^&].*)",   "\\1",	"\\2",	"\\3" };
-static TAGEXPR *_exprerror = &__ge;
-static TAGEXPR *_greperror = &__ge;
-static TAGEXPR *_tagerror  = &__te;
-static TAGEXPR	*_cmptags;
-static TAGEXPR *_compiler;
-
+static NAVIGATION_PATTERN __ge = { 
+0, "","\"([^\"]+)\", line ([0-9]+): *(.*)",	1,	2,	3 };
+static NAVIGATION_PATTERN __te = { 
+0, "", "^([^ ]+) ([^ ]+) ([!?^&].*)",   1,	2,	3 };
+static NAVIGATION_PATTERN *_exprerror = &__ge;
+static NAVIGATION_PATTERN *_searchListNavigationPattern = &__ge;
+static NAVIGATION_PATTERN *_tagerror  = &__te;
+static NAVIGATION_PATTERN	*_compilerOutputNavigationPatterns;
 static int	_compflag;
 
 extern int help_showHelpForKey(LPSTR szFile, LPSTR szKey);
@@ -132,8 +122,8 @@ static int xref_destroy(TAGTRY* pTry) {
 	return 1;
 }
 
-static int xref_destroyCmpTag(TAGEXPR* ct) {
-	free(ct->source);
+static int xref_destroyCmpTag(NAVIGATION_PATTERN* ct) {
+	free(ct->pattern);
 	return 1;
 }
 
@@ -142,8 +132,7 @@ static int xref_destroyCmpTag(TAGEXPR* ct) {
  */
 void xref_destroyAllCrossReferenceLists() {
 	ll_destroy((LINKED_LIST**)&_ttry, xref_destroy);
-	ll_destroy((LINKED_LIST**)&_compiler, xref_destroy);
-	ll_destroy((LINKED_LIST**)&_cmptags, xref_destroyCmpTag);
+	ll_destroy((LINKED_LIST**)&_compilerOutputNavigationPatterns, xref_destroyCmpTag);
 }
 
 /*--------------------------------------------------------------------------
@@ -203,17 +192,21 @@ static char *get_quoted(char **src)
 static char *szCompiler = "compiler";
 static intptr_t compiler_mk(char *compiler, LONG unused)
 {
-	TAGEXPR 	*ct;
+	NAVIGATION_PATTERN 	*ct;
 	char		*s, *pszLine;
+	char* szNext;
 
-	if ((ct = prof_llinsert(&_cmptags,sizeof *ct,szCompiler,compiler,&pszLine)) == 0) {
+	if ((ct = prof_llinsert(&_compilerOutputNavigationPatterns,sizeof *ct,szCompiler,compiler,&pszLine)) == 0) {
 		return 0;
 	}
 	s = pszLine;
-	ct->source   = _strdup(get_quoted(&s));
-	strmaxcpy(ct->fnbsl, get_quoted(&s), sizeof ct->fnbsl);
-	strmaxcpy(ct->lnbsl, get_quoted(&s), sizeof ct->lnbsl);
-	strmaxcpy(ct->rembsl, get_quoted(&s), sizeof ct->rembsl);
+	ct->pattern = _strdup(get_quoted(&s));
+	szNext = get_quoted(&s);
+	ct->filenameCapture = szNext[0]-'0';
+	szNext = get_quoted(&s);
+	ct->lineNumberCapture = szNext[0] -'0';
+	szNext = get_quoted(&s);
+	ct->commentCapture= szNext[0] - '0';
 	free(pszLine);
 	return 1;
 }
@@ -230,10 +223,10 @@ int xref_restoreFromConfigFile(void)
 /*---------------------------------*/
 /* tagexprinit()				*/
 /*---------------------------------*/
-static RE_PATTERN *tagexprinit(char *ebuf,TAGEXPR *s)
+static RE_PATTERN *tagexprinit(char *ebuf,NAVIGATION_PATTERN *s)
 {
 	_exprerror = s;
-	return find_regexCompile(ebuf,_exprerror->source,RE_DOREX);
+	return find_regexCompile(ebuf,_exprerror->pattern,RE_DOREX);
 }
 
 /*---------------------------------*/
@@ -248,11 +241,11 @@ static TAG *dostep(LINE *lp, RE_PATTERN *pattern)
 		return 0;
 	}
 	if (regex_match(pattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
-		find_initializeReplaceByExpression(_exprerror->fnbsl);	/* assure a few initialiations */
-		regex_getCapturingGroup(&match, 0, _tag.fn, sizeof _tag.fn);
-		regex_getCapturingGroup(&match, 1, _linebuf, LINEBUFSIZE);
+		find_initializeReplaceByExpression(_exprerror->pattern);	/* assure a few initialiations */
+		regex_getCapturingGroup(&match, _exprerror->filenameCapture-1, _tag.fn, sizeof _tag.fn);
+		regex_getCapturingGroup(&match, _exprerror->lineNumberCapture - 1, _linebuf, LINEBUFSIZE);
 		_tag.ln = string_convertToLong(_linebuf);
-		regex_getCapturingGroup(&match, 2, _tag.rembuf, sizeof _tag.rembuf);
+		regex_getCapturingGroup(&match, _exprerror->commentCapture - 1, _tag.rembuf, sizeof _tag.rembuf);
 		return &_tag;
 	}
 	return 0;
@@ -272,13 +265,13 @@ static int xref_readTagFile(char* fn, FTABLE* fp)
 
 
 /*---------------------------------*/
-/* xref_isTagFile()					*/
+/* xref_loadTagFile()				*/
 /*---------------------------------*/
-static int xref_isTagFile(FTABLE *fp, char *lookfn)
+static int xref_loadTagFile(FTABLE *fp, char *tagFilename)
 {	char   *fn;
 
-	if ((fn = file_searchFileInPKSEditLocation(lookfn)) == 0L) {
-		error_openingFileFailed(lookfn,-33);
+	if ((fn = file_searchFileInPKSEditLocation(tagFilename)) == 0L) {
+		// error_showError("Kann nicht zu Querverweis navigieren. Verweise können nicht geladen werden.", NULL);
 		return 0;
 	}
 
@@ -526,11 +519,10 @@ static TAG *findtag(char *s, FTABLE *fp)
 /*---------------------------------*/
 /* gettag()					*/
 /*---------------------------------*/
-static char *gettag(unsigned char *d,unsigned char *dend,
-			     int (*valid)(),int scan2beg)
-{	register char *s,*S;
-	char     *s1=d;
-	register WINFO *wp;
+static char *gettag(unsigned char *d,unsigned char *dend,int (*valid)(),int scan2beg) {	
+	char *s,*S;
+	char *s1=d;
+	WINFO *wp;
 
 	if ((wp = ww_getCurrentEditorWindow()) == 0L) 
 		return (char *)0;
@@ -613,7 +605,7 @@ int xref_navigateCrossReference(char *s)
 		switch(ttl->type) {
 			case TCMD_TAGFILE:
 				if (tnum != ttp->curr) {
-					if (xref_isTagFile(fp,ttl->fn) == 0)
+					if (xref_loadTagFile(fp,ttl->fn) == 0)
 						break;
 					ttp->curr = tnum;
 				}
@@ -656,7 +648,7 @@ void xref_openSearchListResultFromLine(LINE *lp)
 { 	register TAG  *tp;
 	WINDOWPLACEMENT ws,*wsp = 0;
 	char ebuf[ESIZE];
-	RE_PATTERN *pPattern = tagexprinit(ebuf,_greperror);
+	RE_PATTERN *pPattern = tagexprinit(ebuf,_searchListNavigationPattern);
 
 	while((lp = lp->next) != 0L) {		/* we may skip 1st line ! */
 		if (lp->len && (tp = dostep(lp,pPattern)) != 0L) {
@@ -690,10 +682,10 @@ int EdErrorNext(int dir) {
  	register TAG  	*tp=0;
 	FTABLE	    	*fp;
 	long			lineno = 0;
-	TAGEXPR  		*steperror;
-	char 		ebuf[ESIZE];
+	NAVIGATION_PATTERN *steperror;
+	char 			ebuf[ESIZE];
 	char			fullname[256];
-	WINFO		*wp;
+	WINFO			*wp;
 
 	if ((dir & LIST_USETOPWINDOW) || !ft_getCurrentErrorDocument()) {
 	/* treat current window as error list */
@@ -710,12 +702,9 @@ notfile:	error_showErrorById(IDS_MSGNOTAGFILE);
 		return 0;
 	}
 	if (_compflag) {
-		if (!_compiler) {
-			_compiler = _cmptags;
-		}
-		steperror = _compiler;
+		steperror = _compilerOutputNavigationPatterns;
 	} else {
-		steperror = _greperror;
+		steperror = _searchListNavigationPattern;
 	}
 	if (steperror == 0) {
 		goto notfile;
@@ -783,34 +772,16 @@ doforward:
 	return 0;
 }
 
-/*--------------------------------------------------------------------------
- * xref_selectSearchListFormat()
- * Select a format for the search lists, that can be navigated. PKS Edit supports
- * some built in compiler and other tool output formats which can be used to
- * navigate along (file name + line number + ....).
- */
-void xref_selectSearchListFormat(char *pszName)
-{
-	TAGEXPR		*tp;
-
-	for (tp = _cmptags; tp; tp = tp->next) {
-		if (lstrcmp(tp->compiler, pszName) == 0) {
-			_compiler = tp;
-			return;
-		}
-	}
-}
-
 /*---------------------------------*/
-/* s_t_open()					*/
+/* xref_openTagFileOrSearchResults()					*/
 /*---------------------------------*/
 #define	ST_TAGS		1
-#define	ST_ERRORS		2
+#define	ST_ERRORS	2
 #define	ST_STEP		3
-static FSELINFO _tagfselinfo = { ".", "TAGS", "*.TAG" };
-static FSELINFO _grpfselinfo = { ".", "PKSEDIT.GRP", "*.GRP" };
-static FSELINFO _cmpfselinfo = { ".", "ERRORS.ERR", "*.ERR" };
-static int s_t_open(int title, int st_type, FSELINFO *fsp)
+static FSELINFO _tagfselinfo = { ".", "tags", "*.tag" };
+static FSELINFO _grpfselinfo = { ".", "pksedit.grep", "*.grep" };
+static FSELINFO _cmpfselinfo = { ".", "errors.err", "*.err" };
+static int xref_openTagFileOrSearchResults(int title, int st_type, FSELINFO *fsp)
 {
 	if (title && fsel_selectFileWithOptions(fsp, title, FALSE) == 0) {
 		return 0;
@@ -848,37 +819,81 @@ static int s_t_open(int title, int st_type, FSELINFO *fsp)
 	return 0;
 }
 
+typedef struct tagNAVIGATION_INFO_PARSE_RESULT {
+	char* ni_fileName;
+	long  ni_lineNumber;
+	WINDOWPLACEMENT* ni_wp;
+} NAVIGATION_INFO_PARSE_RESULT;
+
+static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT* pResult, char* szFileBuffer, size_t nFileBufferSize) {
+	LINE* lp = wp->caret.linePointer;
+	FTABLE* fp = wp->fp;
+	RE_PATTERN pattern;
+	RE_OPTIONS options;
+	RE_MATCH match;
+	unsigned char patternBuf[256];
+
+	NAVIGATION_PATTERN* pPattern = grammar_getNavigationPatterns(fp->documentDescriptor->grammar);
+	while (pPattern) {
+		memset(&options, 0, sizeof options);
+		options.flags = RE_DOREX;
+		options.patternBuf = patternBuf;
+		options.endOfPatternBuf = &patternBuf[sizeof patternBuf];
+		options.expression = pPattern->pattern;
+		if (regex_compile(&options, &pattern)) {
+			char* pszStart = lp->lbuf;
+			char* pszCursor = &lp->lbuf[wp->caret.col];
+			char* pszEnd = &lp->lbuf[lp->len];
+			while (regex_match(&pattern, pszStart, pszEnd, &match)) {
+				if (match.loc1 <= pszCursor && match.loc2 >= pszCursor && 
+						regex_getCapturingGroup(&match, pPattern->filenameCapture - 1, szFileBuffer, (int)nFileBufferSize) == SUCCESS) {
+					pResult->ni_fileName = szFileBuffer;
+					pResult->ni_lineNumber = 0;			// for now - to be initialized from capture group
+					return 1;
+				}
+				pszStart = match.loc2;
+			}
+		}
+		pPattern = pPattern->next;
+	}
+	return 0;
+}
+
+/*--------------------------------*/
+/* EdFindFileCursor() */
+/*---------------------------------*/
+int EdFindFileCursor(void)
+{	char	*found;
+	char	fselpath[512];
+	char	filename[128];
+	NAVIGATION_INFO_PARSE_RESULT result;
+	WINFO* wp = ww_getCurrentEditorWindow();
+	extern char *file_searchFileInPath();
+
+	if (wp == 0) {
+		return 0;
+	}
+	if (!xref_determineNavigationInfo(wp, &result, _fseltarget, EDMAXPATHLEN)) {
+		return 0;
+	}
+	string_splitFilename(_fseltarget,fselpath,filename);
+	if ((found = file_searchFileInPath(filename,GetConfiguration()->includePath))   != 0 ||
+	    (found = file_searchFileInPath(_fseltarget,fselpath)) != 0) {
+		return xref_openFile(found, result.ni_lineNumber, (WINDOWPLACEMENT*)0);
+	}
+	ShellExecute(hwndMDIFrameWindow, "open", _fseltarget, "", ".", SW_SHOWNORMAL);
+	return 1;
+}
+
 /*---------------------------------*/
 /* EdFindTagCursor()			*/
 /*---------------------------------*/
 int EdFindTagCursor(void)
 {
-	return xref_navigateCrossReference(xref_saveCrossReferenceWord(_linebuf,&_linebuf[LINEBUFSIZE]));
-}
-
-/*---------------------------------*/
-/* EdFindFileCursor()			*/
-/*---------------------------------*/
-int EdFindFileCursor(void)
-{	char *fn,*found;
-	char	fselpath[512];
-	extern char *file_searchFileInPath();
-
-	if ((fn = gettag(_linebuf,&_linebuf[LINEBUFSIZE],char_isFilename,1)) == 0) 
-		return 0;
-
-#if 0
-	fsel_outit(fselext,fselpath);
-#else
-	string_splitFilename(_fseltarget,fselpath,(char*)0);
-#endif
-	if ((found = file_searchFileInPath(fn,GetConfiguration()->includePath))   != 0 ||
-	    (found = file_searchFileInPath(fn,fselpath))   != 0) {
-		return xref_openFile(found, 0L, (WINDOWPLACEMENT*)0);
+	if (EdFindFileCursor()) {
+		return 1;
 	}
-
-	error_showErrorById(IDS_MSGFILENOTFOUND);
-	return 0;
+	return xref_navigateCrossReference(xref_saveCrossReferenceWord(_linebuf, &_linebuf[LINEBUFSIZE]));
 }
 
 /*---------------------------------*/
@@ -900,7 +915,7 @@ int EdFindWordCursor(dir)
 void xref_openSearchList(char *fn, int cmpflg)
 {
 	strcpy(_fseltarget,fn);
-	s_t_open(0, cmpflg ? ST_ERRORS: ST_STEP, &_cmpfselinfo);
+	xref_openTagFileOrSearchResults(0, cmpflg ? ST_ERRORS: ST_STEP, &_cmpfselinfo);
 }
 
 /*---------------------------------*/
@@ -908,7 +923,7 @@ void xref_openSearchList(char *fn, int cmpflg)
 /*---------------------------------*/
 int EdSearchListRead(void)
 {
-	return s_t_open(MREADSTE,ST_STEP,&_grpfselinfo);
+	return xref_openTagFileOrSearchResults(MREAD_SEARCH_LIST,ST_STEP,&_grpfselinfo);
 }
 
 /*---------------------------------*/
@@ -916,19 +931,13 @@ int EdSearchListRead(void)
 /*---------------------------------*/
 int EdTagfileRead(void)
 {
-	return s_t_open(MREADTAG,ST_TAGS,&_tagfselinfo);
+	return xref_openTagFileOrSearchResults(MREADTAG,ST_TAGS,&_tagfselinfo);
 }
 
 /*---------------------------------*/
 /* EdErrorListRead()			*/
 /*---------------------------------*/
-int EdErrorListRead(long dummy1, long dummy2, char *pszCompiler)
-{
-
-	_compiler = _cmptags;
-	if (pszCompiler) {
-		xref_selectSearchListFormat(pszCompiler);
-	}
-	return s_t_open(MREADCMP,ST_ERRORS,&_cmpfselinfo);
+int EdErrorListRead(long dummy1, long dummy2) {
+	return xref_openTagFileOrSearchResults(MREADCMP,ST_ERRORS,&_cmpfselinfo);
 }
 

@@ -283,7 +283,6 @@ int yyfinish(void)
 		fclose(yyerr.errfp);
 		yyerr.errfp = 0;
 		yyerr.failpt = 0;
-		xref_selectSearchListFormat("PKSMAKROC");
 		xref_openSearchList(yyerr.errname,1);
 		return 0;
 	} else {

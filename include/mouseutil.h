@@ -35,6 +35,12 @@ extern int mouse_dispatchUntilButtonRelease(int* x, int* y, int* but, int* shift
 extern void mouse_setBusyCursor(void);
 
 /*------------------------------------------------------------
+ * mouse_setHandCursor()
+ * Display a hand cursor.
+ */
+extern void mouse_setHandCursor(void);
+
+/*------------------------------------------------------------
  * mouse_setDefaultCursor()
  * Display the default cursor (arrow)
  */

@@ -400,7 +400,6 @@ int dlg_queryReplace(char *search, int slen, char *replace, int dlen)
 		win_positionWindowRelativeToCaret(hwndQueryReplace);
 	}
 
-	render_selectCustomCaret(1);
 	SetDlgItemText(hwndQueryReplace,IDD_STRING1,sbuf);
 	SetDlgItemText(hwndQueryReplace,IDD_STRING2,rbuf);
 
@@ -409,7 +408,6 @@ int dlg_queryReplace(char *search, int slen, char *replace, int dlen)
 		if (!IsDialogMessage(hwndQueryReplace,&msg))
 			DispatchMessage(&msg);
 	}
-	render_selectCustomCaret(0);
 
 	return (int) _answer;
 }

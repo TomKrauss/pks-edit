@@ -1,9 +1,8 @@
 [files]
-"C:\source\pksedit\Settings.c", line 1: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
-"C:\SUService.log", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
-"C:\temp\trend-build.log", line 125516: 0x2 0x3 -1 -1 -8 -31 101 0 1292 533
+"C:\source\pksedit\BracketMatching.c", line 22: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
+"C:\source\pksedit\README.md", line 18: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
+"C:\source\pksedit\include\winfo.h", line 20: 0x0 0x1 -1 -1 -8 -31 90 54 1281 587
 [find]
-!sessione
 !sessionex
 !sessionexc
 !sessionexce
@@ -34,6 +33,8 @@
 !error:
 !warning;
 !warning:
+!up
+!..
 [filePatterns]
 !*.*
 !*.java
@@ -44,12 +45,8 @@
 ! 
 !xxxxxx
 !x
+!xx
 [open]
-!C:\source\pksedit\FileUtil.c
-!C:\source\pksedit\ErrorDialogs.c
-!C:\source\pksedit\ExecuteProgram.c
-!C:\source\pksedit\FileBufferIO.c
-!C:\source\pksedit\FilePattern.c
 !C:\source\pksedit\FileSelector.c
 !C:\source\pksedit\Clipboard.c
 !C:\Users\tom\AppData\Local\Temp\MACROS.PKC
@@ -71,11 +68,17 @@
 !C:\source\pksedit\AsciiHexToLong.c
 !C:\source\mx-graph-modeller\ui\src\index.html
 !C:\source\mx-graph-modeller\ui\src\styles.css
-!C:\SUService.log
 !C:\source\pksedit\pks_sys\batch.grammar.json
-!C:\temp\trend-build.log
 !C:\Users\tom\Desktop\readme.txt
 !C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\src\crtables.ddl
+!C:\temp\trend-build.log
+!C:\SUService.log
+!C:\source\pksedit\Settings.c
+!C:\source\pksedit\pksedit.iss
+!C:\Users\tom\AppData\Local\Temp\MOUSE.MAC
+!C:\source\pksedit\doc\release_notes.md
+!C:\source\pksedit\include\lineoperations.h
+!C:\source\pksedit\include\syntaxhighlighting.h
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -89,10 +92,10 @@
 !C:\source\trend-master-eclipse-4.20\trend\bin\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\bloc\*.*
 !C:\source\mx-graph-modeller\ui\src\app\*.*
-!C:\source\pksedit\pks_sys\*.MAC
 !C:\Users\tom\Desktop\*.*
 !C:\source\mx-graph-modeller\ui\src\*.*
-!C:\source\pksedit\*.*
 !C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\src\*.*
 !C:\temp\*.*
 !C:\*.*
+!C:\source\pksedit\*.*
+!C:\source\pksedit\pks_sys\*.MAC

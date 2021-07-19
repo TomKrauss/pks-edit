@@ -64,6 +64,15 @@ typedef struct uclist {
 	} p;
 } UCLIST;
 
+typedef struct tagNAVIGATION_PATTERN {
+	struct tagNAVIGATION_PATTERN* next;
+	char compiler[32];				/* Name of navigation type - was historically the name of the compiler producing an output */
+	char* pattern;					/* regular expression to match  */
+	int filenameCapture;			/* which \? is filename			*/
+	int lineNumberCapture;			/* which \? is linenumber		*/
+	int commentCapture;				/* which bsl is a comment - interpreted as info to display*/
+} NAVIGATION_PATTERN;
+
 /*
  * This method will parse the characters in pszBuf (assumed length is lLength) and determine the lexial
  * tokens defined as LEXICAL_ELEMENTs to be placed in the result buffer. If successful return the number of
@@ -96,6 +105,11 @@ extern UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar);
  * Find an action descriptor to perform given a line buffer and an offset into that buffer. 
  */
 extern UCLIST* uc_find(GRAMMAR* pGrammar, char* lineBuffer, int column);
+
+/*
+ * Returns the list of navigation patterns for a given grammar.
+ */
+extern NAVIGATION_PATTERN* grammar_getNavigationPatterns(GRAMMAR* pGrammar);
 
 #define GRAMMAR_H
 #endif

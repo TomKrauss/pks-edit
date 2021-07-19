@@ -94,7 +94,7 @@ MACROREF			currentSelectedMacro;
 extern int op_startMacroRecording();
 
 
-static FSELINFO 	_seqfsel = {	"","PKSEDIT.MAC", "*.MAC" };
+static FSELINFO 	_seqfsel = {	"","pksedit.mac", "*.mac" };
 static int 		_nkeys = MAXMAPKEY;
 
 EDBINDS _bindings = {

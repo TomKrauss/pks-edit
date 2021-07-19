@@ -19,6 +19,7 @@
 #include "trace.h"
 #include "caretmovement.h"
 #include "edierror.h"
+#include "customcontrols.h"
 #include "syntaxhighlighting.h"
 
 #include "winfo.h"
@@ -279,6 +280,17 @@ static LINE* ww_getMinLine(WINFO* wp, int idx) {
 	return wp->lpMinln;
 }
 
+/**
+ * Render the custom secondary caret.
+ */
+static void render_customCaret(WINFO* wp, HDC hdc, int y) {
+	int width = wp->secondaryCaretWidth;
+	if (width <= 0) {
+		width = 1;
+	}
+	cust_drawOutline(hdc, (wp->secondaryCaret.col - wp->mincol) * wp->cwidth, y, width*wp->cwidth, wp->cheight);
+}
+
 /*--------------------------------------------------------------------------
  * render_paintWindowParams()
  */
@@ -336,8 +348,9 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 			if (ln >= minMarkedLine && ln <= maxMarkedLine) {
 				paintSelection(hdc, wp, lp, y, visLen);
 			}
-			if (ln == wp->caret.ln)
-				render_updateCustomCaret(wp,hdc);
+			if (ln == wp->secondaryCaret.ln && wp->secondaryCaret.linePointer) {
+				render_customCaret(wp, hdc, y);
+			}
 		}
 	}
 
@@ -557,21 +570,6 @@ EXPORT void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd)
 		lpStart = lpStart->next;
 	}
 	render_repaintFromLineTo(fp, startIdx, idx);
-}
-
-/*--------------------------------------------------------------------------
- * render_selectCustomCaret()
- */
-EXPORT void render_selectCustomCaret(int on)
-{
-	WINFO 	*wp = ww_getCurrentEditorWindow();
-
-	if (wp == 0)
-		return;
-	if (on != wp->owncursor) {
-		wp->owncursor = on;
-		render_repaintCurrentLine(wp);
-	}
 }
 
 /*

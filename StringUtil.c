@@ -71,6 +71,13 @@ char* strmaxcpy(char* pszDest, const char* pszSource, int nMax) {
 	return pszDest;
 }
 
+/*
+ * Return true, if the passed char is a directory separator. 
+ */
+static int string_isdirSeparator(unsigned char c) {
+	return c == DIRSEPARATOR || c == '/';
+}
+
 /*--------------------------------------------------------------------------
  * string_concatPathAndFilename()
  * concat file and dirname and make sure there is one(1!) SLASH between
@@ -80,7 +87,7 @@ void string_concatPathAndFilename(char *dest, const char *pathname, const char *
 	if (*pathname) {
 		while (*pathname)
 			*dest++ = *pathname++;
-		if (dest[-1] != DIRSEPARATOR)
+		if (!string_isdirSeparator(dest[-1]))
 			*dest++ = DIRSEPARATOR;
 	}
 	while((*dest++ = *fname++) != 0);
@@ -95,7 +102,7 @@ char *string_getBaseFilename(const char *fullname)
 	register char c;
 
 	while ((c = *fullname++) != 0) 
-		if (c == DIRSEPARATOR) f = fullname;
+		if (string_isdirSeparator(c)) f = fullname;
 	return (char*)f;
 }
 
@@ -140,44 +147,9 @@ void string_splitFilename(const char *completeFileName, char *pathName, char *fi
  * make full pathname
  */
 char *string_getFullPathName(const char *path, const char *fn) {
-#if defined(WIN32)
 	char *		pszFn;
 
 	GetFullPathName(fn, 256, (char *)path, &pszFn);
-#else
-	register char *f = fn,*dst = path,c;
-
-	if (fn[1] != ':') {
-		*dst++ = GetCurrentDrive() + '@';
-		*dst++ = ':';
-		if (*fn != DIRSEPARATOR)
-			*dst++ = DIRSEPARATOR;
-	} else {
-		fn += 2;
-	}
-	if (*fn != DIRSEPARATOR) {
-		GetCurrentDirectory(256, dst);
-		while(*dst) dst++;
-		*dst++ = DIRSEPARATOR;
-	}
-	while((c = *f) != 0) {
-		if (c == '.') {
-			if (f[1] == DIRSEPARATOR) {
-				f += 2;
-				continue;
-			} else if (f[1] == '.' && f[2] == DIRSEPARATOR) {
-				f += 3;
-				dst--;
-				while(dst[-1] != DIRSEPARATOR) if (dst-- <= path) return 0;
-				continue;
-			}
-		}
-		if (c >= 'a' && c <= 'z') c += ('A'-'a');
-		*dst++ = c;
-		f++;
-	}
-	*dst = 0;
-#endif	
 	return (char*)path;
 }
 

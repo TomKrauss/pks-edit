@@ -385,7 +385,6 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 		switch(item) {
 			case IDD_POSITIONTCURS:
 				moved = win_positionWindowRelativeToCaret(hDlg);
-				render_selectCustomCaret(1);
 				break;
 			case IDD_WINDOWLIST:
 			case IDD_ICONLIST:
@@ -571,9 +570,6 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 		switch(item) {
 		case IDD_RECORDRET:
 			*ip = macro_getReplaceActionForControlId(idCtrl);
-			break;
-		case IDD_POSITIONTCURS:
-			render_selectCustomCaret(0);
 			break;
 		case IDD_CSEL:
 			*(char*)dp->dp_data = (char)(short)(long)

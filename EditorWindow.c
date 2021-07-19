@@ -60,17 +60,6 @@ static int EdUpdateCaret(WINFO *wp, CURSOR_TYPE type, int visible) {
 }
 
 /*------------------------------------------------------------
- * render_updateCustomCaret()
- * When a custom caret is being displayed - re-render it now.
- */
-void render_updateCustomCaret(WINFO *wp, HDC hdc)
-{
-	if (!wp->owncursor)
-		return;
-	cust_drawOutline(hdc,wp->cx,wp->cy,wp->cwidth,wp->cheight);
-}
-
-/*------------------------------------------------------------
  * render_updateCaret()
  * macro_updateSelectedMacro the current caret for the passed editor window (dependening on insert mode
  * etc...)

@@ -738,7 +738,7 @@ END
 DLGSELTMPLATE DIALOGEX 54, 44, 208, 170
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Einfügen Textbaustein"
-FONT 10, "courier", 0, 0, 0x0
+FONT 8, "helv", 400, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "A",IDD_RAWCHAR,16,146,24,14
     LISTBOX         IDD_ICONLIST,10,12,40,131,LBS_SORT | WS_VSCROLL | WS_GROUP | WS_TABSTOP
@@ -876,6 +876,7 @@ BEGIN
         MENUITEM "&Nächstes suchen\a",          MFAGAIN
         MENUITEM SEPARATOR
         MENUITEM "In &Dateien suchen...\a",     MEDIFLIS
+        MENUITEM "Alte Suchergebnisse &verwenden...\a", MREAD_SEARCH_LIST
         MENUITEM "Navigieren zu &Verweis...\a", MSHOWTAG
         MENUITEM SEPARATOR
         MENUITEM "Marke se&tzen...\a",          MSETMARK
@@ -940,7 +941,6 @@ BEGIN
         MENUITEM "S&hell...\a",                 MEXEC
         MENUITEM SEPARATOR
         MENUITEM "&Verweise lesen...\a",        MREADTAG
-        MENUITEM "&Suchliste lesen...\a",       MREADSTE
         MENUITEM "&Fehlerliste lesen...\a",     MREADCMP
         MENUITEM SEPARATOR
         MENUITEM "S&ymbole...\a",               MENEX
@@ -1129,6 +1129,10 @@ BEGIN
     BEGIN
     END
 
+    DLGSORT, DIALOG
+    BEGIN
+    END
+
     DLGWORKMODE, DIALOG
     BEGIN
         RIGHTMARGIN, 324
@@ -1152,7 +1156,6 @@ BEGIN
 
     DLGDOCTYPES, DIALOG
     BEGIN
-        BOTTOMMARGIN, 236
     END
 
     DLGTAGLIST, DIALOG

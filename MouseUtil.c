@@ -30,8 +30,9 @@
 #include "edfuncs.h"
 #include "winutil.h"
 
+static HCURSOR   hHandPointer;		// Hand pointer cursor
 static HCURSOR   hHourGlass;		// Hour glass cursor
-static HCURSOR   hSaveCurs;
+static HCURSOR   hDefaultCurs;
 
 extern HWND 	ic_findChildFromPoint(HWND hwnd, POINT *point);
 
@@ -251,11 +252,22 @@ fine:
  * mouse_setBusyCursor()
  * Display the hourglass cursor.
  */
-EXPORT void mouse_setBusyCursor(void)
-{
-	if (hHourGlass == NULL)
+EXPORT void mouse_setBusyCursor(void) {
+	if (hHourGlass == NULL) {
 		hHourGlass = LoadCursor(NULL, IDC_WAIT);
-	hSaveCurs = SetCursor(hHourGlass);
+	}
+	SetCursor(hHourGlass);
+}
+
+/*------------------------------------------------------------
+ * mouse_setHandCursor()
+ * Display a hand cursor.
+ */
+EXPORT void mouse_setHandCursor(void) {
+	if (hHandPointer == NULL) {
+		hHandPointer = LoadCursor(NULL, IDC_HAND);
+	}
+	SetCursor(hHandPointer);
 }
 
 /*------------------------------------------------------------
@@ -264,8 +276,10 @@ EXPORT void mouse_setBusyCursor(void)
  */
 EXPORT void mouse_setDefaultCursor(void)
 {
-	if (hSaveCurs != 0)
-		SetCursor(hSaveCurs);
+	if (hDefaultCurs == NULL) {
+		hDefaultCurs = LoadCursor(NULL, IDC_ARROW);
+	}
+	SetCursor(hDefaultCurs);
 }
 
 /*------------------------------------------------------------
@@ -455,10 +469,14 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 	if (mp->msg && mp->msg[0]) {
 		error_displayErrorToast(mp->msg, NULL);
 	}
-	if (mp->flags & MO_FINDCURS) {
-		caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
-		if (caret_updateLineColumn(wp,&ln,&col,1)) {
-			wt_curpos(wp,ln,col);
+	if (mp->macref.typ == CMD_CMDSEQ) {
+		COM_1FUNC* cp;
+		cp = &_cmdseqtab[mp->macref.index].c_functionDef;
+		if (_edfunctab[cp->funcnum].flags & EW_FINDCURS) {
+			caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
+			if (caret_updateLineColumn(wp, &ln, &col, 1)) {
+				wt_curpos(wp, ln, col);
+			}
 		}
 	}
 

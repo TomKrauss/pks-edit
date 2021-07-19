@@ -60,14 +60,6 @@ extern void xref_openSearchListResultFromLine(LINE* lp);
 extern int EdErrorNext(int dir);
 
 /*--------------------------------------------------------------------------
- * xref_selectSearchListFormat()
- * Select a format for the search lists, that can be navigated. PKS Edit supports
- * some built in compiler and other tool output formats which can be used to
- * navigate along (file name + line number + ....).
- */
-extern void xref_selectSearchListFormat(char* pszName);
-
-/*--------------------------------------------------------------------------
  * xref_addSearchListEntry()
  * Add an entry to the "current search list" file in the standard PKS Edit search list
  * navigation format ("filename", line lineNumer: remarks).
@@ -86,12 +78,7 @@ extern int EdSearchListRead(void);
 
 extern int EdTagfileRead(void);
 
-extern int EdErrorListRead(long dummy1, long dummy2, char* pszCompiler);
-
-
-
-
-
+extern int EdErrorListRead(long dummy1, long dummy2);
 
 #define CROSSREFERENCELINKS_H
 #endif // !CROSSREFERENCELINKS_H

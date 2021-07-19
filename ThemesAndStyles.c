@@ -45,6 +45,8 @@
 
 
 extern HDC print_getPrinterDC(void);
+// forward decl.
+extern int theme_initThemes(void);
 
 static const char* DEFAULT = "default";
 
@@ -75,6 +77,30 @@ typedef struct tagEDTEXTSTYLE {
 	EDFONTATTRIBUTES style;
 } EDTEXTSTYLE;
 
+static EDTEXTSTYLE defaultTextStyle = {
+	NULL,
+	"default",
+	"Conolas",
+	ANSI_CHARSET,
+	15,
+	RGB(0, 0, 0),
+	-1
+};
+
+static EDTEXTSTYLE* _styles[50];
+
+/*
+ * Returns the text style for a given style class.
+ */
+static EDTEXTSTYLE* font_getTextStyleForIndex(FONT_STYLE_CLASS nIndex) {
+	theme_initThemes();
+	if (nIndex < 0 || nIndex >= DIM(_styles)) {
+		return &defaultTextStyle;
+	}
+	EDTEXTSTYLE* pStyle = _styles[nIndex];
+	return pStyle ? pStyle : &defaultTextStyle;
+}
+
 
 /*------------------------------------------------------------
  * font_createFontWithStyle()
@@ -100,8 +126,12 @@ static HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont) {
 		FIXED_PITCH | FF_DONTCARE, 	// lfPitchAndFamily;
 		""					// lfFaceName[LF_FACESIZE];
 	};
+	EDTEXTSTYLE* pDefaultFont = font_getTextStyleForIndex(FS_NORMAL);
 
 	int size = pFont->size;
+	if (size == 0) {
+		size = pDefaultFont->size;
+	}
 	if (pFont->zoomFactor > 0.01) {
 		size = (int)(size * pFont->zoomFactor);
 	}
@@ -112,19 +142,13 @@ static HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont) {
 	_lf.lfStrikeOut = (BYTE)pFont->style.strikeout;
 	_lf.lfItalic = pFont->style.italic;
 	_lf.lfUnderline = (BYTE)pFont->style.underline;
-	lstrcpy(_lf.lfFaceName,pFont->faceName);
+	if (!pFont->faceName[0]) {
+		lstrcpy(_lf.lfFaceName, pDefaultFont->faceName);
+	} else {
+		lstrcpy(_lf.lfFaceName, pFont->faceName);
+	}
 	return CreateFontIndirect(&_lf);
 }
-
-static EDTEXTSTYLE defaultTextStyle = {
-	NULL,
-	"default",
-	"Conolas",
-	ANSI_CHARSET,
-	15,
-	RGB(0, 0, 0),
-	-1
-};
 
 static THEME_DATA defaultTheme = {
 	NULL,
@@ -170,6 +194,7 @@ static EDTEXTSTYLE* theme_createStyle() {
 	EDTEXTSTYLE* pStyle = calloc(sizeof(EDTEXTSTYLE), 1);
 	memcpy(pStyle, &defaultTextStyle, sizeof defaultTextStyle);
 	pStyle->faceName[0] = 0;
+	pStyle->size = 0;
 	return pStyle;
 }
 
@@ -191,9 +216,9 @@ static THEME_CONFIGURATION themeConfiguration;
 
 static char* _styleNames[] = {
 	"default",
-	"control"
+	"control",
+	"hyperlink"
 };
-static EDTEXTSTYLE* _styles[50];
 
 /*--------------------------------------------------------------------------
  * theme_initThemes()
@@ -227,18 +252,6 @@ int theme_initThemes(void) {
 		return 1;
 	}
 	return 0;
-}
-
-/*
- * Returns the text style for a given style class. 
- */
-static EDTEXTSTYLE* font_getTextStyleForIndex(FONT_STYLE_CLASS nIndex) {
-	theme_initThemes();
-	if (nIndex < 0 || nIndex >= DIM(_styles)) {
-		return &defaultTextStyle;
-	}
-	EDTEXTSTYLE* pStyle = _styles[nIndex];
-	return pStyle ? pStyle : &defaultTextStyle;
 }
 
 /*
@@ -288,7 +301,7 @@ void font_selectFontStyle(WINFO *wp, FONT_STYLE_CLASS nStyleIndex, HDC hdc) {
 	} else {
 		SetBkMode(hdc, TRANSPARENT);
 	}
-	if (pStyle->faceName[0] == 0) {
+	if (pStyle->faceName[0] == 0 && !pStyle->style.underline && !pStyle->style.italic && !pStyle->style.strikeout) {
 		pStyle = pDefaultStyle;
 	}
 	if (GetMapMode(hdc) != MM_ANISOTROPIC) {

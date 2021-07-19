@@ -18,7 +18,7 @@
 
 #define EDITORFONT_H
 
-typedef enum { FS_NORMAL = 0, FS_CONTROL_CHARS = 1 } FONT_STYLE_CLASS;
+typedef enum { FS_NORMAL = 0, FS_CONTROL_CHARS = 1, FS_HYPERLINK = 2 } FONT_STYLE_CLASS;
 
 typedef struct tagWINFO WINFO;
 

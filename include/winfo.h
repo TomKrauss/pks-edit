@@ -127,7 +127,9 @@ typedef struct tagWINFO {
     int		cursaftersearch;
     int		tabDisplayFillCharacter;			    /* Tab fill char */
      
-    CARET caret; 		/* the caret - to be moved to the view */
+    CARET caret; 		        // the caret - to be moved to the view 
+    CARET secondaryCaret;       // A "secondary caret" - used to mark places on the screen like matching brackets.
+    int   secondaryCaretWidth;  // the width of the secondary caret (measured in columns)
     MARK* fmark;
     MARK* blstart, * blend;   	/* Marks for Block Operations			*/
     int   blcol1, blcol2;		/* column for Blockmarks				*/
@@ -135,8 +137,8 @@ typedef struct tagWINFO {
     char*  statusline;			/* alt. status line */
     char*  win_themeName;
     int    cx,cy,cmx,cmy,cheight,cwidth;
-    int    owncursor,ctype;        	/* owncursor and caret - type */
-
+    int    ctype;        	        /* caret - type */
+    
 	int		vscroll,hscroll;		/* # of lines and columns to scroll */
 	int		scroll_dx,			/* distance cursor-window border */
 			scroll_dy;			/* for scrolling */
@@ -245,18 +247,6 @@ extern int bl_delete(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfirst,
  * render_singleLineOnDevice()
  */
 extern int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO* wp, LINE* lp, long lineNo);
-
-/*--------------------------------------------------------------------------
- * render_selectCustomCaret()
- * Select a non-standard caret symbol.
- */
-extern void render_selectCustomCaret(int on);
-
-/*------------------------------------------------------------
- * render_updateCustomCaret()
- * When a custom caret is being displayed - re-render it now.
- */
-extern void render_updateCustomCaret(WINFO* wp, HDC hdc);
 
 extern void wt_tcursor(WINFO* wp, int type);
 

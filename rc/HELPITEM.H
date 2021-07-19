@@ -50,7 +50,7 @@
 #define	MENEX    80	
 #define	MEXEC    82	
 #define	MREADTAG 84	
-#define	MREADSTE 85	
+#define	MREAD_SEARCH_LIST 85	
 #define	MREADCMP 86	
 #define	MADDDOCMAC 87	
 #define	MMRECORDER 88

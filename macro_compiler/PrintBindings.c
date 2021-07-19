@@ -422,7 +422,7 @@ static void printmousebind(FILE *fp, MOUSEBIND *mp, char delim)
 	mac_name(command,mp->macref.index,mp->macref.typ);
 	c2button(button,mp->button,mp->shift,mp->nclicks);
  	fprintf(fp,"%-25s= %c %-25s%s\n",
-		button,(mp->flags & MO_FINDCURS) ? '+' : ' ',
+		button, ' ',
 		pr_cmddelim(b2,command,delim),pr_comment(b3,mp->msg));
 }
 

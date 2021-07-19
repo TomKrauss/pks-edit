@@ -78,6 +78,7 @@ typedef struct tagGRAMMAR {
 										// for each character we allow a maximum of two possibilities to match.
 	GRAMMAR_PATTERN* patternsByState[16];
 	UCLIST* undercursorActions;			// The list of actions to perform on input (either bracket matching or code template insertion etc...).
+	NAVIGATION_PATTERN* navigation;		// The patterns, which can be used to extract hyperlinks to navigate from within a file
 } GRAMMAR;
 
 static BRACKET_RULE _defaultBracketRule = {
@@ -113,12 +114,25 @@ static PATTERN_GROUP* grammar_createPatternGroup() {
 	return calloc(1, sizeof(PATTERN_GROUP));
 }
 
+static NAVIGATION_PATTERN* grammar_createNavigationPattern() {
+	return calloc(1, sizeof(NAVIGATION_PATTERN));
+}
+
 static JSON_MAPPING_RULE _bracketRules[] = {
 	{	RT_CHAR_ARRAY, "left", offsetof(BRACKET_RULE, lefthand), sizeof(((BRACKET_RULE*)NULL)->lefthand)},
 	{	RT_CHAR_ARRAY, "right", offsetof(BRACKET_RULE, righthand), sizeof(((BRACKET_RULE*)NULL)->righthand)},
 	{	RT_END}
 };
 
+
+static JSON_MAPPING_RULE _navigationPatternRules[] = {
+	{	RT_CHAR_ARRAY, "name",		offsetof(NAVIGATION_PATTERN, compiler), sizeof(((NAVIGATION_PATTERN*)NULL)->compiler)},
+	{	RT_ALLOC_STRING, "pattern", offsetof(NAVIGATION_PATTERN, pattern)},
+	{	RT_INTEGER, "filenameCapture",	offsetof(NAVIGATION_PATTERN, filenameCapture)},
+	{	RT_INTEGER, "lineNumberCapture",	offsetof(NAVIGATION_PATTERN, lineNumberCapture)},
+	{	RT_INTEGER, "commentCapture",	offsetof(NAVIGATION_PATTERN, commentCapture)},
+	{	RT_END}
+};
 
 static JSON_MAPPING_RULE _patternGroupRules[] = {
 	{	RT_CHAR_ARRAY, "pattern", offsetof(PATTERN_GROUP, patternName), sizeof(((PATTERN_GROUP*)NULL)->patternName)},
@@ -146,6 +160,8 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_CHAR_ARRAY, "unIndentLinePattern", offsetof(GRAMMAR, unIndentLinePattern), sizeof(((GRAMMAR*)NULL)->unIndentLinePattern)},
 	{	RT_CHAR_ARRAY, "increaseIndentPattern", offsetof(GRAMMAR, increaseIndentPattern), sizeof(((GRAMMAR*)NULL)->increaseIndentPattern)},
 	{	RT_CHAR_ARRAY, "decreaseIndentPattern", offsetof(GRAMMAR, decreaseIndentPattern), sizeof(((GRAMMAR*)NULL)->decreaseIndentPattern)},
+	{	RT_OBJECT_LIST, "navigation", offsetof(GRAMMAR, navigation),
+			{.r_t_arrayDescriptor = {grammar_createNavigationPattern, _navigationPatternRules}}},
 	{	RT_OBJECT_LIST, "highlightBrackets", offsetof(GRAMMAR, highlightBrackets),
 			{.r_t_arrayDescriptor = {grammar_createBracketRule, _bracketRules}}},
 	{	RT_OBJECT_LIST, "patterns", offsetof(GRAMMAR, patterns),
@@ -180,10 +196,18 @@ static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {
 	return 1;
 }
 
+static int grammar_destroyNavigationPattern(NAVIGATION_PATTERN* pPattern) {
+	if (pPattern->pattern) {
+		free(pPattern->pattern);
+	}
+	return 1;
+}
+
 static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
 	ll_destroy((LINKED_LIST**)&pGrammar->patterns, grammar_destroyPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->undercursorActions, NULL);
 	ll_destroy((LINKED_LIST**)&pGrammar->highlightBrackets, NULL);
+	ll_destroy((LINKED_LIST**)&pGrammar->navigation, grammar_destroyNavigationPattern);
 	return 1;
 }
 
@@ -619,3 +643,12 @@ UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar) {
 	}
 	return pGrammar->undercursorActions;
 }
+
+/*
+ * Returns the list of navigation patterns for a given grammar. 
+ */
+NAVIGATION_PATTERN* grammar_getNavigationPatterns(GRAMMAR* pGrammar) {
+	return pGrammar ? pGrammar->navigation : NULL;
+}
+
+

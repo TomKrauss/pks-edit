@@ -42,6 +42,7 @@
 #define	EW_MULTI		0x80		/* has a Multiplier */
 #define EW_UNDO_AVAILABLE 0x100	/* undo must be possible */
 #define EW_REDO_AVAILABLE 0x200	/* redo must be possible */
+#define	EW_FINDCURS		0x400		/* applies to command executed using the mouse: before executing the command position the caret to the clicked point */
 
 #define	MAXMOUSEBIND	32
 #define	MAXMAPMOUSE	MAXMOUSEBIND
@@ -373,12 +374,10 @@ typedef struct mousebind {
 	char 		button;				/* mousebutton */
 	char 		shift;				/* kb-state */
 	char 		nclicks;				/* # of button clicks */
-	unsigned char 	flags;				/* flags s.b. */
+	unsigned char 	unused;				/* currently unused */
 	MACROREF		macref;
 	char *		msg;					/* optional message */
 } MOUSEBIND;
-
-#define	MO_FINDCURS		0x1
 
 /*
  *  ALL BINDING INFORMATIONS ----------------------------------------------

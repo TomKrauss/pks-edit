@@ -37,6 +37,7 @@
 #include "desktopicons.h"
 #include "propertychange.h"
 #include "winutil.h"
+#include "mouseutil.h"
 #include "actions.h"
 #include "themes.h"
 
@@ -1208,14 +1209,25 @@ static WINFUNC WorkAreaWndProc(
 		return 0;
 		}
 
+	case WM_SETCURSOR:
+		if (GetAsyncKeyState(VK_CONTROL)) {
+			mouse_setHandCursor();
+		} else {
+			mouse_setDefaultCursor();
+		}
+		return 1;
+
+	case WM_KEYDOWN:
+	case WM_KEYUP:
+		if (wParam == VK_CONTROL) {
+			PostMessage(hwnd, WM_SETCURSOR, 0, 0);
+		}
 	case WM_INITMENUPOPUP:
 	case WM_MENUSELECT:
 	case WM_COMMAND:
 	case WM_SYSKEYDOWN:
-	case WM_KEYDOWN:
 	case WM_SYSKEYUP:
 	case WM_CHAR:
-	case WM_KEYUP:
 		return SendMessage(hwndMDIFrameWindow,message,wParam,lParam);
 
 	case WM_MOUSEWHEEL:
@@ -1227,6 +1239,7 @@ static WINFUNC WorkAreaWndProc(
 			sl_winchanged(wp, dy, dx);
 		}
 		return TRUE;
+
 
 	case WM_LBUTTONDOWN:
 		if (GetFocus() != hwnd) {

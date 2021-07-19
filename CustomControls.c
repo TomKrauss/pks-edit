@@ -169,7 +169,7 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 
 /*------------------------------------------------------------
  * cust_drawOutline()
- * Draw an outline rectanle.
+ * Draw an outline rectangle.
  */
 void cust_drawOutline(HDC hDC, int left, int top, int w, int h)
 {
