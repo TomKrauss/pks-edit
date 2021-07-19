@@ -362,7 +362,7 @@ static int InitDDE(void) {
 		hDDE = 0;
 	} else {
 		hszDDECommandLine = DdeCreateStringHandle(hDDE, "commandline", CP_WINANSI);
-		hszDDEService = DdeCreateStringHandle(hDDE, "pksedit", CP_WINANSI);
+		hszDDEService = DdeCreateStringHandle(hDDE, "PKSEdit.1", CP_WINANSI);
 		hszDDEExecuteMacro = DdeCreateStringHandle(hDDE, "macro", CP_WINANSI);
 	}
 	return 1;

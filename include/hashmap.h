@@ -57,6 +57,16 @@ extern int hashmap_containsKey(HASHMAP* pTable, intptr_t key);
  */
 extern void hashmap_forEachKey(HASHMAP* pTable, void (*function)(intptr_t k, void* pParam), void* pParam);
 
+/*
+ * Assigns a new hashing and compare function to a hashmap rehashing the map if required.
+ */
+extern void hashmap_rehashWith(HASHMAP* pTable, HASH_CODE hashCodeFunction, HASH_COMPARE hashCompareFunction);
+
+/*
+ * Turns the hashmap assuming to contain string keys to ignore the case spelling of the keys used.
+ */
+extern void hashmap_makeCaseIgnore(HASHMAP* pTable);
+
 
 #define HASHTABLE_H
 

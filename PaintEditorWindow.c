@@ -124,7 +124,8 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long l
 	register unsigned char 	*d,*s,*send;
 	FTABLE* fp = ((FTABLE*)FTPOI(wp));
 	char fillbuf[20];
-	char buf[1024];
+	char eofStyles[20];
+	char buf[300];
 	unsigned char* pszStyles;
 	int flags;
 	int startX = x;
@@ -138,7 +139,6 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long l
 	flags = wp->dispmode;
 	showcontrol = flags & SHOWCONTROL;
 	textlen = endColumn-startColumn;
-
 	if (showcontrol) {
 		render_fillBuf(fillbuf, tabFiller != ' ' && tabFiller && tabFiller != '\t' ? tabFiller : '»', 1);
 	}
@@ -150,7 +150,12 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long l
 	x -= startColumn * wp->cwidth;
 	FONT_STYLE_CLASS fsPreviousClass = -1;
 	FONT_STYLE_CLASS fsClass = FS_NORMAL;
-	pszStyles = highlight_calculate(wp->highlighter, wp, lp, lineNo);
+	if (fp->lastl == lp) {
+		render_fillBuf(eofStyles, FS_CONTROL_CHARS, lp->len);
+		pszStyles = eofStyles;
+	} else {
+		pszStyles = highlight_calculate(wp->highlighter, wp, lp, lineNo);
+	}
 	while (i < endColumn && s < send) {
 		unsigned char c = *s++;
 		FONT_STYLE_CLASS fsNext = (int)*pszStyles++;

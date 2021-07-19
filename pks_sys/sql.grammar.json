@@ -1,0 +1,119 @@
+{
+  "grammars": [
+    {
+      "scopeName": "sql",
+      "highlightBrackets": [
+        {
+          "left": "(",
+          "right": ")"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "'[^']+'",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "--.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "name": "keyword.sql",
+          "style": "keyword",
+          "ignoreCase": true,
+          "keywords": [
+            "select",
+            "create",
+            "update",
+            "insert",
+            "delete",
+            "from",
+            "into",
+            "group",
+            "having",
+            "distinct",
+            "order",
+            "by",
+            "where",
+            "count",
+            "between",
+            "join",
+            "left",
+            "right",
+            "exists",
+            "on",
+            "to",
+            "connect",
+            "reset",
+            "grant",
+            "all",
+            "table",
+            "view",
+            "foreign",
+            "index",
+            "alter",
+            "default",
+            "drop"
+          ]
+        },
+        {
+          "name": "keyword.types",
+          "style": "hyperlink",
+          "ignoreCase": true,
+          "keywords": [
+            "char",
+            "nchar",
+            "image",
+            "varchar",
+            "nvarchar",
+            "real",
+            "binary",
+            "varbinary",
+            "tinyblob",
+            "tinytext",
+            "text",
+            "blob",
+            "mediumtext",
+            "mediumblob",
+            "longtext",
+            "longblob",
+            "enum",
+            "bit",
+            "tinyint",
+            "boolean",
+            "bool",
+            "smallint",
+            "mediumint",
+            "int",
+            "integer",
+            "bigint",
+            "float",
+            "double",
+            "decimal",
+            "date",
+            "timestamp",
+            "year",
+            "datetime"
+          ]
+        },
+        {
+          "match": "<[a-zA-Z0-9]+[_a-zA-Z0-9.]*>",
+          "style": "identifier",
+          "name": "sql.identifier"
+        },
+        {
+          "match": "[-+&|<>=]{1,2}",
+          "style": "operator",
+          "name": "keyword.operator"
+        }
+      ]
+    }
+  ]
+}

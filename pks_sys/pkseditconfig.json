@@ -77,10 +77,24 @@
     },
     {
       "name": "pksedit",
-      "description": "PKS Edit Macro Files (*.mac)",
+      "description": "PKS Edit Macro Files (*.pkc)",
       "grammar": "pksedit",
       "editorConfiguration": "default",
-      "filenamePatterns": "*.mac"
+      "filenamePatterns": "*.pkc"
+    },
+    {
+      "name": "sql",
+      "description": "SQL Files (*.sql, *.ddl)",
+      "grammar": "sql",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.sql;*.ddl"
+    },
+    {
+      "name": "log",
+      "description": "Log Files (*.log)",
+      "grammar": "logfile",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.log;*.logfile"
     },
     {
       "name": "text",

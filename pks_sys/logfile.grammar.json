@@ -1,0 +1,45 @@
+{
+  "grammars": [
+    {
+      "scopeName": "logfile",
+      "patterns": [
+        {
+          "match": "\\[[^]]+\\]",
+          "name": "logfile.selector",
+          "style": "bold"
+        },
+        {
+          "match": "\\d{2}/\\d{2}/\\d{4}\\s*\\d{2}:\\d{2}:\\d{2}",
+          "name": "logfile.date",
+          "style": "operator"
+        },
+        {
+          "match": "[a-zA-Z.]+Exception",
+          "name": "logfile.exception.identifier",
+          "style": "identifier"
+        },
+        {
+          "match": "[eE]rror:.*",
+          "name": "logfile.error",
+          "style": "error"
+        },
+        {
+          "match": "\\s[Aa]t\\s.*\\(.*\\)",
+          "name": "logfile.exception",
+          "style": "error"
+        },
+        {
+          "match": "warning[: ].*",
+          "ignoreCase":  true,
+          "name": "logfile.warning",
+          "style": "warning"
+        },
+        {
+          "match": "^-[a-zA-Z0-9_]+:",
+          "name": "logfile.statement",
+          "style": "italic"
+        }
+      ]
+    }
+  ]
+}

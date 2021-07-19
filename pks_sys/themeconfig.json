@@ -36,6 +36,20 @@
       "foregroundColor": "#AA0000"
     },
     {
+      "styleName": "error",
+      "faceName": "Consolas",
+      "size": -12,
+      "weight": 700,
+      "foregroundColor": "#FF2222"
+    },
+    {
+      "styleName": "warning",
+      "faceName": "Consolas",
+      "size": -12,
+      "weight": 700,
+      "foregroundColor": "#2222FF"
+    },
+    {
       "styleName": "operator",
       "faceName": "Consolas",
       "size": -12,

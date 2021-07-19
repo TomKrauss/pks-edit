@@ -51,6 +51,7 @@ typedef struct tagGRAMMAR_PATTERN {
 	char  end[12];						// the end marker maybe e.g. '$' to match the end of line. Currently only one multi-line pattern supported.
 	HASHMAP* keywords;					// If an array list of keywords exists, these are matched after the pattern has matched.
 	char* rePatternBuf;
+	BOOL ignoreCase;					// If matches should be performed in a case ignore way.
 	BOOL spansLines;					// true, if this pattern spans multiple lines
 	char  style[32];					// Name of the style class to use.
 	RE_PATTERN* rePattern;
@@ -130,6 +131,7 @@ static JSON_MAPPING_RULE _patternRules[] = {
 	{	RT_OBJECT_LIST, "captures", offsetof(GRAMMAR_PATTERN, captures),
 			{.r_t_arrayDescriptor = {grammar_createPatternGroup, _patternGroupRules}}},
 	{	RT_SET, "keywords", offsetof(GRAMMAR_PATTERN, keywords)},
+	{	RT_FLAG, "ignoreCase", offsetof(GRAMMAR_PATTERN, ignoreCase)},
 	{	RT_CHAR_ARRAY, "style", offsetof(GRAMMAR_PATTERN, style), sizeof(((GRAMMAR_PATTERN*)NULL)->style)},
 	{	RT_CHAR_ARRAY, "begin", offsetof(GRAMMAR_PATTERN, begin), sizeof(((GRAMMAR_PATTERN*)NULL)->begin)},
 	{	RT_CHAR_ARRAY, "end", offsetof(GRAMMAR_PATTERN, end), sizeof(((GRAMMAR_PATTERN*)NULL)->end)},
@@ -291,6 +293,12 @@ RE_PATTERN* grammar_compile(GRAMMAR_PATTERN* pGrammarPattern) {
 	RE_OPTIONS options;
 	memset(&options, 0, sizeof options);
 	options.flags = RE_DOREX|RE_NOADVANCE;
+	if (pGrammarPattern->ignoreCase) {
+		options.flags |= RE_IGNCASE;
+		if (pGrammarPattern->keywords) {
+			hashmap_makeCaseIgnore(pGrammarPattern->keywords);
+		}
+	}
 	options.patternBuf = pGrammarPattern->rePatternBuf;
 	options.endOfPatternBuf = pGrammarPattern->rePatternBuf + 512;
 	options.expression = pGrammarPattern->match;

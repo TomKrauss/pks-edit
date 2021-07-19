@@ -1,10 +1,8 @@
 [files]
-"C:\source\pksedit\FormatLines.c", line 56: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
-"C:\temp\sample.pas", line 1: 0x0 0x1 -1 -1 -1 -1 101 0 1292 533
+"C:\source\pksedit\Settings.c", line 1: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
+"C:\SUService.log", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
+"C:\temp\trend-build.log", line 125516: 0x2 0x3 -1 -1 -8 -31 101 0 1292 533
 [find]
-!sessi
-!sessio
-!session
 !sessione
 !sessionex
 !sessionexc
@@ -33,6 +31,9 @@
 !EventStore
 !ADD
 !.
+!error:
+!warning;
+!warning:
 [filePatterns]
 !*.*
 !*.java
@@ -44,10 +45,6 @@
 !xxxxxx
 !x
 [open]
-!C:\source\pksedit\HandleMacros.c
-!C:\source\pksedit\FunctionKeyWidget.c
-!C:\source\pksedit\FormatLines.c
-!C:\source\pksedit\FindAndReplace.c
 !C:\source\pksedit\FileUtil.c
 !C:\source\pksedit\ErrorDialogs.c
 !C:\source\pksedit\ExecuteProgram.c
@@ -72,10 +69,13 @@
 !C:\Users\tom\AppData\Local\Temp\KEYS
 !C:\temp\JdbcSessionBig.java
 !C:\source\pksedit\AsciiHexToLong.c
-!C:\Users\tom\Desktop\readme.txt
-!C:\temp\trend-build.log
 !C:\source\mx-graph-modeller\ui\src\index.html
 !C:\source\mx-graph-modeller\ui\src\styles.css
+!C:\SUService.log
+!C:\source\pksedit\pks_sys\batch.grammar.json
+!C:\temp\trend-build.log
+!C:\Users\tom\Desktop\readme.txt
+!C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\src\crtables.ddl
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -93,4 +93,6 @@
 !C:\Users\tom\Desktop\*.*
 !C:\source\mx-graph-modeller\ui\src\*.*
 !C:\source\pksedit\*.*
+!C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\src\*.*
 !C:\temp\*.*
+!C:\*.*

@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include "alloc.h"
 #include "hashmap.h"
 
@@ -52,6 +53,19 @@ static unsigned int hashmap_hashCodeString(intptr_t pParam) {
 	int nDelta;
 	while ((nDelta = *pszString++) != 0) {
 		nResult = 17 * nResult + nDelta;
+	}
+	return nResult;
+}
+
+/*
+ * Calculate the hash code value for a string type key ignoring the case.
+ */
+static unsigned int hashmap_hashCodeStringIgnoreCase(intptr_t pParam) {
+	unsigned char* pszString = (unsigned char*)pParam;
+	unsigned int nResult = 0;
+	int nDelta;
+	while ((nDelta = *pszString++) != 0) {
+		nResult = 17 * nResult + tolower(nDelta);
 	}
 	return nResult;
 }
@@ -131,10 +145,10 @@ static int hashmap_findIndex(HASHMAP* pTable, intptr_t key) {
 /*
  * Expand the capacity of the Hashtable. 
  */
-static void hashmap_rehash(HASHMAP* pTable) {
+static void hashmap_rehash(HASHMAP* pTable, int newCapacity) {
 	HASH_ENTRY* pOld = pTable->ht_entries;
 	int nOldSize = pTable->ht_capacity;
-	hashmap_allocateTable(pTable, pTable->ht_capacity + 1);
+	hashmap_allocateTable(pTable, newCapacity);
 	pTable->ht_size = 0;
 	for (int i = 0; i < nOldSize; i++) {
 		if (pOld[i].he_key) {
@@ -157,7 +171,7 @@ int hashmap_size(HASHMAP* pTable) {
  */
 int hashmap_put(HASHMAP* pTable, intptr_t key, intptr_t value) {
 	if (pTable->ht_size >= pTable->ht_capacity * 3 / 4) {
-		hashmap_rehash(pTable);
+		hashmap_rehash(pTable, pTable->ht_capacity + 1);
 	}
 	int nIndex = hashmap_findIndex(pTable, key);
 	if (pTable->ht_entries[nIndex].he_key != 0) {
@@ -190,3 +204,22 @@ void hashmap_forEachKey(HASHMAP* pTable, void (*function)(intptr_t k, void* pPar
 		}
 	}
 }
+
+/*
+ * Assigns a new hashing and compare function to a hashmap rehashing the map if required. 
+ */
+void hashmap_rehashWith(HASHMAP* pTable, HASH_CODE hashCodeFunction, HASH_COMPARE hashCompareFunction) {
+	if (pTable->ht_compare != hashCompareFunction || pTable->ht_hashCode != hashCodeFunction) {
+		pTable->ht_compare = hashCompareFunction;
+		pTable->ht_hashCode = hashCodeFunction;
+		hashmap_rehash(pTable, pTable->ht_capacity);
+	}
+}
+
+/*
+ * Turns the hashmap assuming to contain string keys to ignore the case spelling of the keys used.
+ */
+void hashmap_makeCaseIgnore(HASHMAP* pTable) {
+	hashmap_rehashWith(pTable, hashmap_hashCodeStringIgnoreCase, stricmp);
+}
+
