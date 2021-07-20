@@ -60,7 +60,7 @@ typedef struct prtparams {			/* print params */
 	
 	FONTSPEC	fnfont;
 	LNSPACE	fnlnspace;			/* print_singleLineOfText spacing footnotes */
-	int		fnlinelen;			/* length of fn delimter line */
+	int		fnlinelen;			/* length of filename delimter line */
 	int		fnd1,fnd2;			/* distances to body and footer */
 	int		fnoffset;				/* offset of Fnote */
 } PRTPARAM;

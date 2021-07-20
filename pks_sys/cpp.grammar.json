@@ -2,6 +2,16 @@
   "grammars": [
     {
       "scopeName": "cpp",
+      "tagSources": [
+        {
+          "filename": "tags",
+          "type": "^"
+        },
+        {
+          "filename": "c: \\source\\help\\api32.hlp",
+          "type": "?"
+        }
+      ],
       "navigation": [
         {
           "name": "include-link",

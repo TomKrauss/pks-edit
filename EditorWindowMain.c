@@ -62,7 +62,6 @@ extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
 extern int  mouse_onMouseClicked(WINFO *fp, int x,int y,int b, int nclicks,int shift);
 extern void *icEditIconClass;
 extern BOOL ic_isIconWindow(HWND hwnd);
-extern void xref_selectFileFormat(char *tags);
 extern void macro_selectDefaultBindings(void);
 extern void menu_switchMenusToContext(char *pszContext);
 
@@ -1220,7 +1219,7 @@ static WINFUNC WorkAreaWndProc(
 	case WM_KEYDOWN:
 	case WM_KEYUP:
 		if (wParam == VK_CONTROL) {
-			PostMessage(hwnd, WM_SETCURSOR, 0, 0);
+			PostMessage(hwnd, WM_SETCURSOR, (WPARAM)hwnd, 0);
 		}
 	case WM_INITMENUPOPUP:
 	case WM_MENUSELECT:
@@ -1237,6 +1236,9 @@ static WINFUNC WorkAreaWndProc(
 				ww_zoomWindow(zDelta > 0);
 			} else {
 				long dy = zDelta > 0 ? -1 : 1;
+				if (GetAsyncKeyState(VK_SHIFT)) {
+					dy *= 4;
+				}
 				long dx = 0;
 				sl_scrollwinrange(wp, &dy, &dx);
 				sl_winchanged(wp, dy, dx);

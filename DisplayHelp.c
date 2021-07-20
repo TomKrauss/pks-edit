@@ -25,28 +25,30 @@ static char szHelpFile[] = "pksedit.chm";
 /*--------------------------------------------------------------------------
  * EdCallWinHelp()
  */
-int EdCallWinHelp(char *szFile, UINT hType, DWORD_PTR param)
-{
-	static int initialized = FALSE;
+int EdCallWinHelp(char *szFile, UINT hType, DWORD_PTR param) {
 	HWND		ret;
 	LPSTR	pszFound;
 	DWORD m_dwCookie;
+	DWORD_PTR requestParam = &m_dwCookie;
 
-	if (!szFile)
+	if (!szFile) {
 		szFile = szHelpFile;
+	}
 	
 	if (!(pszFound = file_searchFileInPKSEditLocation(szFile))) {
 		pszFound = szFile;
 	}
 
-	if (!initialized) {
-		HtmlHelp(NULL, szHelpFile, HH_INITIALIZE, (DWORD_PTR)&m_dwCookie);
-		initialized = TRUE;
+	ret = HtmlHelp(NULL, szHelpFile, HH_INITIALIZE, (DWORD_PTR)&m_dwCookie);
+	if (!ret) {
+		return NULL;
 	}
 	if (hType == HH_DISPLAY_SEARCH) {
 		hType = HH_DISPLAY_TOC;
+	} else {
+		requestParam = param;
 	}
-	ret = HtmlHelp(hwndMDIFrameWindow, pszFound, hType, (DWORD_PTR)&m_dwCookie);
+	ret = HtmlHelp(hwndMDIFrameWindow, pszFound, hType, requestParam);
 	hwndHelpRequested = hwndMDIFrameWindow;
 	return ret == NULL ? 0 : 1;
 }

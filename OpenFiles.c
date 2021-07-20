@@ -407,7 +407,7 @@ FTABLE *ft_fpbyname(char *fn)
 
 /*------------------------------------------------------------
  * ft_editing()
- * Answer true, if we are editing the file named fn.
+ * Answer true, if we are editing the file named filename.
  */
 int ft_editing(char *fn)
 {
@@ -545,7 +545,6 @@ int ft_currentFileChanged(FTABLE *fp) {
 	if (fp == 0) {
 		return 0;
 	}
-	xref_selectFileFormat(fp->documentDescriptor->name);
 	regex_compileCharacterClasses(fp->documentDescriptor->u2lset);
 	return 1;
 }

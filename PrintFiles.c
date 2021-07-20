@@ -76,7 +76,7 @@ static PRTPARAM _prtparams = {
 	0,8,0,"Courier",	/* Footnote Font: oemmode,cheight,cwidth,name */
 
 	1,1,				/* print_singleLineOfText spacing footnotes */
-	0,				/* length of fn delimter line */
+	0,				/* length of filename delimter line */
 	0,0,				/* distances to body and footer */
 	0,				/* offset of Fnote */
 };

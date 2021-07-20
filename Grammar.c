@@ -79,6 +79,7 @@ typedef struct tagGRAMMAR {
 	GRAMMAR_PATTERN* patternsByState[16];
 	UCLIST* undercursorActions;			// The list of actions to perform on input (either bracket matching or code template insertion etc...).
 	NAVIGATION_PATTERN* navigation;		// The patterns, which can be used to extract hyperlinks to navigate from within a file
+	TAGSOURCE* tagSources;				// The list of tag sources to check for cross references
 } GRAMMAR;
 
 static BRACKET_RULE _defaultBracketRule = {
@@ -114,9 +115,21 @@ static PATTERN_GROUP* grammar_createPatternGroup() {
 	return calloc(1, sizeof(PATTERN_GROUP));
 }
 
+static TAGSOURCE* grammar_createTagSource() {
+	return calloc(1, sizeof(TAGSOURCE));
+}
+
+
 static NAVIGATION_PATTERN* grammar_createNavigationPattern() {
 	return calloc(1, sizeof(NAVIGATION_PATTERN));
 }
+
+static JSON_MAPPING_RULE _tagSourceRules[] = {
+	{	RT_ALLOC_STRING, "filename", offsetof(TAGSOURCE, fn)},
+	{	RT_CHAR_ARRAY, "type", offsetof(TAGSOURCE, type), sizeof(((TAGSOURCE*)NULL)->type)},
+	{	RT_END}
+};
+
 
 static JSON_MAPPING_RULE _bracketRules[] = {
 	{	RT_CHAR_ARRAY, "left", offsetof(BRACKET_RULE, lefthand), sizeof(((BRACKET_RULE*)NULL)->lefthand)},
@@ -166,6 +179,8 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 			{.r_t_arrayDescriptor = {grammar_createBracketRule, _bracketRules}}},
 	{	RT_OBJECT_LIST, "patterns", offsetof(GRAMMAR, patterns),
 			{.r_t_arrayDescriptor = {grammar_createGrammarPattern, _patternRules}}},
+	{	RT_OBJECT_LIST, "tagSources", offsetof(GRAMMAR, tagSources),
+			{.r_t_arrayDescriptor = {grammar_createTagSource, _tagSourceRules}}},
 	{	RT_END}
 };
 
@@ -203,11 +218,19 @@ static int grammar_destroyNavigationPattern(NAVIGATION_PATTERN* pPattern) {
 	return 1;
 }
 
+static int grammar_destroyTagSource(TAGSOURCE* pSource) {
+	if (pSource->fn) {
+		free(pSource->fn);
+	}
+	return 1;
+}
+
 static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
 	ll_destroy((LINKED_LIST**)&pGrammar->patterns, grammar_destroyPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->undercursorActions, NULL);
 	ll_destroy((LINKED_LIST**)&pGrammar->highlightBrackets, NULL);
 	ll_destroy((LINKED_LIST**)&pGrammar->navigation, grammar_destroyNavigationPattern);
+	ll_destroy((LINKED_LIST**)&pGrammar->tagSources, grammar_destroyTagSource);
 	return 1;
 }
 
@@ -650,5 +673,13 @@ UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar) {
 NAVIGATION_PATTERN* grammar_getNavigationPatterns(GRAMMAR* pGrammar) {
 	return pGrammar ? pGrammar->navigation : NULL;
 }
+
+/*
+ * Returns the list of tag sources for a grammar.
+ */
+TAGSOURCE* grammar_getTagSources(GRAMMAR* pGrammar) {
+	return pGrammar ? pGrammar->tagSources : NULL;
+}
+
 
 

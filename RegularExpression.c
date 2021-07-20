@@ -834,6 +834,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 						c2 = *pStart++;
 						if (c2 == '\\') {
 							c2 = *pStart++;
+							len--;
 						}
 						pMatcher->m_param.m_string.m_chars[i++] = c2;
 					}

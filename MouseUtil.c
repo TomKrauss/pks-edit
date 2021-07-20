@@ -277,7 +277,7 @@ EXPORT void mouse_setHandCursor(void) {
 EXPORT void mouse_setDefaultCursor(void)
 {
 	if (hDefaultCurs == NULL) {
-		hDefaultCurs = LoadCursor(NULL, IDC_ARROW);
+		hDefaultCurs = LoadCursor(NULL, IDC_IBEAM);
 	}
 	SetCursor(hDefaultCurs);
 }

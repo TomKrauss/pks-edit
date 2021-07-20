@@ -52,8 +52,8 @@ typedef struct tagBRACKET_RULE {
 	char ci2[2];			/* automatic bracket indents cl2 outdent 1-based of previous line and current line */
 } BRACKET_RULE;
 
-typedef struct uclist {
-	struct uclist* next;
+typedef struct tagUCLIST {
+	struct tagUCLIST* next;
 	char	pat[20];		/* pattern for scanning */
 	int		len;			/* length of of pattern to scan left to the cursor to match */
 	int  	action;			/* type of action to perform */
@@ -66,12 +66,28 @@ typedef struct uclist {
 
 typedef struct tagNAVIGATION_PATTERN {
 	struct tagNAVIGATION_PATTERN* next;
-	char compiler[32];				/* Name of navigation type - was historically the name of the compiler producing an output */
-	char* pattern;					/* regular expression to match  */
-	int filenameCapture;			/* which \? is filename			*/
-	int lineNumberCapture;			/* which \? is linenumber		*/
-	int commentCapture;				/* which bsl is a comment - interpreted as info to display*/
+	char compiler[32];				// Name of navigation type - was historically the name of the compiler producing an output
+	char* pattern;					// regular expression to match
+	int filenameCapture;			// which capture group (starting with 1) refers to the filename
+	int lineNumberCapture;			// which capture group is linenumber
+	int commentCapture;				// which capture group is the section describing additional options for navigating - like a search expression
+	int tagCapture;					// for navigation patterns describing a CTAGS tag - the capture group for the described tag - method name / type name / ... itself.
+	int tagExtensionFields;			// for navigation patterns describing a CTAGS tag - the capture group containing tag extension fields
 } NAVIGATION_PATTERN;
+
+
+#define	TST_EXECECUTE_PROGRAM				'!'
+#define	TST_TAGFILE							'^'
+#define	TST_HELPFILE						'?'
+
+/*
+ * Cross reference specifications for a grammar. 
+ */
+typedef struct tagTAGSOURCE {
+	struct tagTAGSOURCE* next;
+	char	type[2];				// one of the TST_... flags
+	char*	fn;
+} TAGSOURCE;
 
 /*
  * This method will parse the characters in pszBuf (assumed length is lLength) and determine the lexial
@@ -110,6 +126,11 @@ extern UCLIST* uc_find(GRAMMAR* pGrammar, char* lineBuffer, int column);
  * Returns the list of navigation patterns for a given grammar.
  */
 extern NAVIGATION_PATTERN* grammar_getNavigationPatterns(GRAMMAR* pGrammar);
+
+/*
+ * Returns the list of tag sources for a grammar.
+ */
+extern TAGSOURCE* grammar_getTagSources(GRAMMAR* pGrammar);
 
 #define GRAMMAR_H
 #endif

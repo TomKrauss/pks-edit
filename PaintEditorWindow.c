@@ -586,6 +586,11 @@ int ww_zoomWindow(int anIncreaseFactor) {
 	} else {
 		wp->zoomFactor = 10 * wp->zoomFactor / 11;
 	}
+	if (wp->zoomFactor < 0.4) {
+		wp->zoomFactor = 0.4f;
+	} else if (wp->zoomFactor > 2.5) {
+		wp->zoomFactor = 2.5f;
+	}
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(wp->ww_handle, &ps);
 	font_selectFontStyle(wp, FS_NORMAL, hdc);

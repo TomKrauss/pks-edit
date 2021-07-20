@@ -130,7 +130,7 @@ static int scan_isBinaryFile(int fd) {
 
 /*--------------------------------------------------------------------------
  * matchInFile()
- * scan for a pSearchExpression pattern in file fn
+ * scan for a pSearchExpression pattern in file filename
  */
 static int matchInFile(char *fn, DTA *stat) {	
 	int 	fd;

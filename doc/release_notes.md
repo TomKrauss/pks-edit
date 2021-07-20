@@ -14,6 +14,7 @@
   include path (by default "include;inc" - can be defined in an environment variable PKS_INCLUDE_PATH) and/or navigation to
   a URL to open in a browser.
 - Matching brackets is Grammar dependent now.
+- Ctags support was updated to correctly support the newest default format as used by the Universal Ctags program.
   
 #### Fixed
 - Some issues with regular expressions (in particular a possible endless loop when compiling complex syntax) have been

@@ -135,7 +135,6 @@ EXPORT void init_readConfigFiles(void)
 	prof_getstdopt();
 	macro_readBindingsFromFile((char *)0);
 	doctypes_initAllDocumentTypes();
-	xref_initFileFormats();
 	xref_restoreFromConfigFile();
 	print_readWriteConfigFile(0);
 	regex_compileCharacterClasses((char *) 0);

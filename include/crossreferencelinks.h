@@ -15,19 +15,6 @@
 #ifndef CROSSREFERENCELINKS_H
 
 /*--------------------------------------------------------------------------
- * xref_initFileFormats()
- * init all compiler types
- */
-extern int xref_initFileFormats(void);
-
-/*--------------------------------------------------------------------------
- * xref_selectFileFormat()
- * activate a new source list for tag searches (e.g. when
- * changing document type of top level window)
- */
-extern void xref_selectFileFormat(char* tags);
-
-/*--------------------------------------------------------------------------
  * xref_restoreFromConfigFile()
  * init all compiler types
  */

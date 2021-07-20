@@ -1,7 +1,9 @@
 [files]
-"C:\source\pksedit\BracketMatching.c", line 22: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
-"C:\source\pksedit\README.md", line 18: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
-"C:\source\pksedit\include\winfo.h", line 20: 0x0 0x1 -1 -1 -8 -31 90 54 1281 587
+"C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
+"C:\source\pksedit\include\winfo.h", line 1: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
+"C:\source\pksedit\include\syntaxhighlighting.h", line 1: 0x0 0x1 -1 -1 -8 -31 90 54 1281 587
+"C:\source\pksedit\include\lineoperations.h", line 49: 0x0 0x1 -1 -1 -8 -31 130 130 945 690
+"C:\source\pksedit\include\edfuncs.h", line 251: 0x0 0x1 -1 -1 -1 -1 130 130 1494 608
 [find]
 !sessionex
 !sessionexc
@@ -47,8 +49,6 @@
 !x
 !xx
 [open]
-!C:\source\pksedit\FileSelector.c
-!C:\source\pksedit\Clipboard.c
 !C:\Users\tom\AppData\Local\Temp\MACROS.PKC
 !C:\source\pksedit\ColumnBlocks.c
 !C:\source\pksedit\pks_sys\pkseditconfig.json
@@ -59,7 +59,6 @@
 !C:\source\mx-graph-modeller\ui\src\polyfills.ts
 !C:\source\trend-master-eclipse-4.20\trend\bin\setTrendEnv.sh
 !C:\source\mx-graph-modeller\ui\src\app\theme.ts
-!C:\source\pksedit\BracketMatching.c
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\bloc\domain_event_handler.dart
 !C:\source\pksedit\README.md
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
@@ -79,6 +78,8 @@
 !C:\source\pksedit\doc\release_notes.md
 !C:\source\pksedit\include\lineoperations.h
 !C:\source\pksedit\include\syntaxhighlighting.h
+!C:\source\pksedit\BracketMatching.c
+!C:\source\pksedit\include\edfuncs.h
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN

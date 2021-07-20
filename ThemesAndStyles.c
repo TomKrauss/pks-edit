@@ -132,7 +132,7 @@ static HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont) {
 	if (size == 0) {
 		size = pDefaultFont->size;
 	}
-	if (pFont->zoomFactor > 0.1) {
+	if (pFont->zoomFactor > 0.2) {
 		size = (int)(size * pFont->zoomFactor);
 	}
 	_lf.lfHeight = size;

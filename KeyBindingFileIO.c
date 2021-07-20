@@ -269,7 +269,7 @@ static PASTE *macro_findTextBuffer(LINE **lp,unsigned char *s,PASTELIST **pl,int
  */
 int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs)
 {
-	struct uclist *up;
+	struct tagUCLIST *up;
 	long 		o2;
 	int			domacro = 0;
 	FTABLE* fp = wp->fp;

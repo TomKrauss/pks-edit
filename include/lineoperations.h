@@ -442,7 +442,7 @@ extern long ft_size(FTABLE* fp);
 extern FTABLE* ft_fpbyname(char* fn);
 /*------------------------------------------------------------
  * ft_editing()
- * Answer true, if we are editing the file named fn.
+ * Answer true, if we are editing the file named filename.
  */
 extern int ft_editing(char* fn);
 

@@ -29,6 +29,13 @@ Usually you will use PKS-Edit by associating it with certain file types.
 The registry file pksedit.reg contains an example on how 
 to register some default types (*.java, *.txt) to be edited by PKS-Edit.
 
+## Cross References in source files and PKS Edit
+
+PKS Edit supports the [Universal Ctags](https://docs.ctags.io/en/latest/index.html) format
+for navigating cross references. By default PKS Edit will try to locate a file named "tags" in
+the current working directory to navigate cross references. One may navigate a reference by
+clicking with Ctrl+Left Mouse Button onto a word in the source code.
+
 ## Hacking
 
 To change, edit, compile and run the source code of PKS Edit, we recommend to use
