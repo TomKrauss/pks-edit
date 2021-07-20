@@ -174,17 +174,14 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 void cust_drawOutline(HDC hDC, int left, int top, int w, int h)
 {
 	int			wOldROP2;
-	int			wOldBkMode;
 
 	/* setup display context */
 	wOldROP2 = SetROP2( hDC, R2_NOT);
-	wOldBkMode = SetBkMode( hDC, TRANSPARENT );
 
 	/* draw selector rectangle */
 	Rectangle(hDC, left, top, left+w, top+h);
 
 	/* restore display context */
-	SetBkMode( hDC, wOldBkMode );
 	SetROP2( hDC, wOldROP2 );
 }
 
@@ -451,27 +448,15 @@ int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
 		 */
 		DrawFocusRect(lpdis->hDC,&lpdis->rcItem);
     } else {
-		if (!ShowSelection) {
-			ShowSelection = cust_drawOwnerSelection;
-		}
-		if (lpdis->itemAction & ODA_DRAWENTIRE) {
-	    		FrameRect(lpdis->hDC, &lpdis->rcItem, GetStockObject(WHITE_BRUSH));
+			FillRect(lpdis->hDC, &lpdis->rcItem, lpdis->itemState & ODS_SELECTED ? GetSysColorBrush(COLOR_HIGHLIGHT) : WHITE_BRUSH);
+			SetTextColor(lpdis->hDC, lpdis->itemState & ODS_SELECTED ? GetSysColor(COLOR_HIGHLIGHTTEXT) : RGB(0,0,0));
+			SetBkMode(lpdis->hDC, TRANSPARENT);
 			(*DrawEntireItem)(
 				lpdis->hDC, &lpdis->rcItem, lpdis->itemData,
 				lpdis->itemID, lpdis->CtlID);
-			if (lpdis->itemState & ODS_SELECTED) {
-				(*ShowSelection)(lpdis);
-			}
 			if (lpdis->itemState & ODS_FOCUS) {
 				DrawFocusRect(lpdis->hDC,&lpdis->rcItem);
 			}
-		} 
-		if (lpdis->itemAction & ODA_SELECT) {
-			(*ShowSelection)(lpdis);
-		}
-		if (lpdis->itemAction & ODA_FOCUS) {
-			DrawFocusRect(lpdis->hDC,&lpdis->rcItem);
-		}
 	}
 
 	/* Return TRUE meaning that we processed this message. */

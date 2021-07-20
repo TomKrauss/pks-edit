@@ -130,6 +130,7 @@
         "showLineNumbers": true,
         "showStatus": true,
         "highlightCaretLine": true,
+        "insertMode": true,
         "autoIndent": true,
         "smartSpaceDelete": true,
         "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9",

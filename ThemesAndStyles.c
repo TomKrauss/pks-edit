@@ -301,7 +301,7 @@ void font_selectFontStyle(WINFO *wp, FONT_STYLE_CLASS nStyleIndex, HDC hdc) {
 	} else {
 		SetBkMode(hdc, TRANSPARENT);
 	}
-	if (pStyle->faceName[0] == 0 && !pStyle->style.underline && !pStyle->style.italic && !pStyle->style.strikeout) {
+	if (pStyle->faceName[0] == 0 && !pStyle->style.underline && !pStyle->style.italic && !pStyle->style.strikeout && pStyle->style.weight == 0) {
 		pStyle = pDefaultStyle;
 	}
 	if (GetMapMode(hdc) != MM_ANISOTROPIC) {

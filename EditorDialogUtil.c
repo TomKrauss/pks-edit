@@ -855,7 +855,6 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
 	MEASUREITEMSTRUCT	*mp;
 	COMPAREITEMSTRUCT	*cp;
-	int					ic_ownerDrawIconType();
 	int					nNotify;
 	int					idCtrl;
 	DRAWITEMSTRUCT		*drp;

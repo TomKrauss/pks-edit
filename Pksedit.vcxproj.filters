@@ -539,6 +539,12 @@
     <Image Include="rc\clip2.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="rc\next.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rc\previous.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Xsd Include="pksedit.xsd" />

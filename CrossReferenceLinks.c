@@ -256,11 +256,11 @@ static TAG *xref_parseTagDefinitionFromLine(LINE *lp) {
 /*------------------------------------------------------------
  * taglist_measureitem()
  */
-#define		TAGLISTITEMHEIGHT			40
+#define		TAGLISTITEMHEIGHT			28
 static void taglist_measureitem(MEASUREITEMSTRUCT *mp)
 {
 	mp->itemHeight = TAGLISTITEMHEIGHT;
-	mp->itemWidth = 600;
+	mp->itemWidth = 800;
 }
 
 /*------------------------------------------------------------
@@ -295,7 +295,8 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 	LONG			lExtent;
 	WORD			wDelta = 220;
 	WORD			hDelta;
-	int				nIconSize = 62;
+	int				nIconDelta = 62;
+	int				nIconWidth = 16;
 	DLGSTRINGLIST*	dlp;
 	TAG *			tp;
 	HICON			hIcon;
@@ -308,19 +309,18 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 	lExtent = win_getTextExtent(hdc, dlp->pszString, dlp->nSize);
 	hDelta = HIWORD(lExtent);
 	hDelta = (TAGLISTITEMHEIGHT - hDelta) / 2;
-
-	TextOut(hdc, rcp->left + nIconSize, rcp->top + hDelta, tp->filename, (int)strlen(tp->filename));
-
-	hIcon = LoadIcon (hInst, "File");
-	DrawIcon(hdc, 
-		rcp->left + (50 - 32) / 2, 
-		rcp->top + (rcp->bottom - rcp->top - 32) / 2,
-		hIcon);
+	TextOut(hdc, rcp->left + nIconDelta, rcp->top + hDelta, tp->filename, (int)strlen(tp->filename));
+	
+	hIcon = LoadIcon (hInst, tp->isDefinition ? "NEXT" : "PREVIOUS");
+	DrawIconEx(hdc,
+		rcp->left + nIconWidth / 2,
+		rcp->top + (rcp->bottom - rcp->top - nIconWidth) / 2,
+		hIcon, nIconWidth, nIconWidth, 0, NULL, DI_NORMAL);
 	char* pszComment = tp->referenceDescription;
 	if (!*pszComment) {
 		pszComment = tp->searchCommand;
 	}
-	TextOut(hdc, rcp->left + nIconSize + wDelta, rcp->top + hDelta, pszComment, lstrlen(pszComment));
+	TextOut(hdc, rcp->left + nIconDelta + wDelta, rcp->top + hDelta, pszComment, lstrlen(pszComment));
 	DestroyIcon(hIcon);
 }
 

@@ -1023,6 +1023,10 @@ HELP                    ICON                    "rc\\help.ico"
 
 PKS2                    ICON                    "rc\\pks2.ico"
 
+NEXT                    ICON                    "rc\\next.ico"
+
+PREVIOUS                ICON                    "rc\\previous.ico"
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////

@@ -1,9 +1,6 @@
 [files]
 "C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
-"C:\source\pksedit\include\winfo.h", line 1: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
-"C:\source\pksedit\include\syntaxhighlighting.h", line 1: 0x0 0x1 -1 -1 -8 -31 90 54 1281 587
-"C:\source\pksedit\include\lineoperations.h", line 49: 0x0 0x1 -1 -1 -8 -31 130 130 945 690
-"C:\source\pksedit\include\edfuncs.h", line 251: 0x0 0x1 -1 -1 -1 -1 130 130 1494 608
+"C:\source\pksedit\include\winfo.h", line 86: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
 [find]
 !sessionex
 !sessionexc
@@ -49,8 +46,6 @@
 !x
 !xx
 [open]
-!C:\Users\tom\AppData\Local\Temp\MACROS.PKC
-!C:\source\pksedit\ColumnBlocks.c
 !C:\source\pksedit\pks_sys\pkseditconfig.json
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java
 !C:\source\setenvj8.bat
@@ -76,10 +71,11 @@
 !C:\source\pksedit\pksedit.iss
 !C:\Users\tom\AppData\Local\Temp\MOUSE.MAC
 !C:\source\pksedit\doc\release_notes.md
-!C:\source\pksedit\include\lineoperations.h
-!C:\source\pksedit\include\syntaxhighlighting.h
 !C:\source\pksedit\BracketMatching.c
 !C:\source\pksedit\include\edfuncs.h
+!C:\source\pksedit\include\lineoperations.h
+!C:\source\pksedit\include\syntaxhighlighting.h
+!C:\source\pksedit\include\winfo.h
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
