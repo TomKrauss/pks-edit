@@ -50,7 +50,7 @@
 #define	OL_TOOLBAR			0x8			/* show tool bar */
 
 
-typedef struct tagEDITOR_CONFIGURATION {
+typedef struct {
 	int options;
 	int layoutoptions;
 	// the number of supported undo steps.

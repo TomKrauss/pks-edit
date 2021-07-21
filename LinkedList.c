@@ -105,7 +105,6 @@ LINKED_LIST *ll_insert(LINKED_LIST **pointerLinkedList,long size) {
 	if ((lp = calloc(1, (size_t)size)) == 0) {
 		return 0;
 	}
-
 	lp->next = *pointerLinkedList;
 	*pointerLinkedList = lp;
 	return lp;

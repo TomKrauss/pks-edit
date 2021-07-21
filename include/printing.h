@@ -31,62 +31,71 @@ typedef struct tagLNSPACE {
 typedef enum { PRTR_ALL, PRTR_SELECTION, PRTR_CURRENT_PAGE, PRTR_PAGES} PRINTRANGETYPE;
 
 typedef struct tagPRINTRANGE {
-	PRINTRANGETYPE prtr_type;		// Print selection, Print everything, Print the "current page", Print the range of pages specified below
-	int   prtr_fromPage;			// If prtr_pages is true, this is the 1-based first page to print.
-	int   prtr_toPage;				// If prtr_pages is true, this is the 1-based last page to print.
+	PRINTRANGETYPE prtr_type;	// Print selection, Print everything, Print the "current page", Print the range of pages specified below
+	int   prtr_fromPage;		// If prtr_pages is true, this is the 1-based first page to print.
+	int   prtr_toPage;			// If prtr_pages is true, this is the 1-based last page to print.
 } PRINTRANGE;
 
-typedef struct prtparams {			/* print params */
+typedef struct tagPRTPARAMS {	// print params
 	/* params */
 	PRINTRANGE printRange;
-	int		mode;
 	int		options;
 	int		pagelen;
 
-	FONTSPEC	font;
+	FONTSPEC font;
 	int		lmargin,rmargin,nchars;
 	int		tabsize;
-	LNSPACE	lnspace;				/* 1, 1«, 2 Lines */
+	LNSPACE	lnspace;			// 1, 1«, 2 Lines
 
-	int		marginTop;				// The number of lines to leave space at the top of the page.
-	int		headerSize;				// The height of the header in lines
-	int		marginBottom;			// The number of lines to leave space at the bottom of the page
-	int		footerSize;				// The height of the footer in lines
-	FONTSPEC htfont;				/* Font header - footer */
+	int		marginTop;			// The number of lines to leave space at the top of the page.
+	int		headerSize;			// The height of the header in lines
+	int		marginBottom;		// The number of lines to leave space at the bottom of the page
+	int		footerSize;			// The height of the footer in lines
+	FONTSPEC htfont;			// Font header - footer
 	char	header[512],
-			footer[512];			/* text of header and footer */
-	int		align;				/* Header / Footer Alignment */
-								/* left, center, right */
+			footer[512];		// text of header and footer
+	int		align;				// Header / Footer Alignment
+								// left, center, right
 	
 	FONTSPEC	fnfont;
-	LNSPACE	fnlnspace;			/* print_singleLineOfText spacing footnotes */
-	int		fnlinelen;			/* length of filename delimter line */
-	int		fnd1,fnd2;			/* distances to body and footer */
-	int		fnoffset;				/* offset of Fnote */
+	LNSPACE	fnlnspace;			// print_singleLineOfText spacing footnotes
+	int		fnlinelen;			// length of filename delimter line 
+	int		fnd1,fnd2;			// distances to body and footer
+	int		fnoffset;			// offset of Footnote
 } PRTPARAM;
 
-/* mode */
-#define	PRTM_RAW			0		/* no conversions */
-#define	PRTM_WPLUS		0x1		/* Attributes, Hyphens, ...*/
+/* printing options */
+#define	PRTO_LINES		0x1			// print line #
+#define	PRTO_PAUSE		0x2			// pause between pages
+#define	PRTO_SWAP		0x8			// swap h+f on alternate pages
+#define	PRTO_ULHEA		0x10		// underline header
+#define	PRTO_ULFOO		0x20		// limitline footer
+#define	PRTO_SWAPMARG	0x40		// swap margins on alternate pages
+#define	PRTO_WRAP		0x80		// wrap long lines
+#define	PRTO_EVEN		0x100		// print even pages
+#define	PRTO_ODD 		0x200		// print odd pages
+#define	PRTO_HEADERS	0x400		// print header and footer
+#define	PRTO_KEEPS		0x800		// Keeps....
+#define	PRTO_SYNTAX_HIGHLIGHT 0x1000 // Display syntax highlighting
 
-/* linespacing */
-#define	PRS_1			0		/* 1  line */
-#define	PRS_1AND2			1		/* 1« line */
-#define	PRS_2			2		/* 2  line */
+// linespacing
+#define	PRS_1			0		// 1 line
+#define	PRS_1AND2		1		// 1,5 lines
+#define	PRS_2			2		// 2 lines
 
-/* page formats */
-#define	PRF_DINA3			0
+// Page formats 
+#define	PRF_DINA3		0
 
-/* Alignment */
-#define	PRA_LEFT			0
+// Alignment 
+#define	PRA_LEFT		0
 #define	PRA_CENTER		1
-#define	PRA_RIGHT			2
+#define	PRA_RIGHT		2
 
-/* Lettersizes */
-#define	PRTL_PICA			0
+// Lettersizes 
+#define	PRTL_PICA		0
 #define	PRTL_ELITE		1
-#define	PRTL_COND			2
-#define	PRTL_EXPANDED		3
+#define	PRTL_COND		2
+#define	PRTL_EXPANDED	3
 
 /*------------------------------------------------------------
  * print_readWriteConfigFile()

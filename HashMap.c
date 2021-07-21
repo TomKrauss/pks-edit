@@ -193,6 +193,15 @@ int hashmap_containsKey(HASHMAP* pTable, intptr_t key) {
 }
 
 /*
+ * Return the value under which a particular key was registered or NULL
+ * if not corresponding entry exists.
+ */
+intptr_t hashmap_get(HASHMAP* pTable, intptr_t key) {
+	int nIndex = hashmap_findIndex(pTable, key);
+	return pTable->ht_entries[nIndex].he_key;
+}
+
+/*
  * Can be used to execute a callback for each key defined in a hashmap.
  * The callback is invoked with each key and the additional param passed as an argument.
  */
@@ -220,6 +229,6 @@ void hashmap_rehashWith(HASHMAP* pTable, HASH_CODE hashCodeFunction, HASH_COMPAR
  * Turns the hashmap assuming to contain string keys to ignore the case spelling of the keys used.
  */
 void hashmap_makeCaseIgnore(HASHMAP* pTable) {
-	hashmap_rehashWith(pTable, hashmap_hashCodeStringIgnoreCase, stricmp);
+	hashmap_rehashWith(pTable, hashmap_hashCodeStringIgnoreCase, (HASH_COMPARE)_stricmp);
 }
 

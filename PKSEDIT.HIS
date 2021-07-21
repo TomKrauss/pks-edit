@@ -1,6 +1,6 @@
 [files]
 "C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
-"C:\source\pksedit\include\winfo.h", line 86: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
+"C:\source\pksedit\include\winfo.h", line 79: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
 [find]
 !sessionex
 !sessionexc
@@ -46,8 +46,6 @@
 !x
 !xx
 [open]
-!C:\source\pksedit\pks_sys\pkseditconfig.json
-!C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\JdbcSession.java
 !C:\source\setenvj8.bat
 !C:\source\pksedit\pks_sys\default.grammar.json
 !C:\source\pksedit\OpenFiles.c
@@ -73,9 +71,12 @@
 !C:\source\pksedit\doc\release_notes.md
 !C:\source\pksedit\BracketMatching.c
 !C:\source\pksedit\include\edfuncs.h
-!C:\source\pksedit\include\lineoperations.h
 !C:\source\pksedit\include\syntaxhighlighting.h
 !C:\source\pksedit\include\winfo.h
+!C:\source\pksedit\pks_sys\PKSEDIT.INI
+!C:\source\pksedit\include\editorconfiguration.h
+!C:\source\pksedit\include\lineoperations.h
+!C:\source\pksedit\include\printing.h
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN

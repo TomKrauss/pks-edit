@@ -1008,7 +1008,9 @@ static unsigned char* advanceSubGroup(unsigned char* pszBeginOfLine, unsigned ch
 		if (!pMatcher->m_param.m_group.m_nonCapturing) {
 			int nGroup = pMatcher->m_param.m_groupEnd.m_bracketNumber;
 			pResult->braelist[nGroup] = stringToMatch;
-			pResult->nbrackets = nGroup + 1;
+			if (pResult->nbrackets < nGroup + 1) {
+				pResult->nbrackets = nGroup + 1;
+			}
 			return stringToMatch;
 		}
 		break;

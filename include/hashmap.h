@@ -47,6 +47,12 @@ extern void hashmap_destroy(HASHMAP* pTable, HASH_DESTROY_ENTRY destroyEntryCall
 extern int hashmap_put(HASHMAP* pTable, intptr_t key, intptr_t value);
 
 /*
+ * Return the value under which a particular key was registered or NULL
+ * if not corresponding entry exists.
+ */
+extern intptr_t hashmap_get(HASHMAP* pTable, intptr_t key);
+
+/*
  * Check, whether a given key is present in the hash table.
  */
 extern int hashmap_containsKey(HASHMAP* pTable, intptr_t key);

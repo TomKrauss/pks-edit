@@ -62,7 +62,7 @@ typedef struct tagPRINTWHAT {
 
 static PRTPARAM _prtparams = {
 	PRTR_PAGES,0,0,		/* Print range*/
-	0,0,60, 			/* mode,options,pagelen */
+	0,60, 			/* mode,options,pagelen */
 	0,8,0,"Tms Roman",	/* Std Font: oemmode,cheight,cwidth,name */
 	0,0,120,			/* lmargin,rmargin, nchars */
 	5,1,1,			/* tabsize, lnspace */
@@ -442,6 +442,9 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 			}
 		}
 		while (_printwhat.wp->maxcol < max) {
+			if ((_prtparams.options & PRTO_WRAP) == 0) {
+				break;
+			}
 			int delta = max - _printwhat.wp->maxcol;
 			if (delta > nMaxCharsPerLine) {
 				delta = nMaxCharsPerLine;
@@ -528,12 +531,18 @@ static int print_file(HDC hdc, BOOL measureOnly)
 	printLineParam.lastc = _printwhat.lastColumn;
 	printLineParam.lineNumber = 1;
 	printLineParam.maxYPos = de.yBottom;
+	WINFO* wp = WIPOI(fp);
+	if ((_prtparams.options & PRTO_SYNTAX_HIGHLIGHT) == 0) {
+		_printwhat.wp->dispmode &= ~SHOW_SYNTAX_HIGHLIGHT;
+	} else {
+		_printwhat.wp->dispmode |= SHOW_SYNTAX_HIGHLIGHT;
+	}
 	while (printLineParam.lp) {
 		if (oldpageno != pageno) {
 			if (measureOnly) {
 				printing = TRUE;
 			} else {
-				printing = print_isInPrintRange(pp, WIPOI(fp), pageno, printLineParam.lineNumber);
+				printing = print_isInPrintRange(pp, wp, pageno, printLineParam.lineNumber);
 				if (printing < 0) {
 					break;
 				}
@@ -700,7 +709,6 @@ void print_readWriteConfigFile(int save)
 	} _pi[] = {
 		1,	offsetof(PRTPARAM,header),			"header",
 		1,	offsetof(PRTPARAM,footer),			"footer",
-		0,	offsetof(PRTPARAM,mode),				"mode",
 		0,	offsetof(PRTPARAM,options),			"options",
 		0,	offsetof(PRTPARAM,pagelen),			"pagelen",
 		1,	offsetof(PRTPARAM,font.fs_name),		"font",
@@ -760,6 +768,8 @@ static DIALPARS _dPrintLayout[] = {
 	IDD_OPT2,			PRTO_LINES,& _prtparams.options,
 	IDD_OPT3,			PRTO_HEADERS,& _prtparams.options,
 	IDD_OPT4,			PRTO_ULHEA,& _prtparams.options,
+	IDD_OPT5,			PRTO_WRAP,& _prtparams.options,
+	IDD_OPT6,			PRTO_SYNTAX_HIGHLIGHT,& _prtparams.options,
 	IDD_INT1,			0,& _prtparams.pagelen,
 	IDD_INT2,			0,& _prtparams.nchars,
 	IDD_INT3,			0,& _prtparams.lmargin,

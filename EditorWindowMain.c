@@ -688,6 +688,8 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	EDIT_CONFIGURATION *linp = fp->documentDescriptor;
 
 	wp->dispmode = linp->dispmode;
+	// for now - make configurable.
+	wp->dispmode |= SHOW_SYNTAX_HIGHLIGHT;
 	wp->renderFunction = render_singleLineOnDevice;
 	if (wp->highlighter) {
 		highlight_destroy(wp->highlighter);

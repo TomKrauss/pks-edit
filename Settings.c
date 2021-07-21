@@ -124,8 +124,7 @@ static int *op_getFlagToToggle(OP_FLAGTYPE flagType)
 			if (flagType == OP_DISPLAY_MODE)
 				return &linp->dispmode;
 		}
-	}
-	else {
+	} else {
 		return (flagType == OP_MACRO) ? &_recording : &(GetConfiguration()->options);
 	}
 	return (int*)0;

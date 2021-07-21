@@ -29,7 +29,7 @@ int EdCallWinHelp(char *szFile, UINT hType, DWORD_PTR param) {
 	HWND		ret;
 	LPSTR	pszFound;
 	DWORD m_dwCookie;
-	DWORD_PTR requestParam = &m_dwCookie;
+	DWORD_PTR requestParam = (DWORD_PTR) &m_dwCookie;
 
 	if (!szFile) {
 		szFile = szHelpFile;
@@ -41,7 +41,7 @@ int EdCallWinHelp(char *szFile, UINT hType, DWORD_PTR param) {
 
 	ret = HtmlHelp(NULL, szHelpFile, HH_INITIALIZE, (DWORD_PTR)&m_dwCookie);
 	if (!ret) {
-		return NULL;
+		return 0;
 	}
 	if (hType == HH_DISPLAY_SEARCH) {
 		hType = HH_DISPLAY_TOC;

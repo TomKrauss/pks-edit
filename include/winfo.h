@@ -34,6 +34,7 @@
 #define	SHOWSTATUSBOT		        0x400
 #define	SHOWLINENUMBERS		        0x800
 #define	SHOWCARET_LINE_HIGHLIGHT	0x1000
+#define	SHOW_SYNTAX_HIGHLIGHT       0x2000
 
 #define	PLAINCONTROL(mode)	(((mode) & SHOWCONTROL) && !((mode) & SHOWRULER))
 

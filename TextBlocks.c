@@ -475,9 +475,9 @@ EXPORT int bl_append(PASTE *pb,LINE *lnfirst,LINE *lnlast,int cfirst,int clast)
  */
 EXPORT PASTE *bl_getTextBlock(int id, PASTELIST *pl)
 {
-	while (pl != 0 && pl->id != id)
+	while (pl != 0 && pl->id != id) {
 		pl = pl->next;
-
+	}
 	return (pl == 0) ? (PASTE *) 0 : &pl->pbuf;
 }
 
@@ -505,15 +505,17 @@ EXPORT PASTE *bl_lookupPasteBuffer(int id,int insert,PASTELIST **header)
 	PASTE *pp;
 
 	if ((pp = bl_getTextBlock(id, *header)) != (PASTE *) 0) {
-		if (insert)
+		if (insert) {
+			// make space for storing clipboard data.
 			bl_free(pp);
+		} 
 		return pp;
 	}
 
-	if ((pl = (PASTELIST *) ll_insert((LINKED_LIST**)header,sizeof *pl)) == 0L) 
+	if ((pl = (PASTELIST*)ll_insert((LINKED_LIST**)header, sizeof * pl)) == 0L) {
 		return 0;
+	}
 	pl->id = id;
-
 	return  &pl->pbuf;
 }
 

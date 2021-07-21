@@ -225,18 +225,6 @@ extern void linetoolong(void);
 #define	SO_NOSELECT	 	0x8  /* sort all lines */
 #define	SO_TOKENIZE	 	0x10	/* at least one token key field */
 
-/* printing options */
-#define	PRTO_LINES		0x1		/* print line # */
-#define	PRTO_PAUSE		0x2		/* pause between pages */
-#define	PRTO_SWAP			0x8		/* swap h+f on alternate pages */
-#define	PRTO_ULHEA		0x10		/* underline header */
-#define	PRTO_ULFOO		0x20		/* limitline footer */
-#define	PRTO_SWAPMARG		0x40		/* swap margins on alternate pages */
-#define	PRTO_WRAP			0x80		/* wrap long lines */
-#define	PRTO_EVEN			0x100	/* print even pages */
-#define	PRTO_ODD 			0x200	/* print odd pages */
-#define	PRTO_HEADERS		0x400	/* print header and footer */
-#define	PRTO_KEEPS		0x800	/* Keeps.... */
 
 #define	LIST_MACROS		0x1
 #define	LIST_KEYS			0x2

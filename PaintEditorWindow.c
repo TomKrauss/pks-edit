@@ -47,13 +47,17 @@ static DWORD _ROPcodes[] = {
 	WHITENESS			/* D = 1 */
 };
 
+static int showSyntaxHighlighting = TRUE;
+
 /*-----------------------------------------
  * Render some control characters in control-mode. 
  */
 static int render_formattedString(HDC hdc, WINFO* wp, int x, int y, unsigned char* cBuf, size_t nLength, THEME_DATA *pTheme, 
 		FONT_STYLE_CLASS nStyle, FONT_STYLE_CLASS* pPreviousStyle) {
 	if (nStyle != *pPreviousStyle) {
-		font_selectFontStyle(wp, nStyle, hdc);
+		if (showSyntaxHighlighting) {
+			font_selectFontStyle(wp, nStyle, hdc);
+		}
 		*pPreviousStyle = nStyle;
 	}
 	TextOut(hdc, x, y, cBuf, (int)nLength);
@@ -121,7 +125,7 @@ static void render_fillBuf(char* pszBuf, int fillChar, int nLen) {
  * render_singleLineOnDevice()
  */
 int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long lineNo) {	
-	register int 			startColumn,i,endColumn,indent,textlen;
+	register int startColumn,i,endColumn,indent,textlen;
 	register unsigned char 	*d,*s,*send;
 	FTABLE* fp = ((FTABLE*)FTPOI(wp));
 	char fillbuf[20];
@@ -139,6 +143,7 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long l
 	endColumn = wp->maxcol+1;
 	flags = wp->dispmode;
 	showcontrol = flags & SHOWCONTROL;
+	showSyntaxHighlighting = flags & SHOW_SYNTAX_HIGHLIGHT;
 	textlen = endColumn-startColumn;
 	if (showcontrol) {
 		render_fillBuf(fillbuf, tabFiller != ' ' && tabFiller && tabFiller != '\t' ? tabFiller : '»', 1);

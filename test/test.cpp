@@ -77,10 +77,19 @@ namespace pkseditTests
 			RE_OPTIONS* options;
 			RE_PATTERN pattern;
 			RE_MATCH match;
+			char group[50];
+
+			options = createOptions("^(.*);\"\t(.*)", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			const char* expr = "22;\"\tblabla";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(2, match.nbrackets);
+			regex_getCapturingGroup(&match, 1, group, sizeof group);
+			Assert::AreEqual("blabla", group);
 
 			options = createOptions("^/\\* C \\*/$", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
-			const char* expr = "/* C */";
+			expr = "/* C */";
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
 
 			options = createOptions("(a|b|c|d)", RE_DOREX);
