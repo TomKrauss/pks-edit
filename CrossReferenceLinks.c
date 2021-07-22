@@ -52,14 +52,14 @@ typedef struct tagTAG_REFERENCE {
 	long ln;							// The line number to jump to - may be -1
 	char* searchCommand;				// A regular expression to search - if the tag is found by searching
 	TAG_KIND kind;						// The type of the element described.
-	char referenceDescription[100];		// A description where the described element can be found (e.g. member of struct xxx)
+	char *referenceDescription;			// A description where the described element can be found (e.g. member of struct xxx)
 } TAG_REFERENCE;
 
 /*
  * Describes a xross-reference navigation request. 
  */
 typedef struct tagTAG {
-	char tagname[96];					// The name of the tag (method, type, ...) itself.
+	char *tagname;						// The name of the tag (method, type, ...) itself.
 	TAG_REFERENCE* tagReferences;		// The actual references describing the occurrences of the tag.
 } TAG;
 
@@ -72,6 +72,7 @@ typedef struct tagNAVIGATION_SPEC {
 typedef struct tagTAG_TABLE {
 	HASHMAP* tt_map;
 	EDTIME tt_updated;
+	char* tt_directory;
 } TAG_TABLE;
 
 static TAG_TABLE _allTags;
@@ -101,21 +102,23 @@ static int xref_destroyCmpTag(NAVIGATION_PATTERN* ct) {
 static int xref_destroyTagReference(TAG_REFERENCE* pRef) {
 	free(pRef->filename);
 	free(pRef->searchCommand);
+	free(pRef->referenceDescription);
 	return 1;
 }
 
 static int xref_destroyTag(intptr_t key, intptr_t value) {
 	TAG* tp = (TAG*)value;
 	ll_destroy((LINKED_LIST**)&tp->tagReferences, xref_destroyTagReference);
+	free(tp->tagname);
 	free(tp);
 	return 1;
 }
 
 static void xref_destroyTagTable() {
-	if (_allTags.tt_map) {
-		hashmap_destroy(_allTags.tt_map, xref_destroyTag);
-		_allTags.tt_map = NULL;
-	}
+	hashmap_destroy(_allTags.tt_map, xref_destroyTag);
+	_allTags.tt_map = NULL;
+	free(_allTags.tt_directory);
+	_allTags.tt_directory = NULL;
 }
 
 /*
@@ -202,28 +205,38 @@ static int xref_readTagFile(char* fn, FTABLE* fp) {
 /*---------------------------------*/
 /* xref_loadTagFile()				*/
 /*---------------------------------*/
-static int xref_loadTagFile(FTABLE *fp, char *tagFilename)
-{	char   *fn;
+static int xref_loadTagFile(FTABLE *fp, char* sourceFile, char *tagFilename) {	
+	char   *fn = NULL;
+	char   dirname[512];
 
-	if ((fn = file_searchFileInPKSEditLocation(tagFilename)) == 0L) {
-		// error_showError("Kann nicht zu Querverweis navigieren. Verweise können nicht geladen werden.", NULL);
+	if (sourceFile) {
+		// tries to locate a tag file relative to a source file name (parent folder).
+		string_splitFilename(sourceFile, dirname, NULL);
+		while(dirname[0]) {
+			size_t len = strlen(dirname);
+			if (dirname[len - 1] == '\\' || dirname[len - 1] == '/') {
+				dirname[len - 1] = 0;
+			}
+			fn = file_searchFileInDirectory(tagFilename, dirname);
+			if (fn) {
+				break;
+			}
+			string_splitFilename(dirname, dirname, NULL);
+		} 
+	}
+	if (fn == NULL && (fn = file_searchFileInPKSEditLocation(tagFilename)) == 0L) {
 		return 0;
 	}
-
+	string_splitFilename(fn, dirname, NULL);
+	if (_allTags.tt_directory != NULL && strcmp(dirname, _allTags.tt_directory) == 0) {
+		return 1;
+	}
+	if (_allTags.tt_map) {
+		// Tag index is recreated.
+		xref_destroyTagTable();
+	}
+	_allTags.tt_directory = _strdup(dirname);
 	return xref_readTagFile(fn,fp);
-}
-
-/*---------------------------------*/
-/* xref_isTagCommand()					*/
-/*---------------------------------*/
-static int xref_isTagCommand(unsigned char c)
-{
-	if (c == TST_TAGFILE ||	/* normal tag command */
-	    c == TST_EXECECUTE_PROGRAM ||	/* execute ... */
-	    c == '?' || 		/* unused */
-	    c == TST_HELPFILE	/* call windows help */
-	   )	return 1;
-	return 0;
 }
 
 /*------------------------------------------------------------
@@ -266,7 +279,7 @@ static int taglist_cmpitem(COMPAREITEMSTRUCT *cp)
 static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 {
 	LONG			lExtent;
-	WORD			wDelta = 220;
+	WORD			wDelta = 400;
 	WORD			hDelta;
 	int				nIconDelta = 62;
 	int				nIconWidth = 16;
@@ -282,7 +295,8 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 	lExtent = win_getTextExtent(hdc, dlp->pszString, dlp->nSize);
 	hDelta = HIWORD(lExtent);
 	hDelta = (TAGLISTITEMHEIGHT - hDelta) / 2;
-	TextOut(hdc, rcp->left + nIconDelta, rcp->top + hDelta, tp->filename, (int)strlen(tp->filename));
+	char* pszFile = string_abbreviateFileName(tp->filename);
+	TextOut(hdc, rcp->left + nIconDelta, rcp->top + hDelta, pszFile, (int)strlen(pszFile));
 	
 	hIcon = LoadIcon (hInst, tp->isDefinition ? "NEXT" : "PREVIOUS");
 	DrawIconEx(hdc,
@@ -290,7 +304,7 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 		rcp->top + (rcp->bottom - rcp->top - nIconWidth) / 2,
 		hIcon, nIconWidth, nIconWidth, 0, NULL, DI_NORMAL);
 	char* pszComment = tp->referenceDescription;
-	if (!*pszComment) {
+	if (!pszComment) {
 		pszComment = tp->searchCommand;
 	}
 	TextOut(hdc, rcp->left + nIconDelta + wDelta, rcp->top + hDelta, pszComment, lstrlen(pszComment));
@@ -303,22 +317,22 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 	RE_MATCH match;
 	TAG_REFERENCE* pReference;
-	char extCommand[256];
-	char extCommandCopy[256];
-	char tagName[sizeof ((TAG*)0)->tagname];
+	static char extCommand[256];
+	static char extCommandCopy[256];
 
 	if (regex_match(pattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
-		regex_getCapturingGroup(&match, _exprerror->tagCapture - 1, tagName, sizeof tagName);
-		TAG* pTag = (TAG*) hashmap_get(_allTags.tt_map, (intptr_t)tagName);
+		regex_getCapturingGroup(&match, _exprerror->tagCapture - 1, extCommand, sizeof extCommand);
+		TAG* pTag = (TAG*) hashmap_get(_allTags.tt_map, (intptr_t)extCommand);
 		if (pTag == NULL) {
 			pTag = calloc(1, sizeof *pTag);
-			strcpy(pTag->tagname, tagName);
+			pTag->tagname = _strdup(extCommand);
 			hashmap_put(_allTags.tt_map, (intptr_t)pTag->tagname, (intptr_t)pTag);
 		}
 		pReference = (TAG_REFERENCE*) ll_insert((LINKED_LIST**)&pTag->tagReferences, sizeof * pReference);
 		char* filename = calloc(1, EDMAXPATHLEN);
 		regex_getCapturingGroup(&match, _exprerror->filenameCapture - 1, filename, EDMAXPATHLEN);
 		pReference->filename = realloc(filename, strlen(filename)+1);
+		memset(extCommand, 0, sizeof extCommand);
 		regex_getCapturingGroup(&match, _exprerror->commentCapture - 1, extCommand, sizeof extCommand);
 		if (extCommand[0] == '?' || extCommand[0] == '/') {
 			char* pszSource = extCommand + 1;
@@ -332,7 +346,7 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 				if (c == '\\') {
 					c = *pszSource++;
 				}
-				else if (c == '*' || c == '+' || c == '?') {
+				else if (c == '*' || c == '+' || c == '?' || c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']') {
 					*pszDest++ = '\\';
 				}
 				*pszDest++ = c;
@@ -352,7 +366,7 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 				pReference->isDefinition = strcmp(pszRef+5,"def") == 0;
 			}
 			if (strstr(pszRef, "struct:") == pszRef || strstr(pszRef, "object:") == pszRef) {
-				strcpy(pReference->referenceDescription, pszRef);
+				pReference->referenceDescription = _strdup(pszRef);
 				break;
 			}
 			pszRef = strtok(NULL, "\t");
@@ -364,25 +378,30 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 
 /*
  * Read the current CTAGS file into our internal lookup index for fast access.
+ * We try to locate the tags file relative to the source file passed with sourceFilename,
+ * if that is non NULL.
+ * 
  * TODO: try to rebuild tag file index if required.
  */
-static BOOL xref_buildTagTable(char* fileName) {
+static BOOL xref_buildTagTable(char* sourceFilename, char* baseTagFilename) {
 	FTABLE ftable;
 	LINE* lp;
 	char ebuf[ESIZE];
 
-	if (_allTags.tt_map) {
-		return TRUE;
-	}
 	memset(&ftable, 0, sizeof ftable);
-	if (xref_loadTagFile(&ftable, fileName) == 0) {
+	if (xref_loadTagFile(&ftable, sourceFilename, baseTagFilename) == 0) {
 		return FALSE;
+	}
+	if (!ftable.firstl) {
+		// Everything up to date.
+		return TRUE;
 	}
 	RE_PATTERN* pPattern = xref_initializeNavigationPattern(ebuf, _tagfileFormatPattern);
 	if (pPattern == NULL) {
+		ft_bufdestroy(&ftable);
 		return FALSE;
 	}
-	_allTags.tt_map = hashmap_create(113, NULL, NULL);
+	_allTags.tt_map = hashmap_create(997, NULL, NULL);
 	find_initializeReplaceByExpression(_exprerror->pattern);	/* assure a few initialiations */
 	for (lp = ftable.firstl; lp; lp = lp->next) {
 		if (lp->len > 0 && lp->lbuf[0] == '!') {
@@ -395,18 +414,24 @@ static BOOL xref_buildTagTable(char* fileName) {
 	return 1;
 }
 
-/*---------------------------------*/
-/* findtag()					*/
-/*---------------------------------*/
+/*
+ * xref_lookupTagReference()
+ * Lookup the reference to a tag named 'tagName' from our currently loaded tag index.
+ * If bExactMatch is false, all names from the index closely matching the passed
+ * tag name are presented to the user for selection.
+ */
 static BOOL _tagCancelled;
-static TAG_REFERENCE *findtag(char *s) {
+static TAG_REFERENCE *xref_lookupTagReference(char *tagName, BOOL bExactMatch) {
 	DLGSTRINGLIST *	dlp = NULL;
 	DLGSTRINGLIST *	dlpCurr;
-	TAG* tp = _allTags.tt_map ? (TAG*)hashmap_get(_allTags.tt_map, (intptr_t) s) : NULL;
+	TAG* tp = _allTags.tt_map ? (TAG*)hashmap_get(_allTags.tt_map, (intptr_t) tagName) : NULL;
 	TAG_REFERENCE* pRef;
 
 	if (!tp) {
 		return NULL;
+	}
+	if (ll_size((LINKED_LIST*)tp->tagReferences) <= 1) {
+		return tp->tagReferences;
 	}
 	for (pRef = tp->tagReferences; pRef; pRef = pRef->next) {
 		if ((dlpCurr = (DLGSTRINGLIST *)ll_insert((LINKED_LIST**)&dlp, sizeof *dlp)) == 0) {
@@ -420,47 +445,33 @@ static TAG_REFERENCE *findtag(char *s) {
 	if (!dlp) {
 		return NULL;
 	}
-	switch (ll_size((LINKED_LIST*)dlp)) {
-
-	case 0: 
-		return 0;
-
-	case 1:
-		dlpCurr = dlp;
-		break;
-
-	default: {
-		static DIALLIST dlist = {
-			0,
-			0, 
-			0, 
-			taglist_measureitem, 
-			taglist_drawitem, 
-			0,
-			taglist_cmpitem,
-			0
-		};
-		dlpCurr = DoDlgSelectFromList(DLGTAGLIST, dlp, &dlist);
-		break;
+	static DIALLIST dlist = {
+		0,
+		0, 
+		0, 
+		taglist_measureitem, 
+		taglist_drawitem, 
+		0,
+		taglist_cmpitem,
+		0
+	};
+	dlpCurr = DoDlgSelectFromList(DLGTAGLIST, dlp, &dlist);
+	if (dlpCurr) {
+		pRef = dlpCurr->pAny;
 	}
-
-	}
+	ll_destroy((LINKED_LIST**)&dlp, NULL);
 
 	if (!dlpCurr) {
-		ll_destroy((LINKED_LIST**)&dlp, NULL);
 		_tagCancelled = TRUE;
 		return 0;
 	}
-
-	pRef = dlpCurr->pAny;
-	ll_destroy((LINKED_LIST**)&dlp, NULL);
 	return pRef;
 }
 
 /*---------------------------------*/
-/* gettag()					*/
+/* xref_findExpressionCloseToCaret()					*/
 /*---------------------------------*/
-static char *gettag(unsigned char *d,unsigned char *dend,int (*valid)(),int scan2beg) {	
+static char *xref_findExpressionCloseToCaret(unsigned char *d,unsigned char *dend,int (*valid)(),int scan2beg) {	
 	char *s,*S;
 	char *s1=d;
 	WINFO *wp;
@@ -485,14 +496,13 @@ static char *gettag(unsigned char *d,unsigned char *dend,int (*valid)(),int scan
 /* xref_saveCrossReferenceWord()					*/
 /*---------------------------------*/
 static char *_tagword;
-static char *xref_saveCrossReferenceWord(unsigned char *d,unsigned char *dend)
-{
+static char *xref_saveCrossReferenceWord(unsigned char *d,unsigned char *dend) {
 	if (_tagword) {
 		strcpy(d,_tagword);
 		return _tagword;
 	}
 
-	return gettag(d,dend,char_isIdentifier,1);
+	return xref_findExpressionCloseToCaret(d,dend,char_isIdentifier,1);
 }
 
 /*------------------*/
@@ -512,6 +522,21 @@ int xref_openFile(char *name, long line, WINDOWPLACEMENT *wsp) {
 	return ret;
 }
 
+/*
+ * Navigate to a hyperlink. 
+ */
+static int xref_navigateToHyperlink(char* urlSpec, char* pTag) {
+	char buf[512];
+	char* pszDollar = strstr(urlSpec, "$1");
+
+	if (pszDollar) {
+		strncpy(buf, urlSpec, pszDollar - urlSpec);
+		strcat(buf, pTag);
+		strcat(buf, pszDollar + 2);
+		return ShellExecute(hwndMDIFrameWindow, "open", buf, "", ".", SW_SHOWNORMAL) != NULL;
+	}
+	return 0;
+}
 /*---------------------------------*
  * xref_navigateCrossReference()
  * Navigate to the cross reference word given as an argument - no
@@ -519,8 +544,7 @@ int xref_openFile(char *name, long line, WINDOWPLACEMENT *wsp) {
  *---------------------------------*/
 int xref_navigateCrossReference(char *s) {
 	TAG_REFERENCE * tp;
-	char     	ebuf[ESIZE];
-	char	    fnam[256];
+	char     	buffer[256];
 	int			ret = 0;
 	TAGSOURCE* ttl;
 	FTABLE* fp;
@@ -539,28 +563,30 @@ int xref_navigateCrossReference(char *s) {
 
 	_tagCancelled = FALSE;
 	while (ttl && ret == 0 && _tagCancelled == FALSE) {
-		switch(ttl->type[0]) {
-			case TST_TAGFILE:
-				if (!xref_buildTagTable(ttl->fn)) {
-					break;
+		if (strcmp(TST_TAGFILE, ttl->type) == 0) {
+			if (xref_buildTagTable(fp->fname, ttl->fn) && (tp = xref_lookupTagReference(s, TRUE)) != 0L) {
+				char* pszCompleteFile = file_searchFileInDirectory(tp->filename, _allTags.tt_directory);
+				if (pszCompleteFile) {
+					strcpy(buffer, pszCompleteFile);
+				} else {
+					strcpy(buffer, tp->filename);
 				}
-				if ((tp = findtag(s)) != 0L) {
-					strcpy(fnam,tp->filename);
-					fm_savepos(s);
-					xref_openFile(fnam,tp->ln,(WINDOWPLACEMENT*)0);
-					ret = 1;
-					if (tp->searchCommand && ft_getCurrentDocument()) {
-						RE_PATTERN* pPattern;
-						if (pPattern = find_regexCompile(ebuf, tp->searchCommand, (int) RE_DOREX)) {
-							find_expressionInCurrentFile(1,pPattern,O_WRAPSCAN);
-						}
+				fm_savepos(s);
+				xref_openFile(buffer, tp->ln, (WINDOWPLACEMENT*)0);
+				if (tp->searchCommand && ft_getCurrentDocument()) {
+					RE_PATTERN* pPattern;
+					if (pPattern = find_regexCompile(buffer, tp->searchCommand, (int)RE_DOREX)) {
+						find_expressionInCurrentFile(1, pPattern, O_WRAPSCAN);
 					}
 				}
-				break;
-			case TST_HELPFILE:
-				ret = help_showHelpForKey(ttl->fn, s);
+				ret = 1;
 				break;
 			}
+		} else if (strcmp(TST_HELPFILE, ttl->type) == 0) {
+			ret = help_showHelpForKey(ttl->fn, s);
+		} else if (strcmp(TST_HYPERLINK, ttl->type) == 0) {
+			ret = xref_navigateToHyperlink(ttl->fn, s);
+		}
 		ttl = ttl->next;
 	}
 
@@ -735,8 +761,7 @@ doforward:
 static FSELINFO _tagfselinfo = { ".", "tags", "*.tag" };
 static FSELINFO _grpfselinfo = { ".", "pksedit.grep", "*.grep" };
 static FSELINFO _cmpfselinfo = { ".", "errors.err", "*.err" };
-static int xref_openTagFileOrSearchResults(int title, int st_type, FSELINFO *fsp)
-{
+static int xref_openTagFileOrSearchResults(int title, int st_type, FSELINFO *fsp) {
 	if (title && fsel_selectFileWithOptions(fsp, title, FALSE) == 0) {
 		return 0;
 	}
@@ -755,8 +780,7 @@ static int xref_openTagFileOrSearchResults(int title, int st_type, FSELINFO *fsp
 			}
 			return 0;
 		case ST_TAGS:
-			xref_destroyTagTable();
-			return xref_buildTagTable(_fseltarget);
+			return xref_buildTagTable(NULL, _fseltarget);
 	}
 	return 0;
 }
@@ -844,7 +868,7 @@ int EdFindTagCursor(void)
 int EdFindWordCursor(dir)
 {	char *s,buf[256];
 
-	if ((s = gettag(buf,&buf[sizeof buf],char_isIdentifier,0)) != 0L) {
+	if ((s = xref_findExpressionCloseToCaret(buf,&buf[sizeof buf],char_isIdentifier,0)) != 0L) {
 		RE_PATTERN *pPattern = regex_compileWithDefault(s);
 		return pPattern && find_expressionInCurrentFile(dir, pPattern, _currentSearchAndReplaceParams.options);
 	}

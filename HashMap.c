@@ -110,6 +110,9 @@ HASHMAP* hashmap_create(int nCapacity, HASH_CODE hashCode, HASH_COMPARE compareF
  * Destroy a hashtable. 
  */
 void hashmap_destroy(HASHMAP* pTable, HASH_DESTROY_ENTRY destroyCallback) {
+	if (!pTable) {
+		return;
+	}
 	if (destroyCallback) {
 		for (int i = 0; i < pTable->ht_capacity; i++) {
 			if (pTable->ht_entries[i].he_key) {
@@ -198,7 +201,7 @@ int hashmap_containsKey(HASHMAP* pTable, intptr_t key) {
  */
 intptr_t hashmap_get(HASHMAP* pTable, intptr_t key) {
 	int nIndex = hashmap_findIndex(pTable, key);
-	return pTable->ht_entries[nIndex].he_key;
+	return pTable->ht_entries[nIndex].he_value;
 }
 
 /*

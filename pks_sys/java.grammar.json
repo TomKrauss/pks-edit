@@ -2,6 +2,16 @@
   "grammars": [
     {
       "scopeName": "java",
+      "tagSources": [
+        {
+          "filename": "tags",
+          "type": "tags"
+        },
+        {
+          "filename": "https://www.google.com/search?q=javadoc+$1",
+          "type": "url"
+        }
+      ],
       "highlightBrackets": [
         {
           "left": "{",

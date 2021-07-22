@@ -196,32 +196,20 @@ static int grammar_destroyHashEntry(intptr_t key, intptr_t value) {
 }
 
 static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {
-	if (pPattern->match) {
-		free(pPattern->match);
-	}
-	if (pPattern->rePattern) {
-		free(pPattern->rePattern);
-	}
-	if (pPattern->rePatternBuf) {
-		free(pPattern->rePatternBuf);
-	}
-	if (pPattern->keywords) {
-		hashmap_destroy(pPattern->keywords, grammar_destroyHashEntry);
-	}
+	free(pPattern->match);
+	free(pPattern->rePattern);
+	free(pPattern->rePatternBuf);
+	hashmap_destroy(pPattern->keywords, grammar_destroyHashEntry);
 	return 1;
 }
 
 static int grammar_destroyNavigationPattern(NAVIGATION_PATTERN* pPattern) {
-	if (pPattern->pattern) {
-		free(pPattern->pattern);
-	}
+	free(pPattern->pattern);
 	return 1;
 }
 
 static int grammar_destroyTagSource(TAGSOURCE* pSource) {
-	if (pSource->fn) {
-		free(pSource->fn);
-	}
+	free(pSource->fn);
 	return 1;
 }
 
@@ -238,9 +226,7 @@ static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
  * Destroy all loaded grammars. 
  */
 void grammar_destroyAll() {
-	if (_grammarDefinitions.gd_grammars) {
-		ll_destroy((LINKED_LIST**)&_grammarDefinitions.gd_grammars, grammar_destroyGrammar);
-	}
+	ll_destroy((LINKED_LIST**)&_grammarDefinitions.gd_grammars, grammar_destroyGrammar);
 }
 
 struct tagCHAR_LOOKUP {

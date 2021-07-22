@@ -22,6 +22,7 @@
 #include "winterf.h"
 #include "lineoperations.h"
 #include "pksedit.h"
+#include "pathname.h"
 #include "errordialogs.h"
 #include "stringutil.h"
 #include "fileutil.h"
@@ -176,6 +177,19 @@ static int pathstat(char *path,char *fn)
 }
 
 /*--------------------------------------------------------------------------
+ * file_searchFileInDir()
+ * Searches a file in a directory. If found, return the full path name.
+ */
+EXPORT char* file_searchFileInDirectory(char* s, char* pDir) {
+	if (pathstat(pDir, s)) {
+		return _found;
+	}
+	return 0;
+}
+
+
+
+/*--------------------------------------------------------------------------
  * file_searchFileInPKSEditLocation()
  * Searches a file in a "wellknown" PKS Edit location (PKS_SYS, home etc...) and
  * returns the result - this is not re-entrant. Before calling again, one must
@@ -201,7 +215,7 @@ EXPORT char *file_searchFileInPKSEditLocation(char *s)
  * Search a file in a path list (pathes separated by ; or ,).
  */
 EXPORT char *file_searchFileInPath(char *fn,char *path) {	
-	char p[1024],p2[1024];
+	char p[EDMAXPATHLEN],p2[EDMAXPATHLEN];
 
 	if (dostat(fn)) {
 		return fn;

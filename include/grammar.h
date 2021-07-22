@@ -76,16 +76,19 @@ typedef struct tagNAVIGATION_PATTERN {
 } NAVIGATION_PATTERN;
 
 
-#define	TST_EXECECUTE_PROGRAM				'!'
-#define	TST_TAGFILE							'^'
-#define	TST_HELPFILE						'?'
+// URL to execute with ShellExec. $1 in the URL is replaced by searched expression
+#define TST_HYPERLINK		"url"
+// Lookup the expression in the "current ctags tag file"
+#define TST_TAGFILE			"tags"
+// Invoke the WinHelp API with the given help file (fn) and the search key
+#define	TST_HELPFILE		"help"
 
 /*
  * Cross reference specifications for a grammar. 
  */
 typedef struct tagTAGSOURCE {
 	struct tagTAGSOURCE* next;
-	char	type[2];				// one of the TST_... flags
+	char type[10];		// the way, this tag source is used.
 	char*	fn;
 } TAGSOURCE;
 

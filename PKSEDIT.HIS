@@ -1,6 +1,7 @@
 [files]
 "C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
-"C:\source\pksedit\include\winfo.h", line 79: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
+"C:\source\pksedit\include\winfo.h", line 80: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
+"C:\source\pksedit\include\lineoperations.h", line 1: 0x0 0x1 -1 -1 -8 -31 90 54 1281 587
 [find]
 !sessionex
 !sessionexc
@@ -46,10 +47,6 @@
 !x
 !xx
 [open]
-!C:\source\setenvj8.bat
-!C:\source\pksedit\pks_sys\default.grammar.json
-!C:\source\pksedit\OpenFiles.c
-!C:\source\mx-graph-modeller\ui\src\polyfills.ts
 !C:\source\trend-master-eclipse-4.20\trend\bin\setTrendEnv.sh
 !C:\source\mx-graph-modeller\ui\src\app\theme.ts
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\bloc\domain_event_handler.dart
@@ -77,6 +74,11 @@
 !C:\source\pksedit\include\editorconfiguration.h
 !C:\source\pksedit\include\lineoperations.h
 !C:\source\pksedit\include\printing.h
+!C:\source\pksedit\SprintfUtil.c
+!C:\source\pksedit\StringTokenizer.c
+!C:\source\pksedit\PrintFiles.c
+!C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\query\parser\StringInputStream.java
+!C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\collection\Array.java
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -95,5 +97,6 @@
 !C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\src\*.*
 !C:\temp\*.*
 !C:\*.*
-!C:\source\pksedit\*.*
 !C:\source\pksedit\pks_sys\*.MAC
+!C:\source\pksedit\*.*
+!C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\collection\*.*

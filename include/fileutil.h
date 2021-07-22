@@ -68,6 +68,12 @@ extern int file_createFileWithMode(char* fn, int mode);
 extern char* file_searchFileInPKSEditLocation(char* s);
 
 /*--------------------------------------------------------------------------
+ * file_searchFileInDir()
+ * Searches a file in a directory. If found, return the full path name.
+ */
+extern char* file_searchFileInDirectory(char* s, char* pDir);
+
+/*--------------------------------------------------------------------------
  * file_searchFileInPath()
  * Search a file in a path list (pathes separated by ; or ,).
  */
