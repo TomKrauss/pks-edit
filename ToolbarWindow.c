@@ -237,7 +237,7 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam
         }
         nRet = CallWindowProc(oldEditProc, hwnd, msg, wParam, lParam);
         Edit_GetText(hwnd, pszBuf, sizeof pszBuf);
-        find_incrementally(pszBuf, RE_IGNCASE, 1, FALSE);
+        find_incrementally(pszBuf, RE_IGNCASE | O_WRAPSCAN, 1, FALSE);
         return nRet;
     case WM_SETFOCUS:
         previousFocusWnd = (HWND)wParam;

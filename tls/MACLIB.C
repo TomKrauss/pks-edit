@@ -39,7 +39,7 @@ char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
 	switch(type) {
 		case CMD_MACRO:  sprintf(szBuf,"%s",mac_byindex(nIndex)->name); break;
 		case CMD_CMDSEQ: 
-			if (LoadString(hInst,nIndex+IDM_CMDNAME,szBuf+1,250) <= 0) {
+			if (LoadString(hLanguageInst,nIndex+IDM_CMDNAME,szBuf+1,250) <= 0) {
 				sprintf(szBuf,"©Unamed-%d",nIndex);
 			} else {
 				szBuf[0] = '©';

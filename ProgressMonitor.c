@@ -65,7 +65,7 @@ void progress_startMonitor(unsigned int ids) {
 
 	if (!_playing && !hwndAbort) {
 		szB1[0] = 0;
-		LoadString(hInst,ids,szB1,sizeof szB1);
+		LoadString(ui_getResourceModule(),ids,szB1,sizeof szB1);
 		wsprintf(szBuff,"%s..",szB1);
 		win_createModelessDialog(&hwndAbort,"DLGABORT",
 						  DlgProgressProc,&lpfnAbort);

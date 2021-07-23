@@ -109,18 +109,6 @@ EXPORT HDC print_getPrinterDC(void)
 }
 
 /*------------------------------------------------------------
- * print_initPrinterDC()
- */
-EXPORT void print_initPrinterDC(void)
-{
-	char *dev,szPrinter[256];
-
-	GetProfileString("windows", "device", ",,,", szPrinter, sizeof szPrinter);
-	if ((dev = strtok(szPrinter,",")) != 0)
-		lstrcpy(szPrtDevice,dev);
-}
-
-/*------------------------------------------------------------
  * print_drawLine()
  */
 static void print_drawLine(HDC hdc, DEVEXTENTS* dep, int x1, int x2, int y, int y2)

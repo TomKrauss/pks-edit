@@ -15,7 +15,10 @@
   a URL to open in a browser.
 - Matching brackets is Grammar dependent now.
 - Ctags support was updated to correctly support the newest default format as used by the Universal Ctags program.
-  
+- We started to finally implement an English version of PKS Edit. Language dependent files have not yet been all translated.
+  In order to force PKS-Edit to using English language resources, one can add to "Language=en-US" to the [desk] section
+  of pksedit.ini.
+
 #### Fixed
 - Some issues with regular expressions (in particular a possible endless loop when compiling complex syntax) have been
   fixed.

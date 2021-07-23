@@ -67,7 +67,7 @@ static int nIdAlert(int buttons, WORD nId, LPSTR ap)
 {
     char fmt[128];
 
-	if (!LoadString(hInst,nId,fmt,sizeof fmt))
+	if (!LoadString(ui_getResourceModule(),nId,fmt,sizeof fmt))
 		return -1;
     return errror_openConfigurableAlert(buttons, (LPSTR) fmt,ap);
 }
@@ -202,7 +202,7 @@ static void err_show(int nId, va_list ap)
 {
 	char		fmt[128];
 
-	if (LoadString(hInst,nId,fmt,sizeof fmt)) {
+	if (LoadString(ui_getResourceModule(),nId,fmt,sizeof fmt)) {
 		error_displayErrorToast(fmt,ap);
 	}
 }
@@ -260,7 +260,7 @@ void error_showErrorById(int nId,...)
 	va_list 	ap;
 	char 	s[128];
 
-	if (!LoadString(hInst,nId,s,sizeof s))
+	if (!LoadString(ui_getResourceModule(),nId,s,sizeof s))
 		return;
 
 	va_start(ap,nId);

@@ -244,12 +244,17 @@ LONG prof_getlong(char *grp,char *ident)
 /*------------------------------------------------------------
  * prof_getstdopt()
  */
-int prof_getstdopt(void)
-{
+int prof_getstdopt(void) {
+	char string[256];
+
 	if (!LocatePksEditIni()) {
 		return 0;
 	}
 
+	prof_getPksProfileString(_desk, "Language", string, sizeof string -1);
+	if (string[0]) {
+		ui_switchToLanguage(string);
+	}
 	GetConfiguration()->options = prof_getlong(_desk,"Options");
 	GetConfiguration()->layoutoptions = prof_getlong(_desk,"Layout");
 

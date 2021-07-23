@@ -110,7 +110,7 @@ static HWND CreateToolTip(int toolID, HWND hDlg, int iTooltipItem) {
 	toolInfo.uId = (UINT_PTR)hwndTool;
 	char 	s[256];
 
-	if (!LoadString(hInst, iTooltipItem, s, sizeof s)) {
+	if (!LoadString(ui_getResourceModule(), iTooltipItem, s, sizeof s)) {
 		return (HWND)NULL;
 	}
 	toolInfo.lpszText = s;
@@ -292,7 +292,7 @@ int setwrange(HWND hwnd, int *rangetype, int first)
 
 	for (item = IDS_RNGONCE; item <= IDS_RNGGLOBAL; item++) {
 		range = item-IDS_RNGONCE;
-		LoadString(hInst,item,szBuf,sizeof szBuf);
+		LoadString(ui_getResourceModule(),item,szBuf,sizeof szBuf);
 		if (range >= first && 
 		    (range != RNG_BLOCK || blkvalid)) {
 			SendMessage(hwndList, CB_ADDSTRING, 0, (LPARAM)szBuf);
@@ -361,7 +361,7 @@ int getwrange(HWND hwnd)
 		return RNG_FREE;
 	}
 	for (item = IDS_RNGONCE; item <= IDS_RNGGLOBAL; item++) {
-		LoadString(hInst,item,szBuff, sizeof szBuff -1);
+		LoadString(ui_getResourceModule(),item,szBuff, sizeof szBuff -1);
 		if (strcmp(szBuff,szCurr) == 0)
 			return item-IDS_RNGONCE+RNG_ONCE;
 	}
@@ -400,7 +400,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				SetWindowText(hDlg,(LPSTR)ip);
 				break;
 			case IDD_WINTITLE:
-				LoadString(hInst,(WORD)dp->dp_size,szBuff, sizeof szBuff -1);
+				LoadString(ui_getResourceModule(),(WORD)dp->dp_size,szBuff, sizeof szBuff -1);
 				SetWindowText(hDlg,szBuff);
 				break;
 			case IDD_FILE_PATTERN:

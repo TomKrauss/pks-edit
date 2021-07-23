@@ -71,7 +71,7 @@ static void macro_error(int msgId)
 
 	n = ln_cnt(_keyfile->firstl,_macroline);
 
-	if (LoadString(hInst,msgId,msg,sizeof msg)) {
+	if (LoadString(ui_getResourceModule(),msgId,msg,sizeof msg)) {
 		wsprintf(b,/*STR*/"Error %s %ld: %s",(LPSTR)_keyfile->fname,n,(LPSTR)msg);
 		ln_createAndAddSimple(&_outfile,b);
 	}

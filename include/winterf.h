@@ -77,6 +77,16 @@ extern HWND   	hwndAbort,hwndFkeys,hwndMDIFrameWindow,hwndMDIClientWindow,hwndRe
 				hwndDlg,hwndFkeys,hwndStatus;
 
 extern HINSTANCE hInst;
+/*
+ * Return the module instance handle from which the language resources are loaded.
+ */
+extern HINSTANCE ui_getResourceModule();
+
+/*
+ * Switch to the given language. Language is specified for example as "en-US" or "de-DE".
+ */
+extern void ui_switchToLanguage(char* pszLanguage);
+
 extern UINT		WM_PKSBROADCAST;
 
 #define WINTERF_H

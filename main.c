@@ -14,6 +14,7 @@
 #include <commctrl.h>
 #include <ddeml.h>
 #include <shellapi.h>
+#include <stdio.h>
 
 #include "alloc.h"
 #include "trace.h"
@@ -41,11 +42,7 @@
 
 #define	PROF_OFFSET	1
 
- /*------------------------------------------------------------
-  * print_initPrinterDC()
-  */
 extern void		bl_destroyPasteList();
-extern void		print_initPrinterDC(void);
 extern void		GetPhase2Args(char *args);
 extern void		GetPhase1Args(char *args);
 extern void 	EditDroppedFiles(HDROP hdrop);
@@ -159,6 +156,8 @@ int win_registerWindowClass(
 	return (RegisterClass(&wc));
 }
 
+static HMODULE hModuleEnglishUS;
+
 /*------------------------------------------------------------
  * InitApplication()
  */
@@ -170,6 +169,8 @@ static BOOL InitApplication(void)
 		return FALSE;
 	}
 #endif
+
+	hModuleEnglishUS = LoadLibrary("pksedit.enu.dll");
 
 	if ( !win_registerWindowClass(szFrameClass,FrameWndProc,
 			    NULL,GetSysColorBrush(COLOR_3DFACE),"APP_ICON", 0) ||
@@ -219,20 +220,50 @@ int ww_closeEditChild(HWND hwndChild)
 	return ww_closeChildWindow(hwndChild,0);
 }
 
+/*
+ * Return the module instance handle from which the language resources are loaded.
+ */
+static HINSTANCE hLanguageInst;
+HINSTANCE ui_getResourceModule() {
+	return hLanguageInst;
+}
+
+/*
+ * Switch to the given language. Language is specified for example as "en-US" or "de-DE". 
+ */
+void ui_switchToLanguage(char* pszLanguage) {
+	if (strcmp("de-DE", pszLanguage) == 0) {
+		hLanguageInst = hInst;
+		return;
+	}
+	char pszDLLName[80];
+	sprintf(pszDLLName, "pksedit.%s.dll", pszLanguage);
+	HMODULE hModule = LoadLibrary(pszDLLName);
+	if (hModule) {
+		hLanguageInst = hModule;
+	} else {
+		hLanguageInst = hInst;
+	}
+}
+
 /*------------------------------------------------------------
  * InitInstance()
  */
-static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine)
-{
+static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
 	DWORD				dwStyle;
 	WINDOWPLACEMENT 	ws;
 	char				szTitle[64];
+	wchar_t				szwLocale[64];
+	char				szLocale[64];
 
-	print_initPrinterDC();
+	hLanguageInst = hInst;
+	GetUserDefaultLocaleName(szwLocale, 64);
+	wcstombs(szLocale, szwLocale, wcslen(szwLocale) + 1);
+	ui_switchToLanguage(szLocale);
 	string_initDateformats();
 	GetPhase1Args(lpCmdLine);
 	init_readConfigFiles();
-	hDefaultMenu = LoadMenu(hInst, "PksEdEditMenu");
+	hDefaultMenu = LoadMenu(ui_getResourceModule(), "PksEdEditMenu");
 	if (nInstanceCount > 1) {
 		wsprintf(szTitle, "* PKS EDIT * (%d)", nInstanceCount);
 	} else {
@@ -726,7 +757,6 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
 
 		case WM_WININICHANGE:
-			print_initPrinterDC();
 			string_initDateformats();
 			break;
 

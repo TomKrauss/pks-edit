@@ -1,0 +1,825 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+#include "..\rc\dial2.h"
+#include "..\rc\fsel.h"
+#include "..\rc\pksedit.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Deutsch (Deutschland) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""..\\rc\\dial2.h""\r\n"
+    "#include ""..\\rc\\fsel.h""\r\n"
+    "#include ""..\\rc\\pksedit.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+PKSEDEDITMENU MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New...",                     40001
+        MENUITEM "O&pen...\a",                MOPENF
+        MENUITEM "New Window for Current File\a", MCLONEWINDOW
+        MENUITEM "&Close\a",                MQUITF
+        MENUITEM "Save && Clo&se\a",   MSAVEF
+        MENUITEM "Sav&e\a",                MSAVERES
+        MENUITEM "Save &as...\a",       MSAVEAS
+        MENUITEM "Save all &Modified\a", MSAVEALL_NO_EXIT
+        MENUITEM SEPARATOR
+        MENUITEM "&Insert&...\a",              MREADF
+        MENUITEM "A&bandon\a",                MABANDON
+        MENUITEM SEPARATOR
+        POPUP "&Print"
+        BEGIN
+            MENUITEM "&Current Window...\a",                  IDM_PRINTTEXT
+            MENUITEM "&File...\a",                 IDM_PRINTFILE
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Save and Exit\a",     MSAVEALL
+        MENUITEM "E&xit\a",                  MEXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\a",               IDM_UNDO
+        MENUITEM "&Redo\a",              IDM_REDO
+        MENUITEM "&Redo last Command\a",         IDM_DOAGAIN
+        MENUITEM SEPARATOR
+        MENUITEM "C&opy\a",                 MTCUT
+        MENUITEM "Pa&ste\a",                 MTPASTE
+        MENUITEM "&Cut\a",             MTDEL
+        MENUITEM "&Delete\a",                  IDM_ERASEBLOCK
+        MENUITEM "D&uplicate\a",              MTCOPY
+        MENUITEM "&Move\a",              MTMOVE
+        MENUITEM SEPARATOR
+        MENUITEM "S&ave Selection to File...\a",   MWRITEF
+        MENUITEM SEPARATOR
+        MENUITEM "S&tart Selection\a",         MTMSTART
+        MENUITEM "&End Selection\a",          MTMEND
+        MENUITEM "Hi&de Selection\a",      MTMHIDE
+        MENUITEM SEPARATOR
+        MENUITEM "Recta&ngular Selection\a",              MCOLFORM
+    END
+    POPUP "&Find"
+    BEGIN
+        MENUITEM "&Find...\a",                MFIND
+        MENUITEM "&Replace...\a",              MREPLACE
+        MENUITEM "Find &again\a",          MFAGAIN
+        MENUITEM SEPARATOR
+        MENUITEM "Find in Fi&les...\a",     MEDIFLIS
+        MENUITEM "&Use Previous Search Results...\a", MREAD_SEARCH_LIST
+        MENUITEM "Open &Cross Reference...\a", MSHOWTAG
+        MENUITEM SEPARATOR
+        MENUITEM "Set &Mark...\a",          MSETMARK
+        MENUITEM "&Goto &Mark...\a",                 MGOTOMAR
+        MENUITEM "Goto &Line...\a",                 MGOTOLN
+        MENUITEM "Goto Selection S&tart\a",          MTMFSTAR
+        MENUITEM "Goto Selection E&nd\a",           MTMFEND
+        MENUITEM "Goto &Last Position\a",     MLASTPOS
+        MENUITEM "Goto &Cross Reference\a",      MFLASTP
+    END
+    POPUP "F&unctions"
+    BEGIN
+        MENUITEM "&Format...\a",           MFORMAT
+        MENUITEM "&Spaces -> Tabs...\a",          MCOMTABS
+        MENUITEM "&Tabs -> Spaces...\a",          MEXPTABS
+        MENUITEM "&Align...\a",            MENALIGN
+        MENUITEM "Shift &right...\a",        MSHFTRIG
+        MENUITEM "Shift l&eft...\a",         MSHFTLEF
+        MENUITEM "S&ort File...\a",             MMSORT
+        MENUITEM SEPARATOR
+        MENUITEM "&Compare Files\a",              MENDIFF
+    END
+    POPUP "&Macros"
+    BEGIN
+        MENUITEM "&Record\a",              MMRECORDER
+        MENUITEM "&Edit...\a",            MMACEDIT
+        MENUITEM "&Compile...\a",           IDM_COMPILEMACROS
+        POPUP "&View Bindings"
+        BEGIN
+            MENUITEM "&Macros\a",                   IDM_MACROLIST
+            MENUITEM "&Keyboard\a",                   IDM_KEYLIST
+            MENUITEM "M&ouse\a",               IDM_MOUSELIST
+            MENUITEM "Me&nu\a",                     IDM_MENULIST
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Read...\a",                 MREADSEQ
+        MENUITEM "&Save...\a",             MWRSEQ
+    END
+    POPUP "Editor Settings"
+    BEGIN
+        MENUITEM "&Document Types...\a", IDM_DOCTYPES
+        MENUITEM SEPARATOR
+        MENUITEM "&Edit...\a",           IDM_WORKMODE
+        MENUITEM "&Display...\a",               IDM_DISPMODE
+        MENUITEM "&Cursor and Scrolling...\a",     IDM_CURSTABS
+        MENUITEM "File-&Format...\a",          IDM_MODEVALS
+        MENUITEM SEPARATOR
+        MENUITEM "&Show Tabs and Spaces\a",  MMSHOWCO
+        MENUITEM "Show Ruler\a", MMSHOWLI
+        MENUITEM "&Use Alternate Status Line\a", MMSTATHE
+        MENUITEM "&Show Syntax Highlighting\a",   MMSHOWAT
+        MENUITEM "&Display Line Numbers",     MMSHOWLINENUMBERS
+        MENUITEM SEPARATOR
+        POPUP "&More Settings"
+        BEGIN
+            MENUITEM "&Edit...\a",            MEDITDOCMAC
+            MENUITEM "&Insert...\a",              MADDDOCMAC
+        END
+    END
+    POPUP "E&xtras"
+    BEGIN
+        MENUITEM "S&hell...\a",                 MEXEC
+        MENUITEM SEPARATOR
+        MENUITEM "&Open TAG File...\a",        MREADTAG
+        MENUITEM "Open &Error Log...\a",     MREADCMP
+        MENUITEM SEPARATOR
+        MENUITEM "S&ymbols...\a",               MENEX
+        MENUITEM "&Settings...\a",         MOPTION
+    END
+    POPUP "&Windows"
+    BEGIN
+        MENUITEM "&Cascading\a",              IDM_CASCADE
+        MENUITEM "&Tile\a",            IDM_TILE
+        MENUITEM "&Close All\a",          IDM_CLOSEALL
+        MENUITEM "&Arrange Icons\a",         IDM_ARRANGE
+        MENUITEM SEPARATOR
+        MENUITEM "&List...\a",                 IDM_INFOFILE
+    END
+    POPUP "&?"
+    BEGIN
+        MENUITEM "&Index\a",                    IDM_HLPINDEX
+        MENUITEM "&Menus\a",                    IDM_HLPONMENUS
+        MENUITEM "&Keyboard + Mouse\a",          IDM_HLPONKEYS
+        MENUITEM "&Desktop\a",                  IDM_HLPONDESKTOP
+        MENUITEM "&Using Help\a",          IDM_HLPONHLP
+        MENUITEM SEPARATOR
+        MENUITEM "About &PKS-EDIT...\t",         IDM_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_DELUNTILC           "Delete up to Character:"
+    IDS_MARKGOTO            "Jump to mark:"
+    IDS_MARKSET             "Set mark:"
+    IDS_MACROESCAPE         "Execute Keyboard Macro:"
+    IDS_GETBLOCK            "Name of Clipboard:"
+    IDS_COMPRESSTABS        "Replace Spaces with Tabs"
+    IDS_EXPANDTABS          "Replace Tabs with Spaces"
+    IDS_SHIFTLEFT           "Shift left"
+    IDS_SHIFTRIGHT          "Shift right"
+    IDS_CURSUNTILC          "Navigate to letter:"
+    IDS_QUERYDELETE         "Delete File or Folder"
+    IDS_QUERYMKDIR          "Create new Folder"
+    IDS_RENAME              "Rename File"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_RNGONCE             "ONCE"
+    IDS_RNGLINE             "LINE"
+    IDS_RNGCHAPTER          "PARAGRAPH"
+    IDS_RNGBLOCK            "SELECTION"
+    IDS_RNGTOCURS           "TO CURSOR"
+    IDS_RNGFROMCURS         "FROM CURSOR"
+    IDS_RNGGLOBAL           "GLOBALLY"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_ABRTRETREIVE        "Search file list"
+    IDS_ABRTREPLACE         "The text will be replaced"
+    IDS_ABRTSORT            "The text will be sorted"
+    IDS_ABRTALIGN           "The text will be aligned"
+    IDS_ABRTMACRO           "Playing macro"
+    IDS_ABRTCONVERT         "The text will be converted"
+    IDS_ABRTFORMAT          "The text will be formatted"
+    IDS_ABRTPRINT           "The text will be printed"
+    IDS_ABRTCMDCOMPLETE     "Waiting for invoked application to terminate"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_PRTERR              "Print: general printing error"
+    IDS_PRTERRABRT          "Printing has been cancelled"
+    IDS_PRTERRUSRABRT       "Printing has been cancelled from the print manager"
+    IDS_PRTERRNOSPCE        "Printing: no space left on disc"
+    IDS_PRTERRNOMEM         "Printing: no memory left"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGNREPL            "%s has been replace %ld times in %ld lines"
+    IDS_MSGNFOUND           "%s wurde in %ld Zeilen %ld mal gefunden"
+    IDS_MSGNEWFILE          "Neue Datei %s"
+    IDS_MSGSAVEFILE         "Sichere %s (%ld Zeilen)"
+    IDS_MSGCUTBLOCK         "%ld Bytes in %ld Zeilen zur Ablage gebracht"
+    IDS_MSGEXPANDTABS       "%ld Tabs in %ld Zeilen ersetzt"
+    IDS_MSGWIREGDEF         "Fensterregister #%d definiert"
+    IDS_MSGAUBE             "Autosave %s beendet"
+    IDS_MSGINWORK           "%s wird bereits bearbeitet\nSoll die Datei nochmals geöffnet werden"
+    IDS_MSGDELICON          "Soll Icon %s vom Desktop entfernt werden"
+    IDS_MSGNOTIMER          "Kein Systemzeitgeber verfügbar\nAbhilfe: Schliessen einer Uhr"
+    IDS_MSGNOPRINTER        "!Kein Printer installiert"
+    IDS_MSGOVERWRITE        "Die Datei %s existiert bereits\nSoll Sie überschrieben werden"
+    IDS_MSGQUERYNEWFILE     "Soll %s als neue Datei angelegt werden"
+    IDS_MSGABANDON          "Sollen die Änderungen im Text ignoriert werden"
+    IDS_MSGNOBRACKETS       "Kein Klammernpaar"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGUNDEFWINREG      "Dieses Fensterregister ist nicht belegt"
+    IDS_MSGNOLASTTAG        "Kein letzter Verweis bekannt"
+    IDS_MSGOLDMACS          "!Die Makrodatei hat ein nicht unterstütztes Format"
+    IDS_MSGBADMACFORMAT     "!Es wurde ein Formatfehler in einer Makrodatei festgestellt"
+    IDS_MSGSAVESEQ          "Sollen die neu definerten Makros gesichert werden"
+    IDS_MSGMACDOUBLEDEF     "!Dieser Makroname ist bereits vergeben"
+    IDS_MSGQUITORSAVE       "%s wurde editiert\nSoll die Datei gesichert werden"
+    IDS_MSGWRONGWINDOW      "Dieses Fenster existiert nicht"
+    IDS_MSGLINETOOLONG      "!Zeile zu lang"
+    IDS_MSGNOSPCE           "!Es ist kein Speicher verfügbar"
+    IDS_MSGABRT             "Vorgang abbrechen"
+    IDS_MSGEXECERR          "!Bei der Ausführung des Makros ist ein Fehler aufgetreten"
+    IDS_MSGTOOMANYMACROS    "!Zu viele Makros"
+    IDS_MSGMACFORMATERR     "!Formatfehler"
+    IDS_MSGBADICONACTION    "Diese Aktion mit einem Sinnbild ist nicht definiert"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGRDONLY           "!Dieses Fenster besitzt den 'Nur Lesen' Status"
+    IDS_MSGUNKNOWNMAC       "Unbekanntes Makro '%s'"
+    IDS_MSGMACOVERFLOW      "Recorder Überlauf"
+    IDS_MSGMACRORECURSION   "Endlos Rekursion innerhalb eines Makros"
+    IDS_MSGPOSITIONMOUSECURS "Positionieren Sie den Cursor mit der Maus"
+    IDS_MSGEXECERROR        "!Fehler %d beim Starten von\n%s"
+    IDS_MSGMARKUNDEF        "Die Textmarke ist nicht definiert"
+    IDS_MSGNOREPLACESTRING  "Keine Ersatz Zeichenkette definiert"
+    IDS_MSGNOSEARCHSTRING   "Kein Suchmuster definiert"
+    IDS_MSGTOOMUCHFIELDS    "!Zu viele Sortierfelder"
+    IDS_MSGTOOMUCHSORTKEYS  "!Nur 8 Sortiertschlüssel erlaubt"
+    IDS_MSGINVALSORTOPT     "Ungültige Sortieroption"
+    IDS_MSGTOOMUCHRECORDS   "Zu viele Records für die Sortierung"
+    IDS_MSGNOTRASH          "Der Papierkorb ist leer"
+    IDS_MSGNOUNDO           "Undo ist nicht möglich"
+    IDS_MSGNOCLIP           "Das Clipboard ist leer"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGNOBLOCKSELECTED  "Kein Blockbereich markiert"
+    IDS_MSGBADBLOCKMOVE     "Diese Textverschiebung ergibt keinen Sinn"
+    IDS_MSGWPROTECT         "%s ist geschützt\nSoll sie überschrieben werden"
+    IDS_MSGERRCHMOD         "Fehler beim Ändern des Zugriffs"
+    IDS_MSGNOMOREDIFFS      "Keine weiteren Unterschiede"
+    IDS_MSGDIFFTWOWINDOWS   "!Keine 2 Fenster\nzum Vergleichen geöffnet"
+    IDS_MSGCLIPNOTCOMPLETE  "Der Inhalt der Ablage wurde gekürzt"
+    IDS_MSGESCAPEUNDEF      "Dieses Makro ist nicht definiert"
+    IDS_MSGMACROIDTOOLONG   "Makrobezeichner zu lang"
+    IDS_MSGMISSINGAPOSTRPOHE "Vermisse Hochkommas"
+    IDS_MSGTOOMANYCOMPILERS "Zu viele Definitionen von Compiler Fehlerformaten"
+    IDS_MSGWRONGKEYDEF      "Falsche Tastendefinition"
+    IDS_MSGTOOMANYRULERS    "Zu viele Lineale"
+    IDS_MSGGLOBALDEF        "Diese Definition ist nur im globalen Keyfile sinnvoll"
+    IDS_MSGWRONGTAGFORMAT   "!Falsches Verweisformat"
+    IDS_MSGUNKNWONTAG       "Verweis '%s' nicht bekannt"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGNOTAGFILE        "No TAGS file defined"
+    IDS_MSGUNKNOWNCOMPILER  "This compiler output format is not defined"
+    IDS_MSGNOMOREERRS       "No more errors"
+    IDS_MSGSTRINGNOTFOUND   "Nothing found"
+    IDS_MSGFILENOTFOUND     "File not found"
+    IDS_MSGWRAPPED          "Found match after wrapping search"
+    IDS_MSGNOMATCHTOEND     "Nothing found to the end of the file"
+    IDS_MSGNOMATCHTOSTART   "Nothing found to the begin of the file"
+    IDS_MSGNORANGESELECTED  "No text selection"
+    IDS_MSGREADERROR        "!Error during read"
+    IDS_MSGWRAPPEDLINES     "Long Lines have been wrapped"
+    IDS_MSGNODISKSPACE      "!No space left on the device"
+    IDS_MSGCLEARBUFFERS     "Do you want to empty all clipboard-\nand undo-buffers"
+    IDS_MSGNOUNDOBLOCK      "The undo-buffer is not defined"
+    IDS_MSGOPEN             "!Error opening %s"
+    IDS_MSGNOHELP           "!No help for this context available"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGWRITEERR         "!An error has occurred during output of the data"
+    IDS_MSGDELOLDKEYBIND    "Do you want to unbind the old key binding to %s"
+    IDS_MSGFILESHAVECHANGED "The file %s had been modified outside of PKSEDIT. Soll do you want to reload it"
+    IDS_STRING148           "Demo"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGRENOTNULL        "Es darf nicht 'nichts' gesucht werden"
+    IDS_MSGRECOMPLEXEXPR    "Suchmuster zu kompliziert"
+    IDS_MSGREMACRORANGESYNTAX "Unzulässige Kombination Makro/Bereich"
+    IDS_MSGRERANGE          "Falsche Syntax für Zeichenklasse"
+    IDS_MSGREMANYBRACKETS   "Maximal 9 Klammern erlaubt"
+    IDS_MSGRENOBRACKETMATCH "Klammern nicht in Balance"
+    IDS_MSGREFROMTO         "Falsche Syntax für Bereich"
+    IDS_MSGREMINMAXOVL      "Bereichsangabe muß kleiner 255 sein"
+    IDS_MSGREMINMAXERR      "Bereichsangabe: Maximum < Minimum !"
+    IDS_MSGREBSLERR         "Zeichen '\\' am Ende der Zeile unzulässig"
+    IDS_MSGREBRUNDEF        "Klammer noch nicht definiert"
+    IDS_MSGREPIPEERR        "Zeichen '|' außerhalb Klammerung unzulässig"
+    IDS_MSGWRONGPW          "Der Text wurde nicht mit diesem Passwort verschlüsselt"
+    IDS_MSGDIFFERENTPW      "Die beiden Versionen des Passworts waren unterschiedlich"
+    IDS_MSGINVALIDHIDEOP    "Unzulässige Operation mit versteckten Zeilen"
+    IDS_MSGUPDATEMACNAME    "Sollen Name / Kommentar übernommen werden"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGKEYNOTBOUND      "Diese Tastenkombination ist nicht an ein Makro gebunden"
+    IDS_MSGRECOVER          "Autosave Datei gefunden. Soll diese gelesen werden"
+    IDS_MSGNTIMESFOUND      "%d mal gefunden"
+    IDS_WINDOWLIST          "Fensterliste"
+    IDS_SELECTCOMPILEWINDOW "Datei - Auswahl für die Compilation"
+    IDS_TT_REGULAR_EXPRESSION 
+                            "Reguläre Ausdrücke unterstützen die folgenden Sonderzeichen:\r\n""."" - (alle Zeichen)\r\n""[a-z]"" - alle Zeichen a-z\r\n""*"" - (eine beliebige Anzahl Vorkommen)\r\n""+"" - 1 Vorkommen\r\n""{x,y}"" - mindestens x, maximal y Vorkommen"
+    IDS_TT_PRESERVE_CASE    "Beim Ersetzen bleibt die Groß- Kleinschreibung des Ausgangstextes erhalten.\r\nBeispiel: ersetzt man das Wort ""Der"" durch ""die"" entsteht ""Die""."
+END
+
+STRINGTABLE
+BEGIN
+    2048                    "AbandonFile"
+    2049                    "About"
+    2050                    "CopyBlock"
+    2051                    "DeleteBlock"
+    2052                    "FindBlockEnd"
+    2053                    "FindBlockStart"
+    2054                    "MoveBlock"
+    2055                    "ReadBlock"
+    2056                    "WriteBlock"
+    2057                    "YankBlock"
+    2058                    "PasteBlock"
+    2059                    "HideBlock"
+    2060                    "SetBlockMark"
+    2061                    "YankLines"
+    2062                    "DeleteLines"
+    2063                    "FreeBuffer"
+END
+
+STRINGTABLE
+BEGIN
+    2064                    "InsertKeycode"
+    2065                    "InsertChar"
+    2066                    "FormatText"
+    2067                    "InsertLine"
+    2068                    "MarkLineOp"
+    2069                    "ReadSearchList"
+    2070                    "ReadErrorList"
+    2071                    "RwModus"
+    2072                    "EditMacros"
+    2073                    "EditDocMacros"
+    2074                    "MergeDocMacrosWith"
+    2075                    "RwMacros"
+    2076                    "ReadTagfile"
+    2077                    "RwSetup"
+    2078                    "SetMultiplier"
+    2079                    "ReplaceTabs"
+END
+
+STRINGTABLE
+BEGIN
+    2080                    "SplitLine"
+    2081                    "GotoChapterStart"
+    2082                    "GotoChapterEnd"
+    2083                    "GotoPgrphStart"
+    2084                    "GotoPgrphEnd"
+    2085                    "CursorRight"
+    2086                    "CursorLeft"
+    2087                    "CursorUp"
+    2088                    "CursorDown"
+    2089                    "Delete"
+    2090                    "SwitchFkeys"
+    2091                    "InsertText"
+    2092                    "PlayMacro"
+    2093                    "RecordMacro"
+    2094                    "FindInFileList"
+    2095                    "Find"
+END
+
+STRINGTABLE
+BEGIN
+    2096                    "Replace"
+    2097                    "FindAgain"
+    2098                    "ReplaceAgain"
+    2099                    "InsertControl"
+    2100                    "GotoLastpos"
+    2101                    "GotoLine"
+    2102                    "SetMark"
+    2103                    "GotoMark"
+    2104                    "InternalHelp"
+    2105                    "JoinLines"
+    2106                    "EditFile"
+    2107                    "SetOptions"
+    2108                    "Print"
+    2109                    "ExitEdit"
+    2110                    "QuitEdit"
+    2111                    "CloseAllWindows"
+END
+
+STRINGTABLE
+BEGIN
+    2112                    "SaveFile"
+    2113                    "SelectWindow"
+    2114                    "ExecuteCommand"
+    2115                    "Exec"
+    2116                    "ShiftBetweenBrackets"
+    2117                    "Sort"
+    2118                    "ShiftLines"
+    2119                    "ShowInfo"
+    2120                    "CheckBrackets"
+    2121                    "UpToLow"
+    2122                    "SetWorkMode"
+    2123                    "SetDispMode"
+    2124                    "SetCursorMode"
+    2125                    "SetFileFormat"
+    2126                    "ToggleTextMode"
+    2127                    "InsertString"
+END
+
+STRINGTABLE
+BEGIN
+    2128                    "FindTag"
+    2129                    "CursorFindFile"
+    2130                    "FindError"
+    2131                    "CursorFindTag"
+    2132                    "CursorFindWord"
+    2133                    "WindowArrange"
+    2134                    "SetWindowRegister"
+    2135                    "ShiftText"
+    2136                    "Undo"
+    2137                    "CompareWindows"
+    2138                    "ScrollScreen"
+    2139                    "ScrollCursor"
+    2140                    "GotoLasttag"
+    2141                    "AlignText"
+    2142                    "QuitIcons"
+    2143                    "MouseMarkBlock"
+END
+
+STRINGTABLE
+BEGIN
+    2144                    "MouseMarkParts"
+    2145                    "MouseMoveText"
+    2146                    "MouseSelectLines"
+    2147                    "MousePosition"
+    2148                    "Alert"
+    2149                    "MessageBox"
+    2150                    "PromptAssign"
+    2151                    "FormatPrint"
+    2152                    "GetSelected"
+    2153                    "HideLines"
+    2154                    "UnHideLine"
+    2155                    "ReplaceInString"
+    2156                    "ExpandAbbreviation"
+    2157                    "ConfigureIcons"
+    2158                    "InternalHelpContext"
+    2159                    "ListBindings"
+END
+
+STRINGTABLE
+BEGIN
+    2160                    "CompileMacros"
+    2161                    "DefineDocTypes"
+    2162                    "SetPrinterLayout"
+    2163                    "QueryStatus"
+    2164                    "WindowsHelp"
+    2165                    "ShowClipboard"
+    2166                    "TrackPopup"
+    2167                    "SetBlockExtensionMode"
+END
+
+STRINGTABLE
+BEGIN
+    2512                    "AL_CPOS"
+    2513                    "AL_FIX"
+    2514                    "AL_END"
+    2515                    "O_BLOCKS_AS_COLOMNS"
+    2516                    "O_ERROR_BELL"
+    2517                    "O_FLASH"
+    2518                    "O_HISTORY"
+    2519                    "O_SAVE_OPTIONS"
+    2520                    "O_SAVE_MACROS"
+    2521                    "O_CLEAN_AUTO_SAVE"
+    2522                    "O_AUTO_WRITE"
+    2523                    "O_FORMFOLLOW"
+    2524                    "O_MDISCROLL"
+    2525                    "O_MESSAGES"
+    2526                    "O_AUTODELBLOCK"
+    2527                    "O_UNDO_ENABLED"
+END
+
+STRINGTABLE
+BEGIN
+    2528                    "O_CUTBUFEQCLIP"
+    2529                    "OL_OPTIONBAR"
+    2530                    "OL_FKEYS"
+    2531                    "OL_SHOWSTATUS"
+    2532                    "REP_NONE"
+    2533                    "REP_REPLACE"
+    2534                    "REP_MARK"
+    2535                    "REP_COUNT"
+    2536                    "RE_DOREX"
+    2537                    "RE_IGNCASE"
+    2538                    "RE_SHELLWILD"
+    2539                    "RE_WRAPSCAN"
+    2540                    "OREP_INQ"
+    2541                    "OREP_MARKED"
+    2542                    "SO_SKIPSEPS"
+    2543                    "SO_CLUSTERLINES"
+END
+
+STRINGTABLE
+BEGIN
+    2544                    "SO_REVERSE"
+    2545                    "SO_NOSELECT"
+    2546                    "FMT_ADJLEFT"
+    2547                    "FMT_ADJRIGHT"
+    2548                    "FMT_ADJCENTER"
+    2549                    "FMT_ADJBLOCK"
+    2550                    "FMT_WPFORMAT"
+    2551                    "FMT_INDENT"
+    2552                    "RNG_ONCE"
+    2553                    "RNG_LINE"
+    2554                    "RNG_CHAPTER"
+    2555                    "RNG_BLOCK"
+    2556                    "RNG_TOCURS"
+    2557                    "RNG_FROMCURS"
+    2558                    "RNG_GLOBAL"
+    2559                    "RNG_FREE"
+END
+
+STRINGTABLE
+BEGIN
+    2560                    "EX_SYMBOL"
+    2561                    "EX_WAIT"
+    2562                    "EX_DOS"
+    2563                    "EX_RDNONE"
+    2564                    "EX_RDIN"
+    2565                    "EX_RDOUT"
+    2566                    "EX_RDCONV"
+    2567                    "WM_INSERT"
+    2568                    "WM_SHOWMATCH"
+    2569                    "WM_ABBREV"
+    2570                    "WM_AUTOWRAP"
+    2571                    "WM_AUTOINDENT"
+    2572                    "WM_RDONLY"
+    2573                    "WM_BLK_LINES"
+    2574                    "WM_AUTOFORMAT"
+    2575                    "WM_BRINDENT"
+END
+
+STRINGTABLE
+BEGIN
+    2576                    "WM_BLK_COLOMN"
+    2577                    "WM_OEMMODE"
+    2578                    "WM_CRYPTED"
+    2579                    "SHO_CONTROL"
+    2580                    "SHO_HEX"
+    2581                    "SHO_RULER"
+    2582                    "SHO_ATTR"
+    2583                    "SHO_OEM"
+    2584                    "SHO_FIXEDWI"
+    2585                    "SHO_HIDEHSLIDER"
+    2586                    "SHO_HIDEVSLIDER"
+    2587                    "CP_POSTOP"
+    2588                    "CP_POSMID"
+    2589                    "CP_POSLOW"
+    2590                    "DIR_NONE"
+    2591                    "DIR_FORWARD"
+END
+
+STRINGTABLE
+BEGIN
+    2592                    "DIR_BACKWARD"
+    2593                    "DIR_LEFT"
+    2594                    "DIR_RIGHT"
+    2595                    "AB_WARN"
+    2596                    "AB_NOWARN"
+    2597                    "YANK_QUERY_ID"
+    2598                    "YANK_APPEND"
+    2599                    "PASTE_CLIP"
+    2600                    "PASTE_QUERY_ID"
+    2601                    "PASTE_TRASH"
+    2602                    "PASTE_UNDOBUF"
+    2603                    "MARK_RUBBER"
+    2604                    "MARK_DRAG"
+    2605                    "MARK_CONT"
+    2606                    "MARK_START"
+    2607                    "MARK_END"
+END
+
+STRINGTABLE
+BEGIN
+    2608                    "MARK_ALL"
+    2609                    "LD_APPEND"
+    2610                    "LD_ACT"
+    2611                    "LD_ABOVE"
+    2612                    "LI_BELOW"
+    2613                    "LI_ACT"
+    2614                    "MLN_DELETE"
+    2615                    "MLN_JOIN"
+    2616                    "MLN_TOGGLE"
+    2617                    "MLN_FINDSOFT"
+    2618                    "MLN_MAKESOFT"
+    2619                    "MLN_MAKEHARD"
+    2620                    "MLN_CUT"
+    2621                    "ROW_READ"
+    2622                    "ROW_WRITE"
+    2623                    "KT_GLOBAL"
+END
+
+STRINGTABLE
+BEGIN
+    2624                    "KT_LOCAL"
+    2625                    "CT_EXPAND"
+    2626                    "CT_COMPRESS"
+    2627                    "LS_NOINDENT"
+    2628                    "LS_PLUS"
+    2629                    "LS_MINUS"
+    2630                    "LS_SOFT"
+    2631                    "MOT_SINGLE"
+    2632                    "MOT_TOEND"
+    2633                    "MOT_WORD"
+    2634                    "MOT_PAGE"
+    2635                    "MOT_UNTILC"
+    2636                    "MOT_PGRPH"
+    2637                    "MOT_FILE"
+    2638                    "MOT_SPACE"
+    2639                    "MOT_CENTER"
+END
+
+STRINGTABLE
+BEGIN
+    2640                    "MOT_XTNDBLOCK"
+    2641                    "FKS_PLUS"
+    2642                    "FKS_MINUS"
+    2643                    "FKS_DIALOG"
+    2644                    "MAC_AUTO"
+    2645                    "MAC_LASTREC"
+    2646                    "TM_LASTSEARCH"
+    2647                    "TM_LASTINSERT"
+    2648                    "OPEN_LINEAL"
+    2649                    "PRT_CURRWI"
+    2650                    "PRT_FILE"
+    2651                    "PRT_CURRBLK"
+    2652                    "PRT_CLIP"
+    2653                    "PRT_TRASH"
+    2654                    "SAV_SAVE"
+    2655                    "SAV_QUIT"
+END
+
+STRINGTABLE
+BEGIN
+    2656                    "SAV_AS"
+    2657                    "SAV_QUITWI"
+    2658                    "SAV_FORCED"
+    2659                    "LIST_START"
+    2660                    "LIST_PREV"
+    2661                    "LIST_CURR"
+    2662                    "LIST_NEXT"
+    2663                    "LIST_END"
+    2664                    "LIST_USETOPWINDOW"
+    2665                    "SW_PREVIOUS"
+    2666                    "SW_CYCLE"
+    2667                    "WIN_FULL"
+    2668                    "WIN_TILE"
+    2669                    "WIN_CASCADE"
+    2670                    "WIN_ICONIZED"
+    2671                    "WIN_ICONARRANGE"
+END
+
+STRINGTABLE
+BEGIN
+    2672                    "WIN_DESKICON"
+    2673                    "WIN_HOR"
+    2674                    "WIN_PAIRS"
+    2675                    "MM_COPY"
+    2676                    "MM_MOVE"
+    2677                    "MOD_BUILDER"
+    2678                    "MOD_SETUP"
+    2679                    "SEL_OFF"
+    2680                    "SEL_ON"
+    2681                    "FO_SHOW"
+    2682                    "FO_INIT"
+    2683                    "FO_REDRAW"
+    2684                    "TGL_SHOWMATCH"
+    2685                    "TGL_INSERT"
+    2686                    "TGL_AUTOINDENT"
+    2687                    "TGL_AUTOWRAP"
+END
+
+STRINGTABLE
+BEGIN
+    2688                    "TGL_BLOCKS_AS_COLOMNS"
+    2689                    "TGL_KEYCLICK"
+    2690                    "TGL_WARNINGS"
+    2691                    "TGL_BACKUP"
+    2692                    "TGL_SHOWCONTROL"
+    2693                    "TGL_SHOWSTATUS"
+    2694                    "TGL_ALTSTATUS"
+    2695                    "TGL_SHOWRULER"
+    2696                    "TGL_SHOWATTR"
+    2697                    "AD_CENTER"
+    2698                    "AD_SHRINK"
+    2699                    "AD_CURSORPOS"
+    2700                    "LIST_MACROS"
+    2701                    "LIST_KEYS"
+    2702                    "LIST_MICE"
+    2703                    "LIST_MENUS"
+END
+
+STRINGTABLE
+BEGIN
+    2704                    "QUERY_CLIPBOARDAVAIL"
+    2705                    "QUERY_BLKMARKSTART"
+    2706                    "QUERY_BLKMARKEND"
+    2707                    "QUERY_BLKMARKED"
+    2708                    "QUERY_CURRENTFILE"
+    2709                    "QUERY_OPTIONS"
+    2710                    "QUERY_LAYOUTOPTIONS"
+    2711                    "QUERY_WORKMODE"
+    2712                    "QUERY_DISPLAYMODE"
+    2713                    "QUERY_FILEMODIFIED"
+    2714                    "QUERY_BLOCKXTNDMODE"
+    2715                    "SC_THUMBTRACK"
+    2716                    "SC_CURSORCATCH"
+END
+
+#endif    // Deutsch (Deutschland) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

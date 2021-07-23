@@ -620,74 +620,48 @@ static int isbefore(FTABLE *fp, MARK *mark, LINE *fpcl, int col, int markend)
 }
 
 /*----------------------------*/
-/* marklines() 			*/
+/* bl_updateSelectionInLines() 			*/
 /*----------------------------*/
-static void marklines(int changed,int colflg,
-	LINE *lpolds, LINE *lpolde, int markc)
-{
+static void bl_updateSelectionInLines(WINFO* wp, LINE *lpOldSelectionStart, LINE *lpOldSelectionEnd) {
 	LINE *		lp1;
 	LINE *		lp2;
 	LINE *		lp;
 	LINE *		lpFirst;
 	LINE *		lpLast;
-	FTABLE *		fp;
-	WINFO  *		wp = ww_getCurrentEditorWindow();
-	unsigned char 	flags[512];
+	FTABLE *	fp;
 	long   		ln;
 
 	fp  = wp->fp;
 	lp1 = wp->blstart->lm;
 	lp2 = wp->blend  ->lm;
-
 	lp = lpFirst = ln_goto(fp,wp->minln);
-	for (ln = wp->minln; lp && ln <= wp->maxln; lp = lp->next, ln++) {
-		lpLast = lp;
-		flags[ln-wp->minln] = lp->lflg;
+	ln = ln_cnt(fp->firstl, lp1);
+	if (ln_cnt(fp->firstl, lpOldSelectionStart) < ln) {
+		lpFirst = lpOldSelectionStart;
+	} else {
+		lpFirst = lp1;
 	}
-
+	ln = ln_cnt(lpFirst, lp2);
+	if (ln_cnt(lpFirst, lpOldSelectionEnd) < ln) {
+		lpLast = lp2;
+	} else {
+		lpLast = lpOldSelectionEnd;
+	}
 	lp = lpFirst;
-	if (colflg) {
-		ln = ln_cnt(fp->firstl, lp1);
-		if (ln_cnt(fp->firstl, lpolds) < ln) {
-			lpFirst = lpolds;
-		} else {
-			lpFirst = lp1;
+	while(lp) {
+		render_repaintLine(fp, lp);
+		if (lp == lpLast) {
+			break;
 		}
-		ln = ln_cnt(lpFirst, lp2);
-		if (ln_cnt(lpFirst, lpolde) < ln) {
-			lpLast = lp2;
-		} else {
-			lpLast = lpolde;
-		}
-		while(lp) {
-			if (!(lp->lflg & LNREPLACED)) {
-				lp->lflg |= LNREPLACED;
-				render_repaintLine(fp, lp);
-			}
-			if (lp == lpLast) {
-				break;
-			}
-			lp = lp->next;
-		}
-	} else for (ln = wp->minln; lp && ln <= wp->maxln; lp = lp->next, ln++) {
-		if ((P_EQ(lp, lpolds) && !P_EQ(lp, lp1)) ||
-			(P_EQ(lp, lpolde) && !P_EQ(lp, lp2)) ||
-			(P_EQ(lp, lp1) && markc == MARKSTART) ||
-			(P_EQ(lp, lp2) && markc == MARKEND) ||
-			flags[ln - wp->minln] != lp->lflg) {
-			lp->lflg |= LNREPLACED;
-			render_repaintLine(fp, lp);
-		}
+		lp = lp->next;
 	}
 
-	ln_removeFlag(lpFirst, lpLast, LNREPLACED);
 }
 
 /*---------------------------------*/
 /* bl_setColumnSelection()				*/
 /*---------------------------------*/
-static void bl_setColumnSelectionNoRepaint(WINFO *wp)
-{	
+static void bl_setColumnSelectionNoRepaint(WINFO *wp) {
 	MARK	 *mp;
 
 	if ((mp = wp->blstart) != 0L) {
@@ -859,7 +833,7 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 				}));
 		}
 		else {
-			marklines(wasmarked, colflg, lp1, lp2, markc);
+			bl_updateSelectionInLines(wp, lp1, lp2);
 		}
 	}
 

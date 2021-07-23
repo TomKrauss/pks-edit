@@ -2,7 +2,8 @@
 ; you must have a "x64" edition of Windows.
 
 #define MyAppName "PKSEdit.1"
-#define MyAppExeName "pksedit.exe"
+#define MyAppBaseName "pksedit"
+#define MyAppExeName  "pksedit.exe"
 
 [Setup]
 AppName=PKS-Edit
@@ -39,6 +40,7 @@ Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Files]
 Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"
+Source: "x64\Release\{#MyAppBaseName}.en-US.dll"; DestDir: "{app}"; DestName: "{#MyAppBaseName}.en-US.dll"
 Source: "pks_sys\pksedit.ini"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\batch.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\cpp.grammar.json"; DestDir: "{app}\pks_sys"

@@ -150,7 +150,7 @@
     <ClCompile Include="macro_compiler\JumpLabels.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EditorLineOperations.c">
+    <ClCompile Include="DocumentModel.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LinkedList.c">
