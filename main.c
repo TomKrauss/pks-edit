@@ -236,6 +236,8 @@ void ui_switchToLanguage(char* pszLanguage) {
 		hLanguageInst = hInst;
 		return;
 	}
+	// for now - hardcoded to English
+	SetThreadUILanguage(0x00000409);
 	char pszDLLName[80];
 	sprintf(pszDLLName, "pksedit.%s.dll", pszLanguage);
 	HMODULE hModule = LoadLibrary(pszDLLName);

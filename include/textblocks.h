@@ -198,12 +198,13 @@ extern 	PASTE* bl_addrbyid(int id, int insert);
  */
 extern PASTE* bl_getBlockFromUndoBuffer(int num);
 
-/*--------------------------------------------------------------------------
- * bl_hasClipboardBlock()
+/*
+ * Tries to return the text from the current selection in the passed buffer, assuming a maximum
+ * of nCapacity characters to return.
  */
-extern int bl_hasClipboardBlock(int ubuf, int id);
+extern int bl_getSelectedText(char* pszBuf, size_t nCapacity);
 
-/*--------------------------------------------------------------------------
+	/*--------------------------------------------------------------------------
  * bl_append()
  * to append something to the passed paste buffer.
  */

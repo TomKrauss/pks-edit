@@ -519,8 +519,10 @@ int EdAlignText(void)
 		0
 	};
 
-	if (!win_callDialog(DLGALIGN,&_fp,_d, _tt))
+	bl_getSelectedText(_currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
+	if (!win_callDialog(DLGALIGN, &_fp, _d, _tt)) {
 		return 0;
+	}
 	return AlignText(_currentSearchAndReplaceParams.searchPattern, _scope, _alfiller, _alflags);
 }
 
@@ -584,6 +586,7 @@ int EdSort(void)
 		0
 	};
 
+	bl_getSelectedText(_currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
 	if (!win_callDialog(DLGSORT,&_sp,_d, _tt))
 		return 0;
 
@@ -626,11 +629,22 @@ int EdSetMultiplier(void)
 /*--------------------------------------------------------------------------
  * EdGotoLine()
  */
-int EdGotoLine(void)
-{	long ln;
+int EdGotoLine(void) {	
+	long ln;
+	WINFO* wp = ww_getCurrentEditorWindow();
 
-	if ((ln = dialogGetNumber(DLGGOTOLINE)) > 0L)
-		return caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), ln-1L,0L);
+	if (wp == NULL) {
+		return 0;
+	}
+	FTABLE* fp = wp->fp;
+	if ((ln = dialogGetNumber(DLGGOTOLINE)) > 0L) {
+		if (ln > fp->nlines) {
+			// TODO:::
+		}
+		else {
+			return caret_placeCursorMakeVisibleAndSaveLocation(wp, ln - 1L, 0L);
+		}
+	}
 	return 0;
 }
 
@@ -1495,7 +1509,7 @@ int EdFind(void)
 		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
 		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
 		IDD_OPT1,		O_WRAPSCAN,		& _currentSearchAndReplaceParams.options,
-		IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
+		IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern,	_currentSearchAndReplaceParams.searchPattern,
 		0
 	};
 	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
@@ -1503,11 +1517,13 @@ int EdFind(void)
 		0
 	};
 
-	if (_dir == -1)
+	if (_dir == -1) {
 		_dir = 0;
-
-	if (!win_callDialog(DLGFIND,&_fp,_d,_tt))
+	}
+	bl_getSelectedText(_currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
+	if (!win_callDialog(DLGFIND, &_fp, _d, _tt)) {
 		return 0;
+	}
 
 	if (_dir == 0)
 		_dir = -1;
@@ -1551,6 +1567,7 @@ int EdFindInFileList(void)
 		_getcwd(pathlist, sizeof pathlist);
 		strcpy(filenamePattern, "*.*");
 	}
+	bl_getSelectedText(_currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
 	if (!win_callDialog(DLGRETREIVE,&_fp,_d, _tt)) {
 		return 0;
 	}

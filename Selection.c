@@ -1,5 +1,5 @@
 /*
- * TextBlocks.c
+ * Selection.c
  *
  * PROJEKT: PKS-EDIT for Windows
  *
@@ -73,6 +73,27 @@ unsigned char *bl_convertPasteBufferToText(unsigned char *pDestination, unsigned
 	return pDestination;
 }
 
+/*
+ * Tries to return the text from the current selection in the passed buffer, assuming a maximum
+ * of nCapacity characters to return.
+ */
+int bl_getSelectedText(char* pszBuf, size_t nCapacity) {
+	PASTE* pp;
+	PASTE  pbuf;
+
+	*pszBuf = 0;
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (!ww_checkSelection(wp)) {
+		return 0;
+	}
+	if (EdBlockCut(0, &pbuf)) {
+		pp = bl_addrbyid(0, 0);
+		bl_convertPasteBufferToText(pszBuf, &pszBuf[nCapacity - 2], pp);
+		return 1;
+	}
+	return 0;
+}
+
 /*--------------------------------------------------------------------------
  * EdGetSelectedText()
  * PKS Edit macro commad which gets the selected text and makes it available
@@ -80,14 +101,8 @@ unsigned char *bl_convertPasteBufferToText(unsigned char *pDestination, unsigned
  */
 void EdGetSelectedText(void) {
 	char		buf[80];	/* searchPattern[] !!!! */
-	PASTE *	pp;
-	PASTE  pbuf;
 
-	*buf = 0;
-	if (EdBlockCut(0, &pbuf)) {
-		pp = bl_addrbyid(0, 0);
-		bl_convertPasteBufferToText(buf, &buf[sizeof buf -2], pp);
-	}
+	bl_getSelectedText(buf, sizeof buf);
 	macro_returnString(buf);
 }
 

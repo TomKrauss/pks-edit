@@ -148,12 +148,12 @@ END
 
 DLGPREVIEW DIALOGEX 25, 9, 327, 410
 STYLE DS_SETFONT | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Print Preview"
+CAPTION "Druckvorschau"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
     PUSHBUTTON      "&>..",IDD_NEXT_PAGE,182,384,24,14
     PUSHBUTTON      "&<..",IDD_BACK_PAGE,106,384,24,14
-    LTEXT           "Page: ",113,134,386,20,8,NOT WS_GROUP
+    LTEXT           "Seite: ",113,134,386,20,8,NOT WS_GROUP
     RTEXT           "123",IDD_INT1,155,386,20,8,NOT WS_GROUP
     CONTROL         "Preview Area",IDD_PREVIEW,"Button",BS_OWNERDRAW | WS_TABSTOP,6,6,312,372
     PUSHBUTTON      ">|",IDD_LAST_PAGE,209,384,24,14
@@ -162,27 +162,27 @@ END
 
 DLGREPLACE DIALOGEX 44, 57, 315, 158
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Search && Replace"
+CAPTION "Suchen & Ersetzen"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "&Search:",301,4,6,60,8,NOT WS_GROUP
+    LTEXT           "&Suche:",301,4,6,60,8,NOT WS_GROUP
     COMBOBOX        IDD_FINDS,4,16,224,50,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_GROUP | WS_TABSTOP
-    LTEXT           "Replace &with:",IDD_OPT9,4,34,60,8,NOT WS_GROUP
+    LTEXT           "Ersetze &gegen:",IDD_OPT9,4,34,60,8,NOT WS_GROUP
     COMBOBOX        IDD_REPLS,6,48,222,48,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_GROUP | WS_TABSTOP
-    GROUPBOX        "Replace Options",111,4,66,158,60
-    CONTROL         "On Confir&mation",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,78,80,12
-    CONTROL         "&Only in marked lines",IDD_OPT2,"Button",BS_AUTOCHECKBOX,12,90,104,14
-    LTEXT           "&Range:",112,6,135,32,10,NOT WS_GROUP
+    GROUPBOX        "Optionen Ersetzen",111,4,66,158,60
+    CONTROL         "Auf &Rückfrage",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,78,80,12
+    CONTROL         "&Nur in markierten Zeilen",IDD_OPT2,"Button",BS_AUTOCHECKBOX,12,90,104,14
+    LTEXT           "&Bereich:",112,6,135,32,10,NOT WS_GROUP
     COMBOBOX        IDD_RNGE,44,132,118,51,CBS_DROPDOWNLIST | WS_VSCROLL | WS_GROUP | WS_TABSTOP
-    GROUPBOX        "Options Search",IDD_OPT10,171,66,136,60
+    GROUPBOX        " Optionen Suche",IDD_OPT10,171,66,136,60
     CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,180,78,84,12
-    CONTROL         "Regul&ar Expressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,180,90,80,12
+    CONTROL         "Regul&äre Ausdrücke",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,180,90,80,12
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,180,102,80,12
-    PUSHBUTTON      "&Count",IDD_BUT4,204,132,48,18,WS_GROUP
-    DEFPUSHBUTTON   "&Replace",1,240,15,66,16,WS_GROUP
-    PUSHBUTTON      "&Mark",IDD_BUT3,258,132,48,18,WS_GROUP
-    PUSHBUTTON      "Cancel",2,240,33,66,16,WS_GROUP
-    CONTROL         "Preserve upper/lower case",IDD_PRESERVE_CASE,
+    PUSHBUTTON      "&Zählen",IDD_BUT4,204,132,48,18,WS_GROUP
+    DEFPUSHBUTTON   "&Ersetzen",1,240,15,66,16,WS_GROUP
+    PUSHBUTTON      "&Markieren",IDD_BUT3,258,132,48,18,WS_GROUP
+    PUSHBUTTON      "Abbruch",2,240,33,66,16,WS_GROUP
+    CONTROL         "Groß- Kleinschreibung beibehalten",IDD_PRESERVE_CASE,
                     "Button",BS_AUTOCHECKBOX,12,102,130,14
 END
 
@@ -1252,7 +1252,7 @@ BEGIN
     IDS_SELECTCOMPILEWINDOW "File - Selection for Compilation"
     IDS_TT_REGULAR_EXPRESSION 
                             "Regular expressions support the following special characters\r\n""."" - (matches any char)\r\n""[a-z]"" - all characters from a-z\r\n""*"" - (an arbitrary number of times)\r\n""+"" - at least once\r\n""{x,y}"" - minimum x, maximum y times"
-    IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text are preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
+    IDS_TT_PRESERVE_CASE    "When replacing upper case / lower case spelling of the original text are preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
 END
 
 STRINGTABLE

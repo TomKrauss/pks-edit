@@ -39,7 +39,7 @@
     <ClCompile Include="ColumnBlocks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TextBlocks.c">
+    <ClCompile Include="Selection.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BracketMatching.c">

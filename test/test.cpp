@@ -87,6 +87,11 @@ namespace pkseditTests
 			regex_getCapturingGroup(&match, 1, group, sizeof group);
 			Assert::AreEqual("blabla", group);
 
+			options = createOptions("Regul&äre Ausdrücke", 0);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			expr = "Regul&äre Ausdrücke";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+
 			options = createOptions("^/\\* C \\*/$", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			expr = "/* C */";

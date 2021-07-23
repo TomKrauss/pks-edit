@@ -151,7 +151,7 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPP
 	hwnd = GetActiveWindow();
 	nSave = nCurrentDialog;
 	nCurrentDialog = nIdDialog;
-	ret = DialogBox(hInst, MAKEINTRESOURCE(nIdDialog), hwndMDIFrameWindow, DlgProc);
+	ret = DialogBox(ui_getResourceModule(), MAKEINTRESOURCE(nIdDialog), hwndMDIFrameWindow, DlgProc);
 	nCurrentDialog = nSave;
 	if (hwnd) {
 		SetActiveWindow(hwnd);
@@ -412,6 +412,10 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 					ht = SEARCH_PATTERNS;
 				}
 				hist_fillComboBox(hDlg, item, ht);
+				LPSTR pData = (LPSTR)ip;
+				if (pData && *pData) {
+					SetDlgItemText(hDlg, item, pData);
+				}
 				break;
 			case IDD_RO1: case IDD_RO2: case IDD_RO3: 
 			case IDD_RO4: case IDD_RO5:

@@ -1,123 +1,130 @@
 {
-    "documentTypes": [
+  "documentTypes": [
     {
-        "name": "default",
-        "description": "Alle Dateien (*.*)",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.*"
+      "name": "default",
+      "description": "Alle Dateien (*.*)",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.*"
     },
     {
-        "name": "encrypted",
-        "description": "Verschlüsselte Dateien (*.crpt)",
-        "editorConfiguration": "encrypted",
-        "filenamePatterns": "*.crpt"
+      "name": "encrypted",
+      "description": "Verschlüsselte Dateien (*.crpt)",
+      "editorConfiguration": "encrypted",
+      "filenamePatterns": "*.crpt"
     },
     {
-        "name": "c+cpp",
-        "description": "C/ C++-Dateien (*.c, *.h, *.cpp)",
-        "grammar": "cpp",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.c;*.h;*.cpp"
+      "name": "c+cpp",
+      "description": "C/ C++-Dateien (*.c, *.h, *.cpp)",
+      "grammar": "cpp",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.c;*.h;*.cpp"
     },
     {
-        "name": "dart",
-        "description": "Dart-Dateien (*.dart)",
-        "grammar": "dart",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.dart"
+      "name": "dart",
+      "description": "Dart-Dateien (*.dart)",
+      "grammar": "dart",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.dart"
     },
     {
-        "name": "pascal",
-        "description": "Pascal-Dateien (*.pas)",
-        "grammar": "pascal",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.pas"
+      "name": "pascal",
+      "description": "Pascal-Dateien (*.pas)",
+      "grammar": "pascal",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.pas"
     },
     {
-        "name": "java",
-        "description": "Java Dateien (*.java)",
-        "grammar": "java",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.java"
+      "name": "java",
+      "description": "Java Dateien (*.java)",
+      "grammar": "java",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.java"
     },
     {
-        "name": "batch-files",
-        "description": "Batch Files (*.bat, *.cmd)",
-        "grammar": "batch",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.bat;*.cmd"
+      "name": "batch-files",
+      "description": "Batch Files (*.bat, *.cmd)",
+      "grammar": "batch",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.bat;*.cmd"
     },
     {
-        "name": "typescript",
-        "description": "Typescript Files (*.ts)",
-        "grammar": "typescript",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.ts"
+      "name": "windows-resources",
+      "description": "Windows Resource Files (*.rc)",
+      "grammar": "resource",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.rc"
     },
     {
-        "name": "shell-files",
-        "description": "Shell Files (*.sh, *.ora)",
-        "grammar": "shell",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.sh;*.ora"
+      "name": "typescript",
+      "description": "Typescript Files (*.ts)",
+      "grammar": "typescript",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.ts"
     },
     {
-        "name": "json-files",
-        "description": "Json Files (*.json)",
-        "grammar": "json",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.json"
+      "name": "shell-files",
+      "description": "Shell Files (*.sh, *.ora)",
+      "grammar": "shell",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.sh;*.ora"
     },
     {
-        "name": "markdown",
-        "description": "Markdown Files (*.md)",
-        "grammar": "markdown",
-        "editorConfiguration": "readme",
-        "filenamePatterns": "*.md"
+      "name": "json-files",
+      "description": "Json Files (*.json)",
+      "grammar": "json",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.json"
     },
     {
-        "name": "pksedit",
-        "description": "PKS Edit Macro Files (*.pkc)",
-        "grammar": "pksedit",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.pkc"
+      "name": "markdown",
+      "description": "Markdown Files (*.md)",
+      "grammar": "markdown",
+      "editorConfiguration": "readme",
+      "filenamePatterns": "*.md"
     },
     {
-        "name": "sql",
-        "description": "SQL Files (*.sql, *.ddl)",
-        "grammar": "sql",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.sql;*.ddl"
+      "name": "pksedit",
+      "description": "PKS Edit Macro Files (*.pkc)",
+      "grammar": "pksedit",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.pkc"
     },
     {
-        "name": "log",
-        "description": "Log Files (*.log, *.err)",
-        "grammar": "logfile",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.log;*.err;*.logfile"
+      "name": "sql",
+      "description": "SQL Files (*.sql, *.ddl)",
+      "grammar": "sql",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.sql;*.ddl"
     },
     {
-        "name": "text",
-        "description": "Text Files (*.txt)",
-        "grammar": "text",
-        "editorConfiguration": "readme",
-        "filenamePatterns": "*.txt"
+      "name": "log",
+      "description": "Log Files (*.log, *.err)",
+      "grammar": "logfile",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.log;*.err;*.logfile"
     },
     {
-        "name": "css",
-        "description": "CSS Files (*.css; *.scss)",
-        "grammar": "css",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.css;*.scss"
+      "name": "text",
+      "description": "Text Files (*.txt)",
+      "grammar": "text",
+      "editorConfiguration": "readme",
+      "filenamePatterns": "*.txt"
     },
     {
-        "name": "xmlmarkup",
-        "description": "HTML and XML (*.html; *.htm; *.xml)",
-        "grammar": "xml",
-        "editorConfiguration": "default",
-        "filenamePatterns": "*.html;*.htm;*.xml"
+      "name": "css",
+      "description": "CSS Files (*.css; *.scss)",
+      "grammar": "css",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.css;*.scss"
+    },
+    {
+      "name": "xmlmarkup",
+      "description": "HTML and XML (*.html; *.htm; *.xml)",
+      "grammar": "xml",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.html;*.htm;*.xml"
     }
-    ],
+  ],
     "editorConfigurations": [
     {
         "name": "default",

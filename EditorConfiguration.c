@@ -125,29 +125,29 @@ void EdOptionSet(void) {
 	memset(psp, 0, sizeof psp);
 
 	psp[0].dwSize = sizeof(psp[0]);
-    psp[0].hInstance = hInst;
+    psp[0].hInstance = ui_getResourceModule();
     psp[0].pszTemplate = MAKEINTRESOURCE(DLG_OPT_AUTOSAVE);
     psp[0].pfnDlgProc = DlgStdProc;
 
     psp[1].dwSize = sizeof(psp[1]);
-    psp[1].hInstance = hInst;
+    psp[1].hInstance = ui_getResourceModule();
     psp[1].pszTemplate = MAKEINTRESOURCE(DLG_OPT_WARNINGS);
     psp[1].pfnDlgProc = DlgStdProc;
 
 	psp[2].dwSize = sizeof(psp[2]);
-	psp[2].hInstance = hInst;
+	psp[2].hInstance = ui_getResourceModule();
 	psp[2].pszTemplate = MAKEINTRESOURCE(DLG_OPT_LAYOUT);
 	psp[2].pfnDlgProc = DlgStdProc;
 
 	psp[3].dwSize = sizeof(psp[3]);
-	psp[3].hInstance = hInst;
+	psp[3].hInstance = ui_getResourceModule();
 	psp[3].pszTemplate = MAKEINTRESOURCE(DLG_OPT_MISC);
 	psp[3].pfnDlgProc = DlgStdProc;
 
 	psh.dwSize = sizeof(psh);
     psh.dwFlags = PSH_PROPSHEETPAGE;
     psh.hwndParent = hwndMDIFrameWindow;
-    psh.hInstance = hInst;
+    psh.hInstance = ui_getResourceModule();
     psh.pszIcon = 0;
     psh.pszCaption = (LPSTR) "Sonstige Einstellungen...";
     psh.nPages = sizeof(psp) / sizeof(psp[0]);

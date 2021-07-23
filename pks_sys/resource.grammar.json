@@ -1,0 +1,84 @@
+{
+  "grammars": [
+    {
+      "scopeName": "resource",
+      "highlightBrackets": [
+        {
+          "left": "BEGIN",
+          "right": "END"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "//.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "\"(?:\\\"|[^\"])+\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "keywords": [
+            "DIALOG",
+            "RIGHTMARGIN",
+            "BOTTOMMARGIN",
+            "ICON",
+            "CURSOR",
+            "SEPARATOR",
+            "ACCELERATORS",
+            "TEXTINCLUDE",
+            "MENU",
+            "MENUITEM",
+            "POPUP",
+            "BEGIN",
+            "END",
+            "CAPTION",
+            "STYLE",
+            "FONT",
+            "GROUPBOX",
+            "COMBOBOX",
+            "LTEXT",
+            "RTEXT",
+            "EDITTEXT",
+            "CONTROL",
+            "RADIOBUTTON",
+            "DEFPUSHBUTTON",
+            "PUSHBUTTON",
+            "LISTBOX",
+            "DLGINFOFILE",
+            "STRINGTABLE",
+            "VALUE",
+            "VS_VERSION_INFO",
+            "VERSIONINFO",
+            "FILEVERSION",
+            "PRODUCTVERSION"
+          ],
+          "style": "keyword",
+          "name": "keyword.pascal"
+        },
+        {
+          "match": "<[WEBDCS]B?[S]_[A-Z_0-9]+>",
+          "style": "identifier",
+          "name": "constant.flag"
+        },
+        {
+          "match": "<[A-Z_][A-Z_0-9]*>",
+          "style": "bold",
+          "name": "constant.identifier"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "#\\s*[a-z]+",
+          "style": "annotation",
+          "name": "preprocessor.resource"
+        }
+      ]
+    }
+  ]
+}

@@ -790,12 +790,12 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	memset(psp, 0, sizeof psp);
 
 	psp[0].dwSize = sizeof(psp[0]);
-	psp[0].hInstance = hInst;
+	psp[0].hInstance = ui_getResourceModule();
 	psp[0].pszTemplate = MAKEINTRESOURCE(DLGPRINTERLAYOUT);
 	psp[0].pfnDlgProc = DlgStdProc;
 
 	psp[1].dwSize = sizeof(psp[1]);
-	psp[1].hInstance = hInst;
+	psp[1].hInstance = ui_getResourceModule();
 	psp[1].pszTemplate = MAKEINTRESOURCE(DLGPREVIEW);
 	psp[1].pfnDlgProc = DlgPreviewProc;
 

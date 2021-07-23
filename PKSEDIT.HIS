@@ -1,14 +1,8 @@
 [files]
 "C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
-"C:\source\pksedit\en-US\en-US.rc", line 1: 0x2 0x3 -1 -1 -8 -31 101 0 1292 533
+"C:\source\pksedit\PKSEDIT.RC", line 867: 0x0 0x1 -1 -1 -8 -31 90 54 1281 587
+"C:\source\pksedit\en-US\en-US.rc", line 1368: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
 [find]
-!sessionexc
-!sessionexce
-!sessionexcep
-!sessionexcept
-!sessionexcepti
-!sessionexceptio
-!sessionexception
 !???
 !URL
 !<URL>
@@ -34,6 +28,13 @@
 !up
 !..
 !Extr
+!upper
+!groß/klein
+!groß
+!Ignore
+!Ignoriere
+!Regul&äre Ausdrücke
+!xxx
 [filePatterns]
 !*.*
 !*.java
