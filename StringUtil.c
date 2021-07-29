@@ -53,6 +53,26 @@ char *lstrchr(const char *str, char ch) {
 }
 
 /*
+ * Find a substring p2 in a string p1 comparing all characters in a case ignore way.
+ */
+char* string_strcasestr(const char* p1, const char* p2) {
+	for (;; p1++) {
+		for (size_t i = 0;; i++) {
+			unsigned char c2 = (unsigned char) p2[i];
+			if (c2 == '\0') {
+				return (char*)p1;
+			}
+			unsigned char c1 = (unsigned char)p1[i];
+			if (tolower(c1) != tolower(c2)) {
+				break;
+			}
+		}
+		if (*p1 == '\0') {
+			return NULL;
+		}
+	}
+}
+/*
  * Copies a pathname string into a destrination string - at max nMax characters.
  * Returns the pointer to the end of the string.
  */

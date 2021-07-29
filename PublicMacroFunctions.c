@@ -678,22 +678,6 @@ int EdMarkGoto(void)
 }
 
 /*--------------------------------------------------------------------------
- * EdFindTag()
- */
-int EdFindTag(void)
-{	static ITEMS	 _i   = { C_STRING1PAR,  _currentSearchAndReplaceParams.searchPattern 	};
-	static PARAMS	 _tp  = { DIM(_i), P_MAYOPEN, _i	};
-	static DIALPARS _d[] = { 
-			IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern,	& _currentSearchAndReplaceParams.searchPattern,
-			0 
-	};
-
-	if (!win_callDialog(DLGFINDTAG,&_tp,_d, NULL))
-		return 0;
-	return xref_navigateCrossReference(_currentSearchAndReplaceParams.searchPattern);
-}
-
-/*--------------------------------------------------------------------------
  * EdReplaceTabs()
  * expand = 1 : expand TABS to SPACES
  * expand = 0 : comp SPACES to TABS
@@ -1579,8 +1563,7 @@ int EdFindInFileList(void)
  * EdReplaceAgain()
  */
 int EdReplaceAgain(void)
-{	extern int _rflg;
-
+{	
 	if (find_replacementHadBeenPerformed())
 		return EdReplaceText(RNG_ONCE,REP_REPLACE,0); 
 	error_showErrorById(IDS_MSGNOREPLACESTRING);

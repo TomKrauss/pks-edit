@@ -561,7 +561,7 @@ static int macro_getReplaceActionForControlId(int idCtrl)
 }
 
 /*--------------------------------------------------------------------------
- * DlgCommand()
+ * DlgApplyChanges()
  */
 static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 {
@@ -967,49 +967,6 @@ void win_destroyModelessDialog(HWND *hwnd)
 	if (*hwnd) {
 		DestroyWindow(*hwnd);
 	}
-}
-
-/*------------------------------------------------------------
- * list_lboxfill()
- */
-static void list_lboxfill(HWND hwnd, int nItem, void* selValue)
-{
-	DLGSTRINGLIST		*dlp;
-
-	dlp = (DLGSTRINGLIST *)selValue;
-	SendDlgItemMessage(hwnd, nItem, WM_SETREDRAW, FALSE, 0L);
-	SendDlgItemMessage(hwnd, nItem, LB_RESETCONTENT, 0, 0L);
-	while(dlp) {
-		SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, (LPARAM)dlp);
-		dlp = dlp->next;
-	}
-	SendDlgItemMessage(hwnd, nItem, WM_SETREDRAW, TRUE, 0L);
-	SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING, -1, (LPARAM) selValue);
-}
-
-/*--------------------------------------------------------------------------
- * DoDlgSelectFromList()
- */
-DLGSTRINGLIST *DoDlgSelectFromList(int nId, DLGSTRINGLIST *list, DIALLIST *dlist)
-{
-	DLGSTRINGLIST *elem;
-	static DIALPARS _d[] = {
-		IDD_ICONLIST,		0,		0,
-		0
-	};
-
-	if (!list) {
-		return 0;
-	}
-	_d[0].dp_data = dlist;
-	dlist->li_param = (long*)&elem;
-	dlist->li_fill = list_lboxfill;
-	dlist->li_get = LbGetText;
-	elem = list;
-	if (DoDialog(nId, DlgStdProc, _d, NULL) == IDCANCEL) {
-		return 0;
-	}
-	return elem;
 }
 
 /*--------------------------------------------------------------------------

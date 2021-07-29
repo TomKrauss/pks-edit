@@ -1,7 +1,8 @@
 [files]
 "C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
-"C:\source\pksedit\PKSEDIT.RC", line 867: 0x0 0x1 -1 -1 -8 -31 90 54 1281 587
-"C:\source\pksedit\en-US\en-US.rc", line 1368: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
+"C:\source\pksedit\CutAndPaste.c", line 52: 0x0 0x1 -1 -1 -8 -31 90 54 1281 587
+"C:\source\pksedit\OpenFiles.c", line 243: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
+"C:\Users\tom\AppData\Local\Temp\keys.pkc", line 1: 0x0 0x1 -1 -1 -8 -31 130 130 945 690
 [find]
 !???
 !URL
@@ -47,11 +48,6 @@
 !x
 !xx
 [open]
-!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\bloc\domain_event_handler.dart
-!C:\source\pksedit\README.md
-!C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
-!C:\Users\tom\AppData\Local\Temp\KEYS
-!C:\temp\JdbcSessionBig.java
 !C:\source\pksedit\AsciiHexToLong.c
 !C:\source\mx-graph-modeller\ui\src\index.html
 !C:\source\mx-graph-modeller\ui\src\styles.css
@@ -77,6 +73,13 @@
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\collection\Array.java
 !C:\source\pksedit\include\lineoperations.h
 !C:\source\pksedit\include\winfo.h
+!C:\source\pksedit\en-US\en-US.rc
+!C:\source\pksedit\PKSEDIT.RC
+!C:\source\pksedit\Compare.c
+!C:\source\pksedit\include\pksmod.h
+!C:\source\pksedit\OpenFiles.c
+!C:\source\pksedit\TextBlocks.c
+!C:\Users\tom\AppData\Local\Temp\KEYS.MAC
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -96,5 +99,6 @@
 !C:\temp\*.*
 !C:\*.*
 !C:\source\pksedit\pks_sys\*.MAC
-!C:\source\pksedit\*.*
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\collection\*.*
+!C:\source\pksedit\*.*
+!C:\source\pksedit\pks_sys\*.mac

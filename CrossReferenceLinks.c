@@ -12,6 +12,8 @@
  */
 
 #include <windows.h>
+#include <windowsx.h>
+#include <CommCtrl.h>
 #include <string.h>
 #include <stdio.h>
 #include "alloc.h"
@@ -20,6 +22,7 @@
 #include "fileselector.h"
 #include "caretmovement.h"
 #include "pksedit.h"
+#include "customcontrols.h"
 #include "editorconfiguration.h"
 #include "edierror.h"
 #include "errordialogs.h"
@@ -46,6 +49,7 @@ typedef enum TAG_KIND {
  */
 typedef struct tagTAG_REFERENCE {
 	struct tagTAG_REFERENCE* next;		// Tags with the same tag name are organized in linked lists.
+	struct tagTAG* pTag;
 	char* filename;						// The file to open
 	BOOL isDefinition;					// Whether the reference describes the definition rather than the reference to a language artifact.
 	BOOL isPrivate;						// Whether the described element is private or static (C)
@@ -249,54 +253,33 @@ static void taglist_measureitem(MEASUREITEMSTRUCT *mp)
 	mp->itemWidth = 800;
 }
 
-/*------------------------------------------------------------
- * taglist_cmpitem()
- */
-static int taglist_cmpitem(COMPAREITEMSTRUCT *cp)
-{
-	int nRet;
-	int nSize;
-
-	nSize = min(((DLGSTRINGLIST *)cp->itemData1)->nSize,
-		((DLGSTRINGLIST *)cp->itemData2)->nSize);
-
-	nRet = strncmp(
-		((DLGSTRINGLIST *)cp->itemData1)->pszString,
-		((DLGSTRINGLIST *)cp->itemData2)->pszString,
-		nSize);
-	
-	if (nRet != 0) {
-		return nRet;
-	}
-
-	return ((DLGSTRINGLIST *)cp->itemData1)->nSize -
-		((DLGSTRINGLIST *)cp->itemData2)->nSize;
-}
+#define TAGLIST_COL_WIDTH_ICON			60
+#define TAGLIST_COL_WIDTH_TAGNAME		160
+#define TAGLIST_COL_WIDTH_FILE			280
+#define TAGLIST_COL_WIDTH_DESCRIPTION	150
 
 /*------------------------------------------------------------
  * taglist_drawitem()
  */
-static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
-{
+static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl) {
 	LONG			lExtent;
-	WORD			wDelta = 400;
 	WORD			hDelta;
-	int				nIconDelta = 62;
+	int				nIconDelta = TAGLIST_COL_WIDTH_ICON;
 	int				nIconWidth = 16;
-	DLGSTRINGLIST*	dlp;
-	TAG_REFERENCE *	tp;
+	TAG_REFERENCE *	tp = par;
+	TAG* pTag;
 	HICON			hIcon;
 
-	if ((dlp = (DLGSTRINGLIST*)par) == 0) {
+	if (par == 0) {
 		return;
 	}
-
-	tp = (TAG_REFERENCE *) dlp->pAny;
-	lExtent = win_getTextExtent(hdc, dlp->pszString, dlp->nSize);
+	pTag = tp->pTag;
+	lExtent = win_getTextExtent(hdc, pTag->tagname, (int)strlen(pTag->tagname));
 	hDelta = HIWORD(lExtent);
 	hDelta = (TAGLISTITEMHEIGHT - hDelta) / 2;
 	char* pszFile = string_abbreviateFileName(tp->filename);
-	TextOut(hdc, rcp->left + nIconDelta, rcp->top + hDelta, pszFile, (int)strlen(pszFile));
+	TextOut(hdc, rcp->left + nIconDelta, rcp->top + hDelta, pTag->tagname, lstrlen(pTag->tagname));
+	TextOut(hdc, rcp->left + nIconDelta + TAGLIST_COL_WIDTH_TAGNAME, rcp->top + hDelta, pszFile, (int)strlen(pszFile));
 	
 	hIcon = LoadIcon (hInst, tp->isDefinition ? "NEXT" : "PREVIOUS");
 	DrawIconEx(hdc,
@@ -307,7 +290,8 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 	if (!pszComment) {
 		pszComment = tp->searchCommand;
 	}
-	TextOut(hdc, rcp->left + nIconDelta + wDelta, rcp->top + hDelta, pszComment, lstrlen(pszComment));
+	TextOut(hdc, rcp->left + nIconDelta + TAGLIST_COL_WIDTH_TAGNAME + TAGLIST_COL_WIDTH_FILE, 
+		rcp->top + hDelta, pszComment, lstrlen(pszComment));
 	DestroyIcon(hIcon);
 }
 
@@ -329,6 +313,7 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 			hashmap_put(_allTags.tt_map, (intptr_t)pTag->tagname, (intptr_t)pTag);
 		}
 		pReference = (TAG_REFERENCE*) ll_insert((LINKED_LIST**)&pTag->tagReferences, sizeof * pReference);
+		pReference->pTag = pTag;
 		char* filename = calloc(1, EDMAXPATHLEN);
 		regex_getCapturingGroup(&match, _exprerror->filenameCapture - 1, filename, EDMAXPATHLEN);
 		pReference->filename = realloc(filename, strlen(filename)+1);
@@ -415,6 +400,136 @@ static BOOL xref_buildTagTable(char* sourceFilename, char* baseTagFilename) {
 }
 
 /*
+ * test whether an xref expression is matched.
+ */
+static char* _pszRef;
+static HWND  _hwndDialog;
+static TAG_REFERENCE* _pSelectReference;
+static int xref_filter(intptr_t key) {
+	char* pszTest = (char*)key;
+	return string_strcasestr(pszTest, _pszRef) != NULL;
+}
+
+static void xref_addMessageItems(intptr_t k, intptr_t v) {
+	TAG* tp = (TAG*)v;
+	TAG_REFERENCE* pRef = tp ? tp->tagReferences : NULL;
+	if (!_pSelectReference) {
+		_pSelectReference = pRef;
+	}
+	while (pRef) {
+		SendDlgItemMessage(_hwndDialog, IDD_ICONLIST, LB_ADDSTRING, 0, (LPARAM)pRef);
+		pRef = pRef->next;
+	}
+}
+/*------------------------------------------------------------
+ * xref_fillTagList()
+ */
+static void xref_fillTagList(HWND hwnd, void* crossReferenceWord) {
+	_pszRef = crossReferenceWord;
+	_hwndDialog = hwnd;
+	TAG* tp = (TAG*)hashmap_get(_allTags.tt_map, (intptr_t)crossReferenceWord);
+	_pSelectReference = NULL;
+	SendDlgItemMessage(hwnd, IDD_ICONLIST, WM_SETREDRAW, FALSE, 0L);
+	SendDlgItemMessage(hwnd, IDD_ICONLIST, LB_RESETCONTENT, 0, 0L);
+	if (tp != NULL) {
+		xref_addMessageItems((intptr_t)crossReferenceWord, (intptr_t)tp);
+	} else {
+		hashmap_forKeysMatching(_allTags.tt_map, xref_addMessageItems, xref_filter);
+	}
+	SendDlgItemMessage(hwnd, IDD_ICONLIST, WM_SETREDRAW, TRUE, 0L);
+	SendDlgItemMessage(hwnd, IDD_ICONLIST, LB_SELECTSTRING, -1, (LPARAM)_pSelectReference);
+}
+
+/*
+ * Compare the tag list entries for sorting.
+ */
+static int taglist_compareItem(COMPAREITEMSTRUCT* cip) {
+	TAG_REFERENCE* pRef1 = (TAG_REFERENCE * )cip->itemData1;
+	TAG_REFERENCE* pRef2 = (TAG_REFERENCE*)cip->itemData2;
+
+	int ret = strcmp(pRef1->pTag->tagname, pRef2->pTag->tagname);
+	return ret;
+}
+
+/*--------------------------------------------------------------------------
+ * DlgStdProc()
+ */
+static TAG_REFERENCE* _selectedReference;
+static INT_PTR CALLBACK xref_lookupTagReferenceProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+	MEASUREITEMSTRUCT* mp;
+	COMPAREITEMSTRUCT* cp;
+	int					nNotify;
+	int					idCtrl;
+	DRAWITEMSTRUCT* drp;
+
+	switch (message) {
+	case WM_INITDIALOG:
+		win_moveWindowToDefaultPosition(GetParent(hDlg));
+		SetDlgItemText(hDlg, IDD_STRING1, (char*)lParam);
+		xref_fillTagList(hDlg, (char*)lParam);
+		PostMessage(hDlg, WM_NEXTDLGCTL, (WPARAM)GetDlgItem(hDlg, IDD_STRING1), TRUE);
+		return TRUE;
+
+	case WM_DESTROY:
+		return FALSE;
+
+	case WM_MEASUREITEM:
+		mp = (MEASUREITEMSTRUCT*)lParam;
+		taglist_measureitem(mp);
+		return TRUE;
+
+	case WM_COMPAREITEM:
+		cp = (COMPAREITEMSTRUCT*)lParam;
+		return taglist_compareItem(cp);
+
+	case WM_DRAWITEM:
+		drp = (DRAWITEMSTRUCT*)lParam;
+		return cust_drawComboBoxOwnerDraw(drp, taglist_drawitem, NULL);
+
+	case WM_COMMAND:
+		nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
+		idCtrl = GET_WM_COMMAND_ID(wParam, lParam);
+		if (idCtrl == IDOK || idCtrl == IDCANCEL) {
+			EndDialog(hDlg, idCtrl);
+			return TRUE;
+		}
+		if (idCtrl == IDD_STRING1) {
+			if (nNotify == EN_CHANGE) {
+				char szNewText[50];
+				GetDlgItemText(hDlg, idCtrl, szNewText, sizeof szNewText);
+				xref_fillTagList(hDlg, szNewText);
+				return TRUE;
+			}
+		}
+		if (idCtrl == IDD_ICONLIST) {
+			if (nNotify == LBN_SELCHANGE) {
+				LRESULT idx = SendDlgItemMessage(hDlg, idCtrl, LB_GETCURSEL, 0, 0);
+				if (idx >= 0) {
+					_selectedReference = (TAG_REFERENCE*) SendDlgItemMessage(hDlg, idCtrl, LB_GETITEMDATA, idx, 0);
+				}
+			}
+			if (nNotify == LBN_DBLCLK) {
+				EndDialog(hDlg, IDOK);
+			}
+		}
+		break;
+	}
+	return FALSE;
+}
+
+/*--------------------------------------------------------------------------
+ * xref_selectTagsByDialog()
+ */
+static TAG_REFERENCE* xref_selectTagsByDialog(char* pTagName) {
+
+	intptr_t ret = DialogBoxParam(ui_getResourceModule(), MAKEINTRESOURCE(DLGTAGLIST), hwndMDIFrameWindow, xref_lookupTagReferenceProc, (LPARAM)pTagName);
+	if (ret == IDCANCEL) {
+		return 0;
+	}
+	return _selectedReference;
+}
+
+/*
  * xref_lookupTagReference()
  * Lookup the reference to a tag named 'tagName' from our currently loaded tag index.
  * If bExactMatch is false, all names from the index closely matching the passed
@@ -422,46 +537,15 @@ static BOOL xref_buildTagTable(char* sourceFilename, char* baseTagFilename) {
  */
 static BOOL _tagCancelled;
 static TAG_REFERENCE *xref_lookupTagReference(char *tagName, BOOL bExactMatch) {
-	DLGSTRINGLIST *	dlp = NULL;
-	DLGSTRINGLIST *	dlpCurr;
 	TAG* tp = _allTags.tt_map ? (TAG*)hashmap_get(_allTags.tt_map, (intptr_t) tagName) : NULL;
 	TAG_REFERENCE* pRef;
 
-	if (!tp) {
-		return NULL;
-	}
-	if (ll_size((LINKED_LIST*)tp->tagReferences) <= 1) {
+	if (bExactMatch && tp && ll_size((LINKED_LIST*)tp->tagReferences) <= 1) {
 		return tp->tagReferences;
 	}
-	for (pRef = tp->tagReferences; pRef; pRef = pRef->next) {
-		if ((dlpCurr = (DLGSTRINGLIST *)ll_insert((LINKED_LIST**)&dlp, sizeof *dlp)) == 0) {
-			ll_destroy((LINKED_LIST**)&dlp, NULL);
-			return 0;
-		}
-		dlpCurr->pszString = tp->tagname;
-		dlpCurr->nSize = (int)strlen(tp->tagname);
-		dlpCurr->pAny = pRef;
-	}
-	if (!dlp) {
-		return NULL;
-	}
-	static DIALLIST dlist = {
-		0,
-		0, 
-		0, 
-		taglist_measureitem, 
-		taglist_drawitem, 
-		0,
-		taglist_cmpitem,
-		0
-	};
-	dlpCurr = DoDlgSelectFromList(DLGTAGLIST, dlp, &dlist);
-	if (dlpCurr) {
-		pRef = dlpCurr->pAny;
-	}
-	ll_destroy((LINKED_LIST**)&dlp, NULL);
+	pRef = xref_selectTagsByDialog(tagName);
 
-	if (!dlpCurr) {
+	if (!pRef) {
 		_tagCancelled = TRUE;
 		return 0;
 	}
@@ -537,12 +621,16 @@ static int xref_navigateToHyperlink(char* urlSpec, char* pTag) {
 	}
 	return 0;
 }
+
 /*---------------------------------*
  * xref_navigateCrossReference()
  * Navigate to the cross reference word given as an argument - no
  * selection of multiple matches yet.
+ * If bNavigateWithoutDialogSelection is TRUE, potential single matches
+ * are navigated right away. Otherwise a picker for the matches is 
+ * always presented to the user.
  *---------------------------------*/
-int xref_navigateCrossReference(char *s) {
+static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bNavigateWithoutDialogSelection) {
 	TAG_REFERENCE * tp;
 	char     	buffer[256];
 	int			ret = 0;
@@ -550,7 +638,7 @@ int xref_navigateCrossReference(char *s) {
 	FTABLE* fp;
 	WINFO* wp = ww_getCurrentEditorWindow();
 
-	if (!s || !*s || wp == NULL)
+	if (!s || wp == NULL)
 		return 0;
 	fp = wp->fp;
 	if ((ttl = grammar_getTagSources(fp->documentDescriptor->grammar)) == NULL) {
@@ -564,7 +652,7 @@ int xref_navigateCrossReference(char *s) {
 	_tagCancelled = FALSE;
 	while (ttl && ret == 0 && _tagCancelled == FALSE) {
 		if (strcmp(TST_TAGFILE, ttl->type) == 0) {
-			if (xref_buildTagTable(fp->fname, ttl->fn) && (tp = xref_lookupTagReference(s, TRUE)) != 0L) {
+			if (xref_buildTagTable(fp->fname, ttl->fn) && (tp = xref_lookupTagReference(s, bNavigateWithoutDialogSelection)) != 0L) {
 				char* pszCompleteFile = file_searchFileInDirectory(tp->filename, _allTags.tt_directory);
 				if (pszCompleteFile) {
 					strcpy(buffer, pszCompleteFile);
@@ -596,6 +684,27 @@ int xref_navigateCrossReference(char *s) {
 	free(_tagword);
 	_tagword = 0;
 	return ret;
+}
+
+/*---------------------------------*
+ * xref_navigateCrossReference()
+ * Navigate to the cross reference word given as an argument - no
+ * selection of multiple matches yet.
+ *---------------------------------*/
+int xref_navigateCrossReference(char* s) {
+	return xref_navigateCrossReferenceForceDialog(s, TRUE);
+}
+
+/*--------------------------------------------------------------------------
+ * EdFindTag()
+ */
+int EdFindTag(void) {
+	char selected[80];
+	bl_getSelectedText(selected, sizeof selected);
+	if (!selected[0]) {
+		xref_findExpressionCloseToCaret(selected, selected+sizeof selected, char_isIdentifier, 1);
+	}
+	return xref_navigateCrossReferenceForceDialog(selected, FALSE);
 }
 
 /*

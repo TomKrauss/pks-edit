@@ -33,13 +33,6 @@ typedef struct tagDIALLIST {
 	void		(*li_selection)(DRAWITEMSTRUCT *dp);
 } DIALLIST;
 
-typedef struct tagDLGSTRINGLIST {
-	struct tagDLGSTRINGLIST *	next;
-	LPSTR						pszString;
-	void *						pAny;
-	long						nSize;
-} DLGSTRINGLIST;
-
 typedef struct tagITEM_TOOLTIP_MAPPING {
 	int			m_itemId;
 	int			m_tooltipStringId;
@@ -62,7 +55,6 @@ extern INT_PTR CALLBACK DlgStdProc(HWND,UINT,WPARAM,LPARAM);
 extern int 			win_callDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
 # endif
 extern void 		DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax);
-extern DLGSTRINGLIST*	DoDlgSelectFromList(int nId, DLGSTRINGLIST *list, DIALLIST *dp);
 /*--------------------------------------------------------------------------
  * LbGetText()
  */

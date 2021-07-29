@@ -73,6 +73,11 @@ extern void hashmap_rehashWith(HASHMAP* pTable, HASH_CODE hashCodeFunction, HASH
  */
 extern void hashmap_makeCaseIgnore(HASHMAP* pTable);
 
+/*
+ * Can be used to execute a callback for each key defined in a hashmap matching a filter function.
+ * The callback is invoked with each key and the corresponding value from the hashmap.
+ */
+extern void hashmap_forKeysMatching(HASHMAP* pTable, void (*function)(intptr_t k, intptr_t v), int (*filter)(intptr_t k));
 
 #define HASHTABLE_H
 

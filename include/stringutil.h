@@ -160,5 +160,10 @@ extern BOOL char_isFilename(unsigned char c);
  */
 extern void string_initDateformats(void);
 
+/*
+ * Find a substring p2 in a string p1 comparing all characters in a case ignore way.
+ */
+extern char* string_strcasestr(const char* p1, const char* p2);
+
 #define STRINGUTIL_H
 #endif

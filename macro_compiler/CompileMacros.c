@@ -98,7 +98,9 @@ FILE *createtmp(char *dest, char *filename)
 {	FILE *fp;
 
 	string_concatPathAndFilename(dest, file_getTempDirectory(), filename);
-	strcat(dest, ".MAC");
+	if (strchr(dest, '.') == NULL) {
+		strcat(dest, ".pkc");
+	}
 	if ((fp = fopen(dest,"w")) == 0) {
 		error_displayAlertDialog(/*STR*/"kann %s nicht erzeugen", dest);
 		return 0;

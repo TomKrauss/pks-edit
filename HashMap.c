@@ -218,6 +218,19 @@ void hashmap_forEachKey(HASHMAP* pTable, void (*function)(intptr_t k, void* pPar
 }
 
 /*
+ * Can be used to execute a callback for each key defined in a hashmap matching a filter function.
+ * The callback is invoked with each key and the corresponding value from the hashmap.
+ */
+void hashmap_forKeysMatching(HASHMAP* pTable, void (*function)(intptr_t k, intptr_t v), int (*filter)(intptr_t k)) {
+	for (int i = 0; i < pTable->ht_capacity; i++) {
+		intptr_t k = pTable->ht_entries[i].he_key;
+		if (k && filter(k)) {
+			function(k, pTable->ht_entries[i].he_value);
+		}
+	}
+}
+
+/*
  * Assigns a new hashing and compare function to a hashmap rehashing the map if required. 
  */
 void hashmap_rehashWith(HASHMAP* pTable, HASH_CODE hashCodeFunction, HASH_COMPARE hashCompareFunction) {

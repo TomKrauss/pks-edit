@@ -85,17 +85,17 @@ STYLE DS_SETFONT | WS_CHILD
 CLASS "DLGFKEYS"
 FONT 8, "Helv"
 BEGIN
-    CONTROL         "Einfügen",IDD_FKFLG1,"toggle",WS_TABSTOP | 0x3,40,20,40,12
+    CONTROL         "Insert",IDD_FKFLG1,"toggle",WS_TABSTOP | 0x3,40,20,40,12
     CONTROL         "Indent",IDD_FKFLG2,"toggle",WS_TABSTOP | 0x3,80,20,40,12
-    CONTROL         "Umbruch",IDD_FKFLG3,"toggle",WS_TABSTOP | 0x3,120,20,40,12
+    CONTROL         "Wrap",IDD_FKFLG3,"toggle",WS_TABSTOP | 0x3,120,20,40,12
     CONTROL         "Format",IDD_FKFLG4,"toggle",WS_TABSTOP | 0x3,200,20,40,12
-    CONTROL         "Prüfe {}",IDD_FKFLG5,"toggle",WS_TABSTOP | 0x3,0,20,40,12
+    CONTROL         "Check {}",IDD_FKFLG5,"toggle",WS_TABSTOP | 0x3,0,20,40,12
     CONTROL         "Indent {",IDD_FKFLG6,"toggle",WS_TABSTOP | 0x3,400,20,40,12
     CONTROL         "Shortcuts",IDD_FKFLG7,"toggle",WS_TABSTOP | 0x3,240,20,40,12
-    CONTROL         "Block | |",IDD_FKFLG8,"toggle",WS_TABSTOP | 0x3,160,20,40,12
+    CONTROL         "Select | |",IDD_FKFLG8,"toggle",WS_TABSTOP | 0x3,160,20,40,12
     CONTROL         "Read O.",IDD_FKFLG9,"toggle",WS_TABSTOP | 0x3,320,20,40,12
-    CONTROL         "Ein. OEM",IDD_FKFLG10,"toggle",WS_TABSTOP | 0x3,280,20,40,12
-    CONTROL         "Anz. OEM",510,"toggle",WS_TABSTOP | 0x3,400,20,40,12
+    CONTROL         "Insert OEM",IDD_FKFLG10,"toggle",WS_TABSTOP | 0x3,280,20,40,12
+    CONTROL         "Show OEM",510,"toggle",WS_TABSTOP | 0x3,400,20,40,12
     CONTROL         "Record",511,"toggle",WS_TABSTOP | 0x3,360,20,40,12
     CONTROL         "F1",IDD_FKFK1,"Button",BS_OWNERDRAW | WS_TABSTOP,0,0,40,14
     CONTROL         "F2",IDD_FKFK2,"Button",BS_OWNERDRAW | WS_TABSTOP,40,0,40,14
@@ -114,35 +114,35 @@ END
 
 DLGBOXC DIALOG 91, 60, 138, 24
 STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Gehe zu Marke"
+CAPTION "Goto Mark"
 FONT 8, "helv"
 BEGIN
-    LTEXT           "Kennbuchstabe:",IDD_LOWOPT,16,8,60,8,NOT WS_GROUP
+    LTEXT           "Mark Letter:",IDD_LOWOPT,16,8,60,8,NOT WS_GROUP
     DEFPUSHBUTTON   "A",IDD_RAWCHAR,97,6,16,12
 END
 
 DLGINFOFILE DIALOG 20, 52, 260, 166
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Fensterliste"
+CAPTION "Window List"
 FONT 8, "helv"
 BEGIN
     LISTBOX         IDD_WINDOWLIST,6,10,146,150,LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Datei:",-1,162,40,20,8,NOT WS_GROUP
+    LTEXT           "File:",-1,162,40,20,8,NOT WS_GROUP
     LTEXT           "T",IDD_RO1,192,40,60,8,NOT WS_GROUP
-    LTEXT           "Zuletzt geändert:",-1,162,54,60,8,NOT WS_GROUP
+    LTEXT           "Modified:",-1,162,54,60,8,NOT WS_GROUP
     CONTROL         "Text",-1,"Static",SS_BLACKFRAME,162,66,92,12
     LTEXT           "T",IDD_RO2,164,68,84,8,NOT WS_GROUP
-    LTEXT           "Zuletzt gesichert:",-1,162,86,60,8,NOT WS_GROUP
+    LTEXT           "Saved:",-1,162,86,60,8,NOT WS_GROUP
     CONTROL         "Text",-1,"Static",SS_BLACKFRAME,162,96,92,12
     LTEXT           "T",IDD_RO3,164,98,80,8,NOT WS_GROUP
-    GROUPBOX        "Dateigröße",-1,162,112,94,48
-    LTEXT           "Zeilen:",-1,168,128,24,8,NOT WS_GROUP
+    GROUPBOX        "Filesize",-1,162,112,94,48
+    LTEXT           "Number of lines:",-1,168,128,24,8,NOT WS_GROUP
     CONTROL         "Text",-1,"Static",SS_BLACKFRAME,212,126,40,12
     LTEXT           "12345",IDD_RO5,226,128,24,8,NOT WS_GROUP
-    LTEXT           "Zeichen:",-1,168,144,32,8,NOT WS_GROUP
+    LTEXT           "Characters:",-1,168,144,32,8,NOT WS_GROUP
     CONTROL         "Text",-1,"Static",SS_BLACKFRAME,212,142,40,12
     LTEXT           "1234567",IDD_RO4,218,144,32,8,NOT WS_GROUP
-    PUSHBUTTON      "Abbruch",IDCANCEL,210,24,42,14
+    PUSHBUTTON      "Cancel",IDCANCEL,210,24,42,14
     DEFPUSHBUTTON   "&Ok",1,210,8,42,14
 END
 
@@ -182,59 +182,58 @@ BEGIN
     DEFPUSHBUTTON   "&Replace",1,240,15,66,16,WS_GROUP
     PUSHBUTTON      "&Mark",IDD_BUT3,258,132,48,18,WS_GROUP
     PUSHBUTTON      "Cancel",2,240,33,66,16,WS_GROUP
-    CONTROL         "Preserve upper/lower case",IDD_PRESERVE_CASE,
-                    "Button",BS_AUTOCHECKBOX,12,102,130,14
+    CONTROL         "Preserve upper/lower case",IDD_PRESERVE_CASE,"Button",BS_AUTOCHECKBOX,12,102,130,14
 END
 
 DLGABORT DIALOGEX 46, 58, 484, 60
 STYLE DS_SETFONT | WS_POPUP | WS_VISIBLE | WS_SYSMENU | WS_THICKFRAME
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "Der Text wird konvertiert..",IDD_STRING1,6,6,396,8,NOT WS_GROUP
-    DEFPUSHBUTTON   "&Abbruch",2,439,6,40,14
-    LTEXT           "PKS Edit braucht für diesen Vorgang etwas länger. Wir bitten um Geduld.",IDD_STRING2,6,24,431,8,NOT WS_GROUP
+    LTEXT           "The text is being converted..",IDD_STRING1,6,6,396,8,NOT WS_GROUP
+    DEFPUSHBUTTON   "&Cancel",2,439,6,40,14
+    LTEXT           "PKS Edit takes some time for this function to complete. Please stand by.",IDD_STRING2,6,24,431,8,NOT WS_GROUP
     CONTROL         "",IDC_PROGRESS,"msctls_progress32",PBS_MARQUEE | WS_BORDER,6,40,473,11
 END
 
 DLGABOUT DIALOGEX 54, 48, 267, 158
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Über PKS-EDIT"
+CAPTION "About PKS-EDIT"
 FONT 8, "helv", 0, 0, 0x1
 BEGIN
-    LTEXT           "Programm - Editor für MS Windows",IDD_OPT6,48,20,126,12,NOT WS_GROUP
+    LTEXT           "Programm - Editor for MS Windows",IDD_OPT6,48,20,126,12,NOT WS_GROUP
     LTEXT           "Version 1.3 - 12.5.2021",IDD_STRING2,48,36,102,8,NOT WS_GROUP
     CONTROL         "Author: Tom Krauß",IDD_OPT11,"Static",SS_LEFTNOWORDWRAP,18,98,74,8
     LTEXT           "Mozilla Public License Version 2.0",111,18,116,160,16,NOT WS_GROUP
     PUSHBUTTON      "&OK",1,210,116,38,14
     LTEXT           "?",IDD_RO1,20,76,122,8,NOT WS_GROUP
     ICON            "APP_ICON",3,19,18,20,20
-    LTEXT           "Dieses Produkt wurde lizensiert für:",-1,20,63,122,8
+    LTEXT           "This product has been licensed for:",-1,20,63,122,8
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,55,232,1
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,92,232,1
-    RTEXT           "Gestaltung: Rolf-D. Pahlen",127,97,98,94,8,NOT WS_GROUP
-    LTEXT           "Plattform:",IDD_STRING1,174,20,80,8,NOT WS_GROUP
+    RTEXT           "Design: Rolf-D. Pahlen",127,97,98,94,8,NOT WS_GROUP
+    LTEXT           "Platform:",IDD_STRING1,174,20,80,8,NOT WS_GROUP
 END
 
 DLGALIGN DIALOG 24, 88, 242, 124
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Ausrichten von Textbereichen"
+CAPTION "Align Textranges"
 FONT 8, "helv"
 BEGIN
-    LTEXT           "A&usrichten von:",-1,6,6,60,8
+    LTEXT           "Align:",-1,6,6,60,8
     COMBOBOX        IDD_FINDS,6,18,116,46,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Optionen Ausrichten",-1,4,42,112,56,WS_GROUP
-    CONTROL         "&Fest auf Cursorposition",IDD_3S1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,58,102,10
-    CONTROL         "&1. Spalte ab Cursor",IDD_3S2,"Button",BS_AUTOCHECKBOX,8,70,102,8
-    CONTROL         "A&lign Trennerende",IDD_OPT2,"Button",BS_AUTOCHECKBOX,8,82,102,10
-    GROUPBOX        "Optionen Suche",-1,130,42,102,56
+    GROUPBOX        "Alignment Options",-1,4,42,112,56,WS_GROUP
+    CONTROL         "&Fix Caretposition",IDD_3S1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,58,102,10
+    CONTROL         "&1st Column from Cursor",IDD_3S2,"Button",BS_AUTOCHECKBOX,8,70,102,8
+    CONTROL         "A&lign Delimiter End",IDD_OPT2,"Button",BS_AUTOCHECKBOX,8,82,102,10
+    GROUPBOX        "Options Search",-1,130,42,102,56
     CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,134,58,92,12
-    CONTROL         "Regul&äre Ausdrücke",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,134,70,80,12
+    CONTROL         "Regul&ar Expression",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,134,70,80,12
     CONTROL         "&Shell Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,134,82,80,12
-    LTEXT           "F&üllbuchstabe:",-1,166,108,50,8
+    LTEXT           "F&ill Character:",-1,166,108,50,8
     EDITTEXT        IDD_CHAR,220,106,12,12
-    LTEXT           "&Bereich:",-1,6,106,30,8
+    LTEXT           "&Range:",-1,6,106,30,8
     COMBOBOX        IDD_RNGE,42,104,71,48,CBS_DROPDOWNLIST | WS_TABSTOP
-    PUSHBUTTON      "&Abbruch",2,192,24,42,14,WS_GROUP
+    PUSHBUTTON      "&Cancel",2,192,24,42,14,WS_GROUP
     DEFPUSHBUTTON   "&OK",1,192,6,42,14,WS_GROUP
 END
 
@@ -243,22 +242,22 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Desktop Icons"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "Icontyp:",114,4,8,48,8
-    PUSHBUTTON      "&Neu",IDD_CALLBACK1,147,20,52,14,WS_GROUP
-    PUSHBUTTON      "Abbruch",IDCANCEL,147,74,52,14
+    LTEXT           "Icon Type:",114,4,8,48,8
+    PUSHBUTTON      "&New",IDD_CALLBACK1,147,20,52,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,147,74,52,14
     LISTBOX         IDD_ICONLIST,4,21,140,135,LBS_OWNERDRAWFIXED | WS_VSCROLL
-    LTEXT           "Titel:",113,4,168,20,8
+    LTEXT           "Title:",113,4,168,20,8
     EDITTEXT        IDD_STRING1,48,168,150,12
     LTEXT           "Parameter:",115,4,186,40,8
     EDITTEXT        IDD_PATH1,48,186,150,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Löschen",IDD_CALLBACK2,147,38,52,14,WS_GROUP
-    DEFPUSHBUTTON   "&Ändern",IDD_CALLBACK3,147,56,52,14,WS_GROUP
-    PUSHBUTTON      "Pfad auswählen...",IDD_PATH2SEL,96,204,104,14
+    PUSHBUTTON      "&Delete",IDD_CALLBACK2,147,38,52,14,WS_GROUP
+    DEFPUSHBUTTON   "&Change",IDD_CALLBACK3,147,56,52,14,WS_GROUP
+    PUSHBUTTON      "Select Path...",IDD_PATH2SEL,96,204,104,14
 END
 
 DLGCONTROLINS DIALOG 11, 19, 196, 136
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Auswahl Zeichensatz"
+CAPTION "Select Characteset"
 FONT 8, "helv"
 BEGIN
     CONTROL         "Text",IDD_OPT11,"Static",SS_BLACKFRAME,0,0,196,84
@@ -266,90 +265,90 @@ BEGIN
     CONTROL         "Text",111,"Static",SS_BLACKFRAME,0,84,196,12
     CONTROL         "X",IDD_CSEL,"charset",WS_TABSTOP,2,2,192,78
     DEFPUSHBUTTON   "OK",1,116,108,40,14
-    PUSHBUTTON      "Abbruch",2,36,108,40,14
+    PUSHBUTTON      "Cancel",2,36,108,40,14
 END
 
 DLGCONVERT DIALOG 42, 57, 186, 54
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Expandieren Tabulatoren"
+CAPTION "Expand Tabs"
 FONT 8, "helv"
 BEGIN
-    LTEXT           "B&ereich:",114,8,14,30,8
+    LTEXT           "Range:",114,8,14,30,8
     COMBOBOX        IDD_RNGE,8,30,116,56,CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "&Abbruch",2,136,10,44,14,WS_GROUP
+    PUSHBUTTON      "&Cancel",2,136,10,44,14,WS_GROUP
     DEFPUSHBUTTON   "&OK",1,136,30,44,14
 END
 
 DLGCURSOROPTIONS DIALOGEX 91, 91, 211, 87
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Einstellung Cursor und Ränder"
+CAPTION "Options Caret and Scrolling"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "Verhalten beim Rollen",-1,4,16,104,66,WS_GROUP
-    LTEXT           "&Minimum Cursor-Rand:",-1,8,29,80,10,NOT WS_GROUP
+    GROUPBOX        "Scrollbehavior",-1,4,16,104,66,WS_GROUP
+    LTEXT           "&Minimum Margin of Caret:",-1,8,29,80,10,NOT WS_GROUP
     EDITTEXT        IDD_INT3,92,28,12,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "&Scrolle mindestens um:",-1,8,42,78,8,NOT WS_GROUP
+    LTEXT           "&Scroll at least by:",-1,8,42,78,8,NOT WS_GROUP
     EDITTEXT        IDD_INT4,92,40,12,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    CONTROL         "&Bildschirmupdate",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,56,96,10
-    CONTROL         "Cursor &folgt",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,68,96,10
-    GROUPBOX        "Cursor nach Suchen",-1,112,28,96,54,WS_GROUP
-    CONTROL         "&Oben am Bildschirm",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,116,40,82,12
-    CONTROL         "&Zentriert ",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,116,52,82,12
-    CONTROL         "&Unten am Bildschirm",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,116,64,82,12
-    PUSHBUTTON      "Abbruch",2,118,6,40,14,WS_GROUP
+    CONTROL         "&Update Screen during Scroll",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,56,96,10
+    CONTROL         "Caret follows scrollbar",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,68,96,10
+    GROUPBOX        "Caret after searchs",-1,112,28,96,54,WS_GROUP
+    CONTROL         "&Screentop",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,116,40,82,12
+    CONTROL         "&Centered",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,116,52,82,12
+    CONTROL         "&Scrollbottom",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,116,64,82,12
+    PUSHBUTTON      "Cancel",2,118,6,40,14,WS_GROUP
     DEFPUSHBUTTON   "OK",1,166,6,40,14,WS_GROUP
 END
 
 DLGDISPMODE DIALOGEX 46, 24, 247, 197
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Modus Anzeige"
+CAPTION "Mode Display"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    GROUPBOX        " Anzeige",1000,6,24,234,74
-    CONTROL         "&Controlzeichen",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,10,38,105,10
-    CONTROL         "A&lternativer Status",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,48,105,10
-    CONTROL         "L&ineal anzeigen",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,58,105,10
-    CONTROL         "&OEM - Zeichensatz",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,38,88,10
-    CONTROL         "F&este Fensterlage",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,48,88,10
-    CONTROL         "Kein &vertikaler Slider",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,58,88,10
-    CONTROL         "Kein hori&zontaler Slider",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,68,88,10
-    LTEXT           "Tabs anzeigen aufgef&üllt mit:",118,9,110,90,8
+    GROUPBOX        "Display",1000,6,24,234,74
+    CONTROL         "&Tabs and Spaces",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,10,38,105,10
+    CONTROL         "A&lternate Statusline",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,48,105,10
+    CONTROL         "Show R&uler",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,58,105,10
+    CONTROL         "&OEM - Charset",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,38,88,10
+    CONTROL         "Fixed Window Positions",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,48,88,10
+    CONTROL         "No &vertical Slider",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,58,88,10
+    CONTROL         "No hori&zontal Slider",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,68,88,10
+    LTEXT           "Fill Tabs with:",118,9,110,90,8
     EDITTEXT        IDD_CHAR,107,110,16,12,ES_AUTOHSCROLL
-    LTEXT           "Fo&rmat alternative Statuszeile:",117,6,158,104,8,NOT WS_GROUP
+    LTEXT           "Fo&rmat alternate Statusline:",117,6,158,104,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,6,170,229,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "Abbruch",2,137,8,48,14
+    PUSHBUTTON      "Cancel",2,137,8,48,14
     DEFPUSHBUTTON   "OK",1,189,8,48,14
-    LTEXT           "&Tabulatorabstand:",217,9,126,62,10
+    LTEXT           "&Tabsize:",217,9,126,62,10
     EDITTEXT        IDD_INT1,107,124,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "&Rechter Rand:",220,11,140,50,8
+    LTEXT           "&Right Margin:",220,11,140,50,8
     EDITTEXT        IDD_INT2,107,138,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    CONTROL         "&Zeilennummern anzeigen",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,68,105,10
-    CONTROL         "&Zeile mit Cursor markieren",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,80,105,10
+    CONTROL         "&Show line numbers",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,68,105,10
+    CONTROL         "&Highlight line with caret",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,80,105,10
 END
 
 DLGEXEC DIALOG 7, 68, 245, 134
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "Programm starten"
+CAPTION "Execute Program"
 FONT 8, "helv"
 BEGIN
-    LTEXT           "K&ommando:",99,8,12,36,10
+    LTEXT           "C&omman:",99,8,12,36,10
     EDITTEXT        IDD_PATH1,48,10,136,12
-    PUSHBUTTON      "D&urchsuchen..",IDD_PATH2SEL,186,8,54,16
-    LTEXT           "P&fad:",111,8,28,36,8
+    PUSHBUTTON      "Find..",IDD_PATH2SEL,186,8,54,16
+    LTEXT           "P&ath:",111,8,28,36,8
     EDITTEXT        IDD_STRING1,48,26,136,12
-    GROUPBOX        "Umleitungen",112,4,48,72,60
-    CONTROL         "&Keine",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,8,58,52,12
-    CONTROL         "&Produzent",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,8,70,52,12
-    CONTROL         "Kon&sument",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,8,82,52,12
-    CONTROL         "Kon&verter",IDD_RADIO4,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,8,94,52,12
-    GROUPBOX        "Optionen",113,80,48,98,60
-    CONTROL         "Als S&ymbol",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,84,60,86,12
-    CONTROL         "&Warten",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,84,72,86,12
-    CONTROL         "&Dos Applikation",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,84,84,86,12
-    LTEXT           "Fehler&liste:",120,8,118,36,8
+    GROUPBOX        "Redirections",112,4,48,72,60
+    CONTROL         "&None",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,8,58,52,12
+    CONTROL         "&Producer",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,8,70,52,12
+    CONTROL         "Con&sumer",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,8,82,52,12
+    CONTROL         "Con&verter",IDD_RADIO4,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,8,94,52,12
+    GROUPBOX        "Optiona",113,80,48,98,60
+    CONTROL         "As S&ymbol",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,84,60,86,12
+    CONTROL         "&Wait",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,84,72,86,12
+    CONTROL         "&Dos Application",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,84,84,86,12
+    LTEXT           "Error&list:",120,8,118,36,8
     EDITTEXT        IDD_STRING2,50,116,136,12
     DEFPUSHBUTTON   "OK",1,186,56,54,14,WS_GROUP
-    PUSHBUTTON      "Abbruch",2,186,78,54,14,WS_GROUP
+    PUSHBUTTON      "Cancel",2,186,78,54,14,WS_GROUP
 END
 
 DLGFIND DIALOGEX 22, 125, 259, 88
@@ -371,25 +370,14 @@ BEGIN
     DEFPUSHBUTTON   "OK",1,217,6,38,14
 END
 
-DLGFINDTAG DIALOGEX 68, 77, 176, 46
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Find Cross Reference"
-FONT 8, "helv", 0, 0, 0x0
-BEGIN
-    COMBOBOX        IDD_FINDS,4,20,112,56,CBS_DROPDOWN | CBS_AUTOHSCROLL | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Search for:",IDD_OPT2,4,8,60,8,NOT WS_GROUP
-    DEFPUSHBUTTON   "&OK",1,128,28,44,14
-    PUSHBUTTON      "&Cancel",2,128,8,44,14
-END
-
 DLGFKEYSET DIALOG 82, 45, 112, 90
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Funktionstastenbelegung"
+CAPTION "Function Key Assignment"
 FONT 8, "helv"
 BEGIN
     CONTROL         "&Normal",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,12,10,48,10
-    CONTROL         "&Funktionstasten sichtbar",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,6,54,102,10
-    PUSHBUTTON      "&Abbruch",2,8,68,40,14
+    CONTROL         "&Functionkeys visible",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,6,54,102,10
+    PUSHBUTTON      "&Cancel",2,8,68,40,14
     DEFPUSHBUTTON   "&OK",1,64,68,44,14
     CONTROL         "&Control",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,12,20,48,10
     CONTROL         "&Alt",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,12,30,48,10
@@ -398,121 +386,121 @@ END
 
 DLGFORMAT DIALOG 8, 72, 218, 106
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Formatieren von Text"
+CAPTION "Format Text"
 FONT 8, "helv"
 BEGIN
-    GROUPBOX        " Ausrichtung",115,8,10,104,66,WS_GROUP
-    CONTROL         "&Links Bündig",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,12,24,90,10
-    CONTROL         "&Rechts Bündig",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON,12,36,90,10
-    CONTROL         "&Zentriert",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON,12,48,90,10
-    CONTROL         "&Blocksatz",IDD_RADIO4,"Button",BS_AUTORADIOBUTTON,12,60,90,10
-    LTEXT           "B&ereich:",114,10,90,30,8
+    GROUPBOX        "Alignment",115,8,10,104,66,WS_GROUP
+    CONTROL         "&Left aligned",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,12,24,90,10
+    CONTROL         "&Right aligned",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON,12,36,90,10
+    CONTROL         "&Centered",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON,12,48,90,10
+    CONTROL         "&Justified",IDD_RADIO4,"Button",BS_AUTORADIOBUTTON,12,60,90,10
+    LTEXT           "Ran&ge:",114,10,90,30,8
     COMBOBOX        IDD_RNGE,49,89,69,42,CBS_DROPDOWNLIST | WS_TABSTOP
-    GROUPBOX        " Optionen",IDD_OPT10,126,58,88,42,WS_GROUP
-    CONTROL         "&WP-Modus",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,132,72,80,12
+    GROUPBOX        " Options",IDD_OPT10,126,58,88,42,WS_GROUP
+    CONTROL         "&WP-Mode",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,132,72,80,12
     CONTROL         "&Indent",IDD_OPT2,"Button",BS_AUTOCHECKBOX,132,84,80,12
-    PUSHBUTTON      "&Abbruch",2,168,26,44,14,WS_GROUP
+    PUSHBUTTON      "&Cancel",2,168,26,44,14,WS_GROUP
     DEFPUSHBUTTON   "&OK",1,168,8,44,14
 END
 
 DLGGOTOLINE DIALOG 42, 85, 166, 48
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Gehe zu Zeile"
+CAPTION "Goto line"
 FONT 8, "helv"
 BEGIN
     EDITTEXT        IDD_LONG1,56,10,48,12,ES_LOWERCASE
-    LTEXT           "Zeilennummer:",IDD_OPT2,4,12,52,8,NOT WS_GROUP
+    LTEXT           "Linenumber:",IDD_OPT2,4,12,52,8,NOT WS_GROUP
     DEFPUSHBUTTON   "&OK",1,120,30,40,14
-    PUSHBUTTON      "&Abbruch",2,120,8,40,14
+    PUSHBUTTON      "&Cancel",2,120,8,40,14
 END
 
 DLGMULTI DIALOGEX 42, 35, 170, 44
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "Multiplikator"
+CAPTION "Multiplier"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "Setze Multiplikator: ",IDD_LOWOPT,8,12,68,8,NOT WS_GROUP
+    LTEXT           "Set Multiplier: ",IDD_LOWOPT,8,12,68,8,NOT WS_GROUP
     EDITTEXT        IDD_LONG1,76,10,32,12,ES_RIGHT | ES_NUMBER,WS_EX_RIGHT
     DEFPUSHBUTTON   "&OK",1,116,26,48,14
-    PUSHBUTTON      "&Abbruch",2,116,8,48,14
+    PUSHBUTTON      "&Cancel",2,116,8,48,14
 END
 
 DLGQUERYDELETE DIALOG 59, 62, 200, 48
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Löschen von Datei oder Ordner"
+CAPTION "Delete File or Folder"
 FONT 8, "helv"
 BEGIN
     DEFPUSHBUTTON   "&OK",1,152,30,44,14
     CONTROL         "Text",IDD_OPT11,"Static",SS_BLACKFRAME,32,12,112,12
     LTEXT           "&Name:",112,4,14,28,8,NOT WS_GROUP
     LTEXT           "T",IDD_RO1,36,14,104,8,NOT WS_GROUP
-    PUSHBUTTON      "&Abbruch",2,152,10,44,14
+    PUSHBUTTON      "&Cancel",2,152,10,44,14
 END
 
 DLGQUERYRENAME DIALOG 59, 62, 200, 48
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Umbenennen"
+CAPTION "Rename"
 FONT 8, "helv"
 BEGIN
     DEFPUSHBUTTON   "&OK",1,152,26,44,14
-    RTEXT           "Datei:",112,4,10,24,8,NOT WS_GROUP
+    RTEXT           "File:",112,4,10,24,8,NOT WS_GROUP
     LTEXT           "T",IDD_RO1,36,10,104,8,NOT WS_GROUP
-    PUSHBUTTON      "&Abbruch",2,152,8,44,14
+    PUSHBUTTON      "&Cancel",2,152,8,44,14
     RTEXT           "&In:",111,12,24,16,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,36,22,104,12,ES_AUTOHSCROLL
 END
 
 DLGQUERYREPLACE DIALOG 56, 74, 204, 58
 STYLE DS_SETFONT | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "Ersetzen auf Rückfrage"
+CAPTION "Replace Confirmation"
 FONT 8, "helv"
 BEGIN
-    LTEXT           "Ersetze:",IDD_OPT6,6,6,34,8,NOT WS_GROUP
-    LTEXT           "Gegen:",IDD_OPT7,6,22,34,8,NOT WS_GROUP
+    LTEXT           "Replace:",IDD_OPT6,6,6,34,8,NOT WS_GROUP
+    LTEXT           "With:",IDD_OPT7,6,22,34,8,NOT WS_GROUP
     CONTROL         "Text",IDD_OPT8,"Static",SS_BLACKFRAME,44,5,148,13
     CONTROL         "Text",IDD_OPT9,"Static",SS_BLACKFRAME,44,21,148,13
     LTEXT           "X",IDD_STRING1,46,8,138,8,NOT WS_GROUP
     LTEXT           "Y",IDD_STRING2,46,24,142,8,NOT WS_GROUP
-    DEFPUSHBUTTON   "&Ja",1,8,40,36,12
-    PUSHBUTTON      "&Nein",IDD_MACDELETE,60,40,36,12
-    PUSHBUTTON      "&Alle",4,112,40,36,12
-    PUSHBUTTON      "&Ende",2,164,40,32,12
+    DEFPUSHBUTTON   "&Yes",1,8,40,36,12
+    PUSHBUTTON      "&No",IDD_MACDELETE,60,40,36,12
+    PUSHBUTTON      "&All",4,112,40,36,12
+    PUSHBUTTON      "&End",2,164,40,32,12
 END
 
 DLGRECORDER DIALOG 28, 87, 213, 49
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Optionen für die Wiedergabe"
+CAPTION "Options for playbacks"
 FONT 8, "helv"
 BEGIN
-    CONTROL         "&Dialog öffnet sich",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,10,102,10
-    CONTROL         "&Parameter eingestellt",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,20,102,10
-    CONTROL         "&Redraw beim Öffnen",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,30,102,10
-    PUSHBUTTON      "&Zurücknehmen",2,132,28,60,14
+    CONTROL         "&Dialog will be opened",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,10,102,10
+    CONTROL         "&Parameter defined",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,20,102,10
+    CONTROL         "&Redraw when opening",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,30,102,10
+    PUSHBUTTON      "&Reset",2,132,28,60,14
     DEFPUSHBUTTON   "OK",1,132,10,60,14
 END
 
 DLGSORT DIALOG 9, 51, 219, 132
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Sortieren von Text"
+CAPTION "Sort file contents"
 FONT 8, "helv"
 BEGIN
-    LTEXT           "&Selektionskriterium:",-1,4,10,74,8,NOT WS_GROUP
+    LTEXT           "&Selectioncriteria:",-1,4,10,74,8,NOT WS_GROUP
     COMBOBOX        IDD_FINDS2,4,22,104,44,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Schl&üsselfelder:",-1,4,42,58,8,NOT WS_GROUP
+    LTEXT           "Ke&yfields:",-1,4,42,58,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING2,4,54,104,12,ES_AUTOHSCROLL
-    GROUPBOX        " Optionen",-1,6,74,104,52,WS_GROUP
-    CONTROL         "An Sortierzeile &binden",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,86,96,12
-    CONTROL         "Abstei&gend",IDD_OPT2,"Button",BS_AUTOCHECKBOX,10,98,94,12
-    CONTROL         "S&kippe Mehrfachtrenner",IDD_OPT3,"Button",BS_AUTOCHECKBOX,10,110,96,12
-    GROUPBOX        "Optionen für Selektion",-1,118,30,94,54,WS_GROUP
+    GROUPBOX        "Optionen",-1,6,74,104,52,WS_GROUP
+    CONTROL         "Bind to sort criteria",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,86,96,12
+    CONTROL         "Descending",IDD_OPT2,"Button",BS_AUTOCHECKBOX,10,98,94,12
+    CONTROL         "S&kip Multiple Delimiters",IDD_OPT3,"Button",BS_AUTOCHECKBOX,10,110,96,12
+    GROUPBOX        "Options for selection",-1,118,30,94,54,WS_GROUP
     CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,124,44,84,12
-    CONTROL         "Regul&äre Ausdrücke",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,124,56,84,12
+    CONTROL         "Regular expressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,124,56,84,12
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,124,68,84,12
-    LTEXT           "B&ereich:",-1,118,94,30,8
+    LTEXT           "R&ange:",-1,118,94,30,8
     COMBOBOX        IDD_RNGE,158,92,55,43,CBS_DROPDOWNLIST | WS_TABSTOP
-    LTEXT           "&Feldtrenner:",-1,118,112,40,8,NOT WS_GROUP
+    LTEXT           "&Field Delimiter:",-1,118,112,40,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,158,110,54,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Abbruch",2,120,6,44,14,WS_GROUP
+    PUSHBUTTON      "&Cancel",2,120,6,44,14,WS_GROUP
     DEFPUSHBUTTON   "&OK",1,168,6,44,14
 END
 
@@ -540,57 +528,57 @@ BEGIN
     EDITTEXT        IDD_STRING1,8,175,108,12,ES_AUTOHSCROLL
     LTEXT           "&Expand Tabs:",114,235,165,70,10,NOT WS_GROUP
     EDITTEXT        IDD_CHAR,269,174,36,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "Abbruch",2,215,6,42,16
+    PUSHBUTTON      "Cancel",2,215,6,42,16
     DEFPUSHBUTTON   "OK",1,264,6,42,16
-    CONTROL         "Mehrere Spaces löschen",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,81,138,10
+    CONTROL         "Delete multiple spaces",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,81,138,10
 END
 
 DLGMACNAME DIALOG 20, 30, 132, 66
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Benennen Macro"
+CAPTION "Rename Macro"
 FONT 8, "helv"
 BEGIN
-    LTEXT           "&Auslösetaste: ",IDD_OPT11,4,26,44,8,NOT WS_GROUP
+    LTEXT           "Bind to &key: ",IDD_OPT11,4,26,44,8,NOT WS_GROUP
     LTEXT           "&Name:",111,4,10,44,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,52,8,72,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "Abbruch",2,28,46,44,14
+    PUSHBUTTON      "Cancel",2,28,46,44,14
     DEFPUSHBUTTON   "OK",1,80,46,44,14
     PUSHBUTTON      "",IDD_KEYCODE,52,25,70,14
 END
 
 DLGKEYCODE DIALOG 45, 61, 132, 56
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "Einfügen Tastencode"
+CAPTION "Insert keycode"
 FONT 8, "helv"
 BEGIN
     PUSHBUTTON      "",IDD_KEYCODE,38,12,84,14
-    PUSHBUTTON      "Abbruch",2,36,34,40,14
+    PUSHBUTTON      "Cancel",2,36,34,40,14
     DEFPUSHBUTTON   "OK",1,80,34,44,14
-    LTEXT           "Taste : ",IDD_LOWOPT,10,16,28,8,NOT WS_GROUP
+    LTEXT           "Keycode: ",IDD_LOWOPT,10,16,28,8,NOT WS_GROUP
 END
 
 DLGMACROS DIALOG 45, 60, 242, 164
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Makroliste"
+CAPTION "List of Macros"
 FONT 8, "helv"
 BEGIN
-    LTEXT           "&Makro",111,4,8,28,8,NOT WS_GROUP
-    CONTROL         "&interne sichtbar",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,56,6,60,12
+    LTEXT           "&Macro",111,4,8,28,8,NOT WS_GROUP
+    CONTROL         "&show internal macros",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,56,6,60,12
     EDITTEXT        IDD_STRING1,4,20,114,12
     LISTBOX         IDD_MACROLIST,4,36,113,120,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_WANTKEYBOARDINPUT | WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDD_STRING2,124,36,112,28,ES_MULTILINE | ES_AUTOVSCROLL
-    PUSHBUTTON      "B&earbeiten",IDD_MACEDIT,124,68,38,12,WS_GROUP
-    PUSHBUTTON      "&Benennen",IDD_MACRENAME,200,68,36,12,NOT WS_TABSTOP
-    PUSHBUTTON      "L&öschen",IDD_MACDELETE,164,68,34,12,NOT WS_TABSTOP
-    DEFPUSHBUTTON   "&Starten",IDD_MACSTART,188,10,48,14,NOT WS_TABSTOP
-    LTEXT           "&Tastentabelle",114,124,86,64,8
+    PUSHBUTTON      "E&dit",IDD_MACEDIT,124,68,38,12,WS_GROUP
+    PUSHBUTTON      "&Rename",IDD_MACRENAME,200,68,36,12,NOT WS_TABSTOP
+    PUSHBUTTON      "De&lete",IDD_MACDELETE,164,68,34,12,NOT WS_TABSTOP
+    DEFPUSHBUTTON   "&Start",IDD_MACSTART,188,10,48,14,NOT WS_TABSTOP
+    LTEXT           "&Keyboard bindings",114,124,86,64,8
     LISTBOX         IDD_LISTBOX,124,96,64,34,LBS_SORT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Auslösetaste",113,124,126,44,8,NOT WS_GROUP
+    LTEXT           "&Shortcut",113,124,126,44,8,NOT WS_GROUP
     LISTBOX         IDD_LISTBOX2,124,136,64,26,LBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "&Zuordnen",IDD_BUT3,192,128,42,12
-    PUSHBUTTON      "&Lösen",IDD_MACDELKEY,192,112,42,12,NOT WS_TABSTOP
-    PUSHBUTTON      "S&uchen",IDD_MACFINDKEY,192,144,42,12,NOT WS_TABSTOP
-    PUSHBUTTON      "Ende",1,136,10,48,14
+    PUSHBUTTON      "&Assign",IDD_BUT3,192,128,42,12
+    PUSHBUTTON      "&Disconnect",IDD_MACDELKEY,192,112,42,12,NOT WS_TABSTOP
+    PUSHBUTTON      "S&earch",IDD_MACFINDKEY,192,144,42,12,NOT WS_TABSTOP
+    PUSHBUTTON      "End",1,136,10,48,14
 END
 
 DLGFILEFORMAT DIALOGEX 64, 58, 241, 117
@@ -692,36 +680,38 @@ END
 
 DLGCRYPT DIALOGEX 27, 67, 276, 39
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Bearbeiten einer verschlüsselten Datei"
+CAPTION "Open password secured file"
 FONT 8, "Helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "Geben Sie das Kennwort zum Ver/Entschlüsseln ein:",-1,6,10,167,8
+    LTEXT           "Enter the password to de-crypt the file:",-1,6,10,167,8
     EDITTEXT        IDD_STRING1,5,22,265,12,ES_PASSWORD
 END
 
 DLGPROMPT DIALOG 27, 67, 176, 83
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Abfrage"
+CAPTION "Query"
 FONT 8, "Helv"
 BEGIN
     LTEXT           "Prompt",IDD_RO1,6,10,160,18
     EDITTEXT        IDD_STRING1,14,32,154,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,118,60,48,14
-    PUSHBUTTON      "Abbruch",IDCANCEL,62,60,44,14
+    PUSHBUTTON      "Cancel",IDCANCEL,62,60,44,14
 END
 
 DLGTAGLIST DIALOGEX 19, 54, 589, 174
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Liste gefundener Verweise"
+CAPTION "Browse Cross Reference Tags"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "Typ",-1,10,40,16,8,NOT WS_GROUP
-    LTEXT           "&Verweis",-1,47,40,34,8
-    LTEXT           "Beschreibung",-1,317,40,70,8,NOT WS_GROUP
+    LTEXT           "Type",-1,10,40,16,8,NOT WS_GROUP
+    LTEXT           "&File",-1,151,40,55,8
+    LTEXT           "Description",-1,348,40,70,8,NOT WS_GROUP
     LISTBOX         IDD_ICONLIST,5,55,573,114,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Die Verweis-Suche ergab mehrere Ergebnisse. Bitte wählen Sie den gewünschten Verweis aus.",-1,9,17,324,12,NOT WS_GROUP
-    PUSHBUTTON      "Abbruch",IDCANCEL,526,28,54,15,WS_GROUP
-    DEFPUSHBUTTON   "Verzweigen",IDOK,526,6,54,18,WS_GROUP
+    LTEXT           "Please select the appropriate cross reference",-1,9,9,324,9,NOT WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,526,28,54,15,WS_GROUP
+    DEFPUSHBUTTON   "Navigate",IDOK,526,6,54,18,WS_GROUP
+    EDITTEXT        IDD_STRING1,9,22,496,14,ES_AUTOHSCROLL
+    LTEXT           "&Term",-1,45,40,57,8
 END
 
 DLGPRINTERLAYOUT DIALOGEX 15, 40, 313, 356
@@ -770,37 +760,37 @@ END
 
 DLGNEWASPATH DIALOG 30, 92, 205, 76
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Autosave - Pfad einstellen"
+CAPTION "Change Autosave - Path"
 FONT 8, "helv"
 BEGIN
-    LTEXT           "Pfad:",-1,8,16,16,8
+    LTEXT           "Path:",-1,8,16,16,8
     EDITTEXT        IDD_STRING1,30,14,166,12
-    LTEXT           "Der Pfad für die automatische Sicherung von Dateien ist nicht gültig. Bitte geben Sie einen alternativen Pfad an.",-1,4,36,126,34
-    PUSHBUTTON      "Abbruch",IDCANCEL,148,34,52,14,WS_GROUP
-    DEFPUSHBUTTON   "Übernehmen",IDOK,148,52,52,16,WS_GROUP
+    LTEXT           "The path for backup files is not valid. Please select an alternate path.",-1,4,36,126,34
+    PUSHBUTTON      "Cancel",IDCANCEL,148,34,52,14,WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,148,52,52,16,WS_GROUP
 END
 
 DLGSELTMPLATE DIALOGEX 54, 44, 208, 170
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Einfügen Textbaustein"
+CAPTION "Insert Code Template"
 FONT 8, "helv", 400, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "A",IDD_RAWCHAR,16,146,24,14
     LISTBOX         IDD_ICONLIST,10,12,40,131,LBS_SORT | WS_VSCROLL | WS_GROUP | WS_TABSTOP
     EDITTEXT        IDD_RO1,56,12,144,129,ES_MULTILINE | NOT WS_TABSTOP
-    PUSHBUTTON      "Abbruch",IDCANCEL,66,146,52,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,66,146,52,14,WS_GROUP
     PUSHBUTTON      "OK",IDOK,124,146,52,14
 END
 
 DLGSELECTDOCTYPE DIALOG 47, 95, 223, 114
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Einstellungen"
+CAPTION "Settings"
 FONT 8, "helv"
 BEGIN
     LISTBOX         IDD_WINDOWLIST,6,20,210,64,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_VSCROLL | WS_GROUP | WS_TABSTOP
     DEFPUSHBUTTON   "Ok",1,170,94,44,14,WS_GROUP
-    LTEXT           "Datei eingestellt gemäß Dokumententyp:",-1,6,8,140,8
-    PUSHBUTTON      "Abbruch",IDCANCEL,118,94,44,14
+    LTEXT           "File edting complies to document type:",-1,6,8,140,8
+    PUSHBUTTON      "Cancel",IDCANCEL,118,94,44,14
     EDITTEXT        IDD_STRING4,12,89,16,12,NOT WS_VISIBLE
     EDITTEXT        IDD_STRING5,26,90,16,12,NOT WS_VISIBLE
     EDITTEXT        IDD_STRING6,41,93,16,12,NOT WS_VISIBLE
@@ -813,10 +803,10 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Warnungen"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    CONTROL         "&Hinweise",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,12,210,8
-    CONTROL         "&Ton bei Fehlern abspielen",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,24,210,8
+    CONTROL         "&Hints",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,12,210,8
+    CONTROL         "&Play sound on error",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,24,210,8
     CONTROL         "&Flash",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,36,210,8
-    CONTROL         "&Meldungs Fenster",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,48,210,8
+    CONTROL         "&Error window",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,48,210,8
 END
 
 DLG_OPT_AUTOSAVE DIALOGEX 0, 0, 257, 130
@@ -826,28 +816,25 @@ FONT 8, "helv", 0, 0, 0x0
 BEGIN
     LTEXT           "&Zeit [min]:",-1,12,12,36,8,NOT WS_GROUP
     EDITTEXT        IDD_INT1,174,12,42,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    CONTROL         "Einstellungen beim &Verlassen speichern",IDD_OPT2,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,204,10
-    LTEXT           "&Pfad:",-1,12,48,20,8,NOT WS_GROUP
+    CONTROL         "Save settings on Exit",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,204,10
+    LTEXT           "&Path:",-1,12,48,20,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,36,48,179,12,ES_AUTOHSCROLL
-    CONTROL         "Temporäre Dateien &automatisch löschen",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,30,204,10
-    CONTROL         "&Zuletzt geöffnete Dateien wieder öffnen",IDD_OPT3,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,84,204,10
-    CONTROL         "&Makros beim Verlassen speichern",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,102,204,10
+    CONTROL         "Automatically delete temorary files",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,30,204,10
+    CONTROL         "&Reopen previously opened files",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,84,204,10
+    CONTROL         "&Save macros on exit",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,102,204,10
 END
 
 DLG_OPT_MISC DIALOGEX 0, 0, 241, 140
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "Verschiedenes"
+CAPTION "Miscellanous"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "&Anzahl Undo-Schritte:",-1,12,29,84,12,NOT WS_GROUP
+    LTEXT           "Number of &Undo Steps",-1,12,29,84,12,NOT WS_GROUP
     EDITTEXT        IDD_INT1,156,29,60,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    CONTROL         "Undo &möglich",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,13,204,10
-    CONTROL         "Textmarkierungen bei Cursorpositionierung entfernen",IDD_OPT2,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,62,204,12
-    CONTROL         "Formulare nahe Mauszeiger öffnen",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,79,204,12
-    LTEXT           "&Maximale Anzahl Fenster:",-1,12,46,84,12,NOT WS_GROUP
+    CONTROL         "Undo &available",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,13,204,10
+    CONTROL         "Hide selection on caret position",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,62,204,12
+    CONTROL         "Open dialogs close to mouse pointer",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,79,204,12
+    LTEXT           "&Maximum number of open windows:",-1,12,46,84,12,NOT WS_GROUP
     EDITTEXT        IDD_INT2,156,46,60,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
 END
 
@@ -856,10 +843,10 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Layout"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    CONTROL         "&Optionsleiste anzeigen",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,12,210,8
-    CONTROL         "&Funktionstastenleiste anzeigen",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,24,210,8
-    CONTROL         "&Statuszeile anzeigen",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,36,210,8
-    CONTROL         "&Toolbar anzeigen",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,48,210,8
+    CONTROL         "Show &Optionbar",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,12,210,8
+    CONTROL         "Show &Functionkeybar",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,24,210,8
+    CONTROL         "Show &Statusline",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,36,210,8
+    CONTROL         "Show &Toolbar",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,48,210,8
 END
 
 
@@ -1029,7 +1016,7 @@ BEGIN
     BEGIN
     END
 
-    DLGFINDTAG, DIALOG
+    DLGTAGLIST, DIALOG
     BEGIN
     END
 
@@ -1050,12 +1037,12 @@ BEGIN
     0
 END
 
-DLGFINDTAG AFX_DIALOG_LAYOUT
+DLGPRINTERLAYOUT AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
 
-DLGPRINTERLAYOUT AFX_DIALOG_LAYOUT
+DLGTAGLIST AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

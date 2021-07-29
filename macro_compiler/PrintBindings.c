@@ -407,7 +407,7 @@ static int macro_printKeyBindingsCallback(FILE *fp)
  * macro_saveKeyBindingsAndDisplay
  */
 int macro_saveKeyBindingsAndDisplay(void) {
-	return macro_createFileAndDisplay("KEYS", macro_printKeyBindingsCallback);
+	return macro_createFileAndDisplay("keys", macro_printKeyBindingsCallback);
 }
 
 
@@ -491,7 +491,7 @@ static int macro_printMouseBindingCallback(FILE *fp)
  */
 int macro_saveMouseBindingsAndDisplay(void)
 {
-	return macro_createFileAndDisplay("MOUSE", macro_printMouseBindingCallback);
+	return macro_createFileAndDisplay("mouse", macro_printMouseBindingCallback);
 }
 
 /*--------------------------------------------------------------------------
@@ -557,7 +557,7 @@ static int macro_printMenuCallback(FILE *fp)
  */
 int macro_saveMenuBindingsAndDisplay(void)
 {
-	return macro_createFileAndDisplay("MENU", macro_printMenuCallback);
+	return macro_createFileAndDisplay("menu", macro_printMenuCallback);
 }
 
 /*--------------------------------------------------------------------------
