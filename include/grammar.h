@@ -75,6 +75,11 @@ typedef struct tagNAVIGATION_PATTERN {
 	int tagExtensionFields;			// for navigation patterns describing a CTAGS tag - the capture group containing tag extension fields
 } NAVIGATION_PATTERN;
 
+// Describes the primary ways to comment code in the described language
+typedef struct tagCOMMENT_DESCRIPTOR {
+	char comment_start[10];			// This contains the 0-terminated string to start a comment - e.g. "//"
+	char comment_end[10];			// If only a block line comment feature is avaible, this contains the 0-terminated string to end it - e.g. "*/"
+} COMMENT_DESCRIPTOR;
 
 // URL to execute with ShellExec. $1 in the URL is replaced by searched expression
 #define TST_HYPERLINK		"url"
@@ -134,6 +139,12 @@ extern NAVIGATION_PATTERN* grammar_getNavigationPatterns(GRAMMAR* pGrammar);
  * Returns the list of tag sources for a grammar.
  */
 extern TAGSOURCE* grammar_getTagSources(GRAMMAR* pGrammar);
+
+/*
+ * Returns the comment descriptor for the described language in pDescriptor.
+ * If a comment info is available this method returns 1, otherwise 0.
+ */
+extern int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescriptor);
 
 #define GRAMMAR_H
 #endif

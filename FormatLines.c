@@ -294,7 +294,7 @@ int ft_formatText(WINFO* wp, int scope, int type, int flags)
 
 	flags |= type;
 
-	if (find_setTextSelection(scope,wp,&mps,&mpe) == RNG_INVALID ||
+	if (find_setTextSelection(wp, scope, &mps,&mpe) == RNG_INVALID ||
 	    !mark_set(wp,wp->caret.linePointer,0,MARKDOT))
 		return 0;
 

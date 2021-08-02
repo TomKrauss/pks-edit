@@ -165,5 +165,14 @@ extern void string_initDateformats(void);
  */
 extern char* string_strcasestr(const char* p1, const char* p2);
 
+/*--------------------------------------------------------------------------
+ * string_skipBlanks()
+ * Skip over the leading blanks in a string. If the string only contains
+ * blanks, return 0 otherwise return a pointer to the first non space character
+ * in the string.
+ */
+extern unsigned char* string_skipBlanks(unsigned char* s);
+
+
 #define STRINGUTIL_H
 #endif

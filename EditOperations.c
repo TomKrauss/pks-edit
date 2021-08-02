@@ -20,12 +20,14 @@
 #include "functab.h"
 #include "caretmovement.h"
 #include "winfo.h"
+#include "grammar.h"
 #include "brackets.h"
 #include "edierror.h"
 #include "pksedit.h"
 #include "textblocks.h"
 #include "editorconfiguration.h"
 #include "mouseutil.h"
+#include "stringutil.h"
 
 #define	SWAP(a,b)			{	a ^= b, b ^=a, a ^= b;  }
 #define	D_EBUG(x)		{/*error_showErrorById(x); render_repaintAllForFile(fp);*/}
@@ -250,15 +252,96 @@ static int edit_postProcessInsertLine(WINFO *wp, int dir, long ln, long col)
 	return edit_handleBracketIndenting(wp,dir,lp->prev,lp);
 }
 
-/*--------------------------------------------------------------------------
- * EdLineInsert()
- * create newline and
- * insert it
+/*
+ * Find out, whether a list of lines is completely commented out according to a comment specification. 
  */
-int EdLineInsert(int control)
-{	LINE     	*olp,*nlp;
+static BOOL edit_isAllCommented(LINE* lpFirst, LINE* lpLast, COMMENT_DESCRIPTOR* pComment) {
+	size_t nLen = strlen(pComment->comment_start);
+	while (lpFirst) {
+		char* pszFirst = string_skipBlanks(lpFirst->lbuf);
+		if (!pszFirst || strncmp(pszFirst, pComment->comment_start, nLen) != 0) {
+			return FALSE;
+		}
+		if (lpFirst == lpLast) {
+			break;
+		}
+		lpFirst = lpFirst->next;
+	}
+	return TRUE;
+}
+
+/*
+ * Comment in/out the selected lines in the current editor.
+ */
+int edit_toggleComment() {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	COMMENT_DESCRIPTOR commentDescriptor;
+
+	if (wp == 0L) {
+		return 0;
+	}
+	FTABLE* fp = wp->fp;
+	if (!grammar_getCommentDescriptor(fp->documentDescriptor->grammar, &commentDescriptor)) {
+		return 0;
+	}
+	LINE* lpFirst = wp->caret.linePointer;
+	LINE* lpLast = wp->caret.linePointer;
+	if (ww_hasSelection(wp)) {
+		MARK* mps;
+		MARK* mpe;
+		if (find_setTextSelection(wp, RNG_BLOCK_LINES, &mps, &mpe) == RNG_INVALID) {
+			return 0;
+		}
+		lpFirst = mps->lm;
+		lpLast = mpe->lm;
+	}
+	// 3 states: -1 comment out, 1 comment in
+	int addCommentFlag = edit_isAllCommented(lpFirst, lpLast, &commentDescriptor) ? -1 : 1;
+	size_t nLen = strlen(commentDescriptor.comment_start);
+	size_t nLen2 = strlen(commentDescriptor.comment_end);
+	int nLines = ln_cnt(lpFirst, lpLast);
+	while(nLines > 0) {
+		char* pszFirst = string_skipBlanks(lpFirst->lbuf);
+		size_t nOffset = pszFirst ? pszFirst - lpFirst->lbuf : lpFirst->len;
+		if (addCommentFlag < 0) {
+			nOffset -= (nLen * addCommentFlag);
+		}
+		size_t nOffset2 = nOffset + (nLen * addCommentFlag);
+		if ((lpFirst = ln_modify(fp, lpFirst, (int)nOffset, (int)nOffset2)) == 0) {
+			break;
+		}
+		if (addCommentFlag > 0) {
+			strncpy(lpFirst->lbuf + nOffset, commentDescriptor.comment_start, nLen);
+		}
+		if (nLen2 > 0) {
+			size_t nOffset = lpFirst->len;
+			if (addCommentFlag < 0) {
+				if ((lpFirst = ln_modify(fp, lpFirst, (int)nOffset, (int)(nOffset - nLen2))) == 0) {
+					break;
+				}
+			}
+			else {
+				if ((lpFirst = ln_modify(fp, lpFirst, (int)nOffset, (int)(nOffset + nLen2))) == 0) {
+					break;
+				}
+				strncpy(lpFirst->lbuf + nOffset, commentDescriptor.comment_end, nLen2);
+			}
+		}
+		render_repaintLine(fp, lpFirst);
+		lpFirst = lpFirst->next;
+		nLines--;
+	}
+	return 1;
+}
+
+/*--------------------------------------------------------------------------
+ * edit_insertLine()
+ * create newline and insert it
+ */
+int edit_insertLine(int control)
+{	LINE     *olp,*nlp;
 	FTABLE 	*fp;
-	int      	dir,ai;
+	int      dir,ai;
 	long 	ln;
 	WINFO* wp = ww_getCurrentEditorWindow();
 
@@ -672,7 +755,7 @@ int EdCharInsert(int c)
 		return EdLineSplit(c == lnp->nl ? RET_SOFT : 0);
 	}
 
-	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_checkSelection(wp)) {
+	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_hasSelection(wp)) {
 		EdBlockDelete(0);
 		if (c == 8 || c == 127) {
 			return 1;
@@ -887,7 +970,7 @@ int EdLineSplit(int flags)
 		caret_placeCursorInCurrentFile(wp, wp->caret.ln+1,0L);
 	}
 	else if (!control) {
-		EdLineInsert(0);
+		edit_insertLine(0);
 	}
 	return 1;
 }
@@ -959,7 +1042,7 @@ int EdHideLines(void)
 
 	if (wp == 0 ||
 		(fp = wp->fp) == 0 ||
-		!ww_checkSelection(wp)) {
+		!ww_hasSelection(wp)) {
 		return 0;
 	}
 

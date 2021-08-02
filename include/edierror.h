@@ -204,17 +204,6 @@ extern void linetoolong(void);
 #define	MARK_RECALCULATE	0x100	/* recalculate start/end relationship */
 #define	MARK_NO_HIDE	0x200	/* do not hide the selection, if start mark is placed before an end mark - used internally only */
 
-/* valid working range types */
-#define	RNG_INVALID		-1
-#define	RNG_ONCE			0
-#define	RNG_LINE			1
-#define	RNG_CHAPTER		2
-#define	RNG_BLOCK			3
-#define	RNG_TOCURS		4
-#define	RNG_FROMCURS		5
-#define	RNG_GLOBAL		6
-#define	RNG_FREE			7
-
 /* goto textmark (lastpos) */
 #define	TM_LASTSEARCH	0
 #define	TM_LASTINSERT	1

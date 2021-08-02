@@ -28,6 +28,7 @@
 #include "linkedlist.h"
 #include "arraylist.h"
 #include "editorfont.h"
+#include "stringutil.h"
 
 #define	HAS_CHAR(ep, c)			(ep[(c & 0xff) >> 3] & bittab[c & 07])
 #define PLACE_CHAR(ep, c)		ep[c >> 3] |= bittab[c & 07];
@@ -667,5 +668,40 @@ TAGSOURCE* grammar_getTagSources(GRAMMAR* pGrammar) {
 	return pGrammar ? pGrammar->tagSources : NULL;
 }
 
+/*
+ * Returns the comment descriptor for the described language in pDescriptor.
+ * If a comment info is available this method returns 1, otherwise 0.
+ */
+int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescriptor) {
+	GRAMMAR_PATTERN* pPattern;
+	char* pszInput;
+	char* pszOutput;
+	char c;
+	int nRet = 0;
+
+	memset(pDescriptor, 0, sizeof * pDescriptor);
+	if (pGrammar == NULL) {
+		return 0;
+	}
+	for (pPattern = pGrammar->patterns; pPattern; pPattern = pPattern->next) {
+		if (string_strcasestr(pPattern->name, "comment") != NULL) {
+			nRet = 1;
+			if (pPattern->begin[0] && pPattern->end[0]) {
+				strcpy(pDescriptor->comment_start, pPattern->begin);
+				strcpy(pDescriptor->comment_end, pPattern->end);
+			} else {
+				pszInput = pPattern->match;
+				pszOutput = pDescriptor->comment_start;
+				while ((c = *pszInput++) != 0) {
+					if (c == '.' || c == '[') {
+						break;
+					}
+					*pszOutput++ = c;
+				}
+			}
+		}
+	}
+	return nRet;
+}
 
 

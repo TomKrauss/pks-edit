@@ -812,7 +812,7 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	prtDlg->hwndOwner = hwndMDIFrameWindow;
 	prtDlg->lphPropertyPages = pages;
 	prtDlg->Flags = PD_ALLPAGES | PD_RETURNDC | PD_PAGENUMS;
-	if (wp == NULL || !ww_checkSelection(wp)) {
+	if (wp == NULL || !ww_hasSelection(wp)) {
 		prtDlg->Flags |= PD_NOSELECTION;
 	}
 	prtDlg->nPageRanges = 1;

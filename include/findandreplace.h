@@ -77,11 +77,6 @@ extern int find_matchesInFiles(char* pPathes, char* pFilenamePattern, char* pSea
 extern int find_replaceTabsWithSpaces(int scope, int flg);
 
 /*--------------------------------------------------------------------------
- * find_selectRangeWithMarkers()
- */
-extern int find_selectRangeWithMarkers(int rngdefault, MARK** mps, MARK** mpe);
-
-/*--------------------------------------------------------------------------
  * EdReplaceText()
  * replace, mark, count... lines with RE
  */

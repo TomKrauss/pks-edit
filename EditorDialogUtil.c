@@ -281,7 +281,7 @@ int setwrange(HWND hwnd, int *rangetype, int first)
 	char	  szBuf[64],szSel[64];
 	HWND	  hwndList;
 
-	blkvalid = ww_checkSelection(ww_getCurrentEditorWindow());
+	blkvalid = ww_hasSelection(ww_getCurrentEditorWindow());
 	if (*rangetype == RNG_BLOCK && !blkvalid)
 		*rangetype = RNG_CHAPTER;
 

@@ -732,7 +732,7 @@ void* macro_getKeyBinding(WPARAM key)
 	void *pResult = keybound(keycode);
 	if (pResult == NULL) {
 		WINFO* wp = ww_getCurrentEditorWindow();
-		if (wp && ww_checkSelection(wp)) {
+		if (wp && ww_hasSelection(wp)) {
 			pResult = keybound(keycode | K_HAS_SELECTION);
 		}
 	}

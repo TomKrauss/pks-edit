@@ -928,6 +928,7 @@ BEGIN
         MENUITEM "Shift &right...\a",           MSHFTRIG
         MENUITEM "Shift l&eft...\a",            MSHFTLEF
         MENUITEM "S&ort File...\a",             MMSORT
+        MENUITEM "Toggle Comment...\a",         MTOGGLE_COMMENT
         MENUITEM SEPARATOR
         MENUITEM "&Compare Files\a",            MENDIFF
     END

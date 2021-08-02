@@ -61,6 +61,7 @@
 #define	MREADSET 94	
 #define	MSAVESET 95	
 #define	MEDITDOCMAC 98
+#define	MTOGGLE_COMMENT 99	
 #define	MMWRITE  100	
 #define	MMREAD   101	
 #define	MMSHOWCO 103	

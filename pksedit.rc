@@ -889,6 +889,7 @@ BEGIN
         MENUITEM "Schiebe &rechts...\a",        MSHFTRIG
         MENUITEM "Schiebe l&inks...\a",         MSHFTLEF
         MENUITEM "S&ortieren...\a",             MMSORT
+        MENUITEM "Toggle Comment...\a",         MTOGGLE_COMMENT
         MENUITEM SEPARATOR
         MENUITEM "&Vergleichen\a",              MENDIFF
     END

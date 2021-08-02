@@ -396,7 +396,7 @@ int macro_isFunctionEnabled(EDFUNC* fup, int warn) {
 		return 0;
 	}
 
-	if (fup->flags & EW_NEEDSBLK && (!wp || !ww_checkSelection(wp))) {
+	if (fup->flags & EW_NEEDSBLK && (!wp || !ww_hasSelection(wp))) {
 		return 0;
 	}
 	if ((fup->flags & EW_REDO_AVAILABLE) && !undo_isRedoAvailable(fp)) {

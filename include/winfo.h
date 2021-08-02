@@ -160,12 +160,30 @@ typedef struct tagWINFO {
      float      zoomFactor;         // The text font size zoom factor.
 } WINFO;
 
+/* valid working range types */
+#define	RNG_INVALID		   -1
+#define	RNG_ONCE			0
+#define	RNG_LINE			1
+#define	RNG_CHAPTER		    2
+#define	RNG_BLOCK			3
+#define	RNG_TOCURS		    4
+#define	RNG_FROMCURS		5
+#define	RNG_GLOBAL		    6
+#define	RNG_FREE			7
+#define	RNG_BLOCK_LINES		8       // the current selection, but for the purpose of applying an operation one a list of lines (e.g. toggle-comment or shift-lines).
+                                    // In this case the last selected line is treated as "not selected", if the column is 0.
+
 /*--------------------------------------------------------------------------
  * find_setTextSelection()
  *
- * Select a range of text in the file identified by fp.
+ * Select a range of text in the file identified by fp. For rangeType constants, see above.
  */
-extern int find_setTextSelection(int rngetype, WINFO* fp, MARK** markstart, MARK** markend);
+extern int find_setTextSelection(WINFO* wp, int rangeType, MARK** markstart, MARK** markend);
+
+/*--------------------------------------------------------------------------
+ * find_selectRangeWithMarkers()
+ */
+extern int find_selectRangeWithMarkers(int rangeType, MARK** mps, MARK** mpe);
 
 /*------------------------------------------------------------
  * render_paintWindow()
@@ -346,10 +364,10 @@ extern void ww_getstate(WINFO* wp, WINDOWPLACEMENT* wsp);
 extern void ww_requestFocusInTopWindow(void);
 
 /*---------------------------------
- * ww_checkSelection()
+ * ww_hasSelection()
  * Check whether a block selection exists in the given window.
  *---------------------------------*/
-extern int ww_checkSelection(WINFO* fp);
+extern int ww_hasSelection(WINFO* fp);
 
 /*---------------------------------
  * ww_checkSelectionWithError()

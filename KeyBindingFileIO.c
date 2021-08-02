@@ -153,15 +153,6 @@ int EdMacroEscape(void)
 }
 
 /*--------------------------------------------------------------------------
- * macro_skipBlanks()
- */
-static unsigned char *macro_skipBlanks(register unsigned char *s)
-{
-	while (*s == ' ' || *s == '\t') s++;
-	return (*s ? s : 0L);
-}
-
-/*--------------------------------------------------------------------------
  * macro_getTextInQuotes()
  */
 static int _quotedLength;
@@ -188,7 +179,7 @@ static int _mandatory = 1;
 static char *macro_cutTextWithQuotes(char **pszText)
 {	char buf[256],*d,*s;
 
-	if ((s = macro_skipBlanks(*pszText)) == 0 || *s++ != '"') {
+	if ((s = string_skipBlanks(*pszText)) == 0 || *s++ != '"') {
 		if (_mandatory)
 			macro_error(IDS_MSGMISSINGAPOSTRPOHE);
 		return 0;
@@ -212,7 +203,7 @@ static int macro_advanceToNextToken(LINE **lp,PASTE *pp,char *s)
 	LINE *lnfirst;
 	intptr_t cfirst,clast,p1;
 
-	if ((s  = macro_skipBlanks(s)) == 0L)
+	if ((s  = string_skipBlanks(s)) == 0L)
 		return 0;
 
 	s++;				/* skip \" */
@@ -243,14 +234,14 @@ static PASTE *macro_findTextBuffer(LINE **lp,unsigned char *s,PASTELIST **pl,int
 	int   defmacro = (id == 0);
 
 	if (id == 0) {
-		if ((s = macro_skipBlanks(s)) == 0L) return 0;
+		if ((s = string_skipBlanks(s)) == 0L) return 0;
 		id = *s++;
 	}
 	if ((pp = bl_lookupPasteBuffer(id,1,pl)) == 0L)
 		return 0;
 
 	if (defmacro) {
-		if ((s = macro_skipBlanks(s)) == 0L) return 0;
+		if ((s = string_skipBlanks(s)) == 0L) return 0;
 		if (*s == '!') {
 			pp->pflg = 1;
 			if (bl_cutTextWithOptions(pp,*lp,*lp,(int)(s-(*lp)->lbuf),(*lp)->len,0))

@@ -252,7 +252,7 @@ EXPORT int EdBlockPaste(int which)
 
      wp = ww_getCurrentEditorWindow();
 	if ((pp = bl_getPasteBuffer(which)) != 0) {
-		if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_checkSelection(wp)) {
+		if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_hasSelection(wp)) {
 			EdBlockDelete(0);
 		}
 		return paste(pp,0);

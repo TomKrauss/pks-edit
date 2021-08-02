@@ -358,7 +358,7 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 	}
 	FTABLE* fp = wp->fp;
 	_currentSearchAndReplaceParams.options = nOptions;
-	if (bContinue && ww_checkSelection(wp)) {
+	if (bContinue && ww_hasSelection(wp)) {
 		incrementalStart = (CARET){ wp->blstart->lm, wp->blstart->lc };
 		incrementalStart.ln = ln_indexOf(fp, wp->blstart->lm);
 	} else if (incrementalStart.linePointer == NULL ||(incrementalStart.ln = ln_indexOf(fp, incrementalStart.linePointer)) < 0) {
@@ -568,7 +568,7 @@ int find_selectRangeWithMarkers(int rngdefault, MARK** mps, MARK** mpe)
 	WINFO* wp = ww_getCurrentEditorWindow();
 
 	if (!wp ||
-		find_setTextSelection(rngdefault, wp, mps, mpe) == RNG_INVALID)
+		find_setTextSelection(wp, rngdefault, mps, mpe) == RNG_INVALID)
 		return 0;
 	return 1;
 }
@@ -696,7 +696,7 @@ int EdReplaceText(int scope, int action, int flags)
 	undo_startModification(fp);
 	caret_saveLastPosition();
 
-	if (find_setTextSelection(scope,wp,&markstart,&Markend) == RNG_INVALID)
+	if (find_setTextSelection(wp, scope,&markstart,&Markend) == RNG_INVALID)
 		return 0;
 	/* force register use */
 	markend = Markend;
@@ -943,7 +943,7 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
  * 
  * Select a range of text in the file identified by fp.
  */
-int find_setTextSelection(int rngetype, WINFO *wp, MARK **markstart, MARK **markend) {
+int find_setTextSelection(WINFO *wp, int rngetype, MARK **markstart, MARK **markend) {
 	LINE *lps,*lpe;
 	int  ofs,ofe;
 	FTABLE* fp = wp->fp;
@@ -985,6 +985,7 @@ int find_setTextSelection(int rngetype, WINFO *wp, MARK **markstart, MARK **mark
 			ofs = 0;
 			ofe = lpe->len;
 			break;
+		case RNG_BLOCK_LINES:
 		case RNG_BLOCK:
 			if (!ww_checkSelectionWithError(wp))
 				return RNG_INVALID;
@@ -996,6 +997,9 @@ int find_setTextSelection(int rngetype, WINFO *wp, MARK **markstart, MARK **mark
 			} else {
 				ofs = wp->blstart->lc;
 				ofe = wp->blend->lc;
+				if (rngetype == RNG_BLOCK_LINES && ofe == 0) {
+					lpe = lpe->prev;
+				}
 			}
 			break;
 		case RNG_TOCURS:

@@ -43,7 +43,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 
 	wp = ww_getCurrentEditorWindow();
 	fp = wp->fp;
-	if (find_setTextSelection(scope,wp,&mps,&mpe) == RNG_INVALID)
+	if (find_setTextSelection(wp, scope,&mps,&mpe) == RNG_INVALID)
 		return 0;
 	if (filler == 0)
 		filler = ' ';

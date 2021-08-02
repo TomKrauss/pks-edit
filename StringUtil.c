@@ -39,6 +39,17 @@ char* strrchr(const char *str, int ch) {
 	return NULL;
 }
 
+/*--------------------------------------------------------------------------
+ * string_skipBlanks()
+ * Skip over the leading blanks in a string. If the string only contains
+ * blanks, return 0 otherwise return a pointer to the first non space character
+ * in the string.
+ */
+unsigned char* string_skipBlanks(unsigned char* s) {
+	while (*s == ' ' || *s == '\t') s++;
+	return (*s ? s : 0L);
+}
+
 /*
  * Return the pointer to the first matching position of a character in a String or NULL
  * if no match is found.

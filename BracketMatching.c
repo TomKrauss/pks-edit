@@ -495,17 +495,14 @@ EXPORT int uc_shiftRange(int scope, int dir)
 	FTABLE* fp = wp->fp;
 	ln1 = ln_cnt(fp->firstl,mps->lm)-1;
 	ln2 = ln_cnt(mps->lm,mpe->lm);
-	if (mpe->lc == 0)
-		ln2--;
-
 	return uc_shiftLinesByIndent(wp,ln1,ln2,dir);
 }
 
 /*
  * Either insert a tab or shift the selected lines back and forth.
  */
-EXPORT int EdShiftSelection(int aDirection) {
-	return uc_shiftRange(RNG_BLOCK, aDirection);
+EXPORT int edit_shiftSelection(int aDirection) {
+	return uc_shiftRange(RNG_BLOCK_LINES, aDirection);
 }
 
 

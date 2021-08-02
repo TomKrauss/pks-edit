@@ -1,8 +1,8 @@
 [files]
 "C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
 "C:\source\pksedit\CutAndPaste.c", line 52: 0x0 0x1 -1 -1 -8 -31 90 54 1281 587
-"C:\source\pksedit\OpenFiles.c", line 243: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
-"C:\Users\tom\AppData\Local\Temp\keys.pkc", line 1: 0x0 0x1 -1 -1 -8 -31 130 130 945 690
+"C:\source\trend-master-eclipse-4.20\trend\core\base\src\config\module\module.xml", line 18: 0x0 0x1 -1 -1 -8 -31 130 130 945 690
+"C:\source\pksedit\OpenFiles.c", line 189: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
 [find]
 !???
 !URL
@@ -102,3 +102,4 @@
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\collection\*.*
 !C:\source\pksedit\*.*
 !C:\source\pksedit\pks_sys\*.mac
+!C:\source\trend-master-eclipse-4.20\trend\core\base\src\config\module\*.*

@@ -83,7 +83,7 @@ int bl_getSelectedText(char* pszBuf, size_t nCapacity) {
 
 	*pszBuf = 0;
 	WINFO* wp = ww_getCurrentEditorWindow();
-	if (!ww_checkSelection(wp)) {
+	if (!ww_hasSelection(wp)) {
 		return 0;
 	}
 	if (EdBlockCut(0, &pbuf)) {

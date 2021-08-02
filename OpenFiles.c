@@ -368,10 +368,10 @@ long ft_size(FTABLE *fp)
 }
 
 /*---------------------------------
- * ww_checkSelection()
+ * ww_hasSelection()
  * Check whether a block selection exists.
  *---------------------------------*/
-int ww_checkSelection(WINFO* wp) {
+int ww_hasSelection(WINFO* wp) {
 	if (wp == 0 || wp->blstart == 0L || wp->blend == 0L)
 		return 0;
 	return 1;
@@ -383,7 +383,7 @@ int ww_checkSelection(WINFO* wp) {
  * report an error to the user.
  *---------------------------------*/
 EXPORT int ww_checkSelectionWithError(WINFO* wp) {
-	if (ww_checkSelection(wp) == 0) {
+	if (ww_hasSelection(wp) == 0) {
 		error_showErrorById(IDS_MSGNOBLOCKSELECTED);
 		return 0;
 	}

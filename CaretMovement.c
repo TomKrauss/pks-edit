@@ -155,7 +155,7 @@ static void HideWindowsBlocks(WINFO *wp)
 
 	if (!wp->bXtndBlock &&
 		(GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) &&
-		ww_checkSelection(wp)) {
+		ww_hasSelection(wp)) {
 		col = wp->caret.virtualOffset;
 		bl_hideSelection(wp, 1);
 		wp->caret.virtualOffset = col;		/* restore virtual column position */

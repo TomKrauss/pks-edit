@@ -164,7 +164,7 @@ static MOUSE_DRAG_HANDLER _mouse_textBlockMovement = {
  * Return a drag handler for handling mouse drags depending on the current context.
  */
 static MOUSE_DRAG_HANDLER* mouse_getDragHandler(WINFO* wp, int x, int y) {
-	if (ww_checkSelection(wp)) {
+	if (ww_hasSelection(wp)) {
 		// TODO: should check, whether x and y is "inside the text block"
 		return &_mouse_textBlockMovement;
 	}
