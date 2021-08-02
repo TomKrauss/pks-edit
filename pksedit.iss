@@ -7,7 +7,7 @@
 
 [Setup]
 AppName=PKS-Edit
-AppVersion=2.0.0
+AppVersion=2.0.1
 WizardStyle=modern
 DefaultDirName={autopf}\pksedit
 UsePreviousAppDir=yes

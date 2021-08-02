@@ -2,12 +2,15 @@
 
 ## Release Notes
 
-### 2.0.0
+### 2.0.1
 
 #### New
 - The new function "Toggle Comment" allows to comment in/out the range of selected lines. The function tries to use
   single line comments (e.g. // for c++), when available in the corresponding grammar or block comments otherwise 
-  (e.g. XML and <!-- ... -->).
+
+### 2.0.0
+
+#### New
 - PKS Edit supports now syntax highlighting based on syntax rules defined in a mylanguage.grammar.json file. Rules
   are for now limited to applying lexical analysis only. For some of the most common programming languages grammar files
   are provided (C/C++, Java, Typescript, Dart, JSON, Shell, Batch-Files)
