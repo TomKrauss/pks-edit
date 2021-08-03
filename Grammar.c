@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "alloc.h"
+#include "errordialogs.h"
 #include "hashmap.h"
 #include "edctype.h"
 #include "regexp.h"
@@ -34,6 +35,8 @@
 #define PLACE_CHAR(ep, c)		ep[c >> 3] |= bittab[c & 07];
 
 #define	DIM(x)		(sizeof(x)/sizeof(x[0]))
+
+#define CHARACTER_STATE_SHIFT		5
 
 typedef struct tagPATTERN_GROUP {
 	struct tagPATTERN_GROUP* next;
@@ -75,7 +78,7 @@ typedef struct tagGRAMMAR {
 	char decreaseIndentPattern[32];		// A regular expression defining the condition on which the indent should be decreased.
 	BRACKET_RULE* highlightBrackets;	// The rule patterns for "highlight" bracket matching.
 	GRAMMAR_PATTERN* patterns;			// The patterns defined for this grammar.
-	short transitions[256];				// The indices into the state transition table. We allow a maximum of 16 re_patterns to match from the initial state.
+	int transitions[256];				// The indices into the state transition table. We allow a maximum of 16 re_patterns to match from the initial state.
 										// for each character we allow a maximum of two possibilities to match.
 	GRAMMAR_PATTERN* patternsByState[16];
 	UCLIST* undercursorActions;			// The list of actions to perform on input (either bracket matching or code template insertion etc...).
@@ -200,6 +203,7 @@ static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {
 	free(pPattern->match);
 	free(pPattern->rePattern);
 	free(pPattern->rePatternBuf);
+	ll_destroy((LINKED_LIST**)&pPattern->captures, NULL);
 	hashmap_destroy(pPattern->keywords, grammar_destroyHashEntry);
 	return 1;
 }
@@ -351,13 +355,19 @@ RE_PATTERN* grammar_compile(GRAMMAR_PATTERN* pGrammarPattern) {
  * we will use the corresponding index to find the pattern to match to match a token in the input.
  */
 static void grammar_addCharTransition(GRAMMAR* pGrammar, unsigned char cChar, LEXICAL_STATE state) {
-	short oldState = pGrammar->transitions[cChar];
-	if (oldState & 0xF00) {
-		state <<= 12;
-	} else if (oldState & 0xF0) {
-		state <<= 8;
-	} else if (oldState & 0xF) {
-		state <<= 4;
+	int oldState = pGrammar->transitions[cChar];
+	if (oldState & (0x1F << (5* CHARACTER_STATE_SHIFT))) {
+		error_displayAlertDialog("More than 4 grammar states entered by character '%c'. Grammar '%s' may not work correctly.", cChar, pGrammar->scopeName);
+	} else if (oldState & (0x1F << (4* CHARACTER_STATE_SHIFT))) {
+		state <<= (5* CHARACTER_STATE_SHIFT);
+	} else if (oldState & (0x1F << (3* CHARACTER_STATE_SHIFT))) {
+		state <<= (4* CHARACTER_STATE_SHIFT);
+	} else if (oldState & (0x1F << (2* CHARACTER_STATE_SHIFT))) {
+		state <<= (3* CHARACTER_STATE_SHIFT);
+	} else if (oldState & (0x1F<< CHARACTER_STATE_SHIFT)) {
+		state <<= (2* CHARACTER_STATE_SHIFT);
+	} else if (oldState & 0x1F) {
+		state <<= CHARACTER_STATE_SHIFT;
 	}
 	pGrammar->transitions[cChar] = oldState | state;
 }
@@ -546,7 +556,7 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 				continue;
 			}
 		} else if (lexicalState == INITIAL || lexicalState == UNKNOWN) {
-			short possibleStates = pGrammar->transitions[c];
+			int possibleStates = pGrammar->transitions[c];
 			if (possibleStates) {
 				int matched = 0;
 				while (possibleStates) {
@@ -556,7 +566,7 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 						break;
 					}
 					if (pPattern->wordmatch && i > 0 && pks_isalnum(pszBuf[i - 1])) {
-						possibleStates >>= 4;
+						possibleStates >>= CHARACTER_STATE_SHIFT;
 						continue;
 					}
 					RE_PATTERN* pRePattern = pPattern->rePattern;
@@ -589,7 +599,7 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 						matched = 1;
 						break;
 					}
-					possibleStates >>= 4;
+					possibleStates >>= CHARACTER_STATE_SHIFT;
 				}
 				if (!matched) {
 					i++;

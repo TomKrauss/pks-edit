@@ -202,7 +202,7 @@ void macro_autosaveAllBindings(int warnFlag)
 			if (macro_writeMacroBindingsToFile(RSC_MACROS|RSC_KEYS|RSC_MICE|RSC_MENUS,fn))
 				_macedited = 0;
 		} else {
-			if (errorDisplayYesNoConfirmation(IDS_MSGSAVESEQ) == IDYES) {
+			if (error_displayYesNoConfirmation(IDS_MSGSAVESEQ) == IDYES) {
 				macro_readWriteWithFileSelection(1);
 			}
 		}
@@ -1314,7 +1314,7 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 					break;
 				}
 				if ((kp = keybound(keycode)) != 0 &&
-				     errorDisplayYesNoConfirmation(IDS_MSGDELOLDKEYBIND,
+				     error_displayYesNoConfirmation(IDS_MSGDELOLDKEYBIND,
 						 mac_name(szName,kp->macref.index,
 						 		kp->macref.typ)) == IDNO)
 					break;
@@ -1365,7 +1365,7 @@ upd: 				_macedited = 1;
 				}
 				if (nSelected && 
 				    SendDlgItemMessage(hwnd, nId, EM_GETMODIFY, 0, 0) &&
-					errorDisplayYesNoConfirmation(IDS_MSGUPDATEMACNAME) == IDYES) {
+					error_displayYesNoConfirmation(IDS_MSGUPDATEMACNAME) == IDYES) {
 					SendMessage(hwnd, WM_COMMAND, IDD_MACRENAME, 0L);
 				}
 				break;

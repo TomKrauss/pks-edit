@@ -283,7 +283,7 @@ RSCFILE *rsc_open(char *fn, int mode)
 	if (mode != RSC_O_READ)
 		return 0;
 	if ((fd = Fopen(fn,0)) == HFILE_ERROR) {
-		OpenError(fn);
+		err_openFailed(fn);
 		return 0;
 	}
 

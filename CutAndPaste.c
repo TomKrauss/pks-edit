@@ -70,12 +70,12 @@ EXPORT int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag) {
 		lp && ln <= wp->maxln; 
 		lp = lp->next, ln++) {
 		if (lp->lflg & (LNXMARKED|LNDIFFMARK)) {
-			lp->lflg |= LNREPLACED;
 			lpLast = lp;
 		}
 	}
 	if (mps && mpe) {
 		if (removeLineSelectionFlag) {
+			ln_removeFlag(mps->lm, mpe->lm, (LNXMARKED | LNDIFFMARK));
 			if (mps->lm == mpe->lm) {
 				if (mps->lc != mpe->lc) {
 					render_repaintLine(fp, mps->lm);
@@ -85,13 +85,12 @@ EXPORT int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag) {
 			}
 		}
 	} else {
-		if (removeLineSelectionFlag && (mps || mpe)) {
-			LINE* lp = mps ? mps->lm : mpe->lm;
+		if (removeLineSelectionFlag) {
+			LINE* lp = mps ? mps->lm : (mpe ? mpe->lm : wp->caret.linePointer);
 			ln_removeFlag(lp, lp, (LNXMARKED|LNDIFFMARK));
 			render_repaintLine(fp, lp);
 		}
 	}
-	ln_removeFlag(lpFirst, lpLast, LNREPLACED);
 	mark_killSelection(wp);
 	return 1;
 }

@@ -153,9 +153,9 @@ EXPORT int file_closeFile(int *fd) {
 }
 
 /*--------------------------------------------------------------------------
- * NoDiskSpace()
+ * err_noDiskSpace()
  */
-void NoDiskSpace(void) {
+void err_noDiskSpace(void) {
 	error_showErrorById(IDS_MSGNODISKSPACE);
 }
 
@@ -168,9 +168,9 @@ void err_writeErrorOcurred(void)
 }
 
 /*--------------------------------------------------------------------------
- * OpenError()
+ * err_openFailed()
  */
-void OpenError(char *fname)
+void err_openFailed(char *fname)
 {
 	error_openingFileFailed(fname,0);
 }
@@ -415,7 +415,7 @@ int file_flushBuffer(int fd, char* buffer, int size, int rest)
 	lWritten = Fwrite(fd, size, buffer);
 	if (lWritten != size) {
 		if (GetLastError() == ERROR_DISK_FULL) {
-			NoDiskSpace();
+			err_noDiskSpace();
 			return -2;
 		}
 		else {

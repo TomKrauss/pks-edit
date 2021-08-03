@@ -122,7 +122,7 @@
       "description": "HTML and XML (*.html; *.htm; *.xml)",
       "grammar": "xml",
       "editorConfiguration": "default",
-      "filenamePatterns": "*.html;*.htm;*.xml"
+      "filenamePatterns": "*.html;*.htm;*.xml;*.xsd;.trend"
     }
   ],
     "editorConfigurations": [

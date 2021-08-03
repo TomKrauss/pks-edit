@@ -139,7 +139,7 @@ EXPORT int file_createFileWithMode(char *fn,int mode)
 				error_openingFileFailed(fn,fd);
 				break;
 			} else {
-				if (errorDisplayYesNoConfirmation(IDS_MSGWPROTECT,(LPSTR)string_abbreviateFileName(fn)) == IDYES) {
+				if (error_displayYesNoConfirmation(IDS_MSGWPROTECT,(LPSTR)string_abbreviateFileName(fn)) == IDYES) {
 					if (file_makeFileReadWrite(fn) < 0) {
 						error_showErrorById(IDS_MSGERRCHMOD);
 						break;

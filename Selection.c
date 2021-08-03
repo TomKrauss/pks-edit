@@ -138,7 +138,7 @@ void bl_destroyPasteList() {
  */
 EXPORT int EdBufferFree(void)
 {
-	if (errorDisplayYesNoConfirmation(IDS_MSGCLEARBUFFERS) == IDYES) {
+	if (error_displayYesNoConfirmation(IDS_MSGCLEARBUFFERS) == IDYES) {
 		bl_free(_undobuf);
 		bl_free(&_ubuf2);
 		bl_destroyPasteList();

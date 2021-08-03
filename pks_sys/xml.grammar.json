@@ -4,6 +4,12 @@
       "scopeName": "xml",
       "patterns": [
         {
+          "begin": "<!--",
+          "end": "-->",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
           "match": "\\<![^>]+\\>",
           "style": "hyperlink",
           "name": "xml.meta"
@@ -24,10 +30,9 @@
           "name": "xml.start"
         },
         {
-          "begin": "<!--",
-          "end": "-->",
-          "style": "comment",
-          "name": "comment.multiLine"
+          "match": "\\<\\?[^>]+\\>",
+          "style": "bold",
+          "name": "xml.processing"
         },
         {
           "match": "(<[a-zA-Z_0-9-]+>)\\s*=\\s*(\"[^\"]+\")",

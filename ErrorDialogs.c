@@ -87,10 +87,10 @@ void error_displayAlertDialog(const char* fmt, ...)
 }
 
 /*------------------------------------------------------------
- * errorDisplayYesNoConfirmation()
+ * error_displayYesNoConfirmation()
  * Display a message box to be answered with yes/no or cancel.
  */
-int errorDisplayYesNoConfirmation(int nId, ...)
+int error_displayYesNoConfirmation(int nId, ...)
 {   va_list ap;
     int ret;
     

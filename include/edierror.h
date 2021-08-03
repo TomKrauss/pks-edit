@@ -40,9 +40,9 @@ extern void progress_showMonitorMessage(const char* message);
 extern void progress_stepIndicator();
 
 /*--------------------------------------------------------------------------
- * NoDiskSpace()
+ * err_noDiskSpace()
  */
-extern void NoDiskSpace(void);
+extern void err_noDiskSpace(void);
 
 /*--------------------------------------------------------------------------
  * err_writeErrorOcurred()
@@ -50,9 +50,9 @@ extern void NoDiskSpace(void);
 extern void err_writeErrorOcurred(void);
 
 /*--------------------------------------------------------------------------
- * OpenError()
+ * err_openFailed()
  */
-extern void OpenError(char* fname);
+extern void err_openFailed(char* fname);
 
 /*---------------------------------
  * linetoolong()

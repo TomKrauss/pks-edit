@@ -688,7 +688,7 @@ int EdReplaceText(int scope, int action, int flags)
 		regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
 		find_initializeReplaceByExpression(_currentSearchAndReplaceParams.replaceWith);
 	}
-	newlen = strlen(_currentReplacementPattern.preparedReplacementString);
+	newlen = _currentReplacementPattern.preparedReplacementString ? strlen(_currentReplacementPattern.preparedReplacementString) : 0;
 
 	/* call before assigning firstline	*/
 	hist_saveString(SEARCH_AND_REPLACE, _currentSearchAndReplaceParams.replaceWith);

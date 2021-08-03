@@ -73,7 +73,7 @@ extern int		doctypes_addDocumentTypesToListBox(HWND hwnd, int nItem);
 
 extern long		_multiplier;
 
-static int		_scope = RNG_BLOCK;
+static int		_scope = RNG_GLOBAL;
 
 /*------------------------------------------------------------
  * EdCloseWindow()

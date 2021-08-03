@@ -626,7 +626,7 @@ static int		nButtonY;
 		case WM_QUERYENDSESSION:
 			if (wParam) {
 				GetWindowText(hwnd,szBuf,sizeof szBuf);
-				if (errorDisplayYesNoConfirmation(IDS_MSGDELICON,szBuf) == IDYES) 
+				if (error_displayYesNoConfirmation(IDS_MSGDELICON,szBuf) == IDYES) 
 					return 1;
 			}
 			return 2;

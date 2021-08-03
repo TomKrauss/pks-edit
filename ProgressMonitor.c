@@ -45,7 +45,7 @@ static INT_PTR DlgProgressProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPa
 
 		case WM_COMMAND:
 		case WM_CLOSE:
-			if (errorDisplayYesNoConfirmation(IDS_MSGABRT) == IDYES) {
+			if (error_displayYesNoConfirmation(IDS_MSGABRT) == IDYES) {
 				_cancelled = 1;
 			}
 			return (INT_PTR)TRUE;

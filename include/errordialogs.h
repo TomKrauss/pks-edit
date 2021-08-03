@@ -24,10 +24,10 @@
 extern void error_displayAlertDialog(const char* fmt, ...);
 
 /*------------------------------------------------------------
- * errorDisplayYesNoConfirmation()
+ * error_displayYesNoConfirmation()
  * Confirmation message box with yes no.
  */
-extern int errorDisplayYesNoConfirmation(int nId, ...);
+extern int error_displayYesNoConfirmation(int nId, ...);
 
 /*------------------------------------------------------------
  * error_displayYesNoCancelConfirmation()
@@ -82,10 +82,10 @@ extern void error_showMessageInStatusbar(int nId, ...);
 extern void error_closeErrorWindow(void);
 
 /*------------------------------------------------------------
- * errorDisplayYesNoConfirmation()
+ * error_displayYesNoConfirmation()
  * Display a message box to be answered with yes/no or cancel.
  */
-extern int errorDisplayYesNoConfirmation(int nId, ...);
+extern int error_displayYesNoConfirmation(int nId, ...);
 
 /*------------------------------------------------------------
  * error_displayYesNoCancelConfirmation()

@@ -122,9 +122,12 @@ void ft_checkForChangedFiles(void) {
 	
 	for (fp = _filelist; fp; fp = fp->next) {
 		if (fp->ti_created < (lCurrentTime = file_getAccessTime(fp->fname))) {
-			EdSelectWindow(WIPOI(fp)->win_id);
-			if (errorDisplayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
-				ft_abandonFile(fp, (EDIT_CONFIGURATION *)0);
+			WINFO* wp = WIPOI(fp);
+			if (wp) {
+				EdSelectWindow(wp->win_id);
+				if (error_displayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
+					ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
+				}
 			}
 		}
 		fp->ti_created = lCurrentTime;
@@ -615,7 +618,7 @@ int ft_openFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
 		}
 	}
 	if (fn && file_exists(fn) < 0) {
-		if (errorDisplayYesNoConfirmation(IDS_MSGQUERYNEWFILE, string_abbreviateFileNameOem(fn)) == IDNO) {
+		if (error_displayYesNoConfirmation(IDS_MSGQUERYNEWFILE, string_abbreviateFileNameOem(fn)) == IDNO) {
 			return 0;
 		}
 		fileflags = F_NEWFILE;
@@ -635,7 +638,7 @@ int ft_openFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
 			ft_generateBackupPathname(szAsPath, fn) &&
 			areFilenamesDifferent(szAsPath, fn) &&
 			file_exists(szAsPath) == 0 &&
-			errorDisplayYesNoConfirmation(IDS_MSGRECOVER) == IDYES) {
+			error_displayYesNoConfirmation(IDS_MSGRECOVER) == IDYES) {
 			;
 		} else {
 			szAsPath[0] = 0;
@@ -720,7 +723,7 @@ int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *linp) {
 	WINFO* wp = WIPOI(fp);
 
 	if (fp->flags & F_MODIFIED) {
-		if (errorDisplayYesNoConfirmation(IDS_MSGABANDON) == IDNO)
+		if (error_displayYesNoConfirmation(IDS_MSGABANDON) == IDNO)
 			return 1;
 	}
 
@@ -833,7 +836,7 @@ int EdSaveFile(int flg) {
 			return 0;
 		}
 		if (areFilenamesDifferent(newname,fp->fname) && file_exists(newname) >= 0) {
-			if (errorDisplayYesNoConfirmation(IDS_MSGOVERWRITE,string_abbreviateFileNameOem(newname)) == IDNO)
+			if (error_displayYesNoConfirmation(IDS_MSGOVERWRITE,string_abbreviateFileNameOem(newname)) == IDNO)
 				return 0;
 			/* if ret == "APPEND".... fp->flags |= F_APPEND */
 		}

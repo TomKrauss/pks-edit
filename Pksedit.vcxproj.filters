@@ -60,9 +60,6 @@
     <ClCompile Include="Encryption.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="brand\SerialCode.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CaretMovement.c">
       <Filter>Source Files</Filter>
     </ClCompile>
