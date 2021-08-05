@@ -90,6 +90,12 @@ extern unsigned char* bl_convertPasteBufferToText(unsigned char* pDestination, u
 	PASTE* pPasteBuffer);
 
 /*--------------------------------------------------------------------------
+ * bl_convertPasteBufferToText()
+ * Convert a string buffer to a paste buffer. Return 1 if successful.
+ */
+extern int bl_convertTextToPasteBuffer(PASTE* bp, unsigned char* pText, unsigned char* pEnd, char cSeparator1, char cSeparator2, char cCr);
+
+/*--------------------------------------------------------------------------
  * bl_validateTrashCanName()
  * Validate / generate the name of a "logical" trash can in PKS edit, which may contain
  * data accessible under that name.
@@ -114,11 +120,11 @@ extern void bl_destroyPasteList();
 extern int bl_setSelection(WINFO* wp, LINE* lps, int cs, LINE* lpe, int ce);
 
 /*----------------------------
- * bl_insertTextBlockFromFile()
+ * bl_insertPasteBufFromFile()
  * Read a text block from a file with the given name
  * and insert it into the current document.
  *----------------------------*/
-extern int bl_insertTextBlockFromFile(char* fn);
+extern int bl_insertPasteBufFromFile(char* fn);
 
 /*---------------------------------
  * bl_syncSelectionWithCaret()
@@ -139,9 +145,11 @@ extern int bl_cutTextWithOptions(PASTE* pp, LINE* lnfirst, LINE* lnlast,
 	int cfirst, int clast, int freeflg);
 
 /*--------------------------------------------------------------------------
- * bl_read()
+ * bl_readFileIntoPasteBuf()
+ * Read the file 'fileName' and convert it to a PASTE buf data structure
+ * given the line / record separator 'rs'.
  */
-extern int bl_read(char* fn, PASTE* pb, int rs /* Record Seperator */);
+extern int bl_readFileIntoPasteBuf(PASTE* pb, char* fileName, int rs);
 
 /*----------------------------
  * bl_cutBlockInColumnMode()
@@ -150,13 +158,14 @@ extern int bl_read(char* fn, PASTE* pb, int rs /* Record Seperator */);
 extern int bl_cutBlockInColumnMode(PASTE* pp, LINE* lnfirst, LINE* lnlast, int freeflg);
 
 /*--------------------------------------------------------------------------
- * bl_write()
+ * bl_writePasteBufToFile()
+ * Write a paste buffer to the file named 'fn'.
  */
-extern int bl_write(char* fn, PASTE* pb, int mode);
+extern int bl_writePasteBufToFile(PASTE* pb, char* fn, int mode);
 
 /*--------------------------------------------------------------------------
  * bl_paste()
- * paste a textblock
+ * paste a paste buffer (textblock).
  */
 extern int bl_paste(PASTE* pb, WINFO* fp, LINE* lpd, int col, int colflg);
 
@@ -172,12 +181,6 @@ extern BOOL bl_hasClipboardBlock(BOOL isTrashCan, int blockNumber);
 extern int bl_join(PASTE* pd, PASTE* p2);
 
 /*--------------------------------------------------------------------------
- * bl_cut()
- */
-extern int bl_cut(PASTE* pp, LINE* l1, LINE* l2, int c1, int c2, int freeflg, int colflg);
-
-/*--------------------------------------------------------------------------
-* 
  * bl_cut()
  */
 extern int bl_cut(PASTE* pp, LINE* l1, LINE* l2, int c1, int c2, int freeflg, int colflg);
@@ -216,10 +219,10 @@ extern int bl_append(PASTE* pb, LINE* lnfirst, LINE* lnlast, int cfirst, int cla
 extern int bl_pasteBlock(PASTE* buf, int colflg, int offset, int move);
 
 /*--------------------------------------------------------------------------
- * EdBlockHide()
- * Hide the current selection in the current file.
+ * bl_hideSelectionInCurrentWindow()
+ * Hide the current selection in the current window.
  */
-extern int EdBlockHide(void);
+extern int bl_hideSelectionInCurrentWindow(void);
 
 #define TEXTBLOCKS_H
 #endif // !TEXTBLOCKS_H

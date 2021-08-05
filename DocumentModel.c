@@ -883,11 +883,11 @@ unsigned char* ln_createMultipleLinesFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* 
 /*-----------------------------------------
  * ln_createMultipleLinesUsingSeparators()
  * Split a passed buffer (end is marked by pend) with given line separator
- * characters t1 and t2. If cr s
+ * characters t1 and t2. If cr is not 0, treat it as a secondary line separator.
  */
 unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, unsigned char* p,
 	unsigned char* pend, int t1, int t2, int cr) {
-	int 				flags;
+	int 			flags;
 	int				nl;
 	size_t			len;
 	unsigned char* q;

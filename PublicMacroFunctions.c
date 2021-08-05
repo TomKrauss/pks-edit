@@ -219,9 +219,9 @@ int EdBlockMove(void)
 {	return EdBlockCopyOrMove(1);	}
 
 /*--------------------------------------------------------------------------
- * EdBlockHide()
+ * bl_hideSelectionInCurrentWindow()
  */
-int EdBlockHide(void)	
+int bl_hideSelectionInCurrentWindow(void)	
 {	return bl_hideSelection(ww_getCurrentEditorWindow(), 1);		}
 
 /*--------------------------------------------------------------------------

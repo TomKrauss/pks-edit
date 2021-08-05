@@ -65,6 +65,7 @@ EXPORT UCLIST *uc_find(GRAMMAR* pGrammar, char *lineBuffer, int column)
 
 	while (up) {
 		if ((o = column - up->len) < 0) {
+			up = up->next;
 			continue;
 		}
 		unsigned char* pszString = &lineBuffer[o];

@@ -1,0 +1,104 @@
+{
+  "grammars": [
+    {
+      "scopeName": "proto",
+      "navigation": [
+        {
+          "name": "include-link",
+          "pattern": "^\\s*import\\s+[\"<]([^>\"]+)[\">]",
+          "filenameCapture": 1
+        }
+      ],
+      "highlightBrackets": [
+        {
+          "left": "{",
+          "right": "}"
+        },
+        {
+          "left": "(",
+          "right": ")"
+        }
+      ],
+      "patterns": [
+        {
+          "begin": "/*",
+          "end": "*/",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "//.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "\"(?:\\\"|[^\"])+\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "\\<[a-z.A-Z0-9]+\\>",
+          "style": "string",
+          "name": "include.file"
+        },
+        {
+          "keywords": [
+            "syntax",
+            "package",
+            "message",
+            "import",
+            "enum",
+            "option",
+            "bool",
+            "string",
+            "repeated",
+            "returns",
+            "packed",
+            "oneof",
+            "map",
+            "range",
+            "to",
+            "service",
+            "rpc",
+            "true",
+            "false",
+            "public",
+            "double",
+            "float",
+            "uint32",
+            "uint64",
+            "int32",
+            "sint64",
+            "sint32",
+            "fixed32",
+            "sfixed32",
+            "bytes",
+            "sfixed64"
+          ],
+          "style": "keyword",
+          "name": "keyword.proto"
+        },
+        {
+          "match": "#\\s*[a-z]+",
+          "style": "annotation",
+          "name": "preprocessor.cpp"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "'(?:\\\\'|\\\\u\\\\d+|[^'])'",
+          "style": "literal",
+          "name": "literal.char"
+        },
+        {
+          "match": "[+=<>;{}]{1,2}",
+          "style": "operator",
+          "name": "keyword.operator"
+        }
+      ]
+    }
+  ]
+}

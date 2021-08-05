@@ -939,7 +939,8 @@ static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT*
 /*---------------------------------*/
 int EdFindFileCursor(void)
 {	char	*found;
-	char	fselpath[512];
+	char	fselpath[128];
+	char	currentFilePath[512];
 	char	filename[128];
 	NAVIGATION_INFO_PARSE_RESULT result;
 	WINFO* wp = ww_getCurrentEditorWindow();
@@ -948,16 +949,23 @@ int EdFindFileCursor(void)
 	if (wp == 0) {
 		return 0;
 	}
+	FTABLE* fp = wp->fp;
 	if (!xref_determineNavigationInfo(wp, &result, _fseltarget, EDMAXPATHLEN)) {
 		return 0;
 	}
 	string_splitFilename(_fseltarget,fselpath,filename);
-	if ((found = file_searchFileInPath(filename,GetConfiguration()->includePath))   != 0 ||
-	    (found = file_searchFileInPath(_fseltarget,fselpath)) != 0) {
+	string_splitFilename(fp->fname, currentFilePath, NULL);
+	if ((found = file_searchFileInPath(filename,GetConfiguration()->includePath)) != 0 ||
+	    (found = file_searchFileInPath(_fseltarget, currentFilePath)) != 0 ||
+		(fselpath[0] && (found = file_searchFileInPath(_fseltarget, fselpath)) != 0)) {
 		return xref_openFile(found, result.ni_lineNumber, (WINDOWPLACEMENT*)0);
 	}
-	ShellExecute(hwndMDIFrameWindow, "open", _fseltarget, "", ".", SW_SHOWNORMAL);
-	return 1;
+	HINSTANCE hInst = ShellExecute(hwndMDIFrameWindow, "open", _fseltarget, "", ".", SW_SHOWNORMAL);
+	if ((intptr_t)hInst < 0 || (intptr_t)hInst > 32) {
+		return 1;
+	}
+	error_displayAlertDialog("Cannot open %s", _fseltarget);
+	return 0;
 }
 
 /*---------------------------------*/

@@ -87,8 +87,6 @@ static HWND 		hwndPreview;
 static PRINTWHAT	_printwhat;
 static char 		szPrtDevice[64];
 
-extern int		mysprintf(WINFO* wp, char* d, char* format, ...);
-
 /*------------------------------------------------------------
  * print_getPrinterDC()
  */

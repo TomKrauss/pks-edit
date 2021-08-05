@@ -71,7 +71,7 @@ static struct tagDRAG_SELECTION_DATA _dragSelectionData;
 static int mouse_selectionDragInit(WINFO* wp, int x, int y) {
 	_dragSelectionData.c1 = wp->caret;
 	_dragSelectionData.start = (POINT){ x, y };
-	EdBlockHide();
+	bl_hideSelectionInCurrentWindow();
 	bl_syncSelectionWithCaret(wp, &_dragSelectionData.c1, MARK_START, NULL);
 	return 1;
 }

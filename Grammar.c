@@ -38,6 +38,13 @@
 
 #define CHARACTER_STATE_SHIFT		5
 
+// Code template definition.
+typedef struct tagTEMPLATE {
+	struct tagTEMPLATE* next;
+	char t_match[sizeof(((UCLIST*)0)->pat)];
+	unsigned char* t_contents;
+} TEMPLATE;
+
 typedef struct tagPATTERN_GROUP {
 	struct tagPATTERN_GROUP* next;
 	LEXICAL_STATE state;				// The lexical state matched by this subgroup - is calculated from the patternName
@@ -84,6 +91,7 @@ typedef struct tagGRAMMAR {
 	UCLIST* undercursorActions;			// The list of actions to perform on input (either bracket matching or code template insertion etc...).
 	NAVIGATION_PATTERN* navigation;		// The patterns, which can be used to extract hyperlinks to navigate from within a file
 	TAGSOURCE* tagSources;				// The list of tag sources to check for cross references
+	TEMPLATE* templates;				// The code templates for this grammar.
 } GRAMMAR;
 
 static BRACKET_RULE _defaultBracketRule = {
@@ -109,6 +117,10 @@ static BRACKET_RULE* grammar_createBracketRule() {
 
 static GRAMMAR* grammar_createGrammar() {
 	return calloc(1, sizeof(GRAMMAR));
+}
+
+static TEMPLATE* grammar_createTemplate() {
+	return calloc(1, sizeof(TEMPLATE));
 }
 
 static GRAMMAR_PATTERN* grammar_createGrammarPattern() {
@@ -151,6 +163,12 @@ static JSON_MAPPING_RULE _navigationPatternRules[] = {
 	{	RT_END}
 };
 
+static JSON_MAPPING_RULE _templateRules[] = {
+	{	RT_CHAR_ARRAY,	 "match",	 offsetof(TEMPLATE, t_match), sizeof(((TEMPLATE*)NULL)->t_match)},
+	{	RT_ALLOC_STRING, "contents", offsetof(TEMPLATE, t_contents)},
+	{	RT_END}
+};
+
 static JSON_MAPPING_RULE _patternGroupRules[] = {
 	{	RT_CHAR_ARRAY, "pattern", offsetof(PATTERN_GROUP, patternName), sizeof(((PATTERN_GROUP*)NULL)->patternName)},
 	{	RT_END}
@@ -179,6 +197,8 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_CHAR_ARRAY, "decreaseIndentPattern", offsetof(GRAMMAR, decreaseIndentPattern), sizeof(((GRAMMAR*)NULL)->decreaseIndentPattern)},
 	{	RT_OBJECT_LIST, "navigation", offsetof(GRAMMAR, navigation),
 			{.r_t_arrayDescriptor = {grammar_createNavigationPattern, _navigationPatternRules}}},
+	{	RT_OBJECT_LIST, "templates", offsetof(GRAMMAR, templates),
+			{.r_t_arrayDescriptor = {grammar_createTemplate, _templateRules}}},
 	{	RT_OBJECT_LIST, "highlightBrackets", offsetof(GRAMMAR, highlightBrackets),
 			{.r_t_arrayDescriptor = {grammar_createBracketRule, _bracketRules}}},
 	{	RT_OBJECT_LIST, "patterns", offsetof(GRAMMAR, patterns),
@@ -218,12 +238,18 @@ static int grammar_destroyTagSource(TAGSOURCE* pSource) {
 	return 1;
 }
 
+static int grammar_destroyTemplates(TEMPLATE* pTemplate) {
+	free(pTemplate->t_contents);
+	return 1;
+}
+
 static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
 	ll_destroy((LINKED_LIST**)&pGrammar->patterns, grammar_destroyPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->undercursorActions, NULL);
 	ll_destroy((LINKED_LIST**)&pGrammar->highlightBrackets, NULL);
 	ll_destroy((LINKED_LIST**)&pGrammar->navigation, grammar_destroyNavigationPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->tagSources, grammar_destroyTagSource);
+	ll_destroy((LINKED_LIST**)&pGrammar->templates, grammar_destroyTemplates);
 	return 1;
 }
 
@@ -660,6 +686,16 @@ UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar) {
 			pList->p.uc_bracket = pRule;
 			pRule = pRule->next;
 		}
+		TEMPLATE* pTemplate = pGrammar->templates;
+		while (pTemplate) {
+			UCLIST* pList = (UCLIST*)ll_insert((LINKED_LIST**)&pGrammar->undercursorActions, sizeof(UCLIST));
+			pList->action = UA_ABBREV;
+			strcpy(pList->pat, pTemplate->t_match);
+			pList->len = (int) strlen(pTemplate->t_match);
+			pList->p.uc_template = pTemplate->t_contents;
+			pTemplate = pTemplate->next;
+		}
+
 	}
 	return pGrammar->undercursorActions;
 }

@@ -1,11 +1,7 @@
 [files]
 "C:\source\pksedit\README.md", line 1: 0x0 0x1 -1 -1 -8 -31 123 113 1083 575
-"C:\source\pksedit\CutAndPaste.c", line 52: 0x0 0x1 -1 -1 -8 -31 90 54 1281 587
-"C:\source\trend-master-eclipse-4.20\trend\core\base\src\config\module\module.xml", line 18: 0x0 0x1 -1 -1 -8 -31 130 130 945 690
-"C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\.trend", line 24: 0x0 0x1 -1 -1 -1 -1 130 130 1494 608
-"C:\source\pksedit\OpenFiles.c", line 1: 0x0 0x1 -1 -1 -8 -31 101 0 1292 533
+"C:\source\pksedit\CutAndPaste.c", line 1: 0x0 0x1 -1 -1 -8 -31 90 54 1281 587
 [find]
-!URL
 !<URL>
 !d
 !e
@@ -37,6 +33,7 @@
 !Regul&äre Ausdrücke
 !xxx
 !include
+!brack
 [filePatterns]
 !*.*
 !*.java
@@ -49,18 +46,6 @@
 !x
 !xx
 [open]
-!C:\source\pksedit\AsciiHexToLong.c
-!C:\source\mx-graph-modeller\ui\src\index.html
-!C:\source\mx-graph-modeller\ui\src\styles.css
-!C:\source\pksedit\pks_sys\batch.grammar.json
-!C:\Users\tom\Desktop\readme.txt
-!C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\src\crtables.ddl
-!C:\temp\trend-build.log
-!C:\SUService.log
-!C:\source\pksedit\Settings.c
-!C:\source\pksedit\pksedit.iss
-!C:\Users\tom\AppData\Local\Temp\MOUSE.MAC
-!C:\source\pksedit\doc\release_notes.md
 !C:\source\pksedit\BracketMatching.c
 !C:\source\pksedit\include\edfuncs.h
 !C:\source\pksedit\include\syntaxhighlighting.h
@@ -76,11 +61,21 @@
 !C:\source\pksedit\include\winfo.h
 !C:\source\pksedit\en-US\en-US.rc
 !C:\source\pksedit\PKSEDIT.RC
-!C:\source\pksedit\Compare.c
 !C:\source\pksedit\include\pksmod.h
-!C:\source\pksedit\OpenFiles.c
 !C:\source\pksedit\TextBlocks.c
 !C:\Users\tom\AppData\Local\Temp\KEYS.MAC
+!C:\source\pksedit\OpenFiles.c
+!C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\.trend
+!C:\source\trend-master-eclipse-4.20\trend\core\base\src\config\module\module.xml
+!C:\source\pksedit\CutAndPaste.c
+!C:\Users\tom\AppData\Local\Temp\keys.pkc
+!C:\source\pksedit\include\edtypes.h
+!C:\source\pksedit\Compare.c
+!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\mscaa_storefulfillment.proto
+!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\mscaa_common.proto
+!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\mscaa_coupon.proto
+!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\mscaa_customer.proto
+!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\mobile_self_checkout_app_adapter.proto
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -101,7 +96,8 @@
 !C:\*.*
 !C:\source\pksedit\pks_sys\*.MAC
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\collection\*.*
-!C:\source\pksedit\*.*
 !C:\source\pksedit\pks_sys\*.mac
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\config\module\*.*
 !C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\*.*
+!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\*.*
+!C:\source\pksedit\*.*

@@ -27,8 +27,6 @@
 
 #define	MAXSEGMENTS			20
 
-extern int 		mysprintf(WINFO *wp, char *d, char *fmt, ...);
-extern char *	lstrchr(const char *, const char);
 static char	*	pszStatusMessage;
 static BOOL		bSimpleMode;
 HWND			hwndStatus;

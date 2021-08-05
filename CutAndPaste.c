@@ -31,7 +31,7 @@
 /*-----------------------*/
 extern unsigned char *bl_convertPasteBufferToText(unsigned char *b, unsigned char *end, 
 				PASTE *pp);
-extern void 	bl_validateTrashCanName(char *pszValid);
+extern void 	bl_validateTrashcanName(char *pszValid);
 extern void 	bl_collectClipboardIds(char *pszValid);
 
 extern LINE	*find_expandTabsInFormattedLines(WINFO *wp, LINE *lp);
@@ -202,7 +202,7 @@ EXPORT PASTE *bl_getPasteBuffer(int which) {
 		getTextFunc = (which & PASTE_XUNDO) ? 
 			TextForTrash : TextForClip; 
 		validateNameFunction = (which & PASTE_XUNDO) ? 
-			bl_validateTrashCanName : bl_collectClipboardIds; 
+			bl_validateTrashcanName : bl_collectClipboardIds; 
 		if ((id = GetTmplateDlg(getTextFunc, validateNameFunction)) == 0) {
 			return 0;
 		}
@@ -261,11 +261,11 @@ EXPORT int EdBlockPaste(int which)
 }
 
 /*----------------------------
- * bl_insertTextBlockFromFile()
+ * bl_insertPasteBufFromFile()
  * Read a text block from a file with the given name
  * and insert it into the current document.
  *----------------------------*/
-EXPORT int bl_insertTextBlockFromFile(char *fn)
+EXPORT int bl_insertPasteBufFromFile(char *fn)
 {	PASTE	pbuf;
 	char 	fname[256];
 	int		ret;
@@ -277,7 +277,7 @@ EXPORT int bl_insertTextBlockFromFile(char *fn)
 			return 0;
 		fn = fname;
 	}
-	if ((ret = bl_read(fn,&pbuf,0)) != 0)
+	if ((ret = bl_readFileIntoPasteBuf(&pbuf, fn, 0)) != 0)
 		paste(&pbuf,0);
 	ln_listfree(pbuf.pln);
 	return ret;
@@ -287,7 +287,7 @@ EXPORT int bl_insertTextBlockFromFile(char *fn)
  * PKS Edit command to read a block from a default file name 
  */
 EXPORT int EdBlockRead(void ) { 
-	return bl_insertTextBlockFromFile((char *)0);	
+	return bl_insertPasteBufFromFile((char *)0);	
 }
 
 /*
@@ -372,7 +372,7 @@ EXPORT int EdBlockWriteToFile(char *fn)
 			fn  = fname;
 		}
 		if (ret != 0)
-			ret = bl_write(fn,&pbuf,ret);
+			ret = bl_writePasteBufToFile(&pbuf, fn, ret);
 		ln_listfree(pbuf.pln);
 		return ret;
 	}
@@ -390,11 +390,11 @@ EXPORT int block_rw(char *fn,int doread)
 		return 0;
 
 	if (doread) {
-		if (bl_read(fn,bp,-1))
+		if (bl_readFileIntoPasteBuf(bp, fn, -1))
 			return 1;
 		return 0;
 	} else
-		return bl_write(fn,bp,F_NORMOPEN);
+		return bl_writePasteBufToFile(bp, fn, F_NORMOPEN);
 }
 
 /*---------------------------------*/
@@ -772,7 +772,7 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 		if (flags & MARK_RECALCULATE) {
 			bSwap = 1;
 		} else if (!(flags & MARK_NO_HIDE)) {
-			EdBlockHide();
+			bl_hideSelectionInCurrentWindow();
 		}
 	}
 
@@ -865,7 +865,7 @@ EXPORT int EdMouseMarkParts(int type)
 	if ((lp = ln_goto(fp,ln)) == 0)
 		return 0;
 
-	EdBlockHide();
+	bl_hideSelectionInCurrentWindow();
 
 	o1 = 0;
 	o2 = 0;

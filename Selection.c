@@ -48,6 +48,22 @@ PASTE	*		_undobuf = _ubufs;
 
 /*--------------------------------------------------------------------------
  * bl_convertPasteBufferToText()
+ * Convert a string buffer to a paste buffer.
+ */
+int bl_convertTextToPasteBuffer(PASTE* bp, unsigned char* pText, unsigned char* pEnd, char cSeparator1, char cSeparator2, char cCr) {
+	FTABLE 	ft;
+	memset(&ft, 0, sizeof ft);
+	if (ln_createMultipleLinesUsingSeparators(&ft, pText, pEnd, cSeparator1, cSeparator2, cCr)) {
+		bl_free(bp);
+		bp->pln = ft.firstl;
+		bp->nlines = ft.nlines;
+		return 1;
+	}
+	return 0;
+}
+
+/*--------------------------------------------------------------------------
+ * bl_convertPasteBufferToText()
  * Convert a paste buffer to a regular string buffer.
  */
 unsigned char *bl_convertPasteBufferToText(unsigned char *pDestination, unsigned char *pDestinationEnd, 
@@ -221,15 +237,17 @@ EXPORT int bl_cut(PASTE *pp,LINE *l1,LINE *l2,int c1,int c2,int freeflg,int colf
 }
 
 /*--------------------------------------------------------------------------
- * bl_read()
+ * bl_readFileIntoPasteBuf()
+ * Read the file 'fileName' and convert it to a PASTE buf data structure
+ * given the line / record separator 'rs'.
  */
-EXPORT int bl_read(char *fn, PASTE *pb, int rs /* Record Seperator */)
+EXPORT int bl_readFileIntoPasteBuf(PASTE *pb, char* fileName, int rs /* Record Seperator */)
 {	register	  LINE *ll;
 	FTABLE rf;
 
 	rf.firstl = 0;
 	pb->pln = 0;
-	if (ft_readfileWithOptions(&rf,fn,rs)) {
+	if (ft_readfileWithOptions(&rf,fileName,rs)) {
 		ll = rf.lastl->prev;
 		if (ll->lflg & LNNOTERM) {
 			ll->next = 0;
@@ -246,10 +264,11 @@ EXPORT int bl_read(char *fn, PASTE *pb, int rs /* Record Seperator */)
 }
 
 /*--------------------------------------------------------------------------
- * bl_write()
+ * bl_writePasteBufToFile()
+ * Write a paste buffer to the file named 'fn'.
  */
-EXPORT int bl_write(char *fn, PASTE *pb,int mode)
-{	FTABLE rf;
+EXPORT int bl_writePasteBufToFile(PASTE *pb, char* fn,  int mode) {	
+	FTABLE rf;
 	LINE	  *lp;
 	int    ret = 0;
 
@@ -420,7 +439,7 @@ EXPORT int bl_undoIntoUnqBuffer(WINFO* wp, LINE *lnfirst,LINE *lnlast,int cfirst
 			_nundo = 10;
 		}
 		fn = file_getTempFilename(tmpfile,_curru+'0');
-		bl_write(fn, _undobuf, 0);
+		bl_writePasteBufToFile(_undobuf, fn, 0);
 		_curru++;
 		if (_curru >= _nundo) {
 			_curru = 0;
@@ -453,18 +472,19 @@ EXPORT PASTE *bl_getBlockFromUndoBuffer(int num)
 	fn = file_getTempFilename(tmpfile,num+'0');
 	bl_free(&_ubuf2);
 
-	if (file_exists(fn) || bl_read(fn,&_ubuf2,-1) == 0)
+	if (file_exists(fn) || bl_readFileIntoPasteBuf(&_ubuf2, fn, -1) == 0) {
 		return 0;
+	}
 
 	return &_ubuf2;
 }
 
 /*--------------------------------------------------------------------------
- * bl_validateTrashCanName()
+ * bl_validateTrashcanName()
  * Validate / generate the name of a "logical" trash can in PKS edit, which may contain
  * data accessible under that name.
  */
-void bl_validateTrashCanName(char *pszValid) {
+void bl_validateTrashcanName(char *pszValid) {
 	int		i;
 	
 	for (i = 0; i < _nundo; i++) {

@@ -366,7 +366,7 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 	}
 	if (*pszString == 0) {
 		if (incrementalStart.linePointer != NULL) {
-			EdBlockHide();
+			bl_hideSelectionInCurrentWindow();
 			caret_placeCursorMakeVisibleAndSaveLocation(wp, incrementalStart.ln, incrementalStart.offset);
 		}
 		return 1;

@@ -249,22 +249,56 @@ static PASTE *macro_findTextBuffer(LINE **lp,unsigned char *s,PASTELIST **pl,int
 		}
 	}
 
-	if (macro_advanceToNextToken(lp,pp,(char *)s))
+	if (macro_advanceToNextToken(lp, pp, (char*)s)) {
 		return pp;
+	}
 
 	return 0;
+}
+
+/*
+ * Expand a code template optionally containing ${....} references and return
+ * the expanded text.
+ */
+static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, unsigned char* pszSource) {
+	size_t nInitialSize = strlen(pszSource);
+	STRING_BUF* pResult = stringbuf_create(nInitialSize);
+	unsigned char* pVar = NULL;
+	unsigned char variable[50];
+	unsigned char expandedVariable[512];
+	unsigned char c;
+
+	while ((c = *pszSource++) != 0) {
+		if (pVar) {
+			if (c == '}') {
+				*pVar = 0;
+				string_getVariable(wp, variable, expandedVariable);
+				stringbuf_appendString(pResult, expandedVariable);
+				pVar = NULL;
+			} else if (pVar < variable+sizeof variable-1) {
+				*pVar++ = c;
+			}
+		} else if (c == '$' && *pszSource == '{') {
+			pszSource++;
+			pVar = variable;
+		} else {
+			stringbuf_appendChar(pResult, c);
+		}
+	}
+	stringbuf_appendChar(pResult, '\n');
+	return pResult;
 }
 
 /*--------------------------------------------------------------------------
  * macro_expandAbbreviation()
  */
-int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs)
-{
-	struct tagUCLIST *up;
+int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
+	UCLIST *up;
 	long 		o2;
 	int			domacro = 0;
 	FTABLE* fp = wp->fp;
-	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
+	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
+	GRAMMAR* pGrammar = pConfig->grammar;
 
 	if ((up = uc_find(pGrammar, lp->lbuf, offs)) == 0) {
 		return 0;
@@ -281,8 +315,21 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs)
 	if ((lp = ln_modify(fp,lp,offs,o2)) == 0L)
 		return 0;
 	caret_placeCursorInCurrentFile(wp, wp->caret.ln,o2);
-	return (domacro) ? 
-		render_repaintCurrentLine(wp), macro_executeByName(up->p.uc_macro) : bl_pasteBlock((PASTE*)up->p.uc_template,0,o2,0);
+	if (!domacro) {
+		int ret = 0;
+		STRING_BUF* pSB = macro_expandCodeTemplate(wp, up->p.uc_template);
+		PASTE pasteBuffer;
+		memset(&pasteBuffer, 0, sizeof pasteBuffer);
+		unsigned char* pszText = stringbuf_getString(pSB);
+		if (bl_convertTextToPasteBuffer(&pasteBuffer, pszText, pszText + strlen(pszText), pConfig->nl, pConfig->nl2, pConfig->cr)) {
+			bl_pasteBlock(&pasteBuffer, 0, o2, 0);
+			ret = 1;
+		}
+		stringbuf_destroy(pSB);
+		return ret;
+	}
+	render_repaintCurrentLine(wp); 
+	return macro_executeByName(up->p.uc_macro);
 }
 
 /*--------------------------------------------------------------------------

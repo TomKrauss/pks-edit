@@ -99,8 +99,8 @@ typedef struct edx {
 					int c1,int c2,int freeflg,int colflg);
 	int 		(*bl_paste)(PASTE *pb, FTABLE *fp, LINE *lpd, 
 					  int col, int colflg);
-	int		(*bl_read)(char *fn, PASTE *pb, int rs);
-	int		(*bl_write)(char *fn, PASTE *pb,int mode);
+	int		(*bl_readFileIntoPasteBuf)(PASTE* pb, char *fn, int rs);
+	int		(*bl_writePasteBufToFile)(PASTE *pb, char* fn, int mode);
 	int 		(*bl_join)(PASTE *pd,PASTE *p2);
 	PASTE 	*(*bl_addrbyid)(int id,int insert);
 

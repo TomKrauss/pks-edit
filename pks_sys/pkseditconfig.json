@@ -2,89 +2,96 @@
   "documentTypes": [
     {
       "name": "default",
-      "description": "Alle Dateien (*.*)",
+      "description": "All files (*.*)",
       "editorConfiguration": "default",
       "filenamePatterns": "*.*"
     },
     {
       "name": "encrypted",
-      "description": "Verschlüsselte Dateien (*.crpt)",
+      "description": "Encrypted files (*.crpt)",
       "editorConfiguration": "encrypted",
       "filenamePatterns": "*.crpt"
     },
     {
       "name": "c+cpp",
-      "description": "C/ C++-Dateien (*.c, *.h, *.cpp)",
+      "description": "C/ C++ files (*.c, *.h, *.cpp)",
       "grammar": "cpp",
       "editorConfiguration": "default",
       "filenamePatterns": "*.c;*.h;*.cpp"
     },
     {
       "name": "dart",
-      "description": "Dart-Dateien (*.dart)",
+      "description": "Dart files (*.dart)",
       "grammar": "dart",
       "editorConfiguration": "default",
       "filenamePatterns": "*.dart"
     },
     {
+      "name": "proto",
+      "description": "Protobuf files (*.proto)",
+      "grammar": "proto",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.proto"
+    },
+    {
       "name": "pascal",
-      "description": "Pascal-Dateien (*.pas)",
+      "description": "Pascal files (*.pas)",
       "grammar": "pascal",
       "editorConfiguration": "default",
       "filenamePatterns": "*.pas"
     },
     {
       "name": "java",
-      "description": "Java Dateien (*.java)",
+      "description": "Java files (*.java)",
       "grammar": "java",
       "editorConfiguration": "default",
       "filenamePatterns": "*.java"
     },
     {
       "name": "batch-files",
-      "description": "Batch Files (*.bat, *.cmd)",
+      "description": "Batch files (*.bat, *.cmd)",
       "grammar": "batch",
       "editorConfiguration": "default",
       "filenamePatterns": "*.bat;*.cmd"
     },
     {
       "name": "windows-resources",
-      "description": "Windows Resource Files (*.rc)",
+      "description": "Windows resource files (*.rc)",
       "grammar": "resource",
       "editorConfiguration": "default",
       "filenamePatterns": "*.rc"
     },
     {
       "name": "typescript",
-      "description": "Typescript Files (*.ts)",
+      "description": "Typescript files (*.ts)",
       "grammar": "typescript",
       "editorConfiguration": "default",
       "filenamePatterns": "*.ts"
     },
     {
       "name": "shell-files",
-      "description": "Shell Files (*.sh, *.ora)",
+      "description": "Shell files (*.sh, *.ora)",
       "grammar": "shell",
       "editorConfiguration": "default",
       "filenamePatterns": "*.sh;*.ora"
     },
     {
       "name": "json-files",
-      "description": "Json Files (*.json)",
+      "description": "Json files (*.json)",
       "grammar": "json",
       "editorConfiguration": "default",
       "filenamePatterns": "*.json"
     },
     {
       "name": "markdown",
-      "description": "Markdown Files (*.md)",
+      "description": "Markdown files (*.md)",
       "grammar": "markdown",
       "editorConfiguration": "readme",
       "filenamePatterns": "*.md"
     },
     {
       "name": "pksedit",
-      "description": "PKS Edit Macro Files (*.pkc)",
+      "description": "PKS Edit macro files (*.pkc)",
       "grammar": "pksedit",
       "editorConfiguration": "default",
       "filenamePatterns": "*.pkc"
@@ -139,6 +146,7 @@
         "highlightCaretLine": true,
         "insertMode": true,
         "autoIndent": true,
+        "expandAbbreviations": true,
         "smartSpaceDelete": true,
         "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9",
         "statuslineFormat": "0x%6p$O: 0x%2p$C 0%h$C",

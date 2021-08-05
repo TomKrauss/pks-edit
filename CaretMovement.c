@@ -138,7 +138,7 @@ static void BegXtndBlock(WINFO *wp)
 	} else {
 		_xtndMark = 0;
 		if (wp->blstart || wp->blend) {
-			EdBlockHide();
+			bl_hideSelectionInCurrentWindow();
 		}
 		bl_syncSelectionWithCaret(wp, &wp->caret, MARK_RECALCULATE|MARK_START, NULL);
 		bl_syncSelectionWithCaret(wp, &wp->caret, MARK_RECALCULATE|MARK_END, NULL);

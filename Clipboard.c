@@ -131,7 +131,6 @@ EXPORT int clp_getdata(void)
 	PASTE *	bp = bl_addrbyid(0,0);
 	LPSTR  	lpClip;
 	LPSTR	lpTemp;
-	FTABLE 	ft;
 	SIZE_T 	size;
 	int    	ret = 0;
 
@@ -145,7 +144,6 @@ EXPORT int clp_getdata(void)
 	    (hClip = GetClipboardData(CF_TEXT)) != 0 &&
 	    (lpClip = GlobalLock(hClip)) != 0) {
 
-		memset(&ft,0,sizeof ft);
 		size = GlobalSize(hClip);
 		if ((lpTemp = malloc(size+10)) != 0) {
 			memmove(lpTemp, lpClip, (int)size);
@@ -155,12 +153,7 @@ EXPORT int clp_getdata(void)
 			}
 			lpTemp[size++] = '\n';
 			lpTemp[size] = '\n';
-			if (ln_createMultipleLinesUsingSeparators(&ft, lpTemp, lpTemp+size, '\n', -1, '\r')) {
-				bl_free(bp);
-				bp->pln = ft.firstl;
-				bp->nlines = ft.nlines;
-				ret = 1;
-			}
+			ret = bl_convertTextToPasteBuffer(bp, lpTemp, lpTemp + size, '\n', -1, '\r');
             free(lpTemp);
 		}
 		GlobalUnlock(hClip);

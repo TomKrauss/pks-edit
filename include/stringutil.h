@@ -18,6 +18,9 @@
 
 typedef int					BOOL;
 
+typedef struct tagSTRING_BUF STRING_BUF;
+typedef struct tagWINFO WINFO;
+
 extern char* _strtolend;
 
 /*--------------------------------------------------------------------------
@@ -173,6 +176,60 @@ extern char* string_strcasestr(const char* p1, const char* p2);
  */
 extern unsigned char* string_skipBlanks(unsigned char* s);
 
+/*
+ * Create a string buffer with a default size. 
+ */
+extern STRING_BUF* stringbuf_create(int nDefaultSize);
+
+/*
+ * Add a single character to a string buffer.
+ */
+extern void stringbuf_appendChar(STRING_BUF* pBuf, unsigned char c);
+
+/*
+ * Append a string to a string buffer.
+ */
+extern void stringbuf_appendString(STRING_BUF* pBuf, unsigned char * pszString);
+
+/*
+ * Destroy a string buffer.
+ */
+extern void stringbuf_destroy(STRING_BUF* pBuf);
+
+/*
+ * Get a pointer to the actual string constructed in the string buffer.
+ */
+extern unsigned char* stringbuf_getString(STRING_BUF* pBuf);
+
+/*--------------------------------------------------------------------------
+ * mysprintf()
+
+	One can append to %x formats the following $ regex_addCharacterToCharacterClass holders to format the corresponding value.
+	One sample would be %s$f - prints the file name of a file in string format.
+
+	$O		fileoffset
+	$C		current character
+	$l		current line
+	$c		current col
+	$f		Filename
+	$F		full path
+	$b		Filename without extension
+	$w		Window Handle
+	$h		Verweispfad - Hilfe
+	$t		Verweispfad
+	$*		geändert : "*"
+	$r		read only: "
+
+	Special % formats supported:
+	%D		current date
+	%T		current time
+*/
+extern int mysprintf(WINFO* wp, char* d, char* format, ...);
+
+/*
+ * Return a PKS EDIT variable to be used e.g. in code templates.
+ */
+extern void string_getVariable(WINFO* wp, unsigned char* pVar, unsigned char* pResult);
 
 #define STRINGUTIL_H
 #endif

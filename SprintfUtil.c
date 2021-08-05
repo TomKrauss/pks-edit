@@ -19,6 +19,7 @@
 #include <stdarg.h>
 #include <dos.h>
 #include <string.h>
+#include <stdio.h>
 #include <time.h>
 
 #include "winterf.h"
@@ -83,7 +84,7 @@ static void agetdate(char *buf, struct tm *tp)
 	wsprintf(buf,"%02d%c%02d%c%02d",
 		iDate == 1 ? tp->tm_mday : iDate == 2 ? tp->tm_year : tp->tm_mon,lim,
 		iDate == 0 ? tp->tm_mday : tp->tm_mon,lim,
-		iDate == 2 ? tp->tm_mday : tp->tm_year);
+		iDate == 2 ? tp->tm_mday : (tp->tm_year+1900));
 }
 
 /*--------------------------------------------------------------------------
@@ -207,8 +208,7 @@ static long CurrentNumVal(WINFO *wp, char **fmt) {
 
 /*--------------------------------------------------------------------------
  * mysprintf()
- */
-/*
+ 
 	One can append to %x formats the following $ regex_addCharacterToCharacterClass holders to format the corresponding value.
 	One sample would be %s$f - prints the file name of a file in string format.
 
@@ -229,7 +229,6 @@ static long CurrentNumVal(WINFO *wp, char **fmt) {
 	%D		current date
 	%T		current time
 */
-
 int mysprintf(WINFO *wp, char *d, char *format,...) {
 	static char *_digits = "0123456789ABCDEFGHIJ";
 	long 	val;
@@ -338,6 +337,36 @@ cp2:			x = stack;
 	*d = 0;
 	va_end(args);
 	return (int)(d-buf);
+}
+
+/*
+ * Return a PKS EDIT variable to be used e.g. in code templates.
+ */
+void string_getVariable(WINFO* wp, unsigned char* pVar, unsigned char* pResult) {
+	if (strcmp("year2", pVar) == 0) {
+		SYSTEMTIME time;
+		GetLocalTime(&time);
+		sprintf(pResult, "%d", (int)(time.wYear % 100));
+		return;
+	}
+	if (strcmp("year", pVar) == 0) {
+		SYSTEMTIME time;
+		GetLocalTime(&time);
+		sprintf(pResult, "%d", (int)time.wYear);
+		return;
+	}
+	if (strcmp("user", pVar) == 0) {
+		DWORD nBytes = 128;
+		GetUserName(pResult, &nBytes);
+		return;
+	}
+	unsigned char* pFormat = "%s$F";
+	if (strcmp("file_name", pVar) == 0) {
+		pFormat = "%s$f";
+	} else if (strcmp("date", pVar) == 0) {
+		pFormat = "%D";
+	}
+	mysprintf(wp, pResult, pFormat);
 }
 
 /*--------------------------------------------------------------------------

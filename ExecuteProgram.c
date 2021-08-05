@@ -205,7 +205,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		if (!bUInited) {
 			undo_startModification(ft_getCurrentDocument());
 		}
-		bl_insertTextBlockFromFile(outfile);
+		bl_insertPasteBufFromFile(outfile);
 	}
 
 	return 1;

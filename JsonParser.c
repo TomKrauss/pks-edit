@@ -30,7 +30,7 @@
 #include "stringutil.h"
 #include "lineoperations.h"
 
-#define MAX_TOKEN_SIZE		255
+#define MAX_TOKEN_SIZE		511
 
 static char* _nl = "\n";
 

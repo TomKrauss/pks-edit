@@ -24,6 +24,12 @@
 #include "pathname.h"
 #include "stringutil.h"
 
+struct tagSTRING_BUF {
+	size_t	sb_capacity;
+	unsigned char* sb_string;
+	unsigned char* sb_current;
+};
+
 /*
  * Return a pointer to the last matching position, where a character can be found in a String 
  * or NULL if it cannot be found at all.
@@ -291,3 +297,62 @@ BOOL char_isNospace(unsigned char c) {
 BOOL char_isFilename(unsigned char c) {
 	return (istosfname(c));
 }
+
+/*
+ * Create a string buffer with a default size.
+ */
+STRING_BUF* stringbuf_create(int nDefaultSize) {
+	STRING_BUF* pResult = calloc(1, sizeof * pResult);
+	pResult->sb_capacity = nDefaultSize;
+	pResult->sb_string = calloc(1, nDefaultSize + 1);
+	pResult->sb_current = pResult->sb_string;
+	return pResult;
+}
+
+/*
+ * Make sure, a string buffer may hold a number of characters. 
+ */
+static void stringbuf_accomodateSpace(STRING_BUF* pBuf, size_t nAdditional) {
+	size_t nSize = pBuf->sb_current - pBuf->sb_string;
+	if (nSize + nAdditional >= pBuf->sb_capacity) {
+		size_t nCapacity = nSize + nAdditional + 128;
+		unsigned char* pNew = realloc(pBuf->sb_string, nCapacity+1);
+		pBuf->sb_current = pNew + (pBuf->sb_current - pBuf->sb_string);
+		pBuf->sb_string = pNew;
+		pBuf->sb_capacity = nCapacity;
+	}
+}
+
+/*
+ * Add a single character to a string buffer.
+ */
+void stringbuf_appendChar(STRING_BUF* pBuf, unsigned char c) {
+	stringbuf_accomodateSpace(pBuf, 1);
+	*pBuf->sb_current++ = c;
+}
+
+/*
+ * Append a string to a string buffer.
+ */
+void stringbuf_appendString(STRING_BUF* pBuf, unsigned char* pszString) {
+	size_t nAdditional = strlen(pszString);
+	stringbuf_accomodateSpace(pBuf, nAdditional);
+	strcpy(pBuf->sb_current, pszString);
+	pBuf->sb_current += nAdditional;
+}
+
+/*
+ * Destroy a string buffer.
+ */
+void stringbuf_destroy(STRING_BUF* pBuf) {
+	free(pBuf->sb_string);
+	free(pBuf);
+}
+
+/*
+ * Get a pointer to the actual string constructed in the string buffer.
+ */
+unsigned char* stringbuf_getString(STRING_BUF* pBuf) {
+	return pBuf->sb_string;
+}
+
