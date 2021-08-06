@@ -28,8 +28,8 @@
 %token T_ASSIGN T_NE T_EQ
 %token T_OR T_AND
 %token T_DEFMACRO T_DEFICON T_DEFALTPATH T_DEFCOMPILER T_DEFDOCTYPES
-%token T_DEFMENUS T_DEFKEYS T_DEFMOUSE T_DEFTAGS T_DEFABBREVS
-%token T_DEFBRACKETS T_DEFESCAPES
+%token T_DEFMENUS T_DEFKEYS T_DEFMOUSE T_DEFTAGS
+%token T_DEFESCAPES
 %token T_CMDSEQPREFIX
 
 %nonassoc '<' T_NE T_EQ '>' '~' T_NMATCH
@@ -167,29 +167,6 @@ tagdefs		:
 			| T_STRING ',' tagdefs
 			| error { yyerror("invalid tag definition"); }
 
-/*-- BRACKETS ----------------------------------------
-
-brackets		: T_DEFBRACKETS T_IDENT inherit bracketdefs ';'
-
-bracketdefs	:
-			| bracket
-			| bracketdefs ',' bracket
-
-bracket		: T_STRING T_STRING T_NUM 
-			{
-				bind_ccldefinition($1.s, $2.s, $3.num, 0, 0, 0, 0);
-				freeval(&$1.s);
-				freeval(&$2.s);
-			}
-			| T_STRING T_STRING T_NUM T_NUM T_NUM T_NUM T_NUM
-			{
-				bind_ccldefinition($1.s, $2.s, 
-					$3.num, $4.num, $5.num, $6.num, $7.num);
-				freeval(&$1.s);
-				freeval(&$2.s);
-			}
-			| error { yyerror("invalid bracket definition"); }
-
 /*-- ESCAPES -------------------------------------------
 
 escapes		: T_DEFESCAPES T_IDENT inherit escapedefs ';'
@@ -206,27 +183,6 @@ escape		: T_STRING T_ASSIGN T_STRING
 			}
 			| error { yyerror("invalid escape definition"); }
 
-/*-- ABBREVS -------------------------------------------
-
-abbrevs		: T_DEFABBREVS T_IDENT inherit abbrevdefs ';'
-
-abbrevdefs	:
-			| abbrev
-			| abbrevdefs ',' abbrev
-
-abbrev		: T_STRING T_ASSIGN T_STRING
-			{
-				bind_abbreviation($1.s, $3.s);
-				freeval(&$1.s);
-				freeval(&$3.s);
-			}
-			| T_STRING T_ASSIGN T_DEFMACRO T_STRING
-			{
-				bind_abbrevmacro($1.s, $4.s);
-				freeval(&$1.s);
-				freeval(&$4.s);
-			}
-			| error { yyerror("invalid abbreviation"); }
 
 /*-- DOCTYPE -------------------------------------------
 

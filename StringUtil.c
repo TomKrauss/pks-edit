@@ -301,7 +301,7 @@ BOOL char_isFilename(unsigned char c) {
 /*
  * Create a string buffer with a default size.
  */
-STRING_BUF* stringbuf_create(int nDefaultSize) {
+STRING_BUF* stringbuf_create(size_t nDefaultSize) {
 	STRING_BUF* pResult = calloc(1, sizeof * pResult);
 	pResult->sb_capacity = nDefaultSize;
 	pResult->sb_string = calloc(1, nDefaultSize + 1);

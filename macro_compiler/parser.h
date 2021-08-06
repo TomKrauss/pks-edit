@@ -90,10 +90,8 @@
      T_DEFKEYS = 306,
      T_DEFMOUSE = 307,
      T_DEFTAGS = 308,
-     T_DEFABBREVS = 309,
-     T_DEFBRACKETS = 310,
-     T_DEFESCAPES = 311,
-     T_CMDSEQPREFIX = 312
+     T_DEFESCAPES = 309,
+     T_CMDSEQPREFIX = 310
    };
 #endif
 

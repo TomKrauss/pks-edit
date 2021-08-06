@@ -7,6 +7,7 @@
 #### New
 - The new function "Toggle Comment" allows to comment in/out the range of selected lines. The function tries to use
   single line comments (e.g. // for c++), when available in the corresponding grammar or block comments otherwise 
+- Templates support now template variables for various purpose. For details see (grammar.md).
 
 ### 2.0.0
 

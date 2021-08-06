@@ -14,11 +14,12 @@ The editor contains only some basic features compared to modern text editors suc
 - multiple windows to edit one file
 - follow cross references in code (requires a tag file - e.g. created using ctags)
 - auto-indentation and formatting
-- sorting files
+- sort files
 - record & play of macros
 - it is pretty fast, if files do not get too big (no memory mapped files support yet)
 - different selection styles (block, ...)
 - support for different file types and for user-defined grammars
+- support for inserting templates
 - and some more - but that's it
 
 ## Installing and Using PKS Edit
@@ -56,5 +57,9 @@ In order to edit the or execute the installation script (pksedit.iss), you need 
 ## Release Notes
 
 -   Here is the link to the [Release Notes](doc/release_notes.md)
+
+## Technical Documentation
+
+-   Format of [Grammar and Template Files](doc/grammar.md)
 
 Enjoy Tom & Rolf

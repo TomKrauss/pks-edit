@@ -179,7 +179,7 @@ extern unsigned char* string_skipBlanks(unsigned char* s);
 /*
  * Create a string buffer with a default size. 
  */
-extern STRING_BUF* stringbuf_create(int nDefaultSize);
+extern STRING_BUF* stringbuf_create(size_t nDefaultSize);
 
 /*
  * Add a single character to a string buffer.

@@ -534,6 +534,8 @@ EXPORT void bl_collectClipboardIds(char *pszValid)
 
 /*--------------------------------------------------------------------------
  * bl_lookupPasteBuffer()
+ * Lookup a paste buffer given an id. If insert is 1, space occupied by a possibly existing paste
+ * buffer is destroyed before the paste buffer is returned.
  */
 EXPORT PASTE *bl_lookupPasteBuffer(int id,int insert,PASTELIST **header)
 {	PASTELIST *pl;

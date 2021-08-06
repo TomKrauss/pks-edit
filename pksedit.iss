@@ -56,6 +56,7 @@ Source: "pks_sys\pksedit.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\css.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\sql.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\logfile.grammar.json"; DestDir: "{app}\pks_sys"
+Source: "pks_sys\proto.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\xml.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\text.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\shell.grammar.json"; DestDir: "{app}\pks_sys"
@@ -66,6 +67,7 @@ Source: "pks_sys\pksedit.mac"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\pksedit.chm"; DestDir: "{app}\pks_sys"
 Source: "readme.md"; DestDir: "{app}"; Flags: isreadme
 Source: "doc\release_notes.md"; DestDir: "{app}\doc" 
+Source: "doc\grammar.md"; DestDir: "{app}\doc" 
 
 [INI]
 Filename: "win.ini"; Section: "PksEdit"; Key: "PKS_SYS"; String: "{app}\PKS_SYS"

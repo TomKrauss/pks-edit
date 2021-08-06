@@ -136,6 +136,13 @@ extern int bl_insertPasteBufFromFile(char* fn);
 extern int bl_syncSelectionWithCaret(WINFO* fp, CARET* lpCaret, int flags, int* pMarkSet);
 
 /*--------------------------------------------------------------------------
+ * bl_lookupPasteBuffer()
+ * Lookup a paste buffer given an id. If insert is 1, space occupied by a possibly existing paste
+ * buffer is destroyed before the paste buffer is returned.
+ */
+extern PASTE* bl_lookupPasteBuffer(int id, int insert, PASTELIST** header);
+
+/*--------------------------------------------------------------------------
  * blcutbl()
  * cut out a block of text
  * and (opt) delete it

@@ -26,7 +26,7 @@
       "templates": [
         {
           "match": "COPYRIGHT",
-          "contents": "/*\n * ${file_name}\n *\n * PKS-EDIT for Windows\n *\n * purpose...\n *\n * created: ${date}\n * author: ${user}\n *\n * This Source Code Form is subject to the terms of the Mozilla Public\n * License, v. 2.0. If a copy of the MPL was not distributed with this\n * file, You can obtain one at https://mozilla.org/MPL/2.0/.\n */\n"
+          "contents": "/*\n * ${file_name}\n *\n * PKS-EDIT for Windows\n *\n * purpose: ${cursor}handle xxx${selection_end}\n *\n * created: ${date}\n * author: ${user}\n *\n * This Source Code Form is subject to the terms of the Mozilla Public\n * License, v. 2.0. If a copy of the MPL was not distributed with this\n * file, You can obtain one at https://mozilla.org/MPL/2.0/.\n */\n"
         }
       ],
       "highlightBrackets": [

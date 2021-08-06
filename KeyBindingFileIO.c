@@ -39,13 +39,18 @@ extern int dlg_displayDialogTemplate(unsigned char c,
 extern unsigned char *bl_convertPasteBufferToText(unsigned char *b, unsigned char *end, 
 			PASTE *pp);
 
+typedef struct tagTEMPLATE_ACTION {
+	long ta_cursorDeltaLn;		// If the cursor should be positioned after inserting the template, this is the number of lines relative to the beginning of the inserted code.
+	long ta_cursorDeltaCol;		// If the cursor should be positioned after inserting the template, this is the number of columns relative to the beginning of the inserted code.
+	long ta_selectionDeltaLn;	// If text should be selected after inserting the template, this is the number of lines relative to the cursor as specified by ta_cursorDeltaLn.
+	long ta_selectionDeltaCol;	// If text should be selected after inserting the template, this is the number of columns relative to the cursor as specified by ta_cursorDeltaLn.
+} TEMPLATE_ACTION;
+
 /*--------------------------------------------------------------------------
  * EXTERNALS
  */
 extern	FSELINFO 	_linfsel;
 
-extern	int uc_add(char* pat, char* p, int type, int id);
-extern 	PASTE	*bl_lookupPasteBuffer();
 extern	PASTE	*bl_getTextBlock(int id, PASTELIST *pp);
 extern 	int 	macro_createTempFile(char *linfn, char *tmpfn);
 
@@ -260,20 +265,35 @@ static PASTE *macro_findTextBuffer(LINE **lp,unsigned char *s,PASTELIST **pl,int
  * Expand a code template optionally containing ${....} references and return
  * the expanded text.
  */
-static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, unsigned char* pszSource) {
+static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction, unsigned char* pszSelected, unsigned char* pszSource) {
 	size_t nInitialSize = strlen(pszSource);
 	STRING_BUF* pResult = stringbuf_create(nInitialSize);
 	unsigned char* pVar = NULL;
 	unsigned char variable[50];
 	unsigned char expandedVariable[512];
 	unsigned char c;
+	long col = 0;
+	long ln = 0;
 
 	while ((c = *pszSource++) != 0) {
 		if (pVar) {
 			if (c == '}') {
 				*pVar = 0;
-				string_getVariable(wp, variable, expandedVariable);
+				if (strcmp("cursor", variable) == 0) {
+					pTAction->ta_cursorDeltaCol = col;
+					pTAction->ta_cursorDeltaLn = ln;
+					expandedVariable[0] = 0;
+				} else if (strcmp("selection_end", variable) == 0) {
+					pTAction->ta_selectionDeltaCol = col - pTAction->ta_cursorDeltaCol;
+					pTAction->ta_selectionDeltaLn = ln - pTAction->ta_cursorDeltaLn;
+					expandedVariable[0] = 0;
+				} else if (strcmp("word_selection", variable) == 0) {
+					strcpy(expandedVariable, pszSelected);
+				} else {
+					string_getVariable(wp, variable, expandedVariable);
+				}
 				stringbuf_appendString(pResult, expandedVariable);
+				col += (long)strlen(expandedVariable);
 				pVar = NULL;
 			} else if (pVar < variable+sizeof variable-1) {
 				*pVar++ = c;
@@ -282,6 +302,12 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, unsigned char* pszSource)
 			pszSource++;
 			pVar = variable;
 		} else {
+			if (c == '\n') {
+				ln++;
+				col = 0;
+			} else {
+				col++;
+			}
 			stringbuf_appendChar(pResult, c);
 		}
 	}
@@ -299,6 +325,7 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 	FTABLE* fp = wp->fp;
 	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
 	GRAMMAR* pGrammar = pConfig->grammar;
+	TEMPLATE_ACTION templateAction;
 
 	if ((up = uc_find(pGrammar, lp->lbuf, offs)) == 0) {
 		return 0;
@@ -317,12 +344,27 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 	caret_placeCursorInCurrentFile(wp, wp->caret.ln,o2);
 	if (!domacro) {
 		int ret = 0;
-		STRING_BUF* pSB = macro_expandCodeTemplate(wp, up->p.uc_template);
+		memset(&templateAction, 0, sizeof templateAction);
+		STRING_BUF* pSB = macro_expandCodeTemplate(wp, &templateAction, up->pat /* TODO: replace with actual word under cursor*/, up->p.uc_template);
 		PASTE pasteBuffer;
 		memset(&pasteBuffer, 0, sizeof pasteBuffer);
 		unsigned char* pszText = stringbuf_getString(pSB);
 		if (bl_convertTextToPasteBuffer(&pasteBuffer, pszText, pszText + strlen(pszText), pConfig->nl, pConfig->nl2, pConfig->cr)) {
+			CARET oldCaret = wp->caret;
 			bl_pasteBlock(&pasteBuffer, 0, o2, 0);
+			if (templateAction.ta_cursorDeltaCol != 0 || templateAction.ta_cursorDeltaLn != 0) {
+				long col = templateAction.ta_cursorDeltaLn ? templateAction.ta_cursorDeltaCol : templateAction.ta_cursorDeltaCol + oldCaret.col;
+				long ln = templateAction.ta_cursorDeltaLn + oldCaret.ln;
+				caret_placeCursorInCurrentFile(wp, ln, col);
+				if (templateAction.ta_selectionDeltaCol || templateAction.ta_selectionDeltaLn) {
+					bl_hideSelection(wp, 0);
+					EdSyncSelectionWithCaret(MARK_START);
+					col += templateAction.ta_selectionDeltaCol;
+					ln += templateAction.ta_selectionDeltaLn;
+					caret_placeCursorInCurrentFile(wp, ln, col);
+					EdSyncSelectionWithCaret(MARK_END);
+				}
+			}
 			ret = 1;
 		}
 		stringbuf_destroy(pSB);
