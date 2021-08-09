@@ -1014,7 +1014,6 @@ static void docTypeApply(void)
 		if (!(fp->flags & F_MODIFIED)) {
 			ft_abandonFile(fp, lp);
 		} else {
-			free(fp->documentDescriptor);
 			doctypes_assignDocumentTypeDescriptor(fp, lp);
 			doctypes_documentTypeChanged();
 		}

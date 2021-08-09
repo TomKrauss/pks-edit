@@ -9,6 +9,12 @@
   single line comments (e.g. // for c++), when available in the corresponding grammar or block comments otherwise 
 - Templates support now template variables for various purpose. For details see (grammar.md).
 
+#### Fixed
+- An exception when compiling macros multiple times with showing the error list was fixed.
+- Cursor movement and selection in "word mode" (e.g. Ctrl+Shift+Right) was made more intuitive.
+- Deleting multiple fill characters (smart tab fill deletion) using Backspace was also made more
+  intuitive.
+
 ### 2.0.0
 
 #### New

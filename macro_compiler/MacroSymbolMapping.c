@@ -113,8 +113,7 @@ static ENTRY *hfind(char *key,ACTION action)
 /* neue Tabelle erzeugen			*/
 /* mit nel == 0, alte zerstoeren	*/
 /*---------------------------------*/
-int sym_create(unsigned nel)
-{
+int sym_create(unsigned nel) {
 	if (_htab) {
 		if (_hsize == nel) {
 			return 1;
@@ -126,10 +125,8 @@ int sym_create(unsigned nel)
 		_hsize    = nel;
 	     _overflow = nel * 4 / 5;
 		nel *= sizeof(_htab[0]);
-		if ((_htab  = malloc(nel)) == 0)
+		if ((_htab  = calloc(1, nel)) == 0)
 		    return 0;
-
-		memset(_htab, 0, nel);
 	}
 	return 1;
 }

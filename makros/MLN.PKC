@@ -1,8 +1,0 @@
-
-
-macro CutMarkedLines() {
-
-	MarkLineOp(MLN_CUT);
-
-}
-

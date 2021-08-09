@@ -170,7 +170,8 @@ int hashmap_size(HASHMAP* pTable) {
 
 /*
  * Put an element into the hash table. Return 0 if an element with the named
- * key existed or 1 if a new entry was added.
+ * key existed or 1 if a new entry was added. If 0 is returned, the old key
+ * persists and the new key will not be used.
  */
 int hashmap_put(HASHMAP* pTable, intptr_t key, intptr_t value) {
 	if (pTable->ht_size >= pTable->ht_capacity * 3 / 4) {

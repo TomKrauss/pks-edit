@@ -643,11 +643,17 @@ static LINE *nextw(LINE *lp,long *ln,long *col,
 			lp = lp->prev;
 			c  = lp->len;
 		} else {
+			BOOL bNavigated = FALSE;
 			p--;
 			if (bNo) {
 				while (c && !(*iswfunc)(*p)) { p-- , c--; }
+			} else if (c > 0 && !(*iswfunc)(*p)) {
+				while (c && !(*iswfunc)(*p)) { p--, c--; }
+				bNavigated = TRUE;
 			}
-			while (c &&  (*iswfunc)(*p)) { p-- , c--; }
+			if (!bNavigated) {
+				while (c && (*iswfunc)(*p)) { p--, c--; }
+			}
 		}
 	} else {
 		if (c == len) {
@@ -655,9 +661,13 @@ static LINE *nextw(LINE *lp,long *ln,long *col,
 			lp = lp->next;
 			c  = 0;
 		} else {
-			while ( (*iswfunc)(*p) && c < len) { p++ , c++; }
-			if (bNo) {
-				while (!(*iswfunc)(*p) && c < len) { p++ , c++; }
+			if (!bNo && !(*iswfunc)(*p) && c < len) { 
+				while (!(*iswfunc)(*p) && c < len) { p++, c++; }
+			} else {
+				while ((*iswfunc)(*p) && c < len) { p++, c++; }
+				if (bNo) {
+					while (!(*iswfunc)(*p) && c < len) { p++, c++; }
+				}
 			}
 		}
 	}
@@ -741,14 +751,14 @@ EXPORT int caret_getPreviousColumnInLine(WINFO* wp, LINE *lp, int col) {
 LINE * (*advmatchfunc)();
 EXPORT void caret_setMatchFunction(int mtype, int ids_name, int *c)
 {
-	advmatchfunc = cadv_gotoIdentifierEnd;
+	advmatchfunc = cadv_gotoIdentifierSkipSpace;
 	switch (abs(mtype)) {
 		case MOT_UNTILC:
 			*c = EdPromptForCharacter(ids_name);
 			advmatchfunc = cadv_c;
 			break;
 		case MOT_SPACE:
-			advmatchfunc = cadv_gotoIdentifierSkipSpace;
+			advmatchfunc = cadv_gotoIdentifierEnd;
 			break;
 	}
 }
@@ -783,9 +793,17 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags)
 	HideWindowsBlocks(wp);
 
 	moving = direction * (motionFlags & (~MOT_XTNDBLOCK));
-	caret_setMatchFunction(moving , IDS_CURSUNTILC, &matchc);
 
 	switch(moving) {
+		case MOT_WORD:    case -MOT_WORD:
+		case MOT_UNTILC:  case -MOT_UNTILC:
+		case MOT_SPACE:   case -MOT_SPACE:
+			caret_setMatchFunction(moving, IDS_CURSUNTILC, &matchc);
+			if ((lp = (*advmatchfunc)(lp, &ln, &col,
+				(moving > 0) ? 1 : -1, matchc)) == 0) {
+				goto err;
+			}
+			break;
 		case  MOT_SINGLE:
 			if (col >= lp->len) {
 				lp = lp->next;
@@ -798,14 +816,6 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags)
 			break;
 		case  MOT_TOEND:
 			col = lp->len;
-			break;
-		case MOT_WORD:    case -MOT_WORD:
-		case MOT_UNTILC:  case -MOT_UNTILC:
-		case MOT_SPACE:   case -MOT_SPACE:
-			if ((lp = (*advmatchfunc)(lp,&ln,&col,
-				(moving > 0) ? 1 : -1,matchc)) == 0) {
-				goto err;
-			}
 			break;
 		case -MOT_SINGLE:
 			if (!col) {

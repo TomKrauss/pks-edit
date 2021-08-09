@@ -926,10 +926,14 @@ int ww_getNumberOfOpenWindows(void)
 int ww_close(WINFO *wp)
 {	HWND hwndEdit;
 
+	if (wp == NULL) {
+		return 0;
+	}
 	hwndEdit = wp->edwin_handle;
 
-	if (!SendMessage(hwndEdit,WM_QUERYENDSESSION,(WPARAM)0,(LPARAM)0L))
+	if (!SendMessage(hwndEdit, WM_QUERYENDSESSION, (WPARAM)0, (LPARAM)0L)) {
 		return 0;
+	}
 	return
 		(int) SendMessage(hwndMDIClientWindow,WM_MDIDESTROY,(WPARAM)hwndEdit,(LPARAM)0L);
 }

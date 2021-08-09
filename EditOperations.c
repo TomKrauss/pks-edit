@@ -862,13 +862,19 @@ static int edit_findPreviousOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) 
 		caret.offset = screenColPreviousTab;
 		int lineOffsetPreviousTab = caret_screen2lineOffset(wp, &caret);
 		int nNewOffset = nOffset;
+		BOOL bFoundNonSpace = FALSE;
 		while (--nNewOffset >= lineOffsetPreviousTab) {
 			char c = lp->lbuf[nNewOffset];
 			if (c != '\t' && c != fp->documentDescriptor->fillc) {
+				bFoundNonSpace = TRUE;
 				break;
 			}
 		}
-		return nOffset - nNewOffset > 1 ? nNewOffset + 1 : nNewOffset;
+		int nDelta = nOffset - nNewOffset;
+		if (bFoundNonSpace && nDelta <= 1) {
+			return nOffset - 1;
+		}
+		return nDelta > 1 ? nNewOffset + 1 : nNewOffset;
 	}
 	return nOffset - 1;
 }

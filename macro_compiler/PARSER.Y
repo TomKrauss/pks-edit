@@ -675,7 +675,7 @@ nonemptypars	: par {
 				PushParam(&$3.v);
 			}
 			| error {
-				yyerror("illegal parameters");
+				yyerror("illegal parameters %s", $0);
 			}
 
 par			: cast value {

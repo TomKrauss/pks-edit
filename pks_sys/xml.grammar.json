@@ -2,6 +2,13 @@
   "grammars": [
     {
       "scopeName": "xml",
+      "navigation": [
+        {
+          "name": "html-link",
+          "pattern": "[\"'](https?:[^\"]+)[\"']",
+          "filenameCapture": 1
+        }
+      ],
       "patterns": [
         {
           "begin": "<!--",
@@ -20,7 +27,7 @@
           "name": "xml.end"
         },
         {
-          "match": "\\<[a-zA-Z0-9_>-]+",
+          "match": "\\<[a-zA-Z0-9_-]+[\\> ]",
           "style": "regexp",
           "name": "xml.start"
         },
@@ -45,6 +52,11 @@
               "pattern": "string.xml.value"
             }
           ]
+        },
+        {
+          "match": "\\&[#a-z]+;",
+          "style": "annotation",
+          "name": "xml.entity"
         },
         {
           "name": "string.xml.attribute",

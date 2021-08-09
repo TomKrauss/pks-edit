@@ -24,7 +24,6 @@
           "keywords": [
             "macro",
             "do",
-            "while",
             "if",
             "else",
             "elif",
@@ -49,6 +48,11 @@
             "BRACKETS",
             "TEXTBUFFER"
           ]
+        },
+        {
+          "match": "\"(?:\\\"|[^\"])+\"",
+          "style": "string",
+          "name": "string"
         },
         {
           "match": "[\\[\\]{}]",

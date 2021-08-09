@@ -322,6 +322,7 @@ BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename) {
  * match
  */
 int  doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *pDocumentDescriptor) {
+	free(fp->documentDescriptor);
 	if ((fp->documentDescriptor = malloc(sizeof *fp->documentDescriptor)) == 0)
 		return 0;
 

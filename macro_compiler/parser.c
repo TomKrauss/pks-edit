@@ -2860,7 +2860,7 @@ int yydebug = 1;
 /* Line 1455 of yacc.c  */
 #line 677 "Parser.y"
     {
-				yyerror("illegal parameters");
+				yyerror("illegal parameters %s", (yyvsp[(0) - (1)]));
 			;}
     break;
 

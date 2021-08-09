@@ -184,13 +184,9 @@ static void ln_singleLineChanged(FTABLE* fp, MODEL_CHANGE_TYPE type, LINE* lp, L
 
 /*------------------------------------------------------------
  * ft_bufdestroy().
- * Release all resources associated with a file.
+ * Release all resources associated with a file. Do not close associated views.
  */
 void ft_bufdestroy(FTABLE* fp) {
-	if (fp->views) {
-		arraylist_destroy(fp->views);
-		fp->views = NULL;
-	}
 	destroy(&fp->documentDescriptor);
 	ln_listfree(fp->firstl);
 	fp->tln = fp->firstl = 0;

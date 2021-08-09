@@ -574,7 +574,7 @@ int fsel_selectFileWithTitle(int title, char *result, BOOL bSaveAs)
 
 /*------------------------------------------------------------
  * ft_activateWindowOfFileNamed()
- * Activate the window of the file named...
+ * Activate the window of the file named 'fn'.
  */
 int ft_activateWindowOfFileNamed(char *fn) {
 	FTABLE 	*fp;
@@ -586,6 +586,9 @@ int ft_activateWindowOfFileNamed(char *fn) {
 		return 0;
 	}
 	WINFO* wp = WIPOI(fp);
+	if (wp == NULL) {
+		return 0;
+	}
 	return EdSelectWindow(wp->win_id);
 }
 
@@ -841,6 +844,9 @@ int EdSaveFile(int flg) {
 			/* if ret == "APPEND".... fp->flags |= F_APPEND */
 		}
 		strcpy(fp->fname, newname);
+		// Document type may have changed as a result of saving under a new name. Recalculate document descriptor.
+		doctypes_assignDocumentTypeDescriptor(fp, 0);
+		doctypes_documentTypeChanged();
 		int flags = fp->flags;
 		ft_forAllViews(fp, ww_setwindowtitle, NULL);
 		flags |= F_CHANGEMARK;
