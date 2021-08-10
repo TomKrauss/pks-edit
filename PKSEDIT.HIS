@@ -1,5 +1,6 @@
 [files]
-"C:\source\pksedit\macros\formatprint.pkc", line 10: 0x0 0x1 -1 -1 -1 -1 130 130 1494 608
+"C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR", line 1: 0x0 0x1 -1 -1 -1 -1 130 130 1320 490
+"C:\source\pksedit\macros\formatprint.pkc", line 9: 0x0 0x1 -1 -1 -1 -1 130 130 1196 524
 [find]
 !<URL>
 !d
@@ -45,8 +46,6 @@
 !x
 !xx
 [open]
-!C:\source\pksedit\pks_sys\PKSEDIT.INI
-!C:\source\pksedit\include\editorconfiguration.h
 !C:\source\pksedit\include\printing.h
 !C:\source\pksedit\SprintfUtil.c
 !C:\source\pksedit\StringTokenizer.c
@@ -76,6 +75,7 @@
 !C:\temp\newfile1.c
 !C:\source\pksedit\CutAndPaste.c
 !C:\source\pksedit\README.md
+!C:\source\pksedit\macros\formatprint.pkc
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
 [pathes]
 !D:\tom\desktop\*.*

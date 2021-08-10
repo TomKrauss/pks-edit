@@ -847,8 +847,8 @@ doforward:
 		if (xref_openFile(fullname, navigationSpec.line-1L, (WINDOWPLACEMENT*)0)) {
 			if (navigationSpec.comment[0]) {
 				int col;
-				int len;
-				if (sscanf(navigationSpec.comment, "%d/%d", &col, &len) != EOF && len > 0) {
+				int len = 0;
+				if (sscanf(navigationSpec.comment, "%d/%d", &col, &len) == 2 && len > 0) {
 					xref_highlightMatch(navigationSpec.line-1L, col, len);
 				}
 			}

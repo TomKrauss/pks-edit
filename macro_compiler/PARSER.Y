@@ -111,7 +111,6 @@ unsigned char 	*AddComSeq(unsigned char *sp, unsigned char *spend,
 int				FuncIdx(void *ep);
 int 			bind_key(KEYCODE keycode, MACROREFTYPE typ, MACROREFIDX idx, int augment);
 int 			bind_mouse(MOUSECODE code, MACROREFTYPE typ, MACROREFIDX idx, int flags, int augment);
-int 			sym_sym_makeInternalSymbolbol(char *name, char ed_typ, intptr_t value);
 int 			IsFormStart(void *ep,int parno);
 int 			key_switchtotable(char *name);
 int 			mouse_switchtotable(char *name);
@@ -462,7 +461,9 @@ stmnt		:            	';'
 			| gotolabel
 			| block
 			| label
-			| error			{ yyerror("invalid statement"); }
+			| error			{
+				yyerror("invalid statement"); 
+			}
 
 
 assignment	: var assgn 		{
@@ -675,7 +676,7 @@ nonemptypars	: par {
 				PushParam(&$3.v);
 			}
 			| error {
-				yyerror("illegal parameters %s", $0);
+				yyerror("illegal parameters for method call");
 			}
 
 par			: cast value {

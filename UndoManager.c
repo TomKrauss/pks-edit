@@ -193,9 +193,9 @@ EXPORT BOOL undo_saveOperation(FTABLE *fp, LINE *lp, LINE *lpAnchor,int op) {
 }
 
 /*--------------------------------------------------------------------------
- * u_free()
+ * undo_destroyCommand()
  */
-static void u_free(UNDO_COMMAND *ubp, FTABLE* fp, BOOLEAN freelines)
+static void undo_destroyCommand(UNDO_COMMAND *ubp, FTABLE* fp, BOOLEAN freelines)
 {
 	if (ubp == 0) {
 		return;
@@ -233,7 +233,7 @@ EXPORT void undo_destroyManager(FTABLE *fp)
 
 	if (pUndoStack) {
 		for (int i = 0; i < pUndoStack->numberOfCommands; i++) {
-			u_free(pUndoStack->commands[i], fp, TRUE);
+			undo_destroyCommand(pUndoStack->commands[i], fp, TRUE);
 		}
 		free(pUndoStack);
 		UNDOPOI(fp) = 0;
@@ -247,7 +247,7 @@ static void undo_deallocateExecutedCommands(UNDO_STACK* pStack, FTABLE* fp, BOOL
 			continue;
 		}
 		UNDO_OPERATION* pStep = pCommand->atomicSteps;
-		u_free(pStack->commands[i], fp, bFreeLines);
+		undo_destroyCommand(pStack->commands[i], fp, bFreeLines);
 		pStack->commands[i] = NULL;
 	}
 }
@@ -258,9 +258,17 @@ static void undo_deallocateExecutedCommands(UNDO_STACK* pStack, FTABLE* fp, BOOL
 static void undo_allocateCommand(UNDO_STACK* pStack, FTABLE* fp, BOOLEAN bFreeLines) {
 	// If we have possible "re-dos" - cancel them at this point, because we begin something new
 	undo_deallocateExecutedCommands(pStack, fp, bFreeLines);
+	// TODO: this is a partial work around for the following problem.
+	// If we change multiple things in the same line and move the cursor in between only one line delta is recorded currently.
+	// This will have successive undos being a "no-op" - only the cursor moves, but nothing is really undone.
+	// Try to get rid of some of the "no-op" undos this way.
+	if (pStack->current >= 0 && pStack->commands[pStack->current] && pStack->commands[pStack->current]->atomicSteps == NULL) {
+		// nothing was really recorded in the previous step - ignore.
+		return;
+	}
 	pStack->numberOfCommands = pStack->current+1;
 	if (pStack->numberOfCommands >= pStack->maximumUndoCommands) {
-		u_free(pStack->commands[0], fp, TRUE);
+		undo_destroyCommand(pStack->commands[0], fp, TRUE);
 		memmove(&pStack->commands[0], &pStack->commands[1], sizeof pStack->commands[0] * (pStack->numberOfCommands - 1));
 		pStack->numberOfCommands = pStack->maximumUndoCommands - 1;
 		pStack->commands[pStack->numberOfCommands] = NULL;
@@ -416,7 +424,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
  */
 static void undo_replace(UNDO_STACK* pStack, UNDO_COMMAND* pCommand, FTABLE* fp) {
 	if (pStack->commands[pStack->current]) {
-		u_free(pStack->commands[pStack->current], fp, FALSE);
+		undo_destroyCommand(pStack->commands[pStack->current], fp, FALSE);
 	}
 	pStack->commands[pStack->current] = pCommand;
 }

@@ -151,7 +151,6 @@ int mac_compileMacros()
 		if (!setjmp(errb)) {
 			yyinit(&errb, fp->fname, fp->firstl, fp->lastl->prev);
 			yyparse();
-			_macedited = 1;
 		}
 		return yyfinish();
 	}

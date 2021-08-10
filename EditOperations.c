@@ -849,6 +849,14 @@ static int edit_findNextOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) {
 	return nOffset + 1;
 }
 
+static BOOL edit_isSpace(LINE* lp, EDIT_CONFIGURATION* pDescriptor, int nOffset) {
+	char c = lp->lbuf[nOffset];
+	if (c != '\t' && c != pDescriptor->fillc) {
+		return FALSE;
+	}
+	return TRUE;
+}
+
 /**
  * Return the previous column up to which a single character BACKSPACE should delete.
  */
@@ -862,19 +870,25 @@ static int edit_findPreviousOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) 
 		caret.offset = screenColPreviousTab;
 		int lineOffsetPreviousTab = caret_screen2lineOffset(wp, &caret);
 		int nNewOffset = nOffset;
-		BOOL bFoundNonSpace = FALSE;
-		while (--nNewOffset >= lineOffsetPreviousTab) {
-			char c = lp->lbuf[nNewOffset];
-			if (c != '\t' && c != fp->documentDescriptor->fillc) {
-				bFoundNonSpace = TRUE;
+		while (--nNewOffset > lineOffsetPreviousTab) {
+			if (!edit_isSpace(lp, fp->documentDescriptor, nNewOffset)) {
 				break;
 			}
 		}
 		int nDelta = nOffset - nNewOffset;
-		if (bFoundNonSpace && nDelta <= 1) {
-			return nOffset - 1;
+		if (nDelta > 1) {
+			if (nNewOffset < 0) {
+				nNewOffset = 0;
+			} else if (!edit_isSpace(lp, fp->documentDescriptor, nNewOffset)) {
+				nNewOffset++;
+				if (nDelta > 2) {
+					nNewOffset++;
+				}
+			} else if (nNewOffset > 0 && !edit_isSpace(lp, fp->documentDescriptor, nNewOffset-1)) {
+				nNewOffset++;
+			}
 		}
-		return nDelta > 1 ? nNewOffset + 1 : nNewOffset;
+		return nNewOffset;
 	}
 	return nOffset - 1;
 }

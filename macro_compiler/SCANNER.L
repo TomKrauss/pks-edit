@@ -32,6 +32,8 @@
 #include "stringutil.h"
 #include "crossreferencelinks.h"
 
+#pragma warning(suppress: 4102)
+
 #define fileno(x)		_fileno(x)
 #define YY_FATAL_ERROR(msg) yyerror( msg )
 
@@ -56,7 +58,6 @@ typedef struct yyerrstruct {
 	char		*srcname;
 	char		errname[84];
 	FILE		*errfp;
-	int		yylineno;
 	int		yynerr,yynwarn;
 	int		yymaxerr,yymaxwarn;
 	jmp_buf	*failpt;
@@ -70,9 +71,10 @@ typedef void EDFUNCDEF;
 
 extern FILE		*createtmp(char *fnd, char *fn);
 extern int 		init_funcs(void);
-extern long 		EnumValue(void *enp);
-extern void 		macro_selectDefaultBindings(void);
-extern void 		stepselectcompiler(char *pszName);
+extern long 	EnumValue(void *enp);
+extern void 	macro_selectDefaultBindings(void);
+extern void 	stepselectcompiler(char *pszName);
+extern int		_macedited;
 
 #if defined(STAND_ALONE)
 static FILE *_lexFp;
@@ -150,9 +152,7 @@ static int cmdgetc(void )
 		yyleng = 0;
 	}
 
-	if ((c = fgetc(_lexFp)) == '\n')
-		yyerr.yylineno++;
-	return c;
+	return fgetc(_lexFp);
 }
 
 # else
@@ -186,7 +186,7 @@ void yyerror(char* s, ...)
 		(yyerr.errfp = createtmp(yyerr.errname, "PKSMAKRO.ERR")) != 0) {
 		yyerrflg = 1;
 		wvsprintf(buf1, s, ap);
-		sprintf(buf, "Error %s %d: %s\n", yyerr.srcname, yyerr.yylineno, buf1);
+		sprintf(buf, "Error %s %d: %s\n", yyerr.srcname, yylineno, buf1);
 		fprintf(yyerr.errfp, buf);
 		fflush(yyerr.errfp);
 		if (++yyerr.yynerr >= yyerr.yymaxerr) {
@@ -213,7 +213,6 @@ static int cmdgetc(void )
 		if (_lexLine != _lexLastLine &&
 		    (lp = _lexLine->next) != 0 && 
 		    lp->next != 0) {
-			yyerr.yylineno++;
 			LexInit(lp,_lexLastLine);
 			return '\n';
 		}
@@ -239,12 +238,11 @@ int yyinit(jmp_buf *errb, char *sourcefile, LINE *lps, LINE *lpe)
 		}
 		tables_inited = 1;
 	}
-
+	yylineno = 1;
 	yyerr.yynwarn  = 0;
 	yyerr.yynerr	= 0;
 	yyerr.yymaxerr	= 30;
 	yyerr.yymaxwarn= 30;
-	yyerr.yylineno = 1;
 	yyerr.failpt   = errb;
 	if (yyerr.errfp) {
 		fclose(yyerr.errfp);
@@ -284,6 +282,7 @@ int yyfinish(void)
 		xref_openSearchList(yyerr.errname,1);
 		return 0;
 	} else {
+		_macedited = 1;
 		macro_showStatus("No Errors detected");
 	}
 	return 1;
@@ -389,6 +388,8 @@ NOS		[^"]
 WS		[ \t]
 
 %START		keys
+
+%option yylineno
 
 %%
 <INITIAL>-	{

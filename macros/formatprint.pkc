@@ -6,7 +6,7 @@ macro testfmtprint() {
 	Alert(s);
 	s = FormatPrint("Hexoffset %j$O");
 	Alert(s);
-	CursorDown(MOT_SINGLE);
+	CursorDown(MOT_SINGLE); // currently causing problems, as MOT_SINGLE is not defined. 
 	s = FormatPrint("%j$l %j$c");
 	Alert(s);
 }

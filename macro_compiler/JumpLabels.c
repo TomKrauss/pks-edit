@@ -49,9 +49,9 @@ static GOTOS _gotos[MAXLABEL];
 static int   _ngotos;
 
 void 	yyerror(char *s, ...);
-char 	*yystralloc(char *s);
-unsigned char *AddComSeq(unsigned char *sp, unsigned char *spend,
-				     unsigned char typ, long par);
+unsigned char  *yystralloc(unsigned char *s);
+unsigned char* AddComSeq(unsigned char* sp, unsigned char* spend,
+	unsigned char typ, intptr_t par);
 
 /*---------------------------------*/
 /* FindLabel()					*/
