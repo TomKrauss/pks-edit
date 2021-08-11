@@ -1,6 +1,6 @@
 [files]
-"C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR", line 1: 0x0 0x1 -1 -1 -1 -1 130 130 1320 490
-"C:\source\pksedit\macros\formatprint.pkc", line 9: 0x0 0x1 -1 -1 -1 -1 130 130 1196 524
+"C:\source\pksedit\CutAndPaste.c", line 912: 0x0 0x1 -1 -1 -1 -1 130 130 1196 524
+"C:\temp\JdbcSessionBig.java", line 3360: 0x0 0x1 -1 -1 -1 -1 130 130 1320 490
 [find]
 !<URL>
 !d
@@ -46,8 +46,6 @@
 !x
 !xx
 [open]
-!C:\source\pksedit\include\printing.h
-!C:\source\pksedit\SprintfUtil.c
 !C:\source\pksedit\StringTokenizer.c
 !C:\source\pksedit\PrintFiles.c
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\query\parser\StringInputStream.java
@@ -75,8 +73,8 @@
 !C:\temp\newfile1.c
 !C:\source\pksedit\CutAndPaste.c
 !C:\source\pksedit\README.md
-!C:\source\pksedit\macros\formatprint.pkc
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
+!C:\source\pksedit\macros\formatprint.pkc
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -101,6 +99,6 @@
 !C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\*.*
 !C:\source\pksedit\*.*
-!C:\temp\*.*
 !C:\source\techradar\*.*
 !C:\source\pksedit\macros\*.*
+!C:\temp\*.*

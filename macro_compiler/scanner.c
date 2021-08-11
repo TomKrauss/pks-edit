@@ -470,7 +470,10 @@ char *yytext;
 #include "stringutil.h"
 #include "crossreferencelinks.h"
 
-#pragma warning(suppress: 4102)
+//
+// work around for flex generating redundant goto label, when line numbers option is used
+//
+#pragma warning(disable: 4102)
 
 #define fileno(x)		_fileno(x)
 #define YY_FATAL_ERROR(msg) yyerror( msg )

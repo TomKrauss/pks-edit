@@ -53,6 +53,7 @@ typedef struct tagPATTERN_GROUP {
 
 typedef struct tagGRAMMAR_PATTERN {
 	struct tagGRAMMAR_PATTERN* next;	// linked list of grammar patterns.
+	struct tagGRAMMAR_PATTERN* children;// linked list of child patterns. Will be applied if outer pattern is matched.
 	char  name[32];						// The name of the match - should use hierarchical names as for example 'comment.line' or 'keyword.control.java'
 										// The names may be "matched" against style selectors specified below
 	char* match;						// a simple RE pattern to match this pattern
@@ -85,8 +86,8 @@ typedef struct tagGRAMMAR {
 	char decreaseIndentPattern[32];		// A regular expression defining the condition on which the indent should be decreased.
 	BRACKET_RULE* highlightBrackets;	// The rule patterns for "highlight" bracket matching.
 	GRAMMAR_PATTERN* patterns;			// The patterns defined for this grammar.
-	int transitions[256];				// The indices into the state transition table. We allow a maximum of 16 re_patterns to match from the initial state.
-										// for each character we allow a maximum of two possibilities to match.
+	int transitions[256];				// The indices into the state transition table. We allow a maximum of 32 re_patterns to match from one initial state.
+										// for each character we allow a maximum of 5 possibilities to match.
 	GRAMMAR_PATTERN* patternsByState[16];
 	UCLIST* undercursorActions;			// The list of actions to perform on input (either bracket matching or code template insertion etc...).
 	NAVIGATION_PATTERN* navigation;		// The patterns, which can be used to extract hyperlinks to navigate from within a file
@@ -175,6 +176,8 @@ static JSON_MAPPING_RULE _patternGroupRules[] = {
 };
 
 static JSON_MAPPING_RULE _patternRules[] = {
+	{	RT_OBJECT_LIST, "patterns", offsetof(GRAMMAR_PATTERN, children),
+			{.r_t_arrayDescriptor = {grammar_createGrammarPattern, _patternRules}}},
 	{	RT_CHAR_ARRAY, "name", offsetof(GRAMMAR_PATTERN, name), sizeof(((GRAMMAR_PATTERN*)NULL)->name)},
 	{	RT_ALLOC_STRING, "match", offsetof(GRAMMAR_PATTERN, match)},
 	{	RT_OBJECT_LIST, "captures", offsetof(GRAMMAR_PATTERN, captures),
@@ -223,6 +226,7 @@ static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {
 	free(pPattern->match);
 	free(pPattern->rePattern);
 	free(pPattern->rePatternBuf);
+	ll_destroy((LINKED_LIST**)&pPattern->children, grammar_destroyPattern);
 	ll_destroy((LINKED_LIST**)&pPattern->captures, NULL);
 	hashmap_destroy(pPattern->keywords, grammar_destroyHashEntry);
 	return 1;
@@ -290,7 +294,7 @@ static int grammar_takeChar(unsigned char table[], unsigned char c) {
 	return c != '-' && c != '^' && c != ']' && HAS_CHAR(table, c);
 }
 
-static unsigned char* grammar_calcCharClassCharacters(unsigned char* pResult, unsigned char table[]) {
+static unsigned char* grammar_determineCharacterClassCharacters(unsigned char* pResult, unsigned char table[]) {
 	for (int i = 0; i < 256; ) {
 		if (grammar_takeChar(table, i)) {
 			int j = i++;
@@ -330,10 +334,10 @@ static void grammar_createPatternFromKeywords(GRAMMAR_PATTERN* pGrammarPattern) 
 	char result[256];
 	// Assumption: keywords always start on word boundaries.
 	strcpy(result, "<[");
-	unsigned char* pResult = grammar_calcCharClassCharacters(result+2, lookup.char1Table);
+	unsigned char* pResult = grammar_determineCharacterClassCharacters(result+2, lookup.char1Table);
 	*pResult++ = ']';
 	*pResult++ = '[';
-	pResult = grammar_calcCharClassCharacters(pResult, lookup.char2Table);
+	pResult = grammar_determineCharacterClassCharacters(pResult, lookup.char2Table);
 	*pResult++ = ']';
 	*pResult++ = lookup.singleCharKeywordExists ? '*' : '+';
 	*pResult++ = '>';
@@ -412,6 +416,30 @@ static LEXICAL_STATE grammar_patternIndex(GRAMMAR* pGrammar, char* pszPatternNam
 }
 
 /*
+ * Prepare the child patterns of a pattern. 
+ */
+static LEXICAL_STATE grammar_processChildPatterns(GRAMMAR* pGrammar, LEXICAL_STATE stateIdx, GRAMMAR_PATTERN* pPattern) {
+	GRAMMAR_PATTERN* pChildPattern = pPattern->children;
+	while (pChildPattern) {
+		if (stateIdx >= DIM(pGrammar->patternsByState)) {
+			return stateIdx;
+		}
+		if (pChildPattern->begin[0] && pChildPattern->end[0]) {
+			pChildPattern->spansLines = TRUE;
+		} else {
+			RE_PATTERN* pREPattern = grammar_compile(pChildPattern);
+			if (pREPattern) {
+				pChildPattern->wordmatch = regex_matchWordStart(pREPattern);
+			}
+		}
+		pGrammar->patternsByState[stateIdx++] = pChildPattern;
+		stateIdx = grammar_processChildPatterns(pGrammar, stateIdx, pChildPattern);
+		pChildPattern = pChildPattern->next;
+	}
+	return stateIdx;
+}
+
+/*
  * Initialize the grammar by constructing the basic knowledge necessary to make a fast
  * parsing of the grammar more simple.
  */
@@ -437,8 +465,9 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 				pPattern->wordmatch = regex_matchWordStart(pREPattern);
 			}
 		}
-		pPattern = pPattern->next;
 		state++;
+		state = grammar_processChildPatterns(pGrammar, state, pPattern);
+		pPattern = pPattern->next;
 	}
 	pPattern = pGrammar->patterns;
 	while (pPattern && state < DIM(pGrammar->patternsByState)) {
@@ -533,6 +562,9 @@ static int grammar_addDelta(LEXICAL_STATE newState, int nDelta, int nElementCoun
 	return nElementCount;
 }
 
+/*
+ * Styling was defined with capture groups of a pattern - apply the styling from the found capture groups.
+ */
 static int grammar_addStyledGroups(int nElementCount, RE_MATCH* pMatch, PATTERN_GROUP* pGroup,
 			LEXICAL_STATE defaultState, LEXICAL_ELEMENT* pResult) {
 	int nBracket = 0;
@@ -551,6 +583,71 @@ static int grammar_addStyledGroups(int nElementCount, RE_MATCH* pMatch, PATTERN_
 }
 
 /*
+ * Match a grammar pattern 'pPattern' within a range of text (pszBuf -> pszBufEnd). Return 1 if matched and add the proper lexical token
+ * runs to the result array.
+ */
+static int grammar_matchPattern(GRAMMAR_PATTERN* pPattern, LEXICAL_STATE currentState, LEXICAL_STATE matchedState, 
+	unsigned char* pszBuf, unsigned char* pszBufEnd, size_t i, size_t* pStateOffset,
+	int *pElementCount, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT]) {
+
+	RE_MATCH match;
+
+	RE_PATTERN* pRePattern = pPattern->rePattern;
+	if (pRePattern) {
+		pRePattern->beginOfLine = pszBuf;
+		if (regex_match(pRePattern, &pszBuf[i], pszBufEnd, &match)) {
+			int delta = (int)(match.loc2 - match.loc1);
+			int nNewOffset = (int)(match.loc2 - pszBuf);
+			if (pPattern->captures) {
+				*pElementCount = grammar_addDelta(currentState, (int)(i - *pStateOffset), *pElementCount, pResult);
+				*pElementCount = grammar_addStyledGroups(*pElementCount, &match, pPattern->captures, currentState, pResult);
+				*pStateOffset = nNewOffset;
+				return 1;
+			} else if (grammar_matchKeyword(pPattern->keywords, match.loc1, match.loc2)) {
+				*pElementCount = grammar_addDelta(currentState, (int)(i - *pStateOffset), *pElementCount, pResult);
+				*pElementCount = grammar_addDelta(matchedState, delta, *pElementCount, pResult);
+				*pStateOffset = nNewOffset;
+				return 1;
+			}
+		}
+	} else if (strncmp(&pszBuf[i], pPattern->begin, strlen(pPattern->begin)) == 0) {
+		return 1;
+	}
+	return 0;
+}
+
+/*
+ * We found a range of text to be marked as styled token. Add the style information to our lexical element list. If nested patterns (child patterns)
+ * are defined for the current pattern, try to match these as sub-tokens.
+ */
+static int grammar_tokenFound(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT], LEXICAL_STATE currentState, GRAMMAR_PATTERN* pPattern, 
+		char* pszBuf, size_t start, size_t end, int nElementCount) {
+
+	if (pPattern && pPattern->children) {
+		for (size_t i = start; i < end; i++) {
+			GRAMMAR_PATTERN* pChild = pPattern->children;
+			while (pChild) {
+				RE_PATTERN* pRePattern = pChild->rePattern;
+				if (pRePattern) {
+					RE_MATCH match;
+					pRePattern->beginOfLine = pszBuf;
+					if (regex_match(pRePattern, &pszBuf[start+i], &pszBuf[end], &match)) {
+						nElementCount = grammar_addDelta(currentState, (int)(i - start), nElementCount, pResult);
+						LEXICAL_STATE stateIdx = grammar_patternIndex(pGrammar, pChild->name);
+						size_t nDelta = match.loc2 - match.loc1;
+						nElementCount = grammar_addDelta(stateIdx, (int)nDelta, nElementCount, pResult);
+						i = start = match.loc2 - pszBuf;
+						break;
+					}
+				}
+				pChild = pChild->next;
+			}
+		}
+	}
+	return grammar_addDelta(currentState, (int)(end - start), nElementCount, pResult);
+}
+
+/*
  * This method will parse the characters in pszBuf (assumed length is lLength) and determine the lexial
  * tokens defined as LEXICAL_ELEMENTs to be placed in the result buffer. If successful return the state at the
  * end of the line.
@@ -559,29 +656,29 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 	if (pGrammar == 0) {
 		return 0;
 	}
-	GRAMMAR_PATTERN* pStartPattern = pGrammar->patternsByState[startState];
-	BOOL spansLines = pStartPattern && pStartPattern->spansLines;
-	LEXICAL_STATE lexicalState = (startState == UNKNOWN || spansLines) ? startState : INITIAL;
-	LEXICAL_STATE nextState = lexicalState;
-	RE_MATCH match;
+	GRAMMAR_PATTERN* pRootPattern = pGrammar->patternsByState[startState];
+	BOOL spansLines = pRootPattern && pRootPattern->spansLines;
+	LEXICAL_STATE currentState = (startState == UNKNOWN || spansLines) ? startState : INITIAL;
+	LEXICAL_STATE nextState = currentState;
 	int nElementCount = 0;
 	size_t nStateOffset = 0;
-	char* pszEnd = spansLines ? pStartPattern->end : NULL;
+	char* pszEnd = spansLines ? pRootPattern->end : NULL;
 	for (size_t i = 0; i < lLength; ) {
 		unsigned char c = pszBuf[i];
 		if (pszEnd) {
-			if (c == pszEnd[0] && strncmp(&pszBuf[i], pszEnd, strlen(pszEnd)) == 0) {
+			size_t pszEndLen = strlen(pszEnd);
+			if (c == pszEnd[0] && strncmp(&pszBuf[i], pszEnd, pszEndLen) == 0) {
 				*pLineSpanningEndDetected = 1;
-				i += 2;
-				nElementCount = grammar_addDelta(lexicalState, (int)(i - nStateOffset), nElementCount, pResult);
+				i += pszEndLen;
+				nElementCount = grammar_tokenFound(pGrammar, pResult, currentState, pRootPattern, pszBuf, nStateOffset, i, nElementCount);
 				nElementCount = grammar_addDelta(INITIAL, 0, nElementCount, pResult);
-				nextState = lexicalState = INITIAL;
+				nextState = currentState = INITIAL;
 				pszEnd = NULL;
 			} else {
 				i++;
 				continue;
 			}
-		} else if (lexicalState == INITIAL || lexicalState == UNKNOWN) {
+		} else if (currentState == INITIAL || currentState == UNKNOWN) {
 			int possibleStates = pGrammar->transitions[c];
 			if (possibleStates) {
 				int matched = 0;
@@ -595,33 +692,14 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 						possibleStates >>= CHARACTER_STATE_SHIFT;
 						continue;
 					}
-					RE_PATTERN* pRePattern = pPattern->rePattern;
-					if (pRePattern) {
-						pRePattern->beginOfLine = pszBuf;
-						if (regex_match(pRePattern, &pszBuf[i], &pszBuf[lLength], &match)) {
-							int delta = (int)(match.loc2 - match.loc1);
-							int nNewOffset = (int)(match.loc2 - pszBuf);
-							if (pPattern->captures) {
-								nElementCount = grammar_addDelta(lexicalState, (int)(i - nStateOffset), nElementCount, pResult);
-								nElementCount = grammar_addStyledGroups(nElementCount, &match, pPattern->captures, lexicalState, pResult);
-								nStateOffset = nNewOffset;
-								i = nNewOffset;
-								matched = 1;
-								break;
-							} else {
-								if (grammar_matchKeyword(pPattern->keywords, match.loc1, match.loc2)) {
-									nElementCount = grammar_addDelta(lexicalState, (int)(i - nStateOffset), nElementCount, pResult);
-									nElementCount = grammar_addDelta(state, delta, nElementCount, pResult);
-									nStateOffset = nNewOffset;
-									i = nNewOffset;
-									matched = 1;
-									break;
-								}
-							}
+					if (grammar_matchPattern(pPattern, currentState, state, pszBuf, 
+							&pszBuf[lLength], i, &nStateOffset, &nElementCount, pResult)) {
+						if (!pPattern->rePattern) {
+							pRootPattern = pPattern;
+							pszEnd = pPattern->end;
+							nextState = state;
 						}
-					} else if (strncmp(&pszBuf[i], pPattern->begin, strlen(pPattern->begin)) == 0) {
-						pszEnd = pPattern->end;
-						nextState = state;
+						i = nStateOffset;
 						matched = 1;
 						break;
 					}
@@ -638,16 +716,14 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 		} else {
 			i++;
 		}
-		if (nextState != lexicalState) {
-			nElementCount = grammar_addDelta(lexicalState, (int)(i - nStateOffset), nElementCount, pResult);
-			lexicalState = nextState;
+		if (nextState != currentState) {
+			nElementCount = grammar_tokenFound(pGrammar, pResult, currentState, pRootPattern, pszBuf, nStateOffset, i, nElementCount);
+			currentState = nextState;
 			nStateOffset = i;
 		}
 	}
 	if (lLength > nStateOffset) {
-		pResult[nElementCount].le_state = lexicalState;
-		pResult[nElementCount].le_length = (int)(lLength - nStateOffset);
-		nElementCount++;
+		nElementCount = grammar_tokenFound(pGrammar, pResult, currentState, pRootPattern, pszBuf, nStateOffset, lLength, nElementCount);
 	}
 	return nElementCount;
 }

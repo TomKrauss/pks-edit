@@ -93,5 +93,10 @@
     {
       "styleName": "comment",
       "foregroundColor": "#007700"
+    },
+    {
+      "styleName": "bold-comment",
+      "weight": 900,
+      "foregroundColor": "#006600"
     }
   ]}

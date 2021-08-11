@@ -11,7 +11,9 @@ macro testfmtprint() {
 	Alert(s);
 }
 
-//macro findtest() {
+// 
+// @param x a test param
+// macro findtest(int x) {
 //	Find(FO_INIT, "^\\T*$", "", DIR_BACKWARD, REP_FIND, RNG_ONCE, 
 //		RE_DOREX, 0);
 //}

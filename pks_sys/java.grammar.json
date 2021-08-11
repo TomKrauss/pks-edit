@@ -31,6 +31,13 @@
           "begin": "/*",
           "end": "*/",
           "style": "comment",
+          "patterns": [
+            {
+              "match": "@[a-zA-Z]+",
+              "style": "bold-comment",
+              "name": "javadoc.tags"
+            }
+          ],
           "name": "comment.multiLine"
         },
         {
