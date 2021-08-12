@@ -1,6 +1,7 @@
 [files]
-"C:\source\pksedit\CutAndPaste.c", line 912: 0x0 0x1 -1 -1 -1 -1 130 130 1196 524
-"C:\temp\JdbcSessionBig.java", line 3360: 0x0 0x1 -1 -1 -1 -1 130 130 1320 490
+"C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\ui\scan\scan_page.dart", line 217: 0x0 0x1 -1 -1 -8 -31 60 18 1448 686
+"C:\temp\JdbcSessionBig.java", line 4049: 0x0 0x1 -1 -1 -8 -31 130 130 1320 490
+"C:\source\pksedit\CutAndPaste.c", line 478: 0x0 0x1 -1 -1 -1 -1 130 130 1196 524
 [find]
 !<URL>
 !d
@@ -102,3 +103,4 @@
 !C:\source\techradar\*.*
 !C:\source\pksedit\macros\*.*
 !C:\temp\*.*
+!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\ui\scan\*.*

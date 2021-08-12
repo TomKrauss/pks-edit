@@ -407,7 +407,7 @@ static void upd_lines()
 	FTABLE* fp = wp->fp;
 
 	lp = wp->caret.linePointer;
-	while(lp) {		    /* make the whole thing faster: test (lp) ! */ 
+	while(lp) {		    // make the whole thing faster: test (lp) ! 
 		ln++, lp = lp->prev;
 	}
 	caret_moveToLine(wp, ln);

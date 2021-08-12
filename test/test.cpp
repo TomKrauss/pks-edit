@@ -79,9 +79,17 @@ namespace pkseditTests
 			RE_MATCH match;
 			char group[50];
 
+			options = createOptions("<[(FT][)AC-EIMOTX]+>", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			const char* expr = "FIXME";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			expr = "(T)";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(expr, match.loc1);
+
 			options = createOptions("^(.*);\"\t(.*)", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
-			const char* expr = "22;\"\tblabla";
+			expr = "22;\"\tblabla";
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
 			Assert::AreEqual(2, match.nbrackets);
 			regex_getCapturingGroup(&match, 1, group, sizeof group);

@@ -321,6 +321,10 @@ static unsigned char* grammar_determineCharacterClassCharacters(unsigned char* p
 	return pResult;
 }
 
+// forward declaration
+static int grammar_tokenFound(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT], LEXICAL_STATE currentState, GRAMMAR_PATTERN* pPattern,
+	char* pszBuf, size_t start, size_t end, int nElementCount);
+
 /**
  * This method exists to make the life of the person defining a grammar file easier and 
  * to make keyword parsing more efficient. When defining keywords, one needs to define the
@@ -586,7 +590,7 @@ static int grammar_addStyledGroups(int nElementCount, RE_MATCH* pMatch, PATTERN_
  * Match a grammar pattern 'pPattern' within a range of text (pszBuf -> pszBufEnd). Return 1 if matched and add the proper lexical token
  * runs to the result array.
  */
-static int grammar_matchPattern(GRAMMAR_PATTERN* pPattern, LEXICAL_STATE currentState, LEXICAL_STATE matchedState, 
+static int grammar_matchPattern(GRAMMAR* pGrammar, GRAMMAR_PATTERN* pPattern, LEXICAL_STATE currentState, LEXICAL_STATE matchedState, 
 	unsigned char* pszBuf, unsigned char* pszBufEnd, size_t i, size_t* pStateOffset,
 	int *pElementCount, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT]) {
 
@@ -605,7 +609,7 @@ static int grammar_matchPattern(GRAMMAR_PATTERN* pPattern, LEXICAL_STATE current
 				return 1;
 			} else if (grammar_matchKeyword(pPattern->keywords, match.loc1, match.loc2)) {
 				*pElementCount = grammar_addDelta(currentState, (int)(i - *pStateOffset), *pElementCount, pResult);
-				*pElementCount = grammar_addDelta(matchedState, delta, *pElementCount, pResult);
+				*pElementCount = grammar_tokenFound(pGrammar, pResult, matchedState, pPattern, pszBuf, i, nNewOffset, *pElementCount);
 				*pStateOffset = nNewOffset;
 				return 1;
 			}
@@ -631,8 +635,9 @@ static int grammar_tokenFound(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEX
 				if (pRePattern) {
 					RE_MATCH match;
 					pRePattern->beginOfLine = pszBuf;
-					if (regex_match(pRePattern, &pszBuf[start+i], &pszBuf[end], &match)) {
-						nElementCount = grammar_addDelta(currentState, (int)(i - start), nElementCount, pResult);
+					if (regex_match(pRePattern, &pszBuf[i], &pszBuf[end], &match) && 
+							grammar_matchKeyword(pChild->keywords, match.loc1, match.loc2)) {
+						nElementCount = grammar_addDelta(currentState, (int)(i-start), nElementCount, pResult);
 						LEXICAL_STATE stateIdx = grammar_patternIndex(pGrammar, pChild->name);
 						size_t nDelta = match.loc2 - match.loc1;
 						nElementCount = grammar_addDelta(stateIdx, (int)nDelta, nElementCount, pResult);
@@ -692,7 +697,7 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 						possibleStates >>= CHARACTER_STATE_SHIFT;
 						continue;
 					}
-					if (grammar_matchPattern(pPattern, currentState, state, pszBuf, 
+					if (grammar_matchPattern(pGrammar, pPattern, currentState, state, pszBuf, 
 							&pszBuf[lLength], i, &nStateOffset, &nElementCount, pResult)) {
 						if (!pPattern->rePattern) {
 							pRootPattern = pPattern;

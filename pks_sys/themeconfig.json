@@ -26,7 +26,7 @@
     },
     {
       "styleName": "identifier",
-      "foregroundColor": "#AAAA33"
+      "foregroundColor": "#777722"
     },
     {
       "styleName": "keyword",
@@ -91,12 +91,21 @@
       "foregroundColor": "#44aaaa"
     },
     {
+      "styleName": "sl-comment",
+      "foregroundColor": "#229922"
+    },
+    {
       "styleName": "comment",
-      "foregroundColor": "#007700"
+      "foregroundColor": "#006600"
     },
     {
       "styleName": "bold-comment",
       "weight": 900,
       "foregroundColor": "#006600"
+    },
+    {
+      "styleName": "task",
+      "weight": 800,
+      "foregroundColor": "#FF7777"
     }
   ]}

@@ -6,18 +6,30 @@
         {
           "begin": "/*",
           "end": "*/",
-          "style": "comment",
+          "style": "sl-comment",
           "name": "comment.multiLine"
         },
         {
-          "match": "//.*",
+          "match": "///.*",
           "style": "comment",
+          "name": "comment.documentation"
+        },
+        {
+          "match": "//.*",
+          "style": "sl-comment",
           "name": "comment.singleLine"
         },
         {
-          "match": "r?[\"']'(?:\\\"|[^\"])+[\"']",
+          "match": "r?[\"'](?:\\\"|[^\"])+[\"']",
           "style": "string",
-          "name": "string"
+          "name": "string",
+          "patterns": [
+            {
+              "name": "string.var.reference",
+              "style": "annotation",
+              "match": "\\$\\{[^\\}]+\\}"
+            }
+          ]
         },
         {
           "match": "<_[a-zA-Z][a-zA-Z_0-9]*>",

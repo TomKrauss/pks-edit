@@ -52,8 +52,21 @@
         },
         {
           "match": "//.*",
-          "style": "comment",
-          "name": "comment.singleLine"
+          "style": "sl-comment",
+          "name": "comment.singleLine",
+          "patterns": [
+            {
+              "name": "task.tag",
+              "style": "task",
+              "keywords": [
+                "TODO",
+                "FIXME",
+                "(T)",
+                "(C)",
+                "(A)"
+              ]
+            }
+          ]
         },
         {
           "match": "\"(?:\\\"|[^\"])+\"",
