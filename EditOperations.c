@@ -235,13 +235,11 @@ static int edit_postProcessInsertLine(WINFO *wp, int dir, long ln, long col)
 	omincol = wp->mincol;
 	ominln  = wp->minln;
 	caret_placeCursorInCurrentFile(wp, ln,col);
-	if (omincol != wp->mincol) {
+	if (omincol != wp->mincol || ominln != wp->minln) {
 		FTABLE* fp = wp->fp;
 		render_repaintAllForFile(fp);
 	} else {
-		if (ominln == wp->minln) {
-			wt_insline(wp->fp, wp->caret.ln, 1);
-		}
+		wt_insline(wp->fp, wp->caret.ln, 1);
 		render_repaintCurrentLine(wp);
 	}
 	lp = wp->caret.linePointer;

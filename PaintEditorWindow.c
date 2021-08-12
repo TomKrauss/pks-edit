@@ -329,11 +329,11 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 	GetClientRect(wp->ww_handle, &rect);
 	ww_getSelectionLines(wp, &minMarkedLine, &maxMarkedLine);
 	for (ln = min; lp && ln <= max && y < ps.rcPaint.bottom;
-		lp = lp->next, ln++,  y = newy) {
+		lp = lp->next, ln++, y = newy) {
 		newy = y + wp->cheight;
 		if (newy > ps.rcPaint.top && 			/* if in redraw area */
 		    (flg || (lp->lflg & LNREPLACED))) {	/* if print_singleLineOfText is modified || we redraw all */
-			HBRUSH      hBrush = hBrushBg;
+			HBRUSH hBrush = hBrushBg;
 			if (lp->lflg & LNXMARKED) {
 				hBrush = hBrushMarkedLines;
 			} else if (lp == wp->caret.linePointer && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
@@ -343,7 +343,6 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 			r.top = y;
 			r.bottom = min(ps.rcPaint.bottom,y+wp->cheight);
 			FillRect(hdc,&r,hBrush);
-	
 			if (lp->lflg & LNINDIRECT) {
 				redraw_indirect(hdc, wp, y, lp);
 				visLen = 1;

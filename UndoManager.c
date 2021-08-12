@@ -318,6 +318,10 @@ EXPORT void undo_startModification(FTABLE *fp)
 	if (_playing)
 		return;
 
+	// Need to reset the "current edited line" in case we are performing multiple edits in distinct places in the same file.
+	// Every undo operation needs to allocate a new modify delta in that case.
+	fp->tln = NULL;
+
 	pUndoStack = UNDOPOI(fp);
 	undo_allocateCommand(pUndoStack, fp, TRUE);
 	pCommand = undo_getCurrentCommand(pUndoStack);

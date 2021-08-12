@@ -172,6 +172,7 @@
         "tabulatorSizes": [4],
         "shiftWidth": 4,
         "showRuler": true,
+        "showLineNumbers": true,
         "showStatus": true,
         "insertMode": true,
         "autoIndent": true,

@@ -1,9 +1,6 @@
 [files]
-"C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\ui\scan\scan_page.dart", line 217: 0x0 0x1 -1 -1 -8 -31 60 18 1448 686
-"C:\temp\JdbcSessionBig.java", line 4049: 0x0 0x1 -1 -1 -8 -31 130 130 1320 490
-"C:\source\pksedit\CutAndPaste.c", line 478: 0x0 0x1 -1 -1 -1 -1 130 130 1196 524
+"C:\Users\tom\Desktop\readme.txt", line 9: 0x2 0x3 -1 -1 -8 -31 60 18 1439 667
 [find]
-!<URL>
 !d
 !e
 !ed
@@ -19,7 +16,6 @@
 !DomainEvent
 !EventStore
 !ADD
-!.
 !error:
 !warning;
 !warning:
@@ -35,6 +31,7 @@
 !xxx
 !include
 !brack
+!.
 [filePatterns]
 !*.*
 !*.java
@@ -72,10 +69,12 @@
 !C:\source\techradar\index.html
 !C:\Users\tom\Desktop\karriere@gebit.txt
 !C:\temp\newfile1.c
-!C:\source\pksedit\CutAndPaste.c
 !C:\source\pksedit\README.md
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
 !C:\source\pksedit\macros\formatprint.pkc
+!C:\source\pksedit\CutAndPaste.c
+!C:\temp\JdbcSessionBig.java
+!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\ui\scan\scan_page.dart
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -89,7 +88,6 @@
 !C:\source\trend-master-eclipse-4.20\trend\bin\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\bloc\*.*
 !C:\source\mx-graph-modeller\ui\src\app\*.*
-!C:\Users\tom\Desktop\*.*
 !C:\source\mx-graph-modeller\ui\src\*.*
 !C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\src\*.*
 !C:\*.*
@@ -104,3 +102,4 @@
 !C:\source\pksedit\macros\*.*
 !C:\temp\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\ui\scan\*.*
+!C:\Users\tom\Desktop\*.*
