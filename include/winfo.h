@@ -119,7 +119,7 @@ int ww_tabsChanged(WINFO* wp, EDIT_CONFIGURATION* lp);
 typedef struct tagWINFO {
 	struct tagWINFO *next;
 	int		win_id;
-    HWND    edwin_handle,ww_handle,ru_handle,st_handle,lineNumbers_handle;
+    HWND    edwin_handle,ww_handle,ru_handle,st_handle,lineNumbers_handle,codecomplete_handle;
      
     int     dispmode;				/* flags see edierror.h... */
     int     workmode;

@@ -513,9 +513,9 @@ nodelta:		;
 }
 
 /*---------------------------------*/
-/* blfin()					*/
+/* bl_placeCursorOnBlockMark()					*/
 /*---------------------------------*/
-static int blfin(MARK *mp) {	
+static int bl_placeCursorOnBlockMark(MARK *mp) {	
 	long newln;
 	WINFO* wp = ww_getCurrentEditorWindow();
 
@@ -534,7 +534,7 @@ static int blfin(MARK *mp) {
 /*---------------------------------*/
 EXPORT void EdBlockFindEnd(void)
 {
-	if (ww_getCurrentEditorWindow()) blfin(ww_getCurrentEditorWindow()->blend);
+	if (ww_getCurrentEditorWindow()) bl_placeCursorOnBlockMark(ww_getCurrentEditorWindow()->blend);
 }
 
 /*---------------------------------*/
@@ -542,7 +542,7 @@ EXPORT void EdBlockFindEnd(void)
 /*---------------------------------*/
 EXPORT int EdBlockFindStart()
 {
-	if (ww_getCurrentEditorWindow()) return blfin(ww_getCurrentEditorWindow()->blstart);
+	if (ww_getCurrentEditorWindow()) return bl_placeCursorOnBlockMark(ww_getCurrentEditorWindow()->blstart);
 	return 0;
 }
 

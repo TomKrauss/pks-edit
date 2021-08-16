@@ -1021,6 +1021,12 @@ NEXT                    ICON                    "rc\\next.ico"
 
 PREVIOUS                ICON                    "rc\\previous.ico"
 
+BOOKMARK                ICON                    "rc\\bookmark.ico"
+
+CROSSREFERENCE          ICON                    "rc\\crossreference.ico"
+
+TEMPLATE                ICON                    "rc\\template.ico"
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////

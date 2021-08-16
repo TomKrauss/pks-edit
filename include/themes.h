@@ -35,7 +35,13 @@ extern THEME_DATA* theme_getByName(unsigned char* pThemeName);
 /*
  * Destroy all theme data loaded.
  */
-void theme_destroyAllThemeData();
+extern void theme_destroyAllThemeData();
+
+/*
+ * The small fixed font is used by PKS edit e.g. in code completion windows or the
+ * options key controls.
+ */
+extern HFONT theme_createSmallFixedFont();
 
 #define THEMES_H
 

@@ -365,6 +365,9 @@ void string_getVariable(WINFO* wp, unsigned char* pVar, unsigned char* pResult) 
 		pFormat = "%s$f";
 	} else if (strcmp("date", pVar) == 0) {
 		pFormat = "%D";
+	} else {
+		strcpy(pResult, pVar);
+		return;
 	}
 	mysprintf(wp, pResult, pFormat);
 }

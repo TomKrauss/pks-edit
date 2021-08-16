@@ -303,6 +303,7 @@
     <ClCompile Include="ArrayList.c" />
     <ClCompile Include="Grammar.c" />
     <ClCompile Include="HashMap.c" />
+    <ClCompile Include="include\CodeCompletion.c" />
     <ClCompile Include="JsonParser.c" />
     <ClCompile Include="ProgressMonitor.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -1142,6 +1143,7 @@
     <ClInclude Include="include\arraylist.h" />
     <ClInclude Include="include\caretmovement.h" />
     <ClInclude Include="include\clipboard.h" />
+    <ClInclude Include="include\codecompletion.h" />
     <ClInclude Include="include\crossreferencelinks.h" />
     <ClInclude Include="include\customcontrols.h" />
     <ClInclude Include="include\desktopicons.h" />
@@ -1232,9 +1234,13 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="rc\bookmark.ico" />
     <Image Include="rc\clip2.ico" />
+    <Image Include="rc\crossreference.ico" />
+    <Image Include="RC\ICON2.ICO" />
     <Image Include="rc\next.ico" />
     <Image Include="rc\previous.ico" />
+    <Image Include="rc\template.ico" />
   </ItemGroup>
   <ItemGroup>
     <Xsd Include="pksedit.xsd">

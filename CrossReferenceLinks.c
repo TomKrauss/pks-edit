@@ -552,28 +552,52 @@ static TAG_REFERENCE *xref_lookupTagReference(char *tagName, BOOL bExactMatch) {
 	return pRef;
 }
 
-/*---------------------------------*/
-/* xref_findExpressionCloseToCaret()					*/
-/*---------------------------------*/
-static char *xref_findExpressionCloseToCaret(unsigned char *d,unsigned char *dend,int (*valid)(),int scan2beg) {	
-	char *s,*S;
-	char *s1=d;
-	WINFO *wp;
+/**
+ * xref_findExpressionCloseToCaret
+ * Find an 'expression' (identifier) close to the caret in the current editor window.
+ * Copy the found identifier into pszTargetBuffer and return the pointer to the start of
+ * the expression in pszExpressionBegin.
+ **/
+static char* xref_findExpressionCloseToCaret(unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
+	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int (*matchesCharacter)(unsigned char c), int bFindStartOfWord) {
+	char* s, * pszStart;
+	char* s1 = pszTargetBuffer;
+	WINFO* wp;
 
-	if ((wp = ww_getCurrentEditorWindow()) == 0L) 
-		return (char *)0;
-	S = wp->caret.linePointer->lbuf;
-	s = &S[wp->caret.offset];
+	if ((wp = ww_getCurrentEditorWindow()) == 0L)
+		return (char*)0;
+	pszStart = wp->caret.linePointer->lbuf;
+	s = &pszStart[wp->caret.offset];
 
-	if (scan2beg)
-		while(s > S && (*valid)(s[-1]))
+	if (bFindStartOfWord) {
+		while (s > pszStart && (*matchesCharacter)(s[-1])) {
 			s--;
+		}
+	}
+	if (pszExpressionBegin) {
+		*pszExpressionBegin = s;
+	}
 
-	while ((*valid)(*s) && d < dend)
-		*d++ = *s++; 
-
-	*d = 0;
+	while ((*matchesCharacter)(*s) && pszTargetBuffer < pszTargetBufferEnd) {
+		*pszTargetBuffer++ = *s++;
+	}
+	if (pszExpressionEnd) {
+		*pszExpressionEnd = s;
+	}
+	*pszTargetBuffer = 0;
 	return(s1);
+}
+
+/**
+ * xref_findIdentifierCloseToCaret
+ * Find an identifier close to the caret in the current editor window.
+ * Copy the found identifier into pszTargetBuffer and return the pointer to the start of
+ * the expression in pszExpressionBegin and return the end of the found expression in pszExpressionEnd.
+ **/
+char* xref_findIdentifierCloseToCaret(unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
+	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int bFindStartOfWord) {
+
+	return xref_findExpressionCloseToCaret(pszTargetBuffer, pszTargetBufferEnd, pszExpressionBegin, pszExpressionEnd, char_isIdentifier, bFindStartOfWord);
 }
 
 /*---------------------------------*/
@@ -586,7 +610,7 @@ static char *xref_saveCrossReferenceWord(unsigned char *d,unsigned char *dend) {
 		return _tagword;
 	}
 
-	return xref_findExpressionCloseToCaret(d,dend,char_isIdentifier,1);
+	return xref_findIdentifierCloseToCaret(d,dend,NULL, NULL, 1);
 }
 
 /*------------------*/
@@ -695,15 +719,25 @@ int xref_navigateCrossReference(char* s) {
 	return xref_navigateCrossReferenceForceDialog(s, TRUE);
 }
 
+/*
+ * Determine the "identifier" close to the input caret in the current editor window.
+ * If text is selected, use that as the identifier, otherwise try to identify the close
+ * by identifier.
+ */
+void xref_getSelectedIdentifier(char* pszText, size_t nMaxChars) {
+	bl_getSelectedText(pszText, nMaxChars);
+	if (!pszText[0]) {
+		xref_findIdentifierCloseToCaret(pszText, pszText + nMaxChars, NULL, NULL, 1);
+	}
+
+}
+
 /*--------------------------------------------------------------------------
  * EdFindTag()
  */
 int EdFindTag(void) {
 	char selected[80];
-	bl_getSelectedText(selected, sizeof selected);
-	if (!selected[0]) {
-		xref_findExpressionCloseToCaret(selected, selected+sizeof selected, char_isIdentifier, 1);
-	}
+	xref_getSelectedIdentifier(selected, sizeof selected);
 	return xref_navigateCrossReferenceForceDialog(selected, FALSE);
 }
 
@@ -985,7 +1019,7 @@ int EdFindTagCursor(void)
 int EdFindWordCursor(dir)
 {	char *s,buf[256];
 
-	if ((s = xref_findExpressionCloseToCaret(buf,&buf[sizeof buf],char_isIdentifier,0)) != 0L) {
+	if ((s = xref_findIdentifierCloseToCaret(buf,&buf[sizeof buf],NULL, NULL, 0)) != 0L) {
 		RE_PATTERN *pPattern = regex_compileWithDefault(s);
 		return pPattern && find_expressionInCurrentFile(dir, pPattern, _currentSearchAndReplaceParams.options);
 	}

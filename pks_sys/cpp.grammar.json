@@ -25,8 +25,16 @@
       ],
       "templates": [
         {
-          "match": "COPYRIGHT",
+          "match": "copyright-header",
           "contents": "/*\n * ${file_name}\n *\n * PKS-EDIT for Windows\n *\n * purpose: ${cursor}handle xxx${selection_end}\n *\n * created: ${date}\n * author: ${user}\n *\n * This Source Code Form is subject to the terms of the Mozilla Public\n * License, v. 2.0. If a copy of the MPL was not distributed with this\n * file, You can obtain one at https://mozilla.org/MPL/2.0/.\n */\n"
+        },
+        {
+          "match": "for-loop",
+          "contents": "for (int ${word_selection}; ${word_selection} < ${cursor}10${selection_end}; ${word_selection}++) {\n    printf(x);\n}\n"
+        },
+        {
+          "match": "main-function",
+          "contents": "/* Main Function*/\nint main(int argc, char* argv[]) {\n    ${cursor}return 0;\n}\n"
         }
       ],
       "highlightBrackets": [

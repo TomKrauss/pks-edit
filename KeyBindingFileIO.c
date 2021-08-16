@@ -62,7 +62,6 @@ static	FTABLE	*_keyfile;
 
 /* allow context sensitive makros and mappings */
 static	int		_context     = DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
-PASTELIST *_esclist[MAX_CONTEXT];
 
 
 /*--------------------------------------------------------------------------
@@ -82,80 +81,6 @@ static void macro_error(int msgId)
 	}
 }
 
-/*--------------------------------------------------------------------------
- * macro_getValidEscapeMacros()
- */
-static void macro_getValidEscapeMacros(char *pszValid)
-{
-	PASTELIST *pl;
-
-	pl = _esclist[ft_getCurrentDocument()->documentDescriptor->id];
-	while (pl != 0) {
-		*pszValid++ = pl->id;
-		pl = pl->next;
-	}
-#if 0
-	pl = _esclist[0];
-	while (pl != 0) {
-		*pszValid++ = pl->id;
-		pl = pl->next;
-	}
-# endif
-	*pszValid = 0;
-}
-
-/*--------------------------------------------------------------------------
- * macro_escapePasteForId()
- */
-static PASTE *macro_escapePasteForId(int id)
-{
-	PASTE *		pp;
-
-	if ((pp = bl_getTextBlock(id, _esclist[ft_getCurrentDocument()->documentDescriptor->id])) != 0) {
-		return pp;
-	}
-	return 0 /*bl_getTextBlock(id,_esclist[0]) */ ;
-}
-
-/*--------------------------------------------------------------------------
- * macro_textForEscapeMacro()
- */
-static char *macro_textForEscapeMacro(char *s)
-{
-	PASTE *	pp;
-
-	pp = macro_escapePasteForId(*s);
-	return bl_convertPasteBufferToText(_linebuf, _linebuf + 256, pp);
-}
-
-/*--------------------------------------------------------------------------
- * EdMacroEscape()
- */
-int EdMacroEscape(void)
-{
-	WINFO* wp;
-	PASTE  *	pp;
-	static unsigned char id;
-	char 	cIdentChars[256];
-
-	wp = ww_getCurrentEditorWindow();
-	if (wp == NULL) {
-		return 0;
-	}
-     macro_getValidEscapeMacros(cIdentChars);
-	if ((id = dlg_displayDialogTemplate(id, macro_textForEscapeMacro, 
-		cIdentChars)) == 0) {
-		return 0;
-	}
-
-	pp = macro_escapePasteForId(id);
-
-	if (!pp) {
-		error_showErrorById(IDS_MSGESCAPEUNDEF);
-		return 0;
-	}
-	return bl_pasteBlock(pp, 0, wp->caret.offset, 0);
-}
 
 /*--------------------------------------------------------------------------
  * macro_getTextInQuotes()
@@ -315,6 +240,68 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction
 	return pResult;
 }
 
+/*
+ * Delete the current identifier left to or under the cursor for the purpose of being replaced by a macro. 
+ */
+static void macro_replaceCurrentWord(WINFO* wp) {
+	if (ww_hasSelection(wp)) {
+		EdBlockDelete(0);
+	} else {
+		char szIdentifier[100];
+		char* pszBegin;
+		char* pszEnd;
+		if (xref_findIdentifierCloseToCaret(szIdentifier, szIdentifier + sizeof szIdentifier, &pszBegin, &pszEnd, TRUE)) {
+			size_t o1 = pszBegin - wp->caret.linePointer->lbuf;
+			size_t o2 = o1 + pszEnd - pszBegin;
+			ln_modify(wp->fp, wp->caret.linePointer, (int)o2, (int)o1);
+			wp->caret.col = o1;
+			render_repaintCurrentLine(wp);
+		}
+	}
+}
+/*
+ * Insert a selected code template 'up'. 
+ * If 'bReplaceCurrentWord' is TRUE, the currently selected word / identifier close to the
+ * cursor is replaced by the inserted template.
+ */
+int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
+	char szIdentifier[100];
+	FTABLE* fp = wp->fp;
+	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
+	TEMPLATE_ACTION templateAction;
+	int ret = 0;
+	memset(&templateAction, 0, sizeof templateAction);
+	xref_getSelectedIdentifier(szIdentifier, sizeof szIdentifier);
+	STRING_BUF* pSB = macro_expandCodeTemplate(wp, &templateAction, szIdentifier, up->p.uc_template);
+	PASTE pasteBuffer;
+	memset(&pasteBuffer, 0, sizeof pasteBuffer);
+	unsigned char* pszText = stringbuf_getString(pSB);
+	if (bl_convertTextToPasteBuffer(&pasteBuffer, pszText, pszText + strlen(pszText), pConfig->nl, pConfig->nl2, pConfig->cr)) {
+		if (bReplaceCurrentWord) {
+			macro_replaceCurrentWord(wp);
+		}
+		CARET oldCaret = wp->caret;
+		bl_pasteBlock(&pasteBuffer, 0, oldCaret.col, 0);
+		if (templateAction.ta_cursorDeltaCol != 0 || templateAction.ta_cursorDeltaLn != 0) {
+			long col = templateAction.ta_cursorDeltaLn ? templateAction.ta_cursorDeltaCol : templateAction.ta_cursorDeltaCol + oldCaret.col;
+			long ln = templateAction.ta_cursorDeltaLn + oldCaret.ln;
+			caret_placeCursorInCurrentFile(wp, ln, col);
+			if (templateAction.ta_selectionDeltaCol || templateAction.ta_selectionDeltaLn) {
+				bl_hideSelection(wp, 0);
+				EdSyncSelectionWithCaret(MARK_START);
+				col += templateAction.ta_selectionDeltaCol;
+				ln += templateAction.ta_selectionDeltaLn;
+				caret_placeCursorInCurrentFile(wp, ln, col);
+				EdSyncSelectionWithCaret(MARK_END);
+			}
+		}
+		ret = 1;
+	}
+	stringbuf_destroy(pSB);
+	return ret;
+
+}
+
 /*--------------------------------------------------------------------------
  * macro_expandAbbreviation()
  */
@@ -325,7 +312,6 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 	FTABLE* fp = wp->fp;
 	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
 	GRAMMAR* pGrammar = pConfig->grammar;
-	TEMPLATE_ACTION templateAction;
 
 	if ((up = uc_find(pGrammar, lp->lbuf, offs)) == 0) {
 		return 0;
@@ -343,32 +329,7 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 		return 0;
 	caret_placeCursorInCurrentFile(wp, wp->caret.ln,o2);
 	if (!domacro) {
-		int ret = 0;
-		memset(&templateAction, 0, sizeof templateAction);
-		STRING_BUF* pSB = macro_expandCodeTemplate(wp, &templateAction, up->pat /* TODO: replace with actual word under cursor*/, up->p.uc_template);
-		PASTE pasteBuffer;
-		memset(&pasteBuffer, 0, sizeof pasteBuffer);
-		unsigned char* pszText = stringbuf_getString(pSB);
-		if (bl_convertTextToPasteBuffer(&pasteBuffer, pszText, pszText + strlen(pszText), pConfig->nl, pConfig->nl2, pConfig->cr)) {
-			CARET oldCaret = wp->caret;
-			bl_pasteBlock(&pasteBuffer, 0, o2, 0);
-			if (templateAction.ta_cursorDeltaCol != 0 || templateAction.ta_cursorDeltaLn != 0) {
-				long col = templateAction.ta_cursorDeltaLn ? templateAction.ta_cursorDeltaCol : templateAction.ta_cursorDeltaCol + oldCaret.col;
-				long ln = templateAction.ta_cursorDeltaLn + oldCaret.ln;
-				caret_placeCursorInCurrentFile(wp, ln, col);
-				if (templateAction.ta_selectionDeltaCol || templateAction.ta_selectionDeltaLn) {
-					bl_hideSelection(wp, 0);
-					EdSyncSelectionWithCaret(MARK_START);
-					col += templateAction.ta_selectionDeltaCol;
-					ln += templateAction.ta_selectionDeltaLn;
-					caret_placeCursorInCurrentFile(wp, ln, col);
-					EdSyncSelectionWithCaret(MARK_END);
-				}
-			}
-			ret = 1;
-		}
-		stringbuf_destroy(pSB);
-		return ret;
+		return macro_insertCodeTemplate(wp, up, FALSE);
 	}
 	render_repaintCurrentLine(wp); 
 	return macro_executeByName(up->p.uc_macro);
@@ -378,27 +339,7 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
  * macro_parseKeyDefinitions()
  */
 static void macro_parseKeyDefinitions(FTABLE *fp) {	
-	LINE *lp;
-	char* s;
-	char c;
-
 	_keyfile = fp;
-	lp = fp->firstl;
-	while(lp) {
-		if (lp->next && lp->len) {
-			if (_context == DOCUMENT_DESCRIPTOR_NO_CTX)
-				_context = DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
-			_macroline = lp;
-			s = lp->lbuf;
-			c = *s++;
-			switch(c) {
-				case 'T':
-					macro_findTextBuffer(&lp,s,&_esclist[_context],0);
-					break;
-			}
-		}
-		lp = lp->next;
-	}
 }
 
 /*--------------------------------------------------------------------------

@@ -53,6 +53,22 @@ extern int EdErrorNext(int dir);
  */
 extern int xref_addSearchListEntry(FTABLE* fp, char* fn, long line, char* remark);
 
+/*
+ * Determine the "identifier" close to the input caret in the current editor window.
+ * If text is selected, use that as the identifier, otherwise try to identify the close
+ * by identifier.
+ */
+extern void xref_getSelectedIdentifier(char* pszText, size_t nMaxChars);
+
+/**
+ * xref_findIdentifierCloseToCaret
+ * Find an identifier close to the caret in the current editor window.
+ * Copy the found identifier into pszTargetBuffer and return the pointer to the start of
+ * the expression in pszExpressionBegin and return the end of the found expression in pszExpressionEnd if not NULL.
+ **/
+extern char* xref_findIdentifierCloseToCaret(unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
+	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int bFindStartOfWord);
+
 extern int EdFindTagCursor(void);
 
 extern int EdFindFileCursor(void);

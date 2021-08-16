@@ -30,6 +30,7 @@
 #include "stringutil.h"
 #include "xdialog.h"
 #include "pksedit.h"
+#include "codecompletion.h"
 
 extern long		_multiplier;
 
@@ -169,6 +170,7 @@ void caret_moveToLine(WINFO* wp, long ln) {
 	if (wp->caret.ln == ln) {
 		return;
 	}
+	codecomplete_hideSuggestionWindow(wp);
 	long oldln = wp->caret.ln;
 	wp->caret.ln = ln;
 	if (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT) {

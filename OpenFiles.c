@@ -372,7 +372,7 @@ long ft_size(FTABLE *fp)
 
 /*---------------------------------
  * ww_hasSelection()
- * Check whether a block selection exists.
+ * Check whether a text selection exists.
  *---------------------------------*/
 int ww_hasSelection(WINFO* wp) {
 	if (wp == 0 || wp->blstart == 0L || wp->blend == 0L)
@@ -382,7 +382,7 @@ int ww_hasSelection(WINFO* wp) {
 
 /*---------------------------------
  * ww_checkSelectionWithError()
- * Check whether a block selection exists. If not
+ * Check whether a text selection exists. If not
  * report an error to the user.
  *---------------------------------*/
 EXPORT int ww_checkSelectionWithError(WINFO* wp) {

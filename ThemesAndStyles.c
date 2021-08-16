@@ -28,8 +28,6 @@
 #include "winfo.h"
 #include "winterf.h"
 
-#pragma hdrstop
-
 #include "dial2.h"
 #include "winutil.h"
 
@@ -284,6 +282,14 @@ HFONT font_createFontHandle(char* pszFontName, int size, int bOem) {
 	font.size = size;
 	font.charset = bOem ? OEM_CHARSET : ANSI_CHARSET;
 	return font_createFontWithStyle(&font);
+}
+
+/*
+ * The small fixed font is used by PKS edit e.g. in code completion windows or the 
+ * options key controls.
+ */
+HFONT theme_createSmallFixedFont() {
+	return font_createFontHandle("Consolas", 12, 0);
 }
 
 /*------------------------------------------------------------

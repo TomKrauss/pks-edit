@@ -39,6 +39,7 @@
 #include "findandreplace.h"
 #include "history.h"
 #include "actions.h"
+#include "codecompletion.h"
 
 #define	PROF_OFFSET	1
 
@@ -177,7 +178,8 @@ static BOOL InitApplication(void)
 			!ic_registerDesktopIconClass() ||
 		 	!ww_register() ||
 		 	!fkey_register() ||
-		 	!cust_registerControls()) {
+		 	!cust_registerControls() ||
+			!codecomplete_registerWindowClass()) {
 	    return FALSE;
 	}
 	return TRUE;
@@ -314,9 +316,7 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
  */
 int _translatekeys = 1;
 static void* _executeKeyBinding;
-static int TranslatePksAccel(HWND hwnd, MSG *msg)
-{
-
+static int TranslatePksAccel(HWND hwnd, MSG *msg) {
 	switch(msg->message) {
 		case WM_SYSKEYDOWN:
 		case WM_SYSKEYUP:
@@ -329,6 +329,13 @@ static int TranslatePksAccel(HWND hwnd, MSG *msg)
 			if (!ww_workWinHasFocus()) {
 				if (!(msg->hwnd == hwndMDIClientWindow || GetKeyState(VK_CONTROL) < 0)) {
 					break;
+				}
+			}
+			if (msg->wParam == VK_UP || msg->wParam == VK_DOWN || msg->wParam == VK_RETURN || msg->wParam == VK_ESCAPE) {
+				WINFO* wp = ww_getCurrentEditorWindow();
+				if (wp && wp->codecomplete_handle && IsWindowVisible(wp->codecomplete_handle)) {
+					msg->hwnd = wp->codecomplete_handle;
+					return 0;
 				}
 			}
 			if ((_executeKeyBinding = macro_getKeyBinding(msg->wParam)) != 0) {

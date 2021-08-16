@@ -32,6 +32,7 @@ The following variables are supported:
 - ${cursor} - after inserting the template, place the cursor here
 - ${file_name} - base name of the current file
 - ${selection_end} - used in combination with ${cursor} to select a range of text after inserting the template.
+- ${word_selection} - the "word/identifier" close to the input caret or text currently selected.
 
 
 

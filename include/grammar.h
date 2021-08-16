@@ -29,6 +29,8 @@
  */
 typedef struct tagGRAMMAR GRAMMAR;
 
+typedef struct tagWINFO WINFO;
+
 typedef enum {
 	UNKNOWN = 0,
 	INITIAL,
@@ -145,6 +147,13 @@ extern TAGSOURCE* grammar_getTagSources(GRAMMAR* pGrammar);
  * If a comment info is available this method returns 1, otherwise 0.
  */
 extern int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescriptor);
+
+/*
+ * Insert a selected code template 'up'.
+ * If 'bReplaceCurrentWord' is TRUE, the currently selected word / identifier close to the
+ * cursor is replaced by the inserted template.
+ */
+extern int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord);
 
 #define GRAMMAR_H
 #endif

@@ -22,6 +22,7 @@
 #include "winterf.h"
 #include "winfo.h"
 #include "winutil.h"
+#include "themes.h"
 
 #pragma hdrstop
 
@@ -327,7 +328,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 			hdc = BeginPaint(hwnd, &ps);
 
 			SetMapMode(hdc,MM_TEXT);
-			hFont = SelectObject(hdc, font_createFontHandle("Consolas", 8, 0));
+			hFont = SelectObject(hdc, theme_createSmallFixedFont());
 			GetTextMetrics(hdc,&tm);
 			ch = tm.tmHeight + tm.tmExternalLeading;
 			cw = tm.tmAveCharWidth;

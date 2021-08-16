@@ -285,6 +285,9 @@
     <ClCompile Include="HashMap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="include\CodeCompletion.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -467,6 +470,9 @@
     <ClInclude Include="include\hashmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\codecompletion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">
@@ -540,6 +546,18 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="rc\previous.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="RC\ICON2.ICO">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rc\bookmark.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rc\crossreference.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rc\template.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

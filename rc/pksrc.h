@@ -10,6 +10,7 @@
 #define IDC_CURSOR1                     153
 #define IDC_CURSOR2                     154
 #define IDI_ICON1                       156
+#define IDI_ICON4                       160
 #define IDS_TT_REGULAR_EXPRESSION       181
 #define IDS_TT_PRESERVE_CASE            182
 #define DLGCURSOROPTIONS                529
@@ -33,7 +34,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        157
+#define _APS_NEXT_RESOURCE_VALUE        161
 #define _APS_NEXT_COMMAND_VALUE         40012
 #define _APS_NEXT_CONTROL_VALUE         1016
 #define _APS_NEXT_SYMED_VALUE           101

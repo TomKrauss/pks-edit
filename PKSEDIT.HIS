@@ -1,5 +1,5 @@
 [files]
-"C:\Users\tom\Desktop\readme.txt", line 9: 0x2 0x3 -1 -1 -8 -31 60 18 1439 667
+"C:\source\pksedit\CutAndPaste.c", line 163: 0x0 0x1 -1 -1 -8 -31 60 18 1439 667
 [find]
 !d
 !e
@@ -75,6 +75,7 @@
 !C:\source\pksedit\CutAndPaste.c
 !C:\temp\JdbcSessionBig.java
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\ui\scan\scan_page.dart
+!C:\Users\tom\Desktop\readme.txt
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -97,9 +98,9 @@
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\config\module\*.*
 !C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\*.*
-!C:\source\pksedit\*.*
 !C:\source\techradar\*.*
 !C:\source\pksedit\macros\*.*
 !C:\temp\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\ui\scan\*.*
 !C:\Users\tom\Desktop\*.*
+!C:\source\pksedit\*.*
