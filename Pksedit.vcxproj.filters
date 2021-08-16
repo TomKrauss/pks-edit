@@ -285,7 +285,7 @@
     <ClCompile Include="HashMap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\CodeCompletion.c">
+    <ClCompile Include="CodeCompletion.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

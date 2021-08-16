@@ -303,7 +303,7 @@
     <ClCompile Include="ArrayList.c" />
     <ClCompile Include="Grammar.c" />
     <ClCompile Include="HashMap.c" />
-    <ClCompile Include="include\CodeCompletion.c" />
+    <ClCompile Include="CodeCompletion.c" />
     <ClCompile Include="JsonParser.c" />
     <ClCompile Include="ProgressMonitor.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

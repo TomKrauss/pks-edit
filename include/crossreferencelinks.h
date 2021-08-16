@@ -69,6 +69,12 @@ extern void xref_getSelectedIdentifier(char* pszText, size_t nMaxChars);
 extern char* xref_findIdentifierCloseToCaret(unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
 	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int bFindStartOfWord);
 
+/*
+ * Iterate over all cross references defined for the grammar of the given editor window and
+ * process all tags defined matching the text 'pszMatching'. Return 1 if successful.
+ */
+extern int xref_forAllTagsDo(WINFO* wp, char* pszMatching, void(*processTag)(intptr_t tagName, intptr_t tag));
+
 extern int EdFindTagCursor(void);
 
 extern int EdFindFileCursor(void);

@@ -26,6 +26,12 @@ extern int codecomplete_registerWindowClass();
  */
 extern void codecomplete_hideSuggestionWindow(WINFO* wp);
 
+/*
+ * codecomplete_updateCompletionList
+ * update the list of completions awailable.
+ */
+extern void codecomplete_updateCompletionList(WINFO* wp);
+
 #define CODECOMPLETION_H
 
 #endif

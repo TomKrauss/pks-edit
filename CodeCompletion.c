@@ -40,6 +40,7 @@ typedef struct tagCODE_ACTION {
 	BOOL ca_replaceWord;
 	union {
 		UCLIST* template;
+		unsigned char* text;
 	} ca_param;
 } CODE_ACTION;
 
@@ -78,20 +79,39 @@ static void codecomplete_updateScrollbar(HWND hwnd) {
 	ReleaseDC(hwnd, hdc);
 }
 
-static CODE_ACTION* codecomplete_actionsFor(HWND hwnd) {
-	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS * )GetWindowLongPtr(hwnd, GWL_PARAMS);
-	WINFO* wp = pCC->ccp_wp;
+static CODE_COMPLETION_PARAMS* _currentParams;
+
+static void codecomplete_addTags(intptr_t pszTagName, intptr_t pTag) {
+	CODE_ACTION* pCurrent = (CODE_ACTION*)ll_insert((LINKED_LIST**)&_currentParams->cpp_actions, sizeof * pCurrent);
+	pCurrent->ca_name = (unsigned char*)pszTagName;
+	pCurrent->ca_type = CA_TAG;
+	pCurrent->ca_param.text = (unsigned char*)pszTagName;
+	pCurrent->ca_replaceWord = TRUE;
+
+}
+
+/*
+ * codecomplete_updateCompletionList
+ * update the list of completions awailable.
+ */
+void codecomplete_updateCompletionList(WINFO* wp) {
+	if (!wp->codecomplete_handle) {
+		return;
+	}
+	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS * )GetWindowLongPtr(wp->codecomplete_handle, GWL_PARAMS);
 	FTABLE* fp = wp->fp;
 	UCLIST* up = grammar_getUndercursorActions(fp->documentDescriptor->grammar);
-	CODE_ACTION* pActions = NULL;
 	CODE_ACTION* pCurrent;
+	char szIdent[100];
 
 	if (pCC->cpp_actions) {
 		ll_destroy((LINKED_LIST**)&pCC->cpp_actions, NULL);
 	}
+	pCC->ccp_topRow = 0;
+	_currentParams = pCC;
 	while (up) {
 		if (up->action == UA_ABBREV) {
-			pCurrent = (CODE_ACTION*) ll_insert((LINKED_LIST**) &pActions, sizeof * pActions);
+			pCurrent = (CODE_ACTION*) ll_insert((LINKED_LIST**) &pCC->cpp_actions, sizeof * pCC->cpp_actions);
 			pCurrent->ca_name = up->pat;
 			pCurrent->ca_type = CA_TEMPLATE;
 			pCurrent->ca_param.template = up;
@@ -99,10 +119,11 @@ static CODE_ACTION* codecomplete_actionsFor(HWND hwnd) {
 		}
 		up = up->next;
 	}
-	pCC->cpp_actions = pActions;
-	pCC->ccp_size = ll_size((LINKED_LIST*)pActions);
-	codecomplete_updateScrollbar(hwnd);
-	return pActions;
+	xref_getSelectedIdentifier(szIdent, sizeof szIdent);
+	xref_forAllTagsDo(wp, szIdent, codecomplete_addTags);
+	pCC->ccp_size = ll_size((LINKED_LIST*)pCC->cpp_actions);
+	codecomplete_updateScrollbar(wp->codecomplete_handle);
+	RedrawWindow(wp->codecomplete_handle, NULL, NULL, RDW_INVALIDATE);
 }
 
 /*
@@ -113,8 +134,8 @@ static void codecomplete_paint(HWND hwnd) {
 	HICON hIconTemplate = LoadIcon(hInst, "TEMPLATE");
 	HICON hIconTag = LoadIcon(hInst, "CROSSREFERENCE");
 	TEXTMETRIC textmetric;
-	CODE_ACTION* up = codecomplete_actionsFor(hwnd);
 	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
+	CODE_ACTION* up = pCC->cpp_actions;
 	long nSelectedIndex = pCC->ccp_selection;
 	int x = CC_PADDING;
 	int y = CC_PADDING;
@@ -166,14 +187,19 @@ static void codecomplete_moveCaret(HWND hwnd, int nBy) {
 		}
 	}
 	pCC->ccp_selection = nSelectedIndex + nBy;
+	int newTop = pCC->ccp_topRow;
 	if (pCC->ccp_selection < pCC->ccp_topRow) {
-		pCC->ccp_topRow = pCC->ccp_selection;
+		newTop = pCC->ccp_selection;
 	}
-	else if (pCC->ccp_topRow + pCC->ccp_pageSize <= pCC->ccp_selection) {
-		pCC->ccp_topRow = pCC->ccp_selection - pCC->ccp_pageSize;
+	else if (pCC->ccp_topRow + pCC->ccp_pageSize - 2 <= pCC->ccp_selection) {
+		newTop = pCC->ccp_selection - pCC->ccp_pageSize + 2;
 	}
 	if (pCC->ccp_topRow < 0) {
-		pCC->ccp_topRow = 0;
+		newTop = 0;
+	}
+	if (newTop != pCC->ccp_topRow) {
+		pCC->ccp_topRow = newTop;
+		codecomplete_updateScrollbar(hwnd);
 	}
 	RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE);
 }
@@ -182,15 +208,21 @@ static void codecomplete_moveCaret(HWND hwnd, int nBy) {
  * Execute the actual action.
  */
 static void codecomplete_action(HWND hwnd) {
-	CODE_ACTION* cap;
 	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
+	CODE_ACTION* cap = pCC->cpp_actions;
 	long nSelectedIndex = pCC->ccp_selection;
 	WINFO* wp = pCC->ccp_wp;
-	CODE_ACTION* capFirst = codecomplete_actionsFor(hwnd);
 
-	cap = (CODE_ACTION*) ll_at((LINKED_LIST*)capFirst, nSelectedIndex);
-	if (cap && cap->ca_type == CA_TEMPLATE) {
-		macro_insertCodeTemplate(wp, cap->ca_param.template, cap->ca_replaceWord);
+	cap = (CODE_ACTION*) ll_at((LINKED_LIST*)cap, nSelectedIndex);
+	if (cap) {
+		if (cap->ca_type == CA_TEMPLATE) {
+			macro_insertCodeTemplate(wp, cap->ca_param.template, cap->ca_replaceWord);
+		} else {
+			UCLIST uclTemp;
+			uclTemp.action = UA_ABBREV;
+			uclTemp.p.uc_template = cap->ca_param.text;
+			macro_insertCodeTemplate(wp, &uclTemp, cap->ca_replaceWord);
+		}
 	}
 	ShowWindow(hwnd, SW_HIDE);
 }
@@ -309,6 +341,7 @@ int codecomplete_showSuggestionWindow(void) {
 		MoveWindow(wp->codecomplete_handle, pt.x, pt.y, width, height, TRUE);
 	}
 	if (!IsWindowVisible(wp->codecomplete_handle)) {
+		codecomplete_updateCompletionList(wp);
 		ShowWindow(wp->codecomplete_handle, SW_SHOWNA);
 	}
 	return 1;

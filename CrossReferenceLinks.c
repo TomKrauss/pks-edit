@@ -400,14 +400,14 @@ static BOOL xref_buildTagTable(char* sourceFilename, char* baseTagFilename) {
 }
 
 /*
- * test whether an xref expression is matched.
+ * Test whether an xref expression is matched.
  */
-static char* _pszRef;
+static char* _pszFilterString;
 static HWND  _hwndDialog;
 static TAG_REFERENCE* _pSelectReference;
 static int xref_filter(intptr_t key) {
 	char* pszTest = (char*)key;
-	return string_strcasestr(pszTest, _pszRef) != NULL;
+	return string_strcasestr(pszTest, _pszFilterString) != NULL;
 }
 
 static void xref_addMessageItems(intptr_t k, intptr_t v) {
@@ -425,7 +425,7 @@ static void xref_addMessageItems(intptr_t k, intptr_t v) {
  * xref_fillTagList()
  */
 static void xref_fillTagList(HWND hwnd, void* crossReferenceWord) {
-	_pszRef = crossReferenceWord;
+	_pszFilterString = crossReferenceWord;
 	_hwndDialog = hwnd;
 	TAG* tp = (TAG*)hashmap_get(_allTags.tt_map, (intptr_t)crossReferenceWord);
 	_pSelectReference = NULL;
@@ -438,6 +438,35 @@ static void xref_fillTagList(HWND hwnd, void* crossReferenceWord) {
 	}
 	SendDlgItemMessage(hwnd, IDD_ICONLIST, WM_SETREDRAW, TRUE, 0L);
 	SendDlgItemMessage(hwnd, IDD_ICONLIST, LB_SELECTSTRING, -1, (LPARAM)_pSelectReference);
+}
+
+/*
+ * Iterate over all cross references defined for the grammar of the given editor window and
+ * process all tags defined matching the text 'pszMatching'. Return 1 if successful.
+ */
+int xref_forAllTagsDo(WINFO* wp, char* pszMatching, void(*processTag)(intptr_t tagName, intptr_t tag)) {
+	if (_allTags.tt_map == NULL) {
+		TAGSOURCE* ttl;
+		FTABLE* fp = wp->fp;
+		if ((ttl = grammar_getTagSources(fp->documentDescriptor->grammar)) == NULL) {
+			return 0;
+		}
+		while (ttl) {
+			if (strcmp(TST_TAGFILE, ttl->type) == 0) {
+				if (xref_buildTagTable(fp->fname, ttl->fn)) {
+					break;
+				}
+			}
+			ttl = ttl->next;
+		}
+	}
+	if (_allTags.tt_map != NULL) {
+		_pszFilterString = pszMatching;
+		hashmap_forKeysMatching(_allTags.tt_map, processTag, xref_filter);
+		_pszFilterString = NULL;
+		return 1;
+	}
+	return 0;
 }
 
 /*
@@ -665,15 +694,14 @@ static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bNavigateWithout
 	if (!s || wp == NULL)
 		return 0;
 	fp = wp->fp;
-	if ((ttl = grammar_getTagSources(fp->documentDescriptor->grammar)) == NULL) {
-		return 0;
-	}
-
 	find_setCurrentSearchExpression(s);
 	_tagword = _strdup(s);
 	s = _tagword;
-
 	_tagCancelled = FALSE;
+
+	if ((ttl = grammar_getTagSources(fp->documentDescriptor->grammar)) == NULL) {
+		return 0;
+	}
 	while (ttl && ret == 0 && _tagCancelled == FALSE) {
 		if (strcmp(TST_TAGFILE, ttl->type) == 0) {
 			if (xref_buildTagTable(fp->fname, ttl->fn) && (tp = xref_lookupTagReference(s, bNavigateWithoutDialogSelection)) != 0L) {

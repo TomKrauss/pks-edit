@@ -28,6 +28,7 @@
 #include "editorconfiguration.h"
 #include "mouseutil.h"
 #include "stringutil.h"
+#include "codecompletion.h"
 
 #define	SWAP(a,b)			{	a ^= b, b ^=a, a ^= b;  }
 #define	D_EBUG(x)		{/*error_showErrorById(x); render_repaintAllForFile(fp);*/}
@@ -807,6 +808,7 @@ int EdCharInsert(int c)
 	offs += nchars;
 	caret_placeCursorInCurrentFile(wp, wp->caret.ln,(long)offs);
 
+	codecomplete_updateCompletionList(wp);
 	if (!_playing) {
 
 		if (workmode & WM_ABBREV) {
@@ -957,6 +959,7 @@ int EdCharDelete(int control)
 		render_repaintCurrentLine(wp);
 	}
 	edit_autoFormat(wp);
+	codecomplete_updateCompletionList(wp);
 
 	return 1;
 }

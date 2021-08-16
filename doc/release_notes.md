@@ -8,6 +8,8 @@
 - The new function "Toggle Comment" allows to comment in/out the range of selected lines. The function tries to use
   single line comments (e.g. // for c++), when available in the corresponding grammar or block comments otherwise 
 - Templates support now template variables for various purpose. For details see (grammar.md).
+- PKS Edit finally supports code completion. Press ESC to open the suggestion window, which will display code templates
+  configured for the current grammar and/or cross references defined as tags.
 
 #### Improved
 - Grammar patterns support nested patterns now, which enables us to e.g. highlight nested tokens like JavaDoc tags (@param... inside block comments) or
