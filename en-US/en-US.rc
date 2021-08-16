@@ -1078,6 +1078,7 @@ BEGIN
     IDS_QUERYDELETE         "Delete File or Folder"
     IDS_QUERYMKDIR          "Create new Folder"
     IDS_RENAME              "Rename File"
+    IDS_NO_TEMPLATES_DEFINED "Neither suggestions nor templates defined"
 END
 
 STRINGTABLE

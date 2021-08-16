@@ -1267,6 +1267,7 @@ BEGIN
     IDS_QUERYDELETE         "Löschen von Datei oder Ordner"
     IDS_QUERYMKDIR          "Einrichten neuer Ordner"
     IDS_RENAME              "Umbenennen von Datei"
+    IDS_NO_TEMPLATES_DEFINED "Keine Vorschläge und Templates definiert"
 END
 
 STRINGTABLE

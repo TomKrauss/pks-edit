@@ -15,9 +15,12 @@
  */
 
 #include <windows.h>
+#include <windowsx.h>
 #include "customcontrols.h"
 #include "winfo.h"
+#include "winterf.h"
 #include "grammar.h"
+#include "pksrc.h"
 #include "linkedlist.h"
 #include "crossreferencelinks.h"
 #include "codecompletion.h"
@@ -46,27 +49,28 @@ typedef struct tagCODE_ACTION {
 
 typedef struct tagCODE_COMPLETION_PARAMS {
 	WINFO* ccp_wp;
+	int    ccp_lineHeight;
 	long   ccp_topRow;
 	long   ccp_size;
 	long   ccp_pageSize;
 	long   ccp_selection;
-	CODE_ACTION* cpp_actions;
+	CODE_ACTION* ccp_actions;
 } CODE_COMPLETION_PARAMS;
 
 #define	GWL_PARAMS			0
 
 static void codecomplete_updateScrollbar(HWND hwnd) {
 	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
-	TEXTMETRIC textmetric;
+	if (pCC->ccp_lineHeight == 0) {
+		return;
+	}
 	HDC hdc = GetWindowDC(hwnd);
 	RECT rect;
 	SCROLLINFO info = { sizeof(info)};
 
-	HFONT hFont = SelectObject(hdc, theme_createSmallFixedFont());
-	GetTextMetrics(hdc, &textmetric);
 	GetClientRect(hwnd, &rect);
 	rect.top += CC_PADDING;
-	int nVisibleRows = (rect.bottom - rect.top + textmetric.tmHeight + CC_PADDING - 1) / (textmetric.tmHeight + CC_PADDING);
+	int nVisibleRows = (rect.bottom - rect.top + pCC->ccp_lineHeight - 1) / pCC->ccp_lineHeight;
 	int nRows = pCC->ccp_size;
 	info.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
 	info.nPage = nVisibleRows;
@@ -75,19 +79,16 @@ static void codecomplete_updateScrollbar(HWND hwnd) {
 	info.nMax = nRows;
 	info.nMin = 0;
 	SetScrollInfo(hwnd, SB_VERT, &info, TRUE);
-	DeleteObject(SelectObject(hdc, hFont));
 	ReleaseDC(hwnd, hdc);
 }
 
 static CODE_COMPLETION_PARAMS* _currentParams;
-
 static void codecomplete_addTags(intptr_t pszTagName, intptr_t pTag) {
-	CODE_ACTION* pCurrent = (CODE_ACTION*)ll_insert((LINKED_LIST**)&_currentParams->cpp_actions, sizeof * pCurrent);
+	CODE_ACTION* pCurrent = (CODE_ACTION*)ll_insert((LINKED_LIST**)&_currentParams->ccp_actions, sizeof * pCurrent);
 	pCurrent->ca_name = (unsigned char*)pszTagName;
 	pCurrent->ca_type = CA_TAG;
 	pCurrent->ca_param.text = (unsigned char*)pszTagName;
 	pCurrent->ca_replaceWord = TRUE;
-
 }
 
 /*
@@ -104,14 +105,14 @@ void codecomplete_updateCompletionList(WINFO* wp) {
 	CODE_ACTION* pCurrent;
 	char szIdent[100];
 
-	if (pCC->cpp_actions) {
-		ll_destroy((LINKED_LIST**)&pCC->cpp_actions, NULL);
+	if (pCC->ccp_actions) {
+		ll_destroy((LINKED_LIST**)&pCC->ccp_actions, NULL);
 	}
 	pCC->ccp_topRow = 0;
 	_currentParams = pCC;
 	while (up) {
 		if (up->action == UA_ABBREV) {
-			pCurrent = (CODE_ACTION*) ll_insert((LINKED_LIST**) &pCC->cpp_actions, sizeof * pCC->cpp_actions);
+			pCurrent = (CODE_ACTION*) ll_insert((LINKED_LIST**) &pCC->ccp_actions, sizeof * pCC->ccp_actions);
 			pCurrent->ca_name = up->pat;
 			pCurrent->ca_type = CA_TEMPLATE;
 			pCurrent->ca_param.template = up;
@@ -121,7 +122,7 @@ void codecomplete_updateCompletionList(WINFO* wp) {
 	}
 	xref_getSelectedIdentifier(szIdent, sizeof szIdent);
 	xref_forAllTagsDo(wp, szIdent, codecomplete_addTags);
-	pCC->ccp_size = ll_size((LINKED_LIST*)pCC->cpp_actions);
+	pCC->ccp_size = ll_size((LINKED_LIST*)pCC->ccp_actions);
 	codecomplete_updateScrollbar(wp->codecomplete_handle);
 	RedrawWindow(wp->codecomplete_handle, NULL, NULL, RDW_INVALIDATE);
 }
@@ -135,7 +136,7 @@ static void codecomplete_paint(HWND hwnd) {
 	HICON hIconTag = LoadIcon(hInst, "CROSSREFERENCE");
 	TEXTMETRIC textmetric;
 	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
-	CODE_ACTION* up = pCC->cpp_actions;
+	CODE_ACTION* up = pCC->ccp_actions;
 	long nSelectedIndex = pCC->ccp_selection;
 	int x = CC_PADDING;
 	int y = CC_PADDING;
@@ -146,32 +147,49 @@ static void codecomplete_paint(HWND hwnd) {
 	SetBkMode(paint.hdc, TRANSPARENT);
 	HFONT hFont = SelectObject(paint.hdc, theme_createSmallFixedFont());
 	GetTextMetrics(paint.hdc, &textmetric);
+	int oldLineHeight = pCC->ccp_lineHeight;
+	pCC->ccp_lineHeight = textmetric.tmHeight + CC_PADDING;
 	FillRect(paint.hdc, &paint.rcPaint, GetSysColorBrush(COLOR_WINDOW));
-	for(int i = 0; up; i++) {
-		if (i >= pCC->ccp_topRow) {
-			if (i == nSelectedIndex) {
-				RECT rect;
-				rect.left = 0;
-				rect.right = paint.rcPaint.right;
-				rect.top = y;
-				rect.bottom = y + textmetric.tmHeight + nDelta;
-				FillRect(paint.hdc, &rect, GetSysColorBrush(COLOR_HIGHLIGHT));
-				SetTextColor(paint.hdc, GetSysColor(COLOR_HIGHLIGHTTEXT));
-			}
-			else {
-				SetTextColor(paint.hdc, GetSysColor(COLOR_WINDOWTEXT));
-			}
-			char* pszDescription = up->ca_name;
-			DrawIconEx(paint.hdc, x, y, up->ca_type == CA_TEMPLATE ? hIconTemplate : hIconTag, textmetric.tmHeight, textmetric.tmHeight, 0, NULL, DI_NORMAL);
-			TextOut(paint.hdc, x + nIconSize + 4, y + (nDelta / 2), pszDescription, (int)strlen(pszDescription));
-			y += textmetric.tmHeight + nDelta;
+	if (pCC->ccp_size == 0) {
+		RECT rect;
+		GetClientRect(hwnd, &rect);
+		InflateRect(&rect, -5, -5);
+		SetTextColor(paint.hdc, GetSysColor(COLOR_GRAYTEXT));
+		char text[128];
+
+		if (LoadString(ui_getResourceModule(), IDS_NO_TEMPLATES_DEFINED, text, sizeof text)) {
+			DrawText(paint.hdc, text, -1, &rect, DT_CENTER | DT_VCENTER | DT_WORDBREAK);
 		}
-		up = up->ca_next;
+	} else {
+		for (int i = 0; up; i++) {
+			if (i >= pCC->ccp_topRow) {
+				if (i == nSelectedIndex) {
+					RECT rect;
+					rect.left = 0;
+					rect.right = paint.rcPaint.right;
+					rect.top = y;
+					rect.bottom = y + textmetric.tmHeight + nDelta;
+					FillRect(paint.hdc, &rect, GetSysColorBrush(COLOR_HIGHLIGHT));
+					SetTextColor(paint.hdc, GetSysColor(COLOR_HIGHLIGHTTEXT));
+				}
+				else {
+					SetTextColor(paint.hdc, GetSysColor(COLOR_WINDOWTEXT));
+				}
+				char* pszDescription = up->ca_name;
+				DrawIconEx(paint.hdc, x, y, up->ca_type == CA_TEMPLATE ? hIconTemplate : hIconTag, textmetric.tmHeight, textmetric.tmHeight, 0, NULL, DI_NORMAL);
+				TextOut(paint.hdc, x + nIconSize + 4, y + (nDelta / 2), pszDescription, (int)strlen(pszDescription));
+				y += textmetric.tmHeight + nDelta;
+			}
+			up = up->ca_next;
+		}
 	}
 	DeleteObject(SelectObject(paint.hdc, hFont));
 	DeleteObject(hIconTemplate);
 	DeleteObject(hIconTag);
 	EndPaint(hwnd, &paint);
+	if (oldLineHeight != pCC->ccp_lineHeight) {
+		codecomplete_updateScrollbar(hwnd);
+	}
 }
 
 static void codecomplete_moveCaret(HWND hwnd, int nBy) {
@@ -209,7 +227,7 @@ static void codecomplete_moveCaret(HWND hwnd, int nBy) {
  */
 static void codecomplete_action(HWND hwnd) {
 	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
-	CODE_ACTION* cap = pCC->cpp_actions;
+	CODE_ACTION* cap = pCC->ccp_actions;
 	long nSelectedIndex = pCC->ccp_selection;
 	WINFO* wp = pCC->ccp_wp;
 
@@ -225,6 +243,33 @@ static void codecomplete_action(HWND hwnd) {
 		}
 	}
 	ShowWindow(hwnd, SW_HIDE);
+}
+
+static void codecomplete_scrollTo(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nNewTop) {
+	if (nNewTop + pCC->ccp_pageSize > pCC->ccp_size+1) {
+		nNewTop = pCC->ccp_size - pCC->ccp_pageSize + 1;
+	}
+	if (nNewTop < 0) {
+		nNewTop = 0;
+	}
+	if (nNewTop != pCC->ccp_topRow) {
+		pCC->ccp_topRow = nNewTop;
+		if (pCC->ccp_selection < pCC->ccp_topRow) {
+			pCC->ccp_selection = pCC->ccp_topRow;
+		} else if (pCC->ccp_selection >= pCC->ccp_topRow + pCC->ccp_pageSize) {
+			pCC->ccp_selection = pCC->ccp_topRow;
+		}
+		codecomplete_updateScrollbar(hwnd);
+		RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE);
+	}
+}
+
+static void codecomplete_selectByMouse(HWND hwnd, int y) {
+	CODE_COMPLETION_PARAMS* pCC;
+	pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
+
+	int nIndex = (y - CC_PADDING) / pCC->ccp_lineHeight + pCC->ccp_topRow;
+	codecomplete_moveCaret(hwnd, nIndex - pCC->ccp_selection);
 }
 
 /*
@@ -246,7 +291,7 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		case WM_DESTROY:
 			pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
 			if (pCC) {
-				ll_destroy((LINKED_LIST**)&pCC->cpp_actions, NULL);
+				ll_destroy((LINKED_LIST**)&pCC->ccp_actions, NULL);
 				free(pCC);
 				SetWindowLongPtr(hwnd, GWL_PARAMS, (LONG_PTR)NULL);
 			}
@@ -257,7 +302,41 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		case WM_PAINT:
 			codecomplete_paint(hwnd);
 			break;
-
+		case WM_LBUTTONDBLCLK: 
+		case WM_LBUTTONDOWN: {
+				int y = GET_Y_LPARAM(lParam);
+				codecomplete_selectByMouse(hwnd, y);
+				if (message == WM_LBUTTONDBLCLK) {
+					codecomplete_action(hwnd);
+				}
+			}
+			break;
+		case WM_VSCROLL: 
+			pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
+			if (pCC) {
+				int nNewTop = pCC->ccp_topRow;
+				int nCode = LOWORD(wParam);
+				if (nCode == SB_LINEUP) {
+					nNewTop--;
+				} else if (nCode == SB_LINEDOWN) {
+					nNewTop++;
+				} else if (nCode == SB_PAGEDOWN) {
+					nNewTop += pCC->ccp_pageSize;
+				} else if (nCode == SB_PAGEUP) {
+					nNewTop -= pCC->ccp_pageSize;
+				} else if (nCode == SB_TOP) {
+					nNewTop = 0;
+				}
+				else if (nCode == SB_BOTTOM) {
+					nNewTop = pCC->ccp_size - pCC->ccp_pageSize;
+				} else if (nCode == SB_ENDSCROLL) {
+					break;
+				} else {
+					nNewTop = HIWORD(wParam);
+				}
+				codecomplete_scrollTo(hwnd, pCC, nNewTop);
+			}
+			break;
 		case WM_KEYDOWN:
 			if (wParam == VK_UP || wParam == VK_DOWN) {
 				codecomplete_moveCaret(hwnd, wParam == VK_UP ? -1 : 1);
@@ -282,7 +361,7 @@ int codecomplete_registerWindowClass() {
 	wc.lpfnWndProc = codecomplete_wndProc;
 	wc.cbWndExtra = sizeof(CODE_COMPLETION_PARAMS);
 	wc.hIcon = NULL;
-	wc.hCursor = NULL;
+	wc.hCursor = LoadCursor(0, IDC_ARROW);
 	wc.hbrBackground = GetSysColorBrush(COLOR_WINDOW);
 	wc.lpszClassName = CLASS_CODE_COMPLETION;
 	return (RegisterClass(&wc));
