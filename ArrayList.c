@@ -139,3 +139,10 @@ ARRAY_ITERATOR arraylist_iterator(ARRAY_LIST* pList) {
 	iterator.i_bufferEnd = iterator.i_buffer + pList->li_size;
 	return iterator;
 }
+
+/*
+ * Sort the contents of an array list. 
+ */
+void arraylist_sort(ARRAY_LIST* pList, int (*compare)(const void* p1, const void* p2)) {
+	qsort(*pList->li_buffer, pList->li_size, sizeof(void*), compare);
+}

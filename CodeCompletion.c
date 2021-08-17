@@ -18,6 +18,7 @@
 #include <windowsx.h>
 #include "customcontrols.h"
 #include "winfo.h"
+#include "arraylist.h"
 #include "winterf.h"
 #include "grammar.h"
 #include "pksrc.h"
@@ -82,13 +83,38 @@ static void codecomplete_updateScrollbar(HWND hwnd) {
 	ReleaseDC(hwnd, hdc);
 }
 
-static CODE_COMPLETION_PARAMS* _currentParams;
+static ARRAY_LIST* _actionList;
 static void codecomplete_addTags(intptr_t pszTagName, intptr_t pTag) {
-	CODE_ACTION* pCurrent = (CODE_ACTION*)ll_insert((LINKED_LIST**)&_currentParams->ccp_actions, sizeof * pCurrent);
+	CODE_ACTION* pCurrent = (CODE_ACTION*)calloc(1, sizeof * pCurrent);
 	pCurrent->ca_name = (unsigned char*)pszTagName;
 	pCurrent->ca_type = CA_TAG;
 	pCurrent->ca_param.text = (unsigned char*)pszTagName;
 	pCurrent->ca_replaceWord = TRUE;
+	arraylist_add(_actionList, pCurrent);
+}
+
+/*
+ * The current identifier under the cursor. 
+ */
+static 	char szIdent[100];
+static int codecomplete_compare(const CODE_ACTION** p1, const CODE_ACTION** p2) {
+	char* pszString1 = (*p1)->ca_name;
+	char* pszString2 = (*p2)->ca_name;
+	int ret = strcmp(pszString1, pszString2);
+	if (ret != 0) {
+		size_t nLen = strlen(szIdent);
+		if (strncmp(szIdent, pszString1, nLen) == 0) {
+			if (strncmp(szIdent, pszString2, nLen) == 0) {
+				return ret;
+			}
+			return -1;
+		} else {
+			if (strncmp(szIdent, pszString2, nLen) == 0) {
+				return 1;
+			}
+		}
+	}
+	return ret;
 }
 
 /*
@@ -103,13 +129,12 @@ void codecomplete_updateCompletionList(WINFO* wp) {
 	FTABLE* fp = wp->fp;
 	UCLIST* up = grammar_getUndercursorActions(fp->documentDescriptor->grammar);
 	CODE_ACTION* pCurrent;
-	char szIdent[100];
 
 	if (pCC->ccp_actions) {
 		ll_destroy((LINKED_LIST**)&pCC->ccp_actions, NULL);
 	}
 	pCC->ccp_topRow = 0;
-	_currentParams = pCC;
+	_actionList = arraylist_create(37);
 	while (up) {
 		if (up->action == UA_ABBREV) {
 			pCurrent = (CODE_ACTION*) ll_insert((LINKED_LIST**) &pCC->ccp_actions, sizeof * pCC->ccp_actions);
@@ -122,6 +147,14 @@ void codecomplete_updateCompletionList(WINFO* wp) {
 	}
 	xref_getSelectedIdentifier(szIdent, sizeof szIdent);
 	xref_forAllTagsDo(wp, szIdent, codecomplete_addTags);
+	arraylist_sort(_actionList, codecomplete_compare);
+	for (int i = (int)arraylist_size(_actionList); --i >= 0; ) {
+		CODE_ACTION* pAction = arraylist_get(_actionList, i);
+		pAction->ca_next = pCC->ccp_actions;
+		pCC->ccp_actions = pAction;
+	}
+	arraylist_destroy(_actionList);
+	_actionList = NULL;
 	pCC->ccp_size = ll_size((LINKED_LIST*)pCC->ccp_actions);
 	codecomplete_updateScrollbar(wp->codecomplete_handle);
 	RedrawWindow(wp->codecomplete_handle, NULL, NULL, RDW_INVALIDATE);

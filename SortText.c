@@ -60,7 +60,7 @@ static KEYTAB _keytab;
 
 typedef struct {
 	LINE	*lp;
-	int	nl;
+	int		nl;
 } RECORD;
 
 typedef struct recparams {
@@ -89,10 +89,10 @@ static RECORD	*_rectab;
 extern int  compare_strings(unsigned char* s1, int l1, unsigned char* s2, int l2);
 
 /*------------------------------------------------------------
- * sor_compareStringsCaseIgnore()
+ * sort_compareStringsCaseIgnore()
  * Like sort_compareRecords strings, but case ignore.
  */
-static int sor_compareStringsCaseIgnore(unsigned char* s1, int l1, unsigned char* s2, int l2)
+static int sort_compareStringsCaseIgnore(unsigned char* s1, int l1, unsigned char* s2, int l2)
 {
 	int      len;
 
@@ -287,7 +287,7 @@ static void sort_initializeKeyList(char *s, char *fs_set)
 				switch(*s2) {
 					case 'd':	cmp = sort_compareDigit; break;
 					case 'D': cmp = sort_compareDate;	 break;
-					case 'i': cmp = sor_compareStringsCaseIgnore;  break;
+					case 'i': cmp = sort_compareStringsCaseIgnore;  break;
 					case 'a': kp->flag |= K_SORTDICT; break;
 					case 'b': kp->flag |= K_SKIPWHITE; break;
 					case 'u': kp->flag |= K_UNIQ; break;
@@ -305,7 +305,7 @@ static void sort_initializeKeyList(char *s, char *fs_set)
 /*--------------------------------------------------------------------------
  * sort_getLineFromRecord()
  */
-static LINE *sort_getLineFromRecord(RECORD *rp, int num)
+static LINE *sort_getLineFromRecord(const RECORD *rp, int num)
 {	LINE *lp = rp->lp;
 
 	while (num > 0) {
@@ -318,7 +318,7 @@ static LINE *sort_getLineFromRecord(RECORD *rp, int num)
 /*--------------------------------------------------------------------------
  * sort_compareRecords()
  */
-static int sort_compareRecords(RECORD *rp1, RECORD *rp2)
+static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2)
 {	int 		i,off,ret,l1,l2;
 	LINE 	*lp1,*lp2,*lp;
 	KEY		*kp;
@@ -334,11 +334,11 @@ static int sort_compareRecords(RECORD *rp1, RECORD *rp2)
 		if ((l1 = kp->ln) != 0) {
 			if (l1 >= rp1->nl) {
 				if (l1 < rp2->nl)
-					return -1;
+					return _sortflags & SO_REVERSE ? 1 : -1;
 				else
 					continue;
 			} else if (l1 >= rp2->nl)
-				return 1;
+				return _sortflags & SO_REVERSE ? -1 : 1;
 			lp1 = sort_getLineFromRecord(rp1,l1);
 			lp2 = sort_getLineFromRecord(rp2,l1);
 		}
@@ -359,11 +359,11 @@ static int sort_compareRecords(RECORD *rp1, RECORD *rp2)
 		} else {					/* token $off	*/
 			if (off >= v1.ac) {		/* check whether $off exists */
 				if (off < v2.ac)
-					return -1;
+					return _sortflags & SO_REVERSE ? 1 : -1;
 				else
 					continue;
 			} else if (off >= v2.ac)
-		   		return 1;
+		   		return _sortflags & SO_REVERSE ? -1 : 1;
 			s1 = v1.so[off];
 			s2 = v2.so[off];
 			l1 = v1.lo[off];
@@ -397,7 +397,7 @@ static int sort_compareRecords(RECORD *rp1, RECORD *rp2)
 		}
 
 		if ((ret = (*kp->cmp)(s1,l1,s2,l2)) != 0)
-			return ret;
+			return _sortflags & SO_REVERSE ? -ret : ret;
 
 		if (kp->flag & K_UNIQ)
 			for (off = 0, lp=rp2->lp; off < rp2->nl; off++, lp=lp->next)
@@ -408,41 +408,16 @@ static int sort_compareRecords(RECORD *rp1, RECORD *rp2)
 
 /*--------------------------------------------------------------------------
  * sort_quickSortList()
- * Sortieren der Zeilenliste
- * (Quicksort nach K&R)
+ * sort the "list of lines" from the file.
  */
-int sort_quickSortList(RECORD *tab,long n)
-{    long	gap,i,j,jplusgap;
-	int  ret;
-	RECORD tmp;
-	
-	for (gap = n/2; gap > 0; gap >>= 1) {
-		for (i = gap; i < n; i++) {
-			for (j = i-gap; j >= 0; j -= gap) {
-				jplusgap = j+gap;
-				
-				ret = sort_compareRecords(&tab[j],&tab[jplusgap]);
-				
-				if (_sortflags & SO_REVERSE) {
-					if (ret >= 0) break;
-				} else if (ret <= 0) break;
-	
-				if (progress_cancelMonitor(0))
-					return 0;
-				/* swap these fellows */
-				tmp = tab[j]; 
-				tab[j] = tab[jplusgap];
-				tab[jplusgap] = tmp;
-	
-			}
-		}
-	 }
-	 return 1;
+static int sort_quickSortList(RECORD* pRecords, long n) {
+	qsort(pRecords, n, sizeof(RECORD), sort_compareRecords);
+	return 1;
 }
 
 /*--------------------------------------------------------------------------
  * sort_createRecordsFromLines()
- * build a EdMacroRecord tab, using a line list
+ * build a EdMacroRecord pElements, using a line list
  */
 static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast, 
 			   RE_PATTERN *pPattern, int sortflags,

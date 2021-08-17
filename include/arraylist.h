@@ -75,4 +75,9 @@ extern int arraylist_remove(ARRAY_LIST* pList, void* pElement);
  */
 extern ARRAY_ITERATOR arraylist_iterator(ARRAY_LIST* pList);
 
+/*
+ * Sort the contents of an array list.
+ */
+extern void arraylist_sort(ARRAY_LIST* pList, int (*compare)(const void* p1, const void* p2));
+
 #endif

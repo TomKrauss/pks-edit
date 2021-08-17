@@ -1,5 +1,6 @@
 [files]
 "C:\SUService.log", line 4: 0x0 0x1 -1 -1 -8 -31 130 130 1320 490
+"C:\source\pksedit\CutAndPaste.c", line 32: 0x0 0x1 -1 -1 -8 -31 60 18 1439 667
 [find]
 !d
 !e
