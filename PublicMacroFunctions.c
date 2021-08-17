@@ -1700,10 +1700,11 @@ int EdCommandExecute(void)
 		IDD_OPT1,		EX_SYMBOL,		&opt,
 		IDD_OPT2,		EX_WAIT,			&opt,
 		IDD_OPT3,		EX_CD,			&opt,
-		IDD_RADIO1,	4,				&redir,
+		IDD_RADIO1,		4,				&redir,
 		0
 	};
 
+	bl_getSelectedText(cmd, sizeof cmd);
 	if (!win_callDialog(DLGEXEC,&_fp,_d, NULL)) {
 		return 0;
 	}

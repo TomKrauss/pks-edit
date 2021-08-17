@@ -1,0 +1,97 @@
+{
+  "grammars": [
+    {
+      "scopeName": "ps",
+      "tagSources": [
+        {
+          "filename": "https://docs.microsoft.com/en-us/search/?terms=$1&category=Reference&scope=Desktop",
+          "type": "url"
+        }
+      ],
+      "templates": [
+      ],
+      "evaluationCommand": {
+        "commandLine": "powershell -noprofile -noninteractive -",
+        "input": "stdin"
+      },
+      "highlightBrackets": [
+        {
+          "left": "{",
+          "right": "}"
+        },
+        {
+          "left": "(",
+          "right": ")"
+        },
+        {
+          "left": "[",
+          "right": "]"
+        }
+      ],
+      "patterns": [
+        {
+          "begin": "<#",
+          "end": "#>",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "#.*",
+          "style": "sl-comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "<\\$[a-zA-Z_][a-zA-Z_0-9]*>",
+          "style": "identifier",
+          "name": "constant.variable"
+        },
+        {
+          "match": "\"(?:\\\"|[^\"])+\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "<[A-Z_][A-Z_0-9]*>",
+          "style": "identifier",
+          "name": "constant.identifier"
+        },
+        {
+          "keywords": [
+            "try",
+            "catch",
+            "finally",
+            "do",
+            "while",
+            "until",
+            "if",
+            "else",
+            "elif",
+            "enum",
+            "begin",
+            "break",
+            "define",
+            "class",
+            "end",
+            "exit",
+            "filter",
+            "from",
+            "function",
+            "hidden"
+          ],
+          "style": "keyword",
+          "name": "keyword.cpp"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "[-+&|<>=]{1,2}",
+          "style": "operator",
+          "name": "keyword.operator"
+        }
+      ]
+    }
+  ]
+}

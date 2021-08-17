@@ -29,7 +29,7 @@
 #include "stringutil.h"
 #include "textblocks.h"
 
-extern void fsel_changeDirectory(LPSTR pszPath);
+extern void fsel_changeDirectory(char* pszPath);
 extern void xref_openSearchList(char *fn, int cmpflg);
 extern void undo_startModification(FTABLE *fp);
 
@@ -94,22 +94,21 @@ static HTASK GetTaskHandle(HINSTANCE hInst)
  *   EX_RDOUT     : write the marked block to an output file before execution
  * 
  */
-int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfile)
-{
-	int				ret;
+int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 	int				show;
-	char				szTemp[256];
-	char				outfile[256];
-	char				infile[256];
-	char				szRunBat[256];
+	char			szTemp[256];
+	char			outfile[256];
+	char			infile[256];
 	char *			tmp = file_getTempDirectory();
 	char *			getenv(const char *);
-	char *			pszPif;
-	BOOL				bUInited;
+	BOOL			bUInited;
+	HANDLE			hStdin, hStdout;
 
 	if (!cmdline) {
 		return 0;
 	}
+	hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+	hStdin = GetStdHandle(STD_INPUT_HANDLE);
 
 	bUInited = FALSE;
 
@@ -135,69 +134,59 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 			lstrcpy(outfile, errfile);
 		}
 
-		ln_createAndAddSimple(&_outfile, "@echo off");
-		if (flags & EX_RDCONV) {
-			wsprintf(szTemp,"%s < %s > %s", cmdline, infile, outfile);
-		} else if (flags & EX_RDIN) {
-			wsprintf(szTemp,"%s > %s", cmdline, outfile);
-		} else if (flags & EX_RDOUT) {
-			wsprintf(szTemp,"%s < %s", cmdline, infile);
-		} else {
-			wsprintf(szTemp,"%s", cmdline);
-		}
-		ln_createAndAddSimple(&_outfile, szTemp);
-		string_concatPathAndFilename(szRunBat, _pksSysFolder, "RUN.BAT");
-		ft_writeFileAndClose(&_outfile, szRunBat, 0);
-
-		pszPif = file_searchFileInPKSEditLocation(
-			(flags & EX_WAIT) ? "PKSRUNW.PIF" : "PKSRUN.PIF");
-		if (!pszPif) {
-			error_displayAlertDialog("PSZRUN(W).PIF not found");
-			return 0;
-		}
-		wsprintf(szTemp,"%s /e:1024 /c %s", pszPif, szRunBat);
+		wsprintf(szTemp,"cmd /e:1024 /c %s", cmdline);
 		cmdline = szTemp;
 	}
 
-	ret = WinExec(cmdline, show);
-	if (ret < 32) {
-		exec_error(cmdline,ret);
+	PROCESS_INFORMATION pi;
+	STARTUPINFO si;
+
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+	si.wShowWindow = show;
+	if (flags & (EX_RDCONV|EX_RDOUT)) {
+		hStdin = CreateFile(
+			infile,
+			GENERIC_READ,
+			0,
+			NULL,
+			OPEN_EXISTING,
+			FILE_ATTRIBUTE_READONLY,
+			NULL);
+	}
+	if (flags & (EX_RDCONV | EX_RDOUT)) {
+		hStdout = CreateFile(
+			outfile,
+			GENERIC_READ,
+			0,
+			NULL,
+			OPEN_EXISTING,
+			FILE_ATTRIBUTE_READONLY,
+			NULL);
+	}
+	si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+	si.hStdInput = hStdin;
+	si.hStdOutput = hStdout;
+	si.dwFlags |= STARTF_USESTDHANDLES;
+	if (!CreateProcess(NULL, cmdline, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+		exec_error(cmdline, (int) GetLastError());
 		return 0;
 	}
+
+	// Wait until child process exits.
+	WaitForSingleObject(pi.hProcess, INFINITE);
+
+	// Close process and thread handles. 
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+
 	if (flags & EX_RDCONV) {
 		undo_startModification(ft_getCurrentDocument());
 		bUInited = TRUE;
 		EdBlockDelete(1);
 	}
 
-#if !defined(WIN32)
-	if (!(hTask = GetTaskHandle((HINSTANCE) ret))) {
-		error_displayAlertDialog("invalid hInst %d", ret);
-	}
-
-	if (hTask) {
-		LPFNNOTIFYCALLBACK 	lpNotifyProc;
-
-		lpNotifyProc = (LPFNNOTIFYCALLBACK) MakeProcInstance((FARPROC)
-				ExecWaitNotify, hInst);
-		NotifyRegister(NULL, lpNotifyProc, NF_NORMAL);
-		bTaskFinished = FALSE;
-		if (flags & (EX_RDIN|EX_WAIT)) {
-			int savePlaying = _playing;
-			_playing = 0;
-			progress_startMonitor(IDS_ABRTCMDCOMPLETE);
-			while (1) {
-				if (progress_cancelMonitor(FALSE) || bTaskFinished) {
-					break;
-				}
-			}
-			progress_closeMonitor(0);
-			_playing = savePlaying;
-		}
-		NotifyUnRegister(NULL);
-		FreeProcInstance(lpNotifyProc);
-	}
-#endif
 
 	if (errfile && errfile[0]) {
 		xref_openSearchList(errfile, 1);

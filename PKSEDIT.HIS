@@ -1,6 +1,5 @@
 [files]
-"C:\SUService.log", line 4: 0x0 0x1 -1 -1 -8 -31 130 130 1320 490
-"C:\source\pksedit\CutAndPaste.c", line 32: 0x0 0x1 -1 -1 -8 -31 60 18 1439 667
+"C:\source\pksedit\CutAndPaste.c", line 1: 0x0 0x1 -1 -1 -8 -31 130 130 1320 490
 [find]
 !d
 !e
@@ -45,7 +44,6 @@
 !x
 !xx
 [open]
-!C:\source\pksedit\PrintFiles.c
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\query\parser\StringInputStream.java
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\collection\Array.java
 !C:\source\pksedit\include\lineoperations.h
@@ -76,6 +74,8 @@
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\ui\scan\scan_page.dart
 !C:\Users\tom\Desktop\readme.txt
 !C:\source\pksedit\CutAndPaste.c
+!C:\SUService.log
+!C:\source\pksedit\x.out
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN

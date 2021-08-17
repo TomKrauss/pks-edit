@@ -125,6 +125,13 @@
         "filenamePatterns": "*.css;*.scss"
     },
     {
+        "name": "ps1",
+        "description": "PowerShell Files (*.ps1)",
+        "grammar": "ps",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.ps1"
+    },
+    {
         "name": "xmlmarkup",
         "description": "HTML and XML (*.html; *.htm; *.xml)",
         "grammar": "xml",
