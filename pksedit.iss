@@ -39,8 +39,8 @@ Name: "it"; MessagesFile: "compiler:Languages\Italian.isl"
 Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Files]
-Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"
-Source: "x64\Release\{#MyAppBaseName}.en-US.dll"; DestDir: "{app}"; DestName: "{#MyAppBaseName}.en-US.dll"
+Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"; Flags: ignoreversion
+Source: "x64\Release\{#MyAppBaseName}.en-US.dll"; DestDir: "{app}"; DestName: "{#MyAppBaseName}.en-US.dll"; Flags: ignoreversion
 Source: "pks_sys\pksedit.ini"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\batch.grammar.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\cpp.grammar.json"; DestDir: "{app}\pks_sys"
