@@ -98,7 +98,6 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_FLAG, "encrypted", offsetof(EDIT_CONFIGURATION, workmode), O_CRYPTED},
 	{	RT_FLAG, "oemEncoding", offsetof(EDIT_CONFIGURATION, workmode), WM_OEMMODE},
 	{	RT_FLAG, "smartSpaceDelete", offsetof(EDIT_CONFIGURATION, workmode), WM_DELETE_MULTIPLE_SPACES},
-	{	RT_CHAR_ARRAY, "wordCharacterClass", offsetof(EDIT_CONFIGURATION, u2lset), sizeof(((EDIT_CONFIGURATION*)NULL)->u2lset)},
 	{	RT_CHAR_ARRAY, "statuslineFormat", offsetof(EDIT_CONFIGURATION, statusline), sizeof(((EDIT_CONFIGURATION*)NULL)->statusline)},
 	{	RT_CHAR, "tabCharacter", offsetof(EDIT_CONFIGURATION, tabDisplayFillCharacter)},
 	{	RT_CHAR, "fillCharacter", offsetof(EDIT_CONFIGURATION, fillc)},

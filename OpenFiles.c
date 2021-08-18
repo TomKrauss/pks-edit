@@ -24,10 +24,7 @@
 #include "winfo.h"
 #include "winterf.h"
 #include "actions.h"
-
-/* #define DEMO 1 /* D E M O V E R S I O N */
-
-#pragma hdrstop
+#include "grammar.h"
 
 #include "dos.h"
 #include "pathname.h"
@@ -548,7 +545,7 @@ int ft_currentFileChanged(FTABLE *fp) {
 	if (fp == 0) {
 		return 0;
 	}
-	regex_compileCharacterClasses(fp->documentDescriptor->u2lset);
+	grammar_documentTypeChanged(fp->documentDescriptor->grammar);
 	return 1;
 }
 

@@ -124,7 +124,7 @@ extern int regex_replaceSearchString(REPLACEMENT_PATTERN* pPattern, unsigned cha
  * class will be used in PKS Edit for lower / upper case conversions as well to define the valid
  * characters of an identifier used during "word" navigation.
  */
-extern void regex_compileCharacterClasses(unsigned char* pLowerToUpperPattern);
+extern void regex_compileCharacterClasses(const unsigned char* pLowerToUpperPattern);
 
 extern unsigned char* _octalloc;
 extern int regex_parseOctalNumber(register unsigned char* s);

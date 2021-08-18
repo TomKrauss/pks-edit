@@ -23,15 +23,13 @@
 #include "documenttypes.h"
 #include "winfo.h"
 #include "winterf.h"
-
-#pragma hdrstop
-
 #include "pksedit.h"
 #include "dial2.h"
 #include "functab.h"
 #include "edfuncs.h"
 #include "regexp.h"
 #include "actions.h"
+#include "grammar.h"
 
 #/*---- GLOBALS ---------------*/
 
@@ -85,7 +83,7 @@ int doctypes_documentTypeChanged(void) {
 	fp = wp->fp;
 	ww_applyDisplayProperties(wp);
 	ww_setwindowtitle(wp, NULL);
-	regex_compileCharacterClasses(fp->documentDescriptor->u2lset);
+	grammar_documentTypeChanged(fp->documentDescriptor->grammar);
 
 	SendMessage(wp->edwin_handle,WM_EDWINREORG,0,0L);
 

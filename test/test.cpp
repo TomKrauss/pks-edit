@@ -7,6 +7,7 @@ extern "C" {
 #include "../include/arraylist.h"
 #include "../include/linkedlist.h"
 #include "../include/hashmap.h"
+#include "../include/edctype.h"
 
 extern int string_matchFilename(char* string, char* pattern);
 }
@@ -248,6 +249,11 @@ namespace pkseditTests
 			options = createOptions("\"(?:[^\"])+\"", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"\"abc\"", NULL, &match));
+			options = createOptions("'(?:[^']|\\')+?'", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			int ret = regex_match(&pattern, (unsigned char*)"'abc' xxx 'cc'", NULL, &match);
+			Assert::AreEqual(1, ret);
+			Assert::AreEqual(5, (int)(match.loc2 - match.loc1));
 			options = createOptions("\"(?:[^a-zX?]){3,}?\"", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			options = createOptions("\"(?:a|bb)+\"\\1", RE_DOREX);
@@ -419,6 +425,20 @@ namespace pkseditTests
 
 			options = createOptions("a\\1", RE_IGNCASE);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
+		}
+
+		TEST_METHOD(RegexCharacterClass) {
+			regex_compileCharacterClasses((const unsigned char*)"a-z=A-Z");
+			Assert::AreNotEqual(0, isident('a'));
+			Assert::AreNotEqual(0, isident('Z'));
+			Assert::AreEqual(0, isident('9'));
+			regex_compileCharacterClasses((const unsigned char*)"a-z=A-Z0-9-");
+			Assert::AreNotEqual(0, isident('a'));
+			Assert::AreNotEqual(0, isident('Z'));
+			Assert::AreNotEqual(0, isident('9'));
+			Assert::AreNotEqual(0, isident('-'));
+			// (T) Hack: must restore default character classes
+			regex_compileCharacterClasses((const unsigned char*)"a-zäöü=A-ZÄÖÜß0-9_");
 		}
 
 		TEST_METHOD(ReplaceRegex) {

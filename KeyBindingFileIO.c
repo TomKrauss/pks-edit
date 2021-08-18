@@ -254,7 +254,7 @@ static void macro_replaceCurrentWord(WINFO* wp) {
 			size_t o1 = pszBegin - wp->caret.linePointer->lbuf;
 			size_t o2 = o1 + pszEnd - pszBegin;
 			ln_modify(wp->fp, wp->caret.linePointer, (int)o2, (int)o1);
-			wp->caret.col = o1;
+			wp->caret.col = (long)o1;
 			render_repaintCurrentLine(wp);
 		}
 	}

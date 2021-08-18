@@ -8,6 +8,13 @@
 - PKS Edit finally supports code completion. Press ESC to open the suggestion window, which will display code templates
   configured for the current grammar and/or cross references defined as tags.
 
+#### Changed
+- Character classes (for identifiers and mappings from lower case to upper case) are now defined in the grammar, which allows for language
+  sensitive identifier (word) processing - e.g. when navigating tags or selecting words with mouse double click etc...
+
+#### Improved
+- Support for Power Shell syntax was added.
+
 ### 2.0.1
 
 #### New

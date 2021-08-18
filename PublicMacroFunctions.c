@@ -1279,17 +1279,14 @@ int EdDlgWorkMode(void)
 {
 	static char creationMacroName[20];
 	static char cm[20];
-	static char cclass[64];
 	static char tabfill;
 	static int  workmode;
 	static int fileflag;
 	static ITEMS	_i   =  	{ 
-		{ C_STRING1PAR, cclass }, 
 		{ C_INT1PAR, (unsigned char *) &workmode }
 	};
 	static PARAMS	_fp   = { DIM(_i), P_MAYOPEN, _i	};
 	static DIALPARS _d[] = {
-		IDD_STRING1,	sizeof cclass,	cclass,
 		IDD_STRING2,	sizeof creationMacroName,	creationMacroName,
 		IDD_STRING3,	sizeof cm,	cm,
 		IDD_CHAR,		sizeof tabfill,&tabfill,
@@ -1313,7 +1310,6 @@ int EdDlgWorkMode(void)
 	}
 
 	linp = fp->documentDescriptor;
-	lstrcpy(cclass, linp->u2lset);
 	lstrcpy(creationMacroName, linp->creationMacroName);
 	lstrcpy(cm, linp->closingMacroName);
 	workmode = linp->workmode;
@@ -1321,9 +1317,6 @@ int EdDlgWorkMode(void)
 	fileflag = fp->flags;
 	if (win_callDialog(DLGWORKMODE,&_fp,_d, NULL) == 0)
 		return 0;
-	if (*cclass) {
-		lstrcpy(linp->u2lset,cclass);
-	}
 	lstrcpy(linp->creationMacroName, creationMacroName);
 	lstrcpy(linp->closingMacroName, cm);
 	linp->workmode = workmode;

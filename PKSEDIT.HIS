@@ -1,5 +1,6 @@
 [files]
 "C:\source\pksedit\CutAndPaste.c", line 1: 0x0 0x1 -1 -1 -8 -31 130 130 1320 490
+"C:\temp\pssample.ps1", line 10: 0x0 0x1 -1 -1 -8 -31 60 18 1439 667
 [find]
 !d
 !e
@@ -99,8 +100,8 @@
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\*.*
 !C:\source\techradar\*.*
 !C:\source\pksedit\macros\*.*
-!C:\temp\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\ui\scan\*.*
 !C:\Users\tom\Desktop\*.*
 !C:\source\pksedit\*.*
 !C:\*.*
+!C:\temp\*.*

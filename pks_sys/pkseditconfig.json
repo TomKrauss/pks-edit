@@ -155,7 +155,6 @@
         "autoIndent": true,
         "expandAbbreviations": true,
         "smartSpaceDelete": true,
-        "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9",
         "statuslineFormat": "0x%6p$O: 0x%2p$C 0%h$C",
         "tabCharacter": "\t",
         "fillCharacter": " ",

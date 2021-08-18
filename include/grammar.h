@@ -149,6 +149,12 @@ extern TAGSOURCE* grammar_getTagSources(GRAMMAR* pGrammar);
 extern int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescriptor);
 
 /*
+ * Invoked, when the type of the current active editor changes and will define the identifier
+ * according to the current documents grammar.
+ */
+extern void grammar_documentTypeChanged(GRAMMAR* pGrammar);
+
+/*
  * Insert a selected code template 'up'.
  * If 'bReplaceCurrentWord' is TRUE, the currently selected word / identifier close to the
  * cursor is replaced by the inserted template.

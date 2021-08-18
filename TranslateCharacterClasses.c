@@ -19,7 +19,7 @@
 /*--------------------------------------------------------------------------
  * strorder()
  */
-static unsigned char *strorder(unsigned char *b, unsigned char *d, unsigned char lim) {
+static unsigned char *strorder(const unsigned char *b, unsigned char *d, unsigned char lim) {
 	unsigned char *e;
 	int c1=0;
 
@@ -38,6 +38,10 @@ ovl:/*		printf("too many chars in class\n");
 		else if (*b == '-' && c1) {
 			if (*++b == '\\')
 				b++;
+			if (!*b) {
+				*d++ = '-';
+				continue;
+			}
 			if (c1 < *b) {
 				if (&d[*b - c1] >= e)
 					goto ovl;
@@ -57,7 +61,7 @@ ovl:/*		printf("too many chars in class\n");
 		*d++ = c1;
 	}
 	*d = 0;
-	return b;
+	return (unsigned char* )b;
 }
 
 /*--------------------------------------------------------------------------
@@ -68,8 +72,7 @@ ovl:/*		printf("too many chars in class\n");
  *
  */
 unsigned char *tlcompile(unsigned char *_transtab, 
-					unsigned char *t, 
-					unsigned char *wtable) 
+	const unsigned char *t, unsigned char *wtable) 
 {	unsigned char b1[256],b2[256],*p;
 	int i;
 
@@ -93,6 +96,6 @@ unsigned char *tlcompile(unsigned char *_transtab,
 	while (*p) {
 		wtable[*p++] |= _C;
 	}
-	return t+1;
+	return (unsigned char*)t+1;
 }
 

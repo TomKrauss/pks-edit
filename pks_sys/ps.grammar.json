@@ -2,9 +2,10 @@
   "grammars": [
     {
       "scopeName": "ps",
+      "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9-",
       "tagSources": [
         {
-          "filename": "https://docs.microsoft.com/en-us/search/?terms=$1&category=Reference&scope=Desktop",
+          "filename": "https://docs.microsoft.com/en-us/search/?terms=$1&category=Reference&scope=PowerShell",
           "type": "url"
         }
       ],
@@ -41,19 +42,24 @@
           "name": "comment.singleLine"
         },
         {
-          "match": "<\\$[a-zA-Z_][a-zA-Z_0-9]*>",
+          "match": "<[A-Z][a-zA-Z_]*-[A-Z][a-zA-Z_0-9]*>",
           "style": "identifier",
-          "name": "constant.variable"
+          "name": "identifier"
         },
         {
-          "match": "\"(?:\\\"|[^\"])+\"",
+          "match": "'(?:[^']|\\')+?'",
           "style": "string",
           "name": "string"
         },
         {
-          "match": "<[A-Z_][A-Z_0-9]*>",
-          "style": "identifier",
-          "name": "constant.identifier"
+          "match": "<\\$[a-zA-Z_][a-zA-Z_0-9]*>",
+          "style": "constant",
+          "name": "constant.variable"
+        },
+        {
+          "match": "-<[a-zA-Z_]+>",
+          "style": "italic",
+          "name": "constant.parameter"
         },
         {
           "keywords": [

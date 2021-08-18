@@ -377,7 +377,7 @@ static void regex_addCharacterToCharacterClass(unsigned char* pCharTable, unsign
  * class will be used in PKS Edit for lower / upper case conversions as well to define the valid
  * characters of an identifier used during "word" navigation.
  */
-void regex_compileCharacterClasses(unsigned char* pLowerToUpperPattern) {
+void regex_compileCharacterClasses(const unsigned char* pLowerToUpperPattern) {
 	int i, j;
 
 	if (_chsetinited && pLowerToUpperPattern == NULL) {

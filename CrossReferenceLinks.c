@@ -617,6 +617,13 @@ static char* xref_findExpressionCloseToCaret(unsigned char* pszTargetBuffer, uns
 	return(s1);
 }
 
+/*
+ * Match an identifier as defined by the current language (grammar).
+ */
+static int xref_matchIdentifier(unsigned char c) {
+	return isident(c);
+}
+
 /**
  * xref_findIdentifierCloseToCaret
  * Find an identifier close to the caret in the current editor window.
@@ -626,7 +633,8 @@ static char* xref_findExpressionCloseToCaret(unsigned char* pszTargetBuffer, uns
 char* xref_findIdentifierCloseToCaret(unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
 	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int bFindStartOfWord) {
 
-	return xref_findExpressionCloseToCaret(pszTargetBuffer, pszTargetBufferEnd, pszExpressionBegin, pszExpressionEnd, char_isIdentifier, bFindStartOfWord);
+	return xref_findExpressionCloseToCaret(pszTargetBuffer, pszTargetBufferEnd, pszExpressionBegin, pszExpressionEnd, 
+		xref_matchIdentifier, bFindStartOfWord);
 }
 
 /*---------------------------------*/

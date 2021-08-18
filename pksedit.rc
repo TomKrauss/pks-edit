@@ -478,14 +478,12 @@ BEGIN
     CONTROL         "&Klammerncheck",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,60,138,10
     CONTROL         "Kla&mmernindent",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,70,138,10
     GROUPBOX        "Makros",-1,13,113,311,42
-    LTEXT           "Als &Vorlage:",-1,13,127,44,8
+    LTEXT           "Als &Vorlage:",-1,18,127,48,8
     EDITTEXT        IDD_STRING2,74,123,118,12
-    LTEXT           "Beim Schlie&ßen:",-1,13,141,56,8
+    LTEXT           "Beim Schlie&ßen:",-1,18,141,52,8
     EDITTEXT        IDD_STRING3,74,139,118,12
-    LTEXT           "&Zeichenklasse Worte:",119,10,161,76,10,NOT WS_GROUP
-    EDITTEXT        IDD_STRING1,8,175,108,12,ES_AUTOHSCROLL
-    LTEXT           "&Tabs expandieren zu:",114,235,165,70,10,NOT WS_GROUP
-    EDITTEXT        IDD_CHAR,269,174,36,12,ES_AUTOHSCROLL
+    LTEXT           "&Tabs expandieren zu:",114,13,165,70,10,NOT WS_GROUP
+    EDITTEXT        IDD_CHAR,88,161,32,12,ES_AUTOHSCROLL
     PUSHBUTTON      "Abbruch",2,215,6,42,16
     DEFPUSHBUTTON   "OK",1,264,6,42,16
     CONTROL         "Mehrere Spaces löschen",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,81,138,10
@@ -1122,6 +1120,10 @@ BEGIN
     END
 
     DLGFKEYSET, DIALOG
+    BEGIN
+    END
+
+    DLGFORMAT, DIALOG
     BEGIN
     END
 

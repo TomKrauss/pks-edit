@@ -78,6 +78,7 @@ typedef struct tagGRAMMAR {
 	struct tagGRAMMAR* next;			// Grammars are maintained - like many things in PKS Edit - in a linked list.
 	char scopeName[32];					// Unique name of the grammar. One can associate document types with the scope name of a grammar
 										// in the document type definition.
+	char  u2lset[32];					// wordset and u2l ("abc=xyz") 
 	char* folderStartMarker;			// regular expression to define the start of foldable regions.
 	char* folderEndMarker;				// regular expression to define the end of foldable regions.
 	char indentNextLinePattern[32];		// A regular expression defining the condition on which the next line should indented.
@@ -194,6 +195,7 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_CHAR_ARRAY, "scopeName", offsetof(GRAMMAR, scopeName), sizeof(((GRAMMAR*)NULL)->scopeName)},
 	{	RT_ALLOC_STRING, "folderStartMarker", offsetof(GRAMMAR, folderStartMarker)},
 	{	RT_ALLOC_STRING, "folderEndMarker", offsetof(GRAMMAR, folderEndMarker)},
+	{	RT_CHAR_ARRAY, "wordCharacterClass", offsetof(GRAMMAR, u2lset), sizeof(((GRAMMAR*)NULL)->u2lset)},
 	{	RT_CHAR_ARRAY, "indentNextLinePattern", offsetof(GRAMMAR, indentNextLinePattern), sizeof(((GRAMMAR*)NULL)->indentNextLinePattern)},
 	{	RT_CHAR_ARRAY, "unIndentLinePattern", offsetof(GRAMMAR, unIndentLinePattern), sizeof(((GRAMMAR*)NULL)->unIndentLinePattern)},
 	{	RT_CHAR_ARRAY, "increaseIndentPattern", offsetof(GRAMMAR, increaseIndentPattern), sizeof(((GRAMMAR*)NULL)->increaseIndentPattern)},
@@ -352,7 +354,7 @@ static void grammar_createPatternFromKeywords(GRAMMAR_PATTERN* pGrammarPattern) 
 /*
  * Util to compile a regular expression. 
  */
-RE_PATTERN* grammar_compile(GRAMMAR_PATTERN* pGrammarPattern) {
+RE_PATTERN* grammar_compile(GRAMMAR* pGrammar, GRAMMAR_PATTERN* pGrammarPattern) {
 	if (!pGrammarPattern->match) {
 		if (pGrammarPattern->keywords) {
 			grammar_createPatternFromKeywords(pGrammarPattern);
@@ -379,6 +381,7 @@ RE_PATTERN* grammar_compile(GRAMMAR_PATTERN* pGrammarPattern) {
 		pGrammarPattern->rePattern = NULL;
 		free(pGrammarPattern->rePatternBuf);
 		pGrammarPattern->rePatternBuf = NULL;
+		error_displayAlertDialog("Wrong regular expression %s in grammar", pGrammarPattern->rePattern, pGrammar->scopeName);
 		return NULL;
 	}
 	return pGrammarPattern->rePattern;
@@ -431,7 +434,7 @@ static LEXICAL_STATE grammar_processChildPatterns(GRAMMAR* pGrammar, LEXICAL_STA
 		if (pChildPattern->begin[0] && pChildPattern->end[0]) {
 			pChildPattern->spansLines = TRUE;
 		} else {
-			RE_PATTERN* pREPattern = grammar_compile(pChildPattern);
+			RE_PATTERN* pREPattern = grammar_compile(pGrammar, pChildPattern);
 			if (pREPattern) {
 				pChildPattern->wordmatch = regex_matchWordStart(pREPattern);
 			}
@@ -459,7 +462,7 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 			grammar_addCharTransition(pGrammar, pPattern->begin[0], state);
 		}
 		else {
-			RE_PATTERN* pREPattern = grammar_compile(pPattern);
+			RE_PATTERN* pREPattern = grammar_compile(pGrammar, pPattern);
 			if (pREPattern) {
 				for (int i = 0; i < 256; i++) {
 					if (regex_matchesFirstChar(pREPattern, (unsigned char)i)) {
@@ -831,4 +834,14 @@ int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescrip
 	return nRet;
 }
 
-
+/*
+ * Invoked, when the type of the current active editor changes and will define the identifier
+ * according to the current documents grammar.
+ */
+void grammar_documentTypeChanged(GRAMMAR* pGrammar) {
+	if (pGrammar && pGrammar->u2lset[0]) {
+		regex_compileCharacterClasses(pGrammar->u2lset);
+	} else {
+		regex_compileCharacterClasses("a-zäöü=A-ZÄÖÜß_0-9");
+	}
+}

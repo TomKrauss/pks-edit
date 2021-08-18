@@ -281,7 +281,7 @@ int string_countCharacters(char* s, char c) {
  * TODO: add a context sensitive variant of this.
  */
 BOOL char_isIdentifier(unsigned char c) {
-	return  (isalnum(c) || (char)c == 'ö' || (char)c == 'ä' || (char)c == 'ü' || (char)c== 'Ü' || (char)c == 'Ö' || (char)c == 'Ä' || (char)c == 'ß' || c == '_');
+	return  isident(c);
 }
 
 /*
