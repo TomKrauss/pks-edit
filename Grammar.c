@@ -618,6 +618,8 @@ static int grammar_matchPattern(GRAMMAR* pGrammar, GRAMMAR_PATTERN* pPattern, LE
 			}
 		}
 	} else if (strncmp(&pszBuf[i], pPattern->begin, strlen(pPattern->begin)) == 0) {
+		*pElementCount = grammar_addDelta(currentState, (int)(i - *pStateOffset), *pElementCount, pResult);
+		*pStateOffset = i;
 		return 1;
 	}
 	return 0;
@@ -705,9 +707,11 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 						if (!pPattern->rePattern) {
 							pRootPattern = pPattern;
 							pszEnd = pPattern->end;
-							nextState = state;
+							nextState = currentState = state;
+							i = nStateOffset + strlen(pPattern->begin);
+						} else {
+							i = nStateOffset;
 						}
-						i = nStateOffset;
 						matched = 1;
 						break;
 					}

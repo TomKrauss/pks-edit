@@ -289,7 +289,7 @@ BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename) {
 			// Select most explicit file name pattern - e.g. prefer *.c over *.* and prefer *.cpp over *.cpp;*.h
 			nMatchRanking = string_countCharacters(llp->ll_match, '*');
 			if (nMatchRanking < nRanking) {
-				nMatchRanking = nRanking;
+				nRanking = nMatchRanking;
 				pFound = llp;
 			}
 		}

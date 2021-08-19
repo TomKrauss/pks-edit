@@ -1,0 +1,71 @@
+{
+  "grammars": [
+    {
+      "scopeName": "fitnesse",
+      "patterns": [
+        {
+          "begin": "'''",
+          "end": "'''",
+          "style": "bold",
+          "name": "comment.heavy"
+        },
+        {
+          "begin": "''",
+          "end": "''",
+          "style": "italic",
+          "name": "comment.light"
+        },
+        {
+          "begin": "!-",
+          "end": "-!",
+          "style": "code",
+          "name": "fitnesse.directive"
+        },
+        {
+          "match": "<[a-zA-Z]+[?=]>",
+          "style": "constant",
+          "name": "fitnesse.assignment"
+        },
+        {
+          "match": "\\$\\{[a-z0-9A-Z_.-]+\\}",
+          "style": "literal",
+          "name": "fitnesse.variable"
+        },
+        {
+          "match": "^![a-z0-9A-Z]+",
+          "style": "annotation",
+          "name": "fitnesse.bang.command"
+        },
+        {
+          "match": "\\|",
+          "style": "operator",
+          "name": "fitnesse.table"
+        },
+        {
+          "match": "@[a-z]+",
+          "style": "control",
+          "name": "batch.noecho"
+        },
+        {
+          "keywords": [
+            "set values",
+            "test values",
+            "refresh",
+            "press",
+            "run",
+            "component",
+            "start use case",
+            "test pc activity",
+            "test PCActivity",
+            "check",
+            "null",
+            "blank",
+            "error"
+          ],
+          "style": "keyword",
+          "name": "keyword.fitnesse"
+        }
+      ]
+    }
+  ]
+}

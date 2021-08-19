@@ -1,0 +1,79 @@
+{
+  "grammars": [
+    {
+      "scopeName": "makefile",
+      "navigation": [
+        {
+          "name": "include-link",
+          "pattern": "^include\\s+([a-z0-9_.]+)",
+          "filenameCapture": 1
+        }
+      ],
+      "patterns": [
+        {
+          "match": "#.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "^[.a-zA-Z0-9]+\\s*:",
+          "style": "string",
+          "name": "makefile.target"
+        },
+        {
+          "match": "\\$\\([a-z0-9A-Z_.-]+\\)",
+          "style": "literal",
+          "name": "makefile.variable"
+        },
+        {
+          "match": "[%@$<>]+",
+          "style": "operator",
+          "name": "makefile.references"
+        },
+        {
+          "keywords": [
+            "AR",
+            "ARFLAGS",
+            "AS",
+            "ASFLAGS",
+            "CFLAGS",
+            "CC",
+            "CO",
+            "COFLAGS",
+            "CPPFLAGS",
+            "FC",
+            "FFLAGS",
+            "GET",
+            "GFLAGS",
+            "LDFLAGS",
+            "LDLIBS",
+            "MAKEINFO",
+            "LEX",
+            "LINT",
+            "PC",
+            "PFLAGS",
+            "RM",
+            "RFLAGS",
+            "TANGLE",
+            "TAGS",
+            "WEAVE",
+            "YACC",
+            "YFLAGS"
+          ],
+          "style": "constant",
+          "name": "keyword.implicit.variables"
+        },
+        {
+          "keywords": [
+            "export",
+            "include",
+            "override",
+            "private"
+          ],
+          "style": "keyword",
+          "name": "keyword.makefile"
+        }
+      ]
+    }
+  ]
+}
