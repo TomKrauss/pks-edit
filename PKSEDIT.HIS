@@ -1,4 +1,7 @@
 [files]
+"C:\source\pksedit\BracketMatching.c", line 54: 0x0 0x1 -1 -1 -1 -1 27 27 1391 505
+"C:\source\pksedit\DesktopIcons.c", line 12: 0x0 0x1 -1 -1 -8 -31 60 18 1439 667
+"C:\temp\JdbcSessionBig.java", line 1179359: 0x0 0x1 -1 -1 -1 -1 120 52 1484 530
 [find]
 !d
 !e
@@ -100,9 +103,9 @@
 !C:\source\pksedit\macros\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\ui\scan\*.*
 !C:\Users\tom\Desktop\*.*
-!C:\source\pksedit\*.*
 !C:\*.*
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\FitNesse\*.*
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\SuiteUseCases\Test2WorkflowBookFlight\*.*
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\*.*
+!C:\source\pksedit\*.*
 !C:\temp\*.*

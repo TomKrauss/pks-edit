@@ -580,7 +580,7 @@ static int edit_autoFormat(WINFO *wp)
 			/* start of next word after word position defined:
 			   -> actual line too long 
 			 */
-			lp->lflg |= LNREPLACED;
+			ln_markModified(lp);
 			if ((lp = ln_break(fp,lp,wstart)) == 0L ||
 			    (lp = ln_insertIndent(wp,lp,indent,&col)) == 0)
 				break;
@@ -595,7 +595,7 @@ static int edit_autoFormat(WINFO *wp)
 			}
 			ln++;
 
-			lp->lflg |= LNREPLACED;
+			ln_markModified(lp);
 			numberOfLinesHasChanged++;
 	D_EBUG("!WRAPPED");
 			continue;
@@ -673,7 +673,7 @@ static int edit_autoFormat(WINFO *wp)
 				}
 				render_repaintLine(fp, lp);
 				memmove(lp->lbuf,destbuf,desti);
-				lp->lflg |= LNREPLACED;
+				ln_markModified(lp);
 				modified = 1;
 
 				lpnext = lp->next;
@@ -694,7 +694,7 @@ static int edit_autoFormat(WINFO *wp)
 					if ((lpnext = ln_modify(fp, lpnext, wstart, indent)) == 0) {
 						break;
 					}
-					lpnext->lflg |= LNREPLACED;
+					ln_markModified(lp);
 					lp = lpnext->prev;
 	D_EBUG("!JOINED WORDS");
 				}
@@ -713,7 +713,7 @@ static int edit_autoFormat(WINFO *wp)
 	if (lp1->prev)
 		lp1 = lp1->prev;
 
-	ln_removeFlag(lp1,lp,LNREPLACED);
+	ln_removeFlag(lp1,lp,LNMODIFIED);
 
 	if (caretLine >= fp->nlines) {
 		caretLine = fp->nlines-1;

@@ -414,7 +414,7 @@ LINE *ln_break(FTABLE *fp, LINE *linep, int col) {
 	if ((nlp = ln_settmp(fp,(LINE *) 0L,&lp)) != 0L) {
 		linep = lp;
 		nlp->len = len;
-		nlp->lflg = linep->lflg & (LNNOTERM|LNNOCR);
+		nlp->lflg = linep->lflg & (LNNOTERM|LNNOCR) | LNMODIFIED;
 		len++;
 		memmove(nlp->lbuf,&linep->lbuf[col],len);
 		MODEL_CHANGE change = {LINE_SPLIT, fp};
@@ -665,6 +665,14 @@ LINE *ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold)
 	return lptmp;
 }
 
+/*
+ * Mark a line as being modified. 
+ */
+void ln_markModified(LINE* lp) {
+	lp->lflg |= LNMODIFIED;
+	lp->lflg &= ~LNSAVED;
+}
+
 /*---------------------------------*/
 /* ln_modify()					*/
 /*---------------------------------*/
@@ -694,6 +702,7 @@ LINE *ln_modify(FTABLE *fp, LINE *lp, int col1, int col2) {
 		linetoolong();
 		return 0;
 	}
+	ln_markModified(lp);
 	lp->len = lplen;
 
 	s = lp->lbuf;

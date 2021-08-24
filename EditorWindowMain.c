@@ -67,7 +67,10 @@ extern void menu_switchMenusToContext(char *pszContext);
 
 static WINDOWPLACEMENT	_winstates[6];
 
-static int lineNumberWindowWidth = 50;
+#define  LINE_ANNOTATION_WIDTH			6
+#define  LINE_ANNOATION_PADDING			2
+
+static int lineNumberWindowWidth = 50 + LINE_ANNOTATION_WIDTH + (2*LINE_ANNOATION_PADDING);
 static int rulerWindowHeight = 20;
 
 /*-----------------------------------------------------------
@@ -1484,6 +1487,8 @@ static void draw_lineNumbers(WINFO* wp) {
 	hdc = BeginPaint(wp->lineNumbers_handle, &ps);
 	GetClientRect(wp->lineNumbers_handle, &rect);
 	HBRUSH bgBrush = CreateSolidBrush(pTheme->th_rulerBackgroundColor);
+	HBRUSH hAnnotationBrush = CreateSolidBrush(pTheme->th_changedLineColor);
+	HBRUSH hSavedBrush = CreateSolidBrush(pTheme->th_savedChangedLineColor);
 	FillRect(hdc, &ps.rcPaint, bgBrush);
 	DeleteObject(bgBrush);
 
@@ -1495,8 +1500,10 @@ static void draw_lineNumbers(WINFO* wp) {
 	if (maxln > fp->nlines-1) {
 		maxln = fp->nlines-1;
 	}
-	for (yPos = rect.top, row = wp->minln; row <= maxln && yPos < rect.top+rect.bottom; row++, yPos += wp->cheight) {
+	LINE* lp = ww_getMinLine(wp, wp->minln);
+	for (yPos = rect.top, row = wp->minln; lp && row <= maxln && yPos < rect.top+rect.bottom; row++, yPos += wp->cheight) {
 		if (yPos + wp->cheight < ps.rcPaint.top) {
+			lp = lp->next;
 			continue;
 		}
 		if (yPos > ps.rcPaint.bottom+wp->cheight) {
@@ -1505,11 +1512,20 @@ static void draw_lineNumbers(WINFO* wp) {
 		sprintf(text, "%d:", row + 1);
 		RECT textRect;
 		textRect.left = rect.left + padding;
-		textRect.right = rect.right - padding;
+		textRect.right = rect.right - LINE_ANNOTATION_WIDTH - (2 * LINE_ANNOATION_PADDING);
 		textRect.top = yPos;
 		textRect.bottom = yPos + wp->cheight;
 		textLen = strlen(text);
 		DrawText(hdc, text, (int)textLen, &textRect, DT_RIGHT|DT_END_ELLIPSIS);
+		if (lp->lflg & LNMODIFIED) {
+			RECT r;
+			r.left = rect.right - LINE_ANNOTATION_WIDTH - LINE_ANNOATION_PADDING;
+			r.right = rect.right - 2;
+			r.top = yPos;
+			r.bottom = min(ps.rcPaint.bottom, yPos + wp->cheight);
+			FillRect(hdc, &r, (lp->lflg & LNSAVED) ? hSavedBrush : hAnnotationBrush);
+		}
+		lp = lp->next;
 	}
 	HPEN markerPen = CreatePen(PS_SOLID, 1, pTheme->th_rulerBorderColor);
 	HPEN hPenOld = SelectObject(hdc, markerPen);
@@ -1517,6 +1533,8 @@ static void draw_lineNumbers(WINFO* wp) {
 	LineTo(hdc, rect.right-1, rect.bottom);
 	SelectObject(hdc, hPenOld);
 	DeleteObject(markerPen);
+	DeleteObject(hAnnotationBrush);
+	DeleteObject(hSavedBrush);
 	EndPaint(wp->lineNumbers_handle, &ps);
 }
 

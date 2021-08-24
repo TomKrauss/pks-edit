@@ -203,6 +203,11 @@ extern void render_repaintFromLineTo(FTABLE* wp, long min, long max);
  */
 extern void render_repaintAllForFile(FTABLE* fp);
 
+/*
+ * Repaint the line numbers in the given view.
+ */
+extern int render_repaintLineNumbers(WINFO* wp, void* pUnused);
+
 /*--------------------------------------------------------------------------
  * render_repaintCurrentFile()
  * Send a repaint to the current file.
@@ -406,6 +411,11 @@ extern int ww_close(WINFO* wp);
  * If no selection exists, return 0 and return -1 in pFirstIndex and pLastIndex.
  */
 extern int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex);
+
+/*
+ * Returns the LINE pointer for a line with a given index.
+ */
+LINE* ww_getMinLine(WINFO* wp, int idx);
 
 /*--------------------------------------------------------------------------
  * ww_getRightMargin()

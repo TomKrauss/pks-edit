@@ -271,9 +271,9 @@ static void redraw_indirect(HDC hdc, WINFO *wp, int y, LINE *lp)
 }
 
 /*
- * Returns the LINE pointer of the first line visible on the screen.
+ * Returns the LINE pointer for a line with a given index.
  */
-static LINE* ww_getMinLine(WINFO* wp, int idx) {
+LINE* ww_getMinLine(WINFO* wp, int idx) {
 	if (idx == 0) {
 		FTABLE* fp = wp->fp;
 		wp->lpMinln = fp->firstl;
@@ -332,7 +332,7 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 		lp = lp->next, ln++, y = newy) {
 		newy = y + wp->cheight;
 		if (newy > ps.rcPaint.top && 			/* if in redraw area */
-		    (flg || (lp->lflg & LNREPLACED))) {	/* if print_singleLineOfText is modified || we redraw all */
+		    (flg || (lp->lflg & LNMODIFIED))) {	/* if print_singleLineOfText is modified || we redraw all */
 			HBRUSH hBrush = hBrushBg;
 			if (lp->lflg & LNXMARKED) {
 				hBrush = hBrushMarkedLines;
@@ -457,6 +457,16 @@ static int render_repaintForWindow(WINFO* wp, void* pUnused) {
  */
 EXPORT void render_repaintAllForFile(FTABLE *fp) {
 	ft_forAllViews(fp, render_repaintForWindow, NULL);
+}
+
+/*
+ * Repaint the line numbers in the given view. 
+ */
+int render_repaintLineNumbers(WINFO* wp, void* pUnused) {
+	if (wp->lineNumbers_handle) {
+		InvalidateRect(wp->lineNumbers_handle, NULL, 0);
+	}
+	return 1;
 }
 
 /*

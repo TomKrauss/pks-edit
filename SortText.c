@@ -438,7 +438,7 @@ static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast,
 			nl              = 1;
 			if (sortflags & SO_CLUSTERLINES) {
 				for (;;) {
-					lpfirst->lflg |= LNREPLACED;
+					ln_markModified(lpfirst);
 					if (lpfirst == lplast)
 						break;
 					lpnext = lpfirst->next;
@@ -448,7 +448,7 @@ static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast,
 					nl++;
 				}
 			} else 
-				lpfirst->lflg |= LNREPLACED;
+				ln_markModified(lpfirst);
 			_rectab[nrec++].nl = nl;
 		}
 		if (lpfirst == lplast)
@@ -465,7 +465,7 @@ static int sort_groupUnselectedLines(LINE *lpfirst, LINE *lplast,int n)
 {	int i;
 
 	for (i = n; ;lpfirst = lpfirst->next) {
-		if ((lpfirst->lflg & LNREPLACED) == 0) {
+		if ((lpfirst->lflg & LNMODIFIED) == 0) {
 			_rectab[i].lp = lpfirst;
 			_rectab[i].nl = 1;
 			i++;
@@ -588,15 +588,14 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 	if ((n  = sort_createRecordsFromLines(lpfirst,lplast,pattern,_sortflags,_rectab)) != 0) {
 		n2 = sort_groupUnselectedLines(lpfirst,lplast,n);
 		rp.lpfirst = lpfirst->prev;
-		rp.lplast  = lplast ->next;
-		rp.nrec    = n+n2;
+		rp.lplast = lplast ->next;
+		rp.nrec = n+n2;
 		progress_startMonitor(IDS_ABRTSORT);
 		undo_cash(fp,lpfirst,lplast);
 		if (sort_quickSortList(_rectab,n)) {
 			caret_placeCursorInCurrentFile(wp,0L,0L);
 			ln_order(fp,_rectab,&rp);
 		}
-		ln_removeFlag(fp->firstl,fp->lastl,LNREPLACED);
 		progress_closeMonitor(0);
 		render_repaintAllForFile(fp);
 		caret_placeCursorInCurrentFile(wp,l1,0L);

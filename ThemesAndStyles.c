@@ -37,6 +37,8 @@
 #define DEFAULT_BACKGROUND_COLOR RGB(250, 250, 250)
 #define CARET_LINE_COLOR RGB(235, 255, 235)
 #define MARKED_LINE_COLOR RGB(200, 200, 255)
+#define CHANGED_LINE_COLOR RGB(255, 255, 80)
+#define SAVED_CHANGED_LINE_COLOR RGB(120, 255, 120)
 #define RULER_BORDER_COLOR RGB(220,220,220)
 #define RULER_FOREROUND_COLOR RGB(140,140,140)
 #define RULER_BACKGROUND_COLOR RGB(248,248,248)
@@ -152,6 +154,8 @@ static THEME_DATA defaultTheme = {
 	NULL,
 	"default",
 	DEFAULT_BACKGROUND_COLOR,
+	CHANGED_LINE_COLOR,
+	SAVED_CHANGED_LINE_COLOR,
 	CARET_LINE_COLOR,
 	MARKED_LINE_COLOR,
 	RULER_BORDER_COLOR,
@@ -176,6 +180,8 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(THEME_DATA, th_name), sizeof(((THEME_DATA*)NULL)->th_name)},
 	{	RT_COLOR, "backgroundColor", offsetof(THEME_DATA, th_defaultBackgroundColor)},
 	{	RT_COLOR, "caretLineColor", offsetof(THEME_DATA, th_caretLineColor)},
+	{	RT_COLOR, "changedLineColor", offsetof(THEME_DATA, th_changedLineColor)},
+	{	RT_COLOR, "savedChangedLineColor", offsetof(THEME_DATA, th_savedChangedLineColor)},
 	{	RT_COLOR, "markedLineColor", offsetof(THEME_DATA, th_markedLineColor)},
 	{	RT_COLOR, "rulerBorderColor", offsetof(THEME_DATA, th_rulerBorderColor)},
 	{	RT_COLOR, "rulerForegroundColor", offsetof(THEME_DATA, th_rulerForegroundColor)},

@@ -287,7 +287,15 @@ BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename) {
 	for (llp = config.dc_types, lp = 0; llp != 0 && lp == 0; llp = llp->ll_next) {
 		if (string_matchFilename(fname,llp->ll_match)) {
 			// Select most explicit file name pattern - e.g. prefer *.c over *.* and prefer *.cpp over *.cpp;*.h
-			nMatchRanking = string_countCharacters(llp->ll_match, '*');
+			if (strstr(llp->ll_match, "*.*")) {
+				nMatchRanking = 3;
+			} else if (strstr(llp->ll_match, "*")) {
+				nMatchRanking = 2;
+			} else if (strstr(llp->ll_match, "?")) {
+				nMatchRanking = 1;
+			} else {
+				nMatchRanking = 0;
+			}
 			if (nMatchRanking < nRanking) {
 				nRanking = nMatchRanking;
 				pFound = llp;

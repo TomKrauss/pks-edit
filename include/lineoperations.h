@@ -527,6 +527,11 @@ extern int ln_countLeadingSpaces(LINE* lp);
  */
 extern int ln_lineIsEmpty(LINE* lp);
 
+/*
+ * Mark a line as being modified.
+ */
+extern void ln_markModified(LINE* lp);
+
 /*--------------------------------------------------------------------------
  * undo_initializeManager()
  * Initialize the undo manager for text document.
@@ -699,12 +704,13 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 
 /*---------- LINEFLAGS ---------*/
 
-#define	LNDIFFMARK			0x02 	/* Mark for last EdFilesCompare action */
-#define	LNREPLACED			0x04 	/* something in line has been replaced */
-#define	LNNOCR				0x10		/* mark not chapter lines */
-#define	LNINDIRECT			0x20		/* indirect flag */
-#define	LNNOTERM			0x40		/* unterminated line */
-#define	LNXMARKED			0x80		/* marked for EdCharDelete ...	*/
+#define	LNDIFFMARK			0x02 	// Mark for last EdFilesCompare action
+#define	LNMODIFIED			0x04 	// something in line has been modified
+#define	LNNOCR				0x10	// mark "not chapter lines" 
+#define	LNINDIRECT			0x20	// indirect flag 
+#define	LNNOTERM			0x40	// unterminated line 
+#define	LNXMARKED			0x80	// marked for EdCharDelete ...	
+#define	LNSAVED				0x01 	// the line has been saved
 
 #define LINE_HAS_LINE_END(lp)		((lp->lflg & LNNOTERM) == 0)
 #define LINE_HAS_CR(lp)				((lp->lflg & LNNOCR) == 0)

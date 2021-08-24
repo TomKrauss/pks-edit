@@ -740,7 +740,7 @@ int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *linp) {
 		ww_close(wp);
 		return 0;
 	}
-
+	ln_removeFlag(fp->firstl, fp->lastl, LNMODIFIED);
 	ft_setFlags(fp, fp->flags & ~F_CHANGEMARK);
 
 	/*

@@ -7,6 +7,8 @@
 #### New
 - PKS Edit finally supports code completion. Press ESC to open the suggestion window, which will display code templates
   configured for the current grammar and/or cross references defined as tags.
+- The line numbers area displays now change annotations: changed lines are marked with a yellow annotation, changed lines,
+  which have been saved are marked in green.
 
 #### Changed
 - Character classes (for identifiers and mappings from lower case to upper case) are now defined in the grammar, which allows for language

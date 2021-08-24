@@ -23,6 +23,7 @@
 #include "editorconfiguration.h"
 #include "stringutil.h"
 #include "linkedlist.h"
+#include "winfo.h"
 
 #include "pksedit.h"
 
@@ -456,7 +457,6 @@ static char* ft_getBasenameOf(FTABLE* fp) {
 	return string_getBaseFilename(ft_visiblename(fp));
 }
 
-
 /*--------------------------------------*/
 /* ft_writefileMode() 					*/
 /*--------------------------------------*/
@@ -558,6 +558,8 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 		goto wfail1;
 	}
 	ret = 0;
+	ln_changeFlag(fp->firstl, fp->lastl, LNMODIFIED, LNSAVED, 1);
+	ft_forAllViews(fp, render_repaintLineNumbers, NULL);
 	ft_setFlags(fp, fp->flags & ~(F_CHANGEMARK | F_WFORCED));
 	ft_settime(&fp->ti_saved);
 

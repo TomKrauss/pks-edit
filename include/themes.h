@@ -20,6 +20,8 @@ typedef struct tagTHEME_DATA {
 	struct tagTHEME_DATA* th_next;
 	unsigned char th_name[32];
 	COLORREF th_defaultBackgroundColor;
+	COLORREF th_changedLineColor;
+	COLORREF th_savedChangedLineColor;
 	COLORREF th_caretLineColor;
 	COLORREF th_markedLineColor;
 	COLORREF th_rulerBorderColor;

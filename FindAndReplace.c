@@ -413,15 +413,15 @@ long ft_countlinesStartingFromDirection(FTABLE* fp, long start, int dir) {
 	lp = ln_goto(fp,start);
 	if (dir > 0) {
 		while (lp->next) {
-			if (lp->lflg & LNREPLACED) {
-				nl++, lp->lflg &= ~LNREPLACED;
+			if (lp->lflg & LNMODIFIED) {
+				nl++, lp->lflg &= ~LNMODIFIED;
 			}
 			lp = lp->next;
 		}
 	} else {
 		while (lp) {
-			if (lp->lflg & LNREPLACED) {
-				nl++, lp->lflg &= ~LNREPLACED;
+			if (lp->lflg & LNMODIFIED) {
+				nl++, lp->lflg &= ~LNMODIFIED;
 			}
 			lp = lp->prev;
 		}
@@ -466,7 +466,6 @@ static LINE *edit_expandTabsInLineWithSpaces(WINFO *wp, LINE *lp,long *nt)
 		*nt += t;
 		if ((lp = ln_modify(wp->fp,lp,lp->len,size)) == 0L)
 			return 0;
-		lp->lflg |= LNREPLACED;
 		memmove(lp->lbuf,_linebuf,size);
 	}
 	return lp;
@@ -519,7 +518,6 @@ static LINE *edit_compactLineSpacingWithTabs(WINFO *wp, LINE *lp,long *nt)
 			if (n2 > 0) {
 				if ((lp = ln_modify(wp->fp,lp,foundpos,start+ntabs)) == 0L) 
 					return 0;
-				lp->lflg |= LNREPLACED;
 				memset(&lp->lbuf[start],'\t',ntabs);
 				(*nt) += ntabs;
 				i -= n2;
@@ -606,7 +604,7 @@ static long breaklines(FTABLE *fp,int all, long start,long end)
 	lc   = ln_goto(fp,start);
 	term = fp->documentDescriptor->nl;
 	while (lc && start <= end) {
-		if (all || (lc->lflg & LNREPLACED)) {
+		if (all || (lc->lflg & LNMODIFIED)) {
 rescan:
 			for (i = 0; i < lc->len; i++)
 				if (lc->lbuf[i] == term) {
@@ -776,7 +774,7 @@ int EdReplaceText(int scope, int action, int flags)
 		 */
 		if (marked && action == REP_MARK) {
 			lp->lflg &= ~LNXMARKED;
-			lp->lflg |= LNREPLACED;
+			lp->lflg |= LNMODIFIED;
 		}
 
 nextline:
@@ -832,7 +830,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 
 		delta = (int)newlen;
 advance1:	rp++;
-		lp->lflg |= LNREPLACED;
+		lp->lflg |= LNMODIFIED;
 		if (scope == RNG_ONCE)
 			break;
 
