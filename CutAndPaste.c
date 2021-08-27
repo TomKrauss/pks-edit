@@ -75,18 +75,18 @@ EXPORT int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag) {
 	}
 	if (mps && mpe) {
 		if (removeLineSelectionFlag) {
-			ln_removeFlag(mps->lm, mpe->lm, (LNXMARKED | LNDIFFMARK));
-			if (mps->lm == mpe->lm) {
-				if (mps->lc != mpe->lc) {
-					render_repaintLine(fp, mps->lm);
+			ln_removeFlag(mps->m_linePointer, mpe->m_linePointer, (LNXMARKED | LNDIFFMARK));
+			if (mps->m_linePointer == mpe->m_linePointer) {
+				if (mps->m_column != mpe->m_column) {
+					render_repaintLine(fp, mps->m_linePointer);
 				}
 			} else {
-				render_repaintLineRange(fp, mps->lm, mpe->lm);
+				render_repaintLineRange(fp, mps->m_linePointer, mpe->m_linePointer);
 			}
 		}
 	} else {
 		if (removeLineSelectionFlag) {
-			LINE* lp = mps ? mps->lm : (mpe ? mpe->lm : wp->caret.linePointer);
+			LINE* lp = mps ? mps->m_linePointer : (mpe ? mpe->m_linePointer : wp->caret.linePointer);
 			ln_removeFlag(lp, lp, (LNXMARKED|LNDIFFMARK));
 			render_repaintLine(fp, lp);
 		}
@@ -134,7 +134,7 @@ EXPORT int bl_pasteBlock(PASTE *buf, int colflg, int offset, int move) {
 		render_repaintFromLineTo(fp,oln,delta);
 		caret_placeCursorInCurrentFile(wp, ln,col);		
 	} else {
-		wp->blstart->lc++; /* get block marked afterwards (s. cpy_mv) */
+		wp->blstart->m_column++; /* get block marked afterwards (s. cpy_mv) */
 		caret_placeCursorInCurrentFile(wp, ln,col);
 		render_repaintAllForFile(fp);
 		EdSyncSelectionWithCaret(MARK_END);
@@ -323,7 +323,7 @@ EXPORT int CutBlock(MARK *ms, MARK *me, int flg, PASTE *pp)
 		pp->pln = 0;
 	}
 
-	if (bl_cut(&_p,ms->lm,me->lm,ms->lc,me->lc,0,colflg)) {
+	if (bl_cut(&_p,ms->m_linePointer,me->m_linePointer,ms->m_column,me->m_column,0,colflg)) {
 
 		if (!(flg & CUT_APPND))
 			bl_free(pp);
@@ -453,8 +453,8 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 	bstart = wp->blstart;
 	bend   = wp->blend;
 
-	ls = bstart->lm, cs = bstart->lc;
-	le = bend->lm,   ce = bend->lc;
+	ls = bstart->m_linePointer, cs = bstart->m_column;
+	le = bend->m_linePointer,   ce = bend->m_column;
 	if (move_nocolblk) {			/* valid move ??	*/
 		lp = ls;
 		while (!P_EQ(lp,le)) {
@@ -486,12 +486,12 @@ nodelta:		;
 			caret_placeCursorInCurrentFile(wp, (long)(wp->caret.ln+dln),(long)(offs + delta));
 			bl_hideSelection(wp, 0);
 			EdSyncSelectionWithCaret(MARK_START);
-			wp->blstart->lc--;
+			wp->blstart->m_column--;
 			upd_lines();
 		}
 		if (colflg) {
 			delta = wp->blcol2 - wp->blcol1;
-			dln	 = ln_cnt(bstart->lm,bend->lm) - 1;
+			dln	 = ln_cnt(bstart->m_linePointer,bend->m_linePointer) - 1;
 			bl_hideSelection(wp, 0);
 		} else {
 			offs = wp->caret.offset;
@@ -520,8 +520,8 @@ static int bl_placeCursorOnBlockMark(MARK *mp) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 
 	if (mp != 0) {
-		newln = ln_indexOf(wp->fp,mp->lm);
-		caret_placeCursorAndSavePosition(wp, newln,(long)mp->lc);
+		newln = ln_indexOf(wp->fp,mp->m_linePointer);
+		caret_placeCursorAndSavePosition(wp, newln,(long)mp->m_column);
 		return 1;
 	} else {
 		error_showErrorById(IDS_MSGNOBLOCKSELECTED);
@@ -568,9 +568,9 @@ EXPORT int EdBlockDelete(int bSaveTrash)
 	EdBlockFindStart();
 	bl_hideSelection(wp, 0);
 	if (bSaveTrash) {
-		ret = bl_undoIntoUnqBuffer(wp, ms.lm,me.lm,ms.lc,me.lc,1);
+		ret = bl_undoIntoUnqBuffer(wp, ms.m_linePointer,me.m_linePointer,ms.m_column,me.m_column,1);
 	} else {
-		ret = bl_delete(wp, ms.lm, me.lm, ms.lc, me.lc, 1, 0);
+		ret = bl_delete(wp, ms.m_linePointer, me.m_linePointer, ms.m_column, me.m_column, 1, 0);
 	}
 	render_repaintAllForFile(fp);
 	return ret;
@@ -605,9 +605,9 @@ static int isbefore(FTABLE *fp, MARK *mark, LINE *fpcl, int col, int markend)
 	LINE *	lp = fp->firstl;
 	LINE *	mlm;
 
-	mlm	= mark->lm;
+	mlm	= mark->m_linePointer;
 	if (P_EQ(fpcl,mlm)) {
-		return((markend) ? (col <= mark->lc) : (col >= mark->lc));
+		return((markend) ? (col <= mark->m_column) : (col >= mark->m_column));
 	}
 	while(!P_EQ(fpcl,lp)) {
 		if (P_EQ(mlm,lp)) {
@@ -631,8 +631,8 @@ static void bl_updateSelectionInLines(WINFO* wp, LINE *lpOldSelectionStart, LINE
 	long   		ln;
 
 	fp  = wp->fp;
-	lp1 = wp->blstart->lm;
-	lp2 = wp->blend  ->lm;
+	lp1 = wp->blstart->m_linePointer;
+	lp2 = wp->blend  ->m_linePointer;
 	lp = lpFirst = ln_goto(fp,wp->minln);
 	ln = ln_cnt(fp->firstl, lp1);
 	if (ln_cnt(fp->firstl, lpOldSelectionStart) < ln) {
@@ -664,11 +664,11 @@ static void bl_setColumnSelectionNoRepaint(WINFO *wp) {
 	MARK	 *mp;
 
 	if ((mp = wp->blstart) != 0L) {
-		wp->blcol1 = caret_lineOffset2screen(wp, &(CARET) { mp->lm, mp->lc });
+		wp->blcol1 = caret_lineOffset2screen(wp, &(CARET) { mp->m_linePointer, mp->m_column });
 	}
 	if ((mp = wp->blend) != 0L) {
 		wp->blcol2 = caret_lineOffset2screen(wp, &(CARET) {
-			mp->lm, mp->lc
+			mp->m_linePointer, mp->m_column
 		});
 		if (wp->blcol2 <= wp->blcol1)
 			wp->blcol2 = wp->blcol1	+ 1;
@@ -738,12 +738,12 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 	colflg = ww_isColumnSelectionMode(wp);
 
 	if (wp->blstart) {
-		lp1	  = wp->blstart->lm;
-		startx = wp->blstart->lc;
+		lp1	  = wp->blstart->m_linePointer;
+		startx = wp->blstart->m_column;
 	}
 	if (wp->blend) {
-		lp2	= wp->blend  ->lm;
-		endx = wp->blend->lc;
+		lp2	= wp->blend  ->m_linePointer;
+		endx = wp->blend->m_column;
 	}
 	wasmarked = (lp1 && lp2);
 
@@ -782,10 +782,10 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 
 	if (bSwap) {
 		if (marks) {
-			marks->mchar = MARKEND;
+			marks->m_identifier = MARKEND;
 		}
 		if (marke) {
-			marke->mchar = MARKSTART;
+			marke->m_identifier = MARKSTART;
 		}
 		
 		mark = marks;
@@ -807,21 +807,21 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 
 	if (marks && marke) {		/* mark in a line */
 		if ( colflg == 0	  && 
-			P_EQ(lp1,marks->lm) && 
-			P_EQ(lp2,marke->lm)) {
-			if (marke->lc != endx) {
-				if (marke->lc < endx)
-					startx = marke->lc;
+			P_EQ(lp1,marks->m_linePointer) && 
+			P_EQ(lp2,marke->m_linePointer)) {
+			if (marke->m_column != endx) {
+				if (marke->m_column < endx)
+					startx = marke->m_column;
 				else {
 					startx = endx;
-					endx   = marke->lc;
+					endx   = marke->m_column;
 				}
 			} else {
-				if (marks->lc < startx) {
+				if (marks->m_column < startx) {
 					endx   = startx;
-					startx = marks->lc;
+					startx = marks->m_column;
 				} else {
-					endx = marks->lc;
+					endx = marks->m_column;
 				}
 			}
 			render_repaintLinePart(fp, wp->caret.ln, caret_lineOffset2screen(wp, &(CARET) {

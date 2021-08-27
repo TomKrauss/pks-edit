@@ -1,12 +1,7 @@
 [files]
 "C:\source\pksedit\BracketMatching.c", line 54: 0x0 0x1 -1 -1 -1 -1 27 27 1391 505
-"C:\source\pksedit\DesktopIcons.c", line 12: 0x0 0x1 -1 -1 -8 -31 60 18 1439 667
-"C:\temp\JdbcSessionBig.java", line 1179359: 0x0 0x1 -1 -1 -1 -1 120 52 1484 530
+"C:\source\pksedit\DesktopIcons.c", line 20: 0x0 0x1 -1 -1 -1 -1 120 52 1484 530
 [find]
-!d
-!e
-!ed
-!edi
 !edit
 !edito
 !editor
@@ -35,6 +30,10 @@
 !brack
 !.
 !\(C\)
+!Alt+LEFT
+!goto
+!goto-
+!goto-last
 [filePatterns]
 !*.*
 !*.java
@@ -47,14 +46,11 @@
 !x
 !xx
 [open]
-!C:\source\pksedit\PKSEDIT.RC
-!C:\source\pksedit\include\pksmod.h
 !C:\source\pksedit\TextBlocks.c
 !C:\Users\tom\AppData\Local\Temp\KEYS.MAC
 !C:\source\pksedit\OpenFiles.c
 !C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\.trend
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\config\module\module.xml
-!C:\Users\tom\AppData\Local\Temp\keys.pkc
 !C:\source\pksedit\include\edtypes.h
 !C:\source\pksedit\Compare.c
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\mscaa_storefulfillment.proto
@@ -75,9 +71,12 @@
 !C:\temp\pssample.ps1
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\FitNesse\content.txt
 !C:\source\pksedit\CutAndPaste.c
-!C:\temp\JdbcSessionBig.java
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\content.txt
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\SuiteUseCases\Test2WorkflowBookFlight\content.txt
+!C:\Users\tom\AppData\Local\Temp\keys.pkc
+!C:\source\pksedit\DesktopIcons.c
+!C:\source\pksedit\main.c
+!C:\temp\JdbcSessionBig.java
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN
@@ -95,7 +94,6 @@
 !C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\src\*.*
 !C:\source\pksedit\pks_sys\*.MAC
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\collection\*.*
-!C:\source\pksedit\pks_sys\*.mac
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\config\module\*.*
 !C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\*.*
@@ -109,3 +107,4 @@
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\*.*
 !C:\source\pksedit\*.*
 !C:\temp\*.*
+!C:\source\pksedit\pks_sys\*.mac

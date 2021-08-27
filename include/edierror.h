@@ -204,10 +204,6 @@ extern void linetoolong(void);
 #define	MARK_RECALCULATE	0x100	/* recalculate start/end relationship */
 #define	MARK_NO_HIDE	0x200	/* do not hide the selection, if start mark is placed before an end mark - used internally only */
 
-/* goto textmark (lastpos) */
-#define	TM_LASTSEARCH	0
-#define	TM_LASTINSERT	1
-
 #define	SO_SKIPSEPS	 	0x1	/* skip multiple Token Seperators */
 #define	SO_CLUSTERLINES 	0x2	/* sort records rather than lines */
 #define	SO_REVERSE	 	0x4  /* reverse the order of sorting */

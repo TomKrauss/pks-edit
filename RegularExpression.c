@@ -397,7 +397,7 @@ void regex_compileCharacterClasses(const unsigned char* pLowerToUpperPattern) {
 		_asciitab[i] &= (~_C);
 	}
 
-	tlcompile(_l2uset, pLowerToUpperPattern, _asciitab);
+	tlcompile(_l2uset, (unsigned char*) pLowerToUpperPattern, _asciitab);
 
 	/* calculate the inverse tab */
 

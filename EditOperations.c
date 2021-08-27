@@ -291,8 +291,8 @@ int edit_toggleComment() {
 		if (find_setTextSelection(wp, RNG_BLOCK_LINES, &mps, &mpe) == RNG_INVALID) {
 			return 0;
 		}
-		lpFirst = mps->lm;
-		lpLast = mpe->lm;
+		lpFirst = mps->m_linePointer;
+		lpLast = mpe->m_linePointer;
 	}
 	// 3 states: -1 comment out, 1 comment in
 	int addCommentFlag = edit_isAllCommented(lpFirst, lpLast, &commentDescriptor) ? -1 : 1;
@@ -1067,8 +1067,8 @@ int EdHideLines(void)
 		return 0;
 	}
 
-	lp1 = wp->blstart->lm;
-	lp2 = wp->blend->lm;
+	lp1 = wp->blstart->m_linePointer;
+	lp2 = wp->blend->m_linePointer;
 	bl_hideSelection(wp, 0);
 
 	ln_hide(fp, lp1, lp2);

@@ -572,8 +572,8 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 	if (find_setTextSelection(wp, scope, &mps,&mpe) == RNG_INVALID) {
 		return 0;
 	}
-	lpfirst = mps->lm;
-	lplast =  mpe->lm;
+	lpfirst = mps->m_linePointer;
+	lplast =  mpe->m_linePointer;
 	bl_hideSelection(wp, 0);
 
 	sort_initializeFieldSeparators(fs_set,fs);

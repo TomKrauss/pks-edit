@@ -32,10 +32,23 @@ MARK *mark_find(WINFO *wp, int c)
 {	register MARK *mp = wp->fmark;
 
 	while(mp) {
-		if (mp->mchar == c) break;
-		mp = mp->next;
+		if (mp->m_identifier == c) break;
+		mp = mp->m_next;
 	}
 	return mp;
+}
+
+/**
+ * Destroy a mark and related resources.
+ */
+int mark_destroy(MARK* mp) {
+	if (mp) {
+		free(mp->m_fname);
+		free(mp);
+	}
+	// Return 0 so we can also be used as callback to ll_destroy - we destroy
+	// the mark itself already.
+	return 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -49,22 +62,22 @@ static void mark_free(WINFO *wp, MARK *mp)
 	if (!mp)
 		return;
 
-	for (mp1 = 0, mprun = wp->fmark, unmark = 1, lp = mp->lm; 
-		mprun != 0; mp1 = mprun, mprun = mprun->next) {
+	for (mp1 = 0, mprun = wp->fmark, unmark = 1, lp = mp->m_linePointer;
+		mprun != 0; mp1 = mprun, mprun = mprun->m_next) {
 
 		/* delete from list */
 		if (P_EQ(mprun,mp)) {
 			if (mp1)
-				mp1->next = mp->next;
+				mp1->m_next = mp->m_next;
 			else
-				wp->fmark = mp->next;
+				wp->fmark = mp->m_next;
 		} else {
 			/* is there another mark for same line ? */
-			if (P_EQ(mprun->lm,lp))
+			if (P_EQ(mprun->m_linePointer,lp))
 				unmark = 0;
 		}
 	}
-
+	free(mp->m_fname);
 	free(mp);
 }
 
@@ -112,9 +125,9 @@ MARK *mark_set(WINFO *wp, LINE *lp,int offs,int c)
 {	MARK *mp;
 
 	if ((mp = mark_alloc(wp,c)) != (MARK *) 0) {
-		mp->lm 	= lp;
-		mp->lc 	= offs;
-		mp->mchar = c;
+		mp->m_linePointer = lp;
+		mp->m_column = offs;
+		mp->m_identifier = c;
 		return mp;
 	}
 	return 0;
@@ -131,35 +144,8 @@ LINE *mark_goto(WINFO *wp, int c, long *ln, long *col) {
 	if ((mp = mark_find(wp,c)) == 0)
 		return 0;
 	FTABLE* fp = wp->fp;
-	*ln  = ln_cnt(fp->firstl,mp->lm)-1;
-	*col = (long)mp->lc;
-	return mp->lm;
+	*ln  = ln_cnt(fp->firstl,mp->m_linePointer)-1;
+	*col = (long)mp->m_column;
+	return mp->m_linePointer;
 }
 
-/*--------------------------------------------------------------------------
- * EdGotoLastPos()
- */
-int EdGotoLastPos(int type)
-{	register FTABLE *fp;
-	long ln,col;
-	WINFO* wp = ww_getCurrentEditorWindow();
-
-	if (wp == NULL) {
-		return 0;
-	}
-	fp = wp->fp;
-	/*
-		* should do different things: last insert, last search,...
-		*/
-	switch(type) {
-		case TM_LASTINSERT:
-			if ((ln = ln_indexOf(fp,fp->tln)) < 0)
-				return 0;
-			col = fp->lastmodoffs;
-			break;
-		default:
-			ln = fp->lastln;
-			col = fp->lastcol;
-	}
-	return caret_placeCursorMakeVisibleAndSaveLocation(wp, ln,col);	   
-}

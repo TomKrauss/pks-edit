@@ -16,6 +16,9 @@
 
 #ifndef MARKPOSITIONS_H
 
+ /* goto textmark (lastpos) */
+typedef enum enumMARK_TYPE_ENUM { TM_LASTSEARCH = 0, TM_LASTINSERT = 1 } MARK_TYPE_ENUM;
+
 /* should ideally extend CARET */
 typedef struct tagMARK MARK;
 
@@ -47,22 +50,33 @@ extern MARK* mark_set(WINFO* wp, LINE* lp, int offs, int c);
  */
 extern LINE* mark_goto(WINFO* fp, int c, long* ln, long* col);
 
-/*--------------------------------------------------------------------------
- * EdGotoLastPos()
+/*
+ * Destroy all file marks.
  */
-extern int EdGotoLastPos(int type);
+void fm_destroyAll();
 
 /*--------------------------------------------------------------------------
  * fm_savepos()
  * Save a filemark position, so one can later navigate back to the position.
  */
-extern int fm_savepos(char* tag);
+extern int fm_savepos(MARK_TYPE_ENUM type);
+
+/**
+ * Destroy a mark and related resources.
+ */
+extern int mark_destroy(MARK* mp);
 
 /*--------------------------------------------------------------------------
- * fm_mktagstring()
- * Create a String for a file mark.
+ * fm_gotoLastPosition()
+ * Goto to the last navigation/insertion position depending on the mark type.
  */
-extern void fm_mktagstring(char* buf, char* bufend);
+extern int fm_gotoLastPosition(MARK_TYPE_ENUM type);
+
+/*--------------------------------------------------------------------------
+ * fm_gotoMextPosition()
+ * Goto to the next navigation/insertion position depending on the mark type.
+ */
+extern int fm_gotoNextPosition(MARK_TYPE_ENUM type);
 
 #define MARKPOSITIONS_H
 

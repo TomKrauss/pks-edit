@@ -944,8 +944,8 @@ int EdPrint(long what, long p1, LPSTR fname) {
 				_printwhat.firstColumn = wp->blcol1;
 				_printwhat.lastColumn = wp->blcol2;
 			}
-			_printwhat.lp = wp->blstart->lm;
-			_printwhat.lplast = wp->blend->lm;
+			_printwhat.lp = wp->blstart->m_linePointer;
+			_printwhat.lplast = wp->blend->m_linePointer;
 		}
 		DOCINFO docinfo;
 		memset(&docinfo, 0, sizeof docinfo);

@@ -299,7 +299,7 @@ int ft_formatText(WINFO* wp, int scope, int type, int flags)
 		return 0;
 
 	fp = wp->fp;
-	startln  = ln_indexOf(fp,mps->lm);
+	startln  = ln_indexOf(fp,mps->m_linePointer);
 	_deltaln = -1;
 	_currl   = wp->caret.linePointer;
 	savecol  = caret_lineOffset2screen(wp, &wp->caret);
@@ -315,11 +315,11 @@ int ft_formatText(WINFO* wp, int scope, int type, int flags)
 	mouse_setBusyCursor();
 	memset(&_fmtfile,0,sizeof _fmtfile);
 
-	if ((ret = formatlines(mps->lm,mpe->lm,flags & FMT_TYPEMASK,
+	if ((ret = formatlines(mps->m_linePointer,mpe->m_linePointer,flags & FMT_TYPEMASK,
 					   flags & FMT_INDENT,rmargin)) > 0) {
 		paste.pln = _fmtfile.firstl;
-		if (bl_cutTextWithOptions((PASTE *)0,mps->lm,mpe->lm,0,mpe->lm->len,1))
-			ret = bl_paste(&paste,wp,mps->lm,0,0);
+		if (bl_cutTextWithOptions((PASTE *)0,mps->m_linePointer,mpe->m_linePointer,0,mpe->m_linePointer->len,1))
+			ret = bl_paste(&paste,wp,mps->m_linePointer,0,0);
 
 		ln_listfree(_fmtfile.firstl);
 	}

@@ -359,8 +359,8 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 	FTABLE* fp = wp->fp;
 	_currentSearchAndReplaceParams.options = nOptions;
 	if (bContinue && ww_hasSelection(wp)) {
-		incrementalStart = (CARET){ wp->blstart->lm, wp->blstart->lc };
-		incrementalStart.ln = ln_indexOf(fp, wp->blstart->lm);
+		incrementalStart = (CARET){ wp->blstart->m_linePointer, wp->blstart->m_column };
+		incrementalStart.ln = ln_indexOf(fp, wp->blstart->m_linePointer);
 	} else if (incrementalStart.linePointer == NULL ||(incrementalStart.ln = ln_indexOf(fp, incrementalStart.linePointer)) < 0) {
 		incrementalStart = wp->caret;
 	}
@@ -542,12 +542,12 @@ static void find_modifyTextSection(WINFO *wp, LINE *(*func)(WINFO *wp, LINE *lp,
 				  long *cntel,long *cntln,MARK *mps, MARK *mpe) {
 	LINE     *lp;
 	FTABLE* fp = wp->fp;
-	lp = mps->lm;
+	lp = mps->m_linePointer;
 
-	for (; lp != 0 && (mpe->lc != 0 || lp != mpe->lm); lp = lp->next) {
+	for (; lp != 0 && (mpe->m_column != 0 || lp != mpe->m_linePointer); lp = lp->next) {
 		if ((lp = (*func)(wp,lp,cntel)) == 0)
 			break;
-		if (find_abortProgress() || lp == mpe->lm)
+		if (find_abortProgress() || lp == mpe->m_linePointer)
 			break;
 	}
 	caret_placeCursorInCurrentFile(wp, wp->caret.ln,0L);
@@ -699,8 +699,8 @@ int EdReplaceText(int scope, int action, int flags)
 	/* force register use */
 	markend = Markend;
 
-	lp  = markstart->lm;
-	col = markstart->lc;
+	lp  = markstart->m_linePointer;
+	col = markstart->m_column;
 	startln = ln = ln_indexOf(fp,lp);
 
 	startln = ln;
@@ -744,9 +744,9 @@ int EdReplaceText(int scope, int action, int flags)
 		} else
 			maxlen = lp->len;
 
-		if (P_EQ(lp,markend->lm)) {
+		if (P_EQ(lp,markend->m_linePointer)) {
 			if (!column) {
-				maxlen = markend->lc;
+				maxlen = markend->m_column;
 				if (maxlen > lp->len)
 					maxlen = lp->len;
 			}
@@ -778,7 +778,7 @@ int EdReplaceText(int scope, int action, int flags)
 		}
 
 nextline:
-		if (P_EQ(lp,markend->lm))
+		if (P_EQ(lp,markend->m_linePointer))
 			break;
 		lp = lp->next; ln++; col = 0; continue;
 
@@ -987,14 +987,14 @@ int find_setTextSelection(WINFO *wp, int rngetype, MARK **markstart, MARK **mark
 		case RNG_BLOCK:
 			if (!ww_checkSelectionWithError(wp))
 				return RNG_INVALID;
-			lps = wp->blstart->lm;
-			lpe = wp->blend->lm;
+			lps = wp->blstart->m_linePointer;
+			lpe = wp->blend->m_linePointer;
 			if (ww_isColumnSelectionMode(wp)) {
 				ofs = wp->blcol1;
 				ofe = wp->blcol2;
 			} else {
-				ofs = wp->blstart->lc;
-				ofe = wp->blend->lc;
+				ofs = wp->blstart->m_column;
+				ofe = wp->blend->m_column;
 				if (rngetype == RNG_BLOCK_LINES && ofe == 0) {
 					lpe = lpe->prev;
 				}

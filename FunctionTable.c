@@ -25,6 +25,7 @@
 #include "findandreplace.h"
 #include "iccall.h"
 #include "winfo.h"
+#include "markpositions.h"
 
 extern int
 EdFileAbandon(), EdAbout(long ), EdBlockCopy(long ), EdBlockDelete(long ),
@@ -39,7 +40,7 @@ EdLineSplit(int), EdParaGotoBegin(long ), edit_shiftSelection(int aDirection),
 EdParaGotoEnd(long ), EdCharDelete(long ), fkey_keyModifierStateChanged(long ), codecomplete_showSuggestionWindow(long ),
 macro_executeMacroByIndex(long ), EdMacroRecord(long ), EdFindInFileList(long ), EdFind(long ),
 EdReplace(long ), EdFindAgain(long ), EdReplaceAgain(long ), EdCharControlInsert(long ),
-EdGotoLastPos(long ), EdGotoLine(long ), EdMarkSet(long ), EdMarkGoto(long ),
+EdGotoLine(long ), EdMarkSet(long ), EdMarkGoto(long ),
 EdHelp(long ), EdLinesJoin(long ), EdEditFile(long, char* filename), EdOptionSet(long ),
 EdPrint(long ), EdExitAndSave(long ), EdExit(long ), EdCloseAll(long ),
 EdSaveFile(int ), EdSelectWindow(int), EdCommandExecute(long ), EdExecute(long ),
@@ -49,7 +50,7 @@ EdDlgCursTabs(long ), EdDlgModeVals(long ), EdOptionToggle(long ), EdPasteString
 EdFindTag(long ), EdFindFileCursor(long ), EdErrorNext(long ), EdFindTagCursor(long ),
 EdFindWordCursor(long ), EdWinArrange(long ), EdWindowRegSet(long ), EdRangeShift(long ),
 EdUndo(long ), EdRedo(long), EdFilesCompare(long ), EdScrollScreen(long ), EdScrollCursor(long ),
-EdGotoPreviousTag(long ), EdAlignText(long ), ic_closeIconWindow(long ), EdBlockMouseMark(long ),
+EdAlignText(long ), ic_closeIconWindow(long ), EdBlockMouseMark(long ),
 EdMouseMarkParts(long ), EdMouseMoveText(long ), EdMouseSelectLines(long ), EdMousePositionUngrabbed(long ),
 EdAlert(long ), error_displayAlertBoxWithOptions(long ), EdPromptAssign(long ), EdFormatPrint(long ),
 EdGetSelectedText(long ), EdHideLines(long ), EdUnHideLine(long ), EdStringSubstitute(long ),
@@ -110,7 +111,7 @@ EdReplace, '!', EW_MODIFY | EW_NEEDSCURRF | EW_HASFORM | 0,
 EdFindAgain, '!', EW_NEEDSCURRF | 0,
 EdReplaceAgain, '!', EW_MODIFY | EW_NEEDSCURRF | 0,
 EdCharControlInsert, '!', EW_MODIFY | EW_NEEDSCURRF | EW_HASFORM | EW_CCASH | 0,
-EdGotoLastPos, '!', EW_NEEDSCURRF | 0,
+fm_gotoNextPosition, '!', 0,
 EdGotoLine, '!', EW_NEEDSCURRF | 0,
 EdMarkSet, '!', EW_NEEDSCURRF | EW_HASFORM | 0,
 EdMarkGoto, '!', EW_NEEDSCURRF | EW_HASFORM | 0,
@@ -150,7 +151,7 @@ EdUndo, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDO_AVAILABLE,
 EdFilesCompare, '!', EW_NEEDSCURRF | 0,
 EdScrollScreen, '!', EW_NEEDSCURRF | 0,
 EdScrollCursor, '!', EW_NEEDSCURRF | 0,
-EdGotoPreviousTag, '!', 0,
+fm_gotoLastPosition, '!', 0,
 EdAlignText, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,
 ic_closeIconWindow, '!', 0,
 EdBlockMouseMark, '!', EW_NEEDSCURRF | 0,
@@ -363,8 +364,8 @@ COMMAND _cmdseqtab[] = {
 /* 28 */ C_0FUNC, 54 /* EdMarkSet */, 0 , "set-mark", "Setzt eine Textmarke;Setze Marke",
 /* 29 */ C_0FUNC, 55 /* EdMarkGoto */, 0 , "goto-mark", "Geht zu einer Textmarke;Gehe zu Marke",
 /* 30 */ C_0FUNC, 53 /* EdGotoLine */, 0 , "goto-line", "Geht zu einer Zeile;Gehe zu Zeile",
-/* 31 */ C_1FUNC, 52 /* EdGotoLastPos */, TM_LASTSEARCH, "goto-last-pos", "Geht zur Position vor der letzten Suche;Letzte Position",
-/* 32 */ C_0FUNC, 92 /* EdGotoPreviousTag */, 0 , "goto-previous-tag", "Geht zur Position vor der letzten Verzweigung;Letzte Verzweigung",
+/* 31 */ C_1FUNC, 92 /* fm_gotoLastPosition */, TM_LASTSEARCH, "goto-last-pos", "Goto last navigation position;Last Position",
+/* 32 */ C_1FUNC, 92 /* fm_gotoLastPosition */, TM_LASTINSERT , "goto-last-insertion-pos", "Goto last position of insertion;Last Insertion Position",
 /* 33 */ C_1FUNC, 12 /* EdSyncSelectionWithCaret */, MARK_START, "mark-block-start", "Definiert den Start der Textblock-Markierung;Block Start",
 /* 34 */ C_1FUNC, 12 /* EdSyncSelectionWithCaret */, MARK_END , "mark-block-end", "Definiert das Ende der Textblock-Markierung;Block Ende",
 /* 35 */ C_1FUNC, 12 /* EdSyncSelectionWithCaret */, MARK_ALL , "mark-all", "Markiert den gesamten Text;Markiere Alles",
@@ -527,7 +528,7 @@ COMMAND _cmdseqtab[] = {
 /* 192 */ C_1FUNC, 91 /* EdScrollCursor */, MOT_CENTER, "scroll-center-page", "Scrollt den Bildschirm so, daß der Cursor in der Mitte steht;Rollen mittig",
 /* 193 */ C_1FUNC, 20 /* EdMarkedLineOp */, MLN_JOIN , "join-marked-lines", "Fügt alle markierten Zeilen zusammen;Join Zeilen",
 /* 194 */ C_0FUNC, 25 /* EdDocMacrosEdit */, 0 , "edit-local-doc-macros", "Dokumenteinstellungen;Edit erw. Dok",
-/* 195 */ C_1FUNC, 52 /* EdGotoLastPos */, TM_LASTINSERT, "goto-last-insert-pos", "Geht zur Stelle der letzten Einfügung;Zur letzten Einfügung",
+/* 195 */ C_1FUNC, 52 /* fm_gotoNextPosition */, TM_LASTINSERT, "undefined", "Geht zur Stelle der letzten Einfügung;Zur letzten Einfügung",
 /* 196 */ C_1FUNC, 60 /* EdPrint */, PRT_CLIP , "print-clipboard", "Druckt den Inhalt der Zwischenablage;Drucken Ablage",
 /* 197 */ C_1FUNC, 60 /* EdPrint */, PRT_TRASH , "print-trash", "Druckt den Inhalt des Papierkorbs;Drucken Papierkorb",
 /* 198 */ C_1FUNC, 10 /* EdBlockPaste */, PASTE_ICON|PASTE_UNDO, "paste-undo", "Fügt den Papierkorb von einem Icon ein",
@@ -573,7 +574,9 @@ COMMAND _cmdseqtab[] = {
 /* 238 */ C_1FUNC, 123 /* edit_shiftSelection */, -1, "tab-shift-left", "Nach links schieben;Selektion nach links",
 /* 239 */ C_1FUNC, 23 /* ww_zoomWindow */, 1, "zoom-increase", "Zoomfaktor ++;Zoomfaktor ++",
 /* 240 */ C_1FUNC, 23 /* ww_zoomWindow */, 0, "zoom-decrease", "Zoomfaktor --;Zoomfaktor --",
-/* 241 */ C_1FUNC, 124 /* edit_toggle_comment */, -1, "toggle-comment", "Toggle Comment;Toggle Comment"
+/* 241 */ C_1FUNC, 124 /* edit_toggle_comment */, -1, "toggle-comment", "Toggle Comment;Toggle Comment",
+/* 31 */ C_1FUNC, 52 /* fm_gotoNextPosition */, TM_LASTSEARCH, "goto-next-pos", "Goto next navigation position;Next Position",
+/* 32 */ C_1FUNC, 52 /* fm_gotoNextPosition */, TM_LASTINSERT, "goto-next-insertion-pos", "Goto next position of insertion;Next Insertion Position"
 };
 
 char _recorder[RECORDERSPACE];

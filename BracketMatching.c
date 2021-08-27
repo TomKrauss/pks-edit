@@ -494,8 +494,8 @@ EXPORT int uc_shiftRange(int scope, int dir)
 		dir = -1;
 
 	FTABLE* fp = wp->fp;
-	ln1 = ln_cnt(fp->firstl,mps->lm)-1;
-	ln2 = ln_cnt(mps->lm,mpe->lm);
+	ln1 = ln_cnt(fp->firstl,mps->m_linePointer)-1;
+	ln2 = ln_cnt(mps->m_linePointer,mpe->m_linePointer);
 	return uc_shiftLinesByIndent(wp,ln1,ln2,dir);
 }
 

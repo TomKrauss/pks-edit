@@ -26,6 +26,7 @@
 #include "functab.h"
 #include "mouseutil.h"
 #include "sym.h"
+#include "markpositions.h"
 
 extern void 			macro_reportError(void);
 extern int 			EdMacroRecord(void);
@@ -357,6 +358,7 @@ void macro_recordFunction(FTABLE *fp, int p)
 
 	if (_ccash.low < DIM(_ccash.b)-2) {
 		if (!_ccash.low) {
+			fm_savepos(TM_LASTINSERT);
 			undo_startModification(fp);
 		}
 		cp = &_ccash.b[_ccash.low++];

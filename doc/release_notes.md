@@ -9,6 +9,8 @@
   configured for the current grammar and/or cross references defined as tags.
 - The line numbers area displays now change annotations: changed lines are marked with a yellow annotation, changed lines,
   which have been saved are marked in green.
+- PKS-Edit supports now navigation to previous positions "cross open files" - aka global textmarks. One can used Alt+Left/Right
+  to navigate between "editing positions" and Alt+Shift+Left/Right to navigate between "navigation positions".
 
 #### Changed
 - Character classes (for identifiers and mappings from lower case to upper case) are now defined in the grammar, which allows for language

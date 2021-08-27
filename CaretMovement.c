@@ -31,6 +31,7 @@
 #include "xdialog.h"
 #include "pksedit.h"
 #include "codecompletion.h"
+#include "markpositions.h"
 
 extern long		_multiplier;
 
@@ -102,7 +103,7 @@ void caret_extendSelection(WINFO *wp)
 		if (_xtndMark == MARK_START && 
 			(wp->workmode & BLK_LINES)) {
 			if (wp->blend && 
-				ln_cnt(wp->caret.linePointer, wp->blend->lm) < 2) {
+				ln_cnt(wp->caret.linePointer, wp->blend->m_linePointer) < 2) {
 				_xtndMark = MARK_END;
 			}
 		}
@@ -127,14 +128,14 @@ static void BegXtndBlock(WINFO *wp)
 	bMarkLines = wp->workmode & BLK_LINES;
 	nSentinel++;
 	if ((pMark = wp->blstart) != 0 && 
-		pMark->lm == wp->caret.linePointer &&
-		(pMark->lc == wp->caret.offset ||
+		pMark->m_linePointer == wp->caret.linePointer &&
+		(pMark->m_column == wp->caret.offset ||
 		 bMarkLines)) {
 		_xtndMark = MARK_START;
 	} else if ((pMark = wp->blend) != 0 && 
-		((pMark->lm == wp->caret.linePointer &&
-		  pMark->lc == wp->caret.offset) ||
-		 (bMarkLines && wp->caret.linePointer->next == pMark->lm))) {
+		((pMark->m_linePointer == wp->caret.linePointer &&
+		  pMark->m_column == wp->caret.offset) ||
+		 (bMarkLines && wp->caret.linePointer->next == pMark->m_linePointer))) {
 		_xtndMark = MARK_END;
 	} else {
 		_xtndMark = 0;
@@ -315,16 +316,7 @@ EXPORT int caret_placeCursorInCurrentFile(WINFO* wp, long ln,long col)
  * editor window.
  */
 int caret_saveLastPosition(void) {
-	WINFO* wp = ww_getCurrentEditorWindow();
-	register FTABLE* fp;
-
-	if (wp != 0) {
-		fp = wp->fp;
-		fp->lastln = wp->caret.ln,
-		fp->lastcol = wp->caret.offset;
-		return 1;
-	}
-	return 0;
+	return fm_savepos(TM_LASTSEARCH);
 }
 
 /*--------------------------------------------------------------------------

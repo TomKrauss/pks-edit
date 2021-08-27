@@ -87,12 +87,12 @@ static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
 			error_displayAlertDialog("bad marked line");
 			return;
 		}
-		if (P_EQ(lp, wp->blstart->lm))
-			r.left = caret_lineOffset2screen(wp, &(CARET) { lp, wp->blstart->lc});
+		if (P_EQ(lp, wp->blstart->m_linePointer))
+			r.left = caret_lineOffset2screen(wp, &(CARET) { lp, wp->blstart->m_column});
 		else r.left = wp->mincol;
 
-		if (P_EQ(lp, wp->blend->lm))
-			r.right = caret_lineOffset2screen(wp, &(CARET) { lp, wp->blend->lc});
+		if (P_EQ(lp, wp->blend->m_linePointer))
+			r.right = caret_lineOffset2screen(wp, &(CARET) { lp, wp->blend->m_column});
 		else r.right = lastcol;
 	}
 	r.left -= wp->mincol; if (r.left < 0) r.left = 0;

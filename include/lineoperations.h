@@ -92,28 +92,29 @@ typedef struct pastelist {
 
 /* should ideally extend CARET */
 typedef struct tagMARK {
-	struct tagMARK* next;
-	int  			mchar;		/* ID of mark (char || BLOCKSTART,-END)	*/
-	LINE* lm;
-	int  			lc;
+	struct tagMARK* m_next;
+	int  			m_identifier;		// ID of mark (char || BLOCKSTART,-END)
+	LINE*			m_linePointer;		// the pointer to the line
+	long			m_line;				// the line number
+	int  			m_column;			// the marked column.
+	char*			m_fname;			// for global marks - the name of the file in which the mark is placed.
 } MARK;
 
 typedef struct tagWINFO WINFO;
 
 /* special marker IDs */
-#define	CNOMARK			0x00		/* release mark without freeing it */
-#define	MARKSTART		0x100		/* cut&paste - start */
-#define	MARKEND			0x101		/*	  "	   - end */
+#define	CNOMARK			0x00		// release mark without freeing it
+#define	MARKSTART		0x100		// text selection start mark
+#define	MARKEND			0x101		// text selection end mark
 
-#define	MARKSELSTART	0x102
-#define	MARKSELEND		0x103
-
-#define	MARKDOT			0x104
+#define	MARKSELSTART	0x102		// Used in "MARK Text" in find and replace
+#define	MARKSELEND		0x103		// Used in "MARK Text" in find and replace 
+#define	MARKDOT			0x104		// Temporary mark set before an operation starts (e.g. block formatting) and restored after operation
 
 /*---------------------------------
  * Undoable edit operations on one o more lines
  */
-#define	O_MODIFY			0		/* modify a line */
+#define	O_MODIFY			0		// modify a line
 #define	O_INSERT			1		/* insert a line */
 #define	O_DELETE			2		/* EdCharDelete a line */
 #define	O_MARK				3		/* mark a textblock */
@@ -197,8 +198,6 @@ typedef struct tagFTABLE {
 	struct tagFTABLE*next;
 	char 	fname[256];
 	long 	nlines;
-	long 	lastln,lastcol;	/* start of previous search .. */
-	int  	lastmodoffs;		/* last offset for last modification */
 	int  	flags;
 	int		longLinesSplit;	/* Count of all long lines, which were split during read, as the lines were too long */
 	LINE 	*tln;			/* Pointer to current edited line */	    

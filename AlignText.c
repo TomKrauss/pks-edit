@@ -59,7 +59,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 		aligncol = firstcol;
 	else
 		/* looking for the right most position */
-		for (aligncol = 0, lp = mps->lm; lp != 0; lp = lp->next) {
+		for (aligncol = 0, lp = mps->m_linePointer; lp != 0; lp = lp->next) {
 			i = caret_screen2lineOffset(wp, &(CARET){ lp, firstcol });
 			if (regex_match(pattern, &lp->lbuf[i],&lp->lbuf[lp->len], &match)) {
 				loc = (flags & AL_END) ? &match.loc1 : &match.loc2;
@@ -67,12 +67,12 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 				if (col > aligncol)
 					aligncol = col;
 			}
-			if (lp == mpe->lm || progress_cancelMonitor(1))
+			if (lp == mpe->m_linePointer || progress_cancelMonitor(1))
 				break;
 		}
 
 	ret = 1;
-	for (lp = mps->lm; lp != 0; lp = lp->next) {
+	for (lp = mps->m_linePointer; lp != 0; lp = lp->next) {
 		besti  = -1;
 		firsti = caret_screen2lineOffset(wp, &(CARET){ lp, firstcol });
 		if (flags & AL_FIX)
@@ -100,7 +100,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 			}
 			memset(&lp->lbuf[besti],filler,nchars);
 		}
-		if (lp == mpe->lm || progress_cancelMonitor(1))
+		if (lp == mpe->m_linePointer || progress_cancelMonitor(1))
 			break;
 	}
 	progress_closeMonitor(0);

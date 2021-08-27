@@ -293,13 +293,13 @@ static void initUndoCommand(FTABLE* fp, UNDO_COMMAND* pCommand) {
 	pCommand->ln = wp->caret.ln;
 	pCommand->col = wp->caret.offset;
 	if ((pMark = wp->blstart) != 0) {
-		pCommand->bls = pMark->lm;
-		pCommand->bcs = pMark->lc;
+		pCommand->bls = pMark->m_linePointer;
+		pCommand->bcs = pMark->m_column;
 	}
 	else pCommand->bls = 0;
 	if ((pMark = wp->blend) != 0) {
-		pCommand->ble = pMark->lm;
-		pCommand->bce = pMark->lc;
+		pCommand->ble = pMark->m_linePointer;
+		pCommand->bce = pMark->m_column;
 	}
 	else pCommand->ble = 0;
 	pCommand->c1 = wp->blcol1;

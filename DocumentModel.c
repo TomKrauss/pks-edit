@@ -40,12 +40,12 @@ char* _linebuf;
 /* return Blockmarks modified => true */
 static int  ln_newbl(WINFO* wp, MARK* mp) {
 	if (wp->blstart == mp) {
-		mp->lm = mp->lm->next;
-		mp->lc = 0;
+		mp->m_linePointer = mp->m_linePointer->next;
+		mp->m_column = 0;
 	}
 	else if (wp->blend == mp) {
-		mp->lm = mp->lm->prev;
-		mp->lc = mp->lm->len;
+		mp->m_linePointer = mp->m_linePointer->prev;
+		mp->m_column = mp->m_linePointer->len;
 	}
 	else return 0;
 	return 1;
@@ -63,23 +63,24 @@ static int ln_delmarks(WINFO* wp, LINE* lp)
 	MARK* mp2 = 0;
 	int  	blflg = (wp->blstart && wp->blend);
 
-	if (blflg && wp->blstart->lm == lp && wp->blend->lm == lp) {
+	if (blflg && wp->blstart->m_linePointer == lp && wp->blend->m_linePointer == lp) {
 		mark_killSelection(wp);
 		mp = wp->fmark;
 		blflg = 0;
 	}
 	while (mp) {
-		if (mp->lm == lp) {
+		if (mp->m_linePointer == lp) {
 			if (blflg && ln_newbl(wp, mp)) goto walk;
-			if (mp2) mp2->next = mp->next;
-			else wp->fmark = mp->next;
+			if (mp2) mp2->m_next = mp->m_next;
+			else wp->fmark = mp->m_next;
 			if (mp == wp->blstart) wp->blstart = 0;
 			if (mp == wp->blend)   wp->blend = 0;
-			free(mp); mp = mp->next;
+			free(mp); mp = mp->m_next;
 		}
 		else {
-		walk:			mp2 = mp;
-			mp = mp->next;
+		walk:
+			mp2 = mp;
+			mp = mp->m_next;
 		}
 	}
 	return 1;
@@ -100,17 +101,17 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 		}
 		MARK* mp = wp->fmark;
 		while (mp) {
-			if (mp->lm == pChanged->lp) {
+			if (mp->m_linePointer == pChanged->lp) {
 				/* if (mp != wp->blstart && mp != wp->blend) { */
-				if (mp->lc >= pChanged->col1) mp->lc += pChanged->len;
-				else if (mp->lc > pChanged->col2) mp->lc = pChanged->col2;
+				if (mp->m_column >= pChanged->col1) mp->m_column += pChanged->len;
+				else if (mp->m_column > pChanged->col2) mp->m_column = pChanged->col2;
 				/* } */
 			}
-			mp = mp->next;
+			mp = mp->m_next;
 		}
 		if (wp->blstart && wp->blend &&
-			wp->blstart->lm == wp->blend->lm &&
-			wp->blstart->lc >= wp->blend->lc
+			wp->blstart->m_linePointer == wp->blend->m_linePointer &&
+			wp->blstart->m_column >= wp->blend->m_column
 			)
 			bl_hideSelection(wp, 0);
 	}
@@ -119,10 +120,10 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 			MARK* mp = wp->fmark;
 
 			while (mp) {
-				if (mp->lm == pChanged->lp) {
-					mp->lm = pChanged->lpNew;
+				if (mp->m_linePointer == pChanged->lp) {
+					mp->m_linePointer = pChanged->lpNew;
 				}
-				mp = mp->next;
+				mp = mp->m_next;
 			}
 			if (wp->caret.linePointer == pChanged->lp) {
 				wp->caret.linePointer = pChanged->lpNew;
@@ -134,11 +135,11 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 		int		delta = pChanged->lp->len;
 
 		while (mp) {
-			if (mp->lm == pChanged->lpNew) {
-				mp->lm = pChanged->lp;
-				mp->lc += delta;
+			if (mp->m_linePointer == pChanged->lpNew) {
+				mp->m_linePointer = pChanged->lp;
+				mp->m_column += delta;
 			}
-			mp = mp->next;
+			mp = mp->m_next;
 		}
 	}
 	break;
@@ -148,13 +149,13 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 			LINE* lp = pChanged->lp;
 
 			while (mp) {
-				if (mp->lm == lp) {
-					if (mp->lc >= pChanged->col1) {
-						mp->lc -= pChanged->col1;
-						mp->lm = lnext;
+				if (mp->m_linePointer == lp) {
+					if (mp->m_column >= pChanged->col1) {
+						mp->m_column -= pChanged->col1;
+						mp->m_linePointer = lnext;
 					}
 				}
-				mp = mp->next;
+				mp = mp->m_next;
 			}
 		}
 		break;
@@ -688,7 +689,6 @@ LINE *ln_modify(FTABLE *fp, LINE *lp, int col1, int col2) {
 		}
 	}
 	ft_setFlags(fp, fp->flags | F_CHANGEMARK);
-	fp->lastmodoffs = col2;
 
 	/* little to do */
 	if ((len = col2 - col1) == 0) {

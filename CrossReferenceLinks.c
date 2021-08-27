@@ -496,6 +496,8 @@ static INT_PTR CALLBACK xref_lookupTagReferenceProc(HWND hDlg, UINT message, WPA
 		win_moveWindowToDefaultPosition(GetParent(hDlg));
 		SetDlgItemText(hDlg, IDD_STRING1, (char*)lParam);
 		xref_fillTagList(hDlg, (char*)lParam);
+		LRESULT idx = SendDlgItemMessage(hDlg, IDD_ICONLIST, LB_GETCURSEL, 0, 0);
+		_selectedReference = idx < 0 ? NULL : (TAG_REFERENCE*)SendDlgItemMessage(hDlg, IDD_ICONLIST, LB_GETITEMDATA, idx, 0);
 		PostMessage(hDlg, WM_NEXTDLGCTL, (WPARAM)GetDlgItem(hDlg, IDD_STRING1), TRUE);
 		return TRUE;
 
@@ -565,11 +567,11 @@ static TAG_REFERENCE* xref_selectTagsByDialog(char* pTagName) {
  * tag name are presented to the user for selection.
  */
 static BOOL _tagCancelled;
-static TAG_REFERENCE *xref_lookupTagReference(char *tagName, BOOL bExactMatch) {
+static TAG_REFERENCE *xref_lookupTagReference(char *tagName, BOOL bForceDialog) {
 	TAG* tp = _allTags.tt_map ? (TAG*)hashmap_get(_allTags.tt_map, (intptr_t) tagName) : NULL;
 	TAG_REFERENCE* pRef;
 
-	if (bExactMatch && tp && ll_size((LINKED_LIST*)tp->tagReferences) <= 1) {
+	if (!bForceDialog && tp && ll_size((LINKED_LIST*)tp->tagReferences) <= 1) {
 		return tp->tagReferences;
 	}
 	pRef = xref_selectTagsByDialog(tagName);
@@ -691,7 +693,7 @@ static int xref_navigateToHyperlink(char* urlSpec, char* pTag) {
  * are navigated right away. Otherwise a picker for the matches is 
  * always presented to the user.
  *---------------------------------*/
-static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bNavigateWithoutDialogSelection) {
+static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bForceDialog) {
 	TAG_REFERENCE * tp;
 	char     	buffer[256];
 	int			ret = 0;
@@ -712,14 +714,14 @@ static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bNavigateWithout
 	}
 	while (ttl && ret == 0 && _tagCancelled == FALSE) {
 		if (strcmp(TST_TAGFILE, ttl->type) == 0) {
-			if (xref_buildTagTable(fp->fname, ttl->fn) && (tp = xref_lookupTagReference(s, bNavigateWithoutDialogSelection)) != 0L) {
+			if (xref_buildTagTable(fp->fname, ttl->fn) && (tp = xref_lookupTagReference(s, bForceDialog)) != 0L) {
 				char* pszCompleteFile = file_searchFileInDirectory(tp->filename, _allTags.tt_directory);
 				if (pszCompleteFile) {
 					strcpy(buffer, pszCompleteFile);
 				} else {
 					strcpy(buffer, tp->filename);
 				}
-				fm_savepos(s);
+				fm_savepos(TM_LASTSEARCH);
 				xref_openFile(buffer, tp->ln, (WINDOWPLACEMENT*)0);
 				if (tp->searchCommand && ft_getCurrentDocument()) {
 					RE_PATTERN* pPattern;
@@ -774,7 +776,7 @@ void xref_getSelectedIdentifier(char* pszText, size_t nMaxChars) {
 int EdFindTag(void) {
 	char selected[80];
 	xref_getSelectedIdentifier(selected, sizeof selected);
-	return xref_navigateCrossReferenceForceDialog(selected, FALSE);
+	return xref_navigateCrossReferenceForceDialog(selected, TRUE);
 }
 
 /*
@@ -1046,7 +1048,7 @@ int EdFindTagCursor(void)
 	if (EdFindFileCursor()) {
 		return 1;
 	}
-	return xref_navigateCrossReference(xref_saveCrossReferenceWord(_linebuf, &_linebuf[LINEBUFSIZE]));
+	return xref_navigateCrossReferenceForceDialog(xref_saveCrossReferenceWord(_linebuf, &_linebuf[LINEBUFSIZE]), FALSE);
 }
 
 /*---------------------------------*/

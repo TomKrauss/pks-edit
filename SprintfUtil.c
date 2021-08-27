@@ -283,12 +283,7 @@ int mysprintf(WINFO *wp, char *d, char *format,...) {
 				if (*format == '$') {
 					format++;
 					stack[0] = 0;
-					if (*format == 't' || *format == 'h') {
-						fm_mktagstring(stack,&stack[sizeof stack]);
-						x = stack;
-					} else {
-						x = CurrentStringVal(wp->fp, &format, fname);
-					}
+					x = CurrentStringVal(wp->fp, &format, fname);
 					format++;
 				} else {
 					if (!_psenabled)

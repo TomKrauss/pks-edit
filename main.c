@@ -40,6 +40,7 @@
 #include "history.h"
 #include "actions.h"
 #include "codecompletion.h"
+#include "markpositions.h"
 
 #define	PROF_OFFSET	1
 
@@ -652,6 +653,7 @@ static void main_cleanup(void) {
 	action_destroyAll();
 	bl_destroyPasteList();
 	ic_destroyClasses();
+	fm_destroyAll();
 }
 
 /*------------------------------------------------------------
