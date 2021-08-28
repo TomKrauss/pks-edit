@@ -1328,7 +1328,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSGUNDEFWINREG      "Dieses Fensterregister ist nicht belegt"
-    IDS_MSGNOLASTTAG        "Kein letzter Verweis bekannt"
+    IDS_MSGNOLASTPOS        "Keine letzte Position zur Navigation bekannt"
     IDS_MSGOLDMACS          "!Die Makrodatei hat ein nicht unterstütztes Format"
     IDS_MSGBADMACFORMAT     "!Es wurde ein Formatfehler in einer Makrodatei festgestellt"
     IDS_MSGSAVESEQ          "Sollen die neu definerten Makros gesichert werden"

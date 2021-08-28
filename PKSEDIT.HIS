@@ -1,6 +1,5 @@
 [files]
-"C:\source\pksedit\BracketMatching.c", line 54: 0x0 0x1 -1 -1 -1 -1 27 27 1391 505
-"C:\source\pksedit\DesktopIcons.c", line 20: 0x0 0x1 -1 -1 -1 -1 120 52 1484 530
+"C:\temp\JdbcSessionBig.java", line 938: 0x0 0x1 -1 -1 -1 -1 27 27 1391 505
 [find]
 !edit
 !edito
@@ -46,7 +45,6 @@
 !x
 !xx
 [open]
-!C:\source\pksedit\TextBlocks.c
 !C:\Users\tom\AppData\Local\Temp\KEYS.MAC
 !C:\source\pksedit\OpenFiles.c
 !C:\source\trend-master-eclipse-4.20\trend\samples\traveldemo\.trend
@@ -74,9 +72,10 @@
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\content.txt
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\SuiteUseCases\Test2WorkflowBookFlight\content.txt
 !C:\Users\tom\AppData\Local\Temp\keys.pkc
-!C:\source\pksedit\DesktopIcons.c
 !C:\source\pksedit\main.c
 !C:\temp\JdbcSessionBig.java
+!C:\source\pksedit\DesktopIcons.c
+!C:\source\pksedit\BracketMatching.c
 [pathes]
 !D:\tom\desktop\*.*
 !D:\dvltools\pksedit\pks_sys\*.LIN

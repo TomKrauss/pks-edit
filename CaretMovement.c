@@ -323,7 +323,7 @@ int caret_saveLastPosition(void) {
  * wi_adjust()
  * justify to middle of screen
  */
-EXPORT static int wi_adjust(WINFO *wp, long ln,int adjustflag)
+static int wi_adjust(WINFO *wp, long ln,int adjustflag)
 {	long pos,dy,dx;
 
 	if (ln < wp->mincursln || ln > wp->maxcursln || (adjustflag & 2)) {

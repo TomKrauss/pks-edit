@@ -121,7 +121,7 @@ int fm_savepos(MARK_TYPE_ENUM type) {
 	if (!pMark) {
 		return 0;
 	}
-	pMark->m_column = wp->caret.col;
+	pMark->m_column = wp->caret.offset;
 	pMark->m_fname = _strdup(fp->fname);
 	pMark->m_line = wp->caret.ln;
 	pMark->m_linePointer = wp->caret.linePointer;
@@ -139,7 +139,7 @@ static int fm_gotoLastPositionDir(MARK_TYPE_ENUM type, int dir) {
 
 	mp = fm_getSavedMark(type, dir);
 	if (mp == 0) {
-		error_showErrorById(IDS_MSGNOLASTTAG);
+		error_showErrorById(IDS_MSGNOLASTPOS);
 		return 0;
 	}
 	FTABLE* fp = ft_fpbyname(mp->m_fname);
@@ -156,7 +156,8 @@ static int fm_gotoLastPositionDir(MARK_TYPE_ENUM type, int dir) {
 		}
 	}
 	if (wp) {
-		caret_placeCursorMakeVisibleAndSaveLocation(wp, mp->m_line, mp->m_column);
+		bl_hideSelection(wp, TRUE);
+		caret_placeCursorInCurrentFile(wp, mp->m_line, mp->m_column);
 		return  1;
 	}
 

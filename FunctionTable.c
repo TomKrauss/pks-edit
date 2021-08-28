@@ -271,6 +271,8 @@ MMSHOWLI	,53,
 MMSTATHE	,55,
 MMSHOWAT	,56,
 MMSHOWLINENUMBERS ,223,
+IDM_GOTO_NEXT, 243,
+IDM_GOTO_PREVIOUS, 32,
 IDM_INFOFILE	,87,
 IDM_CLOSEALL	,88,
 IDM_ARRANGE	,89,
@@ -575,8 +577,8 @@ COMMAND _cmdseqtab[] = {
 /* 239 */ C_1FUNC, 23 /* ww_zoomWindow */, 1, "zoom-increase", "Zoomfaktor ++;Zoomfaktor ++",
 /* 240 */ C_1FUNC, 23 /* ww_zoomWindow */, 0, "zoom-decrease", "Zoomfaktor --;Zoomfaktor --",
 /* 241 */ C_1FUNC, 124 /* edit_toggle_comment */, -1, "toggle-comment", "Toggle Comment;Toggle Comment",
-/* 31 */ C_1FUNC, 52 /* fm_gotoNextPosition */, TM_LASTSEARCH, "goto-next-pos", "Goto next navigation position;Next Position",
-/* 32 */ C_1FUNC, 52 /* fm_gotoNextPosition */, TM_LASTINSERT, "goto-next-insertion-pos", "Goto next position of insertion;Next Insertion Position"
+/* 242 */ C_1FUNC, 52 /* fm_gotoNextPosition */, TM_LASTSEARCH, "goto-next-pos", "Goto next navigation position;Next Position",
+/* 243 */ C_1FUNC, 52 /* fm_gotoNextPosition */, TM_LASTINSERT, "goto-next-insertion-pos", "Goto next position of insertion;Next Insertion Position"
 };
 
 char _recorder[RECORDERSPACE];

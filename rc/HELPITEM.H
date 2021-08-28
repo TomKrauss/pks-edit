@@ -104,7 +104,7 @@
 #define	IDM_HLPONHLP		154
 #define	IDM_HLPONMODE		155
 
-#define	IDM_HISTORY		200
+#define	IDM_HISTORY			200
 #define	IDM_HISTORY1		201
 #define	IDM_HISTORY2		202
 #define	IDM_HISTORY3		203
@@ -115,6 +115,9 @@
 #define	IDM_DOAGAIN			211
 #define	IDM_ERASEBLOCK		212
 #define	IDM_REDO			213
+
+#define	IDM_GOTO_PREVIOUS	214
+#define	IDM_GOTO_NEXT		215
 
 #define IDM_TOOLBAR			512
 
