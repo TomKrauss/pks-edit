@@ -329,6 +329,7 @@ static void stringbuf_accomodateSpace(STRING_BUF* pBuf, size_t nAdditional) {
 void stringbuf_appendChar(STRING_BUF* pBuf, unsigned char c) {
 	stringbuf_accomodateSpace(pBuf, 1);
 	*pBuf->sb_current++ = c;
+	*pBuf->sb_current = 0;
 }
 
 /*

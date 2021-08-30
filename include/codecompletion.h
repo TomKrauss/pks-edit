@@ -30,7 +30,7 @@ extern void codecomplete_hideSuggestionWindow(WINFO* wp);
  * codecomplete_updateCompletionList
  * update the list of completions awailable.
  */
-extern void codecomplete_updateCompletionList(WINFO* wp);
+extern void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce);
 
 #define CODECOMPLETION_H
 

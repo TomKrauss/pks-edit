@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "text",
+      "analyzer": "words",
       "patterns": [
         {
           "match": "^\\* +.*",

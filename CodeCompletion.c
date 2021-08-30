@@ -122,8 +122,8 @@ static int codecomplete_compare(const CODE_ACTION** p1, const CODE_ACTION** p2) 
  * codecomplete_updateCompletionList
  * update the list of completions awailable.
  */
-void codecomplete_updateCompletionList(WINFO* wp) {
-	if (!wp->codecomplete_handle) {
+void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
+	if (!wp->codecomplete_handle || (!IsWindowVisible(wp->codecomplete_handle) && !bForce)) {
 		return;
 	}
 	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS * )GetWindowLongPtr(wp->codecomplete_handle, GWL_PARAMS);
@@ -148,6 +148,7 @@ void codecomplete_updateCompletionList(WINFO* wp) {
 	}
 	xref_getSelectedIdentifier(szIdent, sizeof szIdent);
 	xref_forAllTagsDo(wp, szIdent, codecomplete_addTags);
+	grammar_addSuggestionsMatching(fp->documentDescriptor->grammar, szIdent, codecomplete_addTags);
 	arraylist_sort(_actionList, codecomplete_compare);
 	for (int i = (int)arraylist_size(_actionList); --i >= 0; ) {
 		CODE_ACTION* pAction = arraylist_get(_actionList, i);
@@ -344,6 +345,12 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 				}
 			}
 			break;
+		case WM_SHOWWINDOW:
+			pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
+			if (pCC) {
+				pCC->ccp_selection = 0;
+			}
+			break;
 		case WM_VSCROLL: 
 			pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
 			if (pCC) {
@@ -453,7 +460,7 @@ int codecomplete_showSuggestionWindow(void) {
 		MoveWindow(wp->codecomplete_handle, pt.x, pt.y, width, height, TRUE);
 	}
 	if (!IsWindowVisible(wp->codecomplete_handle)) {
-		codecomplete_updateCompletionList(wp);
+		codecomplete_updateCompletionList(wp, TRUE);
 		ShowWindow(wp->codecomplete_handle, SW_SHOWNA);
 	}
 	return 1;
