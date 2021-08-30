@@ -1,4 +1,4 @@
-; Installs PKS Edit
+﻿; Installs PKS Edit
 ; you must have a "x64" edition of Windows.
 
 #define MyAppName "PKSEdit.1"
@@ -37,6 +37,14 @@ Name: "nl"; MessagesFile: "compiler:Languages\Dutch.isl"
 Name: "fr"; MessagesFile: "compiler:Languages\French.isl"
 Name: "it"; MessagesFile: "compiler:Languages\Italian.isl"
 Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
+
+[CustomMessages]
+en.MsgOpenWith=Open with %1
+de.MsgOpenWith=Öffnen mit %1
+it.MsgOpenWith=Aperta con
+fr.MsgOpenWith=Ouvrir avec
+nl.MsgOpenWith=Openen met
+ru.MsgOpenWith=Открыть с
 
 [Files]
 Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"; Flags: ignoreversion
@@ -80,6 +88,11 @@ Filename: "win.ini"; Section: "PksEdit"; Key: "PKS_SYS"; String: "{app}\PKS_SYS"
 Name: "{group}\PKS Edit"; Filename: "{app}\{#MyAppExeName}"
 
 [Registry]
+Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\command"; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}"; ValueData: "{app}\pks_sys\pks.ico"; Flags: uninsdeletevalue; ValueType: string;  ValueName: "icon"
+Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\ddeexec";  ValueData: """%1""";  Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\ddeexec\Application";  ValueData: "{#MyAppName}";  Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\ddeexec\topic";  ValueData: "commandline";  Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\.txt"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\.c"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\.md"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
