@@ -464,3 +464,28 @@ int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
 	return(TRUE);
 }
 
+/*
+ * Measure a list box row in an owner drawn listbox painting an icon + a text.
+ */
+void cust_measureListBoxRowWithIcon(MEASUREITEMSTRUCT* mp) {
+	mp->itemHeight = LB_ROW_WITH_ICON_HEIGHT;
+}
+
+/*
+ * Draw a list box row in an owner drawn listbox painting an icon + a text. 
+ */
+void cust_drawListBoxRowWithIcon(HDC hdc, RECT* rcp, HICON hIcon, char* pszText) {
+	int x;
+	int y;
+	int iconWidth = 16;
+	TEXTMETRIC textmetric;
+
+	x = rcp->left + 2;
+	y = rcp->top;
+	GetTextMetrics(hdc, &textmetric);
+	DrawIconEx(hdc, x, y + (LB_ROW_WITH_ICON_HEIGHT-iconWidth)/2, hIcon, iconWidth, iconWidth, 0, NULL, DI_NORMAL);
+	x += iconWidth + (2 * 2);
+	TextOut(hdc, x, y + (LB_ROW_WITH_ICON_HEIGHT - textmetric.tmHeight) / 2, pszText, lstrlen(pszText));
+
+}
+

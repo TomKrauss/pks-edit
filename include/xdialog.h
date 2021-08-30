@@ -45,20 +45,20 @@ typedef DIALPARS *LPDIALPARS;
  * for that particular page, if the page is activated. The callback is passed the index of the
  * property page activated.
  */
-extern void			SetXDialogParams(DIALPARS* (*func)(int pageIndex), boolean propertySheetFlag);
+extern void			dlg_setXDialogParams(DIALPARS* (*func)(int pageIndex), boolean propertySheetFlag);
 
 extern BOOL			DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams);
 extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING *pTooltips);
 extern void 		DlgInitString(HWND hwnd, int item, LPSTR szString, int nMax);
-extern INT_PTR CALLBACK DlgStdProc(HWND,UINT,WPARAM,LPARAM);
+extern INT_PTR CALLBACK dlg_standardDialogProcedure(HWND,UINT,WPARAM,LPARAM);
 # if defined(_EDFUNCS_H)
 extern int 			win_callDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
 # endif
 extern void 		DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax);
 /*--------------------------------------------------------------------------
- * LbGetText()
+ * dlg_getListboxText()
  */
-extern int LbGetText(HWND hwnd, int id, void* szBuff);
+extern int dlg_getListboxText(HWND hwnd, int id, void* szBuff);
 
 /*--------------------------------------------------------------------------
  * win_createModelessDialog()
@@ -95,6 +95,21 @@ extern int dlg_displayDialogTemplate(unsigned char c, char* (*fpTextForTmplate)(
  * Closes the query replace dialog.
  */
 extern void dlg_closeQueryReplace(void);
+
+/*
+ * Return a string resource for the current language. Note, that this method is not
+ * re-entrant. Any text loaded must be used right away.
+ */
+extern char* dlg_getResourceString(int nId);
+
+/*------------------------------------------------------------
+ * dlg_drawFileInfo()
+ * Draw the info about a file with a given index. Paints the index (used to select the file),
+ * the name of the file a modification marker and the icon according to the file type.
+ */
+#if defined(EDITAB_H)
+extern void dlg_drawFileInfo(HDC hdc, RECT* rcp, FTABLE* fp, int nItem, BOOL bSelected);
+#endif
 
 /*--------------------------------------------------------------------------
  * EdPromptForCharacter()

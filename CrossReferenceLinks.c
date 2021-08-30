@@ -481,7 +481,7 @@ static int taglist_compareItem(COMPAREITEMSTRUCT* cip) {
 }
 
 /*--------------------------------------------------------------------------
- * DlgStdProc()
+ * xref_lookupTagReferenceProc()
  */
 static TAG_REFERENCE* _selectedReference;
 static INT_PTR CALLBACK xref_lookupTagReferenceProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {

@@ -61,12 +61,25 @@ static boolean		bPropertySheetMove;
 int	   nCurrentDialog;
 HWND   hwndDlg;
 
+/*
+ * Return a string resource for the current language. Note, that this method is not
+ * re-entrant. Any text loaded must be used right away.
+ */
+char* dlg_getResourceString(int nId) {
+	static char szBuf[256];
+
+	if (!LoadString(ui_getResourceModule(), nId, szBuf, sizeof szBuf)) {
+		return (char*)NULL;
+	}
+	return szBuf;
+}
+
 /*-----------------------------------------------
  * sym_assignSymbol a callback to be invoked to return the DIALOGPARS for a page (in a property sheet)
  * for that particular page, if the page is activated. The callback is passed the index of the 
  * property page activated.
  */
-void SetXDialogParams(DIALPARS* (*func)(int pageIndex), boolean positionDialogOnInit) {
+void dlg_setXDialogParams(DIALPARS* (*func)(int pageIndex), boolean positionDialogOnInit) {
 	_dialogInitParameterCallback = func;
 	bInPropertySheet = TRUE;
 	bPropertySheetMove = positionDialogOnInit;
@@ -108,12 +121,12 @@ static HWND CreateToolTip(int toolID, HWND hDlg, int iTooltipItem) {
 	toolInfo.hwnd = hDlg;
 	toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
 	toolInfo.uId = (UINT_PTR)hwndTool;
-	char 	s[256];
+	char 	*pszText;
 
-	if (!LoadString(ui_getResourceModule(), iTooltipItem, s, sizeof s)) {
+	if (!(pszText = dlg_getResourceString(iTooltipItem))) {
 		return (HWND)NULL;
 	}
-	toolInfo.lpszText = s;
+	toolInfo.lpszText = pszText;
 	SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
 	SendMessage(hwndTip, TTM_SETMAXTIPWIDTH, 0, 350);
 	return hwndTip;
@@ -194,8 +207,7 @@ WNDPROC SubClassWndProc(int set, HWND hDlg, int item, WNDPROC lpfnNewProc)
  * KeyInputWndProc()
  */
 static WNDPROC lpfnOldCInput;
-WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
+static WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	HWND			h2;
 	static KEYCODE key;
 	static int down;
@@ -255,7 +267,7 @@ WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 /*--------------------------------------------------------------------------
  * CharInput()
  */
-WINFUNC CInput(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+static WINFUNC dlg_charInputWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {	char szBuff[10];
 
 	switch(message) {
@@ -274,11 +286,11 @@ WINFUNC CInput(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 /*--------------------------------------------------------------------------
- * setwrange()
+ * dlg_setRangeForOperation()
  */
-int setwrange(HWND hwnd, int *rangetype, int first)
+static int dlg_setRangeForOperation(HWND hwnd, int *rangetype, int first)
 {	int    blkvalid,item,range;
-	char	  szBuf[64],szSel[64];
+	char	  szSel[64];
 	HWND	  hwndList;
 
 	blkvalid = ww_hasSelection(ww_getCurrentEditorWindow());
@@ -292,13 +304,13 @@ int setwrange(HWND hwnd, int *rangetype, int first)
 
 	for (item = IDS_RNGONCE; item <= IDS_RNGGLOBAL; item++) {
 		range = item-IDS_RNGONCE;
-		LoadString(ui_getResourceModule(),item,szBuf,sizeof szBuf);
+		char* pszBuf = dlg_getResourceString(item);
 		if (range >= first && 
 		    (range != RNG_BLOCK || blkvalid)) {
-			SendMessage(hwndList, CB_ADDSTRING, 0, (LPARAM)szBuf);
+			SendMessage(hwndList, CB_ADDSTRING, 0, (LPARAM)pszBuf);
 		}
 		if (range == *rangetype) {
-			lstrcpy(szSel,szBuf);
+			lstrcpy(szSel, pszBuf);
 		}
 	}
 
@@ -307,9 +319,9 @@ int setwrange(HWND hwnd, int *rangetype, int first)
 }
 
 /*--------------------------------------------------------------------------
- * CbGetText()
+ * dlg_getComboBoxText()
  */
-int CbGetText(HWND hwnd, int id, void *szBuff)
+static int dlg_getComboBoxText(HWND hwnd, int id, void *szBuff)
 { 	LRESULT	  item;
 
 	item = SendDlgItemMessage(hwnd,id,CB_GETCURSEL,0,0);
@@ -322,9 +334,9 @@ int CbGetText(HWND hwnd, int id, void *szBuff)
 }
 
 /*--------------------------------------------------------------------------
- * LbGetText()
+ * dlg_getListboxText()
  */
-int LbGetText(HWND hwnd, int id, void *szBuff) { 	
+int dlg_getListboxText(HWND hwnd, int id, void *szBuff) { 	
 	LRESULT	  item;
 
 	item = SendDlgItemMessage(hwnd,id,LB_GETCURSEL,0,0);
@@ -337,9 +349,9 @@ int LbGetText(HWND hwnd, int id, void *szBuff) {
 }
 
 /*--------------------------------------------------------------------------
- * CbSelectItem()
+ * dlg_selectComboBoxItem()
  */
-static int CbSelectItem(HWND hwnd, WORD id, char *szBuff)
+static int dlg_selectComboBoxItem(HWND hwnd, WORD id, char *szBuff)
 {
 	LRESULT ret;
 
@@ -350,19 +362,19 @@ static int CbSelectItem(HWND hwnd, WORD id, char *szBuff)
 }
 
 /*--------------------------------------------------------------------------
- * getwrange()
+ * dlg_getRangeForOperation()
  */
-int getwrange(HWND hwnd)
+static int dlg_getRangeForOperation(HWND hwnd)
 { 	WORD	 item;
-	char	 szBuff[30];
+	char*	 pszBuf;
 	char	 szCurr[130];
 
-	if (CbGetText(hwnd, IDD_RNGE, szCurr) == LB_ERR) {
+	if (dlg_getComboBoxText(hwnd, IDD_RNGE, szCurr) == LB_ERR) {
 		return RNG_FREE;
 	}
 	for (item = IDS_RNGONCE; item <= IDS_RNGGLOBAL; item++) {
-		LoadString(ui_getResourceModule(),item,szBuff, sizeof szBuff -1);
-		if (strcmp(szBuff,szCurr) == 0)
+		pszBuf = dlg_getResourceString(item);
+		if (pszBuf && strcmp(pszBuf,szCurr) == 0)
 			return item-IDS_RNGONCE+RNG_ONCE;
 	}
 	return RNG_FREE;
@@ -373,7 +385,7 @@ int getwrange(HWND hwnd)
  */
 BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 {
-	char 	cbuf[2],numbuf[32],szBuff[128];
+	char 	cbuf[2],numbuf[32];
 	int 	item,*ip;
 	BOOL	moved;
 	DIALLIST	*dlp;
@@ -399,9 +411,12 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 			case IDD_WINTITLE2:
 				SetWindowText(hDlg,(LPSTR)ip);
 				break;
-			case IDD_WINTITLE:
-				LoadString(ui_getResourceModule(),(WORD)dp->dp_size,szBuff, sizeof szBuff -1);
-				SetWindowText(hDlg,szBuff);
+			case IDD_WINTITLE: {
+					char* pszString = dlg_getResourceString((WORD)dp->dp_size);
+					if (pszString) {
+						SetWindowText(hDlg, pszString);
+					}
+				}
 				break;
 			case IDD_FILE_PATTERN:
 				ht = FILE_PATTERNS;
@@ -418,7 +433,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				}
 				break;
 			case IDD_RO1: case IDD_RO2: case IDD_RO3: 
-			case IDD_RO4: case IDD_RO5:
+			case IDD_RO4: case IDD_RO5: case IDD_RO6:
 				SetDlgItemText(hDlg,item,(LPSTR)ip);
 				break;
 			case IDD_PATH1:
@@ -441,7 +456,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 				break;
 			case IDD_RNGE:
-				setwrange(hDlg,ip,dp->dp_size);
+				dlg_setRangeForOperation(hDlg,ip,dp->dp_size);
 				break;
 			case IDD_KEYCODE:
 				lpfnOldCInput = SubClassWndProc(1,hDlg,item,
@@ -452,7 +467,7 @@ donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 # endif
 				break;
 			case IDD_RAWCHAR:
-				lpfnOldCInput = SubClassWndProc(1,hDlg,item,CInput);
+				lpfnOldCInput = SubClassWndProc(1,hDlg,item,dlg_charInputWindowProc);
 			case IDD_CHAR:
 				cbuf[0] = *(char*)dp->dp_data;
 				cbuf[1] = 0;
@@ -652,7 +667,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			}
 			break;
 		case IDD_RNGE:
-			*ip = getwrange(hDlg);
+			*ip = dlg_getRangeForOperation(hDlg);
 			break;
 		case IDD_KEYCODE:
 			*(KEYCODE*)dp->dp_data = 
@@ -683,7 +698,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 /*
  * Utility to retrieve a title text from a dialog component. 
  */
-static char* dialog_getTitleResource(HWND hDlg, int idCtrl, char* szButton, size_t nSize) {
+static char* dlg_getTitleResource(HWND hDlg, int idCtrl, char* szButton, size_t nSize) {
 	GetWindowText(GetDlgItem(hDlg, idCtrl), szButton, (int)nSize);
 	return (szButton[0] == '&') ? szButton + 1 : szButton;
 }
@@ -705,7 +720,7 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 	nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
 	switch(idCtrl) {
 		case IDD_PATH1SEL:
-			pszTitle = dialog_getTitleResource(hDlg, idCtrl, szBuff, sizeof szBuff);
+			pszTitle = dlg_getTitleResource(hDlg, idCtrl, szBuff, sizeof szBuff);
 			if (fsel_selectFolder(pszTitle, _fseltarget)) {
 				SetDlgItemText(hDlg, IDD_PATH1, _fseltarget);
 			}
@@ -713,7 +728,7 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 		case IDD_PATH2SEL:
 			lstrcpy(szBuff,".\\");
 			fselbuf[0] = 0;
-			pszTitle = dialog_getTitleResource(hDlg, idCtrl, szButton, sizeof szButton);
+			pszTitle = dlg_getTitleResource(hDlg, idCtrl, szButton, sizeof szButton);
 			fsel_setDialogTitle(pszTitle);
 			if (fsel_selectFile(szBuff,fselbuf,_fseltarget, TRUE)) {
 				SetDlgItemText(hDlg, IDD_PATH1, 	_fseltarget);
@@ -820,7 +835,7 @@ static void *dlg_getitemdata(DIALPARS *dp, WORD item)
 }
 
 /*--------------------------------------------------------------------------
- * DlgStdProc()
+ * dlg_standardDialogProcedure()
  */
 static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {	LPNMHDR		pNmhdr;
@@ -854,9 +869,9 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 }
 
 /*--------------------------------------------------------------------------
- * DlgStdProc()
+ * dlg_standardDialogProcedure()
  */
-INT_PTR CALLBACK DlgStdProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
 	MEASUREITEMSTRUCT	*mp;
 	COMPAREITEMSTRUCT	*cp;
 	int					nNotify;
@@ -933,7 +948,7 @@ int win_callDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* 
 { 	int ret = 1;
 
 	if (macro_openDialog(pp)) {
-		ret = DoDialog(nId, DlgStdProc,dp, pTooltips);
+		ret = DoDialog(nId, dlg_standardDialogProcedure,dp, pTooltips);
 		macro_recordOperation(pp);
 		if (ret == IDCANCEL)
 			return 0;

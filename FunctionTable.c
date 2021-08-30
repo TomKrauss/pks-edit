@@ -26,6 +26,7 @@
 #include "iccall.h"
 #include "winfo.h"
 #include "markpositions.h"
+#include "windowselector.h"
 
 extern int
 EdFileAbandon(), EdAbout(long ), EdBlockCopy(long ), EdBlockDelete(long ),
@@ -184,6 +185,7 @@ EdSaveAllFiles, '!', EW_NEEDSCURRF | 0,
 /*122*/ft_cloneWindow, '!', EW_NEEDSCURRF,
 /*123*/edit_shiftSelection, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH,
 /*124*/edit_toggleComment, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH,
+/*125*/windowselector_showWindowList,'!',0
 };
 
 int _nfuncs = sizeof(_edfunctab)/sizeof(_edfunctab[0]);
@@ -454,7 +456,7 @@ COMMAND _cmdseqtab[] = {
 /* 116 */ C_1FUNC, 65 /* EdSelectWindow */, 5 , "select-window-5", "Selektiert Fenster #5;Zu Fenster 5",
 /* 117 */ C_1FUNC, 65 /* EdSelectWindow */, 6 , "select-window-6", "Selektiert Fenster #6;Zu Fenster 6",
 /* 118 */ C_1FUNC, 65 /* EdSelectWindow */, -1 , "select-previous-window", "Aktiviert das zuletzt aktive Fenster;Vorh. Fenster",
-/* 119 */ C_1FUNC, 65 /* EdSelectWindow */, SEL_CYCLE , "cycle-window", "Geht zyklisch zum n‰chsten Fenster;Weitersch. Fenster",
+/* 119 */ C_1FUNC, 125 /* windowselector_showWindowList */, 0, "cycle-window", "Geht zyklisch zum n‰chsten Fenster;Weitersch. Fenster",
 /* 120 */ C_0FUNC, 73 /* EdCharUpToLow */, 0 , "char-up-low", "wandelt Groﬂ- in Kleinschreibung;Groﬂ <-> Klein",
 /* 121 */ C_1FUNC, 70 /* EdLinesShift */, -1 , "shift-line-left", "Verschiebt um eine Spalte nach links;Schieben links",
 /* 122 */ C_1FUNC, 70 /* EdLinesShift */, 1 , "shift-line-right", "Verschiebt um eine Spalte nach rechts;Schieben rechts",

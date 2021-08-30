@@ -26,6 +26,7 @@
 #include "crossreferencelinks.h"
 #include "codecompletion.h"
 #include "themes.h"
+#include "xdialog.h"
 
 #define CLASS_CODE_COMPLETION	"CodeCompletion"
 #define CC_WIDTH			150
@@ -188,10 +189,9 @@ static void codecomplete_paint(HWND hwnd) {
 		GetClientRect(hwnd, &rect);
 		InflateRect(&rect, -5, -5);
 		SetTextColor(paint.hdc, GetSysColor(COLOR_GRAYTEXT));
-		char text[128];
-
-		if (LoadString(ui_getResourceModule(), IDS_NO_TEMPLATES_DEFINED, text, sizeof text)) {
-			DrawText(paint.hdc, text, -1, &rect, DT_CENTER | DT_VCENTER | DT_WORDBREAK);
+		char *pszBuf;
+		if ((pszBuf = dlg_getResourceString(IDS_NO_TEMPLATES_DEFINED)) != NULL) {
+			DrawText(paint.hdc, pszBuf, -1, &rect, DT_CENTER | DT_VCENTER | DT_WORDBREAK);
 		}
 	} else {
 		for (int i = 0; up; i++) {

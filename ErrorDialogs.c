@@ -29,6 +29,7 @@
 #include <stdarg.h>
 #include "dial2.h"
 #include "pksedit.h"
+#include "xdialog.h"
 
 /*--------------------------------------------------------------------------
  * sound_playChime()
@@ -65,11 +66,11 @@ int error_displayAlertBoxWithOptions(long buttons, long nOptions, const char* fm
  */
 static int nIdAlert(int buttons, WORD nId, LPSTR ap)
 {
-    char fmt[128];
+    char* pszBuf;
 
-	if (!LoadString(ui_getResourceModule(),nId,fmt,sizeof fmt))
+	if ((pszBuf = dlg_getResourceString(nId)) == NULL) 
 		return -1;
-    return errror_openConfigurableAlert(buttons, (LPSTR) fmt,ap);
+    return errror_openConfigurableAlert(buttons, pszBuf,ap);
 }
 
 /*------------------------------------------------------------
@@ -198,12 +199,11 @@ void error_displayErrorToast(const char* fmt, va_list ap)
 /*------------------------------------------------------------
  * err_show()
  */
-static void err_show(int nId, va_list ap)
-{
-	char		fmt[128];
+static void err_show(int nId, va_list ap) {
+	char* pszBuf;
 
-	if (LoadString(ui_getResourceModule(),nId,fmt,sizeof fmt)) {
-		error_displayErrorToast(fmt,ap);
+	if ((pszBuf = dlg_getResourceString(nId)) != NULL) {
+		error_displayErrorToast(pszBuf, ap);
 	}
 }
 

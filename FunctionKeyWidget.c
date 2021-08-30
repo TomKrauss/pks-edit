@@ -190,8 +190,7 @@ static int ww_toppostmessage(UINT message, WPARAM wParam, LPARAM lParam)
 /*------------------------------------------------------------
  * FkeysWndProc()
  */
-WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
+static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	WORD  			x;
 	WORD			item;
 	RECT	 		r;
@@ -362,11 +361,11 @@ void fkey_visibilitychanged(void)
 		hwndFkeys = NULL;
 	} else {
 		fkey_show(hwndMDIFrameWindow);
-		if (hwndFkeys) {
-			SendMessage(hwndFkeys,WM_EDWINREORG,0,0L);
-			action_commandEnablementChanged((ACTION_CHANGE_TYPE) { 0, 0, 1, -1 });
-		}
 	}
-	SendMessage(hwndMDIFrameWindow, WM_EDWINREORG,0,0L);
+	SendMessage(hwndMDIFrameWindow, WM_SIZE,0,0L);
+	if (hwndFkeys) {
+		SendMessage(hwndFkeys, WM_EDWINREORG, 0, 0L);
+		action_commandEnablementChanged((ACTION_CHANGE_TYPE) { 0, 0, 1, -1 });
+	}
 }
 

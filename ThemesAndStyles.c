@@ -160,7 +160,11 @@ static THEME_DATA defaultTheme = {
 	MARKED_LINE_COLOR,
 	RULER_BORDER_COLOR,
 	RULER_FOREROUND_COLOR,
-	RULER_BACKGROUND_COLOR
+	RULER_BACKGROUND_COLOR,
+	"Helv",						// (T) use in dialogs.
+	8,
+	"Consolas",
+	12
 };
 
 static JSON_MAPPING_RULE _edTextStyleRules[] = {
@@ -186,6 +190,10 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_COLOR, "rulerBorderColor", offsetof(THEME_DATA, th_rulerBorderColor)},
 	{	RT_COLOR, "rulerForegroundColor", offsetof(THEME_DATA, th_rulerForegroundColor)},
 	{	RT_COLOR, "rulerBackgroundColor", offsetof(THEME_DATA, th_rulerBackgroundColor)},
+	{	RT_CHAR_ARRAY, "dialogFont", offsetof(THEME_DATA, th_fontName), sizeof(((THEME_DATA*)NULL)->th_fontName)},
+	{	RT_INTEGER, "dialogFontSize", offsetof(THEME_DATA, th_fontSize)},
+	{	RT_CHAR_ARRAY, "smallFixedFont", offsetof(THEME_DATA, th_smallFontName), sizeof(((THEME_DATA*)NULL)->th_smallFontName)},
+	{	RT_INTEGER, "smallFixedFontSize", offsetof(THEME_DATA, th_smallFontSize)},
 	{	RT_END}
 };
 
@@ -279,12 +287,12 @@ FONT_STYLE_CLASS font_getStyleClassIndexFor(char* pszStyleName) {
  * Create a font with a name (possible empty) and a given size.
  * If 'bOem' is true, use an OEM_CHARSET.
  */
-HFONT font_createFontHandle(char* pszFontName, int size, int bOem) {
+HFONT font_createFontHandle(char* pszFontName, int size, int bOem, int nWeight) {
 	EDTEXTSTYLE		font;
 
 	memset(&font, 0, sizeof font);
 	lstrcpy(font.faceName, pszFontName);
-	font.style.weight = FW_NORMAL;
+	font.style.weight = nWeight;
 	font.size = size;
 	font.charset = bOem ? OEM_CHARSET : ANSI_CHARSET;
 	return font_createFontWithStyle(&font);
@@ -295,7 +303,16 @@ HFONT font_createFontHandle(char* pszFontName, int size, int bOem) {
  * options key controls.
  */
 HFONT theme_createSmallFixedFont() {
-	return font_createFontHandle("Consolas", 12, 0);
+	THEME_DATA* pTheme = theme_getDefault();
+	return font_createFontHandle(pTheme->th_smallFontName, pTheme->th_smallFontSize, 0, FW_NORMAL);
+}
+
+/*
+ * The dialog font is used by PKS edit e.g. in dialogs and in the window selector.
+ */
+HFONT theme_createDialogFont(int nWeight) {
+	THEME_DATA* pTheme = theme_getDefault();
+	return font_createFontHandle(pTheme->th_fontName, pTheme->th_fontSize, 0, nWeight);
 }
 
 /*------------------------------------------------------------
@@ -353,9 +370,9 @@ void font_selectStandardFont(HWND hwnd, WINFO *wp) {
 /*--------------------------------------------------------------------------
  * ChooseFontHookProc()
  */
-UINT_PTR CALLBACK ChooseFontHookProc(HWND hDlg, UINT msg, WPARAM wParam,
-    LPARAM lParam)
-{
+static UINT_PTR CALLBACK ChooseFontHookProc(HWND hDlg, UINT msg, WPARAM wParam,
+    LPARAM lParam) {
+
 	switch(msg) {
 
 	case WM_INITDIALOG:
@@ -445,6 +462,13 @@ THEME_DATA* theme_getByName(unsigned char* pThemeName) {
 		pTheme = pTheme->th_next;
 	}
 	return &defaultTheme;
+}
+
+/*
+ * Returns the default theme currently selected.
+ */
+THEME_DATA* theme_getDefault() {
+	return theme_getByName("default");
 }
 
 /*

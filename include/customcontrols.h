@@ -18,6 +18,12 @@
 
 #include <windows.h>
 
+/*
+ * When rows with text and icons are painted withing PKS Edit - this is the height in pixels to reserve for
+ * the row.
+ */
+#define LB_ROW_WITH_ICON_HEIGHT	24
+
 /*--------------------------------------------------------------------------
  * cust_drawShadow()
  * Draw a shadow around a control
@@ -74,6 +80,16 @@ extern void cust_drawOwnerSelection(LPDRAWITEMSTRUCT lpdis);
  */
 extern int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
 	void (*ShowSelection)(LPDRAWITEMSTRUCT lp));
+
+/*
+ * Measure a list box row in an owner drawn listbox painting an icon + a text.
+ */
+extern void cust_measureListBoxRowWithIcon(MEASUREITEMSTRUCT* mp);
+
+/*
+ * Draw a list box row in an owner drawn listbox painting an icon + a text.
+ */
+extern void cust_drawListBoxRowWithIcon(HDC hdc, RECT* rcp, HICON hIcon, char* pszText);
 
 #define CUSTOMCONTROLS_H
 

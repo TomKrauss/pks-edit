@@ -1136,6 +1136,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="WindowSelector.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\actions.h" />
@@ -1167,6 +1168,7 @@
     <ClInclude Include="include\syntaxhighlighting.h" />
     <ClInclude Include="include\textblocks.h" />
     <ClInclude Include="include\themes.h" />
+    <ClInclude Include="include\windowselector.h" />
     <ClInclude Include="include\winutil.h" />
     <ClInclude Include="rc\dial2.h" />
     <ClInclude Include="rc\fsel.h" />

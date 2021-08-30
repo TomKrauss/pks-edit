@@ -947,3 +947,30 @@ unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, unsigned char* 
 	}
 }
 
+/*
+ * Count the number of words in a file. A word is defined by the identifier definition
+ * in the grammar.
+ */
+long ft_countWords(FTABLE* fp) {
+	long nWords = 0;
+
+	LINE* lp = fp->firstl;
+	while (lp && lp != fp->lastl) {
+		BOOL bInIdent = FALSE;
+		char* pszStart = lp->lbuf;
+		char* pszEnd = &lp->lbuf[lp->len];
+		while (pszStart < pszEnd) {
+			char c = *pszStart++;
+			if (char_isIdentifier(c)) {
+				if (!bInIdent) {
+					nWords++;
+					bInIdent = TRUE;
+				}
+			} else {
+				bInIdent = FALSE;
+			}
+		}
+		lp = lp->next;
+	}
+	return nWords;
+}

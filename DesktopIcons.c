@@ -56,7 +56,7 @@ typedef struct tagICONCLASS {
 extern int EdEnumChildWindows(int (*funcp)(), LONG lParam);
 extern int ww_closeChildWindow(HWND hwndChild, int iconflag);
 extern int EdConfigureIcons(void);
-extern int  LbGetText(HWND hwnd, int id, void *szBuff);
+extern int  dlg_getListboxText(HWND hwnd, int id, void *szBuff);
 
 ICONCLASS *icEditIconClass;
 
@@ -151,7 +151,7 @@ void ic_onIconTypeSelection(HWND hDlg, int nItem, int lParam, void *p)
 	ICONCLASS	*icp;
 
 	icp = 0;
-	LbGetText(hDlg, nItem, (char *)&icp);
+	dlg_getListboxText(hDlg, nItem, (char *)&icp);
 	if (icp == 0) {
 		return;
 	}

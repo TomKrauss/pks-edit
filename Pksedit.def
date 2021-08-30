@@ -6,10 +6,5 @@ STACKSIZE    64000
 EXPORTS
 	FrameWndProc
 	EditWndProc
-	DlgStdProc
-	KeyInputWndProc
-	CInput
-	FkeysWndProc
-	ChooseFontHookProc
 	ExecWaitNotify
 

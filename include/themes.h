@@ -27,12 +27,21 @@ typedef struct tagTHEME_DATA {
 	COLORREF th_rulerBorderColor;
 	COLORREF th_rulerForegroundColor;
 	COLORREF th_rulerBackgroundColor;
+	unsigned char th_fontName[32];			// dialog font name to use
+	unsigned int  th_fontSize;				// dialog font size to use
+	unsigned char th_smallFontName[32];		// small dialog font name to use
+	unsigned int  th_smallFontSize;			// small dialog font size to use
 } THEME_DATA;
 
 /*
  * Returns the theme with the given name. If not found, a default theme is returned. 
  */
 extern THEME_DATA* theme_getByName(unsigned char* pThemeName);
+
+/*
+ * Returns the default theme currently selected.
+ */
+extern THEME_DATA* theme_getDefault();
 
 /*
  * Destroy all theme data loaded.
@@ -44,6 +53,11 @@ extern void theme_destroyAllThemeData();
  * options key controls.
  */
 extern HFONT theme_createSmallFixedFont();
+
+/*
+ * The dialog font is used by PKS edit e.g. in dialogs and in the window selector.
+ */
+HFONT theme_createDialogFont(int nWeight);
 
 #define THEMES_H
 

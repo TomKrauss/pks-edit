@@ -4,6 +4,7 @@
 //
 #define IDS_STRING15                    15
 #define IDS_NO_TEMPLATES_DEFINED        15
+#define IDD_RO6                         80
 #define IDD_FONTSELECT3                 94
 #define IDD_LOWOPT2                     101
 #define DLG_OPT_AUTOSAVE                110
@@ -14,6 +15,8 @@
 #define IDI_ICON1                       156
 #define IDS_TT_REGULAR_EXPRESSION       181
 #define IDS_TT_PRESERVE_CASE            182
+#define IDS_FILE_MODIFIED               183
+#define IDS_FILE_READONLY               184
 #define DLGCURSOROPTIONS                529
 #define DLG_OPT_WARNINGS                556
 #define DLG_OPT_MISC                    557

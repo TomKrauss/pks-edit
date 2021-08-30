@@ -46,6 +46,7 @@
 #include "crossreferencelinks.h"
 #include "brackets.h"
 #include "markpositions.h"
+#include "customcontrols.h"
 
  /*------------------------------------------------------------
   * EdGetActiveWindow()
@@ -60,7 +61,7 @@ extern int ww_closeEditChild(HWND hwndChild);
 extern HWND ww_winid2hwnd(int winid);
 extern int 		macro_executeMacro(MACROREF *mp);
 extern int 		AlignText(char *finds, int scope, char filler, int flags);
-extern int 		LbGetText(HWND hwnd, int id, void *szBuff);
+extern int 		dlg_getListboxText(HWND hwnd, int id, void *szBuff);
 extern FTABLE *	ww_winid2fp(int winid);
 extern int 		EdExecute(long flags, long unused, 
 					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
@@ -267,7 +268,7 @@ static void templateOnSelectionChange(HWND hDlg, int nItem,  int nNotify,
 	if (nNotify != LBN_SELCHANGE) {
 		return;
 	}
-	LbGetText(hDlg, nItem, szText);
+	dlg_getListboxText(hDlg, nItem, szText);
 	szRet = (*fpGetText)(szText);
 	SendDlgItemMessage(hDlg, IDD_RO1, EM_SETREADONLY, (WPARAM) TRUE, 0L);
 	SetWindowText(GetDlgItem(hDlg, IDD_RO1), szRet);
@@ -314,7 +315,7 @@ int dlg_displayDialogTemplate(unsigned char c,
 	static ITEMS	_i   = { C_CHAR1PAR, &_c };
 	static PARAMS	_bgc = { DIM(_i), P_MAYOPEN, _i };
 	static DIALLIST tmplatelist = {
-		(long*)text, templateFillListbox, LbGetText, 0, 0, templateOnSelectionChange};
+		(long*)text, templateFillListbox, dlg_getListboxText, 0, 0, templateOnSelectionChange};
 	static DIALPARS _d[] = {
 		IDD_POSITIONTCURS,	0,			0,
 		IDD_ICONLIST,		0,			&tmplatelist,
@@ -437,7 +438,7 @@ int dlg_displayRecordMacroOptions(int *o)
 		0
 	};
 
-	if (!DoDialog(DLGRECORDER,DlgStdProc,_d, NULL))
+	if (!DoDialog(DLGRECORDER,dlg_standardDialogProcedure,_d, NULL))
 		return 0;
 	*o = opt;
 	return 1;
@@ -455,7 +456,7 @@ int EdAbout(void)
 #elif
 	static char _architecture[] = "- 32 Bit Plattform";
 #endif
-	static char _versionInfo[] = "Version 2.0.2, 24.8.2021";
+	static char _versionInfo[] = "Version 2.0.2, 30.8.2021";
 
 	static DIALPARS _d[] = {
 		IDD_RO1,		sizeof _customerMessage, _customerMessage,
@@ -464,7 +465,7 @@ int EdAbout(void)
 		0
 	};
 
-	return DoDialog(DLGABOUT, DlgStdProc, _d, NULL);
+	return DoDialog(DLGABOUT, dlg_standardDialogProcedure, _d, NULL);
 }
 
 /*--------------------------------------------------------------------------
@@ -723,7 +724,7 @@ int dlg_promptString(int strId, char *string, char *string2)
 		_d[2].dp_item = 0;
 	}
 	return DoDialog(string2 ? DLGQUERYRENAME : DLGQUERYDELETE,
-				 DlgStdProc,_d, NULL);
+				 dlg_standardDialogProcedure,_d, NULL);
 }
 
 /*--------------------------------------------------------------------------
@@ -740,7 +741,7 @@ int EdPromptAutosavePath(char *path)
 	lstrcpy(path, file_getTempDirectory());
 	_d[0].dp_data = path;
 
-	return DoDialog(DLGNEWASPATH, DlgStdProc,_d, NULL) == IDOK;
+	return DoDialog(DLGNEWASPATH, dlg_standardDialogProcedure,_d, NULL) == IDOK;
 }
 
 /*------------------------------------------------------------
@@ -768,41 +769,47 @@ static void winlist_lboxfill(HWND hwnd, int nItem, void* selValue)
 }
 
 /*------------------------------------------------------------
- * winlist_lboxdraw()
+ * dlg_drawFileInfo()
+ * Draw the info about a file with a given index. Paints the index (used to select the file),
+ * the name of the file a modification marker and the icon according to the file type.
  */
-static void winlist_lboxdrawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
-{
+void dlg_drawFileInfo(HDC hdc, RECT *rcp, FTABLE* fp, int nItem, BOOL bSelected) {
 	LPSTR	pszName;
-	FTABLE *	fp;
-	int		x;
-	int		y;
-	char		cChanged;
-	char		szBuf[128];
-
-	if ((fp = (FTABLE*)par) == 0) {
+	SHFILEINFO sfi;
+	char	cChanged;
+	char	szBuf[128];
+	
+	if (fp == 0) {
 		return;
 	}
-
-	x = rcp->left;
-	y = rcp->top;
-
 	pszName = string_abbreviateFileName(fp->fname);
 	cChanged = fp->flags & F_MODIFIED ? '*' : ' ';
-	wsprintf(szBuf,"%-3d: %c %s", nItem+1, cChanged, pszName);
-	TextOut(hdc, x, y, szBuf, lstrlen(szBuf));
+	wsprintf(szBuf, "%-3d: %c %s", nItem + 1, cChanged, pszName);
+	int nFlags = SHGFI_ICON | SHGFI_SMALLICON;
+	if (bSelected) {
+		nFlags |= SHGFI_SELECTED;
+	}
+	SHGetFileInfo(fp->fname, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, nFlags);
+	cust_drawListBoxRowWithIcon(hdc, rcp, sfi.hIcon, szBuf);
+}
+
+
+static winlist_drawFileInfo(HDC hdc, RECT* rcp, FTABLE* fp, int nItem, int nCtl) {
+	dlg_drawFileInfo(hdc, rcp, fp, nItem, FALSE);
 }
 
 /*--------------------------------------------------------------------------
  * infoFillParams()
  */
-static void infoFillParams(DIALPARS *dp, FTABLE *fp)
-{
+static void infoFillParams(DIALPARS *dp, FTABLE *fp) {
+
 	dp->dp_data = string_getBaseFilename(fp->fname);			dp++;
 
      string_formatDate(dp->dp_data, &fp->ti_modified); 	dp++;
      string_formatDate(dp->dp_data, &fp->ti_saved);  	dp++;
      wsprintf(dp->dp_data,"%ld", ft_size(fp)); 	dp++;
-     wsprintf(dp->dp_data,"%ld", fp->nlines);
+	 wsprintf(dp->dp_data, "%ld", fp->nlines); dp++;
+	 wsprintf(dp->dp_data, "%ld", ft_countWords(fp));
 }
 
 /*--------------------------------------------------------------------------
@@ -814,7 +821,8 @@ static DIALPARS infoDialListPars[] = {
 	IDD_RO3,			128,			0,
 	IDD_RO4,			128,			0,
 	IDD_RO5,			128,			0,
-	IDD_WINDOWLIST,	0,			0,
+	IDD_RO6,			128,			0,
+	IDD_WINDOWLIST,		0,			0,
 	IDD_WINTITLE,		0,			0,
 	0
 };
@@ -823,10 +831,10 @@ static void winlist_command(HWND hDlg, int nItem,  int nNotify, void *pUser)
 	switch(nNotify) {
 	case LBN_SELCHANGE:
 	case LBN_DBLCLK:
-		LbGetText(hDlg, nItem, pUser);
+		dlg_getListboxText(hDlg, nItem, pUser);
 		if (nNotify == LBN_SELCHANGE) {
 			infoFillParams(infoDialListPars, *(FTABLE **)pUser);
-			DoDlgInitPars(hDlg, infoDialListPars, 5);
+			DoDlgInitPars(hDlg, infoDialListPars, 6);
 		} else {
 			PostMessage(hDlg, WM_COMMAND, IDOK, 0L);
 		}
@@ -842,12 +850,12 @@ static int showWindowList(int nTitleId)
 	static DIALLIST dlist = {
 		(long*)&fp, 
 		winlist_lboxfill, 
-		LbGetText, 
-		0, 
-		winlist_lboxdrawitem, 
+		dlg_getListboxText, 
+		cust_measureListBoxRowWithIcon,
+		winlist_drawFileInfo,
 		winlist_command 
 	};
-	char	dmod[40],dsaved[40],nbytes[20],nlines[20];
+	char	dmod[40],dsaved[40],nbytes[20],nlines[20], nwords[20];
 	int		nRet;
 
 	fp = ft_getCurrentDocument();
@@ -859,11 +867,12 @@ static int showWindowList(int nTitleId)
      infoDialListPars[2].dp_data = dsaved;
      infoDialListPars[3].dp_data = nbytes;
      infoDialListPars[4].dp_data = nlines;
-	infoDialListPars[5].dp_data = &dlist;
-	infoDialListPars[6].dp_size = nTitleId;
+	 infoDialListPars[5].dp_data = nwords;
+	 infoDialListPars[6].dp_data = &dlist;
+	infoDialListPars[7].dp_size = nTitleId;
 
 	infoFillParams(infoDialListPars, fp);
-	nRet = DoDialog(DLGINFOFILE, DlgStdProc,infoDialListPars, NULL);
+	nRet = DoDialog(DLGINFOFILE, dlg_standardDialogProcedure,infoDialListPars, NULL);
 	if (nRet == IDCANCEL || fp == 0) {
 		return 0;
 	}
@@ -910,7 +919,7 @@ static void doclist_command(HWND hDlg, int nItem, int nNotify, void *pUser)
 	switch(nNotify) {
 	case LBN_SELCHANGE:
 	case LBN_DBLCLK:
-		LbGetText(hDlg, nItem, pUser);
+		dlg_getListboxText(hDlg, nItem, pUser);
 		if (nNotify == LBN_SELCHANGE) {
 			docTypeFillParameters(docTypePars, *(FTABLE **)pUser);
 			DoDlgInitPars(hDlg, docTypePars, NVDOCTYPEPARS);
@@ -1060,7 +1069,7 @@ static int doDocumentTypes(int nDlg) {
 	static DIALLIST dlist = {
 		(long*)&lastSelectedDocType, 
 		docTypeFillListbox, 
-		LbGetText, 
+		dlg_getListboxText, 
 		docTypeLboxMeasureitem, 
 		docTypeOwnerDrawListboxItem, 
 		doclist_command
@@ -1075,7 +1084,7 @@ static int doDocumentTypes(int nDlg) {
 		pConfig ? pConfig->name : "default");
 
 	docTypeFillParameters(docTypePars, (void*)lastSelectedDocType);
-	if ((nRet = DoDialog(nDlg, DlgStdProc,docTypePars, NULL)) == IDCANCEL) {
+	if ((nRet = DoDialog(nDlg, dlg_standardDialogProcedure,docTypePars, NULL)) == IDCANCEL) {
 		lastSelectedDocType = 0;
 		return 0;
 	}
@@ -1588,7 +1597,7 @@ int macro_getIndexForKeycode(KEYCODE *scan,char *name,int oldidx)
 	_d[0].dp_data = name;
 	_d[1].dp_data = scan;
 	do {
-		if (DoDialog(DLGMACNAME, DlgStdProc,_d, NULL) == IDCANCEL)
+		if (DoDialog(DLGMACNAME, dlg_standardDialogProcedure,_d, NULL) == IDCANCEL)
 			return 0;
 	} while (!macro_validateMacroName(name,oldidx));
 	return 1;
@@ -1715,7 +1724,7 @@ static int mod_icon(void);
 static char _title[32],_pars[64];
 static ICONCLASS* _ictype;
 static DIALLIST icondlist = {
-	(LONG*)&_ictype, ic_fillIconTypeList, LbGetText, 
+	(LONG*)&_ictype, ic_fillIconTypeList, dlg_getListboxText, 
 	ic_measureIconTypeItem, ic_ownerDrawIconType, ic_onIconTypeSelection, 0  };
 static DIALPARS iconDialListPars[] = {
 	IDD_STRING1,	sizeof _title,		_title,
@@ -1785,7 +1794,7 @@ static void inputPassWord(LPSTR pszPW)
 
 	pszPW[0] = 0;
 	_d[0].dp_data = pszPW;
-	DoDialog(DLGCRYPT, DlgStdProc, _d, NULL);
+	DoDialog(DLGCRYPT, dlg_standardDialogProcedure, _d, NULL);
 }
 
 /*--------------------------------------------------------------------------

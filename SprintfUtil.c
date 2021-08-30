@@ -29,6 +29,8 @@
 #include "edfuncs.h"
 #include "stringutil.h"
 #include "markpositions.h"
+#include "xdialog.h"
+#include "pksrc.h"
 
 extern char *ft_visiblename(FTABLE *fp);
 /**
@@ -151,7 +153,7 @@ static char *CurrentStringVal(FTABLE *fp, char **fmt, char *fname)
 
 	case '&':
 		if (ft_isFileModified(fp))
-			return "Geändert";
+			return dlg_getResourceString(IDS_FILE_MODIFIED);
 blanks:	return "              ";
 		break;
 
@@ -162,7 +164,7 @@ blanks:	return "              ";
 
 	case 'r':
 		if (ft_isReadonly(fp))
-			return "Nur lesen";
+			return dlg_getResourceString(IDS_FILE_READONLY);
 		goto blanks;
 
 	}

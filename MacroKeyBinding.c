@@ -1186,7 +1186,7 @@ static KEYCODE macro_getCurrentKeycode(void)
 	static DIALPARS _d[] = { IDD_KEYCODE,	sizeof k,	&k, 0 };
 
 	k = K_DELETED;
-	if (DoDialog(DLGKEYCODE, DlgStdProc,_d, NULL) == IDCANCEL ||
+	if (DoDialog(DLGKEYCODE, dlg_standardDialogProcedure,_d, NULL) == IDCANCEL ||
 		k == 0) {
 		return K_DELETED;
 	}
@@ -1294,7 +1294,7 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 
 			case IDD_LISTBOX:
 				if (nNotify == LBN_SELCHANGE) {
-					if (LbGetText(hwnd,IDD_LISTBOX,szName) > 0) {
+					if (dlg_getListboxText(hwnd,IDD_LISTBOX,szName) > 0) {
 						rsc_switchtotable(&_keytables,szName);
 						macro_newMacroSelected(hwnd);
 					}

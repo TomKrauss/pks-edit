@@ -552,6 +552,9 @@ int ww_setwindowtitle(WINFO *wp, void* pUnused) {
 		buf[1] = ' ';
 	}
 	SetWindowText(wp->edwin_handle,buf);
+	SHFILEINFO sfi;
+	SHGetFileInfo(fp->fname, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, SHGFI_ICON | SHGFI_SMALLICON);
+	SendMessage(wp->edwin_handle, WM_SETICON, ICON_SMALL, (LPARAM)sfi.hIcon);
 	return 1;
 }
 

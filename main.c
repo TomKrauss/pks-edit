@@ -41,6 +41,7 @@
 #include "actions.h"
 #include "codecompletion.h"
 #include "markpositions.h"
+#include "windowselector.h"
 
 #define	PROF_OFFSET	1
 
@@ -180,7 +181,8 @@ static BOOL InitApplication(void)
 		 	!ww_register() ||
 		 	!fkey_register() ||
 		 	!cust_registerControls() ||
-			!codecomplete_registerWindowClass()) {
+			!codecomplete_registerWindowClass() ||
+			!windowselector_registerWindowClass()) {
 	    return FALSE;
 	}
 	return TRUE;
@@ -488,6 +490,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 		EdEditFile(0L,(char*)0);
 	}
 	while (GetMessage(&msg, 0, 0, 0)) {
+		if (windowselector_isHandle(msg.hwnd)) {
+			DispatchMessage(&msg);
+			continue;
+		}
 		if ((!_translatekeys || !TranslatePksAccel(hwndMDIFrameWindow,&msg)) &&
 		    !TranslateMDISysAccel(hwndMDIClientWindow,&msg)) {
 			TranslateMessage(&msg);

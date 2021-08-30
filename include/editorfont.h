@@ -42,7 +42,7 @@ extern void font_selectFontStyle(WINFO* wp, FONT_STYLE_CLASS nStyleIndex, HDC hd
  * Create a font with a name (possible empty) and a given size.
  * If 'bOem' is true, use an OEM_CHARSET.
  */
-extern HFONT font_createFontHandle(char* pszFontName, int size, int bOem);
+extern HFONT font_createFontHandle(char* pszFontName, int size, int bOem, int nWeight);
 
 /*------------------------------------------------------------
  * font_selectStandardFont()

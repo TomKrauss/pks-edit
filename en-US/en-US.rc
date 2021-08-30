@@ -121,29 +121,26 @@ BEGIN
     DEFPUSHBUTTON   "A",IDD_RAWCHAR,97,6,16,12
 END
 
-DLGINFOFILE DIALOG 20, 52, 260, 166
+DLGINFOFILE DIALOGEX 20, 52, 357, 179
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Window List"
-FONT 8, "helv"
+CAPTION "Windowlist"
+FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LISTBOX         IDD_WINDOWLIST,6,10,146,150,LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "File:",-1,162,40,20,8,NOT WS_GROUP
-    LTEXT           "T",IDD_RO1,192,40,60,8,NOT WS_GROUP
-    LTEXT           "Modified:",-1,162,54,60,8,NOT WS_GROUP
-    CONTROL         "Text",-1,"Static",SS_BLACKFRAME,162,66,92,12
-    LTEXT           "T",IDD_RO2,164,68,84,8,NOT WS_GROUP
-    LTEXT           "Saved:",-1,162,86,60,8,NOT WS_GROUP
-    CONTROL         "Text",-1,"Static",SS_BLACKFRAME,162,96,92,12
-    LTEXT           "T",IDD_RO3,164,98,80,8,NOT WS_GROUP
-    GROUPBOX        "Filesize",-1,162,112,94,48
-    LTEXT           "Number of lines:",-1,168,128,24,8,NOT WS_GROUP
-    CONTROL         "Text",-1,"Static",SS_BLACKFRAME,212,126,40,12
-    LTEXT           "12345",IDD_RO5,226,128,24,8,NOT WS_GROUP
-    LTEXT           "Characters:",-1,168,144,32,8,NOT WS_GROUP
-    CONTROL         "Text",-1,"Static",SS_BLACKFRAME,212,142,40,12
-    LTEXT           "1234567",IDD_RO4,218,144,32,8,NOT WS_GROUP
-    PUSHBUTTON      "Cancel",IDCANCEL,210,24,42,14
-    DEFPUSHBUTTON   "&Ok",1,210,8,42,14
+    LISTBOX         IDD_WINDOWLIST,6,10,195,169,LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_TABSTOP
+    LTEXT           "T",IDD_RO1,220,36,87,8,NOT WS_GROUP
+    LTEXT           "Last modified:",-1,220,50,60,8,NOT WS_GROUP
+    LTEXT           "T",IDD_RO2,220,64,84,8,NOT WS_GROUP
+    LTEXT           "Last saved:",-1,220,82,60,8,NOT WS_GROUP
+    LTEXT           "T",IDD_RO3,220,94,80,8,NOT WS_GROUP
+    GROUPBOX        "File size",-1,218,108,121,62
+    LTEXT           "Lines:",-1,223,124,52,8,NOT WS_GROUP
+    RTEXT           "12345",IDD_RO5,275,124,54,8,NOT WS_GROUP
+    LTEXT           "Characters:",-1,223,140,58,8,NOT WS_GROUP
+    RTEXT           "1234567",IDD_RO4,275,140,54,8,NOT WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,247,8,42,14
+    DEFPUSHBUTTON   "&Ok",1,300,8,42,14
+    LTEXT           "Words:",-1,223,156,55,8,NOT WS_GROUP
+    RTEXT           "1234567",IDD_RO6,275,156,55,8,NOT WS_GROUP
 END
 
 DLGPREVIEW DIALOGEX 25, 9, 327, 410
@@ -1007,6 +1004,10 @@ END
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO
 BEGIN
+    DLGINFOFILE, DIALOG
+    BEGIN
+    END
+
     DLGPREVIEW, DIALOG
     BEGIN
     END
@@ -1069,6 +1070,11 @@ BEGIN
 END
 
 DLGWORKMODE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGINFOFILE AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1267,6 +1273,8 @@ BEGIN
     IDS_TT_REGULAR_EXPRESSION 
                             "Regular expressions support the following special characters\r\n""."" - (matches any char)\r\n""[a-z]"" - all characters from a-z\r\n""*"" - (an arbitrary number of times)\r\n""+"" - at least once\r\n""{x,y}"" - minimum x, maximum y times"
     IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text are preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
+    IDS_FILE_MODIFIED       "Modified"
+    IDS_FILE_READONLY       "Read-only"
 END
 
 STRINGTABLE

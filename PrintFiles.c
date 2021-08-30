@@ -159,7 +159,7 @@ static HFONT print_selectfont(HDC hdc, FONTSPEC *fsp) {
 	HFONT 		hFont;
 	TEXTMETRIC 	tm;
 
-	if ((hFont = font_createFontHandle(fsp->fs_name, fsp->fs_cheight, fsp->fs_oemmode)) != 0) {
+	if ((hFont = font_createFontHandle(fsp->fs_name, fsp->fs_cheight, fsp->fs_oemmode, FW_NORMAL)) != 0) {
 		SelectObject(hdc, hFont);
 		if (previousFont) {
 			//
@@ -783,14 +783,14 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	PROPSHEETPAGE psp[2];
 	PROPSHEETHEADER psh;
 
-	SetXDialogParams(_getDialogParsForPage, FALSE);
+	dlg_setXDialogParams(_getDialogParsForPage, FALSE);
 	memset(&psh, 0, sizeof psh);
 	memset(psp, 0, sizeof psp);
 
 	psp[0].dwSize = sizeof(psp[0]);
 	psp[0].hInstance = ui_getResourceModule();
 	psp[0].pszTemplate = MAKEINTRESOURCE(DLGPRINTERLAYOUT);
-	psp[0].pfnDlgProc = DlgStdProc;
+	psp[0].pfnDlgProc = dlg_standardDialogProcedure;
 
 	psp[1].dwSize = sizeof(psp[1]);
 	psp[1].hInstance = ui_getResourceModule();

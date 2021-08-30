@@ -660,6 +660,12 @@ extern int ln_createAndAddSimple(FTABLE* fp, char* b);
 extern int ft_formatText(WINFO* wp, int scope, int type, int flags);
 
 /*
+ * Count the number of words in a file. A word is defined by the identifier definition
+ * in the grammar.
+ */
+extern long ft_countWords(FTABLE* fp);
+
+/*
  * Invoke a callback for every view of a editor document model.
  * The callback may return 0 to abort the iteration process.
  * The callback is invoked with the WINFO pointer an an optional parameter

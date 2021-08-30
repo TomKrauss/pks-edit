@@ -120,29 +120,29 @@ void EdOptionSet(void) {
     PROPSHEETHEADER psh;
 	INT_PTR tempRet;
 
-	SetXDialogParams(_getDialogParsForPage, TRUE);
+	dlg_setXDialogParams(_getDialogParsForPage, TRUE);
 	memset(&psh, 0, sizeof psh);
 	memset(psp, 0, sizeof psp);
 
 	psp[0].dwSize = sizeof(psp[0]);
     psp[0].hInstance = ui_getResourceModule();
     psp[0].pszTemplate = MAKEINTRESOURCE(DLG_OPT_AUTOSAVE);
-    psp[0].pfnDlgProc = DlgStdProc;
+    psp[0].pfnDlgProc = dlg_standardDialogProcedure;
 
     psp[1].dwSize = sizeof(psp[1]);
     psp[1].hInstance = ui_getResourceModule();
     psp[1].pszTemplate = MAKEINTRESOURCE(DLG_OPT_WARNINGS);
-    psp[1].pfnDlgProc = DlgStdProc;
+    psp[1].pfnDlgProc = dlg_standardDialogProcedure;
 
 	psp[2].dwSize = sizeof(psp[2]);
 	psp[2].hInstance = ui_getResourceModule();
 	psp[2].pszTemplate = MAKEINTRESOURCE(DLG_OPT_LAYOUT);
-	psp[2].pfnDlgProc = DlgStdProc;
+	psp[2].pfnDlgProc = dlg_standardDialogProcedure;
 
 	psp[3].dwSize = sizeof(psp[3]);
 	psp[3].hInstance = ui_getResourceModule();
 	psp[3].pszTemplate = MAKEINTRESOURCE(DLG_OPT_MISC);
-	psp[3].pfnDlgProc = DlgStdProc;
+	psp[3].pfnDlgProc = dlg_standardDialogProcedure;
 
 	psh.dwSize = sizeof(psh);
     psh.dwFlags = PSH_PROPSHEETPAGE;
