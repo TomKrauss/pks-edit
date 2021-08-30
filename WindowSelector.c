@@ -143,7 +143,14 @@ static LRESULT windowselector_wndProc(HWND hwnd, UINT message, WPARAM wParam, LP
 	case WM_SYSKEYDOWN:
 		if (wParam == VK_TAB) {
 			pWSP = (WINDOW_SELECTOR_PARAMS*)GetWindowLongPtr(hwnd, GWL_WINDOW_SELECTOR_PARAMS);
-			pWSP->wsp_current++;
+			if (modifierKey != VK_SHIFT && (GetKeyState(VK_SHIFT) & 0x8000) != 0) {
+				pWSP->wsp_current--;
+				if (pWSP->wsp_current < 0) {
+					pWSP->wsp_current = pWSP->wsp_count - 1;
+				}
+			} else {
+				pWSP->wsp_current++;
+			}
 			if (pWSP->wsp_current >= pWSP->wsp_count) {
 				pWSP->wsp_current = 0;
 			}

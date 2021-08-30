@@ -784,7 +784,7 @@ void dlg_drawFileInfo(HDC hdc, RECT *rcp, FTABLE* fp, int nItem, BOOL bSelected)
 	}
 	pszName = string_abbreviateFileName(fp->fname);
 	cChanged = fp->flags & F_MODIFIED ? '*' : ' ';
-	wsprintf(szBuf, "%-3d: %c %s", nItem + 1, cChanged, pszName);
+	wsprintf(szBuf, "%2d: %s%c", nItem + 1, pszName, cChanged);
 	int nFlags = SHGFI_ICON | SHGFI_SMALLICON;
 	if (bSelected) {
 		nFlags |= SHGFI_SELECTED;
