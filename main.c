@@ -334,12 +334,9 @@ static int TranslatePksAccel(HWND hwnd, MSG *msg) {
 					break;
 				}
 			}
-			if (msg->wParam == VK_UP || msg->wParam == VK_DOWN || msg->wParam == VK_RETURN || msg->wParam == VK_ESCAPE) {
-				WINFO* wp = ww_getCurrentEditorWindow();
-				if (wp && wp->codecomplete_handle && IsWindowVisible(wp->codecomplete_handle)) {
-					msg->hwnd = wp->codecomplete_handle;
-					return 0;
-				}
+			WINFO* wp = ww_getCurrentEditorWindow();
+			if (wp && wp->codecomplete_handle && codecomplete_processKey(wp->codecomplete_handle, msg->message, msg->wParam)) {
+				return 1;
 			}
 			if ((_executeKeyBinding = macro_getKeyBinding(msg->wParam)) != 0) {
 				if (msg->message == WM_SYSKEYDOWN ||

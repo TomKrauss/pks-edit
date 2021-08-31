@@ -986,7 +986,7 @@ IDC_CURSOR2             CURSOR                  "rc\\mini move.cur"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON2               ICON                    "rc\\PKS.ICO"
+PKS                     ICON                    "rc\\PKS.ICO"
 
 EDIT                    ICON                    "rc\\edit.ico"
 
@@ -1003,8 +1003,6 @@ PRINT                   ICON                    "rc\\print.ico"
 EXEC                    ICON                    "rc\\exec.ico"
 
 FOLDER                  ICON                    "rc\\folder.ico"
-
-CLIP2                   ICON                    "rc\\clip2.ico"
 
 MACRO                   ICON                    "rc\\macro.ico"
 

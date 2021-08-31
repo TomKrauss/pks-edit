@@ -16,8 +16,8 @@
 #define IDS_TT_REGULAR_EXPRESSION       181
 #define IDS_TT_PRESERVE_CASE            182
 #define IDS_FILE_MODIFIED               183
-#define IDI_ICON2                       183
 #define IDS_FILE_READONLY               184
+#define IDB_PNG1                        189
 #define DLGCURSOROPTIONS                529
 #define DLG_OPT_WARNINGS                556
 #define DLG_OPT_MISC                    557
@@ -39,7 +39,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        184
+#define _APS_NEXT_RESOURCE_VALUE        190
 #define _APS_NEXT_COMMAND_VALUE         40012
 #define _APS_NEXT_CONTROL_VALUE         1016
 #define _APS_NEXT_SYMED_VALUE           101

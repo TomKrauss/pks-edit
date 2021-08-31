@@ -76,10 +76,10 @@ Source: "pks_sys\pkseditconfig.json"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\pksedit.reg"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\pksedit.mac"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\pksedit.chm"; DestDir: "{app}\pks_sys"
-Source: "rc\pks.ico"; DestDir: "{app}\pks_sys"
+Source: "rc\pks.ico"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "readme.md"; DestDir: "{app}"; Flags: isreadme
-Source: "doc\release_notes.md"; DestDir: "{app}\doc" 
-Source: "doc\grammar.md"; DestDir: "{app}\doc" 
+Source: "doc\release_notes.md"; DestDir: "{app}\doc"; Flags: ignoreversion 
+Source: "doc\grammar.md"; DestDir: "{app}\doc"; Flags: ignoreversion 
 
 [INI]
 Filename: "win.ini"; Section: "PksEdit"; Key: "PKS_SYS"; String: "{app}\PKS_SYS"

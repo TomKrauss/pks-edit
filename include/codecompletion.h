@@ -32,6 +32,12 @@ extern void codecomplete_hideSuggestionWindow(WINFO* wp);
  */
 extern void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce);
 
+/*
+ * Process keyboard input in the code completion window. If the key is processed, return TRUE,
+ * otherwise FALSE.
+ */
+extern BOOL codecomplete_processKey(HWND hwnd, UINT message, WPARAM wParam);
+
 #define CODECOMPLETION_H
 
 #endif

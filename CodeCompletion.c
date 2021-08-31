@@ -226,19 +226,16 @@ static void codecomplete_paint(HWND hwnd) {
 	}
 }
 
-static void codecomplete_moveCaret(HWND hwnd, int nBy) {
-	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
-	long nSelectedIndex = pCC->ccp_selection;
-	if (nBy < 0) {
-		if (nSelectedIndex <= 0) {
-			return;
-		}
-	} else {
-		if (nSelectedIndex + nBy >= pCC->ccp_size) {
-			return;
-		}
+static void codecomplete_moveCaret(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nTo) {
+	if (nTo < 0) {
+		nTo = 0;
+	} else if (nTo >= pCC->ccp_size) {
+		nTo = pCC->ccp_size - 1;
 	}
-	pCC->ccp_selection = nSelectedIndex + nBy;
+	if (pCC->ccp_selection == nTo || nTo < 0) {
+		return;
+	}
+	pCC->ccp_selection = nTo;
 	int newTop = pCC->ccp_topRow;
 	if (pCC->ccp_selection < pCC->ccp_topRow) {
 		newTop = pCC->ccp_selection;
@@ -254,6 +251,10 @@ static void codecomplete_moveCaret(HWND hwnd, int nBy) {
 		codecomplete_updateScrollbar(hwnd);
 	}
 	RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE);
+}
+
+static void codecomplete_moveCaretBy(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nBy) {
+	codecomplete_moveCaret(hwnd, pCC, pCC->ccp_selection + nBy);
 }
 
 /*
@@ -303,7 +304,48 @@ static void codecomplete_selectByMouse(HWND hwnd, int y) {
 	pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
 
 	int nIndex = (y - CC_PADDING) / pCC->ccp_lineHeight + pCC->ccp_topRow;
-	codecomplete_moveCaret(hwnd, nIndex - pCC->ccp_selection);
+	codecomplete_moveCaretBy(hwnd, pCC, nIndex - pCC->ccp_selection);
+}
+
+/*
+ * Process keyboard input in the code completion window. If the key is processed, return TRUE,
+ * otherwise FALSE.
+ */
+BOOL codecomplete_processKey(HWND hwnd, UINT message, WPARAM wParam) {
+	if (message != WM_KEYDOWN || !IsWindowVisible(hwnd)) {
+		return FALSE;
+	}
+	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
+	if (wParam == VK_UP || wParam == VK_DOWN) {
+		codecomplete_moveCaretBy(hwnd, pCC, wParam == VK_UP ? -1 : 1);
+		return TRUE;
+	}
+	if (wParam == VK_HOME) {
+		codecomplete_moveCaret(hwnd, pCC, 0);
+		return TRUE;
+	}
+	if (wParam == VK_END) {
+		codecomplete_moveCaret(hwnd, pCC, pCC->ccp_size-1);
+		return TRUE;
+	}
+	if (wParam == VK_NEXT) {
+		codecomplete_moveCaret(hwnd, pCC, pCC->ccp_selection + pCC->ccp_pageSize - 1);
+		return TRUE;
+	}
+	if (wParam == VK_PRIOR) {
+		codecomplete_moveCaret(hwnd, pCC, pCC->ccp_selection - pCC->ccp_pageSize + 1);
+		return TRUE;
+	}
+	if (wParam == VK_ESCAPE) {
+		ShowWindow(hwnd, SW_HIDE);
+		return TRUE;
+	}
+	if (wParam == VK_RETURN) {
+		codecomplete_action(hwnd);
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 /*
@@ -377,15 +419,6 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 				codecomplete_scrollTo(hwnd, pCC, nNewTop);
 			}
 			break;
-		case WM_KEYDOWN:
-			if (wParam == VK_UP || wParam == VK_DOWN) {
-				codecomplete_moveCaret(hwnd, wParam == VK_UP ? -1 : 1);
-			} else if (wParam == VK_ESCAPE) {
-				ShowWindow(hwnd, SW_HIDE);
-			} else if (wParam == VK_RETURN) {
-				codecomplete_action(hwnd);
-			}
-			return 1;
 	}
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }

@@ -566,6 +566,9 @@
     <Image Include="rc\template.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="RC\ICON3.ICO">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Xsd Include="pksedit.xsd" />

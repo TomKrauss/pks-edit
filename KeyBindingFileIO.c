@@ -295,6 +295,7 @@ int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
 				EdSyncSelectionWithCaret(MARK_END);
 			}
 		}
+		ln_listfree(pasteBuffer.pln);
 		ret = 1;
 	}
 	stringbuf_destroy(pSB);

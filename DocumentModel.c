@@ -639,7 +639,7 @@ LINE *ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold)
 
 		if ((lp1 = ln_cut(lptmp,lptmp->len+1,0,lptmp->len)) == 0L) 
 			return 0;
-		if (*lpold == lptmp) {
+		if (lpold && *lpold == lptmp) {
 			*lpold = lp1;
 		}
 		ln_replace(fp,lptmp,lp1);
