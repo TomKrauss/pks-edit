@@ -1,10 +1,8 @@
 [files]
 "C:\source\pksedit\DesktopIcons.c", line 189: 0x0 0x1 -1 -1 -8 -31 60 18 1439 667
 "C:\source\pksedit\PKSEDIT.RC", line 1253: 0x0 0x1 -1 -1 -1 -1 130 130 1494 608
-"C:\Users\tom\Desktop\readme.txt", line 19: 0x0 0x1 -1 -1 -1 -1 27 27 1391 505
+"C:\Users\tom\Desktop\readme.txt", line 7: 0x0 0x1 -1 -1 -1 -1 27 27 1391 505
 [find]
-!pac
-!pack
 !DomainEvent
 !EventStore
 !ADD
@@ -34,6 +32,9 @@
 !Ctrl+TAB
 !Alt+B
 !icons8
+!Ctrl+SPACE
+!Ctrl+Shift+SPACE
+!ESC
 [filePatterns]
 !*.*
 !*.java
@@ -105,7 +106,7 @@
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\SuiteUseCases\Test2WorkflowBookFlight\*.*
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\*.*
 !C:\temp\*.*
-!C:\source\pksedit\pks_sys\*.mac
 !C:\source\pksedit\*.*
 !C:\source\trend-master-eclipse-4.20\trend\core\ejb\src\de\gebit\trend\service\jms\*.*
 !C:\Users\tom\Desktop\*.*
+!C:\source\pksedit\pks_sys\*.mac

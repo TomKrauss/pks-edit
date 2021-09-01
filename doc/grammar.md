@@ -13,6 +13,8 @@ Basically a grammar file is used to define the following aspects of the behavior
   or included file).
 - tag sources. These define the indices used for cross reference searches (ctags e.g. for the C programming language)
 - code analysers. These are used to calculate additional suggestions for the suggestion / code completion functionality.
+  Currently only one code analyzer is available, extracting all words / identifiers (not honorring syntax at all) from the 
+  current text displayed in the editor. To use that analyzer in a grammar, add `"analyzer": "words"` to the grammar.
 
 Every grammar resides in an own JSON file named 'grammar_id'.grammar.json and has a unique id (name), which is associated 
 with a document type. The grammar files are placed in the PKS_SYS directory. The document types are defined in a file
@@ -21,18 +23,18 @@ define the grammar id to use for the corresponding document type.
 
 ### Templates
 Templates are defined with a pattern using to "select the template" and the actual contents of the template. The contents
-of the template may contain variables enclosed in ${ } - e.g. ${user}.
+of the template may contain variables enclosed in `${ }` - e.g. `${user}`.
 
 ### Supported Template Variables
 The following variables are supported:
 
-- ${user} - name of the current logged in user
-- ${date} - the current date (by default in format dd.mm.yyyy)
-- ${year} - the current year (e.g. 2021)
-- ${cursor} - after inserting the template, place the cursor here
-- ${file_name} - base name of the current file
-- ${selection_end} - used in combination with ${cursor} to select a range of text after inserting the template.
-- ${word_selection} - the "word/identifier" close to the input caret or text currently selected.
+- `${user}` - name of the current logged in user
+- `${date}` - the current date (by default in format dd.mm.yyyy)
+- `${year}` - the current year (e.g. 2021)
+- `${cursor}` - after inserting the template, place the cursor here
+- `${file_name}` - base name of the current file
+- `${selection_end}` - used in combination with ${cursor} to select a range of text after inserting the template.
+- `${word_selection}` - the "word/identifier" close to the input caret or text currently selected.
 
 
 

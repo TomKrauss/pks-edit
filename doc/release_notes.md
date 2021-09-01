@@ -13,6 +13,8 @@
   to navigate between "editing positions" and Alt+Shift+Left/Right to navigate between "navigation positions". Editing positions
   can also be navigated through the new back and next toolbar buttons.
 - Ctrl+TAB opens a window selector now allowing to visually tab through the list of open files to select a file.
+- Code completion is now by default triggered using Ctrl+SPACE (in conformance to other development tools). For text type
+  grammars (text and markdown) code completion includes now all words found in the current text.
 
 #### Changed
 - Character classes (for identifiers and mappings from lower case to upper case) are now defined in the grammar, which allows for language
