@@ -19,6 +19,7 @@
 #include "customcontrols.h"
 #include "winfo.h"
 #include "arraylist.h"
+#include "hashmap.h"
 #include "winterf.h"
 #include "grammar.h"
 #include "pksrc.h"
@@ -27,6 +28,7 @@
 #include "codecompletion.h"
 #include "themes.h"
 #include "xdialog.h"
+#include "codeanalyzer.h"
 
 #define CLASS_CODE_COMPLETION	"CodeCompletion"
 #define CC_WIDTH			150
@@ -43,6 +45,7 @@ typedef struct tagCODE_ACTION {
 	CODE_ACTION_TYPE ca_type;
 	char*	ca_name;
 	BOOL ca_replaceWord;
+	BOOL ca_freeName;
 	union {
 		UCLIST* template;
 		unsigned char* text;
@@ -84,14 +87,28 @@ static void codecomplete_updateScrollbar(HWND hwnd) {
 	ReleaseDC(hwnd, hdc);
 }
 
-static ARRAY_LIST* _actionList;
-static void codecomplete_addTags(intptr_t pszTagName, intptr_t pTag) {
+static HASHMAP* _suggestions;
+static CODE_ACTION* codecomplete_addTagsWithAlloc(intptr_t pszTagName, BOOL bAlloc) {
+	if (hashmap_containsKey(_suggestions, pszTagName)) {
+		return NULL;
+	}
+	unsigned char* pszCopy = bAlloc ? _strdup((char*)pszTagName) : (unsigned char* )pszTagName;
 	CODE_ACTION* pCurrent = (CODE_ACTION*)calloc(1, sizeof * pCurrent);
-	pCurrent->ca_name = (unsigned char*)pszTagName;
+	pCurrent->ca_name = pszCopy;
 	pCurrent->ca_type = CA_TAG;
-	pCurrent->ca_param.text = (unsigned char*)pszTagName;
+	pCurrent->ca_param.text = pszCopy;
 	pCurrent->ca_replaceWord = TRUE;
-	arraylist_add(_actionList, pCurrent);
+	pCurrent->ca_freeName = bAlloc;
+	hashmap_put(_suggestions, (intptr_t)pszTagName, (intptr_t)pCurrent);
+	return pCurrent;
+}
+
+static void codecomplete_addTags(intptr_t pszTagName, intptr_t pTag) {
+	codecomplete_addTagsWithAlloc(pszTagName, FALSE);
+}
+
+static void codecomplete_analyzerCallback(const char* pszRecommendation) {
+	codecomplete_addTagsWithAlloc((intptr_t) pszRecommendation, TRUE);
 }
 
 /*
@@ -118,6 +135,25 @@ static int codecomplete_compare(const CODE_ACTION** p1, const CODE_ACTION** p2) 
 	return ret;
 }
 
+static char* _pszMatch;
+static int codecomplete_matchWord(const char* pszWord) {
+	return strstr(pszWord, _pszMatch) != NULL;
+}
+
+/*
+ * Destroy actions previously allocated.
+ */
+static int codecomplete_destroyAction(CODE_ACTION* pAction) {
+	if (pAction->ca_freeName) {
+		free(pAction->ca_name);
+	}
+	return 1;
+}
+
+static void codecomplete_destroyActions(CODE_COMPLETION_PARAMS* pCC) {
+	ll_destroy((LINKED_LIST**)&pCC->ccp_actions, codecomplete_destroyAction);
+}
+
 /*
  * codecomplete_updateCompletionList
  * update the list of completions awailable.
@@ -131,14 +167,11 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	UCLIST* up = grammar_getUndercursorActions(fp->documentDescriptor->grammar);
 	CODE_ACTION* pCurrent;
 
-	if (pCC->ccp_actions) {
-		ll_destroy((LINKED_LIST**)&pCC->ccp_actions, NULL);
-	}
+	codecomplete_destroyActions(pCC);
 	pCC->ccp_topRow = 0;
-	_actionList = arraylist_create(37);
 	while (up) {
 		if (up->action == UA_ABBREV) {
-			pCurrent = (CODE_ACTION*) ll_insert((LINKED_LIST**) &pCC->ccp_actions, sizeof * pCC->ccp_actions);
+			pCurrent = ll_insert(&pCC->ccp_actions, sizeof * pCC->ccp_actions);
 			pCurrent->ca_name = up->pat;
 			pCurrent->ca_type = CA_TEMPLATE;
 			pCurrent->ca_param.template = up;
@@ -146,17 +179,25 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 		}
 		up = up->next;
 	}
+	_suggestions = hashmap_create(37, NULL, NULL);
 	xref_getSelectedIdentifier(szIdent, sizeof szIdent);
-	xref_forAllTagsDo(wp, szIdent, codecomplete_addTags);
-	grammar_addSuggestionsMatching(fp->documentDescriptor->grammar, szIdent, codecomplete_addTags);
-	arraylist_sort(_actionList, codecomplete_compare);
-	for (int i = (int)arraylist_size(_actionList); --i >= 0; ) {
-		CODE_ACTION* pAction = arraylist_get(_actionList, i);
+	_pszMatch = szIdent;
+	// (T) pass in the match function here as well rather than the identifier.
+	xref_forAllTagsDo(wp, szIdent, (void (*)(intptr_t, intptr_t))codecomplete_addTags);
+	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
+	grammar_addSuggestionsMatching(pGrammar, codecomplete_matchWord, (void (*)(intptr_t, intptr_t))codecomplete_addTags);
+	char* pszAnalyzer = grammar_getCodeAnalyzer(pGrammar);
+	analyzer_performAnalysis(pszAnalyzer, wp, codecomplete_matchWord, codecomplete_analyzerCallback);
+	ARRAY_LIST* actionList = hashmap_values(_suggestions);
+	hashmap_destroy(_suggestions, NULL);
+	_suggestions = NULL;
+	arraylist_sort(actionList, codecomplete_compare);
+	for (int i = (int)arraylist_size(actionList); --i >= 0; ) {
+		CODE_ACTION* pAction = arraylist_get(actionList, i);
 		pAction->ca_next = pCC->ccp_actions;
 		pCC->ccp_actions = pAction;
 	}
-	arraylist_destroy(_actionList);
-	_actionList = NULL;
+	arraylist_destroy(actionList);
 	pCC->ccp_size = ll_size((LINKED_LIST*)pCC->ccp_actions);
 	codecomplete_updateScrollbar(wp->codecomplete_handle);
 	RedrawWindow(wp->codecomplete_handle, NULL, NULL, RDW_INVALIDATE);
@@ -367,7 +408,7 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		case WM_DESTROY:
 			pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
 			if (pCC) {
-				ll_destroy((LINKED_LIST**)&pCC->ccp_actions, NULL);
+				codecomplete_destroyActions(pCC);
 				free(pCC);
 				SetWindowLongPtr(hwnd, GWL_PARAMS, (LONG_PTR)NULL);
 			}

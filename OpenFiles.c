@@ -315,7 +315,7 @@ void ft_destroy(FTABLE *fp)
 	ft_deleteautosave(fp);
 	ft_bufdestroy(fp);
 
-	ll_delete((LINKED_LIST**)&_filelist,fp);
+	ll_delete(&_filelist,fp);
 
 	if (!_filelist || P_EQ(fp, ft_getCurrentDocument())) {
 		_currentFile = NULL;
@@ -331,11 +331,11 @@ void ft_destroy(FTABLE *fp)
 FTABLE *ft_new(void)
 {	FTABLE *fp;
 
-	if ((fp = (FTABLE*)ll_insert((LINKED_LIST**)&_filelist,sizeof *fp)) == 0)
+	if ((fp = ll_insert(&_filelist,sizeof *fp)) == 0)
 		return 0;
 
 	if (undo_initializeManager(fp) == 0) {
-		ll_delete((LINKED_LIST**)&_filelist,fp);
+		ll_delete(&_filelist,fp);
 		return 0;
 	}
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_new File 0x%lx",fp));

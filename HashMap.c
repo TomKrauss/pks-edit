@@ -19,6 +19,7 @@
 #include <ctype.h>
 #include "alloc.h"
 #include "hashmap.h"
+#include "arraylist.h"
 
 #define	DIM(x)		(sizeof(x)/sizeof(x[0]))
 
@@ -249,3 +250,16 @@ void hashmap_makeCaseIgnore(HASHMAP* pTable) {
 	hashmap_rehashWith(pTable, hashmap_hashCodeStringIgnoreCase, (HASH_COMPARE)_stricmp);
 }
 
+/*
+ * Return the values contained in a hashmap converted to an array list.
+ */
+ARRAY_LIST* hashmap_values(HASHMAP* pTable) {
+	ARRAY_LIST* values = arraylist_create(pTable->ht_size);
+	for (int i = 0; i < pTable->ht_capacity; i++) {
+		void* pValue = (void*)pTable->ht_entries[i].he_value;
+		if (pValue) {
+			arraylist_add(values, pValue);
+		}
+	}
+	return values;
+}

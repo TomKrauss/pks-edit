@@ -16,6 +16,7 @@
 
 #ifndef HASHTABLE_H
 
+typedef struct tagARRAY_LIST ARRAY_LIST;
 typedef struct tagHASHMAP HASHMAP;
 typedef unsigned int (*HASH_CODE)(intptr_t aKey);
 typedef int (*HASH_COMPARE)(intptr_t anObj1, intptr_t anObj2);
@@ -78,6 +79,11 @@ extern void hashmap_makeCaseIgnore(HASHMAP* pTable);
  * The callback is invoked with each key and the corresponding value from the hashmap.
  */
 extern void hashmap_forKeysMatching(HASHMAP* pTable, void (*function)(intptr_t k, intptr_t v), int (*filter)(intptr_t k));
+
+/*
+ * Return the values contained in a hashmap converted to an array list.
+ */
+extern ARRAY_LIST* hashmap_values(HASHMAP* pTable);
 
 #define HASHTABLE_H
 

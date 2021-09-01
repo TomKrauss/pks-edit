@@ -42,26 +42,26 @@ extern int ll_moveElementToFront(LINKED_LIST** pointerLinkedList, void* elem);
  * insert an element with the given size into a linked list. The head of the list
  * will be updated to point to the new element and existing elements will be pushed back.
  */
-extern LINKED_LIST* ll_insert(LINKED_LIST** pointerLinkedList, long size);
+extern void* ll_insert(void** pointerLinkedList, long size);
 
 /**
  * Add an element to the end of a linked list. If the linked list does not yet exist,
  * the HEAD pointer is updated to point to the new element.
  */
-extern void ll_add(LINKED_LIST** pointerLinkedList, LINKED_LIST* pElement);
+extern void ll_add(void** pointerLinkedList, LINKED_LIST* pElement);
 
 /*--------------------------------------------------------------------------
  * ll_destroy()
  * destroy a linked list. Pass a pointer to the head of the linked list and
  * an additional destruction function for one element in the list.
  */
-extern void ll_destroy(LINKED_LIST** pointerLinkedList, int (*destroy)(void* elem));
+extern void ll_destroy(void** pointerLinkedList, int (*destroy)(void* elem));
 
 /*--------------------------------------------------------------------------
  * ll_delete()
  * delete an element in a linked list.Return 1 if the element was successfully deleted.
  */
-extern int ll_delete(LINKED_LIST** pointerLinkedList, void* element);
+extern int ll_delete(void** pointerLinkedList, void* element);
 
 /**
  * Return an element from the linked list at the given index or NULL
@@ -80,7 +80,7 @@ extern long ll_size(LINKED_LIST* linkedList);
  *
  * Find an element in a linked list, with a given name.
  */
-extern LINKED_LIST* ll_find(LINKED_LIST* linkedList, char* name);
+extern void* ll_find(void* linkedList, char* name);
 
 
 

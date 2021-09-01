@@ -384,7 +384,7 @@ int rsc_switchtotable(RSCTABLE **pRSCTable, char *pszTarget)
 			return 1;
 		} 
 	}
-	if ((rp = (RSCTABLE*)ll_insert((LINKED_LIST**)pRSCTable,sizeof *rp)) == 0) {
+	if ((rp = ll_insert(pRSCTable,sizeof *rp)) == 0) {
 		return 0;
 	}
 

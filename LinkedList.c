@@ -25,7 +25,7 @@
  * an additional destruction function for one element in the list. If the destroy callback
  * is passed it must return TRUE to cause the pointer itself being eliminated,
  */
-void ll_destroy(LINKED_LIST **pointerLinkedList, int (*destroy)(void *elem)) {
+void ll_destroy(void **pointerLinkedList, int (*destroy)(void *elem)) {
 	LINKED_LIST *lp,*lpnext = NULL;
 
 	for (lp = *pointerLinkedList; lp != 0; lp = lpnext) {
@@ -41,7 +41,7 @@ void ll_destroy(LINKED_LIST **pointerLinkedList, int (*destroy)(void *elem)) {
  * ll_delete()
  * delete an element in a linked list. Return 1 if the element was successfully deleted.
  */
-int ll_delete(LINKED_LIST **pointerLinkedList, void *element) {
+int ll_delete(void **pointerLinkedList, void *element) {
 	LINKED_LIST *lp,*lpprev,**head;
 
 	head = (LINKED_LIST**) pointerLinkedList;
@@ -99,7 +99,7 @@ int ll_moveElementToFront(LINKED_LIST**pointerLinkedList, void *elem) {
  * insert an element with the given size into a linked list. The head of the list
  * will be updated to point to the new element and existing elements will be pushed back.
  */
-LINKED_LIST *ll_insert(LINKED_LIST **pointerLinkedList,long size) {
+void *ll_insert(void **pointerLinkedList,long size) {
 	LINKED_LIST *lp;
 
 	if ((lp = calloc(1, (size_t)size)) == 0) {
@@ -114,7 +114,7 @@ LINKED_LIST *ll_insert(LINKED_LIST **pointerLinkedList,long size) {
  * Add an element to the end of a linked list. If the linked list does not yet exist,
  * the HEAD pointer is updated to point to the new element.
  */
-void ll_add(LINKED_LIST** pointerLinkedList, LINKED_LIST* pElement) {
+void ll_add(void** pointerLinkedList, LINKED_LIST* pElement) {
 	LINKED_LIST* lp = *pointerLinkedList;
 
 	pElement->next = NULL;
@@ -134,7 +134,7 @@ void ll_add(LINKED_LIST** pointerLinkedList, LINKED_LIST* pElement) {
  * 
  * Find an element in a linked list, with a given name.
  */
-LINKED_LIST *ll_find(LINKED_LIST *linkedList, char *name)
+void *ll_find(void *linkedList, char *name)
 {
 	LINKED_LIST *lp;
 
@@ -142,7 +142,7 @@ LINKED_LIST *ll_find(LINKED_LIST *linkedList, char *name)
 		if (strcmp(lp->name,name) == 0)
 			return lp;
 	}
-	return (LINKED_LIST*) 0;
+	return 0;
 }
 
 /**

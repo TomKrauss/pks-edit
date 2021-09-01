@@ -114,7 +114,7 @@ void mark_killSelection(WINFO* wp)
 static MARK *mark_alloc(WINFO *wp, int c)
 {
 	mark_free(wp,mark_find(wp,c));
-	return (MARK*) ll_insert((LINKED_LIST**)&wp->fmark,sizeof(MARK));
+	return ll_insert(&wp->fmark,sizeof(MARK));
 }
 
 /*--------------------------------------------------------------------------

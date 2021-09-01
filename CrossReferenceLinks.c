@@ -312,7 +312,7 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 			pTag->tagname = _strdup(extCommand);
 			hashmap_put(_allTags.tt_map, (intptr_t)pTag->tagname, (intptr_t)pTag);
 		}
-		pReference = (TAG_REFERENCE*) ll_insert((LINKED_LIST**)&pTag->tagReferences, sizeof * pReference);
+		pReference = ll_insert(&pTag->tagReferences, sizeof * pReference);
 		pReference->pTag = pTag;
 		char* filename = calloc(1, EDMAXPATHLEN);
 		regex_getCapturingGroup(&match, _exprerror->filenameCapture - 1, filename, EDMAXPATHLEN);

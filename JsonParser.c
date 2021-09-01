@@ -139,7 +139,7 @@ static int json_getObjectList(char* pszBuf, jsmntok_t* tokens, int firstToken, i
 		if (tokens[i].type == JSMN_OBJECT) {
 			void* pNested = pArrayDescriptor->ro_createInstance();
 			i = json_processTokens(pArrayDescriptor->ro_nestedRules, pNested, pszBuf, tokens[i].start, tokens[i].end, tokens, i + 1, numberOfTokens);
-			ll_add((LINKED_LIST**)pTargetSlot, pNested);
+			ll_add(pTargetSlot, pNested);
 		}
 		else {
 			i++;

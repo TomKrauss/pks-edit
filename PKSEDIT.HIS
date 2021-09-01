@@ -1,6 +1,7 @@
 [files]
+"C:\source\pksedit\DesktopIcons.c", line 189: 0x0 0x1 -1 -1 -8 -31 60 18 1439 667
 "C:\source\pksedit\PKSEDIT.RC", line 1253: 0x0 0x1 -1 -1 -1 -1 130 130 1494 608
-"C:\source\pksedit\DesktopIcons.c", line 199: 0x0 0x1 -1 -1 -8 -31 60 18 1439 667
+"C:\Users\tom\Desktop\readme.txt", line 19: 0x0 0x1 -1 -1 -1 -1 27 27 1391 505
 [find]
 !pac
 !pack
@@ -99,7 +100,6 @@
 !C:\source\techradar\*.*
 !C:\source\pksedit\macros\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\ui\scan\*.*
-!C:\Users\tom\Desktop\*.*
 !C:\*.*
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\FitNesse\*.*
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\SuiteUseCases\Test2WorkflowBookFlight\*.*
@@ -108,3 +108,4 @@
 !C:\source\pksedit\pks_sys\*.mac
 !C:\source\pksedit\*.*
 !C:\source\trend-master-eclipse-4.20\trend\core\ejb\src\de\gebit\trend\service\jms\*.*
+!C:\Users\tom\Desktop\*.*

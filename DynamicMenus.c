@@ -72,9 +72,9 @@ void menu_initializeDefinition(char *szMenu) {
 		return;
 	}
 	menu_overrideMenuBinding();
-	if ((pTitleMenu = (PMENUS)ll_find((LINKED_LIST*)_titlemenus, szMenu)) != 0) {
+	if ((pTitleMenu = ll_find(_titlemenus, szMenu)) != 0) {
 		hNextDestroy = pTitleMenu->hmenu;
-		ll_delete((LINKED_LIST**)&_titlemenus, pTitleMenu);
+		ll_delete(&_titlemenus, pTitleMenu);
 	}
 	if (hNextDestroy) {
 		DestroyMenu(hNextDestroy);
@@ -177,7 +177,7 @@ static HMENU menu_createMenu(BOOL bSub)
 	 * is this menu already created ?
 	 * if, then just return handle
 	 */
-	if ((pTitleMenu = (PMENUS)ll_find((LINKED_LIST*)_titlemenus, rp->rt_name)) != 0) {
+	if ((pTitleMenu = ll_find(_titlemenus, rp->rt_name)) != 0) {
 		if (bSub) {
 			return (HMENU)pMenu->handle;
 		} else {
@@ -185,7 +185,7 @@ static HMENU menu_createMenu(BOOL bSub)
 		}
 	}
 	
-	if ((pTitleMenu = (PMENUS)ll_insert((LINKED_LIST**)&_titlemenus,
+	if ((pTitleMenu = ll_insert(&_titlemenus,
 		sizeof *pTitleMenu)) == 0) {
 		return 0;
 	}

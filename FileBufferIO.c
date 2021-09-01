@@ -100,7 +100,7 @@ static void list2_insert(P2LIST **head, char *p1, char *p2)
 
 	if ((p1 = _strdup(p1)) != 0 &&
 	    (p2 = _strdup(p2)) != 0 &&
-	    (pl = (P2LIST*)ll_insert((LINKED_LIST**)head,sizeof *pl)) != 0) {
+	    (pl = ll_insert(head,sizeof *pl)) != 0) {
 		pl->p1 = p1;
 		pl->p2 = p2;
 	}

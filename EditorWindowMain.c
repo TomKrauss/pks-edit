@@ -801,7 +801,7 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd) {
 			break;
 		}
 	}
-	if ((wp = (WINFO*)ll_insert((LINKED_LIST**)&_winlist,sizeof *wp)) == 0) {
+	if ((wp = ll_insert(&_winlist,sizeof *wp)) == 0) {
 		return 0;
 	}
 
@@ -896,7 +896,7 @@ void ww_destroy(WINFO *wp)
 	wp->blend = 0;
 	wp->fp = NULL;
 	nId = wp->win_id;
-	if (!ll_delete((LINKED_LIST**)&_winlist,wp)) {
+	if (!ll_delete(&_winlist,wp)) {
 		EdTRACE(log_errorArgs(DEBUG_ERR,"failed deleting window props"));
 		;
 	}

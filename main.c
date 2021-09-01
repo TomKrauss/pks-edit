@@ -42,6 +42,7 @@
 #include "codecompletion.h"
 #include "markpositions.h"
 #include "windowselector.h"
+#include "codeanalyzer.h"
 
 #define	PROF_OFFSET	1
 
@@ -185,6 +186,7 @@ static BOOL InitApplication(void)
 			!windowselector_registerWindowClass()) {
 	    return FALSE;
 	}
+	analyzer_registerDefaultAnalyzers();
 	return TRUE;
 }
 
@@ -657,6 +659,7 @@ static void main_cleanup(void) {
 	bl_destroyPasteList();
 	ic_destroyClasses();
 	fm_destroyAll();
+	analyzer_destroyAnalyzers();
 }
 
 /*------------------------------------------------------------

@@ -291,6 +291,9 @@
     <ClCompile Include="WindowSelector.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CodeAnalyzer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -477,6 +480,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\windowselector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\codeanalyzer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

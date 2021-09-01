@@ -357,3 +357,11 @@ unsigned char* stringbuf_getString(STRING_BUF* pBuf) {
 	return pBuf->sb_string;
 }
 
+/*
+ * Reset the string buffer to be empty. 
+ */
+void stringbuf_reset(STRING_BUF* pBuf) {
+	pBuf->sb_current = pBuf->sb_string;
+}
+
+

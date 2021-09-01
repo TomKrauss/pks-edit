@@ -377,7 +377,7 @@ DOCUMENT_TYPE *doctypes_createDocumentType(DOCUMENT_TYPE *llp)
 	DOCUMENT_TYPE * llpNew;
 	int		nLen;
 
-	if ((llpNew = (DOCUMENT_TYPE*)ll_insert((LINKED_LIST**)&config.dc_types, sizeof *llpNew)) == 0) {
+	if ((llpNew = ll_insert(&config.dc_types, sizeof *llpNew)) == 0) {
 		return 0;
 	}
 	if (llp) {
@@ -407,8 +407,8 @@ static BOOL doctypes_freeDocumentType(DOCUMENT_TYPE* dt) {
  * Deletes and de-allocates all known document types and editor configurations. 
  */
 void doctypes_destroyAllDocumentTypes() {
-	ll_destroy((LINKED_LIST**)&config.dc_types, doctypes_freeDocumentType);
-	ll_destroy((LINKED_LIST**)&config.dc_editorConfigurations, NULL);
+	ll_destroy(&config.dc_types, doctypes_freeDocumentType);
+	ll_destroy(&config.dc_editorConfigurations, NULL);
 }
 
 /*--------------------------------------------------------------------------
@@ -416,7 +416,7 @@ void doctypes_destroyAllDocumentTypes() {
  * Deletes a given document type.
  */
 void doctypes_deleteDocumentType(DOCUMENT_TYPE *llp) {
-	ll_delete((LINKED_LIST**)&config.dc_types, llp);
+	ll_delete(&config.dc_types, llp);
 }
 
 /*--------------------------------------------------------------------------

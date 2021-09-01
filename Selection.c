@@ -549,7 +549,7 @@ EXPORT PASTE *bl_lookupPasteBuffer(int id,int insert,PASTELIST **header)
 		return pp;
 	}
 
-	if ((pl = (PASTELIST*)ll_insert((LINKED_LIST**)header, sizeof * pl)) == 0L) {
+	if ((pl = ll_insert(header, sizeof * pl)) == 0L) {
 		return 0;
 	}
 	pl->id = id;

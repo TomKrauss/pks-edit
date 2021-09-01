@@ -94,7 +94,7 @@ typedef struct tagGRAMMAR {
 	NAVIGATION_PATTERN* navigation;		// The patterns, which can be used to extract hyperlinks to navigate from within a file
 	TAGSOURCE* tagSources;				// The list of tag sources to check for cross references
 	TEMPLATE* templates;				// The code templates for this grammar.
-	char* analyser;						// Name of a "wellknown" analyser to use to extract further suggestions from the text of the current document.
+	char* analyzer;						// Name of a "wellknown" analyzer to use to extract further suggestions from the text of the current document.
 } GRAMMAR;
 
 static BRACKET_RULE _defaultBracketRule = {
@@ -201,7 +201,7 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_CHAR_ARRAY, "unIndentLinePattern", offsetof(GRAMMAR, unIndentLinePattern), sizeof(((GRAMMAR*)NULL)->unIndentLinePattern)},
 	{	RT_CHAR_ARRAY, "increaseIndentPattern", offsetof(GRAMMAR, increaseIndentPattern), sizeof(((GRAMMAR*)NULL)->increaseIndentPattern)},
 	{	RT_CHAR_ARRAY, "decreaseIndentPattern", offsetof(GRAMMAR, decreaseIndentPattern), sizeof(((GRAMMAR*)NULL)->decreaseIndentPattern)},
-	{	RT_ALLOC_STRING, "analyser", offsetof(GRAMMAR, analyser)},
+	{	RT_ALLOC_STRING, "analyzer", offsetof(GRAMMAR, analyzer)},
 	{	RT_OBJECT_LIST, "navigation", offsetof(GRAMMAR, navigation),
 			{.r_t_arrayDescriptor = {grammar_createNavigationPattern, _navigationPatternRules}}},
 	{	RT_OBJECT_LIST, "templates", offsetof(GRAMMAR, templates),
@@ -258,7 +258,7 @@ static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
 	ll_destroy((LINKED_LIST**)&pGrammar->navigation, grammar_destroyNavigationPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->tagSources, grammar_destroyTagSource);
 	ll_destroy((LINKED_LIST**)&pGrammar->templates, grammar_destroyTemplates);
-	free(pGrammar->analyser);
+	free(pGrammar->analyzer);
 	return 1;
 }
 
@@ -503,7 +503,7 @@ static int grammar_loadFromFile(char* pszGrammarName) {
 	if (json_parse(szFileName, &definitions, _grammarDefinitionsRules)) {
 		if (definitions.gd_grammars != NULL) {
 			grammar_initialize(definitions.gd_grammars);
-			ll_add((LINKED_LIST**)&_grammarDefinitions.gd_grammars, (LINKED_LIST*)definitions.gd_grammars);
+			ll_add(&_grammarDefinitions.gd_grammars, (LINKED_LIST*)definitions.gd_grammars);
 		}
 		return 1;
 	}
@@ -771,7 +771,7 @@ UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar) {
 	if (!pGrammar->undercursorActions) {
 		BRACKET_RULE* pRule = pGrammar->highlightBrackets;
 		while (pRule) {
-			UCLIST* pList = (UCLIST*)ll_insert((LINKED_LIST**)&pGrammar->undercursorActions, sizeof(UCLIST));
+			UCLIST* pList = ll_insert(&pGrammar->undercursorActions, sizeof(UCLIST));
 			pList->action = UA_SHOWMATCH;
 			pList->len = 0;
 			pList->p.uc_bracket = pRule;
@@ -779,7 +779,7 @@ UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar) {
 		}
 		TEMPLATE* pTemplate = pGrammar->templates;
 		while (pTemplate) {
-			UCLIST* pList = (UCLIST*)ll_insert((LINKED_LIST**)&pGrammar->undercursorActions, sizeof(UCLIST));
+			UCLIST* pList = ll_insert(&pGrammar->undercursorActions, sizeof(UCLIST));
 			pList->action = UA_ABBREV;
 			strcpy(pList->pat, pTemplate->t_match);
 			pList->len = (int)strlen(pTemplate->t_match);
@@ -855,9 +855,9 @@ void grammar_documentTypeChanged(GRAMMAR* pGrammar) {
 	}
 }
 
-static char* pKeywordMatch;
+static int (*pKeywordMatch)(char* param);
 static void grammar_addKeyword(char* pszKeyWord, void (*addCallback)(intptr_t pszTagName, intptr_t pTag)) {
-	if (strstr(pszKeyWord, pKeywordMatch) != NULL) {
+	if (pKeywordMatch(pszKeyWord)) {
 		(*addCallback)((intptr_t)pszKeyWord, (intptr_t)pszKeyWord);
 	}
 }
@@ -867,12 +867,12 @@ static void grammar_addKeyword(char* pszKeyWord, void (*addCallback)(intptr_t ps
  * This includes e.g. the keywords defined in a grammar but also "language specific" analysis results of the surrounding
  * file.
  */
-void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, char* pszMatch, void (*addCallback)(intptr_t pszTagName, intptr_t pTag)) {
+void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, int (*fMatch)(char* pszMatch), void (*addCallback)(intptr_t pszTagName, intptr_t pTag)) {
 	GRAMMAR_PATTERN* pPattern;
 	if (pGrammar == NULL) {
 		return;
 	}
-	pKeywordMatch = pszMatch;
+	pKeywordMatch = fMatch;
 	for (pPattern = pGrammar->patterns; pPattern; pPattern = pPattern->next) {
 		if (pPattern->keywords) {
 			hashmap_forEachKey(pPattern->keywords, (void (*)(intptr_t, void*)) grammar_addKeyword, addCallback);
@@ -881,10 +881,10 @@ void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, char* pszMatch, void (*ad
 }
 
 /*
- * Returns the name of a code analyser to use to analyse the code of the document with the given grammar
+ * Returns the name of a code analyzer to use to analyse the code of the document with the given grammar
  * for the purpose of calculating suggestions. The returned name (if analysers are defined) are then to be used
- * to aquire a code analyser from the code analyser package.
+ * to aquire a code analyzer from the code analyzer package.
  */
-char* grammar_getCodeAnalyser(GRAMMAR* pGrammar) {
-	return pGrammar != NULL ? pGrammar->analyser : NULL;
+char* grammar_getCodeAnalyzer(GRAMMAR* pGrammar) {
+	return pGrammar != NULL ? pGrammar->analyzer : NULL;
 }

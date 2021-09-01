@@ -201,6 +201,11 @@ extern void stringbuf_destroy(STRING_BUF* pBuf);
  */
 extern unsigned char* stringbuf_getString(STRING_BUF* pBuf);
 
+/*
+ * Reset the string buffer to be empty.
+ */
+extern void stringbuf_reset(STRING_BUF* pBuf);
+
 /*--------------------------------------------------------------------------
  * mysprintf()
 

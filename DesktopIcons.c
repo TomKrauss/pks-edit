@@ -700,7 +700,7 @@ static ICONCLASS *ic_createclass(LPSTR szIdClass,char szTypeChar,LPSTR szIconNam
 {
 	ICONCLASS *icp;
 
-	if ((icp = (ICONCLASS*)ll_insert((LINKED_LIST**)&iconclasses,sizeof *icp)) == 0) {
+	if ((icp = ll_insert(&iconclasses,sizeof *icp)) == 0) {
 	    	return 0;
 	}
 

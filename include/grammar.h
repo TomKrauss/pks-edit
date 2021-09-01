@@ -162,11 +162,19 @@ extern void grammar_documentTypeChanged(GRAMMAR* pGrammar);
 extern int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord);
 
 /*
- * Add all suggestions matching 'pszMatch', which can be derived from a grammar by invoking the addCallback.
+ * Add all suggestions matched by the match function 'fMatch', which can be derived from a grammar by invoking the addCallback.
  * This includes e.g. the keywords defined in a grammar but also "language specific" analysis results of the surrounding
  * file.
  */
-extern void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, char* pszMatch, void (*addCallback)(intptr_t pszTagName, intptr_t pTag));
+extern void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, int (*fMatch)(char* pszMatch), 
+	void (*addCallback)(intptr_t pszTagName, intptr_t pTag));
+
+/*
+ * Returns the name of a code analyzer to use to analyse the code of the document with the given grammar
+ * for the purpose of calculating suggestions. The returned name (if analysers are defined) are then to be used
+ * to aquire a code analyzer from the code analyzer package.
+ */
+extern char* grammar_getCodeAnalyzer(GRAMMAR* pGrammar);
 
 #define GRAMMAR_H
 #endif

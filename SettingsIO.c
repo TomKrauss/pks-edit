@@ -370,25 +370,25 @@ int prof_enum(LPSTR grp, intptr_t (*lpfnEnum)(LPSTR, LONG), LONG lParam)
 /*--------------------------------------------------------------------------
  * prof_llinsert()
  */
-void *prof_llinsert(void *Head, int size, char *group, char *item, char **idata)
+void *prof_llinsert(void *pHead, int size, char *pszGroup, char *pszItem, char **idata)
 {
 	char			szBuf[256],*s;
 	struct llist 	*lp;
 
-	if (!prof_getPksProfileString(group, item, szBuf, sizeof szBuf))
+	if (!prof_getPksProfileString(pszGroup, pszItem, szBuf, sizeof szBuf))
 		return 0;
 
 	if ((s = _strdup(szBuf)) == 0) {
 		return 0;
 	}
 
-	if ((lp = (struct llist*)ll_find(*(void**)Head,item)) == 0) {
-		if ((lp = (struct llist*)ll_insert(Head,size)) == 0) {
+	if ((lp = ll_find(*(void**)pHead,pszItem)) == 0) {
+		if ((lp = ll_insert(pHead,size)) == 0) {
 			free(s);
 			return 0;
 		}
 
-		lstrcpy(lp->name,item);
+		lstrcpy(lp->name,pszItem);
 	}
 	*idata = s;
 
