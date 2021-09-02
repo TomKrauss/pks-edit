@@ -826,6 +826,8 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags)
 			break;
 	}
 	nRet = caret_placeCursorForFile(wp, ln, col);
+	// The following code really makes sense only, if we are not considering the complete identifier under the cursor - should be possibly made configurable
+	// codecomplete_updateCompletionList(wp, FALSE);
 
 err:
 	wp->bXtndBlock = bXtnd;

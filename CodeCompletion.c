@@ -18,6 +18,7 @@
 #include <windowsx.h>
 #include "customcontrols.h"
 #include "winfo.h"
+#include "stringutil.h"
 #include "arraylist.h"
 #include "hashmap.h"
 #include "winterf.h"
@@ -99,7 +100,7 @@ static CODE_ACTION* codecomplete_addTagsWithAlloc(intptr_t pszTagName, BOOL bAll
 	pCurrent->ca_param.text = pszCopy;
 	pCurrent->ca_replaceWord = TRUE;
 	pCurrent->ca_freeName = bAlloc;
-	hashmap_put(_suggestions, (intptr_t)pszTagName, (intptr_t)pCurrent);
+	hashmap_put(_suggestions, (intptr_t)pszCopy, (intptr_t)pCurrent);
 	return pCurrent;
 }
 
@@ -137,7 +138,9 @@ static int codecomplete_compare(const CODE_ACTION** p1, const CODE_ACTION** p2) 
 
 static char* _pszMatch;
 static int codecomplete_matchWord(const char* pszWord) {
-	return strstr(pszWord, _pszMatch) != NULL;
+	// add all words to the completion list, which are not identical to the word searched, but where the word
+	// searched / completed is a substring.
+	return string_strcasestr(pszWord, _pszMatch) != NULL && strcmp(pszWord, _pszMatch) != 0;
 }
 
 /*
@@ -358,6 +361,9 @@ BOOL codecomplete_processKey(HWND hwnd, UINT message, WPARAM wParam) {
 	}
 	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
 	if (wParam == VK_UP || wParam == VK_DOWN) {
+		if (pCC->ccp_size == 0) {
+			return FALSE;
+		}
 		codecomplete_moveCaretBy(hwnd, pCC, wParam == VK_UP ? -1 : 1);
 		return TRUE;
 	}
