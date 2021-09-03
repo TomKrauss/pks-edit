@@ -16,6 +16,8 @@
 
 #ifndef THEMES_H
 
+typedef struct tagEDTEXTSTYLE EDTEXTSTYLE;
+
 typedef struct tagTHEME_DATA {
 	struct tagTHEME_DATA* th_next;
 	unsigned char th_name[32];
@@ -27,16 +29,20 @@ typedef struct tagTHEME_DATA {
 	COLORREF th_rulerBorderColor;
 	COLORREF th_rulerForegroundColor;
 	COLORREF th_rulerBackgroundColor;
+	COLORREF th_dialogBackground;
+	COLORREF th_dialogForeground;
 	unsigned char th_fontName[32];			// dialog font name to use
 	unsigned int  th_fontSize;				// dialog font size to use
 	unsigned char th_smallFontName[32];		// small dialog font name to use
 	unsigned int  th_smallFontSize;			// small dialog font size to use
+	EDTEXTSTYLE* th_styles;					// The text styles for this theme.
 } THEME_DATA;
 
 /*
- * Returns the theme with the given name. If not found, a default theme is returned. 
+ * Select a new theme to use by a given theme name. If the
+ * named theme is not defined, a default theme is selected.
  */
-extern THEME_DATA* theme_getByName(unsigned char* pThemeName);
+extern void theme_setCurrent(unsigned char* pszThemeName);
 
 /*
  * Returns the default theme currently selected.
@@ -53,6 +59,11 @@ extern void theme_destroyAllThemeData();
  * options key controls.
  */
 extern HFONT theme_createSmallFixedFont();
+
+/*
+ * Return the linked list of all defined themes.
+ */
+extern THEME_DATA* theme_getThemes();
 
 /*
  * The dialog font is used by PKS edit e.g. in dialogs and in the window selector.

@@ -131,15 +131,17 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 	DWORD	dwColwi;
 	DWORD	dwColtext;
 	char 	szBuff[128];
+	THEME_DATA* pTheme = theme_getDefault();
 
 	SetMapMode(hdc,MM_TEXT);
 	hFont = SelectObject(hdc, cust_getSmallEditorFont());
 	if (odItemState & STATE_CHECK) {
+		// (T) control through theme.
 		dwColwi = GetSysColor(COLOR_HIGHLIGHT);
 		dwColtext = GetSysColor(COLOR_HIGHLIGHTTEXT);
 	} else {
-		dwColwi = GetSysColor(COLOR_BTNFACE);
-		dwColtext = GetSysColor(COLOR_BTNTEXT);
+		dwColwi = pTheme->th_dialogBackground;
+		dwColtext = pTheme->th_dialogForeground;
 	}
 	GetWindowText(hwnd,szBuff,sizeof szBuff);
 	hBrush = CreateSolidBrush(dwColwi);

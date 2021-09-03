@@ -239,9 +239,12 @@ HINSTANCE ui_getResourceModule() {
  * Switch to the given language. Language is specified for example as "en-US" or "de-DE". 
  */
 void ui_switchToLanguage(char* pszLanguage) {
-	if (strcmp("de-DE", pszLanguage) == 0) {
+	if (_stricmp("de-de", pszLanguage) == 0 || _stricmp("deutsch", pszLanguage) == 0) {
 		hLanguageInst = hInst;
 		return;
+	}
+	if (_stricmp("english", pszLanguage) == 0) {
+		pszLanguage = "en-US";
 	}
 	// for now - hardcoded to English
 	SetThreadUILanguage(0x00000409);

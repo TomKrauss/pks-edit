@@ -37,6 +37,7 @@
 #include "desktopicons.h"
 #include "mouseutil.h"
 #include "winutil.h"
+#include "themes.h"
 
 #define	PROF_OFFSET		1
 
@@ -245,24 +246,27 @@ LONG prof_getlong(char *grp,char *ident)
  * prof_getstdopt()
  */
 int prof_getstdopt(void) {
-	char string[256];
-
 	if (!LocatePksEditIni()) {
 		return 0;
 	}
+	EDITOR_CONFIGURATION* pConfiguration = GetConfiguration();
 
-	prof_getPksProfileString(_desk, "Language", string, sizeof string -1);
-	if (string[0]) {
-		ui_switchToLanguage(string);
+	prof_getPksProfileString(_desk, "Language", pConfiguration->language, sizeof pConfiguration->language -1);
+	if (pConfiguration->language[0]) {
+		ui_switchToLanguage(pConfiguration->language);
 	}
-	GetConfiguration()->options = prof_getlong(_desk,"Options");
-	GetConfiguration()->layoutoptions = prof_getlong(_desk,"Layout");
+	prof_getPksProfileString(_desk, "Theme", pConfiguration->themeName, sizeof pConfiguration->themeName - 1);
+	if (pConfiguration->themeName[0]) {
+		theme_setCurrent(pConfiguration->themeName);
+	}
+	pConfiguration->options = prof_getlong(_desk,"Options");
+	pConfiguration->layoutoptions = prof_getlong(_desk,"Layout");
 
 	_currentSearchAndReplaceParams.options = (int)prof_getlong(_desk,"FindOptions");
-	GetConfiguration()->asminutes = prof_getlong(_desk,"AsInterv");
-	GetConfiguration()->nundo = prof_getlong(_desk,"NUBuf");
-	GetConfiguration()->maximumNumberOfOpenWindows = prof_getlong(_desk, "maxOpenWindows");
-	prof_getPksProfileString(_desk,"AsPath", GetConfiguration()->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath) -1);
+	pConfiguration->asminutes = prof_getlong(_desk,"AsInterv");
+	pConfiguration->nundo = prof_getlong(_desk,"NUBuf");
+	pConfiguration->maximumNumberOfOpenWindows = prof_getlong(_desk, "maxOpenWindows");
+	prof_getPksProfileString(_desk,"AsPath", pConfiguration->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath) -1);
 
 	return 1;
 }
@@ -326,6 +330,12 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	mouse_setBusyCursor();
 	lstrcpy(_pksEditIniFilename,fn);
 
+	if (configuration->themeName[0]) {
+		prof_savestring(_desk, "Theme", configuration->themeName);
+	}
+	if (configuration->language[0]) {
+		prof_savestring(_desk, "Language", configuration->language);
+	}
 	prof_savelong(_desk,"Options",(long)configuration->options);
 	prof_savelong(_desk,"Layout",(long)configuration->layoutoptions);
 	prof_savelong(_desk,"FindOptions",(long)_currentSearchAndReplaceParams.options);

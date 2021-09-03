@@ -63,6 +63,8 @@ typedef struct tagEDITOR_CONFIGURATION {
 	char pksEditTempPath[EDMAXPATHLEN];
 	// The include path,
 	char includePath[EDMAXPATHLEN];
+	char themeName[32];
+	char language[32];
 	void (*autosaveOnExit)();
 } EDITOR_CONFIGURATION;
 

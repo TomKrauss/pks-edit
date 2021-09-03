@@ -24,6 +24,8 @@
 #include "edierror.h"
 #include "editorconfiguration.h"
 #include "stringutil.h"
+#include "customcontrols.h"
+#include "themes.h"
 
 #define	MAXSEGMENTS			20
 
@@ -95,7 +97,7 @@ static void st_setparts(char *text, BOOL bUpdateMessageOnly)
 			SendMessage(hwndStatus, SB_SETTEXT, i, (LPARAM)pszStrArr[i]);
 		}
 	}
-	SendMessage(hwndStatus, SB_SETTEXT, nSegments | SBT_NOBORDERS, 
+	SendMessage(hwndStatus, SB_SETTEXT, nSegments | SBT_NOBORDERS,
 			(LPARAM)(pszStatusMessage ? pszStatusMessage : ""));
 }
 
@@ -142,6 +144,61 @@ void status_wh(WORD *width, WORD *height)
 	*height = (WORD)(rect.bottom - rect.top) + 1;
 }
 
+/* 
+ * Custom status bar window procedure. 
+ */
+static WNDPROC _wpOrigStatusWndProc;
+LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+
+	switch (msg) {
+	case WM_PAINT: {
+		THEME_DATA* pTheme = theme_getDefault();
+		if (pTheme->th_dialogBackground == GetSysColor(COLOR_BTNFACE)) {
+			return CallWindowProc(_wpOrigStatusWndProc, hwnd, msg, wParam, lParam);
+		}
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
+		HBRUSH brush = CreateSolidBrush(pTheme->th_dialogBackground);
+		FillRect(hdc, &ps.rcPaint, brush);
+		DeleteObject(brush);
+		SetTextColor(hdc, pTheme->th_dialogForeground);
+		HPEN hPen = CreatePen(0, 1, pTheme->th_dialogForeground);
+		SetBkMode(hdc, TRANSPARENT);
+		SelectObject(hdc, hPen);
+		HFONT hFont = SelectObject(hdc, cust_getSmallEditorFont());
+		int nSegments = (int) SendMessage(hwndStatus, SB_GETPARTS, 0, 0);
+		for (int i = 0; i < nSegments; i++) {
+			RECT rc;
+			char szText[128];
+			SendMessage(hwndStatus, SB_GETRECT, i, (LPARAM)&rc);
+			if (rc.left > ps.rcPaint.right) {
+				break;
+			}
+			SendMessage(hwndStatus, SB_GETTEXT, i, (LPARAM)szText);
+			MoveTo(hdc, rc.right, rc.top + 1);
+			LineTo(hdc, rc.right, rc.bottom - 1);
+			if (!szText[0] || szText[0] == ' ') {
+				continue;
+			}
+			InflateRect(&rc, -4, -2);
+			DrawText(hdc, szText, (int) strlen(szText), &rc, DT_END_ELLIPSIS);
+		}
+		DeleteObject(hPen);
+		SelectObject(hdc, hFont);
+		EndPaint(hwnd, &ps);
+		return 0;
+	}
+	case WM_ERASEBKGND: {
+		THEME_DATA* pTheme = theme_getDefault();
+		if (pTheme->th_dialogBackground == GetSysColor(COLOR_BTNFACE)) {
+			return CallWindowProc(_wpOrigStatusWndProc, hwnd, msg, wParam, lParam);
+		}
+		return 0;
+	}
+	}
+	return CallWindowProc(_wpOrigStatusWndProc, hwnd, msg, wParam, lParam);
+}
+
 /*--------------------------------------------------------------------------
  * st_init()
  */
@@ -150,6 +207,8 @@ void st_init(HWND hwndDaddy)
 	if (!hwndStatus) {
 		hwndStatus = CreateStatusWindow(WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS,
 			"", hwndDaddy, (UINT)-1);
+		_wpOrigStatusWndProc = (WNDPROC)SetWindowLongPtr(hwndStatus, GWLP_WNDPROC, (LONG_PTR)st_myStatusWndProc);
+
 	}
 }
 

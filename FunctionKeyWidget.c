@@ -354,13 +354,15 @@ int fkey_keyModifierStateChanged(int delta)
 /*--------------------------------------------------------------------------
  * fkey_visibilitychanged()
  */
-void fkey_visibilitychanged(void)
-{
+void fkey_visibilitychanged(void) {
 	if ((GetConfiguration()->layoutoptions & (OL_FKEYS|OL_OPTIONBAR)) == 0 && hwndFkeys) {
 		SendMessage(hwndFkeys,WM_CLOSE,0,0L);
 		hwndFkeys = NULL;
 	} else {
 		fkey_show(hwndMDIFrameWindow);
+		if (hwndFkeys) {
+			RedrawWindow(hwndFkeys, NULL, NULL, RDW_INVALIDATE);
+		}
 	}
 	SendMessage(hwndMDIFrameWindow, WM_SIZE,0,0L);
 	if (hwndFkeys) {

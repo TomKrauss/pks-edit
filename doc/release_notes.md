@@ -15,6 +15,8 @@
 - Ctrl+TAB opens a window selector now allowing to visually tab through the list of open files to select a file.
 - Code completion is now by default triggered using Ctrl+SPACE (in conformance to other development tools). For text type
   grammars (text and markdown) code completion includes now all words found in the current text.
+- PKS Edit supports now selecting the UI theme (preview version only) and the current language from the settings dialog.
+  Note, that updating the language will not be reflected before PKS Edit is restarted. Currently two languages are available: English and German.
 
 #### Changed
 - Character classes (for identifiers and mappings from lower case to upper case) are now defined in the grammar, which allows for language

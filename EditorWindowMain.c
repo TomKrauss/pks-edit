@@ -525,6 +525,9 @@ void ww_redrawAllWindows(int update)
 		if (update) {
 			UpdateWindow(wp->ww_handle);
 		}
+		if (wp->lineNumbers_handle) {
+			win_sendRedrawToWindow(wp->lineNumbers_handle);
+		}
 	}
 }
 
@@ -713,7 +716,6 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	wp->workmode = linp->workmode;
 	wp->tabDisplayFillCharacter = linp->tabDisplayFillCharacter;
 	wp->statusline = linp->statusline;
-	wp->win_themeName = "default";
 	wp->scrollflags = linp->scrollflags;
 	wp->cursaftersearch = linp->cursaftersearch;
 	wp->vscroll = linp->vscroll;
@@ -1383,7 +1385,7 @@ static void draw_ruler(WINFO *wp) {
 	FTABLE *		fp = wp->fp;
 	HDC 		hdc;
 	PAINTSTRUCT ps;
-	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
+	THEME_DATA* pTheme = theme_getDefault();
 
 	memset(&ps, 0, sizeof ps);
 	hdc = BeginPaint(wp->ru_handle, &ps);
@@ -1485,7 +1487,7 @@ static void draw_lineNumbers(WINFO* wp) {
 	EDIT_CONFIGURATION* lin = fp->documentDescriptor;
 	HDC 		hdc;
 	PAINTSTRUCT ps;
-	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
+	THEME_DATA* pTheme = theme_getDefault();
 
 	hdc = BeginPaint(wp->lineNumbers_handle, &ps);
 	GetClientRect(wp->lineNumbers_handle, &rect);

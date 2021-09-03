@@ -137,7 +137,7 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long l
 	RENDER_STATE state = RS_START;
 	int showcontrol;
 	int tabFiller = wp->tabDisplayFillCharacter;
-	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
+	THEME_DATA* pTheme = theme_getDefault();
 
 	startColumn = wp->mincol;
 	endColumn = wp->maxcol+1;
@@ -313,7 +313,7 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 	long		maxMarkedLine;
 	FTABLE *		fp = FTPOI(wp);
 	LINE *		lp;
-	THEME_DATA* pTheme = theme_getByName(wp->win_themeName);
+	THEME_DATA* pTheme = theme_getDefault();
 
 	hwnd = wp->ww_handle;
 	hdc = BeginPaint(hwnd, &ps);

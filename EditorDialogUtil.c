@@ -398,6 +398,11 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 			case IDD_POSITIONTCURS:
 				moved = win_positionWindowRelativeToCaret(hDlg);
 				break;
+			case IDD_STRINGLIST1:
+			case IDD_STRINGLIST2:
+				dlp = (DIALLIST*)dp->dp_data;
+				(*dlp->li_fill)(hDlg, item, (void*)dlp->li_param);
+				break;
 			case IDD_WINDOWLIST:
 			case IDD_ICONLIST:
 			case IDD_FONTSEL2COLOR:
@@ -599,6 +604,12 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 				return TRUE;
 			}
 			break;
+		case IDD_STRINGLIST1:
+		case IDD_STRINGLIST2: {
+			DIALLIST* dpi = dp->dp_data;
+			SendDlgItemMessage(hDlg, item, CB_GETLBTEXT, SendDlgItemMessage(hDlg, item, CB_GETCURSEL, 0, 0), (LPARAM)dpi->li_param);
+			break;
+		}
 		case IDD_OPT1:
 		case IDD_OPT2:
 		case IDD_OPT3:
@@ -757,6 +768,8 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 			break;
 		case IDD_ICONLIST:
 		case IDD_WINDOWLIST:
+		case IDD_STRINGLIST1:
+		case IDD_STRINGLIST2:
 			if (nNotify == LBN_SELCHANGE) {
 				if ((dp2 = GetItemDialListData(dp, idCtrl)) != 0 &&
 					((DIALLIST*)dp2->dp_data)->li_command) {

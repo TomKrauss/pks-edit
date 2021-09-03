@@ -136,7 +136,6 @@ typedef struct tagWINFO {
     int   blcol1, blcol2;		/* column for Blockmarks				*/
     
     char*  statusline;			/* alt. status line */
-    char*  win_themeName;
     int    cx,cy,cmx,cmy,cheight,cwidth;
     int    ctype;        	        /* caret - type */
     

@@ -11,103 +11,217 @@
       "rulerBorderColor": "#e0e0e0",
       "rulerForegroundColor": "#aaaaaa",
       "rulerBackgroundColor": "#fafafa",
-      "id": 0
+      "textStyles": [
+        {
+          "styleName": "default",
+          "faceName": "Consolas",
+          "size": -12,
+          "foregroundColor": "#000030",
+          "weight": 400
+        },
+        {
+          "styleName": "control",
+          "foregroundColor": "#aaaaaa"
+        },
+        {
+          "styleName": "identifier",
+          "foregroundColor": "#777722"
+        },
+        {
+          "styleName": "keyword",
+          "weight": 700,
+          "foregroundColor": "#AA0000"
+        },
+        {
+          "styleName": "error",
+          "weight": 700,
+          "foregroundColor": "#FF2222"
+        },
+        {
+          "styleName": "warning",
+          "weight": 700,
+          "foregroundColor": "#2222FF"
+        },
+        {
+          "styleName": "operator",
+          "weight": 700,
+          "foregroundColor": "#883333"
+        },
+        {
+          "styleName": "annotation",
+          "weight": 700,
+          "foregroundColor": "#007777"
+        },
+        {
+          "styleName": "bold",
+          "weight": 700
+        },
+        {
+          "styleName": "regexp",
+          "foregroundColor": "#AA4444",
+          "weight": 700
+        },
+        {
+          "styleName": "bold-italic",
+          "weight": 700,
+          "italic": true
+        },
+        {
+          "styleName": "italic",
+          "italic": true
+        },
+        {
+          "styleName": "code",
+          "weight": 700,
+          "backgroundColor": "#efefef"
+        },
+        {
+          "styleName": "literal",
+          "weight": 700,
+          "foregroundColor": "#770077"
+        },
+        {
+          "styleName": "hyperlink",
+          "underline": true,
+          "foregroundColor": "#2222FF"
+        },
+        {
+          "styleName": "string",
+          "foregroundColor": "#44aaaa"
+        },
+        {
+          "styleName": "sl-comment",
+          "foregroundColor": "#229922"
+        },
+        {
+          "styleName": "comment",
+          "foregroundColor": "#006600"
+        },
+        {
+          "styleName": "bold-comment",
+          "weight": 900,
+          "foregroundColor": "#006600"
+        },
+        {
+          "styleName": "task",
+          "weight": 800,
+          "foregroundColor": "#FF7777"
+        }
+      ]
+    },
+    {
+      "name": "dark",
+      "backgroundColor": "#020102",
+      "dialogBackground": "#020102",
+      "dialogForeground": "#fcfcfc",
+      "changedLineColor": "#ffff33",
+      "savedChangedLineColor": "#88ff88",
+      "editorConfiguration": "default",
+      "caretLineColor": "#330033",
+      "markedLineColor": "#404000",
+      "rulerBorderColor": "#202020",
+      "rulerForegroundColor": "#888888",
+      "rulerBackgroundColor": "#444444",
+      "textStyles": [
+        {
+          "styleName": "default",
+          "faceName": "Consolas",
+          "size": -12,
+          "foregroundColor": "#FFFFA0",
+          "weight": 400
+        },
+        {
+          "styleName": "control",
+          "foregroundColor": "#555555"
+        },
+        {
+          "styleName": "identifier",
+          "foregroundColor": "#777722"
+        },
+        {
+          "styleName": "keyword",
+          "weight": 700,
+          "foregroundColor": "#88FFFF"
+        },
+        {
+          "styleName": "error",
+          "weight": 700,
+          "foregroundColor": "#FF2222"
+        },
+        {
+          "styleName": "warning",
+          "weight": 700,
+          "foregroundColor": "#2222FF"
+        },
+        {
+          "styleName": "operator",
+          "weight": 700,
+          "foregroundColor": "#883333"
+        },
+        {
+          "styleName": "annotation",
+          "weight": 700,
+          "foregroundColor": "#007777"
+        },
+        {
+          "styleName": "bold",
+          "weight": 700,
+          "foregroundColor": "#FFFFA0"
+        },
+        {
+          "styleName": "regexp",
+          "foregroundColor": "#AA4444",
+          "weight": 700
+        },
+        {
+          "styleName": "bold-italic",
+          "weight": 700,
+          "italic": true,
+          "foregroundColor": "#FFFFA0"
+        },
+        {
+          "styleName": "italic",
+          "italic": true,
+          "foregroundColor": "#FFFFA0"
+        },
+        {
+          "styleName": "code",
+          "weight": 700,
+          "backgroundColor": "#efefef"
+        },
+        {
+          "styleName": "literal",
+          "weight": 700,
+          "foregroundColor": "#aa33aa"
+        },
+        {
+          "styleName": "hyperlink",
+          "underline": true,
+          "foregroundColor": "#2222FF"
+        },
+        {
+          "styleName": "string",
+          "foregroundColor": "#44aaaa"
+        },
+        {
+          "styleName": "sl-comment",
+          "foregroundColor": "#229922"
+        },
+        {
+          "styleName": "comment",
+          "foregroundColor": "#22CC22"
+        },
+        {
+          "styleName": "bold-comment",
+          "weight": 900,
+          "foregroundColor": "#55CC55"
+        },
+        {
+          "styleName": "task",
+          "weight": 800,
+          "foregroundColor": "#FF7777"
+        }
+      ]
     }
-  ],
-  "textStyles": [
-    {
-      "styleName": "default",
-      "faceName": "Consolas",
-      "size": -12,
-      "foregroundColor": "#000030",
-      "weight": 400
-    },
-    {
-      "styleName": "control",
-      "foregroundColor": "#aaaaaa"
-    },
-    {
-      "styleName": "identifier",
-      "foregroundColor": "#777722"
-    },
-    {
-      "styleName": "keyword",
-      "weight": 700,
-      "foregroundColor": "#AA0000"
-    },
-    {
-      "styleName": "error",
-      "weight": 700,
-      "foregroundColor": "#FF2222"
-    },
-    {
-      "styleName": "warning",
-      "weight": 700,
-      "foregroundColor": "#2222FF"
-    },
-    {
-      "styleName": "operator",
-      "weight": 700,
-      "foregroundColor": "#883333"
-    },
-    {
-      "styleName": "annotation",
-      "weight": 700,
-      "foregroundColor": "#007777"
-    },
-    {
-      "styleName": "bold",
-      "weight": 700
-    },
-    {
-      "styleName": "regexp",
-      "foregroundColor": "#AA4444",
-      "weight": 700
-    },
-    {
-      "styleName": "bold-italic",
-      "weight": 700,
-      "italic": true
-    },
-    {
-      "styleName": "italic",
-      "italic": true
-    },
-    {
-      "styleName": "code",
-      "weight": 700,
-      "backgroundColor": "#efefef"
-    },
-    {
-      "styleName": "literal",
-      "weight": 700,
-      "foregroundColor": "#770077"
-    },
-    {
-      "styleName": "hyperlink",
-      "underline": true,
-      "foregroundColor": "#2222FF"
-    },
-    {
-      "styleName": "string",
-      "foregroundColor": "#44aaaa"
-    },
-    {
-      "styleName": "sl-comment",
-      "foregroundColor": "#229922"
-    },
-    {
-      "styleName": "comment",
-      "foregroundColor": "#006600"
-    },
-    {
-      "styleName": "bold-comment",
-      "weight": 900,
-      "foregroundColor": "#006600"
-    },
-    {
-      "styleName": "task",
-      "weight": 800,
-      "foregroundColor": "#FF7777"
-    }
-  ]}
+  ]
+}

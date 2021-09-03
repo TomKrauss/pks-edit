@@ -25,6 +25,7 @@
 #include "xdialog.h"
 #include "editorconfiguration.h"
 #include "edfuncs.h"
+#include "themes.h"
 
 extern void fkey_visibilitychanged(void);
 
@@ -51,6 +52,8 @@ static EDITOR_CONFIGURATION _configuration = {
 	-1,
 	"",
 	"INCLUCDE;INC",
+	"default",
+	"Deutsch",
 	AutosaveConfiguration
 };
 
@@ -86,6 +89,37 @@ static DIALPARS _dLayout[] = {
 	0
 };
 
+static void conf_fillLocales(HWND hwnd, int nItem, void* selValue) {
+	char* pEngl = "English";
+	SendDlgItemMessage(hwnd, nItem, CB_RESETCONTENT, 0, 0L);
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)"Deutsch");
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)pEngl);
+	char* pItem = (char*)selValue;
+	if (_stricmp("en-us", pItem) == 0) {
+		pItem = pEngl;
+	}
+	SendDlgItemMessage(hwnd, nItem, CB_SELECTSTRING, (WPARAM)0, (LPARAM)pItem);
+}
+
+static void conf_fillThemes(HWND hwnd, int nItem, void* selValue) {
+	SendDlgItemMessage(hwnd, nItem, CB_RESETCONTENT, 0, 0L);
+	THEME_DATA* pThemes = theme_getThemes();
+	while (pThemes) {
+		SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)pThemes->th_name);
+		pThemes = pThemes->th_next;
+	}
+	char* pItem = (char*)selValue;
+	SendDlgItemMessage(hwnd, nItem, CB_SELECTSTRING, (WPARAM)0, (LPARAM)pItem);
+}
+
+static DIALLIST _themelist = {
+	NULL, conf_fillThemes, dlg_getListboxText,
+	NULL, NULL, NULL, 0 };
+
+static DIALLIST _localeslist = {
+	NULL, conf_fillLocales, dlg_getListboxText,
+	NULL, NULL, NULL, 0 };
+
 static DIALPARS _dMisc[] = {
 	IDD_NOCHANGEONCANCEL,	0,	0,
 	IDD_OPT1,		UNDOENABLED,					& _configuration.options,
@@ -93,6 +127,8 @@ static DIALPARS _dMisc[] = {
 	IDD_INT2,		sizeof _configuration.maximumNumberOfOpenWindows,& _configuration.maximumNumberOfOpenWindows,
 	IDD_OPT2,		O_HIDE_BLOCK_ON_CARET_MOVE,		& _configuration.options,
 	IDD_OPT3,		O_FORMFOLLOW,					& _configuration.options,
+	IDD_STRINGLIST2, 0,								&_themelist,
+	IDD_STRINGLIST1, 0,								&_localeslist,
 	// Terminate with 0
 	0
 };
@@ -120,6 +156,8 @@ void EdOptionSet(void) {
     PROPSHEETHEADER psh;
 	INT_PTR tempRet;
 
+	_themelist.li_param = (long*)GetConfiguration()->themeName;
+	_localeslist.li_param = (long*)GetConfiguration()->language;
 	dlg_setXDialogParams(_getDialogParsForPage, TRUE);
 	memset(&psh, 0, sizeof psh);
 	memset(psp, 0, sizeof psp);
@@ -149,7 +187,7 @@ void EdOptionSet(void) {
     psh.hwndParent = hwndMDIFrameWindow;
     psh.hInstance = ui_getResourceModule();
     psh.pszIcon = 0;
-    psh.pszCaption = (LPSTR) "Sonstige Einstellungen...";
+    psh.pszCaption = (LPSTR) "Options...";
     psh.nPages = sizeof(psp) / sizeof(psp[0]);
     psh.nStartPage = 0;
     psh.ppsp = (LPCPROPSHEETPAGE) &psp;
@@ -157,7 +195,10 @@ void EdOptionSet(void) {
 
 	tempRet = PropertySheet(&psh);
     if (tempRet == 1) {
-		prof_save(GetConfiguration(), FALSE);
+		EDITOR_CONFIGURATION* pConfig = GetConfiguration();
+		theme_setCurrent(pConfig->themeName);
+		ui_switchToLanguage(pConfig->language);
+		prof_save(pConfig, FALSE);
 		fkey_visibilitychanged();
 	}
 }

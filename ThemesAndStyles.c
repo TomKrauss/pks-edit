@@ -17,7 +17,7 @@
 
 #include <windows.h>
 #include <commdlg.h>
-
+#include "alloc.h"
 #include "trace.h"
 #include "lineoperations.h"
 #include "linkedlist.h"
@@ -42,7 +42,6 @@
 #define RULER_BORDER_COLOR RGB(220,220,220)
 #define RULER_FOREROUND_COLOR RGB(140,140,140)
 #define RULER_BACKGROUND_COLOR RGB(248,248,248)
-
 
 extern HDC print_getPrinterDC(void);
 // forward decl.
@@ -161,6 +160,8 @@ static THEME_DATA defaultTheme = {
 	RULER_BORDER_COLOR,
 	RULER_FOREROUND_COLOR,
 	RULER_BACKGROUND_COLOR,
+	-1,							// used as a default marker - strictly speaking there is no default for COLORREFs
+	-1,
 	"Helv",						// (T) use in dialogs.
 	8,
 	"Consolas",
@@ -180,28 +181,6 @@ static JSON_MAPPING_RULE _edTextStyleRules[] = {
 	{	RT_END}
 };
 
-static JSON_MAPPING_RULE _edThemeRules[] = {
-	{	RT_CHAR_ARRAY, "name", offsetof(THEME_DATA, th_name), sizeof(((THEME_DATA*)NULL)->th_name)},
-	{	RT_COLOR, "backgroundColor", offsetof(THEME_DATA, th_defaultBackgroundColor)},
-	{	RT_COLOR, "caretLineColor", offsetof(THEME_DATA, th_caretLineColor)},
-	{	RT_COLOR, "changedLineColor", offsetof(THEME_DATA, th_changedLineColor)},
-	{	RT_COLOR, "savedChangedLineColor", offsetof(THEME_DATA, th_savedChangedLineColor)},
-	{	RT_COLOR, "markedLineColor", offsetof(THEME_DATA, th_markedLineColor)},
-	{	RT_COLOR, "rulerBorderColor", offsetof(THEME_DATA, th_rulerBorderColor)},
-	{	RT_COLOR, "rulerForegroundColor", offsetof(THEME_DATA, th_rulerForegroundColor)},
-	{	RT_COLOR, "rulerBackgroundColor", offsetof(THEME_DATA, th_rulerBackgroundColor)},
-	{	RT_CHAR_ARRAY, "dialogFont", offsetof(THEME_DATA, th_fontName), sizeof(((THEME_DATA*)NULL)->th_fontName)},
-	{	RT_INTEGER, "dialogFontSize", offsetof(THEME_DATA, th_fontSize)},
-	{	RT_CHAR_ARRAY, "smallFixedFont", offsetof(THEME_DATA, th_smallFontName), sizeof(((THEME_DATA*)NULL)->th_smallFontName)},
-	{	RT_INTEGER, "smallFixedFontSize", offsetof(THEME_DATA, th_smallFontSize)},
-	{	RT_END}
-};
-
-typedef struct tagTHEME_CONFIGURATION {
-	THEME_DATA* th_themes;
-	EDTEXTSTYLE* th_styles;
-} THEME_CONFIGURATION;
-
 static EDTEXTSTYLE* theme_createStyle() {
 	EDTEXTSTYLE* pStyle = calloc(sizeof(EDTEXTSTYLE), 1);
 	memcpy(pStyle, &defaultTextStyle, sizeof defaultTextStyle);
@@ -210,8 +189,38 @@ static EDTEXTSTYLE* theme_createStyle() {
 	return pStyle;
 }
 
+static JSON_MAPPING_RULE _edThemeRules[] = {
+	{	RT_CHAR_ARRAY, "name", offsetof(THEME_DATA, th_name), sizeof(((THEME_DATA*)NULL)->th_name)},
+	{	RT_COLOR, "backgroundColor", offsetof(THEME_DATA, th_defaultBackgroundColor)},
+	{	RT_COLOR, "caretLineColor", offsetof(THEME_DATA, th_caretLineColor)},
+	{	RT_COLOR, "changedLineColor", offsetof(THEME_DATA, th_changedLineColor)},
+	{	RT_COLOR, "savedChangedLineColor", offsetof(THEME_DATA, th_savedChangedLineColor)},
+	{	RT_COLOR, "markedLineColor", offsetof(THEME_DATA, th_markedLineColor)},
+	{	RT_COLOR, "rulerBorderColor", offsetof(THEME_DATA, th_rulerBorderColor)},
+	{	RT_COLOR, "dialogBackground", offsetof(THEME_DATA, th_dialogBackground)},
+	{	RT_COLOR, "dialogForeground", offsetof(THEME_DATA, th_dialogForeground)},
+	{	RT_COLOR, "rulerForegroundColor", offsetof(THEME_DATA, th_rulerForegroundColor)},
+	{	RT_COLOR, "rulerBackgroundColor", offsetof(THEME_DATA, th_rulerBackgroundColor)},
+	{	RT_CHAR_ARRAY, "dialogFont", offsetof(THEME_DATA, th_fontName), sizeof(((THEME_DATA*)NULL)->th_fontName)},
+	{	RT_INTEGER, "dialogFontSize", offsetof(THEME_DATA, th_fontSize)},
+	{	RT_CHAR_ARRAY, "smallFixedFont", offsetof(THEME_DATA, th_smallFontName), sizeof(((THEME_DATA*)NULL)->th_smallFontName)},
+	{	RT_INTEGER, "smallFixedFontSize", offsetof(THEME_DATA, th_smallFontSize)},
+	{	RT_OBJECT_LIST, "textStyles", offsetof(THEME_DATA, th_styles),
+			{.r_t_arrayDescriptor = {theme_createStyle, _edTextStyleRules}}},
+	{	RT_END}
+};
+
+typedef struct tagTHEME_CONFIGURATION {
+	THEME_DATA* th_themes;
+	THEME_DATA* th_currentTheme;
+} THEME_CONFIGURATION;
+
 static THEME_DATA* theme_createTheme() {
 	THEME_DATA* pTheme = calloc(sizeof(THEME_DATA), 1);
+	if (defaultTheme.th_dialogBackground == -1) {
+		defaultTheme.th_dialogBackground = GetSysColor(COLOR_3DFACE);
+		defaultTheme.th_dialogForeground = GetSysColor(COLOR_BTNTEXT);
+	}
 	memcpy(pTheme, &defaultTheme, sizeof defaultTheme);
 	return pTheme;
 }
@@ -219,8 +228,6 @@ static THEME_DATA* theme_createTheme() {
 static JSON_MAPPING_RULE _themeConfigurationRules[] = {
 	{	RT_OBJECT_LIST, "themes", offsetof(THEME_CONFIGURATION, th_themes),
 			{.r_t_arrayDescriptor = {theme_createTheme, _edThemeRules}}},
-	{	RT_OBJECT_LIST, "textStyles", offsetof(THEME_CONFIGURATION, th_styles),
-			{.r_t_arrayDescriptor = {theme_createStyle, _edTextStyleRules}}},
 	{	RT_END}
 };
 
@@ -245,22 +252,7 @@ int theme_initThemes(void) {
 	initialized = 1;
 	memset(&themeConfiguration, 0, sizeof themeConfiguration);
 	if (json_parse("themeconfig.json", &themeConfiguration, _themeConfigurationRules)) {
-		EDTEXTSTYLE* pStyle = themeConfiguration.th_styles;
-		int nNextStyle = DIM(_styleNames);
-		while (pStyle) {
-			int bFound = 0;
-			for (int i = 0; i < DIM(_styleNames); i++) {
-				if (strcmp(_styleNames[i], pStyle->styleName) == 0) {
-					_styles[i] = pStyle;
-					bFound = 1;
-					break;
-				}
-			}
-			if (!bFound) {
-				_styles[nNextStyle++] = pStyle;
-			}
-			pStyle = pStyle->next;
-		}
+		theme_setCurrent("default");
 		return 1;
 	}
 	return 0;
@@ -452,7 +444,7 @@ BOOL DlgChooseFont(HWND hwnd, EDTEXTSTYLE *ep, BOOL bPrinter)
 /*
  * Returns the theme with the given name. If not found, a default theme is returned.
  */
-THEME_DATA* theme_getByName(unsigned char* pThemeName) {
+static THEME_DATA* theme_getByName(unsigned char* pThemeName) {
 	theme_initThemes();
 	THEME_DATA* pTheme = themeConfiguration.th_themes;
 	while(pTheme != NULL) {
@@ -465,17 +457,62 @@ THEME_DATA* theme_getByName(unsigned char* pThemeName) {
 }
 
 /*
+ * Select a new theme to use by a given theme name. If the
+ * named theme is not defined, a default theme is selected.
+ */
+void theme_setCurrent(unsigned char* pszThemeName) {
+	THEME_DATA* pTheme = theme_getByName(pszThemeName);
+	if (pTheme != themeConfiguration.th_currentTheme) {
+		themeConfiguration.th_currentTheme = pTheme;
+		memset(_styles, 0, sizeof _styles);
+		EDTEXTSTYLE* pStyle = pTheme->th_styles;
+		int nNextStyle = DIM(_styleNames);
+		while (pStyle) {
+			int bFound = 0;
+			for (int i = 0; i < DIM(_styleNames); i++) {
+				if (strcmp(_styleNames[i], pStyle->styleName) == 0) {
+					_styles[i] = pStyle;
+					bFound = 1;
+					break;
+				}
+			}
+			if (!bFound) {
+				_styles[nNextStyle++] = pStyle;
+			}
+			pStyle = pStyle->next;
+		}
+		// (T) should be performed via some kind of theme changed event.
+		ww_redrawAllWindows(TRUE);
+
+	}
+}
+
+/*
  * Returns the default theme currently selected.
  */
 THEME_DATA* theme_getDefault() {
-	return theme_getByName("default");
+	if (themeConfiguration.th_currentTheme == NULL) {
+		theme_setCurrent("default");
+	}
+	return themeConfiguration.th_currentTheme;
+}
+
+static int theme_destroyTheme(THEME_DATA* pTheme) {
+	ll_destroy(&pTheme->th_styles, NULL);
+	return 1;
 }
 
 /*
  * Destroy all theme data loaded. 
  */
 void theme_destroyAllThemeData() {
-	ll_destroy((LINKED_LIST**)&themeConfiguration.th_styles, NULL);
-	ll_destroy((LINKED_LIST**)&themeConfiguration.th_themes, NULL);
+	ll_destroy(&themeConfiguration.th_themes, theme_destroyTheme);
+}
+
+/*
+ * Return the linked list of all defined themes. 
+ */
+THEME_DATA* theme_getThemes() {
+	return themeConfiguration.th_themes;
 }
 
