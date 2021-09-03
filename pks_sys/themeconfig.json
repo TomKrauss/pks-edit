@@ -11,6 +11,7 @@
       "rulerBorderColor": "#e0e0e0",
       "rulerForegroundColor": "#aaaaaa",
       "rulerBackgroundColor": "#fafafa",
+      "mainWindowBackgroundColor": "#aaaacc",
       "textStyles": [
         {
           "styleName": "default",
@@ -112,7 +113,7 @@
     {
       "name": "dark",
       "backgroundColor": "#020102",
-      "dialogBackground": "#020102",
+      "dialogBackground": "#221122",
       "dialogForeground": "#fcfcfc",
       "changedLineColor": "#ffff33",
       "savedChangedLineColor": "#88ff88",
@@ -122,6 +123,7 @@
       "rulerBorderColor": "#202020",
       "rulerForegroundColor": "#888888",
       "rulerBackgroundColor": "#444444",
+      "mainWindowBackgroundColor": "#002255",
       "textStyles": [
         {
           "styleName": "default",

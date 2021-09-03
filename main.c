@@ -673,12 +673,30 @@ static void ww_onTimerAction(void) {
 	st_redraw(FALSE);
 }
 
+/*
+ * Custom background handling for our MDI client window. 
+ */
+static WNDPROC _mdiClientOrigProc;
+static LRESULT mdi_clientWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	switch (message) {
+		case WM_ERASEBKGND: {
+			THEME_DATA* pData = theme_getDefault();
+			RECT rc;
+			GetClientRect(hwnd, &rc);
+			HBRUSH hBrush = CreateSolidBrush(pData->th_mainWindowBackground);
+			FillRect((HDC)wParam, &rc, hBrush);
+			DeleteObject(hBrush);
+			return 1;
+		}
+	}
+	return CallWindowProc(_mdiClientOrigProc, hwnd, message, wParam, lParam);
+}
+
 /*------------------------------------------------------------
  * FrameWndProc()
  */
 static BOOL appActivated = FALSE;
-LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
+LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	static BOOL			bHelp = FALSE;
 	CLIENTCREATESTRUCT 	clientcreate;
 	WORD				fwMenu;
@@ -709,6 +727,8 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			hwndMDIClientWindow = CreateWindow("MDICLIENT", 0, dwStyle,
 				0,0,rect.right,rect.bottom,
 				hwnd, (HMENU)0xCAC, hInst, (LPSTR) &clientcreate);
+
+			_mdiClientOrigProc = (WNDPROC)SetWindowLongPtr(hwndMDIClientWindow, GWLP_WNDPROC, (LONG_PTR) mdi_clientWndProc);
 			fkey_initKeyboardWidget(hwnd);
 			st_init(hwnd);
 			tb_initRebar(hwnd);

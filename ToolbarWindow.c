@@ -29,6 +29,7 @@
 #include "actions.h"
 #include "stringutil.h"
 #include "findandreplace.h"
+#include "themes.h"
 
 static HWND	hwndToolbar;
 static int nToolbarButtons;
@@ -78,6 +79,11 @@ void tb_wh(WORD *width, WORD *height)
 	*height = (WORD)(rect.bottom - rect.top) + 1;
 }
 
+static void tb_updateColors() {
+    THEME_DATA* pData = theme_getDefault();
+    SendMessage(hwndRebar, RB_SETBKCOLOR, 0, pData->th_dialogBackground);
+}
+
 /*--------------------------------------------------------------------------
  * tb_initToolbar()
  * Initialize the actual toolbar toolbar.
@@ -98,7 +104,7 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     memset(&tbabmp, 0, sizeof tbabmp);
     memset(&tbabmp2, 0, sizeof tbabmp2);
     hwndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, (LPSTR) NULL,
-		WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | CCS_NORESIZE,
+		WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | CCS_NODIVIDER | CCS_NORESIZE,
         0, 0, 0, 0, hwndOwner, (HMENU) IDM_TOOLBAR, hInst, NULL);
 	if (!hwndToolbar) {
 		return NULL;
@@ -319,20 +325,6 @@ int find_initiateIncrementalSearch() {
     return 1;
 }
 
-/*
- * Creates a filler to be added to the toolbar.
- */
-static HWND tb_initFiller(HWND hwndOwner) {
-    HWND hwndFiller;
-
-    hwndFiller = CreateWindowEx(0, "static", "",
-        WS_CHILD | WS_VISIBLE,
-        0, 0, 200, CW_USEDEFAULT,
-        hwndOwner, (HMENU)0,
-        hInst, NULL);
-    return hwndFiller;
-}
-
 /*--------------------------------------------------------------------------
  * tb_initRebar()
  * Initialize the PKS Edit top bar (rebar).
@@ -361,6 +353,8 @@ HWND tb_initRebar(HWND hwndOwner) {
     {
         return NULL;
     }
+    THEME_DATA* pTheme = theme_getDefault();
+    tb_updateColors();
     hwndToolbar = tb_initToolbar(hwndRebar);
     hwndEntryField = tb_initSearchEntryField(hwndRebar);
 
@@ -372,10 +366,13 @@ HWND tb_initRebar(HWND hwndOwner) {
     rbBand.fMask =
         RBBIM_STYLE       // fStyle is valid.
         | RBBIM_TEXT        // lpText is valid.
+        | RBBIM_COLORS      // honor colors
         | RBBIM_CHILD       // hwndChild is valid.
         | RBBIM_CHILDSIZE   // child size members are valid.
         | RBBIM_SIZE;       // cx is valid
     rbBand.fStyle = RBBS_CHILDEDGE | RBBS_GRIPPERALWAYS;
+    rbBand.clrFore = pTheme->th_dialogForeground;
+    rbBand.clrBack = pTheme->th_dialogBackground;
 
     // Get the height of the toolbar.
     DWORD dwBtnSize = (DWORD)SendMessage(hwndToolbar, TB_GETBUTTONSIZE, 0, 0);
@@ -394,25 +391,12 @@ HWND tb_initRebar(HWND hwndOwner) {
 
     RECT rc;
     GetWindowRect(hwndEntryField, &rc);
-    rbBand.lpText = TEXT("Suche:");
+    rbBand.lpText = TEXT("Search:");
     rbBand.hwndChild = hwndEntryField;
     rbBand.cxMinChild = 0;
     rbBand.cyMinChild = 20;
     // The default width should be set to some value wider than the text. The entry field itself will expand to fill the band.
-    rbBand.cx = 230;
-
-    // Add the band that has the entry field.
-    SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
-
-    HWND hwndFiller = tb_initFiller(hwndRebar);
-
-    rbBand.lpText = TEXT("");
-    rbBand.hwndChild = hwndFiller;
-    rbBand.cxMinChild = 0;
-    rbBand.cyMinChild = rc.bottom - rc.top;
-    // The default width should be set to some value wider than the text. The entry field itself will expand to fill the band.
     rbBand.cx = 250;
-    rbBand.fStyle = 0;
 
     // Add the band that has the entry field.
     SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);

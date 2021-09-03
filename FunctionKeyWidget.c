@@ -360,9 +360,6 @@ void fkey_visibilitychanged(void) {
 		hwndFkeys = NULL;
 	} else {
 		fkey_show(hwndMDIFrameWindow);
-		if (hwndFkeys) {
-			RedrawWindow(hwndFkeys, NULL, NULL, RDW_INVALIDATE);
-		}
 	}
 	SendMessage(hwndMDIFrameWindow, WM_SIZE,0,0L);
 	if (hwndFkeys) {

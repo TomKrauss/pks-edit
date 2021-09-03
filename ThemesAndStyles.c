@@ -42,6 +42,7 @@
 #define RULER_BORDER_COLOR RGB(220,220,220)
 #define RULER_FOREROUND_COLOR RGB(140,140,140)
 #define RULER_BACKGROUND_COLOR RGB(248,248,248)
+#define MAIN_WINDOW_BACKGROUND_COLOR RGB(120, 255, 120)
 
 extern HDC print_getPrinterDC(void);
 // forward decl.
@@ -162,6 +163,7 @@ static THEME_DATA defaultTheme = {
 	RULER_BACKGROUND_COLOR,
 	-1,							// used as a default marker - strictly speaking there is no default for COLORREFs
 	-1,
+	MAIN_WINDOW_BACKGROUND_COLOR,
 	"Helv",						// (T) use in dialogs.
 	8,
 	"Consolas",
@@ -197,6 +199,7 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_COLOR, "savedChangedLineColor", offsetof(THEME_DATA, th_savedChangedLineColor)},
 	{	RT_COLOR, "markedLineColor", offsetof(THEME_DATA, th_markedLineColor)},
 	{	RT_COLOR, "rulerBorderColor", offsetof(THEME_DATA, th_rulerBorderColor)},
+	{	RT_COLOR, "mainWindowBackgroundColor", offsetof(THEME_DATA, th_mainWindowBackground)},
 	{	RT_COLOR, "dialogBackground", offsetof(THEME_DATA, th_dialogBackground)},
 	{	RT_COLOR, "dialogForeground", offsetof(THEME_DATA, th_dialogForeground)},
 	{	RT_COLOR, "rulerForegroundColor", offsetof(THEME_DATA, th_rulerForegroundColor)},
@@ -481,9 +484,7 @@ void theme_setCurrent(unsigned char* pszThemeName) {
 			}
 			pStyle = pStyle->next;
 		}
-		// (T) should be performed via some kind of theme changed event.
-		ww_redrawAllWindows(TRUE);
-
+		RedrawWindow(hwndMDIFrameWindow, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
 	}
 }
 
