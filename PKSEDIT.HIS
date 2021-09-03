@@ -1,6 +1,6 @@
 [files]
 "C:\source\pksedit\PKSEDIT.RC", line 798: 0x0 0x1 -1 -1 -1 -1 27 27 1391 505
-"C:\source\pksedit\en-US\en-US.rc", line 837: 0x0 0x1 -1 -1 -1 -1 100 44 1464 522
+"C:\source\pksedit\en-US\en-US.rc", line 819: 0x0 0x1 -1 -1 -1 -1 100 44 1464 522
 [find]
 !EventStore
 !ADD

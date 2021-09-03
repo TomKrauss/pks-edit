@@ -400,9 +400,10 @@ static void render_invalidateRect(WINFO* wp, RECT* pRect) {
 		}
 		InvalidateRect(wp->lineNumbers_handle, pRect, 0);
 	}
-
+	if (wp->ru_handle != NULL) {
+		InvalidateRect(wp->ru_handle, pRect, 0);
+	}
 }
-
 
 /*--------------------------------------------------------------------------
  * render_repaintFromLineTo()
@@ -450,6 +451,13 @@ static int render_repaintForWindow(WINFO* wp, void* pUnused) {
 		render_invalidateRect(wp, NULL);
 	}
 	return 1;
+}
+
+/*
+ * Repaint one window.
+ */
+void render_repaintWindow(WINFO* wp) {
+	render_repaintForWindow(wp, NULL);
 }
 
 /*--------------------------------------------------------------------------

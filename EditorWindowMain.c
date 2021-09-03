@@ -515,18 +515,15 @@ int EdWinArrange(int func)
 /*-----------------------------------------------------------
  * ww_redrawAllWindows()
  * Redraw all editor windows. If update is true, not only send
- * a repaint message bu also update by painting right away.
+ * a repaint message but also update by painting right away.
  */
 void ww_redrawAllWindows(int update)
 {	WINFO *wp;
 
 	for (wp = _winlist; wp; wp = wp->next) {
-		win_sendRedrawToWindow(wp->ww_handle);
+		render_repaintWindow(wp);
 		if (update) {
 			UpdateWindow(wp->ww_handle);
-		}
-		if (wp->lineNumbers_handle) {
-			win_sendRedrawToWindow(wp->lineNumbers_handle);
 		}
 	}
 }

@@ -163,6 +163,7 @@
         "tabulatorSizes": [4],
         "shiftWidth": 4,
         "showWhitespace": true,
+        "showRuler": true,
         "showLineNumbers": true,
         "showStatus": true,
         "highlightCaretLine": true,

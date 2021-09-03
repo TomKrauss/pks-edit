@@ -319,6 +319,11 @@ extern void render_repaintAllForFile(FTABLE* fp);
  */
 extern void render_repaintCurrentLine(WINFO* wp);
 
+/*
+ * Repaint one window.
+ */
+extern void render_repaintWindow(WINFO* wp);
+
 /*--------------------------------------------------------------------------
  * render_repaintWindowLine()
  * Repaint the given line in the window passed as a parameter.
