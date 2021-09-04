@@ -28,6 +28,8 @@
 #include "editorconfiguration.h"
 #include "mouseutil.h"
 #include "stringutil.h"
+#include "editoperations.h"
+#include "publicapi.h"
 #include "codecompletion.h"
 
 #define	SWAP(a,b)			{	a ^= b, b ^=a, a ^= b;  }
@@ -48,8 +50,6 @@ extern int 	string_countSpacesIn(unsigned char *s, int pos);
 extern int 	sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
 				 int indent, int *di, int *hbr);
 extern void 	wt_insline(FTABLE *fp, int caretLine, int nlines);
-extern void 	ln_changeFlag(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark,
-				int set);
 extern int 	macro_expandAbbreviation(WINFO *fp, LINE *lp,int offs);
 extern void 	render_updateCaret(WINFO *wp);
 
@@ -997,16 +997,15 @@ int EdLineSplit(int flags)
 }
 
 /*--------------------------------------------------------------------------
- * EdMarkedLineOp()
+ * edit_performLineFlagOperation()
  */
-int EdMarkedLineOp(int op)
-{
+int edit_performLineFlagOperation(MARKED_LINE_OPERATION op) {
 	long 	ln;
 	FTABLE *	fp;
 	LINE *	lp;
 	LINE	*	last;
 	WINFO* wp = ww_getCurrentEditorWindow();
-
+	int changed = 0;
 	fp = wp->fp;
 	last = fp->lastl->prev;
 	lp = fp->firstl;
@@ -1022,11 +1021,11 @@ int EdMarkedLineOp(int op)
 		break;
 
 	case MLN_MAKESOFT:
-		ln_changeFlag(lp,last,LNXMARKED,LNNOCR,1);
+		changed = ln_changeFlag(lp,last,0,LNNOCR,1);
 		break;
 
 	case MLN_MAKEHARD:
-		ln_changeFlag(lp,last,LNXMARKED,LNNOCR,0);
+		changed = ln_changeFlag(lp,last,0,LNNOCR,0);
 		break;
 
 	case MLN_FINDSOFT:
@@ -1043,9 +1042,11 @@ int EdMarkedLineOp(int op)
 		if (op == MLN_JOIN)
 			lnjoin_lines(fp);	
 		else
-			ft_cutMarkedLines(fp, op);
+			ft_cutMarkedLines(fp, (op == MLN_DELETE));
 	}
-
+	if (changed) {
+		ft_setFlags(fp, fp->flags | F_CHANGEMARK);
+	}
 	render_repaintAllForFile(fp);
 	mouse_setDefaultCursor();
 	return 1;
@@ -1128,4 +1129,70 @@ int EdExpandAbbreviation(void)
 	}
 	return 0;
 }
+
+/*--------------------------------------------------------------------------
+ * edit_convertCharacterCase()
+ * Map lower characters to upper, upper to lowers and toggle case depending on
+ * the passed operation flag.
+ */
+extern unsigned char _l2uset[], _u2lset[];
+int edit_convertCharacterCase(CC_OPERATION operation) {
+	LINE* lp;
+	unsigned char c, c1;
+	int  offs;
+	WINFO* wp = ww_getCurrentEditorWindow();
+	FTABLE* fp = wp->fp;
+	BOOL bBlockMode;
+	BOOL bLastLine;
+	CARET cStart;
+	CARET cEnd;
+
+	if (wp->blstart && wp->blend) {
+		bBlockMode = TRUE;
+		cStart.linePointer = wp->blstart->m_linePointer;
+		cStart.offset = wp->blstart->m_column;
+		cEnd.linePointer = wp->blend->m_linePointer;
+		cEnd.offset = wp->blend->m_column;
+	} else {
+		bBlockMode = FALSE;
+		cStart = wp->caret;
+		cEnd = wp->caret;
+		cEnd.offset++;
+	}
+	lp = cStart.linePointer;
+	offs = cStart.offset;
+	bLastLine = lp == cEnd.linePointer;
+	while(TRUE) {
+		c = lp->lbuf[offs];
+		c1 = c;
+		if (operation == CC_TOGGLE || operation == CC_UPPER) {
+			c1 = _l2uset[c];
+		}
+		if ((c == c1 && operation == CC_TOGGLE) || operation == CC_LOWER) {
+			c1 = _u2lset[c];
+		}
+		if (c1 != c && (lp = ln_modify(fp, lp, offs, offs)) != (LINE*)0) {
+			lp->lbuf[offs] = c1;
+		}
+		offs++;
+		if (offs > lp->len || (bLastLine && offs >= cEnd.offset)) {
+			if (bLastLine) {
+				break;
+			}
+			lp = lp->next;
+			bLastLine = lp == cEnd.linePointer;
+			if (lp == fp->lastl) {
+				break;
+			}
+			offs = 0;
+		}
+	}
+	if (bBlockMode) {
+		render_repaintLineRange(fp, wp->blstart->m_linePointer, wp->blend->m_linePointer);
+		return 1;
+	}
+	render_repaintLine(fp, wp->caret.linePointer);
+	return EdCursorRight(1);
+}
+
 

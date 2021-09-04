@@ -1151,6 +1151,7 @@
     <ClInclude Include="include\customcontrols.h" />
     <ClInclude Include="include\desktopicons.h" />
     <ClInclude Include="include\documenttypes.h" />
+    <ClInclude Include="include\editoperations.h" />
     <ClInclude Include="include\editorconfiguration.h" />
     <ClInclude Include="include\editorfont.h" />
     <ClInclude Include="include\errordialogs.h" />

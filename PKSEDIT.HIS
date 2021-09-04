@@ -1,9 +1,7 @@
 [files]
-"C:\source\pksedit\en-US\en-US.rc", line 819: 0x0 0x1 -1 -1 -1 -1 146 127 1510 605
-"C:\source\pksedit\PKSEDIT.RC", line 992: 0x0 0x1 -1 -1 -8 -31 9 12 1373 490
+"C:\source\pksedit\PKSEDIT.RC", line 892: 0x0 0x1 -1 -1 -8 -31 9 12 1373 490
+"C:\source\pksedit\en-US\en-US.rc", line 895: 0x0 0x1 -1 -1 -1 -1 213 84 1577 562
 [find]
-!EventStore
-!ADD
 !error:
 !warning;
 !warning:
@@ -34,6 +32,8 @@
 !Ctrl+Shift+SPACE
 !ESC
 !DLG_OPT_MISC
+!Konvert
+!case
 [filePatterns]
 !*.*
 !*.java

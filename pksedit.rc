@@ -882,15 +882,23 @@ BEGIN
     POPUP "F&unktionen"
     BEGIN
         MENUITEM "&Formatieren...\a",           MFORMAT
-        MENUITEM "&Leer -> Tabs...\a",          MCOMTABS
-        MENUITEM "&Tabs -> Leer...\a",          MEXPTABS
         MENUITEM "&Ausrichten...\a",            MENALIGN
         MENUITEM "Schiebe &rechts...\a",        MSHFTRIG
         MENUITEM "Schiebe l&inks...\a",         MSHFTLEF
         MENUITEM "S&ortieren...\a",             MMSORT
-        MENUITEM "Toggle Comment...\a",         MTOGGLE_COMMENT
-        MENUITEM SEPARATOR
+        MENUITEM "Kommentare togglen...\a",     MTOGGLE_COMMENT
         MENUITEM "&Vergleichen\a",              MENDIFF
+        MENUITEM SEPARATOR
+        POPUP "Konvertieren"
+        BEGIN
+            MENUITEM "&Leerzeichen -> Tabs...\a",   MCOMTABS
+            MENUITEM "&Tabs -> Leerzeichen...\a",   MEXPTABS
+            MENUITEM "&Groﬂ->Klein...\a",            IDM_CONVERT_TO_LOWER
+            MENUITEM "&Klein->Groﬂ...\a",            IDM_CONVERT_TO_UPPER
+            MENUITEM "&Alternieren Klein/Groﬂ...\a", IDM_TOGGLE_LOWER_UPPER
+            MENUITEM "Linu&x Zeilenenden verwenden...\a", IDM_USE_LINUX_LINEENDS
+            MENUITEM "&Windows Zeilenenden verwenden...\a", IDM_USE_WINDOWS_LINEENDS
+        END
     END
     POPUP "&Makros"
     BEGIN

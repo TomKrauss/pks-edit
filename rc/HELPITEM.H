@@ -45,6 +45,13 @@
 #define	MSHFTLEF 73	
 #define	MMSORT   74	
 #define	MENDIFF  76	
+#define IDM_CONVERT_TO_UPPER            601
+#define IDM_CONVERT_TO_LOWER            602
+#define IDM_TOGGLE_LOWER_UPPER          603
+#define IDM_USE_LINUX_LINEENDS          604
+#define IDM_USE_WINDOWS_LINEENDS        605
+
+
 #define	MENPRINT 78	
 #define	MENBUILD 79	
 #define	MENEX    80	

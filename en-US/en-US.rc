@@ -359,7 +359,7 @@ BEGIN
     CONTROL         "&Forwards",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,8,68,44,14
     CONTROL         "B&ackwards",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON,56,68,48,14
     GROUPBOX        "Options",IDD_OPT10,119,23,138,63,WS_GROUP
-    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,128,34,84,12
+    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,128,34,94,12
     CONTROL         "&Regular Expressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,128,46,80,12
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,128,58,80,12
     CONTROL         "&Wrap search",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX,128,70,80,12
@@ -921,15 +921,23 @@ BEGIN
     POPUP "F&unctions"
     BEGIN
         MENUITEM "&Format...\a",                MFORMAT
-        MENUITEM "&Spaces -> Tabs...\a",        MCOMTABS
-        MENUITEM "&Tabs -> Spaces...\a",        MEXPTABS
         MENUITEM "&Align...\a",                 MENALIGN
         MENUITEM "Shift &right...\a",           MSHFTRIG
         MENUITEM "Shift l&eft...\a",            MSHFTLEF
         MENUITEM "S&ort File...\a",             MMSORT
         MENUITEM "Toggle Comment...\a",         MTOGGLE_COMMENT
-        MENUITEM SEPARATOR
         MENUITEM "&Compare Files\a",            MENDIFF
+        MENUITEM SEPARATOR
+        POPUP "Convert"
+        BEGIN
+            MENUITEM "&Spaces -> Tabs...\a",        MCOMTABS
+            MENUITEM "&Tabs -> Spaces...\a",        MEXPTABS
+            MENUITEM "&Upper->Lower...\a",          IDM_CONVERT_TO_LOWER
+            MENUITEM "Lower->Upper...\a",           IDM_CONVERT_TO_UPPER
+            MENUITEM "&Toggle Upper/Lower...\a",    IDM_TOGGLE_LOWER_UPPER
+            MENUITEM "Use &Linux line endings...\a", IDM_USE_LINUX_LINEENDS
+            MENUITEM "Use &Windows line endings...\a", IDM_USE_WINDOWS_LINEENDS
+        END
     END
     POPUP "&Macros"
     BEGIN

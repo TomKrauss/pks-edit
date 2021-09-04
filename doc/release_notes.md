@@ -5,18 +5,22 @@
 ### 2.0.2
 
 #### New
-- PKS Edit finally supports code completion. Press ESC to open the suggestion window, which will display code templates
-  configured for the current grammar and/or cross references defined as tags.
+- PKS Edit finally supports code completion. Press Ctrl+SPACE to open the suggestion window, which will display code templates
+  configured for the current grammar and/or cross references defined as tags + other suggestions.
+- For text type grammars (text and markdown) code completion includes all words found in the current text.
 - The line numbers area displays now change annotations: changed lines are marked with a yellow annotation, changed lines,
   which have been saved are marked in green.
 - PKS-Edit supports now navigation to previous positions "cross open files" - aka global textmarks. One can used Alt+Left/Right
   to navigate between "editing positions" and Alt+Shift+Left/Right to navigate between "navigation positions". Editing positions
   can also be navigated through the new back and next toolbar buttons.
 - Ctrl+TAB opens a window selector now allowing to visually tab through the list of open files to select a file.
-- Code completion is now by default triggered using Ctrl+SPACE (in conformance to other development tools). For text type
-  grammars (text and markdown) code completion includes now all words found in the current text.
 - PKS Edit supports now selecting the UI theme (preview version only) and the current language from the settings dialog.
   Note, that updating the language will not be reflected before PKS Edit is restarted. Currently two languages are available: English and German.
+- PKS Edit has a couple of new supported conversion operations (accessible through the new Functions->Convert menu):
+-- convert line ends to LINUX (\n) style (no Undo avaialable yet)
+-- convert line ends to Windows (\r\n) style (no Undo avaialable yet)
+-- convert upper case to lower case, lower case to upper case, toggle case. The current character under the cursor is converted or - if a text selection
+   exists, the selected text is converted.
 
 #### Changed
 - Character classes (for identifiers and mappings from lower case to upper case) are now defined in the grammar, which allows for language

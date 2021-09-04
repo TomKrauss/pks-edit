@@ -139,15 +139,6 @@ extern void linetoolong(void);
 #define	PRT_TRASH			0x5
 #define	PRT_TYPES			(1|2|3|4|5)
 
-/* Flags for marked line delta */
-#define	MLN_DELETE		0
-#define	MLN_JOIN			1
-#define	MLN_TOGGLE		2
-#define	MLN_FINDSOFT		3
-#define	MLN_MAKESOFT		4
-#define	MLN_MAKEHARD		5
-#define	MLN_CUT			6
-
 /* Flags for return */
 #define	RET_PLUS			0x1
 #define	RET_MINUS			0x2

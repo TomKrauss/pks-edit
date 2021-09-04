@@ -216,22 +216,32 @@ void ln_addFlag(LINE *lpstart, LINE *lpend, int flg) {
  *
  * Add / remove flags from multiple lines - all lines having an expected flag
  * are considered.
+ * Return 1, if at least one line has changed.
  */
-void ln_changeFlag(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark, int set) {
-	if (!set)
+int ln_changeFlag(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark, int set) {
+	if (!set) {
 		flagmark = ~flagmark;
-
-	while (lpstart != 0) {	
-		if (lpstart->lflg & flagsearch) {
+	}
+	int ret = 0;
+	while (lpstart != 0) {
+		// (T) add undo support
+		if (!flagsearch || (lpstart->lflg & flagsearch)) {
+			int oldFlag = lpstart->lflg;
 			if (set) {
 				lpstart->lflg |= flagmark;
 			} else {
 				lpstart->lflg &= flagmark;
 			}
+			if (oldFlag != lpstart->lflg) {
+				ret = 1;
+			}
 		}
-		if (lpstart == lpend) return;
+		if (lpstart == lpend) {
+			return ret;
+		}
 		lpstart = lpstart->next;
 	}
+	return ret;
 }
 
 
@@ -321,12 +331,12 @@ int ln_delete(FTABLE *fp, LINE *lp)
  * Cut out the lines which which have a line marker flag.
  * The cut operation is one of the MLN_... constants defined for files.
  *---------------------------------*/
-void ft_cutMarkedLines(FTABLE *fp, int op)
+void ft_cutMarkedLines(FTABLE *fp, BOOL bDelete)
 {	LINE *		lp;
 	LINE *		lpnext;
 	PASTE *		pb;
 
-	pb = (op == MLN_DELETE) ? _undobuf : bl_addrbyid(0, 0);
+	pb = bDelete ? _undobuf : bl_addrbyid(0, 0);
 
 	lp = fp->firstl;
 	bl_free(pb);
@@ -340,7 +350,7 @@ void ft_cutMarkedLines(FTABLE *fp, int op)
 
 			if (lpnext->next == 0) {
 				bl_append(pb,lp,lp,0,lp->len);
-				if (op == MLN_DELETE) {
+				if (bDelete) {
 					lp->len   = 0;
 					lp->lbuf[0] = 0;
 					lp->lflg &= ~LNXMARKED;
@@ -352,7 +362,7 @@ void ft_cutMarkedLines(FTABLE *fp, int op)
 				return;
 			}
 
-			if (op == MLN_DELETE) {
+			if (bDelete) {
 				ln_delete(fp,lp);
 			}
 

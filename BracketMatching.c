@@ -351,30 +351,6 @@ EXPORT int uc_showMatchingBracket(WINFO* wp) {
 }
 
 /*--------------------------------------------------------------------------
- * EdCharUpToLow()
- * Map low Chars to up
- * and the other way
- */
-extern unsigned char _l2uset[],_u2lset[];
-EXPORT int EdCharUpToLow(void )
-{	LINE	 *lp;
-	unsigned char c,c1;
-	int  offs;
-	WINFO* wp = ww_getCurrentEditorWindow();
-	FTABLE *fp = wp->fp;
-
-	lp	= wp->caret.linePointer;
-	offs = wp->caret.offset;
-	c    = lp->lbuf[offs];
-	if (((c1 = _l2uset[c]) != c || (c1 = _u2lset[c]) != c) &&
-	    (lp = ln_modify(fp,lp,offs,offs)) != (LINE *)0) {
-		lp->lbuf[offs] = c1;
-		render_repaintCurrentLine(wp);
-	}
-	return EdCursorRight(1);
-}
-
-/*--------------------------------------------------------------------------
  * uc_shiftLinesByIndent()
  * shift n lines
  */

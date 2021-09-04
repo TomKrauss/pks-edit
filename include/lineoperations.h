@@ -276,9 +276,9 @@ extern int ft_activateWindowOfFileNamed(char* fn);
 /*---------------------------------
  * ft_cutMarkedLines()
  * Cut out the lines which which have a line marker flag.
- * The cut operation is one of the MLN_... constants defined for files.
+ * Depending on the bDelete param delete the line.
  *---------------------------------*/
-void ft_cutMarkedLines(FTABLE* fp, int op);
+void ft_cutMarkedLines(FTABLE* fp, BOOL bDelete);
 
 /*------------------------------------------------------------
  * ft_abandonFile()
@@ -333,8 +333,9 @@ extern void ln_addFlag(LINE* lpstart, LINE* lpend, int flg);
  *
  * Add / remove flags from multiple lines - all lines having an expected flag
  * are considered.
+ * Return 1, if at least one line has changed.
  */
-extern void ln_changeFlag(LINE* lpstart, LINE* lpend, int flagsearch, int flagmark, int set);
+extern int ln_changeFlag(LINE* lpstart, LINE* lpend, int flagsearch, int flagmark, int set);
 
 /*---------------------------------
  * ln_removeFlag()

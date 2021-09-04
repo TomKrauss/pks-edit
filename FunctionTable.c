@@ -25,8 +25,10 @@
 #include "findandreplace.h"
 #include "iccall.h"
 #include "winfo.h"
+#include "pksrc.h"
 #include "markpositions.h"
 #include "windowselector.h"
+#include "editoperations.h"
 
 extern int
 EdFileAbandon(), EdAbout(long ), EdBlockCopy(long ), EdBlockDelete(long ),
@@ -34,7 +36,7 @@ EdBlockFindEnd(long ), EdBlockFindStart(long ), EdBlockMove(long ), EdBlockRead(
 EdBlockWrite(long ), EdBlockCut(long ), EdBlockPaste(long ), bl_hideSelectionInCurrentWindow(),
 EdSyncSelectionWithCaret(long ), EdLinesYank(long ), EdLineDelete(long ), EdBufferFree(long ),
 EdKeycodeInsert(long ), EdCharInsert(long ), EdFormatText(long ), edit_insertLine(long ),
-EdMarkedLineOp(long ), EdSearchListRead(long ), EdErrorListRead(long ), 
+EdSearchListRead(long ), EdErrorListRead(long ), 
 EdMacrosEdit(long ), EdDocMacrosEdit(long ), EdDocMacrosAdd(long ), macro_readWriteWithFileSelection(long ),
 EdTagfileRead(long ), EdSetup(long ), EdSetMultiplier(long ), EdReplaceTabs(long ),
 EdLineSplit(int), EdParaGotoBegin(long ), edit_shiftSelection(int aDirection),
@@ -46,7 +48,7 @@ EdHelp(long ), EdLinesJoin(long ), EdEditFile(long, char* filename), EdOptionSet
 EdPrint(long ), EdExitAndSave(long ), EdExit(long ), EdCloseAll(long ),
 EdSaveFile(int ), EdSelectWindow(int), EdCommandExecute(long ), EdExecute(long ),
 EdShiftBetweenBrackets(long ), EdSort(long ), EdLinesShift(long ), EdInfoFiles(long ),
-EdShowMatch(long ), EdCharUpToLow(long ), EdDlgWorkMode(long ), EdDlgDispMode(long ),
+EdShowMatch(long ), EdDlgWorkMode(long ), EdDlgDispMode(long ),
 EdDlgCursTabs(long ), EdDlgModeVals(long ), EdOptionToggle(long ), EdPasteString(long ),
 EdFindTag(long ), EdFindFileCursor(long ), EdErrorNext(long ), EdFindTagCursor(long ),
 EdFindWordCursor(long ), EdWinArrange(long ), EdWindowRegSet(long ), EdRangeShift(long ),
@@ -80,7 +82,7 @@ EDFUNC _edfunctab[] = {
 	EdCharInsert  , '!',	EW_MODIFY | EW_NEEDSCURRF | EW_CCASH | 0,
 	EdFormatText  , '!',	EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,
 	edit_insertLine  , '!',	EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,
-EdMarkedLineOp, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,
+edit_performLineFlagOperation, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,
 EdSearchListRead, '!', EW_HASFORM | 0,
 EdErrorListRead, '!', 0,
 ww_zoomWindow, '!', EW_NEEDSCURRF | 0,
@@ -133,7 +135,7 @@ EdSort, '!', EW_MODIFY | EW_NEEDSCURRF | 0,
 EdLinesShift, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_MULTI | 0,
 EdInfoFiles, '!', 0,
 EdShowMatch, '!', EW_NEEDSCURRF | 0,
-EdCharUpToLow, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,
+edit_convertCharacterCase, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,
 EdDlgWorkMode, '!', EW_NEEDSCURRF | 0,
 EdDlgDispMode, '!', EW_NEEDSCURRF | 0,
 EdDlgCursTabs, '!', EW_NEEDSCURRF | 0,
@@ -285,7 +287,12 @@ IDM_HLPONMENUS	,93,
 IDM_HLPONKEYS	,94,
 IDM_HLPONDESKTOP	,95,
 IDM_HLPINDEX	,96,
-IDM_ABOUT	,97
+IDM_ABOUT	,97,
+IDM_USE_LINUX_LINEENDS, 244,
+IDM_USE_WINDOWS_LINEENDS, 245,
+IDM_CONVERT_TO_LOWER, 247,
+IDM_CONVERT_TO_UPPER, 246,
+IDM_TOGGLE_LOWER_UPPER, 120,
 };
 
 int _nmenus = sizeof(_menutab) / sizeof(_menutab[0]);
@@ -457,7 +464,7 @@ COMMAND _cmdseqtab[] = {
 /* 117 */ C_1FUNC, 65 /* EdSelectWindow */, 6 , "select-window-6", "Selektiert Fenster #6;Zu Fenster 6",
 /* 118 */ C_1FUNC, 65 /* EdSelectWindow */, -1 , "select-previous-window", "Aktiviert das zuletzt aktive Fenster;Vorh. Fenster",
 /* 119 */ C_1FUNC, 125 /* windowselector_showWindowList */, 0, "cycle-window", "Geht zyklisch zum nächsten Fenster;Weitersch. Fenster",
-/* 120 */ C_0FUNC, 73 /* EdCharUpToLow */, 0 , "char-up-low", "wandelt Groß- in Kleinschreibung;Groß <-> Klein",
+/* 120 */ C_1FUNC, 73 /* edit_convertCharacterCase */, CC_TOGGLE, "char-up-low", "toggled Groß- / Kleinschreibung;Groß <-> Klein",
 /* 121 */ C_1FUNC, 70 /* EdLinesShift */, -1 , "shift-line-left", "Verschiebt um eine Spalte nach links;Schieben links",
 /* 122 */ C_1FUNC, 70 /* EdLinesShift */, 1 , "shift-line-right", "Verschiebt um eine Spalte nach rechts;Schieben rechts",
 /* 123 */ C_0FUNC, 50 /* EdReplaceAgain */, 0 , "replace-again", "Wiederholt die letzte Ersetzung;Erneut ersetzen",
@@ -509,7 +516,7 @@ COMMAND _cmdseqtab[] = {
 /* 169 */ C_1FUNC, 19 /* edit_insertLine */, 1 , "insert-line-stay", "Fügt eine Zeile ein, Cursor bleibt;Zeile einfügen",
 /* 170 */ C_0FUNC, 25 /* EdDocMacrosEdit */, 0 , "edit-doc-macros", "Editiert weitere Dokumenteinstellungen;Edit erw. Dok",
 /* 171 */ C_0FUNC, 15 /* EdBufferFree */, 0 , "kill-buffers", "Leert alle Text-Zwischenspeicher;Buffer leeren",
-/* 172 */ C_1FUNC, 20 /* EdMarkedLineOp */, MLN_DELETE, "delete-marked-lines", "Löscht alle markierten Zeilen;Lösche Liste",
+/* 172 */ C_1FUNC, 20 /* edit_performLineFlagOperation */, MLN_DELETE, "delete-marked-lines", "Löscht alle markierten Zeilen;Lösche Liste",
 /* 173 */ C_0FUNC, 30 /* EdSetMultiplier */, 0 , "set-multiplikator", "Setzt den Multiplikator für die nächste Funktion;Multiplikator",
 /* 174 */ C_0FUNC, 43 /* codecomplete_showSuggestionWindow */, 0 , "escape-makro", "Startet ein Escape Makro;Tasten Makro",
 /* 175 */ C_1FUNC, 42 /* fkey_keyModifierStateChanged */, -1 , "switch-fkeys-minus", "Schaltet die Funktionstasten zurück;Funktions Tasten <-",
@@ -518,7 +525,7 @@ COMMAND _cmdseqtab[] = {
 /* 178 */ C_1FUNC, 44 /* macro_executeMacroByIndex */, MAC_AUTO , "re-insert", "Wiederholt die letzten Einfüge-Operationen;Wieder einfügen",
 /* 179 */ C_0FUNC, 45 /* EdMacroRecord */, 0 , "record-macro", "Startet eine Makro-Aufnahme;Makro aufnehmen",
 /* 180 */ C_0FUNC, 88 /* EdUndo */, 0 , "undo", "Macht die letzte Änderung rückgängig;Änderung rückgängig",
-/* 181 */ C_1FUNC, 20 /* EdMarkedLineOp */, MLN_TOGGLE, "toggle-line-marks", "Invertiert die Zeilenmarkierungen;Invert. mark. Zeilen",
+/* 181 */ C_1FUNC, 20 /* edit_performLineFlagOperation */, MLN_TOGGLE, "toggle-line-marks", "Invertiert die Zeilenmarkierungen;Invert. mark. Zeilen",
 /* 182 */ C_1FUNC, 85 /* EdWinArrange */, WIN_DESKICON, "iconize-edit", "Iconisiert PKS-EDIT;PKS-EDIT als Symbol",
 /* 183 */ C_1FUNC, 85 /* EdWinArrange */, WIN_ICONIZED, "iconize-window", "Iconisiert das Bearbeitungsfenster;Fenster als Symbol",
 /* 184 */ C_1FUNC, 89 /* EdFilesCompare */, LIST_PREV , "last-difference", "Geht zum letzten Unterschied beim Datei - Vergleich;Letzter Unterschied",
@@ -530,7 +537,7 @@ COMMAND _cmdseqtab[] = {
 /* 190 */ C_1FUNC, 91 /* EdScrollCursor */, MOT_SINGLE, "scroll2-up-line", "Scrollt eine Zeile nach oben, Cursor folgt;Rollen oben 2",
 /* 191 */ C_1FUNC, 91 /* EdScrollCursor */, -MOT_SINGLE, "scroll2-down-line", "Scrollt eine Zeile nach unten, Cursor folgt;Rollen unten 2",
 /* 192 */ C_1FUNC, 91 /* EdScrollCursor */, MOT_CENTER, "scroll-center-page", "Scrollt den Bildschirm so, daß der Cursor in der Mitte steht;Rollen mittig",
-/* 193 */ C_1FUNC, 20 /* EdMarkedLineOp */, MLN_JOIN , "join-marked-lines", "Fügt alle markierten Zeilen zusammen;Join Zeilen",
+/* 193 */ C_1FUNC, 20 /* edit_performLineFlagOperation */, MLN_JOIN , "join-marked-lines", "Fügt alle markierten Zeilen zusammen;Join Zeilen",
 /* 194 */ C_0FUNC, 25 /* EdDocMacrosEdit */, 0 , "edit-local-doc-macros", "Dokumenteinstellungen;Edit erw. Dok",
 /* 195 */ C_1FUNC, 52 /* fm_gotoNextPosition */, TM_LASTINSERT, "undefined", "Geht zur Stelle der letzten Einfügung;Zur letzten Einfügung",
 /* 196 */ C_1FUNC, 60 /* EdPrint */, PRT_CLIP , "print-clipboard", "Druckt den Inhalt der Zwischenablage;Drucken Ablage",
@@ -580,7 +587,11 @@ COMMAND _cmdseqtab[] = {
 /* 240 */ C_1FUNC, 23 /* ww_zoomWindow */, 0, "zoom-decrease", "Zoomfaktor --;Zoomfaktor --",
 /* 241 */ C_1FUNC, 124 /* edit_toggle_comment */, -1, "toggle-comment", "Toggle Comment;Toggle Comment",
 /* 242 */ C_1FUNC, 52 /* fm_gotoNextPosition */, TM_LASTSEARCH, "goto-next-pos", "Goto next navigation position;Next Position",
-/* 243 */ C_1FUNC, 52 /* fm_gotoNextPosition */, TM_LASTINSERT, "goto-next-insertion-pos", "Goto next position of insertion;Next Insertion Position"
+/* 243 */ C_1FUNC, 52 /* fm_gotoNextPosition */, TM_LASTINSERT, "goto-next-insertion-pos", "Goto next position of insertion;Next Insertion Position",
+/* 244 */ C_1FUNC, 20 /* edit_performLineFlagOperation */, MLN_MAKESOFT, "use-linux-lineends", "Schließt alle Zeilen mit Linux Zeilenende ab;Linux Zeilenenden",
+/* 245 */ C_1FUNC, 20 /* edit_performLineFlagOperation */, MLN_MAKEHARD, "use-windows-lineends", "Schließt alle Zeilen mit Windows Zeilenende ab;Windows Zeilenenden",
+/* 246 */ C_1FUNC, 73 /* edit_convertCharacterCase */, CC_UPPER, "char-to-upper", "Umwandeln Großschreibung;-> Groß",
+/* 247 */ C_1FUNC, 73 /* edit_convertCharacterCase */, CC_LOWER, "char-to-lower", "Umwandeln Kleinschreibung;-> Klein",
 };
 
 char _recorder[RECORDERSPACE];
