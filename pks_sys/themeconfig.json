@@ -3,8 +3,9 @@
     {
       "name": "default",
       "backgroundColor": "#fcfcfc",
-      "changedLineColor": "#ffff33",
+      "changedLineColor": "#ffdd00",
       "savedChangedLineColor": "#88ff88",
+      "undoAfterSaveChangedLineColor": "#ff8800",
       "editorConfiguration": "default",
       "caretLineColor": "#eeffee",
       "markedLineColor": "#cfcfff",

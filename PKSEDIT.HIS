@@ -1,6 +1,7 @@
 [files]
 "C:\source\pksedit\PKSEDIT.RC", line 892: 0x0 0x1 -1 -1 -8 -31 9 12 1373 490
 "C:\source\pksedit\en-US\en-US.rc", line 895: 0x0 0x1 -1 -1 -1 -1 213 84 1577 562
+"C:\source\pksedit\DesktopIcons.c", line 21: 0x0 0x1 -1 -1 -8 -31 60 18 1439 667
 [find]
 !error:
 !warning;

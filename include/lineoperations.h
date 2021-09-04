@@ -121,6 +121,7 @@ typedef struct tagWINFO WINFO;
 #define	O_LNORDER			4		/* reorder linelist according to a table */
 #define	O_HIDE				5		/* hide a list of lines */
 #define	O_UNHIDE			6		/* unhide a list of lines */
+#define O_FLAG				7		/* the line flags were changed */
 
 /*---------------------------------*/
 /* EDIT_CONFIGURATION			*/
@@ -710,13 +711,14 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 
 /*---------- LINEFLAGS ---------*/
 
+#define	LNSAVED				0x01 	// the line has been saved
 #define	LNDIFFMARK			0x02 	// Mark for last EdFilesCompare action
 #define	LNMODIFIED			0x04 	// something in line has been modified
+#define LNUNDO_AFTER_SAVE	0x08	// the line has been saved und undo had been applied afterwards
 #define	LNNOCR				0x10	// mark "not chapter lines" 
 #define	LNINDIRECT			0x20	// indirect flag 
 #define	LNNOTERM			0x40	// unterminated line 
 #define	LNXMARKED			0x80	// marked for EdCharDelete ...	
-#define	LNSAVED				0x01 	// the line has been saved
 
 #define LINE_HAS_LINE_END(lp)		((lp->lflg & LNNOTERM) == 0)
 #define LINE_HAS_CR(lp)				((lp->lflg & LNNOCR) == 0)

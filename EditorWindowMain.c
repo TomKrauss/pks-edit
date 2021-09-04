@@ -67,7 +67,7 @@ extern void menu_switchMenusToContext(char *pszContext);
 
 static WINDOWPLACEMENT	_winstates[6];
 
-#define  LINE_ANNOTATION_WIDTH			6
+#define  LINE_ANNOTATION_WIDTH			5
 #define  LINE_ANNOATION_PADDING			2
 
 static int lineNumberWindowWidth = 50 + LINE_ANNOTATION_WIDTH + (2*LINE_ANNOATION_PADDING);
@@ -1491,6 +1491,7 @@ static void draw_lineNumbers(WINFO* wp) {
 	HBRUSH bgBrush = CreateSolidBrush(pTheme->th_rulerBackgroundColor);
 	HBRUSH hAnnotationBrush = CreateSolidBrush(pTheme->th_changedLineColor);
 	HBRUSH hSavedBrush = CreateSolidBrush(pTheme->th_savedChangedLineColor);
+	HBRUSH hUndoAfterSavedBrush = CreateSolidBrush(pTheme->th_undoAfterSaveChangedLineColor);
 	FillRect(hdc, &ps.rcPaint, bgBrush);
 	DeleteObject(bgBrush);
 
@@ -1525,7 +1526,13 @@ static void draw_lineNumbers(WINFO* wp) {
 			r.right = rect.right - 2;
 			r.top = yPos;
 			r.bottom = min(ps.rcPaint.bottom, yPos + wp->cheight);
-			FillRect(hdc, &r, (lp->lflg & LNSAVED) ? hSavedBrush : hAnnotationBrush);
+			HBRUSH hBrush = hAnnotationBrush;
+			if (lp->lflg & LNUNDO_AFTER_SAVE) {
+				hBrush = hUndoAfterSavedBrush;
+			} else if (lp->lflg & LNSAVED) {
+				hBrush = hSavedBrush;
+			}
+			FillRect(hdc, &r, hBrush);
 		}
 		lp = lp->next;
 	}
@@ -1535,6 +1542,7 @@ static void draw_lineNumbers(WINFO* wp) {
 	LineTo(hdc, rect.right-1, rect.bottom);
 	SelectObject(hdc, hPenOld);
 	DeleteObject(markerPen);
+	DeleteObject(hUndoAfterSavedBrush);
 	DeleteObject(hAnnotationBrush);
 	DeleteObject(hSavedBrush);
 	EndPaint(wp->lineNumbers_handle, &ps);

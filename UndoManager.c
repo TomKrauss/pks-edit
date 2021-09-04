@@ -333,7 +333,7 @@ EXPORT void undo_startModification(FTABLE *fp)
  * Applies a list of undo deltas on a file.
  * Return an undo-command to redo the changes.
  */
-static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
+static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand, BOOL bRedo) {
 	long ln, col;
 	register int i;
 	register UNDO_OPERATION* pOperation;
@@ -343,6 +343,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 	BOOL bRedrawAll = FALSE;
 	UNDO_COMMAND* pRedoCommand = malloc(sizeof * pRedoCommand);
 	WINFO* wp = pCommand->wp;
+	LINE* lpChange;
 
 	if (!ft_hasView(fp, wp)) {
 		wp = NULL;
@@ -377,15 +378,27 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand) {
 				} else {
 					lp = lp->next;
 				}
-				pDelta->lp->lflg &= (LNINDIRECT | LNXMARKED | LNNOTERM | LNNOCR);
-				ln_replace(fp, lp, pDelta->lp);
-				render_repaintLine(fp, pDelta->lp);
-				add_stepToCommand(pRedoCommand, lp, pDelta->lp->prev, pDelta->op);
+				lpChange = pDelta->lp;
+				if (!bRedo) {
+					lpChange->lflg &= (LNINDIRECT | LNXMARKED | LNNOTERM | LNNOCR);
+					if (lp->lflg & LNSAVED) {
+						lpChange->lflg |= LNUNDO_AFTER_SAVE|LNMODIFIED;
+					}
+				}
+				ln_replace(fp, lp, lpChange);
+				render_repaintLine(fp, lpChange);
+				add_stepToCommand(pRedoCommand, lp, lpChange->prev, pDelta->op);
 				break;
 			case O_DELETE:
-				pDelta->lp->lflg &= (LNINDIRECT | LNXMARKED | LNNOTERM | LNNOCR);
-				ln_insert(fp, pDelta->lpAnchor, pDelta->lp);
-				add_stepToCommand(pRedoCommand, pDelta->lp, pDelta->lpAnchor, O_INSERT);
+				lpChange = pDelta->lp;
+				if (!bRedo) {
+					lpChange->lflg &= (LNINDIRECT | LNXMARKED | LNNOTERM | LNNOCR);
+					if (pDelta->lpAnchor->lflg & LNSAVED) {
+						lpChange->lflg |= LNUNDO_AFTER_SAVE | LNMODIFIED;
+					}
+				}
+				ln_insert(fp, pDelta->lpAnchor, lpChange);
+				add_stepToCommand(pRedoCommand, lpChange, pDelta->lpAnchor, O_INSERT);
 				bRedrawAll = TRUE;
 				break;
 			case O_INSERT:
@@ -448,7 +461,7 @@ EXPORT BOOL undo_redoLastModification(FTABLE* fp) {
 		return FALSE;
 	}
 	_undoOperationInProgress = TRUE;
-	UNDO_COMMAND* pUndoCommand = applyUndoDeltas(fp, pCommand);
+	UNDO_COMMAND* pUndoCommand = applyUndoDeltas(fp, pCommand, TRUE);
 	pStack->current++;
 	if (pUndoCommand != NULL) {
 		undo_replace(pStack, pUndoCommand, fp);
@@ -493,7 +506,7 @@ EXPORT BOOL undo_lastModification(FTABLE *fp)
 		return FALSE;
 	}
 	_undoOperationInProgress = TRUE;
-	UNDO_COMMAND *pRedoCommand = applyUndoDeltas(fp, pCommand);
+	UNDO_COMMAND *pRedoCommand = applyUndoDeltas(fp, pCommand, FALSE);
 	if (pRedoCommand != NULL) {
 		undo_replace(pStack, pRedoCommand, fp);
 	}
