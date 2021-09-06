@@ -80,10 +80,10 @@ BEGIN
     LTEXT           "!ERROR!",IDD_STRING1,4,0,288,13,NOT WS_GROUP
 END
 
-DLGFKEYS DIALOG 0, 2000, 440, 32
+DLGFKEYS DIALOGEX 0, 2000, 440, 32
 STYLE DS_SETFONT | WS_CHILD
 CLASS "DLGFKEYS"
-FONT 8, "Helv"
+FONT 8, "Helv", 0, 0, 0x1
 BEGIN
     CONTROL         "Insert",IDD_FKFLG1,"toggle",WS_TABSTOP | 0x3,40,20,40,12
     CONTROL         "Indent",IDD_FKFLG2,"toggle",WS_TABSTOP | 0x3,80,20,40,12
@@ -95,7 +95,7 @@ BEGIN
     CONTROL         "Select | |",IDD_FKFLG8,"toggle",WS_TABSTOP | 0x3,160,20,40,12
     CONTROL         "Read O.",IDD_FKFLG9,"toggle",WS_TABSTOP | 0x3,320,20,40,12
     CONTROL         "Insert OEM",IDD_FKFLG10,"toggle",WS_TABSTOP | 0x3,280,20,40,12
-    CONTROL         "Show OEM",510,"toggle",WS_TABSTOP | 0x3,400,20,40,12
+    CONTROL         "Line Highl.",510,"toggle",WS_TABSTOP | 0x3,400,20,40,12
     CONTROL         "Record",511,"toggle",WS_TABSTOP | 0x3,360,20,40,12
     CONTROL         "F1",IDD_FKFK1,"Button",BS_OWNERDRAW | WS_TABSTOP,0,0,40,14
     CONTROL         "F2",IDD_FKFK2,"Button",BS_OWNERDRAW | WS_TABSTOP,40,0,40,14
@@ -112,10 +112,10 @@ BEGIN
     CONTROL         "BUTTON",IDD_FKSTATE,"Button",BS_OWNERDRAW,400,0,38,32
 END
 
-DLGBOXC DIALOG 91, 60, 138, 24
+DLGBOXC DIALOGEX 91, 60, 138, 24
 STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Goto Mark"
-FONT 8, "helv"
+FONT 8, "helv", 0, 0, 0x1
 BEGIN
     LTEXT           "Mark Letter:",IDD_LOWOPT,16,8,60,8,NOT WS_GROUP
     DEFPUSHBUTTON   "A",IDD_RAWCHAR,97,6,16,12
@@ -172,7 +172,7 @@ BEGIN
     LTEXT           "&Range:",112,6,135,32,10,NOT WS_GROUP
     COMBOBOX        IDD_RNGE,44,132,118,51,CBS_DROPDOWNLIST | WS_VSCROLL | WS_GROUP | WS_TABSTOP
     GROUPBOX        "Options Search",IDD_OPT10,171,66,136,60
-    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,180,78,84,12
+    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,180,78,110,12
     CONTROL         "Regul&ar Expressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,180,90,80,12
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,180,102,80,12
     PUSHBUTTON      "&Count",IDD_BUT4,204,132,48,15,WS_GROUP
@@ -276,24 +276,24 @@ BEGIN
     DEFPUSHBUTTON   "&OK",1,136,30,44,14
 END
 
-DLGCURSOROPTIONS DIALOGEX 91, 91, 211, 87
+DLGCURSOROPTIONS DIALOGEX 91, 91, 245, 90
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Options Caret and Scrolling"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "Scrollbehavior",-1,4,16,104,66,WS_GROUP
+    GROUPBOX        "Scrollbehavior",-1,4,16,127,66,WS_GROUP
     LTEXT           "&Minimum Margin of Caret:",-1,8,29,80,10,NOT WS_GROUP
-    EDITTEXT        IDD_INT3,92,28,12,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
+    EDITTEXT        IDD_INT3,111,28,12,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     LTEXT           "&Scroll at least by:",-1,8,42,78,8,NOT WS_GROUP
-    EDITTEXT        IDD_INT4,92,40,12,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    CONTROL         "&Update Screen during Scroll",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,56,96,10
-    CONTROL         "Caret follows scrollbar",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,68,96,10
-    GROUPBOX        "Caret after searchs",-1,112,28,96,54,WS_GROUP
-    CONTROL         "&Screentop",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,116,40,82,12
-    CONTROL         "&Centered",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,116,52,82,12
-    CONTROL         "&Scrollbottom",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,116,64,82,12
-    PUSHBUTTON      "Cancel",2,118,6,40,14,WS_GROUP
-    DEFPUSHBUTTON   "OK",1,166,6,40,14,WS_GROUP
+    EDITTEXT        IDD_INT4,111,40,12,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
+    CONTROL         "&Update Screen during Scroll",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,56,115,10
+    CONTROL         "Caret follows scrollbar",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,68,115,10
+    GROUPBOX        "Caret after searchs",-1,135,28,96,54,WS_GROUP
+    CONTROL         "&Screentop",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,139,40,82,12
+    CONTROL         "&Centered",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,139,52,82,12
+    CONTROL         "&Scrollbottom",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,139,64,82,12
+    PUSHBUTTON      "Cancel",2,141,6,40,14,WS_GROUP
+    DEFPUSHBUTTON   "OK",1,189,6,40,14,WS_GROUP
 END
 
 DLGDISPMODE DIALOGEX 46, 24, 247, 197
@@ -305,19 +305,18 @@ BEGIN
     CONTROL         "&Tabs and Spaces",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,10,38,105,10
     CONTROL         "A&lternate Statusline",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,48,105,10
     CONTROL         "Show R&uler",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,58,105,10
-    CONTROL         "&OEM - Charset",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,38,88,10
-    CONTROL         "Fixed Window Positions",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,48,88,10
-    CONTROL         "No &vertical Slider",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,58,88,10
-    CONTROL         "No hori&zontal Slider",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,68,88,10
+    CONTROL         "Fixed Window Positions",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,37,88,10
+    CONTROL         "No &vertical Slider",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,47,88,10
+    CONTROL         "No hori&zontal Slider",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,141,57,88,10
     LTEXT           "Fill Tabs with:",118,9,110,90,8
     EDITTEXT        IDD_CHAR,107,110,16,12,ES_AUTOHSCROLL
     LTEXT           "Fo&rmat alternate Statusline:",117,6,158,104,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,6,170,229,12,ES_AUTOHSCROLL
     PUSHBUTTON      "Cancel",2,137,8,48,14
     DEFPUSHBUTTON   "OK",1,189,8,48,14
-    LTEXT           "&Tabsize:",217,9,126,62,10
+    LTEXT           "&Tabsize:",217,9,125,62,10
     EDITTEXT        IDD_INT1,107,124,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "&Right Margin:",220,11,140,50,8
+    LTEXT           "&Right Margin:",220,9,140,50,8
     EDITTEXT        IDD_INT2,107,138,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "&Show line numbers",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,68,105,10
     CONTROL         "&Highlight line with caret",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,80,105,10
@@ -476,10 +475,10 @@ BEGIN
     DEFPUSHBUTTON   "OK",1,132,10,60,14
 END
 
-DLGSORT DIALOG 9, 51, 219, 132
+DLGSORT DIALOGEX 9, 51, 261, 132
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Sort file contents"
-FONT 8, "helv"
+FONT 8, "helv", 0, 0, 0x0
 BEGIN
     LTEXT           "&Selectioncriteria:",-1,4,10,74,8,NOT WS_GROUP
     COMBOBOX        IDD_FINDS2,4,22,104,44,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
@@ -489,16 +488,16 @@ BEGIN
     CONTROL         "Bind to sort criteria",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,86,96,12
     CONTROL         "Descending",IDD_OPT2,"Button",BS_AUTOCHECKBOX,10,98,94,12
     CONTROL         "S&kip Multiple Delimiters",IDD_OPT3,"Button",BS_AUTOCHECKBOX,10,110,96,12
-    GROUPBOX        "Options for selection",-1,118,30,94,54,WS_GROUP
-    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,124,44,84,12
+    GROUPBOX        "Options for selection",-1,118,30,126,54,WS_GROUP
+    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,124,44,111,12
     CONTROL         "Regular expressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,124,56,84,12
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,124,68,84,12
     LTEXT           "R&ange:",-1,118,94,30,8
-    COMBOBOX        IDD_RNGE,158,92,55,43,CBS_DROPDOWNLIST | WS_TABSTOP
+    COMBOBOX        IDD_RNGE,190,92,55,43,CBS_DROPDOWNLIST | WS_TABSTOP
     LTEXT           "&Field Delimiter:",-1,118,112,40,8,NOT WS_GROUP
-    EDITTEXT        IDD_STRING1,158,110,54,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Cancel",2,120,6,44,14,WS_GROUP
-    DEFPUSHBUTTON   "&OK",1,168,6,44,14
+    EDITTEXT        IDD_STRING1,190,110,54,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Cancel",2,152,6,44,14,WS_GROUP
+    DEFPUSHBUTTON   "&OK",1,200,6,44,14
 END
 
 DLGWORKMODE DIALOGEX 38, 28, 325, 198
@@ -552,28 +551,28 @@ BEGIN
     LTEXT           "Keycode: ",IDD_LOWOPT,10,16,28,8,NOT WS_GROUP
 END
 
-DLGMACROS DIALOG 45, 60, 242, 164
+DLGMACROS DIALOGEX 45, 60, 331, 183
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "List of Macros"
-FONT 8, "helv"
+FONT 8, "helv", 0, 0, 0x0
 BEGIN
     LTEXT           "&Macro",111,4,8,28,8,NOT WS_GROUP
-    CONTROL         "&show internal macros",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,56,6,60,12
-    EDITTEXT        IDD_STRING1,4,20,114,12
-    LISTBOX         IDD_MACROLIST,4,36,113,120,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_WANTKEYBOARDINPUT | WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDD_STRING2,124,36,112,28,ES_MULTILINE | ES_AUTOVSCROLL
-    PUSHBUTTON      "E&dit",IDD_MACEDIT,124,68,38,12,WS_GROUP
-    PUSHBUTTON      "&Rename",IDD_MACRENAME,200,68,36,12,NOT WS_TABSTOP
-    PUSHBUTTON      "De&lete",IDD_MACDELETE,164,68,34,12,NOT WS_TABSTOP
-    DEFPUSHBUTTON   "&Start",IDD_MACSTART,188,10,48,14,NOT WS_TABSTOP
-    LTEXT           "&Keyboard bindings",114,124,86,64,8
-    LISTBOX         IDD_LISTBOX,124,96,64,34,LBS_SORT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Shortcut",113,124,126,44,8,NOT WS_GROUP
-    LISTBOX         IDD_LISTBOX2,124,136,64,26,LBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "&Assign",IDD_BUT3,192,128,42,12
-    PUSHBUTTON      "&Disconnect",IDD_MACDELKEY,192,112,42,12,NOT WS_TABSTOP
-    PUSHBUTTON      "S&earch",IDD_MACFINDKEY,192,144,42,12,NOT WS_TABSTOP
-    PUSHBUTTON      "End",1,136,10,48,14
+    CONTROL         "&show internal macros",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,42,6,85,12
+    EDITTEXT        IDD_STRING1,4,20,126,12
+    LISTBOX         IDD_MACROLIST,4,36,126,136,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_WANTKEYBOARDINPUT | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDD_STRING2,136,36,178,28,ES_MULTILINE | ES_AUTOVSCROLL
+    PUSHBUTTON      "E&dit",IDD_MACEDIT,163,68,48,14,WS_GROUP
+    PUSHBUTTON      "&Rename",IDD_MACRENAME,266,68,48,14,NOT WS_TABSTOP
+    PUSHBUTTON      "De&lete",IDD_MACDELETE,214,68,48,14,NOT WS_TABSTOP
+    DEFPUSHBUTTON   "&Start",IDD_MACSTART,267,10,48,14,NOT WS_TABSTOP
+    LTEXT           "&Keyboard bindings",114,136,86,64,8
+    LISTBOX         IDD_LISTBOX,136,97,118,34,LBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Shortcut",113,136,129,44,8,NOT WS_GROUP
+    LISTBOX         IDD_LISTBOX2,136,140,119,29,LBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Assign",IDD_BUT3,265,112,48,14
+    PUSHBUTTON      "&Disconnect",IDD_MACDELKEY,265,96,48,14,NOT WS_TABSTOP
+    PUSHBUTTON      "S&earch",IDD_MACFINDKEY,265,128,48,14,NOT WS_TABSTOP
+    PUSHBUTTON      "End",1,215,10,48,14
 END
 
 DLGFILEFORMAT DIALOGEX 64, 58, 241, 117
@@ -603,14 +602,14 @@ BEGIN
     LTEXT           "&Search:",301,6,24,60,8,NOT WS_GROUP
     COMBOBOX        IDD_FINDS2,6,36,164,62,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Search &Options",IDD_OPT10,174,28,114,80,WS_GROUP
-    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,180,38,84,12
+    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,180,38,94,12
     CONTROL         "&Regular Expressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,180,50,80,12
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,180,62,80,12
     CONTROL         "&Simple Search",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX,180,74,80,12
     PUSHBUTTON      "Cancel",2,197,6,46,14,WS_GROUP
     DEFPUSHBUTTON   "OK",1,251,6,40,14
-    LTEXT           "Maximalum Folder &Depth:",IDD_OPT11,6,62,66,8,NOT WS_GROUP
-    EDITTEXT        IDD_INT1,75,62,18,12
+    LTEXT           "Maximalum Folder &Depth:",IDD_OPT11,6,62,98,8,NOT WS_GROUP
+    EDITTEXT        IDD_INT1,150,62,18,12,ES_NUMBER,WS_EX_RIGHT
     LTEXT           "Select &Folder:",112,6,103,114,8,NOT WS_GROUP
     EDITTEXT        IDD_PATH1,6,115,230,12,ES_AUTOHSCROLL
     PUSHBUTTON      "&Browse...",IDD_PATH1SEL,239,115,52,14
@@ -709,15 +708,15 @@ BEGIN
     LTEXT           "&Term",-1,45,40,57,8
 END
 
-DLGPRINTERLAYOUT DIALOGEX 15, 40, 313, 356
+DLGPRINTERLAYOUT DIALOGEX 15, 40, 339, 328
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Print Settings"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "Fonts",65526,252,6,60,52
+    GROUPBOX        "Fonts",65526,252,6,78,52
     GROUPBOX        "Alignment Header && Footer",56,6,95,234,34
-    PUSHBUTTON      "Text...",IDD_FONTSELECT,258,20,50,14,NOT WS_TABSTOP
-    PUSHBUTTON      "Header/Footer...",IDD_FONTSELECT2,258,38,50,14,NOT WS_TABSTOP
+    PUSHBUTTON      "Text...",IDD_FONTSELECT,258,20,68,14,NOT WS_TABSTOP
+    PUSHBUTTON      "Header/Footer...",IDD_FONTSELECT2,258,38,68,14,NOT WS_TABSTOP
     CONTROL         "&Left Aligned",IDD_RADIO1,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,12,111,78,12
     CONTROL         "&Right Aligned",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,168,111,66,12
     CONTROL         "&Centered",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,102,111,42,12
@@ -748,7 +747,7 @@ BEGIN
     LTEXT           "Height footer:",65533,13,296,56,8
     EDITTEXT        IDD_INT7,210,281,22,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     EDITTEXT        IDD_INT8,210,292,22,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    PUSHBUTTON      "Save Settings",IDD_CALLBACK1,203,325,102,14,NOT WS_TABSTOP
+    PUSHBUTTON      "Save Settings",IDD_CALLBACK1,249,296,79,14,NOT WS_TABSTOP
     CONTROL         "Wrap long lines",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,56,218,10
     CONTROL         "Print with Syntaxhighlighting",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,67,218,10
 END
@@ -819,7 +818,7 @@ BEGIN
     CONTROL         "&Save macros on exit",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,102,204,10
 END
 
-DLG_OPT_MISC DIALOGEX 0, 0, 241, 140
+DLG_OPT_MISC DIALOGEX 0, 0, 241, 155
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Miscellanous"
 FONT 8, "helv", 0, 0, 0x0
@@ -835,6 +834,7 @@ BEGIN
     LTEXT           "&Language:",-1,12,113,84,12,NOT WS_GROUP
     COMBOBOX        IDD_STRINGLIST1,138,112,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDD_STRINGLIST2,138,96,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "To activate the selected language PKS Edit must be restarted.",-1,13,131,199,12,NOT WS_GROUP
 END
 
 DLG_OPT_LAYOUT DIALOGEX 69, 15, 279, 85
@@ -1028,6 +1028,16 @@ BEGIN
     BEGIN
     END
 
+    DLGCURSOROPTIONS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 211
+        BOTTOMMARGIN, 87
+    END
+
+    DLGDISPMODE, DIALOG
+    BEGIN
+    END
+
     DLGEXEC, DIALOG
     BEGIN
     END
@@ -1036,7 +1046,26 @@ BEGIN
     BEGIN
     END
 
+    DLGMULTI, DIALOG
+    BEGIN
+    END
+
+    DLGSORT, DIALOG
+    BEGIN
+        RIGHTMARGIN, 219
+    END
+
     DLGWORKMODE, DIALOG
+    BEGIN
+    END
+
+    DLGMACROS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 242
+        BOTTOMMARGIN, 164
+    END
+
+    DLGRETREIVE, DIALOG
     BEGIN
     END
 
@@ -1046,10 +1075,16 @@ BEGIN
 
     DLGPRINTERLAYOUT, DIALOG
     BEGIN
+        RIGHTMARGIN, 313
+    END
+
+    DLGNEWASPATH, DIALOG
+    BEGIN
     END
 
     DLG_OPT_MISC, DIALOG
     BEGIN
+        BOTTOMMARGIN, 140
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1096,6 +1131,31 @@ BEGIN
 END
 
 DLG_OPT_MISC AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGRETREIVE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGDISPMODE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGCURSOROPTIONS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGSORT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGMACROS AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1296,415 +1356,320 @@ BEGIN
     IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text are preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
     IDS_FILE_MODIFIED       "Modified"
     IDS_FILE_READONLY       "Read-only"
+    IDS_SEARCH              "Search:"
+    IDS_STATUSLINE          "L: %2j$l, C: %2j$c!%s$&"
 END
 
 STRINGTABLE
 BEGIN
-    2048                    "AbandonFile"
-    2049                    "About"
-    2050                    "CopyBlock"
-    2051                    "DeleteBlock"
-    2052                    "FindBlockEnd"
-    2053                    "FindBlockStart"
-    2054                    "MoveBlock"
-    2055                    "ReadBlock"
-    2056                    "WriteBlock"
-    2057                    "YankBlock"
-    2058                    "PasteBlock"
-    2059                    "HideBlock"
-    2060                    "SetBlockMark"
-    2061                    "YankLines"
-    2062                    "DeleteLines"
-    2063                    "FreeBuffer"
+    IDS_COMMAND0            "Opens one file in an editor;Open file"
+    IDS_COMMAND1            "Creates and opens a new file;New file"
+    IDS_COMMAND2            "Open a file with given path;Openwith path"
+    IDS_COMMAND3            "Open file with special format;Open special"
+    IDS_COMMAND4            "Opens the last file closed;Open last file 1"
+    IDS_COMMAND5            "Opens the second last file closed;Open last file 2"
+    IDS_COMMAND6            "Opens the third last file closed;Open last file 3"
+    IDS_COMMAND7            "Opens the fourth last file closed;Open last file 4"
+    IDS_COMMAND8            "Opens the fifth last file closed;Open last file 5"
+    IDS_COMMAND9            "Closes one editor window;Close window"
+    IDS_COMMAND10           "Saves the text and closes the editor window;Save & Close"
+    IDS_COMMAND11           "Save the text under a new file name;Save as"
+    IDS_COMMAND12           "Saves the changes;Save"
+    IDS_COMMAND13           "Insert a file at the cursor position;Read block"
+    IDS_COMMAND14           "Sichert den markierten Textblock;Sichere Block"
+    IDS_COMMAND15           "ClosesPKS-EDIT and save all changes;End PKS-EDIT"
 END
 
 STRINGTABLE
 BEGIN
-    2064                    "InsertKeycode"
-    2065                    "InsertChar"
-    2066                    "FormatText"
-    2067                    "InsertLine"
-    2068                    "MarkLineOp"
-    2069                    "ReadSearchList"
-    2070                    "ReadErrorList"
-    2071                    "RwModus"
-    2072                    "EditMacros"
-    2073                    "EditDocMacros"
-    2074                    "MergeDocMacrosWith"
-    2075                    "RwMacros"
-    2076                    "ReadTagfile"
-    2077                    "RwSetup"
-    2078                    "SetMultiplier"
-    2079                    "ReplaceTabs"
+    IDS_COMMAND16           "Closes PKS-EDIT;Quit PKS-EDIT"
+    IDS_COMMAND17           "Search a pattern;Search"
+    IDS_COMMAND18           "Replace a pattern;Replace"
+    IDS_COMMAND19           "Repeat last search;Find again"
+    IDS_COMMAND20           "Repeat last search forward;Find again"
+    IDS_COMMAND21           "Repeat last backwards;Find again <-"
+    IDS_COMMAND22           "Search word under caret;Search word"
+    IDS_COMMAND23           "Search cross reference under caret;Search cross reference"
+    IDS_COMMAND24           "Find word under cursor backwards;Find word backwards"
+    IDS_COMMAND25           "Follow hyperlink und cursor;Follow hyperlink"
+    IDS_COMMAND26           "Searches multiple files;Find in files"
+    IDS_COMMAND27           "Navigate to cross reference;Find tag"
+    IDS_COMMAND28           "Set a mark;Set mark"
+    IDS_COMMAND29           "Goto a previously remembered mark;Goto mark"
+    IDS_COMMAND30           "Goto line number ....;Goto line"
+    IDS_COMMAND31           "Goto last navigation position;Last Position"
 END
 
 STRINGTABLE
 BEGIN
-    2080                    "SplitLine"
-    2081                    "GotoChapterStart"
-    2082                    "GotoChapterEnd"
-    2083                    "GotoPgrphStart"
-    2084                    "GotoPgrphEnd"
-    2085                    "CursorRight"
-    2086                    "CursorLeft"
-    2087                    "CursorUp"
-    2088                    "CursorDown"
-    2089                    "Delete"
-    2090                    "SwitchFkeys"
-    2091                    "InsertText"
-    2092                    "PlayMacro"
-    2093                    "RecordMacro"
-    2094                    "FindInFileList"
-    2095                    "Find"
+    IDS_COMMAND32           "Goto last position of insertion;Last Insertion Position"
+    IDS_COMMAND33           "Defines the start of the text selection;Start selection"
+    IDS_COMMAND34           "Defines the end of the text selection;End selection"
+    IDS_COMMAND35           "Selects the complete text;Select all"
+    IDS_COMMAND36           "Hides the text selection;Hide selection"
+    IDS_COMMAND37           "Goto begin of text selection;Goto selection start"
+    IDS_COMMAND38           "Goto end of text selection;Goto selection end"
+    IDS_COMMAND39           "Copy selection to clipboard; Copy to clipboard"
+    IDS_COMMAND40           "Appends a named buffer to another buffer...;Buffer >> buffer.."
+    IDS_COMMAND41           "Append the selection to a named buffer;Selection >> buffer"
+    IDS_COMMAND42           "Append selection to clipboard;Selection >> clipboard"
+    IDS_COMMAND43           "Inserts named buffer....;Insert named"
+    IDS_COMMAND44           "Insert the contents of the clipboard;Paste clipboard"
+    IDS_COMMAND45           "Insert the contents of the trashcan;Trashcan -> text"
+    IDS_COMMAND46           "Insert the contents of trashcan numbered # into the text; Trashcan # -> text"
+    IDS_COMMAND47           "Cut out selection;Cut"
 END
 
 STRINGTABLE
 BEGIN
-    2096                    "Replace"
-    2097                    "FindAgain"
-    2098                    "ReplaceAgain"
-    2099                    "InsertControl"
-    2100                    "GotoLastpos"
-    2101                    "GotoLine"
-    2102                    "SetMark"
-    2103                    "GotoMark"
-    2104                    "InternalHelp"
-    2105                    "JoinLines"
-    2106                    "EditFile"
-    2107                    "SetOptions"
-    2108                    "Print"
-    2109                    "ExitEdit"
-    2110                    "QuitEdit"
-    2111                    "CloseAllWindows"
+    IDS_COMMAND48           "Copies the selected text block to the caret;Copy Selection"
+    IDS_COMMAND49           "Moves the selected block to the caret;Move block"
+    IDS_COMMAND50           "Copy the current line to the clipboard;Line -> Clipboard"
+    IDS_COMMAND51           "Changes the shape of the text selection;Column Selection"
+    IDS_COMMAND52           "Schaltet zum Controlzeichen-Anzeige-Modus;Zeige Control"
+    IDS_COMMAND53           "Shows the tab ruler; Show Ruler"
+    IDS_COMMAND54           "Change options and settings for printing;Printlayout"
+    IDS_COMMAND55           "Use the alternate status line format;Alternate Status"
+    IDS_COMMAND56           "Smart Verarbeitung Indentierung mit Leerzeichen;Smarte Indentierung"
+    IDS_COMMAND57           "Schaltet zwischen Einfügen und Überschreiben um;Einfügen / Überschreiben"
+    IDS_COMMAND58           "Konfiguration des allgemeinen Betriebsmodus von PKS-EDIT;Einstellen"
+    IDS_COMMAND59           "Formats a text area;Format text"
+    IDS_COMMAND60           "Compresses spaces to tabs; Compress spaces"
+    IDS_COMMAND61           "Epandiert Tabulatoren zu Leerzeichen; Exp. Tabs"
+    IDS_COMMAND62           "Richtet Textbereiche aus;Ausrichten Text"
+    IDS_COMMAND63           "Verschiebt einen Textbereich nach rechts;Schieben rechts"
 END
 
 STRINGTABLE
 BEGIN
-    2112                    "SaveFile"
-    2113                    "SelectWindow"
-    2114                    "ExecuteCommand"
-    2115                    "Exec"
-    2116                    "ShiftBetweenBrackets"
-    2117                    "Sort"
-    2118                    "ShiftLines"
-    2119                    "ShowInfo"
-    2120                    "CheckBrackets"
-    2121                    "UpToLow"
-    2122                    "SetWorkMode"
-    2123                    "SetDispMode"
-    2124                    "SetCursorMode"
-    2125                    "SetFileFormat"
-    2126                    "ToggleTextMode"
-    2127                    "InsertString"
+    IDS_COMMAND64           "Verschiebt einen Textbereich nach links;Schieben links"
+    IDS_COMMAND65           "Sortiert einen Textbereich;Sortieren"
+    IDS_COMMAND66           "Geht zum nächsten Unterschied 2er Dateien;Vergleichen"
+    IDS_COMMAND67           "Druckt das Bearbeitungsfenster;Drucken aktuelle Datei"
+    IDS_COMMAND68           "Druckt den markierten Textblock;Drucken Block"
+    IDS_COMMAND69           "Druckt eine Datei;Drucken Datei"
+    IDS_COMMAND70           "Startet eine externe Applikation;Programm Starten"
+    IDS_COMMAND71           "Liest eine Verweisdatei;Lese Verweis"
+    IDS_COMMAND72           "Alte Suchergebnisse verwenden;Suchergebnisse verwenden"
+    IDS_COMMAND73           "Liest eine Compiler Fehler Liste;Lese Fehler"
+    IDS_COMMAND74           "Fügt Dokumenteinstellungen (Abkürzungen, ...) einer Modusdatei hinzu;Erw. Modus"
+    IDS_COMMAND75           "Start stop macro recorder;Macro recorder"
+    IDS_COMMAND76           "Editiert Makros und ihre Anbindungen;Makros bearbeiten"
+    IDS_COMMAND77           "Schreibt eine Makrodatei;Schreiben Makros"
+    IDS_COMMAND78           "Liest eine Makrodatei;Lesen Makros"
+    IDS_COMMAND79           "Sichert alle Einstellungen;Sichern Desktop"
 END
 
 STRINGTABLE
 BEGIN
-    2128                    "FindTag"
-    2129                    "CursorFindFile"
-    2130                    "FindError"
-    2131                    "CursorFindTag"
-    2132                    "CursorFindWord"
-    2133                    "WindowArrange"
-    2134                    "SetWindowRegister"
-    2135                    "ShiftText"
-    2136                    "Undo"
-    2137                    "CompareWindows"
-    2138                    "ScrollScreen"
-    2139                    "ScrollCursor"
-    2140                    "GotoLasttag"
-    2141                    "AlignText"
-    2142                    "QuitIcons"
-    2143                    "MouseMarkBlock"
+    IDS_COMMAND80           "Konfiguriert die Symbole des PKS-EDIT Desktops;Symbole bearb."
+    IDS_COMMAND81           "Stellt den Anzeige-Modus ein;Modus Anzeige"
+    IDS_COMMAND82           "Stellt den Bearbeitungs-Modus ein;Modus Beabeitung"
+    IDS_COMMAND83           "Stellt das Verhalten des Textcursors ein;Modus Cursor"
+    IDS_COMMAND84           "Stellt das Dateiformat ein;Format Datei"
+    IDS_COMMAND85           "Sichert die Dokument-Einstellungen;Sichern Dok.-Einst."
+    IDS_COMMAND86           "Liest die Dokument-Einstellungen aus einer Datei;Lesen Dok.-Einst."
+    IDS_COMMAND87           "Zeigt Informationen zu bearbeiteten Dateien;Fensterliste"
+    IDS_COMMAND88           "Schließt alle Bearbeitungs-Fenster;Alle schließen"
+    IDS_COMMAND89           "Ordnet die Symbole auf dem Desktop an;Anordnen Symbole"
+    IDS_COMMAND90           "Legt alle Bearbeitungsfenster hintereinander;Gestapelt"
+    IDS_COMMAND91           "Legt alle Bearbeitungsfenster nebeneinander;Fenster Neben."
+    IDS_COMMAND92           "Zeigt Anweisungen zum Gebrauch des Hilfesystems an;Gebrauch Hilfe"
+    IDS_COMMAND93           "Zeigt Hilfen zu den PKS-EDIT Menus;Gebrauch Menüs"
+    IDS_COMMAND94           "Zeigt Hilfen zu den Bearbeitungstasten von PKS-EDIT;Gebrauch Tasten"
+    IDS_COMMAND95           "Zeigt Hilfen zum Desktop von PKS-EDIT;Gebrauch Desktop"
 END
 
 STRINGTABLE
 BEGIN
-    2144                    "MouseMarkParts"
-    2145                    "MouseMoveText"
-    2146                    "MouseSelectLines"
-    2147                    "MousePosition"
-    2148                    "Alert"
-    2149                    "MessageBox"
-    2150                    "PromptAssign"
-    2151                    "FormatPrint"
-    2152                    "GetSelected"
-    2153                    "HideLines"
-    2154                    "UnHideLine"
-    2155                    "ReplaceInString"
-    2156                    "ExpandAbbreviation"
-    2157                    "ConfigureIcons"
-    2158                    "InternalHelpContext"
-    2159                    "ListBindings"
+    IDS_COMMAND96           "Zeigt das Hilfen-Verzeichnis an;Hilfe Übersicht"
+    IDS_COMMAND97           "Zeigt die Copyright-Meldung mit Serien- und Versionsnummer;Copyright"
+    IDS_COMMAND98           "Fügt eine Tastenkombination als Text ein;Tastatur einf."
+    IDS_COMMAND99           "Definiert Fenster-Register #0;Def. Fenster #0"
+    IDS_COMMAND100          "Definiert Fenster-Register #1;Def. Fenster #1"
+    IDS_COMMAND101          "Definiert Fenster-Register #2;Def. Fenster #2"
+    IDS_COMMAND102          "Definiert Fenster-Register #3;Def. Fenster #2"
+    IDS_COMMAND103          "Definiert Fenster-Register #4;Def. Fenster #3"
+    IDS_COMMAND104          "Definiert Fenster-Register #5;Def. Fenster #5"
+    IDS_COMMAND105          "Vergrößert das Bearbeitungsfenster auf maximale Größe;Vollbild"
+    IDS_COMMAND106          "Setzt Fenstergröße gemäß Fenster-Register #0;Größe Fenster #0"
+    IDS_COMMAND107          "Setzt Fenstergröße gemäß Fenster-Register #1;Größe Fenster #1"
+    IDS_COMMAND108          "Setzt Fenstergröße gemäß Fenster-Register #2;Größe Fenster #2"
+    IDS_COMMAND109          "Setzt Fenstergröße gemäß Fenster-Register #3;Größe Fenster #3"
+    IDS_COMMAND110          "Setzt Fenstergröße gemäß Fenster-Register #4;Größe Fenster #4"
+    IDS_COMMAND111          "Setzt Fenstergröße gemäß Fenster-Register #5;Größe Fenster #5"
 END
 
 STRINGTABLE
 BEGIN
-    2160                    "CompileMacros"
-    2161                    "DefineDocTypes"
-    2162                    "SetPrinterLayout"
-    2163                    "QueryStatus"
-    2164                    "WindowsHelp"
-    2165                    "ShowClipboard"
-    2166                    "TrackPopup"
-    2167                    "SetBlockExtensionMode"
+    IDS_COMMAND112          "Selektiert Fenster #1;Zu Fenster 1"
+    IDS_COMMAND113          "Selektiert Fenster #2;Zu Fenster 2"
+    IDS_COMMAND114          "Selektiert Fenster #3;Zu Fenster 3"
+    IDS_COMMAND115          "Selektiert Fenster #4;Zu Fenster 4"
+    IDS_COMMAND116          "Selektiert Fenster #5;Zu Fenster 5"
+    IDS_COMMAND117          "Selektiert Fenster #6;Zu Fenster 6"
+    IDS_COMMAND118          "Aktiviert das zuletzt aktive Fenster;Vorh. Fenster"
+    IDS_COMMAND119          "Geht zyklisch zum nächsten Fenster;Weitersch. Fenster"
+    IDS_COMMAND120          "toggled upper lower case;Upper <-> lower"
+    IDS_COMMAND121          "Verschiebt um eine Spalte nach links;Shift left"
+    IDS_COMMAND122          "Verschiebt um eine Spalte nach rechts;Shift right"
+    IDS_COMMAND123          "Wiederholt die letzte Ersetzung;Replace again"
+    IDS_COMMAND124          "Goto the next compiler error;Find error"
+    IDS_COMMAND125          "Goto the last compiler error;Find last error"
+    IDS_COMMAND126          "Goto the previous compiler error;Find error <-"
+    IDS_COMMAND127          "Goto the first compiler error;Find 1st error"
 END
 
 STRINGTABLE
 BEGIN
-    2512                    "AL_CPOS"
-    2513                    "AL_FIX"
-    2514                    "AL_END"
-    2515                    "O_BLOCKS_AS_COLOMNS"
-    2516                    "O_ERROR_BELL"
-    2517                    "O_FLASH"
-    2518                    "O_HISTORY"
-    2519                    "O_SAVE_OPTIONS"
-    2520                    "O_SAVE_MACROS"
-    2521                    "O_CLEAN_AUTO_SAVE"
-    2522                    "O_AUTO_WRITE"
-    2523                    "O_FORMFOLLOW"
-    2524                    "O_MDISCROLL"
-    2525                    "O_MESSAGES"
-    2526                    "O_AUTODELBLOCK"
-    2527                    "O_UNDO_ENABLED"
+    IDS_COMMAND128          "Check bracket matches;Check {}"
+    IDS_COMMAND129          "Shows a form with current character set;Insert special char"
+    IDS_COMMAND130          "Verschiebt zwischen den Block zwischen Klammern nach links; Shift {} left"
+    IDS_COMMAND131          "Verschiebt zwischen den Block zwischen Klammern nach rechts; Shift {} right"
+    IDS_COMMAND132          "Delete the character under the cursor;Delete char"
+    IDS_COMMAND133          "Delete to the end of line;Delete eol"
+    IDS_COMMAND134          "Löscht das Wort unter dem Cursor;Delete word"
+    IDS_COMMAND135          "Löscht bis zu Zeichen..;Delete to.."
+    IDS_COMMAND136          "Löscht bis zum letzten Leerzeichen;Delete word2 <-"
+    IDS_COMMAND137          "Löscht bis zum nächsten Leerzeichen;Delete word2"
+    IDS_COMMAND138          "Delete to the start of the line;Delete to sol"
+    IDS_COMMAND139          "Löscht das Links vom Cursor stehende Wort;Delete word <-"
+    IDS_COMMAND140          "Löscht bis zu Zeichen..;Delete until .. <-"
+    IDS_COMMAND141          "Insert line end;Line end"
+    IDS_COMMAND142          "Insert line end with indent;Line end+"
+    IDS_COMMAND143          "Insert line end with indent left;Line end-"
 END
 
 STRINGTABLE
 BEGIN
-    2528                    "O_CUTBUFEQCLIP"
-    2529                    "OL_OPTIONBAR"
-    2530                    "OL_FKEYS"
-    2531                    "OL_SHOWSTATUS"
-    2532                    "REP_NONE"
-    2533                    "REP_REPLACE"
-    2534                    "REP_MARK"
-    2535                    "REP_COUNT"
-    2536                    "RE_DOREX"
-    2537                    "RE_IGNCASE"
-    2538                    "RE_SHELLWILD"
-    2539                    "RE_WRAPSCAN"
-    2540                    "OREP_INQ"
-    2541                    "OREP_MARKED"
-    2542                    "SO_SKIPSEPS"
-    2543                    "SO_CLUSTERLINES"
+    IDS_COMMAND144          "Join 2 lines;Join lines"
+    IDS_COMMAND145          "Bewegt den Cursor eine Zeile nach oben;Zeile hoch"
+    IDS_COMMAND146          "Bewegt den Cursor zum oberen Seitenende;Zeile Seite oben"
+    IDS_COMMAND147          "Bewegt den Cursor eine Seite nach oben;Zeile Seite zurück"
+    IDS_COMMAND148          "Bewegt den Cursor eine Zeile nach unten;Zeile runter"
+    IDS_COMMAND149          "Bewegt den Cursor zum unteren Seitenende;Zeile Seite unten"
+    IDS_COMMAND150          "Bewegt den Cursor eine Seite nach unten;Zeile Seite nach unten"
+    IDS_COMMAND151          "Bewegt den Cursor ein Zeichen nach rechts;Cursor rechts"
+    IDS_COMMAND152          "Bewegt den Cursor zum Ende der Zeile;Cursor zum Ende"
+    IDS_COMMAND153          "Bewegt den Cursor ein Wort nach rechts;Cursor Wort rechts"
+    IDS_COMMAND154          "Bewegt den Cursor zum nächsten Zeichen ..;Cursor zu.."
+    IDS_COMMAND155          "Bewegt den Cursor ein Zeichen nach links;Cursor links"
+    IDS_COMMAND156          "Bewegt den Cursor zum Anfang der Zeile;Cursor Anfang"
+    IDS_COMMAND157          "Bewegt den Cursor ein Wort nach links;Cursor Wort <-"
+    IDS_COMMAND158          "Bewegt den Cursor zum letzten Zeichen..;Cursor <- .."
+    IDS_COMMAND159          "Bewegt den Cursor zum nächsten Leerzeichen;Cursor zu Leer"
 END
 
 STRINGTABLE
 BEGIN
-    2544                    "SO_REVERSE"
-    2545                    "SO_NOSELECT"
-    2546                    "FMT_ADJLEFT"
-    2547                    "FMT_ADJRIGHT"
-    2548                    "FMT_ADJCENTER"
-    2549                    "FMT_ADJBLOCK"
-    2550                    "FMT_WPFORMAT"
-    2551                    "FMT_INDENT"
-    2552                    "RNG_ONCE"
-    2553                    "RNG_LINE"
-    2554                    "RNG_CHAPTER"
-    2555                    "RNG_BLOCK"
-    2556                    "RNG_TOCURS"
-    2557                    "RNG_FROMCURS"
-    2558                    "RNG_GLOBAL"
-    2559                    "RNG_FREE"
+    IDS_COMMAND160          "Bewegt den Cursor zum letzten Leerzeichen;Cursor letztes Leer."
+    IDS_COMMAND161          "Goto the start of the file;Goto start"
+    IDS_COMMAND162          "Goto the end of the file;Goto end"
+    IDS_COMMAND163          "Inserts a new line, caret follows;Insert line"
+    IDS_COMMAND164          "Delete a line;Delete line"
+    IDS_COMMAND165          "Appends the current line to a named trash can;Line >> trashcan"
+    IDS_COMMAND166          "Delete the line caret follows;Delete line |"
+    IDS_COMMAND167          "Re-read the current file to undo all changes;Abandon file"
+    IDS_COMMAND168          "Saves and closes the current editor window;Save & close"
+    IDS_COMMAND169          "Inserts a line, caret stays;Insert line"
+    IDS_COMMAND170          "Edit more document settings;Editor settings"
+    IDS_COMMAND171          "Clear all text buffers;Clear all buffers"
+    IDS_COMMAND172          "Löscht alle markierten Zeilen;Delete marked lines"
+    IDS_COMMAND173          "Set multipliert for next command;Multiplier"
+    IDS_COMMAND174          "Start escape macro;Escape macro"
+    IDS_COMMAND175          "Resets the function keys;Function keys  <-"
 END
 
 STRINGTABLE
 BEGIN
-    2560                    "EX_SYMBOL"
-    2561                    "EX_WAIT"
-    2562                    "EX_DOS"
-    2563                    "EX_RDNONE"
-    2564                    "EX_RDIN"
-    2565                    "EX_RDOUT"
-    2566                    "EX_RDCONV"
-    2567                    "WM_INSERT"
-    2568                    "WM_SHOWMATCH"
-    2569                    "WM_ABBREV"
-    2570                    "WM_AUTOWRAP"
-    2571                    "WM_AUTOINDENT"
-    2572                    "WM_RDONLY"
-    2573                    "WM_BLK_LINES"
-    2574                    "WM_AUTOFORMAT"
-    2575                    "WM_BRINDENT"
+    IDS_COMMAND176          "Defines document types;Define doc types"
+    IDS_COMMAND177          "Switches the function keys;Function keys ->"
+    IDS_COMMAND178          "Repeats the last editing commands;Repeat edit"
+    IDS_COMMAND179          "Starts the macro recorder;Record macro"
+    IDS_COMMAND180          "Undo the last change;Undo"
+    IDS_COMMAND181          "Inverts the line markers;Invert line markers"
+    IDS_COMMAND182          "Iconize PKS-EDIT;PKS-EDIT as icon"
+    IDS_COMMAND183          "Iconize the current editing window;Window as icon"
+    IDS_COMMAND184          "Goto last difference in a comparison;Goto last difference"
+    IDS_COMMAND185          "Scroll one line up, caret stays;Scroll hoch 1"
+    IDS_COMMAND186          "Scroll one line down, caret stays;Scroll down  1"
+    IDS_COMMAND187          "Scrollt eine Seite nach oben, Cursor bleibt;Scroll page 1"
+    IDS_COMMAND188          "Scrollt eine Seite nach unten, Cursor bleibt;Scroll page u. 1"
+    IDS_COMMAND189          "Move the caret to the center of the page;Page center"
+    IDS_COMMAND190          "Scrollt eine Zeile nach oben, Cursor folgt;Scroll up 2"
+    IDS_COMMAND191          "Scrollt eine Zeile nach unten, Cursor folgt;Scroll down  2"
 END
 
 STRINGTABLE
 BEGIN
-    2576                    "WM_BLK_COLOMN"
-    2577                    "WM_OEMMODE"
-    2578                    "WM_CRYPTED"
-    2579                    "SHO_CONTROL"
-    2580                    "SHO_HEX"
-    2581                    "SHO_RULER"
-    2582                    "SHO_ATTR"
-    2583                    "SHO_OEM"
-    2584                    "SHO_FIXEDWI"
-    2585                    "SHO_HIDEHSLIDER"
-    2586                    "SHO_HIDEVSLIDER"
-    2587                    "CP_POSTOP"
-    2588                    "CP_POSMID"
-    2589                    "CP_POSLOW"
-    2590                    "DIR_NONE"
-    2591                    "DIR_FORWARD"
+    IDS_COMMAND192          "Scrollt den Bildschirm so, daß der Cursor in der Mitte steht;Rollen mittig"
+    IDS_COMMAND193          "Fügt alle markierten Zeilen zusammen;Join lines"
+    IDS_COMMAND194          "Document settings;Edit special settings"
+    IDS_COMMAND195          "Geht zur Stelle der letzten Einfügung;Zur letzten Einfügung"
+    IDS_COMMAND196          "Print the contents of the clipboard;Print clipboard"
+    IDS_COMMAND197          "Druckt den Inhalt des Papierkorbs;Print trashcan"
+    IDS_COMMAND198          "Fügt den Papierkorb von einem Icon ein;Insert clipboard"
+    IDS_COMMAND199          "Insert the clipboard from an icon"
+    IDS_COMMAND200          "Executes command associated with icon;Execute command"
+    IDS_COMMAND201          "Delete icon;Delete icon"
+    IDS_COMMAND202          "Positioniert den Cursor mit der Maus"
+    IDS_COMMAND203          "Kopiert Text mit der Maus"
+    IDS_COMMAND204          "Bewegt Text mit der Maus"
+    IDS_COMMAND205          "Markiert einzelne Zeilen"
+    IDS_COMMAND206          "Entfernt einzelne Zeilen - Markierungen"
+    IDS_COMMAND207          "Play the last recorded macro"
 END
 
 STRINGTABLE
 BEGIN
-    2592                    "DIR_BACKWARD"
-    2593                    "DIR_LEFT"
-    2594                    "DIR_RIGHT"
-    2595                    "AB_WARN"
-    2596                    "AB_NOWARN"
-    2597                    "YANK_QUERY_ID"
-    2598                    "YANK_APPEND"
-    2599                    "PASTE_CLIP"
-    2600                    "PASTE_QUERY_ID"
-    2601                    "PASTE_TRASH"
-    2602                    "PASTE_UNDOBUF"
-    2603                    "MARK_RUBBER"
-    2604                    "MARK_DRAG"
-    2605                    "MARK_CONT"
-    2606                    "MARK_START"
-    2607                    "MARK_END"
+    IDS_COMMAND208          "Mark selection with mouse"
+    IDS_COMMAND209          "Markiert die aktuelle Zeile mit der Maus / konventioneller Modus"
+    IDS_COMMAND210          "Markiert das aktuelle Wort mit der Maus"
+    IDS_COMMAND211          "Markiert bis zum nächsten Leerzeichen mit der Maus"
+    IDS_COMMAND212          "Markiert den aktuellen Absatz mit der Maus"
+    IDS_COMMAND213          "Markiert mit der Maus - Erweiterungs Modus"
+    IDS_COMMAND214          "Lists all macros;Macro list"
+    IDS_COMMAND215          "List keyboard bindings;Keyboard bindings"
+    IDS_COMMAND216          "List mouse bindings;Mouse bindings"
+    IDS_COMMAND217          "Compile macros in current window;Compile macros"
+    IDS_COMMAND218          "Inserts a soft line end (no CR);Soft line end"
+    IDS_COMMAND219          "Run CLIPBRD.EXE to show the contents of the clipboard;Show clipboard"
+    IDS_COMMAND220          "Deletes the selected text;Delete selection"
+    IDS_COMMAND221          "Listet das aktuelle Menu in PKS-MakroC Format;Listen Menü"
+    IDS_COMMAND222          "Wiederholt das Kommando vor dem letzten Undo;Letztes Kommando wiederholen"
+    IDS_COMMAND223          "Zeigt Zeilennummern an; Zeilennummern anzeigen"
 END
 
 STRINGTABLE
 BEGIN
-    2608                    "MARK_ALL"
-    2609                    "LD_APPEND"
-    2610                    "LD_ACT"
-    2611                    "LD_ABOVE"
-    2612                    "LI_BELOW"
-    2613                    "LI_ACT"
-    2614                    "MLN_DELETE"
-    2615                    "MLN_JOIN"
-    2616                    "MLN_TOGGLE"
-    2617                    "MLN_FINDSOFT"
-    2618                    "MLN_MAKESOFT"
-    2619                    "MLN_MAKEHARD"
-    2620                    "MLN_CUT"
-    2621                    "ROW_READ"
-    2622                    "ROW_WRITE"
-    2623                    "KT_GLOBAL"
+    IDS_COMMAND224          "Wählt ein Zeichen weiter links aus;Auswahl links"
+    IDS_COMMAND225          "Wählt bis Anfang der Zeile aus;Auswahl Anfang"
+    IDS_COMMAND226          "Selektiert das Wort links vom Cursor;Auswahl Wort links"
+    IDS_COMMAND227          "Wählt das nächste Zeichen aus;Auswahl rechts"
+    IDS_COMMAND228          "Wählt das Wort zum nächsten Zeichen aus;Auswahl Wort rechts"
+    IDS_COMMAND229          "Wählt zum Ende der Zeile aus;Auswahl Zeile rechts"
+    IDS_COMMAND230          "Wählt eine Zeile weiter nach open aus;Auswahl oben"
+    IDS_COMMAND231          "Wählt eine Zeile weiter nach unten aus;Auswahl unten"
+    IDS_COMMAND232          "Wählt eine Seite weiter nach open aus;Auswahl Seite hoch"
+    IDS_COMMAND233          "Wählt eine Seite weiter nach unten aus;Auswahl Seite runter"
+    IDS_COMMAND234          "Speichert alle ungeänderten Dateien;Alle Dateien speichern"
+    IDS_COMMAND235          "Inkrementelle Suche starten;Inkrementelle Suche starten"
+    IDS_COMMAND236          "Zusätzliches Fenster öffnen;Zusätzliches Fenster"
+    IDS_COMMAND237          "Tab einfügen oder nach rechts schieben;Selektion nach rechts"
+    IDS_COMMAND238          "Nach links schieben;Selektion nach links"
+    IDS_COMMAND239          "Zoomfaktor ++;Zoomfaktor ++"
 END
 
 STRINGTABLE
 BEGIN
-    2624                    "KT_LOCAL"
-    2625                    "CT_EXPAND"
-    2626                    "CT_COMPRESS"
-    2627                    "LS_NOINDENT"
-    2628                    "LS_PLUS"
-    2629                    "LS_MINUS"
-    2630                    "LS_SOFT"
-    2631                    "MOT_SINGLE"
-    2632                    "MOT_TOEND"
-    2633                    "MOT_WORD"
-    2634                    "MOT_PAGE"
-    2635                    "MOT_UNTILC"
-    2636                    "MOT_PGRPH"
-    2637                    "MOT_FILE"
-    2638                    "MOT_SPACE"
-    2639                    "MOT_CENTER"
-END
-
-STRINGTABLE
-BEGIN
-    2640                    "MOT_XTNDBLOCK"
-    2641                    "FKS_PLUS"
-    2642                    "FKS_MINUS"
-    2643                    "FKS_DIALOG"
-    2644                    "MAC_AUTO"
-    2645                    "MAC_LASTREC"
-    2646                    "TM_LASTSEARCH"
-    2647                    "TM_LASTINSERT"
-    2648                    "OPEN_LINEAL"
-    2649                    "PRT_CURRWI"
-    2650                    "PRT_FILE"
-    2651                    "PRT_CURRBLK"
-    2652                    "PRT_CLIP"
-    2653                    "PRT_TRASH"
-    2654                    "SAV_SAVE"
-    2655                    "SAV_QUIT"
-END
-
-STRINGTABLE
-BEGIN
-    2656                    "SAV_AS"
-    2657                    "SAV_QUITWI"
-    2658                    "SAV_FORCED"
-    2659                    "LIST_START"
-    2660                    "LIST_PREV"
-    2661                    "LIST_CURR"
-    2662                    "LIST_NEXT"
-    2663                    "LIST_END"
-    2664                    "LIST_USETOPWINDOW"
-    2665                    "SW_PREVIOUS"
-    2666                    "SW_CYCLE"
-    2667                    "WIN_FULL"
-    2668                    "WIN_TILE"
-    2669                    "WIN_CASCADE"
-    2670                    "WIN_ICONIZED"
-    2671                    "WIN_ICONARRANGE"
-END
-
-STRINGTABLE
-BEGIN
-    2672                    "WIN_DESKICON"
-    2673                    "WIN_HOR"
-    2674                    "WIN_PAIRS"
-    2675                    "MM_COPY"
-    2676                    "MM_MOVE"
-    2677                    "MOD_BUILDER"
-    2678                    "MOD_SETUP"
-    2679                    "SEL_OFF"
-    2680                    "SEL_ON"
-    2681                    "FO_SHOW"
-    2682                    "FO_INIT"
-    2683                    "FO_REDRAW"
-    2684                    "TGL_SHOWMATCH"
-    2685                    "TGL_INSERT"
-    2686                    "TGL_AUTOINDENT"
-    2687                    "TGL_AUTOWRAP"
-END
-
-STRINGTABLE
-BEGIN
-    2688                    "TGL_BLOCKS_AS_COLOMNS"
-    2689                    "TGL_KEYCLICK"
-    2690                    "TGL_WARNINGS"
-    2691                    "TGL_BACKUP"
-    2692                    "TGL_SHOWCONTROL"
-    2693                    "TGL_SHOWSTATUS"
-    2694                    "TGL_ALTSTATUS"
-    2695                    "TGL_SHOWRULER"
-    2696                    "TGL_SHOWATTR"
-    2697                    "AD_CENTER"
-    2698                    "AD_SHRINK"
-    2699                    "AD_CURSORPOS"
-    2700                    "LIST_MACROS"
-    2701                    "LIST_KEYS"
-    2702                    "LIST_MICE"
-    2703                    "LIST_MENUS"
-END
-
-STRINGTABLE
-BEGIN
-    2704                    "QUERY_CLIPBOARDAVAIL"
-    2705                    "QUERY_BLKMARKSTART"
-    2706                    "QUERY_BLKMARKEND"
-    2707                    "QUERY_BLKMARKED"
-    2708                    "QUERY_CURRENTFILE"
-    2709                    "QUERY_OPTIONS"
-    2710                    "QUERY_LAYOUTOPTIONS"
-    2711                    "QUERY_WORKMODE"
-    2712                    "QUERY_DISPLAYMODE"
-    2713                    "QUERY_FILEMODIFIED"
-    2714                    "QUERY_BLOCKXTNDMODE"
-    2715                    "SC_THUMBTRACK"
-    2716                    "SC_CURSORCATCH"
+    IDS_COMMAND240          "Zoomfaktor --;Zoomfaktor --"
+    IDS_COMMAND241          "Toggle Comment;Toggle Comment"
+    IDS_COMMAND242          "Goto next navigation position;Next Position"
+    IDS_COMMAND243          "Goto next position of insertion;Next Insertion Position"
+    IDS_COMMAND244          "Schließt alle Zeilen mit Linux Zeilenende ab;Linux Zeilenenden"
+    IDS_COMMAND245          "Schließt alle Zeilen mit Windows Zeilenende ab;Windows Zeilenenden"
+    IDS_COMMAND246          "Umwandeln Großschreibung;-> Groß"
+    IDS_COMMAND247          "Umwandeln Kleinschreibung;-> Klein"
 END
 
 #endif    // Englisch (USA) resources

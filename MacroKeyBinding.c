@@ -231,17 +231,18 @@ int macro_deleteByName(char *name)
  * macro_validateMacroName()
  * Check, whether a mcro name is valid and whether it exists already.
  */
-int macro_validateMacroName(char *name, int origidx)
+int macro_validateMacroName(char *name, int origidx, int bOverride)
 {	int index;
 
 	if (name[0] == 0)
 		return 0;
 	if (((index = macro_getInternalIndexByName(name)) >= 0 && index != origidx)) {
-		if (origidx < 0)
+		if (origidx < 0 && !bOverride) {
 			error_showErrorById(IDS_MSGMACDOUBLEDEF);
-		else
+			return 0;
+		} else {
 			macro_deleteByName(name);
-		return 0;
+		}
 	}
 	return 1;
 }
@@ -1018,14 +1019,14 @@ char *macro_getComment(char* szBuf, char* szB2, int nIndex, int type)
 				return "";
 			}
 			lstrcpy(szBuf,MAC_COMMENT(_macrotab[nIndex]));
-			break;
+			return szBuf;
 		case CMD_MENU:
 			nIndex = _menutab[nIndex].index;
 			/* drop through */
 		default:
 			s = NULL;
 			if (nIndex >= 0 && nIndex < _ncmdseq) {
-				s = _cmdseqtab[nIndex].c_description;
+				s = dlg_getResourceString(_cmdseqtab[nIndex].c_index+IDS_BASE_COMMAND);
 			}
 			if (s == NULL) {
 				return "";

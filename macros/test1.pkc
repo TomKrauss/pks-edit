@@ -23,10 +23,10 @@ macro Test-Params(int par, string par2)
 {
 	string tmp;
 
-	tmp = "Es wurde " + (string)par + par2 + " als Parameter angegeben";
+	tmp = "Es wurde " + (string)par + " als Parameter 1 angegeben und '" + (string)par2 + "' als Parameter 2";
 	par2 = 14;
 	Alert(tmp);
-	tmp = "Es wurde " + (string)par + par2 + " als Parameter angegeben";
+	tmp = "Nun habe ich Parameter 2 geändert zu:" + par2;
 	Alert(tmp);
 }
 
@@ -34,7 +34,7 @@ macro Test-Params(int par, string par2)
 macro Test-Call()
 {
 
-	Test-Params(12,"hand");
+	Test-Params(12,"ein string");
 	Test-Params(2,3);
 	Test-Params(3);
 }

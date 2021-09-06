@@ -251,7 +251,7 @@ extern LINE *ln_cut(LINE *lp,int physize,int start,int end);
 extern LINE *ln_break(FTABLE *fp, LINE *linep, int col);
 extern LINE *ln_split(FTABLE *fp, LINE *lc, int pos2, int pos1);
 extern LINE *ln_join(FTABLE *fp,LINE *ln1,LINE *ln2,int flg);
-extern int lnjoin_lines(FTABLE *fp);
+extern int ln_joinLines(FTABLE *fp);
 extern LINE *ln_goto(FTABLE *fp,long l);
 extern LINE *ln_relative(LINE *cl, long l);
 extern long ln_cnt(LINE *lps,LINE *lpe);
@@ -336,7 +336,7 @@ extern void ln_addFlag(LINE* lpstart, LINE* lpend, int flg);
  * are considered.
  * Return 1, if at least one line has changed.
  */
-extern int ln_changeFlag(LINE* lpstart, LINE* lpend, int flagsearch, int flagmark, int set);
+extern int ln_changeFlag(FTABLE* fp, LINE* lpstart, LINE* lpend, int flagsearch, int flagmark, int set);
 
 /*---------------------------------
  * ln_removeFlag()

@@ -48,7 +48,10 @@ typedef struct tagUNDO_OPERATION {
 	// The "line" delta
 	struct tagUNDO_DELTA {
 		LINE* lp;				// The remembered old line
-		LINE* lpAnchor;			// The anchor line (previous line to old state) where the old state must be restored or in the case of LN_ORDER, the exchanged line
+		union {
+			LINE* lpAnchor;			// The anchor line (previous line to old state) where the old state must be restored or in the case of LN_ORDER, the exchanged line
+			int   flag;
+		} oldState;
 		int	  op;				// one of O_MODIFY, O_DELETE, O_INSERT, O_LNORDER
 	} delta[N_DELTAS];
 } UNDO_OPERATION;
@@ -109,7 +112,7 @@ static UNDO_COMMAND* undo_getCurrentCommand(UNDO_STACK* pStack) {
  * Returns the pointer of the "current" redo operation from the undo stack.
  */
 static UNDO_COMMAND* undo_getCurrentRedoCommand(UNDO_STACK* pStack) {
-	return pStack->current < pStack->numberOfCommands ? pStack->commands[pStack->current+1] : NULL;
+	return pStack->current < pStack->numberOfCommands - 1 ? pStack->commands[pStack->current+1] : NULL;
 }
 
 /*--------------------------------------------------------------------------
@@ -131,7 +134,7 @@ static void upfree(UNDO_OPERATION *up, FTABLE* fp, BOOLEAN freeLines) {
 					ln_destroy(p->lp);
 				}
 				if (p->op == O_LNORDER) {
-					free(p->lpAnchor);
+					free(p->oldState.lpAnchor);
 				}
 			}
 		}
@@ -166,8 +169,11 @@ static BOOL add_stepToCommand(UNDO_COMMAND* pCommand, LINE* lp, LINE* lpAnchor, 
 	}
 	pDelta = &pOperation->delta[pOperation->numberOfCommands++];
 	pDelta->lp = lp;
-	pDelta->lpAnchor = lpAnchor;
+	pDelta->oldState.lpAnchor = lpAnchor;
 	pDelta->op = op;
+	if (op == O_FLAG) {
+		pDelta->oldState.flag = lp->lflg;
+	}
 	return TRUE;
 }
 
@@ -368,12 +374,18 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand, BOOL bR
 				bRedrawAll = TRUE;
 				break;
 			case O_UNHIDE:
-				lp = ln_hide(fp, pDelta->lp, pDelta->lpAnchor);
+				lp = ln_hide(fp, pDelta->lp, pDelta->oldState.lpAnchor);
 				add_stepToCommand(pRedoCommand, lp, NULL, O_HIDE);
 				bRedrawAll = TRUE;
 				break;
+			case O_FLAG:
+				lpChange = pDelta->lp;
+				add_stepToCommand(pRedoCommand, lpChange, NULL, O_FLAG);
+				lpChange->lflg = pDelta->oldState.flag;
+				render_repaintLine(fp, lpChange);
+				break;
 			case O_MODIFY:
-				if ((lp = pDelta->lpAnchor) == 0) {
+				if ((lp = pDelta->oldState.lpAnchor) == 0) {
 					lp = fp->firstl;
 				} else {
 					lp = lp->next;
@@ -393,23 +405,23 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand, BOOL bR
 				lpChange = pDelta->lp;
 				if (!bRedo) {
 					lpChange->lflg &= (LNINDIRECT | LNXMARKED | LNNOTERM | LNNOCR);
-					if (pDelta->lpAnchor->lflg & LNSAVED) {
+					if (pDelta->oldState.lpAnchor->lflg & LNSAVED) {
 						lpChange->lflg |= LNUNDO_AFTER_SAVE | LNMODIFIED;
 					}
 				}
-				ln_insert(fp, pDelta->lpAnchor, lpChange);
-				add_stepToCommand(pRedoCommand, lpChange, pDelta->lpAnchor, O_INSERT);
+				ln_insert(fp, pDelta->oldState.lpAnchor, lpChange);
+				add_stepToCommand(pRedoCommand, lpChange, pDelta->oldState.lpAnchor, O_INSERT);
 				bRedrawAll = TRUE;
 				break;
 			case O_INSERT:
-				if ((lp = pDelta->lpAnchor) != NULL && (lp = lp->prev) != NULL && (lpNext = lp->next) != NULL && ln_delete(fp, lp)) {
+				if ((lp = pDelta->oldState.lpAnchor) != NULL && (lp = lp->prev) != NULL && (lpNext = lp->next) != NULL && ln_delete(fp, lp)) {
 					add_stepToCommand(pRedoCommand, lp, lpNext, O_DELETE);
 				}
 				bRedrawAll = TRUE;
 				break;
 			case O_LNORDER:
-				ln_order(fp, pDelta->lp, pDelta->lpAnchor);
-				add_stepToCommand(pRedoCommand, pDelta->lpAnchor, pDelta->lp, O_LNORDER);
+				ln_order(fp, pDelta->lp, pDelta->oldState.lpAnchor);
+				add_stepToCommand(pRedoCommand, pDelta->oldState.lpAnchor, pDelta->lp, O_LNORDER);
 				bRedrawAll = TRUE;
 				break;
 			}

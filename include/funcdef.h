@@ -17,8 +17,8 @@
 #define	FUNCDEF_H
 
 typedef struct tagTYPEELEM {
-	int			te_name;
-	long			te_val;
+	const char* te_name;
+	long		te_val;
 } TYPEELEM;
 
 /*

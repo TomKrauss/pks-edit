@@ -456,7 +456,7 @@ int EdAbout(void)
 #elif
 	static char _architecture[] = "- 32 Bit Plattform";
 #endif
-	static char _versionInfo[] = "Version 2.0.2, 3.9.2021";
+	static char _versionInfo[] = "Version 2.0.2, 6.9.2021";
 
 	static DIALPARS _d[] = {
 		IDD_RO1,		sizeof _customerMessage, _customerMessage,
@@ -1243,12 +1243,11 @@ int EdDlgDispMode(void) {
 		IDD_INT2,		sizeof rmargin,	&rmargin,
 		IDD_OPT1,		SHOWCONTROL,		&dispmode,
 		IDD_OPT4,		SHOWHEX,			&dispmode,
-		IDD_OPT5,		SHOWRULER,		&dispmode,
-		IDD_OPT6,		SHOWOEM,			&dispmode,
+		IDD_OPT5,		SHOWRULER,			&dispmode,
 		IDD_OPT7,		SHOWFIXEDWI,		&dispmode,
 		IDD_OPT8,		SHOWHIDEVSLIDER,	&dispmode,
 		IDD_OPT9,		SHOWHIDEHSLIDER,	&dispmode,
-		IDD_OPT10,		SHOWLINENUMBERS,	& dispmode,
+		IDD_OPT10,		SHOWLINENUMBERS,	&dispmode,
 		IDD_OPT11,		SHOWCARET_LINE_HIGHLIGHT, &dispmode,
 		0
 	};
@@ -1599,7 +1598,7 @@ int macro_getIndexForKeycode(KEYCODE *scan,char *name,int oldidx)
 	do {
 		if (DoDialog(DLGMACNAME, dlg_standardDialogProcedure,_d, NULL) == IDCANCEL)
 			return 0;
-	} while (!macro_validateMacroName(name,oldidx));
+	} while (!macro_validateMacroName(name,oldidx, FALSE));
 	return 1;
 }
 

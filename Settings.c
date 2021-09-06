@@ -58,7 +58,7 @@ static struct optiontab {
      IDD_FKFLG8,    BLK_COLUMN_SELECTION,  OP_EDIT_MODE,   doc_columnChanged,
      IDD_FKFLG9,    F_RDONLY,      OP_FILEFLAG,   doctypes_documentTypeChanged,
      IDD_FKFLG10,   WM_OEMMODE,    OP_EDIT_MODE,   doctypes_documentTypeChanged,
-     IDD_FKFLG10+1, SHOWOEM,       OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG10+1, SHOWCARET_LINE_HIGHLIGHT,  OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
      IDD_FKFLG10+2, 1,            OP_MACRO,   macro_toggleRecordMaco,
      0,             SHOWCONTROL,   OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
      0,             SHOWSTATUS,    OP_DISPLAY_MODE,   doctypes_documentTypeChanged,

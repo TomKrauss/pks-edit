@@ -409,7 +409,7 @@ macros		:  macrostart opt_string block
 				if (!yyerrflg) {
 					makelabel(lreturnid,0);
 					killabel(lreturnid,0);
-					macro_validateMacroName($1.s, -1);
+					macro_validateMacroName($1.s, -1, 1);
 					_recp = AddComSeq(_recp,_recpend,C_STOP,1);
 					macro_showStatus("Defining macro %s",$1.s);
 					macro_insertNewMacro($1.s,$2.s,_recspace,(int)(_recp-_recspace));

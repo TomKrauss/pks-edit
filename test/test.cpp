@@ -24,11 +24,13 @@ namespace pkseditTests
 			LINKED_LIST* p = NULL;
 			void* head = p;
 			LINKED_LIST* p1 = (LINKED_LIST*)ll_insert(&head, sizeof * p);
-			Assert::IsNotNull(p);
+			Assert::IsNotNull(head);
+			p = (LINKED_LIST*)head;
 			Assert::IsNotNull(p1);
 			strcpy_s(p1->name, "p1");
 			Assert::AreEqual(1l, ll_size(p));
 			LINKED_LIST* p2 = (LINKED_LIST*)ll_insert(&head, sizeof * p);
+			p = (LINKED_LIST*)head;
 			strcpy_s(p2->name, "x2");
 			Assert::AreEqual(2l, ll_size(p));
 			p2 = (LINKED_LIST*)ll_find(p, "x2");
@@ -37,10 +39,12 @@ namespace pkseditTests
 			p1 = ll_at(p, 1);
 			Assert::AreEqual("p1", p1->name);
 			ll_delete(&head, p2);
+			p = (LINKED_LIST*)head;
 			Assert::AreEqual(1l, ll_size(p));
 			p1 = ll_at(p, 0);
 			Assert::IsNotNull(p);
 			ll_delete(&head, p1);
+			p = (LINKED_LIST*)head;
 			Assert::IsNull(p);
 		}
 
@@ -81,9 +85,15 @@ namespace pkseditTests
 			RE_MATCH match;
 			char group[50];
 
+			options = createOptions("x+ (\"[^\"]+\",)", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			const char* expr = "xxx \"hello\",";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(1, match.nbrackets);
+
 			options = createOptions("<[(FT][)AC-EIMOTX]+>", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
-			const char* expr = "FIXME";
+			expr = "FIXME";
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
 			expr = "(T)";
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
@@ -458,33 +468,33 @@ namespace pkseditTests
 			regex_initializeReplaceByExpressionOptions(&reOptions, &rePattern);
 			unsigned char result[300];
 			Assert::AreNotEqual(0, (int)rePattern.specialProcessingNeeded);
-			Assert::AreEqual(4, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
+			Assert::AreEqual(4l, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("xAPE", (const char*)result);
 
 			reOptions.replacementPattern = "\\l\\&C";
 			regex_initializeReplaceByExpressionOptions(&reOptions, &rePattern);
-			Assert::AreEqual(4, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
+			Assert::AreEqual(4l, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("apec", (const char*)result);
 
 			reOptions.replacementPattern = "\\l\\&\\eC";
 			regex_initializeReplaceByExpressionOptions(&reOptions, &rePattern);
-			Assert::AreEqual(4, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
+			Assert::AreEqual(4l, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("apeC", (const char*)result);
 
 			reOptions.replacementPattern = "giraffe";
 			reOptions.flags = RE_DOREX | RE_PRESERVE_CASE | RE_IGNCASE;
 			regex_initializeReplaceByExpressionOptions(&reOptions, &rePattern);
-			Assert::AreEqual(7, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
+			Assert::AreEqual(7l, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("Giraffe", (const char*)result);
 
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"The ApE and the Cat are walking along the beach", NULL, &match));
-			Assert::AreEqual(7, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
+			Assert::AreEqual(7l, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("GiRAFFE", (const char*)result);
 
 			reOptions.replacementPattern = "lame duck";
 			reOptions.flags = RE_DOREX | RE_PRESERVE_CASE | RE_IGNCASE;
 			regex_initializeReplaceByExpressionOptions(&reOptions, &rePattern);
-			Assert::AreEqual(9, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
+			Assert::AreEqual(9l, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("LaME DUCK", (const char*)result);
 
 			options = createOptions("ape,cat", RE_DOREX | RE_IGNCASE);
@@ -494,11 +504,11 @@ namespace pkseditTests
 			reOptions.replacementPattern = "bird,snake";
 			reOptions.flags = RE_DOREX | RE_PRESERVE_CASE | RE_IGNCASE;
 			regex_initializeReplaceByExpressionOptions(&reOptions, &rePattern);
-			Assert::AreEqual(10, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
+			Assert::AreEqual(10l, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("Bird,Snake", (const char*)result);
 
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"The ApE,CAT and the lion are walking along the beach", NULL, &match));
-			Assert::AreEqual(10, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
+			Assert::AreEqual(10l, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("BiRD,SNAKE", (const char*)result);
 
 			options = createOptions("der", RE_DOREX | RE_IGNCASE);
@@ -507,12 +517,12 @@ namespace pkseditTests
 			reOptions.flags = RE_PRESERVE_CASE | RE_IGNCASE;
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"DEr", NULL, &match));
 			regex_initializeReplaceByExpressionOptions(&reOptions, &rePattern);
-			Assert::AreEqual(3, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
+			Assert::AreEqual(3l, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("DIe", (const char*)result);
 
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"deR", NULL, &match));
 			regex_initializeReplaceByExpressionOptions(&reOptions, &rePattern);
-			Assert::AreEqual(3, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
+			Assert::AreEqual(3l, regex_replaceSearchString(&rePattern, result, sizeof result, &match));
 			Assert::AreEqual("diE", (const char*)result);
 		}
 	};

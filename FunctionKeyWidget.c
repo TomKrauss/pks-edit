@@ -302,7 +302,12 @@ static char *szKeys = "DLGFKEYS";
 static void fkey_show(HWND hwndPapa)
 {
 	if ((GetConfiguration()->layoutoptions & (OL_FKEYS|OL_OPTIONBAR)) && hwndFkeys == 0) {
-		hwndFkeys = CreateDialog(hInst, szKeys, hwndPapa, NULL);
+		HRSRC  hRes = FindResource(ui_getResourceModule(), szKeys, RT_DIALOG);
+		DLGTEMPLATE* pTemplate = (DLGTEMPLATE*)LoadResource(ui_getResourceModule(), hRes);
+		hwndFkeys = CreateDialogIndirect(0, pTemplate, hwndPapa, NULL);
+		if (!hwndFkeys) {
+			EdTRACE(log_errorArgs(DEBUG_ERR, "Error creating FKEYS %ld. %ld %ld", GetLastError(), hRes, hwndFkeys));
+		}
 		fkey_updateTextOfFunctionKeys(-1);
 	}
 }

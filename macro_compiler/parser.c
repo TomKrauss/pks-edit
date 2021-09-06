@@ -2192,7 +2192,7 @@ int yydebug = 1;
 				if (!yyerrflg) {
 					makelabel(lreturnid,0);
 					killabel(lreturnid,0);
-					macro_validateMacroName((yyvsp[(1) - (3)]).s, -1);
+					macro_validateMacroName((yyvsp[(1) - (3)]).s, -1, 1);
 					_recp = AddComSeq(_recp,_recpend,C_STOP,1);
 					macro_showStatus("Defining macro %s",(yyvsp[(1) - (3)]).s);
 					macro_insertNewMacro((yyvsp[(1) - (3)]).s,(yyvsp[(2) - (3)]).s,_recspace,(int)(_recp-_recspace));

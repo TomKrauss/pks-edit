@@ -14,6 +14,7 @@
 #include <commctrl.h>
 #include <ddeml.h>
 #include <shellapi.h>
+#include <shlwapi.h>
 #include <stdio.h>
 
 #include "alloc.h"
@@ -46,6 +47,10 @@
 
 #define	PROF_OFFSET	1
 
+ /*
+  * Destroy the macro compiler internal symbol table.
+  */
+extern void		sym_destroyTable();
 extern void		bl_destroyPasteList();
 extern void		GetPhase2Args(char *args);
 extern void		GetPhase1Args(char *args);
@@ -258,6 +263,26 @@ void ui_switchToLanguage(char* pszLanguage) {
 	}
 }
 
+static void checkCommonControlLibraryVersion() {
+	HMODULE hDll;
+	DWORD dwMajorVersion = -1;
+
+	hDll = LoadLibrary("COMCTL32.DLL");
+	if (hDll != NULL) {
+		DLLGETVERSIONPROC fn_DllGetVersion;
+		DLLVERSIONINFO vi;
+
+		fn_DllGetVersion = (DLLGETVERSIONPROC)GetProcAddress(hDll, "DllGetVersion");
+		if (fn_DllGetVersion != NULL) {
+			vi.cbSize = sizeof(DLLVERSIONINFO);
+			fn_DllGetVersion(&vi);
+			dwMajorVersion = vi.dwMajorVersion;
+		}
+		FreeLibrary(hDll);
+	}
+	EdTRACE(log_errorArgs(DEBUG_ERR, "Common Control Library version is %ld", dwMajorVersion));
+}
+
 /*------------------------------------------------------------
  * InitInstance()
  */
@@ -269,6 +294,7 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
 	char				szLocale[64];
 
 	hLanguageInst = hInst;
+	checkCommonControlLibraryVersion();
 	GetUserDefaultLocaleName(szwLocale, 64);
 	wcstombs(szLocale, szwLocale, wcslen(szwLocale) + 1);
 	ui_switchToLanguage(szLocale);
@@ -296,6 +322,9 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
 	}
 	if (_openIconic) {
 		nCmdShow = SW_SHOWMINNOACTIVE;
+	} else {
+		// Maximimized state / etc is restored from INI file in that case.
+		nCmdShow = SW_SHOW;
 	}
 	if (prof_getwinstate(szFrameClass, 0, &ws)) {
 		RECT rect;
@@ -662,6 +691,7 @@ static void main_cleanup(void) {
 	bl_destroyPasteList();
 	ic_destroyClasses();
 	fm_destroyAll();
+	sym_destroyTable();
 	analyzer_destroyAnalyzers();
 }
 

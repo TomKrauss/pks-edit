@@ -111,9 +111,12 @@ extern int regex_initializeReplaceByExpressionOptions(REPLACEMENT_OPTIONS *pOpti
  * - \l - all successing characters in the replacement string are converted to lower case until the next case modifier is encountered
  * - \u - all successing characters in the replacement string are converted to upper case until the next case modifier is encountered
  * - \e - mark the end of a \l or a \u section and do not convert any more characters after this to lower or upper case
- * Returns the length of the resulting string or -1, if an error occurs (target string would be too long etc...)
+ * Returns the length of the resulting string or -1, if the target string would be too long or -2 if an invalid capturing group is
+ * used in the replacement string.
  */
-extern int regex_replaceSearchString(REPLACEMENT_PATTERN* pPattern, unsigned char* pDestination, int destinationBufferSize, RE_MATCH* pMatch);
+#define REPLACE_ERR_TOO_LONG -1
+#define REPLACE_ERR_WRONG_CAPTURING_GROUP -2
+extern long regex_replaceSearchString(REPLACEMENT_PATTERN* pPattern, unsigned char* pDestination, long destinationBufferSize, RE_MATCH* pMatch);
 
 /*--------------------------------------------------------------------------
  * regex_compileCharacterClasses()

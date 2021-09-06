@@ -40,14 +40,15 @@ void cust_drawShadow(HDC hdc,RECT *rcp,int odItemState)
 	HPEN		hPenTop;
 	HPEN		hPenBottom;
 	HPEN		hBottomColorPen;
+	THEME_DATA* pData = theme_getDefault();
 
-	hBottomColorPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_BTNSHADOW));
+	hBottomColorPen = CreatePen(PS_SOLID, 0, pData->th_dialogBorder);
 	if ((odItemState & (ODS_FOCUS| ODS_DISABLED)) == ODS_FOCUS) {
 		hPenTop = hBottomColorPen;
-		hPenBottom = GetStockObject(WHITE_PEN);
+		hPenBottom = CreatePen(PS_SOLID, 1, pData->th_defaultBackgroundColor);
 	} else {
 		hPenBottom = hBottomColorPen;
-		hPenTop = GetStockObject(WHITE_PEN);
+		hPenTop = CreatePen(PS_SOLID, 1, pData->th_defaultBackgroundColor);
 	}
 	left = rcp->left;
 	right = rcp->right + rcp->left - 1;
@@ -61,6 +62,8 @@ void cust_drawShadow(HDC hdc,RECT *rcp,int odItemState)
 	MoveTo(hdc,left+1,bottom);
 	LineTo(hdc,right,bottom);
 	LineTo(hdc,right,top);
+	DeleteObject(hPenTop);
+	DeleteObject(hPenBottom);
 	DeleteObject(SelectObject(hdc,hPen));
 }
 

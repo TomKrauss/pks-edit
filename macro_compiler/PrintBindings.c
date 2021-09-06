@@ -563,7 +563,6 @@ int macro_saveMenuBindingsAndDisplay(void)
 /*--------------------------------------------------------------------------
  * macro_loadStringResource()
  */
-char *macro_loadStringResource(int nIndex)
-{
-	return nIndex >= 0 && nIndex < _ncmdseq ? _cmdseqtab[nIndex].c_name : "unknown";
+const char *macro_loadStringResource(int nIndex) {
+	return nIndex >= 0 && nIndex < _nfuncs ? _edfunctab[nIndex].f_name : NULL;
 }

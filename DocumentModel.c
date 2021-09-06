@@ -218,7 +218,7 @@ void ln_addFlag(LINE *lpstart, LINE *lpend, int flg) {
  * are considered.
  * Return 1, if at least one line has changed.
  */
-int ln_changeFlag(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark, int set) {
+int ln_changeFlag(FTABLE* fp, LINE *lpstart, LINE *lpend, int flagsearch, int flagmark, int set) {
 	if (!set) {
 		flagmark = ~flagmark;
 	}
@@ -226,13 +226,17 @@ int ln_changeFlag(LINE *lpstart, LINE *lpend, int flagsearch, int flagmark, int 
 	while (lpstart != 0) {
 		// (T) add undo support
 		if (!flagsearch || (lpstart->lflg & flagsearch)) {
-			int oldFlag = lpstart->lflg;
+			int flag = lpstart->lflg;
 			if (set) {
-				lpstart->lflg |= flagmark;
+				flag |= flagmark;
 			} else {
-				lpstart->lflg &= flagmark;
+				flag &= flagmark;
 			}
-			if (oldFlag != lpstart->lflg) {
+			if (flag != lpstart->lflg) {
+				if (flagmark & (LNNOCR | LNNOTERM)) {
+					undo_saveOperation(fp, lpstart, lpstart, O_FLAG);
+				}
+				lpstart->lflg = flag;
 				ret = 1;
 			}
 		}
@@ -504,10 +508,9 @@ LINE *ln_join(FTABLE *fp, LINE *lp1, LINE *lp2, int bRemove)
 }
 
 /*---------------------------------*/
-/* lnjoin_lines()				*/
+/* ln_joinLines()				*/
 /*---------------------------------*/
-int lnjoin_lines(FTABLE *fp)
-{
+int ln_joinLines(FTABLE *fp) {
 	LINE *	lp;
 	LINE	*	lpnext;
 	int  	flg;

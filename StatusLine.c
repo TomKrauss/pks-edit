@@ -17,6 +17,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include "alloc.h"
+#include "pksrc.h"
 #include "trace.h"
 #include "winterf.h"
 #include "lineoperations.h"
@@ -26,6 +27,7 @@
 #include "stringutil.h"
 #include "customcontrols.h"
 #include "themes.h"
+#include "xdialog.h"
 
 #define	MAXSEGMENTS			20
 
@@ -48,7 +50,7 @@ static int st_format(char *dest)
 	len = mysprintf(wp, dest,
 				 (wp && wp->statusline && (wp->dispmode & SHOWHEX)) ? 
 				 wp->statusline : 
-				 /*STR*/"Z: %2j$l, S: %2j$c!%s$&");
+				 dlg_getResourceString(IDS_STATUSLINE));
 	return len;
 }
 
@@ -162,7 +164,7 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		FillRect(hdc, &ps.rcPaint, brush);
 		DeleteObject(brush);
 		SetTextColor(hdc, pTheme->th_dialogForeground);
-		HPEN hPen = CreatePen(0, 1, pTheme->th_dialogForeground);
+		HPEN hPen = CreatePen(0, 1, pTheme->th_dialogBorder);
 		SetBkMode(hdc, TRANSPARENT);
 		SelectObject(hdc, hPen);
 		HFONT hFont = SelectObject(hdc, cust_getSmallEditorFont());

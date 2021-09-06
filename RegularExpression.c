@@ -284,23 +284,24 @@ static void adaptCase(char* pDestination, RE_MATCH* pMatch) {
  * - \l - all successing characters in the replacement string are converted to lower case until the next case modifier is encountered
  * - \u - all successing characters in the replacement string are converted to upper case until the next case modifier is encountered
  * - \e - mark the end of a \l or a \u section and do not convert any more characters after this to lower or upper case
- * Returns the length of the resulting string or -1, if an error occurs (target string would be too long etc...)
+ * Returns the length of the resulting string or -1, if the target string would be too long or -2 if an invalid capturing group is
+ * used in the replacement string.
  */
-int regex_replaceSearchString(REPLACEMENT_PATTERN* pPattern, unsigned char* pDestination, int destinationBufferSize, RE_MATCH* pMatch) {
-	int len = 0;
+long regex_replaceSearchString(REPLACEMENT_PATTERN* pPattern, unsigned char* pDestination, long destinationBufferSize, RE_MATCH* pMatch) {
+	long len = 0;
 	unsigned char* q, * qend, c, * trans = _characterMappingTable, tl = 0;
 	unsigned char* replacePattern = pPattern->preparedReplacementString;
 
 	if (!pPattern->specialProcessingNeeded) {
-		size_t len = strlen(pPattern->preparedReplacementString);
+		len = (long)strlen(pPattern->preparedReplacementString);
 		if (len >= destinationBufferSize) {
-			return -1;
+			return REPLACE_ERR_TOO_LONG;
 		}
 		strcpy(pDestination, pPattern->preparedReplacementString);
 		if (pPattern->preserveCaseConversionNeeded) {
 			adaptCase(pDestination, pMatch);
 		}
-		return (int)len;
+		return len;
 	}
 	destinationBufferSize -= 2;
 	while (*replacePattern) {
@@ -330,9 +331,12 @@ int regex_replaceSearchString(REPLACEMENT_PATTERN* pPattern, unsigned char* pDes
 				else goto normal;
 				break;
 			}
+			if (!q || !qend) {
+				return REPLACE_ERR_WRONG_CAPTURING_GROUP;
+			}
 			len += (int)(qend - q);
 			if (len > destinationBufferSize)
-				return -1;
+				return REPLACE_ERR_TOO_LONG;
 			while (q < qend)
 				*pDestination++ = trans[*q++];
 		nocpy:
@@ -1021,6 +1025,7 @@ static unsigned char* advanceSubGroup(unsigned char* pszBeginOfLine, unsigned ch
 		unsigned char* pExprStart = pExpression + matcherSizes[GROUP];
 		unsigned char* pExprNext = pExpression + pMatcher->m_param.m_group.m_offsetNext;
 		unsigned char* pExprStop = pMatcher->m_param.m_group.m_offsetNext ? pExprNext : pExprEnd;
+		unsigned char* e2;
 		pExprStart += sizeof(MATCH_RANGE);
 		int nGroup = 0;
 		if (!pMatcher->m_param.m_group.m_nonCapturing) {
@@ -1035,7 +1040,6 @@ static unsigned char* advanceSubGroup(unsigned char* pszBeginOfLine, unsigned ch
 		int matchedLen = 0;
 		int nSubGroup = 0;
 		while(1) {
-			unsigned char* e2;
 			e2 = regex_advance(pszBeginOfLine, stringToMatch, endOfStringToMatch, pExprStart, pExprStop, pResult);
 			if (e2 > pLongestMatch) {
 				pLongestMatch = e2;

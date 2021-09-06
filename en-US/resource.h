@@ -225,6 +225,7 @@
 #define IDS_TT_PRESERVE_CASE            182
 #define IDS_FILE_MODIFIED               183
 #define IDS_FILE_READONLY               184
+#define IDS_STATUSLINE                  186
 #define IDM_UNDO                        210
 #define IDM_DOAGAIN                     211
 #define IDM_ERASEBLOCK                  212
@@ -234,7 +235,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        150
+#define _APS_NEXT_RESOURCE_VALUE        151
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101

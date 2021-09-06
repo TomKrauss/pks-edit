@@ -108,6 +108,14 @@ static ENTRY *hfind(char *key,ACTION action)
 	return 0;
 }
 
+/*
+ * Destroy the macro compiler internal symbol table.
+ */
+void sym_destroyTable() {
+	free(_htab);
+	_htab = NULL;
+}
+
 /*---------------------------------*/
 /* sym_create()				*/
 /* neue Tabelle erzeugen			*/

@@ -558,8 +558,8 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 		goto wfail1;
 	}
 	ret = 0;
-	ln_changeFlag(fp->firstl, fp->lastl, LNMODIFIED, LNSAVED, 1);
-	ln_changeFlag(fp->firstl, fp->lastl, LNMODIFIED, LNUNDO_AFTER_SAVE, 0);
+	ln_changeFlag(fp, fp->firstl, fp->lastl, LNMODIFIED, LNSAVED, 1);
+	ln_changeFlag(fp, fp->firstl, fp->lastl, LNMODIFIED, LNUNDO_AFTER_SAVE, 0);
 	ft_forAllViews(fp, render_repaintLineNumbers, NULL);
 	ft_setFlags(fp, fp->flags & ~(F_CHANGEMARK | F_WFORCED));
 	ft_settime(&fp->ti_saved);

@@ -25,7 +25,7 @@
 
 typedef int BOOL;
 
-extern char *		macro_loadStringResource(int nId);
+extern const char *	macro_loadStringResource(int nId);
 extern void 		macro_showStatus(char *s, ...);
 
 /*--------------------------------------------------------------------------

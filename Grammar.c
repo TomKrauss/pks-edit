@@ -685,6 +685,7 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 				i += pszEndLen;
 				nElementCount = grammar_tokenFound(pGrammar, pResult, currentState, pRootPattern, pszBuf, nStateOffset, i, nElementCount);
 				nElementCount = grammar_addDelta(INITIAL, 0, nElementCount, pResult);
+				nStateOffset = i;
 				nextState = currentState = INITIAL;
 				pszEnd = NULL;
 			} else {

@@ -112,7 +112,7 @@ static int pr_xlated(FILE *fp,long val,signed char partyp)
 			if (val & ep->te_val) {
 				if (printed)
 					fputc('|',fp);
-				fputs(macro_loadStringResource(ep->te_name),fp);
+				fputs(ep->te_name,fp);
 				printed++;
 				val &= (~ep->te_val);
 				if (!val)
@@ -124,7 +124,7 @@ static int pr_xlated(FILE *fp,long val,signed char partyp)
 		/* OT_ENUM */
 		while(ep < epend) {
 			if (val == ep->te_val) {
-				fputs(macro_loadStringResource(ep->te_name),fp);
+				fputs(ep->te_name,fp);
 				return 1;
 			}
 			ep++;

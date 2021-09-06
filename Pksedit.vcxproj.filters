@@ -48,9 +48,6 @@
     <ClCompile Include="Clipboard.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="macro_compiler\CommandFunctionTable.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Compare.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -292,6 +289,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CodeAnalyzer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="macro_compiler\CommandFunctionTable.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

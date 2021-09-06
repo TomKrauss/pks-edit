@@ -115,7 +115,8 @@
       "name": "dark",
       "backgroundColor": "#020102",
       "dialogBackground": "#221122",
-      "dialogForeground": "#fcfcfc",
+      "dialogForeground": "#ececec",
+      "dialogBorder": "#cdcdcd",
       "changedLineColor": "#ffff33",
       "savedChangedLineColor": "#88ff88",
       "editorConfiguration": "default",
@@ -135,11 +136,11 @@
         },
         {
           "styleName": "control",
-          "foregroundColor": "#555555"
+          "foregroundColor": "#777777"
         },
         {
           "styleName": "identifier",
-          "foregroundColor": "#777722"
+          "foregroundColor": "#888822"
         },
         {
           "styleName": "keyword",
@@ -159,12 +160,12 @@
         {
           "styleName": "operator",
           "weight": 700,
-          "foregroundColor": "#883333"
+          "foregroundColor": "#AA3333"
         },
         {
           "styleName": "annotation",
           "weight": 700,
-          "foregroundColor": "#007777"
+          "foregroundColor": "#009999"
         },
         {
           "styleName": "bold",
@@ -208,16 +209,16 @@
         },
         {
           "styleName": "sl-comment",
-          "foregroundColor": "#229922"
+          "foregroundColor": "#22EE22"
         },
         {
           "styleName": "comment",
-          "foregroundColor": "#22CC22"
+          "foregroundColor": "#33FF33"
         },
         {
           "styleName": "bold-comment",
           "weight": 900,
-          "foregroundColor": "#55CC55"
+          "foregroundColor": "#55EE55"
         },
         {
           "styleName": "task",

@@ -16,6 +16,7 @@
 #include "sym.h"
 #include "pkscc.h"
 #include "stringutil.h"
+#include "xdialog.h"
 
 /*--------------------------------------------------------------------------
  * init_funcs()
@@ -29,15 +30,15 @@ int init_funcs(void)
 	char *			pszCopy;
 
 	for (ep = _functab, epend = ep+_nfunctions; ep < epend;  ep++) {
-		if ((pszCopy = _strdup(macro_loadStringResource(ep->idx))) == 0 ||
+		if ((pszCopy = (char*)macro_loadStringResource(ep->idx)) == 0 ||
 			!sym_insert(pszCopy,S_EDFUNC,(intptr_t)ep)) {
 			return 0;
 		}
 	}
 
 	for (enp = _enelemtab, enpend = enp+_nenelems; enp < enpend; enp++) {
-		if ((pszCopy = _strdup(macro_loadStringResource(enp->te_name))) == 0 ||
-			!sym_insert(pszCopy,S_ENUM,(intptr_t)enp)) {
+		if (enp->te_name == 0 ||
+			!sym_insert((char*)enp->te_name,S_ENUM,(intptr_t)enp)) {
 			return 0;
 		}
 	}

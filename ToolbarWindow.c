@@ -30,6 +30,8 @@
 #include "stringutil.h"
 #include "findandreplace.h"
 #include "themes.h"
+#include "xdialog.h"
+
 
 static HWND	hwndToolbar;
 static int nToolbarButtons;
@@ -297,23 +299,23 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam
 /*
  * Creates the entry field for incremental search in the PKS Edit toolbar. 
  */
-static HWND hwndSearchIncrementallyField;
+static HWND hwndIncrementalSearchField;
 static void tb_enableEntryField(ACTION_BINDING * pBinding, PROPERTY_CHANGE_TYPE type, int newValue) {
     if (type == PC_ENABLED) {
-        EnableWindow(hwndSearchIncrementallyField, newValue);
+        EnableWindow(hwndIncrementalSearchField, newValue);
     }
 }
 static HWND tb_initSearchEntryField(HWND hwndOwner) {
 
-    hwndSearchIncrementallyField = CreateWindowEx(0, "EDIT", "",
+    hwndIncrementalSearchField = CreateWindowEx(0, "EDIT", "",
         WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_LEFT | ES_NOHIDESEL | ES_WANTRETURN,
         0, 0, 180, CW_USEDEFAULT,
         hwndOwner, (HMENU)IDM_INCREMENTAL_SEARCH,
         hInst, NULL);
-    SendMessage(hwndSearchIncrementallyField, WM_SETFONT, (WPARAM)cust_getDefaultEditorFont(), 0);
-    oldEditProc = (WNDPROC)SetWindowLongPtr(hwndSearchIncrementallyField, GWLP_WNDPROC, (LONG_PTR)incrementalSearchEditWndProc);
+    SendMessage(hwndIncrementalSearchField, WM_SETFONT, (WPARAM)cust_getDefaultEditorFont(), 0);
+    oldEditProc = (WNDPROC)SetWindowLongPtr(hwndIncrementalSearchField, GWLP_WNDPROC, (LONG_PTR)incrementalSearchEditWndProc);
     action_registerAction(CMD_INITIATE_INCREMENTAL_SEARCH, (ACTION_BINDING) { tb_enableEntryField, 0L, 0 }, TRUE);
-    return hwndSearchIncrementallyField;
+    return hwndIncrementalSearchField;
 }
 
 
@@ -321,7 +323,7 @@ static HWND tb_initSearchEntryField(HWND hwndOwner) {
  * Move the input focus to the incremental search UI entry field. 
  */
 int find_initiateIncrementalSearch() {
-    SetFocus(hwndSearchIncrementallyField);
+    SetFocus(hwndIncrementalSearchField);
     return 1;
 }
 
@@ -370,7 +372,7 @@ HWND tb_initRebar(HWND hwndOwner) {
         | RBBIM_CHILD       // hwndChild is valid.
         | RBBIM_CHILDSIZE   // child size members are valid.
         | RBBIM_SIZE;       // cx is valid
-    rbBand.fStyle = RBBS_CHILDEDGE | RBBS_GRIPPERALWAYS;
+    rbBand.fStyle = RBBS_CHILDEDGE | RBBS_GRIPPERALWAYS | RBBS_FIXEDSIZE;
     rbBand.clrFore = pTheme->th_dialogForeground;
     rbBand.clrBack = pTheme->th_dialogBackground;
 
@@ -389,14 +391,27 @@ HWND tb_initRebar(HWND hwndOwner) {
     // Add the band that has the toolbar.
     SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
 
-    RECT rc;
-    GetWindowRect(hwndEntryField, &rc);
-    rbBand.lpText = TEXT("Search:");
+    rbBand.lpText = TEXT(dlg_getResourceString(IDS_SEARCH));
     rbBand.hwndChild = hwndEntryField;
-    rbBand.cxMinChild = 0;
+    rbBand.cxMinChild = 250;
     rbBand.cyMinChild = 20;
     // The default width should be set to some value wider than the text. The entry field itself will expand to fill the band.
     rbBand.cx = 250;
+
+    // Add the band that has the entry field.
+    SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
+
+    rbBand.fMask =
+        RBBIM_STYLE       // fStyle is valid.
+        | RBBIM_COLORS      // honor colors
+        | RBBIM_CHILDSIZE   // child size members are valid.
+        | RBBIM_SIZE;       // cx is valid
+    rbBand.hwndChild = hwndEntryField;
+    rbBand.cxMinChild = 50;
+    rbBand.cyMinChild = 20;
+    // The default width should be set to some value wider than the text. The entry field itself will expand to fill the band.
+    rbBand.cx = 250;
+    rbBand.fStyle = RBBS_FIXEDSIZE;
 
     // Add the band that has the entry field.
     SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);

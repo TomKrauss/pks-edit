@@ -1006,9 +1006,6 @@ WINFUNC EditWndProc(
 	case WM_MOVE:
 		/* drop through */
 	case WM_SIZE:
-		if (wParam == SIZEZOOMHIDE || wParam == SIZEZOOMSHOW) {
-			break;
-		}
 		ww_getstate(wp,&ws);
 		if (ws.showCmd & SW_SHOWMINIMIZED) {
 			SetFocus(hwndMDIFrameWindow);

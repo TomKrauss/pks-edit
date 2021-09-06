@@ -158,9 +158,9 @@ typedef struct c_1func {
  * Describes an editor command. 
  */
 typedef struct tagCOMMAND {
+	int		  c_index;					// the command index used internally.
 	COM_1FUNC c_functionDef;			// the actual functionto execute including flags.
 	char* c_name;						// name of the command used in macros
-	char* c_description;				// documentation of the command
 } COMMAND;
 
 typedef struct c_0func {
@@ -274,9 +274,10 @@ typedef union c_seq {
 } COM_SEQ;
 
 typedef struct edfunc {
-	int	(*execute)();		/* the actual callback to invoke */
-	unsigned char id;		/* logical id for referencing it */
-	int		 flags;			/* see EW_... flags above */
+	int	(*execute)();		// the actual callback to invoke 
+	unsigned char id;		// logical id for referencing it 
+	int		 flags;			// see EW_... flags above
+	const char* f_name;		// the name as it can be used inside the PKS Edit macro language to execute this function.
 } EDFUNC;
 
 typedef struct macro {
@@ -478,7 +479,7 @@ extern int macro_deleteByName(char* name);
  * macro_validateMacroName()
  * Check, whether a mcro name is valid and whether it exists already.
  */
-extern int macro_validateMacroName(char* name, int origidx);
+extern int macro_validateMacroName(char* name, int origidx, int bOverride);
 
 /*--------------------------------------------------------------------------
  * macro_onKeybindingChanged()

@@ -56,7 +56,6 @@ static const char* DEFAULT = "default";
  */
 typedef struct tagEDFONTATTRIBUTES {
 	int			strikeout;
-	int			bOem;
 	int			italic;
 	int			underline;
 	int			weight;			// 0 == default font everything else between 0 and 999 is interpreted as weight
@@ -138,7 +137,7 @@ static HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont) {
 	}
 	_lf.lfHeight = size;
 	_lf.lfWidth = 0;
-	_lf.lfCharSet = (pFont->style.bOem) ? OEM_CHARSET : pFont->charset;
+	_lf.lfCharSet = pFont->charset;
 	_lf.lfWeight = pFont->style.weight;
 	_lf.lfStrikeOut = (BYTE)pFont->style.strikeout;
 	_lf.lfItalic = pFont->style.italic;
@@ -164,6 +163,7 @@ static THEME_DATA defaultTheme = {
 	RULER_FOREROUND_COLOR,
 	RULER_BACKGROUND_COLOR,
 	-1,							// used as a default marker - strictly speaking there is no default for COLORREFs
+	-1,
 	-1,
 	MAIN_WINDOW_BACKGROUND_COLOR,
 	"Helv",						// (T) use in dialogs.
@@ -205,6 +205,7 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_COLOR, "mainWindowBackgroundColor", offsetof(THEME_DATA, th_mainWindowBackground)},
 	{	RT_COLOR, "dialogBackground", offsetof(THEME_DATA, th_dialogBackground)},
 	{	RT_COLOR, "dialogForeground", offsetof(THEME_DATA, th_dialogForeground)},
+	{	RT_COLOR, "dialogBorder", offsetof(THEME_DATA, th_dialogBorder)},
 	{	RT_COLOR, "rulerForegroundColor", offsetof(THEME_DATA, th_rulerForegroundColor)},
 	{	RT_COLOR, "rulerBackgroundColor", offsetof(THEME_DATA, th_rulerBackgroundColor)},
 	{	RT_CHAR_ARRAY, "dialogFont", offsetof(THEME_DATA, th_fontName), sizeof(((THEME_DATA*)NULL)->th_fontName)},
@@ -226,6 +227,7 @@ static THEME_DATA* theme_createTheme() {
 	if (defaultTheme.th_dialogBackground == -1) {
 		defaultTheme.th_dialogBackground = GetSysColor(COLOR_3DFACE);
 		defaultTheme.th_dialogForeground = GetSysColor(COLOR_BTNTEXT);
+		defaultTheme.th_dialogBorder = GetSysColor(COLOR_BTNSHADOW);
 	}
 	memcpy(pTheme, &defaultTheme, sizeof defaultTheme);
 	return pTheme;
@@ -332,13 +334,12 @@ void font_selectFontStyle(WINFO *wp, FONT_STYLE_CLASS nStyleIndex, HDC hdc) {
 		pStyle = pDefaultStyle;
 	}
 	if (GetMapMode(hdc) != MM_ANISOTROPIC) {
-		int bOem = (wp->dispmode & SHOWOEM) ? 1 : 0;
-		if (pStyle->style.bOem != bOem || pStyle->hfont == NULL || pStyle->zoomFactor != wp->zoomFactor) {
+		if ((wp->charset && pStyle->charset != wp->charset) || pStyle->hfont == NULL || pStyle->zoomFactor != wp->zoomFactor) {
 			if (pStyle->hfont) {
 				DeleteObject(pStyle->hfont);
 			}
 			pStyle->zoomFactor = wp->zoomFactor;
-			pStyle->style.bOem = bOem;
+			pStyle->charset = wp->charset;
 			pStyle->hfont = font_createFontWithStyle(pStyle);
 		}
 

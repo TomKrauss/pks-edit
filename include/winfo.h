@@ -26,7 +26,6 @@
 #define	SHOWSTATUS		            0x2
 #define	SHOWHEX			            0x4
 #define	SHOWRULER			        0x8
-#define	SHOWOEM			            0x20
 #define	SHOWHIDELINES		        0x40
 #define	SHOWFIXEDWI		            0x80
 #define	SHOWHIDEHSLIDER	            0x100
@@ -122,6 +121,7 @@ typedef struct tagWINFO {
     HWND    edwin_handle,ww_handle,ru_handle,st_handle,lineNumbers_handle,codecomplete_handle;
      
     int     dispmode;				/* flags see edierror.h... */
+    int     charset;                // a special charset to use or 0 for now particular charset.
     int     workmode;
     BOOL	bXtndBlock;			/* Xtending blocks */
     int		scrollflags;

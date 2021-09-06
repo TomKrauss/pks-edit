@@ -983,7 +983,7 @@ void win_createModelessDialog(HWND *hwnd,LPSTR szName, INT_PTR (CALLBACK *func)(
 	if (!*lplpfnDlgProc) {
 		*lplpfnDlgProc = MakeProcInstance(func, hInst);
 	}
-	*hwnd = CreateDialog(hInst,szName,hwndMDIFrameWindow,*lplpfnDlgProc);
+	*hwnd = CreateDialog(ui_getResourceModule(),szName,hwndMDIFrameWindow,*lplpfnDlgProc);
 }
 
 /*--------------------------------------------------------------------------

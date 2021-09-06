@@ -17,8 +17,8 @@
 - PKS Edit supports now selecting the UI theme (preview version only) and the current language from the settings dialog.
   Note, that updating the language will not be reflected before PKS Edit is restarted. Currently two languages are available: English and German.
 - PKS Edit has a couple of new supported conversion operations (accessible through the new Functions->Convert menu):
--- convert line ends to LINUX (\n) style (no Undo avaialable yet)
--- convert line ends to Windows (\r\n) style (no Undo avaialable yet)
+-- convert line ends to LINUX (\n) style
+-- convert line ends to Windows (\r\n) style
 -- convert upper case to lower case, lower case to upper case, toggle case. The current character under the cursor is converted or - if a text selection
    exists, the selected text is converted.
 
@@ -28,6 +28,14 @@
 
 #### Improved
 - Support for Power Shell syntax was added.
+- I18N - support of the English language. Almost all resources have been translated in this release. Function and option keys among others show
+  now correctly translated English text, when English locale is selected.
+
+### Fixes
+- A crash in Find & Replace was fixed, which could happen, if a wrong syntax for replacement (unknown capturing group) was used.
+- A crash was fixed with redo: if no redo was available, the attempt to do a redo could result in a crash.
+- A bug was fixed in the macro compiler causing it to fail to recognize pre-defined ENUM constants (e.g. in CaretMove(MOT_SINGLE) the string MOT_SINGLE was
+  not properly recognized).
 
 ### 2.0.1
 

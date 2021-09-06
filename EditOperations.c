@@ -1021,15 +1021,15 @@ int edit_performLineFlagOperation(MARKED_LINE_OPERATION op) {
 		break;
 
 	case MLN_MAKESOFT:
-		changed = ln_changeFlag(lp,last,0,LNNOCR,1);
+		changed = ln_changeFlag(fp, lp,last,0,LNNOCR,1);
 		break;
 
 	case MLN_MAKEHARD:
-		changed = ln_changeFlag(lp,last,0,LNNOCR,0);
+		changed = ln_changeFlag(fp, lp,last,0,LNNOCR,0);
 		break;
 
 	case MLN_FINDSOFT:
-		ln_changeFlag(lp,last,LNNOCR,LNXMARKED,1);
+		ln_changeFlag(fp, lp,last,LNNOCR,LNXMARKED,1);
 		break;
 
 	default:
@@ -1040,7 +1040,7 @@ int edit_performLineFlagOperation(MARKED_LINE_OPERATION op) {
 		caret_placeCursorAndSavePosition(wp, ln,0L);
 		mouse_setBusyCursor();
 		if (op == MLN_JOIN)
-			lnjoin_lines(fp);	
+			ln_joinLines(fp);	
 		else
 			ft_cutMarkedLines(fp, (op == MLN_DELETE));
 	}
