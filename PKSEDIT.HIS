@@ -3,7 +3,7 @@
 "C:\temp\commands.txt", line 248: 0x0 0x1 -1 -1 -1 -1 156 156 1620 698
 "C:\source\pksedit\macros\test1.pkc", line 1: 0x0 0x1 -1 -1 -1 -1 130 130 1508 552
 "C:\source\pksedit\rc\HELPITEM.H", line 196: 0x0 0x1 -1 -1 -1 -1 130 130 1594 671
-"C:\source\pksedit\en-US\en-US.rc", line 77: 0x0 0x1 -1 -1 -1 -1 156 156 1620 697
+"C:\source\pksedit\en-US\en-US.rc", line 1: 0x0 0x1 -1 -1 -1 -1 156 156 1620 697
 [find]
 !/\* ([0-9]+) \*/ [^"]+
 !,$

@@ -146,6 +146,9 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 		dwColwi = pTheme->th_dialogBackground;
 		dwColtext = pTheme->th_dialogForeground;
 	}
+	if (odItemState & ODS_DISABLED) {
+		dwColtext = pTheme->th_dialogDisabled;
+	}
 	GetWindowText(hwnd,szBuff,sizeof szBuff);
 	hBrush = CreateSolidBrush(dwColwi);
 	SetBkMode(hdc,TRANSPARENT);
@@ -163,11 +166,7 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 		rcp->left++;
 		rcp->top++;
 	}
-	if (odItemState & ODS_DISABLED) {
-		DrawState(hdc, NULL, cust_drawText, (LPARAM)szBuff, strlen(szBuff), rcp->left, rcp->top, rcp->right - rcp->left, rcp->bottom - rcp->top, DSS_DISABLED);
-	} else {
-		DrawText(hdc, szBuff, -1, rcp, DT_NOPREFIX | DT_WORDBREAK | DT_LEFT | DT_VCENTER);
-	}
+	DrawText(hdc, szBuff, -1, rcp, DT_NOPREFIX | DT_WORDBREAK | DT_LEFT | DT_VCENTER);
 
 	DeleteObject(hBrush);
 	SelectObject(hdc,hFont);

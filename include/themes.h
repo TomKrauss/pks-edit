@@ -33,6 +33,7 @@ typedef struct tagTHEME_DATA {
 	COLORREF th_dialogBackground;
 	COLORREF th_dialogForeground;
 	COLORREF th_dialogBorder;
+	COLORREF th_dialogDisabled;
 	COLORREF th_mainWindowBackground;
 	unsigned char th_fontName[32];			// dialog font name to use
 	unsigned int  th_fontSize;				// dialog font size to use

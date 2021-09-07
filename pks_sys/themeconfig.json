@@ -117,6 +117,7 @@
       "dialogBackground": "#221122",
       "dialogForeground": "#ececec",
       "dialogBorder": "#cdcdcd",
+      "dialogDisabled": "#888888",
       "changedLineColor": "#ffff33",
       "savedChangedLineColor": "#88ff88",
       "editorConfiguration": "default",

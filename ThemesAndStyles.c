@@ -165,6 +165,7 @@ static THEME_DATA defaultTheme = {
 	-1,							// used as a default marker - strictly speaking there is no default for COLORREFs
 	-1,
 	-1,
+	-1,
 	MAIN_WINDOW_BACKGROUND_COLOR,
 	"Helv",						// (T) use in dialogs.
 	8,
@@ -206,6 +207,7 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_COLOR, "dialogBackground", offsetof(THEME_DATA, th_dialogBackground)},
 	{	RT_COLOR, "dialogForeground", offsetof(THEME_DATA, th_dialogForeground)},
 	{	RT_COLOR, "dialogBorder", offsetof(THEME_DATA, th_dialogBorder)},
+	{	RT_COLOR, "dialogDisabled", offsetof(THEME_DATA, th_dialogDisabled)},
 	{	RT_COLOR, "rulerForegroundColor", offsetof(THEME_DATA, th_rulerForegroundColor)},
 	{	RT_COLOR, "rulerBackgroundColor", offsetof(THEME_DATA, th_rulerBackgroundColor)},
 	{	RT_CHAR_ARRAY, "dialogFont", offsetof(THEME_DATA, th_fontName), sizeof(((THEME_DATA*)NULL)->th_fontName)},
@@ -228,6 +230,7 @@ static THEME_DATA* theme_createTheme() {
 		defaultTheme.th_dialogBackground = GetSysColor(COLOR_3DFACE);
 		defaultTheme.th_dialogForeground = GetSysColor(COLOR_BTNTEXT);
 		defaultTheme.th_dialogBorder = GetSysColor(COLOR_BTNSHADOW);
+		defaultTheme.th_dialogDisabled = GetSysColor(COLOR_GRAYTEXT);
 	}
 	memcpy(pTheme, &defaultTheme, sizeof defaultTheme);
 	return pTheme;
