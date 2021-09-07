@@ -360,9 +360,11 @@ static int TranslatePksAccel(HWND hwnd, MSG *msg) {
 		case WM_KEYUP:
 		case WM_KEYDOWN:
 			if (msg->wParam == VK_MENU ||
-			    msg->wParam == VK_CONTROL ||
-			    msg->wParam == VK_SHIFT)
-		    		break;
+				msg->wParam == VK_CONTROL ||
+				msg->wParam == VK_SHIFT) {
+				fkey_keyModifierStateChanged();
+				break;
+			}
 			if (!ww_workWinHasFocus()) {
 				if (!(msg->hwnd == hwndMDIClientWindow || GetKeyState(VK_CONTROL) < 0)) {
 					break;

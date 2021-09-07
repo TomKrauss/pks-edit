@@ -30,6 +30,7 @@
 - Support for Power Shell syntax was added.
 - I18N - support of the English language. Almost all resources have been translated in this release. Function and option keys among others show
   now correctly translated English text, when English locale is selected.
+- The function keys will now display the function keys for the currently pressed modified - no explicitly "function key switching" necessary any more.
 
 ### Fixes
 - A crash in Find & Replace was fixed, which could happen, if a wrong syntax for replacement (unknown capturing group) was used.

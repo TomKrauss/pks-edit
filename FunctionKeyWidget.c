@@ -42,8 +42,6 @@
 #define 	FKSLEN			21
 #define	FK_DELTA			6
 
-#define FKSTATE_SIZE		20
-
 extern WNDPROC SubClassWndProc(int set, HWND hDlg, int item, WNDPROC lpfnNewProc);
 
 HWND  hwndFkeys;
@@ -53,15 +51,6 @@ static int	_fkfkheight;
 
 static char 	*_fkmods[NSHFT] = { "N",   "C",   "A",   "S" };
 static KEYCODE _fkshifts[NSHFT] = {0,	K_CONTROL, K_ALTERNATE, K_SHIFT };
-
-/*----------------------------*/
-/* setkeylabel()              */
-/*----------------------------*/
-static void setkeylabel(void )
-{
-	if (hwndFkeys)
-		SetDlgItemText(hwndFkeys,IDD_FKSTATE,_fkmods[_fkeyshiftstate]);
-}
 
 /*
  * Callback to enable / disable toolbar buttons.
@@ -124,7 +113,6 @@ void fkey_updateTextOfFunctionKeys(int state)
 		SetDlgItemText(hwndFkeys, k + IDD_FKFK1, szKey);
 	}
 
-	setkeylabel();
 	_fkeysdirty = 0;
 }
 
@@ -155,9 +143,9 @@ EXPORT int fkey_getKeyboardSize(WORD *w, WORD *h)
 }
 
 /*------------------------------------------------------------
- * ResizeSubWindow()
+ * fkey_resizeSubWindow()
  */
-static int ResizeSubWindow(HWND hwnd, int item, int x, int width, BOOL bOptButton)
+static int fkey_resizeSubWindow(HWND hwnd, int item, int x, int width, BOOL bOptButton)
 {
 	HWND	hwndItem = GetDlgItem(hwnd,item);
 	RECT r;
@@ -191,8 +179,8 @@ static int ww_toppostmessage(UINT message, WPARAM wParam, LPARAM lParam)
  * FkeysWndProc()
  */
 static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	WORD  			x;
-	WORD			item;
+	int  			x;
+	int				item;
 	RECT	 		r;
 	DRAWITEMSTRUCT *dp;
 	KEYCODE 		k;
@@ -222,26 +210,24 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_MOVE:
 	case WM_EDWINREORG:
 		GetClientRect(hwnd,&r);
-		if (r.right < 620+FKSTATE_SIZE) {
-			r.right = 620+FKSTATE_SIZE;
+		if (r.right < 620) {
+			r.right = 620;
 			nButtons = 10;
 		} else {
 			nButtons = 12;
 		}
 		nRight = r.right;
-		nDelta = (r.right - FKSTATE_SIZE) / nButtons;
+		nDelta = r.right - r.left;
 		if (GetConfiguration()->layoutoptions & OL_FKEYS) {
-			for (x = 0, item = IDD_FKFK1; 
+			for (x = r.left, item = IDD_FKFK1; 
 				item < IDD_FKFK1+nButtons; item++) {
-				x = ResizeSubWindow(hwnd, item, x, nDelta, FALSE);
+				x = fkey_resizeSubWindow(hwnd, item, x, (item - IDD_FKFK1+1)*nDelta/nButtons-x, FALSE);
 			}
-			ResizeSubWindow(hwnd, IDD_FKSTATE, x, nRight - x, FALSE);
 		} 
-		for (x = 0, item = IDD_FKFLG1; 
+		for (x = r.left, item = IDD_FKFLG1; 
 			item < IDD_FKFLG1 + nButtons; item++) {
-			x = ResizeSubWindow(hwnd, item, x, 
-				(item == IDD_FKFLG1 - 1 + nButtons) ? 
-				nRight - x : nDelta, TRUE);
+			x = fkey_resizeSubWindow(hwnd, item, x, 
+				(item - IDD_FKFLG1+1) * nDelta / nButtons - x, TRUE);
 		}
 		if (GetConfiguration()->layoutoptions & OL_FKEYS) {
 			bShow = TRUE;
@@ -252,7 +238,6 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			hwndItem = GetDlgItem(hwnd, item);
 			ShowWindow(hwndItem, bShow);
 		}
-		ShowWindow(GetDlgItem(hwnd, IDD_FKSTATE), bShow);
 		if (GetConfiguration()->layoutoptions & OL_OPTIONBAR) {
 			bShow = TRUE;
 		}
@@ -282,10 +267,6 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			return 0;
 		}
 
-		if (wParam == IDD_FKSTATE) {
-			ww_requestFocusInTopWindow();
-			return fkey_keyModifierStateChanged(1);
-		}
 		break;
 
 	case WM_DESTROY:
@@ -299,8 +280,7 @@ static char *szKeys = "DLGFKEYS";
 /*--------------------------------------------------------------------------
  * fkey_show()
  */
-static void fkey_show(HWND hwndPapa)
-{
+static void fkey_show(HWND hwndPapa) {
 	if ((GetConfiguration()->layoutoptions & (OL_FKEYS|OL_OPTIONBAR)) && hwndFkeys == 0) {
 		HRSRC  hRes = FindResource(ui_getResourceModule(), szKeys, RT_DIALOG);
 		DLGTEMPLATE* pTemplate = (DLGTEMPLATE*)LoadResource(ui_getResourceModule(), hRes);
@@ -342,15 +322,20 @@ int fkey_initKeyboardWidget(HWND hwndPapa)
  * Update the PKS edit FKEYs to display the next
  * group of FKEYS (for alternate modifiers).
  *---------------------------------*/
-int fkey_keyModifierStateChanged(int delta)
-{
+int fkey_keyModifierStateChanged() {
 	int keys;
 
-    keys = (_fkeyshiftstate + delta);
-	if (keys < 0) {
+	if (!hwndFkeys) {
+		return 0;
+	}
+	if (GetKeyState(VK_SHIFT) & 0x8000) {
 		keys = SHIFTFKEY;
-	} else if (keys > SHIFTFKEY) {
-		keys = 0;
+	} else if (GetKeyState(VK_CONTROL) & 0x8000) {
+		keys = CNTLFKEY;
+	} else if (GetKeyState(VK_MENU) & 0x8000) {
+		keys = ALTFKEY;
+	} else {
+		keys = NORMFKEY;
 	}
      fkey_updateTextOfFunctionKeys(keys);
 	return 1;
