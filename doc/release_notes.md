@@ -36,6 +36,7 @@
 - A crash was fixed with redo: if no redo was available, the attempt to do a redo could result in a crash.
 - A bug was fixed in the macro compiler causing it to fail to recognize pre-defined ENUM constants (e.g. in CaretMove(MOT_SINGLE) the string MOT_SINGLE was
   not properly recognized).
+- Case ignore searches with umlauts did not work in some cases (depending on character class definitions in grammar).
 
 ### 2.0.1
 

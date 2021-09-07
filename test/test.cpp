@@ -112,6 +112,11 @@ namespace pkseditTests
 			expr = "Regul&äre Ausdrücke";
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
 
+			options = createOptions("regul&äre ausdrücke", RE_IGNCASE);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			expr = "REGUL&äre Ausdrücke";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+
 			options = createOptions("^/\\* C \\*/$", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			expr = "/* C */";

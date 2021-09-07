@@ -454,7 +454,7 @@ static char* regex_compileSingleChar(MATCHER* pPattern, int options, char c) {
 		char c1 = makeUpperCase(c);
 		char c2 = makeLowerCase(c);
 		if (c1 == c2) {
-			pPattern->m_param.m_char = c1;
+			pPattern->m_param.m_char = c1 ? c1 : c;
 			pPattern->m_type = SINGLE_CHAR;
 		} else {
 			pPattern->m_type = CASE_IGNORE_CHAR;
@@ -942,12 +942,13 @@ int regex_compile(RE_OPTIONS* pOptions, RE_PATTERN* pResult) {
  */
 static unsigned char* advanceSubGroup(unsigned char* pszBeginOfLine, unsigned char* stringToMatch, unsigned char* endOfStringToMatch, unsigned char* pExpression, RE_MATCH* pResult) {
 	MATCHER* pMatcher;
-	unsigned char c;
+	char c;
 	
 	pMatcher = (MATCHER*)pExpression;
 	switch (pMatcher->m_type) {
 	case SINGLE_CHAR:
-		if (pMatcher->m_param.m_char == *stringToMatch++) {
+		c = *stringToMatch++;
+		if (pMatcher->m_param.m_char == c) {
 			return stringToMatch;
 		}
 		return(0);
