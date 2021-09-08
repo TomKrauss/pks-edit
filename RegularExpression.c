@@ -28,8 +28,6 @@
 
 #define	ISTHERE(ep, c)			(ep[(c & 0xff) >> 3] & bittab[c & 07])
 #define	MAXCTAB					32		/* maximum byte length of chartestset */
-#define	makeUpperCase(c)		_l2uset[(c)]
-#define	makeLowerCase(c)		_u2lset[(c)]
 #define	BIG						512		/* big Range Size used by: +,*,{x,} */
 
 static int 	_chsetinited;
@@ -56,8 +54,8 @@ static char			  _reSpecialChars[MAXCTAB];
 
 #define	DIM(tab)		(sizeof(tab)/sizeof(tab[0]))
 
-#define	upcase(c)		_l2uset[(c)]
-#define	lowcase(c)		_u2lset[(c)]
+#define	makeUpperCase(c)		_l2uset[((unsigned char)c)]
+#define	makeLowerCase(c)		_u2lset[((unsigned char)c)]
 
 /***************************************************************************/
 /* ERRORS:													*/
@@ -365,9 +363,9 @@ static void regex_addCharacterToCharacterClass(unsigned char* pCharTable, unsign
 	int c2;
 
 	if (flags & RE_IGNCASE) {
-		c2 = upcase(c);
+		c2 = makeUpperCase(c);
 		pCharTable[c2 >> 3] |= bittab[c2 & 07];
-		c = lowcase(c);
+		c = makeLowerCase(c);
 	}
 	pCharTable[c >> 3] |= bittab[c & 07];
 }
@@ -473,8 +471,8 @@ static char* regex_compileSingleChar(MATCHER* pPattern, int options, char c) {
  */
 static int regex_expressionOffset(MATCHER* pMatcher, RE_MATCH* pResult) {
 	if (pMatcher->m_type == GROUP) {
-		if (!pMatcher->m_param.m_group.m_nonCapturing && pMatcher->m_param.m_group.m_offsetNext == 0 && 
-				(pResult && pResult->braelist[pMatcher->m_param.m_group.m_bracketNumber] == 0)) {
+		if (!pMatcher->m_param.m_group.m_nonCapturing && pMatcher->m_param.m_group.m_offsetNext == 0 &&
+			(pResult && pResult->braelist[pMatcher->m_param.m_group.m_bracketNumber] == 0)) {
 			return matcherSizes[GROUP] + sizeof(MATCH_RANGE);
 		}
 		return pMatcher->m_param.m_group.m_groupEnd;
@@ -1033,6 +1031,7 @@ static unsigned char* advanceSubGroup(unsigned char* pszBeginOfLine, unsigned ch
 			nGroup = pMatcher->m_param.m_group.m_bracketNumber;
 			pResult->braslist[nGroup] = stringToMatch;
 			pResult->nbrackets = nGroup;
+			// So we can back-track in sub-patterns of a group e.g. (.*)
 			if (pMatcher->m_param.m_group.m_offsetNext == 0) {
 				return stringToMatch;
 			}
@@ -1105,7 +1104,8 @@ static unsigned char* regex_advance(unsigned char* pBeginOfLine, unsigned char* 
 					char* e2 = pMatch->braelist[pMatcher->m_param.m_group.m_bracketNumber];
 					if (e2 == 0) {
 						newPos = 0;
-					} else {
+					}
+					else {
 						nextExpression = pExpression + regex_expressionOffset(pMatcher, pMatch);
 						char* bbeg = pMatch->braslist[pMatcher->m_param.m_group.m_bracketNumber];
 						size_t nSize = e2 - bbeg;
@@ -1117,7 +1117,9 @@ static unsigned char* regex_advance(unsigned char* pBeginOfLine, unsigned char* 
 							newPos = 0;
 						}
 					}
-				} else {
+				}
+				else {
+					pMatch->braelist[nBracket] = 0;
 					newPos = advanceSubGroup(pBeginOfLine, stringToMatch, endOfStringToMatch, pExpression, pMatch);
 				}
 				if (newPos == 0 && nLow == 0 && i == 1) {
@@ -1129,14 +1131,23 @@ static unsigned char* regex_advance(unsigned char* pBeginOfLine, unsigned char* 
 						return 0;
 					}
 					break;
-				} else {
+				}
+				else {
 					stringToMatch = newPos;
 					if (i >= nLow) {
 						if (*nextExpression == END_OF_MATCH) {
 							pMatch->loc2 = newPos;
 						} else {
-							newPos = regex_advance(pBeginOfLine, newPos, endOfStringToMatch, nextExpression, pExpressionEnd, pMatch);
-							pMatch->braelist[pMatch->nbrackets] = 0;
+							char* pStart = NULL;
+							char* pExpression = nextExpression;
+							if (*pExpression == GROUP) {
+								pExpression += matcherSizes[GROUP] + sizeof(MATCH_RANGE);
+								pStart = newPos;
+							}
+							newPos = regex_advance(pBeginOfLine, newPos, endOfStringToMatch, pExpression, pExpressionEnd, pMatch);
+							if (newPos && pStart) {
+								pMatch->braslist[nBracket] = pStart;
+							}
 						}
 						if (newPos) {
 							lastMatch = newPos;

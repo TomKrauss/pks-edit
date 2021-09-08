@@ -813,6 +813,10 @@ LRESULT FrameWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 			}
 			break;
 
+		case WM_ACTIVATE:
+			fkey_keyModifierStateChanged();
+			break;
+
 		case WM_TIMER:	
 			if (appActivated) {
 				appActivated = FALSE;
