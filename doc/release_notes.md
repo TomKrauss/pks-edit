@@ -2,6 +2,11 @@
 
 ## Release Notes
 
+### 2.1.0
+
+#### New
+- PKS Edit does not use an out-dated MDI pattern for managing its windows any more, but manages its windows now in tabs.
+
 ### 2.0.2
 
 #### New

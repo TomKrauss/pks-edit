@@ -34,7 +34,6 @@
 #include "editorconfiguration.h"
 #include "findandreplace.h"
 #include "fileutil.h"
-#include "desktopicons.h"
 #include "mouseutil.h"
 #include "winutil.h"
 #include "themes.h"
@@ -57,6 +56,11 @@ struct llist {
 	struct llist 	*next;
 	char			name[4];
 };
+
+/*
+ * Save the position and details configured for the main window.
+ */
+extern void main_saveFrameState();
 
 /*
  * The absolute path name of the last PKSEDIT.INI file read or written. 
@@ -304,7 +308,6 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 {
 	int  	fd;
 	char *	fn;
-	WINDOWPLACEMENT 	ws;
 
 	if (!interactive) {
 		fn = _pksEditIniFilename;
@@ -346,11 +349,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	prof_savelong(_desk, _cxscreen, (long)GetSystemMetrics(SM_CXSCREEN));
 	prof_savelong(_desk, _cyscreen, (long)GetSystemMetrics(SM_CYSCREEN));
 
-	win_getstate(hwndMDIFrameWindow,&ws);
-	prof_savewinstate(szFrameClass,0,&ws);
-	ww_savewinstates();
-	ic_saveLocationInConfiguration();
-	
+	main_saveFrameState();
 	mouse_setDefaultCursor();
 	return 1;
 }

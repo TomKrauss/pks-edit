@@ -166,6 +166,8 @@ static THEME_DATA defaultTheme = {
 	-1,
 	-1,
 	-1,
+	-1,
+	-1,
 	MAIN_WINDOW_BACKGROUND_COLOR,
 	"Helv",						// (T) use in dialogs.
 	8,
@@ -208,6 +210,8 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_COLOR, "dialogForeground", offsetof(THEME_DATA, th_dialogForeground)},
 	{	RT_COLOR, "dialogBorder", offsetof(THEME_DATA, th_dialogBorder)},
 	{	RT_COLOR, "dialogDisabled", offsetof(THEME_DATA, th_dialogDisabled)},
+	{	RT_COLOR, "dialogLight", offsetof(THEME_DATA, th_dialogLight)},
+	{	RT_COLOR, "dialogActive", offsetof(THEME_DATA, th_dialogActive)},
 	{	RT_COLOR, "rulerForegroundColor", offsetof(THEME_DATA, th_rulerForegroundColor)},
 	{	RT_COLOR, "rulerBackgroundColor", offsetof(THEME_DATA, th_rulerBackgroundColor)},
 	{	RT_CHAR_ARRAY, "dialogFont", offsetof(THEME_DATA, th_fontName), sizeof(((THEME_DATA*)NULL)->th_fontName)},
@@ -230,6 +234,8 @@ static THEME_DATA* theme_createTheme() {
 		defaultTheme.th_dialogBackground = GetSysColor(COLOR_3DFACE);
 		defaultTheme.th_dialogForeground = GetSysColor(COLOR_BTNTEXT);
 		defaultTheme.th_dialogBorder = GetSysColor(COLOR_BTNSHADOW);
+		defaultTheme.th_dialogLight = GetSysColor(COLOR_3DLIGHT);
+		defaultTheme.th_dialogActive = GetSysColor(COLOR_HIGHLIGHT);
 		defaultTheme.th_dialogDisabled = GetSysColor(COLOR_GRAYTEXT);
 	}
 	memcpy(pTheme, &defaultTheme, sizeof defaultTheme);
@@ -491,7 +497,7 @@ void theme_setCurrent(unsigned char* pszThemeName) {
 			}
 			pStyle = pStyle->next;
 		}
-		RedrawWindow(hwndMDIFrameWindow, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+		RedrawWindow(hwndMain, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
 	}
 }
 

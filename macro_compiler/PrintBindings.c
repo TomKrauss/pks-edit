@@ -546,7 +546,7 @@ static int macro_printMenuCallback(FILE *fp)
 	HMENU 	hMenu;
 
 	fprintf(fp,"\n\nMENU default\n");
-	hMenu = GetMenu(hwndMDIFrameWindow);
+	hMenu = GetMenu(hwndMain);
 	PrintSubMenu(fp, hMenu);
 	fprintf(fp,";\n");
 	return 1;

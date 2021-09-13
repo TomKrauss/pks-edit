@@ -33,7 +33,7 @@
 
 static char	*	pszStatusMessage;
 static BOOL		bSimpleMode;
-HWND			hwndStatus;
+static HWND		hwndStatus;
 
 /*------------------------------------------------------------
  * st_format()
@@ -222,7 +222,16 @@ void st_update(void)
 	st_redraw(FALSE);
 }
 
-void st_switchtomenumode(BOOL bMenuMode)
-{
+void st_switchtomenumode(BOOL bMenuMode) {
 	bSimpleMode = bMenuMode;
+}
+
+/*
+ * Resize the status line. 
+ */
+void st_resize(int nStatusHeight, RECT* pRect) {
+	ShowWindow(hwndStatus, nStatusHeight ? SW_SHOW : SW_HIDE);
+	MoveWindow(hwndStatus, pRect->left, pRect->bottom - nStatusHeight,
+		pRect->right, nStatusHeight, 1);
+
 }

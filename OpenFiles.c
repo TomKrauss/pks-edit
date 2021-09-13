@@ -42,10 +42,6 @@
 #include "propertychange.h"
 #include "arraylist.h"
 
-/*------------------------------------------------------------
- * win_createMdiChildWindow()
- */
-extern HWND win_createMdiChildWindow(char* szClass, char* fn, int itemno, LPARAM lParam, WINDOWPLACEMENT* wsp);
 extern HWND 	ww_winid2hwnd(int winid);
 extern int 	EdPromptAutosavePath(char *path);
 
@@ -235,7 +231,6 @@ void ft_saveWindowStates(void )
 {	int    				s;
 	FTABLE 				ft;
 	WINFO *				wp;
-	WINDOWPLACEMENT 	ws;
 	char   				szBuff[EDMAXPATHLEN];
 	char*				pszFilename;
 
@@ -245,8 +240,6 @@ void ft_saveWindowStates(void )
 	/* save names of bottom windows first !! */
 	for (s = ww_getNumberOfOpenWindows()-1; s >= 0; s--) {
 		if ((wp = ww_getWindowFromStack(s)) != 0) {
-			ww_getstate(wp, &ws);
-			prof_printws(szBuff,&ws);
 			FTABLE* fp = wp->fp;
 			xref_addSearchListEntry(&ft,fp->fname,wp->caret.ln,szBuff);
 		}
@@ -428,13 +421,7 @@ static DWORD ft_globalediting(char *fn)
  */
 static int ft_openwin(FTABLE *fp, WINDOWPLACEMENT *wsp)
 {
-	if (wsp == 0 && fp->documentDescriptor) {
-		if (fp->documentDescriptor->dispmode & SHOWFIXEDWI) {
-			wsp = (WINDOWPLACEMENT*)&fp->documentDescriptor->placement;
-		}
-	}
-
-	if (win_createMdiChildWindow(szEditClass, fp->fname, ww_getNumberOfOpenWindows()+1, (LPARAM)(uintptr_t)fp, wsp) == 0) {
+	if (ww_createEditWindow(fp->fname, ww_getNumberOfOpenWindows()+1, (LPVOID)(uintptr_t)fp, wsp) == 0) {
 		return 0;
 	}
 	return 1;
@@ -467,7 +454,7 @@ int ww_requestToClose(WINFO *wp)
 		}
 	}
 	if (ft_isFileModified(fp)) {
-		ShowWindow(hwndMDIClientWindow,SW_SHOW);
+		ShowWindow(hwndMain,SW_SHOW);
 		EdSelectWindow(wp->win_id);
 		if (_ExSave || (GetConfiguration()->options & AUTOWRITE)) {
 	     	return ft_writeFileWithAlternateName(fp);
@@ -514,11 +501,7 @@ int ft_selectWindowWithId(int winid, BOOL bPopup)
 		return 0;
 	}
 
-	if (bPopup) {
-		ww_popup(hwndChild);
-	} else {
-		SendMessage(hwndMDIClientWindow,WM_MDIACTIVATE,(WPARAM)hwndChild,(LPARAM)0L);
-	}
+	SendMessage(hwndMain,WM_MDIACTIVATE,(WPARAM)hwndChild,(LPARAM)0L);
 	return 1;
 }
 

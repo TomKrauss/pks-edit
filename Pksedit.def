@@ -4,7 +4,6 @@ HEAPSIZE     64000
 STACKSIZE    64000
 
 EXPORTS
-	FrameWndProc
 	EditWndProc
 	ExecWaitNotify
 

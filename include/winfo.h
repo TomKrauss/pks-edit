@@ -27,7 +27,6 @@
 #define	SHOWHEX			            0x4
 #define	SHOWRULER			        0x8
 #define	SHOWHIDELINES		        0x40
-#define	SHOWFIXEDWI		            0x80
 #define	SHOWHIDEHSLIDER	            0x100
 #define	SHOWHIDEVSLIDER	            0x200
 #define	SHOWSTATUSBOT		        0x400
@@ -342,17 +341,17 @@ extern WINFO* ww_getWindowFromStack(int num);
  */
 extern void ww_setScrollCheckBounds(WINFO* wp);
 
+/*
+ * Creates an editor window with the given title, instance count, creation parameter and window
+ * placement.
+ */
+extern HWND ww_createEditWindow(char* pTitle, int nCount, LPVOID lParam, WINDOWPLACEMENT* wsp);
+
 /*-----------------------------------------------------------
  * ww_setwindowtitle()
  * Update the title of a window.
  */
 extern int ww_setwindowtitle(WINFO* wp, void *pUnused);
-
-/*-----------------------------------------------------------
- * ww_savewinstates()
- * Save the state of the currently displayed editor windows for later restore.
- */
-extern void ww_savewinstates(void);
 
 /*-----------------------------------------------------------
  * ww_getNumberOfOpenWindows()
@@ -398,11 +397,6 @@ extern int ww_isColumnSelectionMode(WINFO* wp);
  * occurs, return 0, otherwise, if the window can be closed return 1.
  */
 extern int ww_requestToClose(WINFO* fp);
-
-/*-----------------------------------------------------------
- * ww_winstate()
- */
-extern void ww_winstate(int nId, WINDOWPLACEMENT* wsp);
 
 /*------------------------------------------------------------
  * ww_close()

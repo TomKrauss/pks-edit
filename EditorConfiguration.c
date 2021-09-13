@@ -184,7 +184,7 @@ void EdOptionSet(void) {
 
 	psh.dwSize = sizeof(psh);
     psh.dwFlags = PSH_PROPSHEETPAGE;
-    psh.hwndParent = hwndMDIFrameWindow;
+    psh.hwndParent = hwndMain;
     psh.hInstance = ui_getResourceModule();
     psh.pszIcon = 0;
     psh.pszCaption = (LPSTR) "Options...";

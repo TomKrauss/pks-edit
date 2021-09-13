@@ -72,7 +72,7 @@ void progress_startMonitor(unsigned int ids) {
 		if (hwndAbort) {
 			HWND hwndPB = GetDlgItem(hwndAbort, IDC_PROGRESS);
 			SendMessage(hwndPB, PBM_SETMARQUEE, (WPARAM)1, 40);
-			EnableWindow(hwndMDIFrameWindow,FALSE);
+			EnableWindow(hwndMain,FALSE);
 			SetDlgItemText(hwndAbort, IDD_STRING1, szBuff);
 		}
 	}
@@ -110,7 +110,7 @@ void progress_showMonitorMessage(const char* message)
 void progress_closeMonitor(int always)
 {
 	if (hwndAbort) {
-		EnableWindow(hwndMDIFrameWindow,TRUE);
+		EnableWindow(hwndMain,TRUE);
 		win_destroyModelessDialog(&hwndAbort);
 	}
 }

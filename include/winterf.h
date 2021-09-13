@@ -28,8 +28,8 @@
 
 /* PKS global private message */
 #define	WM_PKSBROADCAST		_wm_pksbroadcast	/* talk with brothers */
-#define	WMBRD_BYEBYE		0			/* ask for hwndMDIFrameWindow */
-#define	WMBRD_HELLO			1			/* ask for hwndMDIFrameWindow */
+#define	WMBRD_BYEBYE		0			/* ask for hwndMain */
+#define	WMBRD_HELLO			1			/* ask for hwndMain */
 #define	WMBRD_SELECTFILE	2			/* top an editing window */
 #define	WMBRD_FINDFILE		3			/* editing file(lParam) ? */
 
@@ -55,12 +55,6 @@
 #define 	TIM_FRAME			23
 
 extern char   szAppName[];
-extern char   szFrameClass[];
-extern char   szEditClass[];
-extern char   szStatusClass[];
-extern char   szRulerClass[];
-extern char   szLineNumbersClass[];
-extern char   szWorkAreaClass[];
 
 typedef long (FPE_FUNC *WINFUNCP)(HWND, UINT, WPARAM, LPARAM);
 typedef BOOL (FPE_FUNC *ENUMFUNCP)(HWND, DWORD);
@@ -73,7 +67,7 @@ extern int 		win_registerWindowClass( char *szClassName, WNDPROC WinProc,
 					LPSTR lpCursorName, HANDLE hbrBackground, 
 					LPSTR szIcon, int nExtra);
 
-extern HWND   	hwndAbort,hwndFkeys,hwndMDIFrameWindow,hwndMDIClientWindow,hwndRebar,
+extern HWND   	hwndAbort,hwndFkeys, hwndMain,hwndRebar,
 				hwndDlg,hwndFkeys,hwndStatus;
 
 extern HINSTANCE hInst;

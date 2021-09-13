@@ -108,7 +108,7 @@ extern char* dlg_getResourceString(int nId);
  * the name of the file a modification marker and the icon according to the file type.
  */
 #if defined(EDITAB_H)
-extern void dlg_drawFileInfo(HDC hdc, RECT* rcp, FTABLE* fp, int nItem, BOOL bSelected);
+extern void dlg_drawFileInfo(HDC hdc, RECT* rcp, HWND hwnd, int nItem, BOOL bSelected);
 #endif
 
 /*--------------------------------------------------------------------------

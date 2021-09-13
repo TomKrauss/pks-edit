@@ -94,7 +94,6 @@
 #define IDS_MSGABANDON                  78
 #define IDS_MSGNOBRACKETS               79
 #define IDS_MSGUNDEFWINREG              80
-#define MENEX                           80
 #define IDS_MSGNOLASTPOS                81
 #define IDS_MSGOLDMACS                  82
 #define MEXEC                           82

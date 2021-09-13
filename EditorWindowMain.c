@@ -34,12 +34,12 @@
 #include "stringutil.h"
 #include "arraylist.h"
 #include "editorconfiguration.h"
-#include "desktopicons.h"
 #include "propertychange.h"
 #include "winutil.h"
 #include "mouseutil.h"
 #include "actions.h"
 #include "themes.h"
+#include "mainframe.h"
 
 #define	TABTHERE(indent,i)		(indent->tbits[i >> 3] &  bittab[i & 07])
 #define	TABPLACE(indent,i)		indent->tbits[i >> 3] |= bittab[i & 07]
@@ -60,12 +60,9 @@ static WINFO *_winlist;
 extern void st_seterrmsg(char* msg);
 extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
 extern int  mouse_onMouseClicked(WINFO *fp, int x,int y,int b, int nclicks,int shift);
-extern void *icEditIconClass;
 extern BOOL ic_isIconWindow(HWND hwnd);
 extern void macro_selectDefaultBindings(void);
 extern void menu_switchMenusToContext(char *pszContext);
-
-static WINDOWPLACEMENT	_winstates[6];
 
 #define  LINE_ANNOTATION_WIDTH			5
 #define  LINE_ANNOATION_PADDING			2
@@ -73,31 +70,10 @@ static WINDOWPLACEMENT	_winstates[6];
 static int lineNumberWindowWidth = 50 + LINE_ANNOTATION_WIDTH + (2*LINE_ANNOATION_PADDING);
 static int rulerWindowHeight = 20;
 
-/*-----------------------------------------------------------
- * ww_winstate()
- */
-EXPORT void ww_winstate(int nId, WINDOWPLACEMENT *wsp)
-{
-	if (nId >= 0 && nId < DIM(_winstates) && _winstates[nId].length) {
-		*wsp = _winstates[nId];
-	} else {
-		prof_getwinstate(szEditClass,nId,wsp);
-	}
-}
-
-/*-----------------------------------------------------------
- * ww_savewinstates()
- * Save the state of the currently displayed editor windows for later restore.
- */
-EXPORT void ww_savewinstates(void)
-{	int nId;
-
-	for (nId = 0; nId < DIM(_winstates); nId++) {
-		if (_winstates[nId].length) {
-			prof_savewinstate(szEditClass,nId,&_winstates[nId]);
-		}
-	}
-}
+static char   szEditClass[] = "EditWin";
+static char   szLineNumbersClass[] = "LineNumbers";
+static char   szRulerClass[] = "RulerWin";
+static char   szWorkAreaClass[] = "WorkWin";
 
 /*------------------------------------------------------------
  * ww_createOrDestroyChildWindowOfEditor()
@@ -245,6 +221,14 @@ EXPORT void ww_setScrollCheckBounds(WINFO *wp)
 			&wp->maxcol, &wp->maxcurscol, &wp->mincurscol, &wp->scroll_dx); 
 }
 
+/*
+ * Creates an editor window with the given title, instance count, creation parameter and window
+ * placement.
+ */
+HWND ww_createEditWindow(char* pTitle, int nCount, LPVOID lParam, WINDOWPLACEMENT *wsp) {
+	return mainframe_addWindow(szEditClass, pTitle, lParam);
+}
+
 /*--------------------------------------------------------------------------
  * win_getstate()
  * Get the current window placement.
@@ -328,23 +312,6 @@ void ww_requestFocusInTopWindow(void)
 	}
 }
 
-/*------------------------------------------------------------
- * ww_popup()
- * Bring a child to top - if iconized restore.
- */
-EXPORT void ww_popup(HWND hwndChild)
-{
-	if (IsIconic(hwndMDIFrameWindow)) {
-		ShowWindow(hwndMDIFrameWindow,SW_RESTORE);
-	}
-	BringWindowToTop(hwndMDIFrameWindow);
-
-	if (IsIconic(hwndChild)) {
-		SendMessage(hwndMDIClientWindow, WM_MDIRESTORE, (WPARAM) hwndChild, 0L);
-	}
-	SendMessage(hwndMDIClientWindow, WM_MDIACTIVATE, (WPARAM) hwndChild, 0L);
-}
-
 /*-----------------------------------------------------------
  * ww_getWindowFromStack()
  * get the num'th window from the top.
@@ -374,65 +341,6 @@ int EdWindowRegSet(int num)
 	return 1;
 }
 
-/*------------------------------------------------------------
- * ww_arrangeIcons()
- */
-static void ww_arrangeIcons(void)
-{
-	int		nMax;
-	int		nIconHeight;
-	int		nIconWidth;
-	int		nXMax;
-	int		nYMax;
-	int		nIndex;
-	int		nStartIndex;
-	char *	pszSlots;
-	HWND	hwnd;
-	RECT	rMax;
-	RECT 	r;
-
-	GetClientRect(hwndMDIClientWindow, &rMax);
-	nIconWidth = GetSystemMetrics(SM_CXICONSPACING);
-	nIconHeight = GetSystemMetrics(SM_CYICONSPACING);
-	nXMax = rMax.right / nIconWidth;
-	nYMax = rMax.bottom / nIconHeight;
-	if (nXMax < 1) {
-		nXMax = 1;
-	}
-	if (nYMax < 1) {
-		nYMax = 1;
-	}
-	nMax = nXMax * nYMax;
-	pszSlots = (char *)calloc(sizeof *pszSlots, nMax);
-	for (hwnd = GetWindow(hwndMDIClientWindow, GW_CHILD); hwnd != 0; hwnd = GetWindow(hwnd, GW_HWNDNEXT)) {
-		if (!ic_isIconWindow(hwnd)) {
-			continue;
-		}
-		GetWindowRect(hwnd,&r);
-		ScreenToClient(hwndMDIClientWindow,(POINT*)&r);
-		r.left = r.left / nIconWidth;
-		r.top = r.top / nIconHeight;
-		nIndex = r.top * nXMax + r.left;
-		if (nIndex < 0 || nIndex >= nMax) {
-			nIndex = 0;
-		}
-		nStartIndex = nIndex; 
-		do {
-			if (!pszSlots[nIndex]) {
-				break;
-			}
-			nIndex++;
-			if (nIndex >= nMax) {
-				nIndex = 0;
-			}
-		} while(nIndex != nStartIndex);
-		pszSlots[nIndex] = 1;
-		ic_moveIcon(hwnd, (nIndex % nXMax) * nIconWidth + nIconWidth / 2, 
-				(nIndex / nXMax) * nIconHeight + nIconHeight / 2);
-	}
-	free(pszSlots);
-}
-
 /*--------------------------------------------------------------------------
  * ww_enableNotTopmostWindow()
  */
@@ -460,7 +368,7 @@ int EdWinArrange(int func)
 	WPARAM	wParam;
 	LRESULT	ret;
 
-	hwnd = wp ? wp->edwin_handle : hwndMDIFrameWindow;
+	hwnd = wp ? wp->edwin_handle : hwndMain;
 	wParam = 0;
 	switch(func) {
 		case WIN_FULL:
@@ -486,7 +394,7 @@ int EdWinArrange(int func)
 			message = WM_MDIICONARRANGE; 
 			break;
 		case WIN_DESKICON: 		
-			hwnd = hwndMDIFrameWindow;
+			hwnd = hwndMain;
 		case WIN_ICONIZED: 		
 			ShowWindow(hwnd,IsIconic(hwnd) ?
 				SW_RESTORE : SW_SHOWMINIMIZED); return 1;
@@ -499,12 +407,9 @@ int EdWinArrange(int func)
 			return 1;
 	}
 
-	ShowWindow(hwndMDIClientWindow,SW_HIDE);
-	if (func == WIN_ICONARRANGE) {
-		ww_arrangeIcons();
-	}
-	ret = SendMessage(hwndMDIClientWindow, message, wParam, 0L);
-	ShowWindow(hwndMDIClientWindow,SW_SHOW);
+	ShowWindow(hwndMain,SW_HIDE);
+	ret = SendMessage(hwndMain, message, wParam, 0L);
+	ShowWindow(hwndMain,SW_SHOW);
 
 	if (func == WIN_PAIRS) {
 		ww_enableNotTopmostWindow(2, TRUE);
@@ -555,6 +460,7 @@ int ww_setwindowtitle(WINFO *wp, void* pUnused) {
 	SHFILEINFO sfi;
 	SHGetFileInfo(fp->fname, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, SHGFI_ICON | SHGFI_SMALLICON);
 	SendMessage(wp->edwin_handle, WM_SETICON, ICON_SMALL, (LPARAM)sfi.hIcon);
+	mainframe_windowTitleChanged();
 	return 1;
 }
 
@@ -939,8 +845,7 @@ int ww_close(WINFO *wp)
 	if (!SendMessage(hwndEdit, WM_QUERYENDSESSION, (WPARAM)0, (LPARAM)0L)) {
 		return 0;
 	}
-	return
-		(int) SendMessage(hwndMDIClientWindow,WM_MDIDESTROY,(WPARAM)hwndEdit,(LPARAM)0L);
+	return SendMessage(hwndEdit, WM_CLOSE, 0, 0) != 0;
 }
 
 /*
@@ -958,8 +863,7 @@ WINFUNC EditWndProc(
 	UINT message,
 	WPARAM wParam,
 	LPARAM lParam
-	)
-{
+	) {
 	WINDOWPLACEMENT 	ws;
 	WINFO * wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_VIEWPTR);
 
@@ -967,12 +871,9 @@ WINFUNC EditWndProc(
    	switch(message) {
 	case WM_CREATE:
 		{
-		LPCREATESTRUCT    	cp;
-		XYWH 		   		xyWork,xyRuler,xyLineInfo;
-		FTABLE* fp;
-
-		cp = (LPCREATESTRUCT)lParam;
-		fp = (FTABLE*)((LPMDICREATESTRUCT)cp->lpCreateParams)->lParam;
+		XYWH xyWork,xyRuler,xyLineInfo;
+		LPCREATESTRUCT pCreate = (LPCREATESTRUCT)lParam;
+		FTABLE* fp = pCreate->lpCreateParams;
 		if ((wp = ww_new(fp, hwnd)) == 0) {
 			DestroyWindow(hwnd);
 			return 0;
@@ -982,17 +883,12 @@ WINFUNC EditWndProc(
 		ww_createSubWindows(hwnd, wp, &xyWork, &xyRuler, &xyLineInfo);
 		ww_setwindowtitle(wp, NULL);
 		SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR)fp->fname);
-		SetWindowLongPtr(hwnd,GWL_ICCLASSVALUES,(LONG_PTR) icEditIconClass);
 		SetWindowLongPtr(hwnd,GWL_VIEWPTR, (LONG_PTR) wp);
 		return 0;
 		}
 
 	case WM_ICONCLASSVALUE:
 		return GetWindowLongPtr(hwnd,GWL_ICCLASSVALUES);
-
-	case WM_ICONDROP:
-		ww_popup(hwnd);
-		return macro_onIconAction(hwnd, wParam, lParam);
 
 	case WM_MDIACTIVATE:
 		/* EdSwitchContext(hwnd,LOWORD(lParam),CTX_EDIT); */
@@ -1008,12 +904,7 @@ WINFUNC EditWndProc(
 	case WM_SIZE:
 		ww_getstate(wp,&ws);
 		if (ws.showCmd & SW_SHOWMINIMIZED) {
-			SetFocus(hwndMDIFrameWindow);
-		} else {
-			if ((wp->dispmode & SHOWFIXEDWI) == 0 &&
-			    wp->win_id < DIM(_winstates) &&
-			    wp->win_id >= 0)
-				_winstates[wp->win_id] = ws;
+			SetFocus(hwndMain);
 		}
 		if (message == WM_MOVE)
 			break;
@@ -1052,8 +943,6 @@ WINFUNC EditWndProc(
 		}
 	case WM_QUERYENDSESSION:
 	case WM_CLOSE:
-		if (IsZoomed(hwnd))
-			SendMessage(hwndMDIClientWindow,WM_MDIRESTORE, (WPARAM)hwnd, (LPARAM)0);
 		if (!ww_requestToClose(wp)) {
 			return 0;
 		}
@@ -1075,7 +964,7 @@ WINFUNC EditWndProc(
 		return 0;
     }
 
-    return DefMDIChildProc(hwnd, message, wParam, lParam);
+    return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
 /*------------------------------------------------------------
@@ -1235,7 +1124,7 @@ static WINFUNC WorkAreaWndProc(
 	case WM_SYSKEYDOWN:
 	case WM_SYSKEYUP:
 	case WM_CHAR:
-		return SendMessage(hwndMDIFrameWindow,message,wParam,lParam);
+		return SendMessage(hwndMain,message,wParam,lParam);
 
 	case WM_MOUSEWHEEL:
 		zDelta = GET_WHEEL_DELTA_WPARAM(wParam);

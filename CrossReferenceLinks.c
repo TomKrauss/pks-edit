@@ -553,7 +553,7 @@ static INT_PTR CALLBACK xref_lookupTagReferenceProc(HWND hDlg, UINT message, WPA
  */
 static TAG_REFERENCE* xref_selectTagsByDialog(char* pTagName) {
 
-	intptr_t ret = DialogBoxParam(ui_getResourceModule(), MAKEINTRESOURCE(DLGTAGLIST), hwndMDIFrameWindow, xref_lookupTagReferenceProc, (LPARAM)pTagName);
+	intptr_t ret = DialogBoxParam(ui_getResourceModule(), MAKEINTRESOURCE(DLGTAGLIST), hwndMain, xref_lookupTagReferenceProc, (LPARAM)pTagName);
 	if (ret == IDCANCEL) {
 		return 0;
 	}
@@ -680,7 +680,7 @@ static int xref_navigateToHyperlink(char* urlSpec, char* pTag) {
 		strncpy(buf, urlSpec, pszDollar - urlSpec);
 		strcat(buf, pTag);
 		strcat(buf, pszDollar + 2);
-		return ShellExecute(hwndMDIFrameWindow, "open", buf, "", ".", SW_SHOWNORMAL) != NULL;
+		return ShellExecute(hwndMain, "open", buf, "", ".", SW_SHOWNORMAL) != NULL;
 	}
 	return 0;
 }
@@ -1032,7 +1032,7 @@ int EdFindFileCursor(void)
 		(fselpath[0] && (found = file_searchFileInPath(_fseltarget, fselpath)) != 0)) {
 		return xref_openFile(found, result.ni_lineNumber, (WINDOWPLACEMENT*)0);
 	}
-	HINSTANCE hInst = ShellExecute(hwndMDIFrameWindow, "open", _fseltarget, "", ".", SW_SHOWNORMAL);
+	HINSTANCE hInst = ShellExecute(hwndMain, "open", _fseltarget, "", ".", SW_SHOWNORMAL);
 	if ((intptr_t)hInst < 0 || (intptr_t)hInst > 32) {
 		return 1;
 	}

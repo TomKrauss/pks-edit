@@ -164,7 +164,7 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPP
 	hwnd = GetActiveWindow();
 	nSave = nCurrentDialog;
 	nCurrentDialog = nIdDialog;
-	ret = DialogBox(ui_getResourceModule(), MAKEINTRESOURCE(nIdDialog), hwndMDIFrameWindow, DlgProc);
+	ret = DialogBox(ui_getResourceModule(), MAKEINTRESOURCE(nIdDialog), hwndMain, DlgProc);
 	nCurrentDialog = nSave;
 	if (hwnd) {
 		SetActiveWindow(hwnd);
@@ -983,7 +983,7 @@ void win_createModelessDialog(HWND *hwnd,LPSTR szName, INT_PTR (CALLBACK *func)(
 	if (!*lplpfnDlgProc) {
 		*lplpfnDlgProc = MakeProcInstance(func, hInst);
 	}
-	*hwnd = CreateDialog(ui_getResourceModule(),szName,hwndMDIFrameWindow,*lplpfnDlgProc);
+	*hwnd = CreateDialog(ui_getResourceModule(),szName,hwndMain,*lplpfnDlgProc);
 }
 
 /*--------------------------------------------------------------------------

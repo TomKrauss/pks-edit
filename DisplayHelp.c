@@ -48,8 +48,8 @@ int EdCallWinHelp(char *szFile, UINT hType, DWORD_PTR param) {
 	} else {
 		requestParam = param;
 	}
-	ret = HtmlHelp(hwndMDIFrameWindow, pszFound, hType, requestParam);
-	hwndHelpRequested = hwndMDIFrameWindow;
+	ret = HtmlHelp(hwndMain, pszFound, hType, requestParam);
+	hwndHelpRequested = hwndMain;
 	return ret == NULL ? 0 : 1;
 }
 

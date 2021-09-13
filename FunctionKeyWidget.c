@@ -162,7 +162,7 @@ static int fkey_resizeSubWindow(HWND hwnd, int item, int x, int width, BOOL bOpt
 
 	ScreenToClient(hwnd, (POINT*)&r);
 	r.left = x;
-	MoveWindow(hwndItem, r.left, y, width, height, TRUE);
+	MoveWindow(hwndItem, r.left, y+1, width, height, TRUE);
 	return x + width;
 }
 
@@ -172,7 +172,7 @@ static int fkey_resizeSubWindow(HWND hwnd, int item, int x, int width, BOOL bOpt
 static int ww_toppostmessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	ww_requestFocusInTopWindow();
-	return PostMessage(hwndMDIFrameWindow, message, wParam, lParam);
+	return PostMessage(hwndMain, message, wParam, lParam);
 }
 
 /*------------------------------------------------------------
@@ -217,14 +217,14 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			nButtons = 12;
 		}
 		nRight = r.right;
-		nDelta = r.right - r.left;
+		nDelta = r.right - r.left - 1;
 		if (GetConfiguration()->layoutoptions & OL_FKEYS) {
-			for (x = r.left, item = IDD_FKFK1; 
+			for (x = r.left+1, item = IDD_FKFK1; 
 				item < IDD_FKFK1+nButtons; item++) {
 				x = fkey_resizeSubWindow(hwnd, item, x, (item - IDD_FKFK1+1)*nDelta/nButtons-x, FALSE);
 			}
 		} 
-		for (x = r.left, item = IDD_FKFLG1; 
+		for (x = r.left+1, item = IDD_FKFLG1; 
 			item < IDD_FKFLG1 + nButtons; item++) {
 			x = fkey_resizeSubWindow(hwnd, item, x, 
 				(item - IDD_FKFLG1+1) * nDelta / nButtons - x, TRUE);
@@ -349,9 +349,9 @@ void fkey_visibilitychanged(void) {
 		SendMessage(hwndFkeys,WM_CLOSE,0,0L);
 		hwndFkeys = NULL;
 	} else {
-		fkey_show(hwndMDIFrameWindow);
+		fkey_show(hwndMain);
 	}
-	SendMessage(hwndMDIFrameWindow, WM_SIZE,0,0L);
+	SendMessage(hwndMain, WM_SIZE,0,0L);
 	if (hwndFkeys) {
 		SendMessage(hwndFkeys, WM_EDWINREORG, 0, 0L);
 		action_commandEnablementChanged((ACTION_CHANGE_TYPE) { 0, 0, 1, -1 });

@@ -149,7 +149,6 @@ typedef struct tagEDIT_CONFIGURATION {
 	char			fillc;				// when inserting a tabulator - replace with this (fill character)
 	int				tabulatorSizes[32];	/* arbitrary tab stops - allowing us to have have tabs at positions 2, 5, 9, 15, ...*/
 	unsigned char	statusline[60];	/* the special status */
-	WINDOWPLACEMENT	placement;		/* for windows with fixed size */
 	char			editFontStyleName[16];	/* Name of the font style to use*/
 	char			backupExtension[10];	/* Backup extension */
 	unsigned char	creationMacroName[24];	/* "Vorlage" Makro on creation */

@@ -191,24 +191,6 @@ BEGIN
     DEFPUSHBUTTON   "&OK",1,192,6,42,14,WS_GROUP
 END
 
-DLGCONFICONS DIALOGEX 50, 67, 207, 224
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Desktop Icons"
-FONT 8, "helv", 0, 0, 0x0
-BEGIN
-    LTEXT           "Icontyp:",114,4,8,48,8
-    PUSHBUTTON      "&Neu",IDD_CALLBACK1,147,20,52,14,WS_GROUP
-    PUSHBUTTON      "Abbruch",IDCANCEL,147,74,52,14
-    LISTBOX         IDD_ICONLIST,4,21,140,135,LBS_OWNERDRAWFIXED | WS_VSCROLL
-    LTEXT           "Titel:",113,4,168,20,8
-    EDITTEXT        IDD_STRING1,48,168,150,12
-    LTEXT           "Parameter:",115,4,186,40,8
-    EDITTEXT        IDD_PATH1,48,186,150,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Löschen",IDD_CALLBACK2,147,38,52,14,WS_GROUP
-    DEFPUSHBUTTON   "&Ändern",IDD_CALLBACK3,147,56,52,14,WS_GROUP
-    PUSHBUTTON      "Pfad auswählen...",IDD_PATH2SEL,96,204,104,14
-END
-
 DLGCONTROLINS DIALOG 11, 19, 196, 136
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Auswahl Zeichensatz"
@@ -943,7 +925,6 @@ BEGIN
         MENUITEM "&Verweise lesen...\a",        MREADTAG
         MENUITEM "&Fehlerliste lesen...\a",     MREADCMP
         MENUITEM SEPARATOR
-        MENUITEM "S&ymbole...\a",               MENEX
         MENUITEM "&Einstellungen...\a",         MOPTION
     END
     POPUP "&Fenster"
@@ -1000,24 +981,6 @@ IDC_CURSOR2             CURSOR                  "rc\\mini move.cur"
 PKS                     ICON                    "rc\\PKS.ICO"
 
 EDIT                    ICON                    "rc\\edit.ico"
-
-FILE                    ICON                    "rc\\file.ico"
-
-UNDO                    ICON                    "rc\\undo.ico"
-
-TRASH                   ICON                    "rc\\trash.ico"
-
-CLIP                    ICON                    "rc\\clip.ico"
-
-PRINT                   ICON                    "rc\\print.ico"
-
-EXEC                    ICON                    "rc\\exec.ico"
-
-FOLDER                  ICON                    "rc\\folder.ico"
-
-MACRO                   ICON                    "rc\\macro.ico"
-
-HELP                    ICON                    "rc\\help.ico"
 
 APP_ICON                ICON                    "rc\\pks2.ico"
 
@@ -1113,10 +1076,6 @@ BEGIN
     BEGIN
         RIGHTMARGIN, 196
         BOTTOMMARGIN, 131
-    END
-
-    DLGCONFICONS, DIALOG
-    BEGIN
     END
 
     DLGCONTROLINS, DIALOG

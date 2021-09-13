@@ -126,9 +126,6 @@
     <ClCompile Include="MaintainHistory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DesktopIcons.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Initialize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -294,6 +291,9 @@
     <ClCompile Include="macro_compiler\CommandFunctionTable.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MainFrame.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -428,9 +428,6 @@
     <ClInclude Include="include\fileselector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\desktopicons.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\customcontrols.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -486,6 +483,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\editoperations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mainframe.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

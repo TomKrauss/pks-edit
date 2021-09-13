@@ -32,7 +32,6 @@
 #include "pksedit.h"
 #include "fileutil.h"
 #include "clipboard.h"
-#include "desktopicons.h"
 #include "edfuncs.h"
 
 /*--------------------------------------------------------------------------
@@ -230,7 +229,6 @@ EXPORT int bl_cutTextWithOptions(PASTE *pp,LINE *lnfirst,LINE *lnlast,
  */
 EXPORT int bl_cut(PASTE *pp,LINE *l1,LINE *l2,int c1,int c2,int freeflg,int colflg)
 {
-	_icdirty = 1;
 	if (colflg)
 	    return bl_cutBlockInColumnMode(pp,l1,l2,freeflg);
 	return bl_cutTextWithOptions(pp,l1,l2,c1,c2,freeflg); 

@@ -74,7 +74,7 @@ static INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM p
 BOOL fsel_selectFolder(char* pTitle, char* pResult) {
 	BROWSEINFO browseinfo;
 	memset(&browseinfo, 0, sizeof browseinfo);
-	browseinfo.hwndOwner = hwndMDIClientWindow;
+	browseinfo.hwndOwner = hwndMain;
 	browseinfo.lpszTitle = pTitle;
 	browseinfo.ulFlags = BIF_EDITBOX | BIF_RETURNONLYFSDIRS ;
 	browseinfo.lpfn = BrowseCallbackProc;

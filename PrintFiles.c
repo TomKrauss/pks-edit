@@ -807,7 +807,7 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	pageRange.nFromPage = 1;
 	pageRange.nToPage = 5;
 	prtDlg->lStructSize = sizeof *prtDlg;
-	prtDlg->hwndOwner = hwndMDIFrameWindow;
+	prtDlg->hwndOwner = hwndMain;
 	prtDlg->lphPropertyPages = pages;
 	prtDlg->Flags = PD_ALLPAGES | PD_RETURNDC | PD_PAGENUMS;
 	if (wp == NULL || !ww_hasSelection(wp)) {

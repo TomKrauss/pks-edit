@@ -21,7 +21,6 @@
 #include "textblocks.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
-#include "desktopicons.h"
 #include "winterf.h"
 #include "winfo.h"
 
@@ -41,7 +40,6 @@
 #include "errordialogs.h"
 #include "documenttypes.h"
 #include "findandreplace.h"
-#include "desktopicons.h"
 #include "winutil.h"
 #include "crossreferencelinks.h"
 #include "brackets.h"
@@ -95,7 +93,7 @@ int EdCloseWindow(int winid)
  */
 int EdExit(int rc)
 {
-	PostMessage(hwndMDIFrameWindow, WM_CLOSE, rc, 0L); 
+	PostMessage(hwndMain, WM_CLOSE, rc, 0L); 
 	return 1;
 }
 
@@ -388,7 +386,7 @@ int dlg_queryReplace(char *search, int slen, char *replace, int dlen)
 	cpyout(sbuf,search,slen);
 	cpyout(rbuf,replace,dlen);
 
-	EnableWindow(hwndMDIFrameWindow,FALSE);
+	EnableWindow(hwndMain,FALSE);
 	bFirstOpen = hwndQueryReplace ? FALSE : TRUE;
 
 	win_createModelessDialog(&hwndQueryReplace,MAKEINTRESOURCE(DLGQUERYREPLACE),
@@ -419,7 +417,7 @@ int dlg_queryReplace(char *search, int slen, char *replace, int dlen)
 void dlg_closeQueryReplace(void)
 {
 	if (hwndQueryReplace) {
-		EnableWindow(hwndMDIFrameWindow,TRUE);
+		EnableWindow(hwndMain,TRUE);
 		win_destroyModelessDialog(&hwndQueryReplace);
 	}
 }
@@ -456,7 +454,7 @@ int EdAbout(void)
 #elif
 	static char _architecture[] = "- 32 Bit Plattform";
 #endif
-	static char _versionInfo[] = "Version 2.0.2, 6.9.2021";
+	static char _versionInfo[] = "Version 2.1.0, 13.9.2021";
 
 	static DIALPARS _d[] = {
 		IDD_RO1,		sizeof _customerMessage, _customerMessage,
@@ -773,29 +771,20 @@ static void winlist_lboxfill(HWND hwnd, int nItem, void* selValue)
  * Draw the info about a file with a given index. Paints the index (used to select the file),
  * the name of the file a modification marker and the icon according to the file type.
  */
-void dlg_drawFileInfo(HDC hdc, RECT *rcp, FTABLE* fp, int nItem, BOOL bSelected) {
-	LPSTR	pszName;
-	SHFILEINFO sfi;
-	char	cChanged;
+void dlg_drawFileInfo(HDC hdc, RECT *rcp, HWND hwnd, int nItem, BOOL bSelected) {
 	char	szBuf[128];
 	
-	if (fp == 0) {
+	if (hwnd == 0) {
 		return;
 	}
-	pszName = string_abbreviateFileName(fp->fname);
-	cChanged = fp->flags & F_MODIFIED ? '*' : ' ';
-	wsprintf(szBuf, "%2d: %s%c", nItem + 1, pszName, cChanged);
-	int nFlags = SHGFI_ICON | SHGFI_SMALLICON;
-	if (bSelected) {
-		nFlags |= SHGFI_SELECTED;
-	}
-	SHGetFileInfo(fp->fname, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, nFlags);
-	cust_drawListBoxRowWithIcon(hdc, rcp, sfi.hIcon, szBuf);
+	GetWindowText(hwnd, szBuf, sizeof szBuf);
+	HICON hIcon = (HICON)SendMessage(hwnd, WM_GETICON, 0, 0L);
+	cust_drawListBoxRowWithIcon(hdc, rcp, hIcon, szBuf);
 }
 
 
 static winlist_drawFileInfo(HDC hdc, RECT* rcp, FTABLE* fp, int nItem, int nCtl) {
-	dlg_drawFileInfo(hdc, rcp, fp, nItem, FALSE);
+	dlg_drawFileInfo(hdc, rcp, WIPOI(fp)->ww_handle, nItem, FALSE);
 }
 
 /*--------------------------------------------------------------------------
@@ -1244,7 +1233,6 @@ int EdDlgDispMode(void) {
 		IDD_OPT1,		SHOWCONTROL,		&dispmode,
 		IDD_OPT4,		SHOWHEX,			&dispmode,
 		IDD_OPT5,		SHOWRULER,			&dispmode,
-		IDD_OPT7,		SHOWFIXEDWI,		&dispmode,
 		IDD_OPT8,		SHOWHIDEVSLIDER,	&dispmode,
 		IDD_OPT9,		SHOWHIDEHSLIDER,	&dispmode,
 		IDD_OPT10,		SHOWLINENUMBERS,	&dispmode,
@@ -1712,73 +1700,6 @@ int EdCommandExecute(void)
 
 	return EdExecute((long)(opt | (EX_RDNONE<<redir)), 
 		(long)0, cmd, dir, errlist);
-}
-
-/*--------------------------------------------------------------------------
- * EdConfigureIcons()
- */
-static int add_icon(HWND hDlg);
-static int del_icon(HWND hDlg);
-static int mod_icon(void);
-static char _title[32],_pars[64];
-static ICONCLASS* _ictype;
-static DIALLIST icondlist = {
-	(LONG*)&_ictype, ic_fillIconTypeList, dlg_getListboxText, 
-	ic_measureIconTypeItem, ic_ownerDrawIconType, ic_onIconTypeSelection, 0  };
-static DIALPARS iconDialListPars[] = {
-	IDD_STRING1,	sizeof _title,		_title,
-	IDD_PATH1,		sizeof _pars,		_pars,
-	IDD_ICONLIST,	0,				&icondlist,
-	IDD_CALLBACK1,	0,				add_icon,
-	IDD_CALLBACK2,	0,				del_icon,
-	IDD_CALLBACK3,	0,				mod_icon,
-	0
-};
-static int add_icon(HWND hDlg)
-{
-	char 	*p;
-	HWND		hwnd;
-
-	if ((p = _strdup(_pars)) != 0) {
-		hwnd = ic_addIcon((void*)_ictype,_title,p,CW_USEDEFAULT,CW_USEDEFAULT);
-		SendMessage(hwndMDIClientWindow, WM_MDIACTIVATE, (WPARAM)hwnd, (LPARAM)NULL);
-		win_sendRedrawToWindow(hwnd);
-		ic_enableConfigurationDialogIcons(hDlg, (void *)_ictype);
-	}
-	return 1;
-}
-
-static int del_icon(HWND hDlg)
-{
-	HWND hwnd;
-
-	if ((hwnd = ic_active(_title,_pars,&_ictype)) != 0) {
-		ic_closeIconWindow(hwnd);
-	}
-	DoDlgInitPars(hDlg, iconDialListPars, 3);
-	return 1;
-}
-
-static int mod_icon(void)
-{
-	void *p;
-
-	if ((p = _strdup(_pars)) != 0) {
-		ic_changeIcon(_title,p,_ictype);
-	}
-	return 1;
-}
-
-int EdConfigureIcons(void)
-{
-	static ITEMS	_i   =  	{ 
-		{ C_LONG1PAR, (unsigned char *) &_ictype }
-	};
-	static PARAMS	_fp   = { DIM(_i), P_MAYOPEN, _i	};
-
-	_ictype = 0;
-	ic_active(_title, _pars, &_ictype);
-	return win_callDialog(DLGCONFICONS, &_fp, iconDialListPars, NULL);
 }
 
 /*--------------------------------------------------------------------------

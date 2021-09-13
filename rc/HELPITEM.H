@@ -54,7 +54,6 @@
 
 #define	MENPRINT 78	
 #define	MENBUILD 79	
-#define	MENEX    80	
 #define	MEXEC    82	
 #define	MREADTAG 84	
 #define	MREAD_SEARCH_LIST 85	

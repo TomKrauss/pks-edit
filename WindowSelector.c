@@ -35,7 +35,7 @@ typedef struct tagWINDOW_SELECTOR_PARAMS {
 	int wsp_lineHeight;
 } WINDOW_SELECTOR_PARAMS;
 
-extern HWND   hwndMDIFrameWindow;
+extern HWND   hwndMain;
 extern HINSTANCE hInst;
 
 static HWND hwndSelector;
@@ -69,7 +69,7 @@ static void windowselector_paint(HWND hwnd) {
 		rect.bottom = rect.top + nLineHeight;
 		BOOL bSelected = i == pWSP->wsp_current;
 		SelectObject(paint.hdc, bSelected ? hFontBold : hFontNormal);
-		dlg_drawFileInfo(paint.hdc, &rect, wp->fp, i, bSelected);
+		dlg_drawFileInfo(paint.hdc, &rect, wp->edwin_handle, i, bSelected);
 		y += nLineHeight;
 		wp = wp->next;
 	}
@@ -198,7 +198,7 @@ int windowselector_showWindowList(void) {
 	}
 	RECT rectParent;
 	RECT rect;
-	GetWindowRect(hwndMDIFrameWindow, &rectParent);
+	GetWindowRect(hwndMain, &rectParent);
 	
 	int nHeight = nWindows * WSP_LINE_HEIGHT + (2 * WSP_PADDING);
 	int nParentHeight = rectParent.bottom - rectParent.top;
@@ -209,7 +209,7 @@ int windowselector_showWindowList(void) {
 	rect.bottom = rect.top + nHeight;
 	rect.right = rect.left + nWidth;
 	if (hwndSelector == NULL) {
-		hwndSelector = CreateWindow(CLASS_WINDOW_SELECTOR, NULL, WS_POPUP|WS_BORDER, rect.left, rect.top, nWidth, nHeight, hwndMDIFrameWindow, NULL, hInst, NULL);
+		hwndSelector = CreateWindow(CLASS_WINDOW_SELECTOR, NULL, WS_POPUP|WS_BORDER, rect.left, rect.top, nWidth, nHeight, hwndMain, NULL, hInst, NULL);
 	}
 	HDC hdc = GetWindowDC(hwndSelector);
 	HFONT hFontBold = theme_createDialogFont(FW_BOLD);

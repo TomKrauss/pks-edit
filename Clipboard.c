@@ -33,7 +33,7 @@ EXPORT int clp_ismine(void)
 	HWND hwndOwner;
 
 	hwndOwner = GetClipboardOwner();
-	return hwndOwner == hwndMDIFrameWindow;
+	return hwndOwner == hwndMain;
 }
  
 /*------------------------------------------------------------
@@ -41,7 +41,7 @@ EXPORT int clp_ismine(void)
  */
 static void clp_setclipboarddata(HANDLE hMem)
 {
-	if (!OpenClipboard(hwndMDIFrameWindow)) {
+	if (!OpenClipboard(hwndMain)) {
 		return;
 	}
 	EmptyClipboard();
@@ -137,7 +137,7 @@ EXPORT int clp_getdata(void)
 	if (clp_ismine()) 
 		return 1;
 
-	if (!OpenClipboard(hwndMDIFrameWindow))
+	if (!OpenClipboard(hwndMain))
 		return 0;
 
 	if (bp != 0 &&

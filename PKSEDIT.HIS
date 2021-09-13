@@ -1,9 +1,13 @@
 [files]
-"C:\source\pksedit\PKSEDIT.RC", line 1720: 0x0 0x1 -1 -1 -8 -31 9 12 1373 490
-"C:\temp\commands.txt", line 248: 0x0 0x1 -1 -1 -1 -1 156 156 1620 698
-"C:\source\pksedit\macros\test1.pkc", line 1: 0x0 0x1 -1 -1 -1 -1 130 130 1508 552
-"C:\source\pksedit\rc\HELPITEM.H", line 196: 0x0 0x1 -1 -1 -1 -1 130 130 1594 671
-"C:\source\pksedit\en-US\en-US.rc", line 10: 0x0 0x1 -1 -1 -1 -1 156 156 1620 697
+"C:\source\pksedit\en-US\en-US.rc", line 1: (ç
+"C:\temp\HELPITEM.xml", line 134: (ç
+"C:\source\pksedit\CutAndPaste.c", line 1: (ç
+"C:\source\pksedit\ArrayList.c", line 1: (ç
+"C:\source\pksedit\Logging.c", line 1: (ç
+"C:\source\pksedit\Encryption.c", line 18: (ç
+"C:\source\pksedit\BracketMatching.c", line 1: (ç
+"C:\source\pksedit\Compare.c", line 1: (ç
+"C:\source\pksedit\CaretMovement.c", line 12: (ç
 [find]
 !/\* ([0-9]+) \*/ [^"]+
 !,$
@@ -54,9 +58,6 @@
 !#define \1\2\t2048+\2
 !IDS_BASE_COMMAND+
 [open]
-!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\mscaa_customer.proto
-!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\protos\mobile_self_checkout_app_adapter.proto
-!C:\source\techradar\index.html
 !C:\Users\tom\Desktop\karriere@gebit.txt
 !C:\temp\newfile1.c
 !C:\source\pksedit\README.md
@@ -79,12 +80,15 @@
 !C:\source\pksedit\x64\Debug\pksedit.en-US.dll
 !C:\temp\pks.rc\pksedit_521_5.bin
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\activity\AbstractActivity.java
-!C:\source\pksedit\PKSEDIT.RC
 !C:\Users\tom\AppData\Local\Temp\keys.pkc
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
 !C:\temp\JdbcSessionBig.java
-!C:\source\pksedit\en-US\en-US.rc
 !C:\source\pksedit\FunctionTable.c
+!C:\temp\commands.txt
+!C:\source\pksedit\macros\test1.pkc
+!C:\source\pksedit\CaretMovement.c
+!C:\source\pksedit\PKSEDIT.RC
+!C:\source\pksedit\en-US\en-US.rc
 [pathes]
 !D:\source\pksedit\pks_sys\*.LIN
 !D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
@@ -114,6 +118,6 @@
 !C:\source\pksedit\pks_sys\*.mac
 !C:\source\pksedit\doc\*.*
 !C:\source\pksedit\macros\*.*
+!C:\source\pksedit\en-US\*.*
 !C:\temp\*.*
 !C:\source\pksedit\*.*
-!C:\source\pksedit\en-US\*.*

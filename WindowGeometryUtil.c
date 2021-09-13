@@ -83,7 +83,7 @@ EXPORT int win_positionWindowRelativeToCaret(HWND hwnd)
 		return 0;
 	}
 
-	GetWindowRect(hwndMDIFrameWindow, &r);
+	GetWindowRect(hwndMain, &r);
 
 	p.y = wp->cy;
 	// p.x = wp->cx;
@@ -112,7 +112,7 @@ EXPORT int win_moveWindowCloseToMousePosition(HWND hwnd)
 EXPORT int win_centerWindow(HWND hwnd)
 {	RECT r;
 
-	GetWindowRect(hwndMDIFrameWindow, &r);
+	GetWindowRect(hwndMain, &r);
 	win_moveWindowToXY(hwnd,1,(r.left+r.right)/2,(r.top+r.bottom)/2);
 	return 1;
 }
