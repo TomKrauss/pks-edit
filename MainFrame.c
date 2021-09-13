@@ -282,9 +282,13 @@ static void tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	LineTo(hdc, x2, y + height);
 	DeleteObject(SelectObject(hdc, hPenOld));
 	if (bSelected) {
-		hPen = CreatePen(PS_SOLID, 2, pTheme->th_dialogActive);
+		LOGBRUSH brush;
+		brush.lbColor = pTheme->th_dialogActive;
+		brush.lbHatch = 0;
+		brush.lbStyle = PS_SOLID;
+		hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, 2, &brush, 0, NULL);
 		hPenOld = SelectObject(hdc, hPen);
-		MoveToEx(hdc, x, y + 1, NULL);
+		MoveToEx(hdc, x + 1, y + 1, NULL);
 		LineTo(hdc, x + pPage->tp_width, y+1);
 		DeleteObject(SelectObject(hdc, hPenOld));
 	}
@@ -357,6 +361,11 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam) {
 static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex) {
 	if (pControl->tc_rolloverTab != nIndex) {
 		pControl->tc_rolloverTab = nIndex;
+		if (nIndex < 0) {
+			ReleaseCapture();
+		} else {
+			SetCapture(hwnd);
+		}
 		tabcontrol_repaintTabs(hwnd, pControl);
 	}
 }
@@ -773,6 +782,9 @@ static int TranslatePksAccel(HWND hwnd, MSG* msg) {
 		if (msg->wParam == VK_MENU ||
 			msg->wParam == VK_CONTROL ||
 			msg->wParam == VK_SHIFT) {
+			if (msg->wParam == VK_CONTROL) {
+				PostMessage(msg->hwnd, WM_SETCURSOR, (WPARAM)0, 0);
+			}
 			fkey_keyModifierStateChanged();
 			break;
 		}

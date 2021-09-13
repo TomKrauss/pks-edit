@@ -1103,19 +1103,23 @@ static WINFUNC WorkAreaWndProc(
 		return 0;
 		}
 
-	case WM_SETCURSOR:
-		if (GetAsyncKeyState(VK_CONTROL)) {
-			mouse_setHandCursor();
+	case WM_SETCURSOR: {
+		// wParam == 0 -> posted by PKSEdit itself.
+		if (wParam == 0 || LOWORD(lParam) == HTCLIENT) {
+			if (GetAsyncKeyState(VK_CONTROL)) {
+				mouse_setHandCursor();
+			} else {
+				mouse_setDefaultCursor();
+			}
 		} else {
-			mouse_setDefaultCursor();
+			mouse_setArrowCursor();
 		}
 		return 1;
+	}
+		
 
 	case WM_KEYDOWN:
 	case WM_KEYUP:
-		if (wParam == VK_CONTROL) {
-			PostMessage(hwnd, WM_SETCURSOR, (WPARAM)hwnd, 0);
-		}
 	case WM_INITMENUPOPUP:
 	case WM_MENUSELECT:
 	case WM_COMMAND:

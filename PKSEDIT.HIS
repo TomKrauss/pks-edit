@@ -1,7 +1,7 @@
 [files]
 "C:\source\pksedit\ArrayList.c", line 24: רצ
-"C:\source\pksedit\en-US\en-US.rc", line 378: רצ
-"C:\source\pksedit\Encryption.c", line 1: רצ
+"C:\source\pksedit\Encryption.c", line 16: רצ
+"C:\source\pksedit\en-US\en-US.rc", line 330: רצ
 [find]
 !,$
 !"[^,]+, +

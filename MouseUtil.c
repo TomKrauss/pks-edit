@@ -30,6 +30,7 @@
 #include "edfuncs.h"
 #include "winutil.h"
 
+static HCURSOR   hArrowCursor;	// Pointer cursor
 static HCURSOR   hHandPointer;		// Hand pointer cursor
 static HCURSOR   hHourGlass;		// Hour glass cursor
 static HCURSOR   hDefaultCurs;
@@ -268,6 +269,17 @@ EXPORT void mouse_setHandCursor(void) {
 		hHandPointer = LoadCursor(NULL, IDC_HAND);
 	}
 	SetCursor(hHandPointer);
+}
+
+/*------------------------------------------------------------
+ * mouse_setArrowCursor()
+ * Display an arrow cursor.
+ */
+EXPORT void mouse_setArrowCursor(void) {
+	if (hArrowCursor == NULL) {
+		hArrowCursor = LoadCursor(NULL, IDC_ARROW);
+	}
+	SetCursor(hArrowCursor);
 }
 
 /*------------------------------------------------------------

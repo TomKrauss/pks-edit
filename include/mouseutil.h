@@ -41,6 +41,12 @@ extern void mouse_setBusyCursor(void);
 extern void mouse_setHandCursor(void);
 
 /*------------------------------------------------------------
+ * mouse_setArrowCursor()
+ * Display a arrow cursor.
+ */
+extern void mouse_setArrowCursor(void);
+
+/*------------------------------------------------------------
  * mouse_setDefaultCursor()
  * Display the default cursor (arrow)
  */
