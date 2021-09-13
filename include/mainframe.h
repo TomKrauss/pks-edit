@@ -42,5 +42,13 @@ extern BOOL mainframe_findExistingWindow();
  */
 int mainframe_messageLoop();
 
+/*-----------------------------------------------------------
+ * mainframe_enumChildWindows()
+ * Execute a function for every child window optionally
+ * passing an lParam. If the called function returns 0, the enumeration
+ * stops.
+ */
+int mainframe_enumChildWindows(int (*funcp)(), LONG lParam);
+
 #define MAINFRAME_H
 #endif

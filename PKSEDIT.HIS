@@ -1,15 +1,8 @@
 [files]
-"C:\source\pksedit\en-US\en-US.rc", line 1: (ç
-"C:\temp\HELPITEM.xml", line 134: (ç
-"C:\source\pksedit\CutAndPaste.c", line 1: (ç
-"C:\source\pksedit\ArrayList.c", line 1: (ç
-"C:\source\pksedit\Logging.c", line 1: (ç
-"C:\source\pksedit\Encryption.c", line 18: (ç
-"C:\source\pksedit\BracketMatching.c", line 1: (ç
-"C:\source\pksedit\Compare.c", line 1: (ç
-"C:\source\pksedit\CaretMovement.c", line 12: (ç
+"C:\source\pksedit\ArrayList.c", line 24: øö
+"C:\source\pksedit\en-US\en-US.rc", line 378: øö
+"C:\source\pksedit\Encryption.c", line 1: øö
 [find]
-!/\* ([0-9]+) \*/ [^"]+
 !,$
 !"[^,]+, +
 !einer Mod
@@ -41,6 +34,7 @@
 !>> Clip
 !"Abandon
 !löscht
+!increm
 [filePatterns]
 !*.*
 !*.c
@@ -58,21 +52,12 @@
 !#define \1\2\t2048+\2
 !IDS_BASE_COMMAND+
 [open]
-!C:\Users\tom\Desktop\karriere@gebit.txt
-!C:\temp\newfile1.c
-!C:\source\pksedit\README.md
-!C:\source\pksedit\macros\formatprint.pkc
-!C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\ui\scan\scan_page.dart
-!C:\Users\tom\Desktop\readme.txt
-!C:\SUService.log
 !C:\source\pksedit\x.out
 !C:\temp\pssample.ps1
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\FitNesse\content.txt
-!C:\source\pksedit\CutAndPaste.c
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\content.txt
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\SuiteUseCases\Test2WorkflowBookFlight\content.txt
 !C:\source\pksedit\main.c
-!C:\source\pksedit\BracketMatching.c
 !newfile1.txt
 !C:\source\pksedit\newfile1.txt
 !C:\source\pksedit\doc\grammar.md
@@ -80,15 +65,22 @@
 !C:\source\pksedit\x64\Debug\pksedit.en-US.dll
 !C:\temp\pks.rc\pksedit_521_5.bin
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\activity\AbstractActivity.java
-!C:\Users\tom\AppData\Local\Temp\keys.pkc
 !C:\Users\tom\AppData\Local\Temp\PKSMAKRO.ERR
 !C:\temp\JdbcSessionBig.java
 !C:\source\pksedit\FunctionTable.c
 !C:\temp\commands.txt
 !C:\source\pksedit\macros\test1.pkc
-!C:\source\pksedit\CaretMovement.c
 !C:\source\pksedit\PKSEDIT.RC
 !C:\source\pksedit\en-US\en-US.rc
+!C:\source\pksedit\Compare.c
+!C:\source\pksedit\CaretMovement.c
+!C:\source\pksedit\BracketMatching.c
+!C:\temp\HELPITEM.xml
+!C:\Users\tom\AppData\Local\Temp\keys.pkc
+!C:\source\pksedit\ArrayList.c
+!C:\source\pksedit\Encryption.c
+!C:\source\pksedit\CutAndPaste.c
+!C:\source\pksedit\Logging.c
 [pathes]
 !D:\source\pksedit\pks_sys\*.LIN
 !D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*

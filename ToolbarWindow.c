@@ -327,6 +327,30 @@ int find_initiateIncrementalSearch() {
     return 1;
 }
 
+/*
+ * Custom Rebar window procedure for coloring controls in rebar. 
+ */
+static WNDPROC rebarOriginalWindowProc;
+static LRESULT APIENTRY tb_myRebarProc(
+    HWND hwnd,
+    UINT uMsg,
+    WPARAM wParam,
+    LPARAM lParam) {
+
+    if (uMsg == WM_CTLCOLOREDIT || uMsg == WM_CTLCOLOR || uMsg == WM_CTLCOLORBTN) {
+        THEME_DATA* pTheme = theme_getDefault();
+        static HBRUSH hbrBkgnd;
+        HDC hdc = (HDC)wParam;
+        SetTextColor(hdc, pTheme->th_dialogForeground);
+        SetBkColor(hdc, pTheme->th_dialogBackground);
+        if (!hbrBkgnd)
+            hbrBkgnd = CreateSolidBrush(pTheme->th_dialogBackground);
+        return (LRESULT)hbrBkgnd;
+    }
+    return CallWindowProc(rebarOriginalWindowProc, hwnd, uMsg,
+        wParam, lParam);
+}
+
 /*--------------------------------------------------------------------------
  * tb_initRebar()
  * Initialize the PKS Edit top bar (rebar).
@@ -351,10 +375,13 @@ HWND tb_initRebar(HWND hwndOwner) {
         hInst, // global instance handle
         NULL);
 
-    if (!hwndRebar)
-    {
+    if (!hwndRebar) {
         return NULL;
     }
+
+    rebarOriginalWindowProc = (WNDPROC)SetWindowLongPtr(hwndRebar,
+        GWLP_WNDPROC, (LONG_PTR)tb_myRebarProc);
+
     THEME_DATA* pTheme = theme_getDefault();
     tb_updateColors();
     hwndToolbar = tb_initToolbar(hwndRebar);
@@ -372,7 +399,7 @@ HWND tb_initRebar(HWND hwndOwner) {
         | RBBIM_CHILD       // hwndChild is valid.
         | RBBIM_CHILDSIZE   // child size members are valid.
         | RBBIM_SIZE;       // cx is valid
-    rbBand.fStyle = RBBS_CHILDEDGE | RBBS_GRIPPERALWAYS | RBBS_FIXEDSIZE;
+    rbBand.fStyle = RBBS_FIXEDSIZE;
     rbBand.clrFore = pTheme->th_dialogForeground;
     rbBand.clrBack = pTheme->th_dialogBackground;
 
@@ -406,7 +433,6 @@ HWND tb_initRebar(HWND hwndOwner) {
         | RBBIM_COLORS      // honor colors
         | RBBIM_CHILDSIZE   // child size members are valid.
         | RBBIM_SIZE;       // cx is valid
-    rbBand.hwndChild = hwndEntryField;
     rbBand.cxMinChild = 50;
     rbBand.cyMinChild = 20;
     // The default width should be set to some value wider than the text. The entry field itself will expand to fill the band.

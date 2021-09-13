@@ -111,6 +111,9 @@ static LRESULT windowselector_wndProc(HWND hwnd, UINT message, WPARAM wParam, LP
 	case WM_SHOWWINDOW:
 		pWSP = (WINDOW_SELECTOR_PARAMS*)GetWindowLongPtr(hwnd, GWL_WINDOW_SELECTOR_PARAMS);
 		pWSP->wsp_count = ww_getNumberOfOpenWindows();
+		if (pWSP->wsp_count > 1) {
+			pWSP->wsp_current = 1;
+		}
 		break;
 	case WM_DESTROY:
 		pWSP = (WINDOW_SELECTOR_PARAMS*)GetWindowLongPtr(hwnd, GWL_WINDOW_SELECTOR_PARAMS);

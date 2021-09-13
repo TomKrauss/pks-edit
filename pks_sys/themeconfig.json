@@ -134,7 +134,7 @@
           "styleName": "default",
           "faceName": "Consolas",
           "size": -12,
-          "foregroundColor": "#FFFFA0",
+          "foregroundColor": "#FFFFCC",
           "weight": 400
         },
         {
@@ -143,7 +143,7 @@
         },
         {
           "styleName": "identifier",
-          "foregroundColor": "#888822"
+          "foregroundColor": "#aaaa77"
         },
         {
           "styleName": "keyword",
@@ -163,12 +163,12 @@
         {
           "styleName": "operator",
           "weight": 700,
-          "foregroundColor": "#AA3333"
+          "foregroundColor": "#FF6666"
         },
         {
           "styleName": "annotation",
           "weight": 700,
-          "foregroundColor": "#009999"
+          "foregroundColor": "#00bbbb"
         },
         {
           "styleName": "bold",
@@ -194,17 +194,17 @@
         {
           "styleName": "code",
           "weight": 700,
-          "backgroundColor": "#efefef"
+          "backgroundColor": "#cccccc"
         },
         {
           "styleName": "literal",
           "weight": 700,
-          "foregroundColor": "#aa33aa"
+          "foregroundColor": "#ee33ee"
         },
         {
           "styleName": "hyperlink",
           "underline": true,
-          "foregroundColor": "#2222FF"
+          "foregroundColor": "#aaaaFF"
         },
         {
           "styleName": "string",

@@ -41,7 +41,7 @@ extern void 	EditDroppedFiles(HDROP hdrop);
 /*------------------------------------------------------------
  * EdCloseAll()
  */
-extern int EdCloseAll(int ic_flag);
+extern int EdCloseAll();
 
 /*------------------------------------------------------------
  * FinalizePksEdit()
@@ -704,7 +704,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 
 	case WM_CLOSE:
 		FinalizePksEdit();
-		EdCloseAll(1);
+		EdCloseAll();
 		if (ww_getNumberOfOpenWindows()) {
 			return 0;
 		}
@@ -826,3 +826,24 @@ void mainframe_windowTitleChanged() {
 		tabcontrol_repaintTabs(hwndTabControl, pControl);
 	}
 }
+
+/*-----------------------------------------------------------
+ * mainframe_enumChildWindows()
+ * Execute a function for every child window optionally 
+ * passing an lParam. If the called function returns 0, the enumeration
+ * stops.
+ */
+int mainframe_enumChildWindows(int (*funcp)(), LONG lParam) {
+	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwndTabControl, GWLP_TAB_CONTROL);
+	int ret;
+
+	while (arraylist_size(pControl->tc_pages) > 0) {
+		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, 0);
+		if (pPage->tp_hwnd && (ret = (*funcp)(pPage->tp_hwnd, lParam)) == 0) {
+			break;
+		}
+	}
+
+	return ret;
+}
+

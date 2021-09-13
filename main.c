@@ -138,18 +138,6 @@ static BOOL InitApplication(void)
 }
 
 /*------------------------------------------------------------
- * ww_closeAllChildrenOfWindow()
- */
-int ww_closeAllChildrenOfWindow(HWND hwndChild)
-{
-	if (!hwndChild || !IsWindow(hwndChild))
-		return 0;
-
-	SendMessage(hwndChild, WM_CLOSE, 0, 0);
-	return 1;
-}
-
-/*------------------------------------------------------------
  * ww_closeChildWindow()
  */
 int ww_closeChildWindow(HWND hwndChild,int iconflag)
@@ -253,7 +241,6 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
 	} else {
 		lstrcpy(szTitle, "PKS EDIT");
 	}
-
 	hwndMain = mainframe_open(nInstanceCount, hDefaultMenu);
 	 
 	DragAcceptFiles(hwndMain, TRUE);
@@ -285,7 +272,6 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
 		SetWindowPlacement(hwndMain, &ws);
 	}
 	ShowWindow(hwndMain, nCmdShow);
-	PostMessage(hwndMain, WM_EDWINREORG, 0, 0L);
 	return TRUE;
 }
 
@@ -430,62 +416,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 
 }
 
-/*-----------------------------------------------------------
- * EdEnumChildWindows()
- */
-int EdEnumChildWindows(int (*funcp)(),LONG lParam)
-{    int ret;
-	HWND hwndT,hwndNext;
-
-    	for ( hwndT = GetWindow (hwndMain, GW_CHILD); hwndT;
-	  	 hwndT = hwndNext) {
-
-	  	hwndNext = hwndT;
-	  	do {
-			hwndNext = GetWindow (hwndNext, GW_HWNDNEXT);
-		} while (hwndNext && GetWindow(hwndNext,GW_OWNER));
-
-		if(!GetWindow(hwndT, GW_OWNER)) {
-	     	if ((ret = (*funcp)(hwndT,lParam)) == 0)
-	     		break;
-	     }
- 	}
- 
-	return ret;
-}
-
-/*------------------------------------------------------------
- * EdGetActiveWindow()
- */
-HWND EdGetActiveWindow(int includeicons)
-{
-	HWND hwndChild;
-	WORD isWindow;
-
-	hwndChild = (HWND) SendMessage(hwndMain,WM_MDIGETACTIVE, 0, (LPARAM)&isWindow);
-	if (!hwndChild || (!includeicons && !isWindow)) {
-		return 0;
-	}
-	return hwndChild;
-}
-
 /*------------------------------------------------------------
  * EdCloseAll()
  */
-int EdCloseAll(int ic_flag)
-{
+int EdCloseAll() {
 	ShowWindow(hwndMain,SW_HIDE);
-	EdEnumChildWindows(ww_closeEditChild,0);
-
-	if (ww_getNumberOfOpenWindows() == 0 && ic_flag) {
-		EdEnumChildWindows(ww_closeAllChildrenOfWindow,0);
-	}
-
-	ShowWindow(hwndMain,SW_SHOW);
+	mainframe_enumChildWindows(ww_closeEditChild,0);
 
 	// no exit: still windows alive
-	if (ww_getNumberOfOpenWindows() != 0)
+	if (ww_getNumberOfOpenWindows() != 0) {
+		ShowWindow(hwndMain, SW_SHOW);
 		return 0;
+	}
 	return 1;
 }
 

@@ -40,10 +40,6 @@
 
 extern int 		doDocumentTypes(int nDlg);
 extern void 	win_getStdMenuText(int menunr, char *text);
-/*------------------------------------------------------------
- * EdGetActiveWindow()
- */
-extern HWND EdGetActiveWindow(int includeicons);
 
 extern int	nCurrentDialog;
 

@@ -18,6 +18,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <stdio.h>
+#include <CommCtrl.h>
 #include "alloc.h"
 #include "trace.h"
 #include "linkedlist.h"
@@ -162,9 +163,10 @@ static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, 
 	pWork->w = w - pLineInfo->w;
 	pWork->y = pRuler->h;
 	pWork->h = h - pRuler->h;
-	return ww_createOrDestroyChildWindowOfEditor(hwnd,
+	int ret = ww_createOrDestroyChildWindowOfEditor(hwnd,
 		WS_HSCROLL|WS_VSCROLL|WS_CHILD|WS_VISIBLE/*|WS_CLIPSIBLINGS*/,
 		TRUE,&wp->ww_handle,szWorkAreaClass,pWork, wp);
+	return ret;
 }
 
 /*-----------------------------------------------------------
@@ -890,10 +892,6 @@ WINFUNC EditWndProc(
 	case WM_ICONCLASSVALUE:
 		return GetWindowLongPtr(hwnd,GWL_ICCLASSVALUES);
 
-	case WM_MDIACTIVATE:
-		/* EdSwitchContext(hwnd,LOWORD(lParam),CTX_EDIT); */
-		if (wParam == 0)
-			break;
 	case WM_SETFOCUS:
 		ll_moveElementToFront((LINKED_LIST**)&_winlist,wp);
 		if (!IsIconic(hwnd))

@@ -46,10 +46,6 @@
 #include "markpositions.h"
 #include "customcontrols.h"
 
- /*------------------------------------------------------------
-  * EdGetActiveWindow()
-  */
-extern HWND EdGetActiveWindow(int includeicons);
 /*
  * Answer TRUE if a replacement had been performed before.
  */
@@ -77,12 +73,13 @@ static int		_scope = RNG_GLOBAL;
 /*------------------------------------------------------------
  * EdCloseWindow()
  */
-int EdCloseWindow(int winid)
-{   	HWND hwndChild;
+int EdCloseWindow(int winid) {
+	HWND hwndChild;
 
-	if (winid < 0)
-		hwndChild = EdGetActiveWindow(0);
-	else
+	if (winid < 0) {
+		WINFO* wp = ww_getCurrentEditorWindow();
+		hwndChild = wp ? wp->edwin_handle : NULL;
+	} else
 		hwndChild = ww_winid2hwnd(winid);
 
 	return ww_closeEditChild(hwndChild);
