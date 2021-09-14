@@ -929,10 +929,9 @@ BEGIN
     END
     POPUP "&Fenster"
     BEGIN
-        MENUITEM "&Überlappend\a",              IDM_CASCADE
-        MENUITEM "&Nebeneinander\a",            IDM_TILE
         MENUITEM "&Alle schliessen\a",          IDM_CLOSEALL
-        MENUITEM "&Symbole anordnen\a",         IDM_ARRANGE
+        MENUITEM "Neuer horizontaler Bereich\a", IDM_NEW_HORIZONTAL_DOCK
+        MENUITEM "Neuer vertikaler Bereich\a",  IDM_NEW_VERTICAL_DOCK
         MENUITEM SEPARATOR
         MENUITEM "&Liste...\a",                 IDM_INFOFILE
     END

@@ -968,10 +968,9 @@ BEGIN
     END
     POPUP "&Windows"
     BEGIN
-        MENUITEM "&Cascading\a",                IDM_CASCADE
-        MENUITEM "&Tile\a",                     IDM_TILE
         MENUITEM "&Close All\a",                IDM_CLOSEALL
-        MENUITEM "&Arrange Icons\a",            IDM_ARRANGE
+        MENUITEM "New horizontal Dock\a",       IDM_NEW_HORIZONTAL_DOCK
+        MENUITEM "New vertical Dock\a",         IDM_NEW_VERTICAL_DOCK
         MENUITEM SEPARATOR
         MENUITEM "&List...\a",                  IDM_INFOFILE
     END

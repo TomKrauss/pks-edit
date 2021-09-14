@@ -1,7 +1,7 @@
 [files]
-"C:\source\pksedit\ArrayList.c", line 24: רצ
-"C:\source\pksedit\Encryption.c", line 16: רצ
-"C:\source\pksedit\en-US\en-US.rc", line 330: רצ
+"C:\source\pksedit\CaretMovement.c", line 1: default
+"C:\source\pksedit\DocumentTypes.c", line 194: default
+"C:\source\pksedit\DocumentModel.c", line 11: default
 [find]
 !,$
 !"[^,]+, +
@@ -71,7 +71,6 @@
 !C:\temp\commands.txt
 !C:\source\pksedit\macros\test1.pkc
 !C:\source\pksedit\PKSEDIT.RC
-!C:\source\pksedit\en-US\en-US.rc
 !C:\source\pksedit\Compare.c
 !C:\source\pksedit\CaretMovement.c
 !C:\source\pksedit\BracketMatching.c
@@ -79,8 +78,9 @@
 !C:\Users\tom\AppData\Local\Temp\keys.pkc
 !C:\source\pksedit\ArrayList.c
 !C:\source\pksedit\Encryption.c
-!C:\source\pksedit\CutAndPaste.c
+!C:\source\pksedit\en-US\en-US.rc
 !C:\source\pksedit\Logging.c
+!C:\source\pksedit\CutAndPaste.c
 [pathes]
 !D:\source\pksedit\pks_sys\*.LIN
 !D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*

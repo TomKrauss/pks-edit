@@ -227,29 +227,18 @@ EXPORT void ww_setScrollCheckBounds(WINFO *wp)
  * Creates an editor window with the given title, instance count, creation parameter and window
  * placement.
  */
-HWND ww_createEditWindow(char* pTitle, int nCount, LPVOID lParam, WINDOWPLACEMENT *wsp) {
-	return mainframe_addWindow(szEditClass, pTitle, lParam);
+HWND ww_createEditWindow(char* pTitle, int nCount, LPVOID lParam, const char* pszDockName) {
+	return mainframe_addWindow(pszDockName, szEditClass, pTitle, lParam);
 }
 
 /*--------------------------------------------------------------------------
  * win_getstate()
  * Get the current window placement.
  */
-EXPORT void win_getstate(HWND hwnd, WINDOWPLACEMENT *wsp)
+EXPORT void win_getstate(HWND hwnd, WINDOWPLACEMENT* wsp)
 {
-	wsp->length = sizeof *wsp;
+	wsp->length = sizeof * wsp;
 	GetWindowPlacement(hwnd, wsp);
-}
-
-/*--------------------------------------------------------------------------
- * ww_getstate()
- * Return the window placement state for a window.
- */
-EXPORT void ww_getstate(WINFO *wp, WINDOWPLACEMENT *wsp)
-{
-	if (!wp) 
-		return;
-	win_getstate(wp->edwin_handle,wsp);
 }
 
 /*-----------------------------------------------------------
@@ -326,97 +315,6 @@ WINFO *ww_getWindowFromStack(int num)
 	if (num)
 		return 0;
 	return wp;
-}
-
-/*------------------------------------------------------------
- * EdWindowRegSet()
- */
-int EdWindowRegSet(int num)
-{	WINFO *wp;
-	WINDOWPLACEMENT ws;
-
-	if ((wp = _winlist) == 0) 
-		return 0;
-	ww_getstate(wp,&ws);
-	prof_savewinstate("WinReg",num,&ws);
-	error_showMessageInStatusbar(IDS_MSGWIREGDEF,num);
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * ww_enableNotTopmostWindow()
- */
-static void ww_enableNotTopmostWindow(int nTopMost, BOOL bHow)
-{
-	int		nWindow;
-	WINFO *	wp;
-
-	for (wp = _winlist, nWindow = 0; wp; nWindow++, wp = wp->next) {
-		if (nWindow >= nTopMost) {
-			EnableWindow(wp->edwin_handle, bHow);
-		}
-	}
-}
-
-/*------------------------------------------------------------
- * EdWinArrange()
- */
-int EdWinArrange(int func)
-{
-	WINFO *	wp = _winlist;
-	WORD  	message;
-	HWND  	hwnd;
-	WINDOWPLACEMENT	windowplacement;
-	WPARAM	wParam;
-	LRESULT	ret;
-
-	hwnd = wp ? wp->edwin_handle : hwndMain;
-	wParam = 0;
-	switch(func) {
-		case WIN_FULL:
-			ShowWindow(hwnd,IsZoomed(hwnd) ?
-				SW_SHOWNORMAL : SW_SHOWMAXIMIZED); return 1;
-		case WIN_TILE:
-			message = WM_MDITILE;
-			wParam = MDITILE_VERTICAL;
-			break;
-		case WIN_PAIRS:
-			message = WM_MDITILE;
-			wParam = MDITILE_SKIPDISABLED;
-			ww_enableNotTopmostWindow(2, FALSE);
-			break;
-		case WIN_HOR:
-			message = WM_MDITILE;
-			wParam = MDITILE_HORIZONTAL;
-			break;
-		case WIN_CASCADE:
-			message = WM_MDICASCADE; 
-			break;
-		case WIN_ICONARRANGE: 
-			message = WM_MDIICONARRANGE; 
-			break;
-		case WIN_DESKICON: 		
-			hwnd = hwndMain;
-		case WIN_ICONIZED: 		
-			ShowWindow(hwnd,IsIconic(hwnd) ?
-				SW_RESTORE : SW_SHOWMINIMIZED); return 1;
-		default: 
-			if (prof_getwinstate("WinReg",(int)func,&windowplacement)) {
-				SetWindowPlacement(hwnd, &windowplacement);
-			} else {
-				error_showErrorById(IDS_MSGUNDEFWINREG);
-			}
-			return 1;
-	}
-
-	ShowWindow(hwndMain,SW_HIDE);
-	ret = SendMessage(hwndMain, message, wParam, 0L);
-	ShowWindow(hwndMain,SW_SHOW);
-
-	if (func == WIN_PAIRS) {
-		ww_enableNotTopmostWindow(2, TRUE);
-	}
-	return (int) ret;
 }
 
 /*-----------------------------------------------------------
@@ -866,7 +764,6 @@ WINFUNC EditWndProc(
 	WPARAM wParam,
 	LPARAM lParam
 	) {
-	WINDOWPLACEMENT 	ws;
 	WINFO * wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_VIEWPTR);
 
 	if (message == WM_CREATE || wp != NULL)
@@ -900,10 +797,6 @@ WINFUNC EditWndProc(
 	case WM_MOVE:
 		/* drop through */
 	case WM_SIZE:
-		ww_getstate(wp,&ws);
-		if (ws.showCmd & SW_SHOWMINIMIZED) {
-			SetFocus(hwndMain);
-		}
 		if (message == WM_MOVE)
 			break;
 		ww_setwindowtitle(wp, NULL);

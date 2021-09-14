@@ -29,6 +29,7 @@
 #include "markpositions.h"
 #include "windowselector.h"
 #include "editoperations.h"
+#include "mainframe.h"
 
 extern int
 EdFileAbandon(), EdAbout(long ), EdBlockCopy(long ), EdBlockDelete(long ),
@@ -51,7 +52,7 @@ EdShiftBetweenBrackets(long ), EdSort(long ), EdLinesShift(long ), EdInfoFiles(l
 EdShowMatch(long ), EdDlgWorkMode(long ), EdDlgDispMode(long ),
 EdDlgCursTabs(long ), EdDlgModeVals(long ), EdOptionToggle(long ), EdPasteString(long ),
 EdFindTag(long ), EdFindFileCursor(long ), EdErrorNext(long ), EdFindTagCursor(long ),
-EdFindWordCursor(long ), EdWinArrange(long ), EdWindowRegSet(long ), EdRangeShift(long ),
+EdFindWordCursor(long ), EdRangeShift(long ),
 EdUndo(long ), EdRedo(long), EdFilesCompare(long ), EdScrollScreen(long ), EdScrollCursor(long ),
 EdAlignText(long ), EdBlockMouseMark(long ),
 EdMouseMarkParts(long ), EdMouseMoveText(long ), EdMouseSelectLines(long ), EdMousePositionUngrabbed(long ),
@@ -152,8 +153,8 @@ EdFindFileCursor, '!', EW_NEEDSCURRF | 0,                                       
 EdErrorNext, '!', 0,                                                                            "FindError",                  
 EdFindTagCursor, '!', EW_NEEDSCURRF | EW_FINDCURS| 0,                                           "CursorFindTag",              
 EdFindWordCursor, '!', EW_NEEDSCURRF | EW_FINDCURS | 0,                                         "CursorFindWord",             
-EdWinArrange, '!', 0,                                                                           "WindowArrange",              
-EdWindowRegSet, '!', EW_NEEDSCURRF | 0,                                                         "SetWindowRegister",          
+mainframe_manageDocks, '!', 0,                                                                  "ManageDocks",
+function_unused, '!', EW_NEEDSCURRF | 0,                                                         "SetWindowRegister",
 EdRangeShift, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                 "ShiftText",                  
 EdUndo, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDO_AVAILABLE,                                     "Undo",                       
 EdFilesCompare, '!', EW_NEEDSCURRF | 0,                                                         "CompareWindows",             
@@ -283,9 +284,6 @@ IDM_GOTO_NEXT, 243,
 IDM_GOTO_PREVIOUS, 32,
 IDM_INFOFILE	,87,
 IDM_CLOSEALL	,88,
-IDM_ARRANGE	,89,
-IDM_CASCADE	,90,
-IDM_TILE	,91,
 IDM_HLPONHLP	,92,
 IDM_HLPONMENUS	,93,
 IDM_HLPONKEYS	,94,
@@ -297,36 +295,11 @@ IDM_USE_WINDOWS_LINEENDS, 245,
 IDM_CONVERT_TO_LOWER, 247,
 IDM_CONVERT_TO_UPPER, 246,
 IDM_TOGGLE_LOWER_UPPER, 120,
+IDM_NEW_HORIZONTAL_DOCK, 106,
+IDM_NEW_VERTICAL_DOCK, 107
 };
 
 int _nmenus = sizeof(_menutab) / sizeof(_menutab[0]);
-
-ICONBIND _ictab[] = {
-ICID_TRASH,	ICID_UNDO,	IPCF_DROPHWND, 201,
-ICID_TRASH,	ICID_EXEC,	IPCF_DROPHWND, 201,
-ICID_TRASH,	ICID_DIR,	IPCF_DROPHWND, 201,
-ICID_TRASH,	ICID_PRINT,	IPCF_DROPHWND, 201,
-ICID_TRASH,	ICID_EDIT,	IPCF_DROPHWND, 201,
-ICID_TRASH,	ICID_FILE,	IPCF_DROPHWND, 201,
-ICID_TRASH,	ICID_CLIP,	IPCF_NONE, 171,
-ICID_EXEC,	ICACT_DCLICKED,	IPCF_USERDEF, 200,
-ICID_DIR,	ICACT_DCLICKED,	IPCF_SRCSTRING1, 2 ,
-ICID_FILE,	ICACT_DCLICKED,	IPCF_SRCSTRING1, 1 ,
-ICID_CLIP,	ICACT_TEXTBLOCK,	IPCF_SRCCHAR, 39,
-ICID_CLIP,	ICACT_DCLICKED,	IPCF_SRCCHAR, 219,
-ICID_UNDO,	ICACT_DCLICKED,	IPCF_NONE, 180,
-ICID_TRASH,	ICACT_TEXTBLOCK,	IPCF_NONE, 47,
-ICID_EDIT,	ICID_CLIP,	IPCF_DROPCHAR, 199,
-ICID_EDIT,	ICID_TRASH,	IPCF_DROPCHAR, 198,
-ICID_PRINT,	ICID_FILE,	IPCF_DROPSTRING1, 69,
-ICID_PRINT,	ICID_TRASH,	IPCF_NONE, 197,
-ICID_PRINT,	ICID_CLIP,	IPCF_DROPCHAR, 196,
-ICID_PRINT,	ICACT_TEXTBLOCK,	IPCF_NONE, 68,
-ICID_PRINT,	ICACT_DCLICKED,	IPCF_NONE, 67,
-ICID_PRINT,	ICID_EDIT,	IPCF_NONE, 67
-};
-
-int _nicbind = sizeof(_ictab) / sizeof(_ictab[0]);
 
 MOUSEBIND _mousetab[MAXMAPMOUSE] = {
 {0x02,0x00,0x02,0,{CMD_CMDSEQ,213}, (char *)0},
@@ -454,8 +427,8 @@ COMMAND _cmdseqtab[] = {
 103, C_1FUNC, 86 /* EdWindowRegSet */, 4 , "set-win-reg-5", 
 104, C_1FUNC, 86 /* EdWindowRegSet */, 5 , "set-win-reg-6", 
 105, C_1FUNC, 85 /* EdWinArrange */, WIN_FULL , "set-win-zoomed", 
-106, C_1FUNC, 85 /* EdWinArrange */, 0 , "size-win-with-reg-1", 
-107, C_1FUNC, 85 /* EdWinArrange */, 1 , "size-win-with-reg-2", 
+106, C_1FUNC, 85 /* ManageDocks */, MD_ADD_HORIZONTAL, "tile-docks-horizontally",
+107, C_1FUNC, 85 /* ManageDocks */, MD_ADD_VERTICAL, "tile-docks-vertically",
 108, C_1FUNC, 85 /* EdWinArrange */, 2 , "size-win-with-reg-3", 
 109, C_1FUNC, 85 /* EdWinArrange */, 3 , "size-win-with-reg-4", 
 110, C_1FUNC, 85 /* EdWinArrange */, 4 , "size-win-with-reg-5", 

@@ -345,7 +345,7 @@ extern void ww_setScrollCheckBounds(WINFO* wp);
  * Creates an editor window with the given title, instance count, creation parameter and window
  * placement.
  */
-extern HWND ww_createEditWindow(char* pTitle, int nCount, LPVOID lParam, WINDOWPLACEMENT* wsp);
+extern HWND ww_createEditWindow(char* pTitle, int nCount, LPVOID lParam, const char* pszDockName);
 
 /*-----------------------------------------------------------
  * ww_setwindowtitle()

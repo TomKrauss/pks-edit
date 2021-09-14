@@ -98,8 +98,8 @@ static FSELINFO 	_seqfsel = {	"","pksedit.mac", "*.mac" };
 static int 		_nkeys = MAXMAPKEY;
 
 EDBINDS _bindings = {
-	_edfunctab,_cmdseqtab,_macrotab,_keymaptab,_menutab,_ictab,_mousetab,
-	&_nfuncs,&_ncmdseq,&_nmacros,&_nkeys,&_nmenus,&_nicbind,&_nmousebind
+	_edfunctab,_cmdseqtab,_macrotab,_keymaptab,_menutab,_mousetab,
+	&_nfuncs,&_ncmdseq,&_nmacros,&_nkeys,&_nmenus,&_nmousebind
 };
 
 /*------------------------------------------------------------

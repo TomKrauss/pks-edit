@@ -655,7 +655,7 @@ static char *xref_saveCrossReferenceWord(unsigned char *d,unsigned char *dend) {
 /*------------------*/
 /* xref_openFile()	*/
 /*------------------*/
-int xref_openFile(char *name, long line, WINDOWPLACEMENT *wsp) {	
+int xref_openFile(char *name, long line, const char* pszDockName) {
 	int ret = 0;
 
 	if (ft_activateWindowOfFileNamed(name)) {
@@ -663,7 +663,7 @@ int xref_openFile(char *name, long line, WINDOWPLACEMENT *wsp) {
 			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line,0L);
 		else ret = 1;
 	} else {
-		ret = ft_openFileWithoutFileselector(name,line,wsp);
+		ret = ft_openFileWithoutFileselector(name,line, pszDockName);
 	}
 
 	return ret;
@@ -722,7 +722,7 @@ static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bForceDialog) {
 					strcpy(buffer, tp->filename);
 				}
 				fm_savepos(TM_LASTSEARCH);
-				xref_openFile(buffer, tp->ln, (WINDOWPLACEMENT*)0);
+				xref_openFile(buffer, tp->ln, NULL);
 				if (tp->searchCommand && ft_getCurrentDocument()) {
 					RE_PATTERN* pPattern;
 					if (pPattern = find_regexCompile(buffer, tp->searchCommand, (int)RE_DOREX)) {
@@ -789,7 +789,9 @@ static BOOL xref_parseNavigationSpec(NAVIGATION_SPEC* pSpec, RE_PATTERN* pPatter
 
 	if (regex_match(pPattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
 		regex_getCapturingGroup(&match, _exprerror->filenameCapture - 1, pSpec->filename, sizeof pSpec->filename);
-		regex_getCapturingGroup(&match, _exprerror->commentCapture - 1, pSpec->comment, sizeof pSpec->comment);
+		if (regex_getCapturingGroup(&match, _exprerror->commentCapture - 1, pSpec->comment, sizeof pSpec->comment) != SUCCESS) {
+			pSpec->comment[0] = 0;
+		}
 		regex_getCapturingGroup(&match, _exprerror->lineNumberCapture - 1, lineNumber, sizeof lineNumber);
 		if (lineNumber[0]) {
 			pSpec->line = atol(lineNumber);
@@ -806,18 +808,16 @@ static BOOL xref_parseNavigationSpec(NAVIGATION_SPEC* pSpec, RE_PATTERN* pPatter
  *---------------------------------*/
 void xref_openSearchListResultFromLine(LINE *lp)
 { 	NAVIGATION_SPEC spec;
-	WINDOWPLACEMENT ws,*wsp = 0;
+	const char* pszName = NULL;
 	char ebuf[ESIZE];
 	RE_PATTERN *pPattern = xref_initializeNavigationPattern(ebuf,_searchListNavigationPattern);
 
 	while((lp = lp->next) != 0L) {		/* we may skip 1st line ! */
 		if (lp->len && xref_parseNavigationSpec(&spec, pPattern, lp)) {
 			if (spec.comment[0]) {
-				/* this means -> windowstate given */
-				wsp = &ws;
-				prof_getWindowSettings(spec.comment,wsp);
+				pszName = spec.comment;
 			}
-			xref_openFile(spec.filename, spec.line-1L, wsp);
+			xref_openFile(spec.filename, spec.line-1L, pszName);
 		}
 	}
 }
@@ -916,7 +916,7 @@ doforward:
 			string_splitFilename(fp->fname, fullname, (char *)0);
 			string_concatPathAndFilename(fullname, fullname, navigationSpec.filename);
 		}
-		if (xref_openFile(fullname, navigationSpec.line-1L, (WINDOWPLACEMENT*)0)) {
+		if (xref_openFile(fullname, navigationSpec.line-1L, NULL)) {
 			if (navigationSpec.comment[0]) {
 				int col;
 				int len = 0;
@@ -949,7 +949,7 @@ static int xref_openTagFileOrSearchResults(int title, int st_type, FSELINFO *fsp
 
 	switch(st_type) {
 		case ST_ERRORS:
-			if (xref_openFile(_fseltarget, 0L, (WINDOWPLACEMENT*)0) && ft_getCurrentDocument()) {
+			if (xref_openFile(_fseltarget, 0L, NULL) && ft_getCurrentDocument()) {
 				EdFileAbandon();
 			}
 			return EdErrorNext(LIST_START|LIST_USETOPWINDOW);
@@ -1030,7 +1030,7 @@ int EdFindFileCursor(void)
 	if ((found = file_searchFileInPath(filename,GetConfiguration()->includePath)) != 0 ||
 	    (found = file_searchFileInPath(_fseltarget, currentFilePath)) != 0 ||
 		(fselpath[0] && (found = file_searchFileInPath(_fseltarget, fselpath)) != 0)) {
-		return xref_openFile(found, result.ni_lineNumber, (WINDOWPLACEMENT*)0);
+		return xref_openFile(found, result.ni_lineNumber, NULL);
 	}
 	HINSTANCE hInst = ShellExecute(hwndMain, "open", _fseltarget, "", ".", SW_SHOWNORMAL);
 	if ((intptr_t)hInst < 0 || (intptr_t)hInst > 32) {

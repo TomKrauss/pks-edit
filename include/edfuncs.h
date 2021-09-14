@@ -326,30 +326,6 @@ typedef struct tagUSERMENUBIND {
  */
 
 /*
- * icon values used for the call...
- */
-#define	IPCF_NONE				0
-#define	IPCF_DROPCHAR			0x1
-#define	IPCF_DROPHWND			0x2
-#define	IPCF_DROPSTRING1		0x4
-#define	IPCF_DROPSTRING2		0x8
-#define	IPCF_DROPLONG1			0x10
-#define	IPCF_DROPLONG2			0x20
-#define	IPCF_SRCCHAR			0x100
-#define	IPCF_SRCHWND			0x200
-#define	IPCF_SRCSTRING1		0x400
-#define	IPCF_SRCSTRING2		0x800
-#define	IPCF_SRCLONG1			0x1000
-#define	IPCF_SRCLONG2			0x2000
-#define	IPCF_USERDEF			0x4000
-
-typedef struct iconbind {
-	unsigned char id,dropped;	/* icon types - src and dest */
-	int pflags;				/* paramter construction flags s. above */
-	int index;				/* points to cmdseq */
-} ICONBIND;
-
-/*
  * MOUSEBUTTONS -----------------------------------------------------------
  */
 
@@ -389,7 +365,6 @@ typedef struct edbinds {
 	MACRO		**macp;
 	KEYBIND		*kp;
 	MENUBIND		*mp;
-	ICONBIND		*ip;
 	MOUSEBIND		*mop;
 	int			*nep,*ncp,*nmacp,*nkp,*nmp,*nip,*nmop;
 } EDBINDS;
@@ -398,13 +373,12 @@ extern EDFUNC		_edfunctab[];
 extern COMMAND		_cmdseqtab[];
 extern KEYBIND		_keymaptab[MAXMAPKEY];
 extern MENUBIND	_menutab[];
-extern ICONBIND	_ictab[];
 extern MOUSEBIND	_mousetab[];
 
 extern EDBINDS		_bindings;
 
 extern int		 _nfuncs,_ncmdseq,
-				 _nkeys,_nmenus,_nicbind,_nmousebind,
+				 _nkeys,_nmenus,_nmousebind,
 				 _ncb_do_char,_lcomseq;
 
 extern char		_recorder[];

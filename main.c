@@ -420,12 +420,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
  * EdCloseAll()
  */
 int EdCloseAll() {
-	ShowWindow(hwndMain,SW_HIDE);
-	mainframe_enumChildWindows(ww_closeEditChild,0);
+	mainframe_enumChildWindows(TRUE, ww_closeEditChild,0);
 
 	// no exit: still windows alive
 	if (ww_getNumberOfOpenWindows() != 0) {
-		ShowWindow(hwndMain, SW_SHOW);
 		return 0;
 	}
 	return 1;

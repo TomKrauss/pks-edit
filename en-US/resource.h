@@ -140,11 +140,8 @@
 #define IDS_MSGNOTRASH                  109
 #define IDS_MSGNOUNDO                   110
 #define IDS_MSGNOCLIP                   111
-#define IDM_TILE                        111
 #define IDS_MSGNOBLOCKSELECTED          112
-#define IDM_CASCADE                     112
 #define IDS_MSGBADBLOCKMOVE             113
-#define IDM_ARRANGE                     113
 #define IDS_MSGWPROTECT                 114
 #define IDM_CLOSEALL                    114
 #define IDS_MSGERRCHMOD                 115

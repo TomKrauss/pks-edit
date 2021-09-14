@@ -155,7 +155,6 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPP
 	HWND		hwnd;
 	INT_PTR		ret;
 
-	_translatekeys = 0;
 	bInPropertySheet = FALSE;
 	if (dp)	{
 		_dp = dp;
@@ -169,7 +168,6 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPP
 	if (hwnd) {
 		SetActiveWindow(hwnd);
 	}
-	_translatekeys = 1;
 
 	return (int)ret;
 }

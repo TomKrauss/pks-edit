@@ -20,7 +20,7 @@
  */
 extern int xref_restoreFromConfigFile(void);
 
-extern int xref_openFile(char* name, long line, WINDOWPLACEMENT* wsp);
+extern int xref_openFile(char* name, long line, const char* pszDockName);
 
 /*
  * Free all memory occupied by the cross reference lists.

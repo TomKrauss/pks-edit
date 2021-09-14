@@ -41,6 +41,7 @@
 #include "crossreferencelinks.h"
 #include "propertychange.h"
 #include "arraylist.h"
+#include "mainframe.h"
 
 extern HWND 	ww_winid2hwnd(int winid);
 extern int 	EdPromptAutosavePath(char *path);
@@ -241,7 +242,7 @@ void ft_saveWindowStates(void )
 	for (s = ww_getNumberOfOpenWindows()-1; s >= 0; s--) {
 		if ((wp = ww_getWindowFromStack(s)) != 0) {
 			FTABLE* fp = wp->fp;
-			xref_addSearchListEntry(&ft,fp->fname,wp->caret.ln,szBuff);
+			xref_addSearchListEntry(&ft,fp->fname,wp->caret.ln, mainframe_getDockNameFor(wp->edwin_handle));
 		}
 	}
 
@@ -419,9 +420,9 @@ static DWORD ft_globalediting(char *fn)
 /*------------------------------------------------------------
  * ft_openwin()
  */
-static int ft_openwin(FTABLE *fp, WINDOWPLACEMENT *wsp)
+static int ft_openwin(FTABLE *fp, const char* pszDockName)
 {
-	if (ww_createEditWindow(fp->fname, ww_getNumberOfOpenWindows()+1, (LPVOID)(uintptr_t)fp, wsp) == 0) {
+	if (ww_createEditWindow(fp->fname, ww_getNumberOfOpenWindows()+1, (LPVOID)(uintptr_t)fp, pszDockName) == 0) {
 		return 0;
 	}
 	return 1;
@@ -436,7 +437,7 @@ int ft_cloneWindow() {
 	if (fp == NULL) {
 		return 0;
 	}
-	return ft_openwin(fp, NULL);
+	return ft_openwin(fp, DOCK_NAME_RIGHT);
 }
 
 /*------------------------------------------------------------
@@ -577,7 +578,7 @@ int ft_activateWindowOfFileNamed(char *fn) {
  * Open a file with a file name and jump into a line. Place the window to
  * open as defined in the param wsp.
  */
-int ft_openFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
+int ft_openFileWithoutFileselector(char *fn, long line, const char *pszDockName)
 {   
 	char 		szResultFn[EDMAXPATHLEN];
 	char		szAsPath[EDMAXPATHLEN];
@@ -639,7 +640,7 @@ int ft_openFileWithoutFileselector(char *fn, long line, WINDOWPLACEMENT *wsp)
 	fp->flags |= fileflags;
 	if (doctypes_assignDocumentTypeDescriptor(fp, doctypes_getDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
          ft_readfile(fp, fp->documentDescriptor) == 0 || 
-	    (lstrcpy(fp->fname, fn), ft_openwin(fp, wsp) == 0)) {
+	    (lstrcpy(fp->fname, fn), ft_openwin(fp, pszDockName) == 0)) {
 		ft_destroy(fp);
 		return 0;
 	}
@@ -681,7 +682,7 @@ int EdEditFile(long editflags, char *filename) {
 		}
 		filename = _fseltarget;
 	}
-	ret = ft_openFileWithoutFileselector(filename, 0L, (WINDOWPLACEMENT*)0);
+	ret = ft_openFileWithoutFileselector(filename, 0L, NULL);
 	return ret;
 }
 

@@ -319,7 +319,7 @@ typedef struct tagWINDOWPLACEMENT WINDOWPLACEMENT;
  * Open a file with a file name and jump into a line. Place the window to
  * open as defined in the param wsp.
  */
-int ft_openFileWithoutFileselector(char* fn, long line, WINDOWPLACEMENT* wsp);
+int ft_openFileWithoutFileselector(char* fn, long line, const char* pszDockName);
 
 /*---------------------------------
  * ln_addFlag()
