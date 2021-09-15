@@ -742,22 +742,14 @@ int EdPromptAutosavePath(char *path)
 /*------------------------------------------------------------
  * winlist_lboxfill()
  */
-static void winlist_lboxfill(HWND hwnd, int nItem, void* selValue)
-{
-	int		nFile;
-	int		nMaxFiles;
-	FTABLE *	fp;
+static void winlist_lboxfill(HWND hwnd, int nItem, void* selValue) {
 
 	SendDlgItemMessage(hwnd,nItem,LB_RESETCONTENT,0,0L);
 	SendDlgItemMessage(hwnd, nItem, WM_SETREDRAW, FALSE, 0L);
-	nMaxFiles = ww_getNumberOfOpenWindows();
-
-	for (nFile = 0; nMaxFiles >= 0 && nFile < 10000; nFile++) {
-		if ((fp = ww_winid2fp(nFile)) != 0) {
-			SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, 
-				(LPARAM)fp);
-			nMaxFiles--;
-		}
+	WINFO* wp = ww_getCurrentEditorWindow();
+	while (wp) {
+		SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, (LPARAM) wp);
+		wp = wp->next;
 	}
 	SendDlgItemMessage(hwnd, nItem, WM_SETREDRAW, (WPARAM)TRUE, 0L);
 	SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING,-1, (LPARAM)selValue);
@@ -780,15 +772,15 @@ void dlg_drawFileInfo(HDC hdc, RECT *rcp, HWND hwnd, int nItem, BOOL bSelected) 
 }
 
 
-static winlist_drawFileInfo(HDC hdc, RECT* rcp, FTABLE* fp, int nItem, int nCtl) {
-	dlg_drawFileInfo(hdc, rcp, WIPOI(fp)->ww_handle, nItem, FALSE);
+static winlist_drawFileInfo(HDC hdc, RECT* rcp, WINFO* wp, int nItem, int nCtl) {
+	dlg_drawFileInfo(hdc, rcp, wp->edwin_handle, nItem, FALSE);
 }
 
 /*--------------------------------------------------------------------------
  * infoFillParams()
  */
-static void infoFillParams(DIALPARS *dp, FTABLE *fp) {
-
+static void infoFillParams(DIALPARS *dp, WINFO *wp) {
+	FTABLE* fp = wp->fp;
 	dp->dp_data = string_getBaseFilename(fp->fname);			dp++;
 
      string_formatDate(dp->dp_data, &fp->ti_modified); 	dp++;
@@ -819,7 +811,7 @@ static void winlist_command(HWND hDlg, int nItem,  int nNotify, void *pUser)
 	case LBN_DBLCLK:
 		dlg_getListboxText(hDlg, nItem, pUser);
 		if (nNotify == LBN_SELCHANGE) {
-			infoFillParams(infoDialListPars, *(FTABLE **)pUser);
+			infoFillParams(infoDialListPars, *(WINFO **)pUser);
 			DoDlgInitPars(hDlg, infoDialListPars, 6);
 		} else {
 			PostMessage(hDlg, WM_COMMAND, IDOK, 0L);
@@ -832,9 +824,9 @@ static void winlist_command(HWND hDlg, int nItem,  int nNotify, void *pUser)
  */
 static int showWindowList(int nTitleId)
 {
-	static FTABLE *fp;
+	static WINFO *wp;
 	static DIALLIST dlist = {
-		(long*)&fp, 
+		(long*)&wp, 
 		winlist_lboxfill, 
 		dlg_getListboxText, 
 		cust_measureListBoxRowWithIcon,
@@ -844,9 +836,9 @@ static int showWindowList(int nTitleId)
 	char	dmod[40],dsaved[40],nbytes[20],nlines[20], nwords[20];
 	int		nRet;
 
-	fp = ft_getCurrentDocument();
+	wp = ww_getCurrentEditorWindow();
 
-	if (!fp) {
+	if (!wp) {
 		return 0;
 	}
      infoDialListPars[1].dp_data = dmod;  
@@ -857,13 +849,13 @@ static int showWindowList(int nTitleId)
 	 infoDialListPars[6].dp_data = &dlist;
 	infoDialListPars[7].dp_size = nTitleId;
 
-	infoFillParams(infoDialListPars, fp);
+	infoFillParams(infoDialListPars, wp);
 	nRet = DoDialog(DLGINFOFILE, dlg_standardDialogProcedure,infoDialListPars, NULL);
-	if (nRet == IDCANCEL || fp == 0) {
+	if (nRet == IDCANCEL || wp == 0) {
 		return 0;
 	}
 
-	return EdSelectWindow(WIPOI(fp)->win_id);
+	return EdSelectWindow(wp->win_id);
 }
 
 /*--------------------------------------------------------------------------

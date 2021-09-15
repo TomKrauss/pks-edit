@@ -269,9 +269,9 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
 		if (ws.rcNormalPosition.top < rect.top) {
 			ws.rcNormalPosition.top = rect.top;
 		}
+		ws.showCmd = SW_HIDE;
 		SetWindowPlacement(hwndMain, &ws);
 	}
-	ShowWindow(hwndMain, nCmdShow);
 	return TRUE;
 }
 
@@ -406,12 +406,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 
 	GetPhase2Args(lpCmdLine);
 	ft_restorePreviouslyOpenedWindows();
-	/* show client window now! */
-	ShowWindow(hwndMain, SW_SHOW);
 
 	if (!ww_getNumberOfOpenWindows() && _runInteractive) {
 		EdEditFile(0L,(char*)0);
 	}
+	/* show client window now! */
+	WINDOWPLACEMENT ws;
+	UINT showCmd = SW_SHOW;
+	if (prof_getwinstate("DeskWin", 0, &ws)) {
+		showCmd = ws.showCmd;
+	}
+	ShowWindow(hwndMain, showCmd);
 	return mainframe_messageLoop();
 
 }

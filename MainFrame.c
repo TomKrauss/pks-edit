@@ -138,15 +138,31 @@ static void mainframe_closeDock(HWND hwnd) {
 	DOCKING_SLOT* pSlotUpdate = dockingSlots;
 	// Resize remaining slots to fill in space.
 	while (pSlotUpdate) {
+		if (pSlotUpdate == pSlot) {
+			pSlotUpdate = pSlotUpdate->ds_next;
+			continue;
+		}
 		if (pSlotUpdate->ds_yratio == pSlot->ds_yratio) {
 			pSlotUpdate->ds_wratio += pSlot->ds_wratio;
 			if (pSlotUpdate->ds_xratio > pSlot->ds_xratio) {
 				pSlotUpdate->ds_xratio = pSlot->ds_xratio;
 			}
+			if (pSlotUpdate->ds_wratio > 1) {
+				pSlotUpdate->ds_wratio = 1;
+			}
+			if (pSlotUpdate->ds_wratio + pSlotUpdate->ds_xratio > 1) {
+				pSlotUpdate->ds_xratio = 1 - pSlotUpdate->ds_wratio;
+			}
 		} else if (pSlotUpdate->ds_xratio == pSlot->ds_xratio) {
 			pSlotUpdate->ds_hratio += pSlot->ds_hratio;
 			if (pSlotUpdate->ds_yratio > pSlot->ds_yratio) {
 				pSlotUpdate->ds_yratio = pSlot->ds_yratio;
+			}
+			if (pSlotUpdate->ds_hratio > 1) {
+				pSlotUpdate->ds_hratio = 1;
+			}
+			if (pSlotUpdate->ds_hratio + pSlotUpdate->ds_yratio > 1) {
+				pSlotUpdate->ds_yratio = 1 - pSlotUpdate->ds_hratio;
 			}
 		}
 		pSlotUpdate = pSlotUpdate->ds_next;
@@ -728,14 +744,14 @@ static void mainframe_arrangeDockingSlots(HWND hwnd) {
 	status_wh(&nWidth, &nStatusHeight);
 	fkey_getKeyboardSize(&nWidth, &nFkeyHeight);
 	rect.top = nToolbarHeight;
-	rect.bottom -= (nFkeyHeight + nStatusHeight + nToolbarHeight);
+	rect.bottom -= (nFkeyHeight + nStatusHeight);
 	DOCKING_SLOT* pSlot = dockingSlots;
 	int dDelta = 3;
 	int width = rect.right - rect.left - dDelta;
 	int height = rect.bottom - rect.top - dDelta;
 	while (pSlot) {
 		MoveWindow(pSlot->ds_hwnd, rect.left + dDelta + (int)(width * pSlot->ds_xratio), rect.top + dDelta + (int)(height * pSlot->ds_yratio),
-			rect.left + (int)(width * pSlot->ds_wratio) - dDelta, rect.top + (int)(height * pSlot->ds_hratio) - dDelta, 1);
+			rect.left + (int)(width * pSlot->ds_wratio) - dDelta, (int)(height * pSlot->ds_hratio) - dDelta, 1);
 		pSlot = pSlot->ds_next;
 	}
 }
@@ -984,7 +1000,6 @@ HWND mainframe_open(int nInstanceCount, HMENU hDefaultMenu) {
 	if (!hwndFrameWindow) {
 		return 0;
 	}
-	ShowWindow(hwndFrameWindow, SW_SHOW);
 	return hwndFrameWindow;
 }
 

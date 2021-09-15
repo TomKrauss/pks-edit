@@ -1,7 +1,7 @@
 [files]
 "C:\source\pksedit\CaretMovement.c", line 1: default
-"C:\source\pksedit\DocumentTypes.c", line 194: default
 "C:\source\pksedit\DocumentModel.c", line 11: default
+"C:\source\pksedit\DocumentTypes.c", line 256: default
 [find]
 !,$
 !"[^,]+, +
