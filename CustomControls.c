@@ -38,32 +38,18 @@ void cust_drawShadow(HDC hdc,RECT *rcp,int odItemState)
 	int			left,right,top,bottom;
 	HPEN		hPen;
 	HPEN		hPenTop;
-	HPEN		hPenBottom;
-	HPEN		hBottomColorPen;
 	THEME_DATA* pData = theme_getDefault();
 
-	hBottomColorPen = CreatePen(PS_SOLID, 0, pData->th_dialogBorder);
-	if ((odItemState & (ODS_FOCUS| ODS_DISABLED)) == ODS_FOCUS) {
-		hPenTop = hBottomColorPen;
-		hPenBottom = CreatePen(PS_SOLID, 1, pData->th_defaultBackgroundColor);
-	} else {
-		hPenBottom = hBottomColorPen;
-		hPenTop = CreatePen(PS_SOLID, 1, pData->th_defaultBackgroundColor);
-	}
+	hPenTop = CreatePen(PS_SOLID, 0, pData->th_dialogBorder);
 	left = rcp->left;
-	right = rcp->right + rcp->left - 1;
+	right = rcp->right + rcp->left;
 	top = rcp->top;
 	bottom = rcp->top+rcp->bottom - 1;
 	hPen = SelectObject(hdc,hPenTop);
-	MoveTo(hdc,right-1,top);
+	MoveTo(hdc,right,top);
 	LineTo(hdc,left,top);
 	LineTo(hdc,left,bottom);
-	DeleteObject(SelectObject(hdc,hPenBottom));
-	MoveTo(hdc,left+1,bottom);
-	LineTo(hdc,right,bottom);
-	LineTo(hdc,right,top);
-	DeleteObject(hPenTop);
-	DeleteObject(hPenBottom);
+	LineTo(hdc,right, bottom);
 	DeleteObject(SelectObject(hdc,hPen));
 }
 
@@ -136,7 +122,6 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 	char 	szBuff[128];
 	THEME_DATA* pTheme = theme_getDefault();
 
-	SetMapMode(hdc,MM_TEXT);
 	hFont = SelectObject(hdc, cust_getSmallEditorFont());
 	if (odItemState & STATE_CHECK) {
 		// (T) control through theme.
@@ -153,10 +138,10 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 	hBrush = CreateSolidBrush(dwColwi);
 	SetBkMode(hdc,TRANSPARENT);
 
-	InflateRect(rcp, -1, -1);
+	//InflateRect(rcp, -2, -2);
 	FillRect(hdc, rcp, hBrush);
 
-	InflateRect(rcp, 1, 1);
+	//InflateRect(rcp, 1, 1);
 	cust_drawShadow(hdc,rcp,odItemState);
 
 	SetTextColor(hdc,dwColtext);

@@ -126,7 +126,7 @@ static void render_fillBuf(char* pszBuf, int fillChar, int nLen) {
  */
 int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long lineNo) {	
 	register int startColumn,i,endColumn,indent,textlen;
-	register unsigned char 	*d,*s,*send;
+	register unsigned char 	*d,*s,*send,*dend;
 	FTABLE* fp = ((FTABLE*)FTPOI(wp));
 	char fillbuf[20];
 	char eofStyles[20];
@@ -149,6 +149,7 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long l
 		render_fillBuf(fillbuf, tabFiller != ' ' && tabFiller && tabFiller != '\t' ? tabFiller : '»', 1);
 	}
 	d = buf;
+	dend = buf + sizeof buf - 1;
 	i = 0;
 	s = lp->lbuf;
 	send = &lp->lbuf[lp->len];
@@ -180,7 +181,7 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long l
 		} else {
 			newstate = RS_CONTROL;
 		}
-		if (newstate != state || fsNext != fsClass) {
+		if (newstate != state || fsNext != fsClass || d >= dend) {
 			textlen = (int)(d - buf);
 			if (textlen > 0) {
 				int x2 = x + textlen * wp->cwidth;

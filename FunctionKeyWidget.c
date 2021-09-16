@@ -132,7 +132,7 @@ EXPORT int fkey_getKeyboardSize(WORD *w, WORD *h)
 	GetWindowRect(hwndFkeys,&rectK);
 	GetClientRect(hwndFkeys,&rectClient);
 	*w = (WORD)(rectK.right - rectK.left) + 1;
-	*h = (WORD)((rectK.bottom - rectK.top) - rectClient.bottom + 1);
+	*h = (WORD)((rectK.bottom - rectK.top) - rectClient.bottom);
 	if (GetConfiguration()->layoutoptions & OL_OPTIONBAR) {
 		*h += _fkoptheight;
 	}
@@ -162,7 +162,7 @@ static int fkey_resizeSubWindow(HWND hwnd, int item, int x, int width, BOOL bOpt
 
 	ScreenToClient(hwnd, (POINT*)&r);
 	r.left = x;
-	MoveWindow(hwndItem, r.left, y+1, width, height, TRUE);
+	MoveWindow(hwndItem, r.left, y, width, height, TRUE);
 	return x + width;
 }
 
@@ -219,12 +219,12 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		nRight = r.right;
 		nDelta = r.right - r.left - 1;
 		if (GetConfiguration()->layoutoptions & OL_FKEYS) {
-			for (x = r.left+1, item = IDD_FKFK1; 
+			for (x = r.left, item = IDD_FKFK1; 
 				item < IDD_FKFK1+nButtons; item++) {
 				x = fkey_resizeSubWindow(hwnd, item, x, (item - IDD_FKFK1+1)*nDelta/nButtons-x, FALSE);
 			}
 		} 
-		for (x = r.left+1, item = IDD_FKFLG1; 
+		for (x = r.left, item = IDD_FKFLG1; 
 			item < IDD_FKFLG1 + nButtons; item++) {
 			x = fkey_resizeSubWindow(hwnd, item, x, 
 				(item - IDD_FKFLG1+1) * nDelta / nButtons - x, TRUE);

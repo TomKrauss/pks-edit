@@ -26,6 +26,7 @@
 #include "winfo.h"
 #include "errordialogs.h"
 #include "xdialog.h"
+#include "mouseutil.h"
 #include "windowselector.h"
 
 extern HINSTANCE		hInst;
@@ -194,7 +195,8 @@ static void tabcontrol_resizeActiveTab(HWND hwnd, TAB_CONTROL* pControl) {
 		if (pPage->tp_hwnd) {
 			RECT rect;
 			GetClientRect(hwnd, &rect);
-			MoveWindow(pPage->tp_hwnd, rect.left, rect.top + pControl->tc_stripHeight, rect.right - rect.left, rect.bottom - rect.top - pControl->tc_stripHeight, TRUE);
+			MoveWindow(pPage->tp_hwnd, rect.left+1, rect.top + pControl->tc_stripHeight+1, 
+					rect.right - rect.left-2, rect.bottom - rect.top - pControl->tc_stripHeight-2, TRUE);
 		}
 	}
 }
@@ -232,12 +234,11 @@ static void tabcontrol_scrollTabs(HWND hwnd, TAB_CONTROL* pControl) {
  */
 static void tabcontrol_selectTab(HWND hwnd, TAB_CONTROL* pControl, int newIdx) {
 	TAB_PAGE* pPage;
+	HWND hwndOld = NULL;
 	if (pControl->tc_activeTab != newIdx) {
 		if (pControl->tc_activeTab >= 0) {
 			pPage = arraylist_get(pControl->tc_pages, pControl->tc_activeTab);
-			if (pPage->tp_hwnd != NULL) {
-				ShowWindow(pPage->tp_hwnd, SW_HIDE);
-			}
+			hwndOld = pPage->tp_hwnd;
 		}
 		pControl->tc_activeTab = newIdx;
 		if (newIdx >= 0) {
@@ -248,6 +249,9 @@ static void tabcontrol_selectTab(HWND hwnd, TAB_CONTROL* pControl, int newIdx) {
 		}
 		tabcontrol_scrollTabs(hwnd, pControl);
 		tabcontrol_repaintTabs(hwnd, pControl);
+	}
+	if (hwndOld != NULL) {
+		ShowWindow(hwndOld, SW_HIDE);
 	}
 }
 
@@ -468,6 +472,24 @@ static void tabcontrol_destroy(TAB_CONTROL* pControl) {
 	free(pControl);
 }
 
+static BOOL tabcontrol_dragTab(HWND hwnd, TAB_PAGE* pPage, int x, int y) {
+	int b = 1;
+	int dummy;
+
+	if (DragDetect(hwnd, (POINT) { x, y })) {
+		SetCapture(hwnd);
+		HCURSOR hCursor = LoadCursor(0, IDC_SIZEALL);
+		SetCursor(hCursor);
+		while (mouse_dispatchUntilButtonRelease(&x, &y, &b, &dummy) && b) {
+		}
+		mouse_setArrowCursor();
+		DeleteObject(hCursor);
+		ReleaseCapture();
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /*
  * Handle tab selection with the mouse. 
  */
@@ -475,6 +497,7 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam) {
 	TAB_CONTROL* pControl = (TAB_CONTROL *) GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 	int x = GET_X_LPARAM(lParam);
 	int y = GET_Y_LPARAM(lParam);
+
 	if (y >= pControl->tc_stripHeight) {
 		return;
 	}
@@ -496,6 +519,9 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam) {
 				}
 			} else {
 				tabcontrol_selectTab(hwnd, pControl, i);
+				if (tabcontrol_dragTab(hwnd, pPage, x, y)) {
+					return;
+				}
 			}
 			break;
 		}
@@ -824,6 +850,8 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		if (hwndRebar) {
 			ShowWindow(hwndRebar, nToolbarHeight ? SW_SHOW : SW_HIDE);
 			SendMessage(hwndRebar, message, wParam, lParam);
+			MoveWindow(hwndRebar, rect.left, 0,
+				rect.right-rect.left, nToolbarHeight, 1);
 		}
 		if (hwndFkeys) {
 			ShowWindow(hwndFkeys, TRUE);

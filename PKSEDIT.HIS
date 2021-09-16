@@ -1,7 +1,8 @@
 [files]
 "C:\source\pksedit\CaretMovement.c", line 1: default
 "C:\source\pksedit\DocumentModel.c", line 11: default
-"C:\source\pksedit\DocumentTypes.c", line 256: default
+"C:\source\pksedit\DocumentTypes.c", line 1: default
+"C:\source\trend-master-eclipse-4.20\trend\bin\make.bat", line 45: default
 [find]
 !,$
 !"[^,]+, +
@@ -89,7 +90,6 @@
 !C:\source\trend-master-eclipse-4.20\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
 !C:\source\*.*
 !C:\source\pksedit\pks_sys\*.*
-!C:\source\trend-master-eclipse-4.20\trend\bin\*.*
 !C:\source\rp-template3-master\ws\rp\templates\three\application\rp-application-mobile-self-checkout-app\lib\bloc\*.*
 !C:\source\mx-graph-modeller\ui\src\app\*.*
 !C:\source\mx-graph-modeller\ui\src\*.*
@@ -113,3 +113,4 @@
 !C:\source\pksedit\en-US\*.*
 !C:\temp\*.*
 !C:\source\pksedit\*.*
+!C:\source\trend-master-eclipse-4.20\trend\bin\*.*

@@ -77,8 +77,8 @@ void tb_wh(WORD *width, WORD *height)
 		return;
 	}
 	GetWindowRect(hwndRebar, &rect);
-	*width = (WORD)(rect.right - rect.left) + 1;
-	*height = (WORD)(rect.bottom - rect.top) + 1;
+	*width = (WORD)(rect.right - rect.left);
+	*height = (WORD)(rect.bottom - rect.top);
 }
 
 static void tb_updateColors() {

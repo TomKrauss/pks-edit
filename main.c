@@ -217,7 +217,6 @@ static void checkCommonControlLibraryVersion() {
  * InitInstance()
  */
 static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
-	WINDOWPLACEMENT 	ws;
 	char				szTitle[64];
 	wchar_t				szwLocale[64];
 	char				szLocale[64];
@@ -254,6 +253,14 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
 		// Maximimized state / etc is restored from INI file in that case.
 		nCmdShow = SW_SHOW;
 	}
+	return TRUE;
+}
+
+/*
+ * Restore the previously saved size and make PKS Edit visible. 
+ */
+static void main_restoreSizeAndMakeVisible() {
+	WINDOWPLACEMENT 	ws;
 	if (prof_getwinstate("DeskWin", 0, &ws)) {
 		RECT rect;
 		SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
@@ -269,10 +276,10 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
 		if (ws.rcNormalPosition.top < rect.top) {
 			ws.rcNormalPosition.top = rect.top;
 		}
-		ws.showCmd = SW_HIDE;
 		SetWindowPlacement(hwndMain, &ws);
+	} else {
+		ShowWindow(hwndMain, SW_SHOW);
 	}
-	return TRUE;
 }
 
 static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
@@ -410,13 +417,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	if (!ww_getNumberOfOpenWindows() && _runInteractive) {
 		EdEditFile(0L,(char*)0);
 	}
-	/* show client window now! */
-	WINDOWPLACEMENT ws;
-	UINT showCmd = SW_SHOW;
-	if (prof_getwinstate("DeskWin", 0, &ws)) {
-		showCmd = ws.showCmd;
-	}
-	ShowWindow(hwndMain, showCmd);
+	/* show PKS Edit now! */
+	main_restoreSizeAndMakeVisible();
 	return mainframe_messageLoop();
 
 }
