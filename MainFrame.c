@@ -73,6 +73,7 @@ typedef struct tagDOCKING_SLOT {
 	float ds_wratio;
 	float ds_hratio;
 	char ds_name[20];
+	RECT ds_resizeRect;
 } DOCKING_SLOT;
 
 typedef struct tagTAB_PAGE {
@@ -103,6 +104,11 @@ static char* szDefaultSlotName = "default";
 
 
 static DOCKING_SLOT* mainframe_addDockingSlot(DOCKING_SLOT_TYPE dsType, HWND hwnd, char* pszName, float xRatio, float yRatio, float wRatio, float hRatio);
+
+/*
+ * "Scroll" the tabs to make the active tab fully visible.
+ */
+static void tabcontrol_scrollTabs(HWND hwnd, TAB_CONTROL* pControl);
 
 /*
  * Resize our "docking slots" depending on their given ratios
@@ -417,13 +423,16 @@ static int tabcontrol_selectPage(HWND hwnd, HWND hwndPage) {
 /*
  * Add a new window with a given tab button to select it. 
  */
-static int tabcontrol_addTab(HWND hwnd, char* pszTitle, HWND hwndTab) {
+static int tabcontrol_addTab(HWND hwnd, HWND hwndTab) {
+	char szTitle[128];
 	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 	TAB_PAGE* pData = calloc(1, sizeof * pData);
 	int idx = (int)arraylist_size(pControl->tc_pages);
 	arraylist_add(pControl->tc_pages, pData);
 	pData->tp_hwnd = hwndTab;
-	pData->tp_width = 30 + (int)strlen(pszTitle) * 8;
+	GetWindowText(hwndTab, szTitle, sizeof szTitle);
+	// Rough estimate for now - the correct size is measured later in repaint.
+	pData->tp_width = 30 + (int)strlen(szTitle) * 7;
 	RECT rect;
 	GetClientRect(hwndTab, &rect);
 	rect.bottom = rect.top + pControl->tc_stripHeight;
@@ -680,7 +689,7 @@ static void tabcontrol_dragOver(TAB_CONTROL* pSource) {
  */
 static void tabcontrol_moveTab(TAB_CONTROL* pSource, TAB_CONTROL*pTarget, TAB_PAGE* pPage) {
 	SetParent(pPage->tp_hwnd, pTarget->tc_hwnd);
-	tabcontrol_addTab(pTarget->tc_hwnd, "", pPage->tp_hwnd);
+	tabcontrol_addTab(pTarget->tc_hwnd, pPage->tp_hwnd);
 	tabcontrol_removeTab(pSource, pPage);
 }
 
@@ -942,7 +951,7 @@ HWND mainframe_addWindow(const char*pszPreferredSlot, const char* pszChildWindow
 	if (hwnd == NULL) {
 		return 0;
 	}
-	tabcontrol_addTab(pSlot->ds_hwnd, (char*)pszTitle, hwnd);
+	tabcontrol_addTab(pSlot->ds_hwnd, hwnd);
 	return hwnd;
 }
 
@@ -1005,12 +1014,39 @@ static void mainframe_arrangeDockingSlots(HWND hwnd) {
 	rect.top = nToolbarHeight;
 	rect.bottom -= (nFkeyHeight + nStatusHeight);
 	DOCKING_SLOT* pSlot = dockingSlots;
-	int dDelta = 3;
+	int dDelta = 5;
 	int width = rect.right - rect.left - dDelta;
 	int height = rect.bottom - rect.top - dDelta;
 	while (pSlot) {
-		MoveWindow(pSlot->ds_hwnd, rect.left + dDelta + (int)(width * pSlot->ds_xratio), rect.top + dDelta + (int)(height * pSlot->ds_yratio),
-			rect.left + (int)(width * pSlot->ds_wratio) - dDelta, (int)(height * pSlot->ds_hratio) - dDelta, 1);
+		int x = rect.left + dDelta + (int)(width * pSlot->ds_xratio);
+		int y = rect.top + dDelta + (int)(height * pSlot->ds_yratio);
+		int w = (int)(width * pSlot->ds_wratio) - dDelta;
+		int h = (int)(height * pSlot->ds_hratio) - dDelta;
+		pSlot->ds_resizeRect = (RECT){ 0,0,0,0 };
+		MoveWindow(pSlot->ds_hwnd, x, y, w, h, 1);
+		pSlot = pSlot->ds_next;
+	}
+	pSlot = dockingSlots;
+	while (pSlot) {
+		DOCKING_SLOT* pSibblingSlot = dockingSlots;
+		RECT rc1;
+		GetWindowRect(pSlot->ds_hwnd, &rc1);
+		while (pSibblingSlot) {
+			if (pSibblingSlot != pSlot) {
+				RECT rc2;
+				GetWindowRect(pSibblingSlot->ds_hwnd, &rc2);
+				if (pSibblingSlot->ds_xratio == pSlot->ds_xratio) {
+					if (pSibblingSlot->ds_yratio > pSlot->ds_yratio) {
+						pSlot->ds_resizeRect = (RECT){ rc1.left, rc1.bottom, rc2.right, rc2.top };
+					}
+				} else if (pSibblingSlot->ds_yratio == pSlot->ds_yratio) {
+					if (pSibblingSlot->ds_xratio < pSlot->ds_xratio) {
+						pSlot->ds_resizeRect = (RECT){ rc2.right, rc1.top, rc1.left, rc1.bottom };
+					}
+				}
+			}
+			pSibblingSlot = pSibblingSlot->ds_next;
+		}
 		pSlot = pSlot->ds_next;
 	}
 }
@@ -1141,6 +1177,32 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			macro_assignAcceleratorTextOnMenu((HMENU)wParam);
 		}
 		break;
+
+	case WM_SETCURSOR: {
+		WORD ncTest = LOWORD(lParam);
+		if (ncTest == HTBOTTOM) {
+			mouse_setSizeNSCursor();
+		} else if (ncTest == HTRIGHT) {
+			mouse_setSizeWECursor();
+		} else {
+			mouse_setArrowCursor();
+		}
+		return TRUE;
+	}
+	case WM_NCHITTEST: {
+		POINT pt;
+		pt.x = GET_X_LPARAM(lParam);
+		pt.y = GET_Y_LPARAM(lParam);
+		DOCKING_SLOT* pSlot = dockingSlots;
+		while (pSlot) {
+			if (PtInRect(&pSlot->ds_resizeRect, pt)) {
+				return pSlot->ds_resizeRect.right - pSlot->ds_resizeRect.left > pSlot->ds_resizeRect.bottom - pSlot->ds_resizeRect.top ?
+					HTBOTTOM : HTRIGHT;
+			}
+			pSlot = pSlot->ds_next;
+		}
+		break;
+	}
 
 	case WM_NOTIFY:
 		switch (((LPNMHDR)lParam)->code) {

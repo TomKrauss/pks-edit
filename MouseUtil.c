@@ -34,6 +34,8 @@ static HCURSOR   hArrowCursor;	// Pointer cursor
 static HCURSOR   hHandPointer;		// Hand pointer cursor
 static HCURSOR   hHourGlass;		// Hour glass cursor
 static HCURSOR   hDefaultCurs;
+static HCURSOR	 hSizeNSCursor;
+static HCURSOR	 hSizeWECursor;
 
 extern HWND 	ic_findChildFromPoint(HWND hwnd, POINT *point);
 
@@ -285,6 +287,28 @@ EXPORT void mouse_setArrowCursor(void) {
 		hArrowCursor = LoadCursor(NULL, IDC_ARROW);
 	}
 	SetCursor(hArrowCursor);
+}
+
+/*------------------------------------------------------------
+ * mouse_setSizeWECursor()
+ * Display a sizewe cursor.
+ */
+EXPORT void mouse_setSizeWECursor(void) {
+	if (hSizeWECursor == NULL) {
+		hSizeWECursor = LoadCursor(NULL, IDC_SIZEWE);
+	}
+	SetCursor(hSizeWECursor);
+}
+
+/*------------------------------------------------------------
+ * mouse_setSizeNSCursor()
+ * Display a sizens cursor.
+ */
+EXPORT void mouse_setSizeNSCursor(void) {
+	if (hSizeNSCursor == NULL) {
+		hSizeNSCursor = LoadCursor(NULL, IDC_SIZENS);
+	}
+	SetCursor(hSizeNSCursor);
 }
 
 /*------------------------------------------------------------
