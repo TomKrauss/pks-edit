@@ -1,8 +1,9 @@
 [files]
+"C:\source\pksedit\DocumentModel.c", line 2: rightSlot
 "C:\source\pksedit\CaretMovement.c", line 1: default
-"C:\source\pksedit\DocumentModel.c", line 11: default
-"C:\source\pksedit\DocumentTypes.c", line 1: default
-"C:\source\trend-master-eclipse-4.20\trend\bin\make.bat", line 45: default
+"C:\source\trend-master-eclipse-4.20\trend\bin\make.bat", line 21: default
+"C:\source\trend-master-eclipse-4.20\trend\bin\make.bat", line 1: rightSlot
+"C:\source\pksedit\DocumentTypes.c", line 433: default
 [find]
 !,$
 !"[^,]+, +

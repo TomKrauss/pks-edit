@@ -16,7 +16,7 @@
 
 #include <windows.h>
 #include <dos.h>
-
+#include <stdio.h>
 #include "trace.h"
 #include "linkedlist.h"
 #include "lineoperations.h"
@@ -68,6 +68,7 @@ extern void main_saveFrameState();
 static char _pksEditIniFilename[512];
 static FSELINFO _setfselinfo = { ".", "PKSEDIT.INI", "*.INI" };
 static char *_desk = "desk";
+static char* _mainframeDock = "mainframeDock";
 static char *_cxscreen = "CXScreen";
 static char *_cyscreen = "CYScreen";
 
@@ -223,6 +224,33 @@ int prof_savewinstate(char *wname, int nr, WINDOWPLACEMENT *wsp)
 	prof_printws(string, wsp);
 	return
 		prof_savestring(_desk,ident,string);
+}
+
+/*
+ * Save the placement of a mainframe docking slot. 
+ */
+int prof_saveDockingPlacement(int aNumber, char* pszDockName, float x, float y, float w, float h) {
+	char	string[256];
+	char	szIdent[20];
+
+	sprintf(string, "%s %.2f %.2f %.2f %.2f", pszDockName, x, y, w, h);
+	sprintf(szIdent, "%s%d", _mainframeDock, aNumber);
+	prof_savestring(_desk, szIdent, string);
+	sprintf(szIdent, "%s%d", _mainframeDock, aNumber+1);
+	return prof_savestring(_desk, szIdent, NULL);
+}
+
+/*
+ * Read the placement of a mainframe docking slot.
+ */
+int prof_readDockingPlacement(int aNumber, char* pszDockName, float* x, float* y, float* w, float* h) {
+	char	string[256];
+	char	szIdent[20];
+	wsprintf(szIdent, "%s%d", _mainframeDock, aNumber);
+	if (!prof_getPksProfileString(_desk, szIdent, string, sizeof string - 1)) {
+		return 0;
+	}
+	return sscanf(string, "%s %f %f %f %f", pszDockName, x, y, w, h) == 5;
 }
 
 /*------------------------------------------------------------

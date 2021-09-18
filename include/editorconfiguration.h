@@ -113,6 +113,16 @@ extern int prof_killentry(char* grp, char* ident);
  */
 extern int prof_savewinstate(char* wname, int nr, WINDOWPLACEMENT* wsp);
 
+/*
+ * Save the placement of a mainframe docking slot.
+ */
+extern int prof_saveDockingPlacement(int aNumber, char* pszDockName, float x, float y, float w, float h);
+
+/*
+ * Read the placement of a mainframe docking slot.
+ */
+extern int prof_readDockingPlacement(int aNumber, char* pszDockName, float* x, float* y, float* w, float* h);
+
 /*------------------------------------------------------------
  * prof_savelong()
  */

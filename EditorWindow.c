@@ -162,9 +162,7 @@ void wt_tcursor(WINFO *wp,int type)
  * wt_scrollxy()
  * Scroll the current window by a number of lines and columns.
  */
-void wt_scrollxy(WINFO *wp,int nlines, int ncolumns)
-{
-     EdTRACE(log_errorArgs(DEBUG_TRACE,"wt_scrollxy (%lx,%d,%d)",wp,nlines,ncolumns));
+void wt_scrollxy(WINFO *wp,int nlines, int ncolumns) {
 	 int yDelta = -nlines * wp->cheight;
 	 ScrollWindowEx(wp->ww_handle,-ncolumns*wp->cwidth,yDelta,
 			   (LPRECT)0,(LPRECT)0,(HRGN)0,(LPRECT)0, SW_INVALIDATE);

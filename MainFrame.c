@@ -13,7 +13,9 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
+#include <math.h>
 #include "arraylist.h"
+#include "trace.h"
 #include "linkedlist.h"
 #include "edfuncs.h"
 #include "winterf.h"
@@ -59,7 +61,6 @@ extern void main_cleanup(void);
 
 #define CLOSER_SIZE			16
 #define CLOSER_DISTANCE		8
-#define DEFAULT_SLOT_NAME	"default"
 
 typedef enum { DS_EDIT_WINDOW, DS_OTHER } DOCKING_SLOT_TYPE;
 
@@ -75,13 +76,13 @@ typedef struct tagDOCKING_SLOT {
 } DOCKING_SLOT;
 
 typedef struct tagTAB_PAGE {
-	int	  tp_index;
 	HWND  tp_hwnd;
 	int	  tp_width;
 } TAB_PAGE;
 
 typedef struct tagTAB_CONTROL {
 	ARRAY_LIST* tc_pages;
+	HWND		tc_hwnd;
 	int			tc_firstTabOffset;
 	int			tc_stripHeight;
 	int			tc_firstVisibleTab;
@@ -91,17 +92,92 @@ typedef struct tagTAB_CONTROL {
 
 const char *szFrameClass = "PKSEditMainFrame";
 static const char* szTabClass = "PKSEditTabControl";
+static const char* szDragProxyClass = "PKSDragProxyControl";
 
+static TAB_CONTROL* currentDropTarget;
 static DOCKING_SLOT* dockingSlots;
 static HWND  hwndFrameWindow;
 static HICON defaultIcon;
 static void* _executeKeyBinding;
+static char* szDefaultSlotName = "default";
+
+
+static DOCKING_SLOT* mainframe_addDockingSlot(DOCKING_SLOT_TYPE dsType, HWND hwnd, char* pszName, float xRatio, float yRatio, float wRatio, float hRatio);
+
 /*
  * Resize our "docking slots" depending on their given ratios
  */
 static void mainframe_arrangeDockingSlots(HWND hwnd);
+/*
+ * Paint one tab of the tabstrip of our tab control displaying the edit tabs.
+ */
+static void tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL bRollover, int x, int y, int height);
+
+/*
+ * Move a tab from one tab control to another.
+ */
+static void tabcontrol_moveTab(TAB_CONTROL* pSource, TAB_CONTROL* pTarget, TAB_PAGE* pPage);
 
 #define GWLP_TAB_CONTROL		0
+
+/*
+ * Paint the drag proxy. 
+ */
+static void dragproxy_paint(HWND hwnd, PAINTSTRUCT* ps) {
+	TAB_PAGE *pPage = (TAB_PAGE*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
+	RECT rect;
+	GetClientRect(hwnd, &rect);
+	tabcontrol_paintTab(ps->hdc, pPage, TRUE, FALSE, 0, rect.top, rect.bottom - rect.top);
+}
+
+/*
+ * Window procedure of the drag proxy window, which represents a dragged tab.
+ */
+static LRESULT dragproxy_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	PAINTSTRUCT ps;
+
+	switch (message) {
+	case WM_CREATE: {
+		LPCREATESTRUCT pStruct = (LPCREATESTRUCT)lParam;
+		SetWindowLongPtr(hwnd, GWLP_TAB_CONTROL, (LONG_PTR)pStruct->lpCreateParams);
+		break;
+	}
+
+	case WM_NCHITTEST:
+		return HTTRANSPARENT;
+
+	case WM_PAINT:
+		BeginPaint(hwnd, &ps);
+		dragproxy_paint(hwnd, &ps);
+		EndPaint(hwnd, &ps);
+		return FALSE;
+
+	case WM_ERASEBKGND:
+		return FALSE;
+
+	case WM_DESTROY:
+		SetWindowLongPtr(hwnd, GWLP_TAB_CONTROL, (LONG_PTR)NULL);
+		return 0;
+	}
+	return DefWindowProc(hwnd, message, wParam, lParam);
+}
+
+/*
+ * Opens a drag-proxy for a tab to be dragged around the screen. 
+ */
+static HWND dragproxy_open(RECT* pRect, TAB_PAGE *pPage) {
+	static HWND hwndProxy;
+
+	if (hwndProxy == NULL) {
+		hwndProxy = CreateWindow(szDragProxyClass, "", WS_CHILD, 0, 0, 10, 10, hwndFrameWindow, NULL, hInst, pPage);
+		SetWindowPos(hwndProxy, HWND_TOPMOST, 0, 0, 0, 0, 0);
+	} else {
+		SetWindowLongPtr(hwndProxy, GWLP_TAB_CONTROL, (LONG_PTR)pPage);
+	}
+	MoveWindow(hwndProxy, pRect->left, pRect->top, pRect->right - pRect->left, pRect->bottom - pRect->top, TRUE);
+	ShowWindow(hwndProxy, SW_SHOW);
+	return hwndProxy;
+}
 
 /*
  * Check, whether the dock displaying the HWND is closeable.
@@ -122,6 +198,82 @@ static BOOL mainframe_isCloseableDock(HWND hwnd) {
 }
 
 /*
+ * Returns a docking slot with a given name or NULL if the slot does not exist.
+ */
+static DOCKING_SLOT* mainframe_getSlot(const char* pszName) {
+	DOCKING_SLOT* pSlot = dockingSlots;
+	if (pszName == NULL) {
+		pszName = szDefaultSlotName;
+	}
+	while (pSlot) {
+		if (strcmp(pszName, pSlot->ds_name) == 0) {
+			return pSlot;
+		}
+		pSlot = pSlot->ds_next;
+	}
+	return NULL;
+}
+
+/*
+ * Resize the default edit docking slots when  a new docking slot is created or when a docking slot is closed.
+ */
+static void mainframe_applyDefaultSlotSizes() {
+	DOCKING_SLOT* pDefaultSlot = mainframe_getSlot(szDefaultSlotName);
+	DOCKING_SLOT* pRightSlot = mainframe_getSlot(DOCK_NAME_RIGHT);
+	DOCKING_SLOT* pBottomSlot = mainframe_getSlot(DOCK_NAME_BOTTOM);
+
+	float height = pBottomSlot ? 0.5f : 1.0f;
+	if (pDefaultSlot != NULL) {
+		pDefaultSlot->ds_xratio = 0;
+		pDefaultSlot->ds_yratio = 0;
+		pDefaultSlot->ds_hratio = height;
+		pDefaultSlot->ds_wratio = pRightSlot != NULL ? 0.5f : 1.0f;
+	}
+	if (pRightSlot != NULL) {
+		pRightSlot->ds_wratio = pDefaultSlot != NULL ? 0.5f : 1.0f;
+		pRightSlot->ds_xratio = pDefaultSlot != NULL ? 0.5f : 0.0f;
+		pRightSlot->ds_yratio = 0;
+		pRightSlot->ds_hratio = height;
+	}
+	if (pBottomSlot != NULL) {
+		pBottomSlot->ds_wratio = 1;
+		pBottomSlot->ds_hratio = (pDefaultSlot != NULL || pRightSlot != NULL) ? 0.5f : 1.0f;
+		pBottomSlot->ds_xratio = 0;
+		pBottomSlot->ds_yratio = (pDefaultSlot != NULL || pRightSlot != NULL) ? 0.5f : 0.0f;
+	}
+}
+
+/*
+ * Restore the docking layout, when the mainframe is created. 
+ */
+static void mainframe_readDocks(HWND hwnd) {
+	char szName[32];
+	float x, y, w, h;
+
+	for (int i = 0; 1; i++) {
+		if (!prof_readDockingPlacement(i, szName, &x, &y, &w, &h)) {
+			break;
+		}
+		mainframe_addDockingSlot(DS_EDIT_WINDOW, hwnd, szName, x, y, w, h);
+	}
+	if (!dockingSlots) {
+		mainframe_addDockingSlot(DS_EDIT_WINDOW, hwnd, szDefaultSlotName, 0.0, 0.0, 1.0f, 1.0f);
+	}
+}
+
+/*
+ * Saves all docking window positions.
+ */
+static void mainframe_saveDocks() {
+	DOCKING_SLOT* pSlot = dockingSlots;
+	for (int i = 0; pSlot != NULL; i++, pSlot = pSlot->ds_next) {
+		if (!prof_saveDockingPlacement(i, pSlot->ds_name, pSlot->ds_xratio, pSlot->ds_yratio, pSlot->ds_wratio, pSlot->ds_hratio)) {
+			break;
+		}
+	}
+}
+
+/*
  * Close the dock containing the window passed. If the dock closed is an edit dock,
  * migrate all child windows of that dock to another dock.
  */
@@ -136,44 +288,34 @@ static void mainframe_closeDock(HWND hwnd) {
 	if (pSlot == NULL) {
 		return;
 	}
+	EdTRACE(log_errorArgs(DEBUG_TRACE, "Closing dock %s", pSlot->ds_name));
 	DOCKING_SLOT* pSlotUpdate = dockingSlots;
-	// Resize remaining slots to fill in space.
+	DOCKING_SLOT* pSlotDefault = dockingSlots;
 	while (pSlotUpdate) {
 		if (pSlotUpdate == pSlot) {
 			pSlotUpdate = pSlotUpdate->ds_next;
 			continue;
 		}
-		if (pSlotUpdate->ds_yratio == pSlot->ds_yratio) {
-			pSlotUpdate->ds_wratio += pSlot->ds_wratio;
-			if (pSlotUpdate->ds_xratio > pSlot->ds_xratio) {
-				pSlotUpdate->ds_xratio = pSlot->ds_xratio;
-			}
-			if (pSlotUpdate->ds_wratio > 1) {
-				pSlotUpdate->ds_wratio = 1;
-			}
-			if (pSlotUpdate->ds_wratio + pSlotUpdate->ds_xratio > 1) {
-				pSlotUpdate->ds_xratio = 1 - pSlotUpdate->ds_wratio;
-			}
-		} else if (pSlotUpdate->ds_xratio == pSlot->ds_xratio) {
-			pSlotUpdate->ds_hratio += pSlot->ds_hratio;
-			if (pSlotUpdate->ds_yratio > pSlot->ds_yratio) {
-				pSlotUpdate->ds_yratio = pSlot->ds_yratio;
-			}
-			if (pSlotUpdate->ds_hratio > 1) {
-				pSlotUpdate->ds_hratio = 1;
-			}
-			if (pSlotUpdate->ds_hratio + pSlotUpdate->ds_yratio > 1) {
-				pSlotUpdate->ds_yratio = 1 - pSlotUpdate->ds_hratio;
-			}
+		if (strcmp(szDefaultSlotName, pSlotUpdate->ds_name) == 0 || (pSlotUpdate->ds_type == DS_EDIT_WINDOW && pSlotDefault == NULL)) {
+			pSlotDefault = pSlotUpdate;
 		}
 		pSlotUpdate = pSlotUpdate->ds_next;
 	}
 	if (pSlot->ds_type == DS_EDIT_WINDOW) {
-		// (T) migrate contained windows to other dock.
+		// Migrate contained windows to other dock.
+		TAB_CONTROL* pSource = (TAB_CONTROL*) GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
+		TAB_CONTROL* pTarget = (TAB_CONTROL*) GetWindowLongPtr(pSlotDefault->ds_hwnd, GWLP_TAB_CONTROL);
+		if (pSource && pTarget) {
+			while (pSource->tc_activeTab >= 0) {
+				tabcontrol_moveTab(pSource, pTarget, arraylist_get(pSource->tc_pages, pSource->tc_activeTab));
+			}
+		}
 	}
 	DestroyWindow(hwnd);
 	ll_delete(&dockingSlots, pSlot);
+	mainframe_applyDefaultSlotSizes();
 	mainframe_arrangeDockingSlots(hwndFrameWindow);
+	mainframe_saveDocks();
 }
 
 /*
@@ -280,7 +422,6 @@ static int tabcontrol_addTab(HWND hwnd, char* pszTitle, HWND hwndTab) {
 	TAB_PAGE* pData = calloc(1, sizeof * pData);
 	int idx = (int)arraylist_size(pControl->tc_pages);
 	arraylist_add(pControl->tc_pages, pData);
-	pData->tp_index = idx;
 	pData->tp_hwnd = hwndTab;
 	pData->tp_width = 30 + (int)strlen(pszTitle) * 8;
 	RECT rect;
@@ -289,6 +430,18 @@ static int tabcontrol_addTab(HWND hwnd, char* pszTitle, HWND hwndTab) {
 	tabcontrol_selectTab(hwnd, pControl, idx);
 	RedrawWindow(hwndTab, &rect, NULL, RDW_ERASE);
 	return 1;
+}
+
+/*
+ * Add a new window with a given tab button to select it.
+ */
+static void tabcontrol_removeTab(TAB_CONTROL *pControl, TAB_PAGE *pPage) {
+	arraylist_remove(pControl->tc_pages, pPage);
+	free(pPage);
+	size_t nPages = arraylist_size(pControl->tc_pages);
+	pControl->tc_activeTab = -1;
+	tabcontrol_selectTab(pControl->tc_hwnd, pControl, (int)(nPages-1));
+	tabcontrol_repaintTabs(pControl->tc_hwnd, pControl);
 }
 
 /*
@@ -339,7 +492,7 @@ static void tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	RECT rect;
 	
 	if (!pPage->tp_hwnd) {
-		sprintf(szBuffer, "Buffer %d", pPage->tp_index);
+		sprintf(szBuffer, "Page");
 	} else {
 		GetWindowText(pPage->tp_hwnd, szBuffer, sizeof szBuffer);
 	}
@@ -440,6 +593,14 @@ static void tabcontrol_paintTabs(HWND hwnd, PAINTSTRUCT* ps, TAB_CONTROL* pContr
 		xMax -= CLOSER_SIZE - 2*CLOSER_DISTANCE;
 	}
 	FillRect(ps->hdc, &rect, hBrush);
+	if (pControl == currentDropTarget) {
+		HPEN hPen = CreatePen(PS_SOLID, 3, pTheme->th_dialogActive);
+		HPEN hPenOld = SelectObject(ps->hdc, hPen);
+		MoveTo(ps->hdc, rect.left, rect.top+1);
+		LineTo(ps->hdc, rect.right-1, rect.top+1);
+		LineTo(ps->hdc, rect.right-1, rect.bottom);
+		DeleteObject(SelectObject(ps->hdc, hPenOld));
+	}
 	rect.top += pControl->tc_stripHeight;
 	FrameRect(ps->hdc, &rect, hBorderBrush);
 	rect.top -= pControl->tc_stripHeight;
@@ -472,16 +633,98 @@ static void tabcontrol_destroy(TAB_CONTROL* pControl) {
 	free(pControl);
 }
 
-static BOOL tabcontrol_dragTab(HWND hwnd, TAB_PAGE* pPage, int x, int y) {
+/*
+ * Mark a tab control as drop target.
+ */
+static void tabcontrol_setAcceptDrop(HWND hwnd, BOOL aFlag) {
+	TAB_CONTROL* pControl = hwnd == NULL ? NULL: (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
+	if (pControl == currentDropTarget) {
+		return;
+	}
+	if (currentDropTarget) {
+		InvalidateRect(currentDropTarget->tc_hwnd, NULL, TRUE);
+	}
+	if (pControl) {
+		InvalidateRect(pControl->tc_hwnd, NULL, TRUE);
+	}
+	currentDropTarget = pControl;
+}
+
+/*
+ * Check, whether a new dock tab control is under the mouse cursor during a drag op. 
+ */
+static void tabcontrol_dragOver(TAB_CONTROL* pSource) {
+	POINT point;
+	HWND hwnd;
+	char szName[40];
+
+	GetCursorPos(&point);
+	hwnd = WindowFromPoint(point);
+	while (hwnd) {
+		GetClassName(hwnd, szName, sizeof szName);
+		if (strcmp(szName, szTabClass) == 0) {
+			TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
+			if (pControl != pSource) {
+				tabcontrol_setAcceptDrop(hwnd, TRUE);
+				return;
+			}
+			break;
+		}
+		hwnd = GetParent(hwnd);
+	}
+	tabcontrol_setAcceptDrop(NULL, FALSE);
+}
+
+/*
+ * Move a tab from one tab control to another. 
+ */
+static void tabcontrol_moveTab(TAB_CONTROL* pSource, TAB_CONTROL*pTarget, TAB_PAGE* pPage) {
+	SetParent(pPage->tp_hwnd, pTarget->tc_hwnd);
+	tabcontrol_addTab(pTarget->tc_hwnd, "", pPage->tp_hwnd);
+	tabcontrol_removeTab(pSource, pPage);
+}
+
+/*
+ * A tab of a tab control was dropped on another tab control. Migrate the tab to the new control.
+ * if 'bAccept' is FALSE, cancel the operation.
+ */
+static void tabcontrol_drop(TAB_CONTROL* pSource, TAB_PAGE *pDroppedPage, BOOL bAccept) {
+	if (bAccept && currentDropTarget) {
+		tabcontrol_moveTab(pSource, currentDropTarget, pDroppedPage);
+	}
+	tabcontrol_setAcceptDrop(NULL, FALSE);
+}
+
+/*
+ * Drag a tab across the screen to a potential new tab. 
+ */
+static BOOL tabcontrol_dragTab(HWND hwnd, TAB_CONTROL* pControl, TAB_PAGE* pPage, int x, int y) {
 	int b = 1;
 	int dummy;
+	HWND hwndProxy;
 
 	if (DragDetect(hwnd, (POINT) { x, y })) {
 		SetCapture(hwnd);
 		HCURSOR hCursor = LoadCursor(0, IDC_SIZEALL);
 		SetCursor(hCursor);
+		RECT rect;
+		rect.left = x;
+		rect.top = y;
+		rect.right = pPage->tp_width + rect.left;
+		rect.bottom = rect.top + pControl->tc_stripHeight;
+		hwndProxy = dragproxy_open(&rect, pPage);
 		while (mouse_dispatchUntilButtonRelease(&x, &y, &b, &dummy) && b) {
+			POINT p = { x,y };
+			ClientToScreen(hwnd, &p);
+			ScreenToClient(hwndFrameWindow, &p);
+			x = p.x;
+			y = p.y;
+			MoveWindow(hwndProxy, x - pPage->tp_width / 2, y - pControl->tc_stripHeight / 2, pPage->tp_width, pControl->tc_stripHeight, TRUE);
+			InvalidateRect(hwndProxy, NULL, FALSE);
+			tabcontrol_dragOver(pControl);
 		}
+		tabcontrol_drop(pControl, pPage, TRUE);
+		ShowWindow(hwndProxy, SW_HIDE);
 		mouse_setArrowCursor();
 		DeleteObject(hCursor);
 		ReleaseCapture();
@@ -493,7 +736,7 @@ static BOOL tabcontrol_dragTab(HWND hwnd, TAB_PAGE* pPage, int x, int y) {
 /*
  * Handle tab selection with the mouse. 
  */
-static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam) {
+static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam, BOOL bDrag) {
 	TAB_CONTROL* pControl = (TAB_CONTROL *) GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 	int x = GET_X_LPARAM(lParam);
 	int y = GET_Y_LPARAM(lParam);
@@ -502,7 +745,7 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam) {
 		return;
 	}
 	RECT closerRect;
-	if (tabcontrol_getDockingCloserRect(hwnd, pControl, &closerRect) && PtInRect(&closerRect, (POINT) { x, y })) {
+	if (tabcontrol_getDockingCloserRect(hwnd, pControl, &closerRect) && PtInRect(&closerRect, (POINT) { x, y }) && !bDrag) {
 		mainframe_closeDock(hwnd);
 		return;
 	}
@@ -518,9 +761,10 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam) {
 					PostMessage(pPage->tp_hwnd, WM_CLOSE, 0, 0l);
 				}
 			} else {
-				tabcontrol_selectTab(hwnd, pControl, i);
-				if (tabcontrol_dragTab(hwnd, pPage, x, y)) {
-					return;
+				if (bDrag) {
+					tabcontrol_dragTab(hwnd, pControl, pPage, x, y);
+				} else {
+					tabcontrol_selectTab(hwnd, pControl, i);
 				}
 			}
 			break;
@@ -593,19 +837,16 @@ static void tabcontrol_closed(HWND hwnd, HWND hwndChild) {
 			break;
 		}
 	}
-	len = arraylist_size(pControl->tc_pages);
-	for (int i = 0; i < len; i++) {
-		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
-		pPage->tp_index = i;
-	}
 	tabcontrol_repaintTabs(hwnd, pControl);
 }
+
 /*
  * Window procedure of the main frame window.
  */
 static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	TAB_CONTROL* pControl;
 	PAINTSTRUCT ps;
+	static POINT ptDown;
 
 	switch (message) {
 	case WM_CREATE:
@@ -615,11 +856,14 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 		pControl->tc_activeTab = -1;
 		pControl->tc_rolloverTab = -1;
 		pControl->tc_firstTabOffset = 5;
+		pControl->tc_hwnd = hwnd;
 		SetWindowLongPtr(hwnd, GWLP_TAB_CONTROL, (LONG_PTR)pControl);
 		break;
 
-	case WM_LBUTTONDOWN: 
-		tabcontrol_handleButtonDown(hwnd, lParam);
+	case WM_LBUTTONDOWN:
+		tabcontrol_handleButtonDown(hwnd, lParam, FALSE);
+		ptDown.x = GET_X_LPARAM(lParam);
+		ptDown.y = GET_Y_LPARAM(lParam);
 		break;
 
 	case WM_MOUSELEAVE:
@@ -630,7 +874,13 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 		POINT p;
 		p.x = GET_X_LPARAM(lParam);
 		p.y = GET_Y_LPARAM(lParam);
-		tabcontrol_handleMouseMove(hwnd, p);
+		if (wParam & MK_LBUTTON && (abs(p.x - ptDown.x) > 1 || abs(p.y - ptDown.y) > 1)) {
+			if (GetCapture() != hwnd) {
+				tabcontrol_handleButtonDown(hwnd, lParam, TRUE);
+			}
+		} else {
+			tabcontrol_handleMouseMove(hwnd, p);
+		}
 		break;
 	}
 
@@ -678,28 +928,16 @@ static void ww_onTimerAction(void) {
 }
 
 /*
- * Returns a docking slot with a given name.
- */
-static DOCKING_SLOT* mainframe_getSlot(const char* pszName) {
-	DOCKING_SLOT* pSlot = dockingSlots;
-	if (pszName == NULL) {
-		pszName = DEFAULT_SLOT_NAME;
-	}
-	while (pSlot) {
-		if (strcmp(pszName, pSlot->ds_name) == 0) {
-			return pSlot;
-		}
-		pSlot = pSlot->ds_next;
-	}
-	return dockingSlots;
-}
-
-
-/*
  * Add a window with the given window class to our tab control managing the edit windows. 
  */
 HWND mainframe_addWindow(const char*pszPreferredSlot, const char* pszChildWindowClass, const char* pszTitle, LPVOID lParam) {
 	DOCKING_SLOT* pSlot = mainframe_getSlot(pszPreferredSlot);
+	if (pSlot == NULL) {
+		if (pszPreferredSlot != NULL && strcmp(DOCK_NAME_RIGHT, pszPreferredSlot)) {
+			// TODO: add the requested docking slot 
+		}
+		pSlot = dockingSlots;
+	}
 	HWND hwnd = CreateWindow(pszChildWindowClass, pszTitle, WS_CHILD | WS_CLIPSIBLINGS, 0, 0, 10, 10, pSlot->ds_hwnd, NULL, hInst, lParam);
 	if (hwnd == NULL) {
 		return 0;
@@ -708,12 +946,12 @@ HWND mainframe_addWindow(const char*pszPreferredSlot, const char* pszChildWindow
 	return hwnd;
 }
 
-static BOOL mainframe_addDockingSlot(DOCKING_SLOT_TYPE dsType, HWND hwnd, char* pszName, float xRatio, float yRatio, float wRatio, float hRatio) {
+static DOCKING_SLOT* mainframe_addDockingSlot(DOCKING_SLOT_TYPE dsType, HWND hwnd, char* pszName, float xRatio, float yRatio, float wRatio, float hRatio) {
 	HWND hwndTab = CreateWindow(szTabClass,
 		"", WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE, 0, 0, 10, 10,
 		hwnd, (HMENU)NULL, hInst, NULL);
 	if (!hwndTab) {
-		return FALSE;
+		return NULL;
 	}
 	DOCKING_SLOT* pSlot = ll_insert(&dockingSlots, sizeof(*dockingSlots));
 	strcpy(pSlot->ds_name, pszName);
@@ -723,7 +961,7 @@ static BOOL mainframe_addDockingSlot(DOCKING_SLOT_TYPE dsType, HWND hwnd, char* 
 	pSlot->ds_xratio = xRatio;
 	pSlot->ds_yratio = yRatio;
 	pSlot->ds_hwnd = hwndTab;
-	return TRUE;
+	return pSlot;
 }
 
 /*
@@ -733,13 +971,8 @@ static DOCKING_SLOT* mainframe_getDockingParent(HWND hwnd) {
 	DOCKING_SLOT* pSlot = dockingSlots;
 	while (pSlot) {
 		if (pSlot->ds_type == DS_EDIT_WINDOW) {
-			TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
-			size_t len = arraylist_size(pControl->tc_pages);
-			for (int i = 0; i < len; i++) {
-				TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
-				if (pPage->tp_hwnd == hwnd) {
-					return pSlot;
-				}
+			if (GetParent(hwnd) == pSlot->ds_hwnd) {
+				return pSlot;
 			}
 		}
 		pSlot = pSlot->ds_next;
@@ -752,7 +985,7 @@ static DOCKING_SLOT* mainframe_getDockingParent(HWND hwnd) {
  */
 char* mainframe_getDockNameFor(HWND hwnd) {
 	DOCKING_SLOT* pSlot = mainframe_getDockingParent(hwnd);
-	return pSlot != NULL ? pSlot->ds_name : DEFAULT_SLOT_NAME;
+	return pSlot != NULL ? pSlot->ds_name : szDefaultSlotName;
 }
 
 /*
@@ -805,7 +1038,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		break;
 	case WM_CREATE:
 		hwndFrameWindow = hwnd;
-		mainframe_addDockingSlot(DS_EDIT_WINDOW, hwnd, DEFAULT_SLOT_NAME, 0.0, 0.0, 1.0f, 1.0f);
+		mainframe_readDocks(hwnd);
 		fkey_initKeyboardWidget(hwnd);
 		st_init(hwnd);
 		tb_initRebar(hwnd);
@@ -1002,6 +1235,8 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
  */
 int mainframe_registerWinClass() {
 	return 
+		win_registerWindowClass((char*)szDragProxyClass, dragproxy_windowProc,
+			NULL, GetSysColorBrush(COLOR_3DFACE), NULL, sizeof(TAB_CONTROL*)) &&
 		win_registerWindowClass((char*)szTabClass, tabcontrol_windowProc,
 			NULL, GetSysColorBrush(COLOR_3DFACE), NULL, sizeof (TAB_CONTROL*)) &&
 		win_registerWindowClass((char*)szFrameClass, mainframe_windowProc,
@@ -1150,21 +1385,28 @@ int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(), LONG lP
  * Add new docks to the mainframe. 
  */
 int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType) {
-	DOCKING_SLOT* pSlot = mainframe_getDockingParent(GetFocus());
-	if (pSlot == NULL) {
-		pSlot = dockingSlots;
+	DOCKING_SLOT* pDefaultSlot = mainframe_getSlot(szDefaultSlotName);
+	DOCKING_SLOT* pRightSlot = mainframe_getSlot(DOCK_NAME_RIGHT);
+	DOCKING_SLOT* pBottomSlot = mainframe_getSlot(DOCK_NAME_BOTTOM);
+
+	if (!pDefaultSlot) {
+		pDefaultSlot = mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, szDefaultSlotName, 0, 0, 1, 1);
+		if (!pDefaultSlot) {
+			return FALSE;
+		}
 	}
 	if (mType == MD_ADD_HORIZONTAL) {
-		pSlot->ds_wratio /= 2;
-		float fNewWidth = pSlot->ds_wratio;
-		float fNewX = fNewWidth + pSlot->ds_xratio;
-		mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, DOCK_NAME_RIGHT, fNewX, pSlot->ds_yratio, fNewWidth, pSlot->ds_hratio);
+		if (!pRightSlot) {
+			pRightSlot = mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, DOCK_NAME_RIGHT, 0.5, 0, 0.5, 1);
+		}
 	} else {
-		pSlot->ds_hratio /= 2;
-		float fNewHeight = pSlot->ds_hratio;
-		float fNewY = fNewHeight + pSlot->ds_yratio;
-		mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, DOCK_NAME_BOTTOM, pSlot->ds_xratio, fNewY, pSlot->ds_wratio, fNewHeight);
+		if (!pBottomSlot) {
+			pBottomSlot = mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, DOCK_NAME_BOTTOM, 0, 0.5, 1, 0.5);
+		}
 	}
+	mainframe_applyDefaultSlotSizes();
 	mainframe_arrangeDockingSlots(hwndFrameWindow);
+	mainframe_saveDocks();
 	return 1;
 }
+

@@ -224,6 +224,11 @@ EXPORT int mouse_dispatchUntilButtonRelease(int *x, int *y, int *but, int *shift
 					goto fine;
 				}
 				break;
+			case WM_CAPTURECHANGED:
+				if (!msg.lParam) {
+					ret = 0;
+					goto fine;
+				}
 			case WM_ERASEBKGND:
 			case WM_PAINT:
 				DispatchMessage(&msg);
