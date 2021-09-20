@@ -6,6 +6,11 @@
 
 #### New
 - PKS Edit does not use an out-dated MDI pattern for managing its windows any more, but manages its windows now in tabs.
+  Tabs may be arranged in docking positions on the screen. The docking positions are persisted and restored, when PKS Edit
+  will be opened again.
+
+### Fixes
+- Long lines painted in a single color could cause a crash. This is fixed.
 
 ### 2.0.2
 

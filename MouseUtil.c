@@ -239,6 +239,7 @@ EXPORT int mouse_dispatchUntilButtonRelease(int *x, int *y, int *but, int *shift
 				DispatchMessage(&msg);
 				*but = 0;
 				goto fine;
+			case WM_NCMOUSEMOVE:
 			case WM_MOUSEMOVE:
 			case WM_LBUTTONDOWN: case WM_MBUTTONDOWN: case WM_RBUTTONDOWN:
 				*but = (msg.wParam & (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON));

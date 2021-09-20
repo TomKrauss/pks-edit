@@ -61,6 +61,7 @@ extern void main_cleanup(void);
 
 #define CLOSER_SIZE			16
 #define CLOSER_DISTANCE		8
+#define SLOT_DISTANCE		5
 
 typedef enum { DS_EDIT_WINDOW, DS_OTHER } DOCKING_SLOT_TYPE;
 
@@ -227,17 +228,22 @@ static void mainframe_applyDefaultSlotSizes() {
 	DOCKING_SLOT* pDefaultSlot = mainframe_getSlot(szDefaultSlotName);
 	DOCKING_SLOT* pRightSlot = mainframe_getSlot(DOCK_NAME_RIGHT);
 	DOCKING_SLOT* pBottomSlot = mainframe_getSlot(DOCK_NAME_BOTTOM);
+	BOOL bChangeHSize = !pRightSlot || pRightSlot->ds_xratio != pDefaultSlot->ds_wratio;
 
 	float height = pBottomSlot ? 0.5f : 1.0f;
 	if (pDefaultSlot != NULL) {
 		pDefaultSlot->ds_xratio = 0;
 		pDefaultSlot->ds_yratio = 0;
 		pDefaultSlot->ds_hratio = height;
-		pDefaultSlot->ds_wratio = pRightSlot != NULL ? 0.5f : 1.0f;
+		if (bChangeHSize) {
+			pDefaultSlot->ds_wratio = pRightSlot != NULL ? 0.5f : 1.0f;
+		}
 	}
 	if (pRightSlot != NULL) {
-		pRightSlot->ds_wratio = pDefaultSlot != NULL ? 0.5f : 1.0f;
-		pRightSlot->ds_xratio = pDefaultSlot != NULL ? 0.5f : 0.0f;
+		if (bChangeHSize) {
+			pRightSlot->ds_wratio = pDefaultSlot != NULL ? 0.5f : 1.0f;
+			pRightSlot->ds_xratio = pDefaultSlot != NULL ? 0.5f : 0.0f;
+		}
 		pRightSlot->ds_yratio = 0;
 		pRightSlot->ds_hratio = height;
 	}
@@ -998,23 +1004,31 @@ char* mainframe_getDockNameFor(HWND hwnd) {
 }
 
 /*
- * Resize our "docking slots" depending on their given ratios 
+ * Returns the rect describing the "empty space", into which the docking windows
+ * can be placed.
  */
-static void mainframe_arrangeDockingSlots(HWND hwnd) {
-	RECT rect;
+static void mainframe_getDockingRect(HWND hwnd, RECT* pRect) {
 	WORD nWidth;
 	WORD nToolbarHeight;
 	WORD nStatusHeight;
 	WORD nFkeyHeight;
-
-	GetClientRect(hwnd, &rect);
+	GetClientRect(hwnd, pRect);
 	tb_wh(&nWidth, &nToolbarHeight);
 	status_wh(&nWidth, &nStatusHeight);
 	fkey_getKeyboardSize(&nWidth, &nFkeyHeight);
-	rect.top = nToolbarHeight;
-	rect.bottom -= (nFkeyHeight + nStatusHeight);
+	pRect->top = nToolbarHeight;
+	pRect->bottom -= (nFkeyHeight + nStatusHeight);
+}
+
+/*
+ * Resize our "docking slots" depending on their given ratios 
+ */
+static void mainframe_arrangeDockingSlots(HWND hwnd) {
+	RECT rect;
+
+	mainframe_getDockingRect(hwnd, &rect);
 	DOCKING_SLOT* pSlot = dockingSlots;
-	int dDelta = 5;
+	int dDelta = SLOT_DISTANCE;
 	int width = rect.right - rect.left - dDelta;
 	int height = rect.bottom - rect.top - dDelta;
 	while (pSlot) {
@@ -1031,10 +1045,12 @@ static void mainframe_arrangeDockingSlots(HWND hwnd) {
 		DOCKING_SLOT* pSibblingSlot = dockingSlots;
 		RECT rc1;
 		GetWindowRect(pSlot->ds_hwnd, &rc1);
+		MapWindowPoints(HWND_DESKTOP, hwndFrameWindow, (LPPOINT)&rc1, 2);
 		while (pSibblingSlot) {
 			if (pSibblingSlot != pSlot) {
 				RECT rc2;
 				GetWindowRect(pSibblingSlot->ds_hwnd, &rc2);
+				MapWindowPoints(HWND_DESKTOP, hwndFrameWindow, (LPPOINT)&rc2, 2);
 				if (pSibblingSlot->ds_xratio == pSlot->ds_xratio) {
 					if (pSibblingSlot->ds_yratio > pSlot->ds_yratio) {
 						pSlot->ds_resizeRect = (RECT){ rc1.left, rc1.bottom, rc2.right, rc2.top };
@@ -1049,6 +1065,179 @@ static void mainframe_arrangeDockingSlots(HWND hwnd) {
 		}
 		pSlot = pSlot->ds_next;
 	}
+}
+
+/*
+ * Given an lParam representing a mouse position, find a splitter rectangle on the main screen. If
+ * no rect can be found containing the mouse pointer NULL is returned.
+ */
+static RECT* mainframe_findSplitterRect(LPARAM lParam) {
+	POINT pt;
+	pt.x = GET_X_LPARAM(lParam);
+	pt.y = GET_Y_LPARAM(lParam);
+	DOCKING_SLOT* pSlot = dockingSlots;
+	MapWindowPoints(HWND_DESKTOP, hwndFrameWindow, (LPPOINT)&pt, 1);
+	while (pSlot) {
+		if (PtInRect(&pSlot->ds_resizeRect, pt)) {
+			return &pSlot->ds_resizeRect;
+		}
+		pSlot = pSlot->ds_next;
+	}
+	return NULL;
+}
+
+/*
+ * Calculate the information necessary to drag a splitter and resize docking slots. 
+ */
+typedef struct tagSPLIT_DRAG {
+	struct tagSPLIT_DRAG* sd_next;
+	DOCKING_SLOT* sd_slot;
+	BOOL sd_move;				// Is this slot being moved to a new position?
+	RECT sd_originalSize;		// The size of the slot, when the drag operation starts.
+	RECT sd_newSize;			// The modified size of the slot - result of the split drag.
+} SPLIT_DRAG;
+static SPLIT_DRAG* mainframe_determineResizedSlots(RECT* pRect, BOOL bDragX) {
+	SPLIT_DRAG* pHead = NULL;
+	SPLIT_DRAG* pInfo;
+	DOCKING_SLOT* pSlot = dockingSlots;
+	while (pSlot) {
+		RECT rect;
+		GetWindowRect(pSlot->ds_hwnd, &rect);
+		MapWindowPoints(HWND_DESKTOP, hwndFrameWindow, (LPPOINT)&rect, 2);
+		if (bDragX) {
+			if (rect.left >= pRect->right || rect.right <= pRect->left) {
+				pInfo = ll_insert(&pHead, sizeof * pInfo);
+				pInfo->sd_originalSize = rect;
+				pInfo->sd_newSize = rect;
+				pInfo->sd_slot = pSlot;
+				pInfo->sd_move = rect.left >= pRect->right;
+			}
+		} else {
+			if (rect.top >= pRect->bottom || rect.bottom <= pRect->top) {
+				pInfo = ll_insert(&pHead, sizeof * pInfo);
+				pInfo->sd_originalSize = rect;
+				pInfo->sd_newSize = rect;
+				pInfo->sd_slot = pSlot;
+				pInfo->sd_move = rect.top >= pRect->bottom;
+			}
+		}
+		pSlot = pSlot->ds_next;
+	}
+	return pHead;
+}
+
+/*
+ * Apply the split positions dragged to a new position. 
+ */
+static void mainframe_splitterDragged(HWND hwnd, SPLIT_DRAG* pDrags, BOOL bDragX) {
+	SPLIT_DRAG* pProcess = pDrags;
+	RECT rcClient;
+	mainframe_getDockingRect(hwnd, &rcClient);
+	InflateRect(&rcClient, -SLOT_DISTANCE, -SLOT_DISTANCE);
+	float fWidth = (float)(rcClient.right - rcClient.left) - 2 * SLOT_DISTANCE;
+	float fHeight = (float)(rcClient.bottom - rcClient.top) - 2 * SLOT_DISTANCE;
+	DOCKING_SLOT* pRef = NULL;
+	while (pProcess) {
+		DOCKING_SLOT* pSlot = pProcess->sd_slot;
+		if (bDragX) {
+			if (pRef == NULL && pSlot->ds_xratio != 0) {
+				pRef = pSlot;
+			}
+			pSlot->ds_wratio = (float)(pProcess->sd_newSize.right - pProcess->sd_newSize.left) / fWidth;
+			pSlot->ds_xratio = (float)(pProcess->sd_newSize.left - rcClient.left) / fWidth;
+			if (pSlot->ds_xratio < 0) {
+				pSlot->ds_xratio = 0;
+			}
+			if (pSlot->ds_wratio + pSlot->ds_xratio > 1) {
+				pSlot->ds_wratio = 1 - pSlot->ds_xratio;
+			}
+		} else {
+			if (pRef == NULL && pSlot->ds_yratio != 0) {
+				pRef = pSlot;
+			}
+			pSlot->ds_hratio = (float)(pProcess->sd_newSize.bottom - pProcess->sd_newSize.top) / fHeight;
+			pSlot->ds_yratio = (float)(pProcess->sd_newSize.top - rcClient.top) / fHeight;
+			if (pSlot->ds_yratio < 0) {
+				pSlot->ds_yratio = 0;
+			}
+			if (pSlot->ds_hratio + pSlot->ds_yratio > 1) {
+				pSlot->ds_hratio = 1 - pSlot->ds_yratio;
+			}
+		}
+		pProcess = pProcess->sd_next;
+	}
+	DOCKING_SLOT* pSlot = dockingSlots;
+	while (pSlot) {
+		if (pSlot != pRef && pRef != NULL) {
+			if (bDragX && pSlot->ds_yratio == 0) {
+				pSlot->ds_wratio = pRef->ds_xratio;
+			} else if (!bDragX) {
+				pSlot->ds_hratio = pRef->ds_yratio;
+			}
+		} 
+		pSlot = pSlot->ds_next;
+	}
+}
+
+/*
+ * Handle docking containers splitter dragging.
+ */
+static BOOL mainframe_dragSplitter(HWND hwnd, LPARAM lParam) {
+	BOOL ret = FALSE;
+	RECT* pRect = mainframe_findSplitterRect(lParam);
+	if (!pRect) {
+		return ret;
+	}
+	POINT ptOrig;
+	int x = GET_X_LPARAM(lParam);
+	int y = GET_Y_LPARAM(lParam);
+	int b = 1;
+	int dummy;
+	int delta;
+	BOOL bDragX = pRect->right - pRect->left < pRect->bottom - pRect->top;
+	GetCursorPos(&ptOrig);
+	if (DragDetect(hwnd, (POINT) { x, y })) {
+		SPLIT_DRAG* pDrags = mainframe_determineResizedSlots(pRect, bDragX);
+		SPLIT_DRAG* pProcess;
+		SetCapture(hwnd);
+		while (mouse_dispatchUntilButtonRelease(&x, &y, &b, &dummy) && b) {
+			ret = TRUE;
+			POINT pt;
+			GetCursorPos(&pt);
+			pProcess = pDrags;
+			while (pProcess) {
+				pProcess->sd_newSize = pProcess->sd_originalSize;
+				if (bDragX) {
+					delta = pt.x - ptOrig.x;
+					if (pProcess->sd_move) {
+						pProcess->sd_newSize.left += delta;
+					} else {
+						pProcess->sd_newSize.right += delta;
+					}
+				} else {
+					delta = pt.y - ptOrig.y;
+					if (pProcess->sd_move) {
+						pProcess->sd_newSize.top += delta;
+					} else {
+						pProcess->sd_newSize.bottom += delta;
+					}
+				}
+				if (delta != 0) {
+					MoveWindow(pProcess->sd_slot->ds_hwnd, pProcess->sd_newSize.left, pProcess->sd_newSize.top,
+						pProcess->sd_newSize.right - pProcess->sd_newSize.left, pProcess->sd_newSize.bottom - pProcess->sd_newSize.top, TRUE);
+				}
+				pProcess = pProcess->sd_next;
+			}
+		}
+		if (ret) {
+			mainframe_splitterDragged(hwnd, pDrags, bDragX);
+			mainframe_saveDocks();
+		}
+		ll_destroy(&pDrags, NULL);
+		ReleaseCapture();
+		mainframe_arrangeDockingSlots(hwnd);
+	}
+	return ret;
 }
 
 /*
@@ -1190,19 +1379,19 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		return TRUE;
 	}
 	case WM_NCHITTEST: {
-		POINT pt;
-		pt.x = GET_X_LPARAM(lParam);
-		pt.y = GET_Y_LPARAM(lParam);
-		DOCKING_SLOT* pSlot = dockingSlots;
-		while (pSlot) {
-			if (PtInRect(&pSlot->ds_resizeRect, pt)) {
-				return pSlot->ds_resizeRect.right - pSlot->ds_resizeRect.left > pSlot->ds_resizeRect.bottom - pSlot->ds_resizeRect.top ?
-					HTBOTTOM : HTRIGHT;
-			}
-			pSlot = pSlot->ds_next;
+		RECT* pRect = mainframe_findSplitterRect(lParam);
+		if (pRect != NULL) {
+			return pRect->right - pRect->left > pRect->bottom - pRect->top ?
+				HTBOTTOM : HTRIGHT;
 		}
 		break;
 	}
+
+	case WM_NCLBUTTONDOWN:
+		if (mainframe_dragSplitter(hwnd, lParam)) {
+			return FALSE;
+		}
+		break;
 
 	case WM_NOTIFY:
 		switch (((LPNMHDR)lParam)->code) {
@@ -1450,25 +1639,31 @@ int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType) {
 	DOCKING_SLOT* pDefaultSlot = mainframe_getSlot(szDefaultSlotName);
 	DOCKING_SLOT* pRightSlot = mainframe_getSlot(DOCK_NAME_RIGHT);
 	DOCKING_SLOT* pBottomSlot = mainframe_getSlot(DOCK_NAME_BOTTOM);
+	BOOL bChanged = FALSE;
 
 	if (!pDefaultSlot) {
 		pDefaultSlot = mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, szDefaultSlotName, 0, 0, 1, 1);
 		if (!pDefaultSlot) {
 			return FALSE;
 		}
+		bChanged = TRUE;
 	}
 	if (mType == MD_ADD_HORIZONTAL) {
 		if (!pRightSlot) {
 			pRightSlot = mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, DOCK_NAME_RIGHT, 0.5, 0, 0.5, 1);
+			bChanged = TRUE;
 		}
 	} else {
 		if (!pBottomSlot) {
 			pBottomSlot = mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, DOCK_NAME_BOTTOM, 0, 0.5, 1, 0.5);
+			bChanged = TRUE;
 		}
 	}
-	mainframe_applyDefaultSlotSizes();
-	mainframe_arrangeDockingSlots(hwndFrameWindow);
-	mainframe_saveDocks();
+	if (bChanged) {
+		mainframe_applyDefaultSlotSizes();
+		mainframe_arrangeDockingSlots(hwndFrameWindow);
+		mainframe_saveDocks();
+	}
 	return 1;
 }
 

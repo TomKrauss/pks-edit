@@ -1,9 +1,9 @@
 [files]
 "C:\source\trend-master-eclipse-4.20\trend\bin\make.bat", line 1: default
-"C:\source\pksedit\DocumentTypes.c", line 294: default
-"C:\source\pksedit\CaretMovement.c", line 58: default
-"C:\source\pksedit\en-US\en-US.rc", line 1: default
 "C:\source\pksedit\DocumentModel.c", line 40: rightSlot
+"C:\source\pksedit\en-US\en-US.rc", line 1: default
+"C:\source\pksedit\DocumentTypes.c", line 294: bottomSlot
+"C:\source\pksedit\CaretMovement.c", line 58: default
 [find]
 !,$
 !"[^,]+, +
