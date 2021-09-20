@@ -562,6 +562,17 @@ static void tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	LineTo(hdc, x2, y + height);
 	DeleteObject(SelectObject(hdc, hPenOld));
 	if (bSelected) {
+		WINFO* wp = ww_getCurrentEditorWindow();
+		HWND hwndFocus = wp != NULL ? wp->ww_handle : NULL;
+		while (hwndFocus) {
+			if (hwndFocus == pPage->tp_hwnd) {
+				break;
+			}
+			hwndFocus = GetParent(hwndFocus);
+		}
+		if (!hwndFocus) {
+			return;
+		}
 		LOGBRUSH brush;
 		brush.lbColor = pTheme->th_dialogActive;
 		brush.lbHatch = 0;
@@ -1667,3 +1678,24 @@ int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType) {
 	return 1;
 }
 
+/*
+ * Invoked, when a new editor is activated. Used to mark the current active window.
+ */
+void mainframe_windowActivated(HWND hwndOld, HWND hwndNew) {
+	DOCKING_SLOT* pSlot1 = NULL;
+	DOCKING_SLOT* pSlot2 = NULL;
+	if (hwndOld != NULL) {
+		pSlot1 = mainframe_getDockingParent(hwndOld);
+	}
+	if (hwndNew != NULL) {
+		pSlot2 = mainframe_getDockingParent(hwndNew);
+	}
+	if (pSlot1 != pSlot2) {
+		if (pSlot1 != NULL) {
+			tabcontrol_repaintTabs(pSlot1->ds_hwnd, (TAB_CONTROL*) GetWindowLongPtr(pSlot1->ds_hwnd, GWLP_TAB_CONTROL));
+		}
+		if (pSlot2 != NULL) {
+			tabcontrol_repaintTabs(pSlot2->ds_hwnd, (TAB_CONTROL*)GetWindowLongPtr(pSlot2->ds_hwnd, GWLP_TAB_CONTROL));
+		}
+	}
+}

@@ -789,11 +789,15 @@ WINFUNC EditWndProc(
 	case WM_ICONCLASSVALUE:
 		return GetWindowLongPtr(hwnd,GWL_ICCLASSVALUES);
 
-	case WM_SETFOCUS:
-		ll_moveElementToFront((LINKED_LIST**)&_winlist,wp);
-		if (!IsIconic(hwnd))
+	case WM_SETFOCUS: {
+		WINFO* wpOld = _winlist;
+		ll_moveElementToFront((LINKED_LIST**)&_winlist, wp);
+		if (!IsIconic(hwnd)) {
 			SetFocus(wp->ww_handle);
+			mainframe_windowActivated(wpOld != NULL ? wpOld->edwin_handle : NULL, wp->edwin_handle);
+		}
 		break;
+	}
 	case WM_MOVE:
 		/* drop through */
 	case WM_SIZE:

@@ -39,21 +39,12 @@ extern unsigned char _l2uset[256],_u2lset[256];
 #define	pks_islowcase(c)    (_asciitab[(c)]&(_L|_LU))
 #define	pks_isumlaut(c)     (_asciitab[(c)]&(_UU|_LU))
 #define	pks_isALPHA(c)      (_l2uset[c] != _u2lset[c])
-#define	pks__upcase(c)      (isalpha(c)) ? ((c)-'a'+'A')   : \
-                                       ((c) ==  _ae) ? _AE : \
-                                       ((c) ==  _oe) ? _OE : \
-                                       ((c) ==  _ue) ? _UE : 'S'
-#define	pks__lowcase(c)     (isalpha(c)) ? ((c)-'A'+'a')   : \
-                                       ((c) == _AE) ? _ae : \
-                                       ((c) == _OE) ? _oe : _ue
 
 #else
 #define	pks_isupcase(c)     (_asciitab[(c)]&(_U))
 #define	pks_islowcase(c)    (_asciitab[(c)]&(_L))
 #define	pks_isumlaut(c)     (_asciitab[(c)]&(_UU))
 #define	pks_isALPHA(c)      (_asciitab[(c)]&(_U|_L))
-#define	pks__upcase(c)      ((c)-'a'+'A')
-#define	pks__lowcase(c)     ((c)-'A'+'a')
 #endif
 
 #endif

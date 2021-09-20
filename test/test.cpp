@@ -8,6 +8,7 @@ extern "C" {
 #include "../include/linkedlist.h"
 #include "../include/hashmap.h"
 #include "../include/edctype.h"
+#include "../include/levensthein.h"
 
 extern int string_matchFilename(char* string, char* pattern);
 }
@@ -610,7 +611,33 @@ namespace pkseditTests
 		}
 	};
 
-	TEST_CLASS(hashMap)
+	TEST_CLASS(levensthein)
+	{
+	public:
+		TEST_METHOD(levensthein_ops) {
+			regex_compileCharacterClasses((const unsigned char*)"a-z=A-Z");
+			size_t delta = levenshtein_calculate("abc", -1, "abc", -1, 0);
+			Assert::AreEqual((size_t)0, delta);
+			delta = levenshtein_calculate("Abc", -1, "aBC", -1, LOPT_IGNORE_CASE);
+			Assert::AreEqual((size_t)0, delta);
+			delta = levenshtein_calculate(" Abc", -1, "aBC ", -1, LOPT_IGNORE_CASE|LOPT_IGNORE_WS);
+			Assert::AreEqual((size_t)0, delta);
+			delta = levenshtein_calculate("This is a sentence\twith  blanks", -1, "This is a sentence with blanks", -1, LOPT_IGNORE_WS);
+			Assert::AreEqual((size_t)0, delta);
+			delta = levenshtein_calculate("abc", -1, "abd", -1, 0);
+			Assert::AreEqual((size_t)1, delta);
+			delta = levenshtein_calculate("abcdefg", -1, "axdefg", -1, 0);
+			Assert::AreEqual((size_t)2, delta);
+			delta = levenshtein_calculate("PEON", -1, "SPEND", -1, LOPT_IGNORE_CASE);
+			Assert::AreEqual((size_t)3, delta);
+			delta = levenshtein_calculate("This is a long string with some differences, that make it hard to compare", -1, "Th is a long string weeh some xxxxdifferences, that make it hard to compare", -1, 0);
+			delta = levenshtein_calculate("abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890", -1, 
+			   "xbcdefghijklmnopqrstuvwxyz1234567890addddbcdefghijklmnopqrstu&&&yz1234567890abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopuvwxyz1234567890", -1, 0);
+			Assert::AreEqual((size_t)12, delta);
+		}
+	};
+
+		TEST_CLASS(hashMap)
 	{
 
 	public:

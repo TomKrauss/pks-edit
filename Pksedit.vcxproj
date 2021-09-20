@@ -306,6 +306,7 @@
     <ClCompile Include="HashMap.c" />
     <ClCompile Include="CodeCompletion.c" />
     <ClCompile Include="JsonParser.c" />
+    <ClCompile Include="Levensthein.c" />
     <ClCompile Include="macro_compiler\CommandFunctionTable.c" />
     <ClCompile Include="MainFrame.c" />
     <ClCompile Include="ProgressMonitor.c">
@@ -1143,6 +1144,7 @@
     <ClInclude Include="include\hashmap.h" />
     <ClInclude Include="include\jsmn.h" />
     <ClInclude Include="include\jsonparser.h" />
+    <ClInclude Include="include\levensthein.h" />
     <ClInclude Include="include\linkedlist.h" />
     <ClInclude Include="include\mainframe.h" />
     <ClInclude Include="include\markpositions.h" />

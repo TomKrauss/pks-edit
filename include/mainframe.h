@@ -68,5 +68,10 @@ extern int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType);
  */
 extern char* mainframe_getDockNameFor(HWND hwnd);
 
+/*
+ * Invoked, when a new editor is activated. Used to mark the current active window.
+ */
+extern void mainframe_windowActivated(HWND hwndOld, HWND hwndNew);
+
 #define MAINFRAME_H
 #endif
