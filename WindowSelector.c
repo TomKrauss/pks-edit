@@ -49,6 +49,7 @@ static void windowselector_paint(HWND hwnd) {
 	TEXTMETRIC textmetric;
 	WINDOW_SELECTOR_PARAMS* pWSP;
 	int nLineHeight = WSP_LINE_HEIGHT;
+	THEME_DATA* pTheme = theme_getDefault();
 
 	pWSP = (WINDOW_SELECTOR_PARAMS*)GetWindowLongPtr(hwnd, GWL_WINDOW_SELECTOR_PARAMS);
 	BeginPaint(hwnd, &paint);
@@ -59,7 +60,7 @@ static void windowselector_paint(HWND hwnd) {
 	GetTextMetrics(paint.hdc, &textmetric);
 	pWSP->wsp_lineHeight = textmetric.tmHeight + WSP_PADDING;
 	WINFO* wp = ww_getCurrentEditorWindow();
-	SetTextColor(paint.hdc, GetSysColor(COLOR_WINDOWTEXT));
+	SetTextColor(paint.hdc, pTheme->th_dialogForeground);
 	int y = paint.rcPaint.top + WSP_PADDING;
 	for (int i = 0; wp; i++) {
 		RECT rect;
@@ -115,6 +116,19 @@ static LRESULT windowselector_wndProc(HWND hwnd, UINT message, WPARAM wParam, LP
 			pWSP->wsp_current = 1;
 		}
 		break;
+	case WM_ERASEBKGND: {
+		THEME_DATA* pTheme = theme_getDefault();
+		HDC hdc = (HDC)wParam;
+		RECT rc;
+		GetClientRect(hwnd, &rc);
+		HBRUSH hbrBg = CreateSolidBrush(pTheme->th_dialogBackground);
+		HBRUSH hbrForeground = CreateSolidBrush(pTheme->th_dialogBorder);
+		FillRect(hdc, &rc, hbrBg);
+		FrameRect(hdc, &rc, hbrForeground);
+		DeleteObject(hbrBg);
+		DeleteObject(hbrForeground);
+		return TRUE;
+	}
 	case WM_DESTROY:
 		pWSP = (WINDOW_SELECTOR_PARAMS*)GetWindowLongPtr(hwnd, GWL_WINDOW_SELECTOR_PARAMS);
 		free(pWSP);
@@ -212,7 +226,7 @@ int windowselector_showWindowList(void) {
 	rect.bottom = rect.top + nHeight;
 	rect.right = rect.left + nWidth;
 	if (hwndSelector == NULL) {
-		hwndSelector = CreateWindow(CLASS_WINDOW_SELECTOR, NULL, WS_POPUP|WS_BORDER, rect.left, rect.top, nWidth, nHeight, hwndMain, NULL, hInst, NULL);
+		hwndSelector = CreateWindow(CLASS_WINDOW_SELECTOR, NULL, WS_POPUP, rect.left, rect.top, nWidth, nHeight, hwndMain, NULL, hInst, NULL);
 	}
 	HDC hdc = GetWindowDC(hwndSelector);
 	HFONT hFontBold = theme_createDialogFont(FW_BOLD);

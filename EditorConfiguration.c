@@ -18,6 +18,7 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include <direct.h>
 #include "winterf.h"
 #include "pksedit.h"
 #include "dial2.h"
@@ -25,7 +26,9 @@
 #include "xdialog.h"
 #include "editorconfiguration.h"
 #include "edfuncs.h"
+#include "stringutil.h"
 #include "themes.h"
+#include "fileutil.h"
 
 extern void fkey_visibilitychanged(void);
 
@@ -38,7 +41,7 @@ static void AutosaveConfiguration() {
 	if (config->options & O_SAVE_SETTINGS_ON_EXIT) {
 		prof_save(config, FALSE);
 	}
-	macro_autosaveAllBindings(config->options & O_SAVESEQ ? FALSE : TRUE);
+	macro_autosaveAllBindings(config->options & O_SAVE_MACROS_ON_EXIT ? FALSE : TRUE);
 }
 
 /*
@@ -60,11 +63,12 @@ static EDITOR_CONFIGURATION _configuration = {
 static DIALPARS _dAutoSave[] = {
 	IDD_NOCHANGEONCANCEL,	0,	0,
 	IDD_INT1,		sizeof _configuration.asminutes,		&_configuration.asminutes,
-	IDD_OPT1,		O_GARBAGE_AS,							& _configuration.options,
+	IDD_OPT1,		O_DELETE_AUTOSAVE_FILES,				& _configuration.options,
 	IDD_STRING1,	sizeof _configuration.pksEditTempPath,	_configuration.pksEditTempPath,
 	IDD_OPT2,		O_SAVE_SETTINGS_ON_EXIT,				&_configuration.options,
 	IDD_OPT3,		O_READPIC,								& _configuration.options,
-	IDD_OPT4,		O_SAVESEQ,								& _configuration.options,
+	IDD_OPT4,		O_SAVE_MACROS_ON_EXIT,					& _configuration.options,
+	IDD_OPT5,		O_CREATE_BACKUP_IN_TEMP_PATH,			& _configuration.options,
 	// Terminate with 0
 	0
 };
@@ -140,12 +144,54 @@ static DIALPARS* _paramsPerPage[] = {
 	_dMisc
 };
 
+static char* _tempPathSettingName = "AsPath";
+
 /**
  * Returns a pointer to the current editor configuration. If not yet initialized it will be initialized on the fly. 
  */
 EDITOR_CONFIGURATION* GetConfiguration() {
 	return &_configuration;
 }
+
+/*
+ * Calculates the default temp path used by PKS Edit. 
+ */
+static void config_getDefaultTempPath(char* pszPath) {
+	string_concatPathAndFilename(pszPath, file_getTempDirectory(), "pksedit");
+}
+
+/*
+ * Returns the temp path into which PKS edit saves autosave and optionally backup files. 
+ */
+char* config_getPKSEditTempPath() {
+	if (!_configuration.pksEditTempPath[0]) {
+		prof_getPksStandardString(_tempPathSettingName, _configuration.pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath) - 1);
+		if (!_configuration.pksEditTempPath[0]) {
+			config_getDefaultTempPath(_configuration.pksEditTempPath);
+		}
+	}
+	if (file_exists(_configuration.pksEditTempPath) != 0) {
+		_mkdir(_configuration.pksEditTempPath);
+	}
+	return _configuration.pksEditTempPath;
+}
+
+/*--------------------------------------------------------------------------
+ * config_saveTempPath()
+ * Save the temp path of PKS editor to the pksedit.ini file.
+ */
+void config_saveTempPath() {
+	if (_configuration.pksEditTempPath[0]) {
+		char szDefault[EDMAXPATHLEN];
+		config_getDefaultTempPath(szDefault);
+		if (strcmp(szDefault, _configuration.pksEditTempPath) != 0) {
+			prof_savePksStandardString(_tempPathSettingName, _configuration.pksEditTempPath);
+			return;
+		}
+	}
+	prof_savePksStandardString(_tempPathSettingName, NULL);
+}
+
 
 static DIALPARS* _getDialogParsForPage(int pageIndex) {
 	return _paramsPerPage[pageIndex];

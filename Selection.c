@@ -436,7 +436,7 @@ EXPORT int bl_undoIntoUnqBuffer(WINFO* wp, LINE *lnfirst,LINE *lnlast,int cfirst
 		if (_nundo > 10) {
 			_nundo = 10;
 		}
-		fn = file_getTempFilename(tmpfile,_curentUndoBufferIndex+'0');
+		fn = config_getPKSEditTempPath(tmpfile,_curentUndoBufferIndex+'0');
 		bl_writePasteBufToFile(_undobuf, fn, 0);
 		_curentUndoBufferIndex++;
 		if (_curentUndoBufferIndex >= _nundo) {
@@ -467,7 +467,7 @@ EXPORT PASTE *bl_getBlockFromUndoBuffer(int num)
 	if (num < 0)
 		num += _nundo;
 
-	fn = file_getTempFilename(tmpfile,num+'0');
+	fn = config_getPKSEditTempPath(tmpfile,num+'0');
 	bl_free(&_ubuf2);
 
 	if (file_exists(fn) || bl_readFileIntoPasteBuf(&_ubuf2, fn, -1) == 0) {

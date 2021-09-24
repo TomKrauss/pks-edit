@@ -15,18 +15,12 @@
  *
  */
  
-#include <ctype.h>
-#include "edtypes.h"
- 
-extern unsigned char 	_l2uset[256];
-extern unsigned char	_u2lset[256];
-
 /*------------------------------------------------------------
  * compare_strings()
  * Compare Strings and return a smaller value if the second string is smaller as the first.
  */
-EXPORT int compare_strings(unsigned char *s1,int l1,unsigned char *s2,int l2)
-{	int len;
+int compare_strings(unsigned char *s1,int l1,unsigned char *s2,int l2) {	
+	int len;
 
 	if (l1 > l2)
 		len = l2;

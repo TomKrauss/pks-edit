@@ -43,7 +43,7 @@
 #include "arraylist.h"
 #include "mainframe.h"
 
-extern HWND 	ww_winid2hwnd(int winid);
+extern WINFO* ww_findwinid(int winid);
 extern int 	EdPromptAutosavePath(char *path);
 
 extern char *	_pksSysFolder;
@@ -63,13 +63,10 @@ static int ft_generateBackupPathname(char *destinationName, char *fname)
 {	char fn[EDMAXPATHLEN];
 	char szBuff[EDMAXPATHLEN];
 
-	if (GetConfiguration()->pksEditTempPath[0]) {
-		string_splitFilename(fname,(char *)0,fn);
-		string_concatPathAndFilename(szBuff, GetConfiguration()->pksEditTempPath,fn);
-		string_getFullPathName(destinationName,szBuff);
-		return 1;
-	}
-	return 0;
+	string_splitFilename(fname,(char *)0,fn);
+	string_concatPathAndFilename(szBuff, config_getPKSEditTempPath(),fn);
+	string_getFullPathName(destinationName,szBuff);
+	return 1;
 }
 
 /*
@@ -196,12 +193,10 @@ autosave:
 
 		if (ret > 0) {
 		/* we autosaved into source file: set state to unmodified */
-			if (!GetConfiguration()->pksEditTempPath[0])
-				flags &= ~F_MODIFIED;
+			flags &= ~F_MODIFIED;
 			error_showMessageInStatusbar(IDS_MSGAUBE,ft_visiblename(fp));
-		} else if (EdPromptAutosavePath(GetConfiguration()->pksEditTempPath)) {
+		} else if (EdPromptAutosavePath(config_getPKSEditTempPath())) {
 		/* let the user correct invalid autosave pathes */
-			prof_saveaspath(GetConfiguration());
 			goto autosave;
 		}
 	
@@ -242,7 +237,9 @@ void ft_saveWindowStates(void )
 	for (s = ww_getNumberOfOpenWindows()-1; s >= 0; s--) {
 		if ((wp = ww_getWindowFromStack(s)) != 0) {
 			FTABLE* fp = wp->fp;
-			xref_addSearchListEntry(&ft,fp->fname,wp->caret.ln, mainframe_getDockNameFor(wp->edwin_handle));
+			if (!(fp->flags & F_TRANSIENT)) {
+				xref_addSearchListEntry(&ft, fp->fname, wp->caret.ln, mainframe_getDockNameFor(wp->edwin_handle));
+			}
 		}
 	}
 
@@ -289,14 +286,13 @@ void ft_settime(EDTIME *tp)
 /*------------------------------------------------------------
  * ft_deleteautosave()
  */
-void ft_deleteautosave(FTABLE *fp)
-{
+void ft_deleteautosave(FTABLE *fp) {
 	char as_name[EDMAXPATHLEN];
 
-	if ((GetConfiguration()->options & O_GARBAGE_AS) && ft_generateBackupPathname(as_name,fp->fname)) {
-		if (areFilenamesDifferent(fp->fname,as_name)) {
-			_unlink(as_name);
-		}
+	if ((GetConfiguration()->options & O_DELETE_AUTOSAVE_FILES) && 
+			ft_generateBackupPathname(as_name,fp->fname) && 
+			areFilenamesDifferent(fp->fname,as_name)) {
+		_unlink(as_name);
 	}
 }
 
@@ -482,9 +478,7 @@ int ww_requestToClose(WINFO *wp)
  * ft_selectWindowWithId()
  * Select and activate the window with the given window id.
  */
-int ft_selectWindowWithId(int winid, BOOL bPopup)
-{
-	HWND 	hwndChild;
+int ft_selectWindowWithId(int winid, BOOL bPopup) {
 	WINFO *	wp;
 
 	if (winid < 0) {
@@ -497,12 +491,14 @@ int ft_selectWindowWithId(int winid, BOOL bPopup)
 		winid = wp->win_id;
 	}
 
-	if ((hwndChild = ww_winid2hwnd(winid)) == 0) {
+	wp = ww_findwinid(winid);
+	if (wp == 0) {
 		error_showErrorById(IDS_MSGWRONGWINDOW);
 		return 0;
 	}
 
-	SendMessage(hwndMain,WM_MDIACTIVATE,(WPARAM)hwndChild,(LPARAM)0L);
+	SendMessage(hwndMain,WM_MDIACTIVATE,(WPARAM)wp->edwin_handle,(LPARAM)0L);
+	SetFocus(wp->edwin_handle);
 	return 1;
 }
 
@@ -578,8 +574,7 @@ int ft_activateWindowOfFileNamed(char *fn) {
  * Open a file with a file name and jump into a line. Place the window to
  * open as defined in the param wsp.
  */
-int ft_openFileWithoutFileselector(char *fn, long line, const char *pszDockName)
-{   
+FTABLE* ft_openFileWithoutFileselector(char *fn, long line, const char *pszDockName) {   
 	char 		szResultFn[EDMAXPATHLEN];
 	char		szAsPath[EDMAXPATHLEN];
 	FTABLE 		*fp;
@@ -598,7 +593,10 @@ int ft_openFileWithoutFileselector(char *fn, long line, const char *pszDockName)
 			return 0;
 		}
 		if (ret == IDNO) {
-			return ft_activateWindowOfFileNamed(fn);
+			if (ft_activateWindowOfFileNamed(fn)) {
+				return ft_getCurrentDocument();
+			}
+			return 0;
 		}
 	}
 	if (fn && file_exists(fn) < 0) {
@@ -618,7 +616,7 @@ int ft_openFileWithoutFileselector(char *fn, long line, const char *pszDockName)
 			}
 			fn = szBuf;
 		}
-		if ((GetConfiguration()->options & O_GARBAGE_AS) &&
+		if ((GetConfiguration()->options & O_DELETE_AUTOSAVE_FILES) &&
 			ft_generateBackupPathname(szAsPath, fn) &&
 			areFilenamesDifferent(szAsPath, fn) &&
 			file_exists(szAsPath) == 0 &&
@@ -655,7 +653,7 @@ int ft_openFileWithoutFileselector(char *fn, long line, const char *pszDockName)
 		macro_executeByName(fp->documentDescriptor->creationMacroName);
 	}
 
-	return 1;
+	return fp;
 }
 
 /*------------------------------------------------------------
@@ -663,7 +661,6 @@ int ft_openFileWithoutFileselector(char *fn, long line, const char *pszDockName)
  * Edit a file with a filename and with potential flags.
  */
 int EdEditFile(long editflags, char *filename) {
-	int		ret;
 	int		nEntry;
 
 	if ((editflags & OPEN_DIRGIVEN) && filename) {
@@ -682,8 +679,7 @@ int EdEditFile(long editflags, char *filename) {
 		}
 		filename = _fseltarget;
 	}
-	ret = ft_openFileWithoutFileselector(filename, 0L, NULL);
-	return ret;
+	return ft_openFileWithoutFileselector(filename, 0L, NULL) != NULL ? 1 : 0;
 }
 
 /*------------------------------------------------------------

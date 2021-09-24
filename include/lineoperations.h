@@ -319,7 +319,7 @@ typedef struct tagWINDOWPLACEMENT WINDOWPLACEMENT;
  * Open a file with a file name and jump into a line. Place the window to
  * open as defined in the param wsp.
  */
-int ft_openFileWithoutFileselector(char* fn, long line, const char* pszDockName);
+FTABLE* ft_openFileWithoutFileselector(char* fn, long line, const char* pszDockName);
 
 /*---------------------------------
  * ln_addFlag()
@@ -422,6 +422,12 @@ extern int ft_restorePreviouslyOpenedWindows(void);
  * Select and activate the window with the given window id.
  */
 extern int ft_selectWindowWithId(int winid, BOOL bPopup);
+
+/*
+ * Calculate the name of the backup file to create for file fp. The pszResult
+ * string must be big enough to hold EDMAXPATHLEN number of characters.
+*/
+void ft_getBackupFilename(FTABLE* fp, char* pszResult);
 
 /*------------------------------------------------------------
  * EdSelectWindow()
@@ -691,21 +697,22 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 
 /*-------- FILE FLAGS ----------*/
 
-#define	F_INUSE			0x01 	/* Mark filestructure as used	  */ 
-#define	F_MODIFIED			0x02 	/* File has been modfied 	  */
-#define	F_NEWFILE			0x04 	/* new File to be created	  */
-#define	F_APPEND			0x08 	/* append to existing File	  */
-#define	F_NORMOPEN			0x10 	/* normal File 			  */
-#define	F_SAVEAS			0x20 	/* File is saved under new name */
-#define	F_WFORCED			0x40 	/* Forced writing, if not mod.  */
-#define	F_ISBACKUPPED		0x80		/* Backup already created	  */
-#define	F_STDLINEAL			0x200	/* Use a reasonable standard document descriptor */
-#define	F_HASWIN			0x400	/* file has an associated window */
-#define	F_NEEDSAUTOSAVE		0x800 	/* File is not autosaved 	  */
-#define	F_HIDDEN			0x1000	/* create File hidden		  */
-#define	F_RDONLY			0x2000	/* File is read only		  */
-#define	F_ISHELPFILE		0x4000	/* File is a Help Window File   */
-#define F_NAME_INPUT_REQUIRED 0x8000 /* When the users presses Save the Save As dialog is being opened to force the input of a new file name */
+#define	F_INUSE				0x01 		// Mark filestructure as used
+#define	F_MODIFIED			0x02 		// File has been modfied
+#define	F_NEWFILE			0x04 		// new File to be created
+#define	F_APPEND			0x08 		// append to existing File
+#define	F_NORMOPEN			0x10 		// normal File
+#define	F_SAVEAS			0x20 		// File is saved under new name
+#define	F_WFORCED			0x40 		// Forced writing, if not modified
+#define	F_ISBACKUPPED		0x80		// Backup already created
+#define	F_STDLINEAL			0x200		// Use a reasonable standard document descriptor
+#define	F_HASWIN			0x400		// file has an associated window
+#define	F_NEEDSAUTOSAVE		0x800 		// File is not autosaved
+#define	F_HIDDEN			0x1000		// create File hidden
+#define	F_RDONLY			0x2000		// File is read only
+#define	F_TRANSIENT			0x4000		// File is only opened for transient purposes (macro file or backup file to compare) but 
+										// not intended for editing and not to be reopened the next time PKS Edit starts
+#define F_NAME_INPUT_REQUIRED 0x8000	// When the users presses Save the Save As dialog is being opened to force the input of a new file name 
 #define	F_CHANGEMARK		(F_NEEDSAUTOSAVE|F_MODIFIED)
 
 /*---------- LINEFLAGS ---------*/
@@ -734,11 +741,10 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 #define HIDDEN		0x2
 #endif
 
-/* far modell pointer sort_compareRecords ... bargh..! */
-#define P_GT(p1,p2)		((void EDFAR*)(p1) > (void EDFAR*)(p2))
-#define P_LT(p1,p2)		((void EDFAR*)(p1) < (void EDFAR*)(p2))
-#define P_EQ(p1,p2)		((void EDFAR*)(p1) == (void EDFAR*)(p2))
-#define P_GE(p1,p2)		((void EDFAR*)(p1) >= (void EDFAR*)(p2))
-#define P_NE(p1,p2)		((void EDFAR*)(p1) != (void EDFAR*)(p2))
+#define P_GT(p1,p2)		((void *)(p1) > (void *)(p2))
+#define P_LT(p1,p2)		((void *)(p1) < (void *)(p2))
+#define P_EQ(p1,p2)		((void *)(p1) == (void *)(p2))
+#define P_GE(p1,p2)		((void *)(p1) >= (void *)(p2))
+#define P_NE(p1,p2)		((void *)(p1) != (void *)(p2))
 
 #endif	/* EDITAB_H */

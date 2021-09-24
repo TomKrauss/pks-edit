@@ -110,6 +110,22 @@ int prof_getPksProfileString(char *pGroup, char *ident, char *string, int maxlen
 		GetPrivateProfileString(pGroup, ident, "", string, maxlen ,_pksEditIniFilename);
 }
 
+/*------------------------------------------------------------
+ * prof_getPksStandardString()
+ * Fetches a string from the standard section of the PKS profile.
+ */
+int prof_getPksStandardString(char* ident, char* string, int maxlen) {
+	return prof_getPksProfileString(_desk, ident, string, maxlen);
+}
+
+/*------------------------------------------------------------
+ * prof_savestring()
+ * Saves a string in the standard section of the PKS profile.
+ */
+int prof_savePksStandardString(char* ident, char* string) {
+	return prof_savestring(_desk, ident, string);
+}
+
 /*--------------------------------------------------------------------------
  * GetScreenRationValues()
  */
@@ -298,8 +314,6 @@ int prof_getstdopt(void) {
 	pConfiguration->asminutes = prof_getlong(_desk,"AsInterv");
 	pConfiguration->nundo = prof_getlong(_desk,"NUBuf");
 	pConfiguration->maximumNumberOfOpenWindows = prof_getlong(_desk, "maxOpenWindows");
-	prof_getPksProfileString(_desk,"AsPath", pConfiguration->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath) -1);
-
 	return 1;
 }
 
@@ -315,15 +329,6 @@ void prof_killsections(LPSTR pszFn, LPSTR pszSection)
 		pszFn = _pksEditIniFilename;
 	}
 	prof_savestring(pszSection, (char *)0, (char *)0);
-}
-
-/*--------------------------------------------------------------------------
- * prof_saveaspath()
- * Save the temp path of PKS editor to the pksedit.ini file.
- */
-void prof_saveaspath(EDITOR_CONFIGURATION* configuration)
-{
-	prof_savestring(_desk,"AsPath", configuration->pksEditTempPath);
 }
 
 /*------------------------------------------------------------
@@ -372,7 +377,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	prof_savelong(_desk,"FindOptions",(long)_currentSearchAndReplaceParams.options);
 	prof_savelong(_desk,"AsInterv",(long)configuration->asminutes);
 	prof_savelong(_desk, "maxOpenWindows", (long)configuration->maximumNumberOfOpenWindows);
-	prof_saveaspath(configuration);
+	config_saveTempPath();
 	prof_savelong(_desk,"NUBuf",(long)configuration->nundo);
 	prof_savelong(_desk, _cxscreen, (long)GetSystemMetrics(SM_CXSCREEN));
 	prof_savelong(_desk, _cyscreen, (long)GetSystemMetrics(SM_CYSCREEN));

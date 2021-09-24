@@ -31,6 +31,7 @@
 #include "regexp.h"
 #include "documenttypes.h"
 #include "crossreferencelinks.h"
+#include "editorconfiguration.h"
 
 #define	MAX_CONTEXT	32
 
@@ -374,7 +375,7 @@ int macro_readMappingFile(int context, char *pszFilename) {
 	if (_outfile.firstl != 0) {
 		char protname[256];
 	
-		string_concatPathAndFilename(protname,file_getTempDirectory(),"KEY.ERR");
+		string_concatPathAndFilename(protname, config_getPKSEditTempPath(),"key.err");
 		ft_writeFileAndClose(&_outfile,protname,0);
 		xref_openSearchList(protname,1);
 	}

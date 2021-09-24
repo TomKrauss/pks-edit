@@ -663,7 +663,7 @@ int xref_openFile(char *name, long line, const char* pszDockName) {
 			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line,0L);
 		else ret = 1;
 	} else {
-		ret = ft_openFileWithoutFileselector(name,line, pszDockName);
+		ret = ft_openFileWithoutFileselector(name,line, pszDockName) != NULL;
 	}
 
 	return ret;

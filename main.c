@@ -348,7 +348,7 @@ void main_saveFrameState() {
 	prof_savewinstate("DeskWin", 0, &ws);
 }
 
-static void UnInitDDE(void) {
+static void dde_uninitialize(void) {
 	if (hDDE) {
 		if (hDDEService) {
 			DdeNameService(hDDE, hszDDEService, 0, DNS_UNREGISTER);
@@ -466,8 +466,7 @@ void win_setEditMenuText(int menunr, char *text)
 /*--------------------------------------------------------------------------
  * his_getHistoryMenu()
  */
-HMENU his_getHistoryMenu(int *pnPosition, int *piCmd)
-{
+HMENU his_getHistoryMenu(int *pnPosition, int *piCmd) {
 	HMENU	hMenu;
 	int		i;
 	static int fileMenuItemCount;
@@ -522,7 +521,7 @@ void FinalizePksEdit(void)
 void main_cleanup(void) {
 	file_clearTempFiles();
 	help_quitHelpSystem();
-	UnInitDDE();
+	dde_uninitialize();
 	doctypes_destroyAllDocumentTypes();
 	theme_destroyAllThemeData();
 	grammar_destroyAll();

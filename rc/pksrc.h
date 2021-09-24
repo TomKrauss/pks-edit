@@ -2,6 +2,7 @@
 // Von Microsoft Visual C++ generierte Includedatei.
 // Verwendet durch C:\source\pksedit\PKSEDIT.RC
 //
+#define ID_COMPARE_BACKUP               3
 #define IDS_STRING15                    15
 #define IDS_NO_TEMPLATES_DEFINED        15
 #define IDD_RO6                         80
@@ -25,6 +26,7 @@
 #define DLG_OPT_WARNINGS                556
 #define DLG_OPT_MISC                    557
 #define DLG_OPT_LAYOUT                  558
+#define DLGCOMPAREFILES                 559
 #define IDC_GENERIC2                    1001
 #define IDC_CUSTOM1                     1006
 #define IDD_PREVIEW_FRAME               1006
@@ -37,6 +39,7 @@
 #define IDC_LIST1                       1015
 #define IDS_REDO                        1246
 #define ID_FENSTER_NEUERHORIZONTALERBEREICH 40019
+#define ID_COMPARE_FILENAME             65535
 
 // Next default values for new objects
 // 

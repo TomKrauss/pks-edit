@@ -72,7 +72,7 @@ int				_bDefiningConst;
 
 typedef void EDFUNCDEF;
 
-extern FILE		*createtmp(char *fnd, char *fn);
+extern FILE		*file_createTempFile(char *fnd, char *fn);
 extern int 		init_funcs(void);
 extern long 	EnumValue(void *enp);
 extern void 	macro_selectDefaultBindings(void);
@@ -186,7 +186,7 @@ void yyerror(char* s, ...)
 		yyerr.srcname = "STDIN";
 
 	if (yyerr.errfp != 0 ||
-		(yyerr.errfp = createtmp(yyerr.errname, "PKSMAKRO.ERR")) != 0) {
+		(yyerr.errfp = file_createTempFile(yyerr.errname, "pksmacro.err")) != 0) {
 		yyerrflg = 1;
 		wvsprintf(buf1, s, ap);
 		sprintf(buf, "Error %s %d: %s\n", yyerr.srcname, yylineno, buf1);

@@ -451,7 +451,7 @@ int EdAbout(void)
 #elif
 	static char _architecture[] = "- 32 Bit Plattform";
 #endif
-	static char _versionInfo[] = "Version 2.1.0, 18.9.2021";
+	static char _versionInfo[] = "Version 2.1.0, 24.9.2021";
 
 	static DIALPARS _d[] = {
 		IDD_RO1,		sizeof _customerMessage, _customerMessage,
@@ -733,7 +733,7 @@ int EdPromptAutosavePath(char *path)
 		0
 	};
 
-	lstrcpy(path, file_getTempDirectory());
+	lstrcpy(path, config_getPKSEditTempPath());
 	_d[0].dp_data = path;
 
 	return DoDialog(DLGNEWASPATH, dlg_standardDialogProcedure,_d, NULL) == IDOK;

@@ -27,6 +27,7 @@
 #include "stringutil.h"
 #include "edfuncs.h"
 #include "fileutil.h"
+#include "editorconfiguration.h"
 
 int  yyparse(void);
 void yyinit(jmp_buf *errb, char *sourcefile, LINE *lps,LINE *lpe);
@@ -92,12 +93,14 @@ int printpaste(FILE *fp, void *p)
 }
 
 /*
- * createtmp()
+ * file_createTempFile()
+ * Create a temp file and return the name of the file created in "dest". The
+ * dest character array must contain enough space to hold EDMAXPATHLEN characters.
  */
-FILE *createtmp(char *dest, char *filename)
-{	FILE *fp;
+FILE *file_createTempFile(char *dest, char *filename) {	
+	FILE *fp;
 
-	string_concatPathAndFilename(dest, file_getTempDirectory(), filename);
+	string_concatPathAndFilename(dest, config_getPKSEditTempPath(), filename);
 	if (strchr(dest, '.') == NULL) {
 		strcat(dest, ".pkc");
 	}
@@ -117,7 +120,7 @@ BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 	char tmpfn[128];
 	FILE *fp;
 
-	if ((fp = createtmp(tmpfn, fn)) == 0) {
+	if ((fp = file_createTempFile(tmpfn, fn)) == 0) {
 		return FALSE;
 	}
 
@@ -128,7 +131,10 @@ BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 			EdFileAbandon();
 		}
 		else {
-			ft_openFileWithoutFileselector(tmpfn,-1L, (void *)0);
+			FTABLE* fp = ft_openFileWithoutFileselector(tmpfn,-1L, (void *)0);
+			if (fp != NULL) {
+				fp->flags |= F_TRANSIENT;
+			}
 		}
 	} else {
 		fclose(fp);

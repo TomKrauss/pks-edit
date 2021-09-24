@@ -56,6 +56,51 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+DLGCOMPAREFILES DIALOGEX 20, 52, 351, 176
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Datei vergleichen"
+FONT 8, "helv", 0, 0, 0x0
+BEGIN
+    LISTBOX         IDD_WINDOWLIST,6,42,336,108,LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_TABSTOP
+    LTEXT           "c:\\source\\pksedit\\atol.c",ID_COMPARE_FILENAME,8,10,208,8,NOT WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,222,6,120,14
+    DEFPUSHBUTTON   "&Compare with Window",1,223,151,120,14
+    PUSHBUTTON      "Compare with Histor&y",IDD_BUT3,222,24,120,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    DLGCOMPAREFILES, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 174
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+DLGCOMPAREFILES AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 #endif    // Deutsch (Deutschland) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -784,22 +829,25 @@ BEGIN
     CONTROL         "&Error window",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,48,210,8
 END
 
-DLG_OPT_AUTOSAVE DIALOGEX 0, 0, 257, 130
+DLG_OPT_AUTOSAVE DIALOGEX 0, 0, 311, 178
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Autosave"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "&Zeit [min]:",-1,12,12,36,8,NOT WS_GROUP
-    EDITTEXT        IDD_INT1,174,12,42,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    CONTROL         "Save settings on Exit",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,204,10
-    LTEXT           "&Path:",-1,12,48,20,8,NOT WS_GROUP
-    EDITTEXT        IDD_STRING1,36,48,179,12,ES_AUTOHSCROLL
-    CONTROL         "Automatically delete temorary files",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,30,204,10
-    CONTROL         "&Reopen previously opened files",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,84,204,10
-    CONTROL         "&Save macros on exit",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,102,204,10
+    LTEXT           "Autosave &time [min]:",-1,12,12,78,8,NOT WS_GROUP
+    EDITTEXT        IDD_INT1,186,12,57,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
+    CONTROL         "Save settings on exit",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,231,10
+    LTEXT           "&Autosavepath:",-1,12,50,53,8,NOT WS_GROUP
+    EDITTEXT        IDD_STRING1,69,48,174,12,ES_AUTOHSCROLL
+    CONTROL         "Automatically delete temporary autosave files",IDD_OPT1,
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,30,231,10
+    CONTROL         "&Reopen previously opened files",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,84,231,10
+    CONTROL         "&Save macros on exit",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,102,231,10
+    CONTROL         "&Place backup files in autosave directory",IDD_OPT5,
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,120,231,10
 END
 
-DLG_OPT_MISC DIALOGEX 0, 0, 241, 155
+DLG_OPT_MISC DIALOGEX 0, 0, 241, 168
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Miscellanous"
 FONT 8, "helv", 0, 0, 0x0
@@ -1065,9 +1113,15 @@ BEGIN
     BEGIN
     END
 
+    DLG_OPT_AUTOSAVE, DIALOG
+    BEGIN
+        RIGHTMARGIN, 257
+        BOTTOMMARGIN, 150
+    END
+
     DLG_OPT_MISC, DIALOG
     BEGIN
-        BOTTOMMARGIN, 140
+        BOTTOMMARGIN, 153
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1144,6 +1198,11 @@ BEGIN
 END
 
 DLGFKEYS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLG_OPT_AUTOSAVE AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

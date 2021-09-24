@@ -1,9 +1,9 @@
 [files]
 "C:\source\trend-master-eclipse-4.20\trend\bin\make.bat", line 1: default
+"C:\source\pksedit\DocumentModel.c", line 2: rightSlot
+"C:\source\pksedit\DocumentTypes.c", line 18: default
 "C:\source\pksedit\en-US\en-US.rc", line 1: default
-"C:\source\pksedit\DocumentTypes.c", line 296: bottomSlot
-"C:\source\pksedit\DocumentModel.c", line 81: rightSlot
-"C:\source\pksedit\CaretMovement.c", line 164: default
+"C:\source\pksedit\CaretMovement.c", line 247: default
 [find]
 !,$
 !"[^,]+, +
@@ -84,6 +84,8 @@
 !C:\source\pksedit\CutAndPaste.c
 !C:\source\pksedit\DocumentModel.c
 !C:\source\pksedit\Logging.c
+!S:\AsciiHexToLong.c
+!C:\Users\tom\AppData\Local\Temp\pksedit\keys.pkc
 [pathes]
 !D:\source\pksedit\pks_sys\*.LIN
 !D:\source\trend-master-eclipse-4.12\trend\core\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
@@ -116,3 +118,4 @@
 !C:\temp\*.*
 !C:\source\pksedit\*.*
 !C:\source\trend-master-eclipse-4.20\trend\bin\*.*
+!S:\*.*

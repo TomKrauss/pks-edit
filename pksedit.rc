@@ -742,21 +742,23 @@ BEGIN
     CONTROL         "&Meldungs Fenster",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,48,210,8
 END
 
-DLG_OPT_AUTOSAVE DIALOGEX 0, 0, 257, 130
+DLG_OPT_AUTOSAVE DIALOGEX 0, 0, 287, 167
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Autosave"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "&Zeit [min]:",-1,12,12,36,8,NOT WS_GROUP
-    EDITTEXT        IDD_INT1,174,12,42,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
+    LTEXT           "Automatisches Speichern nach [min]:",-1,12,12,135,8,NOT WS_GROUP
+    EDITTEXT        IDD_INT1,201,12,42,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "Einstellungen beim &Verlassen speichern",IDD_OPT2,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,204,10
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,232,10
     LTEXT           "&Pfad:",-1,12,48,20,8,NOT WS_GROUP
-    EDITTEXT        IDD_STRING1,36,48,179,12,ES_AUTOHSCROLL
-    CONTROL         "Temporäre Dateien &automatisch löschen",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,30,204,10
+    EDITTEXT        IDD_STRING1,48,47,196,12,ES_AUTOHSCROLL
+    CONTROL         "Dateien des automatischen Speicherns aufräumen",IDD_OPT1,
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,30,232,10
     CONTROL         "&Zuletzt geöffnete Dateien wieder öffnen",IDD_OPT3,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,84,204,10
-    CONTROL         "&Makros beim Verlassen speichern",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,102,204,10
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,84,232,10
+    CONTROL         "&Makros beim Verlassen speichern",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,104,232,10
+    CONTROL         "&Backup Dateien im o.g. Pfad speichern",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,121,232,10
 END
 
 DLG_OPT_MISC DIALOGEX 0, 0, 243, 163
@@ -788,6 +790,18 @@ BEGIN
     CONTROL         "&Funktionstastenleiste anzeigen",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,24,210,8
     CONTROL         "&Statuszeile anzeigen",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,36,210,8
     CONTROL         "&Toolbar anzeigen",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,48,210,8
+END
+
+DLGCOMPAREFILES DIALOGEX 20, 52, 351, 176
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Datei vergleichen"
+FONT 8, "helv", 0, 0, 0x0
+BEGIN
+    LISTBOX         IDD_WINDOWLIST,6,42,336,108,LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_TABSTOP
+    LTEXT           "c:\\source\\pksedit\\atol.c",ID_COMPARE_FILENAME,8,10,206,8,NOT WS_GROUP
+    PUSHBUTTON      "Abbruch",IDCANCEL,222,6,120,14
+    DEFPUSHBUTTON   "&Vergleiche mit Fenster",1,221,154,120,14
+    PUSHBUTTON      "&Vergleiche mit letzter Version",IDD_BUT3,222,24,120,14
 END
 
 
@@ -1170,8 +1184,8 @@ BEGIN
 
     DLG_OPT_AUTOSAVE, DIALOG
     BEGIN
-        RIGHTMARGIN, 190
-        BOTTOMMARGIN, 102
+        RIGHTMARGIN, 220
+        BOTTOMMARGIN, 139
     END
 
     DLG_OPT_MISC, DIALOG
@@ -1184,6 +1198,10 @@ BEGIN
     BEGIN
         RIGHTMARGIN, 109
         BOTTOMMARGIN, 61
+    END
+
+    DLGCOMPAREFILES, DIALOG
+    BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED

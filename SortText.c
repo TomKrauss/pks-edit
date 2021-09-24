@@ -30,7 +30,7 @@
 
 #define	MAXARG			128
 #define	MAXKEYS			8
-#define	MAXDEPTH			6
+#define	MAXDEPTH		6
 
 typedef struct dvec {
 	long n;

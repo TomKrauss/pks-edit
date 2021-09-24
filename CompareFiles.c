@@ -25,6 +25,7 @@
 #include "pksedit.h"
 #include "edierror.h"
 #include "winfo.h"
+#include "mainframe.h"
 
 #define	different(lp1,lp2)	compare_strings(lp1->lbuf,lp1->len,lp2->lbuf,lp2->len)
 #define	mark(lp)			lp->lflg |= LNXMARKED
@@ -54,7 +55,7 @@ extern int  compare_strings(unsigned char* s1, int l1, unsigned char* s2, int l2
 	with MINFRAG trick: <a>-<a>,<f g h i> - <f g h i>
 */
 
-int MINFRAG = 5;		
+static int MINFRAG = 5;		
 static LINE *findmatch(LINE *lp1,LINE *lp2)
 {	int n;
 	LINE *l1,*l2;
@@ -175,6 +176,8 @@ EXPORT int EdFilesCompare(int dir)
 		error_showErrorById(IDS_MSGDIFFTWOWINDOWS);
 		return 0;
 	}
+	mainframe_moveWindow(wp0->edwin_handle, DOCK_NAME_DEFAULT);
+	mainframe_moveWindow(wp1->edwin_handle, DOCK_NAME_RIGHT);
 	return matchlines(wp0->fp,wp1->fp,dir);
 }
 

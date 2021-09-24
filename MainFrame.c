@@ -101,7 +101,7 @@ static DOCKING_SLOT* dockingSlots;
 static HWND  hwndFrameWindow;
 static HICON defaultIcon;
 static void* _executeKeyBinding;
-static char* szDefaultSlotName = "default";
+static char* szDefaultSlotName = DOCK_NAME_DEFAULT;
 
 
 static DOCKING_SLOT* mainframe_addDockingSlot(DOCKING_SLOT_TYPE dsType, HWND hwnd, char* pszName, float xRatio, float yRatio, float wRatio, float hRatio);
@@ -711,6 +711,19 @@ static void tabcontrol_moveTab(TAB_CONTROL* pSource, TAB_CONTROL*pTarget, TAB_PA
 }
 
 /*
+ * Return the tab of a tab control containing the passed page window. 
+ */
+static TAB_PAGE* tabcontrol_getTab(TAB_CONTROL* pSource, HWND hwndEdit) {
+	for (int i = 0; i < arraylist_size(pSource->tc_pages); i++) {
+		TAB_PAGE* pPage = arraylist_get(pSource->tc_pages, i);
+		if (pPage->tp_hwnd == hwndEdit) {
+			return pPage;
+		}
+	}
+	return NULL;
+}
+
+/*
  * A tab of a tab control was dropped on another tab control. Migrate the tab to the new control.
  * if 'bAccept' is FALSE, cancel the operation.
  */
@@ -959,9 +972,6 @@ static void ww_onTimerAction(void) {
 HWND mainframe_addWindow(const char*pszPreferredSlot, const char* pszChildWindowClass, const char* pszTitle, LPVOID lParam) {
 	DOCKING_SLOT* pSlot = mainframe_getSlot(pszPreferredSlot);
 	if (pSlot == NULL) {
-		if (pszPreferredSlot != NULL && strcmp(DOCK_NAME_RIGHT, pszPreferredSlot)) {
-			// TODO: add the requested docking slot 
-		}
 		pSlot = dockingSlots;
 	}
 	HWND hwnd = CreateWindow(pszChildWindowClass, pszTitle, WS_CHILD | WS_CLIPSIBLINGS, 0, 0, 10, 10, pSlot->ds_hwnd, NULL, hInst, lParam);
@@ -969,6 +979,9 @@ HWND mainframe_addWindow(const char*pszPreferredSlot, const char* pszChildWindow
 		return 0;
 	}
 	tabcontrol_addTab(pSlot->ds_hwnd, hwnd);
+	if (pszPreferredSlot != NULL) {
+		mainframe_moveWindow(hwnd, pszPreferredSlot);
+	}
 	return hwnd;
 }
 
@@ -1664,7 +1677,7 @@ int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType) {
 			pRightSlot = mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, DOCK_NAME_RIGHT, 0.5, 0, 0.5, 1);
 			bChanged = TRUE;
 		}
-	} else {
+	} else if (mType == MD_ADD_VERTICAL) {
 		if (!pBottomSlot) {
 			pBottomSlot = mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, DOCK_NAME_BOTTOM, 0, 0.5, 1, 0.5);
 			bChanged = TRUE;
@@ -1677,6 +1690,34 @@ int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType) {
 	}
 	return 1;
 }
+
+/*
+ * Move a mainframe window to a preferred docking slot. 
+ */
+void mainframe_moveWindow(HWND hwndEdit, const char* pszPreferredSlot) {
+	if (strcmp(DOCK_NAME_RIGHT, pszPreferredSlot) == 0) {
+		mainframe_manageDocks(MD_ADD_HORIZONTAL);
+	} else if (strcmp(DOCK_NAME_BOTTOM, pszPreferredSlot) == 0) {
+		mainframe_manageDocks(MD_ADD_VERTICAL);
+	} else {
+		mainframe_manageDocks(MD_ENSURE_DEFAULT);
+	}
+	DOCKING_SLOT* pSlot = mainframe_getSlot(pszPreferredSlot);
+	if (pSlot == NULL) {
+		return;
+	}
+	DOCKING_SLOT* pExisting = mainframe_getDockingParent(hwndEdit);
+	if (pExisting == NULL || pExisting == pSlot) {
+		return;
+	}
+	TAB_CONTROL* pSource = (TAB_CONTROL*)GetWindowLongPtr(pExisting->ds_hwnd, GWLP_TAB_CONTROL);
+	TAB_PAGE* pPage = tabcontrol_getTab(pSource, hwndEdit);
+	if (pPage != NULL) {
+		TAB_CONTROL* pTarget = (TAB_CONTROL*)GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
+		tabcontrol_moveTab(pSource, pTarget, pPage);
+	}
+}
+
 
 /*
  * Invoked, when a new editor is activated. Used to mark the current active window.

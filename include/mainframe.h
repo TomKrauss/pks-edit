@@ -53,10 +53,11 @@ int mainframe_messageLoop();
  */
 int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(), LONG lParam);
 
-typedef enum { MD_ADD_HORIZONTAL, MD_ADD_VERTICAL } MANAGE_DOCKS_TYPE;
+typedef enum { MD_ADD_HORIZONTAL, MD_ADD_VERTICAL, MD_ENSURE_DEFAULT } MANAGE_DOCKS_TYPE;
 
 #define DOCK_NAME_RIGHT				"rightSlot"
 #define DOCK_NAME_BOTTOM			"bottomSlot"
+#define DOCK_NAME_DEFAULT			"default"
 
 /*
  * Add new docks to the mainframe.
@@ -72,6 +73,11 @@ extern char* mainframe_getDockNameFor(HWND hwnd);
  * Invoked, when a new editor is activated. Used to mark the current active window.
  */
 extern void mainframe_windowActivated(HWND hwndOld, HWND hwndNew);
+
+/*
+ * Move a mainframe window to a preferred docking slot.
+ */
+extern void mainframe_moveWindow(HWND hwndEdit, const char* pszPreferredSlot);
 
 #define MAINFRAME_H
 #endif

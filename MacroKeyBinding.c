@@ -57,7 +57,6 @@ extern void key_unbind(KEYBIND* kp);
 extern long			rsc_wrmacros(int fd, long offset, char *buf, long maxbytes);
 extern long 		rsc_wrbuf(int fd, long offset, char *buf, long maxbytes);
 extern char *		rsc_rdmacros(char *param, unsigned char *p, unsigned char *pend);
-extern char *		file_getTempFilename(char *dst, char c);
 extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 extern void 		st_seterrmsg(char *msg);
 extern void 		key_overridetable(void);

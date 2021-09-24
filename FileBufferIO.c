@@ -26,7 +26,7 @@
 #include "winfo.h"
 
 #include "pksedit.h"
-
+#include "editorconfiguration.h"
 #include "edexec.h"
 #include "encryption.h"
 #include "errordialogs.h"
@@ -379,26 +379,42 @@ readerr:
 	return ret;
 }
 
+/*
+ * Calculate the name of the backup file to create for file fp. The pszResult
+ * string must be big enough to hold EDMAXPATHLEN number of characters.
+*/
+void ft_getBackupFilename(FTABLE* fp, char* pszResult) {
+	char* name = fp->fname;
+	char* backupExtension = fp->documentDescriptor->backupExtension;
+	if (GetConfiguration()->options & O_CREATE_BACKUP_IN_TEMP_PATH) {
+		char* fname = string_getBaseFilename(name);
+		string_concatPathAndFilename(pszResult, config_getPKSEditTempPath(), fname);
+	}
+	else {
+		strcpy(pszResult, name);
+	}
+	if (backupExtension[0]) {
+		strcat(pszResult, ".");
+		strcat(pszResult, backupExtension);
+	}
+	else {
+		strcat(pszResult, ".bak");
+	}
+}
+
 /*--------------------------------------*/
 /* createBackupFile()					*/
 /* create a Backup-File				*/
 /*--------------------------------------*/
-static void createBackupFile(char *name, char *backupExtension)
-{	char backname[256];
-	char *ext,*bext = "BAK";
+static void createBackupFile(FTABLE* fp, char* pszBackupName) {	
+	char* name = fp->fname;
 
-	strcpy(backname,name);
-	ext = string_getFileExtension(backname);
-	if (ext > backname && ext[-1] != '.') {
-		*ext++ = '.';
-		*ext = 0;
+	Fdelete(pszBackupName);
+	// In contrast to the POSIX rename, rename on windows also allows to move files to
+	// different file systems.
+	if (Frename(0, name, pszBackupName)) {
+		error_displayAlertDialog("Cannot rename %s to create backup file %s, errno: %d", name, pszBackupName, errno);
 	}
-
-	if (backupExtension[0])
-		bext = backupExtension;
-	strcpy(ext,bext); 
-	Fdelete(backname);
-	Frename(0,name,backname);
 }
 
 /*--------------------------------------------------------------------------
@@ -465,6 +481,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 	int			no;
 	int			ret;
 	LINE *		lp;
+	char		backupFile[EDMAXPATHLEN];
 	char		pw[32];
 	int 		nl;
 	int			cr;
@@ -498,7 +515,8 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 	}
 	if (linp->backupExtension[0] &&
 	    !(fp-> flags & (F_NEWFILE | F_SAVEAS | F_APPEND | F_ISBACKUPPED))) {
-		createBackupFile(fp->fname, linp->backupExtension);
+		ft_getBackupFilename(fp, backupFile);
+		createBackupFile(fp, backupFile);
 		fp->flags |= F_ISBACKUPPED;
 	}
 

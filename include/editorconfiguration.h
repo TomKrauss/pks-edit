@@ -24,22 +24,22 @@
  /*----- Option Flags assignable to EDITOR_CONFIGURATION.options --------------*/
 
  /* if set, PKS Edit will bring up a confirmation message boxes to confirm saving of files etc... */
-#define	WARNINGS		0x1
-#define	E_BELL 			0x2
-#define	E_FLASH 		0x4		 	/* flash, rather ring the bell */
-#define	O_LOCKFILES		0x8			/* lock opened files */
+#define	WARNINGS					0x1
+#define	E_BELL 						0x2
+#define	E_FLASH 					0x4		 	/* flash, rather ring the bell */
+#define	O_LOCKFILES					0x8			/* lock opened files */
 
-#define	O_READPIC		0x10
-#define	O_SAVE_SETTINGS_ON_EXIT	0x20
-#define	O_SAVESEQ		0x40
-#define	O_GARBAGE_AS	0x80
+#define	O_READPIC					0x10
+#define	O_SAVE_SETTINGS_ON_EXIT		0x20
+#define	O_SAVE_MACROS_ON_EXIT		0x40
+#define	O_DELETE_AUTOSAVE_FILES		0x80
 
-#define	AUTOWRITE		0x100
-#define	O_FORMFOLLOW	0x200
-#define	O_MDISCROLL		0x400
-#define	O_MESSAGES		0x800		/* message window */
+#define	AUTOWRITE					0x100
+#define	O_FORMFOLLOW				0x200
+#define	O_CREATE_BACKUP_IN_TEMP_PATH 0x400
+#define	O_MESSAGES					0x800		/* message window */
 
-#define	UNDOENABLED		0x2000
+#define	UNDOENABLED					0x2000
 #define	O_HIDE_BLOCK_ON_CARET_MOVE	0x1000		/* hide block marks on caret movement */
 
  /*----- Option Flags assignable to EDITOR_CONFIGURATION.layoutoptions --------------*/
@@ -73,6 +73,11 @@ typedef struct tagEDITOR_CONFIGURATION {
  */
 extern EDITOR_CONFIGURATION* GetConfiguration();
 
+/*
+ * Returns the temp path into which PKS edit saves autosave and optionally backup files.
+ */
+extern char* config_getPKSEditTempPath();
+
 /*--------------------------------------------------------------------------
  * prof_setinifile()
  */
@@ -94,6 +99,18 @@ extern int prof_getWindowSettings(char* string, WINDOWPLACEMENT* wsp);
 extern int prof_getwinstate(char* wname, int nr, WINDOWPLACEMENT* wsp);
 
 /*------------------------------------------------------------
+ * prof_getPksStandardString()
+ * Fetches a string from the standard section of the PKS profile.
+ */
+extern int prof_getPksStandardString(char* ident, char* string, int maxlen);
+
+/*------------------------------------------------------------
+ * prof_savestring()
+ * Saves a string in the standard section of the PKS profile.
+ */
+extern int prof_savePksStandardString(char* ident, char* string);
+
+/*------------------------------------------------------------
  * prof_printws()
  */
 extern void prof_printws(char* buf, WINDOWPLACEMENT* wsp);
@@ -102,6 +119,12 @@ extern void prof_printws(char* buf, WINDOWPLACEMENT* wsp);
  * prof_savestring()
  */
 extern int prof_savestring(char* grp, char* ident, char* string);
+
+/*--------------------------------------------------------------------------
+ * config_saveTempPath()
+ * Save the temp path of PKS editor to the pksedit.ini file.
+ */
+extern void config_saveTempPath();
 
 /*--------------------------------------------------------------------------
  * prof_killentry()
@@ -142,12 +165,6 @@ extern int prof_getstdopt(void);
  * prof_killsections()
  */
 extern void prof_killsections(LPSTR pszFn, LPSTR pszSection);
-
-/*--------------------------------------------------------------------------
- * prof_saveaspath()
- * Save the temp path of PKS editor to the pksedit.ini file.
- */
-extern void prof_saveaspath(EDITOR_CONFIGURATION* configuration);
 
 /*------------------------------------------------------------
  * prof_save()

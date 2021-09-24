@@ -5,12 +5,23 @@
 ### 2.1.0
 
 #### New
-- PKS Edit does not use an out-dated MDI pattern for managing its windows any more, but manages its windows now in tabs.
-  Tabs may be arranged in docking positions on the screen. The docking positions are persisted and restored, when PKS Edit
-  will be opened again.
+- PKS Edit does not use an out-dated MDI style user interface any more, but manages its windows now in tabs which can be attached
+  to resizable docks. Docking positions are persisted and restored, when PKS Edit will be opened again.
+- PKS Edit support now storing backup files in its "temp path" (new option "Place backup files in autosave directory"). Doing
+  so has the disadvantage, that two files named c:\temp1\x.c and c:\temp2\x.c will create the same temp file having last one saved
+  override the backup file created first. The advantage is however, that no pollution of source working directories occurs.
+
+### Improved
+  The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
+  "pksedit" located in the current users Windows temp directory. PKS Edit will now place all temporary files (autosave etc...) to the backup
+  directory.
+
+### Changed
+- Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather
+  than replacing the extension x.c -> x.bak). This has the advantage, that files named x.c and x.h will create different backup files now.
 
 ### Fixes
-- Long lines painted in a single color could cause a crash. This is fixed.
+- Long lines painted in a single color could have caused a crash. This is fixed.
 
 ### 2.0.2
 

@@ -260,8 +260,8 @@ EXPORT char *file_getTempFilename(char *dst, char c)
  * file_getTempDirectory()
  * Returns the path to the temp directory.
  */
-EXPORT char *file_getTempDirectory(void)
-{	static char tmpdir[1024];
+EXPORT char *file_getTempDirectory(void) {	
+	static char tmpdir[1024];
 
 	if (!tmpdir[0]) {
 		GetTempPath(sizeof tmpdir, tmpdir);
