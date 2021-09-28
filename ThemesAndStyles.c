@@ -36,7 +36,9 @@
 
 #define DEFAULT_BACKGROUND_COLOR RGB(250, 250, 250)
 #define CARET_LINE_COLOR RGB(235, 255, 235)
-#define MARKED_LINE_COLOR RGB(200, 200, 255)
+#define COMPARE_MODIFIED_LINE_COLOR RGB(200, 200, 255)
+#define COMPARE_ADDED_LINE_COLOR RGB(200, 255, 200)
+#define COMPARE_DELETED_LINE_COLOR RGB(255, 200, 200)
 #define CHANGED_LINE_COLOR RGB(200, 200, 0)
 #define SAVED_CHANGED_LINE_COLOR RGB(120, 255, 120)
 #define UNDO_AFTER_SAVE_LINE_COLOR RGB(255, 130, 0)
@@ -158,11 +160,14 @@ static THEME_DATA defaultTheme = {
 	SAVED_CHANGED_LINE_COLOR,
 	UNDO_AFTER_SAVE_LINE_COLOR,
 	CARET_LINE_COLOR,
-	MARKED_LINE_COLOR,
+	COMPARE_MODIFIED_LINE_COLOR,
+	COMPARE_ADDED_LINE_COLOR,
+	COMPARE_DELETED_LINE_COLOR,
 	RULER_BORDER_COLOR,
 	RULER_FOREROUND_COLOR,
 	RULER_BACKGROUND_COLOR,
-	-1,							// used as a default marker - strictly speaking there is no default for COLORREFs
+	-1,							// used as a default marker - strictly speaking there is no default for COLORREFs, 
+								// so -1 is theoretically an illegal value for a placeholder. Works for us here.
 	-1,
 	-1,
 	-1,
@@ -203,7 +208,9 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_COLOR, "changedLineColor", offsetof(THEME_DATA, th_changedLineColor)},
 	{	RT_COLOR, "savedChangedLineColor", offsetof(THEME_DATA, th_savedChangedLineColor)},
 	{	RT_COLOR, "undoAfterSaveChangedLineColor", offsetof(THEME_DATA, th_undoAfterSaveChangedLineColor)},
-	{	RT_COLOR, "markedLineColor", offsetof(THEME_DATA, th_markedLineColor)},
+	{	RT_COLOR, "compareModifiedColor", offsetof(THEME_DATA, th_compareModifiedColor)},
+	{	RT_COLOR, "compareAddedColor", offsetof(THEME_DATA, th_compareAddedColor)},
+	{	RT_COLOR, "compareDeletedColor", offsetof(THEME_DATA, th_compareDeletedColor)},
 	{	RT_COLOR, "rulerBorderColor", offsetof(THEME_DATA, th_rulerBorderColor)},
 	{	RT_COLOR, "mainWindowBackgroundColor", offsetof(THEME_DATA, th_mainWindowBackground)},
 	{	RT_COLOR, "dialogBackground", offsetof(THEME_DATA, th_dialogBackground)},

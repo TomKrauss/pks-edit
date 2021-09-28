@@ -38,8 +38,6 @@
 #define IDD_LAST_PAGE                   1013
 #define IDC_LIST1                       1015
 #define IDS_REDO                        1246
-#define ID_FENSTER_NEUERHORIZONTALERBEREICH 40019
-#define ID_COMPARE_FILENAME             65535
 
 // Next default values for new objects
 // 

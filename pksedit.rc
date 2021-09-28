@@ -797,11 +797,12 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Datei vergleichen"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LISTBOX         IDD_WINDOWLIST,6,42,336,108,LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_TABSTOP
-    LTEXT           "c:\\source\\pksedit\\atol.c",ID_COMPARE_FILENAME,8,10,206,8,NOT WS_GROUP
-    PUSHBUTTON      "Abbruch",IDCANCEL,222,6,120,14
-    DEFPUSHBUTTON   "&Vergleiche mit Fenster",1,221,154,120,14
-    PUSHBUTTON      "&Vergleiche mit letzter Version",IDD_BUT3,222,24,120,14
+    LISTBOX         IDD_WINDOWLIST,6,42,336,114,LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_TABSTOP
+    LTEXT           "c:\\source\\pksedit\\atol.c",IDD_RO1,6,26,206,8,NOT WS_GROUP
+    PUSHBUTTON      "Abbruch",IDCANCEL,220,155,120,14
+    DEFPUSHBUTTON   "... mit ausge&wähltem Fenster",1,222,6,120,14
+    PUSHBUTTON      "... mit letzter &Version",IDD_BUT3,222,24,120,14
+    LTEXT           "Vergleiche Datei:",-1,6,9,206,8,NOT WS_GROUP
 END
 
 

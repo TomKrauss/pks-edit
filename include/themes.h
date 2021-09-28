@@ -26,7 +26,9 @@ typedef struct tagTHEME_DATA {
 	COLORREF th_savedChangedLineColor;
 	COLORREF th_undoAfterSaveChangedLineColor;
 	COLORREF th_caretLineColor;
-	COLORREF th_markedLineColor;
+	COLORREF th_compareModifiedColor;
+	COLORREF th_compareAddedColor;
+	COLORREF th_compareDeletedColor;
 	COLORREF th_rulerBorderColor;
 	COLORREF th_rulerForegroundColor;
 	COLORREF th_rulerBackgroundColor;

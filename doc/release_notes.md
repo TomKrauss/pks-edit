@@ -15,6 +15,8 @@
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
   "pksedit" located in the current users Windows temp directory. PKS Edit will now place all temporary files (autosave etc...) to the backup
   directory.
+- When comparing files, one may now select the file to compare with using a selector. This selector provides a new option for comparison:
+  "Compare with history", which allows to compare a file with a previously created backup file (if such exists).
 
 ### Changed
 - Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather

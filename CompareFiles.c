@@ -84,8 +84,8 @@ static long matchlines(FTABLE *fp1,FTABLE *fp2,int dir)
 	register	LINE *lp1,*lp2,*lp,*lps1,*lps2,*lnlast1,*lnlast2;
 	register	long nmatch = 0,l1,l2;
 
-	if ((lp1 = ln_findbit(fp1->firstl,LNDIFFMARK)) == (LINE *) 0 ||
-	    (lp2 = ln_findbit(fp2->firstl,LNDIFFMARK)) == (LINE *) 0 || 
+	if ((lp1 = ln_findbit(fp1->firstl,LN_COMPARE_DIFFERENT)) == (LINE *) 0 ||
+	    (lp2 = ln_findbit(fp2->firstl,LN_COMPARE_DIFFERENT)) == (LINE *) 0 || 
 	    dir < 0) {
 
 	     lps1    = lp1; lps2    = lp2;
@@ -93,10 +93,10 @@ static long matchlines(FTABLE *fp1,FTABLE *fp2,int dir)
  		lp1 = fp1->firstl;
 		lp2 = fp2->firstl;
 	} else {
-		while(lp1->lflg & LNXMARKED)
+		while(lp1->lflg & LN_COMPARE_DIFFERENT)
 			lp1 = lp1->next;
 
-		while(lp2->lflg & LNXMARKED)
+		while(lp2->lflg & LN_COMPARE_DIFFERENT)
 			lp2 = lp2->next;
 	}
 	while (lp1 && lp2) {
@@ -110,8 +110,8 @@ static long matchlines(FTABLE *fp1,FTABLE *fp2,int dir)
 					dir = 0;
 				} else {
 					if (lnlast1) {
-						ln_removeFlag(lnlast1,lp1,LNXMARKED);
-						ln_removeFlag(lnlast2,lp2,LNXMARKED);
+						ln_removeFlag(lnlast1,lp1, LN_COMPARE_DIFFERENT);
+						ln_removeFlag(lnlast2,lp2, LN_COMPARE_DIFFERENT);
 					}
 					lnlast1 = lp1;
 					lnlast2 = lp2;
@@ -122,10 +122,10 @@ static long matchlines(FTABLE *fp1,FTABLE *fp2,int dir)
 					lps1 = fp1->firstl;
 					lps2 = fp2->firstl;
 				}
-				ln_removeFlag(lps1,(LINE *)0L,LNXMARKED|LNDIFFMARK);
-				ln_removeFlag(lps2,(LINE *)0L,LNXMARKED|LNDIFFMARK);
-				lp1->lflg |= LNDIFFMARK;
-				lp2->lflg |= LNDIFFMARK;
+				ln_removeFlag(lps1,(LINE *)0L,LN_COMPARE_DIFFERENT);
+				ln_removeFlag(lps2,(LINE *)0L,LN_COMPARE_DIFFERENT);
+				lp1->lflg |= LN_COMPARE_MODIFIED;
+				lp2->lflg |= LN_COMPARE_MODIFIED;
 				l1 = ln_cnt(fp1->firstl,lp1) - 1;
 				l2 = ln_cnt(fp2->firstl,lp2) - 1;
 				caret_placeCursorAndMakevisibleWithSpace(WIPOI(fp1),l1,0L);
@@ -166,18 +166,18 @@ out:
 }
 
 /*--------------------------------------------------------------------------
- * EdFilesCompare()
+ * compare_files()
+ * Compare two files identified by their WINFO pointers.
  */
-EXPORT int EdFilesCompare(int dir)
-{	WINFO *wp0,*wp1;
+EXPORT int compare_files(WINFO* wp0, WINFO* wp1) {
 
-	if ((wp0 = ww_getWindowFromStack(0)) == NULL ||
-	    (wp1 = ww_getWindowFromStack(1)) == NULL) {
+	if (wp0 == NULL ||
+	    wp1 == NULL) {
 		error_showErrorById(IDS_MSGDIFFTWOWINDOWS);
 		return 0;
 	}
-	mainframe_moveWindow(wp0->edwin_handle, DOCK_NAME_DEFAULT);
-	mainframe_moveWindow(wp1->edwin_handle, DOCK_NAME_RIGHT);
-	return matchlines(wp0->fp,wp1->fp,dir);
+	mainframe_moveWindowAndActivate(wp1->edwin_handle, DOCK_NAME_RIGHT);
+	mainframe_moveWindowAndActivate(wp0->edwin_handle, DOCK_NAME_DEFAULT);
+	return matchlines(wp0->fp,wp1->fp, 1);
 }
 

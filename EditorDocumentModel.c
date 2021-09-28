@@ -57,7 +57,6 @@ BOOL ln_createAndAdd(FTABLE* fp, char* q, int len, int flags) {
 	}
 	lp->len = len;
 	lp->lflg = flags;
-	lp->attr = 0;
 	lp->next = 0L;
 	lp->lbuf[len] = 0;
 	if (q) {

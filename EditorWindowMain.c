@@ -798,6 +798,14 @@ WINFUNC EditWndProc(
 		}
 		break;
 	}
+	case WM_KILLFOCUS: {
+			WINFO* wp = _winlist;
+			if (wp != NULL) {
+				wt_tcursor(wp, 0);
+			}
+		}
+		break;
+
 	case WM_MOVE:
 		/* drop through */
 	case WM_SIZE:
@@ -1108,14 +1116,6 @@ static WINFUNC WorkAreaWndProc(
 				"WM_SETFOCUS in WorkWndProc without file"));
 	    }
 	    return 0;
-
-	case WM_KILLFOCUS:
-		if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
-			wt_tcursor(wp,0);
-		} else {
-			EdTRACE(log_errorArgs(DEBUG_TRACE,"WM_KILLFOCUS in WorkWndProc without file"));
-		}
-		return 0;
 
 	case WM_DESTROY:
 		return 0;

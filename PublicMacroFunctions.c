@@ -65,6 +65,11 @@ extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		mac_compileMacros(void);
 extern int		doctypes_addDocumentTypesToListBox(HWND hwnd, int nItem);
+/*--------------------------------------------------------------------------
+ * compare_files()
+ * Compare two files identified by their WINFO pointers.
+ */
+extern int compare_files(WINFO* wp0, WINFO* wp1);
 
 extern long		_multiplier;
 
@@ -864,6 +869,75 @@ static int showWindowList(int nTitleId)
 int EdInfoFiles(void)
 {
 	return showWindowList(IDS_WINDOWLIST);
+}
+
+/*--------------------------------------------------------------------------
+ * dlg_openCompareDialog()
+ */
+static WINFO* _compareFile1;
+static INT_PTR CALLBACK compare_dialogProcedure(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+	INT_PTR nRet = dlg_standardDialogProcedure(hDlg, message, wParam, lParam);
+	if (message == WM_INITDIALOG) {
+		LRESULT idx = SendDlgItemMessage(hDlg, IDD_WINDOWLIST, LB_GETCURSEL, 0, 0);
+		EnableWindow(GetDlgItem(hDlg, IDOK), idx != 0);
+		EnableWindow(GetDlgItem(hDlg, IDD_BUT3), _compareFile1 && ft_backupFileExists(_compareFile1->fp));
+	}
+	return nRet;
+}
+
+static DIALPARS compareDialListPars[] = {
+	IDD_RO1,			128,		0,
+	IDD_WINDOWLIST,		0,			0,
+	0
+};
+static void dlg_openCompareCommand(HWND hDlg, int nItem, int nNotify, void* pUser) {
+	switch (nNotify) {
+	case LBN_SELCHANGE:
+	case LBN_DBLCLK:
+		dlg_getListboxText(hDlg, nItem, pUser);
+		if (nNotify == LBN_SELCHANGE) {
+			EnableWindow(GetDlgItem(hDlg, IDOK), *(WINFO**)pUser != _compareFile1);
+		} else {
+			PostMessage(hDlg, WM_COMMAND, IDOK, 0L);
+		}
+	}
+}
+
+/*--------------------------------------------------------------------------
+ * EdFilesCompare()
+ */
+int EdFilesCompare(int dir) {
+	WINFO* wp;
+	DIALLIST dlist = {
+		(long*)&wp,
+		winlist_lboxfill,
+		dlg_getListboxText,
+		cust_measureListBoxRowWithIcon,
+		winlist_drawFileInfo,
+		dlg_openCompareCommand
+	};
+	int		nRet;
+
+	_compareFile1 = ww_getCurrentEditorWindow();
+	if (!_compareFile1) {
+		return 0;
+	}
+	wp = _compareFile1->next;
+	FTABLE* fp = _compareFile1->fp;
+	compareDialListPars[0].dp_data = fp->fname;
+	compareDialListPars[1].dp_data = &dlist;
+	nRet = DoDialog(DLGCOMPAREFILES, compare_dialogProcedure, compareDialListPars, NULL);
+	if (nRet == IDD_BUT3) {
+		FTABLE* fp = ft_openBackupfile(_compareFile1->fp);
+		if (fp == NULL) {
+			return 0;
+		}
+		wp = WIPOI(fp);
+	}
+	if (nRet == IDCANCEL || wp == 0 || wp == _compareFile1) {
+		return 0;
+	}
+	return compare_files(_compareFile1, wp);
 }
 
 /*--------------------------------------------------------------------------

@@ -37,11 +37,10 @@
 typedef struct tagEDIT_CONFIGURATION EDIT_CONFIGURATION;
 
 typedef struct line   {
-	struct line* next;
-	struct line* prev;
-	int  		len; 		/* linelength in chars */
-	unsigned char	lflg;		/* line flags */
-	unsigned char	attr;		/* attribute byte */
+	struct line*	next;
+	struct line*	prev;
+	int  			len; 		/* linelength in chars */
+	unsigned short	lflg;		/* line flags */
 	char 		lbuf[LN_ALIGN];
 } LINE;
 
@@ -319,7 +318,14 @@ typedef struct tagWINDOWPLACEMENT WINDOWPLACEMENT;
  * Open a file with a file name and jump into a line. Place the window to
  * open as defined in the param wsp.
  */
-FTABLE* ft_openFileWithoutFileselector(char* fn, long line, const char* pszDockName);
+extern FTABLE* ft_openFileWithoutFileselector(char* fn, long line, const char* pszDockName);
+
+/*------------------------------------------------------------
+ * ft_openBackupfile()
+ * Open the backup file of the given file. The backup file is opened in
+ * read-only mode by default. If the file cannot be opened NULL is returned.
+ */
+extern FTABLE* ft_openBackupfile(FTABLE* fp);
 
 /*---------------------------------
  * ln_addFlag()
@@ -428,6 +434,11 @@ extern int ft_selectWindowWithId(int winid, BOOL bPopup);
  * string must be big enough to hold EDMAXPATHLEN number of characters.
 */
 void ft_getBackupFilename(FTABLE* fp, char* pszResult);
+
+/*
+ * Return TRUE if for the passed file a backup file had been created previously.
+ */
+extern BOOL ft_backupFileExists(FTABLE* fp);
 
 /*------------------------------------------------------------
  * EdSelectWindow()
@@ -718,13 +729,17 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 /*---------- LINEFLAGS ---------*/
 
 #define	LNSAVED				0x01 	// the line has been saved
-#define	LNDIFFMARK			0x02 	// Mark for last EdFilesCompare action
 #define	LNMODIFIED			0x04 	// something in line has been modified
 #define LNUNDO_AFTER_SAVE	0x08	// the line has been saved und undo had been applied afterwards
-#define	LNNOCR				0x10	// mark "not chapter lines" 
+#define	LNNOCR				0x10	// mark as having no CR in the line end - UNIX line end style.
 #define	LNINDIRECT			0x20	// indirect flag 
 #define	LNNOTERM			0x40	// unterminated line 
 #define	LNXMARKED			0x80	// marked for EdCharDelete ...	
+#define LN_COMPARE_MODIFIED 0x100	// during compare with another file this line was considered to be modified.
+#define LN_COMPARE_ADDED	0x200	// during compare with another file this line was considered to be added.
+#define LN_COMPARE_DELETED	0x200	// during compare with another file this line was considered to be deleted.
+#define	LN_COMPARE_DIFFERENT	(LN_COMPARE_MODIFIED|LN_COMPARE_ADDED|LN_COMPARE_DELETED) 		
+									// this line was either found modified, added or deleted during a compare files
 
 #define LINE_HAS_LINE_END(lp)		((lp->lflg & LNNOTERM) == 0)
 #define LINE_HAS_CR(lp)				((lp->lflg & LNNOCR) == 0)

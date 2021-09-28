@@ -665,7 +665,6 @@ LINE *ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold)
 
 		memmove(lptmp->lbuf,lp->lbuf,lp->len);	/* fast memmove */
 		lptmp->len = lp->len;
-		lptmp->attr = lp->attr;
 		lptmp->lbuf[lp->len] = 0;
 		lptmp->lflg = lp->lflg;
 		ln_replace(fp,lp,lptmp);	  /* replace old line */

@@ -303,7 +303,9 @@ static void render_customCaret(WINFO* wp, HDC hdc, int y) {
 static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 	HBRUSH		hBrushBg;
 	HBRUSH		hBrushCaretLine;
-	HBRUSH		hBrushMarkedLines;
+	HBRUSH		hBrushCompareModifiedColor;
+	HBRUSH		hBrushCompareAddedColor;
+	HBRUSH		hBrushCompareDeletedColor;
 	HDC 			hdc;
 	HWND			hwnd;
 	RECT 		r;
@@ -322,7 +324,9 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 	font_selectFontStyle(wp, FS_NORMAL, hdc);
 	hBrushBg = CreateSolidBrush(pTheme->th_defaultBackgroundColor);
 	hBrushCaretLine = CreateSolidBrush(pTheme->th_caretLineColor);
-	hBrushMarkedLines = CreateSolidBrush(pTheme->th_markedLineColor);
+	hBrushCompareModifiedColor = CreateSolidBrush(pTheme->th_compareModifiedColor);
+	hBrushCompareAddedColor = CreateSolidBrush(pTheme->th_compareAddedColor);
+	hBrushCompareDeletedColor = CreateSolidBrush(pTheme->th_compareDeletedColor);
 
 	y = calcy(wp,min);
 	lp = ww_getMinLine(wp, min);
@@ -335,10 +339,14 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 		if (newy > ps.rcPaint.top && 			/* if in redraw area */
 		    (flg || (lp->lflg & LNMODIFIED))) {	/* if print_singleLineOfText is modified || we redraw all */
 			HBRUSH hBrush = hBrushBg;
-			if (lp->lflg & LNXMARKED) {
-				hBrush = hBrushMarkedLines;
-			} else if (lp == wp->caret.linePointer && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
+			if (lp == wp->caret.linePointer && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
 				hBrush = hBrushCaretLine;
+			} else if (lp->lflg & (LNXMARKED|LN_COMPARE_MODIFIED)) {
+				hBrush = hBrushCompareModifiedColor;
+			} else if (lp->lflg & LN_COMPARE_ADDED) {
+				hBrush = hBrushCompareAddedColor;
+			} else if (lp->lflg & LN_COMPARE_DELETED) {
+				hBrush = hBrushCompareDeletedColor;
 			}
 			r.left = rect.left; r.right = rect.right;
 			r.top = y;
@@ -370,7 +378,9 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 
 	DeleteObject(hBrushBg);
 	DeleteObject(hBrushCaretLine);
-	DeleteObject(hBrushMarkedLines);
+	DeleteObject(hBrushCompareModifiedColor);
+	DeleteObject(hBrushCompareAddedColor);
+	DeleteObject(hBrushCompareDeletedColor);
 	EndPaint(hwnd,&ps);
 
 }

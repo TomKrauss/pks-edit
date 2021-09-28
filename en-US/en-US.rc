@@ -62,16 +62,17 @@ END
 // Dialog
 //
 
-DLGCOMPAREFILES DIALOGEX 20, 52, 351, 176
+DLGCOMPAREFILES DIALOGEX 20, 52, 355, 176
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Datei vergleichen"
+CAPTION "Compare Files"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LISTBOX         IDD_WINDOWLIST,6,42,336,108,LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_TABSTOP
-    LTEXT           "c:\\source\\pksedit\\atol.c",ID_COMPARE_FILENAME,8,10,208,8,NOT WS_GROUP
-    PUSHBUTTON      "Cancel",IDCANCEL,222,6,120,14
-    DEFPUSHBUTTON   "&Compare with Window",1,223,151,120,14
-    PUSHBUTTON      "Compare with Histor&y",IDD_BUT3,222,24,120,14
+    LISTBOX         IDD_WINDOWLIST,10,42,336,108,LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_TABSTOP
+    LTEXT           "c:\\source\\pksedit\\atol.c",IDD_RO1,10,26,208,8,NOT WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,226,150,120,14
+    DEFPUSHBUTTON   "... with &selected window",1,226,6,120,14
+    PUSHBUTTON      "... with histor&y",IDD_BUT3,226,24,120,14
+    LTEXT           "Compare file:",-1,10,9,195,8,NOT WS_GROUP
 END
 
 
@@ -85,6 +86,7 @@ GUIDELINES DESIGNINFO
 BEGIN
     DLGCOMPAREFILES, DIALOG
     BEGIN
+        RIGHTMARGIN, 351
         BOTTOMMARGIN, 174
     END
 END
@@ -880,163 +882,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Menu
-//
-
-PKSEDEDITMENU MENU
-BEGIN
-    POPUP "&File"
-    BEGIN
-        MENUITEM "&New...",                     40001
-        MENUITEM "O&pen...\a",                  MOPENF
-        MENUITEM "New Window for Current File\a", MCLONEWINDOW
-        MENUITEM "&Close\a",                    MQUITF
-        MENUITEM "Save && Clo&se\a",            MSAVEF
-        MENUITEM "Sav&e\a",                     MSAVERES
-        MENUITEM "Save &as...\a",               MSAVEAS
-        MENUITEM "Save all &Modified\a",        MSAVEALL_NO_EXIT
-        MENUITEM SEPARATOR
-        MENUITEM "&Insert&...\a",               MREADF
-        MENUITEM "A&bandon\a",                  MABANDON
-        MENUITEM SEPARATOR
-        POPUP "&Print"
-        BEGIN
-            MENUITEM "&Current Window...\a",        IDM_PRINTTEXT
-            MENUITEM "&File...\a",                  IDM_PRINTFILE
-        END
-        MENUITEM SEPARATOR
-        MENUITEM "Save and Exit\a",             MSAVEALL
-        MENUITEM "E&xit\a",                     MEXIT
-    END
-    POPUP "&Edit"
-    BEGIN
-        MENUITEM "&Undo\a",                     IDM_UNDO
-        MENUITEM "&Redo\a",                     IDM_REDO
-        MENUITEM "&Redo last Command\a",        IDM_DOAGAIN
-        MENUITEM SEPARATOR
-        MENUITEM "C&opy\a",                     MTCUT
-        MENUITEM "Pa&ste\a",                    MTPASTE
-        MENUITEM "&Cut\a",                      MTDEL
-        MENUITEM "&Delete\a",                   IDM_ERASEBLOCK
-        MENUITEM "D&uplicate\a",                MTCOPY
-        MENUITEM "&Move\a",                     MTMOVE
-        MENUITEM SEPARATOR
-        MENUITEM "S&ave Selection to File...\a", MWRITEF
-        MENUITEM SEPARATOR
-        MENUITEM "S&tart Selection\a",          MTMSTART
-        MENUITEM "&End Selection\a",            MTMEND
-        MENUITEM "Hi&de Selection\a",           MTMHIDE
-        MENUITEM SEPARATOR
-        MENUITEM "Recta&ngular Selection\a",    MCOLFORM
-    END
-    POPUP "&Find"
-    BEGIN
-        MENUITEM "&Find...\a",                  MFIND
-        MENUITEM "&Replace...\a",               MREPLACE
-        MENUITEM "Find &again\a",               MFAGAIN
-        MENUITEM SEPARATOR
-        MENUITEM "Find in Fi&les...\a",         MEDIFLIS
-        MENUITEM "&Use Previous Search Results...\a", MREAD_SEARCH_LIST
-        MENUITEM "Open &Cross Reference...\a",  MSHOWTAG
-        MENUITEM SEPARATOR
-        MENUITEM "Set &Mark...\a",              MSETMARK
-        MENUITEM "&Goto &Mark...\a",            MGOTOMAR
-        MENUITEM "Goto &Line...\a",             MGOTOLN
-        MENUITEM "Goto Selection S&tart\a",     MTMFSTAR
-        MENUITEM "Goto Selection E&nd\a",       MTMFEND
-        MENUITEM "Goto &Last Position\a",       MLASTPOS
-        MENUITEM "Goto &Cross Reference\a",     MFLASTP
-    END
-    POPUP "F&unctions"
-    BEGIN
-        MENUITEM "&Format...\a",                MFORMAT
-        MENUITEM "&Align...\a",                 MENALIGN
-        MENUITEM "Shift &right...\a",           MSHFTRIG
-        MENUITEM "Shift l&eft...\a",            MSHFTLEF
-        MENUITEM "S&ort File...\a",             MMSORT
-        MENUITEM "Toggle Comment...\a",         MTOGGLE_COMMENT
-        MENUITEM "&Compare Files\a",            MENDIFF
-        MENUITEM SEPARATOR
-        POPUP "Convert"
-        BEGIN
-            MENUITEM "&Spaces -> Tabs...\a",        MCOMTABS
-            MENUITEM "&Tabs -> Spaces...\a",        MEXPTABS
-            MENUITEM "&Upper->Lower...\a",          IDM_CONVERT_TO_LOWER
-            MENUITEM "Lower->Upper...\a",           IDM_CONVERT_TO_UPPER
-            MENUITEM "&Toggle Upper/Lower...\a",    IDM_TOGGLE_LOWER_UPPER
-            MENUITEM "Use &Linux line endings...\a", IDM_USE_LINUX_LINEENDS
-            MENUITEM "Use &Windows line endings...\a", IDM_USE_WINDOWS_LINEENDS
-        END
-    END
-    POPUP "&Macros"
-    BEGIN
-        MENUITEM "&Record\a",                   MMRECORDER
-        MENUITEM "&Edit...\a",                  MMACEDIT
-        MENUITEM "&Compile...\a",               IDM_COMPILEMACROS
-        POPUP "&View Bindings"
-        BEGIN
-            MENUITEM "&Macros\a",                   IDM_MACROLIST
-            MENUITEM "&Keyboard\a",                 IDM_KEYLIST
-            MENUITEM "M&ouse\a",                    IDM_MOUSELIST
-            MENUITEM "Me&nu\a",                     IDM_MENULIST
-        END
-        MENUITEM SEPARATOR
-        MENUITEM "&Read...\a",                  MREADSEQ
-        MENUITEM "&Save...\a",                  MWRSEQ
-    END
-    POPUP "Editor Settings"
-    BEGIN
-        MENUITEM "&Document Types...\a",        IDM_DOCTYPES
-        MENUITEM SEPARATOR
-        MENUITEM "&Edit...\a",                  IDM_WORKMODE
-        MENUITEM "&Display...\a",               IDM_DISPMODE
-        MENUITEM "&Cursor and Scrolling...\a",  IDM_CURSTABS
-        MENUITEM "File-&Format...\a",           IDM_MODEVALS
-        MENUITEM SEPARATOR
-        MENUITEM "&Show Tabs and Spaces\a",     MMSHOWCO
-        MENUITEM "Show Ruler\a",                MMSHOWLI
-        MENUITEM "&Use Alternate Status Line\a", MMSTATHE
-        MENUITEM "&Show Syntax Highlighting\a", MMSHOWAT
-        MENUITEM "&Display Line Numbers",       MMSHOWLINENUMBERS
-        MENUITEM SEPARATOR
-        POPUP "&More Settings"
-        BEGIN
-            MENUITEM "&Edit...\a",                  MEDITDOCMAC
-            MENUITEM "&Insert...\a",                MADDDOCMAC
-        END
-    END
-    POPUP "E&xtras"
-    BEGIN
-        MENUITEM "S&hell...\a",                 MEXEC
-        MENUITEM SEPARATOR
-        MENUITEM "&Open TAG File...\a",         MREADTAG
-        MENUITEM "Open &Error Log...\a",        MREADCMP
-        MENUITEM SEPARATOR
-        MENUITEM "&Settings...\a",              MOPTION
-    END
-    POPUP "&Windows"
-    BEGIN
-        MENUITEM "&Close All\a",                IDM_CLOSEALL
-        MENUITEM "New horizontal Dock\a",       IDM_NEW_HORIZONTAL_DOCK
-        MENUITEM "New vertical Dock\a",         IDM_NEW_VERTICAL_DOCK
-        MENUITEM SEPARATOR
-        MENUITEM "&List...\a",                  IDM_INFOFILE
-    END
-    POPUP "&?"
-    BEGIN
-        MENUITEM "&Index\a",                    IDM_HLPINDEX
-        MENUITEM "&Menus\a",                    IDM_HLPONMENUS
-        MENUITEM "&Keyboard + Mouse\a",         IDM_HLPONKEYS
-        MENUITEM "&Desktop\a",                  IDM_HLPONDESKTOP
-        MENUITEM "&Using Help\a",               IDM_HLPONHLP
-        MENUITEM SEPARATOR
-        MENUITEM "About &PKS-EDIT...\t",        IDM_ABOUT
-    END
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // DESIGNINFO
 //
 
@@ -1205,6 +1050,163 @@ END
 DLG_OPT_AUTOSAVE AFX_DIALOG_LAYOUT
 BEGIN
     0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+PKSEDEDITMENU MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New...",                     40001
+        MENUITEM "O&pen...\a",                  MOPENF
+        MENUITEM "New Window for Current File\a", MCLONEWINDOW
+        MENUITEM "&Close\a",                    MQUITF
+        MENUITEM "Save && Clo&se\a",            MSAVEF
+        MENUITEM "Sav&e\a",                     MSAVERES
+        MENUITEM "Save &as...\a",               MSAVEAS
+        MENUITEM "Save all &Modified\a",        MSAVEALL_NO_EXIT
+        MENUITEM SEPARATOR
+        MENUITEM "&Insert&...\a",               MREADF
+        MENUITEM "A&bandon\a",                  MABANDON
+        MENUITEM SEPARATOR
+        POPUP "&Print"
+        BEGIN
+            MENUITEM "&Current Window...\a",        IDM_PRINTTEXT
+            MENUITEM "&File...\a",                  IDM_PRINTFILE
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Save and Exit\a",             MSAVEALL
+        MENUITEM "E&xit\a",                     MEXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\a",                     IDM_UNDO
+        MENUITEM "&Redo\a",                     IDM_REDO
+        MENUITEM "&Redo last Command\a",        IDM_DOAGAIN
+        MENUITEM SEPARATOR
+        MENUITEM "C&opy\a",                     MTCUT
+        MENUITEM "Pa&ste\a",                    MTPASTE
+        MENUITEM "&Cut\a",                      MTDEL
+        MENUITEM "&Delete\a",                   IDM_ERASEBLOCK
+        MENUITEM "D&uplicate\a",                MTCOPY
+        MENUITEM "&Move\a",                     MTMOVE
+        MENUITEM SEPARATOR
+        MENUITEM "S&ave Selection to File...\a", MWRITEF
+        MENUITEM SEPARATOR
+        MENUITEM "S&tart Selection\a",          MTMSTART
+        MENUITEM "&End Selection\a",            MTMEND
+        MENUITEM "Hi&de Selection\a",           MTMHIDE
+        MENUITEM SEPARATOR
+        MENUITEM "Recta&ngular Selection\a",    MCOLFORM
+    END
+    POPUP "&Find"
+    BEGIN
+        MENUITEM "&Find...\a",                  MFIND
+        MENUITEM "&Replace...\a",               MREPLACE
+        MENUITEM "Find &again\a",               MFAGAIN
+        MENUITEM SEPARATOR
+        MENUITEM "Find in Fi&les...\a",         MEDIFLIS
+        MENUITEM "&Use Previous Search Results...\a", MREAD_SEARCH_LIST
+        MENUITEM "Open &Cross Reference...\a",  MSHOWTAG
+        MENUITEM SEPARATOR
+        MENUITEM "Set &Mark...\a",              MSETMARK
+        MENUITEM "&Goto &Mark...\a",            MGOTOMAR
+        MENUITEM "Goto &Line...\a",             MGOTOLN
+        MENUITEM "Goto Selection S&tart\a",     MTMFSTAR
+        MENUITEM "Goto Selection E&nd\a",       MTMFEND
+        MENUITEM "Goto &Last Position\a",       MLASTPOS
+        MENUITEM "Goto &Cross Reference\a",     MFLASTP
+    END
+    POPUP "F&unctions"
+    BEGIN
+        MENUITEM "&Format...\a",                MFORMAT
+        MENUITEM "&Align...\a",                 MENALIGN
+        MENUITEM "Shift &right...\a",           MSHFTRIG
+        MENUITEM "Shift l&eft...\a",            MSHFTLEF
+        MENUITEM "S&ort File...\a",             MMSORT
+        MENUITEM "Toggle Comment...\a",         MTOGGLE_COMMENT
+        MENUITEM "&Compare Files\a",            MENDIFF
+        MENUITEM SEPARATOR
+        POPUP "Convert"
+        BEGIN
+            MENUITEM "&Spaces -> Tabs...\a",        MCOMTABS
+            MENUITEM "&Tabs -> Spaces...\a",        MEXPTABS
+            MENUITEM "&Upper->Lower...\a",          IDM_CONVERT_TO_LOWER
+            MENUITEM "Lower->Upper...\a",           IDM_CONVERT_TO_UPPER
+            MENUITEM "&Toggle Upper/Lower...\a",    IDM_TOGGLE_LOWER_UPPER
+            MENUITEM "Use &Linux line endings...\a", IDM_USE_LINUX_LINEENDS
+            MENUITEM "Use &Windows line endings...\a", IDM_USE_WINDOWS_LINEENDS
+        END
+    END
+    POPUP "&Macros"
+    BEGIN
+        MENUITEM "&Record\a",                   MMRECORDER
+        MENUITEM "&Edit...\a",                  MMACEDIT
+        MENUITEM "&Compile...\a",               IDM_COMPILEMACROS
+        POPUP "&View Bindings"
+        BEGIN
+            MENUITEM "&Macros\a",                   IDM_MACROLIST
+            MENUITEM "&Keyboard\a",                 IDM_KEYLIST
+            MENUITEM "M&ouse\a",                    IDM_MOUSELIST
+            MENUITEM "Me&nu\a",                     IDM_MENULIST
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Read...\a",                  MREADSEQ
+        MENUITEM "&Save...\a",                  MWRSEQ
+    END
+    POPUP "Editor Settings"
+    BEGIN
+        MENUITEM "&Document Types...\a",        IDM_DOCTYPES
+        MENUITEM SEPARATOR
+        MENUITEM "&Edit...\a",                  IDM_WORKMODE
+        MENUITEM "&Display...\a",               IDM_DISPMODE
+        MENUITEM "&Cursor and Scrolling...\a",  IDM_CURSTABS
+        MENUITEM "File-&Format...\a",           IDM_MODEVALS
+        MENUITEM SEPARATOR
+        MENUITEM "&Show Tabs and Spaces\a",     MMSHOWCO
+        MENUITEM "Show Ruler\a",                MMSHOWLI
+        MENUITEM "&Use Alternate Status Line\a", MMSTATHE
+        MENUITEM "&Show Syntax Highlighting\a", MMSHOWAT
+        MENUITEM "&Display Line Numbers",       MMSHOWLINENUMBERS
+        MENUITEM SEPARATOR
+        POPUP "&More Settings"
+        BEGIN
+            MENUITEM "&Edit...\a",                  MEDITDOCMAC
+            MENUITEM "&Insert...\a",                MADDDOCMAC
+        END
+    END
+    POPUP "E&xtras"
+    BEGIN
+        MENUITEM "S&hell...\a",                 MEXEC
+        MENUITEM SEPARATOR
+        MENUITEM "&Open TAG File...\a",         MREADTAG
+        MENUITEM "Open &Error Log...\a",        MREADCMP
+        MENUITEM SEPARATOR
+        MENUITEM "&Settings...\a",              MOPTION
+    END
+    POPUP "&Windows"
+    BEGIN
+        MENUITEM "&Close All\a",                IDM_CLOSEALL
+        MENUITEM "New horizontal Dock\a",       IDM_NEW_HORIZONTAL_DOCK
+        MENUITEM "New vertical Dock\a",         IDM_NEW_VERTICAL_DOCK
+        MENUITEM SEPARATOR
+        MENUITEM "&List...\a",                  IDM_INFOFILE
+    END
+    POPUP "&?"
+    BEGIN
+        MENUITEM "&Index\a",                    IDM_HLPINDEX
+        MENUITEM "&Menus\a",                    IDM_HLPONMENUS
+        MENUITEM "&Keyboard + Mouse\a",         IDM_HLPONKEYS
+        MENUITEM "&Desktop\a",                  IDM_HLPONDESKTOP
+        MENUITEM "&Using Help\a",               IDM_HLPONHLP
+        MENUITEM SEPARATOR
+        MENUITEM "About &PKS-EDIT...\t",        IDM_ABOUT
+    END
 END
 
 

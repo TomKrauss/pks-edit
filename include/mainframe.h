@@ -77,7 +77,7 @@ extern void mainframe_windowActivated(HWND hwndOld, HWND hwndNew);
 /*
  * Move a mainframe window to a preferred docking slot.
  */
-extern void mainframe_moveWindow(HWND hwndEdit, const char* pszPreferredSlot);
+extern void mainframe_moveWindowAndActivate(HWND hwndEdit, const char* pszPreferredSlot);
 
 #define MAINFRAME_H
 #endif

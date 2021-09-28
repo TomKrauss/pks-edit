@@ -600,6 +600,16 @@ wfail1:
 #endif
 }
 
+/*
+ * Return TRUE if for the passed file a backup file had been created previously. 
+ */
+EXPORT BOOL ft_backupFileExists(FTABLE* fp) {
+	char		backupFile[EDMAXPATHLEN];
+
+	ft_getBackupFilename(fp, backupFile);
+	return file_exists(backupFile) == 0;
+}
+
 /*---------------------------------*/
 /* ft_writeFileWithAlternateName()			*/
 /*---------------------------------*/

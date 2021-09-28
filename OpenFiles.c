@@ -57,9 +57,9 @@ static char		_historyFileName[EDMAXPATHLEN];
 int				_ExSave;
 
 /*--------------------------------------------------------------------------
- * ft_generateBackupPathname()
+ * ft_generateAutosavePathname()
  */
-static int ft_generateBackupPathname(char *destinationName, char *fname)
+static int ft_generateAutosavePathname(char *destinationName, char *fname)
 {	char fn[EDMAXPATHLEN];
 	char szBuff[EDMAXPATHLEN];
 
@@ -185,7 +185,7 @@ autosave:
 		/* "best before" date expired: do autosave */
 		strcpy(spath,fp->fname);
 
-		ft_generateBackupPathname(fp->fname,fp->fname);
+		ft_generateAutosavePathname(fp->fname,fp->fname);
 		ret = ft_writefileMode(fp,1);
 
 		/* restore MODIFIED and ISBACKUPED - Flags */
@@ -290,7 +290,7 @@ void ft_deleteautosave(FTABLE *fp) {
 	char as_name[EDMAXPATHLEN];
 
 	if ((GetConfiguration()->options & O_DELETE_AUTOSAVE_FILES) && 
-			ft_generateBackupPathname(as_name,fp->fname) && 
+			ft_generateAutosavePathname(as_name,fp->fname) && 
 			areFilenamesDifferent(fp->fname,as_name)) {
 		_unlink(as_name);
 	}
@@ -617,7 +617,7 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, const char *pszDockN
 			fn = szBuf;
 		}
 		if ((GetConfiguration()->options & O_DELETE_AUTOSAVE_FILES) &&
-			ft_generateBackupPathname(szAsPath, fn) &&
+			ft_generateAutosavePathname(szAsPath, fn) &&
 			areFilenamesDifferent(szAsPath, fn) &&
 			file_exists(szAsPath) == 0 &&
 			error_displayYesNoConfirmation(IDS_MSGRECOVER) == IDYES) {
@@ -654,6 +654,23 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, const char *pszDockN
 	}
 
 	return fp;
+}
+
+
+/*------------------------------------------------------------
+ * ft_openBackupfile()
+ * Open the backup file of the given file. The backup file is opened in 
+ * read-only mode by default. If the file cannot be opened NULL is returned.
+ */
+FTABLE* ft_openBackupfile(FTABLE* fp) {
+	char backupFilename[EDMAXPATHLEN];
+
+	ft_getBackupFilename(fp, backupFilename);
+	FTABLE* fpBackup = ft_openFileWithoutFileselector(backupFilename, 0l, NULL);
+	if (fpBackup != NULL) {
+		ft_setFlags(fpBackup, fp->flags | F_RDONLY | F_TRANSIENT);
+	}
+	return fpBackup;
 }
 
 /*------------------------------------------------------------

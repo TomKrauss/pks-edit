@@ -980,7 +980,7 @@ HWND mainframe_addWindow(const char*pszPreferredSlot, const char* pszChildWindow
 	}
 	tabcontrol_addTab(pSlot->ds_hwnd, hwnd);
 	if (pszPreferredSlot != NULL) {
-		mainframe_moveWindow(hwnd, pszPreferredSlot);
+		mainframe_moveWindowAndActivate(hwnd, pszPreferredSlot);
 	}
 	return hwnd;
 }
@@ -1264,6 +1264,8 @@ static BOOL mainframe_dragSplitter(HWND hwnd, LPARAM lParam) {
 	return ret;
 }
 
+static BOOL controlKeyChanged;
+
 /*
  * Window procedure of the main frame window.
  */
@@ -1356,14 +1358,23 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		}
 		break;
 
-	case WM_ACTIVATE:
+	case WM_ACTIVATE: {
+		WINFO* wp = ww_getCurrentEditorWindow();
+		if (wp != NULL) {
+			wt_tcursor(wp, wParam == WA_ACTIVE);
+		}
 		fkey_keyModifierStateChanged();
 		break;
+	}
 
 	case WM_TIMER:
 		if (appActivated) {
 			appActivated = FALSE;
 			ft_checkForChangedFiles();
+		}
+		if (controlKeyChanged) {
+			controlKeyChanged = FALSE;
+			fkey_keyModifierStateChanged();
 		}
 		ft_triggerAutosaveAllFiles();
 		ww_onTimerAction();
@@ -1570,7 +1581,7 @@ static int mainframe_translateAccelerator(HWND hwnd, MSG* msg) {
 			if (msg->wParam == VK_CONTROL) {
 				PostMessage(msg->hwnd, WM_SETCURSOR, (WPARAM)0, 0);
 			}
-			fkey_keyModifierStateChanged();
+			controlKeyChanged = TRUE;
 			break;
 		}
 		if (!ww_workWinHasFocus()) {
@@ -1694,7 +1705,7 @@ int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType) {
 /*
  * Move a mainframe window to a preferred docking slot. 
  */
-void mainframe_moveWindow(HWND hwndEdit, const char* pszPreferredSlot) {
+void mainframe_moveWindowAndActivate(HWND hwndEdit, const char* pszPreferredSlot) {
 	if (strcmp(DOCK_NAME_RIGHT, pszPreferredSlot) == 0) {
 		mainframe_manageDocks(MD_ADD_HORIZONTAL);
 	} else if (strcmp(DOCK_NAME_BOTTOM, pszPreferredSlot) == 0) {
@@ -1715,6 +1726,7 @@ void mainframe_moveWindow(HWND hwndEdit, const char* pszPreferredSlot) {
 	if (pPage != NULL) {
 		TAB_CONTROL* pTarget = (TAB_CONTROL*)GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
 		tabcontrol_moveTab(pSource, pTarget, pPage);
+		tabcontrol_selectPage(pSource->tc_hwnd, pPage->tp_hwnd);
 	}
 }
 
