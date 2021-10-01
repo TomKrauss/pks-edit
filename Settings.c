@@ -37,10 +37,14 @@
 extern int  _recording;
 extern int  _deadkey;
 
-int doctypes_documentTypeChanged(void);
+int doctypes_documentTypeChanged(int aFlag);
 int doc_columnChanged(void);
 int macro_toggleRecordMaco(void);
 int bl_setColumnSelection(WINFO* wp);
+
+static int doctypes_changed() {
+	return doctypes_documentTypeChanged(TRUE);
+}
 
 static struct optiontab {
     int  flgkeynr;
@@ -48,23 +52,23 @@ static struct optiontab {
 	OP_FLAGTYPE  op_type;
     int  (*func)();
 } _optiontab[] = {
-     IDD_FKFLG1,    WM_INSERT,     OP_EDIT_MODE,   doctypes_documentTypeChanged,
-     IDD_FKFLG2,    WM_AUTOINDENT, OP_EDIT_MODE,   doctypes_documentTypeChanged,
-     IDD_FKFLG3,    WM_AUTOWRAP,   OP_EDIT_MODE,   doctypes_documentTypeChanged,
-     IDD_FKFLG4,    WM_AUTOFORMAT, OP_EDIT_MODE,   doctypes_documentTypeChanged,
-     IDD_FKFLG5,    WM_SHOWMATCH,  OP_EDIT_MODE,   doctypes_documentTypeChanged,
-     IDD_FKFLG6,    WM_BRINDENT,   OP_EDIT_MODE,   doctypes_documentTypeChanged,
-     IDD_FKFLG7,    WM_ABBREV,     OP_EDIT_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG1,    WM_INSERT,     OP_EDIT_MODE,   doctypes_changed,
+     IDD_FKFLG2,    WM_AUTOINDENT, OP_EDIT_MODE,   doctypes_changed,
+     IDD_FKFLG3,    WM_AUTOWRAP,   OP_EDIT_MODE,   doctypes_changed,
+     IDD_FKFLG4,    WM_AUTOFORMAT, OP_EDIT_MODE,   doctypes_changed,
+     IDD_FKFLG5,    WM_SHOWMATCH,  OP_EDIT_MODE,   doctypes_changed,
+     IDD_FKFLG6,    WM_BRINDENT,   OP_EDIT_MODE,   doctypes_changed,
+     IDD_FKFLG7,    WM_ABBREV,     OP_EDIT_MODE,   doctypes_changed,
      IDD_FKFLG8,    BLK_COLUMN_SELECTION,  OP_EDIT_MODE,   doc_columnChanged,
-     IDD_FKFLG9,    F_RDONLY,      OP_FILEFLAG,   doctypes_documentTypeChanged,
-     IDD_FKFLG10,   WM_OEMMODE,    OP_EDIT_MODE,   doctypes_documentTypeChanged,
-     IDD_FKFLG10+1, SHOWCARET_LINE_HIGHLIGHT,  OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
+     IDD_FKFLG9,    F_RDONLY,      OP_FILEFLAG,   doctypes_changed,
+     IDD_FKFLG10,   WM_OEMMODE,    OP_EDIT_MODE,   doctypes_changed,
+     IDD_FKFLG10+1, SHOWCARET_LINE_HIGHLIGHT,  OP_DISPLAY_MODE,   doctypes_changed,
      IDD_FKFLG10+2, 1,            OP_MACRO,   macro_toggleRecordMaco,
-     0,             SHOWCONTROL,   OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
-     0,             SHOWSTATUS,    OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
-     0,             SHOWHEX,       OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
-     0,             SHOWRULER,     OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
-	 0,             SHOWLINENUMBERS,OP_DISPLAY_MODE,   doctypes_documentTypeChanged,
+     0,             SHOWCONTROL,   OP_DISPLAY_MODE,   doctypes_changed,
+     0,             SHOWSTATUS,    OP_DISPLAY_MODE,   doctypes_changed,
+     0,             SHOWHEX,       OP_DISPLAY_MODE,   doctypes_changed,
+     0,             SHOWRULER,     OP_DISPLAY_MODE,   doctypes_changed,
+	 0,             SHOWLINENUMBERS,OP_DISPLAY_MODE,   doctypes_changed,
      -1
 };
 
@@ -73,7 +77,7 @@ static struct optiontab {
  * One document has changed - apply the changes to the current editor and make
  * the changes persistent.
  */
-int doctypes_documentTypeChanged(void) {
+int doctypes_documentTypeChanged(int bSave) {
 	WINFO  *	wp = ww_getCurrentEditorWindow();
 	FTABLE *	fp;
 	
@@ -88,6 +92,9 @@ int doctypes_documentTypeChanged(void) {
 	SendMessage(wp->edwin_handle,WM_EDWINREORG,0,0L);
 
 	action_commandEnablementChanged((ACTION_CHANGE_TYPE) {0,0,1,-1});
+	if (!bSave) {
+		return 1;
+	}
 	return doctypes_saveAllDocumentTypes(fp->documentDescriptor, (char*)0);
 }
 

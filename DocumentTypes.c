@@ -167,19 +167,6 @@ EDIT_CONFIGURATION* doctypes_getDefaultDocumentTypeDescriptor() {
 }
 
 /*--------------------------------------------------------------------------
- * doctypes_getRelatedFilename()
- */
-static void doctypes_getRelatedFilename(char *related_name, char *fname, char *newext)
-{	char *ext;
-
-	strcpy(related_name,fname);
-	ext = string_getFileExtension(related_name);
-	if (ext[-1] != '.')
-		*ext++ = '.';
-	strcpy(ext,newext);
-}
-
-/*--------------------------------------------------------------------------
  * doctypes_getSelectableDocumentFileTypes()
  * Returns the list of document file types defined in PKS Edit in the format
  * that it can be passed on to the open file dialog for filtering of file types

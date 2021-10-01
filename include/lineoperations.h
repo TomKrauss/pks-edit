@@ -737,7 +737,7 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 #define	LNXMARKED			0x80	// marked for EdCharDelete ...	
 #define LN_COMPARE_MODIFIED 0x100	// during compare with another file this line was considered to be modified.
 #define LN_COMPARE_ADDED	0x200	// during compare with another file this line was considered to be added.
-#define LN_COMPARE_DELETED	0x200	// during compare with another file this line was considered to be deleted.
+#define LN_COMPARE_DELETED	0x400	// during compare with another file this line was considered to be deleted.
 #define	LN_COMPARE_DIFFERENT	(LN_COMPARE_MODIFIED|LN_COMPARE_ADDED|LN_COMPARE_DELETED) 		
 									// this line was either found modified, added or deleted during a compare files
 

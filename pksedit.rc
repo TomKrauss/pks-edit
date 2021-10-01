@@ -882,8 +882,8 @@ BEGIN
         MENUITEM "Schiebe &rechts...\a",        MSHFTRIG
         MENUITEM "Schiebe l&inks...\a",         MSHFTLEF
         MENUITEM "S&ortieren...\a",             MMSORT
-        MENUITEM "Kommentare togglen...\a",     MTOGGLE_COMMENT
-        MENUITEM "&Vergleichen\a",              MENDIFF
+        MENUITEM "Kommentare togglen\a",        MTOGGLE_COMMENT
+        MENUITEM "&Vergleichen...\a",           MENDIFF
         MENUITEM SEPARATOR
         POPUP "Konvertieren"
         BEGIN
@@ -1231,13 +1231,13 @@ BEGIN
         BLOCK "040704b0"
         BEGIN
             VALUE "CompanyName", "Pahlen & Krauﬂ Software "
-            VALUE "FileDescription", "Famous Atari Editor"
-            VALUE "FileVersion", "2.0.2"
+            VALUE "FileDescription", "Arcade Atari Programmers Editor"
+            VALUE "FileVersion", "2.1.0"
             VALUE "InternalName", "pksedit.exe"
             VALUE "LegalCopyright", "Mozilla Public License Version 2.0"
             VALUE "OriginalFilename", "pksedit.exe"
             VALUE "ProductName", "PKS Edit"
-            VALUE "ProductVersion", "2.0.2"
+            VALUE "ProductVersion", "2.1.0"
         END
     END
     BLOCK "VarFileInfo"

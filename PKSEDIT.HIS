@@ -1,8 +1,9 @@
 [files]
 "C:\source\pksedit\PKSEDIT.RC", line 801: default
 "C:\source\pksedit\Logging.c", line 1: default
-"C:\source\pksedit\DocumentModel.c", line 1: default
-"C:\source\trend-master-eclipse-4.20\trend\bin\make.bat", line 3: default
+"C:\source\pksedit\DocumentModel.c", line 67: default
+"C:\source\trend-master-eclipse-4.20\trend\bin\make.bat", line 1: default
+"C:\temp\range.py", line 12: default
 [find]
 !"[^,]+, +
 !einer Mod
@@ -113,7 +114,7 @@
 !C:\source\pksedit\doc\*.*
 !C:\source\pksedit\macros\*.*
 !C:\source\pksedit\en-US\*.*
-!C:\temp\*.*
 !C:\source\pksedit\*.*
 !S:\*.*
 !C:\source\trend-master-eclipse-4.20\trend\bin\*.*
+!C:\temp\*.*

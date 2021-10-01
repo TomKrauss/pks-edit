@@ -107,6 +107,14 @@ extern int indent_calculateNextTabStop(int col, INDENTATION* l);
  */
 extern void indent_toggleTabStop(INDENTATION* indentation, int col);
 
+/*
+ * Used to "synchronize" two files to be compared with each other. 
+ */
+typedef struct tagCOMPARISON_LINK {
+    struct tagWINFO* wpLeft;
+    struct tagWINFO* wpRight;
+} COMPARISON_LINK;
+
 /*--------------------------------------------------------------------------
  * ww_tabsChanged()
  * The tab configuration has changed. Update our internal data structures
@@ -154,8 +162,8 @@ typedef struct tagWINFO {
                                     // Is reset to -1 on model changes and recalculated when needed.
      FSTYLE	markstyles[2];			/* text block appearance */
      void	*	fp;
-     int		win_state;
      float      zoomFactor;         // The text font size zoom factor.
+     COMPARISON_LINK* comparisonLink;
 } WINFO;
 
 /* valid working range types */
@@ -466,6 +474,12 @@ extern int sl_moved(WINFO* wp, long dy, long dx, int cursor_adjust);
  * Increase / decrease the zoom factor of the current window.
  */
 extern int ww_zoomWindow(int anIncreaseFactor);
+
+/*
+ * Connect two windows with a comparison link. This is used to allow for synchronized scrolling
+ * etc to provide a consistent view on the differences of two files.
+ */
+extern void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2);
 
 /*------------------------------------------------------------
  * sl_size()

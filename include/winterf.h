@@ -23,7 +23,6 @@
 #define	WM_ICONDROP			WM_USER + 105	/* something dropped on icon */
 #define	WM_ICONSELECT		WM_USER + 106	/* select icon picture */
 #define	WM_PROFSAVE			WM_USER + 107	/* save profile item data */
-#define	WM_ICONCLASSVALUE	WM_USER + 108	/* query icon class for desktop icons */
 #define	WM_TASKFINISHED		WM_USER + 109	/* spawned task has finished */
 
 /* PKS global private message */

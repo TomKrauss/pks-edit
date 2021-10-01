@@ -101,9 +101,10 @@ extern void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax);
 
 /*--------------------------------------------------------------------------
  * doctypes_documentTypeChanged()
- * One document has changed - apply the changes to the current editor.
+ * One document has changed - apply the changes to the current editor. If 'bSave' is
+ * true, write out the document descriptors to the JSON config file.
  */
-extern int doctypes_documentTypeChanged(void);
+extern int doctypes_documentTypeChanged(int bSave);
 
 /*--------------------------------------
  * Returns the default document type descriptor for situations,

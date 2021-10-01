@@ -17,6 +17,7 @@
  */
 
 #include <windows.h>
+#include "alloc.h"
 
 #include "trace.h"
 
@@ -27,22 +28,25 @@
 #include "winfo.h"
 #include "mainframe.h"
 
-#define	different(lp1,lp2)	compare_strings(lp1->lbuf,lp1->len,lp2->lbuf,lp2->len)
-#define	mark(lp)			lp->lflg |= LNXMARKED
-
-extern int  compare_strings(unsigned char* s1, int l1, unsigned char* s2, int l2);
+/**
+ * compare_areDifferent
+ * Return TRUE; if two lines are different.
+ */
+static BOOL compare_areDifferent(LINE* lp1, LINE* lp2) {
+	return lp1->len != lp2->len || strncmp(lp1->lbuf, lp2->lbuf, lp1->len) != 0;
+}
 
 /*--------------------------------------------------------------------------
- * findmatch()
+ * compare_findGroupOfMatchingLines()
  */
 /*
-	strategy is poor:
+	Simple strategy applied so far:
 
-	MINFRAG is the minimum # of lines which should be equal
+	MINIMUM_MATCH_LINES is the minimum # of lines which should be equal
    	otherwise they are not matched against each other.
    	This trick helps keeping track, if a few equal lines 
 	are detected at the cost of loosing some frags of equal
-	(less then MINFRAG) lines.
+	(less then MINIMUM_MATCH_LINES) lines.
 
 	Example:
 
@@ -52,23 +56,22 @@ extern int  compare_strings(unsigned char* s1, int l1, unsigned char* s2, int l2
 	matching chunks
 
 	straight forward:	<a>-<a>,<e>-<e>
-	with MINFRAG trick: <a>-<a>,<f g h i> - <f g h i>
+	with MINIMUM_MATCH_LINES trick: <a>-<a>,<f g h i> - <f g h i>
 */
-
-static int MINFRAG = 5;		
-static LINE *findmatch(LINE *lp1,LINE *lp2)
+static int MINIMUM_MATCH_LINES = 5;		
+static LINE *compare_findGroupOfMatchingLines(LINE *lp1,LINE *lp2)
 {	int n;
 	LINE *l1,*l2;
 
 	while(lp2) {
-		if (!different(lp1,lp2)) {
-			n  = MINFRAG;
+		if (!compare_areDifferent(lp1,lp2)) {
+			n  = MINIMUM_MATCH_LINES;
 			l1 = lp1; l2 = lp2;
 			do {
 				if ((l1 = l1->next) == 0 ||
 				    (l2 = l2->next) == 0 ||
 				    --n < 0) goto out;
-			} while(!different(l1,l2));
+			} while(!compare_areDifferent(l1,l2));
 		}
 		lp2 = lp2->next;
 	}
@@ -77,92 +80,81 @@ out:
 }
 
 /*--------------------------------------------------------------------------
- * matchlines()
+ * compare_diffFiles()
  */
-static long matchlines(FTABLE *fp1,FTABLE *fp2,int dir)
-{	
-	register	LINE *lp1,*lp2,*lp,*lps1,*lps2,*lnlast1,*lnlast2;
-	register	long nmatch = 0,l1,l2;
+static long compare_diffFiles(WINFO* wp1, WINFO* wp2) {	
+	FTABLE* fp1;
+	FTABLE* fp2;
+	LINE *lp1,*lp2,*lp,*lps1,*lps2,*lnlast1,*lnlast2;
+	long bDiffFound = 0;
+	LINE* lpFirstDifferent = NULL;
 
-	if ((lp1 = ln_findbit(fp1->firstl,LN_COMPARE_DIFFERENT)) == (LINE *) 0 ||
-	    (lp2 = ln_findbit(fp2->firstl,LN_COMPARE_DIFFERENT)) == (LINE *) 0 || 
-	    dir < 0) {
-
-	     lps1    = lp1; lps2    = lp2;
-		lnlast1 = 0;   lnlast2 = 0;
- 		lp1 = fp1->firstl;
-		lp2 = fp2->firstl;
-	} else {
-		while(lp1->lflg & LN_COMPARE_DIFFERENT)
-			lp1 = lp1->next;
-
-		while(lp2->lflg & LN_COMPARE_DIFFERENT)
-			lp2 = lp2->next;
-	}
+	fp1 = wp1->fp;
+	fp2 = wp2->fp;
+	lp1 = fp1->firstl; lp2 = fp2->firstl;
+	lnlast1 = 0;
+	lnlast2 = 0;
+	ln_removeFlag(lp1, (LINE*)0L, LN_COMPARE_DIFFERENT);
+	ln_removeFlag(lp2, (LINE*)0L, LN_COMPARE_DIFFERENT);
 	while (lp1 && lp2) {
-		if (different(lp1,lp2)) {
-			if (dir < 0) {
-				if (P_EQ(lps1,lp1) && P_EQ(lps2,lp2)) {
-					if (lnlast1 == 0 || lnlast2 == 0)
-						goto out0;
-					lp1 = lnlast1;
-					lp2 = lnlast2;
-					dir = 0;
-				} else {
-					if (lnlast1) {
-						ln_removeFlag(lnlast1,lp1, LN_COMPARE_DIFFERENT);
-						ln_removeFlag(lnlast2,lp2, LN_COMPARE_DIFFERENT);
-					}
-					lnlast1 = lp1;
-					lnlast2 = lp2;
-				}
-			}
-			if (dir >= 0) {
-				if (dir > 0) {
-					lps1 = fp1->firstl;
-					lps2 = fp2->firstl;
-				}
-				ln_removeFlag(lps1,(LINE *)0L,LN_COMPARE_DIFFERENT);
-				ln_removeFlag(lps2,(LINE *)0L,LN_COMPARE_DIFFERENT);
-				lp1->lflg |= LN_COMPARE_MODIFIED;
-				lp2->lflg |= LN_COMPARE_MODIFIED;
-				l1 = ln_cnt(fp1->firstl,lp1) - 1;
-				l2 = ln_cnt(fp2->firstl,lp2) - 1;
-				caret_placeCursorAndMakevisibleWithSpace(WIPOI(fp1),l1,0L);
-				caret_placeCursorAndMakevisibleWithSpace(WIPOI(fp2),l2,0L);
-				if (!dir)
-					goto out;
-			}
-			do {
-				if ((lp = findmatch(lp1,lp2)) != (LINE *)0) {
-					while (P_NE(lp2,lp)) {
-						mark(lp2);
-						lp2 = lp2->next;
-					}
-					if (dir > 0)
-						goto out;
-					else {
-						goto advance;
-					}
-				}
-				mark(lp1);
-				lp1 = lp1->next;
-			} while(lp1);
-			break;
-		} else {
-advance:
-			nmatch++;
+		if (!compare_areDifferent(lp1, lp2)) {
 			lp1 = lp1->next;
 			lp2 = lp2->next;
+			continue;
 		}
+		lps1 = lp1;
+		lps2 = lp2;
+		bDiffFound = 1;
+		do {
+			if ((lp = compare_findGroupOfMatchingLines(lp1,lp2)) != (LINE *)0) {
+				while (lp2 != lp) {
+					lp2->lflg |= LN_COMPARE_DELETED;
+					lp2 = lp2->next;
+				}
+				goto advance;
+			}
+			lp1->lflg |= LN_COMPARE_ADDED;
+			lp1 = lp1->next;
+		} while(lp1);
+	advance:
+		if (lpFirstDifferent == NULL) {
+			lpFirstDifferent = lp1;
+		}
+		bDiffFound++;
+		while (lps1 != lp1 && lps2 != lp2) {
+			lps1->lflg &= ~LN_COMPARE_DIFFERENT;
+			lps2->lflg &= ~LN_COMPARE_DIFFERENT;
+			lps1->lflg |= LN_COMPARE_MODIFIED;
+			lps2->lflg |= LN_COMPARE_MODIFIED;
+			lps1 = lps1->next;
+			lps2 = lps2->next;
+		}
+		lp1 = lp1->next;
+		lp2 = lp2->next;
 	}
-out0:
-	error_showErrorById(IDS_MSGNOMOREDIFFS);
-	return nmatch;
-
-out:
-	ww_redrawAllWindows(0);
-	return nmatch;
+	while (lp1 && lp1 != fp1->lastl) {
+		bDiffFound = 1;
+		lp1->lflg |= LN_COMPARE_ADDED;
+		lp1 = lp->next;
+	}
+	while (lp2 && lp2 != fp1->lastl) {
+		bDiffFound = 1;
+		lp2->lflg |= LN_COMPARE_DELETED;
+		lp2 = lp->next;
+	}
+	if (bDiffFound == 0) {
+		error_showErrorById(IDS_MSGNOMOREDIFFS);
+		return 0;
+	}
+	ww_connectWithComparisonLink(wp1, wp2);
+	if (lpFirstDifferent != NULL) {
+		long l1 = ln_cnt(fp1->firstl, lpFirstDifferent) - 1;
+		caret_placeCursorAndMakevisibleWithSpace(wp1, l1, 0L);
+		caret_placeCursorAndMakevisibleWithSpace(wp2, l1, 0L);
+	}
+	render_repaintWindow(wp1);
+	render_repaintWindow(wp2);
+	return bDiffFound;
 }
 
 /*--------------------------------------------------------------------------
@@ -178,6 +170,6 @@ EXPORT int compare_files(WINFO* wp0, WINFO* wp1) {
 	}
 	mainframe_moveWindowAndActivate(wp1->edwin_handle, DOCK_NAME_RIGHT);
 	mainframe_moveWindowAndActivate(wp0->edwin_handle, DOCK_NAME_DEFAULT);
-	return matchlines(wp0->fp,wp1->fp, 1);
+	return compare_diffFiles(wp0,wp1);
 }
 

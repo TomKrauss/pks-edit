@@ -456,7 +456,7 @@ int EdAbout(void)
 #elif
 	static char _architecture[] = "- 32 Bit Plattform";
 #endif
-	static char _versionInfo[] = "Version 2.1.0, 24.9.2021";
+	static char _versionInfo[] = "Version 2.1.0, 1.10.2021";
 
 	static DIALPARS _d[] = {
 		IDD_RO1,		sizeof _customerMessage, _customerMessage,
@@ -1076,7 +1076,7 @@ static void docTypeApply(void)
 			ft_abandonFile(fp, lp);
 		} else {
 			doctypes_assignDocumentTypeDescriptor(fp, lp);
-			doctypes_documentTypeChanged();
+			doctypes_documentTypeChanged(TRUE);
 		}
 	}
 }
@@ -1144,7 +1144,7 @@ static int doDocumentTypes(int nDlg) {
 	if (nDlg != DLGDOCTYPES) {
 		return TRUE;
 	}
-	doctypes_documentTypeChanged();
+	doctypes_documentTypeChanged(TRUE);
 	return TRUE;
 }
 
@@ -1328,7 +1328,7 @@ int EdDlgDispMode(void) {
 		ft_forAllViews(fp, ww_tabsChanged, linp);
 	}
 	linp->rmargin = rmargin;
-	return doctypes_documentTypeChanged();
+	return doctypes_documentTypeChanged(TRUE);
 }
 
 /*--------------------------------------------------------------------------
@@ -1381,7 +1381,7 @@ int EdDlgWorkMode(void)
 	linp->workmode = workmode;
 	linp->fillc = tabfill;
 	fp->flags = fileflag;
-	return doctypes_documentTypeChanged();
+	return doctypes_documentTypeChanged(TRUE);
 }
 
 /*--------------------------------------------------------------------------
@@ -1420,7 +1420,7 @@ int EdDlgCursTabs(void)
 	linp->vscroll = scrollmin-1;
 	linp->scroll_dy = mindelta;
 	linp->cursaftersearch = cursafter;
-	return doctypes_documentTypeChanged();
+	return doctypes_documentTypeChanged(TRUE);
 }
 
 /*--------------------------------------------------------------------------

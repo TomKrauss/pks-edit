@@ -4,14 +4,25 @@
       "scopeName": "batch",
       "patterns": [
         {
-          "match": "REM.*",
+          "match": "@?rem.*",
           "style": "comment",
+          "ignoreCase": true,
           "name": "comment.singleLine"
         },
         {
-          "match": "%[^%]+%",
+          "match": "^:[a-z0-9]+",
+          "style": "annotation",
+          "name": "batch.label"
+        },
+        {
+          "match": "%[0-9a-zA-Z%_*]+",
           "style": "string",
           "name": "batch.variable"
+        },
+        {
+          "match": "![0-9a-zA-Z_]+!",
+          "style": "string",
+          "name": "batch.variable2"
         },
         {
           "match": "@[a-z]+",
@@ -27,7 +38,9 @@
             "case",
             "debug",
             "drop",
+            "do",
             "doskey",
+            "gtr",
             "else",
             "echo",
             "end",
@@ -52,8 +65,14 @@
             "to",
             "while"
           ],
+          "ignoreCase": true,
           "style": "keyword",
           "name": "keyword.batch"
+        },
+        {
+          "match": "[=+<>-]+",
+          "style": "operator",
+          "name": "batch.operator"
         }
       ]
     }

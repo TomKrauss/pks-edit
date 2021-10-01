@@ -123,6 +123,7 @@ static BOOL InitApplication(void)
 	}
 #endif
 
+	CoInitialize(NULL);
 	hModuleEnglishUS = LoadLibrary("pksedit.enu.dll");
 
 	if ( !ww_register() ||

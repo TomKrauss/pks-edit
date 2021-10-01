@@ -669,6 +669,8 @@ FTABLE* ft_openBackupfile(FTABLE* fp) {
 	FTABLE* fpBackup = ft_openFileWithoutFileselector(backupFilename, 0l, NULL);
 	if (fpBackup != NULL) {
 		ft_setFlags(fpBackup, fp->flags | F_RDONLY | F_TRANSIENT);
+		doctypes_assignDocumentTypeDescriptor(fpBackup, fp->documentDescriptor);
+		doctypes_documentTypeChanged(FALSE);
 	}
 	return fpBackup;
 }
@@ -749,7 +751,7 @@ int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *linp) {
 
 	ft_forAllViews(fp, ft_abandoned, &(struct tagPOSITION){ln, col});
 
-	doctypes_documentTypeChanged();
+	doctypes_documentTypeChanged(FALSE);
 	render_repaintAllForFile(fp);
 
 	return 1;
@@ -840,7 +842,7 @@ int EdSaveFile(int flg) {
 		strcpy(fp->fname, newname);
 		// Document type may have changed as a result of saving under a new name. Recalculate document descriptor.
 		doctypes_assignDocumentTypeDescriptor(fp, 0);
-		doctypes_documentTypeChanged();
+		doctypes_documentTypeChanged(FALSE);
 		int flags = fp->flags;
 		ft_forAllViews(fp, ww_setwindowtitle, NULL);
 		flags |= F_CHANGEMARK;

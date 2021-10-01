@@ -1272,6 +1272,7 @@ static BOOL controlKeyChanged;
 static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	static BOOL			bHelp = FALSE;
 	static BOOL			appActivated;
+	static BOOL			closed = FALSE;
 	RECT				rect;
 	WORD				fwMenu;
 	WORD				w;
@@ -1359,6 +1360,9 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		break;
 
 	case WM_ACTIVATE: {
+		if (closed) {
+			break;
+		}
 		WINFO* wp = ww_getCurrentEditorWindow();
 		if (wp != NULL) {
 			wt_tcursor(wp, wParam == WA_ACTIVE);
@@ -1368,6 +1372,9 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 	}
 
 	case WM_TIMER:
+		if (closed) {
+			break;
+		}
 		if (appActivated) {
 			appActivated = FALSE;
 			ft_checkForChangedFiles();
@@ -1506,6 +1513,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			return 0;
 		}
 		main_cleanup();
+		closed = TRUE;
 		break;
 
 	case WM_DESTROY:

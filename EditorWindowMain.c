@@ -51,6 +51,7 @@
 #define	GWL_VIEWPTR		GWL_ICCLASSVALUES+sizeof(void*)
 
 #define	PROF_OFFSET		1
+#define COMPARISON_ANNOTATION_WIDTH 18
 
 typedef struct xywh {
 	int x,y,w,h;
@@ -107,11 +108,15 @@ static int ww_createOrDestroyChildWindowOfEditor(
 }
 
 static int ruler_getLeft(WINFO* wp) {
-	if ((wp->dispmode & SHOWLINENUMBERS) == 0) {
+	if ((wp->dispmode & SHOWLINENUMBERS) == 0 && wp->comparisonLink == NULL) {
 		return 0;
 	}
 	FTABLE* fp = wp->fp;
-	return fp->nlines > 99999 ? (lineNumberWindowWidth * 5 / 4) : lineNumberWindowWidth;
+	int nWidth = fp->nlines > 99999 ? (lineNumberWindowWidth * 5 / 4) : lineNumberWindowWidth;
+	if (wp->comparisonLink != NULL) {
+		nWidth += COMPARISON_ANNOTATION_WIDTH;
+	}
+	return nWidth;
 }
 
 /*-----------------------------------------------------------
@@ -151,7 +156,7 @@ static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, 
 	pLineInfo->w = rLineNumbers;
 	pLineInfo->y = pRuler->h;
 	pLineInfo->h = h - pRuler->h;
-	lineNumbersVisible = (w > rLineNumbers && (wp->dispmode & SHOWLINENUMBERS));
+	lineNumbersVisible = (w > rLineNumbers && ((wp->dispmode & SHOWLINENUMBERS) || wp->comparisonLink != NULL));
 	if (!ww_createOrDestroyChildWindowOfEditor(hwnd,
 		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
 		lineNumbersVisible, &wp->lineNumbers_handle, szLineNumbersClass, pLineInfo, wp)) {
@@ -681,17 +686,65 @@ WINFO* ft_getPrimaryView(FTABLE* fp) {
 	return arraylist_get(pList, 0);
 }
 
+/*
+ * One window of two windows being compared with each other is closed. Perform the proper cleanup. 
+ */
+static void ww_releaseComparisonLink(WINFO* wp) {
+	WINFO* wpOther = wp->comparisonLink->wpLeft;
+	if (wpOther == wp) {
+		wpOther = wp->comparisonLink->wpRight;
+	}
+	free(wpOther->comparisonLink);
+	FTABLE* fp = wpOther->fp;
+	LINE* lp = fp->firstl;
+	ln_removeFlag(lp, NULL, LN_COMPARE_DIFFERENT);
+	wpOther->comparisonLink = NULL;
+	SendMessage(wpOther->edwin_handle, WM_EDWINREORG, 0, 0L);
+	render_repaintAllForFile(fp);
+	free(wp->comparisonLink);
+	wp->comparisonLink = NULL;
+}
+
+/*
+ * Connect two windows with a comparison link. This is used to allow for synchronized scrolling
+ * etc to provide a consistent view on the differences of two files.
+ */
+void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2) {
+	if (wp1->comparisonLink) {
+		if (wp1->comparisonLink->wpLeft == wp1 && wp1->comparisonLink->wpRight == wp2) {
+			return;
+		}
+		ww_releaseComparisonLink(wp1);
+	}
+	if (wp2->comparisonLink) {
+		ww_releaseComparisonLink(wp2);
+	}
+	COMPARISON_LINK* pLink1 = calloc(1, sizeof * pLink1);
+	COMPARISON_LINK* pLink2 = calloc(1, sizeof * pLink2);
+	pLink1->wpLeft = wp1;
+	pLink2->wpLeft = wp1;
+	pLink1->wpRight = wp2;
+	pLink2->wpRight = wp2;
+	wp1->comparisonLink = pLink1;
+	wp2->comparisonLink = pLink2;
+	SendMessage(wp1->edwin_handle, WM_EDWINREORG, 0, 0L);
+	SendMessage(wp2->edwin_handle, WM_EDWINREORG, 0, 0L);
+}
+
 /*-----------------------------------------------------------
  * ww_destroy()
  */
-void ww_destroy(WINFO *wp)
-{	int   nId;
+void ww_destroy(WINFO *wp) {	
+	int   nId;
 
 	if (wp == NULL) {
 		return;
 	}
 	if (wp->fp != NULL) {
 		ww_windowClosed(wp);
+	}
+	if (wp->comparisonLink != NULL) {
+		ww_releaseComparisonLink(wp);
 	}
 	if (wp->highlighter) {
 		highlight_destroy(wp->highlighter);
@@ -786,9 +839,6 @@ WINFUNC EditWndProc(
 		return 0;
 		}
 
-	case WM_ICONCLASSVALUE:
-		return GetWindowLongPtr(hwnd,GWL_ICCLASSVALUES);
-
 	case WM_SETFOCUS: {
 		WINFO* wpOld = _winlist;
 		ll_moveElementToFront((LINKED_LIST**)&_winlist, wp);
@@ -857,13 +907,6 @@ WINFUNC EditWndProc(
 		if (!ww_getNumberOfOpenWindows()) {
 			menu_switchMenusToContext("initial");
 		}
-#if defined(DEBUG_MEMORY_USAGE)
-          {
-		static	char			buf[100];
-		wsprintf(buf, "%ld frags remaining", dumpallocated());
-		MessageBox(hwndFrame, buf, szAppName, MB_APPLMODAL|MB_OK);
-		} 
-#endif
 		return 0;
     }
 
@@ -875,8 +918,7 @@ WINFUNC EditWndProc(
  */
 static int ww_updateWindowBounds(WINFO *wp, int w, int h) {
 	ww_setScrollCheckBounds(wp);
-
-	EdTRACE(log_errorArgs(DEBUG_TRACE,"SetWiSize to (%ld,%ld,%ld,%ld)",
+	EdTRACE(log_errorArgs(DEBUG_TRACE,"set window scroll bounds to (minln = %ld, mincol = %ld, maxln = %ld, maxcol = %ld)",
 		   wp->minln,wp->mincol,wp->maxln,wp->maxcol));
 	return 1;
 }
@@ -1289,6 +1331,10 @@ static void draw_lineNumbers(WINFO* wp) {
 		maxln = fp->nlines-1;
 	}
 	LINE* lp = ww_getMinLine(wp, wp->minln);
+	int nRightPadding = LINE_ANNOTATION_WIDTH + (2 * LINE_ANNOATION_PADDING);
+	if (wp->comparisonLink != NULL) {
+		nRightPadding += COMPARISON_ANNOTATION_WIDTH;
+	}
 	for (yPos = rect.top, row = wp->minln; lp && row <= maxln && yPos < rect.top+rect.bottom; row++, yPos += wp->cheight) {
 		if (yPos + wp->cheight < ps.rcPaint.top) {
 			lp = lp->next;
@@ -1297,12 +1343,33 @@ static void draw_lineNumbers(WINFO* wp) {
 		if (yPos > ps.rcPaint.bottom+wp->cheight) {
 			break;
 		}
-		sprintf(text, "%d:", row + 1);
 		RECT textRect;
-		textRect.left = rect.left + padding;
-		textRect.right = rect.right - LINE_ANNOTATION_WIDTH - (2 * LINE_ANNOATION_PADDING);
 		textRect.top = yPos;
 		textRect.bottom = yPos + wp->cheight;
+		if (wp->comparisonLink != NULL && (lp->lflg & LN_COMPARE_DIFFERENT) != 0) {
+			HBRUSH bgBrush2;
+			char* pszText;
+			if (lp->lflg & LN_COMPARE_MODIFIED) {
+				pszText = "±";
+				bgBrush2 = CreateSolidBrush(pTheme->th_compareModifiedColor);
+			} else if (lp->lflg & LN_COMPARE_DELETED) {
+				pszText = "-";
+				bgBrush2 = CreateSolidBrush(pTheme->th_compareDeletedColor);
+			} else {
+				pszText = "+";
+				bgBrush2 = CreateSolidBrush(pTheme->th_compareAddedColor);
+			}
+			textRect.left = rect.right - nRightPadding + 4;
+			textRect.right = textRect.left + COMPARISON_ANNOTATION_WIDTH - 2;
+			FillRect(hdc, &textRect, bgBrush2);
+			DeleteObject(bgBrush2);
+			SetTextColor(hdc, pTheme->th_dialogForeground);
+			DrawText(hdc, pszText, 1, &textRect, DT_CENTER);
+			SetTextColor(hdc, pTheme->th_rulerForegroundColor);
+		}
+		textRect.left = rect.left + padding;
+		textRect.right = rect.right - nRightPadding;
+		sprintf(text, "%d:", row + 1);
 		textLen = strlen(text);
 		DrawText(hdc, text, (int)textLen, &textRect, DT_RIGHT|DT_END_ELLIPSIS);
 		if (lp->lflg & LNMODIFIED) {
