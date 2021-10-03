@@ -202,7 +202,7 @@ TYPEELEM	_enelemtab[] = {
 { "O_AUTO_WRITE"              , 256 },
 { "O_FORMFOLLOW"              , 0x200 },
 { "O_CREATE_BACKUP_IN_TEMP_PATH"               , 0x400},
-{ "O_MESSAGES"                , 2048},
+{ "O_SHOW_MESSAGES_IN_SNACKBAR"                , 2048},
 { "O_AUTODELBLOCK"            , 4096},
 { "O_UNDO_ENABLED"            , 8192},
 { "O_CUTBUFEQCLIP"            , 16384   },

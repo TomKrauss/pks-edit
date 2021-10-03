@@ -95,7 +95,7 @@ int error_displayYesNoConfirmation(int nId, ...)
 {   va_list ap;
     int ret;
     
-	if (!(GetConfiguration()->options & WARNINGS))
+	if (!(GetConfiguration()->options & O_WARNINGS))
 		return IDYES;
 
 	va_start(ap,nId);
@@ -112,7 +112,7 @@ int error_displayYesNoCancelConfirmation(int nId, ...)
 {	va_list ap;
 	int ret;
 
-	if (!(GetConfiguration()->options & WARNINGS))
+	if (!(GetConfiguration()->options & O_WARNINGS))
 		return IDYES;
 
 	va_start(ap,nId);
@@ -180,7 +180,7 @@ void error_displayErrorToast(const char* fmt, va_list ap)
 	st_seterrmsg(buf);
 	st_update();
 
-	if ((GetConfiguration()->options & O_MESSAGES) == 0) {
+	if ((GetConfiguration()->options & O_SHOW_MESSAGES_IN_SNACKBAR) == 0) {
 		return;
 	}
 
@@ -243,11 +243,11 @@ static void error_signalUsingFlashing(void)
  * Display an error in a "non-intrusive way" (status line etc...). 
  */
 void error_showError(char* s, va_list ap) {
-	if (GetConfiguration()->options & WARNINGS)
+	if (GetConfiguration()->options & O_WARNINGS)
 		error_displayErrorToast(s, ap);
-	if (GetConfiguration()->options & E_BELL)
+	if (GetConfiguration()->options & O_ERROR_TONE)
 		sound_playChime();
-	if (GetConfiguration()->options & E_FLASH)
+	if (GetConfiguration()->options & O_ERROR_FLASH_WINDOW)
 		error_signalUsingFlashing();
 }
 

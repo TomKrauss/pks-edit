@@ -29,6 +29,7 @@
 #include "stringutil.h"
 #include "themes.h"
 #include "fileutil.h"
+#include "mainframe.h"
 
 extern void fkey_visibilitychanged(void);
 
@@ -48,7 +49,7 @@ static void AutosaveConfiguration() {
  * The default configuration.  
  */
 static EDITOR_CONFIGURATION _configuration = {
-	(UNDOENABLED | WARNINGS | E_BELL | O_HIDE_BLOCK_ON_CARET_MOVE),
+	(O_UNDOENABLED | O_WARNINGS | O_ERROR_TONE | O_HIDE_BLOCK_ON_CARET_MOVE),
 	(OL_OPTIONBAR | OL_SHOWSTATUS),
 	1,
 	3,
@@ -66,7 +67,7 @@ static DIALPARS _dAutoSave[] = {
 	IDD_OPT1,		O_DELETE_AUTOSAVE_FILES,				& _configuration.options,
 	IDD_STRING1,	sizeof _configuration.pksEditTempPath,	_configuration.pksEditTempPath,
 	IDD_OPT2,		O_SAVE_SETTINGS_ON_EXIT,				&_configuration.options,
-	IDD_OPT3,		O_READPIC,								& _configuration.options,
+	IDD_OPT3,		O_AUTO_OPEN_HISTORY,								& _configuration.options,
 	IDD_OPT4,		O_SAVE_MACROS_ON_EXIT,					& _configuration.options,
 	IDD_OPT5,		O_CREATE_BACKUP_IN_TEMP_PATH,			& _configuration.options,
 	// Terminate with 0
@@ -75,10 +76,10 @@ static DIALPARS _dAutoSave[] = {
 
 static DIALPARS _dWarnings[] = {
 	IDD_NOCHANGEONCANCEL,	0,	0,
-	IDD_OPT1,		WARNINGS,			&_configuration.options,
-	IDD_OPT2,		E_BELL,				&_configuration.options,
-	IDD_OPT3,		E_FLASH,			&_configuration.options,
-	IDD_OPT4,		O_MESSAGES,			& _configuration.options,
+	IDD_OPT1,		O_WARNINGS,					&_configuration.options,
+	IDD_OPT2,		O_ERROR_TONE,				&_configuration.options,
+	IDD_OPT3,		O_ERROR_FLASH_WINDOW,		&_configuration.options,
+	IDD_OPT4,		O_SHOW_MESSAGES_IN_SNACKBAR,	& _configuration.options,
 	// Terminate with 0
 	0
 };
@@ -89,6 +90,7 @@ static DIALPARS _dLayout[] = {
 	IDD_OPT2,		OL_FKEYS,			&_configuration.layoutoptions,
 	IDD_OPT3,		OL_SHOWSTATUS,		&_configuration.layoutoptions,
 	IDD_OPT4,		OL_TOOLBAR,			&_configuration.layoutoptions,
+	IDD_OPT5,		OL_COMPACT_TABS,	&_configuration.layoutoptions,
 	// Terminate with 0
 	0
 };
@@ -126,7 +128,7 @@ static DIALLIST _localeslist = {
 
 static DIALPARS _dMisc[] = {
 	IDD_NOCHANGEONCANCEL,	0,	0,
-	IDD_OPT1,		UNDOENABLED,					& _configuration.options,
+	IDD_OPT1,		O_UNDOENABLED,					& _configuration.options,
 	IDD_INT1,		sizeof _configuration.nundo,	&_configuration.nundo,
 	IDD_INT2,		sizeof _configuration.maximumNumberOfOpenWindows,& _configuration.maximumNumberOfOpenWindows,
 	IDD_OPT2,		O_HIDE_BLOCK_ON_CARET_MOVE,		& _configuration.options,
@@ -246,6 +248,7 @@ void EdOptionSet(void) {
 		ui_switchToLanguage(pConfig->language);
 		prof_save(pConfig, FALSE);
 		fkey_visibilitychanged();
+		mainframe_windowTitleChanged();
 	}
 }
 

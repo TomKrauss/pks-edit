@@ -85,6 +85,8 @@ typedef struct tagTAB_PAGE {
 typedef struct tagTAB_CONTROL {
 	ARRAY_LIST* tc_pages;
 	HWND		tc_hwnd;
+	HWND		tc_hwndTooltip;
+	int			tc_activeTooltipIndex;
 	int			tc_firstTabOffset;
 	int			tc_stripHeight;
 	int			tc_firstVisibleTab;
@@ -118,7 +120,7 @@ static void mainframe_arrangeDockingSlots(HWND hwnd);
 /*
  * Paint one tab of the tabstrip of our tab control displaying the edit tabs.
  */
-static void tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL bRollover, int x, int y, int height);
+static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL bRollover, int x, int y, int height, int xMax);
 
 /*
  * Move a tab from one tab control to another.
@@ -134,7 +136,7 @@ static void dragproxy_paint(HWND hwnd, PAINTSTRUCT* ps) {
 	TAB_PAGE *pPage = (TAB_PAGE*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 	RECT rect;
 	GetClientRect(hwnd, &rect);
-	tabcontrol_paintTab(ps->hdc, pPage, TRUE, FALSE, 0, rect.top, rect.bottom - rect.top);
+	tabcontrol_paintTab(ps->hdc, pPage, TRUE, FALSE, 0, rect.top, rect.bottom - rect.top, 99999);
 }
 
 /*
@@ -184,6 +186,38 @@ static HWND dragproxy_open(RECT* pRect, TAB_PAGE *pPage) {
 	MoveWindow(hwndProxy, pRect->left, pRect->top, pRect->right - pRect->left, pRect->bottom - pRect->top, TRUE);
 	ShowWindow(hwndProxy, SW_SHOW);
 	return hwndProxy;
+}
+
+/*
+ * Returns the title to display for a tab.
+ */
+static char* tabcontrol_getTitle(HWND hwnd, char* szBuffer, size_t nSize) {
+	static char szTitle[128];
+	if (!hwnd) {
+		strcpy(szBuffer, "Page");
+	} else {
+		GetWindowText(hwnd, szBuffer, (int)nSize);
+		if (GetConfiguration()->layoutoptions & OL_COMPACT_TABS) {
+			char* pszLast = strrchr(szBuffer, '\\');
+			if (pszLast == 0) {
+				pszLast = strrchr(szBuffer, '/');
+			}
+			if (pszLast != 0) {
+				memset(szTitle, 0, sizeof szTitle);
+				char* pszDest = szTitle;
+				while (*szBuffer) {
+					char c = *szBuffer++;
+					*pszDest++ = c;
+					if (c == ' ') {
+						break;
+					}
+				}
+				strcat(szTitle, pszLast + 1);
+				return szTitle;
+			}
+		}
+	}
+	return szBuffer;
 }
 
 /*
@@ -362,6 +396,7 @@ static void tabcontrol_scrollTabs(HWND hwnd, TAB_CONTROL* pControl) {
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	int xMax = rect.right;
+	xMax -= CLOSER_SIZE + 2 * CLOSER_DISTANCE;
 	if (pControl->tc_activeTab < pControl->tc_firstVisibleTab) {
 		pControl->tc_firstVisibleTab = 0;
 	}
@@ -436,9 +471,9 @@ static int tabcontrol_addTab(HWND hwnd, HWND hwndTab) {
 	int idx = (int)arraylist_size(pControl->tc_pages);
 	arraylist_add(pControl->tc_pages, pData);
 	pData->tp_hwnd = hwndTab;
-	GetWindowText(hwndTab, szTitle, sizeof szTitle);
+	char* pszTitle = tabcontrol_getTitle(pData->tp_hwnd, szTitle, sizeof szTitle);
 	// Rough estimate for now - the correct size is measured later in repaint.
-	pData->tp_width = 30 + (int)strlen(szTitle) * 7;
+	pData->tp_width = 30 + (int)strlen(pszTitle) * 7;
 	RECT rect;
 	GetClientRect(hwndTab, &rect);
 	rect.bottom = rect.top + pControl->tc_stripHeight;
@@ -499,23 +534,23 @@ static void tabcontrol_paintCloser(HDC hdc, RECT* pRect, BOOL bRollover) {
 /*
  * Paint one tab of the tabstrip of our tab control displaying the edit tabs. 
  */
-static void tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL bRollover, int x, int y, int height) {
+static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL bRollover, int x, int y, int height, int xMax) {
 	char szBuffer[128];
+	char* pszTitle;
 	THEME_DATA* pTheme = theme_getDefault();
 	int nIconSize = 16;
 	int nMargin = 4;
 	RECT rect;
 	
-	if (!pPage->tp_hwnd) {
-		sprintf(szBuffer, "Page");
-	} else {
-		GetWindowText(pPage->tp_hwnd, szBuffer, sizeof szBuffer);
-	}
-	size_t nLen = strlen(szBuffer);
+	pszTitle = tabcontrol_getTitle(pPage->tp_hwnd, szBuffer, sizeof szBuffer);
+	size_t nLen = strlen(pszTitle);
 	SIZE sText;
 	HFONT hFont = SelectObject(hdc, theme_createDialogFont(bSelected ? FW_BOLD : FW_NORMAL));
-	GetTextExtentPoint(hdc, szBuffer, (int)nLen, &sText);
+	GetTextExtentPoint(hdc, pszTitle, (int)nLen, &sText);
 	pPage->tp_width = sText.cx + nIconSize + 2 * nMargin + CLOSER_SIZE + 2* CLOSER_DISTANCE;
+	if (x + pPage->tp_width >= xMax) {
+		return FALSE;
+	}
 	rect.left = x;
 	rect.right = x + pPage->tp_width;
 	rect.top = y;
@@ -545,7 +580,7 @@ static void tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	}
 	DrawIconEx(hdc, rect.left + nMargin, yIcon, hIcon, nIconSize, nIconSize, 0, NULL, DI_NORMAL);
 	rect.left += 2 * nMargin + nIconSize;
-	DrawText(hdc, szBuffer, (int)nLen, &rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+	DrawText(hdc, pszTitle, (int)nLen, &rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 	DeleteObject(SelectObject(hdc, hFont));
 	HPEN hPen = CreatePen(PS_SOLID, 1, pTheme->th_dialogBorder);
 	HPEN hPenOld = SelectObject(hdc, hPen);
@@ -571,7 +606,7 @@ static void tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 			hwndFocus = GetParent(hwndFocus);
 		}
 		if (!hwndFocus) {
-			return;
+			return TRUE;
 		}
 		LOGBRUSH brush;
 		brush.lbColor = pTheme->th_dialogActive;
@@ -583,6 +618,7 @@ static void tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 		LineTo(hdc, x + pPage->tp_width, y+1);
 		DeleteObject(SelectObject(hdc, hPenOld));
 	}
+	return TRUE;
 }
 
 /*
@@ -616,7 +652,7 @@ static void tabcontrol_paintTabs(HWND hwnd, PAINTSTRUCT* ps, TAB_CONTROL* pContr
 	BOOL bMayCloseDock = tabcontrol_getDockingCloserRect(hwnd, pControl, &closerRect);
 	int xMax = rect.right;
 	if (bMayCloseDock) {
-		xMax -= CLOSER_SIZE - 2*CLOSER_DISTANCE;
+		xMax -= CLOSER_SIZE + 2*CLOSER_DISTANCE;
 	}
 	FillRect(ps->hdc, &rect, hBrush);
 	if (pControl == currentDropTarget) {
@@ -634,10 +670,9 @@ static void tabcontrol_paintTabs(HWND hwnd, PAINTSTRUCT* ps, TAB_CONTROL* pContr
 	int y = rect.top;
 	for (int i = pControl->tc_firstVisibleTab; i < arraylist_size(pControl->tc_pages); i++) {
 		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
-		if (i > pControl->tc_firstVisibleTab && x + pPage->tp_width >= xMax) {
+		if (!tabcontrol_paintTab(ps->hdc, pPage, i == pControl->tc_activeTab, i == pControl->tc_rolloverTab, x, y, pControl->tc_stripHeight, xMax) && i > pControl->tc_firstVisibleTab) {
 			break;
 		}
-		tabcontrol_paintTab(ps->hdc, pPage, i == pControl->tc_activeTab, i == pControl->tc_rolloverTab, x, y, pControl->tc_stripHeight);
 		x += pPage->tp_width + 1;
 	}
 	if (bMayCloseDock) {
@@ -651,6 +686,9 @@ static void tabcontrol_paintTabs(HWND hwnd, PAINTSTRUCT* ps, TAB_CONTROL* pContr
  * Free the data structure occupied by a tab control. 
  */
 static void tabcontrol_destroy(TAB_CONTROL* pControl) {
+	if (pControl->tc_hwndTooltip) {
+		DestroyWindow(pControl->tc_hwndTooltip);
+	}
 	for (int i = 0; i < arraylist_size(pControl->tc_pages); i++) {
 		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
 		free(pPage);
@@ -812,20 +850,49 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam, BOOL bDrag) {
 	}
 }
 
-static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex) {
+static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex, int nTabIndex) {
+	BOOL bTrackChanged = FALSE;
 	if (pControl->tc_rolloverTab != nIndex) {
 		pControl->tc_rolloverTab = nIndex;
+		tabcontrol_repaintTabs(hwnd, pControl);
+		bTrackChanged = TRUE;
+	}
+	BOOL bShow = nTabIndex >= 0;
+	if (nTabIndex != pControl->tc_activeTooltipIndex) {
+		char szBuffer[128];
+		// Activate the tooltip.
+		TTTOOLINFO toolinfo = { 0 };
+		toolinfo.cbSize = sizeof(toolinfo);
+		toolinfo.hwnd = pControl->tc_hwnd;
+		toolinfo.hinst = hInst;
+		TAB_PAGE* pPage = nTabIndex >= 0 ? arraylist_get(pControl->tc_pages, nTabIndex) : 0;
+		if (pPage) {
+			GetWindowText(pPage->tp_hwnd, szBuffer, sizeof szBuffer);
+			toolinfo.lpszText = szBuffer;
+			SendMessage(pControl->tc_hwndTooltip, TTM_UPDATETIPTEXT, (WPARAM)0, (LPARAM)&toolinfo);
+		}
+		SendMessage(pControl->tc_hwndTooltip, TTM_TRACKACTIVATE, (WPARAM)bShow, (LPARAM)&toolinfo);
+		RECT r;
+		GetWindowRect(hwnd, &r);
+		POINT pt;
+		GetCursorPos(&pt);
+		pt.y = r.top + pControl->tc_stripHeight + 10;
+		SendMessage(pControl->tc_hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(pt.x + 10, pt.y));
+		pControl->tc_activeTooltipIndex = nTabIndex;
+		bTrackChanged = TRUE;
+	}
+	if (bTrackChanged) {
 		TRACKMOUSEEVENT tme;
 		tme.cbSize = sizeof(tme);
 		tme.hwndTrack = hwnd;
 		tme.dwHoverTime = HOVER_DEFAULT;
-		if (nIndex > 0) {
+		if (nIndex > 0 || bShow) {
 			tme.dwFlags = TME_LEAVE;
-		} else {
+		}
+		else {
 			tme.dwFlags = 0;
 		}
 		TrackMouseEvent(&tme);
-		tabcontrol_repaintTabs(hwnd, pControl);
 	}
 }
 
@@ -835,24 +902,28 @@ static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex)
 static void tabcontrol_handleMouseMove(HWND hwnd, POINT p) {
 	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 	if (p.y >= pControl->tc_stripHeight) {
-		tabcontrol_setRollover(hwnd, pControl, -1);
+		tabcontrol_setRollover(hwnd, pControl, -1, -1);
 		return;
 	}
 	int x = pControl->tc_firstTabOffset;
+	int nTab = -1;
 	for (int i = pControl->tc_firstVisibleTab; i < arraylist_size(pControl->tc_pages); i++) {
 		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
+		if (p.x >= x && p.x < x + pPage->tp_width) {
+			nTab = i;
+		}
 		RECT rect;
 		tabcontrol_getCloserRect(pPage, x, pControl->tc_stripHeight, &rect);
 		if (p.y > rect.bottom || p.y < rect.top || x > rect.right) {
 			break;
 		}
 		if (PtInRect(&rect, p)) {
-			tabcontrol_setRollover(hwnd, pControl, i);
+			tabcontrol_setRollover(hwnd, pControl, i, nTab);
 			return;
 		}
 		x += pPage->tp_width+1;
 	}
-	tabcontrol_setRollover(hwnd, pControl, -1);
+	tabcontrol_setRollover(hwnd, pControl, -1, nTab);
 }
 
 static void tabcontrol_closed(HWND hwnd, HWND hwndChild) {
@@ -880,6 +951,30 @@ static void tabcontrol_closed(HWND hwnd, HWND hwndChild) {
 }
 
 /*
+ * tabcontrol_createTooltip()
+ * Create a tooltip to be optionally displayed for the tabs of the mainframe.
+ */
+static void tabcontrol_createTooltip(TAB_CONTROL* pControl) {
+	HWND hwndTip = CreateWindowEx(0, TOOLTIPS_CLASS, 0,
+		WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		pControl->tc_hwnd, NULL, hInst,
+		NULL);
+
+	if (!hwndTip) {
+		return;
+	}
+	TTTOOLINFO toolinfo = {0};
+	toolinfo.cbSize = sizeof(toolinfo);
+	toolinfo.hwnd = pControl->tc_hwnd;
+	toolinfo.lpszText = "Hello world";
+	toolinfo.uFlags = TTF_TRACK | TTF_ABSOLUTE;
+	SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolinfo);
+	pControl->tc_hwndTooltip = hwndTip;
+}
+
+/*
  * Window procedure of the main frame window.
  */
 static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -896,6 +991,7 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 		pControl->tc_rolloverTab = -1;
 		pControl->tc_firstTabOffset = 5;
 		pControl->tc_hwnd = hwnd;
+		tabcontrol_createTooltip(pControl);
 		SetWindowLongPtr(hwnd, GWLP_TAB_CONTROL, (LONG_PTR)pControl);
 		break;
 
@@ -905,9 +1001,11 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 		ptDown.y = GET_Y_LPARAM(lParam);
 		break;
 
-	case WM_MOUSELEAVE:
-		tabcontrol_handleMouseMove(hwnd, (POINT){ 0,0 });
+	case WM_MOUSELEAVE: {
+		pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
+		tabcontrol_handleMouseMove(hwnd, (POINT) { 0, 0 });
 		break;
+	}
 
 	case WM_MOUSEMOVE: {
 		POINT p;
@@ -1010,8 +1108,15 @@ static DOCKING_SLOT* mainframe_getDockingParent(HWND hwnd) {
 	DOCKING_SLOT* pSlot = dockingSlots;
 	while (pSlot) {
 		if (pSlot->ds_type == DS_EDIT_WINDOW) {
-			if (GetParent(hwnd) == pSlot->ds_hwnd) {
-				return pSlot;
+			TAB_CONTROL* pControl = (TAB_CONTROL *) GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
+			if (pControl == 0) {
+				continue;
+			}
+			for (int i = 0; i < arraylist_size(pControl->tc_pages); i++) {
+				TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
+				if (pPage->tp_hwnd == hwnd) {
+					return pSlot;
+				}
 			}
 		}
 		pSlot = pSlot->ds_next;
@@ -1639,6 +1744,8 @@ void mainframe_windowTitleChanged() {
 			TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
 			if (pControl) {
 				tabcontrol_repaintTabs(pSlot->ds_hwnd, pControl);
+				UpdateWindow(pSlot->ds_hwnd);
+				tabcontrol_scrollTabs(pSlot->ds_hwnd, pControl);
 			}
 		}
 		pSlot = pSlot->ds_next;
@@ -1726,14 +1833,16 @@ void mainframe_moveWindowAndActivate(HWND hwndEdit, const char* pszPreferredSlot
 		return;
 	}
 	DOCKING_SLOT* pExisting = mainframe_getDockingParent(hwndEdit);
-	if (pExisting == NULL || pExisting == pSlot) {
+	if (pExisting == NULL) {
 		return;
 	}
 	TAB_CONTROL* pSource = (TAB_CONTROL*)GetWindowLongPtr(pExisting->ds_hwnd, GWLP_TAB_CONTROL);
 	TAB_PAGE* pPage = tabcontrol_getTab(pSource, hwndEdit);
 	if (pPage != NULL) {
 		TAB_CONTROL* pTarget = (TAB_CONTROL*)GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
-		tabcontrol_moveTab(pSource, pTarget, pPage);
+		if (pExisting != pSlot) {
+			tabcontrol_moveTab(pSource, pTarget, pPage);
+		}
 		tabcontrol_selectPage(pSource->tc_hwnd, pPage->tp_hwnd);
 	}
 }

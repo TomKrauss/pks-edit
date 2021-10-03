@@ -35,6 +35,16 @@
 
 extern long		_multiplier;
 
+/*
+ * Scroll the top left of the visible area by a given delta in x (columns) and y (lines)
+ */
+static void wi_scrollTop(WINFO* wp, long dy) {
+	long dx = 0;
+	if (sl_scrollwinrange(wp, &dy, &dx)) {
+		sl_winchanged(wp, dy, dx);
+	}
+}
+
 /*--------------------------------------------------------------------------
  * caret_lineOffset2screen()
  * the following stuff is calculating the cursor screen position, out of
@@ -115,9 +125,11 @@ void caret_extendSelection(WINFO *wp)
 }
 
 /*--------------------------------------------------------------------------
- * BegXtndBlock()
+ * caret_startExtendingSelection()
+ * Start an operation where the selection is defined via cursor movement (e.g. when
+ * the user presses shift+RIGHT).
  */
-static void BegXtndBlock(WINFO *wp)
+static void caret_startExtendingSelection(WINFO *wp)
 {
 	MARK	*		pMark;
 	int			bMarkLines;
@@ -165,6 +177,42 @@ static void HideWindowsBlocks(WINFO *wp)
 }
 
 /*
+ * Calculate the "matching" line number in a file fp2 compared with file fp1.
+ * nFlag1 is the flag marking lines to skip (e.g. lines inserted) in the source file nFlag2
+ * the corresponding flag for lines to skip in the second file.
+ */
+static long caret_calculateSyncedLine(FTABLE* fp1, FTABLE* fp2, long ln, int nFlag1, int nFlag2) {
+	LINE* lp = fp1->firstl;
+	long lnLeft = 0;
+	while (lp && ln > 0) {
+		if (!(lp->lflg & nFlag1)) {
+			lnLeft++;
+		}
+		lp = lp->next;
+		ln--;
+	}
+	lp = fp2->firstl;
+	ln = 0;
+	while (lp && lnLeft > 0) {
+		while (lp->lflg & nFlag2) {
+			ln++;
+			lp = lp->next;
+			if (lp == NULL)  {
+				return ln;
+			}
+		}
+		ln++;
+		lp = lp->next;
+		lnLeft--;
+	}
+	while (lp && lp->lflg & nFlag2) {
+		ln++;
+		lp = lp->next;
+	}
+	return ln;
+}
+
+/*
  * Move the caret to the given line. 
  */
 void caret_moveToLine(WINFO* wp, long ln) {
@@ -178,9 +226,35 @@ void caret_moveToLine(WINFO* wp, long ln) {
 		render_repaintWindowLine(wp, oldln);
 		render_repaintWindowLine(wp, ln);
 	}
+	COMPARISON_LINK* pLink = wp->comparisonLink;
+	if (pLink != NULL && pLink->cl_synchronizeCaret) {
+		pLink->cl_synchronizeCaret = FALSE;
+		int nRight = LN_COMPARE_ADDED;
+		int nLeft = LN_COMPARE_DELETED;
+		WINFO* wpOther = pLink->cl_wpLeft;
+		if (wpOther == wp) {
+			wpOther = pLink->cl_wpRight;
+			nLeft = LN_COMPARE_ADDED;
+			nRight = LN_COMPARE_DELETED;
+		}
+		// TODO: calculate matching line in other window.
+		long ln1 = caret_calculateSyncedLine(wp->fp, wpOther->fp, ln, nLeft, nRight);
+		long col = 0;
+		caret_placeCursorAndValidate(wpOther, &ln1, &col, 0);
+		int nDelta = ln - wp->minln;
+		int nNewMin = ln1 - nDelta;
+		if (nNewMin < 0) {
+			nNewMin = 0;
+		}
+		nNewMin -= wpOther->minln;
+		if (nNewMin != 0 && wp == pLink->cl_wpLeft) {
+			wi_scrollTop(wpOther, nNewMin);
+		}
+		pLink->cl_synchronizeCaret = TRUE;
+	}
 }
 
-/*--------------------------------------------------------------------------
+/*------------------------------------------------------ft_op--------------------
  * caret_updateLineColumn()
  * Invoked, when the cursor is positioned using slider or mouse to update the
  * caret position. 
@@ -208,7 +282,7 @@ EXPORT int caret_updateLineColumn(WINFO *wp, long *ln, long *col, int updateVirt
 
 	bXtnd = wp->bXtndBlock;
 	if (bXtnd) {
-		BegXtndBlock(wp);
+		caret_startExtendingSelection(wp);
 	}
 
 	wp->caret.linePointer = lp;
@@ -256,7 +330,7 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int update
 
 	bXtnd = wp->bXtndBlock;
 	if (bXtnd) {
-		BegXtndBlock(wp);
+		caret_startExtendingSelection(wp);
 	}
 	if (updateVirtualOffset) {
 		wp->caret.virtualOffset = i;
@@ -324,7 +398,7 @@ int caret_saveLastPosition(void) {
  * justify to middle of screen
  */
 static int wi_adjust(WINFO *wp, long ln,int adjustflag)
-{	long pos,dy,dx;
+{	long pos,dy;
 
 	if (ln < wp->mincursln || ln > wp->maxcursln || (adjustflag & 2)) {
 		if (adjustflag & 1) caret_saveLastPosition();
@@ -332,9 +406,7 @@ static int wi_adjust(WINFO *wp, long ln,int adjustflag)
 		else if (wp->cursaftersearch == CP_POSLOW) pos = wp->maxcursln;
 		else pos = ((wp->maxcursln+wp->mincursln)>>1);
 		dy = ln-pos;
-		dx = 0L;
-		if (sl_scrollwinrange(wp,&dy,&dx))
-			sl_winchanged(wp,dy,dx);
+		wi_scrollTop(wp, dy);
 		return 1;
 	}
 	return 0;
@@ -437,46 +509,45 @@ EXPORT int ln_lineIsEmpty(LINE *lp)
 }
 
 /*--------------------------------------------------------------------------
- * counttabs()
+ * caret_countNumberOfTabs()
  * calculate nr of tabs in line
  * depending on shiftwidth
  */
-static int counttabs(LINE *lp)
-{
+static int caret_countNumberOfTabs(LINE *lp) {
 	return caret_lineOffset2screen(NULL, &(CARET){ lp,ln_countLeadingSpaces(lp) });
 }
 
 /*--------------------------------------------------------------------------
- * tabedstart()
+ * caret_findPreviousDifferentIndentation()
  */
-static int tabedstart(LINE *lp) 
-{	 return (counttabs(lp) != counttabs(lp->prev)); }
+static int caret_findPreviousDifferentIndentation(LINE *lp) 
+{	 return (caret_countNumberOfTabs(lp) != caret_countNumberOfTabs(lp->prev)); }
 
 /*--------------------------------------------------------------------------
- * tabedend()
+ * caret_findNextDifferentIndentation()
  */
-static int tabedend(LINE *lp)
-{	return (!lp->next || (counttabs(lp->next) != counttabs(lp))); }
+static int caret_findNextDifferentIndentation(LINE *lp)
+{	return (!lp->next || (caret_countNumberOfTabs(lp->next) != caret_countNumberOfTabs(lp))); }
 
 /*--------------------------------------------------------------------------
- * pgrstart()
+ * caret_gotoParagraphEnd()
  */
-static int pgrend(LINE *lp)
+static int caret_gotoParagraphEnd(LINE *lp)
 {	return (ln_lineIsEmpty(lp) && !ln_lineIsEmpty(lp->prev)); }
 
 /*--------------------------------------------------------------------------
- * pgrstart()
+ * caret_gotoParagraphStart()
  */
-static int pgrstart(LINE *lp)
+static int caret_gotoParagraphStart(LINE *lp)
 {	return (ln_lineIsEmpty(lp->prev) && !ln_lineIsEmpty(lp)); }
 
 /*--------------------------------------------------------------------------
- * cadv_section()
+ * caret_advanceSectionUsing()
  * advance one section (depending on func)
  */
-static void cadv_section(WINFO* wp, long *ln,int dir,int start,
+static void caret_advanceSectionUsing(WINFO* wp, long *ln,int dir,int start,
 					int (*func1)(),int (*func2)())
-					/* pgrstart,pgrend for advancing paragraphs */
+					/* caret_gotoParagraphStart,caret_gotoParagraphEnd for advancing paragraphs */
 					/* equaltabed(line) for advancing sections */
 {	register LINE *lp;
 	register FTABLE *fp;
@@ -512,7 +583,7 @@ nextblk:	;
  */
 EXPORT long caret_advanceParagraph(WINFO* wp, long ln,int dir,int start)
 {
-	cadv_section(wp, &ln,dir,start,pgrstart,pgrend);
+	caret_advanceSectionUsing(wp, &ln,dir,start,caret_gotoParagraphStart,caret_gotoParagraphEnd);
 	if (!start) ln--;
 	return ln;
 }
@@ -538,30 +609,11 @@ EXPORT int caret_advanceSection(WINFO* wp, int dir,int start)
 
 	caret_saveLastPosition();
 	ln = wp->caret.ln;
-	cadv_section(wp, &ln,dir,start,tabedstart,tabedend);
+	caret_advanceSectionUsing(wp, &ln,dir,start,caret_findPreviousDifferentIndentation,caret_findNextDifferentIndentation);
 	caret_placeCursorInCurrentFile(wp, ln,0L);
 
 	return caret_placeCursorInCurrentFile(wp, ln,(long)ln_countLeadingSpaces(wp->caret.linePointer));
 }
-
-/*--------------------------------------------------------------------------
- * ComparePosition()
- * check for position 2 > position 1
- */
-# if 0
-static int ComparePosition(FTABLE *fp, LINE *lp1, int col1, LINE *lp2, int col2)
-{
-	if (lp1 == lp2) {
-		return col2 - col1;
-	}
-	while((lp1 = lp1->prev) != 0) {
-		if (lp1 == lp2) {
-			return -1;
-		}
-	}
-	return 1;
-}
-# endif
 
 /*--------------------------------------------------------------------------
  * caret_moveUpOrDown()
@@ -617,10 +669,10 @@ err:
 }
 
 /*--------------------------------------------------------------------------
- * cadv_gotoIdentifierEnd()
+ * caret_gotoIdentifierEnd()
  * cursor advance one word
  */
-static LINE *nextw(LINE *lp,long *ln,long *col,
+static LINE *caret_nextWord(LINE *lp,long *ln,long *col,
 	int (*iswfunc)(unsigned char c),int dir, int bNo)
 {	register unsigned char *p;
 	register long l;
@@ -670,34 +722,34 @@ static LINE *nextw(LINE *lp,long *ln,long *col,
 }
 
 /*--------------------------------------------------------------------------
- * cadv_wordonly()
+ * caret_advanceWordOnly()
  */
-EXPORT LINE *cadv_wordonly(LINE *lp,long *ln,long *col,int dir)
+EXPORT LINE *caret_advanceWordOnly(LINE *lp,long *ln,long *col,int dir)
 {
-	return nextw(lp,ln,col,char_isNospace,dir,0);
+	return caret_nextWord(lp,ln,col,char_isNospace,dir,0);
 }
 
 /*--------------------------------------------------------------------------
- * cadv_gotoIdentifierSkipSpace()
+ * caret_gotoIdentifierSkipSpace()
  */
-EXPORT LINE *cadv_gotoIdentifierSkipSpace(LINE *lp,long *ln,long *col,int dir)
+EXPORT LINE *caret_gotoIdentifierSkipSpace(LINE *lp,long *ln,long *col,int dir)
 {
-	return nextw(lp,ln,col, char_isIdentifier,dir,1);
+	return caret_nextWord(lp,ln,col, char_isIdentifier,dir,1);
 }
 
 /*--------------------------------------------------------------------------
- * cadv_gotoIdentifierEnd()
+ * caret_gotoIdentifierEnd()
  */
-EXPORT LINE *cadv_gotoIdentifierEnd(LINE *lp,long *ln,long *col,int dir)
+EXPORT LINE *caret_gotoIdentifierEnd(LINE *lp,long *ln,long *col,int dir)
 {
-	return nextw(lp,ln,col,char_isIdentifier,dir,0);
+	return caret_nextWord(lp,ln,col,char_isIdentifier,dir,0);
 }
 
 /*--------------------------------------------------------------------------
- * cadv_c()
+ * caret_advanceCharacter()
  * cursor advance to char
  */
-EXPORT LINE *cadv_c(LINE *lp,long *ln,long *col,int dir,unsigned char match)
+static LINE *caret_advanceCharacter(LINE *lp,long *ln,long *col,int dir,unsigned char match)
 {	register long l;
 	register int c;
 
@@ -745,14 +797,14 @@ EXPORT int caret_getPreviousColumnInLine(WINFO* wp, LINE *lp, int col) {
 LINE * (*advmatchfunc)();
 EXPORT void caret_setMatchFunction(int mtype, int ids_name, int *c)
 {
-	advmatchfunc = cadv_gotoIdentifierSkipSpace;
+	advmatchfunc = caret_gotoIdentifierSkipSpace;
 	switch (abs(mtype)) {
 		case MOT_UNTILC:
 			*c = EdPromptForCharacter(ids_name);
-			advmatchfunc = cadv_c;
+			advmatchfunc = caret_advanceCharacter;
 			break;
 		case MOT_SPACE:
-			advmatchfunc = cadv_gotoIdentifierEnd;
+			advmatchfunc = caret_gotoIdentifierEnd;
 			break;
 	}
 }

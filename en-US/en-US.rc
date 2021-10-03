@@ -103,6 +103,16 @@ BEGIN
     0
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+APP_ICON                ICON                    "C:\\source\\pksedit\\rc\\PKS2.ICO"
+
 #endif    // Deutsch (Deutschland) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -244,17 +254,19 @@ CAPTION "About PKS-EDIT"
 FONT 8, "helv", 0, 0, 0x1
 BEGIN
     LTEXT           "Programm - Editor for MS Windows",IDD_OPT6,48,20,126,12,NOT WS_GROUP
-    LTEXT           "Version 1.3 - 12.5.2021",IDD_STRING2,48,36,102,8,NOT WS_GROUP
+    LTEXT           "2.1 - 12.5.2021",IDD_STRING2,80,34,77,8,NOT WS_GROUP
     CONTROL         "Author: Tom Krauﬂ",IDD_OPT11,"Static",SS_LEFTNOWORDWRAP,18,98,74,8
     LTEXT           "Mozilla Public License Version 2.0",111,18,116,160,16,NOT WS_GROUP
     PUSHBUTTON      "&OK",1,210,116,38,14
     LTEXT           "?",IDD_RO1,20,76,122,8,NOT WS_GROUP
-    ICON            "APP_ICON",3,19,18,20,20
+    ICON            "APP_ICON",3,19,20,21,20
     LTEXT           "This product has been licensed for:",-1,20,63,122,8
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,55,232,1
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,92,232,1
-    RTEXT           "Design: Rolf-D. Pahlen",127,97,98,94,8,NOT WS_GROUP
-    LTEXT           "Platform:",IDD_STRING1,174,20,80,8,NOT WS_GROUP
+    LTEXT           "Design: Rolf-D. Pahlen",127,174,98,77,8,NOT WS_GROUP
+    LTEXT           "64 Bit",IDD_STRING1,211,34,41,8,NOT WS_GROUP
+    LTEXT           "Version:",-1,48,34,27,8,NOT WS_GROUP
+    LTEXT           "Platform:",-1,174,34,28,8,NOT WS_GROUP
 END
 
 DLGALIGN DIALOG 24, 88, 242, 124
@@ -877,6 +889,7 @@ BEGIN
     CONTROL         "Show &Functionkeybar",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,24,210,8
     CONTROL         "Show &Statusline",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,36,210,8
     CONTROL         "Show &Toolbar",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,48,210,8
+    CONTROL         "Display Editor Tabs in compact mode",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,60,210,8
 END
 
 
@@ -901,6 +914,10 @@ BEGIN
     END
 
     DLGREPLACE, DIALOG
+    BEGIN
+    END
+
+    DLGABOUT, DIALOG
     BEGIN
     END
 
@@ -967,6 +984,10 @@ BEGIN
     DLG_OPT_MISC, DIALOG
     BEGIN
         BOTTOMMARGIN, 153
+    END
+
+    DLG_OPT_LAYOUT, DIALOG
+    BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1048,6 +1069,16 @@ BEGIN
 END
 
 DLG_OPT_AUTOSAVE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGABOUT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLG_OPT_LAYOUT AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

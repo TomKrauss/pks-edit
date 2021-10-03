@@ -237,7 +237,7 @@ void ft_saveWindowStates(void )
 	for (s = ww_getNumberOfOpenWindows()-1; s >= 0; s--) {
 		if ((wp = ww_getWindowFromStack(s)) != 0) {
 			FTABLE* fp = wp->fp;
-			if (!(fp->flags & F_TRANSIENT)) {
+			if (!(fp->flags & (F_TRANSIENT | F_NAME_INPUT_REQUIRED))) {
 				xref_addSearchListEntry(&ft, fp->fname, wp->caret.ln, mainframe_getDockNameFor(wp->edwin_handle));
 			}
 		}
@@ -253,14 +253,14 @@ void ft_saveWindowStates(void )
 }
 
 /*---------------------------------*/
-/* ft_restorePreviouslyOpenedWindows()					*/
+/* ft_restorePreviouslyOpenedWindows() */
 /*---------------------------------*/
 int ft_restorePreviouslyOpenedWindows(void )
 {
 	FTABLE 	ft;
 	char *	pszFound;
 
-	if (GetConfiguration()->options & O_READPIC) {
+	if (GetConfiguration()->options & O_AUTO_OPEN_HISTORY) {
 		if ((pszFound = file_searchFileInPKSEditLocation(HISTORY_FILE_NAME)) != 0 &&
 		    ft_readfileWithOptions(&ft, pszFound, -1)) {
 			// save complete filename of history file.
@@ -459,7 +459,7 @@ int ww_requestToClose(WINFO *wp)
 		switch(error_displayYesNoCancelConfirmation(IDS_MSGQUITORSAVE,ft_visiblename(fp))) {
 			case IDYES:
 				if (!ft_writeFileWithAlternateName(fp)) {
-					if (!(GetConfiguration()->options & WARNINGS)) {
+					if (!(GetConfiguration()->options & O_WARNINGS)) {
 						ft_setFlags(fp, fp->flags & ~F_MODIFIED);
 					}
 					return 0;

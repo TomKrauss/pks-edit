@@ -111,8 +111,9 @@ extern void indent_toggleTabStop(INDENTATION* indentation, int col);
  * Used to "synchronize" two files to be compared with each other. 
  */
 typedef struct tagCOMPARISON_LINK {
-    struct tagWINFO* wpLeft;
-    struct tagWINFO* wpRight;
+    struct tagWINFO* cl_wpLeft;
+    struct tagWINFO* cl_wpRight;
+    BOOL cl_synchronizeCaret;
 } COMPARISON_LINK;
 
 /*--------------------------------------------------------------------------

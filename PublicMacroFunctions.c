@@ -452,11 +452,11 @@ int EdAbout(void)
 	static char _customerMessage[] = "free version (buy us a beer)";
 
 #if defined(_WIN64)
-	static char _architecture[] = "- 64 Bit Plattform";
+	static char _architecture[] = "64 Bit";
 #elif
-	static char _architecture[] = "- 32 Bit Plattform";
+	static char _architecture[] = "32 Bit";
 #endif
-	static char _versionInfo[] = "Version 2.1.0, 1.10.2021";
+	static char _versionInfo[] = "2.1.0, 2.10.2021";
 
 	static DIALPARS _d[] = {
 		IDD_RO1,		sizeof _customerMessage, _customerMessage,

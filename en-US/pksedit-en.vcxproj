@@ -185,6 +185,9 @@
   <ItemGroup>
     <ResourceCompile Include="en-US.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\rc\PKS2.ICO" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

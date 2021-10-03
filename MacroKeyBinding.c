@@ -633,6 +633,9 @@ int macro_onMenuAction(int menunum)
 	if ((mp = macro_getMacroIndexForMenu(menunum)) != 0) {
 		return macro_executeMacro(mp);
 	}
+	if (menunum >= IDM_HISTORY && menunum <= IDM_HISTORY + 30) {
+		return EdEditFile(OPEN_HISTORY | (menunum - IDM_HISTORY) << 12, 0);
+	}
 	return 0;
 }
 

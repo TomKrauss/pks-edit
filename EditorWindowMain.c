@@ -690,9 +690,9 @@ WINFO* ft_getPrimaryView(FTABLE* fp) {
  * One window of two windows being compared with each other is closed. Perform the proper cleanup. 
  */
 static void ww_releaseComparisonLink(WINFO* wp) {
-	WINFO* wpOther = wp->comparisonLink->wpLeft;
+	WINFO* wpOther = wp->comparisonLink->cl_wpLeft;
 	if (wpOther == wp) {
-		wpOther = wp->comparisonLink->wpRight;
+		wpOther = wp->comparisonLink->cl_wpRight;
 	}
 	free(wpOther->comparisonLink);
 	FTABLE* fp = wpOther->fp;
@@ -711,7 +711,7 @@ static void ww_releaseComparisonLink(WINFO* wp) {
  */
 void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2) {
 	if (wp1->comparisonLink) {
-		if (wp1->comparisonLink->wpLeft == wp1 && wp1->comparisonLink->wpRight == wp2) {
+		if (wp1->comparisonLink->cl_wpLeft == wp1 && wp1->comparisonLink->cl_wpRight == wp2) {
 			return;
 		}
 		ww_releaseComparisonLink(wp1);
@@ -721,10 +721,12 @@ void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2) {
 	}
 	COMPARISON_LINK* pLink1 = calloc(1, sizeof * pLink1);
 	COMPARISON_LINK* pLink2 = calloc(1, sizeof * pLink2);
-	pLink1->wpLeft = wp1;
-	pLink2->wpLeft = wp1;
-	pLink1->wpRight = wp2;
-	pLink2->wpRight = wp2;
+	pLink1->cl_wpLeft = wp1;
+	pLink2->cl_wpLeft = wp1;
+	pLink1->cl_wpRight = wp2;
+	pLink2->cl_wpRight = wp2;
+	pLink1->cl_synchronizeCaret = TRUE;
+	pLink2->cl_synchronizeCaret = TRUE;
 	wp1->comparisonLink = pLink1;
 	wp2->comparisonLink = pLink2;
 	SendMessage(wp1->edwin_handle, WM_EDWINREORG, 0, 0L);
@@ -861,7 +863,6 @@ WINFUNC EditWndProc(
 	case WM_SIZE:
 		if (message == WM_MOVE)
 			break;
-		ww_setwindowtitle(wp, NULL);
 		if (wParam == SIZEICONIC) {
 			break;
 		}

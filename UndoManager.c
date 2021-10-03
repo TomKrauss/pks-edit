@@ -98,7 +98,7 @@ static BOOL _undoOperationInProgress = FALSE;
  * Check whether undo is enabled at all.
  */
 static BOOL isUndoEnabled() {
-	return !_undoOperationInProgress && (GetConfiguration()->options & UNDOENABLED ? TRUE : FALSE);
+	return !_undoOperationInProgress && (GetConfiguration()->options & O_UNDOENABLED ? TRUE : FALSE);
 }
 
 /*

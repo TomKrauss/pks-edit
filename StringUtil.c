@@ -30,21 +30,6 @@ struct tagSTRING_BUF {
 	unsigned char* sb_current;
 };
 
-/*
- * Return a pointer to the last matching position, where a character can be found in a String 
- * or NULL if it cannot be found at all.
- */
-char* strrchr(const char *str, int ch) {	
-	const char* strl = str + strlen(str);
-
-	do {
-		if (ch == *str)
-			return (char*) str;
-		str = AnsiPrev(str,strl);
-	} while(strl > str);
-	return NULL;
-}
-
 /*--------------------------------------------------------------------------
  * string_skipBlanks()
  * Skip over the leading blanks in a string. If the string only contains

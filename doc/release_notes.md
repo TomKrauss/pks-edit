@@ -6,17 +6,20 @@
 
 #### New
 - PKS Edit does not use an out-dated MDI style user interface any more, but manages its windows now in tabs which can be attached
-  to resizable docks. Docking positions are persisted and restored, when PKS Edit will be opened again.
+  to resizable docks. Docking positions are persisted and restored, when PKS Edit will be opened again. Tabs can display the full
+  filename path or can be displayed in "compact mode" (see layout options), where only the filename is being displayed.
 - PKS Edit support now storing backup files in its "temp path" (new option "Place backup files in autosave directory"). Doing
   so has the disadvantage, that two files named c:\temp1\x.c and c:\temp2\x.c will create the same temp file having last one saved
-  override the backup file created first. The advantage is however, that no pollution of source working directories occurs.
+  override the backup file created first. An advantage of using this option is, that working directories are not "polluted" by backup files.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
   "pksedit" located in the current users Windows temp directory. PKS Edit will now place all temporary files (autosave etc...) to the backup
   directory.
 - When comparing files, one may now select the file to compare with using a selector. This selector provides a new option for comparison:
-  "Compare with history", which allows to compare a file with a previously created backup file (if such exists).
+  "Compare with history", which allows to compare a file with a previously created backup file (if such exists). PKS Edit will now differentiate
+  between added, deleted and modified lines and will synchronize cursor movements of files in comparison mode to be able to display identical lines
+  "side by side".
 
 ### Changed
 - Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather

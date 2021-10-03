@@ -52,16 +52,6 @@ static void Getenv(char *name,char *d,int maxlen)
 
 }
 
-char* mystrrchr(char s[], int c) {
-	size_t tempLen = strlen(s);
-	while(--tempLen >= 0) {
-		if (s[tempLen] == c) {
-			return &s[tempLen+1];
-		}
-	}
-	return NULL;
-}
-
 /*
  * Check whether the passed path is a valid PKS_SYS directory containing in particular the pksedit.ini file. 
  */
@@ -100,7 +90,7 @@ EXPORT BOOL init_initializeVariables(void )
 			GetProfileString("PksEdit", pks_sys, "", _pksSysFolder, EDMAXPATHLEN);
 			if (!*_pksSysFolder || !_checkPksSys(_pksSysFolder)) {
 				// Finally: PKS_SYS from the path where the executable is located.
-				tempFound = mystrrchr(homeDirectory, '\\');
+				tempFound = strrchr(homeDirectory, '\\');
 				if (tempFound != NULL && (tempFound - homeDirectory) > 1) {
 					tempFound[-1] = 0;
 					string_concatPathAndFilename(homeDirectory, homeDirectory, pks_sys);

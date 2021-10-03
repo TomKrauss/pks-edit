@@ -38,6 +38,7 @@
 #define IDD_LAST_PAGE                   1013
 #define IDC_LIST1                       1015
 #define IDS_REDO                        1246
+#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 

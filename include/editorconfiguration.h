@@ -24,12 +24,12 @@
  /*----- Option Flags assignable to EDITOR_CONFIGURATION.options --------------*/
 
  /* if set, PKS Edit will bring up a confirmation message boxes to confirm saving of files etc... */
-#define	WARNINGS					0x1
-#define	E_BELL 						0x2
-#define	E_FLASH 					0x4		 	/* flash, rather ring the bell */
-#define	O_LOCKFILES					0x8			/* lock opened files */
+#define	O_WARNINGS					0x1
+#define	O_ERROR_TONE				0x2
+#define	O_ERROR_FLASH_WINDOW 		0x4		 	// flash window, rather playing an error sound
+#define	O_LOCKFILES					0x8			// lock opened files 
 
-#define	O_READPIC					0x10
+#define	O_AUTO_OPEN_HISTORY			0x10		// Restore previously opened files
 #define	O_SAVE_SETTINGS_ON_EXIT		0x20
 #define	O_SAVE_MACROS_ON_EXIT		0x40
 #define	O_DELETE_AUTOSAVE_FILES		0x80
@@ -37,17 +37,18 @@
 #define	AUTOWRITE					0x100
 #define	O_FORMFOLLOW				0x200
 #define	O_CREATE_BACKUP_IN_TEMP_PATH 0x400
-#define	O_MESSAGES					0x800		/* message window */
+#define	O_SHOW_MESSAGES_IN_SNACKBAR	 0x800		// display error messages in a popup window / snackbar
 
-#define	UNDOENABLED					0x2000
-#define	O_HIDE_BLOCK_ON_CARET_MOVE	0x1000		/* hide block marks on caret movement */
+#define	O_UNDOENABLED				0x2000
+#define	O_HIDE_BLOCK_ON_CARET_MOVE	0x1000		// hide block marks on caret movement
 
  /*----- Option Flags assignable to EDITOR_CONFIGURATION.layoutoptions --------------*/
 /* layout options: fkeys, optionbar, statusline */
-#define	OL_OPTIONBAR		0x1			/* option bar below function keys */
-#define OL_FKEYS			0x2
-#define	OL_SHOWSTATUS		0x4			/* show status line */
-#define	OL_TOOLBAR			0x8			/* show tool bar */
+#define	OL_OPTIONBAR		0x1			// option bar below function keys
+#define OL_FKEYS			0x2			// show function keyboard
+#define	OL_SHOWSTATUS		0x4			// show status line
+#define	OL_TOOLBAR			0x8			// show tool bar
+#define OL_COMPACT_TABS		0x10		// show compact editor tabs (filename only - not full path)
 
 
 typedef struct tagEDITOR_CONFIGURATION {

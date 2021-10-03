@@ -40,8 +40,8 @@
  * EXTERNALS
  */
 
-extern LINE *	cadv_gotoIdentifierEnd(LINE *lp,long *ln,long *col,int dir);
-extern LINE *	cadv_c(LINE *lp,long *ln,long *col,int dir,unsigned char match);
+extern LINE *	caret_gotoIdentifierEnd(LINE *lp,long *ln,long *col,int dir);
+extern LINE *	caret_advanceCharacter(LINE *lp,long *ln,long *col,int dir,unsigned char match);
 extern void 	caret_setMatchFunction(int control, int ids_name, int *c);
 extern LINE 	*(*advmatchfunc)();
 extern int 	ln_countLeadingSpaces(LINE *l);
