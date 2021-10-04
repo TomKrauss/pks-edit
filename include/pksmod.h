@@ -115,7 +115,6 @@ typedef struct edx {
 	long 	(*ln_cnt)(LINE *lps,LINE *lpe);
 	LINE 	*(*ln_relative)(LINE *lps, long l);
 	long 	(*ln_find)(FTABLE *fp,LINE *lp);
-	LINE 	*(*ln_findbit)(LINE *lp,int bit);
 
 	/* marks */
 	LINE		*(*mark_goto)(WINFO *wp, int c, long *ln, long *col);

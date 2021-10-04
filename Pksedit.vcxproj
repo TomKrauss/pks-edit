@@ -1130,6 +1130,7 @@
     <ClInclude Include="include\clipboard.h" />
     <ClInclude Include="include\codeanalyzer.h" />
     <ClInclude Include="include\codecompletion.h" />
+    <ClInclude Include="include\comparefiles.h" />
     <ClInclude Include="include\crossreferencelinks.h" />
     <ClInclude Include="include\customcontrols.h" />
     <ClInclude Include="include\documenttypes.h" />

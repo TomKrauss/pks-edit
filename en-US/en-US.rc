@@ -1093,7 +1093,7 @@ PKSEDEDITMENU MENU
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&New...",                     40001
+        MENUITEM "&New...",                     MNEWFILE
         MENUITEM "O&pen...\a",                  MOPENF
         MENUITEM "New Window for Current File\a", MCLONEWINDOW
         MENUITEM "&Close\a",                    MQUITF
@@ -1102,7 +1102,7 @@ BEGIN
         MENUITEM "Save &as...\a",               MSAVEAS
         MENUITEM "Save all &Modified\a",        MSAVEALL_NO_EXIT
         MENUITEM SEPARATOR
-        MENUITEM "&Insert&...\a",               MREADF
+        MENUITEM "&Insert...\a",                MREADF
         MENUITEM "A&bandon\a",                  MABANDON
         MENUITEM SEPARATOR
         POPUP "&Print"
@@ -1146,7 +1146,7 @@ BEGIN
         MENUITEM "Open &Cross Reference...\a",  MSHOWTAG
         MENUITEM SEPARATOR
         MENUITEM "Set &Mark...\a",              MSETMARK
-        MENUITEM "&Goto &Mark...\a",            MGOTOMAR
+        MENUITEM "&Goto Mark...\a",             MGOTOMAR
         MENUITEM "Goto &Line...\a",             MGOTOLN
         MENUITEM "Goto Selection S&tart\a",     MTMFSTAR
         MENUITEM "Goto Selection E&nd\a",       MTMFEND
@@ -1161,7 +1161,13 @@ BEGIN
         MENUITEM "Shift l&eft...\a",            MSHFTLEF
         MENUITEM "S&ort File...\a",             MMSORT
         MENUITEM "Toggle Comment\a",            MTOGGLE_COMMENT
-        MENUITEM "&Compare Files...\a",         MENDIFF
+        POPUP "&Compare Files"
+        BEGIN
+            MENUITEM "Start comparison...\a",       MENDIFF
+            MENUITEM "Navigate next difference\a",  IDM_COMPARE_NAVIGATE_NEXT
+            MENUITEM "Navigate previous difference\a", IDM_COMPARE_NAVIGATE_PREV
+            MENUITEM "Clear active comparison\a",   IDM_COMPARE_CLEAR
+        END
         MENUITEM SEPARATOR
         POPUP "Convert"
         BEGIN

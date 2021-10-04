@@ -45,6 +45,7 @@
 #include "brackets.h"
 #include "markpositions.h"
 #include "customcontrols.h"
+#include "comparefiles.h"
 
 /*
  * Answer TRUE if a replacement had been performed before.
@@ -65,11 +66,6 @@ extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		mac_compileMacros(void);
 extern int		doctypes_addDocumentTypesToListBox(HWND hwnd, int nItem);
-/*--------------------------------------------------------------------------
- * compare_files()
- * Compare two files identified by their WINFO pointers.
- */
-extern int compare_files(WINFO* wp0, WINFO* wp1);
 
 extern long		_multiplier;
 

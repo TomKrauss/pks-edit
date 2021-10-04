@@ -686,23 +686,30 @@ WINFO* ft_getPrimaryView(FTABLE* fp) {
 	return arraylist_get(pList, 0);
 }
 
+static void ww_detachFromComparison(WINFO* wp) {
+	FTABLE* fp = wp->fp;
+	LINE* lp = fp->firstl;
+	ln_removeFlag(lp, NULL, LN_COMPARE_DIFFERENT);
+	wp->comparisonLink = NULL;
+	SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
+	render_repaintAllForFile(fp);
+}
+
 /*
  * One window of two windows being compared with each other is closed. Perform the proper cleanup. 
  */
-static void ww_releaseComparisonLink(WINFO* wp) {
-	WINFO* wpOther = wp->comparisonLink->cl_wpLeft;
-	if (wpOther == wp) {
-		wpOther = wp->comparisonLink->cl_wpRight;
+void ww_releaseComparisonLink(WINFO* wp, BOOL bDetachSource) {
+	COMPARISON_LINK* cpl = wp->comparisonLink;
+	if (cpl == NULL) {
+		return;
 	}
-	free(wpOther->comparisonLink);
-	FTABLE* fp = wpOther->fp;
-	LINE* lp = fp->firstl;
-	ln_removeFlag(lp, NULL, LN_COMPARE_DIFFERENT);
-	wpOther->comparisonLink = NULL;
-	SendMessage(wpOther->edwin_handle, WM_EDWINREORG, 0, 0L);
-	render_repaintAllForFile(fp);
-	free(wp->comparisonLink);
-	wp->comparisonLink = NULL;
+	if (bDetachSource || wp != cpl->cl_wpLeft) {
+		ww_detachFromComparison(cpl->cl_wpLeft);
+	}
+	if (bDetachSource || wp != cpl->cl_wpRight) {
+		ww_detachFromComparison(cpl->cl_wpRight);
+	}
+	free(cpl);
 }
 
 /*
@@ -714,21 +721,17 @@ void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2) {
 		if (wp1->comparisonLink->cl_wpLeft == wp1 && wp1->comparisonLink->cl_wpRight == wp2) {
 			return;
 		}
-		ww_releaseComparisonLink(wp1);
+		ww_releaseComparisonLink(wp1, FALSE);
 	}
 	if (wp2->comparisonLink) {
-		ww_releaseComparisonLink(wp2);
+		ww_releaseComparisonLink(wp2, FALSE);
 	}
-	COMPARISON_LINK* pLink1 = calloc(1, sizeof * pLink1);
-	COMPARISON_LINK* pLink2 = calloc(1, sizeof * pLink2);
-	pLink1->cl_wpLeft = wp1;
-	pLink2->cl_wpLeft = wp1;
-	pLink1->cl_wpRight = wp2;
-	pLink2->cl_wpRight = wp2;
-	pLink1->cl_synchronizeCaret = TRUE;
-	pLink2->cl_synchronizeCaret = TRUE;
-	wp1->comparisonLink = pLink1;
-	wp2->comparisonLink = pLink2;
+	COMPARISON_LINK* pLink = calloc(1, sizeof * pLink);
+	pLink->cl_wpLeft = wp1;
+	pLink->cl_wpRight = wp2;
+	pLink->cl_synchronizeCaret = TRUE;
+	wp1->comparisonLink = pLink;
+	wp2->comparisonLink = pLink;
 	SendMessage(wp1->edwin_handle, WM_EDWINREORG, 0, 0L);
 	SendMessage(wp2->edwin_handle, WM_EDWINREORG, 0, 0L);
 }
@@ -746,7 +749,7 @@ void ww_destroy(WINFO *wp) {
 		ww_windowClosed(wp);
 	}
 	if (wp->comparisonLink != NULL) {
-		ww_releaseComparisonLink(wp);
+		ww_releaseComparisonLink(wp, FALSE);
 	}
 	if (wp->highlighter) {
 		highlight_destroy(wp->highlighter);

@@ -216,7 +216,7 @@ static long caret_calculateSyncedLine(FTABLE* fp1, FTABLE* fp2, long ln, int nFl
  * Move the caret to the given line. 
  */
 void caret_moveToLine(WINFO* wp, long ln) {
-	if (wp->caret.ln == ln) {
+	if (wp->caret.ln == ln || ln < 0) {
 		return;
 	}
 	codecomplete_hideSuggestionWindow(wp);

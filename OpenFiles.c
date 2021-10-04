@@ -668,7 +668,7 @@ FTABLE* ft_openBackupfile(FTABLE* fp) {
 	ft_getBackupFilename(fp, backupFilename);
 	FTABLE* fpBackup = ft_openFileWithoutFileselector(backupFilename, 0l, NULL);
 	if (fpBackup != NULL) {
-		ft_setFlags(fpBackup, fp->flags | F_RDONLY | F_TRANSIENT);
+		ft_setFlags(fpBackup, fpBackup->flags | F_RDONLY | F_TRANSIENT);
 		doctypes_assignDocumentTypeDescriptor(fpBackup, fp->documentDescriptor);
 		doctypes_documentTypeChanged(FALSE);
 	}

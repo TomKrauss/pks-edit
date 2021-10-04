@@ -253,7 +253,6 @@ extern int ln_joinLines(FTABLE *fp);
 extern LINE *ln_goto(FTABLE *fp,long l);
 extern LINE *ln_relative(LINE *cl, long l);
 extern long ln_cnt(LINE *lps,LINE *lpe);
-extern LINE *ln_findbit(LINE *lp,int bit);
 extern void ln_replace(FTABLE *fp,LINE *oln,LINE *nl);
 
 /*

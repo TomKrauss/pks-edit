@@ -1,8 +1,9 @@
 [files]
 "C:\source\pksedit\PKSEDIT.RC", line 264: default
 "C:\source\pksedit\Logging.c", line 120: default
-"C:\source\pksedit\ArrayList.c", line 6: default
-"C:\source\trend-master-eclipse-4.20\trend\bin\make.bat", line 1: default
+"C:\source\trend-master-eclipse-4.20\trend\bin\make.bat", line 9: default
+"C:\source\pksedit\ArrayList.c", line 47: default
+"C:\temp\JdbcSessionBig.java", line 995: default
 [find]
 !einer Mod
 !Cursor folgt
@@ -53,7 +54,6 @@
 !#define \1\2\t2048+\2
 !IDS_BASE_COMMAND+
 [open]
-!C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\FitNesse\content.txt
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\content.txt
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\SuiteUseCases\Test2WorkflowBookFlight\content.txt
 !C:\source\pksedit\main.c
@@ -85,6 +85,7 @@
 !C:\Users\tom\AppData\Local\Temp\pksedit\keys.pkc
 !C:\source\trend-master-eclipse-4.20\trend\bin\make.bat
 !C:\Users\tom\AppData\Local\Temp\pksedit\make.bat.bak
+!C:\Users\tom\AppData\Local\Temp\pksedit\JdbcSessionBig.java.bak
 [pathes]
 !D:\source\trend-master-eclipse-4.12\trend\core\bin\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
 !D:\source\pksedit\*.*

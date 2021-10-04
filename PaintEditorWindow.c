@@ -606,24 +606,13 @@ EXPORT void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd)
 }
 
 /*
- * Increase / decrease the zoom factor of the current window. 
+ * Set a fixed zoom factor for a window. 
  */
-int ww_zoomWindow(int anIncreaseFactor) {
-	WINFO* wp = ww_getCurrentEditorWindow();
-
-	if (wp == 0) {
-		return 0;
+void ww_setZoom(WINFO* wp, float newFactor) {
+	if (wp->zoomFactor == newFactor) {
+		return;
 	}
-	if (anIncreaseFactor) {
-		wp->zoomFactor = 11 * wp->zoomFactor / 10;
-	} else {
-		wp->zoomFactor = 10 * wp->zoomFactor / 11;
-	}
-	if (wp->zoomFactor < 0.4) {
-		wp->zoomFactor = 0.4f;
-	} else if (wp->zoomFactor > 2.5) {
-		wp->zoomFactor = 2.5f;
-	}
+	wp->zoomFactor = newFactor;
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(wp->ww_handle, &ps);
 	font_selectFontStyle(wp, FS_NORMAL, hdc);
@@ -633,5 +622,32 @@ int ww_zoomWindow(int anIncreaseFactor) {
 	ww_setScrollCheckBounds(wp);
 	render_repaintForWindow(wp, NULL);
 
+}
+
+/*
+ * Increase / decrease the zoom factor of the current window. 
+ */
+int ww_zoomWindow(int anIncreaseFactor) {
+	WINFO* wp = ww_getCurrentEditorWindow();
+
+	if (wp == 0) {
+		return 0;
+	}
+	float zoomFactor = wp->zoomFactor;
+	if (anIncreaseFactor) {
+		zoomFactor = 11 * zoomFactor / 10;
+	} else {
+		zoomFactor = 10 * zoomFactor / 11;
+	}
+	if (zoomFactor < 0.4) {
+		zoomFactor = 0.4f;
+	} else if (zoomFactor > 2.5) {
+		zoomFactor = 2.5f;
+	}
+	ww_setZoom(wp, zoomFactor);
+	COMPARISON_LINK* cpl = wp->comparisonLink;
+	if (cpl) {
+		ww_setZoom(wp == cpl->cl_wpLeft ? cpl->cl_wpRight : cpl->cl_wpLeft, zoomFactor);
+	}
 	return 1;
 }

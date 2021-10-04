@@ -89,7 +89,6 @@
 #define MMSORT                          74
 #define IDS_MSGNOPRINTER                75
 #define IDS_MSGOVERWRITE                76
-#define MENDIFF                         76
 #define IDS_MSGQUERYNEWFILE             77
 #define IDS_MSGABANDON                  78
 #define IDS_MSGNOBRACKETS               79
@@ -193,7 +192,6 @@
 #define IDM_HLPINDEX                    150
 #define IDM_HLPONDESKTOP                151
 #define IDM_HLPONMENUS                  152
-#define IDI_ICON2                       152
 #define IDM_HLPONKEYS                   153
 #define IDM_HLPONHLP                    154
 #define IDS_MSGRENOTNULL                160
@@ -232,8 +230,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        153
-#define _APS_NEXT_COMMAND_VALUE         40001
+#define _APS_NEXT_RESOURCE_VALUE        154
+#define _APS_NEXT_COMMAND_VALUE         40007
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

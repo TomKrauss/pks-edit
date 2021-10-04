@@ -57,8 +57,7 @@ static int  ln_newbl(WINFO* wp, MARK* mp) {
 /* to a specific line		*/
 /* lnew == 0 => free them	*/
 /*----------------------------*/
-static int ln_delmarks(WINFO* wp, LINE* lp)
-{
+static int ln_delmarks(WINFO* wp, LINE* lp) {
 	MARK* mp = wp->fmark;
 	MARK* mp2 = 0;
 	int  	blflg = (wp->blstart && wp->blend);
@@ -599,18 +598,6 @@ long ln_cnt(LINE *lps,LINE *lpe)
 	return nl;
 }
 
-/*---------------------------------*/
-/* ln_findbit()				*/
-/*---------------------------------*/
-LINE *ln_findbit(LINE *lp, int bit)
-{
-	while(lp != (LINE *) 0) {
-		if (lp->lflg & bit)
-			break;
-		lp = lp->next;
-	}
-	return lp;
-}
 
 /*----------------------------*/
 /* ln_replace()			*/

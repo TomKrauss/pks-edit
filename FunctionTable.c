@@ -30,6 +30,7 @@
 #include "windowselector.h"
 #include "editoperations.h"
 #include "mainframe.h"
+#include "comparefiles.h"
 
 extern int
 EdFileAbandon(), EdAbout(long ), EdBlockCopy(long ), EdBlockDelete(long ),
@@ -193,7 +194,9 @@ EdSaveAllFiles, '!', EW_NEEDSCURRF | 0,                                         
 /*122*/ft_cloneWindow, '!', EW_NEEDSCURRF,                                                      "CloneWindow",
 /*123*/edit_shiftSelection, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH,                       "ShiftSelection",
 /*124*/edit_toggleComment, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH,                        "ToggleComment",
-/*125*/windowselector_showWindowList,'!',0,                                                     "ShowWindowSelector"
+/*125*/windowselector_showWindowList,'!',0,                                                     "ShowWindowSelector",
+/*126*/compare_navigate,'!', EW_NEEDSCURRF,                                                     "CompareNavigate",
+/*127*/compare_clear, '!', EW_NEEDSCURRF,                                                       "CompareClear",
 };
 
 int _nfuncs = sizeof(_edfunctab)/sizeof(_edfunctab[0]);
@@ -296,7 +299,10 @@ IDM_CONVERT_TO_LOWER, 247,
 IDM_CONVERT_TO_UPPER, 246,
 IDM_TOGGLE_LOWER_UPPER, 120,
 IDM_NEW_HORIZONTAL_DOCK, 106,
-IDM_NEW_VERTICAL_DOCK, 107
+IDM_NEW_VERTICAL_DOCK, 107,
+IDM_COMPARE_CLEAR, 250,
+IDM_COMPARE_NAVIGATE_NEXT, 248,
+IDM_COMPARE_NAVIGATE_PREV, 249
 };
 
 int _nmenus = sizeof(_menutab) / sizeof(_menutab[0]);
@@ -569,6 +575,9 @@ COMMAND _cmdseqtab[] = {
 245, C_1FUNC, 20 /* edit_performLineFlagOperation */, MLN_MAKEHARD, "use-windows-lineends", 
 246, C_1FUNC, 73 /* edit_convertCharacterCase */, CC_UPPER, "char-to-upper", 
 247, C_1FUNC, 73 /* edit_convertCharacterCase */, CC_LOWER, "char-to-lower", 
+248, C_1FUNC, 126 /* compare_navigate*/, 1, "compare-navigate-next",
+249, C_1FUNC, 126 /* compare_navigate*/, -1, "compare-navigate-previous",
+250, C_0FUNC, 127 /* compare_clear*/, -1, "compare-clear"
 };
 
 char _recorder[RECORDERSPACE];

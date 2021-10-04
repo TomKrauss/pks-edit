@@ -818,7 +818,7 @@ PKSEDEDITMENU MENU
 BEGIN
     POPUP "&Datei"
     BEGIN
-        MENUITEM "&Neu...",                     40001
+        MENUITEM "&Neu...",                     MNEWFILE
         MENUITEM "Ö&ffnen...\a",                MOPENF
         MENUITEM "Neues Fenster für aktuelle Datei\a", MCLONEWINDOW
         MENUITEM "&Schließen\a",                MQUITF
@@ -886,7 +886,13 @@ BEGIN
         MENUITEM "Schiebe l&inks...\a",         MSHFTLEF
         MENUITEM "S&ortieren...\a",             MMSORT
         MENUITEM "Kommentare togglen\a",        MTOGGLE_COMMENT
-        MENUITEM "&Vergleichen...\a",           MENDIFF
+        POPUP "&Vergleichen...\a"
+        BEGIN
+            MENUITEM "Vergleich starten...\a",      MENDIFF
+            MENUITEM "Zum nächsten Unterschied\a",  40020
+            MENUITEM "Zum vorherigen Unterschied\a", 40021
+            MENUITEM "Vergleich beenden\a",         40022
+        END
         MENUITEM SEPARATOR
         POPUP "Konvertieren"
         BEGIN

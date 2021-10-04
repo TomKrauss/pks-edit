@@ -26,7 +26,9 @@
 #include "pksedit.h"
 #include "edierror.h"
 #include "winfo.h"
+#include "linkedlist.h"
 #include "mainframe.h"
+#include "comparefiles.h"
 
 /**
  * compare_areDifferent
@@ -157,6 +159,18 @@ static long compare_diffFiles(WINFO* wp1, WINFO* wp2) {
 	return bDiffFound;
 }
 
+/*
+ * Clear the current comparison link.
+ */
+EXPORT int compare_clear() {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (wp != NULL && wp->comparisonLink) {
+		ww_releaseComparisonLink(wp, TRUE);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /*--------------------------------------------------------------------------
  * compare_files()
  * Compare two files identified by their WINFO pointers.
@@ -170,6 +184,59 @@ EXPORT int compare_files(WINFO* wp0, WINFO* wp1) {
 	}
 	mainframe_moveWindowAndActivate(wp1->edwin_handle, DOCK_NAME_RIGHT);
 	mainframe_moveWindowAndActivate(wp0->edwin_handle, DOCK_NAME_DEFAULT);
+	ww_setZoom(wp1, wp0->zoomFactor);
 	return compare_diffFiles(wp0,wp1);
 }
 
+/*
+ * Used to navigate the differences found during a comparison. wp points to the first
+ * file which must be linked to file to compare to. aDirection might be 1 or -1 to navigate
+ * to the next or previous difference 
+ *
+ * If navigation is successful, 1 is returned.
+ */
+EXPORT int compare_navigate(int aDirection) {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (wp == NULL) {
+		return 0;
+	}
+	COMPARISON_LINK* pLink = wp->comparisonLink;
+	if (pLink == NULL) {
+		return 0;
+	}
+	WINFO* wpOther = pLink->cl_wpLeft == wp ? pLink->cl_wpRight : pLink->cl_wpLeft;
+	LINE* lp1 = wp->caret.linePointer;
+	LINE* lp2 = wpOther->caret.linePointer;
+	if (!lp1 || !lp2) {
+		return 0;
+	}
+	long ln1 = wp->caret.ln;
+	long ln2 = wpOther->caret.ln;
+	int m1Flag = lp1->lflg & LN_COMPARE_DIFFERENT;
+	int m2Flag = lp2->lflg & LN_COMPARE_DIFFERENT;
+	while (lp1 && lp2) {
+		int m1 = lp1->lflg & LN_COMPARE_DIFFERENT;
+		if (m1 && m1 != m1Flag) {
+			caret_placeCursorForFile(wp, ln1, 0);
+			return 1;
+		}
+		int m2 = lp2->lflg & LN_COMPARE_DIFFERENT;
+		if (m2 && m2 != m2Flag) {
+			caret_placeCursorForFile(wpOther, ln2, 0);
+			return 1;
+		}
+		if (aDirection < 0) {
+			lp1 = lp1->prev;
+			lp2 = lp2->prev;
+			ln1--;
+			ln2--;
+		} else {
+			lp1 = lp1->next;
+			lp2 = lp2->next;
+			ln1++;
+			ln2++;
+		}
+	}
+	error_showErrorById(IDS_MSGNOMOREDIFFS);
+	return 0;
+}

@@ -477,10 +477,20 @@ extern int sl_moved(WINFO* wp, long dy, long dx, int cursor_adjust);
 extern int ww_zoomWindow(int anIncreaseFactor);
 
 /*
+ * Set a fixed zoom factor for a window.
+ */
+extern void ww_setZoom(WINFO* wp, float newFactor);
+
+/*
  * Connect two windows with a comparison link. This is used to allow for synchronized scrolling
  * etc to provide a consistent view on the differences of two files.
  */
 extern void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2);
+
+/*
+ * One window of two windows being compared with each other is closed. Perform the proper cleanup.
+ */
+extern void ww_releaseComparisonLink(WINFO* wp, BOOL bDetachSource);
 
 /*------------------------------------------------------------
  * sl_size()
