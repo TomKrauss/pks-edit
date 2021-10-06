@@ -1224,6 +1224,10 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="rc\arrow_down.bmp" />
+    <Image Include="rc\arrow_down.ico" />
+    <Image Include="rc\arrow_up.ico" />
+    <Image Include="RC\BITMAP1.BMP" />
     <Image Include="rc\bookmark.ico" />
     <Image Include="rc\clip2.ico" />
     <Image Include="rc\crossreference.ico" />

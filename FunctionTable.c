@@ -195,8 +195,8 @@ EdSaveAllFiles, '!', EW_NEEDSCURRF | 0,                                         
 /*123*/edit_shiftSelection, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH,                       "ShiftSelection",
 /*124*/edit_toggleComment, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH,                        "ToggleComment",
 /*125*/windowselector_showWindowList,'!',0,                                                     "ShowWindowSelector",
-/*126*/compare_navigate,'!', EW_NEEDSCURRF,                                                     "CompareNavigate",
-/*127*/compare_clear, '!', EW_NEEDSCURRF,                                                       "CompareClear",
+/*126*/compare_navigate,'!', EW_NEEDSCURRF| EW_COMPARISON_MODE,                                 "CompareNavigate",
+/*127*/compare_clear, '!', EW_NEEDSCURRF | EW_COMPARISON_MODE,                                  "CompareClear",
 };
 
 int _nfuncs = sizeof(_edfunctab)/sizeof(_edfunctab[0]);

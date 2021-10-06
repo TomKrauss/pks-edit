@@ -1,7 +1,7 @@
 /*
  * Initialize.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
+ * PROJEKT: PKS-EDIT for MS - WINDOWS
  *
  * purpose: Initializations
  *

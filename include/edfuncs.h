@@ -43,6 +43,7 @@
 #define EW_UNDO_AVAILABLE 0x100	/* undo must be possible */
 #define EW_REDO_AVAILABLE 0x200	/* redo must be possible */
 #define	EW_FINDCURS		0x400		/* applies to command executed using the mouse: before executing the command position the caret to the clicked point */
+#define	EW_COMPARISON_MODE	0x800		// only available in comparison mode
 
 #define	MAXMOUSEBIND	32
 #define	MAXMAPMOUSE	MAXMOUSEBIND

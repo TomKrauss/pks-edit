@@ -410,6 +410,9 @@ int macro_isFunctionEnabled(EDFUNC* fup, int warn) {
 		}
 		return 0;
 	}
+	if (fup->flags & EW_COMPARISON_MODE && (wp == NULL || wp->comparisonLink == NULL)) {
+		return 0;
+	}
 	return 1;
 }
 

@@ -1,7 +1,7 @@
 /*
  * PublicMacroFunctions.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
+ * PROJEKT: PKS-EDIT for MS - WINDOWS
  *
  * purpose: functions accessible in user defined macros.
  *
@@ -16,6 +16,7 @@
 
 #include <windows.h>
 #include <direct.h>
+#include <stdio.h>
 #include "trace.h"
 #include "caretmovement.h"
 #include "textblocks.h"
@@ -445,22 +446,22 @@ int dlg_displayRecordMacroOptions(int *o)
  */
 int EdAbout(void)
 {
-	static char _customerMessage[] = "free version (buy us a beer)";
+	char _customerMessage[] = "free version (buy us a beer)";
 
 #if defined(_WIN64)
-	static char _architecture[] = "64 Bit";
+	char _architecture[] = "64 Bit";
 #elif
-	static char _architecture[] = "32 Bit";
+	char _architecture[] = "32 Bit";
 #endif
-	static char _versionInfo[] = "2.1.0, 2.10.2021";
+	char _versionInfo[128];
 
-	static DIALPARS _d[] = {
+	DIALPARS _d[] = {
 		IDD_RO1,		sizeof _customerMessage, _customerMessage,
 		IDD_STRING1,	sizeof _architecture, _architecture,
 		IDD_STRING2,	sizeof _versionInfo, _versionInfo,
 		0
 	};
-
+	sprintf(_versionInfo, "%s, %s", "2.1.0", __DATE__);
 	return DoDialog(DLGABOUT, dlg_standardDialogProcedure, _d, NULL);
 }
 

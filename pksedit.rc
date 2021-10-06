@@ -1258,6 +1258,14 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Bitmap
+//
+
+IDB_ARROWS              BITMAP                  "rc\\arrow_down.bmp"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // String Table
 //
 
@@ -1765,6 +1773,9 @@ BEGIN
     IDS_COMMAND245          "Schließt alle Zeilen mit Windows Zeilenende ab;Windows Zeilenenden"
     IDS_COMMAND246          "Umwandeln Großschreibung;-> Groß"
     IDS_COMMAND247          "Umwandeln Kleinschreibung;-> Klein"
+    IDS_COMMAND248          "Zum nächsten Unterschied;Nächster Unterschied"
+    IDS_COMMAND249          "Zum vorherigen Unterschied;Letzter Unterschied"
+    IDS_COMMAND250          "Vergleich beenden;Vergleich beenden"
 END
 
 #endif    // Deutsch (Deutschland) resources

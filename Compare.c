@@ -1,7 +1,7 @@
 /*
  * Compare.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
+ * PROJEKT: PKS-EDIT for MS - WINDOWS
  *
  * purpose: some sort_compareRecords functions
  *

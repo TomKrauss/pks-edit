@@ -587,6 +587,18 @@
     <Image Include="RC\ICON3.ICO">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="rc\arrow_down.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rc\arrow_up.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="RC\BITMAP1.BMP">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rc\arrow_down.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Xsd Include="pksedit.xsd" />

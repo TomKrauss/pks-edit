@@ -1756,6 +1756,9 @@ BEGIN
     IDS_COMMAND245          "Convert to Windows line endings (\r\n);Windows Zeilenenden"
     IDS_COMMAND246          "Convert to upper case spelling;-> Uppercase"
     IDS_COMMAND247          "Convert to lower case spelling;-> Lowercase"
+    IDS_COMMAND248          "Find next difference;Next difference"
+    IDS_COMMAND249          "Find previous difference;Previous difference"
+    IDS_COMMAND250          "End comparison;End comparison"
 END
 
 #endif    // Englisch (USA) resources

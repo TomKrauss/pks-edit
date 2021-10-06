@@ -1,7 +1,7 @@
 /*
  * BindKeys.c
  *
- * PROJEKT: RESOURCE COMPILER for PKS-EDIT MS - WINDOWS 3.0.1
+ * PROJEKT: RESOURCE COMPILER for PKS-EDIT MS - WINDOWS
  *
  * purpose: maintain keybind tables
  *

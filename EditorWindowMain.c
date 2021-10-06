@@ -710,6 +710,7 @@ void ww_releaseComparisonLink(WINFO* wp, BOOL bDetachSource) {
 		ww_detachFromComparison(cpl->cl_wpRight);
 	}
 	free(cpl);
+	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
 }
 
 /*
@@ -734,6 +735,7 @@ void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2) {
 	wp2->comparisonLink = pLink;
 	SendMessage(wp1->edwin_handle, WM_EDWINREORG, 0, 0L);
 	SendMessage(wp2->edwin_handle, WM_EDWINREORG, 0, 0L);
+	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
 }
 
 /*-----------------------------------------------------------

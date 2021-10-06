@@ -1,7 +1,7 @@
 /*
  * winutil.h
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS 3.0.1
+ * PROJEKT: PKS-EDIT for MS - WINDOWS
  *
  * purpose: utilities for window coordinate caluclation.
  *
