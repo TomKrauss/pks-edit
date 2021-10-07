@@ -177,7 +177,8 @@ static THEME_DATA defaultTheme = {
 	"Helv",						// (T) use in dialogs.
 	8,
 	"Consolas",
-	12
+	12,
+	5
 };
 
 static JSON_MAPPING_RULE _edTextStyleRules[] = {
@@ -223,6 +224,7 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_COLOR, "rulerBackgroundColor", offsetof(THEME_DATA, th_rulerBackgroundColor)},
 	{	RT_CHAR_ARRAY, "dialogFont", offsetof(THEME_DATA, th_fontName), sizeof(((THEME_DATA*)NULL)->th_fontName)},
 	{	RT_INTEGER, "dialogFontSize", offsetof(THEME_DATA, th_fontSize)},
+	{	RT_INTEGER, "mainframeMargin", offsetof(THEME_DATA, th_mainframeMargin)},
 	{	RT_CHAR_ARRAY, "smallFixedFont", offsetof(THEME_DATA, th_smallFontName), sizeof(((THEME_DATA*)NULL)->th_smallFontName)},
 	{	RT_INTEGER, "smallFixedFontSize", offsetof(THEME_DATA, th_smallFontSize)},
 	{	RT_OBJECT_LIST, "textStyles", offsetof(THEME_DATA, th_styles),

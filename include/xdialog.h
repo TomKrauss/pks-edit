@@ -123,8 +123,6 @@ extern int EdPromptForCharacter(int ids_num);
  */
 extern int EdHelpContext(DWORD nCtx);
 
-#define tedinit(hDlg,item,string)	DlgInitString(hDlg,item,string,sizeof string -1)
-
 #define	XDIALOG_H		1
 
 # endif

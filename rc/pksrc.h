@@ -24,6 +24,8 @@
 #define IDB_PNG1                        189
 #define IDI_ICON3                       193
 #define IDB_ARROWS                      196
+#define IDB_ARROWS1                     197
+#define IDB_ARROWS_DISABLED             197
 #define DLGCURSOROPTIONS                529
 #define DLG_OPT_WARNINGS                556
 #define DLG_OPT_MISC                    557

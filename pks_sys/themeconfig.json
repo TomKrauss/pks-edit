@@ -132,7 +132,8 @@
       "rulerBorderColor": "#202020",
       "rulerForegroundColor": "#888888",
       "rulerBackgroundColor": "#444444",
-      "mainWindowBackgroundColor": "#002255",
+      "mainframeMargin": 10,
+      "mainWindowBackgroundColor": "#555555",
       "textStyles": [
         {
           "styleName": "default",

@@ -94,8 +94,6 @@ static HWND tb_initToolbar(HWND hwndOwner) {
 	TBADDBITMAP	tbabmp;
     TBADDBITMAP	tbabmp2;
     TBBUTTON	tbb[30];
-	LRESULT		iIndex;
-    LRESULT		iIndexHist;
     LRESULT		iIndexExtra;
     int			nButton;
 
@@ -107,7 +105,7 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     memset(&tbabmp, 0, sizeof tbabmp);
     memset(&tbabmp2, 0, sizeof tbabmp2);
     hwndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, (LPSTR) NULL,
-		WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | CCS_NODIVIDER | CCS_NORESIZE,
+		WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | CCS_NODIVIDER | CCS_NORESIZE | CCS_ADJUSTABLE,
         0, 0, 0, 0, hwndOwner, (HMENU) IDM_TOOLBAR, hInst, NULL);
 	if (!hwndToolbar) {
 		return NULL;
@@ -115,34 +113,26 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     SendMessage(hwndToolbar, TB_BUTTONSTRUCTSIZE, 
         (WPARAM) sizeof(TBBUTTON), 0);
 
-    tbabmp.hInst = HINST_COMMCTRL;
-	tbabmp.nID = IDB_STD_SMALL_COLOR;
-	iIndex = SendMessage(hwndToolbar, TB_ADDBITMAP, 15, (LPARAM)&tbabmp);
-
-    tbabmp2.hInst = HINST_COMMCTRL;
-    tbabmp2.nID = IDB_HIST_SMALL_COLOR;
-    iIndexHist = SendMessage(hwndToolbar, TB_ADDBITMAP, 5, (LPARAM)&tbabmp2);
-
     tbabmp2.hInst = hInst;
     tbabmp2.nID = (UINT_PTR)IDB_ARROWS;
-    iIndexExtra = SendMessage(hwndToolbar, TB_ADDBITMAP, 1, (LPARAM)&tbabmp2);
+    iIndexExtra = SendMessage(hwndToolbar, TB_ADDBITMAP, 3, (LPARAM)&tbabmp2);
 
     nButton = 0;
-    tbb[nButton].iBitmap = (int)(iIndex + STD_FILENEW);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 7);
     tbb[nButton].idCommand = MNEWFILE;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
     tb_registerBinding(MNEWFILE, &tbb[nButton]);
 
     nButton++;
-    tbb[nButton].iBitmap = (int)(iIndex + STD_FILEOPEN);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 8);
     tbb[nButton].idCommand = MOPENF;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
     tb_registerBinding(MOPENF, &tbb[nButton]);
 
 	nButton++;
-    tbb[nButton].iBitmap = (int)(iIndex + STD_FILESAVE);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 9);
     tbb[nButton].idCommand = MSAVERES;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -155,21 +145,21 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     tbb[nButton].fsStyle = TBSTYLE_SEP;
 
 	nButton++;
-    tbb[nButton].iBitmap = (int)(iIndex + STD_CUT);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 16);
     tbb[nButton].idCommand = MTDEL;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
     tb_registerBinding(MTDEL, &tbb[nButton]);
 
 	nButton++;
-    tbb[nButton].iBitmap = (int)(iIndex + STD_COPY);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 13);
     tbb[nButton].idCommand = MTCUT;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
     tb_registerBinding(MTCUT, &tbb[nButton]);
 
 	nButton++;
-    tbb[nButton].iBitmap = (int)(iIndex + STD_PASTE);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 15);
     tbb[nButton].idCommand = MTPASTE;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -180,32 +170,39 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     tbb[nButton].fsStyle = TBSTYLE_SEP;
 
 	nButton++;
-    tbb[nButton].iBitmap = (int)(iIndex + STD_FIND);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 12);
     tbb[nButton].idCommand = MFIND;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
     tb_registerBinding(MFIND, &tbb[nButton]);
 
-	nButton++;
-    tbb[nButton].iBitmap = (int)(iIndex + STD_REPLACE);
+    nButton++;
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 17);
     tbb[nButton].idCommand = MREPLACE;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
     tb_registerBinding(MREPLACE, &tbb[nButton]);
 
-	nButton++;
+    nButton++;
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 18);
+    tbb[nButton].idCommand = MEDIFLIS;
+    tbb[nButton].fsState = TBSTATE_ENABLED;
+    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
+    tb_registerBinding(MEDIFLIS, &tbb[nButton]);
+
+    nButton++;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_SEP;
 
     nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexHist + HIST_BACK);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 3);
     tbb[nButton].idCommand = IDM_GOTO_PREVIOUS;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
     tb_registerBinding(IDM_GOTO_PREVIOUS, &tbb[nButton]);
 
     nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexHist + HIST_FORWARD);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 4);
     tbb[nButton].idCommand = IDM_GOTO_NEXT;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -216,14 +213,14 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     tbb[nButton].fsStyle = TBSTYLE_SEP;
 
     nButton++;
-    tbb[nButton].iBitmap = (int)(iIndex + STD_UNDO);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 10);
     tbb[nButton].idCommand = IDM_UNDO;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
     tb_registerBinding(IDM_UNDO, &tbb[nButton]);
 
     nButton++;
-    tbb[nButton].iBitmap = (int)(iIndex + STD_REDOW);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 11);
     tbb[nButton].idCommand = IDM_REDO;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
@@ -234,24 +231,25 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     tbb[nButton].fsStyle = TBSTYLE_SEP;
 
     nButton++;
-    tbb[nButton].iBitmap = (int)(iIndex + STD_PRINT);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 14);
     tbb[nButton].idCommand = IDM_PRINTTEXT;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
     tb_registerBinding(IDM_PRINTTEXT, &tbb[nButton]);
 
-    tbb[nButton].iBitmap = (int)(iIndex + STD_PROPERTIES);
+    nButton++;
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 5);
     tbb[nButton].idCommand = MOPTION;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;
     tb_registerBinding(MOPTION, &tbb[nButton]);
-    nButton++;
 
+    nButton++;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_SEP;
     
     nButton++;
-    tbb[nButton].iBitmap = (int)(iIndex + STD_HELP);
+    tbb[nButton].iBitmap = (int)(iIndexExtra + 6);
     tbb[nButton].idCommand = IDM_HLPINDEX;
     tbb[nButton].fsState = TBSTATE_ENABLED;
     tbb[nButton].fsStyle = TBSTYLE_BUTTON;

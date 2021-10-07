@@ -43,6 +43,7 @@ typedef struct tagTHEME_DATA {
 	unsigned int  th_fontSize;				// dialog font size to use
 	unsigned char th_smallFontName[32];		// small dialog font name to use
 	unsigned int  th_smallFontSize;			// small dialog font size to use
+	unsigned int  th_mainframeMargin;		// The margin from the mainframe tabs to the surrounding window.
 	EDTEXTSTYLE* th_styles;					// The text styles for this theme.
 } THEME_DATA;
 

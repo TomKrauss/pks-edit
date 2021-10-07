@@ -1224,6 +1224,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="RC\ARROWS_DISABLED.BMP" />
     <Image Include="rc\arrow_down.bmp" />
     <Image Include="rc\arrow_down.ico" />
     <Image Include="rc\arrow_up.ico" />

@@ -599,6 +599,9 @@
     <Image Include="rc\arrow_down.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="RC\ARROWS_DISABLED.BMP">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Xsd Include="pksedit.xsd" />

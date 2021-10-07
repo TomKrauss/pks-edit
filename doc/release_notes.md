@@ -20,6 +20,7 @@
   "Compare with history", which allows to compare a file with a previously created backup file (if such exists). PKS Edit will now differentiate
   between added, deleted and modified lines and will synchronize cursor movements of files in comparison mode to be able to display identical lines
   "side by side".
+- PKS Edit uses FontAwesome icons now. This will in particular have the dark mode look better.
 
 ### Changed
 - Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather

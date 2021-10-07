@@ -974,18 +974,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Accelerator
-//
-
-PKSEDACCEL ACCELERATORS
-BEGIN
-    VK_F5,          IDM_CASCADE,            VIRTKEY, SHIFT
-    VK_F4,          IDM_TILE,               VIRTKEY, SHIFT
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Cursor
 //
 
@@ -1262,6 +1250,8 @@ END
 //
 
 IDB_ARROWS              BITMAP                  "rc\\arrow_down.bmp"
+
+IDB_ARROWS_DISABLED     BITMAP                  "RC\\ARROWS_DISABLED.BMP"
 
 
 /////////////////////////////////////////////////////////////////////////////

@@ -61,7 +61,6 @@ extern void main_cleanup(void);
 
 #define CLOSER_SIZE			16
 #define CLOSER_DISTANCE		8
-#define SLOT_DISTANCE		5
 
 typedef enum { DS_EDIT_WINDOW, DS_OTHER } DOCKING_SLOT_TYPE;
 
@@ -612,10 +611,10 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 		brush.lbColor = pTheme->th_dialogActive;
 		brush.lbHatch = 0;
 		brush.lbStyle = PS_SOLID;
-		hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, 2, &brush, 0, NULL);
+		hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, 3, &brush, 0, NULL);
 		hPenOld = SelectObject(hdc, hPen);
 		MoveToEx(hdc, x + 1, y + 1, NULL);
-		LineTo(hdc, x + pPage->tp_width, y+1);
+		LineTo(hdc, x + pPage->tp_width-2, y+1);
 		DeleteObject(SelectObject(hdc, hPenOld));
 	}
 	return TRUE;
@@ -1157,7 +1156,8 @@ static void mainframe_arrangeDockingSlots(HWND hwnd) {
 
 	mainframe_getDockingRect(hwnd, &rect);
 	DOCKING_SLOT* pSlot = dockingSlots;
-	int dDelta = SLOT_DISTANCE;
+	THEME_DATA* pTheme = theme_getDefault();
+	int dDelta = pTheme->th_mainframeMargin;
 	int width = rect.right - rect.left - dDelta;
 	int height = rect.bottom - rect.top - dDelta;
 	while (pSlot) {
@@ -1262,9 +1262,11 @@ static void mainframe_splitterDragged(HWND hwnd, SPLIT_DRAG* pDrags, BOOL bDragX
 	SPLIT_DRAG* pProcess = pDrags;
 	RECT rcClient;
 	mainframe_getDockingRect(hwnd, &rcClient);
-	InflateRect(&rcClient, -SLOT_DISTANCE, -SLOT_DISTANCE);
-	float fWidth = (float)(rcClient.right - rcClient.left) - 2 * SLOT_DISTANCE;
-	float fHeight = (float)(rcClient.bottom - rcClient.top) - 2 * SLOT_DISTANCE;
+	THEME_DATA* pTheme = theme_getDefault();
+	int dDelta = pTheme->th_mainframeMargin;
+	InflateRect(&rcClient, -dDelta, -dDelta);
+	float fWidth = (float)(rcClient.right - rcClient.left) - 2 * dDelta;
+	float fHeight = (float)(rcClient.bottom - rcClient.top) - 2 * dDelta;
 	DOCKING_SLOT* pRef = NULL;
 	while (pProcess) {
 		DOCKING_SLOT* pSlot = pProcess->sd_slot;
