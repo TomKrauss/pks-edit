@@ -41,12 +41,12 @@ extern void 	st_seterrmsg(char *msg);
 extern void 	st_update(void);
 
 /*------------------------------------------------------------
- * errror_openConfigurableAlert()
+ * error_openConfigurableAlert()
  */
-static int errror_openConfigurableAlert(int buttons, LPSTR fmt, LPSTR ap)
+static int error_openConfigurableAlert(int buttons, LPSTR fmt, va_list ap)
 {   char buf[256];
 
-    wvsprintf((LPSTR)buf,(LPSTR)fmt,(LPSTR)ap);
+    wvsprintf((LPSTR)buf,(LPSTR)fmt, ap);
     return MessageBox(hwndMain,buf,szAppName,MB_APPLMODAL|buttons); 
 }
 
@@ -64,13 +64,13 @@ int error_displayAlertBoxWithOptions(long buttons, long nOptions, const char* fm
 /*------------------------------------------------------------
  * nIdAlert()
  */
-static int nIdAlert(int buttons, WORD nId, LPSTR ap)
+static int nIdAlert(int buttons, WORD nId, va_list ap)
 {
     char* pszBuf;
 
 	if ((pszBuf = dlg_getResourceString(nId)) == NULL) 
 		return -1;
-    return errror_openConfigurableAlert(buttons, pszBuf,ap);
+    return error_openConfigurableAlert(buttons, pszBuf,ap);
 }
 
 /*------------------------------------------------------------
@@ -83,7 +83,7 @@ void error_displayAlertDialog(const char* fmt, ...)
     va_start(ap,fmt);
     // make Alert boxes system modal, cause they may be opened
     // in situations, we should not use the input focus
-    (void)errror_openConfigurableAlert(MB_OK|MB_ICONEXCLAMATION,(char*)fmt,ap);
+    (void)error_openConfigurableAlert(MB_OK|MB_ICONEXCLAMATION,(char*)fmt,ap);
     va_end(ap);
 }
 
@@ -99,7 +99,7 @@ int error_displayYesNoConfirmation(int nId, ...)
 		return IDYES;
 
 	va_start(ap,nId);
-	ret = nIdAlert(MB_YESNO|MB_ICONQUESTION,nId,(LPSTR)ap);
+	ret = nIdAlert(MB_YESNO|MB_ICONQUESTION,nId, ap);
 	va_end(ap);
 	return ret;
 }
@@ -116,7 +116,7 @@ int error_displayYesNoCancelConfirmation(int nId, ...)
 		return IDYES;
 
 	va_start(ap,nId);
-	ret = nIdAlert(MB_YESNOCANCEL|MB_ICONQUESTION,nId,(LPSTR)ap);
+	ret = nIdAlert(MB_YESNOCANCEL|MB_ICONQUESTION,nId,ap);
 	va_end(ap);
 	return ret;
 }
@@ -266,7 +266,7 @@ void error_showErrorById(int nId,...)
 	va_start(ap,nId);
 
 	if (*s == '!') {
-	    (void)errror_openConfigurableAlert(MB_OK|MB_ICONHAND,s+1,ap);
+	    (void)error_openConfigurableAlert(MB_OK|MB_ICONHAND,s+1,ap);
 	} else {
 		error_showError(s, ap);
 	}

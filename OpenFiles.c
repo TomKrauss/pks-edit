@@ -245,7 +245,7 @@ void ft_saveWindowStates(void )
 
 	hist_saveAllEntriesTo(&ft);
 	pszFilename = _historyFileName;
-	if (pszFilename == NULL) {
+	if (pszFilename[0] == 0) {
 		string_concatPathAndFilename(szBuff, _pksSysFolder, HISTORY_FILE_NAME);
 		pszFilename = szBuff;
 	}
