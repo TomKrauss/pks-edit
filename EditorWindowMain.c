@@ -171,6 +171,9 @@ static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, 
 	int ret = ww_createOrDestroyChildWindowOfEditor(hwnd,
 		WS_HSCROLL|WS_VSCROLL|WS_CHILD|WS_VISIBLE/*|WS_CLIPSIBLINGS*/,
 		TRUE,&wp->ww_handle,szWorkAreaClass,pWork, wp);
+	if (ret) {
+		theme_enableDarkMode(wp->ww_handle);
+	}
 	return ret;
 }
 

@@ -25,6 +25,7 @@
 #include "pksedit.h"
 #include "dial2.h"
 #include "xdialog.h"
+#include "themes.h"
 
 extern int	_playing;
 
@@ -41,7 +42,7 @@ static INT_PTR DlgProgressProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPa
 	switch(message) {
 		case WM_INITDIALOG:
 			_cancelled = 0;
-			return (INT_PTR)TRUE;
+			break;
 
 		case WM_COMMAND:
 		case WM_CLOSE:
@@ -54,7 +55,7 @@ static INT_PTR DlgProgressProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPa
 			hwndAbort = 0;
 			return (INT_PTR)TRUE;
 	}
-	return (INT_PTR)FALSE;
+	return dlg_defaultWndProc(hDlg, message, wParam, lParam);
 }
 
 /*------------------------------------------------------------
@@ -70,6 +71,7 @@ void progress_startMonitor(unsigned int ids) {
 		win_createModelessDialog(&hwndAbort,"DLGABORT",
 						  DlgProgressProc,&lpfnAbort);
 		if (hwndAbort) {
+			theme_enableDarkMode(hwndAbort);
 			HWND hwndPB = GetDlgItem(hwndAbort, IDC_PROGRESS);
 			SendMessage(hwndPB, PBM_SETMARQUEE, (WPARAM)1, 40);
 			EnableWindow(hwndMain,FALSE);

@@ -28,8 +28,6 @@
 #include "winfo.h"
 #include "stringutil.h"
 
-#pragma hdrstop
-
 #include "pksedit.h"
 #include "edierror.h"
 #include "dial2.h"
@@ -40,6 +38,7 @@
 #include "regexp.h"
 #include "findandreplace.h"
 #include "winutil.h"
+#include "themes.h"
 
 #define ISRADIODLGCTL(i) 	((i) >= IDD_LOWRADIO && (i) <= IDD_HIGHRADIO)
 #define ISFLAGDLGCTL(i) 		(((i) >= IDD_LOWOPT && (i) <= IDD_HIGHOPT) ||\
@@ -879,6 +878,58 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 	return TRUE;
 }
 
+/*
+ * Default message handling in all PKS Edit dialogs to e.g. support theming. 
+ */
+static int _buttonIds[] = {
+	IDOK,
+	IDCANCEL,
+	IDD_PATH1SEL,
+	IDD_BUT3,
+	IDD_BUT4,
+	IDD_BUT5
+};
+INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+	static HBRUSH hBrushBg;
+	static THEME_DATA* pOldTheme;
+	switch (message) {
+	case WM_CTLCOLOR:
+	case WM_CTLCOLORBTN: // does not work - need owner draw buttons for that
+	case WM_CTLCOLORSTATIC:
+	case WM_CTLCOLORMSGBOX:
+	case WM_CTLCOLORDLG:
+	case WM_CTLCOLOREDIT:
+	case WM_CTLCOLORLISTBOX: {
+		THEME_DATA* pTheme = theme_getDefault();
+		HDC hdc = (HDC)wParam;
+		SetTextColor(hdc, pTheme->th_dialogForeground);
+		SetBkColor(hdc, pTheme->th_dialogBackground);
+		if (hBrushBg == NULL || pTheme != pOldTheme) {
+			if (hBrushBg) {
+				DeleteObject(hBrushBg);
+			}
+			hBrushBg = CreateSolidBrush(pTheme->th_dialogBackground);
+			pOldTheme = pTheme;
+		}
+		return (INT_PTR)hBrushBg;
+	}
+
+	case WM_INITDIALOG:
+		theme_enableDarkMode(hDlg);
+		/*
+		* does only work in debug mode???
+		for (int i = 0; i < sizeof(_buttonIds) / sizeof(_buttonIds[0]); i++) {
+			HWND hButton = GetDlgItem(hDlg, _buttonIds[i]);
+			if (hButton) {
+				theme_enableDarkMode(hButton);
+			}
+		}
+		*/
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /*--------------------------------------------------------------------------
  * dlg_standardDialogProcedure()
  */
@@ -907,7 +958,7 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 					CreateToolTip(_dtoolTips[i].m_itemId, hwndDlg, _dtoolTips[i].m_tooltipStringId);
 				}
 			}
-			return TRUE;
+			break;
 
 		case WM_DESTROY:
 			bPropertySheetMove = FALSE;
@@ -949,7 +1000,7 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 			}
 			break;
 	}
-	return FALSE;
+	return dlg_defaultWndProc(hDlg, message, wParam, lParam);
 }
 
 /*--------------------------------------------------------------------------

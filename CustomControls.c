@@ -124,9 +124,8 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 
 	hFont = SelectObject(hdc, cust_getSmallEditorFont());
 	if (odItemState & STATE_CHECK) {
-		// (T) control through theme.
-		dwColwi = GetSysColor(COLOR_HIGHLIGHT);
-		dwColtext = GetSysColor(COLOR_HIGHLIGHTTEXT);
+		dwColwi = pTheme->th_dialogHighlight;
+		dwColtext = pTheme->th_dialogHighlightText;
 	} else {
 		dwColwi = pTheme->th_dialogBackground;
 		dwColtext = pTheme->th_dialogForeground;
@@ -438,15 +437,18 @@ int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
 		 */
 		DrawFocusRect(lpdis->hDC,&lpdis->rcItem);
     } else {
-			FillRect(lpdis->hDC, &lpdis->rcItem, lpdis->itemState & ODS_SELECTED ? GetSysColorBrush(COLOR_HIGHLIGHT) : WHITE_BRUSH);
-			SetTextColor(lpdis->hDC, lpdis->itemState & ODS_SELECTED ? GetSysColor(COLOR_HIGHLIGHTTEXT) : RGB(0,0,0));
-			SetBkMode(lpdis->hDC, TRANSPARENT);
-			(*DrawEntireItem)(
-				lpdis->hDC, &lpdis->rcItem, lpdis->itemData,
-				lpdis->itemID, lpdis->CtlID);
-			if (lpdis->itemState & ODS_FOCUS) {
-				DrawFocusRect(lpdis->hDC,&lpdis->rcItem);
-			}
+		THEME_DATA* pTheme = theme_getDefault();
+		HBRUSH hBrush = CreateSolidBrush((lpdis->itemState & ODS_SELECTED) ? pTheme->th_dialogHighlight : pTheme->th_dialogBackground);
+		FillRect(lpdis->hDC, &lpdis->rcItem, hBrush);
+		DeleteObject(hBrush);
+		SetTextColor(lpdis->hDC, lpdis->itemState & ODS_SELECTED ? pTheme->th_dialogHighlightText : pTheme->th_dialogForeground);
+		SetBkMode(lpdis->hDC, TRANSPARENT);
+		(*DrawEntireItem)(
+			lpdis->hDC, &lpdis->rcItem, lpdis->itemData,
+			lpdis->itemID, lpdis->CtlID);
+		if (lpdis->itemState & ODS_FOCUS) {
+			DrawFocusRect(lpdis->hDC,&lpdis->rcItem);
+		}
 	}
 
 	/* Return TRUE meaning that we processed this message. */

@@ -21,6 +21,8 @@
   between added, deleted and modified lines and will synchronize cursor movements of files in comparison mode to be able to display identical lines
   "side by side".
 - PKS Edit uses FontAwesome icons now. This will in particular have the dark mode look better.
+- Dark Mode has been improved and will display now more elements such as title bars and dialogs also in dark. Some open issues
+  like buttons not being correctly colored remain.
 
 ### Changed
 - Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather

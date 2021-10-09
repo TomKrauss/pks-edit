@@ -14,10 +14,10 @@
     },
     {
       "name": "c+cpp",
-      "description": "C/ C++ files (*.c, *.h, *.cpp)",
+      "description": "C/ C++ files (*.c,*.h,*.cpp,*.hpp)",
       "grammar": "cpp",
       "editorConfiguration": "default",
-      "filenamePatterns": "*.c;*.h;*.cpp"
+      "filenamePatterns": "*.c;*.h;*.cpp;*.hpp"
     },
     {
       "name": "dart",

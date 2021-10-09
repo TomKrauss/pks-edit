@@ -169,7 +169,7 @@
       <AdditionalIncludeDirectories>.\inc;.\rc;.\pksedit;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;odbc32.lib;odbccp32.lib;htmlhelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comctl32.lib;odbc32.lib;odbccp32.lib;htmlhelp.lib;Msimg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>.\$(Platform)\$(Configuration)/Pksedit.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ModuleDefinitionFile>.\PKSEDIT.DEF</ModuleDefinitionFile>
@@ -271,7 +271,7 @@
       <AdditionalIncludeDirectories>.\inc;.\rc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;odbc32.lib;odbccp32.lib;htmlhelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comctl32.lib;odbc32.lib;odbccp32.lib;htmlhelp.lib;Msimg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>.\$(Platform)\$(Configuration)/Pksedit.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ModuleDefinitionFile>.\PKSEDIT.DEF</ModuleDefinitionFile>
@@ -300,6 +300,7 @@
   <ItemGroup>
     <ClCompile Include="Actions.c" />
     <ClCompile Include="CodeAnalyzer.c" />
+    <ClCompile Include="Darkmode.c" />
     <ClCompile Include="EditorDocumentModel.c" />
     <ClCompile Include="ArrayList.c" />
     <ClCompile Include="Grammar.c" />
@@ -560,6 +561,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="UAHMenubar.c" />
     <ClCompile Include="WindowGeometryUtil.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -1133,6 +1135,7 @@
     <ClInclude Include="include\comparefiles.h" />
     <ClInclude Include="include\crossreferencelinks.h" />
     <ClInclude Include="include\customcontrols.h" />
+    <ClInclude Include="include\darkmode.h" />
     <ClInclude Include="include\documenttypes.h" />
     <ClInclude Include="include\editoperations.h" />
     <ClInclude Include="include\editorconfiguration.h" />
@@ -1156,6 +1159,7 @@
     <ClInclude Include="include\syntaxhighlighting.h" />
     <ClInclude Include="include\textblocks.h" />
     <ClInclude Include="include\themes.h" />
+    <ClInclude Include="include\uahmenubar.h" />
     <ClInclude Include="include\windowselector.h" />
     <ClInclude Include="include\winutil.h" />
     <ClInclude Include="rc\dial2.h" />

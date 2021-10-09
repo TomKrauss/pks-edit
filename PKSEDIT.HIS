@@ -1,16 +1,17 @@
 [files]
-"C:\source\pksedit\PKSEDIT.RC", line 264: default
-"C:\source\pksedit\Logging.c", line 120: default
-"C:\source\trend-master-eclipse-4.20\trend\bin\make.bat", line 9: default
 "C:\source\pksedit\ArrayList.c", line 47: default
-"C:\temp\JdbcSessionBig.java", line 3431: default
+"C:\source\pksedit\Logging.c", line 160: default
+"C:\source\pksedit\PKSEDIT.RC", line 390: default
+"C:\source\trend-master-eclipse-4.20\trend\bin\make.bat", line 13: default
+"C:\temp\JdbcSessionBig.java", line 3518: default
+"C:\temp\nppp\notepad-plus-plus-master\PowerEditor\installer\APIs\autoit.xml", line 13093: default
+"C:\temp\nppp\notepad-plus-plus-master\PowerEditor\src\NppDarkMode.h", line 157: default
+"C:\temp\nppp\notepad-plus-plus-master\PowerEditor\src\ScintillaComponent\FindReplaceDlg.cpp", line 3758: default
+"C:\source\pksedit\ThemesAndStyles.c", line 493: default
+"C:\Users\tom\Desktop\readme.txt", line 20: default
+"C:\temp\nppp\notepad-plus-plus-master\PowerEditor\src\DarkMode\DarkMode.cpp", line 237: default
+"C:\temp\nppp\notepad-plus-plus-master\PowerEditor\src\NppDarkMode.cpp", line 1: default
 [find]
-!einer Mod
-!Cursor folgt
-!,Cursor
-!, Cursor
-!([A-Z_]+)(\d+).*
-!kopieren
 !2048\+
 !Zeile ein
 !Ablage
@@ -37,10 +38,16 @@
 !increm
 !IDD_RO1
 !DLGABOUT
+!SetWindowTheme
+!setDarkScrollBar
+!fgColor
+!DarkMode_Explorer
+!L"Explorer
+!L"DarkMode_Explorer
 [filePatterns]
-!*.*
-!*.c
 !*.java
+!*.c
+!*.*
 [replace]
 !die
 !,
@@ -54,10 +61,6 @@
 !#define \1\2\t2048+\2
 !IDS_BASE_COMMAND+
 [open]
-!C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\content.txt
-!C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\SuiteUseCases\Test2WorkflowBookFlight\content.txt
-!C:\source\pksedit\main.c
-!newfile1.txt
 !C:\source\pksedit\newfile1.txt
 !C:\source\pksedit\doc\grammar.md
 !C:\source\pksedit\DesktopIcons.c
@@ -86,6 +89,10 @@
 !C:\source\trend-master-eclipse-4.20\trend\bin\make.bat
 !C:\Users\tom\AppData\Local\Temp\pksedit\make.bat.bak
 !C:\Users\tom\AppData\Local\Temp\pksedit\JdbcSessionBig.java.bak
+!C:\temp\nppp\notepad-plus-plus-master\PowerEditor\src\WinControls\ClipboardHistory\clipboardHistoryPanel.cpp
+!C:\temp\nppp\notepad-plus-plus-master\PowerEditor\src\ScintillaComponent\UserDefineDialog.cpp
+!C:\temp\nppp\notepad-plus-plus-master\PowerEditor\src\ScintillaComponent\ScintillaEditView.cpp
+!C:\source\pksedit\.vs\Pksedit\v16\Browse.VC.db
 [pathes]
 !D:\source\trend-master-eclipse-4.12\trend\core\bin\base\src\de\gebit\trend\bo\persistence\session\jdbc\*.*
 !D:\source\pksedit\*.*
@@ -109,7 +116,6 @@
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\SuiteUseCases\Test2WorkflowBookFlight\*.*
 !C:\source\trend-master-eclipse-4.20\trend\samples\tutorial-fitnesse\FitNesseRoot\TrendFitnesse\TutorialTests\*.*
 !C:\source\trend-master-eclipse-4.20\trend\core\ejb\src\de\gebit\trend\service\jms\*.*
-!C:\Users\tom\Desktop\*.*
 !C:\source\pksedit\pks_sys\*.mac
 !C:\source\pksedit\doc\*.*
 !C:\source\pksedit\macros\*.*
@@ -118,3 +124,4 @@
 !S:\*.*
 !C:\source\trend-master-eclipse-4.20\trend\bin\*.*
 !C:\temp\*.*
+!C:\Users\tom\Desktop\*.*

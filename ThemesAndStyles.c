@@ -17,6 +17,7 @@
 
 #include <windows.h>
 #include <commdlg.h>
+#include <Uxtheme.h>
 #include "alloc.h"
 #include "trace.h"
 #include "lineoperations.h"
@@ -30,6 +31,7 @@
 
 #include "dial2.h"
 #include "winutil.h"
+#include "darkmode.h"
 
 #define	IDD_FONTSTRIKEOUT		1040
 #define	IDD_FONTUNDERLINE		1041
@@ -155,6 +157,8 @@ static HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont) {
 static THEME_DATA defaultTheme = {
 	NULL,
 	"default",
+	1,
+	0,
 	DEFAULT_BACKGROUND_COLOR,
 	CHANGED_LINE_COLOR,
 	SAVED_CHANGED_LINE_COLOR,
@@ -168,6 +172,9 @@ static THEME_DATA defaultTheme = {
 	RULER_BACKGROUND_COLOR,
 	-1,							// used as a default marker - strictly speaking there is no default for COLORREFs, 
 								// so -1 is theoretically an illegal value for a placeholder. Works for us here.
+	-1,
+	-1,
+	-1,
 	-1,
 	-1,
 	-1,
@@ -204,6 +211,7 @@ static EDTEXTSTYLE* theme_createStyle() {
 
 static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(THEME_DATA, th_name), sizeof(((THEME_DATA*)NULL)->th_name)},
+	{	RT_INTEGER, "darkMode", offsetof(THEME_DATA, th_isDarkMode)},
 	{	RT_COLOR, "backgroundColor", offsetof(THEME_DATA, th_defaultBackgroundColor)},
 	{	RT_COLOR, "caretLineColor", offsetof(THEME_DATA, th_caretLineColor)},
 	{	RT_COLOR, "changedLineColor", offsetof(THEME_DATA, th_changedLineColor)},
@@ -219,7 +227,10 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_COLOR, "dialogBorder", offsetof(THEME_DATA, th_dialogBorder)},
 	{	RT_COLOR, "dialogDisabled", offsetof(THEME_DATA, th_dialogDisabled)},
 	{	RT_COLOR, "dialogLight", offsetof(THEME_DATA, th_dialogLight)},
-	{	RT_COLOR, "dialogActive", offsetof(THEME_DATA, th_dialogActive)},
+	{	RT_COLOR, "dialogHighlight", offsetof(THEME_DATA, th_dialogHighlight)},
+	{	RT_COLOR, "dialogHighlightText", offsetof(THEME_DATA, th_dialogHighlightText)},
+	{	RT_COLOR, "dialogMenuHighlight", offsetof(THEME_DATA, th_dialogMenuHighlight)},
+	{	RT_COLOR, "dialogActiveTab", offsetof(THEME_DATA, th_dialogActiveTab)},
 	{	RT_COLOR, "rulerForegroundColor", offsetof(THEME_DATA, th_rulerForegroundColor)},
 	{	RT_COLOR, "rulerBackgroundColor", offsetof(THEME_DATA, th_rulerBackgroundColor)},
 	{	RT_CHAR_ARRAY, "dialogFont", offsetof(THEME_DATA, th_fontName), sizeof(((THEME_DATA*)NULL)->th_fontName)},
@@ -244,8 +255,11 @@ static THEME_DATA* theme_createTheme() {
 		defaultTheme.th_dialogForeground = GetSysColor(COLOR_BTNTEXT);
 		defaultTheme.th_dialogBorder = GetSysColor(COLOR_BTNSHADOW);
 		defaultTheme.th_dialogLight = GetSysColor(COLOR_3DLIGHT);
-		defaultTheme.th_dialogActive = GetSysColor(COLOR_HIGHLIGHT);
+		defaultTheme.th_dialogActiveTab = GetSysColor(COLOR_HIGHLIGHT);
 		defaultTheme.th_dialogDisabled = GetSysColor(COLOR_GRAYTEXT);
+		defaultTheme.th_dialogHighlight = GetSysColor(COLOR_HIGHLIGHT);
+		defaultTheme.th_dialogHighlightText = GetSysColor(COLOR_HIGHLIGHTTEXT);
+		defaultTheme.th_dialogMenuHighlight = GetSysColor(COLOR_3DHILIGHT);
 	}
 	memcpy(pTheme, &defaultTheme, sizeof defaultTheme);
 	return pTheme;
@@ -278,7 +292,7 @@ int theme_initThemes(void) {
 	initialized = 1;
 	memset(&themeConfiguration, 0, sizeof themeConfiguration);
 	if (json_parse("themeconfig.json", &themeConfiguration, _themeConfigurationRules)) {
-		theme_setCurrent("default");
+		theme_setCurrent((char*)DEFAULT);
 		return 1;
 	}
 	return 0;
@@ -489,6 +503,7 @@ void theme_setCurrent(unsigned char* pszThemeName) {
 	THEME_DATA* pTheme = theme_getByName(pszThemeName);
 	if (pTheme != themeConfiguration.th_currentTheme) {
 		themeConfiguration.th_currentTheme = pTheme;
+		pTheme->th_isWinTheme = strcmp(DEFAULT, pTheme->th_name) == 0;
 		memset(_styles, 0, sizeof _styles);
 		EDTEXTSTYLE* pStyle = pTheme->th_styles;
 		int nNextStyle = DIM(_styleNames);
@@ -506,7 +521,7 @@ void theme_setCurrent(unsigned char* pszThemeName) {
 			}
 			pStyle = pStyle->next;
 		}
-		RedrawWindow(hwndMain, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+		PostMessage(hwndMain, WM_THEMECHANGED, 0, 0);
 	}
 }
 
@@ -539,3 +554,18 @@ THEME_DATA* theme_getThemes() {
 	return themeConfiguration.th_themes;
 }
 
+/*
+ * Prepare the passed window to be displayed in Windows dark mode look&feel or not,
+ * depending on the current theme.
+ */
+void theme_enableDarkMode(HWND hwnd) {
+	static int bRunning;
+	if (!bRunning) {
+		bRunning = 1;
+		THEME_DATA* pTheme = theme_getDefault();
+		darkmode_allowForWindow(hwnd, pTheme->th_isDarkMode);
+		SetWindowTheme(hwnd, pTheme->th_isDarkMode ? L"DarkMode_Explorer" : NULL, NULL);
+		darkmode_refreshTitleBarThemeColor(hwnd);
+		bRunning = 0;
+	}
+}

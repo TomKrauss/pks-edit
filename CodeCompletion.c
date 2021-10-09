@@ -211,6 +211,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
  */
 static void codecomplete_paint(HWND hwnd) {
 	PAINTSTRUCT paint;
+	THEME_DATA* pTheme = theme_getDefault();
 	HICON hIconTemplate = LoadIcon(hInst, "TEMPLATE");
 	HICON hIconTag = LoadIcon(hInst, "CROSSREFERENCE");
 	TEXTMETRIC textmetric;
@@ -228,12 +229,14 @@ static void codecomplete_paint(HWND hwnd) {
 	GetTextMetrics(paint.hdc, &textmetric);
 	int oldLineHeight = pCC->ccp_lineHeight;
 	pCC->ccp_lineHeight = textmetric.tmHeight + CC_PADDING;
-	FillRect(paint.hdc, &paint.rcPaint, GetSysColorBrush(COLOR_WINDOW));
+	HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogBackground);
+	FillRect(paint.hdc, &paint.rcPaint, hBrush);
+	DeleteObject(hBrush);
 	if (pCC->ccp_size == 0) {
 		RECT rect;
 		GetClientRect(hwnd, &rect);
 		InflateRect(&rect, -5, -5);
-		SetTextColor(paint.hdc, GetSysColor(COLOR_GRAYTEXT));
+		SetTextColor(paint.hdc, pTheme->th_dialogDisabled);
 		char *pszBuf;
 		if ((pszBuf = dlg_getResourceString(IDS_NO_TEMPLATES_DEFINED)) != NULL) {
 			DrawText(paint.hdc, pszBuf, -1, &rect, DT_CENTER | DT_VCENTER | DT_WORDBREAK);
@@ -247,11 +250,13 @@ static void codecomplete_paint(HWND hwnd) {
 					rect.right = paint.rcPaint.right;
 					rect.top = y;
 					rect.bottom = y + textmetric.tmHeight + nDelta;
-					FillRect(paint.hdc, &rect, GetSysColorBrush(COLOR_HIGHLIGHT));
-					SetTextColor(paint.hdc, GetSysColor(COLOR_HIGHLIGHTTEXT));
+					HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogHighlight);
+					FillRect(paint.hdc, &rect, hBrush);
+					DeleteObject(hBrush);
+					SetTextColor(paint.hdc, pTheme->th_dialogHighlightText);
 				}
 				else {
-					SetTextColor(paint.hdc, GetSysColor(COLOR_WINDOWTEXT));
+					SetTextColor(paint.hdc, pTheme->th_dialogForeground);
 				}
 				char* pszDescription = up->ca_name;
 				DrawIconEx(paint.hdc, x, y, up->ca_type == CA_TEMPLATE ? hIconTemplate : hIconTag, textmetric.tmHeight, textmetric.tmHeight, 0, NULL, DI_NORMAL);
@@ -401,6 +406,7 @@ BOOL codecomplete_processKey(HWND hwnd, UINT message, WPARAM wParam) {
 static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	WINFO* wp;
 	CODE_COMPLETION_PARAMS* pCC;
+	THEME_DATA* pTheme = theme_getDefault();
 
 	switch (message) {
 		case WM_CREATE: {
@@ -422,6 +428,17 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		case WM_SIZE:
 			codecomplete_updateScrollbar(hwnd);
 			break;
+
+		case WM_ERASEBKGND: {
+			HDC hdc = (HDC)wParam;
+			RECT rc;
+			GetClientRect(hwnd, &rc);
+			HBRUSH hbrBg = CreateSolidBrush(pTheme->th_dialogBackground);
+			FillRect(hdc, &rc, hbrBg);
+			DeleteObject(hbrBg);
+		}
+		return 1;
+
 		case WM_PAINT:
 			codecomplete_paint(hwnd);
 			break;
@@ -539,6 +556,7 @@ int codecomplete_showSuggestionWindow(void) {
 		codecomplete_calculateWindowPos(wp, &pt, height);
 		MoveWindow(wp->codecomplete_handle, pt.x, pt.y, width, height, TRUE);
 	}
+	theme_enableDarkMode(wp->codecomplete_handle);
 	if (!IsWindowVisible(wp->codecomplete_handle)) {
 		codecomplete_updateCompletionList(wp, TRUE);
 		ShowWindow(wp->codecomplete_handle, SW_SHOWNA);

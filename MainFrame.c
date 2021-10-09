@@ -30,6 +30,8 @@
 #include "xdialog.h"
 #include "mouseutil.h"
 #include "windowselector.h"
+#include "uahmenubar.h"
+#include "darkmode.h"
 
 extern HINSTANCE		hInst;
 extern BOOL	bTaskFinished;
@@ -608,7 +610,7 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 			return TRUE;
 		}
 		LOGBRUSH brush;
-		brush.lbColor = pTheme->th_dialogActive;
+		brush.lbColor = pTheme->th_dialogActiveTab;
 		brush.lbHatch = 0;
 		brush.lbStyle = PS_SOLID;
 		hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, 3, &brush, 0, NULL);
@@ -655,7 +657,7 @@ static void tabcontrol_paintTabs(HWND hwnd, PAINTSTRUCT* ps, TAB_CONTROL* pContr
 	}
 	FillRect(ps->hdc, &rect, hBrush);
 	if (pControl == currentDropTarget) {
-		HPEN hPen = CreatePen(PS_SOLID, 3, pTheme->th_dialogActive);
+		HPEN hPen = CreatePen(PS_SOLID, 3, pTheme->th_dialogActiveTab);
 		HPEN hPenOld = SelectObject(ps->hdc, hPen);
 		MoveTo(ps->hdc, rect.left, rect.top+1);
 		LineTo(ps->hdc, rect.right-1, rect.top+1);
@@ -1387,7 +1389,11 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 	WORD				nStatusHeight;
 	WORD				nToolbarHeight;
 	int					idCtrl;
+	LRESULT				lResult;
 
+	if (UAHWndProc(hwnd, message, wParam, lParam, &lResult)) {
+		return lResult;
+	}
 	switch (message) {
 
 	case WM_ACTIVATEAPP:
@@ -1514,6 +1520,11 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		if (!(BOOL)HIWORD(lParam)) {
 			macro_assignAcceleratorTextOnMenu((HMENU)wParam);
 		}
+		break;
+	case WM_THEMECHANGED:
+		theme_enableDarkMode(hwndFrameWindow);
+		RedrawWindow(hwndMain, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+		DrawMenuBar(hwndMain);
 		break;
 
 	case WM_SETCURSOR: {
@@ -1664,6 +1675,8 @@ HWND mainframe_open(int nInstanceCount, HMENU hDefaultMenu) {
 	if (!hwndFrameWindow) {
 		return 0;
 	}
+	darkmode_initialize();
+	theme_enableDarkMode(hwndFrameWindow);
 	return hwndFrameWindow;
 }
 

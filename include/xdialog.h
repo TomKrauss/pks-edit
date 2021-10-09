@@ -51,6 +51,11 @@ extern BOOL			DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams);
 extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING *pTooltips);
 extern void 		DlgInitString(HWND hwnd, int item, LPSTR szString, int nMax);
 extern INT_PTR CALLBACK dlg_standardDialogProcedure(HWND,UINT,WPARAM,LPARAM);
+/*
+ * Default message handling in all PKS Edit dialogs to e.g. support theming.
+ */
+extern INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+
 # if defined(_EDFUNCS_H)
 extern int 			win_callDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
 # endif

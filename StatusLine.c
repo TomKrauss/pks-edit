@@ -155,7 +155,7 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	switch (msg) {
 	case WM_PAINT: {
 		THEME_DATA* pTheme = theme_getDefault();
-		if (pTheme->th_dialogBackground == GetSysColor(COLOR_BTNFACE)) {
+		if (pTheme->th_isWinTheme) {
 			return CallWindowProc(_wpOrigStatusWndProc, hwnd, msg, wParam, lParam);
 		}
 		PAINTSTRUCT ps;
@@ -192,7 +192,7 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	}
 	case WM_ERASEBKGND: {
 		THEME_DATA* pTheme = theme_getDefault();
-		if (pTheme->th_dialogBackground == GetSysColor(COLOR_BTNFACE)) {
+		if (pTheme->th_isWinTheme) {
 			return CallWindowProc(_wpOrigStatusWndProc, hwnd, msg, wParam, lParam);
 		}
 		return 0;

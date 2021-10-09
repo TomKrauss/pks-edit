@@ -297,6 +297,12 @@
     <ClCompile Include="Levensthein.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UAHMenubar.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Darkmode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -495,6 +501,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\comparefiles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uahmenubar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\darkmode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

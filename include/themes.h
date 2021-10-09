@@ -21,6 +21,8 @@ typedef struct tagEDTEXTSTYLE EDTEXTSTYLE;
 typedef struct tagTHEME_DATA {
 	struct tagTHEME_DATA* th_next;
 	unsigned char th_name[32];
+	int		 th_isWinTheme;					// true for the default (Windows Theme)
+	int		 th_isDarkMode;					// true for all themes, that should use darkmode for window NC areas etc...
 	COLORREF th_defaultBackgroundColor;
 	COLORREF th_changedLineColor;
 	COLORREF th_savedChangedLineColor;
@@ -37,7 +39,10 @@ typedef struct tagTHEME_DATA {
 	COLORREF th_dialogBorder;
 	COLORREF th_dialogDisabled;
 	COLORREF th_dialogLight;
-	COLORREF th_dialogActive;
+	COLORREF th_dialogActiveTab;
+	COLORREF th_dialogHighlight;
+	COLORREF th_dialogHighlightText;
+	COLORREF th_dialogMenuHighlight;
 	COLORREF th_mainWindowBackground;
 	unsigned char th_fontName[32];			// dialog font name to use
 	unsigned int  th_fontSize;				// dialog font size to use
@@ -78,6 +83,12 @@ extern THEME_DATA* theme_getThemes();
  * The dialog font is used by PKS edit e.g. in dialogs and in the window selector.
  */
 HFONT theme_createDialogFont(int nWeight);
+
+/*
+ * Prepare the passed window to be displayed in Windows dark mode look&feel or not,
+ * depending on the current theme.
+ */
+extern void theme_enableDarkMode(HWND hwnd);
 
 #define THEMES_H
 

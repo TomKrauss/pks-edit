@@ -113,9 +113,14 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     SendMessage(hwndToolbar, TB_BUTTONSTRUCTSIZE, 
         (WPARAM) sizeof(TBBUTTON), 0);
 
-    tbabmp2.hInst = hInst;
-    tbabmp2.nID = (UINT_PTR)IDB_ARROWS;
-    iIndexExtra = SendMessage(hwndToolbar, TB_ADDBITMAP, 3, (LPARAM)&tbabmp2);
+    HBITMAP hBmp = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_ARROWS));
+    HIMAGELIST hImageList = ImageList_Create(16, 16,
+        ILC_COLOR32 | ILC_MASK,
+        17, 0
+    );
+    ImageList_AddMasked(hImageList, hBmp, RGB(255,255,255));
+    iIndexExtra = 0;
+    SendMessageW(hwndToolbar, TB_SETIMAGELIST, (WPARAM)0, (LPARAM)hImageList);
 
     nButton = 0;
     tbb[nButton].iBitmap = (int)(iIndexExtra + 7);

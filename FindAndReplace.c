@@ -51,10 +51,9 @@ unsigned char 		*tlcompile(unsigned char *transtab,
 						 unsigned char *t,
 						 unsigned char *wt);
 
-static UCHAR 	_expbuf[ESIZE];
-
 SEARCH_AND_REPLACE_PARAMETER _currentSearchAndReplaceParams;
 static RE_PATTERN	_lastCompiledPattern;
+static RE_PATTERN	_lastSearchPattern;
 
 /*
  * Create an option object for compiling a regular expression. 
@@ -132,12 +131,17 @@ void find_setCurrentSearchExpression(char *pExpression) {
  * regex_compileWithDefault()
  * Compile a regular expression passed by argument with standard options.
  */
-static RE_PATTERN* lastPattern;
 RE_PATTERN *regex_compileWithDefault(char *expression) {
+	static UCHAR 	_expbuf[ESIZE];
 
 	find_setCurrentSearchExpression(expression);
-	lastPattern = find_regexCompile(_expbuf,expression, _currentSearchAndReplaceParams.options) ? &_lastCompiledPattern : NULL;
-	return lastPattern;
+	RE_PATTERN* pPattern = find_regexCompile(_expbuf, expression, _currentSearchAndReplaceParams.options);
+	if (!pPattern) {
+		pPattern = &_lastCompiledPattern;
+	} else {
+		_lastSearchPattern = *pPattern;
+	}
+	return pPattern;
 }
 
 /*--------------------------------------------------------------------------
@@ -399,7 +403,7 @@ int find_startIncrementalSearch() {
 int find_expressionAgainInCurrentFile(dir) {
 	RE_PATTERN* pPattern;
 
-	pPattern = lastPattern ? lastPattern : regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
+	pPattern = _lastSearchPattern.compiledExpression ? &_lastSearchPattern : regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
 	return pPattern && find_expressionInCurrentFile(dir,pPattern, _currentSearchAndReplaceParams.options);
 }
 
@@ -886,7 +890,7 @@ endrep:
  */
 void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *pattern, char *with)
 {
-	char		ebuf[ESIZE];
+	static char	ebuf[ESIZE];
 	char *	src;
 	char *	send;
 	int		newlen;

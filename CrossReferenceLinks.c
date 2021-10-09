@@ -191,8 +191,8 @@ int xref_restoreFromConfigFile(void)
 /*---------------------------------*/
 /* xref_initializeNavigationPattern()				*/
 /*---------------------------------*/
-static RE_PATTERN *xref_initializeNavigationPattern(char *ebuf,NAVIGATION_PATTERN *s)
-{
+static RE_PATTERN *xref_initializeNavigationPattern(NAVIGATION_PATTERN *s) {
+	static char ebuf[ESIZE];
 	_exprerror = s;
 	return find_regexCompile(ebuf,_exprerror->pattern,RE_DOREX);
 }
@@ -371,7 +371,6 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 static BOOL xref_buildTagTable(char* sourceFilename, char* baseTagFilename) {
 	FTABLE ftable;
 	LINE* lp;
-	char ebuf[ESIZE];
 
 	memset(&ftable, 0, sizeof ftable);
 	if (xref_loadTagFile(&ftable, sourceFilename, baseTagFilename) == 0) {
@@ -381,7 +380,7 @@ static BOOL xref_buildTagTable(char* sourceFilename, char* baseTagFilename) {
 		// Everything up to date.
 		return TRUE;
 	}
-	RE_PATTERN* pPattern = xref_initializeNavigationPattern(ebuf, _tagfileFormatPattern);
+	RE_PATTERN* pPattern = xref_initializeNavigationPattern(_tagfileFormatPattern);
 	if (pPattern == NULL) {
 		ft_bufdestroy(&ftable);
 		return FALSE;
@@ -499,7 +498,7 @@ static INT_PTR CALLBACK xref_lookupTagReferenceProc(HWND hDlg, UINT message, WPA
 		LRESULT idx = SendDlgItemMessage(hDlg, IDD_ICONLIST, LB_GETCURSEL, 0, 0);
 		_selectedReference = idx < 0 ? NULL : (TAG_REFERENCE*)SendDlgItemMessage(hDlg, IDD_ICONLIST, LB_GETITEMDATA, idx, 0);
 		PostMessage(hDlg, WM_NEXTDLGCTL, (WPARAM)GetDlgItem(hDlg, IDD_STRING1), TRUE);
-		return TRUE;
+		break;
 
 	case WM_DESTROY:
 		return FALSE;
@@ -545,7 +544,7 @@ static INT_PTR CALLBACK xref_lookupTagReferenceProc(HWND hDlg, UINT message, WPA
 		}
 		break;
 	}
-	return FALSE;
+	return dlg_defaultWndProc(hDlg, message, wParam, lParam);
 }
 
 /*--------------------------------------------------------------------------
@@ -809,8 +808,7 @@ static BOOL xref_parseNavigationSpec(NAVIGATION_SPEC* pSpec, RE_PATTERN* pPatter
 void xref_openSearchListResultFromLine(LINE *lp)
 { 	NAVIGATION_SPEC spec;
 	const char* pszName = NULL;
-	char ebuf[ESIZE];
-	RE_PATTERN *pPattern = xref_initializeNavigationPattern(ebuf,_searchListNavigationPattern);
+	RE_PATTERN *pPattern = xref_initializeNavigationPattern(_searchListNavigationPattern);
 
 	while((lp = lp->next) != 0L) {		/* we may skip 1st line ! */
 		if (lp->len && xref_parseNavigationSpec(&spec, pPattern, lp)) {
@@ -843,7 +841,6 @@ int EdErrorNext(int dir) {
 	FTABLE	    	*fp;
 	long			lineno = 0;
 	NAVIGATION_PATTERN *steperror;
-	char 			ebuf[ESIZE];
 	char			fullname[256];
 	WINFO			*wp;
 
@@ -871,7 +868,7 @@ notfile:	error_showErrorById(IDS_MSGNOTAGFILE);
 		goto notfile;
 	}
 
-	RE_PATTERN *pPattern = xref_initializeNavigationPattern(ebuf,steperror);
+	RE_PATTERN *pPattern = xref_initializeNavigationPattern(steperror);
 
 	switch (dir) {
 	case LIST_PREV:

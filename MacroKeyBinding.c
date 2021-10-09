@@ -1197,7 +1197,7 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 			CheckDlgButton(hwnd,IDD_OPT1,showInternals);
 			macro_fillKeyTables(hwnd);
 			macro_updateSelectedMacro(hwnd, nSelected);
-			return TRUE;
+			break;
 
 		case WM_VKEYTOITEM:
 			return -1;
@@ -1316,7 +1316,7 @@ upd: 				_macedited = 1;
 			}
 			break;
 	}
-	return FALSE;
+	return dlg_standardDialogProcedure(hwnd, message, wParam, lParam);
 }
 
 /*--------------------------------------------------------------------------
