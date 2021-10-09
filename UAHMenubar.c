@@ -55,6 +55,10 @@ BOOL UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* 
     switch (message) {
     case WM_UAHDRAWMENU:
     {
+        if (pTheme->th_isWinTheme) {
+            *lr = DefWindowProc(hWnd, message, wParam, lParam);
+            return TRUE;
+        }
         UAHMENU* pUDM = (UAHMENU*)lParam;
         RECT rc = { 0 };
 
@@ -77,9 +81,11 @@ BOOL UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* 
     }
     case WM_UAHDRAWMENUITEM:
     {
+        if (pTheme->th_isWinTheme) {
+            *lr = DefWindowProc(hWnd, message, wParam, lParam);
+            return TRUE;
+        }
         UAHDRAWMENUITEM* pUDMI = (UAHDRAWMENUITEM*)lParam;
-
-
         HBRUSH* pbrBackground = &brItemBackground;
 
         // get the menu item string

@@ -95,6 +95,9 @@
           "keywords": [
             "if",
             "else",
+            "true",
+            "false",
+            "bool",
             "import",
             "extern",
             "static",
@@ -104,6 +107,9 @@
             "enum",
             "for",
             "while",
+            "auto",
+            "namespace",
+            "template",
             "do",
             "continue",
             "break",
@@ -136,7 +142,7 @@
           "name": "literal.char"
         },
         {
-          "match": "[-+&|<>=]{1,2}",
+          "match": "[-+&|<>=~?]{1,2}",
           "style": "operator",
           "name": "keyword.operator"
         }

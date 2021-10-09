@@ -901,6 +901,9 @@ INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 	case WM_CTLCOLOREDIT:
 	case WM_CTLCOLORLISTBOX: {
 		THEME_DATA* pTheme = theme_getDefault();
+		if (pTheme->th_isWinTheme) {
+			return FALSE;
+		}
 		HDC hdc = (HDC)wParam;
 		SetTextColor(hdc, pTheme->th_dialogForeground);
 		SetBkColor(hdc, pTheme->th_dialogBackground);
@@ -999,6 +1002,9 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 				return TRUE;
 			}
 			break;
+	}
+	if (bInPropertySheet) {
+		return FALSE;
 	}
 	return dlg_defaultWndProc(hDlg, message, wParam, lParam);
 }

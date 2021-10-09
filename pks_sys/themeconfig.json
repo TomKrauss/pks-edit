@@ -130,7 +130,7 @@
       "changedLineColor": "#ffff33",
       "savedChangedLineColor": "#88ff88",
       "editorConfiguration": "default",
-      "caretLineColor": "#550055",
+      "caretLineColor": "#666666",
       "compareModifiedColor": "#909000",
       "compareAddedColor": "#900090",
       "compareDeletedColor": "#009090",
@@ -144,7 +144,7 @@
           "styleName": "default",
           "faceName": "Consolas",
           "size": -12,
-          "foregroundColor": "#FFFFCC",
+          "foregroundColor": "#DEDEDE",
           "weight": 400
         },
         {
@@ -209,7 +209,7 @@
         {
           "styleName": "literal",
           "weight": 700,
-          "foregroundColor": "#ee33ee"
+          "foregroundColor": "#dd66dd"
         },
         {
           "styleName": "hyperlink",
