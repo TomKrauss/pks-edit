@@ -1569,11 +1569,10 @@ int EdFind(void)
 int EdFindInFileList(void)
 {	static char pathlist[512];
 	static char filenamePattern[50];
-	static int once = 1,depth = -1;
+	static int depth = -1;
 	static ITEMS	_i   =  	{ 
 		{ C_STRING1PAR, _currentSearchAndReplaceParams.searchPattern },
 		{ C_STRING1PAR, pathlist }, 
-		{ C_INT1PAR, (unsigned char *) &once   },
 		{ C_INT1PAR, (unsigned char *) &depth },
 		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options }
 	};
@@ -1582,7 +1581,7 @@ int EdFindInFileList(void)
 		IDD_REGEXP,	RE_DOREX,			& _currentSearchAndReplaceParams.options,
 		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
 		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
-		IDD_OPT1,		1,				&once,
+		IDD_OPT1,		RE_SEARCH_ONCE,& _currentSearchAndReplaceParams.options,
 		IDD_OPT2,		RE_IGNORE_BINARY, & _currentSearchAndReplaceParams.options,
 		IDD_INT1,		sizeof depth,	&depth,
 		IDD_FILE_PATTERN, sizeof filenamePattern, &filenamePattern, 
@@ -1604,7 +1603,7 @@ int EdFindInFileList(void)
 		return 0;
 	}
 	return find_matchesInFiles(pathlist,filenamePattern, _currentSearchAndReplaceParams.searchPattern, _currentSearchAndReplaceParams.options, 
-		depth < 0 ? 999 : depth,once);
+		depth < 0 ? 999 : depth, _currentSearchAndReplaceParams.options & RE_SEARCH_ONCE);
 }
 
 /*--------------------------------------------------------------------------

@@ -169,19 +169,18 @@ static BOOL IsHighContrast() {
 	return FALSE;
 }
 
-void darkmode_refreshTitleBarThemeColor(HWND hWnd) {
-	BOOL dark = FALSE;
+void darkmode_refreshTitleBarThemeColor(HWND hWnd, BOOL dark) {
 	if (!_IsDarkModeAllowedForWindow) {
 		return;
 	}
-	if (_IsDarkModeAllowedForWindow(hWnd) &&
-		_ShouldAppsUseDarkMode() &&
-		!IsHighContrast())
+	if (!_IsDarkModeAllowedForWindow(hWnd)||
+		!_ShouldAppsUseDarkMode() ||
+		IsHighContrast())
 	{
-		dark = TRUE;
+		dark = FALSE;
 	}
 	if (g_buildNumber < 18362)
-		SetPropW(hWnd, L"UseImmersiveDarkModeColors", (HANDLE)(&dark));
+		SetPropW(hWnd, L"UseImmersiveDarkModeColors", (HANDLE)(intptr_t)dark);
 	else if (_SetWindowCompositionAttribute)
 	{
 		WINDOWCOMPOSITIONATTRIBDATA data = { WCA_USEDARKMODECOLORS, &dark, sizeof(dark) };
@@ -210,18 +209,20 @@ static BOOL IsColorSchemeChangeMessage(LPARAM lParam)
 	return is;
 }
 
-BOOL IsColorSchemeChangeMessage2(UINT message, LPARAM lParam) {
+BOOL darkmode_IsColorSchemeChangeMessage(UINT message, LPARAM lParam) {
 	if (message == WM_SETTINGCHANGE)
 		return IsColorSchemeChangeMessage(lParam);
 	return FALSE;
 }
 
-static void AllowDarkModeForApp(BOOL allow)
-{
+/*
+ * Allow darkmode for the app or deny it. 
+ */
+void darkmode_allowForApp(BOOL allow) {
 	if (_AllowDarkModeForApp)
 		_AllowDarkModeForApp(allow);
 	else if (_SetPreferredAppMode)
-		_SetPreferredAppMode(allow ? AllowDark : Default);
+		_SetPreferredAppMode(allow ? ForceDark : Default);
 }
 
 static BOOL darkmode_checkRequiredBuildNumber(DWORD buildNumber) {
@@ -285,7 +286,6 @@ void darkmode_initialize() {
 				{
 					g_darkModeSupported = TRUE;
 
-					AllowDarkModeForApp(TRUE);
 					//_RefreshImmersiveColorPolicyState();
 
 					g_darkModeEnabled = _ShouldAppsUseDarkMode() && !IsHighContrast();

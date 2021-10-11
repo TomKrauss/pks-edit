@@ -412,8 +412,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 		return (FALSE);
 	}
 
-	GetPhase2Args(lpCmdLine);
 	ft_restorePreviouslyOpenedWindows();
+	GetPhase2Args(lpCmdLine);
 
 	if (!ww_getNumberOfOpenWindows() && _runInteractive) {
 		EdEditFile(0L,(char*)0);

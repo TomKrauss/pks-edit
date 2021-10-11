@@ -365,13 +365,43 @@ static void mainframe_closeDock(HWND hwnd) {
 }
 
 /*
- * Trigger a repaint of the tabstrip of a tab control. 
+ * Trigger a repaint of the tabstrip of a tab controls tab with the given index.
+ * If index is -1, repaint all tabs
  */
-static void tabcontrol_repaintTabs(HWND hwnd, TAB_CONTROL* pControl) {
+static void tabcontrol_repaintTab(HWND hwnd, TAB_CONTROL* pControl, int nIndex) {
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	rect.bottom = rect.top + pControl->tc_stripHeight + 1;
-	InvalidateRect(hwnd, &rect, TRUE);
+	if (nIndex >= 0) {
+		int x = rect.left + pControl->tc_firstTabOffset;
+		int x2;
+		int nLen = (int)arraylist_size(pControl->tc_pages);
+		for (int i = pControl->tc_firstVisibleTab; i < nLen; i++) {
+			if (i > nIndex) {
+				return;
+			}
+			TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
+			x2 = x + pPage->tp_width+1;
+			if (i == nIndex) {
+				rect.left = x;
+				rect.right = x2;
+				break;
+			}
+			x = x2;
+			if (x > rect.right) {
+				return;
+			}
+		}
+	}
+	InvalidateRect(hwnd, &rect, FALSE);
+}
+
+
+/*
+ * Trigger a repaint of the tabstrip of a tab control. 
+ */
+static void tabcontrol_repaintTabs(HWND hwnd, TAB_CONTROL* pControl) {
+	tabcontrol_repaintTab(hwnd, pControl, -1);
 }
 
 /*
@@ -872,8 +902,13 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam, BOOL bDrag) {
 static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex, int nTabIndex) {
 	BOOL bTrackChanged = FALSE;
 	if (pControl->tc_rolloverTab != nIndex) {
+		if (pControl->tc_rolloverTab >= 0) {
+			tabcontrol_repaintTab(hwnd, pControl, pControl->tc_rolloverTab);
+		}
 		pControl->tc_rolloverTab = nIndex;
-		tabcontrol_repaintTabs(hwnd, pControl);
+		if (pControl->tc_rolloverTab >= 0) {
+			tabcontrol_repaintTab(hwnd, pControl, pControl->tc_rolloverTab);
+		}
 		bTrackChanged = TRUE;
 	}
 	BOOL bShow = nTabIndex >= 0;
@@ -1523,6 +1558,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		break;
 
 	case WM_WININICHANGE:
+		darkmode_IsColorSchemeChangeMessage(message, lParam);
 		string_initDateformats();
 		break;
 
@@ -1544,10 +1580,12 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		}
 		break;
 	case WM_THEMECHANGED:
+		darkmode_allowForApp(theme_getDefault()->th_isDarkMode);
 		theme_enableDarkMode(hwndFrameWindow);
 		darkmode_flushMenuThemes();
-		RedrawWindow(hwndMain, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
-		DrawMenuBar(hwndMain);
+		RedrawWindow(hwndMain, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN);
+		// TODO: title bar is not correctly repainted upon theme change.
+		SetWindowPos(hwndMain, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 		break;
 
 	case WM_SETCURSOR: {
@@ -1685,6 +1723,7 @@ HWND mainframe_open(int nInstanceCount, HMENU hDefaultMenu) {
 	char szTitle[1200];
 	DWORD dwStyle;
 
+	darkmode_initialize();
 	if (nInstanceCount > 1) {
 		wsprintf(szTitle, "* PKS EDIT * (%d)", nInstanceCount);
 	}
@@ -1698,7 +1737,6 @@ HWND mainframe_open(int nInstanceCount, HMENU hDefaultMenu) {
 	if (!hwndFrameWindow) {
 		return 0;
 	}
-	darkmode_initialize();
 	theme_enableDarkMode(hwndFrameWindow);
 	return hwndFrameWindow;
 }

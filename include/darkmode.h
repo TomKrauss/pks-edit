@@ -21,12 +21,19 @@
   */
 extern void darkmode_initialize();
 
-extern void darkmode_refreshTitleBarThemeColor(HWND hWnd);
+extern void darkmode_refreshTitleBarThemeColor(HWND hWnd, BOOL aDarkFlag);
 
 /*
  * Enables dark mode in the corresponding window.
  */
 extern BOOL darkmode_allowForWindow(HWND hWnd, BOOL allow);
+
+extern BOOL darkmode_IsColorSchemeChangeMessage(UINT message, LPARAM lParam);
+
+/*
+ * Allow darkmode for the app or deny it.
+ */
+extern void darkmode_allowForApp(BOOL allow);
 
 /*
  * To be invoked, when dark mode changes.

@@ -585,11 +585,12 @@ THEME_DATA* theme_getThemes() {
 void theme_enableDarkMode(HWND hwnd) {
 	static int bRunning;
 	if (!bRunning) {
-		bRunning = 1;
 		THEME_DATA* pTheme = theme_getDefault();
-		darkmode_allowForWindow(hwnd, pTheme->th_isDarkMode);
-		SetWindowTheme(hwnd, pTheme->th_isDarkMode ? DARKMODE_THEME : NULL, NULL);
-		darkmode_refreshTitleBarThemeColor(hwnd);
+		BOOL bDark = pTheme->th_isDarkMode;
+		bRunning = 1;
+		darkmode_allowForWindow(hwnd, bDark);
+		SetWindowTheme(hwnd, bDark ? DARKMODE_THEME : NULL, NULL);
+		darkmode_refreshTitleBarThemeColor(hwnd, bDark);
 		bRunning = 0;
 	}
 }
