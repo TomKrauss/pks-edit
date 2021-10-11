@@ -128,6 +128,7 @@ static HWND CreateToolTip(int toolID, HWND hDlg, int iTooltipItem) {
 	toolInfo.lpszText = pszText;
 	SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
 	SendMessage(hwndTip, TTM_SETMAXTIPWIDTH, 0, 350);
+	theme_enableDarkMode(hwndTip);
 	return hwndTip;
 }
 
@@ -881,17 +882,7 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 /*
  * Default message handling in all PKS Edit dialogs to e.g. support theming. 
  */
-static int _buttonIds[] = {
-	IDOK,
-	IDCANCEL,
-	IDD_PATH1SEL,
-	IDD_BUT3,
-	IDD_BUT4,
-	IDD_BUT5
-};
 INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
-	static HBRUSH hBrushBg;
-	static THEME_DATA* pOldTheme;
 	switch (message) {
 	case WM_CTLCOLOR:
 	case WM_CTLCOLORBTN: // does not work - need owner draw buttons for that
@@ -907,27 +898,12 @@ INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 		HDC hdc = (HDC)wParam;
 		SetTextColor(hdc, pTheme->th_dialogForeground);
 		SetBkColor(hdc, pTheme->th_dialogBackground);
-		if (hBrushBg == NULL || pTheme != pOldTheme) {
-			if (hBrushBg) {
-				DeleteObject(hBrushBg);
-			}
-			hBrushBg = CreateSolidBrush(pTheme->th_dialogBackground);
-			pOldTheme = pTheme;
-		}
-		return (INT_PTR)hBrushBg;
+		return (INT_PTR)theme_getDialogBackgroundBrush();
 	}
 
 	case WM_INITDIALOG:
 		theme_enableDarkMode(hDlg);
-		/*
-		* does only work in debug mode???
-		for (int i = 0; i < sizeof(_buttonIds) / sizeof(_buttonIds[0]); i++) {
-			HWND hButton = GetDlgItem(hDlg, _buttonIds[i]);
-			if (hButton) {
-				theme_enableDarkMode(hButton);
-			}
-		}
-		*/
+		theme_prepareChildrenForDarkmode(hDlg);
 		return TRUE;
 	}
 	return FALSE;

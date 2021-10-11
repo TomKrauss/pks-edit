@@ -360,7 +360,7 @@ extern HWND ww_createEditWindow(char* pTitle, int nCount, LPVOID lParam, const c
  * ww_setwindowtitle()
  * Update the title of a window.
  */
-extern int ww_setwindowtitle(WINFO* wp, void *pUnused);
+extern int ww_setwindowtitle(WINFO* wp, BOOL bRepaint);
 
 /*-----------------------------------------------------------
  * ww_getNumberOfOpenWindows()

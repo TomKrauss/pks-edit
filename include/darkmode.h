@@ -28,6 +28,11 @@ extern void darkmode_refreshTitleBarThemeColor(HWND hWnd);
  */
 extern BOOL darkmode_allowForWindow(HWND hWnd, BOOL allow);
 
+/*
+ * To be invoked, when dark mode changes.
+ */
+extern void darkmode_flushMenuThemes();
+
 #define DARKMODE_H
 #endif // !DARKMODE_H
 

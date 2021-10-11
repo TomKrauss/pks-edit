@@ -24,7 +24,6 @@
 #define IDB_PNG1                        189
 #define IDI_ICON3                       193
 #define IDB_ARROWS                      196
-#define IDB_ARROWS1                     197
 #define IDB_ARROWS_DISABLED             197
 #define DLGCURSOROPTIONS                529
 #define DLG_OPT_WARNINGS                556
@@ -47,8 +46,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        198
+#define _APS_NEXT_RESOURCE_VALUE        199
 #define _APS_NEXT_COMMAND_VALUE         40023
 #define _APS_NEXT_CONTROL_VALUE         1017
 #define _APS_NEXT_SYMED_VALUE           101

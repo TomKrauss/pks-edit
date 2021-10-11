@@ -224,32 +224,6 @@ static void AllowDarkModeForApp(BOOL allow)
 		_SetPreferredAppMode(allow ? AllowDark : Default);
 }
 
-static fnOpenNcThemeData MyOpenThemeData(HWND hWnd, LPCWSTR classList) {
-	if (wcscmp(classList, L"ScrollBar") == 0) {
-		hWnd = NULL;
-		classList = L"Explorer::ScrollBar";
-	}
-	return _OpenNcThemeData(hWnd, classList);
-}
-
-static void FixDarkScrollBar()
-{
-	HMODULE hComctl = LoadLibraryExW(L"comctl32.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
-	if (hComctl)
-	{
-		PIMAGE_THUNK_DATA addr = FindDelayLoadThunkInModule(hComctl, "uxtheme.dll", 49); // OpenNcThemeData
-		if (addr)
-		{
-			DWORD oldProtect;
-			if (VirtualProtect(addr, sizeof(IMAGE_THUNK_DATA), PAGE_READWRITE, &oldProtect))
-			{
-				addr->u1.Function = (ULONGLONG)MyOpenThemeData;
-				VirtualProtect(addr, sizeof(IMAGE_THUNK_DATA), oldProtect, &oldProtect);
-			}
-		}
-	}
-}
-
 static BOOL darkmode_checkRequiredBuildNumber(DWORD buildNumber) {
 	return (buildNumber == 17763 || // 1809
 		buildNumber == 18362 || // 1903
@@ -258,6 +232,15 @@ static BOOL darkmode_checkRequiredBuildNumber(DWORD buildNumber) {
 		buildNumber == 19042 || // 20H2
 		buildNumber == 19043 || // 21H1
 		buildNumber >= 22000);  // Windows 11 insider builds
+}
+
+/*
+ * To be invoked, when dark mode changes. 
+ */
+void darkmode_flushMenuThemes() {
+	if (_FlushMenuThemes) {
+		_FlushMenuThemes();
+	}
 }
 
 /*
@@ -303,12 +286,9 @@ void darkmode_initialize() {
 					g_darkModeSupported = TRUE;
 
 					AllowDarkModeForApp(TRUE);
-					_RefreshImmersiveColorPolicyState();
+					//_RefreshImmersiveColorPolicyState();
 
 					g_darkModeEnabled = _ShouldAppsUseDarkMode() && !IsHighContrast();
-
-					FixDarkScrollBar();
-					_FlushMenuThemes();
 				}
 			}
 		}

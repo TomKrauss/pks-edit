@@ -105,7 +105,7 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     memset(&tbabmp, 0, sizeof tbabmp);
     memset(&tbabmp2, 0, sizeof tbabmp2);
     hwndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, (LPSTR) NULL,
-		WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | CCS_NODIVIDER | CCS_NORESIZE | CCS_ADJUSTABLE,
+		WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | TBSTYLE_CUSTOMERASE| CCS_NODIVIDER | CCS_NORESIZE | CCS_ADJUSTABLE,
         0, 0, 0, 0, hwndOwner, (HMENU) IDM_TOOLBAR, hInst, NULL);
 	if (!hwndToolbar) {
 		return NULL;
@@ -350,7 +350,7 @@ static void tb_enableEntryField(ACTION_BINDING * pBinding, PROPERTY_CHANGE_TYPE 
 }
 static HWND tb_initSearchEntryField(HWND hwndOwner) {
 
-    hwndIncrementalSearchField = CreateWindowEx(0, "EDIT", "",
+    hwndIncrementalSearchField = CreateWindowEx(0, WC_EDIT, "",
         WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_LEFT | ES_NOHIDESEL | ES_WANTRETURN,
         0, 0, 180, CW_USEDEFAULT,
         hwndOwner, (HMENU)IDM_INCREMENTAL_SEARCH,
@@ -380,15 +380,18 @@ static LRESULT APIENTRY tb_myRebarProc(
     WPARAM wParam,
     LPARAM lParam) {
 
-    if (uMsg == WM_CTLCOLOREDIT || uMsg == WM_CTLCOLOR || uMsg == WM_CTLCOLORBTN) {
+    if (uMsg == WM_CTLCOLOREDIT || uMsg == WM_CTLCOLORSTATIC) {
         THEME_DATA* pTheme = theme_getDefault();
-        static HBRUSH hbrBkgnd;
         HDC hdc = (HDC)wParam;
         SetTextColor(hdc, pTheme->th_dialogForeground);
         SetBkColor(hdc, pTheme->th_dialogBackground);
-        if (!hbrBkgnd)
-            hbrBkgnd = CreateSolidBrush(pTheme->th_dialogBackground);
-        return (LRESULT)hbrBkgnd;
+        return (LRESULT)theme_getDialogBackgroundBrush();
+    }
+    if (uMsg == WM_ERASEBKGND) {
+        RECT rc;
+        GetClientRect(hwnd, &rc);
+        FillRect((HDC)wParam, &rc, theme_getDialogBackgroundBrush());
+        return TRUE;
     }
     return CallWindowProc(rebarOriginalWindowProc, hwnd, uMsg,
         wParam, lParam);
@@ -411,7 +414,7 @@ HWND tb_initRebar(HWND hwndOwner) {
         REBARCLASSNAME,
         NULL,
         WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS |
-        WS_CLIPCHILDREN | RBS_BANDBORDERS ,
+        WS_CLIPCHILDREN | RBS_BANDBORDERS,
         0, 0, 0, 0,
         hwndOwner,
         NULL,
@@ -431,20 +434,15 @@ HWND tb_initRebar(HWND hwndOwner) {
     hwndEntryField = tb_initSearchEntryField(hwndRebar);
 
     // Initialize band info used by both bands.
-    // this should actually be {sizeof (REBARBANDINFO) - 0x64 } - but for some
-    // reasons the old rebar band info size (which is 0x50) must be used here - obviously
-    // the used common ctrl library is an elder version.
-    REBARBANDINFO rbBand = { REBARBANDINFO_V3_SIZE };
+    // as we are - for theming purpose - still rely on elder common controls versions - we do not use sizeof(REBARBANDINFO) here.
+    REBARBANDINFO rbBand = { REBARBANDINFO_V6_SIZE };
     rbBand.fMask =
         RBBIM_STYLE       // fStyle is valid.
         | RBBIM_TEXT        // lpText is valid.
-        | RBBIM_COLORS      // honor colors
         | RBBIM_CHILD       // hwndChild is valid.
         | RBBIM_CHILDSIZE   // child size members are valid.
         | RBBIM_SIZE;       // cx is valid
     rbBand.fStyle = RBBS_FIXEDSIZE;
-    rbBand.clrFore = pTheme->th_dialogForeground;
-    rbBand.clrBack = pTheme->th_dialogBackground;
 
     // Get the height of the toolbar.
     DWORD dwBtnSize = (DWORD)SendMessage(hwndToolbar, TB_GETBUTTONSIZE, 0, 0);
@@ -461,7 +459,19 @@ HWND tb_initRebar(HWND hwndOwner) {
     // Add the band that has the toolbar.
     SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
 
-    rbBand.lpText = TEXT(dlg_getResourceString(IDS_SEARCH));
+    HWND hwndLabel = CreateWindowEx(0, WC_STATIC, TEXT(dlg_getResourceString(IDS_SEARCH)),
+        WS_CHILD | WS_VISIBLE | SS_CENTERIMAGE,
+        0, 00, CW_USEDEFAULT, CW_USEDEFAULT,
+        hwndOwner, (HMENU)IDM_INCREMENTAL_SEARCH,
+        hInst, NULL);
+    SendMessage(hwndLabel, WM_SETFONT, (WPARAM)cust_getDefaultEditorFont(), 0);
+    rbBand.hwndChild = hwndLabel;
+    rbBand.cxMinChild = 40;
+    rbBand.cyMinChild = 20;
+    rbBand.cx = 40;
+    // Add the band that has the label for the entry field.
+    SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
+
     rbBand.hwndChild = hwndEntryField;
     rbBand.cxMinChild = 250;
     rbBand.cyMinChild = 20;
@@ -473,7 +483,6 @@ HWND tb_initRebar(HWND hwndOwner) {
 
     rbBand.fMask =
         RBBIM_STYLE       // fStyle is valid.
-        | RBBIM_COLORS      // honor colors
         | RBBIM_CHILDSIZE   // child size members are valid.
         | RBBIM_SIZE;       // cx is valid
     rbBand.cxMinChild = 50;

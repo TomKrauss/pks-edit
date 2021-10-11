@@ -76,7 +76,7 @@ BOOL UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* 
         }
 
         FillRect(pUDM->hdc, &rc, brBarBackground);
-
+        *lr = 0;
         return TRUE;
     }
     case WM_UAHDRAWMENUITEM:
@@ -142,14 +142,10 @@ BOOL UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* 
 
         FillRect(pUDMI->um.hdc, &pUDMI->dis.rcItem, *pbrBackground);
         DrawThemeTextEx(g_menuTheme, pUDMI->um.hdc, MENU_BARITEM, MBI_NORMAL, menuString, mii.cch, dwFlags, &pUDMI->dis.rcItem, &opts);
+        *lr = 0;
+        return TRUE;
+    }
 
-        return TRUE;
-    }
-    case WM_UAHMEASUREMENUITEM:
-    {
-        *lr = DefWindowProc(hWnd, message, wParam, lParam);
-        return TRUE;
-    }
     case WM_THEMECHANGED:
     {
         if (g_menuTheme) {

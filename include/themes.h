@@ -90,6 +90,16 @@ HFONT theme_createDialogFont(int nWeight);
  */
 extern void theme_enableDarkMode(HWND hwnd);
 
+/*
+ * Returns a brush to paint the background of dialogs for the currently selected theme.
+ */
+extern HBRUSH theme_getDialogBackgroundBrush();
+
+/*
+ * Prepare all children of a given parent to be used in dark mode correctly.
+ */
+extern void theme_prepareChildrenForDarkmode(HWND hParent);
+
 #define THEMES_H
 
 #endif // !THEMES_H

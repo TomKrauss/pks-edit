@@ -18,6 +18,7 @@
 #include <windows.h>
 #include <commdlg.h>
 #include <Uxtheme.h>
+#include <Vssym32.h>
 #include "alloc.h"
 #include "trace.h"
 #include "lineoperations.h"
@@ -32,6 +33,8 @@
 #include "dial2.h"
 #include "winutil.h"
 #include "darkmode.h"
+
+#define DARKMODE_THEME			L"DarkMode_Explorer"
 
 #define	IDD_FONTSTRIKEOUT		1040
 #define	IDD_FONTUNDERLINE		1041
@@ -54,6 +57,26 @@ extern HDC print_getPrinterDC(void);
 extern int theme_initThemes(void);
 
 static const char* DEFAULT = "default";
+
+typedef struct ButtonData {
+	HTHEME hTheme;
+	int iStateID;
+
+} BUTTON_PAINT_DATA;
+
+static BOOL button_ensureTheme(BUTTON_PAINT_DATA* pData, HWND hwnd) {
+	if (!pData->hTheme) {
+		pData->hTheme = OpenThemeData(hwnd, L"Button");
+	}
+	return pData->hTheme != NULL;
+}
+
+static void button_closeTheme(BUTTON_PAINT_DATA* pData) {
+	if (pData->hTheme) {
+		CloseThemeData(pData->hTheme);
+		pData->hTheme = NULL;
+	}
+}
 
 /*
  * The style of a selected font
@@ -545,6 +568,7 @@ static int theme_destroyTheme(THEME_DATA* pTheme) {
  */
 void theme_destroyAllThemeData() {
 	ll_destroy(&themeConfiguration.th_themes, theme_destroyTheme);
+	themeConfiguration.th_currentTheme = &defaultTheme;
 }
 
 /*
@@ -564,8 +588,421 @@ void theme_enableDarkMode(HWND hwnd) {
 		bRunning = 1;
 		THEME_DATA* pTheme = theme_getDefault();
 		darkmode_allowForWindow(hwnd, pTheme->th_isDarkMode);
-		SetWindowTheme(hwnd, pTheme->th_isDarkMode ? L"DarkMode_Explorer" : NULL, NULL);
+		SetWindowTheme(hwnd, pTheme->th_isDarkMode ? DARKMODE_THEME : NULL, NULL);
 		darkmode_refreshTitleBarThemeColor(hwnd);
 		bRunning = 0;
+	}
+}
+
+/*
+ * Returns a brush to paint the background of dialogs for the currently selected theme.
+ */
+HBRUSH theme_getDialogBackgroundBrush() {
+	static HBRUSH hBrushBg;
+	static THEME_DATA* pOldTheme;
+	THEME_DATA* pTheme = theme_getDefault();
+	if (hBrushBg == NULL || pTheme != pOldTheme) {
+		if (hBrushBg) {
+			DeleteObject(hBrushBg);
+		}
+		hBrushBg = CreateSolidBrush(pTheme->th_dialogBackground);
+		pOldTheme = pTheme;
+	}
+	return hBrushBg;
+}
+
+/*
+ * Custom painting of dark mode group boxes.
+ */
+static void paintGroupbox(HWND hwnd, HDC hdc, BUTTON_PAINT_DATA* buttonData) {
+	DWORD nStyle = GetWindowLong(hwnd, GWL_STYLE);
+	int iPartID = BP_GROUPBOX;
+	int iStateID = GBS_NORMAL;
+
+	if (nStyle & WS_DISABLED)
+	{
+		iStateID = GBS_DISABLED;
+	}
+
+	RECT rcClient = { 0 };
+	GetClientRect(hwnd, &rcClient);
+
+	RECT rcText = rcClient;
+	RECT rcBackground = rcClient;
+
+	HFONT hFont = NULL;
+	HFONT hOldFont = NULL;
+	HFONT hCreatedFont = NULL;
+	LOGFONTW lf = { 0 };
+	if (SUCCEEDED(GetThemeFont(buttonData->hTheme, hdc, iPartID, iStateID, TMT_FONT, &lf))) {
+		hCreatedFont = CreateFontIndirectW(&lf);
+		hFont = hCreatedFont;
+	}
+
+	if (!hFont) {
+		hFont = (HFONT)(SendMessage(hwnd, WM_GETFONT, 0, 0));
+	}
+
+	hOldFont = (HFONT)(SelectObject(hdc, hFont));
+
+	WCHAR szText[256] = { 0 };
+	GetWindowTextW(hwnd, szText, _countof(szText));
+
+	long style = (long)(GetWindowLongPtr(hwnd, GWL_STYLE));
+	BOOL isCenter = (style & BS_CENTER) == BS_CENTER;
+
+	if (szText[0]) {
+		SIZE textSize = { 0 };
+		GetTextExtentPoint32W(hdc, szText, (int)(wcslen(szText)), &textSize);
+
+		int centerPosX = isCenter ? ((rcClient.right - rcClient.left - textSize.cx) / 2) : 7;
+
+		rcBackground.top += textSize.cy / 2;
+		rcText.left += centerPosX;
+		rcText.bottom = rcText.top + textSize.cy;
+		rcText.right = rcText.left + textSize.cx + 4;
+
+		ExcludeClipRect(hdc, rcText.left, rcText.top, rcText.right, rcText.bottom);
+	}
+	else
+	{
+		SIZE textSize = { 0 };
+		GetTextExtentPoint32W(hdc, L"M", 1, &textSize);
+		rcBackground.top += textSize.cy / 2;
+	}
+
+	RECT rcContent = rcBackground;
+	GetThemeBackgroundContentRect(buttonData->hTheme, hdc, BP_GROUPBOX, iStateID, &rcBackground, &rcContent);
+	ExcludeClipRect(hdc, rcContent.left, rcContent.top, rcContent.right, rcContent.bottom);
+
+	//DrawThemeParentBackground(hwnd, hdc, &rcClient);
+	DrawThemeBackground(buttonData->hTheme, hdc, BP_GROUPBOX, iStateID, &rcBackground, NULL);
+
+	SelectClipRgn(hdc, NULL);
+
+	if (szText[0]) {
+		rcText.right -= 2;
+		rcText.left += 2;
+
+		DTTOPTS dtto = { sizeof(DTTOPTS), DTT_TEXTCOLOR };
+		THEME_DATA* pTheme = theme_getDefault();
+		dtto.crText = pTheme->th_dialogForeground;
+
+		DWORD textFlags = isCenter ? DT_CENTER : DT_LEFT;
+
+		DrawThemeTextEx(buttonData->hTheme, hdc, BP_GROUPBOX, iStateID, szText, -1, textFlags | DT_SINGLELINE, &rcText, &dtto);
+	}
+
+	if (hCreatedFont) DeleteObject(hCreatedFont);
+	SelectObject(hdc, hOldFont);
+}
+
+/*
+ * Custom window procedure for custom paint group boxes.
+ */
+static const uintptr_t groupboxSublassId = 2214;
+static LRESULT CALLBACK groupboxSubclassProc(
+	HWND hWnd,
+	UINT uMsg,
+	WPARAM wParam,
+	LPARAM lParam,
+	UINT_PTR uIdSubclass,
+	DWORD_PTR dwRefData) {
+	BUTTON_PAINT_DATA* pButtonData = (BUTTON_PAINT_DATA*)(dwRefData);
+
+	switch (uMsg)
+	{
+	case WM_NCDESTROY:
+		RemoveWindowSubclass(hWnd, groupboxSubclassProc, groupboxSublassId);
+		button_closeTheme(pButtonData);
+		free(pButtonData);
+		break;
+	case WM_ERASEBKGND:
+		if (button_ensureTheme(pButtonData, hWnd)) {
+			return TRUE;
+		}
+		else {
+			break;
+		}
+	case WM_THEMECHANGED:
+		button_closeTheme(pButtonData);
+		break;
+	case WM_PRINTCLIENT:
+	case WM_PAINT:
+		if (button_ensureTheme(pButtonData, hWnd)) {
+			PAINTSTRUCT ps = { 0 };
+			HDC hdc = (HDC)(wParam);
+			if (!hdc) {
+				hdc = BeginPaint(hWnd, &ps);
+			}
+			paintGroupbox(hWnd, hdc, pButtonData);
+			if (ps.hdc) {
+				EndPaint(hWnd, &ps);
+			}
+
+			return 0;
+		}
+		break;
+	}
+	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+
+}
+
+/*
+ * Custom rendering of checkboxes etc... for dark mode. 
+ */
+static void theme_renderButton(HWND hwnd, HDC hdc, HTHEME hTheme, int iPartID, int iStateID) {
+	RECT rcClient = { 0 };
+	WCHAR szText[256] = { 0 };
+	DWORD nState = (DWORD)(SendMessage(hwnd, BM_GETSTATE, 0, 0));
+	DWORD uiState = (DWORD)(SendMessage(hwnd, WM_QUERYUISTATE, 0, 0));
+	DWORD nStyle = GetWindowLong(hwnd, GWL_STYLE);
+
+	HFONT hFont = NULL;
+	HFONT hOldFont = NULL;
+	HFONT hCreatedFont = NULL;
+	LOGFONTW lf = { 0 };
+	if (SUCCEEDED(GetThemeFont(hTheme, hdc, iPartID, iStateID, TMT_FONT, &lf)))
+	{
+		hCreatedFont = CreateFontIndirectW(&lf);
+		hFont = hCreatedFont;
+	}
+
+	if (!hFont) {
+		hFont = (HFONT)(SendMessage(hwnd, WM_GETFONT, 0, 0));
+	}
+
+	hOldFont = (HFONT)(SelectObject(hdc, hFont));
+
+	DWORD dtFlags = DT_LEFT; // DT_LEFT is 0
+	dtFlags |= (nStyle & BS_MULTILINE) ? DT_WORDBREAK : DT_SINGLELINE;
+	dtFlags |= ((nStyle & BS_CENTER) == BS_CENTER) ? DT_CENTER : (nStyle & BS_RIGHT) ? DT_RIGHT : 0;
+	dtFlags |= ((nStyle & BS_VCENTER) == BS_VCENTER) ? DT_VCENTER : (nStyle & BS_BOTTOM) ? DT_BOTTOM : 0;
+	dtFlags |= (uiState & UISF_HIDEACCEL) ? DT_HIDEPREFIX : 0;
+
+	if (!(nStyle & BS_MULTILINE) && !(nStyle & BS_BOTTOM) && !(nStyle & BS_TOP))
+	{
+		dtFlags |= DT_VCENTER;
+	}
+
+	GetClientRect(hwnd, &rcClient);
+	GetWindowTextW(hwnd, szText, _countof(szText));
+
+	SIZE szBox = { 13, 13 };
+	GetThemePartSize(hTheme, hdc, iPartID, iStateID, NULL, TS_DRAW, &szBox);
+
+	RECT rcText = rcClient;
+	GetThemeBackgroundContentRect(hTheme, hdc, iPartID, iStateID, &rcClient, &rcText);
+
+	RECT rcBackground = rcClient;
+	if (dtFlags & DT_SINGLELINE)
+	{
+		rcBackground.top += (rcText.bottom - rcText.top - szBox.cy) / 2;
+	}
+	rcBackground.bottom = rcBackground.top + szBox.cy;
+	rcBackground.right = rcBackground.left + szBox.cx;
+	rcText.left = rcBackground.right + 3;
+
+	DrawThemeParentBackground(hwnd, hdc, &rcClient);
+	DrawThemeBackground(hTheme, hdc, iPartID, iStateID, &rcBackground, NULL);
+	THEME_DATA* pTheme = theme_getDefault();
+	DTTOPTS dtto = { sizeof(DTTOPTS), DTT_TEXTCOLOR };
+	dtto.crText = pTheme->th_dialogForeground;
+
+	if (nStyle & WS_DISABLED)
+	{
+		dtto.crText = pTheme->th_dialogDisabled;
+	}
+
+	DrawThemeTextEx(hTheme, hdc, iPartID, iStateID, szText, -1, dtFlags, &rcText, &dtto);
+
+	if ((nState & BST_FOCUS) && !(uiState & UISF_HIDEFOCUS))
+	{
+		RECT rcTextOut = rcText;
+		dtto.dwFlags |= DTT_CALCRECT;
+		DrawThemeTextEx(hTheme, hdc, iPartID, iStateID, szText, -1, dtFlags | DT_CALCRECT, &rcTextOut, &dtto);
+		RECT rcFocus = rcTextOut;
+		rcFocus.bottom++;
+		rcFocus.left--;
+		rcFocus.right++;
+		DrawFocusRect(hdc, &rcFocus);
+	}
+
+	if (hCreatedFont) DeleteObject(hCreatedFont);
+	SelectObject(hdc, hOldFont);
+}
+
+/*
+ * Custom painting of themed buttons.
+ */
+static void paintButton(HWND hwnd, HDC hdc, BUTTON_PAINT_DATA* buttonData) {
+	DWORD nState = (DWORD)(SendMessage(hwnd, BM_GETSTATE, 0, 0));
+	DWORD nStyle = GetWindowLong(hwnd, GWL_STYLE);
+	DWORD nButtonStyle = nStyle & 0xF;
+
+	int iPartID = BP_CHECKBOX;
+	if (nButtonStyle == BS_CHECKBOX || nButtonStyle == BS_AUTOCHECKBOX) {
+		iPartID = BP_CHECKBOX;
+	} else if (nButtonStyle == BS_RADIOBUTTON || nButtonStyle == BS_AUTORADIOBUTTON) {
+		iPartID = BP_RADIOBUTTON;
+	}
+
+	// states of BP_CHECKBOX and BP_RADIOBUTTON are the same
+	int iStateID = RBS_UNCHECKEDNORMAL;
+
+	if (nStyle & WS_DISABLED)		iStateID = RBS_UNCHECKEDDISABLED;
+	else if (nState & BST_PUSHED)	iStateID = RBS_UNCHECKEDPRESSED;
+	else if (nState & BST_HOT)		iStateID = RBS_UNCHECKEDHOT;
+
+	if (nState & BST_CHECKED)		iStateID += 4;
+
+	if (BufferedPaintRenderAnimation(hwnd, hdc))
+	{
+		return;
+	}
+
+	BP_ANIMATIONPARAMS animParams = { sizeof(animParams) };
+	animParams.style = BPAS_LINEAR;
+	if (iStateID != buttonData->iStateID) {
+		GetThemeTransitionDuration(buttonData->hTheme, iPartID, buttonData->iStateID, iStateID, TMT_TRANSITIONDURATIONS, &animParams.dwDuration);
+	}
+
+	RECT rcClient = { 0 };
+	GetClientRect(hwnd, &rcClient);
+
+	HDC hdcFrom = NULL;
+	HDC hdcTo = NULL;
+	HANIMATIONBUFFER hbpAnimation = BeginBufferedAnimation(hwnd, hdc, &rcClient, BPBF_COMPATIBLEBITMAP, NULL, &animParams, &hdcFrom, &hdcTo);
+	if (hbpAnimation) {
+		if (hdcFrom) {
+			theme_renderButton(hwnd, hdcFrom, buttonData->hTheme, iPartID, buttonData->iStateID);
+		}
+		if (hdcTo) {
+			theme_renderButton(hwnd, hdcTo, buttonData->hTheme, iPartID, iStateID);
+		}
+
+		buttonData->iStateID = iStateID;
+
+		EndBufferedAnimation(hbpAnimation, TRUE);
+	} else {
+		theme_renderButton(hwnd, hdc, buttonData->hTheme, iPartID, iStateID);
+
+		buttonData->iStateID = iStateID;
+	}
+}
+
+/*
+ * Custom window procedure for custom paint buttons (checkbox etc...). 
+ */
+static const uintptr_t buttonSublassId = 2215;
+static LRESULT CALLBACK buttonSubclassProc(
+	HWND hWnd,
+	UINT uMsg,
+	WPARAM wParam,
+	LPARAM lParam,
+	UINT_PTR uIdSubclass,
+	DWORD_PTR dwRefData) {
+
+	BUTTON_PAINT_DATA* pButtonData = (BUTTON_PAINT_DATA*)dwRefData;
+
+	switch (uMsg) {
+	case WM_UPDATEUISTATE:
+		if (HIWORD(wParam) & (UISF_HIDEACCEL | UISF_HIDEFOCUS)) {
+			InvalidateRect(hWnd, NULL, FALSE);
+		}
+		break;
+	case WM_NCDESTROY:
+		RemoveWindowSubclass(hWnd, buttonSubclassProc, buttonSublassId);
+		button_closeTheme(pButtonData);
+		free(pButtonData);
+		break;
+	case WM_ERASEBKGND:
+		button_ensureTheme(pButtonData, hWnd);
+		return TRUE;
+	case WM_THEMECHANGED:
+		button_closeTheme(pButtonData);
+		break;
+	case WM_PRINTCLIENT:
+	case WM_PAINT: {
+		button_ensureTheme(pButtonData, hWnd);
+		PAINTSTRUCT ps = { 0 };
+			HDC hdc = (HDC)(wParam);
+			if (!hdc) {
+				hdc = BeginPaint(hWnd, &ps);
+			}
+			paintButton(hWnd, hdc, pButtonData);
+			if (ps.hdc) {
+				EndPaint(hWnd, &ps);
+			}
+
+			return 0;
+		}
+	case WM_SIZE:
+	case WM_DESTROY:
+		BufferedPaintStopAllAnimations(hWnd);
+		break;
+	case WM_ENABLE: {
+			// skip the button's normal wndproc so it won't redraw out of wm_paint
+			LRESULT lr = DefWindowProc(hWnd, uMsg, wParam, lParam);
+			InvalidateRect(hWnd, NULL, FALSE);
+			return lr;
+		}
+		break;
+	}
+	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
+/*
+ * Invoked to prepare all child windows for being used under darkmode.
+ */
+static BOOL theme_prepareControlsForDarkMode(HWND hwndControl, LONG lParam) {
+	char szClassname[16];
+	GetClassName(hwndControl, szClassname, sizeof szClassname);
+	if (strcmp(WC_BUTTON, szClassname) == 0) {
+		int nButtonStyle = GetWindowLongPtr(hwndControl, GWL_STYLE) & 0xF;
+		switch (nButtonStyle) {
+		case BS_CHECKBOX:
+		case BS_AUTOCHECKBOX:
+		case BS_RADIOBUTTON:
+		case BS_AUTORADIOBUTTON: {
+				BUTTON_PAINT_DATA* pData = calloc(1, sizeof * pData);
+				SetWindowSubclass(hwndControl, buttonSubclassProc, buttonSublassId, (DWORD_PTR)pData);
+			}
+		   break;
+		case BS_GROUPBOX: {
+				BUTTON_PAINT_DATA* pData = calloc(1, sizeof * pData);
+				SetWindowSubclass(hwndControl, groupboxSubclassProc, groupboxSublassId, (DWORD_PTR)pData);
+			}
+			break;
+		case BS_DEFPUSHBUTTON:
+		case BS_PUSHBUTTON:
+			SetWindowTheme(hwndControl, DARKMODE_THEME, NULL);
+			break;
+		}
+		return TRUE;
+	} else if (strcmp(WC_COMBOBOX, szClassname) == 0) {
+		int style = (int)GetWindowLongPtr(hwndControl, GWL_STYLE);
+		if ((style & CBS_DROPDOWNLIST) == CBS_DROPDOWNLIST || (style & CBS_DROPDOWN) == CBS_DROPDOWN) {
+			COMBOBOXINFO cbi;
+			cbi.cbSize = sizeof(COMBOBOXINFO);
+			BOOL result = GetComboBoxInfo(hwndControl, &cbi);
+			if (result == TRUE && cbi.hwndList) {
+				//dark scrollbar for listbox of combobox
+				SetWindowTheme(cbi.hwndList, DARKMODE_THEME, NULL);
+			}
+		}
+		return TRUE;
+	} else if (strcmp(WC_LISTBOX, szClassname) == 0) {
+		SetWindowTheme(hwndControl, DARKMODE_THEME, NULL);
+	}
+	return TRUE;
+}
+
+/*
+ * Prepare all children of a given parent to be used in dark mode correctly. 
+ */
+void theme_prepareChildrenForDarkmode(HWND hParent) {
+	if (theme_getDefault()->th_isDarkMode) {
+		EnumChildWindows(hParent, (WNDENUMPROC)theme_prepareControlsForDarkMode, 0);
 	}
 }

@@ -568,6 +568,9 @@
     <None Include="rc\mini move.cur">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="RC\MANIFEST.BIN">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">

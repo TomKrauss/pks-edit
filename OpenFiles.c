@@ -255,8 +255,7 @@ void ft_saveWindowStates(void )
 /*---------------------------------*/
 /* ft_restorePreviouslyOpenedWindows() */
 /*---------------------------------*/
-int ft_restorePreviouslyOpenedWindows(void )
-{
+int ft_restorePreviouslyOpenedWindows(void) {
 	FTABLE 	ft;
 	char *	pszFound;
 
@@ -844,7 +843,7 @@ int EdSaveFile(int flg) {
 		doctypes_assignDocumentTypeDescriptor(fp, 0);
 		doctypes_documentTypeChanged(FALSE);
 		int flags = fp->flags;
-		ft_forAllViews(fp, ww_setwindowtitle, NULL);
+		ft_forAllViews(fp, (int(*)(WINFO*,void*))ww_setwindowtitle, (void*)TRUE);
 		flags |= F_CHANGEMARK;
 		if (!(flags & F_APPEND)) flags |= F_SAVEAS;
 		flags &= ~(F_NEWFILE|F_NAME_INPUT_REQUIRED);

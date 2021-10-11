@@ -345,7 +345,7 @@ void ww_redrawAllWindows(int update)
  * ww_setwindowtitle()
  * Update the title of a window.
  */
-int ww_setwindowtitle(WINFO *wp, void* pUnused) {	
+int ww_setwindowtitle(WINFO *wp, BOOL bRepaint) {	
 	int nr;
 	char buf[512];
 
@@ -368,7 +368,9 @@ int ww_setwindowtitle(WINFO *wp, void* pUnused) {
 	SHFILEINFO sfi;
 	SHGetFileInfo(fp->fname, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, SHGFI_ICON | SHGFI_SMALLICON);
 	SendMessage(wp->edwin_handle, WM_SETICON, ICON_SMALL, (LPARAM)sfi.hIcon);
-	mainframe_windowTitleChanged();
+	if (bRepaint) {
+		mainframe_windowTitleChanged();
+	}
 	return 1;
 }
 
@@ -376,7 +378,7 @@ int ww_setwindowtitle(WINFO *wp, void* pUnused) {
  * A property of our editor document has changed. Update the window appropriately.
  */
 int ww_documentPropertyChanged(WINFO* wp, PROPERTY_CHANGE* pChange) {
-	return ww_setwindowtitle(wp, NULL);
+	return ww_setwindowtitle(wp, TRUE);
 }
 
 /*--------------------------------------------------------------------------
@@ -773,9 +775,10 @@ void ww_destroy(WINFO *wp) {
 	for (wp = _winlist; wp; wp = wp->next) {
 		if (wp->win_id > nId) {
 			wp->win_id--;
-			ww_setwindowtitle(wp, NULL);
+			ww_setwindowtitle(wp, FALSE);
 		}
 	}
+	mainframe_windowTitleChanged();
 	nwindows--;
 	EdTRACE({
 		if (nwindows == 0 && _winlist)
@@ -843,7 +846,7 @@ WINFUNC EditWndProc(
 
 		ShowWindow(hwnd, SW_HIDE);
 		ww_createSubWindows(hwnd, wp, &xyWork, &xyRuler, &xyLineInfo);
-		ww_setwindowtitle(wp, NULL);
+		ww_setwindowtitle(wp, TRUE);
 		SetWindowLongPtr(hwnd,GWL_ICPARAMS, (LONG_PTR)fp->fname);
 		SetWindowLongPtr(hwnd,GWL_VIEWPTR, (LONG_PTR) wp);
 		return 0;

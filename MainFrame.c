@@ -106,7 +106,6 @@ static HICON defaultIcon;
 static void* _executeKeyBinding;
 static char* szDefaultSlotName = DOCK_NAME_DEFAULT;
 
-
 static DOCKING_SLOT* mainframe_addDockingSlot(DOCKING_SLOT_TYPE dsType, HWND hwnd, char* pszName, float xRatio, float yRatio, float wRatio, float hRatio);
 
 /*
@@ -532,6 +531,27 @@ static void tabcontrol_paintCloser(HDC hdc, RECT* pRect, BOOL bRollover) {
 	DeleteObject(SelectObject(hdc, hPenOld));
 }
 
+#define TAB_ICON_SIZE		16
+#define TAB_ICON_MARGIN		4
+
+/*
+ * Measure the extends of one tab of the tabstrip of our tab control displaying the edit tabs.
+ */
+static void tabcontrol_measureTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected) {
+	char szBuffer[128];
+	char* pszTitle;
+	int nIconSize = TAB_ICON_SIZE;
+	int nMargin = TAB_ICON_MARGIN;
+
+	pszTitle = tabcontrol_getTitle(pPage->tp_hwnd, szBuffer, sizeof szBuffer);
+	size_t nLen = strlen(pszTitle);
+	SIZE sText;
+	HFONT hFont = SelectObject(hdc, theme_createDialogFont(bSelected ? FW_BOLD : FW_NORMAL));
+	GetTextExtentPoint(hdc, pszTitle, (int)nLen, &sText);
+	pPage->tp_width = sText.cx + nIconSize + 2 * nMargin + CLOSER_SIZE + 2 * CLOSER_DISTANCE;
+	DeleteObject(SelectObject(hdc, hFont));
+}
+
 /*
  * Paint one tab of the tabstrip of our tab control displaying the edit tabs. 
  */
@@ -539,19 +559,17 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	char szBuffer[128];
 	char* pszTitle;
 	THEME_DATA* pTheme = theme_getDefault();
-	int nIconSize = 16;
-	int nMargin = 4;
+	int nIconSize = TAB_ICON_SIZE;
+	int nMargin = TAB_ICON_MARGIN;
 	RECT rect;
 	
-	pszTitle = tabcontrol_getTitle(pPage->tp_hwnd, szBuffer, sizeof szBuffer);
-	size_t nLen = strlen(pszTitle);
-	SIZE sText;
-	HFONT hFont = SelectObject(hdc, theme_createDialogFont(bSelected ? FW_BOLD : FW_NORMAL));
-	GetTextExtentPoint(hdc, pszTitle, (int)nLen, &sText);
-	pPage->tp_width = sText.cx + nIconSize + 2 * nMargin + CLOSER_SIZE + 2* CLOSER_DISTANCE;
+	tabcontrol_measureTab(hdc, pPage, bSelected);
 	if (x + pPage->tp_width >= xMax) {
 		return FALSE;
 	}
+	pszTitle = tabcontrol_getTitle(pPage->tp_hwnd, szBuffer, sizeof szBuffer);
+	size_t nLen = strlen(pszTitle);
+	HFONT hFont = SelectObject(hdc, theme_createDialogFont(bSelected ? FW_BOLD : FW_NORMAL));
 	rect.left = x;
 	rect.right = x + pPage->tp_width;
 	rect.top = y;
@@ -645,7 +663,7 @@ static BOOL tabcontrol_getDockingCloserRect(HWND hwndTabControl, TAB_CONTROL* pC
  */
 static void tabcontrol_paintTabs(HWND hwnd, PAINTSTRUCT* ps, TAB_CONTROL* pControl) {
 	THEME_DATA* pTheme = theme_getDefault();
-	HBRUSH hBrush = CreateSolidBrush(pTheme->th_defaultBackgroundColor);
+	HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogBackground);
 	HBRUSH hBorderBrush = CreateSolidBrush(pTheme->th_dialogBorder);
 	RECT rect;
 	RECT closerRect;
@@ -872,7 +890,10 @@ static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex,
 			toolinfo.lpszText = szBuffer;
 			SendMessage(pControl->tc_hwndTooltip, TTM_UPDATETIPTEXT, (WPARAM)0, (LPARAM)&toolinfo);
 		}
-		SendMessage(pControl->tc_hwndTooltip, TTM_TRACKACTIVATE, (WPARAM)bShow, (LPARAM)&toolinfo);
+		EdTRACE(log_errorArgs(DEBUG_TRACE, "Trying to activate tooltip for tab %d.", nTabIndex));
+		if (!SendMessage(pControl->tc_hwndTooltip, TTM_TRACKACTIVATE, (WPARAM)bShow, (LPARAM)&toolinfo)) {
+			log_errorArgs(DEBUG_ERR, "Activating tooltip failed. Error %ld.", GetLastError());
+		}
 		RECT r;
 		GetWindowRect(hwnd, &r);
 		POINT pt;
@@ -966,6 +987,7 @@ static void tabcontrol_createTooltip(TAB_CONTROL* pControl) {
 	if (!hwndTip) {
 		return;
 	}
+	theme_enableDarkMode(hwndTip);
 	TTTOOLINFO toolinfo = {0};
 	toolinfo.cbSize = sizeof(toolinfo);
 	toolinfo.hwnd = pControl->tc_hwnd;
@@ -1523,6 +1545,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		break;
 	case WM_THEMECHANGED:
 		theme_enableDarkMode(hwndFrameWindow);
+		darkmode_flushMenuThemes();
 		RedrawWindow(hwndMain, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
 		DrawMenuBar(hwndMain);
 		break;
@@ -1759,7 +1782,11 @@ void mainframe_windowTitleChanged() {
 			TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
 			if (pControl) {
 				tabcontrol_repaintTabs(pSlot->ds_hwnd, pControl);
-				UpdateWindow(pSlot->ds_hwnd);
+				HDC hdc = GetWindowDC(pSlot->ds_hwnd);
+				for (int i = 0; i < arraylist_size(pControl->tc_pages); i++) {
+					tabcontrol_measureTab(hdc, arraylist_get(pControl->tc_pages, i), i == pControl->tc_activeTab);
+				}
+				ReleaseDC(pSlot->ds_hwnd, hdc);
 				tabcontrol_scrollTabs(pSlot->ds_hwnd, pControl);
 			}
 		}

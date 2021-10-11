@@ -86,7 +86,7 @@ int doctypes_documentTypeChanged(int bSave) {
 	}
 	fp = wp->fp;
 	ww_applyDisplayProperties(wp);
-	ww_setwindowtitle(wp, NULL);
+	ww_setwindowtitle(wp, TRUE);
 	grammar_documentTypeChanged(fp->documentDescriptor->grammar);
 
 	SendMessage(wp->edwin_handle,WM_EDWINREORG,0,0L);
