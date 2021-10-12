@@ -98,7 +98,7 @@
   may include opening a linked file (e.g. #import "myfile.h" in a C-source file), where linked files are looked up on an
   include path (by default "include;inc" - can be defined in an environment variable PKS_INCLUDE_PATH) and/or navigation to
   a URL to open in a browser.
-- Matching brackets is Grammar dependent now.
+- Matching brackets is grammar dependent now.
 - Ctags support was updated to correctly support the newest default format as used by the Universal Ctags program.
 - We started to finally implement an English version of PKS Edit. Language dependent files have not yet been all translated.
   In order to force PKS-Edit to using English language resources, one can add to "Language=en-US" to the [desk] section
@@ -107,15 +107,15 @@
 #### Fixed
 - Some issues with regular expressions (in particular a possible endless loop when compiling complex syntax) have been
   fixed.
-- Some memory leaks were fixed, which could in particular observed when performing complex operations on large files (like global 
+- Some memory leaks were fixed, which could in particular be observed when performing complex operations on large files (like global 
   search&replace with many replacements).
 
 ### 1.9.1
 
 #### Fixed
 
-- Some performance issues with undo and redo in large files was fixed.
-- Find next will now always skip correctly over previously matched text (and not increment simply by 1).
+- Some performance issues with undo and redo in large files were fixed.
+- "Find next" will now always skip correctly over previously matched text (and not increment simply by 1).
 - Search & replace with preserve case could lead to an exception - this is fixed.
 
 ### 1.9.0
@@ -159,9 +159,9 @@
 
 #### New
 - Support for mousewheel scrolling added
-- Block selection with the mouse will now work independently of line length
-- Toolbar and Menu actions are now properly enabled / disabled depending on availability
-- Toolbar Buttons display Tooltips now
-- Redo Button in Toolbar actually does a redo.
-- File Patterns support now ! as in !*.obj (everything but files ending with .obj)
+- Column shape selection with the mouse will now work independently of line length
+- Toolbar and menu actions are now properly enabled / disabled depending on availability
+- Toolbar buttons display tooltips now
+- Redo button in toolbar actually does a redo.
+- File patterns support now ! as in !*.obj (everything but files ending with .obj)
 

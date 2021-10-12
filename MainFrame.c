@@ -61,8 +61,10 @@ extern void FinalizePksEdit(void);
  */
 extern void main_cleanup(void);
 
-#define CLOSER_SIZE			16
-#define CLOSER_DISTANCE		8
+#define CLOSER_SIZE				16
+#define CLOSER_DISTANCE			8
+#define SCROLL_BUTTON_WIDTH		10
+#define SCROLL_BUTTON_PADDING	7
 
 typedef enum { DS_EDIT_WINDOW, DS_OTHER } DOCKING_SLOT_TYPE;
 
@@ -87,12 +89,17 @@ typedef struct tagTAB_CONTROL {
 	ARRAY_LIST* tc_pages;
 	HWND		tc_hwnd;
 	HWND		tc_hwndTooltip;
+	RECT		tc_closerRect;					// the rect where the close button for the whole panel is displayed width==-1 -> not visible
+	RECT		tc_leftScrollerRect;			// the rect where the scroll panel for to scroll left is displayed
+	RECT		tc_rightScrollerRect;			// the rect where the scroll panel for to scroll right is displayed
+	RECT		tc_tabstripRect;				// the rect where the tabs of the tab control are displayed
 	int			tc_activeTooltipIndex;
 	int			tc_firstTabOffset;
 	int			tc_stripHeight;
 	int			tc_firstVisibleTab;
 	int			tc_activeTab;
 	int			tc_rolloverTab;
+	BOOL		tc_rolloverCloseButton;
 } TAB_CONTROL;
 
 const char *szFrameClass = "PKSEditMainFrame";
@@ -111,7 +118,7 @@ static DOCKING_SLOT* mainframe_addDockingSlot(DOCKING_SLOT_TYPE dsType, HWND hwn
 /*
  * "Scroll" the tabs to make the active tab fully visible.
  */
-static void tabcontrol_scrollTabs(HWND hwnd, TAB_CONTROL* pControl);
+static void tabcontrol_makeActiveTabVisible(HWND hwnd, TAB_CONTROL* pControl);
 
 /*
  * Resize our "docking slots" depending on their given ratios
@@ -373,7 +380,7 @@ static void tabcontrol_repaintTab(HWND hwnd, TAB_CONTROL* pControl, int nIndex) 
 	GetClientRect(hwnd, &rect);
 	rect.bottom = rect.top + pControl->tc_stripHeight + 1;
 	if (nIndex >= 0) {
-		int x = rect.left + pControl->tc_firstTabOffset;
+		int x = pControl->tc_tabstripRect.left;
 		int x2;
 		int nLen = (int)arraylist_size(pControl->tc_pages);
 		for (int i = pControl->tc_firstVisibleTab; i < nLen; i++) {
@@ -381,7 +388,7 @@ static void tabcontrol_repaintTab(HWND hwnd, TAB_CONTROL* pControl, int nIndex) 
 				return;
 			}
 			TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
-			x2 = x + pPage->tp_width+1;
+			x2 = x + pPage->tp_width;
 			if (i == nIndex) {
 				rect.left = x;
 				rect.right = x2;
@@ -407,7 +414,7 @@ static void tabcontrol_repaintTabs(HWND hwnd, TAB_CONTROL* pControl) {
 /*
  * Adjust the size of the tab container when the window size has changed.
  */
-static void tabcontrol_resizeActiveTab(HWND hwnd, TAB_CONTROL* pControl) {
+static void tabcontrol_resizeActiveTabContents(HWND hwnd, TAB_CONTROL* pControl) {
 	if (pControl->tc_activeTab >= 0) {
 		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, pControl->tc_activeTab);
 		if (pPage->tp_hwnd) {
@@ -422,20 +429,32 @@ static void tabcontrol_resizeActiveTab(HWND hwnd, TAB_CONTROL* pControl) {
 /*
  * "Scroll" the tabs to make the active tab fully visible. 
  */
-static void tabcontrol_scrollTabs(HWND hwnd, TAB_CONTROL* pControl) {
+static void tabcontrol_makeActiveTabVisible(HWND hwnd, TAB_CONTROL* pControl) {
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	int xMax = rect.right;
 	xMax -= CLOSER_SIZE + 2 * CLOSER_DISTANCE;
-	if (pControl->tc_activeTab < pControl->tc_firstVisibleTab) {
-		pControl->tc_firstVisibleTab = 0;
-	}
 	int nLen = (int)arraylist_size(pControl->tc_pages);
+	int x = pControl->tc_tabstripRect.left;
+	for (int i = pControl->tc_firstVisibleTab; i < nLen; i++) {
+		if (i > pControl->tc_activeTab) {
+			break;
+		}
+		if (i == pControl->tc_activeTab) {
+			// active tab already visible - nothing to do.
+			return;
+		}
+		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
+		x += pPage->tp_width;
+		if (x >= xMax) {
+			break;
+		}
+	}
 	for (int i = 0; i < nLen; i++) {
-		int x = pControl->tc_firstTabOffset;
+		int x = pControl->tc_tabstripRect.left;
 		for (int j = i; j < nLen; j++) {
 			TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, j);
-			x += pPage->tp_width + 1;
+			x += pPage->tp_width;
 			if (x >= xMax) {
 				break;
 			}
@@ -462,11 +481,11 @@ static void tabcontrol_selectTab(HWND hwnd, TAB_CONTROL* pControl, int newIdx) {
 		pControl->tc_activeTab = newIdx;
 		if (newIdx >= 0) {
 			pPage = arraylist_get(pControl->tc_pages, pControl->tc_activeTab);
-			tabcontrol_resizeActiveTab(hwnd, pControl);
+			tabcontrol_resizeActiveTabContents(hwnd, pControl);
 			ShowWindow(pPage->tp_hwnd, SW_SHOW);
 			SetFocus(pPage->tp_hwnd);
 		}
-		tabcontrol_scrollTabs(hwnd, pControl);
+		tabcontrol_makeActiveTabVisible(hwnd, pControl);
 		tabcontrol_repaintTabs(hwnd, pControl);
 	}
 	if (hwndOld != NULL) {
@@ -583,6 +602,71 @@ static void tabcontrol_measureTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected) {
 }
 
 /*
+ * Recalculate all sizes of tab headers, close, scroll buttons etc.... for the
+ * tab control.
+ */
+static void tabcontrol_measureTabStrip(HWND hwnd, TAB_CONTROL* pControl) {
+	RECT rect;
+	GetClientRect(hwnd, &rect);
+	if (rect.bottom -rect.top < pControl->tc_stripHeight) {
+		// During initialization
+		return;
+	}
+	rect.bottom = rect.top + pControl->tc_stripHeight;
+	RECT* pRect;
+	HDC hdc = GetWindowDC(hwnd);
+	int nTotalWidth;
+	for (int i = 0; i < arraylist_size(pControl->tc_pages); i++) {
+		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
+		tabcontrol_measureTab(hdc, pPage, i == pControl->tc_activeTab);
+		if (i == pControl->tc_firstVisibleTab) {
+			nTotalWidth = pPage->tp_width;
+		} else {
+			nTotalWidth += pPage->tp_width;
+		}
+	}
+	ReleaseDC(hwnd, hdc);
+	if (!mainframe_isCloseableDock(hwnd)) {
+		pControl->tc_closerRect.bottom = -1;
+		pControl->tc_closerRect.left = rect.right;
+	} else {
+		pRect = &pControl->tc_closerRect;
+		pRect->right = rect.right-CLOSER_DISTANCE;
+		pRect->left = pRect->right - CLOSER_SIZE;
+		int dDelta = (pControl->tc_stripHeight - CLOSER_SIZE) / 2;
+		pRect->top = rect.top + dDelta;
+		pRect->bottom = rect.top + pRect->top + CLOSER_SIZE;
+	}
+	pControl->tc_tabstripRect.right = pControl->tc_closerRect.left - SCROLL_BUTTON_PADDING;
+	pControl->tc_tabstripRect.top = rect.top;
+	pControl->tc_tabstripRect.bottom = rect.bottom;
+
+	pRect = &pControl->tc_leftScrollerRect;
+	if (pControl->tc_firstVisibleTab > 0) {
+		pRect->top = rect.top;
+		pRect->bottom = rect.bottom;
+		pRect->left = pControl->tc_firstTabOffset+SCROLL_BUTTON_PADDING;
+		pRect->right = pRect->left + SCROLL_BUTTON_WIDTH;
+		pControl->tc_tabstripRect.left = pRect->right + SCROLL_BUTTON_PADDING;
+	} else {
+		pControl->tc_leftScrollerRect.bottom = -1;
+		pControl->tc_tabstripRect.left = pControl->tc_firstTabOffset;
+	}
+
+	pRect = &pControl->tc_rightScrollerRect;
+	if (nTotalWidth > pControl->tc_tabstripRect.right - pControl->tc_tabstripRect.left) {
+		pRect->top = rect.top;
+		pRect->bottom = rect.bottom;
+		pRect->right = pControl->tc_closerRect.left - SCROLL_BUTTON_PADDING;
+		pRect->left = pRect->right - SCROLL_BUTTON_WIDTH;
+		pControl->tc_tabstripRect.right = pRect->left + SCROLL_BUTTON_PADDING;
+	} else {
+		pRect->bottom = -1;
+	}
+
+}
+
+/*
  * Paint one tab of the tabstrip of our tab control displaying the edit tabs. 
  */
 static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL bRollover, int x, int y, int height, int xMax) {
@@ -671,38 +755,44 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 }
 
 /*
- * Returns TRUE, if the dock containing the tab control is closeable and return the 
- * bounds of the closer button the rect passed. If the tab is not closable return FALSE.
+ * Paint a scroll button for the tabs. 
  */
-static BOOL tabcontrol_getDockingCloserRect(HWND hwndTabControl, TAB_CONTROL* pControl, RECT* pRect) {
-	if (!mainframe_isCloseableDock(hwndTabControl)) {
-		return FALSE;
+static void tabcontrol_paintTabScrollButton(TAB_CONTROL* pControl, PAINTSTRUCT* ps, BOOL bScrollLeft) {
+	int x;
+	int y;
+	RECT* pRect = bScrollLeft ? &pControl->tc_leftScrollerRect : &pControl->tc_rightScrollerRect;
+	if (pRect->bottom < 0) {
+		return;
 	}
-
-	GetClientRect(hwndTabControl, pRect);
-	pRect->right -= CLOSER_DISTANCE;
-	pRect->left = pRect->right - CLOSER_SIZE;
-	int dDelta = (pControl->tc_stripHeight - CLOSER_SIZE) / 2;
-	pRect->top = dDelta;
-	pRect->bottom = pRect->top + CLOSER_SIZE;
-	return TRUE;
+	x = pRect->left;
+	y = pRect->top;
+	THEME_DATA* pTheme = theme_getDefault();
+	HPEN hPen = CreatePen(PS_SOLID, 3, pTheme->th_dialogBorder);
+	HPEN hPenOld = SelectObject(ps->hdc, hPen);
+	int h2 = (pControl->tc_stripHeight) / 2 - SCROLL_BUTTON_PADDING;
+	y = y + SCROLL_BUTTON_PADDING;
+	int x2 = bScrollLeft ? x + SCROLL_BUTTON_WIDTH : x;
+	if (!bScrollLeft) {
+		x += SCROLL_BUTTON_WIDTH;
+	}
+	MoveTo(ps->hdc, x2, y);
+	y += h2;
+	LineTo(ps->hdc, x, y);
+	y += h2;
+	LineTo(ps->hdc, x2, y);
+	DeleteObject(SelectObject(ps->hdc, hPenOld));
 }
 
 /*
  * Repaint the tab strip of a tab control including the tabs, an optional docking close button etc.
  */
-static void tabcontrol_paintTabs(HWND hwnd, PAINTSTRUCT* ps, TAB_CONTROL* pControl) {
+static void tabcontrol_paintTabStrip(HWND hwnd, PAINTSTRUCT* ps, TAB_CONTROL* pControl) {
 	THEME_DATA* pTheme = theme_getDefault();
 	HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogBackground);
 	HBRUSH hBorderBrush = CreateSolidBrush(pTheme->th_dialogBorder);
+	tabcontrol_measureTabStrip(hwnd, pControl);
 	RECT rect;
-	RECT closerRect;
 	GetClientRect(hwnd, &rect);
-	BOOL bMayCloseDock = tabcontrol_getDockingCloserRect(hwnd, pControl, &closerRect);
-	int xMax = rect.right;
-	if (bMayCloseDock) {
-		xMax -= CLOSER_SIZE + 2*CLOSER_DISTANCE;
-	}
 	FillRect(ps->hdc, &rect, hBrush);
 	if (pControl == currentDropTarget) {
 		HPEN hPen = CreatePen(PS_SOLID, 3, pTheme->th_dialogActiveTab);
@@ -715,17 +805,22 @@ static void tabcontrol_paintTabs(HWND hwnd, PAINTSTRUCT* ps, TAB_CONTROL* pContr
 	rect.top += pControl->tc_stripHeight;
 	FrameRect(ps->hdc, &rect, hBorderBrush);
 	rect.top -= pControl->tc_stripHeight;
-	int x = rect.left + pControl->tc_firstTabOffset;
-	int y = rect.top;
+	int x;
+	int y;
+	y = pControl->tc_tabstripRect.top;
+	x = pControl->tc_tabstripRect.left;
 	for (int i = pControl->tc_firstVisibleTab; i < arraylist_size(pControl->tc_pages); i++) {
 		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
-		if (!tabcontrol_paintTab(ps->hdc, pPage, i == pControl->tc_activeTab, i == pControl->tc_rolloverTab, x, y, pControl->tc_stripHeight, xMax) && i > pControl->tc_firstVisibleTab) {
+		if (!tabcontrol_paintTab(ps->hdc, pPage, i == pControl->tc_activeTab, i == pControl->tc_rolloverTab, x, y, 
+				pControl->tc_stripHeight, pControl->tc_tabstripRect.right) && i > pControl->tc_firstVisibleTab) {
 			break;
 		}
-		x += pPage->tp_width + 1;
+		x += pPage->tp_width;
 	}
-	if (bMayCloseDock) {
-		tabcontrol_paintCloser(ps->hdc, &closerRect, FALSE);
+	tabcontrol_paintTabScrollButton(pControl, ps, FALSE);
+	tabcontrol_paintTabScrollButton(pControl, ps, TRUE);
+	if (pControl->tc_closerRect.bottom >= 0) {
+		tabcontrol_paintCloser(ps->hdc, &pControl->tc_closerRect, pControl->tc_rolloverCloseButton);
 	}
 	DeleteObject(hBrush);
 	DeleteObject(hBorderBrush);
@@ -870,12 +965,23 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam, BOOL bDrag) {
 	if (y >= pControl->tc_stripHeight) {
 		return;
 	}
-	RECT closerRect;
-	if (tabcontrol_getDockingCloserRect(hwnd, pControl, &closerRect) && PtInRect(&closerRect, (POINT) { x, y }) && !bDrag) {
+	POINT pt = (POINT){ x, y };
+	if (PtInRect(&pControl->tc_closerRect, pt) && !bDrag) {
 		mainframe_closeDock(hwnd);
 		return;
 	}
-	x -= pControl->tc_firstTabOffset;
+	if (PtInRect(&pControl->tc_leftScrollerRect, pt) && pControl->tc_firstVisibleTab > 0) {
+		pControl->tc_firstVisibleTab--;
+		tabcontrol_repaintTabs(hwnd, pControl);
+		return;
+	}
+	if (PtInRect(&pControl->tc_rightScrollerRect, pt)) {
+		pControl->tc_firstVisibleTab++;
+		tabcontrol_repaintTabs(hwnd, pControl);
+		return;
+	}
+	int tOffset = pControl->tc_tabstripRect.left;
+	x -= tOffset;
 	for (int i = pControl->tc_firstVisibleTab; i < arraylist_size(pControl->tc_pages); i++) {
 		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
 		if (x < 0) {
@@ -895,7 +1001,7 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam, BOOL bDrag) {
 			}
 			break;
 		}
-		x -= pPage->tp_width + 1;
+		x -= pPage->tp_width;
 	}
 }
 
@@ -962,7 +1068,15 @@ static void tabcontrol_handleMouseMove(HWND hwnd, POINT p) {
 		tabcontrol_setRollover(hwnd, pControl, -1, -1);
 		return;
 	}
-	int x = pControl->tc_firstTabOffset;
+	if (pControl->tc_closerRect.bottom >= 0) {
+		BOOL closerRollover = PtInRect(&pControl->tc_closerRect, p);
+		if (closerRollover != pControl->tc_rolloverCloseButton) {
+			pControl->tc_rolloverCloseButton = closerRollover;
+			tabcontrol_repaintTabs(hwnd, pControl);
+			return;
+		}
+	}
+	int x = pControl->tc_tabstripRect.left;
 	int nTab = -1;
 	for (int i = pControl->tc_firstVisibleTab; i < arraylist_size(pControl->tc_pages); i++) {
 		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
@@ -978,7 +1092,7 @@ static void tabcontrol_handleMouseMove(HWND hwnd, POINT p) {
 			tabcontrol_setRollover(hwnd, pControl, i, nTab);
 			return;
 		}
-		x += pPage->tp_width+1;
+		x += pPage->tp_width;
 	}
 	tabcontrol_setRollover(hwnd, pControl, -1, nTab);
 }
@@ -1082,7 +1196,7 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 	case WM_PAINT:
 		pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 		BeginPaint(hwnd, &ps);
-		tabcontrol_paintTabs(hwnd, &ps, pControl);
+		tabcontrol_paintTabStrip(hwnd, &ps, pControl);
 		EndPaint(hwnd, &ps);
 		return FALSE;
 
@@ -1101,8 +1215,8 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 		// (T) optimize
 		InvalidateRect(hwnd, NULL, TRUE); 
 		pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
-		tabcontrol_scrollTabs(hwnd, pControl);
-		tabcontrol_resizeActiveTab(hwnd, pControl);
+		tabcontrol_makeActiveTabVisible(hwnd, pControl);
+		tabcontrol_resizeActiveTabContents(hwnd, pControl);
 		return TRUE;
 
 	case WM_DESTROY:
@@ -1820,12 +1934,8 @@ void mainframe_windowTitleChanged() {
 			TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
 			if (pControl) {
 				tabcontrol_repaintTabs(pSlot->ds_hwnd, pControl);
-				HDC hdc = GetWindowDC(pSlot->ds_hwnd);
-				for (int i = 0; i < arraylist_size(pControl->tc_pages); i++) {
-					tabcontrol_measureTab(hdc, arraylist_get(pControl->tc_pages, i), i == pControl->tc_activeTab);
-				}
-				ReleaseDC(pSlot->ds_hwnd, hdc);
-				tabcontrol_scrollTabs(pSlot->ds_hwnd, pControl);
+				tabcontrol_measureTabStrip(pSlot->ds_hwnd, pControl);
+				tabcontrol_makeActiveTabVisible(pSlot->ds_hwnd, pControl);
 			}
 		}
 		pSlot = pSlot->ds_next;
