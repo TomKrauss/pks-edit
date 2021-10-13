@@ -24,7 +24,7 @@
 #include "winterf.h"
 #include "winutil.h"
 #include "stringutil.h"
-# pragma hdrstop
+#include "themes.h"
 
 #include <stdarg.h>
 #include "dial2.h"
@@ -40,6 +40,31 @@ extern void sound_playChime(void);
 extern void 	st_seterrmsg(char *msg);
 extern void 	st_update(void);
 
+static HHOOK hHook;
+
+static LRESULT WINAPI error_messageBoxHook(int nCode, WPARAM wParam, LPARAM lParam) {
+	if (nCode < 0) {
+		return CallNextHookEx(hHook, nCode, wParam, lParam);
+	}
+	CWPSTRUCT* pStruct = (CWPSTRUCT*)lParam;
+	if (pStruct->message == WM_INITDIALOG || pStruct->message == WM_CTLCOLORDLG) {
+		return dlg_defaultWndProc(pStruct->hwnd, pStruct->message, pStruct->wParam, pStruct->lParam);
+	}
+	return 1;
+}
+/*------------------------------------------------------------
+ * error_displayAlertBoxWithOptions()
+ */
+int error_displayAlertBoxWithOptions(long buttons, const char* fmt) {
+	if (!fmt) {
+		return -1;
+	}
+	hHook = SetWindowsHookEx(WH_CALLWNDPROC, error_messageBoxHook, hInst, GetCurrentThreadId());
+	int ret = MessageBox(hwndMain, fmt, szAppName, MB_APPLMODAL | buttons);
+	UnhookWindowsHookEx(hHook);
+	return ret;
+}
+
 /*------------------------------------------------------------
  * error_openConfigurableAlert()
  */
@@ -47,18 +72,7 @@ static int error_openConfigurableAlert(int buttons, LPSTR fmt, va_list ap)
 {   char buf[256];
 
     wvsprintf((LPSTR)buf,(LPSTR)fmt, ap);
-    return MessageBox(hwndMain,buf,szAppName,MB_APPLMODAL|buttons); 
-}
-
-/*------------------------------------------------------------
- * error_displayAlertBoxWithOptions()
- */
-int error_displayAlertBoxWithOptions(long buttons, long nOptions, const char* fmt)
-{
-	if (!fmt) {
-		return -1;
-	}
-	return MessageBox(hwndMain, fmt, szAppName, MB_APPLMODAL|buttons); 
+	return error_displayAlertBoxWithOptions(buttons, buf);
 }
 
 /*------------------------------------------------------------

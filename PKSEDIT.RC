@@ -1249,9 +1249,7 @@ END
 // Bitmap
 //
 
-IDB_ARROWS              BITMAP                  "rc\\arrow_down.bmp"
-
-IDB_ARROWS_DISABLED     BITMAP                  "RC\\ARROWS_DISABLED.BMP"
+IDB_NEW_ICONS           BITMAP                  "rc\\new_icons.bmp"
 
 
 /////////////////////////////////////////////////////////////////////////////

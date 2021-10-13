@@ -882,7 +882,11 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 /*
  * Default message handling in all PKS Edit dialogs to e.g. support theming. 
  */
+BOOL dlg_disableDarkHandling;
 INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+	if (dlg_disableDarkHandling) {
+		return FALSE;
+	}
 	switch (message) {
 	case WM_CTLCOLOR:
 	case WM_CTLCOLORBTN: // does not work - need owner draw buttons for that
@@ -979,9 +983,6 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 			}
 			break;
 	}
-	if (bInPropertySheet) {
-		return FALSE;
-	}
 	return dlg_defaultWndProc(hDlg, message, wParam, lParam);
 }
 
@@ -1005,8 +1006,7 @@ int win_callDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* 
  * Create a modeless dialog, given a callback and a dialog proc.
  */
 void win_createModelessDialog(HWND *hwnd,LPSTR szName, INT_PTR (CALLBACK *func)(HWND, UINT, WPARAM, LPARAM),
-				      DLGPROC *lplpfnDlgProc)
-{
+				      DLGPROC *lplpfnDlgProc) {
 	if (*hwnd) {
 		return;
 	}
@@ -1062,5 +1062,40 @@ long EdPromptAssign(long unused1, long unused2, char *prompt, char *init)
 
 	return 1;
 }
+
+static int propSheetSubclassId = 2100;
+static LRESULT CALLBACK dlg_propertySheetSubclassProc(
+	HWND hwnd,
+	UINT uMsg,
+	WPARAM wParam,
+	LPARAM lParam,
+	UINT_PTR uIdSubclass,
+	DWORD_PTR dwRefData) {
+	switch (uMsg) {
+	case WM_NCDESTROY:
+		RemoveWindowSubclass(hwnd, dlg_propertySheetSubclassProc, propSheetSubclassId);
+		break;
+	case WM_ERASEBKGND: {
+		HDC hdc = (HDC)wParam;
+		RECT rc;
+		GetClientRect(hwnd, &rc);
+		FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
+	}
+	return 1;
+	}
+	return DefDlgProc(hwnd, uMsg, wParam, lParam);
+}
+
+/*
+ * Property Sheet callback method for darkmode handling.
+ */
+intptr_t dlg_propertySheetCallback(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lParam) {
+	if (nMessage == PSCB_INITIALIZED) {
+		SetWindowSubclass(hwnd, dlg_propertySheetSubclassProc, propSheetSubclassId, 0);
+		nMessage = WM_INITDIALOG;
+	}
+	return dlg_defaultWndProc(hwnd, nMessage, wParam, lParam);
+}
+
 
 

@@ -433,9 +433,7 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			HDC hdc = (HDC)wParam;
 			RECT rc;
 			GetClientRect(hwnd, &rc);
-			HBRUSH hbrBg = CreateSolidBrush(pTheme->th_dialogBackground);
-			FillRect(hdc, &rc, hbrBg);
-			DeleteObject(hbrBg);
+			FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
 		}
 		return 1;
 

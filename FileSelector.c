@@ -20,9 +20,11 @@
 #include "trace.h"
 #include "lineoperations.h"
 #include "edierror.h"
+#include "errordialogs.h"
 
 #include "winfo.h"
 #include "winterf.h"
+#include "xdialog.h"
 
 #include "tos.h"
 #include "history.h"
@@ -269,7 +271,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 		Errval=CommDlgExtendedError();
 		if(Errval!=0) {
 			wsprintf(szTemp, "GetOpenFileName returned Error # %lx", Errval);
-			MessageBox(hWnd, szTemp, "WARNING", MB_OK|MB_ICONSTOP);
+			error_displayAlertBoxWithOptions(MB_OK | MB_ICONSTOP, szTemp);
 		}
 	}
 

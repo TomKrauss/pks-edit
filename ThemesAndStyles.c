@@ -134,7 +134,7 @@ static EDTEXTSTYLE* font_getTextStyleForIndex(FONT_STYLE_CLASS nIndex) {
  * create a logical font
  */
 static HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont) {
-	static LOGFONT _lf = {
+	LOGFONT _lf = {
 		12,					// lfHeight;
 		0,					// lfWidth;
 
@@ -953,6 +953,127 @@ static LRESULT CALLBACK buttonSubclassProc(
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
+static UINT_PTR tabSubclassID = 2345;
+
+static LRESULT CALLBACK tabSubclassProc(
+	HWND hWnd,
+	UINT uMsg,
+	WPARAM wParam,
+	LPARAM lParam,
+	UINT_PTR uIdSubclass,
+	DWORD_PTR dwRefData
+)
+{
+	UNREFERENCED_PARAMETER(uIdSubclass);
+	UNREFERENCED_PARAMETER(dwRefData);
+	THEME_DATA* pTheme = theme_getDefault();
+
+	switch (uMsg) {
+	case WM_PAINT: {
+		if (!pTheme->th_isDarkMode) {
+			break;
+		}
+
+		LONG_PTR dwStyle = GetWindowLongPtr(hWnd, GWL_STYLE);
+		if ((dwStyle & TCS_BOTTOM) || (dwStyle & TCS_BUTTONS) || (dwStyle & TCS_VERTICAL)) {
+			break;
+		}
+
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hWnd, &ps);
+		FillRect(hdc, &ps.rcPaint, theme_getDialogBackgroundBrush());
+
+		HPEN edgePen = CreatePen(0, 1, pTheme->th_dialogBorder);
+		HPEN holdPen = (HPEN)SelectObject(hdc, edgePen);
+
+		HRGN holdClip = CreateRectRgn(0, 0, 0, 0);
+		if (1 != GetClipRgn(hdc, holdClip))
+		{
+			DeleteObject(holdClip);
+			holdClip = NULL;
+		}
+
+		HFONT hFont = (HFONT)(SendMessage(hWnd, WM_GETFONT, 0, 0));
+		HFONT hOldFont = SelectObject(hdc, hFont);
+
+		POINT ptCursor = { 0 };
+		GetCursorPos(&ptCursor);
+		ScreenToClient(hWnd, &ptCursor);
+
+		int nTabs = TabCtrl_GetItemCount(hWnd);
+
+		int nSelTab = TabCtrl_GetCurSel(hWnd);
+		for (int i = 0; i < nTabs; ++i) {
+			RECT rcItem = { 0 };
+			TabCtrl_GetItemRect(hWnd, i, &rcItem);
+
+			RECT rcIntersect = { 0 };
+			if (IntersectRect(&rcIntersect, &ps.rcPaint, &rcItem)) {
+				BOOL bHot = PtInRect(&rcItem, ptCursor);
+
+				POINT edges[] = {
+					{rcItem.right - 1, rcItem.top},
+					{rcItem.right - 1, rcItem.bottom}
+				};
+				Polyline(hdc, edges, _countof(edges));
+				rcItem.right -= 1;
+
+				HRGN hClip = CreateRectRgnIndirect(&rcItem);
+
+				SelectClipRgn(hdc, hClip);
+
+				SetTextColor(hdc, bHot || i == nSelTab ? pTheme->th_dialogForeground : pTheme->th_dialogBorder);
+
+				FillRect(hdc, &rcItem, (i == nSelTab) ? theme_getDialogBackgroundBrush() : theme_getDialogBackgroundBrush());
+
+				SetBkMode(hdc, TRANSPARENT);
+
+				TCHAR label[MAX_PATH];
+				TCITEM tci = { 0 };
+				tci.mask = TCIF_TEXT;
+				tci.pszText = label;
+				tci.cchTextMax = MAX_PATH - 1;
+
+				SendMessage(hWnd, TCM_GETITEM, i, (LPARAM)(&tci));
+
+				RECT rcText = rcItem;
+				rcText.left += 6;
+				rcText.right -= 3;
+
+				if (i == nSelTab) {
+					rcText.bottom -= 4;
+				}
+
+				DrawText(hdc, label, -1, &rcText, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+
+				DeleteObject(hClip);
+
+				SelectClipRgn(hdc, holdClip);
+			}
+		}
+		SelectObject(hdc, hOldFont);
+
+		SelectClipRgn(hdc, holdClip);
+		if (holdClip) {
+			DeleteObject(holdClip);
+			holdClip = NULL;
+		}
+
+		DeleteObject(SelectObject(hdc, holdPen));
+		EndPaint(hWnd, &ps);
+		return 0;
+	}
+	case WM_NCDESTROY:
+		RemoveWindowSubclass(hWnd, tabSubclassProc, tabSubclassID);
+		break;
+	}
+	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
+static void subclassTabControl(HWND hwnd) {
+	SetWindowSubclass(hwnd, tabSubclassProc, tabSubclassID, 0);
+}
+
 /*
  * Invoked to prepare all child windows for being used under darkmode.
  */
@@ -981,6 +1102,8 @@ static BOOL theme_prepareControlsForDarkMode(HWND hwndControl, LONG lParam) {
 			break;
 		}
 		return TRUE;
+	} else if (strcmp(WC_TABCONTROL, szClassname) == 0) {
+		SetWindowSubclass(hwndControl, tabSubclassProc, tabSubclassID, 0);
 	} else if (strcmp(WC_COMBOBOX, szClassname) == 0) {
 		int style = (int)GetWindowLongPtr(hwndControl, GWL_STYLE);
 		if ((style & CBS_DROPDOWNLIST) == CBS_DROPDOWNLIST || (style & CBS_DROPDOWN) == CBS_DROPDOWN) {

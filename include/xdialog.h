@@ -128,6 +128,16 @@ extern int EdPromptForCharacter(int ids_num);
  */
 extern int EdHelpContext(DWORD nCtx);
 
+/*
+ * Property Sheet callback method for darkmode handling.
+ */
+intptr_t dlg_propertySheetCallback(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lParam);
+
+/*
+ * Set to true to avoid dark dialogs (useful in cases were dark schemes cannot be supported currently). 
+ */
+extern BOOL dlg_disableDarkHandling;
+
 #define	XDIALOG_H		1
 
 # endif

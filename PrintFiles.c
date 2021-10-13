@@ -823,7 +823,10 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	prtDlg->nMaxPageRanges = 1;
 	prtDlg->nStartPage = START_PAGE_GENERAL;
 	prtDlg->nPropertyPages = 2;
+	prtDlg->lpCallback = NULL;
+	dlg_disableDarkHandling = TRUE;
 	int nRet = PrintDlgEx(prtDlg);
+	dlg_disableDarkHandling = FALSE;
 	if (prtDlg->hDevNames) {
 		GlobalFree(prtDlg->hDevNames);
 	}

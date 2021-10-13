@@ -231,7 +231,7 @@ void EdOptionSet(void) {
 	psp[3].pfnDlgProc = dlg_standardDialogProcedure;
 
 	psh.dwSize = sizeof(psh);
-    psh.dwFlags = PSH_PROPSHEETPAGE;
+    psh.dwFlags = PSH_PROPSHEETPAGE|PSH_USECALLBACK;
     psh.hwndParent = hwndMain;
     psh.hInstance = ui_getResourceModule();
     psh.pszIcon = 0;
@@ -239,7 +239,7 @@ void EdOptionSet(void) {
     psh.nPages = sizeof(psp) / sizeof(psp[0]);
     psh.nStartPage = 0;
     psh.ppsp = (LPCPROPSHEETPAGE) &psp;
-    psh.pfnCallback = NULL;
+    psh.pfnCallback = (PFNPROPSHEETCALLBACK)dlg_propertySheetCallback;
 
 	tempRet = PropertySheet(&psh);
     if (tempRet == 1) {
