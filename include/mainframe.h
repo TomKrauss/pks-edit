@@ -12,6 +12,14 @@
 
 #ifndef MAINFRAME_H
 
+ /*
+  * A hint to be passed to open window to define, how the window is displayed in the mainframe.
+  */
+typedef struct tagOPEN_HINT {
+	const char* oh_slotName;		// the name of the slot, where the window ist placed
+	BOOL		oh_activate;		// whether the new window should be activated.
+} OPEN_HINT;
+
 /*
  * To be invoked, when the window of a child window changes. 
  */
@@ -32,7 +40,7 @@ extern HWND mainframe_open(int nInstanceCount, HMENU hDefaultMenu);
  * pszPreferredSlot is the name of a docking position to which the window should be added (if the corresponding
  * docking position exists). Pass NULL to use the default edit slot.
  */
-extern HWND mainframe_addWindow(const char* pszPreferredSlot, const char* pszChildWindowClass, const char* pszTitle, LPVOID lParam);
+extern HWND mainframe_addWindow(OPEN_HINT* pHint, const char* pszChildWindowClass, const char* pszTitle, LPVOID lParam);
 
 /*
  * Checks, whether there is an active PKS edit window already somewhere on the screen (maybe other process).
@@ -65,9 +73,9 @@ typedef enum { MD_ADD_HORIZONTAL, MD_ADD_VERTICAL, MD_ENSURE_DEFAULT } MANAGE_DO
 extern int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType);
 
 /*
- * Returns the name of the docking slot in which the passed editor window is docked.
+ * Returns a string to be used as an open hint later, when opening the window.
  */
-extern char* mainframe_getDockNameFor(HWND hwnd);
+extern char* mainframe_getOpenHint(HWND hwnd);
 
 /*
  * Invoked, when a new editor is activated. Used to mark the current active window.
@@ -77,7 +85,12 @@ extern void mainframe_windowActivated(HWND hwndOld, HWND hwndNew);
 /*
  * Move a mainframe window to a preferred docking slot.
  */
-extern void mainframe_moveWindowAndActivate(HWND hwndEdit, const char* pszPreferredSlot);
+extern void mainframe_moveWindowAndActivate(HWND hwndEdit, const char* pszPreferredSlot, BOOL bActivate);
+
+/*
+ * Parse an open hint text. Note, that the hint text is modified during parsing.
+ */
+extern OPEN_HINT mainframe_parseOpenHint(char* pszHint);
 
 #define MAINFRAME_H
 #endif

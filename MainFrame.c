@@ -63,8 +63,8 @@ extern void main_cleanup(void);
 
 #define CLOSER_SIZE				16
 #define CLOSER_DISTANCE			8
-#define SCROLL_BUTTON_WIDTH		10
-#define SCROLL_BUTTON_PADDING	7
+#define SCROLL_BUTTON_WIDTH		16
+#define SCROLL_BUTTON_PADDING	4
 
 typedef enum { DS_EDIT_WINDOW, DS_OTHER } DOCKING_SLOT_TYPE;
 
@@ -80,6 +80,18 @@ typedef struct tagDOCKING_SLOT {
 	RECT ds_resizeRect;
 } DOCKING_SLOT;
 
+typedef enum { TW_CLOSER, TW_SCROLL_LEFT, TW_SCROLL_RIGHT } TAB_WIDGET_TYPE;
+
+/*
+ * A widget to be displayed on a tabstrip like a closer button or a scroll button. 
+ */
+typedef struct tagTAB_WIDGET {
+	BOOL		tw_rollover;
+	BOOL		tw_visible;
+	TAB_WIDGET_TYPE tw_type;
+	RECT		tw_bounds;					// the rect where the widget is displayed
+} TAB_WIDGET;
+
 typedef struct tagTAB_PAGE {
 	HWND  tp_hwnd;
 	int	  tp_width;
@@ -89,9 +101,9 @@ typedef struct tagTAB_CONTROL {
 	ARRAY_LIST* tc_pages;
 	HWND		tc_hwnd;
 	HWND		tc_hwndTooltip;
-	RECT		tc_closerRect;					// the rect where the close button for the whole panel is displayed width==-1 -> not visible
-	RECT		tc_leftScrollerRect;			// the rect where the scroll panel for to scroll left is displayed
-	RECT		tc_rightScrollerRect;			// the rect where the scroll panel for to scroll right is displayed
+	TAB_WIDGET	tc_closer;						// the close button for the whole panel 
+	TAB_WIDGET	tc_leftScroller;				// the scroll left button of the tab strip
+	TAB_WIDGET	tc_rightScroller;				// the scroll right button of the tab strip
 	RECT		tc_tabstripRect;				// the rect where the tabs of the tab control are displayed
 	int			tc_activeTooltipIndex;
 	int			tc_firstTabOffset;
@@ -99,7 +111,6 @@ typedef struct tagTAB_CONTROL {
 	int			tc_firstVisibleTab;
 	int			tc_activeTab;
 	int			tc_rolloverTab;
-	BOOL		tc_rolloverCloseButton;
 } TAB_CONTROL;
 
 const char *szFrameClass = "PKSEditMainFrame";
@@ -132,7 +143,7 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 /*
  * Move a tab from one tab control to another.
  */
-static void tabcontrol_moveTab(TAB_CONTROL* pSource, TAB_CONTROL* pTarget, TAB_PAGE* pPage);
+static void tabcontrol_moveTab(TAB_CONTROL* pSource, TAB_CONTROL* pTarget, TAB_PAGE* pPage, BOOL bActivate);
 
 #define GWLP_TAB_CONTROL		0
 
@@ -360,7 +371,7 @@ static void mainframe_closeDock(HWND hwnd) {
 		TAB_CONTROL* pTarget = (TAB_CONTROL*) GetWindowLongPtr(pSlotDefault->ds_hwnd, GWLP_TAB_CONTROL);
 		if (pSource && pTarget) {
 			while (pSource->tc_activeTab >= 0) {
-				tabcontrol_moveTab(pSource, pTarget, arraylist_get(pSource->tc_pages, pSource->tc_activeTab));
+				tabcontrol_moveTab(pSource, pTarget, arraylist_get(pSource->tc_pages, pSource->tc_activeTab), TRUE);
 			}
 		}
 	}
@@ -513,7 +524,7 @@ static int tabcontrol_selectPage(HWND hwnd, HWND hwndPage) {
 /*
  * Add a new window with a given tab button to select it. 
  */
-static int tabcontrol_addTab(HWND hwnd, HWND hwndTab) {
+static int tabcontrol_addTab(HWND hwnd, HWND hwndTab, BOOL bSelect) {
 	char szTitle[128];
 	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 	TAB_PAGE* pData = calloc(1, sizeof * pData);
@@ -526,7 +537,9 @@ static int tabcontrol_addTab(HWND hwnd, HWND hwndTab) {
 	RECT rect;
 	GetClientRect(hwndTab, &rect);
 	rect.bottom = rect.top + pControl->tc_stripHeight;
-	tabcontrol_selectTab(hwnd, pControl, idx);
+	if (bSelect || idx == 0) {
+		tabcontrol_selectTab(hwnd, pControl, idx);
+	}
 	RedrawWindow(hwndTab, &rect, NULL, RDW_ERASE);
 	return 1;
 }
@@ -555,10 +568,11 @@ static void tabcontrol_getCloserRect(TAB_PAGE* pPage, int x, int height, RECT* p
 }
 
 /*
- * Paint a closer button. Maybe the whole logic should be moved to an own control.
+ * Paint a widget into its bounding rect.
  */
-static void tabcontrol_paintCloser(HDC hdc, RECT* pRect, BOOL bRollover) {
+static void tabcontrol_paintWidgetContents(HDC hdc, RECT* pRect, BOOL bRollover, TAB_WIDGET_TYPE twWidgetType) {
 	int nDelta = 4;
+	int h2;
 	THEME_DATA* pTheme = theme_getDefault();
 	LOGBRUSH brush;
 	brush.lbColor = pTheme->th_dialogBorder;
@@ -566,18 +580,39 @@ static void tabcontrol_paintCloser(HDC hdc, RECT* pRect, BOOL bRollover) {
 	brush.lbStyle = PS_SOLID;
 	HPEN hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, 2, &brush, 0, NULL);
 	HPEN hPenOld = SelectObject(hdc, hPen);
-	MoveToEx(hdc, pRect->left + nDelta, pRect->top + nDelta, NULL);
-	LineTo(hdc, pRect->right - nDelta, pRect->bottom - nDelta);
-	MoveToEx(hdc, pRect->right - nDelta, pRect->top + nDelta, NULL);
-	LineTo(hdc, pRect->left + nDelta, pRect->bottom - nDelta);
+	h2 = (pRect->bottom - pRect->top) / 2;
 	if (bRollover) {
-		MoveToEx(hdc, pRect->left, pRect->top, NULL);
-		LineTo(hdc, pRect->right, pRect->top);
-		LineTo(hdc, pRect->right, pRect->bottom);
-		LineTo(hdc, pRect->left, pRect->bottom);
-		LineTo(hdc, pRect->left, pRect->top);
+		FillRect(hdc, pRect, theme_getDialogLightBackgroundBrush());
+	}
+	switch (twWidgetType) {
+	case TW_CLOSER:
+		MoveToEx(hdc, pRect->left + nDelta, pRect->top + nDelta, NULL);
+		LineTo(hdc, pRect->right - nDelta, pRect->bottom - nDelta);
+		MoveToEx(hdc, pRect->right - nDelta, pRect->top + nDelta, NULL);
+		LineTo(hdc, pRect->left + nDelta, pRect->bottom - nDelta);
+		break;
+	case TW_SCROLL_LEFT:
+		MoveTo(hdc, pRect->right-nDelta, pRect->top+nDelta);
+		LineTo(hdc, pRect->left+nDelta, pRect->top + h2);
+		LineTo(hdc, pRect->right-nDelta, pRect->bottom-nDelta);
+		break;
+	case TW_SCROLL_RIGHT:
+		MoveTo(hdc, pRect->left+nDelta, pRect->top+nDelta);
+		LineTo(hdc, pRect->right-nDelta, pRect->top + h2);
+		LineTo(hdc, pRect->left+nDelta, pRect->bottom-nDelta);
+		break;
 	}
 	DeleteObject(SelectObject(hdc, hPenOld));
+}
+
+/*
+ * Paint a widget into its bounding rect.
+ */
+static void tabcontrol_paintWidget(HDC hdc, TAB_WIDGET* pWidget) {
+	if (!pWidget->tw_visible) {
+		return;
+	}
+	tabcontrol_paintWidgetContents(hdc, &pWidget->tw_bounds, pWidget->tw_rollover, pWidget->tw_type);
 }
 
 #define TAB_ICON_SIZE		16
@@ -627,41 +662,48 @@ static void tabcontrol_measureTabStrip(HWND hwnd, TAB_CONTROL* pControl) {
 	}
 	ReleaseDC(hwnd, hdc);
 	if (!mainframe_isCloseableDock(hwnd)) {
-		pControl->tc_closerRect.bottom = -1;
-		pControl->tc_closerRect.left = rect.right;
+		pControl->tc_closer.tw_visible = FALSE;
+		pControl->tc_closer.tw_bounds.left = rect.right;
 	} else {
-		pRect = &pControl->tc_closerRect;
+		pControl->tc_closer.tw_visible = TRUE;
+		pRect = &pControl->tc_closer.tw_bounds;
 		pRect->right = rect.right-CLOSER_DISTANCE;
 		pRect->left = pRect->right - CLOSER_SIZE;
 		int dDelta = (pControl->tc_stripHeight - CLOSER_SIZE) / 2;
 		pRect->top = rect.top + dDelta;
 		pRect->bottom = rect.top + pRect->top + CLOSER_SIZE;
 	}
-	pControl->tc_tabstripRect.right = pControl->tc_closerRect.left - SCROLL_BUTTON_PADDING;
+	pControl->tc_tabstripRect.right = pControl->tc_closer.tw_bounds.left - SCROLL_BUTTON_PADDING;
 	pControl->tc_tabstripRect.top = rect.top;
 	pControl->tc_tabstripRect.bottom = rect.bottom;
 
-	pRect = &pControl->tc_leftScrollerRect;
+	pRect = &pControl->tc_leftScroller.tw_bounds;
 	if (pControl->tc_firstVisibleTab > 0) {
-		pRect->top = rect.top;
-		pRect->bottom = rect.bottom;
+		int delta = (rect.bottom - rect.top - SCROLL_BUTTON_WIDTH) / 2;
+		pRect->top = rect.top + delta;
+		pRect->bottom = rect.bottom- delta;
 		pRect->left = pControl->tc_firstTabOffset+SCROLL_BUTTON_PADDING;
 		pRect->right = pRect->left + SCROLL_BUTTON_WIDTH;
 		pControl->tc_tabstripRect.left = pRect->right + SCROLL_BUTTON_PADDING;
+		pControl->tc_leftScroller.tw_visible = TRUE;
 	} else {
-		pControl->tc_leftScrollerRect.bottom = -1;
+		pControl->tc_leftScroller.tw_visible = FALSE;
+		pControl->tc_leftScroller.tw_rollover = FALSE;
 		pControl->tc_tabstripRect.left = pControl->tc_firstTabOffset;
 	}
 
-	pRect = &pControl->tc_rightScrollerRect;
+	pRect = &pControl->tc_rightScroller.tw_bounds;
 	if (nTotalWidth > pControl->tc_tabstripRect.right - pControl->tc_tabstripRect.left) {
-		pRect->top = rect.top;
-		pRect->bottom = rect.bottom;
-		pRect->right = pControl->tc_closerRect.left - SCROLL_BUTTON_PADDING;
+		int delta = (rect.bottom - rect.top - SCROLL_BUTTON_WIDTH) / 2;
+		pRect->top = rect.top + delta;
+		pRect->bottom = rect.bottom - delta;
+		pRect->right = pControl->tc_closer.tw_bounds.left - SCROLL_BUTTON_PADDING;
 		pRect->left = pRect->right - SCROLL_BUTTON_WIDTH;
 		pControl->tc_tabstripRect.right = pRect->left + SCROLL_BUTTON_PADDING;
+		pControl->tc_rightScroller.tw_visible = TRUE;
 	} else {
-		pRect->bottom = -1;
+		pControl->tc_rightScroller.tw_visible = FALSE;
+		pControl->tc_rightScroller.tw_rollover = FALSE;
 	}
 
 }
@@ -718,7 +760,7 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	HPEN hPen = CreatePen(PS_SOLID, 1, pTheme->th_dialogBorder);
 	HPEN hPenOld = SelectObject(hdc, hPen);
 	tabcontrol_getCloserRect(pPage, x, height, &rect);
-	tabcontrol_paintCloser(hdc, &rect, bRollover);
+	tabcontrol_paintWidgetContents(hdc, &rect, bRollover, TW_CLOSER);
 	if (!bSelected) {
 		y += 2;
 		height -= 2;
@@ -755,35 +797,6 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 }
 
 /*
- * Paint a scroll button for the tabs. 
- */
-static void tabcontrol_paintTabScrollButton(TAB_CONTROL* pControl, PAINTSTRUCT* ps, BOOL bScrollLeft) {
-	int x;
-	int y;
-	RECT* pRect = bScrollLeft ? &pControl->tc_leftScrollerRect : &pControl->tc_rightScrollerRect;
-	if (pRect->bottom < 0) {
-		return;
-	}
-	x = pRect->left;
-	y = pRect->top;
-	THEME_DATA* pTheme = theme_getDefault();
-	HPEN hPen = CreatePen(PS_SOLID, 3, pTheme->th_dialogBorder);
-	HPEN hPenOld = SelectObject(ps->hdc, hPen);
-	int h2 = (pControl->tc_stripHeight) / 2 - SCROLL_BUTTON_PADDING;
-	y = y + SCROLL_BUTTON_PADDING;
-	int x2 = bScrollLeft ? x + SCROLL_BUTTON_WIDTH : x;
-	if (!bScrollLeft) {
-		x += SCROLL_BUTTON_WIDTH;
-	}
-	MoveTo(ps->hdc, x2, y);
-	y += h2;
-	LineTo(ps->hdc, x, y);
-	y += h2;
-	LineTo(ps->hdc, x2, y);
-	DeleteObject(SelectObject(ps->hdc, hPenOld));
-}
-
-/*
  * Repaint the tab strip of a tab control including the tabs, an optional docking close button etc.
  */
 static void tabcontrol_paintTabStrip(HWND hwnd, PAINTSTRUCT* ps, TAB_CONTROL* pControl) {
@@ -817,11 +830,9 @@ static void tabcontrol_paintTabStrip(HWND hwnd, PAINTSTRUCT* ps, TAB_CONTROL* pC
 		}
 		x += pPage->tp_width;
 	}
-	tabcontrol_paintTabScrollButton(pControl, ps, FALSE);
-	tabcontrol_paintTabScrollButton(pControl, ps, TRUE);
-	if (pControl->tc_closerRect.bottom >= 0) {
-		tabcontrol_paintCloser(ps->hdc, &pControl->tc_closerRect, pControl->tc_rolloverCloseButton);
-	}
+	tabcontrol_paintWidget(ps->hdc, &pControl->tc_leftScroller);
+	tabcontrol_paintWidget(ps->hdc, &pControl->tc_rightScroller);
+	tabcontrol_paintWidget(ps->hdc, &pControl->tc_closer);
 	DeleteObject(hBrush);
 	DeleteObject(hBorderBrush);
 }
@@ -886,9 +897,9 @@ static void tabcontrol_dragOver(TAB_CONTROL* pSource) {
 /*
  * Move a tab from one tab control to another. 
  */
-static void tabcontrol_moveTab(TAB_CONTROL* pSource, TAB_CONTROL*pTarget, TAB_PAGE* pPage) {
+static void tabcontrol_moveTab(TAB_CONTROL* pSource, TAB_CONTROL*pTarget, TAB_PAGE* pPage, BOOL bSelect) {
 	SetParent(pPage->tp_hwnd, pTarget->tc_hwnd);
-	tabcontrol_addTab(pTarget->tc_hwnd, pPage->tp_hwnd);
+	tabcontrol_addTab(pTarget->tc_hwnd, pPage->tp_hwnd, bSelect);
 	tabcontrol_removeTab(pSource, pPage);
 }
 
@@ -911,7 +922,7 @@ static TAB_PAGE* tabcontrol_getTab(TAB_CONTROL* pSource, HWND hwndEdit) {
  */
 static void tabcontrol_drop(TAB_CONTROL* pSource, TAB_PAGE *pDroppedPage, BOOL bAccept) {
 	if (bAccept && currentDropTarget) {
-		tabcontrol_moveTab(pSource, currentDropTarget, pDroppedPage);
+		tabcontrol_moveTab(pSource, currentDropTarget, pDroppedPage, TRUE);
 	}
 	tabcontrol_setAcceptDrop(NULL, FALSE);
 }
@@ -966,16 +977,16 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam, BOOL bDrag) {
 		return;
 	}
 	POINT pt = (POINT){ x, y };
-	if (PtInRect(&pControl->tc_closerRect, pt) && !bDrag) {
+	if (PtInRect(&pControl->tc_closer.tw_bounds, pt) && !bDrag) {
 		mainframe_closeDock(hwnd);
 		return;
 	}
-	if (PtInRect(&pControl->tc_leftScrollerRect, pt) && pControl->tc_firstVisibleTab > 0) {
+	if (PtInRect(&pControl->tc_leftScroller.tw_bounds, pt) && pControl->tc_firstVisibleTab > 0) {
 		pControl->tc_firstVisibleTab--;
 		tabcontrol_repaintTabs(hwnd, pControl);
 		return;
 	}
-	if (PtInRect(&pControl->tc_rightScrollerRect, pt)) {
+	if (PtInRect(&pControl->tc_rightScroller.tw_bounds, pt)) {
 		pControl->tc_firstVisibleTab++;
 		tabcontrol_repaintTabs(hwnd, pControl);
 		return;
@@ -1005,6 +1016,9 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam, BOOL bDrag) {
 	}
 }
 
+/* 
+ * Change the current "rollover" tab. 
+ */
 static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex, int nTabIndex) {
 	BOOL bTrackChanged = FALSE;
 	if (pControl->tc_rolloverTab != nIndex) {
@@ -1060,21 +1074,45 @@ static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex,
 }
 
 /*
+ * Set a new rollover state for a widget. 
+ */
+static BOOL tabcontrol_setWidgetRollover(HWND hwnd, TAB_WIDGET* pWidget, BOOL bRollover) {
+	if (bRollover != pWidget->tw_rollover) {
+		pWidget->tw_rollover = bRollover;
+		RECT rInvalidate = pWidget->tw_bounds;
+		InflateRect(&rInvalidate, 1, 1);
+		InvalidateRect(hwnd, &rInvalidate, TRUE);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+/*
+ * Rollover handling for a tabstrip widget. 
+ */
+static BOOL tabcontrol_handleRollover(HWND hwnd, TAB_WIDGET* pWidget, POINT p) {
+	if (pWidget->tw_visible) {
+		return tabcontrol_setWidgetRollover(hwnd, pWidget, PtInRect(&pWidget->tw_bounds, p));
+	}
+	return FALSE;
+}
+
+/*
  * Handle mouse move for rollover effects.
  */
 static void tabcontrol_handleMouseMove(HWND hwnd, POINT p) {
 	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 	if (p.y >= pControl->tc_stripHeight) {
+		tabcontrol_setWidgetRollover(hwnd, &pControl->tc_leftScroller, FALSE);
+		tabcontrol_setWidgetRollover(hwnd, &pControl->tc_rightScroller, FALSE);
+		tabcontrol_setWidgetRollover(hwnd, &pControl->tc_closer, FALSE);
 		tabcontrol_setRollover(hwnd, pControl, -1, -1);
 		return;
 	}
-	if (pControl->tc_closerRect.bottom >= 0) {
-		BOOL closerRollover = PtInRect(&pControl->tc_closerRect, p);
-		if (closerRollover != pControl->tc_rolloverCloseButton) {
-			pControl->tc_rolloverCloseButton = closerRollover;
-			tabcontrol_repaintTabs(hwnd, pControl);
-			return;
-		}
+	if (tabcontrol_handleRollover(hwnd, &pControl->tc_closer, p) ||
+		tabcontrol_handleRollover(hwnd, &pControl->tc_leftScroller, p) ||
+		tabcontrol_handleRollover(hwnd, &pControl->tc_rightScroller, p)) {
+		return;
 	}
 	int x = pControl->tc_tabstripRect.left;
 	int nTab = -1;
@@ -1163,6 +1201,9 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 		pControl->tc_rolloverTab = -1;
 		pControl->tc_firstTabOffset = 5;
 		pControl->tc_hwnd = hwnd;
+		pControl->tc_leftScroller.tw_type = TW_SCROLL_LEFT;
+		pControl->tc_rightScroller.tw_type = TW_SCROLL_RIGHT;
+		pControl->tc_closer.tw_type = TW_CLOSER;
 		tabcontrol_createTooltip(pControl);
 		SetWindowLongPtr(hwnd, GWLP_TAB_CONTROL, (LONG_PTR)pControl);
 		break;
@@ -1239,8 +1280,8 @@ static void ww_onTimerAction(void) {
 /*
  * Add a window with the given window class to our tab control managing the edit windows. 
  */
-HWND mainframe_addWindow(const char*pszPreferredSlot, const char* pszChildWindowClass, const char* pszTitle, LPVOID lParam) {
-	DOCKING_SLOT* pSlot = mainframe_getSlot(pszPreferredSlot);
+HWND mainframe_addWindow(OPEN_HINT* pHint, const char* pszChildWindowClass, const char* pszTitle, LPVOID lParam) {
+	DOCKING_SLOT* pSlot = mainframe_getSlot(pHint->oh_slotName);
 	if (pSlot == NULL) {
 		pSlot = dockingSlots;
 	}
@@ -1248,9 +1289,9 @@ HWND mainframe_addWindow(const char*pszPreferredSlot, const char* pszChildWindow
 	if (hwnd == NULL) {
 		return 0;
 	}
-	tabcontrol_addTab(pSlot->ds_hwnd, hwnd);
-	if (pszPreferredSlot != NULL) {
-		mainframe_moveWindowAndActivate(hwnd, pszPreferredSlot);
+	tabcontrol_addTab(pSlot->ds_hwnd, hwnd, pHint->oh_activate);
+	if (pHint->oh_slotName != NULL) {
+		mainframe_moveWindowAndActivate(hwnd, pHint->oh_slotName, pHint->oh_activate);
 	}
 	return hwnd;
 }
@@ -1297,11 +1338,23 @@ static DOCKING_SLOT* mainframe_getDockingParent(HWND hwnd) {
 }
 
 /*
- * Returns the name of the docking slot in which the passed editor window is docked.
+ * Returns a string to be used as an open hint later, when opening the window.
  */
-char* mainframe_getDockNameFor(HWND hwnd) {
+char* mainframe_getOpenHint(HWND hwnd) {
+	static char szHint[64];
 	DOCKING_SLOT* pSlot = mainframe_getDockingParent(hwnd);
-	return pSlot != NULL ? pSlot->ds_name : szDefaultSlotName;
+	if (pSlot == NULL) {
+		return szDefaultSlotName;
+	}
+	strcpy(szHint, pSlot->ds_name);
+	TAB_CONTROL* pControl = (TAB_CONTROL*) GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
+	if (pControl) {
+		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, pControl->tc_activeTab);
+		if (pPage && pPage->tp_hwnd == hwnd) {
+			strcat(szHint, ",active");
+		}
+	}
+	return szHint;
 }
 
 /*
@@ -2010,7 +2063,7 @@ int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType) {
 /*
  * Move a mainframe window to a preferred docking slot. 
  */
-void mainframe_moveWindowAndActivate(HWND hwndEdit, const char* pszPreferredSlot) {
+void mainframe_moveWindowAndActivate(HWND hwndEdit, const char* pszPreferredSlot, BOOL bActivate) {
 	if (strcmp(DOCK_NAME_RIGHT, pszPreferredSlot) == 0) {
 		mainframe_manageDocks(MD_ADD_HORIZONTAL);
 	} else if (strcmp(DOCK_NAME_BOTTOM, pszPreferredSlot) == 0) {
@@ -2031,9 +2084,11 @@ void mainframe_moveWindowAndActivate(HWND hwndEdit, const char* pszPreferredSlot
 	if (pPage != NULL) {
 		TAB_CONTROL* pTarget = (TAB_CONTROL*)GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
 		if (pExisting != pSlot) {
-			tabcontrol_moveTab(pSource, pTarget, pPage);
+			tabcontrol_moveTab(pSource, pTarget, pPage, bActivate);
 		}
-		tabcontrol_selectPage(pSource->tc_hwnd, pPage->tp_hwnd);
+		if (bActivate) {
+			tabcontrol_selectPage(pSource->tc_hwnd, pPage->tp_hwnd);
+		}
 	}
 }
 
@@ -2058,4 +2113,23 @@ void mainframe_windowActivated(HWND hwndOld, HWND hwndNew) {
 			tabcontrol_repaintTabs(pSlot2->ds_hwnd, (TAB_CONTROL*)GetWindowLongPtr(pSlot2->ds_hwnd, GWLP_TAB_CONTROL));
 		}
 	}
+}
+
+/*
+ * Parse an open hint text. Note, that the hint text is modified during parsing.
+ */
+OPEN_HINT mainframe_parseOpenHint(char* pszHint) {
+	BOOL bActive = TRUE;
+	if (pszHint != NULL) {
+		bActive = FALSE;
+		char* pszFound = strchr(pszHint, ',');
+		if (pszFound) {
+			bActive = strcmp("active", pszFound + 1) == 0;
+			*pszFound = 0;
+		}
+	}
+	return (OPEN_HINT) {
+		pszHint,
+		bActive
+	};
 }

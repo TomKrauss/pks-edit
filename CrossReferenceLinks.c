@@ -39,6 +39,7 @@
 #include "crossreferencelinks.h"
 #include "markpositions.h"
 #include "textblocks.h"
+#include "mainframe.h"
 
 typedef enum TAG_KIND {
 	TK_FUNCTION = 'f', TK_MEMBER = 'm', TK_VARIABLE = 'v', TK_STRUCT = 's', TK_NUMBER_VALUE = 'n', TK_BOOLEAN_VALUE = 'b', TK_STRING_VALUE = 's', TK_OTHER
@@ -654,7 +655,7 @@ static char *xref_saveCrossReferenceWord(unsigned char *d,unsigned char *dend) {
 /*------------------*/
 /* xref_openFile()	*/
 /*------------------*/
-int xref_openFile(char *name, long line, const char* pszDockName) {
+int xref_openFile(char *name, long line, const char* pszHint) {
 	int ret = 0;
 
 	if (ft_activateWindowOfFileNamed(name)) {
@@ -662,7 +663,7 @@ int xref_openFile(char *name, long line, const char* pszDockName) {
 			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line,0L);
 		else ret = 1;
 	} else {
-		ret = ft_openFileWithoutFileselector(name,line, pszDockName) != NULL;
+		ret = ft_openFileWithoutFileselector(name,line, pszHint) != NULL;
 	}
 
 	return ret;
@@ -805,18 +806,29 @@ static BOOL xref_parseNavigationSpec(NAVIGATION_SPEC* pSpec, RE_PATTERN* pPatter
  * Parse the search list result in the current line and try to navigate to
  * the file and line number which are obtained by parsing the line contents.
  *---------------------------------*/
-void xref_openSearchListResultFromLine(LINE *lp)
-{ 	NAVIGATION_SPEC spec;
+void xref_openSearchListResultFromLine(LINE *lp) { 	
+	NAVIGATION_SPEC spec;
 	const char* pszName = NULL;
 	RE_PATTERN *pPattern = xref_initializeNavigationPattern(_searchListNavigationPattern);
+	WINFO* pActivate = NULL;
+	BOOL bActive;
 
 	while((lp = lp->next) != 0L) {		/* we may skip 1st line ! */
 		if (lp->len && xref_parseNavigationSpec(&spec, pPattern, lp)) {
+			bActive = FALSE;
 			if (spec.comment[0]) {
+				OPEN_HINT hHint = mainframe_parseOpenHint(spec.comment);
+				bActive = hHint.oh_activate;
 				pszName = spec.comment;
 			}
 			xref_openFile(spec.filename, spec.line-1L, pszName);
+			if (bActive) {
+				pActivate = ww_getCurrentEditorWindow();
+			}
 		}
+	}
+	if (pActivate) {
+		ft_selectWindowWithId(pActivate->win_id, TRUE);
 	}
 }
 
@@ -848,7 +860,7 @@ int EdErrorNext(int dir) {
 	if ((dir & LIST_USETOPWINDOW) || !ft_getCurrentErrorDocument()) {
 	/* treat current window as error list */
 		_compflag = 1;
-		WINFO* wp = ww_getWindowFromStack(0);
+		WINFO* wp = ww_getCurrentEditorWindow();
 		ft_setCurrentErrorDocument(wp ? wp->fp : NULL);
 		if (wp) {
 			lineno = wp->caret.ln;

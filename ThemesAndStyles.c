@@ -51,6 +51,7 @@
 #define RULER_FOREROUND_COLOR RGB(140,140,140)
 #define RULER_BACKGROUND_COLOR RGB(248,248,248)
 #define MAIN_WINDOW_BACKGROUND_COLOR RGB(120, 255, 120)
+#define DIALOG_LIGHT_BACKGROUND_COLOR RGB(248,248,248)
 
 extern HDC print_getPrinterDC(void);
 // forward decl.
@@ -203,6 +204,7 @@ static THEME_DATA defaultTheme = {
 	-1,
 	-1,
 	-1,
+	DIALOG_LIGHT_BACKGROUND_COLOR,
 	MAIN_WINDOW_BACKGROUND_COLOR,
 	"Helv",						// (T) use in dialogs.
 	8,
@@ -253,6 +255,7 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_COLOR, "dialogHighlight", offsetof(THEME_DATA, th_dialogHighlight)},
 	{	RT_COLOR, "dialogHighlightText", offsetof(THEME_DATA, th_dialogHighlightText)},
 	{	RT_COLOR, "dialogMenuHighlight", offsetof(THEME_DATA, th_dialogMenuHighlight)},
+	{	RT_COLOR, "dialogLightBackground", offsetof(THEME_DATA, th_dialogLightBackground)},
 	{	RT_COLOR, "dialogActiveTab", offsetof(THEME_DATA, th_dialogActiveTab)},
 	{	RT_COLOR, "rulerForegroundColor", offsetof(THEME_DATA, th_rulerForegroundColor)},
 	{	RT_COLOR, "rulerBackgroundColor", offsetof(THEME_DATA, th_rulerBackgroundColor)},
@@ -607,6 +610,23 @@ HBRUSH theme_getDialogBackgroundBrush() {
 			DeleteObject(hBrushBg);
 		}
 		hBrushBg = CreateSolidBrush(pTheme->th_dialogBackground);
+		pOldTheme = pTheme;
+	}
+	return hBrushBg;
+}
+
+/*
+ * Returns a brush to paint the background of dialogs for the currently selected theme.
+ */
+HBRUSH theme_getDialogLightBackgroundBrush() {
+	static HBRUSH hBrushBg;
+	static THEME_DATA* pOldTheme;
+	THEME_DATA* pTheme = theme_getDefault();
+	if (hBrushBg == NULL || pTheme != pOldTheme) {
+		if (hBrushBg) {
+			DeleteObject(hBrushBg);
+		}
+		hBrushBg = CreateSolidBrush(pTheme->th_dialogLightBackground);
 		pOldTheme = pTheme;
 	}
 	return hBrushBg;
@@ -1024,7 +1044,7 @@ static LRESULT CALLBACK tabSubclassProc(
 
 				SetTextColor(hdc, bHot || i == nSelTab ? pTheme->th_dialogForeground : pTheme->th_dialogBorder);
 
-				FillRect(hdc, &rcItem, (i == nSelTab) ? theme_getDialogBackgroundBrush() : theme_getDialogBackgroundBrush());
+				FillRect(hdc, &rcItem, (i == nSelTab) ? theme_getDialogBackgroundBrush() : theme_getDialogLightBackgroundBrush());
 
 				SetBkMode(hdc, TRANSPARENT);
 

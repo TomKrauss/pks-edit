@@ -232,11 +232,19 @@ EXPORT void ww_setScrollCheckBounds(WINFO *wp)
 }
 
 /*
- * Creates an editor window with the given title, instance count, creation parameter and window
- * placement.
+ * Creates an editor window with the given title, instance count, creation parameter and a textual
+ * hint defining the way the window is activated.
  */
-HWND ww_createEditWindow(char* pTitle, int nCount, LPVOID lParam, const char* pszDockName) {
-	return mainframe_addWindow(pszDockName, szEditClass, pTitle, lParam);
+HWND ww_createEditWindow(char* pTitle, int nCount, LPVOID lParam, const char* pszHint) {
+	char szBuffer[128];
+	OPEN_HINT hHint;
+	if (pszHint == NULL) {
+		hHint = mainframe_parseOpenHint(NULL);
+	} else {
+		strcpy(szBuffer, pszHint);
+		hHint = mainframe_parseOpenHint(szBuffer);
+	}
+	return mainframe_addWindow(&hHint, szEditClass, pTitle, lParam);
 }
 
 /*--------------------------------------------------------------------------
@@ -309,20 +317,6 @@ void ww_requestFocusInTopWindow(void)
 	if (_winlist) {
 		SetFocus(_winlist->ww_handle);
 	}
-}
-
-/*-----------------------------------------------------------
- * ww_getWindowFromStack()
- * get the num'th window from the top.
- */
-WINFO *ww_getWindowFromStack(int num)
-{	WINFO *wp;
-
-	for (wp = _winlist; num > 0 && wp && wp->next; num--, wp = wp->next) 
-		;
-	if (num)
-		return 0;
-	return wp;
 }
 
 /*-----------------------------------------------------------

@@ -44,6 +44,7 @@ typedef struct tagTHEME_DATA {
 	COLORREF th_dialogHighlightText;
 	COLORREF th_dialogMenuHighlight;
 	COLORREF th_mainWindowBackground;
+	COLORREF th_dialogLightBackground;
 	unsigned char th_fontName[32];			// dialog font name to use
 	unsigned int  th_fontSize;				// dialog font size to use
 	unsigned char th_smallFontName[32];		// small dialog font name to use
@@ -94,6 +95,11 @@ extern void theme_enableDarkMode(HWND hwnd);
  * Returns a brush to paint the background of dialogs for the currently selected theme.
  */
 extern HBRUSH theme_getDialogBackgroundBrush();
+
+/*
+ * Returns a brush to paint the light background of dialogs for the currently selected theme.
+ */
+extern HBRUSH theme_getDialogLightBackgroundBrush();
 
 /*
  * Prepare all children of a given parent to be used in dark mode correctly.

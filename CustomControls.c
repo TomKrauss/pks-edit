@@ -310,7 +310,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 			break;
 
 		case WM_PAINT:
-			if ((wp = ww_getWindowFromStack(0)) == 0) {
+			if ((wp = ww_getCurrentEditorWindow()) == 0) {
 				break;
 			}
 			hdc = BeginPaint(hwnd, &ps);

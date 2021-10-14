@@ -1004,7 +1004,8 @@ static void docTypeLboxMeasureitem(MEASUREITEMSTRUCT* mp)
 static void docTypeOwnerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 {
 	char	*	pszId;
-	char *	pszDescription;
+	char *		pszDescription;
+	char*		pszMatch;
 	SIZE		size;
 	SIZE		sizeDescription;
 	int		nLen;
@@ -1012,23 +1013,22 @@ static void docTypeOwnerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem
 	int		spacing = 3;
 
 	if (!doctypes_getDocumentTypeDescription(par, 
-		&pszId, &pszDescription, (char **)0, (char **)0, (char**)0, (int **)0)) {
+		&pszId, &pszDescription, &pszMatch, (char **)0, (char**)0, (int **)0)) {
 		return;
 	}
 	nLen = lstrlen(pszId);
 	GetTextExtentPoint(hdc, pszId, nLen, &size);
 	GetTextExtentPoint(hdc, pszDescription, lstrlen(pszDescription), &sizeDescription);
-	int dTop = nY = (rcp->bottom - rcp->top - size.cy) / 2;
-	TextOut(hdc, rcp->left + spacing, rcp->top + dTop, pszId, nLen);
-	if (size.cx < 110) {
-		HGDIOBJ original = SelectObject(hdc, GetStockObject(DC_PEN));
-		nY = (rcp->top + rcp->bottom) / 2;
-		SetDCPenColor(hdc, RGB(200,200,200));
-		MoveTo(hdc, rcp->left + spacing + size.cx + 5, nY);
-		LineTo(hdc, rcp->right-2*spacing-sizeDescription.cx, nY);
-		SelectObject(hdc,original);
+	int iconWidth = 16;
+	int dTop = (rcp->bottom - rcp->top - iconWidth) / 2;
+	SHFILEINFO sfi = { 0 };
+	SHGetFileInfo(pszMatch, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES);
+	if (sfi.hIcon) {
+		DrawIconEx(hdc, rcp->left + spacing, rcp->top+dTop, sfi.hIcon, iconWidth, iconWidth, 0, NULL, DI_NORMAL);
 	}
-	TextOut(hdc, rcp->left + rcp->right-spacing - sizeDescription.cx, rcp->top + dTop, pszDescription, lstrlen(pszDescription));
+	dTop = nY = (rcp->bottom - rcp->top - size.cy) / 2;
+	TextOut(hdc, rcp->left + 2*spacing + iconWidth, rcp->top + dTop, pszId, nLen);
+	TextOut(hdc, rcp->left + 220, rcp->top + dTop, pszDescription, lstrlen(pszDescription));
 }
 
 /*--------------------------------------------------------------------------

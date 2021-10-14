@@ -233,12 +233,12 @@ void ft_saveWindowStates(void )
 	memset(&ft, 0, sizeof ft);
 	ln_createAndAddSimple(&ft, "[files]");
 
-	/* save names of bottom windows first !! */
-	for (s = ww_getNumberOfOpenWindows()-1; s >= 0; s--) {
-		if ((wp = ww_getWindowFromStack(s)) != 0) {
+	int nWindows = ww_getNumberOfOpenWindows();
+	for (s = 1; s <= nWindows; s++) {
+		if ((wp = ww_findwinid(s)) != 0) {
 			FTABLE* fp = wp->fp;
 			if (!(fp->flags & (F_TRANSIENT | F_NAME_INPUT_REQUIRED))) {
-				xref_addSearchListEntry(&ft, fp->fname, wp->caret.ln, mainframe_getDockNameFor(wp->edwin_handle));
+				xref_addSearchListEntry(&ft, fp->fname, wp->caret.ln, mainframe_getOpenHint(wp->edwin_handle));
 			}
 		}
 	}
@@ -415,9 +415,8 @@ static DWORD ft_globalediting(char *fn)
 /*------------------------------------------------------------
  * ft_openwin()
  */
-static int ft_openwin(FTABLE *fp, const char* pszDockName)
-{
-	if (ww_createEditWindow(fp->fname, ww_getNumberOfOpenWindows()+1, (LPVOID)(uintptr_t)fp, pszDockName) == 0) {
+static int ft_openwin(FTABLE *fp, const char* pszHint) {
+	if (ww_createEditWindow(fp->fname, ww_getNumberOfOpenWindows()+1, (LPVOID)(uintptr_t)fp, pszHint) == 0) {
 		return 0;
 	}
 	return 1;
@@ -479,16 +478,6 @@ int ww_requestToClose(WINFO *wp)
  */
 int ft_selectWindowWithId(int winid, BOOL bPopup) {
 	WINFO *	wp;
-
-	if (winid < 0) {
-		if (winid == SEL_CYCLE) {
-			winid = -(ww_getNumberOfOpenWindows() - 1);
-		}
-		if ((wp = ww_getWindowFromStack(-winid)) == 0) {
-			return 0;
-		}
-		winid = wp->win_id;
-	}
 
 	wp = ww_findwinid(winid);
 	if (wp == 0) {
@@ -573,7 +562,7 @@ int ft_activateWindowOfFileNamed(char *fn) {
  * Open a file with a file name and jump into a line. Place the window to
  * open as defined in the param wsp.
  */
-FTABLE* ft_openFileWithoutFileselector(char *fn, long line, const char *pszDockName) {   
+FTABLE* ft_openFileWithoutFileselector(char *fn, long line, const char *pszHint) {   
 	char 		szResultFn[EDMAXPATHLEN];
 	char		szAsPath[EDMAXPATHLEN];
 	FTABLE 		*fp;
@@ -637,7 +626,7 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, const char *pszDockN
 	fp->flags |= fileflags;
 	if (doctypes_assignDocumentTypeDescriptor(fp, doctypes_getDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
          ft_readfile(fp, fp->documentDescriptor) == 0 || 
-	    (lstrcpy(fp->fname, fn), ft_openwin(fp, pszDockName) == 0)) {
+	    (lstrcpy(fp->fname, fn), ft_openwin(fp, pszHint) == 0)) {
 		ft_destroy(fp);
 		return 0;
 	}

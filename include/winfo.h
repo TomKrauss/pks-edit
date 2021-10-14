@@ -338,12 +338,6 @@ extern void render_repaintWindow(WINFO* wp);
  */
 extern void render_repaintWindowLine(WINFO* wp, long ln);
 
-/**
- * Returns the view num steps from the step - 0 to return the current to level view, 1 to return
- * the one below the top window.
- */
-extern WINFO* ww_getWindowFromStack(int num);
-
 /*------------------------------------------------------------
  * ww_setScrollCheckBounds()
  * calculate scrollops checking bounds

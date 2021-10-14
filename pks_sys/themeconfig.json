@@ -119,6 +119,7 @@
       "darkMode": 1,
       "backgroundColor": "#323132",
       "dialogBackground": "#323232",
+      "dialogLightBackground": "#535353",
       "dialogForeground": "#ececec",
       "dialogBorder": "#adadad",
       "dialogLight": "#777777",

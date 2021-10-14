@@ -182,8 +182,8 @@ EXPORT int compare_files(WINFO* wp0, WINFO* wp1) {
 		error_showErrorById(IDS_MSGDIFFTWOWINDOWS);
 		return 0;
 	}
-	mainframe_moveWindowAndActivate(wp1->edwin_handle, DOCK_NAME_RIGHT);
-	mainframe_moveWindowAndActivate(wp0->edwin_handle, DOCK_NAME_DEFAULT);
+	mainframe_moveWindowAndActivate(wp1->edwin_handle, DOCK_NAME_RIGHT, TRUE);
+	mainframe_moveWindowAndActivate(wp0->edwin_handle, DOCK_NAME_DEFAULT, TRUE);
 	ww_setZoom(wp1, wp0->zoomFactor);
 	return compare_diffFiles(wp0,wp1);
 }
