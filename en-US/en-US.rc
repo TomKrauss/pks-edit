@@ -292,17 +292,16 @@ BEGIN
     DEFPUSHBUTTON   "&OK",1,192,6,42,14,WS_GROUP
 END
 
-DLGCONTROLINS DIALOG 11, 19, 196, 136
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Select Characteset"
-FONT 8, "helv"
+DLGCONTROLINS DIALOGEX 11, 19, 197, 137
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+EXSTYLE WS_EX_PALETTEWINDOW
+CAPTION "Insert Control Character"
+FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    CONTROL         "Text",IDD_OPT11,"Static",SS_BLACKFRAME,0,0,196,84
-    LTEXT           "DEZ: 35  HEX: 0x22",IDD_CSELT1,5,86,186,8,NOT WS_GROUP
-    CONTROL         "Text",111,"Static",SS_BLACKFRAME,0,84,196,12
-    CONTROL         "X",IDD_CSEL,"charset",WS_TABSTOP,2,2,192,78
-    DEFPUSHBUTTON   "OK",1,116,108,40,14
-    PUSHBUTTON      "Cancel",2,36,108,40,14
+    LTEXT           "DEZ: 35  HEX: 0x22",IDD_CSELT1,5,92,186,8,NOT WS_GROUP
+    DEFPUSHBUTTON   "OK",1,148,109,40,14
+    PUSHBUTTON      "Cancel",2,105,109,40,14
+    CONTROL         "Benutzerdefiniert1",IDD_CSEL,"charset",WS_TABSTOP,1,1,195,83
 END
 
 DLGCONVERT DIALOG 42, 57, 186, 54
@@ -917,6 +916,8 @@ BEGIN
 
     DLGCONTROLINS, DIALOG
     BEGIN
+        RIGHTMARGIN, 196
+        BOTTOMMARGIN, 136
     END
 
     DLGCURSOROPTIONS, DIALOG
@@ -1099,6 +1100,11 @@ BEGIN
     0
 END
 
+DLGCONTROLINS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1175,15 +1181,16 @@ BEGIN
         MENUITEM "&Align...\a",                 MENALIGN
         MENUITEM "Shift &right...\a",           MSHFTRIG
         MENUITEM "Shift l&eft...\a",            MSHFTLEF
-        MENUITEM "S&ort File...\a",             MMSORT
+        MENUITEM "S&ort file...\a",             MMSORT
         MENUITEM "Toggle Comment\a",            MTOGGLE_COMMENT
-        POPUP "&Compare Files"
+        POPUP "&Compare Files...\a"
         BEGIN
             MENUITEM "Start comparison...\a",       MENDIFF
             MENUITEM "Navigate next difference\a",  IDM_COMPARE_NAVIGATE_NEXT
             MENUITEM "Navigate previous difference\a", IDM_COMPARE_NAVIGATE_PREV
             MENUITEM "Clear active comparison\a",   IDM_COMPARE_CLEAR
         END
+        MENUITEM "Insert &Control Character...\a", IDM_INSERT_CONTROL_CHAR
         MENUITEM SEPARATOR
         POPUP "Convert"
         BEGIN

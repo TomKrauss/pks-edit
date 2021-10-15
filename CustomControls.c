@@ -259,14 +259,41 @@ static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam
 }
 
 /*------------------------------------------------------------
- * cust_drawItemSelection()
+ * cust_drawCharSetItemSelection()
  */
+#define CHAR_SET_MARGIN			5
 #define N_ROWS		8
 #define N_COLS		32
-static void cust_drawItemSelection(HDC hdc, int c, int cw, int ch)
-{
-	if (c < 256)
-		cust_drawOutline(hdc,(c%N_COLS)*cw,(c/N_COLS)*ch,cw,ch);
+static void cust_drawCharSetItemSelection(HDC hdc, int c, int cw, int ch) {
+	if (c >= 256) {
+		return;
+	}
+	THEME_DATA* pTheme = theme_getDefault();
+	char buf[1];
+	buf[0] = c;
+	int nRet = SaveDC(hdc);
+	RECT rc;
+	rc.left = (c % N_COLS) * cw + CHAR_SET_MARGIN;
+	rc.top = (c / N_COLS) * ch + CHAR_SET_MARGIN;
+	rc.right = rc.left + cw;
+	rc.bottom = rc.top + ch;
+	HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogForeground);
+	FillRect(hdc, &rc, hBrush);
+	SetTextColor(hdc, pTheme->th_dialogBackground);
+	DeleteObject(hBrush);
+	TextOut(hdc, rc.left, rc.top, buf, 1);
+	RestoreDC(hdc, nRet);
+}
+
+/*
+ * Create the font for the char set window procedure
+ */
+static HFONT charset_createFont(THEME_DATA* pTheme) {
+	return font_createFontHandle(pTheme->th_smallFontName, 15, 0, FW_NORMAL);
+}
+
+static void charset_notifyCharChange(HWND hwnd, int nNewChar) {
+	SendMessage(GetParent(hwnd), WM_COMMAND, MAKEWPARAM(GetDlgCtrlID(hwnd), CSN_CHARSELECT), nNewChar);
 }
 
 /*------------------------------------------------------------
@@ -280,7 +307,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 	PAINTSTRUCT	ps;
 	TEXTMETRIC 	tm;
 	int			l,c,newc,oldc;
-	WINFO		*wp;
+	THEME_DATA* pTheme;
 	static int	cw,ch;
 
 	switch(message) {
@@ -310,43 +337,51 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 			break;
 
 		case WM_PAINT:
-			if ((wp = ww_getCurrentEditorWindow()) == 0) {
-				break;
-			}
-			hdc = BeginPaint(hwnd, &ps);
+			{
+				RECT rc;
+				GetClientRect(hwnd, &rc);
+				pTheme = theme_getDefault();
+				hdc = BeginPaint(hwnd, &ps);
+				SetTextColor(hdc, pTheme->th_dialogForeground);
+				SetBkMode(hdc, TRANSPARENT);
+				SetMapMode(hdc, MM_TEXT);
+				hFont = SelectObject(hdc, charset_createFont(pTheme));
+				GetTextMetrics(hdc, &tm);
+				ch = tm.tmHeight + tm.tmExternalLeading + 1;
+				cw = tm.tmAveCharWidth;
 
-			SetMapMode(hdc,MM_TEXT);
-			hFont = SelectObject(hdc, theme_createSmallFixedFont());
-			GetTextMetrics(hdc,&tm);
-			ch = tm.tmHeight + tm.tmExternalLeading;
-			cw = tm.tmAveCharWidth;
-			for (l = 0; l < N_ROWS; l++) {
-				for (c = 0; c < DIM(buf); c++)
-					buf[c] = c+(int)(l*DIM(buf));
-				TextOut(hdc,0,l*ch,buf,c);
+				for (l = 0; l < N_ROWS; l++) {
+					for (c = 0; c < DIM(buf); c++)
+						buf[c] = c + (int)(l * DIM(buf));
+					TextOut(hdc, CHAR_SET_MARGIN, CHAR_SET_MARGIN + l * ch, buf, c);
+				}
+				newc = GetWindowWord(hwnd, GWW_CUSTOMVAL);
+				cust_drawCharSetItemSelection(hdc, newc, cw, ch);
+				if (hwnd == GetFocus()) {
+					GetClientRect(hwnd, &rect);
+					DrawFocusRect(hdc, &rect);
+				}
+				DeleteObject(SelectObject(hdc, hFont));
+				EndPaint(hwnd, &ps);
+
 			}
-			DeleteObject(SelectObject(hdc,hFont));
-			newc = GetWindowWord(hwnd,GWW_CUSTOMVAL);
-			cust_drawItemSelection(hdc,newc,cw,ch);
-			if (hwnd == GetFocus()) {
-				GetClientRect(hwnd,&rect);
-				DrawFocusRect(hdc,&rect);
-			}
-			EndPaint(hwnd,&ps);
 			return 0;
+		case WM_ERASEBKGND: {
+			HDC hdc = (HDC)wParam;
+			RECT rc;
+			GetClientRect(hwnd, &rc);
+			FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
+		}
+	  return 1;
 
 		case WM_CHARCHANGE:
 			oldc = GetWindowWord(hwnd,GWW_CUSTOMVAL);
 			if (oldc == (WORD) wParam)	{
 				return 0;
 			}
-			hdc = GetDC( hwnd );
-			cust_drawItemSelection(hdc,oldc,cw,ch);
-			SetWindowWord(hwnd,GWW_CUSTOMVAL,(WORD)wParam);
-			cust_drawItemSelection(hdc,(int)wParam,cw,ch);
-			ReleaseDC( hwnd, hdc );
-			win_sendParentCommand(hwnd,
-					  MAKELONG(wParam,CSN_CHARSELECT));
+			SetWindowWord(hwnd, GWW_CUSTOMVAL, (WORD)wParam);
+			InvalidateRect(hwnd, NULL, TRUE);
+			charset_notifyCharChange(hwnd, wParam);
 			return 0;
 
 		case CS_QUERYCHAR:
@@ -354,12 +389,14 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 
 		case WM_SETFOCUS:
 		case WM_KILLFOCUS:
-			win_sendRedrawToWindow(hwnd);
+			InvalidateRect(hwnd, NULL, TRUE);
 			return 1;
 
 		case WM_LBUTTONDOWN:
 			SetFocus(hwnd);
-			newc = LOWORD(lParam) / cw + N_COLS * (HIWORD(lParam) / ch);
+			int x = LOWORD(lParam)- CHAR_SET_MARGIN;
+			int y = HIWORD(lParam)- CHAR_SET_MARGIN;
+			newc =  x / cw + (N_COLS * (y / ch));
 			if (newc < 0 || newc >= 256)
 				return 0;
 			SendMessage(hwnd, WM_CHARCHANGE, newc, 0L);

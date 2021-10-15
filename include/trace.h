@@ -26,5 +26,10 @@
 extern void log_errorArgs(int dbg_mask, char *fmt, ...);
 extern void log_vsprintf(char *fmt, ...);
 
+/*
+ * In case a system function failed, use GetLastError to log the failure.
+ */
+extern void log_lastWindowsError(const char* lpszFunction);
+
 #define TRACE_H
 #endif

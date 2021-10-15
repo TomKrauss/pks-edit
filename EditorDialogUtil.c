@@ -163,7 +163,15 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPP
 	hwnd = GetActiveWindow();
 	nSave = nCurrentDialog;
 	nCurrentDialog = nIdDialog;
-	ret = DialogBox(ui_getResourceModule(), MAKEINTRESOURCE(nIdDialog), hwndMain, DlgProc);
+
+	HRSRC  hRes = FindResource(ui_getResourceModule(), MAKEINTRESOURCE(nIdDialog), RT_DIALOG);
+	DLGTEMPLATE* pTemplate = (DLGTEMPLATE*)LoadResource(ui_getResourceModule(), hRes);
+	ret = DialogBoxIndirect(0, pTemplate, hwndMain, DlgProc);
+
+	//ret = DialogBox(ui_getResourceModule(), MAKEINTRESOURCE(nIdDialog), hwndMain, DlgProc);
+	if (ret == -1) {
+		log_lastWindowsError("DoDialog");
+	}
 	nCurrentDialog = nSave;
 	if (hwnd) {
 		SetActiveWindow(hwnd);
@@ -1006,7 +1014,7 @@ int win_callDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* 
 	if (macro_openDialog(pp)) {
 		ret = DoDialog(nId, dlg_standardDialogProcedure,dp, pTooltips);
 		macro_recordOperation(pp);
-		if (ret == IDCANCEL)
+		if (ret == IDCANCEL || ret == -1)
 			return 0;
 	}
 	return ret;

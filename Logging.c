@@ -46,6 +46,27 @@ EXPORT void log_errorArgs(int dbgmask, char *fmt, ...)
 #endif
 }
 
+/*
+ * In case a system function failed, use GetLastError to log the failure.
+ */
+void log_lastWindowsError(const char* lpszFunction) {
+	LPVOID lpMsgBuf;
+	DWORD dw = GetLastError();
+
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM |
+		FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		dw,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf,
+		0, NULL);
+
+	log_errorArgs(DEBUG_ERR, "%s failed with error %d: %s", lpszFunction, dw, lpMsgBuf);
+	LocalFree(lpMsgBuf);
+}
+
 /*-----------------------------------------------------------
  * log_vsprintf()
  */
