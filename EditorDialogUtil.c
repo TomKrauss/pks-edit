@@ -491,13 +491,24 @@ donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 /*--------------------------------------------------------------------------
  * DlgInit()
  */
-static void DlgInit(HWND hDlg, DIALPARS *dp, BOOL initialFlag)
-{
+static void DlgInit(HWND hDlg, DIALPARS *dp, BOOL initialFlag) {
+	static int _intFields[] = { IDD_INT1, IDD_INT2, IDD_INT3, IDD_INT4, IDD_INT5 };
+	static int _spinFields[] = { IDC_SPIN1, IDC_SPIN2, IDC_SPIN3, IDC_SPIN4, IDC_SPIN5 };
 	DIALPARS *dp2;
 	int		nPars;
 
 	for (dp2 = dp, nPars = 0; dp2->dp_item; dp2++) {
 		nPars++;
+	}
+	for (int i = 0; i < DIM(_intFields); i++) {
+		int iSpin = _spinFields[i];
+		int iBuddy = _intFields[i];
+		HWND hwndUpDown = GetDlgItem(hDlg, iSpin);
+		HWND hwndBuddy = GetDlgItem(hDlg, iBuddy);
+		if (hwndBuddy && hwndUpDown) {
+			SendMessage(hwndUpDown, UDM_SETBUDDY, (WPARAM)hwndBuddy, 0);
+			SendMessage(hwndUpDown, UDM_SETRANGE, (WPARAM)0, (LPARAM)10);
+		}
 	}
 	if (!DoDlgInitPars(hDlg, dp, nPars) && initialFlag) {
 		if (!bInPropertySheet) {

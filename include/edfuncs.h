@@ -14,7 +14,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-# ifndef	_EDFUNCS_H
+#ifndef	_EDFUNCS_H
 
 #include <windows.h>
 
@@ -627,5 +627,5 @@ extern void macro_stopRecordingFunctions();
 extern int macro_isParameterStringType(unsigned char typ);
 
 #define	_EDFUNCS_H
-# endif
+#endif
 

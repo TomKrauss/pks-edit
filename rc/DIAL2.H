@@ -127,3 +127,10 @@
 #define IDD_WINTITLE -1
 #define IDD_WINTITLE2 -4
 #define IDD_ENKILLFOCUS	-7
+#define IDC_SPIN1                       1001
+#define IDC_SPIN2                       1002
+#define IDC_SPIN3                       1003
+#define IDC_SPIN4                       1004
+#define IDC_SPIN5                       1005
+
+

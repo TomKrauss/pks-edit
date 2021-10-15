@@ -24,9 +24,6 @@
 #include "editorconfiguration.h"
 #include "winterf.h"
 #include "winfo.h"
-
-#pragma hdrstop
-
 #include "pksedit.h"
 #include "dial2.h"
 #include "pksrc.h"
@@ -1263,30 +1260,43 @@ static void color_showselection(DRAWITEMSTRUCT *dp)
 }
 
 /*--------------------------------------------------------------------------
- * EdDlgDispMode()
+ * dlg_configureEditorModes()
  */
-int EdDlgDispMode(void) {
-	static char 	status[64];
-	static long 	bgcolor;
-	static char 	tabDisplayFillCharacter;
-	static int  	dispmode;
-	static int	tabsize;
-	static int	rmargin;
-	static ITEMS _i = { 
-		{ C_STRING1PAR, 	status }, 
-		{ C_INT1PAR, 		(unsigned char *) &tabsize },
-		{ C_INT1PAR, 		(unsigned char *) &rmargin },
-		{ C_CHAR1PAR, 		(unsigned char *) &tabDisplayFillCharacter },
-		{ C_LONG1PAR, 		(unsigned char *) &bgcolor },
-		{ C_INT1PAR, 		(unsigned char *) &dispmode }
+static DIALPARS* _paramsPerPage[4];
+
+static DIALPARS* _getDialogParsForPage(int pageIndex) {
+	return _paramsPerPage[pageIndex];
+}
+
+int dlg_configureEditorModes(void) {
+	int scrollmin, mindelta, cursafter, flags;
+	char 	status[64];
+	long 	bgcolor;
+	char 	tabDisplayFillCharacter;
+	int  	dispmode;
+	int	tabsize;
+	int	rmargin;
+	int 	nl1, nl2, cr;
+	char 	backupExtension[4];
+	int	opt;
+	int	crypt;
+	DIALPARS _dFileFormat[] = {
+		IDD_STRING1,	sizeof backupExtension,	backupExtension,
+		IDD_INT1,		sizeof nl1,	&nl1,
+		IDD_INT2,		sizeof nl2,	&nl2,
+		IDD_INT3,		sizeof cr,	&cr,
+		IDD_OPT1,		1,			&opt,
+		IDD_OPT2,		2,			&opt,
+		IDD_OPT3,		4,			&opt,
+		IDD_OPT4,		O_CRYPTED,	&crypt,
+		0
 	};
-	static PARAMS	_fp   = { DIM(_i), P_MAYOPEN, _i	};
-	static DIALLIST dlist = {
+	DIALLIST dlist = {
 		&bgcolor, color_lboxfill, color_getitem, 0, color_drawitem,
 		0, 0, color_showselection };
-	static DIALPARS _d[] = {
+	DIALPARS _dDisplayMode[] = {
 		IDD_STRING1,	sizeof status,		status,
-		IDD_CHAR,		sizeof tabDisplayFillCharacter,	& tabDisplayFillCharacter,
+		IDD_CHAR,		sizeof tabDisplayFillCharacter,	&tabDisplayFillCharacter,
 		IDD_FONTSEL2COLOR,	0,			&dlist,
 		IDD_INT1,		sizeof tabsize,	&tabsize,
 		IDD_INT2,		sizeof rmargin,	&rmargin,
@@ -1299,50 +1309,20 @@ int EdDlgDispMode(void) {
 		IDD_OPT11,		SHOWCARET_LINE_HIGHLIGHT, &dispmode,
 		0
 	};
-	EDIT_CONFIGURATION *linp;
-	FTABLE* fp = ft_getCurrentDocument();
-
-	if (fp == 0) {
-		return 0;
-	}
-
-	linp = fp->documentDescriptor;
-	lstrcpy(status,linp->statusline);
-	tabsize = linp->tabsize;
-	rmargin = linp->rmargin;
-	dispmode = linp->dispmode;
-	tabDisplayFillCharacter = linp->tabDisplayFillCharacter;
-	if (win_callDialog(DLGDISPMODE,&_fp,_d, NULL) == 0) {
-		return 0;
-	}
-	lstrcpy(linp->statusline,status);
-	if (tabsize == 0) {
-		tabsize = 8;
-	}
-	linp->dispmode = dispmode;
-	linp->tabDisplayFillCharacter = tabDisplayFillCharacter;
-	if ((linp->tabsize = tabsize) != 0) {
-		ft_forAllViews(fp, ww_tabsChanged, linp);
-	}
-	linp->rmargin = rmargin;
-	return doctypes_documentTypeChanged(TRUE);
-}
-
-/*--------------------------------------------------------------------------
- * EdDlgWorkMode()
- */
-int EdDlgWorkMode(void)
-{
-	static char creationMacroName[20];
-	static char cm[20];
-	static char tabfill;
-	static int  workmode;
-	static int fileflag;
-	static ITEMS	_i   =  	{ 
-		{ C_INT1PAR, (unsigned char *) &workmode }
+	char creationMacroName[20];
+	char cm[20];
+	char tabfill;
+	int  workmode;
+	int fileflag;
+	DIALPARS _dCursorBehavior[] = {
+		IDD_INT3,		sizeof mindelta,	&mindelta,
+		IDD_INT4,		sizeof scrollmin,	&scrollmin,
+		IDD_OPT1,		SC_THUMBTRACK,		&flags,
+		IDD_OPT2,		SC_CURSORCATCH,	&flags,
+		IDD_RADIO1,	CP_POSLOW - CP_POSTOP,&cursafter,
+		0
 	};
-	static PARAMS	_fp   = { DIM(_i), P_MAYOPEN, _i	};
-	static DIALPARS _d[] = {
+	DIALPARS _dWorkMode[] = {
 		IDD_STRING2,	sizeof creationMacroName,	creationMacroName,
 		IDD_STRING3,	sizeof cm,	cm,
 		IDD_CHAR,		sizeof tabfill,&tabfill,
@@ -1358,97 +1338,32 @@ int EdDlgWorkMode(void)
 		IDD_OPT10,		WM_DELETE_MULTIPLE_SPACES, &workmode,
 		0
 	};
-	EDIT_CONFIGURATION *linp;
-	FTABLE* fp;
 
-	if ((fp = ft_getCurrentDocument()) == 0) {
+	ITEMS _i = {
+		{ C_STRING1PAR, 	status }, 
+		{ C_INT1PAR, 		(unsigned char *) &tabsize },
+		{ C_INT1PAR, 		(unsigned char *) &rmargin },
+		{ C_CHAR1PAR, 		(unsigned char *) &tabDisplayFillCharacter },
+		{ C_LONG1PAR, 		(unsigned char *) &bgcolor },
+		{ C_INT1PAR, 		(unsigned char *) &dispmode }
+	};
+	PARAMS	_fp   = { DIM(_i), P_MAYOPEN, _i	};
+	PROPSHEETPAGE psp[4];
+	PROPSHEETHEADER psh;
+	EDIT_CONFIGURATION *linp;
+	FTABLE* fp = ft_getCurrentDocument();
+
+	if (fp == 0) {
 		return 0;
 	}
 
 	linp = fp->documentDescriptor;
-	lstrcpy(creationMacroName, linp->creationMacroName);
-	lstrcpy(cm, linp->closingMacroName);
-	workmode = linp->workmode;
-	tabfill = linp->fillc;
-	fileflag = fp->flags;
-	if (win_callDialog(DLGWORKMODE,&_fp,_d, NULL) == 0)
-		return 0;
-	lstrcpy(linp->creationMacroName, creationMacroName);
-	lstrcpy(linp->closingMacroName, cm);
-	linp->workmode = workmode;
-	linp->fillc = tabfill;
-	fp->flags = fileflag;
-	return doctypes_documentTypeChanged(TRUE);
-}
+	_paramsPerPage[0] = _dDisplayMode;
+	_paramsPerPage[1] = _dWorkMode;
+	_paramsPerPage[2] = _dFileFormat;
+	_paramsPerPage[3] = _dCursorBehavior;
 
-/*--------------------------------------------------------------------------
- * EdDlgCursTabs()
- */
-int EdDlgCursTabs(void)
-{	static int scrollmin,mindelta,cursafter,flags;
-	static ITEMS	_i   =  	{ 
-		{ C_INT1PAR, (unsigned char *) &scrollmin },
-		{ C_INT1PAR, (unsigned char *) &mindelta },
-		{ C_INT1PAR, (unsigned char *) &cursafter },
-		{ C_INT1PAR, (unsigned char *) &flags }
-	};
-	static PARAMS	_fp   = { DIM(_i), P_MAYOPEN, _i	};
-	static DIALPARS _d[] = {
-		IDD_INT3,		sizeof mindelta,	&mindelta,
-		IDD_INT4,		sizeof scrollmin,	&scrollmin,
-		IDD_OPT1,		SC_THUMBTRACK,		&flags,
-		IDD_OPT2,		SC_CURSORCATCH,	&flags,
-		IDD_RADIO1,	CP_POSLOW-CP_POSTOP,&cursafter,
-		0
-	};
-	EDIT_CONFIGURATION *linp;
-
-	if (ft_getCurrentDocument() == 0)
-		return 0;
-
-	linp = ft_getCurrentDocument()->documentDescriptor;
-	flags = linp->scrollflags;
-	cursafter = linp->cursaftersearch;
-	scrollmin = linp->vscroll+1;
-	mindelta = linp->scroll_dy;
-	if (win_callDialog(DLGCURSTABS,&_fp,_d, NULL) == 0)
-		return 0;
-	linp->scrollflags = flags;
-	linp->vscroll = scrollmin-1;
-	linp->scroll_dy = mindelta;
-	linp->cursaftersearch = cursafter;
-	return doctypes_documentTypeChanged(TRUE);
-}
-
-/*--------------------------------------------------------------------------
- * DlgModeVals()
- */
-int DlgModeVals(EDIT_CONFIGURATION *linp)
-{	static int 	nl1,nl2,cr;
-	static char 	backupExtension[4];
-	static int	opt;
-	static int	crypt;
-	static ITEMS	_i   =  	{ 
-		{ C_STRING1PAR,(unsigned char *) backupExtension },
-		{ C_INT1PAR, 	(unsigned char *) &nl1 },
-		{ C_INT1PAR, 	(unsigned char *) &nl2 },
-		{ C_INT1PAR, 	(unsigned char *) &cr }
-	};
-	static PARAMS	_fp   = { DIM(_i), P_MAYOPEN, _i	};
-	static DIALPARS _d[] = {
-		IDD_STRING1,	sizeof backupExtension,	backupExtension,
-		IDD_INT1,		sizeof nl1,	&nl1,
-		IDD_INT2,		sizeof nl2,	&nl2,
-		IDD_INT3,		sizeof cr,	&cr,
-		IDD_OPT1,		1,			&opt,
-		IDD_OPT2,		2,			&opt,
-		IDD_OPT3,		4,			&opt,
-		IDD_OPT4,		O_CRYPTED,	&crypt,
-		0
-	};
-	int	ret;
-
-	lstrcpy(backupExtension,linp->backupExtension);
+	lstrcpy(backupExtension, linp->backupExtension);
 	opt = 0;
 	if ((nl1 = linp->nl) >= 0) {
 		opt |= 1;
@@ -1461,25 +1376,86 @@ int DlgModeVals(EDIT_CONFIGURATION *linp)
 	}
 	crypt = linp->workmode & O_CRYPTED;
 
-	if ((ret = win_callDialog(DLGFILEFORMAT,&_fp,_d, NULL)) == 0 ||
-		ret == IDCANCEL) {
+	flags = linp->scrollflags;
+	cursafter = linp->cursaftersearch;
+	scrollmin = linp->vscroll + 1;
+	mindelta = linp->scroll_dy;
+	lstrcpy(status,linp->statusline);
+	tabsize = linp->tabsize;
+	rmargin = linp->rmargin;
+	dispmode = linp->dispmode;
+	tabDisplayFillCharacter = linp->tabDisplayFillCharacter;
+	linp = fp->documentDescriptor;
+	lstrcpy(creationMacroName, linp->creationMacroName);
+	lstrcpy(cm, linp->closingMacroName);
+	workmode = linp->workmode;
+	tabfill = linp->fillc;
+	fileflag = fp->flags;
+
+	dlg_setXDialogParams(_getDialogParsForPage, TRUE);
+	memset(&psh, 0, sizeof psh);
+	memset(psp, 0, sizeof psp);
+
+	psp[0].dwSize = sizeof(psp[0]);
+	psp[0].hInstance = ui_getResourceModule();
+	psp[0].pszTemplate = MAKEINTRESOURCE(DLGDISPMODE);
+	psp[0].pfnDlgProc = dlg_standardDialogProcedure;
+
+	psp[1].dwSize = sizeof(psp[1]);
+	psp[1].hInstance = ui_getResourceModule();
+	psp[1].pszTemplate = MAKEINTRESOURCE(DLGWORKMODE);
+	psp[1].pfnDlgProc = dlg_standardDialogProcedure;
+
+	psp[2].dwSize = sizeof(psp[2]);
+	psp[2].hInstance = ui_getResourceModule();
+	psp[2].pszTemplate = MAKEINTRESOURCE(DLGFILEFORMAT);
+	psp[2].pfnDlgProc = dlg_standardDialogProcedure;
+
+	psp[3].dwSize = sizeof(psp[3]);
+	psp[3].hInstance = ui_getResourceModule();
+	psp[3].pszTemplate = MAKEINTRESOURCE(DLGCURSTABS);
+	psp[3].pfnDlgProc = dlg_standardDialogProcedure;
+
+	psh.dwSize = sizeof(psh);
+	psh.dwFlags = PSH_PROPSHEETPAGE | PSH_USECALLBACK;
+	psh.hwndParent = hwndMain;
+	psh.hInstance = ui_getResourceModule();
+	psh.pszIcon = 0;
+	psh.pszCaption = (LPSTR)"Editing Options...";
+	psh.nPages = sizeof(psp) / sizeof(psp[0]);
+	psh.nStartPage = 0;
+	psh.ppsp = (LPCPROPSHEETPAGE)&psp;
+	psh.pfnCallback = (PFNPROPSHEETCALLBACK)dlg_propertySheetCallback;
+
+	INT_PTR tempRet = PropertySheet(&psh);
+	if (tempRet != 1) {
 		return 0;
 	}
-
+	lstrcpy(linp->statusline,status);
+	if (tabsize == 0) {
+		tabsize = 8;
+	}
+	linp->dispmode = dispmode;
+	linp->tabDisplayFillCharacter = tabDisplayFillCharacter;
+	if ((linp->tabsize = tabsize) != 0) {
+		ft_forAllViews(fp, ww_tabsChanged, linp);
+	}
+	linp->rmargin = rmargin;
+	lstrcpy(linp->creationMacroName, creationMacroName);
+	lstrcpy(linp->closingMacroName, cm);
+	linp->workmode = workmode;
+	linp->fillc = tabfill;
+	fp->flags = fileflag;
 	linp->workmode = (linp->workmode & (~O_CRYPTED)) | crypt;
-	lstrcpy(linp->backupExtension,backupExtension);
+	lstrcpy(linp->backupExtension, backupExtension);
 	linp->nl = (opt & 1) ? nl1 : -1;
 	linp->nl2 = (opt & 2) ? nl2 : -1;
 	linp->cr = (opt & 4) ? cr : -1;
-
-	return 1;
-}
-
-int EdDlgModeVals(void)
-{
-	if (ft_getCurrentDocument() == 0)
-		return 0;
-	return DlgModeVals(ft_getCurrentDocument()->documentDescriptor);
+	linp->scrollflags = flags;
+	linp->vscroll = scrollmin - 1;
+	linp->scroll_dy = mindelta;
+	linp->cursaftersearch = cursafter;
+	return doctypes_documentTypeChanged(TRUE);
 }
 
 /*--------------------------------------------------------------------------

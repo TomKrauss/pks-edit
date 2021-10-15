@@ -147,6 +147,7 @@
 #define IDS_MSGNOMOREDIFFS              116
 #define IDM_ABOUT                       116
 #define IDS_MSGDIFFTWOWINDOWS           117
+#define IDD_OPT18                       117
 #define IDS_MSGCLIPNOTCOMPLETE          118
 #define IDS_MSGESCAPEUNDEF              119
 #define IDS_MSGMACROIDTOOLONG           120
@@ -230,9 +231,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        154
+#define _APS_NEXT_RESOURCE_VALUE        155
 #define _APS_NEXT_COMMAND_VALUE         40007
-#define _APS_NEXT_CONTROL_VALUE         1001
+#define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -611,6 +611,9 @@
     <Image Include="RC\BITMAP1.BMP">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="rc\new_icons.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Xsd Include="pksedit.xsd" />

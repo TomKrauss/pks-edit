@@ -1238,6 +1238,7 @@
     <Image Include="rc\crossreference.ico" />
     <Image Include="RC\ICON2.ICO" />
     <Image Include="RC\ICON3.ICO" />
+    <Image Include="rc\new_icons.bmp" />
     <Image Include="rc\next.ico" />
     <Image Include="rc\previous.ico" />
     <Image Include="rc\template.ico" />
