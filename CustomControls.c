@@ -261,31 +261,10 @@ static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam
 /*------------------------------------------------------------
  * cust_drawCharSetItemSelection()
  */
-#define CHAR_SET_MARGIN			5
-#define N_ROWS		8
 #define N_COLS		32
-static void cust_drawCharSetItemSelection(HDC hdc, int c, int cw, int ch) {
-	if (c >= 256) {
-		return;
-	}
-	THEME_DATA* pTheme = theme_getDefault();
-	char buf[1];
-	buf[0] = c;
-	int nRet = SaveDC(hdc);
-	RECT rc;
-	rc.left = (c % N_COLS) * cw + CHAR_SET_MARGIN;
-	rc.top = (c / N_COLS) * ch + CHAR_SET_MARGIN;
-	rc.right = rc.left + cw;
-	rc.bottom = rc.top + ch;
-	HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogForeground);
-	FillRect(hdc, &rc, hBrush);
-	SetTextColor(hdc, pTheme->th_dialogBackground);
-	DeleteObject(hBrush);
-	TextOut(hdc, rc.left, rc.top, buf, 1);
-	RestoreDC(hdc, nRet);
-}
+#define N_ROWS		(256 / N_COLS)
 
-/*
+ /*
  * Create the font for the char set window procedure
  */
 static HFONT charset_createFont(THEME_DATA* pTheme) {
@@ -296,19 +275,85 @@ static void charset_notifyCharChange(HWND hwnd, int nNewChar) {
 	SendMessage(GetParent(hwnd), WM_COMMAND, MAKEWPARAM(GetDlgCtrlID(hwnd), CSN_CHARSELECT), nNewChar);
 }
 
+static void charset_rectFor(RECT* pClientRect, RECT* pPaint, int cChar) {
+	int h = pClientRect->bottom - pClientRect->top;
+	int w = pClientRect->right - pClientRect->left;
+	int nCol = cChar % N_COLS;
+	int nRow = cChar / N_COLS;
+	pPaint->left = nCol * w / N_COLS;
+	pPaint->top = nRow * h / N_ROWS;
+	pPaint->right = (nCol + 1) * w / N_COLS;
+	pPaint->bottom = (nRow + 1) * h / N_ROWS;
+}
+
+static void charset_paint(HWND hwnd, HDC hdc) {
+	char 		buf[2];
+	THEME_DATA* pTheme = theme_getDefault();
+	RECT rc;
+	TEXTMETRIC tm;
+
+	GetClientRect(hwnd, &rc);
+	SetTextColor(hdc, pTheme->th_dialogForeground);
+	SetBkMode(hdc, TRANSPARENT);
+	SetMapMode(hdc, MM_TEXT);
+	HFONT hFont = SelectObject(hdc, charset_createFont(pTheme));
+	GetTextMetrics(hdc, &tm);
+	HPEN hPen = CreatePen(0, 1, pTheme->th_dialogBorder);
+	HPEN hPenOld = SelectObject(hdc, hPen);
+	int h = rc.bottom - rc.top;
+	int w = rc.right - rc.left;
+	for (int i = 1; i < N_ROWS; i++) {
+		int y = i * h / N_ROWS;
+		MoveTo(hdc, rc.left, y);
+		LineTo(hdc, rc.right, y);
+	}
+	for (int i = 1; i < N_COLS; i++) {
+		int x = i * w / N_COLS;
+		MoveTo(hdc, x, rc.top);
+		LineTo(hdc, x, rc.bottom);
+	}
+	MoveTo(hdc, rc.left, rc.top);
+	LineTo(hdc, rc.right, rc.top);
+	LineTo(hdc, rc.right, rc.bottom);
+	LineTo(hdc, rc.left, rc.bottom);
+	LineTo(hdc, rc.left, rc.top);
+	DeleteObject(SelectObject(hdc, hPenOld));
+
+	HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogForeground);
+	int newc = GetWindowWord(hwnd, GWW_CUSTOMVAL);
+	for (int nRow = 0; nRow < N_ROWS; nRow++) {
+		for (int nCol = 0; nCol < N_COLS; nCol++) {
+			RECT rect;
+			int c = nRow * N_COLS + nCol;
+			charset_rectFor(&rc, &rect, c);
+			buf[0] = c;
+			if (newc == c) {
+				FillRect(hdc, &rect, hBrush);
+				SetTextColor(hdc, pTheme->th_dialogBackground);
+				if (hwnd == GetFocus()) {
+					DrawFocusRect(hdc, &rect);
+				}
+			}
+			TextOut(hdc, rect.left + (rect.right-rect.left-tm.tmAveCharWidth)/2, rect.top + (rect.bottom-rect.top-tm.tmHeight)/2, buf, 1);
+			if (newc == c) {
+				SetTextColor(hdc, pTheme->th_dialogForeground);
+			}
+		}
+	}
+	DeleteObject(SelectObject(hdc, hFont));
+	DeleteObject(hBrush);
+}
+
 /*------------------------------------------------------------
  * CharSetWndProc()
  */
 static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
-{	char 		buf[N_COLS];
-	HDC			hdc;
-	RECT		rect;
-	HFONT		hFont;
+{
 	PAINTSTRUCT	ps;
-	TEXTMETRIC 	tm;
-	int			l,c,newc,oldc;
+	HDC hdc;
+	int			newc,oldc;
 	THEME_DATA* pTheme;
-	static int	cw,ch;
+	RECT rc;
 
 	switch(message) {
 		case WM_CREATE:
@@ -338,51 +383,39 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 
 		case WM_PAINT:
 			{
-				RECT rc;
-				GetClientRect(hwnd, &rc);
-				pTheme = theme_getDefault();
 				hdc = BeginPaint(hwnd, &ps);
-				SetTextColor(hdc, pTheme->th_dialogForeground);
-				SetBkMode(hdc, TRANSPARENT);
-				SetMapMode(hdc, MM_TEXT);
-				hFont = SelectObject(hdc, charset_createFont(pTheme));
-				GetTextMetrics(hdc, &tm);
-				ch = tm.tmHeight + tm.tmExternalLeading + 1;
-				cw = tm.tmAveCharWidth;
-
-				for (l = 0; l < N_ROWS; l++) {
-					for (c = 0; c < DIM(buf); c++)
-						buf[c] = c + (int)(l * DIM(buf));
-					TextOut(hdc, CHAR_SET_MARGIN, CHAR_SET_MARGIN + l * ch, buf, c);
-				}
-				newc = GetWindowWord(hwnd, GWW_CUSTOMVAL);
-				cust_drawCharSetItemSelection(hdc, newc, cw, ch);
-				if (hwnd == GetFocus()) {
-					GetClientRect(hwnd, &rect);
-					DrawFocusRect(hdc, &rect);
-				}
-				DeleteObject(SelectObject(hdc, hFont));
+				charset_paint(hwnd, ps.hdc);
 				EndPaint(hwnd, &ps);
 
 			}
 			return 0;
 		case WM_ERASEBKGND: {
+			pTheme = theme_getDefault();
 			HDC hdc = (HDC)wParam;
-			RECT rc;
 			GetClientRect(hwnd, &rc);
 			FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
 		}
 	  return 1;
 
-		case WM_CHARCHANGE:
+		case WM_CHARCHANGE: {
+			RECT rcPaint;
 			oldc = GetWindowWord(hwnd,GWW_CUSTOMVAL);
 			if (oldc == (WORD) wParam)	{
 				return 0;
 			}
+			GetClientRect(hwnd, &rc);
+			if (oldc >= 0) {
+				charset_rectFor(&rc, &rcPaint, (int)oldc);
+				InvalidateRect(hwnd, &rcPaint, TRUE);
+			}
 			SetWindowWord(hwnd, GWW_CUSTOMVAL, (WORD)wParam);
-			InvalidateRect(hwnd, NULL, TRUE);
-			charset_notifyCharChange(hwnd, wParam);
+			if (wParam >= 0) {
+				charset_rectFor(&rc, &rcPaint, (int)wParam);
+				InvalidateRect(hwnd, &rcPaint, TRUE);
+			}
+			charset_notifyCharChange(hwnd, (int)wParam);
 			return 0;
+		}
 
 		case CS_QUERYCHAR:
 			return GetWindowWord(hwnd,GWW_CUSTOMVAL);
@@ -394,12 +427,16 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 
 		case WM_LBUTTONDOWN:
 			SetFocus(hwnd);
-			int x = LOWORD(lParam)- CHAR_SET_MARGIN;
-			int y = HIWORD(lParam)- CHAR_SET_MARGIN;
-			newc =  x / cw + (N_COLS * (y / ch));
-			if (newc < 0 || newc >= 256)
-				return 0;
-			SendMessage(hwnd, WM_CHARCHANGE, newc, 0L);
+			{
+				GetClientRect(hwnd, &rc);
+				int x = LOWORD(lParam);
+				int y = HIWORD(lParam);
+				newc = x * N_COLS / (rc.right-rc.left) + (y * N_ROWS / (rc.bottom - rc.top)) * N_COLS;
+				if (newc < 0 || newc >= 256)
+					return 0;
+				SendMessage(hwnd, WM_CHARCHANGE, newc, 0L);
+
+			}
 			return 0;
 	}
 	return DefWindowProc(hwnd,message,wParam,lParam);
