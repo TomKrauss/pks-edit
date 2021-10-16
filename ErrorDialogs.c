@@ -25,6 +25,7 @@
 #include "winutil.h"
 #include "stringutil.h"
 #include "themes.h"
+#include "customcontrols.h"
 
 #include <stdarg.h>
 #include "dial2.h"
@@ -144,50 +145,11 @@ void Panic(LPSTR s)
 }
 
 /*------------------------------------------------------------
- * DlgError()
- */
-#define	NSEC		5		/* stay open maximum 10 seconds */
-static HWND hwndError;
-static UINT_PTR idTimer;
-static INT_PTR DlgError(HWND hDlg,UINT message,WPARAM wParam, LPARAM lParam)
-{ 	
-	WINDOWPLACEMENT 	ws;
-
-	switch(message) {
-		case WM_INITDIALOG:
-			if (prof_getwinstate("ErrWin",0,&ws)) {
-				SetWindowPlacement(hDlg, &ws);
-			}
-			return FALSE;
-
-		case WM_CLOSE:
-		case WM_TIMER:
-			ShowWindow(hDlg,SW_HIDE);
-			return TRUE;
-
-		case WM_MOVE:
-		case WM_SIZE:
-			win_getstate(hDlg,&ws);
-			prof_savewinstate("ErrWin",0,&ws);
-			break;
-
-		case WM_DESTROY:
-			if (idTimer) {
-				KillTimer(hDlg,idTimer);
-				idTimer = 0;
-			}
-			hwndError = 0;
-			return TRUE;
-	}
-	return FALSE;
-}
-
-/*------------------------------------------------------------
  * error_displayErrorToast()
  * If configured, popup a temporary dialog window showing an error.
  */
 void error_displayErrorToast(const char* fmt, va_list ap)
-{ 	static DLGPROC lpfnDlgProc;
+{
 	char buf[256];
 
 	wvsprintf(buf,fmt,ap);
@@ -198,16 +160,7 @@ void error_displayErrorToast(const char* fmt, va_list ap)
 		return;
 	}
 
-	win_createModelessDialog(&hwndError,"DLGERROR",
-					  DlgError,&lpfnDlgProc);
-	if (hwndError) {
-		ShowWindow(hwndError,SW_SHOWNOACTIVATE);
-		SetDlgItemText(hwndError,IDD_STRING1,buf);
-		if (idTimer) {
-			KillTimer(hwndError,idTimer);
-		}
-		idTimer = SetTimer(hwndError,1,NSEC*1000,0);
-	}
+	cust_createToastWindow(buf);
 }
 
 /*------------------------------------------------------------
@@ -239,9 +192,6 @@ void error_showMessageInStatusbar(int nId, ...) {
 void error_closeErrorWindow(void)
 {
 	st_seterrmsg((char *)0);
-	if (hwndError) {
-		ShowWindow(hwndError,SW_HIDE);
-	}
 }
 
 /*--------------------------------------------------------------------------

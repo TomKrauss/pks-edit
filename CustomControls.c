@@ -298,7 +298,7 @@ static void charset_paint(HWND hwnd, HDC hdc) {
 	SetMapMode(hdc, MM_TEXT);
 	HFONT hFont = SelectObject(hdc, charset_createFont(pTheme));
 	GetTextMetrics(hdc, &tm);
-	HPEN hPen = CreatePen(0, 1, pTheme->th_dialogBorder);
+	HPEN hPen = CreatePen(PS_SOLID, 1, pTheme->th_dialogBorder);
 	HPEN hPenOld = SelectObject(hdc, hPen);
 	int h = rc.bottom - rc.top;
 	int w = rc.right - rc.left;
@@ -347,8 +347,7 @@ static void charset_paint(HWND hwnd, HDC hdc) {
 /*------------------------------------------------------------
  * CharSetWndProc()
  */
-static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
-{
+static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam) {
 	PAINTSTRUCT	ps;
 	HDC hdc;
 	int			newc,oldc;
@@ -442,6 +441,80 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 	return DefWindowProc(hwnd,message,wParam,lParam);
 }
 
+static void toast_paint(HWND hwnd, HDC hdc, char* pszText) {
+	THEME_DATA* pTheme = theme_getDefault();
+	RECT rc;
+	TEXTMETRIC tm;
+
+	GetClientRect(hwnd, &rc);
+	SetTextColor(hdc, pTheme->th_dialogForeground);
+	SetBkMode(hdc, TRANSPARENT);
+	SetMapMode(hdc, MM_TEXT);
+	HFONT hFont = SelectObject(hdc, charset_createFont(pTheme));
+	GetTextMetrics(hdc, &tm);
+	HPEN hPen = CreatePen(PS_SOLID, 2, pTheme->th_dialogBorder);
+	HPEN hPenOld = SelectObject(hdc, hPen);
+	MoveTo(hdc, rc.left+1, rc.top+1);
+	LineTo(hdc, rc.right-1, rc.top+1);
+	LineTo(hdc, rc.right-1, rc.bottom-1);
+	LineTo(hdc, rc.left+1, rc.bottom-1);
+	LineTo(hdc, rc.left+1, rc.top+1);
+	DeleteObject(SelectObject(hdc, hPenOld));
+
+	TextOut(hdc, 10, (rc.bottom - rc.top - tm.tmHeight) / 2, pszText, (int) strlen(pszText));
+	DeleteObject(SelectObject(hdc, hFont));
+}
+
+/*------------------------------------------------------------
+ * ToastWndProc()
+ */
+#define	NSEC		5		/* stay open maximum 10 seconds */
+static UINT_PTR idTimer;
+static HWND hwndToastWindow;
+static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	PAINTSTRUCT	ps;
+	HDC hdc;
+	THEME_DATA* pTheme;
+	RECT rc;
+	char szBuf[128];
+
+	switch (message) {
+	case WM_PAINT: {
+		hdc = BeginPaint(hwnd, &ps);
+		GetWindowText(hwnd, szBuf, sizeof szBuf);
+		toast_paint(hwnd, ps.hdc, szBuf);
+		EndPaint(hwnd, &ps);
+	}
+	return 0;
+	case WM_ERASEBKGND: {
+		pTheme = theme_getDefault();
+		HDC hdc = (HDC)wParam;
+		GetClientRect(hwnd, &rc);
+		FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
+	}
+	return 1;
+	case WM_CLOSE:
+	case WM_TIMER:
+		//ShowWindow(hwnd, SW_HIDE);
+		AnimateWindow(hwndToastWindow, 300, AW_VER_POSITIVE|AW_HIDE);
+		if (idTimer) {
+			KillTimer(hwnd, idTimer);
+			idTimer = 0;
+		}
+		return TRUE;
+
+	case WM_DESTROY:
+		if (idTimer) {
+			KillTimer(hwnd, idTimer);
+			idTimer = 0;
+		}
+		hwndToastWindow = NULL;
+		return TRUE;
+
+	}
+	return DefWindowProc(hwnd, message, wParam, lParam);
+}
+
 /*--------------------------------------------------------------------------
  * cust_initializeWindowClassDefaults()
  * Can be used to initialize the class defaults of a window class to create.
@@ -479,7 +552,50 @@ EXPORT int cust_registerControls(void)
 	if (!RegisterClass(&wc)) {
 		return 0;
 	}
-     return 1;
+
+	wc.lpfnWndProc = ToastWndProc;
+	wc.lpszClassName = "pksToast";
+	if (!RegisterClass(&wc)) {
+		return 0;
+	}
+	return 1;
+}
+
+/*
+ * Create a toast window. 
+ */
+HWND cust_createToastWindow(char* pszText) {
+	if (hwndToastWindow == NULL) {
+		hwndToastWindow = CreateWindowEx(WS_EX_TOPMOST, "pksToast", NULL, WS_POPUP, 0, 0, 0, 0, hwndMain, NULL, hInst, NULL);
+		if (!hwndToastWindow) {
+			log_lastWindowsError("createToastWindow");
+			return NULL;
+		}
+	}
+	if (idTimer) {
+		KillTimer(hwndToastWindow, idTimer);
+	}
+	idTimer = SetTimer(hwndToastWindow, 1, NSEC * 1000, 0);
+	int nHeight = 50;
+	RECT rect;
+	GetWindowRect(hwndMain, &rect);
+	RECT rc;
+	SetRectEmpty(&rc);
+	AdjustWindowRectEx(&rc,                // pointer to the RECT structure to use
+		GetWindowLong(hwndMain, GWL_STYLE),     // window styles
+		FALSE,								// TRUE if the window has a menu, FALSE if not
+		GetWindowLong(hwndMain, GWL_EXSTYLE));
+	rect.left -= rc.left;
+	rect.right -= rc.right;
+	rect.top -= rc.top;
+	rect.bottom -= rc.bottom;
+	int width = rect.right - rect.left;
+	int height = rect.bottom - rect.top;
+	SetWindowText(hwndToastWindow, pszText);
+	SetWindowPos(hwndToastWindow, NULL, rect.left, rect.top + height - 50, width, 50, SWP_NOOWNERZORDER | SWP_NOACTIVATE);
+	AnimateWindow(hwndToastWindow, 300, AW_VER_NEGATIVE);
+	InvalidateRect(hwndToastWindow, NULL, FALSE);
+	return hwndToastWindow;
 }
 
 /*--------------------------------------------------------------------------

@@ -91,6 +91,11 @@ extern void cust_measureListBoxRowWithIcon(MEASUREITEMSTRUCT* mp);
  */
 extern void cust_drawListBoxRowWithIcon(HDC hdc, RECT* rcp, HICON hIcon, char* pszText);
 
+/*
+ * Create a toast window and show the passed text.
+ */
+extern HWND cust_createToastWindow(char* pszText);
+
 #define CUSTOMCONTROLS_H
 
 #endif // !CUSTOMCONTROLS_H
