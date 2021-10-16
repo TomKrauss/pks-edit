@@ -32,11 +32,13 @@ typedef struct tagEDFONTATTRIBUTES EDFONTATTRIBUTES;
  */
 typedef struct tagEDTEXTSTYLE EDTEXTSTYLE;
 
+typedef struct tagTHEME_DATA THEME_DATA;
+
 /*------------------------------------------------------------
  * font_selectFontStyle()
  * select a font and return handle to old Font. Optionally pass a font style (may be NULL)
  */
-extern void font_selectFontStyle(WINFO* wp, FONT_STYLE_CLASS nStyleIndex, HDC hdc);
+extern void font_selectFontStyle(THEME_DATA* pTheme, WINFO* wp, FONT_STYLE_CLASS nStyleIndex, HDC hdc);
 
 /*------------------------------------------------------------
  * Create a font with a name (possible empty) and a given size.

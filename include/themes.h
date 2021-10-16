@@ -51,6 +51,7 @@ typedef struct tagTHEME_DATA {
 	unsigned int  th_smallFontSize;			// small dialog font size to use
 	unsigned int  th_mainframeMargin;		// The margin from the mainframe tabs to the surrounding window.
 	EDTEXTSTYLE* th_styles;					// The text styles for this theme.
+	EDTEXTSTYLE* th_styleLookup[50];		// pre-processed array of styles for lookup
 } THEME_DATA;
 
 /*
@@ -60,7 +61,12 @@ typedef struct tagTHEME_DATA {
 extern void theme_setCurrent(unsigned char* pszThemeName);
 
 /*
- * Returns the default theme currently selected.
+ * Returns the theme currently selected.
+ */
+extern THEME_DATA* theme_getCurrent();
+
+/*
+ * Returns the default theme.
  */
 extern THEME_DATA* theme_getDefault();
 

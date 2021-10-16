@@ -81,7 +81,16 @@ typedef struct tagINDENTATION {
     unsigned char   tbits[MAXLINELEN / 8];	// Bitset Tabstops - allows us to have individual tab sizes (non standard).
 } INDENTATION;
 
-typedef int (*RENDER_LINE_FUNCTION)(HDC hdc, int x, int y, WINFO* wp, LINE* lp, long lineNo);
+typedef struct tagTHEME_DATA THEME_DATA;
+
+typedef struct tagRENDER_CONTEXT {
+    HDC     rc_hdc;
+    BOOL    rc_printing;
+    WINFO*  rc_wp;
+    THEME_DATA*  rc_theme;
+} RENDER_CONTEXT;
+
+typedef int (*RENDER_LINE_FUNCTION)(RENDER_CONTEXT* pRC, int x, int y, LINE* lp, long lineNo);
 
 /*--------------------------------------------------------------------------
  * indent_calculateTabStop()
@@ -277,7 +286,7 @@ extern int bl_delete(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfirst,
 /*--------------------------------------------------------------------------
  * render_singleLineOnDevice()
  */
-extern int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO* wp, LINE* lp, long lineNo);
+extern int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE* lp, long lineNo);
 
 extern void wt_tcursor(WINFO* wp, int type);
 

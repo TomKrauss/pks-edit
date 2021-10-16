@@ -1215,7 +1215,7 @@ static void draw_ruler(WINFO *wp) {
 	FTABLE *		fp = wp->fp;
 	HDC 		hdc;
 	PAINTSTRUCT ps;
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 
 	memset(&ps, 0, sizeof ps);
 	hdc = BeginPaint(wp->ru_handle, &ps);
@@ -1317,7 +1317,7 @@ static void draw_lineNumbers(WINFO* wp) {
 	EDIT_CONFIGURATION* lin = fp->documentDescriptor;
 	HDC 		hdc;
 	PAINTSTRUCT ps;
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 
 	hdc = BeginPaint(wp->lineNumbers_handle, &ps);
 	GetClientRect(wp->lineNumbers_handle, &rect);
@@ -1328,7 +1328,7 @@ static void draw_lineNumbers(WINFO* wp) {
 	FillRect(hdc, &ps.rcPaint, bgBrush);
 	DeleteObject(bgBrush);
 
-	font_selectFontStyle(wp, 0, hdc);
+	font_selectFontStyle(pTheme, wp, 0, hdc);
 	SetTextColor(hdc, pTheme->th_rulerForegroundColor);
 	SetBkMode(hdc, TRANSPARENT);
 	int padding = 3;

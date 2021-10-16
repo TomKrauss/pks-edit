@@ -573,7 +573,7 @@ static void tabcontrol_getCloserRect(TAB_PAGE* pPage, int x, int height, RECT* p
 static void tabcontrol_paintWidgetContents(HDC hdc, RECT* pRect, BOOL bRollover, TAB_WIDGET_TYPE twWidgetType) {
 	int nDelta = 4;
 	int h2;
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	LOGBRUSH brush;
 	brush.lbColor = pTheme->th_dialogBorder;
 	brush.lbHatch = 0;
@@ -714,7 +714,7 @@ static void tabcontrol_measureTabStrip(HWND hwnd, TAB_CONTROL* pControl) {
 static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL bRollover, int x, int y, int height, int xMax) {
 	char szBuffer[128];
 	char* pszTitle;
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	int nIconSize = TAB_ICON_SIZE;
 	int nMargin = TAB_ICON_MARGIN;
 	RECT rect;
@@ -800,7 +800,7 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
  * Repaint the tab strip of a tab control including the tabs, an optional docking close button etc.
  */
 static void tabcontrol_paintTabStrip(HWND hwnd, PAINTSTRUCT* ps, TAB_CONTROL* pControl) {
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogBackground);
 	HBRUSH hBorderBrush = CreateSolidBrush(pTheme->th_dialogBorder);
 	tabcontrol_measureTabStrip(hwnd, pControl);
@@ -1382,7 +1382,7 @@ static void mainframe_arrangeDockingSlots(HWND hwnd) {
 
 	mainframe_getDockingRect(hwnd, &rect);
 	DOCKING_SLOT* pSlot = dockingSlots;
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	int dDelta = pTheme->th_mainframeMargin;
 	int width = rect.right - rect.left - dDelta;
 	int height = rect.bottom - rect.top - dDelta;
@@ -1488,7 +1488,7 @@ static void mainframe_splitterDragged(HWND hwnd, SPLIT_DRAG* pDrags, BOOL bDragX
 	SPLIT_DRAG* pProcess = pDrags;
 	RECT rcClient;
 	mainframe_getDockingRect(hwnd, &rcClient);
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	int dDelta = pTheme->th_mainframeMargin;
 	InflateRect(&rcClient, -dDelta, -dDelta);
 	float fWidth = (float)(rcClient.right - rcClient.left) - 2 * dDelta;
@@ -1645,7 +1645,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		break;
 
 	case WM_ERASEBKGND: {
-		THEME_DATA* pTheme = theme_getDefault();
+		THEME_DATA* pTheme = theme_getCurrent();
 		HDC hdc = (HDC)wParam;
 		RECT rc;
 		GetClientRect(hwnd, &rc);
@@ -1747,7 +1747,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		}
 		break;
 	case WM_THEMECHANGED:
-		darkmode_allowForApp(theme_getDefault()->th_isDarkMode);
+		darkmode_allowForApp(theme_getCurrent()->th_isDarkMode);
 		theme_enableDarkMode(hwndFrameWindow);
 		darkmode_flushMenuThemes();
 		RedrawWindow(hwndMain, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN);

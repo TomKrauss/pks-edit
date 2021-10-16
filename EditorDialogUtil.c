@@ -914,7 +914,7 @@ INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 	case WM_CTLCOLORDLG:
 	case WM_CTLCOLOREDIT:
 	case WM_CTLCOLORLISTBOX: {
-		THEME_DATA* pTheme = theme_getDefault();
+		THEME_DATA* pTheme = theme_getCurrent();
 		if (pTheme->th_isWinTheme) {
 			return FALSE;
 		}

@@ -49,7 +49,7 @@ static void windowselector_paint(HWND hwnd) {
 	TEXTMETRIC textmetric;
 	WINDOW_SELECTOR_PARAMS* pWSP;
 	int nLineHeight = WSP_LINE_HEIGHT;
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 
 	pWSP = (WINDOW_SELECTOR_PARAMS*)GetWindowLongPtr(hwnd, GWL_WINDOW_SELECTOR_PARAMS);
 	BeginPaint(hwnd, &paint);
@@ -117,7 +117,7 @@ static LRESULT windowselector_wndProc(HWND hwnd, UINT message, WPARAM wParam, LP
 		}
 		break;
 	case WM_ERASEBKGND: {
-		THEME_DATA* pTheme = theme_getDefault();
+		THEME_DATA* pTheme = theme_getCurrent();
 		HDC hdc = (HDC)wParam;
 		RECT rc;
 		GetClientRect(hwnd, &rc);

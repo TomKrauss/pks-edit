@@ -52,16 +52,16 @@ static int showSyntaxHighlighting = TRUE;
 /*-----------------------------------------
  * Render some control characters in control-mode. 
  */
-static int render_formattedString(HDC hdc, WINFO* wp, int x, int y, unsigned char* cBuf, size_t nLength, THEME_DATA *pTheme, 
+static int render_formattedString(RENDER_CONTEXT* pRC, int x, int y, unsigned char* cBuf, size_t nLength, THEME_DATA *pTheme, 
 		FONT_STYLE_CLASS nStyle, FONT_STYLE_CLASS* pPreviousStyle) {
 	if (nStyle != *pPreviousStyle) {
 		if (showSyntaxHighlighting) {
-			font_selectFontStyle(wp, nStyle, hdc);
+			font_selectFontStyle(pRC->rc_theme, pRC->rc_wp, nStyle, pRC->rc_hdc);
 		}
 		*pPreviousStyle = nStyle;
 	}
-	TextOut(hdc, x, y, cBuf, (int)nLength);
-	return x + wp->cwidth;
+	TextOut(pRC->rc_hdc, x, y, cBuf, (int)nLength);
+	return x + pRC->rc_wp->cwidth;
 }
 
 typedef enum { RS_WORD, RS_SPACE, RS_CONTROL, RS_START, RS_TAB } RENDER_STATE;
@@ -124,9 +124,11 @@ static void render_fillBuf(char* pszBuf, int fillChar, int nLen) {
 /*--------------------------------------------------------------------------
  * render_singleLineOnDevice()
  */
-int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long lineNo) {	
+int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long lineNo) {
 	register int startColumn,i,endColumn,indent,textlen;
 	register unsigned char 	*d,*s,*send,*dend;
+	HDC hdc = pRC->rc_hdc;
+	WINFO* wp = pRC->rc_wp;
 	FTABLE* fp = ((FTABLE*)FTPOI(wp));
 	char fillbuf[20];
 	char eofStyles[20];
@@ -137,7 +139,7 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long l
 	RENDER_STATE state = RS_START;
 	int showcontrol;
 	int tabFiller = wp->tabDisplayFillCharacter;
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = pRC->rc_theme;
 
 	startColumn = wp->mincol;
 	endColumn = wp->maxcol+1;
@@ -186,7 +188,7 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long l
 			if (textlen > 0) {
 				int x2 = x + textlen * wp->cwidth;
 				if (x2 >= startX) {
-					render_formattedString(hdc, wp, x, y, buf, textlen, pTheme, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : fsClass, &fsPreviousClass);
+					render_formattedString(pRC, x, y, buf, textlen, pTheme, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : fsClass, &fsPreviousClass);
 				}
 				x = x2;
 			}
@@ -204,17 +206,17 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long l
 			}
 		} else if (state == RS_CONTROL) {
 			if (x >= startX) {
-				render_formattedString(hdc, wp, x, y, "?", 1, pTheme, FS_CONTROL_CHARS, &fsPreviousClass);
+				render_formattedString(pRC, x, y, "?", 1, pTheme, FS_CONTROL_CHARS, &fsPreviousClass);
 			}
 			x += wp->cwidth;
 		} else if (state == RS_TAB) {
 			if (showcontrol) {
 				if (x >= startX) {
-					render_formattedString(hdc, wp, x, y, fillbuf, 1, pTheme, FS_CONTROL_CHARS, &fsPreviousClass);
+					render_formattedString(pRC, x, y, fillbuf, 1, pTheme, FS_CONTROL_CHARS, &fsPreviousClass);
 				}
 			} else if (tabFiller && tabFiller != ' ') {
 				render_fillBuf(fillbuf, tabFiller, indent - i);
-				render_formattedString(hdc, wp, x, y, fillbuf, indent-i, pTheme, FS_CONTROL_CHARS, &fsPreviousClass);
+				render_formattedString(pRC, x, y, fillbuf, indent-i, pTheme, FS_CONTROL_CHARS, &fsPreviousClass);
 			}
 			x += (indent - i) * wp->cwidth;
 			i = indent;
@@ -224,13 +226,13 @@ int render_singleLineOnDevice(HDC hdc, int x, int y, WINFO *wp, LINE *lp, long l
 	if (textlen > 0) {
 		int x2 = x+textlen * wp->cwidth;
 		if (x2 >= startX) {
-			render_formattedString(hdc, wp, x, y, buf, textlen, pTheme, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : fsClass, &fsPreviousClass);
+			render_formattedString(pRC, x, y, buf, textlen, pTheme, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : fsClass, &fsPreviousClass);
 		}
 		x = x2;
 		i += textlen;
 	}
 	if (showcontrol && i >= wp->mincol && !(lp->lflg & LNNOTERM) && x >= startX) {
-		render_formattedString(hdc, wp, x, y, (lp->lflg & LNNOCR) ? "¬" : "¶", 1, pTheme, FS_CONTROL_CHARS, &fsPreviousClass);
+		render_formattedString(pRC, x, y, (lp->lflg & LNNOCR) ? "¬" : "¶", 1, pTheme, FS_CONTROL_CHARS, &fsPreviousClass);
 	}
 	return (x-startX)/wp->cwidth;
 }
@@ -316,12 +318,12 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 	long		maxMarkedLine;
 	FTABLE *		fp = FTPOI(wp);
 	LINE *		lp;
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 
 	hwnd = wp->ww_handle;
 	hdc = BeginPaint(hwnd, &ps);
 
-	font_selectFontStyle(wp, FS_NORMAL, hdc);
+	font_selectFontStyle(pTheme, wp, FS_NORMAL, hdc);
 	hBrushBg = CreateSolidBrush(pTheme->th_defaultBackgroundColor);
 	hBrushCaretLine = CreateSolidBrush(pTheme->th_caretLineColor);
 	hBrushCompareModifiedColor = CreateSolidBrush(pTheme->th_compareModifiedColor);
@@ -356,7 +358,12 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 				redraw_indirect(hdc, wp, y, lp);
 				visLen = 1;
 			} else if (wp->renderFunction) {
-				visLen = wp->renderFunction(hdc,0,y,wp,lp, ln);
+				RENDER_CONTEXT rc;
+				rc.rc_hdc = hdc;
+				rc.rc_wp = wp;
+				rc.rc_printing = FALSE;
+				rc.rc_theme = theme_getCurrent();
+				visLen = wp->renderFunction(&rc,0,y,lp, ln);
 			}
 			if (ln >= minMarkedLine && ln <= maxMarkedLine) {
 				paintSelection(hdc, wp, lp, y, visLen);
@@ -615,7 +622,7 @@ void ww_setZoom(WINFO* wp, float newFactor) {
 	wp->zoomFactor = newFactor;
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(wp->ww_handle, &ps);
-	font_selectFontStyle(wp, FS_NORMAL, hdc);
+	font_selectFontStyle(theme_getCurrent(), wp, FS_NORMAL, hdc);
 	EndPaint(wp->ww_handle, &ps);
 	wt_tcursor(wp, 0);
 	wt_tcursor(wp, 1);

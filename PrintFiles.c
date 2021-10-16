@@ -38,6 +38,7 @@
 #include "pathname.h"
 #include "winutil.h"
 #include "fileselector.h"
+#include "themes.h"
 
 #define	PREVIEWING()	(hwndPreview != 0)
 #define	EVEN(p)			((p & 1) == 0)
@@ -420,11 +421,16 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 	if (_printwhat.wp->maxcol > nMaxCharsPerLine) {
 		_printwhat.wp->maxcol = nMaxCharsPerLine;
 	}
+	RENDER_CONTEXT rc;
+	rc.rc_hdc = hdc;
+	rc.rc_wp = _printwhat.wp;
+	rc.rc_printing = TRUE;
+	rc.rc_theme = theme_getDefault();
 	if (_printwhat.wp->maxcol > pLine->firstc) {
 		if (nActualLine >= nFirstActualLineToPrint) {
 			nLinesPrinted++;
 			if (printing) {
-				_printwhat.wp->renderFunction(hdc, xPos, pLine->yPos, _printwhat.wp, pLine->lp, pLine->lineNumber);
+				_printwhat.wp->renderFunction(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
 			}
 		}
 		while (_printwhat.wp->maxcol < max) {
@@ -446,7 +452,7 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 			if (nActualLine >= nFirstActualLineToPrint) {
 				nLinesPrinted++;
 				if (printing) {
-					_printwhat.wp->renderFunction(hdc, xPos, pLine->yPos, _printwhat.wp, pLine->lp, pLine->lineNumber);
+					_printwhat.wp->renderFunction(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
 				}
 			}
 		}

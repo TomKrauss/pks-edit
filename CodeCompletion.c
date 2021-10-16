@@ -211,7 +211,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
  */
 static void codecomplete_paint(HWND hwnd) {
 	PAINTSTRUCT paint;
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	HICON hIconTemplate = LoadIcon(hInst, "TEMPLATE");
 	HICON hIconTag = LoadIcon(hInst, "CROSSREFERENCE");
 	TEXTMETRIC textmetric;
@@ -406,7 +406,7 @@ BOOL codecomplete_processKey(HWND hwnd, UINT message, WPARAM wParam) {
 static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	WINFO* wp;
 	CODE_COMPLETION_PARAMS* pCC;
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 
 	switch (message) {
 		case WM_CREATE: {

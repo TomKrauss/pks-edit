@@ -44,7 +44,7 @@ BOOL UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* 
     static HBRUSH brItemBackground;
     static HBRUSH brItemBackgroundHot;
     static HBRUSH brItemBackgroundSelected;
-    THEME_DATA* pTheme = theme_getDefault();
+    THEME_DATA* pTheme = theme_getCurrent();
 
     if (brBarBackground == NULL) {
         brBarBackground = CreateSolidBrush(pTheme->th_dialogBackground);

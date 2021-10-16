@@ -82,7 +82,7 @@ void tb_wh(WORD *width, WORD *height)
 }
 
 static void tb_updateColors() {
-    THEME_DATA* pData = theme_getDefault();
+    THEME_DATA* pData = theme_getCurrent();
     SendMessage(hwndRebar, RB_SETBKCOLOR, 0, pData->th_dialogBackground);
 }
 
@@ -385,7 +385,7 @@ static LRESULT APIENTRY tb_myRebarProc(
     LPARAM lParam) {
 
     if (uMsg == WM_CTLCOLOREDIT || uMsg == WM_CTLCOLORSTATIC) {
-        THEME_DATA* pTheme = theme_getDefault();
+        THEME_DATA* pTheme = theme_getCurrent();
         HDC hdc = (HDC)wParam;
         SetTextColor(hdc, pTheme->th_dialogForeground);
         SetBkColor(hdc, pTheme->th_dialogBackground);
@@ -432,7 +432,7 @@ HWND tb_initRebar(HWND hwndOwner) {
     rebarOriginalWindowProc = (WNDPROC)SetWindowLongPtr(hwndRebar,
         GWLP_WNDPROC, (LONG_PTR)tb_myRebarProc);
 
-    THEME_DATA* pTheme = theme_getDefault();
+    THEME_DATA* pTheme = theme_getCurrent();
     tb_updateColors();
     hwndToolbar = tb_initToolbar(hwndRebar);
     hwndEntryField = tb_initSearchEntryField(hwndRebar);

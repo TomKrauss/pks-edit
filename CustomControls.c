@@ -38,7 +38,7 @@ void cust_drawShadow(HDC hdc,RECT *rcp,int odItemState)
 	int			left,right,top,bottom;
 	HPEN		hPen;
 	HPEN		hPenTop;
-	THEME_DATA* pData = theme_getDefault();
+	THEME_DATA* pData = theme_getCurrent();
 
 	hPenTop = CreatePen(PS_SOLID, 0, pData->th_dialogBorder);
 	left = rcp->left;
@@ -120,7 +120,7 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 	DWORD	dwColwi;
 	DWORD	dwColtext;
 	char 	szBuff[128];
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 
 	hFont = SelectObject(hdc, cust_getSmallEditorFont());
 	if (odItemState & STATE_CHECK) {
@@ -288,7 +288,7 @@ static void charset_rectFor(RECT* pClientRect, RECT* pPaint, int cChar) {
 
 static void charset_paint(HWND hwnd, HDC hdc) {
 	char 		buf[2];
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	RECT rc;
 	TEXTMETRIC tm;
 
@@ -389,7 +389,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 			}
 			return 0;
 		case WM_ERASEBKGND: {
-			pTheme = theme_getDefault();
+			pTheme = theme_getCurrent();
 			HDC hdc = (HDC)wParam;
 			GetClientRect(hwnd, &rc);
 			FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
@@ -442,7 +442,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 }
 
 static void toast_paint(HWND hwnd, HDC hdc, char* pszText) {
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	RECT rc;
 	TEXTMETRIC tm;
 
@@ -487,7 +487,7 @@ static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	}
 	return 0;
 	case WM_ERASEBKGND: {
-		pTheme = theme_getDefault();
+		pTheme = theme_getCurrent();
 		HDC hdc = (HDC)wParam;
 		GetClientRect(hwnd, &rc);
 		FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
@@ -627,7 +627,7 @@ int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
 		 */
 		DrawFocusRect(lpdis->hDC,&lpdis->rcItem);
     } else {
-		THEME_DATA* pTheme = theme_getDefault();
+		THEME_DATA* pTheme = theme_getCurrent();
 		HBRUSH hBrush = CreateSolidBrush((lpdis->itemState & ODS_SELECTED) ? pTheme->th_dialogHighlight : pTheme->th_dialogBackground);
 		FillRect(lpdis->hDC, &lpdis->rcItem, hBrush);
 		DeleteObject(hBrush);

@@ -154,7 +154,7 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 
 	switch (msg) {
 	case WM_PAINT: {
-		THEME_DATA* pTheme = theme_getDefault();
+		THEME_DATA* pTheme = theme_getCurrent();
 		if (pTheme->th_isWinTheme) {
 			return CallWindowProc(_wpOrigStatusWndProc, hwnd, msg, wParam, lParam);
 		}
@@ -191,7 +191,7 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		return 0;
 	}
 	case WM_ERASEBKGND: {
-		THEME_DATA* pTheme = theme_getDefault();
+		THEME_DATA* pTheme = theme_getCurrent();
 		if (pTheme->th_isWinTheme) {
 			return CallWindowProc(_wpOrigStatusWndProc, hwnd, msg, wParam, lParam);
 		}

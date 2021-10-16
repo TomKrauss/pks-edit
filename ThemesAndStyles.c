@@ -62,7 +62,6 @@ static const char* DEFAULT = "default";
 typedef struct ButtonData {
 	HTHEME hTheme;
 	int iStateID;
-
 } BUTTON_PAINT_DATA;
 
 static BOOL button_ensureTheme(BUTTON_PAINT_DATA* pData, HWND hwnd) {
@@ -115,17 +114,15 @@ static EDTEXTSTYLE defaultTextStyle = {
 	-1
 };
 
-static EDTEXTSTYLE* _styles[50];
-
 /*
  * Returns the text style for a given style class.
  */
-static EDTEXTSTYLE* font_getTextStyleForIndex(FONT_STYLE_CLASS nIndex) {
+static EDTEXTSTYLE* font_getTextStyleForIndex(THEME_DATA* pTheme, FONT_STYLE_CLASS nIndex) {
 	theme_initThemes();
-	if (nIndex < 0 || nIndex >= DIM(_styles)) {
+	if (nIndex < 0 || nIndex >= DIM(pTheme->th_styleLookup)) {
 		return &defaultTextStyle;
 	}
-	EDTEXTSTYLE* pStyle = _styles[nIndex];
+	EDTEXTSTYLE* pStyle = pTheme->th_styleLookup[nIndex];
 	return pStyle ? pStyle : &defaultTextStyle;
 }
 
@@ -154,7 +151,7 @@ static HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont) {
 		FIXED_PITCH | FF_DONTCARE, 	// lfPitchAndFamily;
 		""					// lfFaceName[LF_FACESIZE];
 	};
-	EDTEXTSTYLE* pDefaultFont = font_getTextStyleForIndex(FS_NORMAL);
+	EDTEXTSTYLE* pDefaultFont = font_getTextStyleForIndex(theme_getCurrent(), FS_NORMAL);
 
 	int size = pFont->size;
 	if (size == 0) {
@@ -305,6 +302,27 @@ static char* _styleNames[] = {
 	"hyperlink"
 };
 
+static void theme_initSingle(THEME_DATA* pTheme) {
+	pTheme->th_isWinTheme = strcmp(DEFAULT, pTheme->th_name) == 0;
+	memset(pTheme->th_styleLookup, 0, sizeof pTheme->th_styleLookup);
+	EDTEXTSTYLE* pStyle = pTheme->th_styles;
+	int nNextStyle = DIM(_styleNames);
+	while (pStyle) {
+		int bFound = 0;
+		for (int i = 0; i < DIM(_styleNames); i++) {
+			if (strcmp(_styleNames[i], pStyle->styleName) == 0) {
+				pTheme->th_styleLookup[i] = pStyle;
+				bFound = 1;
+				break;
+			}
+		}
+		if (!bFound) {
+			pTheme->th_styleLookup[nNextStyle++] = pStyle;
+		}
+		pStyle = pStyle->next;
+	}
+}
+
 /*--------------------------------------------------------------------------
  * theme_initThemes()
  * init the theme definitions by reading our JSON config file.
@@ -318,6 +336,11 @@ int theme_initThemes(void) {
 	initialized = 1;
 	memset(&themeConfiguration, 0, sizeof themeConfiguration);
 	if (json_parse("themeconfig.json", &themeConfiguration, _themeConfigurationRules)) {
+		THEME_DATA* pTheme = themeConfiguration.th_themes;
+		while (pTheme) {
+			theme_initSingle(pTheme);
+			pTheme = pTheme->th_next;
+		}
 		theme_setCurrent((char*)DEFAULT);
 		return 1;
 	}
@@ -329,8 +352,9 @@ int theme_initThemes(void) {
  */
 FONT_STYLE_CLASS font_getStyleClassIndexFor(char* pszStyleName) {
 	theme_initThemes();
-	for (int i = 0; i < DIM(_styles); i++) {
-		EDTEXTSTYLE* pStyle = _styles[i];
+	THEME_DATA* pTheme = theme_getCurrent();
+	for (int i = 0; i < DIM(pTheme->th_styleLookup); i++) {
+		EDTEXTSTYLE* pStyle = pTheme->th_styleLookup[i];
 		if (!pStyle) {
 			break;
 		}
@@ -361,7 +385,7 @@ HFONT font_createFontHandle(char* pszFontName, int size, int bOem, int nWeight) 
  * options key controls.
  */
 HFONT theme_createSmallFixedFont() {
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	return font_createFontHandle(pTheme->th_smallFontName, pTheme->th_smallFontSize, 0, FW_NORMAL);
 }
 
@@ -369,7 +393,7 @@ HFONT theme_createSmallFixedFont() {
  * The dialog font is used by PKS edit e.g. in dialogs and in the window selector.
  */
 HFONT theme_createDialogFont(int nWeight) {
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	return font_createFontHandle(pTheme->th_fontName, pTheme->th_fontSize, 0, nWeight);
 }
 
@@ -377,9 +401,9 @@ HFONT theme_createDialogFont(int nWeight) {
  * font_selectFontStyle()
  * select a font and return handle to old Font.
  */
-void font_selectFontStyle(WINFO *wp, FONT_STYLE_CLASS nStyleIndex, HDC hdc) {
-	EDTEXTSTYLE* pStyle = font_getTextStyleForIndex(nStyleIndex);
-	EDTEXTSTYLE* pDefaultStyle = font_getTextStyleForIndex(FS_NORMAL);
+void font_selectFontStyle(THEME_DATA* pTheme, WINFO *wp, FONT_STYLE_CLASS nStyleIndex, HDC hdc) {
+	EDTEXTSTYLE* pStyle = font_getTextStyleForIndex(pTheme, nStyleIndex);
+	EDTEXTSTYLE* pDefaultStyle = font_getTextStyleForIndex(pTheme, FS_NORMAL);
 
 	SetTextColor(hdc, pStyle->fgcolor);
 	if (pStyle->bgcolor != -1) {
@@ -420,7 +444,7 @@ void font_selectFontStyle(WINFO *wp, FONT_STYLE_CLASS nStyleIndex, HDC hdc) {
  */
 void font_selectStandardFont(HWND hwnd, WINFO *wp) {
 	HDC hdc = GetDC(hwnd);
-	font_selectFontStyle(wp, 0, hdc);
+	font_selectFontStyle(theme_getCurrent(), wp, 0, hdc);
 	ReleaseDC(hwnd,hdc);
 }
 
@@ -529,32 +553,28 @@ void theme_setCurrent(unsigned char* pszThemeName) {
 	THEME_DATA* pTheme = theme_getByName(pszThemeName);
 	if (pTheme != themeConfiguration.th_currentTheme) {
 		themeConfiguration.th_currentTheme = pTheme;
-		pTheme->th_isWinTheme = strcmp(DEFAULT, pTheme->th_name) == 0;
-		memset(_styles, 0, sizeof _styles);
-		EDTEXTSTYLE* pStyle = pTheme->th_styles;
-		int nNextStyle = DIM(_styleNames);
-		while (pStyle) {
-			int bFound = 0;
-			for (int i = 0; i < DIM(_styleNames); i++) {
-				if (strcmp(_styleNames[i], pStyle->styleName) == 0) {
-					_styles[i] = pStyle;
-					bFound = 1;
-					break;
-				}
-			}
-			if (!bFound) {
-				_styles[nNextStyle++] = pStyle;
-			}
-			pStyle = pStyle->next;
-		}
 		PostMessage(hwndMain, WM_THEMECHANGED, 0, 0);
 	}
+}
+
+/* 
+ * Returns the default theme. 
+ */
+THEME_DATA* theme_getDefault() {
+	THEME_DATA* pTheme = themeConfiguration.th_themes;
+	while (pTheme) {
+		if (strcmp(DEFAULT, pTheme->th_name) == 0) {
+			return pTheme;
+		}
+		pTheme = pTheme->th_next;
+	}
+	return &defaultTheme;
 }
 
 /*
  * Returns the default theme currently selected.
  */
-THEME_DATA* theme_getDefault() {
+THEME_DATA* theme_getCurrent() {
 	if (themeConfiguration.th_currentTheme == NULL) {
 		theme_setCurrent("default");
 	}
@@ -588,7 +608,7 @@ THEME_DATA* theme_getThemes() {
 void theme_enableDarkMode(HWND hwnd) {
 	static int bRunning;
 	if (!bRunning) {
-		THEME_DATA* pTheme = theme_getDefault();
+		THEME_DATA* pTheme = theme_getCurrent();
 		BOOL bDark = pTheme->th_isDarkMode;
 		bRunning = 1;
 		darkmode_allowForWindow(hwnd, bDark);
@@ -604,7 +624,7 @@ void theme_enableDarkMode(HWND hwnd) {
 HBRUSH theme_getDialogBackgroundBrush() {
 	static HBRUSH hBrushBg;
 	static THEME_DATA* pOldTheme;
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	if (hBrushBg == NULL || pTheme != pOldTheme) {
 		if (hBrushBg) {
 			DeleteObject(hBrushBg);
@@ -621,7 +641,7 @@ HBRUSH theme_getDialogBackgroundBrush() {
 HBRUSH theme_getDialogLightBackgroundBrush() {
 	static HBRUSH hBrushBg;
 	static THEME_DATA* pOldTheme;
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	if (hBrushBg == NULL || pTheme != pOldTheme) {
 		if (hBrushBg) {
 			DeleteObject(hBrushBg);
@@ -706,7 +726,7 @@ static void paintGroupbox(HWND hwnd, HDC hdc, BUTTON_PAINT_DATA* buttonData) {
 		rcText.left += 2;
 
 		DTTOPTS dtto = { sizeof(DTTOPTS), DTT_TEXTCOLOR };
-		THEME_DATA* pTheme = theme_getDefault();
+		THEME_DATA* pTheme = theme_getCurrent();
 		dtto.crText = pTheme->th_dialogForeground;
 
 		DWORD textFlags = isCenter ? DT_CENTER : DT_LEFT;
@@ -826,7 +846,7 @@ static void theme_renderButton(HWND hwnd, HDC hdc, HTHEME hTheme, int iPartID, i
 
 	DrawThemeParentBackground(hwnd, hdc, &rcClient);
 	DrawThemeBackground(hTheme, hdc, iPartID, iStateID, &rcBackground, NULL);
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 	DTTOPTS dtto = { sizeof(DTTOPTS), DTT_TEXTCOLOR };
 	dtto.crText = pTheme->th_dialogForeground;
 
@@ -986,7 +1006,7 @@ static LRESULT CALLBACK tabSubclassProc(
 {
 	UNREFERENCED_PARAMETER(uIdSubclass);
 	UNREFERENCED_PARAMETER(dwRefData);
-	THEME_DATA* pTheme = theme_getDefault();
+	THEME_DATA* pTheme = theme_getCurrent();
 
 	switch (uMsg) {
 	case WM_PAINT: {
@@ -1146,7 +1166,7 @@ static BOOL theme_prepareControlsForDarkMode(HWND hwndControl, LONG lParam) {
  * Prepare all children of a given parent to be used in dark mode correctly. 
  */
 void theme_prepareChildrenForDarkmode(HWND hParent) {
-	if (theme_getDefault()->th_isDarkMode) {
+	if (theme_getCurrent()->th_isDarkMode) {
 		EnumChildWindows(hParent, (WNDENUMPROC)theme_prepareControlsForDarkMode, 0);
 	}
 }
