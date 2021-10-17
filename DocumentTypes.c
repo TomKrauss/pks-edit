@@ -95,7 +95,6 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_FLAG, "autoFormat", offsetof(EDIT_CONFIGURATION, workmode), WM_AUTOFORMAT},
 	{	RT_FLAG, "codeFormat", offsetof(EDIT_CONFIGURATION, workmode), WM_BRINDENT},
 	{	RT_FLAG, "expandAbbreviations", offsetof(EDIT_CONFIGURATION, workmode), WM_ABBREV},
-	{	RT_FLAG, "encrypted", offsetof(EDIT_CONFIGURATION, workmode), O_CRYPTED},
 	{	RT_FLAG, "oemEncoding", offsetof(EDIT_CONFIGURATION, workmode), WM_OEMMODE},
 	{	RT_FLAG, "smartSpaceDelete", offsetof(EDIT_CONFIGURATION, workmode), WM_DELETE_MULTIPLE_SPACES},
 	{	RT_CHAR_ARRAY, "statuslineFormat", offsetof(EDIT_CONFIGURATION, statusline), sizeof(((EDIT_CONFIGURATION*)NULL)->statusline)},
@@ -316,7 +315,15 @@ BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename) {
  * match
  */
 int  doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *pDocumentDescriptor) {
-	free(fp->documentDescriptor);
+	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
+	int wMode;
+	int dMode;
+
+	if (pConfig) {
+		wMode = pConfig->workmode;
+		dMode = pConfig->dispmode;
+		free(pConfig);
+	}
 	if ((fp->documentDescriptor = malloc(sizeof *fp->documentDescriptor)) == 0)
 		return 0;
 
@@ -326,6 +333,10 @@ int  doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *pDocu
 	}
 
 	doctypes_getFileDocumentType(fp->documentDescriptor,fp->fname);
+	if (pConfig) {
+		fp->documentDescriptor->workmode = wMode;
+		fp->documentDescriptor->dispmode = dMode;
+	}
 	return 1;
 }
 

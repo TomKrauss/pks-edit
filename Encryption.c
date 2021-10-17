@@ -567,8 +567,7 @@ int crypt_init(int mode, char *akey)
 /*--------------------------------------------------------------------------
  * crypt_en()
  */
-int crypt_en(char *buf, int size, int cont)
-{
+int crypt_en(char *buf, int size, int cont) {
 	char *work;
 	int  cnt;
 
@@ -588,8 +587,7 @@ int crypt_en(char *buf, int size, int cont)
 /*--------------------------------------------------------------------------
  * crypt_de()
  */
-int crypt_de(char *buf, int size, int cont)
-{
+int crypt_de(char *buf, int size, int cont) {
 	char *	work;
 	int  	cnt;
 

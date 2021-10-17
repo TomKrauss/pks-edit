@@ -348,7 +348,10 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	} else {
 		LocatePksEditIni();
 		string_splitFilename(_pksEditIniFilename, _setfselinfo.path, _setfselinfo.fname);
-		if ((fn = fsel_selectFileWithOptions(&_setfselinfo, MOPTION, TRUE)) == 0) {
+		FILE_SELECT_PARAMS params;
+		params.fsp_saveAs = TRUE;
+		params.fsp_encryptedAvailable = FALSE;
+		if ((fn = fsel_selectFileWithOptions(&_setfselinfo, MOPTION, &params)) == 0) {
 			return 0;
 		}
 	}

@@ -952,7 +952,9 @@ static FSELINFO _tagfselinfo = { ".", "tags", "*.tag" };
 static FSELINFO _grpfselinfo = { ".", "pksedit.grep", "*.grep" };
 static FSELINFO _cmpfselinfo = { ".", "errors.err", "*.err" };
 static int xref_openTagFileOrSearchResults(int title, int st_type, FSELINFO *fsp) {
-	if (title && fsel_selectFileWithOptions(fsp, title, FALSE) == 0) {
+	FILE_SELECT_PARAMS params;
+	params.fsp_saveAs = FALSE;
+	if (title && fsel_selectFileWithOptions(fsp, title, &params) == 0) {
 		return 0;
 	}
 

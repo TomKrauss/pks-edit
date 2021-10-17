@@ -14,6 +14,7 @@
 #define IDC_CURSOR1                     153
 #define IDC_CURSOR2                     154
 #define IDI_ICON1                       156
+#define DLG_SAVEAS_OPTIONS              156
 #define IDS_TT_REGULAR_EXPRESSION       181
 #define IDS_TT_PRESERVE_CASE            182
 #define IDS_FILE_MODIFIED               183
@@ -30,6 +31,7 @@
 #define DLG_OPT_LAYOUT                  558
 #define DLGCOMPAREFILES                 559
 #define IDC_GENERIC2                    1001
+#define IDC_CHECK_ENCRYPT               1003
 #define IDC_CUSTOM1                     1006
 #define IDD_PREVIEW_FRAME               1006
 #define IDC_STRING1                     1007

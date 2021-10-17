@@ -1740,8 +1740,7 @@ int EdCommandExecute(void)
 /*--------------------------------------------------------------------------
  * inputPassWord()
  */
-static void inputPassWord(LPSTR pszPW)
-{
+static void inputPassWord(LPSTR pszPW) {
 	static DIALPARS _d[] = {
 		IDD_STRING1,	20,		0,
 		0
@@ -1753,10 +1752,9 @@ static void inputPassWord(LPSTR pszPW)
 }
 
 /*--------------------------------------------------------------------------
- * CryptDialog()
+ * dlg_enterPasswordForEncryption()
  */
-int CryptDialog(LPSTR password, int twice)
-{
+int dlg_enterPasswordForEncryption(LPSTR password, int twice) {
 	char		pw1[128];
 
 	while(1) {

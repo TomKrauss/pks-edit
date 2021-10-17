@@ -40,13 +40,14 @@
 /*----- EXTERNALS -----------*/
 
 extern void ft_settime(EDTIME* tp);
-extern int  CryptDialog(LPSTR password, int twice);
+extern int  dlg_enterPasswordForEncryption(LPSTR password, int twice);
 
 int _flushing;
 
 /*----- LOCALS --------------*/
 
 static char _eof[] = "- eof -\n";
+static char _cryptMagic[8] = "\0enc\03\07\01\0";
 static int  _verbose = 1;
 static int 	_scratchlen = 0;
 static char _crypting;
@@ -276,13 +277,26 @@ EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallba
 static int ft_initializeEncryption(EDIT_CONFIGURATION *linp, char *pw, int twice)
 {
 	if ((linp->workmode & O_CRYPTED) == 0 ||
-	    CryptDialog(pw, twice) == 0 ||
+	    dlg_enterPasswordForEncryption(pw, twice) == 0 ||
 	    crypt_init(DES_NOFINAL,pw) == 0) {
 		pw[0] = 0;
 		return 0;
 	}
 	mouse_setBusyCursor();
 	return 1;
+}
+
+/*
+ * Read the header of a file to auto-detect, whether is encrypted. 
+ */
+static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor) {
+	char szMagic[sizeof _cryptMagic];
+	if (Fread(fd, sizeof szMagic, szMagic) >= 8 && memcmp(szMagic, _cryptMagic, sizeof _cryptMagic) == 0) {
+		documentDescriptor->workmode |= O_CRYPTED;
+		_llseek(fd, sizeof _cryptMagic, SEEK_SET);
+	} else {
+		_llseek(fd, 0, SEEK_SET);
+	}
 }
 
 /*--------------------------------------*/
@@ -295,7 +309,7 @@ EXPORT int ft_readfile(FTABLE *fp, EDIT_CONFIGURATION *documentDescriptor)
 	int				nl;
 	int				fd;
 	register	char *	buf;
-	char				pw[32];
+	char				pw[64];
 	unsigned char *(*f)(FTABLE *par, EDIT_CONFIGURATION *linp, unsigned char *p, unsigned char *pend);
 
 	fd = -1;
@@ -334,6 +348,7 @@ nullfile:
 		else {
 			fd = (int)(uintptr_t)fileHandle;
 		}
+		ft_handleMagic(fd, documentDescriptor);
 		_crypting = ft_initializeEncryption(documentDescriptor, pw, 0);
 		if ((ret = ft_readDocumentFromFile(fd,f,fp)) == 0) {
 			goto readerr;
@@ -482,7 +497,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 	int			ret;
 	LINE *		lp;
 	char		backupFile[EDMAXPATHLEN];
-	char		pw[32];
+	char		pw[64];
 	int 		nl;
 	int			cr;
 	int			fd = -1;
@@ -547,6 +562,9 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 	}
 	fp->flags &= ~(F_APPEND|F_NEWFILE);
 	offset = 0;
+	if (pw[0]) {
+		file_flushBuffer(fd, _cryptMagic, 8, 0);
+	}
 	while (lp != fp->lastl) {		/* don't save last line			  */
 		if ((no = offset+lp->len) < LINEBUFSIZE) {
 			memmove(&_linebuf[offset],lp->lbuf,lp->len);

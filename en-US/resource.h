@@ -195,6 +195,7 @@
 #define IDM_HLPONMENUS                  152
 #define IDM_HLPONKEYS                   153
 #define IDM_HLPONHLP                    154
+#define DLG_SAVEAS_OPTIONS              156
 #define IDS_MSGRENOTNULL                160
 #define IDM_DOCTYPES                    160
 #define IDS_MSGRECOMPLEXEXPR            161
@@ -227,14 +228,17 @@
 #define IDM_ERASEBLOCK                  212
 #define IDM_REDO                        213
 #define IDC_CUSTOM2                     1002
+#define IDC_CHECK1                      1003
+#define IDC_CHECK_ENCRYPT               1003
+#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        156
+#define _APS_NEXT_RESOURCE_VALUE        158
 #define _APS_NEXT_COMMAND_VALUE         40007
-#define _APS_NEXT_CONTROL_VALUE         1003
+#define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

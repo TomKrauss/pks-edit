@@ -25,6 +25,7 @@
 #include "winfo.h"
 #include "winterf.h"
 #include "xdialog.h"
+#include "pksrc.h"
 
 #include "tos.h"
 #include "history.h"
@@ -46,8 +47,6 @@ extern void 	win_getStdMenuText(int menunr, char *text);
 extern int	nCurrentDialog;
 
 extern char *	_pksSysFolder;
-
-static char		sTitleSpec[100];
 
 char _fseltarget[EDMAXPATHLEN];
 
@@ -109,19 +108,11 @@ void fsel_changeDirectory(char* pszPath) {
 	_chdir(pszPath);
 }
 
-/*------------------------------------------------------------
- * fsel_setDialogTitle
- * setting the idTitle for the next call of fsel_selectFile
- */
-void fsel_setDialogTitle(char *title) {
-	strmaxcpy(sTitleSpec, title, sizeof sTitleSpec);
-}
-
 /*---------------------------------*/
 /* menu_fseltitle()				*/
 /*---------------------------------*/
-static void menu_fseltitle(int title)
-{	char *d,*s,szTemp[512];
+static void menu_fseltitle(int title, char* szTemp)
+{	char *d,*s;
 
 	if (title > 0) {
 		win_getStdMenuText(title,szTemp);
@@ -136,24 +127,29 @@ static void menu_fseltitle(int title)
 			*d++ = *s++;
 		}
 		*d = 0;
-		fsel_setDialogTitle(szTemp);
 	}
 }
 
 /*---------------------------------*/
 /* SelectFile()				*/
 /*---------------------------------*/
-static int SelectFile(int title, char *baseDirectory, char *filename, char *pattern, BOOL showSavedialog)
-{
+static int SelectFile(int title, char *baseDirectory, char *filename, char *pattern, FILE_SELECT_PARAMS* pFSP) {
 	int	nSave;
 	int 	ret;
 	char pathname[EDMAXPATHLEN];
+	char szTemp[512];
 
-	menu_fseltitle(title);
+	menu_fseltitle(title, szTemp);
 	string_concatPathAndFilename(pathname,baseDirectory,pattern);
 	nSave = nCurrentDialog;
 	nCurrentDialog = title;
-	ret = fsel_selectFile(pathname, filename, _fseltarget, showSavedialog);
+
+	pFSP->fsp_resultFile = _fseltarget;
+	pFSP->fsp_inputFile = pathname;
+	pFSP->fsp_namePatterns = pattern;
+	pFSP->fsp_title = szTemp;
+
+	ret = fsel_selectFile(pFSP);
 	nCurrentDialog = nSave;
 	string_splitFilename(pathname,baseDirectory,pattern);
 	if (_fseltarget[0] == 0) {
@@ -167,7 +163,7 @@ static int SelectFile(int title, char *baseDirectory, char *filename, char *patt
  * fsel_selectFileWithOptions()
  * Select a file given an info data structure and a resource ID to be used as the title.
  *---------------------------------*/
-char *fsel_selectFileWithOptions(FSELINFO *fp, int idTitle, BOOL showSaveDialog)
+char *fsel_selectFileWithOptions(FSELINFO *fp, int idTitle, FILE_SELECT_PARAMS* pFSP)
 {
 	static ITEMS	_i = { C_STRING1PAR, _fseltarget };
 	static PARAMS	_p = { DIM(_i), P_MAYOPEN, _i	};
@@ -182,7 +178,7 @@ char *fsel_selectFileWithOptions(FSELINFO *fp, int idTitle, BOOL showSaveDialog)
 			lstrcpy(fp->search, "*.*");
 		}
 
-		if (!SelectFile(idTitle,fp->path,fp->fname,fp->search, showSaveDialog))
+		if (!SelectFile(idTitle,fp->path,fp->fname,fp->search, pFSP))
 			return (char *)0;
 		macro_recordOperation(&_p);
 	}
@@ -205,12 +201,34 @@ char *fsel_initPathes(FSELINFO *fp)
 	return fn;
 }
 
+/* 
+ * Callback for the openfile common dialog. 
+ */
+static UINT_PTR fsel_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	static FILE_SELECT_PARAMS* pFSP;
+	OPENFILENAME* pOFN;
+	BOOL crypted;
+
+	switch (message) {
+	case WM_INITDIALOG:
+		pOFN = (OPENFILENAME*)lParam;
+		pFSP = (FILE_SELECT_PARAMS*)pOFN->lCustData;
+		crypted = pFSP->fsp_encrypted;
+		SendDlgItemMessage(hwnd, IDC_CHECK_ENCRYPT, BM_SETCHECK, crypted ? BST_CHECKED : BST_UNCHECKED, 0);
+		break;
+	case WM_COMMAND:
+		if (LOWORD(wParam) == IDC_CHECK_ENCRYPT && HIWORD(wParam) == BN_CLICKED) {
+			pFSP->fsp_encrypted  = (BOOL)SendDlgItemMessage(hwnd, IDC_CHECK_ENCRYPT, BM_GETCHECK, 0, 0);
+		}
+		break;
+	}
+	return FALSE;
+}
 
 /*--------------------------------------------------------------------------
  * DoSelectPerCommonDialog()
  */
-static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], char* initialDirectory, BOOL bSaveAs)
-{
+static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, char szFileName[], char szExt[], char* initialDirectory) {
 	OPENFILENAME 	ofn;
 	DWORD 		Errval;
 	LPSTR		pszFilter;
@@ -252,7 +270,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 
 	memset(&ofn, 0, sizeof ofn);
 	ofn.lStructSize = sizeof ofn;
-	ofn.hInstance = hInst;
+	ofn.hInstance = ui_getResourceModule();
 	ofn.hwndOwner = hWnd;			// An invalid hWnd causes non-modality
 	ofn.lpstrFilter = (LPSTR)pszFilter;
 	ofn.nFilterIndex = 0;
@@ -261,20 +279,26 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
 	ofn.nMaxCustFilter = EDMAXPATHLEN;
 	ofn.lpstrFile = szFileName;	// Stores the result in this variable
 	ofn.nMaxFile = EDMAXPATHLEN - 1;
-	ofn.lpstrTitle = sTitleSpec;
+	ofn.lpstrTitle = pFSParams->fsp_title;
 	ofn.Flags = OFN_PATHMUSTEXIST;
-	if ((bSaveAs && GetSaveFileName( &ofn ) ) || (!bSaveAs && GetOpenFileName( &ofn ))) {
+	BOOL bHandleCrypt = pFSParams->fsp_saveAs && pFSParams->fsp_encryptedAvailable;
+	if (bHandleCrypt) {
+		ofn.Flags |= OFN_ENABLETEMPLATE|OFN_EXPLORER|OFN_ENABLESIZING|OFN_ENABLEHOOK;
+		ofn.lpTemplateName = MAKEINTRESOURCE(DLG_SAVEAS_OPTIONS);
+		ofn.lpfnHook = MakeProcInstance(fsel_wndProc, hInst);
+		ofn.lCustData = (LPARAM) pFSParams;
+	}
+	if ((pFSParams->fsp_saveAs && GetSaveFileName( &ofn ) ) || (!pFSParams->fsp_saveAs && GetOpenFileName( &ofn ))) {
 		bRet = TRUE;
 		lstrcpy(szExt, pszCustomOffset[0] ? pszCustomOffset : "*.*");
      } else {
 		bRet = FALSE;
 		Errval=CommDlgExtendedError();
 		if(Errval!=0) {
-			wsprintf(szTemp, "GetOpenFileName returned Error # %lx", Errval);
+			wsprintf(szTemp, "GetOpenFileName returned Error # 0x%lx", Errval);
 			error_displayAlertBoxWithOptions(MB_OK | MB_ICONSTOP, szTemp);
 		}
 	}
-
 	if (ofn.lpfnHook) {
 		FreeProcInstance((FARPROC)ofn.lpfnHook);
 	}
@@ -288,9 +312,11 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, char szFileName[], char szExt[], 
  * select a file with a file open dialog. If bSaveAs is true, the
  * dialog is opened for the purpose of saving files.
  */
-int fsel_selectFile(char *szFileSpecIn, char *szFileNameIn, char *szFullPathOut, BOOL bSaveAs)
-{
- 	int  	ret;
+int fsel_selectFile(FILE_SELECT_PARAMS* pFSParams) {
+	char* szFileSpecIn = pFSParams->fsp_namePatterns;
+	char* szFileNameIn = pFSParams->fsp_inputFile;
+	char* szFullPathOut = pFSParams->fsp_resultFile;
+	int  	ret;
 	LPSTR 	pszExt;
 	LPSTR	pszFileName;
 	LPSTR	pszPath;
@@ -305,8 +331,8 @@ int fsel_selectFile(char *szFileSpecIn, char *szFileNameIn, char *szFullPathOut,
 
 	//fsel_changeDirectory(pszPath);
 
-	if ((ret = DoSelectPerCommonDialog(GetActiveWindow(), 
-		pszFileName, pszExt, pszPath, bSaveAs)) == TRUE) {
+	if ((ret = DoSelectPerCommonDialog(GetActiveWindow(),
+		pFSParams, pszFileName, pszExt, pszPath)) == TRUE) {
 		lstrcpy(szFullPathOut, pszFileName);
 		string_splitFilename(pszFileName, pszPath, szFileNameIn);
 		string_concatPathAndFilename(szFileSpecIn, pszPath, pszExt);

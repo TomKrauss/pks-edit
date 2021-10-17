@@ -75,6 +75,13 @@ BEGIN
     LTEXT           "Compare file:",-1,10,9,195,8,NOT WS_GROUP
 END
 
+DLG_SAVEAS_OPTIONS DIALOGEX 0, 0, 323, 19
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_BORDER
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "Encrypt file:",IDC_CHECK_ENCRYPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,67,1,70,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -89,6 +96,12 @@ BEGIN
         RIGHTMARGIN, 351
         BOTTOMMARGIN, 174
     END
+
+    DLG_SAVEAS_OPTIONS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 320
+        BOTTOMMARGIN, 15
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -99,6 +112,11 @@ END
 //
 
 DLGCOMPAREFILES AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLG_SAVEAS_OPTIONS AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -658,10 +676,10 @@ END
 
 DLGCRYPT DIALOGEX 27, 67, 276, 39
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Open password secured file"
+CAPTION "Enter password"
 FONT 8, "Helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "Enter the password to de-crypt the file:",-1,6,10,167,8
+    LTEXT           "Enter the password to en/de-crypt the file:",-1,6,10,167,8
     EDITTEXT        IDD_STRING1,5,22,265,12,ES_PASSWORD
 END
 
@@ -925,6 +943,10 @@ BEGIN
     BEGIN
     END
 
+    DLGCRYPT, DIALOG
+    BEGIN
+    END
+
     DLGTAGLIST, DIALOG
     BEGIN
     END
@@ -1052,6 +1074,11 @@ BEGIN
 END
 
 DLGCONTROLINS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGCRYPT AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

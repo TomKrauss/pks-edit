@@ -523,13 +523,13 @@ int ft_currentFileChanged(FTABLE *fp) {
  * filename in "result" (must be large enough to hold the pathname (EDMAXPATHLEN)).
  */
 static FSELINFO _txtfninfo = {"."};
-int fsel_selectFileWithTitle(int title, char *result, BOOL bSaveAs)
+int fsel_selectFileWithTitle(int title, char *result, FILE_SELECT_PARAMS* pFSP)
 {
 	char *fn;
 	BOOL	bRet;
 
 	bRet = FALSE;
-	if ((fn = fsel_selectFileWithOptions(&_txtfninfo, title, bSaveAs)) != 0) {
+	if ((fn = fsel_selectFileWithOptions(&_txtfninfo, title, pFSP)) != 0) {
 		strcpy(result,fn);
 		bRet = TRUE;
 	}
@@ -681,7 +681,9 @@ int EdEditFile(long editflags, char *filename) {
 		}
 	}
 	if ((editflags && OPEN_NOFN) == 0) {
-		if (!fsel_selectFileWithTitle(IDS_MSGOPEN, _fseltarget, FALSE)) {
+		FILE_SELECT_PARAMS fsp;
+		fsp.fsp_saveAs = FALSE;
+		if (!fsel_selectFileWithTitle(IDS_MSGOPEN, _fseltarget, &fsp)) {
 			return 0;
 		}
 		filename = _fseltarget;
@@ -817,10 +819,19 @@ int EdSaveFile(int flg) {
 
 	if ((flg & SAV_AS) || (fp->flags & (F_NAME_INPUT_REQUIRED|F_MODIFIED)) == (F_NAME_INPUT_REQUIRED | F_MODIFIED)) {
 		char newname[512];
-
+		EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
 		string_splitFilename(fp->fname,_txtfninfo.path,_txtfninfo.fname);
-		if (fsel_selectFileWithTitle(MSAVEAS, newname, TRUE) == 0) {
+		FILE_SELECT_PARAMS fsp;
+		fsp.fsp_saveAs = TRUE;
+		fsp.fsp_encryptedAvailable = TRUE;
+		fsp.fsp_encrypted = pConfig->workmode & O_CRYPTED ? TRUE : FALSE;
+		if (fsel_selectFileWithTitle(MSAVEAS, newname, &fsp) == 0) {
 			return 0;
+		}
+		if (fsp.fsp_encrypted) {
+			pConfig->workmode |= O_CRYPTED;
+		} else {
+			pConfig->workmode &= ~O_CRYPTED;
 		}
 		if (areFilenamesDifferent(newname,fp->fname) && file_exists(newname) >= 0) {
 			if (error_displayYesNoConfirmation(IDS_MSGOVERWRITE,string_abbreviateFileNameOem(newname)) == IDNO)
@@ -837,8 +848,9 @@ int EdSaveFile(int flg) {
 		if (!(flags & F_APPEND)) flags |= F_SAVEAS;
 		flags &= ~(F_NEWFILE|F_NAME_INPUT_REQUIRED);
 		ft_setFlags(fp, flags);
-		if (!ft_writeFileWithAlternateName(fp)) 	
+		if (!ft_writeFileWithAlternateName(fp)) {
 			return 0;
+		}
 	}
 
 	if (flg & SAV_FORCED)

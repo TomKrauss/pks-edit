@@ -368,7 +368,10 @@ EXPORT int EdBlockWriteToFile(char *fn)
 		if (fn != 0) {
 			ret = F_NORMOPEN;
 		} else {
-			ret = fsel_selectFileWithTitle(MWRITEF,fname,TRUE);
+			FILE_SELECT_PARAMS fsp;
+			fsp.fsp_encryptedAvailable = FALSE;
+			fsp.fsp_saveAs = TRUE;
+			ret = fsel_selectFileWithTitle(MWRITEF,fname,&fsp);
 			fn  = fname;
 		}
 		if (ret != 0)

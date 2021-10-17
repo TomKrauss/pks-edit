@@ -543,10 +543,13 @@ int macro_toggleRecordMaco(void)
 /*------------------------------------------------------------
  * macro_readWriteWithFileSelection()
  */
-int macro_readWriteWithFileSelection(int wrflag)
-{	char *fn;
+int macro_readWriteWithFileSelection(int wrflag) {	
+	char *fn;
 
-	if ((fn = fsel_selectFileWithOptions(&_seqfsel,(wrflag) ? MWRSEQ : MREADSEQ, wrflag)) == 0) {
+	FILE_SELECT_PARAMS params;
+	params.fsp_saveAs = wrflag;
+	params.fsp_encryptedAvailable = FALSE;
+	if ((fn = fsel_selectFileWithOptions(&_seqfsel,(wrflag) ? MWRSEQ : MREADSEQ, &params)) == 0) {
 		return 0;
 	}
 

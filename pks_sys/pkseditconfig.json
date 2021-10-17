@@ -7,12 +7,6 @@
         "filenamePatterns": "*.*"
     },
     {
-        "name": "encrypted",
-        "description": "Encrypted files (*.crpt)",
-        "editorConfiguration": "encrypted",
-        "filenamePatterns": "*.crpt"
-    },
-    {
         "name": "c+cpp",
         "description": "C/ C++ files (*.c,*.h,*.cpp,*.hpp)",
         "grammar": "cpp",
@@ -217,26 +211,5 @@
         "cursorSearchPlacement": 1,
         "scrollSupportTrackThumb": true,
         "caretFollowsScrollbar": true
-    },
-    {
-        "name": "encrypted",
-        "id": 3,
-        "leftMargin": 0,
-        "rightMargin": 100,
-        "tabSize": 4,
-        "shiftWidth": 4,
-        "showWhitespace": true,
-        "showStatus": true,
-        "insertMode": true,
-        "encrypted": true,
-        "statuslineFormat": "0x%6p$O: 0x%2p$C 0%h$C",
-        "tabCharacter": " ",
-        "newlineCharacter": "\n",
-        "crCharacter": "\r",
-        "editFontStyleName": "default",
-        "scrollVerticallyBy": 0,
-        "scrollHorizontallyBy": 0,
-        "scrollVerticalBorder": 0,
-        "cursorSearchPlacement": 0
     }
     ]}

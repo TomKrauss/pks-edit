@@ -49,7 +49,6 @@ extern int 		_translatekeys;
 extern int		mysprintf(WINFO *wp, char *d,char *format,...);
 extern void 	macro_returnString(char *string);
 extern BOOL 	DlgChooseFont(HWND hWnd, EDTEXTSTYLE *ep, BOOL bPrinter);
-extern void 	fsel_setDialogTitle(char *title);
 
 static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
 static DIALPARS 	*_dp;
@@ -757,8 +756,14 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 			lstrcpy(szBuff,".\\");
 			fselbuf[0] = 0;
 			pszTitle = dlg_getTitleResource(hDlg, idCtrl, szButton, sizeof szButton);
-			fsel_setDialogTitle(pszTitle);
-			if (fsel_selectFile(szBuff,fselbuf,_fseltarget, TRUE)) {
+			FILE_SELECT_PARAMS fsp;
+			fsp.fsp_saveAs = TRUE;
+			fsp.fsp_resultFile = _fseltarget;
+			fsp.fsp_inputFile = szBuff;
+			fsp.fsp_namePatterns = fselbuf;
+			fsp.fsp_title = pszTitle;
+			fsp.fsp_encrypted = FALSE;
+			if (fsel_selectFile(&fsp)) {
 				SetDlgItemText(hDlg, IDD_PATH1, 	_fseltarget);
 			}
 			break;

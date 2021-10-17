@@ -388,8 +388,11 @@ int macro_readMappingFile(int context, char *pszFilename) {
 int EdDocMacrosAdd(void)
 {
 	char	*	fn;
+	FILE_SELECT_PARAMS params;
+	params.fsp_saveAs = TRUE;
+	params.fsp_encryptedAvailable = FALSE;
 
-	if (!ft_getCurrentDocument() || (fn = fsel_selectFileWithOptions(&_linfsel,MADDDOCMAC, TRUE)) == 0) {
+	if (!ft_getCurrentDocument() || (fn = fsel_selectFileWithOptions(&_linfsel, MADDDOCMAC, &params)) == 0) {
 		return 0;
 	}
 

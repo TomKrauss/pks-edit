@@ -11,6 +11,8 @@
 - PKS Edit support now storing backup files in its "temp path" (new option "Place backup files in autosave directory"). Doing
   so has the disadvantage, that two files named c:\temp1\x.c and c:\temp2\x.c will create the same temp file having last one saved
   override the backup file created first. An advantage of using this option is, that working directories are not "polluted" by backup files.
+- One may now save a file in encrypted mode by selecting the corresponding checkbox in the Save As dialog. PKS Edit will automatically
+  recognize now encrypted files (indepentend of their file extension) and will ask for the password to de-crypt encrypted files.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 

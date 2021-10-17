@@ -74,9 +74,6 @@ typedef struct edx {
 	int		(*selnfile)(char *name);
 	int		(*EdFileAbandon)(int reopen);
 
-	/* Fsel */
-	int		(*file_select)(char *path,char *fnam,char *pattern);
-	void 	(*fsel_setDialogTitle)(char *title);
 	char 	*fseltarget;
 
 	/* black copy check */
