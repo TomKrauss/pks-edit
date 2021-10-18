@@ -314,7 +314,7 @@ int EdScrollScreen(int mtype)
 
 	col = wp->caret.offset;
 	sl_moved(wp,dln,0,0);
-	ret = caret_placeCursorAndValidate(wp,&ln,&col,0);
+	ret = wp->renderer->r_placeCaret(wp,&ln,&col,0);
 	wt_curpos(wp,ln,col);
 	return ret;
 }

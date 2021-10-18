@@ -240,7 +240,7 @@ void caret_moveToLine(WINFO* wp, long ln) {
 		// TODO: calculate matching line in other window.
 		long ln1 = caret_calculateSyncedLine(wp->fp, wpOther->fp, ln, nLeft, nRight);
 		long col = 0;
-		caret_placeCursorAndValidate(wpOther, &ln1, &col, 0);
+		wp->renderer->r_placeCaret(wpOther, &ln1, &col, 0);
 		int nDelta = ln - wp->minln;
 		int nNewMin = ln1 - nDelta;
 		if (nNewMin < 0) {
@@ -254,7 +254,7 @@ void caret_moveToLine(WINFO* wp, long ln) {
 	}
 }
 
-/*------------------------------------------------------ft_op--------------------
+/*-------------------------------------+++++++++++++++++++++++-----------------ft_op--------------------
  * caret_updateLineColumn()
  * Invoked, when the cursor is positioned using slider or mouse to update the
  * caret position. 
@@ -367,7 +367,7 @@ long wi_getCaretByteOffset(WINFO* wp) {
  */
 EXPORT int caret_placeCursorForFile(WINFO *wp, long ln,long col)
 {
-	if (!caret_placeCursorAndValidate(wp,&ln,&col,1)) return 0;
+	if (!wp->renderer->r_placeCaret(wp,&ln,&col,1)) return 0;
 	wt_curpos(wp,ln,col);
 	return 1;
 }
@@ -433,11 +433,8 @@ EXPORT int caret_placeCursorMakeVisibleAndSaveLocation(WINFO* wp, long ln,long c
  */
 int caret_placeCursorAndSavePosition(WINFO* wp, long ln, long col)
 {
-	FTABLE* fp;
-
 	if (wp == NULL)
 		return 0;
-	fp = wp->fp;
 	if (ln == wp->caret.ln && col == wp->caret.offset)
 		return 1;
 
@@ -484,8 +481,9 @@ EXPORT int caret_advancePage(WINFO* wp, long *ln,int dir)
 	fp = wp->fp;
 	ds = wp->maxcursln-wp->mincursln;
 	*ln = wp->caret.ln + (dir * ds * _multiplier);
+	long nlines = wp->renderer->r_calculateMaxLine(wp);
 	if (*ln < 0L) *ln = 0L;
-	else if (*ln >= fp->nlines) *ln = fp->nlines-1L;
+	else if (*ln >= nlines) *ln = nlines-1L;
 	return 1;
 }
 
@@ -648,15 +646,17 @@ EXPORT int caret_moveUpOrDown(WINFO* wp, int dir, int mtype)
 		case MOT_CENTER:
 			ln = (wp->maxln+wp->minln) / 2;
 			break;
-		case MOT_FILE:
-			if (!caret_placeCursorAndSavePosition(wp, (dir > 0) ? fp->nlines-1L : 0L,0L)) {
+		case MOT_FILE: {
+			long nlines = wp->renderer->r_calculateMaxLine(wp);
+			if (!caret_placeCursorAndSavePosition(wp, (dir > 0) ? nlines - 1L : 0L, 0L)) {
 				goto err;
 			}
 			nRet = 1;
-			goto err;	
+			goto err;
+		}
 	}
 
-	if (caret_placeCursorAndValidate(wp,&ln,&col,0)) {
+	if (wp->renderer->r_placeCaret(wp,&ln,&col,0)) {
 		nRet = 1;
 		wt_curpos(wp,ln,col);
 	}
@@ -700,7 +700,9 @@ static LINE *caret_nextWord(LINE *lp,long *ln,long *col,
 		}
 	} else {
 		if (c == len) {
-			if (++l >= ft_getCurrentDocument()->nlines) return 0;
+			WINFO* wp = ww_getCurrentEditorWindow();
+			long nlines = wp->renderer->r_calculateMaxLine(wp);
+			if (++l >= nlines) return 0;
 			lp = lp->next;
 			c  = 0;
 		} else {
@@ -897,8 +899,11 @@ EXPORT void caret_calculateOffsetFromScreen(WINFO *wp, int x, int y, long *line,
 	*line	= y / wp->cheight + wp->minln;
 	if (*line < 0) {
 		*line = 0;
-	} else if (*line >= fp->nlines) {
-		*line = fp->nlines - 1;
+	} else {
+		long nlines = wp->renderer->r_calculateMaxLine(wp);
+		if (*line >= nlines) {
+			*line = nlines - 1;
+		}
 	}
 }
 

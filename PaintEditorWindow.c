@@ -352,8 +352,8 @@ void render_asciiMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y)
 				redraw_indirect(hdc, wp, y, lp);
 				visLen = 1;
 			}
-			else if (wp->renderLineFunction) {
-				visLen = wp->renderLineFunction(pCtx, 0, y, lp, ln);
+			else if (wp->renderer->r_renderLine) {
+				visLen = wp->renderer->r_renderLine(pCtx, 0, y, lp, ln);
 			}
 			if (ln >= minMarkedLine && ln <= maxMarkedLine) {
 				paintSelection(hdc, wp, lp, y, visLen);
@@ -400,7 +400,7 @@ static void render_paintWindowParams(WINFO *wp) {
 	renderContext.rc_theme = pTheme;
 	renderContext.rc_printing = FALSE;
 	renderContext.rc_wp = wp;
-	wp->renderPageFunction(&renderContext, &ps.rcPaint, hBrushBg, y);
+	wp->renderer->r_renderPage(&renderContext, &ps.rcPaint, hBrushBg, y);
 	DeleteObject(hBrushBg);
 	EndPaint(hwnd,&ps);
 

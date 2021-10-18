@@ -92,6 +92,21 @@ typedef struct tagRENDER_CONTEXT {
 
 typedef int (*RENDER_LINE_FUNCTION)(RENDER_CONTEXT* pRC, int x, int y, LINE* lp, long lineNo);
 typedef void (*RENDER_PAGE_FUNCTION)(RENDER_CONTEXT* pRC, RECT* pBoundingRect, HBRUSH hBrushBg, int y);
+/*
+ * Used to place the caret to a specific line / column. If updateVirtualOffset == TRUE, 
+ * the "virtual column offset" is updated too. If the function placed the caret successfully it
+ * returns 1 otherwise 0.
+ */
+typedef int (*PLACE_CARET_FUNCTION)(WINFO* wp, long* ln, long* col, int updateVirtualOffset);
+
+typedef long (*CALCULATE_MAX_LINE_FUNCTION)(WINFO* wp);
+
+typedef struct tagRENDERER {
+    RENDER_LINE_FUNCTION r_renderLine;
+    RENDER_PAGE_FUNCTION r_renderPage;
+    PLACE_CARET_FUNCTION r_placeCaret;
+    CALCULATE_MAX_LINE_FUNCTION r_calculateMaxLine;
+} RENDERER;
 
 /*--------------------------------------------------------------------------
  * indent_calculateTabStop()
@@ -163,8 +178,7 @@ typedef struct tagWINFO {
     INDENTATION indentation;
     int     lmargin;
     int     rmargin;
-    RENDER_LINE_FUNCTION renderLineFunction;
-    RENDER_PAGE_FUNCTION renderPageFunction;
+    RENDERER* renderer;
     HIGHLIGHTER* highlighter;
     LINE*     lpMinln;                  // caching line pointer allowing us, to quickly access the line pointer for the minimum line.
     long      cachedLineIndex;          // line index of the caching line pointer.      
@@ -506,6 +520,11 @@ extern void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2);
  * One window of two windows being compared with each other is closed. Perform the proper cleanup.
  */
 extern void ww_releaseComparisonLink(WINFO* wp, BOOL bDetachSource);
+
+/*
+ * Returns a hex renderer.
+ */
+extern RENDERER* hex_getRenderer();
 
 /*------------------------------------------------------------
  * sl_size()

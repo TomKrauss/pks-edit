@@ -196,7 +196,8 @@ typedef struct tagCARET {
 typedef struct tagFTABLE {
 	struct tagFTABLE*next;
 	char 	fname[256];
-	long 	nlines;
+	long 	nlines;			// The number of total lines in the fill. Will be reset by changes.
+	long	nbytes;			// The number of total bytes in the file. Will be reset by changes to -1.
 	int  	flags;
 	int		longLinesSplit;	/* Count of all long lines, which were split during read, as the lines were too long */
 	LINE 	*tln;			/* Pointer to current edited line */	    

@@ -687,6 +687,7 @@ EXPORT int ft_readfileWithOptions(FTABLE *fp,char *fn,int linflag)
 
 	fp->firstl = 0;
 	fp->nlines = 0L;
+	fp->nbytes = -1;
 	fp->documentDescriptor    = 0;
 	fp->flags  = F_NORMOPEN;
 	fp->lockFd = 0;

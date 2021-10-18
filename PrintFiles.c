@@ -426,11 +426,12 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 	rc.rc_wp = _printwhat.wp;
 	rc.rc_printing = TRUE;
 	rc.rc_theme = theme_getDefault();
+	RENDER_LINE_FUNCTION pRender = _printwhat.wp->renderer->r_renderLine;
 	if (_printwhat.wp->maxcol > pLine->firstc) {
 		if (nActualLine >= nFirstActualLineToPrint) {
 			nLinesPrinted++;
 			if (printing) {
-				_printwhat.wp->renderLineFunction(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
+				pRender(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
 			}
 		}
 		while (_printwhat.wp->maxcol < max) {
@@ -452,7 +453,7 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 			if (nActualLine >= nFirstActualLineToPrint) {
 				nLinesPrinted++;
 				if (printing) {
-					_printwhat.wp->renderLineFunction(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
+					pRender(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
 				}
 			}
 		}

@@ -493,6 +493,17 @@ int ww_tabsChanged(WINFO* wp, EDIT_CONFIGURATION* lp) {
 	return 1;
 }
 
+static long ww_calculateMaxLine(WINFO* wp) {
+	FTABLE* fp = FTPOI(wp);
+	return fp->nlines;
+}
+
+static RENDERER _asciiRenderer = {
+	render_singleLineOnDevice,
+	render_asciiMode,
+	caret_placeCursorAndValidate,
+	ww_calculateMaxLine
+};
 
 /*-----------------------------------------------------------
  * ww_applyDisplayProperties()
@@ -506,8 +517,7 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	wp->dispmode = linp->dispmode;
 	// for now - make configurable.
 	wp->dispmode |= SHOW_SYNTAX_HIGHLIGHT;
-	wp->renderLineFunction = render_singleLineOnDevice;
-	wp->renderPageFunction = (wp->dispmode & SHOWHEX) ? render_hexMode : render_asciiMode;
+	wp->renderer = (wp->dispmode & SHOWHEX) ? hex_getRenderer() : &_asciiRenderer;
 	if (wp->highlighter) {
 		highlight_destroy(wp->highlighter);
 	}

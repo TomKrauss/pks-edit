@@ -881,7 +881,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Controlzeichen anzeigen\a",  MMSHOWCO
         MENUITEM "Tabulator&leiste anzeigen\a", MMSHOWLI
-        MENUITEM "Alte&rnative Statuszeile verwenden\a", MMSTATHE
+        MENUITEM "He&x Editor Modus\a",         MMSTATHE
         MENUITEM "Te&xtattribute anzeigen\a",   MMSHOWAT
         MENUITEM "Zeilennummern &anzeigen",     MMSHOWLINENUMBERS
         MENUITEM SEPARATOR
@@ -1095,6 +1095,10 @@ BEGIN
     END
 
     DLGDOCTYPES, DIALOG
+    BEGIN
+    END
+
+    DLGCRYPT, DIALOG
     BEGIN
     END
 

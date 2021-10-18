@@ -15,11 +15,13 @@
  */
 
 #include <windows.h>
+#include "caretmovement.h"
 #include "winfo.h"
 #include "lineoperations.h"
 #include "themes.h"
 
 #define	HEX_BYTES_PER_LINE		32
+#define	HEX_MAX_COL				4*HEX_BYTES_PER_LINE+3
 
 static LINE* cachedLinePointer;
 static long  cachedLineByteOffset;
@@ -67,9 +69,11 @@ static void render_hexLine(RENDER_CONTEXT* pCtx, int y, char* pszBytes, int nByt
 }
 
 /*
- * Get the next line of bytes from the current file to be rendered. 
+ * Get the line pointer for a wanted logical hex line to render. If the
+ * method returns > 0, the Line pointer points to the corresponding line
+ * and the pStartOffset contains the byte offset to the beginning of that line.
  */
-static int hex_getBytes(char* pszBuffer, FTABLE* fp, long ln) {
+static int hex_getLinePointerFor(FTABLE* fp, long ln, LINE** pLine, long* pStartOffset) {
 	long nOffset = ln * HEX_BYTES_PER_LINE;
 	LINE* lp;
 	long nStartOffset;
@@ -94,6 +98,23 @@ static int hex_getBytes(char* pszBuffer, FTABLE* fp, long ln) {
 	}
 	if (lp == NULL) {
 		return 0;
+	}
+	*pStartOffset = nStartOffset;
+	*pLine = lp;
+	return 1;
+}
+
+/*
+ * Get the next line of bytes from the current file to be rendered. 
+ */
+static int hex_getBytes(char* pszBuffer, FTABLE* fp, long ln) {
+	long nOffset = ln * HEX_BYTES_PER_LINE;
+	LINE* lp;
+	long nStartOffset;
+
+	int nResult = hex_getLinePointerFor(fp, ln, &lp, &nStartOffset);
+	if (nResult <= 0) {
+		return nResult;
 	}
 	cachedLinePointer = lp;
 	cachedLineByteOffset = nStartOffset;
@@ -192,4 +213,65 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 	DeleteObject(hBrushCaretLine);
 }
 
+/*
+ * Caret movement in hex edit mode. 
+ */
+static int hex_placeCursorAndValidate(WINFO* wp, long* ln, long* col, int updateVirtualOffset) {
+	int	  o;
+	FTABLE* fp = wp->fp;
+
+	o = *col;
+	if (o < 0) {
+		*col = 0;
+		o = 0;
+	}
+
+	if (o > HEX_MAX_COL) {
+		o = HEX_MAX_COL;
+	}
+	LINE* lp;
+	long nOffset;
+	cachedLinePointer = NULL;
+	if (hex_getLinePointerFor(fp, *ln, &lp, &nOffset) <= 0) {
+		return 0;
+	}
+	wp->caret.linePointer = lp;
+	wp->caret.offset = o;
+	if (updateVirtualOffset) {
+		wp->caret.virtualOffset = o;
+	}
+	caret_moveToLine(wp, *ln);
+	*col = o;
+
+	return 1;
+}
+
+static long hex_calculateNLines(WINFO* wp) {
+	FTABLE* fp = wp->fp;
+	long nBytes = fp->nbytes;
+	if (nBytes <= 0) {
+		nBytes = 0;
+		LINE* lp = fp->firstl;
+		while (lp && lp != fp->lastl) {
+			nBytes += ln_nBytes(lp);
+			lp = lp->next;
+		}
+		fp->nbytes = nBytes;
+	}
+	return (nBytes + HEX_BYTES_PER_LINE - 1) / HEX_BYTES_PER_LINE;
+}
+
+static RENDERER _hexRenderer = {
+	render_singleLineOnDevice,
+	render_hexMode,
+	hex_placeCursorAndValidate,
+	hex_calculateNLines
+};
+
+/*
+ * Returns a hex renderer. 
+ */
+RENDERER* hex_getRenderer() {
+	return &_hexRenderer;
+}
 
