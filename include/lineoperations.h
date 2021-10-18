@@ -342,6 +342,11 @@ extern void ln_addFlag(LINE* lpstart, LINE* lpend, int flg);
  */
 extern int ln_changeFlag(FTABLE* fp, LINE* lpstart, LINE* lpend, int flagsearch, int flagmark, int set);
 
+/*
+ * Calculates the number of bytes occupied by one line.
+ */
+extern long ln_nBytes(LINE* lp);
+
 /*---------------------------------
  * ln_removeFlag()
  *

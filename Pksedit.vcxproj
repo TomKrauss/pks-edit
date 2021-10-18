@@ -162,6 +162,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
+      <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -307,6 +308,7 @@
     <ClCompile Include="Grammar.c" />
     <ClCompile Include="HashMap.c" />
     <ClCompile Include="CodeCompletion.c" />
+    <ClCompile Include="HexRenderer.c" />
     <ClCompile Include="JsonParser.c" />
     <ClCompile Include="Levensthein.c" />
     <ClCompile Include="macro_compiler\CommandFunctionTable.c" />

@@ -50,10 +50,9 @@ static DWORD _ROPcodes[] = {
 static int showSyntaxHighlighting = TRUE;
 
 /*-----------------------------------------
- * Render some control characters in control-mode. 
+ * Render an arbitrary string with a given length at a position using a font-style.
  */
-static int render_formattedString(RENDER_CONTEXT* pRC, int x, int y, unsigned char* cBuf, size_t nLength, THEME_DATA *pTheme, 
-		FONT_STYLE_CLASS nStyle, FONT_STYLE_CLASS* pPreviousStyle) {
+int render_formattedString(RENDER_CONTEXT* pRC, int x, int y, unsigned char* cBuf, size_t nLength, FONT_STYLE_CLASS nStyle, FONT_STYLE_CLASS* pPreviousStyle) {
 	if (nStyle != *pPreviousStyle) {
 		if (showSyntaxHighlighting) {
 			font_selectFontStyle(pRC->rc_theme, pRC->rc_wp, nStyle, pRC->rc_hdc);
@@ -188,7 +187,7 @@ int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long 
 			if (textlen > 0) {
 				int x2 = x + textlen * wp->cwidth;
 				if (x2 >= startX) {
-					render_formattedString(pRC, x, y, buf, textlen, pTheme, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : fsClass, &fsPreviousClass);
+					render_formattedString(pRC, x, y, buf, textlen, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : fsClass, &fsPreviousClass);
 				}
 				x = x2;
 			}
@@ -206,17 +205,17 @@ int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long 
 			}
 		} else if (state == RS_CONTROL) {
 			if (x >= startX) {
-				render_formattedString(pRC, x, y, "?", 1, pTheme, FS_CONTROL_CHARS, &fsPreviousClass);
+				render_formattedString(pRC, x, y, "?", 1, FS_CONTROL_CHARS, &fsPreviousClass);
 			}
 			x += wp->cwidth;
 		} else if (state == RS_TAB) {
 			if (showcontrol) {
 				if (x >= startX) {
-					render_formattedString(pRC, x, y, fillbuf, 1, pTheme, FS_CONTROL_CHARS, &fsPreviousClass);
+					render_formattedString(pRC, x, y, fillbuf, 1, FS_CONTROL_CHARS, &fsPreviousClass);
 				}
 			} else if (tabFiller && tabFiller != ' ') {
 				render_fillBuf(fillbuf, tabFiller, indent - i);
-				render_formattedString(pRC, x, y, fillbuf, indent-i, pTheme, FS_CONTROL_CHARS, &fsPreviousClass);
+				render_formattedString(pRC, x, y, fillbuf, indent-i, FS_CONTROL_CHARS, &fsPreviousClass);
 			}
 			x += (indent - i) * wp->cwidth;
 			i = indent;
@@ -226,13 +225,13 @@ int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long 
 	if (textlen > 0) {
 		int x2 = x+textlen * wp->cwidth;
 		if (x2 >= startX) {
-			render_formattedString(pRC, x, y, buf, textlen, pTheme, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : fsClass, &fsPreviousClass);
+			render_formattedString(pRC, x, y, buf, textlen, (showcontrol && state == RS_SPACE) ? FS_CONTROL_CHARS : fsClass, &fsPreviousClass);
 		}
 		x = x2;
 		i += textlen;
 	}
 	if (showcontrol && i >= wp->mincol && !(lp->lflg & LNNOTERM) && x >= startX) {
-		render_formattedString(pRC, x, y, (lp->lflg & LNNOCR) ? "¬" : "¶", 1, pTheme, FS_CONTROL_CHARS, &fsPreviousClass);
+		render_formattedString(pRC, x, y, (lp->lflg & LNNOCR) ? "¬" : "¶", 1, FS_CONTROL_CHARS, &fsPreviousClass);
 	}
 	return (x-startX)/wp->cwidth;
 }
@@ -299,71 +298,62 @@ static void render_customCaret(WINFO* wp, HDC hdc, int y) {
 	cust_drawOutline(hdc, (wp->secondaryCaret.col - wp->mincol) * wp->cwidth, y, width*wp->cwidth, wp->cheight);
 }
 
-/*--------------------------------------------------------------------------
- * render_paintWindowParams()
+/*
+ * Render the current window in normal ascii / code mode assuming a fixed character spacing font. 
  */
-static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
-	HBRUSH		hBrushBg;
-	HBRUSH		hBrushCaretLine;
+void render_asciiMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
+	THEME_DATA* pTheme = pCtx->rc_theme;
+	int  		newy, visLen;
+	long		ln;
+	long		minMarkedLine;
+	long		maxMarkedLine;
+	RECT 		r;
 	HBRUSH		hBrushCompareModifiedColor;
 	HBRUSH		hBrushCompareAddedColor;
 	HBRUSH		hBrushCompareDeletedColor;
-	HDC 			hdc;
-	HWND			hwnd;
-	RECT 		r;
-	PAINTSTRUCT 	ps;
-	int  		y,newy,visLen;
-	long			ln;
-	long		minMarkedLine;
-	long		maxMarkedLine;
-	FTABLE *		fp = FTPOI(wp);
-	LINE *		lp;
-	THEME_DATA* pTheme = theme_getCurrent();
+	HBRUSH		hBrushCaretLine;
+	HDC			hdc = pCtx->rc_hdc;
+	WINFO* wp = pCtx->rc_wp;
 
-	hwnd = wp->ww_handle;
-	hdc = BeginPaint(hwnd, &ps);
-
-	font_selectFontStyle(pTheme, wp, FS_NORMAL, hdc);
-	hBrushBg = CreateSolidBrush(pTheme->th_defaultBackgroundColor);
 	hBrushCaretLine = CreateSolidBrush(pTheme->th_caretLineColor);
 	hBrushCompareModifiedColor = CreateSolidBrush(pTheme->th_compareModifiedColor);
 	hBrushCompareAddedColor = CreateSolidBrush(pTheme->th_compareAddedColor);
 	hBrushCompareDeletedColor = CreateSolidBrush(pTheme->th_compareDeletedColor);
-
-	y = calcy(wp,min);
+	long min = wp->minln;
+	long max = wp->maxln;
+	LINE* lp;
 	lp = ww_getMinLine(wp, min);
 	RECT rect;
 	GetClientRect(wp->ww_handle, &rect);
 	ww_getSelectionLines(wp, &minMarkedLine, &maxMarkedLine);
-	for (ln = min; lp && ln <= max && y < ps.rcPaint.bottom;
+	int cheight = wp->cheight;
+	for (ln = min; lp && ln <= max && y < pClip->bottom;
 		lp = lp->next, ln++, y = newy) {
-		newy = y + wp->cheight;
-		if (newy > ps.rcPaint.top && 			/* if in redraw area */
-		    (flg || (lp->lflg & LNMODIFIED))) {	/* if print_singleLineOfText is modified || we redraw all */
+		newy = y + cheight;
+		if (newy > pClip->top) {
 			HBRUSH hBrush = hBrushBg;
 			if (lp == wp->caret.linePointer && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
 				hBrush = hBrushCaretLine;
-			} else if (lp->lflg & (LNXMARKED|LN_COMPARE_MODIFIED)) {
+			}
+			else if (lp->lflg & (LNXMARKED | LN_COMPARE_MODIFIED)) {
 				hBrush = hBrushCompareModifiedColor;
-			} else if (lp->lflg & LN_COMPARE_ADDED) {
+			}
+			else if (lp->lflg & LN_COMPARE_ADDED) {
 				hBrush = hBrushCompareAddedColor;
-			} else if (lp->lflg & LN_COMPARE_DELETED) {
+			}
+			else if (lp->lflg & LN_COMPARE_DELETED) {
 				hBrush = hBrushCompareDeletedColor;
 			}
 			r.left = rect.left; r.right = rect.right;
 			r.top = y;
-			r.bottom = min(ps.rcPaint.bottom,y+wp->cheight);
-			FillRect(hdc,&r,hBrush);
+			r.bottom = min(pClip->bottom, y + cheight);
+			FillRect(hdc, &r, hBrush);
 			if (lp->lflg & LNINDIRECT) {
 				redraw_indirect(hdc, wp, y, lp);
 				visLen = 1;
-			} else if (wp->renderFunction) {
-				RENDER_CONTEXT rc;
-				rc.rc_hdc = hdc;
-				rc.rc_wp = wp;
-				rc.rc_printing = FALSE;
-				rc.rc_theme = theme_getCurrent();
-				visLen = wp->renderFunction(&rc,0,y,lp, ln);
+			}
+			else if (wp->renderLineFunction) {
+				visLen = wp->renderLineFunction(pCtx, 0, y, lp, ln);
 			}
 			if (ln >= minMarkedLine && ln <= maxMarkedLine) {
 				paintSelection(hdc, wp, lp, y, visLen);
@@ -377,17 +367,41 @@ static void render_paintWindowParams(WINFO *wp, long min, long max, int flg) {
 	if (!lp) {
 		r.left = rect.left; r.right = rect.right;
 		r.top = y;
-		r.bottom = min(ps.rcPaint.bottom,y+(max-ln)*wp->cheight);
+		r.bottom = min(pClip->bottom, y + (max - ln) * cheight);
 		if (r.bottom > r.top) {
 			FillRect(hdc, &r, hBrushBg);
 		}
 	}
-
-	DeleteObject(hBrushBg);
 	DeleteObject(hBrushCaretLine);
 	DeleteObject(hBrushCompareModifiedColor);
 	DeleteObject(hBrushCompareAddedColor);
 	DeleteObject(hBrushCompareDeletedColor);
+}
+
+/*--------------------------------------------------------------------------
+ * render_paintWindowParams()
+ */
+static void render_paintWindowParams(WINFO *wp) {
+	HBRUSH		hBrushBg;
+	HDC 		hdc;
+	HWND		hwnd;
+	int			y;
+	PAINTSTRUCT ps;
+	THEME_DATA* pTheme = theme_getCurrent();
+
+	hwnd = wp->ww_handle;
+	hdc = BeginPaint(hwnd, &ps);
+	font_selectFontStyle(pTheme, wp, FS_NORMAL, hdc);
+	hBrushBg = CreateSolidBrush(pTheme->th_defaultBackgroundColor);
+	y = calcy(wp, wp->minln);
+	RENDER_CONTEXT renderContext;
+
+	renderContext.rc_hdc = hdc;
+	renderContext.rc_theme = pTheme;
+	renderContext.rc_printing = FALSE;
+	renderContext.rc_wp = wp;
+	wp->renderPageFunction(&renderContext, &ps.rcPaint, hBrushBg, y);
+	DeleteObject(hBrushBg);
 	EndPaint(hwnd,&ps);
 
 }
@@ -401,7 +415,7 @@ EXPORT void render_paintWindow(WINFO* wp)
 	if (wp == NULL) {
 		return;
 	}
-	render_paintWindowParams(wp, wp->minln, wp->maxln, 1);
+	render_paintWindowParams(wp);
 }
 
 /*

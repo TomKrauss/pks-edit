@@ -91,6 +91,7 @@ typedef struct tagRENDER_CONTEXT {
 } RENDER_CONTEXT;
 
 typedef int (*RENDER_LINE_FUNCTION)(RENDER_CONTEXT* pRC, int x, int y, LINE* lp, long lineNo);
+typedef void (*RENDER_PAGE_FUNCTION)(RENDER_CONTEXT* pRC, RECT* pBoundingRect, HBRUSH hBrushBg, int y);
 
 /*--------------------------------------------------------------------------
  * indent_calculateTabStop()
@@ -162,7 +163,8 @@ typedef struct tagWINFO {
     INDENTATION indentation;
     int     lmargin;
     int     rmargin;
-    RENDER_LINE_FUNCTION renderFunction;
+    RENDER_LINE_FUNCTION renderLineFunction;
+    RENDER_PAGE_FUNCTION renderPageFunction;
     HIGHLIGHTER* highlighter;
     LINE*     lpMinln;                  // caching line pointer allowing us, to quickly access the line pointer for the minimum line.
     long      cachedLineIndex;          // line index of the caching line pointer.      
@@ -287,6 +289,16 @@ extern int bl_delete(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfirst,
  * render_singleLineOnDevice()
  */
 extern int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE* lp, long lineNo);
+
+/*
+ * Render the current window in normal ascii / code mode assuming a fixed character spacing font.
+ */
+void render_asciiMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y);
+
+/*
+ * Render the current window in hexadecimal display.
+ */
+void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y);
 
 extern void wt_tcursor(WINFO* wp, int type);
 

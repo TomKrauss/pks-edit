@@ -430,7 +430,7 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 		if (nActualLine >= nFirstActualLineToPrint) {
 			nLinesPrinted++;
 			if (printing) {
-				_printwhat.wp->renderFunction(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
+				_printwhat.wp->renderLineFunction(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
 			}
 		}
 		while (_printwhat.wp->maxcol < max) {
@@ -452,7 +452,7 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 			if (nActualLine >= nFirstActualLineToPrint) {
 				nLinesPrinted++;
 				if (printing) {
-					_printwhat.wp->renderFunction(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
+					_printwhat.wp->renderLineFunction(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
 				}
 			}
 		}

@@ -247,6 +247,16 @@ int ln_changeFlag(FTABLE* fp, LINE *lpstart, LINE *lpend, int flagsearch, int fl
 	return ret;
 }
 
+/*
+ * Calculates the number of bytes occupied by one line. 
+ */
+long ln_nBytes(LINE* lp) {
+	long offset = lp->len;
+	if (LINE_HAS_LINE_END(lp)) {
+		offset += LINE_HAS_CR(lp) ? 2 : 1;
+	}
+	return offset;
+}
 
 /*---------------------------------
  * ln_removeFlag()

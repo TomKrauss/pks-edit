@@ -1206,7 +1206,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Show Tabs and Spaces\a",     MMSHOWCO
         MENUITEM "Show Ruler\a",                MMSHOWLI
-        MENUITEM "&Use Alternate Status Line\a", MMSTATHE
+        MENUITEM "He&x Editor Mode\a",          MMSTATHE
         MENUITEM "&Show Syntax Highlighting\a", MMSHOWAT
         MENUITEM "&Display Line Numbers",       MMSHOWLINENUMBERS
         MENUITEM SEPARATOR

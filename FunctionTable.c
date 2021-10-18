@@ -384,7 +384,7 @@ COMMAND _cmdseqtab[] = {
 52, C_1FUNC, 78 /* EdOptionToggle */, OPT_DMODE|SHOWCONTROL, "toggle-show-control", 
 53, C_1FUNC, 78 /* EdOptionToggle */, OPT_DMODE|SHOWRULER, "toggle-show-ruler", 
 54, C_0FUNC, 114 /* EdPrinterLayout */, 0 , "dialog-printer-layout", 
-55, C_1FUNC, 78 /* EdOptionToggle */, OPT_DMODE|SHOWHEX, "toggle-alternate-status", 
+55, C_1FUNC, 78 /* EdOptionToggle */, OPT_DMODE|SHOWHEX, "toggle-hex-modus", 
 56, C_1FUNC, 78 /* EdOptionToggle */, OPT_WMODE|WM_DELETE_MULTIPLE_SPACES, "delete-multiple-spaces", 
 57, C_1FUNC, 78 /* EdOptionToggle */, OPT_WMODE|WM_INSERT, "toggle-insert-mode", 
 58, C_0FUNC, 59 /* EdOptionSet */, 0 , "set-options", 

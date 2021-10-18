@@ -506,7 +506,8 @@ void ww_applyDisplayProperties(WINFO *wp) {
 	wp->dispmode = linp->dispmode;
 	// for now - make configurable.
 	wp->dispmode |= SHOW_SYNTAX_HIGHLIGHT;
-	wp->renderFunction = render_singleLineOnDevice;
+	wp->renderLineFunction = render_singleLineOnDevice;
+	wp->renderPageFunction = (wp->dispmode & SHOWHEX) ? render_hexMode : render_asciiMode;
 	if (wp->highlighter) {
 		highlight_destroy(wp->highlighter);
 	}

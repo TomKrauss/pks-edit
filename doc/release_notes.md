@@ -13,6 +13,8 @@
   override the backup file created first. An advantage of using this option is, that working directories are not "polluted" by backup files.
 - One may now save a file in encrypted mode by selecting the corresponding checkbox in the Save As dialog. PKS Edit will automatically
   recognize now encrypted files (indepentend of their file extension) and will ask for the password to de-crypt encrypted files.
+- PKS Edit supports now a preliminary "hex editor" mode to display the current file in an hex editor fashion. Editing is not yet
+  correctly supported, but planned for later releases.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 

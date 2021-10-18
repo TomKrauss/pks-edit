@@ -751,6 +751,13 @@ BEGIN
     LTEXT           "Vergleiche Datei:",-1,6,9,206,8,NOT WS_GROUP
 END
 
+DLG_SAVEAS_OPTIONS DIALOGEX 0, 0, 323, 19
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_BORDER
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "Verschlüsseln:",IDC_CHECK_ENCRYPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,67,1,70,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -874,7 +881,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Controlzeichen anzeigen\a",  MMSHOWCO
         MENUITEM "Tabulator&leiste anzeigen\a", MMSHOWLI
-        MENUITEM "Alte&rnative Statuszeile verwenden\a", MMSTATHE
+        MENUITEM "He&x Editor Modus\a",         MMSTATHE
         MENUITEM "Te&xtattribute anzeigen\a",   MMSHOWAT
         MENUITEM "Zeilennummern &anzeigen",     MMSHOWLINENUMBERS
         MENUITEM SEPARATOR
@@ -1091,6 +1098,10 @@ BEGIN
     BEGIN
     END
 
+    DLGCRYPT, DIALOG
+    BEGIN
+    END
+
     DLGTAGLIST, DIALOG
     BEGIN
         RIGHTMARGIN, 587
@@ -1137,6 +1148,12 @@ BEGIN
 
     DLGCOMPAREFILES, DIALOG
     BEGIN
+    END
+
+    DLG_SAVEAS_OPTIONS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 320
+        BOTTOMMARGIN, 15
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1220,6 +1237,11 @@ BEGIN
 END
 
 DLGCONTROLINS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLG_SAVEAS_OPTIONS AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

@@ -355,10 +355,7 @@ long wi_getCaretByteOffset(WINFO* wp) {
 		return 0;
 	}
 	while (lp != NULL && lp != wp->caret.linePointer) {
-		offset += lp->len;
-		if (LINE_HAS_LINE_END(lp)) {
-			offset += LINE_HAS_CR(lp) ? 2 : 1;
-		}
+		offset += ln_nBytes(lp);
 		lp = lp->next;
 	}
 	return offset + wp->caret.offset;
