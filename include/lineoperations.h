@@ -196,14 +196,16 @@ typedef struct tagCARET {
 typedef struct tagFTABLE {
 	struct tagFTABLE*next;
 	char 	fname[256];
-	long 	nlines;			// The number of total lines in the fill. Will be reset by changes.
-	long	nbytes;			// The number of total bytes in the file. Will be reset by changes to -1.
+	long 	nlines;				// The number of total lines in the fill. Will be reset by changes.
 	int  	flags;
-	int		longLinesSplit;	/* Count of all long lines, which were split during read, as the lines were too long */
-	LINE 	*tln;			/* Pointer to current edited line */	    
-	LINE 	*firstl,			/* first line */
-			*lastl;			/* last line */
-	LINE* lpReadPointer;	/* used during read operations temporarily */
+	int		longLinesSplit;		// Count of all long lines, which were split during read, as the lines were too long 
+	LINE 	*tln;				// Pointer to current edited line
+	LINE 	*firstl,			// first line
+			*lastl;				// last line
+	LINE*	lpReadPointer;		// used during read operations temporarily
+	long	nbytes;				// The number of total bytes in the file. Will be reset by changes to -1.
+	LINE*	pByteOffsetCache;	// Used to speed up the calculation of "byte offsets" into our line pointers (used in Hex editing)
+	long	nCachedByteOffset;	// See above - only valid if pByteOffsetCache is not null
 	EDIT_CONFIGURATION	*documentDescriptor;
 	HIDDENP	views;			/* the list of our views */
 	HIDDENP	undo;

@@ -115,7 +115,7 @@ extern int caret_placeCursorMakeVisible(WINFO* wp, long ln, long col);
  * cphypos()
  * cursoraddressierung with slider and mouse
  */
-extern int caret_updateLineColumn(WINFO* wp, long* ln, long* col, int newcol);
+extern int caret_updateDueToMouseClick(WINFO* wp, long* ln, long* col, int newcol);
 
 /*
  * Move the caret to the given line.
@@ -123,11 +123,11 @@ extern int caret_updateLineColumn(WINFO* wp, long* ln, long* col, int newcol);
 extern void caret_moveToLine(WINFO* wp, long ln);
 
 /*--------------------------------------------------------------------------
- * caret_updateLineColumn()
+ * caret_updateDueToMouseClick()
  * Invoked, when the cursor is positioned using slider or mouse to update the
  * caret position.
  */
-extern int caret_updateLineColumn(WINFO* wp, long* ln, long* col, int newcol);
+extern int caret_updateDueToMouseClick(WINFO* wp, long* ln, long* col, int newcol);
 
 /*--------------------------------------------------------------------------
  * caret_placeCursorAndMakevisibleWithSpace()

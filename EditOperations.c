@@ -715,8 +715,9 @@ static int edit_autoFormat(WINFO *wp)
 
 	ln_removeFlag(lp1,lp,LNMODIFIED);
 
-	if (caretLine >= fp->nlines) {
-		caretLine = fp->nlines-1;
+	long nlines = wp->renderer->r_calculateMaxLine(wp);
+	if (caretLine >= nlines) {
+		caretLine = nlines-1;
 		caretColumn = lp1->len;
 	}
 

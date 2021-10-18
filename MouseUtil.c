@@ -181,7 +181,7 @@ static void caret_placeToXY(WINFO* wp, int x, int y) {
 	long col, ln;
 
 	caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
-	if (caret_updateLineColumn(wp, &ln, &col, 1)) {
+	if (wp->renderer->r_placeCaretAfterClick(wp, &ln, &col, 1)) {
 		wt_curpos(wp, ln, col);
 	}
 }
@@ -505,9 +505,6 @@ void mouse_deleteBindingsUpTo(MACROREFTYPE typ, MACROREFIDX val)
 /*---------------------------------*/
 static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 {
-	long 	ln;
-	long 	col;
-
 	if (mp->msg && mp->msg[0]) {
 		error_displayErrorToast(mp->msg, NULL);
 	}
@@ -515,10 +512,7 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 		COM_1FUNC* cp;
 		cp = &_cmdseqtab[mp->macref.index].c_functionDef;
 		if (_edfunctab[cp->funcnum].flags & EW_FINDCURS) {
-			caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
-			if (caret_updateLineColumn(wp, &ln, &col, 1)) {
-				wt_curpos(wp, ln, col);
-			}
+			caret_placeToXY(wp, x, y);
 		}
 	}
 

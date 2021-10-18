@@ -254,12 +254,12 @@ void caret_moveToLine(WINFO* wp, long ln) {
 	}
 }
 
-/*-------------------------------------+++++++++++++++++++++++-----------------ft_op--------------------
- * caret_updateLineColumn()
+/*-------------------------------------
+ * caret_updateDueToMouseClick()
  * Invoked, when the cursor is positioned using slider or mouse to update the
  * caret position. 
  */
-EXPORT int caret_updateLineColumn(WINFO *wp, long *ln, long *col, int updateVirtualColumn) {
+EXPORT int caret_updateDueToMouseClick(WINFO *wp, long *ln, long *col, int updateVirtualColumn) {
 	LINE *	lp;
 	int		i;
 	BOOL	bXtnd;
@@ -274,8 +274,9 @@ EXPORT int caret_updateLineColumn(WINFO *wp, long *ln, long *col, int updateVirt
 		i = wp->caret.virtualOffset;
 	}
 	i = caret_screen2lineOffset(wp, &(CARET) {lp, i});
-	if (lp->len < i) {
-		i = lp->len;
+	long maxcol = wp->renderer->r_calculateMaxColumn(wp, *ln, lp);
+	if (maxcol < i) {
+		i = maxcol;
 	}
 
 	*col = caret_lineOffset2screen(wp, &(CARET) { lp, i});
@@ -287,6 +288,7 @@ EXPORT int caret_updateLineColumn(WINFO *wp, long *ln, long *col, int updateVirt
 
 	wp->caret.linePointer = lp;
 	wp->caret.offset = i;
+
 	caret_moveToLine(wp, *ln);
 	if (updateVirtualColumn) {
 		wp->caret.virtualOffset = *col;
@@ -315,9 +317,9 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int update
 		*col = 0;
 		o    = 0;
 	}
-
-	if (o > lp->len) {
-		o = lp->len;
+	long maxcol = wp->renderer->r_calculateMaxColumn(wp, *ln, lp);
+	if (o > maxcol) {
+		o = maxcol;
 	}
 
 	i = caret_lineOffset2screen(wp, &(CARET) { lp, o});
@@ -325,7 +327,8 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int update
 		o = caret_screen2lineOffset(wp, &(CARET) {
 		lp, wp->caret.virtualOffset
 	});
-	if (lp->len < o) o = lp->len;
+	maxcol = wp->renderer->r_calculateMaxColumn(wp, *ln, lp);
+	if (maxcol < o) o = maxcol;
 	if (o != *col) i = caret_lineOffset2screen(wp, &(CARET) { lp, o});
 
 	bXtnd = wp->bXtndBlock;
@@ -347,17 +350,49 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int update
  * Calculate the byte offset of the current caret in a file. 
  */
 long wi_getCaretByteOffset(WINFO* wp) {
-	long offset = 0;
+	long offset;
 	FTABLE* fp = wp->fp;
 	LINE* lp = fp->firstl;
+	LINE* lpCompare = wp->caret.linePointer;
 
-	if (wp->caret.linePointer == NULL) {
+	if (lpCompare == NULL) {
 		return 0;
 	}
-	while (lp != NULL && lp != wp->caret.linePointer) {
-		offset += ln_nBytes(lp);
-		lp = lp->next;
+	lp = fp->pByteOffsetCache;
+	offset = fp->nCachedByteOffset;
+	if (lp && lp != lpCompare) {
+		int nDelta = wp->maxln - wp->minln + 1;
+		// Heuristic search for line: search in current window.
+		for (int i = 0; i < nDelta; i++) {
+			if (!lp->prev) {
+				break;
+			}
+			lp = lp->prev;
+			offset -= ln_nBytes(lp);
+			if (lp == lpCompare) {
+				break;
+			}
+		}
+		nDelta *= 2;
+		for (int i = 0; i < nDelta; i++) {
+			if (lp == lpCompare || lp == NULL) {
+				break;
+			}
+			offset += ln_nBytes(lp);
+			lp = lp->next;
+		}
 	}
+	if (lpCompare != lp) {
+		offset = 0;
+		lp = fp->firstl;
+		while (lp != NULL && lp != lpCompare) {
+			offset += ln_nBytes(lp);
+			lp = lp->next;
+		}
+	}
+	// Cache last offset calculated.
+	fp->pByteOffsetCache = lp;
+	fp->nCachedByteOffset = offset;
 	return offset + wp->caret.offset;
 }
 
@@ -630,7 +665,8 @@ EXPORT int caret_moveUpOrDown(WINFO* wp, int dir, int mtype)
 	}
 	HideWindowsBlocks(wp);
 
-	col = wp->caret.offset, ln = wp->caret.ln;
+	col = wp->caret.offset;
+	ln = wp->caret.ln;
 	switch(mtype & (~MOT_XTNDBLOCK)) {
 		case MOT_SINGLE:
 			ln += (dir * _multiplier);
@@ -813,11 +849,11 @@ EXPORT void caret_setMatchFunction(int mtype, int ids_name, int *c)
  * Move the caret to the left or right. If motionFlags contains MOT_XTNDBLOCK
  * the selection is extended.
  */
-EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags)
-{
+EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags) {
 	FTABLE *fp;
 	long  	ln;
 	long 	col;
+	long maxcol;
 	LINE *	lp;
 	int   	matchc;
 	int		moving;
@@ -830,7 +866,6 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags)
 	ln = wp->caret.ln;
 	bXtnd = wp->bXtndBlock;
 	nRet = 0;
-
 	if (motionFlags & MOT_XTNDBLOCK) {
 		wp->bXtndBlock = TRUE;
 	}
@@ -850,7 +885,8 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags)
 			}
 			break;
 		case  MOT_SINGLE:
-			if (col >= lp->len) {
+			maxcol = wp->renderer->r_calculateMaxColumn(wp, ln, lp);
+			if (col >= maxcol) {
 				lp = lp->next;
 				if (lp->next == 0) {
 					goto err;
@@ -867,7 +903,8 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags)
 				if ((lp = lp->prev) == 0)
 					goto err;
 				ln--;
-				col = lp->len;
+				maxcol = wp->renderer->r_calculateMaxColumn(wp, ln, lp);
+				col = maxcol;
 			} else {
 				col = caret_getPreviousColumnInLine(wp, lp,col);
 			}

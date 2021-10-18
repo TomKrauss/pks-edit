@@ -164,6 +164,7 @@
         "tabulatorSizes": [4],
         "shiftWidth": 4,
         "showWhitespace": true,
+        "showHexadecimalChars": true,
         "showRuler": true,
         "showLineNumbers": true,
         "showStatus": true,

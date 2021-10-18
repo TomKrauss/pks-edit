@@ -498,11 +498,17 @@ static long ww_calculateMaxLine(WINFO* wp) {
 	return fp->nlines;
 }
 
+static long ww_calculateMaxColumn(WINFO* wp, long ln, LINE* lp) {
+	return lp->len;
+}
+
 static RENDERER _asciiRenderer = {
 	render_singleLineOnDevice,
 	render_asciiMode,
 	caret_placeCursorAndValidate,
-	ww_calculateMaxLine
+	ww_calculateMaxLine,
+	ww_calculateMaxColumn,
+	caret_updateDueToMouseClick
 };
 
 /*-----------------------------------------------------------

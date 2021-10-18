@@ -21,10 +21,7 @@
 #include "themes.h"
 
 #define	HEX_BYTES_PER_LINE		32
-#define	HEX_MAX_COL				4*HEX_BYTES_PER_LINE+3
-
-static LINE* cachedLinePointer;
-static long  cachedLineByteOffset;
+#define	HEX_MAX_COL				4*HEX_BYTES_PER_LINE+2
 
 /*-----------------------------------------
  * Render an arbitrary string with a given length at a position using a font-style.
@@ -78,9 +75,13 @@ static int hex_getLinePointerFor(FTABLE* fp, long ln, LINE** pLine, long* pStart
 	LINE* lp;
 	long nStartOffset;
 
-	if (cachedLinePointer && cachedLineByteOffset < nOffset) {
-		lp = cachedLinePointer;
-		nStartOffset = cachedLineByteOffset;
+	if (fp->pByteOffsetCache) {
+		lp = fp->pByteOffsetCache;
+		nStartOffset = fp->nCachedByteOffset;
+		while (nStartOffset > nOffset && lp->prev) {
+			lp = lp->prev;
+			nStartOffset -= ln_nBytes(lp);
+		}
 	} else {
 		lp = fp->firstl;
 		nStartOffset = 0;
@@ -116,8 +117,8 @@ static int hex_getBytes(char* pszBuffer, FTABLE* fp, long ln) {
 	if (nResult <= 0) {
 		return nResult;
 	}
-	cachedLinePointer = lp;
-	cachedLineByteOffset = nStartOffset;
+	fp->pByteOffsetCache = lp;
+	fp->nCachedByteOffset = nStartOffset;
 	int nCount = 0;
 	int lnOffset = nOffset - nStartOffset;
 	while (nCount < HEX_BYTES_PER_LINE) {
@@ -170,7 +171,6 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 	HBRUSH hBrush;
 	HBRUSH hBrushCaretLine;
 
-	cachedLinePointer = NULL;
 	int cheight = wp->cheight;
 	GetClientRect(wp->ww_handle, &rect);
 	hBrushCaretLine = CreateSolidBrush(pCtx->rc_theme->th_caretLineColor);
@@ -231,7 +231,6 @@ static int hex_placeCursorAndValidate(WINFO* wp, long* ln, long* col, int update
 	}
 	LINE* lp;
 	long nOffset;
-	cachedLinePointer = NULL;
 	if (hex_getLinePointerFor(fp, *ln, &lp, &nOffset) <= 0) {
 		return 0;
 	}
@@ -261,11 +260,18 @@ static long hex_calculateNLines(WINFO* wp) {
 	return (nBytes + HEX_BYTES_PER_LINE - 1) / HEX_BYTES_PER_LINE;
 }
 
+static long hex_calculateMaxColumn(WINFO* wp, long ln, LINE* lp) {
+	return HEX_MAX_COL;
+}
+
+
 static RENDERER _hexRenderer = {
 	render_singleLineOnDevice,
 	render_hexMode,
 	hex_placeCursorAndValidate,
-	hex_calculateNLines
+	hex_calculateNLines,
+	hex_calculateMaxColumn,
+	hex_placeCursorAndValidate
 };
 
 /*

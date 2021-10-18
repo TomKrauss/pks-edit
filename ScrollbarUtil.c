@@ -92,7 +92,8 @@ int sl_size(WINFO *wp) {
 		n = screenTop = 0;
 	} else {
 		screenTop = wp->minln;
-		n = fp->nlines+1L;
+		long nlines = wp->renderer->r_calculateMaxLine(wp);
+		n = nlines+1L;
 	}
 	SetWin32ScrollInfo(wp, SB_VERT, screenTop, wp->maxln - wp->minln + 1, n);
 
@@ -176,7 +177,8 @@ int sl_scrollwinrange(WINFO *wp, long *pDeltaY, long *pDeltaX)
 	} 
 
 	if (dy) {
-		val = sl_calcnewmin(dy,fp->nlines,wp->minln);
+		long nlines = wp->renderer->r_calculateMaxLine(wp);
+		val = sl_calcnewmin(dy,nlines,wp->minln);
 		*pDeltaY = val-wp->minln;
 		wp->minln = val;
 	} 
@@ -237,7 +239,7 @@ int sl_moved(WINFO *wp, long dy, long dx, int cursor_adjust)
 			col = wp->maxcurscol;
 		}
 		if (col != wp->caret.col || ln != wp->caret.ln) {
-			if (!caret_updateLineColumn(wp, &ln, &col, 0)) {
+			if (!caret_updateDueToMouseClick(wp, &ln, &col, 0)) {
 				ln = wp->caret.ln;
 			}
 			wp->caret.ln  = ln;
@@ -307,9 +309,8 @@ int EdScrollScreen(int mtype)
 	}
 
 	dln *= _multiplier;
-
-	if ((ln = wp->caret.ln+dln) < 0 ||
-		ln >= fp->nlines)
+	long nlines = wp->renderer->r_calculateMaxLine(wp);
+	if ((ln = wp->caret.ln+dln) < 0 ||ln >= nlines)
 		return 0;
 
 	col = wp->caret.offset;

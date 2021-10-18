@@ -188,8 +188,14 @@ static long CurrentNumVal(WINFO *wp, char **fmt) {
 	case 'O':
 		return wi_getCaretByteOffset(wp);
 
-	case 'C':
-		return (long)((unsigned char)wp->caret.linePointer->lbuf[wp->caret.offset]);
+	case 'C': {
+		int nOffs = wp->caret.offset;
+		LINE* lp = wp->caret.linePointer;
+		if (lp && nOffs < lp->len) {
+			return (long)((unsigned char)lp->lbuf[nOffs]);
+		}
+		return 0;
+	}
 
 	case 'l':
 		return wp->caret.ln + 1L;

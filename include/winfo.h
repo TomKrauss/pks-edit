@@ -101,11 +101,23 @@ typedef int (*PLACE_CARET_FUNCTION)(WINFO* wp, long* ln, long* col, int updateVi
 
 typedef long (*CALCULATE_MAX_LINE_FUNCTION)(WINFO* wp);
 
+/*
+ * Invoked, when the cursor is positioned using slider or mouse to update the
+ * caret position. 
+ */
+typedef int (*CARET_MOUSE_CLICKED_FUNCTION)(WINFO* wp, long* ln, long* col, int updateVirtualColumn);
+
+typedef struct line LINE;
+
+typedef long (*CALCULATE_MAX_COL_FUNCTION)(WINFO* wp, long ln, LINE* lp);
+
 typedef struct tagRENDERER {
     RENDER_LINE_FUNCTION r_renderLine;
     RENDER_PAGE_FUNCTION r_renderPage;
     PLACE_CARET_FUNCTION r_placeCaret;
     CALCULATE_MAX_LINE_FUNCTION r_calculateMaxLine;
+    CALCULATE_MAX_COL_FUNCTION r_calculateMaxColumn;
+    CARET_MOUSE_CLICKED_FUNCTION r_placeCaretAfterClick;
 } RENDERER;
 
 /*--------------------------------------------------------------------------

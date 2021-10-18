@@ -89,6 +89,7 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 	highlight_modelChange(wp->highlighter, pChanged);
 	FTABLE* fp = wp->fp;
 	fp->nbytes = -1;
+	fp->pByteOffsetCache = NULL;
 	switch (pChanged->type) {
 	case EVERYTHING_CHANGED:
 		bl_hideSelection(wp, 0);
