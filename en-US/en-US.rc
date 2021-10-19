@@ -352,7 +352,7 @@ FONT 8, "helv", 0, 0, 0x0
 BEGIN
     GROUPBOX        "Display",1000,17,12,358,74
     CONTROL         "&Tabs and Spaces",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,21,27,152,10
-    CONTROL         "A&lternate Statusline",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,37,152,10
+    CONTROL         "He&x Editing",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,37,152,10
     CONTROL         "Show R&uler",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,47,152,10
     CONTROL         "Fixed Window Positions",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,190,26,152,10
     CONTROL         "No &vertical Slider",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,190,36,152,10
@@ -1443,6 +1443,7 @@ BEGIN
     IDS_FILE_READONLY       "Read-only"
     IDS_SEARCH              "Search:"
     IDS_STATUSLINE          "L: %2j$l, C: %2j$c!%s$&"
+    IDS_NO_MACROS_DEFINED   "No macros defined."
 END
 
 STRINGTABLE

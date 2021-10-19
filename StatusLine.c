@@ -48,7 +48,7 @@ static int st_format(char *dest)
 		return 0;
 	}
 	len = mysprintf(wp, dest,
-				 (wp && wp->statusline && (wp->dispmode & SHOWHEX)) ? 
+				 (wp && wp->statusline) ? 
 				 wp->statusline : 
 				 dlg_getResourceString(IDS_STATUSLINE));
 	return len;

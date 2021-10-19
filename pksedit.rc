@@ -234,7 +234,7 @@ FONT 8, "helv", 0, 0, 0x0
 BEGIN
     GROUPBOX        " Anzeige",1000,14,9,315,74
     CONTROL         "&Controlzeichen",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,18,23,141,10
-    CONTROL         "A&lternativer Status",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,33,141,10
+    CONTROL         "He&xadezimales editieren",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,33,141,10
     CONTROL         "L&ineal anzeigen",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,43,141,10
     CONTROL         "F&este Fensterlage",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,174,22,142,10
     CONTROL         "Kein &vertikaler Slider",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,174,32,142,10
@@ -1444,6 +1444,7 @@ BEGIN
     IDS_FILE_READONLY       "Nur lesen"
     IDS_SEARCH              "Suchen:"
     IDS_STATUSLINE          "Z: %2j$l, S: %2j$c!%s$&"
+    IDS_NO_MACROS_DEFINED   "Keine Makros definiert."
 END
 
 STRINGTABLE

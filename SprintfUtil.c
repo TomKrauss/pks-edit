@@ -173,9 +173,10 @@ blanks:	return "              ";
 }
 
 /*--------------------------------------------------------------------------
- * CurrentNumVal()
+ * sprintf_getValueFromWindow()
  */
-static long CurrentNumVal(WINFO *wp, char **fmt) {
+static long sprintf_getValueFromWindow(WINFO *wp, char **fmt) {
+	INTERNAL_BUFFER_POS pos;
 	char *	format;
 	if (wp == 0) {
 		return 0;
@@ -189,9 +190,18 @@ static long CurrentNumVal(WINFO *wp, char **fmt) {
 		return wi_getCaretByteOffset(wp);
 
 	case 'C': {
-		int nOffs = wp->caret.offset;
-		LINE* lp = wp->caret.linePointer;
-		if (lp && nOffs < lp->len) {
+		if (wp->renderer->r_screenToBuffer(wp, wp->caret.ln, wp->caret.col, &pos)) {
+			LINE* lp = pos.ibp_lp;
+			int nOffs = pos.ibp_lineOffset;
+			if (nOffs >= lp->len) {
+				if (nOffs == lp->len && LINE_HAS_CR(lp)) {
+					return '\r';
+				}
+				if (LINE_HAS_LINE_END(lp) && nOffs <= lp->len+1) {
+					return '\n';
+				}
+				return 0;
+			}
 			return (long)((unsigned char)lp->lbuf[nOffs]);
 		}
 		return 0;
@@ -271,7 +281,7 @@ int mysprintf(WINFO *wp, char *d, char *format,...) {
 				base = c - 'a' + 1;
 				if (*format == '$') {
 					format++;
-					val = CurrentNumVal(wp, &format);
+					val = sprintf_getValueFromWindow(wp, &format);
 					format++;
 				} else {
 					val  = va_arg(args,long);

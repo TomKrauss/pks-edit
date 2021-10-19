@@ -14,7 +14,7 @@
 - One may now save a file in encrypted mode by selecting the corresponding checkbox in the Save As dialog. PKS Edit will automatically
   recognize now encrypted files (indepentend of their file extension) and will ask for the password to de-crypt encrypted files.
 - PKS Edit supports now a preliminary "hex editor" mode to display the current file in an hex editor fashion. Editing is not yet
-  correctly supported, but planned for later releases.
+  correctly supported, but planned for later releases. PKS Edit will now by default open binary files in hex editor mode.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
@@ -31,6 +31,8 @@
 ### Changed
 - Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather
   than replacing the extension x.c -> x.bak). This has the advantage, that files named x.c and x.h will create different backup files now.
+- Changing the display mode will not automatically save the editor configuration any more. Editor configurations are saved, when they
+  were edited in the corresponding dialog.
 
 ### Fixes
 - Long lines painted in a single color could have caused a crash. This is fixed.

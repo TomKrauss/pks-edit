@@ -502,56 +502,74 @@ static long ww_calculateMaxColumn(WINFO* wp, long ln, LINE* lp) {
 	return lp->len;
 }
 
+static int ww_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFER_POS* pPosition) {
+	if (wp->caret.ln == ln && wp->caret.col == col) {
+		pPosition->ibp_lineOffset = wp->caret.offset;
+		pPosition->ibp_logicalColumnInLine = wp->caret.offset;
+		pPosition->ibp_lp = wp->caret.linePointer;
+		return 1;
+	}
+	return 0;
+}
+
+
 static RENDERER _asciiRenderer = {
 	render_singleLineOnDevice,
 	render_asciiMode,
 	caret_placeCursorAndValidate,
 	ww_calculateMaxLine,
 	ww_calculateMaxColumn,
-	caret_updateDueToMouseClick
+	caret_updateDueToMouseClick,
+	ww_screenOffsetToBuffer
 };
+
+/*
+ * The display / workmode of a window has changed - update appropriately.
+ */
+void ww_modeChanged(WINFO* wp) {
+	wp->renderer = (wp->dispmode & SHOWHEX) ? hex_getRenderer() : &_asciiRenderer;
+	if (wp->ww_handle) {
+		sl_size(wp);
+		font_selectStandardFont(wp->ww_handle, wp);
+		win_sendRedrawToWindow(wp->ww_handle);
+		wt_tcursor(wp, 0);
+		wt_tcursor(wp, 1);
+		caret_placeCursorForFile(wp, wp->caret.ln, wp->caret.offset, 0);
+	}
+
+	wp->scroll_dx = 4;
+	ww_setScrollCheckBounds(wp);
+	render_updateCaret(wp);
+}
 
 /*-----------------------------------------------------------
  * ww_applyDisplayProperties()
  * Apply all flags from the document descriptor of the edited document on the 
  * window referred to by the passed pointer.
  */
-void ww_applyDisplayProperties(WINFO *wp) {
+void ww_applyDisplayProperties(WINFO* wp) {
 	FTABLE* fp = wp->fp;
-	EDIT_CONFIGURATION *linp = fp->documentDescriptor;
+	EDIT_CONFIGURATION* linp = fp->documentDescriptor;
 
 	wp->dispmode = linp->dispmode;
 	// for now - make configurable.
 	wp->dispmode |= SHOW_SYNTAX_HIGHLIGHT;
-	wp->renderer = (wp->dispmode & SHOWHEX) ? hex_getRenderer() : &_asciiRenderer;
+	wp->workmode = linp->workmode;
+	wp->tabDisplayFillCharacter = linp->tabDisplayFillCharacter;
 	if (wp->highlighter) {
 		highlight_destroy(wp->highlighter);
 	}
-	wp->highlighter = highlight_getHighlighter(linp->grammar);
-	if (wp->ww_handle) {
-		sl_size(wp);
-		font_selectStandardFont(wp->ww_handle, wp);
-		win_sendRedrawToWindow(wp->ww_handle);
-		wt_tcursor(wp,0);
-		wt_tcursor(wp,1);
-		caret_placeCursorForFile(wp,wp->caret.ln,wp->caret.offset);
-	}
-
-	wp->workmode = linp->workmode;
-	wp->tabDisplayFillCharacter = linp->tabDisplayFillCharacter;
-	wp->statusline = linp->statusline;
+	wp->statusline = linp->statusline[0] ? linp->statusline : NULL;
 	wp->scrollflags = linp->scrollflags;
 	wp->cursaftersearch = linp->cursaftersearch;
 	wp->vscroll = linp->vscroll;
 	wp->scroll_dy = linp->scroll_dy;
 	wp->hscroll = linp->hscroll;
-	wp->scroll_dx = 4;
 	wp->lmargin = linp->lmargin;
 	wp->rmargin = linp->rmargin;
 	ww_tabsChanged(wp, linp);
-
-	ww_setScrollCheckBounds(wp);
-	render_updateCaret(wp);
+	wp->highlighter = highlight_getHighlighter(linp->grammar);
+	ww_modeChanged(wp);
 }
 
 /*

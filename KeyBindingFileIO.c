@@ -17,6 +17,7 @@
 #include <windows.h>
 #include <string.h>
 #include "tos.h"
+#include "pksrc.h"
 #include "pksedit.h"
 #include "caretmovement.h"
 #include "edierror.h"
@@ -445,6 +446,7 @@ int EdDocMacrosEdit(void)
 	if (macro_createTempFile(file_searchFileInPKSEditLocation(ft_getCurrentDocument()->documentDescriptor->name), keyfile)) {
 		return xref_openFile(keyfile, -1L, (void*)0);
 	}
+	error_showErrorById(IDS_NO_MACROS_DEFINED);
 	return 0;
 }
 

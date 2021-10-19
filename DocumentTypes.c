@@ -82,7 +82,7 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_INTEGER_ARRAY, "tabulatorSizes", offsetof(EDIT_CONFIGURATION, tabulatorSizes), DIM(((EDIT_CONFIGURATION*)NULL)->tabulatorSizes)},
 	{	RT_INTEGER, "shiftWidth", offsetof(EDIT_CONFIGURATION, shiftwidth)},
 	{	RT_FLAG, "showWhitespace", offsetof(EDIT_CONFIGURATION, dispmode), SHOWCONTROL},
-	{	RT_FLAG, "showHexadecimalChars", offsetof(EDIT_CONFIGURATION, dispmode), SHOWHEX},
+	{	RT_FLAG, "hexMode", offsetof(EDIT_CONFIGURATION, dispmode), SHOWHEX},
 	{	RT_FLAG, "showRuler", offsetof(EDIT_CONFIGURATION, dispmode), SHOWRULER},
 	{	RT_FLAG, "showLineNumbers", offsetof(EDIT_CONFIGURATION, dispmode), SHOWLINENUMBERS},
 	{	RT_FLAG, "showStatus", offsetof(EDIT_CONFIGURATION, dispmode), SHOWSTATUS},
@@ -103,7 +103,6 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_CHAR, "newlineCharacter", offsetof(EDIT_CONFIGURATION, nl)},
 	{	RT_CHAR, "alternateNewlineCharacter", offsetof(EDIT_CONFIGURATION, nl2)},
 	{	RT_CHAR, "crCharacter", offsetof(EDIT_CONFIGURATION, cr)},
-	{	RT_CHAR_ARRAY, "editFontStyleName", offsetof(EDIT_CONFIGURATION, editFontStyleName), sizeof(((EDIT_CONFIGURATION*)NULL)->editFontStyleName)},
 	{	RT_INTEGER, "scrollVerticallyBy", offsetof(EDIT_CONFIGURATION, vscroll)},
 	{	RT_INTEGER, "scrollHorizontallyBy", offsetof(EDIT_CONFIGURATION, hscroll)},
 	{	RT_INTEGER, "scrollVerticalBorder", offsetof(EDIT_CONFIGURATION, scroll_dy)},
@@ -152,8 +151,7 @@ EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor() {
 	pDescriptor->cr = '\r';
 	pDescriptor->nl = '\n';
 	pDescriptor->tabDisplayFillCharacter = ' ';
-	strcpy(pDescriptor->statusline, "0x%6p$O: 0x%2p$C 0%h$C");
-	strcpy(pDescriptor->editFontStyleName, DEFAULT);
+	pDescriptor->statusline[0] = 0;
 	return pDescriptor;
 }
 

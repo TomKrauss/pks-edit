@@ -21,7 +21,9 @@
 #include "themes.h"
 
 #define	HEX_BYTES_PER_LINE		32
-#define	HEX_MAX_COL				4*HEX_BYTES_PER_LINE+2
+#define HEX_ASCII_DISTANCE		3
+#define	HEX_MAX_COL				4*HEX_BYTES_PER_LINE+HEX_ASCII_DISTANCE-1
+#define IS_IN_HEX_NUMBER_AREA(col)	(col < 3*HEX_BYTES_PER_LINE)
 
 /*-----------------------------------------
  * Render an arbitrary string with a given length at a position using a font-style.
@@ -41,7 +43,7 @@ static void render_hexLine(RENDER_CONTEXT* pCtx, int y, char* pszBytes, int nByt
 	szRender[nAscOffs++] = ' ';
 	szRender[nAscOffs++] = ' ';
 	for (int i = 0; i < HEX_BYTES_PER_LINE; i++) {
-		char b;
+		unsigned char b;
 		if (i >= nBytes) {
 			b = 0;
 		} else {
@@ -70,7 +72,7 @@ static void render_hexLine(RENDER_CONTEXT* pCtx, int y, char* pszBytes, int nByt
  * method returns > 0, the Line pointer points to the corresponding line
  * and the pStartOffset contains the byte offset to the beginning of that line.
  */
-static int hex_getLinePointerFor(FTABLE* fp, long ln, LINE** pLine, long* pStartOffset) {
+static int hex_getLinePointerFor(FTABLE* fp, long ln, LINE** pLine, long* pStartOffset, long* pLineOffset) {
 	long nOffset = ln * HEX_BYTES_PER_LINE;
 	LINE* lp;
 	long nStartOffset;
@@ -89,6 +91,7 @@ static int hex_getLinePointerFor(FTABLE* fp, long ln, LINE** pLine, long* pStart
 	while (lp) {
 		long nBytes = ln_nBytes(lp);
 		if (nStartOffset + nBytes > nOffset) {
+			*pLineOffset = nOffset - nStartOffset;
 			break;
 		}
 		nStartOffset += nBytes;
@@ -112,8 +115,9 @@ static int hex_getBytes(char* pszBuffer, FTABLE* fp, long ln) {
 	long nOffset = ln * HEX_BYTES_PER_LINE;
 	LINE* lp;
 	long nStartOffset;
+	long nLineOffset;
 
-	int nResult = hex_getLinePointerFor(fp, ln, &lp, &nStartOffset);
+	int nResult = hex_getLinePointerFor(fp, ln, &lp, &nStartOffset, &nLineOffset);
 	if (nResult <= 0) {
 		return nResult;
 	}
@@ -152,6 +156,28 @@ static int hex_getBytes(char* pszBuffer, FTABLE* fp, long ln) {
 		return HEX_BYTES_PER_LINE;
 	}
 	return nCount;
+}
+
+static void render_matchMarker(HDC hdc, THEME_DATA* pTheme, int xOffset, int y, int width, int height, int nColumn) {
+	HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogBorder);
+
+	RECT rect;
+	rect.top = y;
+	rect.bottom = y + height;
+	int x;
+	int nCharsMarked = 1;
+	if (IS_IN_HEX_NUMBER_AREA(nColumn)) {
+		x = nColumn / 3;
+		x = 3 * HEX_BYTES_PER_LINE - 1 + HEX_ASCII_DISTANCE + x;
+	} else {
+		x = nColumn - (HEX_MAX_COL - HEX_BYTES_PER_LINE);
+		x = x * 3;
+		nCharsMarked = 2;
+	}
+	rect.left = xOffset + (x * width);
+	rect.right = rect.left + (width*nCharsMarked);
+	FrameRect(hdc, &rect, hBrush);
+	DeleteObject(hBrush);
 }
 
  /*
@@ -201,6 +227,9 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 			r.bottom = min(pClip->bottom, y + cheight);
 			FillRect(pCtx->rc_hdc, &r, hBrush);
 			render_hexLine(pCtx, y, szBuffer, nLength);
+			if (wp->caret.ln == ln) {
+				render_matchMarker(pCtx->rc_hdc, pCtx->rc_theme, -wp->mincol * wp->cwidth, y, wp->cwidth, wp->cheight, wp->caret.col);
+			}
 		}
 	}
 
@@ -216,8 +245,9 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 /*
  * Caret movement in hex edit mode. 
  */
-static int hex_placeCursorAndValidate(WINFO* wp, long* ln, long* col, int updateVirtualOffset) {
+static int hex_placeCursorAndValidateDelta(WINFO* wp, long* ln, long* col, int updateVirtualOffset, int xDelta) {
 	int	  o;
+	long nLineOffset;
 	FTABLE* fp = wp->fp;
 
 	o = *col;
@@ -229,9 +259,23 @@ static int hex_placeCursorAndValidate(WINFO* wp, long* ln, long* col, int update
 	if (o > HEX_MAX_COL) {
 		o = HEX_MAX_COL;
 	}
+	if (IS_IN_HEX_NUMBER_AREA(o) && o % 3 == 2) {
+		if (xDelta < 0) {
+			o--;
+		} else {
+			o++;
+		}
+	}
+	if (o < HEX_MAX_COL - HEX_BYTES_PER_LINE && o > HEX_MAX_COL - HEX_BYTES_PER_LINE - 3) {
+		if (xDelta < 0) {
+			o = HEX_MAX_COL - HEX_BYTES_PER_LINE-4;
+		} else {
+			o = HEX_MAX_COL - HEX_BYTES_PER_LINE;
+		}
+	}
 	LINE* lp;
 	long nOffset;
-	if (hex_getLinePointerFor(fp, *ln, &lp, &nOffset) <= 0) {
+	if (hex_getLinePointerFor(fp, *ln, &lp, &nOffset, &nLineOffset) <= 0) {
 		return 0;
 	}
 	wp->caret.linePointer = lp;
@@ -241,8 +285,15 @@ static int hex_placeCursorAndValidate(WINFO* wp, long* ln, long* col, int update
 	}
 	caret_moveToLine(wp, *ln);
 	*col = o;
-
+	render_repaintCurrentLine(wp);
 	return 1;
+}
+
+/*
+ * Caret movement in hex edit mode.
+ */
+static int hex_placeCursorAndValidate(WINFO* wp, long* ln, long* col, int updateVirtualOffset) {
+	return hex_placeCursorAndValidateDelta(wp, ln, col, updateVirtualOffset, 0);
 }
 
 static long hex_calculateNLines(WINFO* wp) {
@@ -261,17 +312,53 @@ static long hex_calculateNLines(WINFO* wp) {
 }
 
 static long hex_calculateMaxColumn(WINFO* wp, long ln, LINE* lp) {
-	return HEX_MAX_COL;
+	return HEX_MAX_COL-1;
 }
 
+static int hex_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFER_POS* pPosition) {
+	long nOffset;
+	if (hex_getLinePointerFor(wp->fp, ln, &pPosition->ibp_lp, &nOffset, &pPosition->ibp_lineOffset) <= 0) {
+		return 0;
+	}
+	if (IS_IN_HEX_NUMBER_AREA(col)) {
+		pPosition->ibp_logicalColumnInLine = col / 3;
+	} else {
+		pPosition->ibp_logicalColumnInLine = col - (HEX_MAX_COL - HEX_BYTES_PER_LINE);
+	}
+	long nLineOffset = pPosition->ibp_lineOffset;
+	LINE* lp = pPosition->ibp_lp;
+	for (long i = 0; i < pPosition->ibp_logicalColumnInLine; i++) {
+		if (nLineOffset > lp->len) {
+			nLineOffset = 0;
+			lp = lp->next;
+			if (!lp) {
+				return 0;
+			}
+			continue;
+		}
+		if (nLineOffset == lp->len) {
+			if (LINE_HAS_LINE_END(lp)) {
+				if (LINE_HAS_CR(lp)) {
+					i++;
+				}
+				i++;
+			}
+		}
+		nLineOffset++;
+	}
+	pPosition->ibp_lineOffset = nLineOffset;
+	pPosition->ibp_lp = lp;
+	return 1;
+}
 
 static RENDERER _hexRenderer = {
 	render_singleLineOnDevice,
 	render_hexMode,
-	hex_placeCursorAndValidate,
+	hex_placeCursorAndValidateDelta,
 	hex_calculateNLines,
 	hex_calculateMaxColumn,
-	hex_placeCursorAndValidate
+	hex_placeCursorAndValidate,
+	hex_screenOffsetToBuffer
 };
 
 /*

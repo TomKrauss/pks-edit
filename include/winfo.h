@@ -95,9 +95,9 @@ typedef void (*RENDER_PAGE_FUNCTION)(RENDER_CONTEXT* pRC, RECT* pBoundingRect, H
 /*
  * Used to place the caret to a specific line / column. If updateVirtualOffset == TRUE, 
  * the "virtual column offset" is updated too. If the function placed the caret successfully it
- * returns 1 otherwise 0.
+ * returns 1 otherwise 0. xDelta is the delta by which the caret was moved in x.
  */
-typedef int (*PLACE_CARET_FUNCTION)(WINFO* wp, long* ln, long* col, int updateVirtualOffset);
+typedef int (*PLACE_CARET_FUNCTION)(WINFO* wp, long* ln, long* col, int updateVirtualOffset, int xDelta);
 
 typedef long (*CALCULATE_MAX_LINE_FUNCTION)(WINFO* wp);
 
@@ -111,6 +111,17 @@ typedef struct line LINE;
 
 typedef long (*CALCULATE_MAX_COL_FUNCTION)(WINFO* wp, long ln, LINE* lp);
 
+typedef struct tagINTERNAL_BUFFER_POS {
+    LINE* ibp_lp;                       // The line pointer 
+    int   ibp_lineOffset;               // The offset into the buffer in the line
+    int   ibp_logicalColumnInLine;      // The "logical" column on the screen. The 
+} INTERNAL_BUFFER_POS;
+/*
+ * Calculate the logical offset into the "current" line displayed on the screen in character positions.
+ * If the screen position can be successfully converted, 1 is returned, if not, 0 is returned.
+ */
+typedef int (*SCREEN_OFFSET_TO_BUFFER_FUNCTION)(WINFO* wp, long screenLn, long screenCol, INTERNAL_BUFFER_POS* pPosition);
+
 typedef struct tagRENDERER {
     RENDER_LINE_FUNCTION r_renderLine;
     RENDER_PAGE_FUNCTION r_renderPage;
@@ -118,6 +129,7 @@ typedef struct tagRENDERER {
     CALCULATE_MAX_LINE_FUNCTION r_calculateMaxLine;
     CALCULATE_MAX_COL_FUNCTION r_calculateMaxColumn;
     CARET_MOUSE_CLICKED_FUNCTION r_placeCaretAfterClick;
+    SCREEN_OFFSET_TO_BUFFER_FUNCTION r_screenToBuffer;
 } RENDERER;
 
 /*--------------------------------------------------------------------------
@@ -288,6 +300,11 @@ extern void render_updateCaret(WINFO* wp);
  * A property of our editor document has changed. Update the window appropriately.
  */
 extern int ww_documentPropertyChanged(WINFO* wp, PROPERTY_CHANGE* pChange);
+
+/*
+ * The display / workmode of a window has changed - update appropriately.
+ */
+extern void ww_modeChanged(WINFO* wp);
 
 /*----------------------------
  * bl_hideSelection()

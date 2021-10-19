@@ -240,7 +240,7 @@ void caret_moveToLine(WINFO* wp, long ln) {
 		// TODO: calculate matching line in other window.
 		long ln1 = caret_calculateSyncedLine(wp->fp, wpOther->fp, ln, nLeft, nRight);
 		long col = 0;
-		wp->renderer->r_placeCaret(wpOther, &ln1, &col, 0);
+		wp->renderer->r_placeCaret(wpOther, &ln1, &col, 0, 0);
 		int nDelta = ln - wp->minln;
 		int nNewMin = ln1 - nDelta;
 		if (nNewMin < 0) {
@@ -301,7 +301,7 @@ EXPORT int caret_updateDueToMouseClick(WINFO *wp, long *ln, long *col, int updat
 /*--------------------------------------------------------------------------
  * caret_placeCursorAndValidate()
  */
-EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int updateVirtualOffset)
+EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int updateVirtualOffset,int xDelta)
 {
 	LINE *		lp;
 	int 		i;
@@ -393,6 +393,10 @@ long wi_getCaretByteOffset(WINFO* wp) {
 	// Cache last offset calculated.
 	fp->pByteOffsetCache = lp;
 	fp->nCachedByteOffset = offset;
+	INTERNAL_BUFFER_POS pos;
+	if (wp->renderer->r_screenToBuffer(wp, wp->caret.ln, wp->caret.col, &pos)) {
+		return offset + pos.ibp_logicalColumnInLine;
+	}
 	return offset + wp->caret.offset;
 }
 
@@ -400,9 +404,9 @@ long wi_getCaretByteOffset(WINFO* wp) {
  * caret_placeCursorForFile()
  * cursor absolut positioning for the given file.
  */
-EXPORT int caret_placeCursorForFile(WINFO *wp, long ln,long col)
+EXPORT int caret_placeCursorForFile(WINFO *wp, long ln,long col, int xDelta)
 {
-	if (!wp->renderer->r_placeCaret(wp,&ln,&col,1)) return 0;
+	if (!wp->renderer->r_placeCaret(wp,&ln,&col,1, xDelta)) return 0;
 	wt_curpos(wp,ln,col);
 	return 1;
 }
@@ -413,7 +417,7 @@ EXPORT int caret_placeCursorForFile(WINFO *wp, long ln,long col)
  */
 EXPORT int caret_placeCursorInCurrentFile(WINFO* wp, long ln,long col)
 {
-	return wp ? caret_placeCursorForFile(wp,ln,col) : 0;
+	return wp ? caret_placeCursorForFile(wp,ln,col,0) : 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -499,7 +503,7 @@ EXPORT int caret_placeCursorMakeVisible(WINFO* wp, long ln, long col)
 EXPORT int caret_placeCursorAndMakevisibleWithSpace(WINFO *wp, long ln,long col)
 {
 	wi_adjust(wp,ln,3);
-	return caret_placeCursorForFile(wp,ln,col);
+	return caret_placeCursorForFile(wp,ln,col, 0);
 }
 
 /*--------------------------------------------------------------------------
@@ -692,7 +696,7 @@ EXPORT int caret_moveUpOrDown(WINFO* wp, int dir, int mtype)
 		}
 	}
 
-	if (wp->renderer->r_placeCaret(wp,&ln,&col,0)) {
+	if (wp->renderer->r_placeCaret(wp,&ln,&col,0,0)) {
 		nRet = 1;
 		wt_curpos(wp,ln,col);
 	}
@@ -819,7 +823,7 @@ static LINE *caret_advanceCharacter(LINE *lp,long *ln,long *col,int dir,unsigned
 
 /*--------------------------------------------------------------------------
  * caret_getPreviousColumnInLine()
- * Got back one screen column in a line and return the new column considering internal 
+ * Go back one screen column in a line and return the new column considering internal 
  * structure of the data and return the new offset into the line buffer.
  */
 EXPORT int caret_getPreviousColumnInLine(WINFO* wp, LINE *lp, int col) {
@@ -913,7 +917,7 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags) {
 			col = 0L;
 			break;
 	}
-	nRet = caret_placeCursorForFile(wp, ln, col);
+	nRet = caret_placeCursorForFile(wp, ln, col, moving);
 	// The following code really makes sense only, if we are not considering the complete identifier under the cursor - should be possibly made configurable
 	// codecomplete_updateCompletionList(wp, FALSE);
 

@@ -43,7 +43,13 @@ int macro_toggleRecordMaco(void);
 int bl_setColumnSelection(WINFO* wp);
 
 static int doctypes_changed() {
-	return doctypes_documentTypeChanged(TRUE);
+	return doctypes_documentTypeChanged(FALSE);
+}
+
+static int displaymode_changed() {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	ww_modeChanged(wp);
+	return 1;
 }
 
 static struct optiontab {
@@ -62,13 +68,13 @@ static struct optiontab {
      IDD_FKFLG8,    BLK_COLUMN_SELECTION,  OP_EDIT_MODE,   doc_columnChanged,
      IDD_FKFLG9,    F_RDONLY,      OP_FILEFLAG,   doctypes_changed,
      IDD_FKFLG10,   WM_OEMMODE,    OP_EDIT_MODE,   doctypes_changed,
-     IDD_FKFLG10+1, SHOWCARET_LINE_HIGHLIGHT,  OP_DISPLAY_MODE,   doctypes_changed,
+     IDD_FKFLG10+1, SHOWCARET_LINE_HIGHLIGHT,  OP_DISPLAY_MODE,   displaymode_changed,
      IDD_FKFLG10+2, 1,            OP_MACRO,   macro_toggleRecordMaco,
-     0,             SHOWCONTROL,   OP_DISPLAY_MODE,   doctypes_changed,
-     0,             SHOWSTATUS,    OP_DISPLAY_MODE,   doctypes_changed,
-     0,             SHOWHEX,       OP_DISPLAY_MODE,   doctypes_changed,
-     0,             SHOWRULER,     OP_DISPLAY_MODE,   doctypes_changed,
-	 0,             SHOWLINENUMBERS,OP_DISPLAY_MODE,   doctypes_changed,
+     0,             SHOWCONTROL,   OP_DISPLAY_MODE,   displaymode_changed,
+     0,             SHOWSTATUS,    OP_DISPLAY_MODE,   displaymode_changed,
+     0,             SHOWHEX,       OP_DISPLAY_MODE,   displaymode_changed,
+     0,             SHOWRULER,     OP_DISPLAY_MODE,   displaymode_changed,
+	 0,             SHOWLINENUMBERS,OP_DISPLAY_MODE,   displaymode_changed,
      -1
 };
 
@@ -117,17 +123,17 @@ static int doc_columnChanged(void)
  * op_getFlagToToggle()
  */
 static int *op_getFlagToToggle(OP_FLAGTYPE flagType)
-{	FTABLE *fp;
+{	WINFO *wp;
 	
 	if (flagType != OP_MACRO && flagType != OP_OPTIONS) {
-		if ((fp = ft_getCurrentDocument()) != 0) {
-			EDIT_CONFIGURATION *linp = fp->documentDescriptor;
+		if ((wp = ww_getCurrentEditorWindow()) != 0) {
+			FTABLE* fp = wp->fp;
 			if (flagType == OP_FILEFLAG)
 				return &fp->flags;
 			if (flagType == OP_EDIT_MODE)
-				return &linp->workmode;
+				return &fp->documentDescriptor->workmode;
 			if (flagType == OP_DISPLAY_MODE)
-				return &linp->dispmode;
+				return &wp->dispmode;
 		}
 	} else {
 		return (flagType == OP_MACRO) ? &_recording : &(GetConfiguration()->options);

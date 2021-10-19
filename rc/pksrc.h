@@ -23,6 +23,7 @@
 #define IDS_SEARCH2                     186
 #define IDS_STATUSLINE                  186
 #define IDB_PNG1                        189
+#define IDS_NO_MACROS_DEFINED           190
 #define IDI_ICON3                       193
 #define IDB_NEW_ICONS                   200
 #define DLGCURSOROPTIONS                529

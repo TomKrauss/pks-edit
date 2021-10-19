@@ -223,20 +223,19 @@
 #define IDS_FILE_MODIFIED               183
 #define IDS_FILE_READONLY               184
 #define IDS_STATUSLINE                  186
+#define IDS_NO_MACROS_DEFINED           190
 #define IDM_UNDO                        210
 #define IDM_DOAGAIN                     211
 #define IDM_ERASEBLOCK                  212
 #define IDM_REDO                        213
 #define IDC_CUSTOM2                     1002
-#define IDC_CHECK1                      1003
 #define IDC_CHECK_ENCRYPT               1003
-#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        158
+#define _APS_NEXT_RESOURCE_VALUE        160
 #define _APS_NEXT_COMMAND_VALUE         40007
 #define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           101

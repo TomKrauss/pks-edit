@@ -1056,7 +1056,7 @@ static void docTypeFillParameters(DIALPARS *dp, void *par)
 /*--------------------------------------------------------------------------
  * docTypeApply()
  */
-void *lastSelectedDocType;
+DOCUMENT_TYPE* lastSelectedDocType;
 static void docTypeApply(void)
 {
 	EDIT_CONFIGURATION *	lp;
@@ -1124,7 +1124,8 @@ static int doDocumentTypes(int nDlg) {
 	linname[0] = 0;
 
 	docTypePars[NVDOCTYPEPARS].dp_data = &dlist;
-	FTABLE* fp = ft_getCurrentDocument();
+	WINFO* wp = ww_getCurrentEditorWindow();
+	FTABLE* fp = wp ? wp->fp : NULL;
 	EDIT_CONFIGURATION* pConfig = fp ? fp->documentDescriptor : NULL;
 	lastSelectedDocType = doctypes_getPrivateDocumentType(
 		pConfig ? pConfig->name : "default");
@@ -1351,11 +1352,12 @@ int dlg_configureEditorModes(void) {
 	PROPSHEETPAGE psp[4];
 	PROPSHEETHEADER psh;
 	EDIT_CONFIGURATION *linp;
-	FTABLE* fp = ft_getCurrentDocument();
+	WINFO* wp = ww_getCurrentEditorWindow();
 
-	if (fp == 0) {
+	if (wp == 0) {
 		return 0;
 	}
+	FTABLE* fp = wp->fp;
 
 	linp = fp->documentDescriptor;
 	_paramsPerPage[0] = _dDisplayMode;
@@ -1383,7 +1385,7 @@ int dlg_configureEditorModes(void) {
 	lstrcpy(status,linp->statusline);
 	tabsize = linp->tabsize;
 	rmargin = linp->rmargin;
-	dispmode = linp->dispmode;
+	dispmode = wp->dispmode;
 	tabDisplayFillCharacter = linp->tabDisplayFillCharacter;
 	linp = fp->documentDescriptor;
 	lstrcpy(creationMacroName, linp->creationMacroName);

@@ -14,6 +14,7 @@
  */
 
 #include <windows.h>
+#include <stdio.h>
 #include "alloc.h"
 #include "trace.h"
 #include "lineoperations.h"
@@ -224,8 +225,9 @@ void error_showErrorById(int nId,...)
 	va_list 	ap;
 	char 	s[128];
 
-	if (!LoadString(ui_getResourceModule(),nId,s,sizeof s))
-		return;
+	if (!LoadString(ui_getResourceModule(), nId, s, sizeof s)) {
+		sprintf(s, "Cannot find resource with id %d", nId);
+	}
 
 	va_start(ap,nId);
 
