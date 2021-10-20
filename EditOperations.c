@@ -807,7 +807,7 @@ int EdCharInsert(int c)
 #endif
 
 	offs += nchars;
-	caret_placeCursorInCurrentFile(wp, wp->caret.ln,(long)offs);
+	caret_placeCursorForFile(wp, wp->caret.ln, offs, wp->caret.col+nchars, 0);
 
 	codecomplete_updateCompletionList(wp, FALSE);
 	if (!_playing) {

@@ -692,7 +692,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSME
 CAPTION "Autosave"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "Automatisches Speichern nach [min]:",-1,12,12,135,8,NOT WS_GROUP
+    LTEXT           "Automatisches Speichern nach [sec]:",-1,12,12,135,8,NOT WS_GROUP
     EDITTEXT        IDD_INT1,201,12,42,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "Einstellungen beim &Verlassen speichern",IDD_OPT2,
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,232,10
@@ -1242,6 +1242,11 @@ BEGIN
 END
 
 DLG_SAVEAS_OPTIONS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLG_OPT_AUTOSAVE AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

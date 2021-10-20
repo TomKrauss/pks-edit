@@ -534,7 +534,7 @@ void ww_modeChanged(WINFO* wp) {
 		win_sendRedrawToWindow(wp->ww_handle);
 		wt_tcursor(wp, 0);
 		wt_tcursor(wp, 1);
-		caret_placeCursorForFile(wp, wp->caret.ln, wp->caret.offset, 0);
+		caret_placeCursorForFile(wp, wp->caret.ln, wp->caret.offset, wp->caret.col, 0);
 	}
 
 	wp->scroll_dx = 4;

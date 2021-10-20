@@ -93,11 +93,12 @@ typedef struct tagRENDER_CONTEXT {
 typedef int (*RENDER_LINE_FUNCTION)(RENDER_CONTEXT* pRC, int x, int y, LINE* lp, long lineNo);
 typedef void (*RENDER_PAGE_FUNCTION)(RENDER_CONTEXT* pRC, RECT* pBoundingRect, HBRUSH hBrushBg, int y);
 /*
- * Used to place the caret to a specific line / column. If updateVirtualOffset == TRUE, 
- * the "virtual column offset" is updated too. If the function placed the caret successfully it
- * returns 1 otherwise 0. xDelta is the delta by which the caret was moved in x.
+ * Input parameters are a pointer to view, to the line (in screen coordinates) to move to,
+ * the line buffer offset, a pointer to the screen column. If 'updateVirtualOffset' is 1,
+ * the virtual column on the screen should be updated. 'xDelta' is a hint defining, whether
+ * the caret was moved horizontally to left or right or not.
  */
-typedef int (*PLACE_CARET_FUNCTION)(WINFO* wp, long* ln, long* col, int updateVirtualOffset, int xDelta);
+typedef int (*PLACE_CARET_FUNCTION)(WINFO* wp, long* ln, long offset, long* col, int updateVirtualOffset, int xDelta);
 
 typedef long (*CALCULATE_MAX_LINE_FUNCTION)(WINFO* wp);
 

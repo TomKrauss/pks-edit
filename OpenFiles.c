@@ -145,7 +145,7 @@ int ft_triggerAutosaveAllFiles(void)
 	static long 	nchkclick;
 	static int 		inas;
 
-	if (inas || (dclicks = (GetConfiguration()->asminutes * 60L * HZ)) == 0) {
+	if (inas || (dclicks = (GetConfiguration()->autosaveSeconds * HZ)) == 0) {
 		/* autosave option is OFF */
 		return 0;
 	}
@@ -186,7 +186,7 @@ autosave:
 		strcpy(spath,fp->fname);
 
 		ft_generateAutosavePathname(fp->fname,fp->fname);
-		ret = ft_writefileMode(fp,1);
+		ret = ft_writefileMode(fp, WFM_QUIET|WFM_AUTOSAVING);
 
 		/* restore MODIFIED and ISBACKUPED - Flags */
 		fp->flags = flags;
@@ -787,7 +787,7 @@ int EdFileAbandon(void) {
 int EdSaveAllFiles() {
 	for (FTABLE* fp = _filelist; fp; fp = fp->next) {
 		if (!ft_checkReadonlyWithError(fp) && (fp->flags & (F_NAME_INPUT_REQUIRED | F_MODIFIED)) == F_MODIFIED) {
-			if (!ft_writefileMode(fp, 1)) {
+			if (!ft_writefileMode(fp, WFM_QUIET)) {
 				return 0;
 			}
 		}

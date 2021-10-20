@@ -91,7 +91,7 @@ static int hex_getLinePointerFor(FTABLE* fp, long ln, LINE** pLine, long* pStart
 	while (lp) {
 		long nBytes = ln_nBytes(lp);
 		if (nStartOffset + nBytes > nOffset) {
-			*pLineOffset = nOffset - nStartOffset;
+			*pLineOffset = nOffset- nStartOffset;
 			break;
 		}
 		nStartOffset += nBytes;
@@ -242,24 +242,62 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 	DeleteObject(hBrushCaretLine);
 }
 
+static int hex_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFER_POS* pPosition) {
+	long nOffset;
+	if (hex_getLinePointerFor(wp->fp, ln, &pPosition->ibp_lp, &nOffset, &pPosition->ibp_lineOffset) <= 0) {
+		return 0;
+	}
+	if (IS_IN_HEX_NUMBER_AREA(col)) {
+		pPosition->ibp_logicalColumnInLine = col / 3;
+	} else {
+		pPosition->ibp_logicalColumnInLine = col - (HEX_MAX_COL - HEX_BYTES_PER_LINE);
+	}
+	long nLineOffset = pPosition->ibp_lineOffset;
+	LINE* lp = pPosition->ibp_lp;
+	for (long i = 0; i < pPosition->ibp_logicalColumnInLine; i++) {
+		if (nLineOffset >= lp->len) {
+			if (LINE_HAS_LINE_END(lp)) {
+				if (LINE_HAS_CR(lp)) {
+					i++;
+				}
+			} else {
+				i--;
+			}
+			nLineOffset = 0;
+			lp = lp->next;
+			if (!lp) {
+				return 0;
+			}
+			continue;
+		}
+		nLineOffset++;
+	}
+	pPosition->ibp_lineOffset = nLineOffset;
+	pPosition->ibp_lp = lp;
+	return 1;
+}
+
 /*
  * Caret movement in hex edit mode. 
  */
-static int hex_placeCursorAndValidateDelta(WINFO* wp, long* ln, long* col, int updateVirtualOffset, int xDelta) {
+static int hex_placeCursorAndValidateDelta(WINFO* wp, long* ln, long offset, long* screenCol, int updateVirtualOffset, int xDelta) {
 	int	  o;
-	long nLineOffset;
 	FTABLE* fp = wp->fp;
 
-	o = *col;
+	o = *screenCol;
 	if (o < 0) {
-		*col = 0;
+		*screenCol = 0;
 		o = 0;
 	}
 
+	if (o == HEX_MAX_COL && xDelta > 0) {
+		o = 0;
+		*ln = *ln + 1;
+	}
 	if (o > HEX_MAX_COL) {
 		o = HEX_MAX_COL;
 	}
-	if (IS_IN_HEX_NUMBER_AREA(o) && o % 3 == 2) {
+	if (IS_IN_HEX_NUMBER_AREA(o) && (o % 3) == 2) {
 		if (xDelta < 0) {
 			o--;
 		} else {
@@ -273,18 +311,17 @@ static int hex_placeCursorAndValidateDelta(WINFO* wp, long* ln, long* col, int u
 			o = HEX_MAX_COL - HEX_BYTES_PER_LINE;
 		}
 	}
-	LINE* lp;
-	long nOffset;
-	if (hex_getLinePointerFor(fp, *ln, &lp, &nOffset, &nLineOffset) <= 0) {
+	INTERNAL_BUFFER_POS ibp;
+	if (!hex_screenOffsetToBuffer(wp, *ln, o, &ibp)) {
 		return 0;
 	}
-	wp->caret.linePointer = lp;
-	wp->caret.offset = o;
+	wp->caret.linePointer = ibp.ibp_lp;
+	wp->caret.offset = ibp.ibp_lineOffset;
 	if (updateVirtualOffset) {
 		wp->caret.virtualOffset = o;
 	}
 	caret_moveToLine(wp, *ln);
-	*col = o;
+	*screenCol = o;
 	render_repaintCurrentLine(wp);
 	return 1;
 }
@@ -293,7 +330,7 @@ static int hex_placeCursorAndValidateDelta(WINFO* wp, long* ln, long* col, int u
  * Caret movement in hex edit mode.
  */
 static int hex_placeCursorAndValidate(WINFO* wp, long* ln, long* col, int updateVirtualOffset) {
-	return hex_placeCursorAndValidateDelta(wp, ln, col, updateVirtualOffset, 0);
+	return hex_placeCursorAndValidateDelta(wp, ln, *col, col, updateVirtualOffset, 0);
 }
 
 static long hex_calculateNLines(WINFO* wp) {
@@ -313,42 +350,6 @@ static long hex_calculateNLines(WINFO* wp) {
 
 static long hex_calculateMaxColumn(WINFO* wp, long ln, LINE* lp) {
 	return HEX_MAX_COL-1;
-}
-
-static int hex_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFER_POS* pPosition) {
-	long nOffset;
-	if (hex_getLinePointerFor(wp->fp, ln, &pPosition->ibp_lp, &nOffset, &pPosition->ibp_lineOffset) <= 0) {
-		return 0;
-	}
-	if (IS_IN_HEX_NUMBER_AREA(col)) {
-		pPosition->ibp_logicalColumnInLine = col / 3;
-	} else {
-		pPosition->ibp_logicalColumnInLine = col - (HEX_MAX_COL - HEX_BYTES_PER_LINE);
-	}
-	long nLineOffset = pPosition->ibp_lineOffset;
-	LINE* lp = pPosition->ibp_lp;
-	for (long i = 0; i < pPosition->ibp_logicalColumnInLine; i++) {
-		if (nLineOffset > lp->len) {
-			nLineOffset = 0;
-			lp = lp->next;
-			if (!lp) {
-				return 0;
-			}
-			continue;
-		}
-		if (nLineOffset == lp->len) {
-			if (LINE_HAS_LINE_END(lp)) {
-				if (LINE_HAS_CR(lp)) {
-					i++;
-				}
-				i++;
-			}
-		}
-		nLineOffset++;
-	}
-	pPosition->ibp_lineOffset = nLineOffset;
-	pPosition->ibp_lp = lp;
-	return 1;
 }
 
 static RENDERER _hexRenderer = {

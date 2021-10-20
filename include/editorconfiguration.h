@@ -57,7 +57,7 @@ typedef struct tagEDITOR_CONFIGURATION {
 	// the number of supported undo steps.
 	int nundo;
 	// the number of minutes after which an autosave is performed.
-	int	asminutes;
+	int	autosaveSeconds;
 	// the maximum number of windows opened. If additional windows are opened, windows of unmodified buffers are recycled
 	int maximumNumberOfOpenWindows;
 	// the output path for temporary files created.

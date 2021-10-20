@@ -311,7 +311,15 @@ int prof_getstdopt(void) {
 	pConfiguration->layoutoptions = prof_getlong(_desk,"Layout");
 
 	_currentSearchAndReplaceParams.options = (int)prof_getlong(_desk,"FindOptions");
-	pConfiguration->asminutes = prof_getlong(_desk,"AsInterv");
+	char buf[32];
+	prof_getPksProfileString(_desk, "AsInterv", buf, sizeof buf);
+	size_t l = strlen(buf);
+	int multiplier = 1;
+	if (l > 0 && buf[l - 1] != 's') {
+		buf[l - 1] = 0;
+		multiplier = 60;
+	}
+	pConfiguration->autosaveSeconds = multiplier * string_convertToLong(buf);
 	pConfiguration->nundo = prof_getlong(_desk,"NUBuf");
 	pConfiguration->maximumNumberOfOpenWindows = prof_getlong(_desk, "maxOpenWindows");
 	return 1;
@@ -378,7 +386,9 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	prof_savelong(_desk,"Options",(long)configuration->options);
 	prof_savelong(_desk,"Layout",(long)configuration->layoutoptions);
 	prof_savelong(_desk,"FindOptions",(long)_currentSearchAndReplaceParams.options);
-	prof_savelong(_desk,"AsInterv",(long)configuration->asminutes);
+	char szBuf[32];
+	sprintf(szBuf, "%ds", configuration->autosaveSeconds);
+	prof_savestring(_desk,"AsInterv", szBuf);
 	prof_savelong(_desk, "maxOpenWindows", (long)configuration->maximumNumberOfOpenWindows);
 	config_saveTempPath();
 	prof_savelong(_desk,"NUBuf",(long)configuration->nundo);

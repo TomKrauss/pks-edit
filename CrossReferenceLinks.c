@@ -910,7 +910,7 @@ doforward:
 	if (navigationSpec.filename[0] && lp) {
 		if ((wp = WIPOI(fp)) != 0) {
 			/* EdSelectWindow(wp->win_id); */
-			caret_placeCursorForFile(wp,lineno,0,0);
+			caret_placeCursorForFile(wp,lineno,0,0,0);
 			ln_removeFlag(fp->firstl,fp->lastl,LNXMARKED);
 			lp->lflg |= LNXMARKED;
 			render_repaintAllForFile(fp);

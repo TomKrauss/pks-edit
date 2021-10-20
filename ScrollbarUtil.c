@@ -313,9 +313,9 @@ int EdScrollScreen(int mtype)
 	if ((ln = wp->caret.ln+dln) < 0 ||ln >= nlines)
 		return 0;
 
-	col = wp->caret.offset;
+	col = wp->caret.col;
 	sl_moved(wp,dln,0,0);
-	ret = wp->renderer->r_placeCaret(wp,&ln,&col,0,0);
+	ret = wp->renderer->r_placeCaret(wp, &ln, wp->caret.offset, &col, 0, 0);
 	wt_curpos(wp,ln,col);
 	return ret;
 }

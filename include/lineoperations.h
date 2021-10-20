@@ -383,10 +383,14 @@ extern int ft_readDocumentFromFile(int fd, unsigned char* (*lineExtractedCallbac
 /*--------------------------------------*/
 extern int ft_readfile(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor);
 
-/*--------------------------------------*/
-/* ft_writefileMode() 					*/
-/*--------------------------------------*/
-extern int ft_writefileMode(FTABLE* fp, int quiet);
+#define WFM_QUIET		0x1
+#define WFM_AUTOSAVING	0x2
+
+/*-----------------------------------
+ * ft_writefileMode()
+ * write a file with one of the flags defined above.
+ */
+extern int ft_writefileMode(FTABLE* fp, int writeFlags);
 
 /*---------------------------------*/
 /* ft_writeFileWithAlternateName()			*/

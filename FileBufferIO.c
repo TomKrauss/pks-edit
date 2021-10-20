@@ -491,7 +491,7 @@ static char* ft_getBasenameOf(FTABLE* fp) {
 /*--------------------------------------*/
 /* ft_writefileMode() 					*/
 /*--------------------------------------*/
-EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
+EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 {	int			offset;
 	int			no;
 	int			ret;
@@ -508,6 +508,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 #ifdef DEMO
 	return 0;
 #else
+	BOOL quiet = flags & WFM_QUIET;
 	if (!linp) {
 		linp = doctypes_getDefaultDocumentTypeDescriptor();
 	}
@@ -528,7 +529,8 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 				  printedFilename, fp->nlines);
 		mouse_setBusyCursor();
 	}
-	if (linp->backupExtension[0] &&
+	if (!(flags & WFM_AUTOSAVING) &&
+		linp->backupExtension[0] &&
 	    !(fp-> flags & (F_NEWFILE | F_SAVEAS | F_APPEND | F_ISBACKUPPED))) {
 		ft_getBackupFilename(fp, backupFile);
 		createBackupFile(fp, backupFile);
@@ -594,11 +596,13 @@ EXPORT int ft_writefileMode(FTABLE *fp, int quiet)
 		goto wfail1;
 	}
 	ret = 0;
-	ln_changeFlag(fp, fp->firstl, fp->lastl, LNMODIFIED, LNSAVED, 1);
-	ln_changeFlag(fp, fp->firstl, fp->lastl, LNMODIFIED, LNUNDO_AFTER_SAVE, 0);
-	ft_forAllViews(fp, render_repaintLineNumbers, NULL);
-	ft_setFlags(fp, fp->flags & ~(F_CHANGEMARK | F_WFORCED));
-	ft_settime(&fp->ti_saved);
+	if (!(flags & WFM_AUTOSAVING)) {
+		ln_changeFlag(fp, fp->firstl, fp->lastl, LNMODIFIED, LNSAVED, 1);
+		ln_changeFlag(fp, fp->firstl, fp->lastl, LNMODIFIED, LNUNDO_AFTER_SAVE, 0);
+		ft_forAllViews(fp, render_repaintLineNumbers, NULL);
+		ft_setFlags(fp, fp->flags & ~(F_CHANGEMARK | F_WFORCED));
+		ft_settime(&fp->ti_saved);
+	}
 
 wfail1:
 	file_closeFile(&fd);
@@ -670,7 +674,7 @@ EXPORT int ft_writefileAsWithFlags(FTABLE *fp,char *fn,int flags)
 	}
 	ft_setFlags(fp, newFlags);
 	ft_setOutputFilename(fp, fn);
-	ret = ft_writefileMode(fp,1);
+	ret = ft_writefileMode(fp, WFM_QUIET);
 	return ret;
 }
 

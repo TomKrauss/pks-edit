@@ -217,12 +217,12 @@ EXPORT int compare_navigate(int aDirection) {
 	while (lp1 && lp2) {
 		int m1 = lp1->lflg & LN_COMPARE_DIFFERENT;
 		if (m1 && m1 != m1Flag) {
-			caret_placeCursorForFile(wp, ln1, 0,0);
+			caret_placeCursorForFile(wp, ln1, 0,0,0);
 			return 1;
 		}
 		int m2 = lp2->lflg & LN_COMPARE_DIFFERENT;
 		if (m2 && m2 != m2Flag) {
-			caret_placeCursorForFile(wpOther, ln2, 0,0);
+			caret_placeCursorForFile(wpOther, ln2, 0,0,0);
 			return 1;
 		}
 		if (aDirection < 0) {

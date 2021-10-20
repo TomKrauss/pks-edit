@@ -63,7 +63,7 @@ static EDITOR_CONFIGURATION _configuration = {
 
 static DIALPARS _dAutoSave[] = {
 	IDD_NOCHANGEONCANCEL,	0,	0,
-	IDD_INT1,		sizeof _configuration.asminutes,		&_configuration.asminutes,
+	IDD_INT1,		sizeof _configuration.autosaveSeconds,		&_configuration.autosaveSeconds,
 	IDD_OPT1,		O_DELETE_AUTOSAVE_FILES,				& _configuration.options,
 	IDD_STRING1,	sizeof _configuration.pksEditTempPath,	_configuration.pksEditTempPath,
 	IDD_OPT2,		O_SAVE_SETTINGS_ON_EXIT,				&_configuration.options,

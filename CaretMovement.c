@@ -240,7 +240,7 @@ void caret_moveToLine(WINFO* wp, long ln) {
 		// TODO: calculate matching line in other window.
 		long ln1 = caret_calculateSyncedLine(wp->fp, wpOther->fp, ln, nLeft, nRight);
 		long col = 0;
-		wp->renderer->r_placeCaret(wpOther, &ln1, &col, 0, 0);
+		wp->renderer->r_placeCaret(wpOther, &ln1, 0, &col, 0, 0);
 		int nDelta = ln - wp->minln;
 		int nNewMin = ln1 - nDelta;
 		if (nNewMin < 0) {
@@ -300,9 +300,12 @@ EXPORT int caret_updateDueToMouseClick(WINFO *wp, long *ln, long *col, int updat
 
 /*--------------------------------------------------------------------------
  * caret_placeCursorAndValidate()
+ * Input parameters are a pointer to the line (in screen coordinates) to move to,
+ * the line buffer offset, a pointer to the screen column. If 'updateVirtualOffset' is 1,
+ * the virtual column on the screen should be updated. 'xDelta' is a hint defining, whether
+ * the caret was moved horizontally to left or right or not.
  */
-EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int updateVirtualOffset,int xDelta)
-{
+EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *col, int updateVirtualOffset, int xDelta) {
 	LINE *		lp;
 	int 		i;
 	int			o;
@@ -312,7 +315,7 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln,long *col,int update
 	if ((lp = ln_goto(fp,*ln)) == 0L)
 		return 0;
 
-	o = *col;
+	o = offset;
 	if (o < 0) {
 		*col = 0;
 		o    = 0;
@@ -404,10 +407,11 @@ long wi_getCaretByteOffset(WINFO* wp) {
  * caret_placeCursorForFile()
  * cursor absolut positioning for the given file.
  */
-EXPORT int caret_placeCursorForFile(WINFO *wp, long ln,long col, int xDelta)
-{
-	if (!wp->renderer->r_placeCaret(wp,&ln,&col,1, xDelta)) return 0;
-	wt_curpos(wp,ln,col);
+EXPORT int caret_placeCursorForFile(WINFO *wp, long ln, long col, long screenCol, int xDelta) {
+	if (!wp->renderer->r_placeCaret(wp, &ln, col, &screenCol, 1, xDelta)) {
+		return 0;
+	}
+	wt_curpos(wp, ln, screenCol);
 	return 1;
 }
 
@@ -415,9 +419,9 @@ EXPORT int caret_placeCursorForFile(WINFO *wp, long ln,long col, int xDelta)
  * caret_placeCursorInCurrentFile()
  * cursor absolut positioning for the current file.
  */
-EXPORT int caret_placeCursorInCurrentFile(WINFO* wp, long ln,long col)
-{
-	return wp ? caret_placeCursorForFile(wp,ln,col,0) : 0;
+EXPORT int caret_placeCursorInCurrentFile(WINFO* wp, long ln,long col) {
+	long screenCol = col == wp->caret.offset ? wp->caret.col : col;
+	return wp ? caret_placeCursorForFile(wp,ln,col,screenCol,0) : 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -503,7 +507,7 @@ EXPORT int caret_placeCursorMakeVisible(WINFO* wp, long ln, long col)
 EXPORT int caret_placeCursorAndMakevisibleWithSpace(WINFO *wp, long ln,long col)
 {
 	wi_adjust(wp,ln,3);
-	return caret_placeCursorForFile(wp,ln,col, 0);
+	return caret_placeCursorForFile(wp,ln,col, col, 0);
 }
 
 /*--------------------------------------------------------------------------
@@ -696,7 +700,7 @@ EXPORT int caret_moveUpOrDown(WINFO* wp, int dir, int mtype)
 		}
 	}
 
-	if (wp->renderer->r_placeCaret(wp,&ln,&col,0,0)) {
+	if (wp->renderer->r_placeCaret(wp,&ln,col,&col,0,0)) {
 		nRet = 1;
 		wt_curpos(wp,ln,col);
 	}
@@ -857,6 +861,7 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags) {
 	FTABLE *fp;
 	long  	ln;
 	long 	col;
+	long    screencol;
 	long maxcol;
 	LINE *	lp;
 	int   	matchc;
@@ -866,6 +871,7 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags) {
 
 	fp = wp->fp;
 	col = wp->caret.offset;
+	screencol = wp->caret.col;
 	lp = wp->caret.linePointer;
 	ln = wp->caret.ln;
 	bXtnd = wp->bXtndBlock;
@@ -897,27 +903,34 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags) {
 				}
 				ln++;
 				col = 0;
-			} else col++;
+				screencol = 0;
+			} else {
+				col++;
+				screencol++;
+			}
 			break;
 		case  MOT_TOEND:
-			col = lp->len;
+			col = wp->renderer->r_calculateMaxColumn(wp, ln, lp);
 			break;
 		case -MOT_SINGLE:
-			if (!col) {
+			if (!screencol) {
 				if ((lp = lp->prev) == 0)
 					goto err;
-				ln--;
 				maxcol = wp->renderer->r_calculateMaxColumn(wp, ln, lp);
+				ln--;
 				col = maxcol;
+				screencol = maxcol;
 			} else {
 				col = caret_getPreviousColumnInLine(wp, lp,col);
+				screencol--;
 			}
 			break;
 		case -MOT_TOEND:
 			col = 0L;
+			screencol = 0;
 			break;
 	}
-	nRet = caret_placeCursorForFile(wp, ln, col, moving);
+	nRet = caret_placeCursorForFile(wp, ln, col, screencol, moving);
 	// The following code really makes sense only, if we are not considering the complete identifier under the cursor - should be possibly made configurable
 	// codecomplete_updateCompletionList(wp, FALSE);
 

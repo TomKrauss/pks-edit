@@ -80,7 +80,7 @@ extern int caret_placeCursorAndSavePosition(WINFO* wp, long ln, long col);
  * caret_placeCursorForFile()
  * cursor absolut positioning for the given file.
  */
-extern int caret_placeCursorForFile(WINFO* wp, long ln, long col, int xDelta);
+extern int caret_placeCursorForFile(WINFO* wp, long ln, long col, long screencol, int xDelta);
 
 /*--------------------------------------------------------------------------
  * caret_placeCursorAndMakevisibleWithSpace()
@@ -137,7 +137,7 @@ extern int caret_placeCursorAndMakevisibleWithSpace(WINFO* wp, long ln, long col
 /*--------------------------------------------------------------------------
  * caret_placeCursorAndValidate()
  */
-extern int caret_placeCursorAndValidate(WINFO* wp, long* ln, long* col, int newcol,int xDelta);
+extern int caret_placeCursorAndValidate(WINFO* wp, long* ln, long offset, long* screenCol, int updateVirtualOffset, int xDelta);
 
 /*--------------------------------------------------------------------------
  * caret_advancePage()

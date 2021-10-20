@@ -665,12 +665,13 @@ KEYCODE macro_addModifierKeys(KEYCODE key)
 void* macro_getKeyBinding(WPARAM key)
 {
 	KEYCODE keycode = (KEYCODE)macro_addModifierKeys((KEYCODE)key);
-	void *pResult = keybound(keycode);
+	void *pResult;
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (wp && ww_hasSelection(wp)) {
+		pResult = keybound(keycode | K_HAS_SELECTION);
+	}
 	if (pResult == NULL) {
-		WINFO* wp = ww_getCurrentEditorWindow();
-		if (wp && ww_hasSelection(wp)) {
-			pResult = keybound(keycode | K_HAS_SELECTION);
-		}
+		pResult = keybound(keycode);
 	}
 	return pResult;
 }

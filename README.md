@@ -1,6 +1,7 @@
 # PKS Edit
 
-The famous arcade times text editor from Pahlen & Krauﬂ.
+The famous arcade times text editor from Pahlen & Krauﬂ originally released on Atari ST
+and here available as a 64-Bit application for Windows 7 and newer
 
 ## Features
 
@@ -11,16 +12,20 @@ The editor contains only some basic features compared to modern text editors suc
 - search & replace in multiple files
 - compare files
 - syntax highlighting
-- multiple windows to edit one file
+- edit one file in multiple windows
 - follow cross references in code (requires a tag file - e.g. created using ctags)
 - auto-indentation and formatting
 - sort files
+- code completion
+- support for zooming font sizes (using keyboard and scrollwheel)
 - record & play of macros
 - it is pretty fast, if files do not get too big (no memory mapped files support yet)
 - different selection styles (block, ...)
 - support for different file types and for user-defined grammars
 - support for inserting templates
-- and some more - but that's it
+- hex editor mode for binary files
+- support for themes - e.g. support for a dark mode theme.
+- docking windows UI
 
 ## Installing and Using PKS Edit
 
