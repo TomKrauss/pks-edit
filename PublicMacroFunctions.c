@@ -1742,29 +1742,35 @@ int EdCommandExecute(void)
 /*--------------------------------------------------------------------------
  * inputPassWord()
  */
-static void inputPassWord(LPSTR pszPW) {
-	static DIALPARS _d[] = {
+static int inputPassWord(LPSTR pszPW, LPSTR pszFilename, BOOL bSave) {
+	char szMsg[256];
+	DIALPARS _d[] = {
 		IDD_STRING1,	20,		0,
+		IDD_RO1,		sizeof szMsg,		szMsg,
 		0
 	};
 
 	pszPW[0] = 0;
 	_d[0].dp_data = pszPW;
-	DoDialog(DLGCRYPT, dlg_standardDialogProcedure, _d, NULL);
+	LPSTR pszFormat = dlg_getResourceString(bSave ? IDS_ENTER_PASSWORD_TO_ENCRYPT : IDS_ENTER_PASSWORD_TO_DECRYPT);
+	sprintf(szMsg, pszFormat, string_abbreviateFileName(pszFilename));
+	return DoDialog(DLGCRYPT, dlg_standardDialogProcedure, _d, NULL) != IDCANCEL;
 }
 
 /*--------------------------------------------------------------------------
  * dlg_enterPasswordForEncryption()
  */
-int dlg_enterPasswordForEncryption(LPSTR password, int twice) {
+int dlg_enterPasswordForEncryption(LPSTR password, LPSTR pszFilename, int bSave) {
 	char		pw1[128];
 
 	while(1) {
-		inputPassWord(password);
-		if (twice == 0) {
+		if (!inputPassWord(password, pszFilename, bSave)) {
+			return 0;
+		}
+		if (!bSave) {
 			break;
 		}
-		inputPassWord(pw1);
+		inputPassWord(pw1, pszFilename, bSave);
 		if (lstrcmp(pw1, password)) {
 			error_showErrorById(IDS_MSGDIFFERENTPW);
 		} else {

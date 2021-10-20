@@ -224,6 +224,8 @@
 #define IDS_FILE_READONLY               184
 #define IDS_STATUSLINE                  186
 #define IDS_NO_MACROS_DEFINED           190
+#define IDS_ENTER_PASSWORD_TO_ENCRYPT   191
+#define IDS_ENTER_PASSWORD_TO_DECRYPT   192
 #define IDM_UNDO                        210
 #define IDM_DOAGAIN                     211
 #define IDM_ERASEBLOCK                  212
@@ -235,7 +237,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        160
+#define _APS_NEXT_RESOURCE_VALUE        187
 #define _APS_NEXT_COMMAND_VALUE         40007
 #define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           101

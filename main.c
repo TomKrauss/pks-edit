@@ -396,9 +396,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	if (!init_initializeVariables()) {	/* need environment for sizing the frame window... */
 		return FALSE;
 	}
-	if (!InitDDE()) {
-		return FALSE;
-	}
 	nInstanceCount = 1;
 	if (mainframe_findExistingWindow()) {
 		nInstanceCount = 2;
@@ -413,6 +410,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	}
 
 	ft_restorePreviouslyOpenedWindows();
+	if (!InitDDE()) {
+		return FALSE;
+	}
 	GetPhase2Args(lpCmdLine);
 
 	if (!ww_getNumberOfOpenWindows() && _runInteractive) {

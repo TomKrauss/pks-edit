@@ -679,7 +679,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Enter password"
 FONT 8, "Helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "Enter the password to en/de-crypt the file:",-1,6,10,167,8
+    LTEXT           "TEXT:",IDD_RO1,6,10,264,8
     EDITTEXT        IDD_STRING1,5,22,265,12,ES_PASSWORD
 END
 
@@ -1444,6 +1444,7 @@ BEGIN
     IDS_SEARCH              "Search:"
     IDS_STATUSLINE          "L: %2j$l, C: %2j$c!%s$&"
     IDS_NO_MACROS_DEFINED   "No macros defined."
+    IDS_ENTER_PASSWORD_TO_ENCRYPT "Enter password to encrypt %s:"
 END
 
 STRINGTABLE
@@ -1759,6 +1760,11 @@ BEGIN
     IDS_COMMAND248          "Find next difference;Next difference"
     IDS_COMMAND249          "Find previous difference;Previous difference"
     IDS_COMMAND250          "End comparison;End comparison"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
 END
 
 #endif    // Englisch (USA) resources

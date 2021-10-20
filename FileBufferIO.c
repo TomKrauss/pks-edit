@@ -40,7 +40,7 @@
 /*----- EXTERNALS -----------*/
 
 extern void ft_settime(EDTIME* tp);
-extern int  dlg_enterPasswordForEncryption(LPSTR password, int twice);
+extern int  dlg_enterPasswordForEncryption(LPSTR password, LPSTR pszFilename, int twice);
 
 int _flushing;
 
@@ -274,10 +274,10 @@ EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallba
  * Checks, whether a file to read needs to be decrypted.
  * If not, return 0, return 1 otherwise.
  *--------------------------------------*/
-static int ft_initializeEncryption(EDIT_CONFIGURATION *linp, char *pw, int twice)
+static int ft_initializeEncryption(EDIT_CONFIGURATION *linp, char *pw, char* pszFilename, int twice)
 {
 	if ((linp->workmode & O_CRYPTED) == 0 ||
-	    dlg_enterPasswordForEncryption(pw, twice) == 0 ||
+	    dlg_enterPasswordForEncryption(pw, pszFilename, twice) == 0 ||
 	    crypt_init(DES_NOFINAL,pw) == 0) {
 		pw[0] = 0;
 		return 0;
@@ -349,7 +349,13 @@ nullfile:
 			fd = (int)(uintptr_t)fileHandle;
 		}
 		ft_handleMagic(fd, documentDescriptor);
-		_crypting = ft_initializeEncryption(documentDescriptor, pw, 0);
+		_crypting = FALSE;
+		if (documentDescriptor->workmode & O_CRYPTED) {
+			_crypting = ft_initializeEncryption(documentDescriptor, pw, fp->fname, 0);
+			if (!_crypting) {
+				return 0;
+			}
+		}
 		if ((ret = ft_readDocumentFromFile(fd,f,fp)) == 0) {
 			goto readerr;
 		}
@@ -521,7 +527,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 		return 1;
 	nl = linp->nl;
 	cr = linp->cr;
-	ft_initializeEncryption(linp,pw,1);
+	ft_initializeEncryption(linp, pw, fp->fname, 1);
 
 	if (!quiet) {
 		char* printedFilename = ft_getBasenameOf(fp);

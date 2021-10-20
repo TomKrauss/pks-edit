@@ -665,7 +665,7 @@ KEYCODE macro_addModifierKeys(KEYCODE key)
 void* macro_getKeyBinding(WPARAM key)
 {
 	KEYCODE keycode = (KEYCODE)macro_addModifierKeys((KEYCODE)key);
-	void *pResult;
+	void *pResult = NULL;
 	WINFO* wp = ww_getCurrentEditorWindow();
 	if (wp && ww_hasSelection(wp)) {
 		pResult = keybound(keycode | K_HAS_SELECTION);

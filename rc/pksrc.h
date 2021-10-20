@@ -24,6 +24,8 @@
 #define IDS_STATUSLINE                  186
 #define IDB_PNG1                        189
 #define IDS_NO_MACROS_DEFINED           190
+#define IDS_ENTER_PASSWORD_TO_ENCRYPT   191
+#define IDS_ENTER_PASSWORD_TO_DECRYPT   192
 #define IDI_ICON3                       193
 #define IDB_NEW_ICONS                   200
 #define DLGCURSOROPTIONS                529
@@ -48,7 +50,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        208
+#define _APS_NEXT_RESOURCE_VALUE        211
 #define _APS_NEXT_COMMAND_VALUE         40027
 #define _APS_NEXT_CONTROL_VALUE         1017
 #define _APS_NEXT_SYMED_VALUE           101

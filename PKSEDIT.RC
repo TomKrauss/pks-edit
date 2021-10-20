@@ -234,7 +234,7 @@ FONT 8, "helv", 0, 0, 0x0
 BEGIN
     GROUPBOX        " Anzeige",1000,14,9,315,74
     CONTROL         "&Controlzeichen",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,18,23,141,10
-    CONTROL         "A&lternativer Status",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,33,141,10
+    CONTROL         "He&xadezimales editieren",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,33,141,10
     CONTROL         "L&ineal anzeigen",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,43,141,10
     CONTROL         "F&este Fensterlage",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,174,22,142,10
     CONTROL         "Kein &vertikaler Slider",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,174,32,142,10
@@ -561,7 +561,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Bearbeiten einer verschlüsselten Datei"
 FONT 8, "Helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "Geben Sie das Kennwort zum Ver/Entschlüsseln ein:",-1,6,10,167,8
+    LTEXT           "TEXT:",IDD_RO1,6,10,265,8
     EDITTEXT        IDD_STRING1,5,22,265,12,ES_PASSWORD
 END
 
@@ -692,7 +692,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSME
 CAPTION "Autosave"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "Automatisches Speichern nach [min]:",-1,12,12,135,8,NOT WS_GROUP
+    LTEXT           "Automatisches Speichern nach [sec]:",-1,12,12,135,8,NOT WS_GROUP
     EDITTEXT        IDD_INT1,201,12,42,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "Einstellungen beim &Verlassen speichern",IDD_OPT2,
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,232,10
@@ -1246,6 +1246,16 @@ BEGIN
     0
 END
 
+DLG_OPT_AUTOSAVE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGCRYPT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1444,6 +1454,9 @@ BEGIN
     IDS_FILE_READONLY       "Nur lesen"
     IDS_SEARCH              "Suchen:"
     IDS_STATUSLINE          "Z: %2j$l, S: %2j$c!%s$&"
+    IDS_NO_MACROS_DEFINED   "Keine Makros definiert."
+    IDS_ENTER_PASSWORD_TO_ENCRYPT 
+                            "Geben Sie das Passwort zum Verschlüsseln von %s ein:"
 END
 
 STRINGTABLE
@@ -1759,6 +1772,12 @@ BEGIN
     IDS_COMMAND248          "Zum nächsten Unterschied;Nächster Unterschied"
     IDS_COMMAND249          "Zum vorherigen Unterschied;Letzter Unterschied"
     IDS_COMMAND250          "Vergleich beenden;Vergleich beenden"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_ENTER_PASSWORD_TO_DECRYPT 
+                            "Geben Sie das Passwort zum Enschlüsseln von %s ein:"
 END
 
 #endif    // Deutsch (Deutschland) resources
