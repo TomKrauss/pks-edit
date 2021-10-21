@@ -13,6 +13,8 @@
  * author: Tom
  */
 
+#include <Windows.h>
+
 #include "funcdef.h"
 /* Functions: */
 EDFUNCDEF _functab[] = {
@@ -393,6 +395,15 @@ TYPEELEM	_enelemtab[] = {
 { "QUERY_FILEMODIFIED"        , 9 },
 { "QUERY_BLOCKXTNDMODE"       , 10 },
 { "SC_THUMBTRACK"             , 1 },
-{ "SC_CURSORCATCH"            , 2 }
+{ "SC_CURSORCATCH"            , 2 },
+{ "MB_OK"             ,			MB_OK },
+{ "MB_YESNOCANCEL"             ,MB_YESNOCANCEL },
+{ "MB_RETRYCANCEL"             ,			MB_RETRYCANCEL },
+{ "MB_ICONERROR"             ,			MB_ICONERROR },
+{ "MB_ICONHAND"             ,			MB_ICONHAND },
+{ "MB_ICONQUESTION"             ,			MB_ICONQUESTION },
+{ "MB_ICONSTOP"             ,			MB_ICONSTOP },
+{ "MB_ICONINFORMATION"             ,			MB_ICONINFORMATION }
 };
-int _nenelems = 205;
+// Must not be more currently than 256!!!!
+int _nenelems = sizeof(_enelemtab)/sizeof(_enelemtab[0]);

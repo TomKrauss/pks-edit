@@ -15,6 +15,7 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include <CommCtrl.h>
 #include "alloc.h"
 #include "trace.h"
 #include "lineoperations.h"
@@ -57,12 +58,46 @@ static LRESULT WINAPI error_messageBoxHook(int nCode, WPARAM wParam, LPARAM lPar
 /*------------------------------------------------------------
  * error_displayAlertBoxWithOptions()
  */
-int error_displayAlertBoxWithOptions(long buttons, const char* fmt) {
+int error_displayAlertBoxWithOptions(long unused, long buttons, const char* fmt) {
 	if (!fmt) {
 		return -1;
 	}
+	wchar_t szwAppName[64];
+	wchar_t szwFmt[128];
+	wchar_t szwDetails[5];
+	mbstowcs(szwAppName, szAppName, strlen(szAppName) + 1);
+	mbstowcs(szwFmt, fmt, strlen(fmt) + 1);
+	mbstowcs(szwDetails, "", 1);
 	hHook = SetWindowsHookEx(WH_CALLWNDPROC, error_messageBoxHook, hInst, GetCurrentThreadId());
-	int ret = MessageBox(hwndMain, fmt, szAppName, MB_APPLMODAL | buttons);
+	int nButtons = 0;
+	PCWSTR nIcon = TD_INFORMATION_ICON;
+	int nOldButtons = buttons & 0xF;
+	int nOldIcon = buttons & 0xF0;
+	if (nOldButtons == MB_OK) {
+		nButtons |= TDCBF_OK_BUTTON;
+	} else if (nOldButtons == MB_OKCANCEL) {
+		nButtons |= TDCBF_CANCEL_BUTTON;
+		nButtons |= TDCBF_OK_BUTTON;
+	} else if (nOldButtons == MB_RETRYCANCEL) {
+		nButtons |= TDCBF_RETRY_BUTTON;
+		nButtons |= TDCBF_CANCEL_BUTTON;
+	} else if (nOldButtons == MB_YESNOCANCEL) {
+		nButtons |= TDCBF_YES_BUTTON;
+		nButtons |= TDCBF_NO_BUTTON;
+		nButtons |= TDCBF_CANCEL_BUTTON;
+	} else if (nOldButtons == MB_YESNO) {
+		nButtons |= TDCBF_YES_BUTTON;
+		nButtons |= TDCBF_NO_BUTTON;
+	}
+	if (nOldIcon == MB_ICONSTOP) {
+		nIcon = TD_SHIELD_ICON;
+	} else if (nOldIcon == MB_ICONEXCLAMATION) {
+		nIcon = TD_ERROR_ICON;
+	} else if (nOldIcon == MB_ICONWARNING) {
+		nIcon = TD_WARNING_ICON;
+	}
+	int ret;
+	TaskDialog(hwndMain, hInst, szwAppName, szwFmt, szwDetails, nButtons, nIcon, &ret);
 	UnhookWindowsHookEx(hHook);
 	return ret;
 }
@@ -74,7 +109,7 @@ static int error_openConfigurableAlert(int buttons, LPSTR fmt, va_list ap)
 {   char buf[256];
 
     wvsprintf((LPSTR)buf,(LPSTR)fmt, ap);
-	return error_displayAlertBoxWithOptions(buttons, buf);
+	return error_displayAlertBoxWithOptions(0, buttons, buf);
 }
 
 /*------------------------------------------------------------

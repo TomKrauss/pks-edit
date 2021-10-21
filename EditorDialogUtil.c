@@ -155,9 +155,7 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPP
 	INT_PTR		ret;
 
 	bInPropertySheet = FALSE;
-	if (dp)	{
-		_dp = dp;
-	}
+	_dp = dp;
 	_dtoolTips = pTooltips;
 	hwnd = GetFocus();
 	nSave = nCurrentDialog;
@@ -983,6 +981,9 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 
 		case WM_MEASUREITEM:
 			mp = (MEASUREITEMSTRUCT*)lParam;
+			if (!_dp) {
+				break;
+			}
 			if ((dlp = dlg_getitemdata(_dp, mp->CtlID)) == 0 ||
 			    (dlp->li_measure == 0))
 				break;
@@ -990,6 +991,9 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 			return TRUE;
 
 		case WM_COMPAREITEM:
+			if (!_dp) {
+				break;
+			}
 			cp = (COMPAREITEMSTRUCT*)lParam;
 			if ((dlp = dlg_getitemdata(_dp, cp->CtlID)) == 0 ||
 			    (dlp->li_compare == 0))
@@ -997,6 +1001,9 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 			return (*dlp->li_compare)(cp);
 
 		case WM_DRAWITEM:
+			if (!_dp) {
+				break;
+			}
 			drp = (DRAWITEMSTRUCT*)lParam;
 			if ((dlp = dlg_getitemdata(_dp, drp->CtlID)) == 0 ||
 			    (dlp->li_draw == 0))

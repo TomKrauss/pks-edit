@@ -591,10 +591,12 @@ HWND cust_createToastWindow(char* pszText) {
 	rect.bottom -= rc.bottom;
 	int width = rect.right - rect.left;
 	int height = rect.bottom - rect.top;
+	if (!IsWindowVisible(hwndToastWindow)) {
+		SetWindowPos(hwndToastWindow, NULL, rect.left, rect.top + height - 50, width, 50, SWP_NOOWNERZORDER | SWP_NOACTIVATE);
+		AnimateWindow(hwndToastWindow, 300, AW_VER_NEGATIVE);
+	}
 	SetWindowText(hwndToastWindow, pszText);
-	SetWindowPos(hwndToastWindow, NULL, rect.left, rect.top + height - 50, width, 50, SWP_NOOWNERZORDER | SWP_NOACTIVATE);
-	AnimateWindow(hwndToastWindow, 300, AW_VER_NEGATIVE);
-	InvalidateRect(hwndToastWindow, NULL, FALSE);
+	InvalidateRect(hwndToastWindow, NULL, TRUE);
 	return hwndToastWindow;
 }
 

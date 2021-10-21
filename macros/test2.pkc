@@ -1,6 +1,5 @@
 const MB_YESNO	                = 0x0004;
 const IDYES	                = 6;
-
 #
 # Windows MessageBox
 #
@@ -43,15 +42,14 @@ macro test()
 # cause PKSMakroC - Integers are only 24 bit big, this macro
 # will cause overflows for fac(>12) !
 #
-macro fac()
-{
+macro calculateFactorial() {
 	int		count = 1;
 	int		n = 1;
 	int		save_n = 1;
 	int		res = 1;
-	string	erg = "";
+	string	result = "";
 
-	n = (int)PromptAssign("Enter value: ","10");
+	n = (int)PromptAssign("Calculate factorial of: ","10");
 	save_n = n;
 
 	while(n > 1) {
@@ -59,9 +57,12 @@ macro fac()
 		n = n - 1;
 	}
 
-	erg = "Faculty of " + (string) save_n + " is: " + (string) res;
-
-	Alert(erg);
+    if (res < 0) {
+        MessageBox(0, MB_ICONERROR|MB_OK, "Overflow during calculation.");
+    } else {
+	    result = "The factorial of " + (string) save_n + " is: " + (string) res;
+        MessageBox(0, MB_ICONINFORMATION|MB_OK, result);
+    }
 }
 
 macro test2()

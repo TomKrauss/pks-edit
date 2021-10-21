@@ -96,7 +96,7 @@ extern int error_displayYesNoCancelConfirmation(int nId, ...);
 /*------------------------------------------------------------
  * error_displayAlertBoxWithOptions()
  */
-extern int error_displayAlertBoxWithOptions(long buttons, const char* fmt);
+extern int error_displayAlertBoxWithOptions(long unused, long buttons, const char* fmt);
 
 /*--------------------------------------------------------------------------
  * win_positionWindowRelativeToCaret()

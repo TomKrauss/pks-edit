@@ -301,7 +301,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
 		Errval=CommDlgExtendedError();
 		if(Errval!=0) {
 			wsprintf(szTemp, "GetOpenFileName returned Error # 0x%lx", Errval);
-			error_displayAlertBoxWithOptions(MB_OK | MB_ICONSTOP, szTemp);
+			error_displayAlertBoxWithOptions(0, MB_OK | MB_ICONSTOP, szTemp);
 		}
 	}
 	if (ofn.lpfnHook) {
