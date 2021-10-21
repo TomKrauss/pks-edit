@@ -561,7 +561,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Bearbeiten einer verschlüsselten Datei"
 FONT 8, "Helv", 0, 0, 0x0
 BEGIN
-    LTEXT           "Geben Sie das Kennwort zum Ver/Entschlüsseln ein:",-1,6,10,167,8
+    LTEXT           "TEXT:",IDD_RO1,6,10,265,8
     EDITTEXT        IDD_STRING1,5,22,265,12,ES_PASSWORD
 END
 
@@ -1251,6 +1251,11 @@ BEGIN
     0
 END
 
+DLGCRYPT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1450,6 +1455,8 @@ BEGIN
     IDS_SEARCH              "Suchen:"
     IDS_STATUSLINE          "Z: %2j$l, S: %2j$c!%s$&"
     IDS_NO_MACROS_DEFINED   "Keine Makros definiert."
+    IDS_ENTER_PASSWORD_TO_ENCRYPT 
+                            "Geben Sie das Passwort zum Verschlüsseln von %s ein:"
 END
 
 STRINGTABLE
@@ -1765,6 +1772,12 @@ BEGIN
     IDS_COMMAND248          "Zum nächsten Unterschied;Nächster Unterschied"
     IDS_COMMAND249          "Zum vorherigen Unterschied;Letzter Unterschied"
     IDS_COMMAND250          "Vergleich beenden;Vergleich beenden"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_ENTER_PASSWORD_TO_DECRYPT 
+                            "Geben Sie das Passwort zum Enschlüsseln von %s ein:"
 END
 
 #endif    // Deutsch (Deutschland) resources

@@ -14,6 +14,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+#include "alloc.h"
 #include <windows.h>
 #include "caretmovement.h"
 #include "winfo.h"
@@ -24,6 +25,11 @@
 #define HEX_ASCII_DISTANCE		3
 #define	HEX_MAX_COL				4*HEX_BYTES_PER_LINE+HEX_ASCII_DISTANCE-1
 #define IS_IN_HEX_NUMBER_AREA(col)	(col < 3*HEX_BYTES_PER_LINE)
+
+typedef struct tagHEX_RENDERER_DATA {
+	LINE* pByteOffsetCache;	// Used to speed up the calculation of "byte offsets" into our line pointers (used in Hex editing)
+	long	nCachedByteOffset;	// See above - only valid if pByteOffsetCache is not null
+} HEX_RENDERER_DATA;
 
 /*-----------------------------------------
  * Render an arbitrary string with a given length at a position using a font-style.
@@ -67,19 +73,79 @@ static void render_hexLine(RENDER_CONTEXT* pCtx, int y, char* pszBytes, int nByt
 	TextOut(pCtx->rc_hdc, -(wp->mincol * wp->cwidth), y, szRender, nAscOffs);
 }
 
+/**
+ * Calculate the byte offset of the current caret in a file.
+ */
+/*
+long wi_getCaretByteOffset(WINFO* wp) {
+
+	long offset;
+	FTABLE* fp = wp->fp;
+	LINE* lp = fp->firstl;
+	LINE* lpCompare = wp->caret.linePointer;
+
+	if (lpCompare == NULL) {
+		return 0;
+	}
+	lp = fp->pByteOffsetCache;
+	offset = fp->nCachedByteOffset;
+	if (lp && lp != lpCompare) {
+		int nDelta = wp->maxln - wp->minln + 1;
+		// Heuristic search for line: search in current window.
+		for (int i = 0; i < nDelta; i++) {
+			if (!lp->prev) {
+				break;
+			}
+			lp = lp->prev;
+			offset -= ln_nBytes(lp);
+			if (lp == lpCompare) {
+				break;
+			}
+		}
+		nDelta *= 2;
+		for (int i = 0; i < nDelta; i++) {
+			if (lp == lpCompare || lp == NULL) {
+				break;
+			}
+			offset += ln_nBytes(lp);
+			lp = lp->next;
+		}
+	}
+	if (lpCompare != lp) {
+		offset = 0;
+		lp = fp->firstl;
+		while (lp != NULL && lp != lpCompare) {
+			offset += ln_nBytes(lp);
+			lp = lp->next;
+		}
+	}
+	// Cache last offset calculated.
+	fp->pByteOffsetCache = lp;
+	fp->nCachedByteOffset = offset;
+	INTERNAL_BUFFER_POS pos;
+	if (wp->renderer->r_screenToBuffer(wp, wp->caret.ln, wp->caret.col, &pos)) {
+		return offset + pos.ibp_logicalColumnInLine;
+	}
+	return offset + wp->caret.offset;
+}
+
+*/
+
 /*
  * Get the line pointer for a wanted logical hex line to render. If the
  * method returns > 0, the Line pointer points to the corresponding line
  * and the pStartOffset contains the byte offset to the beginning of that line.
  */
-static int hex_getLinePointerFor(FTABLE* fp, long ln, LINE** pLine, long* pStartOffset, long* pLineOffset) {
+static int hex_getLinePointerFor(WINFO* wp,long ln, LINE** pLine, long* pStartOffset, long* pLineOffset) {
 	long nOffset = ln * HEX_BYTES_PER_LINE;
+	FTABLE* fp = wp->fp;
+	HEX_RENDERER_DATA* pData = wp->r_data;
 	LINE* lp;
 	long nStartOffset;
 
-	if (fp->pByteOffsetCache) {
-		lp = fp->pByteOffsetCache;
-		nStartOffset = fp->nCachedByteOffset;
+	if (pData->pByteOffsetCache) {
+		lp = pData->pByteOffsetCache;
+		nStartOffset = pData->nCachedByteOffset;
 		while (nStartOffset > nOffset && lp->prev) {
 			lp = lp->prev;
 			nStartOffset -= ln_nBytes(lp);
@@ -111,18 +177,20 @@ static int hex_getLinePointerFor(FTABLE* fp, long ln, LINE** pLine, long* pStart
 /*
  * Get the next line of bytes from the current file to be rendered. 
  */
-static int hex_getBytes(char* pszBuffer, FTABLE* fp, long ln) {
+static int hex_getBytes(char* pszBuffer, WINFO* wp, long ln) {
+	HEX_RENDERER_DATA* pData = wp->r_data;
+	FTABLE* fp = wp->fp;
 	long nOffset = ln * HEX_BYTES_PER_LINE;
 	LINE* lp;
 	long nStartOffset;
 	long nLineOffset;
 
-	int nResult = hex_getLinePointerFor(fp, ln, &lp, &nStartOffset, &nLineOffset);
+	int nResult = hex_getLinePointerFor(wp, ln, &lp, &nStartOffset, &nLineOffset);
 	if (nResult <= 0) {
 		return nResult;
 	}
-	fp->pByteOffsetCache = lp;
-	fp->nCachedByteOffset = nStartOffset;
+	pData->pByteOffsetCache = lp;
+	pData->nCachedByteOffset = nStartOffset;
 	int nCount = 0;
 	int lnOffset = nOffset - nStartOffset;
 	while (nCount < HEX_BYTES_PER_LINE) {
@@ -203,7 +271,7 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 	for (ln = min; ln <= max && y < pClip->bottom; ln++, y = newy) {
 		newy = y + cheight;
 		if (newy > pClip->top) {
-			nLength = hex_getBytes(szBuffer, fp, ln);
+			nLength = hex_getBytes(szBuffer, wp, ln);
 			if (nLength <= 0) {
 				if (nLength == -1) {
 					r.left = rect.left; r.right = rect.right;
@@ -244,7 +312,7 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 
 static int hex_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFER_POS* pPosition) {
 	long nOffset;
-	if (hex_getLinePointerFor(wp->fp, ln, &pPosition->ibp_lp, &nOffset, &pPosition->ibp_lineOffset) <= 0) {
+	if (hex_getLinePointerFor(wp, ln, &pPosition->ibp_lp, &nOffset, &pPosition->ibp_lineOffset) <= 0) {
 		return 0;
 	}
 	if (IS_IN_HEX_NUMBER_AREA(col)) {
@@ -252,6 +320,7 @@ static int hex_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFE
 	} else {
 		pPosition->ibp_logicalColumnInLine = col - (HEX_MAX_COL - HEX_BYTES_PER_LINE);
 	}
+	pPosition->ibp_byteOffset = nOffset + pPosition->ibp_logicalColumnInLine;
 	long nLineOffset = pPosition->ibp_lineOffset;
 	LINE* lp = pPosition->ibp_lp;
 	for (long i = 0; i < pPosition->ibp_logicalColumnInLine; i++) {
@@ -352,6 +421,21 @@ static long hex_calculateMaxColumn(WINFO* wp, long ln, LINE* lp) {
 	return HEX_MAX_COL-1;
 }
 
+static void* hex_allocData(WINFO* wp) {
+	return calloc(1, sizeof(HEX_RENDERER_DATA));
+}
+
+static void hex_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
+	HEX_RENDERER_DATA *pData = wp->r_data;
+	if (pChanged->type == LINE_MODIFIED || pChanged->type == LINE_REPLACED) {
+		render_repaintWindow(wp);
+		if (pData->pByteOffsetCache == pChanged->lp) {
+			return;
+		}
+	}
+	pData->pByteOffsetCache = NULL;
+}
+
 static RENDERER _hexRenderer = {
 	render_singleLineOnDevice,
 	render_hexMode,
@@ -359,7 +443,9 @@ static RENDERER _hexRenderer = {
 	hex_calculateNLines,
 	hex_calculateMaxColumn,
 	hex_placeCursorAndValidate,
-	hex_screenOffsetToBuffer
+	hex_screenOffsetToBuffer,
+	hex_allocData,
+	hex_modelChanged
 };
 
 /*

@@ -203,8 +203,6 @@ typedef struct tagFTABLE {
 			*lastl;				// last line
 	LINE*	lpReadPointer;		// used during read operations temporarily
 	long	nbytes;				// The number of total bytes in the file. Will be reset by changes to -1.
-	LINE*	pByteOffsetCache;	// Used to speed up the calculation of "byte offsets" into our line pointers (used in Hex editing)
-	long	nCachedByteOffset;	// See above - only valid if pByteOffsetCache is not null
 	EDIT_CONFIGURATION	*documentDescriptor;
 	HIDDENP	views;			/* the list of our views */
 	HIDDENP	undo;

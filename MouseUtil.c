@@ -23,8 +23,8 @@
 
 #include "winterf.h"
 #include "edfuncs.h"
+#include "funcdef.h"
 #include "pksedit.h"
-#include "functab.h"
 #include "iccall.h" 
 #include "resource.h"
 #include "edfuncs.h"

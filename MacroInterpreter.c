@@ -23,7 +23,7 @@
 
 #include "pksedit.h"
 #include "edfuncs.h"
-#include "functab.h"
+#include "funcdef.h"
 #include "mouseutil.h"
 #include "sym.h"
 #include "markpositions.h"

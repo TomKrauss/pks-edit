@@ -350,9 +350,6 @@
     <ClInclude Include="include\funcdef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\functab.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\iccall.h">
       <Filter>Header Files</Filter>
     </ClInclude>

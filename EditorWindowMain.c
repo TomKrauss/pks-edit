@@ -507,11 +507,17 @@ static int ww_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFER
 		pPosition->ibp_lineOffset = wp->caret.offset;
 		pPosition->ibp_logicalColumnInLine = wp->caret.offset;
 		pPosition->ibp_lp = wp->caret.linePointer;
+		// for now: just guessing - as this is expensive to calculate and called frequently.
+		// will be filled correctly by other renderers, where this information is more relevant.
+		pPosition->ibp_byteOffset = ln * 20 + col;
 		return 1;
 	}
 	return 0;
 }
 
+static void ww_modelChanged(WINFO* wp, MODEL_CHANGE* pChange) {
+
+}
 
 static RENDERER _asciiRenderer = {
 	render_singleLineOnDevice,
@@ -520,7 +526,9 @@ static RENDERER _asciiRenderer = {
 	ww_calculateMaxLine,
 	ww_calculateMaxColumn,
 	caret_updateDueToMouseClick,
-	ww_screenOffsetToBuffer
+	ww_screenOffsetToBuffer,
+	NULL,
+	ww_modelChanged
 };
 
 /*
@@ -528,6 +536,13 @@ static RENDERER _asciiRenderer = {
  */
 void ww_modeChanged(WINFO* wp) {
 	wp->renderer = (wp->dispmode & SHOWHEX) ? hex_getRenderer() : &_asciiRenderer;
+	if (wp->r_data) {
+		free(wp->r_data);
+		wp->r_data = NULL;
+	}
+	if (wp->renderer->r_create) {
+		wp->r_data = wp->renderer->r_create(wp);
+	}
 	if (wp->ww_handle) {
 		sl_size(wp);
 		font_selectStandardFont(wp->ww_handle, wp);
@@ -790,6 +805,10 @@ void ww_destroy(WINFO *wp) {
 	if (wp->highlighter) {
 		highlight_destroy(wp->highlighter);
 	}
+	if (wp->r_data) {
+		free(wp->r_data);
+		wp->r_data = NULL;
+	}
 	ll_destroy((LINKED_LIST**)&wp->fmark, (int (*)(void* elem))0);
 	wp->blstart = 0;
 	wp->blend = 0;
@@ -797,7 +816,6 @@ void ww_destroy(WINFO *wp) {
 	nId = wp->win_id;
 	if (!ll_delete(&_winlist,wp)) {
 		EdTRACE(log_errorArgs(DEBUG_ERR,"failed deleting window props"));
-		;
 	}
 
 	/* update window handles */

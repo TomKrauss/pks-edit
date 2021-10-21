@@ -22,7 +22,7 @@
 #include "pksedit.h"
 #include "edfuncs.h"
 #include "pksrc.h"
-#include "functab.h"
+#include "funcdef.h"
 #include "actions.h"
 #include "edierror.h"
 #include "editorconfiguration.h"

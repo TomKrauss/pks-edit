@@ -1179,7 +1179,6 @@
     <ClInclude Include="include\edtypes.h" />
     <ClInclude Include="include\ftw.h" />
     <ClInclude Include="include\funcdef.h" />
-    <ClInclude Include="include\functab.h" />
     <ClInclude Include="include\iccall.h" />
     <ClInclude Include="include\pathname.h" />
     <ClInclude Include="include\pkscc.h" />

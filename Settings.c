@@ -25,7 +25,7 @@
 #include "winterf.h"
 #include "pksedit.h"
 #include "dial2.h"
-#include "functab.h"
+#include "funcdef.h"
 #include "edfuncs.h"
 #include "regexp.h"
 #include "actions.h"

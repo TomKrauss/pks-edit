@@ -25,7 +25,7 @@
 #include "winterf.h"
 #include "fileselector.h"
 #include "edfuncs.h"
-#include "functab.h"
+#include "funcdef.h"
 #include "dial2.h"
 #include "iccall.h"
 #include "resource.h"

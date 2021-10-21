@@ -349,60 +349,6 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *
 	return 1;
 }
 
-/**
- * Calculate the byte offset of the current caret in a file. 
- */
-long wi_getCaretByteOffset(WINFO* wp) {
-	long offset;
-	FTABLE* fp = wp->fp;
-	LINE* lp = fp->firstl;
-	LINE* lpCompare = wp->caret.linePointer;
-
-	if (lpCompare == NULL) {
-		return 0;
-	}
-	lp = fp->pByteOffsetCache;
-	offset = fp->nCachedByteOffset;
-	if (lp && lp != lpCompare) {
-		int nDelta = wp->maxln - wp->minln + 1;
-		// Heuristic search for line: search in current window.
-		for (int i = 0; i < nDelta; i++) {
-			if (!lp->prev) {
-				break;
-			}
-			lp = lp->prev;
-			offset -= ln_nBytes(lp);
-			if (lp == lpCompare) {
-				break;
-			}
-		}
-		nDelta *= 2;
-		for (int i = 0; i < nDelta; i++) {
-			if (lp == lpCompare || lp == NULL) {
-				break;
-			}
-			offset += ln_nBytes(lp);
-			lp = lp->next;
-		}
-	}
-	if (lpCompare != lp) {
-		offset = 0;
-		lp = fp->firstl;
-		while (lp != NULL && lp != lpCompare) {
-			offset += ln_nBytes(lp);
-			lp = lp->next;
-		}
-	}
-	// Cache last offset calculated.
-	fp->pByteOffsetCache = lp;
-	fp->nCachedByteOffset = offset;
-	INTERNAL_BUFFER_POS pos;
-	if (wp->renderer->r_screenToBuffer(wp, wp->caret.ln, wp->caret.col, &pos)) {
-		return offset + pos.ibp_logicalColumnInLine;
-	}
-	return offset + wp->caret.offset;
-}
-
 /*--------------------------------------------------------------------------
  * caret_placeCursorForFile()
  * cursor absolut positioning for the given file.

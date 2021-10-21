@@ -33,10 +33,6 @@
 #include "pksrc.h"
 
 extern char *ft_visiblename(FTABLE *fp);
-/**
- * Calculate the byte offset of the current caret in a file.
- */
-extern long wi_getCaretByteOffset(WINFO* view);
 
 int  _psenabled = 1;
 
@@ -187,7 +183,10 @@ static long sprintf_getValueFromWindow(WINFO *wp, char **fmt) {
 	switch(*format) {
 
 	case 'O':
-		return wi_getCaretByteOffset(wp);
+		if (wp->renderer->r_screenToBuffer(wp, wp->caret.ln, wp->caret.col, &pos)) {
+			return pos.ibp_byteOffset;
+		}
+		return 0;
 
 	case 'C': {
 		if (wp->renderer->r_screenToBuffer(wp, wp->caret.ln, wp->caret.col, &pos)) {

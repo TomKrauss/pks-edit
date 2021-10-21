@@ -115,7 +115,8 @@ typedef long (*CALCULATE_MAX_COL_FUNCTION)(WINFO* wp, long ln, LINE* lp);
 typedef struct tagINTERNAL_BUFFER_POS {
     LINE* ibp_lp;                       // The line pointer 
     int   ibp_lineOffset;               // The offset into the buffer in the line
-    int   ibp_logicalColumnInLine;      // The "logical" column on the screen. The 
+    int   ibp_logicalColumnInLine;      // The "logical" column on the screen.
+    long  ibp_byteOffset;               // The "byte offset" of the position relative to the beginning of the file.
 } INTERNAL_BUFFER_POS;
 /*
  * Calculate the logical offset into the "current" line displayed on the screen in character positions.
@@ -123,14 +124,18 @@ typedef struct tagINTERNAL_BUFFER_POS {
  */
 typedef int (*SCREEN_OFFSET_TO_BUFFER_FUNCTION)(WINFO* wp, long screenLn, long screenCol, INTERNAL_BUFFER_POS* pPosition);
 
+typedef void* (*RENDERER_CREATE)(WINFO* wp);
+
 typedef struct tagRENDERER {
-    RENDER_LINE_FUNCTION r_renderLine;
-    RENDER_PAGE_FUNCTION r_renderPage;
-    PLACE_CARET_FUNCTION r_placeCaret;
-    CALCULATE_MAX_LINE_FUNCTION r_calculateMaxLine;
-    CALCULATE_MAX_COL_FUNCTION r_calculateMaxColumn;
-    CARET_MOUSE_CLICKED_FUNCTION r_placeCaretAfterClick;
-    SCREEN_OFFSET_TO_BUFFER_FUNCTION r_screenToBuffer;
+    const RENDER_LINE_FUNCTION r_renderLine;
+    const RENDER_PAGE_FUNCTION r_renderPage;
+    const PLACE_CARET_FUNCTION r_placeCaret;
+    const CALCULATE_MAX_LINE_FUNCTION r_calculateMaxLine;
+    const CALCULATE_MAX_COL_FUNCTION r_calculateMaxColumn;
+    const CARET_MOUSE_CLICKED_FUNCTION r_placeCaretAfterClick;
+    const SCREEN_OFFSET_TO_BUFFER_FUNCTION r_screenToBuffer;      // Responsible for translating logical screen coordinates (line and column on the screen) to buffer pointers.
+    const RENDERER_CREATE r_create;                               // Called, when the renderer is created. Returns the internal data structure r_data. May be null.
+    const void (*r_modelChanged)(WINFO* wp, MODEL_CHANGE* pMC);   // The method to invoke, when the model changes.
 } RENDERER;
 
 /*--------------------------------------------------------------------------
@@ -178,43 +183,44 @@ typedef struct tagWINFO {
 	int		win_id;
     HWND    edwin_handle,ww_handle,ru_handle,st_handle,lineNumbers_handle,codecomplete_handle;
      
-    int     dispmode;				/* flags see edierror.h... */
+    int     dispmode;				// Display options: see edierror.h...
     int     charset;                // a special charset to use or 0 for now particular charset.
     int     workmode;
-    BOOL	bXtndBlock;			/* Xtending blocks */
+    BOOL	bXtndBlock;			    // we are currently in selection extension mode
     int		scrollflags;
     int		cursaftersearch;
-    int		tabDisplayFillCharacter;			    /* Tab fill char */
+    int		tabDisplayFillCharacter;// Tab fill char
      
-    CARET caret; 		        // the caret - to be moved to the view 
-    CARET secondaryCaret;       // A "secondary caret" - used to mark places on the screen like matching brackets.
-    int   secondaryCaretWidth;  // the width of the secondary caret (measured in columns)
+    CARET caret; 		            // the caret - to be moved to the view 
+    CARET secondaryCaret;           // A "secondary caret" - used to mark places on the screen like matching brackets.
+    int   secondaryCaretWidth;      // the width of the secondary caret (measured in columns)
     MARK* fmark;
-    MARK* blstart, * blend;   	/* Marks for Block Operations			*/
-    int   blcol1, blcol2;		/* column for Blockmarks				*/
+    MARK* blstart, * blend;   	    // Marks for Block Operations
+    int   blcol1, blcol2;		    // column for Blockmarks
     
-    char*  statusline;			/* alt. status line */
+    char*  statusline;			    // status line format, if a special format  should be used - otherwise NULL.
     int    cx,cy,cmx,cmy,cheight,cwidth;
-    int    ctype;        	        /* caret - type */
+    int    ctype;        	        // caret - type
     
-	int		vscroll,hscroll;		/* # of lines and columns to scroll */
-	int		scroll_dx,			/* distance cursor-window border */
-			scroll_dy;			/* for scrolling */
+	int		vscroll,hscroll;		// # of lines and columns to scroll
+	int		scroll_dx,			    // distance cursor-window border
+			scroll_dy;			    // for scrolling
     INDENTATION indentation;
     int     lmargin;
     int     rmargin;
     RENDERER* renderer;
     HIGHLIGHTER* highlighter;
-    LINE*     lpMinln;                  // caching line pointer allowing us, to quickly access the line pointer for the minimum line.
-    long      cachedLineIndex;          // line index of the caching line pointer.      
+    LINE*     lpMinln;              // caching line pointer allowing us, to quickly access the line pointer for the minimum line.
+    long      cachedLineIndex;      // line index of the caching line pointer.      
     long      minln,maxln,mincursln,maxcursln,
               mincol,maxcol,mincurscol,maxcurscol;
     long   maxVisibleLineLen;       // The maximum length of a line in columns - used to calculate the size of the horizontal scrollbar
                                     // Is reset to -1 on model changes and recalculated when needed.
-     FSTYLE	markstyles[2];			/* text block appearance */
+     FSTYLE	markstyles[2];			// text block appearance
      void	*	fp;
      float      zoomFactor;         // The text font size zoom factor.
      COMPARISON_LINK* comparisonLink;
+     void* r_data;                  // optionally used by the renderer for internal book keeping
 } WINFO;
 
 /* valid working range types */

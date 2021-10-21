@@ -18,7 +18,7 @@
 
 #include <windows.h>
 #include "edfuncs.h"
-#include "functab.h"
+#include "funcdef.h"
 #include "pksedit.h"
 #include "edierror.h"
 #include "publicapi.h"

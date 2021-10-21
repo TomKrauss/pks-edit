@@ -17,7 +17,7 @@
 
 #include <windows.h>
 #include "trace.h"
-#include "functab.h"
+#include "funcdef.h"
 #include "caretmovement.h"
 #include "winfo.h"
 #include "grammar.h"
