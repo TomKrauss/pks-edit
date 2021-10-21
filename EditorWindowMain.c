@@ -516,14 +516,36 @@ static int ww_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFER
 }
 
 static void ww_modelChanged(WINFO* wp, MODEL_CHANGE* pChange) {
-
 }
+
+/**
+ * Calculate the length of the longest line on the fly.
+ * Dumb version, which does not yet handle tabs / formatting etc.
+ * Should cache the result and be notified by the model, when the model
+ * changes to remove the cache.
+ */
+static int ww_calculateLongestLine(WINFO* wp) {
+	FTABLE* fp = wp->fp;
+	LINE* lp = fp->firstl;
+	int max = 0;
+
+	while (lp) {
+		int len = caret_lineOffset2screen(wp, &(CARET){lp, lp->len});
+		if (max < len) {
+			max = len;
+		}
+		lp = lp->next;
+	}
+	return max;
+}
+
 
 static RENDERER _asciiRenderer = {
 	render_singleLineOnDevice,
 	render_asciiMode,
 	caret_placeCursorAndValidate,
 	ww_calculateMaxLine,
+	ww_calculateLongestLine,
 	ww_calculateMaxColumn,
 	caret_updateDueToMouseClick,
 	ww_screenOffsetToBuffer,

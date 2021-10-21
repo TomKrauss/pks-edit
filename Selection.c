@@ -321,6 +321,7 @@ EXPORT int bl_paste(PASTE *pb, WINFO *wp, LINE *lpd, int col, int colflg)
 		if ((lsav=ln_cut(lps,lps->len,0,lps->len)) == 0L) {
 			return 0; 
 		}
+		lsav->lflg |= LNMODIFIED;
 		ln_insert(fp,lpd,lsav);
 		lps = lps->next;
 	}

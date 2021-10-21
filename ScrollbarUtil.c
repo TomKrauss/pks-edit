@@ -52,27 +52,6 @@ static void SetWin32ScrollInfo(WINFO * wp, int nSlider,
 }
 #endif
 
-/**
- * Calculate the length of the longest line on the fly. 
- * Dumb version, which does not yet handle tabs / formatting etc.
- * Should cache the result and be notified by the model, when the model
- * changes to remove the cache.
- */
-static int calculateLongestLine(WINFO *wp) {
-	FTABLE* fp = wp->fp;
-	LINE* lp = fp->firstl;
-	int max = 0;
-
-	while (lp) {
-		int len = caret_lineOffset2screen(wp, &(CARET){lp, lp->len});
-		if (max < len) {
-			max = len;
-		}
-		lp = lp->next;
-	}
-	return max;
-}
-
 /*------------------------------------------------------------
  * sl_size()
  * Update the internal sizeds of the WINFO structure (maxrows etc...).
@@ -101,7 +80,7 @@ int sl_size(WINFO *wp) {
 		n = 0;
 	} else {
 		if (wp->maxVisibleLineLen < 0) {
-			wp->maxVisibleLineLen = calculateLongestLine(wp);
+			wp->maxVisibleLineLen = wp->renderer->r_calculateMaxScreenColumn(wp);
 		}
 		n = wp->mincol;
 		if (n > wp->maxVisibleLineLen) {

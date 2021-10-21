@@ -131,7 +131,8 @@ typedef struct tagRENDERER {
     const RENDER_PAGE_FUNCTION r_renderPage;
     const PLACE_CARET_FUNCTION r_placeCaret;
     const CALCULATE_MAX_LINE_FUNCTION r_calculateMaxLine;
-    const CALCULATE_MAX_COL_FUNCTION r_calculateMaxColumn;
+    const CALCULATE_MAX_LINE_FUNCTION r_calculateMaxScreenColumn; // Returns the maximum logical screen column position over all lines displayed
+    const CALCULATE_MAX_COL_FUNCTION r_calculateMaxColumn;        // Returns the maximum "internal" buffer position.
     const CARET_MOUSE_CLICKED_FUNCTION r_placeCaretAfterClick;
     const SCREEN_OFFSET_TO_BUFFER_FUNCTION r_screenToBuffer;      // Responsible for translating logical screen coordinates (line and column on the screen) to buffer pointers.
     const RENDERER_CREATE r_create;                               // Called, when the renderer is created. Returns the internal data structure r_data. May be null.

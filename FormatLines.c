@@ -318,8 +318,9 @@ int ft_formatText(WINFO* wp, int scope, int type, int flags)
 	if ((ret = formatlines(mps->m_linePointer,mpe->m_linePointer,flags & FMT_TYPEMASK,
 					   flags & FMT_INDENT,rmargin)) > 0) {
 		paste.pln = _fmtfile.firstl;
-		if (bl_cutTextWithOptions((PASTE *)0,mps->m_linePointer,mpe->m_linePointer,0,mpe->m_linePointer->len,1))
-			ret = bl_paste(&paste,wp,mps->m_linePointer,0,0);
+		if (bl_cutTextWithOptions((PASTE*)0, mps->m_linePointer, mpe->m_linePointer, 0, mpe->m_linePointer->len, 1)) {
+			ret = bl_paste(&paste, wp, mps->m_linePointer, 0, 0);
+		}
 
 		ln_listfree(_fmtfile.firstl);
 	}

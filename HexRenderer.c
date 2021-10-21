@@ -417,8 +417,12 @@ static long hex_calculateNLines(WINFO* wp) {
 	return (nBytes + HEX_BYTES_PER_LINE - 1) / HEX_BYTES_PER_LINE;
 }
 
+static long hex_calculateMaxScreenColumn(WINFO* wp) {
+	return HEX_MAX_COL - 1;
+}
+
 static long hex_calculateMaxColumn(WINFO* wp, long ln, LINE* lp) {
-	return HEX_MAX_COL-1;
+	return hex_calculateMaxScreenColumn(wp);
 }
 
 static void* hex_allocData(WINFO* wp) {
@@ -441,6 +445,7 @@ static RENDERER _hexRenderer = {
 	render_hexMode,
 	hex_placeCursorAndValidateDelta,
 	hex_calculateNLines,
+	hex_calculateMaxScreenColumn,
 	hex_calculateMaxColumn,
 	hex_placeCursorAndValidate,
 	hex_screenOffsetToBuffer,
