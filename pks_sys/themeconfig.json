@@ -117,7 +117,7 @@
     {
       "name": "dark",
       "darkMode": 1,
-      "backgroundColor": "#323132",
+      "backgroundColor": "#373737",
       "dialogBackground": "#323232",
       "dialogLightBackground": "#535353",
       "dialogForeground": "#ececec",
@@ -131,7 +131,7 @@
       "changedLineColor": "#ffff33",
       "savedChangedLineColor": "#88ff88",
       "editorConfiguration": "default",
-      "caretLineColor": "#444444",
+      "caretLineColor": "#000000",
       "compareModifiedColor": "#909000",
       "compareAddedColor": "#900090",
       "compareDeletedColor": "#009090",

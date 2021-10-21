@@ -922,21 +922,11 @@ WINFUNC EditWndProc(
 		}
 
 	case WM_SETFOCUS: {
-		WINFO* wpOld = _winlist;
-		ll_moveElementToFront((LINKED_LIST**)&_winlist, wp);
 		if (!IsIconic(hwnd)) {
 			SetFocus(wp->ww_handle);
-			mainframe_windowActivated(wpOld != NULL ? wpOld->edwin_handle : NULL, wp->edwin_handle);
 		}
 		break;
 	}
-	case WM_KILLFOCUS: {
-			WINFO* wp = _winlist;
-			if (wp != NULL) {
-				wt_tcursor(wp, 0);
-			}
-		}
-		break;
 
 	case WM_MOVE:
 		/* drop through */
@@ -1228,17 +1218,27 @@ static WINFUNC WorkAreaWndProc(
 	    }
 	    break;
 
-	case WM_SETFOCUS:
-	    if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
-			wt_tcursor(wp,1);
+	case WM_KILLFOCUS: {
+			if ((wp = (WINFO*)GetWindowLongPtr(hwnd, 0)) != 0) {
+				wt_tcursor(wp, 0);
+			}
+		}
+		break;
+
+	case WM_SETFOCUS: {
+		WINFO* wpOld = _winlist;
+		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, 0)) != 0) {
+			ll_moveElementToFront((LINKED_LIST**)&_winlist, wp);
+			mainframe_windowActivated(wpOld != NULL ? wpOld->edwin_handle : NULL, wp->edwin_handle);
+			wt_tcursor(wp, 1);
 			FTABLE* fp = wp->fp;
 			ft_currentFileChanged(fp);
-	    }
-	    else {
+		} else {
 			EdTRACE(log_errorArgs(DEBUG_TRACE,
 				"WM_SETFOCUS in WorkWndProc without file"));
-	    }
-	    return 0;
+		}
+		return 0;
+	}
 
 	case WM_DESTROY:
 		return 0;

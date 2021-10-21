@@ -121,16 +121,6 @@ BEGIN
     0
 END
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-APP_ICON                ICON                    "C:\\source\\pksedit\\rc\\PKS2.ICO"
-
 #endif    // Deutsch (Deutschland) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -266,11 +256,11 @@ BEGIN
     LTEXT           "Programm - Editor for MS Windows",IDD_OPT6,48,20,126,12,NOT WS_GROUP
     LTEXT           "2.1 - 12.5.2021",IDD_STRING2,80,34,77,8,NOT WS_GROUP
     CONTROL         "Author: Tom Krauﬂ",IDD_OPT11,"Static",SS_LEFTNOWORDWRAP,18,98,74,8
-    LTEXT           "Mozilla Public License Version 2.0",111,18,116,160,16,NOT WS_GROUP
-    PUSHBUTTON      "&OK",1,210,116,38,14
-    LTEXT           "?",IDD_RO1,20,76,122,8,NOT WS_GROUP
-    ICON            "APP_ICON",3,19,20,21,20
-    LTEXT           "This product has been licensed for:",-1,20,63,122,8
+    LTEXT           "Mozilla Public License Version 2.0",111,18,122,160,8,NOT WS_GROUP
+    PUSHBUTTON      "&OK",1,196,116,51,14
+    LTEXT           "?",IDD_RO1,18,76,122,8,NOT WS_GROUP
+    ICON            188,IDD_APP_ICON,18,20,20,20
+    LTEXT           "This product has been licensed for:",-1,18,63,122,8
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,55,232,1
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,92,232,1
     LTEXT           "Design: Rolf-D. Pahlen",127,174,98,77,8,NOT WS_GROUP
@@ -571,15 +561,15 @@ BEGIN
     PUSHBUTTON      "",IDD_KEYCODE,52,25,70,14
 END
 
-DLGKEYCODE DIALOG 45, 61, 132, 56
+DLGKEYCODE DIALOGEX 45, 61, 147, 56
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Insert keycode"
-FONT 8, "helv"
+FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    PUSHBUTTON      "",IDD_KEYCODE,38,12,84,14
-    PUSHBUTTON      "Cancel",2,36,34,40,14
-    DEFPUSHBUTTON   "OK",1,80,34,44,14
-    LTEXT           "Keycode: ",IDD_LOWOPT,10,16,28,8,NOT WS_GROUP
+    PUSHBUTTON      "",IDD_KEYCODE,45,12,90,14
+    PUSHBUTTON      "Cancel",2,45,34,40,14
+    DEFPUSHBUTTON   "OK",1,91,34,44,14
+    LTEXT           "Keycode: ",IDD_LOWOPT,7,16,31,8,NOT WS_GROUP
 END
 
 DLGMACROS DIALOGEX 45, 60, 331, 183
@@ -927,6 +917,11 @@ BEGIN
         RIGHTMARGIN, 383
     END
 
+    DLGKEYCODE, DIALOG
+    BEGIN
+        RIGHTMARGIN, 132
+    END
+
     DLGMACROS, DIALOG
     BEGIN
         RIGHTMARGIN, 242
@@ -1079,6 +1074,11 @@ BEGIN
 END
 
 DLGCRYPT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGKEYCODE AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

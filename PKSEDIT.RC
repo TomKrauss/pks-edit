@@ -148,14 +148,14 @@ FONT 8, "helv", 0, 0, 0x1
 BEGIN
     LTEXT           "Programm - Editor für MS Windows",IDD_OPT6,48,20,126,12,NOT WS_GROUP
     LTEXT           "1.3 - 12.5.2021",IDD_STRING2,84,36,54,8,NOT WS_GROUP
-    CONTROL         "Author: Tom Krauß",IDD_OPT11,"Static",SS_LEFTNOWORDWRAP,18,98,74,8
+    CONTROL         "Autor: Tom Krauß",IDD_OPT11,"Static",SS_LEFTNOWORDWRAP,18,98,74,8
     LTEXT           "Mozilla Public License Version 2.0",111,18,117,160,16,NOT WS_GROUP
     PUSHBUTTON      "&OK",1,210,116,38,14
-    LTEXT           "?",IDD_RO1,20,76,122,8,NOT WS_GROUP
-    ICON            "APP_ICON",3,19,22,21,20
-    LTEXT           "Dieses Produkt wurde lizensiert für:",-1,20,63,122,8
-    CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,22,55,229,1
-    CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,20,92,231,1
+    LTEXT           "?",IDD_RO1,18,76,122,8,NOT WS_GROUP
+    ICON            "APP_ICON",IDD_APP_ICON,18,22,20,20
+    LTEXT           "Dieses Produkt wurde lizensiert für:",-1,18,63,122,8
+    CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,55,229,1
+    CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,92,231,1
     LTEXT           "Gestaltung: Rolf-D. Pahlen",127,152,98,89,8,NOT WS_GROUP
     LTEXT           "64 Bit",IDD_STRING1,201,36,47,8,NOT WS_GROUP
     LTEXT           "Version:",-1,48,36,31,8,NOT WS_GROUP
@@ -453,15 +453,15 @@ BEGIN
     PUSHBUTTON      "",IDD_KEYCODE,52,25,70,14
 END
 
-DLGKEYCODE DIALOG 45, 61, 132, 56
+DLGKEYCODE DIALOGEX 45, 61, 132, 56
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Einfügen Tastencode"
-FONT 8, "helv"
+FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    PUSHBUTTON      "",IDD_KEYCODE,38,12,84,14
+    PUSHBUTTON      "",IDD_KEYCODE,38,12,86,14
     PUSHBUTTON      "Abbruch",2,36,34,40,14
     DEFPUSHBUTTON   "OK",1,80,34,44,14
-    LTEXT           "Taste : ",IDD_LOWOPT,10,16,28,8,NOT WS_GROUP
+    LTEXT           "Taste : ",IDD_LOWOPT,10,16,22,8,NOT WS_GROUP
 END
 
 DLGMACROS DIALOG 45, 60, 242, 164
@@ -938,11 +938,11 @@ IDC_CURSOR2             CURSOR                  "rc\\mini move.cur"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
+APP_ICON                ICON                    "rc\\pks2.ico"
+
 PKS                     ICON                    "rc\\pks.ico"
 
 EDIT                    ICON                    "rc\\edit.ico"
-
-APP_ICON                ICON                    "rc\\pks2.ico"
 
 NEXT                    ICON                    "rc\\next.ico"
 
@@ -1252,6 +1252,16 @@ BEGIN
 END
 
 DLGCRYPT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGKEYCODE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGABOUT AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

@@ -159,7 +159,7 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPP
 		_dp = dp;
 	}
 	_dtoolTips = pTooltips;
-	hwnd = GetActiveWindow();
+	hwnd = GetFocus();
 	nSave = nCurrentDialog;
 	nCurrentDialog = nIdDialog;
 
@@ -173,7 +173,7 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPP
 	}
 	nCurrentDialog = nSave;
 	if (hwnd) {
-		SetActiveWindow(hwnd);
+		SetFocus(hwnd);
 	}
 
 	return (int)ret;
@@ -517,10 +517,19 @@ static void DlgInit(HWND hDlg, DIALPARS *dp, BOOL initialFlag) {
 			SendMessage(hwndUpDown, UDM_SETRANGE, (WPARAM)0, (LPARAM)10);
 		}
 	}
+	HICON hIcon = NULL;
+	HWND hwndControl = GetDlgItem(hDlg, IDD_APP_ICON);
+	if (hwndControl) {
+		hIcon = LoadIcon(hInst, "APP_ICON");
+		SendMessage(hwndControl, STM_SETICON, (WPARAM) hIcon, 0);
+	}
 	if (!DoDlgInitPars(hDlg, dp, nPars) && initialFlag) {
 		if (!bInPropertySheet) {
 			win_moveWindowToDefaultPosition(hDlg);
 		}
+	}
+	if (hIcon) {
+		DestroyIcon(hIcon);
 	}
 }
 

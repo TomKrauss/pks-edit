@@ -320,7 +320,9 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam
         find_incrementally(pszBuf, RE_IGNCASE | O_WRAPSCAN, 1, FALSE);
         return nRet;
     case WM_SETFOCUS:
-        previousFocusWnd = (HWND)wParam;
+        if (previousFocusWnd == NULL) {
+            previousFocusWnd = (HWND)wParam;
+        }
         PostMessage(hwnd, EM_SETSEL, 0, -1);
         find_startIncrementalSearch();
         break;

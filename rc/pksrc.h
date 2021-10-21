@@ -3,6 +3,7 @@
 // Verwendet durch C:\source\pksedit\PKSEDIT.RC
 //
 #define ID_COMPARE_BACKUP               3
+#define IDD_APP_ICON                    3
 #define IDS_STRING15                    15
 #define IDS_NO_TEMPLATES_DEFINED        15
 #define IDD_RO6                         80
@@ -50,7 +51,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        211
+#define _APS_NEXT_RESOURCE_VALUE        214
 #define _APS_NEXT_COMMAND_VALUE         40027
 #define _APS_NEXT_CONTROL_VALUE         1017
 #define _APS_NEXT_SYMED_VALUE           101

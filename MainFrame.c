@@ -1701,10 +1701,18 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			break;
 		}
 		WINFO* wp = ww_getCurrentEditorWindow();
-		if (wp != NULL) {
-			wt_tcursor(wp, wParam == WA_ACTIVE);
+		if (wp != NULL && wParam != WA_INACTIVE) {
+			SetFocus(wp->edwin_handle);
 		}
 		fkey_keyModifierStateChanged();
+		break;
+	}
+
+	case WM_SETFOCUS: {
+		WINFO* wp = ww_getCurrentEditorWindow();
+		if (wp != NULL) {
+			SetFocus(wp->edwin_handle);
+		}
 		break;
 	}
 
