@@ -41,7 +41,7 @@ extern char	_fseltarget[];
  * Select a folder using a browse for folder dialog. Return TRUE,
  * if the folder was selected. pResult will contain the resulting folder name.
  */
-extern BOOL fsel_selectFolder(char* pTitle, char* pResult);
+extern BOOL fsel_selectFolder(HWND hwndParent, char* pTitle, char* pResult);
 
 /*------------------------------------------------------------
  * fsel_selectFile

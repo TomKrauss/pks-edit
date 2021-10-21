@@ -757,7 +757,7 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 	switch(idCtrl) {
 		case IDD_PATH1SEL:
 			pszTitle = dlg_getTitleResource(hDlg, idCtrl, szBuff, sizeof szBuff);
-			if (fsel_selectFolder(pszTitle, _fseltarget)) {
+			if (fsel_selectFolder(hDlg, pszTitle, _fseltarget)) {
 				SetDlgItemText(hDlg, IDD_PATH1, _fseltarget);
 			}
 			break;

@@ -68,15 +68,20 @@ static INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM p
  * Select a folder using a browse for folder dialog. Return TRUE,
  * if the folder was selected. pResult will contain the resulting folder name.
  */
-BOOL fsel_selectFolder(char* pTitle, char* pResult) {
+BOOL fsel_selectFolder(HWND hwndParent, char* pTitle, char* pResult) {
 	BROWSEINFO browseinfo;
 	memset(&browseinfo, 0, sizeof browseinfo);
-	browseinfo.hwndOwner = hwndMain;
+	browseinfo.hwndOwner = hwndParent;
 	browseinfo.lpszTitle = pTitle;
-	browseinfo.ulFlags = BIF_EDITBOX | BIF_RETURNONLYFSDIRS ;
+	browseinfo.ulFlags = BIF_EDITBOX | BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE | BIF_NONEWFOLDERBUTTON;
 	browseinfo.lpfn = BrowseCallbackProc;
+	HWND hwndOld = GetFocus();
 	PIDLIST_ABSOLUTE pPids = SHBrowseForFolder(&browseinfo);
+	if (hwndOld) {
+		SetFocus(hwndOld);
+	}
 	if (pPids == NULL) {
+		EdTRACE(log_lastWindowsError("Select Folder"));
 		return FALSE;
 	}
 	SHGetPathFromIDList(pPids, pResult);
