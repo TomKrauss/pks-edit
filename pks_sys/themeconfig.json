@@ -223,11 +223,11 @@
         },
         {
           "styleName": "sl-comment",
-          "foregroundColor": "#00AA00"
+          "foregroundColor": "#008800"
         },
         {
           "styleName": "comment",
-          "foregroundColor": "#44FF44"
+          "foregroundColor": "#00CC22"
         },
         {
           "styleName": "bold-comment",

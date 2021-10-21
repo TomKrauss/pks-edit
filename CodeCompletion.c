@@ -203,7 +203,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	arraylist_destroy(actionList);
 	pCC->ccp_size = ll_size((LINKED_LIST*)pCC->ccp_actions);
 	codecomplete_updateScrollbar(wp->codecomplete_handle);
-	RedrawWindow(wp->codecomplete_handle, NULL, NULL, RDW_INVALIDATE);
+	InvalidateRect(wp->codecomplete_handle, NULL, TRUE);
 }
 
 /*
@@ -262,6 +262,9 @@ static void codecomplete_paint(HWND hwnd) {
 				DrawIconEx(paint.hdc, x, y, up->ca_type == CA_TEMPLATE ? hIconTemplate : hIconTag, textmetric.tmHeight, textmetric.tmHeight, 0, NULL, DI_NORMAL);
 				TextOut(paint.hdc, x + nIconSize + 4, y + (nDelta / 2), pszDescription, (int)strlen(pszDescription));
 				y += textmetric.tmHeight + nDelta;
+				if (y > paint.rcPaint.bottom) {
+					break;
+				}
 			}
 			up = up->ca_next;
 		}
@@ -275,6 +278,16 @@ static void codecomplete_paint(HWND hwnd) {
 	}
 }
 
+static void codecomplete_invalidateIndex(HWND hwnd, RECT* pRect, CODE_COMPLETION_PARAMS* pCC, int idx) {
+	RECT r;
+	GetClientRect(hwnd, &r);
+	idx -= pCC->ccp_topRow;
+	r.top += idx * pCC->ccp_lineHeight;
+	r.bottom = r.top + pCC->ccp_lineHeight + CC_PADDING;
+	InvalidateRect(hwnd, &r, TRUE);
+
+}
+
 static void codecomplete_moveCaret(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nTo) {
 	if (nTo < 0) {
 		nTo = 0;
@@ -284,6 +297,7 @@ static void codecomplete_moveCaret(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int n
 	if (pCC->ccp_selection == nTo || nTo < 0) {
 		return;
 	}
+	int nOld = pCC->ccp_selection;
 	pCC->ccp_selection = nTo;
 	int newTop = pCC->ccp_topRow;
 	if (pCC->ccp_selection < pCC->ccp_topRow) {
@@ -298,8 +312,13 @@ static void codecomplete_moveCaret(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int n
 	if (newTop != pCC->ccp_topRow) {
 		pCC->ccp_topRow = newTop;
 		codecomplete_updateScrollbar(hwnd);
+		InvalidateRect(hwnd, NULL, TRUE);
+	} else {
+		RECT r;
+		GetClientRect(hwnd, &r);
+		codecomplete_invalidateIndex(hwnd, &r, pCC, nOld);
+		codecomplete_invalidateIndex(hwnd, &r, pCC, nTo);
 	}
-	RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE);
 }
 
 static void codecomplete_moveCaretBy(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nBy) {
@@ -344,7 +363,7 @@ static void codecomplete_scrollTo(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nN
 			pCC->ccp_selection = pCC->ccp_topRow;
 		}
 		codecomplete_updateScrollbar(hwnd);
-		RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE);
+		InvalidateRect(hwnd, NULL, TRUE);
 	}
 }
 
@@ -429,17 +448,12 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			codecomplete_updateScrollbar(hwnd);
 			break;
 
-		case WM_ERASEBKGND: {
-			HDC hdc = (HDC)wParam;
-			RECT rc;
-			GetClientRect(hwnd, &rc);
-			FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
-		}
-		return 1;
+		case WM_ERASEBKGND: 
+			return 0;
 
 		case WM_PAINT:
 			codecomplete_paint(hwnd);
-			break;
+			return 0;
 		case WM_LBUTTONDBLCLK: 
 		case WM_LBUTTONDOWN: {
 				int y = GET_Y_LPARAM(lParam);

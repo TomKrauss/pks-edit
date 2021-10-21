@@ -249,7 +249,7 @@ EXPORT char *file_getTempFilename(char *dst, char c)
 {	char		temp[50];
 	char		tempPath[1024];
 
-	strcpy(temp, "PKS");
+	strcpy(temp, "pks");
 	temp[1] = c;
 	GetTempPath(sizeof tempPath, tempPath);
 	GetTempFileName(tempPath, temp, LOWORD((intptr_t)hInst), dst);
