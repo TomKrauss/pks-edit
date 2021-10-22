@@ -18,7 +18,7 @@
 #include <string.h>
 
 #include "trace.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "edierror.h"
 
 #include "winterf.h"
@@ -49,7 +49,6 @@ static int 	_fkeyshiftstate;
 static int	_fkoptheight;
 static int	_fkfkheight;
 
-static char 	*_fkmods[NSHFT] = { "N",   "C",   "A",   "S" };
 static KEYCODE _fkshifts[NSHFT] = {0,	K_CONTROL, K_ALTERNATE, K_SHIFT };
 
 /*

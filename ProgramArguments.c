@@ -17,7 +17,7 @@
 #include <windows.h>
 #include "trace.h"
 #include "caretmovement.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "stringutil.h"
 #include "findandreplace.h"
 #include "crossreferencelinks.h"

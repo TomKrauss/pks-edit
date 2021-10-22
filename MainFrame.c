@@ -1720,9 +1720,9 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		if (closed) {
 			break;
 		}
+		ft_checkForChangedFiles(appActivated);
 		if (appActivated) {
 			appActivated = FALSE;
-			ft_checkForChangedFiles();
 		}
 		if (controlKeyChanged) {
 			controlKeyChanged = FALSE;

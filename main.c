@@ -20,7 +20,7 @@
 #include "alloc.h"
 #include "trace.h"
 #include "winterf.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "winfo.h"
 #include "editorconfiguration.h"
 #include "errordialogs.h"

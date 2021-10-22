@@ -22,7 +22,7 @@
 
 #include "errordialogs.h"
 #include "alloc.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "pkscc.h"
 #include "stringutil.h"
 #include "edfuncs.h"

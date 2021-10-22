@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include "trace.h"
 #include "linkedlist.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "edierror.h"
 #include "documenttypes.h"
 

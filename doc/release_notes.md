@@ -15,6 +15,9 @@
   recognize now encrypted files (indepentend of their file extension) and will ask for the password to de-crypt encrypted files.
 - PKS Edit supports now a preliminary "hex editor" mode to display the current file in an hex editor fashion. Editing is not yet
   correctly supported, but planned for later releases. PKS Edit will now by default open binary files in hex editor mode.
+- The new "Watch Log File" mode can be used to edit log files and have them update their view and scroll to the end, when new log entries
+  are added (seee Linux tail -f). In this mode editing the file is not possible - it is read-only in this case to avoid concurrent external
+  and internal changes.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
@@ -27,6 +30,11 @@
 - PKS Edit uses FontAwesome icons now. This will in particular have the dark mode look better.
 - Dark Mode has been improved and will display now more elements such as title bars and dialogs also in dark. Some open issues
   like setting dialog / file selector or native message boxes not being correctly colored remain.
+- New configuration options were added:
+   -- "Syntax Highlighting" can be switched on and off per view
+   -- "Line Selection" mode is an alternative to Column Selection and Normal selection mode, where selecting text with the caret or
+      the mouse will result always in complete lines being selected.
+   -- "Preserve Caret Column" can be switched off to have the caret not preserve its column position when moving vertically through a window
 
 ### Changed
 - Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather

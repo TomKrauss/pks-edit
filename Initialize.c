@@ -16,7 +16,7 @@
  
 #include <windows.h> 
 #include <direct.h>
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "pathname.h"
 #include "editorconfiguration.h"
 #include "stringutil.h"

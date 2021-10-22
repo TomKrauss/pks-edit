@@ -2,7 +2,7 @@
 #include "CppUnitTest.h"
 
 extern "C" {
-#include "../include/lineoperations.h"
+#include "../include/documentmodel.h"
 #include "../include/regexp.h"
 #include "../include/arraylist.h"
 #include "../include/linkedlist.h"

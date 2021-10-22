@@ -27,7 +27,7 @@
 #define YYSTYPE _YYSTYPE
 #include "parser.h"
 #include "linkedlist.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "pkscc.h"
 #include "stringutil.h"
 #include "crossreferencelinks.h"

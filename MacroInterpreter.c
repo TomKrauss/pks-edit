@@ -16,7 +16,7 @@
 #include <string.h>
 #include <windows.h>
 
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "winfo.h"
 #include "edierror.h"
 #include "errordialogs.h"

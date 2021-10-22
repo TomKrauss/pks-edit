@@ -15,7 +15,7 @@
  */
 
 #ifndef SYNTAXHIGHLIGHTING_H
-#include "lineoperations.h"
+#include "documentmodel.h"
 
 typedef struct tagHIGHLIGHTER HIGHLIGHTER;
 

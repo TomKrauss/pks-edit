@@ -21,7 +21,7 @@
 #include <Vssym32.h>
 #include "alloc.h"
 #include "trace.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "linkedlist.h"
 #include "edierror.h"
 #include "jsonparser.h"

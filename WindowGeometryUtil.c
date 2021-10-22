@@ -17,7 +17,7 @@
 #include <windows.h>
 
 #include "trace.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "edierror.h"
 
 #include "winterf.h"

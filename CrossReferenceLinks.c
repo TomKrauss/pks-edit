@@ -203,7 +203,11 @@ static RE_PATTERN *xref_initializeNavigationPattern(NAVIGATION_PATTERN *s) {
 /*---------------------------------*/
 static int xref_readTagFile(char* fn, FTABLE* fp) {
 	ln_listfree(fp->firstl);
-	return ft_readfileWithOptions(fp, fn, -1);
+	FILE_READ_OPTIONS fro;
+	memset(&fro, 0, sizeof fro);
+	fro.fro_fileName = fn;
+	fro.fro_useDefaultDocDescriptor = 1;
+	return ft_readfileWithOptions(fp, &fro);
 }
 
 

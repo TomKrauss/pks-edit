@@ -43,7 +43,7 @@ BEGIN
     CONTROL         "Shortcuts",IDD_FKFLG7,"toggle",WS_TABSTOP | 0x3,240,20,40,12
     CONTROL         "Block | |",IDD_FKFLG8,"toggle",WS_TABSTOP | 0x3,160,20,40,12
     CONTROL         "Read O.",IDD_FKFLG9,"toggle",WS_TABSTOP | 0x3,320,20,40,12
-    CONTROL         "Ein. OEM",IDD_FKFLG10,"toggle",WS_TABSTOP | 0x3,280,20,40,12
+    CONTROL         "Logfileansicht",IDD_FKFLG10,"toggle",WS_TABSTOP | 0x3,280,20,40,12
     CONTROL         "Zeile mark.",510,"toggle",WS_TABSTOP | 0x3,400,20,40,12
     CONTROL         "Record",511,"toggle",WS_TABSTOP | 0x3,360,20,40,12
     CONTROL         "F1",IDD_FKFK1,"Button",BS_OWNERDRAW | WS_TABSTOP,0,0,40,14
@@ -207,48 +207,49 @@ BEGIN
     DEFPUSHBUTTON   "&OK",1,136,30,44,14
 END
 
-DLGCURSOROPTIONS DIALOGEX 91, 91, 435, 120
+DLGCURSOROPTIONS DIALOGEX 91, 91, 435, 141
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Einstellung Cursor und Ränder"
+CAPTION "Cursor und Rollen"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "Verhalten beim Rollen",-1,4,16,182,74,WS_GROUP
+    GROUPBOX        "Verhalten beim Rollen",-1,4,16,182,86,WS_GROUP
     LTEXT           "&Minimum Cursor-Rand:",-1,8,32,80,10,NOT WS_GROUP
     EDITTEXT        IDD_INT3,165,31,12,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     LTEXT           "&Scrolle mindestens um:",-1,8,45,78,8,NOT WS_GROUP
     EDITTEXT        IDD_INT4,165,43,12,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "&Bildschirmupdate",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,59,166,10
     CONTROL         "Cursor &folgt",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,71,166,10
-    GROUPBOX        "Cursor nach Suchen",-1,195,16,219,74,WS_GROUP
-    CONTROL         "&Oben am Bildschirm",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,199,27,209,12
-    CONTROL         "&Zentriert ",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,199,41,209,12
-    CONTROL         "&Unten am Bildschirm",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,199,55,209,12
-    CONTROL         "",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,8,96,11,14
-    CONTROL         "",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,97,11,14
+    GROUPBOX        "Cursor nach Suchen",-1,195,16,219,86,WS_GROUP
+    CONTROL         "&Oben am Bildschirm",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,199,28,209,12
+    CONTROL         "&Zentriert ",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,199,42,209,9
+    CONTROL         "&Unten am Bildschirm",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,199,53,209,12
+    CONTROL         "",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,8,121,11,14
+    CONTROL         "",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,122,11,14
+    CONTROL         "Caret preserves Column",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,83,166,10
 END
 
 DLGDISPMODE DIALOGEX 46, 24, 331, 199
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Modus Anzeige"
+CAPTION "Anzeige"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
     GROUPBOX        " Anzeige",1000,14,9,315,74
     CONTROL         "&Controlzeichen",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,18,23,141,10
     CONTROL         "He&xadezimales editieren",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,33,141,10
     CONTROL         "L&ineal anzeigen",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,43,141,10
-    CONTROL         "F&este Fensterlage",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,174,22,142,10
+    CONTROL         "Syntax Highlighting",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,174,22,142,10
     CONTROL         "Kein &vertikaler Slider",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,174,32,142,10
     CONTROL         "Kein hori&zontaler Slider",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,174,42,142,10
-    LTEXT           "Tabs anzeigen aufgef&üllt mit:",118,17,95,90,8
+    LTEXT           "Tabs anzeigen aufgef&üllt mit:",118,14,95,90,8
     EDITTEXT        IDD_CHAR,144,95,16,12,ES_AUTOHSCROLL
     LTEXT           "Fo&rmat alternative Statuszeile:",117,14,143,104,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,14,155,309,12,ES_AUTOHSCROLL
-    LTEXT           "&Tabulatorabstand:",217,17,110,62,10
+    LTEXT           "&Tabulatorabstand:",217,14,110,62,10
     EDITTEXT        IDD_INT1,144,109,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "&Rechter Rand:",220,17,125,50,8
+    LTEXT           "&Rechter Rand:",220,14,125,50,8
     EDITTEXT        IDD_INT2,144,123,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "&Zeilennummern anzeigen",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,53,141,10
-    CONTROL         "&Zeile mit Cursor markieren",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,65,141,10
+    CONTROL         "&Zeile mit Cursor markieren",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,64,141,10
 END
 
 DLGEXEC DIALOG 7, 68, 245, 134
@@ -438,6 +439,7 @@ BEGIN
     LTEXT           "&Tabs expandieren zu:",114,13,149,70,10,NOT WS_GROUP
     EDITTEXT        IDD_CHAR,88,145,32,12,ES_AUTOHSCROLL
     CONTROL         "Mehrere Spaces löschen",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,65,138,10
+    CONTROL         "Logfile Modus",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,76,138,10
 END
 
 DLGMACNAME DIALOG 20, 30, 132, 66
@@ -856,19 +858,19 @@ BEGIN
             MENUITEM "&Windows Zeilenenden verwenden...\a", IDM_USE_WINDOWS_LINEENDS
         END
     END
-    POPUP "&Makros"
+    POPUP "&Makro"
     BEGIN
         MENUITEM "&Aufzeichnen\a",              MMRECORDER
-        MENUITEM "&Bearbeiten...\a",            MMACEDIT
+        MENUITEM "&Bearbeiten und ausführen...\a", MMACEDIT
         MENUITEM "&Compilieren...\a",           IDM_COMPILEMACROS
-        POPUP "&Übersicht"
+        MENUITEM "Ke&ycode einfügen\a",         IDM_INSERT_KEYCODE
+        POPUP "&Verknüpfungen"
         BEGIN
             MENUITEM "&Makros\a",                   IDM_MACROLIST
             MENUITEM "&Tasten\a",                   IDM_KEYLIST
             MENUITEM "Mausta&sten\a",               IDM_MOUSELIST
             MENUITEM "Me&nu\a",                     IDM_MENULIST
         END
-        MENUITEM "Ke&ycode einfügen\a",         IDM_INSERT_KEYCODE
         MENUITEM SEPARATOR
         MENUITEM "&Lesen...\a",                 MREADSEQ
         MENUITEM "&Speichern...\a",             MWRSEQ
@@ -881,9 +883,12 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Controlzeichen anzeigen\a",  MMSHOWCO
         MENUITEM "Tabulator&leiste anzeigen\a", MMSHOWLI
-        MENUITEM "He&x Editor Modus\a",         MMSTATHE
-        MENUITEM "Te&xtattribute anzeigen\a",   MMSHOWAT
+        MENUITEM "He&xadezimale Ansicht\a",     IDM_HEX_DISPLAY
+        MENUITEM "Syntax Highlighting\a",       IDM_SYNTAX_HIGHLIGHTING
         MENUITEM "Zeilennummern &anzeigen",     MMSHOWLINENUMBERS
+        MENUITEM SEPARATOR
+        MENUITEM "Selektion in Spaltenform",    IDM_COLUMN_SELECTION
+        MENUITEM "Selection in Zeilenform",     IDM_LINE_SELECTION
         MENUITEM SEPARATOR
         POPUP "&Sonstige Optionen"
         BEGIN
@@ -893,7 +898,7 @@ BEGIN
     END
     POPUP "&Extras"
     BEGIN
-        MENUITEM "S&hell...\a",                 MEXEC
+        MENUITEM "&Programm ausführen...\a",    MEXEC
         MENUITEM SEPARATOR
         MENUITEM "&Verweise lesen...\a",        MREADTAG
         MENUITEM "&Fehlerliste lesen...\a",     MREADCMP
@@ -906,7 +911,7 @@ BEGIN
         MENUITEM "Neuer horizontaler Bereich\a", IDM_NEW_HORIZONTAL_DOCK
         MENUITEM "Neuer vertikaler Bereich\a",  IDM_NEW_VERTICAL_DOCK
         MENUITEM SEPARATOR
-        MENUITEM "&Liste...\a",                 IDM_INFOFILE
+        MENUITEM "&Geöffnete Editoren...\a",    IDM_INFOFILE
     END
     POPUP "&?"
     BEGIN
@@ -938,9 +943,7 @@ IDC_CURSOR2             CURSOR                  "rc\\mini move.cur"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-APP_ICON                ICON                    "rc\\pks2.ico"
-
-PKS                     ICON                    "rc\\pks.ico"
+APP_ICON                ICON                    "rc\\pks.ico"
 
 EDIT                    ICON                    "rc\\edit.ico"
 
@@ -1043,8 +1046,7 @@ BEGIN
 
     DLGCURSOROPTIONS, DIALOG
     BEGIN
-        RIGHTMARGIN, 211
-        BOTTOMMARGIN, 87
+        BOTTOMMARGIN, 120
     END
 
     DLGDISPMODE, DIALOG
@@ -1788,6 +1790,8 @@ BEGIN
     IDS_COMMAND248          "Zum nächsten Unterschied;Nächster Unterschied"
     IDS_COMMAND249          "Zum vorherigen Unterschied;Letzter Unterschied"
     IDS_COMMAND250          "Vergleich beenden;Vergleich beenden"
+    IDS_COMMAND251          "Toggle zeilenweise Selektion"
+    IDS_COMMAND252          "Toggle Syntax Highlighting"
 END
 
 STRINGTABLE

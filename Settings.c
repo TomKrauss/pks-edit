@@ -17,7 +17,7 @@
 #include <windows.h>
 
 #include "trace.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
 #include "documenttypes.h"
@@ -53,29 +53,33 @@ static int displaymode_changed() {
 }
 
 static struct optiontab {
-    int  flgkeynr;
-    int  flag;
-	OP_FLAGTYPE  op_type;
-    int  (*func)();
+    int  flgkeynr;					//  an optional (maybe 0) dialog id of the item in the option bar.
+    int  flag;						// the flag to toggle
+	OP_FLAGTYPE  op_type;			// the type of flag to toggle
+	int  resetFlag;					// If flag is assigned, reset this flag if != 0
+	int  (*func)();					// the function to call after completion.
 } _optiontab[] = {
-     IDD_FKFLG1,    WM_INSERT,     OP_EDIT_MODE,   doctypes_changed,
-     IDD_FKFLG2,    WM_AUTOINDENT, OP_EDIT_MODE,   doctypes_changed,
-     IDD_FKFLG3,    WM_AUTOWRAP,   OP_EDIT_MODE,   doctypes_changed,
-     IDD_FKFLG4,    WM_AUTOFORMAT, OP_EDIT_MODE,   doctypes_changed,
-     IDD_FKFLG5,    WM_SHOWMATCH,  OP_EDIT_MODE,   doctypes_changed,
-     IDD_FKFLG6,    WM_BRINDENT,   OP_EDIT_MODE,   doctypes_changed,
-     IDD_FKFLG7,    WM_ABBREV,     OP_EDIT_MODE,   doctypes_changed,
-     IDD_FKFLG8,    BLK_COLUMN_SELECTION,  OP_EDIT_MODE,   doc_columnChanged,
-     IDD_FKFLG9,    F_RDONLY,      OP_FILEFLAG,   doctypes_changed,
-     IDD_FKFLG10,   WM_OEMMODE,    OP_EDIT_MODE,   doctypes_changed,
-     IDD_FKFLG10+1, SHOWCARET_LINE_HIGHLIGHT,  OP_DISPLAY_MODE,   displaymode_changed,
-     IDD_FKFLG10+2, 1,            OP_MACRO,   macro_toggleRecordMaco,
-     0,             SHOWCONTROL,   OP_DISPLAY_MODE,   displaymode_changed,
-     0,             SHOWSTATUS,    OP_DISPLAY_MODE,   displaymode_changed,
-     0,             SHOWHEX,       OP_DISPLAY_MODE,   displaymode_changed,
-     0,             SHOWRULER,     OP_DISPLAY_MODE,   displaymode_changed,
-	 0,             SHOWLINENUMBERS,OP_DISPLAY_MODE,   displaymode_changed,
-     -1
+     IDD_FKFLG1,    WM_INSERT,     OP_EDIT_MODE,   0,	doctypes_changed,
+     IDD_FKFLG2,    WM_AUTOINDENT, OP_EDIT_MODE,   0,	doctypes_changed,
+     IDD_FKFLG3,    WM_AUTOWRAP,   OP_EDIT_MODE,   0,	doctypes_changed,
+     IDD_FKFLG4,    WM_AUTOFORMAT, OP_EDIT_MODE,   0,	doctypes_changed,
+     IDD_FKFLG5,    WM_SHOWMATCH,  OP_EDIT_MODE,   0,	doctypes_changed,
+     IDD_FKFLG6,    WM_BRINDENT,   OP_EDIT_MODE,   0,	doctypes_changed,
+     IDD_FKFLG7,    WM_ABBREV,     OP_EDIT_MODE,   0,	doctypes_changed,
+     IDD_FKFLG8,    WM_COLUMN_SELECTION,  OP_EDIT_MODE,   WM_LINE_SELECTION,	doc_columnChanged,
+     IDD_FKFLG9,    F_RDONLY,      OP_FILEFLAG,   0,	doctypes_changed,
+	 IDD_FKFLG10,   F_WATCH_LOGFILE,OP_FILEFLAG,   0,	doctypes_changed,
+	 IDD_FKFLG10+1, SHOWCARET_LINE_HIGHLIGHT,  OP_DISPLAY_MODE,   0,	displaymode_changed,
+     IDD_FKFLG10+2, 1,            OP_MACRO,   0,	macro_toggleRecordMaco,
+     0,             SHOWCONTROL,   OP_DISPLAY_MODE,   0,	displaymode_changed,
+     0,             SHOWCARET_PRESERVE_COLUMN,    OP_DISPLAY_MODE,   0,	displaymode_changed,
+     0,             SHOWHEX,       OP_DISPLAY_MODE,   0,	displaymode_changed,
+     0,             SHOWRULER,     OP_DISPLAY_MODE,   0,	displaymode_changed,
+	 0,             SHOWLINENUMBERS,OP_DISPLAY_MODE,   0,	displaymode_changed,
+	 0,             SHOW_SYNTAX_HIGHLIGHT,OP_DISPLAY_MODE,   0,	displaymode_changed,
+	 0,             WM_LINE_SELECTION,OP_EDIT_MODE,   WM_COLUMN_SELECTION,	doctypes_changed,
+	 0,   WM_OEMMODE,    OP_EDIT_MODE,   0,	doctypes_changed,
+	 -1
 };
 
 /*--------------------------------------------------------------------------
@@ -91,6 +95,7 @@ int doctypes_documentTypeChanged(int bSave) {
 		return 0;
 	}
 	fp = wp->fp;
+	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
 	ww_applyDisplayProperties(wp);
 	ww_setwindowtitle(wp, TRUE);
 	grammar_documentTypeChanged(fp->documentDescriptor->grammar);
@@ -151,6 +156,9 @@ static void op_changeFlag(struct optiontab *op, int dofunc)
 	if ((flg = op_getFlagToToggle(op->op_type)) != 0) {
 		if (*flg & op->flag) {
 			state = 1;
+			if (op->resetFlag) {
+				*flg &= ~op->resetFlag;
+			}
 		}
 	}
 	

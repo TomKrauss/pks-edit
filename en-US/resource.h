@@ -131,12 +131,14 @@
 #define MMSHOWLI                        104
 #define IDS_MSGTOOMUCHFIELDS            105
 #define IDS_MSGTOOMUCHSORTKEYS          106
-#define MMSTATHE                        106
+#define IDM_HEX_DISPLAY                 106
 #define IDS_MSGINVALSORTOPT             107
 #define MMSHOWAT                        107
 #define IDS_MSGTOOMUCHRECORDS           108
 #define MMSHOWLINENUMBERS               108
+#define IDM_LINE_SELECTION              109
 #define IDS_MSGNOTRASH                  109
+#define IDM_COLUMN_SELECTION            110
 #define IDS_MSGNOUNDO                   110
 #define IDS_MSGNOCLIP                   111
 #define IDS_MSGNOBLOCKSELECTED          112
@@ -232,12 +234,14 @@
 #define IDM_REDO                        213
 #define IDC_CUSTOM2                     1002
 #define IDC_CHECK_ENCRYPT               1003
+#define IDS_COMMAND251                  2299
+#define IDS_COMMAND252                  2300
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        189
+#define _APS_NEXT_RESOURCE_VALUE        190
 #define _APS_NEXT_COMMAND_VALUE         40007
 #define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           101

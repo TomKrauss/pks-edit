@@ -16,7 +16,7 @@
 #include <windows.h>
 
 #include "linkedlist.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "winfo.h"
 #include "resource.h"
 #include "edfuncs.h"

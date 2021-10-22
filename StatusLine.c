@@ -20,7 +20,7 @@
 #include "pksrc.h"
 #include "trace.h"
 #include "winterf.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "winfo.h"
 #include "edierror.h"
 #include "editorconfiguration.h"

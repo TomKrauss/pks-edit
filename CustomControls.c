@@ -17,7 +17,7 @@
 #include "customcontrols.h"
 
 #include "trace.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 
 #include "winterf.h"
 #include "winfo.h"

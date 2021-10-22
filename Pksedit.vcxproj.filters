@@ -338,7 +338,7 @@
     <ClInclude Include="include\edierror.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\lineoperations.h">
+    <ClInclude Include="include\documentmodel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\edtypes.h">

@@ -15,7 +15,7 @@
 
 #include <windows.h>
 #include <string.h>
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "history.h"
 #include "stringutil.h"
 

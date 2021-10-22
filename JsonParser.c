@@ -28,7 +28,7 @@
 #include "jsmn.h"
 #include "fileutil.h"
 #include "stringutil.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 
 #define MAX_TOKEN_SIZE		511
 

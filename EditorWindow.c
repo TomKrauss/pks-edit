@@ -17,7 +17,7 @@
 
 #include "customcontrols.h"
 #include "caretmovement.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "winfo.h"
 #include "trace.h"
 #include "edierror.h"

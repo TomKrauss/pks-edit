@@ -18,7 +18,7 @@
 #include "alloc.h"
 #include <tos.h>
 #include "trace.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
 #include "stringutil.h"
@@ -302,7 +302,7 @@ static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor) {
 /*--------------------------------------*/
 /* ft_readfile()						*/
 /*--------------------------------------*/
-EXPORT int ft_readfile(FTABLE *fp, EDIT_CONFIGURATION *documentDescriptor)
+EXPORT int ft_readfile(FTABLE *fp, EDIT_CONFIGURATION *documentDescriptor, long fFileOffset)
 {
 	HANDLE			fileHandle;
 	int				ret;
@@ -316,6 +316,12 @@ EXPORT int ft_readfile(FTABLE *fp, EDIT_CONFIGURATION *documentDescriptor)
 	fp->longLinesSplit = 0;
 	_flushing = 0;
 	fp->lpReadPointer = fp->firstl;
+	int workmode = documentDescriptor ? documentDescriptor->workmode : 0;
+	if (workmode & WM_WATCH_LOGFILE) {
+		fp->flags |= F_WATCH_LOGFILE;
+	} else {
+		fp->flags &= ~F_WATCH_LOGFILE;
+	}
 	buf = _scratchstart;
 	if (_verbose)
 		mouse_setBusyCursor();
@@ -348,7 +354,13 @@ nullfile:
 		else {
 			fd = (int)(uintptr_t)fileHandle;
 		}
-		ft_handleMagic(fd, documentDescriptor);
+		if (fFileOffset) {
+			if (_llseek(fd, fFileOffset, SEEK_SET) != fFileOffset) {
+				return 0;
+			}
+		} else {
+			ft_handleMagic(fd, documentDescriptor);
+		}
 		_crypting = FALSE;
 		if (documentDescriptor->workmode & O_CRYPTED) {
 			_crypting = ft_initializeEncryption(documentDescriptor, pw, fp->fname, 0);
@@ -389,6 +401,7 @@ ret0:			ret = 0;
 
 readerr:
 
+	fp->fileSize = _llseek(fd, 0, SEEK_END);
 	if ((GetConfiguration()->options & O_LOCKFILES) == 0) {
 		file_closeFile(&fd);
 	}
@@ -608,6 +621,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 		ft_forAllViews(fp, render_repaintLineNumbers, NULL);
 		ft_setFlags(fp, fp->flags & ~(F_CHANGEMARK | F_WFORCED));
 		ft_settime(&fp->ti_saved);
+		fp->fileSize = _llseek(fd, 0, SEEK_END);
 	}
 
 wfail1:
@@ -689,25 +703,22 @@ EXPORT int ft_writefileAsWithFlags(FTABLE *fp,char *fn,int flags)
 /* been redrawn on screen		*/
 /* Macrofiles, ...				*/
 /*---------------------------------*/
-EXPORT int ft_readfileWithOptions(FTABLE *fp,char *fn,int linflag)
-{	int ret = 0;
-
-	/* linflag == 0 => take document descriptor as usually */
-	/* linflag <  0 => document descriptor is DEFAULT with '\n' as Terminator */
+EXPORT int ft_readfileWithOptions(FTABLE *fp, FILE_READ_OPTIONS* pOptions) {
+	int ret;
 
 	fp->firstl = 0;
 	fp->nlines = 0L;
 	fp->nbytes = -1;
-	fp->documentDescriptor    = 0;
+	fp->documentDescriptor = 0;
 	fp->flags  = F_NORMOPEN;
 	fp->lockFd = 0;
-	strcpy(fp->fname,fn);
+	strcpy(fp->fname, pOptions->fro_fileName);
 
-	if (linflag >= 0 && !doctypes_assignDocumentTypeDescriptor(fp,(EDIT_CONFIGURATION*)0))
+	if (!pOptions->fro_useDefaultDocDescriptor && !doctypes_assignDocumentTypeDescriptor(fp,(EDIT_CONFIGURATION*)0))
 		return 0;
 
 	_verbose = 0;
-	ret = ft_readfile(fp, fp->documentDescriptor);
+	ret = ft_readfile(fp, fp->documentDescriptor, pOptions->fro_fileReadOffset);
 	_verbose = 1;
 	file_closeFile(&fp->lockFd);
 

@@ -16,7 +16,7 @@
 #include <windows.h>
 #include "alloc.h"
 #include "linkedlist.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "winfo.h"
 
  /*------------------------------

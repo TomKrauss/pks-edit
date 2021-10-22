@@ -23,7 +23,7 @@
 #include "pksedit.h"
 #include "edierror.h"
 #include "errordialogs.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "winterf.h"
 #include "fileutil.h"
 #include "stringutil.h"

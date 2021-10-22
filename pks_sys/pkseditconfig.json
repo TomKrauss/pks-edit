@@ -122,7 +122,7 @@
       "name": "log",
       "description": "Log Files (*.log, *.err)",
       "grammar": "logfile",
-      "editorConfiguration": "default",
+      "editorConfiguration": "logfile",
       "filenamePatterns": "*.log;*.err;*.logfile"
     },
     {
@@ -173,7 +173,7 @@
       "hexMode": false,
       "showRuler": true,
       "showLineNumbers": true,
-      "showStatus": true,
+      "showSyntaxHighlight": true,
       "highlightCaretLine": true,
       "autoIndent": true,
       "expandAbbreviations": true,
@@ -185,8 +185,9 @@
       "scrollVerticallyBy": 0,
       "scrollHorizontallyBy": 0,
       "scrollVerticalBorder": 5,
-      "cursorSearchPlacement": 1,
       "scrollSupportTrackThumb": true,
+      "caretPreserveColumn": true,
+      "caretSearchPlacement": 1,
       "caretFollowsScrollbar": true,
       "backupExtension": "bak"
     },
@@ -200,7 +201,7 @@
       "shiftWidth": 4,
       "showRuler": true,
       "showLineNumbers": true,
-      "showStatus": true,
+      "showSyntaxHighlight": true,
       "insertMode": true,
       "autoIndent": true,
       "smartSpaceDelete": true,
@@ -211,8 +212,9 @@
       "scrollVerticallyBy": 0,
       "scrollHorizontallyBy": 0,
       "scrollVerticalBorder": 5,
-      "cursorSearchPlacement": 1,
       "scrollSupportTrackThumb": true,
+      "caretPreserveColumn": true,
+      "caretSearchPlacement": 1,
       "caretFollowsScrollbar": true
     },
     {
@@ -222,15 +224,29 @@
       "hexMode": true,
       "showRuler": false,
       "showLineNumbers": true,
-      "showStatus": true,
+      "showSyntaxHighlight": true,
       "highlightCaretLine": true,
       "statuslineFormat": "%6j$O: 0%h$C",
       "scrollVerticallyBy": 0,
       "scrollHorizontallyBy": 0,
       "scrollVerticalBorder": 5,
-      "cursorSearchPlacement": 1,
       "scrollSupportTrackThumb": true,
+      "caretPreserveColumn": true,
+      "caretSearchPlacement": 1,
       "caretFollowsScrollbar": true,
       "backupExtension": "bak"
+    },
+    {
+      "name": "logfile",
+      "id": 4,
+      "showLineNumbers": true,
+      "showSyntaxHighlight": true,
+      "highlightCaretLine": true,
+      "watchLogfile":  true,
+      "scrollVerticalBorder": 5,
+      "scrollSupportTrackThumb": true,
+      "caretPreserveColumn": true,
+      "caretSearchPlacement": 1,
+      "caretFollowsScrollbar": true
     }
   ]}

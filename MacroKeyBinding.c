@@ -18,7 +18,7 @@
 #include <windowsx.h>
 #include <string.h>
 #include "trace.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "edierror.h"
 #include "pksedit.h"
 #include "winfo.h"

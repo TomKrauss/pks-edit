@@ -24,7 +24,7 @@
 
 #include "winterf.h"
 #include "edierror.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "winfo.h"
 #include "edfuncs.h"
 #include "stringutil.h"

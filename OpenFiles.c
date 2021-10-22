@@ -92,6 +92,35 @@ void ft_setCurrentErrorDocument(FTABLE* fp) {
 }
 
 /*
+ * Append the external changes of a file to the passed file in
+ * tail -f mode.
+ */
+static int ft_appendFileChanges(FTABLE* fp) {
+	int fd;
+	if ((fd = file_openFile(fp->fname)) < 0) {
+		return 0;
+	}
+	FTABLE ftAppend;
+	FILE_READ_OPTIONS fro;
+	memset(&fro, 0, sizeof fro);
+	fro.fro_fileName = fp->fname;
+	fro.fro_fileReadOffset = fp->fileSize;
+	fro.fro_useDefaultDocDescriptor = 1;
+	if (ft_readfileWithOptions(&ftAppend, &fro) == 0) {
+		return 0;
+	}
+	fp->fileSize = ftAppend.fileSize;
+	LINE* lpd = fp->lastl;
+	int ret = ln_pasteLines(fp, ftAppend.firstl, ftAppend.lastl, lpd, 0, 0);
+	ln_removeFlag(fp->firstl, fp->lastl, LNMODIFIED);
+	ln_listfree(ftAppend.firstl);
+	ft_setFlags(fp, fp->flags & ~(F_MODIFIED|F_NEEDSAUTOSAVE));
+	render_repaintAllForFile(fp);
+	file_closeFile(&fd);
+	return 1;
+}
+
+/*
  * Checks whether two file names describe two different files. Returns
  * value != 0, if different
  */
@@ -107,7 +136,7 @@ static BOOL areFilenamesDifferent(char* fileName1, char* fileName2) {
 	return lstrcmpi(tempFn1, tempFn2);
 }
 
-void ft_checkForChangedFiles(void) {
+void ft_checkForChangedFiles(BOOL bActive) {
 	FTABLE *	fp;
 	EDTIME		lCurrentTime;
 	
@@ -115,9 +144,18 @@ void ft_checkForChangedFiles(void) {
 		if (fp->ti_created < (lCurrentTime = file_getAccessTime(fp->fname))) {
 			WINFO* wp = WIPOI(fp);
 			if (wp) {
-				EdSelectWindow(wp->win_id);
-				if (error_displayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
-					ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
+				BOOL bLogMode = fp->flags & F_WATCH_LOGFILE;
+				if (bLogMode) {
+					ft_appendFileChanges(fp);
+					caret_placeCursorInCurrentFile(wp, fp->nlines - 1, 0);
+				} else {
+					if (!bActive) {
+						continue;
+					}
+					EdSelectWindow(wp->win_id);
+					if (error_displayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
+						ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
+					}
 				}
 			}
 		}
@@ -260,16 +298,21 @@ int ft_restorePreviouslyOpenedWindows(void) {
 	char *	pszFound;
 
 	if (GetConfiguration()->options & O_AUTO_OPEN_HISTORY) {
-		if ((pszFound = file_searchFileInPKSEditLocation(HISTORY_FILE_NAME)) != 0 &&
-		    ft_readfileWithOptions(&ft, pszFound, -1)) {
+		if ((pszFound = file_searchFileInPKSEditLocation(HISTORY_FILE_NAME)) != 0) {
+			FILE_READ_OPTIONS fro;
+			memset(&fro, 0, sizeof fro);
+			fro.fro_fileName = pszFound;
+			fro.fro_useDefaultDocDescriptor = 1;
+			if (ft_readfileWithOptions(&ft, &fro)) {
 			// save complete filename of history file.
-			GetFullPathName(pszFound, sizeof _historyFileName, _historyFileName, NULL);
-			if (_filelist == 0) {
-				xref_openSearchListResultFromLine(ft.firstl);
+				GetFullPathName(pszFound, sizeof _historyFileName, _historyFileName, NULL);
+				if (_filelist == 0) {
+					xref_openSearchListResultFromLine(ft.firstl);
+				}
+				hist_readLine(ft.firstl);
+				ln_listfree(ft.firstl);
+				return 1;
 			}
-			hist_readLine(ft.firstl);
-			ln_listfree(ft.firstl);
-			return 1;
 		}
 	}
 	return 0;
@@ -278,8 +321,8 @@ int ft_restorePreviouslyOpenedWindows(void) {
 /*------------------------------------------------------------
  * ft_settime()
  */
-void ft_settime(EDTIME *tp)
-{	time (tp);
+void ft_settime(EDTIME *tp) {	
+	time (tp);
 }
 
 /*------------------------------------------------------------
@@ -625,7 +668,7 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, const char *pszHint)
 	}
 	fp->flags |= fileflags;
 	if (doctypes_assignDocumentTypeDescriptor(fp, doctypes_getDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
-         ft_readfile(fp, fp->documentDescriptor) == 0 || 
+         ft_readfile(fp, fp->documentDescriptor,0) == 0 || 
 	    (lstrcpy(fp->fname, fn), ft_openwin(fp, pszHint) == 0)) {
 		ft_destroy(fp);
 		return 0;
@@ -724,7 +767,7 @@ int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *linp) {
 
 	if (undo_initializeManager(fp) == 0 || 
 	    !doctypes_assignDocumentTypeDescriptor(fp, linp) ||
-	    !ft_readfile(fp,fp->documentDescriptor)) {
+	    !ft_readfile(fp,fp->documentDescriptor, 0)) {
 		fp->flags = 0;
 		ww_close(wp);
 		return 0;
@@ -770,7 +813,7 @@ int ft_checkReadonlyWithError(FTABLE* fp)
  * Checks whether the passed file buffer can be modified or whether it is readonly. 
  */
 int ft_isReadonly(FTABLE* fp) {
-	return fp->flags & F_RDONLY ? 1 : 0;
+	return fp->flags & (F_RDONLY|F_WATCH_LOGFILE) ? 1 : 0;
 }
 
 /*--------------------------------------------------------------------------

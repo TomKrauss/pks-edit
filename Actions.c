@@ -16,7 +16,7 @@
  */
 
 #include "actions.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "edierror.h"
 #include "trace.h"
 #include "edfuncs.h"

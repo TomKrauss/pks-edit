@@ -18,7 +18,7 @@
 #include <windows.h>
 #include "caretmovement.h"
 #include "winfo.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "themes.h"
 
 #define	HEX_BYTES_PER_LINE		32

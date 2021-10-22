@@ -17,7 +17,7 @@
 #include <commctrl.h>
 #include "winterf.h"
 #include "trace.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "winfo.h"
 #include "winutil.h"
 #include "errordialogs.h"

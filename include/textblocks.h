@@ -16,7 +16,7 @@
 
 
 #ifndef TEXTBLOCKS_H
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "winfo.h"
 
 extern int _nundo;
@@ -156,7 +156,7 @@ extern int bl_cutTextWithOptions(PASTE* pp, LINE* lnfirst, LINE* lnlast,
  * Read the file 'fileName' and convert it to a PASTE buf data structure
  * given the line / record separator 'rs'.
  */
-extern int bl_readFileIntoPasteBuf(PASTE* pb, char* fileName, int rs);
+extern int bl_readFileIntoPasteBuf(PASTE* pb, FILE_READ_OPTIONS* pOptions);
 
 /*----------------------------
  * bl_cutBlockInColumnMode()

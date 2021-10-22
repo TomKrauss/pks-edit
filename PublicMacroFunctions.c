@@ -1304,6 +1304,7 @@ int dlg_configureEditorModes(void) {
 		IDD_OPT1,		SHOWCONTROL,		&dispmode,
 		IDD_OPT4,		SHOWHEX,			&dispmode,
 		IDD_OPT5,		SHOWRULER,			&dispmode,
+		IDD_OPT7,		SHOW_SYNTAX_HIGHLIGHT,& dispmode,
 		IDD_OPT8,		SHOWHIDEVSLIDER,	&dispmode,
 		IDD_OPT9,		SHOWHIDEHSLIDER,	&dispmode,
 		IDD_OPT10,		SHOWLINENUMBERS,	&dispmode,
@@ -1319,7 +1320,8 @@ int dlg_configureEditorModes(void) {
 		IDD_INT3,		sizeof mindelta,	&mindelta,
 		IDD_INT4,		sizeof scrollmin,	&scrollmin,
 		IDD_OPT1,		SC_THUMBTRACK,		&flags,
-		IDD_OPT2,		SC_CURSORCATCH,	&flags,
+		IDD_OPT2,		SC_CURSORCATCH,		&flags,
+		IDD_OPT3,		SHOWCARET_PRESERVE_COLUMN,& dispmode,
 		IDD_RADIO1,	CP_POSLOW - CP_POSTOP,&cursafter,
 		0
 	};
@@ -1337,6 +1339,7 @@ int dlg_configureEditorModes(void) {
 		IDD_OPT8,		WM_SHOWMATCH,	&workmode,
 		IDD_OPT9,		WM_BRINDENT,	&workmode,
 		IDD_OPT10,		WM_DELETE_MULTIPLE_SPACES, &workmode,
+		IDD_OPT11,		F_WATCH_LOGFILE,&fileflag,
 		0
 	};
 

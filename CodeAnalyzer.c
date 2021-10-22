@@ -18,7 +18,7 @@
 #include <windows.h>
 #include <string.h>
 #include "stringutil.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "linkedlist.h"
 #include "winfo.h"
 #include "hashmap.h"

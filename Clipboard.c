@@ -18,7 +18,7 @@
 #include <windows.h>
 #include "alloc.h"
 #include "winterf.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "pksedit.h"
 #include "errordialogs.h"
 #include "clipboard.h"

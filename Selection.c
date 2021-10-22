@@ -239,13 +239,13 @@ EXPORT int bl_cut(PASTE *pp,LINE *l1,LINE *l2,int c1,int c2,int freeflg,int colf
  * Read the file 'fileName' and convert it to a PASTE buf data structure
  * given the line / record separator 'rs'.
  */
-EXPORT int bl_readFileIntoPasteBuf(PASTE *pb, char* fileName, int rs /* Record Seperator */)
-{	register	  LINE *ll;
+EXPORT int bl_readFileIntoPasteBuf(PASTE *pb, FILE_READ_OPTIONS *pOptions) {	
+	LINE *ll;
 	FTABLE rf;
 
 	rf.firstl = 0;
 	pb->pln = 0;
-	if (ft_readfileWithOptions(&rf,fileName,rs)) {
+	if (ft_readfileWithOptions(&rf, pOptions)) {
 		ll = rf.lastl->prev;
 		if (ll->lflg & LNNOTERM) {
 			ll->next = 0;
@@ -302,7 +302,7 @@ EXPORT int bl_paste(PASTE *pb, WINFO *wp, LINE *lpd, int col, int colflg)
 		return bl_pastecol(pb,wp,lpd,col);
 	}
 
-	bBlkLines = (wp->workmode & BLK_LINES);
+	bBlkLines = (wp->workmode & WM_LINE_SELECTION);
 
 	if (!bBlkLines) {
 		if ((lpd = ln_break(fp,lpd,col)) == 0L) {
@@ -471,7 +471,11 @@ EXPORT PASTE *bl_getBlockFromUndoBuffer(int num)
 	fn = config_getPKSEditTempPath(tmpfile,num+'0');
 	bl_free(&_ubuf2);
 
-	if (file_exists(fn) || bl_readFileIntoPasteBuf(&_ubuf2, fn, -1) == 0) {
+	FILE_READ_OPTIONS fro;
+	memset(&fro, 0, sizeof fro);
+	fro.fro_fileName = fn;
+	fro.fro_useDefaultDocDescriptor = 1;
+	if (file_exists(fn) || bl_readFileIntoPasteBuf(&_ubuf2, &fro) == 0) {
 		return 0;
 	}
 

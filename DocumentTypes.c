@@ -26,7 +26,7 @@
 #include "tos.h"
 #include "jsonparser.h"
 #include "linkedlist.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "grammar.h"
 #include "fileselector.h"
 #include "edierror.h"
@@ -85,12 +85,13 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_FLAG, "hexMode", offsetof(EDIT_CONFIGURATION, dispmode), SHOWHEX},
 	{	RT_FLAG, "showRuler", offsetof(EDIT_CONFIGURATION, dispmode), SHOWRULER},
 	{	RT_FLAG, "showLineNumbers", offsetof(EDIT_CONFIGURATION, dispmode), SHOWLINENUMBERS},
-	{	RT_FLAG, "showStatus", offsetof(EDIT_CONFIGURATION, dispmode), SHOWSTATUS},
 	{	RT_FLAG, "hideVerticalSlider", offsetof(EDIT_CONFIGURATION, dispmode), SHOWHIDEVSLIDER},
 	{	RT_FLAG, "hideHorizontalSlider", offsetof(EDIT_CONFIGURATION, dispmode), SHOWHIDEHSLIDER},
+	{	RT_FLAG, "showSyntaxHighlight", offsetof(EDIT_CONFIGURATION, dispmode), SHOW_SYNTAX_HIGHLIGHT},
 	{	RT_FLAG, "highlightCaretLine", offsetof(EDIT_CONFIGURATION, dispmode), SHOWCARET_LINE_HIGHLIGHT},
 	{	RT_FLAG, "insertMode", offsetof(EDIT_CONFIGURATION, workmode), WM_INSERT},
 	{	RT_FLAG, "autoIndent", offsetof(EDIT_CONFIGURATION, workmode), WM_AUTOINDENT},
+	{	RT_FLAG, "watchLogfile", offsetof(EDIT_CONFIGURATION, workmode), WM_WATCH_LOGFILE},
 	{	RT_FLAG, "autoWrap", offsetof(EDIT_CONFIGURATION, workmode), WM_AUTOWRAP},
 	{	RT_FLAG, "autoFormat", offsetof(EDIT_CONFIGURATION, workmode), WM_AUTOFORMAT},
 	{	RT_FLAG, "codeFormat", offsetof(EDIT_CONFIGURATION, workmode), WM_BRINDENT},
@@ -106,8 +107,9 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_INTEGER, "scrollVerticallyBy", offsetof(EDIT_CONFIGURATION, vscroll)},
 	{	RT_INTEGER, "scrollHorizontallyBy", offsetof(EDIT_CONFIGURATION, hscroll)},
 	{	RT_INTEGER, "scrollVerticalBorder", offsetof(EDIT_CONFIGURATION, scroll_dy)},
-	{	RT_INTEGER, "cursorSearchPlacement", offsetof(EDIT_CONFIGURATION, cursaftersearch)},
+	{	RT_INTEGER, "caretSearchPlacement", offsetof(EDIT_CONFIGURATION, cursaftersearch)},
 	{	RT_FLAG, "scrollSupportTrackThumb", offsetof(EDIT_CONFIGURATION, scrollflags), SC_THUMBTRACK},
+	{	RT_FLAG, "caretPreserveColumn", offsetof(EDIT_CONFIGURATION, dispmode), SHOWCARET_PRESERVE_COLUMN},
 	{	RT_FLAG, "caretFollowsScrollbar", offsetof(EDIT_CONFIGURATION, scrollflags), SC_CURSORCATCH},
 	{	RT_CHAR_ARRAY, "backupExtension", offsetof(EDIT_CONFIGURATION, backupExtension), sizeof(((EDIT_CONFIGURATION*)NULL)->backupExtension)},
 	{	RT_CHAR_ARRAY, "executeOnLoad", offsetof(EDIT_CONFIGURATION, creationMacroName), sizeof(((EDIT_CONFIGURATION*)NULL)->creationMacroName)},

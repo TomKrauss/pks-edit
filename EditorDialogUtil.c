@@ -20,7 +20,7 @@
 #include <windowsx.h>
 
 #include "trace.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "fileselector.h"
 #include "errordialogs.h"
 

@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include "themes.h"
 #include "customcontrols.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "winfo.h"
 #include "xdialog.h"
 #include "windowselector.h"

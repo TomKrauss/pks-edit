@@ -16,7 +16,7 @@
  */
 
 #include "alloc.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "edfuncs.h"
 #include "resource.h"
 

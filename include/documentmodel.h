@@ -1,9 +1,10 @@
 /*
- * lineoperations.h
+ * documentmodel.h
  *
  * PROJEKT: PKS-EDIT for Windows
  *
- * maintain list of lines: delete, insert, modify,....
+ * Describes the model / internal structure of documents edited by PKS Edit
+ * and operations on these.
  *
  * 										created: 10.02.87
  * 										last modified:
@@ -196,7 +197,7 @@ typedef struct tagFTABLE {
 	struct tagFTABLE*next;
 	char 	fname[256];
 	long 	nlines;				// The number of total lines in the fill. Will be reset by changes.
-	int  	flags;
+	unsigned int flags;			// A bitwise combination of the F_... flags defined below.
 	int		longLinesSplit;		// Count of all long lines, which were split during read, as the lines were too long 
 	LINE 	*tln;				// Pointer to current edited line
 	LINE 	*firstl,			// first line
@@ -206,11 +207,12 @@ typedef struct tagFTABLE {
 	EDIT_CONFIGURATION	*documentDescriptor;
 	HIDDENP	views;			/* the list of our views */
 	HIDDENP	undo;
-	long 	as_time;			/* next time for AUTOSAVE */
-	EDTIME	ti_modified;		/* last modification time */
-	EDTIME	ti_created;		/* creation time */
-	EDTIME  ti_saved;			/* last save time */
-	int		lockFd;			/* Filedescriptor for locking - <= 0 if none */
+	long    fileSize;			// The size of the file as it was "last known": is updated during reading and saving the file.
+	long 	as_time;			// next time for AUTOSAVE 
+	EDTIME	ti_modified;		// last modification time
+	EDTIME	ti_created;			// creation time
+	EDTIME  ti_saved;			// last save time
+	int		lockFd;				// Filedescriptor for locking - <= 0 if none
 } FTABLE;
 
 typedef enum { LINE_MODIFIED, LINE_REPLACED, LINE_INSERTED, LINE_DELETED, LINE_SPLIT, LINES_JOINED, EVERYTHING_CHANGED } MODEL_CHANGE_TYPE;
@@ -355,7 +357,6 @@ extern long ln_nBytes(LINE* lp);
 extern void ln_removeFlag(LINE* lpstart, LINE* lpend, int flg);
 
 extern char* ft_visiblename(FTABLE* fp);
-extern void ft_checkForChangedFiles(void);
 /* do an autosave */
 extern int ft_triggerAutosaveAllFiles(void);
 extern void ft_deleteautosave(FTABLE* fp);
@@ -379,7 +380,7 @@ extern int ft_readDocumentFromFile(int fd, unsigned char* (*lineExtractedCallbac
 /*--------------------------------------*/
 /* ft_readfile()						*/
 /*--------------------------------------*/
-extern int ft_readfile(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor);
+extern int ft_readfile(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor, long nFileOffset);
 
 #define WFM_QUIET		0x1
 #define WFM_AUTOSAVING	0x2
@@ -400,19 +401,23 @@ extern int ft_writeFileWithAlternateName(FTABLE* fp);
 /*---------------------------------*/
 extern int ft_writefileAsWithFlags(FTABLE* fp, char* fn, int flags);
 
-/*---------------------------------*/
-/* read a file, which is never	*/
-/* been redrawn on screen		*/
-/* Macrofiles, ...				*/
-/*---------------------------------*/
-extern int ft_readfileWithOptions(FTABLE* fp, char* fn, int linflag);
+/*---------------------------------
+ * read a file for internal purpose like a macro file etc...
+ */
+typedef struct tagFILE_READ_OPTIONS {
+	int fro_useDefaultDocDescriptor;	// if 1, use default document descriptor. Otherwise try to load document descriptor depending on filename
+	long fro_fileReadOffset;			// if != 0, start to read the file at the given offset (to be able to lazy load file pieces).
+	char* fro_fileName;					// the name of the file to read.
+} FILE_READ_OPTIONS;
+
+extern int ft_readfileWithOptions(FTABLE* fp, FILE_READ_OPTIONS* pOptions);
 
 /*---------------------------------*/
 /* ft_writeFileAndClose()				*/
 /*---------------------------------*/
 extern int ft_writeFileAndClose(FTABLE* fp, char* name, int flags);
 
-extern void ft_checkForChangedFiles(void);
+extern void ft_checkForChangedFiles(BOOL bActive);
 
 /*---------------------------------*/
 /* ft_triggerAutosaveAllFiles()					*/
@@ -546,6 +551,12 @@ extern void ln_listfree(LINE* lp);
  * ln_countLeadingSpaces(l)
  */
 extern int ln_countLeadingSpaces(LINE* lp);
+
+/*
+ * Paste a list of lines into a target line with a target offset column.
+ * if bExpandTabs is 1, tabs are expanded by spaces along the way.
+ */
+extern int ln_pasteLines(FTABLE* fp, LINE* lps, LINE* lpLast, LINE* lpd, int col, int bExpandTabs);
 
 /*--------------------------------------------------------------------------
  * ln_lineIsEmpty()
@@ -724,6 +735,8 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 #define	F_SAVEAS			0x20 		// File is saved under new name
 #define	F_WFORCED			0x40 		// Forced writing, if not modified
 #define	F_ISBACKUPPED		0x80		// Backup already created
+#define F_WATCH_LOGFILE		0x100	// watch the file. Update and scroll to end when the file changes. Editing is not possible in this case.
+										// used e.g. by the output console.
 #define	F_STDLINEAL			0x200		// Use a reasonable standard document descriptor
 #define	F_HASWIN			0x400		// file has an associated window
 #define	F_NEEDSAUTOSAVE		0x800 		// File is not autosaved

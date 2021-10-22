@@ -33,7 +33,7 @@
 #include "regexp.h"
 #include "history.h"
 #include "errordialogs.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "findandreplace.h"
 #include "mouseutil.h"
 #include "textblocks.h"

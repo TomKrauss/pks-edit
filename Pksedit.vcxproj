@@ -1175,7 +1175,7 @@
     <ClInclude Include="include\edfuncs.h" />
     <ClInclude Include="include\history.h" />
     <ClInclude Include="include\edierror.h" />
-    <ClInclude Include="include\lineoperations.h" />
+    <ClInclude Include="include\documentmodel.h" />
     <ClInclude Include="include\edtypes.h" />
     <ClInclude Include="include\ftw.h" />
     <ClInclude Include="include\funcdef.h" />

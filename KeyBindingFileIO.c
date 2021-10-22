@@ -353,8 +353,12 @@ int macro_readMappingFile(int context, char *pszFilename) {
 	FTABLE 	ft;
 	static 	BOOL bMacrosDefined;
 	int 		ret = 0;
+	FILE_READ_OPTIONS fro;
 
-	if (pszFilename != 0 && (ret = ft_readfileWithOptions(&ft,pszFilename,-1)) != 0) {
+	memset(&fro, 0, sizeof fro);
+	fro.fro_fileName = pszFilename;
+	fro.fro_useDefaultDocDescriptor = 1;
+	if (pszFilename != 0 && (ret = ft_readfileWithOptions(&ft, &fro)) != 0) {
 
 		if (context >= 0) {
 			_context = context;

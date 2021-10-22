@@ -19,7 +19,7 @@
 #include "linkedlist.h"
 #include "caretmovement.h"
 #include "edierror.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "markpositions.h"
 #include "winfo.h"
 #include "actions.h"

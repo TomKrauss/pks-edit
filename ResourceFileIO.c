@@ -21,7 +21,7 @@
 #include <tos.h>
 #include "edfuncs.h"
 #include "linkedlist.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "resource.h"
 #include "edierror.h"
 #include "stringutil.h"

@@ -14,7 +14,7 @@
 #include <stdarg.h>
 #include "winterf.h"
 #include "trace.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 
 static int _debugmask = DEBUG_ALL;
 static int _debugfd = -1;

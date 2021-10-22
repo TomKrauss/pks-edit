@@ -17,7 +17,7 @@
 #include <windows.h>
 
 #include "trace.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "edierror.h"
 #include "errordialogs.h"
 #include "editorconfiguration.h"
@@ -111,7 +111,7 @@ void caret_extendSelection(WINFO *wp)
 	nSentinel = 1;
 	if (_xtndMark) {
 		if (_xtndMark == MARK_START && 
-			(wp->workmode & BLK_LINES)) {
+			(wp->workmode & WM_LINE_SELECTION)) {
 			if (wp->blend && 
 				ln_cnt(wp->caret.linePointer, wp->blend->m_linePointer) < 2) {
 				_xtndMark = MARK_END;
@@ -137,7 +137,7 @@ static void caret_startExtendingSelection(WINFO *wp)
 	if (nSentinel) {
 		return;
 	}
-	bMarkLines = wp->workmode & BLK_LINES;
+	bMarkLines = wp->workmode & WM_LINE_SELECTION;
 	nSentinel++;
 	if ((pMark = wp->blstart) != 0 && 
 		pMark->m_linePointer == wp->caret.linePointer &&
@@ -326,10 +326,10 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *
 	}
 
 	i = caret_lineOffset2screen(wp, &(CARET) { lp, o});
-	if (!updateVirtualOffset && i != wp->caret.virtualOffset)
+	if (!updateVirtualOffset && i != wp->caret.virtualOffset && (wp->dispmode & SHOWCARET_PRESERVE_COLUMN))
 		o = caret_screen2lineOffset(wp, &(CARET) {
-		lp, wp->caret.virtualOffset
-	});
+			lp, wp->caret.virtualOffset
+		});
 	maxcol = wp->renderer->r_calculateMaxColumn(wp, *ln, lp);
 	if (maxcol < o) o = maxcol;
 	if (o != *col) i = caret_lineOffset2screen(wp, &(CARET) { lp, o});

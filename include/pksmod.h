@@ -65,7 +65,6 @@ typedef struct edx {
 	void 	(*_free)(void *p);
 
 	/* Files */
-	int 		(*ft_readfileWithOptions)(FTABLE *fp,char *fn,int linflag);
 	void 	(*lnlistfree)(LINE *lp);
 	char 	*(*file_searchFileInPKSEditLocation)(char *s);
 	void 	(*xref_openSearchList)(char *fn,int cmpflg);
@@ -96,7 +95,6 @@ typedef struct edx {
 					int c1,int c2,int freeflg,int colflg);
 	int 		(*bl_paste)(PASTE *pb, FTABLE *fp, LINE *lpd, 
 					  int col, int colflg);
-	int		(*bl_readFileIntoPasteBuf)(PASTE* pb, char *fn, int rs);
 	int		(*bl_writePasteBufToFile)(PASTE *pb, char* fn, int mode);
 	int 		(*bl_join)(PASTE *pd,PASTE *p2);
 	PASTE 	*(*bl_addrbyid)(int id,int insert);

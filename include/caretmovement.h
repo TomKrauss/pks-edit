@@ -16,7 +16,7 @@
 
 #ifndef CARETMOVEMENT_H
 
-#include "lineoperations.h"
+#include "documentmodel.h"
 
 /*--------------------------------------------------------------------------
  * caret_moveLeftRight()

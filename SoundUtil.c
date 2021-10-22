@@ -15,7 +15,7 @@
  */
 
 #include <windows.h>
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "stringutil.h"
 #include "editorconfiguration.h"
 

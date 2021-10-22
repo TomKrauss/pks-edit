@@ -22,7 +22,7 @@
 #include "edierror.h"
 #include "errordialogs.h"
 #include "editorconfiguration.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "winfo.h"
 #include "actions.h"
 

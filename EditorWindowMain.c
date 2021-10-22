@@ -261,7 +261,7 @@ EXPORT void win_getstate(HWND hwnd, WINDOWPLACEMENT* wsp)
  * ww_isColumnSelectionMode()
  */
 EXPORT int ww_isColumnSelectionMode(WINFO *wp) {
-	return (wp->workmode & BLK_COLUMN_SELECTION) ? 1 : 0;
+	return (wp->workmode & WM_COLUMN_SELECTION) ? 1 : 0;
 }
 
 /*------------------------------------------------------------

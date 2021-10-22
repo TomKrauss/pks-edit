@@ -908,7 +908,11 @@ int EdPrint(long what, long p1, LPSTR fname) {
 		if (!fsel_selectFileWithTitle(IDM_PRINTFILE, fp->fname, FALSE)) {
 			return 0;
 		}
-		if (ft_readfileWithOptions(fp,fp->fname,0) == 0)
+		FILE_READ_OPTIONS fro;
+		memset(&fro, 0, sizeof fro);
+		fro.fro_fileName = fp->fname;
+		fro.fro_useDefaultDocDescriptor = 0;
+		if (ft_readfileWithOptions(fp, &fro) == 0)
 	 		return 0;
 		bFileRead = TRUE;
 		ft_connectViewWithFT(fp, &winfo);

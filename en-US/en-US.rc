@@ -151,8 +151,8 @@ BEGIN
     CONTROL         "Shortcuts",IDD_FKFLG7,"toggle",WS_TABSTOP | 0x3,240,20,40,12
     CONTROL         "Select | |",IDD_FKFLG8,"toggle",WS_TABSTOP | 0x3,160,20,40,12
     CONTROL         "Read O.",IDD_FKFLG9,"toggle",WS_TABSTOP | 0x3,320,20,40,12
-    CONTROL         "Insert OEM",IDD_FKFLG10,"toggle",WS_TABSTOP | 0x3,280,20,40,12
-    CONTROL         "Line Highl.",510,"toggle",WS_TABSTOP | 0x3,400,20,40,12
+    CONTROL         "Logfile Mode",IDD_FKFLG10,"toggle",WS_TABSTOP | 0x3,280,20,40,12
+    CONTROL         "Caret Highlight",510,"toggle",WS_TABSTOP | 0x3,400,20,40,12
     CONTROL         "Record",511,"toggle",WS_TABSTOP | 0x3,360,20,40,12
     CONTROL         "F1",IDD_FKFK1,"Button",BS_OWNERDRAW | WS_TABSTOP,0,0,40,14
     CONTROL         "F2",IDD_FKFK2,"Button",BS_OWNERDRAW | WS_TABSTOP,40,0,40,14
@@ -315,48 +315,49 @@ BEGIN
     DEFPUSHBUTTON   "&OK",1,136,30,44,14
 END
 
-DLGCURSOROPTIONS DIALOGEX 91, 91, 401, 128
+DLGCURSOROPTIONS DIALOGEX 91, 91, 401, 147
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Options Caret and Scrolling"
+CAPTION "Caret and Scrolling"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "Scrollbehavior",-1,9,12,198,82,WS_GROUP
+    GROUPBOX        "Scrollbehavior",-1,9,12,198,102,WS_GROUP
     LTEXT           "&Minimum Margin of Caret:",-1,11,34,80,10,NOT WS_GROUP
     EDITTEXT        IDD_INT3,159,33,39,14,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     LTEXT           "&Scroll at least by:",-1,11,50,78,8,NOT WS_GROUP
     EDITTEXT        IDD_INT4,159,48,39,14,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "&Update Screen during Scroll",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,11,65,185,10
-    CONTROL         "Caret follows scrollbar",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,11,77,185,10
-    GROUPBOX        "Caret after searchs",-1,216,12,171,82,WS_GROUP
+    CONTROL         "Caret follows Scrollbar",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,11,77,185,10
+    GROUPBOX        "Caret after searchs",-1,216,12,171,102,WS_GROUP
     CONTROL         "&Screentop",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,222,31,159,12
     CONTROL         "&Centered",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,222,43,159,12
     CONTROL         "&Scrollbottom",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,222,55,159,12
-    CONTROL         "",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,11,96,11,14
-    CONTROL         "",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,43,96,11,14
+    CONTROL         "",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,11,121,11,14
+    CONTROL         "",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,43,121,11,14
+    CONTROL         "Caret preserves Column",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,11,89,185,10
 END
 
 DLGDISPMODE DIALOGEX 46, 24, 389, 213
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Mode Display"
+CAPTION "Display"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
     GROUPBOX        "Display",1000,17,12,358,74
     CONTROL         "&Tabs and Spaces",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,21,27,152,10
     CONTROL         "He&x Editing",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,37,152,10
     CONTROL         "Show R&uler",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,47,152,10
-    CONTROL         "Fixed Window Positions",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,190,26,152,10
+    CONTROL         "Syntax Highlighting",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,190,26,152,10
     CONTROL         "No &vertical Slider",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,190,36,152,10
     CONTROL         "No hori&zontal Slider",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,190,46,152,10
-    LTEXT           "Fill Tabs with:",118,20,99,90,8
+    LTEXT           "Fill Tabs with:",118,17,99,90,8
     EDITTEXT        IDD_CHAR,156,99,16,12,ES_AUTOHSCROLL
-    LTEXT           "Fo&rmat alternate Statusline:",117,17,147,104,8,NOT WS_GROUP
+    LTEXT           "Statusline format:",117,17,147,104,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,17,159,358,12,ES_AUTOHSCROLL
-    LTEXT           "&Tabsize:",217,20,114,62,10
+    LTEXT           "&Tabsize:",217,17,114,62,10
     EDITTEXT        IDD_INT1,156,113,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "&Right Margin:",220,20,129,50,8
+    LTEXT           "&Right Margin:",220,17,129,50,8
     EDITTEXT        IDD_INT2,156,127,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "&Show line numbers",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,57,152,10
-    CONTROL         "&Highlight line with caret",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,69,152,10
+    CONTROL         "&Highlight line with caret",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,68,152,10
 END
 
 DLGEXEC DIALOGEX 7, 68, 245, 134
@@ -546,6 +547,7 @@ BEGIN
     LTEXT           "&Expand Tabs:",114,15,148,53,10,NOT WS_GROUP
     EDITTEXT        IDD_CHAR,74,146,36,12,ES_AUTOHSCROLL
     CONTROL         "Delete multiple spaces",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,48,152,10
+    CONTROL         "Logfile Mode",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,82,152,10
 END
 
 DLGMACNAME DIALOG 20, 30, 132, 66
@@ -882,7 +884,7 @@ BEGIN
     DLGCURSOROPTIONS, DIALOG
     BEGIN
         RIGHTMARGIN, 393
-        BOTTOMMARGIN, 125
+        BOTTOMMARGIN, 144
     END
 
     DLGDISPMODE, DIALOG
@@ -1181,11 +1183,12 @@ BEGIN
             MENUITEM "Use &Windows line endings...\a", IDM_USE_WINDOWS_LINEENDS
         END
     END
-    POPUP "&Macros"
+    POPUP "&Macro"
     BEGIN
         MENUITEM "&Record\a",                   MMRECORDER
-        MENUITEM "&Edit...\a",                  MMACEDIT
+        MENUITEM "&Edit and Run...\a",          MMACEDIT
         MENUITEM "&Compile...\a",               IDM_COMPILEMACROS
+        MENUITEM "Insert Ke&ycode\a",           IDM_INSERT_KEYCODE
         POPUP "&View Bindings"
         BEGIN
             MENUITEM "&Macros\a",                   IDM_MACROLIST
@@ -1193,7 +1196,6 @@ BEGIN
             MENUITEM "M&ouse\a",                    IDM_MOUSELIST
             MENUITEM "Me&nu\a",                     IDM_MENULIST
         END
-        MENUITEM "Insert Ke&ycode\a",           IDM_INSERT_KEYCODE
         MENUITEM SEPARATOR
         MENUITEM "&Read...\a",                  MREADSEQ
         MENUITEM "&Save...\a",                  MWRSEQ
@@ -1206,9 +1208,12 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Show Tabs and Spaces\a",     MMSHOWCO
         MENUITEM "Show Ruler\a",                MMSHOWLI
-        MENUITEM "He&x Editor Mode\a",          MMSTATHE
-        MENUITEM "&Show Syntax Highlighting\a", MMSHOWAT
+        MENUITEM "He&x Editor Mode\a",          IDM_HEX_DISPLAY
+        MENUITEM "&Syntax Highlighting\a",      IDM_SYNTAX_HIGHLIGHTING
         MENUITEM "&Display Line Numbers",       MMSHOWLINENUMBERS
+        MENUITEM SEPARATOR
+        MENUITEM "&Line Selection\a",           IDM_LINE_SELECTION
+        MENUITEM "&Column Selection\a",         IDM_COLUMN_SELECTION
         MENUITEM SEPARATOR
         POPUP "&More Settings"
         BEGIN
@@ -1218,9 +1223,9 @@ BEGIN
     END
     POPUP "E&xtras"
     BEGIN
-        MENUITEM "S&hell...\a",                 MEXEC
+        MENUITEM "E&xecute Program...\a",       MEXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Open TAG File...\a",         MREADTAG
+        MENUITEM "&Open Tag File...\a",         MREADTAG
         MENUITEM "Open &Error Log...\a",        MREADCMP
         MENUITEM SEPARATOR
         MENUITEM "&Settings...\a",              MOPTION
@@ -1228,10 +1233,10 @@ BEGIN
     POPUP "&Windows"
     BEGIN
         MENUITEM "&Close All\a",                IDM_CLOSEALL
-        MENUITEM "New horizontal Dock\a",       IDM_NEW_HORIZONTAL_DOCK
-        MENUITEM "New vertical Dock\a",         IDM_NEW_VERTICAL_DOCK
+        MENUITEM "New Horizontal Dock\a",       IDM_NEW_HORIZONTAL_DOCK
+        MENUITEM "New Vertical Dock\a",         IDM_NEW_VERTICAL_DOCK
         MENUITEM SEPARATOR
-        MENUITEM "&List...\a",                  IDM_INFOFILE
+        MENUITEM "&Open Editors...\a",          IDM_INFOFILE
     END
     POPUP "&?"
     BEGIN
@@ -1661,7 +1666,7 @@ BEGIN
     IDS_COMMAND169          "Inserts a line, caret stays;Insert line"
     IDS_COMMAND170          "Edit more document settings;Editor settings"
     IDS_COMMAND171          "Clear all text buffers;Clear all buffers"
-    IDS_COMMAND172          "Löscht alle markierten Zeilen;Delete marked lines"
+    IDS_COMMAND172          "Delete all marked lines;Delete marked lines"
     IDS_COMMAND173          "Set multiplier for next command;Multiplier"
     IDS_COMMAND174          "Start escape macro;Escape macro"
     IDS_COMMAND175          "Resets the function keys;Function keys  <-"
@@ -1760,6 +1765,8 @@ BEGIN
     IDS_COMMAND248          "Find next difference;Next difference"
     IDS_COMMAND249          "Find previous difference;Previous difference"
     IDS_COMMAND250          "End comparison;End comparison"
+    IDS_COMMAND251          "Toggle line selection"
+    IDS_COMMAND252          "Toggle syntax highlighting"
 END
 
 STRINGTABLE

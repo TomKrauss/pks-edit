@@ -109,7 +109,7 @@ EXPORT int bl_pasteBlock(PASTE *buf, int colflg, int offset, int move) {
 	fp = wp->fp;
 	if ((ret = bl_paste(buf,wp,wp->caret.linePointer, offset,colflg)) == 0 ||
 		colflg ||
-		(wp->workmode & BLK_LINES)) {
+		(wp->workmode & WM_LINE_SELECTION)) {
 		if (ret == 0 || !move) {
 			render_repaintAllForFile(fp);
 		}
@@ -277,7 +277,11 @@ EXPORT int bl_insertPasteBufFromFile(char *fn)
 			return 0;
 		fn = fname;
 	}
-	if ((ret = bl_readFileIntoPasteBuf(&pbuf, fn, 0)) != 0)
+	FILE_READ_OPTIONS fro;
+	memset(&fro, 0, sizeof fro);
+	fro.fro_fileName = fn;
+	fro.fro_useDefaultDocDescriptor = 0;
+	if ((ret = bl_readFileIntoPasteBuf(&pbuf, &fro)) != 0)
 		paste(&pbuf,0);
 	ln_listfree(pbuf.pln);
 	return ret;
@@ -393,7 +397,11 @@ EXPORT int block_rw(char *fn,int doread)
 		return 0;
 
 	if (doread) {
-		if (bl_readFileIntoPasteBuf(bp, fn, -1))
+		FILE_READ_OPTIONS fro;
+		memset(&fro, 0, sizeof fro);
+		fro.fro_fileName = fn;
+		fro.fro_useDefaultDocDescriptor = 1;
+		if (bl_readFileIntoPasteBuf(bp, &fro))
 			return 1;
 		return 0;
 	} else
@@ -759,7 +767,7 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 	}
 
 	bSwap = 0;
-	if (workmode & BLK_LINES) {
+	if (workmode & WM_LINE_SELECTION) {
 		nMarkOffset = 0;
 		if (type == MARK_END) {
 			if (lpMark->next == fp->lastl) {

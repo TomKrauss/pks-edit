@@ -20,7 +20,7 @@
 #include <io.h>
 #include <ftw.h>
 #include "winterf.h"
-#include "lineoperations.h"
+#include "documentmodel.h"
 #include "pksedit.h"
 #include "pathname.h"
 #include "errordialogs.h"
