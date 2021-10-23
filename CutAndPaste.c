@@ -15,6 +15,7 @@
 
 #include <tos.h>
 #include "caretmovement.h"
+#include "linkedlist.h"
 #include "textblocks.h"
 #include "winfo.h"
 #include "pksedit.h"
@@ -468,28 +469,25 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 	le = bend->m_linePointer,   ce = bend->m_column;
 	if (move_nocolblk) {			/* valid move ??	*/
 		lp = ls;
-		while (lp != le) {
-			if (lp == wp->caret.linePointer) {	/* makes no sense	*/
-				if (lp == NULL || lp != le || offs > cs) {
-nomove:				error_showErrorById(IDS_MSGBADBLOCKMOVE);
-					return 0;
-				}
-			}
-			lp = lp->next;
+		if (wp->caret.linePointer == ls && wp->caret.col == cs) {
+nomove:		error_showErrorById(IDS_MSGBADBLOCKMOVE);
+			return 0;
 		}
-		if (wp->caret.linePointer == le) {
-			if (offs < ce) {
-				if (ls == le) {
-					if (offs >= cs) goto nomove;
-					goto nodelta;
-				}
-				goto nomove;
+		if (wp->caret.linePointer == ls && wp->caret.col > cs) {
+			if (wp->caret.linePointer == le && wp->caret.col > ce) {
+				delta = cs - ce;
+			} else {
+				delta = wp->caret.col - cs;
 			}
-			if ((ce == 0 && ls != le->prev) || (ce > 0 && ls != le)) {
-				dln = -1L;
+		} else if (wp->caret.linePointer == le && wp->caret.col > ce) {
+			delta = -ce;
+		}
+		long nLinesCopied = ll_indexOf((LINKED_LIST*)ls, (LINKED_LIST*)le);
+		if (nLinesCopied > 1) {
+			long nCaretLineOffset = ll_indexOf((LINKED_LIST*)ls, (LINKED_LIST*)wp->caret.linePointer);
+			if (nLinesCopied < nCaretLineOffset) {
+				dln = -nLinesCopied;
 			}
-			delta = -(ce-cs);
-nodelta:		;
 		}
 	}
 
@@ -535,13 +533,16 @@ int bl_moveSelectionUpDown(long delta) {
 		return 0;
 	}
 	FTABLE* fp = wp->fp;
-	long pos = wp->caret.ln;
-	long newPos = pos + delta;
-	if (newPos < 0 || newPos >= fp->nlines) {
-		return 0;
-	}
 	if (!ww_hasSelection(wp)) {
 		bl_setSelection(wp, wp->caret.linePointer, 0, wp->caret.linePointer->next, 0);
+	} 
+	long pos;
+	long pos2;
+	ww_getSelectionLines(wp, &pos, &pos2);
+	long newPos;
+	newPos = pos + delta;
+	if (newPos < 0 || newPos >= fp->nlines) {
+		return 0;
 	}
 	caret_placeCursorInCurrentFile(wp, newPos, 0);
 	int ret = EdBlockCopyOrMove(TRUE);
