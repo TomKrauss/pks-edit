@@ -413,15 +413,6 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 	return 1;
 }
 
-/*------------------------------------------------------------
- * EdMouseMoveText()
- * NOT USED ANY MORE
- */
-EXPORT int EdMouseMoveText(int move)
-{
-	return 0;
-}
-
 /*--------------------------------------------------------------------------
  * mouse_hasEmptySlot()
  */

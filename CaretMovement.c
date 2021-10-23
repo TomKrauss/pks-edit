@@ -952,6 +952,14 @@ int EdMousePositionUngrabbed(long bGrab) {
 	return caret_positionCloseToMouseWithConfirmation(1);
 }
 
+/*------------------------------------------------------------
+ * EdMouseMoveText()
+ * Synonym for mouse position.
+ */
+EXPORT int EdMouseMoveText(int move) {
+	return EdMousePositionUngrabbed(TRUE);
+}
+
 /*--------------------------------------------------------------------------
  * EdBlockXtndMode()
  */
