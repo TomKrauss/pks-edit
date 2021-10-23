@@ -111,10 +111,12 @@ static int ft_appendFileChanges(FTABLE* fp) {
 	}
 	fp->fileSize = ftAppend.fileSize;
 	LINE* lpd = fp->lastl;
+	LINE* lpPrevious = lpd->prev;
+	int oldFlags = fp->flags;
 	int ret = ln_pasteLines(fp, ftAppend.firstl, ftAppend.lastl, lpd, 0, 0);
-	ln_removeFlag(fp->firstl, fp->lastl, LNMODIFIED);
+	ln_removeFlag(lpPrevious, fp->lastl, LNMODIFIED);
 	ln_listfree(ftAppend.firstl);
-	ft_setFlags(fp, fp->flags & ~(F_MODIFIED|F_NEEDSAUTOSAVE));
+	ft_setFlags(fp, oldFlags);
 	render_repaintAllForFile(fp);
 	file_closeFile(&fd);
 	return 1;
@@ -409,6 +411,31 @@ int ww_hasSelection(WINFO* wp) {
 	return 1;
 }
 
+/*
+ * Can be used to test, whether a selection contains a caret position given in
+ * screen line and column positions.
+ */
+int bl_selectionContainsLogicalPoint(WINFO* wp, long ln, long col) {
+	long ln1;
+	long ln2;
+
+	if (!ww_getSelectionLines(wp, &ln1, &ln2)) {
+		return 0;
+	}
+	if (ln1 > ln || ln2 < ln) {
+		return 0;
+	}
+	if (ww_isColumnSelectionMode(wp)) {
+		return (col >= wp->blcol1 && col <= wp->blcol2);
+	}
+	if (ln == ln1) {
+		return col >= wp->blstart->m_column;
+	}
+	if (ln == ln2) {
+		return col <= wp->blend->m_column;
+	}
+	return 1;
+}
 /*---------------------------------
  * ww_checkSelectionWithError()
  * Check whether a text selection exists. If not

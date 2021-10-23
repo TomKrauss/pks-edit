@@ -110,9 +110,15 @@ static struct tagTEXT_BLOCK_MOVE {
 } _dragTextBlockMoveData;
 
 static int mouse_textBlockMoveDragInit(WINFO* wp, int x, int y) {
-	FTABLE* fp = wp->fp;
 	HCURSOR 	hCursor;
+	long ln, col;
 
+	caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
+	if (!bl_selectionContainsLogicalPoint(wp, ln, col)) {
+		// If not starting to actually drag the selection...
+		bl_hideSelection(wp, 1);
+		return 0;
+	}
 	_dragTextBlockMoveData.moving = GetAsyncKeyState(VK_SHIFT) == 0;
 	HMODULE l = LoadLibrary("ole32.dll");
 	hCursor = LoadCursor(l, MAKEINTRESOURCE(_dragTextBlockMoveData.moving ? 5 : 6));

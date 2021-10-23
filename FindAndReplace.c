@@ -448,7 +448,7 @@ int ft_expandTabsWithSpaces(LINE *lp, long *nt)
 	while(s < send && d < dend) {
 		if ((c = *s++) == '\t') {
 			col = (int)(d - _linebuf);
-			col = indent_calculateTabStop(col, &wp->indentation) - col;
+			col = indent_calculateNextTabStop(col, &wp->indentation) - col;
 			memset(d,' ', col);
 			(*nt)++;
 			d += col;
@@ -484,7 +484,7 @@ LINE *find_expandTabsInFormattedLines(WINFO *wp, LINE *lp)
 	if (PLAINCONTROL(wp->dispmode)) {
 		return lp;
 	}
-	return edit_expandTabsInLineWithSpaces(wp->fp,lp,&t);
+	return edit_expandTabsInLineWithSpaces(wp,lp,&t);
 }
 
 /*--------------------------------------------------------------------------

@@ -432,12 +432,6 @@ extern int ww_setwindowtitle(WINFO* wp, BOOL bRepaint);
  */
 extern int ww_getNumberOfOpenWindows(void);
 
-/*--------------------------------------------------------------------------
- * ww_getstate()
- * Return the window placement state for a window.
- */
-extern void ww_getstate(WINFO* wp, WINDOWPLACEMENT* wsp);
-
 /*------------------------------------------------------------
  * ww_requestFocusInTopWindow()
  * Request focus in the top most window.
@@ -449,6 +443,12 @@ extern void ww_requestFocusInTopWindow(void);
  * Check whether a block selection exists in the given window.
  *---------------------------------*/
 extern int ww_hasSelection(WINFO* fp);
+
+/*
+ * Can be used to test, whether a selection contains a caret position given in
+ * screen line and column positions.
+ */
+extern int bl_selectionContainsLogicalPoint(WINFO* wp, long ln, long col);
 
 /*---------------------------------
  * ww_checkSelectionWithError()

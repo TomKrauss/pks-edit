@@ -449,7 +449,7 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 	 * due to positioning problems afterwards: expand destination line
 	 */
 	if (colflg) {
-		offs = caret_lineOffset2screen(wp, &wp->caret);
+		offs = wp->caret.col;
 		if (find_expandTabsInFormattedLines(wp,wp->caret.linePointer) == 0)
 			return 0;
 	} else {
