@@ -361,8 +361,18 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 		int cPrevious;
 		MOUSE_DRAG_HANDLER* pHandler = mouse_getDragHandler(wp, x, y);
 		if (pHandler == NULL || !pHandler->dragInit(wp, x, y)) {
-			ReleaseCapture();
-			return 0;
+			if (pHandler) {
+				MOUSE_DRAG_HANDLER* pOtherHandler = mouse_getDragHandler(wp, x, y);
+				if (pOtherHandler != pHandler && pOtherHandler->dragInit(wp, x, y)) {
+					pHandler = pOtherHandler;
+				} else {
+					pHandler = NULL;
+				}
+			}
+			if (pHandler == NULL) {
+				ReleaseCapture();
+				return 0;
+			}
 		}
 		cPrevious = c1.offset;
 		lpPrevious = c1.linePointer;
