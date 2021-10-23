@@ -61,6 +61,7 @@ EdAlert(long ), error_displayAlertBoxWithOptions(long ), EdPromptAssign(long ), 
 EdGetSelectedText(long ), EdHideLines(long ), EdUnHideLine(long ), EdStringSubstitute(long ),
 EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdListBindings(long ),
 EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(), ww_zoomWindow(int anIncreaseFactor),
+bl_moveSelectionUpDown(long),
 EdCallWinHelp(long ), EdShowClipboard(long ), EdSaveAllFiles(), EdMenuTrackPopup(long ), EdBlockXtndMode(long ), edit_toggleComment();
 
 static int function_unused() {
@@ -197,6 +198,7 @@ EdSaveAllFiles, '!', EW_NEEDSCURRF | 0,                                         
 /*125*/windowselector_showWindowList,'!',0,                                                     "ShowWindowSelector",
 /*126*/compare_navigate,'!', EW_NEEDSCURRF| EW_COMPARISON_MODE,                                 "CompareNavigate",
 /*127*/compare_clear, '!', EW_NEEDSCURRF | EW_COMPARISON_MODE,                                  "CompareClear",
+/*128*/bl_moveSelectionUpDown, '!', EW_NEEDSCURRF | EW_UNDOFLSH,                                "MoveSelection"
 };
 
 int _nfuncs = sizeof(_edfunctab)/sizeof(_edfunctab[0]);
@@ -583,7 +585,9 @@ COMMAND _cmdseqtab[] = {
 249, C_1FUNC, 126 /* compare_navigate*/, -1, "compare-navigate-previous",
 250, C_0FUNC, 127 /* compare_clear*/, -1, "compare-clear",
 251, C_1FUNC, 78 /* EdOptionToggle */, OPT_WMODE | WM_LINE_SELECTION, "toggle-line-selection",
-252, C_1FUNC, 78 /* EdOptionToggle */, OPT_DMODE | SHOW_SYNTAX_HIGHLIGHT, "toggle-syntax-highlighting"
+252, C_1FUNC, 78 /* EdOptionToggle */, OPT_DMODE | SHOW_SYNTAX_HIGHLIGHT, "toggle-syntax-highlighting",
+253, C_1FUNC, 128 /* bl_moveSelectionUpDown */, -1, "move-selection-up",
+254, C_1FUNC, 128 /* bl_moveSelectionUpDown */, 1, "move-selection-down"
 };
 
 char _recorder[RECORDERSPACE];

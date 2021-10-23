@@ -38,6 +38,12 @@ extern int EdBlockRead(void);
  *----------------------------*/
 extern int EdBlockCopyOrMove(BOOL move);
 
+/*
+ * Move the current selection one line up / down depending on 'delta'.
+ * If no selection exists, the current line is selected and moved.
+ */
+extern int bl_moveSelectionUpDown(long delta);
+
 /*--------------------------------------------------------------------------
  * EdPasteString()
  * Paste a String at the current cursor location in the currently open window.

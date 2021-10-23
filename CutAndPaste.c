@@ -468,24 +468,26 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 	le = bend->m_linePointer,   ce = bend->m_column;
 	if (move_nocolblk) {			/* valid move ??	*/
 		lp = ls;
-		while (!P_EQ(lp,le)) {
-			if (P_EQ(lp,wp->caret.linePointer)) {	/* makes no sense	*/
-				if (lp == NULL || !P_EQ(lp,ls) || offs >= cs) {
+		while (lp != le) {
+			if (lp == wp->caret.linePointer) {	/* makes no sense	*/
+				if (lp == NULL || lp != le || offs > cs) {
 nomove:				error_showErrorById(IDS_MSGBADBLOCKMOVE);
 					return 0;
 				}
 			}
 			lp = lp->next;
 		}
-		if (P_EQ(wp->caret.linePointer,le)) {
-			if (offs <= ce) {
-				if (P_EQ(ls,le)) {
+		if (wp->caret.linePointer == le) {
+			if (offs < ce) {
+				if (ls == le) {
 					if (offs >= cs) goto nomove;
 					goto nodelta;
 				}
 				goto nomove;
 			}
-			if (!P_EQ(ls,le)) dln = -1L;
+			if ((ce == 0 && ls != le->prev) || (ce > 0 && ls != le)) {
+				dln = -1L;
+			}
 			delta = -(ce-cs);
 nodelta:		;
 		}
@@ -520,6 +522,30 @@ nodelta:		;
 	}
 	bl_free(&pbuf);
 
+	return ret;
+}
+
+/*
+ * Move the current selection one line up / down depending on 'delta'.
+ * If no selection exists, the current line is selected and moved.
+ */
+int bl_moveSelectionUpDown(long delta) {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (!wp) {
+		return 0;
+	}
+	FTABLE* fp = wp->fp;
+	long pos = wp->caret.ln;
+	long newPos = pos + delta;
+	if (newPos < 0 || newPos >= fp->nlines) {
+		return 0;
+	}
+	if (!ww_hasSelection(wp)) {
+		bl_setSelection(wp, wp->caret.linePointer, 0, wp->caret.linePointer->next, 0);
+	}
+	caret_placeCursorInCurrentFile(wp, newPos, 0);
+	int ret = EdBlockCopyOrMove(TRUE);
+	caret_placeCursorInCurrentFile(wp, newPos, 0);
 	return ret;
 }
 
