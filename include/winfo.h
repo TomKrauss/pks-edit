@@ -418,6 +418,12 @@ extern HWND ww_createEditWindow(char* pTitle, int nCount, LPVOID lParam, const c
  */
 extern int ww_setwindowtitle(WINFO* wp, BOOL bRepaint);
 
+/*
+ * Called initially once after the main frame has been shown to adjust the scroll bounds
+ * of all windows.
+ */
+extern void ww_adjustWindowSizes();
+
 /*-----------------------------------------------------------
  * ww_getNumberOfOpenWindows()
  * Returns the number of currently open windows.

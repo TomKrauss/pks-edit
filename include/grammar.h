@@ -176,5 +176,12 @@ extern void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, int (*fMatch)(char
  */
 extern char* grammar_getCodeAnalyzer(GRAMMAR* pGrammar);
 
+/*
+ * Returns true, if this grammar defines patterns spanning multiple lines making
+ * parsing a bit more complex in that a window of lines has to be rescanned to detect
+ * multi-line patterns.
+ */
+extern BOOL grammar_hasLineSpans(GRAMMAR* pGrammar);
+
 #define GRAMMAR_H
 #endif

@@ -112,7 +112,7 @@ static void highlight_calculateMissingLineEndStates(HIGHLIGHTER* pHighlighter, i
 }
 
 static LEXICAL_STATE highlight_getPreviousLineTokenType(HIGHLIGHTER* pHighlighter, FTABLE* fp, LINE* lp, long nLine) {
-	if (nLine == 0 || pHighlighter->h_grammar == NULL) {
+	if (nLine == 0 || pHighlighter->h_grammar == NULL || !grammar_hasLineSpans(pHighlighter->h_grammar)) {
 		return INITIAL;
 	}
 	int nPreviousIdx = nLine - pHighlighter->h_minLine - 1;

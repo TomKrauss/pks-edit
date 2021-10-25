@@ -95,6 +95,7 @@ typedef struct tagGRAMMAR {
 	TAGSOURCE* tagSources;				// The list of tag sources to check for cross references
 	TEMPLATE* templates;				// The code templates for this grammar.
 	char* analyzer;						// Name of a "wellknown" analyzer to use to extract further suggestions from the text of the current document.
+	BOOL hasLineSpanPattern;			// Whether patterns exist, spanning multiple lines.
 } GRAMMAR;
 
 static BRACKET_RULE _defaultBracketRule = {
@@ -436,6 +437,7 @@ static LEXICAL_STATE grammar_processChildPatterns(GRAMMAR* pGrammar, LEXICAL_STA
 		}
 		if (pChildPattern->begin[0] && pChildPattern->end[0]) {
 			pChildPattern->spansLines = TRUE;
+			pGrammar->hasLineSpanPattern = TRUE;
 		} else {
 			RE_PATTERN* pREPattern = grammar_compile(pGrammar, pChildPattern);
 			if (pREPattern) {
@@ -462,6 +464,7 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 		pGrammar->patternsByState[state] = pPattern;
 		if (pPattern->begin[0] && pPattern->end[0]) {
 			pPattern->spansLines = TRUE;
+			pGrammar->hasLineSpanPattern = TRUE;
 			grammar_addCharTransition(pGrammar, pPattern->begin[0], state);
 		}
 		else {
@@ -754,11 +757,11 @@ void grammar_initTokenTypeToStyleTable(GRAMMAR* pGrammar, unsigned char tokenTyp
 	}
 	GRAMMAR_PATTERN* pPattern;
 	for (int i = 0; i < DIM(pGrammar->patternsByState); i++) {
-pPattern = pGrammar->patternsByState[i];
-if (pPattern != NULL) {
-	FONT_STYLE_CLASS fsClass = pPattern->style[0] ? font_getStyleClassIndexFor(pPattern->style) : FS_NORMAL;
-	tokenTypeToStyleTable[i] = fsClass;
-}
+		pPattern = pGrammar->patternsByState[i];
+		if (pPattern != NULL) {
+			FONT_STYLE_CLASS fsClass = pPattern->style[0] ? font_getStyleClassIndexFor(pPattern->style) : FS_NORMAL;
+			tokenTypeToStyleTable[i] = fsClass;
+		}
 	}
 }
 
@@ -888,4 +891,13 @@ void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, int (*fMatch)(char* pszMa
  */
 char* grammar_getCodeAnalyzer(GRAMMAR* pGrammar) {
 	return pGrammar != NULL ? pGrammar->analyzer : NULL;
+}
+
+/*
+ * Returns true, if this grammar defines patterns spanning multiple lines making 
+ * parsing a bit more complex in that a window of lines has to be rescanned to detect
+ * multi-line patterns.
+ */
+BOOL grammar_hasLineSpans(GRAMMAR* pGrammar) {
+	return pGrammar != NULL && pGrammar->hasLineSpanPattern;
 }

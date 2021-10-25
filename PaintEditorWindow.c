@@ -334,25 +334,22 @@ void render_asciiMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y)
 			HBRUSH hBrush = hBrushBg;
 			if (lp == wp->caret.linePointer && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
 				hBrush = hBrushCaretLine;
-			}
-			else if (lp->lflg & (LNXMARKED | LN_COMPARE_MODIFIED)) {
+			} else if (lp->lflg & (LNXMARKED | LN_COMPARE_MODIFIED)) {
 				hBrush = hBrushCompareModifiedColor;
-			}
-			else if (lp->lflg & LN_COMPARE_ADDED) {
+			} else if (lp->lflg & LN_COMPARE_ADDED) {
 				hBrush = hBrushCompareAddedColor;
-			}
-			else if (lp->lflg & LN_COMPARE_DELETED) {
+			} else if (lp->lflg & LN_COMPARE_DELETED) {
 				hBrush = hBrushCompareDeletedColor;
 			}
-			r.left = rect.left; r.right = rect.right;
+			r.left = rect.left; 
+			r.right = rect.right;
 			r.top = y;
 			r.bottom = min(pClip->bottom, y + cheight);
 			FillRect(hdc, &r, hBrush);
 			if (lp->lflg & LNINDIRECT) {
 				redraw_indirect(hdc, wp, y, lp);
 				visLen = 1;
-			}
-			else if (wp->renderer->r_renderLine) {
+			} else if (wp->renderer->r_renderLine) {
 				visLen = wp->renderer->r_renderLine(pCtx, 0, y, lp, ln);
 			}
 			if (ln >= minMarkedLine && ln <= maxMarkedLine) {
