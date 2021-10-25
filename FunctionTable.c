@@ -507,7 +507,7 @@ COMMAND _cmdseqtab[] = {
 168, C_1FUNC, 64 /* EdSaveFile */, SAV_SAVE|SAV_QUIT, "save-and-close", 
 169, C_1FUNC, 19 /* edit_insertLine */, 1 , "insert-line-stay", 
 170, C_0FUNC, 25 /* EdDocMacrosEdit */, 0 , "edit-doc-macros", 
-171, C_0FUNC, 15 /* bl_destroyAll */, 0 , "kill-buffers", 
+171, C_0FUNC, 15 /* bl_destroyAll */, 0 , "delete-named-buffers", 
 172, C_1FUNC, 20 /* edit_performLineFlagOperation */, MLN_DELETE, "delete-marked-lines", 
 173, C_0FUNC, 30 /* EdSetMultiplier */, 0 , "set-multiplikator", 
 174, C_0FUNC, 43 /* codecomplete_showSuggestionWindow */, 0 , "escape-makro", 

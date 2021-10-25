@@ -58,6 +58,7 @@ Source: "pks_sys\default.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignorev
 Source: "pks_sys\markdown.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\ps.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\java.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
+Source: "pks_sys\javascript.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\json.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\pascal.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\resource.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
@@ -97,6 +98,8 @@ Root: HKLM; Subkey: "Software\Classes\.txt"; ValueData: "{#MyAppName}"; Flags: u
 Root: HKLM; Subkey: "Software\Classes\.c"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\.md"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\.json"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
+Root: HKLM; Subkey: "Software\Classes\.js"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
+Root: HKLM; Subkey: "Software\Classes\.ts"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\.ddl"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\.sql"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\.java"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""

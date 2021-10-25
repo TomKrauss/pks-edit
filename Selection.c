@@ -16,6 +16,9 @@
 
 #include <windows.h>
 #include <tos.h>
+#include <stdio.h>
+#include <direct.h>
+#include <io.h>
 
 #include "trace.h"
 #include "linkedlist.h"
@@ -26,23 +29,95 @@
 
 #include "winfo.h"
 #include "winterf.h"
-
-# pragma hdrstop
+#include "stringutil.h"
 
 #include "pksedit.h"
 #include "fileutil.h"
 #include "clipboard.h"
 #include "edfuncs.h"
+#include "ftw.h"
 
 /*--------------------------------------------------------------------------
  * GLOBALS
  */
 
-static PASTE 		_ubuf2;
 static PASTELIST *	_plist;
-static int   _curentUndoBufferIndex;
+static char* _pszAutosaveDir = "clipboards";
+static char* _pszAutosavePrefix = "clip_";
+static char* _pszAutosaveExtension = ".clipboard";
 
-static int		_nundoBuffer = 1;
+/*
+ * In the clipboard directory execute a function for every auto-saved clipboard file.
+ */
+static void bl_withClipboardDirDo(FTWFUNC pFunc) {
+	char szDirName[EDMAXDIRLEN];
+	char szPattern[20];
+	string_concatPathAndFilename(szDirName, config_getPKSEditTempPath(), _pszAutosaveDir);
+	sprintf(szPattern, "*%s", _pszAutosaveExtension);
+	_ftw(szDirName, pFunc, 1, szPattern, 0xFF);
+}
+
+/*
+ * A clipboard buffer file was found during startup - restore it.
+ */
+static int bl_deleteClipboardFile(char* pszFile, DTA* pDta) {
+	_unlink(pszFile);
+	return 0;
+}
+
+/*
+ * Save all named clipboards to external files. Invoked on exit.
+ */
+void bl_autosavePasteBuffers() {
+	PASTELIST* pl = _plist;
+	char szDirName[EDMAXDIRLEN];
+	char szFile[20 + sizeof(pl->pl_id)];
+	char szFileName[EDMAXPATHLEN];
+	bl_withClipboardDirDo(bl_deleteClipboardFile);
+	if (GetConfiguration()->options & O_SAVE_CLIPBOARDS_ON_EXIT) {
+		string_concatPathAndFilename(szDirName, config_getPKSEditTempPath(), _pszAutosaveDir);
+		_mkdir(szDirName);
+		while (pl != 0) {
+			if (!bl_isDefaultClipboard(pl->pl_id)) {
+				sprintf(szFile, "%s%s%s", _pszAutosavePrefix, pl->pl_id, _pszAutosaveExtension);
+				string_concatPathAndFilename(szFileName, szDirName, szFile);
+				bl_writePasteBufToFile(&pl->pbuf, szFileName, F_NORMOPEN);
+			}
+			pl = pl->next;
+		}
+	}
+}
+
+/*
+ * A clipboard buffer file was found during startup - restore it. 
+ */
+static int bl_clipboardFileFound(char* pszFile, DTA* pDta) {
+	char szName[50];
+	char szFileOnly[128];
+	strcpy(szFileOnly, string_getBaseFilename(pszFile));
+	int nPrefix = (int)strlen(_pszAutosavePrefix);
+	int nPostfix = (int)strlen(_pszAutosaveExtension);
+	strncpy(szName, szFileOnly + nPrefix, strlen(szFileOnly) - nPrefix - nPostfix);
+	PASTE* pBuffer = bl_lookupPasteBuffer(szName, 1, &_plist);
+	if (pBuffer) {
+		FILE_READ_OPTIONS fro;
+		memset(&fro, 0, sizeof fro);
+		fro.fro_fileName = pszFile;
+		if (!bl_readFileIntoPasteBuf(pBuffer, &fro)) {
+			bl_free(pBuffer);
+		}
+	}
+	return 0;
+}
+
+/*
+ * Restore all paste buffers from external files.
+ */
+void bl_restorePasteBuffers() {
+	if (GetConfiguration()->options & O_SAVE_CLIPBOARDS_ON_EXIT) {
+		bl_withClipboardDirDo(bl_clipboardFileFound);
+	}
+}
 
 /*--------------------------------------------------------------------------
  * bl_convertPasteBufferToText()
@@ -153,7 +228,6 @@ void bl_destroyPasteList() {
 EXPORT int bl_destroyAll(void)
 {
 	if (error_displayYesNoConfirmation(IDS_MSGCLEARBUFFERS) == IDYES) {
-		bl_free(&_ubuf2);
 		bl_destroyPasteList();
 		return 1;
 	}
@@ -235,7 +309,7 @@ EXPORT int bl_cut(PASTE *pp,LINE *l1,LINE *l2,int c1,int c2,int freeflg,int colf
 /*--------------------------------------------------------------------------
  * bl_readFileIntoPasteBuf()
  * Read the file 'fileName' and convert it to a PASTE buf data structure
- * given the line / record separator 'rs'.
+ * given some read options.
  */
 EXPORT int bl_readFileIntoPasteBuf(PASTE *pb, FILE_READ_OPTIONS *pOptions) {	
 	LINE *ll;
@@ -416,35 +490,6 @@ EXPORT int bl_delete(WINFO *wp, LINE *lnfirst, LINE *lnlast, int cfirst,
 }
 
 /*--------------------------------------------------------------------------
- * bl_getBlockFromUndoBuffer()
- */
-EXPORT PASTE *bl_getBlockFromUndoBuffer(int num)
-{
-	char	*fn;
-	char	tmpfile[512];
-	
-	if (num < 0 || num >= _nundoBuffer)
-		return 0;
-
-	num = _curentUndoBufferIndex-num;
-	if (num < 0)
-		num += _nundoBuffer;
-
-	fn = config_getPKSEditTempPath(tmpfile,num+'0');
-	bl_free(&_ubuf2);
-
-	FILE_READ_OPTIONS fro;
-	memset(&fro, 0, sizeof fro);
-	fro.fro_fileName = fn;
-	fro.fro_useDefaultDocDescriptor = 1;
-	if (file_exists(fn) || bl_readFileIntoPasteBuf(&_ubuf2, &fro) == 0) {
-		return 0;
-	}
-
-	return &_ubuf2;
-}
-
-/*--------------------------------------------------------------------------
  * bl_append()
  */
 EXPORT int bl_append(PASTE *pb,LINE *lnfirst,LINE *lnlast,int cfirst,int clast)
@@ -457,7 +502,7 @@ EXPORT int bl_append(PASTE *pb,LINE *lnfirst,LINE *lnlast,int cfirst,int clast)
 
 /*--------------------------------------------------------------------------
  * bl_getTextBlock()
- * find a textblock in his linked list
+ * find a textblock in the linked list if named clipboards.
  */
 EXPORT PASTE *bl_getTextBlock(char* pszId, PASTELIST *pl) {
 	if (pszId == 0) {
@@ -475,9 +520,7 @@ EXPORT PASTE *bl_getTextBlock(char* pszId, PASTELIST *pl) {
  */
 EXPORT void bl_collectClipboardIds(LINKED_LIST ** pszList)
 {
-	PASTELIST *pl;
-
-	pl = _plist;
+	PASTELIST *pl = _plist;
 	while (pl != 0) {
 		LINKED_LIST* pElement = ll_insert(pszList, sizeof * pElement + sizeof pl->pl_id);
 		strcpy(pElement->name, pl->pl_id);

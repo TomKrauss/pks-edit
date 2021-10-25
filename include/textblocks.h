@@ -204,11 +204,6 @@ extern int bl_pastecol(PASTE* pb, WINFO* wp, LINE* lpd, int col);
  */
 extern 	PASTE* bl_addrbyid(char* pszId, int insert);
 
-/*--------------------------------------------------------------------------
- * bl_getBlockFromUndoBuffer()
- */
-extern PASTE* bl_getBlockFromUndoBuffer(int num);
-
 /*
  * Tries to return the text from the current selection in the passed buffer, assuming a maximum
  * of nCapacity characters to return.
@@ -225,6 +220,16 @@ extern int bl_append(PASTE* pb, LINE* lnfirst, LINE* lnlast, int cfirst, int cla
 /* bl_pasteBlock()					*/
 /*---------------------------------*/
 extern int bl_pasteBlock(PASTE* buf, int colflg, int offset, int move);
+
+/*
+ * Save all named clipboards to external files. Invoked on exit.
+ */
+extern void bl_autosavePasteBuffers();
+
+/*
+ * Restore all paste buffers from external files.
+ */
+extern void bl_restorePasteBuffers();
 
 /*--------------------------------------------------------------------------
  * bl_hideSelectionInCurrentWindow()

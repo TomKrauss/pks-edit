@@ -45,6 +45,7 @@
 #include "windowselector.h"
 #include "codeanalyzer.h"
 #include "winutil.h"
+#include "textblocks.h"
 
 #define	PROF_OFFSET	1
 
@@ -235,6 +236,7 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
 	checkCommonControlLibraryVersion();
 	GetPhase1Args(lpCmdLine);
 	init_readConfigFiles();
+	bl_restorePasteBuffers();
 	hDefaultMenu = LoadMenu(ui_getResourceModule(), "PksEdEditMenu");
 	if (nInstanceCount > 1) {
 		wsprintf(szTitle, "* PKS EDIT * (%d)", nInstanceCount);
@@ -514,6 +516,7 @@ void win_changeMenuItem(HMENU hMenu, int nPosition, int nCmd, WORD wFlags,
 void FinalizePksEdit(void)
 {
 	GetConfiguration()->autosaveOnExit();
+	bl_autosavePasteBuffers();
 	ft_saveWindowStates();
 }
 

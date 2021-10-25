@@ -1,0 +1,78 @@
+{
+  "grammars": [
+    {
+      "scopeName": "javascript",
+      "patterns": [
+        {
+          "begin": "/*",
+          "end": "*/",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "//.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "/[^/]+/",
+          "style": "regexp",
+          "name": "regexp"
+        },
+        {
+          "match": "r?[\"'`](?:\\\"|[^\"`'])+[\"'`]",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "keywords": [
+            "break",
+            "debugger",
+            "switch",
+            "case",
+            "if",
+            "this",
+            "throw",
+            "else",
+            "var",
+            "number",
+            "string",
+            "get",
+            "module",
+            "type",
+            "instanceof",
+            "typeof",
+            "finally",
+            "for",
+            "while",
+            "void",
+            "null",
+            "super",
+            "new",
+            "in",
+            "undefined",
+            "return",
+            "true",
+            "false",
+            "any",
+            "extends",
+            "let",
+            "function"
+          ],
+          "style": "keyword",
+          "name": "keyword.js"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "[-+&|<>=]{1,3}",
+          "style": "operator",
+          "name": "keyword.operator"
+        }
+      ]
+    }
+  ]
+}

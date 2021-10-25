@@ -35,12 +35,13 @@
 #define	O_DELETE_AUTOSAVE_FILES		0x80
 
 #define	AUTOWRITE					0x100
-#define	O_FORMFOLLOW				0x200
+#define	O_FORMFOLLOW				0x200		// whether dialogs are opened close to the mouse.
 #define	O_CREATE_BACKUP_IN_TEMP_PATH 0x400
 #define	O_SHOW_MESSAGES_IN_SNACKBAR	 0x800		// display error messages in a popup window / snackbar
 
-#define	O_UNDOENABLED				0x2000
 #define	O_HIDE_BLOCK_ON_CARET_MOVE	0x1000		// hide block marks on caret movement
+#define	O_UNDOENABLED				0x2000		// undo enabled
+#define	O_SAVE_CLIPBOARDS_ON_EXIT	0x4000		// save and restore named clipboards when 
 
  /*----- Option Flags assignable to EDITOR_CONFIGURATION.layoutoptions --------------*/
 /* layout options: fkeys, optionbar, statusline */

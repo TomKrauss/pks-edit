@@ -281,9 +281,9 @@ static int file_removeCb(char* filename, DTA* dta) {
  * Remove all files from the PKS Edit temp directory.
  */
 EXPORT void file_clearTempFiles(void)
-{	char tmpname[1024];
-	char pathname[1024];
-	char fn[1024];
+{	char tmpname[EDMAXPATHLEN];
+	char pathname[EDMAXPATHLEN];
+	char fn[EDMAXFNLEN];
 	char *szBang;
 
 	file_getTempFilename(tmpname,'!');

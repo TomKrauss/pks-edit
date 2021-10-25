@@ -67,9 +67,10 @@ static DIALPARS _dAutoSave[] = {
 	IDD_OPT1,		O_DELETE_AUTOSAVE_FILES,				& _configuration.options,
 	IDD_STRING1,	sizeof _configuration.pksEditTempPath,	_configuration.pksEditTempPath,
 	IDD_OPT2,		O_SAVE_SETTINGS_ON_EXIT,				&_configuration.options,
-	IDD_OPT3,		O_AUTO_OPEN_HISTORY,								& _configuration.options,
+	IDD_OPT3,		O_AUTO_OPEN_HISTORY,					& _configuration.options,
 	IDD_OPT4,		O_SAVE_MACROS_ON_EXIT,					& _configuration.options,
 	IDD_OPT5,		O_CREATE_BACKUP_IN_TEMP_PATH,			& _configuration.options,
+	IDD_OPT6,		O_SAVE_CLIPBOARDS_ON_EXIT,& _configuration.options,
 	// Terminate with 0
 	0
 };
@@ -133,6 +134,7 @@ static DIALPARS _dMisc[] = {
 	IDD_INT2,		sizeof _configuration.maximumNumberOfOpenWindows,& _configuration.maximumNumberOfOpenWindows,
 	IDD_OPT2,		O_HIDE_BLOCK_ON_CARET_MOVE,		& _configuration.options,
 	IDD_OPT3,		O_FORMFOLLOW,					& _configuration.options,
+	IDD_OPT4,		O_LOCKFILES,					& _configuration.options,
 	IDD_STRINGLIST2, 0,								&_themelist,
 	IDD_STRINGLIST1, 0,								&_localeslist,
 	// Terminate with 0
