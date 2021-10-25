@@ -85,8 +85,8 @@ typedef struct pastebuf {
 } PASTE;
 
 typedef struct pastelist {
-	struct pastelist	*next;
-	int  			id;	/* name of buffer */
+	struct pastelist *next;
+	char			pl_id[32];	/* name of buffer */
 	PASTE			pbuf;
 } PASTELIST;
 
@@ -143,8 +143,9 @@ typedef struct tagEDIT_CONFIGURATION {
 	int				lmargin, rmargin;
 	int				tabsize, shiftwidth;
 	int				nl, nl2, cr;		/* Lineends */
-	int				dispmode;			/* show control... */
-	int				workmode;			/* watch brackets, abbrev... */
+	int				dispmode;				// show control...
+	int				workmode;				// watch brackets, abbrev... 
+	long			codepage;				// the code page for the encoding.
 	char			tabDisplayFillCharacter;					// Display tabs filled with this.
 	char			fillc;				// when inserting a tabulator - replace with this (fill character)
 	int				tabulatorSizes[32];	/* arbitrary tab stops - allowing us to have have tabs at positions 2, 5, 9, 15, ...*/
@@ -399,7 +400,7 @@ extern int ft_writeFileWithAlternateName(FTABLE* fp);
 /*---------------------------------*/
 /* ft_writefileAsWithFlags()
 /*---------------------------------*/
-extern int ft_writefileAsWithFlags(FTABLE* fp, char* fn, int flags);
+extern int ft_writefileAsWithFlags(FTABLE* fp, char* fn, int flags, BOOL bVerbose);
 
 /*---------------------------------
  * read a file for internal purpose like a macro file etc...

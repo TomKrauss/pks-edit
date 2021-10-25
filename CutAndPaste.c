@@ -26,24 +26,29 @@
 #include "clipboard.h"
 #include "fileselector.h"
 #include "markpositions.h"
+#include "xdialog.h"
 
  /*-----------------------*/
 /* EXTERNALS			*/
 /*-----------------------*/
 extern unsigned char *bl_convertPasteBufferToText(unsigned char *b, unsigned char *end, 
 				PASTE *pp);
-extern void 	bl_validateTrashcanName(char *pszValid);
-extern void 	bl_collectClipboardIds(char *pszValid);
+extern void 	bl_collectClipboardIds(LINKED_LIST **pszValid);
 
 extern LINE	*find_expandTabsInFormattedLines(WINFO *wp, LINE *lp);
-extern int 	dlg_displayDialogTemplate(unsigned char c, 
-				char *(*fpTextForTmplate)(char *s), char *s);
 
 extern LINE	*caret_gotoIdentifierEnd(LINE *lp,long *ln,long *col,int dir);
 extern LINE	*caret_gotoIdentifierSkipSpace(LINE *lp,long *ln,long *col,int dir);
 extern LINE	*caret_advanceWordOnly(LINE *lp,long *ln,long *col,int dir);
 
 extern long	_multiplier;
+
+/*
+ * Returns true, if the given ID represents the ID of the default (system) clipboard. 
+ */
+BOOL bl_isDefaultClipboard(char* pszId) {
+	return pszId == NULL || *pszId == 0;
+}
 
 /*----------------------------
  * bl_hideSelection() 		
@@ -154,38 +159,36 @@ EXPORT int paste(PASTE *buf,int move)
 }
 
 /*--------------------------------------------------------------------------
- * TextForTrash()
+ * bl_getTextForClipboardNamed()
  */
-static char *TextForTrash(char *s)
-{
+static char *bl_getTextForClipboardNamed(char *s) {
 	PASTE *	pp;
 
-	pp = bl_getBlockFromUndoBuffer(*s - '0');
-	return bl_convertPasteBufferToText(_linebuf, _linebuf + 256, pp);
-}
-
-/*--------------------------------------------------------------------------
- * TextForClip()
- */
-static char *TextForClip(char *s)
-{
-	PASTE *	pp;
-
-	pp = bl_addrbyid(*s, 0);
-	return bl_convertPasteBufferToText(_linebuf, _linebuf + 256, pp);
+	pp = bl_addrbyid(s, 0);
+	char *pszRet = bl_convertPasteBufferToText(_linebuf, _linebuf + 512, pp);
+	if (strlen(pszRet) >= 255) {
+		strcat(pszRet, "...");
+	}
+	return pszRet;
 }
 
 
 /*----------------------------*/
-/* GetTmplateDlg() 			*/
+/* bl_getNamedBuffer() 			*/
 /*----------------------------*/
-static int GetTmplateDlg(char * (*fpTextForTmplate)(char *s), void (*fpGetValid)(char *s2))
-{	static unsigned char c;
-	char cIdentChars[256];
+static char* bl_getNamedBuffer(char * (*fpTextForTmplate)(char *s), void (*fpGetAvailable)(LINKED_LIST** pNames), BOOL bNewBuffer) {
+	static char _lastSelectedBuffer[64];
+	char* pszResult;
+	LINKED_LIST* pszAllTemplates = NULL;
 
-     (*fpGetValid)(cIdentChars);
-	c = dlg_displayDialogTemplate(c, fpTextForTmplate, cIdentChars);
-	return c;
+    (*fpGetAvailable)(&pszAllTemplates);
+	pszResult = dlg_selectNamedClipboard(_lastSelectedBuffer, fpTextForTmplate, pszAllTemplates, bNewBuffer);
+	ll_destroy(&pszAllTemplates, NULL);
+	if (pszResult) {
+		strcpy(_lastSelectedBuffer, pszResult);
+		return _lastSelectedBuffer;
+	}
+	return 0;
 }
 
 /*---------------------------------*/
@@ -193,47 +196,26 @@ static int GetTmplateDlg(char * (*fpTextForTmplate)(char *s), void (*fpGetValid)
 /*---------------------------------*/
 EXPORT PASTE *bl_getPasteBuffer(int which) {
 	PASTE *	pp;
-	char 	id;
+	char* 	pszId;
 	int		err=0;
-	int		icon;
-	char *	(*getTextFunc)(char *s);
-	void		(*validateNameFunction)(char *s);
+	char *	(*fpGetContentsOfBuffer)(char *s);
+	void	(*fpGetValidNames)(LINKED_LIST** pList);
 
 	if (which & PASTE_QUERYID) {
-		getTextFunc = (which & PASTE_XUNDO) ? 
-			TextForTrash : TextForClip; 
-		validateNameFunction = (which & PASTE_XUNDO) ? 
-			bl_validateTrashcanName : bl_collectClipboardIds; 
-		if ((id = GetTmplateDlg(getTextFunc, validateNameFunction)) == 0) {
+		fpGetContentsOfBuffer = bl_getTextForClipboardNamed; 
+		fpGetValidNames = bl_collectClipboardIds; 
+		if ((pszId = bl_getNamedBuffer(fpGetContentsOfBuffer, fpGetValidNames, FALSE)) == 0) {
 			return 0;
 		}
-		if (which & PASTE_XUNDO) {
-			id -= '0';
-		}
 	} else {
-		id = (char )which;
+		pszId = 0;
 	}
 
-	switch (which & (PASTE_UNDO|PASTE_XUNDO|PASTE_CLIP)) {
-		case PASTE_UNDO:
-			icon = ICID_TRASH;
-			pp = _undobuf;
-			err = IDS_MSGNOTRASH;
-			break;
-		case PASTE_XUNDO:
-			icon = ICID_TRASH;
-			pp = bl_getBlockFromUndoBuffer(id);
-			err = IDS_MSGNOUNDOBLOCK;
-			break;
-		default:
-			icon = ICID_CLIP;
-			/* try to get data from windows clipboard */
-			if (!id)
-				clp_getdata();
-			pp = bl_addrbyid(id,0);
-			err = IDS_MSGNOCLIP;
-			break;
-	}
+	/* try to get data from windows clipboard */
+	if (bl_isDefaultClipboard(pszId))
+		clp_getdata();
+	pp = bl_addrbyid(pszId,0);
+	err = IDS_MSGNOCLIP;
 
 	if (!pp || !pp->pln) {
 		error_showErrorById(err);
@@ -253,7 +235,7 @@ EXPORT int EdBlockPaste(int which)
      wp = ww_getCurrentEditorWindow();
 	if ((pp = bl_getPasteBuffer(which)) != 0) {
 		if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_hasSelection(wp)) {
-			EdBlockDelete(0);
+			EdBlockDelete();
 		}
 		return paste(pp,0);
 	}
@@ -274,7 +256,12 @@ EXPORT int bl_insertPasteBufFromFile(char *fn)
 	if (!ft_getCurrentDocument()) 
 		return 0;
 	if (fn == 0) {
-		if (!fsel_selectFileWithTitle(MREADF,fname, FALSE))
+		FILE_SELECT_PARAMS pFSP;
+		memset(&pFSP, 0, sizeof pFSP);
+		pFSP.fsp_inputFile = fn;
+		pFSP.fsp_encryptedAvailable = FALSE;
+		pFSP.fsp_saveAs = FALSE;
+		if (!fsel_selectFileWithTitle(MREADF,fname, &pFSP))
 			return 0;
 		fn = fname;
 	}
@@ -299,30 +286,29 @@ EXPORT int EdBlockRead(void ) {
  * PKS Edit command to write a block to a default file name. 
  */
 EXPORT int EdBlockWrite(void ){ 	
-	return EdBlockWriteToFile((char *)0);	
+	return bl_writeToFile((char *)0);	
 }
 
 /*---------------------------------*/
-/* CutBlock()					*/
+/* bl_cutOrCopyBlock()					*/
 /*---------------------------------*/
-EXPORT int CutBlock(MARK *ms, MARK *me, int flg, PASTE *pp)
-{
+static int bl_cutOrCopyBlock(MARK *ms, MARK *me, int flg, PASTE *pp) {
 	PASTE 	_p;
-	int	 	id;
+	char*	 pszId;
 	int	 	colflg = ww_isColumnSelectionMode(ww_getCurrentEditorWindow());
 
 	_p.pln = 0;
 	bl_free(&_p);
 	if (flg & CUT_QUERYID) {
-		if ((id = GetTmplateDlg(TextForClip, bl_collectClipboardIds)) == 0) {
+		if ((pszId = bl_getNamedBuffer(bl_getTextForClipboardNamed, bl_collectClipboardIds, TRUE)) == 0) {
 			return 0;
 		}
 	} else {
-		id = flg & 0xFF;
+		pszId = 0;
 	}
 
 	if (!(flg & CUT_USEPP)) {
-		if ((pp = bl_addrbyid(id,(flg & CUT_APPND) ? 0 : 1)) == 0)
+		if ((pp = bl_addrbyid(pszId,(flg & CUT_APPND) ? 0 : 1)) == 0)
 			return 0;
 	} else {
 		pp->pln = 0;
@@ -333,7 +319,7 @@ EXPORT int CutBlock(MARK *ms, MARK *me, int flg, PASTE *pp)
 		if (!(flg & CUT_APPND))
 			bl_free(pp);
 
-		if (id == 0)
+		if (bl_isDefaultClipboard(pszId))
 			clp_setmine();
 
 		bl_join(pp,&_p);		
@@ -349,38 +335,42 @@ EXPORT int CutBlock(MARK *ms, MARK *me, int flg, PASTE *pp)
 }
 
 /*----------------------------*/
-/* EdBlockCut()				*/
+/* bl_cutOrCopy()				*/
 /*----------------------------*/
-EXPORT int EdBlockCut(int flg,PASTE *pp)
+EXPORT int bl_cutOrCopy(int flg,PASTE *pp)
 {
 	WINFO* wp = ww_getCurrentEditorWindow();
 
 	if (!ww_checkSelectionWithError(wp))
 		return 0;
-	return CutBlock(wp->blstart,wp->blend,flg,pp);
+	return bl_cutOrCopyBlock(wp->blstart,wp->blend,flg,pp);
 }
 
 /*---------------------------------*
- * EdBlockWriteToFile()
+ * bl_writeToFile()
  * PKS Edit command to write a block to a file with the given name. 
  *---------------------------------*/
-EXPORT int EdBlockWriteToFile(char *fn)
+EXPORT int bl_writeToFile(char *fn)
 {	PASTE  pbuf;
 	char   fname[256];
 	int	  ret;
+	int   mode;
 
-	if (EdBlockCut(CUT_USEPP,&pbuf)) {
+	if (bl_cutOrCopy(CUT_USEPP,&pbuf)) {
 		if (fn != 0) {
-			ret = F_NORMOPEN;
+			ret = TRUE;
+			mode = F_NORMOPEN;
 		} else {
+			mode = F_NEWFILE;
 			FILE_SELECT_PARAMS fsp;
 			fsp.fsp_encryptedAvailable = FALSE;
 			fsp.fsp_saveAs = TRUE;
 			ret = fsel_selectFileWithTitle(MWRITEF,fname,&fsp);
 			fn  = fname;
 		}
-		if (ret != 0)
-			ret = bl_writePasteBufToFile(&pbuf, fn, ret);
+		if (ret != 0) {
+			ret = bl_writePasteBufToFile(&pbuf, fn, mode);
+		}
 		ln_listfree(pbuf.pln);
 		return ret;
 	}
@@ -470,7 +460,7 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 	if (move_nocolblk) {			/* valid move ??	*/
 		lp = ls;
 		if (wp->caret.linePointer == ls && wp->caret.col == cs) {
-nomove:		error_showErrorById(IDS_MSGBADBLOCKMOVE);
+			error_showErrorById(IDS_MSGBADBLOCKMOVE);
 			return 0;
 		}
 		if (wp->caret.linePointer == ls && wp->caret.col > cs) {
@@ -589,7 +579,7 @@ EXPORT int EdBlockFindStart()
  * PKS Edit macro command to delete the current selection and
  * optionally save the text in the trashcan clipboard of PKS Edit
  *----------------------------*/
-EXPORT int EdBlockDelete(int bSaveTrash)
+EXPORT int EdBlockDelete()
 {
 	MARK		ms;
 	MARK		me;
@@ -605,19 +595,15 @@ EXPORT int EdBlockDelete(int bSaveTrash)
 	me = *wp->blend;
 	EdBlockFindStart();
 	bl_hideSelection(wp, 0);
-	if (bSaveTrash) {
-		ret = bl_undoIntoUnqBuffer(wp, ms.m_linePointer,me.m_linePointer,ms.m_column,me.m_column,1);
-	} else {
-		ret = bl_delete(wp, ms.m_linePointer, me.m_linePointer, ms.m_column, me.m_column, 1, 0);
-	}
+	ret = bl_delete(wp, ms.m_linePointer, me.m_linePointer, ms.m_column, me.m_column, 1);
 	render_repaintAllForFile(fp);
 	return ret;
 }
 
 /*---------------------------------*/
-/* EdLinesYank() 				*/
+/* bl_cutLines() 				*/
 /*---------------------------------*/
-EXPORT int EdLinesYank()
+EXPORT int bl_cutLines()
 {
 	LINE *ls,*le;
 	long n = _multiplier;

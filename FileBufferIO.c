@@ -291,10 +291,21 @@ static int ft_initializeEncryption(EDIT_CONFIGURATION *linp, char *pw, char* psz
  */
 static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor) {
 	char szMagic[sizeof _cryptMagic];
-	if (Fread(fd, sizeof szMagic, szMagic) >= 8 && memcmp(szMagic, _cryptMagic, sizeof _cryptMagic) == 0) {
-		documentDescriptor->workmode |= O_CRYPTED;
-		_llseek(fd, sizeof _cryptMagic, SEEK_SET);
-	} else {
+	BOOL bHeaderHandled = FALSE;
+	if (Fread(fd, sizeof szMagic, szMagic) >= 8) {
+		if (memcmp(szMagic, _cryptMagic, sizeof _cryptMagic) == 0) {
+			documentDescriptor->workmode |= O_CRYPTED;
+			_llseek(fd, sizeof _cryptMagic, SEEK_SET);
+			bHeaderHandled = TRUE;
+		}
+		else if (szMagic[0] == '\xEF' && szMagic[1] == '\xBB' && szMagic[2] == '\xBF') {
+			// UTF8 encoded - skip BOM when reading.
+			_llseek(fd, 3, SEEK_SET);
+			bHeaderHandled = TRUE;
+			documentDescriptor->codepage = CP_UTF8;
+		}
+	}
+	if (!bHeaderHandled) {
 		_llseek(fd, 0, SEEK_SET);
 	}
 }
@@ -684,17 +695,17 @@ EXPORT int ft_writeFileWithAlternateName(FTABLE *fp)
 /*---------------------------------*/
 /* ft_writefileAsWithFlags()					*/
 /*---------------------------------*/
-EXPORT int ft_writefileAsWithFlags(FTABLE *fp,char *fn,int flags)
+EXPORT int ft_writefileAsWithFlags(FTABLE *fp, char *fn, int fileFlags, BOOL bVerbose)
 {	int ret;
 
 	fp->lockFd = -1;
-	int newFlags = (flags | F_MODIFIED);
+	int newFlags = (fileFlags | F_MODIFIED);
 	if (!(fp->flags & F_APPEND)) {
 		newFlags  |= F_SAVEAS;
 	}
 	ft_setFlags(fp, newFlags);
 	ft_setOutputFilename(fp, fn);
-	ret = ft_writefileMode(fp, WFM_QUIET);
+	ret = ft_writefileMode(fp, bVerbose ? 0 : WFM_QUIET);
 	return ret;
 }
 
@@ -734,7 +745,7 @@ EXPORT int ft_writeFileAndClose(FTABLE *fp,char *name, int flags)
 
 	fp->lastl = 0;
 	fp->documentDescriptor = 0;
-	ret = ft_writefileAsWithFlags(fp,name,flags);
+	ret = ft_writefileAsWithFlags(fp,name,flags, FALSE);
 	ln_listfree(fp->firstl);
 	fp->firstl = 0;
 	fp->lpReadPointer = 0;

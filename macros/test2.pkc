@@ -8,7 +8,7 @@ macro YesOrNo()
 	// int 	ret;
 	// string 	s;
 
-    	if (IsActive(QUERY_FILEMODIFIED) &&
+	if (IsActive(QUERY_FILEMODIFIED) &&
 		MessageBox(MB_YESNO, 0, "do it ?") == IDYES) {
 		CompileMacros();
 	}

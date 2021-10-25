@@ -161,13 +161,12 @@ extern void linetoolong(void);
 #define	PASTE_QUERYID	0x100
 #define	PASTE_CLIP		0x200
 #define	PASTE_UNDO		0x400
-#define	PASTE_XUNDO		0x800
 #define	PASTE_ICON		0x1000
 
 /* Flags for Cut&EdBlockPaste */
 #define	CUT_QUERYID		0x100
-#define	CUT_APPND			0x200
-#define	CUT_USEPP			0x400
+#define	CUT_APPND		0x200
+#define	CUT_USEPP		0x400
 
 /* Flags for EdMacroRecorded */
 #define	MAC_AUTO			-1

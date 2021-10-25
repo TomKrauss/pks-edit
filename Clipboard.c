@@ -52,8 +52,7 @@ static void clp_setclipboarddata(HANDLE hMem)
 /*--------------------------------------------------------------------------
  * clp_makebufferhandle()
  */
-static HANDLE clp_makebufferhandle(int whichBuffer)
-{
+static HANDLE clp_makebufferhandle(char* whichBuffer) {
 	DWORD 	size;
 	PASTE *	bp;
 	LINE  *	lp;
@@ -111,7 +110,7 @@ EXPORT void clp_setmine(void) {
  * deliver contents of the clipboard to a caller
  * is called after a RENDER... message
  */
-EXPORT int clp_setdata(int whichBuffer)
+EXPORT int clp_setdata(char* whichBuffer)
 {
 	HANDLE hMem;
 
@@ -168,14 +167,14 @@ EXPORT int clp_getdata(void)
 /*--------------------------------------------------------------------------
  * EdShowClipboard()
  */
-EXPORT int EdShowClipboard(int whichBuffer)
+EXPORT int EdShowClipboard(char* pszBuffer)
 {
 	HANDLE hMem;
 	
-	if (whichBuffer == 0 && !clp_ismine()) {
+	if (bl_isDefaultClipboard(pszBuffer) && !clp_ismine()) {
 		;
 	} else {
-		hMem = clp_makebufferhandle(whichBuffer);
+		hMem = clp_makebufferhandle(pszBuffer);
 		clp_setclipboarddata(hMem);
 	}
 	STARTUPINFO info = { sizeof(info) };

@@ -41,7 +41,7 @@ extern void		st_resize(int nStatusHeight, RECT* pRect);
 extern void 	status_wh(WORD* width, WORD* height);
 extern void 	tb_wh(WORD* width, WORD* height);
 extern BOOL 	ww_workWinHasFocus(void);
-extern int 		clp_setdata(int whichBuffer);
+extern int 		clp_setdata(char* pszBufferName);
 extern void 	EditDroppedFiles(HDROP hdrop);
 
 /*------------------------------------------------------------

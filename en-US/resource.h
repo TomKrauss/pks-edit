@@ -71,7 +71,6 @@
 #define MTMOVE                          64
 #define IDS_MSGNFOUND                   65
 #define IDS_MSGNEWFILE                  66
-#define MCOLFORM                        66
 #define IDS_MSGSAVEFILE                 67
 #define IDS_MSGCUTBLOCK                 68
 #define MFORMAT                         68
@@ -236,13 +235,16 @@
 #define IDC_CHECK_ENCRYPT               1003
 #define IDS_COMMAND251                  2299
 #define IDS_COMMAND252                  2300
+#define IDS_COMMAND253                  2301
+#define IDS_COMMAND254                  2302
+#define ID_EDIT_LINESELECTION           40007
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        190
-#define _APS_NEXT_COMMAND_VALUE         40007
+#define _APS_NEXT_RESOURCE_VALUE        194
+#define _APS_NEXT_COMMAND_VALUE         40008
 #define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

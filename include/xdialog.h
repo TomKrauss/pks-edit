@@ -23,7 +23,7 @@ typedef struct tagDIALPARS {
 } DIALPARS;
 
 typedef struct tagDIALLIST {
-	LONG		*li_param;
+	long long	*li_param;
 	void		(*li_fill)(HWND hDlg, int item, void *param);
 	int			(*li_get) (HWND hDlg, int item, void *param);
 	void		(*li_measure)(MEASUREITEMSTRUCT *mp);
@@ -58,6 +58,13 @@ extern INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wPara
 
 # if defined(_EDFUNCS_H)
 extern int 			win_callDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
+/*--------------------------------------------------------------------------
+ * win_callDialogCB()
+ * Standard dialog handling in PKS edit allowing to pass a custom dialog procedure.
+ * The passed dialog procedure should invoke dlg_standardDialogProcedure for all non
+ * custom dialog processing.
+ */
+extern int win_callDialogCB(int nId, PARAMS* pp, DIALPARS* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback);
 # endif
 extern void 		DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax);
 /*--------------------------------------------------------------------------
@@ -90,10 +97,12 @@ extern int dlg_displayRecordMacroOptions(int* o);
  */
 extern void dlg_help(void);
 
+#if defined(LINKEDLIST_H)
 /*--------------------------------------------------------------------------
- * dlg_displayDialogTemplate()
+ * dlg_selectNamedClipboard()
  */
-extern int dlg_displayDialogTemplate(unsigned char c, char* (*fpTextForTmplate)(char* s), char* s);
+char* dlg_selectNamedClipboard(char* pszSelected, char* (*fpTextForTmplate)(char* pszBufferName), LINKED_LIST* pszAllTemplates, BOOL bCreate);
+#endif
 
 /*--------------------------------------------------------------------------
  * dlg_closeQueryReplace()

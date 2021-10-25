@@ -19,9 +19,6 @@
 #include "documentmodel.h"
 #include "winfo.h"
 
-extern int _nundo;
-extern PASTE* _undobuf;
-
 /*
  * PKS Edit command to write a block to a default file name.
  */
@@ -52,22 +49,22 @@ extern int EdPasteString(long dummy1, long dummy2, char* string);
 
 /*----------------------------
  * EdBlockDelete()
- * PKS Edit command to delete the current selection and
- * optionally save the text in the trashcan clipboard of PKS Edit
+ * PKS Edit command to delete the current selection
  *----------------------------*/
-extern int EdBlockDelete(int bSaveTrash);
+extern int EdBlockDelete();
 
 /*---------------------------------*
- * EdBlockWriteToFile()
+ * bl_writeToFile()
  * PKS Edit command to write a block to a file with the given name.
  *---------------------------------*/
-extern int EdBlockWriteToFile(char* fn);
+extern int bl_writeToFile(char* fn);
 
 /*----------------------------
- * EdBlockCut()
- * PKS Edit command to cut a block.
+ * bl_cutOrCopy()
+ * PKS Edit command to cut / copy a block.
+ * The flag is a combination of CUT_QUERYID, CUT_USEPP, CUT_APPND.
  *----------------------------*/
-extern int EdBlockCut(int flg, PASTE* pp);
+extern int bl_cutOrCopy(int flg, PASTE* pp);
 
 /*--------------------------------------------------------------------------
  * EdBufferFree()
@@ -100,13 +97,6 @@ extern unsigned char* bl_convertPasteBufferToText(unsigned char* pDestination, u
  * Convert a string buffer to a paste buffer. Return 1 if successful.
  */
 extern int bl_convertTextToPasteBuffer(PASTE* bp, unsigned char* pText, unsigned char* pEnd, char cSeparator1, char cSeparator2, char cCr);
-
-/*--------------------------------------------------------------------------
- * bl_validateTrashCanName()
- * Validate / generate the name of a "logical" trash can in PKS edit, which may contain
- * data accessible under that name.
- */
-void bl_validateTrashCanName(char* pszValid);
 
 /*--------------------------------------------------------------------------
  * bl_free()
@@ -146,7 +136,12 @@ extern int bl_syncSelectionWithCaret(WINFO* fp, CARET* lpCaret, int flags, int* 
  * Lookup a paste buffer given an id. If insert is 1, space occupied by a possibly existing paste
  * buffer is destroyed before the paste buffer is returned.
  */
-extern PASTE* bl_lookupPasteBuffer(int id, int insert, PASTELIST** header);
+extern PASTE* bl_lookupPasteBuffer(char* pszId, int insert, PASTELIST** header);
+
+/*
+ * Returns true, if the given ID represents the ID of the default (system) clipboard.
+ */
+extern BOOL bl_isDefaultClipboard(char* pszId);
 
 /*--------------------------------------------------------------------------
  * blcutbl()
@@ -186,7 +181,7 @@ extern int bl_paste(PASTE* pb, WINFO* fp, LINE* lpd, int col, int colflg);
  * bl_hasClipboardBlock()
  * Check, whether the cut text block with the given number exists and can be inserted.
  */
-extern BOOL bl_hasClipboardBlock(BOOL isTrashCan, int blockNumber);
+extern BOOL bl_hasClipboardBlock(char* pszId);
 
 /*--------------------------------------------------------------------------
  * bl_join()
@@ -207,7 +202,7 @@ extern int bl_pastecol(PASTE* pb, WINFO* wp, LINE* lpd, int col);
 /*--------------------------------------------------------------------------
  * bl_addrbyid()
  */
-extern 	PASTE* bl_addrbyid(int id, int insert);
+extern 	PASTE* bl_addrbyid(char* pszId, int insert);
 
 /*--------------------------------------------------------------------------
  * bl_getBlockFromUndoBuffer()

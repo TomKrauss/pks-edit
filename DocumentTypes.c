@@ -79,6 +79,7 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_INTEGER, "leftMargin", offsetof(EDIT_CONFIGURATION, lmargin) },
 	{	RT_INTEGER, "rightMargin", offsetof(EDIT_CONFIGURATION, rmargin)},
 	{	RT_INTEGER, "tabSize", offsetof(EDIT_CONFIGURATION, tabsize)},
+	{	RT_INTEGER, "codepage", offsetof(EDIT_CONFIGURATION, codepage)},
 	{	RT_INTEGER_ARRAY, "tabulatorSizes", offsetof(EDIT_CONFIGURATION, tabulatorSizes), DIM(((EDIT_CONFIGURATION*)NULL)->tabulatorSizes)},
 	{	RT_INTEGER, "shiftWidth", offsetof(EDIT_CONFIGURATION, shiftwidth)},
 	{	RT_FLAG, "showWhitespace", offsetof(EDIT_CONFIGURATION, dispmode), SHOWCONTROL},
@@ -150,6 +151,7 @@ EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor() {
 	pDescriptor->tabsize = 8;
 	pDescriptor->shiftwidth = 4;
 	pDescriptor->workmode = WM_INSERT;
+	pDescriptor->codepage = CP_ACP;
 	pDescriptor->cr = '\r';
 	pDescriptor->nl = '\n';
 	pDescriptor->tabDisplayFillCharacter = ' ';

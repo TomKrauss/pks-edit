@@ -204,8 +204,8 @@ void EdOptionSet(void) {
     PROPSHEETHEADER psh;
 	INT_PTR tempRet;
 
-	_themelist.li_param = (long*)GetConfiguration()->themeName;
-	_localeslist.li_param = (long*)GetConfiguration()->language;
+	_themelist.li_param = (long long*)GetConfiguration()->themeName;
+	_localeslist.li_param = (long long*)GetConfiguration()->language;
 	dlg_setXDialogParams(_getDialogParsForPage, TRUE);
 	memset(&psh, 0, sizeof psh);
 	memset(psp, 0, sizeof psp);

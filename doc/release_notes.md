@@ -19,6 +19,8 @@
   are added (seee Linux tail -f). In this mode editing the file is not possible - it is read-only in this case to avoid concurrent external
   and internal changes.
 - One can now move the current selection (or - if no selection exists - current line) up and down using Alt+UP and Alt+DOWN respectively.
+- Accessing copying and pasting to and from named buffers was made more accessible. Operations with named buffers are now available
+  through the extended edit menu.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 

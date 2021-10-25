@@ -45,17 +45,20 @@
 #define IDD_FIRST_PAGE                  1012
 #define IDD_LAST_PAGE                   1013
 #define IDC_LIST1                       1015
+#define IDC_EDIT1                       1017
 #define IDS_REDO                        1246
 #define IDS_COMMAND251                  2299
 #define IDS_COMMAND252                  2300
+#define IDS_COMMAND253                  2301
+#define IDS_COMMAND254                  2302
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        215
-#define _APS_NEXT_COMMAND_VALUE         40032
-#define _APS_NEXT_CONTROL_VALUE         1017
+#define _APS_NEXT_RESOURCE_VALUE        216
+#define _APS_NEXT_COMMAND_VALUE         40037
+#define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

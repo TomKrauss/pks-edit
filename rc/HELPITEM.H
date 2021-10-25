@@ -35,7 +35,6 @@
 #define	MTDEL    62	
 #define	MTCOPY   63	
 #define	MTMOVE   64	
-#define	MCOLFORM 66	
 #define	MENDAD   67	
 #define	MFORMAT  68	
 #define	MCOMTABS 69	
@@ -57,6 +56,11 @@
 #define IDM_COMPARE_CLEAR				610
 #define IDM_INSERT_KEYCODE				611
 #define IDM_INSERT_CONTROL_CHAR         612
+#define IDM_COPY_TO_NAMED_CLIPBOARD		613
+#define IDM_CUT_TO_NAMED_CLIPBOARD		614
+#define IDM_PASTE_NAMED_CLIPBOARD		615
+#define IDM_LIST_NAMED_CLIPBOARDS		616
+
 
 #define	MENPRINT 78	
 #define	MENBUILD 79	

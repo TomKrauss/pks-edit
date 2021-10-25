@@ -392,12 +392,8 @@ int EdLineDelete(control)
 		clast = clast->prev;
 		if ((lastlinelen = clast->len) == 0L) return 0;
 	} else lastlinelen = 0;
-	if (control & CUT_APPND) {
-		bl_append(_undobuf,clfirst,clast,0,0);
-		ln_delete(fp,clfirst);
-	} else {
-		bl_undoIntoUnqBuffer(wp, clfirst, clast, (int) 0, (int) lastlinelen, (int) 0); 
-	}
+	//bl_append(_undobuf,clfirst,clast,0,0);
+	ln_delete(fp,clfirst);
 
 	if (lastlinelen) {
 		render_repaintFromLineTo(fp,wp->caret.ln,wp->maxln);
@@ -756,7 +752,7 @@ int EdCharInsert(int c)
 	}
 
 	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_hasSelection(wp)) {
-		EdBlockDelete(0);
+		EdBlockDelete();
 		if (c == 8 || c == 127) {
 			return 1;
 		}
@@ -946,7 +942,7 @@ int EdCharDelete(int control)
 		if (o1 == o2) {
 			return 0;
 		}
-		if (!bl_undoIntoUnqBuffer(wp, lp1, lp, (int) o1, (int) o2, (int) 0)) {
+		if (!bl_delete(wp, lp1, lp, (int) o1, (int) o2, (int) 0)) {
 			return 0;
 		}
 	}

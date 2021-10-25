@@ -758,16 +758,16 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,148,52,52,16,WS_GROUP
 END
 
-DLGSELTMPLATE DIALOGEX 54, 44, 208, 170
+DLGSELTMPLATE DIALOGEX 54, 44, 499, 177
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Insert Code Template"
+CAPTION "Named Clipboard"
 FONT 8, "helv", 400, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "A",IDD_RAWCHAR,16,146,24,14
-    LISTBOX         IDD_ICONLIST,10,12,40,131,LBS_SORT | WS_VSCROLL | WS_GROUP | WS_TABSTOP
-    EDITTEXT        IDD_RO1,56,12,144,129,ES_MULTILINE | NOT WS_TABSTOP
-    PUSHBUTTON      "Cancel",IDCANCEL,66,146,52,14,WS_GROUP
-    PUSHBUTTON      "OK",IDOK,124,146,52,14
+    LISTBOX         IDD_ICONLIST,10,12,89,132,LBS_SORT | WS_VSCROLL | WS_GROUP | WS_TABSTOP
+    EDITTEXT        IDD_RO1,109,12,379,131,ES_MULTILINE | NOT WS_TABSTOP
+    PUSHBUTTON      "Cancel",IDCANCEL,379,155,52,14,WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,437,155,52,14
+    EDITTEXT        IDD_STRING1,10,154,89,14,ES_AUTOHSCROLL
 END
 
 DLGSELECTDOCTYPE DIALOG 47, 95, 223, 114
@@ -957,6 +957,12 @@ BEGIN
     BEGIN
     END
 
+    DLGSELTMPLATE, DIALOG
+    BEGIN
+        RIGHTMARGIN, 489
+        BOTTOMMARGIN, 168
+    END
+
     DLG_OPT_AUTOSAVE, DIALOG
     BEGIN
         RIGHTMARGIN, 257
@@ -1085,6 +1091,11 @@ BEGIN
     0
 END
 
+DLGSELTMPLATE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1104,7 +1115,8 @@ BEGIN
         MENUITEM "Save &as...\a",               MSAVEAS
         MENUITEM "Save all &Modified\a",        MSAVEALL_NO_EXIT
         MENUITEM SEPARATOR
-        MENUITEM "&Insert...\a",                MREADF
+        MENUITEM "&Insert File...\a",           MREADF
+        MENUITEM "S&ave Selection to File...\a", MWRITEF
         MENUITEM "A&bandon\a",                  MABANDON
         MENUITEM SEPARATOR
         POPUP "&Print"
@@ -1122,20 +1134,21 @@ BEGIN
         MENUITEM "&Redo\a",                     IDM_REDO
         MENUITEM "&Redo last Command\a",        IDM_DOAGAIN
         MENUITEM SEPARATOR
+        MENUITEM "&Cut\a",                      MTDEL
         MENUITEM "C&opy\a",                     MTCUT
         MENUITEM "Pa&ste\a",                    MTPASTE
-        MENUITEM "&Cut\a",                      MTDEL
         MENUITEM "&Delete\a",                   IDM_ERASEBLOCK
         MENUITEM "D&uplicate\a",                MTCOPY
         MENUITEM "&Move\a",                     MTMOVE
         MENUITEM SEPARATOR
-        MENUITEM "S&ave Selection to File...\a", MWRITEF
+        MENUITEM "Copy to named Clipboard...\a", IDM_COPY_TO_NAMED_CLIPBOARD
+        MENUITEM "Cut to named Clipboard...\a", IDM_CUT_TO_NAMED_CLIPBOARD
+        MENUITEM "Paste named Clipboard...\a",  IDM_PASTE_NAMED_CLIPBOARD
+        MENUITEM "List Clipboards...\a",        IDM_LIST_NAMED_CLIPBOARDS
         MENUITEM SEPARATOR
         MENUITEM "S&tart Selection\a",          MTMSTART
         MENUITEM "&End Selection\a",            MTMEND
         MENUITEM "Hi&de Selection\a",           MTMHIDE
-        MENUITEM SEPARATOR
-        MENUITEM "Recta&ngular Selection\a",    MCOLFORM
     END
     POPUP "&Find"
     BEGIN
@@ -1758,8 +1771,8 @@ BEGIN
     IDS_COMMAND241          "Toggle Comment;Toggle Comment"
     IDS_COMMAND242          "Goto next navigation position;Next Position"
     IDS_COMMAND243          "Goto next position of insertion;Next Insertion Position"
-    IDS_COMMAND244          "Convert to Windows line endings (\n);Linux Zeilenenden"
-    IDS_COMMAND245          "Convert to Windows line endings (\r\n);Windows Zeilenenden"
+    IDS_COMMAND244          "Convert to Windows line endings (\n);Linux EOL"
+    IDS_COMMAND245          "Convert to Windows line endings (\r\n);Windows EOL"
     IDS_COMMAND246          "Convert to upper case spelling;-> Uppercase"
     IDS_COMMAND247          "Convert to lower case spelling;-> Lowercase"
     IDS_COMMAND248          "Find next difference;Next difference"
@@ -1767,6 +1780,8 @@ BEGIN
     IDS_COMMAND250          "End comparison;End comparison"
     IDS_COMMAND251          "Toggle line selection"
     IDS_COMMAND252          "Toggle syntax highlighting"
+    IDS_COMMAND253          "Move selection or line up;move selection up"
+    IDS_COMMAND254          "Move selection or line down;move selection down"
 END
 
 STRINGTABLE

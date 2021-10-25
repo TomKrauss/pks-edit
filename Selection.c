@@ -38,12 +38,11 @@
  * GLOBALS
  */
 
-static PASTE 		_ubufs[1],_ubuf2;
+static PASTE 		_ubuf2;
 static PASTELIST *	_plist;
 static int   _curentUndoBufferIndex;
 
-int				_nundo = 1;
-PASTE	*		_undobuf = _ubufs;
+static int		_nundoBuffer = 1;
 
 /*--------------------------------------------------------------------------
  * bl_convertPasteBufferToText()
@@ -101,7 +100,7 @@ int bl_getSelectedText(char* pszBuf, size_t nCapacity) {
 	if (!ww_hasSelection(wp)) {
 		return 0;
 	}
-	if (EdBlockCut(0, &pbuf)) {
+	if (bl_cutOrCopy(0, &pbuf)) {
 		pp = bl_addrbyid(0, 0);
 		bl_convertPasteBufferToText(pszBuf, &pszBuf[nCapacity - 2], pp);
 		return 1;
@@ -110,12 +109,12 @@ int bl_getSelectedText(char* pszBuf, size_t nCapacity) {
 }
 
 /*--------------------------------------------------------------------------
- * EdGetSelectedText()
+ * macro_getSelectedText()
  * PKS Edit macro commad which gets the selected text and makes it available
  * to the macro interpreter.
  */
-void EdGetSelectedText(void) {
-	char		buf[80];	/* searchPattern[] !!!! */
+void macro_getSelectedText(void) {
+	char		buf[256];
 
 	bl_getSelectedText(buf, sizeof buf);
 	macro_returnString(buf);
@@ -148,13 +147,12 @@ void bl_destroyPasteList() {
 }
 
 /*--------------------------------------------------------------------------
- * EdBufferFree()
+ * bl_destroyAll()
  * release all buffers
  */
-EXPORT int EdBufferFree(void)
+EXPORT int bl_destroyAll(void)
 {
 	if (error_displayYesNoConfirmation(IDS_MSGCLEARBUFFERS) == IDYES) {
-		bl_free(_undobuf);
 		bl_free(&_ubuf2);
 		bl_destroyPasteList();
 		return 1;
@@ -270,13 +268,14 @@ EXPORT int bl_writePasteBufToFile(PASTE *pb, char* fn,  int mode) {
 	LINE	  *lp;
 	int    ret = 0;
 
+	memset(&rf, 0, sizeof rf);
 	if ((rf.firstl = lp = pb->pln) != 0) {
 		while(lp->next)
 			lp  = lp->next;
 		lp->lflg = LNNOTERM;
 		rf.lastl = 0;
 		rf.documentDescriptor = doctypes_createDefaultDocumentTypeDescriptor();
-		ret = ft_writefileAsWithFlags(&rf,fn,mode);
+		ret = ft_writefileAsWithFlags(&rf,fn,mode,TRUE);
 		free(rf.documentDescriptor);
 	}
 	return ret;
@@ -298,7 +297,7 @@ EXPORT int bl_paste(PASTE *pb, WINFO *wp, LINE *lpd, int col, int colflg)
 		return 0;
 	}
 	fp = wp->fp;
-	if (colflg && (_blkflg || (!P_EQ(pb,_undobuf)))) {
+	if (colflg && _blkflg) {
 		return bl_pastecol(pb,wp,lpd,col);
 	}
 
@@ -378,20 +377,15 @@ EXPORT int bl_join(PASTE *pd,PASTE *p2)
  * bl_delete()
  */
 EXPORT int bl_delete(WINFO *wp, LINE *lnfirst, LINE *lnlast, int cfirst,
-	int clast, int blkflg, int saveintrash)
+	int clast, int blkflg)
 {
 	PASTE	*	ppTrash;
 	PASTE		ppDummy;
 	int			bSaveOnClip;
 
-	if (saveintrash) {
-		ppTrash = _undobuf;
-		bSaveOnClip = 1;
-	} else {
-		ppTrash = &ppDummy;
-		memset(ppTrash, 0, sizeof *ppTrash);
-		bSaveOnClip = 0;
-	}
+	ppTrash = &ppDummy;
+	memset(ppTrash, 0, sizeof *ppTrash);
+	bSaveOnClip = 0;
 
 	if (blkflg && ww_isColumnSelectionMode(wp)) {
 		if (bSaveOnClip) {
@@ -413,42 +407,12 @@ EXPORT int bl_delete(WINFO *wp, LINE *lnfirst, LINE *lnlast, int cfirst,
 		}
 	}
 
-	if (!saveintrash) {
-		bl_free(ppTrash);
-	}
+	bl_free(ppTrash);
 
 	if (bSaveOnClip) {
 		clp_setmine();
 	}
 	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * bl_undoIntoUnqBuffer()
- * enqueue next Pastebuffer to undolist
- */
-EXPORT int bl_undoIntoUnqBuffer(WINFO* wp, LINE *lnfirst,LINE *lnlast,int cfirst,int clast,int blockflg)
-			/* pointer to first and last line to enq	*/
-			/* first column and last col to enq		*/
-{	char	*fn;
-	char tmpfile[512];
-
-	if (_nundo > 1) {
-		if (_nundo > 10) {
-			_nundo = 10;
-		}
-		fn = config_getPKSEditTempPath(tmpfile,_curentUndoBufferIndex+'0');
-		bl_writePasteBufToFile(_undobuf, fn, 0);
-		_curentUndoBufferIndex++;
-		if (_curentUndoBufferIndex >= _nundo) {
-			_curentUndoBufferIndex = 0;
-		}
-	}
-
-	bl_free(_undobuf);
-	_blkflg = blockflg & 1;
-	
-	return bl_delete(wp, lnfirst, lnlast, cfirst, clast, _blkflg, 1);
 }
 
 /*--------------------------------------------------------------------------
@@ -459,14 +423,12 @@ EXPORT PASTE *bl_getBlockFromUndoBuffer(int num)
 	char	*fn;
 	char	tmpfile[512];
 	
-	if (num < 0 || num >= _nundo)
+	if (num < 0 || num >= _nundoBuffer)
 		return 0;
-	if (!num)
-		return _undobuf;
 
 	num = _curentUndoBufferIndex-num;
 	if (num < 0)
-		num += _nundo;
+		num += _nundoBuffer;
 
 	fn = config_getPKSEditTempPath(tmpfile,num+'0');
 	bl_free(&_ubuf2);
@@ -480,20 +442,6 @@ EXPORT PASTE *bl_getBlockFromUndoBuffer(int num)
 	}
 
 	return &_ubuf2;
-}
-
-/*--------------------------------------------------------------------------
- * bl_validateTrashcanName()
- * Validate / generate the name of a "logical" trash can in PKS edit, which may contain
- * data accessible under that name.
- */
-void bl_validateTrashcanName(char *pszValid) {
-	int		i;
-	
-	for (i = 0; i < _nundo; i++) {
-		*pszValid++ = i + '0';
-	}
-	*pszValid = 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -511,9 +459,11 @@ EXPORT int bl_append(PASTE *pb,LINE *lnfirst,LINE *lnlast,int cfirst,int clast)
  * bl_getTextBlock()
  * find a textblock in his linked list
  */
-EXPORT PASTE *bl_getTextBlock(int id, PASTELIST *pl)
-{
-	while (pl != 0 && pl->id != id) {
+EXPORT PASTE *bl_getTextBlock(char* pszId, PASTELIST *pl) {
+	if (pszId == 0) {
+		pszId = "";
+	}
+	while (pl != 0 && strcmp(pszId, pl->pl_id)) {
 		pl = pl->next;
 	}
 	return (pl == 0) ? (PASTE *) 0 : &pl->pbuf;
@@ -523,16 +473,16 @@ EXPORT PASTE *bl_getTextBlock(int id, PASTELIST *pl)
  * bl_collectClipboardIds)
  * Collect all clipboard identifiers in the passed parameter.
  */
-EXPORT void bl_collectClipboardIds(char *pszValid)
+EXPORT void bl_collectClipboardIds(LINKED_LIST ** pszList)
 {
 	PASTELIST *pl;
 
 	pl = _plist;
 	while (pl != 0) {
-		*pszValid++ = pl->id;
+		LINKED_LIST* pElement = ll_insert(pszList, sizeof * pElement + sizeof pl->pl_id);
+		strcpy(pElement->name, pl->pl_id);
 		pl = pl->next;
 	}
-	*pszValid = 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -540,11 +490,11 @@ EXPORT void bl_collectClipboardIds(char *pszValid)
  * Lookup a paste buffer given an id. If insert is 1, space occupied by a possibly existing paste
  * buffer is destroyed before the paste buffer is returned.
  */
-EXPORT PASTE *bl_lookupPasteBuffer(int id,int insert,PASTELIST **header)
+EXPORT PASTE *bl_lookupPasteBuffer(char* pszId,int insert,PASTELIST **header)
 {	PASTELIST *pl;
 	PASTE *pp;
 
-	if ((pp = bl_getTextBlock(id, *header)) != (PASTE *) 0) {
+	if ((pp = bl_getTextBlock(pszId, *header)) != (PASTE *) 0) {
 		if (insert) {
 			// make space for storing clipboard data.
 			bl_free(pp);
@@ -555,27 +505,31 @@ EXPORT PASTE *bl_lookupPasteBuffer(int id,int insert,PASTELIST **header)
 	if ((pl = ll_insert(header, sizeof * pl)) == 0L) {
 		return 0;
 	}
-	pl->id = id;
+	if (!pszId) {
+		pl->pl_id[0] = 0;
+	} else {
+		strcpy(pl->pl_id, pszId);
+	}
 	return  &pl->pbuf;
 }
 
 /*--------------------------------------------------------------------------
  * bl_addrbyid()
  */
-EXPORT PASTE *bl_addrbyid(int id,int insert)
+EXPORT PASTE *bl_addrbyid(char* pszId,int insert)
 {
-	return bl_lookupPasteBuffer(id,insert,&_plist);
+	return bl_lookupPasteBuffer(pszId,insert,&_plist);
 }
 
 /*--------------------------------------------------------------------------
  * bl_hasClipboardBlock()
  * Check, whether the cut text block with the given number exists and can be inserted.
  */
-BOOL bl_hasClipboardBlock(BOOL isTrashCan, int blockNumber) {
+BOOL bl_hasClipboardBlock(char* pszId) {
 	PASTE *pb;
 
-	pb  = (isTrashCan) ? _undobuf : bl_addrbyid(blockNumber,0);
-	if (!isTrashCan && !blockNumber && (!pb || !pb->pln))
+	pb  = bl_addrbyid(pszId,0);
+	if (bl_isDefaultClipboard(pszId) && (!pb || !pb->pln))
 		return IsClipboardFormatAvailable(CF_TEXT);
 	return (pb && pb->pln) ? 1  : 0;
 }

@@ -124,7 +124,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		string_concatPathAndFilename(outfile, tmp, "OUT.___");
 
 		if (flags & EX_RDOUT) {
-			if (!EdBlockWriteToFile(infile)) {
+			if (!bl_writeToFile(infile)) {
 				return 0;
 			}
 		}
@@ -184,7 +184,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 	if (flags & EX_RDCONV) {
 		undo_startModification(ft_getCurrentDocument());
 		bUInited = TRUE;
-		EdBlockDelete(1);
+		EdBlockDelete();
 	}
 
 

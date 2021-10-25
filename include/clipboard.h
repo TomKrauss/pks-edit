@@ -33,7 +33,7 @@ extern void clp_setmine(void);
  * deliver contents of the clipboard to a caller
  * is called after a RENDER... message
  */
-extern int clp_setdata(int whichBuffer);
+extern int clp_setdata(char* pszBufferName);
 
 /*------------------------------------------------------------
  * clp_getdata()
@@ -44,7 +44,7 @@ extern int clp_getdata(void);
 /*--------------------------------------------------------------------------
  * EdShowClipboard()
  */
-extern int EdShowClipboard(int whichBuffer);
+extern int EdShowClipboard(char* pszBuffer);
 
 
 #define CLIPBOARD_H

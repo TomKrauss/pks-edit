@@ -44,6 +44,7 @@
 #include "markpositions.h"
 #include "customcontrols.h"
 #include "comparefiles.h"
+#include "linkedlist.h"
 
 /*
  * Answer TRUE if a replacement had been performed before.
@@ -249,82 +250,98 @@ int DialogCharInput(int promptfield, unsigned char c)
 }
 
 /*--------------------------------------------------------------------------
- * templateOnSelectionChange()
+ * dlg_namedBuffersOnSelectionChange()
  */
-static char *(*fpGetText)(char *s);
-static char *tmplateStringList;
-static void templateOnSelectionChange(HWND hDlg, int nItem,  int nNotify, 
-	void *p)
-{
-	char		szText[128];
-	char *	szRet;
+static char* dlg_defaultClipboardName = "#default";
+static char *(*fpGetText)(char *pszBufferName);
+static LINKED_LIST* tmplateStringList;
+static void dlg_namedBuffersOnSelectionChange(HWND hDlg, int nItem,  int nNotify, void *p) {
+	char	szText[128];
+	char *	pszTemplateContents;
 
 	if (nNotify != LBN_SELCHANGE) {
 		return;
 	}
 	dlg_getListboxText(hDlg, nItem, szText);
-	szRet = (*fpGetText)(szText);
+	if (strcmp(dlg_defaultClipboardName, szText) == 0) {
+		szText[0] = 0;
+	}
+	pszTemplateContents = (*fpGetText)(szText);
 	SendDlgItemMessage(hDlg, IDD_RO1, EM_SETREADONLY, (WPARAM) TRUE, 0L);
-	SetWindowText(GetDlgItem(hDlg, IDD_RO1), szRet);
-	SetWindowText(GetDlgItem(hDlg, IDD_RAWCHAR), szText);
+	SetWindowText(GetDlgItem(hDlg, IDD_RO1), pszTemplateContents);
+	SetWindowText(GetDlgItem(hDlg, IDD_STRING1), szText);
 }
 
 /*------------------------------------------------------------
- * templateFillListbox()
+ * dlg_namedBuffersFillListbox()
  */
-static void templateFillListbox(HWND hwnd, int nItem, void* selValue)
-{
-	char *	pszChars;
-	char		szBuf[10];
-	char	cCharToSelect;
+static void dlg_namedBuffersFillListbox(HWND hwnd, int nItem, void* selValue) {
+	LINKED_LIST *	pszNames;
+	char*			pszSelect;
 
-	pszChars = tmplateStringList;
-	szBuf[1] = 0;
+	pszNames = tmplateStringList;
 	SendDlgItemMessage(hwnd, nItem, LB_RESETCONTENT, 0, 0L);
-	if (!pszChars) {
+	if (!pszNames) {
 		return;
 	}
-	cCharToSelect = (char)(uintptr_t)selValue;
-	if (!cCharToSelect) {
-		cCharToSelect = *pszChars;;
+	pszSelect = (char*)(uintptr_t)selValue;
+	if (!pszSelect || !pszSelect[0]) {
+		pszSelect = dlg_defaultClipboardName;
 	}
-	while((szBuf[0] = *pszChars++) != 0) {
+	while(pszNames) {
+		char* pszName = pszNames->name;
+		if (pszName[0] == 0) {
+			pszName = dlg_defaultClipboardName;
+		}
 		SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, 
-			(LPARAM)(LPSTR)szBuf);
+			(LPARAM)(LPSTR)pszName);
+		pszNames = pszNames->next;
 	}
-	szBuf[0] = cCharToSelect;
-	SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING, -1, 
-		(LPARAM) szBuf);
-	templateOnSelectionChange(hwnd, nItem, MAKELONG(0, LBN_SELCHANGE), (void *)0);
+	if (pszSelect) {
+		SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING, -1,
+			(LPARAM)pszSelect);
+	}
+	dlg_namedBuffersOnSelectionChange(hwnd, nItem, LBN_SELCHANGE, (void *)0);
 }
 
+static BOOL dlg_namedClipboardCreateFlag;
+static INT_PTR dlg_namedClipboardDialogProc(HWND hdlg, UINT wMessage, WPARAM wParam, LPARAM lParam) {
+	if (wMessage == WM_INITDIALOG) {
+		HWND hwndControl = GetDlgItem(hdlg, IDD_STRING1);
+		if (dlg_namedClipboardCreateFlag) {
+			PostMessage(hdlg, WM_NEXTDLGCTL, (WPARAM)hwndControl, TRUE);
+		} else {
+			EnableWindow(hwndControl, FALSE);
+		}
+	}
+	return dlg_standardDialogProcedure(hdlg, wMessage, wParam, lParam);
+}
 /*--------------------------------------------------------------------------
- * dlg_displayDialogTemplate()
+ * dlg_selectNamedClipboard()
  */
-int dlg_displayDialogTemplate(unsigned char c, 
-	char *(*fpTextForTmplate)(char *s), char *s)
-{
-	static unsigned char text[30] = { 0 };
-	static unsigned char _c = 0;
-	static ITEMS	_i   = { C_CHAR1PAR, &_c };
-	static PARAMS	_bgc = { DIM(_i), P_MAYOPEN, _i };
-	static DIALLIST tmplatelist = {
-		(long*)text, templateFillListbox, dlg_getListboxText, 0, 0, templateOnSelectionChange};
-	static DIALPARS _d[] = {
+char* dlg_selectNamedClipboard(char *pszSelected, char *(*fpTextForTmplate)(char *pszBufferName), LINKED_LIST* pszAllTemplates, BOOL bCreate) {
+	static char selectedTemplate[32];
+	ITEMS	_i   = { C_STRING1PAR, selectedTemplate };
+	PARAMS	_bgc = { DIM(_i), P_MAYOPEN, _i };
+	DIALLIST tmplatelist = {
+		(long long*)&pszSelected, dlg_namedBuffersFillListbox, dlg_getListboxText, 0, 0, dlg_namedBuffersOnSelectionChange};
+	DIALPARS _d[] = {
 		IDD_POSITIONTCURS,	0,			0,
 		IDD_ICONLIST,		0,			&tmplatelist,
-		IDD_RAWCHAR,		sizeof _c,	&_c,
+		IDD_STRING1,		sizeof selectedTemplate,	selectedTemplate,
 		0
 	};
 
-	text[0] = c;
-	text[1] = 0;
-	tmplateStringList = s;
+	dlg_namedClipboardCreateFlag = bCreate;
+	tmplateStringList = pszAllTemplates;
 	fpGetText = fpTextForTmplate;
-	if (!win_callDialog(DLGSELTMPLATE, &_bgc, _d, NULL)) {
+	if (!win_callDialogCB(DLGSELTMPLATE, &_bgc, _d, NULL, dlg_namedClipboardDialogProc)) {
 		return 0;
 	}
-	return _c;
+	if (strcmp(selectedTemplate, dlg_defaultClipboardName) == 0) {
+		selectedTemplate[0] = 0;
+	}
+	return selectedTemplate;
 }
 
 /*--------------------------------------------------------------------------
@@ -825,7 +842,7 @@ static int showWindowList(int nTitleId)
 {
 	static WINFO *wp;
 	static DIALLIST dlist = {
-		(long*)&wp, 
+		(long long*)&wp, 
 		winlist_lboxfill, 
 		dlg_getListboxText, 
 		cust_measureListBoxRowWithIcon,
@@ -903,7 +920,7 @@ static void dlg_openCompareCommand(HWND hDlg, int nItem, int nNotify, void* pUse
 int EdFilesCompare(int dir) {
 	WINFO* wp;
 	DIALLIST dlist = {
-		(long*)&wp,
+		(long long*)&wp,
 		winlist_lboxfill,
 		dlg_getListboxText,
 		cust_measureListBoxRowWithIcon,
@@ -1113,7 +1130,7 @@ static int doDocumentTypes(int nDlg) {
 	int		nRet;
 	char		linname[128];
 	static DIALLIST dlist = {
-		(long*)&lastSelectedDocType, 
+		(long long*)&lastSelectedDocType, 
 		docTypeFillListbox, 
 		dlg_getListboxText, 
 		docTypeLboxMeasureitem, 
@@ -1293,7 +1310,7 @@ int dlg_configureEditorModes(void) {
 		0
 	};
 	DIALLIST dlist = {
-		&bgcolor, color_lboxfill, color_getitem, 0, color_drawitem,
+		(long long*)&bgcolor, color_lboxfill, color_getitem, 0, color_drawitem,
 		0, 0, color_showselection };
 	DIALPARS _dDisplayMode[] = {
 		IDD_STRING1,	sizeof status,		status,

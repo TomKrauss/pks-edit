@@ -36,11 +36,6 @@
 
 #define	MAX_CONTEXT	32
 
-extern int dlg_displayDialogTemplate(unsigned char c, 
-			char *(*fpTextForTmplate)(char *s), char *s);
-extern unsigned char *bl_convertPasteBufferToText(unsigned char *b, unsigned char *end, 
-			PASTE *pp);
-
 typedef struct tagTEMPLATE_ACTION {
 	long ta_cursorDeltaLn;		// If the cursor should be positioned after inserting the template, this is the number of lines relative to the beginning of the inserted code.
 	long ta_cursorDeltaCol;		// If the cursor should be positioned after inserting the template, this is the number of columns relative to the beginning of the inserted code.
@@ -53,7 +48,7 @@ typedef struct tagTEMPLATE_ACTION {
  */
 extern	FSELINFO 	_linfsel;
 
-extern	PASTE	*bl_getTextBlock(int id, PASTELIST *pp);
+extern	PASTE	*bl_getTextBlock(char* pszId, PASTELIST *pp);
 extern 	int 	macro_createTempFile(char *linfn, char *tmpfn);
 
 static 	PASTELIST *_abbrevlist;
@@ -169,7 +164,10 @@ static PASTE *macro_findTextBuffer(LINE **lp,unsigned char *s,PASTELIST **pl,int
 		if ((s = string_skipBlanks(s)) == 0L) return 0;
 		id = *s++;
 	}
-	if ((pp = bl_lookupPasteBuffer(id,1,pl)) == 0L)
+	char szId[2];
+	szId[0] = id;
+	szId[1] = 0;
+	if ((pp = bl_lookupPasteBuffer(szId,1,pl)) == 0L)
 		return 0;
 
 	if (defmacro) {
@@ -247,7 +245,7 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction
  */
 static void macro_replaceCurrentWord(WINFO* wp) {
 	if (ww_hasSelection(wp)) {
-		EdBlockDelete(0);
+		EdBlockDelete();
 	} else {
 		char szIdentifier[100];
 		char* pszBegin;

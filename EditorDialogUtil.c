@@ -1027,18 +1027,28 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 }
 
 /*--------------------------------------------------------------------------
- * win_callDialog()
+ * win_callDialogCB()
+ * Standard dialog handling in PKS edit allowing to pass a custom dialog procedure.
+ * The passed dialog procedure should invoke dlg_standardDialogProcedure for all non
+ * custom dialog processing.
  */
-int win_callDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips)
+int win_callDialogCB(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback)
 { 	int ret = 1;
 
 	if (macro_openDialog(pp)) {
-		ret = DoDialog(nId, dlg_standardDialogProcedure,dp, pTooltips);
+		ret = DoDialog(nId, pCallback,dp, pTooltips);
 		macro_recordOperation(pp);
 		if (ret == IDCANCEL || ret == -1)
 			return 0;
 	}
 	return ret;
+}
+
+/*--------------------------------------------------------------------------
+ * win_callDialog()
+ */
+int win_callDialog(int nId, PARAMS* pp, DIALPARS* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips) {
+	return win_callDialogCB(nId, pp, dp, pTooltips, dlg_standardDialogProcedure);
 }
 
 /*--------------------------------------------------------------------------

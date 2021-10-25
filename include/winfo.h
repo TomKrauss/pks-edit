@@ -319,20 +319,12 @@ extern void ww_modeChanged(WINFO* wp);
  *----------------------------*/
 extern int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag);
 
-/* pointer to first and last line to enq	*/
-/* first column and last col to enq		*/
-/*--------------------------------------------------------------------------
- * bl_undoIntoUnqBuffer()
- * enqueue next Pastebuffer to undolist
- */
-extern int bl_undoIntoUnqBuffer(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfirst, int clast, int blockflg);
-
 /*--------------------------------------------------------------------------
  * bl_delete()
  * Delete the text of the current selection.
  */
 extern int bl_delete(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfirst,
-    int clast, int blkflg, int saveintrash);
+    int clast, int blkflg);
 
 /*--------------------------------------------------------------------------
  * render_singleLineOnDevice()
