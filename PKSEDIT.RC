@@ -650,16 +650,16 @@ BEGIN
     DEFPUSHBUTTON   "Übernehmen",IDOK,148,52,52,16,WS_GROUP
 END
 
-DLGSELTMPLATE DIALOGEX 54, 44, 208, 170
+DLGSELTMPLATE DIALOGEX 54, 44, 473, 201
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Einfügen Textbaustein"
+CAPTION "Benanntes Clipboard"
 FONT 8, "helv", 400, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "A",IDD_RAWCHAR,16,146,24,14
-    LISTBOX         IDD_ICONLIST,10,12,40,131,LBS_SORT | WS_VSCROLL | WS_GROUP | WS_TABSTOP
-    EDITTEXT        IDD_RO1,56,12,144,129,ES_MULTILINE | NOT WS_TABSTOP
-    PUSHBUTTON      "Abbruch",IDCANCEL,66,146,52,14,WS_GROUP
-    PUSHBUTTON      "OK",IDOK,124,146,52,14
+    LISTBOX         IDD_ICONLIST,12,12,110,157,LBS_SORT | WS_VSCROLL | WS_GROUP | WS_TABSTOP
+    EDITTEXT        IDD_RO1,129,12,335,155,ES_MULTILINE | NOT WS_TABSTOP
+    PUSHBUTTON      "Abbruch",IDCANCEL,356,177,52,14,WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,412,177,52,14
+    EDITTEXT        IDD_STRING1,12,177,110,14,ES_AUTOHSCROLL
 END
 
 DLGSELECTDOCTYPE DIALOG 47, 95, 223, 114
@@ -779,7 +779,8 @@ BEGIN
         MENUITEM "Speichern &unter...\a",       MSAVEAS
         MENUITEM "Alle ge&änderten speichern\a", MSAVEALL_NO_EXIT
         MENUITEM SEPARATOR
-        MENUITEM "Einf&ügen...\a",              MREADF
+        MENUITEM "Datei einf&ügen...\a",        MREADF
+        MENUITEM "&Textblock speichern...\a",   MWRITEF
         MENUITEM "&Neu lesen\a",                MABANDON
         MENUITEM SEPARATOR
         POPUP "&Drucken"
@@ -797,20 +798,21 @@ BEGIN
         MENUITEM "&Wiederholen\a",              IDM_REDO
         MENUITEM "&Nochmal einfügen\a",         IDM_DOAGAIN
         MENUITEM SEPARATOR
+        MENUITEM "&Ausschneiden\a",             MTDEL
         MENUITEM "K&opieren\a",                 MTCUT
         MENUITEM "Einf&ügen\a",                 MTPASTE
-        MENUITEM "&Ausschneiden\a",             MTDEL
         MENUITEM "&Löschen\a",                  IDM_ERASEBLOCK
         MENUITEM "&Duplizieren\a",              MTCOPY
         MENUITEM "&Verschieben\a",              MTMOVE
         MENUITEM SEPARATOR
-        MENUITEM "&Textblock speichern...\a",   MWRITEF
+        MENUITEM "Kopieren in benanntes Clipboard...\a", IDM_COPY_TO_NAMED_CLIPBOARD
+        MENUITEM "Ausschneiden in benanntes Clipboard...\a", IDM_CUT_TO_NAMED_CLIPBOARD
+        MENUITEM "Einfügen von benanntem Clipboard...\a", IDM_PASTE_NAMED_CLIPBOARD
+        MENUITEM "Liste benannter Clipboards...\a", IDM_LIST_NAMED_CLIPBOARDS
         MENUITEM SEPARATOR
         MENUITEM "Markierung &Start\a",         MTMSTART
         MENUITEM "Markierung &Ende\a",          MTMEND
         MENUITEM "Markierung auf&heben\a",      MTMHIDE
-        MENUITEM SEPARATOR
-        MENUITEM "Spalten&form\a",              MCOLFORM
     END
     POPUP "&Suchen"
     BEGIN
@@ -1119,6 +1121,8 @@ BEGIN
 
     DLGSELTMPLATE, DIALOG
     BEGIN
+        RIGHTMARGIN, 464
+        BOTTOMMARGIN, 191
     END
 
     DLGSELECTDOCTYPE, DIALOG
@@ -1270,6 +1274,11 @@ BEGIN
 END
 
 DLGRETREIVE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGSELTMPLATE AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1792,6 +1801,8 @@ BEGIN
     IDS_COMMAND250          "Vergleich beenden;Vergleich beenden"
     IDS_COMMAND251          "Toggle zeilenweise Selektion"
     IDS_COMMAND252          "Toggle Syntax Highlighting"
+    IDS_COMMAND253          "Selektion oder Zeile nach oben schieben;Selektion+ verschieben"
+    IDS_COMMAND254          "Selektion oder Zeile nach unten schieben;Selektion- verschieben"
 END
 
 STRINGTABLE

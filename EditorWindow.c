@@ -118,7 +118,13 @@ int render_calculateScrollDelta(long val, long minval, long maxval, int scrollBy
 static int render_adjustScrollBounds(WINFO *wp) {
 	long dx,dy;
 
-	dy = render_calculateScrollDelta(wp->caret.ln,wp->mincursln,wp->maxcursln,wp->vscroll);
+	long minln = wp->mincursln;
+	long maxln = wp->maxcursln;
+	if (maxln == minln) {
+		// during startup - cannot adjust scroll bounds with 0 size.
+		return 0;
+	}
+	dy = render_calculateScrollDelta(wp->caret.ln, minln, maxln, wp->vscroll);
 	dx = render_calculateScrollDelta(wp->caret.col,wp->mincurscol,wp->maxcurscol,wp->hscroll);
 
 	if (dx || dy) {
@@ -128,6 +134,17 @@ static int render_adjustScrollBounds(WINFO *wp) {
 		return 1;
 	}
 	return 0;
+}
+
+/*
+ * Called initially once after the main frame has been shown to adjust the scroll bounds
+ * of all windows.
+ */
+void ww_adjustWindowSizes() {
+	for (WINFO* wp = ww_getCurrentEditorWindow(); wp; ) {
+		render_adjustScrollBounds(wp);
+		wp = wp->next;
+	}
 }
 
 /*------------------------------------------------------------

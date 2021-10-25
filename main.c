@@ -281,6 +281,7 @@ static void main_restoreSizeAndMakeVisible() {
 	} else {
 		ShowWindow(hwndMain, SW_SHOW);
 	}
+	ww_adjustWindowSizes();
 }
 
 static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
