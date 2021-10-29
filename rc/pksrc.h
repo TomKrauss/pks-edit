@@ -28,6 +28,8 @@
 #define IDS_ENTER_PASSWORD_TO_ENCRYPT   191
 #define IDS_ENTER_PASSWORD_TO_DECRYPT   192
 #define IDI_ICON3                       193
+#define IDS_INSERT                      193
+#define IDS_CREATE_BUFFER               195
 #define IDB_NEW_ICONS                   200
 #define DLGCURSOROPTIONS                529
 #define DLG_OPT_WARNINGS                556
@@ -45,7 +47,6 @@
 #define IDD_FIRST_PAGE                  1012
 #define IDD_LAST_PAGE                   1013
 #define IDC_LIST1                       1015
-#define IDC_EDIT1                       1017
 #define IDS_REDO                        1246
 #define IDS_COMMAND251                  2299
 #define IDS_COMMAND252                  2300
@@ -56,7 +57,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        216
+#define _APS_NEXT_RESOURCE_VALUE        218
 #define _APS_NEXT_COMMAND_VALUE         40037
 #define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101

@@ -176,5 +176,9 @@ extern int caret_saveLastPosition(void);
  */
 extern int caret_positionCloseToMouseWithConfirmation(long bAsk);
 
+extern LINE* caret_gotoIdentifierEnd(LINE* lp, long* ln, long* col, int dir);
+extern LINE* caret_gotoIdentifierSkipSpace(LINE* lp, long* ln, long* col, int dir);
+extern LINE* caret_advanceWordOnly(LINE* lp, long* ln, long* col, int dir);
+
 #define CARETMOVEMENT_H
 #endif

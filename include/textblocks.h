@@ -73,6 +73,19 @@ extern int bl_cutOrCopy(int flg, PASTE* pp);
 extern int EdBufferFree(void);
 
 /*--------------------------------------------------------------------------
+ * bl_getTextForClipboardNamed()
+ */
+extern char* bl_getTextForClipboardNamed(PASTE* pp, BOOL bDefaultClipboard);
+
+/*--------------------------------------------------------------------------
+ * bl_showClipboardList()
+ * displays the clipboard list for the purpose of viewing or selecting or adding a named item
+ * to the clipboard.
+ */
+typedef enum { SNCO_CREATE, SNCO_LIST, SNCO_SELECT } SELECT_NAMED_CLIPBOARD_OPTION;
+char* bl_showClipboardList(char* pszSelected, SELECT_NAMED_CLIPBOARD_OPTION nOption);
+
+/*--------------------------------------------------------------------------
  * EdGetSelectedText()
  * PKS Edit command which gets the selected text and makes it available
  * to the macro interpreter.
@@ -107,7 +120,13 @@ extern void bl_free(PASTE* buf);
 /*--------------------------------------------------------------------------
  * bl_freePasteList()
  */
-extern void bl_destroyPasteList();
+extern void bl_destroyPasteList(BOOL bUnlinkBufferFiles);
+
+/*--------------------------------------------------------------------------
+ * bl_deleteBufferNamed()
+ * Delete a buffer with a given name and return 1 if successful and 0 otherwise.
+ */
+extern int bl_deleteBufferNamed(char* pszName);
 
 /*---------------------------------
  * bl_setSelection()
@@ -136,7 +155,7 @@ extern int bl_syncSelectionWithCaret(WINFO* fp, CARET* lpCaret, int flags, int* 
  * Lookup a paste buffer given an id. If insert is 1, space occupied by a possibly existing paste
  * buffer is destroyed before the paste buffer is returned.
  */
-extern PASTE* bl_lookupPasteBuffer(char* pszId, int insert, PASTELIST** header);
+extern PASTE* bl_lookupPasteBuffer(char* pszId, int insert, PASTE_LIST_TYPE tType, PASTELIST** header);
 
 /*
  * Returns true, if the given ID represents the ID of the default (system) clipboard.
@@ -202,7 +221,7 @@ extern int bl_pastecol(PASTE* pb, WINFO* wp, LINE* lpd, int col);
 /*--------------------------------------------------------------------------
  * bl_addrbyid()
  */
-extern 	PASTE* bl_addrbyid(char* pszId, int insert);
+extern 	PASTE* bl_addrbyid(char* pszId, int insert, PASTE_LIST_TYPE tType);
 
 /*
  * Tries to return the text from the current selection in the passed buffer, assuming a maximum

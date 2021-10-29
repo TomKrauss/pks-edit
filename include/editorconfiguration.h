@@ -42,6 +42,7 @@
 #define	O_HIDE_BLOCK_ON_CARET_MOVE	0x1000		// hide block marks on caret movement
 #define	O_UNDOENABLED				0x2000		// undo enabled
 #define	O_SAVE_CLIPBOARDS_ON_EXIT	0x4000		// save and restore named clipboards when 
+#define O_SAVE_CLIPBOARD_HISTORY	0x8000		// whether a history of the clipboard contents is automatically maintained
 
  /*----- Option Flags assignable to EDITOR_CONFIGURATION.layoutoptions --------------*/
 /* layout options: fkeys, optionbar, statusline */

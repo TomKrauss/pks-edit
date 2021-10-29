@@ -48,8 +48,10 @@ ARRAY_LIST* arraylist_create(size_t capacity) {
  * Destroy an array list freeing up all memory.
  */
 void arraylist_destroy(ARRAY_LIST* pList) {
-	free(pList->li_buffer);
-	free(pList);
+	if (pList) {
+		free(pList->li_buffer);
+		free(pList);
+	}
 }
 
 /*---------------------------

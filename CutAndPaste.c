@@ -26,20 +26,11 @@
 #include "clipboard.h"
 #include "fileselector.h"
 #include "markpositions.h"
-#include "xdialog.h"
 
  /*-----------------------*/
 /* EXTERNALS			*/
 /*-----------------------*/
-extern unsigned char *bl_convertPasteBufferToText(unsigned char *b, unsigned char *end, 
-				PASTE *pp);
-extern void 	bl_collectClipboardIds(LINKED_LIST **pszValid);
-
 extern LINE	*find_expandTabsInFormattedLines(WINFO *wp, LINE *lp);
-
-extern LINE	*caret_gotoIdentifierEnd(LINE *lp,long *ln,long *col,int dir);
-extern LINE	*caret_gotoIdentifierSkipSpace(LINE *lp,long *ln,long *col,int dir);
-extern LINE	*caret_advanceWordOnly(LINE *lp,long *ln,long *col,int dir);
 
 extern long	_multiplier;
 
@@ -161,10 +152,10 @@ EXPORT int paste(PASTE *buf,int move)
 /*--------------------------------------------------------------------------
  * bl_getTextForClipboardNamed()
  */
-static char *bl_getTextForClipboardNamed(char *s) {
-	PASTE *	pp;
-
-	pp = bl_addrbyid(s, 0);
+char *bl_getTextForClipboardNamed(PASTE* pp, BOOL bDefaultClipboard) {
+	if (bDefaultClipboard && !clp_ismine()) {
+		clp_getdata();
+	}
 	char *pszRet = bl_convertPasteBufferToText(_linebuf, _linebuf + 512, pp);
 	if (strlen(pszRet) >= 255) {
 		strcat(pszRet, "...");
@@ -176,14 +167,11 @@ static char *bl_getTextForClipboardNamed(char *s) {
 /*----------------------------*/
 /* bl_getNamedBuffer() 			*/
 /*----------------------------*/
-static char* bl_getNamedBuffer(char * (*fpTextForTmplate)(char *s), void (*fpGetAvailable)(LINKED_LIST** pNames), BOOL bNewBuffer) {
+static char* bl_getNamedBuffer(BOOL bNewBuffer) {
 	static char _lastSelectedBuffer[64];
 	char* pszResult;
-	LINKED_LIST* pszAllTemplates = NULL;
 
-    (*fpGetAvailable)(&pszAllTemplates);
-	pszResult = dlg_selectNamedClipboard(_lastSelectedBuffer, fpTextForTmplate, pszAllTemplates, bNewBuffer);
-	ll_destroy(&pszAllTemplates, NULL);
+	pszResult = bl_showClipboardList(_lastSelectedBuffer, bNewBuffer ? SNCO_CREATE : SNCO_SELECT);
 	if (pszResult) {
 		strcpy(_lastSelectedBuffer, pszResult);
 		return _lastSelectedBuffer;
@@ -198,13 +186,9 @@ EXPORT PASTE *bl_getPasteBuffer(int which) {
 	PASTE *	pp;
 	char* 	pszId;
 	int		err=0;
-	char *	(*fpGetContentsOfBuffer)(char *s);
-	void	(*fpGetValidNames)(LINKED_LIST** pList);
 
 	if (which & PASTE_QUERYID) {
-		fpGetContentsOfBuffer = bl_getTextForClipboardNamed; 
-		fpGetValidNames = bl_collectClipboardIds; 
-		if ((pszId = bl_getNamedBuffer(fpGetContentsOfBuffer, fpGetValidNames, FALSE)) == 0) {
+		if ((pszId = bl_getNamedBuffer(FALSE)) == 0) {
 			return 0;
 		}
 	} else {
@@ -212,9 +196,10 @@ EXPORT PASTE *bl_getPasteBuffer(int which) {
 	}
 
 	/* try to get data from windows clipboard */
-	if (bl_isDefaultClipboard(pszId))
+	if (bl_isDefaultClipboard(pszId)) {
 		clp_getdata();
-	pp = bl_addrbyid(pszId,0);
+	}
+	pp = bl_addrbyid(pszId,0,PLT_NAMED_BUFFER);
 	err = IDS_MSGNOCLIP;
 
 	if (!pp || !pp->pln) {
@@ -294,30 +279,32 @@ EXPORT int EdBlockWrite(void ){
 /*---------------------------------*/
 static int bl_cutOrCopyBlock(MARK *ms, MARK *me, int flg, PASTE *pp) {
 	PASTE 	_p;
+	PASTE_LIST_TYPE tType = PLT_CLIPBOARD;
 	char*	 pszId;
 	int	 	colflg = ww_isColumnSelectionMode(ww_getCurrentEditorWindow());
 
-	_p.pln = 0;
-	bl_free(&_p);
+	memset(&_p, 0, sizeof _p);
 	if (flg & CUT_QUERYID) {
-		if ((pszId = bl_getNamedBuffer(bl_getTextForClipboardNamed, bl_collectClipboardIds, TRUE)) == 0) {
+		if ((pszId = bl_getNamedBuffer(TRUE)) == 0) {
 			return 0;
 		}
+		tType = PLT_NAMED_BUFFER;
 	} else {
 		pszId = 0;
 	}
 
 	if (!(flg & CUT_USEPP)) {
-		if ((pp = bl_addrbyid(pszId,(flg & CUT_APPND) ? 0 : 1)) == 0)
+		if ((pp = bl_addrbyid(pszId, (flg & CUT_APPND) ? 0 : 1, tType)) == 0) {
 			return 0;
+		}
 	} else {
 		pp->pln = 0;
 	}
 
 	if (bl_cut(&_p,ms->m_linePointer,me->m_linePointer,ms->m_column,me->m_column,0,colflg)) {
 
-		if (!(flg & CUT_APPND))
-			bl_free(pp);
+//		if (!(flg & CUT_APPND))
+//			bl_free(pp);
 
 		if (bl_isDefaultClipboard(pszId))
 			clp_setmine();
@@ -382,7 +369,7 @@ EXPORT int bl_writeToFile(char *fn)
 /*---------------------------------*/
 EXPORT int block_rw(char *fn,int doread)
 {
-	PASTE *bp = bl_addrbyid(0,0);
+	PASTE *bp = bl_addrbyid(0,0,PLT_CLIPBOARD);
 
 	if (!bp)
 		return 0;
@@ -399,13 +386,13 @@ EXPORT int block_rw(char *fn,int doread)
 		return bl_writePasteBufToFile(bp, fn, F_NORMOPEN);
 }
 
-/*---------------------------------*/
-/* upd_lines() 				*/
-/*---------------------------------*/
-static void upd_lines()
-{	register	WINFO *wp = ww_getCurrentEditorWindow();
-	register	LINE *lp;
-	register	long ln = -1L;
+/*---------------------------------
+ * bl_resetCurrentLine()
+ * reset the caret, so it is displayed in the "correct line".
+ *---------------------------------*/
+static void bl_resetCurrentLine(WINFO* wp) {
+	LINE *lp;
+	long ln = -1L;
 	FTABLE* fp = wp->fp;
 
 	lp = wp->caret.linePointer;
@@ -488,7 +475,7 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 			bl_hideSelection(wp, 0);
 			EdSyncSelectionWithCaret(MARK_START);
 			wp->blstart->m_column--;
-			upd_lines();
+			bl_resetCurrentLine(wp);
 		}
 		if (colflg) {
 			delta = wp->blcol2 - wp->blcol1;
@@ -607,7 +594,7 @@ EXPORT int bl_cutLines()
 {
 	LINE *ls,*le;
 	long n = _multiplier;
-	PASTE *bp = bl_addrbyid(0,0);
+	PASTE *bp = bl_addrbyid(0,0, PLT_CLIPBOARD);
 	WINFO* wp = ww_getCurrentEditorWindow();
 
 	if (bp == 0 || wp == 0L) return 0;

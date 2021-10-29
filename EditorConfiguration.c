@@ -70,7 +70,8 @@ static DIALPARS _dAutoSave[] = {
 	IDD_OPT3,		O_AUTO_OPEN_HISTORY,					& _configuration.options,
 	IDD_OPT4,		O_SAVE_MACROS_ON_EXIT,					& _configuration.options,
 	IDD_OPT5,		O_CREATE_BACKUP_IN_TEMP_PATH,			& _configuration.options,
-	IDD_OPT6,		O_SAVE_CLIPBOARDS_ON_EXIT,& _configuration.options,
+	IDD_OPT6,		O_SAVE_CLIPBOARDS_ON_EXIT,				& _configuration.options,
+	IDD_OPT7,		O_SAVE_CLIPBOARD_HISTORY,				& _configuration.options,
 	// Terminate with 0
 	0
 };

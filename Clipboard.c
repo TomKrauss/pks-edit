@@ -24,7 +24,7 @@
 #include "clipboard.h"
 #include "textblocks.h"
 
-/*------------------------------------------------------------
+#/*------------------------------------------------------------
  * clp_ismine()
  * check, whether we are clipboard owner
  */
@@ -61,7 +61,7 @@ static HANDLE clp_makebufferhandle(char* whichBuffer) {
 	int  nl = '\n';
 	int  cr = '\r';
 
-	if ((bp = bl_addrbyid(whichBuffer,0)) == 0) {
+	if ((bp = bl_addrbyid(whichBuffer,0, whichBuffer == NULL ? PLT_CLIPBOARD : PLT_NAMED_BUFFER)) == 0) {
 		return 0;
 	}
 
@@ -127,7 +127,7 @@ EXPORT int clp_setdata(char* whichBuffer)
  */
 EXPORT int clp_getdata(void)
 {	HANDLE 	hClip;
-	PASTE *	bp = bl_addrbyid(0,0);
+	PASTE *	bp = bl_addrbyid(0,0,PLT_CLIPBOARD);
 	LPSTR  	lpClip;
 	LPSTR	lpTemp;
 	SIZE_T 	size;
@@ -167,25 +167,8 @@ EXPORT int clp_getdata(void)
 /*--------------------------------------------------------------------------
  * EdShowClipboard()
  */
-EXPORT int EdShowClipboard(char* pszBuffer)
-{
-	HANDLE hMem;
-	
-	if (bl_isDefaultClipboard(pszBuffer) && !clp_ismine()) {
-		;
-	} else {
-		hMem = clp_makebufferhandle(pszBuffer);
-		clp_setclipboarddata(hMem);
-	}
-	STARTUPINFO info = { sizeof(info) };
-	PROCESS_INFORMATION processInfo;
-
-	if (!CreateProcess("CLIPBRD.EXE", NULL, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)) {
-		error_displayAlertDialog("Clipbrd.exe konnte nicht gestartet werden. Eventuell ist die Anwendung unter dieser Windows Version nicht mehr verfügbar.");
-		return 0;
-	}
-	CloseHandle(processInfo.hProcess);
-	CloseHandle(processInfo.hThread);
+EXPORT int EdShowClipboard(char* pszBuffer) {
+	bl_showClipboardList(0, SNCO_LIST);
 	return 1;
 }
 

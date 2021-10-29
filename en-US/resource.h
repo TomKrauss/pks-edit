@@ -6,6 +6,7 @@
 #define IDS_MARKGOTO                    1
 #define IDS_MARKSET                     2
 #define IDS_MACROESCAPE                 3
+#define IDBUT3                          3
 #define IDS_GETBLOCK                    4
 #define IDS_COMPRESSTABS                7
 #define IDS_EXPANDTABS                  8
@@ -227,6 +228,8 @@
 #define IDS_NO_MACROS_DEFINED           190
 #define IDS_ENTER_PASSWORD_TO_ENCRYPT   191
 #define IDS_ENTER_PASSWORD_TO_DECRYPT   192
+#define IDS_INSERT                      193
+#define IDS_CREATE_BUFFER               195
 #define IDM_UNDO                        210
 #define IDM_DOAGAIN                     211
 #define IDM_ERASEBLOCK                  212
@@ -243,7 +246,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        194
+#define _APS_NEXT_RESOURCE_VALUE        196
 #define _APS_NEXT_COMMAND_VALUE         40008
 #define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           101

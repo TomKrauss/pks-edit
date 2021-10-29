@@ -190,6 +190,9 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		EndPaint(hwnd, &ps);
 		return 0;
 	}
+	case WM_DESTROY:
+		free(pszStatusMessage);
+		break;
 	case WM_ERASEBKGND: {
 		THEME_DATA* pTheme = theme_getCurrent();
 		if (pTheme->th_isWinTheme) {

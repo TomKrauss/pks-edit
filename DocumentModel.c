@@ -28,7 +28,7 @@
 #include "arraylist.h"
 
 extern int 	_flushing;
-extern PASTE* bl_addrbyid(char* pszId, int insert);
+extern PASTE* bl_addrbyid(char* pszId, int insert, PASTE_LIST_TYPE tType);
 
 // TODO: get rid of this hack.
 char* _linebuf;
@@ -352,7 +352,7 @@ void ft_cutMarkedLines(FTABLE *fp, BOOL bDelete)
 	LINE *		lpnext;
 	PASTE *		pb;
 
-	pb = bl_addrbyid(0, 0);
+	pb = bl_addrbyid(0, 0, PLT_CLIPBOARD);
 
 	lp = fp->firstl;
 	bl_free(pb);

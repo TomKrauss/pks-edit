@@ -20,7 +20,9 @@
   and internal changes.
 - One can now move the current selection (or - if no selection exists - current line) up and down using Alt+UP and Alt+DOWN respectively.
 - Accessing copying and pasting to and from named buffers was made more accessible. Operations with named buffers are now available
-  through the extended edit menu.
+  through the extended edit menu. The PKS Edit clipboard list may now also save a history of all clipboard contents created during
+  a PKS Edit session (currently only privately created clipboards are considered). To enable the clipboard history, you must set
+  the corresponding configuration option in the PKS Edit configuration in the "Autosave" settings tab.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 

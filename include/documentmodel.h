@@ -84,10 +84,13 @@ typedef struct pastebuf {
 	int  	pflg;		/* used for macros */
 } PASTE;
 
-typedef struct pastelist {
-	struct pastelist *next;
-	char			pl_id[32];	/* name of buffer */
-	PASTE			pbuf;
+typedef enum { PLT_CLIPBOARD, PLT_HISTORY, PLT_NAMED_BUFFER } PASTE_LIST_TYPE;
+
+typedef struct tagPASTELIST {
+	struct tagPASTELIST *pl_next;		// next paste buffer  - important, that this the 1st struct element to be compatible with LINKED_LIST
+	char			pl_id[32];			// name of buffer - important, that this the 2nd struct element to be compatible with LINKED_LIST
+	PASTE_LIST_TYPE pl_type;			// the type of this buffer: is it the current standard clip, a previous clip or an explicitly defined named buffer
+	PASTE			pl_pasteBuffer;		// The actual data
 } PASTELIST;
 
 /* should ideally extend CARET */

@@ -97,13 +97,6 @@ extern int dlg_displayRecordMacroOptions(int* o);
  */
 extern void dlg_help(void);
 
-#if defined(LINKEDLIST_H)
-/*--------------------------------------------------------------------------
- * dlg_selectNamedClipboard()
- */
-char* dlg_selectNamedClipboard(char* pszSelected, char* (*fpTextForTmplate)(char* pszBufferName), LINKED_LIST* pszAllTemplates, BOOL bCreate);
-#endif
-
 /*--------------------------------------------------------------------------
  * dlg_closeQueryReplace()
  * Closes the query replace dialog.

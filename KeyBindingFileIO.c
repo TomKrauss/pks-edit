@@ -167,7 +167,7 @@ static PASTE *macro_findTextBuffer(LINE **lp,unsigned char *s,PASTELIST **pl,int
 	char szId[2];
 	szId[0] = id;
 	szId[1] = 0;
-	if ((pp = bl_lookupPasteBuffer(szId,1,pl)) == 0L)
+	if ((pp = bl_lookupPasteBuffer(szId,1,PLT_NAMED_BUFFER, pl)) == 0L)
 		return 0;
 
 	if (defmacro) {
