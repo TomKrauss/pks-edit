@@ -836,6 +836,7 @@ void ww_destroy(WINFO *wp) {
 	wp->blend = 0;
 	wp->fp = NULL;
 	nId = wp->win_id;
+	SetWindowLongPtr(wp->ww_handle, GWL_VIEWPTR, 0);
 	if (!ll_delete(&_winlist,wp)) {
 		EdTRACE(log_errorArgs(DEBUG_ERR,"failed deleting window props"));
 	}
@@ -1241,6 +1242,7 @@ static WINFUNC WorkAreaWndProc(
 	}
 
 	case WM_DESTROY:
+		SetWindowLongPtr(hwnd, 0, 0);
 		return 0;
 
     }

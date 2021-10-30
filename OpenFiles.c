@@ -43,6 +43,14 @@
 #include "arraylist.h"
 #include "mainframe.h"
 
+/*
+ * Files bigger than this are not completely re-read on changes, but an attempt is performed
+ * to read only the new file contents appended to that file. Smaller files are always completely
+ * re-read as the probability, that smaller files are re-created is bigger and the cost for re-reading
+ * them completely is acceptable.
+ */
+#define APPEND_THRESHOLD_SIZE			100000
+
 extern WINFO* ww_findwinid(int winid);
 extern int 	EdPromptAutosavePath(char *path);
 
@@ -111,10 +119,13 @@ static int ft_appendFileChanges(FTABLE* fp) {
 	}
 	fp->fileSize = ftAppend.fileSize;
 	LINE* lpd = fp->lastl;
-	LINE* lpPrevious = lpd->prev;
 	int oldFlags = fp->flags;
 	int ret = ln_pasteLines(fp, ftAppend.firstl, ftAppend.lastl, lpd, 0, 0);
-	ln_removeFlag(lpPrevious, fp->lastl, LNMODIFIED);
+	int nLines = ln_cnt(ftAppend.firstl, ftAppend.lastl)-1;
+	LINE* lpPrevious = ln_relative(fp->lastl, -nLines);
+	if (lpPrevious) {
+		ln_removeFlag(lpPrevious, fp->lastl, LNMODIFIED);
+	}
 	ln_listfree(ftAppend.firstl);
 	ft_setFlags(fp, oldFlags);
 	render_repaintAllForFile(fp);
@@ -143,12 +154,14 @@ void ft_checkForChangedFiles(BOOL bActive) {
 	EDTIME		lCurrentTime;
 	
 	for (fp = _filelist; fp; fp = fp->next) {
-		if (fp->ti_created < (lCurrentTime = file_getAccessTime(fp->fname))) {
+		if (fp->ti_created != (lCurrentTime = file_getAccessTime(fp->fname))) {
 			WINFO* wp = WIPOI(fp);
 			if (wp) {
 				BOOL bLogMode = fp->flags & F_WATCH_LOGFILE;
 				if (bLogMode) {
-					ft_appendFileChanges(fp);
+					if (fp->fileSize < APPEND_THRESHOLD_SIZE || !ft_appendFileChanges(fp)) {
+						ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
+					}
 					caret_placeCursorInCurrentFile(wp, fp->nlines - 1, 0);
 				} else {
 					if (!bActive) {

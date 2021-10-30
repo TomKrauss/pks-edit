@@ -366,7 +366,14 @@ nullfile:
 			fd = (int)(uintptr_t)fileHandle;
 		}
 		if (fFileOffset) {
+			LARGE_INTEGER fileSize;
+			if (!GetFileSizeEx(fileHandle, &fileSize) || fileSize.QuadPart < fFileOffset) {
+				CloseHandle(fileHandle);
+				// File was truncated.
+				return 0;
+			}
 			if (_llseek(fd, fFileOffset, SEEK_SET) != fFileOffset) {
+				CloseHandle(fileHandle);
 				return 0;
 			}
 		} else {
