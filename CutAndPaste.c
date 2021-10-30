@@ -168,15 +168,7 @@ char *bl_getTextForClipboardNamed(PASTE* pp, BOOL bDefaultClipboard) {
 /* bl_getNamedBuffer() 			*/
 /*----------------------------*/
 static char* bl_getNamedBuffer(BOOL bNewBuffer) {
-	static char _lastSelectedBuffer[64];
-	char* pszResult;
-
-	pszResult = bl_showClipboardList(_lastSelectedBuffer, bNewBuffer ? SNCO_CREATE : SNCO_SELECT);
-	if (pszResult) {
-		strcpy(_lastSelectedBuffer, pszResult);
-		return _lastSelectedBuffer;
-	}
-	return 0;
+	return bl_showClipboardList(bNewBuffer ? SNCO_CREATE : SNCO_SELECT);
 }
 
 /*---------------------------------*/

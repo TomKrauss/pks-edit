@@ -577,21 +577,48 @@ EXPORT PASTE *bl_getTextBlock(char* pszId, PASTELIST *pl) {
 	return (pl == 0) ? (PASTE *) 0 : &pl->pl_pasteBuffer;
 }
 
+static BOOL bl_isEqualBuffer(PASTE* pb1, PASTE* pb2) {
+	LINE* lp1 = pb1->pln;
+	LINE* lp2 = pb2->pln;
+
+	while (lp1 && lp2) {
+		if (lp1->len != lp2->len || (lp1->lflg & (LNNOCR | LNNOTERM)) != (lp2->lflg & (LNNOCR | LNNOTERM))) {
+			return FALSE;
+		}
+		if (memcmp(lp1->lbuf, lp2->lbuf, lp1->len) != 0) {
+			return FALSE;
+		}
+		lp1 = lp1->next;
+		lp2 = lp2->next;
+	}
+	return lp1 == NULL && lp2 == NULL;
+}
+
 /*
  * bl_makeHistoryEntry()
  * Create a new paste list element to store a history buffer.
+ * A history entry will only be created, if no identical buffer 
+ * already exists (containing the same contents).
  */
-static PASTELIST* bl_makeHistoryEntry() {
+static PASTELIST* bl_makeHistoryEntry(PASTE* pBuf) {
 	int nHistory = 1;
 	char szName[32];
 
 	for (PASTELIST* pl = _plist; pl; pl = pl->pl_next) {
 		if (pl->pl_type == PLT_HISTORY) {
+			if (bl_isEqualBuffer(pBuf, &pl->pl_pasteBuffer)) {
+				return NULL;
+			}
 			nHistory++;
 		}
 	}
 	sprintf(szName, "#clip-%d", nHistory);
-	return bl_lookupPasteList(szName, TRUE, PLT_HISTORY, &_plist);
+	PASTELIST* pl = bl_lookupPasteList(szName, TRUE, PLT_HISTORY, &_plist);
+	if (pl) {
+		memcpy(&pl->pl_pasteBuffer, pBuf, sizeof * pBuf);
+		memset(pBuf, 0, sizeof * pBuf);
+	}
+	return pl;
 }
 
 /*--------------------------------------------------------------------------
@@ -608,10 +635,8 @@ static PASTELIST* bl_lookupPasteList(char* pszId, int bInsert, PASTE_LIST_TYPE t
 		if (bInsert) {
 			if (tType == PLT_CLIPBOARD) {
 				if (GetConfiguration()->options & O_SAVE_CLIPBOARD_HISTORY) {
-					PASTELIST* plHistory = bl_makeHistoryEntry();
+					PASTELIST* plHistory = bl_makeHistoryEntry(pp);
 					if (plHistory) {
-						memcpy(&plHistory->pl_pasteBuffer, pp, sizeof * pp);
-						memset(pp, 0, sizeof * pp);
 						return pl;
 					}
 				}
@@ -667,46 +692,59 @@ BOOL bl_hasClipboardBlock(char* pszId) {
 }
 
 /*
+ * Return the pastelist element selected in the dialog. 
+ */
+static PASTELIST* bl_getSelectedPastelist(HWND hDlg) {
+	LRESULT nIndex = SendDlgItemMessage(hDlg, IDD_ICONLIST, LB_GETCURSEL, 0, 0);
+	if (nIndex == LB_ERR) {
+		return NULL;
+	}
+	LRESULT result = SendDlgItemMessage(hDlg, IDD_ICONLIST, LB_GETITEMDATA, nIndex, 0);
+	if (result == LB_ERR) {
+		return NULL;
+	}
+	return (PASTELIST*)result;
+}
+
+/*
  * An item in the template list was selected - update enablement etc...
  */
-static void dlg_templateSelected(HWND hdlg) {
-	DWORD nItem = (DWORD)SendDlgItemMessage(hdlg, IDD_ICONLIST, LB_GETCURSEL, 0, 0);
-	PASTELIST* pl = nItem >= 0 ? (PASTELIST*)SendDlgItemMessage(hdlg, IDD_ICONLIST, LB_GETITEMDATA, nItem, 0) : 0;
+static SELECT_NAMED_CLIPBOARD_ACTION bl_namedClipboardDialogAction;
+static void bl_templateSelected(HWND hdlg) {
+	PASTELIST* pl = bl_getSelectedPastelist(hdlg);
 	BOOL bEnable = pl != NULL && pl->pl_type != PLT_CLIPBOARD;
 	EnableWindow(GetDlgItem(hdlg, IDD_BUT3), bEnable);
+	EnableWindow(GetDlgItem(hdlg, IDOK), bl_namedClipboardDialogAction != SNCO_SELECT || pl != NULL);
+	if (bl_namedClipboardDialogAction == SNCO_SELECT && !pl) {
+		SetWindowText(GetDlgItem(hdlg, IDD_RO1), "");
+	}
 }
 
 /*--------------------------------------------------------------------------
- * dlg_namedBuffersOnSelectionChange()
+ * bl_namedBuffersOnSelectionChange()
  */
-static char* dlg_defaultClipboardName = "#default";
-static void dlg_namedBuffersOnSelectionChange(HWND hDlg, int nItem, int nNotify, void* p) {
+static char* bl_defaultClipboardName = "#default";
+static void bl_namedBuffersOnSelectionChange(HWND hDlg, int nItem, int nNotify, void* unused) {
 	char* pszTemplateContents;
 
 	if (nNotify != LBN_SELCHANGE) {
 		return;
 	}
-	LRESULT nIndex = SendDlgItemMessage(hDlg, IDD_ICONLIST, LB_GETCURSEL, 0, 0);
-	if (nIndex == LB_ERR) {
-		SetWindowText(GetDlgItem(hDlg, IDD_RO1), "");
-		return;
+
+	PASTELIST* pl = bl_getSelectedPastelist(hDlg);
+	if (pl != NULL) {
+		pszTemplateContents = bl_getTextForClipboardNamed(&pl->pl_pasteBuffer, pl->pl_type == PLT_CLIPBOARD);
+		SendDlgItemMessage(hDlg, IDD_RO1, EM_SETREADONLY, (WPARAM)TRUE, 0L);
+		SetWindowText(GetDlgItem(hDlg, IDD_RO1), pszTemplateContents);
+		SetWindowText(GetDlgItem(hDlg, IDD_STRING1), pl->pl_id);
 	}
-	LRESULT result = SendDlgItemMessage(hDlg, nItem, LB_GETITEMDATA, nIndex, 0);
-	if (result == LB_ERR) {
-		return;
-	}
-	PASTELIST* pl = (PASTELIST*)result;
-	pszTemplateContents = bl_getTextForClipboardNamed(&pl->pl_pasteBuffer, pl->pl_type == PLT_CLIPBOARD);
-	SendDlgItemMessage(hDlg, IDD_RO1, EM_SETREADONLY, (WPARAM)TRUE, 0L);
-	SetWindowText(GetDlgItem(hDlg, IDD_RO1), pszTemplateContents);
-	SetWindowText(GetDlgItem(hDlg, IDD_STRING1), pl->pl_id);
-	dlg_templateSelected(hDlg);
+	bl_templateSelected(hDlg);
 }
 
 /*------------------------------------------------------------
- * dlg_namedBuffersFillListbox()
+ * bl_namedBuffersFillListbox()
  */
-static void dlg_namedBuffersFillListbox(HWND hwnd, int nItem, void* selValue) {
+static void bl_namedBuffersFillListbox(HWND hwnd, int nItem, void* unused) {
 	PASTELIST* pl;
 	char* pszSelect;
 
@@ -715,21 +753,18 @@ static void dlg_namedBuffersFillListbox(HWND hwnd, int nItem, void* selValue) {
 	if (!pl) {
 		return;
 	}
-	if (!selValue) {
-		char szText[32];
-		GetWindowText(GetDlgItem(hwnd, IDD_STRING1), szText, sizeof szText);
-		selValue = szText;
-	}
-	pszSelect = (char*)(uintptr_t)selValue;
-	if (!pszSelect || !pszSelect[0]) {
-		pszSelect = dlg_defaultClipboardName;
+	char szText[32];
+	GetWindowText(GetDlgItem(hwnd, IDD_STRING1), szText, sizeof szText);
+	pszSelect = szText;
+	if (!pszSelect[0]) {
+		pszSelect = bl_defaultClipboardName;
 	}
 	BOOL bOnlyNamed = SendDlgItemMessage(hwnd, IDD_OPT1, BM_GETCHECK, 0, 0) == BST_CHECKED;
 	while (pl) {
 		if (!bOnlyNamed || pl->pl_type == PLT_NAMED_BUFFER) {
 			char* pszName = pl->pl_id;
 			if (pszName[0] == 0) {
-				pszName = dlg_defaultClipboardName;
+				pszName = bl_defaultClipboardName;
 			}
 			int nIndex = (int)SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, (LPARAM)(LPSTR)pszName);
 			SendDlgItemMessage(hwnd, nItem, LB_SETITEMDATA, nIndex, (LPARAM)pl);
@@ -739,27 +774,26 @@ static void dlg_namedBuffersFillListbox(HWND hwnd, int nItem, void* selValue) {
 	if (pszSelect) {
 		SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING, -1, (LPARAM)pszSelect);
 	}
-	dlg_namedBuffersOnSelectionChange(hwnd, nItem, LBN_SELCHANGE, (void*)0);
+	bl_namedBuffersOnSelectionChange(hwnd, nItem, LBN_SELCHANGE, (void*)0);
 }
 
 /*
  * Custom dialog procedure for clipboard selector.
  */
-static SELECT_NAMED_CLIPBOARD_OPTION dlg_namedClipboardCreateFlag;
-static INT_PTR dlg_namedClipboardDialogProc(HWND hdlg, UINT wMessage, WPARAM wParam, LPARAM lParam) {
+static INT_PTR bl_namedClipboardDialogProc(HWND hdlg, UINT wMessage, WPARAM wParam, LPARAM lParam) {
 	switch (wMessage) {
 	case WM_INITDIALOG: {
 		HWND hwndControl = GetDlgItem(hdlg, IDD_STRING1);
 		DWORD nItem = (DWORD)SendDlgItemMessage(hdlg, IDD_ICONLIST, LB_GETCURSEL, 0, 0);
-		if (dlg_namedClipboardCreateFlag == SNCO_LIST) {
+		if (bl_namedClipboardDialogAction == SNCO_LIST) {
 			EnableWindow(GetDlgItem(hdlg, IDD_BUT3), FALSE);
 		}
-		if (dlg_namedClipboardCreateFlag == SNCO_CREATE) {
+		if (bl_namedClipboardDialogAction == SNCO_CREATE) {
 			PostMessage(hdlg, WM_NEXTDLGCTL, (WPARAM)hwndControl, TRUE);
 			SetWindowText(GetDlgItem(hdlg, IDOK), dlg_getResourceString(IDS_CREATE_BUFFER));
 		} else {
 			EnableWindow(hwndControl, FALSE);
-			if (dlg_namedClipboardCreateFlag == SNCO_SELECT) {
+			if (bl_namedClipboardDialogAction == SNCO_SELECT) {
 				SetWindowText(GetDlgItem(hdlg, IDOK), dlg_getResourceString(IDS_INSERT));
 			}
 		}
@@ -773,10 +807,10 @@ static INT_PTR dlg_namedClipboardDialogProc(HWND hdlg, UINT wMessage, WPARAM wPa
 				SendDlgItemMessage(hdlg, IDD_ICONLIST, LB_GETTEXT, nItem, (LPARAM)szText);
 				bl_deleteBufferNamed(szText);
 			}
-			dlg_namedBuffersFillListbox(hdlg, IDD_ICONLIST, 0);
+			bl_namedBuffersFillListbox(hdlg, IDD_ICONLIST, 0);
 			return 0;
 		} else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDD_OPT1) {
-			dlg_namedBuffersFillListbox(hdlg, IDD_ICONLIST, 0);
+			bl_namedBuffersFillListbox(hdlg, IDD_ICONLIST, 0);
 			return 0;
 		}
 		break;
@@ -791,12 +825,12 @@ static INT_PTR dlg_namedClipboardDialogProc(HWND hdlg, UINT wMessage, WPARAM wPa
  * displays the clipboard list for the purpose of viewing or selecting or adding a named item
  * to the clipboard.
  */
-char* bl_showClipboardList(char* pszSelected, SELECT_NAMED_CLIPBOARD_OPTION bOption) {
+char* bl_showClipboardList(SELECT_NAMED_CLIPBOARD_ACTION bOption) {
 	static char selectedTemplate[32];
 	ITEMS	_i = { C_STRING1PAR, selectedTemplate };
 	PARAMS	_bgc = { DIM(_i), P_MAYOPEN, _i };
 	DIALLIST tmplatelist = {
-		(long long*)&pszSelected, dlg_namedBuffersFillListbox, dlg_getListboxText, 0, 0, dlg_namedBuffersOnSelectionChange };
+		NULL, bl_namedBuffersFillListbox, dlg_getListboxText, 0, 0, bl_namedBuffersOnSelectionChange };
 	DIALPARS _d[] = {
 		IDD_POSITIONTCURS,	0,			0,
 		IDD_ICONLIST,		0,			&tmplatelist,
@@ -804,12 +838,12 @@ char* bl_showClipboardList(char* pszSelected, SELECT_NAMED_CLIPBOARD_OPTION bOpt
 		0
 	};
 
-	dlg_namedClipboardCreateFlag = bOption;
-	int ret = win_callDialogCB(DLGSELTMPLATE, &_bgc, _d, NULL, dlg_namedClipboardDialogProc);
+	bl_namedClipboardDialogAction = bOption;
+	int ret = win_callDialogCB(DLGSELTMPLATE, NULL, _d, NULL, bl_namedClipboardDialogProc);
 	if (!ret) {
 		return 0;
 	}
-	if (strcmp(selectedTemplate, dlg_defaultClipboardName) == 0) {
+	if (strcmp(selectedTemplate, bl_defaultClipboardName) == 0) {
 		selectedTemplate[0] = 0;
 	}
 	return selectedTemplate;

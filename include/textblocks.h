@@ -82,8 +82,8 @@ extern char* bl_getTextForClipboardNamed(PASTE* pp, BOOL bDefaultClipboard);
  * displays the clipboard list for the purpose of viewing or selecting or adding a named item
  * to the clipboard.
  */
-typedef enum { SNCO_CREATE, SNCO_LIST, SNCO_SELECT } SELECT_NAMED_CLIPBOARD_OPTION;
-char* bl_showClipboardList(char* pszSelected, SELECT_NAMED_CLIPBOARD_OPTION nOption);
+typedef enum { SNCO_CREATE, SNCO_LIST, SNCO_SELECT } SELECT_NAMED_CLIPBOARD_ACTION;
+char* bl_showClipboardList(SELECT_NAMED_CLIPBOARD_ACTION nOption);
 
 /*--------------------------------------------------------------------------
  * EdGetSelectedText()

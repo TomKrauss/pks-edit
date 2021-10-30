@@ -339,15 +339,18 @@ static int dlg_getComboBoxText(HWND hwnd, int id, void *szBuff)
 /*--------------------------------------------------------------------------
  * dlg_getListboxText()
  */
-int dlg_getListboxText(HWND hwnd, int id, void *szBuff) { 	
+int dlg_getListboxText(HWND hwnd, int id, void *pszBuf) { 	
 	LRESULT	  item;
 
+	if (!pszBuf) {
+		return 1;
+	}
 	item = SendDlgItemMessage(hwnd,id,LB_GETCURSEL,0,0);
 	if (item == LB_ERR) {
-		*((char *)szBuff) = 0;
+		*((char *)pszBuf) = 0;
 		return LB_ERR;
 	}
-	SendDlgItemMessage(hwnd,id,LB_GETTEXT,item,(LPARAM)szBuff);
+	SendDlgItemMessage(hwnd,id,LB_GETTEXT,item,(LPARAM)pszBuf);
 	return 1;
 }
 
@@ -410,7 +413,8 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 			case IDD_ICONLIST:
 			case IDD_FONTSEL2COLOR:
 				dlp = (DIALLIST*)dp->dp_data;
-				(*dlp->li_fill)(hDlg,item, (void*) (intptr_t) *dlp->li_param);
+				void* pArg = dlp->li_param ? (void*)(intptr_t)*dlp->li_param : 0;
+				(*dlp->li_fill)(hDlg,item, pArg);
 				break;
 			case IDD_CSEL:
 				SendDlgItemMessage(hDlg,item,WM_CHARCHANGE,

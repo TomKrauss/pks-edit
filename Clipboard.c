@@ -168,7 +168,7 @@ EXPORT int clp_getdata(void)
  * EdShowClipboard()
  */
 EXPORT int EdShowClipboard(char* pszBuffer) {
-	bl_showClipboardList(0, SNCO_LIST);
+	bl_showClipboardList(SNCO_LIST);
 	return 1;
 }
 
