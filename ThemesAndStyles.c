@@ -1158,6 +1158,20 @@ static BOOL theme_prepareControlsForDarkMode(HWND hwndControl, LONG lParam) {
 		return TRUE;
 	} else if (strcmp(WC_LISTBOX, szClassname) == 0) {
 		SetWindowTheme(hwndControl, DARKMODE_THEME, NULL);
+	} else if (strcmp(WC_LISTVIEW, szClassname) == 0) {
+		THEME_DATA* pTheme = theme_getCurrent();
+		if (pTheme->th_isDarkMode) {
+			// This is supposed to work, but it does not.
+			HWND hwndHeader = ListView_GetHeader(hwndControl);
+			darkmode_allowForWindow(hwndHeader, TRUE);
+			SetWindowTheme(hwndHeader, L"ItemsView", 0);
+			darkmode_allowForWindow(hwndControl, TRUE);
+			SetWindowTheme(hwndHeader, L"Explorer", 0);
+			// Work around
+			ListView_SetBkColor(hwndControl, pTheme->th_dialogBackground);
+			ListView_SetTextColor(hwndControl, pTheme->th_dialogForeground);
+			ListView_SetTextBkColor(hwndControl, pTheme->th_dialogBackground);
+		}
 	}
 	return TRUE;
 }

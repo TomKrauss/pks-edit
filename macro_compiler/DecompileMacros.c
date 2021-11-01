@@ -498,9 +498,9 @@ int macro_saveMacrosAndDisplay(char *macroname)
 	_macroname = macroname;
 	if (macroname) {
 		strmaxcpy(szBuf, _macroname, 8);
-		strcat(szBuf, ".PKC");
+		strcat(szBuf, ".pkc");
 	} else {
-		strcpy(szBuf, "MACROS.PKC");
+		strcpy(szBuf, "macros.pkc");
 	}
 	return macro_createFileAndDisplay(szBuf, macro_printMacrosCallback);
 }

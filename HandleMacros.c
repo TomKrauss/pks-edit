@@ -120,6 +120,20 @@ char *code2mouse(MOUSECODE code)
 	return b;
 }
 
+/*
+ * Returns a macro by a given index or NULL if the index does not
+ * lie in the valid index range. Can be used to iterate all macros.
+ */
+char* macro_getCommandByIndex(int nIndex) {
+	if (nIndex < 0 || nIndex >= _ncmdseq) {
+		return 0;
+	}
+	static char szMac[80];
+	strcpy(szMac + 1, _cmdseqtab[nIndex].c_name);
+	szMac[0] = '@';
+	return szMac;
+}
+
 /*--------------------------------------------------------------------------
  * macro_getCmdIndexByName()
  */

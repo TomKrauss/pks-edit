@@ -131,9 +131,9 @@ BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 			EdFileAbandon();
 		}
 		else {
-			FTABLE* fp = ft_openFileWithoutFileselector(tmpfn,-1L, (void *)0);
-			if (fp != NULL) {
-				fp->flags |= F_TRANSIENT;
+			FTABLE* fpTable = ft_openFileWithoutFileselector(tmpfn,-1L, (void *)0);
+			if (fpTable != NULL) {
+				fpTable->flags |= F_TRANSIENT;
 			}
 		}
 	} else {

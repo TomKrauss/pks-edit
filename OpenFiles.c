@@ -155,12 +155,18 @@ void ft_checkForChangedFiles(BOOL bActive) {
 	
 	for (fp = _filelist; fp; fp = fp->next) {
 		if (fp->ti_created != (lCurrentTime = file_getAccessTime(fp->fname))) {
+			if (lCurrentTime == 0) {
+				// File was deleted on disk - for now ignore. There are valid cases for this anyways: temporary macro files etc....
+				continue;
+			}
 			WINFO* wp = WIPOI(fp);
 			if (wp) {
 				BOOL bLogMode = fp->flags & F_WATCH_LOGFILE;
 				if (bLogMode) {
 					if (fp->fileSize < APPEND_THRESHOLD_SIZE || !ft_appendFileChanges(fp)) {
 						ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
+						// may make the list of files invalid.
+						break;
 					}
 					caret_placeCursorInCurrentFile(wp, fp->nlines - 1, 0);
 				} else {
@@ -170,6 +176,8 @@ void ft_checkForChangedFiles(BOOL bActive) {
 					EdSelectWindow(wp->win_id);
 					if (error_displayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
 						ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
+						// may make the list of files invalid.
+						break;
 					}
 				}
 			}

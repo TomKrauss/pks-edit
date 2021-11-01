@@ -40,6 +40,7 @@
    -- "Line Selection" mode is an alternative to Column Selection and Normal selection mode, where selecting text with the caret or
       the mouse will result always in complete lines being selected.
    -- "Preserve Caret Column" can be switched off to have the caret not preserve its column position when moving vertically through a window
+- Code completion is available now, when editing key and mouse bindings in PKS Edit.
 
 ### Changed
 - Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather

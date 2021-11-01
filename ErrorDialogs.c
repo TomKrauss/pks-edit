@@ -59,7 +59,7 @@ static LRESULT WINAPI error_messageBoxHook(int nCode, WPARAM wParam, LPARAM lPar
  * error_displayAlertBoxWithOptions()
  */
 int error_displayAlertBoxWithOptions(long unused, long buttons, const char* fmt) {
-	if (!fmt) {
+	if (!fmt || hHook) {
 		return -1;
 	}
 	wchar_t szwAppName[64];
@@ -99,6 +99,7 @@ int error_displayAlertBoxWithOptions(long unused, long buttons, const char* fmt)
 	int ret;
 	TaskDialog(hwndMain, hInst, szwAppName, szwFmt, szwDetails, nButtons, nIcon, &ret);
 	UnhookWindowsHookEx(hHook);
+	hHook = NULL;
 	return ret;
 }
 

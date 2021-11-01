@@ -86,7 +86,7 @@ MACRO *			_macrotab[MAXMACRO];
 int				_lastinsertedmac = -1;
 int				_macedited;
 int				_fkeysdirty;
-MACROREF			currentSelectedMacro;
+MACROREF		currentSelectedMacro;
 /*
  * Start the recorder.
  */

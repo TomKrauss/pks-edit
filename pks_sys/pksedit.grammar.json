@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "pksedit",
+      "analyzer": "pks-macros",
       "patterns": [
         {
           "match": "//.*",

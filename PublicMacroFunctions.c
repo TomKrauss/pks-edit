@@ -15,6 +15,7 @@
  */
 
 #include <windows.h>
+#include <CommCtrl.h>
 #include <direct.h>
 #include <stdio.h>
 #include "trace.h"
@@ -27,6 +28,7 @@
 #include "pksedit.h"
 #include "dial2.h"
 #include "pksrc.h"
+#include "resource.h"
 #include "edfuncs.h"
 #include "history.h"
 #include "xdialog.h"
@@ -64,7 +66,7 @@ extern int 		doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATIO
 extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		mac_compileMacros(void);
-extern int		doctypes_addDocumentTypesToListBox(HWND hwnd, int nItem);
+extern int		doctypes_addDocumentTypesToListView(HWND hwnd, void* pSelected);
 
 extern long		_multiplier;
 
@@ -862,7 +864,7 @@ int EdFilesCompare(int dir) {
 static void docTypeNewType(HWND hDlg);
 static void docTypeDeleteType(HWND hDlg);
 static void docTypeApply(void);
-static void docTypeChangeType(HWND hDlg);
+static void doctypes_changeType(HWND hDlg);
 static void docTypeFillParameters(DIALPARS *dp, void *par);
 static DIALPARS docTypePars[] = 
 {
@@ -872,82 +874,21 @@ static DIALPARS docTypePars[] =
 	IDD_STRING5,		84,						0,
 	IDD_STRING3,		32,						0,
 	IDD_OPT1,			1,						0,
-	IDD_WINDOWLIST,	0,						0,
-	IDD_CALLBACK1,		0,						docTypeChangeType,
+	IDD_CALLBACK1,		0,						doctypes_changeType,
 	IDD_CALLBACK2,		0,						docTypeDeleteType,
 	IDD_CALLBACK3,		0,						docTypeApply,
 	IDD_NOINITCALLBACK,	0,						docTypeNewType,
 	0
 };
 
-#define	  NVDOCTYPEPARS						6
-
-static void doclist_command(HWND hDlg, int nItem, int nNotify, void *pUser)
-{
-	switch(nNotify) {
-	case LBN_SELCHANGE:
-	case LBN_DBLCLK:
-		dlg_getListboxText(hDlg, nItem, pUser);
-		if (nNotify == LBN_SELCHANGE) {
-			docTypeFillParameters(docTypePars, *(FTABLE **)pUser);
-			DoDlgInitPars(hDlg, docTypePars, NVDOCTYPEPARS);
-		} else {
-			PostMessage(hDlg, WM_COMMAND, IDD_CALLBACK3, 0L);
-		}
-	}
-}
+#define	  NVDOCTYPEPARS						5
 
 /*------------------------------------------------------------
  * docTypeFillListbox()
  */
-static void docTypeFillListbox(HWND hwnd, int nItem, void* selValue)
-{
-	SendDlgItemMessage(hwnd, nItem, LB_RESETCONTENT, 0, 0L);
-	if (doctypes_addDocumentTypesToListBox(hwnd, nItem)) {
-		SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING, (WPARAM)-1, (LPARAM)selValue);
-	}
-}
-
-/*------------------------------------------------------------
- * ic_measureIconTypeItem()
- */
-static void docTypeLboxMeasureitem(MEASUREITEMSTRUCT* mp)
-{
-	mp->itemHeight = 22;
-}
-
-
-/*------------------------------------------------------------
- * DocTypelboxdraw()
- */
-static void docTypeOwnerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
-{
-	char	*	pszId;
-	char *		pszDescription;
-	char*		pszMatch;
-	SIZE		size;
-	SIZE		sizeDescription;
-	int		nLen;
-	int		nY;
-	int		spacing = 3;
-
-	if (!doctypes_getDocumentTypeDescription(par, 
-		&pszId, &pszDescription, &pszMatch, (char **)0, (char**)0, (int **)0)) {
-		return;
-	}
-	nLen = lstrlen(pszId);
-	GetTextExtentPoint(hdc, pszId, nLen, &size);
-	GetTextExtentPoint(hdc, pszDescription, lstrlen(pszDescription), &sizeDescription);
-	int iconWidth = 16;
-	int dTop = (rcp->bottom - rcp->top - iconWidth) / 2;
-	SHFILEINFO sfi = { 0 };
-	SHGetFileInfo(pszMatch, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES);
-	if (sfi.hIcon) {
-		DrawIconEx(hdc, rcp->left + spacing, rcp->top+dTop, sfi.hIcon, iconWidth, iconWidth, 0, NULL, DI_NORMAL);
-	}
-	dTop = nY = (rcp->bottom - rcp->top - size.cy) / 2;
-	TextOut(hdc, rcp->left + 2*spacing + iconWidth, rcp->top + dTop, pszId, nLen);
-	TextOut(hdc, rcp->left + 220, rcp->top + dTop, pszDescription, lstrlen(pszDescription));
+static void docTypeFillListbox(HWND hwnd, void* selValue) {
+	HWND hwndList = GetDlgItem(hwnd, IDC_DOCTYPES);
+	doctypes_addDocumentTypesToListView(hwndList, selValue);
 }
 
 /*--------------------------------------------------------------------------
@@ -963,8 +904,8 @@ static void docTypeFillParameters(DIALPARS *dp, void *par)
 	int *	pOwn;
 
 	if (!doctypes_getDocumentTypeDescription(par, &pszId, &pszDescription, &pszMatch, 
-		&pszFname, &pszGrammar, &pOwn)) {
-		return;
+& pszFname, & pszGrammar, & pOwn)) {
+return;
 	}
 
 	dp->dp_data = pszId;					dp++;
@@ -981,8 +922,8 @@ static void docTypeFillParameters(DIALPARS *dp, void *par)
 DOCUMENT_TYPE* lastSelectedDocType;
 static void docTypeApply(void)
 {
-	EDIT_CONFIGURATION *	lp;
-	FTABLE *	fp;
+	EDIT_CONFIGURATION* lp;
+	FTABLE* fp;
 
 	if ((fp = ft_getCurrentDocument()) == 0) {
 		return;
@@ -990,7 +931,8 @@ static void docTypeApply(void)
 	if ((lp = doctypes_getDocumentTypeDescriptor(lastSelectedDocType)) != 0) {
 		if (!(fp->flags & F_MODIFIED)) {
 			ft_abandonFile(fp, lp);
-		} else {
+		}
+		else {
 			doctypes_assignDocumentTypeDescriptor(fp, lp);
 			doctypes_documentTypeChanged(TRUE);
 		}
@@ -1003,7 +945,7 @@ static void docTypeApply(void)
 static void docTypeNewType(HWND hDlg)
 {
 	lastSelectedDocType = doctypes_createDocumentType(lastSelectedDocType);
-	docTypeFillListbox(hDlg, IDD_WINDOWLIST, lastSelectedDocType);
+	docTypeFillListbox(hDlg, lastSelectedDocType);
 	docTypeFillParameters(docTypePars, lastSelectedDocType);
 	DoDlgRetreivePars(hDlg, docTypePars, NVDOCTYPEPARS);
 }
@@ -1015,17 +957,95 @@ static void docTypeDeleteType(HWND hDlg)
 {
 	doctypes_deleteDocumentType(lastSelectedDocType);
 	lastSelectedDocType = 0;
-	docTypeFillListbox(hDlg, IDD_WINDOWLIST, lastSelectedDocType);
+	docTypeFillListbox(hDlg, lastSelectedDocType);
 	docTypeFillParameters(docTypePars, lastSelectedDocType);
 }
 
 /*--------------------------------------------------------------------------
- * docTypeChangeType()
+ * doctypes_changeType()
  */
-static void docTypeChangeType(HWND hDlg)
+static void doctypes_changeType(HWND hDlg)
 {
 	DoDlgRetreivePars(hDlg, docTypePars, NVDOCTYPEPARS);
-	docTypeFillListbox(hDlg, IDD_WINDOWLIST, (void*)lastSelectedDocType);
+	docTypeFillListbox(hDlg, (void*)lastSelectedDocType);
+}
+
+/*
+ * Domain adapter for the list view displaying the document types.
+ */
+static void doctypes_getColumnParameters(NMLVDISPINFO* plvdi) {
+	char* pszId;
+	char* pszDescription;
+	char* pszMatch;
+	char* pszFname;
+	char* pszGrammar;
+	int* pOwn;
+
+	if (!doctypes_getDocumentTypeDescription((void*)plvdi->item.lParam, &pszId, &pszDescription, &pszMatch,
+		&pszFname, &pszGrammar, &pOwn)) {
+		return;
+	}
+	switch (plvdi->item.iSubItem)
+	{
+	case 0:
+		plvdi->item.pszText = pszId;
+		break;
+	case 1:
+		plvdi->item.pszText = pszDescription;
+		break;
+	case 2:
+		plvdi->item.pszText = pszMatch;
+		break;
+	}
+}
+
+static void doctype_initListView(HWND hwnd) {
+	LVCOLUMN lvc;
+
+	ListView_SetExtendedListViewStyleEx(hwnd, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+	lvc.iSubItem = 0;
+	lvc.pszText = "Type";
+	lvc.cx = 100;
+	lvc.fmt = LVCFMT_LEFT;
+
+	ListView_InsertColumn(hwnd, 0, &lvc);
+
+	lvc.pszText = "Description";
+	lvc.cx = 250;
+	lvc.iSubItem = 1;
+	ListView_InsertColumn(hwnd, 1, &lvc);
+
+	lvc.pszText = "Name pattern";
+	lvc.cx = 100;
+	lvc.iSubItem = 2;
+	ListView_InsertColumn(hwnd, 2, &lvc);
+}
+
+/*
+ * Custom dialog procedure for doctype dialog procedure.
+ */
+static INT_PTR doctype_dialogProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	switch (message) {
+	case WM_NOTIFY:
+		if (((LPNMHDR)lParam)->code == LVN_ITEMCHANGED) {
+			LPNMLISTVIEW pActivate = (LPNMLISTVIEW)lParam;
+			if (pActivate->uNewState) {
+				docTypeFillParameters(docTypePars, (void*)pActivate->lParam);
+				DoDlgInitPars(hwnd, docTypePars, NVDOCTYPEPARS);
+			}
+		} else if (((LPNMHDR)lParam)->code == LVN_GETDISPINFO) {
+			NMLVDISPINFO* plvdi = (NMLVDISPINFO*)lParam;
+			doctypes_getColumnParameters(plvdi);
+		}
+		break;
+	case WM_INITDIALOG:
+		doctype_initListView(GetDlgItem(hwnd, IDC_DOCTYPES));
+		docTypeFillListbox(hwnd, lastSelectedDocType);
+
+		break;
+	}
+	return dlg_standardDialogProcedure(hwnd, message, wParam, lParam);
 }
 
 /*--------------------------------------------------------------------------
@@ -1034,18 +1054,8 @@ static void docTypeChangeType(HWND hDlg)
 static int doDocumentTypes(int nDlg) {
 	int		nRet;
 	char		linname[128];
-	static DIALLIST dlist = {
-		(long long*)&lastSelectedDocType, 
-		docTypeFillListbox, 
-		dlg_getListboxText, 
-		docTypeLboxMeasureitem, 
-		docTypeOwnerDrawListboxItem, 
-		doclist_command
-	};
-
 	linname[0] = 0;
 
-	docTypePars[NVDOCTYPEPARS].dp_data = &dlist;
 	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE* fp = wp ? wp->fp : NULL;
 	EDIT_CONFIGURATION* pConfig = fp ? fp->documentDescriptor : NULL;
@@ -1053,7 +1063,7 @@ static int doDocumentTypes(int nDlg) {
 		pConfig ? pConfig->name : "default");
 
 	docTypeFillParameters(docTypePars, (void*)lastSelectedDocType);
-	if ((nRet = DoDialog(nDlg, dlg_standardDialogProcedure,docTypePars, NULL)) == IDCANCEL) {
+	if ((nRet = DoDialog(nDlg, doctype_dialogProcedure,docTypePars, NULL)) == IDCANCEL) {
 		lastSelectedDocType = 0;
 		return 0;
 	}

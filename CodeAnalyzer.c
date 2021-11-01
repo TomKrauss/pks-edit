@@ -23,6 +23,7 @@
 #include "winfo.h"
 #include "hashmap.h"
 #include "codeanalyzer.h"
+#include "edfuncs.h"
 
 typedef struct tagANALYZER {
 	struct tagANALYZER* an_next;
@@ -60,6 +61,19 @@ static void analyzer_extractWords(WINFO* wp, int (*fMatch)(char* pszMatch), ANAL
 		lp = lp->next;
 	}
 	stringbuf_destroy(pBuf);
+}
+
+/*
+ * Returns a possible macro name from the list of all PKS Edit macros defined, so we can use them
+ * as suggestions when editing macros.
+ */
+static void analyzer_getMacros(WINFO* wp, int (*fMatch)(char* pszMatch), ANALYZER_CALLBACK fCallback) {
+	char* pszWord;
+	for (int i = 0; (pszWord = macro_getCommandByIndex(i)) != 0; i++) {
+		if (fMatch(pszWord)) {
+			fCallback(pszWord);
+		}
+	}
 }
 
 /*
@@ -109,6 +123,7 @@ int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, int (*fMatc
  */
 void analyzer_registerDefaultAnalyzers() {
 	analyzer_register("words", analyzer_extractWords);
+	analyzer_register("pks-macros", analyzer_getMacros);
 }
 
 /*

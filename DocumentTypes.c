@@ -19,6 +19,7 @@
  */
 
 #include <windows.h>
+#include <CommCtrl.h>
 #include <stddef.h>
 #include <stdio.h>
 
@@ -205,16 +206,43 @@ int doctypes_countDocumentTypes(void)
 }
 
 /*--------------------------------------------------------------------------
- * doctypes_addDocumentTypesToListBox()
+ * doctypes_addDocumentTypesToListView()
+ * Adds all document types to a list view.
  */
-int doctypes_addDocumentTypesToListBox(HWND hwnd, int nItem)
-{
-	DOCUMENT_TYPE *		llp;
+int doctypes_addDocumentTypesToListView(HWND hwndList, void* pSelected) {
+	ListView_DeleteAllItems(hwndList);
+	DOCUMENT_TYPE* llp;
+	LVITEM lvI;
+	HIMAGELIST hSmall;
 	int			nCnt;
 
+	lvI.stateMask = LVIS_SELECTED| LVIS_FOCUSED;
+	lvI.state = 0;
+	hSmall = ImageList_Create(GetSystemMetrics(SM_CXSMICON),
+		GetSystemMetrics(SM_CYSMICON),
+		ILC_MASK, 1, 1);
+	int nSelected = -1;
 	for (llp = config.dc_types, nCnt = 0; llp != 0; llp = llp->ll_next) {
-		SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, (LPARAM)llp);
+		lvI.mask = LVIF_TEXT | LVIF_STATE | LVIF_PARAM | LVIF_IMAGE;
+		lvI.iItem = nCnt;
+		lvI.pszText = LPSTR_TEXTCALLBACK;
+		lvI.lParam = (LPARAM)llp;
+		lvI.iSubItem = 0;
+		lvI.iImage = nCnt;
+		if (pSelected == llp) {
+			nSelected = nCnt;
+		}
+		SHFILEINFO sfi = { 0 };
+		SHGetFileInfo(llp->ll_match, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES);
+		ImageList_AddIcon(hSmall, sfi.hIcon);
+		if (ListView_InsertItem(hwndList, &lvI) == -1) {
+			return FALSE;
+		}
 		nCnt++;
+	}
+	ListView_SetImageList(hwndList, hSmall, LVSIL_SMALL);
+	if (nSelected >= 0) {
+		ListView_SetItemState(hwndList, nSelected, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 	}
 	return nCnt;
 }

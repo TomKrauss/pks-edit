@@ -345,21 +345,6 @@ static int keycomp(KEYBIND *kp1, KEYBIND *kp2)
 }
 
 /*
- * tmpname()
- */
-char *tmpname(char *filename)
-{	static char fn[84];
-	static char *tmpdir;
-
-	if (tmpdir == 0) {
-		if ((tmpdir = getenv("TMPDIR")) == 0)
-			tmpdir = ".";
-	}
-	string_concatPathAndFilename(fn,tmpdir,filename);
-	return fn;
-}
-	
-/*
  * macro_printKeyBindingsCallback()
  */
 static int macro_printKeyBindingsCallback(FILE *fp)
@@ -389,7 +374,14 @@ static int macro_printKeyBindingsCallback(FILE *fp)
 			}
 		}
 		qsort(kpd,n,sizeof *kpd,(int (*)(const void*, const void*))keycomp);
-		fprintf(fp,"\n\n//----------------------------------------\n");
+		fprintf(fp, "\n\n//----------------------------------------\n");
+		fprintf(fp, "// This file contains the PKS Edit keyboard bindings\n");
+		fprintf(fp, "// To change the bindings\n");
+		fprintf(fp, "//   - add the keyboard shortcut (if in doubt use the insert shortcut function from the menu)\n");
+		fprintf(fp, "//   - add the command to bind to (code completion available)\n");
+		fprintf(fp, "//   - press F10 to compile this file\n");
+		fprintf(fp, "//   - save the new keyboard bindings using Save Macros...\n");
+		fprintf(fp,"//----------------------------------------\n");
 		fprintf(fp,"\n\noverride KEYS %s	# total %d bindings\n\n",
 			rtp->rt_name, n);
 
@@ -472,6 +464,12 @@ static int macro_printMouseBindingCallback(FILE *fp)
 			}
 		}
 		qsort(mpd,n,sizeof *mpd,(int (*)(const void*, const void*))mousecomp);
+		fprintf(fp, "// This file contains the PKS Edit mouse bindings\n");
+		fprintf(fp, "// To change the bindings\n");
+		fprintf(fp, "//   - add the mouse click specification\n");
+		fprintf(fp, "//   - add the command to bind to (code completion available)\n");
+		fprintf(fp, "//   - press F10 to compile this file\n");
+		fprintf(fp, "//   - save the new keyboard bindings using Save Macros...\n");
 		fprintf(fp,"\n\n//----------------------------------------\n");
 		fprintf(fp,"\n\noverride MOUSE %s	# total %d bindings\n\n",
 			rtp->rt_name, n);

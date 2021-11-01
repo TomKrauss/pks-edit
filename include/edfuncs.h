@@ -597,6 +597,12 @@ extern void macro_showHelpForMenu(int dMenuId);
  */
 extern int macro_getCmdIndexByName(char* name);
 
+/*
+ * Returns a macro by a given index or NULL if the index does not
+ * lie in the valid index range. Can be used to iterate all macros.
+ */
+extern char* macro_getCommandByIndex(int nIndex);
+
 /**
 * Execute a macro given a single line text to execute.
  */
