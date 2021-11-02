@@ -353,7 +353,7 @@ nullfile:
 		fp->nlines = 1;
 	} else {
 		file_getAccessTime(fp->fname, &fp->ti_created, &fp->ti_modified);
-		fileHandle = CreateFile(fp->fname, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, 0,
+		fileHandle = CreateFile(fp->fname, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, 0,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0); 
 		if (fileHandle == INVALID_HANDLE_VALUE) {
 			if ((fd = file_openFile(fp->fname)) < 0) {

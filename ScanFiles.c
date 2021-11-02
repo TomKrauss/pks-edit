@@ -36,9 +36,16 @@
 #include "crossreferencelinks.h"
 #include "mainframe.h"
 
-static char* _outfile;
-static long 	_line;
-static int 		_abortOnFirstMatch,_trymatch,_ignoreBinary;
+static struct tagSEARCH_CONTEXT {
+	FILE* sc_file;
+	FTABLE* sc_ftable;
+	char* sc_fileName;
+	long  sc_line;
+	size_t sc_matches;
+	size_t sc_files;
+} _searchContext;
+
+static int 	 _abortOnFirstMatch,_trymatch,_ignoreBinary;
 
 static const char* _grepFileFormat = "\"%s\", line %ld: %s";
 
@@ -47,49 +54,50 @@ static const char* _grepFileFormat = "\"%s\", line %ld: %s";
  */
 extern void xref_initSearchList(FTABLE* fp);
 
+/*
+ * Calculate the minimum of two values. 
+ */
+static const inline size_t xref_min(size_t val, size_t min) {
+	return val > min ? min : val;
+}
+
 /*--------------------------------------------------------------------------
  * find_inFilesMatchFound()
  * display info in abort dialog box and update the cross reference list.
  */
-static int _nfound;
 static RE_PATTERN* _compiledPattern;
 static void find_inFilesMatchFound(char *fn, int nStartCol, int nLength, char* pszLine) {
 	char szBuf[1024];
 
-	_nfound++;
-	error_showMessageInStatusbar(IDS_MSGNTIMESFOUND, _nfound);
+	_searchContext.sc_matches++;
 	if (nStartCol >= 0) {
 		wsprintf(szBuf, "%d/%d", nStartCol, nLength);
 		if (pszLine) {
 			strcat(szBuf, " - ");
-			size_t nLen = nStartCol;
-			if (nLen > 20) {
-				nLen = 20;
-			}
+			size_t nLen = xref_min(nStartCol, 20);
 			strncat(szBuf, &pszLine[nStartCol - nLen], nLen);
 			strcat(szBuf, "~");
-			strncat(szBuf, &pszLine[nStartCol], nLength);
+			nLen = xref_min(nLength, 50);
+			strncat(szBuf, &pszLine[nStartCol], nLen);
 			strcat(szBuf, "~");
 			char* pszEnd = &pszLine[nStartCol + nLength];
 			char* pszLineEnd = strchr(pszEnd, '\n');
-			nLen = pszLineEnd ? pszLineEnd - pszEnd : strlen(pszEnd);
-			if (nLen > 20) {
-				nLen = 20;
-			}
+			nLen = xref_min(pszLineEnd ? pszLineEnd - pszEnd : strlen(pszEnd), 20);
 			strncat(szBuf, pszEnd, nLen);
 		}
 	} else {
 		szBuf[0] = 0;
 	}
-	FILE* fp = fopen(_outfile, "a");
-	if (fp == 0) {
-		// TODO: error handling
-		return;
-	}
 	// TODO: why _line+1??
-	fprintf(fp, _grepFileFormat, fn, _line+1, szBuf);
-	fprintf(fp, "\n");
-	fclose(fp);
+	fprintf(_searchContext.sc_file, _grepFileFormat, fn, _searchContext.sc_line+1, szBuf);
+	fprintf(_searchContext.sc_file, "\n");
+	// Causes the UI of the error file preview to update.
+	if ((_searchContext.sc_matches < 1000 && (_searchContext.sc_matches % 100) == 1) ||
+		(_searchContext.sc_matches < 10000 && (_searchContext.sc_matches % 1000) == 1) ||
+		(_searchContext.sc_matches < 100000 && (_searchContext.sc_matches % 10000) == 1) ||
+		(_searchContext.sc_matches % 100000 == 1)) {
+		_searchContext.sc_ftable->ti_modified = 0;
+	}
 }
 
 /*--------------------------------------------------------------------------
@@ -125,12 +133,17 @@ longline_scan:
 			stepend = p-1;
 			if (stepend > q && stepend[-1] == '\r')
 				stepend--;
-			if (_compiledPattern != NULL && regex_match(_compiledPattern, q,stepend, &match)) {
-				find_inFilesMatchFound((char*)pFilename, (int)(match.loc1-q), (int)(match.loc2-match.loc1), q);
-				if (_abortOnFirstMatch)
-					return 0;
+			if (_compiledPattern != NULL) {
+				char* pLineStart = q;
+				while (q < stepend && regex_match(_compiledPattern, q, stepend, &match)) {
+					find_inFilesMatchFound((char*)pFilename, (int)(match.loc1 - pLineStart), (int)(match.loc2 - match.loc1), pLineStart);
+					q = match.loc2;
+					if (_abortOnFirstMatch) {
+						return 0;
+					}
+				}
 			}
-			_line++;
+			_searchContext.sc_line++;
 			q = p;
 		}
 	}
@@ -180,18 +193,22 @@ static int matchInFile(char *fn, DTA *stat) {
 #endif
 		return 0;
 
-	_line = 0L;
+	_searchContext.sc_line = 0L;
 
 	if ((fd = file_openFile(fn)) <= 0) {
 		return -1;
 	}
 
 	if (!_ignoreBinary || !scan_isBinaryFile(fd)) {
+		size_t nOldFound = _searchContext.sc_matches;
 		progress_showMonitorMessage(string_abbreviateFileName(fn));
 		if (!_trymatch) {
 			find_inFilesMatchFound(fn, -1, 0, 0);
 		} else {
 			ft_readDocumentFromFile(fd, find_inLine, fn);
+		}
+		if (nOldFound != _searchContext.sc_matches) {
+			_searchContext.sc_files++;
 		}
 	}
 
@@ -211,7 +228,7 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 	char		title[512];
 
 	_abortOnFirstMatch = bAbortOnFirstMatch;
-	_nfound = 0;
+	memset(&_searchContext, 0, sizeof _searchContext);
 	_ignoreBinary = nOptions & RE_IGNORE_BINARY;
 	string_concatPathAndFilename(stepfile, config_getPKSEditTempPath(), "pksedit.grep");
 	hist_saveString(FILE_PATTERNS, pFilenamePattern);
@@ -226,17 +243,17 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 	}
 
 	pathlist = malloc(1024);
-	_outfile = stepfile;
-	FILE* pFile = fopen(stepfile, "w");
+	_searchContext.sc_fileName = stepfile;
+	_searchContext.sc_file = _fsopen(stepfile, "w", _SH_DENYNO);
 	sprintf(title, "Matches of '%s' in '%s'", pSearchExpression, pPathes);
-	fprintf(pFile, "%s\n", title);
-	fclose(pFile);
+	fprintf(_searchContext.sc_file, "%s\n", title);
 	FTABLE* fp;
 	if (ft_activateWindowOfFileNamed(stepfile)) {
 		fp = ft_getCurrentDocument();
 	} else {
 		fp = ft_openFileWithoutFileselector(stepfile, 0, DOCK_NAME_BOTTOM);
 	}
+	_searchContext.sc_ftable = fp;
 	ft_setTitle(fp, title);
 	lstrcpy(pathlist,pPathes);
 	progress_startMonitor(IDS_ABRTRETREIVE);
@@ -246,8 +263,9 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 					 pFilenamePattern, NORMALFILE|ARCHIV|WPROTECT) == 1) break;
 		} while ((path = strtok((char *)0,",;")) != 0);
 	}
+	fprintf(_searchContext.sc_file, "Found %ld matches in %ld files", (long)_searchContext.sc_matches, (long)_searchContext.sc_files);
+	fclose(_searchContext.sc_file);
 	progress_closeMonitor(0);
-	_outfile = NULL;
 	free(pathlist);
 	// Force reload of file.
 	fp->ti_modified = 0;

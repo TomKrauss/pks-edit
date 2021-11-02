@@ -160,6 +160,7 @@ void ft_checkForChangedFiles(BOOL bActive) {
 		if (fp->ti_modified != lCurrentTime) {
 			WINFO* wp = WIPOI(fp);
 			if (wp) {
+				int maxcol = wp->maxcol;
 				BOOL bLogMode = fp->flags & F_WATCH_LOGFILE;
 				if (bLogMode) {
 					if (fp->fileSize < APPEND_THRESHOLD_SIZE || !ft_appendFileChanges(fp)) {
@@ -167,6 +168,11 @@ void ft_checkForChangedFiles(BOOL bActive) {
 						fp->flags |= F_WATCH_LOGFILE;
 						// may make the list of files invalid.
 						bAbandoned = TRUE;
+					}
+					// This is a hack to avoid expensive recalculation of maximum line len for big files
+					// when files change frequently - e.g. the PKS Edit search list.
+					if (fp->nlines > 1000) {
+						wp->maxcol = maxcol;
 					}
 					caret_placeCursorInCurrentFile(wp, fp->nlines - 1, 0);
 				} else {

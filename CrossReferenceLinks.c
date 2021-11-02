@@ -917,9 +917,10 @@ doforward:
 			/* EdSelectWindow(wp->win_id); */
 			lineno = ln_indexOf(fp, lp);
 			caret_placeCursorForFile(wp,lineno,0,0,0);
-			ln_removeFlag(fp->firstl,fp->lastl,LNXMARKED);
+			fp->lpReadPointer->lflg &= ~LNXMARKED;
+			render_repaintLine(fp, fp->lpReadPointer);
 			lp->lflg |= LNXMARKED;
-			render_repaintAllForFile(fp);
+			render_repaintLine(fp, lp);
 		}
 		fp->lpReadPointer = lp;
 
