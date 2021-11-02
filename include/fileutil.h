@@ -104,9 +104,10 @@ extern int file_closeFile(int* fd);
 extern void file_clearTempFiles(void);
 
 /**
- * Returns the last time, a file was accessed.
+ * Returns the last time, a file was accessed and created.
+ * If unsuccessful 0 is returned.
  */
-extern EDTIME file_getAccessTime(char* fname);
+extern int file_getAccessTime(char* fname, EDTIME* pCreated, EDTIME* pModified);
 
 /*
  * Read the file identified by the file descriptor into a single 0-terminated string and return it.

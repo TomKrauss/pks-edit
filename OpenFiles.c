@@ -57,7 +57,7 @@ extern int 	EdPromptAutosavePath(char *path);
 extern char *	_pksSysFolder;
 extern void *	lastSelectedDocType;
 
-static	FTABLE 	*_currentFile,*_currentErrorFile;
+static	FTABLE 	*_currentFile;
 static FTABLE 	*_filelist;
 
 #define HISTORY_FILE_NAME "pksedit.his"
@@ -88,15 +88,12 @@ FTABLE* ft_getCurrentDocument() {
  * Returns the current error document. Should not be used any more to often
  */
 FTABLE* ft_getCurrentErrorDocument() {
-	return _currentErrorFile;
-}
-
-/**
- * Make the passed file the "current error file" - which can be used by clicking on
- * lines displayed in that file to navigate to positions (compiler errors etc...).
- */
-void ft_setCurrentErrorDocument(FTABLE* fp) {
-	_currentErrorFile = fp;
+	for (FTABLE* fp = _filelist; fp; fp = fp->next) {
+		if (fp->navigationPattern) {
+			return fp;
+		}
+	}
+	return 0;
 }
 
 /*
@@ -110,6 +107,7 @@ static int ft_appendFileChanges(FTABLE* fp) {
 	}
 	FTABLE ftAppend;
 	FILE_READ_OPTIONS fro;
+	memset(&ftAppend, 0, sizeof ftAppend);
 	memset(&fro, 0, sizeof fro);
 	fro.fro_fileName = fp->fname;
 	fro.fro_fileReadOffset = fp->fileSize;
@@ -152,21 +150,23 @@ static BOOL areFilenamesDifferent(char* fileName1, char* fileName2) {
 void ft_checkForChangedFiles(BOOL bActive) {
 	FTABLE *	fp;
 	EDTIME		lCurrentTime;
-	
-	for (fp = _filelist; fp; fp = fp->next) {
-		if (fp->ti_created != (lCurrentTime = file_getAccessTime(fp->fname))) {
-			if (lCurrentTime == 0) {
-				// File was deleted on disk - for now ignore. There are valid cases for this anyways: temporary macro files etc....
-				continue;
-			}
+	BOOL bAbandoned = FALSE;
+
+	for (fp = _filelist; fp && !bAbandoned; fp = fp->next) {
+		if (!file_getAccessTime(fp->fname, 0, &lCurrentTime)) {
+			// File was deleted on disk - for now ignore. There are valid cases for this anyways: temporary macro files etc....
+			continue;
+		}
+		if (fp->ti_modified != lCurrentTime) {
 			WINFO* wp = WIPOI(fp);
 			if (wp) {
 				BOOL bLogMode = fp->flags & F_WATCH_LOGFILE;
 				if (bLogMode) {
 					if (fp->fileSize < APPEND_THRESHOLD_SIZE || !ft_appendFileChanges(fp)) {
 						ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
+						fp->flags |= F_WATCH_LOGFILE;
 						// may make the list of files invalid.
-						break;
+						bAbandoned = TRUE;
 					}
 					caret_placeCursorInCurrentFile(wp, fp->nlines - 1, 0);
 				} else {
@@ -177,12 +177,12 @@ void ft_checkForChangedFiles(BOOL bActive) {
 					if (error_displayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
 						ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
 						// may make the list of files invalid.
-						break;
+						bAbandoned = TRUE;
 					}
 				}
 			}
 		}
-		fp->ti_created = lCurrentTime;
+		fp->ti_modified = lCurrentTime;
 	}
 }
 
@@ -326,11 +326,12 @@ int ft_restorePreviouslyOpenedWindows(void) {
 			memset(&fro, 0, sizeof fro);
 			fro.fro_fileName = pszFound;
 			fro.fro_useDefaultDocDescriptor = 1;
+			memset(&ft, 0, sizeof ft);
 			if (ft_readfileWithOptions(&ft, &fro)) {
 			// save complete filename of history file.
 				GetFullPathName(pszFound, sizeof _historyFileName, _historyFileName, NULL);
 				if (_filelist == 0) {
-					xref_openSearchListResultFromLine(ft.firstl);
+					xref_openSearchListResultFromLine(&ft, ft.firstl);
 				}
 				hist_readLine(ft.firstl);
 				ln_listfree(ft.firstl);
@@ -369,14 +370,13 @@ void ft_destroy(FTABLE *fp)
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_destroy File 0x%lx",fp));
 	ft_deleteautosave(fp);
 	ft_bufdestroy(fp);
+	free(fp->title);
+	fp->title = 0;
 
 	ll_delete(&_filelist,fp);
 
 	if (!_filelist || P_EQ(fp, ft_getCurrentDocument())) {
 		_currentFile = NULL;
-	}
-	if (P_EQ(fp, ft_getCurrentErrorDocument())) {
-		_currentErrorFile = NULL;
 	}
 }
 
@@ -990,6 +990,23 @@ void ft_setOutputFilename(FTABLE* fp, char* pNewName) {
 	change.prop_oldValue.v_string = oldName;
 	change.prop_newValue.v_string = pNewName;
 	strcpy(fp->fname, pNewName);
+	ft_firePropertyChange(fp, &change);
+}
+
+/*
+ * Assign a new title to display for a file.
+ */
+void ft_setTitle(FTABLE* fp, char* pNewName) {
+	char oldName[256];
+	if (fp->title && strcmp(fp->title, pNewName) == 0) {
+		return;
+	}
+	strcpy(oldName, pNewName);
+	PROPERTY_CHANGE change;
+	change.prop_type = FT_NAME;
+	change.prop_oldValue.v_string = oldName;
+	change.prop_newValue.v_string = pNewName;
+	fp->title = _strdup(pNewName);
 	ft_firePropertyChange(fp, &change);
 }
 

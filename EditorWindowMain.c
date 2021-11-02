@@ -347,16 +347,16 @@ int ww_setwindowtitle(WINFO *wp, BOOL bRepaint) {
 		return 1;
 	FTABLE* fp = wp->fp;
 	nr = wp->win_id;
-	char* pName = ft_visiblename(fp);
-	if (IsIconic(wp->edwin_handle)) {
-		wsprintf(buf,"%d %s",nr,(LPSTR)string_getBaseFilename(pName));
+	if (fp->title) {
+		strcpy(buf, fp->title);
 	} else {
-		wsprintf(buf,"#%d %s",nr,(LPSTR)pName);
-	}
-	if (ft_isFileModified(fp)) {
-		memmove(buf + 2, buf, sizeof buf - 2);
-		buf[0] = '*';
-		buf[1] = ' ';
+		char* pName = ft_visiblename(fp);
+		wsprintf(buf, "#%d %s", nr, (LPSTR)pName);
+		if (ft_isFileModified(fp)) {
+			memmove(buf + 2, buf, sizeof buf - 2);
+			buf[0] = '*';
+			buf[1] = ' ';
+		}
 	}
 	SetWindowText(wp->edwin_handle,buf);
 	SHFILEINFO sfi;
@@ -615,7 +615,7 @@ void ww_applyDisplayProperties(WINFO* wp) {
 static int ww_recycleWindow() {
 	WINFO* wpFound = NULL;
 	for (WINFO* wp = _winlist; wp; wp = wp->next) {
-		if (wp->fp && !ft_isFileModified(wp->fp)) {
+		if (!(wp->workmode & WM_STICKY) && wp->fp && !ft_isFileModified(wp->fp)) {
 			wpFound = wp;
 		}
 	}

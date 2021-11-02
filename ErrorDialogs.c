@@ -63,7 +63,7 @@ int error_displayAlertBoxWithOptions(long unused, long buttons, const char* fmt)
 		return -1;
 	}
 	wchar_t szwAppName[64];
-	wchar_t szwFmt[128];
+	wchar_t szwFmt[512];
 	wchar_t szwDetails[5];
 	mbstowcs(szwAppName, szAppName, strlen(szAppName) + 1);
 	mbstowcs(szwFmt, fmt, strlen(fmt) + 1);
@@ -191,7 +191,6 @@ void error_displayErrorToast(const char* fmt, va_list ap)
 
 	wvsprintf(buf,fmt,ap);
 	st_seterrmsg(buf);
-	st_update();
 
 	if ((GetConfiguration()->options & O_SHOW_MESSAGES_IN_SNACKBAR) == 0) {
 		return;

@@ -147,6 +147,9 @@ static void tabcontrol_moveTab(TAB_CONTROL* pSource, TAB_CONTROL* pTarget, TAB_P
 
 #define GWLP_TAB_CONTROL		0
 
+// Request to close one dock. wParam == window of the tab control for which the dock is closed.
+#define WM_CLOSE_DOCK			WM_USER+1
+
 /*
  * Paint the drag proxy. 
  */
@@ -215,7 +218,10 @@ static char* tabcontrol_getTitle(HWND hwnd, char* szBuffer, size_t nSize) {
 		strcpy(szBuffer, "Page");
 	} else {
 		GetWindowText(hwnd, szBuffer, (int)nSize);
-		if (GetConfiguration()->layoutoptions & OL_COMPACT_TABS) {
+		if ((GetConfiguration()->layoutoptions & OL_COMPACT_TABS) &&
+			// Hack: we use the initial hashmark to differentiate from the case, that the window title
+			// is assigned explicitly (no filename - e.g. the search result list).
+			szBuffer[0] == '#') {
 			char* pszLast = strrchr(szBuffer, '\\');
 			if (pszLast == 0) {
 				pszLast = strrchr(szBuffer, '/');
@@ -552,7 +558,8 @@ static void tabcontrol_removeTab(TAB_CONTROL *pControl, TAB_PAGE *pPage) {
 	free(pPage);
 	size_t nPages = arraylist_size(pControl->tc_pages);
 	pControl->tc_activeTab = -1;
-	tabcontrol_selectTab(pControl->tc_hwnd, pControl, (int)(nPages-1));
+	nPages--;
+	tabcontrol_selectTab(pControl->tc_hwnd, pControl, (int)(nPages));
 	tabcontrol_repaintTabs(pControl->tc_hwnd, pControl);
 }
 
@@ -1144,6 +1151,11 @@ static void tabcontrol_closed(HWND hwnd, HWND hwndChild) {
 		if (pPage->tp_hwnd == hwndChild) {
 			arraylist_remove(pControl->tc_pages, pPage);
 			free(pPage);
+			if (arraylist_size(pControl->tc_pages) == 0 && mainframe_isCloseableDock(hwnd)) {
+				pControl->tc_activeTab = -1;
+				PostMessage(hwndFrameWindow, WM_CLOSE_DOCK, (WPARAM) hwnd, 0);
+				return;
+			}
 			if (pControl->tc_activeTab == i) {
 				pControl->tc_activeTab = -1;
 				if (i >= len - 1) {
@@ -1851,6 +1863,10 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			clp_setdata(0);
 		}
 		return 0;
+
+	case WM_CLOSE_DOCK:
+		mainframe_closeDock((HWND)wParam);
+		break;
 
 	case WM_TASKFINISHED:
 		bTaskFinished = TRUE;

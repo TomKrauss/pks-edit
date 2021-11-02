@@ -332,14 +332,14 @@ void render_asciiMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y)
 		newy = y + cheight;
 		if (newy > pClip->top) {
 			HBRUSH hBrush = hBrushBg;
-			if (lp == wp->caret.linePointer && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
-				hBrush = hBrushCaretLine;
-			} else if (lp->lflg & (LNXMARKED | LN_COMPARE_MODIFIED)) {
+			if (lp->lflg & (LNXMARKED | LN_COMPARE_MODIFIED)) {
 				hBrush = hBrushCompareModifiedColor;
 			} else if (lp->lflg & LN_COMPARE_ADDED) {
 				hBrush = hBrushCompareAddedColor;
 			} else if (lp->lflg & LN_COMPARE_DELETED) {
 				hBrush = hBrushCompareDeletedColor;
+			} else if (lp == wp->caret.linePointer && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
+				hBrush = hBrushCaretLine;
 			}
 			r.left = rect.left; 
 			r.right = rect.right;

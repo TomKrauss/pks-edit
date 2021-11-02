@@ -199,7 +199,8 @@ typedef struct tagCARET {
 
 typedef struct tagFTABLE {
 	struct tagFTABLE*next;
-	char 	fname[256];
+	char 	fname[512];			// The full pathname.
+	char*	title;			// alternate title to display in the caption
 	long 	nlines;				// The number of total lines in the fill. Will be reset by changes.
 	unsigned int flags;			// A bitwise combination of the F_... flags defined below.
 	int		longLinesSplit;		// Count of all long lines, which were split during read, as the lines were too long 
@@ -216,6 +217,8 @@ typedef struct tagFTABLE {
 	EDTIME	ti_modified;		// last modification time
 	EDTIME	ti_created;			// creation time
 	EDTIME  ti_saved;			// last save time
+	void* navigationPattern;	// For files containing either a PKS Edit search result list or displaying a compiler output, this contains a pointer 
+								// to the NAVIGATION_PATTERN (see CrossReferenceLinks.c) defining how to parse the individual lines in the file.
 	int		lockFd;				// Filedescriptor for locking - <= 0 if none
 } FTABLE;
 
@@ -504,12 +507,6 @@ extern void ft_bufdestroy(FTABLE* fp);
  */
 void ft_destroyCaches();
 
-/**
- * Make the passed file the "current error file" - which can be used by clicking on
- * lines displayed in that file to navigate to positions (compiler errors etc...).
- */
-extern void ft_setCurrentErrorDocument(FTABLE* fp);
-
 /*------------------------------------------------------------
  * ft_activateWindowOfFileNamed()
  * Activate the window of the file with the given name.
@@ -533,6 +530,11 @@ extern void ft_setFlags(FTABLE* fp, int newFlags);
  * Assign a new file name.
  */
 extern void ft_setOutputFilename(FTABLE* fp, char* pNewName);
+
+/*
+ * Assign a new title to display for a file.
+ */
+extern void ft_setTitle(FTABLE* fp, char* pNewName);
 
 /*------------------------------------------------------------
  * ln_needbytes()

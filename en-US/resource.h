@@ -241,7 +241,6 @@
 #define IDS_COMMAND252                  2300
 #define IDS_COMMAND253                  2301
 #define IDS_COMMAND254                  2302
-#define ID_EDIT_LINESELECTION           40007
 
 // Next default values for new objects
 // 

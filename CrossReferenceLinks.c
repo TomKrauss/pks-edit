@@ -87,15 +87,13 @@ static TAG_TABLE _allTags;
 static FTABLE	_stepfile;
 extern FTABLE 	*ft_getCurrentErrorDocument();
 
-static NAVIGATION_PATTERN __ge = { 
+static NAVIGATION_PATTERN _pksEditSearchlistFormat = { 
 0, "","\"([^\"]+)\", line ([0-9]+): *(.*)",	1,	2,	3 };
 static NAVIGATION_PATTERN _universalCTagsFileFormat =  { 
 0, "", "^([^\t]+)\t([^\t]+)\t(.*);\"\t(.*)", 2, 3, 3, 1, 4 };
-static NAVIGATION_PATTERN *_exprerror = &__ge;
-static NAVIGATION_PATTERN *_searchListNavigationPattern = &__ge;
+static NAVIGATION_PATTERN *_exprerror = &_pksEditSearchlistFormat;
 static NAVIGATION_PATTERN *_tagfileFormatPattern  = &_universalCTagsFileFormat;
 static NAVIGATION_PATTERN	*_compilerOutputNavigationPatterns;
-static int	_compflag;
 
 extern int help_showHelpForKey(LPSTR szFile, LPSTR szKey);
 
@@ -805,15 +803,22 @@ static BOOL xref_parseNavigationSpec(NAVIGATION_SPEC* pSpec, RE_PATTERN* pPatter
 	return FALSE;
 }
 
+/*
+ * Returns the search list format which can be used to parse PKS Edit search results.
+ */
+NAVIGATION_PATTERN* xref_getSearchListFormat() {
+	return &_pksEditSearchlistFormat;
+}
+
 /*---------------------------------
  * xref_openSearchListResultFromLine()
  * Parse the search list result in the current line and try to navigate to
  * the file and line number which are obtained by parsing the line contents.
  *---------------------------------*/
-void xref_openSearchListResultFromLine(LINE *lp) { 	
+void xref_openSearchListResultFromLine(FTABLE* fp, LINE *lp) { 	
 	NAVIGATION_SPEC spec;
 	const char* pszName = NULL;
-	RE_PATTERN *pPattern = xref_initializeNavigationPattern(_searchListNavigationPattern);
+	RE_PATTERN *pPattern = xref_initializeNavigationPattern(fp->navigationPattern ? fp->navigationPattern : xref_getSearchListFormat());
 	WINFO* pActivate = NULL;
 	BOOL bActive;
 
@@ -855,36 +860,32 @@ int EdErrorNext(int dir) {
 	register LINE 	*lp;
  	NAVIGATION_SPEC navigationSpec;
 	FTABLE	    	*fp;
+	int				compilerError = 0;
 	long			lineno = 0;
-	NAVIGATION_PATTERN *steperror;
+	NAVIGATION_PATTERN *pNavigationPattern;
 	char			fullname[256];
 	WINFO			*wp;
 
 	memset(&navigationSpec, 0, sizeof navigationSpec);
-	if ((dir & LIST_USETOPWINDOW) || !ft_getCurrentErrorDocument()) {
+	if ((dir & LIST_USETOPWINDOW) || (fp = ft_getCurrentErrorDocument()) == NULL) {
 	/* treat current window as error list */
-		_compflag = 1;
 		WINFO* wp = ww_getCurrentEditorWindow();
-		ft_setCurrentErrorDocument(wp ? wp->fp : NULL);
-		if (wp) {
-			lineno = wp->caret.ln;
+		if (!wp) {
+			goto notfile;
 		}
+		fp = wp->fp;
+		fp->navigationPattern = _compilerOutputNavigationPatterns;
+		lineno = wp->caret.ln;
 	}
 
-	if ((fp = ft_getCurrentErrorDocument()) == NULL || (lp = fp->lpReadPointer) == 0L) {
-notfile:	error_showErrorById(IDS_MSGNOTAGFILE);
+	lp = fp->lpReadPointer;
+	pNavigationPattern = fp->navigationPattern;
+
+	if (lp == 0L || pNavigationPattern == 0) {
+notfile:error_showErrorById(IDS_MSGNOTAGFILE);
 		return 0;
 	}
-	if (_compflag) {
-		steperror = _compilerOutputNavigationPatterns;
-	} else {
-		steperror = _searchListNavigationPattern;
-	}
-	if (steperror == 0) {
-		goto notfile;
-	}
-
-	RE_PATTERN *pPattern = xref_initializeNavigationPattern(steperror);
+	RE_PATTERN *pPattern = xref_initializeNavigationPattern(pNavigationPattern);
 
 	switch (dir) {
 	case LIST_PREV:
@@ -914,13 +915,13 @@ doforward:
 	if (navigationSpec.filename[0] && lp) {
 		if ((wp = WIPOI(fp)) != 0) {
 			/* EdSelectWindow(wp->win_id); */
+			lineno = ln_indexOf(fp, lp);
 			caret_placeCursorForFile(wp,lineno,0,0,0);
 			ln_removeFlag(fp->firstl,fp->lastl,LNXMARKED);
 			lp->lflg |= LNXMARKED;
 			render_repaintAllForFile(fp);
-		} else {
-			fp->lpReadPointer = lp;
 		}
+		fp->lpReadPointer = lp;
 
 	/* make file name relativ to list file */
 		if (navigationSpec.filename[0] == '/' || navigationSpec.filename[1] == ':') {
@@ -941,9 +942,24 @@ doforward:
 		}
 		return 0;
 	}
-	error_showErrorById(_compflag ? IDS_MSGNOMOREERRS : 
+	error_showErrorById(compilerError ? IDS_MSGNOMOREERRS : 
 					 IDS_MSGSTRINGNOTFOUND);
 	return 0;
+}
+
+/*
+ * Initialize a searchlist file. 
+ */
+void xref_initSearchList(FTABLE* fp) {
+	fp->flags |= F_RDONLY | F_WATCH_LOGFILE | F_TRANSIENT;
+	WINFO* wp = WIPOI(fp);
+	if (wp) {
+		wp->workmode |= WM_STICKY|WM_LINE_SELECTION;
+	}
+	fp->navigationPattern = xref_getSearchListFormat();
+	if (fp->firstl && fp->firstl->len > 5) {
+		ft_setTitle(fp, fp->firstl->lbuf);
+	}
 }
 
 /*---------------------------------*/
@@ -953,10 +969,11 @@ doforward:
 #define	ST_ERRORS	2
 #define	ST_STEP		3
 static FSELINFO _tagfselinfo = { ".", "tags", "*.tag" };
-static FSELINFO _grpfselinfo = { ".", "pksedit.grep", "*.grep" };
-static FSELINFO _cmpfselinfo = { ".", "errors.err", "*.err" };
+static FSELINFO _cmpfselinfo = { ".", "build.out", "*.out" };
 static int xref_openTagFileOrSearchResults(int title, int st_type, FSELINFO *fsp) {
 	FILE_SELECT_PARAMS params;
+	FTABLE* fp;
+	memset(&params, 0, sizeof params);
 	params.fsp_saveAs = FALSE;
 	if (title && fsel_selectFileWithOptions(fsp, title, &params) == 0) {
 		return 0;
@@ -964,14 +981,14 @@ static int xref_openTagFileOrSearchResults(int title, int st_type, FSELINFO *fsp
 
 	switch(st_type) {
 		case ST_ERRORS:
-			if (xref_openFile(_fseltarget, 0L, NULL) && ft_getCurrentDocument()) {
+			if (xref_openFile(_fseltarget, 0L, DOCK_NAME_BOTTOM) && ft_getCurrentDocument()) {
 				EdFileAbandon();
 			}
 			return EdErrorNext(LIST_START|LIST_USETOPWINDOW);
 		case ST_STEP:
-			if (xref_readTagFile(_fseltarget,&_stepfile)) {
-				_compflag = 0;
-				ft_setCurrentErrorDocument(&_stepfile);
+			fp = ft_openFileWithoutFileselector(_fseltarget, 0, DOCK_NAME_BOTTOM);
+			if (fp) {
+				xref_initSearchList(fp);
 				return EdErrorNext(LIST_START);
 			}
 			return 0;
@@ -1082,10 +1099,10 @@ int EdFindWordCursor(dir)
 /*---------------------------------*/
 /* xref_openSearchList()				*/
 /*---------------------------------*/
-void xref_openSearchList(char *fn, int cmpflg)
+int xref_openSearchList(char *fn, int cmpflg)
 {
 	strcpy(_fseltarget,fn);
-	xref_openTagFileOrSearchResults(0, cmpflg ? ST_ERRORS: ST_STEP, &_cmpfselinfo);
+	return xref_openTagFileOrSearchResults(0, cmpflg ? ST_ERRORS: ST_STEP, &_cmpfselinfo);
 }
 
 /*---------------------------------*/
@@ -1093,7 +1110,9 @@ void xref_openSearchList(char *fn, int cmpflg)
 /*---------------------------------*/
 int EdSearchListRead(void)
 {
-	return xref_openTagFileOrSearchResults(MREAD_SEARCH_LIST,ST_STEP,&_grpfselinfo);
+	FSELINFO searchResultFileSpec = { "", "pksedit.grep", "*.grep" };
+	strcpy(searchResultFileSpec.path, config_getPKSEditTempPath());
+	return xref_openTagFileOrSearchResults(MREAD_SEARCH_LIST,ST_STEP,&searchResultFileSpec);
 }
 
 /*---------------------------------*/

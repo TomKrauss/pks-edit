@@ -145,7 +145,7 @@ static int SelectFile(int title, char *baseDirectory, char *filename, char *patt
 	char szTemp[512];
 
 	menu_fseltitle(title, szTemp);
-	string_concatPathAndFilename(pathname,baseDirectory,pattern);
+	string_concatPathAndFilename(pathname,baseDirectory,filename);
 	nSave = nCurrentDialog;
 	nCurrentDialog = title;
 
@@ -266,9 +266,17 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
 	*pszRun = 0;
 
 	doctypes_getSelectableDocumentFileTypes(pszFilter, EDMAXPATHLEN);
+	int nFilterIndex = 0;
+	int nIndex = 0;
+	char* pszPrev = pszFilter;
 	for (pszRun = pszFilter; *pszRun; pszRun++) {
 		if (*pszRun == '|') {
 			*pszRun = (char) 0;
+			if (strstr(pszPrev, szExt) != 0) {
+				nFilterIndex = 1 + (nIndex / 2);
+			}
+			nIndex++;
+			pszPrev = pszRun + 1;
 		}
 	}
 	*++pszRun = (char) 0;
@@ -278,7 +286,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
 	ofn.hInstance = ui_getResourceModule();
 	ofn.hwndOwner = hWnd;			// An invalid hWnd causes non-modality
 	ofn.lpstrFilter = (LPSTR)pszFilter;
-	ofn.nFilterIndex = 0;
+	ofn.nFilterIndex = nFilterIndex;
 	ofn.lpstrInitialDir = initialDirectory;
 	ofn.lpstrCustomFilter = (LPSTR)pszCustomFilter;
 	ofn.nMaxCustFilter = EDMAXPATHLEN;
@@ -318,7 +326,6 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
  * dialog is opened for the purpose of saving files.
  */
 int fsel_selectFile(FILE_SELECT_PARAMS* pFSParams) {
-	char* szFileSpecIn = pFSParams->fsp_namePatterns;
 	char* szFileNameIn = pFSParams->fsp_inputFile;
 	char* szFullPathOut = pFSParams->fsp_resultFile;
 	int  	ret;
@@ -331,17 +338,15 @@ int fsel_selectFile(FILE_SELECT_PARAMS* pFSParams) {
 	pszPath = malloc(EDMAXPATHLEN);
 
 	// remember where we started
-	string_splitFilename(szFileSpecIn, pszPath, pszExt);
-	string_splitFilename(szFileNameIn, (char *)0, pszFileName);
-
+	string_splitFilename(szFileNameIn, pszPath, pszFileName);
+	strcpy(pszExt, pFSParams->fsp_namePatterns);
 	//fsel_changeDirectory(pszPath);
 
 	if ((ret = DoSelectPerCommonDialog(GetActiveWindow(),
 		pFSParams, pszFileName, pszExt, pszPath)) == TRUE) {
 		lstrcpy(szFullPathOut, pszFileName);
 		string_splitFilename(pszFileName, pszPath, szFileNameIn);
-		string_concatPathAndFilename(szFileSpecIn, pszPath, pszExt);
-		hist_saveString(PATHES, szFileSpecIn);
+		hist_saveString(PATHES, pszPath);
 	}
 
 	free(pszFileName);

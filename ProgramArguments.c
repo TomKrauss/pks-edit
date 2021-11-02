@@ -25,8 +25,6 @@
 
 #define iswhite(c)	(c == ' ' || c == '\t')
 
-extern int 		xref_navigateCrossReference(char *s);
-extern void 	xref_openSearchList(char *fn, int cmpflg);
 extern void 	prof_setinifile(char *fn);
 
 extern int		_runInteractive;

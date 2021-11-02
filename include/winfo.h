@@ -47,7 +47,9 @@
 #define	WM_BRINDENT	        0x200
 #define	WM_COLUMN_SELECTION	0x400
 #define	WM_OEMMODE	        0x800
-#define WM_DELETE_MULTIPLE_SPACES  0x2000
+#define WM_DELETE_MULTIPLE_SPACES  0x2000   // optimize delete and backspace operations to handle spaces as if they were tabs.
+#define WM_STICKY			0x4000		    // window should not be automatically closed, when the number 
+                                            // of open windows exceeds the maximum configured.
 
 /*--- Fill styles for marked text ----*/
 

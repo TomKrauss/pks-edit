@@ -29,11 +29,14 @@
 #include "themes.h"
 #include "xdialog.h"
 
+#define WM_ST_REDRAW		WM_USER+142
+
 #define	MAXSEGMENTS			20
 
 static char	*	pszStatusMessage;
 static BOOL		bSimpleMode;
 static HWND		hwndStatus;
+static BOOL		_redrawPosted;
 
 /*------------------------------------------------------------
  * st_format()
@@ -104,18 +107,17 @@ static void st_setparts(char *text, BOOL bUpdateMessageOnly)
 }
 
 
-void st_redraw(BOOL bUpdateMessageOnly) {	
-	static char	szBuf[1024];
-
-	st_format(szBuf);
-	st_setparts(szBuf, bUpdateMessageOnly);
+void st_redraw(BOOL bUpdateMessageOnly) {
+	if (!_redrawPosted) {
+		PostMessage(hwndStatus, WM_ST_REDRAW, (WPARAM)bUpdateMessageOnly, 0);
+		_redrawPosted = TRUE;
+	}
 }
 
 /*--------------------------------------------------------------------------
  * st_seterrmsg()
  */
-void st_seterrmsg(char *msg)
-{
+void st_seterrmsg(char *msg) {
 	if (pszStatusMessage) {
 		free(pszStatusMessage);
 		pszStatusMessage = 0;
@@ -151,8 +153,16 @@ void status_wh(WORD *width, WORD *height)
  */
 static WNDPROC _wpOrigStatusWndProc;
 LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	static char	szBuf[1024];
 
 	switch (msg) {
+	case WM_ST_REDRAW: {
+		st_format(szBuf);
+		st_setparts(szBuf, (BOOL)wParam);
+		_redrawPosted = FALSE;
+		return 0;
+	}
+
 	case WM_PAINT: {
 		THEME_DATA* pTheme = theme_getCurrent();
 		if (pTheme->th_isWinTheme) {

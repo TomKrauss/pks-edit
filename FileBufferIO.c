@@ -352,7 +352,7 @@ nullfile:
 		}
 		fp->nlines = 1;
 	} else {
-		fp->ti_created = file_getAccessTime(fp->fname);
+		file_getAccessTime(fp->fname, &fp->ti_created, &fp->ti_modified);
 		fileHandle = CreateFile(fp->fname, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, 0,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0); 
 		if (fileHandle == INVALID_HANDLE_VALUE) {
@@ -604,7 +604,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 	if (pw[0]) {
 		file_flushBuffer(fd, _cryptMagic, 8, 0);
 	}
-	while (lp != fp->lastl) {		/* don't save last line			  */
+	while (lp != fp->lastl) {		// don't save last line
 		if ((no = offset+lp->len) < LINEBUFSIZE) {
 			memmove(&_linebuf[offset],lp->lbuf,lp->len);
 			offset = no;
@@ -655,7 +655,7 @@ wfail1:
 		}
 		return 0;
 	}
-	fp->ti_created = file_getAccessTime(fp->fname);
+	file_getAccessTime(fp->fname, &fp->ti_created, &fp->ti_modified);
 	return 1;
 #endif
 }

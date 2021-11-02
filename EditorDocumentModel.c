@@ -62,10 +62,18 @@ BOOL ln_createAndAdd(FTABLE* fp, char* q, int len, int flags) {
 	if (q) {
 		memmove(lp->lbuf, q, len);
 	}
-	if ((lp->prev = fp->lpReadPointer) != 0) {
+	LINE* lpCurr = fp->lpReadPointer;
+	if (lpCurr != 0) {
+		lp->prev = lpCurr;
+		lp->next = lpCurr->next;
+		if (lpCurr->next) {
+			lpCurr->next->prev = lp;
+		}
+		lpCurr->next = lp;
 		fp->lpReadPointer->next = lp;
 	} else {
 		fp->firstl = lp;
+		lp->prev = NULL;
 	}
 	fp->lpReadPointer = lp;
 	return TRUE;

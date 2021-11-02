@@ -21,7 +21,7 @@
 #include "edierror.h"
 #include "winfo.h"
 
-#define	TAB		9
+static const int TAB = 9;
 
 /*---------------------------------*/
 /* caret_copyIndent()					*/
@@ -156,10 +156,16 @@ LINE *ln_pasteLine(FTABLE *fp, LINE *lpd, LINE *lps, int col, int bExpandTabs) {
 int ln_pasteLines(FTABLE* fp, LINE* lps, LINE* lpLast, LINE* lpd, int col, int bExpandTabs) {
 	LINE* lpnew;
 	while (lps && lps != lpLast) {
-		if (P_EQ(lpd, fp->lastl)) {
+		if (lpd == fp->lastl) {
 			if ((lpnew = ln_create(0)) == (LINE*)0) return 0;
 			ln_insert(fp, lpd, lpnew);
-			lpd = lpnew;
+			LINE* lpDelete = lpnew;
+			// convert the inserted line to be the temp line and free the memory of the inserted
+			// line. Otherwise we produce a memory leak.
+			if ((lpd = ln_modify(fp, lpnew, lpnew->len, lpnew->len)) == (LINE*)0) {
+				return 0;
+			}
+			free(lpDelete);
 		}
 		if ((lpd = ln_pasteLine(fp, lpd, lps, col, bExpandTabs)) == (LINE*)0) {
 			return 0;
@@ -170,10 +176,10 @@ int ln_pasteLines(FTABLE* fp, LINE* lps, LINE* lpLast, LINE* lpd, int col, int b
 	return 1;
 }
 
-/*--------------------------------------*/
-/* bl_pastecol()					*/
-/* paste a textcol					*/
-/*--------------------------------------*/
+/*--------------------------------------
+ * bl_pastecol()
+ * paste a text in column mode 
+ *--------------------------------------*/
 EXPORT int bl_pastecol(PASTE *pb,WINFO *wp, LINE *lpd, int col) {
 	LINE *	lps;
 	FTABLE* fp = wp->fp;

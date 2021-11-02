@@ -57,8 +57,7 @@ EXPORT int file_exists(char *s)
  * file_getFileMode()
  * Return the "modes" (read write, A_NORMAL, A_READONLY, A_HIDDEN, A_SYSTEM, ...) of a file.
  */
-EXPORT int file_getFileMode(char *s)
-{
+EXPORT int file_getFileMode(char *s) {
 	if (dostat(s) < 0) {
 		return -1;
 	}
@@ -79,19 +78,24 @@ static EDTIME ConvertFileTimeToLTime(FILETIME *pTime) {
 }
 
 /**
- * Returns the last time, a file was accessed.
+ * Returns the last time, a file was accessed and created.
+ * If unsuccessful 0 is returned.
  */
-EDTIME file_getAccessTime(char *fname) {
+int file_getAccessTime(char *fname, EDTIME* pCreated, EDTIME* pModified) {
 	HANDLE				lHandle;
-	EDTIME				lTime;
 	WIN32_FIND_DATA		findData;
 
 	if ((lHandle = FindFirstFile(fname, &findData)) == INVALID_HANDLE_VALUE) {
 		return 0;
 	}
-	lTime = ConvertFileTimeToLTime(&findData.ftLastWriteTime);
+	if (pCreated) {
+		*pCreated = ConvertFileTimeToLTime(&findData.ftCreationTime);
+	}
+	if (pModified) {
+		*pModified = ConvertFileTimeToLTime(&findData.ftLastWriteTime);
+	}
 	FindClose(lHandle);
-	return lTime;
+	return 1;
 }
 
 /*--------------------------------------------------------------------------

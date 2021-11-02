@@ -39,7 +39,7 @@ extern int xref_navigateCrossReference(char* s);
  * Parse the search list result in the current line and try to navigate to
  * the file and line number which are obtained by parsing the line contents.
  *---------------------------------*/
-extern void xref_openSearchListResultFromLine(LINE* lp);
+extern void xref_openSearchListResultFromLine(FTABLE* fp, LINE* lp);
 
 /*---------------------------------*/
 /* EdErrorNext()				*/
@@ -81,7 +81,7 @@ extern int EdFindFileCursor(void);
 
 extern int EdFindWordCursor(dir);
 
-extern void xref_openSearchList(char* fn, int cmpflg);
+extern int xref_openSearchList(char* fn, int cmpflg);
 
 extern int EdSearchListRead(void);
 

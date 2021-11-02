@@ -15,9 +15,11 @@
  */
 
 #include <windows.h>
+#include <stdio.h>
 #include <string.h>
 #include "alloc.h"
 
+#include "editorconfiguration.h"
 #include "trace.h"
 #include "documentmodel.h"
 #include "winfo.h"
@@ -32,11 +34,18 @@
 #include "pathname.h"
 #include "regexp.h"
 #include "crossreferencelinks.h"
+#include "mainframe.h"
 
-extern char *	_pksSysFolder;
-static FTABLE	*_outfile;
+static char* _outfile;
 static long 	_line;
 static int 		_abortOnFirstMatch,_trymatch,_ignoreBinary;
+
+static const char* _grepFileFormat = "\"%s\", line %ld: %s";
+
+/*
+ * Initialize a searchlist file.
+ */
+extern void xref_initSearchList(FTABLE* fp);
 
 /*--------------------------------------------------------------------------
  * find_inFilesMatchFound()
@@ -44,17 +53,43 @@ static int 		_abortOnFirstMatch,_trymatch,_ignoreBinary;
  */
 static int _nfound;
 static RE_PATTERN* _compiledPattern;
-static void find_inFilesMatchFound(char *fn, int nStartCol, int nLength) {
-	char szBuf[128];
+static void find_inFilesMatchFound(char *fn, int nStartCol, int nLength, char* pszLine) {
+	char szBuf[1024];
 
 	_nfound++;
 	error_showMessageInStatusbar(IDS_MSGNTIMESFOUND, _nfound);
 	if (nStartCol >= 0) {
 		wsprintf(szBuf, "%d/%d", nStartCol, nLength);
+		if (pszLine) {
+			strcat(szBuf, " - ");
+			size_t nLen = nStartCol;
+			if (nLen > 20) {
+				nLen = 20;
+			}
+			strncat(szBuf, &pszLine[nStartCol - nLen], nLen);
+			strcat(szBuf, "~");
+			strncat(szBuf, &pszLine[nStartCol], nLength);
+			strcat(szBuf, "~");
+			char* pszEnd = &pszLine[nStartCol + nLength];
+			char* pszLineEnd = strchr(pszEnd, '\n');
+			nLen = pszLineEnd ? pszLineEnd - pszEnd : strlen(pszEnd);
+			if (nLen > 20) {
+				nLen = 20;
+			}
+			strncat(szBuf, pszEnd, nLen);
+		}
 	} else {
 		szBuf[0] = 0;
 	}
-	xref_addSearchListEntry(_outfile, fn, _line, szBuf);
+	FILE* fp = fopen(_outfile, "a");
+	if (fp == 0) {
+		// TODO: error handling
+		return;
+	}
+	// TODO: why _line+1??
+	fprintf(fp, _grepFileFormat, fn, _line+1, szBuf);
+	fprintf(fp, "\n");
+	fclose(fp);
 }
 
 /*--------------------------------------------------------------------------
@@ -65,8 +100,11 @@ static void find_inFilesMatchFound(char *fn, int nStartCol, int nLength) {
 int xref_addSearchListEntry(FTABLE* fp, char* fn, long line, char* remark) {
 	char buf[EDMAXPATHLEN];
 
-	wsprintf(buf, "\"%s\", line %ld: %s", (LPSTR)fn, line + 1L, (LPSTR)remark);
-	return ln_createAndAdd(fp, buf, lstrlen(buf), 0);
+	wsprintf(buf, _grepFileFormat, (LPSTR)fn, line + 1L, (LPSTR)remark);
+	if (ln_createAndAdd(fp, buf, lstrlen(buf), 0)) {
+		return 1;
+	}
+	return 0;
 }
 
 
@@ -88,7 +126,7 @@ longline_scan:
 			if (stepend > q && stepend[-1] == '\r')
 				stepend--;
 			if (_compiledPattern != NULL && regex_match(_compiledPattern, q,stepend, &match)) {
-				find_inFilesMatchFound((char*)pFilename, (int)(match.loc1-q), (int)(match.loc2-match.loc1));
+				find_inFilesMatchFound((char*)pFilename, (int)(match.loc1-q), (int)(match.loc2-match.loc1), q);
 				if (_abortOnFirstMatch)
 					return 0;
 			}
@@ -151,7 +189,7 @@ static int matchInFile(char *fn, DTA *stat) {
 	if (!_ignoreBinary || !scan_isBinaryFile(fd)) {
 		progress_showMonitorMessage(string_abbreviateFileName(fn));
 		if (!_trymatch) {
-			find_inFilesMatchFound(fn, -1, 0);
+			find_inFilesMatchFound(fn, -1, 0, 0);
 		} else {
 			ft_readDocumentFromFile(fd, find_inLine, fn);
 		}
@@ -169,12 +207,13 @@ static int matchInFile(char *fn, DTA *stat) {
 int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpression, int nOptions, int nMaxRecursion, int bAbortOnFirstMatch) {
 	char *		path;
 	char *		pathlist;
-	char		stepfile[256];
+	char		stepfile[512];
+	char		title[512];
 
 	_abortOnFirstMatch = bAbortOnFirstMatch;
 	_nfound = 0;
 	_ignoreBinary = nOptions & RE_IGNORE_BINARY;
-	string_concatPathAndFilename(stepfile, _pksSysFolder, "pksedit.grep");
+	string_concatPathAndFilename(stepfile, config_getPKSEditTempPath(), "pksedit.grep");
 	hist_saveString(FILE_PATTERNS, pFilenamePattern);
 
 	if (!*pSearchExpression) {
@@ -186,8 +225,19 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 		_trymatch = 1;
 	}
 
-	pathlist = malloc(300);
-	_outfile = calloc(1, sizeof *_outfile);
+	pathlist = malloc(1024);
+	_outfile = stepfile;
+	FILE* pFile = fopen(stepfile, "w");
+	sprintf(title, "Matches of '%s' in '%s'", pSearchExpression, pPathes);
+	fprintf(pFile, "%s\n", title);
+	fclose(pFile);
+	FTABLE* fp;
+	if (ft_activateWindowOfFileNamed(stepfile)) {
+		fp = ft_getCurrentDocument();
+	} else {
+		fp = ft_openFileWithoutFileselector(stepfile, 0, DOCK_NAME_BOTTOM);
+	}
+	ft_setTitle(fp, title);
 	lstrcpy(pathlist,pPathes);
 	progress_startMonitor(IDS_ABRTRETREIVE);
 	if ((path = strtok(pathlist,",;")) != 0) {
@@ -196,14 +246,14 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 					 pFilenamePattern, NORMALFILE|ARCHIV|WPROTECT) == 1) break;
 		} while ((path = strtok((char *)0,",;")) != 0);
 	}
-
-	ft_writeFileAndClose(_outfile,stepfile,0);
 	progress_closeMonitor(0);
-
+	_outfile = NULL;
 	free(pathlist);
-	free(_outfile);
-
-	return xref_openSearchList(stepfile,0) , 1;
+	// Force reload of file.
+	fp->ti_modified = 0;
+	ft_checkForChangedFiles(FALSE);
+	xref_initSearchList(fp);
+	return EdErrorNext(LIST_START);
 }
 
 

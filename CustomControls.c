@@ -29,6 +29,8 @@
 #define GWW_CUSTOMVAL		0
 #define GWW_CUSTOMEXTRA		GWW_CUSTOMVAL+sizeof(WORD)
 
+static const int toastWindowHeight = 40;
+
 /*--------------------------------------------------------------------------
  * cust_drawShadow()
  * Draw a shadow around a control
@@ -471,12 +473,13 @@ static void toast_paint(HWND hwnd, HDC hdc, char* pszText) {
 #define	NSEC		5		/* stay open maximum 10 seconds */
 static UINT_PTR idTimer;
 static HWND hwndToastWindow;
+static BOOL _toastPainted = TRUE;
 static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	PAINTSTRUCT	ps;
 	HDC hdc;
 	THEME_DATA* pTheme;
 	RECT rc;
-	char szBuf[128];
+	char szBuf[200];
 
 	switch (message) {
 	case WM_PAINT: {
@@ -484,6 +487,7 @@ static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		GetWindowText(hwnd, szBuf, sizeof szBuf);
 		toast_paint(hwnd, ps.hdc, szBuf);
 		EndPaint(hwnd, &ps);
+		_toastPainted = TRUE;
 	}
 	return 0;
 	case WM_ERASEBKGND: {
@@ -496,7 +500,7 @@ static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_CLOSE:
 	case WM_TIMER:
 		//ShowWindow(hwnd, SW_HIDE);
-		AnimateWindow(hwndToastWindow, 300, AW_VER_POSITIVE|AW_HIDE);
+		AnimateWindow(hwndToastWindow, 300, AW_BLEND|AW_HIDE);
 		if (idTimer) {
 			KillTimer(hwnd, idTimer);
 			idTimer = 0;
@@ -572,31 +576,32 @@ HWND cust_createToastWindow(char* pszText) {
 			return NULL;
 		}
 	}
-	if (idTimer) {
-		KillTimer(hwndToastWindow, idTimer);
-	}
+	// Create a new timer or reset a previously created timer to the new waiting time.
 	idTimer = SetTimer(hwndToastWindow, 1, NSEC * 1000, 0);
-	int nHeight = 50;
-	RECT rect;
-	GetWindowRect(hwndMain, &rect);
-	RECT rc;
-	SetRectEmpty(&rc);
-	AdjustWindowRectEx(&rc,                // pointer to the RECT structure to use
-		GetWindowLong(hwndMain, GWL_STYLE),     // window styles
-		FALSE,								// TRUE if the window has a menu, FALSE if not
-		GetWindowLong(hwndMain, GWL_EXSTYLE));
-	rect.left -= rc.left;
-	rect.right -= rc.right;
-	rect.top -= rc.top;
-	rect.bottom -= rc.bottom;
-	int width = rect.right - rect.left;
-	int height = rect.bottom - rect.top;
 	if (!IsWindowVisible(hwndToastWindow)) {
-		SetWindowPos(hwndToastWindow, NULL, rect.left, rect.top + height - 50, width, 50, SWP_NOOWNERZORDER | SWP_NOACTIVATE);
+		int nHeight = 50;
+		RECT rect;
+		GetWindowRect(hwndMain, &rect);
+		RECT rc;
+		SetRectEmpty(&rc);
+		AdjustWindowRectEx(&rc,                // pointer to the RECT structure to use
+			GetWindowLong(hwndMain, GWL_STYLE),     // window styles
+			FALSE,								// TRUE if the window has a menu, FALSE if not
+			GetWindowLong(hwndMain, GWL_EXSTYLE));
+		rect.left -= rc.left;
+		rect.right -= rc.right;
+		rect.top -= rc.top;
+		rect.bottom -= rc.bottom;
+		int width = rect.right - rect.left;
+		int height = rect.bottom - rect.top;
+		SetWindowPos(hwndToastWindow, NULL, rect.left, rect.top + height - toastWindowHeight, width, toastWindowHeight, SWP_NOOWNERZORDER | SWP_NOACTIVATE);
 		AnimateWindow(hwndToastWindow, 300, AW_VER_NEGATIVE);
 	}
 	SetWindowText(hwndToastWindow, pszText);
-	InvalidateRect(hwndToastWindow, NULL, TRUE);
+	if (_toastPainted) {
+		InvalidateRect(hwndToastWindow, NULL, TRUE);
+		_toastPainted = FALSE;
+	}
 	return hwndToastWindow;
 }
 
