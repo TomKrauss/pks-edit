@@ -85,6 +85,12 @@ extern void hashmap_forKeysMatching(HASHMAP* pTable, void (*function)(intptr_t k
  */
 extern ARRAY_LIST* hashmap_values(HASHMAP* pTable);
 
+/*
+ * Special version of destroying a hashmap assuming, the hashmap contains keys, which had been allocated as
+ * it is typical the case when a "set" of words is created using this hashmap.
+ */
+extern void hashmap_destroySet(HASHMAP* pTable);
+
 #define HASHTABLE_H
 
 #endif

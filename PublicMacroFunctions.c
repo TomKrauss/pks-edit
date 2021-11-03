@@ -947,7 +947,7 @@ static void docTypeNewType(HWND hDlg)
 	lastSelectedDocType = doctypes_createDocumentType(lastSelectedDocType);
 	docTypeFillListbox(hDlg, lastSelectedDocType);
 	docTypeFillParameters(docTypePars, lastSelectedDocType);
-	DoDlgRetreivePars(hDlg, docTypePars, NVDOCTYPEPARS);
+	dlg_retrieveParameters(hDlg, docTypePars, NVDOCTYPEPARS);
 }
 
 /*--------------------------------------------------------------------------
@@ -966,7 +966,7 @@ static void docTypeDeleteType(HWND hDlg)
  */
 static void doctypes_changeType(HWND hDlg)
 {
-	DoDlgRetreivePars(hDlg, docTypePars, NVDOCTYPEPARS);
+	dlg_retrieveParameters(hDlg, docTypePars, NVDOCTYPEPARS);
 	docTypeFillListbox(hDlg, (void*)lastSelectedDocType);
 }
 
@@ -1476,6 +1476,28 @@ int EdFind(void)
 	return find_expressionAgainInCurrentFile(_dir);
 }
 
+/*
+ * Custom window procedure for find in files dialog. 
+ */
+static INT_PTR find_inFilesDialogProc(HWND hDlg, UINT wMessage, WPARAM wParam, LPARAM lParam) {
+	INT_PTR pRes = dlg_standardDialogProcedure(hDlg, wMessage, wParam, lParam);
+	BOOL bEnable;
+	switch (wMessage) {
+	case WM_COMMAND:
+		if (!(HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDD_OPT4)) {
+			break;
+		}
+		// drop through
+	case WM_INITDIALOG:
+		bEnable = SendDlgItemMessage(hDlg, IDD_OPT4, BM_GETCHECK, 0, 0) != BST_CHECKED;
+		EnableWindow(GetDlgItem(hDlg, IDD_FILE_PATTERN), bEnable);
+		EnableWindow(GetDlgItem(hDlg, IDD_PATH1), bEnable);
+		EnableWindow(GetDlgItem(hDlg, IDD_INT1), bEnable);
+		break;
+	}
+	return pRes;
+}
+
 /*--------------------------------------------------------------------------
  * EdFindInFileList()
  */
@@ -1483,20 +1505,22 @@ int EdFindInFileList(void)
 {	static char pathlist[512];
 	static char filenamePattern[50];
 	static int depth = -1;
-	static ITEMS	_i   =  	{ 
+	ITEMS	_i   =  	{ 
 		{ C_STRING1PAR, _currentSearchAndReplaceParams.searchPattern },
 		{ C_STRING1PAR, pathlist }, 
 		{ C_INT1PAR, (unsigned char *) &depth },
 		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options }
 	};
-	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
-	static DIALPARS _d[] = {
-		IDD_REGEXP,	RE_DOREX,			& _currentSearchAndReplaceParams.options,
-		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
-		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
-		IDD_OPT1,		RE_SEARCH_ONCE,& _currentSearchAndReplaceParams.options,
-		IDD_OPT2,		RE_IGNORE_BINARY, & _currentSearchAndReplaceParams.options,
-		IDD_INT1,		sizeof depth,	&depth,
+	PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
+	DIALPARS _d[] = {
+		IDD_REGEXP,	RE_DOREX,					& _currentSearchAndReplaceParams.options,
+		IDD_SHELLJOKER,RE_SHELLWILD,			& _currentSearchAndReplaceParams.options,
+		IDD_IGNORECASE,RE_IGNCASE,				& _currentSearchAndReplaceParams.options,
+		IDD_OPT1,		RE_SEARCH_ONCE,			& _currentSearchAndReplaceParams.options,
+		IDD_OPT2,		RE_IGNORE_BINARY,		& _currentSearchAndReplaceParams.options,
+		IDD_OPT3,		RE_APPEND_TO_SEARCH_RESULTS,& _currentSearchAndReplaceParams.options,
+		IDD_OPT4,		RE_SEARCH_IN_SEARCH_RESULTS,& _currentSearchAndReplaceParams.options,
+		IDD_INT1,		sizeof depth,			&depth,
 		IDD_FILE_PATTERN, sizeof filenamePattern, &filenamePattern, 
 		IDD_FINDS2,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
 		IDD_PATH1,	sizeof pathlist,	&pathlist,
@@ -1512,11 +1536,11 @@ int EdFindInFileList(void)
 		strcpy(filenamePattern, "*.*");
 	}
 	bl_getSelectedText(_currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
-	if (!win_callDialog(DLGRETREIVE,&_fp,_d, _tt)) {
+	if (!win_callDialogCB(DLGRETREIVE,&_fp,_d, _tt, find_inFilesDialogProc)) {
 		return 0;
 	}
 	return find_matchesInFiles(pathlist,filenamePattern, _currentSearchAndReplaceParams.searchPattern, _currentSearchAndReplaceParams.options, 
-		depth < 0 ? 999 : depth, _currentSearchAndReplaceParams.options & RE_SEARCH_ONCE);
+		depth < 0 ? 999 : depth);
 }
 
 /*--------------------------------------------------------------------------

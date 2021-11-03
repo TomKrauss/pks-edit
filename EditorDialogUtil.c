@@ -569,9 +569,9 @@ static DIALPARS *GetItemDialListData(DIALPARS *dp, int nItem)
 }
 
 /*--------------------------------------------------------------------------
- * DoDlgRetreivePars()
+ * dlg_retrieveParameters()
  */
-void DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax)
+void dlg_retrieveParameters(HWND hDlg, DIALPARS *dp, int nMax)
 {
 	while(--nMax >= 0 && dp->dp_item) {
 		switch(dp->dp_item) {
@@ -820,7 +820,7 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 			}
 			for (dp2 = dp; dp2->dp_item; dp2++) {
 				if (dp2->dp_item == IDD_ENKILLFOCUS && dp2->dp_size == idCtrl) {
-					DoDlgRetreivePars(hDlg, dp, 10000);
+					dlg_retrieveParameters(hDlg, dp, 10000);
 					callback = (int (*)())dp2->dp_data;
 					goto endd;
 				}

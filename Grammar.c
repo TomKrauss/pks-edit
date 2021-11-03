@@ -222,18 +222,13 @@ static JSON_MAPPING_RULE _grammarDefinitionsRules[] = {
 	{	RT_END}
 };
 
-static int grammar_destroyHashEntry(intptr_t key, intptr_t value) {
-	free((void*)key);
-	return 1;
-}
-
 static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {
 	free(pPattern->match);
 	free(pPattern->rePattern);
 	free(pPattern->rePatternBuf);
 	ll_destroy((LINKED_LIST**)&pPattern->children, grammar_destroyPattern);
 	ll_destroy((LINKED_LIST**)&pPattern->captures, NULL);
-	hashmap_destroy(pPattern->keywords, grammar_destroyHashEntry);
+	hashmap_destroySet(pPattern->keywords);
 	return 1;
 }
 

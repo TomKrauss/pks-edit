@@ -67,7 +67,7 @@ extern int find_initiateIncrementalSearch();
  * find_matchesInFiles()
  * Perform a recursive pSearchExpression in a list of pates with a given filename pattern.
  */
-extern int find_matchesInFiles(char* pPathes, char* pFilenamePattern, char* pSearchExpression, int nOptions, int nMaxRecursion, int bAbortOnFirstMatch);
+extern int find_matchesInFiles(char* pPathes, char* pFilenamePattern, char* pSearchExpression, int nOptions, int nMaxRecursion);
 
 /*--------------------------------------------------------------------------
  * find_replaceTabsWithSpaces()

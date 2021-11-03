@@ -807,8 +807,17 @@ static BOOL xref_parseNavigationSpec(NAVIGATION_SPEC* pSpec, RE_PATTERN* pPatter
 /*
  * Returns the search list format which can be used to parse PKS Edit search results.
  */
-NAVIGATION_PATTERN* xref_getSearchListFormat() {
+static NAVIGATION_PATTERN* xref_getSearchListFormat() {
 	return &_pksEditSearchlistFormat;
+}
+
+/*
+ * Returns a compiled RE_PATTERN to scan the lines in a search result list.
+ * Note, that this method returns the pointer to a shared RE_PATTERN data structure
+ * and should therefore only be used, if not in conflicts.
+ */
+RE_PATTERN* xref_compileSearchListPattern() {
+	return xref_initializeNavigationPattern(xref_getSearchListFormat());
 }
 
 /*---------------------------------

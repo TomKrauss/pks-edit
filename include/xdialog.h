@@ -66,7 +66,7 @@ extern int 			win_callDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP
  */
 extern int win_callDialogCB(int nId, PARAMS* pp, DIALPARS* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback);
 # endif
-extern void 		DoDlgRetreivePars(HWND hDlg, DIALPARS *dp, int nMax);
+extern void 		dlg_retrieveParameters(HWND hDlg, DIALPARS *dp, int nMax);
 /*--------------------------------------------------------------------------
  * dlg_getListboxText()
  */

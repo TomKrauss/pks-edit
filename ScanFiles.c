@@ -35,6 +35,7 @@
 #include "regexp.h"
 #include "crossreferencelinks.h"
 #include "mainframe.h"
+#include "hashmap.h"
 
 static struct tagSEARCH_CONTEXT {
 	FILE* sc_file;
@@ -53,6 +54,13 @@ static const char* _grepFileFormat = "\"%s\", line %ld: %s";
  * Initialize a searchlist file.
  */
 extern void xref_initSearchList(FTABLE* fp);
+
+/*
+ * Returns a compiled RE_PATTERN to scan the lines in a search result list.
+ * Note, that this method returns the pointer to a shared RE_PATTERN data structure
+ * and should therefore only be used, if not in conflicts.
+ */
+extern RE_PATTERN* xref_compileSearchListPattern();
 
 /*
  * Calculate the minimum of two values. 
@@ -180,33 +188,27 @@ static int scan_isBinaryFile(int fd) {
 	return nControl > 5;
 }
 
-/*--------------------------------------------------------------------------
- * matchInFile()
- * scan for a pSearchExpression pattern in file filename
+/*
+ * Scans one file for the configured search pattern.
+ * Return 0 on success.
  */
-static int matchInFile(char *fn, DTA *stat) {	
+static int find_inFile(intptr_t p1, void* pUnused) {
+	char* pszFile = (char*)p1;
 	int 	fd;
-
-#if defined(WIN32)
-	if (stat->attrib & _A_SUBDIR)
-#else
-	if (stat->ff_attrib & SUBDIR)
-#endif
-		return 0;
-
 	_searchContext.sc_line = 0L;
 
-	if ((fd = file_openFile(fn)) <= 0) {
+	if ((fd = file_openFile(pszFile)) <= 0) {
 		return -1;
 	}
 
 	if (!_ignoreBinary || !scan_isBinaryFile(fd)) {
 		size_t nOldFound = _searchContext.sc_matches;
-		progress_showMonitorMessage(string_abbreviateFileName(fn));
+		progress_showMonitorMessage(string_abbreviateFileName(pszFile));
 		if (!_trymatch) {
-			find_inFilesMatchFound(fn, -1, 0, 0);
-		} else {
-			ft_readDocumentFromFile(fd, find_inLine, fn);
+			find_inFilesMatchFound(pszFile, -1, 0, 0);
+		}
+		else {
+			ft_readDocumentFromFile(fd, find_inLine, pszFile);
 		}
 		if (nOldFound != _searchContext.sc_matches) {
 			_searchContext.sc_files++;
@@ -216,24 +218,86 @@ static int matchInFile(char *fn, DTA *stat) {
 	file_closeFile(&fd);
 
 	return 0;
+
+}
+/*--------------------------------------------------------------------------
+ * matchInFile()
+ * scan for a pSearchExpression pattern in file filename
+ */
+static int matchInFile(char *fn, DTA *stat) {
+
+	if (stat->attrib & _A_SUBDIR) {
+		return 0;
+	}
+	return find_inFile((intptr_t)fn,0);
+}
+
+/*
+ * Scan all files from the current search result list 
+ */
+static int find_matchesInSearchResults(HASHMAP* pFiles) {
+	hashmap_forEachKey(pFiles, find_inFile, 0);
+	return 1;
+}
+
+/*
+ * Parse the filename from a 
+ */
+static unsigned char* find_collectFileFromLine(HASHMAP* pResult, EDIT_CONFIGURATION* pConfig, unsigned char* pStart, unsigned char* pEnd) {
+	RE_MATCH match;
+	char szBuf[EDMAXPATHLEN];
+
+	while (pStart < pEnd) {
+		char* pszLineEnd = strchr(pStart, '\n');
+		if (!pszLineEnd) {
+			return pStart;
+		}
+		if (regex_match(_compiledPattern, pStart, pszLineEnd, &match)) {
+			size_t nLen = match.braelist[0] - match.braslist[0];
+			strncpy(szBuf, match.braslist[0], nLen);
+			szBuf[nLen] = 0;
+			if (!hashmap_containsKey(pResult, (intptr_t)szBuf)) {
+				hashmap_put(pResult, (intptr_t)strdup(szBuf), (intptr_t)1);
+			}
+		}
+		pStart = pszLineEnd + 1;
+	}
+	return pEnd;
+}
+
+static HASHMAP* find_collectFiles(char* pszStepfile) {
+	HASHMAP* pResult = hashmap_create(37, 0, 0);
+	int 	fd;
+
+	if ((fd = file_openFile(pszStepfile)) <= 0) {
+		return pResult;
+	}
+	ft_readDocumentFromFile(fd, find_collectFileFromLine, pResult);
+	file_closeFile(&fd);
+	return pResult;
 }
 
 /*--------------------------------------------------------------------------
  * find_matchesInFiles()
  * Perform a recursive pSearchExpression in a list of pates with a given filename pattern.
  */
-int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpression, int nOptions, int nMaxRecursion, int bAbortOnFirstMatch) {
+int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpression, int nOptions, int nMaxRecursion) {
 	char *		path;
 	char *		pathlist;
 	char		stepfile[512];
 	char		title[512];
+	HASHMAP* pFilesMap = NULL;
 
-	_abortOnFirstMatch = bAbortOnFirstMatch;
+	_abortOnFirstMatch = nOptions & RE_SEARCH_ONCE;
 	memset(&_searchContext, 0, sizeof _searchContext);
 	_ignoreBinary = nOptions & RE_IGNORE_BINARY;
 	string_concatPathAndFilename(stepfile, config_getPKSEditTempPath(), "pksedit.grep");
 	hist_saveString(FILE_PATTERNS, pFilenamePattern);
 
+	if (nOptions & RE_SEARCH_IN_SEARCH_RESULTS) {
+		_compiledPattern = xref_compileSearchListPattern();
+		pFilesMap = find_collectFiles(stepfile);
+	}
 	if (!*pSearchExpression) {
 		_trymatch = 0;
 	} else {
@@ -245,7 +309,8 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 
 	pathlist = malloc(1024);
 	_searchContext.sc_fileName = stepfile;
-	_searchContext.sc_file = _fsopen(stepfile, "w", _SH_DENYNO);
+	char* pMode = nOptions & RE_APPEND_TO_SEARCH_RESULTS ? "a" : "w";
+	_searchContext.sc_file = _fsopen(stepfile, pMode, _SH_DENYNO);
 	sprintf(title, "Matches of '%s' in '%s'", pSearchExpression, pPathes);
 	fprintf(_searchContext.sc_file, "%s\n", title);
 	FTABLE* fp;
@@ -258,11 +323,16 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 	ft_setTitle(fp, title);
 	lstrcpy(pathlist,pPathes);
 	progress_startMonitor(IDS_ABRTRETREIVE);
-	if ((path = strtok(pathlist,",;")) != 0) {
-		do {	
-			if (_ftw(path,matchInFile,nMaxRecursion,
-					 pFilenamePattern, NORMALFILE|ARCHIV|WPROTECT) == 1) break;
-		} while ((path = strtok((char *)0,",;")) != 0);
+	if (nOptions & RE_SEARCH_IN_SEARCH_RESULTS) {
+		find_matchesInSearchResults(pFilesMap);
+		hashmap_destroySet(pFilesMap);
+	} else {
+		if ((path = strtok(pathlist, ",;")) != 0) {
+			do {
+				if (_ftw(path, matchInFile, nMaxRecursion,
+					pFilenamePattern, NORMALFILE | ARCHIV | WPROTECT) == 1) break;
+			} while ((path = strtok((char*)0, ",;")) != 0);
+		}
 	}
 	fprintf(_searchContext.sc_file, "Found %ld matches in %ld files", (long)_searchContext.sc_matches, (long)_searchContext.sc_files);
 	fclose(_searchContext.sc_file);

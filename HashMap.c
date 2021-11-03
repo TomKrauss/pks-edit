@@ -126,6 +126,19 @@ void hashmap_destroy(HASHMAP* pTable, HASH_DESTROY_ENTRY destroyCallback) {
 	free(pTable);
 }
 
+static int hashmap_destroyHashEntry(intptr_t key, intptr_t value) {
+	free((void*)key);
+	return 1;
+}
+
+/*
+ * Special version of destroying a hashmap assuming, the hashmap contains keys, which had been allocated as
+ * it is typical the case when a "set" of words is created using this hashmap.
+ */
+void hashmap_destroySet(HASHMAP* pTable) {
+	hashmap_destroy(pTable, hashmap_destroyHashEntry);
+}
+
 /*
  * Find the next free or the existing index of the passed key into the hash table. 
  */
