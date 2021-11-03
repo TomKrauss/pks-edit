@@ -998,11 +998,10 @@ static int ww_updateWindowBounds(WINFO *wp, int w, int h) {
 /*----------------------------------------------------------
  * do_mouse()
  */
-int do_mouse(HWND hwnd, int nClicks, UINT message, WPARAM wParam, LPARAM lParam)
-{
+int do_mouse(HWND hwnd, int nClicks, UINT message, WPARAM wParam, LPARAM lParam) {
 	int			ret;
 	int			button;
-	int			shift;
+	int			nModifier;
 	int			x;
 	int			y;
 	WINFO *		wp;
@@ -1024,17 +1023,17 @@ int do_mouse(HWND hwnd, int nClicks, UINT message, WPARAM wParam, LPARAM lParam)
 		button = 1;
 	}
 
-	shift = 0;
+	nModifier = 0;
 	if (wParam & MK_CONTROL) {
-		shift |= 4;
+		nModifier |= M_CONTROL;
 	}
 	if (wParam & MK_SHIFT) {
-		shift |= 2;
+		nModifier |= M_SHIFT;
 	}
 	if (GetKeyState(VK_MENU) < 0) {
-		shift |= 8;
+		nModifier |= M_ALT;
 	}
-	ret = mouse_onMouseClicked(wp, x, y, button, nClicks, shift);
+	ret = mouse_onMouseClicked(wp, x, y, button, nClicks, nModifier);
 	return ret;
 }
 

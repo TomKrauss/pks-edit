@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "alloc.h"
+#include "edfuncs.h"
 #include "winterf.h"
 #include "edctype.h"
 #include "fileselector.h"
@@ -854,89 +855,102 @@ static xref_highlightMatch(long ln, int col, int len) {
 }
 
 /*---------------------------------*/
-/* EdErrorNext()				*/
+/* xref_navigateSearchErrorList()				*/
 /*---------------------------------*/
-int EdErrorNext(int dir) {
-	register LINE 	*lp;
+int xref_navigateSearchErrorList(int dir) {
+	LINE*			lp;
  	NAVIGATION_SPEC navigationSpec;
-	FTABLE	    	*fp;
+	FTABLE	    	*fp = ft_getCurrentErrorDocument();
 	int				compilerError = 0;
-	long			lineno = 0;
 	NAVIGATION_PATTERN *pNavigationPattern;
-	char			fullname[256];
+	char			fullname[EDMAXPATHLEN];
 	WINFO			*wp;
+	BOOL			bGoForward = FALSE;
 
 	memset(&navigationSpec, 0, sizeof navigationSpec);
-	if ((dir & LIST_USETOPWINDOW) || (fp = ft_getCurrentErrorDocument()) == NULL) {
+	if (dir & LIST_USETOPWINDOW) {
 	/* treat current window as error list */
+		dir &= ~LIST_USETOPWINDOW;
 		WINFO* wp = ww_getCurrentEditorWindow();
 		if (!wp) {
-			goto notfile;
+			fp = NULL;
+		} else {
+			fp = wp->fp;
+			fp->navigationPattern = _compilerOutputNavigationPatterns;
 		}
-		fp = wp->fp;
-		fp->navigationPattern = _compilerOutputNavigationPatterns;
-		lineno = wp->caret.ln;
 	}
 
-	lp = fp->lpReadPointer;
-	pNavigationPattern = fp->navigationPattern;
+	if (fp) {
+		pNavigationPattern = fp->navigationPattern;
+		wp = WIPOI(fp);
+	}
 
-	if (lp == 0L || pNavigationPattern == 0) {
-notfile:error_showErrorById(IDS_MSGNOTAGFILE);
+	if (fp == NULL || pNavigationPattern == 0) {
+		error_showErrorById(IDS_MSGNOTAGFILE);
 		return 0;
 	}
 	RE_PATTERN *pPattern = xref_initializeNavigationPattern(pNavigationPattern);
 
 	switch (dir) {
 	case LIST_PREV:
-dobackward:
-		while((lineno--, (lp = lp->prev) != 0L) && 
-		      (xref_parseNavigationSpec(&navigationSpec, pPattern, lp)) == FALSE);
+		lp = fp->lpReadPointer;
+		if (lp) {
+			lp = lp->prev;
+		}
 		break;
 	case LIST_NEXT:
-doforward:
-		while((lineno++, (lp = lp->next) != 0L) &&
-		      (xref_parseNavigationSpec(&navigationSpec, pPattern, lp)) == FALSE);
+		lp = fp->lpReadPointer;
+		if (lp) {
+			lp = lp->next;
+		}
+		bGoForward = TRUE;
+		break;
+	case LIST_CURR:
+		lp = wp->caret.linePointer;
+		bGoForward = TRUE;
 		break;
 	case LIST_START:
-		lp     = fp->firstl;
-		lineno = 0;
-		if (xref_parseNavigationSpec(&navigationSpec, pPattern, lp) == FALSE) goto doforward;
+		lp = fp->firstl;
+		bGoForward = TRUE;
 		break;
 	case LIST_END:
-		lp     = fp->lastl;
-		lineno = fp->nlines;
-		goto dobackward;
-	default:
-		if (xref_parseNavigationSpec(&navigationSpec, pPattern, lp) == FALSE)
-			goto doforward;
+		lp = fp->lastl;
 		break;
 	}
-	if (navigationSpec.filename[0] && lp) {
+	if (bGoForward) {
+		while (lp && (xref_parseNavigationSpec(&navigationSpec, pPattern, lp)) == FALSE) {
+			lp = lp->next;
+		}
+	} else {
+		while (lp && (xref_parseNavigationSpec(&navigationSpec, pPattern, lp)) == FALSE) {
+			lp = lp->prev;
+		}
+	}
+	if (lp && navigationSpec.filename[0]) {
 		if ((wp = WIPOI(fp)) != 0) {
 			/* EdSelectWindow(wp->win_id); */
-			lineno = ln_indexOf(fp, lp);
-			caret_placeCursorForFile(wp,lineno,0,0,0);
+			long lineno = ln_indexOf(fp, lp);
+			caret_placeCursorForFile(wp, lineno, 0, 0, 0);
 			fp->lpReadPointer->lflg &= ~LNXMARKED;
 			render_repaintLine(fp, fp->lpReadPointer);
 			lp->lflg |= LNXMARKED;
 			render_repaintLine(fp, lp);
 		}
 		fp->lpReadPointer = lp;
-
-	/* make file name relativ to list file */
+		/* make file name relativ to list file */
 		if (navigationSpec.filename[0] == '/' || navigationSpec.filename[1] == ':') {
 			lstrcpy(fullname, navigationSpec.filename);
-		} else {
-			string_splitFilename(fp->fname, fullname, (char *)0);
+		}
+		else {
+			string_splitFilename(fp->fname, fullname, (char*)0);
 			string_concatPathAndFilename(fullname, fullname, navigationSpec.filename);
 		}
-		if (xref_openFile(fullname, navigationSpec.line-1L, NULL)) {
+		if (xref_openFile(fullname, navigationSpec.line - 1L, NULL)) {
 			if (navigationSpec.comment[0]) {
 				int col;
 				int len = 0;
 				if (sscanf(navigationSpec.comment, "%d/%d", &col, &len) == 2 && len > 0) {
-					xref_highlightMatch(navigationSpec.line-1L, col, len);
+					xref_highlightMatch(navigationSpec.line - 1L, col, len);
 				}
 			}
 			return 1;
@@ -952,10 +966,11 @@ doforward:
  * Initialize a searchlist file. 
  */
 void xref_initSearchList(FTABLE* fp) {
-	fp->flags |= F_RDONLY | F_WATCH_LOGFILE | F_TRANSIENT;
+	fp->flags |= F_WATCH_LOGFILE | F_TRANSIENT;
 	WINFO* wp = WIPOI(fp);
 	if (wp) {
 		wp->workmode |= WM_STICKY|WM_LINE_SELECTION;
+		wp->controller = macro_getSearchListController();
 	}
 	fp->navigationPattern = xref_getSearchListFormat();
 	if (fp->firstl && fp->firstl->len > 5) {
@@ -985,12 +1000,12 @@ static int xref_openTagFileOrSearchResults(int title, int st_type, FSELINFO *fsp
 			if (xref_openFile(_fseltarget, 0L, DOCK_NAME_BOTTOM) && ft_getCurrentDocument()) {
 				EdFileAbandon();
 			}
-			return EdErrorNext(LIST_START|LIST_USETOPWINDOW);
+			return xref_navigateSearchErrorList(LIST_START|LIST_USETOPWINDOW);
 		case ST_STEP:
 			fp = ft_openFileWithoutFileselector(_fseltarget, 0, DOCK_NAME_BOTTOM);
 			if (fp) {
 				xref_initSearchList(fp);
-				return EdErrorNext(LIST_START);
+				return xref_navigateSearchErrorList(LIST_START);
 			}
 			return 0;
 		case ST_TAGS:

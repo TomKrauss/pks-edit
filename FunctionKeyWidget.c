@@ -83,8 +83,9 @@ void fkey_updateTextOfFunctionKeys(int state)
 	KEYBIND *	kp;
 	extern int _fkeysdirty;
 
-	if (state == _fkeyshiftstate ||
-	    !hwndFkeys) return;
+	if (state == _fkeyshiftstate || !hwndFkeys) {
+		return;
+	}
 	if (state == -1)
 		state = _fkeyshiftstate;
 

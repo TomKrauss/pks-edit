@@ -1970,10 +1970,16 @@ static int mainframe_translateAccelerator(HWND hwnd, MSG* msg) {
 			}
 		}
 		WINFO* wp = ww_getCurrentEditorWindow();
-		if (wp && wp->codecomplete_handle && codecomplete_processKey(wp->codecomplete_handle, msg->message, msg->wParam)) {
-			return 1;
+		_executeKeyBinding = NULL;
+		if (wp) {
+			if (wp->codecomplete_handle && codecomplete_processKey(wp->codecomplete_handle, msg->message, msg->wParam)) {
+				return 1;
+			}
+			if (wp->controller) {
+				_executeKeyBinding = wp->controller->c_getKeyBinding(msg->wParam);
+			}
 		}
-		if ((_executeKeyBinding = macro_getKeyBinding(msg->wParam)) != 0) {
+		if (_executeKeyBinding || (_executeKeyBinding = macro_getKeyBinding(msg->wParam)) != 0) {
 			if (msg->message == WM_SYSKEYDOWN ||
 				msg->message == WM_KEYDOWN) {
 				msg->message = WM_PKSKEY;

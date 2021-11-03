@@ -52,7 +52,7 @@ EdSaveFile(int ), EdSelectWindow(int), EdCommandExecute(long ), EdExecute(long )
 EdShiftBetweenBrackets(long ), EdSort(long ), EdLinesShift(long ), EdInfoFiles(long ),
 EdShowMatch(long ), dlg_configureEditorModes(long ),
 EdOptionToggle(long ), EdPasteString(long ),
-EdFindTag(long ), EdFindFileCursor(long ), EdErrorNext(long ), EdFindTagCursor(long ),
+EdFindTag(long ), EdFindFileCursor(long ), xref_navigateSearchErrorList(long ), EdFindTagCursor(long ),
 EdFindWordCursor(long ), EdRangeShift(long ),
 EdUndo(long ), EdRedo(long), EdFilesCompare(long ), EdScrollScreen(long ), EdScrollCursor(long ),
 EdAlignText(long ), EdBlockMouseMark(long ),
@@ -144,19 +144,19 @@ EdLinesShift, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_MULTI | 0,      
 EdInfoFiles, '!', 0,                                                                            "ShowInfo",              
 EdShowMatch, '!', EW_NEEDSCURRF | 0,                                                            "CheckBrackets",         
 edit_convertCharacterCase, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                    "UpToLow",               
-function_unused, '!', EW_NEEDSCURRF | 0,                                                          "SetWorkMode",           
-dlg_configureEditorModes, '!', EW_NEEDSCURRF | 0,                                                          "SetDispMode",           
-function_unused, '!', EW_NEEDSCURRF | 0,                                                          "SetCursorMode",
-function_unused, '!', EW_NEEDSCURRF | 0,                                                          "SetFileFormat",
+function_unused, '!', EW_NEEDSCURRF | 0,                                                        "SetWorkMode",           
+dlg_configureEditorModes, '!', EW_NEEDSCURRF | 0,                                               "SetDispMode",           
+function_unused, '!', EW_NEEDSCURRF | 0,                                                        "SetCursorMode",
+function_unused, '!', EW_NEEDSCURRF | 0,                                                        "SetFileFormat",
 EdOptionToggle, '!', EW_NEEDSCURRF | 0,                                                         "ToggleTextMode",        
 EdPasteString, '!', EW_NEEDSCURRF | 0,                                                          "PasteString",          
 EdFindTag, '!', EW_HASFORM | 0,                                                                 "FindTag",                    
 EdFindFileCursor, '!', EW_NEEDSCURRF | 0,                                                       "CursorFindFile",             
-EdErrorNext, '!', 0,                                                                            "FindError",                  
+xref_navigateSearchErrorList, '!', 0,                                                           "FindError",                  
 EdFindTagCursor, '!', EW_NEEDSCURRF | EW_FINDCURS| 0,                                           "CursorFindTag",              
 EdFindWordCursor, '!', EW_NEEDSCURRF | EW_FINDCURS | 0,                                         "CursorFindWord",             
 mainframe_manageDocks, '!', 0,                                                                  "ManageDocks",
-function_unused, '!', EW_NEEDSCURRF | 0,                                                         "SetWindowRegister",
+xref_navigateSearchErrorList, '!', EW_NEEDSCURRF | EW_FINDCURS,                                 "FindErrorMouseClick",
 EdRangeShift, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                 "ShiftText",                  
 EdUndo, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDO_AVAILABLE,                                     "Undo",                       
 EdFilesCompare, '!', EW_NEEDSCURRF | 0,                                                         "CompareWindows",             
@@ -382,8 +382,8 @@ COMMAND _cmdseqtab[] = {
 43, C_1FUNC, 10 /* EdBlockPaste */, PASTE_QUERYID, "paste-named-buffer", 
 44, C_1FUNC, 10 /* EdBlockPaste */, PASTE_CLIP, "paste-clipboard", 
 45, C_1FUNC, 10 /* EdBlockPaste */, PASTE_UNDO, "paste-trash", 
-46, C_1FUNC, 10 /* function_unused */, 0, "unused", 
-47, C_1FUNC, 3 /* EdBlockDelete */, 1 , "delete-block", 
+46, C_1FUNC, 82 /* xref_navigateSearchErrorList */, LIST_CURR, "errorlist-current-line",
+47, C_1FUNC, 3 /* EdBlockDelete */, 1 , "delete-block",
 48, C_0FUNC, 2 /* EdBlockCopy */, 0 , "copy-block", 
 49, C_0FUNC, 6 /* EdBlockMove */, 0 , "move-block", 
 50, C_0FUNC, 13 /* bl_cutLines */, 0 , "cut-lines", 
@@ -435,19 +435,19 @@ COMMAND _cmdseqtab[] = {
 96, C_1FUNC, 56 /* EdHelp */, HELP_INDEX, "help-index", 
 97, C_0FUNC, 1 /* EdAbout */, 0 , "show-copyright", 
 98, C_0FUNC, 16 /* EdKeycodeInsert */, 0 , "keycode-insert", 
-99, C_1FUNC, 86 /* EdWindowRegSet */, 0 , "set-win-reg-1", 
-100, C_1FUNC, 86 /* EdWindowRegSet */, 1 , "set-win-reg-2", 
-101, C_1FUNC, 86 /* EdWindowRegSet */, 2 , "set-win-reg-3", 
-102, C_1FUNC, 86 /* EdWindowRegSet */, 3 , "set-win-reg-4", 
-103, C_1FUNC, 86 /* EdWindowRegSet */, 4 , "set-win-reg-5", 
-104, C_1FUNC, 86 /* EdWindowRegSet */, 5 , "set-win-reg-6", 
+99, C_1FUNC, 86 /* EdWindowRegSet */, 0 , "unused", 
+100, C_1FUNC, 86 /* EdWindowRegSet */, 1 , "unused", 
+101, C_1FUNC, 86 /* EdWindowRegSet */, 2 , "unused", 
+102, C_1FUNC, 86 /* EdWindowRegSet */, 3 , "unused", 
+103, C_1FUNC, 86 /* EdWindowRegSet */, 4 , "unused", 
+104, C_1FUNC, 86 /* EdWindowRegSet */, 5 , "unused", 
 105, C_1FUNC, 85 /* EdWinArrange */, WIN_FULL , "set-win-zoomed", 
 106, C_1FUNC, 85 /* ManageDocks */, MD_ADD_HORIZONTAL, "tile-docks-horizontally",
 107, C_1FUNC, 85 /* ManageDocks */, MD_ADD_VERTICAL, "tile-docks-vertically",
-108, C_1FUNC, 85 /* EdWinArrange */, 2 , "size-win-with-reg-3", 
-109, C_1FUNC, 85 /* EdWinArrange */, 3 , "size-win-with-reg-4", 
-110, C_1FUNC, 85 /* EdWinArrange */, 4 , "size-win-with-reg-5", 
-111, C_1FUNC, 85 /* EdWinArrange */, 5 , "size-win-with-reg-6", 
+108, C_1FUNC, 86 /* xref_navigateSearchErrorList */, LIST_CURR, "errorlist-click-line",
+109, C_1FUNC, 85 /* EdWinArrange */, 3 , "unused",
+110, C_1FUNC, 85 /* EdWinArrange */, 4 , "unused", 
+111, C_1FUNC, 85 /* EdWinArrange */, 5 , "unused", 
 112, C_1FUNC, 65 /* EdSelectWindow */, 1 , "select-window-1", 
 113, C_1FUNC, 65 /* EdSelectWindow */, 2 , "select-window-2", 
 114, C_1FUNC, 65 /* EdSelectWindow */, 3 , "select-window-3", 
@@ -460,10 +460,10 @@ COMMAND _cmdseqtab[] = {
 121, C_1FUNC, 70 /* EdLinesShift */, -1 , "shift-line-left", 
 122, C_1FUNC, 70 /* EdLinesShift */, 1 , "shift-line-right", 
 123, C_0FUNC, 50 /* EdReplaceAgain */, 0 , "replace-again", 
-124, C_1FUNC, 82 /* EdErrorNext */, LIST_NEXT , "errorlist-next", 
-125, C_1FUNC, 82 /* EdErrorNext */, LIST_END , "errorlist-end", 
-126, C_1FUNC, 82 /* EdErrorNext */, LIST_PREV , "errorlist-previous", 
-127, C_1FUNC, 82 /* EdErrorNext */, LIST_START, "errorlist-start", 
+124, C_1FUNC, 82 /* xref_navigateSearchErrorList */, LIST_NEXT , "errorlist-next", 
+125, C_1FUNC, 82 /* xref_navigateSearchErrorList */, LIST_END , "errorlist-end", 
+126, C_1FUNC, 82 /* xref_navigateSearchErrorList */, LIST_PREV , "errorlist-previous", 
+127, C_1FUNC, 82 /* xref_navigateSearchErrorList */, LIST_START, "errorlist-start", 
 128, C_0FUNC, 72 /* EdShowMatch */, 0 , "check-brackets", 
 129, C_0FUNC, 51 /* EdCharControlInsert */, 0 , "insert-char-with-dialog", 
 130, C_1FUNC, 68 /* EdShiftBetweenBrackets */, -1 , "shift-between-brackets-left", 
@@ -591,6 +591,7 @@ COMMAND _cmdseqtab[] = {
 252, C_1FUNC, 78 /* EdOptionToggle */, OPT_DMODE | SHOW_SYNTAX_HIGHLIGHT, "toggle-syntax-highlighting",
 253, C_1FUNC, 128 /* bl_moveSelectionUpDown */, -1, "move-selection-up",
 254, C_1FUNC, 128 /* bl_moveSelectionUpDown */, 1, "move-selection-down"
+// no more commands can be added: maximum is currently 255.
 };
 
 char _recorder[RECORDERSPACE];
@@ -799,3 +800,43 @@ KEYBIND _keymaptab[MAXMAPKEY] = {
 0x0   , 0       , 220 /* unused */,
 0x0   , 0       , 220 /* unused */};
 
+static KEYBIND _searchListKeyTab[] = {
+	VK_SPACE, CMD_CMDSEQ, 46,	// Space key activates the current line in the search / error list: "errorlist-current-line"
+	VK_DELETE, CMD_CMDSEQ, 164	// Delete key directly deletes the current line in the search / error list
+};
+
+static MOUSEBIND _searchListMouseTab[] = {
+	{0x01,M_CONTROL,  1,0,	{CMD_CMDSEQ,108}, (char*)0},
+	{0x01,0,		  2,0,	{CMD_CMDSEQ,108}, (char*)0}
+};
+
+static KEYBIND* xref_searchListGetKeyBinding(WPARAM nKey) {
+	for (int i = 0; i < DIM(_searchListKeyTab); i++) {
+		if (_searchListKeyTab[i].keycode == nKey) {
+			return &_searchListKeyTab[i];
+		}
+	}
+	return NULL;
+}
+
+static MOUSEBIND* xref_searchListGetMouseBinding(int nButton, int nModifier, int nClicks) {
+	for (int i = 0; i < DIM(_searchListMouseTab); i++) {
+		MOUSEBIND* pMB = &_searchListMouseTab[i];
+		if (pMB->nclicks == nClicks && pMB->button == nButton && pMB->shift == nModifier) {
+			return pMB;
+		}
+	}
+	return NULL;
+}
+
+static CONTROLLER _searchListController = {
+	xref_searchListGetKeyBinding,
+	xref_searchListGetMouseBinding
+};
+
+/*
+ * Returns a custom controller with custom mouse and keybindings used in search lists.
+ */
+CONTROLLER* macro_getSearchListController() {
+	return &_searchListController;
+}

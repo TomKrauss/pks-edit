@@ -91,7 +91,7 @@ typedef unsigned short KEYCODE;
 #define	K_DELETED		0x1FFF		/* Impossible Key Combination	*/
 #define	K_INVALID		K_DELETED
 
-typedef struct keymap {
+typedef struct tagKEYBIND {
 	KEYCODE		keycode;
 	MACROREF	macref;
 } KEYBIND;
@@ -281,7 +281,7 @@ typedef struct edfunc {
 	const char* f_name;		// the name as it can be used inside the PKS Edit macro language to execute this function.
 } EDFUNC;
 
-typedef struct macro {
+typedef struct tagMACRO {
 	unsigned char namelen;
 	unsigned char dstart;
 	unsigned 	    size;
@@ -298,7 +298,7 @@ typedef struct macro {
 /*
  * MENUS ---------------------------------------------------------------
  */
-typedef struct menu {
+typedef struct tagMENUBIND {
 	/* unsigned int due too submenu high bit marks !!!! */
 	unsigned 	     menunum;			/* ref. to menutree */
 #if !defined(_Windows) && !defined(WIN32)
@@ -334,6 +334,10 @@ typedef struct tagUSERMENUBIND {
 #define	MBUT_R	0x2
 #define	MBUT_M	0x4
 #define	MBUT_RL	(MBUT_L|MBUT_R)
+
+#define M_CONTROL	0x4
+#define M_SHIFT		0x2
+#define M_ALT		0x8
 
 typedef struct tagMOUSECODE {
 	unsigned	button  : 4,
@@ -410,6 +414,19 @@ typedef struct params {
 	int		flags;
 	struct	des *el;
 } PARAMS;
+
+typedef KEYBIND* (*KEYBINDING_FUNCTION)(WPARAM key);
+typedef MOUSEBIND* (*MOUSE_BINDING_FUNCTION)(int nButton, int nModifiers, int ncClicks);
+
+/*
+ * A controller provides key and mouse bindings (for now) and can be used as a delegate 
+ * to customize key / mousebindings per delegate (etc. per view).
+ */
+typedef struct tagCONTROLLER {
+	const KEYBINDING_FUNCTION c_getKeyBinding;
+	const MOUSE_BINDING_FUNCTION c_getMouseBinding;
+} CONTROLLER;
+
 
 extern int macro_openDialog(PARAMS *p);
 extern int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3);
@@ -631,6 +648,12 @@ extern void macro_stopRecordingFunctions();
  * macro_isParameterStringType()
  */
 extern int macro_isParameterStringType(unsigned char typ);
+
+/*
+ * Returns a custom controller with custom mouse and keybindings used in search lists.
+ */
+extern CONTROLLER* macro_getSearchListController();
+
 
 #define	_EDFUNCS_H
 #endif

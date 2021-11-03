@@ -67,22 +67,23 @@ static const inline size_t xref_min(size_t val, size_t min) {
  */
 static RE_PATTERN* _compiledPattern;
 static void find_inFilesMatchFound(char *fn, int nStartCol, int nLength, char* pszLine) {
-	char szBuf[1024];
+	char szBuf[EDMAXPATHLEN+100];
+	int nMaxVis = 40;
 
 	_searchContext.sc_matches++;
 	if (nStartCol >= 0) {
 		wsprintf(szBuf, "%d/%d", nStartCol, nLength);
 		if (pszLine) {
 			strcat(szBuf, " - ");
-			size_t nLen = xref_min(nStartCol, 20);
+			size_t nLen = xref_min(nStartCol, nMaxVis);
 			strncat(szBuf, &pszLine[nStartCol - nLen], nLen);
 			strcat(szBuf, "~");
-			nLen = xref_min(nLength, 50);
+			nLen = xref_min(nLength, nMaxVis);
 			strncat(szBuf, &pszLine[nStartCol], nLen);
 			strcat(szBuf, "~");
 			char* pszEnd = &pszLine[nStartCol + nLength];
 			char* pszLineEnd = strchr(pszEnd, '\n');
-			nLen = xref_min(pszLineEnd ? pszLineEnd - pszEnd : strlen(pszEnd), 20);
+			nLen = xref_min(pszLineEnd ? pszLineEnd - pszEnd : strlen(pszEnd), nMaxVis);
 			strncat(szBuf, pszEnd, nLen);
 		}
 	} else {
@@ -271,7 +272,7 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 	fp->ti_modified = 0;
 	ft_checkForChangedFiles(FALSE);
 	xref_initSearchList(fp);
-	return EdErrorNext(LIST_START);
+	return xref_navigateSearchErrorList(LIST_START);
 }
 
 

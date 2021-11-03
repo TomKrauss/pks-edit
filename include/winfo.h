@@ -139,6 +139,11 @@ typedef struct tagRENDERER {
     const void (*r_modelChanged)(WINFO* wp, MODEL_CHANGE* pMC);   // The method to invoke, when the model changes.
 } RENDERER;
 
+/*
+ * Custom input handlers per window type can be implemented using a controller.
+ */
+typedef struct tagCONTROLLER CONTROLLER;
+
 /*--------------------------------------------------------------------------
  * indent_calculateTabStop()
  * calculate the previous tabstop for a column given in screen indentation units.
@@ -221,6 +226,7 @@ typedef struct tagWINFO {
      void	*	fp;
      float      zoomFactor;         // The text font size zoom factor.
      COMPARISON_LINK* comparisonLink;
+     CONTROLLER* controller;        // Custom key and mouse handling for special windows.
      void* r_data;                  // optionally used by the renderer for internal book keeping
 } WINFO;
 

@@ -211,7 +211,7 @@ EXPORT void mouse_getXYPos(HANDLE hwnd, int *x, int *y)
 /*------------------------------------------------------------
  * mouse_dispatchUntilButtonRelease()
  * Dispatches mouse messages until a mouse button is released.
- * Return the current mouse position / shift state etc... in the passed
+ * Return the current mouse position / nModifier state etc... in the passed
  * parameters. Return 0, if the user aborted the operation by pressing
  * the ESC key, 1 otherwise.
  */
@@ -529,15 +529,20 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 /*----------------------------*/
 /* mouse_onMouseClicked()			*/
 /*----------------------------*/
-EXPORT int mouse_onMouseClicked(WINFO *wp, int x, int y, int b, int nclicks, int shift)
+EXPORT int mouse_onMouseClicked(WINFO *wp, int x, int y, int b, int nclicks, int nModifier)
 {
 	MOUSEBIND *	mp;
 
-	if (shift & 0x3) {
-		shift |= 0x3;
+	if (nModifier & 0x3) {
+		nModifier |= 0x3;
 	}
 
-	if ((mp = mouse_getMouseBind(b, shift, nclicks)) != 0) {
+	if (wp && wp->controller) {
+		mp = wp->controller->c_getMouseBinding(b, nModifier, nclicks);
+	} else {
+		mp = NULL;
+	}
+	if (mp || (mp = mouse_getMouseBind(b, nModifier, nclicks)) != 0) {
 		macro_stopRecordingFunctions();
 		mfunct(wp, mp, x, y);
 		return 1;

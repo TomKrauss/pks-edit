@@ -42,9 +42,9 @@ extern int xref_navigateCrossReference(char* s);
 extern void xref_openSearchListResultFromLine(FTABLE* fp, LINE* lp);
 
 /*---------------------------------*/
-/* EdErrorNext()				*/
+/* xref_navigateSearchErrorList()				*/
 /*---------------------------------*/
-extern int EdErrorNext(int dir);
+extern int xref_navigateSearchErrorList(int dir);
 
 /*--------------------------------------------------------------------------
  * xref_addSearchListEntry()
