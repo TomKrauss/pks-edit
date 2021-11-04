@@ -7,18 +7,46 @@
       "filenamePatterns": "*.*"
     },
     {
-      "name": "searchresults",
-      "description": "PKS Edit Search Results (*.grep)",
-      "grammar": "pksgrep",
-      "editorConfiguration": "searchresults",
-      "filenamePatterns": "*.grep"
-    },
-    {
       "name": "c+cpp",
       "description": "C/ C++ files (*.c,*.h,*.cpp,*.hpp)",
       "grammar": "cpp",
       "editorConfiguration": "default",
       "filenamePatterns": "*.c;*.h;*.cpp;*.hpp"
+    },
+    {
+      "name": "text",
+      "description": "Text Files (*.txt)",
+      "grammar": "text",
+      "editorConfiguration": "readme",
+      "filenamePatterns": "*.txt"
+    },
+    {
+      "name": "java",
+      "description": "Java files (*.java)",
+      "grammar": "java",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.java"
+    },
+    {
+      "name": "log",
+      "description": "Log Files (*.log, *.err, *.out, *.logfile)",
+      "grammar": "logfile",
+      "editorConfiguration": "logfile",
+      "filenamePatterns": "*.log;*.err;*.out;*.logfile"
+    },
+    {
+      "name": "xmlmarkup",
+      "description": "HTML and XML (*.html; *.htm; *.xml; *.vcxproj)",
+      "grammar": "xml",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.html;*.htm;*.xml;*.xsd;.trend;*.vcxproj"
+    },
+    {
+      "name": "css",
+      "description": "CSS Files (*.css; *.scss)",
+      "grammar": "css",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.css;*.scss"
     },
     {
       "name": "dart",
@@ -54,13 +82,6 @@
       "grammar": "pascal",
       "editorConfiguration": "default",
       "filenamePatterns": "*.pas"
-    },
-    {
-      "name": "java",
-      "description": "Java files (*.java)",
-      "grammar": "java",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.java"
     },
     {
       "name": "batch-files",
@@ -112,11 +133,18 @@
       "filenamePatterns": "*.md"
     },
     {
-      "name": "pksedit",
+      "name": "pksmacro",
       "description": "PKS Edit macro files (*.pkc,*.mac)",
       "grammar": "pksedit",
       "editorConfiguration": "default",
       "filenamePatterns": "*.pkc;*.mac"
+    },
+    {
+      "name": "pkssearch",
+      "description": "PKS Edit Search Results (*.grep)",
+      "grammar": "pksgrep",
+      "editorConfiguration": "searchresults",
+      "filenamePatterns": "*.grep"
     },
     {
       "name": "python",
@@ -133,31 +161,10 @@
       "filenamePatterns": "*.sql;*.ddl"
     },
     {
-      "name": "log",
-      "description": "Log Files (*.log, *.err, *.out, *.logfile)",
-      "grammar": "logfile",
-      "editorConfiguration": "logfile",
-      "filenamePatterns": "*.log;*.err;*.out;*.logfile"
-    },
-    {
-      "name": "text",
-      "description": "Text Files (*.txt)",
-      "grammar": "text",
-      "editorConfiguration": "readme",
-      "filenamePatterns": "*.txt"
-    },
-    {
       "name": "binary",
       "description": "Binary Files (*.pdb,*.obj,*.class)",
       "editorConfiguration": "binary",
       "filenamePatterns": "*.pdb;*.obj;*.class"
-    },
-    {
-      "name": "css",
-      "description": "CSS Files (*.css; *.scss)",
-      "grammar": "css",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.css;*.scss"
     },
     {
       "name": "ps1",
@@ -165,13 +172,6 @@
       "grammar": "ps",
       "editorConfiguration": "default",
       "filenamePatterns": "*.ps1"
-    },
-    {
-      "name": "xmlmarkup",
-      "description": "HTML and XML (*.html; *.htm; *.xml; *.vcxproj)",
-      "grammar": "xml",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.html;*.htm;*.xml;*.xsd;.trend;*.vcxproj"
     }
   ],
     "editorConfigurations": [

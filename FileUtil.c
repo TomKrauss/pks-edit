@@ -66,15 +66,10 @@ EXPORT int file_getFileMode(char *s) {
 
 
 static EDTIME ConvertFileTimeToLTime(FILETIME *pTime) {
-	WORD		wDate;
-	WORD		wTime;
-	EDTIME		tempResult;
-
-	FileTimeToDosDateTime(pTime, &wDate, &wTime);
-	tempResult = (EDTIME)wDate;
-	tempResult <<= 16;
-	tempResult += wTime;
-	return tempResult;
+	ULARGE_INTEGER ui;
+	ui.LowPart = pTime->dwLowDateTime;
+	ui.HighPart = pTime->dwHighDateTime;
+	return ((LONGLONG)(ui.QuadPart - 116444736000000000) / 10000000);
 }
 
 /**

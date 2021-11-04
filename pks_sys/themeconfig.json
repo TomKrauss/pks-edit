@@ -115,6 +115,133 @@
       ]
     },
     {
+      "name": "spring",
+      "darkMode": 0,
+      "backgroundColor": "#eaffea",
+      "dialogBackground": "#c3e7c3",
+      "dialogLightBackground": "#f3e7f3",
+      "dialogForeground": "#321632",
+      "dialogBorder": "#252525",
+      "dialogLight": "#d3e7d3",
+      "dialogActiveTab": "#ff7700",
+      "dialogHighlight": "#666666",
+      "dialogHighlightText": "#eeeeee",
+      "dialogMenuHighlight": "#888888",
+      "dialogDisabled": "#888888",
+      "changedLineColor": "#111133",
+      "savedChangedLineColor": "#882288",
+      "editorConfiguration": "default",
+      "caretLineColor": "#efefef",
+      "compareModifiedColor": "#9f9fff",
+      "compareAddedColor": "#9fff9f",
+      "compareDeletedColor": "#ff9f9f",
+      "rulerBorderColor": "#202020",
+      "rulerForegroundColor": "#353435",
+      "rulerBackgroundColor": "#cdffcd",
+      "mainframeMargin": 10,
+      "mainWindowBackgroundColor": "#cfffcf",
+      "textStyles": [
+        {
+          "styleName": "default",
+          "faceName": "Consolas",
+          "size": -12,
+          "foregroundColor": "#233423",
+          "weight": 400
+        },
+        {
+          "styleName": "control",
+          "foregroundColor": "#334433"
+        },
+        {
+          "styleName": "identifier",
+          "foregroundColor": "#777722"
+        },
+        {
+          "styleName": "keyword  ",
+          "weight": 700,
+          "foregroundColor": "#61afef"
+        },
+        {
+          "styleName": "error",
+          "weight": 700,
+          "foregroundColor": "#e06c75"
+        },
+        {
+          "styleName": "warning",
+          "weight": 700,
+          "foregroundColor": "#2222FF"
+        },
+        {
+          "styleName": "operator",
+          "weight": 700,
+          "foregroundColor": "#e06c75"
+        },
+        {
+          "styleName": "annotation",
+          "weight": 700,
+          "foregroundColor": "#00bbbb"
+        },
+        {
+          "styleName": "bold",
+          "weight": 700,
+          "foregroundColor": "#222206"
+        },
+        {
+          "styleName": "regexp",
+          "foregroundColor": "#664444",
+          "weight": 700
+        },
+        {
+          "styleName": "bold-italic",
+          "weight": 700,
+          "italic": true,
+          "foregroundColor": "#313231"
+        },
+        {
+          "styleName": "italic",
+          "italic": true,
+          "foregroundColor": "#313231"
+        },
+        {
+          "styleName": "code",
+          "weight": 700,
+          "backgroundColor": "#64b764"
+        },
+        {
+          "styleName": "literal",
+          "weight": 700,
+          "foregroundColor": "#72788d"
+        },
+        {
+          "styleName": "hyperlink",
+          "underline": true,
+          "foregroundColor": "#61afef"
+        },
+        {
+          "styleName": "string",
+          "foregroundColor": "#44aaaa"
+        },
+        {
+          "styleName": "sl-comment",
+          "foregroundColor": "#386319"
+        },
+        {
+          "styleName": "comment",
+          "foregroundColor": "#588319"
+        },
+        {
+          "styleName": "bold-comment",
+          "weight": 900,
+          "foregroundColor": "#55EE55"
+        },
+        {
+          "styleName": "task",
+          "weight": 800,
+          "foregroundColor": "#FF7777"
+        }
+      ]
+    },
+    {
       "name": "dark",
       "darkMode": 1,
       "backgroundColor": "#373737",
@@ -145,7 +272,7 @@
           "styleName": "default",
           "faceName": "Consolas",
           "size": -12,
-          "foregroundColor": "#DEDEDE",
+          "foregroundColor": "#dedede",
           "weight": 400
         },
         {
@@ -159,12 +286,12 @@
         {
           "styleName": "keyword",
           "weight": 700,
-          "foregroundColor": "#88FFFF"
+          "foregroundColor": "#61afef"
         },
         {
           "styleName": "error",
           "weight": 700,
-          "foregroundColor": "#FF2222"
+          "foregroundColor": "#e06c75"
         },
         {
           "styleName": "warning",
@@ -174,7 +301,7 @@
         {
           "styleName": "operator",
           "weight": 700,
-          "foregroundColor": "#FF6666"
+          "foregroundColor": "#e06c75"
         },
         {
           "styleName": "annotation",
@@ -195,12 +322,12 @@
           "styleName": "bold-italic",
           "weight": 700,
           "italic": true,
-          "foregroundColor": "#FFFFA0"
+          "foregroundColor": "#abb2bf"
         },
         {
           "styleName": "italic",
           "italic": true,
-          "foregroundColor": "#FFFFA0"
+          "foregroundColor": "#abb2bf"
         },
         {
           "styleName": "code",
@@ -210,12 +337,12 @@
         {
           "styleName": "literal",
           "weight": 700,
-          "foregroundColor": "#dd66dd"
+          "foregroundColor": "#c678dd"
         },
         {
           "styleName": "hyperlink",
           "underline": true,
-          "foregroundColor": "#aaaaFF"
+          "foregroundColor": "#61afef"
         },
         {
           "styleName": "string",
@@ -223,11 +350,11 @@
         },
         {
           "styleName": "sl-comment",
-          "foregroundColor": "#008800"
+          "foregroundColor": "#589339"
         },
         {
           "styleName": "comment",
-          "foregroundColor": "#00CC22"
+          "foregroundColor": "#98c379"
         },
         {
           "styleName": "bold-comment",

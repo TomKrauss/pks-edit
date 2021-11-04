@@ -88,6 +88,7 @@
 #define IDS_MSGNOTIMER                  74
 #define MMSORT                          74
 #define IDS_MSGNOPRINTER                75
+#define IDD_RO7                         75
 #define IDS_MSGOVERWRITE                76
 #define IDS_MSGQUERYNEWFILE             77
 #define IDS_MSGABANDON                  78

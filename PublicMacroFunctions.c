@@ -706,8 +706,9 @@ static void infoFillParams(DIALPARS *dp, WINFO *wp) {
 	FTABLE* fp = wp->fp;
 	dp->dp_data = string_getBaseFilename(fp->fname);			dp++;
 
-     string_formatDate(dp->dp_data, &fp->ti_modified); 	dp++;
-     string_formatDate(dp->dp_data, &fp->ti_saved);  	dp++;
+	string_formatDate(dp->dp_data, &fp->ti_created); 	dp++;
+	string_formatDate(dp->dp_data, &fp->ti_modified); 	dp++;
+    string_formatDate(dp->dp_data, &fp->ti_saved);  	dp++;
      wsprintf(dp->dp_data,"%ld", ft_size(fp)); 	dp++;
 	 wsprintf(dp->dp_data, "%ld", fp->nlines); dp++;
 	 wsprintf(dp->dp_data, "%ld", ft_countWords(fp));
@@ -718,6 +719,7 @@ static void infoFillParams(DIALPARS *dp, WINFO *wp) {
  */
 static DIALPARS infoDialListPars[] = {
 	IDD_RO1,			128,			0,
+	IDD_RO7,			128,			0,
 	IDD_RO2,			128,			0,
 	IDD_RO3,			128,			0,
 	IDD_RO4,			128,			0,
@@ -747,8 +749,8 @@ static void winlist_command(HWND hDlg, int nItem,  int nNotify, void *pUser)
  */
 static int showWindowList(int nTitleId)
 {
-	static WINFO *wp;
-	static DIALLIST dlist = {
+	WINFO *wp;
+	DIALLIST dlist = {
 		(long long*)&wp, 
 		winlist_lboxfill, 
 		dlg_getListboxText, 
@@ -756,7 +758,7 @@ static int showWindowList(int nTitleId)
 		winlist_drawFileInfo,
 		winlist_command 
 	};
-	char	dmod[40],dsaved[40],nbytes[20],nlines[20], nwords[20];
+	char	dmod[40],dsaved[40], dcreated[40], nbytes[20],nlines[20], nwords[20];
 	int		nRet;
 
 	wp = ww_getCurrentEditorWindow();
@@ -765,12 +767,13 @@ static int showWindowList(int nTitleId)
 		return 0;
 	}
      infoDialListPars[1].dp_data = dmod;  
-     infoDialListPars[2].dp_data = dsaved;
-     infoDialListPars[3].dp_data = nbytes;
-     infoDialListPars[4].dp_data = nlines;
-	 infoDialListPars[5].dp_data = nwords;
-	 infoDialListPars[6].dp_data = &dlist;
-	infoDialListPars[7].dp_size = nTitleId;
+	 infoDialListPars[2].dp_data = dcreated;
+	 infoDialListPars[3].dp_data = dsaved;
+     infoDialListPars[4].dp_data = nbytes;
+     infoDialListPars[5].dp_data = nlines;
+	 infoDialListPars[6].dp_data = nwords;
+	 infoDialListPars[7].dp_data = &dlist;
+	infoDialListPars[8].dp_size = nTitleId;
 
 	infoFillParams(infoDialListPars, wp);
 	nRet = DoDialog(DLGINFOFILE, dlg_standardDialogProcedure,infoDialListPars, NULL);

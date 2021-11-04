@@ -115,6 +115,7 @@
 #define IDD_RO4 73
 #define IDD_RO5 74
 #define IDD_RO6 80
+#define IDD_RO7 84
 #define IDD_SHELLJOKER 134
 #define IDD_STRING1 50
 #define IDD_STRING2 51

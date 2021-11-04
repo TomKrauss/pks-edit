@@ -457,14 +457,14 @@ static void tabcontrol_makeActiveTabVisible(HWND hwnd, TAB_CONTROL* pControl) {
 		if (i > pControl->tc_activeTab) {
 			break;
 		}
-		if (i == pControl->tc_activeTab) {
-			// active tab already visible - nothing to do.
-			return;
-		}
 		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
 		x += pPage->tp_width;
 		if (x >= xMax) {
 			break;
+		}
+		if (i == pControl->tc_activeTab) {
+			// active tab already visible - nothing to do.
+			return;
 		}
 	}
 	for (int i = 0; i < nLen; i++) {
@@ -589,7 +589,9 @@ static void tabcontrol_paintWidgetContents(HDC hdc, RECT* pRect, BOOL bRollover,
 	HPEN hPenOld = SelectObject(hdc, hPen);
 	h2 = (pRect->bottom - pRect->top) / 2;
 	if (bRollover) {
+		InflateRect(pRect, 3, 3);
 		FillRect(hdc, pRect, theme_getDialogLightBackgroundBrush());
+		InflateRect(pRect, -3, -3);
 	}
 	switch (twWidgetType) {
 	case TW_CLOSER:
