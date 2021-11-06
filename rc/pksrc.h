@@ -4,6 +4,7 @@
 //
 #define ID_COMPARE_BACKUP               3
 #define IDD_APP_ICON                    3
+#define IDD_ALL_OCCURRENCES             4
 #define IDS_STRING15                    15
 #define IDS_NO_TEMPLATES_DEFINED        15
 #define IDD_RO6                         80
@@ -32,6 +33,7 @@
 #define IDS_CREATE_BUFFER               195
 #define IDB_NEW_ICONS                   200
 #define DLGCURSOROPTIONS                529
+#define DLGFINDINFILES                  535
 #define DLG_OPT_WARNINGS                556
 #define DLG_OPT_MISC                    557
 #define DLG_OPT_LAYOUT                  558
@@ -58,7 +60,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        219
+#define _APS_NEXT_RESOURCE_VALUE        221
 #define _APS_NEXT_COMMAND_VALUE         40037
 #define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101

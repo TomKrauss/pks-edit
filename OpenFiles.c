@@ -261,7 +261,7 @@ autosave:
 		if (ret > 0) {
 		/* we autosaved into source file: set state to unmodified */
 			flags &= ~F_MODIFIED;
-			error_showMessageInStatusbar(IDS_MSGAUBE,ft_visiblename(fp));
+			error_showMessageInStatusbar(IDS_MSGAUBE,ft_visibleName(fp));
 		} else if (EdPromptAutosavePath(config_getPKSEditTempPath())) {
 		/* let the user correct invalid autosave pathes */
 			goto autosave;
@@ -405,10 +405,10 @@ FTABLE *ft_new(void)
 }
 
 /*------------------------------------------------------------
- * ft_name()
+ * ft_visibleName()
  */
-char *ft_visiblename(FTABLE *fp)
-{	static char buf[512];
+char *ft_visibleName(FTABLE *fp) {	
+	static char buf[512];
 
 	if (fp)
 		OemToAnsi(fp->fname,buf);
@@ -551,7 +551,7 @@ int ww_requestToClose(WINFO *wp)
 		if (_ExSave || (GetConfiguration()->options & AUTOWRITE)) {
 	     	return ft_writeFileWithAlternateName(fp);
 		}
-		switch(error_displayYesNoCancelConfirmation(IDS_MSGQUITORSAVE,ft_visiblename(fp))) {
+		switch(error_displayYesNoCancelConfirmation(IDS_MSGQUITORSAVE,ft_visibleName(fp))) {
 			case IDYES:
 				if (!ft_writeFileWithAlternateName(fp)) {
 					if (!(GetConfiguration()->options & O_WARNINGS)) {
@@ -857,7 +857,7 @@ int ft_isFileModified(FTABLE* fp) {
 int ft_checkReadonlyWithError(FTABLE* fp)
 {
 	if (ft_isReadonly(fp)) {
-		error_showErrorById(IDS_MSGRDONLY);
+		error_showErrorById(IDS_MSGRDONLY, string_abbreviateFileName(ft_visibleName(fp)));
 		return 1;
 	}
 	return 0;
@@ -883,7 +883,7 @@ int EdFileAbandon(void) {
  */
 int EdSaveAllFiles() {
 	for (FTABLE* fp = _filelist; fp; fp = fp->next) {
-		if (!ft_checkReadonlyWithError(fp) && (fp->flags & (F_NAME_INPUT_REQUIRED | F_MODIFIED)) == F_MODIFIED) {
+		if ((fp->flags & (F_NAME_INPUT_REQUIRED | F_MODIFIED)) == F_MODIFIED && !ft_checkReadonlyWithError(fp)) {
 			if (!ft_writefileMode(fp, WFM_QUIET)) {
 				return 0;
 			}

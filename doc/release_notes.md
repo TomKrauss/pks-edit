@@ -33,6 +33,7 @@
     -- a summary of the search is printed at the end
     -- two new options were added: one can search only considering locations found in a previous search and the search list can be augmented 
        in a new search.
+    -- one can also replace now all occurrences of a string in the files found.
 - When comparing files, one may now select the file to compare with using a selector. This selector provides a new option for comparison:
   "Compare with history", which allows to compare a file with a previously created backup file (if such exists). PKS Edit will now differentiate
   between added, deleted and modified lines and will synchronize cursor movements of files in comparison mode to be able to display identical lines
@@ -57,6 +58,7 @@
 - Long lines painted in a single color could have caused a crash. This is fixed.
 - Find in files used to find a match only once per line. If a search would have matched multiple positions in one line in a file only the
   1st match had been reported before.
+- The "Save All" action had been complaining about read-only files even if the file had not been changed.
 
 ### 2.0.2
 

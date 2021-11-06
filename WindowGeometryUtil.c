@@ -83,13 +83,13 @@ EXPORT int win_positionWindowRelativeToCaret(HWND hwnd)
 		return 0;
 	}
 
-	GetWindowRect(hwndMain, &r);
+	GetWindowRect(wp->ww_handle, &r);
 
 	p.y = wp->cy;
-	// p.x = wp->cx;
+	p.x = wp->cx + 20;
 	ClientToScreen(wp->ww_handle,&p);
-
-	win_moveWindowToXY(hwnd,0,(r.left+r.right)/2,p.y);
+	ScreenToClient(GetParent(hwnd), &p);
+	win_moveWindowToXY(hwnd,0,p.x+20,p.y);
 	return 1;
 }
 

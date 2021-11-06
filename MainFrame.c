@@ -221,7 +221,7 @@ static char* tabcontrol_getTitle(HWND hwnd, char* szBuffer, size_t nSize) {
 		if ((GetConfiguration()->layoutoptions & OL_COMPACT_TABS) &&
 			// Hack: we use the initial hashmark to differentiate from the case, that the window title
 			// is assigned explicitly (no filename - e.g. the search result list).
-			szBuffer[0] == '#') {
+			(szBuffer[0] == '#' || szBuffer[0] == '*')) {
 			char* pszLast = strrchr(szBuffer, '\\');
 			if (pszLast == 0) {
 				pszLast = strrchr(szBuffer, '/');
@@ -1297,6 +1297,7 @@ static void ww_onTimerAction(void) {
 HWND mainframe_addWindow(OPEN_HINT* pHint, const char* pszChildWindowClass, const char* pszTitle, LPVOID lParam) {
 	DOCKING_SLOT* pSlot = mainframe_getSlot(pHint->oh_slotName);
 	if (pSlot == NULL) {
+		mainframe_manageDocks(MD_ENSURE_DEFAULT);
 		pSlot = dockingSlots;
 	}
 	HWND hwnd = CreateWindow(pszChildWindowClass, pszTitle, WS_CHILD | WS_CLIPSIBLINGS, 0, 0, 10, 10, pSlot->ds_hwnd, NULL, hInst, lParam);

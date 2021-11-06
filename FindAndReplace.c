@@ -27,6 +27,7 @@
 
 #pragma hdrstop
 
+#include "dial2.h"
 #include "pksedit.h"
 #include "edctype.h"
 #include "edfuncs.h"
@@ -51,7 +52,14 @@ unsigned char 		*tlcompile(unsigned char *transtab,
 						 unsigned char *t,
 						 unsigned char *wt);
 
-SEARCH_AND_REPLACE_PARAMETER _currentSearchAndReplaceParams;
+SEARCH_AND_REPLACE_PARAMETER _currentSearchAndReplaceParams = {
+	"",
+	"",
+	0,
+	"",
+	"",
+	-1
+};
 static RE_PATTERN	_lastCompiledPattern;
 static RE_PATTERN	_lastSearchPattern;
 
@@ -664,32 +672,31 @@ static void strxcpy(char *d, char *s, int newlen)
  * EdReplaceText()
  * replace, mark, count... lines with RE
  */
-int EdReplaceText(int scope, int action, int flags)
-{	long 	ln,col,startln,lastfln,rp=0L;
+REPLACE_TEXT_RESULT EdReplaceText(WINFO* wp, int scope, REPLACE_TEXT_ACTION action) {
+	long 	ln, col, startln, lastfln;
+	long    nReplacements = 0L;
 	unsigned char 	*q;
-	register	LINE *lp;
-	register 	FTABLE *fp;
-	MARK		*markstart,*Markend;
-	register MARK *markend;
+	LINE *lp;
+	FTABLE *fp;
+	MARK*		pMarkStart;
+	MARK*		pNewMarkEnd;
+	MARK *		pMarkEnd;
 	LINE		*oldxpnd = 0;
 	long newlen;
-	register	maxlen,delta;
+	int maxlen,delta;
 	RE_MATCH	match;
-	WINFO* wp = ww_getCurrentEditorWindow();
-	register	olen;
-	int  	sc1flg = 1,splflg = _playing, column = 0, lastfcol,
-			query,marked;
+	int			olen;
+	REPLACE_TEXT_RESULT bResult = RTR_FINISHED;
+	int  		splflg = _playing, column = 0, lastfcol, query,marked;
 
 	memset(&match, 0, sizeof match);
 	fp = wp->fp;
 
 	if (ft_checkReadonlyWithError(fp) && action == REP_REPLACE) {
-		return 0;
+		return RTR_ERROR;
 	}
-	if (_playing) {
-		regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
-		find_initializeReplaceByExpression(_currentSearchAndReplaceParams.replaceWith);
-	}
+	regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
+	find_initializeReplaceByExpression(_currentSearchAndReplaceParams.replaceWith);
 	newlen = _currentReplacementPattern.preparedReplacementString ? (long)strlen(_currentReplacementPattern.preparedReplacementString) : 0;
 
 	/* call before assigning firstline	*/
@@ -698,21 +705,21 @@ int EdReplaceText(int scope, int action, int flags)
 	undo_startModification(fp);
 	caret_saveLastPosition();
 
-	if (find_setTextSelection(wp, scope,&markstart,&Markend) == RNG_INVALID)
+	if (find_setTextSelection(wp, scope,&pMarkStart,&pNewMarkEnd) == RNG_INVALID)
 		return 0;
 	/* force register use */
-	markend = Markend;
+	pMarkEnd = pNewMarkEnd;
 
-	lp  = markstart->m_linePointer;
-	col = markstart->m_column;
+	lp  = pMarkStart->m_linePointer;
+	col = pMarkStart->m_column;
 	startln = ln = ln_indexOf(fp,lp);
 
 	startln = ln;
 	lastfln = wp->caret.ln;
 	lastfcol = wp->caret.offset;
 
-	query  = flags & OREP_INQ;
-	marked = flags & OREP_MARKED;
+	query  = _currentSearchAndReplaceParams.options & RE_CONFIRM_REPLACEMENT;
+	marked = _currentSearchAndReplaceParams.options & RE_CONSIDER_MARKED_LINES;
 	if (ww_isColumnSelectionMode(wp) && scope == RNG_BLOCK)
 		column = 1;
 
@@ -748,9 +755,9 @@ int EdReplaceText(int scope, int action, int flags)
 		} else
 			maxlen = lp->len;
 
-		if (P_EQ(lp,markend->m_linePointer)) {
+		if (P_EQ(lp,pMarkEnd->m_linePointer)) {
 			if (!column) {
-				maxlen = markend->m_column;
+				maxlen = pMarkEnd->m_column;
 				if (maxlen > lp->len)
 					maxlen = lp->len;
 			}
@@ -782,7 +789,7 @@ int EdReplaceText(int scope, int action, int flags)
 		}
 
 nextline:
-		if (P_EQ(lp,markend->m_linePointer))
+		if (P_EQ(lp,pMarkEnd->m_linePointer))
 			break;
 		lp = lp->next; ln++; col = 0; continue;
 
@@ -813,11 +820,12 @@ success:	olen = (int)(match.loc2 - match.loc1);
 				case IDNO:
 					delta = olen;
 					goto advance;
-				case IDRETRY:
+				case IDD_ALL_OCCURRENCES:
 					query = 0;
+					bResult = RTR_ALL;
 				case IDOK: break;
 				default:
-					sc1flg = 0;
+					bResult = RTR_CANCELLED;
 					goto endrep;
 			}
 		}
@@ -833,7 +841,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 			render_repaintCurrentLine(wp);
 
 		delta = (int)newlen;
-advance1:	rp++;
+advance1:	nReplacements++;
 		lp->lflg |= LNMODIFIED;
 		if (scope == RNG_ONCE)
 			break;
@@ -854,7 +862,7 @@ endrep:
 	dlg_closeQueryReplace();
 	_playing = splflg;
 
-	if (rp) {
+	if (nReplacements) {
 		if (action != REP_COUNT) {
 			if (_currentReplacementPattern.lineSplittingNeeded) {
 				caret_placeCursorInCurrentFile(wp, startln,0L);
@@ -873,15 +881,15 @@ endrep:
 		/* ft_countlinesStartingFromDirection MUST be called to clear lineflags !!!! */
 		ln = ft_countlinesStartingFromDirection(fp,startln,1);
 		if (action != REP_REPLACE) {
-			error_showMessageInStatusbar(IDS_MSGNFOUND, _currentSearchAndReplaceParams.searchPattern,ln,rp);
+			error_showMessageInStatusbar(IDS_MSGNFOUND, _currentSearchAndReplaceParams.searchPattern,ln,nReplacements);
 		} else {
-			error_showMessageInStatusbar(IDS_MSGNREPL, _currentSearchAndReplaceParams.searchPattern,rp,ln);
+			error_showMessageInStatusbar(IDS_MSGNREPL, _currentSearchAndReplaceParams.searchPattern,nReplacements,ln);
 		}
-	} else if (sc1flg && !_playing) {
+	} else if (bResult != RTR_CANCELLED && !_playing) {
 		error_showErrorById(IDS_MSGSTRINGNOTFOUND);
-		return 0;
+		return RTR_NOT_FOUND;
 	}
-	return 1;
+	return bResult;
 }
 
 /*--------------------------------------------------------------------------

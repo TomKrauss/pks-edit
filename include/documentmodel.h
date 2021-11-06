@@ -363,7 +363,7 @@ extern long ln_nBytes(LINE* lp);
  *---------------------------------*/
 extern void ln_removeFlag(LINE* lpstart, LINE* lpend, int flg);
 
-extern char* ft_visiblename(FTABLE* fp);
+extern char* ft_visibleName(FTABLE* fp);
 /* do an autosave */
 extern int ft_triggerAutosaveAllFiles(void);
 extern void ft_deleteautosave(FTABLE* fp);
@@ -465,7 +465,7 @@ extern BOOL ft_backupFileExists(FTABLE* fp);
  */
 int EdSelectWindow(int winid);
 
-extern char* ft_visiblename(FTABLE* fp);
+extern char* ft_visibleName(FTABLE* fp);
 /*------------------------------------------------------------
  * ft_size()
  * calculate current file size

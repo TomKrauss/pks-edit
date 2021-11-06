@@ -522,7 +522,7 @@ static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, char *pw
  * ft_getBasenameOf()
  */
 static char* ft_getBasenameOf(FTABLE* fp) {
-	return string_getBaseFilename(ft_visiblename(fp));
+	return string_getBaseFilename(ft_visibleName(fp));
 }
 
 /*--------------------------------------*/

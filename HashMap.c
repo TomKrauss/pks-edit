@@ -222,14 +222,19 @@ intptr_t hashmap_get(HASHMAP* pTable, intptr_t key) {
 /*
  * Can be used to execute a callback for each key defined in a hashmap.
  * The callback is invoked with each key and the additional param passed as an argument.
+ * If the callback returns 0, the iteration is stopped and the function returns also
+ * 0. Otherwise forEachKey returns 1.
  */
-void hashmap_forEachKey(HASHMAP* pTable, void (*function)(intptr_t k, void* pParam), void* pParam) {
+int hashmap_forEachKey(HASHMAP* pTable, int (*function)(intptr_t k, void* pParam), void* pParam) {
 	for (int i = 0; i < pTable->ht_capacity; i++) {
 		intptr_t k = pTable->ht_entries[i].he_key;
 		if (k) {
-			function(k, pParam);
+			if (!function(k, pParam)) {
+				return 0;
+			}
 		}
 	}
+	return 1;
 }
 
 /*

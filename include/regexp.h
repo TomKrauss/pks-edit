@@ -25,6 +25,8 @@
 #define	RE_SEARCH_ONCE		0x40			// applicable only to "find in files" - if set - stop searching after first match
 #define RE_APPEND_TO_SEARCH_RESULTS	0x80	// applicable only to "find in files" - if set - append results to existing search result list
 #define RE_SEARCH_IN_SEARCH_RESULTS	0x100	// applicable only to "find in files" - if set - consider only files from previous search result list.
+#define RE_CONFIRM_REPLACEMENT		0x200	// applicable to replacement only: if set the user is asked before every replacement 
+#define RE_CONSIDER_MARKED_LINES	0x400	// whether only marked lines should be considered
 
 #define	NBRA			9		/* maximum number of brackets	*/
 

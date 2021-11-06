@@ -68,14 +68,6 @@ extern void linetoolong(void);
 
 /* Substitution dialog */
 
-#define	OREP_INQ			0x10		/* substitute query */
-#define	OREP_MARKED		0x20		/* only in marked lines */
-
-#define	REP_REPLACE		1		/* replace */
-#define	REP_MARK			2		/* mark lines with occurence */
-#define	REP_COUNT			3		/* count occurrences */
-#define	REP_FIND			4		/* search only */
-
 /* Fkeys */
 #define	NORMFKEY			0
 #define	CNTLFKEY			1

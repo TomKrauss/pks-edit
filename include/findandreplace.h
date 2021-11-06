@@ -5,9 +5,12 @@
 typedef struct tagMARK MARK;
 
 typedef struct tagSEARCH_AND_REPLACE_PARAMETER {
-	char	searchPattern[500];
-	char	replaceWith[500];	// the replacement string or pattern for replace operations - otherwise empty.
-	int		options;			// one of the RE_XXX flags defined in regexp.h
+	char	searchPattern[500];		// the actual search pattern
+	char	replaceWith[500];		// the replacement string or pattern for replace operations - otherwise empty.
+	int		options;				// one of the RE_XXX flags defined in regexp.h
+	char	pathlist[512];			// for search in files: a list of pathes (separated by ",") to scan
+	char	filenamePattern[50];	// for search in files: filename pattern for files to consider.
+	int		fileScanDepth;			// for search in files: the maximum folder depth for traversal -1 means: no limit.
 } SEARCH_AND_REPLACE_PARAMETER;
 
 extern SEARCH_AND_REPLACE_PARAMETER _currentSearchAndReplaceParams;
@@ -65,9 +68,11 @@ extern int find_initiateIncrementalSearch();
 
 /*--------------------------------------------------------------------------
  * find_matchesInFiles()
- * Perform a recursive pSearchExpression in a list of pates with a given filename pattern.
+ * Perform a recursive search in a list of files with a given filename pattern.
+ * Parameter defines the details about the string to search.
  */
-extern int find_matchesInFiles(char* pPathes, char* pFilenamePattern, char* pSearchExpression, int nOptions, int nMaxRecursion);
+typedef enum { FIF_SEARCH,  FIF_REPLACE} FIND_IN_FILES_ACTION;
+extern int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParam, FIND_IN_FILES_ACTION fAction);
 
 /*--------------------------------------------------------------------------
  * find_replaceTabsWithSpaces()
@@ -80,7 +85,26 @@ extern int find_replaceTabsWithSpaces(int scope, int flg);
  * EdReplaceText()
  * replace, mark, count... lines with RE
  */
-extern int EdReplaceText(int scope, int action, int flags);
+#ifdef _WINFO_H
+
+// Find and replace actions
+typedef enum {
+	REP_REPLACE	= 1,		// replace 
+	REP_MARK = 2,			// mark lines with occurence 
+	REP_COUNT = 3,			// count occurrences
+	REP_FIND = 4			// search only
+} REPLACE_TEXT_ACTION;
+
+typedef enum {
+	RTR_ERROR,			// an error occurred during find and replace
+	RTR_FINISHED,		// all occurances were successfully replaced
+	RTR_ALL,			// The user asked to replace all remaining occurrences without confirmation
+	RTR_NOT_FOUND,		// the string to replace was not found
+	RTR_CANCELLED}		// some occurrances were potentially replaced, but the user cancelled the operation
+REPLACE_TEXT_RESULT;
+
+extern REPLACE_TEXT_RESULT EdReplaceText(WINFO* wp, int scope, REPLACE_TEXT_ACTION action);
+#endif
 
 
 #define FINDANDREPLACE_H

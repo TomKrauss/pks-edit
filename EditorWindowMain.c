@@ -350,7 +350,7 @@ int ww_setwindowtitle(WINFO *wp, BOOL bRepaint) {
 	if (fp->title) {
 		strcpy(buf, fp->title);
 	} else {
-		char* pName = ft_visiblename(fp);
+		char* pName = ft_visibleName(fp);
 		wsprintf(buf, "#%d %s", nr, (LPSTR)pName);
 		if (ft_isFileModified(fp)) {
 			memmove(buf + 2, buf, sizeof buf - 2);

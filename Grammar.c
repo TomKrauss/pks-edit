@@ -271,7 +271,7 @@ struct tagCHAR_LOOKUP {
 	int singleCharKeywordExists;
 };
 
-static void grammar_collectChars(intptr_t k, void* pParam) {
+static int grammar_collectChars(intptr_t k, void* pParam) {
 	unsigned char* pKey = (unsigned char*)k;
 	struct tagCHAR_LOOKUP * pLookup = pParam;
 
@@ -285,6 +285,7 @@ static void grammar_collectChars(intptr_t k, void* pParam) {
 			PLACE_CHAR(pLookup->char2Table, c2);
 		}
 	}
+	return 1;
 }
 
 /*
@@ -855,10 +856,11 @@ void grammar_documentTypeChanged(GRAMMAR* pGrammar) {
 }
 
 static int (*pKeywordMatch)(char* param);
-static void grammar_addKeyword(char* pszKeyWord, void (*addCallback)(intptr_t pszTagName, intptr_t pTag)) {
+static int grammar_addKeyword(char* pszKeyWord, void (*addCallback)(intptr_t pszTagName, intptr_t pTag)) {
 	if (pKeywordMatch(pszKeyWord)) {
 		(*addCallback)((intptr_t)pszKeyWord, (intptr_t)pszKeyWord);
 	}
+	return 1;
 }
 
 /*
@@ -874,7 +876,7 @@ void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, int (*fMatch)(char* pszMa
 	pKeywordMatch = fMatch;
 	for (pPattern = pGrammar->patterns; pPattern; pPattern = pPattern->next) {
 		if (pPattern->keywords) {
-			hashmap_forEachKey(pPattern->keywords, (void (*)(intptr_t, void*)) grammar_addKeyword, addCallback);
+			hashmap_forEachKey(pPattern->keywords, (int (*)(intptr_t, void*)) grammar_addKeyword, addCallback);
 		}
 	}
 }

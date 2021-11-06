@@ -61,8 +61,10 @@ extern int hashmap_containsKey(HASHMAP* pTable, intptr_t key);
 /*
  * Can be used to execute a callback for each key defined in a hashmap.
  * The callback is invoked with each key and the additional param passed as an argument.
+ * If the callback returns 0, the iteration is stopped and the function returns also
+ * 0. Otherwise forEachKey returns 1.
  */
-extern void hashmap_forEachKey(HASHMAP* pTable, void (*function)(intptr_t k, void* pParam), void* pParam);
+extern int hashmap_forEachKey(HASHMAP* pTable, int (*function)(intptr_t k, void* pParam), void* pParam);
 
 /*
  * Assigns a new hashing and compare function to a hashmap rehashing the map if required.

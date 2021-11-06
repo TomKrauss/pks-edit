@@ -843,11 +843,15 @@ void xref_openSearchListResultFromLine(FTABLE* fp, LINE *lp) {
 			xref_openFile(spec.filename, spec.line-1L, pszName);
 			if (bActive) {
 				pActivate = ww_getCurrentEditorWindow();
+				if (pActivate) {
+					pActivate->workmode |= WM_STICKY;
+				}
 			}
 		}
 	}
 	if (pActivate) {
 		ft_selectWindowWithId(pActivate->win_id, TRUE);
+		pActivate->workmode &= ~WM_STICKY;
 	}
 }
 

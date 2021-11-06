@@ -82,7 +82,7 @@ static PRTPARAM _prtparams = {
 	0,				/* offset of Fnote */
 };
 
-extern char 		*ft_visiblename(FTABLE *fp);
+extern char 		*ft_visibleName(FTABLE *fp);
 
 static HWND 		hwndPreview;
 static PRINTWHAT	_printwhat;
@@ -544,7 +544,7 @@ static int print_file(HDC hdc, BOOL measureOnly)
 			if (!PREVIEWING() && produceOutput) {
 				wsprintf(message,/*STR*/"%s - %s (Seite %d)",
 						(LPSTR)szAppName,
-					  	(LPSTR)string_abbreviateFileName(ft_visiblename(fp)),
+					  	(LPSTR)string_abbreviateFileName(ft_visibleName(fp)),
 					  	pageno);
 				progress_showMonitorMessage(message); 
 			}
@@ -940,9 +940,9 @@ int EdPrint(long what, long p1, LPSTR fname) {
 	_printwhat.nlines = 
 		ln_cnt(_printwhat.lp,_printwhat.lplast);
 	if (what == PRT_CURRBLK) {
-		wsprintf(message, "%s-selection", string_getBaseFilename(ft_visiblename(fp)));
+		wsprintf(message, "%s-selection", string_getBaseFilename(ft_visibleName(fp)));
 	} else {
-		char* pBasename = string_getBaseFilename(ft_visiblename(fp));
+		char* pBasename = string_getBaseFilename(ft_visibleName(fp));
 		strcpy(message, pBasename);
 	}
 

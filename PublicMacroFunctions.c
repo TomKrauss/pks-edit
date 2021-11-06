@@ -270,12 +270,16 @@ static void cpyout(char *d,char *s, int len)
 }
 
 /*------------------------------------------------------------
- * DlgQueryReplaceProc()
+ * dlg_queryReplaceWindowProc()
  */
 static HWND hwndQueryReplace;
 static WPARAM _answer;
-static INT_PTR CALLBACK DlgQueryReplaceProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+static INT_PTR CALLBACK dlg_queryReplaceWindowProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch(message) {
+
+		case WM_INITDIALOG:
+			win_positionWindowRelativeToCaret(hDlg);
+			break;
 
 		case WM_COMMAND:
 			_answer = wParam;
@@ -296,28 +300,23 @@ static INT_PTR CALLBACK DlgQueryReplaceProc(HWND hDlg, UINT message, WPARAM wPar
  * dlg_queryReplace()
  * Open a modeless dialog to query for replacing a text.
  */
-int dlg_queryReplace(char *search, int slen, char *replace, int dlen)
-{	
-	char   		sbuf[50],rbuf[50];
-	MSG			msg;
-	static DLGPROC lpfnProc;
-	BOOL			bFirstOpen;
+int dlg_queryReplace(char *search, int slen, char *replace, int dlen) {	
+	char   			sbuf[512],rbuf[512];
+	MSG				msg;
+	static DLGPROC	lpfnProc;
 
 	cpyout(sbuf,search,slen);
 	cpyout(rbuf,replace,dlen);
 
 	EnableWindow(hwndMain,FALSE);
-	bFirstOpen = hwndQueryReplace ? FALSE : TRUE;
 
 	win_createModelessDialog(&hwndQueryReplace,MAKEINTRESOURCE(DLGQUERYREPLACE),
-					 DlgQueryReplaceProc,&lpfnProc);
+					 dlg_queryReplaceWindowProc,&lpfnProc);
 
 	if (!hwndQueryReplace)
 		return IDCANCEL;
 
-	if (!bFirstOpen) {
-		win_positionWindowRelativeToCaret(hwndQueryReplace);
-	}
+	win_positionWindowRelativeToCaret(hwndQueryReplace);
 
 	SetDlgItemText(hwndQueryReplace,IDD_STRING1,sbuf);
 	SetDlgItemText(hwndQueryReplace,IDD_STRING2,rbuf);
@@ -1403,14 +1402,12 @@ int dlg_configureEditorModes(void) {
  */
 int EdReplace(void)
 {	static int ret;
-	static int flags;
 	static ITEMS	_i   =  	{ 
 		{ C_STRING1PAR, _currentSearchAndReplaceParams.searchPattern },
 		{ C_STRING1PAR, _currentSearchAndReplaceParams.replaceWith },
 		{ C_INT1PAR, (unsigned char *) &ret },
 		{ C_INT1PAR, (unsigned char *) &_scope },
-		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options   },
-		{ C_INT1PAR, (unsigned char *) &flags },
+		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options   }
 	};
 	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	static DIALPARS _d[] = {
@@ -1421,8 +1418,8 @@ int EdReplace(void)
 		IDD_PRESERVE_CASE,RE_PRESERVE_CASE, & _currentSearchAndReplaceParams.options,
 		IDD_FINDS,		sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
 		IDD_REPLS,		sizeof _currentSearchAndReplaceParams.replaceWith,		& _currentSearchAndReplaceParams.replaceWith,
-		IDD_OPT1,		OREP_INQ,			&flags,
-		IDD_OPT2,		OREP_MARKED,		&flags,
+		IDD_OPT1,		RE_CONFIRM_REPLACEMENT,	& _currentSearchAndReplaceParams.options,
+		IDD_OPT2,		RE_CONSIDER_MARKED_LINES,	 & _currentSearchAndReplaceParams.options,
 		IDD_RECORDRET,	sizeof ret,		&ret,
 		0
 	};
@@ -1431,12 +1428,13 @@ int EdReplace(void)
 		IDD_PRESERVE_CASE,	IDS_TT_PRESERVE_CASE,
 		0
 	};
+	WINFO* wp = ww_getCurrentEditorWindow();
 
-	if (win_callDialog(DLGREPLACE,&_fp,_d, _tt) == 0) {
+	if (!wp || win_callDialog(DLGREPLACE,&_fp,_d, _tt) == 0) {
 		return 0;
 	}
 
-	return EdReplaceText(_scope,ret,flags);
+	return EdReplaceText(wp, _scope,ret);
 }
 
 /*--------------------------------------------------------------------------
@@ -1505,13 +1503,10 @@ static INT_PTR find_inFilesDialogProc(HWND hDlg, UINT wMessage, WPARAM wParam, L
  * EdFindInFileList()
  */
 int EdFindInFileList(void)
-{	static char pathlist[512];
-	static char filenamePattern[50];
-	static int depth = -1;
-	ITEMS	_i   =  	{ 
+{	ITEMS	_i   =  	{ 
 		{ C_STRING1PAR, _currentSearchAndReplaceParams.searchPattern },
-		{ C_STRING1PAR, pathlist }, 
-		{ C_INT1PAR, (unsigned char *) &depth },
+		{ C_STRING1PAR, _currentSearchAndReplaceParams.pathlist },
+		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.fileScanDepth },
 		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options }
 	};
 	PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
@@ -1523,10 +1518,11 @@ int EdFindInFileList(void)
 		IDD_OPT2,		RE_IGNORE_BINARY,		& _currentSearchAndReplaceParams.options,
 		IDD_OPT3,		RE_APPEND_TO_SEARCH_RESULTS,& _currentSearchAndReplaceParams.options,
 		IDD_OPT4,		RE_SEARCH_IN_SEARCH_RESULTS,& _currentSearchAndReplaceParams.options,
-		IDD_INT1,		sizeof depth,			&depth,
-		IDD_FILE_PATTERN, sizeof filenamePattern, &filenamePattern, 
+		IDD_INT1,		sizeof _currentSearchAndReplaceParams.fileScanDepth, & _currentSearchAndReplaceParams.fileScanDepth,
+		IDD_FILE_PATTERN, sizeof _currentSearchAndReplaceParams.filenamePattern, & _currentSearchAndReplaceParams.filenamePattern,
 		IDD_FINDS2,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
-		IDD_PATH1,	sizeof pathlist,	&pathlist,
+		IDD_REPLS,		sizeof _currentSearchAndReplaceParams.replaceWith,& _currentSearchAndReplaceParams.replaceWith,
+		IDD_PATH1,	sizeof _currentSearchAndReplaceParams.pathlist,	& _currentSearchAndReplaceParams.pathlist,
 		0
 	};
 	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
@@ -1534,25 +1530,28 @@ int EdFindInFileList(void)
 		0
 	};
 
-	if (!pathlist[0] || !filenamePattern[0]) {
-		_getcwd(pathlist, sizeof pathlist);
-		strcpy(filenamePattern, "*.*");
+	if (!_currentSearchAndReplaceParams.filenamePattern[0] && hist_getString(FILE_PATTERNS, 0) == 0) {
+		strcpy(_currentSearchAndReplaceParams.filenamePattern, "*.*");
+	}
+	if (!_currentSearchAndReplaceParams.pathlist[0]) {
+		_getcwd(_currentSearchAndReplaceParams.pathlist, sizeof _currentSearchAndReplaceParams.pathlist);
 	}
 	bl_getSelectedText(_currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
-	if (!win_callDialogCB(DLGRETREIVE,&_fp,_d, _tt, find_inFilesDialogProc)) {
+	int ret = win_callDialogCB(DLGFINDINFILES, &_fp, _d, _tt, find_inFilesDialogProc);
+	if (ret == 0) {
 		return 0;
 	}
-	return find_matchesInFiles(pathlist,filenamePattern, _currentSearchAndReplaceParams.searchPattern, _currentSearchAndReplaceParams.options, 
-		depth < 0 ? 999 : depth);
+	return find_matchesInFiles(&_currentSearchAndReplaceParams, ret == IDD_BUT3 ? FIF_REPLACE : FIF_SEARCH);
 }
 
 /*--------------------------------------------------------------------------
  * EdReplaceAgain()
  */
-int EdReplaceAgain(void)
-{	
-	if (find_replacementHadBeenPerformed())
-		return EdReplaceText(RNG_ONCE,REP_REPLACE,0); 
+int EdReplaceAgain(void) {
+	WINFO* wp = ww_getCurrentEditorWindow();
+
+	if (wp && find_replacementHadBeenPerformed())
+		return EdReplaceText(wp, RNG_ONCE,REP_REPLACE); 
 	error_showErrorById(IDS_MSGNOREPLACESTRING);
 	return 0;
 }

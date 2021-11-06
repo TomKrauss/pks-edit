@@ -22,6 +22,7 @@
 #include "editorconfiguration.h"
 #include "trace.h"
 #include "documentmodel.h"
+#include "caretmovement.h"
 #include "winfo.h"
 #include "winterf.h"
 #include "pksedit.h"
@@ -34,6 +35,7 @@
 #include "pathname.h"
 #include "regexp.h"
 #include "crossreferencelinks.h"
+#include "findandreplace.h"
 #include "mainframe.h"
 #include "hashmap.h"
 
@@ -189,6 +191,40 @@ static int scan_isBinaryFile(int fd) {
 }
 
 /*
+ * Perform a replace in all files found with the given search parameters. 
+ */
+static int find_replaceInFile(intptr_t pFilename, SEARCH_AND_REPLACE_PARAMETER* pParam) {
+	WINFO* wp = NULL;
+	char* pszFilename = (char*)pFilename;
+	BOOL bSaveAndClose = FALSE;
+	if (ft_activateWindowOfFileNamed(pszFilename)) {
+		wp = ww_getCurrentEditorWindow();
+	} else {
+		FTABLE* fp = ft_openFileWithoutFileselector(pszFilename, 0, DOCK_NAME_DEFAULT);
+		if (fp) {
+			wp = WIPOI(fp);
+			EdSelectWindow(wp->win_id);
+		}
+		bSaveAndClose = TRUE;
+	}
+	if (wp == NULL) {
+		return 0;
+	}
+	caret_placeCursorInCurrentFile(wp, 0, 0);
+	REPLACE_TEXT_RESULT rResult = EdReplaceText(wp, RNG_GLOBAL, REP_REPLACE);
+	if (rResult == RTR_ALL) {
+		pParam->options &= ~RE_CONFIRM_REPLACEMENT;
+	}
+	if (rResult != RTR_ERROR && rResult != RTR_CANCELLED) {
+		if (bSaveAndClose) {
+			EdSaveFile(SAV_SAVE|SAV_QUIT);
+		}
+		return 1;
+	}
+	return 0;
+}
+
+/*
  * Scans one file for the configured search pattern.
  * Return 0 on success.
  */
@@ -198,7 +234,7 @@ static int find_inFile(intptr_t p1, void* pUnused) {
 	_searchContext.sc_line = 0L;
 
 	if ((fd = file_openFile(pszFile)) <= 0) {
-		return -1;
+		return 0;
 	}
 
 	if (!_ignoreBinary || !scan_isBinaryFile(fd)) {
@@ -217,7 +253,7 @@ static int find_inFile(intptr_t p1, void* pUnused) {
 
 	file_closeFile(&fd);
 
-	return 0;
+	return 1;
 
 }
 /*--------------------------------------------------------------------------
@@ -229,7 +265,7 @@ static int matchInFile(char *fn, DTA *stat) {
 	if (stat->attrib & _A_SUBDIR) {
 		return 0;
 	}
-	return find_inFile((intptr_t)fn,0);
+	return find_inFile((intptr_t)fn,0) == 1 ? 0 : -1;
 }
 
 /*
@@ -254,10 +290,12 @@ static unsigned char* find_collectFileFromLine(HASHMAP* pResult, EDIT_CONFIGURAT
 		}
 		if (regex_match(_compiledPattern, pStart, pszLineEnd, &match)) {
 			size_t nLen = match.braelist[0] - match.braslist[0];
-			strncpy(szBuf, match.braslist[0], nLen);
-			szBuf[nLen] = 0;
-			if (!hashmap_containsKey(pResult, (intptr_t)szBuf)) {
-				hashmap_put(pResult, (intptr_t)strdup(szBuf), (intptr_t)1);
+			if (nLen) {
+				strncpy(szBuf, match.braslist[0], nLen);
+				szBuf[nLen] = 0;
+				if (!hashmap_containsKey(pResult, (intptr_t)szBuf)) {
+					hashmap_put(pResult, (intptr_t)_strdup(szBuf), (intptr_t)1);
+				}
 			}
 		}
 		pStart = pszLineEnd + 1;
@@ -281,14 +319,18 @@ static HASHMAP* find_collectFiles(char* pszStepfile) {
  * find_matchesInFiles()
  * Perform a recursive pSearchExpression in a list of pates with a given filename pattern.
  */
-int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpression, int nOptions, int nMaxRecursion) {
+int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACTION fAction) {
 	char *		path;
 	char *		pathlist;
 	char		stepfile[512];
 	char		title[512];
+	char* pPathes = pParams->pathlist;
+	char* pFilenamePattern = pParams->filenamePattern;
+	char* pSearchExpression = pParams->searchPattern;
+	int nOptions = pParams->options;
 	HASHMAP* pFilesMap = NULL;
 
-	_abortOnFirstMatch = nOptions & RE_SEARCH_ONCE;
+	_abortOnFirstMatch = (nOptions & RE_SEARCH_ONCE) || fAction == FIF_REPLACE;
 	memset(&_searchContext, 0, sizeof _searchContext);
 	_ignoreBinary = nOptions & RE_IGNORE_BINARY;
 	string_concatPathAndFilename(stepfile, config_getPKSEditTempPath(), "pksedit.grep");
@@ -327,9 +369,10 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 		find_matchesInSearchResults(pFilesMap);
 		hashmap_destroySet(pFilesMap);
 	} else {
+		int nDepth = pParams->fileScanDepth;
 		if ((path = strtok(pathlist, ",;")) != 0) {
 			do {
-				if (_ftw(path, matchInFile, nMaxRecursion,
+				if (_ftw(path, matchInFile, nDepth < 0 ? 999 : nDepth,
 					pFilenamePattern, NORMALFILE | ARCHIV | WPROTECT) == 1) break;
 			} while ((path = strtok((char*)0, ",;")) != 0);
 		}
@@ -342,7 +385,20 @@ int find_matchesInFiles(char *pPathes, char* pFilenamePattern, char *pSearchExpr
 	fp->ti_modified = 0;
 	ft_checkForChangedFiles(FALSE);
 	xref_initSearchList(fp);
-	return xref_navigateSearchErrorList(LIST_START);
+	if (fAction == FIF_SEARCH) {
+		return xref_navigateSearchErrorList(LIST_START);
+	}
+	_compiledPattern = xref_compileSearchListPattern();
+	pFilesMap = find_collectFiles(stepfile);
+	if (hashmap_size(pFilesMap) == 0) {
+		error_showErrorById(IDS_MSGSTRINGNOTFOUND);
+	} else {
+		// For now start with confirmation by the user. Could be made selectable from the UI.
+		pParams->options |= RE_CONFIRM_REPLACEMENT;
+		hashmap_forEachKey(pFilesMap, find_replaceInFile, pParams);
+	}
+	hashmap_destroySet(pFilesMap);
+	return 1;
 }
 
 

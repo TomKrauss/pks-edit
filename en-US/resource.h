@@ -8,6 +8,8 @@
 #define IDS_MACROESCAPE                 3
 #define IDBUT3                          3
 #define IDS_GETBLOCK                    4
+#define idd                             4
+#define IDD_ALL_OCCURRENCES             4
 #define IDS_COMPRESSTABS                7
 #define IDS_EXPANDTABS                  8
 #define IDS_SHIFTLEFT                   9
@@ -88,7 +90,6 @@
 #define IDS_MSGNOTIMER                  74
 #define MMSORT                          74
 #define IDS_MSGNOPRINTER                75
-#define IDD_RO7                         75
 #define IDS_MSGOVERWRITE                76
 #define IDS_MSGQUERYNEWFILE             77
 #define IDS_MSGABANDON                  78
@@ -235,6 +236,7 @@
 #define IDM_DOAGAIN                     211
 #define IDM_ERASEBLOCK                  212
 #define IDM_REDO                        213
+#define DLGFINDINFILES                  535
 #define IDC_CUSTOM2                     1002
 #define IDC_CHECK_ENCRYPT               1003
 #define IDC_DOCTYPES                    1004
@@ -247,7 +249,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        197
+#define _APS_NEXT_RESOURCE_VALUE        198
 #define _APS_NEXT_COMMAND_VALUE         40008
 #define _APS_NEXT_CONTROL_VALUE         1005
 #define _APS_NEXT_SYMED_VALUE           101

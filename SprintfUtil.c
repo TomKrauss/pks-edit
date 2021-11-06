@@ -32,7 +32,7 @@
 #include "xdialog.h"
 #include "pksrc.h"
 
-extern char *ft_visiblename(FTABLE *fp);
+extern char *ft_visibleName(FTABLE *fp);
 
 int  _psenabled = 1;
 
@@ -145,7 +145,7 @@ static char *CurrentStringVal(FTABLE *fp, char **fmt, char *fname)
 		return fname;
 
 	case 'F':
-		return ft_visiblename(fp);
+		return ft_visibleName(fp);
 
 	case '&':
 		if (ft_isFileModified(fp))
