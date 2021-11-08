@@ -393,8 +393,6 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 	if (hashmap_size(pFilesMap) == 0) {
 		error_showErrorById(IDS_MSGSTRINGNOTFOUND);
 	} else {
-		// For now start with confirmation by the user. Could be made selectable from the UI.
-		pParams->options |= RE_CONFIRM_REPLACEMENT;
 		hashmap_forEachKey(pFilesMap, find_replaceInFile, pParams);
 	}
 	hashmap_destroySet(pFilesMap);

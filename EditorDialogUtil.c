@@ -975,7 +975,7 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 			}
 			if (_dtoolTips != NULL) {
 				for (int i = 0; _dtoolTips[i].m_itemId > 0; i++) {
-					CreateToolTip(_dtoolTips[i].m_itemId, hwndDlg, _dtoolTips[i].m_tooltipStringId);
+					CreateToolTip(_dtoolTips[i].m_itemId, hDlg, _dtoolTips[i].m_tooltipStringId);
 				}
 			}
 			break;

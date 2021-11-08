@@ -293,7 +293,7 @@ static INT_PTR CALLBACK dlg_queryReplaceWindowProc(HWND hDlg, UINT message, WPAR
 			hwndQueryReplace = 0;
 			return TRUE;
 	}
-	return FALSE;
+	return dlg_defaultWndProc(hDlg, message, wParam, lParam);
 }
 
 /*--------------------------------------------------------------------------
@@ -1518,6 +1518,8 @@ int EdFindInFileList(void)
 		IDD_OPT2,		RE_IGNORE_BINARY,		& _currentSearchAndReplaceParams.options,
 		IDD_OPT3,		RE_APPEND_TO_SEARCH_RESULTS,& _currentSearchAndReplaceParams.options,
 		IDD_OPT4,		RE_SEARCH_IN_SEARCH_RESULTS,& _currentSearchAndReplaceParams.options,
+		IDD_OPT5,		RE_CONFIRM_REPLACEMENT,	& _currentSearchAndReplaceParams.options,
+		IDD_PRESERVE_CASE,	RE_PRESERVE_CASE,	& _currentSearchAndReplaceParams.options,
 		IDD_INT1,		sizeof _currentSearchAndReplaceParams.fileScanDepth, & _currentSearchAndReplaceParams.fileScanDepth,
 		IDD_FILE_PATTERN, sizeof _currentSearchAndReplaceParams.filenamePattern, & _currentSearchAndReplaceParams.filenamePattern,
 		IDD_FINDS2,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,

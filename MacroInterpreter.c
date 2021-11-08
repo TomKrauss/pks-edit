@@ -457,8 +457,9 @@ int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, voi
 		}
 	}
 
-	if (ret > 0 && ft_getCurrentDocument() && (fup->flags & EW_MODIFY)) {
-		ft_settime(&ft_getCurrentDocument()->ti_modified);
+	FTABLE* fp;
+	if (ret > 0 && (fup->flags & EW_MODIFY) && (fp = ft_getCurrentDocument()) != NULL) {
+		ft_settime(&fp->ti_lastChanged);
 	}
 
 	if (i > 1)

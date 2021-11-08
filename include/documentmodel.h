@@ -217,6 +217,7 @@ typedef struct tagFTABLE {
 	EDTIME	ti_modified;		// last modification time
 	EDTIME	ti_created;			// creation time
 	EDTIME  ti_saved;			// last save time
+	EDTIME  ti_lastChanged;		// last time the file was changed in PKS edit by the user.
 	void* navigationPattern;	// For files containing either a PKS Edit search result list or displaying a compiler output, this contains a pointer 
 								// to the NAVIGATION_PATTERN (see CrossReferenceLinks.c) defining how to parse the individual lines in the file.
 	int		lockFd;				// Filedescriptor for locking - <= 0 if none

@@ -220,11 +220,15 @@ static UINT_PTR fsel_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 		pFSP = (FILE_SELECT_PARAMS*)pOFN->lCustData;
 		crypted = pFSP->fsp_encrypted;
 		SendDlgItemMessage(hwnd, IDC_CHECK_ENCRYPT, BM_SETCHECK, crypted ? BST_CHECKED : BST_UNCHECKED, 0);
+		hwndDlg = hwnd;
 		break;
 	case WM_COMMAND:
 		if (LOWORD(wParam) == IDC_CHECK_ENCRYPT && HIWORD(wParam) == BN_CLICKED) {
 			pFSP->fsp_encrypted  = (BOOL)SendDlgItemMessage(hwnd, IDC_CHECK_ENCRYPT, BM_GETCHECK, 0, 0);
 		}
+		break;
+	case WM_DESTROY:
+		hwndDlg = NULL;
 		break;
 	}
 	return FALSE;

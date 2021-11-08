@@ -639,6 +639,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 		ft_forAllViews(fp, render_repaintLineNumbers, NULL);
 		ft_setFlags(fp, fp->flags & ~(F_CHANGEMARK | F_WFORCED));
 		ft_settime(&fp->ti_saved);
+		file_getAccessTime(fp->fname, &fp->ti_created, &fp->ti_modified);
 		fp->fileSize = _llseek(fd, 0, SEEK_END);
 	}
 
@@ -655,7 +656,6 @@ wfail1:
 		}
 		return 0;
 	}
-	file_getAccessTime(fp->fname, &fp->ti_created, &fp->ti_modified);
 	return 1;
 #endif
 }

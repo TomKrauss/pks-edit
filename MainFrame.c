@@ -1636,9 +1636,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 	switch (message) {
 
 	case WM_ACTIVATEAPP:
-		if ((BOOL)wParam) {
-			appActivated = TRUE;
-		}
+		appActivated = (BOOL)wParam;
 		break;
 	case WM_CREATE:
 		hwndFrameWindow = hwnd;
@@ -1735,10 +1733,8 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		if (closed) {
 			break;
 		}
-		ft_checkForChangedFiles(appActivated);
-		if (appActivated) {
-			appActivated = FALSE;
-		}
+		BOOL bActive = appActivated && hwndDlg == NULL;
+		ft_checkForChangedFiles(bActive);
 		if (controlKeyChanged) {
 			controlKeyChanged = FALSE;
 			fkey_keyModifierStateChanged();

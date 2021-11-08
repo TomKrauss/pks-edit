@@ -187,8 +187,8 @@ void ft_checkForChangedFiles(BOOL bActive) {
 					}
 				}
 			}
+			fp->ti_modified = lCurrentTime;
 		}
-		fp->ti_modified = lCurrentTime;
 	}
 }
 
@@ -259,8 +259,6 @@ autosave:
 		fp->flags = flags;
 
 		if (ret > 0) {
-		/* we autosaved into source file: set state to unmodified */
-			flags &= ~F_MODIFIED;
 			error_showMessageInStatusbar(IDS_MSGAUBE,ft_visibleName(fp));
 		} else if (EdPromptAutosavePath(config_getPKSEditTempPath())) {
 		/* let the user correct invalid autosave pathes */
