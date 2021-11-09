@@ -680,7 +680,9 @@ static int xref_navigateToHyperlink(char* urlSpec, char* pTag) {
 	char* pszDollar = strstr(urlSpec, "$1");
 
 	if (pszDollar) {
-		strncpy(buf, urlSpec, pszDollar - urlSpec);
+		size_t len = pszDollar - urlSpec;
+		strncpy(buf, urlSpec, len);
+		buf[len] = 0;
 		strcat(buf, pTag);
 		strcat(buf, pszDollar + 2);
 		return ShellExecute(hwndMain, "open", buf, "", ".", SW_SHOWNORMAL) != NULL;

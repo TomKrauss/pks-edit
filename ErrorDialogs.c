@@ -90,7 +90,7 @@ int error_displayAlertBoxWithOptions(long unused, long buttons, const char* fmt)
 		nButtons |= TDCBF_NO_BUTTON;
 	}
 	if (nOldIcon == MB_ICONSTOP) {
-		nIcon = TD_SHIELD_ICON;
+		nIcon = TD_ERROR_ICON;
 	} else if (nOldIcon == MB_ICONEXCLAMATION) {
 		nIcon = TD_ERROR_ICON;
 	} else if (nOldIcon == MB_ICONWARNING) {

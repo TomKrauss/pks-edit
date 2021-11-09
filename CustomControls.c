@@ -29,7 +29,13 @@
 #define GWW_CUSTOMVAL		0
 #define GWW_CUSTOMEXTRA		GWW_CUSTOMVAL+sizeof(WORD)
 
+#define LABEL_MARGIN		10
+
 static const int toastWindowHeight = 40;
+static const char* TOGGLE_CLASS = "toggle";
+static const char* CHARSET_CLASS = "charset";
+static const char* TOAST_CLASS = "pksToast";
+static const char* LABELED_CLASS = "pksLabeled";
 
 /*--------------------------------------------------------------------------
  * cust_drawShadow()
@@ -269,8 +275,8 @@ static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam
  /*
  * Create the font for the char set window procedure
  */
-static HFONT charset_createFont(THEME_DATA* pTheme) {
-	return font_createFontHandle(pTheme->th_smallFontName, 15, 0, FW_NORMAL);
+static HFONT charset_createFont(THEME_DATA* pTheme, int nWeight) {
+	return font_createFontHandle(pTheme->th_smallFontName, 15, 0, nWeight);
 }
 
 static void charset_notifyCharChange(HWND hwnd, int nNewChar) {
@@ -298,7 +304,7 @@ static void charset_paint(HWND hwnd, HDC hdc) {
 	SetTextColor(hdc, pTheme->th_dialogForeground);
 	SetBkMode(hdc, TRANSPARENT);
 	SetMapMode(hdc, MM_TEXT);
-	HFONT hFont = SelectObject(hdc, charset_createFont(pTheme));
+	HFONT hFont = SelectObject(hdc, charset_createFont(pTheme, FW_NORMAL));
 	GetTextMetrics(hdc, &tm);
 	HPEN hPen = CreatePen(PS_SOLID, 1, pTheme->th_dialogBorder);
 	HPEN hPenOld = SelectObject(hdc, hPen);
@@ -449,10 +455,10 @@ static void toast_paint(HWND hwnd, HDC hdc, char* pszText) {
 	TEXTMETRIC tm;
 
 	GetClientRect(hwnd, &rc);
-	SetTextColor(hdc, pTheme->th_dialogForeground);
+	SetTextColor(hdc, pTheme->th_dialogErrorText);
 	SetBkMode(hdc, TRANSPARENT);
 	SetMapMode(hdc, MM_TEXT);
-	HFONT hFont = SelectObject(hdc, charset_createFont(pTheme));
+	HFONT hFont = SelectObject(hdc, charset_createFont(pTheme, FW_BOLD));
 	GetTextMetrics(hdc, &tm);
 	HPEN hPen = CreatePen(PS_SOLID, 2, pTheme->th_dialogBorder);
 	HPEN hPenOld = SelectObject(hdc, hPen);
@@ -519,6 +525,84 @@ static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
+/*
+ * Paint the label of a labeled window. 
+ */
+static int label_width(HWND hwnd) {
+	SIZE size;
+	char szText[200];
+
+	GetWindowText(hwnd, szText, sizeof szText);
+	HDC hdc = GetDC(hwnd);
+	HFONT hFont = SelectObject(hdc, theme_createDialogFont(FW_NORMAL));
+	GetTextExtentPoint(hdc, szText, (int)strlen(szText), &size);
+	DeleteObject(SelectObject(hdc, hFont));
+	ReleaseDC(hwnd, hdc);
+	return size.cx;
+}
+
+static void label_paint(HWND hwnd, HDC hdc, char* pszText) {
+	THEME_DATA* pTheme = theme_getCurrent();
+	RECT rc;
+	TEXTMETRIC tm;
+
+	GetClientRect(hwnd, &rc);
+	SetTextColor(hdc, pTheme->th_dialogForeground);
+	SetBkMode(hdc, TRANSPARENT);
+	SetMapMode(hdc, MM_TEXT);
+	HFONT hFont = SelectObject(hdc, theme_createDialogFont(FW_NORMAL));
+	GetTextMetrics(hdc, &tm);
+	TextOut(hdc, 0, (rc.bottom - rc.top - tm.tmHeight) / 2, pszText, (int)strlen(pszText));
+	DeleteObject(SelectObject(hdc, hFont));
+}
+
+/*------------------------------------------------------------
+ * labeled_windowProcedure()
+ */
+static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	PAINTSTRUCT	ps;
+	HDC hdc;
+	THEME_DATA* pTheme;
+	RECT rc;
+	char szBuf[200];
+
+	switch (message) {
+	case WM_PAINT: {
+		hdc = BeginPaint(hwnd, &ps);
+		GetWindowText(hwnd, szBuf, sizeof szBuf);
+		label_paint(hwnd, ps.hdc, szBuf);
+		EndPaint(hwnd, &ps);
+	}
+	return 0;
+	case WM_ERASEBKGND: {
+		pTheme = theme_getCurrent();
+		HDC hdc = (HDC)wParam;
+		GetClientRect(hwnd, &rc);
+		FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
+	}
+	return 1;
+
+	case WM_CTLCOLOREDIT: {
+		THEME_DATA* pTheme = theme_getCurrent();
+		HDC hdc = (HDC)wParam;
+		SetTextColor(hdc, pTheme->th_dialogForeground);
+		SetBkColor(hdc, pTheme->th_dialogBackground);
+		return (LRESULT)theme_getDialogBackgroundBrush();
+	}
+
+	case WM_SIZE: {
+		GetClientRect(hwnd, &rc);
+		rc.left += label_width(hwnd) + LABEL_MARGIN;
+		rc.right -= LABEL_MARGIN;
+		HWND hwndChild = GetWindow(hwnd, GW_CHILD);
+		if (hwndChild) {
+			MoveWindow(hwndChild, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, TRUE);
+		}
+	}
+	}
+	return DefWindowProc(hwnd, message, wParam, lParam);
+}
+
 /*--------------------------------------------------------------------------
  * cust_initializeWindowClassDefaults()
  * Can be used to initialize the class defaults of a window class to create.
@@ -547,18 +631,24 @@ EXPORT int cust_registerControls(void)
 	wc.cbWndExtra = GWW_CUSTOMEXTRA;
 	
 	wc.lpfnWndProc = ToggleWndProc;
-	wc.lpszClassName = "toggle";
+	wc.lpszClassName = TOGGLE_CLASS;
 	if (!RegisterClass(&wc))
 		return 0;
 		
 	wc.lpfnWndProc = CharSetWndProc;
-	wc.lpszClassName = "charset";
+	wc.lpszClassName = CHARSET_CLASS;
 	if (!RegisterClass(&wc)) {
 		return 0;
 	}
 
 	wc.lpfnWndProc = ToastWndProc;
-	wc.lpszClassName = "pksToast";
+	wc.lpszClassName = TOAST_CLASS;
+	if (!RegisterClass(&wc)) {
+		return 0;
+	}
+
+	wc.lpfnWndProc = labeled_windowProcedure;
+	wc.lpszClassName = LABELED_CLASS;
 	if (!RegisterClass(&wc)) {
 		return 0;
 	}
@@ -566,11 +656,26 @@ EXPORT int cust_registerControls(void)
 }
 
 /*
+ * Create a window which displays a child window + an associated label. 
+ */
+HWND cust_createLabeledWindow(HWND hwndParent, char* pszLabel, HWND hwndChild) {
+	HWND hwnd = CreateWindow(LABELED_CLASS, NULL, WS_CHILDWINDOW|WS_CLIPCHILDREN|WS_VISIBLE, 0, 0, CW_USEDEFAULT, CW_USEDEFAULT,
+		hwndParent, NULL, hInst, NULL);
+	if (!hwnd) {
+		log_lastWindowsError("createLabeledWindow");
+		return 0;
+	}
+	SetWindowText(hwnd, pszLabel);
+	SetParent(hwndChild, hwnd);
+	return hwnd;
+}
+
+/*
  * Create a toast window. 
  */
 HWND cust_createToastWindow(char* pszText) {
 	if (hwndToastWindow == NULL) {
-		hwndToastWindow = CreateWindowEx(WS_EX_TOPMOST, "pksToast", NULL, WS_POPUP, 0, 0, 0, 0, hwndMain, NULL, hInst, NULL);
+		hwndToastWindow = CreateWindowEx(WS_EX_TOPMOST, TOAST_CLASS, NULL, WS_POPUP, 0, 0, 0, 0, hwndMain, NULL, hInst, NULL);
 		if (!hwndToastWindow) {
 			log_lastWindowsError("createToastWindow");
 			return NULL;

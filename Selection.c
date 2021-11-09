@@ -125,10 +125,12 @@ static int bl_clipboardFileFound(char* pszFile, DTA* pDta) {
 	strcpy(szFileOnly, string_getBaseFilename(pszFile));
 	int nPrefix = (int)strlen(_pszAutosavePrefix);
 	int nPostfix = (int)strlen(_pszAutosaveExtension);
-	strncpy(szName, szFileOnly + nPrefix, strlen(szFileOnly) - nPrefix - nPostfix);
-	if (!szName[0]) {
+	size_t nLen = strlen(szFileOnly) - nPrefix - nPostfix;
+	if (nLen <= 0) {
 		return 0;
 	}
+	strncpy(szName, szFileOnly + nPrefix, nLen);
+	szName[nLen] = 0;
 	PASTE* pBuffer = bl_lookupPasteBuffer(szName, 1, PLT_NAMED_BUFFER, &_plist);
 	if (pBuffer) {
 		FILE_READ_OPTIONS fro;

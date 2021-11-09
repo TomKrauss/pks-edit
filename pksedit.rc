@@ -1464,7 +1464,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGNOTAGFILE        "Keine Verweisdatei"
+    IDS_MSGNOTAGFILE        "!Keine Suchergebnisse, keine Fehlerliste und keine Tagliste definiert"
     IDS_MSGUNKNOWNCOMPILER  "Keine Definition für dieses Compiler Fehler Format"
     IDS_MSGNOMOREERRS       "Keine weiteren Fehler"
     IDS_MSGSTRINGNOTFOUND   "Nichts gefunden"
@@ -1492,7 +1492,7 @@ BEGIN
     IDS_MSGDIFFTWOWINDOWS   "!Keine 2 Fenster\nzum Vergleichen geöffnet"
     IDS_MSGCLIPNOTCOMPLETE  "Der Inhalt der Ablage wurde gekürzt"
     IDS_MSGESCAPEUNDEF      "Dieses Makro ist nicht definiert"
-    IDS_MSGMACROIDTOOLONG   "Makrobezeichner zu lang"
+    IDS_MSGMACROIDTOOLONG   "!Makrobezeichner zu lang"
     IDS_MSGMISSINGAPOSTRPOHE "Vermisse Hochkommas"
     IDS_MSGTOOMANYCOMPILERS "Zu viele Definitionen von Compiler Fehlerformaten"
     IDS_MSGWRONGKEYDEF      "Falsche Tastendefinition"
@@ -1605,7 +1605,7 @@ BEGIN
     IDS_COMMAND43           "Fügt Buffer... ein;Buffer einfügen"
     IDS_COMMAND44           "Fügt den Inhalt der Ablage ein;Ablage -> Text"
     IDS_COMMAND45           "Fügt den Inhalt des Papierkorbs ein;Papierkorb -> Text"
-    IDS_COMMAND46           "Fügt den Inhalt des ? - ten Papierkorb Speichers ein; Papierkorb # -> Text"
+    IDS_COMMAND46           "Navigiere zum Eintrag der in der aktuellen Ergebnis- / Tag- / Fehlerliste markiert ist;Navigiere zu Suchergebnis"
     IDS_COMMAND47           "Schneidet den markierten Textblock aus;Block Ausschneiden"
 END
 

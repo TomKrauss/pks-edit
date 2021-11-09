@@ -201,6 +201,7 @@ static THEME_DATA defaultTheme = {
 	-1,
 	-1,
 	-1,
+	-1,
 	DIALOG_LIGHT_BACKGROUND_COLOR,
 	MAIN_WINDOW_BACKGROUND_COLOR,
 	"Helv",						// (T) use in dialogs.
@@ -253,6 +254,7 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_COLOR, "dialogHighlightText", offsetof(THEME_DATA, th_dialogHighlightText)},
 	{	RT_COLOR, "dialogMenuHighlight", offsetof(THEME_DATA, th_dialogMenuHighlight)},
 	{	RT_COLOR, "dialogLightBackground", offsetof(THEME_DATA, th_dialogLightBackground)},
+	{	RT_COLOR, "dialogErrorText", offsetof(THEME_DATA, th_dialogErrorText)},
 	{	RT_COLOR, "dialogActiveTab", offsetof(THEME_DATA, th_dialogActiveTab)},
 	{	RT_COLOR, "rulerForegroundColor", offsetof(THEME_DATA, th_rulerForegroundColor)},
 	{	RT_COLOR, "rulerBackgroundColor", offsetof(THEME_DATA, th_rulerBackgroundColor)},
@@ -283,6 +285,7 @@ static THEME_DATA* theme_createTheme() {
 		defaultTheme.th_dialogHighlight = GetSysColor(COLOR_HIGHLIGHT);
 		defaultTheme.th_dialogHighlightText = GetSysColor(COLOR_HIGHLIGHTTEXT);
 		defaultTheme.th_dialogMenuHighlight = GetSysColor(COLOR_3DHILIGHT);
+		defaultTheme.th_dialogErrorText = GetSysColor(COLOR_CAPTIONTEXT);
 	}
 	memcpy(pTheme, &defaultTheme, sizeof defaultTheme);
 	return pTheme;

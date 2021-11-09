@@ -96,6 +96,12 @@ extern void cust_drawListBoxRowWithIcon(HDC hdc, RECT* rcp, HICON hIcon, char* p
  */
 extern HWND cust_createToastWindow(char* pszText);
 
+/*
+ * Create a window which displays a child window + an associated label.
+ */
+extern HWND cust_createLabeledWindow(HWND hwndParent, char* pszLabel, HWND hwndChild);
+
+
 #define CUSTOMCONTROLS_H
 
 #endif // !CUSTOMCONTROLS_H

@@ -386,13 +386,6 @@ static LRESULT APIENTRY tb_myRebarProc(
     WPARAM wParam,
     LPARAM lParam) {
 
-    if (uMsg == WM_CTLCOLOREDIT || uMsg == WM_CTLCOLORSTATIC) {
-        THEME_DATA* pTheme = theme_getCurrent();
-        HDC hdc = (HDC)wParam;
-        SetTextColor(hdc, pTheme->th_dialogForeground);
-        SetBkColor(hdc, pTheme->th_dialogBackground);
-        return (LRESULT)theme_getDialogBackgroundBrush();
-    }
     if (uMsg == WM_ERASEBKGND) {
         RECT rc;
         GetClientRect(hwnd, &rc);
@@ -420,7 +413,7 @@ HWND tb_initRebar(HWND hwndOwner) {
         REBARCLASSNAME,
         NULL,
         WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS |
-        WS_CLIPCHILDREN | RBS_BANDBORDERS,
+        WS_CLIPCHILDREN | RBS_BANDBORDERS | RBS_FIXEDORDER,
         0, 0, 0, 0,
         hwndOwner,
         NULL,
@@ -438,7 +431,8 @@ HWND tb_initRebar(HWND hwndOwner) {
     tb_updateColors();
     hwndToolbar = tb_initToolbar(hwndRebar);
     hwndEntryField = tb_initSearchEntryField(hwndRebar);
-
+    HWND hwndLabel = cust_createLabeledWindow(hwndRebar, TEXT(dlg_getResourceString(IDS_SEARCH)), hwndEntryField);
+    
     // Initialize band info used by both bands.
     // as we are - for theming purpose - still rely on elder common controls versions - we do not use sizeof(REBARBANDINFO) here.
     REBARBANDINFO rbBand = { REBARBANDINFO_V6_SIZE };
@@ -463,42 +457,16 @@ HWND tb_initRebar(HWND hwndOwner) {
     rbBand.cx = 0;
 
     // Add the band that has the toolbar.
-    SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
+    SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)0, (LPARAM)&rbBand);
 
-    HWND hwndLabel = CreateWindowEx(0, WC_STATIC, TEXT(dlg_getResourceString(IDS_SEARCH)),
-        WS_CHILD | WS_VISIBLE | SS_CENTERIMAGE,
-        0, 00, CW_USEDEFAULT, CW_USEDEFAULT,
-        hwndOwner, (HMENU)IDM_INCREMENTAL_SEARCH,
-        hInst, NULL);
-    SendMessage(hwndLabel, WM_SETFONT, (WPARAM)cust_getDefaultEditorFont(), 0);
     rbBand.hwndChild = hwndLabel;
-    rbBand.cxMinChild = 40;
-    rbBand.cyMinChild = 20;
-    rbBand.cx = 40;
-    // Add the band that has the label for the entry field.
-    SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
-
-    rbBand.hwndChild = hwndEntryField;
-    rbBand.cxMinChild = 250;
+    rbBand.cxMinChild = 300;
     rbBand.cyMinChild = 20;
     // The default width should be set to some value wider than the text. The entry field itself will expand to fill the band.
-    rbBand.cx = 250;
+    rbBand.cx = 300;
 
     // Add the band that has the entry field.
-    SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
-
-    rbBand.fMask =
-        RBBIM_STYLE       // fStyle is valid.
-        | RBBIM_CHILDSIZE   // child size members are valid.
-        | RBBIM_SIZE;       // cx is valid
-    rbBand.cxMinChild = 50;
-    rbBand.cyMinChild = 20;
-    // The default width should be set to some value wider than the text. The entry field itself will expand to fill the band.
-    rbBand.cx = 250;
-    rbBand.fStyle = RBBS_FIXEDSIZE;
-
-    // Add the band that has the entry field.
-    SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
+    SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)1, (LPARAM)&rbBand);
 
     return (hwndRebar);
 }

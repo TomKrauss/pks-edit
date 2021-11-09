@@ -1442,7 +1442,7 @@ BEGIN
     IDS_MSGDIFFTWOWINDOWS   "!Please open two windows before starting the comparison"
     IDS_MSGCLIPNOTCOMPLETE  "The contents of the clipboard have been truncated"
     IDS_MSGESCAPEUNDEF      "This macro is not defined"
-    IDS_MSGMACROIDTOOLONG   "Macro name maximum length exceeded"
+    IDS_MSGMACROIDTOOLONG   "!Maximum macro name length exceeded"
     IDS_MSGMISSINGAPOSTRPOHE "Missing quoatation mark"
     IDS_MSGTOOMANYCOMPILERS "Too many definitions of compiler output formats"
     IDS_MSGWRONGKEYDEF      "Wrong key definition"
@@ -1454,7 +1454,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGNOTAGFILE        "No TAGS file defined"
+    IDS_MSGNOTAGFILE        "!No search results / errors / tags defined"
     IDS_MSGUNKNOWNCOMPILER  "This compiler output format is not defined"
     IDS_MSGNOMOREERRS       "No more errors"
     IDS_MSGSTRINGNOTFOUND   "Nothing found"
@@ -1574,7 +1574,7 @@ BEGIN
     IDS_COMMAND43           "Inserts named buffer....;Insert named"
     IDS_COMMAND44           "Insert the contents of the clipboard;Paste clipboard"
     IDS_COMMAND45           "Insert the contents of the trashcan;Trashcan -> text"
-    IDS_COMMAND46           "Insert the contents of trashcan numbered # into the text; Trashcan # -> text"
+    IDS_COMMAND46           "Go to line currently selected in search-result, tagfile or error list;Jump to search result"
     IDS_COMMAND47           "Cut out selection;Cut"
 END
 

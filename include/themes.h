@@ -43,6 +43,7 @@ typedef struct tagTHEME_DATA {
 	COLORREF th_dialogHighlight;
 	COLORREF th_dialogHighlightText;
 	COLORREF th_dialogMenuHighlight;
+	COLORREF th_dialogErrorText;
 	COLORREF th_mainWindowBackground;
 	COLORREF th_dialogLightBackground;
 	unsigned char th_fontName[32];			// dialog font name to use
