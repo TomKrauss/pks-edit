@@ -23,11 +23,14 @@
   through the extended edit menu. The PKS Edit clipboard list may now also save a history of all clipboard contents created during
   a PKS Edit session (currently only privately created clipboards are considered). To enable the clipboard history, you must set
   the corresponding configuration option in the PKS Edit configuration in the "Autosave" settings tab.
+- PKS Edit supports now the evaluation of either the current line or the current selection and selected grammars. For
+  now only PKS macro code evaluation is supported, but we plan to support evaluation of other syntax as well.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
   "pksedit" located in the current users Windows temp directory. PKS Edit will now place all temporary files (autosave etc...) to the backup
   directory.
+- The function keys display now a tooltip further explaining the action associated with the function key.
 - The find in files function was improved:
     -- resulting matches are now always displayed in a separate window, in which individual matches can be selected (double click on match line)
     -- a summary of the search is printed at the end
@@ -35,17 +38,17 @@
        in a new search.
     -- one can also replace now all occurrences of a string in the files found.
 - When comparing files, one may now select the file to compare with using a selector. This selector provides a new option for comparison:
-  "Compare with history", which allows to compare a file with a previously created backup file (if such exists). PKS Edit will now differentiate
+  _Compare with history_, which allows to compare a file with a previously created backup file (if such exists). PKS Edit will now differentiate
   between added, deleted and modified lines and will synchronize cursor movements of files in comparison mode to be able to display identical lines
   "side by side".
-- PKS Edit uses FontAwesome icons now. This will in particular have the dark mode look better.
+- PKS Edit uses *FontAwesome icons* now. This will in particular have the dark mode look better.
 - Dark Mode has been improved and will display now more elements such as title bars and dialogs also in dark. Some open issues
   like setting dialog / file selector or native message boxes not being correctly colored remain.
 - New configuration options were added:
-   -- "Syntax Highlighting" can be switched on and off per view
-   -- "Line Selection" mode is an alternative to Column Selection and Normal selection mode, where selecting text with the caret or
+   - "Syntax Highlighting" can be switched on and off per view
+   - "Line Selection" mode is an alternative to Column Selection and Normal selection mode, where selecting text with the caret or
       the mouse will result always in complete lines being selected.
-   -- "Preserve Caret Column" can be switched off to have the caret not preserve its column position when moving vertically through a window
+   - "Preserve Caret Column" can be switched off to have the caret not preserve its column position when moving vertically through a window
 - Code completion is available now, when editing key and mouse bindings in PKS Edit.
 
 ### Changed

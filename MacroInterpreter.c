@@ -59,9 +59,9 @@ extern char *			_macroname;
 extern char *			_cmdfuncp;
 extern char *			_cmdmaxp;
 extern char *			_cmdparamp;
-extern unsigned char *	_readparamp;
 extern MACRO *			_macrotab[];
 extern int			_lastinsertedmac;
+extern unsigned char* _readparamp;
 
 typedef struct ccash {
 	unsigned char low;
@@ -392,7 +392,7 @@ int macro_isFunctionEnabled(EDFUNC* fup, int warn) {
 		return 0;
 	}
 	if ((fup->flags & EW_MODIFY) && ft_isReadonly(fp)) {
-		if (warn && ft_isReadonly(fp)) {
+		if (warn) {
 			ft_checkReadonlyWithError(fp);
 		}
 		return 0;
@@ -533,15 +533,17 @@ intptr_t macro_doMacroFunctions(COM_1FUNC **Cp, COM_1FUNC *cpmax) {
 
 out:
 	if (typ != C_MACRO) {
-		_readparamp = (unsigned char *)cp;
+		unsigned char* readparamp = (unsigned char *)cp;
+		_readparamp = readparamp;
 		rc = macro_executeFunction(funcnum,stack[0],stack[1],
 						 (void*)stack[2],
 						 (void*)stack[3],
 						 (void*)stack[4]);
 		/*
-		 * this is a hack: function execution may pop a parameter
+		 * TODO: function execution may pop a parameter in case a form is opened
+		 * This is currently broken.
 		 */
-		*Cp = (COM_1FUNC*)_readparamp;
+		*Cp = (COM_1FUNC*)readparamp;
 	}
 	else {
 		saveStack = currentParamStack;

@@ -81,7 +81,7 @@ char *			_macroname;
 char *			_cmdfuncp;
 char *			_cmdmaxp;
 char *			_cmdparamp;
-unsigned char *	_readparamp;
+unsigned char* _readparamp;
 MACRO *			_macrotab[MAXMACRO];
 int				_lastinsertedmac = -1;
 int				_macedited;
@@ -969,8 +969,12 @@ char *macro_getComment(char* szBuf, char* szB2, int nIndex, int type)
 			}
 	}
 
+	char* pszComment = s;
 	if ((s = lstrchr(s,';')) != 0) {
 		lstrcpy(szB2,s+1);
+		size_t nLen = s - pszComment;
+		strncpy(szBuf, pszComment, nLen);
+		szBuf[nLen] = 0;
 	}
 
 	return szBuf;

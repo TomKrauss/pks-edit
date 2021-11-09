@@ -23,6 +23,7 @@ macro Test-Params(int par, string par2)
 {
 	string tmp;
 
+    Alert("Hello");
 	tmp = "Es wurde " + (string)par + " als Parameter 1 angegeben und '" + (string)par2 + "' als Parameter 2";
 	par2 = 14;
 	Alert(tmp);

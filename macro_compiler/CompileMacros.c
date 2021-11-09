@@ -22,6 +22,7 @@
 
 #include "errordialogs.h"
 #include "alloc.h"
+#include "regexp.h"
 #include "documentmodel.h"
 #include "pkscc.h"
 #include "stringutil.h"
@@ -30,7 +31,7 @@
 #include "editorconfiguration.h"
 
 int  yyparse(void);
-void yyinit(jmp_buf *errb, char *sourcefile, LINE *lps,LINE *lpe);
+void yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps,LINE *lpe);
 int  yyfinish(void);
 
 extern int		_macedited;
@@ -69,27 +70,6 @@ void macro_printListHeader(FILE *fp, char *itemname)
 
 	fprintf(fp,"\nList of active %s for file \"%s\"\n\n",itemname,
 		ftp ? string_getBaseFilename(ftp->fname) : "(no file)");
-}
-
-/*--------------------------------------------------------------------------
- * printpaste()
- */
-int printpaste(FILE *fp, void *p)
-{	PASTE *pp = p;
-	int   maxlen = 40;
-	LINE  *lp;
-
-	for (lp = pp->pln; lp; lp = lp->next) {
-		fprintf(fp,"%.*s",min(maxlen,lp->len),lp->lbuf);
-		if ((maxlen -= lp->len) <= 0 ||
-		    (lp = lp->next) == 0)
-			break;
-		fprintf(fp,"\\n"); 
-	}
-	if (lp) 
-		fprintf(fp," ...");
-	fprintf(fp,"\n");
-	return maxlen;
 }
 
 /*
@@ -152,10 +132,15 @@ int mac_compileMacros()
 {	
 	FTABLE *		fp;
 	jmp_buf 		errb;
-
 	if ((fp = ft_getCurrentDocument()) != 0) {
+		COMPILER_CONFIGURATION config = {
+			macro_insertNewMacro,
+			macro_showStatus,
+			TRUE,
+			fp->fname
+		};
 		if (!setjmp(errb)) {
-			yyinit(&errb, fp->fname, fp->firstl, fp->lastl->prev);
+			yyinit(&errb, &config, fp->firstl, fp->lastl->prev);
 			yyparse();
 		}
 		return yyfinish();
@@ -166,11 +151,12 @@ int mac_compileMacros()
 	return 0;
 }
 
-static void UnEscape(char *dst, char *src) {
+static void macro_unEscape(char *dst, const char *src, size_t nDestSize) {
 	int		bInString;
+	char* pszDest = dst + nDestSize - 3;
 
 	bInString = 0;
-	while(*src) {
+	while(*src && dst < pszDest) {
 		if (bInString) {
 			if (*src == '\\') {
 				*dst++ = '\\';
@@ -188,38 +174,99 @@ static void UnEscape(char *dst, char *src) {
 	*dst = 0;
 }
 
+/*------------------------------------------------------------
+ * macro_defineTemporaryMacro()
+ * Insert a macro with a given name, comment and byte codes. If the named
+ * macro already exists, it is deleted.
+ */
+static char* _tempMacroName;
+static int macro_defineTemporaryMacro(char* name, char* comment, char* macdata, int size) {
+	// TODO: when multiple macro functions are compiled as part of the evaluation, we should remove them all.
+	free(_tempMacroName);
+	_tempMacroName = _strdup(name);
+	return macro_insertNewMacro(name, comment, macdata, size);
+}
+
+static void macro_noStatus(char* fmt, ...) {
+}
+
+/*
+ * Checks, whether a code to evaluate needs to be enclosed into a temporary macro
+ * function before compiling.
+ */
+static BOOL macro_needsWrapper(const char* pszCode) {
+	RE_PATTERN pattern;
+	RE_OPTIONS options;
+	RE_MATCH match;
+	char patternBuf[400];
+
+	options.flags = RE_DOREX;
+	options.patternBuf = patternBuf;
+	options.endOfPatternBuf = &patternBuf[sizeof patternBuf];
+	options.expression = "^\\s*macro\\s+";
+	if (!regex_compile(&options, &pattern)) {
+		return TRUE;
+	}
+	regex_match(&pattern, pszCode, 0, &match);
+	return !match.matches;
+}
+
 /**
 * Execute a macro given a single line text to execute.
+* pszCode ist the string of code to execute. If bUnescape is true, we treat \ and " special
+* and assume, the command to execute was passed on the command line (and will be escaped).
+* 'pszContext' is the name of the context in which the execution will be performed.
  */
-int macro_executeSingleLineMacro(char *string) {	
-	char		chTemp[1024];
+int macro_executeSingleLineMacro(const char *pszCode, BOOL bUnescape, const char* pszContext) {	
 	FTABLE 		ft;
-	LINE *		lp;
 	jmp_buf 	errb;
 	int			nFail;
 	int			saveMacEdited;
 
 	saveMacEdited = _macedited;
+	_tempMacroName = NULL;
 	memset(&ft, 0, sizeof ft);
-	ln_createAndAdd(&ft, "macro temp-block() {", -1, 0);
-	UnEscape(chTemp, string);
-	ln_createAndAdd(&ft, chTemp, -1, 0);
-	ln_createAndAdd(&ft, "}", -1, 0);
-/* sigh: need an empty line here */
-	ln_createAndAdd(&ft, "", -1, 0);
-	if (!(nFail = setjmp(errb))) {
-		for (lp = ft.firstl; lp && lp->next; lp = lp->next) ;
-		yyinit(&errb, "\"DDE Command\"", ft.firstl, lp);
-		yyparse();
+	BOOL bNeedsWrapper = macro_needsWrapper(pszCode);
+	if (bNeedsWrapper) {
+		ln_createAndAdd(&ft, "macro temp-block() {", -1, 0);
 	}
-	if (!yyfinish() || nFail) {
-		error_displayAlertDialog("Error in command: %s", string);
+	size_t nSize = strlen(pszCode);
+	if (bUnescape) {
+		char* pszTemp = calloc(1, nSize);
+		macro_unEscape(pszTemp, pszCode, nSize);
+		ln_createAndAdd(&ft, pszTemp, -1, 0);
+		free(pszTemp);
+	} else {
+		ln_createAndAdd(&ft, (char*)pszCode, -1, 0);
+	}
+	if (bNeedsWrapper) {
+		ln_createAndAdd(&ft, "}", -1, 0);
+	}
+/* sigh: need an empty line here */
+	if (!ln_createAndAdd(&ft, "", -1, 0)) {
 		return 0;
 	}
-	macro_executeByName("temp-block");
-	macro_deleteByName("temp-block");
+	if (!(nFail = setjmp(errb))) {
+		COMPILER_CONFIGURATION config = {
+			macro_defineTemporaryMacro,
+			macro_noStatus,
+			FALSE,
+			(char*)pszContext
+		};
+		yyinit(&errb, &config, ft.firstl, NULL);
+		yyparse();
+	}
+	int ret = 1;
+	if (!yyfinish() || nFail) {
+		error_displayAlertDialog("Error in command: %s", pszCode);
+		ret = 0;
+	} else {
+		macro_executeByName(_tempMacroName);
+		macro_deleteByName(_tempMacroName);
+	}
+	free(_tempMacroName);
 	_macedited = saveMacEdited;
-	return 1;
+	return ret;
 }
 
 /*---------------------------------

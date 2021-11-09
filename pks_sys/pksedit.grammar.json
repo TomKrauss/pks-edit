@@ -3,6 +3,7 @@
     {
       "scopeName": "pksedit",
       "analyzer": "pks-macros",
+      "evaluator": "pks-macros",
       "patterns": [
         {
           "match": "//.*",

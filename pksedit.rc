@@ -60,10 +60,10 @@ BEGIN
     CONTROL         "F12",491,"Button",BS_OWNERDRAW | WS_TABSTOP,440,0,40,14
 END
 
-DLGBOXC DIALOG 91, 60, 138, 24
-STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU
+DLGBOXC DIALOGEX 91, 60, 138, 24
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
 CAPTION "Gehe zu Marke"
-FONT 8, "helv"
+FONT 8, "helv", 0, 0, 0x0
 BEGIN
     LTEXT           "Kennbuchstabe:",IDD_LOWOPT,16,8,60,8,NOT WS_GROUP
     DEFPUSHBUTTON   "A",IDD_RAWCHAR,97,6,16,12
@@ -339,13 +339,13 @@ BEGIN
     PUSHBUTTON      "&Abbruch",2,116,8,48,14
 END
 
-DLGQUERYDELETE DIALOG 59, 62, 200, 48
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+DLGQUERYDELETE DIALOGEX 59, 62, 200, 48
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "Löschen von Datei oder Ordner"
-FONT 8, "helv"
+FONT 8, "helv", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "&OK",1,152,30,44,14
-    CONTROL         "Text",IDD_OPT11,"Static",SS_BLACKFRAME,32,12,112,12
+    CONTROL         "",IDD_OPT11,"Static",SS_BLACKFRAME,32,12,112,12
     LTEXT           "&Name:",112,4,14,28,8,NOT WS_GROUP
     LTEXT           "T",IDD_RO1,36,14,104,8,NOT WS_GROUP
     PUSHBUTTON      "&Abbruch",2,152,10,44,14
@@ -365,7 +365,7 @@ BEGIN
 END
 
 DLGQUERYREPLACE DIALOGEX 56, 74, 204, 58
-STYLE DS_SETFONT | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | WS_POPUP | WS_VISIBLE | WS_CAPTION
 CAPTION "Ersetzen auf Rückfrage"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
@@ -509,7 +509,7 @@ BEGIN
     EDITTEXT        IDD_STRING1,74,96,94,12
 END
 
-DLGFINDINFILES DIALOGEX 28, 41, 377, 177
+DLGFINDINFILES DIALOGEX 28, 41, 379, 213
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Suche in Ordnern"
 FONT 8, "helv", 0, 0, 0x0
@@ -522,9 +522,10 @@ BEGIN
     EDITTEXT        IDD_INT1,158,93,29,12,ES_NUMBER,WS_EX_RIGHT
     LTEXT           "Datei&muster:",IDD_OPT12,6,115,54,8,NOT WS_GROUP
     COMBOBOX        IDD_FILE_PATTERN,94,115,93,64,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Suche in &Ordner:",112,6,141,114,8,NOT WS_GROUP
-    COMBOBOX        IDD_PATH1,6,153,271,64,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        " Optionen &Suche",IDD_OPT10,204,28,159,102,WS_GROUP
+    LTEXT           "Suche in &Ordner:",112,6,176,114,8,NOT WS_GROUP
+    COMBOBOX        IDD_PATH1,6,188,271,64,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Ordner aus&wählen...",IDD_PATH1SEL,286,188,77,14
+    GROUPBOX        " Optionen &Suche",IDD_OPT10,204,28,159,98,WS_GROUP
     CONTROL         "&Ignoriere Groß / Klein",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,211,38,84,12
     CONTROL         "&Reguläre Ausdrücke",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,211,50,80,12
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,211,62,80,12
@@ -532,7 +533,10 @@ BEGIN
     CONTROL         "&Binärdateien ignorieren",IDD_OPT2,"Button",BS_AUTOCHECKBOX,211,87,96,12
     CONTROL         "A&n letztes Ergebnis anhängen",IDD_OPT3,"Button",BS_AUTOCHECKBOX,211,99,106,12
     CONTROL         "In al&tem Ergebnis suchen",IDD_OPT4,"Button",BS_AUTOCHECKBOX,211,111,94,12
-    PUSHBUTTON      "Ordner aus&wählen...",IDD_PATH1SEL,286,153,77,14
+    GROUPBOX        " Optionen Ersetzen",IDD_OPT14,203,128,159,47,WS_GROUP
+    CONTROL         "Ersetzen nach R&ückfrage",IDD_OPT5,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,211,142,141,12
+    CONTROL         "Gro&ß- / Kleinschreibung erhalten",IDD_PRESERVE_CASE,
+                    "Button",BS_AUTOCHECKBOX,211,153,141,14
     PUSHBUTTON      "Abbruch",2,202,6,46,14,WS_GROUP
     PUSHBUTTON      "E&rsetzen",IDD_BUT3,254,6,65,14,WS_GROUP
     DEFPUSHBUTTON   "OK",1,324,6,40,14
@@ -566,7 +570,7 @@ BEGIN
 END
 
 DLGCRYPT DIALOGEX 27, 67, 276, 39
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "Bearbeiten einer verschlüsselten Datei"
 FONT 8, "Helv", 0, 0, 0x0
 BEGIN
@@ -755,7 +759,7 @@ BEGIN
 END
 
 DLGCOMPAREFILES DIALOGEX 20, 52, 351, 176
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "Datei vergleichen"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
@@ -915,6 +919,7 @@ BEGIN
     POPUP "&Extras"
     BEGIN
         MENUITEM "&Programm ausführen...\a",    MEXEC
+        MENUITEM "Selektion e&valuieren\a",     IDM_EVALUATE_SELECTION
         MENUITEM SEPARATOR
         MENUITEM "&Verweise lesen...\a",        MREADTAG
         MENUITEM "&Fehlerliste lesen...\a",     MREADCMP
@@ -1087,6 +1092,10 @@ BEGIN
     BEGIN
     END
 
+    DLGQUERYDELETE, DIALOG
+    BEGIN
+    END
+
     DLGQUERYREPLACE, DIALOG
     BEGIN
     END
@@ -1112,7 +1121,8 @@ BEGIN
 
     DLGFINDINFILES, DIALOG
     BEGIN
-        BOTTOMMARGIN, 176
+        RIGHTMARGIN, 377
+        BOTTOMMARGIN, 212
     END
 
     DLGDOCTYPES, DIALOG
@@ -1317,6 +1327,21 @@ BEGIN
 END
 
 DLGQUERYREPLACE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGBOXC AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGQUERYDELETE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGCOMPAREFILES AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1649,7 +1674,7 @@ BEGIN
     IDS_COMMAND96           "Zeigt das Hilfen-Verzeichnis an;Hilfe Übersicht"
     IDS_COMMAND97           "Zeigt die Copyright-Meldung mit Serien- und Versionsnummer;Copyright"
     IDS_COMMAND98           "Fügt eine Tastenkombination als Text ein;Tastatur einf."
-    IDS_COMMAND99           "Definiert Fenster-Register #0;Def. Fenster #0"
+    IDS_COMMAND99           "Evaluiert selektierten Text oder die aktuelle Zeile;Code evaluieren"
     IDS_COMMAND100          "Definiert Fenster-Register #1;Def. Fenster #1"
     IDS_COMMAND101          "Definiert Fenster-Register #2;Def. Fenster #2"
     IDS_COMMAND102          "Definiert Fenster-Register #3;Def. Fenster #2"
@@ -1849,6 +1874,9 @@ BEGIN
                             "Geben Sie das Passwort zum Enschlüsseln von %s ein:"
     IDS_INSERT              "Einfügen"
     IDS_CREATE_BUFFER       "Anlegen"
+    IDS_NO_EVALUATION_SUPPORTED 
+                            "Die Grammatik der aktuellen Datei unterstützt keine Code Evaluierung."
+    IDS_EVALUATION_FAILED   "Die Code Evaluierung ist fehl geschlagen."
 END
 
 #endif    // Deutsch (Deutschland) resources

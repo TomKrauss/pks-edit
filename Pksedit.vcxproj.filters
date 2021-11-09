@@ -306,6 +306,9 @@
     <ClCompile Include="HexRenderer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Evaluator.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -507,6 +510,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\darkmode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\evaluator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

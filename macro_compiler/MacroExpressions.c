@@ -257,23 +257,31 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 
 		switch(op) {
 
-		case BIN_ADD: 
-			if (strlen(p1) + strlen(p2) > sizeof buf) {
+		case BIN_ADD: {
+			char* pszP1 = p1 ? p1 : "null";
+			char* pszP2 = p2 ? p2 : "null";
+			if (strlen(pszP1) + strlen(pszP2) > sizeof buf) {
 				error_displayAlertDialog("+: result to large");
-			} else {
-				strcat(strcpy(buf,p1),p2);
+			}
+			else {
+				strcat(strcpy(buf, pszP1), pszP2);
 			}
 			break;
-		case BIN_SUB:
-			if (strlen(p1) > sizeof buf) {
+		}
+		case BIN_SUB: {
+			char* pszP1 = p1 ? p1 : "null";
+			char* pszP2 = p2 ? p2 : "null";
+			if (strlen(pszP1) > sizeof buf) {
 				error_displayAlertDialog("-: result to large");
-			} else {
-				strcpy(buf,p1);
-				if ((p1 = strstr(buf,p2)) != 0) {
-					strcpy(p1,p1+strlen(p2));
+			}
+			else {
+				strcpy(buf, pszP1);
+				if ((p1 = strstr(buf, pszP2)) != 0) {
+					strcpy(p1, p1 + strlen(pszP2));
 				}
 			}
 			break;
+		}
 		default: 
 			error_displayAlertDialog("string binop %c not impl.",op);
 

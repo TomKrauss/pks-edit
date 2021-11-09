@@ -107,10 +107,12 @@ int error_displayAlertBoxWithOptions(long unused, long buttons, const char* fmt)
  * error_openConfigurableAlert()
  */
 static int error_openConfigurableAlert(int buttons, LPSTR fmt, va_list ap)
-{   char buf[256];
+{   char szBuf[1024];
 
-    wvsprintf((LPSTR)buf,(LPSTR)fmt, ap);
-	return error_displayAlertBoxWithOptions(0, buttons, buf);
+	// 1024 == maximum result size for wvsprintf
+    wvsprintf(szBuf,(LPSTR)fmt, ap);
+	int ret = error_displayAlertBoxWithOptions(0, buttons, szBuf);
+	return ret;
 }
 
 /*------------------------------------------------------------
@@ -185,18 +187,15 @@ void Panic(LPSTR s)
  * error_displayErrorToast()
  * If configured, popup a temporary dialog window showing an error.
  */
-void error_displayErrorToast(const char* fmt, va_list ap)
-{
-	char buf[256];
+void error_displayErrorToast(const char* fmt, va_list ap) {
+	char szBuf[1024];
 
-	wvsprintf(buf,fmt,ap);
-	st_seterrmsg(buf);
+	wvsprintf(szBuf,fmt,ap);
+	st_seterrmsg(szBuf);
 
-	if ((GetConfiguration()->options & O_SHOW_MESSAGES_IN_SNACKBAR) == 0) {
-		return;
+	if ((GetConfiguration()->options & O_SHOW_MESSAGES_IN_SNACKBAR) != 0) {
+		cust_createToastWindow(szBuf);
 	}
-
-	cust_createToastWindow(buf);
 }
 
 /*------------------------------------------------------------
@@ -258,7 +257,7 @@ void error_showError(char* s, va_list ap) {
 void error_showErrorById(int nId,...)
 {
 	va_list 	ap;
-	char 	s[128];
+	char 		s[256];
 
 	if (!LoadString(ui_getResourceModule(), nId, s, sizeof s)) {
 		sprintf(s, "Cannot find resource with id %d", nId);

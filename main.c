@@ -44,6 +44,7 @@
 #include "markpositions.h"
 #include "windowselector.h"
 #include "codeanalyzer.h"
+#include "evaluator.h"
 #include "winutil.h"
 #include "textblocks.h"
 
@@ -135,6 +136,7 @@ static BOOL InitApplication(void)
 	    return FALSE;
 	}
 	analyzer_registerDefaultAnalyzers();
+	evaluator_registerDefaultEvaluators();
 	return TRUE;
 }
 
@@ -305,7 +307,7 @@ static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
 				if (hsz1 == hszDDECommandLine) {
 					GetPhase2Args(pszData);
 				} else {
-					macro_executeSingleLineMacro(pszData);
+					macro_executeSingleLineMacro(pszData, TRUE, "\"DDE Command\"");
 				}
 				DdeUnaccessData(hdata);
 				if (!DdeFreeDataHandle(hdata)) {
@@ -537,6 +539,7 @@ void main_cleanup(void) {
 	fm_destroyAll();
 	sym_destroyTable();
 	analyzer_destroyAnalyzers();
+	evaluator_destroyEvaluators();
 }
 
 /*--------------------------------------------------------------------------

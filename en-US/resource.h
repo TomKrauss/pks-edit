@@ -232,6 +232,8 @@
 #define IDS_ENTER_PASSWORD_TO_DECRYPT   192
 #define IDS_INSERT                      193
 #define IDS_CREATE_BUFFER               195
+#define IDS_NO_EVALUATION_SUPPORTED     196
+#define IDS_EVALUATION_FAILED           197
 #define IDM_UNDO                        210
 #define IDM_DOAGAIN                     211
 #define IDM_ERASEBLOCK                  212
@@ -249,7 +251,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        199
+#define _APS_NEXT_RESOURCE_VALUE        198
 #define _APS_NEXT_COMMAND_VALUE         40008
 #define _APS_NEXT_CONTROL_VALUE         1005
 #define _APS_NEXT_SYMED_VALUE           101

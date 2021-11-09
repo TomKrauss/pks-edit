@@ -427,6 +427,14 @@ typedef struct tagCONTROLLER {
 	const MOUSE_BINDING_FUNCTION c_getMouseBinding;
 } CONTROLLER;
 
+typedef struct tagCOMPILER_CONFIGURATION {
+	int (*cb_insertNewMacro)(char* name, char* comment, char* macdata, int size);
+	void  (*cb_showStatus)(char* s, ...);
+	BOOL cb_openErrorList;
+	char* cb_source;
+} COMPILER_CONFIGURATION;
+
+extern COMPILER_CONFIGURATION* _compilerConfiguration;
 
 extern int macro_openDialog(PARAMS *p);
 extern int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3);
@@ -525,12 +533,6 @@ extern int macro_insertNewMacro(char* name, char* comment, char* macdata, int si
  */
 extern int macro_toggleRecordMaco(void);
 
-/*---------------------------------
- * macro_onIconAction()
- * Invoke a macro as a response to an icon action.
- *---------------------------------*/
-extern int macro_onIconAction(HWND icHwnd, WPARAM wParam, LPARAM dropped);
-
 /*--------------------------------------------------------------------------
  * macro_getMacroIndexForMenu()
  * Return the macro reference given a menu id.
@@ -622,8 +624,11 @@ extern char* macro_getCommandByIndex(int nIndex);
 
 /**
 * Execute a macro given a single line text to execute.
+* pszCode ist the string of code to execute. If bUnescape is true, we treat \ and " special
+* and assume, the command to execute was passed on the command line (and will be escaped).
+* 'pszContext' is the name of the context in which the execution will be performed.
  */
-extern int macro_executeSingleLineMacro(char* string);
+extern int macro_executeSingleLineMacro(const char* pszCode, BOOL bUnescape, const char* pszContext);
 
 /*--------------------------------------------------------------------------
  * macro_getIndexForKeycode()

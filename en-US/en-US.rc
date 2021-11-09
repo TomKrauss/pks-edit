@@ -1289,6 +1289,7 @@ BEGIN
     POPUP "E&xtras"
     BEGIN
         MENUITEM "E&xecute Program...\a",       MEXEC
+        MENUITEM "E&valuate Selection\a",       IDM_EVALUATE_SELECTION
         MENUITEM SEPARATOR
         MENUITEM "&Open Tag File...\a",         MREADTAG
         MENUITEM "Open &Error Log...\a",        MREADCMP
@@ -1642,7 +1643,7 @@ BEGIN
     IDS_COMMAND96           "Show help;Help overview"
     IDS_COMMAND97           "Show copyright dialog with version info;About PKS-Edit"
     IDS_COMMAND98           "Insert a special character from the keyboard;Insert shortcut"
-    IDS_COMMAND99           "Define window register #0;Window register #0"
+    IDS_COMMAND99           "Evaluate current line or selection;Evaluate Code"
     IDS_COMMAND100          "Define window register #1;Window register #1"
     IDS_COMMAND101          "Define window register #2;Window register #2"
     IDS_COMMAND102          "Define window register #3;Window register #3"
@@ -1790,7 +1791,7 @@ BEGIN
     IDS_COMMAND216          "List mouse bindings;Mouse bindings"
     IDS_COMMAND217          "Compile macros in current window;Compile macros"
     IDS_COMMAND218          "Inserts a soft line end (no CR);Soft line end"
-    IDS_COMMAND219          "Run CLIPBRD.EXE to show the contents of the clipboard;Show clipboard"
+    IDS_COMMAND219          "Display the list of defined clipboards;Show clipboard"
     IDS_COMMAND220          "Deletes the selected text;Delete selection"
     IDS_COMMAND221          "List current menu in PKS macro format;Listen menu"
     IDS_COMMAND222          "Repeat command to last undo;Repeat last comment"
@@ -1814,21 +1815,21 @@ BEGIN
     IDS_COMMAND236          "Clone window;Clone window"
     IDS_COMMAND237          "Insert tabs and shift to the right;Selection shift right"
     IDS_COMMAND238          "Shift selection left;Shift selection left"
-    IDS_COMMAND239          "Zoomfactor ++;Zoomfactor ++"
+    IDS_COMMAND239          "Increment the text zoom factor;Zoomfactor ++"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND240          "Zoomfactor --;Zoomfactor --"
-    IDS_COMMAND241          "Toggle Comment;Toggle Comment"
-    IDS_COMMAND242          "Goto next navigation position;Next Position"
+    IDS_COMMAND240          "Decrement the text zoom factor;Zoomfactor --"
+    IDS_COMMAND241          "Toggle comment;Toggle comment"
+    IDS_COMMAND242          "Goto next navigation position;Next position"
     IDS_COMMAND243          "Goto next position of insertion;Next Insertion Position"
     IDS_COMMAND244          "Convert to Windows line endings (\n);Linux EOL"
     IDS_COMMAND245          "Convert to Windows line endings (\r\n);Windows EOL"
     IDS_COMMAND246          "Convert to upper case spelling;-> Uppercase"
     IDS_COMMAND247          "Convert to lower case spelling;-> Lowercase"
     IDS_COMMAND248          "Find next difference;Next difference"
-    IDS_COMMAND249          "Find previous difference;Previous difference"
+    IDS_COMMAND249          "Find previous Difference;Previous difference"
     IDS_COMMAND250          "End comparison;End comparison"
     IDS_COMMAND251          "Toggle line selection"
     IDS_COMMAND252          "Toggle syntax highlighting"
@@ -1841,6 +1842,9 @@ BEGIN
     IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
     IDS_INSERT              "Insert"
     IDS_CREATE_BUFFER       "Create"
+    IDS_NO_EVALUATION_SUPPORTED 
+                            "The grammar of this file does not support evaluation of code."
+    IDS_EVALUATION_FAILED   "The evaluation of the currently selected text failed."
 END
 
 #endif    // Englisch (USA) resources

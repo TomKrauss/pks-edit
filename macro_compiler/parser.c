@@ -1834,7 +1834,7 @@ int yydebug = 1;
 /* Line 1455 of yacc.c  */
 #line 220 "Parser.y"
     {
-				macro_showStatus("Defining sub-menu %s",(yyvsp[(2) - (2)]).s);
+				_compilerConfiguration->cb_showStatus("Defining sub-menu %s",(yyvsp[(2) - (2)]).s);
 				menu_addMenuMacroItem((yyvsp[(2) - (2)]).s, UM_POPUP, 0, 0);
 				freeitem(&(yyvsp[(2) - (2)]).s);
 			;}
@@ -1880,7 +1880,7 @@ int yydebug = 1;
 /* Line 1455 of yacc.c  */
 #line 257 "Parser.y"
     {
-				macro_showStatus("Compile mouse table %s",(yyvsp[(3) - (3)]).s);
+				_compilerConfiguration->cb_showStatus("Compile mouse table %s",(yyvsp[(3) - (3)]).s);
 				mouse_switchtotable((yyvsp[(3) - (3)]).s);
 				if (SetOverride((yyvsp[(1) - (3)]).s) == MODE_OVERRIDE) {
 					mouse_destroyMouseBindings();
@@ -1974,7 +1974,7 @@ int yydebug = 1;
 /* Line 1455 of yacc.c  */
 #line 300 "Parser.y"
     {
-				macro_showStatus("Compile key table %s",(yyvsp[(3) - (3)]).s);
+				_compilerConfiguration->cb_showStatus("Compile key table %s",(yyvsp[(3) - (3)]).s);
 				key_switchtotable((yyvsp[(3) - (3)]).s);
 				if (SetOverride((yyvsp[(1) - (3)]).s) == MODE_OVERRIDE) {
 					key_destroytable((yyvsp[(3) - (3)]).s);
@@ -2087,7 +2087,7 @@ int yydebug = 1;
 /* Line 1455 of yacc.c  */
 #line 356 "Parser.y"
     {	
-				macro_showStatus("Defining icon for macro %s",(yyvsp[(5) - (5)]).s);
+				_compilerConfiguration->cb_showStatus("Defining icon for macro %s",(yyvsp[(5) - (5)]).s);
 				freeitem(&(yyvsp[(1) - (5)]).s);
 				freeitem(&(yyvsp[(2) - (5)]).s);
 				freeitem(&(yyvsp[(3) - (5)]).s);
@@ -2194,8 +2194,8 @@ int yydebug = 1;
 					killabel(lreturnid,0);
 					macro_validateMacroName((yyvsp[(1) - (3)]).s, -1, 1);
 					_recp = AddComSeq(_recp,_recpend,C_STOP,1);
-					macro_showStatus("Defining macro %s",(yyvsp[(1) - (3)]).s);
-					macro_insertNewMacro((yyvsp[(1) - (3)]).s,(yyvsp[(2) - (3)]).s,_recspace,(int)(_recp-_recspace));
+					_compilerConfiguration->cb_showStatus("Defining macro %s",(yyvsp[(1) - (3)]).s);
+					_compilerConfiguration->cb_insertNewMacro((yyvsp[(1) - (3)]).s,(yyvsp[(2) - (3)]).s,_recspace,(int)(_recp-_recspace));
 				}
 				freeitem(&(yyvsp[(2) - (3)]).s);
 				freeitem(&(yyvsp[(1) - (3)]).s);
@@ -2274,7 +2274,7 @@ int yydebug = 1;
 /* Line 1455 of yacc.c  */
 #line 464 "Parser.y"
     {
-				yyerror("invalid statement"); 
+				yyerror("Invalid statement. Expecting one of function call, assignment, if, while, case, break, continue, return, goto, block or label."); 
 			;}
     break;
 

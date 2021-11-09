@@ -31,6 +31,8 @@
 #define IDI_ICON3                       193
 #define IDS_INSERT                      193
 #define IDS_CREATE_BUFFER               195
+#define IDS_NO_EVALUATION_SUPPORTED     196
+#define IDS_EVALUATION_FAILED           197
 #define IDB_NEW_ICONS                   200
 #define DLGCURSOROPTIONS                529
 #define DLGFINDINFILES                  535

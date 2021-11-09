@@ -192,7 +192,7 @@ docdefs		:
 
 doctype		: T_IDENT T_ASSIGN T_STRING strlist
 			{
-				macro_showStatus("Defining documenttype %s",$1.s);
+				_compilerConfiguration->cb_showStatus("Defining documenttype %s",$1.s);
 				freeitem(&$1.s);
 				freeitem(&$3.s);
 			}
@@ -218,7 +218,7 @@ menudefs		:
 
 submenu		: T_MENUPOPUP T_STRING 
 			{
-				macro_showStatus("Defining sub-menu %s",$2.s);
+				_compilerConfiguration->cb_showStatus("Defining sub-menu %s",$2.s);
 				menu_addMenuMacroItem($2.s, UM_POPUP, 0, 0);
 				freeitem(&$2.s);
 			}
@@ -255,7 +255,7 @@ menuoptions	:
 /*-- MOUSE -------------------------------------------*/
 
 mouses		: opt_ident T_DEFMOUSE T_IDENT	{
-				macro_showStatus("Compile mouse table %s",$3.s);
+				_compilerConfiguration->cb_showStatus("Compile mouse table %s",$3.s);
 				mouse_switchtotable($3.s);
 				if (SetOverride($1.s) == MODE_OVERRIDE) {
 					mouse_destroyMouseBindings();
@@ -298,7 +298,7 @@ mouse_button	: kmod_list buttons T_NUM
 /*-- KEYS -------------------------------------------*/
 
 keys			: opt_ident T_DEFKEYS T_IDENT	  {
-				macro_showStatus("Compile key table %s",$3.s);
+				_compilerConfiguration->cb_showStatus("Compile key table %s",$3.s);
 				key_switchtotable($3.s);
 				if (SetOverride($1.s) == MODE_OVERRIDE) {
 					key_destroytable($3.s);
@@ -354,7 +354,7 @@ icondefs		:
 
 icon			: T_IDENT T_IDENT T_IDENT T_ASSIGN T_IDENT
 			{	
-				macro_showStatus("Defining icon for macro %s",$5.s);
+				_compilerConfiguration->cb_showStatus("Defining icon for macro %s",$5.s);
 				freeitem(&$1.s);
 				freeitem(&$2.s);
 				freeitem(&$3.s);
@@ -411,8 +411,8 @@ macros		:  macrostart opt_string block
 					killabel(lreturnid,0);
 					macro_validateMacroName($1.s, -1, 1);
 					_recp = AddComSeq(_recp,_recpend,C_STOP,1);
-					macro_showStatus("Defining macro %s",$1.s);
-					macro_insertNewMacro($1.s,$2.s,_recspace,(int)(_recp-_recspace));
+					_compilerConfiguration->cb_showStatus("Defining macro %s",$1.s);
+					_compilerConfiguration->cb_insertNewMacro($1.s,$2.s,_recspace,(int)(_recp-_recspace));
 				}
 				freeitem(&$2.s);
 				freeitem(&$1.s);
@@ -461,8 +461,8 @@ stmnt		:            	';'
 			| gotolabel
 			| block
 			| label
-			| error			{
-				yyerror("invalid statement"); 
+			| error {
+				yyerror("Invalid statement. Expecting one of function call, assignment, if, while, case, break, continue, return, goto, block or label."); 
 			}
 
 

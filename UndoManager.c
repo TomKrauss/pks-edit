@@ -490,7 +490,7 @@ EXPORT BOOL undo_redoLastModification(FTABLE* fp) {
  */
 EXPORT BOOL undo_isRedoAvailable(FTABLE* fp) {
 	UNDO_STACK* pStack = UNDOPOI(fp);
-	return isUndoEnabled() && undo_getCurrentRedoCommand(pStack) != NULL;
+	return pStack && isUndoEnabled() && undo_getCurrentRedoCommand(pStack) != NULL;
 }
 
 
@@ -499,7 +499,7 @@ EXPORT BOOL undo_isRedoAvailable(FTABLE* fp) {
  */
 EXPORT BOOL undo_isUndoAvailable(FTABLE* fp) {
 	UNDO_STACK* pStack = UNDOPOI(fp);
-	return isUndoEnabled() && undo_getCurrentCommand(pStack) != NULL;
+	return pStack && isUndoEnabled() && undo_getCurrentCommand(pStack) != NULL;
 }
 
 /*--------------------------------------------------------------------------

@@ -16,6 +16,8 @@
 
 #include "customcontrols.h"
 #include <string.h>
+#include <CommCtrl.h>
+#include "themes.h"
 
 #include "trace.h"
 #include "documentmodel.h"
@@ -48,6 +50,7 @@ HWND  hwndFkeys;
 static int 	_fkeyshiftstate;
 static int	_fkoptheight;
 static int	_fkfkheight;
+static HWND _hwndTips[MAX_FKEYS];
 
 static KEYCODE _fkshifts[NSHFT] = {0,	K_CONTROL, K_ALTERNATE, K_SHIFT };
 
@@ -175,10 +178,59 @@ static int ww_toppostmessage(UINT message, WPARAM wParam, LPARAM lParam)
 	return PostMessage(hwndMain, message, wParam, lParam);
 }
 
+// Description:
+//   Creates a tooltip for an item in a dialog box. 
+// Parameters:
+//   idTool - identifier of an dialog box item.
+//   nDlg - window handle of the dialog box.
+//   iTooltipItem - index of string resource to use as the tooltip text.
+// Returns:
+//   The handle to the tooltip.
+//
+static HWND fkey_createTip(HWND hDlg, int toolID) {
+	if (!hDlg) {
+		return 0;
+	}
+	// Create the tooltip. g_hInst is the global instance handle.
+	HWND hwndTip = CreateWindowEx(0L, TOOLTIPS_CLASS, NULL,
+		WS_POPUP | TTS_ALWAYSTIP,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		hDlg, NULL,
+		hInst, NULL);
+
+	if (!hwndTip) {
+		return (HWND)NULL;
+	}
+
+	// Associate the tooltip with the tool.
+	TOOLINFO toolInfo = { 0 };
+	toolInfo.cbSize = sizeof(toolInfo);
+	toolInfo.hwnd = hDlg;
+	toolInfo.uFlags = TTF_SUBCLASS|TTF_IDISHWND;
+	toolInfo.uId = (INT_PTR)GetDlgItem(hDlg, toolID);
+	toolInfo.lpszText = LPSTR_TEXTCALLBACK;
+	toolInfo.lParam = toolID- IDD_FKFK1;
+	SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
+	SendMessage(hwndTip, TTM_SETMAXTIPWIDTH, 0, 350);
+	theme_enableDarkMode(hwndTip);
+	return hwndTip;
+}
+
+
+/*
+ * Create tooltips for the function keys.
+ */
+static void fkey_createTips(HWND hwndParent) {
+	for (int i = 0; i < MAX_FKEYS; i++) {
+		_hwndTips[i] = fkey_createTip(hwndParent, IDD_FKFK1 + i);
+	}
+}
 /*------------------------------------------------------------
  * FkeysWndProc()
  */
 static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	static BOOL     bInitialized;
 	int  			x;
 	int				item;
 	RECT	 		r;
@@ -193,28 +245,50 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 	switch(message) {
 
-	case WM_CREATE:
-		fkcharheight = cust_calculateButtonCharacterHeight(
-			GetDlgItem(hwnd, IDD_FKFK1));
-		_fkoptheight = fkcharheight + FK_DELTA;
-		_fkfkheight = 2 * fkcharheight + FK_DELTA;
-		return 0;
-
 	case WM_DRAWITEM:
 		dp = (DRAWITEMSTRUCT*)lParam;
 		cust_paintButton(dp->hDC, &dp->rcItem, 
 				    dp->hwndItem, dp->itemState);
 		return 0;
 
+	case WM_NOTIFY:
+		switch (((LPNMHDR)lParam)->code) {
+			case TTN_GETDISPINFO: {
+				int state = _fkeyshiftstate;
+				int shift = _fkshifts[state];
+				LPNMTTDISPINFO pInfo = (LPNMTTDISPINFO)lParam;
+				WPARAM keycode1 = (VK_F1 + pInfo->lParam) | shift;
+				KEYBIND* kp = macro_getKeyBinding(keycode1);
+				if (kp) {
+					char szComment[200];
+					char szText[100];
+					macro_getComment(szComment, szText, kp->macref.index, kp->macref.typ);
+					pInfo->lpszText = szComment;
+				} else {
+					pInfo->lpszText = NULL;
+				}
+			}
+		}
+		break;
 	case WM_SIZE:
 	case WM_MOVE:
 	case WM_EDWINREORG:
+		if (!bInitialized) {
+			HWND hwndFk1 = GetDlgItem(hwnd, IDD_FKFK1);
+			if (hwndFk1) {
+				fkcharheight = cust_calculateButtonCharacterHeight(hwndFk1);
+				_fkoptheight = fkcharheight + FK_DELTA;
+				_fkfkheight = 2 * fkcharheight + FK_DELTA;
+				fkey_createTips(hwnd);
+				bInitialized = TRUE;
+			}
+		}
 		GetClientRect(hwnd,&r);
 		if (r.right < 620) {
 			r.right = 620;
 			nButtons = 10;
 		} else {
-			nButtons = 12;
+			nButtons = MAX_FKEYS;
 		}
 		nRight = r.right;
 		nDelta = r.right - r.left - 1;

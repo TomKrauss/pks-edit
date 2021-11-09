@@ -31,6 +31,7 @@
 #include "editoperations.h"
 #include "mainframe.h"
 #include "comparefiles.h"
+#include "evaluator.h"
 
 extern int
 EdFileAbandon(), EdAbout(long ), EdBlockCopy(long ), EdBlockDelete(),
@@ -135,16 +136,16 @@ EDFUNC _edfunctab[] = {
 /*62*/	  EdExit, '!', 0,                                                                                 "QuitEdit",
 /*63*/	  EdCloseAll, '!', 0,                                                                             "CloseAllWindows",
 /*64*/	  EdSaveFile, '!', EW_NEEDSCURRF | 0,                                                             "SaveFile",
-EdSelectWindow, '!', 0,                                                                         "SelectWindow",          
-EdCommandExecute, '!', EW_HASFORM | 0,                                                          "ExecuteCommand",        
-EdExecute, '!', EW_HASFORM | 0,                                                                 "Exec",                  
-EdShiftBetweenBrackets, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                       "ShiftBetweenBrackets",  
-EdSort, '!', EW_MODIFY | EW_NEEDSCURRF | 0,                                                     "Sort",                  
-EdLinesShift, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_MULTI | 0,                      "ShiftLines",            
-EdInfoFiles, '!', 0,                                                                            "ShowInfo",              
-EdShowMatch, '!', EW_NEEDSCURRF | 0,                                                            "CheckBrackets",         
-edit_convertCharacterCase, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                    "UpToLow",               
-function_unused, '!', EW_NEEDSCURRF | 0,                                                        "SetWorkMode",           
+/*65*/	  EdSelectWindow, '!', 0,                                                                         "SelectWindow",
+/*66*/	  EdCommandExecute, '!', EW_HASFORM | 0,                                                          "ExecuteCommand",
+/*67*/	  EdExecute, '!', EW_HASFORM | 0,                                                                 "Exec",
+/*68*/	  EdShiftBetweenBrackets, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                       "ShiftBetweenBrackets",
+/*69*/	  EdSort, '!', EW_MODIFY | EW_NEEDSCURRF | 0,                                                     "Sort",
+/*70*/	  EdLinesShift, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_MULTI | 0,                      "ShiftLines",
+/*71*/	  EdInfoFiles, '!', 0,                                                                            "ShowInfo",
+/*72*/	  EdShowMatch, '!', EW_NEEDSCURRF | 0,                                                            "CheckBrackets",
+/*73*/	  edit_convertCharacterCase, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                    "UpToLow",
+/*74*/	  evaluator_evaluateCurrentSelection, '!', EW_NEEDSCURRF | 0,                                     "EvaluateSelection",
 dlg_configureEditorModes, '!', EW_NEEDSCURRF | 0,                                               "SetDispMode",           
 function_unused, '!', EW_NEEDSCURRF | 0,                                                        "SetCursorMode",
 function_unused, '!', EW_NEEDSCURRF | 0,                                                        "SetFileFormat",
@@ -311,7 +312,8 @@ IDM_INSERT_CONTROL_CHAR, 129,
 IDM_COPY_TO_NAMED_CLIPBOARD, 41,
 IDM_CUT_TO_NAMED_CLIPBOARD, 40,
 IDM_PASTE_NAMED_CLIPBOARD, 43,
-IDM_LIST_NAMED_CLIPBOARDS, 219
+IDM_LIST_NAMED_CLIPBOARDS, 219,
+IDM_EVALUATE_SELECTION, 99
 };
 
 int _nmenus = sizeof(_menutab) / sizeof(_menutab[0]);
@@ -435,7 +437,7 @@ COMMAND _cmdseqtab[] = {
 96, C_1FUNC, 56 /* EdHelp */, HELP_INDEX, "help-index", 
 97, C_0FUNC, 1 /* EdAbout */, 0 , "show-copyright", 
 98, C_0FUNC, 16 /* EdKeycodeInsert */, 0 , "keycode-insert", 
-99, C_1FUNC, 86 /* EdWindowRegSet */, 0 , "unused", 
+99, C_0FUNC, 74 /* evaluate_evaluateSelection */, 0 , "evaluate-selection", 
 100, C_1FUNC, 86 /* EdWindowRegSet */, 1 , "unused", 
 101, C_1FUNC, 86 /* EdWindowRegSet */, 2 , "unused", 
 102, C_1FUNC, 86 /* EdWindowRegSet */, 3 , "unused", 

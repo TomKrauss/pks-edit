@@ -95,6 +95,7 @@ typedef struct tagGRAMMAR {
 	TAGSOURCE* tagSources;				// The list of tag sources to check for cross references
 	TEMPLATE* templates;				// The code templates for this grammar.
 	char* analyzer;						// Name of a "wellknown" analyzer to use to extract further suggestions from the text of the current document.
+	char* evaluator;					// Name of a "wellknown" evaluator, which is able to "execute" the text from the current text selection.
 	BOOL hasLineSpanPattern;			// Whether patterns exist, spanning multiple lines.
 } GRAMMAR;
 
@@ -203,6 +204,7 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_CHAR_ARRAY, "increaseIndentPattern", offsetof(GRAMMAR, increaseIndentPattern), sizeof(((GRAMMAR*)NULL)->increaseIndentPattern)},
 	{	RT_CHAR_ARRAY, "decreaseIndentPattern", offsetof(GRAMMAR, decreaseIndentPattern), sizeof(((GRAMMAR*)NULL)->decreaseIndentPattern)},
 	{	RT_ALLOC_STRING, "analyzer", offsetof(GRAMMAR, analyzer)},
+	{	RT_ALLOC_STRING, "evaluator", offsetof(GRAMMAR, evaluator)},
 	{	RT_OBJECT_LIST, "navigation", offsetof(GRAMMAR, navigation),
 			{.r_t_arrayDescriptor = {grammar_createNavigationPattern, _navigationPatternRules}}},
 	{	RT_OBJECT_LIST, "templates", offsetof(GRAMMAR, templates),
@@ -255,6 +257,7 @@ static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
 	ll_destroy((LINKED_LIST**)&pGrammar->tagSources, grammar_destroyTagSource);
 	ll_destroy((LINKED_LIST**)&pGrammar->templates, grammar_destroyTemplates);
 	free(pGrammar->analyzer);
+	free(pGrammar->evaluator);
 	return 1;
 }
 
@@ -888,6 +891,14 @@ void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, int (*fMatch)(char* pszMa
  */
 char* grammar_getCodeAnalyzer(GRAMMAR* pGrammar) {
 	return pGrammar != NULL ? pGrammar->analyzer : NULL;
+}
+
+/*
+ * Returns the name of an evaluator to use to evaluate the current selection in the document with the given grammar.
+ * The name of the evaluator is used by the Evaluator package.
+ */
+char* grammar_getEvaluator(GRAMMAR* pGrammar) {
+	return pGrammar != NULL ? pGrammar->evaluator : NULL;
 }
 
 /*

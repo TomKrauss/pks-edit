@@ -177,6 +177,12 @@ extern void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, int (*fMatch)(char
 extern char* grammar_getCodeAnalyzer(GRAMMAR* pGrammar);
 
 /*
+ * Returns the name of an evaluator to use to evaluate the current selection in the document with the given grammar.
+ * The name of the evaluator is used by the Evaluator package.
+ */
+extern char* grammar_getEvaluator(GRAMMAR* pGrammar);
+
+/*
  * Returns true, if this grammar defines patterns spanning multiple lines making
  * parsing a bit more complex in that a window of lines has to be rescanned to detect
  * multi-line patterns.

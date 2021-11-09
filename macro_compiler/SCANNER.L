@@ -226,32 +226,33 @@ static int cmdgetc(void )
 
 # endif
 
+COMPILER_CONFIGURATION* _compilerConfiguration;
+
 /*---------------------------------*/
 /* yyinit()					*/
 /*---------------------------------*/
-int yyinit(jmp_buf *errb, char *sourcefile, LINE *lps, LINE *lpe)
-{
+int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe) {
 	static tables_inited;
-
+	_compilerConfiguration = pConfig;
 	if (!tables_inited) {
 		if (sym_create(HSIZE) == 0 ||
-		    !init_keywords()	   ||
+		    !init_keywords() ||
 		    !init_funcs()) {
 			return 0;
 		}
 		tables_inited = 1;
 	}
 	yylineno = 1;
-	yyerr.yynwarn  = 0;
-	yyerr.yynerr	= 0;
-	yyerr.yymaxerr	= 30;
+	yyerr.yynwarn = 0;
+	yyerr.yynerr = 0;
+	yyerr.yymaxerr = 30;
 	yyerr.yymaxwarn= 30;
-	yyerr.failpt   = errb;
+	yyerr.failpt = errb;
 	if (yyerr.errfp) {
 		fclose(yyerr.errfp);
 		yyerr.errfp = 0;
 	}
-	yyerr.srcname  = sourcefile;
+	yyerr.srcname = pConfig->cb_source;
 
 #if defined(STAND_ALONE)
 	if ((_lexFp = fopen(sourcefile,"r")) == 0) {
@@ -282,11 +283,12 @@ int yyfinish(void)
 		fclose(yyerr.errfp);
 		yyerr.errfp = 0;
 		yyerr.failpt = 0;
-		xref_openSearchList(yyerr.errname,1);
+		if (_compilerConfiguration->cb_openErrorList) {
+			xref_openSearchList(yyerr.errname,1);
+		}
 		return 0;
 	} else {
-		_macedited = 1;
-		macro_showStatus("No Errors detected");
+		_compilerConfiguration->cb_showStatus("No Errors detected");
 	}
 	return 1;
 }
@@ -453,6 +455,7 @@ WS		[ \t]
 \/\/[^\n]*	{	;	}
 {WS}			{	;	}
 \n 			{	;	}	/* skip comments and white space */
+\r 			{	;	}	/* skip comments and white space */
 '.'			{	/* Character constant */
 				yylval.num = yytext[1];
 				return T_NUM;
