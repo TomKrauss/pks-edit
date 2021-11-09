@@ -919,6 +919,7 @@ BEGIN
     POPUP "&Extras"
     BEGIN
         MENUITEM "&Programm ausführen...\a",    MEXEC
+        MENUITEM "Selektion e&valuieren\a",     IDM_EVALUATE_SELECTION
         MENUITEM SEPARATOR
         MENUITEM "&Verweise lesen...\a",        MREADTAG
         MENUITEM "&Fehlerliste lesen...\a",     MREADCMP
@@ -1673,7 +1674,7 @@ BEGIN
     IDS_COMMAND96           "Zeigt das Hilfen-Verzeichnis an;Hilfe Übersicht"
     IDS_COMMAND97           "Zeigt die Copyright-Meldung mit Serien- und Versionsnummer;Copyright"
     IDS_COMMAND98           "Fügt eine Tastenkombination als Text ein;Tastatur einf."
-    IDS_COMMAND99           "Definiert Fenster-Register #0;Def. Fenster #0"
+    IDS_COMMAND99           "Evaluiert selektierten Text oder die aktuelle Zeile;Code evaluieren"
     IDS_COMMAND100          "Definiert Fenster-Register #1;Def. Fenster #1"
     IDS_COMMAND101          "Definiert Fenster-Register #2;Def. Fenster #2"
     IDS_COMMAND102          "Definiert Fenster-Register #3;Def. Fenster #2"
@@ -1873,6 +1874,9 @@ BEGIN
                             "Geben Sie das Passwort zum Enschlüsseln von %s ein:"
     IDS_INSERT              "Einfügen"
     IDS_CREATE_BUFFER       "Anlegen"
+    IDS_NO_EVALUATION_SUPPORTED 
+                            "Die Grammatik der aktuellen Datei unterstützt keine Code Evaluierung."
+    IDS_EVALUATION_FAILED   "Die Code Evaluierung ist fehl geschlagen."
 END
 
 #endif    // Deutsch (Deutschland) resources

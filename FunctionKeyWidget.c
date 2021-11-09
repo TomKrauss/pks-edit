@@ -231,6 +231,7 @@ static void fkey_createTips(HWND hwndParent) {
  */
 static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	static BOOL     bInitialized;
+	static char szComment[200];
 	int  			x;
 	int				item;
 	RECT	 		r;
@@ -260,7 +261,6 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				WPARAM keycode1 = (VK_F1 + pInfo->lParam) | shift;
 				KEYBIND* kp = macro_getKeyBinding(keycode1);
 				if (kp) {
-					char szComment[200];
 					char szText[100];
 					macro_getComment(szComment, szText, kp->macref.index, kp->macref.typ);
 					pInfo->lpszText = szComment;
