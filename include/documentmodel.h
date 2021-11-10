@@ -563,7 +563,7 @@ extern int ln_countLeadingSpaces(LINE* lp);
  * Paste a list of lines into a target line with a target offset column.
  * if bExpandTabs is 1, tabs are expanded by spaces along the way.
  */
-extern int ln_pasteLines(FTABLE* fp, LINE* lps, LINE* lpLast, LINE* lpd, int col, int bExpandTabs);
+extern int ln_pasteLines(FTABLE* fp, LINE* lps, const LINE* lpLast, LINE* lpd, int col, int bExpandTabs);
 
 /*--------------------------------------------------------------------------
  * ln_lineIsEmpty()

@@ -314,7 +314,13 @@ int json_parse(char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* pRules
 			size_t maxInputSize = strlen(pszBuf);
 			while (tokens != NULL && (numberOfTokens = jsmn_parse(&parser, pszBuf, maxInputSize, tokens, tokcount)) == JSMN_ERROR_NOMEM) {
 				tokcount *= 2;
-				tokens = realloc(tokens, sizeof(*tokens) * tokcount);
+				jsmntok_t* pszTempTokens = realloc(tokens, sizeof(*tokens) * tokcount);
+				if (pszTempTokens == NULL) {
+					free(tokens);
+					free(pszBuf);
+					return 0;
+				}
+				tokens = pszTempTokens;
 			}
 			json_processTokens(pRules, pTargetObject, pszBuf, 0, maxInputSize, tokens, 0, numberOfTokens);
 			free(tokens);

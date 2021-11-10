@@ -207,7 +207,7 @@ static BOOL macro_needsWrapper(const char* pszCode) {
 	if (!regex_compile(&options, &pattern)) {
 		return TRUE;
 	}
-	regex_match(&pattern, pszCode, 0, &match);
+	regex_match(&pattern, (char*)pszCode, 0, &match);
 	return !match.matches;
 }
 

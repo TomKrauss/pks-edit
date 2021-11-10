@@ -446,7 +446,7 @@ unsigned char subkey[8];	/* 48-bit key for this round */
 static void 
 perminit(perm,p)
 char perm[16][16][8];			/* 64-bit, either init or final */
-char p[64];
+const char p[64];
 {
 	register int l, j, k;
 	int i,m;
@@ -567,13 +567,12 @@ int crypt_init(int mode, char *akey) {
  * crypt_en()
  */
 int crypt_en(char *buf, int size, int cont) {
-	char *work;
 	int  cnt;
 
 	for(cnt = 0; cnt <= size; ) {
 		if (cnt == size && cont)
 			break;
-		work = &buf[cnt];
+		char* work = &buf[cnt];
 		cnt += DES_BLOCKS;
 		if (cnt > size) {
 			work[DES_BLOCKS-1] = cnt-size;
@@ -587,12 +586,11 @@ int crypt_en(char *buf, int size, int cont) {
  * crypt_de()
  */
 int crypt_de(char *buf, int size, int cont) {
-	char *	work;
 	int  	cnt;
 
 	cnt = 0;
 	while(1) {
-		work = &buf[cnt];
+		char* work = &buf[cnt];
 		dedes(work);
 		cnt += DES_BLOCKS;
 		if (cnt > size)

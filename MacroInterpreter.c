@@ -73,7 +73,7 @@ static CCASH			_ccash;
 /*---------------------------------*/
 /* macro_getParameterSize()				*/
 /*---------------------------------*/
-int macro_getParameterSize(unsigned char typ, char *s)
+int macro_getParameterSize(unsigned char typ, const char *s)
 {	int size;
 
 	switch(typ) {

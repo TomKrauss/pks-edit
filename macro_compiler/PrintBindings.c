@@ -287,7 +287,6 @@ static void printkeybind(FILE *fp, KEYBIND *kp, char delim)
 	EDBINDS *	ep = &_bindings;
 	char 	comment[100],command[128],n1[100],n2[100];
 	int  		findex;
-	char		*funame;
 	MENUBIND 	*mp;
 	MACRO	*macp;
 
@@ -321,8 +320,6 @@ static void printkeybind(FILE *fp, KEYBIND *kp, char delim)
 			findex = -1;
 			break;
 	}
-
-	funame = mac_name(command,findex,(MACROREFTYPE)kp->macref.typ);
 
  	fprintf(fp,"%-25s= %-25s%s\n",
 		code2key(kp->keycode),pr_cmddelim(n1,command,delim),

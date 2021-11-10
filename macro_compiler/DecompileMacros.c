@@ -218,7 +218,7 @@ static void pr_func(FILE *fp, int idx)
 /*
  * makeautolabels()
  */
-static void makeautolabels(char *start, char *end)
+static void makeautolabels(const char *start, const char *end)
 {
 	while(start < end && *start != C_STOP) {
 		if (*start == C_GOTO)

@@ -142,7 +142,7 @@ KEYCODE macro_addModifierKeys(KEYCODE code);
 #define	FORM_INIT		0x1	/* form " and be prefilled */
 #define	FORM_REDRAW	0x2	/* force redraw */
 
-int  macro_getParameterSize(unsigned char typ, char *s);
+int  macro_getParameterSize(unsigned char typ, const char *s);
 /*--------------------------------------------------------------------------
  * macro_popParameter()
  * pop data from execution stack

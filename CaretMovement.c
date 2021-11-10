@@ -462,12 +462,10 @@ EXPORT int caret_placeCursorAndMakevisibleWithSpace(WINFO *wp, long ln,long col)
  */
 EXPORT int caret_advancePage(WINFO* wp, long *ln,int dir)
 {	register ds;
-	register FTABLE *fp;
 
 	if (wp == NULL) {
 		return 0;
 	}
-	fp = wp->fp;
 	ds = wp->maxcursln-wp->mincursln;
 	*ln = wp->caret.ln + (dir * ds * _multiplier);
 	long nlines = wp->renderer->r_calculateMaxLine(wp);
@@ -577,7 +575,6 @@ EXPORT long caret_advanceParagraph(WINFO* wp, long ln,int dir,int start)
  */
 EXPORT int caret_advanceParagraphFromCurrentLine(WINFO* wp, int dir,int start)
 {	long ln;
-	FTABLE* fp = wp->fp;
 
 	ln = caret_advanceParagraph(wp, wp->caret.ln,dir,start);
 	return caret_placeCursorAndSavePosition(wp, ln,0L);
@@ -589,7 +586,6 @@ EXPORT int caret_advanceParagraphFromCurrentLine(WINFO* wp, int dir,int start)
  */
 EXPORT int caret_advanceSection(WINFO* wp, int dir,int start)
 {	long ln;
-	FTABLE *fp = wp->fp;
 
 	caret_saveLastPosition();
 	ln = wp->caret.ln;
@@ -610,7 +606,6 @@ EXPORT int caret_moveUpOrDown(WINFO* wp, int dir, int mtype)
 	int		nRet;
 	long 	col;
 	long 	ln;
-	FTABLE* fp = wp->fp;
 
 	bXtnd = wp->bXtndBlock;
 	nRet = 0;

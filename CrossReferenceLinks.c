@@ -282,7 +282,7 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 	hDelta = HIWORD(lExtent);
 	hDelta = (TAGLISTITEMHEIGHT - hDelta) / 2;
 	char* pszFile = string_abbreviateFileName(tp->filename);
-	TextOut(hdc, rcp->left + nIconDelta, rcp->top + hDelta, pTag->tagname, lstrlen(pTag->tagname));
+	TextOut(hdc, rcp->left + nIconDelta, rcp->top + hDelta, pTag->tagname, (int)strlen(pTag->tagname));
 	TextOut(hdc, rcp->left + nIconDelta + TAGLIST_COL_WIDTH_TAGNAME, rcp->top + hDelta, pszFile, (int)strlen(pszFile));
 	
 	hIcon = LoadIcon (hInst, tp->isDefinition ? "NEXT" : "PREVIOUS");
@@ -295,7 +295,7 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 		pszComment = tp->searchCommand;
 	}
 	TextOut(hdc, rcp->left + nIconDelta + TAGLIST_COL_WIDTH_TAGNAME + TAGLIST_COL_WIDTH_FILE, 
-		rcp->top + hDelta, pszComment, lstrlen(pszComment));
+		rcp->top + hDelta, pszComment, (int)strlen(pszComment));
 	DestroyIcon(hIcon);
 }
 
@@ -321,6 +321,10 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 		char* filename = calloc(1, EDMAXPATHLEN);
 		regex_getCapturingGroup(&match, _exprerror->filenameCapture - 1, filename, EDMAXPATHLEN);
 		pReference->filename = realloc(filename, strlen(filename)+1);
+		if (pReference->filename == NULL) {
+			free(filename);
+			return 0;
+		}
 		memset(extCommand, 0, sizeof extCommand);
 		regex_getCapturingGroup(&match, _exprerror->commentCapture - 1, extCommand, sizeof extCommand);
 		if (extCommand[0] == '?' || extCommand[0] == '/') {

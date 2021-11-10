@@ -442,8 +442,8 @@ MACRO *macro_createWithParams(char* szName, char* szComment, char* bData, int si
 	if (!szComment)
 		szComment = "";
 
-	nNamelen = lstrlen(szName) + 1;
-	nCommentlen = lstrlen(szComment) + 1;
+	nNamelen = (int)strlen(szName) + 1;
+	nCommentlen = (int)strlen(szComment) + 1;
 
 	nLen = nNamelen+nCommentlen;
 	if (nLen & 1) {
@@ -1115,7 +1115,7 @@ static void macro_ownerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem,
 	} else {
 		mac_name(szBuf, (MACROREFIDX)HIWORD(par), (MACROREFTYPE)LOWORD(par));
 	}
-	TextOut(hdc, rcp->left, rcp->top, szBuf, lstrlen(szBuf));
+	TextOut(hdc, rcp->left, rcp->top, szBuf, (int)strlen(szBuf));
 }
 
 /*------------------------------------------------------------

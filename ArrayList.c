@@ -122,7 +122,7 @@ void* arraylist_get(ARRAY_LIST* pList, int nIndex) {
 /*
  * Returns the index of an element in the list. If it cannot be found, -1 is returned.
  */
-int arraylist_indexOf(ARRAY_LIST* pList, void* pElement) {
+int arraylist_indexOf(const ARRAY_LIST* pList, void* pElement) {
 	buf_t* pBuffer = pList->li_buffer;
 	for (int i = 0; i < pList->li_size; i++) {
 		if (pElement == (*pBuffer)[i]) {

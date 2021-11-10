@@ -480,7 +480,7 @@ static void tabcontrol_makeActiveTabVisible(HWND hwnd, TAB_CONTROL* pControl) {
 		}
 	}
 	for (int i = 0; i < nLen; i++) {
-		int x = pControl->tc_tabstripRect.left;
+		x = pControl->tc_tabstripRect.left;
 		for (int j = i; j < nLen; j++) {
 			TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, j);
 			x += pPage->tp_width;
@@ -893,7 +893,7 @@ static void tabcontrol_setAcceptDrop(HWND hwnd, BOOL aFlag) {
 /*
  * Check, whether a new dock tab control is under the mouse cursor during a drag op. 
  */
-static void tabcontrol_dragOver(TAB_CONTROL* pSource) {
+static void tabcontrol_dragOver(const TAB_CONTROL* pSource) {
 	POINT point;
 	HWND hwnd;
 	char szName[40];
@@ -927,7 +927,7 @@ static void tabcontrol_moveTab(TAB_CONTROL* pSource, TAB_CONTROL*pTarget, TAB_PA
 /*
  * Return the tab of a tab control containing the passed page window. 
  */
-static TAB_PAGE* tabcontrol_getTab(TAB_CONTROL* pSource, HWND hwndEdit) {
+static TAB_PAGE* tabcontrol_getTab(TAB_CONTROL* pSource, const HWND hwndEdit) {
 	for (int i = 0; i < arraylist_size(pSource->tc_pages); i++) {
 		TAB_PAGE* pPage = arraylist_get(pSource->tc_pages, i);
 		if (pPage->tp_hwnd == hwndEdit) {
@@ -954,7 +954,6 @@ static void tabcontrol_drop(TAB_CONTROL* pSource, TAB_PAGE *pDroppedPage, BOOL b
 static BOOL tabcontrol_dragTab(HWND hwnd, TAB_CONTROL* pControl, TAB_PAGE* pPage, int x, int y) {
 	int b = 1;
 	int dummy;
-	HWND hwndProxy;
 
 	if (DragDetect(hwnd, (POINT) { x, y })) {
 		SetCapture(hwnd);
@@ -965,7 +964,7 @@ static BOOL tabcontrol_dragTab(HWND hwnd, TAB_CONTROL* pControl, TAB_PAGE* pPage
 		rect.top = y;
 		rect.right = pPage->tp_width + rect.left;
 		rect.bottom = rect.top + pControl->tc_stripHeight;
-		hwndProxy = dragproxy_open(&rect, pPage);
+		HWND hwndProxy = dragproxy_open(&rect, pPage);
 		while (mouse_dispatchUntilButtonRelease(&x, &y, &b, &dummy) && b) {
 			POINT p = { x,y };
 			ClientToScreen(hwnd, &p);
@@ -1343,7 +1342,7 @@ static DOCKING_SLOT* mainframe_addDockingSlot(DOCKING_SLOT_TYPE dsType, HWND hwn
 /*
  * Find the docking parent window for a given editor window.
  */
-static DOCKING_SLOT* mainframe_getDockingParent(HWND hwnd) {
+static DOCKING_SLOT* mainframe_getDockingParent(const HWND hwnd) {
 	DOCKING_SLOT* pSlot = dockingSlots;
 	while (pSlot) {
 		if (pSlot->ds_type == DS_EDIT_WINDOW) {
@@ -1583,11 +1582,11 @@ static BOOL mainframe_dragSplitter(HWND hwnd, LPARAM lParam) {
 	int x = GET_X_LPARAM(lParam);
 	int y = GET_Y_LPARAM(lParam);
 	int b = 1;
-	int dummy;
-	int delta;
 	BOOL bDragX = pRect->right - pRect->left < pRect->bottom - pRect->top;
 	GetCursorPos(&ptOrig);
 	if (DragDetect(hwnd, (POINT) { x, y })) {
+		int dummy;
+		int delta;
 		SPLIT_DRAG* pDrags = mainframe_determineResizedSlots(pRect, bDragX);
 		SPLIT_DRAG* pProcess;
 		SetCapture(hwnd);

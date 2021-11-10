@@ -370,7 +370,7 @@ int EdAbout(void)
 
 #if defined(_WIN64)
 	char _architecture[] = "64 Bit";
-#elif
+#else
 	char _architecture[] = "32 Bit";
 #endif
 	char _versionInfo[128];

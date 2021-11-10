@@ -356,10 +356,7 @@ static void charset_paint(HWND hwnd, HDC hdc) {
  * CharSetWndProc()
  */
 static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam) {
-	PAINTSTRUCT	ps;
-	HDC hdc;
-	int			newc,oldc;
-	THEME_DATA* pTheme;
+	int	 newc,oldc;
 	RECT rc;
 
 	switch(message) {
@@ -390,14 +387,14 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 
 		case WM_PAINT:
 			{
-				hdc = BeginPaint(hwnd, &ps);
+				PAINTSTRUCT	ps;
+				HDC hdc = BeginPaint(hwnd, &ps);
 				charset_paint(hwnd, ps.hdc);
 				EndPaint(hwnd, &ps);
-
 			}
 			return 0;
 		case WM_ERASEBKGND: {
-			pTheme = theme_getCurrent();
+			THEME_DATA* pTheme = theme_getCurrent();
 			HDC hdc = (HDC)wParam;
 			GetClientRect(hwnd, &rc);
 			FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
@@ -481,15 +478,13 @@ static UINT_PTR idTimer;
 static HWND hwndToastWindow;
 static BOOL _toastPainted = TRUE;
 static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	PAINTSTRUCT	ps;
-	HDC hdc;
-	THEME_DATA* pTheme;
 	RECT rc;
-	char szBuf[200];
 
 	switch (message) {
 	case WM_PAINT: {
-		hdc = BeginPaint(hwnd, &ps);
+		char szBuf[200];
+		PAINTSTRUCT	ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
 		GetWindowText(hwnd, szBuf, sizeof szBuf);
 		toast_paint(hwnd, ps.hdc, szBuf);
 		EndPaint(hwnd, &ps);
@@ -497,7 +492,7 @@ static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	}
 	return 0;
 	case WM_ERASEBKGND: {
-		pTheme = theme_getCurrent();
+		THEME_DATA* pTheme = theme_getCurrent();
 		HDC hdc = (HDC)wParam;
 		GetClientRect(hwnd, &rc);
 		FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
@@ -778,7 +773,7 @@ void cust_drawListBoxRowWithIcon(HDC hdc, RECT* rcp, HICON hIcon, char* pszText)
 	GetTextMetrics(hdc, &textmetric);
 	DrawIconEx(hdc, x, y + (LB_ROW_WITH_ICON_HEIGHT-iconWidth)/2, hIcon, iconWidth, iconWidth, 0, NULL, DI_NORMAL);
 	x += iconWidth + (2 * 2);
-	TextOut(hdc, x, y + (LB_ROW_WITH_ICON_HEIGHT - textmetric.tmHeight) / 2, pszText, lstrlen(pszText));
+	TextOut(hdc, x, y + (LB_ROW_WITH_ICON_HEIGHT - textmetric.tmHeight) / 2, pszText, (int)strlen(pszText));
 
 }
 

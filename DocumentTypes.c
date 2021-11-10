@@ -408,7 +408,7 @@ DOCUMENT_TYPE *doctypes_createDocumentType(DOCUMENT_TYPE *llp)
 			sizeof *llpNew - sizeof llpNew->ll_next);
 	}
 	llpNew->ll_documentDescriptor = 0;
-	if ((nLen = lstrlen(llpNew->ll_name)) < sizeof(llpNew->ll_name) - 2) {
+	if ((nLen = (int)strlen(llpNew->ll_name)) < sizeof(llpNew->ll_name) - 2) {
 		llpNew->ll_name[nLen++] = '*';
 		llpNew->ll_name[nLen] = 0;
 	}

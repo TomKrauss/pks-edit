@@ -56,7 +56,7 @@ extern void arraylist_add(ARRAY_LIST* pList, void* pElement);
 /*
  * Returns the index of an element in the list. If it cannot be found, -1 is returned.
  */
-extern int arraylist_indexOf(ARRAY_LIST* pList, void* pElement);
+extern int arraylist_indexOf(const ARRAY_LIST* pList, void* pElement);
 
 /*
  * Returns the element at index. If the index is out of range NULL is returned.

@@ -187,7 +187,7 @@ success:
 /*--------------------------------------------------------------------------
  * br_indentsum()
  */
-static int br_indentsum(LINE *lps, LINE *lp, BRACKET_RULE *mp, int *dcurr, int *hasind)
+static int br_indentsum(const LINE *lps, LINE *lp, BRACKET_RULE *mp, int *dcurr, int *hasind)
 {	unsigned char *s,*send;
 	int d1,d2,indent = 0;
 

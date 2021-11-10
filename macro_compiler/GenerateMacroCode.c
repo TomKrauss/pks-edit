@@ -32,8 +32,7 @@ extern unsigned char *	_recpend;
  * AddComSeq()
  */
 static COM_FORM *_lastformstart;
-unsigned char *AddComSeq(unsigned char *sp, unsigned char *spend,
-				     unsigned char typ, intptr_t par)
+unsigned char *AddComSeq(unsigned char *sp, const unsigned char *spend, unsigned char typ, intptr_t par)
 {	long s;
 	unsigned char *spret;
 

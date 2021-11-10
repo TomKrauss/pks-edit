@@ -119,11 +119,12 @@ static EDTEXTSTYLE defaultTextStyle = {
  */
 static EDTEXTSTYLE* font_getTextStyleForIndex(THEME_DATA* pTheme, FONT_STYLE_CLASS nIndex) {
 	theme_initThemes();
-	if (nIndex < 0 || nIndex >= DIM(pTheme->th_styleLookup)) {
-		return &defaultTextStyle;
+	EDTEXTSTYLE* pStyle;
+	if (nIndex >= 0 && (nIndex < DIM(pTheme->th_styleLookup))) {
+		pStyle = pTheme->th_styleLookup[nIndex];
+		return pStyle ? pStyle : &defaultTextStyle;
 	}
-	EDTEXTSTYLE* pStyle = pTheme->th_styleLookup[nIndex];
-	return pStyle ? pStyle : &defaultTextStyle;
+	return &defaultTextStyle;
 }
 
 

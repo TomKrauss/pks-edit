@@ -212,7 +212,6 @@ static int hex_getBytes(char* pszBuffer, WINFO* wp, long ln) {
 		}
 		if (lnOffset > lp->len && bEnd && bCr) {
 			pszBuffer[nCount++] = '\n';
-			lnOffset++;
 		}
 		lp = lp->next;
 		if (lp == NULL || lp == fp->lastl) {

@@ -156,11 +156,11 @@ static BOOL PrtAbortProc(HDC hdcPrn, int nCode) {
  * print_selectfont()
  */
 static HFONT print_selectfont(HDC hdc, FONTSPEC *fsp) {
-	static HFONT previousFont = NULL;
 	HFONT 		hFont;
 	TEXTMETRIC 	tm;
 
 	if ((hFont = font_createFontHandle(fsp->fs_name, fsp->fs_cheight, fsp->fs_oemmode, FW_NORMAL)) != 0) {
+		static HFONT previousFont = NULL;
 		SelectObject(hdc, hFont);
 		if (previousFont) {
 			//
@@ -274,7 +274,7 @@ static void print_mkwpheader(HDC hdc, int yPos, DEVEXTENTS *dep,
 	int  nLen,xPos;
 	SIZE size;
 
-	if ((nLen = lstrlen(szBuff)) == 0)
+	if ((nLen = (int)strlen(szBuff)) == 0)
 		return;
 	GetTextExtentPoint32(hdc, szBuff, nLen, &size);
 
@@ -292,14 +292,16 @@ static void print_mkwpheader(HDC hdc, int yPos, DEVEXTENTS *dep,
 /*---------------------------------*/
 static int print_formatheader(unsigned char *d1, unsigned char *d2, 
 			  	    unsigned char *d3, unsigned char *s,
-				    long pageno)
-{
-	unsigned char  buf[256];
+				    long pageno) {
+	unsigned char  buf[512];
 	int			nParts = 0;
 
-	if (lstrlen(s) >= sizeof buf)
-		return 0;
-	lstrcpy(buf,s);
+	size_t nLen = strlen(s);
+	if (nLen >= sizeof buf) {
+		nLen = sizeof buf-1;
+	}
+	strncpy(buf, s, nLen);
+	buf[nLen] = 0;
 	nParts = 1;
 	// TODO: allow using character ! in headers and footers.
 	if ((s = strtok(buf,"!")) != 0) {
@@ -401,7 +403,7 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 	nMaxCharsPerLine = 0;
 	if (_prtparams.options & PRTO_LINES) {
 		wsprintf(szBuff, "%3ld: ", pLine->lineNumber);
-		nCount = lstrlen(szBuff);
+		nCount = (int)strlen(szBuff);
 		if (printing && nActualLine >= nFirstActualLineToPrint) {
 			SetTextColor(hdc, DEFAULT_PRINT_COLOR);
 			TextOut(hdc, pLine->xPos, pLine->yPos, szBuff, nCount);
@@ -416,7 +418,6 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 		max = pLine->lastc;
 	}
 	nMaxCharsPerLine += _prtparams.nchars - _prtparams.lmargin - _prtparams.rmargin;
-	_printwhat.wp->maxcol = nMaxCharsPerLine;
 	_printwhat.wp->maxcol = max;
 	if (_printwhat.wp->maxcol > nMaxCharsPerLine) {
 		_printwhat.wp->maxcol = nMaxCharsPerLine;
@@ -660,13 +661,12 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 			}
 			pageRect.top = 0;
 			pageRect.bottom = de.yPage;
-			pageRect.left = de.xLMargin;
 			pageRect.right = de.xPage;
 			HGDIOBJ original = SelectObject(hdc, GetStockObject(DC_PEN));
 			SelectObject(hdc, GetStockObject(BLACK_PEN));
 			SelectObject(hdc, GetStockObject(DC_BRUSH));
 			SetDCBrushColor(hdc, RGB(255, 255, 255));
-			Rectangle(hdc, 0, 0, pageRect.right, pageRect.bottom);
+			Rectangle(hdc, 0, pageRect.top, pageRect.right, pageRect.bottom);
 			SelectObject(hdc, original);
 			print_file(hdc, FALSE);
 			RestoreDC(hdc, savedDc);
@@ -785,7 +785,6 @@ static DIALPARS* _getDialogParsForPage(int page) {
 	return NULL;
 }
 static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
-	DIALPARS* dp = _dPrintLayout;
 
 	PROPSHEETPAGE psp[2];
 	PROPSHEETHEADER psh;

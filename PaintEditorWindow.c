@@ -257,8 +257,9 @@ static void redraw_indirect(HDC hdc, WINFO *wp, int y, LINE *lp)
 
 	wsprintf(buf," skipped %ld... ", (long)LpIndNTotal(lp));
 
-	TextOut(hdc, wp->cwidth, y, buf, lstrlen(buf));
-	dwExtent = win_getTextExtent(hdc, buf, lstrlen(buf));
+	int nSize = (int)strlen(buf);
+	TextOut(hdc, wp->cwidth, y, buf, nSize);
+	dwExtent = win_getTextExtent(hdc, buf, nSize);
 	nWidth = LOWORD(dwExtent) + 4;
 	y = y + wp->cheight/2-1;
 	RECT rect;

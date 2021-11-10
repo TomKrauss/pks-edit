@@ -151,7 +151,7 @@ LINE *ln_pasteLine(FTABLE *fp, LINE *lpd, LINE *lps, int col, int bExpandTabs) {
  * Paste a list of lines into a target line with a target offset column.
  * if bExpandTabs is 1, tabs are expanded by spaces along the way.
  */
-int ln_pasteLines(FTABLE* fp, LINE* lps, LINE* lpLast, LINE* lpd, int col, int bExpandTabs) {
+int ln_pasteLines(FTABLE* fp, LINE* lps, const LINE* lpLast, LINE* lpd, int col, int bExpandTabs) {
 	LINE* lpnew;
 	while (lps && lps != lpLast) {
 		if (lpd == fp->lastl) {

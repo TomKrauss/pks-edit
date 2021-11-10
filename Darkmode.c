@@ -247,6 +247,7 @@ void darkmode_flushMenuThemes() {
 /*
  * Initializes Darkmode handling 
  */
+static HMODULE hUxtheme;
 void darkmode_initialize() {
 	fnRtlGetNtVersionNumbers RtlGetNtVersionNumbers = (fnRtlGetNtVersionNumbers)(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetNtVersionNumbers"));
 	if (RtlGetNtVersionNumbers)
@@ -256,9 +257,10 @@ void darkmode_initialize() {
 		g_buildNumber &= ~0xF0000000;
 		if (major == 10 && minor == 0 && darkmode_checkRequiredBuildNumber(g_buildNumber))
 		{
-			HMODULE hUxtheme = LoadLibraryExW(L"uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
-			if (hUxtheme)
-			{
+			if (!hUxtheme) {
+				hUxtheme = LoadLibraryExW(L"uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+			}
+			if (hUxtheme) {
 				_OpenNcThemeData = (fnOpenNcThemeData)(GetProcAddress(hUxtheme, MAKEINTRESOURCEA(49)));
 				_RefreshImmersiveColorPolicyState = (fnRefreshImmersiveColorPolicyState)(GetProcAddress(hUxtheme, MAKEINTRESOURCEA(104)));
 				_GetIsImmersiveColorUsingHighContrast = (fnGetIsImmersiveColorUsingHighContrast)(GetProcAddress(hUxtheme, MAKEINTRESOURCEA(106)));
