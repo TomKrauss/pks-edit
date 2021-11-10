@@ -32,12 +32,12 @@
   "pksedit" located in the current users Windows temp directory. PKS Edit will now place all temporary files (autosave etc...) to the backup
   directory.
 - The function keys display now a tooltip further explaining the action associated with the function key.
-- The find in files function was improved:
-    -- resulting matches are now always displayed in a separate window, in which individual matches can be selected (double click on match line)
-    -- a summary of the search is printed at the end
-    -- two new options were added: one can search only considering locations found in a previous search and the search list can be augmented 
+- The "find in files" function was improved:
+    - resulting matches are now always displayed in a separate window, in which individual matches can be selected (double click on match line)
+    - a summary of the search is printed at the end
+    - two new options were added: one can search only considering locations found in a previous search and the search list can be augmented 
        in a new search.
-    -- one can also replace now all occurrences of a string in the files found.
+    - one can also replace now all occurrences of a string in the files found.
 - When comparing files, one may now select the file to compare with using a selector. This selector provides a new option for comparison:
   _Compare with history_, which allows to compare a file with a previously created backup file (if such exists). PKS Edit will now differentiate
   between added, deleted and modified lines and will synchronize cursor movements of files in comparison mode to be able to display identical lines
@@ -45,6 +45,7 @@
 - PKS Edit uses *FontAwesome icons* now. This will in particular have the dark mode look better.
 - Dark Mode has been improved and will display now more elements such as title bars and dialogs also in dark. Some open issues
   like setting dialog / file selector or native message boxes not being correctly colored remain.
+- A new theme named "spring was added.
 - New configuration options were added:
    - "Syntax Highlighting" can be switched on and off per view
    - "Line Selection" mode is an alternative to Column Selection and Normal selection mode, where selecting text with the caret or

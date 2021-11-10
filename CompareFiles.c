@@ -137,12 +137,12 @@ static long compare_diffFiles(WINFO* wp1, WINFO* wp2) {
 	while (lp1 && lp1 != fp1->lastl) {
 		bDiffFound = 1;
 		lp1->lflg |= LN_COMPARE_ADDED;
-		lp1 = lp->next;
+		lp1 = lp1->next;
 	}
 	while (lp2 && lp2 != fp1->lastl) {
 		bDiffFound = 1;
 		lp2->lflg |= LN_COMPARE_DELETED;
-		lp2 = lp->next;
+		lp2 = lp2->next;
 	}
 	if (bDiffFound == 0) {
 		error_showErrorById(IDS_MSGNOMOREDIFFS);

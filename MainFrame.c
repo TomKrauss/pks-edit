@@ -442,12 +442,15 @@ static void tabcontrol_resizeActiveTabContents(HWND hwnd, TAB_CONTROL* pControl)
 			GetClientRect(hwnd, &rect);
 			int y = rect.top + pControl->tc_stripHeight + 1;
 			int h = rect.bottom - rect.top - pControl->tc_stripHeight - 2;
+			int x = rect.left + 1;
+			int w = rect.right - rect.left - 2;
 			if (_fullscreenMode) {
+				x--;
+				w += 2;
 				y = rect.top;
 				h = rect.bottom - rect.top;
 			}
-			MoveWindow(pPage->tp_hwnd, rect.left+1, y, 
-					rect.right - rect.left-2, h, TRUE);
+			MoveWindow(pPage->tp_hwnd, x, y, w, h, TRUE);
 		}
 	}
 }
@@ -668,7 +671,7 @@ static void tabcontrol_measureTabStrip(HWND hwnd, TAB_CONTROL* pControl) {
 	rect.bottom = rect.top + pControl->tc_stripHeight;
 	RECT* pRect;
 	HDC hdc = GetWindowDC(hwnd);
-	int nTotalWidth;
+	int nTotalWidth = 0;
 	for (int i = 0; i < arraylist_size(pControl->tc_pages); i++) {
 		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
 		tabcontrol_measureTab(hdc, pPage, i == pControl->tc_activeTab);
@@ -1238,7 +1241,6 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 		break;
 
 	case WM_MOUSELEAVE: {
-		pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 		tabcontrol_handleMouseMove(hwnd, (POINT) { 0, 0 });
 		break;
 	}
@@ -2049,7 +2051,7 @@ void mainframe_windowTitleChanged() {
  */
 int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(), LONG lParam) {
 	DOCKING_SLOT* pSlot = dockingSlots;
-	int ret;
+	int ret = 1;
 	while (pSlot) {
 		if (pSlot->ds_type == DS_EDIT_WINDOW) {
 			if (bHideTabsDuringEnum) {
@@ -2059,6 +2061,7 @@ int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(), LONG lP
 			while (arraylist_size(pControl->tc_pages) > 0) {
 				TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, 0);
 				if (pPage->tp_hwnd && (ret = (*funcp)(pPage->tp_hwnd, lParam)) == 0) {
+					ret = 0;
 					break;
 				}
 			}
@@ -2089,12 +2092,12 @@ int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType) {
 	}
 	if (mType == MD_ADD_HORIZONTAL) {
 		if (!pRightSlot) {
-			pRightSlot = mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, DOCK_NAME_RIGHT, 0.5, 0, 0.5, 1);
+			mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, DOCK_NAME_RIGHT, 0.5, 0, 0.5, 1);
 			bChanged = TRUE;
 		}
 	} else if (mType == MD_ADD_VERTICAL) {
 		if (!pBottomSlot) {
-			pBottomSlot = mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, DOCK_NAME_BOTTOM, 0, 0.5, 1, 0.5);
+			mainframe_addDockingSlot(DS_EDIT_WINDOW, hwndFrameWindow, DOCK_NAME_BOTTOM, 0, 0.5, 1, 0.5);
 			bChanged = TRUE;
 		}
 	}
@@ -2184,7 +2187,7 @@ OPEN_HINT mainframe_parseOpenHint(char* pszHint) {
  * Used to switch to full screen mode and back. 
  */
 int mainframe_toggleFullScreen() {
-	static RECT previousSize;
+	static RECT previousBounds;
 	static HMENU hDefaultMenu;
 	static int oldLayoutOptions;
 	DWORD dStyle = GetWindowLong(hwndFrameWindow, GWL_STYLE);
@@ -2202,7 +2205,7 @@ int mainframe_toggleFullScreen() {
 		SetMenu(hwndFrameWindow, NULL);
 		oldLayoutOptions = GetConfiguration()->layoutoptions & nFlags;
 		GetConfiguration()->layoutoptions &= ~nFlags;
-		GetWindowRect(hwndFrameWindow, &previousSize);
+		GetWindowRect(hwndFrameWindow, &previousBounds);
 		SetWindowLongPtr(hwndFrameWindow, GWL_STYLE,
 			WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE | WS_MAXIMIZE);
 		SetWindowPos(hwndFrameWindow, 0, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,

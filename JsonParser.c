@@ -162,11 +162,11 @@ static int json_getIntArray(char* pszBuf, jsmntok_t* tokens, int firstToken, int
 		if (tokens[i].type == JSMN_PRIMITIVE) {
 			json_tokenContents(pszBuf, &tokens[i], tokenContents);
 			if (isdigit(tokenContents[0])) {
-				if (--maxElements <= 0) {
+				if (--maxElements == 0) {
 					break;
 				}
-				long i = string_convertToLong(tokenContents);
-				*pTargetSlot++ = i;
+				long nLong = string_convertToLong(tokenContents);
+				*pTargetSlot++ = nLong;
 			}
 		}
 	}
@@ -260,18 +260,18 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 				}
 				break;
 			case RT_INTEGER: {
-					long i = string_convertToLong(tokenContents);
-					*((int*)pTargetSlot) = i;
+					long nInt = string_convertToLong(tokenContents);
+					*((int*)pTargetSlot) = nInt;
 				}
 				break;
 			case RT_SHORT: {
-					long i = string_convertToLong(tokenContents);
-					*((short*)pTargetSlot) = (short)i;
+					long nInt = string_convertToLong(tokenContents);
+					*((short*)pTargetSlot) = (short)nInt;
 				}
 				break;
 			case RT_COLOR: {
-					long i = json_convertColor(tokenContents);
-					*((long*)pTargetSlot) = i;
+					long nInt = json_convertColor(tokenContents);
+					*((long*)pTargetSlot) = nInt;
 				}
 				break;
 			case RT_FLAG: {
@@ -303,14 +303,13 @@ int json_parse(char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* pRules
 	int		tokcount = 1000;
 	char*	pszBuf;
 	jsmn_parser parser;
-	jsmntok_t* tokens;
 
 	if ((fn = file_searchFileInPKSEditLocation(pszFilename)) != 0L && (fd = Fopen(fn, 0)) > 0) {
 		jsmn_init(&parser);
-		tokens = malloc(sizeof(*tokens) * tokcount);
 		pszBuf = file_readFileAsString(fd);
 		Fclose(fd);
 		if (pszBuf) {
+			jsmntok_t* tokens = malloc(sizeof(*tokens) * tokcount);
 			int numberOfTokens = 0;
 			size_t maxInputSize = strlen(pszBuf);
 			while (tokens != NULL && (numberOfTokens = jsmn_parse(&parser, pszBuf, maxInputSize, tokens, tokcount)) == JSMN_ERROR_NOMEM) {
@@ -318,9 +317,7 @@ int json_parse(char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* pRules
 				tokens = realloc(tokens, sizeof(*tokens) * tokcount);
 			}
 			json_processTokens(pRules, pTargetObject, pszBuf, 0, maxInputSize, tokens, 0, numberOfTokens);
-			if (tokens != NULL) {
-				free(tokens);
-			}
+			free(tokens);
 			free(pszBuf);
 		}
 		return 1;

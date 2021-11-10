@@ -608,7 +608,6 @@ static int grammar_matchPattern(GRAMMAR* pGrammar, GRAMMAR_PATTERN* pPattern, LE
 	if (pRePattern) {
 		pRePattern->beginOfLine = pszBuf;
 		if (regex_match(pRePattern, &pszBuf[i], pszBufEnd, &match)) {
-			int delta = (int)(match.loc2 - match.loc1);
 			int nNewOffset = (int)(match.loc2 - pszBuf);
 			if (pPattern->captures) {
 				*pElementCount = grammar_addDelta(currentState, (int)(i - *pStateOffset), *pElementCount, pResult);
@@ -750,7 +749,7 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
  * Initialize the style translation table for a given grammar. 
  */
 void grammar_initTokenTypeToStyleTable(GRAMMAR* pGrammar, unsigned char tokenTypeToStyleTable[MAX_TOKEN_TYPE]) {
-	memset(tokenTypeToStyleTable, FS_NORMAL, sizeof(tokenTypeToStyleTable));
+	memset(tokenTypeToStyleTable, FS_NORMAL, MAX_TOKEN_TYPE);
 	if (pGrammar == 0) {
 		return;
 	}

@@ -58,7 +58,7 @@ EXPORT int file_exists(char *s)
  * Return the "modes" (read write, A_NORMAL, A_READONLY, A_HIDDEN, A_SYSTEM, ...) of a file.
  */
 EXPORT int file_getFileMode(char *s) {
-	if (dostat(s) < 0) {
+	if (!dostat(s)) {
 		return -1;
 	}
 	return _dta.attrib;

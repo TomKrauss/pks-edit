@@ -260,7 +260,7 @@ static void print_getDeviceExtents(HDC hdc, DEVEXTENTS *dep) {
 		dep->yBottom = dep->yFooterPos - pp->footerSize * cFontHeight;
 	} else {
 		dep->yTop = dep->yHeaderPos;
-		dep->yFooterPos = dep->yFooterPos;
+		dep->yBottom = dep->yFooterPos;
 	}
 
 }
@@ -542,7 +542,7 @@ static int print_file(HDC hdc, BOOL measureOnly)
 			}
 			produceOutput = printing && !measureOnly;
 			if (!PREVIEWING() && produceOutput) {
-				wsprintf(message,/*STR*/"%s - %s (Seite %d)",
+				wsprintf(message,/*STR*/"%s - %s (Seite %ld)",
 						(LPSTR)szAppName,
 					  	(LPSTR)string_abbreviateFileName(ft_visibleName(fp)),
 					  	pageno);
@@ -946,7 +946,9 @@ int EdPrint(long what, long p1, LPSTR fname) {
 		strcpy(message, pBasename);
 	}
 
-	memmove(&winfo, wp, sizeof winfo);
+	if (wp) {
+		memmove(&winfo, wp, sizeof winfo);
+	}
 	_printwhat.wp = &winfo;
 	hdcPrn = DlgPrint(message, pp, wp);
 	if (hdcPrn) {
@@ -968,7 +970,7 @@ int EdPrint(long what, long p1, LPSTR fname) {
 		docinfo.lpszDatatype = "Text";
 		progress_startMonitor(IDS_ABRTPRINT);
 		SetAbortProc(hdcPrn, (ABORTPROC)PrtAbortProc);
-		if ((PREVIEWING() || (errEscape = StartDoc(hdcPrn, &docinfo))) >= 0 &&
+		if ((PREVIEWING() || (errEscape = StartDoc(hdcPrn, &docinfo)) > 0) &&
 			(errEscape = print_file(hdcPrn, FALSE)) >= 0) {
 			if (!PREVIEWING()) {
 				EndDoc(hdcPrn);

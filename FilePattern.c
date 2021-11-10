@@ -37,12 +37,15 @@ static void string_convertToUpperCase(char *s)
  * character class [...] matching
  */
 #define	NOT		'!'							/* might use ^ */
-static char *cclass(register char *p, register int sub)
-{	register int c, d, not, found;
+static char *cclass(register char *p, register int sub) {	
+	int c;
+	int d;
+	int bNot;
+	int bFound;
 
-	if ((not = *p == NOT) != 0)
+	if ((bNot = *p == NOT) != 0)
 		p++;
-	found = not;
+	bFound = bNot;
 	do {
 		if (*p == '\0')
 			return 0;
@@ -53,10 +56,10 @@ static char *cclass(register char *p, register int sub)
 		} else
 			d = c;
 		if (c == sub || c <= sub && sub <= d)
-			found = !not;
+			bFound = !bNot;
 	} while (*++p != ']');
 
-	return(found? p+1: 0);
+	return(bFound? p+1: 0);
 }
 
 /*------------------------------------------------------

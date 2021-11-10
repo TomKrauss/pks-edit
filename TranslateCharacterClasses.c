@@ -23,14 +23,14 @@ static unsigned char *strorder(const unsigned char *b, unsigned char *d, unsigne
 	unsigned char *e;
 	int c1=0;
 
-	e = &d[256];
+	e = d+255;
 	if (!*b || *b == lim) {
 /*		printf("no chars in subclass\n");
 */		return 0;
 	}
 
 	while (*b && *b != lim) {
-		if (d >= e) {
+		if (d > e) {
 ovl:/*		printf("too many chars in class\n");
 */			return 0;
 		}
@@ -43,12 +43,12 @@ ovl:/*		printf("too many chars in class\n");
 				continue;
 			}
 			if (c1 < *b) {
-				if (&d[*b - c1] >= e)
+				if (&d[*b - c1] > e)
 					goto ovl;
 				while (++c1 < *b) 
 					*d++ = c1;
 			} else {
-				if (&d[c1 - *b] >= e)
+				if (&d[c1 - *b] > e)
 					goto ovl;
 				while (--c1 > 0 && c1 > *b)
 					*d++ = c1;

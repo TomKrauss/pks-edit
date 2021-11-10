@@ -80,7 +80,7 @@ typedef struct strvec {
  * this is a hack: use the formular backingstore as temporary
  * buffer for the line list
  */
-#define	MAXREC			(unsigned int)((32000L)/sizeof(RECORD))
+#define	MAXREC			((unsigned int)((32000L)/sizeof(RECORD)))
 
 static long	_nlines;
 static int	_sortflags;
@@ -211,7 +211,7 @@ static int sort_tokenize(STRVEC *vec, unsigned char *s, unsigned char *fs_set, i
 			while((c = s[i]) != 0 && fs_set[c])
 				i++;
 		}
-		if (ac > MAXARG) {
+		if (ac >= MAXARG) {
 			error_showErrorById(IDS_MSGTOOMUCHFIELDS);
 			return 0;
 		}

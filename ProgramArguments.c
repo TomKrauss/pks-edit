@@ -63,9 +63,7 @@ static int Phase2Arg(char *arg)
 		case 'g':	
 			line = string_convertToLong(arg) -1L;
 			if ((wp = ww_getCurrentEditorWindow()) != NULL) {
-				if (caret_placeCursorInCurrentFile(wp, line, 0L)) {
-					line = -1L;
-				}
+				caret_placeCursorInCurrentFile(wp, line, 0L);
 			}
 			break;
 		case 'c':

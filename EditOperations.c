@@ -296,7 +296,7 @@ int edit_toggleComment() {
 	}
 	// 3 states: -1 comment out, 1 comment in
 	int addCommentFlag = edit_isAllCommented(lpFirst, lpLast, &commentDescriptor) ? -1 : 1;
-	size_t nLen = strlen(commentDescriptor.comment_start);
+	long nLen = (long)strlen(commentDescriptor.comment_start);
 	size_t nLen2 = strlen(commentDescriptor.comment_end);
 	int nLines = ln_cnt(lpFirst, lpLast);
 	while(nLines > 0) {
@@ -769,9 +769,11 @@ int EdCharInsert(int c)
 	if (c & 0x100) {
 		c &= 0xFF;
 	} else if (workmode & WM_OEMMODE) {
-		char *string = "A",string2[10];
-		*string = c;
-		AnsiToOemBuff(string,string2,1);
+		char source[2];
+		char string2[10];
+		source[0] = c;
+		source[1] = 0;
+		AnsiToOemBuff(source,string2,1);
 		c = *string2;
 	}
 
@@ -1170,6 +1172,9 @@ int edit_convertCharacterCase(CC_OPERATION operation) {
 		}
 		if (c1 != c && (lp = ln_modify(fp, lp, offs, offs)) != (LINE*)0) {
 			lp->lbuf[offs] = c1;
+		}
+		if (lp == NULL) {
+			break;
 		}
 		offs++;
 		if (offs > lp->len || (bLastLine && offs >= cEnd.offset)) {

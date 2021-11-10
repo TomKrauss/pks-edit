@@ -207,7 +207,7 @@ int rsc_put(int fd, char *itemtyp, char *itemname, int replace,
 		  long (*wrfunc)(int ,long ,char *, long ),char *buffer, long bufsize)
 {
 	long 		size;
-	long		offset;
+	long		offset = 0;
 	int  		nItem = 0;
 	int			ret = 1;
 	RSCHEADER	h;
@@ -323,9 +323,10 @@ int rsc_close(RSCFILE *rp)
  */
 int rsc_load(RSCFILE *rp, char *itemtyp, char *itemname, char *(*cnvfunc)())
 {
-	char		*p;
+	char	*p;
 	ENTITY	*ep;
-	int		nItem,ret;
+	int		nItem;
+	int		ret = 0;
 
 	nItem = 0;
 

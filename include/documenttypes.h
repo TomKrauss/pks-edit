@@ -41,8 +41,14 @@ extern EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor();
  */
 extern int doctypes_countDocumentTypes(void);
 
+/*--------------------------------------------------------------------------
+ * doctypes_getDocumentTypeDescription()
+ * Returns the properties for a document type (primarily for the purpose of displaying
+ * it in a UI).
+ */
 extern BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
-	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszGrammar, char** ppszFname,
+	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszFname,
+	char** ppszGrammar,
 	int** pOwn);
 
 /*--------------------------------------------------------------------------

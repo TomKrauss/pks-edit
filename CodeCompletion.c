@@ -250,9 +250,9 @@ static void codecomplete_paint(HWND hwnd) {
 					rect.right = paint.rcPaint.right;
 					rect.top = y;
 					rect.bottom = y + textmetric.tmHeight + nDelta;
-					HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogHighlight);
-					FillRect(paint.hdc, &rect, hBrush);
-					DeleteObject(hBrush);
+					HBRUSH hBrushFill = CreateSolidBrush(pTheme->th_dialogHighlight);
+					FillRect(paint.hdc, &rect, hBrushFill);
+					DeleteObject(hBrushFill);
 					SetTextColor(paint.hdc, pTheme->th_dialogHighlightText);
 				}
 				else {

@@ -688,8 +688,8 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, const char *pszHint)
 		}
 		fileflags = F_NEWFILE;
 	} else {
+		char szBuf[80];
 		if (fn == NULL) {
-			char szBuf[80];
 			fileflags = F_NEWFILE|F_NAME_INPUT_REQUIRED;
 			for (int i = 1; i < 100; i++) {
 				sprintf(szBuf, "newfile%d.txt", i);

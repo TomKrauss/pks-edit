@@ -77,7 +77,6 @@ static LINE *caret_copyIndent(WINFO *wp, LINE **Lps, int cfirst, int clast,
 EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int freeflg)
 {
 	WINFO* wp;
-	FTABLE *	fp;
 	LINE *	lpnew;
 	LINE *	lpd = 0;
 	LINE *	lp;
@@ -87,14 +86,13 @@ EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int free
 	int		ctrl;
 
 	wp = ww_getCurrentEditorWindow();
-	fp     = wp->fp;
 	lp     = lnfirst;
 	cnt    = ln_cnt(lp,lnlast);
 	cfirst = wp->blcol1;
 	clast  = wp->blcol2;
 	ctrl   = PLAINCONTROL(wp->dispmode);
 	if (clast - cfirst <= 0) return 0;
-	memset(pp,0,sizeof(pp));
+	memset(pp,0,sizeof(* pp));
 	while(cnt > 0) {
 		if ((lpnew = caret_copyIndent(wp, &lp,cfirst,clast,freeflg,ctrl)) == (LINE *) 0) 
 			return 0;

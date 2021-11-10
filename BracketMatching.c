@@ -42,12 +42,10 @@ extern PASTELIST 	*_esclist[];
  * uc_matchBracket()
  */
 static BOOL uc_matchBracket(char *lineBuf, char *bracketPattern) {	
-	char c;
-	size_t patternLength = strlen(bracketPattern) - 1;
-	c = lineBuf[0];
-	if (patternLength < 0) {
+	if (!bracketPattern[0]) {
 		return FALSE;
 	}
+	char c;
 	while ((c = *bracketPattern++) != 0) {
 		if (c != *lineBuf++) {
 			return FALSE;

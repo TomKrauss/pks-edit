@@ -534,15 +534,14 @@ unsigned long x;
 /*--------------------------------------------------------------------------
  * crypt_init()
  */
-int crypt_init(int mode, char *akey)
-{
+int crypt_init(int mode, char *akey) {
 	char key[10];
 	int  i,c,cnt;
 
 	desdone();
 
 	akey[DES_BLOCKS] = 0;
-	memset(key,DES_BLOCKS,0);
+	memset(key,0, sizeof key);
 	strcpy(key,akey);
 
 	/* Set up key, determine parity bit */

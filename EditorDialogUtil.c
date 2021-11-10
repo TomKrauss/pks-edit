@@ -196,13 +196,7 @@ WNDPROC SubClassWndProc(int set, HWND hDlg, int item, WNDPROC lpfnNewProc)
 
 	hwndItem = GetDlgItem(hDlg,item);
 	lpfnNowProc = (WNDPROC)GetWindowLongPtr(hwndItem,GWLP_WNDPROC);
-	if (set) {
-		lpfnNewProc = MakeProcInstance(lpfnNewProc,hInst);
-	} 
 	SetWindowLongPtr(hwndItem,GWLP_WNDPROC, (LONG_PTR) lpfnNewProc);
-	if (!set) {
-		FreeProcInstance(lpfnNowProc);
-	}
 	return lpfnNowProc;
 }
 

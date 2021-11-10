@@ -1341,13 +1341,13 @@ int EdMacrosEdit(void)
 
 	if (ret == IDD_MACSTART) {
 		long m = _multiplier;
-		int  ret;
+		int  nResult = 0;
 
 		_multiplier = 1;
 		while (m-- > 0) {
-			ret = macro_executeMacro(&currentSelectedMacro);
+			nResult = macro_executeMacro(&currentSelectedMacro);
 		}
-		return ret;
+		return nResult;
 	}
 
 	if (_macroname) {

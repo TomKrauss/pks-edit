@@ -351,7 +351,6 @@ static int hex_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFE
  */
 static int hex_placeCursorAndValidateDelta(WINFO* wp, long* ln, long offset, long* screenCol, int updateVirtualOffset, int xDelta) {
 	int	  o;
-	FTABLE* fp = wp->fp;
 
 	o = *screenCol;
 	if (o < 0) {

@@ -83,7 +83,7 @@ static int hashmap_nextPrimeFor(int nCapacity) {
 	return nCapacity * 2 + 11;
 }
 
-static hashmap_allocateTable(HASHMAP* pTable, int nCapacity) {
+static void hashmap_allocateTable(HASHMAP* pTable, int nCapacity) {
 	int nNumber = hashmap_nextPrimeFor(nCapacity);
 	pTable->ht_entries = calloc(nNumber, sizeof(HASH_ENTRY));
 	pTable->ht_capacity = nNumber;

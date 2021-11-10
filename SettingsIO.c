@@ -266,7 +266,7 @@ int prof_readDockingPlacement(int aNumber, char* pszDockName, float* x, float* y
 	if (!prof_getPksProfileString(_desk, szIdent, string, sizeof string - 1)) {
 		return 0;
 	}
-	return sscanf(string, "%s %f %f %f %f", pszDockName, x, y, w, h) == 5;
+	return sscanf(string, "%20s %f %f %f %f", pszDockName, x, y, w, h) == 5;
 }
 
 /*------------------------------------------------------------
@@ -328,13 +328,9 @@ int prof_getstdopt(void) {
 /*--------------------------------------------------------------------------
  * prof_killsections()
  */
-void prof_killsections(LPSTR pszFn, LPSTR pszSection)
-{
-	if (!pszFn) {
-		if (!LocatePksEditIni()) {
-			return;
-		}
-		pszFn = _pksEditIniFilename;
+void prof_killsections(LPSTR pszFn, LPSTR pszSection) {
+	if (!pszFn && !LocatePksEditIni()) {
+		return;
 	}
 	prof_savestring(pszSection, (char *)0, (char *)0);
 }

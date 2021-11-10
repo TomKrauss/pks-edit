@@ -35,7 +35,7 @@ struct tagARRAY_LIST {
  * Passing 0 will create an array list with a default capacity.
  */
 ARRAY_LIST* arraylist_create(size_t capacity) {
-	if (capacity <= 0) {
+	if (capacity == 0) {
 		capacity = INITIAL_CAPACITY;
 	}
 	ARRAY_LIST* pResult = calloc(1, sizeof * pResult);
@@ -64,7 +64,7 @@ size_t arraylist_size(ARRAY_LIST* pList) {
 /**
  * Resize an array list so nNewCapacity elements will fit into it.
  */
-static arraylist_resize(ARRAY_LIST* pList, size_t nNewCapacity) {
+static void arraylist_resize(ARRAY_LIST* pList, size_t nNewCapacity) {
 	pList->li_buffer = realloc(pList->li_buffer, nNewCapacity * sizeof (void*));
 	pList->li_capacity = nNewCapacity;
 }

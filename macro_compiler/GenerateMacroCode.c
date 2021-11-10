@@ -215,30 +215,5 @@ TYPEDVAL PushBinop(int opd_typ, TYPEDVAL*v1, TYPEDVAL*v2) {
 	return ret;
 }
 
-/* 
- * mac_validatename
- */
-int mac_validatename(unsigned char *name)
-{	int mod = 0, ret = 1;
-	char *start = name;
-
-	while(*name) {
-		if (! ((*name >= 'a' && *name <= 'z') ||
-			  (*name >= 'A' && *name <= 'Z') ||
-		       (*name == '-' || *name == '-') ||
-			  (*name >= '0' && *name <= '9'))) {
-			mod = 1;
-			ret = 0;
-			*name = '-';
-		}
-		name++;
-	}
-
-	if (mod) {
-		yyerror("illegal characters in Macroname. corrected to \"%s\"",start);
-	}
-
-	return ret;
-}
 
 

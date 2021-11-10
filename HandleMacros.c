@@ -116,7 +116,7 @@ char *code2mouse(MOUSECODE code)
 		strcpy(s,"Middle+");
 		s += 7;
 	}
-	sprintf(s,"(%d)",code.nclicks);
+	sprintf(s,"(%d)", (int)code.nclicks);
 	return b;
 }
 

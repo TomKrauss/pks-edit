@@ -198,14 +198,6 @@ void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 }
 
 /*--------------------------------------------------------------------------
- * doctypes_countDocumentTypes()
- */
-int doctypes_countDocumentTypes(void)
-{
-	return ll_size((LINKED_LIST*)config.dc_types);
-}
-
-/*--------------------------------------------------------------------------
  * doctypes_addDocumentTypesToListView()
  * Adds all document types to a list view.
  */
@@ -249,6 +241,8 @@ int doctypes_addDocumentTypesToListView(HWND hwndList, void* pSelected) {
 
 /*--------------------------------------------------------------------------
  * doctypes_getDocumentTypeDescription()
+ * Returns the properties for a document type (primarily for the purpose of displaying
+ * it in a UI).
  */
 BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE *llp, 
 	char **ppszId,	char **ppszDescription, char **ppszMatch, char **ppszFname, 

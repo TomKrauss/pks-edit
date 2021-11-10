@@ -430,7 +430,8 @@ int macro_canExecuteFunction(int num, int warn) {
 int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3)
 {
 	EDFUNC *	fup = &_edfunctab[num];
-	int 		ret,i;
+	int 		ret = 0;
+	int			i;
 
 	if (!macro_canExecuteFunction(num, 1)) {
 		return 0;
@@ -561,7 +562,7 @@ out:
 static intptr_t _fncmarker = -1;
 static void macro_returnFunctionValue(unsigned char typ, intptr_t v)
 {
-	char *		vname;
+	char 		vname[] = "__ret__";
 	COM_STRING1  * value;
 	char 	  	sp[512];
 
@@ -569,7 +570,6 @@ static void macro_returnFunctionValue(unsigned char typ, intptr_t v)
 		return;
 	}
 
-	vname = "__ret__";
 	value = (COM_STRING1 *)sp;
 	if ((value->typ = typ) == C_STRING1PAR) {
 		strcpy(value->s,(char *)v);

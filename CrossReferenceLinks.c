@@ -877,7 +877,7 @@ int xref_navigateSearchErrorList(int dir) {
  	NAVIGATION_SPEC navigationSpec;
 	FTABLE	    	*fp = ft_getCurrentErrorDocument();
 	int				compilerError = 0;
-	NAVIGATION_PATTERN *pNavigationPattern;
+	NAVIGATION_PATTERN *pNavigationPattern = 0;
 	char			fullname[EDMAXPATHLEN];
 	WINFO			*wp;
 	BOOL			bGoForward = FALSE;

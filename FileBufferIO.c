@@ -197,7 +197,12 @@ EXPORT char* file_readFileAsString(int fd) {
 			}
 		} else {
 			bufSize += bytesRead;
-			pszBuf = realloc(pszBuf, bufSize + 1);
+			char* pszTemp = realloc(pszBuf, bufSize + 1);
+			if (!pszTemp) {
+				free(pszBuf);
+				return NULL;
+			}
+			pszBuf = pszTemp;
 		}
 		memcpy(pszBuf+nOffset, _linebuf, bytesRead);
 		nOffset = bytesRead;

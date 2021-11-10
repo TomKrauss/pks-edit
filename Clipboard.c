@@ -129,8 +129,6 @@ EXPORT int clp_getdata(void)
 {	HANDLE 	hClip;
 	PASTE *	bp = bl_addrbyid(0,0,PLT_CLIPBOARD);
 	LPSTR  	lpClip;
-	LPSTR	lpTemp;
-	SIZE_T 	size;
 	int    	ret = 0;
 
 	if (clp_ismine()) 
@@ -143,7 +141,8 @@ EXPORT int clp_getdata(void)
 	    (hClip = GetClipboardData(CF_TEXT)) != 0 &&
 	    (lpClip = GlobalLock(hClip)) != 0) {
 
-		size = GlobalSize(hClip);
+		size_t size = GlobalSize(hClip);
+		LPSTR	lpTemp;
 		if ((lpTemp = malloc(size+10)) != 0) {
 			memmove(lpTemp, lpClip, (int)size);
 			if (size > 0 && lpTemp[size-1] == 0) {

@@ -367,7 +367,7 @@ EXPORT int caret_placeCursorForFile(WINFO *wp, long ln, long col, long screenCol
  */
 EXPORT int caret_placeCursorInCurrentFile(WINFO* wp, long ln,long col) {
 	long screenCol = col == wp->caret.offset ? wp->caret.col : col;
-	return wp ? caret_placeCursorForFile(wp,ln,col,screenCol,0) : 0;
+	return caret_placeCursorForFile(wp,ln,col,screenCol,0);
 }
 
 /*--------------------------------------------------------------------------

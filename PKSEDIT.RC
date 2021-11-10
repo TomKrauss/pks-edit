@@ -931,6 +931,7 @@ BEGIN
         MENUITEM "&Alle schliessen\a",          IDM_CLOSEALL
         MENUITEM "Neuer horizontaler Bereich\a", IDM_NEW_HORIZONTAL_DOCK
         MENUITEM "Neuer vertikaler Bereich\a",  IDM_NEW_VERTICAL_DOCK
+        MENUITEM "Vollbilddarstellung\a",       IDM_TOGGLE_FULL_SCREEN
         MENUITEM SEPARATOR
         MENUITEM "&Geöffnete Editoren...\a",    IDM_INFOFILE
     END
@@ -1464,7 +1465,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGNOTAGFILE        "Keine Verweisdatei"
+    IDS_MSGNOTAGFILE        "!Keine Suchergebnisse, keine Fehlerliste und keine Tagliste definiert"
     IDS_MSGUNKNOWNCOMPILER  "Keine Definition für dieses Compiler Fehler Format"
     IDS_MSGNOMOREERRS       "Keine weiteren Fehler"
     IDS_MSGSTRINGNOTFOUND   "Nichts gefunden"
@@ -1492,7 +1493,7 @@ BEGIN
     IDS_MSGDIFFTWOWINDOWS   "!Keine 2 Fenster\nzum Vergleichen geöffnet"
     IDS_MSGCLIPNOTCOMPLETE  "Der Inhalt der Ablage wurde gekürzt"
     IDS_MSGESCAPEUNDEF      "Dieses Makro ist nicht definiert"
-    IDS_MSGMACROIDTOOLONG   "Makrobezeichner zu lang"
+    IDS_MSGMACROIDTOOLONG   "!Makrobezeichner zu lang"
     IDS_MSGMISSINGAPOSTRPOHE "Vermisse Hochkommas"
     IDS_MSGTOOMANYCOMPILERS "Zu viele Definitionen von Compiler Fehlerformaten"
     IDS_MSGWRONGKEYDEF      "Falsche Tastendefinition"
@@ -1605,7 +1606,7 @@ BEGIN
     IDS_COMMAND43           "Fügt Buffer... ein;Buffer einfügen"
     IDS_COMMAND44           "Fügt den Inhalt der Ablage ein;Ablage -> Text"
     IDS_COMMAND45           "Fügt den Inhalt des Papierkorbs ein;Papierkorb -> Text"
-    IDS_COMMAND46           "Fügt den Inhalt des ? - ten Papierkorb Speichers ein; Papierkorb # -> Text"
+    IDS_COMMAND46           "Navigiere zum Eintrag der in der aktuellen Ergebnis- / Tag- / Fehlerliste markiert ist;Navigiere zu Suchergebnis"
     IDS_COMMAND47           "Schneidet den markierten Textblock aus;Block Ausschneiden"
 END
 
@@ -1675,7 +1676,7 @@ BEGIN
     IDS_COMMAND97           "Zeigt die Copyright-Meldung mit Serien- und Versionsnummer;Copyright"
     IDS_COMMAND98           "Fügt eine Tastenkombination als Text ein;Tastatur einf."
     IDS_COMMAND99           "Evaluiert selektierten Text oder die aktuelle Zeile;Code evaluieren"
-    IDS_COMMAND100          "Definiert Fenster-Register #1;Def. Fenster #1"
+    IDS_COMMAND100          "Zwischen Vollbild- und Normaldarstellung wechseln;Vollbild Modus"
     IDS_COMMAND101          "Definiert Fenster-Register #2;Def. Fenster #2"
     IDS_COMMAND102          "Definiert Fenster-Register #3;Def. Fenster #2"
     IDS_COMMAND103          "Definiert Fenster-Register #4;Def. Fenster #3"
