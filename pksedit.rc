@@ -931,6 +931,7 @@ BEGIN
         MENUITEM "&Alle schliessen\a",          IDM_CLOSEALL
         MENUITEM "Neuer horizontaler Bereich\a", IDM_NEW_HORIZONTAL_DOCK
         MENUITEM "Neuer vertikaler Bereich\a",  IDM_NEW_VERTICAL_DOCK
+        MENUITEM "Vollbilddarstellung\a",       IDM_TOGGLE_FULL_SCREEN
         MENUITEM SEPARATOR
         MENUITEM "&Geöffnete Editoren...\a",    IDM_INFOFILE
     END
@@ -1675,7 +1676,7 @@ BEGIN
     IDS_COMMAND97           "Zeigt die Copyright-Meldung mit Serien- und Versionsnummer;Copyright"
     IDS_COMMAND98           "Fügt eine Tastenkombination als Text ein;Tastatur einf."
     IDS_COMMAND99           "Evaluiert selektierten Text oder die aktuelle Zeile;Code evaluieren"
-    IDS_COMMAND100          "Definiert Fenster-Register #1;Def. Fenster #1"
+    IDS_COMMAND100          "Zwischen Vollbild- und Normaldarstellung wechseln;Vollbild Modus"
     IDS_COMMAND101          "Definiert Fenster-Register #2;Def. Fenster #2"
     IDS_COMMAND102          "Definiert Fenster-Register #3;Def. Fenster #2"
     IDS_COMMAND103          "Definiert Fenster-Register #4;Def. Fenster #3"

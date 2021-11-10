@@ -61,6 +61,8 @@ extern void FinalizePksEdit(void);
  */
 extern void main_cleanup(void);
 
+extern void fkey_visibilitychanged(void);
+
 #define CLOSER_SIZE				16
 #define CLOSER_DISTANCE			8
 #define SCROLL_BUTTON_WIDTH		16
@@ -122,6 +124,7 @@ static DOCKING_SLOT* dockingSlots;
 static HWND  hwndFrameWindow;
 static HICON defaultIcon;
 static void* _executeKeyBinding;
+static BOOL _fullscreenMode;
 static char* szDefaultSlotName = DOCK_NAME_DEFAULT;
 
 static DOCKING_SLOT* mainframe_addDockingSlot(DOCKING_SLOT_TYPE dsType, HWND hwnd, char* pszName, float xRatio, float yRatio, float wRatio, float hRatio);
@@ -437,8 +440,14 @@ static void tabcontrol_resizeActiveTabContents(HWND hwnd, TAB_CONTROL* pControl)
 		if (pPage->tp_hwnd) {
 			RECT rect;
 			GetClientRect(hwnd, &rect);
-			MoveWindow(pPage->tp_hwnd, rect.left+1, rect.top + pControl->tc_stripHeight+1, 
-					rect.right - rect.left-2, rect.bottom - rect.top - pControl->tc_stripHeight-2, TRUE);
+			int y = rect.top + pControl->tc_stripHeight + 1;
+			int h = rect.bottom - rect.top - pControl->tc_stripHeight - 2;
+			if (_fullscreenMode) {
+				y = rect.top;
+				h = rect.bottom - rect.top;
+			}
+			MoveWindow(pPage->tp_hwnd, rect.left+1, y, 
+					rect.right - rect.left-2, h, TRUE);
 		}
 	}
 }
@@ -1396,7 +1405,15 @@ static void mainframe_arrangeDockingSlots(HWND hwnd) {
 	RECT rect;
 
 	mainframe_getDockingRect(hwnd, &rect);
-	DOCKING_SLOT* pSlot = dockingSlots;
+	DOCKING_SLOT* pSlot;
+	if (_fullscreenMode) {
+		pSlot = mainframe_getDockingParent(GetParent(GetFocus()));
+		if (pSlot) {
+			MoveWindow(pSlot->ds_hwnd, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, 1);
+			return;
+		}
+	}
+	pSlot = dockingSlots;
 	THEME_DATA* pTheme = theme_getCurrent();
 	int dDelta = pTheme->th_mainframeMargin;
 	int width = rect.right - rect.left - dDelta;
@@ -2161,4 +2178,47 @@ OPEN_HINT mainframe_parseOpenHint(char* pszHint) {
 		pszHint,
 		bActive
 	};
+}
+
+/*
+ * Used to switch to full screen mode and back. 
+ */
+int mainframe_toggleFullScreen() {
+	static RECT previousSize;
+	static HMENU hDefaultMenu;
+	static int oldLayoutOptions;
+	DWORD dStyle = GetWindowLong(hwndFrameWindow, GWL_STYLE);
+	_fullscreenMode = dStyle & WS_CAPTION;
+	POINT point = { 0 };
+	HMONITOR hMonitor = MonitorFromPoint(point, MONITOR_DEFAULTTONEAREST);
+	MONITORINFO monitorInfo = { sizeof(monitorInfo) };
+	int nFlags = (OL_FKEYS | OL_OPTIONBAR | OL_SHOWSTATUS | OL_TOOLBAR);
+
+	if (!GetMonitorInfo(hMonitor, &monitorInfo)) {
+		return 0;
+	}
+	if (_fullscreenMode) {
+		hDefaultMenu = GetMenu(hwndFrameWindow);
+		SetMenu(hwndFrameWindow, NULL);
+		oldLayoutOptions = GetConfiguration()->layoutoptions & nFlags;
+		GetConfiguration()->layoutoptions &= ~nFlags;
+		GetWindowRect(hwndFrameWindow, &previousSize);
+		SetWindowLongPtr(hwndFrameWindow, GWL_STYLE,
+			WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE | WS_MAXIMIZE);
+		SetWindowPos(hwndFrameWindow, 0, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,
+			monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
+			SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+	} else {
+		GetConfiguration()->layoutoptions |= oldLayoutOptions;
+		SetMenu(hwndFrameWindow, hDefaultMenu);
+		SetWindowLongPtr(hwndFrameWindow, GWL_STYLE,
+			WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_VISIBLE);
+		SetWindowPos(hwndFrameWindow, 0, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,
+			monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
+			SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+
+	}
+	fkey_visibilitychanged();
+	mainframe_windowTitleChanged();
+	return 1;
 }

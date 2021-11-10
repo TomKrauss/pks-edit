@@ -1301,6 +1301,7 @@ BEGIN
         MENUITEM "&Close All\a",                IDM_CLOSEALL
         MENUITEM "New Horizontal Dock\a",       IDM_NEW_HORIZONTAL_DOCK
         MENUITEM "New Vertical Dock\a",         IDM_NEW_VERTICAL_DOCK
+        MENUITEM "Toggle Fullscreen\a",         IDM_TOGGLE_FULL_SCREEN
         MENUITEM SEPARATOR
         MENUITEM "&Open Editors...\a",          IDM_INFOFILE
     END
@@ -1644,7 +1645,7 @@ BEGIN
     IDS_COMMAND97           "Show copyright dialog with version info;About PKS-Edit"
     IDS_COMMAND98           "Insert a special character from the keyboard;Insert shortcut"
     IDS_COMMAND99           "Evaluate current line or selection;Evaluate Code"
-    IDS_COMMAND100          "Define window register #1;Window register #1"
+    IDS_COMMAND100          "Toggle between fullscreen and normal mode;Toggle Fullscreen"
     IDS_COMMAND101          "Define window register #2;Window register #2"
     IDS_COMMAND102          "Define window register #3;Window register #3"
     IDS_COMMAND103          "Define window register #4;Window register #4"

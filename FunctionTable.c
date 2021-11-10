@@ -145,9 +145,9 @@ EDFUNC _edfunctab[] = {
 /*71*/	  EdInfoFiles, '!', 0,                                                                            "ShowInfo",
 /*72*/	  EdShowMatch, '!', EW_NEEDSCURRF | 0,                                                            "CheckBrackets",
 /*73*/	  edit_convertCharacterCase, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                    "UpToLow",
-/*74*/	  evaluator_evaluateCurrentSelection, '!', EW_NEEDSCURRF | 0,                                     "EvaluateSelection",
-dlg_configureEditorModes, '!', EW_NEEDSCURRF | 0,                                               "SetDispMode",           
-function_unused, '!', EW_NEEDSCURRF | 0,                                                        "SetCursorMode",
+/*74*/	  evaluator_evaluateCurrentSelection, '!', EW_NEEDSCURRF | 0,                           "EvaluateSelection",
+/*75*/	  dlg_configureEditorModes, '!', EW_NEEDSCURRF | 0,										"SetDispMode",
+/*76*/	  mainframe_toggleFullScreen, '!', 0,													"ToggleFullScreen",
 function_unused, '!', EW_NEEDSCURRF | 0,                                                        "SetFileFormat",
 EdOptionToggle, '!', EW_NEEDSCURRF | 0,                                                         "ToggleTextMode",        
 EdPasteString, '!', EW_NEEDSCURRF | 0,                                                          "PasteString",          
@@ -313,7 +313,8 @@ IDM_COPY_TO_NAMED_CLIPBOARD, 41,
 IDM_CUT_TO_NAMED_CLIPBOARD, 40,
 IDM_PASTE_NAMED_CLIPBOARD, 43,
 IDM_LIST_NAMED_CLIPBOARDS, 219,
-IDM_EVALUATE_SELECTION, 99
+IDM_EVALUATE_SELECTION, 99,
+IDM_TOGGLE_FULL_SCREEN, 100
 };
 
 int _nmenus = sizeof(_menutab) / sizeof(_menutab[0]);
@@ -438,7 +439,7 @@ COMMAND _cmdseqtab[] = {
 97, C_0FUNC, 1 /* EdAbout */, 0 , "show-copyright", 
 98, C_0FUNC, 16 /* EdKeycodeInsert */, 0 , "keycode-insert", 
 99, C_0FUNC, 74 /* evaluate_evaluateSelection */, 0 , "evaluate-selection", 
-100, C_1FUNC, 86 /* EdWindowRegSet */, 1 , "unused", 
+100, C_0FUNC, 76 /* mainframe_toggleFullScreen */, 0, "toggle-full-screen", 
 101, C_1FUNC, 86 /* EdWindowRegSet */, 2 , "unused", 
 102, C_1FUNC, 86 /* EdWindowRegSet */, 3 , "unused", 
 103, C_1FUNC, 86 /* EdWindowRegSet */, 4 , "unused", 

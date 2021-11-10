@@ -92,5 +92,10 @@ extern void mainframe_moveWindowAndActivate(HWND hwndEdit, const char* pszPrefer
  */
 extern OPEN_HINT mainframe_parseOpenHint(char* pszHint);
 
+/*
+ * Used to switch to full screen mode and back.
+ */
+extern int mainframe_toggleFullScreen();
+
 #define MAINFRAME_H
 #endif

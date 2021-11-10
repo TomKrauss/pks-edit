@@ -25,6 +25,7 @@
   the corresponding configuration option in the PKS Edit configuration in the "Autosave" settings tab.
 - PKS Edit supports now the evaluation of either the current line or the current selection and selected grammars. For
   now only PKS macro code evaluation is supported, but we plan to support evaluation of other syntax as well.
+- PKS Edit supports now switching between fullscreen and normal mode.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
