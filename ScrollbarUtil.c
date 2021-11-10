@@ -60,13 +60,11 @@ static void SetWin32ScrollInfo(WINFO * wp, int nSlider,
 int sl_size(WINFO *wp) {
 	long  	n;
 	long	screenTop;
-	FTABLE	*fp;
 
 	if (!wp->ww_handle) {
 		return 0;
 	}
 
-	fp = FTPOI(wp);
 	if (wp->dispmode & SHOWHIDEVSLIDER) {
 		n = screenTop = 0;
 	} else {
@@ -144,11 +142,10 @@ static long sl_calcnewmin(long da,long max,long val)
  */
 int sl_scrollwinrange(WINFO *wp, long *pDeltaY, long *pDeltaX)
 { 	long   dy,dx,val;
-	FTABLE *fp = FTPOI(wp);
 
 	dy = *pDeltaY, dx = *pDeltaX;
-	EdTRACE(log_errorArgs(DEBUG_FUNCS,"sl_scrollwinrange(%ld,%ld) fp = %lx",
-				 dy,dx,(long)(intptr_t)fp));
+	EdTRACE(log_errorArgs(DEBUG_FUNCS,"sl_scrollwinrange(%ld,%ld) wp = %lx",
+				 dy,dx,(long)(intptr_t)wp));
 	if (dx) {
 		val = sl_calcnewmin(dx,MAXCOL,wp->mincol);
 		*pDeltaX = val-wp->mincol;
@@ -239,7 +236,6 @@ int sl_moved(WINFO *wp, long dy, long dx, int cursor_adjust)
 void EdScrollCursor(int mtype)
 {
 	long 	delta = 0;
-	extern long _multiplier;
 	WINFO *	wp = ww_getCurrentEditorWindow();
 	
 	if (wp == NULL) {

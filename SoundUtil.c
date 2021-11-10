@@ -3,7 +3,7 @@
  *
  * PROJEKT: PKS-EDIT for MS - WINDOWS
  *
- * purpose: ring the bell
+ * purpose: play an error tone.
  *
  * 										created: 
  * 										last modified:
@@ -15,74 +15,35 @@
  */
 
 #include <windows.h>
-#include "documentmodel.h"
 #include "stringutil.h"
 #include "editorconfiguration.h"
 
-#define	CHANNEL		1
-#define	PITCH		0			/* pitch + note == height */
-#define	QUANTIZE		64
-
-typedef struct tagNOTE {
-	unsigned char n_note;
-	unsigned char n_duration;		/* given in 1/64 */
-	unsigned char n_mode;
-	unsigned char n_volume;
-} NOTE;
-
-typedef struct tagVOICEQ {
-	int		v_channel;
-	int		v_tempo;
-	int		v_nnotes;
-	NOTE		*v_notes;
-} VOICEQ;
-
-static NOTE   _notes[16] = {22,	16,		S_NORMAL,		255};
-
-static VOICEQ _v = { CHANNEL,	120, 	0,	_notes };
+static char _soundName[32];
 
 /*--------------------------------------------------------------------------
- * ReadChimeParams()
+ * sound_initialialize()
  */
-static void ReadChimeParams()
-{
+static void sound_initialialize() {
 	static int 	done;
-	int			i;
-	char			name[16],string[128];
-	NOTE			*np;
 
-	if (done++)
+	if (done)
 		return;
-
-	for (i = 0; i < DIM(_notes); i++) {
-		wsprintf(name,"N%d",i);
-		if (prof_getPksProfileString("bell",name,
-							string,sizeof string) == 0)
-			break;
-		np = &_v.v_notes[i];
-		np->n_note = (unsigned char) string_convertToLong(string);
-		np->n_duration = (unsigned char) string_convertToLong(_strtolend);
-		np->n_mode = (unsigned char) string_convertToLong(_strtolend);
-		np->n_volume = (unsigned char) string_convertToLong(_strtolend);
-	}
-	if (i) {
-		_v.v_nnotes = i;
-	}
+	done = 1;
+	prof_getPksStandardString("ErrorSound",
+		_soundName, sizeof _soundName);
 }
 
 /*--------------------------------------------------------------------------
  * sound_playChime()
  * Play a chime sound.
+ * TODO: play different sounds depending on severity of error, which occurred.
  */
-EXPORT void sound_playChime(void)
-{
-
-	ReadChimeParams();
-
-	if (!_v.v_nnotes) {
-		MessageBeep(-1);
-		return;
+void sound_playChime(void) {
+	sound_initialialize();
+	if (!_soundName[0]) {
+		PlaySound((LPCTSTR)SND_ALIAS_SYSTEMASTERISK, NULL, SND_ASYNC | SND_ALIAS_ID | SND_SYSTEM);
+	} else {
+		PlaySound(TEXT(_soundName), NULL, SND_ASYNC | SND_SYSTEM);
 	}
-
 }
 

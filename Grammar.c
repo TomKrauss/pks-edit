@@ -295,7 +295,7 @@ static int grammar_collectChars(intptr_t k, void* pParam) {
  * Utility function used to check, whether a char should be added to a char class
  * RE Pattern.
  */
-static int grammar_takeChar(unsigned char table[], unsigned char c) {
+static int grammar_takeChar(const unsigned char table[], unsigned char c) {
 	return c != '-' && c != '^' && c != ']' && HAS_CHAR(table, c);
 }
 
@@ -539,7 +539,7 @@ GRAMMAR* grammar_findNamed(char* pszGrammarName) {
 /*
  * Stupid simple linear search to match a keyword in a list of given keywords. 
  */
-static int grammar_matchKeyword(HASHMAP* pKeywords, char* pKey, char* pKeyEnd) {
+static int grammar_matchKeyword(HASHMAP* pKeywords, char* pKey, const char* pKeyEnd) {
 	if (!pKeywords) {
 		return 1;
 	}

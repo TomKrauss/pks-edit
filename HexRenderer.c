@@ -40,7 +40,7 @@ extern int render_formattedString(RENDER_CONTEXT* pRC, int x, int y, unsigned ch
 /*
  * Render one line in HEX format. 
  */
-static void render_hexLine(RENDER_CONTEXT* pCtx, int y, char* pszBytes, int nBytes) {
+static void render_hexLine(RENDER_CONTEXT* pCtx, int y, const char* pszBytes, int nBytes) {
 	char szRender[HEX_BYTES_PER_LINE * 6];
 	int  nHexOffs = 0;
 	int  nAscOffs = HEX_BYTES_PER_LINE*3-1;

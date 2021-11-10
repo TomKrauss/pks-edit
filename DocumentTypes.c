@@ -201,7 +201,7 @@ void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
  * doctypes_addDocumentTypesToListView()
  * Adds all document types to a list view.
  */
-int doctypes_addDocumentTypesToListView(HWND hwndList, void* pSelected) {
+int doctypes_addDocumentTypesToListView(HWND hwndList, const void* pSelected) {
 	ListView_DeleteAllItems(hwndList);
 	DOCUMENT_TYPE* llp;
 	LVITEM lvI;
@@ -499,6 +499,6 @@ int doctypes_initAllDocumentTypes(void) {
 	if (!config.dc_defaultEditorConfiguration) {
 		config.dc_defaultEditorConfiguration = doctypes_createDefaultDocumentTypeDescriptor();
 	}
-	return 1;
+	return ret;
 }
 

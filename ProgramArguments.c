@@ -46,12 +46,12 @@ static int Phase1Arg(char *arg)
  */
 static int Phase2Arg(char *arg)
 {
-	long line;
-	WINFO* wp;
-
 	if (*arg != '-' && *arg != '/') {
 		xref_openFile(arg,0L,(void*)0);
 	} else {
+		long line;
+		WINFO* wp;
+
 		arg += 2;
 		switch(arg[-1]) {
 		case '/':
@@ -94,12 +94,11 @@ static int Phase2Arg(char *arg)
 static int GetArgs(char *args, int (*argfunc)(char *arg))
 {
 	char *	dend;
-	char *	d;
 	char 	argument[256];
 	
 	dend = &argument[sizeof argument-1];
 	while(*args) {
-		d = argument;
+		char* d = argument;
 		if (*args == '"') {
 			args++;
 			while(*args && *args != '"') {

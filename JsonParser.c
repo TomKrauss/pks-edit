@@ -240,8 +240,8 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 				if (tokens[i].type == JSMN_STRING && tokenContents[1] == 0) {
 					*((char*)pTargetSlot) = tokenContents[0];
 				} else {
-					long i = string_convertToLong(tokenContents);
-					*((char*)pTargetSlot) = (char)i;
+					long nChar = string_convertToLong(tokenContents);
+					*((char*)pTargetSlot) = (char)nChar;
 				}
 				break;
 			case RT_OBJECT_LIST:

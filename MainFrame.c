@@ -251,7 +251,7 @@ static char* tabcontrol_getTitle(HWND hwnd, char* szBuffer, size_t nSize) {
  * Check, whether the dock displaying the HWND is closeable.
  * If it is the last edit dock, it cannot be closed.
  */
-static BOOL mainframe_isCloseableDock(HWND hwnd) {
+static BOOL mainframe_isCloseableDock(const HWND hwnd) {
 	DOCKING_SLOT* pSlot = dockingSlots;
 	int nEditCount = 0;
 	while (pSlot) {
@@ -401,14 +401,13 @@ static void tabcontrol_repaintTab(HWND hwnd, TAB_CONTROL* pControl, int nIndex) 
 	rect.bottom = rect.top + pControl->tc_stripHeight + 1;
 	if (nIndex >= 0) {
 		int x = pControl->tc_tabstripRect.left;
-		int x2;
 		int nLen = (int)arraylist_size(pControl->tc_pages);
 		for (int i = pControl->tc_firstVisibleTab; i < nLen; i++) {
 			if (i > nIndex) {
 				return;
 			}
 			TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
-			x2 = x + pPage->tp_width;
+			int x2 = x + pPage->tp_width;
 			if (i == nIndex) {
 				rect.left = x;
 				rect.right = x2;
@@ -525,7 +524,7 @@ static void tabcontrol_selectTab(HWND hwnd, TAB_CONTROL* pControl, int newIdx) {
 /*
  * Activate a tab page with the given window handle.
  */
-static int tabcontrol_selectPage(HWND hwnd, HWND hwndPage) {
+static int tabcontrol_selectPage(HWND hwnd, const HWND hwndPage) {
 	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 	size_t len = arraylist_size(pControl->tc_pages);
 
@@ -1155,7 +1154,7 @@ static void tabcontrol_handleMouseMove(HWND hwnd, POINT p) {
 	tabcontrol_setRollover(hwnd, pControl, -1, nTab);
 }
 
-static void tabcontrol_closed(HWND hwnd, HWND hwndChild) {
+static void tabcontrol_closed(HWND hwnd, const HWND hwndChild) {
 	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 	size_t len = arraylist_size(pControl->tc_pages);
 

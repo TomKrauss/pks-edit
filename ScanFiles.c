@@ -78,12 +78,12 @@ static const inline size_t xref_min(size_t val, size_t min) {
 static RE_PATTERN* _compiledPattern;
 static void find_inFilesMatchFound(char *fn, int nStartCol, int nLength, char* pszLine) {
 	char szBuf[EDMAXPATHLEN+100];
-	int nMaxVis = 40;
 
 	_searchContext.sc_matches++;
 	if (nStartCol >= 0) {
 		wsprintf(szBuf, "%d/%d", nStartCol, nLength);
 		if (pszLine) {
+			int nMaxVis = 40;
 			strcat(szBuf, " - ");
 			size_t nLen = xref_min(nStartCol, nMaxVis);
 			strncat(szBuf, &pszLine[nStartCol - nLen], nLen);
@@ -120,7 +120,7 @@ int xref_addSearchListEntry(FTABLE* fp, char* fn, long line, char* remark) {
 	char buf[EDMAXPATHLEN];
 
 	wsprintf(buf, _grepFileFormat, (LPSTR)fn, line + 1L, (LPSTR)remark);
-	if (ln_createAndAdd(fp, buf, lstrlen(buf), 0)) {
+	if (ln_createAndAdd(fp, buf, (int)strlen(buf), 0)) {
 		return 1;
 	}
 	return 0;
@@ -131,11 +131,11 @@ int xref_addSearchListEntry(FTABLE* fp, char* fn, long line, char* remark) {
  * find_inLine()
  * 
  */
-static unsigned char *find_inLine(void *pFilename, EDIT_CONFIGURATION* linp, unsigned char *p, unsigned char *qend) {
-	register char	*	q;
-	register char 		nl = '\n';
-	char *			stepend;
-	RE_MATCH		match;
+static unsigned char *find_inLine(void *pFilename, EDIT_CONFIGURATION* linp, unsigned char *p, const unsigned char *qend) {
+	char	*	q;
+	char 		nl = '\n';
+	char *		stepend;
+	RE_MATCH	match;
 
 	q = p;
 	while (p < qend) {
@@ -320,7 +320,6 @@ static HASHMAP* find_collectFiles(char* pszStepfile) {
  * Perform a recursive pSearchExpression in a list of pates with a given filename pattern.
  */
 int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACTION fAction) {
-	char *		path;
 	char *		pathlist;
 	char		stepfile[512];
 	char		title[512];
@@ -369,6 +368,7 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 		find_matchesInSearchResults(pFilesMap);
 		hashmap_destroySet(pFilesMap);
 	} else {
+		char* path;
 		int nDepth = pParams->fileScanDepth;
 		if ((path = strtok(pathlist, ",;")) != 0) {
 			do {

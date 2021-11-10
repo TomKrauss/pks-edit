@@ -353,10 +353,10 @@ static void macro_recordFunctionWithParameters(int fnum, int p, intptr_t p2, cha
 /*---------------------------------*/
 /* macro_recordFunction()					*/
 /*---------------------------------*/
-void macro_recordFunction(FTABLE *fp, int p)
-{	COM_1FUNC *cp;
+void macro_recordFunction(FTABLE *fp, int p) {
 
 	if (_ccash.low < DIM(_ccash.b)-2) {
+		COM_1FUNC* cp;
 		if (!_ccash.low) {
 			fm_savepos(TM_LASTINSERT);
 			undo_startModification(fp);
@@ -488,7 +488,7 @@ int macro_getDollarParameter(intptr_t offset, int *typ, intptr_t *value)
 /*---------------------------------*/
 /* macro_doMacroFunctions()				*/
 /*---------------------------------*/
-intptr_t macro_doMacroFunctions(COM_1FUNC **Cp, COM_1FUNC *cpmax) {
+intptr_t macro_doMacroFunctions(COM_1FUNC **Cp, const COM_1FUNC *cpmax) {
 	intptr_t 	stack[40];
 	intptr_t*	saveStack;
 	intptr_t	rc,*sp,*sp2;

@@ -223,8 +223,6 @@ int windowselector_showWindowList(void) {
 	int nWidth = 600;
 	rect.top = rectParent.top + (nParentHeight - nHeight) / 2;
 	rect.left = rectParent.left + (nParentWidth - nWidth) / 2;
-	rect.bottom = rect.top + nHeight;
-	rect.right = rect.left + nWidth;
 	if (hwndSelector == NULL) {
 		hwndSelector = CreateWindow(CLASS_WINDOW_SELECTOR, NULL, WS_POPUP, rect.left, rect.top, nWidth, nHeight, hwndMain, NULL, hInst, NULL);
 	}
@@ -244,6 +242,6 @@ int windowselector_showWindowList(void) {
 /*
  * Returns != 0, if the passed HWND is a window handle to be used by the window selector.
  */
-BOOL windowselector_isHandle(HWND hwnd) {
+BOOL windowselector_isHandle(const HWND hwnd) {
 	return hwndSelector == hwnd;
 }

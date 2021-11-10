@@ -218,10 +218,6 @@ static void codecomplete_paint(HWND hwnd) {
 	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
 	CODE_ACTION* up = pCC->ccp_actions;
 	long nSelectedIndex = pCC->ccp_selection;
-	int x = CC_PADDING;
-	int y = CC_PADDING;
-	int nDelta = CC_PADDING;
-	int nIconSize = 16;
 
 	BeginPaint(hwnd, &paint);
 	SetBkMode(paint.hdc, TRANSPARENT);
@@ -242,6 +238,10 @@ static void codecomplete_paint(HWND hwnd) {
 			DrawText(paint.hdc, pszBuf, -1, &rect, DT_CENTER | DT_VCENTER | DT_WORDBREAK);
 		}
 	} else {
+		int x = CC_PADDING;
+		int y = CC_PADDING;
+		int nDelta = CC_PADDING;
+		int nIconSize = 16;
 		for (int i = 0; up; i++) {
 			if (i >= pCC->ccp_topRow) {
 				if (i == nSelectedIndex) {

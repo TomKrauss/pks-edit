@@ -31,6 +31,6 @@ extern int windowselector_showWindowList();
 /*
  * Returns != 0, if the passed HWND is a window handle to be used by the window selector.
  */
-extern BOOL windowselector_isHandle(HWND hwnd);
+extern BOOL windowselector_isHandle(const HWND hwnd);
 
 #endif

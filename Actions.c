@@ -63,7 +63,7 @@ void action_commandEnablementChanged(ACTION_CHANGE_TYPE type) {
 /*
  * Deregister all action property change listeners of a given type. 
  */
-void action_deregisterAllActionsWithListener(PROPERTY_CHANGE_LISTENER aListener) { 
+void action_deregisterAllActionsWithListener(const PROPERTY_CHANGE_LISTENER aListener) { 
 	if (_allActions == NULL) {
 		return;
 	}

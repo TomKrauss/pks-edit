@@ -60,7 +60,7 @@ extern void action_registerAction(int commandId, ACTION_BINDING binding, BOOL bE
 /*
  * Deregister all action property change listeners of a given type.
  */
-extern void action_deregisterAllActionsWithListener(PROPERTY_CHANGE_LISTENER aListener);
+extern void action_deregisterAllActionsWithListener(const PROPERTY_CHANGE_LISTENER aListener);
 
 /*
  * Remove all actions and action bindings.

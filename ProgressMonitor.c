@@ -62,12 +62,13 @@ static INT_PTR DlgProgressProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPa
  * progress_startMonitor()
  */
 void progress_startMonitor(unsigned int ids) {
-	char szB1[30],szBuff[256];
 
 	if (!_playing && !hwndAbort) {
+		char szB1[30];
+		char szBuff[256];
 		szB1[0] = 0;
 		LoadString(ui_getResourceModule(),ids,szB1,sizeof szB1);
-		wsprintf(szBuff,"%s..",szB1);
+		wsprintf(szBuff,"%s...",szB1);
 		win_createModelessDialog(&hwndAbort,"DLGABORT",
 						  DlgProgressProc,&lpfnAbort);
 		if (hwndAbort) {
@@ -86,7 +87,6 @@ void progress_startMonitor(unsigned int ids) {
  */
 void progress_stepIndicator() {
 	if (hwndAbort) {
-		HWND hwndPB = GetDlgItem(hwndAbort, IDC_PROGRESS);
 		MSG msg;
 		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE | PM_NOYIELD)) {
 			DispatchMessage(&msg);
@@ -125,7 +125,6 @@ void progress_closeMonitor(int always)
 int progress_cancelMonitor(BOOL bRedraw)
 {
 	MSG			msg;
-	static int 	count;
 
 	if (hwndAbort == NULL) {
 		return 0;
@@ -135,6 +134,7 @@ int progress_cancelMonitor(BOOL bRedraw)
 		if (!IsDialogMessage(hwndAbort,&msg)) {
 			DispatchMessage(&msg);
 			WINFO* wp = ww_getCurrentEditorWindow();
+			static int 	count;
 			if (bRedraw && wp && msg.message == WM_PAINT && (count++ & 0x3) == 0) {
 				win_sendRedrawToWindow(wp->ww_handle);
 			}

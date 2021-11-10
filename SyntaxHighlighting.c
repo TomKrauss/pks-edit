@@ -74,7 +74,7 @@ static void highlight_adjustCachedLineWindow(HIGHLIGHTER* pHighlighter, FTABLE* 
 		if (nLine < 0) {
 			nLine = 0;
 		}
-		int nDelta = nLine- pHighlighter->h_minLine;
+		nDelta = nLine- pHighlighter->h_minLine;
 		if (nDelta <= -WINDOW_SIZE || nDelta >= WINDOW_SIZE) {
 			highlight_destroyCaches(pHighlighter);
 		}
@@ -162,7 +162,6 @@ static unsigned char* highlight_usingGrammar(HIGHLIGHTER* pHighlighter, WINFO* w
 		pHighlighter->h_lastLine = nLine;
 		LEXICAL_ELEMENT lexicalElements[MAX_LEXICAL_ELEMENT];
 		int nElements = grammar_parse(pHighlighter->h_grammar, lexicalElements, lexicalState, lp->lbuf, lp->len, &detectedEnd);
-		int nPreviousOffset = 0;
 		int bShowControl = wp->dispmode & SHOWCONTROL;
 		if (nElements == 0) {
 			for (int i = 0; i < lp->len; i++) {
@@ -170,6 +169,7 @@ static unsigned char* highlight_usingGrammar(HIGHLIGHTER* pHighlighter, WINFO* w
 				pStyles[i] = (bShowControl && c <= ' ') ? FS_CONTROL_CHARS : FS_NORMAL;
 			}
 		} else {
+			int nPreviousOffset = 0;
 			for (int i = 0; i < nElements; i++) {
 				int nNextOffset = nPreviousOffset + lexicalElements[i].le_length;
 				lexicalState = lexicalElements[i].le_state;

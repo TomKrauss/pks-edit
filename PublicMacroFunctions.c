@@ -66,7 +66,7 @@ extern int 		doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATIO
 extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		mac_compileMacros(void);
-extern int		doctypes_addDocumentTypesToListView(HWND hwnd, void* pSelected);
+extern int		doctypes_addDocumentTypesToListView(HWND hwnd, const void* pSelected);
 
 extern long		_multiplier;
 

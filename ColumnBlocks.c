@@ -31,7 +31,7 @@ static LINE *caret_copyIndent(WINFO *wp, LINE **Lps, int cfirst, int clast,
 {
 	LINE *		lp;
 	LINE *		lps;
-	unsigned char *s,*d,c;
+	unsigned char *s,*d;
 	int			i,col,len,size;
 	FTABLE* fp = wp->fp;
 
@@ -40,6 +40,7 @@ static LINE *caret_copyIndent(WINFO *wp, LINE **Lps, int cfirst, int clast,
 	s   = lps->lbuf;
 	len = lps->len;
 	for (i = 0, col = 0; col < MAXLINELEN && i < len; i++) {
+		char c;
 		if ((c = *s++) == TAB && !ctrlmode) {
 			size = indent_calculateTabStop(col, &wp->indentation);
 			while(col < size) {
