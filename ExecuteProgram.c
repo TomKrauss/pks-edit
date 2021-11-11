@@ -184,7 +184,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 	if (flags & EX_RDCONV) {
 		undo_startModification(ft_getCurrentDocument());
 		bUInited = TRUE;
-		EdBlockDelete();
+		EdBlockDelete(0);
 	}
 
 

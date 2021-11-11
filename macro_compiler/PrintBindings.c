@@ -27,6 +27,7 @@
 #include "pkscc.h"
 #include "funcdef.h"
 #include "brackets.h"
+#include "helpitem.h"
 
 #include "resource.h"
 #include "stringutil.h"
@@ -260,24 +261,6 @@ static char *pr_comment(char *d,char *comment)
 }
 
 /*--------------------------------------------------------------------------
- * find_menu_bind()
- */
-int find_menu_bind(int idx)
-{
-	MENUBIND *	mp;
-	EDBINDS	*	ep = &_bindings;
-	int			i;
-
-	mp = ep->mp;
-	for (i = 0; i < *(ep->nmp); i++) {
-		if ((int)mp[i].index == idx) {
-			return i;
-		}
-	}
-	return -1;
-}
-
-/*--------------------------------------------------------------------------
  * printkeybind()
  * print one key binding in the following manner
  * KEYCODE | FUNCTION+PARS | REMARK
@@ -298,15 +281,9 @@ static void printkeybind(FILE *fp, KEYBIND *kp, char delim)
 
 	/* prepare for invalid entries */
 
-	comment[0] = 0;
 	switch(kp->macref.typ) {
 		case CMD_MENU:
 			mp = &ep->mp[findex];
-#if !defined(_Windows)
-			sprintf(comment,"%s¯%s",
-						menustring(n1,mp->mtitlenum),
-						menustring(n2,mp->menunum));
-# endif
 			findex = mp->index;
 			break;
 		case CMD_MACRO:
@@ -314,12 +291,14 @@ static void printkeybind(FILE *fp, KEYBIND *kp, char delim)
 				strcpy(comment,MAC_COMMENT(macp)); 
 			break;
 		case CMD_CMDSEQ:
+			macro_getComment(comment, command, kp->macref.index, kp->macref.typ);
 			break;
 		default:
 			strcpy(comment,"garbagge.."); 
 			findex = -1;
 			break;
 	}
+	mac_name(command, findex, (MACROREFTYPE)kp->macref.typ);
 
  	fprintf(fp,"%-25s= %-25s%s\n",
 		code2key(kp->keycode),pr_cmddelim(n1,command,delim),
@@ -518,15 +497,22 @@ static void PrintSubMenu(FILE *fp, HMENU hMenu)
 		} else {
 			GetMenuString(hMenu, nItem, szText, sizeof szText,
 				MF_BYPOSITION);
-			if ((wID = GetMenuItemID(hMenu, nItem)) <= 0 ||
-			    (mp = macro_getMacroIndexForMenu(wID)) == 0) {
-				lstrcpy(command, "??");
+			wID = GetMenuItemID(hMenu, nItem);
+			if (wID <= 0 || (wID > IDM_HISTORY && wID < IDM_HISTORY + 10)) {
+				nItem++;
+				continue;
+			}
+			if (wID == IDM_HISTORY) {
+				strcpy(szText, "HISTORY");
+			}
+			if ((mp = macro_getMacroIndexForMenu(wID)) == 0) {
+				sprintf(command, "%d", wID);
 			} else {
 				mac_name(command, mp->index, mp->typ);
 			}
-			fprintf(fp,"\t\"%s\" = %s", szText, command);
+			fprintf(fp, "\t\"%s\" = %s", szText, command);
 		}
-		if (++nItem < (int)wCount) {
+		if (++nItem < (int)wCount && wID != IDM_HISTORY) {
 			fprintf(fp, ",");
 		}
 		fprintf(fp, "\n");

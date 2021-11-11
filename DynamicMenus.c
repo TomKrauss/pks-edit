@@ -96,7 +96,7 @@ static int menu_isEmptySlot(PUSERMENUBIND mp)
 /*--------------------------------------------------------------------------
  * menu_addMenuMacroItem()
  */
-int menu_addMenuMacroItem(char *pszTemp, int menutype, MACROREFTYPE mactype, MACROREFTYPE macidx) {
+int menu_addMenuMacroItem(char *pszLabel, int menutype, MACROREFTYPE mactype, MACROREFTYPE macidx) {
 	RSCTABLE 	*	rp;
 	int				nIdx;
 	PUSERMENUBIND	pMenu;
@@ -107,8 +107,13 @@ int menu_addMenuMacroItem(char *pszTemp, int menutype, MACROREFTYPE mactype, MAC
 		return 0;
 	}
 
-	/* make a copy for allowing to modify..*/
-	lstrcpy(pszString, pszTemp);
+	if (pszLabel) {
+		// make a copy for allowing to modify
+		lstrcpy(pszString, pszLabel);
+	} else {
+		// Separators etc...
+		pszString[0] = 0;
+	}
 	rp = _menutables;
 	pMenu = (PUSERMENUBIND)rp->rt_data;
 	for (nIdx = 0; ; nIdx++) {

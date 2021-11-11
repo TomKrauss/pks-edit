@@ -752,7 +752,7 @@ int EdCharInsert(int c)
 	}
 
 	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_hasSelection(wp)) {
-		EdBlockDelete();
+		EdBlockDelete(0);
 		if (c == 8 || c == 127) {
 			return 1;
 		}
@@ -944,7 +944,7 @@ int EdCharDelete(int control)
 		if (o1 == o2) {
 			return 0;
 		}
-		if (!bl_delete(wp, lp1, lp, (int) o1, (int) o2, (int) 0)) {
+		if (!bl_delete(wp, lp1, lp, (int) o1, (int) o2, (int) 0, 0)) {
 			return 0;
 		}
 	}

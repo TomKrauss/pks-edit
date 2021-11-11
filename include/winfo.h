@@ -332,7 +332,7 @@ extern int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag);
  * Delete the text of the current selection.
  */
 extern int bl_delete(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfirst,
-    int clast, int blkflg);
+    int clast, int blkflg, int bSave);
 
 /*--------------------------------------------------------------------------
  * render_singleLineOnDevice()

@@ -212,7 +212,7 @@ EXPORT int EdBlockPaste(int which)
      wp = ww_getCurrentEditorWindow();
 	if ((pp = bl_getPasteBuffer(which)) != 0) {
 		if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_hasSelection(wp)) {
-			EdBlockDelete();
+			EdBlockDelete(0);
 		}
 		return paste(pp,0);
 	}
@@ -269,11 +269,11 @@ EXPORT int EdBlockWrite(void ){
 /*---------------------------------*/
 /* bl_cutOrCopyBlock()					*/
 /*---------------------------------*/
-static int bl_cutOrCopyBlock(MARK *ms, MARK *me, int flg, PASTE *pp) {
+static int bl_cutOrCopyBlock(WINFO*wp, MARK *ms, MARK *me, int flg, PASTE *pp) {
 	PASTE 	_p;
 	PASTE_LIST_TYPE tType = PLT_CLIPBOARD;
 	char*	 pszId;
-	int	 	colflg = ww_isColumnSelectionMode(ww_getCurrentEditorWindow());
+	int	 	colflg = ww_isColumnSelectionMode(wp);
 
 	memset(&_p, 0, sizeof _p);
 	if (flg & CUT_QUERYID) {
@@ -306,7 +306,6 @@ static int bl_cutOrCopyBlock(MARK *ms, MARK *me, int flg, PASTE *pp) {
 		if (!(flg & CUT_USEPP)) {
 			error_showMessageInStatusbar(IDS_MSGCUTBLOCK,pp->size,pp->nlines);
 		}
-
 		return 1;
 	}
 
@@ -322,7 +321,11 @@ EXPORT int bl_cutOrCopy(int flg,PASTE *pp)
 
 	if (!ww_checkSelectionWithError(wp))
 		return 0;
-	return bl_cutOrCopyBlock(wp->blstart,wp->blend,flg,pp);
+	int ret = bl_cutOrCopyBlock(wp, wp->blstart,wp->blend,flg,pp);
+	if (ret && (flg & CUT_DELETE)) {
+		EdBlockDelete(0);
+	}
+	return ret;
 }
 
 /*---------------------------------*
@@ -558,24 +561,21 @@ EXPORT int EdBlockFindStart()
  * PKS Edit macro command to delete the current selection and
  * optionally save the text in the trashcan clipboard of PKS Edit
  *----------------------------*/
-EXPORT int EdBlockDelete()
-{
+EXPORT int EdBlockDelete(int bSaveOnClip) {
 	MARK		ms;
 	MARK		me;
 	WINFO*		wp;
-	FTABLE 	*	fp;
 	int 		ret;
 	
 	wp = ww_getCurrentEditorWindow();
-	fp = wp->fp;
 	if (!ww_checkSelectionWithError(wp))
 		return 0;
 	ms = *wp->blstart;
 	me = *wp->blend;
 	EdBlockFindStart();
 	bl_hideSelection(wp, 0);
-	ret = bl_delete(wp, ms.m_linePointer, me.m_linePointer, ms.m_column, me.m_column, 1);
-	render_repaintAllForFile(fp);
+	ret = bl_delete(wp, ms.m_linePointer, me.m_linePointer, ms.m_column, me.m_column, 1, bSaveOnClip);
+	render_repaintAllForFile(wp->fp);
 	return ret;
 }
 

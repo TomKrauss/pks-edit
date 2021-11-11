@@ -210,9 +210,9 @@ int ft_triggerAutosaveAllFiles(void)
 	register FTABLE *fp;
 	char     		spath[EDMAXPATHLEN];
 	static long 	nchkclick;
-	static int 		inas;
+	static int 		inAutoSave;
 
-	if (inas || (dclicks = (GetConfiguration()->autosaveSeconds * HZ)) == 0) {
+	if (inAutoSave || (dclicks = (GetConfiguration()->autosaveSeconds * HZ)) == 0) {
 		/* autosave option is OFF */
 		return 0;
 	}
@@ -222,7 +222,7 @@ int ft_triggerAutosaveAllFiles(void)
 		return 0;
 	}
 
-	inas = 1;
+	inAutoSave = 1;
 
 	/* check every 5 secs */
 	nchkclick = now + 5 * HZ;
@@ -230,12 +230,13 @@ int ft_triggerAutosaveAllFiles(void)
 	saved = 0;
 	for (fp = _filelist; fp; fp = fp->next) {
 
-		/* file in unsaved state ? */
+		/* file in unsaved state and needs to be auto-saved ? */
 		flags = fp->flags;
-		if ((flags & F_NEEDSAUTOSAVE) == 0)
+		if ((flags & F_NEEDSAUTOSAVE) == 0 || (flags & F_TRANSIENT)) {
 			continue;
+		}
 
-		/* no "autosave needed"-time: set to current + #of minutes */
+		/* no "autosave needed"-time: set to current + #of seconds */
 		if (fp->as_time == 0) {
 			fp->as_time = now + dclicks;
 			continue;
@@ -280,7 +281,7 @@ autosave:
 
 	}
 	
-	inas = 0;
+	inAutoSave = 0;
 	return saved;
 }
 

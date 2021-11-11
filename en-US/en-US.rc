@@ -1179,6 +1179,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Save and Exit\a",             MSAVEALL
         MENUITEM "E&xit\a",                     MEXIT
+        MENUITEM SEPARATOR
+        MENUITEM "HISTORY",                     IDM_HISTORY
     END
     POPUP "&Edit"
     BEGIN

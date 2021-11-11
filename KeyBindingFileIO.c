@@ -245,7 +245,7 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction
  */
 static void macro_replaceCurrentWord(WINFO* wp) {
 	if (ww_hasSelection(wp)) {
-		EdBlockDelete();
+		EdBlockDelete(0);
 	} else {
 		char szIdentifier[100];
 		char* pszBegin;

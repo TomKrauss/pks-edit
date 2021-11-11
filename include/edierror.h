@@ -159,6 +159,7 @@ extern void linetoolong(void);
 #define	CUT_QUERYID		0x100
 #define	CUT_APPND		0x200
 #define	CUT_USEPP		0x400
+#define	CUT_DELETE		0x800
 
 /* Flags for EdMacroRecorded */
 #define	MAC_AUTO			-1

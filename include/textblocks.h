@@ -51,7 +51,7 @@ extern int EdPasteString(long dummy1, long dummy2, char* string);
  * EdBlockDelete()
  * PKS Edit command to delete the current selection
  *----------------------------*/
-extern int EdBlockDelete();
+extern int EdBlockDelete(int bSaveOnClip);
 
 /*---------------------------------*
  * bl_writeToFile()

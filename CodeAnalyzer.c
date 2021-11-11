@@ -49,15 +49,18 @@ static void analyzer_extractWords(WINFO* wp, int (*fMatch)(char* pszMatch), ANAL
 			if (char_isIdentifier(c)) {
 				stringbuf_appendChar(pBuf, c);
 			} else {
-				char* pszWord = stringbuf_getString(pBuf);
-				if (*pszWord) {
-					if (fMatch(pszWord)) {
-						fCallback(pszWord);
+				if (isspace(c)) {
+					char* pszWord = stringbuf_getString(pBuf);
+					if (*pszWord) {
+						if (fMatch(pszWord)) {
+							fCallback(pszWord);
+						}
 					}
-					stringbuf_reset(pBuf);
 				}
+				stringbuf_reset(pBuf);
 			}
 		}
+		stringbuf_reset(pBuf);
 		lp = lp->next;
 	}
 	stringbuf_destroy(pBuf);

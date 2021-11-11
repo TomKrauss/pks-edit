@@ -201,11 +201,6 @@ void hist_updateMenu(HISTORY_TYPE type) {
 			return;
 		}
 		wsprintf(szTemp, "&%d %s", i + 1, p);
-		if (i == 0) {
-			win_changeMenuItem(hMenu, nPosition, 0, 
-				MF_BYPOSITION|MF_SEPARATOR, szTemp);
-			nPosition++;
-		}
 		win_changeMenuItem(hMenu, nPosition, iCmd, 
 			MF_BYPOSITION|MF_STRING, szTemp);
 		nPosition++;

@@ -19,6 +19,14 @@
 #include "documentmodel.h"
 #include "edfuncs.h"
 #include "resource.h"
+#include "hashmap.h"
+
+typedef struct tagKEY_BINDINGS {
+	struct tagKEY_BINDINGS* kb_next;
+	char kb_name[32];
+	struct tagKEY_BINDINGS* kb_parent;
+	HASHMAP* kb_table;
+} KEY_BINDINGS;
 
 static RSCTABLE __k = {
 	0,	"default",	sizeof _keymaptab, 	_keymaptab,

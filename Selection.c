@@ -299,7 +299,7 @@ EXPORT int bl_destroyAll(void)
  * pPasteBuffer == 0: only delete block
  */
 EXPORT int bl_cutTextWithOptions(PASTE *pp,LINE *lnfirst,LINE *lnlast,
-		int cfirst,int clast,int freeflg)
+		int cfirst,int clast,int bDelete)
 {	register LINE	*lpd,*lps,*lpnew,*lpx;
 	register int	last;
 
@@ -315,7 +315,7 @@ EXPORT int bl_cutTextWithOptions(PASTE *pp,LINE *lnfirst,LINE *lnlast,
 
 	lpnew = lnlast->prev; /* zum Checken ob sich lnlast bei ln_modify „ndert */
 	lpx   = lnlast->next; /* und auch wirklich nicht lnlast->prev !		*/
-	if (freeflg) {
+	if (bDelete) {
 		if ((lps = ln_modify(ft_getCurrentDocument(),lnfirst,last,cfirst)) == 0L) 
 			return 0;
 	} else lps = lnfirst;
@@ -344,10 +344,10 @@ EXPORT int bl_cutTextWithOptions(PASTE *pp,LINE *lnfirst,LINE *lnlast,
 		}
 		if (P_EQ(lps,lnlast)) break;
 		lpd = lpnew;
-		if (freeflg) 
+		if (bDelete) 
 			ln_delete(ft_getCurrentDocument(),lps);
 	}
-	if (freeflg) {
+	if (bDelete) {
 		if ((lps = ln_modify(ft_getCurrentDocument(),lps,clast,0)) == 0L) return 0;
 		if (!(ln_join(ft_getCurrentDocument(),lps->prev,lps,1))) return 0;
 	}
@@ -510,15 +510,13 @@ EXPORT int bl_join(PASTE *pd,PASTE *p2)
  * bl_delete()
  */
 EXPORT int bl_delete(WINFO *wp, LINE *lnfirst, LINE *lnlast, int cfirst,
-	int clast, int blkflg)
+	int clast, int blkflg, int bSaveOnClip)
 {
 	PASTE	*	ppTrash;
 	PASTE		ppDummy;
-	int			bSaveOnClip;
 
 	ppTrash = &ppDummy;
 	memset(ppTrash, 0, sizeof *ppTrash);
-	bSaveOnClip = 0;
 
 	if (blkflg && ww_isColumnSelectionMode(wp)) {
 		if (bSaveOnClip) {

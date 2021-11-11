@@ -473,27 +473,25 @@ void win_setEditMenuText(int menunr, char *text)
  */
 HMENU his_getHistoryMenu(int *pnPosition, int *piCmd) {
 	HMENU	hMenu;
-	int		i;
-	static int fileMenuItemCount;
+	static HMENU hHistoryPopupMenu;
+	static int historyMenuOffset;
 
 	*piCmd = IDM_HISTORY;
 	hMenu = GetMenu(hwndMain);
-	// Access the file menu.
-	hMenu = GetSubMenu(hMenu, 0);
-	if (fileMenuItemCount == 0) {
-		fileMenuItemCount = GetMenuItemCount(hMenu);
-	}
-	*pnPosition = fileMenuItemCount;
-	if (!hMenu) {
-		return 0;
-	}
-	for (i = *pnPosition = GetMenuItemCount(hMenu); --i >= 0; ) {
-		if (GetMenuItemID(hMenu, i) == (unsigned int)*piCmd) {
-			*pnPosition = i - 1;
-			break;
+	if (!hHistoryPopupMenu) {
+		for (int nCount = 0; (hHistoryPopupMenu = GetSubMenu(hMenu, nCount)) != NULL; nCount++) {
+			historyMenuOffset = GetMenuPosFromID(hHistoryPopupMenu, IDM_HISTORY);
+			if (historyMenuOffset > 0) {
+				break;
+			}
+		}
+		if (!hHistoryPopupMenu) {
+			hHistoryPopupMenu = GetSubMenu(hMenu, 0);
+			historyMenuOffset = GetMenuItemCount(hMenu);
 		}
 	}
-	return hMenu;
+	*pnPosition = historyMenuOffset;
+	return hHistoryPopupMenu;
 }
 
 /*--------------------------------------------------------------------------

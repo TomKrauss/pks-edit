@@ -809,6 +809,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Spe&ichern && beenden\a",     MSAVEALL
         MENUITEM "&Beenden\a",                  MEXIT
+        MENUITEM SEPARATOR
+        MENUITEM "HISTORY",                     IDM_HISTORY
     END
     POPUP "&Bearbeiten"
     BEGIN
