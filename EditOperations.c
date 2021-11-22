@@ -530,40 +530,53 @@ static void edit_wrapAround(WINFO *wp) {
 	}
 }
 
-/*--------------------------------------------------------------------------
- * edit_autoFormat()
+/*
+ * Format a range of text so it fits into the given window bounds (rmargin). 
  */
-static int edit_autoFormat(WINFO *wp)
-{	register unsigned char *destbuf,*sourcebuf;
-	LINE *lp1,*lpnext,*lp;
-	int  indent,col;
-	int  numberOfLinesHasChanged,desti,di,rm,lpos,wend,wstart,modified,column;
+int edit_autoFormatRange(WINFO* wp, int nRange) {
+	register unsigned char* destbuf, * sourcebuf;
+	LINE* lp1, * lpnext, * lp;
+	LINE* lplast;
+	int  indent, col;
+	int  numberOfLinesHasChanged, desti, di, rm, lpos, wend, wstart, modified, column;
 	unsigned char c;
 	long ln, caretLine, caretColumn;
-	FTABLE *fp = wp->fp;
-
-	if ((wp->workmode & WM_AUTOFORMAT) == 0) {
-		return 0;
-	}
+	FTABLE* fp = wp->fp;
 
 	LINE* lpscratch = ln_create(MAXLINELEN);
 	destbuf = lpscratch->lbuf;
 
 	rm = ww_getRightMargin(wp);
 	numberOfLinesHasChanged = 0;
-	lp = wp->caret.linePointer;
-	ln = caretLine = wp->caret.ln;
-	caretColumn = wp->caret.offset;
 
+	caretColumn = 0;
+	lplast = fp->lastl;
+	ln = caretLine = wp->caret.ln;
 	/* watch also previous lines */
-	while (lp->prev && !HARD_BREAK(lp->prev)) {
-		lp = lp->prev;
-		ln--;
+	BOOL bStopAfterParagraph = FALSE;
+	if (nRange == RNG_LINE || nRange == RNG_CHAPTER || nRange == RNG_FROMCURS) {
+		lp = wp->caret.linePointer;
+		caretColumn = wp->caret.offset;
+		while (lp->prev && !HARD_BREAK(lp->prev)) {
+			lp = lp->prev;
+			ln--;
+		}
+		bStopAfterParagraph = TRUE;
+	} else if (nRange == RNG_BLOCK) {
+		if (!wp->blstart || !wp->blend) {
+			return 0;
+		}
+		lp = wp->blstart->m_linePointer;
+		ln = wp->blstart->m_line;
+		lplast = wp->blend->m_linePointer;
+	} else if (nRange == RNG_GLOBAL) {
+		lp = fp->firstl;
+		ln = 0;
 	}
 
 	while (lp != 0) {
 
-		if (edit_findWrappingPosition(wp, lp,-1,&wstart,rm) && wstart < lp->len) {
+		if (edit_findWrappingPosition(wp, lp, -1, &wstart, rm) && wstart < lp->len) {
 			/*
 			 * if next line is empty, take same indent as current line
 			 */
@@ -574,18 +587,18 @@ static int edit_autoFormat(WINFO *wp)
 			indent = caret_lineOffset2screen(wp, &(CARET) { lpnext, indent});
 
 			/* start of next word after word position defined:
-			   -> actual line too long 
+			   -> actual line too long
 			 */
 			ln_markModified(lp);
-			if ((lp = ln_break(fp,lp,wstart)) == 0L ||
-			    (lp = ln_insertIndent(wp,lp,indent,&col)) == 0)
+			if ((lp = ln_break(fp, lp, wstart)) == 0L ||
+				(lp = ln_insertIndent(wp, lp, indent, &col)) == 0)
 				break;
 			lp->prev->lflg |= LNNOCR;
 
 			/* Cursor Position affected ? */
 			if (ln < caretLine || (ln == caretLine && caretColumn >= wstart)) {
 				if (ln == caretLine && caretColumn >= wstart) {
-					caretColumn = indent+caretColumn - wstart;
+					caretColumn = indent + caretColumn - wstart;
 				}
 				caretLine++;
 			}
@@ -593,33 +606,42 @@ static int edit_autoFormat(WINFO *wp)
 
 			ln_markModified(lp);
 			numberOfLinesHasChanged++;
-	D_EBUG("!WRAPPED");
+			D_EBUG("!WRAPPED");
 			continue;
 		} else {
 
 			modified = 0;
-			memmove(destbuf,lp->lbuf,lp->len);
+			memmove(destbuf, lp->lbuf, lp->len);
 			desti = lp->len;
 
-	join_next_words:
-
-			if (desti > 0 && !string_isSpace(lp->lbuf[desti-1])) {
+join_next_words:
+			if (desti > 0 && !string_isSpace(lp->lbuf[desti - 1])) {
 				destbuf[desti++] = ' ';
 			}
-			if (HARD_BREAK(lp))
+			if (bStopAfterParagraph && HARD_BREAK(lp))
 				break;
+			if (lp == lplast) {
+				break;
+			}
 			lpnext = lp->next;
-			if (lpnext == fp->lastl)
-				break;
+			if (lpnext->len == 0 && !bStopAfterParagraph) {
+				if (lpnext == lplast) {
+					break;
+				}
+				lpnext = lpnext->next;
+				if (lpnext == lplast) {
+					break;
+				}
+			}
 
 			/* find out how many words we may steal from next line */
 			sourcebuf = lpnext->lbuf;
-			lpos = indent = string_countSpacesIn(sourcebuf,lpnext->len);
+			lpos = indent = string_countSpacesIn(sourcebuf, lpnext->len);
 			wend = 0;
 			di = desti;
 			do {
 				/* scan next word */
-				while(lpos < lpnext->len) {
+				while (lpos < lpnext->len) {
 					if (string_isSpace(c = sourcebuf[lpos++])) {
 						lpos--;
 						break;
@@ -638,12 +660,12 @@ static int edit_autoFormat(WINFO *wp)
 				while (lpos < lpnext->len) {
 					if (!string_isSpace(c = sourcebuf[lpos++])) {
 						lpos--;
-						break;			
+						break;
 					}
 					destbuf[di++] = c;
 				}
 				wstart = lpos;
-			} while(lpos < lpnext->len);
+			} while (lpos < lpnext->len);
 
 			/* some words fit */
 			if (wend > 0) {
@@ -651,24 +673,27 @@ static int edit_autoFormat(WINFO *wp)
 				/* Cursor Position affected ? */
 				if (ln + 1 < caretLine) {
 					caretLine--;
-				} else if (ln + 1 == caretLine) {
+				}
+				else if (ln + 1 == caretLine) {
 					if (caretColumn < wstart) {
-						caretColumn += (lp->len-indent);
+						caretColumn += (lp->len - indent);
 						caretLine--;
-					} else {
+					}
+					else {
 						if (caretColumn > wstart) {
-							caretColumn -= (wstart-indent);
-						} else {
+							caretColumn -= (wstart - indent);
+						}
+						else {
 							caretColumn = indent;
 						}
 					}
 				}
 
-				if ((lp = ln_modify(fp,lp,lp->len,desti)) == 0) {
+				if ((lp = ln_modify(fp, lp, lp->len, desti)) == 0) {
 					break;
 				}
 				render_repaintLine(fp, lp);
-				memmove(lp->lbuf,destbuf,desti);
+				memmove(lp->lbuf, destbuf, desti);
 				ln_markModified(lp);
 				modified = 1;
 
@@ -676,23 +701,24 @@ static int edit_autoFormat(WINFO *wp)
 
 				if (wstart >= lpnext->len) {
 					/* the whole line was appended */
-					lp->lflg = (lp->lflg & ~(LNNOTERM|LNNOCR))|
-							 (lpnext->lflg & (LNNOTERM|LNNOCR));
+					lp->lflg = (lp->lflg & ~(LNNOTERM | LNNOCR)) |
+						(lpnext->lflg & (LNNOTERM | LNNOCR));
 					if (!ln_delete(fp, lpnext)) {
 						break;
 					}
 					numberOfLinesHasChanged++;
-	D_EBUG("!DELETED");
+					D_EBUG("!DELETED");
 
 					/* look for more */
 					goto join_next_words;
-				} else {
+				}
+				else {
 					if ((lpnext = ln_modify(fp, lpnext, wstart, indent)) == 0) {
 						break;
 					}
 					ln_markModified(lp);
 					lp = lpnext->prev;
-	D_EBUG("!JOINED WORDS");
+					D_EBUG("!JOINED WORDS");
 				}
 			}
 		}
@@ -709,17 +735,28 @@ static int edit_autoFormat(WINFO *wp)
 	if (lp1->prev)
 		lp1 = lp1->prev;
 
-	ln_removeFlag(lp1,lp,LNMODIFIED);
+	ln_removeFlag(lp1, lp, LNMODIFIED);
 
 	long nlines = wp->renderer->r_calculateMaxLine(wp);
 	if (caretLine >= nlines) {
-		caretLine = nlines-1;
+		caretLine = nlines - 1;
 		caretColumn = lp1->len;
 	}
 
-	caret_placeCursorInCurrentFile(wp, caretLine,caretColumn);
+	caret_placeCursorInCurrentFile(wp, caretLine, caretColumn);
 	free(lpscratch);
 	return 1;
+}
+
+/*--------------------------------------------------------------------------
+ * edit_autoFormat()
+ */
+static int edit_autoFormat(WINFO *wp)
+{
+	if ((wp->workmode & WM_AUTOFORMAT) == 0) {
+		return 0;
+	}
+	return edit_autoFormatRange(wp, RNG_LINE);
 }
 
 /*--------------------------------------------------------------------------

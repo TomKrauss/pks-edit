@@ -309,6 +309,9 @@
     <ClCompile Include="Evaluator.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MarkdownRenderer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">

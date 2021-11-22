@@ -113,6 +113,12 @@ extern HBRUSH theme_getDialogLightBackgroundBrush();
  */
 extern void theme_prepareChildrenForDarkmode(HWND hParent);
 
+/*
+ * Set the default text colors for the given theme.
+ */
+extern void font_setDefaultTextColors(HDC hdc, THEME_DATA* pTheme);
+
+
 #define THEMES_H
 
 #endif // !THEMES_H

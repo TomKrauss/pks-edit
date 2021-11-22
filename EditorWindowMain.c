@@ -550,17 +550,34 @@ static RENDERER _asciiRenderer = {
 	caret_updateDueToMouseClick,
 	ww_screenOffsetToBuffer,
 	NULL,
+	NULL,
 	ww_modelChanged
 };
+
+/*
+ * Destroy the data allocated privately by the renderer.
+ */
+static void ww_destroyRendererData(WINFO* wp) {
+	if (wp->r_data) {
+		if (wp->renderer->r_destroy) {
+			wp->renderer->r_destroy(wp);
+		}
+		else {
+			free(wp->r_data);
+		}
+		wp->r_data = NULL;
+	}
+}
 
 /*
  * The display / workmode of a window has changed - update appropriately.
  */
 void ww_modeChanged(WINFO* wp) {
-	wp->renderer = (wp->dispmode & SHOWHEX) ? hex_getRenderer() : &_asciiRenderer;
-	if (wp->r_data) {
-		free(wp->r_data);
-		wp->r_data = NULL;
+	ww_destroyRendererData(wp);
+	if (wp->dispmode & SHOWMARKDOWN) {
+		wp->renderer = mdr_getRenderer();
+	} else {
+		wp->renderer = (wp->dispmode & SHOWHEX) ? hex_getRenderer() : &_asciiRenderer;
 	}
 	if (wp->renderer->r_create) {
 		wp->r_data = wp->renderer->r_create(wp);
@@ -827,10 +844,7 @@ void ww_destroy(WINFO *wp) {
 	if (wp->highlighter) {
 		highlight_destroy(wp->highlighter);
 	}
-	if (wp->r_data) {
-		free(wp->r_data);
-		wp->r_data = NULL;
-	}
+	ww_destroyRendererData(wp);
 	ll_destroy((LINKED_LIST**)&wp->fmark, (int (*)(void* elem))0);
 	wp->blstart = 0;
 	wp->blend = 0;

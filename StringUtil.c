@@ -328,6 +328,13 @@ void stringbuf_appendString(STRING_BUF* pBuf, unsigned char* pszString) {
 }
 
 /*
+ * Returns the number of characters in the string buffer. 
+ */
+size_t stringbuf_size(STRING_BUF* pBuf) {
+	return pBuf->sb_current - pBuf->sb_string;
+}
+
+/*
  * Destroy a string buffer.
  */
 void stringbuf_destroy(STRING_BUF* pBuf) {

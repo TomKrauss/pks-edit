@@ -23,11 +23,12 @@
 /*----- display modes --------------*/
 
 #define	SHOWCONTROL		            0x1
-#define	SHOWCARET_PRESERVE_COLUMN		            0x2
+#define	SHOWCARET_PRESERVE_COLUMN	0x2
 #define	SHOWHEX			            0x4
 #define	SHOWRULER			        0x8
 #define	SHOWHIDEHSLIDER	            0x100
 #define	SHOWHIDEVSLIDER	            0x200
+#define SHOWMARKDOWN                0x400
 #define	SHOWLINENUMBERS		        0x800
 #define	SHOWCARET_LINE_HIGHLIGHT	0x1000
 #define	SHOW_SYNTAX_HIGHLIGHT       0x2000
@@ -126,6 +127,8 @@ typedef int (*SCREEN_OFFSET_TO_BUFFER_FUNCTION)(WINFO* wp, long screenLn, long s
 
 typedef void* (*RENDERER_CREATE)(WINFO* wp);
 
+typedef void (*RENDERER_DESTROY)(WINFO* wp);
+
 typedef struct tagRENDERER {
     const RENDER_LINE_FUNCTION r_renderLine;
     const RENDER_PAGE_FUNCTION r_renderPage;
@@ -136,6 +139,7 @@ typedef struct tagRENDERER {
     const CARET_MOUSE_CLICKED_FUNCTION r_placeCaretAfterClick;
     const SCREEN_OFFSET_TO_BUFFER_FUNCTION r_screenToBuffer;      // Responsible for translating logical screen coordinates (line and column on the screen) to buffer pointers.
     const RENDERER_CREATE r_create;                               // Called, when the renderer is created. Returns the internal data structure r_data. May be null.
+    const RENDERER_DESTROY r_destroy;                             // Called when the renderer is destroy. Frees the internal data structure r_data. If null, free is called by default to release the structure.
     const void (*r_modelChanged)(WINFO* wp, MODEL_CHANGE* pMC);   // The method to invoke, when the model changes.
 } RENDERER;
 
@@ -566,6 +570,11 @@ extern void ww_releaseComparisonLink(WINFO* wp, BOOL bDetachSource);
  * Returns a hex renderer.
  */
 extern RENDERER* hex_getRenderer();
+
+/*
+ * Returns a markdown renderer.
+ */
+extern RENDERER* mdr_getRenderer();
 
 /*------------------------------------------------------------
  * sl_size()

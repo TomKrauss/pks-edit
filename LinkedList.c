@@ -96,7 +96,7 @@ int ll_moveElementToFront(LINKED_LIST**pointerLinkedList, void *elem) {
 
 /*--------------------------------------------------------------------------
  * ll_insert()
- * insert an element with the given size into a linked list. The head of the list
+ * insert an element with the given size as the first element into a linked list. The head of the list
  * will be updated to point to the new element and existing elements will be pushed back.
  */
 void *ll_insert(void **pointerLinkedList,long size) {
@@ -107,6 +107,29 @@ void *ll_insert(void **pointerLinkedList,long size) {
 	}
 	lp->next = *pointerLinkedList;
 	*pointerLinkedList = lp;
+	return lp;
+}
+
+/*--------------------------------------------------------------------------
+ * ll_append()
+ * insert an element with the given size as the last element into a linked list. 
+ */
+void* ll_append(void** pointerLinkedList, long size) {
+	LINKED_LIST* lp;
+	LINKED_LIST* lpAt;
+
+	if ((lp = calloc(1, (size_t)size)) == 0) {
+		return 0;
+	}
+	lpAt = *pointerLinkedList;
+	if (!lpAt) {
+		*pointerLinkedList = lp;
+		return lp;
+	}
+	while (lpAt->next) {
+		lpAt = lpAt->next;
+	}
+	lpAt->next = lp;
 	return lp;
 }
 

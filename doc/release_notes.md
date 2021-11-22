@@ -1,31 +1,35 @@
 # PKS Edit
 
-## Release Notes
+This file contains the release notes for the latest **PKS Edit** releases.
+
+--- 
 
 ### 2.1.0
 
 #### New
 - PKS Edit does not use an out-dated MDI style user interface any more, but manages its windows now in tabs which can be attached
   to resizable docks. Docking positions are persisted and restored, when PKS Edit will be opened again. Tabs can display the full
-  filename path or can be displayed in "compact mode" (see layout options), where only the filename is being displayed.
-- PKS Edit support now storing backup files in its "temp path" (new option "Place backup files in autosave directory"). Doing
-  so has the disadvantage, that two files named c:\temp1\x.c and c:\temp2\x.c will create the same temp file having last one saved
+  filename path or can be displayed in `compact mode` (see layout options), where only the filename is being displayed.
+- PKS Edit support now storing backup files in its `temp path` (new option `Place backup files in autosave directory`). Doing
+  so has the disadvantage, that two files named `c:\temp1\x.c` and `c:\temp2\x.c` will create the same temp file having last one saved
   override the backup file created first. An advantage of using this option is, that working directories are not "polluted" by backup files.
 - One may now save a file in encrypted mode by selecting the corresponding checkbox in the Save As dialog. PKS Edit will automatically
-  recognize now encrypted files (indepentend of their file extension) and will ask for the password to de-crypt encrypted files.
-- PKS Edit supports now a preliminary "hex editor" mode to display the current file in an hex editor fashion. Editing is not yet
+  recognize now encrypted files (independent of their file extension) and will ask for the password to de-crypt encrypted files.
+- PKS Edit supports now a preliminary `hex editor mode` to display the current file in an hex editor fashion. Editing is not yet
   correctly supported, but planned for later releases. PKS Edit will now by default open binary files in hex editor mode.
-- The new "Watch Log File" mode can be used to edit log files and have them update their view and scroll to the end, when new log entries
-  are added (seee Linux tail -f). In this mode editing the file is not possible - it is read-only in this case to avoid concurrent external
+- PKS Edit also supports a new preliminary `wysiwyg markdown mode` now, which allows a preview on files written in markdown (.md) format.
+- The new **Watch Log File** mode can be used to edit log files and have them update their view and scroll to the end, when new log entries
+  are added (seee Linux `tail -f`). In this mode editing the file is not possible - it is read-only in this case to avoid concurrent external
   and internal changes.
 - One can now move the current selection (or - if no selection exists - current line) up and down using Alt+UP and Alt+DOWN respectively.
 - Accessing copying and pasting to and from named buffers was made more accessible. Operations with named buffers are now available
   through the extended edit menu. The PKS Edit clipboard list may now also save a history of all clipboard contents created during
   a PKS Edit session (currently only privately created clipboards are considered). To enable the clipboard history, you must set
-  the corresponding configuration option in the PKS Edit configuration in the "Autosave" settings tab.
+  the corresponding configuration option in the PKS Edit configuration in the `Autosave` settings tab.
 - PKS Edit supports now the evaluation of either the current line or the current selection and selected grammars. For
   now only PKS macro code evaluation is supported, but we plan to support evaluation of other syntax as well.
 - PKS Edit supports now switching between fullscreen and normal mode.
+
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
@@ -98,7 +102,7 @@
 ### Fixes
 - A crash in Find & Replace was fixed, which could happen, if a wrong syntax for replacement (unknown capturing group) was used.
 - A crash was fixed with redo: if no redo was available, the attempt to do a redo could result in a crash.
-- A bug was fixed in the macro compiler causing it to fail to recognize pre-defined ENUM constants (e.g. in CaretMove(MOT_SINGLE) the string MOT_SINGLE was
+- A bug was fixed in the macro compiler causing it to fail to recognize pre-defined ENUM constants (e.g. in `CaretMove(MOT_SINGLE)` the string `MOT_SINGLE` was
   not properly recognized).
 - Case ignore searches with umlauts did not work in some cases (depending on character class definitions in grammar).
 
@@ -129,13 +133,13 @@
   are provided (C/C++, Java, Typescript, Dart, JSON, Shell, Batch-Files)
 - Zooming in and out of the current text window works now by pressing Ctrl+ and Ctrl- or by using Ctrl+Mousewheel.
 - PKS Edit supports hyperlink navigation, where the syntax for detecting hyperlinks is defined in the grammar file. Hyperlinking
-  may include opening a linked file (e.g. #import "myfile.h" in a C-source file), where linked files are looked up on an
-  include path (by default "include;inc" - can be defined in an environment variable PKS_INCLUDE_PATH) and/or navigation to
+  may include opening a linked file (e.g. `#import "myfile.h"` in a C-source file), where linked files are looked up on an
+  include path (by default "include;inc" - can be defined in an environment variable `PKS_INCLUDE_PATH`) and/or navigation to
   a URL to open in a browser.
 - Matching brackets is grammar dependent now.
 - Ctags support was updated to correctly support the newest default format as used by the Universal Ctags program.
 - We started to finally implement an English version of PKS Edit. Language dependent files have not yet been all translated.
-  In order to force PKS-Edit to using English language resources, one can add to "Language=en-US" to the [desk] section
+  In order to force PKS-Edit to using English language resources, one can add to `Language=en-US` to the [desk] section
   of pksedit.ini.
 
 #### Fixed
@@ -168,13 +172,13 @@
 - The configuration of document types is now placed in a more modern JSON format file (pks_sys\pksconfig.json) and
   is not any longer in a non editable binary set of .lin-files. Changes to the editor configuration are always
   persisted right away in the corresponding config file.
-- A new option "Ignore Binary Files" was added to the find in files dialog, allowing to easily exclude
+- A new option `Ignore Binary Files` was added to the find in files dialog, allowing to easily exclude
   unwanted matches.
-- A new option "Delete multiple spaces" was added, which better supports "space indentation mode" in that
+- A new option `Delete multiple spaces` was added, which better supports `space indentation mode` in that
   during editing the editor handles spaces inserted instead of tabs like a tab.
 - The find in files dialog now remembers the file name patterns for the next invocation.
-- A new "incremental search" field was added to the toolbar area allowing to type in text to find in the current file.
-- A new option "maximumNumberOfOpenWindows" was added to allow to recycle windows, when too many windows are opened.
+- A new `incremental search` field was added to the toolbar area allowing to type in text to find in the current file.
+- A new option `maximumNumberOfOpenWindows` was added to allow to recycle windows, when too many windows are opened.
 - One can open multiple windows to edit one file now.
 
 #### Improved

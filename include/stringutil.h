@@ -192,6 +192,11 @@ extern void stringbuf_appendChar(STRING_BUF* pBuf, unsigned char c);
 extern void stringbuf_appendString(STRING_BUF* pBuf, unsigned char * pszString);
 
 /*
+ * Returns the number of characters in the string buffer.
+ */
+extern size_t stringbuf_size(STRING_BUF* pBuf);
+
+/*
  * Destroy a string buffer.
  */
 extern void stringbuf_destroy(STRING_BUF* pBuf);

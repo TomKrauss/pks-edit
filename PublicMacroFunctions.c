@@ -1238,6 +1238,7 @@ int dlg_configureEditorModes(void) {
 		IDD_OPT1,		SHOWCONTROL,		&dispmode,
 		IDD_OPT4,		SHOWHEX,			&dispmode,
 		IDD_OPT5,		SHOWRULER,			&dispmode,
+		IDD_OPT6,		SHOWMARKDOWN,		&dispmode,
 		IDD_OPT7,		SHOW_SYNTAX_HIGHLIGHT,& dispmode,
 		IDD_OPT8,		SHOWHIDEVSLIDER,	&dispmode,
 		IDD_OPT9,		SHOWHIDEHSLIDER,	&dispmode,

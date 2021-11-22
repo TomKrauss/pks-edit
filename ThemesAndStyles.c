@@ -401,6 +401,22 @@ HFONT theme_createDialogFont(int nWeight) {
 	return font_createFontHandle(pTheme->th_fontName, pTheme->th_fontSize, 0, nWeight);
 }
 
+/*
+ * Set the default text colors for the given theme.
+ */
+void font_setDefaultTextColors(HDC hdc, THEME_DATA* pTheme) {
+	EDTEXTSTYLE* pStyle = font_getTextStyleForIndex(pTheme, FS_NORMAL);
+
+	SetTextColor(hdc, pStyle->fgcolor);
+	if (pStyle->bgcolor != -1) {
+		SetBkColor(hdc, pStyle->bgcolor);
+		SetBkMode(hdc, OPAQUE);
+	}
+	else {
+		SetBkMode(hdc, TRANSPARENT);
+	}
+}
+
 /*------------------------------------------------------------
  * font_selectFontStyle()
  * select a font and return handle to old Font.

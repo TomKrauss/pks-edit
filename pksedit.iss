@@ -66,6 +66,7 @@ Source: "pks_sys\resource.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignore
 Source: "pks_sys\makefile.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\python.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\fitnesse.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
+Source: "pks_sys\integrity.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\pksedit.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\css.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\sql.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion

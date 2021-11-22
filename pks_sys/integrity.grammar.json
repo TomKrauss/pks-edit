@@ -1,0 +1,112 @@
+{
+  "grammars": [
+    {
+      "scopeName": "integrity",
+      "highlightBrackets": [
+        {
+          "left": "{",
+          "right": "}"
+        },
+        {
+          "left": "(",
+          "right": ")"
+        },
+        {
+          "left": "[",
+          "right": "]"
+        }
+      ],
+      "patterns": [
+        {
+          "begin": "/*",
+          "end": "*/",
+          "style": "comment",
+          "patterns": [
+            {
+              "match": "@[a-zA-Z]+",
+              "style": "bold-comment",
+              "name": "javadoc.tags"
+            }
+          ],
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "//.*",
+          "style": "sl-comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "--.*",
+          "style": "sl-comment2",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "\"(?:\\\"|[^\"])+?\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "keywords": [
+            "true",
+            "false",
+            "suite",
+            "suitedef",
+            "suiteend",
+            "single-run",
+            "packagedef",
+            "packageend",
+            "parameterized",
+            "private",
+            "package",
+            "checkpoint",
+            "calldef",
+            "call",
+            "assign",
+            "concludedby",
+            "constant",
+            "forkdef",
+            "gets",
+            "import",
+            "in",
+            "inexistent",
+            "initially",
+            "inlined",
+            "live",
+            "master",
+            "null",
+            "on",
+            "operationdef",
+            "progressing",
+            "requires",
+            "returns",
+            "tabletest",
+            "test",
+            "testdef",
+            "timeset",
+            "uses",
+            "variable",
+            "variantdef",
+            "with"
+          ],
+          "style": "keyword",
+          "name": "keyword.integrity"
+        },
+        {
+          "match": "----+",
+          "style": "annotation",
+          "name": "integrity.divider"
+        },
+        {
+          "match": "-\\>",
+          "style": "literal",
+          "name": "integrity.arrow"
+        },
+        {
+          "match": "'(?:\\\\'|\\\\u\\\\d+|[^'])'",
+          "style": "literal",
+          "name": "literal.char"
+        }
+      ]
+    }
+  ]
+}

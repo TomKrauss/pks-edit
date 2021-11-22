@@ -44,6 +44,12 @@ extern int ll_moveElementToFront(LINKED_LIST** pointerLinkedList, void* elem);
  */
 extern void* ll_insert(void** pointerLinkedList, long size);
 
+/*--------------------------------------------------------------------------
+ * ll_append()
+ * insert an element with the given size as the last element into a linked list.
+ */
+extern void* ll_append(void** pointerLinkedList, long size);
+
 /**
  * Add an element to the end of a linked list. If the linked list does not yet exist,
  * the HEAD pointer is updated to point to the new element.
