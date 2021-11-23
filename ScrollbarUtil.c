@@ -160,7 +160,7 @@ int sl_scrollwinrange(WINFO *wp, long *pDeltaY, long *pDeltaX)
 	} 
 
 	if (*pDeltaY || *pDeltaX) {
-		ww_setScrollCheckBounds(wp);
+		wp->renderer->r_scrollSetBounds(wp);
 		return 1;
 	}
 	return 0;
@@ -175,7 +175,7 @@ void sl_winchanged(WINFO *wp,long dy, long dx) {
 
 	if ((dy < my && dy > -my) && 
 	    (dx < mx && dx > -mx)) {
-		wt_scrollxy(wp,(int)dy,(int)dx);
+		wp->renderer->r_scroll(wp,(int)dy,(int)dx);
 	} else {
 		if (wp->lineNumbers_handle && dy != 0) {
 			win_sendRedrawToWindow(wp->lineNumbers_handle);

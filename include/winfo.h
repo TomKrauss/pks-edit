@@ -101,6 +101,12 @@ typedef void (*RENDER_PAGE_FUNCTION)(RENDER_CONTEXT* pRC, RECT* pBoundingRect, H
  */
 typedef int (*PLACE_CARET_FUNCTION)(WINFO* wp, long* ln, long offset, long* col, int updateVirtualOffset, int xDelta);
 
+/*
+ * Callback implemented by renderers to answer, whether a special "display mode" (SHOW...) flag is supported by this renderer.
+ * This will allow renderers to hide the line number area or the ruler area.
+ */
+typedef int (*RENDER_SUPPORTS_MODE)(int nMode);
+
 typedef long (*CALCULATE_MAX_LINE_FUNCTION)(WINFO* wp);
 
 /*
@@ -129,6 +135,10 @@ typedef void* (*RENDERER_CREATE)(WINFO* wp);
 
 typedef void (*RENDERER_DESTROY)(WINFO* wp);
 
+typedef void (*RENDERER_SCROLL)(WINFO* wp, int nlines, int ncolumns);
+
+typedef void (*RENDERER_SCROLL_SET_BOUNDS)(WINFO* wp);
+
 typedef struct tagRENDERER {
     const RENDER_LINE_FUNCTION r_renderLine;
     const RENDER_PAGE_FUNCTION r_renderPage;
@@ -140,6 +150,9 @@ typedef struct tagRENDERER {
     const SCREEN_OFFSET_TO_BUFFER_FUNCTION r_screenToBuffer;      // Responsible for translating logical screen coordinates (line and column on the screen) to buffer pointers.
     const RENDERER_CREATE r_create;                               // Called, when the renderer is created. Returns the internal data structure r_data. May be null.
     const RENDERER_DESTROY r_destroy;                             // Called when the renderer is destroy. Frees the internal data structure r_data. If null, free is called by default to release the structure.
+    const RENDERER_SCROLL r_scroll;
+    const RENDERER_SCROLL_SET_BOUNDS r_scrollSetBounds;           // Set the new minimum and maximum line and columns used when navigating the caret before scrolling.
+    const RENDER_SUPPORTS_MODE r_supportsMode;
     const void (*r_modelChanged)(WINFO* wp, MODEL_CHANGE* pMC);   // The method to invoke, when the model changes.
 } RENDERER;
 
@@ -422,7 +435,7 @@ extern void ww_setScrollCheckBounds(WINFO* wp);
  * Creates an editor window with the given title, instance count, creation parameter and window
  * placement.
  */
-extern HWND ww_createEditWindow(char* pTitle, int nCount, LPVOID lParam, const char* pszDockName);
+extern HWND ww_createEditWindow(char* pTitle, LPVOID lParam, const char* pszDockName);
 
 /*-----------------------------------------------------------
  * ww_setwindowtitle()

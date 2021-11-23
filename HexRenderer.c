@@ -380,6 +380,13 @@ static void hex_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 	pData->pByteOffsetCache = NULL;
 }
 
+static int hex_rendererSupportsMode(int aMode) {
+	if (aMode == SHOWCARET_LINE_HIGHLIGHT || aMode == SHOWRULER) {
+		return 0;
+	}
+	return 1;
+}
+
 static RENDERER _hexRenderer = {
 	render_singleLineOnDevice,
 	render_hexMode,
@@ -391,6 +398,9 @@ static RENDERER _hexRenderer = {
 	hex_screenOffsetToBuffer,
 	hex_allocData,
 	0,
+	wt_scrollxy,
+	ww_setScrollCheckBounds,
+	hex_rendererSupportsMode,
 	hex_modelChanged
 };
 

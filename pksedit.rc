@@ -235,7 +235,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Anzeige"
 FONT 8, "helv", 0, 0, 0x0
 BEGIN
-    GROUPBOX        " Anzeige",1000,14,9,315,74
+    GROUPBOX        " Anzeige",1000,14,9,315,83
     CONTROL         "&Controlzeichen",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,18,23,141,10
     CONTROL         "He&xadezimales editieren",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,33,141,10
     CONTROL         "L&ineal anzeigen",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,43,141,10
@@ -252,6 +252,7 @@ BEGIN
     EDITTEXT        IDD_INT2,144,123,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "&Zeilennummern anzeigen",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,53,141,10
     CONTROL         "&Zeile mit Cursor markieren",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,64,141,10
+    CONTROL         "W&ysiwyg Markdown Darstellung",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,75,141,10
 END
 
 DLGEXEC DIALOG 7, 68, 245, 134
@@ -809,6 +810,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Spe&ichern && beenden\a",     MSAVEALL
         MENUITEM "&Beenden\a",                  MEXIT
+        MENUITEM SEPARATOR
+        MENUITEM "HISTORY",                     IDM_HISTORY
     END
     POPUP "&Bearbeiten"
     BEGIN

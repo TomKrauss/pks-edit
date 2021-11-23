@@ -119,6 +119,10 @@ static int ruler_getLeft(WINFO* wp) {
 	return nWidth;
 }
 
+static int ww_useDisplayMode(WINFO* wp, int aFlag) {
+	return ((wp->dispmode & aFlag) && wp->renderer->r_supportsMode(aFlag));
+}
+
 /*-----------------------------------------------------------
  * ww_createSubWindows()
  */
@@ -145,7 +149,7 @@ static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, 
 	pRuler->y = 0;
 	pRuler->h = rh;
 
-	rulerVisible = (h > rh && (wp->dispmode & SHOWRULER));
+	rulerVisible = (h > rh && ww_useDisplayMode(wp, SHOWRULER));
 	if (!ww_createOrDestroyChildWindowOfEditor(hwnd,
 		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS,
 		rulerVisible, &wp->ru_handle, szRulerClass, pRuler, wp)) {
@@ -156,7 +160,7 @@ static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, 
 	pLineInfo->w = rLineNumbers;
 	pLineInfo->y = pRuler->h;
 	pLineInfo->h = h - pRuler->h;
-	lineNumbersVisible = (w > rLineNumbers && ((wp->dispmode & SHOWLINENUMBERS) || wp->comparisonLink != NULL));
+	lineNumbersVisible = (w > rLineNumbers && (ww_useDisplayMode(wp, SHOWLINENUMBERS) || wp->comparisonLink != NULL));
 	if (!ww_createOrDestroyChildWindowOfEditor(hwnd,
 		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
 		lineNumbersVisible, &wp->lineNumbers_handle, szLineNumbersClass, pLineInfo, wp)) {
@@ -191,26 +195,26 @@ static int ww_snapPositionToCharGrid(int x, int grid)
  * ww_updateRangeAndCheckBounds()
  * calculate scrollops checking bounds
  */
-static void ww_updateRangeAndCheckBounds(long min, int cheight, int h,
+static void ww_updateRangeAndCheckBounds(long nMinLineOrCol, int nDefaultDeltaXorY, int nSizeInPixels,
 				  long *max, long *maxcurs, long *mincurs, 
 				  int *scroll_d)
 {	int delta,d2;
 
-	if (!cheight)
+	if (!nDefaultDeltaXorY)
 		return;
-	*max = min + (delta = ww_snapPositionToCharGrid(h,cheight));
+	*max = nMinLineOrCol + (delta = ww_snapPositionToCharGrid(nSizeInPixels,nDefaultDeltaXorY));
 	delta /= 2;
-	d2 = (h % cheight) ? 2 : 1;
+	d2 = (nSizeInPixels % nDefaultDeltaXorY) ? 2 : 1;
 	delta -= d2;
 	if (delta < 0)
 		delta = 1;
 	if (*scroll_d > delta)
 		*scroll_d = delta;
-	*mincurs = (min < *scroll_d) ? min : min + *scroll_d;
+	*mincurs = (nMinLineOrCol < *scroll_d) ? nMinLineOrCol : nMinLineOrCol + *scroll_d;
 	*maxcurs = *max - (*scroll_d + d2);
 
      if (*mincurs+*scroll_d > *maxcurs) {
-     	*mincurs = *maxcurs = (*max-min) / 2;
+     	*mincurs = *maxcurs = (*max-nMinLineOrCol) / 2;
 		*scroll_d = 1;
 	}
 }
@@ -235,7 +239,7 @@ EXPORT void ww_setScrollCheckBounds(WINFO *wp)
  * Creates an editor window with the given title, instance count, creation parameter and a textual
  * hint defining the way the window is activated.
  */
-HWND ww_createEditWindow(char* pTitle, int nCount, LPVOID lParam, const char* pszHint) {
+HWND ww_createEditWindow(char* pTitle, LPVOID lParam, const char* pszHint) {
 	char szBuffer[128];
 	OPEN_HINT hHint;
 	if (pszHint == NULL) {
@@ -540,6 +544,10 @@ static int ww_calculateLongestLine(WINFO* wp) {
 }
 
 
+static int ascii_rendererSupportsMode(int aMode) {
+	return 1;
+}
+
 static RENDERER _asciiRenderer = {
 	render_singleLineOnDevice,
 	render_asciiMode,
@@ -551,6 +559,9 @@ static RENDERER _asciiRenderer = {
 	ww_screenOffsetToBuffer,
 	NULL,
 	NULL,
+	wt_scrollxy,
+	ww_setScrollCheckBounds,
+	ascii_rendererSupportsMode,
 	ww_modelChanged
 };
 
@@ -592,7 +603,7 @@ void ww_modeChanged(WINFO* wp) {
 	}
 
 	wp->scroll_dx = 4;
-	ww_setScrollCheckBounds(wp);
+	wp->renderer->r_scrollSetBounds(wp);
 	render_updateCaret(wp);
 }
 
@@ -1003,7 +1014,7 @@ WINFUNC EditWndProc(
  * ww_updateWindowBounds()
  */
 static int ww_updateWindowBounds(WINFO *wp, int w, int h) {
-	ww_setScrollCheckBounds(wp);
+	wp->renderer->r_scrollSetBounds(wp);
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"set window scroll bounds to (minln = %ld, mincol = %ld, maxln = %ld, maxcol = %ld)",
 		   wp->minln,wp->mincol,wp->maxln,wp->maxcol));
 	return 1;

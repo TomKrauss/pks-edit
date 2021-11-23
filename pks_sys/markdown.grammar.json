@@ -27,9 +27,14 @@
           "style": "bold-italic"
         },
         {
-          "match": "[\\*_][^* ,]+[\\*_]",
+          "match": "([\\*_]{2})[^*_]+\\1",
           "name": "markdown.bold",
           "style": "bold"
+        },
+        {
+          "match": "[\\*_][^*_]+[\\*_]",
+          "name": "markdown.italic",
+          "style": "italic"
         },
         {
           "match": "\\[[^]]+\\]",
@@ -46,11 +51,11 @@
           "name": "markdown.bullet",
           "style": "bold",
           "patterns": [
-              {
-                "match": "`[^`]+`",
-                "name": "markdown.code.bullet",
-                "style": "code"
-              }
+            {
+              "match": "`[^`]+`",
+              "name": "markdown.code.bullet",
+              "style": "code"
+            }
           ]
         },
         {

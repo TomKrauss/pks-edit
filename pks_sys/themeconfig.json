@@ -403,8 +403,7 @@
           "styleName": "default",
           "faceName": "Consolas",
           "size": -12,
-          "foregroundColor": "#dedede",
-          "weight": 400
+          "foregroundColor": "#dedede"
         },
         {
           "styleName": "control",
@@ -436,13 +435,13 @@
         },
         {
           "styleName": "annotation",
-          "weight": 700,
+          "weight": 800,
           "foregroundColor": "#00bbbb"
         },
         {
           "styleName": "bold",
-          "weight": 700,
-          "foregroundColor": "#FFFFA0"
+          "weight": 800,
+          "foregroundColor": "#efefef"
         },
         {
           "styleName": "regexp",

@@ -295,8 +295,8 @@ static int bl_cutOrCopyBlock(WINFO*wp, MARK *ms, MARK *me, int flg, PASTE *pp) {
 
 	if (bl_cut(&_p,ms->m_linePointer,me->m_linePointer,ms->m_column,me->m_column,0,colflg)) {
 
-//		if (!(flg & CUT_APPND))
-//			bl_free(pp);
+		if (!(flg & CUT_APPND))
+			bl_free(pp);
 
 		if (bl_isDefaultClipboard(pszId))
 			clp_setmine();
