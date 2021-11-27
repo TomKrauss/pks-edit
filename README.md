@@ -27,6 +27,26 @@ The editor contains only some basic features compared to modern text editors suc
 - support for themes - e.g. support for a dark mode theme.
 - docking windows UI
 
+## Support for Markdown Display
+
+These are two text paragraphs.
+
+Here is the second paragraph. It contains a long wrapped text. Note, that *emphasis* and __boldness__ are supported as well as a `code` 
+type formatting of text. The markdown also may contain [links](doc/markdown.md).
+
+> This is a block quote
+>> one level deeper
+> Level 1
+
++ Here is an ordered list
+++ with a nested list sub-element
++++ three level deep list sub-element
++ Another top level-element
+
+1. Ordered lists
+2. Unordered lists
+3. etc...
+
 ## Installing and Using PKS Edit
 
 To install **PKS-Edit**, you may use the provided `INNO` Setup based installer.
