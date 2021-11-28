@@ -328,6 +328,16 @@ void stringbuf_appendString(STRING_BUF* pBuf, unsigned char* pszString) {
 }
 
 /*
+ * Append a given number of bytes of a string to a string buffer.
+ */
+void stringbuf_appendStringLength(STRING_BUF* pBuf, unsigned char* pszString, size_t nAdditional) {
+	stringbuf_accomodateSpace(pBuf, nAdditional);
+	strncpy(pBuf->sb_current, pszString, nAdditional);
+	pBuf->sb_current[nAdditional] = 0;
+	pBuf->sb_current += nAdditional;
+}
+
+/*
  * Returns the number of characters in the string buffer. 
  */
 size_t stringbuf_size(STRING_BUF* pBuf) {

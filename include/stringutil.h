@@ -192,6 +192,11 @@ extern void stringbuf_appendChar(STRING_BUF* pBuf, unsigned char c);
 extern void stringbuf_appendString(STRING_BUF* pBuf, unsigned char * pszString);
 
 /*
+ * Append a given number of bytes of a string to a string buffer.
+ */
+extern void stringbuf_appendStringLength(STRING_BUF* pBuf, unsigned char* pszString, size_t nAdditional);
+
+/*
  * Returns the number of characters in the string buffer.
  */
 extern size_t stringbuf_size(STRING_BUF* pBuf);

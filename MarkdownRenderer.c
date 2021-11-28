@@ -43,6 +43,7 @@ typedef struct tagFONT_ATTRIBUTES {
 	int		size;
 	int		underline;
 	int		weight;
+	int		lineBreak;
 	COLORREF bgColor;
 	COLORREF fgColor;
 	int		fixedFont;
@@ -66,7 +67,8 @@ typedef enum {
 	MET_ORDERED_LIST, 
 	MET_UNORDERED_LIST, 
 	MET_IMAGE, 
-	MET_NORMAL, 
+	MET_NORMAL,
+	MET_FENCED_CODE_BLOCK,
 	MET_HEADER, 
 	MET_HORIZONTAL_RULE 
 } MDR_ELEMENT_TYPE;
@@ -95,6 +97,7 @@ typedef struct tagMDR_ELEMENT_FORMAT {
 	int	mef_marginRight;
 	int mef_charHeight;
 	int mef_charWeight;
+	int mef_fixedFont;
 } MDR_ELEMENT_FORMAT;
 
 #define ATTR_EMPHASIS	0x1
@@ -102,9 +105,14 @@ typedef struct tagMDR_ELEMENT_FORMAT {
 #define ATTR_STRIKE		0x4
 #define ATTR_CODE		0x8
 #define ATTR_LINK		0x10
+#define ATTR_LINE_BREAK 0x20
 
 static MDR_ELEMENT_FORMAT _formatText = {
 	0, PARAGRAPH_OFFSET, 10, 20, 14, FW_NORMAL
+};
+
+static MDR_ELEMENT_FORMAT _formatFenced = {
+	PARAGRAPH_OFFSET, PARAGRAPH_OFFSET, 20, 20, 14, FW_BOLD, 1
 };
 
 static MDR_ELEMENT_FORMAT _formatBlockQuote = {
@@ -228,6 +236,15 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 		char szBuf[20];
 		sprintf(szBuf, "%ld.", pPart->rvp_number);
 		TextOut(hdc, x - 20, y, szBuf, (int)strlen(szBuf));
+	} else if (pPart->rvp_type == MET_FENCED_CODE_BLOCK) {
+		TEXTMETRIC tm;
+		GetTextMetrics(hdc, &tm);
+		RECT r;
+		r.top = pBounds->top;
+		r.bottom = y + (pPart->rvp_number * tm.tmHeight) + pPart->rvp_marginBottom;
+		r.left = x-10;
+		r.right = nRight;
+		FillRect(hdc, &r, theme_getDialogLightBackgroundBrush());
 	}
 	while (nLen > 0 && string_isSpace(pTF->tf_text[nOffs])) {
 		nOffs++;
@@ -277,7 +294,12 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 				nLen--;
 			}
 		} else {
-			x += size.cx;
+			if (pTR->tr_attributes.lineBreak) {
+				x = pUsed->left;
+				y += nHeight;
+			} else {
+				x += size.cx;
+			}
 			nOffs += (int)nLen;
 			pTR = pTR->tr_next;
 			if (!pTR) {
@@ -299,7 +321,7 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 	DeleteObject(SelectObject(hdc, hOldFont));
 	pUsed->bottom = y + nHeight + pPart->rvp_marginTop + pPart->rvp_marginBottom;
 	if (pPart->rvp_type == MET_HEADER && pPart->rvp_level < 3) {
-		mdr_paintRule(hdc, pBounds->left + 10, pBounds->right - 10, pUsed->bottom - 5);
+		mdr_paintRule(hdc, pBounds->left + 10, pBounds->right - 10, pUsed->bottom - 15);
 	}
 }
 
@@ -376,6 +398,8 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 			mType = MET_ORDERED_LIST;
 			*pLevel = 1;
 		}
+	} else if (c == '`' && lp->len >= 3 && lp->lbuf[1] == c && lp->lbuf[2] == c) {
+		mType = MET_FENCED_CODE_BLOCK;
 	}
 
 	switch (mType) {
@@ -388,6 +412,8 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 		case 5: *pFormat = &_formatH5; break;
 		}
 		break;
+	case MET_FENCED_CODE_BLOCK:
+		*pFormat = &_formatFenced; break;
 	case MET_ORDERED_LIST:
 	case MET_UNORDERED_LIST: *pFormat = *pLevel == 1 ? &_formatListLevel1 : (*pLevel == 2 ? &_formatListLevel2 : &_formatListLevel3); break;
 	case MET_BLOCK_QUOTE: *pFormat = &_formatBlockQuote; break;
@@ -404,6 +430,7 @@ static TEXT_RUN* mdr_appendRun(RENDER_VIEW_PART* pPart, MDR_ELEMENT_FORMAT* pFor
 	pRun->tr_size = nSize;
 	pRun->tr_attributes.size = pFormat->mef_charHeight;
 	pRun->tr_attributes.weight = pFormat->mef_charWeight;
+	pRun->tr_attributes.fixedFont = pFormat->mef_fixedFont;
 	if (mAttrs & ATTR_CODE) {
 		pRun->tr_attributes.fixedFont = 1;
 		pRun->tr_attributes.bgColor = theme_getCurrent()->th_dialogLightBackground;
@@ -412,8 +439,7 @@ static TEXT_RUN* mdr_appendRun(RENDER_VIEW_PART* pPart, MDR_ELEMENT_FORMAT* pFor
 	}
 	if (mAttrs & ATTR_LINK) {
 		pRun->tr_attributes.underline = 1;
-		// TODO: derive from style
-		pRun->tr_attributes.fgColor = RGB(120,120,255);
+		pRun->tr_attributes.fgColor = theme_textStyleForeground("hyperlink", RGB(120, 120, 255));
 	} else {
 		pRun->tr_attributes.fgColor = NO_COLOR;
 	}
@@ -425,6 +451,9 @@ static TEXT_RUN* mdr_appendRun(RENDER_VIEW_PART* pPart, MDR_ELEMENT_FORMAT* pFor
 	}
 	if (mAttrs & ATTR_STRIKE) {
 		pRun->tr_attributes.strikeout = 1;
+	}
+	if (mAttrs & ATTR_LINE_BREAK) {
+		pRun->tr_attributes.lineBreak = 1;
 	}
 	return pRun;
 }
@@ -455,6 +484,30 @@ static char* mdr_parseLink(RENDER_VIEW_PART* pPart, LINE* lp, int *pTextEnd, int
 	}
 	return NULL;
 }
+
+/*
+ * Parse a fenced code block and add the runs to the view part.
+ */
+static LINE* mdr_parseFencedCodeBlock(RENDER_VIEW_PART* pPart, LINE* lp, STRING_BUF* pSB) {
+	size_t nLastOffset = 0;
+
+	while (lp) {
+		if (lp->len >= 3 && strncmp(lp->lbuf, "```", 3) == 0) {
+			return lp->next;
+		}
+		pPart->rvp_number++;
+		stringbuf_appendStringLength(pSB, lp->lbuf, lp->len);
+		size_t nSize = stringbuf_size(pSB) - nLastOffset;
+		mdr_appendRun(pPart, &_formatFenced, nSize, ATTR_LINE_BREAK);
+		nLastOffset += nSize;
+		lp = lp->next;
+	}
+	return lp;
+}
+
+/*
+ * Parse a top-level element to be rendered with a view part possibly containing nested formatting. 
+ */
 static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 	stringbuf_reset(pSB);
 	int nState = 0;
@@ -467,8 +520,11 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 	MDR_ELEMENT_TYPE mType = MET_NORMAL;
 	while (lp) {
 		BOOL bSkipped = FALSE;
+		char c = 0;
+		char lastC = 0;
 		for (int i = 0; i < lp->len; i++) {
-			char c = lp->lbuf[i];
+			lastC = c;
+			c = lp->lbuf[i];
 			if (nState <= 1 && string_isSpace(c)) {
 				continue;
 			}
@@ -487,6 +543,11 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 					pPart->rvp_number = nNumber;
 				}
 				pPart->rvp_level = nLevel;
+				if (mType == MET_FENCED_CODE_BLOCK) {
+					lp = mdr_parseFencedCodeBlock(pPart, lp->next, pSB);
+					nLastOffset = stringbuf_size(pSB);
+					goto outer;
+				}
 				if (mType != MET_NORMAL) {
 					nState = 1;
 					continue;
@@ -514,6 +575,7 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 					}
 				} else if (c == '~' && i < lp->len - 1 && lp->lbuf[i + 1] == c) {
 					nToggle = ATTR_STRIKE;
+					i++;
 				} else if (c == '`') {
 					nToggle = ATTR_CODE;
 				}
@@ -531,22 +593,51 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 				int nTextEnd;
 				char* pLink = mdr_parseLink(pPart, lp, &nTextEnd, &pos);
 				if (pLink != NULL) {
+					int nAttr = 0;
 					nSize = stringbuf_size(pSB) - nLastOffset;
 					mdr_appendRun(pPart, pFormat, nSize, mAttrs);
 					nLastOffset += nSize;
+					char c = lp->lbuf[nTextStart];
+					if (c == lp->lbuf[nTextEnd - 1]) {
+						if (c == '`') {
+							nAttr = ATTR_CODE;
+						} else if (c == '*' || c == '_') {
+							nAttr = ATTR_EMPHASIS;
+						}
+						if (nAttr) {
+							nTextStart++;
+							nTextEnd--;
+						}
+					} 
 					for (int j = nTextStart; j < nTextEnd; j++) {
 						stringbuf_appendChar(pSB, lp->lbuf[j]);
 					}
 					nSize = stringbuf_size(pSB) - nLastOffset;
-					TEXT_RUN* pRun = mdr_appendRun(pPart, pFormat, nSize, ATTR_LINK);
+					TEXT_RUN* pRun = mdr_appendRun(pPart, pFormat, nSize, nAttr|ATTR_LINK);
 					pRun->tr_image = bImage;
 					pRun->tr_link = pLink;
 					nLastOffset += nSize;
 					i = pos;
 					continue;
+				} 
+			} else if (c == '<') {
+				if (strncmp(&lp->lbuf[i], "<br>", 4) == 0) {
+					i += 3;
+					while (i < lp->len - 1 && lp->lbuf[i+1] == ' ') {
+						i++;
+					}
+					nSize = stringbuf_size(pSB) - nLastOffset;
+					mdr_appendRun(pPart, pFormat, nSize, mAttrs | ATTR_LINE_BREAK);
+					nLastOffset += nSize;
+					continue;
 				}
 			}
 			stringbuf_appendChar(pSB, c);
+		}
+		if (c == ' ' && lastC == ' ') {
+			nSize = stringbuf_size(pSB) - nLastOffset;
+			mdr_appendRun(pPart, pFormat, nSize, mAttrs|ATTR_LINE_BREAK);
+			nLastOffset += nSize;
 		}
 		lp = lp->next;
 		if (mdr_isTopLevelOrBreak(lp, mType, nLevel)) {
@@ -555,6 +646,7 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 		nState = 1;
 		stringbuf_appendChar(pSB, ' ');
 	}
+outer:
 	pPart->rvp_type = mType;
 	pPart->rvp_marginLeft = pFormat->mef_marginLeft;
 	pPart->rvp_marginTop = pFormat->mef_marginTop;

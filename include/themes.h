@@ -118,6 +118,11 @@ extern void theme_prepareChildrenForDarkmode(HWND hParent);
  */
 extern void font_setDefaultTextColors(HDC hdc, THEME_DATA* pTheme);
 
+/*
+ * Returns the foreground color of a text style with a given name in the current theme.
+ * If the style cannot be found a default value is returned.
+ */
+extern long theme_textStyleForeground(char* pszStylename, long lDefault);
 
 #define THEMES_H
 

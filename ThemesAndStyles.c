@@ -50,8 +50,8 @@
 #define RULER_BORDER_COLOR RGB(220,220,220)
 #define RULER_FOREROUND_COLOR RGB(140,140,140)
 #define RULER_BACKGROUND_COLOR RGB(248,248,248)
-#define MAIN_WINDOW_BACKGROUND_COLOR RGB(120, 255, 120)
-#define DIALOG_LIGHT_BACKGROUND_COLOR RGB(248,248,248)
+#define MAIN_WINDOW_BACKGROUND_COLOR RGB(120, 120, 120)
+#define DIALOG_LIGHT_BACKGROUND_COLOR RGB(228,228,228)
 
 extern HDC print_getPrinterDC(void);
 // forward decl.
@@ -203,8 +203,8 @@ static THEME_DATA defaultTheme = {
 	-1,
 	-1,
 	-1,
-	DIALOG_LIGHT_BACKGROUND_COLOR,
 	MAIN_WINDOW_BACKGROUND_COLOR,
+	DIALOG_LIGHT_BACKGROUND_COLOR,
 	"Helv",						// (T) use in dialogs.
 	8,
 	"Consolas",
@@ -1203,4 +1203,13 @@ void theme_prepareChildrenForDarkmode(HWND hParent) {
 	if (theme_getCurrent()->th_isDarkMode) {
 		EnumChildWindows(hParent, (WNDENUMPROC)theme_prepareControlsForDarkMode, 0);
 	}
+}
+
+/*
+ * Returns the foreground color of a text style with a given name in the current theme.
+ * If the style cannot be found a default value is returned.
+ */
+long theme_textStyleForeground(char* pszStylename, long lDefault) {
+	EDTEXTSTYLE* pStyle = ll_find((void*)theme_getCurrent()->th_styles, pszStylename);
+	return pStyle ? pStyle->fgcolor : lDefault;
 }

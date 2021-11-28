@@ -225,6 +225,7 @@
         "showRuler": true,
         "showLineNumbers": true,
         "showSyntaxHighlight": true,
+        "highlightCaretLine": true,
         "insertMode": true,
         "autoIndent": true,
         "smartSpaceDelete": true,
