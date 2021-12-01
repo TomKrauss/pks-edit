@@ -399,7 +399,8 @@ static RENDERER _hexRenderer = {
 	hex_allocData,
 	0,
 	wt_scrollxy,
-	ww_setScrollCheckBounds,
+	render_adjustScrollBounds,
+	NULL,
 	hex_rendererSupportsMode,
 	hex_modelChanged
 };

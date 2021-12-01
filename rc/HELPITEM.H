@@ -138,6 +138,7 @@
 
 #define	IDM_GOTO_PREVIOUS	214
 #define	IDM_GOTO_NEXT		215
+#define IDM_SHOW_WYSIWYG    216
 
 #define IDM_TOOLBAR			512
 

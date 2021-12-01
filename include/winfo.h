@@ -28,7 +28,7 @@
 #define	SHOWRULER			        0x8
 #define	SHOWHIDEHSLIDER	            0x100
 #define	SHOWHIDEVSLIDER	            0x200
-#define SHOWMARKDOWN                0x400
+#define SHOWWYSIWYG                0x400
 #define	SHOWLINENUMBERS		        0x800
 #define	SHOWCARET_LINE_HIGHLIGHT	0x1000
 #define	SHOW_SYNTAX_HIGHLIGHT       0x2000
@@ -137,7 +137,9 @@ typedef void (*RENDERER_DESTROY)(WINFO* wp);
 
 typedef void (*RENDERER_SCROLL)(WINFO* wp, int nlines, int ncolumns);
 
-typedef void (*RENDERER_SCROLL_SET_BOUNDS)(WINFO* wp);
+typedef int (*RENDERER_SCROLL_SET_BOUNDS)(WINFO* wp);
+
+typedef void (*RENDERER_CARET_UPDATE_UI)(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* pHeight);
 
 typedef struct tagRENDERER {
     const RENDER_LINE_FUNCTION r_renderLine;
@@ -151,7 +153,9 @@ typedef struct tagRENDERER {
     const RENDERER_CREATE r_create;                               // Called, when the renderer is created. Returns the internal data structure r_data. May be null.
     const RENDERER_DESTROY r_destroy;                             // Called when the renderer is destroy. Frees the internal data structure r_data. If null, free is called by default to release the structure.
     const RENDERER_SCROLL r_scroll;
-    const RENDERER_SCROLL_SET_BOUNDS r_scrollSetBounds;           // Set the new minimum and maximum line and columns used when navigating the caret before scrolling.
+    const RENDERER_SCROLL_SET_BOUNDS r_adjustScrollBounds;        // Set the new minimum and maximum line and columns used when navigating the caret if the 
+                                                                  // caret does not fit in the current window.
+    const RENDERER_CARET_UPDATE_UI r_updateCaretUI;               // Set x and y coordinates of the caret depending on the line and column.
     const RENDER_SUPPORTS_MODE r_supportsMode;
     const void (*r_modelChanged)(WINFO* wp, MODEL_CHANGE* pMC);   // The method to invoke, when the model changes.
 } RENDERER;
@@ -426,10 +430,11 @@ extern void render_repaintWindow(WINFO* wp);
 extern void render_repaintWindowLine(WINFO* wp, long ln);
 
 /*------------------------------------------------------------
- * ww_setScrollCheckBounds()
- * calculate scrollops checking bounds
+ * Check, whether the current caret lies within the visible range
+ * in the window and if not - adjust the bounds given by wp->minln and wp->maxln.
+ * Return true, if the bounds were adjusted.
  */
-extern void ww_setScrollCheckBounds(WINFO* wp);
+extern int render_adjustScrollBounds(WINFO* wp);
 
 /*
  * Creates an editor window with the given title, instance count, creation parameter and window
@@ -580,14 +585,14 @@ extern void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2);
 extern void ww_releaseComparisonLink(WINFO* wp, BOOL bDetachSource);
 
 /*
- * Returns a hex renderer.
+ * Register a renderer.
  */
-extern RENDERER* hex_getRenderer();
+extern void ww_registerRenderer(const char* pszName, RENDERER* pRenderer);
 
 /*
- * Returns a markdown renderer.
+ * Final cleanup of the editor window sub-system.
  */
-extern RENDERER* mdr_getRenderer();
+void ww_destroyAll();
 
 /*------------------------------------------------------------
  * sl_size()

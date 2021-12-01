@@ -24,9 +24,12 @@
 #include "editorfont.h"
 #include "stringutil.h"
 #include "themes.h"
+#include "pathname.h"
+#include "winutil.h"
 
 #define NO_COLOR			-1		// marker for no color defined
 #define PARAGRAPH_OFFSET	15		// offset in pixels between paragraph type elements.
+#define DEFAULT_LEFT_MARGIN	10		// offset of most elements to the left of the screen.
 
 static const char _escapedChars[] = "\\`*_{}[]<>()#+-.!|";
 
@@ -51,7 +54,8 @@ typedef struct tagFONT_ATTRIBUTES {
 
 typedef struct tagTEXT_RUN {
 	struct tagTEXT_RUN* tr_next;
-	BOOL tr_image;
+	BOOL tr_isImage;
+	HBITMAP tr_image;
 	char* tr_link;
 	size_t tr_size;
 	FONT_ATTRIBUTES tr_attributes;
@@ -81,6 +85,7 @@ struct tagRENDER_VIEW_PART {
 	int	rvp_marginBottom;
 	int	rvp_marginLeft;
 	int	rvp_marginRight;
+	RECT rvp_bounds;			// Bounds of an element excluding the margins.
 	MDR_ELEMENT_TYPE rvp_type;
 	long rvp_number;			// for numbered lists
 	int	rvp_level;				// for headers and lists - the level.
@@ -108,7 +113,7 @@ typedef struct tagMDR_ELEMENT_FORMAT {
 #define ATTR_LINE_BREAK 0x20
 
 static MDR_ELEMENT_FORMAT _formatText = {
-	0, PARAGRAPH_OFFSET, 10, 20, 14, FW_NORMAL
+	0, PARAGRAPH_OFFSET, DEFAULT_LEFT_MARGIN, 20, 14, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatFenced = {
@@ -132,27 +137,34 @@ static MDR_ELEMENT_FORMAT _formatListLevel3 = {
 };
 
 static MDR_ELEMENT_FORMAT _formatH1 = {
-	20, 14, 10, 20, 28, FW_BOLD
+	20, 14, DEFAULT_LEFT_MARGIN, 20, 28, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH2 = {
-	16, 10, 10, 20, 24, FW_BOLD
+	16, 10, DEFAULT_LEFT_MARGIN, 20, 24, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH3 = {
-	10, 5, 10, 20, 20, FW_BOLD
+	10, 5, DEFAULT_LEFT_MARGIN, 20, 20, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH4 = {
-	10, 3, 10, 20, 18, FW_BOLD
+	10, 3, DEFAULT_LEFT_MARGIN, 20, 18, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH5 = {
-	10, 3, 10, 20, 16, FW_BOLD
+	10, 3, DEFAULT_LEFT_MARGIN, 20, 16, FW_BOLD
+};
+
+static MDR_ELEMENT_FORMAT _formatH6 = {
+	10, 3, DEFAULT_LEFT_MARGIN, 20, 14, FW_BOLD
 };
 
 typedef struct tagMARKDOWN_RENDERER_DATA {
 	RENDER_VIEW_PART* md_pElements;	// The render view parts to be rendered
+	RECT md_lastBounds;
+	BOOL md_displayingEndOfFile;
+	long md_lastMinLn;
 	int md_nElementsPerPage;
 } MARKDOWN_RENDERER_DATA;
 
@@ -207,8 +219,40 @@ static void mdr_renderHorizontalRule(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc
 	pUsed->left = pBounds->left;
 	pUsed->bottom = pBounds->top + 10;
 	pUsed->right = pBounds->right;
+	memcpy(&pPart->rvp_bounds, pUsed, sizeof * pUsed);
 }
 
+/*
+ * Paint an image displayed in a markdown text.
+ */
+static void mdr_paintImage(WINFO* wp, HDC hdc, TEXT_RUN* pTR, int x, int y, SIZE* pSize) {
+	char szFilename[EDMAXPATHLEN];
+	if (!pTR->tr_image) {
+		FTABLE* fp = wp->fp;
+		string_splitFilename(fp->fname, szFilename, NULL);
+		string_concatPathAndFilename(szFilename, szFilename, pTR->tr_link);
+		pTR->tr_image = LoadImage(NULL, szFilename, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
+	}
+	if (pTR->tr_image) {
+		BITMAP          bitmap;
+		HGDIOBJ         oldBitmap;
+		HDC             hdcMem;
+		hdcMem = CreateCompatibleDC(hdc);
+		oldBitmap = SelectObject(hdcMem, pTR->tr_image);
+		GetObject(pTR->tr_image, sizeof(bitmap), &bitmap);
+		BitBlt(hdc, x, y, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
+
+		SelectObject(hdcMem, oldBitmap);
+		DeleteDC(hdcMem);
+		pSize->cx = bitmap.bmWidth;
+		pSize->cy = bitmap.bmHeight;
+	} else {
+		sprintf(szFilename, "Cannot load image %s", pTR->tr_link);
+		TextOut(hdc, x, y, szFilename, (int)strlen(szFilename));
+		pSize->cy = 20;
+		pSize->cx = 200;
+	}
+}
 /*
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
  */
@@ -250,37 +294,47 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 		nOffs++;
 		nLen--;
 	}
+	pPart->rvp_bounds.top = y;
 	while(pTR) {
 		SIZE size;
 		int nFit;
-		GetTextExtentExPoint(hdc, &pTF->tf_text[nOffs], (int)nLen, nRight - x, &nFit, 0 /* TODO: callback for measuring*/, &size);
-		if (size.cy > nHeight) {
-			nHeight = size.cy;
-		}
-		if (nFit < nLen) {
-			int nFindSpace = 0;
-			while (nFit + nFindSpace > 0 && !string_isSpace(pTF->tf_text[nOffs + nFit + nFindSpace])) {
-				nFindSpace--;
+		if (pTR->tr_isImage) {
+			mdr_paintImage(wp, hdc, pTR, x, y, &size);
+			if (size.cy > nHeight) {
+				nHeight = size.cy;
 			}
-			if (nFit + nFindSpace > 0) {
-				nFit += nFindSpace;
+			pPart->rvp_bounds.bottom = y + nHeight;
+		} else {
+			GetTextExtentExPoint(hdc, &pTF->tf_text[nOffs], (int)nLen, nRight - x, &nFit, 0 /* TODO: callback for measuring*/, &size);
+			if (size.cy > nHeight) {
+				nHeight = size.cy;
+			}
+			pPart->rvp_bounds.bottom = y + nHeight;
+			if (nFit < nLen) {
+				int nFindSpace = 0;
+				while (nFit + nFindSpace > 0 && !string_isSpace(pTF->tf_text[nOffs + nFit + nFindSpace])) {
+					nFindSpace--;
+				}
+				if (nFit + nFindSpace > 0) {
+					nFit += nFindSpace;
+				}
+			}
+			int nDelta = nHeight > size.cy ? (nHeight - size.cy) / 2 : 0;
+			TextOut(hdc, x, y + nDelta, &pTF->tf_text[nOffs], nFit);
+			if (pPart->rvp_type == MET_BLOCK_QUOTE) {
+				RECT leftRect;
+				leftRect.top = y;
+				leftRect.bottom = y + nHeight;
+				leftRect.left = pBounds->left + _formatText.mef_marginLeft;
+				leftRect.right = leftRect.left + 5;
+				for (int i = 0; i < pPart->rvp_level; i++) {
+					FillRect(hdc, &leftRect, theme_getDialogLightBackgroundBrush());
+					leftRect.left += 10;
+					leftRect.right += 10;
+				}
 			}
 		}
-		int nDelta = nHeight > size.cy ? (nHeight - size.cy) / 2 : 0;
-		TextOut(hdc, x, y+nDelta, &pTF->tf_text[nOffs], nFit);
-		if (pPart->rvp_type == MET_BLOCK_QUOTE) {
-			RECT leftRect;
-			leftRect.top = y;
-			leftRect.bottom = y + nHeight;
-			leftRect.left = pBounds->left + _formatText.mef_marginLeft;
-			leftRect.right = leftRect.left + 5;
-			for (int i = 0; i < pPart->rvp_level; i++) {
-				FillRect(hdc, &leftRect, theme_getDialogLightBackgroundBrush());
-				leftRect.left += 10;
-				leftRect.right += 10;
-			}
-		}
-		if (nFit < nLen) {
+		if (!pTR->tr_isImage && nFit < nLen && nFit > 0) {
 			nOffs += nFit;
 			x = pUsed->left;
 			y += nHeight;
@@ -410,6 +464,7 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 		case 3: *pFormat = &_formatH3; break;
 		case 4: *pFormat = &_formatH4; break;
 		case 5: *pFormat = &_formatH5; break;
+		default: *pFormat = &_formatH6; break;
 		}
 		break;
 	case MET_FENCED_CODE_BLOCK:
@@ -503,6 +558,44 @@ static LINE* mdr_parseFencedCodeBlock(RENDER_VIEW_PART* pPart, LINE* lp, STRING_
 		lp = lp->next;
 	}
 	return lp;
+}
+
+/*
+ * Parses the auto-link syntax.
+ */
+static BOOL mdr_parseAutolinks(RENDER_VIEW_PART* pPart, LINE* lp, STRING_BUF* pSB, MDR_ELEMENT_FORMAT* pFormat, int mAttrs, int* pOffset, size_t* pLastOffset) {
+	int i = *pOffset;
+	int nTextStart = i + 1;
+	char* pLast = strchr(&lp->lbuf[nTextStart], '>');
+	if (pLast && strchr(&lp->lbuf[i], '.') != 0) {
+		if (pLast) {
+			size_t nSize = stringbuf_size(pSB) - *pLastOffset;
+			mdr_appendRun(pPart, pFormat, nSize, mAttrs);
+			(*pLastOffset) += nSize;
+			char szTemp[512];
+			char szLink[512];
+			int nTextEnd = (int)(pLast - lp->lbuf);
+			nSize = nTextEnd - nTextStart;
+			if (nSize >= sizeof szLink) {
+				nSize = sizeof szLink-1;
+			}
+			strncpy(szTemp, &lp->lbuf[nTextStart], nSize);
+			szTemp[nSize] = 0;
+			if (strchr(&lp->lbuf[i], '/') == 0) {
+				sprintf(szLink, "https://%s", szTemp);
+			} else {
+				strcpy(szLink, szTemp);
+			}
+			stringbuf_appendStringLength(pSB, &lp->lbuf[nTextStart], nSize);
+			nSize = stringbuf_size(pSB) - *pLastOffset;
+			TEXT_RUN* pRun = mdr_appendRun(pPart, pFormat, nSize, ATTR_LINK);
+			pRun->tr_link = _strdup(szLink);
+			(* pLastOffset) += nSize;
+			*pOffset = nTextEnd;
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 
 /*
@@ -609,12 +702,10 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 							nTextEnd--;
 						}
 					} 
-					for (int j = nTextStart; j < nTextEnd; j++) {
-						stringbuf_appendChar(pSB, lp->lbuf[j]);
-					}
+					stringbuf_appendStringLength(pSB , &lp->lbuf[nTextStart], nTextEnd - nTextStart);
 					nSize = stringbuf_size(pSB) - nLastOffset;
 					TEXT_RUN* pRun = mdr_appendRun(pPart, pFormat, nSize, nAttr|ATTR_LINK);
-					pRun->tr_image = bImage;
+					pRun->tr_isImage = bImage;
 					pRun->tr_link = pLink;
 					nLastOffset += nSize;
 					i = pos;
@@ -629,6 +720,9 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 					nSize = stringbuf_size(pSB) - nLastOffset;
 					mdr_appendRun(pPart, pFormat, nSize, mAttrs | ATTR_LINE_BREAK);
 					nLastOffset += nSize;
+					continue;
+				}
+				if (mdr_parseAutolinks(pPart, lp, pSB, pFormat, mAttrs, &i, &nLastOffset)) {
 					continue;
 				}
 			}
@@ -682,9 +776,75 @@ static void mdr_parseViewParts(FTABLE* fp, MARKDOWN_RENDERER_DATA* pData) {
 /*
  * Returns the view part corresponding with the 'nline' line.
  */
-static RENDER_VIEW_PART* mdr_getViewPartForLine(RENDER_VIEW_PART* pFirstPart, LINE* pStart, long nLine) {
+static RENDER_VIEW_PART* mdr_getViewPartForLine(RENDER_VIEW_PART* pFirstPart, long nLine) {
 	// TODO....
 	return (RENDER_VIEW_PART * )ll_at((LINKED_LIST*)pFirstPart, nLine);
+}
+
+static void mdr_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* pHeight) {
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, wp->caret.ln);
+	if (pPart) {
+		*pCY = pPart->rvp_bounds.top;
+		*pHeight = pPart->rvp_bounds.bottom - pPart->rvp_bounds.top;
+	}
+	*pCX = DEFAULT_LEFT_MARGIN;
+	*pWidth = 2;
+}
+
+static int mdr_rendererSupportsMode(int aMode) {
+	if (aMode == SHOWCARET_LINE_HIGHLIGHT || aMode == SHOWLINENUMBERS || aMode == SHOWRULER) {
+		return 0;
+	}
+	return 1;
+}
+
+static int mdr_adjustScrollBounds(WINFO* wp) {
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	int nDelta = pData->md_nElementsPerPage;
+	if (nDelta == 0) {
+		return 0;
+	}
+	long nMaxScreen = wp->mincursln + nDelta;
+	size_t nMax = ll_size((LINKED_LIST*)pData->md_pElements);
+	if (nMaxScreen > nMax) {
+		nMaxScreen = (long)nMax;
+	}
+	if (wp->caret.ln < nMaxScreen && wp->caret.ln >= wp->mincursln) {
+		return 0;
+	}
+	if (wp->caret.ln < wp->mincursln) {
+		wp->minln = wp->mincursln = wp->caret.ln;
+	} else {
+		if (pData->md_displayingEndOfFile) {
+			return 0;
+		}
+		RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, nMaxScreen);
+		int nDelta = wp->caret.ln - nMaxScreen + 1;
+		if (pPart) {
+			nDelta += (pPart->rvp_bounds.bottom - pPart->rvp_bounds.top) / 16;
+		}
+		wp->minln += nDelta;
+		if (wp->minln >= nMax-3) {
+			wp->minln = (long)nMax - 2;
+		}
+	}
+	if (wp->minln < 0) {
+		wp->minln = 0;
+	}
+	wp->mincursln = wp->minln;
+	wp->maxcursln = wp->mincursln + nDelta;
+	if (wp->maxcursln > nMaxScreen) {
+		wp->maxcursln = nMaxScreen;
+	}
+	wp->maxln = wp->maxcursln;
+	wp->maxcurscol = wp->maxcol = 50;
+	InvalidateRect(wp->ww_handle, (LPRECT)0, 0);
+	UpdateWindow(wp->ww_handle);
+	int width;
+	mdr_updateCaretUI(wp, &wp->cx, &wp->cy, &width, &wp->cheight);
+	render_updateCaret(wp);
+	return 1;
 }
 
 /*
@@ -696,28 +856,41 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	FTABLE* fp = FTPOI(wp);
 	GetClientRect(wp->ww_handle, &rect);
+	BOOL bSizeChanged = FALSE;
+	if (rect.right != pData->md_lastBounds.right || rect.bottom != pData->md_lastBounds.bottom || wp->minln != pData->md_lastMinLn) {
+		bSizeChanged = TRUE;
+		pData->md_lastMinLn = wp->minln;
+		CopyRect(&pData->md_lastBounds, &rect);
+	}
 	HBRUSH hBrushCaretLine = CreateSolidBrush(pCtx->rc_theme->th_caretLineColor);
 	if (!pData->md_pElements) {
 		mdr_parseViewParts(fp, pData);
 	}
-	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, fp->firstl, wp->minln);
+	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, wp->minln);
 	RECT occupiedBounds;
 	int nElements = 0;
 	FillRect(pCtx->rc_hdc, pClip, hBrushBg);
 	MDR_ELEMENT_TYPE mType = MET_NORMAL;
-	for (; pPart && rect.top < pClip->bottom; rect.top = occupiedBounds.bottom) {
-		nElements++;
+	for (; pPart && ((bSizeChanged && rect.top < rect.bottom) || (!bSizeChanged && rect.top < pClip->bottom)); rect.top = occupiedBounds.bottom) {
 		MDR_ELEMENT_TYPE mNextType = pPart->rvp_type;
 		if (mNextType != mType) {
 			if (mType == MET_BLOCK_QUOTE || mType == MET_ORDERED_LIST || mType == MET_UNORDERED_LIST) {
 				rect.top += PARAGRAPH_OFFSET;
+				if (rect.top > rect.bottom) {
+					break;
+				}
 			}
 			mType = mNextType;
 		}
 		pPart->rvp_paint(wp, pPart, pCtx->rc_hdc, &rect, &occupiedBounds);
 		pPart = pPart->rvp_next;
+		nElements++;
 	}
-	pData->md_nElementsPerPage = nElements;
+	if (bSizeChanged) {
+		pData->md_nElementsPerPage = nElements-1;
+		pData->md_displayingEndOfFile = pPart == NULL;
+		mdr_adjustScrollBounds(wp);
+	}
 }
 
 /*
@@ -725,6 +898,9 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
  */
 static int mdr_destroyRun(TEXT_RUN* pRun) {
 	free(pRun->tr_link);
+	if (pRun->tr_image) {
+		DeleteObject(pRun->tr_image);
+	}
 	return 1;
 }
 
@@ -812,29 +988,31 @@ static void mdr_scroll(WINFO* wp, int dx, int dy) {
 	}
 }
 
-static void mdr_scrollSetBounds(WINFO* wp) {
-	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
-	int nDelta = pData->md_nElementsPerPage;
-	if (nDelta <= 0) {
-		nDelta = 10;
-	}
-	wp->mincursln = wp->minln;
-	wp->maxcursln = wp->mincursln + nDelta;
-	wp->maxln = wp->maxcursln;
-	wp->maxcurscol = wp->maxcol = 50;
-}
-
-static int mdr_rendererSupportsMode(int aMode) {
-	if (aMode == SHOWCARET_LINE_HIGHLIGHT || aMode == SHOWLINENUMBERS || aMode == SHOWRULER) {
+static int mdr_placeCursorAndValidate(WINFO* wp, long* ln, long offset, long* col, int updateVirtualOffset, int xDelta) {
+	if (*ln < 0) {
 		return 0;
 	}
+	long lnMax = mdr_calculateMaxLine(wp);
+	if (*ln >= lnMax) {
+		*ln = lnMax;
+	}
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	if (!pData) {
+		return 0;
+	}
+	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, *ln);
+	if (pPart) {
+		wp->caret.linePointer = pPart->rvp_lpStart;
+	}
+	wp->caret.ln = *ln;
+	wp->caret.offset = offset;
 	return 1;
 }
 
 static RENDERER _mdrRenderer = {
 	render_singleLineOnDevice,
 	mdr_renderPage,
-	caret_placeCursorAndValidate,
+	mdr_placeCursorAndValidate,
 	mdr_calculateMaxLine,
 	mdr_calculateLongestLine,
 	mdr_calculateMaxColumn,
@@ -843,7 +1021,8 @@ static RENDERER _mdrRenderer = {
 	mdr_allocData,
 	mdr_destroyData,
 	mdr_scroll,
-	mdr_scrollSetBounds,
+	mdr_adjustScrollBounds,
+	mdr_updateCaretUI,
 	mdr_rendererSupportsMode,
 	mdr_modelChanged
 };

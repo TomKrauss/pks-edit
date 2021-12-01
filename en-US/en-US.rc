@@ -361,7 +361,7 @@ BEGIN
     EDITTEXT        IDD_INT2,156,127,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "&Show line numbers",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,57,152,10
     CONTROL         "&Highlight line with caret",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,68,152,10
-    CONTROL         "W&ysiwyg Markdown Format",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,80,152,10
+    CONTROL         "W&ysiwyg Display",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,80,152,10
 END
 
 DLGEXEC DIALOGEX 7, 68, 245, 134
@@ -1278,7 +1278,8 @@ BEGIN
         MENUITEM "Show Ruler\a",                MMSHOWLI
         MENUITEM "He&x Editor Mode\a",          IDM_HEX_DISPLAY
         MENUITEM "&Syntax Highlighting\a",      IDM_SYNTAX_HIGHLIGHTING
-        MENUITEM "&Display Line Numbers",       MMSHOWLINENUMBERS
+        MENUITEM "&Display Line Numbers\a",     MMSHOWLINENUMBERS
+        MENUITEM "W&ysiwyg Display\a",          IDM_SHOW_WYSIWYG
         MENUITEM SEPARATOR
         MENUITEM "&Line Selection\a",           IDM_LINE_SELECTION
         MENUITEM "&Column Selection\a",         IDM_COLUMN_SELECTION

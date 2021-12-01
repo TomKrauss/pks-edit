@@ -161,9 +161,9 @@ static void caret_startExtendingSelection(WINFO *wp)
 }
 
 /*--------------------------------------------------------------------------
- * HideWindowsBlocks()
+ * caret_hideSelectionOnMove()
  */
-static void HideWindowsBlocks(WINFO *wp)
+static void caret_hideSelectionOnMove(WINFO *wp)
 {
 	long col;
 
@@ -612,7 +612,7 @@ EXPORT int caret_moveUpOrDown(WINFO* wp, int dir, int mtype)
 	if (mtype & MOT_XTNDBLOCK) {
 		wp->bXtndBlock = TRUE;
 	}
-	HideWindowsBlocks(wp);
+	caret_hideSelectionOnMove(wp);
 
 	col = wp->caret.offset;
 	ln = wp->caret.ln;
@@ -821,7 +821,7 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags) {
 		wp->bXtndBlock = TRUE;
 	}
 
-	HideWindowsBlocks(wp);
+	caret_hideSelectionOnMove(wp);
 
 	moving = direction * (motionFlags & (~MOT_XTNDBLOCK));
 

@@ -38,9 +38,11 @@
 #include "propertychange.h"
 #include "winutil.h"
 #include "mouseutil.h"
+#include "grammar.h"
 #include "actions.h"
 #include "themes.h"
 #include "mainframe.h"
+#include "hashmap.h"
 
 #define	TABTHERE(indent,i)		(indent->tbits[i >> 3] &  bittab[i & 07])
 #define	TABPLACE(indent,i)		indent->tbits[i >> 3] |= bittab[i & 07]
@@ -49,6 +51,7 @@
 #define	WT_WORKWIN		0
 #define	WT_RULERWIN		1
 #define	GWL_VIEWPTR		GWL_ICCLASSVALUES+sizeof(void*)
+#define	GWL_WWPTR		0
 
 #define	PROF_OFFSET		1
 #define COMPARISON_ANNOTATION_WIDTH 18
@@ -62,9 +65,10 @@ static WINFO *_winlist;
 extern void st_seterrmsg(char* msg);
 extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
 extern int  mouse_onMouseClicked(WINFO *fp, int x,int y,int b, int nclicks,int shift);
-extern BOOL ic_isIconWindow(HWND hwnd);
 extern void macro_selectDefaultBindings(void);
 extern void menu_switchMenusToContext(char *pszContext);
+extern RENDERER* hex_getRenderer();
+extern RENDERER* mdr_getRenderer();
 
 #define  LINE_ANNOTATION_WIDTH			5
 #define  LINE_ANNOATION_PADDING			2
@@ -76,6 +80,17 @@ static char   szEditClass[] = "EditWin";
 static char   szLineNumbersClass[] = "LineNumbers";
 static char   szRulerClass[] = "RulerWin";
 static char   szWorkAreaClass[] = "WorkWin";
+static HASHMAP *_renderers;
+
+/*
+ * Register a renderer. 
+ */
+void ww_registerRenderer(const char* pszName, RENDERER* pRenderer) {
+	if (!_renderers) {
+		_renderers = hashmap_create(17, NULL, NULL);
+	}
+	hashmap_put(_renderers, (intptr_t)pszName, (intptr_t) pRenderer);
+}
 
 /*------------------------------------------------------------
  * ww_createOrDestroyChildWindowOfEditor()
@@ -221,10 +236,9 @@ static void ww_updateRangeAndCheckBounds(long nMinLineOrCol, int nDefaultDeltaXo
 
 /*------------------------------------------------------------
  * ww_setScrollCheckBounds()
- * calculate scrollops checking bounds
+ * calculate scroll checking bounds
  */
-EXPORT void ww_setScrollCheckBounds(WINFO *wp)
-{
+void ww_setScrollCheckBounds(WINFO *wp) {
 	RECT rect;
 	GetClientRect(wp->ww_handle, &rect);
 	int dy = wp->scroll_dy;
@@ -560,7 +574,8 @@ static RENDERER _asciiRenderer = {
 	NULL,
 	NULL,
 	wt_scrollxy,
-	ww_setScrollCheckBounds,
+	render_adjustScrollBounds,
+	NULL,
 	ascii_rendererSupportsMode,
 	ww_modelChanged
 };
@@ -581,18 +596,38 @@ static void ww_destroyRendererData(WINFO* wp) {
 }
 
 /*
- * The display / workmode of a window has changed - update appropriately.
+ * Assign a new renderer. 
  */
-void ww_modeChanged(WINFO* wp) {
-	ww_destroyRendererData(wp);
-	if (wp->dispmode & SHOWMARKDOWN) {
-		wp->renderer = mdr_getRenderer();
-	} else {
-		wp->renderer = (wp->dispmode & SHOWHEX) ? hex_getRenderer() : &_asciiRenderer;
+static void ww_assignRenderer(WINFO* wp) {
+	RENDERER* pOld = wp->renderer;
+	wp->renderer = NULL;
+	if (wp->dispmode & SHOWWYSIWYG) {
+		FTABLE* fp = wp->fp;
+		const char* pRenderer = grammar_wysiwygRenderer(fp->documentDescriptor->grammar);
+		if (pRenderer) {
+			wp->renderer = (RENDERER*)hashmap_get(_renderers, (intptr_t)pRenderer);
+		}
+	}
+	if (!wp->renderer && wp->dispmode & SHOWHEX) {
+		wp->renderer = (RENDERER*)hashmap_get(_renderers, (intptr_t)"hex");
+	}
+	if (!wp->renderer) {
+		wp->renderer = &_asciiRenderer;
 	}
 	if (wp->renderer->r_create) {
 		wp->r_data = wp->renderer->r_create(wp);
 	}
+	if (pOld && pOld != wp->renderer) {
+		SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
+	}
+}
+
+/*
+ * The display / workmode of a window has changed - update appropriately.
+ */
+void ww_modeChanged(WINFO* wp) {
+	ww_destroyRendererData(wp);
+	ww_assignRenderer(wp);
 	if (wp->ww_handle) {
 		sl_size(wp);
 		font_selectStandardFont(wp->ww_handle, wp);
@@ -603,7 +638,7 @@ void ww_modeChanged(WINFO* wp) {
 	}
 
 	wp->scroll_dx = 4;
-	wp->renderer->r_scrollSetBounds(wp);
+	wp->renderer->r_adjustScrollBounds(wp);
 	render_updateCaret(wp);
 }
 
@@ -861,7 +896,7 @@ void ww_destroy(WINFO *wp) {
 	wp->blend = 0;
 	wp->fp = NULL;
 	nId = wp->win_id;
-	SetWindowLongPtr(wp->ww_handle, GWL_VIEWPTR, 0);
+	SetWindowLongPtr(wp->ww_handle, GWL_WWPTR, 0);
 	if (!ll_delete(&_winlist,wp)) {
 		EdTRACE(log_errorArgs(DEBUG_ERR,"failed deleting window props"));
 	}
@@ -1014,7 +1049,7 @@ WINFUNC EditWndProc(
  * ww_updateWindowBounds()
  */
 static int ww_updateWindowBounds(WINFO *wp, int w, int h) {
-	wp->renderer->r_scrollSetBounds(wp);
+	ww_setScrollCheckBounds(wp);
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"set window scroll bounds to (minln = %ld, mincol = %ld, maxln = %ld, maxcol = %ld)",
 		   wp->minln,wp->mincol,wp->maxln,wp->maxcol));
 	return 1;
@@ -1034,7 +1069,7 @@ int do_mouse(HWND hwnd, int nClicks, UINT message, WPARAM wParam, LPARAM lParam)
 	if ((wParam & (MK_LBUTTON | MK_RBUTTON | MK_MBUTTON)) == 0) {
 		return 0;
 	}
-	if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
+	if ((wp = (WINFO *) GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
 		x = GET_X_LPARAM(lParam), y = GET_Y_LPARAM(lParam);
 	} else {
 		return 0;
@@ -1140,7 +1175,7 @@ static WINFUNC WorkAreaWndProc(
 	case WM_CREATE:
 		{
 		wp = (WINFO *)(((LPCREATESTRUCT)lParam)->lpCreateParams);
-		SetWindowLongPtr(hwnd, 0, (LONG_PTR) wp);
+		SetWindowLongPtr(hwnd, GWL_WWPTR, (LONG_PTR) wp);
 		wp->ww_handle = hwnd;
 		font_selectStandardFont(hwnd, wp);
 		return 0;
@@ -1173,7 +1208,7 @@ static WINFUNC WorkAreaWndProc(
 
 	case WM_MOUSEWHEEL:
 		zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, 0)) != 0) {
+		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
 			if (GetAsyncKeyState(VK_CONTROL)) {
 				ww_zoomWindow(zDelta > 0);
 			} else {
@@ -1203,7 +1238,7 @@ static WINFUNC WorkAreaWndProc(
 
 	case WM_HSCROLL:
 	case WM_VSCROLL:
-		if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
+		if ((wp = (WINFO *) GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
 			int nCode = LOWORD(wParam);
 			int nPos = HIWORD(wParam);
 			if (nCode == SB_THUMBTRACK || nCode == SB_THUMBPOSITION) {
@@ -1229,13 +1264,13 @@ static WINFUNC WorkAreaWndProc(
 		return 0;
 
 	case WM_PAINT:
-		if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
+		if ((wp = (WINFO *) GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
 		   render_paintWindow(wp);
 		}
 		return 0;
 
 	case WM_SIZE:
-		if ((wp = (WINFO *) GetWindowLongPtr(hwnd,0)) != 0) {
+		if ((wp = (WINFO *) GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
 			if (!ww_updateWindowBounds(wp, LOWORD(lParam), HIWORD(lParam))) {
 				return 0;
 			}
@@ -1244,7 +1279,7 @@ static WINFUNC WorkAreaWndProc(
 	    break;
 
 	case WM_KILLFOCUS: {
-			if ((wp = (WINFO*)GetWindowLongPtr(hwnd, 0)) != 0) {
+			if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
 				wt_tcursor(wp, 0);
 			}
 		}
@@ -1252,7 +1287,7 @@ static WINFUNC WorkAreaWndProc(
 
 	case WM_SETFOCUS: {
 		WINFO* wpOld = _winlist;
-		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, 0)) != 0) {
+		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
 			ll_moveElementToFront((LINKED_LIST**)&_winlist, wp);
 			mainframe_windowActivated(wpOld != NULL ? wpOld->edwin_handle : NULL, wp->edwin_handle);
 			wt_tcursor(wp, 1);
@@ -1266,7 +1301,7 @@ static WINFUNC WorkAreaWndProc(
 	}
 
 	case WM_DESTROY:
-		SetWindowLongPtr(hwnd, 0, 0);
+		SetWindowLongPtr(hwnd, GWL_WWPTR, 0);
 		return 0;
 
     }
@@ -1548,8 +1583,7 @@ static WINFUNC LineNumberWndProc(
  * ww_register()
  * Register the window classes for PKS edit editor windows.
  */
-int ww_register(void)
-{
+int ww_register(void) {
 	if (!win_registerWindowClass(szWorkAreaClass, WorkAreaWndProc,
 		(LPSTR)IDC_IBEAM, GetStockObject(WHITE_BRUSH), 0,
 		sizeof(void*)) ||
@@ -1571,6 +1605,16 @@ int ww_register(void)
 		) {
 		return 0;
 	}
+	ww_registerRenderer("default", &_asciiRenderer);
+	ww_registerRenderer("hex", hex_getRenderer());
+	ww_registerRenderer("markdown", mdr_getRenderer());
 	return 1;
 }
 
+/*
+ * Final cleanup of the editor window sub-system.
+ */
+void ww_destroyAll() {
+	hashmap_destroy(_renderers, NULL);
+	_renderers = NULL;
+}

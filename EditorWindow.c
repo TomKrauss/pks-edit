@@ -30,9 +30,9 @@ extern void 	st_redraw(BOOL bErase);
 typedef enum { CUR_HIDDEN, CUR_INSERT, CUR_OVERRIDE } CURSOR_TYPE;
 
 /*------------------------------------------------------------
- * EdHideCaret()
+ * caret_hide()
  */
-static int EdHideCaret(HWND hwnd)
+static int caret_hide(HWND hwnd)
 {
      HideCaret(hwnd);
      DestroyCaret();
@@ -40,9 +40,9 @@ static int EdHideCaret(HWND hwnd)
 }
 
 /*------------------------------------------------------------
- * EdUpdateCaret()
+ * caret_updatePositionAndVisibility()
  */
-static int EdUpdateCaret(WINFO *wp, CURSOR_TYPE type, int visible) {
+static int caret_updatePositionAndVisibility(WINFO *wp, CURSOR_TYPE type, int visible) {
      if (!visible) {
 		if (type == CUR_OVERRIDE) {
 			CreateCaret(wp->ww_handle,NULL,wp->cwidth, wp->cheight);
@@ -59,6 +59,14 @@ static int EdUpdateCaret(WINFO *wp, CURSOR_TYPE type, int visible) {
 	return 1;
 }
 
+/*
+ * Update the x and y coordinates in which the caret is shown and optionally its sizes. 
+ */
+static void render_updateCaretUIPosition(WINFO* wp) {
+	wp->cx = (int)(wp->caret.col - wp->mincol) * wp->cwidth;
+	wp->cy = (int)(wp->caret.ln - wp->minln) * wp->cheight;
+}
+
 /*------------------------------------------------------------
  * render_updateCaret()
  * macro_updateSelectedMacro the current caret for the passed editor window (dependening on insert mode
@@ -66,6 +74,7 @@ static int EdUpdateCaret(WINFO *wp, CURSOR_TYPE type, int visible) {
  */
 static struct olc {
 	CURSOR_TYPE type;
+	int cheight;
 } _olcurs = { CUR_HIDDEN };
 void render_updateCaret(WINFO *wp) {
 	struct olc *op = &_olcurs;
@@ -78,22 +87,24 @@ void render_updateCaret(WINFO *wp) {
 
 	}
 
-	if (type != op->type) {
-		if (op->type) {
-			EdHideCaret(wp->ww_handle);
-			op->type = 0;
-		}
+	if (wp->renderer->r_updateCaretUI) {
+		wp->renderer->r_updateCaretUI(wp, &wp->cx, &wp->cy, &wp->cwidth, &wp->cheight);
+	} else {
+		render_updateCaretUIPosition(wp);
 	}
 
-	wp->cx = (int) (wp->caret.col-wp->mincol) * wp->cwidth;
-	wp->cy = (int) (wp->caret.ln -wp->minln)  * wp->cheight;
+	if (type != op->type || wp->cheight != op->cheight) {
+		caret_hide(wp->ww_handle);
+		op->type = 0;
+	}
 
 	if (type) {
 		st_redraw(FALSE);
-		EdUpdateCaret(wp, type, op->type);
+		caret_updatePositionAndVisibility(wp, type, op->type);
 	}
 
 	op->type = type;
+	op->cheight = wp->cheight;
 }
 
 /*------------------------------------------------------------
@@ -115,7 +126,7 @@ int render_calculateScrollDelta(long val, long minval, long maxval, int scrollBy
 /*------------------------------------------------------------
  * render_adjustScrollBounds()
  */
-static int render_adjustScrollBounds(WINFO *wp) {
+int render_adjustScrollBounds(WINFO *wp) {
 	long dx,dy;
 
 	long minln = wp->mincursln;
@@ -142,7 +153,7 @@ static int render_adjustScrollBounds(WINFO *wp) {
  */
 void ww_adjustWindowSizes() {
 	for (WINFO* wp = ww_getCurrentEditorWindow(); wp; ) {
-		render_adjustScrollBounds(wp);
+		wp->renderer->r_adjustScrollBounds(wp);
 		wp = wp->next;
 	}
 }
@@ -155,7 +166,7 @@ void wt_curpos(WINFO *wp, long ln, long col)
 	int oldln = wp->caret.ln;
 	caret_moveToLine(wp, ln);
 	wp->caret.col = col;
-	render_adjustScrollBounds(wp);
+	wp->renderer->r_adjustScrollBounds(wp);
 	render_updateCaret(wp);
 	if (wp->bXtndBlock) {
 		caret_extendSelection(wp);

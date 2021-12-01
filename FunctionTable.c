@@ -314,7 +314,8 @@ IDM_CUT_TO_NAMED_CLIPBOARD, 40,
 IDM_PASTE_NAMED_CLIPBOARD, 43,
 IDM_LIST_NAMED_CLIPBOARDS, 219,
 IDM_EVALUATE_SELECTION, 99,
-IDM_TOGGLE_FULL_SCREEN, 100
+IDM_TOGGLE_FULL_SCREEN, 100,
+IDM_SHOW_WYSIWYG, 101
 };
 
 int _nmenus = sizeof(_menutab) / sizeof(_menutab[0]);
@@ -440,8 +441,8 @@ COMMAND _cmdseqtab[] = {
 98, C_0FUNC, 16 /* EdKeycodeInsert */, 0 , "keycode-insert", 
 99, C_0FUNC, 74 /* evaluate_evaluateSelection */, 0 , "evaluate-selection", 
 100, C_0FUNC, 76 /* mainframe_toggleFullScreen */, 0, "toggle-full-screen", 
-101, C_1FUNC, 86 /* EdWindowRegSet */, 2 , "unused", 
-102, C_1FUNC, 86 /* EdWindowRegSet */, 3 , "unused", 
+101, C_1FUNC, 78 /* EdOptionToggle */, OPT_DMODE | SHOWWYSIWYG, "toggle-show-wysiwyg",
+102, C_1FUNC, 86 /* EdWindowRegSet */, 3 , "unused",
 103, C_1FUNC, 86 /* EdWindowRegSet */, 4 , "unused", 
 104, C_1FUNC, 86 /* EdWindowRegSet */, 5 , "unused", 
 105, C_1FUNC, 85 /* EdWinArrange */, WIN_FULL , "set-win-zoomed", 

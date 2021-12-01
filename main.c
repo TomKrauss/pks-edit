@@ -538,6 +538,7 @@ void main_cleanup(void) {
 	sym_destroyTable();
 	analyzer_destroyAnalyzers();
 	evaluator_destroyEvaluators();
+	ww_destroyAll();
 }
 
 /*--------------------------------------------------------------------------

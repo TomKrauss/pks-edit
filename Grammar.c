@@ -85,6 +85,7 @@ typedef struct tagGRAMMAR {
 	char unIndentLinePattern[32];		// A regular expression defining the condition on which the next line should unindented.
 	char increaseIndentPattern[32];		// A regular expression defining the condition on which the indent should be increased.
 	char decreaseIndentPattern[32];		// A regular expression defining the condition on which the indent should be decreased.
+	char wysiwygRenderer[32];			// The name of the wysiwyg renderer
 	BRACKET_RULE* highlightBrackets;	// The rule patterns for "highlight" bracket matching.
 	GRAMMAR_PATTERN* patterns;			// The patterns defined for this grammar.
 	int transitions[256];				// The indices into the state transition table. We allow a maximum of 32 re_patterns to match from one initial state.
@@ -203,6 +204,7 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_CHAR_ARRAY, "unIndentLinePattern", offsetof(GRAMMAR, unIndentLinePattern), sizeof(((GRAMMAR*)NULL)->unIndentLinePattern)},
 	{	RT_CHAR_ARRAY, "increaseIndentPattern", offsetof(GRAMMAR, increaseIndentPattern), sizeof(((GRAMMAR*)NULL)->increaseIndentPattern)},
 	{	RT_CHAR_ARRAY, "decreaseIndentPattern", offsetof(GRAMMAR, decreaseIndentPattern), sizeof(((GRAMMAR*)NULL)->decreaseIndentPattern)},
+	{	RT_CHAR_ARRAY, "wysiwygRenderer", offsetof(GRAMMAR, wysiwygRenderer), sizeof(((GRAMMAR*)NULL)->wysiwygRenderer)},
 	{	RT_ALLOC_STRING, "analyzer", offsetof(GRAMMAR, analyzer)},
 	{	RT_ALLOC_STRING, "evaluator", offsetof(GRAMMAR, evaluator)},
 	{	RT_OBJECT_LIST, "navigation", offsetof(GRAMMAR, navigation),
@@ -907,4 +909,12 @@ char* grammar_getEvaluator(GRAMMAR* pGrammar) {
  */
 BOOL grammar_hasLineSpans(GRAMMAR* pGrammar) {
 	return pGrammar != NULL && pGrammar->hasLineSpanPattern;
+}
+
+/*
+ * Returns the name of the wysiwyg for the given grammar or 0, if no
+ * special renderer is available.
+ */
+const char* grammar_wysiwygRenderer(GRAMMAR* pGrammar) {
+	return (pGrammar == NULL || pGrammar->wysiwygRenderer[0] == 0) ? NULL : pGrammar->wysiwygRenderer;
 }

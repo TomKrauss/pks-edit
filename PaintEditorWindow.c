@@ -638,7 +638,7 @@ void ww_setZoom(WINFO* wp, float newFactor) {
 	EndPaint(wp->ww_handle, &ps);
 	wt_tcursor(wp, 0);
 	wt_tcursor(wp, 1);
-	ww_setScrollCheckBounds(wp);
+	wp->renderer->r_adjustScrollBounds(wp);
 	render_repaintForWindow(wp, NULL);
 
 }

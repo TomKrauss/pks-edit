@@ -189,5 +189,11 @@ extern char* grammar_getEvaluator(GRAMMAR* pGrammar);
  */
 extern BOOL grammar_hasLineSpans(GRAMMAR* pGrammar);
 
+/*
+ * Returns the name of the wysiwyg for the given grammar or 0, if no
+ * special renderer is available.
+ */
+extern const char* grammar_wysiwygRenderer(GRAMMAR* pGrammar);
+
 #define GRAMMAR_H
 #endif
