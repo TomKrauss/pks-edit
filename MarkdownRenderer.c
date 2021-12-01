@@ -533,7 +533,7 @@ static char* mdr_parseLink(RENDER_VIEW_PART* pPart, LINE* lp, int *pTextEnd, int
 			*pStartPos = i-1;
 			i -= nLinkStart;
 			strncpy(szBuf, &lp->lbuf[nLinkStart], i-1);
-			szBuf[i] = 0;
+			szBuf[i-1] = 0;
 			return _strdup(szBuf);
 		}
 	}

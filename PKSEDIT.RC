@@ -252,7 +252,7 @@ BEGIN
     EDITTEXT        IDD_INT2,144,123,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "&Zeilennummern anzeigen",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,53,141,10
     CONTROL         "&Zeile mit Cursor markieren",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,64,141,10
-    CONTROL         "W&ysiwyg Markdown Darstellung",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,75,141,10
+    CONTROL         "W&ysiwyg Darstellung",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,75,141,10
 END
 
 DLGEXEC DIALOG 7, 68, 245, 134
@@ -909,6 +909,7 @@ BEGIN
         MENUITEM "He&xadezimale Ansicht\a",     IDM_HEX_DISPLAY
         MENUITEM "Syntax Highlighting\a",       IDM_SYNTAX_HIGHLIGHTING
         MENUITEM "Zeilennummern &anzeigen",     MMSHOWLINENUMBERS
+        MENUITEM "W&ysiwyg Darstellung",        40037
         MENUITEM SEPARATOR
         MENUITEM "Selektion in Spaltenform",    IDM_COLUMN_SELECTION
         MENUITEM "Selection in Zeilenform",     IDM_LINE_SELECTION

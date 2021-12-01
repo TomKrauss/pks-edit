@@ -82,6 +82,8 @@ Source: "pks_sys\pksedit.chm"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "rc\pks.ico"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "readme.md"; DestDir: "{app}"; Flags: isreadme isreadme
 Source: "doc\release_notes.md"; DestDir: "{app}\doc"; Flags: ignoreversion 
+Source: "doc\markdown.md"; DestDir: "{app}\doc"; Flags: ignoreversion 
+Source: "doc\cat.bmp"; DestDir: "{app}\doc"; Flags: ignoreversion 
 Source: "doc\grammar.md"; DestDir: "{app}\doc"; Flags: ignoreversion 
 
 [INI]
