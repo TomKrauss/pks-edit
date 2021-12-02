@@ -888,8 +888,7 @@ err:
  * is performed at that point in time.
  */
 EXPORT void caret_calculateOffsetFromScreen(WINFO *wp, int x, int y, long *line, long *column)
-{	FTABLE *fp = FTPOI(wp);
-
+{	
 	*column = (x + wp->cwidth/2) / wp->cwidth + wp->mincol;
 	*line	= y / wp->cheight + wp->minln;
 	if (*line < 0) {

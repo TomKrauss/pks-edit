@@ -402,6 +402,8 @@ static RENDERER _hexRenderer = {
 	render_adjustScrollBounds,
 	NULL,
 	hex_rendererSupportsMode,
+	caret_calculateOffsetFromScreen,
+	TRUE,
 	hex_modelChanged
 };
 

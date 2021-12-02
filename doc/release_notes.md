@@ -17,7 +17,8 @@ This file contains the release notes for the latest **PKS Edit** releases.
   recognize now encrypted files (independent of their file extension) and will ask for the password to de-crypt encrypted files.
 - PKS Edit supports now a preliminary `hex editor mode` to display the current file in an hex editor fashion. Editing is not yet
   correctly supported, but planned for later releases. PKS Edit will now by default open binary files in hex editor mode.
-- PKS Edit also supports a new preliminary `wysiwyg markdown mode` now, which allows a preview on files written in markdown (.md) format.
+- PKS Edit also supports a new preliminary `wysiwyg mode` for markdown files now, which allows a preview of markdown format files (.md - format).
+  The best way to use this mode is to clone the window of a .md-file and set the cloned window to wysiwyg mode (new menu option).
 - The new **Watch Log File** mode can be used to edit log files and have them update their view and scroll to the end, when new log entries
   are added (seee Linux `tail -f`). In this mode editing the file is not possible - it is read-only in this case to avoid concurrent external
   and internal changes.
@@ -28,7 +29,7 @@ This file contains the release notes for the latest **PKS Edit** releases.
   the corresponding configuration option in the PKS Edit configuration in the `Autosave` settings tab.
 - PKS Edit supports now the evaluation of either the current line or the current selection and selected grammars. For
   now only PKS macro code evaluation is supported, but we plan to support evaluation of other syntax as well.
-- PKS Edit supports now switching between fullscreen and normal mode.
+- PKS Edit supports now switching between fullscreen and normal mode (press F11 to toggle)
 
 
 ### Improved
@@ -46,6 +47,8 @@ This file contains the release notes for the latest **PKS Edit** releases.
   _Compare with history_, which allows to compare a file with a previously created backup file (if such exists). PKS Edit will now differentiate
   between added, deleted and modified lines and will synchronize cursor movements of files in comparison mode to be able to display identical lines
   "side by side".
+- PKS Edit will now also correctly restore __cloned windows__ and will restore the current display
+- mode of a window, when restarting from a saved session.
 - PKS Edit uses *FontAwesome icons* now. This will in particular have the dark mode look better.
 - Dark Mode has been improved and will display now more elements such as title bars and dialogs also in dark. Some open issues
   like setting dialog / file selector or native message boxes not being correctly colored remain.

@@ -300,6 +300,11 @@ extern int ft_abandonFile(FTABLE* fp, EDIT_CONFIGURATION* linp);
 extern int ft_currentFileChanged(FTABLE* fp);
 
 /*
+ * Clone a window given the file name of the window.
+ */
+extern int ft_cloneWindowNamed(char* pszFilename, const char* pszDock);
+
+/*
  *  Answer 1, if the passed file is modified.
  */
 extern int ft_isFileModified(FTABLE* fp);

@@ -108,7 +108,7 @@ void render_updateCaret(WINFO *wp) {
 }
 
 /*------------------------------------------------------------
- * wt_cursrange()
+ * render_calculateScrollDelta()
  */
 int render_calculateScrollDelta(long val, long minval, long maxval, int scrollBy)
 {	long delta;

@@ -105,7 +105,7 @@ typedef int (*PLACE_CARET_FUNCTION)(WINFO* wp, long* ln, long offset, long* col,
  * Callback implemented by renderers to answer, whether a special "display mode" (SHOW...) flag is supported by this renderer.
  * This will allow renderers to hide the line number area or the ruler area.
  */
-typedef int (*RENDER_SUPPORTS_MODE)(int nMode);
+typedef int (*RENDERER_SUPPORTS_MODE)(int nMode);
 
 typedef long (*CALCULATE_MAX_LINE_FUNCTION)(WINFO* wp);
 
@@ -141,6 +141,8 @@ typedef int (*RENDERER_SCROLL_SET_BOUNDS)(WINFO* wp);
 
 typedef void (*RENDERER_CARET_UPDATE_UI)(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* pHeight);
 
+typedef void (*RENDERER_HIT_TEST)(WINFO* wp, int cX, int cY, long* pLine, long* pCol);
+
 typedef struct tagRENDERER {
     const RENDER_LINE_FUNCTION r_renderLine;
     const RENDER_PAGE_FUNCTION r_renderPage;
@@ -156,7 +158,9 @@ typedef struct tagRENDERER {
     const RENDERER_SCROLL_SET_BOUNDS r_adjustScrollBounds;        // Set the new minimum and maximum line and columns used when navigating the caret if the 
                                                                   // caret does not fit in the current window.
     const RENDERER_CARET_UPDATE_UI r_updateCaretUI;               // Set x and y coordinates of the caret depending on the line and column.
-    const RENDER_SUPPORTS_MODE r_supportsMode;
+    const RENDERER_SUPPORTS_MODE r_supportsMode;
+    const RENDERER_HIT_TEST r_hitTest;                            // Return the info about a clicked element.
+    const BOOL r_canEdit;                                         // whether this renderer supports editing.
     const void (*r_modelChanged)(WINFO* wp, MODEL_CHANGE* pMC);   // The method to invoke, when the model changes.
 } RENDERER;
 

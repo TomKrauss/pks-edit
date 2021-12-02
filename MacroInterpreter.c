@@ -391,7 +391,7 @@ int macro_isFunctionEnabled(EDFUNC* fup, int warn) {
 	if (fup->flags & EW_NEEDSCURRF && fp == 0) {
 		return 0;
 	}
-	if ((fup->flags & EW_MODIFY) && ft_isReadonly(fp)) {
+	if ((fup->flags & EW_MODIFY) && (ft_isReadonly(fp) || !wp->renderer->r_canEdit)) {
 		if (warn) {
 			ft_checkReadonlyWithError(fp);
 		}

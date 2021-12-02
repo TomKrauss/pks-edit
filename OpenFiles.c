@@ -300,11 +300,14 @@ void ft_saveWindowStates(void )
 	ln_createAndAddSimple(&ft, "[files]");
 
 	int nWindows = ww_getNumberOfOpenWindows();
+	WINFO* wpActive = ww_getCurrentEditorWindow();
 	for (s = 1; s <= nWindows; s++) {
 		if ((wp = ww_findwinid(s)) != 0) {
 			FTABLE* fp = wp->fp;
 			if (!(fp->flags & (F_TRANSIENT | F_NAME_INPUT_REQUIRED))) {
-				xref_addSearchListEntry(&ft, fp->fname, wp->caret.ln, mainframe_getOpenHint(wp->edwin_handle));
+				int nIndex = arraylist_indexOf(fp->views, wp);
+				xref_addSearchListEntry(&ft, fp->fname, wp->caret.ln, 
+					mainframe_getOpenHint(wp->edwin_handle, wp == wpActive, nIndex > 0, wp->dispmode));
 			}
 		}
 	}
@@ -528,6 +531,17 @@ int ft_cloneWindow() {
 		return 0;
 	}
 	return ft_openwin(fp, DOCK_NAME_RIGHT);
+}
+
+/*
+ * Clone a window given the file name of the window. 
+ */
+int ft_cloneWindowNamed(char* pszFilename, const char* pszDock) {
+	FTABLE* fp = ft_fpbyname(pszFilename);
+	if (fp == NULL) {
+		return 0;
+	}
+	return ft_openwin(fp, pszDock);
 }
 
 /*------------------------------------------------------------

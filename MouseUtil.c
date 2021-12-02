@@ -113,7 +113,7 @@ static int mouse_textBlockMoveDragInit(WINFO* wp, int x, int y) {
 	HCURSOR 	hCursor;
 	long ln, col;
 
-	caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
+	wp->renderer->r_hitTest(wp, x, y, &ln, &col);
 	if (!bl_selectionContainsLogicalPoint(wp, ln, col)) {
 		// If not starting to actually drag the selection...
 		bl_hideSelection(wp, 1);
@@ -186,7 +186,7 @@ static MOUSE_DRAG_HANDLER* mouse_getDragHandler(WINFO* wp, int x, int y) {
 static void caret_placeToXY(WINFO* wp, int x, int y) {
 	long col, ln;
 
-	caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
+	wp->renderer->r_hitTest(wp, x, y, &ln, &col);
 	if (wp->renderer->r_placeCaretAfterClick(wp, &ln, &col, 1)) {
 		wt_curpos(wp, ln, col);
 	}
@@ -390,7 +390,7 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 			if (ww_isColumnSelectionMode(wp)) {
 				long ln;
 				long col;
-				caret_calculateOffsetFromScreen(wp, x, y, &ln, &col);
+				wp->renderer->r_hitTest(wp, x, y, &ln, &col);
 				wp->caret.offset = col;
 			}
 			c2 = wp->caret;

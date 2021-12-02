@@ -57,7 +57,7 @@ Here is a fenced code block:
 }
 ```
 
-Some more text at the end. And finally an image.
+Some more text at the end. And finally an image or: what was the Internet invented for?
 
 ![Fritz the Cat](cat.bmp)
 

@@ -1362,26 +1362,6 @@ static DOCKING_SLOT* mainframe_getDockingParent(const HWND hwnd) {
 }
 
 /*
- * Returns a string to be used as an open hint later, when opening the window.
- */
-char* mainframe_getOpenHint(HWND hwnd) {
-	static char szHint[64];
-	DOCKING_SLOT* pSlot = mainframe_getDockingParent(hwnd);
-	if (pSlot == NULL) {
-		return szDefaultSlotName;
-	}
-	strcpy(szHint, pSlot->ds_name);
-	TAB_CONTROL* pControl = (TAB_CONTROL*) GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
-	if (pControl) {
-		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, pControl->tc_activeTab);
-		if (pPage && pPage->tp_hwnd == hwnd) {
-			strcat(szHint, ",active");
-		}
-	}
-	return szHint;
-}
-
-/*
  * Returns the rect describing the "empty space", into which the docking windows
  * can be placed.
  */
@@ -2163,21 +2143,66 @@ void mainframe_windowActivated(HWND hwndOld, HWND hwndNew) {
 }
 
 /*
+ * Returns a string to be used as an open hint later, when opening the window.
+ */
+char* mainframe_getOpenHint(HWND hwnd, BOOL bFocus, BOOL bClone, int nDisplayMode) {
+	static char szHint[100];
+	DOCKING_SLOT* pSlot = mainframe_getDockingParent(hwnd);
+	if (pSlot == NULL) {
+		return szDefaultSlotName;
+	}
+	strcpy(szHint, pSlot->ds_name);
+	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
+	if (pControl) {
+		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, pControl->tc_activeTab);
+		BOOL bActive = pPage && pPage->tp_hwnd == hwnd;
+		strcat(szHint, " ");
+		strcat(szHint, bActive ? "active" : "-");
+		strcat(szHint, " ");
+		strcat(szHint, bFocus ? "focus" : "-");
+		strcat(szHint, " ");
+		strcat(szHint, bClone ? "cloned" : "-");
+		char szText[18];
+		sprintf(szText, " %x", nDisplayMode);
+		strcat(szHint, szText);
+	}
+	return szHint;
+}
+
+/*
  * Parse an open hint text. Note, that the hint text is modified during parsing.
  */
 OPEN_HINT mainframe_parseOpenHint(char* pszHint) {
 	BOOL bActive = TRUE;
+	BOOL bClone = FALSE;
+	BOOL bFocus = FALSE;
+	int nDisplayMode = -1;
 	if (pszHint != NULL) {
-		bActive = FALSE;
-		char* pszFound = strchr(pszHint, ',');
-		if (pszFound) {
-			bActive = strcmp("active", pszFound + 1) == 0;
-			*pszFound = 0;
+		char szDock[10];
+		char szActive[10];
+		char szCloned[10];
+		char szFocus[10];
+		int nFound = sscanf(pszHint, "%s %s %s %s %x", szDock, szActive, szFocus, szCloned, &nDisplayMode);
+		if (nFound >= 2) {
+			bActive = strcmp("active", szActive) == 0;
+			pszHint = szDock;
+		}
+		if (nFound >= 3) {
+			bClone = strcmp("focus", szFocus) == 0;
+		}
+		if (nFound >= 4) {
+			bClone = strcmp("cloned", szCloned) == 0;
+		}
+		if (nFound < 5) {
+			nDisplayMode = -1;
 		}
 	}
 	return (OPEN_HINT) {
 		pszHint,
-		bActive
+		bActive,
+		bFocus,
+		bClone,
+		nDisplayMode
 	};
 }
 

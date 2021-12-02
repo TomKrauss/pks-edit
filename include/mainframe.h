@@ -17,7 +17,10 @@
   */
 typedef struct tagOPEN_HINT {
 	const char* oh_slotName;		// the name of the slot, where the window ist placed
-	BOOL		oh_activate;		// whether the new window should be activated.
+	BOOL		oh_activate;		// whether the new window should be activated on the tab where it is being placed.
+	BOOL		oh_focus;			// whether the new window should be the one, which is finally focused
+	BOOL		oh_clone;			// whether this is a cloned (secondary) window
+	int			oh_displayMode;		// the display mode of the window
 } OPEN_HINT;
 
 /*
@@ -75,7 +78,7 @@ extern int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType);
 /*
  * Returns a string to be used as an open hint later, when opening the window.
  */
-extern char* mainframe_getOpenHint(HWND hwnd);
+extern char* mainframe_getOpenHint(HWND hwnd, BOOL bFocus, BOOL bClone, int bDisplayMode);
 
 /*
  * Invoked, when a new editor is activated. Used to mark the current active window.

@@ -577,6 +577,8 @@ static RENDERER _asciiRenderer = {
 	render_adjustScrollBounds,
 	NULL,
 	ascii_rendererSupportsMode,
+	caret_calculateOffsetFromScreen,
+	TRUE,
 	ww_modelChanged
 };
 
@@ -1319,7 +1321,7 @@ static int mouse_onRulerClicked(WINFO* wp, int x, int y, int msg, int shift) {
 	FTABLE* fp = wp->fp;
 
 	x -= ruler_getLeft(wp);
-	caret_calculateOffsetFromScreen(wp, x + wp->cwidth / 2, y, &ln, &col);
+	wp->renderer->r_hitTest(wp, x + wp->cwidth / 2, y, &ln, &col);
 	wsprintf(szBuf, /*STR*/"SPALTE: %4ld", col + 1);
 	st_seterrmsg(szBuf);
 

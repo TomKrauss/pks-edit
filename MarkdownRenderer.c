@@ -304,6 +304,8 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 				nHeight = size.cy;
 			}
 			pPart->rvp_bounds.bottom = y + nHeight;
+			pPart->rvp_bounds.left = x;
+			pPart->rvp_bounds.right = x+size.cx;
 		} else {
 			GetTextExtentExPoint(hdc, &pTF->tf_text[nOffs], (int)nLen, nRight - x, &nFit, 0 /* TODO: callback for measuring*/, &size);
 			if (size.cy > nHeight) {
@@ -320,6 +322,8 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 				}
 			}
 			int nDelta = nHeight > size.cy ? (nHeight - size.cy) / 2 : 0;
+			pPart->rvp_bounds.left = x;
+			pPart->rvp_bounds.right = nRight;
 			TextOut(hdc, x, y + nDelta, &pTF->tf_text[nOffs], nFit);
 			if (pPart->rvp_type == MET_BLOCK_QUOTE) {
 				RECT leftRect;
@@ -784,11 +788,15 @@ static RENDER_VIEW_PART* mdr_getViewPartForLine(RENDER_VIEW_PART* pFirstPart, lo
 static void mdr_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* pHeight) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, wp->caret.ln);
+	*pCX = DEFAULT_LEFT_MARGIN;
 	if (pPart) {
 		*pCY = pPart->rvp_bounds.top;
+		*pCX = pPart->rvp_bounds.left;
 		*pHeight = pPart->rvp_bounds.bottom - pPart->rvp_bounds.top;
+		if (*pHeight <= 0) {
+			*pHeight = 1;
+		}
 	}
-	*pCX = DEFAULT_LEFT_MARGIN;
 	*pWidth = 2;
 }
 
@@ -934,6 +942,7 @@ static void mdr_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 	if (pData) {
 		ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
 		pData->md_pElements = NULL;
+		RedrawWindow(wp->ww_handle, NULL, NULL, RDW_ERASE | RDW_INVALIDATE);
 	}
 }
 
@@ -982,10 +991,6 @@ static int mdr_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFE
 
 static void mdr_scroll(WINFO* wp, int dx, int dy) {
 	RedrawWindow(wp->ww_handle, NULL, NULL, RDW_ERASE|RDW_INVALIDATE);
-	if (wp->lineNumbers_handle) {
-		RedrawWindow(wp->lineNumbers_handle, NULL, NULL, RDW_ERASE | RDW_INVALIDATE);
-
-	}
 }
 
 static int mdr_placeCursorAndValidate(WINFO* wp, long* ln, long offset, long* col, int updateVirtualOffset, int xDelta) {
@@ -1009,6 +1014,24 @@ static int mdr_placeCursorAndValidate(WINFO* wp, long* ln, long offset, long* co
 	return 1;
 }
 
+static void mdr_hitTest(WINFO* wp, int cx, int cy, long* pLine, long* pCol) {
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	if (!pData) {
+		return;
+	}
+	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, wp->minln);
+	POINT pt = {cx, cy};
+	long ln = wp->minln;
+	while (pPart) {
+		if (PtInRect(&pPart->rvp_bounds, pt)) {
+			*pLine = ln;
+			return;
+		}
+		pPart = pPart->rvp_next;
+		ln++;
+	}
+}
+
 static RENDERER _mdrRenderer = {
 	render_singleLineOnDevice,
 	mdr_renderPage,
@@ -1024,6 +1047,8 @@ static RENDERER _mdrRenderer = {
 	mdr_adjustScrollBounds,
 	mdr_updateCaretUI,
 	mdr_rendererSupportsMode,
+	mdr_hitTest,
+	FALSE,
 	mdr_modelChanged
 };
 

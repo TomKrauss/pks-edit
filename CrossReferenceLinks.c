@@ -837,20 +837,34 @@ void xref_openSearchListResultFromLine(FTABLE* fp, LINE *lp) {
 	RE_PATTERN *pPattern = xref_initializeNavigationPattern(fp->navigationPattern ? fp->navigationPattern : xref_getSearchListFormat());
 	WINFO* pActivate = NULL;
 	BOOL bActive;
+	BOOL bClone;
 
 	while((lp = lp->next) != 0L) {		/* we may skip 1st line ! */
 		if (lp->len && xref_parseNavigationSpec(&spec, pPattern, lp)) {
 			bActive = FALSE;
+			int nDisplayMode = -1;
 			if (spec.comment[0]) {
 				OPEN_HINT hHint = mainframe_parseOpenHint(spec.comment);
 				bActive = hHint.oh_activate;
 				pszName = spec.comment;
+				bClone = hHint.oh_clone;
+				nDisplayMode = hHint.oh_displayMode;
 			}
-			xref_openFile(spec.filename, spec.line-1L, pszName);
-			if (bActive) {
+			if (bClone) {
+				ft_cloneWindowNamed(spec.filename, pszName);
+			} else {
+				xref_openFile(spec.filename, spec.line - 1L, pszName);
+			}
+			if (bActive || nDisplayMode != -1) {
 				pActivate = ww_getCurrentEditorWindow();
 				if (pActivate) {
-					pActivate->workmode |= WM_STICKY;
+					if (bActive) {
+						pActivate->workmode |= WM_STICKY;
+					}
+					if (nDisplayMode != -1 && nDisplayMode != pActivate->dispmode) {
+						pActivate->dispmode = nDisplayMode;
+						ww_modeChanged(pActivate);
+					}
 				}
 			}
 		}
