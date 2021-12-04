@@ -3,6 +3,10 @@
 The famous arcade times text editor from Pahlen & Krauﬂ originally released on Atari ST
 and here available as a 64-Bit application for Windows 7 and newer
 
+## Release Notes
+
+-   Here is the link to the [Release Notes](doc/release_notes.md)
+
 ## Features
 
 The editor contains only some basic features compared to modern text editors such as 
@@ -49,7 +53,7 @@ clicking with Ctrl+Left Mouse Button onto a word in the source code.
 ## Hacking
 
 To change, edit, compile and run the source code of PKS Edit, we recommend to use
-[Microsoft Visual Studio 2019](https://visualstudio.microsoft.com/de/vs/). The community
+[Microsoft Visual Studio 2022](https://visualstudio.microsoft.com/de/vs/). The community
 edition will do it - you do not need a professional or enterprise edition. Simply
 open the Pksedit.sln solution and run / debug / build it.
 
@@ -62,10 +66,6 @@ point to that directory: The bin directory containing the files should be below 
 
 In order to edit the or execute the installation script (pksedit.iss), you need to download
 [Inno Setup](https://jrsoftware.org/ishelp/index.php) (we use currently the latest version 6.2).
-
-## Release Notes
-
--   Here is the link to the [Release Notes](doc/release_notes.md)
 
 ## Technical Documentation
 

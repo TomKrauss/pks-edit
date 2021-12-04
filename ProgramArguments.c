@@ -66,6 +66,12 @@ static int Phase2Arg(char *arg)
 				caret_placeCursorInCurrentFile(wp, line, 0L);
 			}
 			break;
+		case 'w':	// to open the just opened file in wysiwyg mode.
+			if ((wp = ww_getCurrentEditorWindow()) != NULL) {
+				wp->dispmode |= SHOWWYSIWYG;
+				ww_modeChanged(wp);
+			}
+			break;
 		case 'c':
 			if ((wp = ww_getCurrentEditorWindow()) != NULL) {
 				caret_placeCursorInCurrentFile(wp, wp->caret.ln,string_convertToLong(arg)-1L);

@@ -531,16 +531,16 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 /*----------------------------*/
 EXPORT int mouse_onMouseClicked(WINFO *wp, int x, int y, int b, int nclicks, int nModifier)
 {
-	MOUSEBIND *	mp;
+	MOUSEBIND *	mp = NULL;
 
 	if (nModifier & 0x3) {
 		nModifier |= 0x3;
 	}
 
 	if (wp && wp->controller) {
-		mp = wp->controller->c_getMouseBinding(b, nModifier, nclicks);
-	} else {
-		mp = NULL;
+		if (wp->controller->c_getMouseBinding) {
+			mp = wp->controller->c_getMouseBinding(b, nModifier, nclicks);
+		}
 	}
 	if (mp || (mp = mouse_getMouseBind(b, nModifier, nclicks)) != 0) {
 		macro_stopRecordingFunctions();

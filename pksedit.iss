@@ -46,6 +46,9 @@ fr.MsgOpenWith=Ouvrir avec
 nl.MsgOpenWith=Openen met
 ru.MsgOpenWith=Открыть с
 
+[Run]
+Filename: "{app}\{#MyAppExeName}"; Parameters: "readme.md /w"; Flags: postinstall nowait
+
 [Files]
 Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"; Flags: ignoreversion
 Source: "x64\Release\{#MyAppBaseName}.en-US.dll"; DestDir: "{app}"; DestName: "{#MyAppBaseName}.en-US.dll"; Flags: ignoreversion
@@ -80,7 +83,7 @@ Source: "pks_sys\pkseditconfig.json"; DestDir: "{app}\pks_sys"; Flags: ignorever
 Source: "pks_sys\pksedit.mac"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\pksedit.chm"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "rc\pks.ico"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "readme.md"; DestDir: "{app}"; Flags: isreadme isreadme
+Source: "readme.md"; DestDir: "{app}"; Flags: ignoreversion 
 Source: "doc\release_notes.md"; DestDir: "{app}\doc"; Flags: ignoreversion 
 Source: "doc\markdown.md"; DestDir: "{app}\doc"; Flags: ignoreversion 
 Source: "doc\cat.bmp"; DestDir: "{app}\doc"; Flags: ignoreversion 

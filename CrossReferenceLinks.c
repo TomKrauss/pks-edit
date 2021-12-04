@@ -1047,12 +1047,6 @@ static int xref_openTagFileOrSearchResults(int title, int st_type, FSELINFO *fsp
 	return 0;
 }
 
-typedef struct tagNAVIGATION_INFO_PARSE_RESULT {
-	char* ni_fileName;
-	long  ni_lineNumber;
-	WINDOWPLACEMENT* ni_wp;
-} NAVIGATION_INFO_PARSE_RESULT;
-
 static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT* pResult, char* szFileBuffer, size_t nFileBufferSize) {
 	LINE* lp = wp->caret.linePointer;
 	FTABLE* fp = wp->fp;
@@ -1061,6 +1055,11 @@ static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT*
 	RE_MATCH match;
 	unsigned char patternBuf[256];
 
+	if (wp->renderer->r_findLink) {
+		if (wp->renderer->r_findLink(wp, szFileBuffer, nFileBufferSize, pResult)) {
+			return 1;
+		}
+	}
 	NAVIGATION_PATTERN* pPattern = grammar_getNavigationPatterns(fp->documentDescriptor->grammar);
 	while (pPattern) {
 		memset(&options, 0, sizeof options);
@@ -1075,6 +1074,7 @@ static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT*
 			while (regex_match(&pattern, pszStart, pszEnd, &match)) {
 				if (match.loc1 <= pszCursor && match.loc2 >= pszCursor && 
 						regex_getCapturingGroup(&match, pPattern->filenameCapture - 1, szFileBuffer, (int)nFileBufferSize) == SUCCESS) {
+					pResult->ni_displayMode = -1;
 					pResult->ni_fileName = szFileBuffer;
 					pResult->ni_lineNumber = 0;			// for now - to be initialized from capture group
 					return 1;
@@ -1111,7 +1111,16 @@ int EdFindFileCursor(void)
 	if ((found = file_searchFileInPath(filename,GetConfiguration()->includePath)) != 0 ||
 	    (found = file_searchFileInPath(_fseltarget, currentFilePath)) != 0 ||
 		(fselpath[0] && (found = file_searchFileInPath(_fseltarget, fselpath)) != 0)) {
-		return xref_openFile(found, result.ni_lineNumber, NULL);
+		if (xref_openFile(found, result.ni_lineNumber, result.ni_wp)) {
+			if (result.ni_displayMode != -1) {
+				WINFO* wp = ww_getCurrentEditorWindow();
+				if (wp) {
+					wp->dispmode = result.ni_displayMode;
+					ww_modeChanged(wp);
+				}
+			}
+			return 1;
+		}
 	}
 	HINSTANCE hInst = ShellExecute(hwndMain, "open", _fseltarget, "", ".", SW_SHOWNORMAL);
 	if ((intptr_t)hInst < 0 || (intptr_t)hInst > 32) {

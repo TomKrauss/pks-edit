@@ -82,6 +82,13 @@ typedef struct tagINDENTATION {
     unsigned char   tbits[MAXLINELEN / 8];	// Bitset Tabstops - allows us to have individual tab sizes (non standard).
 } INDENTATION;
 
+typedef struct tagNAVIGATION_INFO_PARSE_RESULT {
+    char* ni_fileName;                      // The file to open
+    long  ni_lineNumber;                    // The line number to jump to
+    char* ni_wp;                            // The identifier for a dock, in which the window to open should be placed.
+    int ni_displayMode;                     // The requested display mode or -1 if no special display mode is requested.
+} NAVIGATION_INFO_PARSE_RESULT;
+
 typedef struct tagTHEME_DATA THEME_DATA;
 
 typedef struct tagRENDER_CONTEXT {
@@ -143,6 +150,13 @@ typedef void (*RENDERER_CARET_UPDATE_UI)(WINFO* wp, int* pCX, int* pCY, int* pWi
 
 typedef void (*RENDERER_HIT_TEST)(WINFO* wp, int cX, int cY, long* pLine, long* pCol);
 
+typedef BOOL(*RENDERER_FIND_LINK)(WINFO* wp, char* pszDest, size_t nMaxChars, NAVIGATION_INFO_PARSE_RESULT* pResult);
+
+/*
+ * Custom input handlers per window type can be implemented using a controller.
+ */
+typedef struct tagCONTROLLER CONTROLLER;
+
 typedef struct tagRENDERER {
     const RENDER_LINE_FUNCTION r_renderLine;
     const RENDER_PAGE_FUNCTION r_renderPage;
@@ -162,12 +176,9 @@ typedef struct tagRENDERER {
     const RENDERER_HIT_TEST r_hitTest;                            // Return the info about a clicked element.
     const BOOL r_canEdit;                                         // whether this renderer supports editing.
     const void (*r_modelChanged)(WINFO* wp, MODEL_CHANGE* pMC);   // The method to invoke, when the model changes.
+    const CONTROLLER* r_controller;                               // Optional controller contributed by the renderer for custom mouse and keyboard handling. Maybe null.
+    const RENDERER_FIND_LINK r_findLink;                          // Optional callback to find a link at the "current" caret position.
 } RENDERER;
-
-/*
- * Custom input handlers per window type can be implemented using a controller.
- */
-typedef struct tagCONTROLLER CONTROLLER;
 
 /*--------------------------------------------------------------------------
  * indent_calculateTabStop()
@@ -596,14 +607,14 @@ extern void ww_registerRenderer(const char* pszName, RENDERER* pRenderer);
 /*
  * Final cleanup of the editor window sub-system.
  */
-void ww_destroyAll();
+extern void ww_destroyAll();
 
 /*------------------------------------------------------------
  * sl_size()
  * Update the internal sizeds of the WINFO structure (maxrows etc...).
  * Also update slider thumbs for the window.
  */
-int sl_size(WINFO* wp);
+extern int sl_size(WINFO* wp);
 
 #define FTPOI(wp)		(FTABLE*)(wp->fp)
 

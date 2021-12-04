@@ -26,6 +26,8 @@
 #include "themes.h"
 #include "pathname.h"
 #include "winutil.h"
+#include "edfuncs.h"
+#include "mainframe.h"
 
 #define NO_COLOR			-1		// marker for no color defined
 #define PARAGRAPH_OFFSET	15		// offset in pixels between paragraph type elements.
@@ -36,6 +38,28 @@ static const char _escapedChars[] = "\\`*_{}[]<>()#+-.!|";
 typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 
 typedef void (*RENDER_PAINT)(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, RECT* pUsed);
+
+//
+// Describes the bounds of a text run with the following shape.
+// 
+//             +---------+
+//       left1 |         |
+// +-----------+ top1    |
+// |                     |
+// |         right2 +----+  bottom2
+// |                |
+// +----------------+ bottom
+//
+typedef struct tagRUN_BOUNDS {
+	int		left1;
+	int		top1;
+	int		left;
+	int		top;
+	int		right;
+	int		bottom;
+	int		right2;
+	int		bottom2;
+} RUN_BOUNDS;
 
 /*
  * The text style of a "text run"
@@ -54,11 +78,12 @@ typedef struct tagFONT_ATTRIBUTES {
 
 typedef struct tagTEXT_RUN {
 	struct tagTEXT_RUN* tr_next;
-	BOOL tr_isImage;
-	HBITMAP tr_image;
-	char* tr_link;
-	size_t tr_size;
-	FONT_ATTRIBUTES tr_attributes;
+	BOOL				tr_isImage;
+	HBITMAP				tr_image;
+	char*				tr_link;
+	size_t				tr_size;
+	RUN_BOUNDS			tr_bounds;
+	FONT_ATTRIBUTES		tr_attributes;
 } TEXT_RUN;
 
 typedef struct tagTEXT_FLOW {
@@ -89,10 +114,7 @@ struct tagRENDER_VIEW_PART {
 	MDR_ELEMENT_TYPE rvp_type;
 	long rvp_number;			// for numbered lists
 	int	rvp_level;				// for headers and lists - the level.
-	union {
-		TEXT_FLOW flow;
-		struct tagRENDER_VIEW_PART* children;
-	} rvp_e;
+	TEXT_FLOW rvp_flow;
 };
 
 typedef struct tagMDR_ELEMENT_FORMAT {
@@ -167,6 +189,19 @@ typedef struct tagMARKDOWN_RENDERER_DATA {
 	long md_lastMinLn;
 	int md_nElementsPerPage;
 } MARKDOWN_RENDERER_DATA;
+
+/*
+ * Checks, whether a point is withing the bounds of a text run.
+ */
+static BOOL runbounds_contains(RUN_BOUNDS* pBounds, POINT pt) {
+	if (pt.y >= pBounds->top1 && pt.y < pBounds->top) {
+		return pt.x >= pBounds->left1 && pt.x < pBounds->right;
+	}
+	if (pt.y >= pBounds->bottom && pt.y < pBounds->bottom2) {
+		return pt.x >= pBounds->left && pt.x < pBounds->right2;
+	}
+	return (pt.y >= pBounds->top && pt.y < pBounds->bottom&& pt.x >= pBounds->left && pt.x < pBounds->right);
+}
 
 /*
  * Create a font for the given font-attributes. 
@@ -264,7 +299,7 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 	pUsed->top = y;
 	pUsed->left = x;
 	pUsed->right = nRight;
-	TEXT_FLOW* pTF = &pPart->rvp_e.flow;
+	TEXT_FLOW* pTF = &pPart->rvp_flow;
 	TEXT_RUN* pTR = pTF->tf_runs;
 	int nOffs = 0;
 	size_t nLen;
@@ -295,6 +330,7 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 		nLen--;
 	}
 	pPart->rvp_bounds.top = y;
+	BOOL bRunBegin = TRUE;
 	while(pTR) {
 		SIZE size;
 		int nFit;
@@ -312,6 +348,27 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 				nHeight = size.cy;
 			}
 			pPart->rvp_bounds.bottom = y + nHeight;
+			if (nOffs == 0) {
+				pPart->rvp_bounds.left = x;
+				pPart->rvp_bounds.right = nRight;
+			}
+			if (bRunBegin) {
+				pTR->tr_bounds.top1 = pTR->tr_bounds.top = y;
+				pTR->tr_bounds.bottom = pTR->tr_bounds.bottom2 = y + nHeight;
+				pTR->tr_bounds.left = pTR->tr_bounds.left1 = x;
+				pTR->tr_bounds.right = pTR->tr_bounds.right2 = x + size.cx;
+			} else {
+				if (pTR->tr_bounds.top == pTR->tr_bounds.top1) {
+					pTR->tr_bounds.top = y;
+				}
+				if (nFit < nLen) {
+					pTR->tr_bounds.bottom = y + nHeight;
+				} else {
+					pTR->tr_bounds.bottom2 = y + nHeight;
+				}
+				pTR->tr_bounds.left = x;
+				pTR->tr_bounds.right2 = x + size.cx;
+			}
 			if (nFit < nLen) {
 				int nFindSpace = 0;
 				while (nFit + nFindSpace > 0 && !string_isSpace(pTF->tf_text[nOffs + nFit + nFindSpace])) {
@@ -322,8 +379,6 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 				}
 			}
 			int nDelta = nHeight > size.cy ? (nHeight - size.cy) / 2 : 0;
-			pPart->rvp_bounds.left = x;
-			pPart->rvp_bounds.right = nRight;
 			TextOut(hdc, x, y + nDelta, &pTF->tf_text[nOffs], nFit);
 			if (pPart->rvp_type == MET_BLOCK_QUOTE) {
 				RECT leftRect;
@@ -351,6 +406,7 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 				nOffs++;
 				nLen--;
 			}
+			bRunBegin = FALSE;
 		} else {
 			if (pTR->tr_attributes.lineBreak) {
 				x = pUsed->left;
@@ -363,6 +419,7 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 			if (!pTR) {
 				break;
 			}
+			bRunBegin = TRUE;
 			nLen = pTR->tr_size;
 			DeleteObject(SelectObject(hdc, hOldFont));
 			hFont = mdr_createFont(&pTR->tr_attributes, wp->zoomFactor);
@@ -482,10 +539,10 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 }
 
 static TEXT_RUN* mdr_appendRun(RENDER_VIEW_PART* pPart, MDR_ELEMENT_FORMAT* pFormat, size_t nSize, int mAttrs) {
-	if (nSize == 0 && pPart->rvp_e.flow.tf_runs) {
+	if (nSize == 0 && pPart->rvp_flow.tf_runs) {
 		return NULL;
 	}
-	TEXT_RUN* pRun = ll_append(&pPart->rvp_e.flow.tf_runs, sizeof(TEXT_RUN));
+	TEXT_RUN* pRun = ll_append(&pPart->rvp_flow.tf_runs, sizeof(TEXT_RUN));
 	pRun->tr_size = nSize;
 	pRun->tr_attributes.size = pFormat->mef_charHeight;
 	pRun->tr_attributes.weight = pFormat->mef_charWeight;
@@ -751,7 +808,7 @@ outer:
 	pPart->rvp_marginRight = pFormat->mef_marginRight;
 	pPart->rvp_marginBottom = pFormat->mef_marginBottom;
 	pPart->rvp_paint = mdr_renderTextFlow;
-	pPart->rvp_e.flow.tf_text = _strdup(stringbuf_getString(pSB));
+	pPart->rvp_flow.tf_text = _strdup(stringbuf_getString(pSB));
 
 	nSize = stringbuf_size(pSB) - nLastOffset;
 	mdr_appendRun(pPart, pFormat, nSize, mAttrs);
@@ -916,8 +973,8 @@ static int mdr_destroyRun(TEXT_RUN* pRun) {
  * Destroy one view part. 
  */
 static int mdr_destroyViewPart(RENDER_VIEW_PART *pRVP) {
-	free(pRVP->rvp_e.flow.tf_text);
-	ll_destroy(&pRVP->rvp_e.flow.tf_runs, mdr_destroyRun);
+	free(pRVP->rvp_flow.tf_text);
+	ll_destroy(&pRVP->rvp_flow.tf_runs, mdr_destroyRun);
 	return 1;
 }
 
@@ -1008,6 +1065,9 @@ static int mdr_placeCursorAndValidate(WINFO* wp, long* ln, long offset, long* co
 	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, *ln);
 	if (pPart) {
 		wp->caret.linePointer = pPart->rvp_lpStart;
+		if (pPart->rvp_flow.tf_runs) {
+			wp->caret.col = *col;
+		}
 	}
 	wp->caret.ln = *ln;
 	wp->caret.offset = offset;
@@ -1024,12 +1084,46 @@ static void mdr_hitTest(WINFO* wp, int cx, int cy, long* pLine, long* pCol) {
 	long ln = wp->minln;
 	while (pPart) {
 		if (PtInRect(&pPart->rvp_bounds, pt)) {
+			TEXT_RUN* pRun = pPart->rvp_flow.tf_runs;
+			long nCol = 0;
+			while (pRun) {
+				if (runbounds_contains(&pRun->tr_bounds, (POINT) { cx, cy })) {
+					*pCol = nCol;
+					break;
+				}
+				pRun = pRun->tr_next;
+				nCol++;
+			}
 			*pLine = ln;
 			return;
 		}
 		pPart = pPart->rvp_next;
 		ln++;
 	}
+}
+
+static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_INFO_PARSE_RESULT* pResult) {
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	if (!pData) {
+		return 0;
+	}
+	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, wp->caret.ln);
+	if (pPart && pPart->rvp_flow.tf_runs) {
+		TEXT_RUN* pRun = (TEXT_RUN*) ll_at((LINKED_LIST*)pPart->rvp_flow.tf_runs, wp->caret.col);
+		if (pRun && pRun->tr_link && strlen(pRun->tr_link) < nMaxChars) {
+			strcpy(pszBuf, pRun->tr_link);
+			pResult->ni_fileName = pszBuf;
+			pResult->ni_lineNumber = 0;
+			pResult->ni_displayMode = SHOWWYSIWYG;
+			pResult->ni_wp = mainframe_getDockName(wp->edwin_handle);
+			return 1;
+		}
+	}
+	return FALSE;
+}
+
+static int mdr_updateDueToMouseClick(WINFO* wp, long* ln, long* col, int updateVirtualColumn) {
+	return mdr_placeCursorAndValidate(wp, ln, *col, col, updateVirtualColumn, 0);
 }
 
 static RENDERER _mdrRenderer = {
@@ -1039,7 +1133,7 @@ static RENDERER _mdrRenderer = {
 	mdr_calculateMaxLine,
 	mdr_calculateLongestLine,
 	mdr_calculateMaxColumn,
-	caret_updateDueToMouseClick,
+	mdr_updateDueToMouseClick,
 	mdr_screenOffsetToBuffer,
 	mdr_allocData,
 	mdr_destroyData,
@@ -1049,7 +1143,9 @@ static RENDERER _mdrRenderer = {
 	mdr_rendererSupportsMode,
 	mdr_hitTest,
 	FALSE,
-	mdr_modelChanged
+	mdr_modelChanged,
+	NULL,
+	mdr_findLink
 };
 
 /*

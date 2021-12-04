@@ -1971,7 +1971,7 @@ static int mainframe_translateAccelerator(HWND hwnd, MSG* msg) {
 			if (wp->codecomplete_handle && codecomplete_processKey(wp->codecomplete_handle, msg->message, msg->wParam)) {
 				return 1;
 			}
-			if (wp->controller) {
+			if (wp->controller && wp->controller->c_getKeyBinding) {
 				_executeKeyBinding = wp->controller->c_getKeyBinding(msg->wParam);
 			}
 		}
@@ -2140,6 +2140,17 @@ void mainframe_windowActivated(HWND hwndOld, HWND hwndNew) {
 			tabcontrol_repaintTabs(pSlot2->ds_hwnd, (TAB_CONTROL*)GetWindowLongPtr(pSlot2->ds_hwnd, GWLP_TAB_CONTROL));
 		}
 	}
+}
+
+/*
+ * Returns the window dock name for a given window.
+ */
+char* mainframe_getDockName(HWND hwnd) {
+	DOCKING_SLOT* pSlot = mainframe_getDockingParent(hwnd);
+	if (pSlot == NULL) {
+		return szDefaultSlotName;
+	}
+	return pSlot->ds_name;
 }
 
 /*

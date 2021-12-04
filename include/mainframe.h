@@ -76,7 +76,7 @@ typedef enum { MD_ADD_HORIZONTAL, MD_ADD_VERTICAL, MD_ENSURE_DEFAULT } MANAGE_DO
 extern int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType);
 
 /*
- * Returns a string to be used as an open hint later, when opening the window.
+ * Returns a string to be used as an open hint later, when opening the window. Use the edwin_handle window of the window to test.
  */
 extern char* mainframe_getOpenHint(HWND hwnd, BOOL bFocus, BOOL bClone, int bDisplayMode);
 
@@ -99,6 +99,11 @@ extern OPEN_HINT mainframe_parseOpenHint(char* pszHint);
  * Used to switch to full screen mode and back.
  */
 extern int mainframe_toggleFullScreen();
+
+/*
+ * Returns the window dock name for a given window. Use the edwin_handle window of the window to test.
+ */
+extern char* mainframe_getDockName(HWND hwnd);
 
 #define MAINFRAME_H
 #endif

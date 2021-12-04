@@ -619,8 +619,11 @@ static void ww_assignRenderer(WINFO* wp) {
 	if (wp->renderer->r_create) {
 		wp->r_data = wp->renderer->r_create(wp);
 	}
-	if (pOld && pOld != wp->renderer) {
-		SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
+	if (pOld != wp->renderer) {
+		wp->controller = (CONTROLLER*)wp->renderer->r_controller;
+		if (pOld) {
+			SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
+		}
 	}
 }
 
