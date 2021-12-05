@@ -31,16 +31,22 @@ type formatting of text. The markdown also may contain [links - e.g to the gramm
 [Auto-links](https://github.github.com/gfm/#autolinks) are supported to some extent using the following syntax `\<https://www.google.de>`: <www.google.de>.
 
 > This is a block quote
+> 
 >> one level deeper
+>
 > Level 1
+>
+> Still on Level 1
 
 + Here is an ordered list
-++ with a nested list sub-element
-+++ three level deep list sub-element
+  + with a nested list sub-element
+    + three level deep list sub-element
 + Another top level-element
 
 1. Ordered lists
 2. Unordered lists
+   1. Nested list element
+   2. Second in nested element 
 3. etc...
 
 A horizontal rule follows.

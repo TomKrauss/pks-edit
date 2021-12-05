@@ -142,8 +142,19 @@ static MDR_ELEMENT_FORMAT _formatFenced = {
 	PARAGRAPH_OFFSET, PARAGRAPH_OFFSET, 20, 20, 14, FW_BOLD, 1
 };
 
+#define BLOCK_QUOTE_INDENT		25
+#define BLOCK_QUOTE_MARGIN		4
+
 static MDR_ELEMENT_FORMAT _formatBlockQuote = {
-	0, 0, 45, 20, 14, FW_NORMAL
+	BLOCK_QUOTE_MARGIN, BLOCK_QUOTE_MARGIN, DEFAULT_LEFT_MARGIN+BLOCK_QUOTE_INDENT, 20, 14, FW_NORMAL
+};
+
+static MDR_ELEMENT_FORMAT _formatBlockQuote2 = {
+	BLOCK_QUOTE_MARGIN, BLOCK_QUOTE_MARGIN, DEFAULT_LEFT_MARGIN + (2*BLOCK_QUOTE_INDENT), 20, 14, FW_NORMAL
+};
+
+static MDR_ELEMENT_FORMAT _formatBlockQuote3 = {
+	BLOCK_QUOTE_MARGIN, BLOCK_QUOTE_MARGIN, DEFAULT_LEFT_MARGIN + (3 * BLOCK_QUOTE_INDENT), 20, 14, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatListLevel1 = {
@@ -382,14 +393,14 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 			TextOut(hdc, x, y + nDelta, &pTF->tf_text[nOffs], nFit);
 			if (pPart->rvp_type == MET_BLOCK_QUOTE) {
 				RECT leftRect;
-				leftRect.top = y;
-				leftRect.bottom = y + nHeight;
+				leftRect.top = y-pPart->rvp_marginTop-3;
+				leftRect.bottom = y + nHeight + pPart->rvp_marginBottom+3;
 				leftRect.left = pBounds->left + _formatText.mef_marginLeft;
 				leftRect.right = leftRect.left + 5;
 				for (int i = 0; i < pPart->rvp_level; i++) {
 					FillRect(hdc, &leftRect, theme_getDialogLightBackgroundBrush());
-					leftRect.left += 10;
-					leftRect.right += 10;
+					leftRect.left += BLOCK_QUOTE_INDENT;
+					leftRect.right += BLOCK_QUOTE_INDENT;
 				}
 			}
 		}
@@ -454,6 +465,9 @@ static BOOL mdr_isTopLevelOrBreak(LINE* lp, MDR_ELEMENT_TYPE mCurrentType, int n
 			if (mCurrentType != MET_BLOCK_QUOTE) {
 				return TRUE;
 			}
+			if (lp->len == 1 || (lp->len == 2 && lp->lbuf[1] == ' ')) {
+				return TRUE;
+			}
 			int nLevelNew = 1;
 			while (i < lp->len - 1 && lp->lbuf[i + 1] == '>') {
 				nLevelNew++;
@@ -468,6 +482,14 @@ static BOOL mdr_isTopLevelOrBreak(LINE* lp, MDR_ELEMENT_TYPE mCurrentType, int n
 	return TRUE;
 }
 
+static int mdr_getLevelFromIndent(LINE* lp, char aListChar) {
+	for (int i = 0; i < lp->len; i++) {
+		if (lp->lbuf[i] != ' ') {
+			return 1 + (i / 2);
+		}
+	}
+	return 1;
+}
 /*
  * Parse a top level markup element (list, header, code block etc...) 
  */
@@ -486,18 +508,9 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 		*pOffset = i;
 	} else if (c == '-' || c == '*' || c == '+') {
 		mType = MET_UNORDERED_LIST;
-		*pLevel = 1;
-		if (i < lp->len - 1 && lp->lbuf[i + 1] == c) {
-			i++;
-			*pOffset = i;
-			*pLevel = 2;
-			if (i < lp->len - 1 && lp->lbuf[i + 1] == c) {
-				if (c == '-') {
-					return MET_HORIZONTAL_RULE;
-				}
-				*pOffset = i+1;
-				*pLevel = 3;
-			}
+		*pLevel = mdr_getLevelFromIndent(lp, c);
+		if (c == '-' && i < lp->len - 2 && lp->lbuf[i + 1] == c && lp->lbuf[i + 1] == c) {
+			return MET_HORIZONTAL_RULE;
 		}
 	} else if (c == '>') {
 		*pLevel = 1;
@@ -511,7 +524,7 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 		if (*_strtolend == '.') {
 			*pOffset = (int)(_strtolend - lp->lbuf) + 1;
 			mType = MET_ORDERED_LIST;
-			*pLevel = 1;
+			*pLevel = mdr_getLevelFromIndent(lp, c);
 		}
 	} else if (c == '`' && lp->len >= 3 && lp->lbuf[1] == c && lp->lbuf[2] == c) {
 		mType = MET_FENCED_CODE_BLOCK;
@@ -532,7 +545,13 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 		*pFormat = &_formatFenced; break;
 	case MET_ORDERED_LIST:
 	case MET_UNORDERED_LIST: *pFormat = *pLevel == 1 ? &_formatListLevel1 : (*pLevel == 2 ? &_formatListLevel2 : &_formatListLevel3); break;
-	case MET_BLOCK_QUOTE: *pFormat = &_formatBlockQuote; break;
+	case MET_BLOCK_QUOTE:
+		switch (*pLevel) {
+		case 1: *pFormat = &_formatBlockQuote; break;
+		case 2: *pFormat = &_formatBlockQuote2; break;
+		default: *pFormat = &_formatBlockQuote3; break;
+		}
+		break;
 	default: *pFormat = &_formatText; break;
 	}
 	return mType;
@@ -948,6 +967,9 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 			mType = mNextType;
 		}
 		pPart->rvp_paint(wp, pPart, pCtx->rc_hdc, &rect, &occupiedBounds);
+		if (occupiedBounds.bottom > rect.bottom) {
+			break;
+		}
 		pPart = pPart->rvp_next;
 		nElements++;
 	}
@@ -1055,8 +1077,8 @@ static int mdr_placeCursorAndValidate(WINFO* wp, long* ln, long offset, long* co
 		return 0;
 	}
 	long lnMax = mdr_calculateMaxLine(wp);
-	if (*ln >= lnMax) {
-		*ln = lnMax;
+	if (*ln >= lnMax && lnMax > 0) {
+		*ln = lnMax-1;
 	}
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (!pData) {
