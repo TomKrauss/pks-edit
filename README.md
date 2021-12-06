@@ -31,6 +31,10 @@ The editor contains only some basic features compared to modern text editors suc
 - support for themes - e.g. support for a dark mode theme.
 - docking windows UI
 
+## Manual
+
+- the [PKS-Edit Manual](doc/manual/toc.md) describes, how to work with PKS-Edit.
+
 ## Support for Markdown Display
 
 PKS-Edit supports displaying markdown text in a [Wysiwyg mode](doc/markdown.md).

@@ -306,8 +306,12 @@ void ft_saveWindowStates(void )
 			FTABLE* fp = wp->fp;
 			if (!(fp->flags & (F_TRANSIENT | F_NAME_INPUT_REQUIRED))) {
 				int nIndex = arraylist_indexOf(fp->views, wp);
+				int nDispmode = wp->dispmode;
+				if (nDispmode == fp->documentDescriptor->dispmode) {
+					nDispmode = -1;
+				}
 				xref_addSearchListEntry(&ft, fp->fname, wp->caret.ln, 
-					mainframe_getOpenHint(wp->edwin_handle, wp == wpActive, nIndex > 0, wp->dispmode));
+					mainframe_getOpenHint(wp->edwin_handle, wp == wpActive, nIndex > 0, nDispmode));
 			}
 		}
 	}

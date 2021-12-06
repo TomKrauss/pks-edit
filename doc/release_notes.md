@@ -17,8 +17,8 @@ This file contains the release notes for the latest **PKS Edit** releases.
   recognize now encrypted files (independent of their file extension) and will ask for the password to de-crypt encrypted files.
 - PKS Edit supports now a preliminary `hex editor mode` to display the current file in an hex editor fashion. Editing is not yet
   correctly supported, but planned for later releases. PKS Edit will now by default open binary files in hex editor mode.
-- PKS Edit also supports a new preliminary `wysiwyg mode` for markdown files now, which allows a preview of markdown format files (.md - format).
-  The best way to use this mode is to clone the window of a .md-file and set the cloned window to wysiwyg mode (new menu option).
+- PKS Edit supports a `wysiwyg mode` for markdown files now, which allows a preview of markdown formatted files (.md - format).
+  The best way to use this mode is to clone the window of a .md-file and set the cloned window to wysiwyg mode (Editor Settings->Wysiwyg Display).
 - The new **Watch Log File** mode can be used to edit log files and have them update their view and scroll to the end, when new log entries
   are added (seee Linux `tail -f`). In this mode editing the file is not possible - it is read-only in this case to avoid concurrent external
   and internal changes.
@@ -38,11 +38,11 @@ This file contains the release notes for the latest **PKS Edit** releases.
   directory.
 - The function keys display now a tooltip further explaining the action associated with the function key.
 - The "find in files" function was improved:
-    - resulting matches are now always displayed in a separate window, in which individual matches can be selected (double click on match line)
-    - a summary of the search is printed at the end
-    - two new options were added: one can search only considering locations found in a previous search and the search list can be augmented 
+  - resulting matches are now always displayed in a separate window, in which individual matches can be selected (double click on match line)
+  - a summary of the search is printed at the end
+  - two new options were added: one can search only considering locations found in a previous search and the search list can be augmented 
        in a new search.
-    - one can also replace now all occurrences of a string in the files found.
+  - one can also replace now all occurrences of a string in the files found.
 - When comparing files, one may now select the file to compare with using a selector. This selector provides a new option for comparison:
   _Compare with history_, which allows to compare a file with a previously created backup file (if such exists). PKS Edit will now differentiate
   between added, deleted and modified lines and will synchronize cursor movements of files in comparison mode to be able to display identical lines
@@ -54,10 +54,10 @@ This file contains the release notes for the latest **PKS Edit** releases.
   like setting dialog / file selector or native message boxes not being correctly colored remain.
 - A new theme named "spring was added.
 - New configuration options were added:
-   - "Syntax Highlighting" can be switched on and off per view
-   - "Line Selection" mode is an alternative to Column Selection and Normal selection mode, where selecting text with the caret or
+  - "Syntax Highlighting" can be switched on and off per view
+  - "Line Selection" mode is an alternative to Column Selection and Normal selection mode, where selecting text with the caret or
       the mouse will result always in complete lines being selected.
-   - "Preserve Caret Column" can be switched off to have the caret not preserve its column position when moving vertically through a window
+  - "Preserve Caret Column" can be switched off to have the caret not preserve its column position when moving vertically through a window
 - Code completion is available now, when editing key and mouse bindings in PKS Edit.
 
 ### Changed

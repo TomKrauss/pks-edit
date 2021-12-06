@@ -580,6 +580,10 @@
     <None Include="RC\MANIFEST.BIN">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="doc\manual\toc.md" />
+    <None Include="doc\manual\getting_started.md" />
+    <None Include="doc\manual\saving_files.md" />
+    <None Include="doc\manual\editing_files.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">

@@ -39,6 +39,21 @@ typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 
 typedef void (*RENDER_PAINT)(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, RECT* pUsed);
 
+typedef struct tagENTITY_MAPPING {
+	char	c;
+	char    entity[8];
+} ENTITY_MAPPING;
+
+static ENTITY_MAPPING _entities[] = {
+	{'&', "amp;"},
+	{'©', "copy;"},
+	{'\'', "apos;"},
+	{'<', "lt;"},
+	{'>', "gt;"},
+	{' ', "nbsp;"},
+	{'®', "reg;"},
+};
+
 //
 // Describes the bounds of a text run with the following shape.
 // 
@@ -482,6 +497,9 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 }
 
 static BOOL mdr_isTopLevelOrBreak(LINE* lp, MDR_ELEMENT_TYPE mCurrentType, int nLevel) {
+	if (lp->len == 0) {
+		return TRUE;
+	}
 	for (int i = 0; i < lp->len; i++) {
 		char c = lp->lbuf[i];
 		if (c == '-' || c == '#' || c == '*' || c == '+') {
@@ -544,14 +562,20 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 			return MET_HORIZONTAL_RULE;
 		}
 		i++;
+		BOOL bSpaceFound = FALSE;
 		while (i < lp->len && lp->lbuf[i] == ' ') {
 			i++;
+			bSpaceFound = TRUE;
 		}
-		if (i < lp->len - 3 && lp->lbuf[i] == '[' && lp->lbuf[i + 2] == ']') {
-			mType = MET_TASK_LIST;
-			char c = lp->lbuf[i + 1];
-			*pNumber = c == 'x' || c == 'X' ? 1 : 0;
-			*pOffset = i + 3;
+		if (bSpaceFound) {
+			if (i < lp->len - 3 && lp->lbuf[i] == '[' && lp->lbuf[i + 2] == ']') {
+				mType = MET_TASK_LIST;
+				char c = lp->lbuf[i + 1];
+				*pNumber = c == 'x' || c == 'X' ? 1 : 0;
+				*pOffset = i + 3;
+			}
+		} else {
+			mType = MET_NORMAL;
 		}
 	} else if (c == '>') {
 		*pLevel = 1;
@@ -646,6 +670,10 @@ static char* mdr_parseLink(RENDER_VIEW_PART* pPart, LINE* lp, int *pTextEnd, int
 					*pTextEnd = i - 1;
 					i++;
 					nLinkStart = i;
+					// support special syntax: [text](<link>)
+					if (lp->lbuf[i] == '<') {
+						i++;
+					}
 				} else {
 					return NULL;
 				}
@@ -655,7 +683,11 @@ static char* mdr_parseLink(RENDER_VIEW_PART* pPart, LINE* lp, int *pTextEnd, int
 			*pStartPos = i-1;
 			i -= nLinkStart;
 			strncpy(szBuf, &lp->lbuf[nLinkStart], i-1);
-			szBuf[i-1] = 0;
+			if (i > 2 && szBuf[i - 2] == '>') {
+				szBuf[i - 2] = 0;
+			} else {
+				szBuf[i - 1] = 0;
+			}
 			return _strdup(szBuf);
 		}
 	}
@@ -801,9 +833,10 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 					nLastOffset += nSize;
 					continue;
 				}
-			} else if (c == '[' || (c == '!' && i < lp->len - 1 && lp->lbuf[i + 1] == '[')) {
+			}
+			else if (c == '[' || (c == '!' && i < lp->len - 1 && lp->lbuf[i + 1] == '[')) {
 				BOOL bImage = c == '!';
-				int pos = (bImage) ? i + 2 : i+1;
+				int pos = (bImage) ? i + 2 : i + 1;
 				int nTextStart = pos;
 				int nTextEnd;
 				char* pLink = mdr_parseLink(pPart, lp, &nTextEnd, &pos);
@@ -816,23 +849,38 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 					if (c == lp->lbuf[nTextEnd - 1]) {
 						if (c == '`') {
 							nAttr = ATTR_CODE;
-						} else if (c == '*' || c == '_') {
+						}
+						else if (c == '*' || c == '_') {
 							nAttr = ATTR_EMPHASIS;
 						}
 						if (nAttr) {
 							nTextStart++;
 							nTextEnd--;
 						}
-					} 
-					stringbuf_appendStringLength(pSB , &lp->lbuf[nTextStart], nTextEnd - nTextStart);
+					}
+					stringbuf_appendStringLength(pSB, &lp->lbuf[nTextStart], nTextEnd - nTextStart);
 					nSize = stringbuf_size(pSB) - nLastOffset;
-					TEXT_RUN* pRun = mdr_appendRun(pPart, pFormat, nSize, nAttr|ATTR_LINK);
+					TEXT_RUN* pRun = mdr_appendRun(pPart, pFormat, nSize, nAttr | ATTR_LINK);
 					pRun->tr_isImage = bImage;
 					pRun->tr_link = pLink;
 					nLastOffset += nSize;
 					i = pos;
 					continue;
-				} 
+				}
+			} else if (c == '&') {
+				BOOL bFound = FALSE;
+				for (int nE = 0; _entities[nE].c; nE++) {
+					size_t nLen = strlen(_entities[nE].entity);
+					if (strncmp(&lp->lbuf[i+1], _entities[nE].entity, nLen) == 0) {
+						stringbuf_appendChar(pSB, _entities[nE].c);
+						i += (int)nLen;
+						bFound = TRUE;
+						continue;
+					}
+				}
+				if (bFound) {
+					continue;
+				}
 			} else if (c == '<') {
 				if (strncmp(&lp->lbuf[i], "<br>", 4) == 0) {
 					i += 3;
@@ -1186,7 +1234,7 @@ static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_I
 			strcpy(pszBuf, pRun->tr_link);
 			pResult->ni_fileName = pszBuf;
 			pResult->ni_lineNumber = 0;
-			pResult->ni_displayMode = SHOWWYSIWYG;
+			pResult->ni_displayMode = wp->dispmode;
 			pResult->ni_wp = mainframe_getDockName(wp->edwin_handle);
 			return 1;
 		}

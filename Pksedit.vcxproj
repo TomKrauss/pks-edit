@@ -1200,6 +1200,10 @@
     <ClInclude Include="rc\pksrc.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="doc\manual\editing_files.md" />
+    <None Include="doc\manual\getting_started.md" />
+    <None Include="doc\manual\toc.md" />
+    <None Include="doc\manual\saving_files.md" />
     <None Include="PKSEDIT.DEF" />
     <None Include="rc\CLIP.ICO" />
     <None Include="rc\CLIPEMPT.ICO" />

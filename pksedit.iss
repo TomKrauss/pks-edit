@@ -84,10 +84,7 @@ Source: "pks_sys\pksedit.mac"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\pksedit.chm"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "rc\pks.ico"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "readme.md"; DestDir: "{app}"; Flags: ignoreversion 
-Source: "doc\release_notes.md"; DestDir: "{app}\doc"; Flags: ignoreversion 
-Source: "doc\markdown.md"; DestDir: "{app}\doc"; Flags: ignoreversion 
-Source: "doc\cat.bmp"; DestDir: "{app}\doc"; Flags: ignoreversion 
-Source: "doc\grammar.md"; DestDir: "{app}\doc"; Flags: ignoreversion 
+Source: "doc\*"; DestDir: "{app}\doc"; Flags: ignoreversion recursesubdirs
 
 [INI]
 Filename: "win.ini"; Section: "PksEdit"; Key: "PKS_SYS"; String: "{app}\PKS_SYS"
