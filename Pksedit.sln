@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31229.75
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pksedit", "pksedit.vcxproj", "{AA19957C-5CE3-459A-ACFC-B5CFE2C03B97}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "en-US", "en-US\pksedit-en.vcxproj", "{EA04DD5A-25E5-42D3-B1BB-1246BB3CB6F3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pkslib", "pkslib\pkslib\pkslib.vcxproj", "{9A3887DD-1F0A-4840-AB03-B01389386921}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,14 @@ Global
 		{EA04DD5A-25E5-42D3-B1BB-1246BB3CB6F3}.Release|x64.Build.0 = Release|x64
 		{EA04DD5A-25E5-42D3-B1BB-1246BB3CB6F3}.Release|x86.ActiveCfg = Release|Win32
 		{EA04DD5A-25E5-42D3-B1BB-1246BB3CB6F3}.Release|x86.Build.0 = Release|Win32
+		{9A3887DD-1F0A-4840-AB03-B01389386921}.Debug|x64.ActiveCfg = Debug|x64
+		{9A3887DD-1F0A-4840-AB03-B01389386921}.Debug|x64.Build.0 = Debug|x64
+		{9A3887DD-1F0A-4840-AB03-B01389386921}.Debug|x86.ActiveCfg = Debug|Win32
+		{9A3887DD-1F0A-4840-AB03-B01389386921}.Debug|x86.Build.0 = Debug|Win32
+		{9A3887DD-1F0A-4840-AB03-B01389386921}.Release|x64.ActiveCfg = Release|x64
+		{9A3887DD-1F0A-4840-AB03-B01389386921}.Release|x64.Build.0 = Release|x64
+		{9A3887DD-1F0A-4840-AB03-B01389386921}.Release|x86.ActiveCfg = Release|Win32
+		{9A3887DD-1F0A-4840-AB03-B01389386921}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -35,6 +35,9 @@
 
 static const char _escapedChars[] = "\\`*_{}[]<>()#+-.!|";
 
+// Loads the an image with a name and a format into a HBITMAP.
+extern HBITMAP loadimage_load(char* pszName);
+
 typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 
 typedef void (*RENDER_PAINT)(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, RECT* pUsed);
@@ -293,7 +296,12 @@ static void mdr_paintImage(WINFO* wp, HDC hdc, TEXT_RUN* pTR, int x, int y, SIZE
 		FTABLE* fp = wp->fp;
 		string_splitFilename(fp->fname, szFilename, NULL);
 		string_concatPathAndFilename(szFilename, szFilename, pTR->tr_link);
-		pTR->tr_image = LoadImage(NULL, szFilename, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
+		char* pszExt = strrchr(pTR->tr_link, '.');
+		if (pszExt && _stricmp(pszExt + 1, "bmp") != 0) {
+			pTR->tr_image = loadimage_load(szFilename);
+		} else {
+			pTR->tr_image = LoadImage(NULL, szFilename, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+		}
 	}
 	if (pTR->tr_image) {
 		BITMAP          bitmap;

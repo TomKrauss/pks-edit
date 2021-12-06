@@ -52,6 +52,7 @@ Filename: "{app}\{#MyAppExeName}"; Parameters: "readme.md /w"; Flags: postinstal
 [Files]
 Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"; Flags: ignoreversion
 Source: "x64\Release\{#MyAppBaseName}.en-US.dll"; DestDir: "{app}"; DestName: "{#MyAppBaseName}.en-US.dll"; Flags: ignoreversion
+Source: "x64\Release\pkslib.dll"; DestDir: "{app}"; DestName: "pkslib.dll"; Flags: ignoreversion
 Source: "pks_sys\pksedit.ini"; DestDir: "{app}\pks_sys"
 Source: "pks_sys\batch.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\cpp.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion

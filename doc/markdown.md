@@ -72,5 +72,11 @@ Some more text at the end. And finally an image or: what was the Internet invent
 
 ![Fritz the Cat](cat.bmp)
 
-Note, that image support is currently also rather limited: only local images with .bmp format are supported.
+![Roll the dice](dice.png)
+
+![Balloons](balloons.jpg)
+
+![Flying Bird](bird.gif)
+
+Note, that image support is currently also rather limited: only local images are supported.
 

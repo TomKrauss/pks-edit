@@ -170,7 +170,7 @@
       <AdditionalIncludeDirectories>.\inc;.\rc;.\pksedit;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;odbc32.lib;odbccp32.lib;htmlhelp.lib;Msimg32.lib;winmm.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comctl32.lib;odbc32.lib;odbccp32.lib;htmlhelp.lib;Msimg32.lib;winmm.lib;shlwapi.lib;.\$(Platform)\$(Configuration)\pkslib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>.\$(Platform)\$(Configuration)/Pksedit.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ModuleDefinitionFile>.\PKSEDIT.DEF</ModuleDefinitionFile>
@@ -273,7 +273,7 @@
       <AdditionalIncludeDirectories>.\inc;.\rc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;odbc32.lib;odbccp32.lib;htmlhelp.lib;shlwapi.lib;Msimg32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comctl32.lib;odbc32.lib;odbccp32.lib;htmlhelp.lib;shlwapi.lib;Msimg32.lib;winmm.lib;.\$(Platform)\$(Configuration)\pkslib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>.\$(Platform)\$(Configuration)/Pksedit.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ModuleDefinitionFile>.\PKSEDIT.DEF</ModuleDefinitionFile>

@@ -19,3 +19,6 @@ pksedit.his
 /en-US/x64/
 /en-US/en-US/x64/
 /pksedit-cppcheck-build-dir
+/pkslib/pkslib/x64/Debug
+/pkslib/pkslib/x64/Release/pkslib.tlog
+/pkslib/pkslib/x64/Release

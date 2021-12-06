@@ -636,14 +636,15 @@ void ww_modeChanged(WINFO* wp) {
 	if (wp->ww_handle) {
 		sl_size(wp);
 		font_selectStandardFont(wp->ww_handle, wp);
-		win_sendRedrawToWindow(wp->ww_handle);
 		wt_tcursor(wp, 0);
 		wt_tcursor(wp, 1);
 		caret_placeCursorForFile(wp, wp->caret.ln, wp->caret.offset, wp->caret.col, 0);
 	}
 
 	wp->scroll_dx = 4;
+	ww_setScrollCheckBounds(wp);
 	wp->renderer->r_adjustScrollBounds(wp);
+	win_sendRedrawToWindow(wp->ww_handle);
 	render_updateCaret(wp);
 }
 
