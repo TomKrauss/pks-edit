@@ -96,6 +96,7 @@ typedef enum {
 	MET_ORDERED_LIST, 
 	MET_UNORDERED_LIST, 
 	MET_IMAGE, 
+	MET_TASK_LIST,
 	MET_NORMAL,
 	MET_FENCED_CODE_BLOCK,
 	MET_HEADER, 
@@ -299,6 +300,33 @@ static void mdr_paintImage(WINFO* wp, HDC hdc, TEXT_RUN* pTR, int x, int y, SIZE
 		pSize->cx = 200;
 	}
 }
+
+/*
+ * Paint a checkmark for a task list. 
+ */
+static void mdr_paintCheckmark(HDC hdc, int x, int y, BOOL bChecked) {
+	THEME_DATA* pTheme = theme_getCurrent();
+	LOGBRUSH brush;
+	brush.lbColor = pTheme->th_dialogBorder;
+	brush.lbHatch = 0;
+	brush.lbStyle = PS_SOLID;
+	HPEN hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, 2, &brush, 0, NULL);
+	HPEN hPenOld = SelectObject(hdc, hPen);
+	int nSize = 13;
+	MoveTo(hdc, x, y);
+	LineTo(hdc, x+nSize, y);
+	LineTo(hdc, x + nSize, y+nSize);
+	LineTo(hdc, x, y + nSize);
+	LineTo(hdc, x, y);
+	if (bChecked) {
+		MoveTo(hdc, x+3, y+3);
+		LineTo(hdc, x + nSize - 4, y + nSize - 4);
+		MoveTo(hdc, x + 3, y + nSize - 4);
+		LineTo(hdc, x + nSize - 4, y + 3);
+	}
+	DeleteObject(SelectObject(hdc, hPenOld));
+}
+
 /*
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
  */
@@ -321,7 +349,9 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 	HFONT hFont = mdr_createFont(&pTR->tr_attributes, wp->zoomFactor);
 	HFONT hOldFont = SelectObject(hdc, hFont);
 	if (pPart->rvp_type == MET_UNORDERED_LIST) {
-		TextOutW(hdc, x-15, y, pPart->rvp_level == 1 ? L"\u25CF" : (pPart->rvp_level == 2 ? L"\u25CB" : L"\u25A0"), 1);
+		TextOutW(hdc, x - 15, y, pPart->rvp_level == 1 ? L"\u25CF" : (pPart->rvp_level == 2 ? L"\u25CB" : L"\u25A0"), 1);
+	} else if (pPart->rvp_type == MET_TASK_LIST) {
+		mdr_paintCheckmark(hdc, x - 20, y, pPart->rvp_number == 1);
 	} else if (pPart->rvp_type == MET_ORDERED_LIST) {
 		char szBuf[20];
 		sprintf(szBuf, "%ld.", pPart->rvp_number);
@@ -465,7 +495,8 @@ static BOOL mdr_isTopLevelOrBreak(LINE* lp, MDR_ELEMENT_TYPE mCurrentType, int n
 			if (mCurrentType != MET_BLOCK_QUOTE) {
 				return TRUE;
 			}
-			if (lp->len == 1 || (lp->len == 2 && lp->lbuf[1] == ' ')) {
+			LINE* lpPrev = lp->prev;
+			if (lpPrev && lpPrev->lbuf[0] == '>' && (lpPrev->len == 1 || (lpPrev->len == 2 && lpPrev->lbuf[1] == ' '))) {
 				return TRUE;
 			}
 			int nLevelNew = 1;
@@ -512,6 +543,16 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 		if (c == '-' && i < lp->len - 2 && lp->lbuf[i + 1] == c && lp->lbuf[i + 1] == c) {
 			return MET_HORIZONTAL_RULE;
 		}
+		i++;
+		while (i < lp->len && lp->lbuf[i] == ' ') {
+			i++;
+		}
+		if (i < lp->len - 3 && lp->lbuf[i] == '[' && lp->lbuf[i + 2] == ']') {
+			mType = MET_TASK_LIST;
+			char c = lp->lbuf[i + 1];
+			*pNumber = c == 'x' || c == 'X' ? 1 : 0;
+			*pOffset = i + 3;
+		}
 	} else if (c == '>') {
 		*pLevel = 1;
 		mType = MET_BLOCK_QUOTE;
@@ -543,6 +584,7 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 		break;
 	case MET_FENCED_CODE_BLOCK:
 		*pFormat = &_formatFenced; break;
+	case MET_TASK_LIST:
 	case MET_ORDERED_LIST:
 	case MET_UNORDERED_LIST: *pFormat = *pLevel == 1 ? &_formatListLevel1 : (*pLevel == 2 ? &_formatListLevel2 : &_formatListLevel3); break;
 	case MET_BLOCK_QUOTE:
@@ -712,7 +754,7 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 					pPart->rvp_paint = mdr_renderHorizontalRule;
 					return lp->next;
 				}
-				if (mType == MET_ORDERED_LIST) {
+				if (mType == MET_ORDERED_LIST || mType == MET_TASK_LIST) {
 					pPart->rvp_number = nNumber;
 				}
 				pPart->rvp_level = nLevel;
@@ -827,9 +869,10 @@ outer:
 	pPart->rvp_marginRight = pFormat->mef_marginRight;
 	pPart->rvp_marginBottom = pFormat->mef_marginBottom;
 	pPart->rvp_paint = mdr_renderTextFlow;
-	pPart->rvp_flow.tf_text = _strdup(stringbuf_getString(pSB));
+	size_t nLen = stringbuf_size(pSB);
+	pPart->rvp_flow.tf_text = nLen == 0 ? NULL : _strdup(stringbuf_getString(pSB));
 
-	nSize = stringbuf_size(pSB) - nLastOffset;
+	nSize = nLen - nLastOffset;
 	mdr_appendRun(pPart, pFormat, nSize, mAttrs);
 
 	return lp;
@@ -838,11 +881,18 @@ outer:
 static void mdr_parseViewParts(FTABLE* fp, MARKDOWN_RENDERER_DATA* pData) {
 	LINE* lp = fp->firstl;
 	STRING_BUF * pSB = stringbuf_create(256);
+	RENDER_VIEW_PART* pReuse = NULL;
+
 	while (lp) {
 		if (!ln_lineIsEmpty(lp)) {
-			RENDER_VIEW_PART* pPart = ll_append(&pData->md_pElements, sizeof(RENDER_VIEW_PART));
+			RENDER_VIEW_PART* pPart;
+			pPart = pReuse == NULL ? ll_append(&pData->md_pElements, sizeof(RENDER_VIEW_PART)) : pReuse;
+			pReuse = NULL;
 			pPart->rvp_lpStart = lp;
 			lp = mdr_parseFlow(lp, pPart, pSB);
+			if (pPart->rvp_type == MET_BLOCK_QUOTE && pPart->rvp_flow.tf_text == NULL) {
+				pReuse = pPart;
+			}
 		} else {
 			lp = lp->next;
 		}

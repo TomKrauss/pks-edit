@@ -856,14 +856,15 @@ void xref_openSearchListResultFromLine(FTABLE* fp, LINE *lp) {
 				xref_openFile(spec.filename, spec.line - 1L, pszName);
 			}
 			if (bActive || nDisplayMode != -1) {
-				pActivate = ww_getCurrentEditorWindow();
-				if (pActivate) {
+				WINFO* wpThis = ww_getCurrentEditorWindow();
+				if (wpThis) {
 					if (bActive) {
+						pActivate = wpThis;
 						pActivate->workmode |= WM_STICKY;
 					}
-					if (nDisplayMode != -1 && nDisplayMode != pActivate->dispmode) {
-						pActivate->dispmode = nDisplayMode;
-						ww_modeChanged(pActivate);
+					if (nDisplayMode != -1 && nDisplayMode != wpThis->dispmode) {
+						wpThis->dispmode = nDisplayMode;
+						ww_modeChanged(wpThis);
 					}
 				}
 			}

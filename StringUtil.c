@@ -364,6 +364,7 @@ unsigned char* stringbuf_getString(STRING_BUF* pBuf) {
  */
 void stringbuf_reset(STRING_BUF* pBuf) {
 	pBuf->sb_current = pBuf->sb_string;
+	pBuf->sb_string[0] = 0;
 }
 
 

@@ -49,6 +49,11 @@ type formatting of text. The markdown also may contain [links - e.g to the gramm
    2. Second in nested element 
 3. etc...
 
+Tasklists are also supported:
+
+- [x] This is a checked task
+- [ ] This is an unchecked task.
+
 A horizontal rule follows.
 
 ---
