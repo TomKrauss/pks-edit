@@ -54,8 +54,8 @@
   * Destroy the macro compiler internal symbol table.
   */
 extern void		sym_destroyTable();
-extern void		GetPhase2Args(char *args);
-extern void		GetPhase1Args(char *args);
+extern void		arguments_getPhase2(char *args);
+extern void		arguments_getForPhase1(char *args);
 extern void 	init_readConfigFiles(void);
 extern HMENU 	menu_getMenuForContext(char *pszContext);
 extern BOOL 	init_initializeVariables(void);
@@ -234,7 +234,7 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
 	InitCommonControlsEx(&icex);
 	string_initDateformats();
 	checkCommonControlLibraryVersion();
-	GetPhase1Args(lpCmdLine);
+	arguments_getForPhase1(lpCmdLine);
 	init_readConfigFiles();
 	bl_restorePasteBuffers();
 	hDefaultMenu = LoadMenu(ui_getResourceModule(), "PksEdEditMenu");
@@ -304,7 +304,7 @@ static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
 			} else {
 				ShowWindow(hwndMain, SW_SHOW);
 				if (hsz1 == hszDDECommandLine) {
-					GetPhase2Args(pszData);
+					arguments_getPhase2(pszData);
 				} else {
 					macro_executeSingleLineMacro(pszData, TRUE, "\"DDE Command\"");
 				}
@@ -416,7 +416,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	if (!InitDDE()) {
 		return FALSE;
 	}
-	GetPhase2Args(lpCmdLine);
+	arguments_getPhase2(lpCmdLine);
 
 	if (!ww_getNumberOfOpenWindows() && _runInteractive) {
 		EdEditFile(0L,(char*)0);

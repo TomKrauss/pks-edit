@@ -100,6 +100,7 @@ typedef struct tagTEXT_RUN {
 	BOOL				tr_isImage;
 	HBITMAP				tr_image;
 	char*				tr_link;
+	char*				tr_title;
 	size_t				tr_size;
 	RUN_BOUNDS			tr_bounds;
 	FONT_ATTRIBUTES		tr_attributes;
@@ -668,7 +669,60 @@ static TEXT_RUN* mdr_appendRun(RENDER_VIEW_PART* pPart, MDR_ELEMENT_FORMAT* pFor
 	return pRun;
 }
 
-static char* mdr_parseLink(RENDER_VIEW_PART* pPart, LINE* lp, int *pTextEnd, int* pStartPos) {
+/*
+ * Parse the link URL - allow for things as included title specs. 
+ */
+static BOOL mdr_parseLinkUrl(char* pszBuf, char** pszLink, char** pszTitle) {
+	BOOL bAuto = FALSE;
+	int nStart = 0;
+	if (pszBuf[nStart] == '<') {
+		bAuto = TRUE;
+		nStart++;
+	}
+	size_t nLen = strlen(pszBuf+1);
+	if (nLen == 0) {
+		return FALSE;
+	}
+	if (bAuto) {
+		if (pszBuf[nLen - 1] == '>') {
+			nLen--;
+		} else {
+			bAuto = FALSE;
+		}
+	}
+	if (nLen == 0) {
+		return FALSE;
+	}
+	char szTitle[512];
+	char szLink[512];
+	szTitle[0] = 0;
+	char* pszTitleStart = strchr(pszBuf, '"');
+	if (pszTitleStart) {
+		char* pszTitleEnd = strchr(pszTitleStart, '"');
+		if (pszTitleEnd) {
+			*pszTitleEnd = 0;
+			strcpy(szTitle, pszTitleStart + 1);
+			while (pszTitleStart > pszBuf && pszTitleStart[-1] == ' ') {
+				pszTitleStart--;
+			}
+			*pszTitleStart = 0;
+		}
+	}
+	if (bAuto && strchr(pszBuf, '/') == 0) {
+		sprintf(szLink, "https://%s", pszBuf);
+	} else {
+		strcpy(szLink, pszBuf);
+	}
+	*pszLink = _strdup(szLink);
+	if (szTitle[0]) {
+		*pszTitle = _strdup(szTitle);
+	} else {
+		*pszTitle = NULL;
+	}
+	return TRUE;
+}
+
+static BOOL mdr_parseLink(RENDER_VIEW_PART* pPart, LINE* lp, int *pTextEnd, int* pStartPos, char** pszLink, char** pszTitle) {
 	int i = *pStartPos;
 	int nLinkStart = -1;
 	while (i < lp->len) {
@@ -684,7 +738,7 @@ static char* mdr_parseLink(RENDER_VIEW_PART* pPart, LINE* lp, int *pTextEnd, int
 						i++;
 					}
 				} else {
-					return NULL;
+					return FALSE;
 				}
 			}
 		} else if (c == ')') {
@@ -692,15 +746,11 @@ static char* mdr_parseLink(RENDER_VIEW_PART* pPart, LINE* lp, int *pTextEnd, int
 			*pStartPos = i-1;
 			i -= nLinkStart;
 			strncpy(szBuf, &lp->lbuf[nLinkStart], i-1);
-			if (i > 2 && szBuf[i - 2] == '>') {
-				szBuf[i - 2] = 0;
-			} else {
-				szBuf[i - 1] = 0;
-			}
-			return _strdup(szBuf);
+			szBuf[i - 1] = 0;
+			return mdr_parseLinkUrl(szBuf, pszLink, pszTitle);
 		}
 	}
-	return NULL;
+	return FALSE;
 }
 
 /*
@@ -736,23 +786,23 @@ static BOOL mdr_parseAutolinks(RENDER_VIEW_PART* pPart, LINE* lp, STRING_BUF* pS
 			mdr_appendRun(pPart, pFormat, nSize, mAttrs);
 			(*pLastOffset) += nSize;
 			char szTemp[512];
-			char szLink[512];
+			char* pszLink;
+			char* pszTitle;
 			int nTextEnd = (int)(pLast - lp->lbuf);
 			nSize = nTextEnd - nTextStart;
-			if (nSize >= sizeof szLink) {
-				nSize = sizeof szLink-1;
+			if (nSize >= sizeof szTemp) {
+				nSize = sizeof szTemp-1;
 			}
 			strncpy(szTemp, &lp->lbuf[nTextStart], nSize);
 			szTemp[nSize] = 0;
-			if (strchr(&lp->lbuf[i], '/') == 0) {
-				sprintf(szLink, "https://%s", szTemp);
-			} else {
-				strcpy(szLink, szTemp);
-			}
 			stringbuf_appendStringLength(pSB, &lp->lbuf[nTextStart], nSize);
 			nSize = stringbuf_size(pSB) - *pLastOffset;
 			TEXT_RUN* pRun = mdr_appendRun(pPart, pFormat, nSize, ATTR_LINK);
-			pRun->tr_link = _strdup(szLink);
+			if (!mdr_parseLinkUrl(szTemp, &pszLink, &pszTitle)) {
+				return FALSE;
+			}
+			pRun->tr_link = pszLink;
+			pRun->tr_title = pszTitle;
 			(* pLastOffset) += nSize;
 			*pOffset = nTextEnd;
 			return TRUE;
@@ -848,8 +898,9 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 				int pos = (bImage) ? i + 2 : i + 1;
 				int nTextStart = pos;
 				int nTextEnd;
-				char* pLink = mdr_parseLink(pPart, lp, &nTextEnd, &pos);
-				if (pLink != NULL) {
+				char* pLink;
+				char* pTitle = NULL;
+				if (mdr_parseLink(pPart, lp, &nTextEnd, &pos, &pLink, &pTitle)) {
 					int nAttr = 0;
 					nSize = stringbuf_size(pSB) - nLastOffset;
 					mdr_appendRun(pPart, pFormat, nSize, mAttrs);
@@ -872,6 +923,7 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 					TEXT_RUN* pRun = mdr_appendRun(pPart, pFormat, nSize, nAttr | ATTR_LINK);
 					pRun->tr_isImage = bImage;
 					pRun->tr_link = pLink;
+					pRun->tr_title = pTitle;
 					nLastOffset += nSize;
 					i = pos;
 					continue;
@@ -1091,6 +1143,7 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
  */
 static int mdr_destroyRun(TEXT_RUN* pRun) {
 	free(pRun->tr_link);
+	free(pRun->tr_title);
 	if (pRun->tr_image) {
 		DeleteObject(pRun->tr_image);
 	}

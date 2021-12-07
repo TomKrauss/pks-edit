@@ -945,8 +945,8 @@ BEGIN
         MENUITEM "&Index\a",                    IDM_HLPINDEX
         MENUITEM "&Menüs\a",                    IDM_HLPONMENUS
         MENUITEM "&Tastatur + Maus\a",          IDM_HLPONKEYS
-        MENUITEM "&Desktop\a",                  IDM_HLPONDESKTOP
-        MENUITEM "&Hilfe verwenden\a",          IDM_HLPONHLP
+        MENUITEM "&Release Notes\a",            IDM_HLPRELEASENOTES
+        MENUITEM "&Readme\a",                   IDM_HLPREADME
         MENUITEM SEPARATOR
         MENUITEM "Info &PKS-EDIT...\t",         IDM_ABOUT
     END

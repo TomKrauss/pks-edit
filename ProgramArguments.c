@@ -31,10 +31,9 @@ extern int		_runInteractive;
 extern int		_openIconic;
 
 /*------------------------------------------------------------
- * Phase1Arg()
+ * arguments_parsePhase1()
  */
-static int Phase1Arg(char *arg)
-{
+static int arguments_parsePhase1(char *arg) {
 	if ((*arg == '-' || *arg == '/') && arg[1] == 'i') {
 		prof_setinifile(arg+2);
 	}
@@ -42,9 +41,9 @@ static int Phase1Arg(char *arg)
 }
 
 /*------------------------------------------------------------
- * Phase1Arg()
+ * arguments_parsePhase1()
  */
-static int Phase2Arg(char *arg)
+static int arguments_parsePhase2(char *arg)
 {
 	if (*arg != '-' && *arg != '/') {
 		xref_openFile(arg,0L,(void*)0);
@@ -94,9 +93,9 @@ static int Phase2Arg(char *arg)
 }
 
 /*------------------------------------------------------------
- * GetArgs()
+ * arguments_get()
  */
-static int GetArgs(char *args, int (*argfunc)(char *arg))
+static int arguments_get(char *args, int (*argfunc)(char *arg))
 {
 	char *	dend;
 	char 	argument[256];
@@ -127,21 +126,21 @@ static int GetArgs(char *args, int (*argfunc)(char *arg))
 }
 
 /*--------------------------------------------------------------------------
- * GetPhase1Args()
+ * arguments_getForPhase1()
  */
-void GetPhase1Args(char *args)
+void arguments_getForPhase1(char *args)
 {
 
-	GetArgs(args, Phase1Arg);
+	arguments_get(args, arguments_parsePhase1);
 }
 
 /*--------------------------------------------------------------------------
- * GetPhase2Args()
+ * arguments_getPhase2()
  */
-void GetPhase2Args(char *args)
+void arguments_getPhase2(char *args)
 {
 
-	GetArgs(args, Phase2Arg);
+	arguments_get(args, arguments_parsePhase2);
 }
 
 

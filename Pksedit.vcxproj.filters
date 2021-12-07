@@ -587,6 +587,11 @@
     <None Include="doc\manual\find_replace.md" />
     <None Include="doc\manual\macro_language.md" />
     <None Include="doc\manual\configuration.md" />
+    <None Include="doc\manual\grammar.md" />
+    <None Include="doc\manual\document_types.md" />
+    <None Include="doc\release_notes.md" />
+    <None Include="doc\document_types.md" />
+    <None Include="doc\markdown.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">
@@ -630,6 +635,16 @@
     <Image Include="rc\new_icons.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="doc\balloons.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="doc\bird.gif">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="doc\cat.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="doc\dice.png" />
   </ItemGroup>
   <ItemGroup>
     <Xsd Include="pksedit.xsd" />

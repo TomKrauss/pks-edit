@@ -1,6 +1,11 @@
 # Help For PKS-Edit
 
-The PKS-Edit manual describes how to use PKS-Edit efficiently.
+The manual describes how to use PKS-Edit efficiently.
+
+## Navigating Help
+
+To navigate the help files, you may use the cursor keys to scroll in one file. To follow a hyperlink,
+click a link at the same time pressing the `Ctrl` key.
 
 ## Table of Contents
 
