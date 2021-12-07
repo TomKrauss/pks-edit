@@ -37,9 +37,8 @@ macro test()
 }
 
 #
-# test of arithemtic terms
-#
-# cause PKSMakroC - Integers are only 24 bit big, this macro
+# Calculate the factorial of a number input into a message box.
+# Note: PKSMakroC - Integers are only 24 bit big, this macro
 # will cause overflows for fac(>12) !
 #
 macro calculateFactorial() {

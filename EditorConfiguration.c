@@ -49,7 +49,7 @@ static void AutosaveConfiguration() {
  * The default configuration.  
  */
 static EDITOR_CONFIGURATION _configuration = {
-	(O_UNDOENABLED | O_WARNINGS | O_ERROR_TONE | O_HIDE_BLOCK_ON_CARET_MOVE),
+	(O_UNDOENABLED | O_AUTOSAVE_TO_TEMP | O_ERROR_TONE | O_HIDE_BLOCK_ON_CARET_MOVE),
 	(OL_OPTIONBAR | OL_SHOWSTATUS),
 	1,
 	3,
@@ -72,13 +72,13 @@ static DIALPARS _dAutoSave[] = {
 	IDD_OPT5,		O_CREATE_BACKUP_IN_TEMP_PATH,			& _configuration.options,
 	IDD_OPT6,		O_SAVE_CLIPBOARDS_ON_EXIT,				& _configuration.options,
 	IDD_OPT7,		O_SAVE_CLIPBOARD_HISTORY,				& _configuration.options,
+	IDD_OPT8,		O_AUTOSAVE_TO_TEMP,						& _configuration.options,
 	// Terminate with 0
 	0
 };
 
 static DIALPARS _dWarnings[] = {
 	IDD_NOCHANGEONCANCEL,	0,	0,
-	IDD_OPT1,		O_WARNINGS,					&_configuration.options,
 	IDD_OPT2,		O_ERROR_TONE,				&_configuration.options,
 	IDD_OPT3,		O_ERROR_FLASH_WINDOW,		&_configuration.options,
 	IDD_OPT4,		O_SHOW_MESSAGES_IN_SNACKBAR,	& _configuration.options,

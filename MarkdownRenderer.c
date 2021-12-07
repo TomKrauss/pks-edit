@@ -1240,7 +1240,7 @@ static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_I
 		TEXT_RUN* pRun = (TEXT_RUN*) ll_at((LINKED_LIST*)pPart->rvp_flow.tf_runs, wp->caret.col);
 		if (pRun && pRun->tr_link && strlen(pRun->tr_link) < nMaxChars) {
 			strcpy(pszBuf, pRun->tr_link);
-			pResult->ni_fileName = pszBuf;
+			pResult->ni_reference = pszBuf;
 			pResult->ni_lineNumber = 0;
 			pResult->ni_displayMode = wp->dispmode;
 			pResult->ni_wp = mainframe_getDockName(wp->edwin_handle);

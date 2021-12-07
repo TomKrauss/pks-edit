@@ -83,10 +83,11 @@ typedef struct tagINDENTATION {
 } INDENTATION;
 
 typedef struct tagNAVIGATION_INFO_PARSE_RESULT {
-    char* ni_fileName;                      // The file to open
+    char* ni_reference;                     // The file/link specification to open
     long  ni_lineNumber;                    // The line number to jump to
     char* ni_wp;                            // The identifier for a dock, in which the window to open should be placed.
     int ni_displayMode;                     // The requested display mode or -1 if no special display mode is requested.
+    char* ni_anchor;                        // An optional anchor to jump to
 } NAVIGATION_INFO_PARSE_RESULT;
 
 typedef struct tagTHEME_DATA THEME_DATA;

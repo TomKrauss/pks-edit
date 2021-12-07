@@ -1076,7 +1076,7 @@ static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT*
 				if (match.loc1 <= pszCursor && match.loc2 >= pszCursor && 
 						regex_getCapturingGroup(&match, pPattern->filenameCapture - 1, szFileBuffer, (int)nFileBufferSize) == SUCCESS) {
 					pResult->ni_displayMode = -1;
-					pResult->ni_fileName = szFileBuffer;
+					pResult->ni_reference = szFileBuffer;
 					pResult->ni_lineNumber = 0;			// for now - to be initialized from capture group
 					return 1;
 				}

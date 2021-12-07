@@ -218,10 +218,14 @@ int ft_triggerAutosaveAllFiles(void)
 	}
 
 	now = GetTickCount();
+	if (!nchkclick) {
+		nchkclick = now + 5 * HZ;
+	}
 	if (now < nchkclick) {
 		return 0;
 	}
 
+	BOOL bAutoaveToTemp = GetConfiguration()->options & O_AUTOSAVE_TO_TEMP;
 	inAutoSave = 1;
 
 	/* check every 5 secs */
@@ -249,12 +253,18 @@ int ft_triggerAutosaveAllFiles(void)
 		if (now < fp->as_time)
 			continue;
 
-autosave:
+	autosave:
+		if (!bAutoaveToTemp) {
+			fp->flags &= ~F_NEEDSAUTOSAVE;
+			ret = ft_writefileMode(fp, WFM_QUIET);
+			fp->as_time = now + dclicks;
+			saved = ret;
+			continue;
+		}
 		/* "best before" date expired: do autosave */
 		strcpy(spath,fp->fname);
-
-		ft_generateAutosavePathname(fp->fname,fp->fname);
-		ret = ft_writefileMode(fp, WFM_QUIET|WFM_AUTOSAVING);
+		ft_generateAutosavePathname(fp->fname, fp->fname);
+		ret = ft_writefileMode(fp, WFM_QUIET | WFM_AUTOSAVING);
 
 		/* restore MODIFIED and ISBACKUPED - Flags */
 		fp->flags = flags;
@@ -267,7 +277,7 @@ autosave:
 		}
 	
 		/* restore file name */
-		strcpy(fp->fname,spath);
+		strcpy(fp->fname, spath);
 
 		/*
 		 * maybe autosave failed - reset autosave condition nevertheless
@@ -276,9 +286,8 @@ autosave:
 		 */
 		flags &= ~F_NEEDSAUTOSAVE;
 		ft_setFlags(fp, flags);
-		fp->as_time = 0;
+		fp->as_time = now + dclicks;
 		saved = ret;
-
 	}
 	
 	inAutoSave = 0;
@@ -565,15 +574,12 @@ int ww_requestToClose(WINFO *wp)
 	if (ft_isFileModified(fp)) {
 		ShowWindow(hwndMain,SW_SHOW);
 		EdSelectWindow(wp->win_id);
-		if (_ExSave || (GetConfiguration()->options & AUTOWRITE)) {
+		if (_ExSave || (GetConfiguration()->options & O_AUTOSAVE_FILES_ON_EXIT)) {
 	     	return ft_writeFileWithAlternateName(fp);
 		}
 		switch(error_displayYesNoCancelConfirmation(IDS_MSGQUITORSAVE,ft_visibleName(fp))) {
 			case IDYES:
 				if (!ft_writeFileWithAlternateName(fp)) {
-					if (!(GetConfiguration()->options & O_WARNINGS)) {
-						ft_setFlags(fp, fp->flags & ~F_MODIFIED);
-					}
 					return 0;
 				}
 				break;

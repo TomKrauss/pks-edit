@@ -149,9 +149,6 @@ int error_displayYesNoConfirmation(int nId, ...)
 {   va_list ap;
     int ret;
     
-	if (!(GetConfiguration()->options & O_WARNINGS))
-		return IDYES;
-
 	va_start(ap,nId);
 	ret = nIdAlert(MB_YESNO|MB_ICONQUESTION,nId, ap);
 	va_end(ap);
@@ -165,9 +162,6 @@ int error_displayYesNoConfirmation(int nId, ...)
 int error_displayYesNoCancelConfirmation(int nId, ...)
 {	va_list ap;
 	int ret;
-
-	if (!(GetConfiguration()->options & O_WARNINGS))
-		return IDYES;
 
 	va_start(ap,nId);
 	ret = nIdAlert(MB_YESNOCANCEL|MB_ICONQUESTION,nId,ap);
@@ -242,8 +236,7 @@ static void error_signalUsingFlashing(void)
  * Display an error in a "non-intrusive way" (status line etc...). 
  */
 void error_showError(char* s, va_list ap) {
-	if (GetConfiguration()->options & O_WARNINGS)
-		error_displayErrorToast(s, ap);
+	error_displayErrorToast(s, ap);
 	if (GetConfiguration()->options & O_ERROR_TONE)
 		sound_playChime();
 	if (GetConfiguration()->options & O_ERROR_FLASH_WINDOW)

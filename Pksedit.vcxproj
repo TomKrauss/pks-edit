@@ -1200,8 +1200,11 @@
     <ClInclude Include="rc\pksrc.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="doc\manual\configuration.md" />
     <None Include="doc\manual\editing_files.md" />
+    <None Include="doc\manual\find_replace.md" />
     <None Include="doc\manual\getting_started.md" />
+    <None Include="doc\manual\macro_language.md" />
     <None Include="doc\manual\toc.md" />
     <None Include="doc\manual\saving_files.md" />
     <None Include="PKSEDIT.DEF" />

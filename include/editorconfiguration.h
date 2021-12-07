@@ -24,17 +24,17 @@
  /*----- Option Flags assignable to EDITOR_CONFIGURATION.options --------------*/
 
  /* if set, PKS Edit will bring up a confirmation message boxes to confirm saving of files etc... */
-#define	O_WARNINGS					0x1
-#define	O_ERROR_TONE				0x2
+#define	O_AUTOSAVE_TO_TEMP			0x1			// Auto-save files to a temporary directory.
+#define	O_ERROR_TONE				0x2			// Play a warning sound on errors
 #define	O_ERROR_FLASH_WINDOW 		0x4		 	// flash window, rather playing an error sound
 #define	O_LOCKFILES					0x8			// lock opened files 
 
 #define	O_AUTO_OPEN_HISTORY			0x10		// Restore previously opened files
-#define	O_SAVE_SETTINGS_ON_EXIT		0x20
-#define	O_SAVE_MACROS_ON_EXIT		0x40
-#define	O_DELETE_AUTOSAVE_FILES		0x80
+#define	O_SAVE_SETTINGS_ON_EXIT		0x20		// Save the PKS Edit settings on exit
+#define	O_SAVE_MACROS_ON_EXIT		0x40		// Automatically save all macros recorded / compiled when exiting
+#define	O_DELETE_AUTOSAVE_FILES		0x80		// Unlink temporary autosave files if not needed any more
 
-#define	AUTOWRITE					0x100
+#define	O_AUTOSAVE_FILES_ON_EXIT	0x100		// Automatically save changed files when closing editor / exiting PKS-Edit.
 #define	O_FORMFOLLOW				0x200		// whether dialogs are opened close to the mouse.
 #define	O_CREATE_BACKUP_IN_TEMP_PATH 0x400
 #define	O_SHOW_MESSAGES_IN_SNACKBAR	 0x800		// display error messages in a popup window / snackbar
@@ -58,7 +58,7 @@ typedef struct tagEDITOR_CONFIGURATION {
 	int layoutoptions;
 	// the number of supported undo steps.
 	int nundo;
-	// the number of minutes after which an autosave is performed.
+	// the number of minutes after which an autosave is performed. If 0 - autosave is disabled.
 	int	autosaveSeconds;
 	// the maximum number of windows opened. If additional windows are opened, windows of unmodified buffers are recycled
 	int maximumNumberOfOpenWindows;

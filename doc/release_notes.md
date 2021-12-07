@@ -30,7 +30,7 @@ This file contains the release notes for the latest **PKS Edit** releases.
 - PKS Edit supports now the evaluation of either the current line or the current selection and selected grammars. For
   now only PKS macro code evaluation is supported, but we plan to support evaluation of other syntax as well.
 - PKS Edit supports now switching between fullscreen and normal mode (press F11 to toggle)
-
+- PKS Edit supports now autosaving the file directly rather than autosaving a temporary file
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
