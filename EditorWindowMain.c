@@ -603,7 +603,6 @@ static void ww_destroyRendererData(WINFO* wp) {
 static void ww_assignRenderer(WINFO* wp) {
 	RENDERER* pOld = wp->renderer;
 	RENDERER* pNew = NULL;
-	wp->renderer = NULL;
 	if (wp->dispmode & SHOWWYSIWYG) {
 		FTABLE* fp = wp->fp;
 		const char* pRenderer = grammar_wysiwygRenderer(fp->documentDescriptor->grammar);
@@ -653,6 +652,16 @@ void ww_modeChanged(WINFO* wp) {
 	render_updateCaret(wp);
 }
 
+/*
+ * Force a window to use a new display mode.
+ */
+void ww_changeDisplayMode(WINFO* wp, int nNewDisplayMode) {
+	if (wp->dispmode != nNewDisplayMode) {
+		wp->dispmode = nNewDisplayMode;
+		ww_modeChanged(wp);
+	}
+}
+
 /*-----------------------------------------------------------
  * ww_applyDisplayProperties()
  * Apply all flags from the document descriptor of the edited document on the 
@@ -663,8 +672,6 @@ void ww_applyDisplayProperties(WINFO* wp) {
 	EDIT_CONFIGURATION* linp = fp->documentDescriptor;
 
 	wp->dispmode = linp->dispmode;
-	// for now - make configurable.
-	wp->dispmode |= SHOW_SYNTAX_HIGHLIGHT;
 	wp->workmode = linp->workmode;
 	wp->tabDisplayFillCharacter = linp->tabDisplayFillCharacter;
 	if (wp->highlighter) {
@@ -908,6 +915,7 @@ void ww_destroy(WINFO *wp) {
 	wp->fp = NULL;
 	nId = wp->win_id;
 	SetWindowLongPtr(wp->ww_handle, GWL_WWPTR, 0);
+	SetWindowLongPtr(wp->edwin_handle, GWL_VIEWPTR, 0);
 	if (!ll_delete(&_winlist,wp)) {
 		EdTRACE(log_errorArgs(DEBUG_ERR,"failed deleting window props"));
 	}

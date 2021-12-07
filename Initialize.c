@@ -29,9 +29,6 @@
 #undef DELIVER
 
 extern int file_exists(char *s);
-extern void 	c2asc(char *start, char *source, unsigned char hi, unsigned char lo);
-extern char *	cryptXXXX(char *dest, char *source, 
-	 			void (*f)(char *start, char *s, unsigned char hi, unsigned char lo));
 
 char	*_pksSysFolder;	// PKS_SYS directory, where the config files are located.
 static char _sysdir[EDMAXPATHLEN];

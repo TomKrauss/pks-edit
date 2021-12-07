@@ -15,76 +15,54 @@
  */
 
 #include <windows.h>
-#include <HtmlHelp.h>
 #include "winterf.h"
+#include "helpitem.h"
+#include "documentmodel.h"
+#include "winfo.h"
+#include "stringutil.h"
 #include "fileutil.h"
+#include "pathname.h"
+#include "mainframe.h"
 
-static HWND hwndHelpRequested;
-static char szHelpFile[] = "pksedit.chm";
-
-/*--------------------------------------------------------------------------
- * EdCallWinHelp()
- */
-int EdCallWinHelp(char *szFile, UINT hType, DWORD_PTR param) {
-	HWND		ret;
-	LPSTR	pszFound;
-	DWORD m_dwCookie;
-	DWORD_PTR requestParam = (DWORD_PTR) &m_dwCookie;
-
-	if (!szFile) {
-		szFile = szHelpFile;
-	}
-	
-	if (!(pszFound = file_searchFileInPKSEditLocation(szFile))) {
-		pszFound = szFile;
-	}
-
-	ret = HtmlHelp(NULL, szHelpFile, HH_INITIALIZE, (DWORD_PTR)&m_dwCookie);
-	if (!ret) {
-		return 0;
-	}
-	if (hType == HH_DISPLAY_SEARCH) {
-		hType = HH_DISPLAY_TOC;
-	} else {
-		requestParam = param;
-	}
-	ret = HtmlHelp(hwndMain, pszFound, hType, requestParam);
-	hwndHelpRequested = hwndMain;
-	return ret == NULL ? 0 : 1;
-}
+static char szHelpDir[512];
 
 /*--------------------------------------------------------------------------
- * help_quitHelpSystem()
+ * help_open()
  */
-void help_quitHelpSystem(void)
-{
-	if (hwndHelpRequested) {
-		HtmlHelp(hwndHelpRequested, szHelpFile, HH_CLOSE_ALL, 0);
+static int help_open(char *szFile) {
+	if (!szHelpDir[0]) {
+		char* pszHelp = file_searchFileInPKSEditLocation("doc");
+		if (!pszHelp) {
+			return 0;
+		}
+		strcpy(szHelpDir, pszHelp);
 	}
-	hwndHelpRequested = NULL;
-}
-
-/*--------------------------------------------------------------------------
- * help_showHelpForKey()
- */
-int help_showHelpForKey(LPSTR szFile, LPSTR szKey)
-{
-	return EdCallWinHelp(szFile, HH_KEYWORD_LOOKUP, (DWORD_PTR)szKey);
-}
-
-/*--------------------------------------------------------------------------
- * EdHelp()
- */
-int EdHelp(UINT hType, DWORD p)
-{
-	return EdCallWinHelp((char *)0,hType,p);
+	char szPath[EDMAXPATHLEN];
+	string_concatPathAndFilename(szPath, szHelpDir, szFile);
+	FTABLE* fp = NULL;
+	if (ft_activateWindowOfFileNamed(szPath) || (fp = ft_openFileWithoutFileselector(szPath, 0, DOCK_NAME_RIGHT)) != NULL) {
+		WINFO* wp = fp ? WIPOI(fp) : ww_getCurrentEditorWindow();
+		if (wp) {
+			ww_changeDisplayMode(wp, wp->dispmode | SHOWWYSIWYG);
+		}
+		return 1;
+	}
+	return 0;
 }
 
 /*--------------------------------------------------------------------------
  * EdHelpContext()
  */
-int EdHelpContext(DWORD nCtx)
-{
-	return EdHelp(HH_DISPLAY_TOC,(DWORD)nCtx);
+int EdHelpContext(DWORD nCtx) {
+	char* pszFile = "..\\readme.md";
+
+	switch (nCtx) {
+		// TODO: change these.
+	case IDM_HLPONMENUS: 
+	case IDM_HLPONKEYS: pszFile = "manual\\editing_files-md"; break;
+	case IDM_HLPINDEX: pszFile = "manual\\toc.md"; break;
+	case IDM_HLPRELEASENOTES: pszFile = "release_notes.md"; break;
+	}
+	return help_open(pszFile);
 }
 

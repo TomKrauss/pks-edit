@@ -82,7 +82,6 @@ Source: "pks_sys\shell.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignorever
 Source: "pks_sys\themeconfig.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\pkseditconfig.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\pksedit.mac"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\pksedit.chm"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "rc\pks.ico"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "readme.md"; DestDir: "{app}"; Flags: ignoreversion 
 Source: "doc\*"; DestDir: "{app}\doc"; Flags: ignoreversion recursesubdirs

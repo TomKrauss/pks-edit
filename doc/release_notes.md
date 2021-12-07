@@ -31,6 +31,8 @@ This file contains the release notes for the latest **PKS Edit** releases.
   now only PKS macro code evaluation is supported, but we plan to support evaluation of other syntax as well.
 - PKS Edit supports now switching between fullscreen and normal mode (press F11 to toggle)
 - PKS Edit supports now autosaving the file directly rather than autosaving a temporary file
+- PKS Edit Help is now provided by displaying the manual written in markdown format. The old Windows Help file, which was
+- updated had been removed.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 

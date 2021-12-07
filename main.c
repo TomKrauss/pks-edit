@@ -59,7 +59,6 @@ extern void		GetPhase1Args(char *args);
 extern void 	init_readConfigFiles(void);
 extern HMENU 	menu_getMenuForContext(char *pszContext);
 extern BOOL 	init_initializeVariables(void);
-extern void		help_quitHelpSystem(void);
 
 extern BOOL	bTaskFinished;
 
@@ -524,7 +523,6 @@ void FinalizePksEdit(void)
  */
 void main_cleanup(void) {
 	file_clearTempFiles();
-	help_quitHelpSystem();
 	dde_uninitialize();
 	doctypes_destroyAllDocumentTypes();
 	theme_destroyAllThemeData();

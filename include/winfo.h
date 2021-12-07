@@ -360,6 +360,11 @@ extern int ww_documentPropertyChanged(WINFO* wp, PROPERTY_CHANGE* pChange);
  */
 extern void ww_modeChanged(WINFO* wp);
 
+/*
+ * Force a window to use a new display mode.
+ */
+extern void ww_changeDisplayMode(WINFO* wp, int nNewDisplayMode);
+
 /*----------------------------
  * bl_hideSelection()
  * Hide the current selection and optionally

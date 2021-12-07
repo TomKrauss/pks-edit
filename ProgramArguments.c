@@ -68,8 +68,7 @@ static int Phase2Arg(char *arg)
 			break;
 		case 'w':	// to open the just opened file in wysiwyg mode.
 			if ((wp = ww_getCurrentEditorWindow()) != NULL) {
-				wp->dispmode |= SHOWWYSIWYG;
-				ww_modeChanged(wp);
+				ww_changeDisplayMode(wp, wp->dispmode|SHOWWYSIWYG);
 			}
 			break;
 		case 'c':

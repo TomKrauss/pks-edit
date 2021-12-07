@@ -96,8 +96,6 @@ static NAVIGATION_PATTERN *_exprerror = &_pksEditSearchlistFormat;
 static NAVIGATION_PATTERN *_tagfileFormatPattern  = &_universalCTagsFileFormat;
 static NAVIGATION_PATTERN	*_compilerOutputNavigationPatterns;
 
-extern int help_showHelpForKey(LPSTR szFile, LPSTR szKey);
-
 static int xref_destroyCmpTag(NAVIGATION_PATTERN* ct) {
 	free(ct->pattern);
 	return 1;
@@ -741,8 +739,6 @@ static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bForceDialog) {
 				ret = 1;
 				break;
 			}
-		} else if (strcmp(TST_HELPFILE, ttl->type) == 0) {
-			ret = help_showHelpForKey(ttl->fn, s);
 		} else if (strcmp(TST_HYPERLINK, ttl->type) == 0) {
 			ret = xref_navigateToHyperlink(ttl->fn, s);
 		}
@@ -862,9 +858,8 @@ void xref_openSearchListResultFromLine(FTABLE* fp, LINE *lp) {
 						pActivate = wpThis;
 						pActivate->workmode |= WM_STICKY;
 					}
-					if (nDisplayMode != -1 && nDisplayMode != wpThis->dispmode) {
-						wpThis->dispmode = nDisplayMode;
-						ww_modeChanged(wpThis);
+					if (nDisplayMode != -1) {
+						ww_changeDisplayMode(wpThis, nDisplayMode);
 					}
 				}
 			}
@@ -1121,9 +1116,8 @@ int EdFindFileCursor(void)
 		}
 	}
 	if (wp) {
-		if (result.ni_displayMode != -1 && result.ni_displayMode != wp->dispmode) {
-			wp->dispmode = result.ni_displayMode;
-			ww_modeChanged(wp);
+		if (result.ni_displayMode != -1) {
+			ww_changeDisplayMode(wp, result.ni_displayMode);
 		}
 		if (result.ni_anchor && wp->renderer->r_navigateAnchor) {
 			wp->renderer->r_navigateAnchor(wp, result.ni_anchor);
