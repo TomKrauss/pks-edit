@@ -52,7 +52,8 @@ static void wi_scrollTop(WINFO* wp, long dy) {
  */
 EXPORT int caret_lineOffset2screen(WINFO *wp, CARET *cp)
 {	register int  col = 0;
-	register char *p = cp->linePointer->lbuf;
+	LINE* lp = cp->linePointer;
+	register char *p = lp->lbuf;
 	register char* lbuf = p;
 	int lnoffset = cp->offset;
 
@@ -62,7 +63,10 @@ EXPORT int caret_lineOffset2screen(WINFO *wp, CARET *cp)
 			return 0;
 		}
 	}
-	lbuf += cp->offset;
+	if (lnoffset > lp->len) {
+		lnoffset = lp->len;
+	}
+	lbuf += lnoffset;
 	while (p < lbuf) {
 		if (*p++ == '\t') 
 			col = indent_calculateNextTabStop(col, &wp->indentation);

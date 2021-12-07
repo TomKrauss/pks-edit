@@ -3,3 +3,5 @@ The configuration of PKS-Edit is stored in a file named `pksedit.ini` located in
 ## Layout Options
 
 ## Other Options
+
+- Warnings

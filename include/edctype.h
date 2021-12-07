@@ -24,27 +24,8 @@ extern unsigned char _l2uset[256],_u2lset[256];
 #define	pks_isdigit(c)		(_asciitab[(c)]&_N)
 #define	pks_isalnum(c)		(_asciitab[(c)]&(_U|_L|_N))
 #define	pks_isspace(c)		(_asciitab[(c)]&_S)
+#define	pks_isumlaut(c)     (_asciitab[(c)]&(_UU))
 #define	isident(c)   		(_asciitab[(c)]&_C)
 #define	istosfname(c)		(_asciitab[(c)]&_T)
-
-#ifdef DEUTSCH
-#define	_oe             0x94
-#define	_ae             0x84
-#define	_ue             0x81
-#define	_sz             0x9E
-#define	_AE             0x8E
-#define	_OE             0x99
-#define	_UE             0x9A
-#define	pks_isupcase(c)     (_asciitab[(c)]&(_U|_UU))
-#define	pks_islowcase(c)    (_asciitab[(c)]&(_L|_LU))
-#define	pks_isumlaut(c)     (_asciitab[(c)]&(_UU|_LU))
-#define	pks_isALPHA(c)      (_l2uset[c] != _u2lset[c])
-
-#else
-#define	pks_isupcase(c)     (_asciitab[(c)]&(_U))
-#define	pks_islowcase(c)    (_asciitab[(c)]&(_L))
-#define	pks_isumlaut(c)     (_asciitab[(c)]&(_UU))
-#define	pks_isALPHA(c)      (_asciitab[(c)]&(_U|_L))
-#endif
 
 #endif

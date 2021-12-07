@@ -151,6 +151,8 @@ typedef void (*RENDERER_CARET_UPDATE_UI)(WINFO* wp, int* pCX, int* pCY, int* pWi
 
 typedef void (*RENDERER_HIT_TEST)(WINFO* wp, int cX, int cY, long* pLine, long* pCol);
 
+typedef void (*RENDERER_NAVIGATE_ANCHOR)(WINFO* wp, const char* pszAnchor);
+
 typedef BOOL(*RENDERER_FIND_LINK)(WINFO* wp, char* pszDest, size_t nMaxChars, NAVIGATION_INFO_PARSE_RESULT* pResult);
 
 /*
@@ -179,6 +181,7 @@ typedef struct tagRENDERER {
     const void (*r_modelChanged)(WINFO* wp, MODEL_CHANGE* pMC);   // The method to invoke, when the model changes.
     const CONTROLLER* r_controller;                               // Optional controller contributed by the renderer for custom mouse and keyboard handling. Maybe null.
     const RENDERER_FIND_LINK r_findLink;                          // Optional callback to find a link at the "current" caret position.
+    const RENDERER_NAVIGATE_ANCHOR r_navigateAnchor;              // Optional callback to navigate to an "anchor" specification
 } RENDERER;
 
 /*--------------------------------------------------------------------------

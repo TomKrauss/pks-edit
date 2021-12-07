@@ -4,6 +4,7 @@
       "scopeName": "pksedit",
       "analyzer": "pks-macros",
       "evaluator": "pks-macros",
+      "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9@-",
       "patterns": [
         {
           "match": "//.*",
@@ -17,7 +18,7 @@
         },
         {
           "match": "<@[A-Za-z0-9_-]+>",
-          "name": "string.pksedit.command",
+          "name": "pksedit.identifier",
           "style": "string"
         },
         {

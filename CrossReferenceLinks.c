@@ -1100,34 +1100,43 @@ int EdFindFileCursor(void)
 	WINFO* wp = ww_getCurrentEditorWindow();
 	extern char *file_searchFileInPath();
 
-	if (wp == 0) {
+	if (wp == NULL) {
 		return 0;
 	}
-	FTABLE* fp = wp->fp;
+	memset(&result, 0, sizeof result);
 	if (!xref_determineNavigationInfo(wp, &result, _fseltarget, EDMAXPATHLEN)) {
 		return 0;
 	}
-	string_splitFilename(_fseltarget,fselpath,filename);
-	string_splitFilename(fp->fname, currentFilePath, NULL);
-	if ((found = file_searchFileInPath(filename,GetConfiguration()->includePath)) != 0 ||
-	    (found = file_searchFileInPath(_fseltarget, currentFilePath)) != 0 ||
-		(fselpath[0] && (found = file_searchFileInPath(_fseltarget, fselpath)) != 0)) {
-		if (xref_openFile(found, result.ni_lineNumber, result.ni_wp)) {
-			if (result.ni_displayMode != -1) {
-				WINFO* wp = ww_getCurrentEditorWindow();
-				if (wp) {
-					wp->dispmode = result.ni_displayMode;
-					ww_modeChanged(wp);
-				}
+	if (_fseltarget[0]) {
+		FTABLE* fp = wp->fp;
+		wp = NULL;
+		string_splitFilename(_fseltarget, fselpath, filename);
+		string_splitFilename(fp->fname, currentFilePath, NULL);
+		if ((found = file_searchFileInPath(filename, GetConfiguration()->includePath)) != 0 ||
+			(found = file_searchFileInPath(_fseltarget, currentFilePath)) != 0 ||
+			(fselpath[0] && (found = file_searchFileInPath(_fseltarget, fselpath)) != 0)) {
+			if (xref_openFile(found, result.ni_lineNumber, result.ni_wp)) {
+				wp = ww_getCurrentEditorWindow();
 			}
-			return 1;
 		}
 	}
-	HINSTANCE hInst = ShellExecute(hwndMain, "open", _fseltarget, "", ".", SW_SHOWNORMAL);
-	if ((intptr_t)hInst < 0 || (intptr_t)hInst > 32) {
+	if (wp) {
+		if (result.ni_displayMode != -1 && result.ni_displayMode != wp->dispmode) {
+			wp->dispmode = result.ni_displayMode;
+			ww_modeChanged(wp);
+		}
+		if (result.ni_anchor && wp->renderer->r_navigateAnchor) {
+			wp->renderer->r_navigateAnchor(wp, result.ni_anchor);
+		}
 		return 1;
 	}
-	error_displayAlertDialog("Cannot open %s", _fseltarget);
+	if (_fseltarget[0]) {
+		HINSTANCE hInst = ShellExecute(hwndMain, "open", _fseltarget, "", ".", SW_SHOWNORMAL);
+		if ((intptr_t)hInst < 0 || (intptr_t)hInst > 32) {
+			return 1;
+		}
+		error_displayAlertDialog("Cannot open %s", _fseltarget);
+	}
 	return 0;
 }
 

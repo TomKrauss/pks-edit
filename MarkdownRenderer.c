@@ -28,6 +28,7 @@
 #include "winutil.h"
 #include "edfuncs.h"
 #include "mainframe.h"
+#include "edctype.h"
 
 #define NO_COLOR			-1		// marker for no color defined
 #define PARAGRAPH_OFFSET	15		// offset in pixels between paragraph type elements.
@@ -963,7 +964,6 @@ static void mdr_parseViewParts(FTABLE* fp, MARKDOWN_RENDERER_DATA* pData) {
  * Returns the view part corresponding with the 'nline' line.
  */
 static RENDER_VIEW_PART* mdr_getViewPartForLine(RENDER_VIEW_PART* pFirstPart, long nLine) {
-	// TODO....
 	return (RENDER_VIEW_PART * )ll_at((LINKED_LIST*)pFirstPart, nLine);
 }
 
@@ -1240,6 +1240,11 @@ static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_I
 		TEXT_RUN* pRun = (TEXT_RUN*) ll_at((LINKED_LIST*)pPart->rvp_flow.tf_runs, wp->caret.col);
 		if (pRun && pRun->tr_link && strlen(pRun->tr_link) < nMaxChars) {
 			strcpy(pszBuf, pRun->tr_link);
+			char* pszAnchor = strrchr(pszBuf, '#');
+			if (pszAnchor) {
+				*pszAnchor++ = 0;
+				pResult->ni_anchor = pszAnchor;
+			}
 			pResult->ni_reference = pszBuf;
 			pResult->ni_lineNumber = 0;
 			pResult->ni_displayMode = wp->dispmode;
@@ -1248,6 +1253,40 @@ static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_I
 		}
 	}
 	return FALSE;
+}
+
+static void mdr_navigateToAnchor(WINFO* wp, const char* pszAnchor) {
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	if (!pData) {
+		return;
+	}
+	RENDER_VIEW_PART* pPart = pData->md_pElements;
+	for (long nLine = 0; pPart; nLine++) {
+		if (pPart->rvp_type == MET_HEADER) {
+			char szTitleAsAnchor[512];
+			char* pszTitle = pPart->rvp_flow.tf_text;
+			if (strlen(pszTitle) < sizeof szTitleAsAnchor) {
+				char* pszDest = szTitleAsAnchor;
+				while (*pszTitle) {
+					char c = *pszTitle++;
+					if (c == ' ') {
+						c = '-';
+					} else if (pks_isupper(c)) {
+						c = tolower(c);
+					}
+					*pszDest++ = c;
+				}
+				*pszDest = 0;
+				if (strcmp(pszAnchor, szTitleAsAnchor) == 0) {
+					int nCol = 0;
+					caret_placeCursorAndValidate(wp, &nLine, 0, &nCol, 0, 0);
+					wt_curpos(wp, nLine, 0);
+					return;
+				}
+			}
+		}
+		pPart = pPart->rvp_next;
+	}
 }
 
 static int mdr_updateDueToMouseClick(WINFO* wp, long* ln, long* col, int updateVirtualColumn) {
@@ -1273,7 +1312,8 @@ static RENDERER _mdrRenderer = {
 	FALSE,
 	mdr_modelChanged,
 	NULL,
-	mdr_findLink
+	mdr_findLink,
+	mdr_navigateToAnchor
 };
 
 /*

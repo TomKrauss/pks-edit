@@ -71,8 +71,4 @@ point to that directory: The bin directory containing the files should be below 
 In order to edit the or execute the installation script (pksedit.iss), you need to download
 [Inno Setup](https://jrsoftware.org/ishelp/index.php) (we use currently the latest version 6.2).
 
-## Technical Documentation
-
--   Format of [Grammar and Template Files](doc/grammar.md)
-
 Enjoy Tom & Rolf

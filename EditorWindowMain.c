@@ -586,7 +586,7 @@ static RENDERER _asciiRenderer = {
  * Destroy the data allocated privately by the renderer.
  */
 static void ww_destroyRendererData(WINFO* wp) {
-	if (wp->r_data) {
+	if (wp->r_data && wp->renderer) {
 		if (wp->renderer->r_destroy) {
 			wp->renderer->r_destroy(wp);
 		}
@@ -602,20 +602,26 @@ static void ww_destroyRendererData(WINFO* wp) {
  */
 static void ww_assignRenderer(WINFO* wp) {
 	RENDERER* pOld = wp->renderer;
+	RENDERER* pNew = NULL;
 	wp->renderer = NULL;
 	if (wp->dispmode & SHOWWYSIWYG) {
 		FTABLE* fp = wp->fp;
 		const char* pRenderer = grammar_wysiwygRenderer(fp->documentDescriptor->grammar);
 		if (pRenderer) {
-			wp->renderer = (RENDERER*)hashmap_get(_renderers, (intptr_t)pRenderer);
+			pNew = (RENDERER*)hashmap_get(_renderers, (intptr_t)pRenderer);
 		}
 	}
-	if (!wp->renderer && wp->dispmode & SHOWHEX) {
-		wp->renderer = (RENDERER*)hashmap_get(_renderers, (intptr_t)"hex");
+	if (!pNew && wp->dispmode & SHOWHEX) {
+		pNew = (RENDERER*)hashmap_get(_renderers, (intptr_t)"hex");
 	}
-	if (!wp->renderer) {
-		wp->renderer = &_asciiRenderer;
+	if (!pNew) {
+		pNew = &_asciiRenderer;
 	}
+	if (pNew == pOld) {
+		return;
+	}
+	ww_destroyRendererData(wp);
+	wp->renderer = pNew;
 	if (wp->renderer->r_create) {
 		wp->r_data = wp->renderer->r_create(wp);
 	}
@@ -631,7 +637,6 @@ static void ww_assignRenderer(WINFO* wp) {
  * The display / workmode of a window has changed - update appropriately.
  */
 void ww_modeChanged(WINFO* wp) {
-	ww_destroyRendererData(wp);
 	ww_assignRenderer(wp);
 	if (wp->ww_handle) {
 		sl_size(wp);

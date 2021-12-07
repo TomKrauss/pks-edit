@@ -1,5 +1,3 @@
-# PKS Edit
-
 ## Grammar Syntax
 
 The grammar files of PKS Edit are used to adapt PKS Edit to editing different (in particular source) file types.
@@ -12,9 +10,15 @@ Basically a grammar file is used to define the following aspects of the behavior
 - navigation patterns. These are used to navigate hyperlinks from one file to another (e.g. to navigate into an imported
   or included file).
 - tag sources. These define the indices used for cross reference searches (ctags e.g. for the C programming language)
-- code analysers. These are used to calculate additional suggestions for the suggestion / code completion functionality.
+- code analyzers. These are used to calculate additional suggestions for the suggestion / code completion functionality.
   Currently only one code analyzer is available, extracting all words / identifiers (not honorring syntax at all) from the 
   current text displayed in the editor. To use that analyzer in a grammar, add `"analyzer": "words"` to the grammar.
+- The `wordCharacterClass`, which is used to define the borders of an identifier (used in cursor navigation and code completion)
+and the translation table from lower case to upper case and vice versa (used during upper/lower case conversions). The following
+word character class defines identifiers consisting solely of alpha characters and define lower to upper case `a-z=A-Z`. In a `wordCharacterClass`
+all character (ranges) on the left side of the `=` sign are treated as lower case characters and all corresponding character (ranges) on
+the right hand side are treated as the corresponding upper case characters. If there are identifiers, which do not fall in the category
+lower/upper case they might be added to the right side of the `=` sign as the `-` character and all digits in the following character class `a-z=A-Z0-9-`.
 
 Every grammar resides in an own JSON file named 'grammar_id'.grammar.json and has a unique id (name), which is associated 
 with a document type. The grammar files are placed in the PKS_SYS directory. The document types are defined in a file
