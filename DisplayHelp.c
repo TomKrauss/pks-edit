@@ -18,6 +18,7 @@
 #include "winterf.h"
 #include "helpitem.h"
 #include "documentmodel.h"
+#include "edierror.h"
 #include "winfo.h"
 #include "stringutil.h"
 #include "fileutil.h"
@@ -31,8 +32,9 @@ static char szHelpDir[512];
  */
 static int help_open(char *szFile) {
 	if (!szHelpDir[0]) {
-		char* pszHelp = file_searchFileInPKSEditLocation("doc");
+		char* pszHelp = file_searchFileInPKSEditLocation("../doc");
 		if (!pszHelp) {
+			error_showMessage("Cannot find documentation directory");
 			return 0;
 		}
 		strcpy(szHelpDir, pszHelp);

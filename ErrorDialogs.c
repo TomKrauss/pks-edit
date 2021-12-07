@@ -243,6 +243,21 @@ void error_showError(char* s, va_list ap) {
 		error_signalUsingFlashing();
 }
 
+/*
+ * Show an error message with a string and optional parameters. 
+ */
+void error_showMessage(char* s, ...) {
+	va_list ap;
+	va_start(ap, s);
+	if (*s == '!') {
+		(void)error_openConfigurableAlert(MB_OK | MB_ICONHAND, s + 1, ap);
+	}
+	else {
+		error_showError(s, ap);
+	}
+	va_end(ap);
+}
+
 /*------------------------------------------------------------
  * error_showErrorById()
  * Display an error error_displayAlertDialog given a resource ID + optional arguments.

@@ -4,6 +4,16 @@
 
 #include "edtypes.h"
 
+/*
+ * Display an error in a "non-intrusive way" (status line etc...).
+ */
+extern void error_showError(char* s, va_list ap);
+
+/*
+ * Show an error message with a string and optional parameters.
+ */
+extern void error_showMessage(char* s, ...);
+
 extern void error_showErrorById(int nId, ...);
 
 /**

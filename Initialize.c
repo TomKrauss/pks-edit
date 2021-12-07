@@ -40,8 +40,8 @@ static void Getenv(char *name,char *d,int maxlen)
 {	extern char *getenv(const char *s);
 	char *env;
 
+	*d = 0;
 	if ((env = getenv(name)) != 0) {
-
 		strmaxcpy(d, env, maxlen);
 	} else {
 		prof_getPksProfileString("environment",name,d,maxlen);
@@ -94,8 +94,7 @@ EXPORT BOOL init_initializeVariables(void )
 					if (_checkPksSys(homeDirectory)) {
 						strcpy(_pksSysFolder, homeDirectory);
 					}
-				}
-				else {
+				} else {
 					homeDirectory[0] = '\0';
 				}
 			}
