@@ -95,15 +95,20 @@ typedef struct tagFONT_ATTRIBUTES {
 	int		fixedFont;
 } FONT_ATTRIBUTES;
 
+typedef struct tagMD_IMAGE {
+	int					mdi_width;
+	int					mdi_height;
+	HBITMAP				mdi_image;
+} MD_IMAGE;
+
 typedef struct tagTEXT_RUN {
 	struct tagTEXT_RUN* tr_next;
-	BOOL				tr_isImage;
-	HBITMAP				tr_image;
-	char*				tr_link;
-	char*				tr_title;
 	size_t				tr_size;
 	RUN_BOUNDS			tr_bounds;
 	FONT_ATTRIBUTES		tr_attributes;
+	char*				tr_link;
+	char*				tr_title;
+	MD_IMAGE*			tr_image;
 } TEXT_RUN;
 
 typedef struct tagTEXT_FLOW {
@@ -294,30 +299,38 @@ static void mdr_renderHorizontalRule(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc
  */
 static void mdr_paintImage(WINFO* wp, HDC hdc, TEXT_RUN* pTR, int x, int y, SIZE* pSize) {
 	char szFilename[EDMAXPATHLEN];
-	if (!pTR->tr_image) {
+	MD_IMAGE* pImage = pTR->tr_image;
+	if (!pImage) {
+		return;
+	}
+	if (!pImage->mdi_image) {
 		FTABLE* fp = wp->fp;
 		string_splitFilename(fp->fname, szFilename, NULL);
 		string_concatPathAndFilename(szFilename, szFilename, pTR->tr_link);
 		char* pszExt = strrchr(pTR->tr_link, '.');
 		if (pszExt && _stricmp(pszExt + 1, "bmp") != 0) {
-			pTR->tr_image = loadimage_load(szFilename);
+			pImage->mdi_image = loadimage_load(szFilename);
 		} else {
-			pTR->tr_image = LoadImage(NULL, szFilename, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+			pImage->mdi_image = LoadImage(NULL, szFilename, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
 		}
 	}
-	if (pTR->tr_image) {
+	if (pImage->mdi_image) {
 		BITMAP          bitmap;
 		HGDIOBJ         oldBitmap;
 		HDC             hdcMem;
 		hdcMem = CreateCompatibleDC(hdc);
-		oldBitmap = SelectObject(hdcMem, pTR->tr_image);
-		GetObject(pTR->tr_image, sizeof(bitmap), &bitmap);
-		BitBlt(hdc, x, y, bitmap.bmWidth, bitmap.bmHeight, hdcMem, 0, 0, SRCCOPY);
-
+		oldBitmap = SelectObject(hdcMem, pImage->mdi_image);
+		GetObject(pImage->mdi_image, sizeof(bitmap), &bitmap);
+		int nWidth = pImage->mdi_width ? pImage->mdi_width : 
+			(pImage->mdi_height ? bitmap.bmWidth * pImage->mdi_height / bitmap.bmHeight : bitmap.bmWidth);
+		int nHeight = pImage->mdi_height ? pImage->mdi_height : 
+			(pImage->mdi_width ? bitmap.bmHeight * pImage->mdi_width / bitmap.bmWidth : bitmap.bmHeight);
+		SetStretchBltMode(hdc, COLORONCOLOR);
+		StretchBlt(hdc, x, y, nWidth, nHeight, hdcMem, 0, 0, bitmap.bmWidth, bitmap.bmHeight, SRCCOPY);
 		SelectObject(hdcMem, oldBitmap);
 		DeleteDC(hdcMem);
-		pSize->cx = bitmap.bmWidth;
-		pSize->cy = bitmap.bmHeight;
+		pSize->cx = nWidth;
+		pSize->cy = nHeight;
 	} else {
 		sprintf(szFilename, "Cannot load image %s", pTR->tr_link);
 		TextOut(hdc, x, y, szFilename, (int)strlen(szFilename));
@@ -344,10 +357,9 @@ static void mdr_paintCheckmark(HDC hdc, int x, int y, BOOL bChecked) {
 	LineTo(hdc, x, y + nSize);
 	LineTo(hdc, x, y);
 	if (bChecked) {
-		MoveTo(hdc, x+3, y+3);
-		LineTo(hdc, x + nSize - 4, y + nSize - 4);
-		MoveTo(hdc, x + 3, y + nSize - 4);
-		LineTo(hdc, x + nSize - 4, y + 3);
+		MoveTo(hdc, x+2, y+(nSize/2));
+		LineTo(hdc, x + nSize / 3 + 1, y + nSize - 4);
+		LineTo(hdc, x + nSize - 3, y + 3);
 	}
 	DeleteObject(SelectObject(hdc, hPenOld));
 }
@@ -400,7 +412,7 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 	while(pTR) {
 		SIZE size;
 		int nFit;
-		if (pTR->tr_isImage) {
+		if (pTR->tr_image) {
 			mdr_paintImage(wp, hdc, pTR, x, y, &size);
 			if (size.cy > nHeight) {
 				nHeight = size.cy;
@@ -459,7 +471,7 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 				}
 			}
 		}
-		if (!pTR->tr_isImage && nFit < nLen && nFit > 0) {
+		if (!pTR->tr_image && nFit < nLen && nFit > 0) {
 			nOffs += nFit;
 			x = pUsed->left;
 			y += nHeight;
@@ -672,7 +684,7 @@ static TEXT_RUN* mdr_appendRun(RENDER_VIEW_PART* pPart, MDR_ELEMENT_FORMAT* pFor
 /*
  * Parse the link URL - allow for things as included title specs. 
  */
-static BOOL mdr_parseLinkUrl(char* pszBuf, char** pszLink, char** pszTitle) {
+static BOOL mdr_parseLinkUrl(char* pszBuf, char** pszLink, char** pszTitle, int* nWidth, int* nHeight) {
 	BOOL bAuto = FALSE;
 	int nStart = 0;
 	if (pszBuf[nStart] == '<') {
@@ -708,6 +720,23 @@ static BOOL mdr_parseLinkUrl(char* pszBuf, char** pszLink, char** pszTitle) {
 			*pszTitleStart = 0;
 		}
 	}
+	if (nWidth && nHeight) {
+		pszTitleStart = strchr(pszBuf, '=');
+		if (pszTitleStart) {
+			if (pszTitleStart > pszBuf && pszTitleStart[-1] == ' ') {
+				pszTitleStart[-1] = 0;
+			}
+			pszTitleStart++;
+			char* pszHeight = strchr(pszTitleStart, 'x');
+			if (pszHeight) {
+				*pszHeight = 0;
+				if (pszHeight > pszTitleStart) {
+					*nWidth = atol(pszTitleStart);
+				}
+				*nHeight = atol(pszHeight + 1);
+			}
+		}
+	}
 	if (bAuto && strchr(pszBuf, '/') == 0) {
 		sprintf(szLink, "https://%s", pszBuf);
 	} else {
@@ -722,7 +751,7 @@ static BOOL mdr_parseLinkUrl(char* pszBuf, char** pszLink, char** pszTitle) {
 	return TRUE;
 }
 
-static BOOL mdr_parseLink(RENDER_VIEW_PART* pPart, LINE* lp, int *pTextEnd, int* pStartPos, char** pszLink, char** pszTitle) {
+static BOOL mdr_parseLink(RENDER_VIEW_PART* pPart, LINE* lp, int *pTextEnd, int* pStartPos, char** pszLink, char** pszTitle, int* nWidth, int* nHeight) {
 	int i = *pStartPos;
 	int nLinkStart = -1;
 	while (i < lp->len) {
@@ -747,7 +776,7 @@ static BOOL mdr_parseLink(RENDER_VIEW_PART* pPart, LINE* lp, int *pTextEnd, int*
 			i -= nLinkStart;
 			strncpy(szBuf, &lp->lbuf[nLinkStart], i-1);
 			szBuf[i - 1] = 0;
-			return mdr_parseLinkUrl(szBuf, pszLink, pszTitle);
+			return mdr_parseLinkUrl(szBuf, pszLink, pszTitle, nWidth, nHeight);
 		}
 	}
 	return FALSE;
@@ -798,11 +827,17 @@ static BOOL mdr_parseAutolinks(RENDER_VIEW_PART* pPart, LINE* lp, STRING_BUF* pS
 			stringbuf_appendStringLength(pSB, &lp->lbuf[nTextStart], nSize);
 			nSize = stringbuf_size(pSB) - *pLastOffset;
 			TEXT_RUN* pRun = mdr_appendRun(pPart, pFormat, nSize, ATTR_LINK);
-			if (!mdr_parseLinkUrl(szTemp, &pszLink, &pszTitle)) {
+			int nWidth = 0;
+			int nHeight = 0;
+			if (!mdr_parseLinkUrl(szTemp, &pszLink, &pszTitle, &nWidth, &nHeight)) {
 				return FALSE;
 			}
 			pRun->tr_link = pszLink;
 			pRun->tr_title = pszTitle;
+			if (pRun->tr_image) {
+				pRun->tr_image->mdi_height = nHeight;
+				pRun->tr_image->mdi_width = nWidth;
+			}
 			(* pLastOffset) += nSize;
 			*pOffset = nTextEnd;
 			return TRUE;
@@ -900,7 +935,9 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 				int nTextEnd;
 				char* pLink;
 				char* pTitle = NULL;
-				if (mdr_parseLink(pPart, lp, &nTextEnd, &pos, &pLink, &pTitle)) {
+				int nWidth = 0;
+				int nHeight = 0;
+				if (mdr_parseLink(pPart, lp, &nTextEnd, &pos, &pLink, &pTitle, &nWidth, &nHeight)) {
 					int nAttr = 0;
 					nSize = stringbuf_size(pSB) - nLastOffset;
 					mdr_appendRun(pPart, pFormat, nSize, mAttrs);
@@ -921,7 +958,14 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 					stringbuf_appendStringLength(pSB, &lp->lbuf[nTextStart], nTextEnd - nTextStart);
 					nSize = stringbuf_size(pSB) - nLastOffset;
 					TEXT_RUN* pRun = mdr_appendRun(pPart, pFormat, nSize, nAttr | ATTR_LINK);
-					pRun->tr_isImage = bImage;
+					if (bImage) {
+						pRun->tr_image = calloc(1, sizeof(MD_IMAGE));
+						pRun->tr_image->mdi_height = nHeight;
+						pRun->tr_image->mdi_width = nWidth;
+					}
+					if (bImage && !pTitle) {
+						pTitle = _strdup(&stringbuf_getString(pSB)[nLastOffset]);
+					}
 					pRun->tr_link = pLink;
 					pRun->tr_title = pTitle;
 					nLastOffset += nSize;
@@ -1145,7 +1189,10 @@ static int mdr_destroyRun(TEXT_RUN* pRun) {
 	free(pRun->tr_link);
 	free(pRun->tr_title);
 	if (pRun->tr_image) {
-		DeleteObject(pRun->tr_image);
+		if (pRun->tr_image->mdi_image) {
+			DeleteObject(pRun->tr_image->mdi_image);
+		}
+		free(pRun->tr_image);
 	}
 	return 1;
 }

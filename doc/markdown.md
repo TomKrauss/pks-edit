@@ -34,7 +34,7 @@ type formatting of text. The markdown also may contain [links - e.g to the gramm
 
 [In-document links to anchors](#image-support) are supported as well.
 
-### Lists and Block Quotes
+### Block Quotes
 
 > This is a block quote
 > 
@@ -44,10 +44,14 @@ type formatting of text. The markdown also may contain [links - e.g to the gramm
 >
 > Still on Level 1
 
+### Unordered Lists
+
 + Here is an ordered list
   + with a nested list sub-element
     + three level deep list sub-element
 + Another top level-element
+
+### Ordered Lists
 
 1. Ordered lists
 2. Unordered lists
@@ -55,7 +59,7 @@ type formatting of text. The markdown also may contain [links - e.g to the gramm
    2. Second in nested element 
 3. etc...
 
-Tasklists are also supported:
+### Tasklists
 
 - [x] This is a checked task
 - [ ] This is an unchecked task.
@@ -76,15 +80,16 @@ Here is a fenced code block:
 
 ## Image Support
 
-Some more text at the end. And finally some images.
+Some more text at the end. And finally some images. Note, that the special syntax for defining width and height of the image as rendered as in the
+following code is supported `[The famous cat]\(cat.bmp =250x150)`.
 
-![Fritz the Cat](cat.bmp "what the Internet was invented for")
+![The famous cat](cat.bmp =250x)
 
-![Roll the dice](dice.png)
+![Roll the dice](dice.png =250x)
 
-![Balloons](balloons.jpg)
+![Balloons](balloons.jpg =250x)
 
-![Flying Bird](bird.gif)
+![Flying Bird](bird.gif =250x)
 
 Note, that image support is currently also rather limited: only local images are supported.
 
