@@ -1,12 +1,18 @@
 ## Macros in PKS-Edit
 
 Macros in PKS-Edit can be recorded or manually edited using the _PKSMacroC Language_ and compiled inside PKS-Edit.
-All known macros are loaded from a file called **pksedit.mac** loaded from the `PKS_SYS` directory.
+All known macros are loaded from a file called **pksedit.mac** loaded from the `pks_sys` directory.
 
 The macro file contains currently:
 
 - custom macros performing text operations
 - keyboard, mouse and menu bindings to PKS-Edit commands and macros
+
+## Recording macros
+
+To record a macro, use "Macro->Record" and start doing some actions (e.g. move the cursor, insert text, etc...). When done press "Macro->Record" again. This will open a little dialog
+allowing to "name" the macro and bind it to a keyboard key so it can be used subsequently. Note, that in order to make the macro persistent, you must save the the current set of macros.
+When PKS-Edit exits and there are unsaved macros, it warns about that and asks the user to save the macros now.
 
 ## Redefining keyboard bindings
 

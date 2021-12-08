@@ -32,7 +32,7 @@ type formatting of text. The markdown also may contain [links - e.g to the gramm
 
 [Auto-links](https://github.github.com/gfm/#autolinks) are supported to some extent using the following syntax `\<https://www.google.de>`: <www.google.de>.
 
-[In-document links to anchors](#image-support) are supported as well.
+[In-document links to anchors](#image-support "this brings you to the images") are supported as well.
 
 ### Block Quotes
 

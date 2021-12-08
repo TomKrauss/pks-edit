@@ -673,6 +673,9 @@ static LINE *caret_nextWord(LINE *lp,long *ln,long *col,
 		if (c == 0) {
 			if (l-- <= 0) return 0;
 			lp = lp->prev;
+			if (!lp) {
+				return 0;
+			}
 			c  = lp->len;
 		} else {
 			BOOL bNavigated = FALSE;

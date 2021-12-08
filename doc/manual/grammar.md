@@ -1,16 +1,22 @@
-## Grammar Syntax
+## Grammars
 
-The grammar files of PKS Edit are used to adapt PKS Edit to editing different (in particular source) file types.
+A grammar is used by PKS Edit are used to adapt PKS Edit to editing different (in particular source) file types.
+Every grammar has a name which can be associated with a [document type](document_types.md). 
 Basically a grammar file is used to define the following aspects of the behavior of PKS Edit:
 
-- syntax highlighting. Each grammar contains a set of "pattern rules" which are used to select a font style to
-  highlight areas of the code you are editing.
-- templates. For each grammar one may define a set of code templates to be inserted on certain events by PKS Edit.
-- bracket pairs. These can be defined for being checked automatically by PKS Edit.
-- navigation patterns. These are used to navigate hyperlinks from one file to another (e.g. to navigate into an imported
+- `syntax highlighting rules`. Each grammar contains a set of rules which are used to select a font style to
+  highlight areas of the code you are editing. The following types of matching rules are supported: 
+  - _begin/end rules_: these are defined specifying a start string and an end string. They can be in particular used to
+    match patterns, which span multiple lines as for instance needed for start and end multi-comments (e.g. Java or C).
+  - _pattern rules_: these are defined using a regular expression and cannot match a string spanning multiple lines. They
+    are best to match things like operators and identifiers
+  - _keyword rules_: these are defined using an array of identifiers having a special meaning in a language.
+- `templates`. For each grammar one may define a set of code templates to be inserted on certain events by PKS Edit.
+- `bracket pairs`. These can be defined for being checked automatically by PKS Edit.
+- `navigation patterns`. These are used to navigate hyperlinks from one file to another (e.g. to navigate into an imported
   or included file).
-- tag sources. These define the indices used for cross reference searches (ctags e.g. for the C programming language)
-- code analyzers. These are used to calculate additional suggestions for the suggestion / code completion functionality.
+- `tag sources`. These define the indices used for cross reference searches (ctags e.g. for the C programming language)
+- `code analyzers`. These are used to calculate additional suggestions for the suggestion / code completion functionality.
   Currently only one code analyzer is available, extracting all words / identifiers (not honorring syntax at all) from the 
   current text displayed in the editor. To use that analyzer in a grammar, add `"analyzer": "words"` to the grammar.
 - The `wordCharacterClass`, which is used to define the borders of an identifier (used in cursor navigation and code completion)
@@ -21,8 +27,9 @@ the right hand side are treated as the corresponding upper case characters. If t
 lower/upper case they might be added to the right side of the `=` sign as the `-` character and all digits in the following character class `a-z=A-Z0-9-`.
 
 Every grammar resides in an own JSON file named 'grammar_id'.grammar.json and has a unique id (name), which is associated 
-with a document type. The grammar files are placed in the PKS_SYS directory. The document types are defined in a file
-PKS_SYS/pkseditconfig.json. Document types are typically selected by file name pattern. For every document type one may
+with a document type. `cpp.grammar.json` for instance would be the name of a grammar named `cpp` (c++).
+The grammar files are placed in the `pks_sys` directory. The document types are defined in a file
+`pks_sys\pkseditconfig.json`. Document types are typically selected by file name pattern. For every document type one may
 define the grammar id to use for the corresponding document type.
 
 ### Templates

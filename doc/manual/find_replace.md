@@ -37,3 +37,20 @@ Character groups can be used to match repeating sections
 - `(group).*\1` matches the specified group, than any character and then the group again
 - `(:?[a-z]+)` non-capturing group repitition
 
+## Replacing text
+
+When replacing text, the following special options are supported:
+
+- Range: controls the range of text in which the replacement is performed.
+- On Confirmation: when set, the user is asked before replacing an occurrence of the matched strings.
+- Only in marked lines: when set, the text is only replaced in lines marked with "mark text" before in the find dialog.
+- Preserve upper/lower case: when set, the upper/lower case spelling is preserved. Let\`s assume we replace all occurences of `cat` by `doc` and the option
+  is set. In this case `Cat` will be replaced by `Dog` and `CAT` will be replaced by `DOG`.
+
+## Find in Files
+
+This option allows to find a text in a directory of files (and optionally replace all occurrences). When the search is started, PKS-Edit will open a new window, displaying 
+all matching results. You may navigate through the list of matches by either clicking into the search result list or by pressing `Ctrl+n` to move to the next match and by pressing
+`Ctrl+P` to navigate to the previous match.
+
+ 

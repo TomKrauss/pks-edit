@@ -1206,7 +1206,12 @@ static WINFUNC WorkAreaWndProc(
 			if (GetAsyncKeyState(VK_CONTROL)) {
 				mouse_setHandCursor();
 			} else {
-				mouse_setDefaultCursor();
+				if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0 && !wp->renderer->r_canEdit) {
+					mouse_setArrowCursor();
+				}
+				else {
+					mouse_setDefaultCursor();
+				}
 			}
 		} else {
 			mouse_setArrowCursor();
@@ -1224,6 +1229,16 @@ static WINFUNC WorkAreaWndProc(
 	case WM_SYSKEYUP:
 	case WM_CHAR:
 		return SendMessage(hwndMain,message,wParam,lParam);
+
+	case WM_MOUSEMOVE:
+		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
+			if (wp->renderer->r_mouseMove) {
+				int xPos = GET_X_LPARAM(lParam);
+				int yPos = GET_Y_LPARAM(lParam);
+				wp->renderer->r_mouseMove(wp, xPos, yPos);
+			}
+		}
+		break;
 
 	case WM_MOUSEWHEEL:
 		zDelta = GET_WHEEL_DELTA_WPARAM(wParam);

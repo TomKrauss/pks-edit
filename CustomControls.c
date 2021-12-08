@@ -23,6 +23,7 @@
 #include "winfo.h"
 #include "winutil.h"
 #include "themes.h"
+#include <commctrl.h>
 
 #pragma hdrstop
 
@@ -181,6 +182,32 @@ void cust_drawOutline(HDC hDC, int left, int top, int w, int h)
 	/* restore display context */
 	SetROP2( hDC, wOldROP2 );
 }
+
+/*
+ * cust_createToolTooltip()
+ * Create a tooltip to be displayed in/by a target window (hwndTool).
+ */
+HWND cust_createToolTooltip(HWND hwndTool) {
+	HWND hwndTip = CreateWindowEx(0, TOOLTIPS_CLASS, 0,
+		WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		hwndTool, NULL, hInst,
+		NULL);
+
+	if (!hwndTip) {
+		return NULL;
+	}
+	theme_enableDarkMode(hwndTip);
+	TTTOOLINFO toolinfo = { 0 };
+	toolinfo.cbSize = sizeof(toolinfo);
+	toolinfo.hwnd = hwndTool;
+	toolinfo.lpszText = "Hello world";
+	toolinfo.uFlags = TTF_TRACK | TTF_ABSOLUTE;
+	SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolinfo);
+	return hwndTip;
+}
+
 
 /*--------------------------------------------------------------------------
  * cust_calculateButtonCharacterHeight()

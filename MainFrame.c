@@ -28,6 +28,7 @@
 #include "winfo.h"
 #include "errordialogs.h"
 #include "xdialog.h"
+#include "customcontrols.h"
 #include "mouseutil.h"
 #include "windowselector.h"
 #include "uahmenubar.h"
@@ -235,7 +236,7 @@ static char* tabcontrol_getTitle(HWND hwnd, char* szBuffer, size_t nSize) {
 				while (*szBuffer) {
 					char c = *szBuffer++;
 					*pszDest++ = c;
-					if (c == ' ') {
+					if (c == ' ' && *szBuffer != '#') {
 						break;
 					}
 				}
@@ -1188,24 +1189,7 @@ static void tabcontrol_closed(HWND hwnd, const HWND hwndChild) {
  * Create a tooltip to be optionally displayed for the tabs of the mainframe.
  */
 static void tabcontrol_createTooltip(TAB_CONTROL* pControl) {
-	HWND hwndTip = CreateWindowEx(0, TOOLTIPS_CLASS, 0,
-		WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
-		CW_USEDEFAULT, CW_USEDEFAULT,
-		CW_USEDEFAULT, CW_USEDEFAULT,
-		pControl->tc_hwnd, NULL, hInst,
-		NULL);
-
-	if (!hwndTip) {
-		return;
-	}
-	theme_enableDarkMode(hwndTip);
-	TTTOOLINFO toolinfo = {0};
-	toolinfo.cbSize = sizeof(toolinfo);
-	toolinfo.hwnd = pControl->tc_hwnd;
-	toolinfo.lpszText = "Hello world";
-	toolinfo.uFlags = TTF_TRACK | TTF_ABSOLUTE;
-	SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolinfo);
-	pControl->tc_hwndTooltip = hwndTip;
+	pControl->tc_hwndTooltip = cust_createToolTooltip(pControl->tc_hwnd);
 }
 
 /*

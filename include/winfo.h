@@ -153,6 +153,8 @@ typedef void (*RENDERER_HIT_TEST)(WINFO* wp, int cX, int cY, long* pLine, long* 
 
 typedef void (*RENDERER_NAVIGATE_ANCHOR)(WINFO* wp, const char* pszAnchor);
 
+typedef void (*RENDERER_MOUSEMOVE)(WINFO* wp, int x, int y);
+
 typedef BOOL(*RENDERER_FIND_LINK)(WINFO* wp, char* pszDest, size_t nMaxChars, NAVIGATION_INFO_PARSE_RESULT* pResult);
 
 /*
@@ -182,6 +184,7 @@ typedef struct tagRENDERER {
     const CONTROLLER* r_controller;                               // Optional controller contributed by the renderer for custom mouse and keyboard handling. Maybe null.
     const RENDERER_FIND_LINK r_findLink;                          // Optional callback to find a link at the "current" caret position.
     const RENDERER_NAVIGATE_ANCHOR r_navigateAnchor;              // Optional callback to navigate to an "anchor" specification
+    const RENDERER_MOUSEMOVE r_mouseMove;                         // Optional callback invoked during mouse move.
 } RENDERER;
 
 /*--------------------------------------------------------------------------

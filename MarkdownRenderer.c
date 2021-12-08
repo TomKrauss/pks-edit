@@ -16,10 +16,13 @@
 
 #include "alloc.h"
 #include <Windows.h>
+#include <CommCtrl.h>
 #include <stdio.h>
 
 #include "winfo.h"
+#include "trace.h"
 #include "caretmovement.h"
+#include "customcontrols.h"
 #include "linkedlist.h"
 #include "editorfont.h"
 #include "stringutil.h"
@@ -33,6 +36,8 @@
 #define NO_COLOR			-1		// marker for no color defined
 #define PARAGRAPH_OFFSET	15		// offset in pixels between paragraph type elements.
 #define DEFAULT_LEFT_MARGIN	10		// offset of most elements to the left of the screen.
+
+extern HINSTANCE		hInst;
 
 static const char _escapedChars[] = "\\`*_{}[]<>()#+-.!|";
 
@@ -222,6 +227,8 @@ static MDR_ELEMENT_FORMAT _formatH6 = {
 typedef struct tagMARKDOWN_RENDERER_DATA {
 	RENDER_VIEW_PART* md_pElements;	// The render view parts to be rendered
 	RECT md_lastBounds;
+	HWND md_hwndTooltip;
+	TEXT_RUN* md_focussedRun;
 	BOOL md_displayingEndOfFile;
 	long md_lastMinLn;
 	int md_nElementsPerPage;
@@ -420,6 +427,10 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 			pPart->rvp_bounds.bottom = y + nHeight;
 			pPart->rvp_bounds.left = x;
 			pPart->rvp_bounds.right = x+size.cx;
+			pTR->tr_bounds.top1 = pTR->tr_bounds.top = y;
+			pTR->tr_bounds.bottom = pTR->tr_bounds.bottom2 = pPart->rvp_bounds.bottom;
+			pTR->tr_bounds.left = pTR->tr_bounds.left1 = x;
+			pTR->tr_bounds.right = pTR->tr_bounds.right2 = pPart->rvp_bounds.right;
 		} else {
 			GetTextExtentExPoint(hdc, &pTF->tf_text[nOffs], (int)nLen, nRight - x, &nFit, 0 /* TODO: callback for measuring*/, &size);
 			if (size.cy > nHeight) {
@@ -1152,7 +1163,13 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 	if (!pData->md_pElements) {
 		mdr_parseViewParts(fp, pData);
 	}
-	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, wp->minln);
+	RENDER_VIEW_PART* pPart = pData->md_pElements;
+	while (pPart) {
+		// clear out old existing bounds.
+		memset(&pPart->rvp_bounds, 0, sizeof pPart->rvp_bounds);
+		pPart = pPart->rvp_next;
+	}
+	pPart = mdr_getViewPartForLine(pData->md_pElements, wp->minln);
 	RECT occupiedBounds;
 	int nElements = 0;
 	FillRect(pCtx->rc_hdc, pClip, hBrushBg);
@@ -1212,6 +1229,9 @@ static int mdr_destroyViewPart(RENDER_VIEW_PART *pRVP) {
 static void mdr_destroyData(WINFO* wp) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (pData) {
+		if (pData->md_hwndTooltip) {
+			DestroyWindow(pData->md_hwndTooltip);
+		}
 		ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
 		free(pData->md_pElements);
 		pData->md_pElements = NULL;
@@ -1235,7 +1255,9 @@ static void mdr_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
  * Allocate the markdown renderer data structure.
  */
 static void* mdr_allocData(WINFO* wp) {
-	return calloc(1, sizeof(MARKDOWN_RENDERER_DATA));
+	MARKDOWN_RENDERER_DATA* pResult = calloc(1, sizeof(MARKDOWN_RENDERER_DATA));
+	pResult->md_hwndTooltip = cust_createToolTooltip(wp->ww_handle);
+	return pResult;
 }
 
 /*
@@ -1302,31 +1324,76 @@ static int mdr_placeCursorAndValidate(WINFO* wp, long* ln, long offset, long* co
 	return 1;
 }
 
-static void mdr_hitTest(WINFO* wp, int cx, int cy, long* pLine, long* pCol) {
+static BOOL mdr_hitTestInternal(WINFO* wp, int cx, int cy, long* pLine, long* pCol, RENDER_VIEW_PART** pMatchedPart, TEXT_RUN **pMatchedRun) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (!pData) {
-		return;
+		return FALSE;
 	}
 	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, wp->minln);
-	POINT pt = {cx, cy};
+	POINT pt = { cx, cy };
 	long ln = wp->minln;
 	while (pPart) {
 		if (PtInRect(&pPart->rvp_bounds, pt)) {
 			TEXT_RUN* pRun = pPart->rvp_flow.tf_runs;
 			long nCol = 0;
+			*pLine = ln;
 			while (pRun) {
 				if (runbounds_contains(&pRun->tr_bounds, (POINT) { cx, cy })) {
 					*pCol = nCol;
-					break;
+					*pMatchedRun = pRun;
+					*pMatchedPart = pPart;
+					return TRUE;
 				}
 				pRun = pRun->tr_next;
 				nCol++;
 			}
-			*pLine = ln;
-			return;
+			return FALSE;
 		}
 		pPart = pPart->rvp_next;
 		ln++;
+	}
+	return FALSE;
+}
+
+static void mdr_hitTest(WINFO* wp, int cx, int cy, long* pLine, long* pCol) {
+	RENDER_VIEW_PART* pMatchP;
+	TEXT_RUN* pMatchR;
+	mdr_hitTestInternal(wp, cx, cy, pLine, pCol, &pMatchP, &pMatchR);
+}
+
+static void mdr_mouseMove(WINFO* wp, int x, int y) {
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	if (!pData) {
+		return;
+	}
+	RENDER_VIEW_PART* pMatchP;
+	TEXT_RUN* pMatchR = NULL;
+	long line;
+	long col;
+	BOOL bShow = TRUE;
+	if (!mdr_hitTestInternal(wp, x, y, &line, &col, &pMatchP, &pMatchR) || !pMatchR->tr_title) {
+		bShow = FALSE;
+	}
+	if (pMatchR == pData->md_focussedRun) {
+		return;
+	}
+	pData->md_focussedRun = pMatchR;
+	TTTOOLINFO toolinfo = { 0 };
+	toolinfo.cbSize = sizeof(toolinfo);
+	toolinfo.hwnd = wp->ww_handle;
+	toolinfo.hinst = hInst;
+	if (pMatchR) {
+		// Activate the tooltip.
+		toolinfo.lpszText = pMatchR->tr_title;
+		SendMessage(pData->md_hwndTooltip, TTM_UPDATETIPTEXT, (WPARAM)0, (LPARAM)&toolinfo);
+		POINT pt;
+		pt.x = pMatchR->tr_bounds.left1;
+		pt.y = pMatchR->tr_bounds.top1 - 20;
+		ClientToScreen(wp->ww_handle, &pt);
+		SendMessage(pData->md_hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(pt.x, pt.y));
+	}
+	if (!SendMessage(pData->md_hwndTooltip, TTM_TRACKACTIVATE, (WPARAM)bShow, (LPARAM)&toolinfo)) {
+		log_errorArgs(DEBUG_ERR, "Activating tooltip failed. Error %ld.", GetLastError());
 	}
 }
 
@@ -1413,7 +1480,8 @@ static RENDERER _mdrRenderer = {
 	mdr_modelChanged,
 	NULL,
 	mdr_findLink,
-	mdr_navigateToAnchor
+	mdr_navigateToAnchor,
+	mdr_mouseMove
 };
 
 /*

@@ -101,6 +101,11 @@ extern HWND cust_createToastWindow(char* pszText);
  */
 extern HWND cust_createLabeledWindow(HWND hwndParent, char* pszLabel, HWND hwndChild);
 
+/*
+ * cust_createToolTooltip()
+ * Create a tooltip to be displayed in/by a target window (hwndTool).
+ */
+extern HWND cust_createToolTooltip(HWND hwndTool);
 
 #define CUSTOMCONTROLS_H
 

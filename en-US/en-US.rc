@@ -840,7 +840,7 @@ BEGIN
     LTEXT           "Number of &Undo Steps:",-1,12,29,84,12,NOT WS_GROUP
     EDITTEXT        IDD_INT1,138,29,80,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "Undo &available",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,13,204,10
-    CONTROL         "Hide selection on caret position",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,62,204,12
+    CONTROL         "Hide selection on caret movement",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,62,204,12
     CONTROL         "Open dialogs close to mouse pointer",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,79,204,12
     LTEXT           "&Maximum number of open windows:",-1,12,46,119,12,NOT WS_GROUP
     EDITTEXT        IDD_INT2,138,46,79,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
