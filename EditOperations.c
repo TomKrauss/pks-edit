@@ -532,8 +532,9 @@ static void edit_wrapAround(WINFO *wp) {
 
 /*
  * Format a range of text so it fits into the given window bounds (rmargin). 
+ * TODO: should use ft_formatText internally for consistent formatting.
  */
-int edit_autoFormatRange(WINFO* wp, int nRange) {
+static int edit_autoFormatRange(WINFO* wp) {
 	register unsigned char* destbuf, * sourcebuf;
 	LINE* lp1, * lpnext, * lp;
 	LINE* lplast;
@@ -554,28 +555,15 @@ int edit_autoFormatRange(WINFO* wp, int nRange) {
 	ln = caretLine = wp->caret.ln;
 	/* watch also previous lines */
 	BOOL bStopAfterParagraph = FALSE;
-	if (nRange == RNG_LINE || nRange == RNG_CHAPTER || nRange == RNG_FROMCURS) {
-		lp = wp->caret.linePointer;
-		caretColumn = wp->caret.offset;
-		while (lp->prev && !HARD_BREAK(lp->prev)) {
-			lp = lp->prev;
-			ln--;
-		}
-		bStopAfterParagraph = TRUE;
-	} else if (nRange == RNG_BLOCK) {
-		if (!wp->blstart || !wp->blend) {
-			return 0;
-		}
-		lp = wp->blstart->m_linePointer;
-		ln = wp->blstart->m_line;
-		lplast = wp->blend->m_linePointer;
-	} else if (nRange == RNG_GLOBAL) {
-		lp = fp->firstl;
-		ln = 0;
+	lp = wp->caret.linePointer;
+	caretColumn = wp->caret.offset;
+	while (lp->prev && !HARD_BREAK(lp->prev)) {
+		lp = lp->prev;
+		ln--;
 	}
+	bStopAfterParagraph = TRUE;
 
 	while (lp != 0) {
-
 		if (edit_findWrappingPosition(wp, lp, -1, &wstart, rm) && wstart < lp->len) {
 			/*
 			 * if next line is empty, take same indent as current line
@@ -751,12 +739,11 @@ join_next_words:
 /*--------------------------------------------------------------------------
  * edit_autoFormat()
  */
-static int edit_autoFormat(WINFO *wp)
-{
+static int edit_autoFormat(WINFO *wp) {
 	if ((wp->workmode & WM_AUTOFORMAT) == 0) {
 		return 0;
 	}
-	return edit_autoFormatRange(wp, RNG_LINE);
+	return edit_autoFormatRange(wp);
 }
 
 /*--------------------------------------------------------------------------

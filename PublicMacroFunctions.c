@@ -70,7 +70,7 @@ extern int		doctypes_addDocumentTypesToListView(HWND hwnd, const void* pSelected
 
 extern long		_multiplier;
 
-static int		_scope = RNG_GLOBAL;
+static int		_scope = RNG_BLOCK;
 
 /*------------------------------------------------------------
  * EdCloseWindow()
@@ -449,27 +449,23 @@ int EdAlignText(void)
  */
 int EdFormatText(void)
 {	
-	static int _fmtflags;
-	static int _fmttype;
-	static DIALPARS _d[] = {
+	static FORMATTING_ALIGNMENT alignment = FMT_LEFT;
+	DIALPARS _d[] = {
 		IDD_RNGE,		RNG_LINE ,			&_scope,
-		IDD_RADIO1,	FMT_ADJBLOCK-FMT_ADJLEFT,&_fmttype,
-		IDD_OPT1,		FMT_WPFORMAT,			&_fmtflags,
-		IDD_OPT2,		FMT_INDENT,			&_fmtflags,
+		IDD_RADIO1,	FMT_JUSTIFIED-FMT_LEFT,&alignment,
 		0
 	};
-	static ITEMS _i = { 
-		{ C_INT1PAR, (unsigned char *) &_fmttype     },
-		{ C_INT1PAR, (unsigned char *) &_fmtflags	},
+	ITEMS _i = { 
+		{ C_INT1PAR, (unsigned char *) &alignment     },
 		{ C_INT1PAR, (unsigned char *) &_scope	}
 	};
-	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i   };
+	PARAMS _fp = 	{ DIM(_i), P_MAYOPEN, _i   };
 
 
 	if (!win_callDialog(DLGFORMAT,&_fp,_d, NULL))
 		return 0;
 
-	return ft_formatText(ww_getCurrentEditorWindow(), _scope,_fmttype,_fmtflags);
+	return ft_formatText(ww_getCurrentEditorWindow(), _scope, alignment);
 }
 
 /*--------------------------------------------------------------------------

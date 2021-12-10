@@ -45,16 +45,30 @@ static void wi_scrollTop(WINFO* wp, long dy) {
 	}
 }
 
+/*
+ * Calculate an offset of character buffer positions to the corresponding number
+ * of columns as displayed on the screen.
+ */
+int caret_bufferOffset2screen(WINFO* wp, char* lbuf, int lnoffset) {
+	register int  col = 0;
+	register char* p = lbuf;
+
+	lbuf += lnoffset;
+	while (p < lbuf) {
+		if (*p++ == '\t')
+			col = indent_calculateNextTabStop(col, &wp->indentation);
+		else col++;
+	}
+	return col;
+}
+
 /*--------------------------------------------------------------------------
  * caret_lineOffset2screen()
  * the following stuff is calculating the cursor screen position, out of
  * the internal offset to the line buffer
  */
-EXPORT int caret_lineOffset2screen(WINFO *wp, CARET *cp)
-{	register int  col = 0;
+EXPORT int caret_lineOffset2screen(WINFO *wp, CARET *cp) {	
 	LINE* lp = cp->linePointer;
-	register char *p = lp->lbuf;
-	register char* lbuf = p;
 	int lnoffset = cp->offset;
 
 	if (wp == NULL) {
@@ -66,13 +80,7 @@ EXPORT int caret_lineOffset2screen(WINFO *wp, CARET *cp)
 	if (lnoffset > lp->len) {
 		lnoffset = lp->len;
 	}
-	lbuf += lnoffset;
-	while (p < lbuf) {
-		if (*p++ == '\t') 
-			col = indent_calculateNextTabStop(col, &wp->indentation);
-		else col++;
-	}
-	return col;
+	return caret_bufferOffset2screen(wp, lp->lbuf, lnoffset);
 }
 
 /*--------------------------------------------------------------------------

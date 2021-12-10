@@ -78,6 +78,10 @@ extern char* string_getBaseFilename(const char* fullname);
  */
 extern char* string_getFileExtension(const char* fullname);
 
+/*
+ * Returns a last character of a string.
+ */
+extern char stringbuf_lastChar(STRING_BUF* pBuf);
 
 /*--------------------------------------------------------------------------
  * string_splitFilename()
@@ -215,6 +219,16 @@ extern unsigned char* stringbuf_getString(STRING_BUF* pBuf);
  * Reset the string buffer to be empty.
  */
 extern void stringbuf_reset(STRING_BUF* pBuf);
+
+/*
+ * Resizes the string buffer to a smaller size.
+ */
+extern void stringbuf_truncate(STRING_BUF* pBuf, size_t nNewSize);
+
+/*
+ * Inserts a character at a given position.
+ */
+extern void stringbuf_insertChar(STRING_BUF* pBuf, int nPosition, char cChar);
 
 /*--------------------------------------------------------------------------
  * mysprintf()

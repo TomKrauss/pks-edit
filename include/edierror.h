@@ -176,16 +176,10 @@ extern void linetoolong(void);
 #define	MAC_LASTREC		-2
 
 /* Flags for formatblk */
-#define	FMT_ADJLEFT		0
-#define	FMT_ADJRIGHT		1
-#define	FMT_ADJCENTER		2
-#define	FMT_ADJBLOCK		3
 #define	FMT_TYPEMASK		(0|1|2|3)
 #define	FMT_MARKBLK		0x4
 #define	FMT_PRGRPH		0x8
 #define	FMT_TXTBLK		0x10
-#define	FMT_WPFORMAT		0x20
-#define	FMT_INDENT		0x40
 #define	FMT_DIALOG		0x80
 #define	FMT_STOPIFDONE		0x100
 

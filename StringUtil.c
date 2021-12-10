@@ -309,6 +309,16 @@ static void stringbuf_accomodateSpace(STRING_BUF* pBuf, size_t nAdditional) {
 }
 
 /*
+ * Returns a last character of a string. 
+ */
+char stringbuf_lastChar(STRING_BUF* pBuf) {
+	if (pBuf->sb_current > pBuf->sb_string) {
+		return pBuf->sb_current[-1];
+	}
+	return 0;
+}
+
+/*
  * Add a single character to a string buffer.
  */
 void stringbuf_appendChar(STRING_BUF* pBuf, unsigned char c) {
@@ -335,6 +345,21 @@ void stringbuf_appendStringLength(STRING_BUF* pBuf, unsigned char* pszString, si
 	strncpy(pBuf->sb_current, pszString, nAdditional);
 	pBuf->sb_current[nAdditional] = 0;
 	pBuf->sb_current += nAdditional;
+}
+
+/*
+ * Inserts a character at a given position. 
+ */
+void stringbuf_insertChar(STRING_BUF* pBuf, int nPosition, char cChar) {
+	stringbuf_accomodateSpace(pBuf, 1);
+	size_t nSize = stringbuf_size(pBuf);
+	if (nPosition >= nSize || nPosition < 0) {
+		// TODO: exception.
+		return;
+	}
+	memcpy(pBuf->sb_string + nPosition + 1, pBuf->sb_string + nPosition, (nSize - nPosition) + 1);
+	pBuf->sb_string[nPosition] = cChar;
+	pBuf->sb_current++;
 }
 
 /*
@@ -367,4 +392,14 @@ void stringbuf_reset(STRING_BUF* pBuf) {
 	pBuf->sb_string[0] = 0;
 }
 
+/*
+ * Resizes the string buffer to a smaller size.
+ */
+void stringbuf_truncate(STRING_BUF* pBuf, size_t nNewSize) {
+	if (nNewSize >= pBuf->sb_capacity) {
+		return;
+	}
+	pBuf->sb_current = pBuf->sb_string + nNewSize;
+	pBuf->sb_current[0] = 0;
+}
 

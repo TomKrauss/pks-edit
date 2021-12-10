@@ -706,7 +706,8 @@ extern int ln_createAndAddSimple(FTABLE* fp, char* b);
  * ft_formatText()
  * Formt the text in the current file.
  *---------------------------------*/
-extern int ft_formatText(WINFO* wp, int scope, int type, int flags);
+typedef enum { FMT_LEFT = 0, FMT_RIGHT = 1, FMT_CENTER = 2, FMT_JUSTIFIED = 3 } FORMATTING_ALIGNMENT;
+extern int ft_formatText(WINFO* wp, int scope, FORMATTING_ALIGNMENT alignment);
 
 /*
  * Count the number of words in a file. A word is defined by the identifier definition

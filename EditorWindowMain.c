@@ -637,6 +637,7 @@ static void ww_assignRenderer(WINFO* wp) {
  */
 void ww_modeChanged(WINFO* wp) {
 	ww_assignRenderer(wp);
+	SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
 	if (wp->ww_handle) {
 		sl_size(wp);
 		font_selectStandardFont(wp->ww_handle, wp);
