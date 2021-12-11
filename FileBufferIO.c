@@ -47,11 +47,29 @@ int _flushing;
 /*----- LOCALS --------------*/
 
 static char _eof[] = "- eof -\n";
-static char _cryptMagic[8] = "\0enc\03\07\01\0";
 static int  _verbose = 1;
 static int 	_scratchlen = 0;
 static char _crypting;
 static unsigned char* _scratchstart;
+
+typedef struct tagMAGIC {
+	char m_bytes[10];
+	byte m_size;
+	long m_codePage;
+	BOOL m_crypted;
+} MAGIC;
+
+static MAGIC _magicMarkers[] = {
+	{"\0enc\03\07\01\0", 8, CP_ACP, TRUE},
+	{"\xEF\xBB\xBF", 3, CP_UTF8, FALSE},
+	{"\xFE\xFF", 2, 1201, FALSE},				// UTF-16 Big Endian
+	{"\xFF\xFE", 2, 1200, FALSE},				// UTF-16 Little Endian
+	{"\x00\x00\xFE\xFF", 2, 12001, FALSE},		// UTF-32 Big Endian
+	{"\xFF\xFE\x00\x00", 2, 12000, FALSE},		// UTF-32 Little Endian
+	0
+};
+
+static MAGIC* _cryptMarker = &_magicMarkers[0];
 
 /*------------------------------*/
 /* ft_initializeReadWriteBuffers()			  */
@@ -71,6 +89,29 @@ BOOL ft_initializeReadWriteBuffers(void)
 void ft_destroyCaches() {
 	free(_linebuf);
 	_linebuf = NULL;
+}
+
+/*
+ * Determines the name of the code page of the file and writes the codepage name
+ * to pszName, but only if there is enough space as described by nMaxNameLen.
+ */
+void ft_getCodepageName(FTABLE* fp, char* pszName, size_t nMaxNameLen) {
+	long nCp = fp->codepage;
+	if (nCp == -1) {
+		if (nMaxNameLen > 5) {
+			strcpy(pszName, "auto");
+		} else {
+			*pszName = 0;
+		}
+		return;
+	}
+	CPINFOEX cpInfo;
+	GetCPInfoEx(nCp, 0, &cpInfo);
+	if (strlen(cpInfo.CodePageName) < nMaxNameLen) {
+		strcpy(pszName, cpInfo.CodePageName);
+	} else {
+		*pszName = 0;
+	}
 }
 
 /*---------------------------------*/
@@ -213,14 +254,82 @@ EXPORT char* file_readFileAsString(int fd) {
 	return pszBuf;
 }
 
+/*
+ * Try to detect the code page of a document. Currently only UTF-8 detection is supported.
+ */
+static int file_detectCodepage(const char* pData, int nSize) {
+	const unsigned char* str = (unsigned char*)pData;
+	const unsigned char* end = str + nSize;
+	unsigned char byte;
+	unsigned int nLength, i;
+	wchar_t ch;
+	while (str != end) {
+		byte = *str++;
+		if (byte <= 0x7F || str >= end) {
+			/* 1 byte sequence: U+0000..U+007F */
+			continue;
+		}
+
+		if (0xC2 <= byte && byte <= 0xDF) {
+			nLength = 1;
+		} else if (0xE0 <= byte && byte <= 0xEF) {
+			nLength = 2;
+		} else if (0xF0 <= byte && byte <= 0xF4) {
+			nLength = 3;
+		} else {
+			continue;
+		}
+
+		if (str + nLength >= end) {
+			/* truncated string or invalid byte sequence */
+			return CP_ACP;
+		}
+
+		/* Check continuation bytes: bit 7 should be set, bit 6 should be
+		 * unset (b10xxxxxx). */
+		for (i = 0; i < nLength; i++) {
+			if ((str[i] & 0xC0) != 0x80)
+				return CP_ACP;
+		}
+
+		if (nLength == 1) {
+			return CP_UTF8;
+		}
+		else if (nLength == 2) {
+			/* 3 bytes sequence: U+0800..U+FFFF */
+			ch = ((str[0] & 0x0f) << 12) + ((str[1] & 0x3f) << 6) +
+				(str[2] & 0x3f);
+			/* (0xff & 0x0f) << 12 | (0xff & 0x3f) << 6 | (0xff & 0x3f) = 0xffff,
+			   so ch <= 0xffff */
+			if (ch < 0x0800)
+				return CP_ACP;
+
+			/* surrogates (U+D800-U+DFFF) are invalid in UTF-8:
+			   test if (0xD800 <= ch && ch <= 0xDFFF) */
+			if ((ch >> 11) == 0x1b)
+				return CP_ACP;
+			return CP_UTF8;
+		}
+		else if (nLength == 3) {
+			/* 4 bytes sequence: U+10000..U+10FFFF */
+			ch = ((str[0] & 0x07) << 18) + ((str[1] & 0x3f) << 12) +
+				((str[2] & 0x3f) << 6) + (str[3] & 0x3f);
+			if ((ch < 0x10000) || (0x10FFFF < ch))
+				return CP_ACP;
+			return CP_UTF8;
+		}
+		str += nLength;
+	}
+	return CP_ACP;
+}
+
 /*---------------------------------
  * ft_readDocumentFromFile()
  * Standard implementation to read a file in PKS Edit given the file descriptor,
  * a callback method to invoked for each line read and an optional parameter (typically, but not neccessarily the filepointer itself) to
  * be parsed as the first argument to the callback.
  *---------------------------------*/
-EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallback)(void *, EDIT_CONFIGURATION*, unsigned char *, unsigned char *), void *par)
-{
+EXPORT int ft_readDocumentFromFile(int fd, long *pCodepage, unsigned char * (*lineExtractedCallback)(void *, EDIT_CONFIGURATION*, unsigned char *, unsigned char *), void *par) {
 	int 	cflg,got,len,ofs;
 	long	bufferSize;
 	char	*q;
@@ -245,7 +354,18 @@ EXPORT int ft_readDocumentFromFile(int fd, unsigned char * (*lineExtractedCallba
 				return 0;
 			}
 		}
-
+		if (*pCodepage != CP_ACP) {
+			if (*pCodepage == -1) {
+				*pCodepage = file_detectCodepage(bufferStart, got);
+			}
+			if (*pCodepage != CP_ACP) {
+				wchar_t* pszDest = malloc(got * 2);
+				int nConv = MultiByteToWideChar(*pCodepage, MB_PRECOMPOSED, bufferStart, got, pszDest, got);
+				char cDefault = '?';
+				got = WideCharToMultiByte(CP_ACP, 0, pszDest, nConv, bufferStart, nConv, &cDefault, NULL);
+				free(pszDest);
+			}
+		}
 		ofs  = bufferSize;
 		pend = &bufferStart[got];
 
@@ -295,19 +415,21 @@ static int ft_initializeEncryption(EDIT_CONFIGURATION *linp, char *pw, char* psz
  * Read the header of a file to auto-detect, whether is encrypted. 
  */
 static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor) {
-	char szMagic[sizeof _cryptMagic];
+	char szMagic[sizeof ((MAGIC*)0)->m_bytes];
 	BOOL bHeaderHandled = FALSE;
 	if (Fread(fd, sizeof szMagic, szMagic) >= 8) {
-		if (memcmp(szMagic, _cryptMagic, sizeof _cryptMagic) == 0) {
-			documentDescriptor->workmode |= O_CRYPTED;
-			_llseek(fd, sizeof _cryptMagic, SEEK_SET);
-			bHeaderHandled = TRUE;
-		}
-		else if (szMagic[0] == '\xEF' && szMagic[1] == '\xBB' && szMagic[2] == '\xBF') {
-			// UTF8 encoded - skip BOM when reading.
-			_llseek(fd, 3, SEEK_SET);
-			bHeaderHandled = TRUE;
-			documentDescriptor->codepage = CP_UTF8;
+		MAGIC* pMagic = _magicMarkers;
+		while (pMagic->m_size) {
+			if (memcmp(szMagic, pMagic->m_bytes, pMagic->m_size) == 0) {
+				documentDescriptor->codepage = pMagic->m_codePage;
+				if (pMagic->m_crypted) {
+					documentDescriptor->workmode |= O_CRYPTED;
+				}
+				_llseek(fd, pMagic->m_size, SEEK_SET);
+				bHeaderHandled = TRUE;
+				break;
+			}
+			pMagic++;
 		}
 	}
 	if (!bHeaderHandled) {
@@ -391,7 +513,8 @@ nullfile:
 				return 0;
 			}
 		}
-		if ((ret = ft_readDocumentFromFile(fd,f,fp)) == 0) {
+		fp->codepage = documentDescriptor->codepage;
+		if ((ret = ft_readDocumentFromFile(fd, &fp->codepage, f,fp)) == 0) {
 			goto readerr;
 		}
 
@@ -607,7 +730,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 	fp->flags &= ~(F_APPEND|F_NEWFILE);
 	offset = 0;
 	if (pw[0]) {
-		file_flushBuffer(fd, _cryptMagic, 8, 0);
+		file_flushBuffer(fd, _cryptMarker->m_bytes, _cryptMarker->m_size, 0);
 	}
 	while (lp != fp->lastl) {		// don't save last line
 		if ((no = offset+lp->len) < LINEBUFSIZE) {

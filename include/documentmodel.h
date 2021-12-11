@@ -218,6 +218,7 @@ typedef struct tagFTABLE {
 	EDTIME	ti_created;			// creation time
 	EDTIME  ti_saved;			// last save time
 	EDTIME  ti_lastChanged;		// last time the file was changed in PKS edit by the user.
+	long	codepage;			// The codepage with which this document was read.
 	void* navigationPattern;	// For files containing either a PKS Edit search result list or displaying a compiler output, this contains a pointer 
 								// to the NAVIGATION_PATTERN (see CrossReferenceLinks.c) defining how to parse the individual lines in the file.
 	int		lockFd;				// Filedescriptor for locking - <= 0 if none
@@ -387,8 +388,15 @@ extern BOOL ft_initializeReadWriteBuffers(void);
  * Standard implementation to read a file in PKS Edit given the file descriptor,
  * a callback method to invoked for each line read and an optional parameter (typically, but not neccessarily the filepointer itself) to
  * be parsed as the first argument to the callback.
+ * If the codepage passed is -1, a codepage detection is performed and the detected code page will be returned in pCodepage.
  *---------------------------------*/
-extern int ft_readDocumentFromFile(int fd, unsigned char* (*lineExtractedCallback)(void*, EDIT_CONFIGURATION*, unsigned char*, unsigned char*), void* par);
+extern int ft_readDocumentFromFile(int fd, long *pCodepage, unsigned char* (*lineExtractedCallback)(void*, EDIT_CONFIGURATION*, unsigned char*, unsigned char*), void* par);
+
+/*
+ * Determines the name of the code page of the file and writes the codepage name
+ * to pszName, but only if there is enough space as described by nMaxNameLen.
+ */
+extern void ft_getCodepageName(FTABLE* fp, char* pszName, size_t nMaxNameLen);
 
 /*--------------------------------------*/
 /* ft_readfile()						*/

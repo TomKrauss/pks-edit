@@ -33,6 +33,9 @@ This file contains the release notes for the latest **PKS Edit** releases.
 - PKS Edit supports now autosaving the file directly rather than autosaving a temporary file
 - PKS Edit Help is now provided by displaying the manual written in markdown format. The old Windows Help file, which was
 - updated had been removed.
+- PKS-Edit will now auto-detect codepages when opening documents. Although it still has not double byte character support, 
+  document e.g. written in UTF-8 format are now correctly converted upon reading to ISO-8859-1 encoding (standard encoding handled by PKS-Edit). 
+  For now files are always written using ISO-8859-1 encoding. One may inspect the detected encoding of a file in the file buffer list.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 

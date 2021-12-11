@@ -698,15 +698,18 @@ static winlist_drawFileInfo(HDC hdc, RECT* rcp, WINFO* wp, int nItem, int nCtl) 
  * infoFillParams()
  */
 static void infoFillParams(DIALPARS *dp, WINFO *wp) {
+	static char szCodePage[32];
 	FTABLE* fp = wp->fp;
 	dp->dp_data = string_getBaseFilename(fp->fname);			dp++;
 
 	string_formatDate(dp->dp_data, &fp->ti_created); 	dp++;
 	string_formatDate(dp->dp_data, &fp->ti_modified); 	dp++;
-    string_formatDate(dp->dp_data, &fp->ti_saved);  	dp++;
-     wsprintf(dp->dp_data,"%ld", ft_size(fp)); 	dp++;
-	 wsprintf(dp->dp_data, "%ld", fp->nlines); dp++;
-	 wsprintf(dp->dp_data, "%ld", ft_countWords(fp));
+	string_formatDate(dp->dp_data, &fp->ti_saved);  	dp++;
+	wsprintf(dp->dp_data,"%ld", ft_size(fp)); 	dp++;
+	wsprintf(dp->dp_data, "%ld", fp->nlines); dp++;
+	wsprintf(dp->dp_data, "%ld", ft_countWords(fp)); dp++;
+	dp->dp_data = szCodePage;
+	ft_getCodepageName(fp, szCodePage, sizeof szCodePage);
 }
 
 /*--------------------------------------------------------------------------
@@ -720,6 +723,7 @@ static DIALPARS infoDialListPars[] = {
 	IDD_RO4,			128,			0,
 	IDD_RO5,			128,			0,
 	IDD_RO6,			128,			0,
+	IDD_RO8,			128,			0,
 	IDD_WINDOWLIST,		0,			0,
 	IDD_WINTITLE,		0,			0,
 	0
@@ -732,7 +736,7 @@ static void winlist_command(HWND hDlg, int nItem,  int nNotify, void *pUser)
 		dlg_getListboxText(hDlg, nItem, pUser);
 		if (nNotify == LBN_SELCHANGE) {
 			infoFillParams(infoDialListPars, *(WINFO **)pUser);
-			DoDlgInitPars(hDlg, infoDialListPars, 6);
+			DoDlgInitPars(hDlg, infoDialListPars, 8);
 		} else {
 			PostMessage(hDlg, WM_COMMAND, IDOK, 0L);
 		}
@@ -767,8 +771,8 @@ static int showWindowList(int nTitleId)
      infoDialListPars[4].dp_data = nbytes;
      infoDialListPars[5].dp_data = nlines;
 	 infoDialListPars[6].dp_data = nwords;
-	 infoDialListPars[7].dp_data = &dlist;
-	infoDialListPars[8].dp_size = nTitleId;
+	 infoDialListPars[8].dp_data = &dlist;
+	infoDialListPars[9].dp_size = nTitleId;
 
 	infoFillParams(infoDialListPars, wp);
 	nRet = DoDialog(DLGINFOFILE, dlg_standardDialogProcedure,infoDialListPars, NULL);

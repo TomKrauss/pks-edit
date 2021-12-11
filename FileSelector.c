@@ -156,7 +156,7 @@ static int SelectFile(int title, char *baseDirectory, char *filename, char *patt
 
 	ret = fsel_selectFile(pFSP);
 	nCurrentDialog = nSave;
-	string_splitFilename(pathname,baseDirectory,pattern);
+	string_splitFilename(pFSP->fsp_resultFile,baseDirectory,pattern);
 	if (_fseltarget[0] == 0) {
 		return 0;
 	}

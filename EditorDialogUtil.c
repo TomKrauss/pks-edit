@@ -439,7 +439,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				}
 				break;
 			case IDD_RO1: case IDD_RO2: case IDD_RO3: 
-			case IDD_RO4: case IDD_RO5: case IDD_RO6: case IDD_RO7:
+			case IDD_RO4: case IDD_RO5: case IDD_RO6: case IDD_RO7: case IDD_RO8:
 				SetDlgItemText(hDlg,item,(LPSTR)ip);
 				break;
 			case IDD_PATH1:
