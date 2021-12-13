@@ -548,7 +548,7 @@ int macro_readWriteWithFileSelection(int wrflag) {
 
 	FILE_SELECT_PARAMS params;
 	params.fsp_saveAs = wrflag;
-	params.fsp_encryptedAvailable = FALSE;
+	params.fsp_optionsAvailable = FALSE;
 	if ((fn = fsel_selectFileWithOptions(&_seqfsel,(wrflag) ? MWRSEQ : MREADSEQ, &params)) == 0) {
 		return 0;
 	}
@@ -637,7 +637,7 @@ int macro_onMenuAction(int menunum)
 		return macro_executeMacro(mp);
 	}
 	if (menunum >= IDM_HISTORY && menunum <= IDM_HISTORY + 30) {
-		return EdEditFile(OPEN_HISTORY | (menunum - IDM_HISTORY) << 12, 0);
+		return EdEditFile(OPEN_NOFN|OPEN_HISTORY | (menunum - IDM_HISTORY) << 12, 0);
 	}
 	return 0;
 }

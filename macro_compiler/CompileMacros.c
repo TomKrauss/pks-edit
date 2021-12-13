@@ -111,7 +111,7 @@ BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 			EdFileAbandon();
 		}
 		else {
-			FTABLE* fpTable = ft_openFileWithoutFileselector(tmpfn,-1L, (void *)0);
+			FTABLE* fpTable = ft_openFileWithoutFileselector(tmpfn,-1L, &(FT_OPEN_OPTIONS) { 0, CP_ACP });
 			if (fpTable != NULL) {
 				fpTable->flags |= F_TRANSIENT;
 			}

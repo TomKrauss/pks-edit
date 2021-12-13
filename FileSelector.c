@@ -64,6 +64,77 @@ static INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM p
 	return 0;
 }
 
+static DWORD _codepages[] = {
+	-1,
+	CP_ACP,
+	CP_OEMCP,
+	CP_UTF8,
+	37,
+	437,
+	500,
+	708,
+	709,
+	710,
+	720,
+	737,
+	775,
+	850,
+	852,
+	855,
+	857,
+	858,
+	860,
+	861,
+	862,
+	863,
+	864,
+	865,
+	866,
+	869,
+	870,
+	874,
+	875,
+	932,
+	936,
+	949,
+	950,
+	1026,
+	1047,
+	1140,
+	1141,
+	1142,
+	1143,
+	1144,
+	1145,
+	1146,
+	1147,
+	1148,
+	1149,
+	1200,
+	1201,
+	1252,
+	1253,
+	1254,
+	1255,
+	1256,
+	1257,
+	1258,
+	1361,
+	10000,
+	10001,
+	10002,
+	10003,
+	10004,
+	10005,
+	10006,
+	10007,
+	10008,
+	12000,
+	12001,
+	65000,
+	65001
+};
+
 /*
  * Select a folder using a browse for folder dialog. Return TRUE,
  * if the folder was selected. pResult will contain the resulting folder name.
@@ -206,6 +277,41 @@ char *fsel_initPathes(FSELINFO *fp)
 	return fn;
 }
 
+/*
+ * Fill the encoding list (list of possible character encodings). 
+ */
+static void fsel_fillEncodingList(HWND hwnd, BOOL bAllowAuto, long nSelectedEncoding) {
+	SendMessage(hwnd, CB_RESETCONTENT, 0, 0L);
+	SendMessage(hwnd, WM_SETREDRAW, FALSE, 0L);
+	WPARAM nSelectedIndex = 0;
+	for (int i = 0; i < DIM(_codepages); i++) {
+		CPINFOEX cpInfo;
+		DWORD nCp = _codepages[i];
+		char* pszText;
+		if (nCp == -1) {
+			if (!bAllowAuto) {
+				continue;
+			}
+			pszText = "Auto-detect";
+		} else {
+			if (!GetCPInfoEx(nCp, 0, &cpInfo)) {
+				continue;
+			}
+			pszText = cpInfo.CodePageName;
+		}
+		LRESULT nOffset = SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)pszText);
+		if (nOffset == LB_ERR) {
+			continue;
+		}
+		if (nSelectedEncoding == nCp) {
+			nSelectedIndex = (WPARAM)nOffset;
+		}
+		SendMessage(hwnd, CB_SETITEMDATA, nOffset, nCp);
+	}
+	SendMessage(hwnd, WM_SETREDRAW, (WPARAM)TRUE, 0L);
+	SendMessage(hwnd, CB_SETCURSEL, nSelectedIndex, (LPARAM)0);
+}
+
 /* 
  * Callback for the openfile common dialog. 
  */
@@ -220,9 +326,16 @@ static UINT_PTR fsel_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 		pFSP = (FILE_SELECT_PARAMS*)pOFN->lCustData;
 		crypted = pFSP->fsp_encrypted;
 		SendDlgItemMessage(hwnd, IDC_CHECK_ENCRYPT, BM_SETCHECK, crypted ? BST_CHECKED : BST_UNCHECKED, 0);
+		fsel_fillEncodingList(GetDlgItem(hwnd, IDC_FILE_ENCONDING), !pFSP->fsp_saveAs, pFSP->fsp_codepage);
 		hwndDlg = hwnd;
 		break;
 	case WM_COMMAND:
+		if (LOWORD(wParam) == IDC_FILE_ENCONDING && HIWORD(wParam) == CBN_SELCHANGE) {
+			LRESULT nIndex = SendDlgItemMessage(hwnd, IDC_FILE_ENCONDING, CB_GETCURSEL, 0l, 0L);
+			if (nIndex >= 0) {
+				pFSP->fsp_codepage = (long)SendDlgItemMessage(hwnd, IDC_FILE_ENCONDING, CB_GETITEMDATA, nIndex, 0L);
+			}
+		}
 		if (LOWORD(wParam) == IDC_CHECK_ENCRYPT && HIWORD(wParam) == BN_CLICKED) {
 			pFSP->fsp_encrypted  = (BOOL)SendDlgItemMessage(hwnd, IDC_CHECK_ENCRYPT, BM_GETCHECK, 0, 0);
 		}
@@ -298,10 +411,9 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
 	ofn.nMaxFile = EDMAXPATHLEN - 1;
 	ofn.lpstrTitle = pFSParams->fsp_title;
 	ofn.Flags = OFN_PATHMUSTEXIST;
-	BOOL bHandleCrypt = pFSParams->fsp_saveAs && pFSParams->fsp_encryptedAvailable;
-	if (bHandleCrypt) {
+	if (pFSParams->fsp_optionsAvailable) {
 		ofn.Flags |= OFN_ENABLETEMPLATE|OFN_EXPLORER|OFN_ENABLESIZING|OFN_ENABLEHOOK;
-		ofn.lpTemplateName = MAKEINTRESOURCE(DLG_SAVEAS_OPTIONS);
+		ofn.lpTemplateName = MAKEINTRESOURCE(pFSParams->fsp_saveAs ? DLG_SAVEAS_OPTIONS : DLG_OPEN_OPTIONS);
 		ofn.lpfnHook = MakeProcInstance(fsel_wndProc, hInst);
 		ofn.lCustData = (LPARAM) pFSParams;
 	}

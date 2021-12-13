@@ -33,6 +33,7 @@ The following example defines an editor configuration `default`, which defines s
         "highlightCaretLine": true,
         "insertMode": true,
         "autoIndent": true,
+        "codepage": -1,
         "expandAbbreviations": true,
         "smartSpaceDelete": true,
         "tabCharacter": "\t",
@@ -46,10 +47,21 @@ The following example defines an editor configuration `default`, which defines s
         "scrollSupportTrackThumb": true,
         "caretPreserveColumn": true,
         "caretFollowsScrollbar": true,
+        
         "backupExtension": "bak"
     },
 
 ```
+
+Here is a description of some of the defined properties of an `editor configuration`.
+
+- `codepage` - the standard character encoding / code page for documents of this type. Specify either a WIN32 code for the desired encoding (0 == ISO8859-1 or 
+   65001 == UTF-8) or -1 to have PKS-Edit "guess" the character encoding.
+- `shifWidth` the number of columns defining one `logical edited tab` - i.e. the number of columns by which a selected range of text is indented, when pressing Tab.
+- `tabSize` - the number of columns defining one `logical visible tab`
+- `showWhitespace` - whether whitespace characters (tab, spaces, line-ends) are displayed during editing.
+- `autoIndent` - whether entering a new line should try to automtically insert the "proper number of tabs" at the beginning of the new line depending
+  on the number of tabs displayed in the prvious line etc...
 
 ## Example
 Here is an example of a document type descriptor for C and C++ files, which associates the files with a grammar named `cpp` and connects the files with a `default` editor configuration.

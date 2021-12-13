@@ -354,7 +354,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 		string_splitFilename(_pksEditIniFilename, _setfselinfo.path, _setfselinfo.fname);
 		FILE_SELECT_PARAMS params;
 		params.fsp_saveAs = TRUE;
-		params.fsp_encryptedAvailable = FALSE;
+		params.fsp_optionsAvailable = FALSE;
 		if ((fn = fsel_selectFileWithOptions(&_setfselinfo, MOPTION, &params)) == 0) {
 			return 0;
 		}

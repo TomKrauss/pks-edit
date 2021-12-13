@@ -682,12 +682,13 @@ int ft_activateWindowOfFileNamed(char *fn) {
  * Open a file with a file name and jump into a line. Place the window to
  * open as defined in the param wsp.
  */
-FTABLE* ft_openFileWithoutFileselector(char *fn, long line, const char *pszHint) {   
+FTABLE* ft_openFileWithoutFileselector(char *fn, long line, FT_OPEN_OPTIONS* pOptions) {   
 	char 		szResultFn[EDMAXPATHLEN];
 	char		szAsPath[EDMAXPATHLEN];
 	FTABLE 		*fp;
 	int 		ret;
 	int			fileflags = 0;
+	const char* pszHint = pOptions->fo_dockName;
 
 	szAsPath[0] = 0;
 	lastSelectedDocType = 0;
@@ -745,7 +746,7 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, const char *pszHint)
 	}
 	fp->flags |= fileflags;
 	if (doctypes_assignDocumentTypeDescriptor(fp, doctypes_getDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
-         ft_readfile(fp, fp->documentDescriptor,0) == 0 || 
+         ft_readfile(fp, fp->documentDescriptor,pOptions->fo_codePage, 0) == 0 || 
 	    (lstrcpy(fp->fname, fn), ft_openwin(fp, pszHint) == 0)) {
 		ft_destroy(fp);
 		return 0;
@@ -774,7 +775,7 @@ FTABLE* ft_openBackupfile(FTABLE* fp) {
 	char backupFilename[EDMAXPATHLEN];
 
 	ft_getBackupFilename(fp, backupFilename);
-	FTABLE* fpBackup = ft_openFileWithoutFileselector(backupFilename, 0l, NULL);
+	FTABLE* fpBackup = ft_openFileWithoutFileselector(backupFilename, 0l, &(FT_OPEN_OPTIONS) { NULL, fp->codepage });
 	if (fpBackup != NULL) {
 		ft_setFlags(fpBackup, fpBackup->flags | F_RDONLY | F_TRANSIENT);
 		doctypes_assignDocumentTypeDescriptor(fpBackup, fp->documentDescriptor);
@@ -800,15 +801,20 @@ int EdEditFile(long editflags, char *filename) {
 			return 0;
 		}
 	}
-	if ((editflags && OPEN_NOFN) == 0) {
+	long codepage = -1;
+	if ((editflags & OPEN_NOFN) == 0) {
 		FILE_SELECT_PARAMS fsp;
+		memset(&fsp, 0, sizeof fsp);
 		fsp.fsp_saveAs = FALSE;
+		fsp.fsp_codepage = -1;
+		fsp.fsp_optionsAvailable = TRUE;
 		if (!fsel_selectFileWithTitle(IDS_MSGOPEN, _fseltarget, &fsp)) {
 			return 0;
 		}
+		codepage = fsp.fsp_codepage;
 		filename = _fseltarget;
 	}
-	return ft_openFileWithoutFileselector(filename, 0L, NULL) != NULL ? 1 : 0;
+	return ft_openFileWithoutFileselector(filename, 0L, &(FT_OPEN_OPTIONS) { NULL, codepage }) != NULL ? 1 : 0;
 }
 
 /*------------------------------------------------------------
@@ -844,7 +850,7 @@ int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *linp) {
 
 	if (undo_initializeManager(fp) == 0 || 
 	    !doctypes_assignDocumentTypeDescriptor(fp, linp) ||
-	    !ft_readfile(fp,fp->documentDescriptor, 0)) {
+	    !ft_readfile(fp,fp->documentDescriptor, fp->codepage, 0)) {
 		fp->flags = 0;
 		ww_close(wp);
 		return 0;
@@ -943,7 +949,8 @@ int EdSaveFile(int flg) {
 		string_splitFilename(fp->fname,_txtfninfo.path,_txtfninfo.fname);
 		FILE_SELECT_PARAMS fsp;
 		fsp.fsp_saveAs = TRUE;
-		fsp.fsp_encryptedAvailable = TRUE;
+		fsp.fsp_optionsAvailable = TRUE;
+		fsp.fsp_codepage = fp->codepage;
 		fsp.fsp_encrypted = pConfig->workmode & O_CRYPTED ? TRUE : FALSE;
 		if (fsel_selectFileWithTitle(MSAVEAS, newname, &fsp) == 0) {
 			return 0;
@@ -953,6 +960,7 @@ int EdSaveFile(int flg) {
 		} else {
 			pConfig->workmode &= ~O_CRYPTED;
 		}
+		fp->codepage = fsp.fsp_codepage;
 		if (areFilenamesDifferent(newname,fp->fname) && file_exists(newname) >= 0) {
 			if (error_displayYesNoConfirmation(IDS_MSGOVERWRITE,string_abbreviateFileNameOem(newname)) == IDNO)
 				return 0;

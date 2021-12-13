@@ -239,14 +239,17 @@
 #define IDM_ERASEBLOCK                  212
 #define IDM_REDO                        213
 #define DLGFINDINFILES                  535
+#define DLG_OPEN_OPTIONS                560
 #define IDC_CUSTOM2                     1002
 #define IDC_CHECK_ENCRYPT               1003
 #define IDC_DOCTYPES                    1004
+#define IDC_FILE_ENCONDING              1005
 #define IDS_COMMAND251                  2299
 #define IDS_COMMAND252                  2300
 #define IDS_COMMAND253                  2301
 #define IDS_COMMAND254                  2302
 #define ID_FILE_HISTORY                 40008
+#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
@@ -254,7 +257,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        199
 #define _APS_NEXT_COMMAND_VALUE         40009
-#define _APS_NEXT_CONTROL_VALUE         1005
+#define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

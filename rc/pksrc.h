@@ -40,9 +40,12 @@
 #define DLG_OPT_MISC                    557
 #define DLG_OPT_LAYOUT                  558
 #define DLGCOMPAREFILES                 559
+#define DLG_SAVEAS_OPTIONS1             560
+#define DLG_OPEN_OPTIONS                560
 #define IDC_GENERIC2                    1001
 #define IDC_CHECK_ENCRYPT               1003
 #define IDC_DOCTYPES                    1004
+#define IDC_FILE_ENCONDING              1005
 #define IDC_CUSTOM1                     1006
 #define IDD_PREVIEW_FRAME               1006
 #define IDC_STRING1                     1007
@@ -57,6 +60,7 @@
 #define IDS_COMMAND252                  2300
 #define IDS_COMMAND253                  2301
 #define IDS_COMMAND254                  2302
+#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 

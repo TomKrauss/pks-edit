@@ -236,7 +236,7 @@ EXPORT int bl_insertPasteBufFromFile(char *fn)
 		FILE_SELECT_PARAMS pFSP;
 		memset(&pFSP, 0, sizeof pFSP);
 		pFSP.fsp_inputFile = fn;
-		pFSP.fsp_encryptedAvailable = FALSE;
+		pFSP.fsp_optionsAvailable = FALSE;
 		pFSP.fsp_saveAs = FALSE;
 		if (!fsel_selectFileWithTitle(MREADF,fname, &pFSP))
 			return 0;
@@ -345,7 +345,7 @@ EXPORT int bl_writeToFile(char *fn)
 		} else {
 			mode = F_NEWFILE;
 			FILE_SELECT_PARAMS fsp;
-			fsp.fsp_encryptedAvailable = FALSE;
+			fsp.fsp_optionsAvailable = FALSE;
 			fsp.fsp_saveAs = TRUE;
 			ret = fsel_selectFileWithTitle(MWRITEF,fname,&fsp);
 			fn  = fname;

@@ -414,14 +414,14 @@ static int ft_initializeEncryption(EDIT_CONFIGURATION *linp, char *pw, char* psz
 /*
  * Read the header of a file to auto-detect, whether is encrypted. 
  */
-static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor) {
+static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor, long* pCodepage) {
 	char szMagic[sizeof ((MAGIC*)0)->m_bytes];
 	BOOL bHeaderHandled = FALSE;
 	if (Fread(fd, sizeof szMagic, szMagic) >= 8) {
 		MAGIC* pMagic = _magicMarkers;
 		while (pMagic->m_size) {
 			if (memcmp(szMagic, pMagic->m_bytes, pMagic->m_size) == 0) {
-				documentDescriptor->codepage = pMagic->m_codePage;
+				*pCodepage = pMagic->m_codePage;
 				if (pMagic->m_crypted) {
 					documentDescriptor->workmode |= O_CRYPTED;
 				}
@@ -440,7 +440,7 @@ static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor) {
 /*--------------------------------------*/
 /* ft_readfile()						*/
 /*--------------------------------------*/
-EXPORT int ft_readfile(FTABLE *fp, EDIT_CONFIGURATION *documentDescriptor, long fFileOffset)
+EXPORT int ft_readfile(FTABLE *fp, EDIT_CONFIGURATION *documentDescriptor, long codepage, long fFileOffset)
 {
 	HANDLE			fileHandle;
 	int				ret;
@@ -492,6 +492,9 @@ nullfile:
 		else {
 			fd = (int)(uintptr_t)fileHandle;
 		}
+		if (codepage == -1) {
+			codepage = documentDescriptor->codepage;
+		}
 		if (fFileOffset) {
 			LARGE_INTEGER fileSize;
 			if (!GetFileSizeEx(fileHandle, &fileSize) || fileSize.QuadPart < fFileOffset) {
@@ -504,7 +507,7 @@ nullfile:
 				return 0;
 			}
 		} else {
-			ft_handleMagic(fd, documentDescriptor);
+			ft_handleMagic(fd, documentDescriptor, &codepage);
 		}
 		_crypting = FALSE;
 		if (documentDescriptor->workmode & O_CRYPTED) {
@@ -513,7 +516,7 @@ nullfile:
 				return 0;
 			}
 		}
-		fp->codepage = documentDescriptor->codepage;
+		fp->codepage = codepage;
 		if ((ret = ft_readDocumentFromFile(fd, &fp->codepage, f,fp)) == 0) {
 			goto readerr;
 		}
@@ -630,8 +633,7 @@ int file_flushBuffer(int fd, char* buffer, int size, int rest)
 /*--------------------------------------------------------------------------
  * ft_flushBufferAndCrypt()
  */
-static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, char *pw)
-{
+static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, long codepage, char *pw) {
 	if (*pw) {
 		int news;
 
@@ -642,7 +644,22 @@ static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, char *pw
 		}
 		size = news;
 	}
+	if (codepage != -1 && codepage != CP_ACP) {
+		wchar_t* pwszMultiByteDest = malloc(size * 2);
+		int nConv = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, _linebuf, size, pwszMultiByteDest, size);
+		char cDefault = '?';
+		int nNeeded = WideCharToMultiByte(codepage, 0, pwszMultiByteDest, nConv, NULL, 0, &cDefault, NULL);
+		char* pszDest = malloc(nNeeded);
+		WideCharToMultiByte(codepage, 0, pwszMultiByteDest, nConv, pszDest, nNeeded, &cDefault, NULL);
+		int nRet = file_flushBuffer(fd, pszDest, nNeeded, 0);
+		free(pwszMultiByteDest);
+		free(pszDest);
+		if (rest) {
+			memmove(_linebuf, &_linebuf[size], rest);
+		}
+		return nRet;
 
+	}
 	return file_flushBuffer(fd, _linebuf, size, rest);
 }
 
@@ -748,12 +765,12 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 		} else {
 			no = (offset > 2*FBUFSIZE) ? 2*FBUFSIZE : offset & (~0xF);
 			offset -= no;
-			nFlushResult = ft_flushBufferAndCrypt(fd, no, offset, 1, pw);
+			nFlushResult = ft_flushBufferAndCrypt(fd, no, offset, 1, fp->codepage, pw);
 			if (nFlushResult < 1)
 				goto wfail;
 		}
 	}
-	nFlushResult = ft_flushBufferAndCrypt(fd, offset, 0, 0, pw);
+	nFlushResult = ft_flushBufferAndCrypt(fd, offset, 0, 0, fp->codepage, pw);
 	if (nFlushResult < 1) {
 	wfail:	
 		ft_setFlags(fp, fp->flags | F_CHANGEMARK);
@@ -864,7 +881,7 @@ EXPORT int ft_readfileWithOptions(FTABLE *fp, FILE_READ_OPTIONS* pOptions) {
 		return 0;
 
 	_verbose = 0;
-	ret = ft_readfile(fp, fp->documentDescriptor, pOptions->fro_fileReadOffset);
+	ret = ft_readfile(fp, fp->documentDescriptor, pOptions->fro_codePage, pOptions->fro_fileReadOffset);
 	_verbose = 1;
 	file_closeFile(&fp->lockFd);
 

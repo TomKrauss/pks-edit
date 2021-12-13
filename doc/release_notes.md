@@ -35,7 +35,9 @@ This file contains the release notes for the latest **PKS Edit** releases.
 - updated had been removed.
 - PKS-Edit will now auto-detect codepages when opening documents. Although it still has not double byte character support, 
   document e.g. written in UTF-8 format are now correctly converted upon reading to ISO-8859-1 encoding (standard encoding handled by PKS-Edit). 
-  For now files are always written using ISO-8859-1 encoding. One may inspect the detected encoding of a file in the file buffer list.
+  Files are also saved in the encoding in which the were read. One can select the desired encoding when opening files (or let PKS-Edit auto-detect
+  the encoding) and may select a different encoding when saving files using "Save As". One may inspect the current encoding of a file in the 
+  file buffer list.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 

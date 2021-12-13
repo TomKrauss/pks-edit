@@ -668,7 +668,7 @@ int xref_openFile(char *name, long line, const char* pszHint) {
 			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line,0L);
 		else ret = 1;
 	} else {
-		ret = ft_openFileWithoutFileselector(name,line, pszHint) != NULL;
+		ret = ft_openFileWithoutFileselector(name, line, &(FT_OPEN_OPTIONS) { pszHint, -1 }) != NULL;
 	}
 
 	return ret;
@@ -1031,7 +1031,7 @@ static int xref_openTagFileOrSearchResults(int title, int st_type, FSELINFO *fsp
 			}
 			return xref_navigateSearchErrorList(LIST_START|LIST_USETOPWINDOW);
 		case ST_STEP:
-			fp = ft_openFileWithoutFileselector(_fseltarget, 0, DOCK_NAME_BOTTOM);
+			fp = ft_openFileWithoutFileselector(_fseltarget, 0, &(FT_OPEN_OPTIONS) { DOCK_NAME_BOTTOM, CP_ACP });
 			if (fp) {
 				xref_initSearchList(fp);
 				return xref_navigateSearchErrorList(LIST_START);

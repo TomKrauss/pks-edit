@@ -200,7 +200,7 @@ static int find_replaceInFile(intptr_t pFilename, SEARCH_AND_REPLACE_PARAMETER* 
 	if (ft_activateWindowOfFileNamed(pszFilename)) {
 		wp = ww_getCurrentEditorWindow();
 	} else {
-		FTABLE* fp = ft_openFileWithoutFileselector(pszFilename, 0, DOCK_NAME_DEFAULT);
+		FTABLE* fp = ft_openFileWithoutFileselector(pszFilename, 0, &(FT_OPEN_OPTIONS) { NULL, -1 });
 		if (fp) {
 			wp = WIPOI(fp);
 			EdSelectWindow(wp->win_id);
@@ -360,7 +360,7 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 	if (ft_activateWindowOfFileNamed(stepfile)) {
 		fp = ft_getCurrentDocument();
 	} else {
-		fp = ft_openFileWithoutFileselector(stepfile, 0, DOCK_NAME_BOTTOM);
+		fp = ft_openFileWithoutFileselector(stepfile, 0, &(FT_OPEN_OPTIONS) { DOCK_NAME_BOTTOM, CP_ACP });
 	}
 	_searchContext.sc_ftable = fp;
 	ft_setTitle(fp, title);

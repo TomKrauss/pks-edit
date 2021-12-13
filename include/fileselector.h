@@ -25,8 +25,9 @@ typedef struct tagFILE_SELECT_PARAMS {
 	char* fsp_namePatterns;		// The possible file name patterns for selection (*.*, *.c, ...)
 	char* fsp_resultFile;		// The result file name will be copied here
 	BOOL  fsp_saveAs;			// true to show a save as dialog
-	BOOL  fsp_encryptedAvailable; // Whether the encryption checkbox should be shown.
+	BOOL  fsp_optionsAvailable; // Whether the encryption checkbox and or the encoding drop-down should be shown.
 	BOOL  fsp_encrypted;		// in and out parameter - whether the file should be saved using encryption. Only applicable to save as
+	long  fsp_codepage;			// the code page with the character encoding.
 } FILE_SELECT_PARAMS;
 
 /*---------------------------------

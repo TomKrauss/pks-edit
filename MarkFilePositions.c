@@ -145,7 +145,7 @@ static int fm_gotoLastPositionDir(MARK_TYPE_ENUM type, int dir) {
 	FTABLE* fp = ft_fpbyname(mp->m_fname);
 	WINFO* wp;
 	if (fp == NULL) {
-		if (!ft_openFileWithoutFileselector(mp->m_fname, -1, NULL)) {
+		if (!ft_openFileWithoutFileselector(mp->m_fname, -1, &(FT_OPEN_OPTIONS) { NULL, CP_ACP })) {
 			return 0;
 		}
 		wp = ww_getCurrentEditorWindow();

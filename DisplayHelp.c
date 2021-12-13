@@ -42,7 +42,7 @@ static int help_open(char *szFile) {
 	char szPath[EDMAXPATHLEN];
 	string_concatPathAndFilename(szPath, szHelpDir, szFile);
 	FTABLE* fp = NULL;
-	if (ft_activateWindowOfFileNamed(szPath) || (fp = ft_openFileWithoutFileselector(szPath, 0, DOCK_NAME_RIGHT)) != NULL) {
+	if (ft_activateWindowOfFileNamed(szPath) || (fp = ft_openFileWithoutFileselector(szPath, 0, &(FT_OPEN_OPTIONS) { DOCK_NAME_RIGHT, -1 })) != NULL) {
 		WINFO* wp = fp ? WIPOI(fp) : ww_getCurrentEditorWindow();
 		if (wp) {
 			ww_changeDisplayMode(wp, wp->dispmode | SHOWWYSIWYG);

@@ -328,12 +328,20 @@ extern int ft_checkReadonlyWithError(FTABLE* fp);
 typedef struct tagWINDOWPLACEMENT WINDOWPLACEMENT;
 
 
+/*
+ * Options for opening a file. 
+ */
+typedef struct tagFT_OPEN_OPTIONS {
+	const char* fo_dockName;
+	const long  fo_codePage;
+} FT_OPEN_OPTIONS;
+
 /*------------------------------------------------------------
  * ft_openFileWithoutFileselector()
  * Open a file with a file name and jump into a line. Place the window to
  * open as defined in the param wsp.
  */
-extern FTABLE* ft_openFileWithoutFileselector(char* fn, long line, const char* pszDockName);
+extern FTABLE* ft_openFileWithoutFileselector(char* fn, long line, FT_OPEN_OPTIONS* pOptions);
 
 /*------------------------------------------------------------
  * ft_openBackupfile()
@@ -401,7 +409,7 @@ extern void ft_getCodepageName(FTABLE* fp, char* pszName, size_t nMaxNameLen);
 /*--------------------------------------*/
 /* ft_readfile()						*/
 /*--------------------------------------*/
-extern int ft_readfile(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor, long nFileOffset);
+extern int ft_readfile(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor, long codepage, long nFileOffset);
 
 #define WFM_QUIET		0x1
 #define WFM_AUTOSAVING	0x2
@@ -429,6 +437,7 @@ typedef struct tagFILE_READ_OPTIONS {
 	int fro_useDefaultDocDescriptor;	// if 1, use default document descriptor. Otherwise try to load document descriptor depending on filename
 	long fro_fileReadOffset;			// if != 0, start to read the file at the given offset (to be able to lazy load file pieces).
 	char* fro_fileName;					// the name of the file to read.
+	long fro_codePage;					// the wanted code page or -1 for auto-detection of code pages.
 } FILE_READ_OPTIONS;
 
 extern int ft_readfileWithOptions(FTABLE* fp, FILE_READ_OPTIONS* pOptions);

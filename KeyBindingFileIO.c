@@ -393,7 +393,7 @@ int EdDocMacrosAdd(void)
 	char	*	fn;
 	FILE_SELECT_PARAMS params;
 	params.fsp_saveAs = TRUE;
-	params.fsp_encryptedAvailable = FALSE;
+	params.fsp_optionsAvailable = FALSE;
 
 	if (!ft_getCurrentDocument() || (fn = fsel_selectFileWithOptions(&_linfsel, MADDDOCMAC, &params)) == 0) {
 		return 0;
