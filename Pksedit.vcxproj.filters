@@ -592,6 +592,8 @@
     <None Include="doc\release_notes.md" />
     <None Include="doc\document_types.md" />
     <None Include="doc\markdown.md" />
+    <None Include="packages.config" />
+    <None Include="doc\manual\commandline.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">

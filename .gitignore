@@ -22,3 +22,5 @@ pksedit.his
 /pkslib/pkslib/x64/Debug
 /pkslib/pkslib/x64/Release/pkslib.tlog
 /pkslib/pkslib/x64/Release
+/packages/Microsoft.Windows.CppWinRT.2.0.210806.1
+/packages.config

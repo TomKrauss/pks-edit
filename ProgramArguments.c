@@ -59,6 +59,7 @@ static int arguments_parsePhase2(char *arg)
 				find_expressionAgainInCurrentFile(1);
 			}
 			break;
+		case 'l':
 		case 'g':	
 			line = string_convertToLong(arg) -1L;
 			if ((wp = ww_getCurrentEditorWindow()) != NULL) {
@@ -84,9 +85,11 @@ static int arguments_parsePhase2(char *arg)
 		case 'n':
 			_runInteractive = FALSE;
 			return 0;
-		default:
+		case 'T':
 			xref_openSearchList(arg,1); 		/* Edit Compiler-Errors 	*/
-
+			break;
+		default:
+			xref_openFile(arg, 0L, (void*)0);
 		}
 	}
 	return 1;
