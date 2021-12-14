@@ -412,7 +412,8 @@ static int ft_initializeEncryption(EDIT_CONFIGURATION *linp, char *pw, char* psz
 }
 
 /*
- * Read the header of a file to auto-detect, whether is encrypted. 
+ * Read the header of a file to auto-detect, whether is encrypted and to detect BOMs.
+ * BOMs are analyzed only, if the codepage passed is -1 (autodetect charset).
  */
 static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor, long* pCodepage) {
 	char szMagic[sizeof ((MAGIC*)0)->m_bytes];
@@ -420,7 +421,7 @@ static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor, long*
 	if (Fread(fd, sizeof szMagic, szMagic) >= 8) {
 		MAGIC* pMagic = _magicMarkers;
 		while (pMagic->m_size) {
-			if (memcmp(szMagic, pMagic->m_bytes, pMagic->m_size) == 0) {
+			if ((*pCodepage == -1 || pMagic->m_crypted) && memcmp(szMagic, pMagic->m_bytes, pMagic->m_size) == 0) {
 				*pCodepage = pMagic->m_codePage;
 				if (pMagic->m_crypted) {
 					documentDescriptor->workmode |= O_CRYPTED;

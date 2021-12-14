@@ -43,6 +43,7 @@ typedef struct tagTEMPLATE {
 	struct tagTEMPLATE* next;
 	char t_match[sizeof(((UCLIST*)0)->pat)];
 	unsigned char* t_contents;
+	BOOL t_auto;
 } TEMPLATE;
 
 typedef struct tagPATTERN_GROUP {
@@ -172,6 +173,7 @@ static JSON_MAPPING_RULE _navigationPatternRules[] = {
 static JSON_MAPPING_RULE _templateRules[] = {
 	{	RT_CHAR_ARRAY,	 "match",	 offsetof(TEMPLATE, t_match), sizeof(((TEMPLATE*)NULL)->t_match)},
 	{	RT_ALLOC_STRING, "contents", offsetof(TEMPLATE, t_contents)},
+	{	RT_FLAG, "auto-insert", offsetof(TEMPLATE, t_auto), 1},
 	{	RT_END}
 };
 
@@ -784,7 +786,7 @@ UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar) {
 		TEMPLATE* pTemplate = pGrammar->templates;
 		while (pTemplate) {
 			UCLIST* pList = ll_insert(&pGrammar->undercursorActions, sizeof(UCLIST));
-			pList->action = UA_ABBREV;
+			pList->action = pTemplate->t_auto ? UA_ABBREV : UA_TEMPLATE;
 			strcpy(pList->pat, pTemplate->t_match);
 			pList->len = (int)strlen(pTemplate->t_match);
 			pList->p.uc_template = pTemplate->t_contents;

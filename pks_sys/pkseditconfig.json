@@ -188,6 +188,7 @@
         "leftMargin": 0,
         "rightMargin": 100,
         "tabSize": 4,
+        "codepage": 0,
         "tabulatorSizes": [4],
         "shiftWidth": 4,
         "showWhitespace": true,
@@ -212,14 +213,14 @@
         "caretFollowsScrollbar": true,
         "backupExtension": "bak"
     },
-      {
+    {
         "name": "readme",
         "id": 2,
         "leftMargin": 0,
         "rightMargin": 100,
         "tabSize": 4,
         "codepage": -1,
-        "tabulatorSizes": [ 4 ],
+        "tabulatorSizes": [4],
         "shiftWidth": 4,
         "showWhitespace": true,
         "showSyntaxHighlight": true,
@@ -238,7 +239,7 @@
         "scrollSupportTrackThumb": true,
         "caretPreserveColumn": true,
         "caretFollowsScrollbar": true
-      },
+    },
     {
         "name": "binary",
         "id": 3,

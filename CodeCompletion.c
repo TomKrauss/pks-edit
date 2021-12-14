@@ -173,7 +173,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	codecomplete_destroyActions(pCC);
 	pCC->ccp_topRow = 0;
 	while (up) {
-		if (up->action == UA_ABBREV) {
+		if (up->action == UA_TEMPLATE || up->action == UA_ABBREV) {
 			pCurrent = ll_insert(&pCC->ccp_actions, sizeof * pCC->ccp_actions);
 			pCurrent->ca_name = up->pat;
 			pCurrent->ca_type = CA_TEMPLATE;
@@ -337,7 +337,7 @@ static void codecomplete_action(HWND hwnd) {
 	cap = (CODE_ACTION*) ll_at((LINKED_LIST*)cap, nSelectedIndex);
 	if (cap) {
 		if (cap->ca_type == CA_TEMPLATE) {
-			macro_insertCodeTemplate(wp, cap->ca_param.template, cap->ca_replaceWord);
+			macro_insertCodeTemplate(wp, cap->ca_param.template, TRUE);
 		} else {
 			UCLIST uclTemp;
 			uclTemp.action = UA_ABBREV;

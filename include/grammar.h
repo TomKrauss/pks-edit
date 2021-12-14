@@ -19,8 +19,9 @@
 
 #define	UA_SHOWMATCH	1
 #define	UA_ABBREV		2
-#define	UA_BRINDENT	3
-#define	UA_UCMACRO	4
+#define	UA_BRINDENT		3
+#define	UA_UCMACRO		4
+#define	UA_TEMPLATE		5
 
 /*
  * A grammar describes the grammar of a "language" of an input file editable by PKS Edit

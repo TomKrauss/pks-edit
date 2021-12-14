@@ -37,6 +37,7 @@
 #define	MAX_CONTEXT	32
 
 typedef struct tagTEMPLATE_ACTION {
+	BOOL ta_positionCursor;		// true, if the cursor should be positioned after inserting the template.
 	long ta_cursorDeltaLn;		// If the cursor should be positioned after inserting the template, this is the number of lines relative to the beginning of the inserted code.
 	long ta_cursorDeltaCol;		// If the cursor should be positioned after inserting the template, this is the number of columns relative to the beginning of the inserted code.
 	long ta_selectionDeltaLn;	// If text should be selected after inserting the template, this is the number of lines relative to the cursor as specified by ta_cursorDeltaLn.
@@ -207,6 +208,7 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction
 				if (strcmp("cursor", variable) == 0) {
 					pTAction->ta_cursorDeltaCol = col;
 					pTAction->ta_cursorDeltaLn = ln;
+					pTAction->ta_positionCursor = TRUE;
 					expandedVariable[0] = 0;
 				} else if (strcmp("selection_end", variable) == 0) {
 					pTAction->ta_selectionDeltaCol = col - pTAction->ta_cursorDeltaCol;
@@ -282,7 +284,7 @@ int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
 		}
 		CARET oldCaret = wp->caret;
 		bl_pasteBlock(&pasteBuffer, 0, oldCaret.col, 0);
-		if (templateAction.ta_cursorDeltaCol != 0 || templateAction.ta_cursorDeltaLn != 0) {
+		if (templateAction.ta_positionCursor) {
 			long col = templateAction.ta_cursorDeltaLn ? templateAction.ta_cursorDeltaCol : templateAction.ta_cursorDeltaCol + oldCaret.col;
 			long ln = templateAction.ta_cursorDeltaLn + oldCaret.ln;
 			caret_placeCursorInCurrentFile(wp, ln, col);
@@ -325,9 +327,13 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 		return 0;
 	}
 
-	o2 = offs-up->len;
-	if ((lp = ln_modify(fp,lp,offs,o2)) == 0L)
-		return 0;
+	if (up->action != UA_ABBREV) {
+		o2 = offs - up->len;
+		if ((lp = ln_modify(fp, lp, offs, o2)) == 0L)
+			return 0;
+	} else {
+		o2 = offs;
+	}
 	caret_placeCursorInCurrentFile(wp, wp->caret.ln,o2);
 	if (!domacro) {
 		return macro_insertCodeTemplate(wp, up, FALSE);

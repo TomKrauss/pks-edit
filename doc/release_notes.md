@@ -38,6 +38,8 @@ This file contains the release notes for the latest **PKS Edit** releases.
   Files are also saved in the encoding in which the were read. One can select the desired encoding when opening files (or let PKS-Edit auto-detect
   the encoding) and may select a different encoding when saving files using "Save As". One may inspect the current encoding of a file in the 
   file buffer list.
+- templates defined in the grammar may now explicitly marked with `auto-insert=true` to have the template define an abbreviation, inserted
+  during editing without opening the code-completion window.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
