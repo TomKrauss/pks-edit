@@ -60,23 +60,30 @@ static BOOL uc_matchBracket(char *lineBuf, char *bracketPattern) {
 EXPORT UCLIST *uc_find(GRAMMAR* pGrammar, char *lineBuffer, int column)
 {	UCLIST *up = grammar_getUndercursorActions(pGrammar);
 	int o;
+	int nBest = 0;
+	UCLIST* upBest = NULL;
 
 	while (up) {
-		if ((o = column - up->len) < 0) {
+		if ((o = column - up->len) < 0 || up->len < nBest) {
 			up = up->next;
 			continue;
 		}
 		unsigned char* pszString = &lineBuffer[o];
+		BOOL bMatch = FALSE;
 		if (up->action == UA_SHOWMATCH) {
 			if (uc_matchBracket(pszString, up->p.uc_bracket->lefthand) || uc_matchBracket(pszString, up->p.uc_bracket->righthand)) {
-				return up;
+				bMatch = TRUE;
 			}
 		} else if (uc_matchBracket(pszString, up->pat)) {
-			return up;
+			bMatch = TRUE;
+		}
+		if (bMatch) {
+			upBest = up;
+			nBest = up->len;
 		}
 		up = up->next;
 	}
-	return 0;
+	return upBest;
 }
 
 /*--------------------------------------------------------------------------

@@ -114,7 +114,7 @@
     {
         "name": "javascript",
         "description": "Javascript files (*.js)",
-        "grammar": "javescript",
+        "grammar": "javascript",
         "editorConfiguration": "default",
         "filenamePatterns": "*.js"
     },

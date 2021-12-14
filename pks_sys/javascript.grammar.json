@@ -2,6 +2,38 @@
   "grammars": [
     {
       "scopeName": "javascript",
+      "templates": [
+        {
+          "match": "'",
+          "contents": "${cursor}'",
+          "auto-insert": true
+        },
+        {
+          "match": "constructor(",
+          "contents": "${cursor}props) {\n    super(props);\n  }\n",
+          "auto-insert": true
+        },
+        {
+          "match": "(",
+          "contents": "${cursor})",
+          "auto-insert": true
+        },
+        {
+          "match": "{",
+          "contents": "${cursor}}",
+          "auto-insert": true
+        },
+        {
+          "match": "\"",
+          "contents": "${cursor}\"",
+          "auto-insert": true
+        },
+        {
+          "match": "/*",
+          "contents": "\n * ${cursor}\n */",
+          "auto-insert": true
+        }
+      ],
       "patterns": [
         {
           "begin": "/*",
