@@ -239,7 +239,6 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	KEYCODE 		k;
 	BOOL			bShow;
 	HWND			hwndItem;
-	int				nRight;
 	int				nDelta;
 	int				fkcharheight;
 	int				nButtons;
@@ -290,7 +289,6 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		} else {
 			nButtons = MAX_FKEYS;
 		}
-		nRight = r.right;
 		nDelta = r.right - r.left - 1;
 		if (GetConfiguration()->layoutoptions & OL_FKEYS) {
 			for (x = r.left, item = IDD_FKFK1; 

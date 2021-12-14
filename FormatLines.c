@@ -165,7 +165,7 @@ static void format_insertLine(FORMATTER* pFormatter, WINFO* wp, LINE** pDest, ST
 
 static LINE* ft_formatInto(FORMATTER* pFormatter, WINFO* wp, LINE* lp, LINE* lplast, FORMATTING_ALIGNMENT nAlignment) {
 	LINE* lpDest = 0;
-	int nCurrentScreenIndent = 0;
+	int nCurrentScreenIndent;
 	int nLastWrappingPos;
 	int nCurrentLineOffset;
 	int nSourceWrappingPos;
@@ -255,7 +255,6 @@ static LINE* ft_formatInto(FORMATTER* pFormatter, WINFO* wp, LINE* lp, LINE* lpl
  *---------------------------------*/
 int ft_formatText(WINFO* wp, int nRange, FORMATTING_ALIGNMENT nAlignment) {
 	FTABLE* fp = wp->fp;
-	int caretColumn = 0;
 	LINE* lplast = fp->lastl;
 	LINE* lp;
 	long ln = wp->caret.ln;
@@ -263,7 +262,6 @@ int ft_formatText(WINFO* wp, int nRange, FORMATTING_ALIGNMENT nAlignment) {
 	/* watch also previous lines */
 	if (nRange == RNG_LINE || nRange == RNG_CHAPTER || nRange == RNG_FROMCURS) {
 		lp = wp->caret.linePointer;
-		caretColumn = wp->caret.offset;
 		while (lp->prev && !pFormatter->f_startsNewParagraph(pFormatter, lp->prev)) {
 			lp = lp->prev;
 		}

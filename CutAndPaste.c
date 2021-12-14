@@ -48,12 +48,8 @@ BOOL bl_isDefaultClipboard(char* pszId) {
  *----------------------------*/
 EXPORT int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag) {
 	FTABLE *	fp;
-	LINE *		lp;
-	LINE *		lpFirst;
-	LINE *		lpLast;
-	MARK	 *		mps;
+	MARK*		mps;
 	MARK *		mpe;
-	long			ln;
 
 	fp = wp->fp;
 	mps = wp->blstart;
@@ -61,14 +57,6 @@ EXPORT int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag) {
 
 	if (removeLineSelectionFlag) {
 		caret_placeCursorInCurrentFile(wp, wp->caret.ln,(long)wp->caret.offset);
-	}
-	lp = lpFirst = ln_goto(fp, wp->minln);
-	for (ln = wp->minln; 
-		lp && ln <= wp->maxln; 
-		lp = lp->next, ln++) {
-		if (lp->lflg & (LNXMARKED|LN_COMPARE_DIFFERENT)) {
-			lpLast = lp;
-		}
 	}
 	if (mps && mpe) {
 		if (removeLineSelectionFlag) {
@@ -388,7 +376,6 @@ EXPORT int block_rw(char *fn,int doread)
 static void bl_resetCurrentLine(WINFO* wp) {
 	LINE *lp;
 	long ln = -1L;
-	FTABLE* fp = wp->fp;
 
 	lp = wp->caret.linePointer;
 	while(lp) {		    // make the whole thing faster: test (lp) ! 
@@ -402,7 +389,7 @@ static void bl_resetCurrentLine(WINFO* wp) {
  * PKS Edit command to copy or move a block.
  *----------------------------*/
 EXPORT int EdBlockCopyOrMove(BOOL move) {	
-	LINE   *lp,*ls,*le;
+	LINE   *ls,*le;
 	int	  cs,ce,offs;
 	long   delta,dln;
 	PASTE  pbuf;
@@ -440,7 +427,6 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 	ls = bstart->m_linePointer, cs = bstart->m_column;
 	le = bend->m_linePointer,   ce = bend->m_column;
 	if (move_nocolblk) {			/* valid move ??	*/
-		lp = ls;
 		if (wp->caret.linePointer == ls && wp->caret.col == cs) {
 			error_showErrorById(IDS_MSGBADBLOCKMOVE);
 			return 0;
@@ -718,7 +704,7 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 	MARK *		mark;
 	LINE *		lp1 = 0;
 	LINE *		lp2 = 0;
-	int  		wasmarked,startx=0,endx=10000,markc,colflg;
+	int  		startx=0,endx=10000,markc,colflg;
 	int  		type;
 	int			bSwap;
 	int			workmode;
@@ -748,7 +734,6 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 		lp2	= wp->blend  ->m_linePointer;
 		endx = wp->blend->m_column;
 	}
-	wasmarked = (lp1 && lp2);
 
 	if (type == MARK_END) {
 		markc = MARKEND;

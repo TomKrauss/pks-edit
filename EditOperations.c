@@ -98,7 +98,6 @@ int edit_calculateTabs2Columns(INDENTATION* pIndentation, int tabs)
 static int edit_calculateStartIndentation(WINFO* wp,LINE *lp, 
 						  int upto, int *add_blanks) {
 	int col;
-	FTABLE* fp = wp->fp;
 
 	col = string_countSpacesIn(lp->lbuf,upto);
 	col = caret_lineOffset2screen(wp, &(CARET) { lp, col});
@@ -141,7 +140,6 @@ LINE *ln_insertIndent(WINFO* wp, LINE *lp, int col, int *inserted)
 static int  _deltaindent;
 static int edit_insertIndent(WINFO *wp, LINE *pPreviousLine, LINE *nlp, int caretColumn, int *newcol)
 {	
-	FTABLE* fp = wp->fp;
 	int 			t = 0;
 	int			b = 0;
 
@@ -154,7 +152,7 @@ static int edit_insertIndent(WINFO *wp, LINE *pPreviousLine, LINE *nlp, int care
 	_deltaindent = 0;
 
 	caretColumn = edit_calculateTabs2Columns(&wp->indentation, t)+b;
-	if ((nlp = ln_insertIndent(wp,nlp,caretColumn,newcol)) == 0) {
+	if (ln_insertIndent(wp,nlp,caretColumn,newcol) == 0) {
 		return 0;
 	}
 
@@ -201,7 +199,7 @@ static int edit_handleBracketIndenting(WINFO *wp, int dir, LINE *lp1, LINE *lp2)
 		indent = edit_calculateStartIndentation(wp,lp1,lp1->len,&b);
 		if (indent != i1) {
 			/* first delete all blank characters, then shift */
-			if ((lp1 = ln_modify(fp,lp1,string_countSpacesIn(lp1->lbuf,lp1->len),0)) == 0) {
+			if (ln_modify(fp,lp1,string_countSpacesIn(lp1->lbuf,lp1->len),0) == 0) {
 				return 0;
 			}
 			uc_shiftLinesByIndent(wp,wp->caret.ln-(long)dir,1L,i1);

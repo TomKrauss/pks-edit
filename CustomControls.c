@@ -415,13 +415,12 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 		case WM_PAINT:
 			{
 				PAINTSTRUCT	ps;
-				HDC hdc = BeginPaint(hwnd, &ps);
+				BeginPaint(hwnd, &ps);
 				charset_paint(hwnd, ps.hdc);
 				EndPaint(hwnd, &ps);
 			}
 			return 0;
 		case WM_ERASEBKGND: {
-			THEME_DATA* pTheme = theme_getCurrent();
 			HDC hdc = (HDC)wParam;
 			GetClientRect(hwnd, &rc);
 			FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
@@ -511,7 +510,7 @@ static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_PAINT: {
 		char szBuf[200];
 		PAINTSTRUCT	ps;
-		HDC hdc = BeginPaint(hwnd, &ps);
+		BeginPaint(hwnd, &ps);
 		GetWindowText(hwnd, szBuf, sizeof szBuf);
 		toast_paint(hwnd, ps.hdc, szBuf);
 		EndPaint(hwnd, &ps);
@@ -519,7 +518,6 @@ static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	}
 	return 0;
 	case WM_ERASEBKGND: {
-		THEME_DATA* pTheme = theme_getCurrent();
 		HDC hdc = (HDC)wParam;
 		GetClientRect(hwnd, &rc);
 		FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
@@ -583,21 +581,18 @@ static void label_paint(HWND hwnd, HDC hdc, char* pszText) {
  */
 static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	PAINTSTRUCT	ps;
-	HDC hdc;
-	THEME_DATA* pTheme;
 	RECT rc;
 	char szBuf[200];
 
 	switch (message) {
 	case WM_PAINT: {
-		hdc = BeginPaint(hwnd, &ps);
+		BeginPaint(hwnd, &ps);
 		GetWindowText(hwnd, szBuf, sizeof szBuf);
 		label_paint(hwnd, ps.hdc, szBuf);
 		EndPaint(hwnd, &ps);
 	}
 	return 0;
 	case WM_ERASEBKGND: {
-		pTheme = theme_getCurrent();
 		HDC hdc = (HDC)wParam;
 		GetClientRect(hwnd, &rc);
 		FillRect(hdc, &rc, theme_getDialogBackgroundBrush());

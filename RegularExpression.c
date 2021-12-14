@@ -1037,13 +1037,10 @@ static unsigned char* advanceSubGroup(unsigned char* pszBeginOfLine, unsigned ch
 			}
 		}
 		unsigned char* pLongestMatch = 0;
-		int matchedLen = 0;
-		int nSubGroup = 0;
 		while(1) {
 			e2 = regex_advance(pszBeginOfLine, stringToMatch, endOfStringToMatch, pExprStart, pExprStop, pResult);
 			if (e2 > pLongestMatch) {
 				pLongestMatch = e2;
-				matchedLen = (int)(pLongestMatch - stringToMatch);
 			}
 			if (pExprStop >= pExprEnd) {
 				break;

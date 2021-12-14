@@ -72,7 +72,6 @@ typedef enum { RS_WORD, RS_SPACE, RS_CONTROL, RS_START, RS_TAB } RENDER_STATE;
 static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
 {
 	RECT 	r;
-	FTABLE* fp = FTPOI(wp);
 
 	r.top = y;
 	r.bottom = y + wp->cheight;
@@ -126,7 +125,6 @@ static void render_fillBuf(char* pszBuf, int fillChar, int nLen) {
 int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long lineNo) {
 	register int startColumn,i,endColumn,indent,textlen;
 	register unsigned char 	*d,*s,*send,*dend;
-	HDC hdc = pRC->rc_hdc;
 	WINFO* wp = pRC->rc_wp;
 	FTABLE* fp = ((FTABLE*)FTPOI(wp));
 	char fillbuf[20];
@@ -138,7 +136,6 @@ int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long 
 	RENDER_STATE state = RS_START;
 	int showcontrol;
 	int tabFiller = wp->tabDisplayFillCharacter;
-	THEME_DATA* pTheme = pRC->rc_theme;
 
 	startColumn = wp->mincol;
 	endColumn = wp->maxcol+1;

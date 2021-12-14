@@ -64,7 +64,6 @@ static BOOL _checkPksSys(char* pathName) {
 EXPORT BOOL init_initializeVariables(void ) 
 {
 	char	homeDirectory[EDMAXPATHLEN];
-	char 	compiler[32];
 	char	datadir[EDMAXPATHLEN];
 	char *	pks_sys = "PKS_SYS";
 	char *  tempFound;
@@ -103,7 +102,6 @@ EXPORT BOOL init_initializeVariables(void )
 	if (homeDirectory[0] == 0) {
 		_getcwd(homeDirectory,sizeof homeDirectory);
 	}
-	compiler[0] = 0;
 	Getenv("PKS_INCLUDE_PATH", pConfig->includePath, member_size(EDITOR_CONFIGURATION, includePath));
 	if (pConfig->includePath[0] == 0) {
 		strcpy(pConfig->includePath, "include;inc");

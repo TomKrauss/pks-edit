@@ -1054,10 +1054,6 @@ static INT_PTR doctype_dialogProcedure(HWND hwnd, UINT message, WPARAM wParam, L
  * doDocumentTypes()
  */
 static int doDocumentTypes(int nDlg) {
-	int		nRet;
-	char		linname[128];
-	linname[0] = 0;
-
 	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE* fp = wp ? wp->fp : NULL;
 	EDIT_CONFIGURATION* pConfig = fp ? fp->documentDescriptor : NULL;
@@ -1065,7 +1061,7 @@ static int doDocumentTypes(int nDlg) {
 		pConfig ? pConfig->name : "default");
 
 	docTypeFillParameters(docTypePars, (void*)lastSelectedDocType);
-	if ((nRet = DoDialog(nDlg, doctype_dialogProcedure,docTypePars, NULL)) == IDCANCEL) {
+	if (DoDialog(nDlg, doctype_dialogProcedure,docTypePars, NULL) == IDCANCEL) {
 		lastSelectedDocType = 0;
 		return 0;
 	}
@@ -1109,10 +1105,8 @@ static void color_lboxfill(HWND hwnd, int nItem, void* selValue)
 	int			i;
 	int			nPaletteSize = 32;
 	int			nSelIndex;
-	int			iRasterCaps;
 
 	hdc = GetDC(hwnd);
-	iRasterCaps = GetDeviceCaps(hdc, RASTERCAPS);
 	SendDlgItemMessage(hwnd, nItem, CB_RESETCONTENT,0,0L);
 	for (i = 0, nSelIndex = 0; i < nPaletteSize; i++) {
 		cColor = GetNearestColor (hdc, PALETTEINDEX (i));
@@ -1286,7 +1280,6 @@ int dlg_configureEditorModes(void) {
 		{ C_LONG1PAR, 		(unsigned char *) &bgcolor },
 		{ C_INT1PAR, 		(unsigned char *) &dispmode }
 	};
-	PARAMS	_fp   = { DIM(_i), P_MAYOPEN, _i	};
 	PROPSHEETPAGE psp[4];
 	PROPSHEETHEADER psh;
 	EDIT_CONFIGURATION *linp;

@@ -2168,16 +2168,16 @@ char* mainframe_getOpenHint(HWND hwnd, BOOL bFocus, BOOL bClone, int nDisplayMod
  * Parse an open hint text. Note, that the hint text is modified during parsing.
  */
 OPEN_HINT mainframe_parseOpenHint(char* pszHint) {
+	static char szDock[10];
 	BOOL bActive = TRUE;
 	BOOL bClone = FALSE;
 	BOOL bFocus = FALSE;
 	int nDisplayMode = -1;
 	if (pszHint != NULL) {
-		char szDock[10];
 		char szActive[10];
 		char szCloned[10];
 		char szFocus[10];
-		int nFound = sscanf(pszHint, "%s %s %s %s %x", szDock, szActive, szFocus, szCloned, &nDisplayMode);
+		int nFound = sscanf(pszHint, "%9s %9s %9s %9s %x", szDock, szActive, szFocus, szCloned, (unsigned int*) & nDisplayMode);
 		if (nFound >= 2) {
 			bActive = strcmp("active", szActive) == 0;
 			pszHint = szDock;

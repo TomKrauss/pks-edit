@@ -163,7 +163,6 @@ void ww_adjustWindowSizes() {
  */
 void wt_curpos(WINFO *wp, long ln, long col)
 {
-	int oldln = wp->caret.ln;
 	caret_moveToLine(wp, ln);
 	wp->caret.col = col;
 	wp->renderer->r_adjustScrollBounds(wp);

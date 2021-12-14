@@ -427,7 +427,6 @@ HWND tb_initRebar(HWND hwndOwner) {
     rebarOriginalWindowProc = (WNDPROC)SetWindowLongPtr(hwndRebar,
         GWLP_WNDPROC, (LONG_PTR)tb_myRebarProc);
 
-    THEME_DATA* pTheme = theme_getCurrent();
     tb_updateColors();
     hwndToolbar = tb_initToolbar(hwndRebar);
     hwndEntryField = tb_initSearchEntryField(hwndRebar);

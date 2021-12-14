@@ -5,8 +5,8 @@
  *
  * purpose: A special renderer for markdown files.
  *
- * 										created: 05.02.89
- * 										last modified:
+ * 										created: 05.11.21
+ * 										last modified: 14.12.21
  *										author: Tom
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -283,9 +283,9 @@ static HFONT mdr_createFont(const FONT_ATTRIBUTES* pAttrs, float fZoom) {
 	return CreateFontIndirect(&_lf);
 }
 
-static void mdr_paintRule(HDC hdc, int left, int right, int y) {
+static void mdr_paintRule(HDC hdc, int left, int right, int y, int nStrokeWidth) {
 	THEME_DATA* pTheme = theme_getCurrent();
-	HPEN hPen = CreatePen(PS_SOLID, 1, pTheme->th_dialogLightBackground);
+	HPEN hPen = CreatePen(PS_SOLID, nStrokeWidth, pTheme->th_dialogLightBackground);
 	HPEN hPenOld = SelectObject(hdc, hPen);
 	MoveTo(hdc, left, y);
 	LineTo(hdc, right, y);
@@ -293,11 +293,11 @@ static void mdr_paintRule(HDC hdc, int left, int right, int y) {
 }
 
 static void mdr_renderHorizontalRule(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, RECT* pUsed) {
-	mdr_paintRule(hdc, pBounds->left + 10, pBounds->right - 10, pBounds->top + 5);
+	mdr_paintRule(hdc, pBounds->left + 10, pBounds->right - 10, pBounds->top + 5, 3);
 	pUsed->top = pBounds->top;
-	pUsed->left = pBounds->left;
+	pUsed->left = pBounds->left + 10;
 	pUsed->bottom = pBounds->top + 10;
-	pUsed->right = pBounds->right;
+	pUsed->right = pBounds->right - 20;
 	memcpy(&pPart->rvp_bounds, pUsed, sizeof * pUsed);
 }
 
@@ -418,7 +418,7 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 	BOOL bRunBegin = TRUE;
 	while(pTR) {
 		SIZE size;
-		int nFit;
+		int nFit = 0;
 		if (pTR->tr_image) {
 			mdr_paintImage(wp, hdc, pTR, x, y, &size);
 			if (size.cy > nHeight) {
@@ -525,11 +525,14 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 	DeleteObject(SelectObject(hdc, hOldFont));
 	pUsed->bottom = y + nHeight + pPart->rvp_marginTop + pPart->rvp_marginBottom;
 	if (pPart->rvp_type == MET_HEADER && pPart->rvp_level < 3) {
-		mdr_paintRule(hdc, pBounds->left + 10, pBounds->right - 10, pUsed->bottom - 15);
+		mdr_paintRule(hdc, pBounds->left + 10, pBounds->right - 10, pUsed->bottom - 15, 1);
 	}
 }
 
 static BOOL mdr_isTopLevelOrBreak(LINE* lp, MDR_ELEMENT_TYPE mCurrentType, int nLevel) {
+	if (!lp) {
+		return FALSE;
+	}
 	if (lp->len == 0) {
 		return TRUE;
 	}
@@ -591,7 +594,7 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 	} else if (c == '-' || c == '*' || c == '+') {
 		mType = MET_UNORDERED_LIST;
 		*pLevel = mdr_getLevelFromIndent(lp, c);
-		if (c == '-' && i < lp->len - 2 && lp->lbuf[i + 1] == c && lp->lbuf[i + 1] == c) {
+		if (c == '-' && i < lp->len - 2 && lp->lbuf[i + 1] == c && lp->lbuf[i + 2] == c) {
 			return MET_HORIZONTAL_RULE;
 		}
 		i++;
@@ -603,8 +606,8 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 		if (bSpaceFound) {
 			if (i < lp->len - 3 && lp->lbuf[i] == '[' && lp->lbuf[i + 2] == ']') {
 				mType = MET_TASK_LIST;
-				char c = lp->lbuf[i + 1];
-				*pNumber = c == 'x' || c == 'X' ? 1 : 0;
+				char cX = lp->lbuf[i + 1];
+				*pNumber = cX == 'x' || cX == 'X' ? 1 : 0;
 				*pOffset = i + 3;
 			}
 		} else {
@@ -702,7 +705,7 @@ static BOOL mdr_parseLinkUrl(char* pszBuf, char** pszLink, char** pszTitle, int*
 		bAuto = TRUE;
 		nStart++;
 	}
-	size_t nLen = strlen(pszBuf+1);
+	size_t nLen = strlen(pszBuf+nStart);
 	if (nLen == 0) {
 		return FALSE;
 	}
@@ -821,38 +824,36 @@ static BOOL mdr_parseAutolinks(RENDER_VIEW_PART* pPart, LINE* lp, STRING_BUF* pS
 	int nTextStart = i + 1;
 	char* pLast = strchr(&lp->lbuf[nTextStart], '>');
 	if (pLast && strchr(&lp->lbuf[i], '.') != 0) {
-		if (pLast) {
-			size_t nSize = stringbuf_size(pSB) - *pLastOffset;
-			mdr_appendRun(pPart, pFormat, nSize, mAttrs);
-			(*pLastOffset) += nSize;
-			char szTemp[512];
-			char* pszLink;
-			char* pszTitle;
-			int nTextEnd = (int)(pLast - lp->lbuf);
-			nSize = nTextEnd - nTextStart;
-			if (nSize >= sizeof szTemp) {
-				nSize = sizeof szTemp-1;
-			}
-			strncpy(szTemp, &lp->lbuf[nTextStart], nSize);
-			szTemp[nSize] = 0;
-			stringbuf_appendStringLength(pSB, &lp->lbuf[nTextStart], nSize);
-			nSize = stringbuf_size(pSB) - *pLastOffset;
-			TEXT_RUN* pRun = mdr_appendRun(pPart, pFormat, nSize, ATTR_LINK);
-			int nWidth = 0;
-			int nHeight = 0;
-			if (!mdr_parseLinkUrl(szTemp, &pszLink, &pszTitle, &nWidth, &nHeight)) {
-				return FALSE;
-			}
-			pRun->tr_link = pszLink;
-			pRun->tr_title = pszTitle;
-			if (pRun->tr_image) {
-				pRun->tr_image->mdi_height = nHeight;
-				pRun->tr_image->mdi_width = nWidth;
-			}
-			(* pLastOffset) += nSize;
-			*pOffset = nTextEnd;
-			return TRUE;
+		size_t nSize = stringbuf_size(pSB) - *pLastOffset;
+		mdr_appendRun(pPart, pFormat, nSize, mAttrs);
+		(*pLastOffset) += nSize;
+		char szTemp[512];
+		char* pszLink;
+		char* pszTitle;
+		int nTextEnd = (int)(pLast - lp->lbuf);
+		nSize = nTextEnd - nTextStart;
+		if (nSize >= sizeof szTemp) {
+			nSize = sizeof szTemp-1;
 		}
+		strncpy(szTemp, &lp->lbuf[nTextStart], nSize);
+		szTemp[nSize] = 0;
+		stringbuf_appendStringLength(pSB, &lp->lbuf[nTextStart], nSize);
+		nSize = stringbuf_size(pSB) - *pLastOffset;
+		TEXT_RUN* pRun = mdr_appendRun(pPart, pFormat, nSize, ATTR_LINK);
+		int nWidth = 0;
+		int nHeight = 0;
+		if (!mdr_parseLinkUrl(szTemp, &pszLink, &pszTitle, &nWidth, &nHeight)) {
+			return FALSE;
+		}
+		pRun->tr_link = pszLink;
+		pRun->tr_title = pszTitle;
+		if (pRun->tr_image) {
+			pRun->tr_image->mdi_height = nHeight;
+			pRun->tr_image->mdi_width = nWidth;
+		}
+		(* pLastOffset) += nSize;
+		*pOffset = nTextEnd;
+		return TRUE;
 	}
 	return FALSE;
 }
@@ -867,7 +868,7 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 	int mAttrs = 0;
 	size_t nLastOffset = 0;
 	size_t nSize;
-	MDR_ELEMENT_FORMAT* pFormat;
+	MDR_ELEMENT_FORMAT* pFormat = NULL;
 
 	MDR_ELEMENT_TYPE mType = MET_NORMAL;
 	while (lp) {
@@ -889,6 +890,7 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 				mType = mdr_determineTopLevelElement(lp, &i, &nLevel, &pFormat, &nNumber);
 				if (mType == MET_HORIZONTAL_RULE) {
 					pPart->rvp_paint = mdr_renderHorizontalRule;
+					pPart->rvp_type = MET_HORIZONTAL_RULE;
 					return lp->next;
 				}
 				if (mType == MET_ORDERED_LIST || mType == MET_TASK_LIST) {
@@ -953,12 +955,12 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 					nSize = stringbuf_size(pSB) - nLastOffset;
 					mdr_appendRun(pPart, pFormat, nSize, mAttrs);
 					nLastOffset += nSize;
-					char c = lp->lbuf[nTextStart];
-					if (c == lp->lbuf[nTextEnd - 1]) {
-						if (c == '`') {
+					char c2 = lp->lbuf[nTextStart];
+					if (c2 == lp->lbuf[nTextEnd - 1]) {
+						if (c2 == '`') {
 							nAttr = ATTR_CODE;
 						}
-						else if (c == '*' || c == '_') {
+						else if (c2 == '*' || c2 == '_') {
 							nAttr = ATTR_EMPHASIS;
 						}
 						if (nAttr) {
@@ -1028,10 +1030,12 @@ static LINE* mdr_parseFlow(LINE* lp, RENDER_VIEW_PART* pPart, STRING_BUF* pSB) {
 	}
 outer:
 	pPart->rvp_type = mType;
-	pPart->rvp_marginLeft = pFormat->mef_marginLeft;
-	pPart->rvp_marginTop = pFormat->mef_marginTop;
-	pPart->rvp_marginRight = pFormat->mef_marginRight;
-	pPart->rvp_marginBottom = pFormat->mef_marginBottom;
+	if (pFormat) {
+		pPart->rvp_marginLeft = pFormat->mef_marginLeft;
+		pPart->rvp_marginTop = pFormat->mef_marginTop;
+		pPart->rvp_marginRight = pFormat->mef_marginRight;
+		pPart->rvp_marginBottom = pFormat->mef_marginBottom;
+	}
 	pPart->rvp_paint = mdr_renderTextFlow;
 	size_t nLen = stringbuf_size(pSB);
 	pPart->rvp_flow.tf_text = nLen == 0 ? NULL : _strdup(stringbuf_getString(pSB));
@@ -1117,7 +1121,7 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 			return 0;
 		}
 		RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, nMaxScreen);
-		int nDelta = wp->caret.ln - nMaxScreen + 1;
+		nDelta = wp->caret.ln - nMaxScreen + 1;
 		if (pPart) {
 			nDelta += (pPart->rvp_bounds.bottom - pPart->rvp_bounds.top) / 16;
 		}
@@ -1159,6 +1163,7 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 		pData->md_lastMinLn = wp->minln;
 		CopyRect(&pData->md_lastBounds, &rect);
 	}
+	// Todo - highlight caret line
 	HBRUSH hBrushCaretLine = CreateSolidBrush(pCtx->rc_theme->th_caretLineColor);
 	if (!pData->md_pElements) {
 		mdr_parseViewParts(fp, pData);
@@ -1192,6 +1197,7 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 		pPart = pPart->rvp_next;
 		nElements++;
 	}
+	DeleteObject(hBrushCaretLine);
 	if (bSizeChanged) {
 		pData->md_nElementsPerPage = nElements-1;
 		pData->md_displayingEndOfFile = pPart == NULL;
@@ -1300,7 +1306,7 @@ static void mdr_scroll(WINFO* wp, int dx, int dy) {
 	RedrawWindow(wp->ww_handle, NULL, NULL, RDW_ERASE|RDW_INVALIDATE);
 }
 
-static int mdr_placeCursorAndValidate(WINFO* wp, long* ln, long offset, long* col, int updateVirtualOffset, int xDelta) {
+static int mdr_placeCursorAndValidate(WINFO* wp, long* ln, long offset, const long* col, int updateVirtualOffset, int xDelta) {
 	if (*ln < 0) {
 		return 0;
 	}

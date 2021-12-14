@@ -267,7 +267,7 @@ static int find_updateSelectionToShowMatch(WINFO *wp,long ln,int col, RE_MATCH *
  * find_expressionInCurrentFile()
  */
 static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, int dir, RE_PATTERN* pPattern, int options, long *pFoundLine, long *pFoundCol,
-	RE_MATCH *pMatch)
+	RE_MATCH *pMatch, int *pWrapped)
 {
 	long ln, col;
 	int  ret = 0, wrap = 0, wrapped = 0;
@@ -310,6 +310,7 @@ static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, in
 	if (ret) {
 		*pFoundLine = ln;
 		*pFoundCol = col;
+		*pWrapped = wrapped;
 	}
 	return ret;
 }
@@ -334,7 +335,7 @@ int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options)
 	}
 	fp = wp->fp;
 	mouse_setBusyCursor();
-	ret = find_expressionInCurrentFileStartingFrom(fp, wp->caret, dir, pPattern, options, &ln, &col, &match);
+	ret = find_expressionInCurrentFileStartingFrom(fp, wp->caret, dir, pPattern, options, &ln, &col, &match, &wrapped);
 	mouse_setDefaultCursor();
 
 	if (ret == 1) {
@@ -359,6 +360,7 @@ static CARET incrementalStart;
 int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bContinue) {
 	RE_PATTERN* pPattern;
 	int ret;
+	int wrapped;
 	long ln;
 	long col;
 	WINFO* wp;
@@ -387,7 +389,7 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 		return 0;
 	}
 	memset(&match, 0, sizeof match);
-	ret = find_expressionInCurrentFileStartingFrom(fp, incrementalStart, nDirection, pPattern, nOptions, &ln, &col, &match);
+	ret = find_expressionInCurrentFileStartingFrom(fp, incrementalStart, nDirection, pPattern, nOptions, &ln, &col, &match, &wrapped);
 	if (ret) {
 		find_updateSelectionToShowMatch(wp, ln, col, &match);
 	} else if (pszString[0]) {

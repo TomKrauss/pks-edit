@@ -301,8 +301,7 @@ EXPORT WINFO *ww_findwinid(int winid)
  * return TRUE, when a work window has the input focus
  */
 EXPORT BOOL ww_workWinHasFocus(void) {
-	HWND hwndFocus;
-	if (!_winlist || (hwndFocus = GetFocus()) != _winlist->ww_handle) {
+	if (!_winlist || GetFocus() != _winlist->ww_handle) {
 		return FALSE;
 	}
 	return TRUE;

@@ -125,7 +125,7 @@ static int bl_clipboardFileFound(char* pszFile, DTA* pDta) {
 	strcpy(szFileOnly, string_getBaseFilename(pszFile));
 	int nPrefix = (int)strlen(_pszAutosavePrefix);
 	int nPostfix = (int)strlen(_pszAutosaveExtension);
-	size_t nLen = strlen(szFileOnly) - nPrefix - nPostfix;
+	long nLen = (long)strlen(szFileOnly) - nPrefix - nPostfix;
 	if (nLen <= 0) {
 		return 0;
 	}
@@ -784,7 +784,6 @@ static INT_PTR bl_namedClipboardDialogProc(HWND hdlg, UINT wMessage, WPARAM wPar
 	switch (wMessage) {
 	case WM_INITDIALOG: {
 		HWND hwndControl = GetDlgItem(hdlg, IDD_STRING1);
-		DWORD nItem = (DWORD)SendDlgItemMessage(hdlg, IDD_ICONLIST, LB_GETCURSEL, 0, 0);
 		if (bl_namedClipboardDialogAction == SNCO_LIST) {
 			EnableWindow(GetDlgItem(hdlg, IDD_BUT3), FALSE);
 		}
@@ -801,7 +800,7 @@ static INT_PTR bl_namedClipboardDialogProc(HWND hdlg, UINT wMessage, WPARAM wPar
 	}
 	case WM_COMMAND:
 		if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDD_BUT3) {
-			DWORD nItem = (DWORD)SendDlgItemMessage(hdlg, IDD_ICONLIST, LB_GETCURSEL, 0, 0);
+			LRESULT nItem = (LRESULT)SendDlgItemMessage(hdlg, IDD_ICONLIST, LB_GETCURSEL, 0, 0);
 			if (nItem >= 0) {
 				char szText[32];
 				SendDlgItemMessage(hdlg, IDD_ICONLIST, LB_GETTEXT, nItem, (LPARAM)szText);
@@ -827,8 +826,6 @@ static INT_PTR bl_namedClipboardDialogProc(HWND hdlg, UINT wMessage, WPARAM wPar
  */
 char* bl_showClipboardList(SELECT_NAMED_CLIPBOARD_ACTION bOption) {
 	static char selectedTemplate[32];
-	ITEMS	_i = { C_STRING1PAR, selectedTemplate };
-	PARAMS	_bgc = { DIM(_i), P_MAYOPEN, _i };
 	DIALLIST tmplatelist = {
 		NULL, bl_namedBuffersFillListbox, dlg_getListboxText, 0, 0, bl_namedBuffersOnSelectionChange };
 	DIALPARS _d[] = {
