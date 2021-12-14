@@ -167,23 +167,6 @@ int sym_insert(char *key, int symtype, intptr_t symdata)
 	return 0;	
 }
 
-/*--------------------------------------------------------------------------
- * sym_destroy()
- * Currently not used.
- */
-static intptr_t sym_destroy(char *key)
-{
-	ENTRY	*ep;
-	intptr_t 	val;
-
-	if ((ep = hfind(key,DESTROY)) != 0) {
-		free(ep->key);
-		val = (intptr_t) VALUE(ep->sym);
-		CLEARSYM(ep->sym);
-		return val;
-	}
-	return 0;
-}
 
 /*--------------------------------------------------------------------------
  * sym_makeInternalSymbol()

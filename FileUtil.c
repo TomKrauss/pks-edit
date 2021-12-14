@@ -94,17 +94,6 @@ int file_getAccessTime(char *fname, EDTIME* pCreated, EDTIME* pModified) {
 }
 
 /*--------------------------------------------------------------------------
- * file_isDirectory()
- * Returns true if the passed filename points to a directory.
- */
-EXPORT int file_isDirectory(char *filename)
-{
-	int ret;
-
-	return ((ret = file_getFileMode(filename)) >= 0 && (ret & _A_SUBDIR) != 0);
-}
-
-/*--------------------------------------------------------------------------
  * file_openFile()
  * Open a file and return the file handle. If it cannot be opened, display an error.
  */

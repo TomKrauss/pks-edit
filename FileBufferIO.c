@@ -160,27 +160,6 @@ static void list2_mk(P2LIST **head, char *p1, char *p2)
 	}
 }
 
-/*---------------------------------*/
-/* listPathes_mk()				*/
-/*---------------------------------*/
-static char *szAltpath = "altpath";
-static intptr_t listPathes_mk(char *szPath, long unused)
-{
-	char	 szBuf[256];
-
-	prof_getPksProfileString(szAltpath, szPath, szBuf, sizeof szBuf);
-	list2_mk(&_p2list,szPath,szBuf);
-	return 0;
-}
-
-/*--------------------------------------------------------------------------
- * ft_initializeAlternatePath()
- */
-static int ft_initializeAlternatePath(void)
-{
-	return prof_enum(szAltpath,listPathes_mk,0L);
-}
-
 /*---------------------------------
  * file_closeFile()
  * close a file handle and report an error if unsuccessful. 

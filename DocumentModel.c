@@ -200,20 +200,6 @@ void ft_bufdestroy(FTABLE* fp) {
 }
 
 /*---------------------------------
- * ln_addFlag()
- * 
- * Add a flag to all lines between lpstart and lpend. 
- */
-void ln_addFlag(LINE *lpstart, LINE *lpend, int flg) {
-
-	while (lpstart != 0) {	
-		lpstart->lflg |= flg;
-		if (lpstart == lpend) return;
-		lpstart = lpstart->next;
-	}
-}
-
-/*---------------------------------
  * ln_changeFlag()
  *
  * Add / remove flags from multiple lines - all lines having an expected flag

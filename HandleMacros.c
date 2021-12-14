@@ -98,28 +98,6 @@ char *code2key(KEYCODE code)
 	return b;
 }
 
-char *code2mouse(MOUSECODE code)
-{
-	static char 	b[32];
-	char			*s;
-
-	s = c2shift(b,code.shift<<8);
-	if (code.button & MBUT_L) {
-		strcpy(s,"Left+");
-		s += 5;
-	}
-	if (code.button & MBUT_R) {
-		strcpy(s,"Right+");
-		s += 6;
-	}
-	if (code.button & MBUT_M) {
-		strcpy(s,"Middle+");
-		s += 7;
-	}
-	sprintf(s,"(%d)", (int)code.nclicks);
-	return b;
-}
-
 /*
  * Returns a macro by a given index or NULL if the index does not
  * lie in the valid index range. Can be used to iterate all macros.

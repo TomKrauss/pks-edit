@@ -349,19 +349,6 @@ int dlg_getListboxText(HWND hwnd, int id, void *pszBuf) {
 }
 
 /*--------------------------------------------------------------------------
- * dlg_selectComboBoxItem()
- */
-static int dlg_selectComboBoxItem(HWND hwnd, WORD id, char *szBuff)
-{
-	LRESULT ret;
-
-	ret = SendDlgItemMessage(hwnd, id, CB_SELECTSTRING, -1, (LPARAM)szBuff);
-	if (ret < 0)
-		SendDlgItemMessage(hwnd, id, CB_SETCURSEL, 0, 0L);
-	return (int) ret;
-}
-
-/*--------------------------------------------------------------------------
  * dlg_getRangeForOperation()
  */
 static int dlg_getRangeForOperation(HWND hwnd)

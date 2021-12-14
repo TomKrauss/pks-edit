@@ -73,21 +73,6 @@ extern long		_multiplier;
 static int		_scope = RNG_BLOCK;
 
 /*------------------------------------------------------------
- * EdCloseWindow()
- */
-int EdCloseWindow(int winid) {
-	HWND hwndChild;
-
-	if (winid < 0) {
-		WINFO* wp = ww_getCurrentEditorWindow();
-		hwndChild = wp ? wp->edwin_handle : NULL;
-	} else
-		hwndChild = ww_winid2hwnd(winid);
-
-	return ww_closeEditChild(hwndChild);
-}
-
-/*------------------------------------------------------------
  * EdExit()
  */
 int EdExit(int rc)
@@ -611,33 +596,6 @@ int EdReplaceTabs(int expand)
 		return 0;
 
 	return find_replaceTabsWithSpaces(_scope,expand);
-}
-
-/*--------------------------------------------------------------------------
- * dlg_promptString()
- * Prompt for a string to be returned in string2. If the method returns 1, the
- * user has pressed OK.
- */
-int dlg_promptString(int strId, char *string, char *string2)
-{
-	static DIALPARS _d[] = {
-		IDD_WINTITLE,	0,			0,
-		IDD_RO1,		128,			0,
-		IDD_STRING1,	128, 		0,
-		0
-	};
-
-	_d->dp_size = strId;
-	_d[1].dp_data = string;
-
-	if (string2) {
-		_d[2].dp_data = string2;
-		_d[2].dp_item = IDD_STRING1;
-	} else {
-		_d[2].dp_item = 0;
-	}
-	return DoDialog(string2 ? DLGQUERYRENAME : DLGQUERYDELETE,
-				 dlg_standardDialogProcedure,_d, NULL);
 }
 
 /*--------------------------------------------------------------------------

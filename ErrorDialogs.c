@@ -169,15 +169,7 @@ int error_displayYesNoCancelConfirmation(int nId, ...)
 	return ret;
 }
 
-/*------------------------------------------------------------
- * Panic()
- */
-void Panic(LPSTR s)
-{
-    error_displayAlertDialog(s);
-}
-
-/*------------------------------------------------------------
+	/*------------------------------------------------------------
  * error_displayErrorToast()
  * If configured, popup a temporary dialog window showing an error.
  */

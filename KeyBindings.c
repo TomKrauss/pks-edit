@@ -48,27 +48,6 @@ void key_overridetable(void)
 }
 
 /*---------------------------------*/
-/* key_destroytables()			*/
-/*---------------------------------*/
-void key_destroytables(void)
-{
-	RSCTABLE 	*rp;
-	RSCTABLE	*rpnext;
-	
-	for (rp = _keytables; rp; rp = rpnext) {
-		if (rp->rt_data != _keymaptab) {
-			free(rp->rt_data);
-		}
-		rpnext = rp->rt_next;
-		if (rp != &__k) {
-			free(rp);
-		}
-	}
-	_keytables = &__k;
-	memset(_keymaptab,0,sizeof _keymaptab);
-}
-
-/*---------------------------------*/
 /* key_destroytable()			*/
 /*---------------------------------*/
 void key_destroytable(char *name)

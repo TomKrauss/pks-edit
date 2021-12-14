@@ -231,15 +231,6 @@ static char *code2key(KEYCODE code)
 
 #endif
 
-/*
- * prf3()
- */
-void prf3(FILE *fp,char markc,char *s1,char *s2, char *s3)
-{
-	fprintf(fp,"%-*.*sú %-*.*s%c %s\n",COL_FUNCTION,COL_FUNCTION,s1,
-							    COL_KEYCODE,COL_KEYCODE,s2,markc,s3);
-}
-
 /*--------------------------------------------------------------------------
  * pr_cmddelim()
  */

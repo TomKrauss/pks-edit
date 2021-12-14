@@ -42,47 +42,11 @@ BOOL	  		bTaskFinished;
 #define	EX_DOS				EX_CD
 
 /*--------------------------------------------------------------------------
- * ExecWaitNotify()
- */
-static HTASK hTask;
-BOOL FPE_FUNC ExecWaitNotify(WORD wID, DWORD dwData)
-{
-#if !defined(WIN32)
-	if (wID == NFY_EXITTASK && GetCurrentTask() == hTask) {
-		PostMessage(hwndFrame, WM_TASKFINISHED, 
-				LOBYTE(dwData), NULL);
-	}
-#endif
-	return FALSE;
-}
-
-/*--------------------------------------------------------------------------
  * exec_error()
  */
 static void exec_error(char *cmd, int errcode)
 {
 	error_showErrorById(IDS_MSGEXECERROR,errcode,cmd);
-}
-
-/*--------------------------------------------------------------------------
- * GetTaskHandle()
- */
-static HTASK GetTaskHandle(HINSTANCE hInst)
-{
-#if defined(WIN32)
-	return 0;
-#else
-	TASKENTRY	te;
-	
-	te.dwSize = sizeof te;
-	TaskFirst(&te);
-	do {
-		if (te.hInst == hInst) {
-			return te.hTask;
-		}
-	} while(TaskNext(&te));
-	return (HTASK) 0;
-#endif
 }
 
 /*--------------------------------------------------------------------------

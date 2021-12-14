@@ -37,8 +37,6 @@ static HCURSOR   hDefaultCurs;
 static HCURSOR	 hSizeNSCursor;
 static HCURSOR	 hSizeWECursor;
 
-extern HWND 	ic_findChildFromPoint(HWND hwnd, POINT *point);
-
 extern MOUSEBIND	_mousetab[MAXMAPMOUSE];
 
 static RSCTABLE __m = {
@@ -462,20 +460,6 @@ MOUSEBIND *mouse_getDefaultMouseBinding(void)
 		_mousetab, (int (*)(void *))mouse_hasEmptySlot);
 }
 
-/*---------------------------------*/
-/* mouse_removeMouseBinding()				*/
-/*---------------------------------*/
-void mouse_removeMouseBinding(MOUSEBIND *mp)
-{
-	if (mp == 0)
-		return;
-
-	mp->button = 0;
-	mp->nclicks = 0;
-	mp->shift = 0;
-	mp->macref.typ = CMD_NONE;
-}
-
 /*--------------------------------------------------------------------------
  * mouse_destroyMouseBindings()
  */
@@ -485,25 +469,6 @@ void mouse_destroyMouseBindings(void)
 
 	if ((rp = _mousetables) != 0 && rp->rt_data) {
 		memset(rp->rt_data, 0, (int)((char *)rp->rt_end - (char *)rp->rt_data));
-	}
-}
-
-/*---------------------------------*/
-/* mouse_deleteBindingsUpTo()			*/
-/* delete all mouse bindings to a 	*/
-/* for inst. single macro,...		*/
-/*---------------------------------*/
-void mouse_deleteBindingsUpTo(MACROREFTYPE typ, MACROREFIDX val)
-{
-	RSCTABLE *	rp;
-	MOUSEBIND  *	mp;
-
-	for (rp = _mousetables; rp; rp = rp->rt_next) {
-		for (mp = (MOUSEBIND*)rp->rt_data; mp < (MOUSEBIND*)rp->rt_end; mp++) {
-			if (typ == mp->macref.typ && val == mp->macref.index) {
-				mouse_removeMouseBinding(mp);
-			}
-		}
 	}
 }
 

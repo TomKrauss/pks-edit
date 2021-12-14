@@ -129,19 +129,6 @@ char *string_getBaseFilename(const char *fullname)
 }
 
 /*--------------------------------------------------------------------------
- * string_getFileExtension()
- * return pointer to the extension component of a pathName
- */
-char *string_getFileExtension(const char *fullname) {
-	char *base = string_getBaseFilename(fullname);
-
-	while(*base == '.') base++;		/* skip . and .. */
-	while(*base != 0)
-		if (*base++ == '.') break;
-	return base;
-}
-
-/*--------------------------------------------------------------------------
  * string_splitFilename()
  * split a pathname in pathName and filename components
  */
@@ -215,24 +202,6 @@ BOOL string_isSpace(unsigned char c) {
 	return c <= ' ' && isblnk(c);
 }
 
-/*---------------------------------*/
-/* string_skipSpacesIn()					*/
-/*---------------------------------*/
-unsigned char* string_skipSpacesIn(unsigned char* s, unsigned char* send) {
-	while (string_isSpace(*s))
-		s++;
-	return (s > send) ? send : s;
-}
-
-/*---------------------------------*/
-/* string_skipNonSpaceCharactersIn()				*/
-/*---------------------------------*/
-unsigned char* string_skipNonSpaceCharactersIn(unsigned char* s, unsigned char* send) {
-	while (s < send && !string_isSpace(*s))
-		s++;
-	return s;
-}
-
 /*--------------------------------------------------------------------------
  * string_countSpacesIn()
  * count spaces up to a given position
@@ -243,21 +212,6 @@ int string_countSpacesIn(unsigned char* s, int pos) {
 
 	for (n = 0; n < pos && string_isSpace(s[n]); n++)
 		;
-	return n;
-}
-
-/*--------------------------------------------------------------------------
- * string_countCharacters()
- * Count the number of occurrences of a character in a string.
- */
-int string_countCharacters(char* s, char c) {
-	int n = 0;
-
-	while (*s) {
-		if (*s++ == c) {
-			n++;
-		}
-	}
 	return n;
 }
 
@@ -274,13 +228,6 @@ BOOL char_isIdentifier(unsigned char c) {
  */
 BOOL char_isNospace(unsigned char c) {
 	return !isspace(c);
-}
-
-/*
- * Return true, if the character is a valid filename character on the current platform.
- */
-BOOL char_isFilename(unsigned char c) {
-	return (istosfname(c));
 }
 
 /*

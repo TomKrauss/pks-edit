@@ -118,20 +118,6 @@ static int __ftw(char *path,int depth)
 	return i;
 }
 
-/*--------------------------------------------------------------------------
- * ftwalk()
- */
-int ftwalk(char *path,FTWFUNC func,int depth,int fmode)
-{	int 	ret; 
-	char 	newPath[1024];
-	char	fname[256];
-
-	_ftwflg = 0;
-	string_splitFilename(path,newPath,fname);
-	ret = _ftw(newPath,func,depth,fname,fmode);
-	return ((_ftwflg) ? ret : FTW_NOFILE); 
-}
-
 
 
 

@@ -5,5 +5,4 @@ STACKSIZE    64000
 
 EXPORTS
 	EditWndProc
-	ExecWaitNotify
 

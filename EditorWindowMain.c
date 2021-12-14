@@ -308,24 +308,6 @@ EXPORT BOOL ww_workWinHasFocus(void) {
 }
 
 /*------------------------------------------------------------
- * ww_winid2hwnd()
- */
-EXPORT HWND ww_winid2hwnd(int winid)
-{	WINFO  *wp;
-
-	return ((wp = ww_findwinid(winid)) == 0) ? NULL : wp->edwin_handle;
-}
-
-/*------------------------------------------------------------
- * ww_winid2fp()
- */
-EXPORT FTABLE *ww_winid2fp(int winid)
-{	WINFO  *wp;
-
-	return ((wp = ww_findwinid(winid)) == 0) ? NULL : FTPOI(wp);
-}
-
-/*------------------------------------------------------------
  * ww_requestFocusInTopWindow()
  * Request focus in the top most window.
  */

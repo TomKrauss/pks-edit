@@ -76,15 +76,11 @@ typedef struct strvec {
 	int		lo[MAXARG];	/* len token # ... */
 } STRVEC;
 
-/*
- * this is a hack: use the formular backingstore as temporary
- * buffer for the line list
- */
-#define	MAXREC			((unsigned int)((32000L)/sizeof(RECORD)))
+#define	MAXREC		5000
 
-static long	_nlines;
-static int	_sortflags;
-static RECORD	*_rectab;
+static long		_nlines;
+static int		_sortflags;
+static RECORD*	_rectab;
 
 extern int  compare_strings(unsigned char* s1, int l1, unsigned char* s2, int l2);
 

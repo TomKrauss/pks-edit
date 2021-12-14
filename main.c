@@ -441,14 +441,6 @@ int EdCloseAll() {
 }
 
 /*------------------------------------------------------------
- * EdArrangeWin()
- */
-int EdArrangeWin(WORD style)
-{
-    return (int)SendMessage(hwndMain, style, 0, 0L);
-}
-
-/*------------------------------------------------------------
  * win_getStdMenuText()
  */
 void win_getStdMenuText(int menunr, char *text)

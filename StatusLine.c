@@ -227,14 +227,6 @@ void st_init(HWND hwndDaddy)
 	}
 }
 
-/*--------------------------------------------------------------------------
- * st_update()
- */
-void st_update(void)
-{
-	st_redraw(FALSE);
-}
-
 void st_switchtomenumode(BOOL bMenuMode) {
 	bSimpleMode = bMenuMode;
 }

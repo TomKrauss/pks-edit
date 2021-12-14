@@ -115,10 +115,6 @@ HFONT cust_getDefaultEditorFont(void) {
 #define STATE_CHECK		ODS_CHECKED
 #define STATE_SEL		ODS_SELECTED
 
-static BOOL cust_drawText(HDC hdc, LPARAM pString, WPARAM wParam, int cx, int cy) {
-	return TextOut(hdc, 0, 0, (LPCSTR)pString, (int)strlen((LPCSTR)pString));
-}
-
 /**
  * Paint a custom button control.
  */
@@ -439,7 +435,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 				InvalidateRect(hwnd, &rcPaint, TRUE);
 			}
 			SetWindowWord(hwnd, GWW_CUSTOMVAL, (WORD)wParam);
-			if (wParam >= 0) {
+			if (wParam != 0) {
 				charset_rectFor(&rc, &rcPaint, (int)wParam);
 				InvalidateRect(hwnd, &rcPaint, TRUE);
 			}
@@ -701,7 +697,6 @@ HWND cust_createToastWindow(char* pszText) {
 	// Create a new timer or reset a previously created timer to the new waiting time.
 	idTimer = SetTimer(hwndToastWindow, 1, NSEC * 1000, 0);
 	if (!IsWindowVisible(hwndToastWindow)) {
-		int nHeight = 50;
 		RECT rect;
 		GetWindowRect(hwndMain, &rect);
 		RECT rc;
@@ -728,18 +723,6 @@ HWND cust_createToastWindow(char* pszText) {
 }
 
 /*--------------------------------------------------------------------------
- * cust_drawOwnerSelection()
- * Draw the selection of an owner draw listbox.
- */
-void cust_drawOwnerSelection(LPDRAWITEMSTRUCT lpdis)
-{
-	RECT		*rp;
-
-	rp = (LPRECT)&lpdis->rcItem;
-	cust_drawOutline(lpdis->hDC,rp->left,rp->top,rp->right-rp->left,rp->bottom-rp->top);
-}
-
-/*--------------------------------------------------------------------------
  * cust_drawComboBoxOwnerDraw()
  */
 int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(), 
@@ -760,7 +743,7 @@ int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
 		HBRUSH hBrush = CreateSolidBrush((lpdis->itemState & ODS_SELECTED) ? pTheme->th_dialogHighlight : pTheme->th_dialogBackground);
 		FillRect(lpdis->hDC, &lpdis->rcItem, hBrush);
 		DeleteObject(hBrush);
-		SetTextColor(lpdis->hDC, lpdis->itemState & ODS_SELECTED ? pTheme->th_dialogHighlightText : pTheme->th_dialogForeground);
+		SetTextColor(lpdis->hDC, (lpdis->itemState & ODS_SELECTED) ? pTheme->th_dialogHighlightText : pTheme->th_dialogForeground);
 		SetBkMode(lpdis->hDC, TRANSPARENT);
 		(*DrawEntireItem)(
 			lpdis->hDC, &lpdis->rcItem, lpdis->itemData,

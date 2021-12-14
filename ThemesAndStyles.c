@@ -1130,10 +1130,6 @@ static LRESULT CALLBACK tabSubclassProc(
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
-static void subclassTabControl(HWND hwnd) {
-	SetWindowSubclass(hwnd, tabSubclassProc, tabSubclassID, 0);
-}
-
 /*
  * Invoked to prepare all child windows for being used under darkmode.
  */

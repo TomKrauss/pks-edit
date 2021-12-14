@@ -160,7 +160,7 @@ extern PASTE* bl_lookupPasteBuffer(char* pszId, int insert, PASTE_LIST_TYPE tTyp
 /*
  * Returns true, if the given ID represents the ID of the default (system) clipboard.
  */
-extern BOOL bl_isDefaultClipboard(char* pszId);
+extern BOOL bl_isDefaultClipboard(const char* pszId);
 
 /*--------------------------------------------------------------------------
  * blcutbl()

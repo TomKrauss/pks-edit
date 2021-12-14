@@ -37,7 +37,7 @@ extern long	_multiplier;
 /*
  * Returns true, if the given ID represents the ID of the default (system) clipboard. 
  */
-BOOL bl_isDefaultClipboard(char* pszId) {
+BOOL bl_isDefaultClipboard(const char* pszId) {
 	return pszId == NULL || *pszId == 0;
 }
 
@@ -345,28 +345,6 @@ EXPORT int bl_writeToFile(char *fn)
 		return ret;
 	}
 	return 0;
-}
-
-/*---------------------------------*/
-/* block_rw()					*/
-/*---------------------------------*/
-EXPORT int block_rw(char *fn,int doread)
-{
-	PASTE *bp = bl_addrbyid(0,0,PLT_CLIPBOARD);
-
-	if (!bp)
-		return 0;
-
-	if (doread) {
-		FILE_READ_OPTIONS fro;
-		memset(&fro, 0, sizeof fro);
-		fro.fro_fileName = fn;
-		fro.fro_useDefaultDocDescriptor = 1;
-		if (bl_readFileIntoPasteBuf(bp, &fro))
-			return 1;
-		return 0;
-	} else
-		return bl_writePasteBufToFile(bp, fn, F_NORMOPEN);
 }
 
 /*---------------------------------

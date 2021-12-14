@@ -97,25 +97,6 @@ int sl_size(WINFO *wp) {
 }
 
 /*------------------------------------------------------------
- * sl_thumb2deltapos()
- */
-long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb)
-{	int bar = (horizontal) ? SB_HORZ : SB_VERT;
-	int  bar_range,bar_pos,dummy;
-	long max;
-	
-	GetScrollRange(wp->ww_handle, bar, &dummy, &bar_range);
-	bar_pos = GetScrollPos(wp->ww_handle, bar);
-
-	max = (horizontal) ? MAXCOL : (FTPOI(wp))->nlines;
-	while(max > 32000) {
-		max >>= 1;
-		bar_pos >>= 1;
-	}
-	return MulDiv((int)max,thumb,bar_range) - bar_pos;
-}
-
-/*------------------------------------------------------------
  * sl_calcnewmin()
  * check valid range for ln or col
  */

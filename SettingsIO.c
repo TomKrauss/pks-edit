@@ -145,19 +145,6 @@ static void GetScreenRatioValues(void)
 	}
 }
 
-/*--------------------------------------------------------------------------
- * prof_adjustpoint()
- */
-EXPORT void prof_adjustpoint(PPOINT pPoint)
-{
-	int		y;
-
-	GetScreenRatioValues();
-	pPoint->x = (long)pPoint->x * _newXScreen / _oldXScreen;
-	y = (long)pPoint->y * _newYScreen / _oldYScreen;
-	pPoint->y = y;
-}
-
 /*------------------------------------------------------------
  * prof_getws()
  * Returns the window settings from the pksedit.ini file.
@@ -220,14 +207,6 @@ int prof_savestring(char *grp, char *ident, char *string)
 {
 	return
 		WritePrivateProfileString(grp,ident,string,_pksEditIniFilename);
-}
-
-/*--------------------------------------------------------------------------
- * prof_killentry()
- */
-int prof_killentry(char *grp, char *ident)
-{
-	return prof_savestring(grp, ident, (char *)0);
 }
 
 /*------------------------------------------------------------
