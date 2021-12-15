@@ -1,4 +1,3 @@
-
 # Markdown Support in PKS-Edit
 
 ## Purpose

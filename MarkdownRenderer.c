@@ -166,26 +166,26 @@ typedef struct tagMDR_ELEMENT_FORMAT {
 #define ATTR_LINE_BREAK 0x20
 
 static MDR_ELEMENT_FORMAT _formatText = {
-	0, PARAGRAPH_OFFSET, DEFAULT_LEFT_MARGIN, 20, 14, FW_NORMAL
+	0, 0, DEFAULT_LEFT_MARGIN, 20, 14, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatFenced = {
-	PARAGRAPH_OFFSET, PARAGRAPH_OFFSET, 20, 20, 14, FW_BOLD, 1
+	0, 0, 20, 20, 14, FW_BOLD, 1
 };
 
 #define BLOCK_QUOTE_INDENT		25
 #define BLOCK_QUOTE_MARGIN		4
 
 static MDR_ELEMENT_FORMAT _formatBlockQuote = {
-	BLOCK_QUOTE_MARGIN, BLOCK_QUOTE_MARGIN, DEFAULT_LEFT_MARGIN+BLOCK_QUOTE_INDENT, 20, 14, FW_NORMAL
+	0, 0, DEFAULT_LEFT_MARGIN+BLOCK_QUOTE_INDENT, 20, 14, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatBlockQuote2 = {
-	BLOCK_QUOTE_MARGIN, BLOCK_QUOTE_MARGIN, DEFAULT_LEFT_MARGIN + (2*BLOCK_QUOTE_INDENT), 20, 14, FW_NORMAL
+	0, 0, DEFAULT_LEFT_MARGIN + (2*BLOCK_QUOTE_INDENT), 20, 14, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatBlockQuote3 = {
-	BLOCK_QUOTE_MARGIN, BLOCK_QUOTE_MARGIN, DEFAULT_LEFT_MARGIN + (3 * BLOCK_QUOTE_INDENT), 20, 14, FW_NORMAL
+	0, 0, DEFAULT_LEFT_MARGIN + (3 * BLOCK_QUOTE_INDENT), 20, 14, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatListLevel1 = {
@@ -201,27 +201,27 @@ static MDR_ELEMENT_FORMAT _formatListLevel3 = {
 };
 
 static MDR_ELEMENT_FORMAT _formatH1 = {
-	20, 14, DEFAULT_LEFT_MARGIN, 20, 28, FW_BOLD
+	PARAGRAPH_OFFSET+5, DEFAULT_LEFT_MARGIN, DEFAULT_LEFT_MARGIN, 20, 28, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH2 = {
-	16, 10, DEFAULT_LEFT_MARGIN, 20, 24, FW_BOLD
+	PARAGRAPH_OFFSET, DEFAULT_LEFT_MARGIN, DEFAULT_LEFT_MARGIN, 20, 24, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH3 = {
-	10, 5, DEFAULT_LEFT_MARGIN, 20, 20, FW_BOLD
+	PARAGRAPH_OFFSET-5, DEFAULT_LEFT_MARGIN, DEFAULT_LEFT_MARGIN, 20, 20, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH4 = {
-	10, 3, DEFAULT_LEFT_MARGIN, 20, 18, FW_BOLD
+	PARAGRAPH_OFFSET/2, 3, DEFAULT_LEFT_MARGIN, 20, 18, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH5 = {
-	10, 3, DEFAULT_LEFT_MARGIN, 20, 16, FW_BOLD
+	PARAGRAPH_OFFSET/3, 3, DEFAULT_LEFT_MARGIN, 20, 16, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH6 = {
-	10, 3, DEFAULT_LEFT_MARGIN, 20, 14, FW_BOLD
+	PARAGRAPH_OFFSET/4, 3, DEFAULT_LEFT_MARGIN, 20, 14, FW_BOLD
 };
 
 typedef struct tagMARKDOWN_RENDERER_DATA {
@@ -293,11 +293,11 @@ static void mdr_paintRule(HDC hdc, int left, int right, int y, int nStrokeWidth)
 }
 
 static void mdr_renderHorizontalRule(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, RECT* pUsed) {
-	mdr_paintRule(hdc, pBounds->left + 10, pBounds->right - 10, pBounds->top + 5, 3);
-	pUsed->top = pBounds->top;
-	pUsed->left = pBounds->left + 10;
-	pUsed->bottom = pBounds->top + 10;
+	pUsed->top = pBounds->top + pPart->rvp_marginTop;
+	pUsed->left = pBounds->left + DEFAULT_LEFT_MARGIN;
+	pUsed->bottom = pUsed->top + DEFAULT_LEFT_MARGIN + pPart->rvp_marginBottom;
 	pUsed->right = pBounds->right - 20;
+	mdr_paintRule(hdc, pUsed->left, pUsed->right, (pUsed->top + pUsed->bottom - 3) / 2, 3);
 	memcpy(&pPart->rvp_bounds, pUsed, sizeof * pUsed);
 }
 
@@ -471,8 +471,8 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 			TextOut(hdc, x, y + nDelta, &pTF->tf_text[nOffs], nFit);
 			if (pPart->rvp_type == MET_BLOCK_QUOTE) {
 				RECT leftRect;
-				leftRect.top = y-pPart->rvp_marginTop-3;
-				leftRect.bottom = y + nHeight + pPart->rvp_marginBottom+3;
+				leftRect.top = y-pPart->rvp_marginTop;
+				leftRect.bottom = y + nHeight + pPart->rvp_marginBottom;
 				leftRect.left = pBounds->left + _formatText.mef_marginLeft;
 				leftRect.right = leftRect.left + 5;
 				for (int i = 0; i < pPart->rvp_level; i++) {
@@ -523,9 +523,9 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 		}
 	}
 	DeleteObject(SelectObject(hdc, hOldFont));
-	pUsed->bottom = y + nHeight + pPart->rvp_marginTop + pPart->rvp_marginBottom;
+	pUsed->bottom = y + nHeight + pPart->rvp_marginBottom;
 	if (pPart->rvp_type == MET_HEADER && pPart->rvp_level < 3) {
-		mdr_paintRule(hdc, pBounds->left + 10, pBounds->right - 10, pUsed->bottom - 15, 1);
+		mdr_paintRule(hdc, pBounds->left + DEFAULT_LEFT_MARGIN, pBounds->right - DEFAULT_LEFT_MARGIN, pUsed->bottom - 2, 1);
 	}
 }
 
@@ -1050,6 +1050,7 @@ static void mdr_parseViewParts(FTABLE* fp, MARKDOWN_RENDERER_DATA* pData) {
 	LINE* lp = fp->firstl;
 	STRING_BUF * pSB = stringbuf_create(256);
 	RENDER_VIEW_PART* pReuse = NULL;
+	int nDelta = 0;
 
 	while (lp) {
 		if (!ln_lineIsEmpty(lp)) {
@@ -1060,9 +1061,13 @@ static void mdr_parseViewParts(FTABLE* fp, MARKDOWN_RENDERER_DATA* pData) {
 			lp = mdr_parseFlow(lp, pPart, pSB);
 			if (pPart->rvp_type == MET_BLOCK_QUOTE && pPart->rvp_flow.tf_text == NULL) {
 				pReuse = pPart;
+			} else {
+				pPart->rvp_marginTop += nDelta;
+				nDelta = 0;
 			}
 		} else {
 			lp = lp->next;
+			nDelta += PARAGRAPH_OFFSET/2;
 		}
 		if (lp == fp->lastl) {
 			break;
@@ -1158,21 +1163,21 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 	FTABLE* fp = FTPOI(wp);
 	GetClientRect(wp->ww_handle, &rect);
 	BOOL bSizeChanged = FALSE;
+	RENDER_VIEW_PART* pPart = pData->md_pElements;
 	if (rect.right != pData->md_lastBounds.right || rect.bottom != pData->md_lastBounds.bottom || wp->minln != pData->md_lastMinLn) {
 		bSizeChanged = TRUE;
 		pData->md_lastMinLn = wp->minln;
 		CopyRect(&pData->md_lastBounds, &rect);
+		while (pPart) {
+			// clear out old existing bounds.
+			memset(&pPart->rvp_bounds, 0, sizeof pPart->rvp_bounds);
+			pPart = pPart->rvp_next;
+		}
 	}
 	// Todo - highlight caret line
 	HBRUSH hBrushCaretLine = CreateSolidBrush(pCtx->rc_theme->th_caretLineColor);
 	if (!pData->md_pElements) {
 		mdr_parseViewParts(fp, pData);
-	}
-	RENDER_VIEW_PART* pPart = pData->md_pElements;
-	while (pPart) {
-		// clear out old existing bounds.
-		memset(&pPart->rvp_bounds, 0, sizeof pPart->rvp_bounds);
-		pPart = pPart->rvp_next;
 	}
 	pPart = mdr_getViewPartForLine(pData->md_pElements, wp->minln);
 	RECT occupiedBounds;
@@ -1181,15 +1186,6 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 	MDR_ELEMENT_TYPE mType = MET_NORMAL;
 	for (; pPart && ((bSizeChanged && rect.top < rect.bottom) || (!bSizeChanged && rect.top < pClip->bottom)); rect.top = occupiedBounds.bottom) {
 		MDR_ELEMENT_TYPE mNextType = pPart->rvp_type;
-		if (mNextType != mType) {
-			if (mType == MET_BLOCK_QUOTE || mType == MET_ORDERED_LIST || mType == MET_UNORDERED_LIST) {
-				rect.top += PARAGRAPH_OFFSET;
-				if (rect.top > rect.bottom) {
-					break;
-				}
-			}
-			mType = mNextType;
-		}
 		pPart->rvp_paint(wp, pPart, pCtx->rc_hdc, &rect, &occupiedBounds);
 		if (occupiedBounds.bottom > rect.bottom) {
 			break;

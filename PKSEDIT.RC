@@ -1503,7 +1503,7 @@ BEGIN
     IDS_MSGNODISKSPACE      "!Kein Platz auf der Festplatte"
     IDS_MSGCLEARBUFFERS     "Sollen alle Ablage- und\nUndo-Zwischenspeicher\ngeleert werden"
     IDS_MSGNOUNDOBLOCK      "Der Undoblock existiert nicht"
-    IDS_MSGOPEN             "!Fehler beim Öffnen von %s"
+    IDS_MSGOPEN             "!Kann Datei %s nicht öffnen. Fehler: %s."
     IDS_MSGNOHELP           "!Keine Hilfe für\ndiese Situation verfügbar"
 END
 
