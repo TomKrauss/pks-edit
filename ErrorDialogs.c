@@ -290,5 +290,18 @@ void error_displayGenericErrorNumber(int num)
  */
 void error_openingFileFailed(char *fn, int fd)
 {
-	error_showErrorById(IDS_MSGOPEN,(LPSTR)string_abbreviateFileName(fn));
+	DWORD dw = GetLastError();
+	LPVOID lpMsgBuf;
+
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM |
+		FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		dw,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf,
+		0, NULL);
+	error_showErrorById(IDS_MSGOPEN,(LPSTR)string_abbreviateFileName(fn), lpMsgBuf);
+	LocalFree(lpMsgBuf);
 }

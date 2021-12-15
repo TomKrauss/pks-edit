@@ -904,7 +904,6 @@ BEGIN
     DLGINFOFILE, DIALOG
     BEGIN
         RIGHTMARGIN, 357
-        BOTTOMMARGIN, 263
     END
 
     DLGPREVIEW, DIALOG
@@ -1513,7 +1512,7 @@ BEGIN
     IDS_MSGNODISKSPACE      "!No space left on the device"
     IDS_MSGCLEARBUFFERS     "Do you want to empty all clipboard-\nand undo-buffers"
     IDS_MSGNOUNDOBLOCK      "The undo-buffer is not defined"
-    IDS_MSGOPEN             "!Error opening %s"
+    IDS_MSGOPEN             "!Cannot open %s. Error was %s"
     IDS_MSGNOHELP           "!No help for this context available"
 END
 

@@ -42,13 +42,15 @@
 static struct tagSEARCH_CONTEXT {
 	FILE* sc_file;
 	FTABLE* sc_ftable;
+	int sc_openFailures;
 	char* sc_fileName;
 	long  sc_line;
+	BOOL sc_ignoreBinary;
 	size_t sc_matches;
 	size_t sc_files;
 } _searchContext;
 
-static int 	 _abortOnFirstMatch,_trymatch,_ignoreBinary;
+static int 	 _abortOnFirstMatch,_trymatch;
 
 static const char* _grepFileFormat = "\"%s\", line %ld: %s";
 
@@ -234,10 +236,11 @@ static int find_inFile(intptr_t p1, void* pUnused) {
 	_searchContext.sc_line = 0L;
 
 	if ((fd = file_openFile(pszFile)) <= 0) {
-		return 0;
+		_searchContext.sc_openFailures++;
+		return 1;
 	}
 
-	if (!_ignoreBinary || !scan_isBinaryFile(fd)) {
+	if (!_searchContext.sc_ignoreBinary || !scan_isBinaryFile(fd)) {
 		size_t nOldFound = _searchContext.sc_matches;
 		progress_showMonitorMessage(string_abbreviateFileName(pszFile));
 		if (!_trymatch) {
@@ -333,7 +336,7 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 
 	_abortOnFirstMatch = (nOptions & RE_SEARCH_ONCE) || fAction == FIF_REPLACE;
 	memset(&_searchContext, 0, sizeof _searchContext);
-	_ignoreBinary = nOptions & RE_IGNORE_BINARY;
+	_searchContext.sc_ignoreBinary = nOptions & RE_IGNORE_BINARY;
 	string_concatPathAndFilename(stepfile, config_getPKSEditTempPath(), "pksedit.grep");
 	hist_saveString(FILE_PATTERNS, pFilenamePattern);
 
@@ -378,6 +381,9 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 					pFilenamePattern, NORMALFILE | ARCHIV | WPROTECT) == 1) break;
 			} while ((path = strtok((char*)0, ",;")) != 0);
 		}
+	}
+	if (_searchContext.sc_openFailures) {
+		fprintf(_searchContext.sc_file, "Could not open %ld files during scan because of opening errors.\n", (long)_searchContext.sc_openFailures);
 	}
 	fprintf(_searchContext.sc_file, "Found %ld matches in %ld files", (long)_searchContext.sc_matches, (long)_searchContext.sc_files);
 	fclose(_searchContext.sc_file);

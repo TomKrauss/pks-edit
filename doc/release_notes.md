@@ -40,6 +40,7 @@ This file contains the release notes for the latest **PKS Edit** releases.
   file buffer list.
 - templates defined in the grammar may now explicitly marked with `auto-insert=true` to have the template define an abbreviation, inserted
   during editing without opening the code-completion window.
+- Search in files can now handle pathes longer than 260 characters and will not abort the search, when a file along the way cannot be opened.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 

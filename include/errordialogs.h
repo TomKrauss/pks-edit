@@ -15,12 +15,10 @@
 
 #ifndef ERRORDIALOGS_H
 
-#include <windows.h>
- 
- /*------------------------------------------------------------
-  * error_displayAlertDialog()
-  * Display an alert dialog box.
-  */
+/*------------------------------------------------------------
+ * error_displayAlertDialog()
+ * Display an alert dialog box.
+ */
 extern void error_displayAlertDialog(const char* fmt, ...);
 
 /*------------------------------------------------------------
