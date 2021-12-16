@@ -102,7 +102,7 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_FLAG, "smartSpaceDelete", offsetof(EDIT_CONFIGURATION, workmode), WM_DELETE_MULTIPLE_SPACES},
 	{	RT_CHAR_ARRAY, "statuslineFormat", offsetof(EDIT_CONFIGURATION, statusline), sizeof(((EDIT_CONFIGURATION*)NULL)->statusline)},
 	{	RT_CHAR, "tabCharacter", offsetof(EDIT_CONFIGURATION, tabDisplayFillCharacter)},
-	{	RT_CHAR, "fillCharacter", offsetof(EDIT_CONFIGURATION, fillc)},
+	{	RT_CHAR, "fillCharacter", offsetof(EDIT_CONFIGURATION, expandTabsWith)},
 	{	RT_CHAR, "newlineCharacter", offsetof(EDIT_CONFIGURATION, nl)},
 	{	RT_CHAR, "alternateNewlineCharacter", offsetof(EDIT_CONFIGURATION, nl2)},
 	{	RT_CHAR, "crCharacter", offsetof(EDIT_CONFIGURATION, cr)},

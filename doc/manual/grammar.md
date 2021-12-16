@@ -42,6 +42,8 @@ The following variables are supported:
 - `${user}` - name of the current logged in user
 - `${date}` - the current date (by default in format dd.mm.yyyy)
 - `${year}` - the current year (e.g. 2021)
+- `${indent}` - insert the number of spaces matching the indent of the line from which the template is inserted
+- `${tab}` - insert the number of spaces to fill up one tab position.
 - `${cursor}` - after inserting the template, place the cursor here
 - `${file_name}` - base name of the current file
 - `${selection_end}` - used in combination with ${cursor} to select a range of text after inserting the template.

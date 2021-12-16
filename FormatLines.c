@@ -109,7 +109,8 @@ static BOOL format_startsParagraphInTextFiles(FORMATTER* pFormatter, LINE* lp) {
 static void format_textLine(FORMATTER* pFormatter, WINFO* wp, STRING_BUF* pBuffer, FORMATTING_ALIGNMENT nAlignment) {
 	size_t nSize = stringbuf_size(pBuffer);
 	char* pBuf = stringbuf_getString(pBuffer);
-	while (nSize > 0 && pBuf[nSize - 1] == ' ') {
+	char chSpace = ft_getSpaceFillCharacter(wp);
+	while (nSize > 0 && pBuf[nSize - 1] == chSpace) {
 		nSize--;
 	}
 	stringbuf_truncate(pBuffer, nSize);
@@ -128,7 +129,7 @@ static void format_textLine(FORMATTER* pFormatter, WINFO* wp, STRING_BUF* pBuffe
 			int nOldDelta = nDelta;
 			for (int i = nStart; i < nSize; i++) {
 				if (pFormatter->f_maySplitAt(pFormatter, pBuf, i)) {
-					stringbuf_insertChar(pBuffer, i, ' ');
+					stringbuf_insertChar(pBuffer, i, chSpace);
 					i++;
 					if (--nDelta <= 0) {
 						return;
@@ -142,7 +143,16 @@ static void format_textLine(FORMATTER* pFormatter, WINFO* wp, STRING_BUF* pBuffe
 		return;
 	}
 	for (int i = 0; i < nInsertFront; i++) {
-		stringbuf_insertChar(pBuffer, 0, ' ');
+		stringbuf_insertChar(pBuffer, 0, chSpace);
+	}
+	FTABLE* fp = wp->fp;
+	if (fp->documentDescriptor->expandTabsWith == 0) {
+		long nt;
+		int nLen = ft_compressSpacesToTabs(wp, _linebuf, LINEBUFSIZE, stringbuf_getString(pBuffer), stringbuf_size(pBuffer), &nt);
+		if (nt) {
+			stringbuf_reset(pBuffer);
+			stringbuf_appendStringLength(pBuffer, _linebuf, (size_t)nLen);
+		}
 	}
 }
 
@@ -172,6 +182,7 @@ static LINE* ft_formatInto(FORMATTER* pFormatter, WINFO* wp, LINE* lp, LINE* lpl
 	STRING_BUF* sb = stringbuf_create(128);
 	BOOL bStartOfParagraph = TRUE;
 
+	char chSpace = ft_getSpaceFillCharacter(wp);
 	while (lp) {
 		if (lp == lplast) {
 			break;
@@ -191,11 +202,11 @@ static LINE* ft_formatInto(FORMATTER* pFormatter, WINFO* wp, LINE* lp, LINE* lpl
 					nCurrentLineOffset = nIndent;
 				} else {
 					for (int nCol = 0; nCol < nCurrentScreenIndent; nCol++) {
-						stringbuf_appendChar(sb, ' ');
+						stringbuf_appendChar(sb, chSpace);
 					}
 					while (nCurrentLineOffset < lp->len) {
 						char c = lp->lbuf[nCurrentLineOffset];
-						if (c != ' ' && c != '\t') {
+						if (c != chSpace && c != '\t') {
 							break;
 						}
 						nCurrentLineOffset++;
@@ -218,7 +229,14 @@ static LINE* ft_formatInto(FORMATTER* pFormatter, WINFO* wp, LINE* lp, LINE* lpl
 				nLastWrappingPos = 0;
 			} else {
 				char c = lp->lbuf[nCurrentLineOffset];
-				if (c != ' ' || stringbuf_lastChar(sb) != ' ') {
+				if (c == '\t') {
+					c = chSpace;
+				}
+				char lastC = stringbuf_lastChar(sb);
+				if (lastC == '\t') {
+					lastC = ' ';
+				}
+				if (c != chSpace || lastC != chSpace) {
 					stringbuf_appendChar(sb, c);
 				}
 			}
@@ -249,6 +267,13 @@ static LINE* ft_formatInto(FORMATTER* pFormatter, WINFO* wp, LINE* lp, LINE* lpl
 	return lpDest;
 }
 
+/*
+ * Get the formatter for the given view.
+ */
+static FORMATTER* format_getFormatter(WINFO* wp) {
+	return &_asciiFormatter;
+}
+
 /*---------------------------------
  * ft_formatText()	
  * Format the text in the current file.
@@ -258,7 +283,7 @@ int ft_formatText(WINFO* wp, int nRange, FORMATTING_ALIGNMENT nAlignment) {
 	LINE* lplast = fp->lastl;
 	LINE* lp;
 	long ln = wp->caret.ln;
-	FORMATTER* pFormatter = &_asciiFormatter;
+	FORMATTER* pFormatter = format_getFormatter(wp);
 	/* watch also previous lines */
 	if (nRange == RNG_LINE || nRange == RNG_CHAPTER || nRange == RNG_FROMCURS) {
 		lp = wp->caret.linePointer;
@@ -294,3 +319,16 @@ int ft_formatText(WINFO* wp, int nRange, FORMATTING_ALIGNMENT nAlignment) {
 	return FALSE;
 }
 
+/*
+ * Calculates the screen indentation assumed for the line passed as an argument, that is the number of
+ * column positions to be empty in a line inserted after the line passed as an argument.
+ */
+int format_calculateScreenIndent(WINFO* wp, LINE* lp) {
+	FORMATTER* pFormatter = format_getFormatter(wp);
+
+	int nIndent = pFormatter->f_calculateIndent(pFormatter, wp, lp->lbuf, lp->len);
+	return caret_lineOffset2screen(wp, &(CARET) {
+		.linePointer = lp,
+			.offset = nIndent
+	});
+}

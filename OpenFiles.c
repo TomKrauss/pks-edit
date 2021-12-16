@@ -100,8 +100,9 @@ FTABLE* ft_getCurrentErrorDocument() {
  * Append the external changes of a file to the passed file in
  * tail -f mode.
  */
-static int ft_appendFileChanges(FTABLE* fp) {
+static int ft_appendFileChanges(WINFO* wp) {
 	int fd;
+	FTABLE* fp = wp->fp;
 	if ((fd = file_openFile(fp->fname)) < 0) {
 		return 0;
 	}
@@ -118,7 +119,7 @@ static int ft_appendFileChanges(FTABLE* fp) {
 	fp->fileSize = ftAppend.fileSize;
 	LINE* lpd = fp->lastl;
 	int oldFlags = fp->flags;
-	int ret = ln_pasteLines(fp, ftAppend.firstl, ftAppend.lastl, lpd, 0, 0);
+	int ret = ln_pasteLines(wp, ftAppend.firstl, ftAppend.lastl, lpd, 0, 0);
 	int nLines = ln_cnt(ftAppend.firstl, ftAppend.lastl)-1;
 	LINE* lpPrevious = ln_relative(fp->lastl, -nLines);
 	if (lpPrevious) {
@@ -163,7 +164,7 @@ void ft_checkForChangedFiles(BOOL bActive) {
 				int maxcol = wp->maxcol;
 				BOOL bLogMode = fp->flags & F_WATCH_LOGFILE;
 				if (bLogMode) {
-					if (fp->fileSize < APPEND_THRESHOLD_SIZE || !ft_appendFileChanges(fp)) {
+					if (fp->fileSize < APPEND_THRESHOLD_SIZE || !ft_appendFileChanges(wp)) {
 						ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
 						fp->flags |= F_WATCH_LOGFILE;
 						// may make the list of files invalid.

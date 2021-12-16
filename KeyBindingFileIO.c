@@ -104,7 +104,7 @@ char *macro_getTextInQuotes(char *d,char *s,int maxlen)
  * Expand a code template optionally containing ${....} references and return
  * the expanded text.
  */
-static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction, unsigned char* pszSelected, unsigned char* pszSource) {
+static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction, int nIndent, unsigned char* pszSelected, unsigned char* pszSource) {
 	size_t nInitialSize = strlen(pszSource);
 	STRING_BUF* pResult = stringbuf_create(nInitialSize);
 	unsigned char* pVar = NULL;
@@ -113,6 +113,7 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction
 	unsigned char c;
 	long col = 0;
 	long ln = 0;
+	char chSpace = ft_getSpaceFillCharacter(wp);
 
 	while ((c = *pszSource++) != 0) {
 		if (pVar) {
@@ -123,6 +124,15 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction
 					pTAction->ta_cursorDeltaLn = ln;
 					pTAction->ta_positionCursor = TRUE;
 					expandedVariable[0] = 0;
+				} else if (strcmp("indent", variable) == 0) {
+					for (int i = 0; i < nIndent; i++) {
+						stringbuf_appendChar(pResult, chSpace);
+					}
+				} else if (strcmp("tab", variable) == 0) {
+					FTABLE* fp = wp->fp;
+					for (int i = 0; i < fp->documentDescriptor->tabsize; i++) {
+						stringbuf_appendChar(pResult, chSpace);
+					}
 				} else if (strcmp("selection_end", variable) == 0) {
 					pTAction->ta_selectionDeltaCol = col - pTAction->ta_cursorDeltaCol;
 					pTAction->ta_selectionDeltaLn = ln - pTAction->ta_cursorDeltaLn;
@@ -187,7 +197,8 @@ int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
 	int ret = 0;
 	memset(&templateAction, 0, sizeof templateAction);
 	xref_getSelectedIdentifier(szIdentifier, sizeof szIdentifier);
-	STRING_BUF* pSB = macro_expandCodeTemplate(wp, &templateAction, szIdentifier, up->p.uc_template);
+	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
+	STRING_BUF* pSB = macro_expandCodeTemplate(wp, &templateAction, nIndent, szIdentifier, up->p.uc_template);
 	PASTE pasteBuffer;
 	memset(&pasteBuffer, 0, sizeof pasteBuffer);
 	unsigned char* pszText = stringbuf_getString(pSB);

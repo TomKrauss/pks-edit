@@ -1280,7 +1280,7 @@ int dlg_configureEditorModes(void) {
 	lstrcpy(creationMacroName, linp->creationMacroName);
 	lstrcpy(cm, linp->closingMacroName);
 	workmode = linp->workmode;
-	tabfill = linp->fillc;
+	tabfill = linp->expandTabsWith;
 	fileflag = fp->flags;
 
 	dlg_setXDialogParams(_getDialogParsForPage, TRUE);
@@ -1335,7 +1335,7 @@ int dlg_configureEditorModes(void) {
 	lstrcpy(linp->creationMacroName, creationMacroName);
 	lstrcpy(linp->closingMacroName, cm);
 	linp->workmode = workmode;
-	linp->fillc = tabfill;
+	linp->expandTabsWith = tabfill;
 	fp->flags = fileflag;
 	linp->workmode = (linp->workmode & (~O_CRYPTED)) | crypt;
 	lstrcpy(linp->backupExtension, backupExtension);

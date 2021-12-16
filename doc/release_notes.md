@@ -3,7 +3,6 @@
 This file contains the release notes for the latest **PKS Edit** releases.
 
 --- 
-
 ### 2.1.0
 
 #### New
@@ -19,7 +18,7 @@ This file contains the release notes for the latest **PKS Edit** releases.
   correctly supported, but planned for later releases. PKS Edit will now by default open binary files in hex editor mode.
 - PKS Edit supports a `wysiwyg mode` for markdown files now, which allows a preview of markdown formatted files (.md - format).
   The best way to use this mode is to clone the window of a .md-file and set the cloned window to wysiwyg mode (Editor Settings->Wysiwyg Display).
-- The new **Watch Log File** mode can be used to edit log files and have them update their view and scroll to the end, when new log entries
+- The new `Watch Log File` mode can be used to edit log files and have them update their view and scroll to the end, when new log entries
   are added (seee Linux `tail -f`). In this mode editing the file is not possible - it is read-only in this case to avoid concurrent external
   and internal changes.
 - One can now move the current selection (or - if no selection exists - current line) up and down using Alt+UP and Alt+DOWN respectively.
@@ -33,14 +32,12 @@ This file contains the release notes for the latest **PKS Edit** releases.
 - PKS Edit supports now autosaving the file directly rather than autosaving a temporary file
 - PKS Edit Help is now provided by displaying the manual written in markdown format. The old Windows Help file, which was
 - updated had been removed.
-- PKS-Edit will now auto-detect codepages when opening documents. Although it still has not double byte character support, 
+- PKS-Edit will now **auto-detect codepages** when opening documents. Although it still has not double byte character support, 
   document e.g. written in UTF-8 format are now correctly converted upon reading to ISO-8859-1 encoding (standard encoding handled by PKS-Edit). 
   Files are also saved in the encoding in which the were read. One can select the desired encoding when opening files (or let PKS-Edit auto-detect
   the encoding) and may select a different encoding when saving files using "Save As". One may inspect the current encoding of a file in the 
   file buffer list.
-- templates defined in the grammar may now explicitly marked with `auto-insert=true` to have the template define an abbreviation, inserted
-  during editing without opening the code-completion window.
-- Search in files can now handle pathes longer than 260 characters and will not abort the search, when a file along the way cannot be opened.
+- Search in files can now handle **pathes longer than 260 characters** and will not abort the search, when a file along the way cannot be opened.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
@@ -69,6 +66,9 @@ This file contains the release notes for the latest **PKS Edit** releases.
       the mouse will result always in complete lines being selected.
   - "Preserve Caret Column" can be switched off to have the caret not preserve its column position when moving vertically through a window
 - Code completion is available now, when editing key and mouse bindings in PKS Edit.
+- templates defined in the grammar may now explicitly marked with `auto-insert=true` to have the template define an abbreviation, inserted
+  during editing without opening the code-completion window. The two new template variables `${tab}` and `${indent}` were added to allow
+  for proper indenting in the code generated. See the [grammar](manual/grammar.md) documentation for details.
 
 ### Changed
 - Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather
@@ -97,9 +97,9 @@ This file contains the release notes for the latest **PKS Edit** releases.
 - PKS Edit supports now selecting the UI theme (preview version only) and the current language from the settings dialog.
   Note, that updating the language will not be reflected before PKS Edit is restarted. Currently two languages are available: English and German.
 - PKS Edit has a couple of new supported conversion operations (accessible through the new Functions->Convert menu):
--- convert line ends to LINUX (\n) style
--- convert line ends to Windows (\r\n) style
--- convert upper case to lower case, lower case to upper case, toggle case. The current character under the cursor is converted or - if a text selection
+  - convert line ends to LINUX (\n) style
+  - convert line ends to Windows (\r\n) style
+  - convert upper case to lower case, lower case to upper case, toggle case. The current character under the cursor is converted or - if a text selection
    exists, the selected text is converted.
 
 #### Changed
@@ -174,15 +174,15 @@ This file contains the release notes for the latest **PKS Edit** releases.
 #### New
 - PKS Edit can now be installed using an InnoSetup based installer.
 - Regular Expressions in PKS Edit were improved and support now in addition to the old simple UNIX 3 style regular expressions:
--- (?:...) non - capturing groups
--- {...}?, +?, *? - lazy quantifiers
--- \s - to match whitespaces
--- \S - to match non-whitespaces
--- \w - to match PKS Edit identifiers.
--- \d - to match digits
+  - `(?:...)` non - capturing groups
+  - `{...}?`, `+?`, `*?` - lazy quantifiers
+  - `\s` - to match whitespaces
+  - `\S` - to match non-whitespaces
+  - `\w` - to match PKS Edit identifiers.
+  - `\d`- to match digits
 - PKS Edit supports now the definition of grammars for languages of text edited with PKS edit for the purpose
   of syntax highlighting and folding (not yet fully implemented).
-- The configuration of document types is now placed in a more modern JSON format file (pks_sys\pksconfig.json) and
+- The configuration of document types is now placed in a more modern JSON format file (`pks_sys\pksconfig.json`) and
   is not any longer in a non editable binary set of .lin-files. Changes to the editor configuration are always
   persisted right away in the corresponding config file.
 - A new option `Ignore Binary Files` was added to the find in files dialog, allowing to easily exclude

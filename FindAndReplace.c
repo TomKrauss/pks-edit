@@ -443,29 +443,100 @@ long ft_countlinesStartingFromDirection(FTABLE* fp, long start, int dir) {
 	return (nl);
 }
 
+/*
+ * Returns the character used to fill "spaces" (inserted instead of a tab character) - typically ' '. 
+ */
+char ft_getSpaceFillCharacter(WINFO* wp) {
+	FTABLE* fp = wp->fp;
+	char chSpace = fp->documentDescriptor->expandTabsWith;
+	if (!chSpace) {
+		chSpace = ' ';
+	}
+	return chSpace;
+}
+
 /*--------------------------------------------------------------------------
  * ft_expandTabsWithSpaces()
- * Expand tabs and replace with spaces.
+ * Expand tabs in a given source buffer with a source len and replace with spaces and write
+ * the result to a destination buffer. Return the result size of the destination buffer or -1
+ * on failure.
  */
-int ft_expandTabsWithSpaces(LINE *lp, long *nt)
-{	unsigned char *d    = _linebuf,
-			    *dend = &_linebuf[LINEBUFSIZE],c;
-	unsigned char *s    = lp->lbuf,
-			    *send = &lp->lbuf[lp->len];
+int ft_expandTabsWithSpaces(WINFO* wp, char* pszDest, size_t nDestLen, const char* pszSource, size_t nSourceLen, long *nt)
+{	unsigned char *d    = pszDest,
+			    *dend = &pszDest[nDestLen],c;
+	const char *s  = pszSource, *send = &pszSource[nSourceLen];
 	int col;
 
-	WINFO* wp = ww_getCurrentEditorWindow();
-	while(s < send && d < dend) {
+	char chSpace = ft_getSpaceFillCharacter(wp);
+	while(s < send) {
+		if (d >= dend) {
+			return -1;
+		}
 		if ((c = *s++) == '\t') {
 			col = (int)(d - _linebuf);
 			col = indent_calculateNextTabStop(col, &wp->indentation) - col;
-			memset(d,' ', col);
+			memset(d,chSpace, col);
 			(*nt)++;
 			d += col;
 		} else
 			*d++ = c;
 	}
 	return (int)(d-_linebuf);
+}
+
+/*
+ * Try to "optimize" spaces with tab characters in a given string. Return the number of tabs inserted as a replacement
+ * for the corresponding spaces in nt and the total len of the resulting buffer as a return value.
+ */
+int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const char* pszSource, size_t nSourceLen, long* nt) {
+	const char* s = pszSource;
+	char* pszDestStart = pszDest;
+	const char* pszEnd = &s[nSourceLen];
+	const char* pszFound;
+	const char* pszSpaceStart = NULL;
+	int    col, tab;
+
+	s = pszSource;
+	col = 0;
+	tab = -1;
+	FTABLE* fp = wp->fp;
+	char chSpace = ft_getSpaceFillCharacter(wp);
+	while (s < pszEnd) {
+		if (tab < 0) {
+			tab = indent_calculateNextTabStop(col, &wp->indentation);
+		}
+		pszFound = NULL;
+		char c = *s++;
+		if (c == chSpace) {
+			col++;
+			if (pszSpaceStart == NULL) {
+				pszSpaceStart = s - 1;
+			}
+			if (col == tab) {
+				if (s > pszSpaceStart + 1) {
+					*pszDest++ = '\t';
+					(*nt)++;
+				} else {
+					*pszDest++ = chSpace;
+				}
+				pszSpaceStart = NULL;
+				tab = -1;
+			}
+			continue;
+		} else if (c == '\t') {
+			tab = -1;
+		} else {
+			col++;
+		}
+		if (pszSpaceStart) {
+			while (pszSpaceStart < s-1) {
+				*pszDest++ = *pszSpaceStart++;
+			}
+		}
+		*pszDest++ = c;
+		pszSpaceStart = NULL;
+	}
+	return (int)(pszDest - pszDestStart);
 }
 
 /*--------------------------------------------------------------------------
@@ -475,7 +546,7 @@ static LINE *edit_expandTabsInLineWithSpaces(WINFO *wp, LINE *lp,long *nt)
 {	long t = 0;
 	int  size;
 
-	size = ft_expandTabsWithSpaces(lp,&t);
+	size = ft_expandTabsWithSpaces(wp, _linebuf, LINEBUFSIZE, lp->lbuf, lp->len, &t);
 	if (t) {
 		*nt += t;
 		if ((lp = ln_modify(wp->fp,lp,lp->len,size)) == 0L)
@@ -498,52 +569,19 @@ LINE *find_expandTabsInFormattedLines(WINFO *wp, LINE *lp)
 }
 
 /*--------------------------------------------------------------------------
- * compline()
+ * edit_compactLineSpacingWithTabs()
  */
 static LINE *edit_compactLineSpacingWithTabs(WINFO *wp, LINE *lp,long *nt)
-{	char   *s;
-	int    i,col,tab,start,foundpos,n2,ntabs;
+{
+	long ntabs;
 
-	s = lp->lbuf, i = 0, col = 0; 
-	while (i < lp->len) {
-		ntabs = 0;
-		tab = indent_calculateTabStop(col,&wp->indentation);
-		start = i;
-		while(i < lp->len) {
-			if (*s == '\t') {
-				col = tab;
-			} else if (*s == ' ') {
-				col++;
-			} else {
-				break;
-			}
-			s++, i++;
-			if (col == tab) {
-				foundpos = i;
-				ntabs++;
-				tab = indent_calculateTabStop(col, &wp->indentation);
-			}
+	int nSize = ft_compressSpacesToTabs(wp, _linebuf, LINEBUFSIZE, lp->lbuf, lp->len, &ntabs);
+	if (ntabs > 0) {
+		if ((lp = ln_modify(wp->fp, lp, lp->len, nSize)) == 0L) {
+			return 0;
 		}
-
-		/* we crossed a tab position */
-		if (ntabs > 0) {
-			/* worth compressing ? */
-			n2 = foundpos-start-ntabs;
-			if (n2 > 0) {
-				if ((lp = ln_modify(wp->fp,lp,foundpos,start+ntabs)) == 0L) 
-					return 0;
-				memset(&lp->lbuf[start],'\t',ntabs);
-				(*nt) += ntabs;
-				i -= n2;
-				s = lp->lbuf+i;
-			}
-		}
-		
-		start = i;
-		while(i < lp->len && *s != '\t' && *s != ' ') {
-			s++,i++;
-		}
-		col += (i-start);
+		memcpy(lp->lbuf, _linebuf, nSize);
+		render_repaintLine(wp->fp, lp);
 	}
 	return lp;
 }

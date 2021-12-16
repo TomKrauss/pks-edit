@@ -10,7 +10,7 @@
         },
         {
           "match": "constructor(",
-          "contents": "${cursor}props) {\n    super(props);\n  }\n",
+          "contents": "${cursor}props) {\n${indent}${tab}super(props);\n${indent}}\n",
           "auto-insert": true
         },
         {

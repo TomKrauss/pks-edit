@@ -140,27 +140,28 @@ typedef struct tagGRAMMAR GRAMMAR;
 
 typedef struct tagEDIT_CONFIGURATION {
 	struct tagEDIT_CONFIGURATION* next;
-	unsigned char	name[16];		/* configuration name */
-	GRAMMAR*		grammar;			// the grammar itself.
-	int				id;					/* # ID for context check */
-	int				lmargin, rmargin;
-	int				tabsize, shiftwidth;
-	int				nl, nl2, cr;		/* Lineends */
+	unsigned char	name[16];				// configuration name
+	GRAMMAR*		grammar;				// the grammar itself.
+	int				id;						// # ID currently not really used.
+	int				lmargin, rmargin;		// left and right margins (used e.g. for wrapping and formatting text).
+	int				tabsize;				// number of columns for the tab character
+	int				shiftwidth;				// Number of character positions to shift a text in a shift operation
+	int				nl, nl2, cr;			// Lineends 
 	int				dispmode;				// show control...
 	int				workmode;				// watch brackets, abbrev... 
 	long			codepage;				// the code page for the encoding.
-	char			tabDisplayFillCharacter;					// Display tabs filled with this.
-	char			fillc;				// when inserting a tabulator - replace with this (fill character)
-	int				tabulatorSizes[32];	/* arbitrary tab stops - allowing us to have have tabs at positions 2, 5, 9, 15, ...*/
-	unsigned char	statusline[60];	/* the special status */
-	char			backupExtension[10];	/* Backup extension */
-	unsigned char	creationMacroName[24];	/* "Vorlage" Makro on creation */
-	unsigned char	closingMacroName[24];	/* makro to execute before closing */
-	int				scrollflags;		/* thumbtrack.. */
-	int				cursaftersearch;	/* CP_POSTOP, CP_POSLOW, ... */
-	int				hscroll;			/* scroll n columns */
-	int				vscroll;			/* scroll n Lines */
-	int				scroll_dy;			/* scroll on dist dy to screen */
+	char			tabDisplayFillCharacter;// Display tabs filled with this.
+	char			expandTabsWith;			// when inserting a tabulator - replace with this (fill character). If 0 - tabs are not expanded.
+	int				tabulatorSizes[32];		// arbitrary tab stops - allowing us to have have tabs at positions 2, 5, 9, 15, ...
+	unsigned char	statusline[60];			// the special status
+	char			backupExtension[10];	// Backup extension
+	unsigned char	creationMacroName[24];	// Makro to run on document creation
+	unsigned char	closingMacroName[24];	// makro to run before closing
+	int				scrollflags;			// thumbtrack.. 
+	int				cursaftersearch;		// CP_POSTOP, CP_POSLOW, ...
+	int				hscroll;				// scroll n columns
+	int				vscroll;				// scroll n Lines
+	int				scroll_dy;				// scroll on dist dy to screen
 } EDIT_CONFIGURATION;
 
 /*--------------------------------------------------------------------------
@@ -351,13 +352,6 @@ extern FTABLE* ft_openFileWithoutFileselector(char* fn, long line, FT_OPEN_OPTIO
 extern FTABLE* ft_openBackupfile(FTABLE* fp);
 
 /*---------------------------------
- * ln_addFlag()
- *
- * Add a flag to all lines between lpstart and lpend.
- */
-extern void ln_addFlag(LINE* lpstart, LINE* lpend, int flg);
-
-/*---------------------------------
  * ln_changeFlag()
  *
  * Add / remove flags from multiple lines - all lines having an expected flag
@@ -512,11 +506,23 @@ extern int ft_editing(char* fn);
 int ft_sortFile(FTABLE* fp, int scope, char* fs, char* keys, char* sel, int sortflags);
 
 /*--------------------------------------------------------------------------
- * ft_expandTabsWithSpaces()
- * Expand tabs and replace with spaces.
- * Return the number of expanded tabs.
+ * Expand tabs in a given source buffer with a source len and replace with spaces and write
+ * the result to a destination buffer. Return the result size of the destination buffer or -1
+ * on failure and the number of the tabs expanded in pTabs.
  */
-extern int ft_expandTabsWithSpaces(LINE* lp, long* nt);
+extern int ft_expandTabsWithSpaces(WINFO* wp, char* pszDest, size_t nDestLen, const char* pszSource, size_t nSourceLen, long* pTabs);
+
+/*
+ * Try to "optimize" spaces with tab characters in a given string (reverse operation to ft_expandTabsWithSpaces). 
+ * Return the number of tabs inserted as a replacement for the corresponding spaces in pTabs and the total len 
+ * of the resulting buffer as a return value.
+ */
+extern int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const char* pszSource, size_t nSourceLen, long* pTabs);
+
+/*
+ * Returns the character used to fill "spaces" (inserted instead of a tab character) - typically ' '.
+ */
+extern char ft_getSpaceFillCharacter(WINFO* wp);
 
 /*------------------------------------------------------------
  * ft_bufdestroy().
@@ -585,7 +591,7 @@ extern int ln_countLeadingSpaces(LINE* lp);
  * Paste a list of lines into a target line with a target offset column.
  * if bExpandTabs is 1, tabs are expanded by spaces along the way.
  */
-extern int ln_pasteLines(FTABLE* fp, LINE* lps, const LINE* lpLast, LINE* lpd, int col, int bExpandTabs);
+extern int ln_pasteLines(WINFO* wp, LINE* lps, const LINE* lpLast, LINE* lpd, int col, int bExpandTabs);
 
 /*--------------------------------------------------------------------------
  * ln_lineIsEmpty()
@@ -754,6 +760,12 @@ extern void ft_connectViewWithFT(FTABLE* fp, WINFO* wp);
  * Checks, whether the given window is a view of the file
  */
 extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
+
+/*
+ * Calculates the screen indentation assumed for the line passed as an argument, that is the number of
+ * column positions to be empty in a line inserted after the line passed as an argument.
+ */
+extern int format_calculateScreenIndent(WINFO* wp, LINE* lp);
 
 /*-------- FILE FLAGS ----------*/
 

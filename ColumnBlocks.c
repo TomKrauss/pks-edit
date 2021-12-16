@@ -116,13 +116,13 @@ EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int free
  * Paste a line at a given destination line and column into a file.
  * Return the new line, which is created as a result.
  */
-LINE *ln_pasteLine(FTABLE *fp, LINE *lpd, LINE *lps, int col, int bExpandTabs) {	
+LINE *ln_pasteLine(WINFO *wp, LINE *lpd, LINE *lps, int col, int bExpandTabs) {	
 	int  oldsize;
 	int  newsize;
 	long nt;
 
 	if (bExpandTabs) {
-		if ((oldsize = ft_expandTabsWithSpaces(lpd,&nt)) < 0)
+		if ((oldsize = ft_expandTabsWithSpaces(wp, _linebuf, LINEBUFSIZE, lpd->lbuf, lpd->len, &nt)) < 0)
 			return 0;
 	} else {
 		oldsize = lpd->len;
@@ -130,7 +130,7 @@ LINE *ln_pasteLine(FTABLE *fp, LINE *lpd, LINE *lps, int col, int bExpandTabs) {
 	}
 
 	newsize = ((col > oldsize) ? col : oldsize) + lps->len;
-
+	FTABLE* fp = wp->fp;
 	if ((lpd = ln_modify(fp,lpd,lpd->len,newsize)) == (LINE *) 0)
 		return 0;
 
@@ -152,8 +152,9 @@ LINE *ln_pasteLine(FTABLE *fp, LINE *lpd, LINE *lps, int col, int bExpandTabs) {
  * Paste a list of lines into a target line with a target offset column.
  * if bExpandTabs is 1, tabs are expanded by spaces along the way.
  */
-int ln_pasteLines(FTABLE* fp, LINE* lps, const LINE* lpLast, LINE* lpd, int col, int bExpandTabs) {
+int ln_pasteLines(WINFO* wp, LINE* lps, const LINE* lpLast, LINE* lpd, int col, int bExpandTabs) {
 	LINE* lpnew;
+	FTABLE* fp = wp->fp;
 	while (lps && lps != lpLast) {
 		if (lpd == fp->lastl) {
 			if ((lpnew = ln_create(0)) == (LINE*)0) return 0;
@@ -166,7 +167,7 @@ int ln_pasteLines(FTABLE* fp, LINE* lps, const LINE* lpLast, LINE* lpd, int col,
 			}
 			free(lpDelete);
 		}
-		if ((lpd = ln_pasteLine(fp, lpd, lps, col, bExpandTabs)) == (LINE*)0) {
+		if ((lpd = ln_pasteLine(wp, lpd, lps, col, bExpandTabs)) == (LINE*)0) {
 			return 0;
 		}
 		lps = lps->next;
@@ -181,12 +182,11 @@ int ln_pasteLines(FTABLE* fp, LINE* lps, const LINE* lpLast, LINE* lpd, int col,
  *--------------------------------------*/
 EXPORT int bl_pastecol(PASTE *pb,WINFO *wp, LINE *lpd, int col) {
 	LINE *	lps;
-	FTABLE* fp = wp->fp;
 	int 	bExpandTabs;
 
 	lps  = pb->pln;
 	col = caret_lineOffset2screen(wp, &(CARET) { lpd, col });
 	bExpandTabs = PLAINCONTROL(wp->dispmode) ? 0 : 1;
-	return ln_pasteLines(fp, lps, 0, lpd, col, bExpandTabs);
+	return ln_pasteLines(wp, lps, 0, lpd, col, bExpandTabs);
 }
 

@@ -112,11 +112,11 @@ static int edit_calculateStartIndentation(WINFO* wp,LINE *lp,
  * inserted parameter &inserted.
  */
 LINE *ln_insertIndent(WINFO* wp, LINE *lp, int col, int *inserted)
-{	int t,b,fillc;
+{	int t,b,expandTabsWith;
 	FTABLE* fp = wp->fp;
 
-	if ((fillc = fp->documentDescriptor->fillc) == 0) {
-		fillc = ' ';
+	if ((expandTabsWith = fp->documentDescriptor->expandTabsWith) == 0) {
+		expandTabsWith = ' ';
 		t = edit_calculateColumns2TabsBlanks(&wp->indentation,col,&b);
 	} else {
 		t = 0;
@@ -126,7 +126,7 @@ LINE *ln_insertIndent(WINFO* wp, LINE *lp, int col, int *inserted)
 	if ((*inserted = t+b) != 0) {
 		if ((lp = ln_modify(fp,lp,0,*inserted)) != 0L) {
 			memset(lp->lbuf,'\t', t);
-			memset(lp->lbuf+t,fillc,b);
+			memset(lp->lbuf+t,expandTabsWith,b);
 		}
 	}
 
@@ -801,11 +801,11 @@ int EdCharInsert(int c)
 
 	offs = wp->caret.offset;
 
-	if (c == '\t' && lnp->fillc) {
+	if (c == '\t' && lnp->expandTabsWith) {
 		int n2 = caret_lineOffset2screen(wp, &wp->caret);
 		int n = indent_calculateNextTabStop(n2, &wp->indentation);
 		nchars = n - n2;
-		c = lnp->fillc;
+		c = lnp->expandTabsWith;
 	} else {
 		nchars = 1;
 
@@ -861,7 +861,7 @@ static int edit_findNextOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) {
 		caret.offset = screenColNextTab;
 		int lineOffsetNextTab = caret_screen2lineOffset(wp, &caret);
 		while (++nOffset < lineOffsetNextTab) {
-			if (lp->lbuf[nOffset] != fp->documentDescriptor->fillc) {
+			if (lp->lbuf[nOffset] != fp->documentDescriptor->expandTabsWith) {
 				return nOffset;
 			}
 		}
@@ -872,7 +872,7 @@ static int edit_findNextOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) {
 
 static BOOL edit_isSpace(LINE* lp, EDIT_CONFIGURATION* pDescriptor, int nOffset) {
 	char c = lp->lbuf[nOffset];
-	if (c != '\t' && c != pDescriptor->fillc) {
+	if (c != '\t' && c != pDescriptor->expandTabsWith) {
 		return FALSE;
 	}
 	return TRUE;
