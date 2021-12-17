@@ -106,6 +106,7 @@ char *macro_getTextInQuotes(char *d,char *s,int maxlen)
  */
 static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction, int nIndent, unsigned char* pszSelected, unsigned char* pszSource) {
 	size_t nInitialSize = strlen(pszSource);
+	size_t nLineBegin = 0;
 	STRING_BUF* pResult = stringbuf_create(nInitialSize);
 	unsigned char* pVar = NULL;
 	unsigned char variable[50];
@@ -114,6 +115,8 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction
 	long col = 0;
 	long ln = 0;
 	char chSpace = ft_getSpaceFillCharacter(wp);
+	FTABLE* fp = wp->fp;
+	BOOL bUseTabs = fp->documentDescriptor->expandTabsWith == 0;
 
 	while ((c = *pszSource++) != 0) {
 		if (pVar) {
@@ -159,6 +162,20 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction
 				col++;
 			}
 			stringbuf_appendChar(pResult, c);
+			if (col == 0) {
+				size_t nOffset = stringbuf_size(pResult);
+				if (nOffset - nLineBegin > 1 && bUseTabs) {
+					long ntabs;
+					int nNewSize = ft_compressSpacesToTabs(wp, _linebuf, LINEBUFSIZE, &stringbuf_getString(pResult)[nLineBegin], nOffset - nLineBegin - 1, &ntabs);
+					if (ntabs) {
+						stringbuf_truncate(pResult, nLineBegin);
+						stringbuf_appendStringLength(pResult, _linebuf, nNewSize);
+						stringbuf_appendChar(pResult, c);
+						nOffset = stringbuf_size(pResult);
+					}
+				}
+				nLineBegin = nOffset;
+			}
 		}
 	}
 	stringbuf_appendChar(pResult, '\n');
@@ -207,9 +224,9 @@ int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
 			macro_replaceCurrentWord(wp);
 		}
 		CARET oldCaret = wp->caret;
-		bl_pasteBlock(&pasteBuffer, 0, oldCaret.col, 0);
+		bl_pasteBlock(&pasteBuffer, 0, oldCaret.offset, 0);
 		if (templateAction.ta_positionCursor) {
-			long col = templateAction.ta_cursorDeltaLn ? templateAction.ta_cursorDeltaCol : templateAction.ta_cursorDeltaCol + oldCaret.col;
+			long col = templateAction.ta_cursorDeltaLn ? templateAction.ta_cursorDeltaCol : templateAction.ta_cursorDeltaCol + oldCaret.offset;
 			long ln = templateAction.ta_cursorDeltaLn + oldCaret.ln;
 			caret_placeCursorInCurrentFile(wp, ln, col);
 			if (templateAction.ta_selectionDeltaCol || templateAction.ta_selectionDeltaLn) {
