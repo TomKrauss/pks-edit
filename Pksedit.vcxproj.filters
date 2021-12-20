@@ -594,6 +594,9 @@
     <None Include="doc\markdown.md" />
     <None Include="packages.config" />
     <None Include="doc\manual\commandline.md" />
+    <None Include="RC\IDS_FONT.BIN">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">
@@ -650,5 +653,9 @@
   </ItemGroup>
   <ItemGroup>
     <Xsd Include="pksedit.xsd" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="rc\Font Awesome 5 Free-Solid-900.ttf" />
+    <Font Include="rc\Font Awesome 5 Free-Regular-400.otf" />
   </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@
   "themes": [
     {
       "name": "default",
+      "iconColor": "#00033",
       "backgroundColor": "#fcfcfc",
       "changedLineColor": "#ffdd00",
       "savedChangedLineColor": "#88ff88",
@@ -118,6 +119,7 @@
     {
       "name": "spring",
       "darkMode": 0,
+      "iconColor": "#22ff22",
       "backgroundColor": "#eaffea",
       "dialogBackground": "#c3e7c3",
       "dialogLightBackground": "#f3e7f3",
@@ -246,6 +248,7 @@
     {
       "name": "pink",
       "darkMode": 0,
+      "iconColor":  "#ffaa00",
       "backgroundColor": "#ffeaea",
       "dialogBackground": "#e7c3c3",
       "dialogLightBackground": "#e7f3f3",
@@ -374,6 +377,7 @@
     {
       "name": "dark",
       "darkMode": 1,
+      "iconColor": "#0080FF",
       "backgroundColor": "#373737",
       "dialogBackground": "#323232",
       "dialogErrorText": "#ff6464",
@@ -407,7 +411,7 @@
         },
         {
           "styleName": "control",
-          "foregroundColor": "#777777"
+          "foregroundColor": "#545454"
         },
         {
           "styleName": "identifier",

@@ -15,7 +15,6 @@
  */
 
 #include "customcontrols.h"
-
 #include "trace.h"
 #include "documentmodel.h"
 
@@ -29,8 +28,6 @@
 
 #define GWW_CUSTOMVAL		0
 #define GWW_CUSTOMEXTRA		GWW_CUSTOMVAL+sizeof(WORD)
-
-#define LABEL_MARGIN		10
 
 static const int toastWindowHeight = 40;
 static const char* TOGGLE_CLASS = "toggle";
@@ -541,59 +538,46 @@ static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
-/*
- * Paint the label of a labeled window. 
- */
-static int label_width(HWND hwnd) {
-	SIZE size;
-	char szText[200];
-
-	GetWindowText(hwnd, szText, sizeof szText);
-	HDC hdc = GetDC(hwnd);
-	HFONT hFont = SelectObject(hdc, theme_createDialogFont(FW_NORMAL));
-	GetTextExtentPoint(hdc, szText, (int)strlen(szText), &size);
-	DeleteObject(SelectObject(hdc, hFont));
-	ReleaseDC(hwnd, hdc);
-	return size.cx;
-}
-
-static void label_paint(HWND hwnd, HDC hdc, char* pszText) {
-	THEME_DATA* pTheme = theme_getCurrent();
-	RECT rc;
-	TEXTMETRIC tm;
-
-	GetClientRect(hwnd, &rc);
-	SetTextColor(hdc, pTheme->th_dialogForeground);
-	SetBkMode(hdc, TRANSPARENT);
-	SetMapMode(hdc, MM_TEXT);
-	HFONT hFont = SelectObject(hdc, theme_createDialogFont(FW_NORMAL));
-	GetTextMetrics(hdc, &tm);
-	TextOut(hdc, 0, (rc.bottom - rc.top - tm.tmHeight) / 2, pszText, (int)strlen(pszText));
-	DeleteObject(SelectObject(hdc, hFont));
-}
-
 /*------------------------------------------------------------
  * labeled_windowProcedure()
  */
 static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	PAINTSTRUCT	ps;
 	RECT rc;
-	char szBuf[200];
+	static int iconPadding = 5;
+	static int iconSize = 16;
 
 	switch (message) {
+	case WM_CREATE: {
+		LPCREATESTRUCT pCS = (LPCREATESTRUCT)lParam;
+		SetWindowLongPtr(hwnd, GWW_CUSTOMVAL, (LONG_PTR)pCS->lpCreateParams);
+		break;
+	}
 	case WM_PAINT: {
+		HICON hIcon = (HICON)GetWindowLongPtr(hwnd, GWW_CUSTOMVAL);
+		THEME_DATA* pTheme = theme_getCurrent();
 		BeginPaint(hwnd, &ps);
-		GetWindowText(hwnd, szBuf, sizeof szBuf);
-		label_paint(hwnd, ps.hdc, szBuf);
+		RECT rect;
+		GetClientRect(hwnd, &rect);
+		HWND hwndChild = GetWindow(hwnd, GW_CHILD);
+		HPEN hPen = CreatePen(PS_SOLID, 1, GetFocus() == hwndChild ? pTheme->th_dialogBorder : pTheme->th_dialogHighlight);
+		HPEN hPenOld = SelectObject(ps.hdc, hPen);
+		FillRect(ps.hdc, &ps.rcPaint, theme_getDialogBackgroundBrush());
+		HBRUSH hOldBrush = SelectObject(ps.hdc, GetStockObject(HOLLOW_BRUSH));
+		RoundRect(ps.hdc, 1, 1, rect.right-2, rect.bottom-2, 6, 6);
+		DrawIconEx(ps.hdc, iconPadding, 4, hIcon, iconSize, iconSize, 0, NULL, DI_NORMAL);
+		SelectObject(ps.hdc, hOldBrush);
+		DeleteObject(SelectObject(ps.hdc, hPenOld));
 		EndPaint(hwnd, &ps);
 	}
 	return 0;
-	case WM_ERASEBKGND: {
-		HDC hdc = (HDC)wParam;
-		GetClientRect(hwnd, &rc);
-		FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
-	}
-	return 1;
+
+	case LAB_CHILD_FOCUS_CHANGE:
+		InvalidateRect(hwnd, NULL, TRUE);
+		return 0;
+
+	case WM_ERASEBKGND:
+		return 0;
 
 	case WM_CTLCOLOREDIT: {
 		THEME_DATA* pTheme = theme_getCurrent();
@@ -605,13 +589,23 @@ static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 
 	case WM_SIZE: {
 		GetClientRect(hwnd, &rc);
-		rc.left += label_width(hwnd) + LABEL_MARGIN;
-		rc.right -= LABEL_MARGIN;
+		rc.left += 2*iconPadding + iconSize - 2;
+		rc.right -= iconSize;
+		rc.top += 5;
+		rc.bottom -= 5;
 		HWND hwndChild = GetWindow(hwnd, GW_CHILD);
 		if (hwndChild) {
 			MoveWindow(hwndChild, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, TRUE);
 		}
 	}
+				break;
+	case WM_DESTROY: {
+		HICON hIcon = (HICON)GetWindowLongPtr(hwnd, GWW_CUSTOMVAL);
+		DestroyIcon(hIcon);
+		SetWindowLongPtr(hwnd, GWW_CUSTOMVAL, 0l);
+		break;
+	}
+
 	}
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
@@ -662,6 +656,7 @@ EXPORT int cust_registerControls(void)
 
 	wc.lpfnWndProc = labeled_windowProcedure;
 	wc.lpszClassName = LABELED_CLASS;
+	wc.cbWndExtra = sizeof(LONG_PTR);
 	if (!RegisterClass(&wc)) {
 		return 0;
 	}
@@ -669,18 +664,14 @@ EXPORT int cust_registerControls(void)
 }
 
 /*
- * Create a window which displays a child window + an associated label. 
+ * Add a cue banner (label) to an edit control. 
  */
-HWND cust_createLabeledWindow(HWND hwndParent, char* pszLabel, HWND hwndChild) {
-	HWND hwnd = CreateWindow(LABELED_CLASS, NULL, WS_CHILDWINDOW|WS_CLIPCHILDREN|WS_VISIBLE, 0, 0, CW_USEDEFAULT, CW_USEDEFAULT,
-		hwndParent, NULL, hInst, NULL);
-	if (!hwnd) {
-		log_lastWindowsError("createLabeledWindow");
-		return 0;
-	}
-	SetWindowText(hwnd, pszLabel);
-	SetParent(hwndChild, hwnd);
-	return hwnd;
+static void cust_addCueBanner(HWND hwndEdit, char* pszLabel) {
+	size_t nSize = strlen(pszLabel);
+	wchar_t* pszwBuf = calloc(1, (nSize + 1) * 2);
+	MultiByteToWideChar(CP_ACP, 0, pszLabel, (int)nSize, pszwBuf, (int)nSize);
+	SendMessage(hwndEdit, EM_SETCUEBANNER, 0, (LPARAM)pszwBuf);
+	free(pszwBuf);
 }
 
 /*
@@ -780,5 +771,21 @@ void cust_drawListBoxRowWithIcon(HDC hdc, RECT* rcp, HICON hIcon, char* pszText)
 	x += iconWidth + (2 * 2);
 	TextOut(hdc, x, y + (LB_ROW_WITH_ICON_HEIGHT - textmetric.tmHeight) / 2, pszText, (int)strlen(pszText));
 
+}
+
+/*
+ * Create a window which displays a child window + an associated prefix icon painting a border around the resulting
+ * element..
+ */
+HWND cust_createLabeledWindow(HWND hwndParent, HICON hIcon, char* pszCueBanner, HWND hwndChild) {
+	HWND hwnd = CreateWindow(LABELED_CLASS, NULL, WS_CHILDWINDOW | WS_CLIPCHILDREN | WS_VISIBLE, 0, 0, CW_USEDEFAULT, CW_USEDEFAULT,
+		hwndParent, NULL, hInst, hIcon);
+	if (!hwnd) {
+		log_lastWindowsError("createLabeledWindow");
+		return 0;
+	}
+	cust_addCueBanner(hwndChild, pszCueBanner);
+	SetParent(hwndChild, hwnd);
+	return hwnd;
 }
 

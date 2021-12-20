@@ -593,6 +593,11 @@ extern int macro_executeByName(char* name);
  */
 extern void macro_assignAcceleratorTextOnMenu(HMENU hMenu);
 
+/*
+ * Returns the keyboard binding text for a given internal command.
+ */
+extern char* macro_getKeyText(int nCmd);
+
 /*------------------------------------------------------------
  * macro_getComment()
  * Returns the command for a given macro index and type.

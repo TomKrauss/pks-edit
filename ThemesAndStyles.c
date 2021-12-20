@@ -40,6 +40,7 @@
 #define	IDD_FONTUNDERLINE		1041
 
 #define DEFAULT_BACKGROUND_COLOR RGB(250, 250, 250)
+#define DEFAULT_ICON_COLOR RGB(0, 128, 255)
 #define CARET_LINE_COLOR RGB(235, 255, 235)
 #define COMPARE_MODIFIED_LINE_COLOR RGB(200, 200, 255)
 #define COMPARE_ADDED_LINE_COLOR RGB(200, 255, 200)
@@ -181,6 +182,7 @@ static THEME_DATA defaultTheme = {
 	"default",
 	1,
 	0,
+	DEFAULT_ICON_COLOR,
 	DEFAULT_BACKGROUND_COLOR,
 	CHANGED_LINE_COLOR,
 	SAVED_CHANGED_LINE_COLOR,
@@ -244,6 +246,7 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_COLOR, "compareModifiedColor", offsetof(THEME_DATA, th_compareModifiedColor)},
 	{	RT_COLOR, "compareAddedColor", offsetof(THEME_DATA, th_compareAddedColor)},
 	{	RT_COLOR, "compareDeletedColor", offsetof(THEME_DATA, th_compareDeletedColor)},
+	{	RT_COLOR, "iconColor", offsetof(THEME_DATA, th_iconColor)},
 	{	RT_COLOR, "rulerBorderColor", offsetof(THEME_DATA, th_rulerBorderColor)},
 	{	RT_COLOR, "mainWindowBackgroundColor", offsetof(THEME_DATA, th_mainWindowBackground)},
 	{	RT_COLOR, "dialogBackground", offsetof(THEME_DATA, th_dialogBackground)},
@@ -1130,6 +1133,115 @@ static LRESULT CALLBACK tabSubclassProc(
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
+static UINT_PTR cbSubclassID = 2346;
+
+static LRESULT CALLBACK comboBoxSubclassProc(
+	HWND hWnd,
+	UINT uMsg,
+	WPARAM wParam,
+	LPARAM lParam,
+	UINT_PTR uIdSubclass,
+	DWORD_PTR dwRefData) {
+
+	THEME_DATA* pTheme = theme_getCurrent();
+	switch (uMsg)
+	{
+	case WM_PAINT:
+	{
+		if (!pTheme->th_isDarkMode) {
+			break;
+		}
+
+		RECT rc = { 0 };
+		GetClientRect(hWnd, &rc);
+
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hWnd, &ps);
+
+		HPEN edgePen = CreatePen(0, 1, pTheme->th_dialogBorder);
+		HPEN holdPen = (HPEN)SelectObject(hdc, edgePen);
+		SelectObject(hdc, (HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0));
+		SetBkColor(hdc, pTheme->th_dialogBackground);
+
+		SelectObject(hdc, GetStockObject(NULL_BRUSH));
+		Rectangle(hdc, 0, 0, rc.right, rc.bottom);
+
+		HBRUSH holdBrush = SelectObject(hdc, theme_getDialogBackgroundBrush());
+
+		RECT arrowRc = {
+		rc.right - 17, rc.top + 1,
+		rc.right - 1, rc.bottom - 1
+		};
+
+		// CBS_DROPDOWN text is handled by parent by WM_CTLCOLOREDIT
+		LONG_PTR style = GetWindowLongPtr(hWnd, GWL_STYLE);
+		if ((style & CBS_DROPDOWNLIST) == CBS_DROPDOWNLIST)
+		{
+			RECT bkRc = rc;
+			bkRc.left += 1;
+			bkRc.top += 1;
+			bkRc.right = arrowRc.left - 1;
+			bkRc.bottom -= 1;
+			FillRect(hdc, &bkRc, theme_getDialogBackgroundBrush());
+			LRESULT index = SendMessage(hWnd, CB_GETCURSEL, 0, 0);
+			if (index != CB_ERR) {
+				SetTextColor(hdc, pTheme->th_dialogForeground);
+				SetBkColor(hdc, pTheme->th_defaultBackgroundColor);
+				size_t bufferLen = (size_t)SendMessage(hWnd, CB_GETLBTEXTLEN, index, 0);
+				char* buffer = malloc(bufferLen + 1);
+				SendMessage(hWnd, CB_GETLBTEXT, index, (LPARAM)buffer);
+
+				RECT textRc = rc;
+				textRc.left += 4;
+				textRc.right = arrowRc.left - 5;
+
+				DrawText(hdc, buffer, -1, &textRc, DT_NOPREFIX | DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+				free(buffer);
+			}
+		}
+
+		POINT ptCursor = { 0 };
+		GetCursorPos(&ptCursor);
+		ScreenToClient(hWnd, &ptCursor);
+
+		BOOL isHot = PtInRect(&rc, ptCursor);
+
+		SetTextColor(hdc, isHot ? pTheme->th_dialogHighlightText : pTheme->th_dialogForeground);
+		SetBkColor(hdc, isHot ? pTheme->th_dialogHighlight : pTheme->th_dialogBackground);
+		ExtTextOutW(hdc,
+			arrowRc.left + (arrowRc.right - arrowRc.left) / 2 - 4,
+			arrowRc.top + 3,
+			ETO_OPAQUE | ETO_CLIPPED,
+			&arrowRc, L"\u02C5",
+			1,
+			NULL);
+		SetBkColor(hdc, pTheme->th_dialogBackground);
+
+		POINT edge[] = {
+			{arrowRc.left - 1, arrowRc.top},
+			{arrowRc.left - 1, arrowRc.bottom}
+		};
+		Polyline(hdc, edge, _countof(edge));
+
+		DeleteObject(SelectObject(hdc, holdPen));
+		SelectObject(hdc, holdBrush);
+
+		EndPaint(hWnd, &ps);
+		return 0;
+	}
+
+	case WM_NCDESTROY: {
+		RemoveWindowSubclass(hWnd, comboBoxSubclassProc, uIdSubclass);
+		break;
+	}
+	}
+	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
+static void subclassComboBoxControl(HWND hwnd) {
+	SetWindowSubclass(hwnd, comboBoxSubclassProc, cbSubclassID, 0);
+}
+
 /*
  * Invoked to prepare all child windows for being used under darkmode.
  */
@@ -1170,6 +1282,7 @@ static BOOL theme_prepareControlsForDarkMode(HWND hwndControl, LONG lParam) {
 				//dark scrollbar for listbox of combobox
 				SetWindowTheme(cbi.hwndList, DARKMODE_THEME, NULL);
 			}
+			subclassComboBoxControl(hwndControl);
 		}
 		return TRUE;
 	} else if (strcmp(WC_LISTBOX, szClassname) == 0) {

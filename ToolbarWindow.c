@@ -25,6 +25,7 @@
 #include "funcdef.h"
 #include "actions.h"
 #include "edierror.h"
+#include "edfuncs.h"
 #include "editorconfiguration.h"
 #include "actions.h"
 #include "stringutil.h"
@@ -32,9 +33,12 @@
 #include "themes.h"
 #include "xdialog.h"
 
+#define TB_IMAGE_SIZE       16
 
 static HWND	hwndToolbar;
 static int nToolbarButtons;
+static HIMAGELIST hImageList;
+static HIMAGELIST hImageListGrey;
 HWND    hwndRebar;
 
 /*
@@ -86,6 +90,126 @@ static void tb_updateColors() {
     SendMessage(hwndRebar, RB_SETBKCOLOR, 0, pData->th_dialogBackground);
 }
 
+/*
+ * Load the font-awesome font.
+ */
+static HANDLE tb_loadFontAwesome() {
+    HINSTANCE hInstance = hInst; // Or could even be a DLL's HINSTANCE
+    HRSRC  hFntRes = FindResource(hInstance, MAKEINTRESOURCE(IDS_FONT_AWESOME), RT_FONT);
+    if (hFntRes) { // If we have found the resource ... 
+        HGLOBAL hFntMem = LoadResource(hInstance, hFntRes); // Load it
+        if (hFntMem != NULL) {
+            void* pFontData = LockResource(hFntMem); // Lock it into accessible memory
+            DWORD nFonts, len = SizeofResource(hInstance, hFntRes);
+            HANDLE hHandle = AddFontMemResourceEx(pFontData, len, NULL, &nFonts); // Fake install font!
+            return hHandle;
+        }
+    }
+    return INVALID_HANDLE_VALUE;
+}
+
+static WORD _fontIcons[] = {
+    0xf15b, // file
+    0xf07c, // folder-open
+    0xf0c7, // save
+    0xf12d, // eraser - delete
+    0xf0c4, // cut
+    0xf328, // clipboard
+    0xf002, // search
+    0xf362, // exchange / replace
+    0xf00e, // search-plus
+    0xf060, // arrow-left
+    0xf061, // arrow-right
+    0xf0e2, // undo
+    0xf01e, // redo
+    0xf02f, // print
+    0xf013, // cog (options)
+    0xf128, // help
+    0xf062, // arrow-up
+    0xf063, // arrow-down
+    0xf28d, // stop
+    0xf063, // align-left
+    0xf038, // align-right
+    0xf037, // align-center
+    0xf039, // align-justify
+    0xf0c5  // copy
+};
+
+static HBITMAP tb_createAwesomeIcons(COLORREF nColorRef) {
+    LOGFONT _lf = {
+        TB_IMAGE_SIZE,		// lfHeight;
+        0,		// lfWidth;
+        0,					// lfEscapement;
+        0,					// lfOrientation;
+        FW_DONTCARE,	    // lfWeight;
+
+        0,					// lfItalic;
+        0,					// lfUnderline;
+        0,					// lfStrikeOut;
+
+        ANSI_CHARSET,	// lfCharSet;
+        OUT_DEFAULT_PRECIS,	// lfOutPrecision;
+        CLIP_DEFAULT_PRECIS,// lfClipPrecision;
+        PROOF_QUALITY,		// lfQuality;
+        FF_DONTCARE, 		// lfPitchAndFamily;
+        "Font Awesome 5 Free Solid"   // lfFaceName[LF_FACESIZE];
+    };
+
+    HANDLE hInMemoryFont = tb_loadFontAwesome();
+    HDC hdcScreen = GetDC(hwndMain);
+    HDC hdc = CreateCompatibleDC(hdcScreen);
+    
+    int nIcons = DIM(_fontIcons);
+    int nSize = TB_IMAGE_SIZE;
+    int nWidth = nIcons * nSize;
+    int nBitcount = 32;
+    int size = ((((nWidth * nBitcount) + 31) & ~31) >> 3) * nSize;
+
+    BITMAPINFO bmi = { 0 };
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = nWidth;
+    bmi.bmiHeader.biHeight = -nSize;
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = nBitcount;
+    bmi.bmiHeader.biCompression = BI_RGB;
+    bmi.bmiHeader.biSizeImage = size;
+
+    BYTE* pvBits = NULL;
+    HBITMAP hBmp = CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS,
+        (void**)&pvBits, NULL, 0x0);
+    HBITMAP hBmpOld = SelectObject(hdc, hBmp);
+    RECT rect;
+    rect.top = 0;
+    rect.bottom = nSize;
+    rect.left = 0;
+    rect.right = rect.left + nWidth;
+    SetTextColor(hdc, nColorRef);
+    SetBkMode(hdc, TRANSPARENT);
+    HFONT hFont = CreateFontIndirect(&_lf);
+    HFONT hFontOld = SelectFont(hdc, hFont);
+    for (int i = 0; i < nIcons; i++) {
+        wchar_t wchChar[1];
+        wchChar[0] = _fontIcons[i];
+        rect.right = rect.left + nSize;
+        DrawTextW(hdc, wchChar, 1, &rect, 0);
+        rect.left = rect.right;
+    }
+    DeleteObject(SelectObject(hdc, hFontOld));
+    SelectObject(hdc, hBmpOld);
+    for (int i = 0; i < size; i += 4) {
+        int n = *(int*)(pvBits + i);
+        if (n != 0)
+            pvBits[i + 3] = 255;
+    }
+    ReleaseDC(hwndMain, hdc);
+    DeleteDC(hdc);
+    ReleaseDC(NULL, hdcScreen);
+    if (hInMemoryFont != INVALID_HANDLE_VALUE) {
+        RemoveFontMemResourceEx(hInMemoryFont);
+    }
+    return hBmp;
+}
+
 /*--------------------------------------------------------------------------
  * tb_initToolbar()
  * Initialize the actual toolbar toolbar.
@@ -100,7 +224,10 @@ static HWND tb_initToolbar(HWND hwndOwner) {
 	if (hwndToolbar) {
 		return hwndToolbar;
 	}
-
+    HFONT hFont = tb_loadFontAwesome();
+    if (hFont != INVALID_HANDLE_VALUE) {
+        RemoveFontMemResourceEx(hFont);
+    }
     memset(tbb, 0, sizeof tbb);
     memset(&tbabmp, 0, sizeof tbabmp);
     memset(&tbabmp2, 0, sizeof tbabmp2);
@@ -113,12 +240,17 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     SendMessage(hwndToolbar, TB_BUTTONSTRUCTSIZE, 
         (WPARAM) sizeof(TBBUTTON), 0);
 
-    HBITMAP hBmp = LoadImage(hInst, MAKEINTRESOURCE(IDB_NEW_ICONS), IMAGE_BITMAP, 23*16,16, LR_CREATEDIBSECTION);
-    HIMAGELIST hImageList = ImageList_Create(16, 16,
-        ILC_COLOR32,
-        18, 0
+    COLORREF cRef2 = theme_getCurrent()->th_iconColor;
+    HBITMAP hBmp = tb_createAwesomeIcons(cRef2);
+    hImageList = ImageList_Create(TB_IMAGE_SIZE, TB_IMAGE_SIZE,
+        ILC_COLOR32, DIM(_fontIcons), 0
     );
     ImageList_Add(hImageList, hBmp, 0);
+    hBmp = tb_createAwesomeIcons(RGB(88,88,88));
+    hImageListGrey = ImageList_Create(TB_IMAGE_SIZE, TB_IMAGE_SIZE,
+        ILC_COLOR32, DIM(_fontIcons), 0
+    );
+    ImageList_Add(hImageListGrey, hBmp, 0);
     iIndexExtra = 0;
     SendMessageW(hwndToolbar, TB_SETIMAGELIST, (WPARAM)0, (LPARAM)hImageList);
 
@@ -325,6 +457,10 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam
         }
         PostMessage(hwnd, EM_SETSEL, 0, -1);
         find_startIncrementalSearch();
+        PostMessage(GetParent(hwnd), LAB_CHILD_FOCUS_CHANGE, TRUE, 0);
+        break;
+    case WM_KILLFOCUS:
+        PostMessage(GetParent(hwnd), LAB_CHILD_FOCUS_CHANGE, FALSE, 0);
         break;
     case WM_KEYDOWN:
         switch (wParam) {
@@ -355,9 +491,8 @@ static void tb_enableEntryField(ACTION_BINDING * pBinding, PROPERTY_CHANGE_TYPE 
     }
 }
 static HWND tb_initSearchEntryField(HWND hwndOwner) {
-
     hwndIncrementalSearchField = CreateWindowEx(0, WC_EDIT, "",
-        WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_LEFT | ES_NOHIDESEL | ES_WANTRETURN,
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT | ES_NOHIDESEL | ES_WANTRETURN,
         0, 0, 180, CW_USEDEFAULT,
         hwndOwner, (HMENU)IDM_INCREMENTAL_SEARCH,
         hInst, NULL);
@@ -396,6 +531,20 @@ static LRESULT APIENTRY tb_myRebarProc(
         wParam, lParam);
 }
 
+/*
+ * Initialize the search entry cue banner.
+ */
+static void tb_initSearchEntryCueBanner(char* pszText) {
+    char* pszKey;
+    strcpy(pszText, dlg_getResourceString(IDS_SEARCH));
+    pszKey = macro_getKeyText(CMD_INITIATE_INCREMENTAL_SEARCH);
+    if (pszKey) {
+        strcat(pszText, " (");
+        strcat(pszText, pszKey);
+        strcat(pszText, ")");
+    }
+}
+
 /*--------------------------------------------------------------------------
  * tb_initRebar()
  * Initialize the PKS Edit top bar (rebar).
@@ -430,7 +579,9 @@ HWND tb_initRebar(HWND hwndOwner) {
     tb_updateColors();
     hwndToolbar = tb_initToolbar(hwndRebar);
     hwndEntryField = tb_initSearchEntryField(hwndRebar);
-    HWND hwndLabel = cust_createLabeledWindow(hwndRebar, TEXT(dlg_getResourceString(IDS_SEARCH)), hwndEntryField);
+    char szText[80];
+    tb_initSearchEntryCueBanner(szText);
+    HWND hwndLabel = cust_createLabeledWindow(hwndRebar, ImageList_GetIcon(hImageListGrey, 6, ILD_TRANSPARENT), TEXT(szText), hwndEntryField);
     
     // Initialize band info used by both bands.
     // as we are - for theming purpose - still rely on elder common controls versions - we do not use sizeof(REBARBANDINFO) here.
@@ -460,7 +611,7 @@ HWND tb_initRebar(HWND hwndOwner) {
 
     rbBand.hwndChild = hwndLabel;
     rbBand.cxMinChild = 300;
-    rbBand.cyMinChild = 20;
+    rbBand.cyMinChild = 25;
     // The default width should be set to some value wider than the text. The entry field itself will expand to fill the band.
     rbBand.cx = 300;
 

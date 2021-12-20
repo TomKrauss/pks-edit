@@ -1556,7 +1556,7 @@ BEGIN
     IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text are preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
     IDS_FILE_MODIFIED       "Modified"
     IDS_FILE_READONLY       "Read-only"
-    IDS_SEARCH              "Search:"
+    IDS_SEARCH              "Search incrementally"
     IDS_STATUSLINE          "L: %2j$l, C: %2j$c!%s$&"
     IDS_NO_MACROS_DEFINED   "No macros defined."
     IDS_ENTER_PASSWORD_TO_ENCRYPT "Enter password to encrypt %s:"

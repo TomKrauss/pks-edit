@@ -1225,6 +1225,7 @@
     <None Include="rc\FILE.ICO" />
     <None Include="rc\FOLDER.ICO" />
     <None Include="rc\HELP.ICO" />
+    <None Include="RC\IDS_FONT.BIN" />
     <None Include="rc\link.cur" />
     <None Include="rc\MACRO.ICO" />
     <None Include="RC\MANIFEST.BIN" />
@@ -1273,6 +1274,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </Xsd>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="rc\Font Awesome 5 Free-Regular-400.otf" />
+    <Font Include="rc\Font Awesome 5 Free-Solid-900.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

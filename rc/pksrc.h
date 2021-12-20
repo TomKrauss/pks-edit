@@ -33,14 +33,13 @@
 #define IDS_CREATE_BUFFER               195
 #define IDS_NO_EVALUATION_SUPPORTED     196
 #define IDS_EVALUATION_FAILED           197
-#define IDB_NEW_ICONS                   200
+#define IDS_FONT_AWESOME                224
 #define DLGCURSOROPTIONS                529
 #define DLGFINDINFILES                  535
 #define DLG_OPT_WARNINGS                556
 #define DLG_OPT_MISC                    557
 #define DLG_OPT_LAYOUT                  558
 #define DLGCOMPAREFILES                 559
-#define DLG_SAVEAS_OPTIONS1             560
 #define DLG_OPEN_OPTIONS                560
 #define IDC_GENERIC2                    1001
 #define IDC_CHECK_ENCRYPT               1003
@@ -66,7 +65,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        222
+#define _APS_NEXT_RESOURCE_VALUE        226
 #define _APS_NEXT_COMMAND_VALUE         40038
 #define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101

@@ -1250,14 +1250,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Bitmap
-//
-
-IDB_NEW_ICONS           BITMAP                  "rc\\new_icons.bmp"
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // AFX_DIALOG_LAYOUT
 //
 
@@ -1370,6 +1362,14 @@ DLG_OPEN_OPTIONS AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Font
+//
+
+IDS_FONT_AWESOME        FONT                    "rc\\Font Awesome 5 Free-Regular-400.otf"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1567,7 +1567,7 @@ BEGIN
     IDS_TT_PRESERVE_CASE    "Beim Ersetzen bleibt die Groﬂ- Kleinschreibung des Ausgangstextes erhalten.\r\nBeispiel: ersetzt man das Wort ""Der"" durch ""die"" entsteht ""Die""."
     IDS_FILE_MODIFIED       "Ge‰ndert"
     IDS_FILE_READONLY       "Nur lesen"
-    IDS_SEARCH              "Suchen:"
+    IDS_SEARCH              "Inkrementell suchen"
     IDS_STATUSLINE          "Z: %2j$l, S: %2j$c!%s$&"
     IDS_NO_MACROS_DEFINED   "Keine Makros definiert."
     IDS_ENTER_PASSWORD_TO_ENCRYPT 

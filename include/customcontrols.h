@@ -97,9 +97,15 @@ extern void cust_drawListBoxRowWithIcon(HDC hdc, RECT* rcp, HICON hIcon, char* p
 extern HWND cust_createToastWindow(char* pszText);
 
 /*
- * Create a window which displays a child window + an associated label.
+ * Create a window which displays a child window + an associated prefix icon painting a border around the resulting
+ * element..
  */
-extern HWND cust_createLabeledWindow(HWND hwndParent, char* pszLabel, HWND hwndChild);
+extern HWND cust_createLabeledWindow(HWND hwndParent, HICON hIcon, char* pszCueBanner, HWND hwndChild);
+
+/*
+ * A child of a labeled window got / lost the focus. WPARAM is true for focus gain. 
+ */
+#define LAB_CHILD_FOCUS_CHANGE		WM_USER + 10
 
 /*
  * cust_createToolTooltip()

@@ -754,6 +754,17 @@ static KEYCODE macro_findkey(MACROREFTYPE typ, MACROREFIDX index)
 	return K_DELETED;
 }
 
+/*
+ * Returns the keyboard binding text for a given internal command.
+ */
+char* macro_getKeyText(int nCmd) {
+	KEYCODE	k;
+	if ((k = macro_findkey(CMD_CMDSEQ, nCmd)) != K_DELETED) {
+		return code2key(k);
+	}
+	return NULL;
+}
+
 /*------------------------------------------------------------
  * macro_assignAcceleratorTextOnMenu()
  * this function sets the menu accelerator text, each time a
