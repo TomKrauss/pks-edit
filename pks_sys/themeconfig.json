@@ -119,7 +119,7 @@
     {
       "name": "spring",
       "darkMode": 0,
-      "iconColor": "#22ff22",
+      "iconColor": "#117733",
       "backgroundColor": "#eaffea",
       "dialogBackground": "#c3e7c3",
       "dialogLightBackground": "#f3e7f3",
@@ -248,7 +248,7 @@
     {
       "name": "pink",
       "darkMode": 0,
-      "iconColor":  "#ffaa00",
+      "iconColor":  "#772211",
       "backgroundColor": "#ffeaea",
       "dialogBackground": "#e7c3c3",
       "dialogLightBackground": "#e7f3f3",
@@ -377,7 +377,7 @@
     {
       "name": "dark",
       "darkMode": 1,
-      "iconColor": "#0080FF",
+      "iconColor": "#4466ee",
       "backgroundColor": "#373737",
       "dialogBackground": "#323232",
       "dialogErrorText": "#ff6464",

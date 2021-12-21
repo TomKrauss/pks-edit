@@ -29,6 +29,11 @@
 #define GWW_CUSTOMVAL		0
 #define GWW_CUSTOMEXTRA		GWW_CUSTOMVAL+sizeof(WORD)
 
+ /*
+  * Draws a rounded rectangle in an antialiased way.
+  */
+extern void paint_roundedRect(HDC hdc, COLORREF cColor, float penWidth, int x, int y, int width, int height, int radius);
+
 static const int toastWindowHeight = 40;
 static const char* TOGGLE_CLASS = "toggle";
 static const char* CHARSET_CLASS = "charset";
@@ -545,7 +550,7 @@ static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 	PAINTSTRUCT	ps;
 	RECT rc;
 	static int iconPadding = 5;
-	static int iconSize = 16;
+	static int iconSize = 18;
 
 	switch (message) {
 	case WM_CREATE: {
@@ -560,14 +565,12 @@ static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 		RECT rect;
 		GetClientRect(hwnd, &rect);
 		HWND hwndChild = GetWindow(hwnd, GW_CHILD);
-		HPEN hPen = CreatePen(PS_SOLID, 1, GetFocus() == hwndChild ? pTheme->th_dialogBorder : pTheme->th_dialogHighlight);
-		HPEN hPenOld = SelectObject(ps.hdc, hPen);
 		FillRect(ps.hdc, &ps.rcPaint, theme_getDialogBackgroundBrush());
 		HBRUSH hOldBrush = SelectObject(ps.hdc, GetStockObject(HOLLOW_BRUSH));
-		RoundRect(ps.hdc, 1, 1, rect.right-2, rect.bottom-2, 6, 6);
+		BOOL bFocus = GetFocus() == hwndChild;
+		paint_roundedRect(ps.hdc, bFocus ? pTheme->th_dialogBorder : pTheme->th_dialogHighlight, bFocus ? 2.0f : 1.0f, 1, 1, rect.right - 4, rect.bottom - 4, 12);
 		DrawIconEx(ps.hdc, iconPadding, 4, hIcon, iconSize, iconSize, 0, NULL, DI_NORMAL);
 		SelectObject(ps.hdc, hOldBrush);
-		DeleteObject(SelectObject(ps.hdc, hPenOld));
 		EndPaint(hwnd, &ps);
 	}
 	return 0;

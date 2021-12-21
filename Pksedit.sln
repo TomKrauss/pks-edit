@@ -19,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "en-US", "en-US\pksedit-en.vcxproj", "{EA04DD5A-25E5-42D3-B1BB-1246BB3CB6F3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pkslib", "pkslib\pkslib\pkslib.vcxproj", "{9A3887DD-1F0A-4840-AB03-B01389386921}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pkslib", "pkslib\pkslib.vcxproj", "{9A3887DD-1F0A-4840-AB03-B01389386921}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

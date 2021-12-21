@@ -1369,7 +1369,7 @@ END
 // Font
 //
 
-IDS_FONT_AWESOME        FONT                    "rc\\Font Awesome 5 Free-Regular-400.otf"
+IDS_FONT_AWESOME        FONT                    "rc\\Font Awesome 5 Free-Regular-400.ttf"
 
 
 /////////////////////////////////////////////////////////////////////////////

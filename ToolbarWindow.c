@@ -33,13 +33,19 @@
 #include "themes.h"
 #include "xdialog.h"
 
-#define TB_IMAGE_SIZE       16
+#define TB_IMAGE_SIZE       18
 
 static HWND	hwndToolbar;
 static int nToolbarButtons;
 static HIMAGELIST hImageList;
 static HIMAGELIST hImageListGrey;
 HWND    hwndRebar;
+
+/*
+ * Draws a text in an antialiased way.
+ */
+extern void paint_textAntialised(HDC hdc, WCHAR* pszText, int nChars, COLORREF cColor, int x, int y);
+extern BOOL paint_loadFontAwesome(void* pFontData, DWORD len);
 
 /*
  * Callback to enable / disable toolbar buttons. 
@@ -100,9 +106,9 @@ static HANDLE tb_loadFontAwesome() {
         HGLOBAL hFntMem = LoadResource(hInstance, hFntRes); // Load it
         if (hFntMem != NULL) {
             void* pFontData = LockResource(hFntMem); // Lock it into accessible memory
-            DWORD nFonts, len = SizeofResource(hInstance, hFntRes);
-            HANDLE hHandle = AddFontMemResourceEx(pFontData, len, NULL, &nFonts); // Fake install font!
-            return hHandle;
+            DWORD len = SizeofResource(hInstance, hFntRes);
+            paint_loadFontAwesome(pFontData, len);
+            GlobalFree(hFntMem);
         }
     }
     return INVALID_HANDLE_VALUE;
@@ -136,26 +142,6 @@ static WORD _fontIcons[] = {
 };
 
 static HBITMAP tb_createAwesomeIcons(COLORREF nColorRef) {
-    LOGFONT _lf = {
-        TB_IMAGE_SIZE,		// lfHeight;
-        0,		// lfWidth;
-        0,					// lfEscapement;
-        0,					// lfOrientation;
-        FW_DONTCARE,	    // lfWeight;
-
-        0,					// lfItalic;
-        0,					// lfUnderline;
-        0,					// lfStrikeOut;
-
-        ANSI_CHARSET,	// lfCharSet;
-        OUT_DEFAULT_PRECIS,	// lfOutPrecision;
-        CLIP_DEFAULT_PRECIS,// lfClipPrecision;
-        PROOF_QUALITY,		// lfQuality;
-        FF_DONTCARE, 		// lfPitchAndFamily;
-        "Font Awesome 5 Free Solid"   // lfFaceName[LF_FACESIZE];
-    };
-
-    HANDLE hInMemoryFont = tb_loadFontAwesome();
     HDC hdcScreen = GetDC(hwndMain);
     HDC hdc = CreateCompatibleDC(hdcScreen);
     
@@ -183,30 +169,15 @@ static HBITMAP tb_createAwesomeIcons(COLORREF nColorRef) {
     rect.bottom = nSize;
     rect.left = 0;
     rect.right = rect.left + nWidth;
-    SetTextColor(hdc, nColorRef);
-    SetBkMode(hdc, TRANSPARENT);
-    HFONT hFont = CreateFontIndirect(&_lf);
-    HFONT hFontOld = SelectFont(hdc, hFont);
+    wchar_t wchChar[255];
     for (int i = 0; i < nIcons; i++) {
-        wchar_t wchChar[1];
-        wchChar[0] = _fontIcons[i];
-        rect.right = rect.left + nSize;
-        DrawTextW(hdc, wchChar, 1, &rect, 0);
-        rect.left = rect.right;
+        wchChar[i] = _fontIcons[i];
     }
-    DeleteObject(SelectObject(hdc, hFontOld));
+    paint_textAntialised(hdc, wchChar, nIcons, nColorRef, rect.left, 0);
     SelectObject(hdc, hBmpOld);
-    for (int i = 0; i < size; i += 4) {
-        int n = *(int*)(pvBits + i);
-        if (n != 0)
-            pvBits[i + 3] = 255;
-    }
     ReleaseDC(hwndMain, hdc);
     DeleteDC(hdc);
     ReleaseDC(NULL, hdcScreen);
-    if (hInMemoryFont != INVALID_HANDLE_VALUE) {
-        RemoveFontMemResourceEx(hInMemoryFont);
-    }
     return hBmp;
 }
 
@@ -224,10 +195,7 @@ static HWND tb_initToolbar(HWND hwndOwner) {
 	if (hwndToolbar) {
 		return hwndToolbar;
 	}
-    HFONT hFont = tb_loadFontAwesome();
-    if (hFont != INVALID_HANDLE_VALUE) {
-        RemoveFontMemResourceEx(hFont);
-    }
+    tb_loadFontAwesome();
     memset(tbb, 0, sizeof tbb);
     memset(&tbabmp, 0, sizeof tbabmp);
     memset(&tbabmp2, 0, sizeof tbabmp2);
@@ -243,12 +211,12 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     COLORREF cRef2 = theme_getCurrent()->th_iconColor;
     HBITMAP hBmp = tb_createAwesomeIcons(cRef2);
     hImageList = ImageList_Create(TB_IMAGE_SIZE, TB_IMAGE_SIZE,
-        ILC_COLOR32, DIM(_fontIcons), 0
+        ILC_COLOR32 | ILC_HIGHQUALITYSCALE, DIM(_fontIcons), 0
     );
     ImageList_Add(hImageList, hBmp, 0);
     hBmp = tb_createAwesomeIcons(RGB(88,88,88));
     hImageListGrey = ImageList_Create(TB_IMAGE_SIZE, TB_IMAGE_SIZE,
-        ILC_COLOR32, DIM(_fontIcons), 0
+        ILC_COLOR32|ILC_HIGHQUALITYSCALE, DIM(_fontIcons), 0
     );
     ImageList_Add(hImageListGrey, hBmp, 0);
     iIndexExtra = 0;
@@ -426,6 +394,7 @@ static HWND tb_initToolbar(HWND hwndOwner) {
         }
     }
     SendMessage(hwndToolbar, TB_SETMAXTEXTROWS, 0, 0);
+    SendMessage(hwndToolbar, TB_SETBUTTONSIZE, 0, MAKELPARAM(TB_IMAGE_SIZE, TB_IMAGE_SIZE));
     HWND hwndTooltip = (HWND) SendMessage(hwndToolbar, TB_GETTOOLTIPS, 0, 0);
     if (hwndTooltip) {
         theme_enableDarkMode(hwndTooltip);
