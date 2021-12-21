@@ -23,6 +23,7 @@ typedef struct tagTHEME_DATA {
 	unsigned char th_name[32];
 	int		 th_isWinTheme;					// true for the default (Windows Theme)
 	int		 th_isDarkMode;					// true for all themes, that should use darkmode for window NC areas etc...
+	int		 th_tbIconSize;					// size of the toolbar icons in pixels.
 	COLORREF th_iconColor;					// color of the icons in the toolbar.
 	COLORREF th_defaultBackgroundColor;
 	COLORREF th_changedLineColor;

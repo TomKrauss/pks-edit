@@ -119,6 +119,7 @@
     {
       "name": "spring",
       "darkMode": 0,
+      "iconSize": "34",
       "iconColor": "#117733",
       "backgroundColor": "#eaffea",
       "dialogBackground": "#c3e7c3",

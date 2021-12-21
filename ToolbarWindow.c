@@ -17,6 +17,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <windowsx.h>
+#include "fontawesome.h"
 #include "customcontrols.h"
 #include "winterf.h"
 #include "pksedit.h"
@@ -38,14 +39,13 @@
 static HWND	hwndToolbar;
 static int nToolbarButtons;
 static HIMAGELIST hImageList;
-static HIMAGELIST hImageListGrey;
 HWND    hwndRebar;
 
 /*
  * Draws a text in an antialiased way.
  */
-extern void paint_textAntialised(HDC hdc, WCHAR* pszText, int nChars, COLORREF cColor, int x, int y);
 extern BOOL paint_loadFontAwesome(void* pFontData, DWORD len);
+extern HBITMAP tb_createAwesomeIcons(COLORREF nColorRef, int nSize, wchar_t icons[], int nIcons);
 
 /*
  * Callback to enable / disable toolbar buttons. 
@@ -99,7 +99,13 @@ static void tb_updateColors() {
 /*
  * Load the font-awesome font.
  */
-static HANDLE tb_loadFontAwesome() {
+static void tb_loadFontAwesome() {
+    static BOOL fontLoaded;
+
+    if (fontLoaded) {
+        return;
+    }
+    fontLoaded = TRUE;
     HINSTANCE hInstance = hInst; // Or could even be a DLL's HINSTANCE
     HRSRC  hFntRes = FindResource(hInstance, MAKEINTRESOURCE(IDS_FONT_AWESOME), RT_FONT);
     if (hFntRes) { // If we have found the resource ... 
@@ -111,74 +117,55 @@ static HANDLE tb_loadFontAwesome() {
             GlobalFree(hFntMem);
         }
     }
-    return INVALID_HANDLE_VALUE;
 }
 
-static WORD _fontIcons[] = {
-    0xf15b, // file
-    0xf07c, // folder-open
-    0xf0c7, // save
-    0xf12d, // eraser - delete
-    0xf0c4, // cut
-    0xf328, // clipboard
-    0xf002, // search
-    0xf362, // exchange / replace
-    0xf00e, // search-plus
-    0xf060, // arrow-left
-    0xf061, // arrow-right
-    0xf0e2, // undo
-    0xf01e, // redo
-    0xf02f, // print
-    0xf013, // cog (options)
-    0xf128, // help
-    0xf062, // arrow-up
-    0xf063, // arrow-down
-    0xf28d, // stop
-    0xf063, // align-left
-    0xf038, // align-right
-    0xf037, // align-center
-    0xf039, // align-justify
-    0xf0c5  // copy
-};
+/*
+ * Create an image list with images created from font-awesome icons. 
+ */
+static HIMAGELIST tb_createImageList(int nIconSize, COLORREF cColor, wchar_t icons[], int nIcons) {
+    HBITMAP hBmp = tb_createAwesomeIcons(cColor, nIconSize, icons, nIcons);
+    HIMAGELIST hList = ImageList_Create(nIconSize, nIconSize,
+        ILC_COLOR32 | ILC_HIGHQUALITYSCALE, nIcons, 0
+    );
+    ImageList_Add(hList, hBmp, 0);
+    DeleteObject(hBmp);
+    return hList;
+}
 
-static HBITMAP tb_createAwesomeIcons(COLORREF nColorRef) {
-    HDC hdcScreen = GetDC(hwndMain);
-    HDC hdc = CreateCompatibleDC(hdcScreen);
-    
-    int nIcons = DIM(_fontIcons);
-    int nSize = TB_IMAGE_SIZE;
-    int nWidth = nIcons * nSize;
-    int nBitcount = 32;
-    int size = ((((nWidth * nBitcount) + 31) & ~31) >> 3) * nSize;
+/*
+ * Update the image list for the toolbar.
+ */
+void tb_updateImageList() {
+    wchar_t tbIcons[] = {
+        FA_ICON_FILE,
+        FA_ICON_FOLDER_OPEN,
+        FA_ICON_SAVE,
+        FA_ICON_ERASER,
+        FA_ICON_CUT,
+        FA_ICON_CLIPBOARD,
+        FA_ICON_SEARCH,
+        FA_ICON_EXCHANGE_ALT,
+        FA_ICON_SEARCH_PLUS,
+        FA_ICON_ARROW_LEFT,
+        FA_ICON_ARROW_RIGHT,
+        FA_ICON_UNDO,
+        FA_ICON_REDO,
+        FA_ICON_PRINT,
+        FA_ICON_COG,
+        FA_ICON_QUESTION,
+        FA_ICON_ARROW_UP,
+        FA_ICON_ARROW_DOWN,
+        FA_ICON_STOP_CIRCLE
+    };
+    HIMAGELIST hOld1 = hImageList;
 
-    BITMAPINFO bmi = { 0 };
-    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biWidth = nWidth;
-    bmi.bmiHeader.biHeight = -nSize;
-    bmi.bmiHeader.biPlanes = 1;
-    bmi.bmiHeader.biBitCount = nBitcount;
-    bmi.bmiHeader.biCompression = BI_RGB;
-    bmi.bmiHeader.biSizeImage = size;
-
-    BYTE* pvBits = NULL;
-    HBITMAP hBmp = CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS,
-        (void**)&pvBits, NULL, 0x0);
-    HBITMAP hBmpOld = SelectObject(hdc, hBmp);
-    RECT rect;
-    rect.top = 0;
-    rect.bottom = nSize;
-    rect.left = 0;
-    rect.right = rect.left + nWidth;
-    wchar_t wchChar[255];
-    for (int i = 0; i < nIcons; i++) {
-        wchChar[i] = _fontIcons[i];
+    int nIconSize = theme_getCurrent()->th_tbIconSize;
+    hImageList = tb_createImageList(nIconSize, theme_getCurrent()->th_iconColor, tbIcons, DIM(tbIcons));
+    SendMessageW(hwndToolbar, TB_SETIMAGELIST, (WPARAM)0, (LPARAM)hImageList);
+    SendMessage(hwndToolbar, TB_SETBUTTONSIZE, 0, MAKELPARAM(nIconSize, nIconSize));
+    if (hOld1) {
+        ImageList_Destroy(hOld1);
     }
-    paint_textAntialised(hdc, wchChar, nIcons, nColorRef, rect.left, 0);
-    SelectObject(hdc, hBmpOld);
-    ReleaseDC(hwndMain, hdc);
-    DeleteDC(hdc);
-    ReleaseDC(NULL, hdcScreen);
-    return hBmp;
 }
 
 /*--------------------------------------------------------------------------
@@ -208,20 +195,9 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     SendMessage(hwndToolbar, TB_BUTTONSTRUCTSIZE, 
         (WPARAM) sizeof(TBBUTTON), 0);
 
-    COLORREF cRef2 = theme_getCurrent()->th_iconColor;
-    HBITMAP hBmp = tb_createAwesomeIcons(cRef2);
-    hImageList = ImageList_Create(TB_IMAGE_SIZE, TB_IMAGE_SIZE,
-        ILC_COLOR32 | ILC_HIGHQUALITYSCALE, DIM(_fontIcons), 0
-    );
-    ImageList_Add(hImageList, hBmp, 0);
-    hBmp = tb_createAwesomeIcons(RGB(88,88,88));
-    hImageListGrey = ImageList_Create(TB_IMAGE_SIZE, TB_IMAGE_SIZE,
-        ILC_COLOR32|ILC_HIGHQUALITYSCALE, DIM(_fontIcons), 0
-    );
-    ImageList_Add(hImageListGrey, hBmp, 0);
-    iIndexExtra = 0;
-    SendMessageW(hwndToolbar, TB_SETIMAGELIST, (WPARAM)0, (LPARAM)hImageList);
+    tb_updateImageList();
 
+    iIndexExtra = 0;
     nButton = 0;
     tbb[nButton].iBitmap = (int)(iIndexExtra + 0);
     tbb[nButton].idCommand = MNEWFILE;
@@ -394,7 +370,6 @@ static HWND tb_initToolbar(HWND hwndOwner) {
         }
     }
     SendMessage(hwndToolbar, TB_SETMAXTEXTROWS, 0, 0);
-    SendMessage(hwndToolbar, TB_SETBUTTONSIZE, 0, MAKELPARAM(TB_IMAGE_SIZE, TB_IMAGE_SIZE));
     HWND hwndTooltip = (HWND) SendMessage(hwndToolbar, TB_GETTOOLTIPS, 0, 0);
     if (hwndTooltip) {
         theme_enableDarkMode(hwndTooltip);
@@ -496,6 +471,7 @@ static LRESULT APIENTRY tb_myRebarProc(
         FillRect((HDC)wParam, &rc, theme_getDialogBackgroundBrush());
         return TRUE;
     }
+        
     return CallWindowProc(rebarOriginalWindowProc, hwnd, uMsg,
         wParam, lParam);
 }
@@ -521,6 +497,9 @@ static void tb_initSearchEntryCueBanner(char* pszText) {
 HWND tb_initRebar(HWND hwndOwner) {
     HWND hwndEntryField;
     HWND hwndToolbar;
+    wchar_t searchIcons[] = {
+        FA_ICON_SEARCH
+    };
 
     if (hwndRebar) {
         return hwndRebar;
@@ -550,8 +529,10 @@ HWND tb_initRebar(HWND hwndOwner) {
     hwndEntryField = tb_initSearchEntryField(hwndRebar);
     char szText[80];
     tb_initSearchEntryCueBanner(szText);
-    HWND hwndLabel = cust_createLabeledWindow(hwndRebar, ImageList_GetIcon(hImageListGrey, 6, ILD_TRANSPARENT), TEXT(szText), hwndEntryField);
-    
+    HIMAGELIST hImageListSearch = tb_createImageList(TB_IMAGE_SIZE, RGB(88, 88, 88), searchIcons, 1);
+    HWND hwndLabel = cust_createLabeledWindow(hwndRebar, ImageList_GetIcon(hImageListSearch, 0, ILD_TRANSPARENT), TEXT(szText), hwndEntryField);
+    ImageList_Destroy(hImageListSearch);
+
     // Initialize band info used by both bands.
     // as we are - for theming purpose - still rely on elder common controls versions - we do not use sizeof(REBARBANDINFO) here.
     REBARBANDINFO rbBand = { REBARBANDINFO_V6_SIZE };

@@ -44,6 +44,7 @@ extern void 	tb_wh(WORD* width, WORD* height);
 extern BOOL 	ww_workWinHasFocus(void);
 extern int 		clp_setdata(char* pszBufferName);
 extern void 	EditDroppedFiles(HDROP hdrop);
+extern void tb_updateImageList();
 
 /*------------------------------------------------------------
  * EdCloseAll()
@@ -1750,6 +1751,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		darkmode_allowForApp(theme_getCurrent()->th_isDarkMode);
 		theme_enableDarkMode(hwndFrameWindow);
 		darkmode_flushMenuThemes();
+		tb_updateImageList();
 		RedrawWindow(hwndMain, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN);
 		// TODO: title bar is not correctly repainted upon theme change.
 		SetWindowPos(hwndMain, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);

@@ -1151,6 +1151,7 @@
     <ClInclude Include="include\fileselector.h" />
     <ClInclude Include="include\fileutil.h" />
     <ClInclude Include="include\findandreplace.h" />
+    <ClInclude Include="include\fontawesome.h" />
     <ClInclude Include="include\grammar.h" />
     <ClInclude Include="include\hashmap.h" />
     <ClInclude Include="include\jsmn.h" />
