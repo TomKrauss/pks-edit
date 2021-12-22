@@ -32,6 +32,7 @@
 #include "stringutil.h"
 #include "findandreplace.h"
 #include "themes.h"
+#include "dpisupport.h"
 #include "xdialog.h"
 
 #define TB_IMAGE_SIZE       18
@@ -39,6 +40,7 @@
 static HWND	hwndToolbar;
 static int nToolbarButtons;
 static HIMAGELIST hImageList;
+static HIMAGELIST hImageListDisabled;
 HWND    hwndRebar;
 
 /*
@@ -114,7 +116,7 @@ static void tb_loadFontAwesome() {
             void* pFontData = LockResource(hFntMem); // Lock it into accessible memory
             DWORD len = SizeofResource(hInstance, hFntRes);
             paint_loadFontAwesome(pFontData, len);
-            GlobalFree(hFntMem);
+            FreeResource(hFntMem);
         }
     }
 }
@@ -158,14 +160,49 @@ void tb_updateImageList() {
         FA_ICON_STOP_CIRCLE
     };
     HIMAGELIST hOld1 = hImageList;
+    HIMAGELIST hOldDisabled = hImageListDisabled;
+    static int nOldIconSize;
+    static COLORREF cOldIconColor;
 
-    int nIconSize = theme_getCurrent()->th_tbIconSize;
-    hImageList = tb_createImageList(nIconSize, theme_getCurrent()->th_iconColor, tbIcons, DIM(tbIcons));
+    int nIconSize = dpisupport_getTbIconSize();
+    COLORREF cIconColor = theme_getCurrent()->th_iconColor;
+    if (nOldIconSize == nIconSize && cIconColor == cOldIconColor) {
+        return;
+    }
+    cOldIconColor = cIconColor;
+    nOldIconSize = nIconSize;
+    hImageList = tb_createImageList(nIconSize, cIconColor, tbIcons, DIM(tbIcons));
     SendMessageW(hwndToolbar, TB_SETIMAGELIST, (WPARAM)0, (LPARAM)hImageList);
+
+    hImageListDisabled = tb_createImageList(nIconSize, theme_getCurrent()->th_dialogDisabled, tbIcons, DIM(tbIcons));
+    SendMessageW(hwndToolbar, TB_SETDISABLEDIMAGELIST, (WPARAM)0, (LPARAM)hImageListDisabled);
+
     SendMessage(hwndToolbar, TB_SETBUTTONSIZE, 0, MAKELPARAM(nIconSize, nIconSize));
     if (hOld1) {
         ImageList_Destroy(hOld1);
     }
+    if (hOldDisabled) {
+        ImageList_Destroy(hOldDisabled);
+    }
+    DWORD dwBtnSize = (DWORD)SendMessage(hwndToolbar, TB_GETBUTTONSIZE, 0, 0);
+
+    REBARBANDINFO rbBand = { REBARBANDINFO_V6_SIZE };
+    rbBand.fMask =
+        RBBIM_CHILDSIZE   // child size members are valid.
+        | RBBIM_SIZE;       // cx is valid
+    rbBand.fStyle = RBBS_FIXEDSIZE;
+
+    // Set values unique to the band with the toolbar.
+    rbBand.lpText = TEXT("");
+    rbBand.hwndChild = hwndToolbar;
+    rbBand.cyChild = LOWORD(dwBtnSize);
+    rbBand.cxMinChild = (nToolbarButtons - 2) * HIWORD(dwBtnSize);
+    rbBand.cyMinChild = LOWORD(dwBtnSize);
+    // The default width is the width of the buttons.
+    rbBand.cx = 0;
+
+    // Update the band info for the toolbar.
+    SendMessage(hwndRebar, RB_SETBANDINFO, 0, (LPARAM) & rbBand);
 }
 
 /*--------------------------------------------------------------------------

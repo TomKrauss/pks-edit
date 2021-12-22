@@ -38,6 +38,7 @@ This file contains the release notes for the latest **PKS Edit** releases.
   the encoding) and may select a different encoding when saving files using "Save As". One may inspect the current encoding of a file in the 
   file buffer list.
 - Search in files can now handle **pathes longer than 260 characters** and will not abort the search, when a file along the way cannot be opened.
+- Toolbar icon sizes can now be configured.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 

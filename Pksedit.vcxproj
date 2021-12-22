@@ -82,6 +82,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -290,6 +291,7 @@
       </IgnoreSpecificDefaultLibraries>
       <AdditionalManifestDependencies>"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'"</AdditionalManifestDependencies>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <ManifestFile>$(IntDir)$(TargetName)$(TargetExt).intermediate.manifest</ManifestFile>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -311,6 +313,7 @@
     <ClCompile Include="HashMap.c" />
     <ClCompile Include="CodeCompletion.c" />
     <ClCompile Include="HexRenderer.c" />
+    <ClCompile Include="DpiSupport.c" />
     <ClCompile Include="MarkdownRenderer.c" />
     <ClCompile Include="JsonParser.c" />
     <ClCompile Include="Levensthein.c" />
@@ -1143,6 +1146,7 @@
     <ClInclude Include="include\customcontrols.h" />
     <ClInclude Include="include\darkmode.h" />
     <ClInclude Include="include\documenttypes.h" />
+    <ClInclude Include="include\dpisupport.h" />
     <ClInclude Include="include\editoperations.h" />
     <ClInclude Include="include\editorconfiguration.h" />
     <ClInclude Include="include\editorfont.h" />
@@ -1278,7 +1282,11 @@
   </ItemGroup>
   <ItemGroup>
     <Font Include="rc\Font Awesome 5 Free-Regular-400.otf" />
+    <Font Include="rc\Font Awesome 5 Free-Regular-400.ttf" />
     <Font Include="rc\Font Awesome 5 Free-Solid-900.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="pksedit.exe.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -312,6 +312,9 @@
     <ClCompile Include="MarkdownRenderer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DpiSupport.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -521,6 +524,9 @@
     <ClInclude Include="include\fontawesome.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\dpisupport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">
@@ -660,5 +666,9 @@
   <ItemGroup>
     <Font Include="rc\Font Awesome 5 Free-Solid-900.ttf" />
     <Font Include="rc\Font Awesome 5 Free-Regular-400.otf" />
+    <Font Include="rc\Font Awesome 5 Free-Regular-400.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="pksedit.exe.manifest" />
   </ItemGroup>
 </Project>

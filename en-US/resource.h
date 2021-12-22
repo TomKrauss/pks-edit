@@ -244,6 +244,7 @@
 #define IDC_CHECK_ENCRYPT               1003
 #define IDC_DOCTYPES                    1004
 #define IDC_FILE_ENCONDING              1005
+#define IDD_ICO                         1006
 #define IDS_COMMAND251                  2299
 #define IDS_COMMAND252                  2300
 #define IDS_COMMAND253                  2301
@@ -255,9 +256,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        199
+#define _APS_NEXT_RESOURCE_VALUE        200
 #define _APS_NEXT_COMMAND_VALUE         40009
-#define _APS_NEXT_CONTROL_VALUE         1006
+#define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

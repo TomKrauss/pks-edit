@@ -747,7 +747,7 @@ BEGIN
     CONTROL         "Dateien beim Editieren locken",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,11,96,204,12
 END
 
-DLG_OPT_LAYOUT DIALOGEX 69, 15, 279, 85
+DLG_OPT_LAYOUT DIALOGEX 69, 15, 279, 110
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Layout"
 FONT 8, "helv", 0, 0, 0x0
@@ -757,6 +757,8 @@ BEGIN
     CONTROL         "&Statuszeile anzeigen",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,36,210,8
     CONTROL         "&Toolbar anzeigen",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,48,210,8
     CONTROL         "&Kompakte Darstellung Tabreiter",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,10,60,210,8
+    LTEXT           "&Toolbar Icon Größe:",-1,12,74,122,12,NOT WS_GROUP
+    COMBOBOX        IDD_ICONLIST,148,73,72,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
 DLGCOMPAREFILES DIALOGEX 20, 52, 351, 176
@@ -1190,7 +1192,7 @@ BEGIN
     DLG_OPT_LAYOUT, DIALOG
     BEGIN
         RIGHTMARGIN, 278
-        BOTTOMMARGIN, 77
+        BOTTOMMARGIN, 108
     END
 
     DLGCOMPAREFILES, DIALOG
@@ -1216,7 +1218,7 @@ END
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ PRODUCTVERSION 2,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -1233,12 +1235,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Pahlen & Krauß Software "
             VALUE "FileDescription", "Arcade Atari Programmers Editor"
-            VALUE "FileVersion", "2.1.0"
+            VALUE "FileVersion", "1.0.0.1"
             VALUE "InternalName", "pksedit.exe"
             VALUE "LegalCopyright", "Mozilla Public License Version 2.0"
             VALUE "OriginalFilename", "pksedit.exe"
             VALUE "ProductName", "PKS Edit"
-            VALUE "ProductVersion", "2.1.0"
+            VALUE "ProductVersion", "2.1.0.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -1359,6 +1361,11 @@ BEGIN
 END
 
 DLG_OPEN_OPTIONS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLG_OPT_LAYOUT AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

@@ -32,6 +32,7 @@
 #include "mainframe.h"
 
 extern void fkey_visibilitychanged(void);
+extern void tb_updateImageList();
 
 /*
  * Autosave the editor configuration, when PKS Edit exits.
@@ -51,6 +52,7 @@ static void AutosaveConfiguration() {
 static EDITOR_CONFIGURATION _configuration = {
 	(O_UNDOENABLED | O_AUTOSAVE_TO_TEMP | O_ERROR_TONE | O_HIDE_BLOCK_ON_CARET_MOVE),
 	(OL_OPTIONBAR | OL_SHOWSTATUS),
+	ICS_SMALL,
 	1,
 	3,
 	-1,
@@ -86,6 +88,28 @@ static DIALPARS _dWarnings[] = {
 	0
 };
 
+static void conf_fillIconSizes(HWND hwnd, int nItem, void* selValue) {
+	SendDlgItemMessage(hwnd, nItem, CB_RESETCONTENT, 0, 0L);
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)"Small");
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)"Medium");
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)"Big");
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)"Large");
+	ICONSIZE nCurrent = *(ICONSIZE*)selValue;
+	SendDlgItemMessage(hwnd, nItem, CB_SETCURSEL, (WPARAM)nCurrent, (LPARAM)0);
+}
+
+static int conf_getIconSize(HWND hwnd, int id, void* pszTemp) {
+	LRESULT nItem = SendDlgItemMessage(hwnd, id, CB_GETCURSEL, 0, 0);
+	if (nItem >= 0) {
+		**((ICONSIZE**)pszTemp) = (int)nItem;
+	}
+	return nItem != CB_ERR;
+}
+
+static DIALLIST _iconSizelist = {
+	NULL, conf_fillIconSizes, conf_getIconSize,
+	NULL, NULL, NULL, 0 };
+
 static DIALPARS _dLayout[] = {
 	IDD_NOCHANGEONCANCEL,	0,	0,
 	IDD_OPT1,		OL_OPTIONBAR,		&_configuration.layoutoptions,
@@ -93,6 +117,7 @@ static DIALPARS _dLayout[] = {
 	IDD_OPT3,		OL_SHOWSTATUS,		&_configuration.layoutoptions,
 	IDD_OPT4,		OL_TOOLBAR,			&_configuration.layoutoptions,
 	IDD_OPT5,		OL_COMPACT_TABS,	&_configuration.layoutoptions,
+	IDD_ICONLIST,	0,					&_iconSizelist,
 	// Terminate with 0
 	0
 };
@@ -149,7 +174,8 @@ static DIALPARS* _paramsPerPage[] = {
 	_dMisc
 };
 
-static char* _tempPathSettingName = "AsPath";
+static const char* _tempPathSettingName = "AsPath";
+static const char* _tempICSSettingName = "iconSize";
 
 /**
  * Returns a pointer to the current editor configuration. If not yet initialized it will be initialized on the fly. 
@@ -207,8 +233,11 @@ void EdOptionSet(void) {
     PROPSHEETHEADER psh;
 	INT_PTR tempRet;
 
-	_themelist.li_param = (long long*)GetConfiguration()->themeName;
-	_localeslist.li_param = (long long*)GetConfiguration()->language;
+	EDITOR_CONFIGURATION* pConfig = GetConfiguration();
+	_themelist.li_param = (long long*)pConfig->themeName;
+	_localeslist.li_param = (long long*)pConfig->language;
+	ICONSIZE* p = &pConfig->iconSize;
+	_iconSizelist.li_param = (long long*)&p;
 	dlg_setXDialogParams(_getDialogParsForPage, TRUE);
 	memset(&psh, 0, sizeof psh);
 	memset(psp, 0, sizeof psp);
@@ -246,11 +275,11 @@ void EdOptionSet(void) {
 
 	tempRet = PropertySheet(&psh);
     if (tempRet == 1) {
-		EDITOR_CONFIGURATION* pConfig = GetConfiguration();
 		theme_setCurrent(pConfig->themeName);
 		ui_switchToLanguage(pConfig->language);
 		prof_save(pConfig, FALSE);
 		fkey_visibilitychanged();
+		tb_updateImageList();
 		mainframe_windowTitleChanged();
 	}
 }

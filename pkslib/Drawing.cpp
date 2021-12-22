@@ -33,7 +33,7 @@ static void paint_awesomeIcons(HDC hdc, WCHAR* pszText, int nLen, COLORREF cColo
 	Gdiplus::Graphics  graphics(hdc);
 	SolidBrush  brush(Color(255, GetRValue(cColor), GetGValue(cColor), GetBValue(cColor)));
 	PointF pointF((float)x, (float)y);
-	Gdiplus::Font myFont(L"Font Awesome 5 Free Solid", nIconSize-2, FontStyleRegular, UnitPixel, awesomeFontCollection);
+	Gdiplus::Font myFont(L"Font Awesome 5 Free Solid", (float)(nIconSize-2), FontStyleRegular, UnitPixel, awesomeFontCollection);
 
 	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
 	x -= nIconSize / 8;

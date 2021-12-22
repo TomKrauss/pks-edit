@@ -52,10 +52,12 @@
 #define	OL_TOOLBAR			0x8			// show tool bar
 #define OL_COMPACT_TABS		0x10		// show compact editor tabs (filename only - not full path)
 
+typedef enum { ICS_SMALL, ICS_MEDIUM, ICS_BIG, ICS_LARGE } ICONSIZE;
 
 typedef struct tagEDITOR_CONFIGURATION {
 	int options;
 	int layoutoptions;
+	ICONSIZE iconSize;
 	// the number of supported undo steps.
 	int nundo;
 	// the number of minutes after which an autosave is performed. If 0 - autosave is disabled.
@@ -86,10 +88,6 @@ extern char* config_getPKSEditTempPath();
  */
 void prof_setinifile(char* fn);
 
-/*--------------------------------------------------------------------------
- * prof_adjustpoint()
- */
-extern void prof_adjustpoint(PPOINT pPoint);
 
 /*------------------------------------------------------------
  * prof_getws()
@@ -105,13 +103,13 @@ extern int prof_getwinstate(char* wname, int nr, WINDOWPLACEMENT* wsp);
  * prof_getPksStandardString()
  * Fetches a string from the standard section of the PKS profile.
  */
-extern int prof_getPksStandardString(char* ident, char* string, int maxlen);
+extern int prof_getPksStandardString(const char* ident, char* string, int maxlen);
 
 /*------------------------------------------------------------
  * prof_savestring()
  * Saves a string in the standard section of the PKS profile.
  */
-extern int prof_savePksStandardString(char* ident, char* string);
+extern int prof_savePksStandardString(const char* ident, char* string);
 
 /*------------------------------------------------------------
  * prof_printws()
@@ -121,18 +119,13 @@ extern void prof_printws(char* buf, WINDOWPLACEMENT* wsp);
 /*------------------------------------------------------------
  * prof_savestring()
  */
-extern int prof_savestring(char* grp, char* ident, char* string);
+extern int prof_savestring(const char* grp, const char* ident, char* string);
 
 /*--------------------------------------------------------------------------
  * config_saveTempPath()
  * Save the temp path of PKS editor to the pksedit.ini file.
  */
 extern void config_saveTempPath();
-
-/*--------------------------------------------------------------------------
- * prof_killentry()
- */
-extern int prof_killentry(char* grp, char* ident);
 
 /*------------------------------------------------------------
  * prof_savewinstate()
@@ -191,7 +184,7 @@ extern void* prof_llinsert(void* Head, int size, char* group, char* item, char**
  * prof_getPksProfileString()
  * Fetches a string from the PKS profile ini file.
  */
-extern int prof_getPksProfileString(char* pGroup, char* ident, char* string, int maxlen);
+extern int prof_getPksProfileString(const char* pGroup, const char* ident, char* string, int maxlen);
 
 /*--------------------------------------------------------------------------
  * op_updateall()

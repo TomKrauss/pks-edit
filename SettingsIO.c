@@ -102,7 +102,7 @@ void prof_setinifile(char *fn)
  * prof_getPksProfileString()
  * Fetches a string from the PKS profile ini file. 
  */
-int prof_getPksProfileString(char *pGroup, char *ident, char *string, int maxlen)
+int prof_getPksProfileString(const char *pGroup, const char *ident, char *string, int maxlen)
 {
 	if (!LocatePksEditIni())
 		return 0;
@@ -114,7 +114,7 @@ int prof_getPksProfileString(char *pGroup, char *ident, char *string, int maxlen
  * prof_getPksStandardString()
  * Fetches a string from the standard section of the PKS profile.
  */
-int prof_getPksStandardString(char* ident, char* string, int maxlen) {
+int prof_getPksStandardString(const char* ident, char* string, int maxlen) {
 	return prof_getPksProfileString(_desk, ident, string, maxlen);
 }
 
@@ -122,7 +122,7 @@ int prof_getPksStandardString(char* ident, char* string, int maxlen) {
  * prof_savestring()
  * Saves a string in the standard section of the PKS profile.
  */
-int prof_savePksStandardString(char* ident, char* string) {
+int prof_savePksStandardString(const char* ident, char* string) {
 	return prof_savestring(_desk, ident, string);
 }
 
@@ -203,7 +203,7 @@ EXPORT void prof_printws(char *buf, WINDOWPLACEMENT *wsp)
 /*------------------------------------------------------------
  * prof_savestring()
  */
-int prof_savestring(char *grp, char *ident, char *string)
+int prof_savestring(const char *grp, const char *ident, char *string)
 {
 	return
 		WritePrivateProfileString(grp,ident,string,_pksEditIniFilename);
@@ -288,6 +288,7 @@ int prof_getstdopt(void) {
 	}
 	pConfiguration->options = prof_getlong(_desk,"Options");
 	pConfiguration->layoutoptions = prof_getlong(_desk,"Layout");
+	pConfiguration->iconSize = prof_getlong(_desk, "iconSize");
 
 	_currentSearchAndReplaceParams.options = (int)prof_getlong(_desk,"FindOptions");
 	char buf[32];
@@ -361,6 +362,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	prof_savelong(_desk,"Options",(long)configuration->options);
 	prof_savelong(_desk,"Layout",(long)configuration->layoutoptions);
 	prof_savelong(_desk,"FindOptions",(long)_currentSearchAndReplaceParams.options);
+	prof_savelong(_desk, "iconSize", (long)configuration->iconSize);
 	char szBuf[32];
 	sprintf(szBuf, "%ds", configuration->autosaveSeconds);
 	prof_savestring(_desk,"AsInterv", szBuf);
