@@ -70,6 +70,7 @@ typedef struct tagEDITOR_CONFIGURATION {
 	char includePath[EDMAXPATHLEN];
 	char themeName[32];
 	char language[32];
+	char defaultFontFace[32];
 	void (*autosaveOnExit)();
 } EDITOR_CONFIGURATION;
 

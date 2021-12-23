@@ -2,7 +2,7 @@
   "themes": [
     {
       "name": "default",
-      "iconColor": "#00033",
+      "iconColor": "#0066cc",
       "backgroundColor": "#fcfcfc",
       "changedLineColor": "#ffdd00",
       "savedChangedLineColor": "#88ff88",
@@ -21,7 +21,6 @@
       "textStyles": [
         {
           "styleName": "default",
-          "faceName": "Consolas",
           "size": -12,
           "foregroundColor": "#000030",
           "weight": 400
@@ -147,7 +146,6 @@
       "textStyles": [
         {
           "styleName": "default",
-          "faceName": "Consolas",
           "size": -12,
           "foregroundColor": "#233423",
           "weight": 400
@@ -276,7 +274,6 @@
       "textStyles": [
         {
           "styleName": "default",
-          "faceName": "Consolas",
           "size": -12,
           "foregroundColor": "#342323",
           "weight": 400
@@ -377,7 +374,7 @@
     {
       "name": "dark",
       "darkMode": 1,
-      "iconColor": "#ffffff",
+      "iconColor": "#52a2ff",
       "backgroundColor": "#373737",
       "dialogBackground": "#323232",
       "dialogErrorText": "#ff6464",
@@ -405,7 +402,6 @@
       "textStyles": [
         {
           "styleName": "default",
-          "faceName": "Consolas",
           "size": -12,
           "foregroundColor": "#dedede"
         },

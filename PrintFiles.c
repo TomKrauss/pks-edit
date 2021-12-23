@@ -86,7 +86,6 @@ extern char 		*ft_visibleName(FTABLE *fp);
 
 static HWND 		hwndPreview;
 static PRINTWHAT	_printwhat;
-static char 		szPrtDevice[64];
 
 /*------------------------------------------------------------
  * print_getPrinterDC()
@@ -94,14 +93,13 @@ static char 		szPrtDevice[64];
 EXPORT HDC print_getPrinterDC(void)
 {
 	char szPrinter[256];
-	char *szDriver,*szOutput;
+	DWORD dwPrinterNameSize;
 	HDC hdc;
 
-	GetProfileString("devices", szPrtDevice, "", szPrinter, sizeof szPrinter);
-	if ((szDriver = strtok(szPrinter,",")) != 0 &&
-	    (szOutput = strtok(NULL     ,",")) != 0 &&
-	    (hdc = CreateDC(NULL,szPrtDevice, NULL, NULL)) != 0) {
-	    	return hdc;
+	dwPrinterNameSize = sizeof szPrinter;
+	if (GetDefaultPrinter(szPrinter, &dwPrinterNameSize) &&
+		(hdc = CreateDC(NULL, szPrinter, NULL, NULL)) != 0) {
+	    return hdc;
 	}
 	error_showErrorById(IDS_MSGNOPRINTER);
 	return 0;

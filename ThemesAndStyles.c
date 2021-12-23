@@ -25,6 +25,7 @@
 #include "linkedlist.h"
 #include "edierror.h"
 #include "jsonparser.h"
+#include "editorconfiguration.h"
 
 #include "themes.h"
 #include "winfo.h"
@@ -108,7 +109,7 @@ typedef struct tagEDTEXTSTYLE {
 static EDTEXTSTYLE defaultTextStyle = {
 	NULL,
 	"default",
-	"Conolas",
+	"Consolas",
 	ANSI_CHARSET,
 	15,
 	RGB(0, 0, 0),
@@ -170,7 +171,7 @@ static HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont) {
 	_lf.lfItalic = pFont->style.italic;
 	_lf.lfUnderline = (BYTE)pFont->style.underline;
 	if (!pFont->faceName[0]) {
-		lstrcpy(_lf.lfFaceName, pDefaultFont->faceName);
+		lstrcpy(_lf.lfFaceName, pDefaultFont->faceName[0] ? pDefaultFont->faceName : defaultTextStyle.faceName);
 	} else {
 		lstrcpy(_lf.lfFaceName, pFont->faceName);
 	}
@@ -340,6 +341,10 @@ int theme_initThemes(void) {
 	if (initialized) {
 		return 1;
 	}
+	const char* pszFont = GetConfiguration()->defaultFontFace;
+	if (*pszFont) {
+		strcpy(defaultTextStyle.faceName, pszFont);
+	}
 	initialized = 1;
 	memset(&themeConfiguration, 0, sizeof themeConfiguration);
 	if (json_parse("themeconfig.json", &themeConfiguration, _themeConfigurationRules)) {
@@ -493,8 +498,7 @@ static UINT_PTR CALLBACK ChooseFontHookProc(HWND hDlg, UINT msg, WPARAM wParam,
 /*--------------------------------------------------------------------------
  * DlgChooseFont()
  */
-BOOL DlgChooseFont(HWND hwnd, EDTEXTSTYLE *ep, BOOL bPrinter)
-{
+BOOL DlgChooseFont(HWND hwnd, char* pszFontName, BOOL bPrinter) {
 	LOGFONT 	lf;
 	CHOOSEFONT 	cf;
 	HDC			hdc;
@@ -507,18 +511,18 @@ BOOL DlgChooseFont(HWND hwnd, EDTEXTSTYLE *ep, BOOL bPrinter)
 	memset(&cf, 0, sizeof cf);
 	memset(&lf, 0, sizeof lf);
 
-	lf.lfHeight = ep->size;
-	lf.lfWeight = ep->style.weight;
+	lf.lfHeight = 0;
+	lf.lfWeight = 0;
 	lf.lfWidth = 0;
-	lf.lfItalic = ep->style.italic;
-	lf.lfStrikeOut = ep->style.strikeout;
-	lf.lfUnderline = ep->style.underline;
-	lf.lfCharSet = (BYTE)ep->charset;
+	lf.lfItalic = 0;
+	lf.lfStrikeOut = 0;
+	lf.lfUnderline = 0;
+	lf.lfCharSet = (BYTE)CP_ACP;
 	lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
 	lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 	lf.lfQuality = DEFAULT_QUALITY;
 	lf.lfPitchAndFamily = DEFAULT_PITCH|FF_DONTCARE;
-	lstrcpy(lf.lfFaceName, ep->faceName);
+	lstrcpy(lf.lfFaceName, pszFontName);
 
 	cf.lStructSize = sizeof(CHOOSEFONT);
 	cf.hwndOwner = hwnd;
@@ -527,21 +531,14 @@ BOOL DlgChooseFont(HWND hwnd, EDTEXTSTYLE *ep, BOOL bPrinter)
 	cf.Flags = (bPrinter) ? 
 		CF_ENABLEHOOK|CF_EFFECTS|CF_INITTOLOGFONTSTRUCT|CF_FIXEDPITCHONLY|CF_PRINTERFONTS : 
 		CF_ENABLEHOOK|CF_EFFECTS|CF_INITTOLOGFONTSTRUCT|CF_FIXEDPITCHONLY|CF_SCREENFONTS;
-	cf.rgbColors = (COLORREF)ep->fgcolor;
+	cf.rgbColors = 0;
 	cf.nFontType = (bPrinter) ? 
 		PRINTER_FONTTYPE :
 		SCREEN_FONTTYPE;
 	cf.lpfnHook = MakeProcInstance(ChooseFontHookProc, hInst);
 
 	if ((bRet = ChooseFont(&cf)) == TRUE) {
-		ep->fgcolor = (long)cf.rgbColors;
-		lstrcpy(ep->faceName, lf.lfFaceName);
-		ep->charset = lf.lfCharSet;
-		ep->size = lf.lfHeight;
-		ep->style.underline = lf.lfUnderline;
-		ep->style.strikeout = lf.lfStrikeOut;
-		ep->style.italic = lf.lfItalic;
-		ep->style.weight = (short)lf.lfWeight;
+		lstrcpy(pszFontName, lf.lfFaceName);
 	}
 
 	if (cf.lpfnHook != NULL) {
@@ -559,6 +556,9 @@ BOOL DlgChooseFont(HWND hwnd, EDTEXTSTYLE *ep, BOOL bPrinter)
 static THEME_DATA* theme_getByName(unsigned char* pThemeName) {
 	theme_initThemes();
 	THEME_DATA* pTheme = themeConfiguration.th_themes;
+	if (strcmp(SYSTEM_DEFAULT_THEME, pThemeName) == 0) {
+		pThemeName = darkmode_isSelectedByDefault() ? "dark" : DEFAULT;
+	}
 	while(pTheme != NULL) {
 		if (strcmp(pTheme->th_name, pThemeName) == 0) {
 			return pTheme;

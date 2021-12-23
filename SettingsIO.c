@@ -282,6 +282,7 @@ int prof_getstdopt(void) {
 	if (pConfiguration->language[0]) {
 		ui_switchToLanguage(pConfiguration->language);
 	}
+	prof_getPksProfileString(_desk, "DefaultFontFace", pConfiguration->defaultFontFace, sizeof pConfiguration->defaultFontFace - 1);
 	prof_getPksProfileString(_desk, "Theme", pConfiguration->themeName, sizeof pConfiguration->themeName - 1);
 	if (pConfiguration->themeName[0]) {
 		theme_setCurrent(pConfiguration->themeName);
@@ -366,6 +367,9 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	char szBuf[32];
 	sprintf(szBuf, "%ds", configuration->autosaveSeconds);
 	prof_savestring(_desk,"AsInterv", szBuf);
+	if (configuration->defaultFontFace[0]) {
+		prof_savestring(_desk, "DefaultFontFace", configuration->defaultFontFace);
+	}
 	prof_savelong(_desk, "maxOpenWindows", (long)configuration->maximumNumberOfOpenWindows);
 	config_saveTempPath();
 	prof_savelong(_desk,"NUBuf",(long)configuration->nundo);

@@ -244,6 +244,10 @@ void darkmode_flushMenuThemes() {
 	}
 }
 
+BOOL darkmode_isSelectedByDefault() {
+	return _ShouldAppsUseDarkMode ? _ShouldAppsUseDarkMode() : FALSE;
+}
+
 /*
  * Initializes Darkmode handling 
  */

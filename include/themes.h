@@ -56,6 +56,8 @@ typedef struct tagTHEME_DATA {
 	EDTEXTSTYLE* th_styleLookup[50];		// pre-processed array of styles for lookup
 } THEME_DATA;
 
+#define SYSTEM_DEFAULT_THEME		"system default"
+
 /*
  * Select a new theme to use by a given theme name. If the
  * named theme is not defined, a default theme is selected.

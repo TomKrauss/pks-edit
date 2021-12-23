@@ -21,6 +21,7 @@
 #include "trace.h"
 #include "winterf.h"
 #include "documentmodel.h"
+#include "darkmode.h"
 #include "winfo.h"
 #include "editorconfiguration.h"
 #include "errordialogs.h"
@@ -223,6 +224,7 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
 	wchar_t				szwLocale[64];
 	char				szLocale[64];
 
+	darkmode_initialize();
 	hLanguageInst = hInst;
 	GetUserDefaultLocaleName(szwLocale, 64);
 	wcstombs(szLocale, szwLocale, wcslen(szwLocale) + 1);

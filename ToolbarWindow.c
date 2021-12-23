@@ -189,7 +189,7 @@ void tb_updateImageList() {
     REBARBANDINFO rbBand = { REBARBANDINFO_V6_SIZE };
     rbBand.fMask =
         RBBIM_CHILDSIZE   // child size members are valid.
-        | RBBIM_SIZE;       // cx is valid
+        ;       // cx is valid
     rbBand.fStyle = RBBS_FIXEDSIZE;
 
     // Set values unique to the band with the toolbar.

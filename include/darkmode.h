@@ -23,6 +23,8 @@ extern void darkmode_initialize();
 
 extern void darkmode_refreshTitleBarThemeColor(HWND hWnd, BOOL aDarkFlag);
 
+extern BOOL darkmode_isSelectedByDefault();
+
 /*
  * Enables dark mode in the corresponding window.
  */

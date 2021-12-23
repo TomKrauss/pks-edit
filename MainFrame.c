@@ -1896,7 +1896,6 @@ HWND mainframe_open(int nInstanceCount, HMENU hDefaultMenu) {
 	char szTitle[1200];
 	DWORD dwStyle;
 
-	darkmode_initialize();
 	if (nInstanceCount > 1) {
 		wsprintf(szTitle, "* PKS EDIT * (%d)", nInstanceCount);
 	}

@@ -60,6 +60,7 @@ static EDITOR_CONFIGURATION _configuration = {
 	"INCLUCDE;INC",
 	"default",
 	"Deutsch",
+	"",
 	AutosaveConfiguration
 };
 
@@ -136,6 +137,7 @@ static void conf_fillLocales(HWND hwnd, int nItem, void* selValue) {
 
 static void conf_fillThemes(HWND hwnd, int nItem, void* selValue) {
 	SendDlgItemMessage(hwnd, nItem, CB_RESETCONTENT, 0, 0L);
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)SYSTEM_DEFAULT_THEME);
 	THEME_DATA* pThemes = theme_getThemes();
 	while (pThemes) {
 		SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)pThemes->th_name);
@@ -163,6 +165,7 @@ static DIALPARS _dMisc[] = {
 	IDD_OPT4,		O_LOCKFILES,					& _configuration.options,
 	IDD_STRINGLIST2, 0,								&_themelist,
 	IDD_STRINGLIST1, 0,								&_localeslist,
+	IDD_FONTSELECT,	TRUE,							_configuration.defaultFontFace,
 	// Terminate with 0
 	0
 };

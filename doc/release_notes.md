@@ -38,7 +38,10 @@ This file contains the release notes for the latest **PKS Edit** releases.
   the encoding) and may select a different encoding when saving files using "Save As". One may inspect the current encoding of a file in the 
   file buffer list.
 - Search in files can now handle **pathes longer than 260 characters** and will not abort the search, when a file along the way cannot be opened.
-- Toolbar icon sizes can now be configured.
+- Toolbar icon sizes can now be configured in the configuration layout options section.
+- The default text font used in editors can now be configured in the configuration misc.... section.
+- One can select now the special theme "system default" to have PKS-Edit honor the system settings for darkmode application display.
+  If selected, PKS-Edit shows up in darkmode, when darkmode applications mode is configured in Windows and in default mode otherwise.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
