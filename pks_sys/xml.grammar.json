@@ -17,24 +17,40 @@
           "name": "comment.multiLine"
         },
         {
+          "begin": "<![CDATA[",
+          "end": "]]>",
+          "style": "italic",
+          "name": "xml.cdata"
+        },
+        {
           "match": "\\<![^>]+\\>",
           "style": "hyperlink",
           "name": "xml.meta"
         },
         {
           "match": "\\</[^>]+\\>",
-          "style": "regexp",
+          "style": "keyword",
           "name": "xml.end"
         },
         {
           "match": "\\<[a-zA-Z0-9_-]+[\\> ]",
-          "style": "regexp",
+          "style": "keyword",
           "name": "xml.start"
         },
         {
-          "match": "\\>",
-          "style": "regexp",
-          "name": "xml.start"
+          "match": "/?\\>",
+          "style": "keyword",
+          "name": "xml.start2"
+        },
+        {
+          "match": "\\<\\? *[a-zA-Z]*",
+          "style": "italic",
+          "name": "xml.processing"
+        },
+        {
+          "match": "\\?\\>",
+          "style": "italic",
+          "name": "xml.processing.end"
         },
         {
           "match": "\\<\\?[^>]+\\>",
@@ -42,7 +58,7 @@
           "name": "xml.processing"
         },
         {
-          "match": "(<[a-zA-Z_0-9-]+>)\\s*=\\s*(\"[^\"]+\")",
+          "match": "(<[a-zA-Z_0-9-]+>)\\s*=\\s*(\"[^\"]*\")",
           "name": "string.xml.propertyDefinition",
           "captures": [
             {
@@ -67,7 +83,7 @@
           "style": "bold-italic"
         },
         {
-          "match": "[\"'](?:\\\"|[^\"])+[\"']",
+          "match": "[\"'](?:\\\"|[^\"])*[\"']",
           "style": "string",
           "name": "string"
         }

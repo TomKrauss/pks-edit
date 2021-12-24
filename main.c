@@ -73,7 +73,6 @@ static HSZ		hszDDEService;
 static int		nInstanceCount;
 
 #define	MAXCONTEXT		3
-#define	TIMER_INTERVALL	1000
 
 static HMENU	hDefaultMenu;
 

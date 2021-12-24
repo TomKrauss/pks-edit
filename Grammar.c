@@ -36,7 +36,8 @@
 
 #define	DIM(x)		(sizeof(x)/sizeof(x[0]))
 
-#define CHARACTER_STATE_SHIFT		5
+#define CHARACTER_STATE_SHIFT		(LONGLONG)7l	// 2**CHARACTER_STATE_SHIFT == number of states per start character allowed
+#define CHARACTER_STATE_MASK		(LONGLONG)127l	// 2**CHARACTER_STATE_SHIFT-1
 
 // Code template definition.
 typedef struct tagTEMPLATE {
@@ -89,9 +90,9 @@ typedef struct tagGRAMMAR {
 	char wysiwygRenderer[32];			// The name of the wysiwyg renderer
 	BRACKET_RULE* highlightBrackets;	// The rule patterns for "highlight" bracket matching.
 	GRAMMAR_PATTERN* patterns;			// The patterns defined for this grammar.
-	int transitions[256];				// The indices into the state transition table. We allow a maximum of 32 re_patterns to match from one initial state.
-										// for each character we allow a maximum of 5 possibilities to match.
-	GRAMMAR_PATTERN* patternsByState[16];
+	LONGLONG transitions[256];			// The indices into the state transition table. We allow a maximum of 2 ** (16-6) re_patterns to match from one initial state.
+										// for each character we allow a maximum of 6 possibilities to match.
+	GRAMMAR_PATTERN* patternsByState[64]; // max 64 patterns allowed per grammar.
 	UCLIST* undercursorActions;			// The list of actions to perform on input (either bracket matching or code template insertion etc...).
 	NAVIGATION_PATTERN* navigation;		// The patterns, which can be used to extract hyperlinks to navigate from within a file
 	TAGSOURCE* tagSources;				// The list of tag sources to check for cross references
@@ -399,18 +400,24 @@ RE_PATTERN* grammar_compile(GRAMMAR* pGrammar, GRAMMAR_PATTERN* pGrammarPattern)
  * we will use the corresponding index to find the pattern to match to match a token in the input.
  */
 static void grammar_addCharTransition(GRAMMAR* pGrammar, unsigned char cChar, LEXICAL_STATE state) {
-	int oldState = pGrammar->transitions[cChar];
-	if (oldState & (0x1F << (5* CHARACTER_STATE_SHIFT))) {
-		error_displayAlertDialog("More than 4 grammar states entered by character '%c'. Grammar '%s' may not work correctly.", cChar, pGrammar->scopeName);
-	} else if (oldState & (0x1F << (4* CHARACTER_STATE_SHIFT))) {
+	LONGLONG oldState = pGrammar->transitions[cChar];
+	if (oldState & (CHARACTER_STATE_MASK << (8* CHARACTER_STATE_SHIFT))) {
+		error_displayAlertDialog("More than 7 grammar states entered by character '%c'. Grammar '%s' may not work correctly.", cChar, pGrammar->scopeName);
+	} else if (oldState & (CHARACTER_STATE_MASK << (7 * CHARACTER_STATE_SHIFT))) {
+		state <<= (7 * CHARACTER_STATE_SHIFT);
+	} else if (oldState & (CHARACTER_STATE_MASK << (6 * CHARACTER_STATE_SHIFT))) {
+		state <<= (7 * CHARACTER_STATE_SHIFT);
+	} else if (oldState & (CHARACTER_STATE_MASK << (5 * CHARACTER_STATE_SHIFT))) {
+		state <<= (6 * CHARACTER_STATE_SHIFT);
+	} else if (oldState & (CHARACTER_STATE_MASK << (4* CHARACTER_STATE_SHIFT))) {
 		state <<= (5* CHARACTER_STATE_SHIFT);
-	} else if (oldState & (0x1F << (3* CHARACTER_STATE_SHIFT))) {
+	} else if (oldState & (CHARACTER_STATE_MASK << (3* CHARACTER_STATE_SHIFT))) {
 		state <<= (4* CHARACTER_STATE_SHIFT);
-	} else if (oldState & (0x1F << (2* CHARACTER_STATE_SHIFT))) {
+	} else if (oldState & (CHARACTER_STATE_MASK << (2* CHARACTER_STATE_SHIFT))) {
 		state <<= (3* CHARACTER_STATE_SHIFT);
-	} else if (oldState & (0x1F<< CHARACTER_STATE_SHIFT)) {
+	} else if (oldState & (CHARACTER_STATE_MASK << CHARACTER_STATE_SHIFT)) {
 		state <<= (2* CHARACTER_STATE_SHIFT);
-	} else if (oldState & 0x1F) {
+	} else if (oldState & CHARACTER_STATE_MASK) {
 		state <<= CHARACTER_STATE_SHIFT;
 	}
 	pGrammar->transitions[cChar] = oldState | state;
@@ -484,6 +491,10 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 		state++;
 		state = grammar_processChildPatterns(pGrammar, state, pPattern);
 		pPattern = pPattern->next;
+		if (state >= DIM(pGrammar->patternsByState)) {
+			error_displayAlertDialog("Too many states defined in grammar %s", pGrammar->scopeName);
+			return;
+		}
 	}
 	pPattern = pGrammar->patterns;
 	while (pPattern && state < DIM(pGrammar->patternsByState)) {
@@ -698,11 +709,11 @@ int grammar_parse(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEXICAL_ELEMENT
 				continue;
 			}
 		} else if (currentState == INITIAL || currentState == UNKNOWN) {
-			int possibleStates = pGrammar->transitions[c];
+			LONGLONG possibleStates = pGrammar->transitions[c];
 			if (possibleStates) {
 				int matched = 0;
 				while (possibleStates) {
-					LEXICAL_STATE state = possibleStates & 0xF;
+					LEXICAL_STATE state = possibleStates & CHARACTER_STATE_MASK;
 					GRAMMAR_PATTERN* pPattern = pGrammar->patternsByState[state];
 					if (!pPattern) {
 						break;

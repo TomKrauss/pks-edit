@@ -48,6 +48,7 @@ static struct tagSEARCH_CONTEXT {
 	BOOL sc_ignoreBinary;
 	size_t sc_matches;
 	size_t sc_files;
+	size_t sc_filesScanned;
 } _searchContext;
 
 static int 	 _abortOnFirstMatch,_trymatch;
@@ -241,6 +242,7 @@ static int find_inFile(intptr_t p1, void* pUnused) {
 	}
 
 	if (!_searchContext.sc_ignoreBinary || !scan_isBinaryFile(fd)) {
+        _searchContext.sc_filesScanned++;
 		size_t nOldFound = _searchContext.sc_matches;
 		progress_showMonitorMessage(string_abbreviateFileName(pszFile));
 		if (!_trymatch) {
@@ -385,7 +387,8 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 	if (_searchContext.sc_openFailures) {
 		fprintf(_searchContext.sc_file, "Could not open %ld files during scan because of opening errors.\n", (long)_searchContext.sc_openFailures);
 	}
-	fprintf(_searchContext.sc_file, "Found %ld matches in %ld files", (long)_searchContext.sc_matches, (long)_searchContext.sc_files);
+	fprintf(_searchContext.sc_file, "Scanned %ld files, found %ld matches in %ld files", 
+		(long)_searchContext.sc_filesScanned, (long)_searchContext.sc_matches, (long)_searchContext.sc_files);
 	fclose(_searchContext.sc_file);
 	progress_closeMonitor(0);
 	free(pathlist);

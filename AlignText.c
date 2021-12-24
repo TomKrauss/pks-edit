@@ -1,5 +1,5 @@
 /*
- * AlignText.C
+ * align_text.C
  *
  * PROJEKT: PKS-EDIT for Windows
  *
@@ -23,9 +23,9 @@
 #include "pksedit.h"
 
 /*---------------------------------*/
-/* AlignText()					*/
+/* align_text()					*/
 /*---------------------------------*/
-EXPORT int AlignText(char *finds, int scope, char filler, int flags)
+EXPORT int align_text(char *pszSearch, int scope, char filler, int flags)
 {	int  col,firstcol,aligncol = -1,
 		firsti,besti,bestcol,nchars,ret;
 	long i;
@@ -37,7 +37,7 @@ EXPORT int AlignText(char *finds, int scope, char filler, int flags)
 	RE_PATTERN* pattern;
 	WINFO* wp;
 
-	if (!(pattern = regex_compileWithDefault(finds))) {
+	if (!(pattern = regex_compileWithDefault(pszSearch))) {
 		return 0;
 	}
 

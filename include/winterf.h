@@ -51,7 +51,9 @@
 /* keycode custom */
 #define 	KC_QUERYKEY		WM_USER + 101	/* Keycode query message */
 
+// The ID and default waiting time of our main timer.
 #define 	TIM_FRAME			23
+#define		TIMER_INTERVALL		1000
 
 extern char   szAppName[];
 

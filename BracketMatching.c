@@ -28,11 +28,11 @@
 #include "grammar.h"
 #include "pksedit.h"
 #include "publicapi.h"
+#include "winterf.h"
 
 /*--------------------------------------------------------------------------
  * EXTERNALS
  */
-
 extern long	_multiplier;
 extern int	edit_calculateTabs2Columns(INDENTATION *pIndent, int tabs);
 
@@ -296,12 +296,19 @@ matched:
 /*------------------------------------------------------------
  * uc_waitForTimerElapsed()
  */
-static void uc_waitForTimerElapsed(void)
-{
+static void uc_waitForTimerElapsed(int ms) {
 	MSG msg;
 
-	GetMessage(&msg, 0, WM_TIMER, WM_TIMER);
-	DispatchMessage(&msg);
+	// Set the default timer to wait for ms seconds.
+	SetTimer(hwndMain, TIM_FRAME, ms, NULL);
+	while (GetMessage(&msg, 0, 0, 0)) {
+		if (msg.message == WM_TIMER) {
+			break;
+		}
+		DispatchMessage(&msg);
+	}
+	// Re-set the default timer to wait for TIMER_INTERVAL seconds.
+	SetTimer(hwndMain, TIM_FRAME, TIMER_INTERVALL, NULL);
 }
 
 /*--------------------------------------------------------------------------
@@ -344,7 +351,7 @@ EXPORT int uc_showMatchingBracket(WINFO* wp) {
 		if (scanmatch(0,lp, up->p.uc_bracket,&ln,&col)) {
 			if (ln >= wp->minln) {
 				caret_placeCursorInCurrentFile(wp, ln,col);
-				uc_waitForTimerElapsed();
+				uc_waitForTimerElapsed(300);
 				caret_placeCursorInCurrentFile(wp, lsav,csav);
 				return 1;
 			}
