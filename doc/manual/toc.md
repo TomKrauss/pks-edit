@@ -10,6 +10,7 @@ click a link at the same time pressing the `Ctrl` key.
 ## Table of Contents
 
 - [Getting Started](getting_started.md)
+- [The UI of PKS-Edit](pksedit_ui.md)
 - [Editing Files](editing_files.md)
 - [Saving Files](saving_files.md)
 - [Find & Replace](find_replace.md)

@@ -36,7 +36,7 @@
 static char	*	pszStatusMessage;
 static BOOL		bSimpleMode;
 static HWND		hwndStatus;
-static BOOL		_redrawPosted;
+static int		_redrawsPosted;
 
 /*------------------------------------------------------------
  * st_format()
@@ -108,10 +108,10 @@ static void st_setparts(char *text, BOOL bUpdateMessageOnly)
 
 
 void st_redraw(BOOL bUpdateMessageOnly) {
-	if (!_redrawPosted) {
+	if (!_redrawsPosted || _redrawsPosted > 5) {
 		PostMessage(hwndStatus, WM_ST_REDRAW, (WPARAM)bUpdateMessageOnly, 0);
-		_redrawPosted = TRUE;
 	}
+	_redrawsPosted++;
 }
 
 /*--------------------------------------------------------------------------
@@ -159,7 +159,7 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	case WM_ST_REDRAW: {
 		st_format(szBuf);
 		st_setparts(szBuf, (BOOL)wParam);
-		_redrawPosted = FALSE;
+		_redrawsPosted = 0;
 		return 0;
 	}
 

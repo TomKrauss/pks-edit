@@ -91,6 +91,7 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_FLAG, "hideHorizontalSlider", offsetof(EDIT_CONFIGURATION, dispmode), SHOWHIDEHSLIDER},
 	{	RT_FLAG, "showSyntaxHighlight", offsetof(EDIT_CONFIGURATION, dispmode), SHOW_SYNTAX_HIGHLIGHT},
 	{	RT_FLAG, "highlightCaretLine", offsetof(EDIT_CONFIGURATION, dispmode), SHOWCARET_LINE_HIGHLIGHT},
+	{	RT_FLAG, "showWysiwyg", offsetof(EDIT_CONFIGURATION, dispmode), SHOWWYSIWYG},
 	{	RT_FLAG, "insertMode", offsetof(EDIT_CONFIGURATION, workmode), WM_INSERT},
 	{	RT_FLAG, "autoIndent", offsetof(EDIT_CONFIGURATION, workmode), WM_AUTOINDENT},
 	{	RT_FLAG, "watchLogfile", offsetof(EDIT_CONFIGURATION, workmode), WM_WATCH_LOGFILE},

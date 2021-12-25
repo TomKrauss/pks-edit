@@ -163,9 +163,9 @@ CLASS "DLGFKEYS"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     CONTROL         "Insert",IDD_FKFLG1,"toggle",WS_TABSTOP | 0x3,40,20,40,12
-    CONTROL         "Indent",IDD_FKFLG2,"toggle",WS_TABSTOP | 0x3,80,20,40,12
-    CONTROL         "Wrap",IDD_FKFLG3,"toggle",WS_TABSTOP | 0x3,120,20,40,12
-    CONTROL         "Format",IDD_FKFLG4,"toggle",WS_TABSTOP | 0x3,200,20,40,12
+    CONTROL         "Auto Indent",IDD_FKFLG2,"toggle",WS_TABSTOP | 0x3,80,20,40,12
+    CONTROL         "Auto Wrap",IDD_FKFLG3,"toggle",WS_TABSTOP | 0x3,120,20,40,12
+    CONTROL         "Auto Format",IDD_FKFLG4,"toggle",WS_TABSTOP | 0x3,200,20,40,12
     CONTROL         "Check {}",IDD_FKFLG5,"toggle",WS_TABSTOP | 0x3,0,20,40,12
     CONTROL         "Indent {",IDD_FKFLG6,"toggle",WS_TABSTOP | 0x3,400,20,40,12
     CONTROL         "Shortcuts",IDD_FKFLG7,"toggle",WS_TABSTOP | 0x3,240,20,40,12
@@ -1204,7 +1204,7 @@ BEGIN
     BEGIN
         MENUITEM "&New...",                     MNEWFILE
         MENUITEM "O&pen...\a",                  MOPENF
-        MENUITEM "New Window for Current File\a", MCLONEWINDOW
+        MENUITEM "Clone Window\a",              MCLONEWINDOW
         MENUITEM "&Close\a",                    MQUITF
         MENUITEM "Save && Clo&se\a",            MSAVEF
         MENUITEM "Sav&e\a",                     MSAVERES

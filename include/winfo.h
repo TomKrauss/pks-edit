@@ -554,6 +554,11 @@ extern int ww_getRightMargin(WINFO* fp);
  */
 extern WINFO* ww_getCurrentEditorWindow();
 
+/*
+ * Returns the WINFO data structure for a HWND.
+ */
+extern WINFO* ww_getWinfoForHwnd(HWND hwnd);
+
 extern int 	uc_shiftLinesByIndent(WINFO* fp, long ln, long nlines, int dir);
 
 /*-----------------------------------------------------------

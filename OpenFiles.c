@@ -529,8 +529,16 @@ static DWORD ft_globalediting(char *fn)
  * ft_openwin()
  */
 static int ft_openwin(FTABLE *fp, const char* pszHint) {
-	if (ww_createEditWindow(fp->fname, (LPVOID)(uintptr_t)fp, pszHint) == 0) {
+	HWND hwndNew;
+	int nOldWindows = fp->views == 0 ? 0 : arraylist_size(fp->views);
+	if ((hwndNew = ww_createEditWindow(fp->fname, (LPVOID)(uintptr_t)fp, pszHint)) == 0) {
 		return 0;
+	}
+	if (nOldWindows == 1) {
+		WINFO* wp = ww_getWinfoForHwnd(hwndNew);
+		if (wp && wp->renderer->r_supportsMode(SHOWWYSIWYG)) {
+			ww_changeDisplayMode(wp, wp->dispmode | SHOWWYSIWYG);
+		}
 	}
 	return 1;
 }

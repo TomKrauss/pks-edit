@@ -41,7 +41,6 @@
 extern void sound_playChime(void);
 
 extern void 	st_seterrmsg(char *msg);
-extern void 	st_update(void);
 
 static HHOOK hHook;
 

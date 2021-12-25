@@ -952,6 +952,13 @@ WINFO* ww_getCurrentEditorWindow() {
 	return _winlist;
 }
 
+/*
+ * Returns the WINFO data structure for a HWND. 
+ */
+WINFO* ww_getWinfoForHwnd(HWND hwnd) {
+	return (WINFO*)GetWindowLongPtr(hwnd, GWL_VIEWPTR);
+}
+
 /*------------------------------------------------------------
  * EditWndProc()
  */
@@ -961,7 +968,7 @@ WINFUNC EditWndProc(
 	WPARAM wParam,
 	LPARAM lParam
 	) {
-	WINFO * wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_VIEWPTR);
+	WINFO * wp = ww_getWinfoForHwnd(hwnd);
 
 	if (message == WM_CREATE || wp != NULL)
    	switch(message) {
