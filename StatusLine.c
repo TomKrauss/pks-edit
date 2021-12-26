@@ -179,21 +179,44 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		SelectObject(hdc, hPen);
 		HFONT hFont = SelectObject(hdc, cust_getSmallEditorFont());
 		int nSegments = (int) SendMessage(hwndStatus, SB_GETPARTS, 0, 0);
+		RECT rect;
+		GetClientRect(hwnd, &rect);
+		MoveTo(hdc, rect.left, rect.top );
+		LineTo(hdc, rect.right, rect.top);
 		for (int i = 0; i < nSegments; i++) {
 			RECT rc;
-			char szText[128];
+			char szText[200];
 			SendMessage(hwndStatus, SB_GETRECT, i, (LPARAM)&rc);
 			if (rc.left > ps.rcPaint.right) {
 				break;
 			}
 			SendMessage(hwndStatus, SB_GETTEXT, i, (LPARAM)szText);
-			MoveTo(hdc, rc.right, rc.top + 1);
-			LineTo(hdc, rc.right, rc.bottom - 1);
+			if (i < nSegments - 1) {
+				MoveTo(hdc, rc.right, rc.top + 1);
+				LineTo(hdc, rc.right, rc.bottom - 1);
+			}
 			if (!szText[0] || szText[0] == ' ') {
 				continue;
 			}
-			InflateRect(&rc, -4, -2);
+			rc.top += 1;
+			InflateRect(&rc, -2, -2);
 			DrawText(hdc, szText, (int) strlen(szText), &rc, DT_END_ELLIPSIS);
+		}
+		WINDOWPLACEMENT placement;
+		GetWindowPlacement(hwndMain, &placement);
+		if (placement.showCmd != SW_MAXIMIZE) {
+			brush = CreateSolidBrush(pTheme->th_dialogBorder);
+			for (int y = 1; y <= 3; y++) {
+				for (int i = 0; i < 4 - y; i++) {
+					RECT rc;
+					rc.left = rect.right - i * 3 - 3;
+					rc.top = rect.bottom - y * 3 - 1;
+					rc.bottom = rc.top + 2;
+					rc.right = rc.left + 2;
+					FillRect(hdc, &rc, brush);
+				}
+			}
+			DeleteObject(brush);
 		}
 		DeleteObject(hPen);
 		SelectObject(hdc, hFont);
