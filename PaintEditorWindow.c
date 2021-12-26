@@ -613,12 +613,11 @@ EXPORT void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd)
 		render_repaintAllForFile(fp);
 		return;
 	}
-	int startIdx = idx;
-	while (lpStart != NULL && lpStart != lpEnd) {
-		idx++;
-		lpStart = lpStart->next;
+	int nCount = ln_cnt(lpStart, lpEnd);
+	if (nCount <= 0) {
+		nCount = ln_cnt(lpEnd, lpStart);
 	}
-	render_repaintFromLineTo(fp, startIdx, idx);
+	render_repaintFromLineTo(fp, idx, idx+nCount);
 }
 
 /*

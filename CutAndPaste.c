@@ -589,38 +589,20 @@ static int isbefore(FTABLE *fp, MARK *mark, LINE *fpcl, int col, int markend)
 /* bl_updateSelectionInLines() 			*/
 /*----------------------------*/
 static void bl_updateSelectionInLines(WINFO* wp, LINE *lpOldSelectionStart, LINE *lpOldSelectionEnd) {
-	LINE *		lp1;
-	LINE *		lp2;
-	LINE *		lp;
-	LINE *		lpFirst;
-	LINE *		lpLast;
+	LINE *		lpFrom;
+	LINE *		lpTo;
 	FTABLE *	fp;
-	long   		ln;
 
 	fp  = wp->fp;
-	lp1 = wp->blstart->m_linePointer;
-	lp2 = wp->blend  ->m_linePointer;
-	lp = lpFirst = ln_goto(fp,wp->minln);
-	ln = ln_cnt(fp->firstl, lp1);
-	if (ln_cnt(fp->firstl, lpOldSelectionStart) < ln) {
-		lpFirst = lpOldSelectionStart;
-	} else {
-		lpFirst = lp1;
+	lpFrom = wp->blstart->m_linePointer;
+	if (lpOldSelectionStart == lpFrom) {
+		lpFrom = lpOldSelectionEnd;
 	}
-	ln = ln_cnt(lpFirst, lp2);
-	if (ln_cnt(lpFirst, lpOldSelectionEnd) < ln) {
-		lpLast = lp2;
-	} else {
-		lpLast = lpOldSelectionEnd;
+	lpTo = wp->blend->m_linePointer;
+	if (lpOldSelectionEnd == lpTo) {
+		lpTo = lpOldSelectionStart;
 	}
-	lp = lpFirst;
-	while(lp) {
-		render_repaintLine(fp, lp);
-		if (lp == lpLast) {
-			break;
-		}
-		lp = lp->next;
-	}
+	render_repaintLineRange(fp, lpFrom, lpTo);
 
 }
 
