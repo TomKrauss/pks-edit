@@ -765,7 +765,12 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
  * Calculates the screen indentation assumed for the line passed as an argument, that is the number of
  * column positions to be empty in a line inserted after the line passed as an argument.
  */
-extern int format_calculateScreenIndent(WINFO* wp, LINE* lp);
+typedef enum { 
+	CI_THIS_LINE,			// calculate the simple indent of a line no matter what is wanted due to syntactical formatting 
+	CI_NEXT_LINE,			// calculate the indent of a line based on a given previous line and syntactical formatting 
+	CI_THIS_LINE_SYNTAX_AWARE // calculate the supposed indent of this line honoring syntactical constructs.
+} CI_OPTION;
+extern int format_calculateScreenIndent(WINFO* wp, LINE* lp, CI_OPTION cOtion);
 
 /*-------- FILE FLAGS ----------*/
 

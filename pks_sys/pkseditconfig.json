@@ -200,8 +200,6 @@
         "autoIndent": true,
         "expandAbbreviations": true,
         "smartSpaceDelete": true,
-        "tabCharacter": "\t",
-        "fillCharacter": " ",
         "newlineCharacter": "\n",
         "crCharacter": "\r",
         "scrollVerticallyBy": 0,

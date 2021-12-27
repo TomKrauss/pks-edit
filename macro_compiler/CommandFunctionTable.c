@@ -254,7 +254,6 @@ TYPEELEM	_enelemtab[] = {
 { "WM_RDONLY"                 , 32  },
 { "WM_BLK_LINES"              , 128 },
 { "WM_AUTOFORMAT"             , 256 },
-{ "WM_BRINDENT"               , 512 },
 { "WM_BLK_COLOMN"             , 1024},
 { "WM_OEMMODE"                , 2048},
 { "WM_CRYPTED"                , 4096},

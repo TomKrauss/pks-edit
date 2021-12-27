@@ -603,11 +603,10 @@ EXPORT void render_repaintLine(FTABLE *fp, LINE *lpWhich)
 
 /*--------------------------------------------------------------------------
  * render_repaintLineRange()
- * Send a repaint to a range of lines specified by line pointer. We assume,
- * the first line is before the last line.
+ * Send a repaint to a range of lines specified by line pointer. Either repaint
+ * a specific window (wp != NULL) or all windows for the document fp.
  */
-EXPORT void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd)
-{
+static void render_repaintLineRangeWindowInternal(WINFO* wp, FTABLE* fp, LINE* lpStart, LINE* lpEnd) {
 	int idx = ln_indexOf(fp, lpStart);
 	if (idx < 0) {
 		render_repaintAllForFile(fp);
@@ -617,7 +616,28 @@ EXPORT void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd)
 	if (nCount <= 0) {
 		nCount = ln_cnt(lpEnd, lpStart);
 	}
-	render_repaintFromLineTo(fp, idx, idx+nCount);
+	if (wp) {
+		struct tagLINE_FROM_TO param = { idx, idx+nCount};
+		render_repaintWindowFromLineTo(wp, &param);
+	} else {
+		render_repaintFromLineTo(fp, idx, idx + nCount);
+	}
+}
+
+/*--------------------------------------------------------------------------
+ * render_repaintLineRange()
+ * Send a repaint to a range of lines specified by line pointer.
+ */
+EXPORT void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd) {
+	render_repaintLineRangeWindowInternal(NULL, fp, lpStart, lpEnd);
+}
+
+/*--------------------------------------------------------------------------
+ * render_repaintLineRangeWindow()
+ * Send a repaint to a range of lines specified by line pointer to one window only.
+ */
+EXPORT void render_repaintLineRangeWindow(WINFO* wp, LINE* lpStart, LINE* lpEnd) {
+	render_repaintLineRangeWindowInternal(wp, wp->fp, lpStart, lpEnd);
 }
 
 /*

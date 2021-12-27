@@ -530,7 +530,7 @@ static DWORD ft_globalediting(char *fn)
  */
 static int ft_openwin(FTABLE *fp, const char* pszHint) {
 	HWND hwndNew;
-	int nOldWindows = fp->views == 0 ? 0 : arraylist_size(fp->views);
+	size_t nOldWindows = fp->views == 0 ? 0 : arraylist_size(fp->views);
 	if ((hwndNew = ww_createEditWindow(fp->fname, (LPVOID)(uintptr_t)fp, pszHint)) == 0) {
 		return 0;
 	}

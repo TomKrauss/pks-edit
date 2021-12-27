@@ -122,24 +122,25 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction
 		if (pVar) {
 			if (c == '}') {
 				*pVar = 0;
+				expandedVariable[0] = 0;
 				if (strcmp("cursor", variable) == 0) {
 					pTAction->ta_cursorDeltaCol = col;
 					pTAction->ta_cursorDeltaLn = ln;
 					pTAction->ta_positionCursor = TRUE;
-					expandedVariable[0] = 0;
 				} else if (strcmp("indent", variable) == 0) {
 					for (int i = 0; i < nIndent; i++) {
 						stringbuf_appendChar(pResult, chSpace);
 					}
+					col += nIndent;
 				} else if (strcmp("tab", variable) == 0) {
 					FTABLE* fp = wp->fp;
 					for (int i = 0; i < fp->documentDescriptor->tabsize; i++) {
 						stringbuf_appendChar(pResult, chSpace);
 					}
+					col += fp->documentDescriptor->tabsize;
 				} else if (strcmp("selection_end", variable) == 0) {
 					pTAction->ta_selectionDeltaCol = col - pTAction->ta_cursorDeltaCol;
 					pTAction->ta_selectionDeltaLn = ln - pTAction->ta_cursorDeltaLn;
-					expandedVariable[0] = 0;
 				} else if (strcmp("word_selection", variable) == 0) {
 					strcpy(expandedVariable, pszSelected);
 				} else {
@@ -196,7 +197,7 @@ static void macro_replaceCurrentWord(WINFO* wp) {
 			size_t o1 = pszBegin - wp->caret.linePointer->lbuf;
 			size_t o2 = o1 + pszEnd - pszBegin;
 			ln_modify(wp->fp, wp->caret.linePointer, (int)o2, (int)o1);
-			wp->caret.col = (long)o1;
+			wp->caret.offset = (long)o1;
 			render_repaintCurrentLine(wp);
 		}
 	}
@@ -214,7 +215,7 @@ int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
 	int ret = 0;
 	memset(&templateAction, 0, sizeof templateAction);
 	xref_getSelectedIdentifier(szIdentifier, sizeof szIdentifier);
-	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
+	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer, CI_THIS_LINE);
 	STRING_BUF* pSB = macro_expandCodeTemplate(wp, &templateAction, nIndent, szIdentifier, up->p.uc_template);
 	PASTE pasteBuffer;
 	memset(&pasteBuffer, 0, sizeof pasteBuffer);

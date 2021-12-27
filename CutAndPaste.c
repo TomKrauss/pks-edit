@@ -591,9 +591,7 @@ static int isbefore(FTABLE *fp, MARK *mark, LINE *fpcl, int col, int markend)
 static void bl_updateSelectionInLines(WINFO* wp, LINE *lpOldSelectionStart, LINE *lpOldSelectionEnd) {
 	LINE *		lpFrom;
 	LINE *		lpTo;
-	FTABLE *	fp;
 
-	fp  = wp->fp;
 	lpFrom = wp->blstart->m_linePointer;
 	if (lpOldSelectionStart == lpFrom) {
 		lpFrom = lpOldSelectionEnd;
@@ -602,7 +600,7 @@ static void bl_updateSelectionInLines(WINFO* wp, LINE *lpOldSelectionStart, LINE
 	if (lpOldSelectionEnd == lpTo) {
 		lpTo = lpOldSelectionStart;
 	}
-	render_repaintLineRange(fp, lpFrom, lpTo);
+	render_repaintLineRangeWindow(wp, lpFrom, lpTo);
 
 }
 

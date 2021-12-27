@@ -2,6 +2,8 @@
   "grammars": [
     {
       "scopeName": "cpp",
+      "increaseIndentPattern": "{[(",
+      "decreaseIndentPattern": ")]}",
       "tagSources": [
         {
           "filename": "tags",
@@ -16,6 +18,7 @@
           "type": "help"
         }
       ],
+      "formatter": "code",
       "navigation": [
         {
           "name": "include-link",
@@ -36,7 +39,7 @@
         },
         {
           "match": "{",
-          "contents": "${cursor}}",
+          "contents": "\n${indent}${tab}${cursor}\n${indent}}",
           "auto-insert": true
         },
         {
@@ -55,7 +58,7 @@
         },
         {
           "match": "for_loop",
-          "contents": "for (int ${word_selection}; ${word_selection} < ${cursor}10${selection_end}; ${word_selection}++) {\n    printf(x);\n}\n"
+          "contents": "for (int ${word_selection}; ${word_selection} < ${cursor}10${selection_end}; ${word_selection}++) {\n${indent}${tab}printf(x);\n${indent}}\n"
         },
         {
           "match": "main_function",

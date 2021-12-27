@@ -115,9 +115,9 @@ static int error_openConfigurableAlert(int buttons, LPSTR fmt, va_list ap)
 }
 
 /*------------------------------------------------------------
- * nIdAlert()
+ * error_openAlertBox()
  */
-static int nIdAlert(int buttons, WORD nId, va_list ap)
+static int error_openAlertBox(int buttons, WORD nId, va_list ap)
 {
     char* pszBuf;
 
@@ -149,7 +149,7 @@ int error_displayYesNoConfirmation(int nId, ...)
     int ret;
     
 	va_start(ap,nId);
-	ret = nIdAlert(MB_YESNO|MB_ICONQUESTION,nId, ap);
+	ret = error_openAlertBox(MB_YESNO|MB_ICONQUESTION,nId, ap);
 	va_end(ap);
 	return ret;
 }
@@ -163,7 +163,7 @@ int error_displayYesNoCancelConfirmation(int nId, ...)
 	int ret;
 
 	va_start(ap,nId);
-	ret = nIdAlert(MB_YESNOCANCEL|MB_ICONQUESTION,nId,ap);
+	ret = error_openAlertBox(MB_YESNOCANCEL|MB_ICONQUESTION,nId,ap);
 	va_end(ap);
 	return ret;
 }

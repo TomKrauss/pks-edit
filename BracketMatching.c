@@ -241,33 +241,6 @@ static int br_indentsum(const LINE *lps, LINE *lp, BRACKET_RULE *mp, int *dcurr,
 }
 
 /*--------------------------------------------------------------------------
- * sm_bracketindent()
- *
- * this is called, when the user types Return:
- *
- * -	calculate the # of indents from line lp1 up to (not including!)
- *   the current line due to open brackets
- *
- * - calculate a  value for the current line (if this includes parenthesis)
- */
-EXPORT int sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
-				 int indent, int *di, int *hbr)
-{	
-	int returnValue = -1;
-
-	UCLIST* up = grammar_getUndercursorActions(fp->documentDescriptor->grammar);
-	*di = 0;
-	while(up) {
-		if (up->action == UA_BRINDENT && *(long*)up->p.uc_bracket->ci1) {
-			returnValue = indent + br_indentsum(lp1,lpcurr, up->p.uc_bracket,di,hbr);
-		}
-		up = up->next;
-	}
-
-	return returnValue;
-}
-
-/*--------------------------------------------------------------------------
  * nextmatch()
  */
 static int nextmatch(UCLIST* pList, LINE *lp,long *ln,long *col)

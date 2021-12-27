@@ -45,7 +45,6 @@
 #define	WM_WATCH_LOGFILE    0x40
 #define	WM_LINE_SELECTION	0x80
 #define	WM_AUTOFORMAT	    0x100
-#define	WM_BRINDENT	        0x200
 #define	WM_COLUMN_SELECTION	0x400
 #define	WM_OEMMODE	        0x800
 #define WM_DELETE_MULTIPLE_SPACES  0x2000   // optimize delete and backspace operations to handle spaces as if they were tabs.
@@ -339,6 +338,12 @@ extern void render_repaintLinePart(FTABLE* fp, long ln, int col1, int col2);
  * the first line is before the last line.
  */
 extern void render_repaintLineRange(FTABLE* fp, LINE* lpStart, LINE* lpEnd);
+
+/*--------------------------------------------------------------------------
+ * render_repaintLineRangeWindow()
+ * Send a repaint to a range of lines specified by line pointer to one window only.
+ */
+extern void render_repaintLineRangeWindow(WINFO* wp, LINE* lpStart, LINE* lpEnd);
 
 /*--------------------------------------------------------------------------
  * render_repaintLine()

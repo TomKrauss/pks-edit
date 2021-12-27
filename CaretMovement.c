@@ -49,9 +49,9 @@ static void wi_scrollTop(WINFO* wp, long dy) {
  * Calculate an offset of character buffer positions to the corresponding number
  * of columns as displayed on the screen.
  */
-int caret_bufferOffset2screen(WINFO* wp, char* lbuf, int lnoffset) {
+int caret_bufferOffset2screen(WINFO* wp, const char* lbuf, int lnoffset) {
 	register int  col = 0;
-	register char* p = lbuf;
+	register const char* p = lbuf;
 
 	lbuf += lnoffset;
 	while (p < lbuf) {

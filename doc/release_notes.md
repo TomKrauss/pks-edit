@@ -73,6 +73,10 @@ This file contains the release notes for the latest **PKS Edit** releases.
 - templates defined in the grammar may now explicitly marked with `auto-insert=true` to have the template define an abbreviation, inserted
   during editing without opening the code-completion window. The two new template variables `${tab}` and `${indent}` were added to allow
   for proper indenting in the code generated. See the [grammar](manual/grammar.md) documentation for details.
+- PKS-Edit will now perform document / grammar sensitive formatting and indenting of documents. The old "Bracket Indenting" option is gone.
+  In code files the indent will be properly selected automatically based on the current opening and closing braces etc... A simple parser
+  was added which is able to handle comments and string / character constants in the code possibly containing opening and closing brackets
+  more gracefully. Formatting is currently rather limited except for text type files (and markdown).
 
 ### Changed
 - Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather

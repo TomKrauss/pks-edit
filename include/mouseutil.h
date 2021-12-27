@@ -59,6 +59,12 @@ extern void mouse_setHandCursor(void);
 extern void mouse_setArrowCursor(void);
 
 /*------------------------------------------------------------
+ * mouse_setSizeNESWCursor()
+ * Display a sizeNESW cursor.
+ */
+extern void mouse_setSizeNWSECursor(void);
+
+/*------------------------------------------------------------
  * mouse_setDefaultCursor()
  * Display the default cursor (arrow)
  */

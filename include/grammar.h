@@ -80,8 +80,9 @@ typedef struct tagNAVIGATION_PATTERN {
 
 // Describes the primary ways to comment code in the described language
 typedef struct tagCOMMENT_DESCRIPTOR {
-	char comment_start[10];			// This contains the 0-terminated string to start a comment - e.g. "//"
+	char comment_start[10];			// This contains the 0-terminated string to start a comment - e.g. "/*"
 	char comment_end[10];			// If only a block line comment feature is avaible, this contains the 0-terminated string to end it - e.g. "*/"
+	char comment_single[10];		// This contains the 0-terminated string to start a single line comment - e.g. "//"
 } COMMENT_DESCRIPTOR;
 
 // URL to execute with ShellExec. $1 in the URL is replaced by searched expression
@@ -184,6 +185,12 @@ extern char* grammar_getCodeAnalyzer(GRAMMAR* pGrammar);
 extern char* grammar_getEvaluator(GRAMMAR* pGrammar);
 
 /*
+ * Returns the name of a formatter to use to format the current selection in the document with the given grammar.
+ * The name of the formatter is used by the Formatter package.
+ */
+extern char* grammar_getFormatter(GRAMMAR* pGrammar);
+
+/*
  * Returns true, if this grammar defines patterns spanning multiple lines making
  * parsing a bit more complex in that a window of lines has to be rescanned to detect
  * multi-line patterns.
@@ -195,6 +202,13 @@ extern BOOL grammar_hasLineSpans(GRAMMAR* pGrammar);
  * special renderer is available.
  */
 extern const char* grammar_wysiwygRenderer(GRAMMAR* pGrammar);
+
+/*
+ * Calculate the delta indentation defined by a line. This is for a C-file or Java-File +1, if
+ * the line contains a { or -1 if the line contains a }. Simple comment checking is performed as
+ * well. For pascal it is +1 when a line contains "begin" and -1 when the line contains "end".
+ */
+extern int grammar_getDeltaIndentation(GRAMMAR* pGrammar, const char* pBuf, size_t nLen);
 
 #define GRAMMAR_H
 #endif

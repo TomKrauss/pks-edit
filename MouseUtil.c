@@ -36,6 +36,7 @@ static HCURSOR   hHourGlass;		// Hour glass cursor
 static HCURSOR   hDefaultCurs;
 static HCURSOR	 hSizeNSCursor;
 static HCURSOR	 hSizeWECursor;
+static HCURSOR	 hSizeNWSECursor;
 
 extern MOUSEBIND	_mousetab[MAXMAPMOUSE];
 
@@ -292,6 +293,17 @@ EXPORT void mouse_setArrowCursor(void) {
 		hArrowCursor = LoadCursor(NULL, IDC_ARROW);
 	}
 	SetCursor(hArrowCursor);
+}
+
+/*------------------------------------------------------------
+ * mouse_setSizeNWSECursor()
+ * Display a sizeNWSE cursor.
+ */
+EXPORT void mouse_setSizeNWSECursor(void) {
+	if (hSizeNWSECursor == NULL) {
+		hSizeNWSECursor = LoadCursor(NULL, IDC_SIZENWSE);
+	}
+	SetCursor(hSizeNWSECursor);
 }
 
 /*------------------------------------------------------------

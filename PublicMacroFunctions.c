@@ -1221,7 +1221,6 @@ int dlg_configureEditorModes(void) {
 		IDD_OPT6,		WM_OEMMODE,	&workmode,
 		IDD_OPT7,		F_RDONLY,		&fileflag,
 		IDD_OPT8,		WM_SHOWMATCH,	&workmode,
-		IDD_OPT9,		WM_BRINDENT,	&workmode,
 		IDD_OPT10,		WM_DELETE_MULTIPLE_SPACES, &workmode,
 		IDD_OPT11,		F_WATCH_LOGFILE,&fileflag,
 		0

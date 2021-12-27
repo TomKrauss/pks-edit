@@ -64,7 +64,7 @@ static struct optiontab {
      IDD_FKFLG3,    WM_AUTOWRAP,   OP_EDIT_MODE,   0,	doctypes_changed,
      IDD_FKFLG4,    WM_AUTOFORMAT, OP_EDIT_MODE,   0,	doctypes_changed,
      IDD_FKFLG5,    WM_SHOWMATCH,  OP_EDIT_MODE,   0,	doctypes_changed,
-     IDD_FKFLG6,    WM_BRINDENT,   OP_EDIT_MODE,   0,	doctypes_changed,
+     IDD_FKFLG6,    SHOWWYSIWYG,   OP_DISPLAY_MODE,0,	displaymode_changed,
      IDD_FKFLG7,    WM_ABBREV,     OP_EDIT_MODE,   0,	doctypes_changed,
      IDD_FKFLG8,    WM_COLUMN_SELECTION,  OP_EDIT_MODE,   WM_LINE_SELECTION,	doc_columnChanged,
      IDD_FKFLG9,    F_RDONLY,      OP_FILEFLAG,   0,	doctypes_changed,

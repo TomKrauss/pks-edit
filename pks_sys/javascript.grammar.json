@@ -2,6 +2,8 @@
   "grammars": [
     {
       "scopeName": "javascript",
+      "increaseIndentPattern": "{[(",
+      "decreaseIndentPattern": ")]}",
       "templates": [
         {
           "match": "'",
@@ -34,6 +36,7 @@
           "auto-insert": true
         }
       ],
+      "formatter": "code",
       "patterns": [
         {
           "begin": "/*",

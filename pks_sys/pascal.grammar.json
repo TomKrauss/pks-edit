@@ -2,6 +2,8 @@
   "grammars": [
     {
       "scopeName": "pascal",
+      "increaseIndentPattern": "begin",
+      "decreaseIndentPattern": "end",
       "highlightBrackets": [
         {
           "left": "BEGIN",

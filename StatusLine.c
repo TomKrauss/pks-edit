@@ -16,6 +16,7 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include <windowsx.h>
 #include "alloc.h"
 #include "pksrc.h"
 #include "trace.h"
@@ -28,6 +29,7 @@
 #include "customcontrols.h"
 #include "themes.h"
 #include "xdialog.h"
+#include "mouseutil.h"
 
 #define WM_ST_REDRAW		WM_USER+142
 
@@ -258,7 +260,7 @@ void st_switchtomenumode(BOOL bMenuMode) {
  * Resize the status line. 
  */
 void st_resize(int nStatusHeight, RECT* pRect) {
-	ShowWindow(hwndStatus, nStatusHeight ? SW_SHOW : SW_HIDE);
+	ShowWindow(hwndStatus, nStatusHeight > 0 ? SW_SHOW : SW_HIDE);
 	MoveWindow(hwndStatus, pRect->left, pRect->bottom - nStatusHeight,
 		pRect->right, nStatusHeight, 1);
 

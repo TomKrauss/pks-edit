@@ -47,8 +47,6 @@ extern LINE 	*(*advmatchfunc)();
 extern int 	ln_countLeadingSpaces(LINE *l);
 extern int 	string_isSpace(unsigned char c);
 extern int 	string_countSpacesIn(unsigned char *s, int pos);
-extern int 	sm_bracketindent(FTABLE *fp, LINE *lp1, LINE *lpcurr, 
-				 int indent, int *di, int *hbr);
 extern void 	wt_insline(FTABLE *fp, int caretLine, int nlines);
 extern int 	macro_expandAbbreviation(WINFO *fp, LINE *lp,int offs);
 extern void 	render_updateCaret(WINFO *wp);
@@ -92,19 +90,6 @@ int edit_calculateTabs2Columns(INDENTATION* pIndentation, int tabs)
 }
 
 /*--------------------------------------------------------------------------
- * edit_calculateStartIndentation()
- * return # of indents and # of additional blanks for the start of the line
- */
-static int edit_calculateStartIndentation(WINFO* wp,LINE *lp, 
-						  int upto, int *add_blanks) {
-	int col;
-
-	col = string_countSpacesIn(lp->lbuf,upto);
-	col = caret_lineOffset2screen(wp, &(CARET) { lp, col});
-	return edit_calculateColumns2TabsBlanks(&wp->indentation,col,add_blanks);
-}
-
-/*--------------------------------------------------------------------------
  * ln_insertIndent()
  * Insert white space characters at the beginning of the passed line so
  * we fill up the space at the beginning of the line, so that the cursor
@@ -137,21 +122,15 @@ LINE *ln_insertIndent(WINFO* wp, LINE *lp, int col, int *inserted)
  * edit_insertIndent()
  * do autoindenting and bracket indenting, if required
  */
-static int  _deltaindent;
-static int edit_insertIndent(WINFO *wp, LINE *pPreviousLine, LINE *nlp, int caretColumn, int *newcol)
-{	
-	int 			t = 0;
-	int			b = 0;
-
+int _deltaindent;
+static int edit_insertIndent(WINFO *wp, LINE *pPreviousLine, LINE *nlp, int caretColumn, int *newcol) {
 	if (wp->workmode & WM_AUTOINDENT) {
-		/* calculate indentation of line we leave */
-		t = edit_calculateStartIndentation(wp,pPreviousLine,caretColumn,&b);
+		// calculate indentation of line we leave
+		caretColumn = format_calculateScreenIndent(wp, pPreviousLine, CI_NEXT_LINE);
 	}
-
-	t += _deltaindent;
+	
+	caretColumn += _deltaindent * wp->indentation.tabsize;
 	_deltaindent = 0;
-
-	caretColumn = edit_calculateTabs2Columns(&wp->indentation, t)+b;
 	if (ln_insertIndent(wp,nlp,caretColumn,newcol) == 0) {
 		return 0;
 	}
@@ -162,63 +141,30 @@ static int edit_insertIndent(WINFO *wp, LINE *pPreviousLine, LINE *nlp, int care
 /*--------------------------------------------------------------------------
  * edit_handleBracketIndenting()
  */
-static int edit_handleBracketIndenting(WINFO *wp, int dir, LINE *lp1, LINE *lp2)
-{	int indent,b,di1,di2,i1,i2,hbr1,hbr2;
-
-	if ((wp->workmode & WM_BRINDENT) == 0) {
+static int edit_handleBracketIndenting(WINFO *wp, int dir, LINE *lpPrev, LINE *lpCurrent)
+{
+	if ((wp->workmode & WM_AUTOINDENT) == 0) {
 		return FALSE;
 	}
 	FTABLE* fp = wp->fp;
 
-	i1 = sm_bracketindent(fp,fp->firstl,lp1,0,&di1,&hbr1);
-	if (i1 < 0) {
-		return FALSE;
-	}
-	i2 = sm_bracketindent(fp,lp1,lp2,i1,&di2,&hbr2);
-
-	i1 += di1;
-	i2 += di2;
-
-	/*
-	 * insert line up
-	 */
-	if (dir < 0) {
-		lp1 = lp2;
-		SWAP(i1,i2);
-		SWAP(di1,di2);
-	}
-
-	/* now: the line, where we are, is fp->currl, the line we left, lp1
-      * correct the indent for the following cases:
-	 * 	- current line, if indent level > 0, or containing bracket
-	 *	- last line, if containing a bracket
-	 */
-	
-	/* last line contains bracket */
-	if (hbr1) {
-		indent = edit_calculateStartIndentation(wp,lp1,lp1->len,&b);
-		if (indent != i1) {
-			/* first delete all blank characters, then shift */
-			if (ln_modify(fp,lp1,string_countSpacesIn(lp1->lbuf,lp1->len),0) == 0) {
-				return 0;
+	int currentIndent = format_calculateScreenIndent(wp, lpPrev, CI_THIS_LINE);
+	if (lpPrev) {
+		int supposedIndent = format_calculateScreenIndent(wp, lpPrev, CI_THIS_LINE_SYNTAX_AWARE);
+		if (supposedIndent < currentIndent) {
+			int o1 = caret_screen2lineOffset(wp, &(CARET) {
+				lpPrev,
+				supposedIndent
+			});
+			int o2 = caret_screen2lineOffset(wp, &(CARET) {
+				lpPrev,
+					currentIndent
+			});
+			if (ln_modify(fp, lpPrev, o2, o1)) {
+				render_repaintLine(fp, lpPrev);
 			}
-			uc_shiftLinesByIndent(wp,wp->caret.ln-(long)dir,1L,i1);
 		}
 	}
-
-	/* current line inside bracket block, or has bracket, or last line
-	 * was shifted
-	 */
- 
-	if (i2 || hbr2 || (hbr1 && indent != i1)) {
-		lp2 = wp->caret.linePointer;
-		indent = edit_calculateStartIndentation(wp,lp2,lp2->len,&b);
-		if (indent != i2) {
-			uc_shiftLinesByIndent(wp,wp->caret.ln,1L,i2-indent);
-		}
-		caret_placeCursorInCurrentFile(wp, wp->caret.ln,i2);
-	}
-
 	return 1;	
 }
 
@@ -228,8 +174,8 @@ static int edit_handleBracketIndenting(WINFO *wp, int dir, LINE *lp1, LINE *lp2)
 static int edit_postProcessInsertLine(WINFO *wp, int dir, long ln, long col)
 {
 	long  	omincol;
-	long		ominln;
-	LINE  *	lp;
+	long	ominln;
+	LINE*	lp;
 
 	omincol = wp->mincol;
 	ominln  = wp->minln;
@@ -246,6 +192,9 @@ static int edit_postProcessInsertLine(WINFO *wp, int dir, long ln, long col)
 		lp = lp->next;
 	}
 
+	if ((wp->workmode & WM_AUTOINDENT) == 0) {
+		return TRUE;
+	}
 	return edit_handleBracketIndenting(wp,dir,lp->prev,lp);
 }
 
@@ -280,6 +229,11 @@ int edit_toggleComment() {
 	FTABLE* fp = wp->fp;
 	if (!grammar_getCommentDescriptor(fp->documentDescriptor->grammar, &commentDescriptor)) {
 		return 0;
+	}
+	if (commentDescriptor.comment_single[0]) {
+		// prefer single comment.
+		strcpy(commentDescriptor.comment_start, commentDescriptor.comment_single);
+		commentDescriptor.comment_end[0] = 0;
 	}
 	LINE* lpFirst = wp->caret.linePointer;
 	LINE* lpLast = wp->caret.linePointer;
@@ -362,7 +316,9 @@ int edit_insertLine(int control)
 		dir = -1;
 	}
 
-	edit_insertIndent(wp,olp,nlp,(int )FBUFSIZE,&ai);
+	if (!edit_insertIndent(wp, olp, nlp, (int)FBUFSIZE, &ai)) {
+		return FALSE;
+	}
 
 	return edit_postProcessInsertLine(wp,dir,ln,(long)ai);
 }

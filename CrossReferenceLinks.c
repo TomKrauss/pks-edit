@@ -242,6 +242,9 @@ static int xref_loadTagFile(FTABLE *fp, char* sourceFile, char *tagFilename) {
 		xref_destroyTagTable();
 	}
 	_allTags.tt_directory = _strdup(dirname);
+	if (!file_exists(fn)) {
+		return 0;
+	}
 	return xref_readTagFile(fn,fp);
 }
 
@@ -1129,7 +1132,7 @@ int EdFindFileCursor(void)
 		if ((intptr_t)hInst < 0 || (intptr_t)hInst > 32) {
 			return 1;
 		}
-		error_displayAlertDialog("Cannot open %s", _fseltarget);
+		error_displayErrorToast("Cannot open %s", _fseltarget);
 	}
 	return 0;
 }

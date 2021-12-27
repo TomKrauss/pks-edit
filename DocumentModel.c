@@ -421,8 +421,9 @@ LINE *ln_break(FTABLE *fp, LINE *linep, int col) {
 	int  	len;
 
 	len = linep->len-col;
-
-	/* to have linep in a register */
+	if (len < 0) {
+		len = 0;
+	}
 	lp = linep;
 	if ((nlp = ln_settmp(fp,(LINE *) 0L,&lp)) != 0L) {
 		linep = lp;

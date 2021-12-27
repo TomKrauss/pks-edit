@@ -83,8 +83,6 @@ typedef struct tagGRAMMAR {
 	char  u2lset[32];					// wordset and u2l ("abc=xyz") 
 	char* folderStartMarker;			// regular expression to define the start of foldable regions.
 	char* folderEndMarker;				// regular expression to define the end of foldable regions.
-	char indentNextLinePattern[32];		// A regular expression defining the condition on which the next line should indented.
-	char unIndentLinePattern[32];		// A regular expression defining the condition on which the next line should unindented.
 	char increaseIndentPattern[32];		// A regular expression defining the condition on which the indent should be increased.
 	char decreaseIndentPattern[32];		// A regular expression defining the condition on which the indent should be decreased.
 	char wysiwygRenderer[32];			// The name of the wysiwyg renderer
@@ -99,6 +97,7 @@ typedef struct tagGRAMMAR {
 	TEMPLATE* templates;				// The code templates for this grammar.
 	char* analyzer;						// Name of a "wellknown" analyzer to use to extract further suggestions from the text of the current document.
 	char* evaluator;					// Name of a "wellknown" evaluator, which is able to "execute" the text from the current text selection.
+	char* formatter;					// Name of a "wellknown" formatter, which may format pieces of text in the given grammar.
 	BOOL hasLineSpanPattern;			// Whether patterns exist, spanning multiple lines.
 } GRAMMAR;
 
@@ -203,13 +202,12 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_ALLOC_STRING, "folderStartMarker", offsetof(GRAMMAR, folderStartMarker)},
 	{	RT_ALLOC_STRING, "folderEndMarker", offsetof(GRAMMAR, folderEndMarker)},
 	{	RT_CHAR_ARRAY, "wordCharacterClass", offsetof(GRAMMAR, u2lset), sizeof(((GRAMMAR*)NULL)->u2lset)},
-	{	RT_CHAR_ARRAY, "indentNextLinePattern", offsetof(GRAMMAR, indentNextLinePattern), sizeof(((GRAMMAR*)NULL)->indentNextLinePattern)},
-	{	RT_CHAR_ARRAY, "unIndentLinePattern", offsetof(GRAMMAR, unIndentLinePattern), sizeof(((GRAMMAR*)NULL)->unIndentLinePattern)},
 	{	RT_CHAR_ARRAY, "increaseIndentPattern", offsetof(GRAMMAR, increaseIndentPattern), sizeof(((GRAMMAR*)NULL)->increaseIndentPattern)},
 	{	RT_CHAR_ARRAY, "decreaseIndentPattern", offsetof(GRAMMAR, decreaseIndentPattern), sizeof(((GRAMMAR*)NULL)->decreaseIndentPattern)},
 	{	RT_CHAR_ARRAY, "wysiwygRenderer", offsetof(GRAMMAR, wysiwygRenderer), sizeof(((GRAMMAR*)NULL)->wysiwygRenderer)},
 	{	RT_ALLOC_STRING, "analyzer", offsetof(GRAMMAR, analyzer)},
 	{	RT_ALLOC_STRING, "evaluator", offsetof(GRAMMAR, evaluator)},
+	{	RT_ALLOC_STRING, "formatter", offsetof(GRAMMAR, formatter)},
 	{	RT_OBJECT_LIST, "navigation", offsetof(GRAMMAR, navigation),
 			{.r_t_arrayDescriptor = {grammar_createNavigationPattern, _navigationPatternRules}}},
 	{	RT_OBJECT_LIST, "templates", offsetof(GRAMMAR, templates),
@@ -263,6 +261,7 @@ static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
 	ll_destroy((LINKED_LIST**)&pGrammar->templates, grammar_destroyTemplates);
 	free(pGrammar->analyzer);
 	free(pGrammar->evaluator);
+	free(pGrammar->formatter);
 	return 1;
 }
 
@@ -846,7 +845,7 @@ int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescrip
 			}
 			else {
 				pszInput = pPattern->match;
-				pszOutput = pDescriptor->comment_start;
+				pszOutput = pDescriptor->comment_single;
 				while ((c = *pszInput++) != 0) {
 					if (c == '.' || c == '[') {
 						break;
@@ -916,6 +915,14 @@ char* grammar_getEvaluator(GRAMMAR* pGrammar) {
 }
 
 /*
+ * Returns the name of a formatter to use to format the current selection in the document with the given grammar.
+ * The name of the formatter is used by the Formatter package.
+ */
+char* grammar_getFormatter(GRAMMAR* pGrammar) {
+	return pGrammar != NULL ? pGrammar->formatter : NULL;
+}
+
+/*
  * Returns true, if this grammar defines patterns spanning multiple lines making 
  * parsing a bit more complex in that a window of lines has to be rescanned to detect
  * multi-line patterns.
@@ -930,4 +937,76 @@ BOOL grammar_hasLineSpans(GRAMMAR* pGrammar) {
  */
 const char* grammar_wysiwygRenderer(GRAMMAR* pGrammar) {
 	return (pGrammar == NULL || pGrammar->wysiwygRenderer[0] == 0) ? NULL : pGrammar->wysiwygRenderer;
+}
+
+static grammar_matchWordInLine(char c, const char* pszMatch, const char* pBuf, int i, size_t nLen) {
+	if (c == *pszMatch) {
+		size_t nMatchLen = strlen(pszMatch);
+		return i + nMatchLen <= nLen && strncmp(pszMatch, &pBuf[i], nMatchLen) == 0;
+	}
+	return 0;
+}
+
+/*
+ * Calculate the delta indentation defined by a line. This is for a C-file or Java-File +1, if 
+ * the line contains a { or -1 if the line contains a }. Simple comment checking is performed as
+ * well. For pascal it is +1 when a line contains "begin" and -1 when the line contains "end".
+ */
+typedef enum {LS_START, LS_COMMENT, LS_SINGLE_QUOTE, LS_MULTI_QUOTE} LEXICAL_STATE;
+int grammar_getDeltaIndentation(GRAMMAR* pGrammar, const char* pBuf, size_t nLen) {
+	if (!pGrammar) {
+		return 0;
+	}
+	if (!pGrammar->increaseIndentPattern[0] && !pGrammar->decreaseIndentPattern[0]) {
+		return 0;
+	}
+
+	COMMENT_DESCRIPTOR cd;
+	grammar_getCommentDescriptor(pGrammar, &cd);
+	int nDelta = 0;
+	LEXICAL_STATE nState = LS_START;
+	for (int i = 0; i < nLen; i++) {
+		char c = pBuf[i];
+		if (nState == LS_COMMENT) {
+			if (grammar_matchWordInLine(c, cd.comment_end, pBuf, i, nLen)) {
+				i += (int)strlen(cd.comment_end);
+				nState = LS_START;
+			}
+			continue;
+		}
+		if (nState == LS_SINGLE_QUOTE || nState == LS_MULTI_QUOTE) {
+			char cCompare = nState == LS_SINGLE_QUOTE ? '\'' : '"';
+			if (c == '\\' && i < nLen-1) {
+				c = pBuf[++i];
+				continue;
+			}
+			if (c == cCompare) {
+				nState = LS_START;
+			}
+			continue;
+		}
+		if (c == '"') {
+			nState = LS_MULTI_QUOTE;
+			continue;
+		}
+		if (c == '\'') {
+			nState = LS_SINGLE_QUOTE;
+			continue;
+		}
+		if (grammar_matchWordInLine(c, cd.comment_single, pBuf, i, nLen)) {
+			break;
+		}
+		if (grammar_matchWordInLine(c, cd.comment_start, pBuf, i, nLen)) {
+			nState = LS_COMMENT;
+			i += (int)strlen(cd.comment_start);
+			continue;
+		}
+		// TODO: derive from grammar.
+		if (c == '{' || c == '[' || c == '(') {
+			nDelta++;
+		} else if (c == '}' || c == ']' || c == ')') {
+			nDelta--;
+		}
+	}
+	return nDelta;
 }

@@ -2,6 +2,9 @@
   "grammars": [
     {
       "scopeName": "proto",
+      "formatter": "code",
+      "increaseIndentPattern": "{[(",
+      "decreaseIndentPattern": ")]}",
       "navigation": [
         {
           "name": "include-link",

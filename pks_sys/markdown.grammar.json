@@ -4,6 +4,7 @@
       "scopeName": "markdown",
       "wysiwygRenderer": "markdown",
       "analyzer": "words",
+      "formatter": "text",
       "navigation": [
         {
           "name": "markdown-link",
