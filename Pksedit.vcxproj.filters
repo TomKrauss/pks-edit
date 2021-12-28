@@ -606,6 +606,7 @@
     <None Include="RC\IDS_FONT.BIN">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="doc\manual\pksedit_ui.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">
@@ -659,6 +660,7 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="doc\dice.png" />
+    <Image Include="doc\manual\pksedit-ui.png" />
   </ItemGroup>
   <ItemGroup>
     <Xsd Include="pksedit.xsd" />

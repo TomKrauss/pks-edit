@@ -77,7 +77,8 @@ This file contains the release notes for the latest **PKS Edit** releases.
   In code files the indent will be properly selected automatically based on the current opening and closing braces etc... A simple parser
   was added which is able to handle comments and string / character constants in the code possibly containing opening and closing brackets
   more gracefully. Formatting is currently rather limited except for text type files (and markdown).
-
+- document types can now be selected not only based on the file name extension, but also based on the contents of the first line.
+- 
 ### Changed
 - Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather
   than replacing the extension x.c -> x.bak). This has the advantage, that files named x.c and x.h will create different backup files now.

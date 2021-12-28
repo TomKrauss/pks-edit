@@ -79,7 +79,7 @@ extern CAPTURING_GROUP_RESULT regex_getCapturingGroup(RE_MATCH* pMatch, int nGro
  * regex_compileWithDefault()
  * Compile a regular expression passed by argument with standard options.
  */
-RE_PATTERN* regex_compileWithDefault(char* expression);
+RE_PATTERN* regex_compileWithDefault(const char* expression);
 
 typedef struct tagREPLACEMENT_OPTIONS {
 	char* replacementPattern;
@@ -148,7 +148,7 @@ extern int regex_compile(RE_OPTIONS* pOptions, RE_PATTERN* pResult);
  * regex_match()
  * Perform the actual matching.
  */
-extern int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsigned char* endOfStringToMatch, RE_MATCH* result);
+extern int regex_match(RE_PATTERN* pPattern, const unsigned char* stringToMatch, const unsigned char* endOfStringToMatch, RE_MATCH* result);
 
 /*
  * Returns the minimum length a string must have to be able tobe matched by a compiled

@@ -126,7 +126,9 @@ static int format_calculateCodeIndent(FORMATTER* pFormatter, WINFO* wp, const ch
 	}
 	int nScreen = caret_bufferOffset2screen(wp, pBuf, j);
 	FTABLE* fp = wp->fp;
-	int nDeltaIndent = grammar_getDeltaIndentation(fp->documentDescriptor->grammar, pBuf, nLen);
+	// TODO: determine from context - need linepointer to do so currently
+	LEXICAL_CONTEXT lcStart = LC_START;
+	int nDeltaIndent = grammar_getDeltaIndentation(fp->documentDescriptor->grammar, lcStart, pBuf, nLen);
 	nScreen += wp->indentation.tabsize * nDeltaIndent;
 	*pScreenCol = (nScreen < 0) ? 0 : nScreen;
 	j += nDeltaIndent;

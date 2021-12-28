@@ -39,7 +39,7 @@
 #include "fileutil.h"
 #include "editorconfiguration.h"
 #include "winfo.h"
-
+#include "regexp.h"
 
  /*
  * Description of one document type in PKS edit.
@@ -55,6 +55,7 @@ typedef struct tagDOCUMENT_TYPE {
 	int					ll_privateEditorConfiguration;		// Whether this is a private configuration. If true, this is used for single files explicitly
 	char				ll_editorConfigurationName[32];		// Editor configuration name
 	char   				ll_match[64];						// file name pattern to match
+	char				ll_firstlineMatch[64];				// Can be used to match a file by parsing the 1st line contained in that file.
 	EDIT_CONFIGURATION * ll_documentDescriptor;
 } DOCUMENT_TYPE;
 
@@ -70,6 +71,7 @@ static JSON_MAPPING_RULE _documentTypeRules[] = {
 	{	RT_CHAR_ARRAY, "grammar", offsetof(DOCUMENT_TYPE, ll_grammarScope), sizeof(((DOCUMENT_TYPE*)NULL)->ll_grammarScope)},
 	{	RT_CHAR_ARRAY, "editorConfiguration", offsetof(DOCUMENT_TYPE, ll_editorConfigurationName), sizeof(((DOCUMENT_TYPE*)NULL)->ll_editorConfigurationName)},
 	{	RT_CHAR_ARRAY, "filenamePatterns", offsetof(DOCUMENT_TYPE, ll_match), sizeof(((DOCUMENT_TYPE*)NULL)->ll_match)},
+	{	RT_CHAR_ARRAY, "firstlineMatch", offsetof(DOCUMENT_TYPE, ll_firstlineMatch), sizeof(((DOCUMENT_TYPE*)NULL)->ll_firstlineMatch)},
 	{	RT_FLAG, "isPrivate", offsetof(DOCUMENT_TYPE, ll_privateEditorConfiguration), 1},
 	{	RT_END}
 };
@@ -185,13 +187,13 @@ void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 			*pszDest++ = '|';
 		}
 		if (llp->ll_match[0]) {
-			pszDest = strmaxcpy(pszDest, 
-					llp->ll_description[0] ? 
-					llp->ll_description : llp->ll_match, 
-					(int)(pszEnd - pszDest));
+			pszDest = strmaxcpy(pszDest,
+				llp->ll_description[0] ?
+				llp->ll_description : llp->ll_match,
+				(int)(pszEnd - pszDest));
 			*pszDest++ = '|';
-			pszDest = strmaxcpy(pszDest, llp->ll_match, 
-					(int)(pszEnd - pszDest));
+			pszDest = strmaxcpy(pszDest, llp->ll_match,
+				(int)(pszEnd - pszDest));
 			nCopied++;
 		}
 	}
@@ -208,7 +210,7 @@ int doctypes_addDocumentTypesToListView(HWND hwndList, const void* pSelected) {
 	HIMAGELIST hSmall;
 	int			nCnt;
 
-	lvI.stateMask = LVIS_SELECTED| LVIS_FOCUSED;
+	lvI.stateMask = LVIS_SELECTED | LVIS_FOCUSED;
 	lvI.state = 0;
 	hSmall = ImageList_Create(GetSystemMetrics(SM_CXSMICON),
 		GetSystemMetrics(SM_CYSMICON),
@@ -244,17 +246,17 @@ int doctypes_addDocumentTypesToListView(HWND hwndList, const void* pSelected) {
  * Returns the properties for a document type (primarily for the purpose of displaying
  * it in a UI).
  */
-BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE *llp, 
-	char **ppszId,	char **ppszDescription, char **ppszMatch, char **ppszFname, 
-	char **ppszGrammar,
-	int **pOwn)
+BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
+	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszFname,
+	char** ppszGrammar,
+	int** pOwn)
 {
 
 	if (!llp) {
 		llp = config.dc_types;
 	}
 	if (!llp) {
-		doctypes_createDocumentType((DOCUMENT_TYPE *)0);
+		doctypes_createDocumentType((DOCUMENT_TYPE*)0);
 		llp = config.dc_types;
 	}
 	if (ppszId) {
@@ -265,7 +267,7 @@ BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE *llp,
 	}
 	if (ppszMatch) {
 		*ppszMatch = llp->ll_match;
-	}	
+	}
 	if (ppszFname) {
 		*ppszFname = llp->ll_editorConfigurationName;
 	}
@@ -278,14 +280,37 @@ BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE *llp,
 	return TRUE;
 }
 
+/*
+ * Try to match the 1st line in a document against a RE. If it matches, assume a special document type.
+ */
+static BOOL doctypes_matchLine(const char* pszFirstLine, size_t nFirstLineLen, const char* pszFirstlineMatch) {
+	if (!*pszFirstlineMatch) {
+		return FALSE;
+	}
+	RE_PATTERN pattern;
+	UCHAR 	ebuf[ESIZE];
+	RE_MATCH reMatch;
+	RE_OPTIONS options;
+	memset(&options, 0, sizeof options);
+	memset(ebuf, 0, ESIZE);
+	options.patternBuf = ebuf;
+	options.flags = RE_DOREX;
+	options.endOfPatternBuf = &ebuf[ESIZE];
+	options.expression = (char*)pszFirstlineMatch;
+	if (regex_compile(&options, &pattern) && regex_match(&pattern, pszFirstLine, &pszFirstLine[nFirstLineLen], &reMatch)) {
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /*--------------------------------------------------------------------------
  * doctypes_getFileDocumentType()
- * find the correct document descriptor for a given file
+ * find the correct document descriptor for a given file.
  * 	1. if own document descriptor, try to read  own document descriptor from disc
- * 	2. if common document descriptor, ...
+ * 	2. if common document descriptor try to find a match via name pattern or a match of the first line (if defined - maybe NULL).
  *	3. if neither, use standard document descriptor
  */
-BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename) {
+static BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename, const char* pszFirstLine, size_t nFirstLineLen) {
 	char 			fname[1024];
 	DOCUMENT_TYPE *		llp;
 	EDIT_CONFIGURATION*	lp;
@@ -295,6 +320,11 @@ BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename) {
 	DOCUMENT_TYPE* pFound = NULL;
 	string_splitFilename(filename,(char *)0, fname);
 	for (llp = config.dc_types, lp = 0; llp != 0 && lp == 0; llp = llp->ll_next) {
+		if (pszFirstLine && doctypes_matchLine(pszFirstLine, nFirstLineLen, llp->ll_firstlineMatch)) {
+			// prefer over file name matching
+			pFound = llp;
+			break;
+		}
 		if (string_matchFilename(fname,llp->ll_match)) {
 			// Select most explicit file name pattern - e.g. prefer *.c over *.* and prefer *.cpp over *.cpp;*.h
 			if (strstr(llp->ll_match, "*.*")) {
@@ -329,6 +359,11 @@ BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename) {
 	if (llp && llp->ll_grammarScope[0]) {
 		linp->grammar = grammar_findNamed(llp->ll_grammarScope);
 	}
+	if (pFound && strcmp(pFound->ll_name, "default") == 0) {
+		linp->documentType = NULL;
+	} else {
+		linp->documentType = pFound;
+	}
 	return TRUE;
 }
 
@@ -338,7 +373,7 @@ BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename) {
  * if pDocumentDescriptor == 0, read document descriptor from disc according to filename pattern
  * match
  */
-int  doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *pDocumentDescriptor) {
+int doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *pDocumentDescriptor) {
 	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
 	int wMode;
 	int dMode;
@@ -355,13 +390,33 @@ int  doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *pDocu
 		memmove(fp->documentDescriptor,pDocumentDescriptor,sizeof *pDocumentDescriptor);
 		return 1;
 	}
-
-	doctypes_getFileDocumentType(fp->documentDescriptor,fp->fname);
+	const char* pszFirstLine = NULL;
+	size_t nFirstLineLen = 0;
+	if (fp->firstl) {
+		pszFirstLine = fp->firstl->lbuf;
+		nFirstLineLen = fp->firstl->len;
+	}
+	doctypes_getFileDocumentType(fp->documentDescriptor,fp->fname, pszFirstLine, nFirstLineLen);
 	if (pConfig) {
 		fp->documentDescriptor->workmode = wMode;
 		fp->documentDescriptor->dispmode = dMode;
 	}
 	return 1;
+}
+
+/*--------------------------------------------------------------------------
+ * doctypes_assignDocumentTypeDescriptor()
+ * Try to reassign document type properties if document type properties were assigned
+ * before. At this point in time we are able to determine a document type from the first line
+ * of the document.
+ */
+int doctypes_reassignDocumentTypeDescriptor(FTABLE* fp) {
+	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
+	if (pConfig == NULL || pConfig->documentType == NULL) {
+		doctypes_assignDocumentTypeDescriptor(fp, NULL);
+		return TRUE;
+	}
+	return FALSE;
 }
 
 /*--------------------------------------------------------------------------

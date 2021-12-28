@@ -26,6 +26,7 @@
 #include "winterf.h"
 #include "winfo.h"
 #include "grammar.h"
+#include "syntaxhighlighting.h"
 #include "stringutil.h"
 #include "fileutil.h"
 #include "textblocks.h"
@@ -51,6 +52,11 @@ extern	FSELINFO 	_linfsel;
 
 extern	PASTE	*bl_getTextBlock(char* pszId, PASTELIST *pp);
 extern 	int 	macro_createTempFile(char *linfn, char *tmpfn);
+/*
+ * Calculate the lexical start state at a given line.
+ */
+extern LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
+
 
 static 	PASTELIST *_abbrevlist;
 
@@ -262,6 +268,13 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 		return 0;
 	}
 	if (up->action == UA_ABBREV) {
+		if (up->lexicalContexts) {
+			LEXICAL_CONTEXT lcStart = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
+			LEXICAL_CONTEXT lcContext = grammar_getLexicalContextAt(pGrammar, lcStart, lp->lbuf, lp->len, offs);
+			if ((up->lexicalContexts & lcContext) == 0) {
+				return 0;
+			}
+		}
 		domacro = 0;
 	} else if (up->action == UA_UCMACRO) {
 		domacro = 1;

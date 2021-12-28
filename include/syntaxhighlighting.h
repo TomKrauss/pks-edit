@@ -22,7 +22,7 @@ typedef struct tagHIGHLIGHTER HIGHLIGHTER;
 /*
  * Return a syntax highlighter for a given grammar;
  */
-extern HIGHLIGHTER* highlight_getHighlighter(GRAMMAR* pszGrammar);
+extern HIGHLIGHTER* highlight_createHighlighter(GRAMMAR* pszGrammar);
 
 /*
  * Invalidates the highlighter data for the given line.

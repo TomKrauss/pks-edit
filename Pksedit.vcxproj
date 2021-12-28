@@ -1215,6 +1215,7 @@
     <None Include="doc\manual\getting_started.md" />
     <None Include="doc\manual\grammar.md" />
     <None Include="doc\manual\macro_language.md" />
+    <None Include="doc\manual\pksedit_ui.md" />
     <None Include="doc\manual\toc.md" />
     <None Include="doc\manual\saving_files.md" />
     <None Include="doc\markdown.md" />
@@ -1259,6 +1260,7 @@
     <Image Include="doc\bird.gif" />
     <Image Include="doc\cat.bmp" />
     <Image Include="doc\dice.png" />
+    <Image Include="doc\manual\pksedit-ui.png" />
     <Image Include="rc\arrow_down.ico" />
     <Image Include="rc\arrow_up.ico" />
     <Image Include="RC\BITMAP1.BMP" />

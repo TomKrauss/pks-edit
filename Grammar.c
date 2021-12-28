@@ -37,7 +37,8 @@
 #define	DIM(x)		(sizeof(x)/sizeof(x[0]))
 
 #define CHARACTER_STATE_SHIFT		(LONGLONG)7l	// 2**CHARACTER_STATE_SHIFT == number of states per start character allowed
-#define CHARACTER_STATE_MASK		(LONGLONG)127l	// 2**CHARACTER_STATE_SHIFT-1
+#define MAX_STATE					64				// Should be a binary number
+#define CHARACTER_STATE_MASK		(LONGLONG)(MAX_STATE-1)
 
 // Code template definition.
 typedef struct tagTEMPLATE {
@@ -45,6 +46,7 @@ typedef struct tagTEMPLATE {
 	char t_match[sizeof(((UCLIST*)0)->pat)];
 	unsigned char* t_contents;
 	BOOL t_auto;
+	int t_lexicalContexts;				// a bitwise combination of lexical contexts, in which this template is automatically inserted. If 0, lexical context is ignored.
 } TEMPLATE;
 
 typedef struct tagPATTERN_GROUP {
@@ -90,7 +92,7 @@ typedef struct tagGRAMMAR {
 	GRAMMAR_PATTERN* patterns;			// The patterns defined for this grammar.
 	LONGLONG transitions[256];			// The indices into the state transition table. We allow a maximum of 2 ** (16-6) re_patterns to match from one initial state.
 										// for each character we allow a maximum of 6 possibilities to match.
-	GRAMMAR_PATTERN* patternsByState[64]; // max 64 patterns allowed per grammar.
+	GRAMMAR_PATTERN* patternsByState[MAX_STATE]; // max 64 patterns allowed per grammar.
 	UCLIST* undercursorActions;			// The list of actions to perform on input (either bracket matching or code template insertion etc...).
 	NAVIGATION_PATTERN* navigation;		// The patterns, which can be used to extract hyperlinks to navigate from within a file
 	TAGSOURCE* tagSources;				// The list of tag sources to check for cross references
@@ -174,6 +176,8 @@ static JSON_MAPPING_RULE _templateRules[] = {
 	{	RT_CHAR_ARRAY,	 "match",	 offsetof(TEMPLATE, t_match), sizeof(((TEMPLATE*)NULL)->t_match)},
 	{	RT_ALLOC_STRING, "contents", offsetof(TEMPLATE, t_contents)},
 	{	RT_FLAG, "auto-insert", offsetof(TEMPLATE, t_auto), 1},
+	{	RT_FLAG, "lexical-context-initial", offsetof(TEMPLATE, t_lexicalContexts), LC_START},
+	{	RT_FLAG, "lexical-context-comment", offsetof(TEMPLATE, t_lexicalContexts), LC_SINGLE_LINE_COMMENT|LC_MULTILINE_COMMENT},
 	{	RT_END}
 };
 
@@ -797,6 +801,11 @@ UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar) {
 		while (pTemplate) {
 			UCLIST* pList = ll_insert(&pGrammar->undercursorActions, sizeof(UCLIST));
 			pList->action = pTemplate->t_auto ? UA_ABBREV : UA_TEMPLATE;
+			if (pTemplate->t_auto) {
+				pList->lexicalContexts = pTemplate->t_lexicalContexts;
+			} else {
+				pList->lexicalContexts = 0;
+			}
 			strcpy(pList->pat, pTemplate->t_match);
 			pList->len = (int)strlen(pTemplate->t_match);
 			pList->p.uc_template = pTemplate->t_contents;
@@ -822,6 +831,24 @@ TAGSOURCE* grammar_getTagSources(GRAMMAR* pGrammar) {
 }
 
 /*
+ * Determines a lexical context matched by a grammar pattern assuming standard pattern naming conventions.
+ */
+static LEXICAL_CONTEXT grammar_getContextForPattern(GRAMMAR_PATTERN* pPattern) {
+	if (string_strcasestr(pPattern->name, "comment") != NULL) {
+		return pPattern->begin[0] && pPattern->end[0] ? LC_MULTILINE_COMMENT : LC_SINGLE_LINE_COMMENT;
+	}
+	if (string_strcasestr(pPattern->name, "literal") != NULL) {
+		if (string_strcasestr(pPattern->name, "string") != NULL) {
+			return LC_MULTI_QUOTED_LITERAL;
+		}
+		if (string_strcasestr(pPattern->name, "character") != NULL) {
+			return LC_SINGLE_QUOTED_LITERAL;
+		}
+	}
+	return LC_START;
+}
+
+/*
  * Returns the comment descriptor for the described language in pDescriptor.
  * If a comment info is available this method returns 1, otherwise 0.
  */
@@ -837,7 +864,8 @@ int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescrip
 		return 0;
 	}
 	for (pPattern = pGrammar->patterns; pPattern; pPattern = pPattern->next) {
-		if (string_strcasestr(pPattern->name, "comment") != NULL) {
+		LEXICAL_CONTEXT lcContext = grammar_getContextForPattern(pPattern);
+		if (lcContext == LC_MULTILINE_COMMENT || lcContext == LC_SINGLE_LINE_COMMENT) {
 			nRet = 1;
 			if (pPattern->begin[0] && pPattern->end[0]) {
 				strcpy(pDescriptor->comment_start, pPattern->begin);
@@ -948,65 +976,137 @@ static grammar_matchWordInLine(char c, const char* pszMatch, const char* pBuf, i
 }
 
 /*
+ * Calculate the delta indentation defined by a line. This is for a C-file or Java-File +1, if
+ * the line contains a { or -1 if the line contains a }. Simple comment checking is performed as
+ * well. For pascal it is +1 when a line contains "begin" and -1 when the line contains "end".
+ */
+static LEXICAL_CONTEXT grammar_lexicalContextDo(LEXICAL_CONTEXT nState, GRAMMAR* pGrammar, const char* pBuf, size_t nLen, 
+		BOOL (*callback)(GRAMMAR* pGrammar, const char* pBuf, int nOffset, size_t nLen, LEXICAL_CONTEXT nState, void *pParam), void* pParam) {
+	if (!pGrammar) {
+		return nState;
+	}
+	COMMENT_DESCRIPTOR cd;
+	grammar_getCommentDescriptor(pGrammar, &cd);
+	int nDelta = 0;
+	for (int i = 0; i < nLen; i++) {
+		if (!callback(pGrammar, pBuf, i, nLen, nState, pParam)) {
+			break;
+		}
+		char c = pBuf[i];
+		if (nState == LC_MULTILINE_COMMENT) {
+			if (grammar_matchWordInLine(c, cd.comment_end, pBuf, i, nLen)) {
+				i += (int)strlen(cd.comment_end);
+				nState = LC_START;
+			}
+			continue;
+		}
+		if (nState == LC_SINGLE_QUOTED_LITERAL || nState == LC_MULTI_QUOTED_LITERAL) {
+			char cCompare = nState == LC_SINGLE_QUOTED_LITERAL ? '\'' : '"';
+			if (c == '\\' && i < nLen - 1) {
+				c = pBuf[++i];
+				continue;
+			}
+			if (c == cCompare) {
+				nState = LC_START;
+			}
+			continue;
+		}
+		if (c == '"') {
+			nState = LC_MULTI_QUOTED_LITERAL;
+			continue;
+		}
+		if (c == '\'') {
+			nState = LC_SINGLE_QUOTED_LITERAL;
+			continue;
+		}
+		if (grammar_matchWordInLine(c, cd.comment_single, pBuf, i, nLen)) {
+			nState = LC_SINGLE_LINE_COMMENT;
+			continue;
+		}
+		if (grammar_matchWordInLine(c, cd.comment_start, pBuf, i, nLen)) {
+			nState = LC_MULTILINE_COMMENT;
+			i += (int)strlen(cd.comment_start);
+			continue;
+		}
+	}
+	return nState;
+}
+
+/*
+ * Callback to determine the additional syntactical indenting for a buffer by inspecting opening brackets, braces etc...
+ */
+static BOOL grammar_countIndent(GRAMMAR* pGrammar, const char* pBuf, int nOffset, size_t nLen, LEXICAL_CONTEXT nState, void* pParam) {
+	if (nState == LC_SINGLE_LINE_COMMENT) {
+		return FALSE;
+	}
+	if (nState != LC_START) {
+		return TRUE;
+	}
+	char c = pBuf[nOffset];
+	char cCompare;
+	for (int i = 0; (cCompare = pGrammar->increaseIndentPattern[i]) != 0; i++) {
+		if (c == cCompare) {
+			(*(int*)pParam)++;
+		}
+	}
+	for (int i = 0; (cCompare = pGrammar->decreaseIndentPattern[i]) != 0; i++) {
+		if (c == cCompare) {
+			(*(int*)pParam)--;
+		}
+	}
+	return TRUE;
+}
+
+/*
  * Calculate the delta indentation defined by a line. This is for a C-file or Java-File +1, if 
  * the line contains a { or -1 if the line contains a }. Simple comment checking is performed as
  * well. For pascal it is +1 when a line contains "begin" and -1 when the line contains "end".
  */
-typedef enum {LS_START, LS_COMMENT, LS_SINGLE_QUOTE, LS_MULTI_QUOTE} LEXICAL_STATE;
-int grammar_getDeltaIndentation(GRAMMAR* pGrammar, const char* pBuf, size_t nLen) {
+int grammar_getDeltaIndentation(GRAMMAR* pGrammar, LEXICAL_CONTEXT nState, const char* pBuf, size_t nLen) {
 	if (!pGrammar) {
 		return 0;
 	}
 	if (!pGrammar->increaseIndentPattern[0] && !pGrammar->decreaseIndentPattern[0]) {
 		return 0;
 	}
-
-	COMMENT_DESCRIPTOR cd;
-	grammar_getCommentDescriptor(pGrammar, &cd);
 	int nDelta = 0;
-	LEXICAL_STATE nState = LS_START;
-	for (int i = 0; i < nLen; i++) {
-		char c = pBuf[i];
-		if (nState == LS_COMMENT) {
-			if (grammar_matchWordInLine(c, cd.comment_end, pBuf, i, nLen)) {
-				i += (int)strlen(cd.comment_end);
-				nState = LS_START;
-			}
-			continue;
-		}
-		if (nState == LS_SINGLE_QUOTE || nState == LS_MULTI_QUOTE) {
-			char cCompare = nState == LS_SINGLE_QUOTE ? '\'' : '"';
-			if (c == '\\' && i < nLen-1) {
-				c = pBuf[++i];
-				continue;
-			}
-			if (c == cCompare) {
-				nState = LS_START;
-			}
-			continue;
-		}
-		if (c == '"') {
-			nState = LS_MULTI_QUOTE;
-			continue;
-		}
-		if (c == '\'') {
-			nState = LS_SINGLE_QUOTE;
-			continue;
-		}
-		if (grammar_matchWordInLine(c, cd.comment_single, pBuf, i, nLen)) {
-			break;
-		}
-		if (grammar_matchWordInLine(c, cd.comment_start, pBuf, i, nLen)) {
-			nState = LS_COMMENT;
-			i += (int)strlen(cd.comment_start);
-			continue;
-		}
-		// TODO: derive from grammar.
-		if (c == '{' || c == '[' || c == '(') {
-			nDelta++;
-		} else if (c == '}' || c == ']' || c == ')') {
-			nDelta--;
-		}
+	grammar_lexicalContextDo(nState, pGrammar, pBuf, nLen, grammar_countIndent, &nDelta);
+	if (nDelta == 0) {
+		return 0;
 	}
-	return nDelta;
+	if (nDelta < 0) {
+		return -1;
+	}
+	return 1;
+}
+
+/*
+ * Callback to stop scanning a line, when a particular offset in the line was reached.
+ */
+static BOOL grammar_waitForOffset(GRAMMAR* pGrammar, const char* pBuf, int nOffset, size_t nLen, LEXICAL_CONTEXT nState, void* pParam) {
+	return nOffset < *(int*)pParam;
+}
+
+/*
+ * Determines the "lexical context" in a buffer at a given position.
+ */
+LEXICAL_CONTEXT grammar_getLexicalContextAt(GRAMMAR* pGrammar, LEXICAL_CONTEXT nStartState, const char* pBuf, size_t nLen, int nOffset) {
+	if (!pGrammar) {
+		return nStartState;
+	}
+	return grammar_lexicalContextDo(nStartState, pGrammar, pBuf, nLen, grammar_waitForOffset, &nOffset);
+}
+
+/*
+ * Returns the lexical context matching a lexical state (used by the highlighter).
+ */
+LEXICAL_CONTEXT grammar_getLexicalContextForState(GRAMMAR* pGrammar, LEXICAL_STATE aState) {
+	if (pGrammar == NULL) {
+		return LC_START;
+	}
+	GRAMMAR_PATTERN *pPattern = pGrammar->patternsByState[aState];
+	if (!pPattern) {
+		return LC_START;
+	}
+	return grammar_getContextForPattern(pPattern);
 }

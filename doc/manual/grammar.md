@@ -33,10 +33,20 @@ The grammar files are placed in the `pks_sys` directory. The document types are 
 define the grammar id to use for the corresponding document type.
 
 ### Templates
-Templates are defined with a pattern using to "select the template" and the actual contents of the template. The contents
-of the template may contain variables enclosed in `${ }` - e.g. `${user}`.
+Templates are defined with a pattern `match` using to "select the template" and the actual `contents` of the template to be inserted. 
+The contents of the template may contain variables enclosed in `${ }` - e.g. `${user}`.
 
-### Supported Template Variables
+Templates may be defined as `auto-insert` true, in which case the `match` pattern is matched against the currently typed input and
+if a match occurs the template is automatically inserted. This auto-insertion behavior may be switched off for one document by
+setting the `expandAbbreviations` option for the current editor tab to false [see configuring documents](document_types.md#editor_configuration_properties).
+
+When a template is configured to be automatically inserted, one may define a lexical context, in which the automatic insertion
+is performed:
+
+- `lexical-context-initial` - the automatic insertion is not performed inside strings, character literals and comments.
+- `lexical-context-comment` - the automatic insertion is only performed inside comments.
+
+#### Supported Template Variables
 The following variables are supported:
 
 - `${user}` - name of the current logged in user

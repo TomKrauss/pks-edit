@@ -760,7 +760,6 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, FT_OPEN_OPTIONS* pOp
 		ft_destroy(fp);
 		return 0;
 	}
-
 	if (szAsPath[0]) {
 		ft_setFlags(fp, fp->flags | F_MODIFIED);
 	}

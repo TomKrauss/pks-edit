@@ -66,7 +66,7 @@ static RE_PATTERN	_lastSearchPattern;
 /*
  * Create an option object for compiling a regular expression. 
  */
-static RE_OPTIONS *createREOptions(char* expression, char *ebuf, int flags, unsigned char eof) {
+static RE_OPTIONS *createREOptions(const char* expression, char *ebuf, int flags, unsigned char eof) {
 	static RE_OPTIONS _options;
 	memset(&_options, 0, sizeof _options);
 	memset(ebuf, 0, ESIZE);
@@ -74,7 +74,7 @@ static RE_OPTIONS *createREOptions(char* expression, char *ebuf, int flags, unsi
 	_options.flags = flags;
 	_options.endOfPatternBuf = &ebuf[ESIZE];
 	_options.eof = eof;
-	_options.expression = expression;
+	_options.expression = (char*)expression;
 	return &_options;
 }
 
@@ -89,7 +89,7 @@ static int regex_compilationFailed(int errorCode) {
 /*--------------------------------------------------------------------------
  * find_regexCompile()
  */
-RE_PATTERN *find_regexCompile(char *ebuf, char *pat, int flags) {
+RE_PATTERN *find_regexCompile(char *ebuf, const char *pat, int flags) {
 	flags &= (RE_DOREX|RE_IGNCASE|RE_SHELLWILD);
 	if (!regex_compile(createREOptions(pat, ebuf, flags, 0), &_lastCompiledPattern)) {
 		regex_compilationFailed(_lastCompiledPattern.errorCode);
@@ -131,7 +131,7 @@ int find_initializeReplaceByExpression(unsigned char* replaceByExpression) {
  * find_setCurrentSearchExpression()
  * Remember the last expression searched for by the user.
  */
-void find_setCurrentSearchExpression(char *pExpression) {
+void find_setCurrentSearchExpression(const char *pExpression) {
 	strcpy(_currentSearchAndReplaceParams.searchPattern, pExpression);
 }
 
@@ -139,7 +139,7 @@ void find_setCurrentSearchExpression(char *pExpression) {
  * regex_compileWithDefault()
  * Compile a regular expression passed by argument with standard options.
  */
-RE_PATTERN *regex_compileWithDefault(char *expression) {
+RE_PATTERN *regex_compileWithDefault(const char *expression) {
 	static UCHAR 	_expbuf[ESIZE];
 
 	find_setCurrentSearchExpression(expression);

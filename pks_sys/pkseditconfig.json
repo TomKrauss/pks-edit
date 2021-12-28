@@ -36,10 +36,11 @@
     },
     {
         "name": "xmlmarkup",
-        "description": "HTML and XML (*.html; *.htm; *.xml; *.vcxproj)",
+        "description": "HTML and XML (*.html; *.htm; *.xml)",
         "grammar": "xml",
         "editorConfiguration": "default",
-        "filenamePatterns": "*.html;*.htm;*.xml;*.xsd;.trend;*.vcxproj"
+        "filenamePatterns": "*.html;*.htm;*.xml;*.xsd;.trend;*.vcxproj",
+        "firstlineMatch": "^\\<\\?xml.*\\?\\>$"
     },
     {
         "name": "css",
@@ -188,7 +189,7 @@
         "leftMargin": 0,
         "rightMargin": 100,
         "tabSize": 4,
-        "codepage": 0,
+        "codepage": -1,
         "tabulatorSizes": [4],
         "shiftWidth": 4,
         "showWhitespace": true,

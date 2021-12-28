@@ -59,7 +59,6 @@ extern int 		dlg_getListboxText(HWND hwnd, int id, void *szBuff);
 extern int 		EdExecute(long flags, long unused, 
 					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
-extern int 		doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *linp);
 extern int 		EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		mac_compileMacros(void);
@@ -879,18 +878,18 @@ return;
 DOCUMENT_TYPE* lastSelectedDocType;
 static void doctypes_apply(void)
 {
-	EDIT_CONFIGURATION* lp;
+	EDIT_CONFIGURATION* pConfiguration;
 	FTABLE* fp;
 
 	if ((fp = ft_getCurrentDocument()) == 0) {
 		return;
 	}
-	if ((lp = doctypes_getDocumentTypeDescriptor(lastSelectedDocType)) != 0) {
+	if ((pConfiguration = doctypes_getDocumentTypeDescriptor(lastSelectedDocType)) != 0) {
 		if (!(fp->flags & F_MODIFIED)) {
-			ft_abandonFile(fp, lp);
+			ft_abandonFile(fp, pConfiguration);
 		}
 		else {
-			doctypes_assignDocumentTypeDescriptor(fp, lp);
+			doctypes_assignDocumentTypeDescriptor(fp, pConfiguration);
 			doctypes_documentTypeChanged(TRUE);
 		}
 	}

@@ -52,6 +52,7 @@ The following example defines an editor configuration `default`, which defines s
 
 ```
 
+### Editor Configuration Properties
 Here is a description of some of the defined properties of an `editor configuration`.
 
 - `codepage` - the standard character encoding / code page for documents of this type. Specify either a WIN32 code for the desired encoding (0 == ISO8859-1 or 

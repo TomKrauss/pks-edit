@@ -20,19 +20,19 @@ extern SEARCH_AND_REPLACE_PARAMETER _currentSearchAndReplaceParams;
  * Compiles a regular expression passing in a char array into which the appropriate compiled expression is placed (should be big enough - typically 500 bytes
  * the pattern to compile and the RE_... flags as specified in regexp.h
  */
-extern RE_PATTERN* find_regexCompile(char* compiledExpression, char* pattern, int flags);
+extern RE_PATTERN* find_regexCompile(char* compiledExpression, const char* pattern, int flags);
 
 /*--------------------------------------------------------------------------
  * regex_compileWithDefault()
  * Compile a regular expression passed by argument with standard options.
  */
-extern RE_PATTERN* regex_compileWithDefault(char* expression);
+extern RE_PATTERN* regex_compileWithDefault(const char* expression);
 
 /*--------------------------------------------------------------------------
  * find_setCurrentSearchExpression()
  * Remember the last expression searched for by the user.
  */
-extern void find_setCurrentSearchExpression(char* pExpression);
+extern void find_setCurrentSearchExpression(const char* pExpression);
 
 /*--------------------------------------------------------------------------
  * find_initializeReplaceByExpression()

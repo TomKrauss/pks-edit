@@ -668,7 +668,7 @@ void ww_applyDisplayProperties(WINFO* wp) {
 	wp->lmargin = linp->lmargin;
 	wp->rmargin = linp->rmargin;
 	ww_tabsChanged(wp, linp);
-	wp->highlighter = highlight_getHighlighter(linp->grammar);
+	wp->highlighter = highlight_createHighlighter(linp->grammar);
 	ww_modeChanged(wp);
 }
 

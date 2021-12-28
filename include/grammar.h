@@ -57,13 +57,14 @@ typedef struct tagBRACKET_RULE {
 
 typedef struct tagUCLIST {
 	struct tagUCLIST* next;
-	char	pat[20];		/* pattern for scanning */
-	int		len;			/* length of of pattern to scan left to the cursor to match */
-	int  	action;			/* type of action to perform */
+	char	pat[20];					// pattern for scanning 
+	int		len;						// length of of pattern to scan left to the cursor to match 
+	int  	action;						// type of action to perform 
+	int		lexicalContexts;			// if type is UA_ABBREV, a bitwise combination of the lexical context(s) in which the action is performed.
 	union {
-		BRACKET_RULE* uc_bracket;	/* if type == UA_SHOWMATCH */
-		unsigned char* uc_template;	/* if type == UA_ABBREV - the template to insert */
-		unsigned char* uc_macro;	/* if type == UA_MACRO - the name of the macro */
+		BRACKET_RULE* uc_bracket;		// if type == UA_SHOWMATCH 
+		unsigned char* uc_template;		// if type == UA_ABBREV - the template to insert
+		unsigned char* uc_macro;		// if type == UA_MACRO - the name of the macro
 	} p;
 } UCLIST;
 
@@ -204,11 +205,28 @@ extern BOOL grammar_hasLineSpans(GRAMMAR* pGrammar);
 extern const char* grammar_wysiwygRenderer(GRAMMAR* pGrammar);
 
 /*
+ * A lexical context used for determining, whether actions such as code completion etc are available.
+ * Allows us to perform context sensitive formatting ( "{" treated differently to simply {) and context
+ * sensitive code expansion.
+ */
+typedef enum { LC_START = 0x1, LC_MULTILINE_COMMENT = 0x2, LC_SINGLE_LINE_COMMENT = 0x4, LC_SINGLE_QUOTED_LITERAL = 0x8, LC_MULTI_QUOTED_LITERAL = 0x10 } LEXICAL_CONTEXT;
+
+/*
  * Calculate the delta indentation defined by a line. This is for a C-file or Java-File +1, if
  * the line contains a { or -1 if the line contains a }. Simple comment checking is performed as
  * well. For pascal it is +1 when a line contains "begin" and -1 when the line contains "end".
  */
-extern int grammar_getDeltaIndentation(GRAMMAR* pGrammar, const char* pBuf, size_t nLen);
+extern int grammar_getDeltaIndentation(GRAMMAR* pGrammar, LEXICAL_CONTEXT lcStartCtx, const char* pBuf, size_t nLen);
+
+/*
+ * Determines the "lexical context" in a buffer at a given position.
+ */
+extern LEXICAL_CONTEXT grammar_getLexicalContextAt(GRAMMAR* pGrammar, LEXICAL_CONTEXT nStartState, const char* pBuf, size_t nLen, int nOffset);
+
+/*
+ * Returns the lexical context matching a lexical state (used by the highlighter).
+ */
+extern LEXICAL_CONTEXT grammar_getLexicalContextForState(GRAMMAR* pGrammar, LEXICAL_STATE aState);
 
 #define GRAMMAR_H
 #endif

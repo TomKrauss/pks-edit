@@ -236,12 +236,23 @@ unsigned char* highlight_calculate(HIGHLIGHTER* pData, WINFO* wp, LINE* lp, long
 /*
  * Return a syntax highlighter for a given grammar;
  */
-HIGHLIGHTER* highlight_getHighlighter(GRAMMAR* pGrammar) {
+HIGHLIGHTER* highlight_createHighlighter(GRAMMAR* pGrammar) {
 	HIGHLIGHTER* pHighlighter = calloc(1, sizeof(HIGHLIGHTER));
 	pHighlighter->h_grammar = pGrammar;
 	pHighlighter->h_calculate = highlight_usingGrammar;
 	grammar_initTokenTypeToStyleTable(pGrammar, pHighlighter->h_tokenTypeToStyleTable);
 	pHighlighter->h_lastLine = -1;
 	return pHighlighter;
+}
+
+/*
+ * Calculate the lexical start state at a given line. 
+ */
+LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp) {
+	FTABLE* fp = wp->fp;
+	long nLine = ln_indexOf(fp, lp);
+	highlight_adjustCachedLineWindow(pHighlighter, fp, nLine);
+	LEXICAL_STATE lexicalState = highlight_getPreviousLineTokenType(pHighlighter, fp, lp, nLine);
+	return grammar_getLexicalContextForState(fp->documentDescriptor->grammar, lexicalState);
 }
 

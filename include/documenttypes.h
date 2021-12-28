@@ -52,15 +52,6 @@ extern BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
 	int** pOwn);
 
 /*--------------------------------------------------------------------------
- * doctypes_getFileDocumentType()
- * find the correct document descriptor for a given file
- * 	1. if own document descriptor, try to read  own document descriptor from disc
- * 	2. if common document descriptor, ...
- *	3. if neither, use standard document descriptor
- */
-extern BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION* linp, char* filename);
-
-/*--------------------------------------------------------------------------
  * doctypes_createDocumentType()
  */
 extern DOCUMENT_TYPE* doctypes_createDocumentType(DOCUMENT_TYPE* llp);
@@ -90,6 +81,14 @@ extern void doctypes_deleteDocumentType(DOCUMENT_TYPE* llp);
  * match.
  */
 extern int  doctypes_assignDocumentTypeDescriptor(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor);
+
+/*--------------------------------------------------------------------------
+ * doctypes_assignDocumentTypeDescriptor()
+ * Try to reassign document type properties if document type properties were assigned
+ * before. At this point in time we are able to determine a document type from the first line
+ * of the document.
+ */
+extern int doctypes_reassignDocumentTypeDescriptor(FTABLE* fp);
 
 /*--------------------------------------------------------------------------
  * doctypes_saveAllDocumentTypes()

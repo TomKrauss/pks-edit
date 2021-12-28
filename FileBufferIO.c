@@ -527,6 +527,7 @@ ret0:			ret = 0;
 
 	fp->lastl = fp->lpReadPointer;
 	fp->lpReadPointer = fp->firstl;
+	doctypes_reassignDocumentTypeDescriptor(fp);
 
 readerr:
 

@@ -1262,7 +1262,7 @@ int regex_matchWordStart(RE_PATTERN* pPattern) {
  * The workhorse of the regular expression matching feature - try to match an input string
  * against a pattern.
  */
-int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsigned char* endOfStringToMatch, RE_MATCH* pMatch) {
+int regex_match(RE_PATTERN* pPattern, const unsigned char* stringToMatch, const unsigned char* endOfStringToMatch, RE_MATCH* pMatch) {
 	memset(pMatch, 0, sizeof * pMatch);
 	if (endOfStringToMatch == NULL) {
 		endOfStringToMatch = stringToMatch + strlen(stringToMatch);
@@ -1276,26 +1276,26 @@ int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsigned cha
 			return 0;
 		}
 	}
-	pMatch->loc1 = stringToMatch;
+	pMatch->loc1 = (unsigned char*)stringToMatch;
 	if (pMatcher->m_type == START_OF_LINE) {
 		pPattern->circf = 1;
 		pMatcher = (MATCHER*)(((char*)pMatcher) + matcherSizes[START_OF_LINE]);
 	}
 	char* pszBegin = pPattern->beginOfLine;
 	if (pszBegin == NULL) {
-		pszBegin = stringToMatch;
+		pszBegin = (unsigned char*)stringToMatch;
 	}
 	if (pPattern->circf || pPattern->noAdvance) {
 		pMatch->circf = pPattern->circf;
 		if (pMatch->circf && stringToMatch > pszBegin) {
 			return 0;
 		}
-		if (regex_advance(pszBegin, stringToMatch, endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
+		if (regex_advance(pszBegin, (unsigned char*) stringToMatch, (unsigned char*)endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
 			pMatch->matches = 1;
 			return 1;
 		}
 	} else {
-		char* pszMax = minLen == 0 ? endOfStringToMatch : (endOfStringToMatch - minLen + 1);
+		const char* pszMax = minLen == 0 ? endOfStringToMatch : (endOfStringToMatch - minLen + 1);
 		char fastC = 0;
 		if (pMatcher->m_type == STRING) {
 			fastC = pMatcher->m_param.m_string.m_chars[0];
@@ -1307,8 +1307,8 @@ int regex_match(RE_PATTERN* pPattern, unsigned char* stringToMatch, unsigned cha
 				stringToMatch++;
 				continue;
 			}
-			if (regex_advance(pszBegin, stringToMatch, endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
-				pMatch->loc1 = stringToMatch;
+			if (regex_advance(pszBegin, (unsigned char*)stringToMatch, (unsigned char*)endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
+				pMatch->loc1 = (unsigned char*)stringToMatch;
 				pMatch->matches = 1;
 				return 1;
 			}
