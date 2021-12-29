@@ -1108,8 +1108,12 @@ static int mdr_rendererSupportsMode(int aMode) {
 static int mdr_adjustScrollBounds(WINFO* wp) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	int nDelta = pData->md_nElementsPerPage;
-	if (nDelta == 0) {
-		return 0;
+	if (nDelta <= 0) {
+		if (pData->md_pElements) {
+			nDelta = 1;
+		} else {
+			return 0;
+		}
 	}
 	long nMaxScreen = wp->mincursln + nDelta;
 	size_t nMax = ll_size((LINKED_LIST*)pData->md_pElements);
@@ -1147,6 +1151,9 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 	wp->maxcurscol = wp->maxcol = 50;
 	InvalidateRect(wp->ww_handle, (LPRECT)0, 0);
 	UpdateWindow(wp->ww_handle);
+	if (pData->md_hwndTooltip) {
+		ShowWindow(pData->md_hwndTooltip, SW_HIDE);
+	}
 	int width;
 	mdr_updateCaretUI(wp, &wp->cx, &wp->cy, &width, &wp->cheight);
 	render_updateCaret(wp);
@@ -1249,7 +1256,9 @@ static void mdr_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 	if (pData) {
 		ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
 		pData->md_pElements = NULL;
-		RedrawWindow(wp->ww_handle, NULL, NULL, RDW_ERASE | RDW_INVALIDATE);
+		InvalidateRect(wp->ww_handle, (LPRECT)0, 0);
+		UpdateWindow(wp->ww_handle);
+		//RedrawWindow(wp->ww_handle, NULL, NULL, RDW_ERASE | RDW_INVALIDATE);
 	}
 }
 
@@ -1268,6 +1277,9 @@ static void* mdr_allocData(WINFO* wp) {
 static long mdr_calculateMaxLine(WINFO* wp) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (pData) {
+		if (!pData->md_pElements) {
+			mdr_parseViewParts(wp->fp, pData);
+		}
 		return ll_size((LINKED_LIST*)pData->md_pElements);
 	}
 	// TODO: may we need to ensure the renderer is initialized

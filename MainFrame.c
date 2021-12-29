@@ -354,31 +354,37 @@ static void mainframe_saveDocks() {
  */
 static void mainframe_closeDock(HWND hwnd) {
 	DOCKING_SLOT* pSlot = dockingSlots;
+	DOCKING_SLOT* pSlotUpdate = NULL;
 	while (pSlot) {
 		if (pSlot->ds_hwnd == hwnd) {
+			pSlotUpdate = pSlot;
 			break;
 		}
 		pSlot = pSlot->ds_next;
 	}
-	if (pSlot == NULL) {
+	if (pSlotUpdate == NULL) {
 		return;
 	}
 	EdTRACE(log_errorArgs(DEBUG_TRACE, "Closing dock %s", pSlot->ds_name));
-	DOCKING_SLOT* pSlotUpdate = dockingSlots;
-	DOCKING_SLOT* pSlotDefault = dockingSlots;
-	while (pSlotUpdate) {
-		if (pSlotUpdate == pSlot) {
-			pSlotUpdate = pSlotUpdate->ds_next;
-			continue;
+	DOCKING_SLOT* pSlotDefault = mainframe_getSlot(szDefaultSlotName);
+	if (pSlotDefault == pSlotUpdate) {
+		pSlot = dockingSlots;
+		pSlotUpdate = NULL;
+		while (pSlot) {
+			if (pSlot != pSlotDefault) {
+				pSlotUpdate = pSlot;
+				hwnd = pSlotUpdate->ds_hwnd;
+				break;
+			}
+			pSlot = pSlot->ds_next;
 		}
-		if (strcmp(szDefaultSlotName, pSlotUpdate->ds_name) == 0 || (pSlotUpdate->ds_type == DS_EDIT_WINDOW && pSlotDefault == NULL)) {
-			pSlotDefault = pSlotUpdate;
-		}
-		pSlotUpdate = pSlotUpdate->ds_next;
 	}
-	if (pSlot->ds_type == DS_EDIT_WINDOW) {
+	if (!pSlotUpdate || !pSlotDefault) {
+		return;
+	}
+	if (pSlotUpdate->ds_type == DS_EDIT_WINDOW) {
 		// Migrate contained windows to other dock.
-		TAB_CONTROL* pSource = (TAB_CONTROL*) GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
+		TAB_CONTROL* pSource = (TAB_CONTROL*) GetWindowLongPtr(pSlotUpdate->ds_hwnd, GWLP_TAB_CONTROL);
 		TAB_CONTROL* pTarget = (TAB_CONTROL*) GetWindowLongPtr(pSlotDefault->ds_hwnd, GWLP_TAB_CONTROL);
 		if (pSource && pTarget) {
 			while (pSource->tc_activeTab >= 0) {

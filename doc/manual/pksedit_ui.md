@@ -5,7 +5,7 @@ The UI of PKS-Edit typically displays the following areas:
 
 
 
-![UI](pksedit-ui.png)
+![The User Interface of PKS-Edit](pksedit-ui.png)
 
 
 - the `toolbar` gives you access to the most common used editing functions such as copying or pasting text or undo. You
