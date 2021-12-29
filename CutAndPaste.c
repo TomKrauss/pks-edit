@@ -47,9 +47,9 @@ BOOL bl_isDefaultClipboard(const char* pszId) {
  * remove the selection marker from "marked lines"
  *----------------------------*/
 EXPORT int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag) {
-	FTABLE *	fp;
-	MARK*		mps;
-	MARK *		mpe;
+	FTABLE *fp;
+	MARK*	mps;
+	MARK *	mpe;
 
 	fp = wp->fp;
 	mps = wp->blstart;

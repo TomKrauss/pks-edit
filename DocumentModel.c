@@ -74,7 +74,9 @@ static int ln_delmarks(WINFO* wp, LINE* lp) {
 			else wp->fmark = mp->m_next;
 			if (mp == wp->blstart) wp->blstart = 0;
 			if (mp == wp->blend)   wp->blend = 0;
-			free(mp); mp = mp->m_next;
+			MARK* pTemp = mp->m_next;
+			free(mp); 
+			mp = pTemp;
 		}
 		else {
 		walk:

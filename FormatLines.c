@@ -28,14 +28,31 @@
 #include "mouseutil.h"
 #include "winfo.h"
 
+typedef struct tagFORMATTER_PARAM {
+	WINFO* fparam_wp;
+	LEXICAL_CONTEXT fparam_context;
+	COMMENT_DESCRIPTOR fparam_cd;
+} FORMATTER_PARAM;
+
+typedef enum { 
+	ID_NONE,
+	ID_INDENT_NEXT,		// subsequent lines should be indented +1
+	ID_OUTDENT_THIS,	// the line starting the current line should be indented -1
+	ID_INDENT_SPACE_NEXT,// subsequent lines should be indented by one space only
+	ID_OUTDENT_SPACE_NEXT,// subsequent lines should be outdented by one space only
+	ID_TEMP_INDENT		// only the current line should be indented +1
+} INDENTATION_DELTA;
+
 typedef struct tagFORMATTER FORMATTER;
 
-typedef int (*F_CALCULATE_INDENT)(FORMATTER* pFormatter, WINFO* wp, const char* pBuffer, size_t nLen, int* pScreenCol);
+typedef int (*F_CALCULATE_INDENT)(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, const char* pBuffer, size_t nLen, int* pScreenCol);
 typedef BOOL(*F_STARTS_NEW_PARAGRAPH)(FORMATTER* pFormatter, LINE* lp);
 typedef BOOL(*F_TREAT_AS_EMPTY)(FORMATTER* pFormatter, LINE* lp);
 typedef BOOL(*F_SHOULD_WRAP)(FORMATTER* pFormatter, const char* pBuf, int nPosition);
-typedef void (*F_FORMAT_LINE)(FORMATTER* pFormatter, WINFO* wp, STRING_BUF* sb, FORMATTING_ALIGNMENT nAlignment);
+typedef void (*F_FORMAT_LINE)(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, STRING_BUF* sb, FORMATTING_ALIGNMENT nAlignment);
 typedef BOOL(*F_SUPPORTS_FORMAT)(FORMATTER* pFormatter);
+typedef LINE* (*F_FORMAT_INTO)(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LINE* lp, LINE* lplast, FORMATTING_ALIGNMENT nAlignment);
+typedef INDENTATION_DELTA(*F_CALC_INDENTATION_DELTA)(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, const char* pBuf, size_t nLen);
 
 struct tagFORMATTER {
 	const char* f_name;								// a unique name to identify the formatter.
@@ -47,7 +64,14 @@ struct tagFORMATTER {
 	const F_TREAT_AS_EMPTY f_treatAsEmpty;
 	const F_FORMAT_LINE f_formatLine;
 	const F_SUPPORTS_FORMAT f_supports;				// Whether text formatting is supported
+	const F_FORMAT_INTO f_formatInto;				// The actual formatter function, which converts a block of lines into a formatted block of lines.
+	const F_CALC_INDENTATION_DELTA f_calculateIndentationDelta;
 };
+
+/*
+ * Calculate the lexical start state at a given line.
+ */
+extern LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
 
 /*
  * Wrapping test for ascii type documents
@@ -76,8 +100,9 @@ static BOOL format_treatTextlineEmpty(FORMATTER* pFormatter, LINE* lp) {
 /*
  * Calculates the "indenting" of a line in a text type file. Indents are returned in terms of line offset.
  */
-static int format_calculateTextIndent(FORMATTER* pFormatter, WINFO* wp, const char* pBuf, size_t nLen, int *pScreenCol) {
+static int format_calculateTextIndent(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, const char* pBuf, size_t nLen, int *pScreenCol) {
 	int j = 0;
+	WINFO* wp = fparam->fparam_wp;
 	for (int i = 0; i < nLen; i++) {
 		char c = pBuf[i];
 		if (c == '\t' || c == ' ') {
@@ -96,8 +121,9 @@ static int format_calculateTextIndent(FORMATTER* pFormatter, WINFO* wp, const ch
 /*
  * Calculates the "indenting" of a line in an arbitrary file. 
  */
-static int format_calculateIndent(FORMATTER* pFormatter, WINFO* wp, const char* pBuf, size_t nLen, int* pScreenCol) {
+static int format_calculateIndent(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, const char* pBuf, size_t nLen, int* pScreenCol) {
 	int j = 0;
+	WINFO* wp = fparam->fparam_wp;
 	for (int i = 0; i < nLen; i++) {
 		char c = pBuf[i];
 		if (c == '\t' || c == ' ') {
@@ -110,11 +136,46 @@ static int format_calculateIndent(FORMATTER* pFormatter, WINFO* wp, const char* 
 	return j;
 }
 
+static INDENTATION_DELTA format_calculateCodeIndentationDelta(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, const char* pBuf, size_t nLen) {
+	WINFO* wp = fparam->fparam_wp;
+	FTABLE* fp = wp->fp;
+	LEXICAL_CONTEXT lcStart = fparam->fparam_context;
+	if (nLen >= 2 && fparam->fparam_cd.comment_end[0]) {
+		COMMENT_DESCRIPTOR* pCD = &fparam->fparam_cd;
+		BOOL nStartFound = FALSE;
+		for (int i = 0; i < nLen - 2; i++) {
+			BOOL bSpace = pBuf[i] == ' ' || pBuf[i] == '\t';
+			if (pBuf[i + 1] == pCD->comment_end[0] && pBuf[i + 2] == pCD->comment_end[1]) {
+				if (nStartFound) {
+					nStartFound = FALSE;
+					break;
+				}
+				if (bSpace) {
+					return ID_OUTDENT_SPACE_NEXT;
+				}
+				break;
+			}
+			if (pBuf[i] == pCD->comment_start[0] && pBuf[i+1] == pCD->comment_start[1]) {
+				nStartFound = TRUE;
+			}
+		}
+		if (nStartFound) {
+			return ID_INDENT_SPACE_NEXT;
+		}
+	}
+	int nDeltaIndent = grammar_getDeltaIndentation(fp->documentDescriptor->grammar, lcStart, pBuf, nLen);
+	if (nDeltaIndent == 0) {
+		return ID_NONE;
+	}
+	return nDeltaIndent > 0 ? ID_INDENT_NEXT : ID_OUTDENT_THIS;
+}
+
 /*
  * Calculates the "indenting" of a line in a code file. If the line ends with an "opening brace" ({ in C, Java and the like) the indent
  * is increased, if the line ends with a closing brace (} in C, Java and the like), indent is decreased. Indents are returned in terms of line offset.
  */
-static int format_calculateCodeIndent(FORMATTER* pFormatter, WINFO* wp, const char* pBuf, size_t nLen, int *pScreenCol) {
+static int format_calculateCodeIndent(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, const char* pBuf, size_t nLen, int *pScreenCol) {
+	WINFO* wp = fparam->fparam_wp;
 	int j = 0;
 	for (int i = 0; i < nLen; i++) {
 		char c = pBuf[i];
@@ -125,14 +186,8 @@ static int format_calculateCodeIndent(FORMATTER* pFormatter, WINFO* wp, const ch
 		break;
 	}
 	int nScreen = caret_bufferOffset2screen(wp, pBuf, j);
-	FTABLE* fp = wp->fp;
-	// TODO: determine from context - need linepointer to do so currently
-	LEXICAL_CONTEXT lcStart = LC_START;
-	int nDeltaIndent = grammar_getDeltaIndentation(fp->documentDescriptor->grammar, lcStart, pBuf, nLen);
-	nScreen += wp->indentation.tabsize * nDeltaIndent;
 	*pScreenCol = (nScreen < 0) ? 0 : nScreen;
-	j += nDeltaIndent;
-	return j < 0 ? 0 : j;
+	return j;
 }
 
 /*
@@ -156,7 +211,7 @@ static BOOL format_startsParagraphInTextFiles(FORMATTER* pFormatter, LINE* lp) {
  * Determines, whether the passed line will start a new paragraph.
  */
 static BOOL format_startsParagraphInCodeFiles(FORMATTER* pFormatter, LINE* lp) {
-	return FALSE;
+	return TRUE;
 }
 
 static BOOL format_supportsFormatting(FORMATTER* pFormatter) {
@@ -167,7 +222,8 @@ static BOOL format_dontSupportsFormatting(FORMATTER* pFormatter) {
 	return FALSE;
 }
 
-static void format_codeLine(FORMATTER* pFormatter, WINFO* wp, STRING_BUF* pBuffer, FORMATTING_ALIGNMENT nAlignment) {
+static void format_codeLine(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, STRING_BUF* pBuffer, FORMATTING_ALIGNMENT nAlignment) {
+	WINFO* wp = fparam->fparam_wp;
 	FTABLE* fp = wp->fp;
 	if (fp->documentDescriptor->expandTabsWith == 0) {
 		long nt;
@@ -180,7 +236,8 @@ static void format_codeLine(FORMATTER* pFormatter, WINFO* wp, STRING_BUF* pBuffe
 }
 
 
-static void format_textLine(FORMATTER* pFormatter, WINFO* wp, STRING_BUF* pBuffer, FORMATTING_ALIGNMENT nAlignment) {
+static void format_textLine(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, STRING_BUF* pBuffer, FORMATTING_ALIGNMENT nAlignment) {
+	WINFO* wp = fparam->fparam_wp;
 	size_t nSize = stringbuf_size(pBuffer);
 	char* pBuf = stringbuf_getString(pBuffer);
 	char chSpace = ft_getSpaceFillCharacter(wp);
@@ -199,7 +256,7 @@ static void format_textLine(FORMATTER* pFormatter, WINFO* wp, STRING_BUF* pBuffe
 			return;
 		}
 		int nScreenCol;
-		int nStart = pFormatter->f_calculateIndent(pFormatter, wp, pBuf, nSize, &nScreenCol);
+		int nStart = pFormatter->f_calculateIndent(pFormatter, fparam, pBuf, nSize, &nScreenCol);
 		while (nDelta > 0) {
 			int nOldDelta = nDelta;
 			for (int i = nStart; i < nSize; i++) {
@@ -230,39 +287,8 @@ static void format_textLine(FORMATTER* pFormatter, WINFO* wp, STRING_BUF* pBuffe
 		}
 	}
 }
-static FORMATTER _textAndMarkupFormatter = {
-	.f_name = "text",
-	.f_maySplitAt = format_maySplitTextlineAt,
-	.f_calculateIndent = format_calculateTextIndent,
-	.f_startsNewParagraph = format_startsParagraphInTextFiles,
-	.f_treatAsEmpty = format_treatTextlineEmpty,
-	.f_formatLine = format_textLine,
-	.f_supports = format_supportsFormatting
-};
-
-static FORMATTER _codeFormatter = {
-	.f_name = "code",
-	.f_maySplitAt = format_maySplitTextlineAt,
-	.f_calculateIndent = format_calculateCodeIndent,
-	.f_startsNewParagraph = format_startsParagraphInCodeFiles,
-	.f_treatAsEmpty = format_treatTextlineEmpty,
-	.f_formatLine = format_codeLine,
-	.f_supports = format_dontSupportsFormatting
-};
-
-static FORMATTER _defaultFormatter = {
-	.f_name = "default",
-	.f_maySplitAt = format_maySplitTextlineAt,
-	.f_calculateIndent = format_calculateIndent,
-	.f_startsNewParagraph = format_startsParagraphInTextFiles,
-	.f_treatAsEmpty = format_treatTextlineEmpty,
-	.f_formatLine = format_codeLine,
-	.f_supports = format_dontSupportsFormatting
-};
-
-
-static void format_insertLine(FORMATTER* pFormatter, WINFO* wp, LINE** pDest, STRING_BUF* pBuffer, FORMATTING_ALIGNMENT nAlignment) {
-	pFormatter->f_formatLine(pFormatter, wp, pBuffer, nAlignment);
+static void format_insertLine(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LINE** pDest, STRING_BUF* pBuffer, FORMATTING_ALIGNMENT nAlignment) {
+	pFormatter->f_formatLine(pFormatter, fparam, pBuffer, nAlignment);
 	size_t nSize = stringbuf_size(pBuffer);
 	LINE* lpNew = ln_create((int)nSize);
 	memcpy(lpNew->lbuf, stringbuf_getString(pBuffer), nSize);
@@ -270,7 +296,8 @@ static void format_insertLine(FORMATTER* pFormatter, WINFO* wp, LINE** pDest, ST
 	ll_add(pDest, (LINKED_LIST*) lpNew);
 }
 
-static LINE* ft_formatInto(FORMATTER* pFormatter, WINFO* wp, LINE* lp, LINE* lplast, FORMATTING_ALIGNMENT nAlignment) {
+static LINE* format_textInto(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LINE* lp, LINE* lplast, FORMATTING_ALIGNMENT nAlignment) {
+	WINFO* wp = fparam->fparam_wp;
 	LINE* lpDest = 0;
 	int nCurrentScreenIndent;
 	int nLastWrappingPos;
@@ -286,7 +313,7 @@ static LINE* ft_formatInto(FORMATTER* pFormatter, WINFO* wp, LINE* lp, LINE* lpl
 		}
 		nCurrentLineOffset = 0;
 		int nScreenCol;
-		int nIndent = pFormatter->f_calculateIndent(pFormatter, wp, lp->lbuf, lp->len, &nScreenCol);
+		int nIndent = pFormatter->f_calculateIndent(pFormatter, fparam, lp->lbuf, lp->len, &nScreenCol);
 		nLastWrappingPos = 0;
 		while (nCurrentLineOffset < lp->len) {
 			if (stringbuf_size(sb) == 0) {
@@ -322,7 +349,7 @@ static LINE* ft_formatInto(FORMATTER* pFormatter, WINFO* wp, LINE* lp, LINE* lpl
 			int nScreen = caret_bufferOffset2screen(wp, stringbuf_getString(sb), (int)nTargetSize);
 			if (nScreen >= wp->rmargin && nLastWrappingPos > 0) {
 				stringbuf_truncate(sb, nLastWrappingPos);
-				format_insertLine(pFormatter, wp, &lpDest, sb, nAlignment);
+				format_insertLine(pFormatter, fparam, &lpDest, sb, nAlignment);
 				nCurrentLineOffset = nSourceWrappingPos;
 				nLastWrappingPos = 0;
 			} else {
@@ -347,11 +374,11 @@ static LINE* ft_formatInto(FORMATTER* pFormatter, WINFO* wp, LINE* lp, LINE* lpl
 		if (pFormatter->f_startsNewParagraph(pFormatter, lp)) {
 			size_t nSize = stringbuf_size(sb);
 			if (nSize > 0) {
-				format_insertLine(pFormatter, wp, &lpDest, sb, nAlignment);
+				format_insertLine(pFormatter, fparam, &lpDest, sb, nAlignment);
 			}
 			while (lp && lp != lplast && pFormatter->f_treatAsEmpty(pFormatter, lp)) {
 				stringbuf_reset(sb);
-				format_insertLine(pFormatter, wp, &lpDest, sb, nAlignment);
+				format_insertLine(pFormatter, fparam, &lpDest, sb, nAlignment);
 				lp = lp->next;
 			}
 			bStartOfParagraph = TRUE;
@@ -359,11 +386,117 @@ static LINE* ft_formatInto(FORMATTER* pFormatter, WINFO* wp, LINE* lp, LINE* lpl
 	}
 	size_t nSize = stringbuf_size(sb);
 	if (nSize > 0) {
-		format_insertLine(pFormatter, wp, &lpDest, sb, nAlignment);
+		format_insertLine(pFormatter, fparam, &lpDest, sb, nAlignment);
 	}
 	stringbuf_destroy(sb);
 	return lpDest;
 }
+
+static LINE* format_otherInto(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LINE* lp, LINE* lplast, FORMATTING_ALIGNMENT nAlignment) {
+	WINFO* wp = fparam->fparam_wp;
+	FTABLE* fp = wp->fp;
+	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
+	LINE* lpDest = 0;
+	int nCurrentLineOffset;
+	STRING_BUF* sb = stringbuf_create(128);
+
+	char chSpace = ft_getSpaceFillCharacter(wp);
+	int nCurrentScreenIndent = -1;
+	fparam->fparam_context = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
+	grammar_getCommentDescriptor(pGrammar, &fparam->fparam_cd);
+	while (lp) {
+		if (pFormatter->f_treatAsEmpty(pFormatter, lp)) {
+			format_insertLine(pFormatter, fparam, &lpDest, sb, nAlignment);
+			if (lp == lplast) {
+				break;
+			}
+			lp = lp->next;
+			continue;
+		}
+		if (nCurrentScreenIndent < 0) {
+			int nScreenCol;
+			int nIndent = pFormatter->f_calculateIndent(pFormatter, fparam, lp->lbuf, lp->len, &nScreenCol);
+			nCurrentScreenIndent = caret_lineOffset2screen(wp, &(CARET) {
+				.linePointer = lp,
+					.offset = nIndent
+			});
+		}
+		INDENTATION_DELTA idDelta = pFormatter->f_calculateIndentationDelta(pFormatter, fparam, lp->lbuf, lp->len);
+		if (idDelta == ID_OUTDENT_THIS) {
+			nCurrentScreenIndent -= wp->indentation.tabsize;
+			if (nCurrentScreenIndent < 0) {
+				nCurrentScreenIndent = 0;
+			}
+		}
+		nCurrentLineOffset = 0;
+		for (int nCol = 0; nCol < nCurrentScreenIndent; nCol++) {
+			stringbuf_appendChar(sb, chSpace);
+		}
+		if (idDelta == ID_INDENT_NEXT) {
+			nCurrentScreenIndent += wp->indentation.tabsize;
+		} else if (idDelta == ID_INDENT_SPACE_NEXT) {
+			nCurrentScreenIndent++;
+		} else if (idDelta == ID_OUTDENT_SPACE_NEXT && nCurrentScreenIndent > 0) {
+			nCurrentScreenIndent--;
+		}
+		BOOL bNonSpaceFound = FALSE;
+		while (nCurrentLineOffset < lp->len) {
+			char c = lp->lbuf[nCurrentLineOffset];
+			if ((c != chSpace && c != '\t') || bNonSpaceFound) {
+				stringbuf_appendChar(sb, c);
+				bNonSpaceFound = TRUE;
+			}
+			nCurrentLineOffset++;
+		}
+		format_insertLine(pFormatter, fparam, &lpDest, sb, nAlignment);
+		if (lp->len > 0) {
+			fparam->fparam_context = grammar_getLexicalContextAt(pGrammar, fparam->fparam_context, lp->lbuf, lp->len, lp->len - 1);
+		}
+		if (lp == lplast) {
+			break;
+		}
+		lp = lp->next;
+	}
+	stringbuf_destroy(sb);
+	return lpDest;
+}
+
+static FORMATTER _textAndMarkupFormatter = {
+	.f_name = "text",
+	.f_maySplitAt = format_maySplitTextlineAt,
+	.f_calculateIndent = format_calculateTextIndent,
+	.f_startsNewParagraph = format_startsParagraphInTextFiles,
+	.f_treatAsEmpty = format_treatTextlineEmpty,
+	.f_formatLine = format_textLine,
+	.f_supports = format_supportsFormatting,
+	.f_formatInto = format_textInto,
+	.f_calculateIndentationDelta = format_calculateCodeIndentationDelta
+};
+
+static FORMATTER _codeFormatter = {
+	.f_name = "code",
+	.f_maySplitAt = format_maySplitTextlineAt,
+	.f_calculateIndent = format_calculateCodeIndent,
+	.f_startsNewParagraph = format_startsParagraphInCodeFiles,
+	.f_treatAsEmpty = format_treatTextlineEmpty,
+	.f_formatLine = format_codeLine,
+	.f_supports = format_supportsFormatting,
+	.f_formatInto = format_otherInto,
+	.f_calculateIndentationDelta = format_calculateCodeIndentationDelta
+};
+
+static FORMATTER _defaultFormatter = {
+	.f_name = "default",
+	.f_maySplitAt = format_maySplitTextlineAt,
+	.f_calculateIndent = format_calculateIndent,
+	.f_startsNewParagraph = format_startsParagraphInTextFiles,
+	.f_treatAsEmpty = format_treatTextlineEmpty,
+	.f_formatLine = format_codeLine,
+	.f_supports = format_dontSupportsFormatting,
+	.f_formatInto = format_otherInto,
+	.f_calculateIndentationDelta = format_calculateCodeIndentationDelta
+};
+
 
 /*
  * Get the formatter for the given view.
@@ -402,25 +535,44 @@ int ft_formatText(WINFO* wp, int nRange, FORMATTING_ALIGNMENT nAlignment) {
 		while (lp->prev && !pFormatter->f_startsNewParagraph(pFormatter, lp->prev)) {
 			lp = lp->prev;
 		}
-	}
-	else if (nRange == RNG_BLOCK) {
+	} else if (nRange == RNG_BLOCK) {
 		if (!wp->blstart || !wp->blend) {
 			return 0;
 		}
 		lp = wp->blstart->m_linePointer;
 		lplast = wp->blend->m_linePointer;
-	}
-	else if (nRange == RNG_GLOBAL) {
+	} else if (nRange == RNG_GLOBAL) {
 		lp = fp->firstl;
 	}
+	bl_hideSelection(wp, FALSE);
 	PASTE paste;
 	memset(&paste, 0, sizeof paste);
-	paste.pln = ft_formatInto(pFormatter, wp, lp, lplast, nAlignment);
-	LINE* lpTarget = lp->prev;
-	bl_delete(wp, lp, lplast, 0, lplast->len, 0, 0);
-	lpTarget = lpTarget ? lpTarget->next : fp->firstl;
-	int ret = bl_paste(&paste, wp, lpTarget, 0, 0);
-	ln_listfree(paste.pln);
+	FORMATTER_PARAM fparam;
+	memset(&fparam, 0, sizeof fparam);
+	fparam.fparam_wp = wp;
+	paste.pln = pFormatter->f_formatInto(pFormatter, &fparam, lp, lplast, nAlignment);
+	LINE* lpFormatted = paste.pln;
+	LINE* lpReplace = lpFormatted;
+	// skip lines already correctly formatted.
+	while (lpReplace && lp) {
+		if (lpReplace->len != lp->len || memcmp(lpReplace->lbuf, lp->lbuf, lpReplace->len) != 0) {
+			break;
+		}
+		if (lp == lplast) {
+			break;
+		}
+		lpReplace = lpReplace->next;
+		lp = lp->next;
+	}
+	int ret = 1;
+	if (lp != lplast) {
+		LINE* lpTarget = lp->prev;
+		bl_delete(wp, lp, lplast, 0, lplast->len, 0, 0);
+		lpTarget = lpTarget ? lpTarget->next : fp->firstl;
+		paste.pln = lpReplace;
+		ret = bl_paste(&paste, wp, lpTarget, 0, 0);
+	}
+	ln_listfree(lpFormatted);
 	if (ret) {
 		wp->caret.linePointer = fp->firstl;
 		wp->caret.ln = 0;
@@ -438,12 +590,16 @@ int ft_formatText(WINFO* wp, int nRange, FORMATTING_ALIGNMENT nAlignment) {
 int format_calculateScreenIndent(WINFO* wp, LINE* lp, CI_OPTION cOption) {
 	FORMATTER* pFormatter = format_getFormatter(wp);
 	int nScreenCol;
+	FORMATTER_PARAM fparam;
+	memset(&fparam, 0, sizeof fparam);
+	fparam.fparam_wp = wp;
 
+	fparam.fparam_context = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
 	if (cOption == CI_THIS_LINE) {
-		format_calculateIndent(pFormatter, wp, lp->lbuf, lp->len, &nScreenCol);
+		format_calculateIndent(pFormatter, &fparam, lp->lbuf, lp->len, &nScreenCol);
 		return nScreenCol;
 	}
-	pFormatter->f_calculateIndent(pFormatter, wp, lp->lbuf, lp->len, &nScreenCol);
+	pFormatter->f_calculateIndent(pFormatter, &fparam, lp->lbuf, lp->len, &nScreenCol);
 	return nScreenCol;
 }
 

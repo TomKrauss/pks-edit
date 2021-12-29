@@ -357,6 +357,7 @@ int ft_restorePreviouslyOpenedWindows(void) {
 				}
 				hist_readLine(ft.firstl);
 				ln_listfree(ft.firstl);
+				free(ft.documentDescriptor);
 				return 1;
 			}
 		}

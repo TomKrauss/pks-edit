@@ -381,10 +381,10 @@ int doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *pDocum
 	if (pConfig) {
 		wMode = pConfig->workmode;
 		dMode = pConfig->dispmode;
-		free(pConfig);
+	} else {
+		if ((fp->documentDescriptor = malloc(sizeof * fp->documentDescriptor)) == 0)
+			return 0;
 	}
-	if ((fp->documentDescriptor = malloc(sizeof *fp->documentDescriptor)) == 0)
-		return 0;
 
 	if (pDocumentDescriptor) {
 		memmove(fp->documentDescriptor,pDocumentDescriptor,sizeof *pDocumentDescriptor);

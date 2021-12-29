@@ -78,7 +78,9 @@ This file contains the release notes for the latest **PKS Edit** releases.
   was added which is able to handle comments and string / character constants in the code possibly containing opening and closing brackets
   more gracefully. Formatting is currently rather limited except for text type files (and markdown).
 - document types can now be selected not only based on the file name extension, but also based on the contents of the first line.
-- 
+- text formatting works now also for code files (e.g. c++ or java). A very simple formatting algorithm was implemented so far only caring about
+  indentation.
+
 ### Changed
 - Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather
   than replacing the extension x.c -> x.bak). This has the advantage, that files named x.c and x.h will create different backup files now.
