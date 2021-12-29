@@ -54,3 +54,22 @@ Layout Options configure the general UI of PKS-Edit
 - `Default Font` - can be used to configure the default text font face used in editing windows, when no explicit font face name is configured in a 
    style defined in the theme configuration.
 
+## Advanced configuration
+
+Some configuration options can only be configured in the `pksedit.ini`  file directly.
+
+In the section `[desk]` you may for instance configure the error sound played upon errors. The following sample selects a high beep tone
+as the error sound. The following sound names may be used:
+
+- `Beep` plays a normal beep sound
+- `LowBeep` plays a low tone beep sound
+- `HighBeep` plays a high tone beep sound
+- `Asterisk` plays the windows "Asterisk" sound.
+- `Exclamation` plays the windows "Exclamation" sound.
+- `Question` plays the windows "Question" sound.
+
+```
+[desk]
+ErrorSound=HighBeep
+.....
+```

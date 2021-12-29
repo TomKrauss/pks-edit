@@ -682,7 +682,7 @@ static void cust_addCueBanner(HWND hwndEdit, char* pszLabel) {
  */
 HWND cust_createToastWindow(char* pszText) {
 	if (hwndToastWindow == NULL) {
-		hwndToastWindow = CreateWindowEx(WS_EX_TOPMOST, TOAST_CLASS, NULL, WS_POPUP, 0, 0, 0, 0, hwndMain, NULL, hInst, NULL);
+		hwndToastWindow = CreateWindowEx(0, TOAST_CLASS, NULL, WS_POPUP, 0, 0, 0, 0, hwndMain, NULL, hInst, NULL);
 		if (!hwndToastWindow) {
 			log_lastWindowsError("createToastWindow");
 			return NULL;
@@ -705,7 +705,8 @@ HWND cust_createToastWindow(char* pszText) {
 		rect.bottom -= rc.bottom;
 		int width = rect.right - rect.left;
 		int height = rect.bottom - rect.top;
-		SetWindowPos(hwndToastWindow, NULL, rect.left, rect.top + height - toastWindowHeight, width, toastWindowHeight, SWP_NOOWNERZORDER | SWP_NOACTIVATE);
+		SetWindowPos(hwndToastWindow, NULL, rect.left, rect.top + height - toastWindowHeight, width, toastWindowHeight, 
+			SWP_DEFERERASE | SWP_NOACTIVATE | SWP_NOSENDCHANGING);
 		AnimateWindow(hwndToastWindow, 300, AW_VER_NEGATIVE);
 	}
 	SetWindowText(hwndToastWindow, pszText);
