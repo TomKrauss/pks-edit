@@ -2,12 +2,24 @@
   "grammars": [
     {
       "scopeName": "pascal",
-      "increaseIndentPattern": "begin",
-      "decreaseIndentPattern": "end",
+      "formatter": "code",
+      "increaseIndentPatterns": [
+        {
+          "pattern": "BEGIN",
+          "ignore-case": true
+        }
+      ],
+      "decreaseIndentPatterns": [
+        {
+          "pattern": "END",
+          "ignore-case": true
+        }
+      ],
       "highlightBrackets": [
         {
           "left": "BEGIN",
-          "right": "END"
+          "right": "END",
+          "ignore-case": true
         },
         {
           "left": "(",
@@ -16,6 +28,25 @@
         {
           "left": "[",
           "right": "]"
+        }
+      ],
+      "templates": [
+        {
+          "match": "BEGIN",
+          "ignore-case-match": true,
+          "contents": "\n${indent}${tab}${cursor}\n${indent}END",
+          "auto-insert": true,
+          "lexical-context-initial": true
+        },
+        {
+          "match": "'",
+          "contents": "${cursor}'",
+          "auto-insert": true
+        },
+        {
+          "match": "(*",
+          "contents": "\n *)",
+          "auto-insert": true
         }
       ],
       "patterns": [
@@ -32,20 +63,15 @@
           "name": "comment.multiLine2"
         },
         {
-          "match": "\"(?:\\\"|[^\"])+\"",
+          "match": "'(?:\\'|[^'])+'",
           "style": "string",
           "name": "string"
         },
         {
-          "match": "<[A-Z_][A-Z_0-9]*>",
-          "style": "identifier",
-          "name": "constant.identifier"
-        },
-        {
           "keywords": [
-            "BEGIN",
-            "END",
-            "IF",
+            "begin",
+            "end",
+            "if",
             "ELSE",
             "FUNCTION",
             "TYPE",
@@ -67,11 +93,18 @@
             "DO",
             "REPEAT",
             "UNTIL",
+            "USES",
             "CASE",
             "OF"
           ],
+          "ignore-case": true,
           "style": "keyword",
           "name": "keyword.pascal"
+        },
+        {
+          "match": "<[a-zA-Z_][a-zA-Z_0-9]*>",
+          "style": "identifier",
+          "name": "identifier.pascal"
         },
         {
           "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",

@@ -216,6 +216,34 @@ int string_countSpacesIn(unsigned char* s, int pos) {
 }
 
 /*
+ * Compare a string with a second string to a maximum to the length of the 2nd string
+ * and return 0, if both strings match, 1 otherwise. If 'bCaseIgnore' is 1 a case 
+ * insensitive comparison is performed.
+ */
+int string_compareWithSecond(const unsigned char* s1, const unsigned char* s2, int bCaseIgnore) {
+	unsigned char c2;
+
+	while ((c2 = *s2++) != 0) {
+		unsigned char c = *s1++;
+		if (c != c2) {
+			if (bCaseIgnore) {
+				if (pks_islower(c)) {
+					c = toupper(c);
+				}
+				if (pks_islower(c2)) {
+					c2 = toupper(c2);
+				}
+				if (c != c2) {
+					return 1;
+				}
+			} else {
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+/*
  * Returns true if the passed character is an identifier in typical programming languages (including umlauts).
  * TODO: add a context sensitive variant of this.
  */

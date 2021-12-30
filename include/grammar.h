@@ -48,18 +48,27 @@ typedef struct tagLEXICAL_ELEMENT {
 
 typedef struct tagBRACKET_RULE {
 	struct tagBRACKET_RULE* next;
-	char lefthand[10];		/* lefthand single word to match */
-	char righthand[10];		/* righthand single word to match */
-	char d1, d2;			/* delta to add to current bracket level - typically 1 and -1 for left hand and right hand brackets. */
-	char ci1[2];			/* automatic bracket indents (look up, down) indent 1-based of previous line and current line */
-	char ci2[2];			/* automatic bracket indents cl2 outdent 1-based of previous line and current line */
+	char lefthand[10];		// lefthand single word to match
+	char righthand[10];		// righthand single word to match
+	char d1, d2;			// delta to add to current bracket level - typically 1 and -1 for left hand and right hand brackets
+	char ci1[2];			// automatic bracket indents (look up, down) indent 1-based of previous line and current line
+	char ci2[2];			// automatic bracket indents cl2 outdent 1-based of previous line and current line
+	BOOL ignoreCase;		// whether the spelling of the left- and right-hand is case insensitive
 } BRACKET_RULE;
+
+typedef struct tagINDENT_PATTERN {
+	struct tagINDENT_PATTERN* next;
+	char pattern[10];		// the pattern - treated as a regular string to compare with
+	BOOL ignoreCase;		// whether the spelling of the left- and right-hand is case insensitive
+	BOOL nextLineOnly;		// whether the next line only should be indented
+} INDENT_PATTERN;
 
 typedef struct tagUCLIST {
 	struct tagUCLIST* next;
 	char	pat[20];					// pattern for scanning 
 	int		len;						// length of of pattern to scan left to the cursor to match 
 	int  	action;						// type of action to perform 
+	BOOL	ignoreCase;					// whether the input is matched ignore case against the under cursor action
 	int		lexicalContexts;			// if type is UA_ABBREV, a bitwise combination of the lexical context(s) in which the action is performed.
 	union {
 		BRACKET_RULE* uc_bracket;		// if type == UA_SHOWMATCH 

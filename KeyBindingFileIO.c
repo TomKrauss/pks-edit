@@ -31,6 +31,7 @@
 #include "fileutil.h"
 #include "textblocks.h"
 #include "regexp.h"
+#include "formatting.h"
 #include "documenttypes.h"
 #include "crossreferencelinks.h"
 #include "editorconfiguration.h"
@@ -221,7 +222,7 @@ int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
 	int ret = 0;
 	memset(&templateAction, 0, sizeof templateAction);
 	xref_getSelectedIdentifier(szIdentifier, sizeof szIdentifier);
-	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer, CI_THIS_LINE);
+	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
 	STRING_BUF* pSB = macro_expandCodeTemplate(wp, &templateAction, nIndent, szIdentifier, up->p.uc_template);
 	PASTE pasteBuffer;
 	memset(&pasteBuffer, 0, sizeof pasteBuffer);

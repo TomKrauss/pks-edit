@@ -29,6 +29,7 @@
 #include "pksedit.h"
 #include "publicapi.h"
 #include "winterf.h"
+#include "stringutil.h"
 
 /*--------------------------------------------------------------------------
  * EXTERNALS
@@ -41,17 +42,11 @@ extern PASTELIST 	*_esclist[];
 /*--------------------------------------------------------------------------
  * uc_matchBracket()
  */
-static BOOL uc_matchBracket(char *lineBuf, char *bracketPattern) {	
+static BOOL uc_matchBracket(char *lineBuf, char *bracketPattern, BOOL bCaseIgnore) {	
 	if (!bracketPattern[0]) {
 		return FALSE;
 	}
-	char c;
-	while ((c = *bracketPattern++) != 0) {
-		if (c != *lineBuf++) {
-			return FALSE;
-		}
-	}
-	return TRUE;
+	return string_compareWithSecond(lineBuf, bracketPattern, bCaseIgnore) == 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -64,20 +59,24 @@ EXPORT UCLIST *uc_find(GRAMMAR* pGrammar, char *lineBuffer, int column)
 	UCLIST* upBest = NULL;
 
 	while (up) {
-		if ((o = column - up->len) < 0 || up->len < nBest) {
-			up = up->next;
-			continue;
-		}
-		unsigned char* pszString = &lineBuffer[o];
+		o = column - up->len;
+		unsigned char* pszString = o < 0 ? NULL : &lineBuffer[o];
 		BOOL bMatch = FALSE;
 		if (up->action == UA_SHOWMATCH) {
-			if (uc_matchBracket(pszString, up->p.uc_bracket->lefthand) || uc_matchBracket(pszString, up->p.uc_bracket->righthand)) {
+			if (pszString && uc_matchBracket(pszString, up->p.uc_bracket->lefthand, up->p.uc_bracket->ignoreCase)) {
 				bMatch = TRUE;
 			}
-		} else if (uc_matchBracket(pszString, up->pat)) {
+			int nLen = (int)strlen(up->p.uc_bracket->righthand);
+			if ((o = column - nLen) >= 0 && nLen > nBest) {
+				pszString = &lineBuffer[o];
+				if (uc_matchBracket(pszString, up->p.uc_bracket->righthand, up->p.uc_bracket->ignoreCase)) {
+					bMatch = TRUE;
+				}
+			}
+		} else if (pszString && uc_matchBracket(pszString, up->pat, up->ignoreCase)) {
 			bMatch = TRUE;
 		}
-		if (bMatch) {
+		if (bMatch && up->len > nBest) {
 			upBest = up;
 			nBest = up->len;
 		}
@@ -92,12 +91,12 @@ EXPORT UCLIST *uc_find(GRAMMAR* pGrammar, char *lineBuffer, int column)
 static int _righthand;
 static int bracketmatch(char *s, BRACKET_RULE *mp)
 {
-	if (uc_matchBracket(s,mp->lefthand)) {
+	if (uc_matchBracket(s,mp->lefthand, mp->ignoreCase)) {
 		_righthand = 0;
 		return 1;
 	}
 
-	if (uc_matchBracket(s,mp->righthand)) {
+	if (uc_matchBracket(s,mp->righthand, mp->ignoreCase)) {
 		_righthand = 1;
 		return 1;
 	}
@@ -123,26 +122,21 @@ static BRACKET_RULE *ismatch(UCLIST* mp, char *s) {
  * scanmatch()
  */
 static int scanmatch(int checkright, 
-				 LINE *line,  	struct tagBRACKET_RULE *mp,
+				 LINE *line, BRACKET_RULE *mp,
 				 long *Ln,	long *Col)
 {	long ln = *Ln;
 	char *s = &line->lbuf[*Col],*send;
 	int  level;
-	char c1,c2;
-
-	c1 = mp->lefthand[0];
-	c2 = mp->righthand[0];
 
 	/*
 	 * check for right bracket
 	 */
 	if (checkright) {
 		level = 1;
-		s++;
 		while (line->next) {
 			send = &line->lbuf[line->len];
 			while (s < send) {
-				if ((*s == c1 || *s == c2) && bracketmatch(s,mp)) {
+				if (bracketmatch(s,mp)) {
 					if (_righthand) {
 						if (mp->d2 == 0)
 							level = 0;
@@ -168,7 +162,7 @@ static int scanmatch(int checkright,
 		for(;;) {
 			send = line->lbuf;
 			while (--s >= send) {
-				if ((*s == c1 || *s == c2) && bracketmatch(s,mp)) {
+				if (bracketmatch(s,mp)) {
 					if (!_righthand) {
 						if (mp->d1 == 0)
 							level = 0;
@@ -207,12 +201,12 @@ static int br_indentsum(const LINE *lps, LINE *lp, BRACKET_RULE *mp, int *dcurr,
 	*hasind = 0;
 
 	while(s < send) {
-		if (uc_matchBracket(s,mp->lefthand)) {
+		if (uc_matchBracket(s,mp->lefthand, mp->ignoreCase)) {
 			*dcurr = mp->ci1[0];
 			*hasind = 1;
 			break;
 		}
-		if (uc_matchBracket(s,mp->righthand)) {
+		if (uc_matchBracket(s,mp->righthand, mp->ignoreCase)) {
 			*dcurr = mp->ci2[0];
 			*hasind = 1;
 			break;
@@ -226,9 +220,9 @@ static int br_indentsum(const LINE *lps, LINE *lp, BRACKET_RULE *mp, int *dcurr,
 		send = lp->lbuf;
 		s = send + lp->len;
 		while (--s >= send) {
-			if (uc_matchBracket(s,mp->lefthand)) {
+			if (uc_matchBracket(s,mp->lefthand, mp->ignoreCase)) {
 				indent += d1;
-			} else if (uc_matchBracket(s,mp->righthand)) {
+			} else if (uc_matchBracket(s,mp->righthand, mp->ignoreCase)) {
 				indent += d2;
 			}
 		}
@@ -250,8 +244,12 @@ static int nextmatch(UCLIST* pList, LINE *lp,long *ln,long *col)
 
 	pos = *col;
 	s = &lp->lbuf[pos];
-	if ((mp = ismatch(pList, s)) != 0) 
-		return (scanmatch(!_righthand,lp,mp,ln,col));
+	if ((mp = ismatch(pList, s)) != 0) {
+		if (!_righthand) {
+			*col += (int)strlen(mp->lefthand);
+		}
+		return (scanmatch(!_righthand, lp, mp, ln, col));
+	}
 	s = lp->lbuf;
 	for ( j = pos; --j >= 0; )
 		if (ismatch(pList, &s[j]) != 0)
@@ -316,12 +314,16 @@ EXPORT int uc_showMatchingBracket(WINFO* wp) {
 	UCLIST *up;
 	long lsav = ln, csav = col;
 
-	if (col > 0) {
-		// check character left to cursor.
-		col--;
-	}
 	if ((up = uc_find(fp->documentDescriptor->grammar,lp->lbuf,col)) != 0 && up->action == UA_SHOWMATCH) {
-		if (scanmatch(0,lp, up->p.uc_bracket,&ln,&col)) {
+		int nOffs = (int)strlen(up->p.uc_bracket->righthand);
+		col -= nOffs;
+		if (nOffs <= 0) {
+			lp = lp->prev;
+			if (lp) {
+				col = lp->len;
+			}
+		}
+		if (lp && scanmatch(0,lp, up->p.uc_bracket,&ln,&col)) {
 			if (ln >= wp->minln) {
 				caret_placeCursorInCurrentFile(wp, ln,col);
 				uc_waitForTimerElapsed(300);

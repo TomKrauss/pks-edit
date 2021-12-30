@@ -1264,6 +1264,7 @@ BEGIN
         MENUITEM "Goto Selection E&nd\a",       MTMFEND
         MENUITEM "Goto &Last Position\a",       MLASTPOS
         MENUITEM "Goto &Cross Reference\a",     MFLASTP
+        MENUITEM "Goto Matching Bracket\a",     IDM_GOTO_MATCHING_BRACKET
     END
     POPUP "F&unctions"
     BEGIN
@@ -1416,7 +1417,6 @@ BEGIN
     IDS_PRTERR              "Print: general printing error"
     IDS_PRTERRABRT          "Printing has been cancelled"
     IDS_PRTERRUSRABRT       "Printing has been cancelled from the print manager"
-    IDS_PRTERRNOSPCE        "Printing: no space left on disc"
     IDS_PRTERRNOMEM         "Printing: no memory left"
 END
 

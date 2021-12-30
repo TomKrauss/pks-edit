@@ -23,6 +23,7 @@
 #include "stringutil.h"
 #include "linkedlist.h"
 #include "grammar.h"
+#include "formatting.h"
 
 #include "pksedit.h"
 #include "mouseutil.h"
@@ -33,15 +34,6 @@ typedef struct tagFORMATTER_PARAM {
 	LEXICAL_CONTEXT fparam_context;
 	COMMENT_DESCRIPTOR fparam_cd;
 } FORMATTER_PARAM;
-
-typedef enum { 
-	ID_NONE,
-	ID_INDENT_NEXT,		// subsequent lines should be indented +1
-	ID_OUTDENT_THIS,	// the line starting the current line should be indented -1
-	ID_INDENT_SPACE_NEXT,// subsequent lines should be indented by one space only
-	ID_OUTDENT_SPACE_NEXT,// subsequent lines should be outdented by one space only
-	ID_TEMP_INDENT		// only the current line should be indented +1
-} INDENTATION_DELTA;
 
 typedef struct tagFORMATTER FORMATTER;
 
@@ -119,7 +111,7 @@ static int format_calculateTextIndent(FORMATTER* pFormatter, FORMATTER_PARAM* fp
 }
 
 /*
- * Calculates the "indenting" of a line in an arbitrary file. 
+ * Calculates the "indenting" of a line in an arbitrary file not checking for any syntactical constructs.
  */
 static int format_calculateIndent(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, const char* pBuf, size_t nLen, int* pScreenCol) {
 	int j = 0;
@@ -150,7 +142,7 @@ static INDENTATION_DELTA format_calculateCodeIndentationDelta(FORMATTER* pFormat
 					nStartFound = FALSE;
 					break;
 				}
-				if (bSpace) {
+				if (pBuf[0] == ' ') {
 					return ID_OUTDENT_SPACE_NEXT;
 				}
 				break;
@@ -185,7 +177,18 @@ static int format_calculateCodeIndent(FORMATTER* pFormatter, FORMATTER_PARAM* fp
 		}
 		break;
 	}
+	INDENTATION_DELTA idDelta = pFormatter->f_calculateIndentationDelta(pFormatter, fparam, pBuf, nLen);
 	int nScreen = caret_bufferOffset2screen(wp, pBuf, j);
+	int ts = fparam->fparam_wp->indentation.tabsize;
+	if (idDelta == ID_INDENT_NEXT) {
+		nScreen += ts;
+	} else if (idDelta == ID_OUTDENT_THIS) {
+		nScreen -= ts;
+	} else if (idDelta == ID_INDENT_SPACE_NEXT) {
+		nScreen++;
+	} else if (idDelta == ID_OUTDENT_SPACE_NEXT) {
+		nScreen--;
+	}
 	*pScreenCol = (nScreen < 0) ? 0 : nScreen;
 	return j;
 }
@@ -415,7 +418,7 @@ static LINE* format_otherInto(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LI
 		}
 		if (nCurrentScreenIndent < 0) {
 			int nScreenCol;
-			int nIndent = pFormatter->f_calculateIndent(pFormatter, fparam, lp->lbuf, lp->len, &nScreenCol);
+			int nIndent = format_calculateIndent(pFormatter, fparam, lp->lbuf, lp->len, &nScreenCol);
 			nCurrentScreenIndent = caret_lineOffset2screen(wp, &(CARET) {
 				.linePointer = lp,
 					.offset = nIndent
@@ -583,24 +586,55 @@ int ft_formatText(WINFO* wp, int nRange, FORMATTING_ALIGNMENT nAlignment) {
 	return FALSE;
 }
 
+static FORMATTER* format_initParams(WINFO* wp, LINE* lp, FORMATTER_PARAM *pParams) {
+	FORMATTER* pFormatter = format_getFormatter(wp);
+
+	memset(pParams, 0, sizeof *pParams);
+	pParams->fparam_wp = wp;
+	pParams->fparam_context = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
+	FTABLE* fp = wp->fp;
+	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
+	grammar_getCommentDescriptor(pGrammar, &pParams->fparam_cd);
+	return pFormatter;
+}
+
+/*
+ * Calculates the screen indentation assumed for the line passed as an argument, that is the number of
+ * column positions to be empty in a line inserted after the line passed as an argument. Syntactical 
+ * constructs are honored.
+ */
+int format_calculateScreenIndentWithSyntax(WINFO* wp, LINE* lp) {
+	FORMATTER_PARAM fparam;
+	FORMATTER* pFormatter = format_initParams(wp, lp, &fparam);
+	int nScreenCol;
+
+	pFormatter->f_calculateIndent(pFormatter, &fparam, lp->lbuf, lp->len, &nScreenCol);
+	return nScreenCol;
+}
+
 /*
  * Calculates the screen indentation assumed for the line passed as an argument, that is the number of
  * column positions to be empty in a line inserted after the line passed as an argument.
  */
-int format_calculateScreenIndent(WINFO* wp, LINE* lp, CI_OPTION cOption) {
-	FORMATTER* pFormatter = format_getFormatter(wp);
-	int nScreenCol;
+int format_calculateScreenIndent(WINFO* wp, LINE* lp) {
 	FORMATTER_PARAM fparam;
-	memset(&fparam, 0, sizeof fparam);
-	fparam.fparam_wp = wp;
+	FORMATTER* pFormatter = format_initParams(wp, lp, &fparam);
+	int nScreenCol;
+
+	format_calculateIndent(pFormatter, &fparam, lp->lbuf, lp->len, &nScreenCol);
+	return nScreenCol;
+}
+
+/*
+ * Calculates the screen indentation delta operation assumed for the line passed as an argument, which
+ * can be used as a hint how indentation should be performed.
+ */
+int format_calculateIndentationDelta(WINFO* wp, LINE* lp) {
+	FORMATTER_PARAM fparam;
+	FORMATTER* pFormatter = format_initParams(wp, lp, &fparam);
 
 	fparam.fparam_context = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
-	if (cOption == CI_THIS_LINE) {
-		format_calculateIndent(pFormatter, &fparam, lp->lbuf, lp->len, &nScreenCol);
-		return nScreenCol;
-	}
-	pFormatter->f_calculateIndent(pFormatter, &fparam, lp->lbuf, lp->len, &nScreenCol);
-	return nScreenCol;
+	return pFormatter->f_calculateIndentationDelta(pFormatter, &fparam, lp->lbuf, lp->len);
 }
 
 

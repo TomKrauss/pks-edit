@@ -865,6 +865,7 @@ BEGIN
         MENUITEM "Textblock E&nde\a",           MTMFEND
         MENUITEM "Zur &letzten Position\a",     MLASTPOS
         MENUITEM "Zum letzten Verwe&is\a",      MFLASTP
+        MENUITEM "Gehe zur passenden Klammer\a", IDM_GOTO_MATCHING_BRACKET
     END
     POPUP "F&unktionen"
     BEGIN

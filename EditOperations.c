@@ -31,6 +31,7 @@
 #include "editoperations.h"
 #include "publicapi.h"
 #include "codecompletion.h"
+#include "formatting.h"
 
 #define	SWAP(a,b)			{	a ^= b, b ^=a, a ^= b;  }
 #define	D_EBUG(x)		{/*error_showErrorById(x); render_repaintAllForFile(fp);*/}
@@ -126,7 +127,7 @@ int _deltaindent;
 static int edit_insertIndent(WINFO *wp, LINE *pPreviousLine, LINE *nlp, int caretColumn, int *newcol) {
 	if (wp->workmode & WM_AUTOINDENT) {
 		// calculate indentation of line we leave
-		caretColumn = format_calculateScreenIndent(wp, pPreviousLine, CI_NEXT_LINE);
+		caretColumn = format_calculateScreenIndentWithSyntax(wp, pPreviousLine);
 	}
 	
 	caretColumn += _deltaindent * wp->indentation.tabsize;
@@ -148,21 +149,23 @@ static int edit_handleBracketIndenting(WINFO *wp, int dir, LINE *lpPrev, LINE *l
 	}
 	FTABLE* fp = wp->fp;
 
-	int currentIndent = format_calculateScreenIndent(wp, lpPrev, CI_THIS_LINE);
+	int currentIndent = format_calculateScreenIndent(wp, lpPrev);
 	if (lpPrev) {
-		int supposedIndent = format_calculateScreenIndent(wp, lpPrev, CI_THIS_LINE_SYNTAX_AWARE);
-		if (supposedIndent < currentIndent) {
-			int o1 = caret_screen2lineOffset(wp, &(CARET) {
-				lpPrev,
-				supposedIndent
-			});
-			int o2 = caret_screen2lineOffset(wp, &(CARET) {
-				lpPrev,
-					currentIndent
-			});
-			if (ln_modify(fp, lpPrev, o2, o1)) {
-				render_repaintLine(fp, lpPrev);
-			}
+		INDENTATION_DELTA tDelta = format_calculateIndentationDelta(wp, lpPrev);
+		if (tDelta != ID_OUTDENT_THIS) {
+			return TRUE;
+		}
+		int supposedIndent = currentIndent - wp->indentation.tabsize;
+		int o1 = caret_screen2lineOffset(wp, &(CARET) {
+			lpPrev,
+			supposedIndent
+		});
+		int o2 = caret_screen2lineOffset(wp, &(CARET) {
+			lpPrev,
+				currentIndent
+		});
+		if (ln_modify(fp, lpPrev, o2, o1)) {
+			render_repaintLine(fp, lpPrev);
 		}
 	}
 	return 1;	

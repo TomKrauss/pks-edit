@@ -35,6 +35,13 @@ extern long string_convertToLong(char* s);
  */
 extern long string_convertToLongBase16(char* s);
 
+/*
+ * Compare a string with a second string to a maximum to the length of the 2nd string
+ * and return 0, if both strings match, 1 otherwise. If 'bCaseIgnore' is 1 a case
+ * insensitive comparison is performed.
+ */
+extern int string_compareWithSecond(const unsigned char* s1, const unsigned char* s2, int bCaseIgnore);
+
 /*--------------------------------------------------------------------------
  * string_countCharacters()
  * Count the number of occurrences of a character in a string.

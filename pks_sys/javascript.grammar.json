@@ -2,8 +2,16 @@
   "grammars": [
     {
       "scopeName": "javascript",
-      "increaseIndentPattern": "{[(",
-      "decreaseIndentPattern": ")]}",
+      "increaseIndentPatterns": [
+        { "pattern": "{" },
+        { "pattern": "(" },
+        { "pattern": "[" }
+      ],
+      "decreaseIndentPatterns": [
+        { "pattern": "}" },
+        { "pattern": ")" },
+        { "pattern": "]" }
+      ],
       "templates": [
         {
           "match": "'",

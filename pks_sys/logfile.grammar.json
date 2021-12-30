@@ -30,7 +30,7 @@
         },
         {
           "match": "warning[: ].*",
-          "ignoreCase":  true,
+          "ignore-case":  true,
           "name": "logfile.warning",
           "style": "warning"
         },

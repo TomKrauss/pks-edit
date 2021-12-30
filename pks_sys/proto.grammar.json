@@ -3,8 +3,16 @@
     {
       "scopeName": "proto",
       "formatter": "code",
-      "increaseIndentPattern": "{[(",
-      "decreaseIndentPattern": ")]}",
+      "increaseIndentPatterns": [
+        { "pattern": "{" },
+        { "pattern": "(" },
+        { "pattern": "[" }
+      ],
+      "decreaseIndentPatterns": [
+        { "pattern": "}" },
+        { "pattern": ")" },
+        { "pattern": "]" }
+      ],
       "navigation": [
         {
           "name": "include-link",

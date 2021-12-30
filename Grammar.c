@@ -45,6 +45,7 @@ typedef struct tagTEMPLATE {
 	struct tagTEMPLATE* next;
 	char t_match[sizeof(((UCLIST*)0)->pat)];
 	unsigned char* t_contents;
+	BOOL t_ignoreCaseMatch;					// whether the pattern should be matched ignore case
 	BOOL t_auto;
 	int t_lexicalContexts;				// a bitwise combination of lexical contexts, in which this template is automatically inserted. If 0, lexical context is ignored.
 } TEMPLATE;
@@ -85,8 +86,8 @@ typedef struct tagGRAMMAR {
 	char  u2lset[32];					// wordset and u2l ("abc=xyz") 
 	char* folderStartMarker;			// regular expression to define the start of foldable regions.
 	char* folderEndMarker;				// regular expression to define the end of foldable regions.
-	char increaseIndentPattern[32];		// A regular expression defining the condition on which the indent should be increased.
-	char decreaseIndentPattern[32];		// A regular expression defining the condition on which the indent should be decreased.
+	INDENT_PATTERN* increaseIndentPatterns;	// Patterns defining the condition on which the indent should be increased.
+	INDENT_PATTERN* decreaseIndentPatterns;	// Patterns defining the condition on which the indent should be decreased.
 	char wysiwygRenderer[32];			// The name of the wysiwyg renderer
 	BRACKET_RULE* highlightBrackets;	// The rule patterns for "highlight" bracket matching.
 	GRAMMAR_PATTERN* patterns;			// The patterns defined for this grammar.
@@ -132,6 +133,11 @@ static TEMPLATE* grammar_createTemplate() {
 	return calloc(1, sizeof(TEMPLATE));
 }
 
+static INDENT_PATTERN* grammar_createIndentPattern() {
+	return calloc(1, sizeof(INDENT_PATTERN));
+}
+
+
 static GRAMMAR_PATTERN* grammar_createGrammarPattern() {
 	return calloc(1, sizeof(GRAMMAR_PATTERN));
 }
@@ -159,6 +165,14 @@ static JSON_MAPPING_RULE _tagSourceRules[] = {
 static JSON_MAPPING_RULE _bracketRules[] = {
 	{	RT_CHAR_ARRAY, "left", offsetof(BRACKET_RULE, lefthand), sizeof(((BRACKET_RULE*)NULL)->lefthand)},
 	{	RT_CHAR_ARRAY, "right", offsetof(BRACKET_RULE, righthand), sizeof(((BRACKET_RULE*)NULL)->righthand)},
+	{	RT_FLAG, "ignore-case", offsetof(BRACKET_RULE, ignoreCase), 1},
+	{	RT_END}
+};
+
+static JSON_MAPPING_RULE _indentPatternRules[] = {
+	{	RT_CHAR_ARRAY, "pattern", offsetof(INDENT_PATTERN, pattern), sizeof(((INDENT_PATTERN*)NULL)->pattern)},
+	{	RT_FLAG, "ignore-case", offsetof(INDENT_PATTERN, ignoreCase), 1},
+	{	RT_FLAG, "next-line-only", offsetof(INDENT_PATTERN, nextLineOnly), 1},
 	{	RT_END}
 };
 
@@ -176,6 +190,7 @@ static JSON_MAPPING_RULE _templateRules[] = {
 	{	RT_CHAR_ARRAY,	 "match",	 offsetof(TEMPLATE, t_match), sizeof(((TEMPLATE*)NULL)->t_match)},
 	{	RT_ALLOC_STRING, "contents", offsetof(TEMPLATE, t_contents)},
 	{	RT_FLAG, "auto-insert", offsetof(TEMPLATE, t_auto), 1},
+	{	RT_FLAG, "ignore-case-match", offsetof(TEMPLATE, t_ignoreCaseMatch), 1},
 	{	RT_FLAG, "lexical-context-initial", offsetof(TEMPLATE, t_lexicalContexts), LC_START},
 	{	RT_FLAG, "lexical-context-comment", offsetof(TEMPLATE, t_lexicalContexts), LC_SINGLE_LINE_COMMENT|LC_MULTILINE_COMMENT},
 	{	RT_END}
@@ -194,7 +209,7 @@ static JSON_MAPPING_RULE _patternRules[] = {
 	{	RT_OBJECT_LIST, "captures", offsetof(GRAMMAR_PATTERN, captures),
 			{.r_t_arrayDescriptor = {grammar_createPatternGroup, _patternGroupRules}}},
 	{	RT_SET, "keywords", offsetof(GRAMMAR_PATTERN, keywords)},
-	{	RT_FLAG, "ignoreCase", offsetof(GRAMMAR_PATTERN, ignoreCase)},
+	{	RT_FLAG, "ignore-case", offsetof(GRAMMAR_PATTERN, ignoreCase)},
 	{	RT_CHAR_ARRAY, "style", offsetof(GRAMMAR_PATTERN, style), sizeof(((GRAMMAR_PATTERN*)NULL)->style)},
 	{	RT_CHAR_ARRAY, "begin", offsetof(GRAMMAR_PATTERN, begin), sizeof(((GRAMMAR_PATTERN*)NULL)->begin)},
 	{	RT_CHAR_ARRAY, "end", offsetof(GRAMMAR_PATTERN, end), sizeof(((GRAMMAR_PATTERN*)NULL)->end)},
@@ -206,8 +221,10 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_ALLOC_STRING, "folderStartMarker", offsetof(GRAMMAR, folderStartMarker)},
 	{	RT_ALLOC_STRING, "folderEndMarker", offsetof(GRAMMAR, folderEndMarker)},
 	{	RT_CHAR_ARRAY, "wordCharacterClass", offsetof(GRAMMAR, u2lset), sizeof(((GRAMMAR*)NULL)->u2lset)},
-	{	RT_CHAR_ARRAY, "increaseIndentPattern", offsetof(GRAMMAR, increaseIndentPattern), sizeof(((GRAMMAR*)NULL)->increaseIndentPattern)},
-	{	RT_CHAR_ARRAY, "decreaseIndentPattern", offsetof(GRAMMAR, decreaseIndentPattern), sizeof(((GRAMMAR*)NULL)->decreaseIndentPattern)},
+	{	RT_OBJECT_LIST, "increaseIndentPatterns", offsetof(GRAMMAR, increaseIndentPatterns),
+			{.r_t_arrayDescriptor = {grammar_createIndentPattern, _indentPatternRules}}},
+	{	RT_OBJECT_LIST, "decreaseIndentPatterns", offsetof(GRAMMAR, decreaseIndentPatterns),
+			{.r_t_arrayDescriptor = {grammar_createIndentPattern, _indentPatternRules}}},
 	{	RT_CHAR_ARRAY, "wysiwygRenderer", offsetof(GRAMMAR, wysiwygRenderer), sizeof(((GRAMMAR*)NULL)->wysiwygRenderer)},
 	{	RT_ALLOC_STRING, "analyzer", offsetof(GRAMMAR, analyzer)},
 	{	RT_ALLOC_STRING, "evaluator", offsetof(GRAMMAR, evaluator)},
@@ -260,6 +277,8 @@ static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
 	ll_destroy((LINKED_LIST**)&pGrammar->patterns, grammar_destroyPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->undercursorActions, NULL);
 	ll_destroy((LINKED_LIST**)&pGrammar->highlightBrackets, NULL);
+	ll_destroy((LINKED_LIST**)&pGrammar->increaseIndentPatterns, NULL);
+	ll_destroy((LINKED_LIST**)&pGrammar->decreaseIndentPatterns, NULL);
 	ll_destroy((LINKED_LIST**)&pGrammar->navigation, grammar_destroyNavigationPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->tagSources, grammar_destroyTagSource);
 	ll_destroy((LINKED_LIST**)&pGrammar->templates, grammar_destroyTemplates);
@@ -279,6 +298,7 @@ void grammar_destroyAll() {
 struct tagCHAR_LOOKUP {
 	char char1Table[32];
 	char char2Table[32];
+	BOOL ignoreCase;
 	int singleCharKeywordExists;
 };
 
@@ -286,7 +306,15 @@ static int grammar_collectChars(intptr_t k, void* pParam) {
 	unsigned char* pKey = (unsigned char*)k;
 	struct tagCHAR_LOOKUP * pLookup = pParam;
 
-	PLACE_CHAR(pLookup->char1Table, pKey[0]);
+	unsigned char c1 = pKey[0];
+	PLACE_CHAR(pLookup->char1Table, c1);
+	if (pLookup->ignoreCase) {
+		if (pks_islower(c1)) {
+			PLACE_CHAR(pLookup->char1Table, toupper(c1));
+		} else if (pks_isupper(c1)) {
+			PLACE_CHAR(pLookup->char1Table, tolower(c1));
+		}
+	}
 	pKey++;
 	if (!*pKey) {
 		pLookup->singleCharKeywordExists = 1;
@@ -294,6 +322,14 @@ static int grammar_collectChars(intptr_t k, void* pParam) {
 		while (*pKey) {
 			char c2 = *pKey++;
 			PLACE_CHAR(pLookup->char2Table, c2);
+			if (pLookup->ignoreCase) {
+				if (pks_islower(c2)) {
+					PLACE_CHAR(pLookup->char2Table, toupper(c2));
+				}
+				else if (pks_isupper(c2)) {
+					PLACE_CHAR(pLookup->char2Table, tolower(c2));
+				}
+			}
 		}
 	}
 	return 1;
@@ -347,6 +383,7 @@ static int grammar_tokenFound(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEX
 static void grammar_createPatternFromKeywords(GRAMMAR_PATTERN* pGrammarPattern) {
 	struct tagCHAR_LOOKUP lookup;
 	memset(&lookup, 0, sizeof lookup);
+	lookup.ignoreCase = pGrammarPattern->ignoreCase;
 	hashmap_forEachKey(pGrammarPattern->keywords, grammar_collectChars, &lookup);
 	char result[256];
 	// Assumption: keywords always start on word boundaries.
@@ -555,7 +592,7 @@ GRAMMAR* grammar_findNamed(char* pszGrammarName) {
 }
 
 /*
- * Stupid simple linear search to match a keyword in a list of given keywords. 
+ * Try to match a keyword by looking it up in the keyword set. 
  */
 static int grammar_matchKeyword(HASHMAP* pKeywords, char* pKey, const char* pKeyEnd) {
 	if (!pKeywords) {
@@ -793,7 +830,7 @@ UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar) {
 		while (pRule) {
 			UCLIST* pList = ll_insert(&pGrammar->undercursorActions, sizeof(UCLIST));
 			pList->action = UA_SHOWMATCH;
-			pList->len = 0;
+			pList->len = (int)strlen(pRule->lefthand);
 			pList->p.uc_bracket = pRule;
 			pRule = pRule->next;
 		}
@@ -807,6 +844,7 @@ UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar) {
 				pList->lexicalContexts = 0;
 			}
 			strcpy(pList->pat, pTemplate->t_match);
+			pList->ignoreCase = pTemplate->t_ignoreCaseMatch;
 			pList->len = (int)strlen(pTemplate->t_match);
 			pList->p.uc_template = pTemplate->t_contents;
 			pTemplate = pTemplate->next;
@@ -1042,17 +1080,19 @@ static BOOL grammar_countIndent(GRAMMAR* pGrammar, const char* pBuf, int nOffset
 	if (nState != LC_START) {
 		return TRUE;
 	}
-	char c = pBuf[nOffset];
-	char cCompare;
-	for (int i = 0; (cCompare = pGrammar->increaseIndentPattern[i]) != 0; i++) {
-		if (c == cCompare) {
+	INDENT_PATTERN* pPatterns = pGrammar->increaseIndentPatterns;
+	while (pPatterns) {
+		if (string_compareWithSecond(&pBuf[nOffset], pPatterns->pattern, pPatterns->ignoreCase) == 0) {
 			(*(int*)pParam)++;
 		}
+		pPatterns = pPatterns->next;
 	}
-	for (int i = 0; (cCompare = pGrammar->decreaseIndentPattern[i]) != 0; i++) {
-		if (c == cCompare) {
+	pPatterns = pGrammar->decreaseIndentPatterns;
+	while (pPatterns) {
+		if (string_compareWithSecond(&pBuf[nOffset], pPatterns->pattern, pPatterns->ignoreCase) == 0) {
 			(*(int*)pParam)--;
 		}
+		pPatterns = pPatterns->next;
 	}
 	return TRUE;
 }
@@ -1066,7 +1106,7 @@ int grammar_getDeltaIndentation(GRAMMAR* pGrammar, LEXICAL_CONTEXT nState, const
 	if (!pGrammar) {
 		return 0;
 	}
-	if (!pGrammar->increaseIndentPattern[0] && !pGrammar->decreaseIndentPattern[0]) {
+	if (!pGrammar->increaseIndentPatterns && !pGrammar->decreaseIndentPatterns) {
 		return 0;
 	}
 	int nDelta = 0;

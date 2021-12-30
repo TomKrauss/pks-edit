@@ -2,8 +2,16 @@
   "grammars": [
     {
       "scopeName": "java",
-      "increaseIndentPattern": "{[(",
-      "decreaseIndentPattern": ")]}",
+      "increaseIndentPatterns": [
+        { "pattern": "{" },
+        { "pattern": "(" },
+        { "pattern": "[" }
+      ],
+      "decreaseIndentPatterns": [
+        { "pattern": "}" },
+        { "pattern": ")" },
+        { "pattern": "]" }
+      ],
       "tagSources": [
         {
           "filename": "tags",
