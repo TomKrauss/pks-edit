@@ -555,6 +555,7 @@ static RENDERER _asciiRenderer = {
 	NULL,
 	NULL,
 	wt_scrollxy,
+	ww_setScrollCheckBounds,
 	render_adjustScrollBounds,
 	NULL,
 	ascii_rendererSupportsMode,
@@ -602,6 +603,7 @@ static void ww_assignRenderer(WINFO* wp) {
 	}
 	ww_destroyRendererData(wp);
 	wp->renderer = pNew;
+	wp->maxVisibleLineLen = -1;
 	if (wp->renderer->r_create) {
 		wp->r_data = wp->renderer->r_create(wp);
 	}
@@ -628,7 +630,7 @@ void ww_modeChanged(WINFO* wp) {
 	}
 
 	wp->scroll_dx = 4;
-	ww_setScrollCheckBounds(wp);
+	wp->renderer->r_windowSizeChanged(wp);
 	wp->renderer->r_adjustScrollBounds(wp);
 	win_sendRedrawToWindow(wp->ww_handle);
 	render_updateCaret(wp);
@@ -1057,7 +1059,7 @@ WINFUNC EditWndProc(
  * ww_updateWindowBounds()
  */
 static int ww_updateWindowBounds(WINFO *wp, int w, int h) {
-	ww_setScrollCheckBounds(wp);
+	wp->renderer->r_windowSizeChanged(wp);
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"set window scroll bounds to (minln = %ld, mincol = %ld, maxln = %ld, maxcol = %ld)",
 		   wp->minln,wp->mincol,wp->maxln,wp->maxcol));
 	return 1;

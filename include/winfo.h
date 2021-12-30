@@ -152,6 +152,8 @@ typedef void (*RENDERER_HIT_TEST)(WINFO* wp, int cX, int cY, long* pLine, long* 
 
 typedef void (*RENDERER_NAVIGATE_ANCHOR)(WINFO* wp, const char* pszAnchor);
 
+typedef void (*RENDERER_WINDOW_SIZE_CHANGED)(WINFO* wp);
+
 typedef void (*RENDERER_MOUSEMOVE)(WINFO* wp, int x, int y);
 
 typedef BOOL(*RENDERER_FIND_LINK)(WINFO* wp, char* pszDest, size_t nMaxChars, NAVIGATION_INFO_PARSE_RESULT* pResult);
@@ -173,6 +175,7 @@ typedef struct tagRENDERER {
     const RENDERER_CREATE r_create;                               // Called, when the renderer is created. Returns the internal data structure r_data. May be null.
     const RENDERER_DESTROY r_destroy;                             // Called when the renderer is destroy. Frees the internal data structure r_data. If null, free is called by default to release the structure.
     const RENDERER_SCROLL r_scroll;
+    const RENDERER_WINDOW_SIZE_CHANGED r_windowSizeChanged;       // The window size has changed: adjust the min and max lines and columns visible
     const RENDERER_SCROLL_SET_BOUNDS r_adjustScrollBounds;        // Set the new minimum and maximum line and columns used when navigating the caret if the 
                                                                   // caret does not fit in the current window.
     const RENDERER_CARET_UPDATE_UI r_updateCaretUI;               // Set x and y coordinates of the caret depending on the line and column.

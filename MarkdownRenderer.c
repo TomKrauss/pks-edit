@@ -1105,7 +1105,30 @@ static int mdr_rendererSupportsMode(int aMode) {
 	return 1;
 }
 
+static int mdr_windowSizeChanged(WINFO* wp) {
+	// we do not support horizontal scrolling anyways - do not show a horizontal scrollbar.
+	wp->maxcurscol = wp->maxcol = 15;
+	wp->mincol = 0;
+	return 1;
+}
+
+/*
+ * Calculate the number of logical lines displayed
+ */
+static long mdr_calculateMaxLine(WINFO* wp) {
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	if (pData) {
+		if (!pData->md_pElements) {
+			mdr_parseViewParts(wp->fp, pData);
+		}
+		return ll_size((LINKED_LIST*)pData->md_pElements);
+	}
+	// TODO: may we need to ensure the renderer is initialized
+	return 20;
+}
+
 static int mdr_adjustScrollBounds(WINFO* wp) {
+	int oldMinLn = wp->minln;
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	int nDelta = pData->md_nElementsPerPage;
 	if (nDelta <= 0) {
@@ -1115,15 +1138,16 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 			return 0;
 		}
 	}
-	long nMaxScreen = wp->mincursln + nDelta;
-	size_t nMax = ll_size((LINKED_LIST*)pData->md_pElements);
+	long nMaxScreen = wp->minln + nDelta + 1;
+	size_t nMax = mdr_calculateMaxLine(wp);
 	if (nMaxScreen > nMax) {
 		nMaxScreen = (long)nMax;
 	}
-	if (wp->caret.ln < nMaxScreen && wp->caret.ln >= wp->mincursln) {
+	if (wp->caret.ln < nMaxScreen && wp->caret.ln >= wp->minln) {
+		wp->maxcursln = wp->maxln = nMaxScreen;
 		return 0;
 	}
-	if (wp->caret.ln < wp->mincursln) {
+	if (wp->caret.ln < wp->minln) {
 		wp->minln = wp->mincursln = wp->caret.ln;
 	} else {
 		if (pData->md_displayingEndOfFile) {
@@ -1148,7 +1172,6 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 		wp->maxcursln = nMaxScreen;
 	}
 	wp->maxln = wp->maxcursln;
-	wp->maxcurscol = wp->maxcol = 50;
 	InvalidateRect(wp->ww_handle, (LPRECT)0, 0);
 	UpdateWindow(wp->ww_handle);
 	if (pData->md_hwndTooltip) {
@@ -1157,6 +1180,7 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 	int width;
 	mdr_updateCaretUI(wp, &wp->cx, &wp->cy, &width, &wp->cheight);
 	render_updateCaret(wp);
+	sl_size(wp);	
 	return 1;
 }
 
@@ -1204,7 +1228,7 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 	if (bSizeChanged) {
 		pData->md_nElementsPerPage = nElements-1;
 		pData->md_displayingEndOfFile = pPart == NULL;
-		mdr_adjustScrollBounds(wp);
+		//mdr_adjustScrollBounds(wp);
 	}
 }
 
@@ -1272,34 +1296,18 @@ static void* mdr_allocData(WINFO* wp) {
 }
 
 /*
- * Calculate the number of logical lines displayed 
- */
-static long mdr_calculateMaxLine(WINFO* wp) {
-	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
-	if (pData) {
-		if (!pData->md_pElements) {
-			mdr_parseViewParts(wp->fp, pData);
-		}
-		return ll_size((LINKED_LIST*)pData->md_pElements);
-	}
-	// TODO: may we need to ensure the renderer is initialized
-	return 20;
-}
-
-/*
- * Calculate the "longest" line displayed. As we wrap text during rendering the maximum 
- * line length is the number of logical columns available.
+ * Calculate the "longest" line displayed. We do not support horizontal scrolling.
+ * Calculate the longes line to be rather small
  */
 static long mdr_calculateLongestLine(WINFO* wp) {
-	return wp->maxcol - wp->mincol;
+	return 10;
 }
 
 /*
  * Calculate the maximum column for column moves. 
  */
 static long mdr_calculateMaxColumn(WINFO* wp, long ln, LINE* lp) {
-	// TODO: not correct....
-	return lp->len;
+	return 10;
 }
 
 /*
@@ -1311,6 +1319,9 @@ static int mdr_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFE
 }
 
 static void mdr_scroll(WINFO* wp, int dx, int dy) {
+	if (!dy) {
+		return;
+	}
 	RedrawWindow(wp->ww_handle, NULL, NULL, RDW_ERASE|RDW_INVALIDATE);
 }
 
@@ -1486,6 +1497,7 @@ static RENDERER _mdrRenderer = {
 	mdr_allocData,
 	mdr_destroyData,
 	mdr_scroll,
+	mdr_windowSizeChanged,
 	mdr_adjustScrollBounds,
 	mdr_updateCaretUI,
 	mdr_rendererSupportsMode,
