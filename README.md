@@ -1,7 +1,7 @@
 # PKS Edit
 
 The famous arcade times text editor from Pahlen & Krauﬂ originally released on Atari ST
-and here available as a 64-Bit application for Windows 7 and newer
+and now available as a 64-Bit application for Windows 7 and newer
 
 ## Release Notes
 
@@ -9,35 +9,38 @@ and here available as a 64-Bit application for Windows 7 and newer
 
 ## Features
 
-The editor contains only some basic features compared to modern text editors such as 
-`Ultra Edit`:
+The editor contains only some basic features compared to modern text editors such as `Ultra Edit`.
 
+Here are some highlights:
+
+- it is very fast, if files do not get too big (no memory mapped files support yet). Opening a code file
+  with 1 Million lines of code takes less then a second on a medium equipped machine. Replacing every single character
+  by an 'x' (replace regular expression '.' by 'x' honoring case sensitivity) on that same file takes about
+  5 seconds, undoing this operation takes about 1 second.
 - search & replace with options like regular expression matching
 - search & replace in multiple files
 - compare files
 - syntax highlighting
 - edit one file in multiple windows
-- follow cross references in code (requires a tag file - e.g. created using ctags)
-- auto-indentation and formatting
-- sort files
+- follow cross references in code and references to other files and URLs (cross references in code requires a tag file - 
+e.g. created using ctags)
+- auto-indentation and some basic formatting
+- sorting files
 - code completion
 - support for zooming font sizes (using keyboard and scrollwheel)
-- record & play of macros
-- it is pretty fast, if files do not get too big (no memory mapped files support yet)
+- record & play and a macro language allowing to edit the recorded macros
 - different selection styles (block, ...)
 - support for different file types and for user-defined grammars
 - support for inserting templates
 - hex editor mode for binary files
 - support for themes - e.g. support for a dark mode theme.
 - docking windows UI
+- [wysiwyg mode](doc/markdown.md) for markdown documents (currently readonly, but can be displayed as 2nd view of an editable document)
+- support for tail -f mode to view large log files and watch them being appended
 
 ## Manual
 
 - the [PKS-Edit Manual](doc/manual/toc.md) describes, how to work with PKS-Edit.
-
-## Support for Markdown Display
-
-PKS-Edit supports displaying markdown text in a [Wysiwyg mode](doc/markdown.md).
 
 ## Installing and Using PKS Edit
 

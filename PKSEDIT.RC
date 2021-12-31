@@ -1572,7 +1572,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSGKEYNOTBOUND      "Diese Tastenkombination ist nicht an ein Makro gebunden"
-    IDS_MSGRECOVER          "Autosave Datei gefunden. Soll diese gelesen werden"
+    IDS_MSGRECOVER          "Automatisch gespeicherte temporäre Datei für %s gefunden. Soll diese automatisch gespeicherte Version verwendet werden?"
     IDS_MSGNTIMESFOUND      "%d mal gefunden"
     IDS_WINDOWLIST          "Fensterliste"
     IDS_SELECTCOMPILEWINDOW "Datei - Auswahl für die Compilation"
