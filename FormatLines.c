@@ -132,12 +132,13 @@ static INDENTATION_DELTA format_calculateCodeIndentationDelta(FORMATTER* pFormat
 	WINFO* wp = fparam->fparam_wp;
 	FTABLE* fp = wp->fp;
 	LEXICAL_CONTEXT lcStart = fparam->fparam_context;
-	if (nLen >= 2 && fparam->fparam_cd.comment_end[0]) {
+	if (nLen >= 2 && fparam->fparam_cd.comment_end) {
 		COMMENT_DESCRIPTOR* pCD = &fparam->fparam_cd;
 		BOOL nStartFound = FALSE;
-		for (int i = 0; i < nLen - 2; i++) {
+		for (int i = 0; i < nLen - 1; i++) {
 			BOOL bSpace = pBuf[i] == ' ' || pBuf[i] == '\t';
-			if (pBuf[i + 1] == pCD->comment_end[0] && pBuf[i + 2] == pCD->comment_end[1]) {
+			// todo: allow for case ignore comment introducers like "REM" / "rem"
+			if (pCD->comment_end && string_compareWithSecond(&pBuf[i+1], pCD->comment_end, FALSE) == 0) {
 				if (nStartFound) {
 					nStartFound = FALSE;
 					break;
@@ -147,7 +148,7 @@ static INDENTATION_DELTA format_calculateCodeIndentationDelta(FORMATTER* pFormat
 				}
 				break;
 			}
-			if (pBuf[i] == pCD->comment_start[0] && pBuf[i+1] == pCD->comment_start[1]) {
+			if (pCD->comment_start && string_compareWithSecond(&pBuf[i], pCD->comment_start, FALSE) == 0) {
 				nStartFound = TRUE;
 			}
 		}

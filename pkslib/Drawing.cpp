@@ -86,14 +86,16 @@ extern "C" __declspec(dllexport) HBITMAP tb_createAwesomeIcons(COLORREF nColorRe
     BYTE* pvBits = NULL;
     HBITMAP hBmp = CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS,
         (void**)&pvBits, NULL, 0x0);
-    HBITMAP hBmpOld = (HBITMAP)SelectObject(hdc, hBmp);
+    auto hBmpOld = hBmp == nullptr ? nullptr : SelectObject(hdc, hBmp);
     RECT rect;
     rect.top = 0;
     rect.bottom = nSize;
     rect.left = 0;
     rect.right = rect.left + nWidth;
     paint_awesomeIcons(hdc, icons, nIcons, nColorRef, rect.left, 0, nSize);
-    SelectObject(hdc, hBmpOld);
+	if (hBmpOld != nullptr) {
+		SelectObject(hdc, hBmpOld);
+	}
     ReleaseDC(0, hdc);
     DeleteDC(hdc);
     ReleaseDC(NULL, hdcScreen);

@@ -102,6 +102,8 @@ typedef struct tagGRAMMAR {
 	char* evaluator;					// Name of a "wellknown" evaluator, which is able to "execute" the text from the current text selection.
 	char* formatter;					// Name of a "wellknown" formatter, which may format pieces of text in the given grammar.
 	BOOL hasLineSpanPattern;			// Whether patterns exist, spanning multiple lines.
+	COMMENT_DESCRIPTOR commentDescriptor; // The descriptor for the comment patterns.
+	BOOL commentDescriptorInitialized;	// whether the comment descriptor had been initialized
 } GRAMMAR;
 
 static BRACKET_RULE _defaultBracketRule = {
@@ -285,6 +287,11 @@ static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
 	free(pGrammar->analyzer);
 	free(pGrammar->evaluator);
 	free(pGrammar->formatter);
+	free((void*)pGrammar->commentDescriptor.comment_start);
+	free((void*)pGrammar->commentDescriptor.comment2_start);
+	free((void*)pGrammar->commentDescriptor.comment_end);
+	free((void*)pGrammar->commentDescriptor.comment2_end);
+	free((void*)pGrammar->commentDescriptor.comment_single);
 	return 1;
 }
 
@@ -897,34 +904,49 @@ int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescrip
 	char c;
 	int nRet = 0;
 
-	memset(pDescriptor, 0, sizeof * pDescriptor);
 	if (pGrammar == NULL) {
+		memset(pDescriptor, 0, sizeof * pDescriptor);
 		return 0;
 	}
+	if (pGrammar->commentDescriptorInitialized) {
+		memcpy(pDescriptor, &pGrammar->commentDescriptor, sizeof * pDescriptor);
+		return 1;
+	}
+	memset(pDescriptor, 0, sizeof * pDescriptor);
 	for (pPattern = pGrammar->patterns; pPattern; pPattern = pPattern->next) {
 		LEXICAL_CONTEXT lcContext = grammar_getContextForPattern(pPattern);
 		if (lcContext == LC_MULTILINE_COMMENT || lcContext == LC_SINGLE_LINE_COMMENT) {
 			nRet = 1;
 			if (pPattern->begin[0] && pPattern->end[0]) {
-				// Special case: multiple multiline comment styles available. Can currently only handle
-				// one: prefer the one with 2 characters.
-				if (strlen(pPattern->begin) == 2 || pDescriptor->comment_end[0] == 0) {
-					strcpy(pDescriptor->comment_start, pPattern->begin);
-					strcpy(pDescriptor->comment_end, pPattern->end);
+				if (pDescriptor->comment_start) {
+					if (!pDescriptor->comment2_start) {
+						pDescriptor->comment2_start = _strdup(pPattern->begin);
+						pDescriptor->comment2_end = _strdup(pPattern->end);
+					}
 				}
-			}
-			else {
+				else {
+					pDescriptor->comment_start = _strdup(pPattern->begin);
+					pDescriptor->comment_end = _strdup(pPattern->end);
+				}
+			} else {
+				char szTemp[32];
 				pszInput = pPattern->match;
-				pszOutput = pDescriptor->comment_single;
+				pszOutput = szTemp;
 				while ((c = *pszInput++) != 0) {
 					if (c == '.' || c == '[') {
 						break;
 					}
 					*pszOutput++ = c;
 				}
+				*pszOutput = 0;
+				if (szTemp[0]) {
+					pDescriptor->comment_single = _strdup(szTemp);
+				}
 			}
 		}
 	}
+	pGrammar->commentDescriptorInitialized = TRUE;
+	memcpy(&pGrammar->commentDescriptor, pDescriptor, sizeof * pDescriptor);
 	return nRet;
 }
 
@@ -1061,13 +1083,18 @@ static LEXICAL_CONTEXT grammar_lexicalContextDo(LEXICAL_CONTEXT nState, GRAMMAR*
 			nState = LC_SINGLE_QUOTED_LITERAL;
 			continue;
 		}
-		if (grammar_matchWordInLine(c, cd.comment_single, pBuf, i, nLen)) {
+		if (cd.comment_single && grammar_matchWordInLine(c, cd.comment_single, pBuf, i, nLen)) {
 			nState = LC_SINGLE_LINE_COMMENT;
 			continue;
 		}
-		if (grammar_matchWordInLine(c, cd.comment_start, pBuf, i, nLen)) {
+		if (cd.comment_start && grammar_matchWordInLine(c, cd.comment_start, pBuf, i, nLen)) {
 			nState = LC_MULTILINE_COMMENT;
 			i += (int)strlen(cd.comment_start);
+			continue;
+		}
+		if (cd.comment2_start && grammar_matchWordInLine(c, cd.comment2_start, pBuf, i, nLen)) {
+			nState = LC_MULTILINE_COMMENT;
+			i += (int)strlen(cd.comment2_start);
 			continue;
 		}
 	}

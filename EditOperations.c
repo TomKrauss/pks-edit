@@ -204,11 +204,14 @@ static int edit_postProcessInsertLine(WINFO *wp, int dir, long ln, long col)
 /*
  * Find out, whether a list of lines is completely commented out according to a comment specification. 
  */
-static BOOL edit_isAllCommented(LINE* lpFirst, LINE* lpLast, COMMENT_DESCRIPTOR* pComment) {
-	size_t nLen = strlen(pComment->comment_start);
+static BOOL edit_isAllCommented(LINE* lpFirst, LINE* lpLast, const char* pszCommentStart) {
+	if (!pszCommentStart) {
+		return FALSE;
+	}
+	size_t nLen = strlen(pszCommentStart);
 	while (lpFirst) {
 		char* pszFirst = string_skipBlanks(lpFirst->lbuf);
-		if (!pszFirst || strncmp(pszFirst, pComment->comment_start, nLen) != 0) {
+		if (!pszFirst || strncmp(pszFirst, pszCommentStart, nLen) != 0) {
 			return FALSE;
 		}
 		if (lpFirst == lpLast) {
@@ -233,10 +236,12 @@ int edit_toggleComment() {
 	if (!grammar_getCommentDescriptor(fp->documentDescriptor->grammar, &commentDescriptor)) {
 		return 0;
 	}
-	if (commentDescriptor.comment_single[0]) {
-		// prefer single comment.
-		strcpy(commentDescriptor.comment_start, commentDescriptor.comment_single);
-		commentDescriptor.comment_end[0] = 0;
+	const char* pszCommentStart = commentDescriptor.comment_single;
+	if (!pszCommentStart) {
+		pszCommentStart = commentDescriptor.comment_start;
+	}
+	if (!pszCommentStart) {
+		return 0;
 	}
 	LINE* lpFirst = wp->caret.linePointer;
 	LINE* lpLast = wp->caret.linePointer;
@@ -250,9 +255,9 @@ int edit_toggleComment() {
 		lpLast = mpe->m_linePointer;
 	}
 	// 3 states: -1 comment out, 1 comment in
-	int addCommentFlag = edit_isAllCommented(lpFirst, lpLast, &commentDescriptor) ? -1 : 1;
-	long nLen = (long)strlen(commentDescriptor.comment_start);
-	size_t nLen2 = strlen(commentDescriptor.comment_end);
+	int addCommentFlag = edit_isAllCommented(lpFirst, lpLast, pszCommentStart) ? -1 : 1;
+	long nLen = (long)strlen(pszCommentStart);
+	size_t nLen2 = commentDescriptor.comment_end == 0 ? 0 : strlen(commentDescriptor.comment_end);
 	int nLines = ln_cnt(lpFirst, lpLast);
 	while(nLines > 0) {
 		char* pszFirst = string_skipBlanks(lpFirst->lbuf);
@@ -265,7 +270,7 @@ int edit_toggleComment() {
 			break;
 		}
 		if (addCommentFlag > 0) {
-			strncpy(lpFirst->lbuf + nOffset, commentDescriptor.comment_start, nLen);
+			strncpy(lpFirst->lbuf + nOffset, pszCommentStart, nLen);
 		}
 		if (nLen2 > 0) {
 			size_t nOffset = lpFirst->len;
@@ -273,8 +278,7 @@ int edit_toggleComment() {
 				if ((lpFirst = ln_modify(fp, lpFirst, (int)nOffset, (int)(nOffset - nLen2))) == 0) {
 					break;
 				}
-			}
-			else {
+			} else {
 				if ((lpFirst = ln_modify(fp, lpFirst, (int)nOffset, (int)(nOffset + nLen2))) == 0) {
 					break;
 				}
