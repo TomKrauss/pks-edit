@@ -192,12 +192,16 @@ static int print_calculateRatio(int total, int mul, int div)
 
 /*------------------------------------------------------------
  * print_ntextlines()
+ * Returns the number of content lines printed on one page (excluding header and footer).
  */
 static int print_ntextlines(DEVEXTENTS* dep)
 {
 	PRTPARAM	*pp = &_prtparams;
 
-	return (dep->yFooterPos - dep->yHeaderPos) / pp->font.fs_cheight;
+	int n =(dep->yFooterPos - dep->yHeaderPos) / pp->font.fs_cheight;
+	n -= pp->headerSize;
+	n -= pp->footerSize;
+	return n;
 }
 
 /*--------------------------------------------------------------------------
@@ -458,7 +462,7 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 		}
 	}
 	pLine->yPos += pLine->charHeight;
-	return nLinesPrinted++;
+	return nLinesPrinted;
 }
 
 /**
@@ -571,11 +575,13 @@ footerprint:
 			pageno++;
 		} else {
 			int nLinesPrinted = print_singleLineOfText(hdc, &printLineParam, produceOutput);
-			linesPrinted += nLinesPrinted;
 			if (printLineParam.wrappedLineOffset == 0) {
 				if (P_EQ(printLineParam.lp, lplast) || (printLineParam.lp = printLineParam.lp->next) == 0)
 					goto footerprint;
 				printLineParam.lineNumber++;
+				linesPrinted++;
+			} else {
+				linesPrinted += nLinesPrinted;
 			}
 		}
 	}
