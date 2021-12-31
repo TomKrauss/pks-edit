@@ -906,8 +906,12 @@ int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescrip
 		if (lcContext == LC_MULTILINE_COMMENT || lcContext == LC_SINGLE_LINE_COMMENT) {
 			nRet = 1;
 			if (pPattern->begin[0] && pPattern->end[0]) {
-				strcpy(pDescriptor->comment_start, pPattern->begin);
-				strcpy(pDescriptor->comment_end, pPattern->end);
+				// Special case: multiple multiline comment styles available. Can currently only handle
+				// one: prefer the one with 2 characters.
+				if (strlen(pPattern->begin) == 2 || pDescriptor->comment_end[0] == 0) {
+					strcpy(pDescriptor->comment_start, pPattern->begin);
+					strcpy(pDescriptor->comment_end, pPattern->end);
+				}
 			}
 			else {
 				pszInput = pPattern->match;

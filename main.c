@@ -218,7 +218,7 @@ static void checkCommonControlLibraryVersion() {
 /*------------------------------------------------------------
  * InitInstance()
  */
-static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
+static BOOL InitInstance(LPSTR lpCmdLine) {
 	char				szTitle[64];
 	wchar_t				szwLocale[64];
 	char				szLocale[64];
@@ -251,12 +251,6 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
 		error_showErrorById(IDS_MSGNOTIMER);
 		return FALSE;
 	}
-	if (_openIconic) {
-		nCmdShow = SW_SHOWMINNOACTIVE;
-	} else {
-		// Maximimized state / etc is restored from INI file in that case.
-		nCmdShow = SW_SHOW;
-	}
 	return TRUE;
 }
 
@@ -265,7 +259,9 @@ static BOOL InitInstance(int nCmdShow, LPSTR lpCmdLine) {
  */
 static void main_restoreSizeAndMakeVisible() {
 	WINDOWPLACEMENT 	ws;
-	if (prof_getwinstate("DeskWin", 0, &ws)) {
+	if (_openIconic) {
+		ShowWindow(hwndMain, SW_SHOWMINIMIZED);
+	} else if (prof_getwinstate("DeskWin", 0, &ws)) {
 		RECT rect;
 		SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
 		if (ws.rcNormalPosition.bottom > rect.bottom) {
@@ -409,7 +405,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 		if (!InitApplication())
 		    return (FALSE);
 	}
-	if (!InitInstance(nCmdShow, lpCmdLine)) {
+	if (!InitInstance(lpCmdLine)) {
 		return (FALSE);
 	}
 

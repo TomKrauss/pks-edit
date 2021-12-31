@@ -1550,7 +1550,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSGKEYNOTBOUND      "This key combination is not bound to a macro."
-    IDS_MSGRECOVER          "Autosave file found. Do you want to read it"
+    IDS_MSGRECOVER          "Autosaved backup file for %s found. Do you want to use the autosaved version?"
     IDS_MSGNTIMESFOUND      "%d times found"
     IDS_WINDOWLIST          "Open window list"
     IDS_SELECTCOMPILEWINDOW "File - Selection for Compilation"

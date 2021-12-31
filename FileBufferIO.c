@@ -360,8 +360,6 @@ EXPORT int ft_readDocumentFromFile(int fd, long *pCodepage, unsigned char * (*li
 			}
 			memmove(&bufferStart[-len],q,len);
 		}
-		if (ofs != got)
-			break;
 	}
 	_scratchstart 	= bufferStart;
 	_scratchlen	= len;

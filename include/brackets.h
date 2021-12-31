@@ -33,6 +33,12 @@ extern int uc_shiftRange(int scope, int dir);
  */
 extern int uc_showMatchingBracket(WINFO* wp);
 
+/*
+ * Find an action descriptor to perform given a line buffer and an offset into that buffer.
+ */
+#ifdef GRAMMAR_H
+extern UCLIST* uc_find(GRAMMAR* pGrammar, LINE* lineBuffer, int column);
+#endif
 
 #define	BRACKETS_H
 # endif

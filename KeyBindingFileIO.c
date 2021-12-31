@@ -35,6 +35,7 @@
 #include "documenttypes.h"
 #include "crossreferencelinks.h"
 #include "editorconfiguration.h"
+#include "brackets.h"
 
 #define	MAX_CONTEXT	32
 
@@ -265,7 +266,7 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
 	GRAMMAR* pGrammar = pConfig->grammar;
 
-	if ((up = uc_find(pGrammar, lp->lbuf, offs)) == 0) {
+	if ((up = uc_find(pGrammar, lp, offs)) == 0) {
 		return 0;
 	}
 	if (up->action == UA_ABBREV) {

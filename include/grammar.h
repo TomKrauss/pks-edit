@@ -140,11 +140,6 @@ extern void grammar_initTokenTypeToStyleTable(GRAMMAR* pGrammar, unsigned char t
 extern UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar);
 
 /*
- * Find an action descriptor to perform given a line buffer and an offset into that buffer. 
- */
-extern UCLIST* uc_find(GRAMMAR* pGrammar, char* lineBuffer, int column);
-
-/*
  * Returns the list of navigation patterns for a given grammar.
  */
 extern NAVIGATION_PATTERN* grammar_getNavigationPatterns(GRAMMAR* pGrammar);

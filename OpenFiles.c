@@ -739,7 +739,7 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, FT_OPEN_OPTIONS* pOp
 			ft_generateAutosavePathname(szAsPath, fn) &&
 			areFilenamesDifferent(szAsPath, fn) &&
 			file_exists(szAsPath) == 0 &&
-			error_displayYesNoConfirmation(IDS_MSGRECOVER) == IDYES) {
+			error_displayYesNoConfirmation(IDS_MSGRECOVER, string_abbreviateFileName(fn)) == IDYES) {
 			;
 		} else {
 			szAsPath[0] = 0;
@@ -763,6 +763,8 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, FT_OPEN_OPTIONS* pOp
 	}
 	if (szAsPath[0]) {
 		ft_setFlags(fp, fp->flags | F_MODIFIED);
+		// restore the time from the actual file - do not use the timestamp of the auto-saved file.
+		file_getAccessTime(fp->fname, &fp->ti_created, &fp->ti_modified);
 	}
 
 	caret_placeCursorInCurrentFile(WIPOI(fp), line,0L);

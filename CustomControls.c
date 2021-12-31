@@ -523,8 +523,7 @@ static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	return 1;
 	case WM_CLOSE:
 	case WM_TIMER:
-		//ShowWindow(hwnd, SW_HIDE);
-		AnimateWindow(hwndToastWindow, 300, AW_BLEND|AW_HIDE);
+		AnimateWindow(hwndToastWindow, 300, AW_VER_POSITIVE|AW_HIDE);
 		if (idTimer) {
 			KillTimer(hwnd, idTimer);
 			idTimer = 0;
@@ -682,7 +681,7 @@ static void cust_addCueBanner(HWND hwndEdit, char* pszLabel) {
  */
 HWND cust_createToastWindow(char* pszText) {
 	if (hwndToastWindow == NULL) {
-		hwndToastWindow = CreateWindowEx(0, TOAST_CLASS, NULL, WS_POPUP, 0, 0, 0, 0, hwndMain, NULL, hInst, NULL);
+		hwndToastWindow = CreateWindowEx(0, TOAST_CLASS, NULL, WS_CHILD, 0, 0, 0, 0, hwndMain, NULL, hInst, NULL);
 		if (!hwndToastWindow) {
 			log_lastWindowsError("createToastWindow");
 			return NULL;
@@ -692,20 +691,11 @@ HWND cust_createToastWindow(char* pszText) {
 	idTimer = SetTimer(hwndToastWindow, 1, NSEC * 1000, 0);
 	if (!IsWindowVisible(hwndToastWindow)) {
 		RECT rect;
-		GetWindowRect(hwndMain, &rect);
-		RECT rc;
-		SetRectEmpty(&rc);
-		AdjustWindowRectEx(&rc,                // pointer to the RECT structure to use
-			GetWindowLong(hwndMain, GWL_STYLE),     // window styles
-			FALSE,								// TRUE if the window has a menu, FALSE if not
-			GetWindowLong(hwndMain, GWL_EXSTYLE));
-		rect.left -= rc.left;
-		rect.right -= rc.right;
-		rect.top -= rc.top;
-		rect.bottom -= rc.bottom;
+		GetClientRect(hwndMain, &rect);
+		rect.top = rect.bottom-toastWindowHeight;
 		int width = rect.right - rect.left;
 		int height = rect.bottom - rect.top;
-		SetWindowPos(hwndToastWindow, NULL, rect.left, rect.top + height - toastWindowHeight, width, toastWindowHeight, 
+		SetWindowPos(hwndToastWindow, HWND_TOP, 0, rect.bottom-toastWindowHeight, rect.right-rect.left, toastWindowHeight, 
 			SWP_DEFERERASE | SWP_NOACTIVATE);
 		AnimateWindow(hwndToastWindow, 300, AW_VER_NEGATIVE);
 	}
