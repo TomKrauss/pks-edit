@@ -36,6 +36,19 @@ typedef struct tagPRINTRANGE {
 	int   prtr_toPage;			// If prtr_pages is true, this is the 1-based last page to print.
 } PRINTRANGE;
 
+typedef enum  { 
+	PMDT_NONE,		// do not draw a graphical deco for header / footers
+	PMDT_FRAME,		// draw a rectangle around header / footer
+	PMDT_LINE,		// draw a single line between header / footer and the text
+	PMDT_FILL_RECT	// fill the background of the header / footer with a grey rectangle
+} 
+PAGE_MARGIN_DECO_TYPE;
+
+typedef struct tagPAGE_MARGIN_ELEMENT {
+	char pme_text[512];
+	PAGE_MARGIN_DECO_TYPE pme_decoType;
+} PAGE_MARGIN_ELEMENT;
+
 typedef struct tagPRTPARAMS {	// print params
 	/* params */
 	PRINTRANGE printRange;
@@ -52,8 +65,8 @@ typedef struct tagPRTPARAMS {	// print params
 	int		marginBottom;		// The number of lines to leave space at the bottom of the page
 	int		footerSize;			// The height of the footer in lines
 	FONTSPEC htfont;			// Font header - footer
-	char	header[512],
-			footer[512];		// text of header and footer
+	PAGE_MARGIN_ELEMENT header;	// the header to paint
+	PAGE_MARGIN_ELEMENT footer;	// the footer to paint
 	int		align;				// Header / Footer Alignment
 								// left, center, right
 	
@@ -68,7 +81,6 @@ typedef struct tagPRTPARAMS {	// print params
 #define	PRTO_LINES		0x1			// print line #
 #define	PRTO_PAUSE		0x2			// pause between pages
 #define	PRTO_SWAP		0x8			// swap h+f on alternate pages
-#define	PRTO_ULHEA		0x10		// underline header
 #define	PRTO_ULFOO		0x20		// limitline footer
 #define	PRTO_SWAPMARG	0x40		// swap margins on alternate pages
 #define	PRTO_WRAP		0x80		// wrap long lines

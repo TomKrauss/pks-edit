@@ -511,7 +511,7 @@ BOOL DlgChooseFont(HWND hwnd, char* pszFontName, BOOL bPrinter) {
 	memset(&cf, 0, sizeof cf);
 	memset(&lf, 0, sizeof lf);
 
-	lf.lfHeight = 0;
+	lf.lfHeight = 12;
 	lf.lfWeight = 0;
 	lf.lfWidth = 0;
 	lf.lfItalic = 0;
@@ -529,8 +529,8 @@ BOOL DlgChooseFont(HWND hwnd, char* pszFontName, BOOL bPrinter) {
 	cf.lpLogFont = &lf;
 	cf.hDC = hdc;
 	cf.Flags = (bPrinter) ? 
-		CF_ENABLEHOOK|CF_EFFECTS|CF_INITTOLOGFONTSTRUCT|CF_FIXEDPITCHONLY|CF_PRINTERFONTS : 
-		CF_ENABLEHOOK|CF_EFFECTS|CF_INITTOLOGFONTSTRUCT|CF_FIXEDPITCHONLY|CF_SCREENFONTS;
+		CF_ENABLEHOOK|CF_INITTOLOGFONTSTRUCT|CF_FIXEDPITCHONLY|CF_PRINTERFONTS : 
+		CF_ENABLEHOOK|CF_INITTOLOGFONTSTRUCT|CF_FIXEDPITCHONLY|CF_SCREENFONTS;
 	cf.rgbColors = 0;
 	cf.nFontType = (bPrinter) ? 
 		PRINTER_FONTTYPE :

@@ -68,11 +68,11 @@ static PRTPARAM _prtparams = {
 	0,0,120,			/* lmargin,rmargin, nchars */
 	5,1,1,			/* tabsize, lnspace */
 
-	0,0,0,0,			/* distances header, footer */
-	0,8,0,"Courier",	/* Header Font: oemmode,cheight,cwidth,name */
-	"",					/* header template. A PKS Edit template (see mysprintf) optionally containing multiple segments separated by '!' */
-	"%s$f - %D",		/* footer template */
-	0,					/* header, footer align */
+	0,0,0,0,					/* distances header, footer */
+	0,8,0,"Courier",			/* Header Font: oemmode,cheight,cwidth,name */
+	{"", PMDT_NONE},			/* header template. A PKS Edit template (see mysprintf) optionally containing multiple segments separated by '!' */
+	{"%s$f - %D",PMDT_NONE},	/* footer template */
+	0,							/* header, footer align */
 
 	0,8,0,"Courier",	/* Footnote Font: oemmode,cheight,cwidth,name */
 
@@ -106,9 +106,10 @@ EXPORT HDC print_getPrinterDC(void)
 }
 
 /*------------------------------------------------------------
- * print_drawLine()
+ * print_drawHeaderDecoration()
+ * Draw the decoration for the header / and optionally footer printed.
  */
-static void print_drawLine(HDC hdc, DEVEXTENTS* dep, int x1, int x2, int y, int y2)
+static void print_drawHeaderDecoration(HDC hdc, DEVEXTENTS* dep, int x1, int x2, int y, int y2)
 {
 	/// Should be made configurable somehow.
 	int delta = dep->lineHeight/4;
@@ -333,15 +334,16 @@ static void print_headerOrFooter(HDC hdc, DEVEXTENTS *dep, int y, long pageno,
 	if (!(pp->options & PRTO_HEADERS)) {
 		return;
 	}
-	if ((bHeader && !pp->header[0]) || (!bHeader && !pp->footer[0])) {
+	PAGE_MARGIN_ELEMENT* pElement = bHeader ? &pp->header : &pp->footer;
+	if (!pElement->pme_text[0]) {
 		return;
 	}
-	if (pp->options & PRTO_ULHEA) {
+	if (pElement->pme_decoType != PMDT_NONE) {
 		if (bHeader) {
-			print_drawLine(hdc, dep, dep->xLMargin, dep->xRMargin,
+			print_drawHeaderDecoration(hdc, dep, dep->xLMargin, dep->xRMargin,
 				dep->yHeaderPos, dep->yTop);
 		} else {
-			print_drawLine(hdc, dep, dep->xLMargin, dep->xRMargin,
+			print_drawHeaderDecoration(hdc, dep, dep->xLMargin, dep->xRMargin,
 				dep->yBottom, dep->yFooterPos);
 		}
 	}
@@ -390,8 +392,7 @@ typedef struct tagPRINT_LINE {
 /*------------------------------------------------------------
  * print_singleLineOfText()
  */
-static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
-{
+static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing) {
 	char 	szBuff[80];
 	int		nCount;
 	int		max;
@@ -399,8 +400,9 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 	int		nMaxCharsPerLine;
 	int		nActualLine = 0;
 	int		nFirstActualLineToPrint = pLine->wrappedLineOffset;
-	int		nLinesPrinted = 0;
+	int		nLinesPrinted = 1;
 
+	int nDCId = SaveDC(hdc);
 	pLine->wrappedLineOffset = 0;
 	nMaxCharsPerLine = 0;
 	if (_prtparams.options & PRTO_LINES) {
@@ -413,7 +415,6 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 		xPos += LOWORD(win_getTextExtent(hdc, szBuff, nCount));
 		nMaxCharsPerLine = -nCount;
 	}
-
 	_printwhat.wp->mincol = pLine->firstc;
 	max = caret_lineOffset2screen(_printwhat.wp, &(CARET) { pLine->lp, pLine->lp->len});
 	if (max > pLine->lastc) {
@@ -432,7 +433,6 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 	RENDER_LINE_FUNCTION pRender = _printwhat.wp->renderer->r_renderLine;
 	if (_printwhat.wp->maxcol > pLine->firstc) {
 		if (nActualLine >= nFirstActualLineToPrint) {
-			nLinesPrinted++;
 			if (printing) {
 				pRender(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
 			}
@@ -456,12 +456,14 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing)
 			if (nActualLine >= nFirstActualLineToPrint) {
 				nLinesPrinted++;
 				if (printing) {
+					ExcludeClipRect(hdc, 0, pLine->yPos, xPos, pLine->yPos + pLine->charHeight);
 					pRender(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
 				}
 			}
 		}
 	}
 	pLine->yPos += pLine->charHeight;
+	RestoreDC(hdc, nDCId);
 	return nLinesPrinted;
 }
 
@@ -558,7 +560,7 @@ static int print_file(HDC hdc, BOOL measureOnly)
 				StartPage(hdc);
 				print_resetDeviceMode(hdc);
 				print_headerOrFooter(hdc, &de, de.yHeaderPos, pageno,
-					pp->header, pp, TRUE);
+					pp->header.pme_text, pp, TRUE);
 				print_selectfont(hdc,&pp->font);
 			}
 			printLineParam.yPos = de.yTop;
@@ -566,7 +568,7 @@ static int print_file(HDC hdc, BOOL measureOnly)
 		if (printLineParam.yPos+de.lineHeight > printLineParam.maxYPos) {
 footerprint:
 			if (produceOutput) {
-				print_headerOrFooter(hdc,&de,de.yFooterPos,pageno,pp->footer, pp, FALSE);
+				print_headerOrFooter(hdc,&de,de.yFooterPos,pageno,pp->footer.pme_text, pp, FALSE);
 				EndPage(hdc);
 			}
 			if (!printLineParam.lp || P_EQ(printLineParam.lp,lplast))
@@ -575,13 +577,11 @@ footerprint:
 			pageno++;
 		} else {
 			int nLinesPrinted = print_singleLineOfText(hdc, &printLineParam, produceOutput);
+			linesPrinted += nLinesPrinted;
 			if (printLineParam.wrappedLineOffset == 0) {
 				if (P_EQ(printLineParam.lp, lplast) || (printLineParam.lp = printLineParam.lp->next) == 0)
 					goto footerprint;
 				printLineParam.lineNumber++;
-				linesPrinted++;
-			} else {
-				linesPrinted += nLinesPrinted;
 			}
 		}
 	}
@@ -666,12 +666,12 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 			pageRect.top = 0;
 			pageRect.bottom = de.yPage;
 			pageRect.right = de.xPage;
-			HGDIOBJ original = SelectObject(hdc, GetStockObject(DC_PEN));
-			SelectObject(hdc, GetStockObject(BLACK_PEN));
+			HPEN hPen = CreatePen(0, 1, theme_getDefault()->th_dialogBorder);
+			HGDIOBJ original = SelectObject(hdc, hPen);
 			SelectObject(hdc, GetStockObject(DC_BRUSH));
 			SetDCBrushColor(hdc, RGB(255, 255, 255));
 			Rectangle(hdc, 0, pageRect.top, pageRect.right, pageRect.bottom);
-			SelectObject(hdc, original);
+			DeleteObject(SelectObject(hdc, original));
 			print_file(hdc, FALSE);
 			RestoreDC(hdc, savedDc);
 			return TRUE;
@@ -764,7 +764,6 @@ static DIALPARS _dPrintLayout[] = {
 	IDD_OPT1,			PRTO_SWAP,& _prtparams.options,
 	IDD_OPT2,			PRTO_LINES,& _prtparams.options,
 	IDD_OPT3,			PRTO_HEADERS,& _prtparams.options,
-	IDD_OPT4,			PRTO_ULHEA,& _prtparams.options,
 	IDD_OPT5,			PRTO_WRAP,& _prtparams.options,
 	IDD_OPT6,			PRTO_SYNTAX_HIGHLIGHT,& _prtparams.options,
 	IDD_INT1,			0,& _prtparams.pagelen,
@@ -775,8 +774,8 @@ static DIALPARS _dPrintLayout[] = {
 	IDD_INT6,			0,& _prtparams.marginBottom,
 	IDD_INT7,			0,& _prtparams.headerSize,
 	IDD_INT8,			0,& _prtparams.footerSize,
-	IDD_STRING1,		sizeof _prtparams.header,	_prtparams.header,
-	IDD_STRING2,		sizeof _prtparams.footer,	_prtparams.footer,
+	IDD_STRING1,		sizeof _prtparams.header,	_prtparams.header.pme_text,
+	IDD_STRING2,		sizeof _prtparams.footer,	_prtparams.footer.pme_text,
 	IDD_CALLBACK1,		0,				print_saveSettings,
 	IDD_FONTSELECT,	TRUE,				_prtparams.font.fs_name,
 	IDD_FONTSELECT2,	TRUE,			_prtparams.htfont.fs_name,
