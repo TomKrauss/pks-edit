@@ -1228,7 +1228,7 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 
 		case WM_DRAWITEM:
 			return cust_drawComboBoxOwnerDraw((DRAWITEMSTRUCT*)lParam,
-				macro_ownerDrawListboxItem, 0);
+				macro_ownerDrawListboxItem, 0, FALSE);
 
 		case WM_COMPAREITEM:
 			cp = (COMPAREITEMSTRUCT*)lParam;

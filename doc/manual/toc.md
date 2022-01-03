@@ -18,5 +18,5 @@ click a link at the same time pressing the `Ctrl` key.
 - [Recording Macros and the PKS-Edit Macro Language](macro_language.md)
 - [Configuring PKS-Edit](configuration.md)
 - [Starting PKS-Edit with command line arguments](commandline.md)
-
+- [Printing Files](printing.md)
 

@@ -644,6 +644,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 				*ip & ~dp->dp_size;
 			break;
 		case IDD_FONTSEL2COLOR:
+		case IDD_ICONLIST2:
 		case IDD_ICONLIST:
 			(*((DIALLIST*)dp->dp_data)->li_get)(hDlg,item,
 				((DIALLIST*)dp->dp_data)->li_param);
@@ -761,11 +762,14 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 				SetDlgItemText(hDlg, IDD_PATH1, 	_fseltarget);
 			}
 			break;
+		case IDD_FONTSELECT3:
 		case IDD_FONTSELECT2:
 		case IDD_FONTSELECT:
 			if ((dp2 = GetItemDialListData(dp, idCtrl)) != 0) {
-				DlgChooseFont(hDlg, (char *)dp2->dp_data, 
-					(BOOL)dp2->dp_size);
+				if (DlgChooseFont(hDlg, (char*)dp2->dp_data,
+					(BOOL)dp2->dp_size) && bInPropertySheet) {
+					PropSheet_Changed(GetParent(hDlg), hDlg);
+				}
 			}
 			break;
 		case IDD_3S1: case IDD_3S2:
@@ -995,12 +999,12 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 			if ((dlp = dlg_getitemdata(_dp, drp->CtlID)) == 0 ||
 			    (dlp->li_draw == 0))
 				break;
-			return cust_drawComboBoxOwnerDraw(drp, dlp->li_draw, dlp->li_selection);
+			return cust_drawComboBoxOwnerDraw(drp, dlp->li_draw, dlp->li_selection, dlg_disableDarkHandling);
 
 		case WM_COMMAND:
 			nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
 			idCtrl = GET_WM_COMMAND_ID(wParam, lParam);
-			if ((nNotify == EN_CHANGE || ISFLAGDLGCTL(idCtrl) || ISRADIODLGCTL(idCtrl)) &&
+			if ((nNotify == EN_CHANGE || nNotify == CBN_SELCHANGE || ISFLAGDLGCTL(idCtrl) || ISRADIODLGCTL(idCtrl)) &&
 					bInPropertySheet && (LPARAM)GetParent(hDlg) != lParam) {
 				PropSheet_Changed(GetParent(hDlg), hDlg);
 			}

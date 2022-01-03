@@ -37,16 +37,18 @@ typedef struct tagPRINTRANGE {
 } PRINTRANGE;
 
 typedef enum  { 
-	PMDT_NONE,		// do not draw a graphical deco for header / footers
-	PMDT_FRAME,		// draw a rectangle around header / footer
-	PMDT_LINE,		// draw a single line between header / footer and the text
-	PMDT_FILL_RECT	// fill the background of the header / footer with a grey rectangle
-} 
-PAGE_MARGIN_DECO_TYPE;
+	PDT_NONE,		// do not draw a graphical deco for header / footers
+	PDT_LINE,		// draw a single line between header / footer and the text
+	PDT_FRAME,		// draw a rectangle around header / footer
+	PDT_FILL_RECT	// fill the background of the header / footer with a grey rectangle
+} PAGE_DECORATION_TYPE;
 
 typedef struct tagPAGE_MARGIN_ELEMENT {
-	char pme_text[512];
-	PAGE_MARGIN_DECO_TYPE pme_decoType;
+	char pme_template[512];			// The template from which the resulting text is created
+	PAGE_DECORATION_TYPE pme_decoration;
+	FONTSPEC pme_font;				// Font 
+	int		pme_align;				// Header / Footer Alignment
+									// left, center, right
 } PAGE_MARGIN_ELEMENT;
 
 typedef struct tagPRTPARAMS {	// print params
@@ -64,13 +66,9 @@ typedef struct tagPRTPARAMS {	// print params
 	int		headerSize;			// The height of the header in lines
 	int		marginBottom;		// The number of lines to leave space at the bottom of the page
 	int		footerSize;			// The height of the footer in lines
-	FONTSPEC htfont;			// Font header - footer
 	PAGE_MARGIN_ELEMENT header;	// the header to paint
 	PAGE_MARGIN_ELEMENT footer;	// the footer to paint
-	int		align;				// Header / Footer Alignment
-								// left, center, right
 	
-	FONTSPEC	fnfont;
 	LNSPACE	fnlnspace;			// print_singleLineOfText spacing footnotes
 	int		fnlinelen;			// length of filename delimter line 
 	int		fnd1,fnd2;			// distances to body and footer

@@ -69,17 +69,12 @@ extern void cust_initializeWindowClassDefaults(WNDCLASS* wcp);
  */
 extern int cust_registerControls(void);
 
-/*--------------------------------------------------------------------------
- * cust_drawOwnerSelection()
- * Draw the selection of an owner draw listbox.
- */
-extern void cust_drawOwnerSelection(LPDRAWITEMSTRUCT lpdis);
 
 /*--------------------------------------------------------------------------
  * cust_drawComboBoxOwnerDraw()
  */
 extern int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
-	void (*ShowSelection)(LPDRAWITEMSTRUCT lp));
+	void (*ShowSelection)(LPDRAWITEMSTRUCT lp), BOOL bNoDarkMode);
 
 /*
  * Measure a list box row in an owner drawn listbox painting an icon + a text.

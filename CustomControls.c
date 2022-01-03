@@ -711,7 +711,7 @@ HWND cust_createToastWindow(char* pszText) {
  * cust_drawComboBoxOwnerDraw()
  */
 int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(), 
-	void (*ShowSelection)(LPDRAWITEMSTRUCT lp))
+	void (*ShowSelection)(LPDRAWITEMSTRUCT lp), BOOL noDarkMode)
 {
     if (lpdis->itemID == (UINT)-1) {
 		/* We have a request to draw an item in the list box, yet there
@@ -724,7 +724,7 @@ int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
 		 */
 		DrawFocusRect(lpdis->hDC,&lpdis->rcItem);
     } else {
-		THEME_DATA* pTheme = theme_getCurrent();
+		THEME_DATA* pTheme = noDarkMode ? theme_getDefault() : theme_getCurrent();
 		HBRUSH hBrush = CreateSolidBrush((lpdis->itemState & ODS_SELECTED) ? pTheme->th_dialogHighlight : pTheme->th_dialogBackground);
 		FillRect(lpdis->hDC, &lpdis->rcItem, hBrush);
 		DeleteObject(hBrush);

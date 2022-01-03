@@ -62,24 +62,25 @@ typedef struct tagPRINTWHAT {
 } PRINTWHAT;
 
 static PRTPARAM _prtparams = {
-	PRTR_PAGES,0,0,		/* Print range*/
-	0,60, 			/* mode,options,pagelen */
-	0,8,0,"Tms Roman",	/* Std Font: oemmode,cheight,cwidth,name */
-	0,0,120,			/* lmargin,rmargin, nchars */
-	5,1,1,			/* tabsize, lnspace */
-
-	0,0,0,0,					/* distances header, footer */
-	0,8,0,"Courier",			/* Header Font: oemmode,cheight,cwidth,name */
-	{"", PMDT_NONE},			/* header template. A PKS Edit template (see mysprintf) optionally containing multiple segments separated by '!' */
-	{"%s$f - %D",PMDT_NONE},	/* footer template */
-	0,							/* header, footer align */
-
-	0,8,0,"Courier",	/* Footnote Font: oemmode,cheight,cwidth,name */
-
-	1,1,				/* print_singleLineOfText spacing footnotes */
-	0,				/* length of filename delimter line */
-	0,0,				/* distances to body and footer */
-	0,				/* offset of Fnote */
+	PRTR_PAGES,0,0,			// Print range
+	0,60, 					// mode,options,pagelen
+	0,8,0,"",				// Std Font: oemmode,cheight,cwidth,name
+	0,0,120,				// lmargin,rmargin, nchars
+	5,1,1,					// tabsize, lnspace
+	0,0,0,0,				// distances header, footer
+				
+	{	"", 				// header template. A PKS Edit template (see mysprintf) optionally containing multiple segments separated by '!'
+		PDT_NONE,
+		{0,8,0},			// Header Font: oemmode,cheight,cwidth,name
+		0},						
+	{	"%s$f - %D",		// Footer page element starting with template
+		PDT_NONE,
+		{0,8,0},
+		0},					
+	1,1,					// print_singleLineOfText spacing footnotes
+	0,						// length of filename delimter line
+	0,0,					// distances to body and footer
+	0,						// offset of Fnote
 };
 
 extern char 		*ft_visibleName(FTABLE *fp);
@@ -105,19 +106,69 @@ EXPORT HDC print_getPrinterDC(void)
 	return 0;
 }
 
+/* 
+ * Paint the various decoration types for headers and footers
+ */
+static void print_decoration(HDC hdc, PAGE_DECORATION_TYPE pdType, RECT* pRect, int nDelta, COLORREF cColor) {
+	if (pdType == PDT_NONE) {
+		return;
+	}
+	if (pdType == PDT_FILL_RECT) {
+		HBRUSH hBrush = CreateSolidBrush(cColor);
+		FillRect(hdc, pRect, hBrush);
+		DeleteObject(hBrush);
+	}
+	else {
+		HPEN grayPen = CreatePen(PS_SOLID, nDelta, cColor);
+		HPEN hpenOld = SelectObject(hdc, grayPen);
+		if (pdType == PDT_LINE) {
+			int y = (pRect->bottom + pRect->top) / 2;
+			MoveTo(hdc, pRect->left, y);
+			LineTo(hdc, pRect->right, y);
+		}
+		else {
+			Rectangle(hdc, pRect->left, pRect->top, pRect->right, pRect->bottom);
+		}
+		SelectObject(hdc, hpenOld);
+		DeleteObject(grayPen);
+
+	}
+
+}
 /*------------------------------------------------------------
  * print_drawHeaderDecoration()
  * Draw the decoration for the header / and optionally footer printed.
  */
-static void print_drawHeaderDecoration(HDC hdc, DEVEXTENTS* dep, int x1, int x2, int y, int y2)
-{
+static void print_drawHeaderDecoration(HDC hdc, DEVEXTENTS* dep, PAGE_DECORATION_TYPE pdType, BOOL bHeader, int x1, int x2) {
 	/// Should be made configurable somehow.
-	int delta = dep->lineHeight/4;
-	HPEN grayPen = CreatePen(PS_SOLID, delta, RGB(220, 220, 220));
-	HPEN hpenOld = SelectObject(hdc, grayPen);
-	Rectangle(hdc, x1, y+delta, x2, y2-delta);
-	SelectObject(hdc, hpenOld);
-	DeleteObject(grayPen);
+	if (pdType == PDT_NONE) {
+		return;
+	}
+	int y;
+	int y2;
+
+	if (bHeader) {
+		y = dep->yHeaderPos;
+		y2 = dep->yTop;
+	} else {
+		y = dep->yBottom;
+		y2 = dep->yFooterPos;
+	}
+	int delta = dep->lineHeight / 4;
+	RECT rect;
+	rect.left = x1;
+	rect.right = x2;
+	rect.top = y + delta;
+	rect.bottom = y2 - delta;
+	if (pdType == PDT_LINE) {
+		if (bHeader) {
+			rect.top = rect.bottom - 2;
+		} else {
+			rect.bottom = rect.top + 2;
+		}
+	}
+	COLORREF cColor = RGB(220, 220, 220);
+	print_decoration(hdc, pdType, &rect, delta, cColor);
 }
 
 /*------------------------------------------------------------
@@ -158,6 +209,9 @@ static HFONT print_selectfont(HDC hdc, FONTSPEC *fsp) {
 	HFONT 		hFont;
 	TEXTMETRIC 	tm;
 
+	if (!fsp->fs_name[0]) {
+		strcpy(fsp->fs_name, "Consolas");
+	}
 	if ((hFont = font_createFontHandle(fsp->fs_name, fsp->fs_cheight, fsp->fs_oemmode, FW_NORMAL)) != 0) {
 		static HFONT previousFont = NULL;
 		SelectObject(hdc, hFont);
@@ -250,10 +304,12 @@ static void print_getDeviceExtents(HDC hdc, DEVEXTENTS *dep) {
 
 	int cFontHeight = dep->lineHeight * pp->lnspace.n / pp->lnspace.z;
 	pp->font.fs_cheight =
-		pp->htfont.fs_cheight = cFontHeight;
+		pp->header.pme_font.fs_cheight = 
+		pp->footer.pme_font.fs_cheight = cFontHeight;
 
 	pp->font.fs_cwidth =
-		pp->htfont.fs_cwidth =
+		pp->header.pme_font.fs_cwidth =
+		pp->footer.pme_font.fs_cwidth =
 		(dep->xPage / (pp->nchars + pp->lmargin + pp->rmargin)) * pp->nchars / 120;
 
 	dep->yHeaderPos = pp->marginTop * cFontHeight;
@@ -329,24 +385,17 @@ static void print_headerOrFooter(HDC hdc, DEVEXTENTS *dep, int y, long pageno,
 {
 	unsigned char 	b1[256],b2[256],b3[256];
 	int  			numberOfSegments,a1,a2;
-	int				align = pp->align;
+	int				align;
 
 	if (!(pp->options & PRTO_HEADERS)) {
 		return;
 	}
 	PAGE_MARGIN_ELEMENT* pElement = bHeader ? &pp->header : &pp->footer;
-	if (!pElement->pme_text[0]) {
+	if (!pElement->pme_template[0]) {
 		return;
 	}
-	if (pElement->pme_decoType != PMDT_NONE) {
-		if (bHeader) {
-			print_drawHeaderDecoration(hdc, dep, dep->xLMargin, dep->xRMargin,
-				dep->yHeaderPos, dep->yTop);
-		} else {
-			print_drawHeaderDecoration(hdc, dep, dep->xLMargin, dep->xRMargin,
-				dep->yBottom, dep->yFooterPos);
-		}
-	}
+	align = pElement->pme_align;
+	print_drawHeaderDecoration(hdc, dep, pElement->pme_decoration, bHeader, dep->xLMargin, dep->xRMargin);
 
 	b1[0] = b2[0] = b3[0] = 0;
 	numberOfSegments = print_formatheader(b1, b2, b3, fmt, pageno);
@@ -363,7 +412,7 @@ static void print_headerOrFooter(HDC hdc, DEVEXTENTS *dep, int y, long pageno,
 			a1 = PRA_RIGHT, a2 = PRA_LEFT;
 		}
 	}
-	print_selectfont(hdc, &pp->htfont);
+	print_selectfont(hdc, &pElement->pme_font);
 	if (bHeader) {
 		y = (dep->yHeaderPos + dep->yTop - dep->lineHeight) / 2;
 	} else {
@@ -560,7 +609,7 @@ static int print_file(HDC hdc, BOOL measureOnly)
 				StartPage(hdc);
 				print_resetDeviceMode(hdc);
 				print_headerOrFooter(hdc, &de, de.yHeaderPos, pageno,
-					pp->header.pme_text, pp, TRUE);
+					pp->header.pme_template, pp, TRUE);
 				print_selectfont(hdc,&pp->font);
 			}
 			printLineParam.yPos = de.yTop;
@@ -568,7 +617,7 @@ static int print_file(HDC hdc, BOOL measureOnly)
 		if (printLineParam.yPos+de.lineHeight > printLineParam.maxYPos) {
 footerprint:
 			if (produceOutput) {
-				print_headerOrFooter(hdc,&de,de.yFooterPos,pageno,pp->footer.pme_text, pp, FALSE);
+				print_headerOrFooter(hdc,&de,de.yFooterPos,pageno,pp->footer.pme_template, pp, FALSE);
 				EndPage(hdc);
 			}
 			if (!printLineParam.lp || P_EQ(printLineParam.lp,lplast))
@@ -704,22 +753,26 @@ void print_readWriteConfigFile(int save)
 		size_t			pr_offs;
 		char			*pr_name;
 	} _pi[] = {
-		1,	offsetof(PRTPARAM,header),			"header",
-		1,	offsetof(PRTPARAM,footer),			"footer",
-		0,	offsetof(PRTPARAM,options),			"options",
-		0,	offsetof(PRTPARAM,pagelen),			"pagelen",
-		1,	offsetof(PRTPARAM,font.fs_name),		"font",
-		1,	offsetof(PRTPARAM,htfont.fs_name),		"htfont",
-		0,	offsetof(PRTPARAM,lnspace.n),			"space_n",
-		0,	offsetof(PRTPARAM,lnspace.z),			"space_z",
-		0,	offsetof(PRTPARAM,lmargin),			"lmargin",
-		0,	offsetof(PRTPARAM,rmargin),			"rmargin",
-		0,	offsetof(PRTPARAM,nchars),			"chars",
-		0,	offsetof(PRTPARAM,marginTop),			"dhtop",
-		0,	offsetof(PRTPARAM,marginBottom),		"dhbot",
-		0,	offsetof(PRTPARAM,headerSize),		"dftop",
-		0,	offsetof(PRTPARAM,footerSize),		"dfbot",
-		0,	offsetof(PRTPARAM,align),				"align"
+		1,	offsetof(PRTPARAM,header.pme_template),			"header",
+		1,	offsetof(PRTPARAM,footer.pme_template),			"footer",
+		0,	offsetof(PRTPARAM,options),						"options",
+		0,	offsetof(PRTPARAM,pagelen),						"pagelen",
+		1,	offsetof(PRTPARAM,font.fs_name),				"font",
+		1,	offsetof(PRTPARAM,header.pme_font.fs_name),		"header-font",
+		1,	offsetof(PRTPARAM,footer.pme_font.fs_name),		"footer-font",
+		0,	offsetof(PRTPARAM,lnspace.n),					"space_n",
+		0,	offsetof(PRTPARAM,lnspace.z),					"space_z",
+		0,	offsetof(PRTPARAM,lmargin),						"lmargin",
+		0,	offsetof(PRTPARAM,rmargin),						"rmargin",
+		0,	offsetof(PRTPARAM,nchars),						"chars",
+		0,	offsetof(PRTPARAM,marginTop),					"dhtop",
+		0,	offsetof(PRTPARAM,marginBottom),				"dhbot",
+		0,	offsetof(PRTPARAM,headerSize),					"dftop",
+		0,	offsetof(PRTPARAM,footerSize),					"dfbot",
+		0,	offsetof(PRTPARAM,header.pme_decoration),		"header-decoration",
+		0,	offsetof(PRTPARAM,footer.pme_decoration),		"footer-decoration",
+		0,	offsetof(PRTPARAM,header.pme_align),			"header-align",
+		0,	offsetof(PRTPARAM,footer.pme_align),			"footer-align"
 	};
 
 
@@ -756,11 +809,53 @@ static void print_saveSettings() {
 	print_readWriteConfigFile(1);
 }
 
+static void prt_decolboxfill(HWND hwnd, int nItem, void* selValue) {
+	SendDlgItemMessage(hwnd, nItem, CB_RESETCONTENT, 0, 0L);
+	SendDlgItemMessage(hwnd, nItem, WM_SETREDRAW, FALSE, 0L);
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)PDT_NONE);
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)PDT_LINE);
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)PDT_FRAME);
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)PDT_FILL_RECT);
+	SendDlgItemMessage(hwnd, nItem, WM_SETREDRAW, (WPARAM)TRUE, 0L);
+	PAGE_DECORATION_TYPE pType = (LPARAM) * (PAGE_DECORATION_TYPE*)selValue;
+	SendDlgItemMessage(hwnd, nItem, CB_SETCURSEL, pType, 0);
+}
+
+static prt_decodraw(HDC hdc, RECT* rcp, void *pParam, int nItem, int nCtl) {
+	COLORREF cColor = RGB(50, 50, 100);
+	PAGE_DECORATION_TYPE pType = (PAGE_DECORATION_TYPE)pParam;
+	RECT rect = *rcp;
+	InflateRect(&rect, -2, -2);
+	print_decoration(hdc, pType, &rect, 2, cColor);
+}
+
+/*
+ * Measure a list box painting a page header decoration type.
+ */
+void prt_decomeasure(MEASUREITEMSTRUCT* mp) {
+	mp->itemHeight = 20;
+}
+
+/*--------------------------------------------------------------------------
+ * dlg_getListboxText()
+ */
+int prt_decoget(HWND hwnd, int id, void* pDecoType) {
+	LRESULT nIdx = SendDlgItemMessage(hwnd, id, CB_GETCURSEL, 0, 0);
+	if (nIdx == LB_ERR) {
+		return 0;
+	}
+	**((PAGE_DECORATION_TYPE**) pDecoType) = (PAGE_DECORATION_TYPE)nIdx;
+	return 1;
+}
+
 /*--------------------------------------------------------------------------
  * DlgPrint()
  */
 static DIALPARS _dPrintLayout[] = {
-	IDD_RADIO1,		PRA_RIGHT - PRA_LEFT,	&_prtparams.align,
+	IDD_ICONLIST,	0,	0,
+	IDD_ICONLIST2,	0,	0,
+	IDD_RADIO1,		PRA_RIGHT - PRA_LEFT,	&_prtparams.header.pme_align,
+	IDD_RADIO4,		PRA_RIGHT - PRA_LEFT,& _prtparams.footer.pme_align,
 	IDD_OPT1,			PRTO_SWAP,& _prtparams.options,
 	IDD_OPT2,			PRTO_LINES,& _prtparams.options,
 	IDD_OPT3,			PRTO_HEADERS,& _prtparams.options,
@@ -774,11 +869,12 @@ static DIALPARS _dPrintLayout[] = {
 	IDD_INT6,			0,& _prtparams.marginBottom,
 	IDD_INT7,			0,& _prtparams.headerSize,
 	IDD_INT8,			0,& _prtparams.footerSize,
-	IDD_STRING1,		sizeof _prtparams.header,	_prtparams.header.pme_text,
-	IDD_STRING2,		sizeof _prtparams.footer,	_prtparams.footer.pme_text,
+	IDD_STRING1,		sizeof _prtparams.header,	_prtparams.header.pme_template,
+	IDD_STRING2,		sizeof _prtparams.footer,	_prtparams.footer.pme_template,
 	IDD_CALLBACK1,		0,				print_saveSettings,
-	IDD_FONTSELECT,	TRUE,				_prtparams.font.fs_name,
-	IDD_FONTSELECT2,	TRUE,			_prtparams.htfont.fs_name,
+	IDD_FONTSELECT,		TRUE,			_prtparams.font.fs_name,
+	IDD_FONTSELECT2,	TRUE,			_prtparams.header.pme_font.fs_name,
+	IDD_FONTSELECT3,	TRUE,			_prtparams.footer.pme_font.fs_name,
 	0
 };
 static DIALPARS* _getDialogParsForPage(int page) {
@@ -788,6 +884,20 @@ static DIALPARS* _getDialogParsForPage(int page) {
 	return NULL;
 }
 static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
+	PAGE_DECORATION_TYPE* p1 = &pp->header.pme_decoration;
+	PAGE_DECORATION_TYPE* p2 = &pp->footer.pme_decoration;
+	DIALLIST dlist1 = {
+		(long long*)&p1,
+		prt_decolboxfill,
+		prt_decoget,
+		prt_decomeasure,
+		prt_decodraw,
+		0
+	};
+	DIALLIST dlist2 = dlist1;
+	dlist2.li_param = (long long*) & p2;
+	_dPrintLayout[0].dp_data = &dlist1;
+	_dPrintLayout[1].dp_data = &dlist2;
 
 	PROPSHEETPAGE psp[2];
 	PROPSHEETHEADER psh;

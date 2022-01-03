@@ -610,6 +610,8 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="doc\manual\pksedit_ui.md" />
+    <None Include="doc\manual\printing.md" />
+    <None Include="doc\manual\pksprintf.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">

@@ -103,9 +103,9 @@ void string_formatDate(char *szDbuf, EDTIME *ltime)
 }
 
 /*--------------------------------------------------------------------------
- * CurrentStringVal()
+ * string_evaluatePrintfReference()
  */
-static char *CurrentStringVal(FTABLE *fp, char **fmt, char *fname)
+static char *string_evaluatePrintfReference(FTABLE *fp, char **fmt, char *fname)
 {
 	char *	format;
 	char *	ext;
@@ -126,6 +126,14 @@ static char *CurrentStringVal(FTABLE *fp, char **fmt, char *fname)
 		if ((ext = strrchr(fname,'.')) != 0) {
 			*ext = 0;
 		}
+		return fname;
+
+	case 'C':
+		agetdate(fname, localtime(&fp->ti_created));
+		return fname;
+
+	case 'c':
+		agettime(fname, localtime(&fp->ti_created));
 		return fname;
 
 	case 'M':
@@ -226,7 +234,7 @@ static long sprintf_getValueFromWindow(WINFO *wp, char **fmt) {
 /*--------------------------------------------------------------------------
  * mysprintf()
  
-	One can append to %x formats the following $ regex_addCharacterToCharacterClass holders to format the corresponding value.
+	One can append to %x formats the following $ place holders to format the corresponding value.
 	One sample would be %s$f - prints the file name of a file in string format.
 
 	$O		fileoffset
@@ -300,7 +308,7 @@ int mysprintf(WINFO *wp, char *d, char *format,...) {
 				if (*format == '$') {
 					format++;
 					stack[0] = 0;
-					x = CurrentStringVal(wp->fp, &format, fname);
+					x = string_evaluatePrintfReference(wp->fp, &format, fname);
 					format++;
 				} else {
 					if (!_psenabled)

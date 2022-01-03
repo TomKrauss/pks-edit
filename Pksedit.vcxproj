@@ -1217,6 +1217,8 @@
     <None Include="doc\manual\grammar.md" />
     <None Include="doc\manual\macro_language.md" />
     <None Include="doc\manual\pksedit_ui.md" />
+    <None Include="doc\manual\pksprintf.md" />
+    <None Include="doc\manual\printing.md" />
     <None Include="doc\manual\toc.md" />
     <None Include="doc\manual\saving_files.md" />
     <None Include="doc\markdown.md" />

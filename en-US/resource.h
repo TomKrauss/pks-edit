@@ -240,6 +240,7 @@
 #define IDM_REDO                        213
 #define DLGFINDINFILES                  535
 #define DLG_OPEN_OPTIONS                560
+#define IDD_ICONLIST2                   801
 #define IDC_CUSTOM2                     1002
 #define IDC_CHECK_ENCRYPT               1003
 #define IDC_DOCTYPES                    1004
@@ -258,7 +259,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        200
 #define _APS_NEXT_COMMAND_VALUE         40009
-#define _APS_NEXT_CONTROL_VALUE         1007
+#define _APS_NEXT_CONTROL_VALUE         1008
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

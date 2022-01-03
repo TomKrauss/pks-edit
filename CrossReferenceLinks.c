@@ -523,7 +523,7 @@ static INT_PTR CALLBACK xref_lookupTagReferenceProc(HWND hDlg, UINT message, WPA
 
 	case WM_DRAWITEM:
 		drp = (DRAWITEMSTRUCT*)lParam;
-		return cust_drawComboBoxOwnerDraw(drp, taglist_drawitem, NULL);
+		return cust_drawComboBoxOwnerDraw(drp, taglist_drawitem, NULL, FALSE);
 
 	case WM_COMMAND:
 		nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
