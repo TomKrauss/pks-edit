@@ -270,10 +270,10 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 		return 0;
 	}
 	if (up->action == UA_ABBREV) {
-		if (up->lexicalContexts) {
+		if (up->uc_pattern.lexicalContexts) {
 			LEXICAL_CONTEXT lcStart = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
 			LEXICAL_CONTEXT lcContext = grammar_getLexicalContextAt(pGrammar, lcStart, lp->lbuf, lp->len, offs);
-			if ((up->lexicalContexts & lcContext) == 0) {
+			if ((up->uc_pattern.lexicalContexts & lcContext) == 0) {
 				return 0;
 			}
 		}
@@ -285,7 +285,7 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 	}
 
 	if (up->action != UA_ABBREV) {
-		o2 = offs - up->len;
+		o2 = offs - up->uc_pattern.len;
 		if ((lp = ln_modify(fp, lp, offs, o2)) == 0L)
 			return 0;
 	} else {

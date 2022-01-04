@@ -175,7 +175,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	while (up) {
 		if (up->action == UA_TEMPLATE || up->action == UA_ABBREV) {
 			pCurrent = ll_insert(&pCC->ccp_actions, sizeof * pCC->ccp_actions);
-			pCurrent->ca_name = up->pat;
+			pCurrent->ca_name = up->uc_pattern.pattern;
 			pCurrent->ca_type = CA_TEMPLATE;
 			pCurrent->ca_param.template = up;
 			pCurrent->ca_replaceWord = strstr(up->p.uc_template, "${word_selection}") != NULL;

@@ -9,6 +9,13 @@
           "filenameCapture": 1
         }
       ],
+      "highlightBrackets": [
+        {
+          "left": "\\< *([a-zA-Z0-9_-]+)[^>]+\\>",
+          "right": "\\</\\1\\>",
+          "regex":  true
+        }
+      ],
       "patterns": [
         {
           "begin": "<!--",

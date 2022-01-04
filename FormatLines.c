@@ -169,15 +169,8 @@ static INDENTATION_DELTA format_calculateCodeIndentationDelta(FORMATTER* pFormat
  */
 static int format_calculateCodeIndent(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, const char* pBuf, size_t nLen, int *pScreenCol) {
 	WINFO* wp = fparam->fparam_wp;
-	int j = 0;
-	for (int i = 0; i < nLen; i++) {
-		char c = pBuf[i];
-		if (c == '\t' || c == ' ') {
-			j = i + 1;
-			continue;
-		}
-		break;
-	}
+	int screenCol;
+	int j = format_calculateIndent(pFormatter, fparam, pBuf, nLen, &screenCol);
 	INDENTATION_DELTA idDelta = pFormatter->f_calculateIndentationDelta(pFormatter, fparam, pBuf, nLen);
 	int nScreen = caret_bufferOffset2screen(wp, pBuf, j);
 	int ts = fparam->fparam_wp->indentation.tabsize;
@@ -455,6 +448,9 @@ static LINE* format_otherInto(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LI
 		format_insertLine(pFormatter, fparam, &lpDest, sb, nAlignment);
 		if (lp->len > 0) {
 			fparam->fparam_context = grammar_getLexicalContextAt(pGrammar, fparam->fparam_context, lp->lbuf, lp->len, lp->len - 1);
+			if (fparam->fparam_context == LC_SINGLE_LINE_COMMENT) {
+				fparam->fparam_context = LC_START;
+			}
 		}
 		if (lp == lplast) {
 			break;
@@ -608,7 +604,16 @@ int format_calculateScreenIndentWithSyntax(WINFO* wp, LINE* lp) {
 	FORMATTER_PARAM fparam;
 	FORMATTER* pFormatter = format_initParams(wp, lp, &fparam);
 	int nScreenCol;
+	LINE* lpPrev = lp->prev;
 
+	if (lpPrev) {
+		INDENTATION_DELTA nDelta = pFormatter->f_calculateIndentationDelta(pFormatter, &fparam, lp->lbuf, lp->len);
+		if (nDelta == ID_OUTDENT_THIS) {
+			format_calculateCodeIndent(pFormatter, &fparam, lpPrev->lbuf, lpPrev->len, &nScreenCol);
+			nScreenCol -= wp->indentation.tabsize;
+			return nScreenCol;
+		}
+	}
 	pFormatter->f_calculateIndent(pFormatter, &fparam, lp->lbuf, lp->len, &nScreenCol);
 	return nScreenCol;
 }

@@ -43,11 +43,9 @@
 // Code template definition.
 typedef struct tagTEMPLATE {
 	struct tagTEMPLATE* next;
-	char t_match[sizeof(((UCLIST*)0)->pat)];
+	UC_MATCH_PATTERN t_pattern;
 	unsigned char* t_contents;
-	BOOL t_ignoreCaseMatch;					// whether the pattern should be matched ignore case
 	BOOL t_auto;
-	int t_lexicalContexts;				// a bitwise combination of lexical contexts, in which this template is automatically inserted. If 0, lexical context is ignored.
 } TEMPLATE;
 
 typedef struct tagPATTERN_GROUP {
@@ -67,7 +65,6 @@ typedef struct tagGRAMMAR_PATTERN {
 	char  begin[12];					// mutually exclusive with match, one may define a begin and end marker to match. May span multiple lines
 	char  end[12];						// the end marker maybe e.g. '$' to match the end of line. Currently only one multi-line pattern supported.
 	HASHMAP* keywords;					// If an array list of keywords exists, these are matched after the pattern has matched.
-	char* rePatternBuf;
 	BOOL ignoreCase;					// If matches should be performed in a case ignore way.
 	BOOL spansLines;					// true, if this pattern spans multiple lines
 	char  style[32];					// Name of the style class to use.
@@ -108,7 +105,7 @@ typedef struct tagGRAMMAR {
 
 static BRACKET_RULE _defaultBracketRule = {
 	NULL,
-	"",
+	{""},
 	"",
 	1,
 	-1,
@@ -165,15 +162,17 @@ static JSON_MAPPING_RULE _tagSourceRules[] = {
 
 
 static JSON_MAPPING_RULE _bracketRules[] = {
-	{	RT_CHAR_ARRAY, "left", offsetof(BRACKET_RULE, lefthand), sizeof(((BRACKET_RULE*)NULL)->lefthand)},
-	{	RT_CHAR_ARRAY, "right", offsetof(BRACKET_RULE, righthand), sizeof(((BRACKET_RULE*)NULL)->righthand)},
-	{	RT_FLAG, "ignore-case", offsetof(BRACKET_RULE, ignoreCase), 1},
+	{	RT_ALLOC_STRING, "left", offsetof(BRACKET_RULE, lefthand.pattern)},
+	{	RT_ALLOC_STRING, "right", offsetof(BRACKET_RULE, righthand)},
+	{	RT_FLAG, "ignore-case", offsetof(BRACKET_RULE, lefthand.ignoreCase), 1},
+	{	RT_FLAG, "regex", offsetof(BRACKET_RULE, lefthand.regex), 1},
 	{	RT_END}
 };
 
 static JSON_MAPPING_RULE _indentPatternRules[] = {
-	{	RT_CHAR_ARRAY, "pattern", offsetof(INDENT_PATTERN, pattern), sizeof(((INDENT_PATTERN*)NULL)->pattern)},
-	{	RT_FLAG, "ignore-case", offsetof(INDENT_PATTERN, ignoreCase), 1},
+	{	RT_ALLOC_STRING, "pattern", offsetof(INDENT_PATTERN, pattern.pattern)},
+	{	RT_FLAG, "ignore-case", offsetof(INDENT_PATTERN, pattern.ignoreCase), 1},
+	{	RT_FLAG, "regex", offsetof(INDENT_PATTERN, pattern.regex), 1},
 	{	RT_FLAG, "next-line-only", offsetof(INDENT_PATTERN, nextLineOnly), 1},
 	{	RT_END}
 };
@@ -189,12 +188,12 @@ static JSON_MAPPING_RULE _navigationPatternRules[] = {
 };
 
 static JSON_MAPPING_RULE _templateRules[] = {
-	{	RT_CHAR_ARRAY,	 "match",	 offsetof(TEMPLATE, t_match), sizeof(((TEMPLATE*)NULL)->t_match)},
+	{	RT_ALLOC_STRING, "match", offsetof(TEMPLATE, t_pattern.pattern)},
 	{	RT_ALLOC_STRING, "contents", offsetof(TEMPLATE, t_contents)},
 	{	RT_FLAG, "auto-insert", offsetof(TEMPLATE, t_auto), 1},
-	{	RT_FLAG, "ignore-case-match", offsetof(TEMPLATE, t_ignoreCaseMatch), 1},
-	{	RT_FLAG, "lexical-context-initial", offsetof(TEMPLATE, t_lexicalContexts), LC_START},
-	{	RT_FLAG, "lexical-context-comment", offsetof(TEMPLATE, t_lexicalContexts), LC_SINGLE_LINE_COMMENT|LC_MULTILINE_COMMENT},
+	{	RT_FLAG, "ignore-case-match", offsetof(TEMPLATE, t_pattern.ignoreCase), 1},
+	{	RT_FLAG, "lexical-context-initial", offsetof(TEMPLATE, t_pattern.lexicalContexts), LC_START},
+	{	RT_FLAG, "lexical-context-comment", offsetof(TEMPLATE, t_pattern.lexicalContexts), LC_SINGLE_LINE_COMMENT|LC_MULTILINE_COMMENT},
 	{	RT_END}
 };
 
@@ -250,10 +249,25 @@ static JSON_MAPPING_RULE _grammarDefinitionsRules[] = {
 	{	RT_END}
 };
 
+static void grammar_destroyREPattern(RE_PATTERN* pREPattern) {
+	if (pREPattern) {
+		free(pREPattern->compiledExpression);
+		free(pREPattern);
+	}
+}
+
+static void grammar_destroyUCMatchPatternPattern(UC_MATCH_PATTERN* pMatchPattern) {
+	RE_PATTERN* pREPattern = pMatchPattern->rePattern;
+	if (pREPattern) {
+		grammar_destroyREPattern(pREPattern);
+		pMatchPattern->rePattern = NULL;
+	}
+	free(pMatchPattern->pattern);
+}
+
 static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {
 	free(pPattern->match);
-	free(pPattern->rePattern);
-	free(pPattern->rePatternBuf);
+	grammar_destroyREPattern(pPattern->rePattern);
 	ll_destroy((LINKED_LIST**)&pPattern->children, grammar_destroyPattern);
 	ll_destroy((LINKED_LIST**)&pPattern->captures, NULL);
 	hashmap_destroySet(pPattern->keywords);
@@ -271,16 +285,28 @@ static int grammar_destroyTagSource(TAGSOURCE* pSource) {
 }
 
 static int grammar_destroyTemplates(TEMPLATE* pTemplate) {
+	grammar_destroyUCMatchPatternPattern(&pTemplate->t_pattern);
 	free(pTemplate->t_contents);
+	return 1;
+}
+
+static int grammar_destroyBrackets(BRACKET_RULE* pRule) {
+	grammar_destroyUCMatchPatternPattern(&pRule->lefthand);
+	free(pRule->righthand);
+	return 1;
+}
+
+static int grammar_destroyIndentation(INDENT_PATTERN* pPattern) {
+	grammar_destroyUCMatchPatternPattern(&pPattern->pattern);
 	return 1;
 }
 
 static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
 	ll_destroy((LINKED_LIST**)&pGrammar->patterns, grammar_destroyPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->undercursorActions, NULL);
-	ll_destroy((LINKED_LIST**)&pGrammar->highlightBrackets, NULL);
-	ll_destroy((LINKED_LIST**)&pGrammar->increaseIndentPatterns, NULL);
-	ll_destroy((LINKED_LIST**)&pGrammar->decreaseIndentPatterns, NULL);
+	ll_destroy((LINKED_LIST**)&pGrammar->highlightBrackets, grammar_destroyBrackets);
+	ll_destroy((LINKED_LIST**)&pGrammar->increaseIndentPatterns, grammar_destroyIndentation);
+	ll_destroy((LINKED_LIST**)&pGrammar->decreaseIndentPatterns, grammar_destroyIndentation);
 	ll_destroy((LINKED_LIST**)&pGrammar->navigation, grammar_destroyNavigationPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->tagSources, grammar_destroyTagSource);
 	ll_destroy((LINKED_LIST**)&pGrammar->templates, grammar_destroyTemplates);
@@ -406,6 +432,26 @@ static void grammar_createPatternFromKeywords(GRAMMAR_PATTERN* pGrammarPattern) 
 	pGrammarPattern->match = _strdup(result);
 }
 
+RE_PATTERN* grammar_compileAndCreateRegex(char* pszMatch, char* pszScope, int someFlags) {
+	RE_PATTERN *pPattern = calloc(1, sizeof(RE_PATTERN));
+	RE_OPTIONS options;
+	memset(&options, 0, sizeof options);
+	options.flags = someFlags;
+	options.patternBuf = malloc(512);
+	options.endOfPatternBuf = options.patternBuf + 512;
+	options.expression = pszMatch;
+	if (!regex_compile(&options, pPattern)) {
+		free(pPattern);
+		free(options.patternBuf);
+		error_displayAlertDialog("Wrong regular expression %s in grammar", pszMatch, pszScope);
+		return NULL;
+	}
+	size_t nLen = pPattern->compiledExpressionEnd - pPattern->compiledExpression;
+	pPattern->compiledExpression = realloc(pPattern->compiledExpression, nLen);
+	pPattern->compiledExpressionEnd = pPattern->compiledExpression + nLen;
+	return pPattern;
+
+}
 /*
  * Util to compile a regular expression. 
  */
@@ -417,28 +463,14 @@ RE_PATTERN* grammar_compile(GRAMMAR* pGrammar, GRAMMAR_PATTERN* pGrammarPattern)
 			return NULL;
 		}
 	}
-	pGrammarPattern->rePattern = calloc(1, sizeof(RE_PATTERN));
-	pGrammarPattern->rePatternBuf = malloc(512);
-	RE_OPTIONS options;
-	memset(&options, 0, sizeof options);
-	options.flags = RE_DOREX|RE_NOADVANCE;
+	int flags = RE_DOREX|RE_NOADVANCE;
 	if (pGrammarPattern->ignoreCase) {
-		options.flags |= RE_IGNCASE;
+		flags |= RE_IGNCASE;
 		if (pGrammarPattern->keywords) {
 			hashmap_makeCaseIgnore(pGrammarPattern->keywords);
 		}
 	}
-	options.patternBuf = pGrammarPattern->rePatternBuf;
-	options.endOfPatternBuf = pGrammarPattern->rePatternBuf + 512;
-	options.expression = pGrammarPattern->match;
-	if (!regex_compile(&options, pGrammarPattern->rePattern)) {
-		free(pGrammarPattern->rePattern);
-		pGrammarPattern->rePattern = NULL;
-		free(pGrammarPattern->rePatternBuf);
-		pGrammarPattern->rePatternBuf = NULL;
-		error_displayAlertDialog("Wrong regular expression %s in grammar", pGrammarPattern->rePattern, pGrammar->scopeName);
-		return NULL;
-	}
+	pGrammarPattern->rePattern = grammar_compileAndCreateRegex(pGrammarPattern->match, pGrammar->scopeName, flags);
 	return pGrammarPattern->rePattern;
 }
 
@@ -509,6 +541,22 @@ static LEXICAL_STATE grammar_processChildPatterns(GRAMMAR* pGrammar, LEXICAL_STA
 }
 
 /*
+ * Pre-process an undercursor matching pattern condition.
+ */
+static void grammar_processMatchPattern(UC_MATCH_PATTERN* pPattern, char* pScopeName) {
+	if (pPattern->regex) {
+		int flags = RE_DOREX;
+		if (pPattern->ignoreCase) {
+			flags |= RE_IGNCASE;
+		}
+		pPattern->rePattern = grammar_compileAndCreateRegex(pPattern->pattern, pScopeName, flags);
+		pPattern->len = regex_getMinimumMatchLength(pPattern->rePattern);
+	} else {
+		pPattern->len = (int)strlen(pPattern->pattern);
+	}
+}
+
+/*
  * Initialize the grammar by constructing the basic knowledge necessary to make a fast
  * parsing of the grammar more simple.
  */
@@ -551,7 +599,26 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 			pGroup = pGroup->next;
 		}
 		pPattern = pPattern->next;
-
+	}
+	BRACKET_RULE* pBrRule = pGrammar->highlightBrackets;
+	while (pBrRule) {
+		grammar_processMatchPattern(&pBrRule->lefthand, pGrammar->scopeName);
+		pBrRule = pBrRule->next;
+	}
+	TEMPLATE* pTemplate = pGrammar->templates;
+	while (pTemplate) {
+		grammar_processMatchPattern(&pTemplate->t_pattern, pGrammar->scopeName);
+		pTemplate = pTemplate->next;
+	}
+	INDENT_PATTERN* pIndent = pGrammar->decreaseIndentPatterns;
+	while (pIndent) {
+		grammar_processMatchPattern(&pIndent->pattern, pGrammar->scopeName);
+		pIndent = pIndent->next;
+	}
+	pIndent = pGrammar->increaseIndentPatterns;
+	while (pIndent) {
+		grammar_processMatchPattern(&pIndent->pattern, pGrammar->scopeName);
+		pIndent = pIndent->next;
 	}
 }
 
@@ -837,7 +904,7 @@ UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar) {
 		while (pRule) {
 			UCLIST* pList = ll_insert(&pGrammar->undercursorActions, sizeof(UCLIST));
 			pList->action = UA_SHOWMATCH;
-			pList->len = (int)strlen(pRule->lefthand);
+			memcpy(&pList->uc_pattern, &pRule->lefthand, sizeof (pRule->lefthand));
 			pList->p.uc_bracket = pRule;
 			pRule = pRule->next;
 		}
@@ -845,14 +912,7 @@ UCLIST* grammar_getUndercursorActions(GRAMMAR* pGrammar) {
 		while (pTemplate) {
 			UCLIST* pList = ll_insert(&pGrammar->undercursorActions, sizeof(UCLIST));
 			pList->action = pTemplate->t_auto ? UA_ABBREV : UA_TEMPLATE;
-			if (pTemplate->t_auto) {
-				pList->lexicalContexts = pTemplate->t_lexicalContexts;
-			} else {
-				pList->lexicalContexts = 0;
-			}
-			strcpy(pList->pat, pTemplate->t_match);
-			pList->ignoreCase = pTemplate->t_ignoreCaseMatch;
-			pList->len = (int)strlen(pTemplate->t_match);
+			memcpy(&pList->uc_pattern, &pTemplate->t_pattern, sizeof(pTemplate->t_pattern));
 			pList->p.uc_template = pTemplate->t_contents;
 			pTemplate = pTemplate->next;
 		}
@@ -1113,14 +1173,14 @@ static BOOL grammar_countIndent(GRAMMAR* pGrammar, const char* pBuf, int nOffset
 	}
 	INDENT_PATTERN* pPatterns = pGrammar->increaseIndentPatterns;
 	while (pPatterns) {
-		if (string_compareWithSecond(&pBuf[nOffset], pPatterns->pattern, pPatterns->ignoreCase) == 0) {
+		if (string_compareWithSecond(&pBuf[nOffset], pPatterns->pattern.pattern, pPatterns->pattern.ignoreCase) == 0) {
 			(*(int*)pParam)++;
 		}
 		pPatterns = pPatterns->next;
 	}
 	pPatterns = pGrammar->decreaseIndentPatterns;
 	while (pPatterns) {
-		if (string_compareWithSecond(&pBuf[nOffset], pPatterns->pattern, pPatterns->ignoreCase) == 0) {
+		if (string_compareWithSecond(&pBuf[nOffset], pPatterns->pattern.pattern, pPatterns->pattern.ignoreCase) == 0) {
 			(*(int*)pParam)--;
 		}
 		pPatterns = pPatterns->next;

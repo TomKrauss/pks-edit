@@ -419,7 +419,7 @@ EXPORT void render_paintWindow(WINFO* wp)
  */
 static void render_invalidateRect(WINFO* wp, RECT* pRect) {
 	RECT r2;
-	InvalidateRect(wp->ww_handle, pRect, 1);
+	InvalidateRect(wp->ww_handle, pRect, 0);
 	if (wp->lineNumbers_handle != NULL) {
 		if (pRect) {
 			GetClientRect(wp->lineNumbers_handle, &r2);
@@ -609,11 +609,16 @@ EXPORT void render_repaintLine(FTABLE *fp, LINE *lpWhich)
 static void render_repaintLineRangeWindowInternal(WINFO* wp, FTABLE* fp, LINE* lpStart, LINE* lpEnd) {
 	int idx = ln_indexOf(fp, lpStart);
 	if (idx < 0) {
-		render_repaintAllForFile(fp);
+		if (wp) {
+			render_repaintForWindow(wp, 0);
+		} else {
+			render_repaintAllForFile(fp);
+		}
 		return;
 	}
 	int nCount = ln_cnt(lpStart, lpEnd);
 	if (nCount <= 0) {
+		idx = ln_indexOf(fp, lpEnd);
 		nCount = ln_cnt(lpEnd, lpStart);
 	}
 	if (wp) {

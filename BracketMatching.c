@@ -85,24 +85,25 @@ EXPORT UCLIST *uc_find(GRAMMAR* pGrammar, LINE *lp, int column) {
 	char* lineBuffer = lp->lbuf;
 
 	while (up) {
-		o = column - up->len;
+		UC_MATCH_PATTERN* pPattern = &up->uc_pattern;
+		o = column - pPattern->len;
 		BOOL bMatch = FALSE;
 		if (up->action == UA_SHOWMATCH) {
-			if (uc_matchBracket(pGrammar, lp, o, up->p.uc_bracket->lefthand, up->p.uc_bracket->ignoreCase)) {
+			if (uc_matchBracket(pGrammar, lp, o, pPattern->pattern, pPattern->ignoreCase)) {
 				bMatch = TRUE;
 			}
 			int nLen = (int)strlen(up->p.uc_bracket->righthand);
 			if ((o = column - nLen) >= 0 && nLen > nBest) {
-				if (uc_matchBracket(pGrammar, lp, o, up->p.uc_bracket->righthand, up->p.uc_bracket->ignoreCase)) {
+				if (uc_matchBracket(pGrammar, lp, o, up->p.uc_bracket->righthand, pPattern->ignoreCase)) {
 					bMatch = TRUE;
 				}
 			}
-		} else if (uc_matchBracket(pGrammar, lp, o, up->pat, up->ignoreCase)) {
+		} else if (uc_matchBracket(pGrammar, lp, o, pPattern->pattern, pPattern->ignoreCase)) {
 			bMatch = TRUE;
 		}
-		if (bMatch && up->len > nBest) {
+		if (bMatch && pPattern->len > nBest) {
 			upBest = up;
-			nBest = up->len;
+			nBest = pPattern->len;
 		}
 		up = up->next;
 	}
@@ -113,12 +114,12 @@ EXPORT UCLIST *uc_find(GRAMMAR* pGrammar, LINE *lp, int column) {
  * uc_matchBracketRule()
  */
 static int uc_matchBracketRule(GRAMMAR* pGrammar, LINE* lp, int nOffset, BRACKET_RULE *mp, int *pIsRightHand) {
-	if (uc_matchBracket(pGrammar, lp, nOffset, mp->lefthand, mp->ignoreCase)) {
+	if (uc_matchBracket(pGrammar, lp, nOffset, mp->lefthand.pattern, mp->lefthand.ignoreCase)) {
 		*pIsRightHand = 0;
 		return 1;
 	}
 
-	if (uc_matchBracket(pGrammar, lp, nOffset, mp->righthand, mp->ignoreCase)) {
+	if (uc_matchBracket(pGrammar, lp, nOffset, mp->righthand, mp->lefthand.ignoreCase)) {
 		*pIsRightHand = 1;
 		return 1;
 	}
@@ -218,12 +219,12 @@ static int br_indentsum(GRAMMAR* pGrammar, const LINE *lps, LINE *lp, BRACKET_RU
 	*hasind = 0;
 
 	while(s < send) {
-		if (uc_matchBracket(pGrammar, lp, (int)(s-lp->lbuf), mp->lefthand, mp->ignoreCase)) {
+		if (uc_matchBracket(pGrammar, lp, (int)(s-lp->lbuf), mp->lefthand.pattern, mp->lefthand.ignoreCase)) {
 			*dcurr = mp->ci1[0];
 			*hasind = 1;
 			break;
 		}
-		if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),mp->righthand, mp->ignoreCase)) {
+		if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),mp->righthand, mp->lefthand.ignoreCase)) {
 			*dcurr = mp->ci2[0];
 			*hasind = 1;
 			break;
@@ -237,9 +238,9 @@ static int br_indentsum(GRAMMAR* pGrammar, const LINE *lps, LINE *lp, BRACKET_RU
 		send = lp->lbuf;
 		s = send + lp->len;
 		while (--s >= send) {
-			if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),mp->lefthand, mp->ignoreCase)) {
+			if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),mp->lefthand.pattern, mp->lefthand.ignoreCase)) {
 				indent += d1;
-			} else if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),mp->righthand, mp->ignoreCase)) {
+			} else if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),mp->righthand, mp->lefthand.ignoreCase)) {
 				indent += d2;
 			}
 		}
@@ -263,7 +264,7 @@ static BRACKET_RULE* uc_findBracketMatchInLine(GRAMMAR* pGrammar, UCLIST* pList,
 	pos = *col;
 	if ((mp = uc_findMatchinBracketRule(pGrammar, pList, lp, pos, &righthand)) != 0) {
 		if (!righthand) {
-			*col += (int)strlen(mp->lefthand);
+			*col += mp->lefthand.len;
 		}
 		return (br_findMatching(pGrammar, !righthand, lp, mp, ln, col)) ? mp : 0;
 	}

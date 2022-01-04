@@ -59,14 +59,13 @@ EXPORT int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag) {
 		caret_placeCursorInCurrentFile(wp, wp->caret.ln,(long)wp->caret.offset);
 	}
 	if (mps && mpe) {
+		render_repaintLineRangeWindow(wp, mps->m_linePointer, mpe->m_linePointer);
 		if (removeLineSelectionFlag) {
 			ln_removeFlag(mps->m_linePointer, mpe->m_linePointer, (LNXMARKED | LN_COMPARE_DIFFERENT));
 			if (mps->m_linePointer == mpe->m_linePointer) {
 				if (mps->m_column != mpe->m_column) {
 					render_repaintLine(fp, mps->m_linePointer);
 				}
-			} else {
-				render_repaintLineRange(fp, mps->m_linePointer, mpe->m_linePointer);
 			}
 		}
 	} else {

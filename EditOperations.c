@@ -142,27 +142,28 @@ static int edit_insertIndent(WINFO *wp, LINE *pPreviousLine, LINE *nlp, int care
 /*--------------------------------------------------------------------------
  * edit_handleBracketIndenting()
  */
-static int edit_handleBracketIndenting(WINFO *wp, int dir, LINE *lpPrev, LINE *lpCurrent)
-{
-	if ((wp->workmode & WM_AUTOINDENT) == 0) {
-		return FALSE;
-	}
+static int edit_handleBracketIndenting(WINFO *wp, int dir, LINE *lpPrev, LINE *lpCurrent) {
 	FTABLE* fp = wp->fp;
 
+	if (!lpPrev || !lpPrev->prev) {
+		return FALSE;
+	}
+	INDENTATION_DELTA tDelta = format_calculateIndentationDelta(wp, lpPrev);
+	if (tDelta != ID_OUTDENT_THIS) {
+		return TRUE;
+	}
+	int prevIndent = format_calculateScreenIndent(wp, lpPrev->prev);
+	tDelta = format_calculateIndentationDelta(wp, lpPrev->prev);
 	int currentIndent = format_calculateScreenIndent(wp, lpPrev);
-	if (lpPrev) {
-		INDENTATION_DELTA tDelta = format_calculateIndentationDelta(wp, lpPrev);
-		if (tDelta != ID_OUTDENT_THIS) {
-			return TRUE;
-		}
-		int supposedIndent = currentIndent - wp->indentation.tabsize;
+	int supposedIndent = tDelta == ID_INDENT_NEXT ? prevIndent : prevIndent - wp->indentation.tabsize;
+	if (supposedIndent < currentIndent) {
+		int o2 = caret_screen2lineOffset(wp, &(CARET) {
+			lpPrev,
+			currentIndent
+		});
 		int o1 = caret_screen2lineOffset(wp, &(CARET) {
 			lpPrev,
 			supposedIndent
-		});
-		int o2 = caret_screen2lineOffset(wp, &(CARET) {
-			lpPrev,
-				currentIndent
 		});
 		if (ln_modify(fp, lpPrev, o2, o1)) {
 			render_repaintLine(fp, lpPrev);

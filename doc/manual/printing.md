@@ -19,9 +19,9 @@ characters to print by default.
 For headers and footers one can specify:
 
 - `template`: this is the text to print in the header / footer. It may contain arbitrary characters + additional special information 
-following the (pks-print specification)[pksprintf.md]. The text may contain three *parts* separated by a `!` characters to 
+following the [PKS Print specification](pksprintf.md). The text may contain three *parts* separated by a `!` characters to 
 create three segments of text to be printed in the left / center / right part of the headline / footline.
-- `alignment`: this is in particular useful to determine the alignment of the header/footer text on the screen, if only one`*segment* 
+- `alignment`: this is in particular useful to determine the alignment of the header/footer text on the screen, if only one *segment* 
 is defined in the template.
 - `font`: one may select a special font to be used for the header / footer.
 - `decoration`: one may define, whether the header/footer is separated from the body of the printout using a selectable decoration.

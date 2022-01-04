@@ -253,6 +253,7 @@ LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WIN
 	long nLine = ln_indexOf(fp, lp);
 	highlight_adjustCachedLineWindow(pHighlighter, fp, nLine);
 	LEXICAL_STATE lexicalState = highlight_getPreviousLineTokenType(pHighlighter, fp, lp, nLine);
-	return grammar_getLexicalContextForState(fp->documentDescriptor->grammar, lexicalState);
+	LEXICAL_CONTEXT lCtx = grammar_getLexicalContextForState(fp->documentDescriptor->grammar, lexicalState);
+	return lCtx == LC_SINGLE_LINE_COMMENT ? LC_START : lCtx;
 }
 
