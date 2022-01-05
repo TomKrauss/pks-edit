@@ -1241,3 +1241,19 @@ LEXICAL_CONTEXT grammar_getLexicalContextForState(GRAMMAR* pGrammar, LEXICAL_STA
 	}
 	return grammar_getContextForPattern(pPattern);
 }
+
+/*
+ * Returns true, if the lexical state is defined by a "multi-line" definition using 
+ * begin and end - in other words the state may span several lines.
+ */
+BOOL grammar_isMultilineState(GRAMMAR* pGrammar, LEXICAL_STATE aState) {
+	if (pGrammar == NULL) {
+		return FALSE;
+	}
+	GRAMMAR_PATTERN* pPattern = pGrammar->patternsByState[aState];
+	if (!pPattern) {
+		return FALSE;
+	}
+	return pPattern->end[0] != 0;
+}
+

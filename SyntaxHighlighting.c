@@ -183,7 +183,17 @@ static unsigned char* highlight_usingGrammar(HIGHLIGHTER* pHighlighter, WINFO* w
 		int nOffset = nLine - pHighlighter->h_minLine;
 		if (nOffset >= 0 && nOffset < WINDOW_SIZE) {
 			TOKEN_LINE_CACHE* tlp = &pHighlighter->h_lines[nOffset];
-			tlp->s_lineEndType = lexicalState;
+			if (tlp->s_lineEndType != lexicalState) {
+				if (tlp->s_lineEndType) {
+					BOOL bThisIsMultiline = grammar_isMultilineState(pHighlighter->h_grammar, lexicalState);
+					BOOL bThisOldIsMultiline = grammar_isMultilineState(pHighlighter->h_grammar, tlp->s_lineEndType);
+					if (bThisIsMultiline != bThisOldIsMultiline && lp->next) {
+						// need to force a repaint of the next lines to correctly validate them.
+						render_repaintLine(wp->fp, lp->next);
+					}
+				}
+				tlp->s_lineEndType = lexicalState;
+			}
 			tlp->s_linePointer = lp;
 			tlp->s_lineNumber = nLine;
 		}

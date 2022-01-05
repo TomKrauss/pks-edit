@@ -240,5 +240,11 @@ extern LEXICAL_CONTEXT grammar_getLexicalContextAt(GRAMMAR* pGrammar, LEXICAL_CO
  */
 extern LEXICAL_CONTEXT grammar_getLexicalContextForState(GRAMMAR* pGrammar, LEXICAL_STATE aState);
 
+/*
+ * Returns true, if the lexical state is defined by a "multi-line" definition using
+ * begin and end - in other words the state may span several lines.
+ */
+extern BOOL grammar_isMultilineState(GRAMMAR* pGrammar, LEXICAL_STATE aState);
+
 #define GRAMMAR_H
 #endif
