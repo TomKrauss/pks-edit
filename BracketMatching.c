@@ -47,28 +47,33 @@ extern PASTELIST 	*_esclist[];
 /*--------------------------------------------------------------------------
  * uc_matchBracket()
  */
-static BOOL uc_matchBracket(GRAMMAR* pGrammar, LINE* pLine, int nOffset, char *pPattern, BOOL bCaseIgnore) {	
-	if (nOffset < 0 || !pPattern[0]) {
+static BOOL uc_matchBracket(GRAMMAR* pGrammar, LINE* pLine, int nOffset, UC_MATCH_PATTERN* pPattern) {	
+	if (nOffset < 0 || !pPattern->pattern[0]) {
 		return FALSE;
 	}
 	const char* pBuffer = &pLine->lbuf[nOffset];
-	if (string_compareWithSecond(pBuffer, pPattern, bCaseIgnore) == 0) {
+	BOOL bMatch = FALSE;
+	if (pPattern->rePattern) {
+		RE_MATCH matchResult;
+		bMatch = regex_match(pPattern->rePattern, pBuffer, &pLine->lbuf[pLine->len], &matchResult);
+	} else if (string_compareWithSecond(pBuffer, pPattern->pattern, pPattern->ignoreCase) == 0) {
 		// special case - start end patterns like begin and end in pascal - make sure, they start
 		// on a word boundary - RE would make us more flexible here.
-		if (pks_isalpha(pPattern[0])) {
+		if (pks_isalpha(pPattern->pattern[0])) {
 			if (nOffset != 0 && pks_isalpha(pBuffer[-1])) {
 				return FALSE;
 			}
-			int nO2 = (int)(nOffset + strlen(pPattern));
+			int nO2 = (int)(nOffset + strlen(pPattern->pattern));
 			if (nO2 < pLine->len && pks_isalpha(pLine->lbuf[nO2])) {
 				return FALSE;
 			}
 		}
-		// TODO: determine start state using LEXICAL_CONTEXT lcStart = highlight_getLexicalStartStateFor() ... would
-		// better help to eliminate multiline comment matches.
-		if (grammar_getLexicalContextAt(pGrammar, LC_START, pLine->lbuf, pLine->len, nOffset) == LC_START) {
-			return TRUE;
-		}
+		bMatch = TRUE;
+	}
+	// TODO: determine start state using LEXICAL_CONTEXT lcStart = highlight_getLexicalStartStateFor() ... would
+	// better help to eliminate multiline comment matches.
+	if (bMatch &&  grammar_getLexicalContextAt(pGrammar, LC_START, pLine->lbuf, pLine->len, nOffset) == LC_START) {
+		return TRUE;
 	}
 
 	return FALSE;
@@ -89,16 +94,16 @@ EXPORT UCLIST *uc_find(GRAMMAR* pGrammar, LINE *lp, int column) {
 		o = column - pPattern->len;
 		BOOL bMatch = FALSE;
 		if (up->action == UA_SHOWMATCH) {
-			if (uc_matchBracket(pGrammar, lp, o, pPattern->pattern, pPattern->ignoreCase)) {
+			if (uc_matchBracket(pGrammar, lp, o, pPattern)) {
 				bMatch = TRUE;
 			}
-			int nLen = (int)strlen(up->p.uc_bracket->righthand);
+			int nLen = up->p.uc_bracket->righthand.len;
 			if ((o = column - nLen) >= 0 && nLen > nBest) {
-				if (uc_matchBracket(pGrammar, lp, o, up->p.uc_bracket->righthand, pPattern->ignoreCase)) {
+				if (uc_matchBracket(pGrammar, lp, o, &up->p.uc_bracket->righthand)) {
 					bMatch = TRUE;
 				}
 			}
-		} else if (uc_matchBracket(pGrammar, lp, o, pPattern->pattern, pPattern->ignoreCase)) {
+		} else if (uc_matchBracket(pGrammar, lp, o, pPattern)) {
 			bMatch = TRUE;
 		}
 		if (bMatch && pPattern->len > nBest) {
@@ -114,12 +119,12 @@ EXPORT UCLIST *uc_find(GRAMMAR* pGrammar, LINE *lp, int column) {
  * uc_matchBracketRule()
  */
 static int uc_matchBracketRule(GRAMMAR* pGrammar, LINE* lp, int nOffset, BRACKET_RULE *mp, int *pIsRightHand) {
-	if (uc_matchBracket(pGrammar, lp, nOffset, mp->lefthand.pattern, mp->lefthand.ignoreCase)) {
+	if (uc_matchBracket(pGrammar, lp, nOffset, &mp->lefthand)) {
 		*pIsRightHand = 0;
 		return 1;
 	}
 
-	if (uc_matchBracket(pGrammar, lp, nOffset, mp->righthand, mp->lefthand.ignoreCase)) {
+	if (uc_matchBracket(pGrammar, lp, nOffset, &mp->righthand)) {
 		*pIsRightHand = 1;
 		return 1;
 	}
@@ -219,12 +224,12 @@ static int br_indentsum(GRAMMAR* pGrammar, const LINE *lps, LINE *lp, BRACKET_RU
 	*hasind = 0;
 
 	while(s < send) {
-		if (uc_matchBracket(pGrammar, lp, (int)(s-lp->lbuf), mp->lefthand.pattern, mp->lefthand.ignoreCase)) {
+		if (uc_matchBracket(pGrammar, lp, (int)(s-lp->lbuf), &mp->lefthand)) {
 			*dcurr = mp->ci1[0];
 			*hasind = 1;
 			break;
 		}
-		if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),mp->righthand, mp->lefthand.ignoreCase)) {
+		if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf), &mp->righthand)) {
 			*dcurr = mp->ci2[0];
 			*hasind = 1;
 			break;
@@ -238,9 +243,9 @@ static int br_indentsum(GRAMMAR* pGrammar, const LINE *lps, LINE *lp, BRACKET_RU
 		send = lp->lbuf;
 		s = send + lp->len;
 		while (--s >= send) {
-			if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),mp->lefthand.pattern, mp->lefthand.ignoreCase)) {
+			if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),&mp->lefthand)) {
 				indent += d1;
-			} else if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),mp->righthand, mp->lefthand.ignoreCase)) {
+			} else if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf), &mp->righthand)) {
 				indent += d2;
 			}
 		}
@@ -334,7 +339,7 @@ EXPORT int uc_showMatchingBracket(WINFO* wp) {
 	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
 
 	if ((up = uc_find(pGrammar,lp,col)) != 0 && up->action == UA_SHOWMATCH) {
-		int nOffs = (int)strlen(up->p.uc_bracket->righthand);
+		int nOffs = up->p.uc_bracket->righthand.len;
 		col -= nOffs;
 		if (nOffs <= 0) {
 			lp = lp->prev;

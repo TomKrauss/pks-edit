@@ -60,7 +60,10 @@ typedef struct tagUC_MATCH_PATTERN {
 typedef struct tagBRACKET_RULE {
 	struct tagBRACKET_RULE* next;
 	UC_MATCH_PATTERN lefthand;
-	char* righthand;		// righthand single word to match
+	UC_MATCH_PATTERN righthand;	 // righthand bracket match definition
+	char* oppositeMatch;	// Allows for "calculated matches" in constellation where lefthand and righthand are defined via RE the opposite
+							// match may be constructed from the results of a submatch such as </?\1> to match the counter part of an XML entity,
+							// when the entity match is defined as <([^>]+)> and </([^>]+)> respectively
 	char d1, d2;			// delta to add to current bracket level - typically 1 and -1 for left hand and right hand brackets
 	char ci1[2];			// automatic bracket indents (look up, down) indent 1-based of previous line and current line
 	char ci2[2];			// automatic bracket indents cl2 outdent 1-based of previous line and current line

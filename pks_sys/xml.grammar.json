@@ -11,9 +11,10 @@
       ],
       "highlightBrackets": [
         {
-          "left": "\\< *([a-zA-Z0-9_-]+)[^>]+\\>",
-          "right": "\\</\\1\\>",
-          "regex":  true
+          "left": "\\< *([a-zA-Z0-9_-]+)[^>]+[^/>]\\>",
+          "right": "\\< */([a-zA-Z0-9_-]+)[^>]+[^/>]\\>",
+          "opposite-match": "\\<.*\\1[^>]*\\>",
+          "regex": true
         }
       ],
       "patterns": [
