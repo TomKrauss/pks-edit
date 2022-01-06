@@ -1,0 +1,79 @@
+const MB_YESNO	                = 0x0004;
+const IDYES	                = 6;
+#
+# Windows MessageBox
+#
+macro YesOrNo()
+{
+	// int 	ret;
+	// string 	s;
+
+	if (IsActive(QUERY_FILEMODIFIED) &&
+		MessageBox(MB_YESNO, 0, "do it ?") == IDYES) {
+		CompileMacros();
+	}
+	// else {
+	//	Alert("no, I don't");
+	//}
+
+	//if (MessageBox(1, 0, "Test of return value due to button pressed") == 1) {
+	//	Alert("yea");
+	//} else {
+	//	Alert("nou");
+	//}
+}
+
+#
+# test of expressions, using functions
+#
+macro test() 
+{
+	string	x = GetSelected() + 
+			    "xx" + 
+			    FormatPrint("date: %D") + 
+			    FormatPrint("time: %T");
+
+	InsertString(x);
+}
+
+#
+# Calculate the factorial of a number input into a message box.
+# Note: PKSMakroC - Integers are only 24 bit big, this macro
+# will cause overflows for fac(>12) !
+#
+macro calculateFactorial() {
+	int		count = 1;
+	int		n = 1;
+	int		save_n = 1;
+	int		res = 1;
+	string	result = "";
+
+	n = (int)PromptAssign("Calculate factorial of: ","10");
+	save_n = n;
+
+	while(n > 1) {
+		res = res * n;
+		n = n - 1;
+	}
+
+    if (res < 0) {
+        MessageBox(0, MB_ICONERROR|MB_OK, "Overflow during calculation.");
+    } else {
+	    result = "The factorial of " + (string) save_n + " is: " + (string) res;
+        MessageBox(0, MB_ICONINFORMATION|MB_OK, result);
+    }
+}
+
+macro test2()
+{
+	int		a = 10;
+	int		b = 2;
+	int		res = 0;
+	string	p = "";
+
+	res = (a * b + a / 7 + a * b ) / 3;
+
+	p = "res: " + (string) res;
+
+	Alert(p);
+}

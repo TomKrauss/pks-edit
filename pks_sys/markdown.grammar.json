@@ -46,7 +46,7 @@
         {
           "match": "^\\>\\s.*",
           "name": "markdown.blockquote",
-          "style": "control"
+          "style": "bold-italic"
         },
         {
           "match": "^[*-].*",

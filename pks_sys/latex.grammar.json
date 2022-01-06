@@ -1,0 +1,42 @@
+{
+  "grammars": [
+    {
+      "scopeName": "latex",
+      "highlightBrackets": [
+        {
+          "left": "\\\\begin\\{([a-zA-Z0-9-]+)\\}",
+          "right": "\\\\end\\{([a-zA-Z0-9-]+)\\}",
+          "opposite-match": "\\\\begin\\{\\1\\}",
+          "regex": true
+        }
+      ],
+      "patterns": [
+        {
+          "match": "%.*",
+          "style": "sl-comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "\\\\begin\\{[a-zA-Z0-9-]+\\}",
+          "name": "begin.tex.selector",
+          "style": "literal"
+        },
+        {
+          "match": "\\\\end\\{[a-zA-Z0-9-]+\\}",
+          "name": "begin.tex.selector",
+          "style": "literal"
+        },
+        {
+          "match": "\\\\[a-z]+{[a-zA-Z0-9,-]+\\}",
+          "style": "operator",
+          "name": "arbitrary.tex.selector"
+        },
+        {
+          "match": "\\[[^]]+\\]",
+          "style": "italic",
+          "name": "modifier.tex.selector"
+        }
+      ]
+    }
+  ]
+}

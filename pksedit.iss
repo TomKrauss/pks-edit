@@ -72,6 +72,7 @@ Source: "pks_sys\resource.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignore
 Source: "pks_sys\makefile.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\python.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\fitnesse.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
+Source: "pks_sys\latex.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\integrity.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\pksedit.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\css.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
@@ -87,6 +88,7 @@ Source: "pks_sys\pksedit.mac"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "rc\pks.ico"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "readme.md"; DestDir: "{app}"; Flags: ignoreversion 
 Source: "doc\*"; DestDir: "{app}\doc"; Flags: ignoreversion recursesubdirs
+Source: "examples\*"; DestDir: "{app}\doc"; Flags: ignoreversion recursesubdirs
 
 [INI]
 Filename: "win.ini"; Section: "PksEdit"; Key: "PKS_SYS"; String: "{app}\PKS_SYS"

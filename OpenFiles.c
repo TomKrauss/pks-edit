@@ -735,7 +735,8 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, FT_OPEN_OPTIONS* pOp
 			}
 			fn = szBuf;
 		}
-		if ((GetConfiguration()->options & O_DELETE_AUTOSAVE_FILES) &&
+		if (!(fileflags & F_NEWFILE) && 
+			(GetConfiguration()->options & O_DELETE_AUTOSAVE_FILES) &&
 			ft_generateAutosavePathname(szAsPath, fn) &&
 			areFilenamesDifferent(szAsPath, fn) &&
 			file_exists(szAsPath) == 0 &&

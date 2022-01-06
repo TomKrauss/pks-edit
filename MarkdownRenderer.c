@@ -541,7 +541,7 @@ static BOOL mdr_isTopLevelOrBreak(LINE* lp, MDR_ELEMENT_TYPE mCurrentType, int n
 		if (c == '-' || c == '#' || c == '*' || c == '+') {
 			return TRUE;
 		}
-		if (isdigit(c)) {
+		if (isdigit((unsigned char)c)) {
 			string_convertToLong(&lp->lbuf[i]);
 			return *_strtolend == '.';
 		}
@@ -620,7 +620,7 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 			(*pLevel)++;
 			i++;
 		}
-	} else if (isdigit(c)) {
+	} else if (isdigit((unsigned char)c)) {
 		*pNumber = string_convertToLong(&lp->lbuf[i]);
 		if (*_strtolend == '.') {
 			*pOffset = (int)(_strtolend - lp->lbuf) + 1;

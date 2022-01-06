@@ -86,9 +86,15 @@ namespace pkseditTests
 			RE_MATCH match;
 			char group[50];
 
+			options = createOptions("\\[[^]]+\\]", RE_DOREX);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			const char* expr = "[abc]";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(0, (int)(match.loc1 - expr));
+
 			options = createOptions(".*(\"[^\"]+\",)", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
-			const char* expr = "xxx \"hello\",";
+			expr = "xxx \"hello\",";
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
 			Assert::AreEqual(1, match.nbrackets);
 			Assert::AreEqual(8, (int)(match.braelist[0] - match.braslist[0]));

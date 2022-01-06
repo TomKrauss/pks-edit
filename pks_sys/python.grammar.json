@@ -8,6 +8,10 @@
           "right": ")"
         },
         {
+          "left": "{",
+          "right": "}"
+        },
+        {
           "left": "[",
           "right": "]"
         }
@@ -55,24 +59,46 @@
           "name": "string2"
         },
         {
-          "match": "<[A-Z_][A-Z_0-9]*>",
-          "style": "identifier",
-          "name": "constant.identifier"
-        },
-        {
           "keywords": [
             "def",
+            "with",
+            "as",
+            "and",
+            "break",
             "class",
-            "return",
+            "continue",
+            "def",
+            "del",
+            "elif",
+            "else",
+            "except",
+            "exec",
+            "finally",
+            "from",
+            "for",
+            "global",
             "if",
             "in",
-            "for",
+            "is",
             "import",
+            "lambda",
+            "pass",
+            "True",
+            "False",
+            "None",
+            "yield",
+            "return",
+            "try",
             "self",
             "super"
           ],
           "style": "keyword",
           "name": "keyword.py"
+        },
+        {
+          "match": "<[A-Z_a-z][A-Z_0-9a-z]*\\.",
+          "style": "identifier",
+          "name": "identifier.qualifier"
         },
         {
           "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
@@ -85,7 +111,7 @@
           "name": "literal.char"
         },
         {
-          "match": "[-+&|<>=!]{1,2}",
+          "match": "[-+&|<>=!%]{1,2}",
           "style": "operator",
           "name": "keyword.operator"
         }
