@@ -1132,7 +1132,7 @@ int EdFindFileCursor(void)
 		if ((intptr_t)hInst < 0 || (intptr_t)hInst > 32) {
 			return 1;
 		}
-		error_displayErrorToast("Cannot open %s", _fseltarget);
+		error_displayErrorInToastWindow("Cannot open %s", _fseltarget);
 	}
 	return 0;
 }

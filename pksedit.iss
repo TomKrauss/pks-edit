@@ -88,7 +88,7 @@ Source: "pks_sys\pksedit.mac"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "rc\pks.ico"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "readme.md"; DestDir: "{app}"; Flags: ignoreversion 
 Source: "doc\*"; DestDir: "{app}\doc"; Flags: ignoreversion recursesubdirs
-Source: "examples\*"; DestDir: "{app}\doc"; Flags: ignoreversion recursesubdirs
+Source: "examples\*"; DestDir: "{app}\examples"; Flags: ignoreversion recursesubdirs
 
 [INI]
 Filename: "win.ini"; Section: "PksEdit"; Key: "PKS_SYS"; String: "{app}\PKS_SYS"

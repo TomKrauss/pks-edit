@@ -15,6 +15,7 @@ Shift and click on the link to navigate to the sample:
 - [sample.dart](sample.dart)
 - [sample.ts](sample.ts)
 - [sample.pkc](sample.pkc)
+- [sample.sql](sample.sql)
 - [sample.xml](sample.xml)
 - [sample.json](sample.json)
 

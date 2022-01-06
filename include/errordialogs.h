@@ -58,10 +58,10 @@ extern void error_displayGenericErrorNumber(int num);
 extern void error_showErrorById(int nId, ...);
 
 /*------------------------------------------------------------
- * error_displayErrorToast()
+ * error_displayErrorInToastWindow()
  * If configured, popup a temporary dialog window showing an error.
  */
-extern void error_displayErrorToast(const char* fmt, va_list ap);
+extern void error_displayErrorInToastWindow(const char* fmt, ...);
 
 /*
  * Display an error in a "non-intrusive way" (status line etc...).

@@ -281,7 +281,7 @@ void macro_showStatus(char *s, ...)
 	va_start(ap, s);
 	vsprintf(b, s, ap);
 	va_end(ap);
-	error_displayErrorToast(b, (void*)0);
+	error_displayErrorInToastWindow(b);
 }
 
 

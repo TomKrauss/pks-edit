@@ -168,11 +168,11 @@ int error_displayYesNoCancelConfirmation(int nId, ...)
 	return ret;
 }
 
-	/*------------------------------------------------------------
+/*------------------------------------------------------------
  * error_displayErrorToast()
  * If configured, popup a temporary dialog window showing an error.
  */
-void error_displayErrorToast(const char* fmt, va_list ap) {
+static void error_displayErrorToast(const char* fmt, va_list ap) {
 	char szBuf[1024];
 
 	wvsprintf(szBuf,fmt,ap);
@@ -183,6 +183,16 @@ void error_displayErrorToast(const char* fmt, va_list ap) {
 	}
 }
 
+/*
+ * Display an error message in a toast window.
+ */
+void error_displayErrorInToastWindow(const char* fmt, ...) {
+	va_list 	ap;
+
+	va_start(ap, fmt);
+	error_displayErrorToast(fmt, ap);
+	va_end(ap);
+}
 /*------------------------------------------------------------
  * err_show()
  */

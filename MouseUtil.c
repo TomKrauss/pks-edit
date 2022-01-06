@@ -490,7 +490,7 @@ void mouse_destroyMouseBindings(void)
 static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 {
 	if (mp->msg && mp->msg[0]) {
-		error_displayErrorToast(mp->msg, NULL);
+		error_displayErrorInToastWindow(mp->msg);
 	}
 	if (mp->macref.typ == CMD_CMDSEQ) {
 		COM_1FUNC* cp;

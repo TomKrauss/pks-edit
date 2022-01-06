@@ -42,6 +42,11 @@ e.g. created using ctags)
 
 - the [PKS-Edit Manual](doc/manual/toc.md) describes, how to work with PKS-Edit.
 
+## Examples
+
+The examples directory contains several [coding samples](examples/sample.md) demonstrating the features
+of PKS-Edit when it comes to using it to edit files of a given supported type.
+
 ## Installing and Using PKS Edit
 
 To install **PKS-Edit**, you may use the provided `INNO` Setup based installer.
