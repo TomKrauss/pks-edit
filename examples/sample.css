@@ -1,0 +1,66 @@
+p {
+  text-align: center;
+  color: red;
+} 
+
+.center {
+  text-align: center;
+  color: red;
+}
+
+* {
+  text-align: center;
+  color: blue;
+}
+
+p.large {
+  font-size: 300%;
+}
+
+/* This is a single-line comment */
+
+/* This is
+a multi-line
+comment */
+
+p {
+  border-style: solid;
+  border-right-color: #ff0000;
+}
+
+/* unvisited link */
+a:link {
+  color: red;
+}
+
+/* visited link */
+a:visited {
+  color: green;
+}
+
+
+h1, h2, p {
+  text-align: center;
+  color: red;
+}
+
+div > p {
+  background-color: yellow;
+}
+
+div ~ p {
+  background-color: yellow;
+}
+
+div + p {
+  background-color: yellow;
+}
+
+p i:first-child {
+  color: blue;
+}
+
+
+
+
+

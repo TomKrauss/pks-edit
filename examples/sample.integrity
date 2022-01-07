@@ -1,0 +1,200 @@
+packagedef de.gebit.trend.integrity.persistence with
+
+	/**
+ * Creates a business object of the given class and injects the provided attribute values.
+ * The resulting BO is then committed to the database and returned.
+ *
+ * @param class the fully qualified BO class name
+ * @return the newly created BO
+ */
+	calldef createBO uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#createBO
+
+
+	/**
+	 * Counts the number of business object instances that match a given class and (optionally) attribute values and returns that count.<br>
+	 * <br>
+	 * <b>Example:</b>
+	 * <p><code>call assignCountBOs class: "de.gebit.MyPerson" +lastName: "Koch" -> someVariable</code><br>
+	 * Counts the BOs that have the last name "Koch" and places the number in a variable.</p>
+	 *
+	 * @param class the fully qualified BO class name
+	 * @return the number of BOs that match the criteria
+	 */
+	calldef assignCountBOs uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#countBOs
+
+	/**
+	 * Counts the number of business object instances that match a given class and (optionally) attribute values.<br>
+	 * <br>
+	 * <b>Example:</b>
+	 * <p><code>test countBOs class: "de.gebit.MyPerson" +lastName: "Koch" = 3</code><br>
+	 * Checks if there are three BOs that have the last name "Koch".</p>
+	 *
+	 * @param class the fully qualified BO class name
+	 */
+	testdef countBOs uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#countBOs
+
+	/**
+	 * Finds a business object instance that matches the provided BO class and all of the provided attributes. This
+	 * only selects a single business object; if multiple are found for the arguments provided, the first one returned
+	 * by the access layer is taken.<br>
+	 * <br>
+	 * <b>Example:</b>
+	 * <p><code>call boFind class: "de.gebit.MyPerson" +firstName: "Karl" +lastName: "Koch" -> someVariable</code><br>
+	 * Fetches the person BO for "Karl Koch" and places it in a variable.</p>
+	 *
+	 * @param class the fully qualified BO class name
+	 * @return the business object
+	 */
+	calldef findBO uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#findBO
+
+	/**
+	 * Can be used to end the current transaction context. To be used in combination with {@link #startTransactionContext()}.
+	 */
+	calldef endTransactionContext uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#endTransactionContext
+
+	/**
+	 * Fetches a business object from the database and returns the value of a specific attribute of that BO in one step.
+	 *
+	 * @param class the fully qualified BO class name
+	 * @param resultField the field to read the value from
+	 * @param resultIndex the index of the BO to check if there are multiple results
+	 * @param resultOrderBy the attribute name by which multiple results should be ordered
+	 */
+	calldef boFieldValue uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#fetchBOFieldValue
+
+	/**
+	 * Can be invoked to execute a number of persistence operations sharing the same transaction.
+	 * When done, call {@link #endTransactionContext()}.
+	 */
+	calldef startTransactionContext uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#startTransactionContext
+
+	/**
+	 * Finds all business object instances that match the provided BO class and all the provided attributes.<br>
+	 * <br>
+	 * <b>Example:</b>
+	 * <p><code>call findBOs class: "de.gebit.MyPerson" +lastName: "Koch" -> someVariable</code><br>
+	 * Fetches the person BOs for all "Koch" family members and places them in a variable.</p>
+	 *
+	 * @param class the fully qualified BO class name
+	 * @return the business object
+	 */
+	calldef findBOs uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#findBOs
+
+	/**
+	 * Updates the provided business object (the actual object must be provided, not criteria to select it; use boFind
+	 * to get it first) and sets the value of the given attribute name to the given value.
+	 *
+	 * @param bo the business object to update
+	 * @param attribute the attribute name to update
+	 * @param value the attribute value to set
+	 */
+	calldef updateBO uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#updateBO
+
+	/**
+	 * Updates all provided business objects (the actual objects must be provided, not criteria to select them; use findBOs
+	 * to get them first) and sets the value of the given attribute name to the given value.
+	 *
+	 * @param bos the collection of business objects to update
+	 * @param attribute the attribute name to update
+	 * @param value the attribute value to set
+	 */
+	calldef updateBOs uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#updateBOs
+
+	/**
+	 * Fetches a single attribute value from the given business object. The actual object must be provided, not
+	 * criteria to select it; use boFind to get it first.<br>
+	 * <p>An alternative to this method is to use the hash-syntax of Integrity, which allows to get attribute values
+	 * from Java Bean compliant objects stored in variables, like "myVariable#name" retrieves the value of "name" from
+	 * the object in "myVariable".</p>
+	 *
+	 * @param bo the business object to fetch the attribute from
+	 * @param attribute the attribute name to fetch
+	 * @return the value of the attribute
+	 */
+	calldef assignValueAt uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#getValueAt
+
+
+	/**
+	 * Tests a single attribute value from the given business object and compares it with the expected result. The
+	 * actual object must be provided, not criteria to select it; use boFind to get it first.<br>
+	 *
+	 * @param bo the business object to fetch the attribute from
+	 * @param attribute the attribute name to test
+	 */
+	testdef valueAt uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#getValueAt
+
+
+	/**
+	 * Fetches a single attribute value from the given business object and compares it with a given value. The actual
+	 * object must be provided, not criteria to select it; use boFind to get it first.<br>
+	 * <p><b>Using this is inferior to using the boValues fixture to test values of attributes! It only allows to
+	 * compare a single value, and the result is just a boolean true/false value here, while the test result contains a
+	 * detailed comparison for each compared attribute if boValues is used. Using boValues is thus recommended whereever
+	 * possible!</b> If you absolutely need to compare attributes off a BO that you have stored in a variable, you can
+	 * use boSingleValue, which at least lets Integrity perform the comparison, thus the framework is able to report
+	 * mismatches in a better way.</p>
+	 *
+	 * @param bo the business object to fetch the attribute from
+	 * @param attribute the attribute name to fetch
+	 */
+	testdef testValueAt uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#testValueAt
+
+
+	/**
+	 * Tests multiple attribute values of the given BOs against the given values. The actual objects must be provided,
+	 * not criteria to select them; use boFindAll to get them first.<br>
+	 * <p><b>Using this is inferior to using the boValues fixture to test values of attributes! It only provides a
+	 * boolean true/false value as the result, while the test result contains a detailed comparison for each compared
+	 * attribute if boValues is used. Using boValues is thus recommended whereever possible!</b></p>
+	 *
+	 * @param bos the business object to fetch the attribute from
+	 * @param values the value to compare against (should be a list of key value maps)
+	 */
+	testdef testBOs uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#testBOs
+
+	/**
+	 * Find all instances of the given class. Order by the optional order by criteria and evaluate the attributes passed as a variable.
+	 *
+	 * @param aClassname the BO class
+	 * @param anOrdering the order criteria
+	 * @param someAttributesToEvaluate the list of attributes to extract from the BOs found. This can be used to speed up the test case
+	 * and avoid unnecessary attribute access.
+	 * @param aStrictFlag If this is true, all objects in (nested) collections need to be provided in the expected
+	 *            results for a successful match
+	 * @param someQueryAttributes the attributes used to query the BOs
+	 * @return a map of values to be tested by the table test.
+	 */
+	testdef testAllBOs uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#testAllBOs
+
+	/**
+	 * Deletes all BOs matching a given BO class name and all attribute values.
+	 *
+	 * @param class the fully qualified BO class name
+	 */
+	testdef deleteBOs uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#deleteBOs
+
+	/**
+	 * Explicitly qualifies a class with a simple name.
+	 * This can be used to make simple class names unique
+	 * and use their simple names in test cases.
+	 *
+	 * Let's consider the case, that a class Country exists
+	 * in two packages (de.gebit.trend.traveldemo.bo.refdata
+	 * and de.gebit.trend.samples). If you want to use the
+	 * simple name Country object refer by default to
+	 * de.gebit.trend.traveldemo.bo.refdata.Country you have
+	 * to "import it".
+	 *
+	 * Once imported, the class name stays imported for the
+	 * live time of a test session - across multiple tests
+	 * and suites.
+	 *
+	 * @param aClassName
+	 * 			the name of the class for which an alias can be defined, e.g.
+	 *            <tt>de.gebit.trend.traveldemo.bo.refdata.Country</tt>.
+	 * @param anAliasName
+	 *            the name of the alias to use hereafter, e.g. "County"
+	 */
+	calldef defineClass uses de.gebit.trend.integrity.fixtures.persistence.ManageTestData#defineClassAlias
+
+packageend 

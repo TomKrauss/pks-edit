@@ -846,7 +846,7 @@ success:	olen = (int)(match.loc2 - match.loc1);
 		}
 
 		if ((newlen = regex_replaceSearchString(&_currentReplacementPattern,_linebuf,MAXLINELEN, &match)) < 0) {
-			linetoolong();
+			ln_errorLineTooLong();
 			break;
 		}
 		q = _linebuf;

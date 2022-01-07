@@ -566,22 +566,25 @@ EXPORT int bl_cutLines()
 /*----------------------------*/
 /* isbefore()				*/
 /*----------------------------*/
-static int isbefore(FTABLE *fp, MARK *mark, LINE *fpcl, int col, int markend)
-{
-	LINE *	lp = fp->firstl;
+static int isbefore(FTABLE *fp, MARK *mark, LINE *fpcl, int col, int bMarkEnd) {
 	LINE *	mlm;
 
 	mlm	= mark->m_linePointer;
-	if (P_EQ(fpcl,mlm)) {
-		return((markend) ? (col <= mark->m_column) : (col >= mark->m_column));
+	if (fpcl == mlm) {
+		return (col <= mark->m_column);
 	}
-	while(!P_EQ(fpcl,lp)) {
-		if (P_EQ(mlm,lp)) {
-			return (! markend);
+	LINE* lpBack = mlm;
+	LINE* lpForward = mlm;
+
+	while(fpcl != lpBack && fpcl != lpForward) {
+		if (lpBack) {
+			lpBack = lpBack->prev;
 		}
-		lp = lp->next;
+		if (lpForward) {
+			lpForward = lpForward->next;
+		}
 	}
-	return markend;
+	return bMarkEnd ? (fpcl != lpForward) : fpcl == lpForward;
 }
 
 /*----------------------------*/

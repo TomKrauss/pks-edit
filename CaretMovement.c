@@ -23,6 +23,7 @@
 #include "editorconfiguration.h"
 
 #include "caretmovement.h"
+#include "linkedlist.h"
 #include "textblocks.h"
 #include "winfo.h"
 #include "winterf.h"
@@ -125,7 +126,7 @@ void caret_extendSelection(WINFO *wp)
 		if (_xtndMark == MARK_START && 
 			(wp->workmode & WM_LINE_SELECTION)) {
 			if (wp->blend && 
-				ln_cnt(wp->caret.linePointer, wp->blend->m_linePointer) < 2) {
+				ll_indexOf((LINKED_LIST*)wp->caret.linePointer, (LINKED_LIST*)wp->blend->m_linePointer) < 1) {
 				_xtndMark = MARK_END;
 			}
 		}

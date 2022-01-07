@@ -1,0 +1,706 @@
+-propertiesFromEnvironment:
+
+-checkKeepVersion:
+
+-propertiesForVersion:
+
+-initHudsonSpecificProperties:
+
+-mavenHomeFromEnvironment:
+
+-notifyOfflineMode:
+
+pre.properties:
+
+build_common.properties:
+
+-propertiesFromEnvironment:
+
+properties:
+
+-get_build_number:
+
+validate_build_number:
+
+-get_trend_version:
+
+-determineOS:
+
+-initWin32Properties:
+
+-initDisplayNumber:
+
+-initLinuxProperties:
+
+-initLocalPublishers:
+
+-initNexusIntegrationPublishers:
+
+-initNexusReleasePublishers:
+
+-initNexusSnapshotPublishers:
+
+-initNexusPublishers:
+
+-initIvyPublishers:
+
+build_common.init:
+
+check_has_repo_thirdparty:
+
+-checkKeepVersion:
+
+init:
+
+-propertiesForVersion:
+
+-initHudsonSpecificProperties:
+
+-mavenHomeFromEnvironment:
+
+-notifyOfflineMode:
+
+pre.properties:
+     [echo] Checking Environment...
+
+build_common.properties:
+     [echo] Building TREND 10.0.15 DEV Build 11202 Timestamp v20210717021210
+
+-eclipse_environment_eclipse_44_properties:
+
+-eclipse_environment_eclipse_45_properties:
+
+-eclipse_environment_eclipse_46_properties:
+
+-eclipse_environment_eclipse_47_properties:
+
+-eclipse_environment_eclipse_48_properties:
+     [echo] Environment for Eclipse 4.8
+
+-eclipse_environment_properties:
+     [echo] Resolving configurations 'linux64' of Ivy module org.eclipse/eclipse-platform
+
+properties:
+
+-get_build_number:
+
+validate_build_number:
+
+-get_trend_version:
+
+-determineOS:
+
+-initWin32Properties:
+
+-initDisplayNumber:
+
+-initLinuxProperties:
+
+-initLocalPublishers:
+
+-initNexusIntegrationPublishers:
+
+-initNexusReleasePublishers:
+
+-initNexusSnapshotPublishers:
+
+-initNexusPublishers:
+
+-initIvyPublishers:
+
+build_common.init:
+
+check_has_repo_thirdparty:
+
+init:
+     [echo] Checking Environment...
+[ivy:resolve] :: loading settings :: file = /home/jenkins/jobs/TREND-HEAD/workspace/ant-build/ivysettings.xml
+     [echo] Building TREND 10.0.15 DEV Build 11202 Timestamp v20210717021210
+
+-eclipse_environment_eclipse_44_properties:
+
+-eclipse_environment_eclipse_45_properties:
+
+-eclipse_environment_eclipse_46_properties:
+     [echo] Environment for Eclipse 4.6
+
+-eclipse_environment_eclipse_47_properties:
+
+-eclipse_environment_eclipse_48_properties:
+
+-eclipse_environment_properties:
+     [echo] Resolving configurations 'linux64' of Ivy module org.eclipse/eclipse-platform
+[ivy:resolve] :: loading settings :: file = /home/jenkins/jobs/TREND-HEAD/workspace/ant-build/ivysettings.xml
+
+properties:
+
+-get_build_number:
+
+validate_build_number:
+
+-get_trend_version:
+
+-determineOS:
+
+-initWin32Properties:
+
+-initDisplayNumber:
+
+-initLinuxProperties:
+
+-initLocalPublishers:
+
+-initNexusIntegrationPublishers:
+
+-initNexusReleasePublishers:
+
+-initNexusSnapshotPublishers:
+
+-initNexusPublishers:
+
+-initIvyPublishers:
+
+build_common.init:
+
+check_has_repo_thirdparty:
+
+init:
+     [echo] Checking Environment...
+     [echo] Building TREND 10.0.15 DEV Build 11202 Timestamp v20210717021210
+
+-eclipse_environment_eclipse_44_properties:
+
+-eclipse_environment_eclipse_45_properties:
+
+-eclipse_environment_eclipse_46_properties:
+
+-eclipse_environment_eclipse_47_properties:
+     [echo] Environment for Eclipse 4.7
+
+-eclipse_environment_eclipse_48_properties:
+
+-eclipse_environment_properties:
+     [echo] Resolving configurations 'linux64' of Ivy module org.eclipse/eclipse-platform
+[ivy:resolve] :: resolving dependencies :: org.eclipse#eclipse-platform-caller;working
+[ivy:resolve] 	confs: [linux64]
+[ivy:resolve] :: loading settings :: file = /home/jenkins/jobs/TREND-HEAD/workspace/ant-build/ivysettings.xml
+[ivy:resolve] :: resolving dependencies :: org.eclipse#eclipse-platform-caller;working
+[ivy:resolve] 	confs: [linux64]
+[ivy:resolve] 	found org.eclipse#eclipse-platform;4.8 in trend-thirdparty
+[ivy:resolve] 	found org.eclipse#eclipse-platform;4.6.3 in trend-thirdparty
+[ivy:resolve] :: resolution report :: resolve 2ms :: artifacts dl 1ms
+	---------------------------------------------------------------------
+	|                  |            modules            ||   artifacts   |
+	|       conf       | number| search|dwnlded|evicted|| number|dwnlded|
+	---------------------------------------------------------------------
+	|      linux64     |   1   |   0   |   0   |   0   ||   1   |   0   |
+	---------------------------------------------------------------------
+[ivy:resolve] :: resolving dependencies :: org.eclipse#eclipse-platform-caller;working
+[ivy:resolve] 	confs: [linux64]
+[ivy:resolve] :: resolution report :: resolve 2ms :: artifacts dl 0ms
+	---------------------------------------------------------------------
+	|                  |            modules            ||   artifacts   |
+	|       conf       | number| search|dwnlded|evicted|| number|dwnlded|
+	---------------------------------------------------------------------
+	|      linux64     |   1   |   0   |   0   |   0   ||   1   |   0   |
+	---------------------------------------------------------------------
+[ivy:resolve] 	found org.eclipse#eclipse-platform;4.7.1a in trend-thirdparty
+[ivy:resolve] :: resolution report :: resolve 2ms :: artifacts dl 0ms
+	---------------------------------------------------------------------
+	|                  |            modules            ||   artifacts   |
+	|       conf       | number| search|dwnlded|evicted|| number|dwnlded|
+	---------------------------------------------------------------------
+	|      linux64     |   1   |   0   |   0   |   0   ||   1   |   0   |
+	---------------------------------------------------------------------
+
+maybe_delete_eclipse_environment:
+
+maybe_delete_eclipse_environment:
+
+maybe_delete_eclipse_environment:
+     [echo] ivy.deps.changed.eclipse-build-4.6.3: false
+     [echo] ivy.deps.changed.eclipse-build-4.8: false
+     [echo] ivy.deps.changed.eclipse-build-4.7.1a: false
+     [echo] Resolving configurations '4.6-properties' of Ivy module de.gebit.trend/eclipse-build
+     [echo] Resolving configurations '4.8-properties' of Ivy module de.gebit.trend/eclipse-build
+     [echo] Resolving configurations '4.7-properties' of Ivy module de.gebit.trend/eclipse-build
+[ivy:resolve] :: resolving dependencies :: de.gebit.trend#eclipse-build-caller;working
+[ivy:resolve] :: resolving dependencies :: de.gebit.trend#eclipse-build-caller;working
+[ivy:resolve] :: resolving dependencies :: de.gebit.trend#eclipse-build-caller;working
+[ivy:resolve] 	confs: [4.8-properties]
+[ivy:resolve] 	confs: [4.7-properties]
+[ivy:resolve] 	confs: [4.6-properties]
+[ivy:resolve] 	found de.gebit.trend#eclipse-build;1.20 in trend-thirdparty
+[ivy:resolve] :: resolution report :: resolve 2ms :: artifacts dl 0ms
+	---------------------------------------------------------------------
+	|                  |            modules            ||   artifacts   |
+	|       conf       | number| search|dwnlded|evicted|| number|dwnlded|
+	---------------------------------------------------------------------
+	|  4.6-properties  |   1   |   0   |   0   |   0   ||   2   |   0   |
+	---------------------------------------------------------------------
+
+maybe_delete_eclipse_environment:
+     [echo] ivy.deps.changed.eclipse-build-4.6.3: false
+
+check_create_eclipse_environment:
+     [echo] Environment exists in /home/jenkins/eclipse-build/HEAD/eclipse46: true
+
+create_eclipse_environment:
+
+ensure_eclipsetest46_environment:
+
+testtrendmetamodeller46:
+   [delete] Deleting directory /home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/workspace-test4.6
+     [echo] Testing /home/jenkins/jobs/TREND-HEAD/workspace/eclipse/install/eclipse4.6 on Eclipse 4.6, display :63
+[jacoco:coverage] Enhancing java with coverage
+[ivy:resolve] 	found de.gebit.trend#eclipse-build;1.20 in trend-thirdparty
+[ivy:resolve] :: resolution report :: resolve 103ms :: artifacts dl 0ms
+	---------------------------------------------------------------------
+	|                  |            modules            ||   artifacts   |
+	|       conf       | number| search|dwnlded|evicted|| number|dwnlded|
+	---------------------------------------------------------------------
+	|  4.7-properties  |   1   |   0   |   0   |   0   ||   2   |   0   |
+	---------------------------------------------------------------------
+
+maybe_delete_eclipse_environment:
+     [echo] ivy.deps.changed.eclipse-build-4.7.1a: false
+
+check_create_eclipse_environment:
+     [echo] Environment exists in /home/jenkins/eclipse-build/HEAD/eclipse47: true
+
+create_eclipse_environment:
+
+ensure_eclipsetest47_environment:
+
+testtrendmetamodeller47:
+   [delete] Deleting directory /home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/workspace-test4.7
+     [echo] Testing /home/jenkins/jobs/TREND-HEAD/workspace/eclipse/install/eclipse4.6 on Eclipse 4.7, display :64
+[jacoco:coverage] Enhancing java with coverage
+[ivy:resolve] 	found de.gebit.trend#eclipse-build;1.20 in trend-thirdparty
+[ivy:resolve] :: resolution report :: resolve 203ms :: artifacts dl 0ms
+	---------------------------------------------------------------------
+	|                  |            modules            ||   artifacts   |
+	|       conf       | number| search|dwnlded|evicted|| number|dwnlded|
+	---------------------------------------------------------------------
+	|  4.8-properties  |   1   |   0   |   0   |   0   ||   2   |   0   |
+	---------------------------------------------------------------------
+
+maybe_delete_eclipse_environment:
+     [echo] ivy.deps.changed.eclipse-build-4.8: false
+
+check_create_eclipse_environment:
+     [echo] Environment exists in /home/jenkins/eclipse-build/HEAD/eclipse48: true
+
+create_eclipse_environment:
+
+ensure_eclipsetest48_environment:
+
+testtrendmetamodeller48:
+   [delete] Deleting directory /home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/workspace-test4.8
+     [echo] Testing /home/jenkins/jobs/TREND-HEAD/workspace/eclipse/install/eclipse4.6 on Eclipse 4.8, display :65
+[jacoco:coverage] Enhancing java with coverage
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Configuration location:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6]     file:/home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.6/configuration/
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Configuration file:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6]     file:/home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.6/configuration/config.ini loaded
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Configuration file:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6]     file:/home/jenkins/eclipse-build/HEAD/eclipse46/configuration/config.ini loaded
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Loading timestamp file from:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] 	 file:/home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.6/configuration/   .baseConfigIniTimestamp
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Timestamps found: 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] 	 config.ini in the base: 1625742061000
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] 	 remembered 1625742061000
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Shared configuration location:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6]     file:/home/jenkins/eclipse-build/HEAD/eclipse46/configuration/
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Install location:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6]     file:/home/jenkins/eclipse-build/HEAD/eclipse46/
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Framework located:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6]     file:/home/jenkins/eclipse-build/HEAD/eclipse46/plugins/org.eclipse.osgi_3.11.3.v20170209-1843.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Loading extension: reference:file:org.eclipse.osgi.compatibility.state_1.0.200.v20160504-1419.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] 	eclipse.properties not found
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Loading extension: reference:file:org.eclipse.wst.jsdt.nashorn.extension_1.0.2.v201610280128.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] 	eclipse.properties not found
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Loading extension: reference:file:../../../../jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.6/plugins/org.eclipse.fx.osgi_3.4.1.201810030500.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] 	eclipse.properties not found
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Framework classpath:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6]     file:/home/jenkins/eclipse-build/HEAD/eclipse46/plugins/org.eclipse.osgi_3.11.3.v20170209-1843.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6]     file:/home/jenkins/eclipse-build/HEAD/eclipse46/plugins/
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6]     file:/home/jenkins/eclipse-build/HEAD/eclipse46/plugins/org.eclipse.osgi.compatibility.state_1.0.200.v20160504-1419.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6]     file:/home/jenkins/eclipse-build/HEAD/eclipse46/plugins/org.eclipse.wst.jsdt.nashorn.extension_1.0.2.v201610280128.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6]     file:/home/jenkins/eclipse-build/HEAD/eclipse46/plugins/../../../../jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.6/plugins/org.eclipse.fx.osgi_3.4.1.201810030500.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Debug options:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6]     file:/home/jenkins/jobs/TREND-HEAD/workspace/eclipse/.options not found
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Configuration location:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7]     file:/home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.7/configuration/
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Configuration file:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7]     file:/home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.7/configuration/config.ini loaded
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Configuration file:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7]     file:/home/jenkins/eclipse-build/HEAD/eclipse47/configuration/config.ini loaded
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Loading timestamp file from:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] 	 file:/home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.7/configuration/   .baseConfigIniTimestamp
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Timestamps found: 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] 	 config.ini in the base: 1625746447000
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] 	 remembered 1625746447000
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Shared configuration location:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7]     file:/home/jenkins/eclipse-build/HEAD/eclipse47/configuration/
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Install location:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7]     file:/home/jenkins/eclipse-build/HEAD/eclipse47/
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Framework located:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7]     file:/home/jenkins/eclipse-build/HEAD/eclipse47/plugins/org.eclipse.osgi_3.12.50.v20170928-1321.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Loading extension: reference:file:org.eclipse.osgi.compatibility.state_1.1.0.v20170516-1513.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] 	eclipse.properties not found
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Loading extension: reference:file:javax.transaction_1.1.1.v201105210645.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] 	eclipse.properties not found
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Loading extension: reference:file:../../../../jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.7/plugins/org.eclipse.fx.osgi_3.4.1.201810030500.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] 	eclipse.properties not found
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Framework classpath:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7]     file:/home/jenkins/eclipse-build/HEAD/eclipse47/plugins/org.eclipse.osgi_3.12.50.v20170928-1321.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7]     file:/home/jenkins/eclipse-build/HEAD/eclipse47/plugins/
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7]     file:/home/jenkins/eclipse-build/HEAD/eclipse47/plugins/org.eclipse.osgi.compatibility.state_1.1.0.v20170516-1513.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7]     file:/home/jenkins/eclipse-build/HEAD/eclipse47/plugins/javax.transaction_1.1.1.v201105210645.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7]     file:/home/jenkins/eclipse-build/HEAD/eclipse47/plugins/../../../../jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.7/plugins/org.eclipse.fx.osgi_3.4.1.201810030500.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Configuration location:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     file:/home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.8/configuration/
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Configuration file:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     file:/home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.8/configuration/config.ini loaded
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Configuration file:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     file:/home/jenkins/eclipse-build/HEAD/eclipse48/configuration/config.ini loaded
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Loading timestamp file from:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	 file:/home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.8/configuration/   .baseConfigIniTimestamp
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Timestamps found: 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	 config.ini in the base: 1625746559000
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	 remembered 1625746559000
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Shared configuration location:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     file:/home/jenkins/eclipse-build/HEAD/eclipse48/configuration/
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Debug options:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7]     file:/home/jenkins/jobs/TREND-HEAD/workspace/eclipse/.options not found
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Install location:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     file:/home/jenkins/eclipse-build/HEAD/eclipse48/
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Framework located:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     file:/home/jenkins/eclipse-build/HEAD/eclipse48/plugins/org.eclipse.osgi_3.13.0.v20180409-1500.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Loading extension: reference:file:org.eclipse.osgi.compatibility.state_1.1.100.v20180331-1743.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	eclipse.properties not found
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Loading extension: reference:file:javax.transaction_1.1.1.v201105210645.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	eclipse.properties not found
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Loading extension: reference:file:../../../../jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.8/plugins/org.eclipse.fx.osgi_3.4.1.201810030500.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	eclipse.properties not found
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Framework classpath:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     file:/home/jenkins/eclipse-build/HEAD/eclipse48/plugins/org.eclipse.osgi_3.13.0.v20180409-1500.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     file:/home/jenkins/eclipse-build/HEAD/eclipse48/plugins/
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     file:/home/jenkins/eclipse-build/HEAD/eclipse48/plugins/org.eclipse.osgi.compatibility.state_1.1.100.v20180331-1743.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     file:/home/jenkins/eclipse-build/HEAD/eclipse48/plugins/javax.transaction_1.1.1.v201105210645.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     file:/home/jenkins/eclipse-build/HEAD/eclipse48/plugins/../../../../jobs/TREND-HEAD/workspace/build/eclipse/4.6/separate-test4.8/plugins/org.eclipse.fx.osgi_3.4.1.201810030500.jar
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Debug options:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     file:/home/jenkins/jobs/TREND-HEAD/workspace/eclipse/.options not found
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Time to load bundles: 11
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Time to load bundles: 9
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Time to load bundles: 7
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !SESSION 2021-07-17 04:06:11.350 -----------------------------------------------
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] eclipse.buildId=4.8.0.I20180611-0500
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] java.version=1.8.0_131
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] java.vendor=Oracle Corporation
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_EN
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Framework arguments:  -application de.gebit.trend.test.uitestapplication -pluginCustomization /home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/pluginCustomization.txt -registryMultiLanguage -testpluginname de.gebit.trend.metamodeller -classname de.gebit.trend.metamodeller.tests.TrendMetamodellerTests haltOnError=false haltOnFailure=false formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,/home/jenkins/jobs/TREND-HEAD/workspace/testresults/TEST-de.gebit.trend.metamodeller-4.8.xml
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Command-line arguments:  -os linux -ws gtk -debug -consoleLog -application de.gebit.trend.test.uitestapplication -pluginCustomization /home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/pluginCustomization.txt -data /home/jenkins/jobs/TREND-HEAD/workspace/build/eclipse/4.6/workspace-test4.8 -registryMultiLanguage -testpluginname de.gebit.trend.metamodeller -classname de.gebit.trend.metamodeller.tests.TrendMetamodellerTests haltOnError=false haltOnFailure=false formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,/home/jenkins/jobs/TREND-HEAD/workspace/testresults/TEST-de.gebit.trend.metamodeller-4.8.xml
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !ENTRY org.eclipse.birt.report.data.oda.jdbc.dbprofile.ui 4 0 2021-07-17 04:06:12.314
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !MESSAGE FrameworkEvent ERROR
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !STACK 0
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] org.osgi.framework.BundleException: Could not resolve module: org.eclipse.birt.report.data.oda.jdbc.dbprofile.ui [134]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.sqlbuilder; bundle-version="[1.0.0,2.0.0)"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.sqlbuilder; bundle-version="1.2.101.201805031905"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]        org.eclipse.datatools.sqltools.sqlbuilder [320]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core; visibility:="reexport"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core; bundle-version="1.2.100.201802061437"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]               org.eclipse.datatools.sqltools.editor.core [304]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                 Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.result
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                   -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.result; bundle-version="1.3.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                      org.eclipse.datatools.sqltools.result [311]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                        No resolution report for the bundle.         Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.sqleditor; visibility:="reexport"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.sqleditor; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]               org.eclipse.datatools.sqltools.sqleditor [321]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                 Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core.ui
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                   -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core.ui; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                      org.eclipse.datatools.sqltools.editor.core.ui [305]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                        Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                          -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core; bundle-version="1.2.100.201802061437"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                 Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                   -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core; bundle-version="1.2.100.201802061437"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                 Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.result; visibility:="reexport"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                   -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.result; bundle-version="1.3.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core.ui
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core.ui; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.result.ui
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.result.ui; bundle-version="1.3.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]               org.eclipse.datatools.sqltools.result.ui [312]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                 Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.result
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                   -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.result; bundle-version="1.3.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   Bundle was not resolved because of a uses contraint violation.
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.osgi.service.resolver.ResolutionException: Uses constraint violation. Unable to resolve resource org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"] because it is exposed to package 'org.apache.lucene.analysis' from resources org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="7.1.0.v20171214-1510"; osgi.identity="org.apache.lucene.core"] and org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20170814-1820"; osgi.identity="org.apache.lucene.core"] via two dependency chains.
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Chain 1:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     require: (osgi.wiring.bundle=org.apache.lucene.core)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     provide: osgi.wiring.bundle: org.apache.lucene.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="7.1.0.v20171214-1510"; osgi.identity="org.apache.lucene.core"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Chain 2:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     require: (osgi.wiring.bundle=org.apache.lucene.queryparser)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     provide: osgi.wiring.bundle; bundle-version:Version="6.1.0.v20161115-1612"; osgi.wiring.bundle="org.apache.lucene.queryparser"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.queryparser [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20161115-1612"; osgi.identity="org.apache.lucene.queryparser"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     import: (&(osgi.wiring.package=org.apache.lucene.analysis)(&(version>=6.1.0)(!(version>=6.2.0))))
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     export: osgi.wiring.package: org.apache.lucene.analysis
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20170814-1820"; osgi.identity="org.apache.lucene.core"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.Module.start(Module.java:444)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1682)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1661)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.doContainerStartLevel(ModuleContainer.java:1624)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1555)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.framework.eventmgr.EventManager.dispatchEvent(EventManager.java:230)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.framework.eventmgr.EventManager$EventThread.run(EventManager.java:340)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !ENTRY org.eclipse.datatools.enablement.ibm.db2 4 0 2021-07-17 04:06:12.368
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !MESSAGE FrameworkEvent ERROR
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !STACK 0
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] org.osgi.framework.BundleException: Could not resolve module: org.eclipse.datatools.enablement.ibm.db2 [232]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.data.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.data.core; bundle-version="1.4.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]        org.eclipse.datatools.sqltools.data.core [295]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.result
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.result; bundle-version="1.3.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]               org.eclipse.datatools.sqltools.result [311]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                 No resolution report for the bundle.  Bundle was not resolved because of a uses contraint violation.
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.osgi.service.resolver.ResolutionException: Uses constraint violation. Unable to resolve resource org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"] because it is exposed to package 'org.apache.lucene.analysis' from resources org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="7.1.0.v20171214-1510"; osgi.identity="org.apache.lucene.core"] and org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20170814-1820"; osgi.identity="org.apache.lucene.core"] via two dependency chains.
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Chain 1:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     require: (osgi.wiring.bundle=org.apache.lucene.core)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     provide: osgi.wiring.bundle: org.apache.lucene.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="7.1.0.v20171214-1510"; osgi.identity="org.apache.lucene.core"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Chain 2:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     require: (osgi.wiring.bundle=org.apache.lucene.queryparser)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     provide: osgi.wiring.bundle; bundle-version:Version="6.1.0.v20161115-1612"; osgi.wiring.bundle="org.apache.lucene.queryparser"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.queryparser [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20161115-1612"; osgi.identity="org.apache.lucene.queryparser"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     import: (&(osgi.wiring.package=org.apache.lucene.analysis)(&(version>=6.1.0)(!(version>=6.2.0))))
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     export: osgi.wiring.package: org.apache.lucene.analysis
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20170814-1820"; osgi.identity="org.apache.lucene.core"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.Module.start(Module.java:444)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1682)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1661)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.doContainerStartLevel(ModuleContainer.java:1624)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1555)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.framework.eventmgr.EventManager.dispatchEvent(EventManager.java:230)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.framework.eventmgr.EventManager$EventThread.run(EventManager.java:340)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.6] Starting application: 1246
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !ENTRY org.eclipse.datatools.enablement.ibm.db2.luw 4 0 2021-07-17 04:06:12.402
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !MESSAGE FrameworkEvent ERROR
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !STACK 0
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] org.osgi.framework.BundleException: Could not resolve module: org.eclipse.datatools.enablement.ibm.db2.luw [236]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   Unresolved requirement: Require-Bundle: org.eclipse.datatools.enablement.ibm.db2
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     -> Bundle-SymbolicName: org.eclipse.datatools.enablement.ibm.db2; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]        org.eclipse.datatools.enablement.ibm.db2 [232]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.data.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.data.core; bundle-version="1.4.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]               org.eclipse.datatools.sqltools.data.core [295]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                 Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.result
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                   -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.result; bundle-version="1.3.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                      org.eclipse.datatools.sqltools.result [311]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                        No resolution report for the bundle.  Bundle was not resolved because of a uses contraint violation.
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.osgi.service.resolver.ResolutionException: Uses constraint violation. Unable to resolve resource org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"] because it is exposed to package 'org.apache.lucene.analysis' from resources org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="7.1.0.v20171214-1510"; osgi.identity="org.apache.lucene.core"] and org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20170814-1820"; osgi.identity="org.apache.lucene.core"] via two dependency chains.
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Chain 1:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     require: (osgi.wiring.bundle=org.apache.lucene.core)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     provide: osgi.wiring.bundle: org.apache.lucene.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="7.1.0.v20171214-1510"; osgi.identity="org.apache.lucene.core"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Chain 2:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     require: (osgi.wiring.bundle=org.apache.lucene.queryparser)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     provide: osgi.wiring.bundle; bundle-version:Version="6.1.0.v20161115-1612"; osgi.wiring.bundle="org.apache.lucene.queryparser"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.queryparser [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20161115-1612"; osgi.identity="org.apache.lucene.queryparser"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     import: (&(osgi.wiring.package=org.apache.lucene.analysis)(&(version>=6.1.0)(!(version>=6.2.0))))
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     export: osgi.wiring.package: org.apache.lucene.analysis
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20170814-1820"; osgi.identity="org.apache.lucene.core"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.Module.start(Module.java:444)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1682)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1661)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.doContainerStartLevel(ModuleContainer.java:1624)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1555)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.framework.eventmgr.EventManager.dispatchEvent(EventManager.java:230)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.framework.eventmgr.EventManager$EventThread.run(EventManager.java:340)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !ENTRY org.eclipse.datatools.enablement.ibm.db2.luw.ui 4 0 2021-07-17 04:06:12.449
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !MESSAGE FrameworkEvent ERROR
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !STACK 0
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] org.osgi.framework.BundleException: Could not resolve module: org.eclipse.datatools.enablement.ibm.db2.luw.ui [238]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   Unresolved requirement: Require-Bundle: org.eclipse.datatools.enablement.ibm.db2.luw
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     -> Bundle-SymbolicName: org.eclipse.datatools.enablement.ibm.db2.luw; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]        org.eclipse.datatools.enablement.ibm.db2.luw [236]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.enablement.ibm.db2
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.enablement.ibm.db2; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]               org.eclipse.datatools.enablement.ibm.db2 [232]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                 Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.data.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                   -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.data.core; bundle-version="1.4.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                      org.eclipse.datatools.sqltools.data.core [295]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                        Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.result
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                          -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.result; bundle-version="1.3.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                             org.eclipse.datatools.sqltools.result [311]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                               No resolution report for the bundle.  Bundle was not resolved because of a uses contraint violation.
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.osgi.service.resolver.ResolutionException: Uses constraint violation. Unable to resolve resource org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"] because it is exposed to package 'org.apache.lucene.analysis' from resources org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="7.1.0.v20171214-1510"; osgi.identity="org.apache.lucene.core"] and org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20170814-1820"; osgi.identity="org.apache.lucene.core"] via two dependency chains.
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Chain 1:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     require: (osgi.wiring.bundle=org.apache.lucene.core)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     provide: osgi.wiring.bundle: org.apache.lucene.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="7.1.0.v20171214-1510"; osgi.identity="org.apache.lucene.core"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Chain 2:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     require: (osgi.wiring.bundle=org.apache.lucene.queryparser)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     provide: osgi.wiring.bundle; bundle-version:Version="6.1.0.v20161115-1612"; osgi.wiring.bundle="org.apache.lucene.queryparser"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.queryparser [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20161115-1612"; osgi.identity="org.apache.lucene.queryparser"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     import: (&(osgi.wiring.package=org.apache.lucene.analysis)(&(version>=6.1.0)(!(version>=6.2.0))))
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     export: osgi.wiring.package: org.apache.lucene.analysis
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20170814-1820"; osgi.identity="org.apache.lucene.core"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.Module.start(Module.java:444)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1682)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1661)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.doContainerStartLevel(ModuleContainer.java:1624)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1555)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.framework.eventmgr.EventManager.dispatchEvent(EventManager.java:230)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.framework.eventmgr.EventManager$EventThread.run(EventManager.java:340)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.7] Starting application: 1323
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !ENTRY org.eclipse.datatools.enablement.ingres.ui 4 0 2021-07-17 04:06:12.509
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !MESSAGE FrameworkEvent ERROR
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !STACK 0
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] org.osgi.framework.BundleException: Could not resolve module: org.eclipse.datatools.enablement.ingres.ui [248]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.sqleditor
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.sqleditor; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]        org.eclipse.datatools.sqltools.sqleditor [321]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core.ui
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core.ui; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]               org.eclipse.datatools.sqltools.editor.core.ui [305]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                 Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                   -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core; bundle-version="1.2.100.201802061437"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                      org.eclipse.datatools.sqltools.editor.core [304]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                        Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.result
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                          -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.result; bundle-version="1.3.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                             org.eclipse.datatools.sqltools.result [311]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                               No resolution report for the bundle.         Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core; bundle-version="1.2.100.201802061437"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.result; visibility:="reexport"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.result; bundle-version="1.3.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.routineeditor.ui
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.routineeditor.ui; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]        org.eclipse.datatools.sqltools.routineeditor.ui [314]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core; bundle-version="1.2.100.201802061437"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.routineeditor
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.routineeditor; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]               org.eclipse.datatools.sqltools.routineeditor [313]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                 Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.result
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                   -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.result; bundle-version="1.3.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                 Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                   -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core; bundle-version="1.2.100.201802061437"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.sqleditor
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.sqleditor; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core.ui
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core.ui; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core; bundle-version="1.2.100.201802061437"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.routineeditor
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.routineeditor; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core.ui
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core.ui; bundle-version="1.2.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   Bundle was not resolved because of a uses contraint violation.
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.osgi.service.resolver.ResolutionException: Uses constraint violation. Unable to resolve resource org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"] because it is exposed to package 'org.apache.lucene.analysis' from resources org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="7.1.0.v20171214-1510"; osgi.identity="org.apache.lucene.core"] and org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20170814-1820"; osgi.identity="org.apache.lucene.core"] via two dependency chains.
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Chain 1:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     require: (osgi.wiring.bundle=org.apache.lucene.core)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     provide: osgi.wiring.bundle: org.apache.lucene.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="7.1.0.v20171214-1510"; osgi.identity="org.apache.lucene.core"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Chain 2:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     require: (osgi.wiring.bundle=org.apache.lucene.queryparser)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     provide: osgi.wiring.bundle; bundle-version:Version="6.1.0.v20161115-1612"; osgi.wiring.bundle="org.apache.lucene.queryparser"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.queryparser [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20161115-1612"; osgi.identity="org.apache.lucene.queryparser"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     import: (&(osgi.wiring.package=org.apache.lucene.analysis)(&(version>=6.1.0)(!(version>=6.2.0))))
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     export: osgi.wiring.package: org.apache.lucene.analysis
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20170814-1820"; osgi.identity="org.apache.lucene.core"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.Module.start(Module.java:444)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1682)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1661)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.doContainerStartLevel(ModuleContainer.java:1624)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1555)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.framework.eventmgr.EventManager.dispatchEvent(EventManager.java:230)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.framework.eventmgr.EventManager$EventThread.run(EventManager.java:340)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !ENTRY org.eclipse.datatools.enablement.sybase 4 0 2021-07-17 04:06:12.536
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !MESSAGE FrameworkEvent ERROR
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !STACK 0
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] org.osgi.framework.BundleException: Could not resolve module: org.eclipse.datatools.enablement.sybase [272]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.editor.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.editor.core; bundle-version="1.2.100.201802061437"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]        org.eclipse.datatools.sqltools.editor.core [304]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]          Unresolved requirement: Require-Bundle: org.eclipse.datatools.sqltools.result
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]            -> Bundle-SymbolicName: org.eclipse.datatools.sqltools.result; bundle-version="1.3.100.201801242337"; singleton:="true"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]               org.eclipse.datatools.sqltools.result [311]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]                 No resolution report for the bundle.  Bundle was not resolved because of a uses contraint violation.
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.osgi.service.resolver.ResolutionException: Uses constraint violation. Unable to resolve resource org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"] because it is exposed to package 'org.apache.lucene.analysis' from resources org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="7.1.0.v20171214-1510"; osgi.identity="org.apache.lucene.core"] and org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20170814-1820"; osgi.identity="org.apache.lucene.core"] via two dependency chains.
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Chain 1:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     require: (osgi.wiring.bundle=org.apache.lucene.core)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     provide: osgi.wiring.bundle: org.apache.lucene.core
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="7.1.0.v20171214-1510"; osgi.identity="org.apache.lucene.core"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] Chain 2:
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.eclipse.datatools.sqltools.result [osgi.identity; type="osgi.bundle"; version:Version="1.3.100.201801242337"; osgi.identity="org.eclipse.datatools.sqltools.result"; singleton:="true"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     require: (osgi.wiring.bundle=org.apache.lucene.queryparser)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     provide: osgi.wiring.bundle; bundle-version:Version="6.1.0.v20161115-1612"; osgi.wiring.bundle="org.apache.lucene.queryparser"
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.queryparser [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20161115-1612"; osgi.identity="org.apache.lucene.queryparser"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     import: (&(osgi.wiring.package=org.apache.lucene.analysis)(&(version>=6.1.0)(!(version>=6.2.0))))
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]      |
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]     export: osgi.wiring.package: org.apache.lucene.analysis
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8]   org.apache.lucene.core [osgi.identity; type="osgi.bundle"; version:Version="6.1.0.v20170814-1820"; osgi.identity="org.apache.lucene.core"]
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.Module.start(Module.java:444)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1682)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1661)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.doContainerStartLevel(ModuleContainer.java:1624)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1555)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.framework.eventmgr.EventManager.dispatchEvent(EventManager.java:230)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 	at org.eclipse.osgi.framework.eventmgr.EventManager$EventThread.run(EventManager.java:340)
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] 
+[de.gebit.trend.metamodeller.tests.TrendMetamodellerTests-4.8] !ENTRY org.eclipse.datatools.enablement.sybase.asa 4 0 2021-07-17 04:06:12.559
+ 

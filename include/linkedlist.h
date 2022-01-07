@@ -18,18 +18,30 @@
 #ifndef	LINKEDLIST_H
 
 /*
+ * A linked list without a "name" element. Can only be traversed - named lookup not supported.
+ */
+typedef struct tagPLAIN_LINKED_LIST {
+	struct tagPLAIN_LINKED_LIST* next;
+} PLAIN_LINKED_LIST;
+
+/*
  * Typical data structure for a linked list.
  */
 typedef struct linkedList {
-	struct linkedList* next;
+	struct linkedList *next;
 	char name[4];
 } LINKED_LIST;
-
 
 /**
  * Find the index of an element in a linked list or return -1 if not found.
  */
 extern long ll_indexOf(LINKED_LIST* pHead, LINKED_LIST* lp);
+
+/**
+ * Find the index of two elements in a linked list. If both elements are found (idx1 and idx2 can be determined),
+ * return 1, 0 otherwise.
+ */
+extern int ll_indexTwoElements(LINKED_LIST* pHead, void* lp1, void* lp2, long* pIdx1, long* pIdx2);
 
 /*--------------------------------------------------------------------------
  * ll_moveElementToFront()

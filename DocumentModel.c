@@ -264,16 +264,16 @@ void ln_removeFlag(LINE *lpstart, LINE *lpend, int flg) {
 }
 
 /*---------------------------------*/
-/* linetoolong()				*/
+/* ln_errorLineTooLong()				*/
 /*---------------------------------*/
-void linetoolong(void) {
+void ln_errorLineTooLong(void) {
 	error_showErrorById(IDS_MSGLINETOOLONG); 
 }
 
 /*---------------------------------*/
-/* invalidhiddenop()			*/
+/* ln_errorInvalidHideOperation()			*/
 /*---------------------------------*/
-static void invalidhiddenop() {
+static void ln_errorInvalidHideOperation() {
 	error_showErrorById(IDS_MSGINVALIDHIDEOP); 
 }
 
@@ -475,13 +475,13 @@ LINE *ln_join(FTABLE *fp, LINE *lp1, LINE *lp2, int bRemove)
 
 	if (lp2->lflg & LNINDIRECT) {
 		if (olen || !bRemove) {
-			invalidhiddenop();
+			ln_errorInvalidHideOperation();
 			return 0;
 		}
 		ln_delete(fp,lp1);
 		return lp2;
 	} else if ((len = olen + lp2->len) > MAXLINELEN) {
-		linetoolong();
+		ln_errorLineTooLong();
 		return 0;
 	}
 
@@ -589,18 +589,9 @@ LINE *ln_relative(LINE *cl, long l)
 /* Anzahl Zeilen in einer Liste	*/
 /* zaehlen					*/
 /*---------------------------------*/
-long ln_cnt(LINE *lps,LINE *lpe)
-{	register long nl = 1;
-
-	while (lps != lpe) {
-		if (lps == 0) return 0;
-		nl++;
-		lps = lps->next;
-	}
-	return nl;
+long ln_cnt(LINE* lps, LINE* lpe) {
+	return ll_indexOf((LINKED_LIST*)lps, (LINKED_LIST*)lpe) + 1;
 }
-
-
 /*----------------------------*/
 /* ln_replace()			*/
 /*----------------------------*/
@@ -622,7 +613,7 @@ LINE *ln_settmp(FTABLE *fp,LINE *lp,LINE **lpold)
 	LINE *	lp1;
 
 	if (lp && (lp->lflg & LNINDIRECT)) {
-		invalidhiddenop();
+		ln_errorInvalidHideOperation();
 		return 0;
 	}
 
@@ -700,7 +691,7 @@ LINE *ln_modify(FTABLE *fp, LINE *lp, int col1, int col2) {
 	copylen = lplen - col1;
 	lplen += len;
 	if (lplen > MAXLINELEN) {	// do we need this?
-		linetoolong();
+		ln_errorLineTooLong();
 		return 0;
 	}
 	ln_markModified(lp);
@@ -738,7 +729,7 @@ LINE *ln_hide(FTABLE *fp, LINE *lp1, LINE *lp2)
 	lpind->next = lp2->next;
 	lpind->prev = lp1->prev;
 	LpIndHiddenList(lpind) = lp1;
-	LpIndNHidden(lpind) = nHidden = ln_cnt(lp1,lp2);
+	LpIndNHidden(lpind) = nHidden = ll_indexOf((LINKED_LIST*)lp1, (LINKED_LIST*)lp2)+1;
 	fp->nlines += (1 - nHidden);
 
 	lpind->next = lp2->next;

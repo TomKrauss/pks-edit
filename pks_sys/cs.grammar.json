@@ -1,7 +1,7 @@
 {
   "grammars": [
     {
-      "scopeName": "cpp",
+      "scopeName": "cs",
       "formatter": "code",
       "increaseIndentPatterns": [
         { "pattern": "{" },
@@ -12,27 +12,6 @@
         { "pattern": "}" },
         { "pattern": ")" },
         { "pattern": "]" }
-      ],
-      "tagSources": [
-        {
-          "filename": "tags",
-          "type": "tags"
-        },
-        {
-          "filename": "https://docs.microsoft.com/en-us/search/?terms=$1&category=Reference&scope=Desktop",
-          "type": "url"
-        },
-        {
-          "filename": "c:\\source\\help\\api32.hlp",
-          "type": "help"
-        }
-      ],
-      "navigation": [
-        {
-          "name": "include-link",
-          "pattern": "^#\\s*include\\s+[\"<]([^>\"]+)[\">]",
-          "filenameCapture": 1
-        }
       ],
       "templates": [
         {
@@ -96,19 +75,37 @@
           "name": "comment.multiLine"
         },
         {
-          "match": "//.*",
+          "match": "///.*",
           "style": "sl-comment",
           "name": "comment.singleLine",
           "patterns": [
             {
-              "name": "task.tag",
-              "style": "task",
+              "name": "param.tag",
+              "style": "bold-comment",
+              "keywords-no-identifiers": true,
               "keywords": [
-                "TODO",
-                "FIXME",
-                "(T)",
-                "(C)",
-                "(A)"
+                "<code>",
+                "</code>",
+                "<include>",
+                "<exception>",
+                "</exception>",
+                "<example>",
+                "<paramref>",
+                "<remarks>",
+                "</remarks>",
+                "<returns>",
+                "</returns>",
+                "<see>",
+                "<seealso>",
+                "<value>",
+                "</value>",
+                "<typeparam>",
+                "</typeparam>",
+                "<typeparamref>",
+                "<summary>",
+                "</summary>",
+                "<param>",
+                "</param>"
               ]
             }
           ]
@@ -124,49 +121,86 @@
           "name": "include.file"
         },
         {
-          "match": "<[A-Z_][A-Z_0-9]*>",
-          "style": "identifier",
-          "name": "constant.identifier"
-        },
-        {
           "keywords": [
-            "if",
-            "else",
-            "true",
-            "false",
-            "bool",
-            "import",
-            "extern",
-            "static",
-            "register",
-            "struct",
-            "typedef",
-            "enum",
-            "for",
-            "while",
-            "auto",
+            "abstract",
+            "event",
             "namespace",
-            "template",
-            "do",
-            "continue",
+            "static",
+            "as",
+            "explicit",
+            "new",
+            "string",
+            "base",
+            "extern",
+            "struct",
+            "bool",
+            "false",
+            "object",
+            "switch",
             "break",
-            "const",
+            "finally",
+            "break",
+            "operator",
+            "this",
+            "byte",
+            "fixed",
+            "out",
+            "throw",
+            "case",
             "float",
-            "long",
-            "double",
+            "override",
+            "catch",
+            "for",
+            "params",
+            "try",
+            "char",
+            "foreach",
+            "private",
+            "typeof",
+            "checked",
+            "protected",
+            "goto",
+            "uint",
+            "class",
+            "public",
+            "if",
+            "ulong",
+            "const",
+            "implicit",
+            "readonly",
+            "unckecked",
+            "continue",
+            "in",
+            "ref",
+            "unsafe",
+            "decimal",
             "int",
+            "return",
+            "ushort",
+            "default",
+            "interface",
+            "sbyte",
+            "using",
+            "delegate",
+            "internal",
+            "sealed",
+            "virtual",
+            "do",
+            "is",
             "short",
             "void",
-            "byte",
-            "char"
+            "double",
+            "sizeof",
+            "lock",
+            "volatile",
+            "else",
+            "long",
+            "stackalloc",
+            "while",
+            "enum"
           ],
           "style": "keyword",
-          "name": "keyword.cpp"
-        },
-        {
-          "match": "#\\s*[a-z]+",
-          "style": "annotation",
-          "name": "preprocessor.cpp"
+          "name": "keyword.cs"
         },
         {
           "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",

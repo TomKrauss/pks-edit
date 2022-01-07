@@ -65,6 +65,7 @@ typedef struct tagGRAMMAR_PATTERN {
 	char  begin[12];					// mutually exclusive with match, one may define a begin and end marker to match. May span multiple lines
 	char  end[12];						// the end marker maybe e.g. '$' to match the end of line. Currently only one multi-line pattern supported.
 	HASHMAP* keywords;					// If an array list of keywords exists, these are matched after the pattern has matched.
+	BOOL keywordsNoIdentifiers;			// Special case: keywords are not delimited by word boundaries.
 	BOOL ignoreCase;					// If matches should be performed in a case ignore way.
 	BOOL spansLines;					// true, if this pattern spans multiple lines
 	char  style[32];					// Name of the style class to use.
@@ -212,6 +213,7 @@ static JSON_MAPPING_RULE _patternRules[] = {
 	{	RT_OBJECT_LIST, "captures", offsetof(GRAMMAR_PATTERN, captures),
 			{.r_t_arrayDescriptor = {grammar_createPatternGroup, _patternGroupRules}}},
 	{	RT_SET, "keywords", offsetof(GRAMMAR_PATTERN, keywords)},
+	{	RT_FLAG, "keywords-no-identifiers", offsetof(GRAMMAR_PATTERN, keywordsNoIdentifiers)},
 	{	RT_FLAG, "ignore-case", offsetof(GRAMMAR_PATTERN, ignoreCase)},
 	{	RT_CHAR_ARRAY, "style", offsetof(GRAMMAR_PATTERN, style), sizeof(((GRAMMAR_PATTERN*)NULL)->style)},
 	{	RT_CHAR_ARRAY, "begin", offsetof(GRAMMAR_PATTERN, begin), sizeof(((GRAMMAR_PATTERN*)NULL)->begin)},
@@ -422,15 +424,16 @@ static void grammar_createPatternFromKeywords(GRAMMAR_PATTERN* pGrammarPattern) 
 	lookup.ignoreCase = pGrammarPattern->ignoreCase;
 	hashmap_forEachKey(pGrammarPattern->keywords, grammar_collectChars, &lookup);
 	char result[256];
-	// Assumption: keywords always start on word boundaries.
-	strcpy(result, "<[");
-	unsigned char* pResult = grammar_determineCharacterClassCharacters(result+2, lookup.char1Table);
+	strcpy(result, pGrammarPattern->keywordsNoIdentifiers ? "[" : "<[");
+	unsigned char* pResult = grammar_determineCharacterClassCharacters(result+strlen(result), lookup.char1Table);
 	*pResult++ = ']';
 	*pResult++ = '[';
 	pResult = grammar_determineCharacterClassCharacters(pResult, lookup.char2Table);
 	*pResult++ = ']';
 	*pResult++ = lookup.singleCharKeywordExists ? '*' : '+';
-	*pResult++ = '>';
+	if (!pGrammarPattern->keywordsNoIdentifiers) {
+		*pResult++ = '>';
+	}
 	*pResult = 0;
 	pGrammarPattern->match = _strdup(result);
 }
@@ -1167,6 +1170,18 @@ static LEXICAL_CONTEXT grammar_lexicalContextDo(LEXICAL_CONTEXT nState, GRAMMAR*
 	return nState;
 }
 
+static BOOL grammar_matchUCPattern(const char* pBeginOfLine, const char* pBuf, const char* pBEnd, UC_MATCH_PATTERN* pPattern) {
+	BOOL bMatch;
+	if (pPattern->rePattern) {
+		RE_MATCH matchResult;
+		pPattern->rePattern->beginOfLine = pBeginOfLine;
+		bMatch = regex_match(pPattern->rePattern, pBuf, pBEnd, &matchResult);
+	} else {
+		bMatch = string_compareWithSecond(pBuf, pPattern->pattern, pPattern->ignoreCase) == 0;
+	}
+	return bMatch;
+}
+
 /*
  * Callback to determine the additional syntactical indenting for a buffer by inspecting opening brackets, braces etc...
  */
@@ -1179,14 +1194,14 @@ static BOOL grammar_countIndent(GRAMMAR* pGrammar, const char* pBuf, int nOffset
 	}
 	INDENT_PATTERN* pPatterns = pGrammar->increaseIndentPatterns;
 	while (pPatterns) {
-		if (string_compareWithSecond(&pBuf[nOffset], pPatterns->pattern.pattern, pPatterns->pattern.ignoreCase) == 0) {
+		if (grammar_matchUCPattern(pBuf, &pBuf[nOffset], &pBuf[nLen], &pPatterns->pattern)) {
 			(*(int*)pParam)++;
 		}
 		pPatterns = pPatterns->next;
 	}
 	pPatterns = pGrammar->decreaseIndentPatterns;
 	while (pPatterns) {
-		if (string_compareWithSecond(&pBuf[nOffset], pPatterns->pattern.pattern, pPatterns->pattern.ignoreCase) == 0) {
+		if (grammar_matchUCPattern(pBuf, &pBuf[nOffset], &pBuf[nLen], &pPatterns->pattern)) {
 			(*(int*)pParam)--;
 		}
 		pPatterns = pPatterns->next;

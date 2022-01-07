@@ -4,7 +4,13 @@
       "scopeName": "batch",
       "patterns": [
         {
-          "match": "@?rem.*",
+          "match": "^@?rem.*",
+          "style": "comment",
+          "ignore-case": true,
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "^::",
           "style": "comment",
           "ignore-case": true,
           "name": "comment.singleLine"

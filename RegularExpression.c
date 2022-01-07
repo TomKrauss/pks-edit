@@ -1281,7 +1281,7 @@ int regex_match(RE_PATTERN* pPattern, const unsigned char* stringToMatch, const 
 		pPattern->circf = 1;
 		pMatcher = (MATCHER*)(((char*)pMatcher) + matcherSizes[START_OF_LINE]);
 	}
-	char* pszBegin = pPattern->beginOfLine;
+	const char* pszBegin = pPattern->beginOfLine;
 	if (pszBegin == NULL) {
 		pszBegin = (unsigned char*)stringToMatch;
 	}
@@ -1290,7 +1290,7 @@ int regex_match(RE_PATTERN* pPattern, const unsigned char* stringToMatch, const 
 		if (pMatch->circf && stringToMatch > pszBegin) {
 			return 0;
 		}
-		if (regex_advance(pszBegin, (unsigned char*) stringToMatch, (unsigned char*)endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
+		if (regex_advance((char*)pszBegin, (unsigned char*) stringToMatch, (unsigned char*)endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
 			pMatch->matches = 1;
 			return 1;
 		}
@@ -1307,7 +1307,7 @@ int regex_match(RE_PATTERN* pPattern, const unsigned char* stringToMatch, const 
 				stringToMatch++;
 				continue;
 			}
-			if (regex_advance(pszBegin, (unsigned char*)stringToMatch, (unsigned char*)endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
+			if (regex_advance((char*)pszBegin, (unsigned char*)stringToMatch, (unsigned char*)endOfStringToMatch, (unsigned char*)pMatcher, pPattern->compiledExpressionEnd, pMatch)) {
 				pMatch->loc1 = (unsigned char*)stringToMatch;
 				pMatch->matches = 1;
 				return 1;

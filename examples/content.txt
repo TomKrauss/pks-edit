@@ -1,0 +1,144 @@
+!|test use case|Manage Articles|
+|run|
+
+'''Display the initial contents'''
+|press|refresh|
+
+'''Create a new article category 1'''
+|press|newCategory|
+
+''' Should not be able to save the category without entering a name and an ID '''
+|expect error message|Invalid input for field*|press|save|
+
+Enter the data
+|set values|
+|id|name|
+|1|Default|
+
+''' Introduced to avoid sporadic test failures on build server: obviously the ID field is from time to time cleared '''
+''' by some external event, when the focus is placed on it '''
+|focus to|save|
+
+''' Save the new article category '''
+|press|save|
+
+|set values|
+|name|
+|XXX|
+
+|press|reset|
+
+|test values|
+|name|
+|Default|
+
+|set values|cQueryEditor|
+|name|
+|X|
+
+|press|cQueryEditor.reset|
+
+|test values|cQueryEditor|
+|name|
+|null|
+
+
+'''Create a new article category 2'''
+|press|newCategory|
+
+Enter the data
+|set values|
+|id|name|
+|2|Category 2|
+
+Save the new article category
+|press|save|
+
+'''Create a new article group'''
+|select listbox|cTree|entry|0|
+
+|press|new|
+
+Enter the data
+|set values|
+|id|name|
+|1|Group1|
+
+Save the new article group
+|press|save|
+
+'''Create a new article group'''
+|select listbox|cTree|entry|2|
+
+|press|new|
+
+Enter the data
+|set values|
+|id|name|
+|2|Group2|
+
+Save the new article group
+|press|save|
+
+'''Create a new article'''
+|select listbox|cTree|entry|2|
+
+|press|new|
+
+''' Enter the data '''
+|set values|
+|ean|name|description|salesprice|
+|12312344|Baking Stone|Set includes 34cm large ceramic pizza baking stone, serving rack and stand. Gives crisp, restaurant-style bases every time and keeps pizza hot to the last bite!|45.22|
+
+''' Save the new article '''
+|press|save|
+
+|expand tree|cTree|node|0|
+|expand tree|cTree|node|1|
+|expand tree|cTree|node|2|
+|expand tree|cTree|node|3|
+
+'''Create a new article'''
+|select listbox|cTree|entry|4|
+
+|press|new|
+
+''' Enter the data '''
+|set values|
+|ean|name|description|
+|434244|Cake Tin|A wonderful cake tin made out of stainless steel.|
+
+''EAN should be incorrect''
+|check|is user input|incorrect|
+
+''' Correct the data '''
+|set values|
+|ean|
+|43424344|
+
+Save the new article
+|press|save|
+
+
+'''Create a new article'''
+|select listbox|cTree|entry|4|
+|press|new|
+|set values|
+|ean|name|description|salesprice|
+|79798792|Wine Rack|This stylish Bodum wine rack holds 12 bottles. Gift boxed. Self assembly.|148.23|
+
+''' Save the new article '''
+|press|save|
+
+''' Test some tree functions '''
+|collapse tree|cTree|all nodes|
+
+''' Make a node visible - then select it '''
+|make visible tree|cTree|node|Category 2^Group2^Baking Stone (EAN - 12312344)|
+
+|select tree|cTree|node|Category 2^Group2^Baking Stone (EAN - 12312344)|
+
+|expand tree|cTree|all nodes|
+
+''' A sample for checking, whether a component is visible '''
+|component|cTree|test|visible|

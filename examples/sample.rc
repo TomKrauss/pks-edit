@@ -1,0 +1,63 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "rc\pksrc.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+#include "dial2.h"
+#include "fsel.h"
+#include "pksedit.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Deutsch (Deutschland) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+DLGFKEYS DIALOGEX 0, 2000, 440, 32
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
+CLASS "DLGFKEYS"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CONTROL         "Einfügen",IDD_FKFLG1,"toggle",WS_TABSTOP | 0x3,40,20,40,12
+    CONTROL         "Indent",IDD_FKFLG2,"toggle",WS_TABSTOP | 0x3,80,20,40,12
+    CONTROL         "Umbruch",IDD_FKFLG3,"toggle",WS_TABSTOP | 0x3,120,20,40,12
+    CONTROL         "Format",IDD_FKFLG4,"toggle",WS_TABSTOP | 0x3,200,20,40,12
+    CONTROL         "Prüfe {}",IDD_FKFLG5,"toggle",WS_TABSTOP | 0x3,0,20,40,12
+    CONTROL         "Wysiwyg",IDD_FKFLG6,"toggle",WS_TABSTOP | 0x3,400,20,40,12
+    CONTROL         "Shortcuts",IDD_FKFLG7,"toggle",WS_TABSTOP | 0x3,240,20,40,12
+    CONTROL         "Block | |",IDD_FKFLG8,"toggle",WS_TABSTOP | 0x3,160,20,40,12
+    CONTROL         "Read O.",IDD_FKFLG9,"toggle",WS_TABSTOP | 0x3,320,20,40,12
+    CONTROL         "Logfileansicht",IDD_FKFLG10,"toggle",WS_TABSTOP | 0x3,280,20,40,12
+    CONTROL         "Zeile mark.",510,"toggle",WS_TABSTOP | 0x3,400,20,40,12
+    CONTROL         "Record",511,"toggle",WS_TABSTOP | 0x3,360,20,40,12
+    CONTROL         "F1",IDD_FKFK1,"Button",BS_OWNERDRAW | WS_TABSTOP,0,0,40,14
+    CONTROL         "F2",IDD_FKFK2,"Button",BS_OWNERDRAW | WS_TABSTOP,40,0,40,14
+    CONTROL         "F3",IDD_FKFK3,"Button",BS_OWNERDRAW | WS_TABSTOP,80,0,40,14
+    CONTROL         "F4",IDD_FKFK4,"Button",BS_OWNERDRAW | WS_TABSTOP,120,0,40,14
+    CONTROL         "F5",IDD_FKFK5,"Button",BS_OWNERDRAW | WS_TABSTOP,160,0,40,14
+    CONTROL         "F6",IDD_FKFK6,"Button",BS_OWNERDRAW | WS_TABSTOP,200,0,40,14
+    CONTROL         "F7",IDD_FKFK7,"Button",BS_OWNERDRAW | WS_TABSTOP,240,0,40,14
+    CONTROL         "F8",IDD_FKFK8,"Button",BS_OWNERDRAW | WS_TABSTOP,280,0,40,14
+    CONTROL         "F9",IDD_FKFK9,"Button",BS_OWNERDRAW | WS_TABSTOP,320,0,40,14
+    CONTROL         "F10",IDD_FKFK10,"Button",BS_OWNERDRAW | WS_TABSTOP,360,0,40,14
+    CONTROL         "F11",490,"Button",BS_OWNERDRAW | WS_TABSTOP,400,0,40,14
+    CONTROL         "F12",491,"Button",BS_OWNERDRAW | WS_TABSTOP,440,0,40,14
+END
+
+

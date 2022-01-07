@@ -1,0 +1,7 @@
+
+* This is a simple text example. Can be used to e.g. test the formatting features of PKS-Edit.
+
+- This is one bullet point
+- This is another bullet point
+
+

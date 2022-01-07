@@ -958,7 +958,10 @@ int EdSaveFile(int flg) {
 	if ((flg & SAV_AS) || (fp->flags & (F_NAME_INPUT_REQUIRED|F_MODIFIED)) == (F_NAME_INPUT_REQUIRED | F_MODIFIED)) {
 		char newname[512];
 		EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
-		string_splitFilename(fp->fname,_txtfninfo.path,_txtfninfo.fname);
+		string_splitFilename(fp->fname,newname,_txtfninfo.fname);
+		if (newname[0]) {
+			strcpy(_txtfninfo.path, newname);
+		}
 		FILE_SELECT_PARAMS fsp;
 		fsp.fsp_saveAs = TRUE;
 		fsp.fsp_optionsAvailable = TRUE;

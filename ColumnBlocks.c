@@ -82,7 +82,7 @@ EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int free
 	LINE *	lpd = 0;
 	LINE *	lp;
 	long 	cnt;
-	int      	cfirst;
+	int     cfirst;
 	int		clast;
 	int		ctrl;
 

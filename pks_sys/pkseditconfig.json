@@ -35,6 +35,13 @@
       "filenamePatterns": "*.java"
     },
     {
+      "name": "cs",
+      "description": "CSharp files (*.cs)",
+      "grammar": "cs",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.cs"
+    },
+    {
       "name": "log",
       "description": "Log Files (*.log, *.err, *.out, *.logfile)",
       "grammar": "logfile",

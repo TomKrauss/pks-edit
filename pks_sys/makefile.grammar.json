@@ -2,6 +2,13 @@
   "grammars": [
     {
       "scopeName": "makefile",
+      "formatter": "code",
+      "increaseIndentPatterns": [
+        {
+          "pattern": "^[.a-zA-Z0-9]+\\s*:",
+          "regex": true
+        }
+      ],
       "navigation": [
         {
           "name": "include-link",
@@ -17,8 +24,13 @@
         },
         {
           "match": "^[.a-zA-Z0-9]+\\s*:",
-          "style": "string",
+          "style": "annotation",
           "name": "makefile.target"
+        },
+        {
+          "match": "\"(?:\\\"|[^\"])+?\"",
+          "style": "string",
+          "name": "string"
         },
         {
           "match": "\\$\\([a-z0-9A-Z_.-]+\\)",

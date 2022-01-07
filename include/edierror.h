@@ -65,10 +65,10 @@ extern void err_writeErrorOcurred(void);
 extern void err_openFailed(char* fname);
 
 /*---------------------------------
- * linetoolong()
+ * ln_errorLineTooLong()
  * Display an error about the fact a line would become too long.
  *---------------------------------*/
-extern void linetoolong(void);
+extern void ln_errorLineTooLong(void);
 
 #define	E_SERIOUSC		'!'
 

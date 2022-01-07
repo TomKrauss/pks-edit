@@ -53,12 +53,12 @@ typedef struct tagRE_OPTIONS {
 } RE_OPTIONS;
 
 typedef struct tagRE_PATTERN {
-	int		errorCode;			// the resource ID in case of an error, which can be used for error reporting.
+	int		errorCode;				// the resource ID in case of an error, which can be used for error reporting.
 	char*	compiledExpression;
-	char*	compiledExpressionEnd; // points to the end of the compiled expression after the compilation
-	char*	beginOfLine;		// may be set to the beginning of a line to make <> matches more correct.
-	int		circf;				// set to true to not advance during matching, but to match only the beginning of the string.
-	int		noAdvance;			// set to true to only match exactly at the current position.
+	char*	compiledExpressionEnd;	// points to the end of the compiled expression after the compilation
+	const char*	beginOfLine;		// may be set to the beginning of a line to make <> matches more correct.
+	int		circf;					// set to true to not advance during matching, but to match only the beginning of the string.
+	int		noAdvance;				// set to true to only match exactly at the current position.
 	int		nbrackets;
 } RE_PATTERN;
 

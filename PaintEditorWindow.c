@@ -26,6 +26,7 @@
 #include "winterf.h"
 #include "errordialogs.h"
 #include "winutil.h"
+#include "linkedlist.h"
 #include "themes.h"
 
 static DWORD _ROPcodes[] = {
@@ -607,8 +608,9 @@ EXPORT void render_repaintLine(FTABLE *fp, LINE *lpWhich)
  * a specific window (wp != NULL) or all windows for the document fp.
  */
 static void render_repaintLineRangeWindowInternal(WINFO* wp, FTABLE* fp, LINE* lpStart, LINE* lpEnd) {
-	int idx = ln_indexOf(fp, lpStart);
-	if (idx < 0) {
+	long idx1;
+	long idx2;
+	if (!ll_indexTwoElements((LINKED_LIST*)fp->firstl, lpStart, lpEnd, &idx1, &idx2)) {
 		if (wp) {
 			render_repaintForWindow(wp, 0);
 		} else {
@@ -616,16 +618,13 @@ static void render_repaintLineRangeWindowInternal(WINFO* wp, FTABLE* fp, LINE* l
 		}
 		return;
 	}
-	int nCount = ln_cnt(lpStart, lpEnd);
-	if (nCount <= 0) {
-		idx = ln_indexOf(fp, lpEnd);
-		nCount = ln_cnt(lpEnd, lpStart);
-	}
+	long idxStart = idx1 < idx2 ? idx1 : idx2;
+	long idxEnd = idx1 < idx2 ? idx2 : idx1;
 	if (wp) {
-		struct tagLINE_FROM_TO param = { idx, idx+nCount};
+		struct tagLINE_FROM_TO param = { idxStart, idxEnd+1};
 		render_repaintWindowFromLineTo(wp, &param);
 	} else {
-		render_repaintFromLineTo(fp, idx, idx + nCount);
+		render_repaintFromLineTo(fp, idxStart, idxEnd+1);
 	}
 }
 
