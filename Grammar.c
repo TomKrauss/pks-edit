@@ -108,7 +108,7 @@ static BRACKET_RULE _defaultBracketRule = {
 	NULL,
 	{NULL},
 	{NULL},
-	NULL,
+	0,
 	1,
 	-1,
 	0,4,-4,0
@@ -166,7 +166,7 @@ static JSON_MAPPING_RULE _tagSourceRules[] = {
 static JSON_MAPPING_RULE _bracketRules[] = {
 	{	RT_ALLOC_STRING, "left", offsetof(BRACKET_RULE, lefthand.pattern)},
 	{	RT_ALLOC_STRING, "right", offsetof(BRACKET_RULE, righthand.pattern)},
-	{	RT_ALLOC_STRING, "opposite-match", offsetof(BRACKET_RULE, oppositeMatch)},
+	{	RT_FLAG, "opposite-match", offsetof(BRACKET_RULE, oppositeMatch)},
 	{	RT_FLAG, "ignore-case", offsetof(BRACKET_RULE, lefthand.ignoreCase), 1},
 	{	RT_FLAG, "regex", offsetof(BRACKET_RULE, lefthand.regex), 1},
 	{	RT_END}
@@ -297,7 +297,6 @@ static int grammar_destroyTemplates(TEMPLATE* pTemplate) {
 static int grammar_destroyBrackets(BRACKET_RULE* pRule) {
 	grammar_destroyUCMatchPatternPattern(&pRule->lefthand);
 	grammar_destroyUCMatchPatternPattern(&pRule->righthand);
-	free(pRule->oppositeMatch);
 	return 1;
 }
 

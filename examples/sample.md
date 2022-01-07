@@ -13,6 +13,7 @@ Shift and click on the link to navigate to the sample:
 - [sample.js](sample.js)
 - [sample.cs](sample.cs)
 - [sample.py](sample.py)
+- [sample.go](sample.go)
 - [sample.pas](sample.pas)
 - [sample.tex](sample.tex)
 - [sample.dart](sample.dart)

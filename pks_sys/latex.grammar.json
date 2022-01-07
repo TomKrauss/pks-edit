@@ -6,7 +6,7 @@
         {
           "left": "\\\\begin\\{([a-zA-Z0-9-]+)\\}",
           "right": "\\\\end\\{([a-zA-Z0-9-]+)\\}",
-          "opposite-match": "\\\\begin\\{\\1\\}",
+          "opposite-match": true,
           "regex": true
         }
       ],

@@ -61,7 +61,7 @@ typedef struct tagBRACKET_RULE {
 	struct tagBRACKET_RULE* next;
 	UC_MATCH_PATTERN lefthand;
 	UC_MATCH_PATTERN righthand;	 // righthand bracket match definition
-	char* oppositeMatch;	// Allows for "calculated matches" in constellation where lefthand and righthand are defined via RE the opposite
+	BOOL oppositeMatch;		// Allows for "calculated matches" in constellation where lefthand and righthand are defined via RE the opposite
 							// match may be constructed from the results of a submatch such as </?\1> to match the counter part of an XML entity,
 							// when the entity match is defined as <([^>]+)> and </([^>]+)> respectively
 	char d1, d2;			// delta to add to current bracket level - typically 1 and -1 for left hand and right hand brackets

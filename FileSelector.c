@@ -359,12 +359,13 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
 	LPSTR		pszRun;
 	BOOL		bRet;
 	char 		szTemp[128];
+	int			nMax = 4096;
 
-	pszFilter = calloc(1, EDMAXPATHLEN);
+	pszFilter = calloc(1, nMax);
 	if (!pszFilter) {
 		return FALSE;
 	}
-	pszCustomFilter = calloc(1, EDMAXPATHLEN);
+	pszCustomFilter = calloc(1, nMax);
 	if (!pszCustomFilter) {
 		free(pszFilter);
 		return FALSE;
@@ -382,7 +383,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
 	}
 	*pszRun = 0;
 
-	doctypes_getSelectableDocumentFileTypes(pszFilter, EDMAXPATHLEN);
+	doctypes_getSelectableDocumentFileTypes(pszFilter, nMax);
 	int nFilterIndex = 0;
 	int nIndex = 0;
 	char* pszPrev = pszFilter;

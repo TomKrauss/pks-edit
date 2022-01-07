@@ -13,7 +13,7 @@
         {
           "left": "\\< *([a-zA-Z0-9_-]+)[^>]+[^/>]\\>",
           "right": "\\< */([a-zA-Z0-9_-]+)[^>]+[^/>]\\>",
-          "opposite-match": "\\<.*\\1[^>]*\\>",
+          "opposite-match": true,
           "regex": true
         }
       ],

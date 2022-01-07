@@ -32,6 +32,13 @@
 #include "winterf.h"
 #include "stringutil.h"
 
+typedef struct tagMATCHED_BRACKET {
+	UC_MATCH_PATTERN* pPattern;			// the pattern which had matched
+	const char* pSubgroupStart;			// if a RE with subgroups had been matched, this is pointer to the start of the group matched
+	const char* pSubgroupEnd;			// if a RE with subgroups had been matched, this is pointer to the end of the group matched
+	BOOL bRightHand;					// if the right hand had been matched, this is true
+} MATCHED_BRACKET;
+
 /*--------------------------------------------------------------------------
  * EXTERNALS
  */
@@ -47,7 +54,7 @@ extern PASTELIST 	*_esclist[];
 /*--------------------------------------------------------------------------
  * uc_matchBracket()
  */
-static BOOL uc_matchBracket(GRAMMAR* pGrammar, LINE* pLine, int nOffset, UC_MATCH_PATTERN* pPattern) {	
+static BOOL uc_matchBracket(GRAMMAR* pGrammar, LINE* pLine, int nOffset, UC_MATCH_PATTERN* pPattern, MATCHED_BRACKET* pMatched) {
 	if (nOffset < 0 || !pPattern->pattern[0]) {
 		return FALSE;
 	}
@@ -56,6 +63,10 @@ static BOOL uc_matchBracket(GRAMMAR* pGrammar, LINE* pLine, int nOffset, UC_MATC
 	if (pPattern->rePattern) {
 		RE_MATCH matchResult;
 		bMatch = regex_match(pPattern->rePattern, pBuffer, &pLine->lbuf[pLine->len], &matchResult);
+		if (matchResult.braslist[0]) {
+			pMatched->pSubgroupStart = matchResult.braslist[0];
+			pMatched->pSubgroupEnd = matchResult.braelist[0];
+		}
 	} else if (string_compareWithSecond(pBuffer, pPattern->pattern, pPattern->ignoreCase) == 0) {
 		// special case - start end patterns like begin and end in pascal - make sure, they start
 		// on a word boundary - RE would make us more flexible here.
@@ -73,6 +84,7 @@ static BOOL uc_matchBracket(GRAMMAR* pGrammar, LINE* pLine, int nOffset, UC_MATC
 	// TODO: determine start state using LEXICAL_CONTEXT lcStart = highlight_getLexicalStartStateFor() ... would
 	// better help to eliminate multiline comment matches.
 	if (bMatch &&  grammar_getLexicalContextAt(pGrammar, LC_START, pLine->lbuf, pLine->len, nOffset) == LC_START) {
+		pMatched->pPattern = pPattern;
 		return TRUE;
 	}
 
@@ -88,22 +100,24 @@ EXPORT UCLIST *uc_find(GRAMMAR* pGrammar, LINE *lp, int column) {
 	int nBest = 0;
 	UCLIST* upBest = NULL;
 	char* lineBuffer = lp->lbuf;
+	MATCHED_BRACKET match;
 
+	memset(&match, 0, sizeof match);
 	while (up) {
 		UC_MATCH_PATTERN* pPattern = &up->uc_pattern;
 		o = column - pPattern->len;
 		BOOL bMatch = FALSE;
 		if (up->action == UA_SHOWMATCH) {
-			if (uc_matchBracket(pGrammar, lp, o, pPattern)) {
+			if (uc_matchBracket(pGrammar, lp, o, pPattern, &match)) {
 				bMatch = TRUE;
 			}
 			int nLen = up->p.uc_bracket->righthand.len;
 			if ((o = column - nLen) >= 0 && nLen > nBest) {
-				if (uc_matchBracket(pGrammar, lp, o, &up->p.uc_bracket->righthand)) {
+				if (uc_matchBracket(pGrammar, lp, o, &up->p.uc_bracket->righthand, &match)) {
 					bMatch = TRUE;
 				}
 			}
-		} else if (uc_matchBracket(pGrammar, lp, o, pPattern)) {
+		} else if (uc_matchBracket(pGrammar, lp, o, pPattern, &match)) {
 			bMatch = TRUE;
 		}
 		if (bMatch && pPattern->len > nBest) {
@@ -118,14 +132,14 @@ EXPORT UCLIST *uc_find(GRAMMAR* pGrammar, LINE *lp, int column) {
 /*--------------------------------------------------------------------------
  * uc_matchBracketRule()
  */
-static int uc_matchBracketRule(GRAMMAR* pGrammar, LINE* lp, int nOffset, BRACKET_RULE *mp, int *pIsRightHand) {
-	if (uc_matchBracket(pGrammar, lp, nOffset, &mp->lefthand)) {
-		*pIsRightHand = 0;
+static int uc_matchBracketRule(GRAMMAR* pGrammar, LINE* lp, int nOffset, BRACKET_RULE *mp, MATCHED_BRACKET *pMatched) {
+	if (uc_matchBracket(pGrammar, lp, nOffset, &mp->lefthand, pMatched)) {
+		pMatched->bRightHand = 0;
 		return 1;
 	}
 
-	if (uc_matchBracket(pGrammar, lp, nOffset, &mp->righthand)) {
-		*pIsRightHand = 1;
+	if (uc_matchBracket(pGrammar, lp, nOffset, &mp->righthand, pMatched)) {
+		pMatched->bRightHand = 1;
 		return 1;
 	}
 
@@ -135,9 +149,9 @@ static int uc_matchBracketRule(GRAMMAR* pGrammar, LINE* lp, int nOffset, BRACKET
 /*--------------------------------------------------------------------------
  * uc_findMatchinBracketRule()
  */
-static BRACKET_RULE *uc_findMatchinBracketRule(GRAMMAR* pGrammar, UCLIST* mp, LINE* lp, int nOffset, int *pIsRightHand) {	
+static BRACKET_RULE *uc_findMatchinBracketRule(GRAMMAR* pGrammar, UCLIST* mp, LINE* lp, int nOffset, MATCHED_BRACKET *pMatched) {
 	for (; mp; mp = mp->next) {
-		if (mp->action == UA_SHOWMATCH && uc_matchBracketRule(pGrammar, lp, nOffset, mp->p.uc_bracket, pIsRightHand)) {
+		if (mp->action == UA_SHOWMATCH && uc_matchBracketRule(pGrammar, lp, nOffset, mp->p.uc_bracket, pMatched)) {
 			return mp->p.uc_bracket;
 		}
 	}
@@ -148,20 +162,20 @@ static BRACKET_RULE *uc_findMatchinBracketRule(GRAMMAR* pGrammar, UCLIST* mp, LI
  * br_findMatching()
  * Find the matching bracket. Returns 1 if successful, 0 otherwise
  */
-static int br_findMatching(GRAMMAR* pGrammar, int checkright, LINE *lp, BRACKET_RULE *mp, long *pLine, long *pColumn) {
+static int br_findMatching(GRAMMAR* pGrammar, MATCHED_BRACKET* pOther, LINE *lp, BRACKET_RULE *mp, long *pLine, long *pColumn) {
 	long ln = *pLine;
-	int righthand;
+	MATCHED_BRACKET matchedBracket;
 	char *s = &lp->lbuf[*pColumn],*send;
 	int  level;
 
 	// check for right bracket
-	if (checkright) {
+	if (pOther == NULL || !pOther->bRightHand) {
 		level = 1;
 		while (lp->next) {
 			send = &lp->lbuf[lp->len];
 			while (s < send) {
-				if (uc_matchBracketRule(pGrammar, lp, (int)(s-lp->lbuf), mp, &righthand)) {
-					if (righthand) {
+				if (uc_matchBracketRule(pGrammar, lp, (int)(s-lp->lbuf), mp, &matchedBracket)) {
+					if (matchedBracket.bRightHand) {
 						if (mp->d2 == 0)
 							level = 0;
 						else level += mp->d2;
@@ -185,8 +199,8 @@ static int br_findMatching(GRAMMAR* pGrammar, int checkright, LINE *lp, BRACKET_
 		for(;;) {
 			send = lp->lbuf;
 			while (--s >= send) {
-				if (uc_matchBracketRule(pGrammar, lp, (int)(s - lp->lbuf), mp, &righthand)) {
-					if (!righthand) {
+				if (uc_matchBracketRule(pGrammar, lp, (int)(s - lp->lbuf), mp, &matchedBracket)) {
+					if (!matchedBracket.bRightHand) {
 						if (mp->d1 == 0)
 							level = 0;
 						else level += mp->d1;
@@ -214,7 +228,9 @@ success:
 static int br_indentsum(GRAMMAR* pGrammar, const LINE *lps, LINE *lp, BRACKET_RULE *mp, int *dcurr, int *hasind)
 {	unsigned char *s,*send;
 	int d1,d2,indent = 0;
+	MATCHED_BRACKET matched;
 
+	memset(&matched, 0, sizeof matched);
 	d1 = (mp->ci1[0]+mp->ci1[1]);
 	d2 = (mp->ci2[0]+mp->ci2[1]);
 
@@ -224,12 +240,12 @@ static int br_indentsum(GRAMMAR* pGrammar, const LINE *lps, LINE *lp, BRACKET_RU
 	*hasind = 0;
 
 	while(s < send) {
-		if (uc_matchBracket(pGrammar, lp, (int)(s-lp->lbuf), &mp->lefthand)) {
+		if (uc_matchBracket(pGrammar, lp, (int)(s-lp->lbuf), &mp->lefthand, &matched)) {
 			*dcurr = mp->ci1[0];
 			*hasind = 1;
 			break;
 		}
-		if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf), &mp->righthand)) {
+		if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf), &mp->righthand, &matched)) {
 			*dcurr = mp->ci2[0];
 			*hasind = 1;
 			break;
@@ -243,9 +259,9 @@ static int br_indentsum(GRAMMAR* pGrammar, const LINE *lps, LINE *lp, BRACKET_RU
 		send = lp->lbuf;
 		s = send + lp->len;
 		while (--s >= send) {
-			if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),&mp->lefthand)) {
+			if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),&mp->lefthand, &matched)) {
 				indent += d1;
-			} else if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf), &mp->righthand)) {
+			} else if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf), &mp->righthand, &matched)) {
 				indent += d2;
 			}
 		}
@@ -263,21 +279,21 @@ static int br_indentsum(GRAMMAR* pGrammar, const LINE *lps, LINE *lp, BRACKET_RU
 static BRACKET_RULE* uc_findBracketMatchInLine(GRAMMAR* pGrammar, UCLIST* pList, LINE *lp,long *ln,long *col)
 {
 	int	pos,j;
-	int righthand;
+	MATCHED_BRACKET matchedBracket;
 	BRACKET_RULE *mp = 0;
 
 	pos = *col;
-	if ((mp = uc_findMatchinBracketRule(pGrammar, pList, lp, pos, &righthand)) != 0) {
-		if (!righthand) {
+	if ((mp = uc_findMatchinBracketRule(pGrammar, pList, lp, pos, &matchedBracket)) != 0) {
+		if (!matchedBracket.bRightHand) {
 			*col += mp->lefthand.len;
 		}
-		return (br_findMatching(pGrammar, !righthand, lp, mp, ln, col)) ? mp : 0;
+		return (br_findMatching(pGrammar, &matchedBracket, lp, mp, ln, col)) ? mp : 0;
 	}
 	for ( j = pos; --j >= 0; )
-		if ((mp = uc_findMatchinBracketRule(pGrammar, pList, lp, j, &righthand)) != 0)
+		if ((mp = uc_findMatchinBracketRule(pGrammar, pList, lp, j, &matchedBracket)) != 0)
 			goto matched;
 	for ( j = pos; ++j < lp->len; )
-		if ((mp = uc_findMatchinBracketRule(pGrammar, pList, lp, j, &righthand)) != 0)
+		if ((mp = uc_findMatchinBracketRule(pGrammar, pList, lp, j, &matchedBracket)) != 0)
 			goto matched;
 
 	return 0;

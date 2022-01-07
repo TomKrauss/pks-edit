@@ -1,0 +1,144 @@
+{
+  "grammars": [
+    {
+      "scopeName": "go",
+      "formatter": "code",
+      "increaseIndentPatterns": [
+        { "pattern": "{" },
+        { "pattern": "(" },
+        { "pattern": "[" }
+      ],
+      "decreaseIndentPatterns": [
+        { "pattern": "}" },
+        { "pattern": ")" },
+        { "pattern": "]" }
+      ],
+      "templates": [
+        {
+          "match": "'",
+          "contents": "${cursor}'",
+          "auto-insert": true
+        },
+        {
+          "match": "(",
+          "contents": "${cursor})",
+          "auto-insert": true
+        },
+        {
+          "match": "{",
+          "contents": "\n${indent}${tab}${cursor}\n${indent}}",
+          "auto-insert": true,
+          "lexical-context-initial": true
+        },
+        {
+          "match": "\"",
+          "contents": "${cursor}\"",
+          "auto-insert": true
+        },
+        {
+          "match": "/*",
+          "contents": "\n${indent} * ${cursor}\n${indent} */",
+          "auto-insert": true
+        },
+        {
+          "match": "for_loop",
+          "contents": "for (int ${word_selection}; ${word_selection} < ${cursor}10${selection_end}; ${word_selection}++) {\n${indent}${tab}printf(x);\n${indent}}\n"
+        }
+      ],
+      "highlightBrackets": [
+        {
+          "left": "{",
+          "right": "}"
+        },
+        {
+          "left": "(",
+          "right": ")"
+        },
+        {
+          "left": "[",
+          "right": "]"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "//.*",
+          "style": "sl-comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "\"(?:\\\"|[^\"])+?\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "\\<[a-z.A-Z0-9]+\\>",
+          "style": "string",
+          "name": "include.file"
+        },
+        {
+          "match": "\\.([a-zA-Z_][a-zA-Z_0-9]*)>",
+          "name": "qualified.identifier",
+          "captures": [
+            {
+              "pattern": "qualified.identifier.match"
+            }
+          ]
+        },
+        {
+          "name": "qualified.identifier.match",
+          "style": "identifier"
+        },
+        {
+          "keywords": [
+            "if",
+            "else",
+            "true",
+            "false",
+            "bool",
+            "import",
+            "var",
+            "go",
+            "func",
+            "struct",
+            "typedef",
+            "enum",
+            "for",
+            "while",
+            "auto",
+            "const",
+            "package",
+            "do",
+            "continue",
+            "break",
+            "const",
+            "float",
+            "long",
+            "double",
+            "int",
+            "short",
+            "void",
+            "byte",
+            "char"
+          ],
+          "style": "keyword",
+          "name": "keyword.cpp"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "'(?:\\\\'|\\\\u\\\\d+|[^'])'",
+          "style": "literal",
+          "name": "literal.char"
+        },
+        {
+          "match": "[-+&|:<>=~?]{1,2}",
+          "style": "operator",
+          "name": "keyword.operator"
+        }
+      ]
+    }
+  ]
+}

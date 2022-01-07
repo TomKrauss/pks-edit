@@ -35,6 +35,13 @@
       "filenamePatterns": "*.java"
     },
     {
+      "name": "go",
+      "description": "GO files (*.go)",
+      "grammar": "go",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.go"
+    },
+    {
       "name": "cs",
       "description": "CSharp files (*.cs)",
       "grammar": "cs",

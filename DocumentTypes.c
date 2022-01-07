@@ -191,9 +191,15 @@ void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 				llp->ll_description[0] ?
 				llp->ll_description : llp->ll_match,
 				(int)(pszEnd - pszDest));
+			if (pszDest >= pszEnd) {
+				break;
+			}
 			*pszDest++ = '|';
 			pszDest = strmaxcpy(pszDest, llp->ll_match,
 				(int)(pszEnd - pszDest));
+			if (pszDest >= pszEnd) {
+				break;
+			}
 			nCopied++;
 		}
 	}
