@@ -158,17 +158,72 @@ static BRACKET_RULE *uc_findMatchinBracketRule(GRAMMAR* pGrammar, UCLIST* mp, LI
 	return 0;
 }
 
+static void br_replaceDynamicPattern(char* pszDest, const char* pszSource, const char* pszReplace, size_t nReplaceLen) {
+	BOOL bInBracket = FALSE;
+	char c;
+
+	while ((c = *pszSource++) != 0) {
+		if (c == '\\') {
+			*pszDest++ = c;
+			c = *pszSource++;
+			if (!c) {
+				break;
+			}
+			*pszDest++ = c;
+			continue;
+		}
+		if (!bInBracket) {
+			if (c == '(') {
+				bInBracket = TRUE;
+			} else {
+				*pszDest++ = c;
+			}
+		} else if (c == ')') {
+			// TODO: quote potential special chars in found subgroup (e,g, [ or * )
+			strncpy(pszDest, pszReplace, nReplaceLen);
+			pszDest += nReplaceLen;
+			bInBracket = FALSE;
+		}
+	}
+	*pszDest++ = 0;
+}
+
+/*
+ * Calculate a dynamic match pattern
+ */
+static BRACKET_RULE* br_calculateDynamicMatch(BRACKET_RULE* mpDest, BRACKET_RULE* mp, MATCHED_BRACKET* pMatched) {
+	char szTargetBuf[128];
+	memset(mpDest, 0, sizeof * mpDest);
+	br_replaceDynamicPattern(szTargetBuf, mp->lefthand.pattern, pMatched->pSubgroupStart, pMatched->pSubgroupEnd - pMatched->pSubgroupStart);
+	mpDest->lefthand.pattern = _strdup(szTargetBuf);
+	mpDest->lefthand.ignoreCase = mp->lefthand.ignoreCase;
+	mpDest->lefthand.regex = TRUE;
+	grammar_processMatchPattern(&mpDest->lefthand, "dynamic");
+	br_replaceDynamicPattern(szTargetBuf, mp->righthand.pattern, pMatched->pSubgroupStart, pMatched->pSubgroupEnd - pMatched->pSubgroupStart);
+	mpDest->righthand.pattern = _strdup(szTargetBuf);
+	mpDest->righthand.ignoreCase = mp->righthand.ignoreCase;
+	mpDest->righthand.regex = TRUE;
+	grammar_processMatchPattern(&mpDest->righthand, "dynamic");
+	return mpDest;
+}
+
 /*--------------------------------------------------------------------------
  * br_findMatching()
  * Find the matching bracket. Returns 1 if successful, 0 otherwise
  */
 static int br_findMatching(GRAMMAR* pGrammar, MATCHED_BRACKET* pOther, LINE *lp, BRACKET_RULE *mp, long *pLine, long *pColumn) {
+	int ret = 1;
 	long ln = *pLine;
 	MATCHED_BRACKET matchedBracket;
+	BRACKET_RULE calculatedRule;
 	char *s = &lp->lbuf[*pColumn],*send;
 	int  level;
 
+	calculatedRule.lefthand.pattern = 0;
 	// check for right bracket
+	if (pOther && pOther->pSubgroupStart && mp->dynamicMatch) {
+		mp = br_calculateDynamicMatch(&calculatedRule, mp, pOther);
+	}
 	if (pOther == NULL || !pOther->bRightHand) {
 		level = 1;
 		while (lp->next) {
@@ -216,10 +271,16 @@ static int br_findMatching(GRAMMAR* pGrammar, MATCHED_BRACKET* pOther, LINE *lp,
 			s = &lp->lbuf[lp->len];
 		}
 	}
-	return 0;			/* no match */
+	ret = 0;			/* no match */
 success:
-	 *pLine = ln ,*pColumn = (long)(s - lp->lbuf);
-	 return 1;
+	if (ret) {
+		*pLine = ln, * pColumn = (long)(s - lp->lbuf);
+	}
+	if (calculatedRule.lefthand.pattern) {
+		grammar_destroyUCMatchPattern(&calculatedRule.lefthand);
+		grammar_destroyUCMatchPattern(&calculatedRule.righthand);
+	}
+	 return ret;
 }
 
 /*--------------------------------------------------------------------------

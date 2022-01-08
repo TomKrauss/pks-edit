@@ -166,7 +166,7 @@ static JSON_MAPPING_RULE _tagSourceRules[] = {
 static JSON_MAPPING_RULE _bracketRules[] = {
 	{	RT_ALLOC_STRING, "left", offsetof(BRACKET_RULE, lefthand.pattern)},
 	{	RT_ALLOC_STRING, "right", offsetof(BRACKET_RULE, righthand.pattern)},
-	{	RT_FLAG, "opposite-match", offsetof(BRACKET_RULE, oppositeMatch)},
+	{	RT_FLAG, "dynamic-match", offsetof(BRACKET_RULE, dynamicMatch)},
 	{	RT_FLAG, "ignore-case", offsetof(BRACKET_RULE, lefthand.ignoreCase), 1},
 	{	RT_FLAG, "regex", offsetof(BRACKET_RULE, lefthand.regex), 1},
 	{	RT_END}
@@ -260,7 +260,10 @@ static void grammar_destroyREPattern(RE_PATTERN* pREPattern) {
 	}
 }
 
-static void grammar_destroyUCMatchPatternPattern(UC_MATCH_PATTERN* pMatchPattern) {
+/*
+ * Release the resources allocated for a UC_MATCH_PATTERN
+ */
+void grammar_destroyUCMatchPattern(UC_MATCH_PATTERN* pMatchPattern) {
 	RE_PATTERN* pREPattern = pMatchPattern->rePattern;
 	if (pREPattern) {
 		grammar_destroyREPattern(pREPattern);
@@ -289,19 +292,19 @@ static int grammar_destroyTagSource(TAGSOURCE* pSource) {
 }
 
 static int grammar_destroyTemplates(TEMPLATE* pTemplate) {
-	grammar_destroyUCMatchPatternPattern(&pTemplate->t_pattern);
+	grammar_destroyUCMatchPattern(&pTemplate->t_pattern);
 	free(pTemplate->t_contents);
 	return 1;
 }
 
 static int grammar_destroyBrackets(BRACKET_RULE* pRule) {
-	grammar_destroyUCMatchPatternPattern(&pRule->lefthand);
-	grammar_destroyUCMatchPatternPattern(&pRule->righthand);
+	grammar_destroyUCMatchPattern(&pRule->lefthand);
+	grammar_destroyUCMatchPattern(&pRule->righthand);
 	return 1;
 }
 
 static int grammar_destroyIndentation(INDENT_PATTERN* pPattern) {
-	grammar_destroyUCMatchPatternPattern(&pPattern->pattern);
+	grammar_destroyUCMatchPattern(&pPattern->pattern);
 	return 1;
 }
 
@@ -437,7 +440,7 @@ static void grammar_createPatternFromKeywords(GRAMMAR_PATTERN* pGrammarPattern) 
 	pGrammarPattern->match = _strdup(result);
 }
 
-RE_PATTERN* grammar_compileAndCreateRegex(char* pszMatch, char* pszScope, int someFlags) {
+static RE_PATTERN* grammar_compileAndCreateRegex(char* pszMatch, char* pszScope, int someFlags) {
 	RE_PATTERN *pPattern = calloc(1, sizeof(RE_PATTERN));
 	RE_OPTIONS options;
 	memset(&options, 0, sizeof options);
@@ -548,7 +551,7 @@ static LEXICAL_STATE grammar_processChildPatterns(GRAMMAR* pGrammar, LEXICAL_STA
 /*
  * Pre-process an undercursor matching pattern condition.
  */
-static void grammar_processMatchPattern(UC_MATCH_PATTERN* pPattern, char* pScopeName) {
+void grammar_processMatchPattern(UC_MATCH_PATTERN* pPattern, char* pScopeName) {
 	if (pPattern->regex) {
 		int flags = RE_DOREX|RE_NOADVANCE;
 		if (pPattern->ignoreCase) {

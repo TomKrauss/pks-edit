@@ -61,7 +61,7 @@ typedef struct tagBRACKET_RULE {
 	struct tagBRACKET_RULE* next;
 	UC_MATCH_PATTERN lefthand;
 	UC_MATCH_PATTERN righthand;	 // righthand bracket match definition
-	BOOL oppositeMatch;		// Allows for "calculated matches" in constellation where lefthand and righthand are defined via RE the opposite
+	BOOL dynamicMatch;		// Allows for "calculated matches" in constellation where lefthand and righthand are defined via RE the opposite
 							// match may be constructed from the results of a submatch such as </?\1> to match the counter part of an XML entity,
 							// when the entity match is defined as <([^>]+)> and </([^>]+)> respectively
 	char d1, d2;			// delta to add to current bracket level - typically 1 and -1 for left hand and right hand brackets
@@ -248,6 +248,17 @@ extern LEXICAL_CONTEXT grammar_getLexicalContextForState(GRAMMAR* pGrammar, LEXI
  * begin and end - in other words the state may span several lines.
  */
 extern BOOL grammar_isMultilineState(GRAMMAR* pGrammar, LEXICAL_STATE aState);
+
+/*
+ * Pre-process an undercursor matching pattern condition.
+ * This will allocate resources later to destroy with grammar_destroyUCMatchPattern
+ */
+void grammar_processMatchPattern(UC_MATCH_PATTERN* pPattern, char* pScopeName);
+
+/*
+ * Release the resources allocated for a UC_MATCH_PATTERN
+ */
+extern void grammar_destroyUCMatchPattern(UC_MATCH_PATTERN* pMatchPattern);
 
 #define GRAMMAR_H
 #endif

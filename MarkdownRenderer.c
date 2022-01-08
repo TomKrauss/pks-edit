@@ -130,8 +130,21 @@ typedef enum {
 	MET_NORMAL,
 	MET_FENCED_CODE_BLOCK,
 	MET_HEADER, 
-	MET_HORIZONTAL_RULE 
+	MET_TABLE,
+	MET_HORIZONTAL_RULE
 } MDR_ELEMENT_TYPE;
+
+typedef struct tagRENDER_TABLE_CELL {
+	struct tagRENDER_TABLE_CELL* rtc_next;
+	BOOL rtc_isHeader;
+	int  rtc_align;
+	TEXT_FLOW rtc_flow;
+} RENDER_TABLE_CELL;
+
+typedef struct tagRENDER_TABLE_ROW {
+	struct tagRENDER_TABLE_ROW* rtr_next;
+	RENDER_TABLE_CELL* rtr_cells;
+} RENDER_TABLE_ROW;
 
 struct tagRENDER_VIEW_PART {
 	struct tagRENDER_VIEW_PART* rvp_next;
@@ -145,7 +158,10 @@ struct tagRENDER_VIEW_PART {
 	MDR_ELEMENT_TYPE rvp_type;
 	long rvp_number;			// for numbered lists
 	int	rvp_level;				// for headers and lists - the level.
-	TEXT_FLOW rvp_flow;
+	union {
+		TEXT_FLOW rvp_flow;
+		RENDER_TABLE_ROW* rvp_table;
+	} rvp_data;
 };
 
 typedef struct tagMDR_ELEMENT_FORMAT {
@@ -170,7 +186,7 @@ static MDR_ELEMENT_FORMAT _formatText = {
 };
 
 static MDR_ELEMENT_FORMAT _formatFenced = {
-	0, 0, 20, 20, 14, FW_BOLD, 1
+	12, 0, 20, 20, 14, FW_BOLD, 1
 };
 
 #define BLOCK_QUOTE_INDENT		25
@@ -382,7 +398,7 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 	pUsed->top = y;
 	pUsed->left = x;
 	pUsed->right = nRight;
-	TEXT_FLOW* pTF = &pPart->rvp_flow;
+	TEXT_FLOW* pTF = &pPart->rvp_data.rvp_flow;
 	TEXT_RUN* pTR = pTF->tf_runs;
 	int nOffs = 0;
 	size_t nLen;
@@ -404,7 +420,7 @@ static void mdr_renderTextFlow(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT
 		TEXTMETRIC tm;
 		GetTextMetrics(hdc, &tm);
 		RECT r;
-		r.top = pBounds->top;
+		r.top = pBounds->top + pPart->rvp_marginTop;
 		r.bottom = y + (pPart->rvp_number * tm.tmHeight) + pPart->rvp_marginBottom;
 		r.left = x-10;
 		r.right = nRight;
@@ -660,10 +676,10 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 }
 
 static TEXT_RUN* mdr_appendRun(RENDER_VIEW_PART* pPart, MDR_ELEMENT_FORMAT* pFormat, size_t nSize, int mAttrs) {
-	if (nSize == 0 && pPart->rvp_flow.tf_runs) {
+	if (nSize == 0 && pPart->rvp_data.rvp_flow.tf_runs) {
 		return NULL;
 	}
-	TEXT_RUN* pRun = ll_append(&pPart->rvp_flow.tf_runs, sizeof(TEXT_RUN));
+	TEXT_RUN* pRun = ll_append(&pPart->rvp_data.rvp_flow.tf_runs, sizeof(TEXT_RUN));
 	pRun->tr_size = nSize;
 	pRun->tr_attributes.size = pFormat->mef_charHeight;
 	pRun->tr_attributes.weight = pFormat->mef_charWeight;
@@ -1038,7 +1054,7 @@ outer:
 	}
 	pPart->rvp_paint = mdr_renderTextFlow;
 	size_t nLen = stringbuf_size(pSB);
-	pPart->rvp_flow.tf_text = nLen == 0 ? NULL : _strdup(stringbuf_getString(pSB));
+	pPart->rvp_data.rvp_flow.tf_text = nLen == 0 ? NULL : _strdup(stringbuf_getString(pSB));
 
 	nSize = nLen - nLastOffset;
 	mdr_appendRun(pPart, pFormat, nSize, mAttrs);
@@ -1059,7 +1075,7 @@ static void mdr_parseViewParts(FTABLE* fp, MARKDOWN_RENDERER_DATA* pData) {
 			pReuse = NULL;
 			pPart->rvp_lpStart = lp;
 			lp = mdr_parseFlow(lp, pPart, pSB);
-			if (pPart->rvp_type == MET_BLOCK_QUOTE && pPart->rvp_flow.tf_text == NULL) {
+			if (pPart->rvp_type == MET_BLOCK_QUOTE && pPart->rvp_data.rvp_flow.tf_text == NULL) {
 				pReuse = pPart;
 			} else {
 				pPart->rvp_marginTop += nDelta;
@@ -1248,11 +1264,32 @@ static int mdr_destroyRun(TEXT_RUN* pRun) {
 }
 
 /*
+ * Destroy a table cell.
+ */
+static int mdr_destroyTableCell(RENDER_TABLE_CELL* pCell) {
+	free(pCell->rtc_flow.tf_text);
+	ll_destroy(&pCell->rtc_flow.tf_runs, mdr_destroyRun);
+	return 1;
+}
+
+/*
+ * Destroy a table row.
+ */
+static int mdr_destroyTableRow(RENDER_TABLE_ROW* pRow) {
+	ll_destroy(&pRow->rtr_cells, mdr_destroyTableCell);
+	return 1;
+}
+
+/*
  * Destroy one view part. 
  */
 static int mdr_destroyViewPart(RENDER_VIEW_PART *pRVP) {
-	free(pRVP->rvp_flow.tf_text);
-	ll_destroy(&pRVP->rvp_flow.tf_runs, mdr_destroyRun);
+	if (pRVP->rvp_type == MET_TABLE) {
+		ll_destroy(&pRVP->rvp_data.rvp_table, mdr_destroyTableRow);
+	} else {
+		free(pRVP->rvp_data.rvp_flow.tf_text);
+		ll_destroy(&pRVP->rvp_data.rvp_flow.tf_runs, mdr_destroyRun);
+	}
 	return 1;
 }
 
@@ -1340,7 +1377,7 @@ static int mdr_placeCursorAndValidate(WINFO* wp, long* ln, long offset, const lo
 	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, *ln);
 	if (pPart) {
 		wp->caret.linePointer = pPart->rvp_lpStart;
-		if (pPart->rvp_flow.tf_runs) {
+		if (pPart->rvp_data.rvp_flow.tf_runs) {
 			wp->caret.col = *col;
 		}
 	}
@@ -1359,7 +1396,7 @@ static BOOL mdr_hitTestInternal(WINFO* wp, int cx, int cy, long* pLine, long* pC
 	long ln = wp->minln;
 	while (pPart) {
 		if (PtInRect(&pPart->rvp_bounds, pt)) {
-			TEXT_RUN* pRun = pPart->rvp_flow.tf_runs;
+			TEXT_RUN* pRun = pPart->rvp_data.rvp_flow.tf_runs;
 			long nCol = 0;
 			*pLine = ln;
 			while (pRun) {
@@ -1428,8 +1465,8 @@ static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_I
 		return 0;
 	}
 	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, wp->caret.ln);
-	if (pPart && pPart->rvp_flow.tf_runs) {
-		TEXT_RUN* pRun = (TEXT_RUN*) ll_at((LINKED_LIST*)pPart->rvp_flow.tf_runs, wp->caret.col);
+	if (pPart && pPart->rvp_data.rvp_flow.tf_runs) {
+		TEXT_RUN* pRun = (TEXT_RUN*) ll_at((LINKED_LIST*)pPart->rvp_data.rvp_flow.tf_runs, wp->caret.col);
 		if (pRun && pRun->tr_link && strlen(pRun->tr_link) < nMaxChars) {
 			strcpy(pszBuf, pRun->tr_link);
 			char* pszAnchor = strrchr(pszBuf, '#');
@@ -1456,7 +1493,7 @@ static void mdr_navigateToAnchor(WINFO* wp, const char* pszAnchor) {
 	for (long nLine = 0; pPart; nLine++) {
 		if (pPart->rvp_type == MET_HEADER) {
 			char szTitleAsAnchor[512];
-			char* pszTitle = pPart->rvp_flow.tf_text;
+			char* pszTitle = pPart->rvp_data.rvp_flow.tf_text;
 			if (strlen(pszTitle) < sizeof szTitleAsAnchor) {
 				char* pszDest = szTitleAsAnchor;
 				while (*pszTitle) {

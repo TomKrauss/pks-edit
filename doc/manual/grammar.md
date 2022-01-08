@@ -59,5 +59,45 @@ The following variables are supported:
 - `${selection_end}` - used in combination with ${cursor} to select a range of text after inserting the template.
 - `${word_selection}` - the "word/identifier" close to the input caret or text currently selected.
 
+### Bracket matching
+PKS-Edit supports navigation to `matching brackets` in source code. Matching brackets are typically defined as single
+string pairs as in the following sample for a C code file, which defines opening and closing curly braces to pair:
+
+```
+"highlightBrackets": [
+    {
+      "left": "{",
+      "right": "}"
+    }
+]
+```
+
+The definition of matching brackets maybe however be a bit more tricky. Assume the following start- and end-tags
+to be matched during ediuting from a LaTeX source file:
+
+```
+\begin{document} 
+...
+\end{document} 
+``` 
+Here the opening and closing brackets are to be defined via a regular expression as there might be multiple `begin{xxx}` and
+matching end tags in a LaTeX code file. Moreover one wants to always match the *corresponding* end tag, which is defined by
+the actual occurrence found when matching one side of the bracket (in our example `document`).
+
+This can be expressed by defining a regular expression containing a match group, and by setting the highlight bracket definition
+to be of type regular expression and by setting the `dynamic-match` property of a the bracket definition to true. The later will
+works this way: if a match of a begi or end is found, the match group (`document`) is extracted from the match and the reverse
+match is calculated by replacing the match group in the reverse match to the string found -> we will match `\end{document}` for instance.
+
+```
+"highlightBrackets": [
+{
+  "left": "\\\\begin\\{([a-zA-Z0-9-]+)\\}",
+  "right": "\\\\end\\{([a-zA-Z0-9-]+)\\}",
+  "dynamic-match": true,
+  "regex": true
+}
+],
+```
 
 
