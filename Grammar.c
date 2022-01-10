@@ -69,6 +69,7 @@ typedef struct tagGRAMMAR_PATTERN {
 	BOOL ignoreCase;					// If matches should be performed in a case ignore way.
 	BOOL spansLines;					// true, if this pattern spans multiple lines
 	char  style[32];					// Name of the style class to use.
+	BOOL initialized;					// TRUE, if this pattern had already been initialized.
 	RE_PATTERN* rePattern;
 } GRAMMAR_PATTERN;
 
@@ -86,12 +87,15 @@ typedef struct tagGRAMMAR {
 	char* folderEndMarker;				// regular expression to define the end of foldable regions.
 	INDENT_PATTERN* increaseIndentPatterns;	// Patterns defining the condition on which the indent should be increased.
 	INDENT_PATTERN* decreaseIndentPatterns;	// Patterns defining the condition on which the indent should be decreased.
+	BOOL indentPatternsImported;		// If indent patterns where imported from common grammar - this is true.
 	char wysiwygRenderer[32];			// The name of the wysiwyg renderer
 	BRACKET_RULE* highlightBrackets;	// The rule patterns for "highlight" bracket matching.
-	GRAMMAR_PATTERN* patterns;			// The patterns defined for this grammar.
+	BOOL highlightBracketsImported;		// If highlightBrackets where imported from common grammar - this is true.
+	GRAMMAR_PATTERN* patternDefinitions;// The patterns defined directrly in this grammar.
 	LONGLONG transitions[256];			// The indices into the state transition table. We allow a maximum of 2 ** (16-6) re_patterns to match from one initial state.
 										// for each character we allow a maximum of 6 possibilities to match.
-	GRAMMAR_PATTERN* patternsByState[MAX_STATE]; // max 64 patterns allowed per grammar.
+	GRAMMAR_PATTERN* patternsByState[MAX_STATE]; // All patterns applicable in this grammar. Is defined from this grammar and imported grammars. 
+										// Max 64 patterns allowed per grammar.
 	UCLIST* undercursorActions;			// The list of actions to perform on input (either bracket matching or code template insertion etc...).
 	NAVIGATION_PATTERN* navigation;		// The patterns, which can be used to extract hyperlinks to navigate from within a file
 	TAGSOURCE* tagSources;				// The list of tag sources to check for cross references
@@ -102,6 +106,7 @@ typedef struct tagGRAMMAR {
 	BOOL hasLineSpanPattern;			// Whether patterns exist, spanning multiple lines.
 	COMMENT_DESCRIPTOR commentDescriptor; // The descriptor for the comment patterns.
 	BOOL commentDescriptorInitialized;	// whether the comment descriptor had been initialized
+	ARRAY_LIST* importedGrammarNames;	// The names of grammars imported or null
 } GRAMMAR;
 
 static BRACKET_RULE _defaultBracketRule = {
@@ -221,8 +226,20 @@ static JSON_MAPPING_RULE _patternRules[] = {
 	{	RT_END}
 };
 
+static int grammar_doImport(GRAMMAR* pTargetGrammar, const char* pszScope) {
+	if (!grammar_findNamed(pszScope)) {
+		error_displayAlertDialog("Cannot find grammar %s imported into %s", pszScope, pTargetGrammar->scopeName);
+	}
+	if (!pTargetGrammar->importedGrammarNames) {
+		pTargetGrammar->importedGrammarNames = arraylist_create(3);
+	}
+	arraylist_add(pTargetGrammar->importedGrammarNames, _strdup(pszScope));
+	return 1;
+}
+
 static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_CHAR_ARRAY, "scopeName", offsetof(GRAMMAR, scopeName), sizeof(((GRAMMAR*)NULL)->scopeName)},
+	{	RT_STRING_CALLBACK, "import", 0, .r_descriptor = { .r_t_callback = grammar_doImport}},
 	{	RT_ALLOC_STRING, "folderStartMarker", offsetof(GRAMMAR, folderStartMarker)},
 	{	RT_ALLOC_STRING, "folderEndMarker", offsetof(GRAMMAR, folderEndMarker)},
 	{	RT_CHAR_ARRAY, "wordCharacterClass", offsetof(GRAMMAR, u2lset), sizeof(((GRAMMAR*)NULL)->u2lset)},
@@ -240,7 +257,7 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 			{.r_t_arrayDescriptor = {grammar_createTemplate, _templateRules}}},
 	{	RT_OBJECT_LIST, "highlightBrackets", offsetof(GRAMMAR, highlightBrackets),
 			{.r_t_arrayDescriptor = {grammar_createBracketRule, _bracketRules}}},
-	{	RT_OBJECT_LIST, "patterns", offsetof(GRAMMAR, patterns),
+	{	RT_OBJECT_LIST, "patterns", offsetof(GRAMMAR, patternDefinitions),
 			{.r_t_arrayDescriptor = {grammar_createGrammarPattern, _patternRules}}},
 	{	RT_OBJECT_LIST, "tagSources", offsetof(GRAMMAR, tagSources),
 			{.r_t_arrayDescriptor = {grammar_createTagSource, _tagSourceRules}}},
@@ -278,6 +295,7 @@ static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {
 	ll_destroy((LINKED_LIST**)&pPattern->children, grammar_destroyPattern);
 	ll_destroy((LINKED_LIST**)&pPattern->captures, NULL);
 	hashmap_destroySet(pPattern->keywords);
+	pPattern->initialized = FALSE;
 	return 1;
 }
 
@@ -309,14 +327,26 @@ static int grammar_destroyIndentation(INDENT_PATTERN* pPattern) {
 }
 
 static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
-	ll_destroy((LINKED_LIST**)&pGrammar->patterns, grammar_destroyPattern);
+	ll_destroy((LINKED_LIST**)&pGrammar->patternDefinitions, grammar_destroyPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->undercursorActions, NULL);
-	ll_destroy((LINKED_LIST**)&pGrammar->highlightBrackets, grammar_destroyBrackets);
-	ll_destroy((LINKED_LIST**)&pGrammar->increaseIndentPatterns, grammar_destroyIndentation);
-	ll_destroy((LINKED_LIST**)&pGrammar->decreaseIndentPatterns, grammar_destroyIndentation);
+	if (!pGrammar->highlightBracketsImported) {
+		ll_destroy((LINKED_LIST**)&pGrammar->highlightBrackets, grammar_destroyBrackets);
+	}
+	if (!pGrammar->indentPatternsImported) {
+		ll_destroy((LINKED_LIST**)&pGrammar->increaseIndentPatterns, grammar_destroyIndentation);
+		ll_destroy((LINKED_LIST**)&pGrammar->decreaseIndentPatterns, grammar_destroyIndentation);
+	}
 	ll_destroy((LINKED_LIST**)&pGrammar->navigation, grammar_destroyNavigationPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->tagSources, grammar_destroyTagSource);
 	ll_destroy((LINKED_LIST**)&pGrammar->templates, grammar_destroyTemplates);
+	if (pGrammar->importedGrammarNames) {
+		ARRAY_ITERATOR iterator = arraylist_iterator(pGrammar->importedGrammarNames);
+		void** p = iterator.i_buffer;
+		while (p < iterator.i_bufferEnd) {
+			free(*p++);
+		}
+		arraylist_destroy(pGrammar->importedGrammarNames);
+	}
 	free(pGrammar->analyzer);
 	free(pGrammar->evaluator);
 	free(pGrammar->formatter);
@@ -464,6 +494,9 @@ static RE_PATTERN* grammar_compileAndCreateRegex(char* pszMatch, char* pszScope,
  * Util to compile a regular expression. 
  */
 RE_PATTERN* grammar_compile(GRAMMAR* pGrammar, GRAMMAR_PATTERN* pGrammarPattern) {
+	if (pGrammarPattern->initialized) {
+		return pGrammarPattern->rePattern;
+	}
 	if (!pGrammarPattern->match) {
 		if (pGrammarPattern->keywords) {
 			grammar_createPatternFromKeywords(pGrammarPattern);
@@ -479,6 +512,7 @@ RE_PATTERN* grammar_compile(GRAMMAR* pGrammar, GRAMMAR_PATTERN* pGrammarPattern)
 		}
 	}
 	pGrammarPattern->rePattern = grammar_compileAndCreateRegex(pGrammarPattern->match, pGrammar->scopeName, flags);
+	pGrammarPattern->initialized = TRUE;
 	return pGrammarPattern->rePattern;
 }
 
@@ -488,8 +522,10 @@ RE_PATTERN* grammar_compile(GRAMMAR* pGrammar, GRAMMAR_PATTERN* pGrammarPattern)
  */
 static void grammar_addCharTransition(GRAMMAR* pGrammar, unsigned char cChar, LEXICAL_STATE state) {
 	LONGLONG oldState = pGrammar->transitions[cChar];
-	if (oldState & (CHARACTER_STATE_MASK << (8* CHARACTER_STATE_SHIFT))) {
-		error_displayAlertDialog("More than 7 grammar states entered by character '%c'. Grammar '%s' may not work correctly.", cChar, pGrammar->scopeName);
+	if (oldState & (CHARACTER_STATE_MASK << (9* CHARACTER_STATE_SHIFT))) {
+		error_displayAlertDialog("More than 8 grammar states entered by character '%c'. Grammar '%s' may not work correctly.", cChar, pGrammar->scopeName);
+	} else if (oldState & (CHARACTER_STATE_MASK << (8 * CHARACTER_STATE_SHIFT))) {
+		state <<= (8 * CHARACTER_STATE_SHIFT);
 	} else if (oldState & (CHARACTER_STATE_MASK << (7 * CHARACTER_STATE_SHIFT))) {
 		state <<= (7 * CHARACTER_STATE_SHIFT);
 	} else if (oldState & (CHARACTER_STATE_MASK << (6 * CHARACTER_STATE_SHIFT))) {
@@ -565,14 +601,10 @@ void grammar_processMatchPattern(UC_MATCH_PATTERN* pPattern, char* pScopeName) {
 }
 
 /*
- * Initialize the grammar by constructing the basic knowledge necessary to make a fast
- * parsing of the grammar more simple.
+ * Setup the internal state match tab from a list of grammar patterns defined for a grammar.
  */
-static void grammar_initialize(GRAMMAR* pGrammar) {
-	GRAMMAR_PATTERN* pPattern = pGrammar->patterns;
-	memset(pGrammar->transitions, 0, sizeof pGrammar->transitions);
-	memset(pGrammar->patternsByState, 0, sizeof pGrammar->patternsByState);
-	LEXICAL_STATE state = CUSTOM_STATE;
+static LEXICAL_STATE grammar_definePatterns(GRAMMAR* pGrammar, GRAMMAR_PATTERN* pPattern, LEXICAL_STATE state) {
+	GRAMMAR_PATTERN* pPatternStart = pPattern;
 	while (pPattern && state < DIM(pGrammar->patternsByState)) {
 		pGrammar->patternsByState[state] = pPattern;
 		if (pPattern->begin[0] && pPattern->end[0]) {
@@ -596,10 +628,10 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 		pPattern = pPattern->next;
 		if (state >= DIM(pGrammar->patternsByState)) {
 			error_displayAlertDialog("Too many states defined in grammar %s", pGrammar->scopeName);
-			return;
+			return state;
 		}
 	}
-	pPattern = pGrammar->patterns;
+	pPattern = pPatternStart;
 	while (pPattern && state < DIM(pGrammar->patternsByState)) {
 		PATTERN_GROUP* pGroup = pPattern->captures;
 		while (pGroup) {
@@ -608,6 +640,43 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 		}
 		pPattern = pPattern->next;
 	}
+	return state;
+}
+
+/* 
+ * Apply certain defaults from an imported grammar.
+ */
+static void grammar_applyDefaultFromImported(GRAMMAR* pGrammar, GRAMMAR* pImported) {
+	if (!pGrammar->formatter && pImported->formatter) {
+		pGrammar->formatter = _strdup(pImported->formatter);
+	}
+	if (!pGrammar->evaluator && pImported->evaluator) {
+		pGrammar->evaluator = _strdup(pImported->evaluator);
+	}
+	if (!pGrammar->analyzer && pImported->analyzer) {
+		pGrammar->analyzer = _strdup(pImported->analyzer);
+	}
+	if (!pGrammar->highlightBrackets && pImported->highlightBrackets) {
+		pGrammar->highlightBrackets = pImported->highlightBrackets;
+		pGrammar->highlightBracketsImported = TRUE;
+	}
+	if (!pGrammar->increaseIndentPatterns && !pGrammar->decreaseIndentPatterns && pImported->increaseIndentPatterns) {
+		pGrammar->increaseIndentPatterns = pImported->increaseIndentPatterns;
+		pGrammar->decreaseIndentPatterns = pImported->decreaseIndentPatterns;
+		pGrammar->indentPatternsImported = TRUE;
+	}
+}
+
+/*
+ * Initialize the grammar by constructing the basic knowledge necessary to make a fast
+ * parsing of the grammar more simple.
+ */
+static void grammar_initialize(GRAMMAR* pGrammar) {
+	memset(pGrammar->transitions, 0, sizeof pGrammar->transitions);
+	memset(pGrammar->patternsByState, 0, sizeof pGrammar->patternsByState);
+	LEXICAL_STATE state = CUSTOM_STATE;
+
+	state = grammar_definePatterns(pGrammar, pGrammar->patternDefinitions, state);
 	BRACKET_RULE* pBrRule = pGrammar->highlightBrackets;
 	while (pBrRule) {
 		grammar_processMatchPattern(&pBrRule->lefthand, pGrammar->scopeName);
@@ -631,12 +700,23 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 		grammar_processMatchPattern(&pIndent->pattern, pGrammar->scopeName);
 		pIndent = pIndent->next;
 	}
+	if (pGrammar->importedGrammarNames) {
+		ARRAY_ITERATOR iterator = arraylist_iterator(pGrammar->importedGrammarNames);
+		void** p = iterator.i_buffer;
+		while (p < iterator.i_bufferEnd) {
+			GRAMMAR* pImported = grammar_findNamed(*p++);
+			if (pImported) {
+				state = grammar_definePatterns(pGrammar, pImported->patternDefinitions, state);
+				grammar_applyDefaultFromImported(pGrammar, pImported);
+			}
+		}
+	}
 }
 
 /*
  * Load a grammar definition file from the PKS_SYS directory. 
  */
-static int grammar_loadFromFile(char* pszGrammarName) {
+static int grammar_loadFromFile(const char* pszGrammarName) {
 	GRAMMAR_DEFINITIONS definitions;
 	char szFileName[50];
 
@@ -656,7 +736,7 @@ static int grammar_loadFromFile(char* pszGrammarName) {
  * Find a grammar with the given name. If it cannot be found, try to load the corresponding grammar file
  * on the fly.
  */
-GRAMMAR* grammar_findNamed(char* pszGrammarName) {
+GRAMMAR* grammar_findNamed(const char* pszGrammarName) {
 	GRAMMAR* pFirst;
 	int bFirstTry = 2;
 
@@ -969,7 +1049,6 @@ static LEXICAL_CONTEXT grammar_getContextForPattern(GRAMMAR_PATTERN* pPattern) {
  * If a comment info is available this method returns 1, otherwise 0.
  */
 int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescriptor) {
-	GRAMMAR_PATTERN* pPattern;
 	char* pszInput;
 	char* pszOutput;
 	char c;
@@ -984,7 +1063,11 @@ int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescrip
 		return 1;
 	}
 	memset(pDescriptor, 0, sizeof * pDescriptor);
-	for (pPattern = pGrammar->patterns; pPattern; pPattern = pPattern->next) {
+	for (int i = CUSTOM_STATE; i < DIM(pGrammar->patternsByState); i++) {
+		GRAMMAR_PATTERN* pPattern = pGrammar->patternsByState[i];
+		if (!pPattern) {
+			continue;
+		}
 		LEXICAL_CONTEXT lcContext = grammar_getContextForPattern(pPattern);
 		if (lcContext == LC_MULTILINE_COMMENT || lcContext == LC_SINGLE_LINE_COMMENT) {
 			nRet = 1;
@@ -999,7 +1082,8 @@ int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescrip
 					pDescriptor->comment_start = _strdup(pPattern->begin);
 					pDescriptor->comment_end = _strdup(pPattern->end);
 				}
-			} else {
+			}
+			else {
 				char szTemp[32];
 				pszInput = pPattern->match;
 				pszOutput = szTemp;
@@ -1048,12 +1132,15 @@ static int grammar_addKeyword(char* pszKeyWord, void (*addCallback)(intptr_t psz
  * file.
  */
 void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, int (*fMatch)(char* pszMatch), void (*addCallback)(intptr_t pszTagName, intptr_t pTag)) {
-	GRAMMAR_PATTERN* pPattern;
 	if (pGrammar == NULL) {
 		return;
 	}
 	pKeywordMatch = fMatch;
-	for (pPattern = pGrammar->patterns; pPattern; pPattern = pPattern->next) {
+	for (int i = CUSTOM_STATE; i < DIM(pGrammar->patternsByState); i++) {
+		GRAMMAR_PATTERN* pPattern = pGrammar->patternsByState[i];
+		if (!pPattern) {
+			continue;
+		}
 		if (pPattern->keywords) {
 			hashmap_forEachKey(pPattern->keywords, (int (*)(intptr_t, void*)) grammar_addKeyword, addCallback);
 		}
@@ -1095,7 +1182,7 @@ BOOL grammar_hasLineSpans(GRAMMAR* pGrammar) {
 }
 
 /*
- * Returns the name of the wysiwyg for the given grammar or 0, if no
+ * Returns the name of the wysiwyg renderer for the given grammar or 0, if no
  * special renderer is available.
  */
 const char* grammar_wysiwygRenderer(GRAMMAR* pGrammar) {

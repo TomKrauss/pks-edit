@@ -138,7 +138,7 @@ extern void grammar_destroyAll();
  * Find a grammar with the given name. If it cannot be found, try to load the corresponding grammar file
  * on the fly.
  */
-extern GRAMMAR* grammar_findNamed(char* pszGrammarName);
+extern GRAMMAR* grammar_findNamed(const char* pszGrammarName);
 
 /*
  * Initialize the style translation table for a given grammar.

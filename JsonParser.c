@@ -221,6 +221,27 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 			pTargetSlot = ((char*)pTargetObject + pRule->r_targetOffset);
 			json_tokenContents(pszBuf, &tokens[i], tokenContents);
 			switch (pRule->r_type) {
+			case RT_STRING_CALLBACK: {
+					if (tokens[i].type == JSMN_STRING) {
+						pRule->r_descriptor.r_t_callback(pTargetObject, tokenContents);
+					} else if (tokens[i].type == JSMN_ARRAY) {
+						int nArrayEnd = tokens[i].end;
+						i++;
+						BOOL bCall = TRUE;
+						while (i < numberOfTokens) {
+							if (tokens[i].end > nArrayEnd) {
+								i--;
+								break;
+							}
+							if (tokens[i].type == JSMN_STRING && bCall) {
+								json_tokenContents(pszBuf, &tokens[i], tokenContents);
+								bCall = pRule->r_descriptor.r_t_callback(pTargetObject, tokenContents);
+							}
+							i++;
+						}
+					}
+				}
+				break;
 			case RT_CHAR_ARRAY:
 				if (tokens[i].type == JSMN_STRING) {
 					size_t nLength = strlen(tokenContents);

@@ -2,17 +2,8 @@
   "grammars": [
     {
       "scopeName": "cs",
-      "formatter": "code",
-      "increaseIndentPatterns": [
-        { "pattern": "{" },
-        { "pattern": "(" },
-        { "pattern": "[" }
-      ],
-      "decreaseIndentPatterns": [
-        { "pattern": "}" },
-        { "pattern": ")" },
-        { "pattern": "]" }
-      ],
+      "description": "Grammar for C# files",
+      "import": [ "commonc" ],
       "templates": [
         {
           "match": "'",
@@ -53,27 +44,7 @@
           "contents": "/* Main Function*/\nint main(int argc, char* argv[]) {\n    ${cursor}return 0;\n}\n"
         }
       ],
-      "highlightBrackets": [
-        {
-          "left": "{",
-          "right": "}"
-        },
-        {
-          "left": "(",
-          "right": ")"
-        },
-        {
-          "left": "[",
-          "right": "]"
-        }
-      ],
       "patterns": [
-        {
-          "begin": "/*",
-          "end": "*/",
-          "style": "comment",
-          "name": "comment.multiLine"
-        },
         {
           "match": "///.*",
           "style": "sl-comment",
@@ -109,16 +80,6 @@
               ]
             }
           ]
-        },
-        {
-          "match": "\"(?:\\\"|[^\"])+?\"",
-          "style": "string",
-          "name": "string"
-        },
-        {
-          "match": "\\<[a-z.A-Z0-9]+\\>",
-          "style": "string",
-          "name": "include.file"
         },
         {
           "keywords": [
@@ -201,21 +162,6 @@
           ],
           "style": "keyword",
           "name": "keyword.cs"
-        },
-        {
-          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
-          "style": "literal",
-          "name": "literal.numeric"
-        },
-        {
-          "match": "'(?:\\\\'|\\\\u\\\\d+|[^'])'",
-          "style": "literal",
-          "name": "literal.char"
-        },
-        {
-          "match": "[-+&|<>=~?]{1,2}",
-          "style": "operator",
-          "name": "keyword.operator"
         }
       ]
     }

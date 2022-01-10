@@ -109,7 +109,7 @@ LINE *ln_insertIndent(WINFO* wp, LINE *lp, int col, int *inserted)
 		b = col;
 	}
 
-	if ((*inserted = t+b) != 0) {
+	if ((*inserted = t+b) > 0) {
 		if ((lp = ln_modify(fp,lp,0,*inserted)) != 0L) {
 			memset(lp->lbuf,'\t', t);
 			memset(lp->lbuf+t,expandTabsWith,b);

@@ -2,16 +2,8 @@
   "grammars": [
     {
       "scopeName": "java",
-      "increaseIndentPatterns": [
-        { "pattern": "{" },
-        { "pattern": "(" },
-        { "pattern": "[" }
-      ],
-      "decreaseIndentPatterns": [
-        { "pattern": "}" },
-        { "pattern": ")" },
-        { "pattern": "]" }
-      ],
+      "description": "Grammar for Java code files",
+      "import": [ "commonc" ],
       "tagSources": [
         {
           "filename": "tags",
@@ -22,24 +14,9 @@
           "type": "url"
         }
       ],
-      "highlightBrackets": [
-        {
-          "left": "{",
-          "right": "}"
-        },
-        {
-          "left": "(",
-          "right": ")"
-        },
-        {
-          "left": "[",
-          "right": "]"
-        }
-      ],
-      "formatter": "code",
       "patterns": [
         {
-          "begin": "/*",
+          "begin": "/**",
           "end": "*/",
           "style": "comment",
           "patterns": [
@@ -50,29 +27,6 @@
             }
           ],
           "name": "comment.multiLine"
-        },
-        {
-          "match": "//.*",
-          "style": "sl-comment",
-          "name": "comment.singleLine",
-          "patterns": [
-            {
-              "name": "task.tag",
-              "style": "task",
-              "keywords": [
-                "TODO",
-                "FIXME",
-                "(T)",
-                "(C)",
-                "(A)"
-              ]
-            }
-          ]
-        },
-        {
-          "match": "\"(?:\\\"|[^\"])+?\"",
-          "style": "string",
-          "name": "string"
         },
         {
           "match": "<[A-Z_][A-Z_0-9]*>",
@@ -132,21 +86,6 @@
           "match": "<@[A-Za-z][A-Za-z0-9]*>",
           "style": "annotation",
           "name": "annotation.identifier"
-        },
-        {
-          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
-          "style": "literal",
-          "name": "literal.numeric"
-        },
-        {
-          "match": "'(?:\\\\'|\\\\u\\\\d+|[^'])'",
-          "style": "literal",
-          "name": "literal.char"
-        },
-        {
-          "match": "[-+&|<>=]{1,2}",
-          "style": "operator",
-          "name": "keyword.operator"
         }
       ]
     }

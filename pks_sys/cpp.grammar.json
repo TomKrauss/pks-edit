@@ -2,17 +2,8 @@
   "grammars": [
     {
       "scopeName": "cpp",
-      "formatter": "code",
-      "increaseIndentPatterns": [
-        { "pattern": "{" },
-        { "pattern": "(" },
-        { "pattern": "[" }
-      ],
-      "decreaseIndentPatterns": [
-        { "pattern": "}" },
-        { "pattern": ")" },
-        { "pattern": "]" }
-      ],
+      "description":  "Grammar for C++- and C-code files",
+      "import": [ "commonc" ],
       "tagSources": [
         {
           "filename": "tags",
@@ -74,50 +65,7 @@
           "contents": "/* Main Function*/\nint main(int argc, char* argv[]) {\n    ${cursor}return 0;\n}\n"
         }
       ],
-      "highlightBrackets": [
-        {
-          "left": "{",
-          "right": "}"
-        },
-        {
-          "left": "(",
-          "right": ")"
-        },
-        {
-          "left": "[",
-          "right": "]"
-        }
-      ],
       "patterns": [
-        {
-          "begin": "/*",
-          "end": "*/",
-          "style": "comment",
-          "name": "comment.multiLine"
-        },
-        {
-          "match": "//.*",
-          "style": "sl-comment",
-          "name": "comment.singleLine",
-          "patterns": [
-            {
-              "name": "task.tag",
-              "style": "task",
-              "keywords": [
-                "TODO",
-                "FIXME",
-                "(T)",
-                "(C)",
-                "(A)"
-              ]
-            }
-          ]
-        },
-        {
-          "match": "\"(?:\\\"|[^\"])+?\"",
-          "style": "string",
-          "name": "string"
-        },
         {
           "match": "\\<[a-z.A-Z0-9]+\\>",
           "style": "string",
@@ -167,21 +115,6 @@
           "match": "#\\s*[a-z]+",
           "style": "annotation",
           "name": "preprocessor.cpp"
-        },
-        {
-          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
-          "style": "literal",
-          "name": "literal.numeric"
-        },
-        {
-          "match": "'(?:\\\\'|\\\\u\\\\d+|[^'])'",
-          "style": "literal",
-          "name": "literal.char"
-        },
-        {
-          "match": "[-+&|<>=~?]{1,2}",
-          "style": "operator",
-          "name": "keyword.operator"
         }
       ]
     }

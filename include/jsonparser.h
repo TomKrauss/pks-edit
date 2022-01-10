@@ -17,6 +17,12 @@
 
 #ifndef JSONPARSER_H
 
+/*
+ * Callback invoked, for RT_STRING_CALLBACK. 1st parameter is the target object constructed during parsing the JSON file,
+ * 2nd param is the string found.
+ */
+typedef int (*JSON_STRING_CALLBACK)(void* pTargetObject, const char* pszString);
+
 typedef enum { 
 	RT_CHAR_ARRAY,			// we expect a string in the JSON input and will store the value in the target object. The value descriptor will contain the maximum size
 	RT_ALLOC_STRING,		// we expect a string in the JSON input and will return a malloced version of the string in the target object 
@@ -30,6 +36,9 @@ typedef enum {
 	RT_SHORT,				// we expect a "short" value in the JSON input.
 	RT_COLOR,				// we expect a color specification (e.g.: #EEFF00 or red, green, blue).
 	RT_OBJECT_LIST,			// a nested array of objects. Mapped to a linked list of objects. The r_descriptor contains a pointer to the mapping rules.
+	RT_STRING_CALLBACK,		// the property is either a single string or an array of strings. The r_descriptr has a reference to a method to invoke
+							// with the string. In case of an array, the method is invoked multiple times for every string in the array. If the method
+							// returns 0, the calling is aborted.
 	RT_END					// the last rule in a list of rules must have this type.
 } JSON_RULE_TYPE;
 
@@ -48,6 +57,7 @@ typedef struct tagJSON_MAPPING_RULE {
 		int		r_t_flag;		// if the rule type is RT_FLAG, this is the bit value (flag) associated with the value read.
 		size_t  r_t_maxChars;	// the maximum number of bytes for RT_CHAR_ARRAY type json values.
 		size_t	r_t_maxElements; // maximum number of elements that fit into RT_INTEGER_ARRAY type data structures.
+		JSON_STRING_CALLBACK r_t_callback;	// the string callback for type RT_STRING_CALLBACK
 		struct tagARRAY_OBJECT_DESCRIPTOR r_t_arrayDescriptor;		// in case of type == RT_OBJECT_ARRAY
 	} r_descriptor;
 } JSON_MAPPING_RULE;

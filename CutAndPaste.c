@@ -820,8 +820,7 @@ EXPORT int EdMouseMarkParts(int type)
 	if (type == MOT_SPACE || type == MOT_WORD) {
 		LINE *(*func)() = (type == MOT_SPACE) ? 
 			caret_advanceWordOnly : caret_gotoIdentifierEnd;
-
-		o2 = caret_screen2lineOffset(wp, &(CARET) { lp, col });
+		o2 = col;
 		lp2 = (*func)(lp,&ln,&o2,1);
 		o1  = o2;
 		lp  = (*func)(lp,&ln,&o1,-1);

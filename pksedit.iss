@@ -56,34 +56,7 @@ Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeNa
 Source: "x64\Release\{#MyAppBaseName}.en-US.dll"; DestDir: "{app}"; DestName: "{#MyAppBaseName}.en-US.dll"; Flags: ignoreversion
 Source: "x64\Release\pkslib.dll"; DestDir: "{app}"; DestName: "pkslib.dll"; Flags: ignoreversion
 Source: "pks_sys\pksedit.ini"; DestDir: "{app}\pks_sys"
-Source: "pks_sys\batch.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\cpp.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\dart.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\typescript.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\default.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\markdown.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\ps.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\java.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\javascript.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\json.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\pascal.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\pksgrep.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\resource.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\makefile.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\python.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\fitnesse.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\latex.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\integrity.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\pksedit.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\css.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\sql.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\logfile.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\proto.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\xml.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\text.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\shell.grammar.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\themeconfig.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
-Source: "pks_sys\pkseditconfig.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
+Source: "pks_sys\*.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\pksedit.mac"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "rc\pks.ico"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "readme.md"; DestDir: "{app}"; Flags: ignoreversion 
