@@ -199,7 +199,7 @@ typedef struct tagMDR_ELEMENT_FORMAT {
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
  */
 static void mdr_renderTextFlow(WINFO* wp, MARGINS* pMargins, TEXT_FLOW* pFlow, HDC hdc, RECT* pBounds, 
-	RECT* pPartBounds, RECT* pUsed, int nBlockQuoteLevel, int nAlign);
+	RECT* pPartBounds, RECT* pUsed, int nBlockQuoteLevel, int nAlign, BOOL bSkipSpace);
 
 static MDR_ELEMENT_FORMAT _formatText = {
 	0, 0, DEFAULT_LEFT_MARGIN, 20, 14, FW_NORMAL
@@ -389,7 +389,7 @@ static void mdr_renderTable(WINFO* wp, RENDER_VIEW_PART* pPart, HDC hdc, RECT* p
 			bHeader = pCell->rtc_isHeader;
 			bounds.right = bounds.left + nColumnWidth[nColumn];
 			bounds.bottom = bounds.top + 3000;
-			mdr_renderTextFlow(wp, &_tableMargins, &pCell->rtc_flow, hdc, &bounds, &flowBounds, &usedBounds, 0, pCell->rtc_align);
+			mdr_renderTextFlow(wp, &_tableMargins, &pCell->rtc_flow, hdc, &bounds, &flowBounds, &usedBounds, 0, pCell->rtc_align, TRUE);
 			int nHeight = usedBounds.bottom - usedBounds.top;
 			if (nHeight > nMaxHeight) {
 				nMaxHeight = nHeight;
@@ -502,7 +502,8 @@ static void mdr_paintCheckmark(HDC hdc, int x, int y, BOOL bChecked) {
 /*
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
  */
-static void mdr_renderTextFlow(WINFO* wp, MARGINS* pMargins, TEXT_FLOW* pFlow, HDC hdc, RECT* pBounds, RECT* pPartBounds, RECT* pUsed, int nBlockQuoteLevel, int nAlign) {
+static void mdr_renderTextFlow(WINFO* wp, MARGINS* pMargins, TEXT_FLOW* pFlow, HDC hdc, RECT* pBounds, RECT* pPartBounds, 
+		RECT* pUsed, int nBlockQuoteLevel, int nAlign, BOOL bSkipSpace) {
 	THEME_DATA* pTheme = theme_getCurrent();
 	int x = pBounds->left + pMargins->m_left;
 	int y = pBounds->top + pMargins->m_top;
@@ -520,9 +521,11 @@ static void mdr_renderTextFlow(WINFO* wp, MARGINS* pMargins, TEXT_FLOW* pFlow, H
 	COLORREF cDefault = GetTextColor(hdc);
 	HFONT hFont = mdr_createFont(&pTR->tr_attributes, wp->zoomFactor);
 	HFONT hOldFont = SelectObject(hdc, hFont);
-	while (nLen > 0 && string_isSpace(pTF->tf_text[nOffs])) {
-		nOffs++;
-		nLen--;
+	if (bSkipSpace) {
+		while (nLen > 0 && string_isSpace(pTF->tf_text[nOffs])) {
+			nOffs++;
+			nLen--;
+		}
 	}
 	pPartBounds->top = y;
 	BOOL bRunBegin = TRUE;
@@ -678,11 +681,13 @@ static void mdr_renderMarkdownBlockPart(WINFO* wp, RENDER_VIEW_PART* pPart, HDC 
 		r.right = nRight;
 		FillRect(hdc, &r, theme_getDialogLightBackgroundBrush());
 	}
+	int nDCId = SaveDC(hdc);
 	mdr_renderTextFlow(wp, pMargins, &pPart->rvp_data.rvp_flow, hdc, pBounds, &pPart->rvp_bounds, pUsed,
-			pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, RTC_ALIGN_LEFT);
+			pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, RTC_ALIGN_LEFT, pPart->rvp_type != MET_FENCED_CODE_BLOCK);
 	if (pPart->rvp_type == MET_HEADER && pPart->rvp_level < 3) {
 		mdr_paintRule(hdc, pBounds->left + DEFAULT_LEFT_MARGIN, pBounds->right - DEFAULT_LEFT_MARGIN, pUsed->bottom - 2, 1);
 	}
+	RestoreDC(hdc, nDCId);
 }
 
 static BOOL mdr_isTopLevelOrBreak(LINE* lp, MDR_ELEMENT_TYPE mCurrentType, int nLevel) {
@@ -695,6 +700,9 @@ static BOOL mdr_isTopLevelOrBreak(LINE* lp, MDR_ELEMENT_TYPE mCurrentType, int n
 	for (int i = 0; i < lp->len; i++) {
 		char c = lp->lbuf[i];
 		if (c == '-' || c == '#' || c == '*' || c == '+') {
+			return TRUE;
+		}
+		if (i == 0 && lp->len >= 3 && (c == '`' || c == '~') && lp->lbuf[1] == c && lp->lbuf[2] == c) {
 			return TRUE;
 		}
 		if (isdigit((unsigned char)c)) {
@@ -783,7 +791,7 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 			mType = MET_ORDERED_LIST;
 			*pLevel = mdr_getLevelFromIndent(lp, c);
 		}
-	} else if (c == '`' && lp->len >= 3 && lp->lbuf[1] == c && lp->lbuf[2] == c) {
+	} else if ((c == '`' || c == '~') && lp->len >= 3 && lp->lbuf[1] == c && lp->lbuf[2] == c) {
 		mType = MET_FENCED_CODE_BLOCK;
 	}
 
@@ -955,15 +963,39 @@ static BOOL mdr_parseLink(LINE* lp, int *pTextEnd, int* pStartPos, char** pszLin
 /*
  * Parse a fenced code block and add the runs to the view part.
  */
-static LINE* mdr_parseFencedCodeBlock(RENDER_VIEW_PART* pPart, LINE* lp, STRING_BUF* pSB) {
+static LINE* mdr_parseFencedCodeBlock(RENDER_VIEW_PART* pPart, LINE* lp, STRING_BUF* pSB, BOOL bIndented) {
 	size_t nLastOffset = 0;
+	int nOffs;
 
 	while (lp) {
-		if (lp->len >= 3 && strncmp(lp->lbuf, "```", 3) == 0) {
+		nOffs = 0;
+		if (bIndented) {
+			if (lp->lbuf[0] == '\t') {
+				nOffs = 1;
+			} else {
+				if (lp->len <= 3 || lp->lbuf[0] != ' ' || lp->lbuf[1] != ' ' || lp->lbuf[2] != ' ' || lp->lbuf[3] != ' ') {
+					return lp;
+				}
+				nOffs = 4;
+			}
+		} else if (lp->len >= 3 && (strncmp(lp->lbuf, "```", 3) == 0 || strncmp(lp->lbuf, "~~~", 3) == 0)) {
 			return lp->next;
 		}
 		pPart->rvp_number++;
-		stringbuf_appendStringLength(pSB, lp->lbuf, lp->len);
+		while (nOffs < lp->len) {
+			char c = lp->lbuf[nOffs++];
+			if (c == '\t') {
+				size_t nCurrent = stringbuf_size(pSB) - nLastOffset;
+				size_t nTab = (nCurrent + 4) / 4 * 4;
+				while (nCurrent < nTab) {
+					stringbuf_appendChar(pSB, ' ');
+					nCurrent++;
+				}
+			} else {
+				stringbuf_appendChar(pSB, c);
+			}
+
+		}
 		size_t nSize = stringbuf_size(pSB) - nLastOffset;
 		mdr_appendRun(&pPart->rvp_data.rvp_flow.tf_runs, &_formatFenced, nSize, ATTR_LINE_BREAK);
 		nLastOffset += nSize;
@@ -1040,7 +1072,13 @@ static LINE* mdr_parseFlow(LINE* lp, int nStartOffset, int nEndOffset, RENDER_VI
 		for (int i = nStartOffset; i < nLast; i++) {
 			lastC = c;
 			c = lp->lbuf[i];
-			if (nState <= 1 && string_isSpace(c)) {
+			if (i == 0 && pPart != NULL && (c == '\t' || (c == ' ' && lp->len >= 4 && lp->lbuf[1] == c && lp->lbuf[2] == c && lp->lbuf[3] == c))) {
+				mType = MET_FENCED_CODE_BLOCK;
+				pFormat = &_formatFenced;
+				lp = mdr_parseFencedCodeBlock(pPart, lp, pSB, TRUE);
+				nLastOffset = stringbuf_size(pSB);
+				goto outer;
+			} else if (nState <= 1 && string_isSpace(c)) {
 				continue;
 			}
 			if (nState == 1 && mType == MET_BLOCK_QUOTE && c == '>' && !bSkipped) {
@@ -1066,7 +1104,7 @@ static LINE* mdr_parseFlow(LINE* lp, int nStartOffset, int nEndOffset, RENDER_VI
 					}
 					pPart->rvp_level = nLevel;
 					if (mType == MET_FENCED_CODE_BLOCK) {
-						lp = mdr_parseFencedCodeBlock(pPart, lp->next, pSB);
+						lp = mdr_parseFencedCodeBlock(pPart, lp->next, pSB, FALSE);
 						nLastOffset = stringbuf_size(pSB);
 						goto outer;
 					}
@@ -1082,7 +1120,10 @@ static LINE* mdr_parseFlow(LINE* lp, int nStartOffset, int nEndOffset, RENDER_VI
 			if (c == '\\' && i < lp->len - 1 && strchr(_escapedChars, lp->lbuf[i+1]) != NULL) {
 				i++;
 				c = lp->lbuf[i];
-			} else if (c == '`' || (!(mAttrs & ATTR_CODE) && (c == '*' || c == '_' || c == '~'))) {
+			} else if (c == '`' || (!(mAttrs & ATTR_CODE) && (c == '*' || 
+				// allow for _ only at word borders.
+					(c == '_' && ((i == 0) || pks_isspace(lp->lbuf[i-1]) || pks_isspace(lp->lbuf[i + 1]))) || 
+				c == '~'))) {
 				int nToggle = 0;
 				if (c == '*' || c == '_') {
 					if (i < lp->len - 1 && lp->lbuf[i + 1] == c) {
@@ -1109,8 +1150,7 @@ static LINE* mdr_parseFlow(LINE* lp, int nStartOffset, int nEndOffset, RENDER_VI
 					nLastOffset += nSize;
 					continue;
 				}
-			}
-			else if (c == '[' || (c == '!' && i < lp->len - 1 && lp->lbuf[i + 1] == '[')) {
+			} else if (c == '[' || (c == '!' && i < lp->len - 1 && lp->lbuf[i + 1] == '[')) {
 				BOOL bImage = c == '!';
 				int pos = (bImage) ? i + 2 : i + 1;
 				int nTextStart = pos;
@@ -1130,7 +1170,13 @@ static LINE* mdr_parseFlow(LINE* lp, int nStartOffset, int nEndOffset, RENDER_VI
 							nAttr = ATTR_CODE;
 						}
 						else if (c2 == '*' || c2 == '_') {
-							nAttr = ATTR_EMPHASIS;
+							if (lp->lbuf[nTextStart + 1] == c2) {
+								nAttr = ATTR_STRONG;
+								nTextStart++;
+								nTextEnd--;
+							} else {
+								nAttr = ATTR_EMPHASIS;
+							}
 						}
 						if (nAttr) {
 							nTextStart++;
