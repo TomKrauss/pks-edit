@@ -177,9 +177,15 @@ void caret_extendSelection(WINFO *wp)
 				}
 			}
 			else if (mpEnd->m_linePointer == _caretBeforeExtension.linePointer && mpEnd->m_column >= _caretBeforeExtension.offset) {
-				caret1.offset = mpStart->m_column;
-				caret1.linePointer = mpStart->m_linePointer;
-				caret2 = *pCurrent;
+				if (caret_isBeforeOther(pCurrent->linePointer, 0, mpStart->m_linePointer, 0, FALSE)) {
+					caret1 = *pCurrent;
+					caret2.linePointer = mpStart->m_linePointer;
+					caret2.offset = mpStart->m_column;
+				} else {
+					caret1.offset = mpStart->m_column;
+					caret1.linePointer = mpStart->m_linePointer;
+					caret2 = *pCurrent;
+				}
 			}
 		}
 		if (caret1.linePointer == NULL) {
