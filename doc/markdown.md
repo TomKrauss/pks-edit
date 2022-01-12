@@ -108,7 +108,6 @@ PKS-Edit supports the markdown extension tables.
 
 - alignment in combination with formatting is not supported (formatted text will never be displayed aligned)
 - table layout is performed rather heuristically and has lots of limitations
-- links in tables are currently not yet navigatable.
   
 | Tables   |      Are      |  Cool |
 |----------|:-------------:|------:|

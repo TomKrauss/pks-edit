@@ -63,7 +63,6 @@ typedef struct xywh {
 static WINFO *_winlist;
 
 extern void st_seterrmsg(char* msg);
-extern long sl_thumb2deltapos(WINFO *wp, int horizontal, WORD thumb);
 extern int  mouse_onMouseClicked(WINFO *fp, int x,int y,int b, int nclicks,int shift);
 extern void macro_selectDefaultBindings(void);
 extern void menu_switchMenusToContext(char *pszContext);
@@ -607,11 +606,9 @@ static void ww_assignRenderer(WINFO* wp) {
 	if (wp->renderer->r_create) {
 		wp->r_data = wp->renderer->r_create(wp);
 	}
-	if (pOld != wp->renderer) {
-		wp->controller = (CONTROLLER*)wp->renderer->r_controller;
-		if (pOld) {
-			SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
-		}
+	wp->controller = (CONTROLLER*)wp->renderer->r_controller;
+	if (pOld) {
+		SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
 	}
 }
 

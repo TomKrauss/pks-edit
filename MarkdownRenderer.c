@@ -1684,8 +1684,8 @@ static int mdr_placeCursorAndValidate(WINFO* wp, long* ln, long offset, const lo
 		return 0;
 	}
 	long lnMax = mdr_calculateMaxLine(wp);
-	if (*ln >= lnMax && lnMax > 0) {
-		*ln = lnMax-1;
+	if (*ln >= lnMax) {
+		*ln = lnMax > 0 ? lnMax-1 : 0;
 	}
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (!pData) {
@@ -1703,6 +1703,23 @@ static int mdr_placeCursorAndValidate(WINFO* wp, long* ln, long offset, const lo
 	return 1;
 }
 
+static BOOL mdr_hitTestTextRuns(TEXT_RUN* pRuns, POINT pPoint, long* pCol, TEXT_RUN** pMatchedRun) {
+	long nCol = 0;
+	while (pRuns) {
+		if (runbounds_contains(&pRuns->tr_bounds, pPoint)) {
+			*pCol = nCol;
+			*pMatchedRun = pRuns;
+			return TRUE;
+		}
+		pRuns = pRuns->tr_next;
+		nCol++;
+	}
+	return FALSE;
+
+
+	return FALSE;
+}
+
 static BOOL mdr_hitTestInternal(WINFO* wp, int cx, int cy, long* pLine, long* pCol, RENDER_VIEW_PART** pMatchedPart, TEXT_RUN **pMatchedRun) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (!pData) {
@@ -1713,18 +1730,28 @@ static BOOL mdr_hitTestInternal(WINFO* wp, int cx, int cy, long* pLine, long* pC
 	long ln = wp->minln;
 	while (pPart) {
 		if (PtInRect(&pPart->rvp_bounds, pt)) {
-			TEXT_RUN* pRun = pPart->rvp_data.rvp_flow.tf_runs;
-			long nCol = 0;
-			*pLine = ln;
-			while (pRun) {
-				if (runbounds_contains(&pRun->tr_bounds, (POINT) { cx, cy })) {
-					*pCol = nCol;
-					*pMatchedRun = pRun;
-					*pMatchedPart = pPart;
-					return TRUE;
+			if (pPart->rvp_type == MET_TABLE) {
+				RENDER_TABLE_ROW* pRows = pPart->rvp_data.rvp_table->rt_rows;
+				int nCol = 0;
+				while (pRows) {
+					RENDER_TABLE_CELL* pCell = pRows->rtr_cells;
+					while (pCell) {
+						long intraCol;
+						if (mdr_hitTestTextRuns(pCell->rtc_flow.tf_runs, (POINT) { cx, cy }, &intraCol, pMatchedRun)) {
+							*pMatchedPart = pPart;
+							*pLine = ln;
+							*pCol = intraCol + nCol;
+							return TRUE;
+						}
+						nCol += ll_size((LINKED_LIST * )pCell->rtc_flow.tf_runs);
+						pCell = pCell->rtc_next;
+					}
+					pRows = pRows->rtr_next;
 				}
-				pRun = pRun->tr_next;
-				nCol++;
+			} else if (mdr_hitTestTextRuns(pPart->rvp_data.rvp_flow.tf_runs, (POINT) { cx, cy }, pCol, pMatchedRun)) {
+				*pMatchedPart = pPart;
+				*pLine = ln;
+				return TRUE;
 			}
 			return FALSE;
 		}
@@ -1776,14 +1803,38 @@ static void mdr_mouseMove(WINFO* wp, int x, int y) {
 	}
 }
 
+static TEXT_RUN* mdr_getRunAtOffset(RENDER_VIEW_PART* pPart, int nOffset) {
+	if (pPart->rvp_type == MET_TABLE) {
+		RENDER_TABLE_ROW* pRows = pPart->rvp_data.rvp_table->rt_rows;
+		int nOffsCurr = 0;
+		while (pRows) {
+			RENDER_TABLE_CELL* pCells = pRows->rtr_cells;
+			while (pCells) {
+				int nCount = ll_size((LINKED_LIST*)pCells->rtc_flow.tf_runs);
+				nOffsCurr += nCount;
+				if (nOffsCurr > nOffset) {
+					return (TEXT_RUN*)ll_at((LINKED_LIST*)pCells->rtc_flow.tf_runs, nOffset-nOffsCurr + nCount);
+				}
+				pCells = pCells->rtc_next;
+			}
+			pRows = pRows->rtr_next;
+		}
+		return NULL;
+	}
+	else if (pPart->rvp_data.rvp_flow.tf_runs) {
+		return (TEXT_RUN*)ll_at((LINKED_LIST*)pPart->rvp_data.rvp_flow.tf_runs, nOffset);
+	}
+	return NULL;
+}
+
 static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_INFO_PARSE_RESULT* pResult) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (!pData) {
 		return 0;
 	}
 	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, wp->caret.ln);
-	if (pPart && pPart->rvp_data.rvp_flow.tf_runs) {
-		TEXT_RUN* pRun = (TEXT_RUN*) ll_at((LINKED_LIST*)pPart->rvp_data.rvp_flow.tf_runs, wp->caret.col);
+	if (pPart) {
+		TEXT_RUN* pRun = mdr_getRunAtOffset(pPart, wp->caret.col);
 		if (pRun && pRun->tr_link && strlen(pRun->tr_link) < nMaxChars) {
 			strcpy(pszBuf, pRun->tr_link);
 			char* pszAnchor = strrchr(pszBuf, '#');
