@@ -119,7 +119,7 @@ static int ft_appendFileChanges(WINFO* wp) {
 	fp->fileSize = ftAppend.fileSize;
 	LINE* lpd = fp->lastl;
 	int oldFlags = fp->flags;
-	int ret = ln_pasteLines(wp, ftAppend.firstl, ftAppend.lastl, lpd, 0, 0);
+	ln_pasteLines(wp, ftAppend.firstl, ftAppend.lastl, lpd, 0, 0);
 	int nLines = ln_cnt(ftAppend.firstl, ftAppend.lastl)-1;
 	LINE* lpPrevious = ln_relative(fp->lastl, -nLines);
 	if (lpPrevious) {

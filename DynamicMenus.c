@@ -130,7 +130,7 @@ int menu_addMenuMacroItem(char *pszLabel, int menutype, MACROREFTYPE mactype, MA
 	}
 
 	pMenu += nIdx;
-	if (!pszString || !pszString[0]) {
+	if (!pszString[0]) {
 		pMenu->szString[0] = ' ';
 	} else {
 		/* add Tab character for accelerator key tagging */

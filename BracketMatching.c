@@ -99,7 +99,6 @@ EXPORT UCLIST *uc_find(GRAMMAR* pGrammar, LINE *lp, int column) {
 	int o;
 	int nBest = 0;
 	UCLIST* upBest = NULL;
-	char* lineBuffer = lp->lbuf;
 	MATCHED_BRACKET match;
 
 	memset(&match, 0, sizeof match);
@@ -522,10 +521,8 @@ EXPORT int EdShiftBetweenBrackets(int dir)
 	}
 	
 	/* care indentation style */
-	if (mp) {
-		ln  += mp->ci1[1];
-		ln2 -= mp->ci2[1];
-	}
+	ln  += mp->ci1[1];
+	ln2 -= mp->ci2[1];
 
 	return uc_shiftLinesByIndent(wp,ln,ln2-ln,dir);
 }

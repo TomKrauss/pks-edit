@@ -13,7 +13,7 @@
  * created: 01.02.1991
  */
 
-#include <tos.h>
+#include <windows.h>
 #include "caretmovement.h"
 #include "linkedlist.h"
 #include "textblocks.h"

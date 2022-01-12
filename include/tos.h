@@ -34,13 +34,9 @@
 #define Fseek(pos,fd,orig)	_llseek(fd,pos,orig)
 #define Fopen(name,mode)	_lopen(name,mode)
 #define Fclose(fd)			_lclose(fd)
-#define Malloc(size)		(LPVOID)MAKELONG(0, GlobalAlloc(GPTR,size))
-#define Free(buf)			GlobalFree((GLOBALHANDLE)LOWORD((LONG)buf))
 
 #define Frename(dummy,old,new)	rename(old,new)
 #define Fdelete(name)		_unlink(name)
-#define Ddelete(name)		_rmdir(name)
-#define Dcreate(name)		_mkdir(name)
 
 # else /* _Windows */
 

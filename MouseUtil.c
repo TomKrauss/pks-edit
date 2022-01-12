@@ -151,7 +151,7 @@ static int mouse_textBlockEndDrag(WINFO* wp, int x, int y, int bCancel) {
 	if (_dragTextBlockMoveData.saveCursor) {
 		SetClassLongPtr(wp->ww_handle, /*does not work: GCL_HCURSOR*/ -12, (LONG_PTR)_dragTextBlockMoveData.saveCursor);
 	}
-	return 1;
+	return ret;
 }
 
 static MOUSE_DRAG_HANDLER _mouse_textBlockMovement = {

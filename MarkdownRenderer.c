@@ -1344,7 +1344,7 @@ static BOOL mdr_parseTable(LINE** pFirst, RENDER_VIEW_PART* pPart) {
 	// stupid simple layout mechanism assuming a ave char width of 8 to calculate
 	// required column widths.
 	while (pRow) {
-		int nColumn = 0;
+		nColumn = 0;
 		RENDER_TABLE_CELL* pCell = pRow->rtr_cells;
 		while (pCell) {
 			if (pCell->rtc_flow.tf_text) {
@@ -1364,7 +1364,7 @@ static BOOL mdr_parseTable(LINE** pFirst, RENDER_VIEW_PART* pPart) {
 		}
 		pRow = pRow->rtr_next;
 	}
-	for (int nColumn = 0; nColumn < MAX_TABLE_COLUMNS; nColumn++) {
+	for (nColumn = 0; nColumn < MAX_TABLE_COLUMNS; nColumn++) {
 		pTable->rt_totalColumnWidth += pTable->rt_columnWidths[nColumn];
 	}
 	pPart->rvp_data.rvp_table = pTable;
@@ -1546,7 +1546,6 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 	RECT occupiedBounds;
 	int nElements = 0;
 	FillRect(pCtx->rc_hdc, pClip, hBrushBg);
-	MDR_ELEMENT_TYPE mType = MET_NORMAL;
 	for (; pPart && ((bSizeChanged && rect.top < rect.bottom) || (!bSizeChanged && rect.top < pClip->bottom)); rect.top = occupiedBounds.bottom) {
 		MDR_ELEMENT_TYPE mNextType = pPart->rvp_type;
 		pPart->rvp_paint(wp, pPart, pCtx->rc_hdc, &rect, &occupiedBounds);

@@ -286,7 +286,7 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 
 	if (up->action != UA_ABBREV) {
 		o2 = offs - up->uc_pattern.len;
-		if ((lp = ln_modify(fp, lp, offs, o2)) == 0L)
+		if (ln_modify(fp, lp, offs, o2) == 0L)
 			return 0;
 	} else {
 		o2 = offs;

@@ -131,7 +131,7 @@ void caret_updateSelection(WINFO* wp, CARET* c1, CARET* c2, BOOL bC1BeforeC2) {
  * caret_isBeforeOther()
  * Check, whether one caret is located before another one. If bMarkEnd is true, the logic for determining the end is reversed.
  */
-int caret_isBeforeOther(LINE* lpFirst, int col1, LINE* fpcl, int col, int bMarkEnd) {
+int caret_isBeforeOther(LINE* lpFirst, int col1, const LINE* fpcl, int col, int bMarkEnd) {
 	LINE* mlm;
 
 	mlm = lpFirst;

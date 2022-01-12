@@ -792,7 +792,7 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 				return 0;
 			}
 			delta = (size_t)(pPatternRun - (unsigned char*)pMatcher);
-			if (delta <= 0 || delta >= 256) {
+			if (delta == 0 || delta >= 256) {
 				// 0-size sub-expression or expression to complicated.
 				REGEX_ERROR(IDS_MSGRECOMPLEXEXPR);
 			}

@@ -380,10 +380,8 @@ void macro_selectDefaultBindings(void)
  * Read new bindings from a file. If the current bindings are "dirty" they
  * are flushed before.
  */
-int macro_readBindingsFromFile(char *fn)
-{
+int macro_readBindingsFromFile(char *fn) {
 	int 	 wasdirty = _macedited;
-	int	 	overwritebindings = 0;
 	RSCFILE	*rp;
 
 	if (fn == 0) {
@@ -396,14 +394,6 @@ int macro_readBindingsFromFile(char *fn)
 	}
 
 	macro_autosaveAllBindings(1);
-
-	if (overwritebindings) {
-		int i;
-
-		for (i = 0; i < MAXMACRO; i++) {
-			destroy(&_macrotab[i]);
-		}
-	}
 
 	/* load macros */
 	if (!rsc_load(rp, "MACROS", "", rsc_rdmacros)) {

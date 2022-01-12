@@ -45,10 +45,9 @@ extern LONG prof_getlong(char *grp,char *ident);
 typedef enum {	I_FLAG, I_WINDOW, I_VAL, I_STRING, I_INVAL } ITEMTYPE;
 typedef enum {	G_DESK, G_ENVIRON, G_HISTORY } GRPTYPE;
 
-typedef struct item {
+typedef struct tagPROFILEITEM {
 	ITEMTYPE	p_typ;
 	GRPTYPE	p_grp;
-	int		idx;
 	char 	*p_name;
 } PROFILEITEM;
 

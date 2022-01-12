@@ -730,7 +730,7 @@ static int showWindowList(int nTitleId)
 
 	infoFillParams(infoDialListPars, wp);
 	nRet = DoDialog(DLGINFOFILE, dlg_standardDialogProcedure,infoDialListPars, NULL);
-	if (nRet == IDCANCEL || wp == 0) {
+	if (nRet == IDCANCEL) {
 		return 0;
 	}
 
@@ -1223,15 +1223,6 @@ int dlg_configureEditorModes(void) {
 		IDD_OPT10,		WM_DELETE_MULTIPLE_SPACES, &workmode,
 		IDD_OPT11,		F_WATCH_LOGFILE,&fileflag,
 		0
-	};
-
-	ITEMS _i = {
-		{ C_STRING1PAR, 	status }, 
-		{ C_INT1PAR, 		(unsigned char *) &tabsize },
-		{ C_INT1PAR, 		(unsigned char *) &rmargin },
-		{ C_CHAR1PAR, 		(unsigned char *) &tabDisplayFillCharacter },
-		{ C_LONG1PAR, 		(unsigned char *) &bgcolor },
-		{ C_INT1PAR, 		(unsigned char *) &dispmode }
 	};
 	PROPSHEETPAGE psp[4];
 	PROPSHEETHEADER psh;

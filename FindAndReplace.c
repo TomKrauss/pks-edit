@@ -318,9 +318,11 @@ static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, in
 /*--------------------------------------------------------------------------
  * find_expressionInCurrentFile()
  */
-int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options)
-{	long ln,col;
-	int  ret = 0,wrap = 0,wrapped = 0;
+int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options) {
+	long ln,col;
+	int ret = 0;
+	int wrap = options & O_WRAPSCAN;
+	int wrapped = 0;
 	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE *fp;
 	static RE_MATCH match;

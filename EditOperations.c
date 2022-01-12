@@ -205,7 +205,7 @@ static int edit_postProcessInsertLine(WINFO *wp, int dir, long ln, long col)
 /*
  * Find out, whether a list of lines is completely commented out according to a comment specification. 
  */
-static BOOL edit_isAllCommented(LINE* lpFirst, LINE* lpLast, const char* pszCommentStart) {
+static BOOL edit_isAllCommented(LINE* lpFirst, const LINE* lpLast, const char* pszCommentStart) {
 	if (!pszCommentStart) {
 		return FALSE;
 	}

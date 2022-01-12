@@ -18,6 +18,7 @@
 #include "alloc.h"
 #include <tos.h>
 #include "trace.h"
+#include "trace.h"
 #include "documentmodel.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
@@ -309,7 +310,7 @@ static int file_detectCodepage(const char* pData, int nSize) {
  * be parsed as the first argument to the callback.
  *---------------------------------*/
 EXPORT int ft_readDocumentFromFile(int fd, long *pCodepage, unsigned char * (*lineExtractedCallback)(void *, EDIT_CONFIGURATION*, unsigned char *, unsigned char *), void *par) {
-	int 	cflg,got,len,ofs;
+	int 	cflg,got,len;
 	long	bufferSize;
 	char	*q;
 	unsigned char *pend;
@@ -345,7 +346,6 @@ EXPORT int ft_readDocumentFromFile(int fd, long *pCodepage, unsigned char * (*li
 				free(pszDest);
 			}
 		}
-		ofs  = bufferSize;
 		pend = &bufferStart[got];
 
 		if ((q = (*lineExtractedCallback)(par,doctypes_getDefaultDocumentTypeDescriptor(),&bufferStart[-len],pend)) == 0)

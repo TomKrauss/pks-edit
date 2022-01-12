@@ -694,8 +694,7 @@ HWND cust_createToastWindow(char* pszText) {
 		GetClientRect(hwndMain, &rect);
 		rect.top = rect.bottom-toastWindowHeight;
 		int width = rect.right - rect.left;
-		int height = rect.bottom - rect.top;
-		SetWindowPos(hwndToastWindow, HWND_TOP, 0, rect.bottom-toastWindowHeight, rect.right-rect.left, toastWindowHeight, 
+		SetWindowPos(hwndToastWindow, HWND_TOP, 0, rect.bottom-toastWindowHeight, width, toastWindowHeight, 
 			SWP_DEFERERASE | SWP_NOACTIVATE);
 		AnimateWindow(hwndToastWindow, 300, AW_VER_NEGATIVE);
 	}
