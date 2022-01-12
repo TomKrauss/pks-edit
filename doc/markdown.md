@@ -7,12 +7,12 @@ Support is currently limited - not all markdown features are supported. In parti
 be edited. One may browse markdown links, but that is all, which is possible. To edit markdown text, one need to change back to
 ascii rendering mode.
 
-## Limitations
+## General Limitations
 
 - Inline HTML is currently not supported (except using \<br> to force a line break in a paragraph)
-- No extended markdown features such as tables or emoticons are supported.
+- Only some extended markdown features are supported (tables). Other things like emoticons etc... are not supported.
 
-## Markdown samples
+## Supported Block Level Elements
 
 ### Heading Level 3
 
@@ -77,10 +77,17 @@ Here is a fenced code block:
 }
 ```
 
-## Image Support
+## Images
 
-Some more text at the end. And finally some images. Note, that the special syntax for defining width and height of the image as rendered as in the
-following code is supported `[The famous cat]\(cat.bmp =250x150)`.
+Images are supported by PKS-Edit as well. The following samples show the supported image formats (`.bpm`, `.png`, `.jpg`, `.gif`).<br> 
+Note, that the special syntax for defining width and height of the image as rendered as in the following code is supported `[The famous cat]\(cat.bmp =250x150)`.
+
+### Limitations
+
+Only local images are supported (no http support).
+
+#### Some Examples
+
 
 ![The famous cat](cat.bmp =250x)
 
@@ -90,5 +97,30 @@ following code is supported `[The famous cat]\(cat.bmp =250x150)`.
 
 ![Flying Bird](bird.gif =250x)
 
-Note, that image support is currently also rather limited: only local images are supported.
+
+## Tables
+
+PKS-Edit supports the markdown extension tables. 
+
+### Limitations
+
+**Note**, that tables in PKS-Edit currently have quite some _limitations_:
+
+- alignment in combination with formatting is not supported (formatted text will never be displayed aligned)
+- table layout is performed rather heuristically and has lots of limitations
+- links in tables are currently not yet navigatable.
+  
+| Tables   |      Are      |  Cool |
+|----------|:-------------:|------:|
+| col 1 is |  left-aligned | $1600 |
+| col 2 is |    centered   |   $12 |
+| col 3 is | right-aligned |    $1 |
+
+### More Table fun
+
+| Long Content  | Formatted Content |
+|----------|-------------|
+| This is a very long content for one table cell. This is a very long content for one table cell. This is a very long content for one table cell. This is a very long content for one table cell... | This cell contains _formatted_ contents |
+| Some other `formatted` stuff, *italic*, **bold**, ~~strike through~~ | Cell with [link](manual/grammar.md) |
+
 
