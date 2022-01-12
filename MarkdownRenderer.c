@@ -458,6 +458,8 @@ static void mdr_paintImage(WINFO* wp, HDC hdc, TEXT_RUN* pTR, int x, int y, SIZE
 			(pImage->mdi_height ? bitmap.bmWidth * pImage->mdi_height / bitmap.bmHeight : bitmap.bmWidth);
 		int nHeight = pImage->mdi_height ? pImage->mdi_height : 
 			(pImage->mdi_width ? bitmap.bmHeight * pImage->mdi_width / bitmap.bmWidth : bitmap.bmHeight);
+		nWidth = (int)(nWidth * wp->zoomFactor);
+		nHeight = (int)(nHeight * wp->zoomFactor);
 		SetStretchBltMode(hdc, COLORONCOLOR);
 		StretchBlt(hdc, x, y, nWidth, nHeight, hdcMem, 0, 0, bitmap.bmWidth, bitmap.bmHeight, SRCCOPY);
 		SelectObject(hdcMem, oldBitmap);
@@ -1051,27 +1053,27 @@ static LINE* mdr_parseFlow(LINE* lp, int nStartOffset, int nEndOffset, RENDER_VI
 					mType = MET_NORMAL;
 					nState = 1;
 					pFormat = &_formatText;
-					continue;
-				}
-				long nNumber;
-				mType = mdr_determineTopLevelElement(lp, &i, &nLevel, &pFormat, &nNumber);
-				if (mType == MET_HORIZONTAL_RULE) {
-					pPart->rvp_paint = mdr_renderHorizontalRule;
-					pPart->rvp_type = MET_HORIZONTAL_RULE;
-					return lp->next;
-				}
-				if (mType == MET_ORDERED_LIST || mType == MET_TASK_LIST) {
-					pPart->rvp_number = nNumber;
-				}
-				pPart->rvp_level = nLevel;
-				if (mType == MET_FENCED_CODE_BLOCK) {
-					lp = mdr_parseFencedCodeBlock(pPart, lp->next, pSB);
-					nLastOffset = stringbuf_size(pSB);
-					goto outer;
-				}
-				if (mType != MET_NORMAL) {
-					nState = 1;
-					continue;
+				} else {
+					long nNumber;
+					mType = mdr_determineTopLevelElement(lp, &i, &nLevel, &pFormat, &nNumber);
+					if (mType == MET_HORIZONTAL_RULE) {
+						pPart->rvp_paint = mdr_renderHorizontalRule;
+						pPart->rvp_type = MET_HORIZONTAL_RULE;
+						return lp->next;
+					}
+					if (mType == MET_ORDERED_LIST || mType == MET_TASK_LIST) {
+						pPart->rvp_number = nNumber;
+					}
+					pPart->rvp_level = nLevel;
+					if (mType == MET_FENCED_CODE_BLOCK) {
+						lp = mdr_parseFencedCodeBlock(pPart, lp->next, pSB);
+						nLastOffset = stringbuf_size(pSB);
+						goto outer;
+					}
+					if (mType != MET_NORMAL) {
+						nState = 1;
+						continue;
+					}
 				}
 			}
 			if (nState < 2) {
@@ -1214,7 +1216,7 @@ outer:
 	pFlow->tf_text = nLen == 0 ? NULL : _strdup(stringbuf_getString(pSB));
 
 	nSize = nLen - nLastOffset;
-	mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs);
+	mdr_appendRun(&pFlow->tf_runs, pFormat ? pFormat : &_formatText, nSize, mAttrs);
 
 	return lp;
 }
@@ -1238,13 +1240,13 @@ static RENDER_TABLE_CELL *mdr_parseTableCell(RENDER_TABLE_ROW* pRow, LINE* lp, B
 /*
  * Parse a table row.
  */
-static BOOL mdr_parseTableRow(LINE* lp, RENDER_TABLE* pTable, BOOL bHeader, const byte* columnAlignments) {
+static BOOL mdr_parseTableRow(LINE* lp, RENDER_TABLE* pTable, BOOL bHeader, const byte* columnAlignments, int nMaxColumns) {
 	int nColumn = 0;
 	int nStart = 0;
 	RENDER_TABLE_ROW row;
 
 	memset(&row, 0, sizeof row);
-	for (int i = 0; i < lp->len; i++) {
+	for (int i = 0; i < lp->len && nColumn < nMaxColumns; i++) {
 		char c = lp->lbuf[i];
 		if (c == '\\' && i + 1 < lp->len) {
 			i++;
@@ -1256,13 +1258,13 @@ static BOOL mdr_parseTableRow(LINE* lp, RENDER_TABLE* pTable, BOOL bHeader, cons
 				}
 				pCell->rtc_align = columnAlignments[nColumn++];
 			}
-			nStart = i;
+			nStart = i+1;
 		}
 	}
 	if (nColumn == 0) {
 		return FALSE;
 	}
-	if (nStart < lp->len) {
+	if (nStart < lp->len && nColumn < nMaxColumns) {
 		RENDER_TABLE_CELL* pCell = mdr_parseTableCell(&row, lp, bHeader, nStart, lp->len);
 		if (pCell) {
 			pCell->rtc_align = columnAlignments[nColumn++];
@@ -1332,12 +1334,12 @@ static BOOL mdr_parseTable(LINE** pFirst, RENDER_VIEW_PART* pPart) {
 	// OK - we have a valid table definition. Now parse header and rows.
 	RENDER_TABLE* pTable = calloc(1, sizeof * pTable);
 	pTable->rt_columnCount = nColumn;
-	if (!mdr_parseTableRow(lp, pTable, TRUE, columnAlignments)) {
+	if (!mdr_parseTableRow(lp, pTable, TRUE, columnAlignments, nColumn)) {
 		free(pTable);
 		return FALSE;
 	}
 	lp = lpDef->next;
-	while (lp && mdr_parseTableRow(lp, pTable, FALSE, columnAlignments)) {
+	while (lp && mdr_parseTableRow(lp, pTable, FALSE, columnAlignments, nColumn)) {
 		lp = lp->next;
 	}
 	RENDER_TABLE_ROW* pRow = pTable->rt_rows;
@@ -1441,6 +1443,10 @@ static int mdr_windowSizeChanged(WINFO* wp) {
 	// we do not support horizontal scrolling anyways - do not show a horizontal scrollbar.
 	wp->maxcurscol = wp->maxcol = 15;
 	wp->mincol = 0;
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	if (pData && pData->md_lastMinLn != wp->minln) {
+		InvalidateRect(wp->ww_handle, (LPRECT)0, 0);
+	}
 	return 1;
 }
 

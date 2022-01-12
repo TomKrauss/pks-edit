@@ -114,12 +114,31 @@ PKS-Edit supports the markdown extension tables.
 | col 1 is |  left-aligned | $1600 |
 | col 2 is |    centered   |   $12 |
 | col 3 is | right-aligned |    $1 |
-
+	
 ### More Table fun
 
 | Long Content  | Formatted Content |
 |----------|-------------|
-| This is a very long content for one table cell. This is a very long content for one table cell. This is a very long content for one table cell. This is a very long content for one table cell... | This cell contains _formatted_ contents |
+| This is a very long content for one table cell. This is a very long content for one table cell. This is a very long content for one table cell. This is a very long content for one table cell... | This cell contains _formatted_ contents. |
 | Some other `formatted` stuff, *italic*, **bold**, ~~strike through~~ | Cell with [link](manual/grammar.md) |
+
+### Tables with padded Columns
+
+Table rows must not have the same number of columns as the header and delimiter lines. If there are a number of cells fewer than the number of cells in the header row, empty cells are inserted. If there are greater, the excess is ignored.
+
+This is an example which demonstrates the behavior:
+
+```
+Column1   | Column2  |  Column3  |
+----------|-------------|------
+Content11 |  Content12 | 
+Content21 | Content22 | Content23 | Excess |
+```
+Column1   | Column2  |  Column3  |
+----------|-------------|------
+Content11 |  Content12 | 
+Content21 | Content22 | Content23 | Excess |
+
+
 
 

@@ -2,6 +2,7 @@
 
 A grammar is used by PKS Edit are used to adapt PKS Edit to editing different (in particular source) file types.
 Every grammar has a name which can be associated with a [document type](document_types.md). 
+
 Basically a grammar file is used to define the following aspects of the behavior of PKS Edit:
 
 - `syntax highlighting rules`. Each grammar contains a set of rules which are used to select a font style to
@@ -31,6 +32,22 @@ with a document type. `cpp.grammar.json` for instance would be the name of a gra
 The grammar files are placed in the `pks_sys` directory. The document types are defined in a file
 `pks_sys\pkseditconfig.json`. Document types are typically selected by file name pattern. For every document type one may
 define the grammar id to use for the corresponding document type.
+
+#### Importing Grammars
+
+A grammar may import other grammars using the `scopeName` of the grammar to import. If another grammar is imported all
+locally defined `patterns`, `highlight brackets`, `indent patterns`, `formatter`, `analyzers`, `evaluators` and `word character class`
+definitions have preference over the correspondigly defined grammar aspects in the imported grammar(s).
+
+Here is an example for a grammar for C-files importing a grammar defining defaults for languages with a C- like syntax
+and grammar.
+
+```
+ "scopeName": "cpp",
+ "description":  "Grammar for C++- and C-code files",
+ "import": [ "commonc" ],
+....
+```
 
 ### Templates
 Templates are defined with a pattern `match` using to "select the template" and the actual `contents` of the template to be inserted. 

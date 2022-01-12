@@ -653,6 +653,9 @@ static void grammar_applyDefaultFromImported(GRAMMAR* pGrammar, GRAMMAR* pImport
 	if (!pGrammar->evaluator && pImported->evaluator) {
 		pGrammar->evaluator = _strdup(pImported->evaluator);
 	}
+	if (!pGrammar->u2lset[0] && pImported->u2lset[0]) {
+		memcpy(pGrammar->u2lset, pImported->u2lset, sizeof pImported->u2lset);
+	}
 	if (!pGrammar->analyzer && pImported->analyzer) {
 		pGrammar->analyzer = _strdup(pImported->analyzer);
 	}
