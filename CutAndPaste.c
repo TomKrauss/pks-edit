@@ -564,30 +564,6 @@ EXPORT int bl_cutLines()
 }
 
 /*----------------------------*/
-/* isbefore()				*/
-/*----------------------------*/
-static int isbefore(FTABLE *fp, MARK *mark, LINE *fpcl, int col, int bMarkEnd) {
-	LINE *	mlm;
-
-	mlm	= mark->m_linePointer;
-	if (fpcl == mlm) {
-		return (col <= mark->m_column);
-	}
-	LINE* lpBack = mlm;
-	LINE* lpForward = mlm;
-
-	while(fpcl != lpBack && fpcl != lpForward) {
-		if (lpBack) {
-			lpBack = lpBack->prev;
-		}
-		if (lpForward) {
-			lpForward = lpForward->next;
-		}
-	}
-	return bMarkEnd ? (fpcl != lpForward) : fpcl == lpForward;
-}
-
-/*----------------------------*/
 /* bl_updateSelectionInLines() 			*/
 /*----------------------------*/
 static void bl_updateSelectionInLines(WINFO* wp, LINE *lpOldSelectionStart, LINE *lpOldSelectionEnd) {
@@ -716,7 +692,7 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 	}
 
 	if (marks && 
-		isbefore(fp, marks, lpMark, nMarkOffset, type == MARK_END)) {
+		caret_isBeforeOther(marks->m_linePointer, marks->m_column, lpMark, nMarkOffset, type == MARK_END)) {
 		if (flags & MARK_RECALCULATE) {
 			bSwap = 1;
 		} else if (!(flags & MARK_NO_HIDE)) {

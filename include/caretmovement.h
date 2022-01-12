@@ -32,6 +32,18 @@ extern int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags);
  */
 extern int caret_getPreviousColumnInLine(WINFO* wp, LINE* lp, int col);
 
+/*
+ * Update the current selection in a window. It is assumed that the caret has moved with an "extend selection"
+ * move (e.g. by mouse drag or by Shift+Arrow Key)
+ */
+extern void caret_updateSelection(WINFO* wp, CARET* c1, CARET* c2, BOOL bC1BeforeC2);
+
+/**
+ * caret_isBeforeOther()
+ * Check, whether one caret is located before another one. If bMarkEnd is true, the logic for determining the end is reversed.
+ */
+extern int caret_isBeforeOther(LINE* lpFirst, int col1, LINE* fpcl, int col, int bMarkEnd);
+
 /*--------------------------------------------------------------------------
  * caret_advanceParagraph()
  * Advance the cursor starting from a line by one paragraph.

@@ -2,15 +2,12 @@
   "grammars": [
     {
       "scopeName": "pksedit",
+      "description": "Grammar for the PKS-Edit macro language PKSMacroC",
+      "import": [ "commonc" ],
       "analyzer": "pks-macros",
       "evaluator": "pks-macros",
       "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9@-",
       "patterns": [
-        {
-          "match": "//.*",
-          "style": "comment",
-          "name": "comment.singleLine"
-        },
         {
           "match": "#.*",
           "style": "comment",
@@ -32,7 +29,9 @@
             "elif",
             "switch",
             "while",
+            "braeq",
             "continue",
+            "const",
             "break",
             "return",
             "local",

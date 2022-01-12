@@ -111,30 +111,85 @@ EXPORT int caret_screen2lineOffset(WINFO *wp, CARET *pCaret)
 	return (int)(p-lp->lbuf);
 }
 
+
+/*
+ * Update the current selection in a window. It is assumed that the caret has moved with an "extend selection"
+ * move (e.g. by mouse drag or by Shift+Arrow Key)
+ */
+void caret_updateSelection(WINFO* wp, CARET* c1, CARET* c2, BOOL bC1BeforeC2) {
+	if ((c1->linePointer == c2->linePointer && c1->offset < c2->offset) ||
+		(c1->linePointer != c2->linePointer && bC1BeforeC2)) {
+		bl_syncSelectionWithCaret(wp, c1, MARK_START | MARK_NO_HIDE, NULL);
+		bl_syncSelectionWithCaret(wp, c2, MARK_END | MARK_NO_HIDE, NULL);
+	} else {
+		bl_syncSelectionWithCaret(wp, c1, MARK_END | MARK_NO_HIDE, NULL);
+		bl_syncSelectionWithCaret(wp, c2, MARK_START | MARK_NO_HIDE, NULL);
+	}
+}
+
+/**
+ * caret_isBeforeOther()
+ * Check, whether one caret is located before another one. If bMarkEnd is true, the logic for determining the end is reversed.
+ */
+int caret_isBeforeOther(LINE* lpFirst, int col1, LINE* fpcl, int col, int bMarkEnd) {
+	LINE* mlm;
+
+	mlm = lpFirst;
+	if (fpcl == mlm) {
+		return (col <= col1);
+	}
+	LINE* lpBack = mlm;
+	LINE* lpForward = mlm;
+
+	while (fpcl != lpBack && fpcl != lpForward && lpBack && lpForward) {
+		lpBack = lpBack->prev;
+		lpForward = lpForward->next;
+	}
+	return bMarkEnd ? (fpcl != lpForward) : fpcl == lpForward;
+}
+
 /*--------------------------------------------------------------------------
  * caret_extendSelection()
  */
-static int _xtndMark;
-static int nSentinel;
+static CARET _caretBeforeExtension;
 void caret_extendSelection(WINFO *wp)
 {
-	if (nSentinel) {
-		return;
-	}
-	nSentinel = 1;
-	if (_xtndMark) {
-		if (_xtndMark == MARK_START && 
-			(wp->workmode & WM_LINE_SELECTION)) {
-			if (wp->blend && 
-				ll_indexOf((LINKED_LIST*)wp->caret.linePointer, (LINKED_LIST*)wp->blend->m_linePointer) < 1) {
-				_xtndMark = MARK_END;
+	CARET* pCurrent = &wp->caret;
+
+	if (_caretBeforeExtension.linePointer && 
+			(pCurrent->linePointer != _caretBeforeExtension.linePointer || pCurrent->offset != _caretBeforeExtension.offset)) {
+		MARK* mpStart = wp->blstart;
+		MARK* mpEnd = wp->blend;
+		CARET caret1;
+		CARET caret2;
+		BOOL b1Before2 = TRUE;
+		caret1.linePointer = NULL;
+		if (mpStart && mpEnd && (mpStart->m_linePointer != mpEnd->m_linePointer || mpStart->m_column != mpEnd->m_column)) {
+			if (mpStart->m_linePointer == _caretBeforeExtension.linePointer && mpStart->m_column == _caretBeforeExtension.offset) {
+				if (caret_isBeforeOther(mpEnd->m_linePointer, 0, pCurrent->linePointer, 0, FALSE)) {
+					caret1.offset = mpEnd->m_column;
+					caret1.linePointer = mpEnd->m_linePointer;
+					caret2 = *pCurrent;
+				} else {
+					caret2.offset = mpEnd->m_column;
+					caret2.linePointer = mpEnd->m_linePointer;
+					caret1 = *pCurrent;
+				}
+			}
+			else if (mpEnd->m_linePointer == _caretBeforeExtension.linePointer && mpEnd->m_column >= _caretBeforeExtension.offset) {
+				caret1.offset = mpStart->m_column;
+				caret1.linePointer = mpStart->m_linePointer;
+				caret2 = *pCurrent;
 			}
 		}
-		EdSyncSelectionWithCaret(_xtndMark | MARK_RECALCULATE);
-	} else {
-		EdSyncSelectionWithCaret(MARK_END | MARK_RECALCULATE);
+		if (caret1.linePointer == NULL) {
+			caret1 = _caretBeforeExtension;
+			caret2 = *pCurrent;
+			b1Before2 = caret_isBeforeOther(caret1.linePointer, caret1.offset, caret2.linePointer, caret2.offset, FALSE);
+		}
+		caret_updateSelection(wp, &caret1, &caret2, b1Before2);
 	}
-	nSentinel = 0;
+	_caretBeforeExtension.linePointer = NULL;
 }
 
 /*--------------------------------------------------------------------------
@@ -142,35 +197,11 @@ void caret_extendSelection(WINFO *wp)
  * Start an operation where the selection is defined via cursor movement (e.g. when
  * the user presses shift+RIGHT).
  */
-static void caret_startExtendingSelection(WINFO *wp)
-{
-	MARK	*		pMark;
-	int			bMarkLines;
-
-	if (nSentinel) {
+static void caret_startExtendingSelection(WINFO *wp) {
+	if (!wp->bXtndBlock) {
 		return;
 	}
-	bMarkLines = wp->workmode & WM_LINE_SELECTION;
-	nSentinel++;
-	if ((pMark = wp->blstart) != 0 && 
-		pMark->m_linePointer == wp->caret.linePointer &&
-		(pMark->m_column == wp->caret.offset ||
-		 bMarkLines)) {
-		_xtndMark = MARK_START;
-	} else if ((pMark = wp->blend) != 0 && 
-		((pMark->m_linePointer == wp->caret.linePointer &&
-		  pMark->m_column == wp->caret.offset) ||
-		 (bMarkLines && wp->caret.linePointer->next == pMark->m_linePointer))) {
-		_xtndMark = MARK_END;
-	} else {
-		_xtndMark = 0;
-		if (wp->blstart || wp->blend) {
-			bl_hideSelectionInCurrentWindow();
-		}
-		bl_syncSelectionWithCaret(wp, &wp->caret, MARK_RECALCULATE|MARK_START, NULL);
-		bl_syncSelectionWithCaret(wp, &wp->caret, MARK_RECALCULATE|MARK_END, NULL);
-	}
-	nSentinel--;
+	_caretBeforeExtension = wp->caret;
 }
 
 /*--------------------------------------------------------------------------
@@ -275,7 +306,6 @@ void caret_moveToLine(WINFO* wp, long ln) {
 EXPORT int caret_updateDueToMouseClick(WINFO *wp, long *ln, long *col, int updateVirtualColumn) {
 	LINE *	lp;
 	int		i;
-	BOOL	bXtnd;
 	FTABLE* fp = wp->fp;
 
 	if ((lp = ln_goto(fp, *ln)) == 0) {
@@ -294,11 +324,7 @@ EXPORT int caret_updateDueToMouseClick(WINFO *wp, long *ln, long *col, int updat
 
 	*col = caret_lineOffset2screen(wp, &(CARET) { lp, i});
 
-	bXtnd = wp->bXtndBlock;
-	if (bXtnd) {
-		caret_startExtendingSelection(wp);
-	}
-
+	caret_startExtendingSelection(wp);
 	wp->caret.linePointer = lp;
 	wp->caret.offset = i;
 
@@ -322,7 +348,6 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *
 	LINE *		lp;
 	int 		i;
 	int			o;
-	BOOL		bXtnd;
 	FTABLE* fp = wp->fp;
 
 	if ((lp = ln_goto(fp,*ln)) == 0L)
@@ -347,10 +372,7 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *
 	if (maxcol < o) o = maxcol;
 	if (o != *col) i = caret_lineOffset2screen(wp, &(CARET) { lp, o});
 
-	bXtnd = wp->bXtndBlock;
-	if (bXtnd) {
-		caret_startExtendingSelection(wp);
-	}
+	caret_startExtendingSelection(wp);
 	if (updateVirtualOffset) {
 		wp->caret.virtualOffset = i;
 	}
