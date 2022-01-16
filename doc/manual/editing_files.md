@@ -1,3 +1,5 @@
+# Editing Files
+
 ## Selecting text
 
 You may select text in PKS-Edit using either the mouse and dragging over a range of text to select 
@@ -5,11 +7,11 @@ or by using the cursor keys in combination with the `Shift` key as in other text
 
 PKS-Edit supports three selection shapes:
 
-- _standard selection_, where a selection starts in a column c1 and a line l1 and ends in a column
+- *standard selection*, where a selection starts in a column c1 and a line l1 and ends in a column
  c2 and a line l2 (which might be identical to l1).
-- _blockmode selection_, where the selection has a rectangular form allowing to select only text
+- *blockmode selection*, where the selection has a rectangular form allowing to select only text
 between columns c1 and c2 in a lines exclusively
-- _line selection_, where always complete lines are selected.
+- *line selection*, where always complete lines are selected.
 
 The shape of the selection can be selected e.g. in the `Editor Settings` menu.
 

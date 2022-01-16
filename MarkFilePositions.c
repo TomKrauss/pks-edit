@@ -138,6 +138,9 @@ static int fm_gotoLastPositionDir(MARK_TYPE_ENUM type, int dir) {
 	MARK*	mp;
 
 	mp = fm_getSavedMark(type, dir);
+	if (mp == NULL && type == TM_LASTINSERT) {
+		mp = fm_getSavedMark(TM_LASTSEARCH, dir);
+	}
 	if (mp == 0) {
 		error_showErrorById(IDS_MSGNOLASTPOS);
 		return 0;

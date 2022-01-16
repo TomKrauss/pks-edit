@@ -1113,6 +1113,7 @@ int EdFindFileCursor(void)
 		if ((found = file_searchFileInPath(filename, GetConfiguration()->includePath)) != 0 ||
 			(found = file_searchFileInPath(_fseltarget, currentFilePath)) != 0 ||
 			(fselpath[0] && (found = file_searchFileInPath(_fseltarget, fselpath)) != 0)) {
+			fm_savepos(TM_LASTSEARCH);
 			if (xref_openFile(found, result.ni_lineNumber, result.ni_wp)) {
 				wp = ww_getCurrentEditorWindow();
 			}

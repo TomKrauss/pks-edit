@@ -1,3 +1,5 @@
+# Find and Replace
+
 ## Finding text
 
 PKS-Edit supports the following options when searching for text:

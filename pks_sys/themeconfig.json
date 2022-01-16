@@ -82,6 +82,10 @@
           "backgroundColor": "#efefef"
         },
         {
+          "styleName": "highlight",
+          "backgroundColor": "#efef83"
+        },
+        {
           "styleName": "literal",
           "weight": 700,
           "foregroundColor": "#770077"
@@ -208,6 +212,10 @@
           "styleName": "code",
           "weight": 700,
           "backgroundColor": "#64b764"
+        },
+        {
+          "styleName": "highlight",
+          "backgroundColor": "#acac83"
         },
         {
           "styleName": "literal",
@@ -338,6 +346,10 @@
           "backgroundColor": "#d78484"
         },
         {
+          "styleName": "highlight",
+          "backgroundColor": "#acac83"
+        },
+        {
           "styleName": "literal",
           "weight": 700,
           "foregroundColor": "#72788d"
@@ -463,6 +475,10 @@
           "styleName": "code",
           "weight": 700,
           "backgroundColor": "#8e8e8e"
+        },
+        {
+          "styleName": "highlight",
+          "backgroundColor": "#636323"
         },
         {
           "styleName": "literal",

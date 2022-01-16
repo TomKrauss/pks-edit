@@ -1,3 +1,5 @@
+# Recording Macros and the PKS-Edit Macro Language
+
 ## Macros in PKS-Edit
 
 Macros in PKS-Edit can be recorded or manually edited using the _PKSMacroC Language_ and compiled inside PKS-Edit.

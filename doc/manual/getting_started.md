@@ -1,3 +1,5 @@
+# Getting Started
+
 If you work with PKS-Edit for the very first time you might find some useful hints in this section.
 
 ## Starting PKS-Edit

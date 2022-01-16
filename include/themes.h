@@ -127,6 +127,12 @@ extern void font_setDefaultTextColors(HDC hdc, THEME_DATA* pTheme);
  */
 extern long theme_textStyleForeground(char* pszStylename, long lDefault);
 
+/*
+ * Returns the background color of a text style with a given name in the current theme.
+ * If the style cannot be found a default value is returned.
+ */
+long theme_textStyleBackground(char* pszStylename, long lDefault);
+
 #define THEMES_H
 
 #endif // !THEMES_H

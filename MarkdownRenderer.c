@@ -43,6 +43,7 @@ static const char _escapedChars[] = "\\`*_{}[]<>()#+-.!|";
 
 // Loads the an image with a name and a format into a HBITMAP.
 extern HBITMAP loadimage_load(char* pszName);
+extern CONTROLLER* mdr_getMarkdownController();
 
 typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 
@@ -77,12 +78,12 @@ static ENTITY_MAPPING _entities[] = {
 typedef struct tagRUN_BOUNDS {
 	int		left1;
 	int		top1;
+	int		right2;
+	int		bottom2;
 	int		left;
 	int		top;
 	int		right;
 	int		bottom;
-	int		right2;
-	int		bottom2;
 } RUN_BOUNDS;
 
 /*
@@ -95,6 +96,7 @@ typedef struct tagFONT_ATTRIBUTES {
 	int		underline;
 	int		weight;
 	int		lineBreak;
+	BOOL	rollover;
 	COLORREF bgColor;
 	COLORREF fgColor;
 	int		fixedFont;
@@ -192,8 +194,9 @@ typedef struct tagMDR_ELEMENT_FORMAT {
 #define ATTR_STRONG		0x2
 #define ATTR_STRIKE		0x4
 #define ATTR_CODE		0x8
-#define ATTR_LINK		0x10
-#define ATTR_LINE_BREAK 0x20
+#define ATTR_HIGHLIGHT		0x10
+#define ATTR_LINK		0x20
+#define ATTR_LINE_BREAK 0x40
 
 /*
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
@@ -323,7 +326,7 @@ static HFONT mdr_createFont(const FONT_ATTRIBUTES* pAttrs, float fZoom) {
 	}
 	_lf.lfItalic = pAttrs->italic;
 	_lf.lfStrikeOut = pAttrs->strikeout;
-	_lf.lfUnderline = pAttrs->underline;
+	_lf.lfUnderline = pAttrs->rollover && pAttrs->underline;
 	return CreateFontIndirect(&_lf);
 }
 
@@ -675,11 +678,16 @@ static void mdr_renderMarkdownBlockPart(WINFO* wp, RENDER_VIEW_PART* pPart, HDC 
 		TEXTMETRIC tm;
 		GetTextMetrics(hdc, &tm);
 		RECT r;
-		r.top = pBounds->top + pPart->rvp_margins.m_top;
+		r.top = pBounds->top + pPart->rvp_margins.m_top - 10;
 		r.bottom = y + (pPart->rvp_number * tm.tmHeight) + pPart->rvp_margins.m_bottom;
 		r.left = x-10;
-		r.right = nRight;
-		FillRect(hdc, &r, theme_getDialogLightBackgroundBrush());
+		r.right = nRight > 1200 ? nRight - 100 : nRight;
+		HBRUSH hBrOld = SelectObject(hdc, theme_getDialogLightBackgroundBrush());
+		HPEN hPen = CreatePen(PS_SOLID, 1, theme_getCurrent()->th_dialogBorder);
+		HPEN hPenOld = SelectObject(hdc, hPen);
+		Rectangle(hdc, r.left, r.top, r.right, r.bottom);
+		SelectObject(hdc, hBrOld);
+		DeleteObject(SelectObject(hdc, hPenOld));
 	}
 	int nDCId = SaveDC(hdc);
 	mdr_renderTextFlow(wp, pMargins, &pPart->rvp_data.rvp_flow, hdc, pBounds, &pPart->rvp_bounds, pUsed,
@@ -832,7 +840,10 @@ static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, si
 	pRun->tr_attributes.size = pFormat->mef_charHeight;
 	pRun->tr_attributes.weight = pFormat->mef_charWeight;
 	pRun->tr_attributes.fixedFont = pFormat->mef_fixedFont;
-	if (mAttrs & ATTR_CODE) {
+	if (mAttrs & ATTR_HIGHLIGHT) {
+		pRun->tr_attributes.fixedFont = 0;
+		pRun->tr_attributes.bgColor = theme_textStyleBackground("highlight", RGB(100, 100, 25)); 
+	} else if (mAttrs & ATTR_CODE) {
 		pRun->tr_attributes.fixedFont = 1;
 		pRun->tr_attributes.bgColor = theme_getCurrent()->th_dialogLightBackground;
 	} else {
@@ -1117,12 +1128,19 @@ static LINE* mdr_parseFlow(LINE* lp, int nStartOffset, int nEndOffset, RENDER_VI
 			if (nState < 2) {
 				nState = 2;
 			}
-			if (c == '\\' && i < lp->len - 1 && strchr(_escapedChars, lp->lbuf[i+1]) != NULL) {
+			if (c == '\\' && i < lp->len - 1 && strchr(_escapedChars, lp->lbuf[i + 1]) != NULL) {
 				i++;
 				c = lp->lbuf[i];
-			} else if (c == '`' || (!(mAttrs & ATTR_CODE) && (c == '*' || 
+			} else if (c == '=' && i < lp->len-1 && lp->lbuf[i+1] == c) {
+				i++;
+				nSize = stringbuf_size(pSB) - nLastOffset;
+				mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs);
+				mAttrs ^= ATTR_HIGHLIGHT;
+				nLastOffset += nSize;
+				continue;
+			} else if (c == '`' || (!(mAttrs & ATTR_CODE) && (c == '*' ||
 				// allow for _ only at word borders.
-					(c == '_' && ((i == 0) || pks_isspace(lp->lbuf[i-1]) || pks_isspace(lp->lbuf[i + 1]))) || 
+					(c == '_' && ((i == 0) || lp->lbuf[i-1] == c || lp->lbuf[i + 1] == c || pks_isspace(lp->lbuf[i-1]) || pks_isspace(lp->lbuf[i + 1]))) ||
 				c == '~'))) {
 				int nToggle = 0;
 				if (c == '*' || c == '_') {
@@ -1818,6 +1836,14 @@ static void mdr_hitTest(WINFO* wp, int cx, int cy, long* pLine, long* pCol) {
 	mdr_hitTestInternal(wp, cx, cy, pLine, pCol, &pMatchP, &pMatchR);
 }
 
+static void mdr_setRollover(HWND hwnd, TEXT_RUN* pRun, BOOL aFlag) {
+	if (!pRun || pRun->tr_attributes.rollover == aFlag || !pRun->tr_link) {
+		return;
+	}
+	pRun->tr_attributes.rollover = aFlag;
+	InvalidateRect(hwnd, (RECT*) & pRun->tr_bounds, FALSE);
+}
+
 static void mdr_mouseMove(WINFO* wp, int x, int y) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (!pData) {
@@ -1828,18 +1854,20 @@ static void mdr_mouseMove(WINFO* wp, int x, int y) {
 	long line;
 	long col;
 	BOOL bShow = TRUE;
-	if (!mdr_hitTestInternal(wp, x, y, &line, &col, &pMatchP, &pMatchR) || !pMatchR->tr_title) {
+	if (!mdr_hitTestInternal(wp, x, y, &line, &col, &pMatchP, &pMatchR)) {
 		bShow = FALSE;
 	}
 	if (pMatchR == pData->md_focussedRun) {
 		return;
 	}
+	mdr_setRollover(wp->ww_handle, pData->md_focussedRun, FALSE);
 	pData->md_focussedRun = pMatchR;
+	mdr_setRollover(wp->ww_handle, pMatchR, TRUE);
 	TTTOOLINFO toolinfo = { 0 };
 	toolinfo.cbSize = sizeof(toolinfo);
 	toolinfo.hwnd = wp->ww_handle;
 	toolinfo.hinst = hInst;
-	if (pMatchR) {
+	if (pMatchR && pMatchR->tr_title) {
 		// Activate the tooltip.
 		toolinfo.lpszText = pMatchR->tr_title;
 		SendMessage(pData->md_hwndTooltip, TTM_UPDATETIPTEXT, (WPARAM)0, (LPARAM)&toolinfo);
@@ -1848,6 +1876,8 @@ static void mdr_mouseMove(WINFO* wp, int x, int y) {
 		pt.y = pMatchR->tr_bounds.top1 - 20;
 		ClientToScreen(wp->ww_handle, &pt);
 		SendMessage(pData->md_hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(pt.x, pt.y));
+	} else {
+		bShow = FALSE;
 	}
 	if (!SendMessage(pData->md_hwndTooltip, TTM_TRACKACTIVATE, (WPARAM)bShow, (LPARAM)&toolinfo)) {
 		log_errorArgs(DEBUG_ERR, "Activating tooltip failed. Error %ld.", GetLastError());
@@ -1970,6 +2000,7 @@ static RENDERER _mdrRenderer = {
  * Returns a markdown renderer.
  */
 RENDERER* mdr_getRenderer() {
+	_mdrRenderer.r_controller = mdr_getMarkdownController();
 	return &_mdrRenderer;
 }
 

@@ -5,7 +5,7 @@ The manual describes how to use PKS-Edit efficiently.
 ## Navigating Help
 
 To navigate the help files, you may use the cursor keys to scroll in one file. To follow a hyperlink,
-click a link at the same time pressing the `Ctrl` key.
+simply navigate over the link and click it.
 
 ## Table of Contents
 
@@ -18,5 +18,6 @@ click a link at the same time pressing the `Ctrl` key.
 - [Recording Macros and the PKS-Edit Macro Language](macro_language.md)
 - [Configuring PKS-Edit](configuration.md)
 - [Starting PKS-Edit with command line arguments](commandline.md)
-- [Printing Files](printing.md)
+- [Printing](printing.md)
+- [PKS-Edit Markdown Reference](../markdown.md)
 

@@ -24,14 +24,16 @@ ascii rendering mode.
 
 These are two text paragraphs. The 1st paragraph contains a <br> line break.
 
-### Links
+### Formatting and Links
 
 Here is the second paragraph. It contains a long wrapped text. Note, that *emphasis* and __boldness__ or a ***combination*** are supported as well as a `code` 
 type formatting of text. The markdown also may contain [links - e.g to the grammar](manual/grammar.md). One may also use ~~strikethrough~~ text.
 
+You may also ==highlight== important places in the text.
+
 [Auto-links](https://github.github.com/gfm/#autolinks) are supported to some extent using the following syntax `\<https://www.google.de>`: <www.google.de>.
 
-[In-document links to anchors](#image-support "this brings you to the images") are supported as well.
+[In-document links to anchors](#images "this brings you to the images") are supported as well.
 
 ### Block Quotes
 
@@ -76,6 +78,11 @@ Here is a fenced code block:
   "age": 25
 }
 ```
+
+Here is an indented code block:
+
+	int i = 12;
+	System.out.println(i);
 
 ## Images
 

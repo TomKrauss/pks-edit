@@ -815,6 +815,10 @@ static MOUSEBIND _searchListMouseTab[] = {
 	{0x01,0,		  2,0,	{CMD_CMDSEQ,108}, (char*)0}
 };
 
+static MOUSEBIND _markdownMouseTab[] = {
+	{0x01,0,  1,0,	{CMD_CMDSEQ,23}, (char*)0}
+};
+
 static KEYBIND* xref_searchListGetKeyBinding(WPARAM nKey) {
 	for (int i = 0; i < DIM(_searchListKeyTab); i++) {
 		if (_searchListKeyTab[i].keycode == nKey) {
@@ -834,9 +838,25 @@ static MOUSEBIND* xref_searchListGetMouseBinding(int nButton, int nModifier, int
 	return NULL;
 }
 
+static MOUSEBIND* mdr_markdownGetMouseBinding(int nButton, int nModifier, int nClicks) {
+	for (int i = 0; i < DIM(_markdownMouseTab); i++) {
+		MOUSEBIND* pMB = &_markdownMouseTab[i];
+		if (pMB->nclicks == nClicks && pMB->button == nButton && pMB->shift == nModifier) {
+			return pMB;
+		}
+	}
+	return NULL;
+}
+
+
 static CONTROLLER _searchListController = {
 	xref_searchListGetKeyBinding,
 	xref_searchListGetMouseBinding
+};
+
+static CONTROLLER _markdownController = {
+	NULL,
+	mdr_markdownGetMouseBinding
 };
 
 /*
@@ -844,4 +864,11 @@ static CONTROLLER _searchListController = {
  */
 CONTROLLER* macro_getSearchListController() {
 	return &_searchListController;
+}
+
+/*
+ * Returns a custom controller with custom mouse and keybindings used in markdown wysiwyg rendering.
+ */
+CONTROLLER* mdr_getMarkdownController() {
+	return &_markdownController;
 }
