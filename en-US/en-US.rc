@@ -1273,7 +1273,9 @@ BEGIN
         MENUITEM "Goto &Line...\a",             MGOTOLN
         MENUITEM "Goto Selection S&tart\a",     MTMFSTAR
         MENUITEM "Goto Selection E&nd\a",       MTMFEND
-        MENUITEM "Goto &Last Position\a",       MLASTPOS
+        MENUITEM "Goto &Last Insertion Position\a", IDM_GOTO_PREVIOUS_INSERTION
+        MENUITEM "Goto &Last Position\a",       IDM_GOTO_PREVIOUS
+        MENUITEM "Goto to &Next Position\a",       IDM_GOTO_NEXT
         MENUITEM "Goto &Cross Reference\a",     MFLASTP
         MENUITEM "Goto Matching Bracket\a",     IDM_GOTO_MATCHING_BRACKET
     END

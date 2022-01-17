@@ -417,7 +417,7 @@ EXPORT int caret_placeCursorInCurrentFile(WINFO* wp, long ln,long col) {
  * editor window.
  */
 int caret_saveLastPosition(void) {
-	return fm_savepos(TM_LASTSEARCH);
+	return fm_savepos(MTE_AUTO_LAST_SEARCH);
 }
 
 /*--------------------------------------------------------------------------

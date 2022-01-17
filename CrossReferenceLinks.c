@@ -715,13 +715,13 @@ static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bForceDialog) {
 		return 0;
 	fp = wp->fp;
 	find_setCurrentSearchExpression(s);
-	_tagword = _strdup(s);
-	s = _tagword;
 	_tagCancelled = FALSE;
 
 	if ((ttl = grammar_getTagSources(fp->documentDescriptor->grammar)) == NULL) {
 		return 0;
 	}
+	_tagword = _strdup(s);
+	s = _tagword;
 	while (ttl && ret == 0 && _tagCancelled == FALSE) {
 		if (strcmp(TST_TAGFILE, ttl->type) == 0) {
 			if (xref_buildTagTable(fp->fname, ttl->fn) && (tp = xref_lookupTagReference(s, bForceDialog)) != 0L) {
@@ -731,7 +731,7 @@ static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bForceDialog) {
 				} else {
 					strcpy(buffer, tp->filename);
 				}
-				fm_savepos(TM_LASTSEARCH);
+				fm_savepos(MTE_AUTO_LAST_SEARCH);
 				xref_openFile(buffer, tp->ln, NULL);
 				if (tp->searchCommand && ft_getCurrentDocument()) {
 					RE_PATTERN* pPattern;
@@ -1113,7 +1113,7 @@ int EdFindFileCursor(void)
 		if ((found = file_searchFileInPath(filename, GetConfiguration()->includePath)) != 0 ||
 			(found = file_searchFileInPath(_fseltarget, currentFilePath)) != 0 ||
 			(fselpath[0] && (found = file_searchFileInPath(_fseltarget, fselpath)) != 0)) {
-			fm_savepos(TM_LASTSEARCH);
+			fm_savepos(MTE_AUTO_LAST_SEARCH);
 			if (xref_openFile(found, result.ni_lineNumber, result.ni_wp)) {
 				wp = ww_getCurrentEditorWindow();
 			}

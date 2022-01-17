@@ -29,6 +29,8 @@ These are two text paragraphs. The 1st paragraph contains a <br> line break.
 Here is the second paragraph. It contains a long wrapped text. Note, that *emphasis* and __boldness__ or a ***combination*** are supported as well as a `code` 
 type formatting of text. The markdown also may contain [links - e.g to the grammar](manual/grammar.md). One may also use ~~strikethrough~~ text.
 
+Using formatting chars such as \_ in the middle_of_a_word eliminates the need to escape them. Using \_ at the border of a _word_ will have the word be stand out in _italic_.
+
 You may also ==highlight== important places in the text.
 
 [Auto-links](https://github.github.com/gfm/#autolinks) are supported to some extent using the following syntax `\<https://www.google.de>`: <www.google.de>.

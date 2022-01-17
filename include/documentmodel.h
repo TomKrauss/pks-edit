@@ -93,10 +93,23 @@ typedef struct tagPASTELIST {
 	PASTE			pl_pasteBuffer;		// The actual data
 } PASTELIST;
 
+/* special marker IDs */
+typedef enum {
+	CNOMARK = 0x00,						// release mark without freeing it
+	MARKSTART = 0x100,					// text selection start mark
+	MARKEND = 0x101,					// text selection end mark
+	MARKSELSTART = 0x102,				// Used in "MARK Text" in find and replace
+	MARKSELEND = 0x103,					// Used in "MARK Text" in find and replace 
+	MARKDOT = 0x104,					// Temporary mark set before an operation starts (e.g. block formatting) and restored after operation
+	MTE_AUTO_LAST_SEARCH = 0x105,		// mark defined automatically before navigating to a new position
+	MTE_AUTO_LAST_INSERT = 0x106		// mark defined automatically when editing text
+} MARK_TYPE_ENUM;
+
+/* goto textmark (lastpos) */
 /* should ideally extend CARET */
 typedef struct tagMARK {
 	struct tagMARK* m_next;
-	int  			m_identifier;		// ID of mark (char || BLOCKSTART,-END)
+	int  			m_identifier;		// ID of mark (either a character or a character or a MARK_TYPE_ENUM)
 	LINE*			m_linePointer;		// the pointer to the line
 	long			m_line;				// the line number
 	int  			m_column;			// the marked column.
@@ -104,15 +117,6 @@ typedef struct tagMARK {
 } MARK;
 
 typedef struct tagWINFO WINFO;
-
-/* special marker IDs */
-#define	CNOMARK			0x00		// release mark without freeing it
-#define	MARKSTART		0x100		// text selection start mark
-#define	MARKEND			0x101		// text selection end mark
-
-#define	MARKSELSTART	0x102		// Used in "MARK Text" in find and replace
-#define	MARKSELEND		0x103		// Used in "MARK Text" in find and replace 
-#define	MARKDOT			0x104		// Temporary mark set before an operation starts (e.g. block formatting) and restored after operation
 
 /*---------------------------------
  * Undoable edit operations on one o more lines

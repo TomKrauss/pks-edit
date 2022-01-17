@@ -358,7 +358,7 @@ void macro_recordFunction(FTABLE *fp, int p) {
 	if (_ccash.low < DIM(_ccash.b)-2) {
 		COM_1FUNC* cp;
 		if (!_ccash.low) {
-			fm_savepos(TM_LASTINSERT);
+			fm_savepos(MTE_AUTO_LAST_INSERT);
 			undo_startModification(fp);
 		}
 		cp = &_ccash.b[_ccash.low++];

@@ -873,8 +873,10 @@ BEGIN
         MENUITEM "&Zeile...\a",                 MGOTOLN
         MENUITEM "Textblock St&art\a",          MTMFSTAR
         MENUITEM "Textblock E&nde\a",           MTMFEND
-        MENUITEM "Zur &letzten Position\a",     MLASTPOS
-        MENUITEM "Zum letzten Verwe&is\a",      MFLASTP
+        MENUITEM "Gehe zur &letzten Einfügeposition\a", IDM_GOTO_PREVIOUS_INSERTION
+        MENUITEM "Gehe zur letzten Position\a",  IDM_GOTO_PREVIOUS
+        MENUITEM "Gehe zur nächsten Position\a", IDM_GOTO_NEXT
+        MENUITEM "Zum letzten Verwe&is\a",       MFLASTP
         MENUITEM "Gehe zur passenden Klammer\a", IDM_GOTO_MATCHING_BRACKET
     END
     POPUP "F&unktionen"

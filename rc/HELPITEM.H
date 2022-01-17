@@ -23,7 +23,7 @@
 #define	MSETMARK 45	
 #define	MGOTOMAR 46	
 #define	MGOTOLN  48	
-#define	MLASTPOS 50	
+#define	IDM_GOTO_PREVIOUS_INSERTION 50	
 #define	MFLASTP  51	
 #define	MTMSTART 54	
 #define	MTMEND   55	

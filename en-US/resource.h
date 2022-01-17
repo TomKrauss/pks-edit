@@ -56,7 +56,7 @@
 #define MGOTOLN                         48
 #define IDS_PRTERRABRT                  49
 #define IDS_PRTERRUSRABRT               50
-#define MLASTPOS                        50
+#define IDM_GOTO_PREVIOUS_INSERTION     50
 #define IDS_PRTERRNOSPCE                51
 #define MFLASTP                         51
 #define IDS_PRTERRNOMEM                 52

@@ -16,9 +16,6 @@
 
 #ifndef MARKPOSITIONS_H
 
- /* goto textmark (lastpos) */
-typedef enum enumMARK_TYPE_ENUM { TM_LASTSEARCH = 0, TM_LASTINSERT = 1 } MARK_TYPE_ENUM;
-
 /* should ideally extend CARET */
 typedef struct tagMARK MARK;
 

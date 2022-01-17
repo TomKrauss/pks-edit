@@ -1061,6 +1061,23 @@ static void mdr_applyFormat(RENDER_VIEW_PART* pPart, MDR_ELEMENT_FORMAT* pFormat
 	pPart->rvp_margins = pFormat->mef_margins;
 }
 
+static BOOL mdr_isAtWordBorder(LINE* lp, int idx) {
+	if (idx == 0) {
+		return TRUE;
+	}
+	char c2 = lp->lbuf[idx - 1];
+	if (!pks_isalnum(c2) && c2 != '\\') {
+		return TRUE;
+	}
+	if (idx < lp->len - 1) {
+		c2 = lp->lbuf[idx+1];
+		if (pks_isalnum(c2)) {
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
 /*
  * Parse a top-level element to be rendered with a view part possibly containing nested formatting. 
  */
@@ -1083,7 +1100,8 @@ static LINE* mdr_parseFlow(LINE* lp, int nStartOffset, int nEndOffset, RENDER_VI
 		for (int i = nStartOffset; i < nLast; i++) {
 			lastC = c;
 			c = lp->lbuf[i];
-			if (i == 0 && pPart != NULL && (c == '\t' || (c == ' ' && lp->len >= 4 && lp->lbuf[1] == c && lp->lbuf[2] == c && lp->lbuf[3] == c))) {
+			if (i == 0 && pPart != NULL && (c == '\t' || (c == ' ' && lp->len >= 4 && lp->lbuf[1] == c && lp->lbuf[2] == c && lp->lbuf[3] == c 
+					&& (lp->len == 4 || (lp->lbuf[4] != '-' && lp->lbuf[4] != '*'))))) {
 				mType = MET_FENCED_CODE_BLOCK;
 				pFormat = &_formatFenced;
 				lp = mdr_parseFencedCodeBlock(pPart, lp, pSB, TRUE);
@@ -1140,7 +1158,7 @@ static LINE* mdr_parseFlow(LINE* lp, int nStartOffset, int nEndOffset, RENDER_VI
 				continue;
 			} else if (c == '`' || (!(mAttrs & ATTR_CODE) && (c == '*' ||
 				// allow for _ only at word borders.
-					(c == '_' && ((i == 0) || lp->lbuf[i-1] == c || lp->lbuf[i + 1] == c || pks_isspace(lp->lbuf[i-1]) || pks_isspace(lp->lbuf[i + 1]))) ||
+					(c == '_' && mdr_isAtWordBorder(lp, i)) ||
 				c == '~'))) {
 				int nToggle = 0;
 				if (c == '*' || c == '_') {

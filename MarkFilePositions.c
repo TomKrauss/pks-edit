@@ -26,23 +26,21 @@
 #include "markpositions.h"
 #include "crossreferencelinks.h"
 
-#define	NFILEMARKS		16
+#define	NFILEMARKS		32
 
 typedef struct tagMARK_LIST {
-	int	  ml_lastDir;
 	MARK* ml_head;
-	MARK* ml_current;
+	int ml_currentIdx;
+	MARK_TYPE_ENUM ml_lastType;
 } MARK_LIST;
 
-static MARK_LIST _searchMarks;
-static MARK_LIST _insertMarks;
+static MARK_LIST _autoMarks;
 
 /*
  * Destroy all file marks.
  */
 void fm_destroyAll() {
-	ll_destroy((LINKED_LIST**)  & _searchMarks.ml_head, mark_destroy);
-	ll_destroy((LINKED_LIST**)&_insertMarks.ml_head, mark_destroy);
+	ll_destroy((LINKED_LIST**)  & _autoMarks.ml_head, mark_destroy);
 }
 
 /*--------------------------------------------------------------------------
@@ -53,34 +51,33 @@ void fm_destroyAll() {
  */
 static MARK * fm_getSavedMark(MARK_TYPE_ENUM type, int offset) {
 	MARK* mp;
-	MARK_LIST* mlp = type == TM_LASTSEARCH ? &_searchMarks : &_insertMarks;
+	MARK_LIST* mlp = &_autoMarks;
 
-	if (mlp->ml_lastDir != offset) {
-		mlp->ml_lastDir = offset;
-		offset *= 2;
-	}
-	if (offset < 0) {
-		mp = mlp->ml_head;
-		while (mp) {
-			if (mp->m_next == mlp->ml_current || mlp->ml_current == NULL) {
-				mlp->ml_current = mp;
-				if (offset == -2 && mp->m_next) {
-					mlp->ml_current = mp->m_next;
-				}
-				break;
-			}
-			mp = mp->m_next;
+	int nIdxOfMark;
+	if (offset > 0) {
+		nIdxOfMark = mlp->ml_currentIdx - 1;
+		if (nIdxOfMark < 0) {
+			return NULL;
 		}
-		return mlp->ml_current;
 	} else {
-		mp = mlp->ml_current;
-		while (--offset > 0 && mp) {
-			mp = mp->m_next;
+		nIdxOfMark = mlp->ml_currentIdx + 1;
+	}
+	if (type == MTE_AUTO_LAST_INSERT) {
+		mp = NULL;
+		MARK* pMark = _autoMarks.ml_head;
+		int nCurrentIdx = 0;
+		while (pMark && nCurrentIdx <= nIdxOfMark) {
+			if (pMark->m_identifier == type) {
+				mp = pMark;
+			}
+			pMark = pMark->m_next;
+			nCurrentIdx++;
 		}
-		if (mp) {
-			mlp->ml_current = mp->m_next;
-		}
-
+	} else {
+		mp = (MARK*)ll_at((LINKED_LIST*)mlp->ml_head, nIdxOfMark);
+	}
+	if (mp) {
+		mlp->ml_currentIdx = nIdxOfMark;
 	}
 	return mp;
 }
@@ -97,27 +94,27 @@ int fm_savepos(MARK_TYPE_ENUM type) {
 		return 0;
 	}
 	FTABLE* fp = wp->fp;
-	MARK_LIST* mlp = type == TM_LASTSEARCH ? &_searchMarks : &_insertMarks;
-	if (mlp->ml_current) {
-		if (strcmp(mlp->ml_current->m_fname, fp->fname) == 0 && mlp->ml_current->m_linePointer == wp->caret.linePointer) {
+	MARK_LIST* mlp = &_autoMarks;
+	MARK* mp = (MARK*)ll_at((LINKED_LIST*)mlp->ml_head, mlp->ml_currentIdx);
+	if (mp) {
+		if (strcmp(mp->m_fname, fp->fname) == 0 && mp->m_linePointer == wp->caret.linePointer) {
+			if (type == MTE_AUTO_LAST_INSERT) {
+				mp->m_identifier = type;
+			}
 			// nothing to do.
 			return 1;
 		}
 	}
-	MARK* pEndOfHistory = (MARK*) ll_at((LINKED_LIST*)mlp->ml_head, NFILEMARKS);
-	if (pEndOfHistory) {
-		MARK* pDestroy = pEndOfHistory->m_next;
-		pEndOfHistory->m_next = NULL;
-		while (pDestroy) {
-			if (pDestroy == mlp->ml_current) {
-				mlp->ml_current = NULL;
-			}
-			MARK* mpNext = pDestroy->m_next;
-			mark_destroy(pDestroy);
-			pDestroy = mpNext;
+
+	if (ll_size((LINKED_LIST*)mlp->ml_head) >= NFILEMARKS) {
+		MARK* pDestroy = mlp->ml_head;
+		mlp->ml_head = pDestroy->m_next;
+		mark_destroy(pDestroy);
+		if (mlp->ml_currentIdx > 0) {
+			mlp->ml_currentIdx--;
 		}
 	}
-	MARK* pMark = calloc(1, sizeof * pMark);
+	MARK* pMark = (MARK*)ll_append((LINKED_LIST**) & mlp->ml_head, sizeof * pMark);
 	if (!pMark) {
 		return 0;
 	}
@@ -125,9 +122,8 @@ int fm_savepos(MARK_TYPE_ENUM type) {
 	pMark->m_fname = _strdup(fp->fname);
 	pMark->m_line = wp->caret.ln;
 	pMark->m_linePointer = wp->caret.linePointer;
-	pMark->m_next = mlp->ml_head;
-	mlp->ml_head = pMark;
-	mlp->ml_current = pMark;
+	pMark->m_identifier = type;
+	mlp->ml_currentIdx = ll_size((LINKED_LIST*)mlp->ml_head);
 	return 1;
 }
 
@@ -137,13 +133,21 @@ int fm_savepos(MARK_TYPE_ENUM type) {
 static int fm_gotoLastPositionDir(MARK_TYPE_ENUM type, int dir) {
 	MARK*	mp;
 
-	mp = fm_getSavedMark(type, dir);
-	if (mp == NULL && type == TM_LASTINSERT) {
-		mp = fm_getSavedMark(TM_LASTSEARCH, dir);
+	if (dir < 0) {
+		type = _autoMarks.ml_lastType;
 	}
+	mp = fm_getSavedMark(type, dir);
 	if (mp == 0) {
 		error_showErrorById(IDS_MSGNOLASTPOS);
 		return 0;
+	}
+	if (dir > 0) {
+		_autoMarks.ml_lastType = type;
+	}
+	if (!mp->m_next && dir > 0) {
+		int nIdx = _autoMarks.ml_currentIdx;
+		fm_savepos(MTE_AUTO_LAST_SEARCH);
+		_autoMarks.ml_currentIdx = nIdx;
 	}
 	FTABLE* fp = ft_fpbyname(mp->m_fname);
 	WINFO* wp;

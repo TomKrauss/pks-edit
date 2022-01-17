@@ -30,8 +30,7 @@ This file contains the release notes for the latest **PKS Edit** releases.
   now only PKS macro code evaluation is supported, but we plan to support evaluation of other syntax as well.
 - PKS Edit supports now switching between fullscreen and normal mode (press F11 to toggle)
 - PKS Edit supports now autosaving the file directly rather than autosaving a temporary file
-- PKS Edit Help is now provided by displaying the manual written in markdown format. The old Windows Help file, which was
-- updated had been removed.
+- PKS Edit Help is now provided by displaying the manual written in markdown format. The old Windows Help file was removed.
 - PKS-Edit will now **auto-detect codepages** when opening documents. Although it still has not double byte character support, 
   document e.g. written in UTF-8 format are now correctly converted upon reading to ISO-8859-1 encoding (standard encoding handled by PKS-Edit). 
   Files are also saved in the encoding in which the were read. One can select the desired encoding when opening files (or let PKS-Edit auto-detect
@@ -52,7 +51,7 @@ This file contains the release notes for the latest **PKS Edit** releases.
   - resulting matches are now always displayed in a separate window, in which individual matches can be selected (double click on match line)
   - a summary of the search is printed at the end
   - two new options were added: one can search only considering locations found in a previous search and the search list can be augmented 
-       in a new search.
+  in a new search.
   - one can also replace now all occurrences of a string in the files found.
 - When comparing files, one may now select the file to compare with using a selector. This selector provides a new option for comparison:
   _Compare with history_, which allows to compare a file with a previously created backup file (if such exists). PKS Edit will now differentiate
@@ -67,7 +66,7 @@ This file contains the release notes for the latest **PKS Edit** releases.
 - New configuration options were added:
   - "Syntax Highlighting" can be switched on and off per view
   - "Line Selection" mode is an alternative to Column Selection and Normal selection mode, where selecting text with the caret or
-      the mouse will result always in complete lines being selected.
+the mouse will result always in complete lines being selected.
   - "Preserve Caret Column" can be switched off to have the caret not preserve its column position when moving vertically through a window
 - Code completion is available now, when editing key and mouse bindings in PKS Edit.
 - templates defined in the grammar may now explicitly marked with `auto-insert=true` to have the template define an abbreviation, inserted
@@ -80,6 +79,9 @@ This file contains the release notes for the latest **PKS Edit** releases.
 - document types can now be selected not only based on the file name extension, but also based on the contents of the first line.
 - text formatting works now also for code files (e.g. c++ or java). A very simple formatting algorithm was implemented so far only caring about
   indentation.
+- PKS-Edit now differentiates between "navigate to last" and "navigate to last insertion position" and provides a menu entry for each version. 
+  Goto last position will navigate between all automatically defined marks and navigate to last insertion position will explicitly navigate to
+  marks defined before the last modification of text.
 
 ### Changed
 - Backup files will now be created by appending the configured backup extension to the file name (e.g. x.c will be backuped to x.c.bak rather
