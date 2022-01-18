@@ -521,12 +521,17 @@ static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
 	}
 	return 1;
+
+	case WM_LBUTTONUP:
 	case WM_CLOSE:
 	case WM_TIMER:
 		AnimateWindow(hwndToastWindow, 300, AW_VER_POSITIVE|AW_HIDE);
 		if (idTimer) {
 			KillTimer(hwnd, idTimer);
 			idTimer = 0;
+		}
+		if (message == WM_LBUTTONUP) {
+			return FALSE;
 		}
 		return TRUE;
 

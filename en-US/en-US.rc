@@ -775,7 +775,7 @@ BEGIN
     CONTROL         "Print with Syntaxhighlighting",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,57,218,10
     LTEXT           "Alignment:",65534,18,102,46,8,NOT WS_GROUP
     LTEXT           "Decoration:",-1,18,148,41,8,NOT WS_GROUP
-    COMBOBOX        IDD_ICONLIST,73,147,161,80,CBS_OWNERDRAWFIXED|CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDD_ICONLIST,73,147,161,80,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Footer Options",57,6,171,323,72
     PUSHBUTTON      "Font...",IDD_FONTSELECT3,254,185,62,14,NOT WS_TABSTOP
     CONTROL         "&Left Aligned",IDD_RADIO4,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,72,187,52,8
@@ -783,7 +783,7 @@ BEGIN
     CONTROL         "&Right Aligned",IDD_RADIO6,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,186,187,59,8
     LTEXT           "Alignment:",1,18,187,46,8,NOT WS_GROUP
     LTEXT           "Decoration:",-1,18,223,41,8,NOT WS_GROUP
-    COMBOBOX        IDD_ICONLIST2,72,221,161,80,CBS_OWNERDRAWFIXED|CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDD_ICONLIST2,72,221,161,80,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
 END
 
 DLGNEWASPATH DIALOG 30, 92, 205, 76
@@ -1266,7 +1266,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Find in Fi&les...\a",         MEDIFLIS
         MENUITEM "&Use Previous Search Results...\a", MREAD_SEARCH_LIST
-        MENUITEM "Open &Cross Reference...\a",  MSHOWTAG
+        MENUITEM "Browse &Cross Reference List...\a", IDM_SELECT_TAG_FROM_DIALOG
+        MENUITEM "Goto &Cross Reference at Caret\a", MSHOWTAG
         MENUITEM SEPARATOR
         MENUITEM "Set &Mark...\a",              MSETMARK
         MENUITEM "&Goto Mark...\a",             MGOTOMAR
@@ -1275,8 +1276,7 @@ BEGIN
         MENUITEM "Goto Selection E&nd\a",       MTMFEND
         MENUITEM "Goto &Last Insertion Position\a", IDM_GOTO_PREVIOUS_INSERTION
         MENUITEM "Goto &Last Position\a",       IDM_GOTO_PREVIOUS
-        MENUITEM "Goto to &Next Position\a",       IDM_GOTO_NEXT
-        MENUITEM "Goto &Cross Reference\a",     MFLASTP
+        MENUITEM "Goto to &Next Position\a",    IDM_GOTO_NEXT
         MENUITEM "Goto Matching Bracket\a",     IDM_GOTO_MATCHING_BRACKET
     END
     POPUP "F&unctions"
@@ -1438,11 +1438,11 @@ BEGIN
     IDS_MSGNREPL            "%s has been replace %ld times in %ld lines"
     IDS_MSGNFOUND           "%s was found in %ld lines %ld times"
     IDS_MSGNEWFILE          "New File %s"
-    IDS_MSGSAVEFILE         "Saving %s (%ld lines)"
-    IDS_MSGCUTBLOCK         "%ld bytes in %ld lines copied to clipboard"
+    IDS_MSGSAVEFILE         "~Saving %s (%ld lines)"
+    IDS_MSGCUTBLOCK         "~%ld bytes in %ld lines copied to clipboard"
     IDS_MSGEXPANDTABS       "Replaced %ld tabs in %ld lines"
     IDS_MSGWIREGDEF         "Window register #%d defined"
-    IDS_MSGAUBE             "Autosaving %s finished"
+    IDS_MSGAUBE             "~Autosaving %s finished"
     IDS_MSGINWORK           "%s is being edited already.\nDo you want to open it again"
     IDS_MSGDELICON          "Remove icon %s from the PKS Edit desktop"
     IDS_MSGNOTIMER          "No timer available"

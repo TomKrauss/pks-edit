@@ -58,7 +58,6 @@
 #define IDS_PRTERRUSRABRT               50
 #define IDM_GOTO_PREVIOUS_INSERTION     50
 #define IDS_PRTERRNOSPCE                51
-#define MFLASTP                         51
 #define IDS_PRTERRNOMEM                 52
 #define MTMSTART                        54
 #define MTMEND                          55
@@ -258,7 +257,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        200
-#define _APS_NEXT_COMMAND_VALUE         40009
+#define _APS_NEXT_COMMAND_VALUE         40010
 #define _APS_NEXT_CONTROL_VALUE         1008
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

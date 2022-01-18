@@ -14,6 +14,7 @@ simply navigate over the link and click it.
 - [Editing Files](editing_files.md)
 - [Saving Files](saving_files.md)
 - [Find & Replace](find_replace.md)
+- [Navigate](navigate.md)
 - [Document Types](document_types.md)
 - [Recording Macros and the PKS-Edit Macro Language](macro_language.md)
 - [Configuring PKS-Edit](configuration.md)

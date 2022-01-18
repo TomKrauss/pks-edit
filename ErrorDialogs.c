@@ -174,11 +174,12 @@ int error_displayYesNoCancelConfirmation(int nId, ...)
  */
 static void error_displayErrorToast(const char* fmt, va_list ap) {
 	char szBuf[1024];
+	BOOL bShowToast = fmt[0] != '~';
 
-	wvsprintf(szBuf,fmt,ap);
+	wvsprintf(szBuf,bShowToast ? fmt+1:fmt,ap);
 	st_seterrmsg(szBuf);
 
-	if ((GetConfiguration()->options & O_SHOW_MESSAGES_IN_SNACKBAR) != 0) {
+	if (bShowToast && (GetConfiguration()->options & O_SHOW_MESSAGES_IN_SNACKBAR) != 0) {
 		cust_createToastWindow(szBuf);
 	}
 }

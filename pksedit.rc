@@ -647,7 +647,7 @@ BEGIN
     CONTROL         "Druck mit  Syntaxhighlighting",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,57,218,10
     LTEXT           "Ausrichtung:",65534,18,102,46,8,NOT WS_GROUP
     LTEXT           "Dekoration:",-1,18,148,41,8,NOT WS_GROUP
-    COMBOBOX        IDD_ICONLIST,73,147,161,80,CBS_OWNERDRAWFIXED|CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP,
+    COMBOBOX        IDD_ICONLIST,73,147,161,80,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Fußzeile einstellen",57,6,171,323,72
     PUSHBUTTON      "Font...",IDD_FONTSELECT3,254,185,62,14,NOT WS_TABSTOP
     CONTROL         "&Linksbündig",IDD_RADIO4,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,72,187,52,8
@@ -655,7 +655,7 @@ BEGIN
     CONTROL         "&Rechtsbündig",IDD_RADIO6,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,186,187,59,8
     LTEXT           "Ausrichtung:",1,18,187,46,8,NOT WS_GROUP
     LTEXT           "Dekoration:",-1,18,223,41,8,NOT WS_GROUP
-    COMBOBOX        IDD_ICONLIST2,72,221,161,80,CBS_OWNERDRAWFIXED|CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDD_ICONLIST2,72,221,161,80,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
 END
 
 DLGNEWASPATH DIALOG 30, 92, 205, 76
@@ -866,7 +866,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "In &Dateien suchen...\a",     MEDIFLIS
         MENUITEM "Alte Suchergebnisse &verwenden...\a", MREAD_SEARCH_LIST
-        MENUITEM "Navigieren zu &Verweis...\a", MSHOWTAG
+        MENUITEM "&Verweisliste durchsuchen...\a", IDM_SELECT_TAG_FROM_DIALOG
+        MENUITEM "Finde Verwe&is am Cursor\a",  MSHOWTAG
         MENUITEM SEPARATOR
         MENUITEM "Marke se&tzen...\a",          MSETMARK
         MENUITEM "&Marke...\a",                 MGOTOMAR
@@ -874,9 +875,8 @@ BEGIN
         MENUITEM "Textblock St&art\a",          MTMFSTAR
         MENUITEM "Textblock E&nde\a",           MTMFEND
         MENUITEM "Gehe zur &letzten Einfügeposition\a", IDM_GOTO_PREVIOUS_INSERTION
-        MENUITEM "Gehe zur letzten Position\a",  IDM_GOTO_PREVIOUS
+        MENUITEM "Gehe zur letzten Position\a", IDM_GOTO_PREVIOUS
         MENUITEM "Gehe zur nächsten Position\a", IDM_GOTO_NEXT
-        MENUITEM "Zum letzten Verwe&is\a",       MFLASTP
         MENUITEM "Gehe zur passenden Klammer\a", IDM_GOTO_MATCHING_BRACKET
     END
     POPUP "F&unktionen"
@@ -1175,7 +1175,6 @@ BEGIN
     DLGPRINTERLAYOUT, DIALOG
     BEGIN
         RIGHTMARGIN, 304
-        BOTTOMMARGIN, 349
     END
 
     DLGSELTMPLATE, DIALOG
@@ -1459,11 +1458,11 @@ BEGIN
     IDS_MSGNREPL            "%s wurde %ld mal in %ld Zeilen ersetzt"
     IDS_MSGNFOUND           "%s wurde in %ld Zeilen %ld mal gefunden"
     IDS_MSGNEWFILE          "Neue Datei %s"
-    IDS_MSGSAVEFILE         "Sichere %s (%ld Zeilen)"
-    IDS_MSGCUTBLOCK         "%ld Bytes in %ld Zeilen zur Ablage gebracht"
+    IDS_MSGSAVEFILE         "~Sichere %s (%ld Zeilen)"
+    IDS_MSGCUTBLOCK         "~%ld Bytes in %ld Zeilen zur Ablage gebracht"
     IDS_MSGEXPANDTABS       "%ld Tabs in %ld Zeilen ersetzt"
     IDS_MSGWIREGDEF         "Fensterregister #%d definiert"
-    IDS_MSGAUBE             "Autosave %s beendet"
+    IDS_MSGAUBE             "~Autosave %s beendet"
     IDS_MSGINWORK           "%s wird bereits bearbeitet\nSoll die Datei nochmals geöffnet werden"
     IDS_MSGDELICON          "Soll Icon %s vom Desktop entfernt werden"
     IDS_MSGNOTIMER          "Kein Systemzeitgeber verfügbar\nAbhilfe: Schliessen einer Uhr"

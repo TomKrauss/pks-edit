@@ -435,13 +435,13 @@ static void xref_addMessageItems(intptr_t k, intptr_t v) {
 static void xref_fillTagList(HWND hwnd, void* crossReferenceWord) {
 	_pszFilterString = crossReferenceWord;
 	_hwndDialog = hwnd;
-	TAG* tp = (TAG*)hashmap_get(_allTags.tt_map, (intptr_t)crossReferenceWord);
+	TAG* tp = _allTags.tt_map ? (TAG*)hashmap_get(_allTags.tt_map, (intptr_t)crossReferenceWord) : NULL;
 	_pSelectReference = NULL;
 	SendDlgItemMessage(hwnd, IDD_ICONLIST, WM_SETREDRAW, FALSE, 0L);
 	SendDlgItemMessage(hwnd, IDD_ICONLIST, LB_RESETCONTENT, 0, 0L);
 	if (tp != NULL) {
 		xref_addMessageItems((intptr_t)crossReferenceWord, (intptr_t)tp);
-	} else {
+	} else if (_allTags.tt_map) {
 		hashmap_forKeysMatching(_allTags.tt_map, xref_addMessageItems, xref_filter);
 	}
 	SendDlgItemMessage(hwnd, IDD_ICONLIST, WM_SETREDRAW, TRUE, 0L);
