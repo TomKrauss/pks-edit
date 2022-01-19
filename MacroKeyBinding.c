@@ -58,7 +58,6 @@ extern long			rsc_wrmacros(int fd, long offset, char *buf, long maxbytes);
 extern long 		rsc_wrbuf(int fd, long offset, char *buf, long maxbytes);
 extern char *		rsc_rdmacros(char *param, unsigned char *p, unsigned char *pend);
 extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
-extern void 		st_seterrmsg(char *msg);
 extern void 		key_overridetable(void);
 extern void 		mouse_destroyMouseBindings(void);
 extern int 			menu_addMenuMacroItem(char *pszString, int menutype, 
@@ -81,7 +80,7 @@ char *			_macroname;
 char *			_cmdfuncp;
 char *			_cmdmaxp;
 char *			_cmdparamp;
-unsigned char* _readparamp;
+unsigned char*  _readparamp;
 MACRO *			_macrotab[MAXMACRO];
 int				_lastinsertedmac = -1;
 int				_macedited;
@@ -193,7 +192,7 @@ done:Fclose(fd);
  */
 void macro_autosaveAllBindings(int warnFlag)
 {
-	char fn[512];
+	char fn[EDMAXPATHLEN];
 
 	if (_macedited) {
 		if (warnFlag == 0) {
@@ -1010,9 +1009,9 @@ void macro_showHelpForMenu(int dMenuId)
 	st_switchtomenumode(dMenuId != -1);
 	if (dMenuId != -1 && (mp = macro_getMacroIndexForMenu(dMenuId)) != 0) {
 		macro_getComment(szBuf, szBuf2, mp->index, mp->typ);
-		st_seterrmsg(*szBuf ? szBuf : (char *)0);
+		st_setStatusLineMessage(*szBuf ? szBuf : (char *)0);
 	} else {
-		st_seterrmsg((char *)0);
+		st_setStatusLineMessage((char *)0);
 	}
 }
 

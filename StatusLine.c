@@ -117,9 +117,9 @@ void st_redraw(BOOL bUpdateMessageOnly) {
 }
 
 /*--------------------------------------------------------------------------
- * st_seterrmsg()
+ * st_setStatusLineMessage()
  */
-void st_seterrmsg(char *msg) {
+void st_setStatusLineMessage(char *msg) {
 	if (pszStatusMessage) {
 		free(pszStatusMessage);
 		pszStatusMessage = 0;

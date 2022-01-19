@@ -15,6 +15,11 @@
 
 #ifndef ERRORDIALOGS_H
 
+/*
+ * Displays an error / message in the status line. 
+ */
+extern void st_setStatusLineMessage(char* msg);
+
 /*------------------------------------------------------------
  * error_displayAlertDialog()
  * Display an alert dialog box.

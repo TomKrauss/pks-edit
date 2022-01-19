@@ -62,7 +62,6 @@ typedef struct xywh {
 
 static WINFO *_winlist;
 
-extern void st_seterrmsg(char* msg);
 extern int  mouse_onMouseClicked(WINFO *fp, int x,int y,int b, int nclicks,int shift);
 extern void macro_selectDefaultBindings(void);
 extern void menu_switchMenusToContext(char *pszContext);
@@ -1344,7 +1343,7 @@ static int mouse_onRulerClicked(WINFO* wp, int x, int y, int msg, int shift) {
 	x -= ruler_getLeft(wp);
 	wp->renderer->r_hitTest(wp, x + wp->cwidth / 2, y, &ln, &col);
 	wsprintf(szBuf, /*STR*/"SPALTE: %4ld", col + 1);
-	st_seterrmsg(szBuf);
+	st_setStatusLineMessage(szBuf);
 
 	if (msg == WM_RBUTTONDOWN) {
 		wp->rmargin = col;

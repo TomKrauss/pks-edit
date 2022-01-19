@@ -40,8 +40,6 @@
  */
 extern void sound_playChime(void);
 
-extern void 	st_seterrmsg(char *msg);
-
 static HHOOK hHook;
 
 static LRESULT WINAPI error_messageBoxHook(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -176,8 +174,8 @@ static void error_displayErrorToast(const char* fmt, va_list ap) {
 	char szBuf[1024];
 	BOOL bShowToast = fmt[0] != '~';
 
-	wvsprintf(szBuf,bShowToast ? fmt+1:fmt,ap);
-	st_seterrmsg(szBuf);
+	wvsprintf(szBuf,bShowToast ? fmt:fmt+1,ap);
+	st_setStatusLineMessage(szBuf);
 
 	if (bShowToast && (GetConfiguration()->options & O_SHOW_MESSAGES_IN_SNACKBAR) != 0) {
 		cust_createToastWindow(szBuf);
@@ -222,7 +220,7 @@ void error_showMessageInStatusbar(int nId, ...) {
  */
 void error_closeErrorWindow(void)
 {
-	st_seterrmsg((char *)0);
+	st_setStatusLineMessage((char *)0);
 }
 
 /*--------------------------------------------------------------------------
