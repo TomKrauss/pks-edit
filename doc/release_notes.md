@@ -41,6 +41,8 @@ This file contains the release notes for the latest **PKS Edit** releases.
 - The default text font used in editors can now be configured in the configuration misc.... section.
 - One can select now the special theme "system default" to have PKS-Edit honor the system settings for darkmode application display.
   If selected, PKS-Edit shows up in darkmode, when darkmode applications mode is configured in Windows and in default mode otherwise.
+- PKS-Edit supports now context menus in editors. The contents of the context menu can be configured using the newly introduced `pksactionbindings.json`
+  configuration file.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 

@@ -1750,7 +1750,8 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 
 	case WM_INITMENUPOPUP:
 		if (!(BOOL)HIWORD(lParam)) {
-			macro_assignAcceleratorTextOnMenu((HMENU)wParam);
+			HMENU hMenu = (HMENU)wParam;
+			macro_assignAcceleratorTextOnMenu(hMenu);
 		}
 		break;
 	case WM_THEMECHANGED:
@@ -1805,19 +1806,19 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		}
 		break;
 	case WM_COMMAND:
-		idCtrl = (int)(short)GET_WM_COMMAND_ID(wParam, lParam);
+		idCtrl = (int)wParam;
 		if (idCtrl < 0) {
 			break;
 		}
 		if (idCtrl == IDM_INCREMENTAL_SEARCH) {
 			break;
 		}
-		wParam = macro_translateToOriginalMenuIndex(idCtrl);
+		int nIdx = macro_translateToOriginalMenuIndex(idCtrl);
 		if (bHelp) {
 			bHelp = FALSE;
-			return EdHelpContext((DWORD)wParam);
+			return EdHelpContext((DWORD)nIdx);
 		}
-		if (macro_onMenuAction((int)wParam)) {
+		if (macro_onMenuAction(nIdx)) {
 			return 1;
 		}
 		if (!IsWindow(hwnd) || !IsWindow(hwndFrameWindow)) {

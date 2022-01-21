@@ -43,7 +43,6 @@ extern long		_multiplier;
 
 extern RSCTABLE *	_menutables;
 
-extern void win_setEditMenuText(int menunr, char* text);
 extern BOOL op_defineOption(long nFlag);
 /*---------------------------------*/
 /* key_delbindings()			*/
@@ -92,6 +91,17 @@ EDBINDS _bindings = {
 };
 
 static FSELINFO 	_seqfsel = {	"","pksedit.mac", "*.mac" };
+
+MACROREF* macro_translateMenuCommand(int nCommand) {
+	static MACROREF macroref;
+
+	macroref.typ = nCommand >> 16;
+	if (macroref.typ) {
+		macroref.index = nCommand & 0xFFFF;
+		return &macroref;
+	}
+	return macro_getMacroIndexForMenu(nCommand);
+}
 
 /*------------------------------------------------------------
  * macro_reportError()
@@ -464,7 +474,7 @@ int EdMacroRecord(void)
  */
 MACROREF *macro_getMacroIndexForMenu(int nId)
 {
-static MACROREF 	macref;
+	static MACROREF macref;
 	MACROREF *	mpUser;
 	int			i;
 
@@ -489,12 +499,14 @@ static MACROREF 	macref;
  * try to find an internal command/standard menu binding, which 
  * allows us to display an appropriate help for synthetic menus
  */
-WORD macro_translateToOriginalMenuIndex(WORD wParam)
-{
+int macro_translateToOriginalMenuIndex(int wParam) {
 	MACROREF *	mpUser;
 	int			i;
 
 	if (wParam < IDM_USERDEF0) {
+		return wParam;
+	}
+	if (wParam >> 16) {
 		return wParam;
 	}
 	if ((mpUser = menu_getUserDefinedMacro(wParam)) == 0) {
@@ -515,11 +527,11 @@ WORD macro_translateToOriginalMenuIndex(WORD wParam)
  * macro_onMenuAction()
  * Invoke the macro bound to a menu index.
  *---------------------------------*/
-int macro_onMenuAction(int menunum)
-{
+int macro_onMenuAction(int menunum) {
 	MACROREF *	mp;
 
-	if ((mp = macro_getMacroIndexForMenu(menunum)) != 0) {
+	mp = macro_translateMenuCommand(menunum);
+	if (mp != 0) {
 		return macro_executeMacro(mp);
 	}
 	if (menunum >= IDM_HISTORY && menunum <= IDM_HISTORY + 30) {
@@ -634,14 +646,13 @@ char* macro_getKeyText(const char* pszActionContext, int nCmd) {
  * this function sets the menu accelerator text, each time a
  * menu popup is opened
  */
-void macro_assignAcceleratorTextOnMenu(HMENU hMenu)
-{
+void macro_assignAcceleratorTextOnMenu(HMENU hMenu) {
 	KEYCODE	k;
 	int		wCount;
-     int		nFuncnum;
+    UINT    nFuncnum;
 	int		wItem;
 	int		wID;
-	char		string[100];
+	char	string[128];
 	char *	d;
 	MACROREF *mp;
 
@@ -650,18 +661,11 @@ void macro_assignAcceleratorTextOnMenu(HMENU hMenu)
 		if ((wID = GetMenuItemID(hMenu, wItem)) <= 0) {
 			continue;
 		}
-#if 0
-		wState = GetMenuState(hMenu, wItem, MF_BYPOSITION);
-		if (HIBYTE(wState) != 0) {
-		/* popups */
+		mp = macro_translateMenuCommand(wID);
+		if (mp == 0) {
 			continue;
 		}
-# endif
-		if ((mp = macro_getMacroIndexForMenu(wID)) == 0) {
-			continue;
-		}
-		if (GetMenuString(hMenu, wItem, string, sizeof string - 1,
-			MF_BYPOSITION) < 0) {
+		if (GetMenuString(hMenu, wItem, string, sizeof string - 20, MF_BYPOSITION) < 0) {
 			continue;
 		}
 		for (d = string; *d; d++) {
@@ -675,7 +679,7 @@ void macro_assignAcceleratorTextOnMenu(HMENU hMenu)
 			} else {
 				d[1] = 0;
 			}
-			win_setEditMenuText(wID, string);
+			ModifyMenu(hMenu, wItem, MF_BYPOSITION | MF_STRING, wID, string);
 		}
 		if (mp->typ == CMD_CMDSEQ) {
 			if (mp->index >= _ncmdseq) {

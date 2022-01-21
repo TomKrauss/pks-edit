@@ -47,7 +47,7 @@ typedef struct tagACTION_BINDINGS {
 } ACTION_BINDINGS;
 
 static ACTION_BINDINGS* _actionBindings;
-static ACTION_BINDING* _contextMenu;		// the context menu definitions
+static ACTION_BINDING*  _contextMenu;		// the context menu definitions
 
 typedef struct tagJSON_BINDINGS {
 	ACTION_BINDING* keys;
@@ -62,6 +62,7 @@ static int bindings_parseCommandMP(MACROREF* mp, const char* pszCommand) {
 	return 1;
 }
 
+static const char* _DEFAULT_CONTEXT = "default";
 
 static int mouse_parseCommand(ACTION_BINDING* pTarget, const char* pszCommand) {
 	return bindings_parseCommandMP(&pTarget->ab_binding.mousebind.macref, pszCommand);
@@ -197,7 +198,7 @@ static int key_compare(intptr_t keycode1, intptr_t keycode2) {
 static ACTION_BINDINGS* bindings_lookupByContext(const char* pCtx) {
 	ACTION_BINDINGS* pBindings;
 	if (!pCtx || !*pCtx) {
-		pCtx = "default";
+		pCtx = _DEFAULT_CONTEXT;
 		pBindings = _actionBindings;
 	}
 	else {
@@ -385,6 +386,33 @@ int macro_bindKey(KEYCODE key, MACROREF macro, const char* pszActionContext) {
 	ACTION_BINDINGS* pBindings = bindings_lookupByContext(pszActionContext);
 	hashmap_put(pBindings->ab_keyBindingTable, (intptr_t)key, MACROREF_TO_INTPTR(macro));
 	return 1;
+}
+
+/*
+ * Returns a linked list of context menu entries for a given action context.
+ */
+CONTEXT_MENU* contextmenu_getFor(const char* pszActionContext) {
+	CONTEXT_MENU* pHead = NULL;
+	CONTEXT_MENU* pCurrent = NULL;
+	ACTION_BINDING* pBinding = _contextMenu;
+
+	if (!pszActionContext) {
+		pszActionContext = _DEFAULT_CONTEXT;
+	}
+	while (pBinding) {
+		if (strcmp(pszActionContext, pBinding->ab_context) == 0 || !pBinding->ab_context[0] ||  strcmp(_DEFAULT_CONTEXT, pBinding->ab_context) == 0) {
+			if (!pHead) {
+				pHead = &pBinding->ab_binding.contextMenu;
+				pCurrent = pHead;
+			} else {
+				pCurrent->cm_next = &pBinding->ab_binding.contextMenu;
+				pCurrent = pCurrent->cm_next;
+				pCurrent->cm_next = NULL;
+			}
+		}
+		pBinding = pBinding->ab_next;
+	}
+	return pHead;
 }
 
 /*

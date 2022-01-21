@@ -441,20 +441,8 @@ int EdCloseAll() {
 /*------------------------------------------------------------
  * win_getStdMenuText()
  */
-void win_getStdMenuText(int menunr, char *text)
-{
+void win_getStdMenuText(int menunr, char *text) {
 	GetMenuString(hDefaultMenu, menunr, text, 64, MF_BYCOMMAND);
-}
- 
-/*------------------------------------------------------------
- * win_setEditMenuText()
- */
-void win_setEditMenuText(int menunr, char *text)
-{
-	HMENU	hCurrentMenu;
-
-	hCurrentMenu = GetMenu(hwndMain);
-	ModifyMenu(hCurrentMenu, menunr, MF_BYCOMMAND|MF_STRING, menunr, text );
 }
 
 /*--------------------------------------------------------------------------

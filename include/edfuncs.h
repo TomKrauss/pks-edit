@@ -97,10 +97,16 @@ char    *code2key(KEYCODE code);
 KEYCODE macro_addModifierKeys(KEYCODE code);
 
 typedef struct tagCONTEXT_MENU {
+	struct tagCONTEXT_MENU* cm_next;
 	const char* cm_label;
 	BOOL		cm_isSeparator;
 	MACROREF	cm_macref;
 } CONTEXT_MENU;
+
+/*
+ * Returns a linked list of context menu entries for a given action context.
+ */
+extern CONTEXT_MENU* contextmenu_getFor(const char* pszActionContext);
 
 /*
  * MACROS -----------------------------------------------------------
@@ -529,7 +535,7 @@ extern MACROREF* macro_getMacroIndexForMenu(int nId);
  * try to find an internal command/standard menu binding, which
  * allows us to display an appropriate help for synthetic menus
  */
-extern WORD macro_translateToOriginalMenuIndex(WORD wParam);
+extern int macro_translateToOriginalMenuIndex(int wParam);
 
 /*---------------------------------
  * macro_onMenuAction()
@@ -568,7 +574,8 @@ extern int macro_executeByName(char* name);
 /*------------------------------------------------------------
  * macro_assignAcceleratorTextOnMenu()
  * this function sets the menu accelerator text, each time a
- * menu popup is opened
+ * menu popup is opened. If the ID is already an encoded macroref
+ * object, the bIdIsMacroRef flag is true.
  */
 extern void macro_assignAcceleratorTextOnMenu(HMENU hMenu);
 

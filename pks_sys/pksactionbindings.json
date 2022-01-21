@@ -783,10 +783,22 @@
       "command": "@copy-to-clipboard"
     },
     {
+      "label": "Cut to Clipboard",
+      "command": "@delete-block"
+    },
+    {
       "label": "Paste from Clipboard",
       "command": "@paste-clipboard"
     },
     {
+      "separator": true
+    },
+    {
+      "label": "Find current word",
+      "command": "@find-word-forward"
+    },
+    {
+      "context": "markdown-renderer",
       "separator": true
     },
     {

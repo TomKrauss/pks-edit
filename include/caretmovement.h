@@ -25,6 +25,11 @@
  */
 extern int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags);
 
+/**
+ * Utility function to place the caret according to screen coordinates.
+ */
+extern void caret_placeToXY(WINFO* wp, int x, int y);
+
 /*--------------------------------------------------------------------------
  * caret_getPreviousColumnInLine()
  * Got back one screen column in a line and return the new column considering internal

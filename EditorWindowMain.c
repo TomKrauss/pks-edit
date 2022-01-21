@@ -1171,27 +1171,42 @@ static void onButtonDown(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 static HMENU _contextMenu;
 
-static void contextmenu_populate(WINFO* wp) {
+static BOOL contextmenu_populate(WINFO* wp) {
 	int nCount = GetMenuItemCount(_contextMenu);
 	for (int i = 0; i < nCount; i++) {
 		RemoveMenu(_contextMenu, 0, MF_BYPOSITION);
 	}
-	AppendMenu(_contextMenu, MF_STRING, 22, "Sample context menu");
-	AppendMenu(_contextMenu, MF_SEPARATOR, 22, 0);
-	AppendMenu(_contextMenu, MF_STRING, 33, "Coming soon....");
+	BOOL bHasItems = FALSE;
+	CONTEXT_MENU* pMenu = contextmenu_getFor(wp->actionContext);
+	while (pMenu) {
+		if (pMenu->cm_isSeparator) {
+			AppendMenu(_contextMenu, MF_SEPARATOR, 0, 0);
+		} else {
+			char szLabel[256];
+			strcpy(szLabel, pMenu->cm_label);
+			strcat(szLabel, "\b");
+			AppendMenu(_contextMenu, MF_STRING, ((int)pMenu->cm_macref.typ<<16) + pMenu->cm_macref.index, szLabel);
+		}
+		pMenu = pMenu->cm_next;
+		bHasItems = TRUE;
+	}
+	return bHasItems;
 }
 
 static void edit_showContextMenu(HWND hwndParent, WINFO* wp, int x, int y) {
 	if (_contextMenu == NULL) {
 		_contextMenu = CreatePopupMenu();
 	}
+	if (!contextmenu_populate(wp)) {
+		return;
+	}
 	POINT pt;
 	pt.x = x;
 	pt.y = y;
-	//ClientToScreen(hwndParent, (LPPOINT)&pt);
-	contextmenu_populate(wp);
+	ScreenToClient(hwndParent, (LPPOINT)&pt);
+	caret_placeToXY(wp, pt.x, pt.y);
 	TrackPopupMenu(_contextMenu, TPM_LEFTALIGN | TPM_LEFTBUTTON,
-		pt.x, pt.y, 0, hwndParent, NULL);
+		x, y, 0, hwndParent, NULL);
 }
 
 /*------------------------------------------------------------
