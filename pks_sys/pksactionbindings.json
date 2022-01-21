@@ -1,0 +1,722 @@
+{
+  "key-bindings": [
+    {
+      "key": "RETURN",
+      "command": "@split-line"
+    },
+    {
+      "key": "PRIOR",
+      "command": "@cursor-back-page"
+    },
+    {
+      "key": "NEXT",
+      "command": "@cursor-down-page"
+    },
+    {
+      "key": "END",
+      "command": "@cursor-eol"
+    },
+    {
+      "key": "HOME",
+      "command": "@cursor-sol"
+    },
+    {
+      "key": "LEFT",
+      "command": "@cursor-left-char"
+    },
+    {
+      "key": "UP",
+      "command": "@cursor-up-line"
+    },
+    {
+      "key": "RIGHT",
+      "command": "@cursor-right-char"
+    },
+    {
+      "key": "DOWN",
+      "command": "@cursor-down-line"
+    },
+    {
+      "key": "INSERT",
+      "command": "@toggle-insert-mode"
+    },
+    {
+      "key": "DELETE",
+      "command": "@delete-char"
+    },
+    {
+      "key": "ADD",
+      "command": "@shift-between-brackets-right"
+    },
+    {
+      "key": "SUBTRACT",
+      "command": "@shift-between-brackets-left"
+    },
+    {
+      "key": "F1",
+      "command": "@insert-line-follow"
+    },
+    {
+      "key": "F2",
+      "command": "@mark-block-start"
+    },
+    {
+      "key": "F3",
+      "command": "@mark-block-end"
+    },
+    {
+      "key": "F4",
+      "command": "@copy-block"
+    },
+    {
+      "key": "F5",
+      "command": "@paste-clipboard"
+    },
+    {
+      "key": "F6",
+      "command": "@find-word-forward"
+    },
+    {
+      "key": "F7",
+      "command": "@record-macro"
+    },
+    {
+      "key": "F8",
+      "command": "@evaluate-selection"
+    },
+    {
+      "key": "F9",
+      "command": "@errorlist-current-line"
+    },
+    {
+      "key": "F10",
+      "command": "@compile-macros"
+    },
+    {
+      "key": "F11",
+      "command": "@toggle-full-screen"
+    },
+    {
+      "key": "\\145",
+      "command": "@switch-fkeys"
+    },
+    {
+      "key": "Shift+BACK",
+      "command": "@delete-to-sol"
+    },
+    {
+      "key": "Shift+TAB",
+      "command": "@shift-line-left"
+    },
+    {
+      "key": "Shift+RETURN",
+      "command": "@join-lines"
+    },
+    {
+      "key": "Shift+PRIOR",
+      "command": "@select-page-up"
+    },
+    {
+      "key": "Shift+NEXT",
+      "command": "@select-page-down"
+    },
+    {
+      "key": "Shift+END",
+      "command": "@select-right-to-end"
+    },
+    {
+      "key": "Shift+HOME",
+      "command": "@select-left-to-start"
+    },
+    {
+      "key": "Shift+LEFT",
+      "command": "@select-left"
+    },
+    {
+      "key": "Shift+UP",
+      "command": "@select-up"
+    },
+    {
+      "key": "Shift+RIGHT",
+      "command": "@select-right"
+    },
+    {
+      "key": "Shift+DOWN",
+      "command": "@select-down"
+    },
+    {
+      "key": "Shift+INSERT",
+      "command": "@paste-trash"
+    },
+    {
+      "key": "Shift+DELETE",
+      "command": "@delete-to-eol"
+    },
+    {
+      "key": "Shift+F2",
+      "command": "@format-text"
+    },
+    {
+      "key": "Shift+F3",
+      "command": "@sort-text"
+    },
+    {
+      "key": "Shift+F4",
+      "command": "@align-text"
+    },
+    {
+      "key": "Shift+F8",
+      "command": "@delete-named-buffers"
+    },
+    {
+      "key": "Shift+F9",
+      "command": "@abandon-file"
+    },
+    {
+      "key": "Ctrl+CANCEL",
+      "command": "@switch-fkeys"
+    },
+    {
+      "key": "Ctrl+BACK",
+      "command": "@delete-back-word"
+    },
+    {
+      "key": "Ctrl+TAB",
+      "command": "@cycle-window"
+    },
+    {
+      "key": "Ctrl+RETURN",
+      "command": "@split-line-indent-minus"
+    },
+    {
+      "key": "Ctrl+SPACE",
+      "command": "@escape-makro"
+    },
+    {
+      "key": "Ctrl+END",
+      "command": "@cursor-eof"
+    },
+    {
+      "key": "Ctrl+HOME",
+      "command": "@cursor-home"
+    },
+    {
+      "key": "Ctrl+LEFT",
+      "command": "@cursor-left-word"
+    },
+    {
+      "key": "Ctrl+UP",
+      "command": "@cursor-back-page"
+    },
+    {
+      "key": "Ctrl+RIGHT",
+      "command": "@cursor-right-word"
+    },
+    {
+      "key": "Ctrl+DOWN",
+      "command": "@cursor-down-page"
+    },
+    {
+      "key": "Ctrl+INSERT",
+      "command": "@cut-block"
+    },
+    {
+      "key": "Ctrl+DELETE",
+      "command": "@delete-word"
+    },
+    {
+      "key": "Ctrl+HELP",
+      "command": "@dialog-macros"
+    },
+    {
+      "key": "Ctrl+0",
+      "command": "@set-win-zoomed"
+    },
+    {
+      "key": "Ctrl+1",
+      "command": "@select-window-1"
+    },
+    {
+      "key": "Ctrl+2",
+      "command": "@select-window-2"
+    },
+    {
+      "key": "Ctrl+3",
+      "command": "@select-window-3"
+    },
+    {
+      "key": "Ctrl+4",
+      "command": "@select-window-4"
+    },
+    {
+      "key": "Ctrl+5",
+      "command": "@select-window-5"
+    },
+    {
+      "key": "Ctrl+6",
+      "command": "@select-window-6"
+    },
+    {
+      "key": "Ctrl+7",
+      "command": "@iconize-edit"
+    },
+    {
+      "key": "Ctrl+A",
+      "command": "@mark-all"
+    },
+    {
+      "key": "Ctrl+B",
+      "command": "@find-again-backward"
+    },
+    {
+      "key": "Ctrl+C",
+      "command": "@copy-to-clipboard"
+    },
+    {
+      "key": "Ctrl+E",
+      "command": "@info-to-file"
+    },
+    {
+      "key": "Ctrl+F",
+      "command": "@find-string"
+    },
+    {
+      "key": "Ctrl+G",
+      "command": "@goto-line"
+    },
+    {
+      "key": "Ctrl+K",
+      "command": "@find-again-forward"
+    },
+    {
+      "key": "Ctrl+L",
+      "command": "@toggle-show-ruler"
+    },
+    {
+      "key": "Ctrl+M",
+      "command": "@set-mark"
+    },
+    {
+      "key": "Ctrl+N",
+      "command": "@errorlist-next"
+    },
+    {
+      "key": "Ctrl+O",
+      "command": "@open-file"
+    },
+    {
+      "key": "Ctrl+P",
+      "command": "@errorlist-previous"
+    },
+    {
+      "key": "Ctrl+Q",
+      "command": "@quit-file"
+    },
+    {
+      "key": "Ctrl+R",
+      "command": "@replace-string"
+    },
+    {
+      "key": "Ctrl+S",
+      "command": "@save-file"
+    },
+    {
+      "key": "Ctrl+T",
+      "command": "@find-tag"
+    },
+    {
+      "key": "Ctrl+V",
+      "command": "@paste-clipboard"
+    },
+    {
+      "key": "Ctrl+W",
+      "command": "@quit-file"
+    },
+    {
+      "key": "Ctrl+X",
+      "command": "@delete-block"
+    },
+    {
+      "key": "Ctrl+Y",
+      "command": "@redo"
+    },
+    {
+      "key": "Ctrl+Z",
+      "command": "@undo"
+    },
+    {
+      "key": "Ctrl+NUMPAD0",
+      "command": "@find-again"
+    },
+    {
+      "key": "Ctrl+ADD",
+      "command": "@zoom-increase"
+    },
+    {
+      "key": "Ctrl+SUBTRACT",
+      "command": "@zoom-decrease"
+    },
+    {
+      "key": "Ctrl+F1",
+      "command": "@find-tag-under-cursor"
+    },
+    {
+      "key": "Ctrl+F2",
+      "command": "@check-brackets"
+    },
+    {
+      "key": "Ctrl+F3",
+      "command": "@find-block-start"
+    },
+    {
+      "key": "Ctrl+F4",
+      "command": "@find-block-end"
+    },
+    {
+      "key": "Ctrl+F6",
+      "command": "@find-word-back"
+    },
+    {
+      "key": "Ctrl+F7",
+      "command": "@find-file-under-cursor"
+    },
+    {
+      "key": "Ctrl+F8",
+      "command": "@delete-line-follow"
+    },
+    {
+      "key": "Ctrl+F9",
+      "command": "@save-and-close"
+    },
+    {
+      "key": "Ctrl+F12",
+      "command": "@record-macro"
+    },
+    {
+      "key": "Ctrl+OEM_5",
+      "command": "@select-previous-window"
+    },
+    {
+      "key": "Ctrl+OEM_6",
+      "command": "@goto-mark"
+    },
+    {
+      "key": "Ctrl+OEM_7",
+      "command": "@goto-mark"
+    },
+    {
+      "key": "Ctrl+Shift+SPACE",
+      "command": "@re-insert"
+    },
+    {
+      "key": "Ctrl+Shift+LEFT",
+      "command": "@select-left-word"
+    },
+    {
+      "key": "Ctrl+Shift+RIGHT",
+      "command": "@select-right-word"
+    },
+    {
+      "key": "Ctrl+Shift+7",
+      "command": "@toggle-comment"
+    },
+    {
+      "key": "Ctrl+Shift+C",
+      "command": "@copy-to-named-buffer"
+    },
+    {
+      "key": "Ctrl+Shift+F",
+      "command": "@find-in-filelist"
+    },
+    {
+      "key": "Ctrl+Shift+J",
+      "command": "@scroll-up-page"
+    },
+    {
+      "key": "Ctrl+Shift+K",
+      "command": "@scroll-down-page"
+    },
+    {
+      "key": "Ctrl+Shift+R",
+      "command": "@replace-again"
+    },
+    {
+      "key": "Ctrl+Shift+S",
+      "command": "@save-all-files"
+    },
+    {
+      "key": "Ctrl+Shift+U",
+      "command": "@char-up-low"
+    },
+    {
+      "key": "Ctrl+Shift+V",
+      "command": "@paste-named-buffer"
+    },
+    {
+      "key": "Ctrl+Shift+W",
+      "command": "@close-all-windows"
+    },
+    {
+      "key": "Ctrl+Shift+X",
+      "command": "@cut-to-named-buffer"
+    },
+    {
+      "key": "Alt+BACK",
+      "command": "@undo"
+    },
+    {
+      "key": "Alt+RETURN",
+      "command": "@split-line-indent-plus"
+    },
+    {
+      "key": "Alt+ESCAPE",
+      "command": "@set-multiplikator"
+    },
+    {
+      "key": "Alt+LEFT",
+      "command": "@goto-last-insertion-pos"
+    },
+    {
+      "key": "Alt+UP",
+      "command": "@move-selection-up"
+    },
+    {
+      "key": "Alt+RIGHT",
+      "command": "@goto-next-insertion-pos"
+    },
+    {
+      "key": "Alt+DOWN",
+      "command": "@move-selection-down"
+    },
+    {
+      "key": "Alt+INSERT",
+      "command": "@insert-char-with-dialog"
+    },
+    {
+      "key": "Alt+DELETE",
+      "command": "@delete-to-next-char"
+    },
+    {
+      "key": "Alt+1",
+      "command": "@tile-docks-horizontally"
+    },
+    {
+      "key": "Alt+2",
+      "command": "@tile-docks-vertically"
+    },
+    {
+      "key": "Alt+3",
+      "command": "@errorlist-click-line"
+    },
+    {
+      "key": "Alt+4",
+      "command": "@evaluate-selection"
+    },
+    {
+      "key": "Alt+5",
+      "command": "@evaluate-selection"
+    },
+    {
+      "key": "Alt+6",
+      "command": "@evaluate-selection"
+    },
+    {
+      "key": "Alt+7",
+      "command": "@iconize-window"
+    },
+    {
+      "key": "Alt+D",
+      "command": "@delete-line-stay"
+    },
+    {
+      "key": "Alt+F",
+      "command": "@cursor-until-char"
+    },
+    {
+      "key": "Alt+I",
+      "command": "@keycode-insert"
+    },
+    {
+      "key": "Alt+J",
+      "command": "@split-line-soft"
+    },
+    {
+      "key": "Alt+K",
+      "command": "@delete-to-eol"
+    },
+    {
+      "key": "Alt+N",
+      "command": "@next-difference"
+    },
+    {
+      "key": "Alt+P",
+      "command": "@last-difference"
+    },
+    {
+      "key": "Alt+S",
+      "command": "@toggle-column-selection"
+    },
+    {
+      "key": "Alt+T",
+      "command": "@save-block"
+    },
+    {
+      "key": "Alt+U",
+      "command": "@undo"
+    },
+    {
+      "key": "Alt+W",
+      "command": "@save-file-as"
+    },
+    {
+      "key": "Alt+X",
+      "command": "@execute-command"
+    },
+    {
+      "key": "Alt+Z",
+      "command": "@quit-edit"
+    },
+    {
+      "key": "Alt+MULTIPLY",
+      "command": "@set-options"
+    },
+    {
+      "key": "Alt+F1",
+      "command": "@edit-local-doc-macros"
+    },
+    {
+      "key": "Alt+F2",
+      "command": "@hide-block-marks"
+    },
+    {
+      "key": "Alt+F3",
+      "command": "@move-block"
+    },
+    {
+      "key": "Alt+F4",
+      "command": "@exit-edit"
+    },
+    {
+      "key": "Alt+F8",
+      "command": "@delete-line-append"
+    },
+    {
+      "key": "Alt+F9",
+      "command": "@join-marked-lines"
+    },
+    {
+      "key": "Alt+F12",
+      "command": "@char-up-low"
+    },
+    {
+      "key": "Alt+OEM_PERIOD",
+      "command": "@toggle-show-control"
+    },
+    {
+      "key": "Shift+Ctrl+OEM_PERIOD",
+      "command": "@re-insert"
+    },
+    {
+      "key": "Alt+Shift+LEFT",
+      "command": "@goto-last-pos"
+    },
+    {
+      "key": "Alt+Shift+RIGHT",
+      "command": "@goto-next-pos"
+    },
+    {
+      "key": "Alt+Shift+F",
+      "command": "@cursor-back-to-char"
+    },
+    {
+      "key": "Alt+Shift+J",
+      "command": "@cursor-center-page"
+    },
+    {
+      "key": "Alt+Shift+K",
+      "command": "@scroll-center-page"
+    },
+    {
+      "key": "Alt+Shift+F2",
+      "command": "@toggle-line-marks"
+    },
+    {
+      "key": "Alt+Ctrl+BACK",
+      "command": "@delete-back-white"
+    },
+    {
+      "key": "Alt+Ctrl+LEFT",
+      "command": "@cursor-to-space"
+    },
+    {
+      "key": "Alt+Ctrl+UP",
+      "command": "@scroll2-up-line"
+    },
+    {
+      "key": "Alt+Ctrl+RIGHT",
+      "command": "@cursor-back-to-space"
+    },
+    {
+      "key": "Alt+Ctrl+DOWN",
+      "command": "@scroll2-down-line"
+    },
+    {
+      "key": "Alt+Ctrl+DELETE",
+      "command": "@delete-to-white"
+    },
+    {
+      "key": "Alt+Ctrl+N",
+      "command": "@errorlist-end"
+    },
+    {
+      "key": "Alt+Ctrl+P",
+      "command": "@errorlist-start"
+    },
+    {
+      "key": "Alt+Ctrl+S",
+      "command": "@search-incrementally"
+    },
+    {
+      "key": "Alt+Ctrl+OEM_PERIOD",
+      "command": "@toggle-show-linenumbers"
+    },
+    {
+      "key": "Selected+TAB",
+      "command": "@tab-shift-right"
+    },
+    {
+      "key": "Selected+Shift+TAB",
+      "command": "@tab-shift-left"
+    },
+    {
+      "key": "SPACE",
+      "context": "search-list",
+      "command": "@errorlist-current-line"
+    },
+    {
+      "key": "DELETE",
+      "context": "search-list",
+      "command": "@delete-line-stay"
+    }
+  ],
+"mouse-bindings" : [
+{ "mouse": "MLeft(1)", "command": "@cursor-mouse-goto"},
+{ "mouse": "MLeft(3)", "command": "@mouse-mark-line"},
+{ "mouse": "Shift+MLeft(1)", "command": "@drag-copy-text"},
+{ "mouse": "Ctrl+MLeft(1)", "command": "@find-tag-under-cursor"},
+{ "mouse": "Alt+MLeft(1)", "command": "@mouse-select-lines"},
+{ "mouse": "Alt+Shift+MLeft(1)", "command": "@mouse-unselect-lines"},
+{ "mouse": "MLeft(2)", "command": "@mouse-mark-word"},
+{ "mouse": "Shift+MLeft(2)", "command": "@re-insert"},
+{ "mouse": "Ctrl+Shift+MLeft(2)", "command": "@play-last-macro"},
+{ "mouse": "MRight(1)", "command": "@mouse-mark-block"},
+{ "mouse": "Shift+MRight(1)", "command": "@mouse-mark-line", "message":  "Press Alt+Shift+MLeft to umark the line"},
+{ "mouse": "Ctrl+MRight(1)", "command": "@find-tag-under-cursor"},
+{ "mouse": "Ctrl+Shift+MRight(1)", "command": "@mouse-mark-to-space"},
+{ "mouse": "Alt+MRight(1)", "command": "@mouse-mark-paragraph"},
+{ "mouse": "MRight(2)", "command": "@mouse-update-block"},
+{ "mouse": "MLeft(1)", "context": "markdown-renderer", "command": "@find-tag-under-cursor"},
+{ "mouse": "Ctrl+MLeft(1)", "context": "search-list", "command": "@errorlist-click-line"},
+{ "mouse": "MRight(1)", "context": "search-list", "command": "@errorlist-click-line"}
+]
+}

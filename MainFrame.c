@@ -125,7 +125,7 @@ static TAB_CONTROL* currentDropTarget;
 static DOCKING_SLOT* dockingSlots;
 static HWND  hwndFrameWindow;
 static HICON defaultIcon;
-static void* _executeKeyBinding;
+static MACROREF* _executeKeyBinding;
 static BOOL _fullscreenMode;
 static char* szDefaultSlotName = DOCK_NAME_DEFAULT;
 
@@ -1827,7 +1827,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 
 	case WM_PKSKEY:
 		error_closeErrorWindow();
-		macro_onKeyPressed(_executeKeyBinding);
+		macro_executeMacro(_executeKeyBinding);
 		return 0;
 
 	case WM_PKSOPTOGGLE:
@@ -1961,9 +1961,6 @@ static int mainframe_translateAccelerator(HWND hwnd, MSG* msg) {
 		if (wp) {
 			if (wp->codecomplete_handle && codecomplete_processKey(wp->codecomplete_handle, msg->message, msg->wParam)) {
 				return 1;
-			}
-			if (wp->controller && wp->controller->c_getKeyBinding) {
-				_executeKeyBinding = wp->controller->c_getKeyBinding(msg->wParam);
 			}
 		}
 		if (_executeKeyBinding || (_executeKeyBinding = macro_getKeyBinding(msg->wParam)) != 0) {

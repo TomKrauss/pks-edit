@@ -88,7 +88,8 @@ the mouse will result always in complete lines being selected.
   than replacing the extension x.c -> x.bak). This has the advantage, that files named x.c and x.h will create different backup files now.
 - Changing the display mode will not automatically save the editor configuration any more. Editor configurations are saved, when they
   were edited in the corresponding dialog.
-
+- PKS-Edit will now save and load all action bindings from a JSON file, which can be edited rather than from the binary compiled macro file.
+- 
 ### Fixes
 - Long lines painted in a single color could have caused a crash. This is fixed.
 - Find in files used to find a match only once per line. If a search would have matched multiple positions in one line in a file only the

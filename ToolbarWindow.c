@@ -519,7 +519,7 @@ static LRESULT APIENTRY tb_myRebarProc(
 static void tb_initSearchEntryCueBanner(char* pszText) {
     char* pszKey;
     strcpy(pszText, dlg_getResourceString(IDS_SEARCH));
-    pszKey = macro_getKeyText(CMD_INITIATE_INCREMENTAL_SEARCH);
+    pszKey = macro_getKeyText(NULL, CMD_INITIATE_INCREMENTAL_SEARCH);
     if (pszKey) {
         strcat(pszText, " (");
         strcat(pszText, pszKey);

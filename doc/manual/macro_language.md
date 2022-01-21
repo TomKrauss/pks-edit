@@ -16,16 +16,6 @@ To record a macro, use "Macro->Record" and start doing some actions (e.g. move t
 allowing to "name" the macro and bind it to a keyboard key so it can be used subsequently. Note, that in order to make the macro persistent, you must save the the current set of macros.
 When PKS-Edit exits and there are unsaved macros, it warns about that and asks the user to save the macros now.
 
-## Redefining keyboard bindings
-
-To redefine keyboard bindings use the following sequence of commands:
-
-- Generate the list of current keyboard bindings using menu Macro->View Bindings->Keyboard
-- In the file, which opens, change the bindings. **Note**: you may use code completion to change the desired command and you may use Macro->Insert Keycode to
-insert a keyboard keycode into the file.
-- When done editing, press F10 an compile the new keybinding file.
-- Finally save the current set of key bindings and macros using Macro->Save... Save the results in a file named `pks_sys\pksedit.mac`.
-
 ## PKSMacroC Language
 
 The PKS-Edit Macro Language is pretty similar to the C programming language and supports the most common operators 

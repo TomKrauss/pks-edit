@@ -65,7 +65,7 @@ extern int file_createFileWithMode(char* fn, int mode);
  * returns the result - this is not re-entrant. Before calling again, one must
  * save the result.
  */
-extern char* file_searchFileInPKSEditLocation(char* s);
+extern char* file_searchFileInPKSEditLocation(const char* s);
 
 /*--------------------------------------------------------------------------
  * file_searchFileInDir()

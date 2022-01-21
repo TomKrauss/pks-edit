@@ -38,14 +38,6 @@ static HCURSOR	 hSizeNSCursor;
 static HCURSOR	 hSizeWECursor;
 static HCURSOR	 hSizeNWSECursor;
 
-extern MOUSEBIND	_mousetab[MAXMAPMOUSE];
-
-static RSCTABLE __m = {
-	0,	"default",	sizeof _mousetab, 	_mousetab,
-	(unsigned char *)_mousetab+sizeof(_mousetab)
-};
-
-RSCTABLE *_mousetables = &__m;
 
 /**
  * Data structure for implementing mouse drag operations. 
@@ -416,66 +408,6 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 	return 1;
 }
 
-/*--------------------------------------------------------------------------
- * mouse_hasEmptySlot()
- */
-static int mouse_hasEmptySlot(MOUSEBIND *mp)
-{
-	return (mp->button == 0 && mp->nclicks == 0) ? 1 : 0;
-}
-
-/*------------------------------------------------------------
- * mouse_getMouseBind()
- */
-static MOUSEBIND* mouse_getMouseBind(int nButton, int nShift, int nClicks)
-{
-	MOUSEBIND *mp;
-
-	for (mp = (MOUSEBIND *)_mousetables->rt_data; 
-		mp < (MOUSEBIND *)_mousetables->rt_end; mp++) {
-		if (mp->button == nButton &&
-		    mp->shift == nShift &&
-		    mp->nclicks == nClicks) {
-			return mp;
-		}
-	}
-	return (MOUSEBIND*)0;
-}
-
-/*--------------------------------------------------------------------------
- * mouse_getMouseBindingForCode()
- */
-MOUSEBIND *mouse_getMouseBindingForCode(MOUSECODE mcode)
-{
-	return mouse_getMouseBind(mcode.button, mcode.shift, mcode.nclicks);
-}
-
-/*-----------------------------------------------------------
- * mouse_getDefaultMouseBinding()
- */
-MOUSEBIND *mouse_getDefaultMouseBinding(void)
-{
- 	MOUSEBIND 	*mp;
-
-	if ((mp = mouse_getMouseBind(0, 0, 0)) != 0) {
-		return mp;
-	}
-
-	return rsc_tableresize(_mousetables, sizeof *mp, 
-		_mousetab, (int (*)(void *))mouse_hasEmptySlot);
-}
-
-/*--------------------------------------------------------------------------
- * mouse_destroyMouseBindings()
- */
-void mouse_destroyMouseBindings(void)
-{
-	RSCTABLE *		rp;
-
-	if ((rp = _mousetables) != 0 && rp->rt_data) {
-		memset(rp->rt_data, 0, (int)((char *)rp->rt_end - (char *)rp->rt_data));
-	}
-}
 
 /*---------------------------------*/
 /* mfunct()					*/
@@ -496,6 +428,11 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 	return macro_executeMacro(&mp->macref);
 }
 
+/*------------------------------------------------------------
+ * mouse_getMouseBind()
+ */
+extern MOUSEBIND* mouse_getMouseBind(int nButton, int nShift, int nClicks, const char* pszActionContext);
+
 /*----------------------------*/
 /* mouse_onMouseClicked()			*/
 /*----------------------------*/
@@ -503,16 +440,7 @@ EXPORT int mouse_onMouseClicked(WINFO *wp, int x, int y, int b, int nclicks, int
 {
 	MOUSEBIND *	mp = NULL;
 
-	if (nModifier & 0x3) {
-		nModifier |= 0x3;
-	}
-
-	if (wp && wp->controller) {
-		if (wp->controller->c_getMouseBinding) {
-			mp = wp->controller->c_getMouseBinding(b, nModifier, nclicks);
-		}
-	}
-	if (mp || (mp = mouse_getMouseBind(b, nModifier, nclicks)) != 0) {
+	if (mp || (mp = mouse_getMouseBind(b, nModifier, nclicks, wp->actionContext)) != 0) {
 		macro_stopRecordingFunctions();
 		mfunct(wp, mp, x, y);
 		return 1;

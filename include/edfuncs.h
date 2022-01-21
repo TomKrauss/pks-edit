@@ -45,9 +45,6 @@
 #define	EW_FINDCURS		0x400		/* applies to command executed using the mouse: before executing the command position the caret to the clicked point */
 #define	EW_COMPARISON_MODE	0x800		// only available in comparison mode
 
-#define	MAXMOUSEBIND	32
-#define	MAXMAPMOUSE	MAXMOUSEBIND
-#define	MAXMAPKEY		200
 #define	MAXMACRO		64
 
 #ifndef DIM
@@ -68,7 +65,7 @@ typedef unsigned char 	MACROREFTYPE;
 typedef unsigned char  	MACROREFIDX;
 typedef struct tagMACROREF {
 	MACROREFTYPE	typ;
-	MACROREFIDX	index;
+	MACROREFIDX		index;
 } MACROREF;
 
 /*
@@ -96,8 +93,6 @@ typedef struct tagKEYBIND {
 	MACROREF	macref;
 } KEYBIND;
 
-KEYBIND *keygetbind(void);
-KEYBIND *keybound(KEYCODE code);
 char    *code2key(KEYCODE code);
 KEYCODE macro_addModifierKeys(KEYCODE code);
 
@@ -300,11 +295,8 @@ typedef struct tagMACRO {
  */
 typedef struct tagMENUBIND {
 	/* unsigned int due too submenu high bit marks !!!! */
-	unsigned 	     menunum;			/* ref. to menutree */
-#if !defined(_Windows) && !defined(WIN32)
-	unsigned char  mtitlenum;		/* the title */
-#endif
-	unsigned 		index;			/* points to cmdseqtab */
+	unsigned	menunum;			/* ref. to menutree */
+	unsigned	index;			/* points to cmdseqtab */
 } MENUBIND;
 
 #define	MAX_MENU_STRING	30
@@ -335,10 +327,6 @@ typedef struct tagUSERMENUBIND {
 #define	MBUT_M	0x4
 #define	MBUT_RL	(MBUT_L|MBUT_R)
 
-#define M_CONTROL	0x4
-#define M_SHIFT		0x2
-#define M_ALT		0x8
-
 typedef struct tagMOUSECODE {
 	unsigned	button  : 4,
 			nclicks : 4,			/* # of button clicks */
@@ -353,12 +341,11 @@ typedef struct mousebind {
 # endif
 
 typedef struct mousebind {
-	char 		button;				/* mousebutton */
-	char 		shift;				/* kb-state */
-	char 		nclicks;				/* # of button clicks */
-	unsigned char 	unused;				/* currently unused */
-	MACROREF		macref;
-	char *		msg;					/* optional message */
+	char 		button;				// mousebutton
+	char 		nclicks;			// # of button clicks
+	int 		shift;				// kb-state shift/control/...
+	MACROREF	macref;
+	const char* msg;				// Optional message to display....
 } MOUSEBIND;
 
 /*
@@ -368,18 +355,13 @@ typedef struct edbinds {
 	EDFUNC		*ep;
 	COMMAND		*cp;
 	MACRO		**macp;
-	KEYBIND		*kp;
-	MENUBIND		*mp;
-	MOUSEBIND		*mop;
-	int			*nep,*ncp,*nmacp,*nkp,*nmp,*nip,*nmop;
+	MENUBIND	*mp;
+	int			*nep,*ncp,*nmacp,*nmp,*nip,*nmop;
 } EDBINDS;
 
 extern EDFUNC		_edfunctab[];
 extern COMMAND		_cmdseqtab[];
-extern KEYBIND		_keymaptab[MAXMAPKEY];
-extern MENUBIND	_menutab[];
-extern MOUSEBIND	_mousetab[];
-
+extern MENUBIND		_menutab[];
 extern EDBINDS		_bindings;
 
 extern int		 _nfuncs,_ncmdseq,
@@ -415,18 +397,6 @@ typedef struct params {
 	struct	des *el;
 } PARAMS;
 
-typedef KEYBIND* (*KEYBINDING_FUNCTION)(WPARAM key);
-typedef MOUSEBIND* (*MOUSE_BINDING_FUNCTION)(int nButton, int nModifiers, int ncClicks);
-
-/*
- * A controller provides key and mouse bindings (for now) and can be used as a delegate 
- * to customize key / mousebindings per delegate (etc. per view).
- */
-typedef struct tagCONTROLLER {
-	const KEYBINDING_FUNCTION c_getKeyBinding;
-	const MOUSE_BINDING_FUNCTION c_getMouseBinding;
-} CONTROLLER;
-
 typedef struct tagCOMPILER_CONFIGURATION {
 	int (*cb_insertNewMacro)(char* name, char* comment, char* macdata, int size);
 	void  (*cb_showStatus)(char* s, ...);
@@ -449,7 +419,7 @@ extern MACRO* macro_getByIndex(int idx);
  * macro_getInternalIndexByName()
  * Return the internal index of a macro given its name.
  */
-extern int macro_getInternalIndexByName(char* name);
+extern int macro_getInternalIndexByName(const char* name);
 
 extern int 		macro_saveMacrosAndDisplay(char* macroname);
 extern int 		macro_saveMouseBindingsAndDisplay(void);
@@ -489,11 +459,20 @@ extern int macro_validateMacroName(char* name, int origidx, int bOverride);
 extern void macro_onKeybindingChanged(KEYCODE key);
 
 /*------------------------------------------------------------
- * macro_bindOrUnbindKey()
- * index < 0:	delete key-binding
- * index >=0:  add key-binding
+ * macro_bindKey()
+ * bind a command to a keycode dynamically in a given context.
  */
-extern int macro_bindOrUnbindKey(KEYCODE key, int index, MACROREFTYPE typ);
+extern int macro_bindKey(KEYCODE key, MACROREF macro, const char* pszContext);
+
+/*
+ * Delete a key binding.
+ */
+extern int macro_deleteKeyBinding(KEYCODE key, const char* pszContext);
+
+/*
+ * Delete all key bindings for a given macro ref. 
+ */
+extern int macro_deleteKeyBindingsForMacroRef(MACROREF aMacroRef);
 
 /*--------------------------------------------------------------------------
  * macro_selectDefaultBindings()
@@ -563,18 +542,12 @@ extern KEYCODE macro_addModifierKeys(KEYCODE key);
 /*---------------------------------*/
 /* macro_getKeyBinding()				*/
 /*---------------------------------*/
-extern void* macro_getKeyBinding(WPARAM key);
+extern MACROREF* macro_getKeyBinding(WPARAM key);
 
 /*---------------------------------*/
 /* macro_executeMacro()				*/
 /*---------------------------------*/
 extern int macro_executeMacro(MACROREF* mp);
-
-/*---------------------------------*
- * macro_onKeyPressed()
- * Execute a keybinding and return 1 if successful.
- *---------------------------------*/
-extern int macro_onKeyPressed(void* keybind);
 
 /*------------------------------------------------------------
  * macro_onCharacterInserted()
@@ -596,7 +569,12 @@ extern void macro_assignAcceleratorTextOnMenu(HMENU hMenu);
 /*
  * Returns the keyboard binding text for a given internal command.
  */
-extern char* macro_getKeyText(int nCmd);
+extern char* macro_getKeyText(const char* pszActionContext, int nCmd);
+
+/*---------------------------------*/
+/* macro_recordOperation()				*/
+/*---------------------------------*/
+extern int macro_recordOperation(PARAMS* pp);
 
 /*------------------------------------------------------------
  * macro_getComment()
@@ -619,7 +597,7 @@ extern void macro_showHelpForMenu(int dMenuId);
 /*--------------------------------------------------------------------------
  * macro_getCmdIndexByName()
  */
-extern int macro_getCmdIndexByName(char* name);
+extern int macro_getCmdIndexByName(const char* name);
 
 /*
  * Returns a macro by a given index or NULL if the index does not
@@ -647,10 +625,6 @@ extern int macro_getIndexForKeycode(KEYCODE* scan, char* name, int oldidx);
  */
 extern void macro_returnString(char* string);
 
-/*---------------------------------*/
-/* macro_recordOperation()				*/
-/*---------------------------------*/
-extern int macro_recordOperation(PARAMS* pp);
 
 extern void macro_stopRecordingFunctions();
 
@@ -660,10 +634,19 @@ extern void macro_stopRecordingFunctions();
 extern int macro_isParameterStringType(unsigned char typ);
 
 /*
- * Returns a custom controller with custom mouse and keybindings used in search lists.
+ * Iterate all key bindings and invoke a callback on every keybinding defined for one action context.
  */
-extern CONTROLLER* macro_getSearchListController();
+extern void key_bindingsDo(const char* pszActionContext, int (*callback)(KEYBIND* pBinding, void* pParam), void* pParam);
 
+/*
+ * Iterate all mouse bindings and invoke a callback on every mousebinding defined for one action context.
+ */
+extern void mouse_bindingsDo(const char* pszActionContext, int (*callback)(MOUSEBIND* pBinding, void* pParam), void* pParam);
+
+/*
+ * Find the 1st key bound to a given macro.
+ */
+extern KEYCODE macro_findKey(const char* pszActionContext, MACROREF macro);
 
 #define	_EDFUNCS_H
 #endif

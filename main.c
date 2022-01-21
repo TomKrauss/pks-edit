@@ -55,6 +55,7 @@
   * Destroy the macro compiler internal symbol table.
   */
 extern void		sym_destroyTable();
+extern void		bindings_destroy();
 extern void		arguments_getPhase2(char *args);
 extern void		arguments_getForPhase1(char *args);
 extern void 	init_readConfigFiles(void);
@@ -523,6 +524,7 @@ void main_cleanup(void) {
 	bl_destroyPasteList(FALSE);
 	fm_destroyAll();
 	sym_destroyTable();
+	bindings_destroy();
 	analyzer_destroyAnalyzers();
 	evaluator_destroyEvaluators();
 	ww_destroyAll();

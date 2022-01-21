@@ -148,6 +148,13 @@
       "filenamePatterns": "*.sh;*.ora"
     },
     {
+      "name": "pksbinding",
+      "description": "PKS Edit binding files (*binding.json)",
+      "grammar": "pksedit",
+      "editorConfiguration": "default",
+      "filenamePatterns": "pksactionbindings.json"
+    },
+    {
       "name": "json-files",
       "description": "Json files (*.json)",
       "grammar": "json",

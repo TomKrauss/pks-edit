@@ -605,7 +605,7 @@ static void ww_assignRenderer(WINFO* wp) {
 	if (wp->renderer->r_create) {
 		wp->r_data = wp->renderer->r_create(wp);
 	}
-	wp->controller = (CONTROLLER*)wp->renderer->r_controller;
+	wp->actionContext = wp->renderer->r_context;
 	if (pOld) {
 		SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
 	}
@@ -1067,7 +1067,7 @@ static int ww_updateWindowBounds(WINFO *wp, int w, int h) {
  */
 int do_mouse(HWND hwnd, int nClicks, UINT message, WPARAM wParam, LPARAM lParam) {
 	int			ret;
-	int			button;
+	int			button = 0;
 	int			nModifier;
 	int			x;
 	int			y;
@@ -1083,22 +1083,24 @@ int do_mouse(HWND hwnd, int nClicks, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 
 	if (wParam & MK_RBUTTON) {
-		button = 2;
-	} else if (wParam & MK_MBUTTON) {
-		button = 3;
-	} else {
-		button = 1;
+		button |= MBUT_R;
+	}
+	if (wParam & MK_MBUTTON) {
+		button |= MBUT_M;
+	}
+	if (wParam & MK_LBUTTON) {
+		button |= MBUT_L;
 	}
 
 	nModifier = 0;
 	if (wParam & MK_CONTROL) {
-		nModifier |= M_CONTROL;
+		nModifier |= K_CONTROL;
 	}
 	if (wParam & MK_SHIFT) {
-		nModifier |= M_SHIFT;
+		nModifier |= K_SHIFT;
 	}
 	if (GetKeyState(VK_MENU) < 0) {
-		nModifier |= M_ALT;
+		nModifier |= K_ALTERNATE;
 	}
 	ret = mouse_onMouseClicked(wp, x, y, button, nClicks, nModifier);
 	return ret;

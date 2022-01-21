@@ -318,7 +318,7 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 /*
  * Parse the given JSON file and fill the target object according to the defined mapping rules. 
  */
-int json_parse(char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* pRules) {
+int json_parse(const char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* pRules) {
 	char*	fn;
 	int		fd;
 	int		tokcount = 1000;

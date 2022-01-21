@@ -202,15 +202,15 @@ EXPORT char* file_searchFileInDirectory(char* s, char* pDir) {
  * returns the result - this is not re-entrant. Before calling again, one must
  * save the result.
  */
-EXPORT char *file_searchFileInPKSEditLocation(char *s)
+EXPORT char *file_searchFileInPKSEditLocation(const char *s)
 {
-	if (dostat(s)) {
-		return s;
+	if (dostat((char*)s)) {
+		return (char*)s;
 	}
-	if (pathstat(_pksSysFolder, s)) {
+	if (pathstat(_pksSysFolder, (char*)s)) {
 		return _found;
 	}
-	if (pathstat("PKS_SYS", s)) {
+	if (pathstat("PKS_SYS", (char*)s)) {
 		return _found;
 	}
 	return 0;

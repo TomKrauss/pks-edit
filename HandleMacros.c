@@ -61,6 +61,9 @@ char *_scantab=
 "\x6B" "ADD\0" "\x6C" "SEPARATOR\0" "\x6D" "SUBTRACT\0" "\x6E" "DECIMAL\0" "\x6F" "DIVIDE\0"
 "\x70" "F1\0" "\x71" "F2\0" "\x72" "F3\0" "\x73" "F4\0" "\x74" "F5\0" "\x75" "F6\0"
 "\x76" "F7\0" "\x77" "F8\0" "\x78" "F9\0" "\x79" "F10\0" "\x7A" "F11\0" "\x7B" "F12\0"
+"\x90" "NUMLOCK\0" "\x91" "SCROLL\0" "\x92" "OEM_NEC_EQUAL\0"
+"\xBA" "OEM1\0" "\xBB" "OEM_PLUS\0" "\xBC" "OEM_KOMMA\0" "\xBD" "OEM_MINUS\0" "\xBE"  "OEM_PERIOD\0" 
+"\xDB" "OEM_4\0" "\xDC" "OEM_5\0" "\xDD" "OEM_6\0" "\xDE" "OEM_7\0"  "\xDF" "OEM_8\0"
 "\x7C" "F13\0" "\x7D" "F14\0" "\x7E" "F15\0" "\x7F" "F16\0" "\x90" "NUMLOCK\0\0";
 
 char *code2key(KEYCODE code)
@@ -115,8 +118,7 @@ char* macro_getCommandByIndex(int nIndex) {
 /*--------------------------------------------------------------------------
  * macro_getCmdIndexByName()
  */
-int macro_getCmdIndexByName(char *name)
-{
+int macro_getCmdIndexByName(const char *name) {
 	int			id;
 
 	// TODO: should perform a hash lookup on a long term run.

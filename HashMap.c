@@ -238,6 +238,24 @@ int hashmap_forEachKey(HASHMAP* pTable, int (*function)(intptr_t k, void* pParam
 }
 
 /*
+ * Can be used to execute a callback for each key / value pair defined in a hashmap.
+ * The callback is invoked with each key, the value and the additional param passed as an argument.
+ * If the callback returns 0, the iteration is stopped and the function returns also
+ * 0. Otherwise forEachKey returns 1.
+ */
+int hashmap_forEachEntry(HASHMAP* pTable, int (*function)(intptr_t k, intptr_t v, void* pParam), void* pParam) {
+	for (int i = 0; i < pTable->ht_capacity; i++) {
+		intptr_t k = pTable->ht_entries[i].he_key;
+		if (k) {
+			if (!function(k, pTable->ht_entries[i].he_value, pParam)) {
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+/*
  * Can be used to execute a callback for each key defined in a hashmap matching a filter function.
  * The callback is invoked with each key and the corresponding value from the hashmap.
  */

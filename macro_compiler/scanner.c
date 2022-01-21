@@ -539,8 +539,6 @@ static struct kw {
 	T_DEFALTPATH,	"ALTPATH",
 	T_DEFCOMPILER,	"COMPILER",
 	T_DEFDOCTYPES,	"DOCTYPES",
-	T_DEFKEYS,	"KEYS",
-	T_DEFMOUSE,	"MOUSE",
 	T_DEFTAGS,	"TAGS",
 	T_DEFESCAPES,	"TEXTBUFFER",
 	T_IF,		"if",
@@ -821,7 +819,6 @@ int yywrap(void )
 }
 
 /* CHKEYS	[\-0-9a-z_A-ZîÑÅôéö] */
-#define keys 1
 
 
 /* Macros after this point can all be overridden by user definitions in
@@ -1195,14 +1192,6 @@ retIdent:				yylval.s = yystralloc(yytext);
 					return T_IDENT;
 				}
 
-				if (TYPEOF(sym) == S_KEYWORD) {
-					if (VALUE_AS_INT(sym) == T_DEFKEYS || 
-					    VALUE_AS_INT(sym) == T_DEFMOUSE) {
-						BEGIN keys;
-					}
-					return VALUE_AS_INT(sym);
-				}
-
 				if (TYPEOF(sym) == S_EDFUNC) {
 					yylval.funcp = (void*)VALUE(sym);
 					return T_FUNC;
@@ -1293,7 +1282,6 @@ YY_RULE_SETUP
 ECHO;
 	YY_BREAK
 			case YY_STATE_EOF(INITIAL):
-			case YY_STATE_EOF(keys):
 				yyterminate();
 
 	case YY_END_OF_BUFFER:

@@ -87,11 +87,9 @@
      T_DEFCOMPILER = 303,
      T_DEFDOCTYPES = 304,
      T_DEFMENUS = 305,
-     T_DEFKEYS = 306,
-     T_DEFMOUSE = 307,
-     T_DEFTAGS = 308,
-     T_DEFESCAPES = 309,
-     T_CMDSEQPREFIX = 310
+     T_DEFTAGS = 306,
+     T_DEFESCAPES = 307,
+     T_CMDSEQPREFIX = 308
    };
 #endif
 

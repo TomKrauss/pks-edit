@@ -129,9 +129,6 @@
     <ClCompile Include="Initialize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="macro_compiler\BindKeys.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="KeyBindingFileIO.c">
       <Filter>Source Files</Filter>
     </ClCompile>

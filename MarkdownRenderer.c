@@ -43,7 +43,6 @@ static const char _escapedChars[] = "\\`*_{}[]<>()#+-.!|";
 
 // Loads the an image with a name and a format into a HBITMAP.
 extern HBITMAP loadimage_load(char* pszName);
-extern CONTROLLER* mdr_getMarkdownController();
 
 typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 
@@ -2008,7 +2007,7 @@ static RENDERER _mdrRenderer = {
 	mdr_hitTest,
 	FALSE,
 	mdr_modelChanged,
-	NULL,
+	.r_context = "markdown-renderer",
 	mdr_findLink,
 	mdr_navigateToAnchor,
 	mdr_mouseMove
@@ -2018,7 +2017,6 @@ static RENDERER _mdrRenderer = {
  * Returns a markdown renderer.
  */
 RENDERER* mdr_getRenderer() {
-	_mdrRenderer.r_controller = mdr_getMarkdownController();
 	return &_mdrRenderer;
 }
 

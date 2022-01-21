@@ -72,18 +72,31 @@ static void fk_registerBinding(int nIdx, int nCommand) {
 }
 
 
+static int fkey_setText(KEYBIND* kp, void * pParam) {
+	char szComment[256], szKey[64], szKtext[128];
+	int keycode1 = (int)(intptr_t)pParam;
+	int k = (int)kp->keycode - (int)keycode1;
+	if (k >= 0 && k < MAX_FKEYS) {
+		fk_registerBinding(k, kp->macref.index);
+		macro_getComment(szComment, szKtext, kp->macref.index, kp->macref.typ);
+		wsprintf(szKey, "F%d %s", k + 1, szKtext);
+	}
+	else {
+		return 1;
+	}
+	SetDlgItemText(hwndFkeys, k + IDD_FKFK1, szKey);
+	return 1;
+}
+
 /*----------------------------
  * fkey_updateTextOfFunctionKeys()
  * Update the text on the FKEYS keyboard.
  *----------------------------*/
-void fkey_updateTextOfFunctionKeys(int state)
-{
+void fkey_updateTextOfFunctionKeys(int state) {
+	char		szKey[64];
 	int     	i;
 	int			shift;
-	char    	szComment[256],szKey[64],szKtext[128];
-	KEYCODE 	keycode1;
-	int			k;
-	KEYBIND *	kp;
+	int			keycode1;
 	extern int _fkeysdirty;
 
 	if (state == _fkeyshiftstate || !hwndFkeys) {
@@ -103,19 +116,7 @@ void fkey_updateTextOfFunctionKeys(int state)
 		EnableWindow(GetDlgItem(hwndFkeys, i + IDD_FKFK1), FALSE);
 	}
 
-	for (i = 0; i < MAXMAPKEY; i++) {
-		kp = &_keymaptab[i];
-		k  = (int)kp->keycode - (int)keycode1;
-		if (k >= 0 && k < MAX_FKEYS) {
-			fk_registerBinding(k, kp->macref.index);
-			macro_getComment(szComment,szKtext,kp->macref.index,kp->macref.typ);
-			wsprintf(szKey,"F%d %s",k+1,szKtext);
-		} else {
-			continue;
-		}
-		SetDlgItemText(hwndFkeys, k + IDD_FKFK1, szKey);
-	}
-
+	key_bindingsDo(NULL, fkey_setText, (void*)(intptr_t)keycode1);
 	_fkeysdirty = 0;
 }
 
@@ -274,10 +275,10 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				int shift = _fkshifts[state];
 				LPNMTTDISPINFO pInfo = (LPNMTTDISPINFO)lParam;
 				WPARAM keycode1 = (VK_F1 + pInfo->lParam) | shift;
-				KEYBIND* kp = macro_getKeyBinding(keycode1);
-				if (kp) {
+				MACROREF* mp = macro_getKeyBinding(keycode1);
+				if (mp) {
 					char szText[100];
-					macro_getComment(szComment, szText, kp->macref.index, kp->macref.typ);
+					macro_getComment(szComment, szText, mp->index, mp->typ);
 					pInfo->lpszText = szComment;
 				} else {
 					pInfo->lpszText = NULL;

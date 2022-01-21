@@ -28,7 +28,7 @@
 %token T_ASSIGN T_NE T_EQ
 %token T_OR T_AND
 %token T_DEFMACRO T_DEFICON T_DEFALTPATH T_DEFCOMPILER T_DEFDOCTYPES
-%token T_DEFMENUS T_DEFKEYS T_DEFMOUSE T_DEFTAGS
+%token T_DEFMENUS T_DEFTAGS
 %token T_DEFESCAPES
 %token T_CMDSEQPREFIX
 
@@ -109,12 +109,7 @@ extern void yyerror(char* s, ...);
 unsigned char 	*AddComSeq(unsigned char *sp, unsigned char *spend,
 				     	 unsigned char typ, intptr_t par);
 int				FuncIdx(void *ep);
-int 			bind_key(KEYCODE keycode, MACROREFTYPE typ, MACROREFIDX idx, int augment);
-int 			bind_mouse(MOUSECODE code, MACROREFTYPE typ, MACROREFIDX idx, int flags, int augment);
 int 			IsFormStart(void *ep,int parno);
-int 			key_switchtotable(char *name);
-int 			mouse_switchtotable(char *name);
-void 		mouse_destroyMouseBindings(void);
 KEYCODE 		key2code(char *K, int control);
 void 		key_destroytable(char *name);
 TYPEDVAL		PushBinop(int opd_typ, TYPEDVAL *v1, 
@@ -144,10 +139,7 @@ int yydebug = 1;
 			} resource resources
 
 resource	: macros		
-			| icons	
 			| menus
-			| keys		
-			| mouses
 			| constants
 
 inherit		:
@@ -251,116 +243,6 @@ menuitem		: T_MENUSEPERATOR
 menuoptions	:
 			| menuoptions ',' T_IDENT  
 			/* GRAYED */
-
-/*-- MOUSE -------------------------------------------*/
-
-mouses		: opt_ident T_DEFMOUSE T_IDENT	{
-				_compilerConfiguration->cb_showStatus("Compile mouse table %s",$3.s);
-				mouse_switchtotable($3.s);
-				if (SetOverride($1.s) == MODE_OVERRIDE) {
-					mouse_destroyMouseBindings();
-				}
-				freeitem(&$3.s);
-			}
-			inherit mousedefs ';'
-
-mousedefs		:
-			| mouse
-			| mouse ',' mousedefs
-
-mouse		: mouse_button T_ASSIGN opt_plus cmd_or_macro
-			{
-				if ($1.mousecode.button && 
-				    $3.macref.index != (MACROREFIDX)-1) {
-					bind_mouse($1.mousecode, $4.macref.typ, $4.macref.index,
-						$3.num, _override == MODE_AUGMENT);
-				}
-			}
-			| error { yyerror("mouse binding"); }
-
-opt_plus		:		{ $$.num = 0; }
-			| '+'	{ $$.num = 0; }
-
-m_button		: T_LEFT 	{ $$.num = MBUT_L; }
-			| T_RIGHT	{ $$.num = MBUT_R; }
-			| T_MIDDLE { $$.num = MBUT_M; }
-
-buttons		:  m_button 		    { $$.num = $1.num; 		  }
-			|  m_button '+' buttons { $$.num = $1.num | $3.num; }
-
-mouse_button	: kmod_list buttons T_NUM
-			{
-				$$.mousecode.shift = $1.num >> 8;
-				$$.mousecode.button = $2.num;
-				$$.mousecode.nclicks = $3.num;
-			}
-
-/*-- KEYS -------------------------------------------*/
-
-keys			: opt_ident T_DEFKEYS T_IDENT	  {
-				_compilerConfiguration->cb_showStatus("Compile key table %s",$3.s);
-				key_switchtotable($3.s);
-				if (SetOverride($1.s) == MODE_OVERRIDE) {
-					key_destroytable($3.s);
-				}
-				freeitem(&$3.s);
-			}
-			inherit keydefs ';'
-
-keydefs		:
-			| key 
-			| keydefs ',' key
-
-key			: key_ident T_ASSIGN cmd_or_macro
-			{
-				if ($1.num != K_INVALID && 
-				    $3.macref.index != (MACROREFIDX) -1) {
-					if (!bind_key((KEYCODE)$1.num, $3.macref.typ, 
-							   $3.macref.index,
-							   _override == MODE_AUGMENT)) {
-						yyerror("cannot bind key 0x%lx",$1.num);
-					}
-				}
-			}
-			| error { yyerror("key binding"); }
-
-ident_or_num:	T_IDENT
-			{
-				if (($$.num = key2code($1.s,_kmod_control)) == K_INVALID)
-					yyerror("bad key %s",$1.s);
-				freeitem(&$1.s);
-			} 
-			| T_NUM	{	$$.num = $1.num|_kmod_control; 	}
-
-key_ident		: kmod_list {	_kmod_control = $1.num; } ident_or_num
-			{ 
-				$$.num = $3.num;
-			}
-
-kmod_list		:  {	$$.num = 0; }
-			|  k_modifier '+' kmod_list { $$.num = $1.num | $3.num; }
-
-k_modifier	: T_SHIFT { $$.num = /* K_SHIFT */ 0x300; }
-			| T_CTRL	{ $$.num = K_CONTROL; }
-			| T_ALT	{ $$.num = K_ALTERNATE; }
-			| T_HAS_SELECTION { $$.num = K_HAS_SELECTION; }
-
-/*-- ICONS -----------------------------------------------------*/
-
-icons		: T_DEFICON icondefs ';'
-
-icondefs		:
-			| icon ',' icondefs
-
-icon			: T_IDENT T_IDENT T_IDENT T_ASSIGN T_IDENT
-			{	
-				_compilerConfiguration->cb_showStatus("Defining icon for macro %s",$5.s);
-				freeitem(&$1.s);
-				freeitem(&$2.s);
-				freeitem(&$3.s);
-				freeitem(&$5.s);
-			}
-			| error { yyerror("icon definition"); }
 
 /*-- CONSTANTS --------------------------------------------------*/
 
@@ -543,7 +425,8 @@ optterm2		: {
 				int flg = STRINGTYPE($2.type);
 				if (_stringflg != flg)
 					yyerror("invalid combination in expr of string and integer");
-				$$.type = $1.type | flg;
+				int nType = $1.type;
+				$$.type = (nType | flg);
 			}
 
 relop		: '<'		{	$$.type = CT_LT;	}

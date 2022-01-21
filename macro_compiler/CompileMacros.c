@@ -97,7 +97,7 @@ FILE *file_createTempFile(char *dest, char *filename) {
  * the given file name. If successful, open the file in PKS Edit.
  */
 BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
-	char tmpfn[128];
+	char tmpfn[EDMAXPATHLEN];
 	FILE *fp;
 
 	if ((fp = file_createTempFile(tmpfn, fn)) == 0) {

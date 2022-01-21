@@ -805,7 +805,7 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 			if (nNotify != EN_KILLFOCUS) {
 				break;
 			}
-			for (dp2 = dp; dp2->dp_item; dp2++) {
+			for (dp2 = dp; dp2 && dp2->dp_item; dp2++) {
 				if (dp2->dp_item == IDD_ENKILLFOCUS && dp2->dp_size == idCtrl) {
 					dlg_retrieveParameters(hDlg, dp, 10000);
 					callback = (int (*)())dp2->dp_data;

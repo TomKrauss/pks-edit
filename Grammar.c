@@ -167,7 +167,6 @@ static JSON_MAPPING_RULE _tagSourceRules[] = {
 	{	RT_END}
 };
 
-
 static JSON_MAPPING_RULE _bracketRules[] = {
 	{	RT_ALLOC_STRING, "left", offsetof(BRACKET_RULE, lefthand.pattern)},
 	{	RT_ALLOC_STRING, "right", offsetof(BRACKET_RULE, righthand.pattern)},

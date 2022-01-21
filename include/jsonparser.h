@@ -30,7 +30,7 @@ typedef enum {
 	RT_FLAG,				// we expect a boolean value in the JSON input. If true, we will use the 
 	RT_INTEGER,				// we expect an "int" value in the JSON input.
 	RT_INTEGER_ARRAY,		// we expect an array of int values in the JSON input and will assume the target object to contain an int[] data structure to fill.
-	RT_SET,					// we expect an list of String values in the JSON input and will assume the target object to contain an 
+	RT_SET,					// we expect a list of String values in the JSON input and will assume the target object to contain an 
 							// hashmap of strings mapping to true or false to fill.
 							// note, that the strings and array list are allocated and must be possibly freed later.
 	RT_SHORT,				// we expect a "short" value in the JSON input.
@@ -65,7 +65,7 @@ typedef struct tagJSON_MAPPING_RULE {
 /*
  * Parse the given JSON file and fill the target object according to the defined mapping rules.
  */
-extern int json_parse(char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* pRules);
+extern int json_parse(const char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* pRules);
 
 /*
  * Write out an object with a given set of mapping rules in JSON format.

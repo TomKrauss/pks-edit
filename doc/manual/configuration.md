@@ -54,6 +54,16 @@ Layout Options configure the general UI of PKS-Edit
 - `Default Font` - can be used to configure the default text font face used in editing windows, when no explicit font face name is configured in a 
    style defined in the theme configuration.
 
+## Binding (keyboard, mouse, context menus) configuration
+
+To change keyboard, mouse or context menu bindings, please edit the file `pks_sys\pksactionbindings.json` and add / change the corresponding
+binding from a key / mouse to the command to execute.
+
+### Tips
+- To generate the list of current keyboard bindings use the menu Macro->View Bindings->Keyboard
+- In the action bindings file, you may change the bindings by using code completion to change the desired command and you may use Macro->Insert Keycode to
+insert a keyboard keycode into the file.
+
 ## Advanced configuration
 
 Some configuration options can only be configured in the `pksedit.ini`  file directly.

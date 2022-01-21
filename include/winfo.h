@@ -158,11 +158,6 @@ typedef void (*RENDERER_MOUSEMOVE)(WINFO* wp, int x, int y);
 
 typedef BOOL(*RENDERER_FIND_LINK)(WINFO* wp, char* pszDest, size_t nMaxChars, NAVIGATION_INFO_PARSE_RESULT* pResult);
 
-/*
- * Custom input handlers per window type can be implemented using a controller.
- */
-typedef struct tagCONTROLLER CONTROLLER;
-
 typedef struct tagRENDERER {
     const RENDER_LINE_FUNCTION r_renderLine;
     const RENDER_PAGE_FUNCTION r_renderPage;
@@ -183,7 +178,7 @@ typedef struct tagRENDERER {
     const RENDERER_HIT_TEST r_hitTest;                            // Return the info about a clicked element.
     const BOOL r_canEdit;                                         // whether this renderer supports editing.
     const void (*r_modelChanged)(WINFO* wp, MODEL_CHANGE* pMC);   // The method to invoke, when the model changes.
-    const CONTROLLER* r_controller;                               // Optional controller contributed by the renderer for custom mouse and keyboard handling. Maybe null.
+    const char* r_context;                                        // Optional action context to allow for specific input actions for this renderer. Maybe null.
     const RENDERER_FIND_LINK r_findLink;                          // Optional callback to find a link at the "current" caret position.
     const RENDERER_NAVIGATE_ANCHOR r_navigateAnchor;              // Optional callback to navigate to an "anchor" specification
     const RENDERER_MOUSEMOVE r_mouseMove;                         // Optional callback invoked during mouse move.
@@ -271,8 +266,8 @@ typedef struct tagWINFO {
      void	*	fp;
      float      zoomFactor;         // The text font size zoom factor.
      COMPARISON_LINK* comparisonLink;
-     CONTROLLER* controller;        // Custom key and mouse handling for special windows.
      void* r_data;                  // optionally used by the renderer for internal book keeping
+     const char* actionContext;     // allows us to have window specific key-, mouse- and other action bindings.
 } WINFO;
 
 /* valid working range types */

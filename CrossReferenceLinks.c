@@ -1002,7 +1002,7 @@ void xref_initSearchList(FTABLE* fp) {
 	WINFO* wp = WIPOI(fp);
 	if (wp) {
 		wp->workmode |= WM_STICKY|WM_LINE_SELECTION;
-		wp->controller = macro_getSearchListController();
+		wp->actionContext = "search-list";
 	}
 	fp->navigationPattern = xref_getSearchListFormat();
 	if (fp->firstl && fp->firstl->len > 5) {

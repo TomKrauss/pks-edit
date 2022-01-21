@@ -23,6 +23,7 @@
 #include "winterf.h"
 #include "edfuncs.h"
 #include "pksmod.h"
+#include "edfuncs.h"
 
 #include "pkscc.h"
 #include "funcdef.h"
@@ -39,9 +40,6 @@
 #define COL_KEYCODE		20
 #define COL_FUNCTION	30
 
-extern	EDBINDS 	_bindings;
-extern	RSCTABLE *_keytables;
-extern	RSCTABLE *_mousetables;
 extern	MACRO *	macro_getByIndex(int i);
 extern	char *	code2key(KEYCODE code);
 extern 	char *	mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
@@ -101,10 +99,10 @@ static char *c2button(char *b, int button, int shift, int nclicks)
 
 extern char *_scantab;
 
-KEYCODE key2code(unsigned char *k, int control)
+KEYCODE key2code(const unsigned char *k, int control)
 {
 	unsigned char *	t;
-	unsigned char *	K;
+	const unsigned char *	K;
 	int  			code;
 
 	if (!k[1]) {
@@ -243,7 +241,7 @@ static char *pr_cmddelim(char *d,char *command,char delim)
 /*--------------------------------------------------------------------------
  * pr_comment()
  */
-static char *pr_comment(char *d,char *comment)
+static char *pr_comment(char *d, const char *comment)
 {
 	if (!comment)
 		return "";
@@ -311,54 +309,54 @@ static int keycomp(KEYBIND *kp1, KEYBIND *kp2)
 	return kp1->keycode-kp2->keycode;
 }
 
+struct tagCOLLECTED_KEYBINDS {
+	int nElements;
+	int nCapacity;
+	KEYBIND *table;
+};
+
+static int macro_collectKeybind(KEYBIND* kp, void* pParam) {
+	struct tagCOLLECTED_KEYBINDS *pCollected = (struct tagCOLLECTED_KEYBINDS*)pParam;
+	if (pCollected->nElements >= pCollected->nCapacity) {
+		return 0;
+	}
+	pCollected->table[pCollected->nElements++] = *kp;
+	return 1;
+}
+
 /*
  * macro_printKeyBindingsCallback()
  */
 static int macro_printKeyBindingsCallback(FILE *fp)
 {
-	RSCTABLE *	rtp;
-	KEYBIND *		kps;
 	KEYBIND *		kpd;
 	int	    		i,n;
-	long 		size;
+	struct tagCOLLECTED_KEYBINDS collected;
 
-	for (rtp = _keytables; rtp; rtp = rtp->rt_next) {
-		kps = (KEYBIND *)rtp->rt_data;
-		for (i = 0, n = 0; &kps[i] < (KEYBIND *)rtp->rt_end; i++) {
-			if (kps[i].keycode && kps[i].keycode != K_DELETED) {
-				n++;
-			}
-		}
-			
-		size = n * sizeof *kpd;
-		if ((kpd = malloc(size)) == 0) {
-			return 0;
-		}
+	char* pszContext = "default";
+	collected.nElements = 0;
+	collected.nCapacity = 300;
+	collected.table = calloc(collected.nCapacity, sizeof (KEYBIND));
+	key_bindingsDo(pszContext, macro_collectKeybind, &collected);
+	kpd = collected.table;
+	n = collected.nElements;
 
-		for (i = 0, n = 0; &kps[i] < (KEYBIND *)rtp->rt_end; i++) {
-			if (kps[i].keycode && kps[i].keycode != K_DELETED) {
-				kpd[n++] = kps[i];
-			}
-		}
-		qsort(kpd,n,sizeof *kpd,(int (*)(const void*, const void*))keycomp);
-		fprintf(fp, "\n\n//----------------------------------------\n");
-		fprintf(fp, "// This file contains the PKS Edit keyboard bindings\n");
-		fprintf(fp, "// To change the bindings\n");
-		fprintf(fp, "//   - add the keyboard shortcut (if in doubt use the insert shortcut function from the menu)\n");
-		fprintf(fp, "//   - add the command to bind to (code completion available)\n");
-		fprintf(fp, "//   - press F10 to compile this file\n");
-		fprintf(fp, "//   - save the new keyboard bindings using Save Macros...\n");
-		fprintf(fp,"//----------------------------------------\n");
-		fprintf(fp,"\n\noverride KEYS %s	# total %d bindings\n\n",
-			rtp->rt_name, n);
+	qsort(kpd,n,sizeof *kpd,(int (*)(const void*, const void*))keycomp);
+	fprintf(fp, "\n\n//----------------------------------------\n");
+	fprintf(fp, "// This file contains the PKS Edit keyboard bindings\n");
+	fprintf(fp, "// To change the bindings\n");
+	fprintf(fp, "//   - add the keyboard shortcut (if in doubt use the insert shortcut function from the menu)\n");
+	fprintf(fp, "//   - add the command to bind to (code completion available)\n");
+	fprintf(fp, "//   - press F10 to compile this file\n");
+	fprintf(fp, "//   - save the new keyboard bindings using Save Macros...\n");
+	fprintf(fp,"//----------------------------------------\n");
+	fprintf(fp,"\n\noverride KEYS %s	# total %d bindings\n\n", pszContext, n);
 
-		for (i = 0; i < n; i++) {
-			printkeybind(fp, &kpd[i], i < n-1 ? ',' : ';');
-		}
-
-		free(kpd);
-
+	for (i = 0; i < n; i++) {
+		printkeybind(fp, &kpd[i], i < n-1 ? ',' : ';');
 	}
+
+	free(kpd);
 	return 1;
 }
 
@@ -401,53 +399,51 @@ static int mousecomp(MOUSEBIND *mp1, MOUSEBIND *mp2)
 	return d;
 }
 
+struct tagCOLLECTED_MOUSEBINDS {
+	int nElements;
+	int nCapacity;
+	MOUSEBIND* table;
+};
+
+static int macro_collectMousebind(MOUSEBIND* mp, void* pParam) {
+	struct tagCOLLECTED_MOUSEBINDS* pCollected = (struct tagCOLLECTED_MOUSEBINDS*)pParam;
+	if (pCollected->nElements >= pCollected->nCapacity) {
+		return 0;
+	}
+	pCollected->table[pCollected->nElements++] = *mp;
+	return 1;
+}
+
 /*
  * macro_printMouseBindingCallback
  */
-static int macro_printMouseBindingCallback(FILE *fp)
-{
-	RSCTABLE *	rtp;
-	MOUSEBIND *	mps;
-	MOUSEBIND *	mpd;
-	int	    		i,n;
-	long 		size;
+static int macro_printMouseBindingCallback(FILE *fp) {
+	MOUSEBIND* mpd;
+	int	    	i, n;
+	struct tagCOLLECTED_MOUSEBINDS collected;
 
-	for (rtp = _mousetables; rtp; rtp = rtp->rt_next) {
-		mps = (MOUSEBIND *)rtp->rt_data;
-		for (i = 0, n = 0; &mps[i] < (MOUSEBIND *)rtp->rt_end; i++) {
-			if (mps[i].nclicks && mps[i].button) {
-				n++;
-			}
-		}
-			
-		size = n * sizeof *mpd;
-		if ((mpd = malloc(size)) == 0) {
-			return 0;
-		}
+	char* pszContext = "default";
+	collected.nElements = 0;
+	collected.nCapacity = 300;
+	collected.table = calloc(collected.nCapacity, sizeof(struct tagCOLLECTED_MOUSEBINDS));
+	mouse_bindingsDo(pszContext, macro_collectMousebind, &collected);
+	mpd = collected.table;
+	n = collected.nElements;
+	qsort(mpd,n,sizeof *mpd,(int (*)(const void*, const void*))mousecomp);
+	fprintf(fp, "// This file contains the PKS Edit mouse bindings\n");
+	fprintf(fp, "// To change the bindings\n");
+	fprintf(fp, "//   - add the mouse click specification\n");
+	fprintf(fp, "//   - add the command to bind to (code completion available)\n");
+	fprintf(fp, "//   - press F10 to compile this file\n");
+	fprintf(fp, "//   - save the new keyboard bindings using Save Macros...\n");
+	fprintf(fp,"\n\n//----------------------------------------\n");
+	fprintf(fp,"\n\noverride MOUSE %s	# total %d bindings\n\n", pszContext, n);
 
-		for (i = 0, n = 0; &mps[i] < (MOUSEBIND *)rtp->rt_end; i++) {
-			if (mps[i].nclicks && mps[i].button) {
-				mpd[n++] = mps[i];
-			}
-		}
-		qsort(mpd,n,sizeof *mpd,(int (*)(const void*, const void*))mousecomp);
-		fprintf(fp, "// This file contains the PKS Edit mouse bindings\n");
-		fprintf(fp, "// To change the bindings\n");
-		fprintf(fp, "//   - add the mouse click specification\n");
-		fprintf(fp, "//   - add the command to bind to (code completion available)\n");
-		fprintf(fp, "//   - press F10 to compile this file\n");
-		fprintf(fp, "//   - save the new keyboard bindings using Save Macros...\n");
-		fprintf(fp,"\n\n//----------------------------------------\n");
-		fprintf(fp,"\n\noverride MOUSE %s	# total %d bindings\n\n",
-			rtp->rt_name, n);
-
-		for (i = 0; i < n; i++) {
-			printmousebind(fp, &mpd[i], i < n-1 ? ',' : ';');
-		}
-
-		free(mpd);
-
+	for (i = 0; i < n; i++) {
+		printmousebind(fp, &mpd[i], i < n-1 ? ',' : ';');
 	}
+
+	free(mpd);
 	return 1;
 }
 
