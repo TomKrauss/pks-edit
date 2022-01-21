@@ -35,6 +35,7 @@ typedef struct tagACTION_BINDING {
 	union {
 		KEYBIND		keybind;
 		MOUSEBIND	mousebind;
+		CONTEXT_MENU contextMenu;
 	} ab_binding;
 } ACTION_BINDING;
 
@@ -46,10 +47,12 @@ typedef struct tagACTION_BINDINGS {
 } ACTION_BINDINGS;
 
 static ACTION_BINDINGS* _actionBindings;
+static ACTION_BINDING* _contextMenu;		// the context menu definitions
 
 typedef struct tagJSON_BINDINGS {
 	ACTION_BINDING* keys;
 	ACTION_BINDING* mouse;
+	ACTION_BINDING* contextMenu;
 } JSON_BINDINGS;
 
 static int bindings_parseCommandMP(MACROREF* mp, const char* pszCommand) {
@@ -66,6 +69,10 @@ static int mouse_parseCommand(ACTION_BINDING* pTarget, const char* pszCommand) {
 
 static int key_parseCommand(ACTION_BINDING* pTarget, const char* pszCommand) {
 	return bindings_parseCommandMP(&pTarget->ab_binding.keybind.macref, pszCommand);
+}
+
+static int contextmenu_parseCommand(ACTION_BINDING* pTarget, const char* pszCommand) {
+	return bindings_parseCommandMP(&pTarget->ab_binding.contextMenu.cm_macref, pszCommand);
 }
 
 extern KEYCODE key2code(const unsigned char* k, int control);
@@ -150,6 +157,14 @@ static JSON_MAPPING_RULE _mousebindRules[] = {
 	{	RT_END }
 };
 
+static JSON_MAPPING_RULE _contextmenuRules[] = {
+	{	RT_CHAR_ARRAY, "context", offsetof(ACTION_BINDING, ab_context), sizeof(((ACTION_BINDING*)NULL)->ab_context)},
+	{	RT_ALLOC_STRING, "label", offsetof(ACTION_BINDING, ab_binding.contextMenu.cm_label), 0},
+	{	RT_STRING_CALLBACK, "command", 0, .r_descriptor = {.r_t_callback = contextmenu_parseCommand}},
+	{	RT_FLAG, "separator", offsetof(ACTION_BINDING, ab_binding.contextMenu.cm_isSeparator), 1},
+	{	RT_END }
+};
+
 static ACTION_BINDING* key_createActionBinding() {
 	return (ACTION_BINDING*)calloc(1, sizeof(ACTION_BINDING));
 }
@@ -160,6 +175,9 @@ static JSON_MAPPING_RULE _jsonBindingsRules[] = {
 	},
 	{	RT_OBJECT_LIST, "mouse-bindings", offsetof(JSON_BINDINGS, mouse),
 		{.r_t_arrayDescriptor = {key_createActionBinding, _mousebindRules}}
+	},
+	{	RT_OBJECT_LIST, "context-menu", offsetof(JSON_BINDINGS, contextMenu),
+		{.r_t_arrayDescriptor = {key_createActionBinding, _contextmenuRules}}
 	},
 	{	RT_END }
 };
@@ -198,6 +216,11 @@ static int bindings_destroyMouseBinding(ACTION_BINDING* pBind) {
 	return 1;
 }
 
+static int bindings_destroyContextMenu(ACTION_BINDING* pBind) {
+	free((char*)pBind->ab_binding.contextMenu.cm_label);
+	return 1;
+}
+
 static int bindings_destroyActionBindings(ACTION_BINDINGS* pBindings) {
 	hashmap_destroy(pBindings->ab_keyBindingTable, NULL);
 	ll_destroy((LINKED_LIST**) & pBindings->ab_mouseBindings, bindings_destroyMouseBinding);
@@ -208,6 +231,7 @@ static int bindings_destroyActionBindings(ACTION_BINDINGS* pBindings) {
  * Destroy all action bindings loaded.
  */
 void bindings_destroy() {
+	ll_destroy((LINKED_LIST**)&_contextMenu, bindings_destroyContextMenu);
 	ll_destroy((LINKED_LIST**)&_actionBindings, bindings_destroyActionBindings);
 }
 /*
@@ -233,6 +257,7 @@ static int bindings_loadFromFile(const char* pszFilename) {
 			pBindings->ab_mouseBindings = pB;
 			pB = pBNext;
 		}
+		_contextMenu = definitions.contextMenu;
 		ll_destroy(&definitions.keys, NULL);
 		return 1;
 	}

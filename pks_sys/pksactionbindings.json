@@ -699,24 +699,100 @@
       "command": "@delete-line-stay"
     }
   ],
-"mouse-bindings" : [
-{ "mouse": "MLeft(1)", "command": "@cursor-mouse-goto"},
-{ "mouse": "MLeft(3)", "command": "@mouse-mark-line"},
-{ "mouse": "Shift+MLeft(1)", "command": "@drag-copy-text"},
-{ "mouse": "Ctrl+MLeft(1)", "command": "@find-tag-under-cursor"},
-{ "mouse": "Alt+MLeft(1)", "command": "@mouse-select-lines"},
-{ "mouse": "Alt+Shift+MLeft(1)", "command": "@mouse-unselect-lines"},
-{ "mouse": "MLeft(2)", "command": "@mouse-mark-word"},
-{ "mouse": "Shift+MLeft(2)", "command": "@re-insert"},
-{ "mouse": "Ctrl+Shift+MLeft(2)", "command": "@play-last-macro"},
-{ "mouse": "MRight(1)", "command": "@mouse-mark-block"},
-{ "mouse": "Shift+MRight(1)", "command": "@mouse-mark-line", "message":  "Press Alt+Shift+MLeft to umark the line"},
-{ "mouse": "Ctrl+MRight(1)", "command": "@find-tag-under-cursor"},
-{ "mouse": "Ctrl+Shift+MRight(1)", "command": "@mouse-mark-to-space"},
-{ "mouse": "Alt+MRight(1)", "command": "@mouse-mark-paragraph"},
-{ "mouse": "MRight(2)", "command": "@mouse-update-block"},
-{ "mouse": "MLeft(1)", "context": "markdown-renderer", "command": "@find-tag-under-cursor"},
-{ "mouse": "Ctrl+MLeft(1)", "context": "search-list", "command": "@errorlist-click-line"},
-{ "mouse": "MRight(1)", "context": "search-list", "command": "@errorlist-click-line"}
-]
+  "mouse-bindings": [
+    {
+      "mouse": "MLeft(1)",
+      "command": "@cursor-mouse-goto"
+    },
+    {
+      "mouse": "MLeft(3)",
+      "command": "@mouse-mark-line"
+    },
+    {
+      "mouse": "Shift+MLeft(1)",
+      "command": "@drag-copy-text"
+    },
+    {
+      "mouse": "Ctrl+MLeft(1)",
+      "command": "@find-tag-under-cursor"
+    },
+    {
+      "mouse": "Alt+MLeft(1)",
+      "command": "@mouse-select-lines"
+    },
+    {
+      "mouse": "Alt+Shift+MLeft(1)",
+      "command": "@mouse-unselect-lines"
+    },
+    {
+      "mouse": "MLeft(2)",
+      "command": "@mouse-mark-word"
+    },
+    {
+      "mouse": "Shift+MLeft(2)",
+      "command": "@re-insert"
+    },
+    {
+      "mouse": "Ctrl+Shift+MLeft(2)",
+      "command": "@play-last-macro"
+    },
+    {
+      "mouse": "MRight(1)",
+      "command": "@mouse-mark-block"
+    },
+    {
+      "mouse": "Shift+MRight(1)",
+      "command": "@mouse-mark-line",
+      "message": "Press Alt+Shift+MLeft to umark the line"
+    },
+    {
+      "mouse": "Ctrl+MRight(1)",
+      "command": "@find-tag-under-cursor"
+    },
+    {
+      "mouse": "Ctrl+Shift+MRight(1)",
+      "command": "@mouse-mark-to-space"
+    },
+    {
+      "mouse": "Alt+MRight(1)",
+      "command": "@mouse-mark-paragraph"
+    },
+    {
+      "mouse": "MRight(2)",
+      "command": "@mouse-update-block"
+    },
+    {
+      "mouse": "MLeft(1)",
+      "context": "markdown-renderer",
+      "command": "@find-tag-under-cursor"
+    },
+    {
+      "mouse": "Ctrl+MLeft(1)",
+      "context": "search-list",
+      "command": "@errorlist-click-line"
+    },
+    {
+      "mouse": "MRight(1)",
+      "context": "search-list",
+      "command": "@errorlist-click-line"
+    }
+  ],
+  "context-menu": [
+    {
+      "label": "Copy to Clipboard",
+      "command": "@copy-to-clipboard"
+    },
+    {
+      "label": "Paste from Clipboard",
+      "command": "@paste-clipboard"
+    },
+    {
+      "separator": true
+    },
+    {
+      "label": "Find File under Cursor",
+      "context": "markdown-renderer",
+      "command": "separator"
+    }
+  ]
 }

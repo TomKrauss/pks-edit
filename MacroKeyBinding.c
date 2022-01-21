@@ -64,11 +64,6 @@ extern void 		st_switchtomenumode(BOOL bMenuMode);
 extern int			macro_executeSequence(COM_1FUNC* cp, COM_1FUNC* cpmax);
 MACROREF			bindings_getKeyBinding(KEYCODE keycode, const char* pszActionContext);
 
-/*------------------------------------------------------------
- * bind_mouse()
- * bind a mouse to current key table context
- */
-extern 	int bind_mouse(MOUSECODE mousecode, MACROREFTYPE typ, MACROREFIDX idx, int flags, int augment);
 extern MACROREF *	menu_getUserDefinedMacro(int nId);
 extern int 			macro_canExecuteFunction(int num, int warn);
 extern void 		menu_switchMenusToContext(char *pszContext);

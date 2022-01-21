@@ -1169,6 +1169,31 @@ static void onButtonDown(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	do_mouse(hwnd, _cClicks, message, wParam, lParam);
 }
 
+static HMENU _contextMenu;
+
+static void contextmenu_populate(WINFO* wp) {
+	int nCount = GetMenuItemCount(_contextMenu);
+	for (int i = 0; i < nCount; i++) {
+		RemoveMenu(_contextMenu, 0, MF_BYPOSITION);
+	}
+	AppendMenu(_contextMenu, MF_STRING, 22, "Sample context menu");
+	AppendMenu(_contextMenu, MF_SEPARATOR, 22, 0);
+	AppendMenu(_contextMenu, MF_STRING, 33, "Coming soon....");
+}
+
+static void edit_showContextMenu(HWND hwndParent, WINFO* wp, int x, int y) {
+	if (_contextMenu == NULL) {
+		_contextMenu = CreatePopupMenu();
+	}
+	POINT pt;
+	pt.x = x;
+	pt.y = y;
+	//ClientToScreen(hwndParent, (LPPOINT)&pt);
+	contextmenu_populate(wp);
+	TrackPopupMenu(_contextMenu, TPM_LEFTALIGN | TPM_LEFTBUTTON,
+		pt.x, pt.y, 0, hwndParent, NULL);
+}
+
 /*------------------------------------------------------------
  * WorkAreaWndProc()
  */
@@ -1209,6 +1234,15 @@ static WINFUNC WorkAreaWndProc(
 		return 1;
 	}
 		
+
+	case WM_CONTEXTMENU: {
+		int xPos = GET_X_LPARAM(lParam);
+		int yPos = GET_Y_LPARAM(lParam);
+		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
+			edit_showContextMenu(hwnd, wp, xPos, yPos);
+		}
+	}
+	return 0;
 
 	case WM_KEYDOWN:
 	case WM_KEYUP:

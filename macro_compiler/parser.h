@@ -82,14 +82,13 @@
      T_OR = 298,
      T_AND = 299,
      T_DEFMACRO = 300,
-     T_DEFICON = 301,
-     T_DEFALTPATH = 302,
-     T_DEFCOMPILER = 303,
-     T_DEFDOCTYPES = 304,
-     T_DEFMENUS = 305,
-     T_DEFTAGS = 306,
-     T_DEFESCAPES = 307,
-     T_CMDSEQPREFIX = 308
+     T_DEFALTPATH = 301,
+     T_DEFCOMPILER = 302,
+     T_DEFDOCTYPES = 303,
+     T_DEFMENUS = 304,
+     T_DEFTAGS = 305,
+     T_DEFESCAPES = 306,
+     T_CMDSEQPREFIX = 307
    };
 #endif
 

@@ -96,6 +96,12 @@ typedef struct tagKEYBIND {
 char    *code2key(KEYCODE code);
 KEYCODE macro_addModifierKeys(KEYCODE code);
 
+typedef struct tagCONTEXT_MENU {
+	const char* cm_label;
+	BOOL		cm_isSeparator;
+	MACROREF	cm_macref;
+} CONTEXT_MENU;
+
 /*
  * MACROS -----------------------------------------------------------
  */

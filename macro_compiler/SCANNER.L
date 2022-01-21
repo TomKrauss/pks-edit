@@ -93,13 +93,10 @@ static struct kw {
 	T_DEFMACRO,	"macro",
 	T_MENUPOPUP,	"POPUP",
 	T_DEFMENUS,	"MENU",
-	T_DEFICON,	"ICONS",
 	T_CONST,		"const",
 	T_DEFALTPATH,	"ALTPATH",
 	T_DEFCOMPILER,	"COMPILER",
 	T_DEFDOCTYPES,	"DOCTYPES",
-	T_DEFKEYS,	"KEYS",
-	T_DEFMOUSE,	"MOUSE",
 	T_DEFTAGS,	"TAGS",
 	T_DEFESCAPES,	"TEXTBUFFER",
 	T_IF,		"if",
@@ -392,51 +389,11 @@ QUOTED	\\.
 NOS		[^"]
 WS		[ \t]
 
-%START		keys
-
 %option yylineno
 
 %%
 <INITIAL>-	{
 				return '-';
-			}
-<keys>{CHN}+	{
-				if (strcmp(yytext,"Alt") == 0)
-					return T_ALT;
-				if (strcmp(yytext, "Selected") == 0)
-					return T_HAS_SELECTION;
-				if (strcmp(yytext,"Ctrl") == 0)
-					return T_CTRL;
-				if (strcmp(yytext,"Shift") == 0)
-					return T_SHIFT;
-				if (strcmp(yytext,"MLeft") == 0)
-					return T_LEFT;
-				if (strcmp(yytext,"MRight") == 0)
-					return T_RIGHT;
-				if (strcmp(yytext,"MMiddle") == 0)
-					return T_MIDDLE;
-				yylval.s = yystralloc(yytext);
-				return T_IDENT;
-			}
-<keys>\({NUM}\)	{
-				yylval.num = yytext[1] - '0';
-				return T_NUM;
-			}
-<keys>\\{NUM}+		{
-				yylval.num = number(yytext);
-				return T_NUM;
-			}
-\" 			{
-				int c;
-
-				yyleng = 0;
-				while((c = input()) != 0 && c != '"') {
-					yytext[yyleng++] = c;
-					if (c == '\\')
-						yytext[yyleng++] = input();
-				}
-				yylval.s = unquotealloc(yytext,yyleng);
-				return T_STRING;
 			}
 {SIGN}0[xX]{HEXNUM}+ {
 				yylval.num = number(yytext);
@@ -473,10 +430,6 @@ retIdent:				yylval.s = yystralloc(yytext);
 				}
 
 				if (TYPEOF(sym) == S_KEYWORD) {
-					if (VALUE_AS_INT(sym) == T_DEFKEYS || 
-					    VALUE_AS_INT(sym) == T_DEFMOUSE) {
-						BEGIN keys;
-					}
 					return VALUE_AS_INT(sym);
 				}
 
@@ -528,7 +481,6 @@ retIdent:				yylval.s = yystralloc(yytext);
 				yylval.num = 0;
 				return T_NUM;
 			}
-<keys>\;		{	 BEGIN INITIAL; return yytext[0];	 }
 ==			return T_EQ;
 !=			return T_NE;
 !~			return T_NMATCH;
