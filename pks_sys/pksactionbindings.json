@@ -373,6 +373,10 @@
       "command": "@find-block-end"
     },
     {
+      "key": "Ctrl+F5",
+      "command": "@search-on-internet"
+    },
+    {
       "key": "Ctrl+F6",
       "command": "@find-word-back"
     },
