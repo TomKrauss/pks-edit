@@ -71,6 +71,7 @@ typedef struct tagEDITOR_CONFIGURATION {
 	char themeName[32];
 	char language[32];
 	char defaultFontFace[32];
+	char searchEngine[32];			// selected search engine for searching a string on the internet. 
 	void (*autosaveOnExit)();
 } EDITOR_CONFIGURATION;
 
@@ -83,6 +84,12 @@ extern EDITOR_CONFIGURATION* GetConfiguration();
  * Returns the temp path into which PKS edit saves autosave and optionally backup files.
  */
 extern char* config_getPKSEditTempPath();
+
+/*
+ * Returns the command to be used to search for something on the internet
+ * with the currently configured search engine.
+ */
+extern char* config_getInternetSearchCommand();
 
 /*--------------------------------------------------------------------------
  * prof_setinifile()

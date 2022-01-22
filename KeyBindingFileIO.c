@@ -201,7 +201,7 @@ static void macro_replaceCurrentWord(WINFO* wp) {
 		char szIdentifier[100];
 		char* pszBegin;
 		char* pszEnd;
-		if (xref_findIdentifierCloseToCaret(szIdentifier, szIdentifier + sizeof szIdentifier, &pszBegin, &pszEnd, TRUE)) {
+		if (xref_findIdentifierCloseToCaret(szIdentifier, szIdentifier + sizeof szIdentifier, &pszBegin, &pszEnd, FI_COMPLETE_WORD)) {
 			size_t o1 = pszBegin - wp->caret.linePointer->lbuf;
 			size_t o2 = o1 + pszEnd - pszBegin;
 			ln_modify(wp->fp, wp->caret.linePointer, (int)o2, (int)o1);

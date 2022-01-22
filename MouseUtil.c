@@ -408,6 +408,21 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 	return 1;
 }
 
+/*
+ * Execute the provided command/macro assuming the execution of the action was triggered
+ * by the used with some kind of pointing interaction (clicking with the mouse or from a popup menu).
+ * Return 1 if successful.
+ */
+int macro_executeWithPosition(WINFO* wp, MACROREF* pRef, POINT pt) {
+	if (pRef->typ == CMD_CMDSEQ) {
+		COM_1FUNC* cp;
+		cp = &_cmdseqtab[pRef->index].c_functionDef;
+		if (_edfunctab[cp->funcnum].flags & EW_FINDCURS) {
+			caret_placeToXY(wp, pt.x, pt.y);
+		}
+	}
+	return macro_executeMacro(pRef);
+}
 
 /*---------------------------------*/
 /* mfunct()					*/
@@ -417,15 +432,7 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 	if (mp->msg && mp->msg[0]) {
 		error_displayErrorInToastWindow(mp->msg);
 	}
-	if (mp->macref.typ == CMD_CMDSEQ) {
-		COM_1FUNC* cp;
-		cp = &_cmdseqtab[mp->macref.index].c_functionDef;
-		if (_edfunctab[cp->funcnum].flags & EW_FINDCURS) {
-			caret_placeToXY(wp, x, y);
-		}
-	}
-
-	return macro_executeMacro(&mp->macref);
+	return macro_executeWithPosition(wp, &mp->macref, (POINT) { .x = x, .y = y });
 }
 
 /*------------------------------------------------------------

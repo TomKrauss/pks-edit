@@ -860,8 +860,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,169,231,10
 END
 
-DLG_OPT_MISC DIALOGEX 0, 0, 269, 200
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+DLG_OPT_MISC DIALOGEX 0, 0, 273, 214
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Miscellanous"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
@@ -876,10 +876,12 @@ BEGIN
     LTEXT           "&Language:",-1,12,132,84,12,NOT WS_GROUP
     COMBOBOX        IDD_STRINGLIST1,138,131,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDD_STRINGLIST2,138,115,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "To activate the selected language PKS Edit must be restarted.",-1,11,178,199,12,NOT WS_GROUP
+    LTEXT           "To activate the selected language PKS Edit must be restarted.",-1,11,147,199,12,NOT WS_GROUP
     CONTROL         "Lock edited files",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,11,96,204,12
-    PUSHBUTTON      "Select Font...",IDD_FONTSELECT,137,147,79,14,NOT WS_TABSTOP
-    LTEXT           "Default te&xt font:",-1,12,148,84,11,NOT WS_GROUP
+    PUSHBUTTON      "Select Font...",IDD_FONTSELECT,137,160,79,14,NOT WS_TABSTOP
+    LTEXT           "Default te&xt font:",-1,12,161,84,11,NOT WS_GROUP
+    LTEXT           "Default search engine:",-1,11,179,84,11,NOT WS_GROUP
+    COMBOBOX        IDD_STRINGLIST3,138,178,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
 DLG_OPT_LAYOUT DIALOGEX 69, 15, 279, 99
@@ -1047,6 +1049,8 @@ BEGIN
 
     DLG_OPT_MISC, DIALOG
     BEGIN
+        RIGHTMARGIN, 269
+        BOTTOMMARGIN, 200
     END
 
     DLG_OPT_LAYOUT, DIALOG
@@ -1263,6 +1267,7 @@ BEGIN
         MENUITEM "&Find...\a",                  MFIND
         MENUITEM "&Replace...\a",               MREPLACE
         MENUITEM "Find &again\a",               MFAGAIN
+        MENUITEM "Find Selected Text on Internet...\a", IDM_SEARCH_ON_THE_INTERNET
         MENUITEM SEPARATOR
         MENUITEM "Find in Fi&les...\a",         MEDIFLIS
         MENUITEM "&Use Previous Search Results...\a", MREAD_SEARCH_LIST

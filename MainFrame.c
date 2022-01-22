@@ -17,7 +17,6 @@
 #include "arraylist.h"
 #include "trace.h"
 #include "linkedlist.h"
-#include "edfuncs.h"
 #include "winterf.h"
 #include "editorconfiguration.h"
 #include "stringutil.h"
@@ -26,6 +25,7 @@
 #include "themes.h"
 #include "codecompletion.h"
 #include "winfo.h"
+#include "edfuncs.h"
 #include "errordialogs.h"
 #include "xdialog.h"
 #include "customcontrols.h"
@@ -1813,12 +1813,12 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		if (idCtrl == IDM_INCREMENTAL_SEARCH) {
 			break;
 		}
-		int nIdx = macro_translateToOriginalMenuIndex(idCtrl);
+		int nCommand = macro_translateToOriginalMenuIndex(idCtrl);
 		if (bHelp) {
 			bHelp = FALSE;
-			return EdHelpContext((DWORD)nIdx);
+			return EdHelpContext((DWORD)nCommand);
 		}
-		if (macro_onMenuAction(nIdx)) {
+		if (macro_onMenuAction(ww_getCurrentEditorWindow(), nCommand, NULL)) {
 			return 1;
 		}
 		if (!IsWindow(hwnd) || !IsWindow(hwndFrameWindow)) {

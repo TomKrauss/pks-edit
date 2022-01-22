@@ -538,12 +538,6 @@ extern MACROREF* macro_getMacroIndexForMenu(int nId);
 extern int macro_translateToOriginalMenuIndex(int wParam);
 
 /*---------------------------------
- * macro_onMenuAction()
- * Invoke the macro bound to a menu index.
- *---------------------------------*/
-extern int macro_onMenuAction(int menunum);
-
-/*---------------------------------
  * macro_addModifierKeys()
  * Add the modifier key bits depending on whether
  * Shift, Control or Alt was pressed together with
@@ -588,6 +582,22 @@ extern char* macro_getKeyText(const char* pszActionContext, int nCmd);
 /* macro_recordOperation()				*/
 /*---------------------------------*/
 extern int macro_recordOperation(PARAMS* pp);
+
+#ifdef _WINFO_H
+/*
+ * Execute the provided command/macro assuming the execution of the action was triggered
+ * by the used with some kind of pointing interaction (clicking with the mouse or from a popup menu).
+ * Return 1 if successful.
+ */
+extern int macro_executeWithPosition(WINFO* wp, MACROREF* pRef, POINT pt);
+
+/*---------------------------------
+ * macro_onMenuAction()
+ * Invoke the macro bound to a menu index.
+ *---------------------------------*/
+extern int macro_onMenuAction(WINFO* wp, int menunum, POINT* aPositionClicked);
+
+#endif
 
 /*------------------------------------------------------------
  * macro_getComment()

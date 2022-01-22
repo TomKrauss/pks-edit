@@ -41,6 +41,7 @@
 #define DLG_OPT_LAYOUT                  558
 #define DLGCOMPAREFILES                 559
 #define DLG_OPEN_OPTIONS                560
+#define IDD_STRINGLIST3                 804
 #define IDC_GENERIC2                    1001
 #define IDC_CHECK_ENCRYPT               1003
 #define IDC_DOCTYPES                    1004

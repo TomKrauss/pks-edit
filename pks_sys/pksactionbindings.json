@@ -738,7 +738,7 @@
     },
     {
       "mouse": "MRight(1)",
-      "command": "@mouse-mark-block"
+      "command": "@open-context-menu"
     },
     {
       "mouse": "Shift+MRight(1)",
@@ -779,6 +779,14 @@
   ],
   "context-menu": [
     {
+      "label": "Select All",
+      "command": "@mark-all"
+    },
+    {
+      "label": "Delete",
+      "command": "@erase-block"
+    },
+    {
       "label": "Copy to Clipboard",
       "command": "@copy-to-clipboard"
     },
@@ -798,13 +806,28 @@
       "command": "@find-word-forward"
     },
     {
+      "label": "Find file",
+      "command": "@find-file-under-cursor"
+    },
+    {
+      "label": "Search on the Internet",
+      "command": "@search-on-internet"
+    },
+    {
+      "separator": true
+    },
+    {
+      "label": "Toggle Comment",
+      "command": "@toggle-comment"
+    },
+    {
       "context": "markdown-renderer",
       "separator": true
     },
     {
       "label": "Find File under Cursor",
       "context": "markdown-renderer",
-      "command": "separator"
+      "command": "@find-file-under-cursor"
     }
   ]
 }

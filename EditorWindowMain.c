@@ -24,10 +24,10 @@
 #include "linkedlist.h"
 #include "caretmovement.h"
 #include "edierror.h"
-#include "edfuncs.h"
 #include "regexp.h"
 #include "errordialogs.h"
 #include "winfo.h"
+#include "edfuncs.h"
 #include "winterf.h"
 #include "pksedit.h"
 #include "context.h"
@@ -1170,6 +1170,7 @@ static void onButtonDown(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 }
 
 static HMENU _contextMenu;
+static POINT _contextMenuPosition;
 
 static BOOL contextmenu_populate(WINFO* wp) {
 	int nCount = GetMenuItemCount(_contextMenu);
@@ -1200,13 +1201,22 @@ static void edit_showContextMenu(HWND hwndParent, WINFO* wp, int x, int y) {
 	if (!contextmenu_populate(wp)) {
 		return;
 	}
-	POINT pt;
-	pt.x = x;
-	pt.y = y;
-	ScreenToClient(hwndParent, (LPPOINT)&pt);
-	caret_placeToXY(wp, pt.x, pt.y);
+	_contextMenuPosition.x = x;
+	_contextMenuPosition.y = y;
+	ScreenToClient(hwndParent, (LPPOINT)&_contextMenuPosition);
+
 	TrackPopupMenu(_contextMenu, TPM_LEFTALIGN | TPM_LEFTBUTTON,
 		x, y, 0, hwndParent, NULL);
+}
+
+void contextmenu_open() {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (!wp) {
+		return;
+	}
+	POINT pt;
+	GetCursorPos(&pt);
+	edit_showContextMenu(wp->ww_handle, wp, pt.x, pt.y);
 }
 
 /*------------------------------------------------------------
@@ -1250,20 +1260,18 @@ static WINFUNC WorkAreaWndProc(
 	}
 		
 
-	case WM_CONTEXTMENU: {
-		int xPos = GET_X_LPARAM(lParam);
-		int yPos = GET_Y_LPARAM(lParam);
-		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
-			edit_showContextMenu(hwnd, wp, xPos, yPos);
+	case WM_COMMAND: {
+		int nCommand = (int)wParam;
+		wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR);
+		if (nCommand && macro_onMenuAction(wp, nCommand, &_contextMenuPosition)) {
+			return 1;
 		}
 	}
-	return 0;
-
+	// otherwise drop through
 	case WM_KEYDOWN:
 	case WM_KEYUP:
 	case WM_INITMENUPOPUP:
 	case WM_MENUSELECT:
-	case WM_COMMAND:
 	case WM_SYSKEYDOWN:
 	case WM_SYSKEYUP:
 	case WM_CHAR:

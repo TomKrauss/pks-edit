@@ -66,8 +66,9 @@ extern void xref_getSelectedIdentifier(char* pszText, size_t nMaxChars);
  * Copy the found identifier into pszTargetBuffer and return the pointer to the start of
  * the expression in pszExpressionBegin and return the end of the found expression in pszExpressionEnd if not NULL.
  **/
+typedef enum { FI_BEGIN_WORD_TO_CURSOR, FI_CURSOR_TO_END_WORD, FI_COMPLETE_WORD} FIND_IDENTIFIER_OPTIONS;
 extern char* xref_findIdentifierCloseToCaret(unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
-	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int bFindStartOfWord);
+	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, FIND_IDENTIFIER_OPTIONS fiOptions);
 
 /*
  * Iterate over all cross references defined for the grammar of the given editor window and

@@ -527,12 +527,16 @@ int macro_translateToOriginalMenuIndex(int wParam) {
  * macro_onMenuAction()
  * Invoke the macro bound to a menu index.
  *---------------------------------*/
-int macro_onMenuAction(int menunum) {
+int macro_onMenuAction(WINFO* wp, int menunum, POINT* aPositionClicked) {
 	MACROREF *	mp;
 
 	mp = macro_translateMenuCommand(menunum);
 	if (mp != 0) {
-		return macro_executeMacro(mp);
+		if (aPositionClicked) {
+			return macro_executeWithPosition(wp, mp, *aPositionClicked);
+		} else {
+			return macro_executeMacro(mp);
+		}
 	}
 	if (menunum >= IDM_HISTORY && menunum <= IDM_HISTORY + 30) {
 		return EdEditFile(OPEN_NOFN|OPEN_HISTORY | (menunum - IDM_HISTORY) << 12, 0);

@@ -43,6 +43,8 @@ This file contains the release notes for the latest **PKS Edit** releases.
   If selected, PKS-Edit shows up in darkmode, when darkmode applications mode is configured in Windows and in default mode otherwise.
 - PKS-Edit supports now context menus in editors. The contents of the context menu can be configured using the newly introduced `pksactionbindings.json`
   configuration file.
+- PKS-Edit supports now searching the word under the cursor or the current selected text on the Internet. One can configure the favorite
+  search engine in the miscellaneous configuration dialog.
 
 ### Improved
   The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 

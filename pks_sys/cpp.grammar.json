@@ -12,10 +12,6 @@
         {
           "filename": "https://docs.microsoft.com/en-us/search/?terms=$1&category=Reference&scope=Desktop",
           "type": "url"
-        },
-        {
-          "filename": "c:\\source\\help\\api32.hlp",
-          "type": "help"
         }
       ],
       "navigation": [

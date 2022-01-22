@@ -57,8 +57,14 @@ typedef struct tagJSON_BINDINGS {
 
 static int bindings_parseCommandMP(MACROREF* mp, const char* pszCommand) {
 	BOOL bCommand = (pszCommand[0] == '@');
-	mp->index = bCommand ? macro_getCmdIndexByName(pszCommand + 1) : macro_getInternalIndexByName(pszCommand);
-	mp->typ = bCommand ? CMD_CMDSEQ : CMD_MACRO;
+	int index = bCommand ? macro_getCmdIndexByName(pszCommand + 1) : macro_getInternalIndexByName(pszCommand);
+	if (index < 0) {
+		mp->index = 0;
+		mp->typ = CMD_NONE;
+	} else {
+		mp->index = index;
+		mp->typ = bCommand ? CMD_CMDSEQ : CMD_MACRO;
+	}
 	return 1;
 }
 

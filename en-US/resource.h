@@ -240,6 +240,7 @@
 #define DLGFINDINFILES                  535
 #define DLG_OPEN_OPTIONS                560
 #define IDD_ICONLIST2                   801
+#define IDD_STRINGLIST3                 804
 #define IDC_CUSTOM2                     1002
 #define IDC_CHECK_ENCRYPT               1003
 #define IDC_DOCTYPES                    1004

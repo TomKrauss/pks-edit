@@ -34,6 +34,24 @@
 extern void fkey_visibilitychanged(void);
 extern void tb_updateImageList();
 
+typedef struct tagSEARCH_ENGINE {
+	char se_name[32];				// name of the search engine
+	char se_command[128];			// The command to execute - actual word to look for in the command must be named $1
+} SEARCH_ENGINE;
+
+static SEARCH_ENGINE _searchEngines[] = {
+	{"Google", "https://www.google.com/search?q=$1"},
+	{"Bing", "https://www.bing.com/search?q=$1"},
+	{"Yahoo", "https://search.yahoo.com/search?q=$1"},
+	{"DuckDuckGo", "https://duckduckgo.com/?q=$1" },
+	{"Ask", "https://www.ask.com/web?q=$1"},
+	{"Startpage", "https://www.startpage.com/sp/search?q=$1"},
+	{"Ecosia", "https://www.ecosia.org/search?q=$1"},
+	{"Infinity Search", "https://infinitysearch.co/results?q=$1"},
+	{"Wolfram Alpha", "https://www.wolframalpha.com/input/?i=$1"},
+	0
+};
+
 /*
  * Autosave the editor configuration, when PKS Edit exits.
  */
@@ -61,6 +79,7 @@ static EDITOR_CONFIGURATION _configuration = {
 	"default",
 	"Deutsch",
 	"",
+	"Google",
 	AutosaveConfiguration
 };
 
@@ -147,8 +166,23 @@ static void conf_fillThemes(HWND hwnd, int nItem, void* selValue) {
 	SendDlgItemMessage(hwnd, nItem, CB_SELECTSTRING, (WPARAM)0, (LPARAM)pItem);
 }
 
+static void conf_fillSearchEngines(HWND hwnd, int nItem, void* selValue) {
+	SendDlgItemMessage(hwnd, nItem, CB_RESETCONTENT, 0, 0L);
+	SEARCH_ENGINE* pEngine = _searchEngines;
+	while (pEngine->se_name[0]) {
+		SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)pEngine->se_name);
+		pEngine++;
+	}
+	char* pItem = (char*)selValue;
+	SendDlgItemMessage(hwnd, nItem, CB_SELECTSTRING, (WPARAM)0, (LPARAM)pItem);
+}
+
 static DIALLIST _themelist = {
 	NULL, conf_fillThemes, dlg_getListboxText,
+	NULL, NULL, NULL, 0 };
+
+static DIALLIST _searchEnginelist = {
+	NULL, conf_fillSearchEngines, dlg_getListboxText,
 	NULL, NULL, NULL, 0 };
 
 static DIALLIST _localeslist = {
@@ -163,6 +197,7 @@ static DIALPARS _dMisc[] = {
 	IDD_OPT2,		O_HIDE_BLOCK_ON_CARET_MOVE,		& _configuration.options,
 	IDD_OPT3,		O_FORMFOLLOW,					& _configuration.options,
 	IDD_OPT4,		O_LOCKFILES,					& _configuration.options,
+	IDD_STRINGLIST3, 0,								& _searchEnginelist,
 	IDD_STRINGLIST2, 0,								&_themelist,
 	IDD_STRINGLIST1, 0,								&_localeslist,
 	IDD_FONTSELECT,	TRUE,							_configuration.defaultFontFace,
@@ -210,6 +245,23 @@ char* config_getPKSEditTempPath() {
 	return _configuration.pksEditTempPath;
 }
 
+/*
+ * Returns the command to be used to search for something on the internet
+ * with the currently configured search engine.
+ */
+char* config_getInternetSearchCommand() {
+	char* pszSelectedEngine = GetConfiguration()->searchEngine;
+	SEARCH_ENGINE* pEngine = _searchEngines;
+
+	while (pEngine->se_name[0]) {
+		if (strcmp(pEngine->se_name, pszSelectedEngine) == 0) {
+			return pEngine->se_command;
+		}
+		pEngine++;
+	}
+	return _searchEngines[0].se_command;
+}
+
 /*--------------------------------------------------------------------------
  * config_saveTempPath()
  * Save the temp path of PKS editor to the pksedit.ini file.
@@ -239,6 +291,7 @@ void EdOptionSet(void) {
 	EDITOR_CONFIGURATION* pConfig = GetConfiguration();
 	_themelist.li_param = (long long*)pConfig->themeName;
 	_localeslist.li_param = (long long*)pConfig->language;
+	_searchEnginelist.li_param = (long long*)pConfig->searchEngine;
 	ICONSIZE* p = &pConfig->iconSize;
 	_iconSizelist.li_param = (long long*)&p;
 	dlg_setXDialogParams(_getDialogParsForPage, TRUE);

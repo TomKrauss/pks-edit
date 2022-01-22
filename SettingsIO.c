@@ -283,6 +283,7 @@ int prof_getstdopt(void) {
 	}
 	prof_getPksProfileString(_desk, "DefaultFontFace", pConfiguration->defaultFontFace, sizeof pConfiguration->defaultFontFace - 1);
 	prof_getPksProfileString(_desk, "Theme", pConfiguration->themeName, sizeof pConfiguration->themeName - 1);
+	prof_getPksProfileString(_desk, "SearchEngine", pConfiguration->searchEngine, sizeof pConfiguration->searchEngine - 1);
 	if (pConfiguration->themeName[0]) {
 		theme_setCurrent(pConfiguration->themeName);
 	}
@@ -355,6 +356,9 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 
 	if (configuration->themeName[0]) {
 		prof_savestring(_desk, "Theme", configuration->themeName);
+	}
+	if (configuration->searchEngine[0]) {
+		prof_savestring(_desk, "SearchEngine", configuration->searchEngine);
 	}
 	if (configuration->language[0]) {
 		prof_savestring(_desk, "Language", configuration->language);

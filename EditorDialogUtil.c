@@ -387,6 +387,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				break;
 			case IDD_STRINGLIST1:
 			case IDD_STRINGLIST2:
+			case IDD_STRINGLIST3:
 				dlp = (DIALLIST*)dp->dp_data;
 				(*dlp->li_fill)(hDlg, item, (void*)dlp->li_param);
 				break;
@@ -615,7 +616,8 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			}
 			break;
 		case IDD_STRINGLIST1:
-		case IDD_STRINGLIST2: {
+		case IDD_STRINGLIST2:
+		case IDD_STRINGLIST3: {
 			DIALLIST* dpi = dp->dp_data;
 			SendDlgItemMessage(hDlg, item, CB_GETLBTEXT, SendDlgItemMessage(hDlg, item, CB_GETCURSEL, 0, 0), (LPARAM)dpi->li_param);
 			break;
@@ -790,6 +792,7 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 		case IDD_WINDOWLIST:
 		case IDD_STRINGLIST1:
 		case IDD_STRINGLIST2:
+		case IDD_STRINGLIST3:
 			if (nNotify == LBN_SELCHANGE) {
 				if ((dp2 = GetItemDialListData(dp, idCtrl)) != 0 &&
 					((DIALLIST*)dp2->dp_data)->li_command) {

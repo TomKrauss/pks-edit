@@ -140,7 +140,7 @@ static char* _pszMatch;
 static int codecomplete_matchWord(const char* pszWord) {
 	// add all words to the completion list, which are not identical to the word searched, but where the word
 	// searched / completed is a substring.
-	return string_strcasestr(pszWord, _pszMatch) != NULL && strcmp(pszWord, _pszMatch) != 0;
+	return string_strcasestr(pszWord, _pszMatch) != NULL;
 }
 
 /*
@@ -183,7 +183,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 		up = up->next;
 	}
 	_suggestions = hashmap_create(37, NULL, NULL);
-	xref_getSelectedIdentifier(szIdent, sizeof szIdent);
+	xref_findIdentifierCloseToCaret(szIdent, szIdent + sizeof szIdent, NULL, NULL, FI_BEGIN_WORD_TO_CURSOR);
 	_pszMatch = szIdent;
 	// (T) pass in the match function here as well rather than the identifier.
 	xref_forAllTagsDo(wp, szIdent, (void (*)(intptr_t, intptr_t))codecomplete_addTags);

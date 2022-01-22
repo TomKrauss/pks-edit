@@ -598,8 +598,9 @@ static TAG_REFERENCE *xref_lookupTagReference(char *tagName, BOOL bForceDialog) 
  * the expression in pszExpressionBegin.
  **/
 static char* xref_findExpressionCloseToCaret(unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
-	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int (*matchesCharacter)(unsigned char c), int bFindStartOfWord) {
+	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int (*matchesCharacter)(unsigned char c), FIND_IDENTIFIER_OPTIONS fiOptions) {
 	char* s, * pszStart;
+	char* pszCursor;
 	char* s1 = pszTargetBuffer;
 	WINFO* wp;
 
@@ -607,8 +608,9 @@ static char* xref_findExpressionCloseToCaret(unsigned char* pszTargetBuffer, uns
 		return (char*)0;
 	pszStart = wp->caret.linePointer->lbuf;
 	s = &pszStart[wp->caret.offset];
+	pszCursor = s;
 
-	if (bFindStartOfWord) {
+	if (fiOptions != FI_CURSOR_TO_END_WORD) {
 		while (s > pszStart && (*matchesCharacter)(s[-1])) {
 			s--;
 		}
@@ -617,7 +619,7 @@ static char* xref_findExpressionCloseToCaret(unsigned char* pszTargetBuffer, uns
 		*pszExpressionBegin = s;
 	}
 
-	while ((*matchesCharacter)(*s) && pszTargetBuffer < pszTargetBufferEnd) {
+	while ((fiOptions != FI_BEGIN_WORD_TO_CURSOR || s < pszCursor) && (*matchesCharacter)(*s) && pszTargetBuffer < pszTargetBufferEnd) {
 		*pszTargetBuffer++ = *s++;
 	}
 	if (pszExpressionEnd) {
@@ -641,10 +643,10 @@ static int xref_matchIdentifier(unsigned char c) {
  * the expression in pszExpressionBegin and return the end of the found expression in pszExpressionEnd.
  **/
 char* xref_findIdentifierCloseToCaret(unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
-	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int bFindStartOfWord) {
+	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, FIND_IDENTIFIER_OPTIONS fiOptions) {
 
 	return xref_findExpressionCloseToCaret(pszTargetBuffer, pszTargetBufferEnd, pszExpressionBegin, pszExpressionEnd, 
-		xref_matchIdentifier, bFindStartOfWord);
+		xref_matchIdentifier, fiOptions);
 }
 
 /*---------------------------------*/
@@ -771,11 +773,11 @@ int xref_navigateCrossReference(char* s) {
  * by identifier.
  */
 void xref_getSelectedIdentifier(char* pszText, size_t nMaxChars) {
+	*pszText = 0;
 	bl_getSelectedText(pszText, nMaxChars);
 	if (!pszText[0]) {
-		xref_findIdentifierCloseToCaret(pszText, pszText + nMaxChars, NULL, NULL, 1);
+		xref_findIdentifierCloseToCaret(pszText, pszText + nMaxChars, NULL, NULL, FI_COMPLETE_WORD);
 	}
-
 }
 
 /*--------------------------------------------------------------------------
@@ -1086,6 +1088,19 @@ static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT*
 	return 0;
 }
 
+/*
+ * Execute the given command line with shell execute. Display an error of failure and
+ * return 0 in that case.
+ */
+static int xref_shellExecute(char* pszCommand) {
+	HINSTANCE hInst = ShellExecute(hwndMain, "open", pszCommand, "", ".", SW_SHOWNORMAL);
+	if ((intptr_t)hInst < 0 || (intptr_t)hInst > 32) {
+		return 1;
+	}
+	error_displayErrorInToastWindow("Cannot open %s", pszCommand);
+	return 0;
+}
+
 /*--------------------------------*/
 /* EdFindFileCursor() */
 /*---------------------------------*/
@@ -1129,13 +1144,61 @@ int EdFindFileCursor(void)
 		return 1;
 	}
 	if (_fseltarget[0]) {
-		HINSTANCE hInst = ShellExecute(hwndMain, "open", _fseltarget, "", ".", SW_SHOWNORMAL);
-		if ((intptr_t)hInst < 0 || (intptr_t)hInst > 32) {
-			return 1;
-		}
-		error_displayErrorInToastWindow("Cannot open %s", _fseltarget);
+		xref_shellExecute(_fseltarget);
 	}
 	return 0;
+}
+
+/*
+ * Simple URL encoding mechanism to encode searched text as URL parameter.
+ */
+static void xref_urlEncode(char* pszDest, char* pszSource) {
+	unsigned char c;
+
+	while ((c = *pszSource++) != 0) {
+		if (c == ' ' || c == '\t') {
+			*pszDest++ = '+';
+		} else if (c == '+') {
+			*pszDest++ = '%';
+			*pszDest++ = '2';
+			*pszDest++ = 'B';
+		} else if (c == '%') {
+			*pszDest++ = '%';
+			*pszDest++ = '2';
+			*pszDest++ = '5';
+		} else if (c > 128) {
+			*pszDest++ = '%';
+			sprintf(pszDest, "%02x", (int)c);
+			pszDest += 2;
+		} else {
+			*pszDest++ = c;
+		}
+	}
+	*pszDest = 0;
+}
+
+/*
+ * Perform a google / bing / duckduck go / ... search for the current word or selection.
+ */
+int EdFindOnInternet(void) {
+	char buf[128];
+	char command[512];
+
+	xref_getSelectedIdentifier(buf, sizeof buf);
+	if (!*buf) {
+		return 0;
+	}
+	char* pszCommand = config_getInternetSearchCommand();
+	char* pszParam = strstr(pszCommand, "$1");
+	if (pszParam == NULL) {
+		// configuration error
+		return 0;
+	}
+	int nOffs = (int)(pszParam - pszCommand);
+	strncpy(command, pszCommand, nOffs);
+	xref_urlEncode(command + nOffs, buf);
+	strcat(command, pszParam + 2);
+	return xref_shellExecute(command);
 }
 
 /*---------------------------------*/
@@ -1153,13 +1216,11 @@ int EdFindTagCursor(void)
 /* EdFindWordCursor() 			*/
 /*---------------------------------*/
 int EdFindWordCursor(dir)
-{	char *s,buf[256];
+{	char buf[256];
 
-	if ((s = xref_findIdentifierCloseToCaret(buf,&buf[sizeof buf],NULL, NULL, 0)) != 0L) {
-		RE_PATTERN *pPattern = regex_compileWithDefault(s);
-		return pPattern && find_expressionInCurrentFile(dir, pPattern, _currentSearchAndReplaceParams.options);
-	}
-	return 0;
+	xref_getSelectedIdentifier(buf, sizeof buf);
+	RE_PATTERN *pPattern = regex_compileWithDefault(buf);
+	return pPattern && find_expressionInCurrentFile(dir, pPattern, _currentSearchAndReplaceParams.options);
 }
 
 /*---------------------------------*/
