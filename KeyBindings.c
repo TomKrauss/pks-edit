@@ -30,8 +30,9 @@
 #define MAX_CONTEXT_NAME_LEN		32
 
 typedef struct tagACTION_BINDING {
-	struct tagACTION_BINDING* ab_next;		// next action binding context
-	char ab_context[MAX_CONTEXT_NAME_LEN];	// possible not null context
+	struct tagACTION_BINDING* ab_next;		// next action binding 
+	struct tagACTION_BINDING* ab_children;	// for nested actions (e.g. menus) - this is the possibly null list of children.
+	char ab_context[MAX_CONTEXT_NAME_LEN];	// context name
 	union {
 		KEYBIND		keybind;
 		MOUSEBIND	mousebind;
@@ -156,6 +157,10 @@ static JSON_MAPPING_RULE _keybindRules[] = {
 	{	RT_END }
 };
 
+static ACTION_BINDING* key_createActionBinding() {
+	return (ACTION_BINDING*)calloc(1, sizeof(ACTION_BINDING));
+}
+
 static JSON_MAPPING_RULE _mousebindRules[] = {
 	{	RT_CHAR_ARRAY, "context", offsetof(ACTION_BINDING, ab_context), sizeof(((ACTION_BINDING*)NULL)->ab_context)},
 	{	RT_ALLOC_STRING, "message", offsetof(ACTION_BINDING, ab_binding.mousebind.msg), 0},
@@ -169,12 +174,11 @@ static JSON_MAPPING_RULE _contextmenuRules[] = {
 	{	RT_ALLOC_STRING, "label", offsetof(ACTION_BINDING, ab_binding.contextMenu.cm_label), 0},
 	{	RT_STRING_CALLBACK, "command", 0, .r_descriptor = {.r_t_callback = contextmenu_parseCommand}},
 	{	RT_FLAG, "separator", offsetof(ACTION_BINDING, ab_binding.contextMenu.cm_isSeparator), 1},
+	{	RT_OBJECT_LIST, "sub-menus", offsetof(ACTION_BINDING, ab_children),
+		{.r_t_arrayDescriptor = {key_createActionBinding, _contextmenuRules}}
+	},
 	{	RT_END }
 };
-
-static ACTION_BINDING* key_createActionBinding() {
-	return (ACTION_BINDING*)calloc(1, sizeof(ACTION_BINDING));
-}
 
 static JSON_MAPPING_RULE _jsonBindingsRules[] = {
 	{	RT_OBJECT_LIST, "key-bindings", offsetof(JSON_BINDINGS, keys), 
@@ -225,6 +229,7 @@ static int bindings_destroyMouseBinding(ACTION_BINDING* pBind) {
 
 static int bindings_destroyContextMenu(ACTION_BINDING* pBind) {
 	free((char*)pBind->ab_binding.contextMenu.cm_label);
+	ll_destroy((LINKED_LIST**)&pBind->ab_children, bindings_destroyContextMenu);
 	return 1;
 }
 
@@ -395,30 +400,47 @@ int macro_bindKey(KEYCODE key, MACROREF macro, const char* pszActionContext) {
 }
 
 /*
+ * Returns a context menu - recursively callable for nested sub-menus. 
+ */
+static CONTEXT_MENU* contextmenu_getFrom(const char* pszActionContext, ACTION_BINDING* pBinding) {
+	CONTEXT_MENU* pHead = NULL;
+	CONTEXT_MENU* pCurrent = NULL;
+	while (pBinding) {
+		if (strcmp(pszActionContext, pBinding->ab_context) == 0 || !pBinding->ab_context[0] || strcmp(_DEFAULT_CONTEXT, pBinding->ab_context) == 0) {
+			CONTEXT_MENU* pNested = NULL;
+			if (pBinding->ab_children) {
+				pNested = contextmenu_getFrom(pszActionContext, pBinding->ab_children);
+				if (!pNested) {
+					pBinding = pBinding->ab_next;
+					continue;
+				}
+			}
+			if (!pHead) {
+				pHead = &pBinding->ab_binding.contextMenu;
+				pCurrent = pHead;
+			}
+			else {
+				pCurrent->cm_next = &pBinding->ab_binding.contextMenu;
+				pCurrent = pCurrent->cm_next;
+				pCurrent->cm_next = NULL;
+			}
+			pCurrent->cm_children = pNested;
+		}
+		pBinding = pBinding->ab_next;
+	}
+	return pHead;
+}
+
+/*
  * Returns a linked list of context menu entries for a given action context.
  */
 CONTEXT_MENU* contextmenu_getFor(const char* pszActionContext) {
-	CONTEXT_MENU* pHead = NULL;
-	CONTEXT_MENU* pCurrent = NULL;
 	ACTION_BINDING* pBinding = _contextMenu;
 
 	if (!pszActionContext) {
 		pszActionContext = _DEFAULT_CONTEXT;
 	}
-	while (pBinding) {
-		if (strcmp(pszActionContext, pBinding->ab_context) == 0 || !pBinding->ab_context[0] ||  strcmp(_DEFAULT_CONTEXT, pBinding->ab_context) == 0) {
-			if (!pHead) {
-				pHead = &pBinding->ab_binding.contextMenu;
-				pCurrent = pHead;
-			} else {
-				pCurrent->cm_next = &pBinding->ab_binding.contextMenu;
-				pCurrent = pCurrent->cm_next;
-				pCurrent->cm_next = NULL;
-			}
-		}
-		pBinding = pBinding->ab_next;
-	}
-	return pHead;
+	return contextmenu_getFrom(pszActionContext, pBinding);
 }
 
 /*

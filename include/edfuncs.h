@@ -98,6 +98,7 @@ KEYCODE macro_addModifierKeys(KEYCODE code);
 
 typedef struct tagCONTEXT_MENU {
 	struct tagCONTEXT_MENU* cm_next;
+	struct tagCONTEXT_MENU* cm_children;
 	const char* cm_label;
 	BOOL		cm_isSeparator;
 	MACROREF	cm_macref;

@@ -44,11 +44,21 @@ static SEARCH_ENGINE _searchEngines[] = {
 	{"Bing", "https://www.bing.com/search?q=$1"},
 	{"Yahoo", "https://search.yahoo.com/search?q=$1"},
 	{"DuckDuckGo", "https://duckduckgo.com/?q=$1" },
+	{"Ecosia", "https://www.ecosia.org/search?q=$1"},
 	{"Ask", "https://www.ask.com/web?q=$1"},
 	{"Startpage", "https://www.startpage.com/sp/search?q=$1"},
-	{"Ecosia", "https://www.ecosia.org/search?q=$1"},
 	{"Infinity Search", "https://infinitysearch.co/results?q=$1"},
-	{"Wolfram Alpha", "https://www.wolframalpha.com/input/?i=$1"},
+	{"Aol", "https://search.aol.com/aol/search?q=$1"},
+	{"excite", "https://results.excite.com/serp?q=$1"},
+	{"Search", "https://www.search.com/web?q=$1"},
+	{"Answers", "https://www.answers.com/search?q=$1"},
+	{"Lycos", "https://search20.lycos.com/web/?q=$1"},
+	{"Infospace", "https://infospace.com/serp?q=$1"},
+	{"WebCrawler", "https://www.webcrawler.com/serp?q=$1"},
+	{"Babylon", "http://search.babylon.com/?q=$1"},
+	{"Kiddle", "https://www.kiddle.co/s.php?q=$1"},
+	{"Yandex", "https://yandex.com/search/?text=$1"},
+	{"Wolframe | Alpha", "https://www.wolframalpha.com/input/?i=$1"},
 	0
 };
 

@@ -736,7 +736,7 @@ BEGIN
 END
 
 DLG_OPT_MISC DIALOGEX 0, 0, 249, 220
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Verschiedenes"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
@@ -749,13 +749,15 @@ BEGIN
     LTEXT           "&Maximale Anzahl Fenster:",-1,12,46,84,12,NOT WS_GROUP
     EDITTEXT        IDD_INT2,139,46,77,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     LTEXT           "&Theme:",-1,12,127,84,12,NOT WS_GROUP
-    LTEXT           "&Anwendungssprache:",-1,12,142,84,12,NOT WS_GROUP
-    COMBOBOX        IDD_STRINGLIST1,139,139,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Anwendungssprache:",-1,12,144,84,12,NOT WS_GROUP
+    COMBOBOX        IDD_STRINGLIST1,139,141,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDD_STRINGLIST2,139,124,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Zur Aktivierung der ausgewählten Sprache muss PKS Edit neu gestartet werden.",-1,13,188,199,29,NOT WS_GROUP
+    LTEXT           "Zur Aktivierung der ausgewählten Sprache muss PKS Edit neu gestartet werden.",-1,12,158,205,15,NOT WS_GROUP
     CONTROL         "Dateien beim Editieren locken",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,11,96,204,12
-    PUSHBUTTON      "Font auswählen...",IDD_FONTSELECT,139,157,77,14,NOT WS_TABSTOP
-    LTEXT           "Standardte&xtfont:",-1,12,158,84,11,NOT WS_GROUP
+    PUSHBUTTON      "Font auswählen...",IDD_FONTSELECT,139,176,77,14,NOT WS_TABSTOP
+    LTEXT           "Standardte&xtfont:",-1,12,177,84,11,NOT WS_GROUP
+    LTEXT           "Verwendete Suchmaschine:",-1,12,195,103,11,NOT WS_GROUP
+    COMBOBOX        IDD_STRINGLIST3,139,194,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
 DLG_OPT_LAYOUT DIALOGEX 69, 15, 279, 110
@@ -863,6 +865,7 @@ BEGIN
         MENUITEM "&Suchen...\a",                MFIND
         MENUITEM "&Ersetzen...\a",              MREPLACE
         MENUITEM "&Nächstes suchen\a",          MFAGAIN
+        MENUITEM "Sele&ktierten Text im Internet suchen...\a", IDM_SEARCH_ON_THE_INTERNET
         MENUITEM SEPARATOR
         MENUITEM "In &Dateien suchen...\a",     MEDIFLIS
         MENUITEM "Alte Suchergebnisse &verwenden...\a", MREAD_SEARCH_LIST
@@ -1727,15 +1730,15 @@ BEGIN
     IDS_COMMAND99           "Evaluiert selektierten Text oder die aktuelle Zeile;Code evaluieren"
     IDS_COMMAND100          "Zwischen Vollbild- und Normaldarstellung wechseln;Vollbild Modus"
     IDS_COMMAND101          "Definiert Fenster-Register #2;Def. Fenster #2"
-    IDS_COMMAND102          "Definiert Fenster-Register #3;Def. Fenster #2"
-    IDS_COMMAND103          "Definiert Fenster-Register #4;Def. Fenster #3"
+    IDS_COMMAND102          "Öffnet das Kontextmenü;Kontextmenü öffnen"
+    IDS_COMMAND103          "Sucht den selektierten Text im Internt;Im Internet suchen"
     IDS_COMMAND104          "Definiert Fenster-Register #5;Def. Fenster #5"
     IDS_COMMAND105          "Vergrößert das Bearbeitungsfenster auf maximale Größe;Vollbild"
     IDS_COMMAND106          "Setzt Fenstergröße gemäß Fenster-Register #0;Größe Fenster #0"
     IDS_COMMAND107          "Setzt Fenstergröße gemäß Fenster-Register #1;Größe Fenster #1"
-    IDS_COMMAND108          "Setzt Fenstergröße gemäß Fenster-Register #2;Größe Fenster #2"
-    IDS_COMMAND109          "Setzt Fenstergröße gemäß Fenster-Register #3;Größe Fenster #3"
-    IDS_COMMAND110          "Setzt Fenstergröße gemäß Fenster-Register #4;Größe Fenster #4"
+    IDS_COMMAND108          "Navigieren zum in der Suchliste ausgewählten Ergebnis;Zu Ergebnis navigieren"
+    IDS_COMMAND109          "Öffnet das Kontextmenü; Kontextmenü öffnen"
+    IDS_COMMAND110          "Sucht den ausgewählten Text (oder das aktuelle Wort) im Internet;Im Internet suchen"
     IDS_COMMAND111          "Setzt Fenstergröße gemäß Fenster-Register #5;Größe Fenster #5"
 END
 
