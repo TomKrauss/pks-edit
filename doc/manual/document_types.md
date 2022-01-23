@@ -4,7 +4,7 @@ The document types of PKS-Edit are configured in a file named `pkseditconfig.jso
 
 A document type is selected by one or more file name patterns (e.g. \*.cpp or \*.cpp;\*.c). Note, that _more specific_ file name patterns are matched first (\*.c matches in preference over \*.\*).
 Each document type may be associated with an editor configuration (also by name) defining things like the standard display mode or tabstops, [insertion options](editing_files.md#editing-text) and
-a _grammar_ which is referred to be name.
+a _grammar_ which is referred to by name.
 
 ## Grammar
 
@@ -57,6 +57,9 @@ Here is a description of some of the defined properties of an `editor configurat
 
 - `codepage` - the standard character encoding / code page for documents of this type. Specify either a WIN32 code for the desired encoding (0 == ISO8859-1 or 
    65001 == UTF-8) or -1 to have PKS-Edit "guess" the character encoding.
+- `actionContext` - a context to use for documents of the described types for the bound _actions_. Every PKS-Edit action binding (keyboard binding, mouse binding
+  menus, ...) can have an _action context_ in which the corresponding binding is active. If no action context is defined explicitly a default action context
+  is assumed.
 - `shifWidth` the number of columns defining one `logical edited tab` - i.e. the number of columns by which a selected range of text is indented, when pressing Tab.
 - `tabSize` - the number of columns defining one `logical visible tab`
 - `showWhitespace` - whether whitespace characters (tab, spaces, line-ends) are displayed during editing.
