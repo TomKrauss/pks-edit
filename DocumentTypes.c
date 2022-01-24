@@ -118,6 +118,7 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_CHAR_ARRAY, "backupExtension", offsetof(EDIT_CONFIGURATION, backupExtension), sizeof(((EDIT_CONFIGURATION*)NULL)->backupExtension)},
 	{	RT_CHAR_ARRAY, "executeOnLoad", offsetof(EDIT_CONFIGURATION, creationMacroName), sizeof(((EDIT_CONFIGURATION*)NULL)->creationMacroName)},
 	{	RT_CHAR_ARRAY, "executeOnSave", offsetof(EDIT_CONFIGURATION, closingMacroName), sizeof(((EDIT_CONFIGURATION*)NULL)->closingMacroName)},
+	{	RT_CHAR_ARRAY, "actionContext", offsetof(EDIT_CONFIGURATION, actionContext), sizeof(((EDIT_CONFIGURATION*)NULL)->actionContext)},
 	{	RT_END}
 };
 
@@ -159,6 +160,7 @@ EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor() {
 	pDescriptor->nl = '\n';
 	pDescriptor->tabDisplayFillCharacter = ' ';
 	pDescriptor->statusline[0] = 0;
+	pDescriptor->actionContext[0] = 0;
 	return pDescriptor;
 }
 

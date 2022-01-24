@@ -78,7 +78,7 @@ static int fkey_setText(KEYBIND* kp, void * pParam) {
 	int k = (int)kp->keycode - (int)keycode1;
 	if (k >= 0 && k < MAX_FKEYS) {
 		fk_registerBinding(k, kp->macref.index);
-		macro_getComment(szComment, szKtext, kp->macref.index, kp->macref.typ);
+		command_getTooltipAndLabel(kp->macref, szComment, szKtext);
 		wsprintf(szKey, "F%d %s", k + 1, szKtext);
 	}
 	else {
@@ -278,7 +278,7 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 				MACROREF* mp = macro_getKeyBinding(keycode1);
 				if (mp) {
 					char szText[100];
-					macro_getComment(szComment, szText, mp->index, mp->typ);
+					command_getTooltipAndLabel(*mp, szComment, szText);
 					pInfo->lpszText = szComment;
 				} else {
 					pInfo->lpszText = NULL;

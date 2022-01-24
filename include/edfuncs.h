@@ -98,10 +98,11 @@ KEYCODE macro_addModifierKeys(KEYCODE code);
 
 typedef struct tagCONTEXT_MENU {
 	struct tagCONTEXT_MENU* cm_next;
-	struct tagCONTEXT_MENU* cm_children;
-	const char* cm_label;
-	BOOL		cm_isSeparator;
-	MACROREF	cm_macref;
+	struct tagCONTEXT_MENU* cm_children;		// for sub-menus, this is the list of child menu items.
+	int         cm_resourceId;					// Alternatively to specifying a label explicitly one can specify an internal PKS Edit resource ID
+	const char* cm_label;						// The label to display for the menu. If no label is specified, a default for the defined command is used.
+	BOOL		cm_isSeparator;					// true for separator menus. Separator menus do not need a label
+	MACROREF	cm_macref;						// the associated command to execute.
 } CONTEXT_MENU;
 
 /*
@@ -601,11 +602,12 @@ extern int macro_onMenuAction(WINFO* wp, int menunum, POINT* aPositionClicked);
 #endif
 
 /*------------------------------------------------------------
- * macro_getComment()
- * Returns the command for a given macro index and type.
- * The result is copied into the space passed with szBuf.
+ * command_getTooltipAndLabel()
+ * Returns the label and tooltip for a given command described by command.
+ * The result is copied into the space passed with szTooltip.
+ * If szLabel is not NULL, it will contain a longer text used in a tooltip or a help context.
  */
-extern char* macro_getComment(char* szBuf, char* szB2, int nIndex, int type);
+extern char* command_getTooltipAndLabel(MACROREF command, char* szTooltip, char* szLabel);
 
 /*
  * Returns a tool tip for a given menu id.

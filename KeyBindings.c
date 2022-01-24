@@ -172,6 +172,7 @@ static JSON_MAPPING_RULE _mousebindRules[] = {
 static JSON_MAPPING_RULE _contextmenuRules[] = {
 	{	RT_CHAR_ARRAY, "context", offsetof(ACTION_BINDING, ab_context), sizeof(((ACTION_BINDING*)NULL)->ab_context)},
 	{	RT_ALLOC_STRING, "label", offsetof(ACTION_BINDING, ab_binding.contextMenu.cm_label), 0},
+	{	RT_INTEGER, "resource-id", offsetof(ACTION_BINDING, ab_binding.contextMenu.cm_resourceId), 0},
 	{	RT_STRING_CALLBACK, "command", 0, .r_descriptor = {.r_t_callback = contextmenu_parseCommand}},
 	{	RT_FLAG, "separator", offsetof(ACTION_BINDING, ab_binding.contextMenu.cm_isSeparator), 1},
 	{	RT_OBJECT_LIST, "sub-menus", offsetof(ACTION_BINDING, ab_children),

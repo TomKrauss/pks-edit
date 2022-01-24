@@ -166,7 +166,9 @@ typedef struct tagEDIT_CONFIGURATION {
 	int				hscroll;				// scroll n columns
 	int				vscroll;				// scroll n Lines
 	int				scroll_dy;				// scroll on dist dy to screen
-	void*			documentType;			// the document type descriptor from which this configuration was created or NULL for "default" document types not known to PKS-EDIT
+	char			actionContext[32];		// A possibly custom action context for documents described by this type.
+	void*			documentType;			// the document type descriptor from which this configuration was created or 
+											// NULL for "default" document types not known to PKS-EDIT
 											// i.e. - no file name pattern matches etc...
 } EDIT_CONFIGURATION;
 

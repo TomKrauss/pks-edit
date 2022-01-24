@@ -69,7 +69,7 @@ static void tb_registerBinding(int nCommand, TBBUTTON *pButton) {
     if (pMref != NULL) {
         ACTION_BINDING binding = { tb_propertyChanged, hwndToolbar, nCommand };
         action_registerAction(pMref->index, binding, FALSE);
-        macro_getComment(szComment, szKtext, pMref->index, pMref->typ);
+        command_getTooltipAndLabel(*pMref, szComment, szKtext);
         if (szKtext[0]) {
             pButton->iString = (intptr_t)_strdup(szKtext);
         }

@@ -3,7 +3,7 @@
  *
  * DynamicMenus.c
  *
- * Handle dynamic menus depending on defined macros etc...
+ * Handle menus and context menu and create them from the action binding definitions.
  *
  * 						created: 07.06.91 
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -23,7 +23,9 @@
 #include "helpitem.h"
 #include "stringutil.h"
 #include "actions.h"
+#include "menu.h"
 #include "trace.h"
+#include "xdialog.h"
 
 #define	MENU_TABCHAR	(char)8
 
@@ -35,7 +37,7 @@ typedef struct tagMENUS {
 
 static PMENUS 	_titlemenus;
 static HMENU	hNextDestroy;
-RSCTABLE *	_menutables;
+RSCTABLE *		_menutables;
 
 /*--------------------------------------------------------------------------
  * menu_overrideMenuBinding()
@@ -303,4 +305,82 @@ HMENU menu_getMenuForContext(char *pszContext) {
 	return menu_createMenu(FALSE);
 }
 
+static HMENU _contextMenu;
+static POINT _contextMenuPosition;
+static BOOL menu_appendMenuItems(HMENU hMenu, CONTEXT_MENU* pMenu) {
+	BOOL bHasItems = FALSE;
+	while (pMenu) {
+		if (pMenu->cm_isSeparator) {
+			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
+		}
+		else if (pMenu->cm_children) {
+			HMENU hNested = CreateMenu();
+			AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hNested, pMenu->cm_label);
+			menu_appendMenuItems(hNested, pMenu->cm_children);
+		}
+		else {
+			char szLabel[100];
+			char szTooltip[256];
+			if (!pMenu->cm_label) {
+				if (pMenu->cm_resourceId) {
+					strcpy(szLabel, dlg_getResourceString(pMenu->cm_resourceId));
+				} else {
+					command_getTooltipAndLabel(pMenu->cm_macref, szTooltip, szLabel);
+				}
+			} else {
+				strcpy(szLabel, pMenu->cm_label);
+			}
+			strcat(szLabel, "\b");
+			AppendMenu(hMenu, MF_STRING, ((int)pMenu->cm_macref.typ << 16) + pMenu->cm_macref.index, szLabel);
+		}
+		pMenu = pMenu->cm_next;
+		bHasItems = TRUE;
+	}
+	return bHasItems;
+}
 
+/*
+ * Populate the current context menu depending on the action context of the current editor window.
+ */
+static BOOL menu_populateContextMenu(WINFO* wp) {
+	CONTEXT_MENU* pMenu = contextmenu_getFor(wp->actionContext);
+	return menu_appendMenuItems(_contextMenu, pMenu);
+}
+
+static void menu_showContextMenu(HWND hwndParent, WINFO* wp, int x, int y) {
+	if (_contextMenu != NULL) {
+		DestroyMenu(_contextMenu);
+	}
+	_contextMenu = CreatePopupMenu();
+	if (!menu_populateContextMenu(wp)) {
+		return;
+	}
+	_contextMenuPosition.x = x;
+	_contextMenuPosition.y = y;
+	ScreenToClient(hwndParent, (LPPOINT)&_contextMenuPosition);
+
+	TrackPopupMenu(_contextMenu, TPM_LEFTALIGN | TPM_LEFTBUTTON,
+		x, y, 0, hwndParent, NULL);
+}
+
+/*
+ * Open the context menu in the current editor window (if any) close to the current mouse position.
+ * The context menu will be popuplated with the appropriate items. Return 1 if successful, 0 otherwise.
+ */
+int menu_openContextMenu() {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (!wp) {
+		return 0;
+	}
+	POINT pt;
+	GetCursorPos(&pt);
+	menu_showContextMenu(wp->ww_handle, wp, pt.x, pt.y);
+	return 1;
+}
+
+/*
+ * Returns the position where the last context menu was shown.
+ */
+POINT menu_getContextMenuPopupPosition() {
+	return _contextMenuPosition;
+}

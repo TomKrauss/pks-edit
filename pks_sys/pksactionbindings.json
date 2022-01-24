@@ -783,45 +783,36 @@
   ],
   "context-menu": [
     {
-      "label": "Select All",
       "command": "@mark-all"
     },
     {
-      "label": "Delete",
       "command": "@erase-block"
     },
     {
-      "label": "Copy to Clipboard",
       "command": "@copy-to-clipboard"
     },
     {
-      "label": "Cut to Clipboard",
       "command": "@delete-block"
     },
     {
-      "label": "Paste from Clipboard",
       "command": "@paste-clipboard"
     },
     {
       "separator": true
     },
     {
-      "label": "Find current word",
       "command": "@find-word-forward"
     },
     {
-      "label": "Find file",
       "command": "@find-file-under-cursor"
     },
     {
-      "label": "Search on the Internet",
       "command": "@search-on-internet"
     },
     {
       "separator": true
     },
     {
-      "label": "Toggle Comment",
       "command": "@toggle-comment"
     },
     {
@@ -829,7 +820,6 @@
       "separator": true
     },
     {
-      "label": "Find File under Cursor",
       "context": "markdown-renderer",
       "command": "@find-file-under-cursor"
     }

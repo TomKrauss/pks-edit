@@ -280,7 +280,7 @@ static void printkeybind(FILE *fp, KEYBIND *kp, char delim)
 				strcpy(comment,MAC_COMMENT(macp)); 
 			break;
 		case CMD_CMDSEQ:
-			macro_getComment(comment, command, kp->macref.index, kp->macref.typ);
+			command_getTooltipAndLabel(kp->macref, comment, command);
 			break;
 		default:
 			strcpy(comment,"garbagge.."); 

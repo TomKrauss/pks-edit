@@ -40,6 +40,7 @@
 #include "mouseutil.h"
 #include "grammar.h"
 #include "actions.h"
+#include "menu.h"
 #include "themes.h"
 #include "mainframe.h"
 #include "hashmap.h"
@@ -583,8 +584,8 @@ static void ww_destroyRendererData(WINFO* wp) {
 static void ww_assignRenderer(WINFO* wp) {
 	RENDERER* pOld = wp->renderer;
 	RENDERER* pNew = NULL;
+	FTABLE* fp = wp->fp;
 	if (wp->dispmode & SHOWWYSIWYG) {
-		FTABLE* fp = wp->fp;
 		const char* pRenderer = grammar_wysiwygRenderer(fp->documentDescriptor->grammar);
 		if (pRenderer) {
 			pNew = (RENDERER*)hashmap_get(_renderers, (intptr_t)pRenderer);
@@ -606,6 +607,9 @@ static void ww_assignRenderer(WINFO* wp) {
 		wp->r_data = wp->renderer->r_create(wp);
 	}
 	wp->actionContext = wp->renderer->r_context;
+	if (!wp->actionContext) {
+		wp->actionContext = fp->documentDescriptor->actionContext;
+	}
 	if (pOld) {
 		SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
 	}
@@ -1169,63 +1173,6 @@ static void onButtonDown(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	do_mouse(hwnd, _cClicks, message, wParam, lParam);
 }
 
-static HMENU _contextMenu;
-static POINT _contextMenuPosition;
-
-static BOOL contextmenu_appendItems(HMENU hMenu, CONTEXT_MENU* pMenu) {
-	BOOL bHasItems = FALSE;
-	while (pMenu) {
-		if (pMenu->cm_isSeparator) {
-			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
-		}
-		else if (pMenu->cm_children) {
-			HMENU hNested = CreateMenu();
-			AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hNested, pMenu->cm_label);
-			contextmenu_appendItems(hNested, pMenu->cm_children);
-		}
-		else {
-			char szLabel[256];
-			strcpy(szLabel, pMenu->cm_label);
-			strcat(szLabel, "\b");
-			AppendMenu(hMenu, MF_STRING, ((int)pMenu->cm_macref.typ << 16) + pMenu->cm_macref.index, szLabel);
-		}
-		pMenu = pMenu->cm_next;
-		bHasItems = TRUE;
-	}
-	return bHasItems;
-}
-
-static BOOL contextmenu_populate(WINFO* wp) {
-	CONTEXT_MENU* pMenu = contextmenu_getFor(wp->actionContext);
-	return contextmenu_appendItems(_contextMenu, pMenu);
-}
-
-static void edit_showContextMenu(HWND hwndParent, WINFO* wp, int x, int y) {
-	if (_contextMenu != NULL) {
-		DestroyMenu(_contextMenu);
-	}
-	_contextMenu = CreatePopupMenu();
-	if (!contextmenu_populate(wp)) {
-		return;
-	}
-	_contextMenuPosition.x = x;
-	_contextMenuPosition.y = y;
-	ScreenToClient(hwndParent, (LPPOINT)&_contextMenuPosition);
-
-	TrackPopupMenu(_contextMenu, TPM_LEFTALIGN | TPM_LEFTBUTTON,
-		x, y, 0, hwndParent, NULL);
-}
-
-void contextmenu_open() {
-	WINFO* wp = ww_getCurrentEditorWindow();
-	if (!wp) {
-		return;
-	}
-	POINT pt;
-	GetCursorPos(&pt);
-	edit_showContextMenu(wp->ww_handle, wp, pt.x, pt.y);
-}
-
 /*------------------------------------------------------------
  * WorkAreaWndProc()
  */
@@ -1270,7 +1217,8 @@ static WINFUNC WorkAreaWndProc(
 	case WM_COMMAND: {
 		int nCommand = (int)wParam;
 		wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR);
-		if (nCommand && macro_onMenuAction(wp, nCommand, &_contextMenuPosition)) {
+		POINT pt = menu_getContextMenuPopupPosition();
+		if (nCommand && macro_onMenuAction(wp, nCommand, &pt)) {
 			return 1;
 		}
 	}

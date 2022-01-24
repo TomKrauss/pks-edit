@@ -26,6 +26,7 @@
 #include "iccall.h"
 #include "winfo.h"
 #include "pksrc.h"
+#include "menu.h"
 #include "markpositions.h"
 #include "windowselector.h"
 #include "editoperations.h"
@@ -63,7 +64,7 @@ macro_getSelectedText(long ), EdHideLines(long ), EdUnHideLine(long ), EdStringS
 EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdListBindings(long ),
 EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(), ww_zoomWindow(int anIncreaseFactor),
 bl_moveSelectionUpDown(long),
-EdShowClipboard(long ), EdSaveAllFiles(), EdMenuTrackPopup(long ), EdBlockXtndMode(long ), edit_toggleComment(),contextmenu_open(), EdFindOnInternet();
+EdShowClipboard(long ), EdSaveAllFiles(), EdMenuTrackPopup(long ), EdBlockXtndMode(long ), edit_toggleComment(),EdFindOnInternet();
 
 static int function_unused() {
     // NOT USED ANY MORE
@@ -127,7 +128,7 @@ EDFUNC _edfunctab[] = {
 /*53*/	  EdGotoLine, '!', EW_NEEDSCURRF | 0,                                                             "GotoLine",
 /*54*/	  EdMarkSet, '!', EW_NEEDSCURRF | EW_HASFORM | 0,                                                 "SetMark",
 /*55*/	  EdMarkGoto, '!', EW_NEEDSCURRF | EW_HASFORM | 0,                                                "GotoMark",
-/*56*/	  contextmenu_open, '!', 0,                                                                        "OpenContextMenu",
+/*56*/	  menu_openContextMenu, '!', 0,                                                                        "OpenContextMenu",
 /*57*/	  EdLinesJoin, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                  "JoinLines",
 /*58*/	  EdEditFile, '!', EW_HASFORM | 0,                                                                "EditFile",
 /*59*/	  EdOptionSet, '!', EW_HASFORM | 0,                                                               "SetOptions",
@@ -432,7 +433,7 @@ COMMAND _cmdseqtab[] = {
 106, C_1FUNC, 85 /* ManageDocks */, MD_ADD_HORIZONTAL, "tile-docks-horizontally",
 107, C_1FUNC, 85 /* ManageDocks */, MD_ADD_VERTICAL, "tile-docks-vertically",
 108, C_1FUNC, 86 /* xref_navigateSearchErrorList */, LIST_CURR, "errorlist-click-line",
-109, C_1FUNC, 56 /* contextmenu_open */, 0, "open-context-menu",
+109, C_1FUNC, 56 /* menu_openContextMenu */, 0, "open-context-menu",
 110, C_1FUNC, 77 /* EdFindOnInternet */, 0, "search-on-internet", 
 111, C_1FUNC, 85 /* EdWinArrange */, 5 , "unused", 
 112, C_1FUNC, 65 /* EdSelectWindow */, 1 , "select-window-1", 

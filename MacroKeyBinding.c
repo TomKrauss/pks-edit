@@ -822,23 +822,25 @@ static void macro_updateMacroList(HWND hwnd)
 }
 
 /*------------------------------------------------------------
- * macro_getComment()
- * Returns the command for a given macro index and type.
- * The result is copied into the space passed with szBuf.
+ * command_getTooltipAndLabel()
+ * Returns the label and tooltip for a given command described by command.
+ * The result is copied into the space passed with szTooltip.
+ * If szLabel is not NULL, it will contain a longer text used in a tooltip or a help context.
  */
-char *macro_getComment(char* szBuf, char* szB2, int nIndex, int type)
-{
+char *command_getTooltipAndLabel(MACROREF command, char* szTooltip, char* szLabel) {
 	char *s;
 
-	szB2[0] = 0;
-
-	switch(type) {
+	if (szLabel) {
+		szLabel[0] = 0;
+	}
+	int nIndex = command.index;
+	switch(command.typ) {
 		case CMD_MACRO: 
-			if (_macrotab[nIndex] == 0) {
+			if (_macrotab[command.index] == 0) {
 				return "";
 			}
-			lstrcpy(szBuf,MAC_COMMENT(_macrotab[nIndex]));
-			return szBuf;
+			lstrcpy(szTooltip,MAC_COMMENT(_macrotab[nIndex]));
+			return szTooltip;
 		case CMD_MENU:
 			nIndex = _menutab[nIndex].index;
 			/* drop through */
@@ -854,13 +856,15 @@ char *macro_getComment(char* szBuf, char* szB2, int nIndex, int type)
 
 	char* pszComment = s;
 	if ((s = lstrchr(s,';')) != 0) {
-		lstrcpy(szB2,s+1);
+		if (szLabel) {
+			lstrcpy(szLabel, s + 1);
+		}
 		size_t nLen = s - pszComment;
-		strncpy(szBuf, pszComment, nLen);
-		szBuf[nLen] = 0;
+		strncpy(szTooltip, pszComment, nLen);
+		szTooltip[nLen] = 0;
 	}
 
-	return szBuf;
+	return szTooltip;
 }
 
 /*
@@ -872,7 +876,7 @@ char *macro_getMenuTooltTip(int dMenuId) {
 	MACROREF *	mp;
 
 	if (dMenuId != -1 && (mp = macro_getMacroIndexForMenu(dMenuId)) != 0) {
-		macro_getComment(szBuf, szBuf2, mp->index, mp->typ);
+		command_getTooltipAndLabel(*mp, szBuf, szBuf2);
 	} else {
 		szBuf[0] = 0;
 	}
@@ -891,7 +895,7 @@ void macro_showHelpForMenu(int dMenuId)
 
 	st_switchtomenumode(dMenuId != -1);
 	if (dMenuId != -1 && (mp = macro_getMacroIndexForMenu(dMenuId)) != 0) {
-		macro_getComment(szBuf, szBuf2, mp->index, mp->typ);
+		command_getTooltipAndLabel(*mp, szBuf, szBuf2);
 		st_setStatusLineMessage(*szBuf ? szBuf : (char *)0);
 	} else {
 		st_setStatusLineMessage((char *)0);
@@ -915,7 +919,7 @@ static void macro_updateCommentAndName(HWND hwnd)
 	DlgInitString(hwnd, IDD_STRING1, 
 				mac_name(szName,nIndex,type), MAC_NAMELEN);
 	DlgInitString(hwnd, IDD_STRING2, 
-				macro_getComment(szComment,szK,nIndex,type),MAC_COMMENTLEN);
+		command_getTooltipAndLabel((MACROREF) {.typ = type, .index = nIndex}, szComment, szK), MAC_COMMENTLEN);
 
 	SendDlgItemMessage(hwnd, IDD_STRING1, EM_SETMODIFY, FALSE, 0);
 	SendDlgItemMessage(hwnd, IDD_STRING2, EM_SETMODIFY, FALSE, 0);
