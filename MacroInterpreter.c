@@ -384,7 +384,7 @@ void macro_stopRecordingFunctions()
  * Returns FALSE; if the function described by the function pointer cannot 
  * be executed.
  */
-int macro_isFunctionEnabled(EDFUNC* fup, int warn) {
+int macro_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn) {
 	FTABLE* fp = ft_getCurrentDocument();
 	WINFO* wp = ww_getCurrentEditorWindow();
 
@@ -413,15 +413,18 @@ int macro_isFunctionEnabled(EDFUNC* fup, int warn) {
 	if (fup->flags & EW_COMPARISON_MODE && (wp == NULL || wp->comparisonLink == NULL)) {
 		return 0;
 	}
+	if (fup->flags & EW_CUSTOM_ENABLEMENT && !fup->isenabled(pParam)) {
+		return 0;
+	}
 	return 1;
 }
 
 /*--------------------------------------------------------------------------
  * macro_canExecuteFunction()
  */
-int macro_canExecuteFunction(int num, int warn) {
+int macro_canExecuteFunction(int num, long long pParam, int warn) {
 	EDFUNC *	fup = &_edfunctab[num];
-	return macro_isFunctionEnabled(fup, warn);
+	return macro_isFunctionEnabled(fup, pParam, warn);
 }
 
 /*---------------------------------*/
@@ -433,7 +436,7 @@ int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, voi
 	int 		ret = 0;
 	int			i;
 
-	if (!macro_canExecuteFunction(num, 1)) {
+	if (!macro_canExecuteFunction(num, (long long)p1, 1)) {
 		return 0;
 	}
 

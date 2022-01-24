@@ -188,3 +188,22 @@ int fm_gotoNextPosition(MARK_TYPE_ENUM type) {
 	return fm_gotoLastPositionDir(type, -1);
 }
 
+/*--------------------------------------------------------------------------
+ * fm_canGotoNext()
+ * Is a goto next for the given mark type supported?
+ */
+int fm_canGotoNext(long long llParam) {
+	MARK* mp = fm_getSavedMark(_autoMarks.ml_lastType, -1);
+	return (mp != 0);
+}
+
+/*--------------------------------------------------------------------------
+ * fm_canGotoLast()
+ * Is a goto last for the given mark type supported?
+ */
+int fm_canGotoLast(long long llParam) {
+	MARK* mp = fm_getSavedMark((MARK_TYPE_ENUM) llParam, 1);
+	return (mp != 0);
+}
+
+

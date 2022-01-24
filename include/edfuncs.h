@@ -32,18 +32,19 @@
 #define	BIN_XOR			'^'
 #define	BIN_CONVERT		'C'
 
-#define	EW_MODIFY		0x1		/* function modifies text */
-#define	EW_NOCASH		0x2		/* dont EdMacroRecord them */
-#define	EW_NEEDSCURRF	0x4		/* needs a current file */
-#define	EW_UNDOFLSH		0x8		/* flush undo buffer before */
-#define	EW_NEEDSBLK		0x10		/* needs a current text block */
-#define	EW_HASFORM		0x20		/* has a formula */
-#define	EW_CCASH		0x40		/* put them into char buffer */
-#define	EW_MULTI		0x80		/* has a Multiplier */
-#define EW_UNDO_AVAILABLE 0x100	/* undo must be possible */
-#define EW_REDO_AVAILABLE 0x200	/* redo must be possible */
-#define	EW_FINDCURS		0x400		/* applies to command executed using the mouse: before executing the command position the caret to the clicked point */
-#define	EW_COMPARISON_MODE	0x800		// only available in comparison mode
+#define	EW_MODIFY		0x1			// function modifies text
+#define	EW_NOCASH		0x2			// dont EdMacroRecord them
+#define	EW_NEEDSCURRF	0x4			// needs a current file 
+#define	EW_UNDOFLSH		0x8			// flush undo buffer before
+#define	EW_NEEDSBLK		0x10		// needs a current text block 
+#define	EW_HASFORM		0x20		// has a form which is opened, when the function is executed (record form params?)
+#define	EW_CCASH		0x40		// put them into char buffer
+#define	EW_MULTI		0x80		// has a Multiplier 
+#define EW_UNDO_AVAILABLE 0x100		// undo must be possible 
+#define EW_REDO_AVAILABLE 0x200		// redo must be possible 
+#define	EW_FINDCURS		0x400		// applies to command executed using the mouse: before executing the command position the caret to the clicked point
+#define	EW_COMPARISON_MODE	0x800	// only available in comparison mode
+#define	EW_CUSTOM_ENABLEMENT 0x1000	// custom enablement function must be evaluated to calculate enablement.
 
 #define	MAXMACRO		64
 
@@ -284,10 +285,11 @@ typedef union c_seq {
 } COM_SEQ;
 
 typedef struct edfunc {
-	int	(*execute)();		// the actual callback to invoke 
-	unsigned char id;		// logical id for referencing it 
-	int		 flags;			// see EW_... flags above
-	const char* f_name;		// the name as it can be used inside the PKS Edit macro language to execute this function.
+	int	(*execute)();						// the actual callback to invoke 
+	unsigned char id;						// logical id for referencing it 
+	int		 flags;							// see EW_... flags above
+	const char* f_name;						// the name as it can be used inside the PKS Edit macro language to execute this function.
+	int (*isenabled)(long long pParam);		// Optional enablement function allowing to check, whether the execute function can currently be invoked.
 } EDFUNC;
 
 typedef struct tagMACRO {
@@ -443,7 +445,7 @@ extern int 		macro_saveMenuBindingsAndDisplay(void);
  * Returns FALSE; if the function described by the function pointer cannot
  * be executed.
  */
-extern int macro_isFunctionEnabled(EDFUNC* fup, int warn);
+extern int macro_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn);
 
 /*------------------------------------------------------------
  * macro_autosaveAllBindings()

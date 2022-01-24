@@ -75,6 +75,18 @@ extern int fm_gotoLastPosition(MARK_TYPE_ENUM type);
  */
 extern int fm_gotoNextPosition(MARK_TYPE_ENUM type);
 
+/*--------------------------------------------------------------------------
+ * fm_canGotoNext()
+ * Is a goto next for the given mark type supported?
+ */
+extern int fm_canGotoNext(long long type);
+
+/*--------------------------------------------------------------------------
+ * fm_canGotoLast()
+ * Is a goto last for the given mark type supported?
+ */
+extern int fm_canGotoLast(long long type);
+
 #define MARKPOSITIONS_H
 
 #endif // !MARKPOSITIONS_H
