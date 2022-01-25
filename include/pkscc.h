@@ -43,7 +43,7 @@ extern int macro_executeMacroByIndex(int macroindex);
 /*
  * print the current mouse bindings to a file and display them to the user.
  */
-extern int macro_saveMouseBindingsAndDisplay(void);
+extern int print_saveMouseBindingsAndDisplay(void);
 
 /*---------------------------------
  * macro_createFileAndDisplay()
@@ -60,9 +60,9 @@ extern BOOL macro_createFileAndDisplay(char* fn, long (*callback)(FILE* fp));
 extern int 		macro_isInCurrentDocumentContext(int ctx);
 
 /*--------------------------------------------------------------------------
- * macro_saveMenuBindingsAndDisplay()
+ * print_saveMenuBindingsAndDisplay()
  */
-extern int macro_saveMenuBindingsAndDisplay(void);
+extern int print_saveMenuBindingsAndDisplay(void);
 
 /*------------------------------------------------------------
  * macro_readWriteWithFileSelection()

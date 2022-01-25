@@ -103,6 +103,7 @@ typedef struct tagCONTEXT_MENU {
 	int         cm_resourceId;					// Alternatively to specifying a label explicitly one can specify an internal PKS Edit resource ID
 	const char* cm_label;						// The label to display for the menu. If no label is specified, a default for the defined command is used.
 	BOOL		cm_isSeparator;					// true for separator menus. Separator menus do not need a label
+	BOOL		cm_isHistoryMenu;				// true for "history" menus. Will be replaced during runtime by a list of recently opened files.
 	MACROREF	cm_macref;						// the associated command to execute.
 } CONTEXT_MENU;
 
@@ -110,6 +111,11 @@ typedef struct tagCONTEXT_MENU {
  * Returns a linked list of context menu entries for a given action context.
  */
 extern CONTEXT_MENU* contextmenu_getFor(const char* pszActionContext);
+
+/*
+ * Returns a linked list of main menu entries for a given action context.
+ */
+extern CONTEXT_MENU* mainmenu_getFor(const char* pszActionContext);
 
 /*
  * MACROS -----------------------------------------------------------
@@ -438,9 +444,9 @@ extern MACRO* macro_getByIndex(int idx);
 extern int macro_getInternalIndexByName(const char* name);
 
 extern int 		macro_saveMacrosAndDisplay(char* macroname);
-extern int 		macro_saveMouseBindingsAndDisplay(void);
-extern int 		macro_saveKeyBindingsAndDisplay(void);
-extern int 		macro_saveMenuBindingsAndDisplay(void);
+extern int 		print_saveMouseBindingsAndDisplay(void);
+extern int 		print_saveKeyBindingsAndDisplay(void);
+extern int 		print_saveMenuBindingsAndDisplay(void);
 /*
  * Returns FALSE; if the function described by the function pointer cannot
  * be executed.
@@ -481,14 +487,14 @@ extern void macro_onKeybindingChanged(KEYCODE key);
 extern int macro_bindKey(KEYCODE key, MACROREF macro, const char* pszContext);
 
 /*
- * Delete a key binding.
- */
-extern int macro_deleteKeyBinding(KEYCODE key, const char* pszContext);
-
-/*
  * Delete all key bindings for a given macro ref. 
  */
 extern int macro_deleteKeyBindingsForMacroRef(MACROREF aMacroRef);
+
+/*
+ * Delete a key binding.
+ */
+extern int macro_deleteKeyBinding(KEYCODE key, const char* pszActionContext);
 
 /*--------------------------------------------------------------------------
  * macro_selectDefaultBindings()
@@ -675,6 +681,11 @@ extern void mouse_bindingsDo(const char* pszActionContext, int (*callback)(MOUSE
  * Find the 1st key bound to a given macro.
  */
 extern KEYCODE macro_findKey(const char* pszActionContext, MACROREF macro);
+
+/*
+ * Name of the default action context to use in PKS-Edit.
+ */
+extern const char* DEFAULT_ACTION_CONTEXT;
 
 #define	_EDFUNCS_H
 #endif

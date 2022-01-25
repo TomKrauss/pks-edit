@@ -23,13 +23,9 @@
 %token T_LOCAL T_SWITCH T_BREAK T_CONTINUE T_RETURN 
 %token T_NUMVAR T_STRINGVAR
 %token T_NMATCH
-%token T_SHIFT T_CTRL T_ALT T_LEFT T_MIDDLE T_RIGHT T_HAS_SELECTION
-%token T_MENUPOPUP T_MENUSEPERATOR T_MENUBREAK T_MENUBARBREAK
 %token T_ASSIGN T_NE T_EQ
 %token T_OR T_AND
-%token T_DEFMACRO T_DEFALTPATH T_DEFCOMPILER T_DEFDOCTYPES
-%token T_DEFMENUS T_DEFTAGS
-%token T_DEFESCAPES
+%token T_DEFMACRO 
 %token T_CMDSEQPREFIX
 
 %nonassoc '<' T_NE T_EQ '>' '~' T_NMATCH
@@ -110,7 +106,6 @@ unsigned char 	*AddComSeq(unsigned char *sp, unsigned char *spend,
 				     	 unsigned char typ, intptr_t par);
 int				FuncIdx(void *ep);
 int 			IsFormStart(void *ep,int parno);
-KEYCODE 		key2code(char *K, int control);
 void 		key_destroytable(char *name);
 TYPEDVAL		PushBinop(int opd_typ, TYPEDVAL *v1, 
 					TYPEDVAL *v2);
@@ -124,9 +119,6 @@ void 		CloseLabelList(void);
 void 		KillLabel(char *name);
 char			*LabelAutoName(char *prefix, int num);
 int 			IsStringFunc(void *ep);
-void 		menu_initializeDefinition(char *szMenu);
-int 			menu_addMenuMacroItem(char *pszString, int menutype, 
-				MACROREFTYPE mactype, MACROREFTYPE macidx);
 %}
 
 %%
@@ -139,110 +131,8 @@ int yydebug = 1;
 			} resource resources
 
 resource	: macros		
-			| menus
 			| constants
 
-inherit		:
-			| ':' T_IDENT
-
-/*!!!!!!
- * the followin stuff is commented out, because it is unneeded currently
- *!!!!!!
- */
-/*-- TAGS -------------------------------------------
-
-tags			: T_DEFTAGS T_IDENT inherit tagdefs ';'
-
-tagdefs		:
-			| T_STRING
-			| T_STRING ',' tagdefs
-			| error { yyerror("invalid tag definition"); }
-
-/*-- ESCAPES -------------------------------------------
-
-escapes		: T_DEFESCAPES T_IDENT inherit escapedefs ';'
-
-escapedefs	:
-			| escape
-			| escapedefs ',' escape
-
-escape		: T_STRING T_ASSIGN T_STRING
-			{
-				bind_escape(*$1.s, $3.s);
-				freeval(&$1.s);
-				freeval(&$3.s);
-			}
-			| error { yyerror("invalid escape definition"); }
-
-
-/*-- DOCTYPE -------------------------------------------
-
-doctypes		: T_DEFDOCTYPES docdefs ';'
-
-docdefs		:
-			| doctype ',' docdefs
-
-doctype		: T_IDENT T_ASSIGN T_STRING strlist
-			{
-				_compilerConfiguration->cb_showStatus("Defining documenttype %s",$1.s);
-				freeitem(&$1.s);
-				freeitem(&$3.s);
-			}
-			| error { yyerror("document type definition"); }
-
-strlist		: '{' strings '}'
-
-strings		:
-			| T_STRING strings
-
-/*-- MENUS -------------------------------------------*/
-
-menus		: T_DEFMENUS T_IDENT inherit 
-			{
-				menu_initializeDefinition($2.s);
-				freeitem(&$2.s);
-			}
-			menudefs ';'
-
-menudefs		:
-			| submenu
-			| submenu ',' menudefs
-
-submenu		: T_MENUPOPUP T_STRING 
-			{
-				_compilerConfiguration->cb_showStatus("Defining sub-menu %s",$2.s);
-				menu_addMenuMacroItem($2.s, UM_POPUP, 0, 0);
-				freeitem(&$2.s);
-			}
-			menuconnect '{' menuitems '}'
-			{
-				menu_addMenuMacroItem((char*)0, UM_ENDPOPUP, 0, 0);
-			}
-
-menuconnect	:
-			| ':' T_STRING
-
-menuitems		: 
-			| menuitem
-			| menuitems ',' menuitem
-
-menuitem		: T_MENUSEPERATOR
-			{
-				menu_addMenuMacroItem((char *)0, UM_SEPARATOR, 0, 0);
-			}
-			| T_MENUBARBREAK
-			| T_MENUBREAK
-			| T_STRING menuoptions T_ASSIGN cmd_or_macro
-			{
-				menu_addMenuMacroItem($1.s, UM_ITEM, $4.macref.typ, $4.macref.index);
-				freeitem(&$1.s);
-			}
-			| submenu
-			| error { yyerror("invalid menu item"); }
-
-menuoptions	:
-			| menuoptions ',' T_IDENT  
-			/* GRAYED */
 
 /*-- CONSTANTS --------------------------------------------------*/
 
@@ -304,9 +194,6 @@ macros		:  macrostart opt_string block
 
 opt_string	:			{	$$.s = 0; }
 			| T_STRING	{	$$.s = $1.s; }
-
-opt_ident	:				{	$$.s = ""; }
-			| T_IDENT		{	$$.s = $1.s; }
 
 block		: '{' var_decls stmntlist '}'
 
@@ -587,20 +474,6 @@ type_ident	: T_TCHAR				{	$$.type = C_CHAR1PAR;	}
 			| T_TINT				{	$$.type = C_INT1PAR;	}
 			| T_TLONG				{	$$.type = C_LONG1PAR;	}
 			| T_TSTRING			{	$$.type = C_STRING1PAR;	}
-
-cmd_or_macro	: T_IDENT	 {
-				$$.macref.typ = CMD_MACRO; 
-				if (($$.macref.index = macro_getInternalIndexByName($1.s)) == 
-					(MACROREFIDX)-1) {
-					yyerror("undefined macro %s",$1.s);
-				}
-				freeitem(&$1.s);
-			}
-			| T_CMDSEQPREFIX T_IDENT {
-				$$.macref.typ = CMD_CMDSEQ; 
-				$$.macref.index = macro_getCmdIndexByName($2.s); 
-				freeitem(&$2.s);
-			}
 
 constval		: T_NUM {
 				$$.v.type = C_LONG1PAR; 

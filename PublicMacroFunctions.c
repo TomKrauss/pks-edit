@@ -1582,20 +1582,20 @@ int EdListBindings(long lWhich)
 	}
 
 	if (lWhich & LIST_KEYS) {
-		if (macro_saveKeyBindingsAndDisplay() == 0) {
+		if (print_saveKeyBindingsAndDisplay() == 0) {
 			return 0;
 		}
 	}
 
 
 	if (lWhich & LIST_MICE) {
-		if (macro_saveMouseBindingsAndDisplay() == 0) {
+		if (print_saveMouseBindingsAndDisplay() == 0) {
 			return 0;
 		}
 	}
 
 	if (lWhich & LIST_MENUS) {
-		if (macro_saveMenuBindingsAndDisplay() == 0) {
+		if (print_saveMenuBindingsAndDisplay() == 0) {
 			return 0;
 		}
 	}

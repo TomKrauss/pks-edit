@@ -91,14 +91,7 @@ static struct kw {
 	char *	name;
 } keywords[] = {
 	T_DEFMACRO,	"macro",
-	T_MENUPOPUP,	"POPUP",
-	T_DEFMENUS,	"MENU",
 	T_CONST,		"const",
-	T_DEFALTPATH,	"ALTPATH",
-	T_DEFCOMPILER,	"COMPILER",
-	T_DEFDOCTYPES,	"DOCTYPES",
-	T_DEFTAGS,	"TAGS",
-	T_DEFESCAPES,	"TEXTBUFFER",
 	T_IF,		"if",
 	T_ELSE,		"else",
 	T_ELIF,		"elif",
@@ -417,9 +410,6 @@ WS		[ \t]
 				yylval.num = yytext[1];
 				return T_NUM;
 			}
-----			return T_MENUSEPERATOR;
-!!!!			return T_MENUBREAK;
-\|\|\|\|		return T_MENUBARBREAK;
 {CHN}+		{	SYMBOL 	sym;
 				char *	key;
 

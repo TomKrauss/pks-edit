@@ -27,7 +27,6 @@
 
 #include "pkscc.h"
 #include "funcdef.h"
-#include "brackets.h"
 #include "helpitem.h"
 
 #include "resource.h"
@@ -48,9 +47,9 @@ extern 	MACROREF *macro_getMacroIndexForMenu(int nId);
 void macro_printListHeader(FILE *fp, char *itemname);
 
 /*
- * c2shift()
+ * print_modifier()
  */
-char *c2shift(char *s, KEYCODE code)
+char *print_modifier(char *s, KEYCODE code)
 {
 	*s = 0;
 	if (code & K_ALTERNATE) {
@@ -68,11 +67,11 @@ char *c2shift(char *s, KEYCODE code)
 	return s;
 }
 
-static char *c2button(char *b, int button, int shift, int nclicks)
+static char *print_buttonEvent(char *b, int button, int shift, int nclicks)
 {
 	char			*s;
 
-	s = c2shift(b,(KEYCODE)(shift<<8));
+	s = print_modifier(b,(KEYCODE)(shift<<8));
 	if (button & MBUT_L) {
 		strcpy(s,"MLeft+");
 		s += 5;
@@ -90,7 +89,7 @@ static char *c2button(char *b, int button, int shift, int nclicks)
 }
 
 /*--------------------------------------------------------------------------
- * key2code()
+ * print_parseKeycode()
  * sorry for this: PKEDIT has the following functions also implemented. 
  * but: making Keys more readable than in menu enmtries in dumb GEM menus 
  *      we has to have a local _scantab
@@ -99,7 +98,7 @@ static char *c2button(char *b, int button, int shift, int nclicks)
 
 extern char *_scantab;
 
-KEYCODE key2code(const unsigned char *k, int control)
+KEYCODE print_parseKeycode(const unsigned char *k, int control)
 {
 	unsigned char *	t;
 	const unsigned char *	K;
@@ -147,7 +146,7 @@ static char *_scantab=
 /* 103-112*/  "Num7\0Num8\0Num9\0Num4\0Num5\0Num6\0Num1\0Num2\0Num3\0Num0\0"
 /* 113-119*/  "NumDot\0Enter\0Left\0Right\0\0\0\0"
 /* 120-132*/  "1\0" "2\0" "3\0" "4\0" "5\0" "6\0" "7\0" "8\0" "9\0" "0\0" "Beta\0'";
-KEYCODE key2code(char *K, int control)
+KEYCODE print_parseKeycode(char *K, int control)
 {
 	char *	t;
 	char *	k;
@@ -230,18 +229,18 @@ static char *code2key(KEYCODE code)
 #endif
 
 /*--------------------------------------------------------------------------
- * pr_cmddelim()
+ * print_commandDelimiter()
  */
-static char *pr_cmddelim(char *d,char *command,char delim)
+static char *print_commandDelimiter(char *d,char *command,char delim)
 {
 	sprintf(d,"%s%c",command,delim);
 	return d;
 }
 
 /*--------------------------------------------------------------------------
- * pr_comment()
+ * print_comment()
  */
-static char *pr_comment(char *d, const char *comment)
+static char *print_comment(char *d, const char *comment)
 {
 	if (!comment)
 		return "";
@@ -250,11 +249,11 @@ static char *pr_comment(char *d, const char *comment)
 }
 
 /*--------------------------------------------------------------------------
- * printkeybind()
+ * print_keybinding()
  * print one key binding in the following manner
  * KEYCODE | FUNCTION+PARS | REMARK
  */
-static void printkeybind(FILE *fp, KEYBIND *kp, char delim)
+static void print_keybinding(FILE *fp, KEYBIND *kp, char delim)
 {
 	EDBINDS *	ep = &_bindings;
 	char 	comment[100],command[128],n1[100],n2[100];
@@ -290,17 +289,17 @@ static void printkeybind(FILE *fp, KEYBIND *kp, char delim)
 	mac_name(command, findex, (MACROREFTYPE)kp->macref.typ);
 
  	fprintf(fp,"%-25s= %-25s%s\n",
-		code2key(kp->keycode),pr_cmddelim(n1,command,delim),
-		pr_comment(n2,comment));
+		code2key(kp->keycode),print_commandDelimiter(n1,command,delim),
+		print_comment(n2,comment));
 }
 
 /*
- * keycomp()
+ * print_compareKeyBindings()
  *
  * sort KEYBIND entries according to scancode:
  *
  */
-static int keycomp(KEYBIND *kp1, KEYBIND *kp2)
+static int print_compareKeyBindings(KEYBIND *kp1, KEYBIND *kp2)
 {
 	if (!kp1->keycode || kp1->keycode == K_DELETED)
 		return -1;
@@ -315,7 +314,7 @@ struct tagCOLLECTED_KEYBINDS {
 	KEYBIND *table;
 };
 
-static int macro_collectKeybind(KEYBIND* kp, void* pParam) {
+static int print_collectKeybindings(KEYBIND* kp, void* pParam) {
 	struct tagCOLLECTED_KEYBINDS *pCollected = (struct tagCOLLECTED_KEYBINDS*)pParam;
 	if (pCollected->nElements >= pCollected->nCapacity) {
 		return 0;
@@ -325,9 +324,9 @@ static int macro_collectKeybind(KEYBIND* kp, void* pParam) {
 }
 
 /*
- * macro_printKeyBindingsCallback()
+ * print_keyBindingsCallback()
  */
-static int macro_printKeyBindingsCallback(FILE *fp)
+static int print_keyBindingsCallback(FILE *fp)
 {
 	KEYBIND *		kpd;
 	int	    		i,n;
@@ -337,11 +336,11 @@ static int macro_printKeyBindingsCallback(FILE *fp)
 	collected.nElements = 0;
 	collected.nCapacity = 300;
 	collected.table = calloc(collected.nCapacity, sizeof (KEYBIND));
-	key_bindingsDo(pszContext, macro_collectKeybind, &collected);
+	key_bindingsDo(pszContext, print_collectKeybindings, &collected);
 	kpd = collected.table;
 	n = collected.nElements;
 
-	qsort(kpd,n,sizeof *kpd,(int (*)(const void*, const void*))keycomp);
+	qsort(kpd,n,sizeof *kpd,(int (*)(const void*, const void*))print_compareKeyBindings);
 	fprintf(fp, "\n\n//----------------------------------------\n");
 	fprintf(fp, "// This file contains the PKS Edit keyboard bindings\n");
 	fprintf(fp, "// To change the bindings\n");
@@ -353,7 +352,7 @@ static int macro_printKeyBindingsCallback(FILE *fp)
 	fprintf(fp,"\n\noverride KEYS %s	# total %d bindings\n\n", pszContext, n);
 
 	for (i = 0; i < n; i++) {
-		printkeybind(fp, &kpd[i], i < n-1 ? ',' : ';');
+		print_keybinding(fp, &kpd[i], i < n-1 ? ',' : ';');
 	}
 
 	free(kpd);
@@ -361,35 +360,35 @@ static int macro_printKeyBindingsCallback(FILE *fp)
 }
 
 /*
- * macro_saveKeyBindingsAndDisplay
+ * print_saveKeyBindingsAndDisplay
  */
-int macro_saveKeyBindingsAndDisplay(void) {
-	return macro_createFileAndDisplay("keys", macro_printKeyBindingsCallback);
+int print_saveKeyBindingsAndDisplay(void) {
+	return macro_createFileAndDisplay("keys", print_keyBindingsCallback);
 }
 
 
 /*
- * printmousebind()
+ * print_mousebinding()
  * command clicks button shift comment
  */
-static void printmousebind(FILE *fp, MOUSEBIND *mp, char delim)
+static void print_mousebinding(FILE *fp, MOUSEBIND *mp, char delim)
 {
 	char 	command[128],button[30],b2[128],b3[128];
 
 	mac_name(command,mp->macref.index,mp->macref.typ);
-	c2button(button,mp->button,mp->shift,mp->nclicks);
+	print_buttonEvent(button,mp->button,mp->shift,mp->nclicks);
  	fprintf(fp,"%-25s= %c %-25s%s\n",
 		button, ' ',
-		pr_cmddelim(b2,command,delim),pr_comment(b3,mp->msg));
+		print_commandDelimiter(b2,command,delim),print_comment(b3,mp->msg));
 }
 
 /*
- * mousecomp()
+ * print_compareMousebindings()
  *
  * sort MOUSEBIND entries according to Button nclicks shift
  *
  */
-static int mousecomp(MOUSEBIND *mp1, MOUSEBIND *mp2)
+static int print_compareMousebindings(MOUSEBIND *mp1, MOUSEBIND *mp2)
 {	int d;
 
 	if ((d = mp1->button - mp2->button) == 0 &&
@@ -405,7 +404,7 @@ struct tagCOLLECTED_MOUSEBINDS {
 	MOUSEBIND* table;
 };
 
-static int macro_collectMousebind(MOUSEBIND* mp, void* pParam) {
+static int print_collectMousebindings(MOUSEBIND* mp, void* pParam) {
 	struct tagCOLLECTED_MOUSEBINDS* pCollected = (struct tagCOLLECTED_MOUSEBINDS*)pParam;
 	if (pCollected->nElements >= pCollected->nCapacity) {
 		return 0;
@@ -415,9 +414,9 @@ static int macro_collectMousebind(MOUSEBIND* mp, void* pParam) {
 }
 
 /*
- * macro_printMouseBindingCallback
+ * print_mouseBindingCallback
  */
-static int macro_printMouseBindingCallback(FILE *fp) {
+static int print_mouseBindingCallback(FILE *fp) {
 	MOUSEBIND* mpd;
 	int	    	i, n;
 	struct tagCOLLECTED_MOUSEBINDS collected;
@@ -426,10 +425,10 @@ static int macro_printMouseBindingCallback(FILE *fp) {
 	collected.nElements = 0;
 	collected.nCapacity = 300;
 	collected.table = calloc(collected.nCapacity, sizeof(struct tagCOLLECTED_MOUSEBINDS));
-	mouse_bindingsDo(pszContext, macro_collectMousebind, &collected);
+	mouse_bindingsDo(pszContext, print_collectMousebindings, &collected);
 	mpd = collected.table;
 	n = collected.nElements;
-	qsort(mpd,n,sizeof *mpd,(int (*)(const void*, const void*))mousecomp);
+	qsort(mpd,n,sizeof *mpd,(int (*)(const void*, const void*))print_compareMousebindings);
 	fprintf(fp, "// This file contains the PKS Edit mouse bindings\n");
 	fprintf(fp, "// To change the bindings\n");
 	fprintf(fp, "//   - add the mouse click specification\n");
@@ -440,7 +439,7 @@ static int macro_printMouseBindingCallback(FILE *fp) {
 	fprintf(fp,"\n\noverride MOUSE %s	# total %d bindings\n\n", pszContext, n);
 
 	for (i = 0; i < n; i++) {
-		printmousebind(fp, &mpd[i], i < n-1 ? ',' : ';');
+		print_mousebinding(fp, &mpd[i], i < n-1 ? ',' : ';');
 	}
 
 	free(mpd);
@@ -450,21 +449,26 @@ static int macro_printMouseBindingCallback(FILE *fp) {
 /*
  * print the current mouse bindings to a file and display them to the user.
  */
-int macro_saveMouseBindingsAndDisplay(void)
+int print_saveMouseBindingsAndDisplay(void)
 {
-	return macro_createFileAndDisplay("mouse", macro_printMouseBindingCallback);
+	return macro_createFileAndDisplay("mouse", print_mouseBindingCallback);
+}
+
+static void print_indent(FILE* fp, int nIndent) {
+	for (int i = 0; i < nIndent; i++) {
+		fputc('\t', fp);
+	}
 }
 
 /*--------------------------------------------------------------------------
- * PrintSubMenu()
+ * print_subMenu()
  */
-static void PrintSubMenu(FILE *fp, HMENU hMenu)
-{
+static void print_subMenu(FILE *fp, HMENU hMenu, int nIndent) {
 	MACROREF *	mp;
 	HMENU		hSubMenu;
 	UINT		wCount;
 	UINT		wState;
-	char		szText[100];
+	char		szText[128];
 	char		command[100];
 	int			nItem;
 	int			wID;
@@ -472,15 +476,20 @@ static void PrintSubMenu(FILE *fp, HMENU hMenu)
 	wCount = GetMenuItemCount(hMenu);
 	for (nItem = 0; nItem < (int)wCount; ) {
 		wState = GetMenuState(hMenu, nItem, MF_BYPOSITION);
-		if (HIBYTE(wState) && 
+		if (HIBYTE(wState) &&
 			(hSubMenu = GetSubMenu(hMenu, nItem)) != 0) {
 			GetMenuString(hMenu, nItem, szText, sizeof szText,
 				MF_BYPOSITION);
-			fprintf(fp,"POPUP \"%s\" {\n", szText);
-			PrintSubMenu(fp, hSubMenu);
-			fprintf(fp, "}");
+			print_indent(fp, nIndent);
+			fprintf(fp,"{\"label\": \"%.*s\", \"sub-menu\": [\n", (int)(sizeof szText), szText);
+			print_subMenu(fp, hSubMenu, nIndent + 1);
+			for (int i = 0; i < nIndent; i++) {
+				fputc('\t', fp);
+			}
+			fprintf(fp, "]}");
 		} else if (wState & MF_SEPARATOR) {
-			fprintf(fp,"\t----");
+			print_indent(fp, nIndent);
+			fprintf(fp,"{\"separator\": true}");
 		} else {
 			GetMenuString(hMenu, nItem, szText, sizeof szText,
 				MF_BYPOSITION);
@@ -489,15 +498,24 @@ static void PrintSubMenu(FILE *fp, HMENU hMenu)
 				nItem++;
 				continue;
 			}
-			if (wID == IDM_HISTORY) {
-				strcpy(szText, "HISTORY");
-			}
+			print_indent(fp, nIndent);
+			BOOL bAutoLabel = FALSE;
 			if ((mp = macro_getMacroIndexForMenu(wID)) == 0) {
 				sprintf(command, "%d", wID);
 			} else {
+				bAutoLabel = TRUE;
 				mac_name(command, mp->index, mp->typ);
 			}
-			fprintf(fp, "\t\"%s\" = %s", szText, command);
+			if (wID == IDM_HISTORY) {
+				fprintf(fp, "{\"history-menu\": true,");
+				fprintf(fp, "\"command\": \"%s\"},", command);
+			} else {
+				fprintf(fp, "{");
+				if (!bAutoLabel) {
+					fprintf(fp, "\"label\": \"%.*s\",", (int)(sizeof szText), szText);
+				}
+				fprintf(fp, "\"command\": \"%s\"}", command);
+			}
 		}
 		if (++nItem < (int)wCount && wID != IDM_HISTORY) {
 			fprintf(fp, ",");
@@ -507,25 +525,25 @@ static void PrintSubMenu(FILE *fp, HMENU hMenu)
 }
 
 /*--------------------------------------------------------------------------
- * macro_printMenuCallback ()
+ * print_menuCallback ()
  */
-static int macro_printMenuCallback(FILE *fp)
+static int print_menuCallback(FILE *fp)
 {
 	HMENU 	hMenu;
 
-	fprintf(fp,"\n\nMENU default\n");
+	fprintf(fp,"\n\n\"menu\": [");
 	hMenu = GetMenu(hwndMain);
-	PrintSubMenu(fp, hMenu);
-	fprintf(fp,";\n");
+	print_subMenu(fp, hMenu, 0);
+	fprintf(fp,"]\n");
 	return 1;
 }
 
 /*--------------------------------------------------------------------------
- * macro_saveMenuBindingsAndDisplay()
+ * print_saveMenuBindingsAndDisplay()
  */
-int macro_saveMenuBindingsAndDisplay(void)
+int print_saveMenuBindingsAndDisplay(void)
 {
-	return macro_createFileAndDisplay("menu", macro_printMenuCallback);
+	return macro_createFileAndDisplay("menu", print_menuCallback);
 }
 
 /*--------------------------------------------------------------------------

@@ -26,7 +26,7 @@
 
 #include "edfuncs.h"
 
-char *c2shift(char *s, KEYCODE code);
+char *print_modifier(char *s, KEYCODE code);
 
 extern void yyerror(char* s, ...);
 
@@ -75,7 +75,7 @@ char *code2key(KEYCODE code)
 	if (code == K_DELETED)
 		return "*NO KEY*";
 
-	s = c2shift(b,code);
+	s = print_modifier(b,code);
 
 	code &= 0xFF;
 

@@ -36,7 +36,7 @@ typedef struct tagACTION_BINDING {
 	union {
 		KEYBIND		keybind;
 		MOUSEBIND	mousebind;
-		CONTEXT_MENU contextMenu;
+		CONTEXT_MENU subMenu;
 	} ab_binding;
 } ACTION_BINDING;
 
@@ -49,11 +49,13 @@ typedef struct tagACTION_BINDINGS {
 
 static ACTION_BINDINGS* _actionBindings;
 static ACTION_BINDING*  _contextMenu;		// the context menu definitions
+static ACTION_BINDING*  _menu;				// the main menu definitions
 
 typedef struct tagJSON_BINDINGS {
 	ACTION_BINDING* keys;
 	ACTION_BINDING* mouse;
-	ACTION_BINDING* contextMenu;
+	ACTION_BINDING* subMenu;
+	ACTION_BINDING* menu;
 } JSON_BINDINGS;
 
 static int bindings_parseCommandMP(MACROREF* mp, const char* pszCommand) {
@@ -69,7 +71,10 @@ static int bindings_parseCommandMP(MACROREF* mp, const char* pszCommand) {
 	return 1;
 }
 
-static const char* _DEFAULT_CONTEXT = "default";
+/*
+ * Name of the default action context to use in PKS-Edit.
+ */
+const char* DEFAULT_ACTION_CONTEXT = "default";
 
 static int mouse_parseCommand(ACTION_BINDING* pTarget, const char* pszCommand) {
 	return bindings_parseCommandMP(&pTarget->ab_binding.mousebind.macref, pszCommand);
@@ -80,10 +85,10 @@ static int key_parseCommand(ACTION_BINDING* pTarget, const char* pszCommand) {
 }
 
 static int contextmenu_parseCommand(ACTION_BINDING* pTarget, const char* pszCommand) {
-	return bindings_parseCommandMP(&pTarget->ab_binding.contextMenu.cm_macref, pszCommand);
+	return bindings_parseCommandMP(&pTarget->ab_binding.subMenu.cm_macref, pszCommand);
 }
 
-extern KEYCODE key2code(const unsigned char* k, int control);
+extern KEYCODE print_parseKeycode(const unsigned char* k, int control);
 
 static int key_parseModifier(const char* pszKeycode) {
 	if (strcmp(pszKeycode, "Shift") == 0) {
@@ -110,7 +115,7 @@ static int key_parseKeycode(ACTION_BINDING* pTarget, const char* pszKeycode) {
 			nModifier |= key_parseModifier(pszKeycode);
 		}
 		else {
-			pTarget->ab_binding.keybind.keycode = key2code(pszKeycode, nModifier);
+			pTarget->ab_binding.keybind.keycode = print_parseKeycode(pszKeycode, nModifier);
 			break;
 		}
 		pszKeycode = pszNext;
@@ -169,14 +174,15 @@ static JSON_MAPPING_RULE _mousebindRules[] = {
 	{	RT_END }
 };
 
-static JSON_MAPPING_RULE _contextmenuRules[] = {
+static JSON_MAPPING_RULE _menuRules[] = {
 	{	RT_CHAR_ARRAY, "context", offsetof(ACTION_BINDING, ab_context), sizeof(((ACTION_BINDING*)NULL)->ab_context)},
-	{	RT_ALLOC_STRING, "label", offsetof(ACTION_BINDING, ab_binding.contextMenu.cm_label), 0},
-	{	RT_INTEGER, "resource-id", offsetof(ACTION_BINDING, ab_binding.contextMenu.cm_resourceId), 0},
+	{	RT_ALLOC_STRING, "label", offsetof(ACTION_BINDING, ab_binding.subMenu.cm_label), 0},
+	{	RT_INTEGER, "resource-id", offsetof(ACTION_BINDING, ab_binding.subMenu.cm_resourceId), 0},
 	{	RT_STRING_CALLBACK, "command", 0, .r_descriptor = {.r_t_callback = contextmenu_parseCommand}},
-	{	RT_FLAG, "separator", offsetof(ACTION_BINDING, ab_binding.contextMenu.cm_isSeparator), 1},
-	{	RT_OBJECT_LIST, "sub-menus", offsetof(ACTION_BINDING, ab_children),
-		{.r_t_arrayDescriptor = {key_createActionBinding, _contextmenuRules}}
+	{	RT_FLAG, "separator", offsetof(ACTION_BINDING, ab_binding.subMenu.cm_isSeparator), 1},
+	{	RT_FLAG, "history-menu", offsetof(ACTION_BINDING, ab_binding.subMenu.cm_isHistoryMenu), 1},
+	{	RT_OBJECT_LIST, "sub-menu", offsetof(ACTION_BINDING, ab_children),
+		{.r_t_arrayDescriptor = {key_createActionBinding, _menuRules}}
 	},
 	{	RT_END }
 };
@@ -188,8 +194,11 @@ static JSON_MAPPING_RULE _jsonBindingsRules[] = {
 	{	RT_OBJECT_LIST, "mouse-bindings", offsetof(JSON_BINDINGS, mouse),
 		{.r_t_arrayDescriptor = {key_createActionBinding, _mousebindRules}}
 	},
-	{	RT_OBJECT_LIST, "context-menu", offsetof(JSON_BINDINGS, contextMenu),
-		{.r_t_arrayDescriptor = {key_createActionBinding, _contextmenuRules}}
+	{	RT_OBJECT_LIST, "context-menu", offsetof(JSON_BINDINGS, subMenu),
+		{.r_t_arrayDescriptor = {key_createActionBinding, _menuRules}}
+	},
+	{	RT_OBJECT_LIST, "menu", offsetof(JSON_BINDINGS, menu),
+		{.r_t_arrayDescriptor = {key_createActionBinding, _menuRules}}
 	},
 	{	RT_END }
 };
@@ -209,7 +218,7 @@ static int key_compare(intptr_t keycode1, intptr_t keycode2) {
 static ACTION_BINDINGS* bindings_lookupByContext(const char* pCtx) {
 	ACTION_BINDINGS* pBindings;
 	if (!pCtx || !*pCtx) {
-		pCtx = _DEFAULT_CONTEXT;
+		pCtx = DEFAULT_ACTION_CONTEXT;
 		pBindings = _actionBindings;
 	}
 	else {
@@ -228,9 +237,9 @@ static int bindings_destroyMouseBinding(ACTION_BINDING* pBind) {
 	return 1;
 }
 
-static int bindings_destroyContextMenu(ACTION_BINDING* pBind) {
-	free((char*)pBind->ab_binding.contextMenu.cm_label);
-	ll_destroy((LINKED_LIST**)&pBind->ab_children, bindings_destroyContextMenu);
+static int bindings_destroyMenu(ACTION_BINDING* pBind) {
+	free((char*)pBind->ab_binding.subMenu.cm_label);
+	ll_destroy((LINKED_LIST**)&pBind->ab_children, bindings_destroyMenu);
 	return 1;
 }
 
@@ -244,7 +253,8 @@ static int bindings_destroyActionBindings(ACTION_BINDINGS* pBindings) {
  * Destroy all action bindings loaded.
  */
 void bindings_destroy() {
-	ll_destroy((LINKED_LIST**)&_contextMenu, bindings_destroyContextMenu);
+	ll_destroy((LINKED_LIST**)&_menu, bindings_destroyMenu);
+	ll_destroy((LINKED_LIST**)&_contextMenu, bindings_destroyMenu);
 	ll_destroy((LINKED_LIST**)&_actionBindings, bindings_destroyActionBindings);
 }
 /*
@@ -270,7 +280,8 @@ static int bindings_loadFromFile(const char* pszFilename) {
 			pBindings->ab_mouseBindings = pB;
 			pB = pBNext;
 		}
-		_contextMenu = definitions.contextMenu;
+		_contextMenu = definitions.subMenu;
+		_menu = definitions.menu;
 		ll_destroy(&definitions.keys, NULL);
 		return 1;
 	}
@@ -403,25 +414,25 @@ int macro_bindKey(KEYCODE key, MACROREF macro, const char* pszActionContext) {
 /*
  * Returns a context menu - recursively callable for nested sub-menus. 
  */
-static CONTEXT_MENU* contextmenu_getFrom(const char* pszActionContext, ACTION_BINDING* pBinding) {
+static CONTEXT_MENU* submenu_getFrom(const char* pszActionContext, ACTION_BINDING* pBinding) {
 	CONTEXT_MENU* pHead = NULL;
 	CONTEXT_MENU* pCurrent = NULL;
 	while (pBinding) {
-		if (strcmp(pszActionContext, pBinding->ab_context) == 0 || !pBinding->ab_context[0] || strcmp(_DEFAULT_CONTEXT, pBinding->ab_context) == 0) {
+		if (strcmp(pszActionContext, pBinding->ab_context) == 0 || !pBinding->ab_context[0] || strcmp(DEFAULT_ACTION_CONTEXT, pBinding->ab_context) == 0) {
 			CONTEXT_MENU* pNested = NULL;
 			if (pBinding->ab_children) {
-				pNested = contextmenu_getFrom(pszActionContext, pBinding->ab_children);
+				pNested = submenu_getFrom(pszActionContext, pBinding->ab_children);
 				if (!pNested) {
 					pBinding = pBinding->ab_next;
 					continue;
 				}
 			}
 			if (!pHead) {
-				pHead = &pBinding->ab_binding.contextMenu;
+				pHead = &pBinding->ab_binding.subMenu;
 				pCurrent = pHead;
 			}
 			else {
-				pCurrent->cm_next = &pBinding->ab_binding.contextMenu;
+				pCurrent->cm_next = &pBinding->ab_binding.subMenu;
 				pCurrent = pCurrent->cm_next;
 				pCurrent->cm_next = NULL;
 			}
@@ -439,16 +450,30 @@ CONTEXT_MENU* contextmenu_getFor(const char* pszActionContext) {
 	ACTION_BINDING* pBinding = _contextMenu;
 
 	if (!pszActionContext) {
-		pszActionContext = _DEFAULT_CONTEXT;
+		pszActionContext = DEFAULT_ACTION_CONTEXT;
 	}
-	return contextmenu_getFrom(pszActionContext, pBinding);
+	return submenu_getFrom(pszActionContext, pBinding);
+}
+
+/*
+ * Returns a linked list of main menu entries for a given action context.
+ */
+CONTEXT_MENU* mainmenu_getFor(const char* pszActionContext) {
+	ACTION_BINDING* pBinding = _menu;
+
+	if (!pszActionContext) {
+		pszActionContext = DEFAULT_ACTION_CONTEXT;
+	}
+	return submenu_getFrom(pszActionContext, pBinding);
 }
 
 /*
  * Delete a key binding.
  */
-int macro_deleteKeyBinding(KEYCODE key, const char* pszContext) {
-	return 0;
+int macro_deleteKeyBinding(KEYCODE key, const char* pszActionContext) {
+	ACTION_BINDINGS* pBindings = bindings_lookupByContext(pszActionContext);
+	hashmap_put(pBindings->ab_keyBindingTable, (intptr_t)key, 0);
+	return 1;
 }
 
 /*

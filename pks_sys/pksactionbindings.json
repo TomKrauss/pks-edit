@@ -89,6 +89,10 @@
       "command": "@errorlist-current-line"
     },
     {
+      "key": "Shift+F10",
+      "command": "@open-context-menu"
+    },
+    {
       "key": "F10",
       "command": "@compile-macros"
     },
@@ -822,6 +826,205 @@
     {
       "context": "markdown-renderer",
       "command": "@find-file-under-cursor"
+    }
+  ],
+  "menu": [
+    {
+      "label": "File",
+      "sub-menu": [
+        { "command": "@open-new-file" },
+        { "command": "@open-file" },
+        { "command": "@clone-window" },
+        { "command": "@quit-file" },
+        { "command": "@save-file-and-close" },
+        { "command": "@save-file" },
+        { "command": "@save-file-as" },
+        { "command": "@save-all-files" },
+        { "separator": true },
+        { "command": "@read-block" },
+        { "command": "@save-block" },
+        { "command": "@abandon-file" },
+        { "separator": true },
+        {
+          "label": "Print",
+          "sub-menu": [
+            { "command": "@print-window" },
+            { "command": "@print-file" }
+          ]
+        },
+        { "separator": true },
+        { "command": "@exit-edit" },
+        { "command": "@quit-edit" },
+        { "separator": true },
+        {
+          "history-menu": true,
+          "command": "@open-history"
+        }
+      ]
+    },
+    {
+      "label": "Edit",
+      "sub-menu": [
+        { "command": "@undo" },
+        { "command": "@redo" },
+        { "command": "@re-insert" },
+        { "separator": true },
+        { "command": "@delete-block" },
+        { "command": "@cut-block" },
+        { "command": "@paste-clipboard" },
+        { "command": "@erase-block" },
+        { "command": "@copy-block" },
+        { "command": "@move-block" },
+        { "separator": true },
+        { "command": "@copy-to-named-buffer" },
+        { "command": "@cut-to-named-buffer" },
+        { "command": "@paste-named-buffer" },
+        { "command": "@show-std-clip" },
+        { "separator": true },
+        { "command": "@mark-block-start" },
+        { "command": "@mark-block-end" },
+        { "command": "@hide-block-marks" }
+      ]
+    },
+    {
+      "label": "Find",
+      "sub-menu": [
+        { "command": "@find-string" },
+        { "command": "@replace-string" },
+        { "command": "@find-again" },
+        { "command": "@search-on-internet" },
+        { "separator": true },
+        { "command": "@find-in-filelist" },
+        { "command": "@read-search-list" },
+        { "command": "@find-tag" },
+        { "command": "@find-tag-under-cursor" },
+        { "separator": true },
+        { "command": "@set-mark" },
+        { "command": "@goto-mark" },
+        { "command": "@goto-line" },
+        { "command": "@find-block-start" },
+        { "command": "@find-block-end" },
+        { "command": "@goto-last-insertion-pos" },
+        { "command": "@goto-last-pos" },
+        { "command": "@goto-next-insertion-pos" },
+        { "command": "@check-brackets" }
+      ]
+    },
+    {
+      "label": "Functions",
+      "sub-menu": [
+        { "command": "@format-text" },
+        { "command": "@align-text" },
+        { "command": "@shift-range-right" },
+        { "command": "@shift-range-left" },
+        { "command": "@sort-text" },
+        { "command": "@toggle-comment" },
+        {
+          "label": "Compare Files...",
+          "sub-menu": [
+            { "command": "@next-difference" },
+            { "command": "@compare-navigate-next" },
+            { "command": "@compare-navigate-previous" },
+            { "command": "@compare-clear" }
+          ]
+        },
+        { "command": "@insert-char-with-dialog" },
+        { "separator": true },
+        {
+          "label": "Convert",
+          "sub-menu": [
+            { "command": "@compress-tabs" },
+            { "command": "@expand-tabs" },
+            { "command": "@char-to-lower" },
+            { "command": "@char-to-upper" },
+            { "command": "@char-up-low" },
+            { "command": "@use-linux-lineends" },
+            { "command": "@use-windows-lineends" }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Macro",
+      "sub-menu": [
+        { "command": "@record-macro" },
+        { "command": "@dialog-macros" },
+        { "command": "@compile-macros" },
+        { "command": "@keycode-insert" },
+        {
+          "label": "View Bindings",
+          "sub-menu": [
+            { "command": "@macro-list" },
+            { "command": "@key-list" },
+            { "command": "@mouse-list" },
+            { "command": "@menu-list" }
+          ]
+        },
+        { "separator": true },
+        { "command": "@read-macros" },
+        { "command": "@write-macros" }
+      ]
+    },
+    {
+      "label": "Editor Settings",
+      "sub-menu": [
+        { "command": "@dialog-doc-types" },
+        { "separator": true },
+        { "command": "@dialog-display-mode" },
+        { "separator": true },
+        { "command": "@toggle-show-control" },
+        { "command": "@toggle-show-ruler" },
+        { "command": "@toggle-hex-modus" },
+        { "command": "@toggle-syntax-highlighting" },
+        { "command": "@toggle-show-linenumbers" },
+        { "command": "@toggle-show-wysiwyg" },
+        { "separator": true },
+        { "command": "@toggle-line-selection" },
+        { "command": "@toggle-column-selection" },
+        { "separator": true },
+        {
+          "label": "More Settings",
+          "sub-menu": [
+            { "command": "@edit-doc-macros" },
+            { "command": "@add-doc-macros" }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Extras",
+      "sub-menu": [
+        { "command": "@execute-command" },
+        { "command": "@evaluate-selection" },
+        { "separator": true },
+        { "command": "@read-tagfile" },
+        { "command": "@read-compiler-errors" },
+        { "separator": true },
+        { "command": "@set-options" }
+      ]
+    },
+    {
+      "label": "Windows",
+      "sub-menu": [
+        { "command": "@close-all-windows" },
+        { "command": "@tile-docks-horizontally" },
+        { "command": "@tile-docks-vertically" },
+        { "command": "@toggle-full-screen" },
+        { "separator": true },
+        { "command": "@info-to-file" }
+      ]
+    },
+    {
+      "label": "?",
+      "sub-menu": [
+        { "command": "@help-index" },
+        { "command": "@help-on-menus" },
+        { "command": "@help-on-keys" },
+        { "command": "@help-release-notes" },
+        { "command": "@help-readme" },
+        { "separator": true },
+        { "command": "@show-copyright" }
+      ]
     }
   ]
 }

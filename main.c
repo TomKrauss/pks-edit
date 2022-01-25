@@ -518,28 +518,4 @@ void main_cleanup(void) {
 	ww_destroyAll();
 }
 
-/*--------------------------------------------------------------------------
- * menu_switchMenusToContext()
- */
-void menu_switchMenusToContext(char *pszContext) {
-	HMENU		hCurrentMenu;
-	HMENU		hNew;
-
-	if (!hwndMain) {
-		return;
-	}
-	hNew = menu_getMenuForContext(pszContext);
-	if (!hNew) {
-		hNew = menu_getMenuForContext("default");
-	}
-	if (!hNew) {
-		hNew = hDefaultMenu;
-	}
-	hCurrentMenu = GetMenu(hwndMain);
-	if (hNew == hCurrentMenu) {
-		return;
-	}
-	SendMessage(hwndMain, WM_MDISETMENU, (WPARAM)hNew, 0);
-	DrawMenuBar(hwndMain);
-}
 

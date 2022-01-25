@@ -65,7 +65,6 @@ static WINFO *_winlist;
 
 extern int  mouse_onMouseClicked(WINFO *fp, int x,int y,int b, int nclicks,int shift);
 extern void macro_selectDefaultBindings(void);
-extern void menu_switchMenusToContext(char *pszContext);
 extern RENDERER* hex_getRenderer();
 extern RENDERER* mdr_getRenderer();
 
@@ -1048,7 +1047,7 @@ WINFUNC EditWndProc(
 		// Destroy the view window - the document should be destroyed only if this is the last window.
 		ww_destroy(wp);
 		if (!ww_getNumberOfOpenWindows()) {
-			menu_switchMenusToContext("initial");
+			menu_selectActionContext(DEFAULT_ACTION_CONTEXT);
 		}
 		return 0;
     }

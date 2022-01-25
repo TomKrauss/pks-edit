@@ -64,7 +64,7 @@ macro_getSelectedText(long ), EdHideLines(long ), EdUnHideLine(long ), EdStringS
 EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdListBindings(long ),
 EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(), ww_zoomWindow(int anIncreaseFactor),
 bl_moveSelectionUpDown(long),
-EdShowClipboard(long ), EdSaveAllFiles(), EdMenuTrackPopup(long ), EdBlockXtndMode(long ), edit_toggleComment(),EdFindOnInternet();
+EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), edit_toggleComment(),EdFindOnInternet();
 
 static int function_unused() {
     // NOT USED ANY MORE
@@ -190,7 +190,7 @@ EDFUNC _edfunctab[] = {
 {EdIsDefined, '!', 0,                                                                            "QueryStatus",                NULL },
 {function_unused, '!', 0,                                                                         "unused",                NULL },
 {EdShowClipboard, '!', 0,                                                                        "ShowClipboard",              NULL },
-{EdMenuTrackPopup, '!', EW_NEEDSCURRF | 0,                                                       "TrackPopup",                 NULL },
+{function_unused, '!', EW_NEEDSCURRF | 0,                                                       "unused",                 NULL },
 {EdBlockXtndMode, '!', EW_NEEDSCURRF | 0,                                                        "SetBlockExtensionMode",      NULL },
 {EdRedo, '!', EW_MODIFY | EW_NEEDSCURRF | EW_REDO_AVAILABLE,                                     "Redo", NULL },
 {EdSaveAllFiles, '!', EW_NEEDSCURRF | 0,                                                         "SaveAll",NULL },

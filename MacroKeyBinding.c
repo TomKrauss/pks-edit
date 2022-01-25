@@ -36,12 +36,9 @@
 #include "mouseutil.h"
 #include "pkscc.h"
 #include "editorconfiguration.h"
-
-#define	MENU_TABCHAR	'\010'
+#include "menu.h"
 
 extern long		_multiplier;
-
-extern RSCTABLE *	_menutables;
 
 extern BOOL op_defineOption(long nFlag);
 /*---------------------------------*/
@@ -56,16 +53,11 @@ extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
  * Loads the default action bindings (keys and mouse) for PKS-Edit from the PKS_SYS directory.
  */
 extern void key_loadBindings();
-extern int 			menu_addMenuMacroItem(char *pszString, int menutype, 
-					MACROREFTYPE mactype, MACROREFTYPE macidx);
-extern void 		menu_initializeDefinition(char *szMenu);
 extern void 		st_switchtomenumode(BOOL bMenuMode);
 extern int			macro_executeSequence(COM_1FUNC* cp, COM_1FUNC* cpmax);
 MACROREF			bindings_getKeyBinding(KEYCODE keycode, const char* pszActionContext);
 
-extern MACROREF *	menu_getUserDefinedMacro(int nId);
 extern int 			macro_canExecuteFunction(int num, int warn);
-extern void 		menu_switchMenusToContext(char *pszContext);
 
 int				_recording;
 int				_nmacros = MAXMACRO;
@@ -142,9 +134,6 @@ int macro_getInternalIndexByName(const char *name)
  */
 #define	RSC_MACROS		0x1
 #define	RSC_SINGLEMACRO	0x2
-#define	RSC_KEYS			0x4
-#define	RSC_MICE			0x8
-#define	RSC_MENUS			0x10
 static int macro_writeMacroBindingsToFile(int whichresource, char *name)
 {
 	int 		ret = 1,fd;
@@ -159,15 +148,9 @@ static int macro_writeMacroBindingsToFile(int whichresource, char *name)
 
 	if (whichresource & (RSC_MACROS|RSC_SINGLEMACRO)) {
 		if (rsc_put(fd,"MACROS","",0,rsc_wrmacros,_linebuf,(long)FBUFSIZE) == 0) {
-err:			error_showErrorById(IDS_MSGNODISKSPACE);
+			error_showErrorById(IDS_MSGNODISKSPACE);
 			ret = 0;
 			goto done;
-		}
-	}
-
-	if (whichresource & RSC_MENUS) {
-		if (rsc_wrtables(fd,"MENU",_menutables) == 0) {
-			goto err;
 		}
 	}
 
@@ -188,7 +171,7 @@ void macro_autosaveAllBindings(int warnFlag)
 	if (_macedited) {
 		if (warnFlag == 0) {
 			string_concatPathAndFilename(fn,_seqfsel.path,_seqfsel.fname);
-			if (macro_writeMacroBindingsToFile(RSC_MACROS|RSC_KEYS|RSC_MICE|RSC_MENUS,fn))
+			if (macro_writeMacroBindingsToFile(RSC_MACROS,fn))
 				_macedited = 0;
 		} else {
 			if (error_displayYesNoConfirmation(IDS_MSGSAVESEQ) == IDYES) {
@@ -248,42 +231,19 @@ void macro_onKeybindingChanged(KEYCODE key) {
 	}
 }
 
-/*------------------------------------------------------------
- * macro_addMultipleMenuBindings()
- */
-static char *macro_addMultipleMenuBindings(char *name, PUSERMENUBIND mp, 
-	PUSERMENUBIND mplast)
-{
-	menu_initializeDefinition(name);
-
-	while (mp < mplast) {
-		if (*mp->szString) {
-			if (!menu_addMenuMacroItem(mp->szString, mp->type, 
-				mp->macref.typ, mp->macref.index)) {
-				return 0;
-			}
-		}
-		mp++;
-	}
-	return (char *)mplast;
-}
-
 /*--------------------------------------------------------------------------
  * macro_selectDefaultBindings()
  * Select the default key- / menu- / mouse bindings for PKS Edit.
  */
-void macro_selectDefaultBindings(void)
-{
-	char	*pszDefault = "default";
-	char *pszMode;
+void macro_selectDefaultBindings(void) {
+	const char *pszMode;
 
 	if (ft_getCurrentDocument()) {
-		pszMode = ft_getCurrentDocument()->documentDescriptor->name;
+		pszMode = ft_getCurrentDocument()->documentDescriptor->actionContext;
 	} else {
-		pszMode = pszDefault;
+		pszMode = DEFAULT_ACTION_CONTEXT;
 	}
-
-	menu_switchMenusToContext(pszMode);
+	menu_selectActionContext(pszMode);
 }
 
 /*------------------------------------------------------------
@@ -313,9 +273,6 @@ int macro_readBindingsFromFile(char *fn) {
 		rsc_close(rp);
 		return 0;
 	}
-
-	/* load menu bindings */
-	rsc_load(rp,"MENU",(char*)0,macro_addMultipleMenuBindings);
 
 	rsc_close(rp);
 
@@ -450,7 +407,7 @@ int macro_readWriteWithFileSelection(int wrflag) {
 	}
 
 	if (wrflag) {
-		if (macro_writeMacroBindingsToFile(RSC_MACROS|RSC_KEYS|RSC_MICE|RSC_MENUS,fn)) {
+		if (macro_writeMacroBindingsToFile(RSC_MACROS,fn)) {
 			_macedited = 0;
 			return 1;
 		}
@@ -475,20 +432,13 @@ int EdMacroRecord(void)
 MACROREF *macro_getMacroIndexForMenu(int nId)
 {
 	static MACROREF macref;
-	MACROREF *	mpUser;
 	int			i;
 
-	if (nId >= IDM_USERDEF0) {
-		if ((mpUser = menu_getUserDefinedMacro(nId)) != 0) {
-			return mpUser;
-		}
-	} else {
-		for (i = 0; i < _nmenus; i++) {
-			if (_menutab[i].menunum == nId) {
-				macref.typ = CMD_CMDSEQ;
-				macref.index = _menutab[i].index;
-				return &macref;
-			}
+	for (i = 0; i < _nmenus; i++) {
+		if (_menutab[i].menunum == nId) {
+			macref.typ = CMD_CMDSEQ;
+			macref.index = _menutab[i].index;
+			return &macref;
 		}
 	}
 	return 0;
@@ -500,25 +450,11 @@ MACROREF *macro_getMacroIndexForMenu(int nId)
  * allows us to display an appropriate help for synthetic menus
  */
 int macro_translateToOriginalMenuIndex(int wParam) {
-	MACROREF *	mpUser;
-	int			i;
-
 	if (wParam < IDM_USERDEF0) {
 		return wParam;
 	}
 	if (wParam >> 16) {
 		return wParam;
-	}
-	if ((mpUser = menu_getUserDefinedMacro(wParam)) == 0) {
-		return wParam;
-	}
-
-	if (mpUser->typ == CMD_CMDSEQ) {
-		for (i = 0; i < _nmenus; i++) {
-			if (_menutab[i].index == mpUser->index) {
-				return _menutab[i].menunum;
-			}
-		}
 	}
 	return wParam;
 }
@@ -872,11 +808,10 @@ char *command_getTooltipAndLabel(MACROREF command, char* szTooltip, char* szLabe
  */
 char *macro_getMenuTooltTip(int dMenuId) {
 	static char szBuf[256];
-	char szBuf2[32];
 	MACROREF *	mp;
 
 	if (dMenuId != -1 && (mp = macro_getMacroIndexForMenu(dMenuId)) != 0) {
-		command_getTooltipAndLabel(*mp, szBuf, szBuf2);
+		command_getTooltipAndLabel(*mp, szBuf, NULL);
 	} else {
 		szBuf[0] = 0;
 	}
@@ -890,12 +825,11 @@ char *macro_getMenuTooltTip(int dMenuId) {
 void macro_showHelpForMenu(int dMenuId)
 {
 	char			szBuf[256];
-	char			szBuf2[32];
 	MACROREF *	mp;
 
 	st_switchtomenumode(dMenuId != -1);
 	if (dMenuId != -1 && (mp = macro_getMacroIndexForMenu(dMenuId)) != 0) {
-		command_getTooltipAndLabel(*mp, szBuf, szBuf2);
+		command_getTooltipAndLabel(*mp, szBuf, NULL);
 		st_setStatusLineMessage(*szBuf ? szBuf : (char *)0);
 	} else {
 		st_setStatusLineMessage((char *)0);

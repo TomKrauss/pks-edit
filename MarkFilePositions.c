@@ -49,7 +49,7 @@ void fm_destroyAll() {
  * is returned (goto previous position), if the offset is negative, a "forward" mark is returned (reverts a goto previous
  * position).
  */
-static MARK * fm_getSavedMark(MARK_TYPE_ENUM type, int offset) {
+static MARK * fm_getSavedMark(MARK_TYPE_ENUM type, int offset, BOOL bUpdateIndex) {
 	MARK* mp;
 	MARK_LIST* mlp = &_autoMarks;
 
@@ -76,7 +76,7 @@ static MARK * fm_getSavedMark(MARK_TYPE_ENUM type, int offset) {
 	} else {
 		mp = (MARK*)ll_at((LINKED_LIST*)mlp->ml_head, nIdxOfMark);
 	}
-	if (mp) {
+	if (mp && bUpdateIndex) {
 		mlp->ml_currentIdx = nIdxOfMark;
 	}
 	return mp;
@@ -136,7 +136,7 @@ static int fm_gotoLastPositionDir(MARK_TYPE_ENUM type, int dir) {
 	if (dir < 0) {
 		type = _autoMarks.ml_lastType;
 	}
-	mp = fm_getSavedMark(type, dir);
+	mp = fm_getSavedMark(type, dir, TRUE);
 	if (mp == 0) {
 		error_showErrorById(IDS_MSGNOLASTPOS);
 		return 0;
@@ -193,7 +193,7 @@ int fm_gotoNextPosition(MARK_TYPE_ENUM type) {
  * Is a goto next for the given mark type supported?
  */
 int fm_canGotoNext(long long llParam) {
-	MARK* mp = fm_getSavedMark(_autoMarks.ml_lastType, -1);
+	MARK* mp = fm_getSavedMark(_autoMarks.ml_lastType, -1, FALSE);
 	return (mp != 0);
 }
 
@@ -202,7 +202,7 @@ int fm_canGotoNext(long long llParam) {
  * Is a goto last for the given mark type supported?
  */
 int fm_canGotoLast(long long llParam) {
-	MARK* mp = fm_getSavedMark((MARK_TYPE_ENUM) llParam, 1);
+	MARK* mp = fm_getSavedMark((MARK_TYPE_ENUM) llParam, 1, FALSE);
 	return (mp != 0);
 }
 

@@ -27,5 +27,10 @@ extern int menu_openContextMenu();
  */
 extern POINT menu_getContextMenuPopupPosition();
 
+/*
+ * Selects the action context for the main menu of PKS-Edit (e.g. when the currently focussed editor window changes).
+ */
+extern void menu_selectActionContext(const char* pszContext);
+
 #define MENU_H
 #endif
