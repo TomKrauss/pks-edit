@@ -805,5 +805,15 @@
 #define FA_ICON_WPEXPLORER     L'\uf2de'
 #define FA_ICON_MEETUP     L'\uf2e0'
 
+/*
+ * Returns the unicode equivalent of a font-awesome icon given its name as e.g. "fa-meetup".
+ */
+extern wchar_t faicon_codeForName(const char* pszIconName);
+
+/*
+ * Cleanup the font awesome icon component.
+ */
+extern void faicon_destroy();
+
 #define FONT_AWESOME_H
 #endif

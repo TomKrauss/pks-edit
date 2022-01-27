@@ -280,7 +280,7 @@ EXPORT void op_updateall(void)
 	}
 	if (!actionListenerRegistered) {
 		actionListenerRegistered = TRUE;
-		action_registerAction(CMD_EdOptionToggleBLK_COLUMN_SELECTION, (ACTION_BINDING) { op_propertyChanged , 0L, 0}, TRUE);
+		action_registerAction(CMD_TOGGLE_COLUMN_SELECTION, (ACTION_BINDING) { op_propertyChanged , 0L, 0}, TRUE);
 	}
 }
 

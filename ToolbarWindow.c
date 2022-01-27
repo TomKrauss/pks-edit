@@ -32,10 +32,13 @@
 #include "stringutil.h"
 #include "findandreplace.h"
 #include "themes.h"
+#include "linkedlist.h"
 #include "dpisupport.h"
 #include "xdialog.h"
 
 #define TB_IMAGE_SIZE       18
+
+#define M(CMD)      ((int)(CMD_CMDSEQ<<8)|CMD)
 
 static HWND	hwndToolbar;
 static int nToolbarButtons;
@@ -55,7 +58,7 @@ extern HBITMAP tb_createAwesomeIcons(COLORREF nColorRef, int nSize, wchar_t icon
 static void tb_propertyChanged(ACTION_BINDING* pActionBinding, PROPERTY_CHANGE_TYPE type, int newVal) {
     if (type == PC_ENABLED) {
         SendMessage(pActionBinding->ab_hwnd, TB_ENABLEBUTTON,
-            pActionBinding->ab_item, MAKELPARAM(newVal, 0));
+            M(pActionBinding->ab_item), MAKELPARAM(newVal, 0));
     }
 }
 
@@ -65,14 +68,12 @@ static void tb_propertyChanged(ACTION_BINDING* pActionBinding, PROPERTY_CHANGE_T
 static void tb_registerBinding(int nCommand, TBBUTTON *pButton) {
     char szComment[128];
     char szKtext[128];
-    MACROREF *pMref = macro_getMacroIndexForMenu(nCommand);
-    if (pMref != NULL) {
-        ACTION_BINDING binding = { tb_propertyChanged, hwndToolbar, nCommand };
-        action_registerAction(pMref->index, binding, FALSE);
-        command_getTooltipAndLabel(*pMref, szComment, szKtext);
-        if (szKtext[0]) {
-            pButton->iString = (intptr_t)_strdup(szKtext);
-        }
+    MACROREF command = (MACROREF){ .index = nCommand, .typ = CMD_CMDSEQ};
+    ACTION_BINDING binding = { tb_propertyChanged, hwndToolbar, nCommand };
+    action_registerAction(nCommand, binding, FALSE);
+    command_getTooltipAndLabel(command, szComment, szKtext);
+    if (szKtext[0]) {
+        pButton->iString = (intptr_t)_strdup(szKtext);
     }
 }
 
@@ -137,28 +138,7 @@ static HIMAGELIST tb_createImageList(int nIconSize, COLORREF cColor, wchar_t ico
 /*
  * Update the image list for the toolbar.
  */
-void tb_updateImageList() {
-    wchar_t tbIcons[] = {
-        FA_ICON_FILE,
-        FA_ICON_FOLDER_OPEN,
-        FA_ICON_SAVE,
-        FA_ICON_ERASER,
-        FA_ICON_CUT,
-        FA_ICON_CLIPBOARD,
-        FA_ICON_SEARCH,
-        FA_ICON_EXCHANGE_ALT,
-        FA_ICON_SEARCH_PLUS,
-        FA_ICON_ARROW_LEFT,
-        FA_ICON_ARROW_RIGHT,
-        FA_ICON_UNDO,
-        FA_ICON_REDO,
-        FA_ICON_PRINT,
-        FA_ICON_COG,
-        FA_ICON_QUESTION,
-        FA_ICON_ARROW_UP,
-        FA_ICON_ARROW_DOWN,
-        FA_ICON_STOP_CIRCLE
-    };
+void tb_updateImageList(wchar_t *tbIcons, int nCount) {
     HIMAGELIST hOld1 = hImageList;
     HIMAGELIST hOldDisabled = hImageListDisabled;
     static int nOldIconSize;
@@ -171,10 +151,10 @@ void tb_updateImageList() {
     }
     cOldIconColor = cIconColor;
     nOldIconSize = nIconSize;
-    hImageList = tb_createImageList(nIconSize, cIconColor, tbIcons, DIM(tbIcons));
+    hImageList = tb_createImageList(nIconSize, cIconColor, tbIcons, nCount);
     SendMessageW(hwndToolbar, TB_SETIMAGELIST, (WPARAM)0, (LPARAM)hImageList);
 
-    hImageListDisabled = tb_createImageList(nIconSize, theme_getCurrent()->th_dialogDisabled, tbIcons, DIM(tbIcons));
+    hImageListDisabled = tb_createImageList(nIconSize, theme_getCurrent()->th_dialogDisabled, tbIcons, nCount);
     SendMessageW(hwndToolbar, TB_SETDISABLEDIMAGELIST, (WPARAM)0, (LPARAM)hImageListDisabled);
 
     SendMessage(hwndToolbar, TB_SETBUTTONSIZE, 0, MAKELPARAM(nIconSize, nIconSize));
@@ -212,18 +192,15 @@ void tb_updateImageList() {
 static HWND tb_initToolbar(HWND hwndOwner) {
 	TBADDBITMAP	tbabmp;
     TBADDBITMAP	tbabmp2;
-    TBBUTTON	tbb[30];
-    LRESULT		iIndexExtra;
-    int			nButton;
+    TBBUTTON	* tbb;
 
 	if (hwndToolbar) {
 		return hwndToolbar;
 	}
     tb_loadFontAwesome();
-    memset(tbb, 0, sizeof tbb);
     memset(&tbabmp, 0, sizeof tbabmp);
     memset(&tbabmp2, 0, sizeof tbabmp2);
-    hwndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, (LPSTR) NULL,
+    hwndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, NULL,
 		WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | TBSTYLE_CUSTOMERASE| CCS_NODIVIDER | CCS_NORESIZE | CCS_ADJUSTABLE,
         0, 0, 0, 0, hwndOwner, (HMENU) IDM_TOOLBAR, hInst, NULL);
 	if (!hwndToolbar) {
@@ -232,176 +209,31 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     SendMessage(hwndToolbar, TB_BUTTONSTRUCTSIZE, 
         (WPARAM) sizeof(TBBUTTON), 0);
 
-    tb_updateImageList();
-
-    iIndexExtra = 0;
-    nButton = 0;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 0);
-    tbb[nButton].idCommand = MNEWFILE;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(MNEWFILE, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 1);
-    tbb[nButton].idCommand = MOPENF;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(MOPENF, &tbb[nButton]);
-
-	nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 2);
-    tbb[nButton].idCommand = MSAVERES;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(MSAVERES, &tbb[nButton]);
-
-	nButton++;
-    tbb[nButton].iBitmap = 0;
-    tbb[nButton].idCommand = 0;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_SEP;
-
-	nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 3);
-    tbb[nButton].idCommand = MTDEL;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(MTDEL, &tbb[nButton]);
-
-	nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 4);
-    tbb[nButton].idCommand = MTCUT;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(MTCUT, &tbb[nButton]);
-
-	nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 5);
-    tbb[nButton].idCommand = MTPASTE;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(MTPASTE, &tbb[nButton]);
-
-	nButton++;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_SEP;
-
-	nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 6);
-    tbb[nButton].idCommand = MFIND;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(MFIND, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 7);
-    tbb[nButton].idCommand = MREPLACE;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(MREPLACE, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 8);
-    tbb[nButton].idCommand = MEDIFLIS;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(MEDIFLIS, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_SEP;
-
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 9);
-    tbb[nButton].idCommand = IDM_GOTO_PREVIOUS;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(IDM_GOTO_PREVIOUS, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 10);
-    tbb[nButton].idCommand = IDM_GOTO_NEXT;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(IDM_GOTO_NEXT, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_SEP;
-
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 11);
-    tbb[nButton].idCommand = IDM_UNDO;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(IDM_UNDO, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 12);
-    tbb[nButton].idCommand = IDM_REDO;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(IDM_REDO, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_SEP;
-
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 13);
-    tbb[nButton].idCommand = IDM_PRINTTEXT;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(IDM_PRINTTEXT, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 14);
-    tbb[nButton].idCommand = MOPTION;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(MOPTION, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_SEP;
-    
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 15);
-    tbb[nButton].idCommand = IDM_HLPINDEX;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(IDM_HLPINDEX, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_SEP;
-
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 16);
-    tbb[nButton].idCommand = IDM_COMPARE_NAVIGATE_PREV;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(IDM_COMPARE_NAVIGATE_PREV, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 17);
-    tbb[nButton].idCommand = IDM_COMPARE_NAVIGATE_NEXT;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(IDM_COMPARE_NAVIGATE_NEXT, &tbb[nButton]);
-
-    nButton++;
-    tbb[nButton].iBitmap = (int)(iIndexExtra + 18);
-    tbb[nButton].idCommand = IDM_COMPARE_CLEAR;
-    tbb[nButton].fsState = TBSTATE_ENABLED;
-    tbb[nButton].fsStyle = TBSTYLE_BUTTON;
-    tb_registerBinding(IDM_COMPARE_CLEAR, &tbb[nButton]);
-
-    nButton++;
-    nToolbarButtons = nButton;
-    SendMessage(hwndToolbar, TB_ADDBUTTONS, (WPARAM) nButton, (LPARAM) (LPTBBUTTON) &tbb);
-    for (int i = 0; i < nButton; i++) {
+    TOOLBAR_BUTTON_BINDING* pButtons = binding_getToolbarBindingsFor(DEFAULT_ACTION_CONTEXT);
+    int nButtons = ll_size((LINKED_LIST*)pButtons);
+    tbb = calloc(nButtons, sizeof * tbb);
+    wchar_t* pwImageCodes = calloc(nButtons, sizeof * pwImageCodes);
+    int nImageIndex = 0;
+    int iIndexExtra = 0;
+    for (int nButton = 0; pButtons; nButton++) {
+        if (pButtons->tbb_faIcon != 0) {
+            pwImageCodes[nImageIndex] = pButtons->tbb_faIcon;
+            tbb[nButton].iBitmap = (int)(iIndexExtra + nImageIndex++);
+        }
+        if (pButtons->tbb_isSeparator) {
+            tbb[nButton].fsStyle = BTNS_SEP;
+        } else {
+            int nCmd = pButtons->tbb_macref.index;
+            tbb[nButton].idCommand = M(nCmd);
+            tb_registerBinding(nCmd, &tbb[nButton]);
+            tbb[nButton].fsStyle = BTNS_BUTTON;
+        }
+        tbb[nButton].fsState = TBSTATE_ENABLED;
+        pButtons = pButtons->tbb_next;
+    }
+    tb_updateImageList(pwImageCodes, nImageIndex);
+    SendMessage(hwndToolbar, TB_ADDBUTTONS, (WPARAM) nButtons, (LPARAM) (LPTBBUTTON) tbb);
+    for (int i = 0; i < nButtons; i++) {
         if (tbb[i].iString) {
             free((void*)(intptr_t)tbb[i].iString);
         }
@@ -411,6 +243,8 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     if (hwndTooltip) {
         theme_enableDarkMode(hwndTooltip);
     }
+    free(tbb);
+    free(pwImageCodes);
     return hwndToolbar;
 }
 
@@ -479,7 +313,7 @@ static HWND tb_initSearchEntryField(HWND hwndOwner) {
         hInst, NULL);
     SendMessage(hwndIncrementalSearchField, WM_SETFONT, (WPARAM)cust_getDefaultEditorFont(), 0);
     oldEditProc = (WNDPROC)SetWindowLongPtr(hwndIncrementalSearchField, GWLP_WNDPROC, (LONG_PTR)incrementalSearchEditWndProc);
-    action_registerAction(CMD_INITIATE_INCREMENTAL_SEARCH, (ACTION_BINDING) { tb_enableEntryField, 0L, 0 }, TRUE);
+    action_registerAction(CMD_SEARCH_INCREMENTALLY, (ACTION_BINDING) { tb_enableEntryField, 0L, 0 }, TRUE);
     return hwndIncrementalSearchField;
 }
 
@@ -519,7 +353,7 @@ static LRESULT APIENTRY tb_myRebarProc(
 static void tb_initSearchEntryCueBanner(char* pszText) {
     char* pszKey;
     strcpy(pszText, dlg_getResourceString(IDS_SEARCH));
-    pszKey = macro_getKeyText(NULL, CMD_INITIATE_INCREMENTAL_SEARCH);
+    pszKey = macro_getKeyText(NULL, CMD_SEARCH_INCREMENTALLY);
     if (pszKey) {
         strcat(pszText, " (");
         strcat(pszText, pszKey);

@@ -26,6 +26,7 @@
 #include "clipboard.h"
 #include "fileselector.h"
 #include "markpositions.h"
+#include "funcdef.h"
 
  /*-----------------------*/
 /* EXTERNALS			*/
@@ -225,7 +226,7 @@ EXPORT int bl_insertPasteBufFromFile(char *fn)
 		pFSP.fsp_inputFile = fn;
 		pFSP.fsp_optionsAvailable = FALSE;
 		pFSP.fsp_saveAs = FALSE;
-		if (!fsel_selectFileWithTitle(MREADF,fname, &pFSP))
+		if (!fsel_selectFileWithTitle(CMD_OPEN_FILE,fname, &pFSP))
 			return 0;
 		fn = fname;
 	}
@@ -334,7 +335,7 @@ EXPORT int bl_writeToFile(char *fn)
 			FILE_SELECT_PARAMS fsp;
 			fsp.fsp_optionsAvailable = FALSE;
 			fsp.fsp_saveAs = TRUE;
-			ret = fsel_selectFileWithTitle(MWRITEF,fname,&fsp);
+			ret = fsel_selectFileWithTitle(CMD_SAVE_FILE_AS,fname,&fsp);
 			fn  = fname;
 		}
 		if (ret != 0) {

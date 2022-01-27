@@ -605,9 +605,12 @@ static void ww_assignRenderer(WINFO* wp) {
 	if (wp->renderer->r_create) {
 		wp->r_data = wp->renderer->r_create(wp);
 	}
-	wp->actionContext = wp->renderer->r_context;
-	if (!wp->actionContext) {
-		wp->actionContext = fp->documentDescriptor->actionContext;
+	wp->actionContext[0] = 0;
+	if (wp->renderer->r_context) {
+		strcpy(wp->actionContext, wp->renderer->r_context);
+	}
+	if (!wp->actionContext[0]) {
+		strcpy(wp->actionContext, fp->documentDescriptor->actionContext);
 	}
 	if (pOld) {
 		SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
@@ -1224,7 +1227,6 @@ static WINFUNC WorkAreaWndProc(
 	// otherwise drop through
 	case WM_KEYDOWN:
 	case WM_KEYUP:
-	case WM_INITMENUPOPUP:
 	case WM_MENUSELECT:
 	case WM_SYSKEYDOWN:
 	case WM_SYSKEYUP:

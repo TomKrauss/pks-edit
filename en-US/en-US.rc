@@ -1209,182 +1209,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Menu
-//
-
-PKSEDEDITMENU MENU
-BEGIN
-    POPUP "&File"
-    BEGIN
-        MENUITEM "&New...",                     MNEWFILE
-        MENUITEM "O&pen...\a",                  MOPENF
-        MENUITEM "Clone Window\a",              MCLONEWINDOW
-        MENUITEM "&Close\a",                    MQUITF
-        MENUITEM "Save && Clo&se\a",            MSAVEF
-        MENUITEM "Sav&e\a",                     MSAVERES
-        MENUITEM "Save &as...\a",               MSAVEAS
-        MENUITEM "Save all &Modified\a",        MSAVEALL_NO_EXIT
-        MENUITEM SEPARATOR
-        MENUITEM "&Insert File...\a",           MREADF
-        MENUITEM "S&ave Selection to File...\a", MWRITEF
-        MENUITEM "A&bandon\a",                  MABANDON
-        MENUITEM SEPARATOR
-        POPUP "&Print"
-        BEGIN
-            MENUITEM "&Current Window...\a",        IDM_PRINTTEXT
-            MENUITEM "&File...\a",                  IDM_PRINTFILE
-        END
-        MENUITEM SEPARATOR
-        MENUITEM "Save and Exit\a",             MSAVEALL
-        MENUITEM "E&xit\a",                     MEXIT
-        MENUITEM SEPARATOR
-        MENUITEM "HISTORY",                     IDM_HISTORY
-    END
-    POPUP "&Edit"
-    BEGIN
-        MENUITEM "&Undo\a",                     IDM_UNDO
-        MENUITEM "&Redo\a",                     IDM_REDO
-        MENUITEM "&Redo last Command\a",        IDM_DOAGAIN
-        MENUITEM SEPARATOR
-        MENUITEM "&Cut\a",                      MTDEL
-        MENUITEM "C&opy\a",                     MTCUT
-        MENUITEM "Pa&ste\a",                    MTPASTE
-        MENUITEM "&Delete\a",                   IDM_ERASEBLOCK
-        MENUITEM "D&uplicate\a",                MTCOPY
-        MENUITEM "&Move\a",                     MTMOVE
-        MENUITEM SEPARATOR
-        MENUITEM "Copy to named Clipboard...\a", IDM_COPY_TO_NAMED_CLIPBOARD
-        MENUITEM "Cut to named Clipboard...\a", IDM_CUT_TO_NAMED_CLIPBOARD
-        MENUITEM "Paste named Clipboard...\a",  IDM_PASTE_NAMED_CLIPBOARD
-        MENUITEM "List Clipboards...\a",        IDM_LIST_NAMED_CLIPBOARDS
-        MENUITEM SEPARATOR
-        MENUITEM "S&tart Selection\a",          MTMSTART
-        MENUITEM "&End Selection\a",            MTMEND
-        MENUITEM "Hi&de Selection\a",           MTMHIDE
-    END
-    POPUP "&Find"
-    BEGIN
-        MENUITEM "&Find...\a",                  MFIND
-        MENUITEM "&Replace...\a",               MREPLACE
-        MENUITEM "Find &again\a",               MFAGAIN
-        MENUITEM "Find Selected Text on Internet...\a", IDM_SEARCH_ON_THE_INTERNET
-        MENUITEM SEPARATOR
-        MENUITEM "Find in Fi&les...\a",         MEDIFLIS
-        MENUITEM "&Use Previous Search Results...\a", MREAD_SEARCH_LIST
-        MENUITEM "Browse &Cross Reference List...\a", IDM_SELECT_TAG_FROM_DIALOG
-        MENUITEM "Goto &Cross Reference at Caret\a", MSHOWTAG
-        MENUITEM SEPARATOR
-        MENUITEM "Set &Mark...\a",              MSETMARK
-        MENUITEM "&Goto Mark...\a",             MGOTOMAR
-        MENUITEM "Goto &Line...\a",             MGOTOLN
-        MENUITEM "Goto Selection S&tart\a",     MTMFSTAR
-        MENUITEM "Goto Selection E&nd\a",       MTMFEND
-        MENUITEM "Goto &Last Insertion Position\a", IDM_GOTO_PREVIOUS_INSERTION
-        MENUITEM "Goto &Last Position\a",       IDM_GOTO_PREVIOUS
-        MENUITEM "Goto to &Next Position\a",    IDM_GOTO_NEXT
-        MENUITEM "Goto Matching Bracket\a",     IDM_GOTO_MATCHING_BRACKET
-    END
-    POPUP "F&unctions"
-    BEGIN
-        MENUITEM "&Format...\a",                MFORMAT
-        MENUITEM "&Align...\a",                 MENALIGN
-        MENUITEM "Shift &right...\a",           MSHFTRIG
-        MENUITEM "Shift l&eft...\a",            MSHFTLEF
-        MENUITEM "S&ort file...\a",             MMSORT
-        MENUITEM "Toggle Comment\a",            MTOGGLE_COMMENT
-        POPUP "&Compare Files...\a"
-        BEGIN
-            MENUITEM "Start comparison...\a",       MENDIFF
-            MENUITEM "Navigate next difference\a",  IDM_COMPARE_NAVIGATE_NEXT
-            MENUITEM "Navigate previous difference\a", IDM_COMPARE_NAVIGATE_PREV
-            MENUITEM "Clear active comparison\a",   IDM_COMPARE_CLEAR
-        END
-        MENUITEM "Insert &Special Character...\a", IDM_INSERT_CONTROL_CHAR
-        MENUITEM SEPARATOR
-        POPUP "Convert"
-        BEGIN
-            MENUITEM "&Spaces -> Tabs...\a",        MCOMTABS
-            MENUITEM "&Tabs -> Spaces...\a",        MEXPTABS
-            MENUITEM "&Upper->Lower...\a",          IDM_CONVERT_TO_LOWER
-            MENUITEM "Lower->Upper...\a",           IDM_CONVERT_TO_UPPER
-            MENUITEM "&Toggle Upper/Lower...\a",    IDM_TOGGLE_LOWER_UPPER
-            MENUITEM "Use &Linux line endings...\a", IDM_USE_LINUX_LINEENDS
-            MENUITEM "Use &Windows line endings...\a", IDM_USE_WINDOWS_LINEENDS
-        END
-    END
-    POPUP "&Macro"
-    BEGIN
-        MENUITEM "&Record\a",                   MMRECORDER
-        MENUITEM "&Edit and Run...\a",          MMACEDIT
-        MENUITEM "&Compile...\a",               IDM_COMPILEMACROS
-        MENUITEM "Insert Ke&ycode\a",           IDM_INSERT_KEYCODE
-        POPUP "&View Bindings"
-        BEGIN
-            MENUITEM "&Macros\a",                   IDM_MACROLIST
-            MENUITEM "&Keyboard\a",                 IDM_KEYLIST
-            MENUITEM "M&ouse\a",                    IDM_MOUSELIST
-            MENUITEM "Me&nu\a",                     IDM_MENULIST
-        END
-        MENUITEM SEPARATOR
-        MENUITEM "&Read...\a",                  MREADSEQ
-        MENUITEM "&Save...\a",                  MWRSEQ
-    END
-    POPUP "Editor Settings"
-    BEGIN
-        MENUITEM "&Document Types...\a",        IDM_DOCTYPES
-        MENUITEM SEPARATOR
-        MENUITEM "&Configure...\a",             IDM_DISPMODE
-        MENUITEM SEPARATOR
-        MENUITEM "&Show Tabs and Spaces\a",     MMSHOWCO
-        MENUITEM "Show Ruler\a",                MMSHOWLI
-        MENUITEM "He&x Editor Mode\a",          IDM_HEX_DISPLAY
-        MENUITEM "&Syntax Highlighting\a",      IDM_SYNTAX_HIGHLIGHTING
-        MENUITEM "&Display Line Numbers\a",     MMSHOWLINENUMBERS
-        MENUITEM "W&ysiwyg Display\a",          IDM_SHOW_WYSIWYG
-        MENUITEM SEPARATOR
-        MENUITEM "&Line Selection\a",           IDM_LINE_SELECTION
-        MENUITEM "&Column Selection\a",         IDM_COLUMN_SELECTION
-        MENUITEM SEPARATOR
-        POPUP "&More Settings"
-        BEGIN
-            MENUITEM "&Edit...\a",                  MEDITDOCMAC
-            MENUITEM "&Insert...\a",                MADDDOCMAC
-        END
-    END
-    POPUP "E&xtras"
-    BEGIN
-        MENUITEM "E&xecute Program...\a",       MEXEC
-        MENUITEM "E&valuate Selection\a",       IDM_EVALUATE_SELECTION
-        MENUITEM SEPARATOR
-        MENUITEM "&Open Tag File...\a",         MREADTAG
-        MENUITEM "Open &Error Log...\a",        MREADCMP
-        MENUITEM SEPARATOR
-        MENUITEM "&Settings...\a",              MOPTION
-    END
-    POPUP "&Windows"
-    BEGIN
-        MENUITEM "&Close All\a",                IDM_CLOSEALL
-        MENUITEM "New Horizontal Dock\a",       IDM_NEW_HORIZONTAL_DOCK
-        MENUITEM "New Vertical Dock\a",         IDM_NEW_VERTICAL_DOCK
-        MENUITEM "Toggle Fullscreen\a",         IDM_TOGGLE_FULL_SCREEN
-        MENUITEM SEPARATOR
-        MENUITEM "&Open Editors...\a",          IDM_INFOFILE
-    END
-    POPUP "&?"
-    BEGIN
-        MENUITEM "&Index\a",                    IDM_HLPINDEX
-        MENUITEM "&Menus\a",                    IDM_HLPONMENUS
-        MENUITEM "&Keyboard + Mouse\a",         IDM_HLPONKEYS
-        MENUITEM "&Release Notes\a",            IDM_HLPONDESKTOP
-        MENUITEM "&Readme\a",                   IDM_HLPONHLP
-        MENUITEM SEPARATOR
-        MENUITEM "About &PKS-EDIT...\t",        IDM_ABOUT
-    END
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // String Table
 //
 
@@ -1585,41 +1409,59 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND0            "Opens one file in an editor;Open file"
-    IDS_COMMAND1            "Creates and opens a new file;New file"
-    IDS_COMMAND2            "Open a file with given path;Openwith path"
-    IDS_COMMAND3            "Open file with special format;Open special"
+	IDM_BASEMENU		    "Base"
+	IDM_FILE_MENU		    "File"
+	IDM_EDIT_MENU		    "Edit"
+	IDM_FIND_MENU		    "Find"
+	IDM_FUNCTIONS_MENU	    "Functions"
+	IDM_MACRO_MENU		    "Macro"
+	IDM_SETTINGS_MENU	    "Settings"
+	IDM_EXTRAS_MENU		    "Extras"
+	IDM_WINDOWS_MENU        "Window"
+	IDM_PRINT_MENU          "Print"
+	IDM_CONVERT_MENU        "Convert"
+	IDM_VIEW_BINDINGS_MENU  "View Bindings"
+	IDM_MORESETTINGS_MENU   "More Settings"
+    IDM_COMPARE_FILES       "Compare Files"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_COMMAND0            "Opens one file in an editor;Open File..."
+    IDS_COMMAND1            "Creates and opens a new file;New File"
+    IDS_COMMAND2            "Open a file with given path;Open with Path..."
+    IDS_COMMAND3            "Open file with special format;Open Special..."
     IDS_COMMAND4            "Opens the last file closed;Open last file 1"
     IDS_COMMAND5            "Opens the second last file closed;Open last file 2"
     IDS_COMMAND6            "Opens the third last file closed;Open last file 3"
     IDS_COMMAND7            "Opens the fourth last file closed;Open last file 4"
     IDS_COMMAND8            "Opens the fifth last file closed;Open last file 5"
-    IDS_COMMAND9            "Closes one editor window;Close window"
+    IDS_COMMAND9            "Closes one editor window;Close Window"
     IDS_COMMAND10           "Saves the text and closes the editor window;Save & Close"
-    IDS_COMMAND11           "Save the text under a new file name;Save as"
+    IDS_COMMAND11           "Save the text under a new file name;Save as..."
     IDS_COMMAND12           "Saves the changes;Save"
-    IDS_COMMAND13           "Insert a file at the cursor position;Read block"
-    IDS_COMMAND14           "Save selected text;Save selection"
-    IDS_COMMAND15           "ClosesPKS-EDIT and save all changes;End PKS-EDIT"
+    IDS_COMMAND13           "Insert a file at the cursor position;Insert File..."
+    IDS_COMMAND14           "Save selected text;Save Selection to File..."
+    IDS_COMMAND15           "Closes PKS-EDIT and save all changes;Save and Exit"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND16           "Closes PKS-EDIT;Quit PKS-EDIT"
-    IDS_COMMAND17           "Search a pattern;Search"
-    IDS_COMMAND18           "Replace a pattern;Replace"
-    IDS_COMMAND19           "Repeat last search;Find again"
+    IDS_COMMAND16           "Closes PKS-EDIT;Exit"
+    IDS_COMMAND17           "Search a pattern;Find..."
+    IDS_COMMAND18           "Replace a pattern;Replace..."
+    IDS_COMMAND19           "Repeat last search;Find again  "
     IDS_COMMAND20           "Repeat last search forward;Find again"
-    IDS_COMMAND21           "Repeat last backwards;Find again <-"
+    IDS_COMMAND21           "Repeat last backwards;Find again Backwards"
     IDS_COMMAND22           "Search word under caret;Search word"
-    IDS_COMMAND23           "Search cross reference under caret;Search cross reference"
-    IDS_COMMAND24           "Find word under cursor backwards;Find word backwards"
-    IDS_COMMAND25           "Follow hyperlink and cursor;Follow hyperlink"
-    IDS_COMMAND26           "Searches multiple files;Find in files"
-    IDS_COMMAND27           "Navigate to cross reference;Find tag"
-    IDS_COMMAND28           "Set a mark;Set mark"
-    IDS_COMMAND29           "Goto a previously remembered mark;Goto mark"
-    IDS_COMMAND30           "Goto line number ....;Goto line"
+    IDS_COMMAND23           "Search cross reference under caret;Search Cross Reference..."
+    IDS_COMMAND24           "Find word under cursor backwards;Find word Backwards"
+    IDS_COMMAND25           "Follow hyperlink and cursor;Follow Hyperlink"
+    IDS_COMMAND26           "Searches multiple files;Find in Files..."
+    IDS_COMMAND27           "Navigate to cross reference;Find Tag..."
+    IDS_COMMAND28           "Set a mark;Set Text Mark..."
+    IDS_COMMAND29           "Goto a previously remembered mark;Goto Text Mark..."
+    IDS_COMMAND30           "Goto line number ....;Goto Line..."
     IDS_COMMAND31           "Goto last navigation position;Last Position"
 END
 
@@ -1646,20 +1488,20 @@ END
 STRINGTABLE
 BEGIN
     IDS_COMMAND48           "Copies the selected text block to the caret;Copy Selection to Cursor"
-    IDS_COMMAND49           "Moves the selected block to the caret;Move  Selection to Cursor"
+    IDS_COMMAND49           "Moves the selected block to the caret;Move Selection to Cursor"
     IDS_COMMAND50           "Copy the current line to the clipboard;Copy Line"
     IDS_COMMAND51           "Changes the shape of the text selection;Column Selection"
     IDS_COMMAND52           "Switch to show control characters mode;Show Control Characters"
-    IDS_COMMAND53           "Shows the tab ruler; Show Ruler"
+    IDS_COMMAND53           "Shows the tab ruler;Show Ruler"
     IDS_COMMAND54           "Change options and settings for printing;Define Printlayout"
     IDS_COMMAND55           "Use the alternate status line format;Alternate Statusline"
     IDS_COMMAND56           "Smart process indents with spaces;Use Smart Indentation"
     IDS_COMMAND57           "Switches insert overwite mode;Toggle Insertand Overwrite Mode"
     IDS_COMMAND58           "Configure the general settings of PKS-EDIT;Setup"
-    IDS_COMMAND59           "Formats a text area;Format Rext"
-    IDS_COMMAND60           "Compresses spaces to tabs; Compress Spaces"
-    IDS_COMMAND61           "Expand tabs to spaces; Expand Tabs"
-    IDS_COMMAND62           "Align text ranges;Align Rext"
+    IDS_COMMAND59           "Formats a text area;Format Text..."
+    IDS_COMMAND60           "Compresses spaces to tabs;Convert Spaces to Tabs"
+    IDS_COMMAND61           "Expand tabs to spaces;Expand Tabs"
+    IDS_COMMAND62           "Align text ranges;Align Text..."
     IDS_COMMAND63           "Shifts the text selection to right;Shift Right"
 END
 
@@ -1668,16 +1510,16 @@ BEGIN
     IDS_COMMAND64           "Shifts the text selection to left;Shift Left"
     IDS_COMMAND65           "Sort a text range;Sort Text"
     IDS_COMMAND66           "Goto next difference of a comparison;Compare"
-    IDS_COMMAND67           "Print the current window;Print current File"
+    IDS_COMMAND67           "Print the current window;Print Current Window..."
     IDS_COMMAND68           "Print the selection;Print Selection"
-    IDS_COMMAND69           "Print a file to select;Print arbitrary File..."
+    IDS_COMMAND69           "Print a file to select;Print File..."
     IDS_COMMAND70           "Run an external application / start command;Start Command"
     IDS_COMMAND71           "Read a tag file;Read Tag File"
     IDS_COMMAND72           "Use old search result list;Use Search Results"
     IDS_COMMAND73           "Read compiler output file;Read Compiler Output File"
     IDS_COMMAND74           "Adds document settings to the current settings;Add Settings"
     IDS_COMMAND75           "Start stop macro recorder;Record Macro"
-    IDS_COMMAND76           "Edit ans start marcros and bind ;Edit Macros"
+    IDS_COMMAND76           "Edit ans start marcros and bind;Edit Macros"
     IDS_COMMAND77           "Save macros to file;Save Macros"
     IDS_COMMAND78           "Read macros from file;Read Macros"
     IDS_COMMAND79           "Save all settings;Save Settings"
@@ -1686,37 +1528,37 @@ END
 STRINGTABLE
 BEGIN
     IDS_COMMAND80           "Configure icons of the  PKS-EDIT desktop;Edit Icons"
-    IDS_COMMAND81           "Change display settings;Change Display Settings"
-    IDS_COMMAND82           "Chnage the edit settings;Change Editing Settings"
-    IDS_COMMAND83           "Change scroll and caret settings;Change Scroll Behavior"
-    IDS_COMMAND84           "Change Fileformat;Change Fileformat"
-    IDS_COMMAND85           "Save document settings;Save Document Settings"
-    IDS_COMMAND86           "Read document settings from file;Read Document Settings"
-    IDS_COMMAND87           "Show info about edited files;Windowlist"
+    IDS_COMMAND81           "Change display settings;Change Editor Settings..."
+    IDS_COMMAND82           "Chnage the edit settings;Change Editor Settings..."
+    IDS_COMMAND83           "Change scroll and caret settings;Change Scroll Behavior..."
+    IDS_COMMAND84           "Change Fileformat;Change File Format..."
+    IDS_COMMAND85           "Save document settings;Save Document Settings..."
+    IDS_COMMAND86           "Read document settings from file;Read Document Settings..."
+    IDS_COMMAND87           "Show info about edited files;Open Windowlist..."
     IDS_COMMAND88           "Close all editor windows;Close all Windows"
     IDS_COMMAND89           "Layout the icons on the desktop;Layout icons"
     IDS_COMMAND90           "Cascade all editor windows;Cascade Windows"
     IDS_COMMAND91           "Layout editor windows side by side;Tile Wwindows"
     IDS_COMMAND92           "Show help;Help"
-    IDS_COMMAND93           "Show help;Help Menus"
-    IDS_COMMAND94           "Show help;Help Keys"
-    IDS_COMMAND95           "Show help;Help Desktop"
+    IDS_COMMAND93           "Introduces the user interface of PKS-Edit;Help Overview"
+    IDS_COMMAND94           "Show help for using the keyboard in PKS-Edit;Help Keys"
+    IDS_COMMAND95           "Displays the Release Notes;Help Release Notes"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND96           "Show help;Help Overview"
+    IDS_COMMAND96           "Show help;Help Table of Contents"
     IDS_COMMAND97           "Show copyright dialog with version info;About PKS-Edit"
-    IDS_COMMAND98           "Insert a special character from the keyboard;Insert Keycode"
+    IDS_COMMAND98           "Insert a special character from the keyboard;Insert Keycode..."
     IDS_COMMAND99           "Evaluate current line or selection;Evaluate Code"
     IDS_COMMAND100          "Toggle between fullscreen and normal mode;Toggle Fullscreen"
-    IDS_COMMAND101          "Select and navigate to a search result;Navigate to Result"
-    IDS_COMMAND102          "Opens the context menu;Open Context Menu"
-    IDS_COMMAND103          "Search selected text on the Internet;Search on the Internet"
-    IDS_COMMAND104          "Define window register #5;Window register #5"
+    IDS_COMMAND101          "Display markup text in wysiwyg mode;Wysiwyg Mode"
+    IDS_COMMAND102          "unused"
+    IDS_COMMAND103          "unused"
+    IDS_COMMAND104          "unused"
     IDS_COMMAND105          "Maximize editor window;Maximize Window"
-    IDS_COMMAND106          "Set the window size corresponding to register #0;Window register #0"
-    IDS_COMMAND107          "Set the window size corresponding to register #1;Window register #1"
+    IDS_COMMAND106          "Add a horizontal window dock;Add horizontal Window Dock"
+    IDS_COMMAND107          "Add a vertical window dock;Add vertical Window Dock"
     IDS_COMMAND108          "Navigate to a result displayed in the result list;Navigate Search Result"
     IDS_COMMAND109          "Opens the context menu;Open Context Menu"
     IDS_COMMAND110          "Searches the selected text on the Internet;Search on the Internet"
@@ -1735,10 +1577,10 @@ BEGIN
     IDS_COMMAND119          "Cycle windows;Cycle windows"
     IDS_COMMAND120          "toggled upper lower case;Convert Upper Case to Lower Case"
     IDS_COMMAND121          "Shift one column to the left;Shift left"
-    IDS_COMMAND122          "Shift one column to the right;Shift right"
-    IDS_COMMAND123          "Repeat the last replacement;Replace again"
+    IDS_COMMAND122          "Shift one column to the right;Shift Right"
+    IDS_COMMAND123          "Repeat the last replacement;Replace Again"
     IDS_COMMAND124          "Goto the next compiler error;Find Error"
-    IDS_COMMAND125          "Goto the last compiler error;Find Last Error"
+    IDS_COMMAND125          "Goto the last compiler error;Find last Error"
     IDS_COMMAND126          "Goto the previous compiler error;Find last Error Backwards"
     IDS_COMMAND127          "Goto the first compiler error;Goto first Error"
 END
@@ -1747,8 +1589,8 @@ STRINGTABLE
 BEGIN
     IDS_COMMAND128          "Check bracket matches;Check Braces and Brackets"
     IDS_COMMAND129          "Shows a form with current character set;Insert Special Character"
-    IDS_COMMAND130          "Shift the text block between brackets to left; Shift {} left"
-    IDS_COMMAND131          "Shift the text block between brackets to right; Shift {} right"
+    IDS_COMMAND130          "Shift the text block between brackets to left;Shift {} left"
+    IDS_COMMAND131          "Shift the text block between brackets to right;Shift {} right"
     IDS_COMMAND132          "Delete the character under the cursor;Delete Character"
     IDS_COMMAND133          "Delete to the end of line;Delete to End Of Line"
     IDS_COMMAND134          "Deletes the word under the caret;Delete Word"
@@ -1792,7 +1634,7 @@ BEGIN
     IDS_COMMAND164          "Delete a line;Delete line"
     IDS_COMMAND165          "Appends the current line to a named trash can;Line >> trashcan"
     IDS_COMMAND166          "Delete the line caret follows;Delete line |"
-    IDS_COMMAND167          "Re-read the current file to undo all changes;Abandon file"
+    IDS_COMMAND167          "Re-read the current file to undo all changes;Abandon File"
     IDS_COMMAND168          "Saves and closes the current editor window;Save & close"
     IDS_COMMAND169          "Inserts a line, caret stays;Insert line"
     IDS_COMMAND170          "Edit more document settings;Editor settings"
@@ -1805,35 +1647,35 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND176          "Defines document types;Define doc types"
+    IDS_COMMAND176          "Defines document types;Define Document Types..."
     IDS_COMMAND177          "Switches the function keys;Function keys ->"
-    IDS_COMMAND178          "Repeats the last editing commands;Repeat edit"
-    IDS_COMMAND179          "Starts the macro recorder;Record macro"
+    IDS_COMMAND178          "Repeats the last editing commands;Repeat last Edit"
+    IDS_COMMAND179          "Starts the macro recorder;Record Macro"
     IDS_COMMAND180          "Undo the last change;Undo"
-    IDS_COMMAND181          "Inverts the line markers;Invert line markers"
+    IDS_COMMAND181          "Inverts the line markers;Invert Line Markers"
     IDS_COMMAND182          "Iconize PKS-EDIT;PKS-EDIT as icon"
-    IDS_COMMAND183          "Iconize the current editing window;Window as icon"
-    IDS_COMMAND184          "Goto last difference in a comparison;Goto last difference"
-    IDS_COMMAND185          "Scroll one line up, caret stays;Scroll hoch 1"
-    IDS_COMMAND186          "Scroll one line down, caret stays;Scroll down  1"
-    IDS_COMMAND187          "Scroll one page up, caret stays;Scroll page 1"
-    IDS_COMMAND188          "Scroll one page down, caret stays;Scroll page d. 1"
-    IDS_COMMAND189          "Move the caret to the center of the page;Page center"
-    IDS_COMMAND190          "Scroll one line up, caret follows;Scroll up 2"
-    IDS_COMMAND191          "Scroll one line down, caret follows;Scroll down  2"
+    IDS_COMMAND183          "Iconize the current editing window;Minimize current Window"
+    IDS_COMMAND184          "Goto last difference in a comparison;Goto last Difference"
+    IDS_COMMAND185          "Scroll one line up, caret stays;Scroll Up by One"
+    IDS_COMMAND186          "Scroll one line down, caret stays;Scroll Down by One"
+    IDS_COMMAND187          "Scroll one page up, caret stays;Scroll Page Up"
+    IDS_COMMAND188          "Scroll one page down, caret stays;Scroll Page Down"
+    IDS_COMMAND189          "Move the caret to the center of the page;Center Page"
+    IDS_COMMAND190          "Scroll one line up, caret follows;Scroll Up With Caret"
+    IDS_COMMAND191          "Scroll one line down, caret follows;Scroll Down With Caret"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND192          "Scroll to move screen, so caret is centered;Scroll center"
-    IDS_COMMAND193          "Join all marked lines;Join lines"
-    IDS_COMMAND194          "Document settings;Edit special settings"
-    IDS_COMMAND195          "Move to last insertion position;To last insertion"
-    IDS_COMMAND196          "Print the contents of the clipboard;Print clipboard"
-    IDS_COMMAND197          "Print the contents of a trashcan;Print trashcan"
-    IDS_COMMAND198          "Insert contents of trashcan from icon;Insert clipboard"
+    IDS_COMMAND192          "Scroll to move screen, so caret is centered;Scroll Center"
+    IDS_COMMAND193          "Join all marked lines;Join Lines"
+    IDS_COMMAND194          "Document settings;Edit Special Settings..."
+    IDS_COMMAND195          "Move to last insertion position;To last Insertion Position"
+    IDS_COMMAND196          "Print the contents of the clipboard;Print Clipboard..."
+    IDS_COMMAND197          "Print the contents of a trashcan;Print Trashcan..."
+    IDS_COMMAND198          "Insert contents of trashcan from icon;Insert Clipboard"
     IDS_COMMAND199          "Insert the clipboard from an icon"
-    IDS_COMMAND200          "Executes command associated with icon;Execute command"
+    IDS_COMMAND200          "Executes command associated with icon;Execute Command..."
     IDS_COMMAND201          "Delete icon;Delete icon"
     IDS_COMMAND202          "Place cursor with mouse"
     IDS_COMMAND203          "Copy selected text with mouse"
@@ -1859,7 +1701,7 @@ BEGIN
     IDS_COMMAND219          "Display the list of defined clipboards;Show Clipboard"
     IDS_COMMAND220          "Deletes the selected text;Delete Selection"
     IDS_COMMAND221          "List current menu in PKS macro format;Display Menu Binding"
-    IDS_COMMAND222          "Repeat command to last undo;Repeat last Command"
+    IDS_COMMAND222          "Redo command of  last undo;Redo"
     IDS_COMMAND223          "Show line numbers;Show Line Numbers"
 END
 
@@ -1896,10 +1738,10 @@ BEGIN
     IDS_COMMAND248          "Find next difference;Next Difference"
     IDS_COMMAND249          "Find previous Difference;Previous Difference"
     IDS_COMMAND250          "End comparison;End Comparison"
-    IDS_COMMAND251          "Toggle line selection; Toggle Line Selection"
-    IDS_COMMAND252          "Toggle syntax highlighting"
-    IDS_COMMAND253          "Move selection or line up;move selection up"
-    IDS_COMMAND254          "Move selection or line down;move selection down"
+    IDS_COMMAND251          "Toggle line selection;Toggle Line Selection"
+    IDS_COMMAND252          "Toggle syntax highlighting;Show Syntax Highlighting"
+    IDS_COMMAND253          "Move selection or line up;Move Selection Up"
+    IDS_COMMAND254          "Move selection or line down;Move Selection Down"
 END
 
 STRINGTABLE

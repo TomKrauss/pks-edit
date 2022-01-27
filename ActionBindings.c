@@ -1,10 +1,10 @@
 /*
- * KeyBindings.c
+ * ActionBindings.c
  *
  * PROJEKT: PKS-EDIT for Windows
  *
- * purpose: translate key names 2 scan code and vc.vs.
- *		  maintain key-function bindings in a hash tab
+ * purpose: define all action triffers in PKS-Edit (menubar, context-menu, toolbar,
+ * keycode, mouse events) and to the actions to be executed.
  *
  * 										created: 
  * 										last modified:
@@ -23,6 +23,7 @@
 #include "jsonparser.h"
 #include "hashmap.h"
 #include "arraylist.h"
+#include "fontawesome.h"
 
 #define MACROREF_TO_INTPTR(m)	(intptr_t)(((unsigned long)m.typ<<16) + (unsigned long)m.index)
 #define INTPTR_TO_MACROREF(m)	(MACROREF){.typ = (unsigned char)((unsigned long)m >> 16), .index = (unsigned char)((unsigned long)m&0xFFFF)}
@@ -34,9 +35,10 @@ typedef struct tagACTION_BINDING {
 	struct tagACTION_BINDING* ab_children;	// for nested actions (e.g. menus) - this is the possibly null list of children.
 	char ab_context[MAX_CONTEXT_NAME_LEN];	// context name
 	union {
-		KEYBIND		keybind;
-		MOUSEBIND	mousebind;
-		CONTEXT_MENU subMenu;
+		KEY_BINDING		keybind;
+		MOUSE_EVENT_BINDING	mousebind;
+		MENU_ITEM_DEFINITION subMenu;
+		TOOLBAR_BUTTON_BINDING toolbarButtonBinding;
 	} ab_binding;
 } ACTION_BINDING;
 
@@ -50,12 +52,14 @@ typedef struct tagACTION_BINDINGS {
 static ACTION_BINDINGS* _actionBindings;
 static ACTION_BINDING*  _contextMenu;		// the context menu definitions
 static ACTION_BINDING*  _menu;				// the main menu definitions
+static ACTION_BINDING*  _toolbar;			// the toolbar definitions
 
 typedef struct tagJSON_BINDINGS {
 	ACTION_BINDING* keys;
 	ACTION_BINDING* mouse;
 	ACTION_BINDING* subMenu;
 	ACTION_BINDING* menu;
+	ACTION_BINDING* toolbarButtonBinding;
 } JSON_BINDINGS;
 
 static int bindings_parseCommandMP(MACROREF* mp, const char* pszCommand) {
@@ -85,7 +89,11 @@ static int key_parseCommand(ACTION_BINDING* pTarget, const char* pszCommand) {
 }
 
 static int contextmenu_parseCommand(ACTION_BINDING* pTarget, const char* pszCommand) {
-	return bindings_parseCommandMP(&pTarget->ab_binding.subMenu.cm_macref, pszCommand);
+	return bindings_parseCommandMP(&pTarget->ab_binding.subMenu.mid_command, pszCommand);
+}
+
+static int toolbar_parseCommand(ACTION_BINDING* pTarget, const char* pszCommand) {
+	return bindings_parseCommandMP(&pTarget->ab_binding.toolbarButtonBinding.tbb_macref, pszCommand);
 }
 
 extern KEYCODE print_parseKeycode(const unsigned char* k, int control);
@@ -176,14 +184,29 @@ static JSON_MAPPING_RULE _mousebindRules[] = {
 
 static JSON_MAPPING_RULE _menuRules[] = {
 	{	RT_CHAR_ARRAY, "context", offsetof(ACTION_BINDING, ab_context), sizeof(((ACTION_BINDING*)NULL)->ab_context)},
-	{	RT_ALLOC_STRING, "label", offsetof(ACTION_BINDING, ab_binding.subMenu.cm_label), 0},
-	{	RT_INTEGER, "resource-id", offsetof(ACTION_BINDING, ab_binding.subMenu.cm_resourceId), 0},
+	{	RT_ALLOC_STRING, "label", offsetof(ACTION_BINDING, ab_binding.subMenu.mid_label), 0},
+	{	RT_INTEGER, "resource-id", offsetof(ACTION_BINDING, ab_binding.subMenu.mid_resourceId), 0},
 	{	RT_STRING_CALLBACK, "command", 0, .r_descriptor = {.r_t_callback = contextmenu_parseCommand}},
-	{	RT_FLAG, "separator", offsetof(ACTION_BINDING, ab_binding.subMenu.cm_isSeparator), 1},
-	{	RT_FLAG, "history-menu", offsetof(ACTION_BINDING, ab_binding.subMenu.cm_isHistoryMenu), 1},
+	{	RT_FLAG, "separator", offsetof(ACTION_BINDING, ab_binding.subMenu.mid_isSeparator), 1},
+	{	RT_FLAG, "history-menu", offsetof(ACTION_BINDING, ab_binding.subMenu.mid_isHistoryMenu), 1},
 	{	RT_OBJECT_LIST, "sub-menu", offsetof(ACTION_BINDING, ab_children),
 		{.r_t_arrayDescriptor = {key_createActionBinding, _menuRules}}
 	},
+	{	RT_END }
+};
+
+static int tbb_parseIconName(ACTION_BINDING* pTarget, const char* pszIconName) {
+	wchar_t wIcon = faicon_codeForName(pszIconName);
+	pTarget->ab_binding.toolbarButtonBinding.tbb_faIcon = wIcon ? wIcon : FA_ICON_QUESTION;
+	return 1;
+}
+
+static JSON_MAPPING_RULE _tbbRules[] = {
+	{	RT_CHAR_ARRAY, "context", offsetof(ACTION_BINDING, ab_context), sizeof(((ACTION_BINDING*)NULL)->ab_context)},
+	{	RT_ALLOC_STRING, "label", offsetof(ACTION_BINDING, ab_binding.toolbarButtonBinding.tbb_label), 0},
+	{	RT_STRING_CALLBACK, "command", 0, .r_descriptor = {.r_t_callback = toolbar_parseCommand}},
+	{	RT_FLAG, "separator", offsetof(ACTION_BINDING, ab_binding.toolbarButtonBinding.tbb_isSeparator), 1},
+	{	RT_STRING_CALLBACK, "icon", 0, .r_descriptor = {.r_t_callback = tbb_parseIconName}},
 	{	RT_END }
 };
 
@@ -199,6 +222,9 @@ static JSON_MAPPING_RULE _jsonBindingsRules[] = {
 	},
 	{	RT_OBJECT_LIST, "menu", offsetof(JSON_BINDINGS, menu),
 		{.r_t_arrayDescriptor = {key_createActionBinding, _menuRules}}
+	},
+	{	RT_OBJECT_LIST, "toolbar", offsetof(JSON_BINDINGS, toolbarButtonBinding),
+		{.r_t_arrayDescriptor = {key_createActionBinding, _tbbRules}}
 	},
 	{	RT_END }
 };
@@ -238,7 +264,7 @@ static int bindings_destroyMouseBinding(ACTION_BINDING* pBind) {
 }
 
 static int bindings_destroyMenu(ACTION_BINDING* pBind) {
-	free((char*)pBind->ab_binding.subMenu.cm_label);
+	free((char*)pBind->ab_binding.subMenu.mid_label);
 	ll_destroy((LINKED_LIST**)&pBind->ab_children, bindings_destroyMenu);
 	return 1;
 }
@@ -256,6 +282,7 @@ void bindings_destroy() {
 	ll_destroy((LINKED_LIST**)&_menu, bindings_destroyMenu);
 	ll_destroy((LINKED_LIST**)&_contextMenu, bindings_destroyMenu);
 	ll_destroy((LINKED_LIST**)&_actionBindings, bindings_destroyActionBindings);
+	ll_destroy((LINKED_LIST**)&_toolbar, 0);
 }
 /*
  * Load a grammar definition file from the PKS_SYS directory.
@@ -281,6 +308,7 @@ static int bindings_loadFromFile(const char* pszFilename) {
 			pB = pBNext;
 		}
 		_contextMenu = definitions.subMenu;
+		_toolbar = definitions.toolbarButtonBinding;
 		_menu = definitions.menu;
 		ll_destroy(&definitions.keys, NULL);
 		return 1;
@@ -304,7 +332,7 @@ MACROREF bindings_getKeyBinding(KEYCODE keycode, const char* pszActionContext) {
 /*------------------------------------------------------------
  * mouse_getMouseBind()
  */
-MOUSEBIND* mouse_getMouseBind(int nButton, int nShift, int nClicks, const char* pszActionContext) {
+MOUSE_EVENT_BINDING* mouse_getMouseBind(int nButton, int nShift, int nClicks, const char* pszActionContext) {
 	ACTION_BINDING* mp;
 
 	while(TRUE) {
@@ -323,7 +351,7 @@ MOUSEBIND* mouse_getMouseBind(int nButton, int nShift, int nClicks, const char* 
 		}
 		pszActionContext = NULL;
 	}
-	return (MOUSEBIND*)0;
+	return (MOUSE_EVENT_BINDING*)0;
 }
 
 /*
@@ -338,8 +366,8 @@ void key_loadBindings() {
  */
 static void* _callbackParam;
 static int key_processBinding(intptr_t k, intptr_t v, void* pParam) {
-	int (*callback)(KEYBIND * pBinding, void* pParam) = pParam;
-	KEYBIND kb;
+	int (*callback)(KEY_BINDING * pBinding, void* pParam) = pParam;
+	KEY_BINDING kb;
 	kb.keycode = (int)k;
 	kb.macref = INTPTR_TO_MACROREF(v);
 	return callback(&kb, _callbackParam);
@@ -348,7 +376,7 @@ static int key_processBinding(intptr_t k, intptr_t v, void* pParam) {
 /*
  * Iterate all key bindings and invoke a callback on every keybinding defined for one action context. 
  */
-void key_bindingsDo(const char* pszActionContext, int (*callback)(KEYBIND* pBinding, void* pParam), void* pParam) {
+void key_bindingsDo(const char* pszActionContext, int (*callback)(KEY_BINDING* pBinding, void* pParam), void* pParam) {
 	_callbackParam = pParam;
 	ACTION_BINDINGS* pBindings = bindings_lookupByContext(pszActionContext);
 	hashmap_forEachEntry(pBindings->ab_keyBindingTable, key_processBinding, callback);
@@ -361,7 +389,7 @@ void key_bindingsDo(const char* pszActionContext, int (*callback)(KEYBIND* pBind
 /*
  * Iterate all mouse bindings and invoke a callback on every mousebinding defined for one action context.
  */
-void mouse_bindingsDo(const char* pszActionContext, int (*callback)(MOUSEBIND* pBinding, void* pParam), void* pParam) {
+void mouse_bindingsDo(const char* pszActionContext, int (*callback)(MOUSE_EVENT_BINDING* pBinding, void* pParam), void* pParam) {
 	while (TRUE) {
 		ACTION_BINDINGS* pBindings = bindings_lookupByContext(pszActionContext);
 		ACTION_BINDING* mp = pBindings->ab_mouseBindings;
@@ -381,7 +409,7 @@ void mouse_bindingsDo(const char* pszActionContext, int (*callback)(MOUSEBIND* p
 
 static MACROREF _searchMacroRef;
 
-static int key_matchMacro(KEYBIND* pBinding, void* pParam) {
+static int key_matchMacro(KEY_BINDING* pBinding, void* pParam) {
 	if (pBinding->macref.index == _searchMacroRef.index && pBinding->macref.typ == _searchMacroRef.typ) {
 		*((KEYCODE*)pParam) = pBinding->keycode;
 		return 0;
@@ -414,12 +442,12 @@ int macro_bindKey(KEYCODE key, MACROREF macro, const char* pszActionContext) {
 /*
  * Returns a context menu - recursively callable for nested sub-menus. 
  */
-static CONTEXT_MENU* submenu_getFrom(const char* pszActionContext, ACTION_BINDING* pBinding) {
-	CONTEXT_MENU* pHead = NULL;
-	CONTEXT_MENU* pCurrent = NULL;
+static MENU_ITEM_DEFINITION* submenu_getFrom(const char* pszActionContext, ACTION_BINDING* pBinding) {
+	MENU_ITEM_DEFINITION* pHead = NULL;
+	MENU_ITEM_DEFINITION* pCurrent = NULL;
 	while (pBinding) {
 		if (strcmp(pszActionContext, pBinding->ab_context) == 0 || !pBinding->ab_context[0] || strcmp(DEFAULT_ACTION_CONTEXT, pBinding->ab_context) == 0) {
-			CONTEXT_MENU* pNested = NULL;
+			MENU_ITEM_DEFINITION* pNested = NULL;
 			if (pBinding->ab_children) {
 				pNested = submenu_getFrom(pszActionContext, pBinding->ab_children);
 				if (!pNested) {
@@ -432,11 +460,11 @@ static CONTEXT_MENU* submenu_getFrom(const char* pszActionContext, ACTION_BINDIN
 				pCurrent = pHead;
 			}
 			else {
-				pCurrent->cm_next = &pBinding->ab_binding.subMenu;
-				pCurrent = pCurrent->cm_next;
-				pCurrent->cm_next = NULL;
+				pCurrent->mid_next = &pBinding->ab_binding.subMenu;
+				pCurrent = pCurrent->mid_next;
+				pCurrent->mid_next = NULL;
 			}
-			pCurrent->cm_children = pNested;
+			pCurrent->mid_children = pNested;
 		}
 		pBinding = pBinding->ab_next;
 	}
@@ -446,7 +474,7 @@ static CONTEXT_MENU* submenu_getFrom(const char* pszActionContext, ACTION_BINDIN
 /*
  * Returns a linked list of context menu entries for a given action context.
  */
-CONTEXT_MENU* contextmenu_getFor(const char* pszActionContext) {
+MENU_ITEM_DEFINITION* contextmenu_getFor(const char* pszActionContext) {
 	ACTION_BINDING* pBinding = _contextMenu;
 
 	if (!pszActionContext) {
@@ -458,7 +486,7 @@ CONTEXT_MENU* contextmenu_getFor(const char* pszActionContext) {
 /*
  * Returns a linked list of main menu entries for a given action context.
  */
-CONTEXT_MENU* mainmenu_getFor(const char* pszActionContext) {
+MENU_ITEM_DEFINITION* binding_getMenuBarFor(const char* pszActionContext) {
 	ACTION_BINDING* pBinding = _menu;
 
 	if (!pszActionContext) {
@@ -466,6 +494,51 @@ CONTEXT_MENU* mainmenu_getFor(const char* pszActionContext) {
 	}
 	return submenu_getFrom(pszActionContext, pBinding);
 }
+
+/*
+ * Returns a linked list of main menu entries for a popup menu of the application menu bar with the given
+ * menu handle and for an action context.
+ */
+MENU_ITEM_DEFINITION* binding_getMenuBarPopupDefinitionFor(const char* pszActionContext, HMENU hMenu) {
+	ACTION_BINDING* pBinding = _menu;
+
+	if (!pszActionContext) {
+		pszActionContext = DEFAULT_ACTION_CONTEXT;
+	}
+	while (pBinding) {
+		if (pBinding->ab_binding.subMenu.mid_menuHandle == hMenu) {
+			return submenu_getFrom(pszActionContext, pBinding->ab_children);
+		}
+		pBinding = pBinding->ab_next;
+	}
+	return NULL;
+}
+
+/*
+ * Returns a linked list of toolbar button bindings for an action context (currently ignored - toolbar is never dynamic).
+ */
+TOOLBAR_BUTTON_BINDING* binding_getToolbarBindingsFor(const char* pszActionContext) {
+	ACTION_BINDING* pBinding = _toolbar;
+	TOOLBAR_BUTTON_BINDING* pFirst = NULL;
+	TOOLBAR_BUTTON_BINDING* pCurrent = NULL;
+	TOOLBAR_BUTTON_BINDING* pTb;
+	
+	while (pBinding) {
+		pTb = &pBinding->ab_binding.toolbarButtonBinding;
+		if (pCurrent == NULL) {
+			pFirst = pCurrent = pTb;
+		}
+		else {
+			pCurrent->tbb_next = pTb;
+			pCurrent = pTb;
+		}
+		pCurrent->tbb_next = NULL;
+		pBinding = pBinding->ab_next;
+	}
+	return pFirst;
+}
+
+
 
 /*
  * Delete a key binding.

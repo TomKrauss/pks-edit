@@ -132,7 +132,7 @@
     <ClCompile Include="KeyBindingFileIO.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="KeyBindings.c">
+    <ClCompile Include="ActionBindings.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="macro_compiler\JumpLabels.c">
@@ -162,7 +162,7 @@
     <ClCompile Include="MarkPositions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DynamicMenus.c">
+    <ClCompile Include="Menus.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MouseUtil.c">
@@ -310,6 +310,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DpiSupport.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FontAwesome.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

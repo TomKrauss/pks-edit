@@ -39,6 +39,7 @@
 #include "winutil.h"
 #include "fileselector.h"
 #include "themes.h"
+#include "funcdef.h"
 
 #define	PREVIEWING()	(hwndPreview != 0)
 #define	EVEN(p)			((p & 1) == 0)
@@ -1017,7 +1018,7 @@ int EdPrint(long what, long p1, LPSTR fname) {
 		if (fname) {
 			lstrcpy(fp->fname, fname);
 		}
-		if (!fsel_selectFileWithTitle(IDM_PRINTFILE, fp->fname, FALSE)) {
+		if (!fsel_selectFileWithTitle(CMD_PRINT_FILE, fp->fname, FALSE)) {
 			return 0;
 		}
 		FILE_READ_OPTIONS fro;

@@ -42,6 +42,7 @@
 #include "propertychange.h"
 #include "arraylist.h"
 #include "mainframe.h"
+#include "funcdef.h"
 
 /*
  * Files bigger than this are not completely re-read on changes, but an attempt is performed
@@ -597,8 +598,9 @@ int ww_requestToClose(WINFO *wp)
 			case IDCANCEL:  return (0);
 		}
 	}
-	hist_saveString(OPEN_FILES, fp->fname);
-	hist_updateMenu(OPEN_FILES);
+	if (!(fp->flags & (F_TRANSIENT|F_NEWFILE))) {
+		hist_saveString(OPEN_FILES, fp->fname);
+	}
 	return 1;
 }
 
@@ -649,17 +651,17 @@ int ft_currentFileChanged(FTABLE *fp) {
 
 /*------------------------------------------------------------
  * fsel_selectFileWithTitle()
- * Select a file given a resource id for the title and return the selected
+ * Select a file given a resource id for the nCommand and return the selected
  * filename in "result" (must be large enough to hold the pathname (EDMAXPATHLEN)).
  */
 static FSELINFO _txtfninfo = {"."};
-int fsel_selectFileWithTitle(int title, char *result, FILE_SELECT_PARAMS* pFSP)
+int fsel_selectFileWithTitle(int nCommand, char *result, FILE_SELECT_PARAMS* pFSP)
 {
 	char *fn;
 	BOOL	bRet;
 
 	bRet = FALSE;
-	if ((fn = fsel_selectFileWithOptions(&_txtfninfo, title, pFSP)) != 0) {
+	if ((fn = fsel_selectFileWithOptions(&_txtfninfo, nCommand, pFSP)) != 0) {
 		strcpy(result,fn);
 		bRet = TRUE;
 	}
@@ -820,7 +822,7 @@ int EdEditFile(long editflags, char *filename) {
 		fsp.fsp_saveAs = FALSE;
 		fsp.fsp_codepage = -1;
 		fsp.fsp_optionsAvailable = TRUE;
-		if (!fsel_selectFileWithTitle(IDS_MSGOPEN, _fseltarget, &fsp)) {
+		if (!fsel_selectFileWithTitle(CMD_OPEN_FILE, _fseltarget, &fsp)) {
 			return 0;
 		}
 		codepage = fsp.fsp_codepage;
@@ -967,7 +969,7 @@ int EdSaveFile(int flg) {
 		fsp.fsp_optionsAvailable = TRUE;
 		fsp.fsp_codepage = fp->codepage;
 		fsp.fsp_encrypted = pConfig->workmode & O_CRYPTED ? TRUE : FALSE;
-		if (fsel_selectFileWithTitle(MSAVEAS, newname, &fsp) == 0) {
+		if (fsel_selectFileWithTitle(CMD_SAVE_FILE_AS, newname, &fsp) == 0) {
 			return 0;
 		}
 		if (fsp.fsp_encrypted) {
@@ -1046,7 +1048,7 @@ void ft_setOutputFilename(FTABLE* fp, char* pNewName) {
 }
 
 /*
- * Assign a new title to display for a file.
+ * Assign a new nCommand to display for a file.
  */
 void ft_setTitle(FTABLE* fp, char* pNewName) {
 	char oldName[256];

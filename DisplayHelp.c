@@ -59,10 +59,9 @@ int EdHelpContext(DWORD nCtx) {
 	char* pszFile = "..\\readme.md";
 
 	switch (nCtx) {
-		// TODO: change these.
-	case IDM_HLPONMENUS: 
-	case IDM_HLPONKEYS: pszFile = "manual\\editing_files-md"; break;
-	case IDM_HLPINDEX: pszFile = "manual\\toc.md"; break;
+	case IDM_HLPOVERVIEW: pszFile = "manual\\pksedit_ui.md"; break;
+	case IDM_HLPONKEYS: pszFile = "manual\\editing_files.md"; break;
+	case IDM_HLP_MANUAL_TOC: pszFile = "manual\\toc.md"; break;
 	case IDM_HLPRELEASENOTES: pszFile = "release_notes.md"; break;
 	}
 	return help_open(pszFile);

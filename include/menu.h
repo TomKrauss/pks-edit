@@ -32,5 +32,15 @@ extern POINT menu_getContextMenuPopupPosition();
  */
 extern void menu_selectActionContext(const char* pszContext);
 
+/*
+ * Create the main application menu bar from the actionbinding definitions loaded before.
+ */
+extern HMENU menu_createMenubar();
+
+/*
+ * Updates a popup of the menu bar every time the popup is opened.
+ */
+extern void menu_updateMenubarPopup(HMENU hMenu);
+
 #define MENU_H
 #endif

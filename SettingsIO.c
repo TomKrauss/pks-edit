@@ -22,6 +22,7 @@
 #include "documentmodel.h"
 #include "edierror.h"
 #include "documenttypes.h"
+#include "funcdef.h"
 
 #include "winfo.h"
 #include "winterf.h"
@@ -336,7 +337,7 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 		FILE_SELECT_PARAMS params;
 		params.fsp_saveAs = TRUE;
 		params.fsp_optionsAvailable = FALSE;
-		if ((fn = fsel_selectFileWithOptions(&_setfselinfo, MOPTION, &params)) == 0) {
+		if ((fn = fsel_selectFileWithOptions(&_setfselinfo, CMD_SAVE_OPTIONS, &params)) == 0) {
 			return 0;
 		}
 	}

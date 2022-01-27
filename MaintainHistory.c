@@ -19,10 +19,6 @@
 #include "history.h"
 #include "stringutil.h"
 
-#define MAX_HISTORY_FILES 10
-
-extern HMENU his_getHistoryMenu(int *pnPosition, int *piCmd);
-
 typedef struct history {
 	char* s[MAXHIST];
 	int  where;
@@ -41,9 +37,6 @@ static struct histdes {
 	"[pathes]",		&_histories[PATHES],
 	0
 };
-
-void win_changeMenuItem(HMENU hMenu, int nPosition, int nCmd, WORD wFlags,
-	LPCSTR lpszItem);
 
 /*---------------------------------*/
 /* hist_saveString()					*/
@@ -180,34 +173,6 @@ char *hist_getString(HISTORY_TYPE type, int nItem) {
 	return (char *)0;
 }
 
-/*--------------------------------------------------------------------------
- * hist_2menu()
- */
-void hist_updateMenu(HISTORY_TYPE type) {
-	HMENU 	hMenu;
-	int		iCmd;
-	int		nVisible;
-	int 	nPosition;
-	int		i;
-	char	szTemp[512];
-	char *	p;
-
-	hMenu = his_getHistoryMenu(&nPosition, &iCmd);
-
-	nVisible = MAX_HISTORY_FILES;
-
-	for (i = 0; i < nVisible; i++) {
-		if ((p = hist_getString(type, i)) == 0) {
-			return;
-		}
-		wsprintf(szTemp, "&%d %s", i + 1, p);
-		win_changeMenuItem(hMenu, nPosition, iCmd, 
-			MF_BYPOSITION|MF_STRING, szTemp);
-		nPosition++;
-		iCmd++;
-	}
-}
-
 /*---------------------------------*/
 /* history saving()				*/
 /*---------------------------------*/
@@ -262,7 +227,6 @@ EXPORT void hist_readLine(LINE *lp)
 		}
 		lp = lp->next;
 	}
-	hist_updateMenu(OPEN_FILES);
 }
 
 /*

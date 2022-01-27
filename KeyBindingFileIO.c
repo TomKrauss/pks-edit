@@ -36,6 +36,7 @@
 #include "crossreferencelinks.h"
 #include "editorconfiguration.h"
 #include "brackets.h"
+#include "funcdef.h"
 
 #define	MAX_CONTEXT	32
 
@@ -309,7 +310,7 @@ int EdDocMacrosAdd(void)
 	params.fsp_saveAs = TRUE;
 	params.fsp_optionsAvailable = FALSE;
 
-	if (!ft_getCurrentDocument() || (fn = fsel_selectFileWithOptions(&_linfsel, MADDDOCMAC, &params)) == 0) {
+	if (!ft_getCurrentDocument() || (fn = fsel_selectFileWithOptions(&_linfsel, CMD_ADD_DOC_MACROS, &params)) == 0) {
 		return 0;
 	}
 

@@ -20,7 +20,7 @@ typedef struct tagWINFO WINFO;
 #ifndef	_EDFUNCS_H
 #define	EDBINDS	long
 #define	KEYCODE	unsigned
-#define	KEYBIND	void
+#define	KEY_BINDING	void
 #endif
 
 #ifndef 	__AES__

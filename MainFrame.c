@@ -33,9 +33,10 @@
 #include "windowselector.h"
 #include "uahmenubar.h"
 #include "darkmode.h"
+#include "menu.h"
 
 extern HINSTANCE		hInst;
-extern BOOL	bTaskFinished;
+extern BOOL		bTaskFinished;
 extern void 	st_init(HWND hwndDaddy);
 extern void		st_redraw(BOOL bErase);
 extern void		st_resize(int nStatusHeight, RECT* pRect);
@@ -44,7 +45,7 @@ extern void 	tb_wh(WORD* width, WORD* height);
 extern BOOL 	ww_workWinHasFocus(void);
 extern int 		clp_setdata(char* pszBufferName);
 extern void 	EditDroppedFiles(HDROP hdrop);
-extern void tb_updateImageList();
+extern void		tb_updateImageList();
 
 /*------------------------------------------------------------
  * EdCloseAll()
@@ -1751,7 +1752,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 	case WM_INITMENUPOPUP:
 		if (!(BOOL)HIWORD(lParam)) {
 			HMENU hMenu = (HMENU)wParam;
-			macro_assignAcceleratorTextOnMenu(hMenu);
+			menu_updateMenubarPopup(hMenu);
 		}
 		break;
 	case WM_THEMECHANGED:
@@ -1809,6 +1810,10 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		idCtrl = (int)wParam;
 		if (idCtrl < 0) {
 			break;
+		}
+		// special hack for toolbars supporting only 16 bit commands ??
+		if ((idCtrl >> 8) == CMD_CMDSEQ) {
+			idCtrl = (CMD_CMDSEQ << 16) + (idCtrl & 0xFF);
 		}
 		if (idCtrl == IDM_INCREMENTAL_SEARCH) {
 			break;

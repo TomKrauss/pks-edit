@@ -267,7 +267,7 @@ typedef struct tagWINFO {
      float      zoomFactor;         // The text font size zoom factor.
      COMPARISON_LINK* comparisonLink;
      void* r_data;                  // optionally used by the renderer for internal book keeping
-     const char* actionContext;     // allows us to have window specific key-, mouse- and other action bindings.
+     char actionContext[32];        // allows us to have window specific key-, mouse- and other action bindings.
 } WINFO;
 
 /* valid working range types */

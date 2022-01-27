@@ -427,7 +427,7 @@ int macro_executeWithPosition(WINFO* wp, MACROREF* pRef, POINT pt) {
 /*---------------------------------*/
 /* mfunct()					*/
 /*---------------------------------*/
-static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
+static int mfunct(WINFO *wp, MOUSE_EVENT_BINDING *mp, int x, int y)
 {
 	if (mp->msg && mp->msg[0]) {
 		error_displayErrorInToastWindow(mp->msg);
@@ -438,14 +438,14 @@ static int mfunct(WINFO *wp, MOUSEBIND *mp, int x, int y)
 /*------------------------------------------------------------
  * mouse_getMouseBind()
  */
-extern MOUSEBIND* mouse_getMouseBind(int nButton, int nShift, int nClicks, const char* pszActionContext);
+extern MOUSE_EVENT_BINDING* mouse_getMouseBind(int nButton, int nShift, int nClicks, const char* pszActionContext);
 
 /*----------------------------*/
 /* mouse_onMouseClicked()			*/
 /*----------------------------*/
 EXPORT int mouse_onMouseClicked(WINFO *wp, int x, int y, int b, int nclicks, int nModifier)
 {
-	MOUSEBIND *	mp = NULL;
+	MOUSE_EVENT_BINDING *	mp = NULL;
 
 	if (mp || (mp = mouse_getMouseBind(b, nModifier, nclicks, wp->actionContext)) != 0) {
 		macro_stopRecordingFunctions();

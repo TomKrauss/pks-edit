@@ -72,7 +72,7 @@ static void fk_registerBinding(int nIdx, int nCommand) {
 }
 
 
-static int fkey_setText(KEYBIND* kp, void * pParam) {
+static int fkey_setText(KEY_BINDING* kp, void * pParam) {
 	char szComment[256], szKey[64], szKtext[128];
 	int keycode1 = (int)(intptr_t)pParam;
 	int k = (int)kp->keycode - (int)keycode1;

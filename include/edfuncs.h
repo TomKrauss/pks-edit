@@ -56,11 +56,10 @@
 
 /* "macro reference" types */
 #define	CMD_NONE		0
-#define	CMD_MENU		0x1
-#define	CMD_CMDSEQ	0x2
+#define	CMD_CMDSEQ		0x2
 #define	CMD_MACRO		0x3
-#define	CMD_BUFFER	0x4
-#define	CMD_KILLKEY	0x5
+#define	CMD_BUFFER		0x4
+#define	CMD_KILLKEY		0x5
 
 typedef unsigned char 	MACROREFTYPE;
 typedef unsigned char  	MACROREFIDX;
@@ -89,33 +88,53 @@ typedef unsigned short KEYCODE;
 #define	K_DELETED		0x1FFF		/* Impossible Key Combination	*/
 #define	K_INVALID		K_DELETED
 
-typedef struct tagKEYBIND {
+typedef struct tagKEY_BINDING {
 	KEYCODE		keycode;
 	MACROREF	macref;
-} KEYBIND;
+} KEY_BINDING;
 
 char    *code2key(KEYCODE code);
 KEYCODE macro_addModifierKeys(KEYCODE code);
 
-typedef struct tagCONTEXT_MENU {
-	struct tagCONTEXT_MENU* cm_next;
-	struct tagCONTEXT_MENU* cm_children;		// for sub-menus, this is the list of child menu items.
-	int         cm_resourceId;					// Alternatively to specifying a label explicitly one can specify an internal PKS Edit resource ID
-	const char* cm_label;						// The label to display for the menu. If no label is specified, a default for the defined command is used.
-	BOOL		cm_isSeparator;					// true for separator menus. Separator menus do not need a label
-	BOOL		cm_isHistoryMenu;				// true for "history" menus. Will be replaced during runtime by a list of recently opened files.
-	MACROREF	cm_macref;						// the associated command to execute.
-} CONTEXT_MENU;
+typedef struct tagTOOLBAR_BUTTON_BINDING {
+	struct tagTOOLBAR_BUTTON_BINDING* tbb_next;
+	BOOL        tbb_isSeparator;
+	wchar_t		tbb_faIcon;							// Font awesome icon code for this button
+	const char* tbb_label;							// Optional label to use. only for buttons displaying a label.
+	MACROREF	tbb_macref;
+} TOOLBAR_BUTTON_BINDING;
+
+typedef struct tagMENU_ITEM_DEFINITION {
+	struct tagMENU_ITEM_DEFINITION* mid_next;
+	struct tagMENU_ITEM_DEFINITION* mid_children;	// for sub-menus, this is the list of child menu items.
+	HMENU		mid_menuHandle;						// For sub-menus, this is the menu handle of menu item, after it had been created.
+	int         mid_resourceId;						// Alternatively to specifying a label explicitly one can specify an internal PKS Edit resource ID
+	const char* mid_label;							// The label to display for the menu. If no label is specified, a default for the defined command is used.
+	BOOL		mid_isSeparator;					// true for separator menus. Separator menus do not need a label
+	BOOL		mid_isHistoryMenu;					// true for "history" menus. Will be replaced during runtime by a list of recently opened files.
+	MACROREF	mid_command;						// the associated command to execute.
+} MENU_ITEM_DEFINITION;
 
 /*
  * Returns a linked list of context menu entries for a given action context.
  */
-extern CONTEXT_MENU* contextmenu_getFor(const char* pszActionContext);
+extern MENU_ITEM_DEFINITION* contextmenu_getFor(const char* pszActionContext);
 
 /*
  * Returns a linked list of main menu entries for a given action context.
  */
-extern CONTEXT_MENU* mainmenu_getFor(const char* pszActionContext);
+extern MENU_ITEM_DEFINITION* binding_getMenuBarFor(const char* pszActionContext);
+
+/*
+ * Returns a linked list of main menu entries for a popup menu of the application menu bar with the given
+ * menu handle and for an action context.
+ */
+extern MENU_ITEM_DEFINITION* binding_getMenuBarPopupDefinitionFor(const char* pszActionContext, HMENU hMenu);
+
+/*
+ * Returns a linked list of toolbar button bindings for an action context (currently ignored - toolbar is never dynamic).
+ */
+extern TOOLBAR_BUTTON_BINDING* binding_getToolbarBindingsFor(const char* pszActionContext);
 
 /*
  * MACROS -----------------------------------------------------------
@@ -313,30 +332,6 @@ typedef struct tagMACRO {
 #define	MAC_COMMENT(mp)	((unsigned char *)mp+sizeof *mp+mp->namelen)
 
 /*
- * MENUS ---------------------------------------------------------------
- */
-typedef struct tagMENUBIND {
-	/* unsigned int due too submenu high bit marks !!!! */
-	unsigned	menunum;			/* ref. to menutree */
-	unsigned	index;			/* points to cmdseqtab */
-} MENUBIND;
-
-#define	MAX_MENU_STRING	30
-
-#define	UM_ITEM		MF_STRING		/* "normal" item */
-#define	UM_SEPARATOR	MF_SEPARATOR	/* --------- */
-#define	UM_POPUP		MF_POPUP		/* -> popup */
-#define	UM_ENDPOPUP	-1			/* terminates popup in linear menu chain */
-#define	UM_ENDMENU	-2
-
-typedef struct tagUSERMENUBIND {
-	int				type;
-	MACROREF		macref;
-	void*			handle;			/* submenu handle, or item identifier */
-	char			szString[MAX_MENU_STRING];
-} USERMENUBIND, * PUSERMENUBIND;
-
-/*
  * ICONS ---------------------------------------------------------------
  */
 
@@ -355,20 +350,13 @@ typedef struct tagMOUSECODE {
 			shift   : 8;			/* kb-state */
 } MOUSECODE;
 
-#if defined (MACROS20)
-typedef struct mousebind {
-	MOUSECODE		mousecode;
-	MACROREF		macref;
-} MOUSEBIND;
-# endif
-
-typedef struct mousebind {
+typedef struct tagMOUSE_EVENT_BINDING {
 	char 		button;				// mousebutton
 	char 		nclicks;			// # of button clicks
 	int 		shift;				// kb-state shift/control/...
 	MACROREF	macref;
 	const char* msg;				// Optional message to display....
-} MOUSEBIND;
+} MOUSE_EVENT_BINDING;
 
 /*
  *  ALL BINDING INFORMATIONS ----------------------------------------------
@@ -377,22 +365,17 @@ typedef struct edbinds {
 	EDFUNC		*ep;
 	COMMAND		*cp;
 	MACRO		**macp;
-	MENUBIND	*mp;
-	int			*nep,*ncp,*nmacp,*nmp,*nip,*nmop;
+	int			*nep,*ncp,*nmacp,*nip,*nmop;
 } EDBINDS;
 
 extern EDFUNC		_edfunctab[];
 extern COMMAND		_cmdseqtab[];
-extern MENUBIND		_menutab[];
 extern EDBINDS		_bindings;
 
-extern int		 _nfuncs,_ncmdseq,
-				 _nkeys,_nmenus,_nmousebind,
-				 _ncb_do_char,_lcomseq;
+extern int		 _nfuncs,_ncmdseq,_ncb_do_char,_lcomseq;
 
 extern char		_recorder[];
 extern unsigned char _cfdisable[],_blkdisable[],_rdodisable[];
-extern KEYBIND		_cmdorig[];
 
 #define	IDM_CMDNAME		1024
 #define	IDM_LOWENUMNAME	2512
@@ -535,12 +518,6 @@ extern int macro_insertNewMacro(char* name, char* comment, char* macdata, int si
 extern int macro_toggleRecordMaco(void);
 
 /*--------------------------------------------------------------------------
- * macro_getMacroIndexForMenu()
- * Return the macro reference given a menu id.
- */
-extern MACROREF* macro_getMacroIndexForMenu(int nId);
-
-/*--------------------------------------------------------------------------
  * macro_translateToOriginalMenuIndex()
  * try to find an internal command/standard menu binding, which
  * allows us to display an appropriate help for synthetic menus
@@ -575,13 +552,11 @@ extern int macro_onCharacterInserted(WORD c);
 /*---------------------------------*/
 extern int macro_executeByName(char* name);
 
-/*------------------------------------------------------------
- * macro_assignAcceleratorTextOnMenu()
- * this function sets the menu accelerator text, each time a
- * menu popup is opened. If the ID is already an encoded macroref
- * object, the bIdIsMacroRef flag is true.
+/*
+ * Convert a menu command to a macroref. It is assumed, that the menu command
+ * is an encoded macroref structure.
  */
-extern void macro_assignAcceleratorTextOnMenu(HMENU hMenu);
+extern MACROREF* macro_translateMenuCommand(int nCommand);
 
 /*
  * Returns the keyboard binding text for a given internal command.
@@ -670,12 +645,12 @@ extern int macro_isParameterStringType(unsigned char typ);
 /*
  * Iterate all key bindings and invoke a callback on every keybinding defined for one action context.
  */
-extern void key_bindingsDo(const char* pszActionContext, int (*callback)(KEYBIND* pBinding, void* pParam), void* pParam);
+extern void key_bindingsDo(const char* pszActionContext, int (*callback)(KEY_BINDING* pBinding, void* pParam), void* pParam);
 
 /*
  * Iterate all mouse bindings and invoke a callback on every mousebinding defined for one action context.
  */
-extern void mouse_bindingsDo(const char* pszActionContext, int (*callback)(MOUSEBIND* pBinding, void* pParam), void* pParam);
+extern void mouse_bindingsDo(const char* pszActionContext, int (*callback)(MOUSE_EVENT_BINDING* pBinding, void* pParam), void* pParam);
 
 /*
  * Find the 1st key bound to a given macro.

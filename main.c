@@ -48,18 +48,19 @@
 #include "evaluator.h"
 #include "winutil.h"
 #include "textblocks.h"
+#include "menu.h"
 
 #define	PROF_OFFSET	1
 
  /*
   * Destroy the macro compiler internal symbol table.
   */
+extern void		faicon_destroy();
 extern void		sym_destroyTable();
 extern void		bindings_destroy();
 extern void		arguments_getPhase2(char *args);
 extern void		arguments_getForPhase1(char *args);
 extern void 	init_readConfigFiles(void);
-extern HMENU 	menu_getMenuForContext(char *pszContext);
 extern BOOL 	init_initializeVariables(void);
 
 extern BOOL	bTaskFinished;
@@ -239,7 +240,8 @@ static BOOL InitInstance(LPSTR lpCmdLine) {
 	arguments_getForPhase1(lpCmdLine);
 	init_readConfigFiles();
 	bl_restorePasteBuffers();
-	hDefaultMenu = LoadMenu(ui_getResourceModule(), "PksEdEditMenu");
+	//hDefaultMenu = LoadMenu(ui_getResourceModule(), "PksEdEditMenu");
+	hDefaultMenu = menu_createMenubar();
 	if (nInstanceCount > 1) {
 		wsprintf(szTitle, "* PKS EDIT * (%d)", nInstanceCount);
 	} else {
@@ -439,52 +441,6 @@ int EdCloseAll() {
 }
 
 /*------------------------------------------------------------
- * win_getStdMenuText()
- */
-void win_getStdMenuText(int menunr, char *text) {
-	GetMenuString(hDefaultMenu, menunr, text, 64, MF_BYCOMMAND);
-}
-
-/*--------------------------------------------------------------------------
- * his_getHistoryMenu()
- */
-HMENU his_getHistoryMenu(int *pnPosition, int *piCmd) {
-	HMENU	hMenu;
-	static HMENU hHistoryPopupMenu;
-	static int historyMenuOffset;
-
-	*piCmd = IDM_HISTORY;
-	hMenu = GetMenu(hwndMain);
-	if (!hHistoryPopupMenu) {
-		for (int nCount = 0; (hHistoryPopupMenu = GetSubMenu(hMenu, nCount)) != NULL; nCount++) {
-			historyMenuOffset = GetMenuPosFromID(hHistoryPopupMenu, IDM_HISTORY);
-			if (historyMenuOffset > 0) {
-				break;
-			}
-		}
-		if (!hHistoryPopupMenu) {
-			hHistoryPopupMenu = GetSubMenu(hMenu, 0);
-			historyMenuOffset = GetMenuItemCount(hMenu);
-		}
-	}
-	*pnPosition = historyMenuOffset;
-	return hHistoryPopupMenu;
-}
-
-/*--------------------------------------------------------------------------
- * win_changeMenuItem()
- */
-void win_changeMenuItem(HMENU hMenu, int nPosition, int nCmd, WORD wFlags,
-	LPCSTR lpszItem)
-{
-	if (GetMenuItemCount(hMenu) <= nPosition) {
-		AppendMenu(hMenu, wFlags & ~MF_BYPOSITION, nCmd, lpszItem);
-	} else {
-		ModifyMenu(hMenu, nPosition, wFlags, nCmd, lpszItem);
-	}
-}
-
-/*------------------------------------------------------------
  * FinalizePksEdit()
  * 
  * Invoked, when PKS Edit exits to perform final tasks.
@@ -512,6 +468,7 @@ void main_cleanup(void) {
 	bl_destroyPasteList(FALSE);
 	fm_destroyAll();
 	sym_destroyTable();
+	faicon_destroy();
 	bindings_destroy();
 	analyzer_destroyAnalyzers();
 	evaluator_destroyEvaluators();

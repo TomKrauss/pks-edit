@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include "alloc.h"
 #include "edfuncs.h"
+#include "funcdef.h"
 #include "winterf.h"
 #include "edctype.h"
 #include "fileselector.h"
@@ -1004,7 +1005,7 @@ void xref_initSearchList(FTABLE* fp) {
 	WINFO* wp = WIPOI(fp);
 	if (wp) {
 		wp->workmode |= WM_STICKY|WM_LINE_SELECTION;
-		wp->actionContext = "search-list";
+		strcpy(wp->actionContext, "search-list");
 	}
 	fp->navigationPattern = xref_getSearchListFormat();
 	if (fp->firstl && fp->firstl->len > 5) {
@@ -1020,12 +1021,12 @@ void xref_initSearchList(FTABLE* fp) {
 #define	ST_STEP		3
 static FSELINFO _tagfselinfo = { ".", "tags", "*.tag" };
 static FSELINFO _cmpfselinfo = { ".", "build.out", "*.out" };
-static int xref_openTagFileOrSearchResults(int title, int st_type, FSELINFO *fsp) {
+static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *fsp) {
 	FILE_SELECT_PARAMS params;
 	FTABLE* fp;
 	memset(&params, 0, sizeof params);
 	params.fsp_saveAs = FALSE;
-	if (title && fsel_selectFileWithOptions(fsp, title, &params) == 0) {
+	if (nCommand && fsel_selectFileWithOptions(fsp, nCommand, &params) == 0) {
 		return 0;
 	}
 
@@ -1239,7 +1240,7 @@ int EdSearchListRead(void)
 {
 	FSELINFO searchResultFileSpec = { "", "pksedit.grep", "*.grep" };
 	strcpy(searchResultFileSpec.path, config_getPKSEditTempPath());
-	return xref_openTagFileOrSearchResults(MREAD_SEARCH_LIST,ST_STEP,&searchResultFileSpec);
+	return xref_openTagFileOrSearchResults(CMD_READ_SEARCH_LIST,ST_STEP,&searchResultFileSpec);
 }
 
 /*---------------------------------*/
@@ -1247,13 +1248,13 @@ int EdSearchListRead(void)
 /*---------------------------------*/
 int EdTagfileRead(void)
 {
-	return xref_openTagFileOrSearchResults(MREADTAG,ST_TAGS,&_tagfselinfo);
+	return xref_openTagFileOrSearchResults(CMD_READ_TAGFILE,ST_TAGS,&_tagfselinfo);
 }
 
 /*---------------------------------*/
 /* EdErrorListRead()			*/
 /*---------------------------------*/
 int EdErrorListRead(long dummy1, long dummy2) {
-	return xref_openTagFileOrSearchResults(MREADCMP,ST_ERRORS,&_cmpfselinfo);
+	return xref_openTagFileOrSearchResults(CMD_READ_COMPILER_ERRORS,ST_ERRORS,&_cmpfselinfo);
 }
 

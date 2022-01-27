@@ -830,7 +830,7 @@
   ],
   "menu": [
     {
-      "label": "File",
+      "resource-id": 1901,
       "sub-menu": [
         { "command": "@open-new-file" },
         { "command": "@open-file" },
@@ -846,7 +846,7 @@
         { "command": "@abandon-file" },
         { "separator": true },
         {
-          "label": "Print",
+          "resource-id": 1909,
           "sub-menu": [
             { "command": "@print-window" },
             { "command": "@print-file" }
@@ -855,15 +855,15 @@
         { "separator": true },
         { "command": "@exit-edit" },
         { "command": "@quit-edit" },
-        { "separator": true },
         {
+          "separator": true,
           "history-menu": true,
           "command": "@open-history"
         }
       ]
     },
     {
-      "label": "Edit",
+      "resource-id": 1902,
       "sub-menu": [
         { "command": "@undo" },
         { "command": "@redo" },
@@ -887,7 +887,7 @@
       ]
     },
     {
-      "label": "Find",
+      "resource-id": 1903,
       "sub-menu": [
         { "command": "@find-string" },
         { "command": "@replace-string" },
@@ -911,7 +911,7 @@
       ]
     },
     {
-      "label": "Functions",
+      "resource-id": 1904,
       "sub-menu": [
         { "command": "@format-text" },
         { "command": "@align-text" },
@@ -920,7 +920,7 @@
         { "command": "@sort-text" },
         { "command": "@toggle-comment" },
         {
-          "label": "Compare Files...",
+          "resource-id": 1913,
           "sub-menu": [
             { "command": "@next-difference" },
             { "command": "@compare-navigate-next" },
@@ -931,7 +931,7 @@
         { "command": "@insert-char-with-dialog" },
         { "separator": true },
         {
-          "label": "Convert",
+          "resource-id": 1910,
           "sub-menu": [
             { "command": "@compress-tabs" },
             { "command": "@expand-tabs" },
@@ -945,14 +945,14 @@
       ]
     },
     {
-      "label": "Macro",
+      "resource-id": 1905,
       "sub-menu": [
         { "command": "@record-macro" },
         { "command": "@dialog-macros" },
         { "command": "@compile-macros" },
         { "command": "@keycode-insert" },
         {
-          "label": "View Bindings",
+          "resource-id": 1911,
           "sub-menu": [
             { "command": "@macro-list" },
             { "command": "@key-list" },
@@ -966,7 +966,7 @@
       ]
     },
     {
-      "label": "Editor Settings",
+      "resource-id": 1906,
       "sub-menu": [
         { "command": "@dialog-doc-types" },
         { "separator": true },
@@ -983,7 +983,7 @@
         { "command": "@toggle-column-selection" },
         { "separator": true },
         {
-          "label": "More Settings",
+          "resource-id": 1912,
           "sub-menu": [
             { "command": "@edit-doc-macros" },
             { "command": "@add-doc-macros" }
@@ -992,7 +992,7 @@
       ]
     },
     {
-      "label": "Extras",
+      "resource-id": 1907,
       "sub-menu": [
         { "command": "@execute-command" },
         { "command": "@evaluate-selection" },
@@ -1004,7 +1004,7 @@
       ]
     },
     {
-      "label": "Windows",
+      "resource-id": 1908,
       "sub-menu": [
         { "command": "@close-all-windows" },
         { "command": "@tile-docks-horizontally" },
@@ -1017,14 +1017,99 @@
     {
       "label": "?",
       "sub-menu": [
-        { "command": "@help-index" },
-        { "command": "@help-on-menus" },
+        { "command": "@help-manual-toc" },
+        { "command": "@help-overview" },
         { "command": "@help-on-keys" },
         { "command": "@help-release-notes" },
         { "command": "@help-readme" },
         { "separator": true },
         { "command": "@show-copyright" }
       ]
+    }
+  ],
+  "toolbar": [
+    {
+      "command": "@open-new-file",
+      "icon": "fa-file"
+    },
+    {
+      "command": "@open-file",
+      "icon": "fa-folder"
+    },
+    {
+      "command": "@save-save",
+      "icon": "fa-save"
+    },
+    { "separator": true },
+    {
+      "command": "@erase-block",
+      "icon": "fa-eraser"
+    },
+    {
+      "command": "@delete-block",
+      "icon": "fa-cut"
+    },
+    {
+      "command": "@paste-clipboard",
+      "icon": "fa-clipboard"
+    },
+    { "separator": true },
+    {
+      "command": "@find-string",
+      "icon": "fa-search"
+    },
+    {
+      "command": "@replace-string",
+      "icon": "fa-exchange-alt"
+    },
+    {
+      "command": "@find-in-file-list",
+      "icon": "fa-search-plus"
+    },
+    { "separator": true },
+    {
+      "command": "@goto-last-pos",
+      "icon": "fa-arrow-left"
+    },
+    {
+      "command": "@goto-next-pos",
+      "icon": "fa-arrow-right"
+    },
+    { "separator": true },
+    {
+      "command": "@undo",
+      "icon": "fa-undo"
+    },
+    {
+      "command": "@redo",
+      "icon": "fa-redo"
+    },
+    { "separator": true },
+    {
+      "command": "@print-window",
+      "icon": "fa-print"
+    },
+    {
+      "command": "@set-options",
+      "icon": "fa-cog"
+    },
+    { "separator": true },
+    {
+      "command": "@help-manual-toc",
+      "icon": "fa-question"
+    },
+    { "separator": true },
+    {
+      "command": "@compare-navigate-previous",
+      "icon": "fa-arrow-up"
+    },
+    {
+      "command": "@compare-navigate-next",
+      "icon": "fa-arrow-down"
+    },
+    {
+      "command": "@compare-navigate-clear",
+      "icon": "fa-stop-circle"
     }
   ]
 }

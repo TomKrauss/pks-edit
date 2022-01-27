@@ -401,7 +401,7 @@ void *rsc_tablefindcode(RSCTABLE *rp, int itemsize, unsigned code)
 	char *kp;
 
 	for (kp = rp->rt_data; kp < (char*)rp->rt_end; kp += itemsize) {
-		if (((KEYBIND*)kp)->keycode == code)
+		if (((KEY_BINDING*)kp)->keycode == code)
 			return kp;
 	}
 	return (char *)0;
@@ -448,9 +448,9 @@ void *rsc_tablelookup(RSCTABLE *rp, int itemsize, void *noalloc, unsigned code)
 	char *kp,*kpbest = 0;
 
 	for (kp = rp->rt_data; kp < rp->rt_end; kp += itemsize) {
-		if (((KEYBIND*)kp)->keycode == code)
+		if (((KEY_BINDING*)kp)->keycode == code)
 			return kp;
-		if (((KEYBIND*)kp)->keycode == 0 && kpbest == 0)
+		if (((KEY_BINDING*)kp)->keycode == 0 && kpbest == 0)
 			kpbest = kp;
 	}
 	if (kpbest)

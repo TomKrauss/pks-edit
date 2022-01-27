@@ -42,7 +42,6 @@
 extern	MACRO *	macro_getByIndex(int i);
 extern	char *	code2key(KEYCODE code);
 extern 	char *	mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
-extern 	MACROREF *macro_getMacroIndexForMenu(int nId);
 
 void macro_printListHeader(FILE *fp, char *itemname);
 
@@ -253,12 +252,11 @@ static char *print_comment(char *d, const char *comment)
  * print one key binding in the following manner
  * KEYCODE | FUNCTION+PARS | REMARK
  */
-static void print_keybinding(FILE *fp, KEYBIND *kp, char delim)
+static void print_keybinding(FILE *fp, KEY_BINDING *kp, char delim)
 {
 	EDBINDS *	ep = &_bindings;
 	char 	comment[100],command[128],n1[100],n2[100];
 	int  		findex;
-	MENUBIND 	*mp;
 	MACRO	*macp;
 
 	if (kp->keycode == 0 || kp->keycode == K_DELETED)
@@ -270,10 +268,6 @@ static void print_keybinding(FILE *fp, KEYBIND *kp, char delim)
 	/* prepare for invalid entries */
 
 	switch(kp->macref.typ) {
-		case CMD_MENU:
-			mp = &ep->mp[findex];
-			findex = mp->index;
-			break;
 		case CMD_MACRO:
 			if ((macp = ep->macp[findex]) != 0)
 				strcpy(comment,MAC_COMMENT(macp)); 
@@ -296,10 +290,10 @@ static void print_keybinding(FILE *fp, KEYBIND *kp, char delim)
 /*
  * print_compareKeyBindings()
  *
- * sort KEYBIND entries according to scancode:
+ * sort KEY_BINDING entries according to scancode:
  *
  */
-static int print_compareKeyBindings(KEYBIND *kp1, KEYBIND *kp2)
+static int print_compareKeyBindings(KEY_BINDING *kp1, KEY_BINDING *kp2)
 {
 	if (!kp1->keycode || kp1->keycode == K_DELETED)
 		return -1;
@@ -311,10 +305,10 @@ static int print_compareKeyBindings(KEYBIND *kp1, KEYBIND *kp2)
 struct tagCOLLECTED_KEYBINDS {
 	int nElements;
 	int nCapacity;
-	KEYBIND *table;
+	KEY_BINDING *table;
 };
 
-static int print_collectKeybindings(KEYBIND* kp, void* pParam) {
+static int print_collectKeybindings(KEY_BINDING* kp, void* pParam) {
 	struct tagCOLLECTED_KEYBINDS *pCollected = (struct tagCOLLECTED_KEYBINDS*)pParam;
 	if (pCollected->nElements >= pCollected->nCapacity) {
 		return 0;
@@ -328,14 +322,14 @@ static int print_collectKeybindings(KEYBIND* kp, void* pParam) {
  */
 static int print_keyBindingsCallback(FILE *fp)
 {
-	KEYBIND *		kpd;
+	KEY_BINDING *		kpd;
 	int	    		i,n;
 	struct tagCOLLECTED_KEYBINDS collected;
 
 	char* pszContext = "default";
 	collected.nElements = 0;
 	collected.nCapacity = 300;
-	collected.table = calloc(collected.nCapacity, sizeof (KEYBIND));
+	collected.table = calloc(collected.nCapacity, sizeof (KEY_BINDING));
 	key_bindingsDo(pszContext, print_collectKeybindings, &collected);
 	kpd = collected.table;
 	n = collected.nElements;
@@ -371,7 +365,7 @@ int print_saveKeyBindingsAndDisplay(void) {
  * print_mousebinding()
  * command clicks button shift comment
  */
-static void print_mousebinding(FILE *fp, MOUSEBIND *mp, char delim)
+static void print_mousebinding(FILE *fp, MOUSE_EVENT_BINDING *mp, char delim)
 {
 	char 	command[128],button[30],b2[128],b3[128];
 
@@ -385,10 +379,10 @@ static void print_mousebinding(FILE *fp, MOUSEBIND *mp, char delim)
 /*
  * print_compareMousebindings()
  *
- * sort MOUSEBIND entries according to Button nclicks shift
+ * sort MOUSE_EVENT_BINDING entries according to Button nclicks shift
  *
  */
-static int print_compareMousebindings(MOUSEBIND *mp1, MOUSEBIND *mp2)
+static int print_compareMousebindings(MOUSE_EVENT_BINDING *mp1, MOUSE_EVENT_BINDING *mp2)
 {	int d;
 
 	if ((d = mp1->button - mp2->button) == 0 &&
@@ -401,10 +395,10 @@ static int print_compareMousebindings(MOUSEBIND *mp1, MOUSEBIND *mp2)
 struct tagCOLLECTED_MOUSEBINDS {
 	int nElements;
 	int nCapacity;
-	MOUSEBIND* table;
+	MOUSE_EVENT_BINDING* table;
 };
 
-static int print_collectMousebindings(MOUSEBIND* mp, void* pParam) {
+static int print_collectMousebindings(MOUSE_EVENT_BINDING* mp, void* pParam) {
 	struct tagCOLLECTED_MOUSEBINDS* pCollected = (struct tagCOLLECTED_MOUSEBINDS*)pParam;
 	if (pCollected->nElements >= pCollected->nCapacity) {
 		return 0;
@@ -417,7 +411,7 @@ static int print_collectMousebindings(MOUSEBIND* mp, void* pParam) {
  * print_mouseBindingCallback
  */
 static int print_mouseBindingCallback(FILE *fp) {
-	MOUSEBIND* mpd;
+	MOUSE_EVENT_BINDING* mpd;
 	int	    	i, n;
 	struct tagCOLLECTED_MOUSEBINDS collected;
 
@@ -500,7 +494,7 @@ static void print_subMenu(FILE *fp, HMENU hMenu, int nIndent) {
 			}
 			print_indent(fp, nIndent);
 			BOOL bAutoLabel = FALSE;
-			if ((mp = macro_getMacroIndexForMenu(wID)) == 0) {
+			if ((mp = macro_translateMenuCommand(wID)) == 0) {
 				sprintf(command, "%d", wID);
 			} else {
 				bAutoLabel = TRUE;

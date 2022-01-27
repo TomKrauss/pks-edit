@@ -42,7 +42,6 @@
 #include "edfuncs.h"
 
 extern int 		doDocumentTypes(int nDlg);
-extern void 	win_getStdMenuText(int menunr, char *text);
 
 extern int	nCurrentDialog;
 
@@ -187,11 +186,12 @@ void fsel_changeDirectory(char* pszPath) {
 /*---------------------------------*/
 /* menu_fseltitle()				*/
 /*---------------------------------*/
-static void menu_fseltitle(int title, char* szTemp)
+static void menu_fseltitle(int nCommand, char* szTemp)
 {	char *d,*s;
 
-	if (title > 0) {
-		win_getStdMenuText(title,szTemp);
+	if (nCommand > 0) {
+		char szTooltip[256];
+		command_getTooltipAndLabel((MACROREF) {.typ = CMD_CMDSEQ, .index = nCommand}, szTooltip, szTemp);
 		/* skip & - menu marks and key idents */
 		for (s = szTemp, d = s; *s; ) {
 			if (*s == '\010' || *s == '\t') {
@@ -209,16 +209,16 @@ static void menu_fseltitle(int title, char* szTemp)
 /*---------------------------------*/
 /* SelectFile()				*/
 /*---------------------------------*/
-static int SelectFile(int title, char *baseDirectory, char *filename, char *pattern, FILE_SELECT_PARAMS* pFSP) {
+static int SelectFile(int nCommand, char *baseDirectory, char *filename, char *pattern, FILE_SELECT_PARAMS* pFSP) {
 	int	nSave;
 	int 	ret;
 	char pathname[EDMAXPATHLEN];
 	char szTemp[512];
 
-	menu_fseltitle(title, szTemp);
+	menu_fseltitle(nCommand, szTemp);
 	string_concatPathAndFilename(pathname,baseDirectory,filename);
 	nSave = nCurrentDialog;
-	nCurrentDialog = title;
+	nCurrentDialog = nCommand;
 
 	pFSP->fsp_resultFile = _fseltarget;
 	pFSP->fsp_inputFile = pathname;
@@ -237,9 +237,9 @@ static int SelectFile(int title, char *baseDirectory, char *filename, char *patt
 
 /*---------------------------------
  * fsel_selectFileWithOptions()
- * Select a file given an info data structure and a resource ID to be used as the title.
+ * Select a file given an info data structure and a resource ID to be used as the nCommand.
  *---------------------------------*/
-char *fsel_selectFileWithOptions(FSELINFO *fp, int idTitle, FILE_SELECT_PARAMS* pFSP)
+char *fsel_selectFileWithOptions(FSELINFO *fp, int nCommand, FILE_SELECT_PARAMS* pFSP)
 {
 	static ITEMS	_i = { C_STRING1PAR, _fseltarget };
 	static PARAMS	_p = { DIM(_i), P_MAYOPEN, _i	};
@@ -254,7 +254,7 @@ char *fsel_selectFileWithOptions(FSELINFO *fp, int idTitle, FILE_SELECT_PARAMS* 
 			lstrcpy(fp->search, "*.*");
 		}
 
-		if (!SelectFile(idTitle,fp->path,fp->fname,fp->search, pFSP))
+		if (!SelectFile(nCommand,fp->path,fp->fname,fp->search, pFSP))
 			return (char *)0;
 		macro_recordOperation(&_p);
 	}

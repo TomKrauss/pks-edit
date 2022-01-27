@@ -17,6 +17,8 @@
 
 #define	MAXHIST 	32
 
+#define MAX_HISTORY_FILES 10
+
 typedef enum {
 	SEARCH_PATTERNS = 0,
 	SEARCH_AND_REPLACE = 1,
@@ -27,7 +29,6 @@ typedef enum {
 
 extern void hist_saveString(HISTORY_TYPE type, char *string);
 extern void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type);
-extern void hist_updateMenu(HISTORY_TYPE type);
 extern char *hist_getString(HISTORY_TYPE type, int nItem);
 extern void hist_readLine(LINE* lp);
 /*---------------------------------

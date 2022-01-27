@@ -37,10 +37,10 @@
 #include "pkscc.h"
 #include "editorconfiguration.h"
 #include "menu.h"
+#include "funcdef.h"
 
 extern long		_multiplier;
 
-extern BOOL op_defineOption(long nFlag);
 /*---------------------------------*/
 /* key_delbindings()			*/
 /* delete all key bindings to a 	*/
@@ -56,8 +56,6 @@ extern void key_loadBindings();
 extern void 		st_switchtomenumode(BOOL bMenuMode);
 extern int			macro_executeSequence(COM_1FUNC* cp, COM_1FUNC* cpmax);
 MACROREF			bindings_getKeyBinding(KEYCODE keycode, const char* pszActionContext);
-
-extern int 			macro_canExecuteFunction(int num, int warn);
 
 int				_recording;
 int				_nmacros = MAXMACRO;
@@ -78,12 +76,16 @@ extern int op_startMacroRecording();
 
 
 EDBINDS _bindings = {
-	_edfunctab,_cmdseqtab,_macrotab,_menutab,
-	&_nfuncs,&_ncmdseq,&_nmacros,&_nmenus
+	_edfunctab,_cmdseqtab,_macrotab,
+	&_nfuncs,&_ncmdseq,&_nmacros
 };
 
 static FSELINFO 	_seqfsel = {	"","pksedit.mac", "*.mac" };
 
+/*
+ * Convert a menu command to a macroref. It is assumed, that the menu command
+ * is an encoded macroref structure.
+ */
 MACROREF* macro_translateMenuCommand(int nCommand) {
 	static MACROREF macroref;
 
@@ -92,7 +94,7 @@ MACROREF* macro_translateMenuCommand(int nCommand) {
 		macroref.index = nCommand & 0xFFFF;
 		return &macroref;
 	}
-	return macro_getMacroIndexForMenu(nCommand);
+	return NULL;
 }
 
 /*------------------------------------------------------------
@@ -402,7 +404,7 @@ int macro_readWriteWithFileSelection(int wrflag) {
 	FILE_SELECT_PARAMS params;
 	params.fsp_saveAs = wrflag;
 	params.fsp_optionsAvailable = FALSE;
-	if ((fn = fsel_selectFileWithOptions(&_seqfsel,(wrflag) ? MWRSEQ : MREADSEQ, &params)) == 0) {
+	if ((fn = fsel_selectFileWithOptions(&_seqfsel,(wrflag) ? CMD_WRITE_MACROS : CMD_READ_MACROS, &params)) == 0) {
 		return 0;
 	}
 
@@ -423,25 +425,6 @@ int macro_readWriteWithFileSelection(int wrflag) {
 int EdMacroRecord(void)
 {
 	return op_startMacroRecording();
-}
-
-/*--------------------------------------------------------------------------
- * macro_getMacroIndexForMenu()
- * Return the macro reference given a menu id.
- */
-MACROREF *macro_getMacroIndexForMenu(int nId)
-{
-	static MACROREF macref;
-	int			i;
-
-	for (i = 0; i < _nmenus; i++) {
-		if (_menutab[i].menunum == nId) {
-			macref.typ = CMD_CMDSEQ;
-			macref.index = _menutab[i].index;
-			return &macref;
-		}
-	}
-	return 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -525,7 +508,6 @@ MACROREF* macro_getKeyBinding(WPARAM key) {
 int macro_executeMacro(MACROREF *mp)
 {
 	COM_1FUNC   *cp;
-	MENUBIND    *menp;
 
 	switch (mp->typ) {
 		case CMD_CMDSEQ:
@@ -533,11 +515,6 @@ int macro_executeMacro(MACROREF *mp)
 			return macro_executeSequence(cp,cp+1);
 		case CMD_MACRO:
 			return macro_executeMacroByIndex(mp->index);
-		case CMD_MENU:
-			menp = &_menutab[mp->index];
-			cp = &_cmdseqtab[menp->index].c_functionDef;
-			macro_executeSequence(cp,cp+1);
-			break;
 		default:
 			error_displayAlertDialog("bad command or macro");
 	}
@@ -579,65 +556,6 @@ char* macro_getKeyText(const char* pszActionContext, int nCmd) {
 		return code2key(k);
 	}
 	return NULL;
-}
-
-/*------------------------------------------------------------
- * macro_assignAcceleratorTextOnMenu()
- * this function sets the menu accelerator text, each time a
- * menu popup is opened
- */
-void macro_assignAcceleratorTextOnMenu(HMENU hMenu) {
-	KEYCODE	k;
-	int		wCount;
-    UINT    nFuncnum;
-	int		wItem;
-	int		wID;
-	char	string[128];
-	char *	d;
-	MACROREF *mp;
-
-	wCount = GetMenuItemCount(hMenu);
-	for (wItem = 0; wItem < wCount; wItem++) {
-		if ((wID = GetMenuItemID(hMenu, wItem)) <= 0) {
-			continue;
-		}
-		mp = macro_translateMenuCommand(wID);
-		if (mp == 0) {
-			continue;
-		}
-		if (GetMenuString(hMenu, wItem, string, sizeof string - 20, MF_BYPOSITION) < 0) {
-			continue;
-		}
-		for (d = string; *d; d++) {
-			if (*d == 9 || *d == 8) {
-				break;
-			}
-		}
-		if (*d) {
-			if ((k = macro_findKey(NULL, (MACROREF) { .typ = mp->typ, .index = mp->index })) != K_DELETED) {
-				strcpy(d+1,code2key(k));
-			} else {
-				d[1] = 0;
-			}
-			ModifyMenu(hMenu, wItem, MF_BYPOSITION | MF_STRING, wID, string);
-		}
-		if (mp->typ == CMD_CMDSEQ) {
-			if (mp->index >= _ncmdseq) {
-				error_displayAlertDialog("bad cmdseq");
-				continue;
-			}
-			nFuncnum = _cmdseqtab[mp->index].c_functionDef.funcnum;
-			EnableMenuItem(hMenu, wItem, 
-				macro_canExecuteFunction(nFuncnum, 0) ?
-			    		MF_BYPOSITION|MF_ENABLED : 
-					MF_BYPOSITION|MF_DISABLED|MF_GRAYED);
-			if (nFuncnum == FUNC_EdOptionToggle) {
-				if (op_defineOption(_cmdseqtab[mp->index].c_functionDef.p)) {
-					CheckMenuItem(hMenu, wItem, MF_CHECKED|MF_BYPOSITION);
-				}
-			}
-		}
-	}
 }
 
 /*------------------------------------------------------------
@@ -777,9 +695,6 @@ char *command_getTooltipAndLabel(MACROREF command, char* szTooltip, char* szLabe
 			}
 			lstrcpy(szTooltip,MAC_COMMENT(_macrotab[nIndex]));
 			return szTooltip;
-		case CMD_MENU:
-			nIndex = _menutab[nIndex].index;
-			/* drop through */
 		default:
 			s = NULL;
 			if (nIndex >= 0 && nIndex < _ncmdseq) {
@@ -791,6 +706,7 @@ char *command_getTooltipAndLabel(MACROREF command, char* szTooltip, char* szLabe
 	}
 
 	char* pszComment = s;
+	strcpy(szTooltip, s);
 	if ((s = lstrchr(s,';')) != 0) {
 		if (szLabel) {
 			lstrcpy(szLabel, s + 1);
@@ -810,7 +726,7 @@ char *macro_getMenuTooltTip(int dMenuId) {
 	static char szBuf[256];
 	MACROREF *	mp;
 
-	if (dMenuId != -1 && (mp = macro_getMacroIndexForMenu(dMenuId)) != 0) {
+	if (dMenuId != -1 && (mp = macro_translateMenuCommand(dMenuId)) != 0) {
 		command_getTooltipAndLabel(*mp, szBuf, NULL);
 	} else {
 		szBuf[0] = 0;
@@ -828,7 +744,7 @@ void macro_showHelpForMenu(int dMenuId)
 	MACROREF *	mp;
 
 	st_switchtomenumode(dMenuId != -1);
-	if (dMenuId != -1 && (mp = macro_getMacroIndexForMenu(dMenuId)) != 0) {
+	if (dMenuId != -1 && (mp = macro_translateMenuCommand(dMenuId)) != 0) {
 		command_getTooltipAndLabel(*mp, szBuf, NULL);
 		st_setStatusLineMessage(*szBuf ? szBuf : (char *)0);
 	} else {
@@ -871,7 +787,7 @@ static void macro_updateCommentAndName(HWND hwnd)
 
 static int _nBoundKeys;
 static int _nSelectedMacroIndex;
-static int macro_addKeyCodeToList(KEYBIND* kp, void* pParam) {
+static int macro_addKeyCodeToList(KEY_BINDING* kp, void* pParam) {
 	if (MAKELONG(kp->macref.typ, kp->macref.index) == _nSelectedMacroIndex) {
 		_nBoundKeys++;
 		SendMessage((HWND)pParam, LB_ADDSTRING, 0, (LPARAM)kp->keycode);
