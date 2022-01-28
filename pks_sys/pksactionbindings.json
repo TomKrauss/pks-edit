@@ -830,7 +830,8 @@
   ],
   "menu": [
     {
-      "resource-id": 1901,
+      "anchor": "file",
+      "label-id": 1901,
       "sub-menu": [
         { "command": "@open-new-file" },
         { "command": "@open-file" },
@@ -846,7 +847,7 @@
         { "command": "@abandon-file" },
         { "separator": true },
         {
-          "resource-id": 1909,
+          "label-id": 1909,
           "sub-menu": [
             { "command": "@print-window" },
             { "command": "@print-file" }
@@ -863,7 +864,8 @@
       ]
     },
     {
-      "resource-id": 1902,
+      "anchor":  "edit",
+      "label-id": 1902,
       "sub-menu": [
         { "command": "@undo" },
         { "command": "@redo" },
@@ -887,7 +889,8 @@
       ]
     },
     {
-      "resource-id": 1903,
+      "anchor": "find",
+      "label-id": 1903,
       "sub-menu": [
         { "command": "@find-string" },
         { "command": "@replace-string" },
@@ -911,7 +914,8 @@
       ]
     },
     {
-      "resource-id": 1904,
+      "anchor": "functions",
+      "label-id": 1904,
       "sub-menu": [
         { "command": "@format-text" },
         { "command": "@align-text" },
@@ -920,7 +924,7 @@
         { "command": "@sort-text" },
         { "command": "@toggle-comment" },
         {
-          "resource-id": 1913,
+          "label-id": 1913,
           "sub-menu": [
             { "command": "@next-difference" },
             { "command": "@compare-navigate-next" },
@@ -931,7 +935,7 @@
         { "command": "@insert-char-with-dialog" },
         { "separator": true },
         {
-          "resource-id": 1910,
+          "label-id": 1910,
           "sub-menu": [
             { "command": "@compress-tabs" },
             { "command": "@expand-tabs" },
@@ -945,14 +949,15 @@
       ]
     },
     {
-      "resource-id": 1905,
+      "anchor": "macros",
+      "label-id": 1905,
       "sub-menu": [
         { "command": "@record-macro" },
         { "command": "@dialog-macros" },
         { "command": "@compile-macros" },
         { "command": "@keycode-insert" },
         {
-          "resource-id": 1911,
+          "label-id": 1911,
           "sub-menu": [
             { "command": "@macro-list" },
             { "command": "@key-list" },
@@ -966,7 +971,8 @@
       ]
     },
     {
-      "resource-id": 1906,
+      "anchor": "configuration",
+      "label-id": 1906,
       "sub-menu": [
         { "command": "@dialog-doc-types" },
         { "separator": true },
@@ -983,7 +989,7 @@
         { "command": "@toggle-column-selection" },
         { "separator": true },
         {
-          "resource-id": 1912,
+          "label-id": 1912,
           "sub-menu": [
             { "command": "@edit-doc-macros" },
             { "command": "@add-doc-macros" }
@@ -992,7 +998,8 @@
       ]
     },
     {
-      "resource-id": 1907,
+      "anchor": "extra",
+      "label-id": 1907,
       "sub-menu": [
         { "command": "@execute-command" },
         { "command": "@evaluate-selection" },
@@ -1004,7 +1011,8 @@
       ]
     },
     {
-      "resource-id": 1908,
+      "anchor": "windows",
+      "label-id": 1908,
       "sub-menu": [
         { "command": "@close-all-windows" },
         { "command": "@tile-docks-horizontally" },
@@ -1015,6 +1023,7 @@
       ]
     },
     {
+      "anchor": "help",
       "label": "?",
       "sub-menu": [
         { "command": "@help-manual-toc" },
@@ -1030,6 +1039,7 @@
   "toolbar": [
     {
       "command": "@open-new-file",
+      "label": "Open...",
       "icon": "fa-file"
     },
     {
@@ -1108,8 +1118,13 @@
       "icon": "fa-arrow-down"
     },
     {
-      "command": "@compare-navigate-clear",
+      "command": "@compare-clear",
       "icon": "fa-stop-circle"
+    },
+    { "separator": true },
+    {
+      "command": "@help-release-notes",
+      "icon": "fa-pencil-square-o"
     }
   ]
 }

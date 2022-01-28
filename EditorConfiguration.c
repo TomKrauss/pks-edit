@@ -32,7 +32,7 @@
 #include "mainframe.h"
 
 extern void fkey_visibilitychanged(void);
-extern void tb_updateImageList();
+extern void tb_updateImageList(wchar_t* tbIcons, int nCount);
 
 typedef struct tagSEARCH_ENGINE {
 	char se_name[32];				// name of the search engine
@@ -345,7 +345,6 @@ void EdOptionSet(void) {
 		ui_switchToLanguage(pConfig->language);
 		prof_save(pConfig, FALSE);
 		fkey_visibilitychanged();
-		tb_updateImageList();
 		mainframe_windowTitleChanged();
 	}
 }

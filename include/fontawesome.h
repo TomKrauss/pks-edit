@@ -815,5 +815,10 @@ extern wchar_t faicon_codeForName(const char* pszIconName);
  */
 extern void faicon_destroy();
 
+/*
+ * Can be used to iterate all icon names. If the icon with the givem index does not exist, NULL is returned.
+ */
+extern const char* faicon_nameForIndex(int nIndex);
+
 #define FONT_AWESOME_H
 #endif

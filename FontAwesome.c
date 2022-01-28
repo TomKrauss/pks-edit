@@ -835,3 +835,13 @@ void faicon_destroy() {
 	hashmap_destroy(_faIconNameMap, 0);
 }
 
+/*
+ * Can be used to iterate all icon names. If the icon with the givem index does not exist, NULL is returned.
+ */
+const char* faicon_nameForIndex(int nIndex) {
+	if (nIndex < 0 || nIndex >= sizeof(_faIcons) / sizeof(_faIcons[0])) {
+		return NULL;
+	}
+	return _faIcons[nIndex].fa_name;
+}
+

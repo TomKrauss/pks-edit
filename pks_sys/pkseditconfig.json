@@ -150,7 +150,7 @@
     {
       "name": "pksbinding",
       "description": "PKS Edit binding files (*binding.json)",
-      "grammar": "pksedit",
+      "grammar": "pksbindings",
       "editorConfiguration": "default",
       "filenamePatterns": "pksactionbindings.json"
     },

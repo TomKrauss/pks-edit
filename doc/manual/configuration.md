@@ -56,13 +56,155 @@ Layout Options configure the general UI of PKS-Edit
 
 ## Binding (keyboard, mouse, context menus) configuration
 
-To change keyboard, mouse or context menu bindings, please edit the file `pks_sys\pksactionbindings.json` and add / change the corresponding
-binding from a key / mouse to the command to execute.
+All Action bindings in PKS-Edit are defined in the file `pks_sys\pksactionbindings.json`. This will define all user interface elements triggering
+commands in PKS-Edit and their binding to a command:
 
-### Tips
-- To generate the list of current keyboard bindings use the menu Macro->View Bindings->Keyboard
-- In the action bindings file, you may change the bindings by using code completion to change the desired command and you may use Macro->Insert Keycode to
-insert a keyboard keycode into the file.
+- keyboard shortcuts
+- mouse click events
+- menubar with menus and items
+- context menu
+- toolbar.
+
+The action bindings can be extended as all default configuration files in PKS-Edit by defining a corresponding _personal configuration file_ - in this
+case named %home%\pksedit\config\pksactionbindings.json. Note, that PKS-Edit currently defines 3 action contexts which can be associated to a binding
+to have the binding only be available in a certain context.
+
+- `default` - the standard context - active by default and contains all actions always available
+- `search-list` - active, when viewing / editing a search result list (result of search in files or a compiler output file)
+- `markdown-renderer`- active when viewing / navigating a markdown document in wysiwyg mode.
+
+In order to activate a binding only in the given context, specify `"context": "search-list"` (for instance.)
+
+In the following sections, we describe the JSON syntax, which can be used to define action bindings.
+
+### Tips for editing an action binding file
+- To generate the list of current bindings use the menu Macro->View Bindings->Keyboard/Mouse/...
+- In an action bindings file, you may change the bindings by using code completion to change the desired command (and icon name) 
+and you may use Macro->Insert Keycode to insert a keyboard keycode into the file.
+
+### Binding keyboard shortcuts
+
+The following example binds the key `END` to moving the caret to the end of the line and binds the pressing the Space Bar to opening the 
+error list match under the caret - but only in action context `search-list`. 
+
+```
+  "key-bindings": [
+    {
+      "key": "END",
+      "command": "@cursor-eol"
+    },
+    {
+      "key": "Ctrl+SPACE",
+      "context": "search-list",
+      "command": "@errorlist-current-line"
+    },...
+``` 
+
+Key codes are described as a combination of `Ctrl`, `Shift`, `Win`, `Alt`, `Selected` and "+" and the name of the corresponding key 
+(`SPACE`, `ENTER`, 1, 2, 3, A, B, C, ...). Key names are the standard WIN32 virtual key code names with the prefix "VK_" removed (see WinUser.h).
+
+Use for example `Ctrl+Shift+Selected+TAB` to bind the key combination of pressing the Control key, the Shift and the Tab key, when a selection
+in the text exists to an action.
+
+Key bindings support the following properties:
+
+- `key` the keycode combination bound
+- `command` the command to execute (either a built-in command or the name of a macro)
+- `context` the optional action context in which the binding is active.
+
+### Binding mouse events
+
+The following example binds a single right mouse button click to opening the context menu and pressing Shfit + a single right mouse button to mark
+one line at the same time displaying an info message.
+
+```
+  "mouse-bindings": [
+    {
+      "mouse": "MRight(1)",
+      "command": "@open-context-menu"
+    },
+    {
+      "mouse": "Shift+MRight(1)",
+      "command": "@mouse-mark-line",
+      "message": "Press Alt+Shift+MLeft to umark the line"
+    },...
+``` 
+
+Mouse bindings support the following properties:
+
+- `key` the mouse event description (modifier combination + MLeft|MRight|MMiddle (number of clicks)) to bind
+- `command` the command to execute (either a built-in command or the name of a macro)
+- `context` the optional action context in which the binding is active.
+- `message` an optional message to display
+- `message-id` internal integer value for referring to a PKS-Edit string resource.
+
+### Context menu and menu bar bindings
+
+Using `context-menu` one can define the context menu in editors in PKS-Edit and using `menu` one can define the menubar + main menus and their
+respective bindings. The following example defines a context menu with one menu item allowing to select the complete text and a cascading sub-menu
+with a label of "Find" and two sub-menu items to find a string and to replace a string. Note, that labels for menus and items can be defined in 2-3 ways:
+
+- by specifying an explicit `label` attribute, which defines the label
+- by specifying a `label-id` which is interpreted as an integer value into PKS-Edits internal string table
+- for menu items bound to commands, PKS-Edit may derive an automatic label for the corresponding command (see example `@find-string` and `@replace-string`)
+
+```
+  "context-menu": [
+    {
+	  "label": "Select all",
+      "command": "@mark-all"
+    },
+	{ "label": "Find",
+	  "sub-menu": [
+        { "command": "@find-string" },
+        { "command": "@replace-string" }
+	  ]
+	}
+
+```
+
+Context menu and menu definitions support the following properties:
+
+- `command` the command to execute (either a built-in command or the name of a macro)
+- `context` the optional action context in which the binding is active
+- `label` an optional label to display in the item
+- `label-id` internal integer value for referring to a PKS-Edit string resource to define the label
+- `sub-menu` array of menu definitions to be used as a sub-menu
+- `separator` may be set to `true` to define a separator item in a menu
+- `history` may be set to true to mark the position, where PKS-Edit will insert menu items allowing to access a recently used file.
+- `anchor` string defining an anchor allowing to modify default menus in extension files
+- `insert-at` string value referring to an anchor defined using `id` to be used when extending menus. The corresponding item will be added to
+  the menu specified using the anchor name.
+
+### Toolbar definition and bindings
+
+Using `toolbar` one can define the toolbar buttons of PKS-Edit. The following example defines a toolbar with two buttons allowing to select 
+the complete text a button replace a string. The icons are named as the corresponding AwesomeFont Version 5 icon (PKS-Edit uses Awesome Font icons
+internally wherever appropriate). Toolbar labels can be defined similar to menu item labels, but are used as tooltips in the toolbar.
+
+```
+  "toolbar": [
+    {
+	  "icon": "fa-heart",
+      "command": "@mark-all"
+    },
+	{ "icon": "fa-search",
+	  "command": "@find-string" 
+	},
+	...
+```
+
+Toolbar button definitions support the following properties:
+
+- `command` the command to execute (either a built-in command or the name of a macro)
+- `context` the optional action context in which the binding is active
+- `label` an optional label (tooltip) to display in the button
+- `label-id` internal integer value for referring to a PKS-Edit string resource to define the label  (tooltip) 
+- `separator` may be set to `true` to define a separator button in the toolbar
+- `icon` name of the Awesome Font icon to use
+- `anchor` string defining an anchor allowing to modify default toolbar in extension files
+- `insert-at` string value referring to an anchor defined using `id` to be used when extending toolbars. The corresponding button will be added after
+  the button specified using the anchor name.
 
 ## Advanced configuration
 

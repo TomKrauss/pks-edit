@@ -505,7 +505,7 @@ int EdKeycodeInsert(void)
 	if (!win_callDialog(DLGKEYCODE,&_sp,_d, NULL))
 		return 0;
 
-	visible = code2key(k);
+	visible = macro_keycodeToString(k);
 	return EdPasteString(0L, 0L, visible);
 }
 

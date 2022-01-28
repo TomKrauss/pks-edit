@@ -27,7 +27,7 @@ typedef void (*ANALYZER_CALLBACK)(const char* pszRecommendation);
  * The analyzer function to operate on a file referred to by a view pointer 'wp'. Only recommendations
  * matching the match function 'fMatch' are considered and passed to the analyzer callback.
  */
-typedef void (*ANALYZER_FUNCTION)(WINFO* wp, int (*fMatch)(char* pszMatch), ANALYZER_CALLBACK fCallback);
+typedef void (*ANALYZER_FUNCTION)(WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback);
 
 /*
  * Register a new analyzer given the name of the analyzer. If an analyzer with the given name

@@ -325,6 +325,8 @@ char *code2key(KEYCODE code)
 		*s++ = CTL_MARK;
 	if (code & K_SHIFT)
 		*s++ = SFT_MARK;
+	if (code & K_WIN)
+		*s++ = SFT_MARK;
 	if (code & K_HAS_SELECTION)
 		*s++ = CTL_MARK;
 

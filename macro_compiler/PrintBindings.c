@@ -40,37 +40,15 @@
 #define COL_FUNCTION	30
 
 extern	MACRO *	macro_getByIndex(int i);
-extern	char *	code2key(KEYCODE code);
 extern 	char *	mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 
 void macro_printListHeader(FILE *fp, char *itemname);
-
-/*
- * print_modifier()
- */
-char *print_modifier(char *s, KEYCODE code)
-{
-	*s = 0;
-	if (code & K_ALTERNATE) {
-		strcpy(s,"Alt+"); s += 4;
-	}
-	if (code & K_HAS_SELECTION) {
-		strcpy(s, "Selected+"); s += 9;
-	}
-	if (code & K_CONTROL) {
-		strcpy(s,"Ctrl+"); s += 5;
-	}
-	if (code & K_SHIFT) {
-		strcpy(s,"Shift+"); s += 6;
-	}
-	return s;
-}
 
 static char *print_buttonEvent(char *b, int button, int shift, int nclicks)
 {
 	char			*s;
 
-	s = print_modifier(b,(KEYCODE)(shift<<8));
+	s = macro_printModifier(b,(KEYCODE)(shift<<8));
 	if (button & MBUT_L) {
 		strcpy(s,"MLeft+");
 		s += 5;
@@ -86,146 +64,6 @@ static char *print_buttonEvent(char *b, int button, int shift, int nclicks)
 	sprintf(s,"(%d)",nclicks);
 	return b;
 }
-
-/*--------------------------------------------------------------------------
- * print_parseKeycode()
- * sorry for this: PKEDIT has the following functions also implemented. 
- * but: making Keys more readable than in menu enmtries in dumb GEM menus 
- *      we has to have a local _scantab
- */
-#if defined (_Windows)
-
-extern char *_scantab;
-
-KEYCODE print_parseKeycode(const unsigned char *k, int control)
-{
-	unsigned char *	t;
-	const unsigned char *	K;
-	int  			code;
-
-	if (!k[1]) {
-		if ((*k >= '0' && *k <= '9') ||
-		    (*k >= 'A' && *k <= 'Z')) {
-			return *k | control;
-		}
-	}
-
-	if (k[0] == '\\') {
-		code  = (int)(k[1] - '0') * 100;
-		code += (int)(k[2] - '0') * 10;
-		code += (int)(k[3] - '0');
-		return code | control;
-	}
-
-	K = k;
-	for (t = _scantab; *t; ) {
-		code = *t++;
-		for (k = K; *k == *t; k++,t++)
-			if (*t == 0) {
-				return code | control;
-			}
-		while(*t++)
-			;
-	}
-	return K_INVALID;
-}
-
-#else
-static char *_scantab=
-/* 0-14   */  "\0Esc\0\x31\0\x32\0\x33\0\x34\0\x35\0\x36\0\x37\0\x38\0\x39\0\x30\0Beta\0\Quote\0Backspace\0"
-/* 15-29  */  "Tab\0Q\0W\0E\0R\0T\0Z\0U\0I\0O\0P\0UmlautUE\0Plus\0Return\0Ctr\0"
-/* 30-43  */  "A\0S\0D\0F\0G\0H\0J\0K\0L\0UmlautOE\0UmlautAE\0Hash\0ShL\0Tilde\0"
-/* 44-53  */  "Y\0X\0C\0V\0B\0N\0M\0Colon\0Dot\0Minus\0"
-/* 54-58  */  "ShR\0\0Alt\0Space\0CLock\0"
-/* 59-68  */  "F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0F10\0"
-/* 69-70  */  "\0\0"
-/* 71-83  */  "ClrHome\0Up\0\0NumMinus\0Left\0\0Right\0NumPlus\0\0Down\0\0Insert\0Delete\0"
-/* 84-93  */  "F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0F10\0"
-/* 94-102 */  "\0\0Less\0Undo\0Help\0NumLBracket\0NumRBracket\0NumSlash\0NumStar\0"
-/* 103-112*/  "Num7\0Num8\0Num9\0Num4\0Num5\0Num6\0Num1\0Num2\0Num3\0Num0\0"
-/* 113-119*/  "NumDot\0Enter\0Left\0Right\0\0\0\0"
-/* 120-132*/  "1\0" "2\0" "3\0" "4\0" "5\0" "6\0" "7\0" "8\0" "9\0" "0\0" "Beta\0'";
-KEYCODE print_parseKeycode(char *K, int control)
-{
-	char *	t;
-	char *	k;
-	int  	code;
-
-	for (code = 114, t = _scantab+1; code >= 0; t++ , code-- ) {
-fail:	if (*t) {
-			k = K;
-			while (*t)
-				if (*k++ != *t++) {
-					while(*t++);
-					if (--code < 0)
-						return K_INVALID;
-					goto fail;
-				}
-			if (!*k) {
-				code = 115-code;
-
-				/*
-				 * [Ctl] Cursorkeys left-right
-				 */
-				if (control & K_CONTROL) {
-					if (code == 75)
-						code = 115;
-					else if (code == 77)
-						code = 116;
-				}
-	
-				/*
-				 * [Alt]0-9
-				 */
-				if (code >= 2 && code <= 13 && 
-				    (control & (K_ALTERNATE|K_CONTROL)) == K_ALTERNATE)
-					code += 118;
-				else
-
-				/*
-				 * [Sft]F1-F10
-				 */
-				if (code >= 59 && code <= 68 && 
-				    (control & K_SHIFT))
-					code += (84-59);
-
-				return control|code;
-			}
-		}
-	}
-	return K_INVALID;
-}
-
-/*
- * code2key()
- */
-static char *code2key(KEYCODE code)
-{
-	char *	t;
-	char *	s;
-	int  	i;
-	static char b[64];
-
-	s = c2shift(b,code);
-
-	code &= 0xFF;
-
-	if (code <= 0 || code >= 132) 
-		return "[?]";
-
-	for (i = 0, t = _scantab; i < code; t++, i++) {
-		if (*t) {
-			while (*t) 
-				t++;
-		}
-	}
-
-	strcpy(s,t);
-
-	return b;
-}
-
-#endif
 
 /*--------------------------------------------------------------------------
  * print_commandDelimiter()
@@ -283,7 +121,7 @@ static void print_keybinding(FILE *fp, KEY_BINDING *kp, char delim)
 	mac_name(command, findex, (MACROREFTYPE)kp->macref.typ);
 
  	fprintf(fp,"%-25s= %-25s%s\n",
-		code2key(kp->keycode),print_commandDelimiter(n1,command,delim),
+		macro_keycodeToString(kp->keycode),print_commandDelimiter(n1,command,delim),
 		print_comment(n2,comment));
 }
 
@@ -373,7 +211,7 @@ static void print_mousebinding(FILE *fp, MOUSE_EVENT_BINDING *mp, char delim)
 	print_buttonEvent(button,mp->button,mp->shift,mp->nclicks);
  	fprintf(fp,"%-25s= %c %-25s%s\n",
 		button, ' ',
-		print_commandDelimiter(b2,command,delim),print_comment(b3,mp->msg));
+		print_commandDelimiter(b2,command,delim),print_comment(b3,mp->msg.bt_text));
 }
 
 /*

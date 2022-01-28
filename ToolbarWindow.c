@@ -138,12 +138,21 @@ static HIMAGELIST tb_createImageList(int nIconSize, COLORREF cColor, wchar_t ico
 /*
  * Update the image list for the toolbar.
  */
+static wchar_t* _currentIconList;
+static int _currentIconCount;
 void tb_updateImageList(wchar_t *tbIcons, int nCount) {
     HIMAGELIST hOld1 = hImageList;
     HIMAGELIST hOldDisabled = hImageListDisabled;
     static int nOldIconSize;
     static COLORREF cOldIconColor;
-
+    if (!tbIcons) {
+        tbIcons = _currentIconList;
+        nCount = _currentIconCount;
+    } else {
+        free(_currentIconList);
+        _currentIconList = tbIcons;
+        _currentIconCount = nCount;
+    }
     int nIconSize = dpisupport_getTbIconSize();
     COLORREF cIconColor = theme_getCurrent()->th_iconColor;
     if (nOldIconSize == nIconSize && cIconColor == cOldIconColor) {
@@ -201,13 +210,15 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     memset(&tbabmp, 0, sizeof tbabmp);
     memset(&tbabmp2, 0, sizeof tbabmp2);
     hwndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, NULL,
-		WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | TBSTYLE_CUSTOMERASE| CCS_NODIVIDER | CCS_NORESIZE | CCS_ADJUSTABLE,
+		WS_CHILD | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_CUSTOMERASE| CCS_NODIVIDER | CCS_NORESIZE | CCS_ADJUSTABLE,
         0, 0, 0, 0, hwndOwner, (HMENU) IDM_TOOLBAR, hInst, NULL);
 	if (!hwndToolbar) {
 		return NULL;
 	}
-    SendMessage(hwndToolbar, TB_BUTTONSTRUCTSIZE, 
-        (WPARAM) sizeof(TBBUTTON), 0);
+    SendMessage(hwndToolbar, TB_AUTOSIZE, 0, 0);
+    SendMessage(hwndToolbar, TB_SETEXTENDEDSTYLE, 0, (LPARAM)TBSTYLE_EX_MIXEDBUTTONS);
+    SendMessage(hwndToolbar, TB_BUTTONSTRUCTSIZE, (WPARAM) sizeof(TBBUTTON), 0);
+    SendMessage(hwndToolbar, TB_SETMAXTEXTROWS, 0, 0);
 
     TOOLBAR_BUTTON_BINDING* pButtons = binding_getToolbarBindingsFor(DEFAULT_ACTION_CONTEXT);
     int nButtons = ll_size((LINKED_LIST*)pButtons);
@@ -227,6 +238,11 @@ static HWND tb_initToolbar(HWND hwndOwner) {
             tbb[nButton].idCommand = M(nCmd);
             tb_registerBinding(nCmd, &tbb[nButton]);
             tbb[nButton].fsStyle = BTNS_BUTTON;
+            const char* pszBoundLabel = binding_getBoundText(&pButtons->tbb_label);
+            if (pszBoundLabel) {
+                // do not do this here: tbb[nButton].iString = (INT_PTR)pszBoundLabel; 
+                tbb[nButton].fsStyle = BTNS_SHOWTEXT;
+            }
         }
         tbb[nButton].fsState = TBSTATE_ENABLED;
         pButtons = pButtons->tbb_next;
@@ -238,13 +254,12 @@ static HWND tb_initToolbar(HWND hwndOwner) {
             free((void*)(intptr_t)tbb[i].iString);
         }
     }
-    SendMessage(hwndToolbar, TB_SETMAXTEXTROWS, 0, 0);
     HWND hwndTooltip = (HWND) SendMessage(hwndToolbar, TB_GETTOOLTIPS, 0, 0);
     if (hwndTooltip) {
         theme_enableDarkMode(hwndTooltip);
     }
+
     free(tbb);
-    free(pwImageCodes);
     return hwndToolbar;
 }
 
@@ -273,6 +288,10 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam
         PostMessage(hwnd, EM_SETSEL, 0, -1);
         find_startIncrementalSearch();
         PostMessage(GetParent(hwnd), LAB_CHILD_FOCUS_CHANGE, TRUE, 0);
+        break;
+    case WM_DESTROY:
+        // Hack: this should be performed in the DESTROY of the toolbar.
+        free(_currentIconList);
         break;
     case WM_KILLFOCUS:
         PostMessage(GetParent(hwnd), LAB_CHILD_FOCUS_CHANGE, FALSE, 0);

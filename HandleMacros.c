@@ -26,8 +26,6 @@
 
 #include "edfuncs.h"
 
-char *print_modifier(char *s, KEYCODE code);
-
 extern void yyerror(char* s, ...);
 
 /*------------------------------------------------------------
@@ -50,7 +48,20 @@ char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
 	return szBuf;
 }
 
-char *_scantab=
+typedef struct tagMODIFIER_NAME {
+	const char* mn_mame;
+	int	        mn_modifier;
+} MODIFIER_NAME;
+
+static MODIFIER_NAME _modifierNames[] = {
+	{"Ctrl",	K_CONTROL},
+	{"Shift",	K_SHIFT},
+	{"Alt",		K_ALTERNATE},
+	{"Win",		K_WINDOWS},
+	{"Selected",K_HAS_SELECTION}
+};
+
+static char *_scantab=
 "\x03" "CANCEL\0" "\x08" "BACK\0" "\x09" "TAB\0" "\x0C" "CLEAR\0" "\x0D" "RETURN\0"
 "\x13" "PAUSE\0" "\x14" "CAPITAL\0" "\x1B" "ESCAPE\0" "\x20" "SPACE\0" "\x21" "PRIOR\0"
 "\x22" "NEXT\0" "\x23" "END\0" "\x24" "HOME\0" "\x25" "LEFT\0" "\x26" "UP\0"
@@ -66,8 +77,103 @@ char *_scantab=
 "\xDB" "OEM_4\0" "\xDC" "OEM_5\0" "\xDD" "OEM_6\0" "\xDE" "OEM_7\0"  "\xDF" "OEM_8\0"
 "\x7C" "F13\0" "\x7D" "F14\0" "\x7E" "F15\0" "\x7F" "F16\0" "\x90" "NUMLOCK\0\0";
 
-char *code2key(KEYCODE code)
-{
+/*
+ * Can be used to add all keycode names and modifiers to a suggestion list.
+ */
+void macro_addModifiersAndKeycodes(int (*fMatch)(const char* pszString), void (*fCallback)(const char* pszString)) {
+	char szBuf[64];
+	for (int i = 0; i < sizeof(_modifierNames) / sizeof(_modifierNames[0]); i++) {
+		strcpy(szBuf, _modifierNames[i].mn_mame);
+		strcat(szBuf, "+");
+		fCallback(szBuf);
+	}
+	for (char* pszCode = _scantab; *pszCode; ) {
+		fCallback(pszCode+1);
+		pszCode += strlen(pszCode) + 1;
+	}
+}
+
+/*
+ * macro_printModifier()
+ * Print the modifiers in the form "Alt+Shift...." into pszDestination and return the character
+ * pointer at the end of the printed text.
+ */
+char* macro_printModifier(char* pszDestination, KEYCODE code) {
+	for (int i = 0; i < sizeof(_modifierNames) / sizeof(_modifierNames[0]); i++) {
+		if (code & _modifierNames[i].mn_modifier) {
+			strcpy(pszDestination, _modifierNames[i].mn_mame); 
+			pszDestination += strlen(_modifierNames[i].mn_mame);
+			*pszDestination++ = '+';
+		}
+	}
+	*pszDestination = 0;
+	return pszDestination;
+}
+
+
+/*
+ * Parses a modifier (e.g. Shift) and returns the corresponding modifier constant.
+ */
+int macro_parseModifier(const char* pszKeycode) {
+	for (int i = 0; i < sizeof(_modifierNames) / sizeof(_modifierNames[0]); i++) {
+		if (strcmp(pszKeycode, _modifierNames[i].mn_mame) == 0) {
+			return _modifierNames[i].mn_modifier;
+		}
+	}
+	return 0;
+}
+
+
+/*--------------------------------------------------------------------------
+ * macro_parseKeycode()
+ * parse a keycode given as a string (e.g. Shift+TAB) and convert to the corresponding
+ * KEYCODE.
+ */
+KEYCODE macro_parseKeycode(const unsigned char* pszKeycode) {
+	unsigned char* t;
+	const unsigned char* K;
+	int  			code;
+	int nModifier = 0;
+
+	while (pszKeycode) {
+		char* pszNext = strchr(pszKeycode, '+');
+		if (pszNext) {
+			*pszNext++ = 0;
+			nModifier |= macro_parseModifier(pszKeycode);
+		}
+		else {
+			break;
+		}
+		pszKeycode = pszNext;
+	}
+	if (!pszKeycode[1]) {
+		if ((*pszKeycode >= '0' && *pszKeycode <= '9') ||
+			(*pszKeycode >= 'A' && *pszKeycode <= 'Z')) {
+			return *pszKeycode | nModifier;
+		}
+	}
+
+	if (pszKeycode[0] == '\\') {
+		code = (int)(pszKeycode[1] - '0') * 100;
+		code += (int)(pszKeycode[2] - '0') * 10;
+		code += (int)(pszKeycode[3] - '0');
+		return code | nModifier;
+	}
+
+	K = pszKeycode;
+	for (t = _scantab; *t; ) {
+		code = *t++;
+		for (pszKeycode = K; *pszKeycode == *t; pszKeycode++, t++)
+			if (*t == 0) {
+				return code | nModifier;
+			}
+		while (*t++)
+			;
+	}
+	return K_INVALID;
+}
+
+char *macro_keycodeToString(KEYCODE code) {
 	char        *s;
 	unsigned char *t;
 	static char b[32];
@@ -75,7 +181,7 @@ char *code2key(KEYCODE code)
 	if (code == K_DELETED)
 		return "*NO KEY*";
 
-	s = print_modifier(b,code);
+	s = macro_printModifier(b,code);
 
 	code &= 0xFF;
 
@@ -102,8 +208,8 @@ char *code2key(KEYCODE code)
 }
 
 /*
- * Returns a macro by a given index or NULL if the index does not
- * lie in the valid index range. Can be used to iterate all macros.
+ * Returns a macro by a given index or NULL if the index is not
+ * located in the valid index range. Can be used to iterate all commands.
  */
 char* macro_getCommandByIndex(int nIndex) {
 	if (nIndex < 0 || nIndex >= _ncmdseq) {

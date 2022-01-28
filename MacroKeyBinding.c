@@ -477,6 +477,8 @@ KEYCODE macro_addModifierKeys(KEYCODE key)
 		key |= K_CONTROL;
 	if ( GetKeyState(VK_MENU) < 0)
 		key |= K_ALTERNATE;
+	if (GetKeyState(VK_LWIN) < 0)
+		key |= K_WINDOWS;
 	return key;
 }
 
@@ -553,7 +555,7 @@ int macro_executeByName(char *name)
 char* macro_getKeyText(const char* pszActionContext, int nCmd) {
 	KEYCODE	k;
 	if ((k = macro_findKey(NULL, (MACROREF) { .typ = CMD_CMDSEQ, .index = nCmd })) != K_DELETED) {
-		return code2key(k);
+		return macro_keycodeToString(k);
 	}
 	return NULL;
 }
@@ -846,7 +848,7 @@ static void macro_ownerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem,
 	char	szBuf[128];
 
 	if (nID == IDD_LISTBOX2) {
-		lstrcpy(szBuf,code2key((KEYCODE) par));
+		lstrcpy(szBuf,macro_keycodeToString((KEYCODE) par));
 	} else {
 		mac_name(szBuf, (MACROREFIDX)HIWORD(par), (MACROREFTYPE)LOWORD(par));
 	}

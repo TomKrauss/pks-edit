@@ -61,6 +61,13 @@
 #define	CMD_BUFFER		0x4
 #define	CMD_KILLKEY		0x5
 
+// To be used, whenever text is defined in an action binding. Allows to define the text either plain
+// as text or alternatively as a resource given a resource index into PKS-Edits internal resource table.
+typedef struct tagBOUND_TEXT {
+	const char* bt_text;
+	int			bt_resourceId;
+} BOUND_TEXT;
+
 typedef unsigned char 	MACROREFTYPE;
 typedef unsigned char  	MACROREFIDX;
 typedef struct tagMACROREF {
@@ -78,12 +85,14 @@ typedef unsigned short KEYCODE;
 #define ALT_MARK		'~'
 #define CTL_MARK		'^'
 #define SFT_MARK		'#'
+#define WIN_MARK		'&'
 #define SELECTED_MARK	'*'
 
-#define	K_SHIFT		0x300
+#define	K_SHIFT			0x300
 #define	K_CONTROL		0x400
-#define	K_ALTERNATE	0x800
+#define	K_ALTERNATE		0x800
 #define	K_HAS_SELECTION 0x1000
+#define	K_WINDOWS		0x2000
 
 #define	K_DELETED		0x1FFF		/* Impossible Key Combination	*/
 #define	K_INVALID		K_DELETED
@@ -93,14 +102,31 @@ typedef struct tagKEY_BINDING {
 	MACROREF	macref;
 } KEY_BINDING;
 
-char    *code2key(KEYCODE code);
-KEYCODE macro_addModifierKeys(KEYCODE code);
+extern KEYCODE macro_parseKeycode(const unsigned char* k);
+/*
+ * Parses a modifier (e.g. Shift) and returns the corresponding modifier constant.
+ */
+extern int macro_parseModifier(const char* pszKeycode);
+
+/*
+ * Can be used to add all keycode names and modifiers to a suggestion list.
+ */
+extern void macro_addModifiersAndKeycodes(int (*fMatch)(const char* pszString), void (*fCallback)(const char* pszString));
+
+extern	char* macro_keycodeToString(KEYCODE code);
+extern KEYCODE macro_addModifierKeys(KEYCODE code);
+/*
+ * macro_printModifier()
+ * Print the modifiers in the form "Alt+Shift...." into pszDestination and return the character
+ * pointer at the end of the printed text.
+ */
+extern char* macro_printModifier(char* pszDestination, KEYCODE code);
 
 typedef struct tagTOOLBAR_BUTTON_BINDING {
 	struct tagTOOLBAR_BUTTON_BINDING* tbb_next;
 	BOOL        tbb_isSeparator;
 	wchar_t		tbb_faIcon;							// Font awesome icon code for this button
-	const char* tbb_label;							// Optional label to use. only for buttons displaying a label.
+	BOUND_TEXT	tbb_label;							// Optional label to use. only for buttons displaying a label.
 	MACROREF	tbb_macref;
 } TOOLBAR_BUTTON_BINDING;
 
@@ -108,8 +134,7 @@ typedef struct tagMENU_ITEM_DEFINITION {
 	struct tagMENU_ITEM_DEFINITION* mid_next;
 	struct tagMENU_ITEM_DEFINITION* mid_children;	// for sub-menus, this is the list of child menu items.
 	HMENU		mid_menuHandle;						// For sub-menus, this is the menu handle of menu item, after it had been created.
-	int         mid_resourceId;						// Alternatively to specifying a label explicitly one can specify an internal PKS Edit resource ID
-	const char* mid_label;							// The label to display for the menu. If no label is specified, a default for the defined command is used.
+	BOUND_TEXT	mid_label;							// The label to display for the menu. If no label is specified, a default for the defined command is used.
 	BOOL		mid_isSeparator;					// true for separator menus. Separator menus do not need a label
 	BOOL		mid_isHistoryMenu;					// true for "history" menus. Will be replaced during runtime by a list of recently opened files.
 	MACROREF	mid_command;						// the associated command to execute.
@@ -118,7 +143,7 @@ typedef struct tagMENU_ITEM_DEFINITION {
 /*
  * Returns a linked list of context menu entries for a given action context.
  */
-extern MENU_ITEM_DEFINITION* contextmenu_getFor(const char* pszActionContext);
+extern MENU_ITEM_DEFINITION*	binding_getContextMenuFor(const char* pszActionContext);
 
 /*
  * Returns a linked list of main menu entries for a given action context.
@@ -355,7 +380,7 @@ typedef struct tagMOUSE_EVENT_BINDING {
 	char 		nclicks;			// # of button clicks
 	int 		shift;				// kb-state shift/control/...
 	MACROREF	macref;
-	const char* msg;				// Optional message to display....
+	BOUND_TEXT	msg;				// Optional message to display....
 } MOUSE_EVENT_BINDING;
 
 /*
@@ -651,6 +676,12 @@ extern void key_bindingsDo(const char* pszActionContext, int (*callback)(KEY_BIN
  * Iterate all mouse bindings and invoke a callback on every mousebinding defined for one action context.
  */
 extern void mouse_bindingsDo(const char* pszActionContext, int (*callback)(MOUSE_EVENT_BINDING* pBinding, void* pParam), void* pParam);
+
+/*
+ * Returns the text to use for an aspect of an action binding, which describes a text to
+ * display in an action trigger.
+ */
+extern const char* binding_getBoundText(BOUND_TEXT* pText);
 
 /*
  * Find the 1st key bound to a given macro.

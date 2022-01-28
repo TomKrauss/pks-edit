@@ -223,7 +223,7 @@ static WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 
 		case WM_CHARCHANGE:
 			key = (KEYCODE)wParam;
-			SetWindowText(hwnd,code2key(key));
+			SetWindowText(hwnd,macro_keycodeToString(key));
 			win_sendRedrawToWindow(hwnd);
 			return TRUE;
 

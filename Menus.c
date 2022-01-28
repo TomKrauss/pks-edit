@@ -51,18 +51,15 @@ static void menu_determineLabelWithMnemonic(char* pszLabel, MENU_ITEM_DEFINITION
 	const char* pszSource;
 	pszSource = szTemp;
 	BOOL bMnemonicAssigned = FALSE;
-	if (!pMenu->mid_label) {
-		if (pMenu->mid_resourceId) {
-			strcpy(szTemp, dlg_getResourceString(pMenu->mid_resourceId));
-		} else {
-			char szTooltip[256];
-			command_getTooltipAndLabel(pMenu->mid_command, szTooltip, szTemp);
-			if (!szTemp[0]) {
-				strcpy(szTemp, szTooltip);
-			}
-		}
+	const char* pszBoundLabel = binding_getBoundText(&pMenu->mid_label);
+	if (pszBoundLabel) {
+		strcpy(szTemp, pszBoundLabel);
 	} else {
-		pszSource = pMenu->mid_label;
+		char szTooltip[256];
+		command_getTooltipAndLabel(pMenu->mid_command, szTooltip, szTemp);
+		if (!szTemp[0]) {
+			strcpy(szTemp, szTooltip);
+		}
 	}
 	char c;
 	while ((c = *pszSource++) != 0) {
@@ -85,7 +82,7 @@ static void menu_determineLabelWithMnemonic(char* pszLabel, MENU_ITEM_DEFINITION
 	if (!bSubmenu) {
 		KEYCODE k;
 		if ((k = macro_findKey(NULL, pMenu->mid_command)) != K_DELETED) {
-			strcpy(pszLabel, code2key(k));
+			strcpy(pszLabel, macro_keycodeToString(k));
 		}
 	}
 }
@@ -158,7 +155,7 @@ static BOOL menu_appendMenuItems(HMENU hMenu, MENU_ITEM_DEFINITION* pMenu) {
  * Populate the current context menu depending on the action context of the current editor window.
  */
 static BOOL menu_populateContextMenu(WINFO* wp) {
-	MENU_ITEM_DEFINITION* pMenu = contextmenu_getFor(wp->actionContext);
+	MENU_ITEM_DEFINITION* pMenu = binding_getContextMenuFor(wp->actionContext);
 	return menu_appendMenuItems(_contextMenu, pMenu);
 }
 

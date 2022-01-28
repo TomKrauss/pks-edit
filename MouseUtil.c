@@ -427,10 +427,10 @@ int macro_executeWithPosition(WINFO* wp, MACROREF* pRef, POINT pt) {
 /*---------------------------------*/
 /* mfunct()					*/
 /*---------------------------------*/
-static int mfunct(WINFO *wp, MOUSE_EVENT_BINDING *mp, int x, int y)
-{
-	if (mp->msg && mp->msg[0]) {
-		error_displayErrorInToastWindow(mp->msg);
+static int mfunct(WINFO *wp, MOUSE_EVENT_BINDING *mp, int x, int y) {
+	const char* pszLabel = binding_getBoundText(&mp->msg);
+	if (pszLabel) {
+		error_displayErrorInToastWindow(pszLabel);
 	}
 	return macro_executeWithPosition(wp, &mp->macref, (POINT) { .x = x, .y = y });
 }

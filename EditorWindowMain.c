@@ -1250,6 +1250,7 @@ static WINFUNC WorkAreaWndProc(
 				ww_zoomWindow(zDelta > 0);
 			} else {
 				long dy = zDelta > 0 ? -1 : 1;
+				dy *= 2;
 				if (GetAsyncKeyState(VK_SHIFT)) {
 					dy *= 4;
 				}

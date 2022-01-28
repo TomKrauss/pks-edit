@@ -24,6 +24,7 @@
 #include "hashmap.h"
 #include "codeanalyzer.h"
 #include "edfuncs.h"
+#include "fontawesome.h"
 
 typedef struct tagANALYZER {
 	struct tagANALYZER* an_next;
@@ -36,7 +37,7 @@ static ANALYZER *_analyzers;
 /*
  * Extract all identifiers from a file regardless of comments etc ignoring the file syntax.
  */
-static void analyzer_extractWords(WINFO* wp, int (*fMatch)(char* pszMatch), ANALYZER_CALLBACK fCallback) {
+static void analyzer_extractWords(WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback) {
 	FTABLE* fp = wp->fp;
 	LINE* lp = fp->firstl;
 	STRING_BUF* pBuf = stringbuf_create(50);
@@ -67,12 +68,33 @@ static void analyzer_extractWords(WINFO* wp, int (*fMatch)(char* pszMatch), ANAL
 }
 
 /*
- * Returns a possible macro name from the list of all PKS Edit macros defined, so we can use them
- * as suggestions when editing macros.
+ * Returns a possible macro function names which can be used in PKS Edit macros.
  */
-static void analyzer_getMacros(WINFO* wp, int (*fMatch)(char* pszMatch), ANALYZER_CALLBACK fCallback) {
-	char* pszWord;
+static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback) {
+	for (int i = 0; i < _nfuncs; i++) {
+		EDFUNC* pFunc = &_edfunctab[i];
+		if (fMatch(pFunc->f_name)) {
+			fCallback(pFunc->f_name);
+		}
+	}
+}
+
+/*
+ * Returns a possible code completion in a PKS actionbinding file - either the name of a PKS command, the name of a fontawesome icon
+ * or the name of a key.
+ */
+static void analyzer_getBindingCompletions(WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback) {
+	if (wp->caret.offset > 0 && wp->caret.linePointer->lbuf[wp->caret.offset - 1] == '+') {
+		macro_addModifiersAndKeycodes(fMatch, fCallback);
+		return;
+	}
+	const char* pszWord;
 	for (int i = 0; (pszWord = macro_getCommandByIndex(i)) != 0; i++) {
+		if (fMatch(pszWord)) {
+			fCallback(pszWord);
+		}
+	}
+	for (int i = 0; (pszWord = faicon_nameForIndex(i)) != 0; i++) {
 		if (fMatch(pszWord)) {
 			fCallback(pszWord);
 		}
@@ -105,7 +127,7 @@ int analyzer_register(const char* pszName, ANALYZER_FUNCTION f) {
  * Extract all recommendations from the file edited in the view identified by 'wp'.
  * Use the analyzer with the given analyzer name. If successful, return 1, otherwise 0.
  */
-int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, int (*fMatch)(char* pszMatch), ANALYZER_CALLBACK fCallback) {
+int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback) {
 	if (pszAnalyzerName == NULL) {
 		return 0;
 	}
@@ -127,6 +149,7 @@ int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, int (*fMatc
 void analyzer_registerDefaultAnalyzers() {
 	analyzer_register("words", analyzer_extractWords);
 	analyzer_register("pks-macros", analyzer_getMacros);
+	analyzer_register("action-bindings", analyzer_getBindingCompletions);
 }
 
 /*
