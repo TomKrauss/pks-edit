@@ -12,6 +12,7 @@ simply navigate over the link and click it.
 - [Getting Started](getting_started.md)
 - [The UI of PKS-Edit](pksedit_ui.md)
 - [Editing Files](editing_files.md)
+- [Using the Mouse](using_mouse.md)
 - [Saving Files](saving_files.md)
 - [Find & Replace](find_replace.md)
 - [Navigation](navigate.md)
