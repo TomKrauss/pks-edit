@@ -362,7 +362,7 @@ int EdAbout(void)
 		IDD_STRING2,	sizeof _versionInfo, _versionInfo,
 		0
 	};
-	sprintf(_versionInfo, "%s, %s", "2.1.0", __DATE__);
+	sprintf(_versionInfo, "%s, %s", "2.2.0", __DATE__);
 	return DoDialog(DLGABOUT, dlg_standardDialogProcedure, _d, NULL);
 }
 

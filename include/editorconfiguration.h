@@ -183,11 +183,6 @@ extern int prof_save(EDITOR_CONFIGURATION* configuration, int interactive);
  */
 extern int prof_enum(LPSTR grp, intptr_t (*lpfnEnum)(LPSTR, LONG), LONG lParam);
 
-/*--------------------------------------------------------------------------
- * prof_llinsert()
- */
-extern void* prof_llinsert(void* Head, int size, char* group, char* item, char** idata);
-
 /*------------------------------------------------------------
  * prof_getPksProfileString()
  * Fetches a string from the PKS profile ini file.

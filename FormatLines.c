@@ -516,6 +516,18 @@ static FORMATTER* format_getFormatter(WINFO* wp) {
 	return &_defaultFormatter;
 }
 
+/*
+ * Can be used to determine whether formatting text is supported for the current file.
+ */
+int ft_supportsFormatting(long long pUnused) {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (!wp) {
+		return 0;
+	}
+	FORMATTER* pFormatter = format_getFormatter(wp);
+	return pFormatter->f_supports(pFormatter);
+}
+
 /*---------------------------------
  * ft_formatText()	
  * Format the text in the current file.

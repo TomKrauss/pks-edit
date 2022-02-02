@@ -739,6 +739,10 @@ extern int ln_createAndAddSimple(FTABLE* fp, char* b);
  *---------------------------------*/
 typedef enum { FMT_LEFT = 0, FMT_RIGHT = 1, FMT_CENTER = 2, FMT_JUSTIFIED = 3 } FORMATTING_ALIGNMENT;
 extern int ft_formatText(WINFO* wp, int scope, FORMATTING_ALIGNMENT alignment);
+/*
+ * Can be used to determine whether formatting text is supported for the current file.
+ */
+extern int ft_supportsFormatting(long long pUnused);
 
 /*
  * Count the number of words in a file. A word is defined by the identifier definition

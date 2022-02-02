@@ -222,8 +222,7 @@ static DIALPARS* _paramsPerPage[] = {
 	_dMisc
 };
 
-static const char* _tempPathSettingName = "AsPath";
-static const char* _tempICSSettingName = "iconSize";
+static const char* _tempPathSettingName = "AutosavePath";
 
 /**
  * Returns a pointer to the current editor configuration. If not yet initialized it will be initialized on the fly. 

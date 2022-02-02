@@ -290,11 +290,11 @@ int prof_getstdopt(void) {
 	}
 	pConfiguration->options = prof_getlong(_desk,"Options");
 	pConfiguration->layoutoptions = prof_getlong(_desk,"Layout");
-	pConfiguration->iconSize = prof_getlong(_desk, "iconSize");
+	pConfiguration->iconSize = prof_getlong(_desk, "IconSize");
 
 	_currentSearchAndReplaceParams.options = (int)prof_getlong(_desk,"FindOptions");
 	char buf[32];
-	prof_getPksProfileString(_desk, "AsInterv", buf, sizeof buf);
+	prof_getPksProfileString(_desk, "AutosaveInterval", buf, sizeof buf);
 	size_t l = strlen(buf);
 	int multiplier = 1;
 	if (l > 0 && buf[l - 1] != 's') {
@@ -302,8 +302,8 @@ int prof_getstdopt(void) {
 		multiplier = 60;
 	}
 	pConfiguration->autosaveSeconds = multiplier * string_convertToLong(buf);
-	pConfiguration->nundo = prof_getlong(_desk,"NUBuf");
-	pConfiguration->maximumNumberOfOpenWindows = prof_getlong(_desk, "maxOpenWindows");
+	pConfiguration->nundo = prof_getlong(_desk,"UndoBufferSize");
+	pConfiguration->maximumNumberOfOpenWindows = prof_getlong(_desk, "MaximumNumberOfOpenWindows");
 	return 1;
 }
 
@@ -367,16 +367,16 @@ int prof_save(EDITOR_CONFIGURATION* configuration, int interactive)
 	prof_savelong(_desk,"Options",(long)configuration->options);
 	prof_savelong(_desk,"Layout",(long)configuration->layoutoptions);
 	prof_savelong(_desk,"FindOptions",(long)_currentSearchAndReplaceParams.options);
-	prof_savelong(_desk, "iconSize", (long)configuration->iconSize);
+	prof_savelong(_desk, "IconSize", (long)configuration->iconSize);
 	char szBuf[32];
 	sprintf(szBuf, "%ds", configuration->autosaveSeconds);
-	prof_savestring(_desk,"AsInterv", szBuf);
+	prof_savestring(_desk,"AutosaveInterval", szBuf);
 	if (configuration->defaultFontFace[0]) {
 		prof_savestring(_desk, "DefaultFontFace", configuration->defaultFontFace);
 	}
-	prof_savelong(_desk, "maxOpenWindows", (long)configuration->maximumNumberOfOpenWindows);
+	prof_savelong(_desk, "MaximumNumberOfOpenWindows", (long)configuration->maximumNumberOfOpenWindows);
 	config_saveTempPath();
-	prof_savelong(_desk,"NUBuf",(long)configuration->nundo);
+	prof_savelong(_desk,"UndoBufferSize",(long)configuration->nundo);
 	prof_savelong(_desk, _cxscreen, (long)GetSystemMetrics(SM_CXSCREEN));
 	prof_savelong(_desk, _cyscreen, (long)GetSystemMetrics(SM_CYSCREEN));
 
@@ -405,33 +405,5 @@ int prof_enum(LPSTR grp, intptr_t (*lpfnEnum)(LPSTR, LONG), LONG lParam)
 			;
 	}
 	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * prof_llinsert()
- */
-void *prof_llinsert(void *pHead, int size, char *pszGroup, char *pszItem, char **idata)
-{
-	char			szBuf[256],*s;
-	struct llist 	*lp;
-
-	if (!prof_getPksProfileString(pszGroup, pszItem, szBuf, sizeof szBuf))
-		return 0;
-
-	if ((s = _strdup(szBuf)) == 0) {
-		return 0;
-	}
-
-	if ((lp = ll_find(*(void**)pHead,pszItem)) == 0) {
-		if ((lp = ll_insert(pHead,size)) == 0) {
-			free(s);
-			return 0;
-		}
-
-		lstrcpy(lp->name,pszItem);
-	}
-	*idata = s;
-
-	return lp;	
 }
 

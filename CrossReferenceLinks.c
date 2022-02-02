@@ -154,6 +154,32 @@ static char *get_quoted(char **src) {
 }
 
 /*--------------------------------------------------------------------------
+ * compiler_llinsert()
+ */
+static NAVIGATION_PATTERN* compiler_llinsert(void* pHead, int size, char* pszGroup, char* pszItem, char** idata) {
+	char   szBuf[256], * s;
+	NAVIGATION_PATTERN* pNewPattern;
+
+	if (!prof_getPksProfileString(pszGroup, pszItem, szBuf, sizeof szBuf))
+		return 0;
+
+	if ((s = _strdup(szBuf)) == 0) {
+		return 0;
+	}
+
+	if ((pNewPattern = (NAVIGATION_PATTERN * )ll_find(*(void**)pHead, pszItem)) == 0) {
+		if ((pNewPattern = (NAVIGATION_PATTERN * )ll_insert(pHead, size)) == 0) {
+			free(s);
+			return 0;
+		}
+	}
+	strncpy(pNewPattern->compiler, pszItem, sizeof(pNewPattern->compiler) - 1);
+	*idata = s;
+
+	return pNewPattern;
+}
+
+/*--------------------------------------------------------------------------
  * compiler_mk()
  */
 static char *szCompiler = "compiler";
@@ -163,7 +189,7 @@ static intptr_t compiler_mk(char *compiler, LONG unused) {
 	char* pszLine;
 	char* szNext;
 
-	if ((ct = prof_llinsert(&_compilerOutputNavigationPatterns,sizeof *ct,szCompiler,compiler,&pszLine)) == 0) {
+	if ((ct = compiler_llinsert(&_compilerOutputNavigationPatterns,sizeof *ct,szCompiler,compiler,&pszLine)) == 0) {
 		return 0;
 	}
 	s = pszLine;

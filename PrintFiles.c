@@ -754,8 +754,8 @@ void print_readWriteConfigFile(int save)
 		size_t			pr_offs;
 		char			*pr_name;
 	} _pi[] = {
-		1,	offsetof(PRTPARAM,header.pme_template),			"header",
-		1,	offsetof(PRTPARAM,footer.pme_template),			"footer",
+		1,	offsetof(PRTPARAM,header.pme_template),			"header-template",
+		1,	offsetof(PRTPARAM,footer.pme_template),			"footer-template",
 		0,	offsetof(PRTPARAM,options),						"options",
 		0,	offsetof(PRTPARAM,pagelen),						"pagelen",
 		1,	offsetof(PRTPARAM,font.fs_name),				"font",

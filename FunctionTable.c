@@ -90,7 +90,7 @@ EDFUNC _edfunctab[] = {
 {/*15*/  bl_destroyAll  , '!',0,                                                                      	"FreeBuffer",NULL },
 {/*16*/  EdKeycodeInsert, '!',   EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                        	"InsertKeycode",NULL },
 {/*17*/  EdCharInsert  , '!',EW_MODIFY | EW_NEEDSCURRF | EW_CCASH | 0,                               	"InsertChar",NULL },
-{/*18*/	 EdFormatText  , '!',EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                            	"FormatText",NULL },
+{/*18*/	 EdFormatText  , '!',EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_CUSTOM_ENABLEMENT,            "FormatText",ft_supportsFormatting },
 {/*19*/	 edit_insertLine  , '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                        	"InsertLine",NULL },
 {/*20*/	 edit_performLineFlagOperation, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                "MarkLineOp",NULL },
 {/*21*/	 EdSearchListRead, '!', EW_HASFORM | 0,                                                          "ReadSearchList",NULL },
