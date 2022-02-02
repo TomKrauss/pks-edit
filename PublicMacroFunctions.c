@@ -235,10 +235,10 @@ int DialogCharInput(int promptfield, unsigned char c)
 /*--------------------------------------------------------------------------
  * cpyout()
  */
-static void cpyout(char *d,char *s, int len)
+static void cpyout(char *d,char *s, int len, int nMax)
 {
-	if (len > 40)
-		len = 40;
+	if (len >= nMax)
+		len = nMax-1;
 
 	while(len > 0) {
 		if ((*d++ = *s++) == 0) {
@@ -286,8 +286,8 @@ int dlg_queryReplace(char *search, int slen, char *replace, int dlen) {
 	MSG				msg;
 	static DLGPROC	lpfnProc;
 
-	cpyout(sbuf,search,slen);
-	cpyout(rbuf,replace,dlen);
+	cpyout(sbuf,search,slen,sizeof sbuf);
+	cpyout(rbuf,replace,dlen, sizeof rbuf);
 
 	EnableWindow(hwndMain,FALSE);
 

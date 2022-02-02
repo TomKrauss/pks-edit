@@ -493,21 +493,21 @@ BEGIN
     EDITTEXT        IDD_STRING1,36,22,104,12,ES_AUTOHSCROLL
 END
 
-DLGQUERYREPLACE DIALOGEX 56, 74, 204, 58
-STYLE DS_SETFONT | WS_POPUP | WS_VISIBLE | WS_CAPTION
+DLGQUERYREPLACE DIALOGEX 56, 74, 329, 58
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION
 CAPTION "Replace Confirmation"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "Replace:",IDD_OPT6,6,6,34,8,NOT WS_GROUP
     LTEXT           "With:",IDD_OPT7,6,22,34,8,NOT WS_GROUP
-    CONTROL         "",IDD_OPT8,"Static",SS_BLACKFRAME,44,5,148,13
-    CONTROL         "",IDD_OPT9,"Static",SS_BLACKFRAME,44,21,148,13
-    LTEXT           "X",IDD_STRING1,46,8,138,8,NOT WS_GROUP
-    LTEXT           "Y",IDD_STRING2,46,24,142,8,NOT WS_GROUP
-    DEFPUSHBUTTON   "&Yes",1,8,40,36,12
-    PUSHBUTTON      "&No",IDD_MACDELETE,60,40,36,12
-    PUSHBUTTON      "&All",IDD_ALL_OCCURRENCES,112,40,36,12
-    PUSHBUTTON      "&End",2,164,40,32,12
+    CONTROL         "",IDD_OPT8,"Static",SS_BLACKFRAME,44,5,275,13
+    CONTROL         "",IDD_OPT9,"Static",SS_BLACKFRAME,44,21,275,13
+    LTEXT           "X",IDD_STRING1,46,8,266,8,NOT WS_GROUP
+    LTEXT           "Y",IDD_STRING2,46,24,266,8,NOT WS_GROUP
+    DEFPUSHBUTTON   "&Yes",1,131,40,36,12
+    PUSHBUTTON      "&No",IDD_MACDELETE,183,40,36,12
+    PUSHBUTTON      "&All",IDD_ALL_OCCURRENCES,235,40,36,12
+    PUSHBUTTON      "&End",2,287,40,32,12
 END
 
 DLGRECORDER DIALOG 28, 87, 213, 49
@@ -973,6 +973,7 @@ BEGIN
 
     DLGQUERYREPLACE, DIALOG
     BEGIN
+        RIGHTMARGIN, 204
     END
 
     DLGSORT, DIALOG
@@ -1378,8 +1379,6 @@ BEGIN
     IDS_MSGREMANYBRACKETS   "Too many capturing groups (maximum of 9 allowed)"
     IDS_MSGRENOBRACKETMATCH "Capturing group brackets not in balance"
     IDS_MSGREFROMTO         "Wrong range specification"
-    IDS_MSGRE_UNDEFINED_BACKREF "Undefined bracket back reference"
-    IDS_MSGREMINMAXOVL      "Maximum number in range may not exceed 256"
     IDS_MSGREMINMAXERR      "Maximum in range specification is smaller than minimum"
     IDS_MSGREBSLERR         "'\\' is illegal at end of line"
     IDS_MSGREBRUNDEF        "Capturing group not defined"
@@ -1388,6 +1387,17 @@ BEGIN
     IDS_MSGDIFFERENTPW      "The two versions of the password do not match"
     IDS_MSGINVALIDHIDEOP    "Illegal operation on hidden lines"
     IDS_MSGUPDATEMACNAME    "Do you want to use the specified name and comment"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
+    IDS_INSERT              "Insert"
+    IDS_CREATE_BUFFER       "Create"
+    IDS_NO_EVALUATION_SUPPORTED 
+                            "The grammar of this file does not support evaluation of code."
+    IDS_EVALUATION_FAILED   "The evaluation of the currently selected text failed."
+    IDS_MSGRE_UNDEFINED_BACKREF "Undefined bracket back reference"
 END
 
 STRINGTABLE
@@ -1410,19 +1420,23 @@ END
 
 STRINGTABLE
 BEGIN
-	IDM_BASEMENU		    "Base"
-	IDM_FILE_MENU		    "File"
-	IDM_EDIT_MENU		    "Edit"
-	IDM_FIND_MENU		    "Find"
-	IDM_FUNCTIONS_MENU	    "Functions"
-	IDM_MACRO_MENU		    "Macro"
-	IDM_SETTINGS_MENU	    "Settings"
-	IDM_EXTRAS_MENU		    "Extras"
-	IDM_WINDOWS_MENU        "Window"
-	IDM_PRINT_MENU          "Print"
-	IDM_CONVERT_MENU        "Convert"
-	IDM_VIEW_BINDINGS_MENU  "View Bindings"
-	IDM_MORESETTINGS_MENU   "More Settings"
+    IDM_BASEMENU            "Base"
+    IDM_FILE_MENU           "File"
+    IDM_EDIT_MENU           "Edit"
+    IDM_FIND_MENU           "Find"
+END
+
+STRINGTABLE
+BEGIN
+    IDM_FUNCTIONS_MENU      "Functions"
+    IDM_MACRO_MENU          "Macro"
+    IDM_SETTINGS_MENU       "Settings"
+    IDM_EXTRAS_MENU         "Extras"
+    IDM_WINDOWS_MENU        "Window"
+    IDM_PRINT_MENU          "Print"
+    IDM_CONVERT_MENU        "Convert"
+    IDM_VIEW_BINDINGS_MENU  "View Bindings"
+    IDM_MORESETTINGS_MENU   "More Settings"
     IDM_COMPARE_FILES       "Compare Files"
 END
 
@@ -1743,16 +1757,6 @@ BEGIN
     IDS_COMMAND252          "Toggle syntax highlighting;Show Syntax Highlighting"
     IDS_COMMAND253          "Move selection or line up;Move Selection Up"
     IDS_COMMAND254          "Move selection or line down;Move Selection Down"
-END
-
-STRINGTABLE
-BEGIN
-    IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
-    IDS_INSERT              "Insert"
-    IDS_CREATE_BUFFER       "Create"
-    IDS_NO_EVALUATION_SUPPORTED 
-                            "The grammar of this file does not support evaluation of code."
-    IDS_EVALUATION_FAILED   "The evaluation of the currently selected text failed."
 END
 
 #endif    // Englisch (USA) resources
