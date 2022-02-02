@@ -27,6 +27,7 @@
 #define RE_SEARCH_IN_SEARCH_RESULTS	0x100	// applicable only to "find in files" - if set - consider only files from previous search result list.
 #define RE_CONFIRM_REPLACEMENT		0x200	// applicable to replacement only: if set the user is asked before every replacement 
 #define RE_CONSIDER_MARKED_LINES	0x400	// whether only marked lines should be considered
+#define RE_DEBUG					0x800	// whether debug information should be printed to the console, when matching a pattern.
 
 #define	NBRA			9		/* maximum number of brackets	*/
 
@@ -59,6 +60,7 @@ typedef struct tagRE_PATTERN {
 	const char*	beginOfLine;		// may be set to the beginning of a line to make <> matches more correct.
 	int		circf;					// set to true to not advance during matching, but to match only the beginning of the string.
 	int		noAdvance;				// set to true to only match exactly at the current position.
+	int		debug;					// set to true to print debugging information
 	int		nbrackets;
 } RE_PATTERN;
 
@@ -74,6 +76,13 @@ typedef enum enumCAPTURING_GROUP_RESULT {
  * was specified.
  */
 extern CAPTURING_GROUP_RESULT regex_getCapturingGroup(RE_MATCH* pMatch, int nGroup, char* result, int maxResultLen);
+
+/*--------------------------------------------------------------------------
+ * regex_compileWithDefault()
+ * Compile a regular expression passed by argument with standard options. If
+ * not successful, return null.
+ */
+RE_PATTERN* regex_compileWithError(const char* expression);
 
 /*--------------------------------------------------------------------------
  * regex_compileWithDefault()

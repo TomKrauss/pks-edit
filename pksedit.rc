@@ -1399,6 +1399,7 @@ BEGIN
     IDS_MSGREFROMTO         "Falsche Syntax für Bereich"
     IDS_MSGREMINMAXOVL      "Bereichsangabe muß kleiner 255 sein"
     IDS_MSGREMINMAXERR      "Bereichsangabe: Maximum < Minimum !"
+    IDS_MSGRE_UNDEFINED_BACKREF "Noch nicht definierter Bezug"
     IDS_MSGREBSLERR         "Zeichen '\\' am Ende der Zeile unzulässig"
     IDS_MSGREBRUNDEF        "Klammer noch nicht definiert"
     IDS_MSGREPIPEERR        "Zeichen '|' außerhalb Klammerung unzulässig"

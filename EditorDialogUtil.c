@@ -666,8 +666,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			if (idCtrl != IDCANCEL) {
 				if ((item == IDD_FINDS2 && *(char*)ip) ||
 				    (item == IDD_FINDS)) {
-					if (!regex_compileWithDefault((LPSTR)ip)) {
-						error_showError("Falscher regulärer Ausdruck.", NULL);
+					if (!regex_compileWithError((LPSTR)ip)) {
 						return FALSE;
 					}
 					hist_saveString(SEARCH_PATTERNS, (LPSTR)ip);

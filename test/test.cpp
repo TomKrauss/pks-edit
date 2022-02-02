@@ -4,6 +4,7 @@
 extern "C" {
 #include "../include/documentmodel.h"
 #include "../include/regexp.h"
+#include "../rc/pksedit.h"
 #include "../include/arraylist.h"
 #include "../include/linkedlist.h"
 #include "../include/hashmap.h"
@@ -86,9 +87,24 @@ namespace pkseditTests
 			RE_MATCH match;
 			char group[50];
 
+			options = createOptions("^([0-9]+).*\"([^\"]+)\",", RE_DOREX|RE_DEBUG);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			const char* expr = "14,\"x\",";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(0, (int)(match.loc1 - expr));
+			regex_getCapturingGroup(&match, 1, group, sizeof group);
+			Assert::AreEqual("x", group);
+			regex_getCapturingGroup(&match, 0, group, sizeof group);
+			// TODO: this is wrong this should be 14
+			Assert::AreEqual("14", group);
+			expr = "4, , \"x\",";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			regex_getCapturingGroup(&match, 0, group, sizeof group);
+			Assert::AreEqual("4", group);
+
 			options = createOptions("\\[[^]]+\\]", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
-			const char* expr = "[abc]";
+			expr = "[abc]";
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
 			Assert::AreEqual(0, (int)(match.loc1 - expr));
 
@@ -286,7 +302,7 @@ namespace pkseditTests
 			Assert::AreEqual(5, (int)(match.loc2 - match.loc1));
 			options = createOptions("\"(?:[^a-zX?]){3,}?\"", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
-			options = createOptions("\"(?:a|bb)+\"\\1", RE_DOREX);
+			options = createOptions("\"(a|bb)+\"\\1", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			// Bad back-reference
 			options = createOptions("\"(?:a|bb)+\"\\2", RE_DOREX);
@@ -411,6 +427,36 @@ namespace pkseditTests
 			Assert::AreEqual("D:\\tom\\desktop\\readme.txt", group);
 			regex_getCapturingGroup(&match, 1, group, sizeof group);
 			Assert::AreEqual("90", group);
+		}
+
+		TEST_METHOD(RegexCompileErrors)
+		{
+			RE_OPTIONS* options;
+			RE_PATTERN pattern;
+			RE_MATCH match;
+			options = createOptions("fritz|franz)", RE_DOREX | RE_IGNCASE);
+			Assert::AreEqual(0, regex_compile(options, &pattern));
+			Assert::AreEqual(IDS_MSGREPIPEERR, pattern.errorCode);
+
+			options = createOptions("(fritz", RE_DOREX | RE_IGNCASE);
+			Assert::AreEqual(0, regex_compile(options, &pattern));
+			Assert::AreEqual(IDS_MSGRENOBRACKETMATCH, pattern.errorCode);
+
+			options = createOptions("fritz\\", RE_DOREX | RE_IGNCASE);
+			Assert::AreEqual(0, regex_compile(options, &pattern));
+			Assert::AreEqual(IDS_MSGREBSLERR, pattern.errorCode);
+
+			options = createOptions("fritz\\1", RE_DOREX | RE_IGNCASE);
+			Assert::AreEqual(0, regex_compile(options, &pattern));
+			Assert::AreEqual(IDS_MSGRE_UNDEFINED_BACKREF, pattern.errorCode);
+
+			options = createOptions("[abcdefg-j", RE_DOREX | RE_IGNCASE);
+			Assert::AreEqual(0, regex_compile(options, &pattern));
+			Assert::AreEqual(IDS_MSGRERANGE, pattern.errorCode);
+
+			options = createOptions("(1)(2)(3)(4)(5)(6)(7)(8)(9)(10)", RE_DOREX | RE_IGNCASE);
+			Assert::AreEqual(0, regex_compile(options, &pattern));
+			Assert::AreEqual(IDS_MSGREMANYBRACKETS, pattern.errorCode);
 		}
 
 		TEST_METHOD(MatchWithOptions)

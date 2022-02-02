@@ -812,7 +812,7 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 
 /*---- SIZE OF EXPRESSION BUFFERS -----------------------------*/
 
-#define	ESIZE		200		 	/* maximum Expressionsize		 */
+#define	ESIZE		256		 		// maximum Expressionsize in standard search expressions
 
 #ifndef 	DIM
 #define	DIM(x)		(sizeof(x)/sizeof(x[0]))

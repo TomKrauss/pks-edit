@@ -137,17 +137,29 @@ void find_setCurrentSearchExpression(const char *pExpression) {
 
 /*--------------------------------------------------------------------------
  * regex_compileWithDefault()
+ * Compile a regular expression passed by argument with standard options. If
+ * not successful, return null.
+ */
+RE_PATTERN* regex_compileWithError(const char* expression) {
+	static UCHAR 	_expbuf[ESIZE];
+	RE_PATTERN* pPattern;
+
+	if ((pPattern = find_regexCompile(_expbuf, expression, _currentSearchAndReplaceParams.options)) == NULL) {
+		return NULL;
+	}
+	find_setCurrentSearchExpression(expression);
+	_lastSearchPattern = *pPattern;
+	return pPattern;
+}
+
+/*--------------------------------------------------------------------------
+ * regex_compileWithDefault()
  * Compile a regular expression passed by argument with standard options.
  */
 RE_PATTERN *regex_compileWithDefault(const char *expression) {
-	static UCHAR 	_expbuf[ESIZE];
-
-	find_setCurrentSearchExpression(expression);
-	RE_PATTERN* pPattern = find_regexCompile(_expbuf, expression, _currentSearchAndReplaceParams.options);
+	RE_PATTERN* pPattern = regex_compileWithError(expression);
 	if (!pPattern) {
 		pPattern = &_lastCompiledPattern;
-	} else {
-		_lastSearchPattern = *pPattern;
 	}
 	return pPattern;
 }
