@@ -364,21 +364,21 @@ BEGIN
     EDITTEXT        IDD_STRING1,36,22,104,12,ES_AUTOHSCROLL
 END
 
-DLGQUERYREPLACE DIALOGEX 56, 74, 204, 58
-STYLE DS_SETFONT | WS_POPUP | WS_VISIBLE | WS_CAPTION
+DLGQUERYREPLACE DIALOGEX 56, 74, 327, 58
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION
 CAPTION "Ersetzen auf Rückfrage"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "Ersetze:",IDD_OPT6,6,6,34,8,NOT WS_GROUP
     LTEXT           "Gegen:",IDD_OPT7,6,22,34,8,NOT WS_GROUP
-    CONTROL         "",IDD_OPT8,"Static",SS_BLACKFRAME,44,5,148,13
-    CONTROL         "",IDD_OPT9,"Static",SS_BLACKFRAME,44,21,148,13
-    LTEXT           "X",IDD_STRING1,46,8,138,8,NOT WS_GROUP
-    LTEXT           "Y",IDD_STRING2,46,24,142,8,NOT WS_GROUP
-    DEFPUSHBUTTON   "&Ja",1,8,40,36,12
-    PUSHBUTTON      "&Nein",IDD_MACDELETE,60,40,36,12
-    PUSHBUTTON      "&Alle",IDD_ALL_OCCURRENCES,112,40,36,12
-    PUSHBUTTON      "&Ende",2,164,40,32,12
+    CONTROL         "",IDD_OPT8,"Static",SS_BLACKFRAME,44,5,274,13
+    CONTROL         "",IDD_OPT9,"Static",SS_BLACKFRAME,44,21,274,13
+    LTEXT           "X",IDD_STRING1,46,8,266,8,NOT WS_GROUP
+    LTEXT           "Y",IDD_STRING2,46,24,266,8,NOT WS_GROUP
+    DEFPUSHBUTTON   "&Ja",1,130,41,36,12
+    PUSHBUTTON      "&Nein",IDD_MACDELETE,182,41,36,12
+    PUSHBUTTON      "&Alle",IDD_ALL_OCCURRENCES,234,41,36,12
+    PUSHBUTTON      "&Ende",2,286,41,32,12
 END
 
 DLGRECORDER DIALOG 28, 87, 213, 49
@@ -805,7 +805,6 @@ BEGIN
 END
 
 
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // Cursor
@@ -957,6 +956,7 @@ BEGIN
 
     DLGQUERYREPLACE, DIALOG
     BEGIN
+        RIGHTMARGIN, 204
     END
 
     DLGSORT, DIALOG
@@ -1410,6 +1410,18 @@ END
 
 STRINGTABLE
 BEGIN
+    IDS_ENTER_PASSWORD_TO_DECRYPT 
+                            "Geben Sie das Passwort zum Enschlüsseln von %s ein:"
+    IDS_INSERT              "Einfügen"
+    IDS_CREATE_BUFFER       "Anlegen"
+    IDS_NO_EVALUATION_SUPPORTED 
+                            "Die Grammatik der aktuellen Datei unterstützt keine Code Evaluierung."
+    IDS_EVALUATION_FAILED   "Die Code Evaluierung ist fehl geschlagen."
+    IDS_MSGRE_UNDEFINED_BACKREF "Noch nicht definierter Bezug"
+END
+
+STRINGTABLE
+BEGIN
     IDS_MSGKEYNOTBOUND      "Diese Tastenkombination ist nicht an ein Makro gebunden"
     IDS_MSGRECOVER          "Automatisch gespeicherte temporäre Datei für %s gefunden. Soll diese automatisch gespeicherte Version verwendet werden?"
     IDS_MSGNTIMESFOUND      "%d mal gefunden"
@@ -1429,19 +1441,23 @@ END
 
 STRINGTABLE
 BEGIN
-	IDM_BASEMENU		    "Basis"
-	IDM_FILE_MENU		    "Datei"
-	IDM_EDIT_MENU		    "Editieren"
-	IDM_FIND_MENU		    "Suchen"
-	IDM_FUNCTIONS_MENU	    "Funktionen"
-	IDM_MACRO_MENU		    "Makro"
-	IDM_SETTINGS_MENU	    "Einstellungen"
-	IDM_EXTRAS_MENU		    "Extras"
-	IDM_WINDOWS_MENU	    "Fenster"
-	IDM_PRINT_MENU		    "Drucken"
-	IDM_CONVERT_MENU	    "Konvertieren"
-	IDM_VIEW_BINDINGS_MENU	"Übersicht"
-	IDM_MORESETTINGS_MENU	"Weitere Einstellungen"
+    IDM_BASEMENU            "Basis"
+    IDM_FILE_MENU           "Datei"
+    IDM_EDIT_MENU           "Editieren"
+    IDM_FIND_MENU           "Suchen"
+END
+
+STRINGTABLE
+BEGIN
+    IDM_FUNCTIONS_MENU      "Funktionen"
+    IDM_MACRO_MENU          "Makro"
+    IDM_SETTINGS_MENU       "Einstellungen"
+    IDM_EXTRAS_MENU         "Extras"
+    IDM_WINDOWS_MENU        "Fenster"
+    IDM_PRINT_MENU          "Drucken"
+    IDM_CONVERT_MENU        "Konvertieren"
+    IDM_VIEW_BINDINGS_MENU  "Übersicht"
+    IDM_MORESETTINGS_MENU   "Weitere Einstellungen"
     IDM_COMPARE_FILES       "Dateien vergleichen"
 END
 
@@ -1762,17 +1778,6 @@ BEGIN
     IDS_COMMAND252          "Toggle Syntax Highlighting"
     IDS_COMMAND253          "Selektion oder Zeile nach oben schieben;Selektion+ verschieben"
     IDS_COMMAND254          "Selektion oder Zeile nach unten schieben;Selektion- verschieben"
-END
-
-STRINGTABLE
-BEGIN
-    IDS_ENTER_PASSWORD_TO_DECRYPT 
-                            "Geben Sie das Passwort zum Enschlüsseln von %s ein:"
-    IDS_INSERT              "Einfügen"
-    IDS_CREATE_BUFFER       "Anlegen"
-    IDS_NO_EVALUATION_SUPPORTED 
-                            "Die Grammatik der aktuellen Datei unterstützt keine Code Evaluierung."
-    IDS_EVALUATION_FAILED   "Die Code Evaluierung ist fehl geschlagen."
 END
 
 #endif    // Deutsch (Deutschland) resources
