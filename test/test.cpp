@@ -433,7 +433,6 @@ namespace pkseditTests
 		{
 			RE_OPTIONS* options;
 			RE_PATTERN pattern;
-			RE_MATCH match;
 			options = createOptions("fritz|franz)", RE_DOREX | RE_IGNCASE);
 			Assert::AreEqual(0, regex_compile(options, &pattern));
 			Assert::AreEqual(IDS_MSGREPIPEERR, pattern.errorCode);

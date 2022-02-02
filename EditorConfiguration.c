@@ -120,10 +120,10 @@ static DIALPARS _dWarnings[] = {
 
 static void conf_fillIconSizes(HWND hwnd, int nItem, void* selValue) {
 	SendDlgItemMessage(hwnd, nItem, CB_RESETCONTENT, 0, 0L);
-	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)"Small");
-	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)"Medium");
-	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)"Big");
-	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)"Large");
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)dlg_getResourceString(IDS_ICON_SIZE_SMALL));
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)dlg_getResourceString(IDS_ICON_SIZE_MEDIUM));
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)dlg_getResourceString(IDS_ICON_SIZE_BIG));
+	SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)dlg_getResourceString(IDS_ICON_SIZE_LARGE));
 	ICONSIZE nCurrent = *(ICONSIZE*)selValue;
 	SendDlgItemMessage(hwnd, nItem, CB_SETCURSEL, (WPARAM)nCurrent, (LPARAM)0);
 }
@@ -344,7 +344,8 @@ void EdOptionSet(void) {
 		ui_switchToLanguage(pConfig->language);
 		prof_save(pConfig, FALSE);
 		fkey_visibilitychanged();
-		mainframe_windowTitleChanged();
+		mainframe_windowTitleChanged(); 
+		tb_updateImageList(NULL, 0);
 	}
 }
 

@@ -1418,6 +1418,10 @@ BEGIN
                             "Die Grammatik der aktuellen Datei unterstützt keine Code Evaluierung."
     IDS_EVALUATION_FAILED   "Die Code Evaluierung ist fehl geschlagen."
     IDS_MSGRE_UNDEFINED_BACKREF "Noch nicht definierter Bezug"
+    IDS_ICON_SIZE_SMALL     "klein"
+    IDS_ICON_SIZE_MEDIUM    "mittel"
+    IDS_ICON_SIZE_big       "groß"
+    IDS_ICON_SIZE_LARGE     "sehr groß"
 END
 
 STRINGTABLE

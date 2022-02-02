@@ -877,24 +877,28 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 	INT			idCtrl;
 	HWND		parent;
 	int idx;
+	static int _currentIndex = -1;
 
 	pNmhdr = (LPNMHDR) lParam;
 	idCtrl = (INT)wParam;
 	parent = GetParent(hDlg);
+	idx = PropSheet_HwndToIndex(parent, hDlg);
 	switch(pNmhdr->code) {
 	case PSN_SETACTIVE:
-		idx = PropSheet_HwndToIndex(parent, hDlg);
 		_dp = _dialogInitParameterCallback(idx);
+		_currentIndex = idx;
 		if (_dp != NULL) {
 			DlgInit(hDlg, _dp, FALSE);
 		}
 		PropSheet_UnChanged(parent, hDlg);
 		return TRUE;
 	case PSN_APPLY:
-		if (_dp != NULL) {
-			DlgApplyChanges(hDlg, IDOK, _dp);
+		if (idx == _currentIndex) {
+			if (_dp != NULL) {
+				DlgApplyChanges(hDlg, IDOK, _dp);
+			}
+			PropSheet_UnChanged(parent, hDlg);
 		}
-		PropSheet_UnChanged(parent, hDlg);
 		return TRUE;
 	case PSN_KILLACTIVE:
 		SetWindowLongPtr(hDlg, DWLP_MSGRESULT, FALSE);

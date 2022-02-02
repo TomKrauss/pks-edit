@@ -33,6 +33,12 @@
 #define IDS_CREATE_BUFFER               195
 #define IDS_NO_EVALUATION_SUPPORTED     196
 #define IDS_EVALUATION_FAILED           197
+#define IDS_ICON_SIZE_SMALL             201
+#define IDS_ICON_SIZE_MEDIUM            202
+#define IDS_ICON_SIZE_big               203
+#define IDS_ICON_SIZE_BIG               203
+#define IDS_ICON_SIZE_BIG2              204
+#define IDS_ICON_SIZE_LARGE             204
 #define IDS_FONT_AWESOME                224
 #define DLGCURSOROPTIONS                529
 #define DLGFINDINFILES                  535
@@ -66,7 +72,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        226
+#define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         40038
 #define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101

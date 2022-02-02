@@ -1398,6 +1398,10 @@ BEGIN
                             "The grammar of this file does not support evaluation of code."
     IDS_EVALUATION_FAILED   "The evaluation of the currently selected text failed."
     IDS_MSGRE_UNDEFINED_BACKREF "Undefined bracket back reference"
+    IDS_ICON_SIZE_SMALL     "small"
+    IDS_ICON_SIZE_MEDIUM    "medium"
+    IDS_ICON_SIZE_BIG       "big"
+    IDS_ICON_SIZE_LARGE     "large"
 END
 
 STRINGTABLE
@@ -1512,7 +1516,7 @@ BEGIN
     IDS_COMMAND55           "Use the alternate status line format;Alternate Statusline"
     IDS_COMMAND56           "Smart process indents with spaces;Use Smart Indentation"
     IDS_COMMAND57           "Switches insert overwite mode;Toggle Insertand Overwrite Mode"
-    IDS_COMMAND58           "Configure the general settings of PKS-EDIT;Setup"
+    IDS_COMMAND58           "Configure the general settings of PKS-EDIT;Settings..."
     IDS_COMMAND59           "Formats a text area;Format Text..."
     IDS_COMMAND60           "Compresses spaces to tabs;Convert Spaces to Tabs"
     IDS_COMMAND61           "Expand tabs to spaces;Expand Tabs"
