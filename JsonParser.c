@@ -29,6 +29,7 @@
 #include "fileutil.h"
 #include "stringutil.h"
 #include "documentmodel.h"
+#include "pathname.h"
 
 #define MAX_TOKEN_SIZE		511
 
@@ -99,6 +100,11 @@ static JSON_MAPPING_RULE* json_findRule(char* pJsonInput, jsmntok_t* pToken, JSO
 		}
 		pRule++;
 	}
+	char szBuf[256];
+	size_t nLen = pToken->end - pToken->start;
+	memcpy(szBuf, pJsonInput + pToken->start, nLen);
+	szBuf[nLen] = 0;
+
 	return NULL;
 }
 
@@ -178,6 +184,27 @@ static int json_getIntArray(char* pszBuf, jsmntok_t* tokens, int firstToken, int
 /*
  * Returns a String array_list. Returns the index to the token array containing all tokens "after the array definition".
  */
+static int json_getStringArray(char* pszBuf, jsmntok_t* tokens, int firstToken, int numberOfTokens, int bEnd, ARRAY_LIST** pTargetSlot) {
+	char tokenContents[MAX_TOKEN_SIZE + 1];
+	int i = firstToken;
+	ARRAY_LIST* pResult = arraylist_create(13);
+
+	for (; i < numberOfTokens; i++) {
+		if (tokens[i].start > bEnd) {
+			break;
+		}
+		if (tokens[i].type == JSMN_STRING) {
+			json_tokenContents(pszBuf, &tokens[i], tokenContents);
+			arraylist_add(pResult, _strdup(tokenContents));
+		}
+	}
+	*pTargetSlot = pResult;
+	return i;
+}
+
+/*
+ * Returns a String array_list. Returns the index to the token array containing all tokens "after the array definition".
+ */
 static int json_getSet(char* pszBuf, jsmntok_t* tokens, int firstToken, int numberOfTokens, int bEnd, void** pTargetSlot, size_t maxElements) {
 	char tokenContents[MAX_TOKEN_SIZE + 1];
 	int i = firstToken;
@@ -242,6 +269,17 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 					}
 				}
 				break;
+			case RT_ENUM:
+				if (tokens[i].type == JSMN_STRING) {
+					size_t nLength = strlen(tokenContents);
+					for (int i = 0; pRule->r_descriptor.r_t_enumNames[i]; i++) {
+						if (strncmp(tokenContents, pRule->r_descriptor.r_t_enumNames[i], nLength) == 0) {
+							*((int*)pTargetSlot) = i;
+							break;
+						}
+					}
+				}
+				break;
 			case RT_CHAR_ARRAY:
 				if (tokens[i].type == JSMN_STRING) {
 					size_t nLength = strlen(tokenContents);
@@ -267,12 +305,23 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 				break;
 			case RT_OBJECT_LIST:
 				if (tokens[i].type == JSMN_ARRAY) {
-					i = json_getObjectList(pszBuf, tokens, i + 1, numberOfTokens, tokens[i].end, pTargetSlot, &pRule->r_descriptor.r_t_arrayDescriptor)-1;
+					i = json_getObjectList(pszBuf, tokens, i + 1, numberOfTokens, tokens[i].end, pTargetSlot, &pRule->r_descriptor.r_t_arrayDescriptor) - 1;
+				}
+				break;
+			case RT_NESTED_OBJECT:
+				if (tokens[i].type == JSMN_OBJECT) {
+					void* pNested = pTargetSlot;
+					i = json_processTokens(pRule->r_descriptor.r_t_nestedObjectRules, pNested, pszBuf, tokens[i].start, tokens[i].end, tokens, i + 1, numberOfTokens)-1;
 				}
 				break;
 			case RT_INTEGER_ARRAY:
 				if (tokens[i].type == JSMN_ARRAY) {
 					i = json_getIntArray(pszBuf, tokens, i+1, numberOfTokens, tokens[i].end, pTargetSlot, pRule->r_descriptor.r_t_maxElements)-1;
+				}
+				break;
+			case RT_STRING_ARRAY:
+				if (tokens[i].type == JSMN_ARRAY) {
+					i = json_getStringArray(pszBuf, tokens, i + 1, numberOfTokens, tokens[i].end, pTargetSlot) - 1;
 				}
 				break;
 			case RT_SET:
@@ -283,6 +332,11 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 			case RT_INTEGER: {
 					long nInt = string_convertToLong(tokenContents);
 					*((int*)pTargetSlot) = nInt;
+				}
+				break;
+			case RT_FLOAT: {
+					float nFloat = (float)atof(tokenContents);
+					*((float*)pTargetSlot) = nFloat;
 				}
 				break;
 			case RT_SHORT: {
@@ -356,7 +410,7 @@ int json_parse(const char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* 
 /*
  * Generate a JSON possibly quoted string from a source string.
  */
-static void json_quote(char* pTarget, char* pSource) {
+static void json_quote(char* pTarget, const char* pSource) {
 	char* pEnd = pTarget + MAX_TOKEN_SIZE-2;
 	*pTarget++ = '"';
 	while (pTarget < pEnd) {
@@ -385,13 +439,25 @@ static void json_quote(char* pTarget, char* pSource) {
 	*pTarget = 0;
 }
 
+static int json_marshalObject(FILE* fp, int indent, BOOL bFirstIndent, void* pSourceObject, JSON_MAPPING_RULE* pRules) {
+	fprintf(fp, "%*c{%s", bFirstIndent ? indent : 0, ' ', _nl);
+	int bNeedsTermination = 0;
+	while (pRules->r_type != RT_END) {
+		if (json_marshalNode(fp, indent + 4, pSourceObject, pRules, bNeedsTermination)) {
+			bNeedsTermination = 1;
+		}
+		pRules++;
+	}
+	fprintf(fp, "%s%*c}", _nl, indent, ' ');
+	return bNeedsTermination;
+}
+
 /*
  * Marshal a nested list of objects to the output stream.
  */
 static void json_marshalObjectList(FILE* fp, int indent, void* pSourceObject, struct tagARRAY_OBJECT_DESCRIPTOR* pArrayDescriptor) {
 	int bNeedsTermination;
 	int bFirst = 1;
-	JSON_MAPPING_RULE* pRules;
 
 	while (pSourceObject) {
 		if (bFirst) {
@@ -399,16 +465,7 @@ static void json_marshalObjectList(FILE* fp, int indent, void* pSourceObject, st
 		} else {
 			fprintf(fp, ",%s", _nl);
 		}
-		fprintf(fp, "%*c{%s", indent, ' ', _nl);
-		pRules = pArrayDescriptor->ro_nestedRules;
-		bNeedsTermination = 0;
-		while (pRules->r_type != RT_END) {
-			if (json_marshalNode(fp, indent+4, pSourceObject, pRules, bNeedsTermination)) {
-				bNeedsTermination = 1;
-			}
-			pRules++;
-		}
-		fprintf(fp, "%s%*c}", _nl, indent, ' ');
+		bNeedsTermination = json_marshalObject(fp, indent, TRUE, pSourceObject, pArrayDescriptor->ro_nestedRules);
 		pSourceObject = ((LINKED_LIST*)pSourceObject)->next;
 	}
 	fprintf(fp, _nl);
@@ -429,6 +486,22 @@ static void json_marshalIntArray(char* pszToken, int* pValues) {
 		sprintf(buf, "%d", *pValues);
 		strcat(pszToken, buf);
 		pValues++;
+	}
+}
+
+/*
+ * Marshal a string array list to the output stream in the form "a", "b", "c"
+ */
+static void json_marshalStringArray(FILE* fp, int indent, ARRAY_LIST* pValues) {
+	char	tokenContents[MAX_TOKEN_SIZE + 1];
+	size_t nSize = arraylist_size(pValues);
+	for (int i = 0; i < nSize; i++) {
+		if (i > 0) {
+			fprintf(fp, ",%s", _nl);
+		}
+		char* pszVal = arraylist_get(pValues, i);
+		json_quote(tokenContents, pszVal);
+		fprintf(fp, "%*c%s", indent, ' ', tokenContents);
 	}
 }
 
@@ -460,9 +533,26 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 			return 0;
 		}
 		break;
+	case RT_ENUM: {
+		int nVal = *((int*)pSourceSlot);
+		if (nVal >= 0) {
+			json_quote(tokenContents, pRule->r_descriptor.r_t_enumNames[nVal]);
+		}
+	}
+	break;
 	case RT_INTEGER:
 		sprintf(tokenContents, "%d", *((int*)pSourceSlot));
 		break;
+	case RT_FLOAT:
+		sprintf(tokenContents, "%f", *((float*)pSourceSlot));
+		break;
+	case RT_NESTED_OBJECT:
+		if (bNeedsTermination) {
+			fprintf(fp, ",%s", _nl);
+		}
+		fprintf(fp, "%*c\"%s\":", indent, ' ', pRule->r_name);
+		bNeedsTermination = json_marshalObject(fp, indent, FALSE, pSourceSlot, pRule->r_descriptor.r_t_nestedObjectRules);
+		return 1;
 	case RT_OBJECT_LIST:
 		if (bNeedsTermination) {
 			fprintf(fp, ",%s", _nl);
@@ -470,6 +560,7 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 		fprintf(fp, "%*c\"%s\": [%s", indent, ' ', pRule->r_name, _nl);
 		json_marshalObjectList(fp, indent, *(void**)pSourceSlot, &pRule->r_descriptor.r_t_arrayDescriptor);
 		fprintf(fp, "%*c]", indent, ' ');
+		bNeedsTermination = TRUE;
 		return 1;
 	case RT_INTEGER_ARRAY:
 		if (!*((int*)pSourceSlot)) {
@@ -479,6 +570,18 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 		json_marshalIntArray(tokenContents, pSourceSlot);
 		strcat(tokenContents, "]");
 		break;
+	case RT_STRING_ARRAY:
+		if (!*((ARRAY_LIST**)pSourceSlot)) {
+			return 0;
+		}
+		if (bNeedsTermination) {
+			fprintf(fp, ",%s", _nl);
+		}
+		fprintf(fp, "%*c\"%s\": [%s", indent, ' ', pRule->r_name, _nl);
+		json_marshalStringArray(fp, indent+4, *(ARRAY_LIST**)pSourceSlot);
+		fprintf(fp, "%s%*c]", _nl, indent, ' ');
+		bNeedsTermination = TRUE;
+		return 1;
 	case RT_COLOR: {
 		long rgb = *(long*)pSourceSlot;
 		sprintf(tokenContents, "\"#%02x%02x%02x\"", GetRValue(rgb), GetGValue(rgb), GetBValue(rgb));
@@ -504,13 +607,22 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 /*
  * Write out an object with a given set of mapping rules in JSON format.
  */
-int json_marshal(char* pszFilename, void* pSourceObject, JSON_MAPPING_RULE* pRules) {
-	char* fn;
+int json_marshal(const char* pszFilename, void* pSourceObject, JSON_MAPPING_RULE* pRules) {
+	const char* fn;
 	FILE* fp;
 	int indent = 0;
 	int bNeedsTermination = 0;
-
-	if ((fn = file_searchFileInPKSEditLocation(pszFilename)) != 0L && (fp = fopen(fn, "w")) != NULL) {
+	fn = file_searchFileInPKSEditLocation(pszFilename);
+	char filename[EDMAXPATHLEN];
+	if (fn == NULL) {
+		if (file_isAbsolutePathName(pszFilename)) {
+			fn = pszFilename;
+		} else {
+			string_concatPathAndFilename(filename, _pksSysFolder, pszFilename);
+			fn = filename;
+		}
+	}
+	if ((fp = fopen(fn, "w")) != NULL) {
 		fprintf(fp, "{%s", _nl);
 		indent += 4;
 		while (pRules->r_type != RT_END) {
@@ -518,6 +630,9 @@ int json_marshal(char* pszFilename, void* pSourceObject, JSON_MAPPING_RULE* pRul
 				bNeedsTermination = 1;
 			}
 			pRules++;
+		}
+		if (bNeedsTermination) {
+			fprintf(fp, "%s", _nl);
 		}
 		fprintf(fp, "}%s", _nl);
 		fclose(fp);

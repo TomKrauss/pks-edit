@@ -30,11 +30,10 @@ extern int file_exists(char* s);
  */
 extern int file_getFileMode(char* s);
 
-/*--------------------------------------------------------------------------
- * file_isDirectory()
- * Returns true if the passed filename points to a directory.
+/*
+ * Can be used to check, whether a given filename describes an absolute path.
  */
-extern int file_isDirectory(char* filename);
+extern int file_isAbsolutePathName(const char* pszFilename);
 
 /*--------------------------------------------------------------------------
  * file_openFile()
@@ -115,6 +114,8 @@ extern int file_getAccessTime(char* fname, EDTIME* pCreated, EDTIME* pModified);
  * to free the memory returned.
  */
 extern char* file_readFileAsString(int fd);
+
+extern char* _pksSysFolder;
 
 #define FILEUTIL_H
 #endif

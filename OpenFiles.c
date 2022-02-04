@@ -61,7 +61,7 @@ extern void *	lastSelectedDocType;
 static	FTABLE 	*_currentFile;
 static FTABLE 	*_filelist;
 
-#define HISTORY_FILE_NAME "pksedit.his"
+#define HISTORY_FILE_NAME "pkssession.json"
 static char		_historyFileName[EDMAXPATHLEN];
 int				_ExSave;
 
@@ -300,18 +300,15 @@ int ft_triggerAutosaveAllFiles(void)
  * ft_saveWindowStates()			
  * Save the state of the currently opened windows in the config for restore.
  ---------------------------------*/
-void ft_saveWindowStates(void )
-{	int    				s;
-	FTABLE 				ft;
+void ft_saveWindowStates(void ) {
+	int    				s;
 	WINFO *				wp;
 	char   				szBuff[EDMAXPATHLEN];
 	char*				pszFilename;
 
-	memset(&ft, 0, sizeof ft);
-	ln_createAndAddSimple(&ft, "[files]");
-
 	int nWindows = ww_getNumberOfOpenWindows();
 	WINFO* wpActive = ww_getCurrentEditorWindow();
+	hist_resetHistory(OPEN_IN_EDITOR);
 	for (s = 1; s <= nWindows; s++) {
 		if ((wp = ww_findwinid(s)) != 0) {
 			FTABLE* fp = wp->fp;
@@ -321,47 +318,29 @@ void ft_saveWindowStates(void )
 				if (nDispmode == fp->documentDescriptor->dispmode) {
 					nDispmode = -1;
 				}
-				xref_addSearchListEntry(&ft, fp->fname, wp->caret.ln, 
+				xref_addSearchListEntry(szBuff, fp->fname, wp->caret.ln,
 					mainframe_getOpenHint(wp->edwin_handle, wp == wpActive, nIndex > 0, nDispmode));
+				hist_saveString(OPEN_IN_EDITOR, szBuff);
 			}
 		}
 	}
-
-	hist_saveAllEntriesTo(&ft);
 	pszFilename = _historyFileName;
 	if (pszFilename[0] == 0) {
 		string_concatPathAndFilename(szBuff, _pksSysFolder, HISTORY_FILE_NAME);
 		pszFilename = szBuff;
 	}
-	ft_writeFileAndClose(&ft, pszFilename, FA_NORMAL);
+	hist_saveSession(pszFilename);
 }
 
 /*---------------------------------*/
 /* ft_restorePreviouslyOpenedWindows() */
 /*---------------------------------*/
 int ft_restorePreviouslyOpenedWindows(void) {
-	FTABLE 	ft;
 	char *	pszFound;
 
-	if (GetConfiguration()->options & O_AUTO_OPEN_HISTORY) {
-		if ((pszFound = file_searchFileInPKSEditLocation(HISTORY_FILE_NAME)) != 0) {
-			FILE_READ_OPTIONS fro;
-			memset(&fro, 0, sizeof fro);
-			fro.fro_fileName = pszFound;
-			fro.fro_useDefaultDocDescriptor = 1;
-			memset(&ft, 0, sizeof ft);
-			if (ft_readfileWithOptions(&ft, &fro)) {
-			// save complete filename of history file.
-				GetFullPathName(pszFound, sizeof _historyFileName, _historyFileName, NULL);
-				if (_filelist == 0) {
-					xref_openSearchListResultFromLine(&ft, ft.firstl);
-				}
-				hist_readLine(ft.firstl);
-				ln_listfree(ft.firstl);
-				free(ft.documentDescriptor);
-				return 1;
-			}
-		}
+	if (GetConfiguration()->options & O_AUTO_OPEN_HISTORY && 
+			(pszFound = file_searchFileInPKSEditLocation(HISTORY_FILE_NAME)) != 0) {
+		return hist_readSession(pszFound);
 	}
 	return 0;
 }

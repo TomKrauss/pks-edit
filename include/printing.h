@@ -14,7 +14,7 @@
  *
  */
 
-#ifndef	PRT_H
+#ifndef	_PRINTING_H
 
 typedef struct tagFONTSPEC {
 	int		fs_oemmode;
@@ -23,9 +23,9 @@ typedef struct tagFONTSPEC {
 	char	fs_name[128];
 } FONTSPEC;
 
-typedef struct tagLNSPACE {
-	int 		z;
-	int 		n;
+typedef struct tagLNSPACE {		// line spacing encoded as a fraction
+	int 		numerator;
+	int 		denominator;
 } LNSPACE;
 
 typedef enum { PRTR_ALL, PRTR_SELECTION, PRTR_CURRENT_PAGE, PRTR_PAGES} PRINTRANGETYPE;
@@ -49,11 +49,13 @@ typedef struct tagPAGE_MARGIN_ELEMENT {
 	FONTSPEC pme_font;				// Font 
 	int		pme_align;				// Header / Footer Alignment
 									// left, center, right
+	int		pme_lines;				// number of lines / height of this element in lines
+	int		pme_margin;				// the margin (header to top and footer to bottom) of the page measured in lines.
+	LNSPACE	pme_lineSpacing;		// line spacing in header / footer
 } PAGE_MARGIN_ELEMENT;
 
 typedef struct tagPRTPARAMS {	// print params
 	/* params */
-	PRINTRANGE printRange;
 	int		options;
 	int		pagelen;
 
@@ -62,31 +64,16 @@ typedef struct tagPRTPARAMS {	// print params
 	int		tabsize;
 	LNSPACE	lnspace;			// 1, 1«, 2 Lines
 
-	int		marginTop;			// The number of lines to leave space at the top of the page.
-	int		headerSize;			// The height of the header in lines
-	int		marginBottom;		// The number of lines to leave space at the bottom of the page
-	int		footerSize;			// The height of the footer in lines
 	PAGE_MARGIN_ELEMENT header;	// the header to paint
 	PAGE_MARGIN_ELEMENT footer;	// the footer to paint
-	
-	LNSPACE	fnlnspace;			// print_singleLineOfText spacing footnotes
-	int		fnlinelen;			// length of filename delimter line 
-	int		fnd1,fnd2;			// distances to body and footer
-	int		fnoffset;			// offset of Footnote
 } PRTPARAM;
 
 /* printing options */
-#define	PRTO_LINES		0x1			// print line #
-#define	PRTO_PAUSE		0x2			// pause between pages
-#define	PRTO_SWAP		0x8			// swap h+f on alternate pages
-#define	PRTO_ULFOO		0x20		// limitline footer
-#define	PRTO_SWAPMARG	0x40		// swap margins on alternate pages
-#define	PRTO_WRAP		0x80		// wrap long lines
-#define	PRTO_EVEN		0x100		// print even pages
-#define	PRTO_ODD 		0x200		// print odd pages
-#define	PRTO_HEADERS	0x400		// print header and footer
-#define	PRTO_KEEPS		0x800		// Keeps....
-#define	PRTO_SYNTAX_HIGHLIGHT 0x1000 // Display syntax highlighting
+#define	PRTO_LINE_NUMBERS						0x1			// print line #
+#define	PRTO_SWAP_HEADER_FOOTER_ALIGNMENT		0x8			// swap h+f on alternate pages
+#define	PRTO_WRAP_LONG_LINES					0x80		// wrap long lines
+#define	PRTO_HEADERS							0x400		// print header and footer
+#define	PRTO_SYNTAX_HIGHLIGHT					0x1000 // Display syntax highlighting
 
 // linespacing
 #define	PRS_1			0		// 1 line
@@ -107,14 +94,12 @@ typedef struct tagPRTPARAMS {	// print params
 #define	PRTL_COND		2
 #define	PRTL_EXPANDED	3
 
-/*------------------------------------------------------------
- * print_readWriteConfigFile()
- * Read / write the print configuration of PKS edit depending
- * on the save flag passed as an argument.
+/*
+ * Returns the current print configuration of PKS Edit.
  */
-extern void print_readWriteConfigFile(int save);
+extern PRTPARAM* config_getPrintConfiguration();
 
-#define	PRT_H
+#define	_PRINTING_H
 
 #endif
 

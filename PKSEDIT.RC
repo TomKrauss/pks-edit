@@ -1076,12 +1076,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Pahlen & Krauﬂ Software "
             VALUE "FileDescription", "Arcade Atari Programmers Editor"
-            VALUE "FileVersion", "1.0.0.1"
+            VALUE "FileVersion", "1.0.0.2"
             VALUE "InternalName", "pksedit.exe"
             VALUE "LegalCopyright", "Mozilla Public License Version 2.0"
             VALUE "OriginalFilename", "pksedit.exe"
             VALUE "ProductName", "PKS Edit"
-            VALUE "ProductVersion", "2.1.0.0"
+            VALUE "ProductVersion", "2.2.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -1418,6 +1418,10 @@ BEGIN
                             "Die Grammatik der aktuellen Datei unterst¸tzt keine Code Evaluierung."
     IDS_EVALUATION_FAILED   "Die Code Evaluierung ist fehl geschlagen."
     IDS_MSGRE_UNDEFINED_BACKREF "Noch nicht definierter Bezug"
+    IDS_ICON_SIZE_SMALL     "klein"
+    IDS_ICON_SIZE_MEDIUM    "mittel"
+    IDS_ICON_SIZE_big       "groﬂ"
+    IDS_ICON_SIZE_LARGE     "sehr groﬂ"
 END
 
 STRINGTABLE

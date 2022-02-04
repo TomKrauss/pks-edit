@@ -29,16 +29,20 @@ typedef enum {
 	RT_CHAR,				// we expect a number in the JSON input, which will define a character value
 	RT_FLAG,				// we expect a boolean value in the JSON input. If true, we will use the 
 	RT_INTEGER,				// we expect an "int" value in the JSON input.
+	RT_FLOAT,				// we expect a "float" value in the JSON input.
 	RT_INTEGER_ARRAY,		// we expect an array of int values in the JSON input and will assume the target object to contain an int[] data structure to fill.
 	RT_SET,					// we expect a list of String values in the JSON input and will assume the target object to contain an 
 							// hashmap of strings mapping to true or false to fill.
 							// note, that the strings and array list are allocated and must be possibly freed later.
 	RT_SHORT,				// we expect a "short" value in the JSON input.
+	RT_ENUM,				// map JSON strings to int values.
 	RT_COLOR,				// we expect a color specification (e.g.: #EEFF00 or red, green, blue).
 	RT_OBJECT_LIST,			// a nested array of objects. Mapped to a linked list of objects. The r_descriptor contains a pointer to the mapping rules.
 	RT_STRING_CALLBACK,		// the property is either a single string or an array of strings. The r_descriptr has a reference to a method to invoke
 							// with the string. In case of an array, the method is invoked multiple times for every string in the array. If the method
 							// returns 0, the calling is aborted.
+	RT_NESTED_OBJECT,		// a nested single object. Mapped to sub-structure of the object created. The r_descriptor contains a pointer to the mapping rules.
+	RT_STRING_ARRAY,		// we expect an array of String values in the JSON input and will assume the target object to be an ARRAY_LIST holding the Strings.
 	RT_END					// the last rule in a list of rules must have this type.
 } JSON_RULE_TYPE;
 
@@ -54,11 +58,13 @@ typedef struct tagJSON_MAPPING_RULE {
 	char* r_name;				// the name of the JSON value
 	size_t r_targetOffset;		// the offset in the target object to which the mapping is performed.
 	union tagNESTED_JSON_DESCRIPTOR {
-		int		r_t_flag;		// if the rule type is RT_FLAG, this is the bit value (flag) associated with the value read.
-		size_t  r_t_maxChars;	// the maximum number of bytes for RT_CHAR_ARRAY type json values.
-		size_t	r_t_maxElements; // maximum number of elements that fit into RT_INTEGER_ARRAY type data structures.
+		int		r_t_flag;					// if the rule type is RT_FLAG, this is the bit value (flag) associated with the value read.
+		size_t  r_t_maxChars;				// the maximum number of bytes for RT_CHAR_ARRAY type json values.
+		size_t	r_t_maxElements;			// maximum number of elements that fit into RT_INTEGER_ARRAY type data structures.
 		JSON_STRING_CALLBACK r_t_callback;	// the string callback for type RT_STRING_CALLBACK
-		struct tagARRAY_OBJECT_DESCRIPTOR r_t_arrayDescriptor;		// in case of type == RT_OBJECT_ARRAY
+		const char** r_t_enumNames;			// NULL terminated array with the names corresponding to enum values: e.g.: {"small","medium","large",0}
+		struct tagARRAY_OBJECT_DESCRIPTOR r_t_arrayDescriptor;	// in case of type == RT_OBJECT_ARRAY
+		struct tagJSON_MAPPING_RULE* r_t_nestedObjectRules;		// in case of type == RT_NESTED_OBJECT
 	} r_descriptor;
 } JSON_MAPPING_RULE;
 
@@ -70,7 +76,7 @@ extern int json_parse(const char* pszFilename, void* pTargetObject, JSON_MAPPING
 /*
  * Write out an object with a given set of mapping rules in JSON format.
  */
-int json_marshal(char* pszFilename, void* pSourceObject, JSON_MAPPING_RULE* pRules);
+int json_marshal(const char* pszFilename, void* pSourceObject, JSON_MAPPING_RULE* pRules);
 
 #define JSONPARSER_H
 #endif // !JSONPARSER_H

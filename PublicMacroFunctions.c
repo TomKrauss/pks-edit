@@ -208,7 +208,7 @@ int bl_hideSelectionInCurrentWindow(void)
  */
 int EdSetup(void)
 { 
-	return prof_save(GetConfiguration(), TRUE);
+	return prof_save(TRUE);
 }
 
 /*--------------------------------------------------------------------------

@@ -19,6 +19,7 @@
 #include "linkedlist.h"
 #include "winterf.h"
 #include "editorconfiguration.h"
+#include "history.h"
 #include "stringutil.h"
 #include "helpitem.h"
 #include "mainframe.h"
@@ -322,12 +323,13 @@ static void mainframe_applyDefaultSlotSizes() {
 /*
  * Restore the docking layout, when the mainframe is created. 
  */
-static void mainframe_readDocks(HWND hwnd) {
+void mainframe_readDocks() {
+	HWND hwnd = hwndMain;
 	char szName[32];
 	float x, y, w, h;
 
 	for (int i = 0; 1; i++) {
-		if (!prof_readDockingPlacement(i, szName, &x, &y, &w, &h)) {
+		if (!hist_readDockingPlacement(i, szName, &x, &y, &w, &h)) {
 			break;
 		}
 		mainframe_addDockingSlot(DS_EDIT_WINDOW, hwnd, szName, x, y, w, h);
@@ -343,7 +345,7 @@ static void mainframe_readDocks(HWND hwnd) {
 static void mainframe_saveDocks() {
 	DOCKING_SLOT* pSlot = dockingSlots;
 	for (int i = 0; pSlot != NULL; i++, pSlot = pSlot->ds_next) {
-		if (!prof_saveDockingPlacement(i, pSlot->ds_name, pSlot->ds_xratio, pSlot->ds_yratio, pSlot->ds_wratio, pSlot->ds_hratio)) {
+		if (!hist_saveDockingPlacement(i, pSlot->ds_name, pSlot->ds_xratio, pSlot->ds_yratio, pSlot->ds_wratio, pSlot->ds_hratio)) {
 			break;
 		}
 	}
@@ -1629,7 +1631,6 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		break;
 	case WM_CREATE:
 		hwndFrameWindow = hwnd;
-		mainframe_readDocks(hwnd);
 		fkey_initKeyboardWidget(hwnd);
 		st_init(hwnd);
 		tb_initRebar(hwnd);

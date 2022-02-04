@@ -240,7 +240,6 @@ static BOOL InitInstance(LPSTR lpCmdLine) {
 	arguments_getForPhase1(lpCmdLine);
 	init_readConfigFiles();
 	bl_restorePasteBuffers();
-	//hDefaultMenu = LoadMenu(ui_getResourceModule(), "PksEdEditMenu");
 	hDefaultMenu = menu_createMenubar();
 	if (nInstanceCount > 1) {
 		wsprintf(szTitle, "* PKS EDIT * (%d)", nInstanceCount);
@@ -262,9 +261,11 @@ static BOOL InitInstance(LPSTR lpCmdLine) {
  */
 static void main_restoreSizeAndMakeVisible() {
 	WINDOWPLACEMENT 	ws;
+	SESSION_DATA* pData = hist_getSessionData();
 	if (_openIconic) {
 		ShowWindow(hwndMain, SW_SHOWMINIMIZED);
-	} else if (prof_getwinstate("DeskWin", 0, &ws)) {
+	} else if (pData->sd_mainWindowPlacement.rcNormalPosition.bottom > pData->sd_mainWindowPlacement.rcNormalPosition.top) {
+		ws = pData->sd_mainWindowPlacement;
 		RECT rect;
 		SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
 		if (ws.rcNormalPosition.bottom > rect.bottom) {
@@ -341,15 +342,6 @@ static int InitDDE(void) {
 		hszDDEExecuteMacro = DdeCreateStringHandle(hDDE, "macro", CP_WINANSI);
 	}
 	return 1;
-}
-
-/*
- * Save the position and details configured for the main window. 
- */
-void main_saveFrameState() {
-	WINDOWPLACEMENT ws;
-	win_getstate(hwndMain, &ws);
-	prof_savewinstate("DeskWin", 0, &ws);
 }
 
 static void dde_uninitialize(void) {
@@ -473,6 +465,7 @@ void main_cleanup(void) {
 	analyzer_destroyAnalyzers();
 	evaluator_destroyEvaluators();
 	ww_destroyAll();
+	config_destroy();
 }
 
 

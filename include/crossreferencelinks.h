@@ -39,7 +39,7 @@ extern int xref_navigateCrossReference(char* s);
  * Parse the search list result in the current line and try to navigate to
  * the file and line number which are obtained by parsing the line contents.
  *---------------------------------*/
-extern void xref_openSearchListResultFromLine(FTABLE* fp, LINE* lp);
+extern void xref_openSearchListResultFromLine(LINE* lp);
 
 /*---------------------------------*/
 /* xref_navigateSearchErrorList()				*/
@@ -51,7 +51,7 @@ extern int xref_navigateSearchErrorList(int dir);
  * Add an entry to the "current search list" file in the standard PKS Edit search list
  * navigation format ("filename", line lineNumer: remarks).
  */
-extern int xref_addSearchListEntry(FTABLE* fp, char* fn, long line, char* remark);
+extern int xref_addSearchListEntry(char* pszBuf, char* fn, long line, char* remark);
 
 /*
  * Determine the "identifier" close to the input caret in the current editor window.

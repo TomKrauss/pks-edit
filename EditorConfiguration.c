@@ -4,7 +4,7 @@
  * PROJEKT: PKS-EDIT for Windows 95
  *
  * Configuration of global options of PKS edit. These are for now 
- * saved in a file PKSEDIT.INI by default located in the PKS_SYS folder.
+ * saved in a file pkseditini.json by default located in the PKS_SYS folder.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,20 +19,26 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <direct.h>
+#include "jsonparser.h"
 #include "winterf.h"
 #include "pksedit.h"
+#include "linkedlist.h"
 #include "dial2.h"
 #include "pksrc.h"
 #include "xdialog.h"
+#include "printing.h"
 #include "editorconfiguration.h"
 #include "edfuncs.h"
 #include "stringutil.h"
+#include "errordialogs.h"
 #include "themes.h"
 #include "fileutil.h"
 #include "mainframe.h"
 
 extern void fkey_visibilitychanged(void);
 extern void tb_updateImageList(wchar_t* tbIcons, int nCount);
+
+static EDITOR_CONFIGURATION _configuration;
 
 typedef struct tagSEARCH_ENGINE {
 	char se_name[32];				// name of the search engine
@@ -62,16 +68,202 @@ static SEARCH_ENGINE _searchEngines[] = {
 	0
 };
 
+static PRTPARAM _prtparams = {
+	0,60, 					// options, page length in number of lines
+	0,8,0,"",				// Std Font: oemmode,cheight,cwidth,name
+	0,0,120,				// lmargin,rmargin, nchars
+	5,{1,1},				// tabsize, line spacing
+	{	"", 				// header template. A PKS Edit template (see mysprintf) optionally containing multiple segments separated by '!'
+		PDT_NONE,
+		{0,8,0},			// Header Font: oemmode,cheight,cwidth,name
+		0, 2, 0},
+	{	"%s$f - %D",		// Footer page element starting with template
+		PDT_NONE,
+		{0,8,0},
+		0, 2, 0}
+};
+
+static JSON_MAPPING_RULE _fontRules[] = {
+	{	RT_CHAR_ARRAY, "face", offsetof(FONTSPEC, fs_name), sizeof(((FONTSPEC*)NULL)->fs_name)},
+	{	RT_INTEGER, "width", offsetof(FONTSPEC, fs_cwidth)},
+	{	RT_INTEGER, "height", offsetof(FONTSPEC, fs_cheight)},
+	{	RT_END}
+};
+
+static const char* _alignmentNames[] = {
+	"left",
+	"center",
+	"right",
+	0
+};
+
+static const char* _decorationNames[] = {
+	"none",
+	"line",
+	"frame",
+	"fill-rect",
+	0
+};
+
+static const char* _iconSizeNames[] = {
+	"small",
+	"medium",
+	"big",
+	"large",
+	0
+};
+
+static JSON_MAPPING_RULE _pageMarginRules[] = {
+	{	RT_CHAR_ARRAY, "template", offsetof(PAGE_MARGIN_ELEMENT, pme_template), sizeof(((PAGE_MARGIN_ELEMENT*)NULL)->pme_template)},
+	{	RT_INTEGER, "decoration", offsetof(PAGE_MARGIN_ELEMENT, pme_decoration)},
+	{	RT_NESTED_OBJECT, "font", offsetof(PAGE_MARGIN_ELEMENT, pme_font), {.r_t_nestedObjectRules = _fontRules}},
+	{	RT_ENUM, "align", offsetof(PAGE_MARGIN_ELEMENT, pme_align), {.r_t_enumNames = _alignmentNames}},
+	{	RT_INTEGER, "lines", offsetof(PAGE_MARGIN_ELEMENT, pme_lines)},
+	{	RT_INTEGER, "margin", offsetof(PAGE_MARGIN_ELEMENT, pme_margin)},
+	{	RT_INTEGER, "spacing-numerator", offsetof(PAGE_MARGIN_ELEMENT, pme_lineSpacing.numerator)},
+	{	RT_INTEGER, "spacing-denominator", offsetof(PAGE_MARGIN_ELEMENT, pme_lineSpacing.denominator)},
+	{	RT_END}
+};
+
+static JSON_MAPPING_RULE _prtparamRules[] = {
+	{	RT_NESTED_OBJECT, "header", offsetof(PRTPARAM, header), {.r_t_nestedObjectRules = _pageMarginRules}},
+	{	RT_NESTED_OBJECT, "footer", offsetof(PRTPARAM, footer), {.r_t_nestedObjectRules = _pageMarginRules}},
+	{	RT_NESTED_OBJECT, "font", offsetof(PRTPARAM, font), {.r_t_nestedObjectRules = _fontRules}},
+	{	RT_INTEGER, "pagelen", offsetof(PRTPARAM, pagelen)},
+	{	RT_INTEGER, "lmargin", offsetof(PRTPARAM, rmargin)},
+	{	RT_INTEGER, "rmargin", offsetof(PRTPARAM, lmargin)},
+	{	RT_INTEGER, "tabsize", offsetof(PRTPARAM, tabsize)},
+	{	RT_INTEGER, "characters-per-line", offsetof(PRTPARAM, nchars)},
+	{	RT_INTEGER, "spacing-numerator", offsetof(PRTPARAM, lnspace.numerator)},
+	{	RT_INTEGER, "spacing-denominator", offsetof(PRTPARAM, lnspace.denominator)},
+	{	RT_FLAG, "print-headers", offsetof(PRTPARAM, options), PRTO_HEADERS},
+	{	RT_FLAG, "print-line-numbers", offsetof(PRTPARAM, options), PRTO_LINE_NUMBERS},
+	{	RT_FLAG, "swap-header-alignment", offsetof(PRTPARAM, options), PRTO_SWAP_HEADER_FOOTER_ALIGNMENT},
+	{	RT_FLAG, "syntax-highlighting", offsetof(PRTPARAM, options), PRTO_SYNTAX_HIGHLIGHT},
+	{	RT_FLAG, "wrap", offsetof(PRTPARAM, options), PRTO_WRAP_LONG_LINES},
+	{	RT_END}
+};
+
+static JSON_MAPPING_RULE _copRules[] = {
+	{	RT_CHAR_ARRAY, "name", offsetof(COMPILER_OUTPUT_PATTERN, cop_name), sizeof(((COMPILER_OUTPUT_PATTERN*)NULL)->cop_name)},
+	{	RT_CHAR_ARRAY, "pattern", offsetof(COMPILER_OUTPUT_PATTERN, cop_pattern), sizeof(((COMPILER_OUTPUT_PATTERN*)NULL)->cop_pattern)},
+	{	RT_END}
+};
+
+static COMPILER_OUTPUT_PATTERN* config_createOutputPattern() {
+	return calloc(1, sizeof(COMPILER_OUTPUT_PATTERN));
+}
+
+static JSON_MAPPING_RULE _editorConfigurationRules[] = {
+	{	RT_FLAG, "autosave-to-temp", offsetof(EDITOR_CONFIGURATION, options), O_AUTOSAVE_TO_TEMP},
+	{	RT_FLAG, "autosave-on-exit", offsetof(EDITOR_CONFIGURATION, options), O_AUTOSAVE_FILES_ON_EXIT},
+	{	RT_FLAG, "preserve-history", offsetof(EDITOR_CONFIGURATION, options), O_AUTO_OPEN_HISTORY},
+	{	RT_FLAG, "create-back-in-temp-path", offsetof(EDITOR_CONFIGURATION, options), O_CREATE_BACKUP_IN_TEMP_PATH},
+	{	RT_FLAG, "cleanup-autosave-files", offsetof(EDITOR_CONFIGURATION, options), O_DELETE_AUTOSAVE_FILES},
+	{	RT_FLAG, "flash-on-error", offsetof(EDITOR_CONFIGURATION, options), O_ERROR_FLASH_WINDOW},
+	{	RT_FLAG, "sound-on-error", offsetof(EDITOR_CONFIGURATION, options), O_ERROR_TONE},
+	{	RT_FLAG, "forms-follow-mouse", offsetof(EDITOR_CONFIGURATION, options), O_FORMFOLLOW},
+	{	RT_FLAG, "hide-selection-on-move", offsetof(EDITOR_CONFIGURATION, options), O_HIDE_BLOCK_ON_CARET_MOVE},
+	{	RT_FLAG, "lock-files-for-edit", offsetof(EDITOR_CONFIGURATION, options), O_LOCKFILES},
+	{	RT_FLAG, "save-clipboards-on-exit", offsetof(EDITOR_CONFIGURATION, options), O_SAVE_CLIPBOARDS_ON_EXIT},
+	{	RT_FLAG, "maintain-clipboard-history", offsetof(EDITOR_CONFIGURATION, options), O_SAVE_CLIPBOARD_HISTORY},
+	{	RT_FLAG, "save-macros-on-exit", offsetof(EDITOR_CONFIGURATION, options), O_SAVE_MACROS_ON_EXIT},
+	{	RT_FLAG, "save-settings-on-exit", offsetof(EDITOR_CONFIGURATION, options), O_SAVE_SETTINGS_ON_EXIT},
+	{	RT_FLAG, "show-error-toast", offsetof(EDITOR_CONFIGURATION, options), O_SHOW_MESSAGES_IN_SNACKBAR},
+	{	RT_FLAG, "undo-enabled", offsetof(EDITOR_CONFIGURATION, options), O_UNDOENABLED},
+	{	RT_FLAG, "compact-editor-tabs", offsetof(EDITOR_CONFIGURATION, layoutoptions), OL_COMPACT_TABS},
+	{	RT_FLAG, "show-function-keys", offsetof(EDITOR_CONFIGURATION, layoutoptions), OL_FKEYS},
+	{	RT_FLAG, "show-optionbar", offsetof(EDITOR_CONFIGURATION, layoutoptions), OL_OPTIONBAR},
+	{	RT_FLAG, "show-statusbar", offsetof(EDITOR_CONFIGURATION, layoutoptions), OL_SHOWSTATUS},
+	{	RT_FLAG, "show-toolbar", offsetof(EDITOR_CONFIGURATION, layoutoptions), OL_TOOLBAR},
+	{	RT_ENUM, "icon-size", offsetof(EDITOR_CONFIGURATION, iconSize), {.r_t_enumNames = _iconSizeNames}},
+	{	RT_INTEGER, "undo-history", offsetof(EDITOR_CONFIGURATION, nundo)},
+	{	RT_INTEGER, "autosave-time", offsetof(EDITOR_CONFIGURATION, autosaveSeconds)},
+	{	RT_INTEGER, "maximum-open-windows", offsetof(EDITOR_CONFIGURATION, maximumNumberOfOpenWindows)},
+	{	RT_CHAR_ARRAY, "sound-name", offsetof(EDITOR_CONFIGURATION, soundName), sizeof(((EDITOR_CONFIGURATION*)NULL)->soundName)},
+	{	RT_CHAR_ARRAY, "theme", offsetof(EDITOR_CONFIGURATION, themeName), sizeof(((EDITOR_CONFIGURATION*)NULL)->themeName)},
+	{	RT_CHAR_ARRAY, "temp-path", offsetof(EDITOR_CONFIGURATION, pksEditTempPath), sizeof(((EDITOR_CONFIGURATION*)NULL)->pksEditTempPath)},
+	{	RT_CHAR_ARRAY, "include-path", offsetof(EDITOR_CONFIGURATION, includePath), sizeof(((EDITOR_CONFIGURATION*)NULL)->includePath)},
+	{	RT_CHAR_ARRAY, "language", offsetof(EDITOR_CONFIGURATION, language), sizeof(((EDITOR_CONFIGURATION*)NULL)->language)},
+	{	RT_CHAR_ARRAY, "default-font", offsetof(EDITOR_CONFIGURATION, defaultFontFace), sizeof(((EDITOR_CONFIGURATION*)NULL)->defaultFontFace)},
+	{	RT_CHAR_ARRAY, "search-engine", offsetof(EDITOR_CONFIGURATION, searchEngine), sizeof(((EDITOR_CONFIGURATION*)NULL)->searchEngine)},
+	{	RT_OBJECT_LIST, "compiler-output-patterns", offsetof(EDITOR_CONFIGURATION, outputPatterns),
+			{.r_t_arrayDescriptor = {config_createOutputPattern, _copRules}}},
+	{	RT_END}
+};
+
+typedef struct tag_ALL_CONFIGS {
+	EDITOR_CONFIGURATION ac_editorConfiguration;
+	PRTPARAM ac_printConfiguration;
+} ALL_CONFIGS;
+
+static JSON_MAPPING_RULE _allconfigRules[] = {
+	{	RT_NESTED_OBJECT, "configuration", offsetof(ALL_CONFIGS, ac_editorConfiguration), {.r_t_nestedObjectRules = _editorConfigurationRules}},
+	{	RT_NESTED_OBJECT, "print-configuration", offsetof(ALL_CONFIGS, ac_printConfiguration), {.r_t_nestedObjectRules = _prtparamRules}},
+	{	RT_END}
+};
+
+/*
+ * Save the current configuration to the specified config file.
+ */
+int config_save(const char* pszFilename) {
+	ALL_CONFIGS config;
+
+	char cOld = _configuration.pksEditTempPath[0];
+	if (config_tempPathIsDefault()) {
+		_configuration.pksEditTempPath[0] = 0;
+	}
+	config.ac_editorConfiguration = _configuration;
+	config.ac_printConfiguration = _prtparams;
+	if (!json_marshal(pszFilename, &config, _allconfigRules)) {
+		_configuration.pksEditTempPath[0] = cOld;
+		// TODO: I18N
+		error_displayAlertDialog("Error saving config file.");
+		return 0;
+	}
+	_configuration.pksEditTempPath[0] = cOld;
+	return 1;
+}
+
+/*
+ * Destroy all configuration to cleanup.
+ */
+extern void config_destroy() {
+	ll_destroy(&_configuration.outputPatterns, 0);
+}
+
 /*
  * Autosave the editor configuration, when PKS Edit exits.
  */
-static void AutosaveConfiguration() {
+static void config_autosaveConfiguration() {
 	EDITOR_CONFIGURATION* config = GetConfiguration();
 
 	if (config->options & O_SAVE_SETTINGS_ON_EXIT) {
-		prof_save(config, FALSE);
+		prof_save(FALSE);
 	}
 	macro_autosaveAllBindings(config->options & O_SAVE_MACROS_ON_EXIT ? FALSE : TRUE);
+}
+
+/*
+ * Read the configuration file.
+ */
+int config_read(const char* pszfilename) {
+	ALL_CONFIGS config;
+
+	memset(&config, 0, sizeof config);
+	if (json_parse(pszfilename, &config, _allconfigRules)) {
+		_configuration = config.ac_editorConfiguration;
+		_configuration.autosaveOnExit = config_autosaveConfiguration;
+		_prtparams = config.ac_printConfiguration;
+		if (_configuration.themeName[0]) {
+			theme_setCurrent(_configuration.themeName);
+		}
+		if (_configuration.language[0]) {
+			ui_switchToLanguage(_configuration.language);
+		}
+		return 1;
+	}
+	return 0;
 }
 
 /*
@@ -90,7 +282,9 @@ static EDITOR_CONFIGURATION _configuration = {
 	"Deutsch",
 	"",
 	"Google",
-	AutosaveConfiguration
+	"",
+	0,
+	config_autosaveConfiguration
 };
 
 static DIALPARS _dAutoSave[] = {
@@ -239,14 +433,18 @@ static void config_getDefaultTempPath(char* pszPath) {
 }
 
 /*
+ * Returns the current print configuration of PKS Edit.
+ */
+PRTPARAM* config_getPrintConfiguration() {
+	return &_prtparams;
+}
+
+/*
  * Returns the temp path into which PKS edit saves autosave and optionally backup files. 
  */
 char* config_getPKSEditTempPath() {
 	if (!_configuration.pksEditTempPath[0]) {
-		prof_getPksStandardString(_tempPathSettingName, _configuration.pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath) - 1);
-		if (!_configuration.pksEditTempPath[0]) {
-			config_getDefaultTempPath(_configuration.pksEditTempPath);
-		}
+		config_getDefaultTempPath(_configuration.pksEditTempPath);
 	}
 	if (file_exists(_configuration.pksEditTempPath) != 0) {
 		_mkdir(_configuration.pksEditTempPath);
@@ -272,21 +470,17 @@ char* config_getInternetSearchCommand() {
 }
 
 /*--------------------------------------------------------------------------
- * config_saveTempPath()
- * Save the temp path of PKS editor to the pksedit.ini file.
+ * config_tempPathIsDefault()
+ * Answer true, if the configured temp file path is the default path.
  */
-void config_saveTempPath() {
+int config_tempPathIsDefault() {
 	if (_configuration.pksEditTempPath[0]) {
 		char szDefault[EDMAXPATHLEN];
 		config_getDefaultTempPath(szDefault);
-		if (strcmp(szDefault, _configuration.pksEditTempPath) != 0) {
-			prof_savePksStandardString(_tempPathSettingName, _configuration.pksEditTempPath);
-			return;
-		}
+		return strcmp(szDefault, _configuration.pksEditTempPath) == 0;
 	}
-	prof_savePksStandardString(_tempPathSettingName, NULL);
+	return 0;
 }
-
 
 static DIALPARS* _getDialogParsForPage(int pageIndex) {
 	return _paramsPerPage[pageIndex];
@@ -342,7 +536,7 @@ void EdOptionSet(void) {
     if (tempRet == 1) {
 		theme_setCurrent(pConfig->themeName);
 		ui_switchToLanguage(pConfig->language);
-		prof_save(pConfig, FALSE);
+		prof_save(FALSE);
 		fkey_visibilitychanged();
 		mainframe_windowTitleChanged(); 
 		tb_updateImageList(NULL, 0);

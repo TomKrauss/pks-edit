@@ -123,7 +123,7 @@
     <ClCompile Include="DisplayHelp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MaintainHistory.c">
+    <ClCompile Include="Session.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Initialize.c">

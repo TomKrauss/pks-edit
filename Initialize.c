@@ -43,18 +43,16 @@ static void Getenv(char *name,char *d,int maxlen)
 	*d = 0;
 	if ((env = getenv(name)) != 0) {
 		strmaxcpy(d, env, maxlen);
-	} else {
-		prof_getPksProfileString("environment",name,d,maxlen);
 	}
 
 }
 
 /*
- * Check whether the passed path is a valid PKS_SYS directory containing in particular the pksedit.ini file. 
+ * Check whether the passed path is a valid PKS_SYS directory containing in particular the PKS-EDIT configuration file. 
  */
 static BOOL _checkPksSys(char* pathName) {
 	char initFileName[1024];
-	string_concatPathAndFilename(initFileName, pathName, "pksedit.ini");
+	string_concatPathAndFilename(initFileName, pathName, DEFAULT_CONFIG_FILE_NAME);
 	return file_exists(initFileName) == 0;
 }
 
@@ -120,7 +118,6 @@ EXPORT void init_readConfigFiles(void)
 	macro_readBindingsFromFile((char *)0);
 	doctypes_initAllDocumentTypes();
 	xref_restoreFromConfigFile();
-	print_readWriteConfigFile(0);
 	regex_compileCharacterClasses((char *) 0);
 }
 

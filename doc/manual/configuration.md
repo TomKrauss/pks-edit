@@ -1,6 +1,6 @@
 # Configuration
 
-The basic PKS-Edit configuration of PKS-Edit is stored in a file named `pksedit.ini` located in the `pks_sys` directory.
+The basic PKS-Edit configuration of PKS-Edit is stored in a file named `pkseditini.json` located in the `pks_sys` directory.
 Note, that all PKS-Edit configuration files are placed in the `pks_sys` sub-folder of the PKS-Edit installation folder.
 You may set the overall PKS-Edit options by pressing the COG icon in the toolbar or via menu "Extra->Settings".
 
@@ -208,10 +208,17 @@ Toolbar button definitions support the following properties:
 
 ## Advanced configuration
 
-Some configuration options can only be configured in the `pksedit.ini`  file directly.
+Some configuration options can only be configured in the `pkseditini.json` file directly.
 
-In the section `[desk]` you may for instance configure the error sound played upon errors. The following sample selects a high beep tone
-as the error sound. The following sound names may be used:
+Put a property named `sound-name` into the configuration section to configure the error sound played upon errors. 
+The following sample selects a high beep tone as the error sound. 
+
+```
+    "sound-name": "HighBeep", 
+...
+```
+
+The following sound names may be used:
 
 - `Beep` plays a normal beep sound
 - `LowBeep` plays a low tone beep sound

@@ -1,0 +1,90 @@
+{
+    "configuration": {
+        "autosave-to-temp": true,
+        "preserve-history": true,
+        "create-back-in-temp-path": true,
+        "cleanup-autosave-files": true,
+        "sound-on-error": true,
+        "forms-follow-mouse": true,
+        "hide-selection-on-move": true,
+        "save-clipboards-on-exit": true,
+        "maintain-clipboard-history": true,
+        "save-settings-on-exit": true,
+        "show-error-toast": true,
+        "undo-enabled": true,
+        "compact-editor-tabs": true,
+        "show-function-keys": true,
+        "show-optionbar": true,
+        "show-statusbar": true,
+        "show-toolbar": true,
+        "icon-size": "small",
+        "undo-history": 100,
+        "autosave-time": 10,
+        "maximum-open-windows": 15,
+        "theme": "system default",
+        "include-path": "include;inc",
+        "language": "English",
+        "default-font": "Consolas",
+        "search-engine": "Google",
+        "compiler-output-patterns": [
+        {
+            "name": "PKSMAKROC",
+            "pattern": "^[^ ]+ ([^ ]+) ([0-9]+): *(.*)"
+        },
+        {
+            "name": "MSC",
+            "pattern": "^([^(]*)(([0-9]+)) : (.*)"
+        },
+        {
+            "name": "BORLAND-C",
+            "pattern": "^[^ ]+ ([^ ]+) ([0-9]+): *(.*)"
+        }
+        ]
+    },
+    "print-configuration": {
+        "header": {
+            "template": "Printed by PKS-Edit",
+            "decoration": 1,
+            "font": {
+                "face": "Consolas",
+                "width": 0,
+                "height": 8
+            },
+            "align": "center",
+            "lines": 2,
+            "margin": 3,
+            "spacing-numerator": 0,
+            "spacing-denominator": 0
+        },
+        "footer": {
+            "template": "%s$f - %D",
+            "decoration": 2,
+            "font": {
+                "face": "Consolas",
+                "width": 0,
+                "height": 8
+            },
+            "align": "center",
+            "lines": 2,
+            "margin": 3,
+            "spacing-numerator": 0,
+            "spacing-denominator": 0
+        },
+        "font": {
+            "face": "Consolas",
+            "width": 0,
+            "height": 8
+        },
+        "pagelen": 80,
+        "lmargin": 5,
+        "rmargin": 5,
+        "tabsize": 5,
+        "characters-per-line": 120,
+        "spacing-numerator": 1,
+        "spacing-denominator": 1,
+        "print-headers": true,
+        "print-line-numbers": true,
+        "syntax-highlighting": true,
+        "wrap": true
+    }
+}

@@ -755,7 +755,7 @@ REPLACE_TEXT_RESULT EdReplaceText(WINFO* wp, int scope, REPLACE_TEXT_ACTION acti
 
 	/* call before assigning firstline	*/
 	hist_saveString(SEARCH_AND_REPLACE, _currentSearchAndReplaceParams.replaceWith);
-
+	hist_getSessionData()->sd_searchAndReplaceOptions = _currentSearchAndReplaceParams.options;
 	undo_startModification(fp);
 	caret_saveLastPosition();
 

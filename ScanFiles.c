@@ -119,14 +119,10 @@ static void find_inFilesMatchFound(char *fn, int nStartCol, int nLength, char* p
  * Add an entry to the "current pSearchExpression list" file in the standard PKS Edit pSearchExpression list
  * navigation format ("filename", line lineNumer: remarks).
  */
-int xref_addSearchListEntry(FTABLE* fp, char* fn, long line, char* remark) {
-	char buf[EDMAXPATHLEN];
+int xref_addSearchListEntry(char* szBuf, char* fn, long line, char* remark) {
 
-	wsprintf(buf, _grepFileFormat, (LPSTR)fn, line + 1L, (LPSTR)remark);
-	if (ln_createAndAdd(fp, buf, (int)strlen(buf), 0)) {
-		return 1;
-	}
-	return 0;
+	wsprintf(szBuf, _grepFileFormat, (LPSTR)fn, line + 1L, (LPSTR)remark);
+	return 1;
 }
 
 

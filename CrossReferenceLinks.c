@@ -156,40 +156,28 @@ static char *get_quoted(char **src) {
 /*--------------------------------------------------------------------------
  * compiler_llinsert()
  */
-static NAVIGATION_PATTERN* compiler_llinsert(void* pHead, int size, char* pszGroup, char* pszItem, char** idata) {
-	char   szBuf[256], * s;
+static NAVIGATION_PATTERN* compiler_llinsert(void* pHead, int size, char* pszCompiler) {
 	NAVIGATION_PATTERN* pNewPattern;
 
-	if (!prof_getPksProfileString(pszGroup, pszItem, szBuf, sizeof szBuf))
-		return 0;
 
-	if ((s = _strdup(szBuf)) == 0) {
-		return 0;
-	}
-
-	if ((pNewPattern = (NAVIGATION_PATTERN * )ll_find(*(void**)pHead, pszItem)) == 0) {
+	if ((pNewPattern = (NAVIGATION_PATTERN * )ll_find(*(void**)pHead, pszCompiler)) == 0) {
 		if ((pNewPattern = (NAVIGATION_PATTERN * )ll_insert(pHead, size)) == 0) {
-			free(s);
 			return 0;
 		}
 	}
-	strncpy(pNewPattern->compiler, pszItem, sizeof(pNewPattern->compiler) - 1);
-	*idata = s;
-
+	strncpy(pNewPattern->compiler, pszCompiler, sizeof(pNewPattern->compiler) - 1);
 	return pNewPattern;
 }
 
 /*--------------------------------------------------------------------------
  * compiler_mk()
  */
-static char *szCompiler = "compiler";
-static intptr_t compiler_mk(char *compiler, LONG unused) {
+static int compiler_mk(char *compiler, char* pszLine) {
 	NAVIGATION_PATTERN* ct;
 	char* s;
-	char* pszLine;
 	char* szNext;
 
-	if ((ct = compiler_llinsert(&_compilerOutputNavigationPatterns,sizeof *ct,szCompiler,compiler,&pszLine)) == 0) {
+	if ((ct = compiler_llinsert(&_compilerOutputNavigationPatterns,sizeof *ct, compiler)) == 0) {
 		return 0;
 	}
 	s = pszLine;
@@ -200,7 +188,6 @@ static intptr_t compiler_mk(char *compiler, LONG unused) {
 	ct->lineNumberCapture = szNext[0] -'0';
 	szNext = get_quoted(&s);
 	ct->commentCapture= szNext[0] - '0';
-	free(pszLine);
 	return 1;
 }
 
@@ -210,7 +197,14 @@ static intptr_t compiler_mk(char *compiler, LONG unused) {
  */
 int xref_restoreFromConfigFile(void)
 {
-	return prof_enum(szCompiler,compiler_mk,0L);
+	COMPILER_OUTPUT_PATTERN* pPattern = GetConfiguration()->outputPatterns;
+	while (pPattern) {
+		if (!compiler_mk(pPattern->cop_name, pPattern->cop_pattern)) {
+			return 0;
+		}
+		pPattern = pPattern->cop_next;
+	}
+	return 1;
 }
 
 /*---------------------------------*/
@@ -859,15 +853,15 @@ RE_PATTERN* xref_compileSearchListPattern() {
  * Parse the search list result in the current line and try to navigate to
  * the file and line number which are obtained by parsing the line contents.
  *---------------------------------*/
-void xref_openSearchListResultFromLine(FTABLE* fp, LINE *lp) { 	
+void xref_openSearchListResultFromLine(LINE *lp) { 	
 	NAVIGATION_SPEC spec;
 	const char* pszName = NULL;
-	RE_PATTERN *pPattern = xref_initializeNavigationPattern(fp->navigationPattern ? fp->navigationPattern : xref_getSearchListFormat());
+	RE_PATTERN *pPattern = xref_initializeNavigationPattern(xref_getSearchListFormat());
 	WINFO* pActivate = NULL;
 	BOOL bActive;
 	BOOL bClone;
 
-	while((lp = lp->next) != 0L) {		/* we may skip 1st line ! */
+	while(lp != 0L) {		/* we may skip 1st line ! */
 		if (lp->len && xref_parseNavigationSpec(&spec, pPattern, lp)) {
 			bActive = FALSE;
 			int nDisplayMode = -1;
@@ -896,6 +890,7 @@ void xref_openSearchListResultFromLine(FTABLE* fp, LINE *lp) {
 				}
 			}
 		}
+		lp = lp->next;
 	}
 	if (pActivate) {
 		ft_selectWindowWithId(pActivate->win_id, TRUE);

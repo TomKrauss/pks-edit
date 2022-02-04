@@ -1039,6 +1039,7 @@ WINFUNC EditWndProc(
 		}
 		break;
 		}
+
 	case WM_QUERYENDSESSION:
 	case WM_CLOSE:
 		if (!ww_requestToClose(wp)) {

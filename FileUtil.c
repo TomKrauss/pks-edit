@@ -27,7 +27,6 @@
 #include "stringutil.h"
 #include "fileutil.h"
 
-extern char *_pksSysFolder;
 static char _found[1024];
 
 #if !defined(S_IREAD)
@@ -300,4 +299,11 @@ EXPORT void file_clearTempFiles(void)
 		*szBang = '?';
 		_ftw(pathname, file_removeCb,1,fn,0xFF);
 	}
+}
+
+/*
+ * Can be used to check, whether a given filename describes an absolute path.
+ */
+EXPORT int file_isAbsolutePathName(const char* pszFilename) {
+	return strlen(pszFilename) > 2 && (pszFilename[1] == ':' || (pszFilename[0] == '\\' && pszFilename[1] == '\\'));
 }

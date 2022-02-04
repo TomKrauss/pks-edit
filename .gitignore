@@ -25,3 +25,4 @@ pksedit.his
 /packages/Microsoft.Windows.CppWinRT.2.0.210806.1
 /packages.config
 /pkslib/x64
+/pks_sys/pkssession.json

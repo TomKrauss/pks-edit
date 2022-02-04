@@ -45,8 +45,6 @@ extern int 		doDocumentTypes(int nDlg);
 
 extern int	nCurrentDialog;
 
-extern char *	_pksSysFolder;
-
 char _fseltarget[EDMAXPATHLEN];
 
 static INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData) {
