@@ -1263,8 +1263,8 @@ int dlg_configureEditorModes(void) {
 	dispmode = wp->dispmode;
 	tabDisplayFillCharacter = linp->tabDisplayFillCharacter;
 	linp = fp->documentDescriptor;
-	lstrcpy(creationMacroName, linp->creationMacroName);
-	lstrcpy(cm, linp->closingMacroName);
+	lstrcpy(creationMacroName, linp->createActionName);
+	lstrcpy(cm, linp->saveActionName);
 	workmode = linp->workmode;
 	tabfill = linp->expandTabsWith;
 	fileflag = fp->flags;
@@ -1318,8 +1318,8 @@ int dlg_configureEditorModes(void) {
 		ft_forAllViews(fp, ww_tabsChanged, linp);
 	}
 	linp->rmargin = rmargin;
-	lstrcpy(linp->creationMacroName, creationMacroName);
-	lstrcpy(linp->closingMacroName, cm);
+	lstrcpy(linp->createActionName, creationMacroName);
+	lstrcpy(linp->saveActionName, cm);
 	linp->workmode = workmode;
 	linp->expandTabsWith = tabfill;
 	fp->flags = fileflag;

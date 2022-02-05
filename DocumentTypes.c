@@ -116,8 +116,8 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_FLAG, "caretPreserveColumn", offsetof(EDIT_CONFIGURATION, dispmode), SHOWCARET_PRESERVE_COLUMN},
 	{	RT_FLAG, "caretFollowsScrollbar", offsetof(EDIT_CONFIGURATION, scrollflags), SC_CURSORCATCH},
 	{	RT_CHAR_ARRAY, "backupExtension", offsetof(EDIT_CONFIGURATION, backupExtension), sizeof(((EDIT_CONFIGURATION*)NULL)->backupExtension)},
-	{	RT_CHAR_ARRAY, "executeOnLoad", offsetof(EDIT_CONFIGURATION, creationMacroName), sizeof(((EDIT_CONFIGURATION*)NULL)->creationMacroName)},
-	{	RT_CHAR_ARRAY, "executeOnSave", offsetof(EDIT_CONFIGURATION, closingMacroName), sizeof(((EDIT_CONFIGURATION*)NULL)->closingMacroName)},
+	{	RT_CHAR_ARRAY, "executeOnLoad", offsetof(EDIT_CONFIGURATION, createActionName), sizeof(((EDIT_CONFIGURATION*)NULL)->createActionName)},
+	{	RT_CHAR_ARRAY, "executeOnSave", offsetof(EDIT_CONFIGURATION, saveActionName), sizeof(((EDIT_CONFIGURATION*)NULL)->saveActionName)},
 	{	RT_CHAR_ARRAY, "actionContext", offsetof(EDIT_CONFIGURATION, actionContext), sizeof(((EDIT_CONFIGURATION*)NULL)->actionContext)},
 	{	RT_END}
 };
@@ -448,7 +448,8 @@ int doctypes_saveAllDocumentTypes(EDIT_CONFIGURATION* pChangedConfiguration, cha
 		pszFilename = _linfsel.fname;
 	}
 	if (!json_marshal(pszFilename, &config, _doctypeConfigurationRules)) {
-		error_displayAlertDialog("Fehler beim Schreiben der Dokumentkonfigurationsdatei");
+		// TODO: I18N
+		error_displayAlertDialog("Error saving the file with the editor configiration.");
 		return 0;
 	}
 	return 1;

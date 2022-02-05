@@ -556,11 +556,6 @@ int ft_cloneWindowNamed(char* pszFilename, const char* pszDock) {
 int ww_requestToClose(WINFO *wp)
 {
 	FTABLE* fp = wp->fp;
-	if (fp->documentDescriptor->closingMacroName[0]) {
-		if (!macro_executeByName(fp->documentDescriptor->closingMacroName)) {
-			return 0;
-		}
-	}
 	if (ft_isFileModified(fp)) {
 		ShowWindow(hwndMain,SW_SHOW);
 		EdSelectWindow(wp->win_id);
@@ -678,7 +673,7 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, FT_OPEN_OPTIONS* pOp
 	char		szAsPath[EDMAXPATHLEN];
 	FTABLE 		*fp;
 	int 		ret;
-	int			fileflags = 0;
+	int			nFileCreationFlags = 0;
 	const char* pszHint = pOptions->fo_dockName;
 
 	szAsPath[0] = 0;
@@ -703,11 +698,11 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, FT_OPEN_OPTIONS* pOp
 		if (error_displayYesNoConfirmation(IDS_MSGQUERYNEWFILE, string_abbreviateFileNameOem(fn)) == IDNO) {
 			return 0;
 		}
-		fileflags = F_NEWFILE;
+		nFileCreationFlags = F_NEWFILE;
 	} else {
 		char szBuf[80];
 		if (fn == NULL) {
-			fileflags = F_NEWFILE|F_NAME_INPUT_REQUIRED;
+			nFileCreationFlags = F_NEWFILE|F_NAME_INPUT_REQUIRED;
 			for (int i = 1; i < 100; i++) {
 				sprintf(szBuf, "newfile%d.txt", i);
 				if (ft_fpbyname(szBuf) == NULL) {
@@ -716,7 +711,7 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, FT_OPEN_OPTIONS* pOp
 			}
 			fn = szBuf;
 		}
-		if (!(fileflags & F_NEWFILE) && 
+		if (!(nFileCreationFlags & F_NEWFILE) && 
 			(GetConfiguration()->options & O_DELETE_AUTOSAVE_FILES) &&
 			ft_generateAutosavePathname(szAsPath, fn) &&
 			areFilenamesDifferent(szAsPath, fn) &&
@@ -736,7 +731,7 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, FT_OPEN_OPTIONS* pOp
 	} else {
 		lstrcpy(fp->fname, fn);
 	}
-	fp->flags |= fileflags;
+	fp->flags |= nFileCreationFlags;
 	if (doctypes_assignDocumentTypeDescriptor(fp, doctypes_getDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
          ft_readfile(fp, fp->documentDescriptor,pOptions->fo_codePage, 0) == 0 || 
 	    (lstrcpy(fp->fname, fn), ft_openwin(fp, pszHint) == 0)) {
@@ -751,8 +746,8 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, FT_OPEN_OPTIONS* pOp
 
 	caret_placeCursorInCurrentFile(WIPOI(fp), line,0L);
 
-	if (fileflags != 0 && fp->documentDescriptor) {
-		macro_executeByName(fp->documentDescriptor->creationMacroName);
+	if (nFileCreationFlags != 0 && fp->documentDescriptor) {
+		macro_executeByName(fp->documentDescriptor->createActionName);
 	}
 
 	return fp;

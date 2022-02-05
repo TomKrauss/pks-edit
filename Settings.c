@@ -133,12 +133,14 @@ static int *op_getFlagToToggle(OP_FLAGTYPE flagType)
 	if (flagType != OP_MACRO && flagType != OP_OPTIONS) {
 		if ((wp = ww_getCurrentEditorWindow()) != 0) {
 			FTABLE* fp = wp->fp;
-			if (flagType == OP_FILEFLAG)
-				return &fp->flags;
-			if (flagType == OP_EDIT_MODE)
-				return &fp->documentDescriptor->workmode;
-			if (flagType == OP_DISPLAY_MODE)
-				return &wp->dispmode;
+			if (fp != NULL) {
+				if (flagType == OP_FILEFLAG)
+					return &fp->flags;
+				if (flagType == OP_EDIT_MODE)
+					return &fp->documentDescriptor->workmode;
+				if (flagType == OP_DISPLAY_MODE)
+					return &wp->dispmode;
+			}
 		}
 	} else {
 		return (flagType == OP_MACRO) ? &_recording : &(GetConfiguration()->options);

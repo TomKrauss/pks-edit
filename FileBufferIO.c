@@ -24,6 +24,7 @@
 #include "editorconfiguration.h"
 #include "stringutil.h"
 #include "linkedlist.h"
+#include "edfuncs.h"
 #include "winfo.h"
 
 #include "pksedit.h"
@@ -575,6 +576,7 @@ static void createBackupFile(FTABLE* fp, char* pszBackupName) {
 	// In contrast to the POSIX rename, rename on windows also allows to move files to
 	// different file systems.
 	if (Frename(0, name, pszBackupName)) {
+		// TODO: I18N
 		error_displayAlertDialog("Cannot rename %s to create backup file %s, errno: %d", name, pszBackupName, errno);
 	}
 }
@@ -618,6 +620,7 @@ static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, long cod
 
 		news = crypt_en(_linebuf,size,cont);
 		if (cont && news != size) {
+			// TODO: I18N and error handling
 			error_displayAlertDialog("bad flushbuffer size");
 			return 0;
 		}
@@ -807,6 +810,10 @@ EXPORT int ft_writeFileWithAlternateName(FTABLE *fp)
 	flags = fp->flags;
 	pl = _p2list;
 
+	EDIT_CONFIGURATION* pDocumentDescriptor = fp->documentDescriptor;
+	if (pDocumentDescriptor && pDocumentDescriptor->saveActionName[0]) {
+		macro_executeByName(pDocumentDescriptor->saveActionName);
+	}
 	if ((ret = ft_writefileMode(fp,0)) != 0) {
 		while(pl) {
 			if (strcmp(pl->p1,dirname) == 0) {

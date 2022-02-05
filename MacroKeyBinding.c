@@ -535,18 +535,25 @@ int macro_onCharacterInserted(WORD c)
 /*---------------------------------*/
 /* macro_executeByName()				*/
 /*---------------------------------*/
-int macro_executeByName(char *name)
-{	int i;
-
-	if (!name || !name[0])
+int macro_executeByName(char *name) {
+	if (!name || !name[0]) {
 		return 0;
-
-	if ((i = macro_getInternalIndexByName(name)) < 0) {
+	}
+	MACROREF macref;
+	int i;
+	if (name[0] == '@') {
+		macref.typ = CMD_CMDSEQ;
+		i = macro_getCmdIndexByName(name + 1);
+	} else {
+		macref.typ = CMD_MACRO;
+		i = macro_getInternalIndexByName(name);
+	}
+	if (i < 0) {
 		error_showErrorById(IDS_MSGUNKNOWNMAC,name);
 		return 0;
 	}
-
-	return macro_executeMacroByIndex(i);
+	macref.index = i;
+	return macro_executeMacro(&macref);
 }
 
 /*

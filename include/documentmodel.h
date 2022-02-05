@@ -159,8 +159,8 @@ typedef struct tagEDIT_CONFIGURATION {
 	int				tabulatorSizes[32];		// arbitrary tab stops - allowing us to have have tabs at positions 2, 5, 9, 15, ...
 	unsigned char	statusline[60];			// the special status
 	char			backupExtension[10];	// Backup extension
-	unsigned char	creationMacroName[24];	// Makro to run on document creation
-	unsigned char	closingMacroName[24];	// makro to run before closing
+	unsigned char	createActionName[24];	// action (command / macro) to execute on document creation
+	unsigned char	saveActionName[24];		// action to execute before saving
 	int				scrollflags;			// thumbtrack.. 
 	int				cursaftersearch;		// CP_POSTOP, CP_POSLOW, ...
 	int				hscroll;				// scroll n columns

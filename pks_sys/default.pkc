@@ -1,0 +1,10 @@
+
+//
+// Macro, which can be used as a save action in PKS-Edit to trim all trailing blanks
+// in the document saved
+//
+
+macro TrimTrailingBlanks() {
+	Replace(FO_INIT,"\\s+$","",REP_REPLACE,RNG_GLOBAL,RE_DOREX);
+}
+

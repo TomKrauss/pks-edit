@@ -388,6 +388,18 @@ WS		[ \t]
 <INITIAL>-	{
 				return '-';
 			}
+\" 			{
+				int c;
+
+				yyleng = 0;
+				while((c = input()) != 0 && c != '"') {
+					yytext[yyleng++] = c;
+					if (c == '\\')
+						yytext[yyleng++] = input();
+				}
+				yylval.s = unquotealloc(yytext,yyleng);
+				return T_STRING;
+			}
 {SIGN}0[xX]{HEXNUM}+ {
 				yylval.num = number(yytext);
 				return T_NUM;

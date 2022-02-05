@@ -146,7 +146,8 @@ int mac_compileMacros()
 		return yyfinish();
 	}
 
-	error_displayAlertDialog("Bitte öffnen Sie die Datei, die übersetzt werden soll");
+	// TODO: I18N
+	error_displayAlertDialog("Please open the file to compile.");
 
 	return 0;
 }

@@ -187,7 +187,7 @@ void fsel_changeDirectory(char* pszPath) {
 static void menu_fseltitle(int nCommand, char* szTemp)
 {	char *d,*s;
 
-	if (nCommand > 0) {
+	if (nCommand >= 0) {
 		char szTooltip[256];
 		command_getTooltipAndLabel((MACROREF) {.typ = CMD_CMDSEQ, .index = nCommand}, szTooltip, szTemp);
 		/* skip & - menu marks and key idents */
@@ -423,6 +423,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
 		bRet = FALSE;
 		Errval=CommDlgExtendedError();
 		if(Errval!=0) {
+			// TODO: I18N
 			wsprintf(szTemp, "GetOpenFileName returned Error # 0x%lx", Errval);
 			error_displayAlertBoxWithOptions(0, MB_OK | MB_ICONSTOP, szTemp);
 		}

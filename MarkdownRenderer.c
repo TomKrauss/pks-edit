@@ -1378,19 +1378,19 @@ static BOOL mdr_parseTable(LINE** pFirst, RENDER_VIEW_PART* pPart) {
 			if (pks_isspace(c)) {
 				continue;
 			}
-			if (c == '|' || c == '-' || c == ':') {
+			if (c == '|' || c == '-' || c== '=' || c == ':') {
 				nColumn = 0;
 				if (c == ':') {
 					bStartColon = TRUE;
 				}
-				if (c == '-') {
+				if (c == '-' || c == '=') {
 					bDashSeen = TRUE;
 				}
 			} else {
 				return FALSE;
 			}
 		} else {
-			if (c == '-') {
+			if (c == '-' || c == '=') {
 				bDashSeen = TRUE;
 			} else if (bDashSeen && c == ':') {
 				nAlign = bStartColon ? RTC_ALIGN_CENTER : RTC_ALIGN_RIGHT;
@@ -1437,7 +1437,7 @@ static BOOL mdr_parseTable(LINE** pFirst, RENDER_VIEW_PART* pPart) {
 					nLen = 100;
 				}
 				int nWidth = (int)nLen * 6;
-				nWidth += 20 + _tableMargins.m_left + _tableMargins.m_right;
+				nWidth += 30 + _tableMargins.m_left + _tableMargins.m_right;
 				if (nWidth > pTable->rt_columnWidths[nColumn]) {
 					pTable->rt_columnWidths[nColumn] = nWidth;
 				}

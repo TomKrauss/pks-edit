@@ -211,14 +211,14 @@
     }
   ],
     "editorConfigurations": [
-    {
+      {
         "name": "default",
         "id": 1,
         "leftMargin": 0,
         "rightMargin": 100,
         "tabSize": 4,
         "codepage": -1,
-        "tabulatorSizes": [4],
+        "tabulatorSizes": [ 4 ],
         "shiftWidth": 4,
         "showWhitespace": true,
         "showRuler": true,
@@ -226,6 +226,7 @@
         "showSyntaxHighlight": true,
         "highlightCaretLine": true,
         "insertMode": true,
+        "executeOnSave": "TrimTrailingBlanks",
         "autoIndent": true,
         "expandAbbreviations": true,
         "smartSpaceDelete": true,
@@ -239,7 +240,7 @@
         "caretPreserveColumn": true,
         "caretFollowsScrollbar": true,
         "backupExtension": "bak"
-    },
+      },
     {
         "name": "readme",
         "id": 2,

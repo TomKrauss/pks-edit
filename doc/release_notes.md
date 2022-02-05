@@ -13,7 +13,10 @@ This file contains the release notes for the latest **PKS Edit** releases.
 
 ### Fixes
 - A potential buffer overflow, when defining syntax error formats (navigation patterns) with long associated compiler names has been fixed.
-
+- A potential crash when closing a comparison window was fixed
+- A regression when compiling PKS-MacroC files containing strings, which cause a compilation error was fixed.
+- Save actions are now really executed just before a file is saved.
+ 
 ### 2.1.0
 
 #### New

@@ -646,6 +646,10 @@ int macro_executeSequence(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 			case C_FURET:
 				_fncmarker = macro_popParameter((unsigned char **)&cp);
 				break;
+			case C_FORMSTART:
+				// TODO: not really - executing macros with forms is broken - should change the whole
+				// macro with forms mechanis, on a long term run.
+				return val;
 			default:
 				macro_reportError();
 				return 0;

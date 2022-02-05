@@ -4,6 +4,20 @@ The basic PKS-Edit configuration of PKS-Edit is stored in a file named `pksediti
 Note, that all PKS-Edit configuration files are placed in the `pks_sys` sub-folder of the PKS-Edit installation folder.
 You may set the overall PKS-Edit options by pressing the COG icon in the toolbar or via menu "Extra->Settings".
 
+## Configuration Files of PKS-Edit
+
+The following files are loaded by PKS-Edit during startup form the 'pks_sys' folder.
+
+|File|Purpose|
+|====|=====|
+|`pkseditini.json`|The main editor configuration containing the information edited in the Setup... menu|
+|`pkssession.json`|Contains _session_ information such as list of recent searches and open files and currently open editor windows|
+|`pkseditconfig.json`|Contains all defined document types (matched by their file name patterns) and the corresponding properties such as associated grammar|
+|`pksactionbinding.json`|Contains action binding definitions (keyboard, mouse, menu, context menu) and the associated commands / macros to execute|
+|`mylang.grammar.json`|Contains the grammar rules (syntax highlighting, formatting, code completion etc...) for one grammar representing a code language|
+|`pksedit.mac`|Contains a binary / compiled version of macros defined. Note, that one may refer to a macro by name from this file e.g. in a save action or an action binding|
+
+
 ## Autosave Options
 
 In this section you may configure all actions performed during startup and shutdown and the way files are automatically saved.
