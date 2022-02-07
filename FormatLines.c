@@ -415,7 +415,7 @@ static LINE* format_otherInto(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LI
 			int nIndent = format_calculateIndent(pFormatter, fparam, lp->lbuf, lp->len, &nScreenCol);
 			nCurrentScreenIndent = caret_lineOffset2screen(wp, &(CARET) {
 				.linePointer = lp,
-					.offset = nIndent
+				.offset = nIndent
 			});
 		}
 		INDENTATION_DELTA idDelta = pFormatter->f_calculateIndentationDelta(pFormatter, fparam, lp->lbuf, lp->len);

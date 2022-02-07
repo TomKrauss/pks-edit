@@ -185,7 +185,7 @@ EXPORT int bl_pastecol(PASTE *pb,WINFO *wp, LINE *lpd, int col) {
 	int 	bExpandTabs;
 
 	lps  = pb->pln;
-	col = caret_lineOffset2screen(wp, &(CARET) { lpd, col });
+	col = caret_lineOffset2screen(wp, &(CARET) {.linePointer = lpd, .offset = col });
 	bExpandTabs = PLAINCONTROL(wp->dispmode) ? 0 : 1;
 	return ln_pasteLines(wp, lps, 0, lpd, col, bExpandTabs);
 }

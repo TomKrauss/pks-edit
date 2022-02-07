@@ -298,7 +298,7 @@ static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, in
 		}
 	}
 
-	if (options & O_WRAPSCAN)
+	if (options & RE_WRAPSCAN)
 		wrap = 1;
 
 	if (find_expression(dir, &ln, &col, lp, pPattern, pMatch))
@@ -333,7 +333,7 @@ static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, in
 int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options) {
 	long ln,col;
 	int ret = 0;
-	int wrap = options & O_WRAPSCAN;
+	int wrap = options & RE_WRAPSCAN;
 	int wrapped = 0;
 	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE *fp;
@@ -387,7 +387,7 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 	FTABLE* fp = wp->fp;
 	_currentSearchAndReplaceParams.options = nOptions;
 	if (bContinue && ww_hasSelection(wp)) {
-		incrementalStart = (CARET){ wp->blstart->m_linePointer, wp->blstart->m_column };
+		incrementalStart = (CARET){ .linePointer = wp->blstart->m_linePointer, .offset = wp->blstart->m_column };
 		incrementalStart.ln = ln_indexOf(fp, wp->blstart->m_linePointer);
 	} else if (incrementalStart.linePointer == NULL ||(incrementalStart.ln = ln_indexOf(fp, incrementalStart.linePointer)) < 0) {
 		incrementalStart = wp->caret;
@@ -935,11 +935,11 @@ endrep:
 		/* ft_countlinesStartingFromDirection MUST be called to clear lineflags !!!! */
 		ln = ft_countlinesStartingFromDirection(fp,startln,1);
 		if (action != REP_REPLACE) {
-			error_showMessageInStatusbar(IDS_MSGNFOUND, _currentSearchAndReplaceParams.searchPattern,ln,nReplacements);
+			error_showMessageInStatusbar(IDS_MSGNFOUND, _currentSearchAndReplaceParams.searchPattern, ln, nReplacements);
 		} else {
-			error_showMessageInStatusbar(IDS_MSGNREPL, _currentSearchAndReplaceParams.searchPattern,nReplacements,ln);
+			error_showMessageInStatusbar(IDS_MSGNREPL, _currentSearchAndReplaceParams.searchPattern, nReplacements, ln);
 		}
-	} else if (bResult != RTR_CANCELLED && !_playing) {
+	} else if (bResult != RTR_CANCELLED) {
 		error_showErrorById(IDS_MSGSTRINGNOTFOUND);
 		return RTR_NOT_FOUND;
 	}

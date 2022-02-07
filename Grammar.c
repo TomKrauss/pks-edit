@@ -1096,7 +1096,7 @@ int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescrip
 					*pszOutput++ = c;
 				}
 				*pszOutput = 0;
-				if (szTemp[0]) {
+				if (szTemp[0] && !pDescriptor->comment_single) {
 					pDescriptor->comment_single = _strdup(szTemp);
 				}
 			}

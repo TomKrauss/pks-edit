@@ -759,7 +759,7 @@ static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bForceDialog) {
 				if (tp->searchCommand && ft_getCurrentDocument()) {
 					RE_PATTERN* pPattern;
 					if (pPattern = find_regexCompile(buffer, tp->searchCommand, (int)RE_DOREX)) {
-						find_expressionInCurrentFile(1, pPattern, O_WRAPSCAN);
+						find_expressionInCurrentFile(1, pPattern, RE_WRAPSCAN);
 					}
 				}
 				ret = 1;

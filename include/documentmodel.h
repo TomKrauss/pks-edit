@@ -198,6 +198,7 @@ typedef void * HIDDENP;
  * Represents the position of one caret representing an insertion point in a file.
  */
 typedef struct tagCARET {
+	struct tagCARET* next;	// Multi-caret editing - points to the next caret.
 	LINE* linePointer;		/* the current line */
 	int   offset;			/* current offset in linebuffer memory */
 	int	  virtualOffset;	/* the virtual offset into the linebuffer. That is used to have the cursor try to stay in the same column as it is moved 

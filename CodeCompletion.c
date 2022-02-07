@@ -14,6 +14,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+#include "alloc.h"
 #include <windows.h>
 #include <windowsx.h>
 #include "customcontrols.h"
@@ -310,15 +311,20 @@ static void codecomplete_moveCaret(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int n
 		newTop = 0;
 	}
 	if (newTop != pCC->ccp_topRow) {
+		int nDelta = newTop - pCC->ccp_topRow;
 		pCC->ccp_topRow = newTop;
 		codecomplete_updateScrollbar(hwnd);
-		InvalidateRect(hwnd, NULL, TRUE);
-	} else {
-		RECT r;
-		GetClientRect(hwnd, &r);
-		codecomplete_invalidateIndex(hwnd, &r, pCC, nOld);
-		codecomplete_invalidateIndex(hwnd, &r, pCC, nTo);
-	}
+		if (nDelta >= -3 && nDelta <= 3) {
+			ScrollWindow(hwnd, 0, -nDelta*pCC->ccp_lineHeight, NULL, NULL);
+		} else {
+			InvalidateRect(hwnd, NULL, TRUE);
+			return;
+		}
+	} 
+	RECT r;
+	GetClientRect(hwnd, &r);
+	codecomplete_invalidateIndex(hwnd, &r, pCC, nOld);
+	codecomplete_invalidateIndex(hwnd, &r, pCC, nTo);
 }
 
 static void codecomplete_moveCaretBy(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nBy) {

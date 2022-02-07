@@ -210,7 +210,7 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     memset(&tbabmp, 0, sizeof tbabmp);
     memset(&tbabmp2, 0, sizeof tbabmp2);
     hwndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, NULL,
-		WS_CHILD | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_CUSTOMERASE| CCS_NODIVIDER | CCS_NORESIZE | CCS_ADJUSTABLE,
+		WS_CHILD | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_CUSTOMERASE| CCS_NODIVIDER | CCS_NORESIZE | CCS_ADJUSTABLE,
         0, 0, 0, 0, hwndOwner, (HMENU) IDM_TOOLBAR, hInst, NULL);
 	if (!hwndToolbar) {
 		return NULL;
@@ -279,7 +279,7 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam
         }
         nRet = CallWindowProc(oldEditProc, hwnd, msg, wParam, lParam);
         Edit_GetText(hwnd, pszBuf, sizeof pszBuf);
-        find_incrementally(pszBuf, RE_IGNCASE | O_WRAPSCAN, 1, FALSE);
+        find_incrementally(pszBuf, RE_IGNCASE | RE_WRAPSCAN, 1, FALSE);
         return nRet;
     case WM_SETFOCUS:
         if (previousFocusWnd == NULL) {
@@ -301,7 +301,7 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam
         case VK_RETURN:
             //Do your stuff
             Edit_GetText(hwnd, pszBuf, sizeof pszBuf);
-            find_incrementally(pszBuf, RE_IGNCASE| O_WRAPSCAN, 1, TRUE);
+            find_incrementally(pszBuf, RE_IGNCASE| RE_WRAPSCAN, 1, TRUE);
             return 0;
         case VK_ESCAPE:
             if (previousFocusWnd != NULL) {

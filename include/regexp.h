@@ -16,6 +16,10 @@
 #ifndef REGEXP_H
 #define	REGEXP_H
 
+ /*----- ... --------------*/
+
+#define	RE_WRAPSCAN 		0x8					// wrap scan on search 
+
 #define	RE_DOREX		0x1					// use .{}*?+ and all the stuff
 #define	RE_IGNCASE		0x2					// ignore case 
 #define	RE_SHELLWILD	0x4					// wildcards are: *?[] 

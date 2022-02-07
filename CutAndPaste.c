@@ -590,11 +590,11 @@ static void bl_setColumnSelectionNoRepaint(WINFO *wp) {
 	MARK	 *mp;
 
 	if ((mp = wp->blstart) != 0L) {
-		wp->blcol1 = caret_lineOffset2screen(wp, &(CARET) { mp->m_linePointer, mp->m_column });
+		wp->blcol1 = caret_lineOffset2screen(wp, &(CARET) {.linePointer = mp->m_linePointer, .offset = mp->m_column });
 	}
 	if ((mp = wp->blend) != 0L) {
 		wp->blcol2 = caret_lineOffset2screen(wp, &(CARET) {
-			mp->m_linePointer, mp->m_column
+			.linePointer = mp->m_linePointer, .offset = mp->m_column
 		});
 		if (wp->blcol2 <= wp->blcol1)
 			wp->blcol2 = wp->blcol1	+ 1;
@@ -750,10 +750,10 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 				}
 			}
 			render_repaintLinePart(fp, wp->caret.ln, caret_lineOffset2screen(wp, &(CARET) {
-				wp->caret.linePointer, startx
+				.linePointer = wp->caret.linePointer, .offset = startx
 			}),
 				caret_lineOffset2screen(wp, &(CARET) {
-					wp->caret.linePointer, endx
+					.linePointer = wp->caret.linePointer, .offset = endx
 				}));
 		}
 		else {
@@ -813,8 +813,8 @@ EXPORT int EdMouseMarkParts(int type)
 			o2  = lp->len;
 		}
 	}
-	CARET c1 = { lp, o1 };
-	CARET c2 = { lp2, o2 };
+	CARET c1 = { .linePointer = lp, .offset = o1 };
+	CARET c2 = { .linePointer = lp2, .offset = o2 };
 	bl_syncSelectionWithCaret(wp, &c1, MARK_START, NULL);
 	return bl_syncSelectionWithCaret(wp, &c2, MARK_END, NULL);
 }

@@ -1194,8 +1194,8 @@ int dlg_configureEditorModes(void) {
 		IDD_OPT11,		SHOWCARET_LINE_HIGHLIGHT, &dispmode,
 		0
 	};
-	char creationMacroName[20];
-	char cm[20];
+	char createActionName[sizeof(((EDIT_CONFIGURATION*)NULL)->saveActionName)];
+	char saveActionName[sizeof (((EDIT_CONFIGURATION*)NULL)->saveActionName)];
 	char tabfill;
 	int  workmode;
 	int fileflag;
@@ -1209,8 +1209,8 @@ int dlg_configureEditorModes(void) {
 		0
 	};
 	DIALPARS _dWorkMode[] = {
-		IDD_STRING2,	sizeof creationMacroName,	creationMacroName,
-		IDD_STRING3,	sizeof cm,	cm,
+		IDD_STRING2,	sizeof createActionName,	createActionName,
+		IDD_STRING3,	sizeof saveActionName,	saveActionName,
 		IDD_CHAR,		sizeof tabfill,&tabfill,
 		IDD_OPT1,		WM_INSERT,	&workmode,
 		IDD_OPT2,		WM_ABBREV,	&workmode,
@@ -1263,8 +1263,8 @@ int dlg_configureEditorModes(void) {
 	dispmode = wp->dispmode;
 	tabDisplayFillCharacter = linp->tabDisplayFillCharacter;
 	linp = fp->documentDescriptor;
-	lstrcpy(creationMacroName, linp->createActionName);
-	lstrcpy(cm, linp->saveActionName);
+	lstrcpy(createActionName, linp->createActionName);
+	lstrcpy(saveActionName, linp->saveActionName);
 	workmode = linp->workmode;
 	tabfill = linp->expandTabsWith;
 	fileflag = fp->flags;
@@ -1318,8 +1318,8 @@ int dlg_configureEditorModes(void) {
 		ft_forAllViews(fp, ww_tabsChanged, linp);
 	}
 	linp->rmargin = rmargin;
-	lstrcpy(linp->createActionName, creationMacroName);
-	lstrcpy(linp->saveActionName, cm);
+	lstrcpy(linp->createActionName, createActionName);
+	lstrcpy(linp->saveActionName, saveActionName);
 	linp->workmode = workmode;
 	linp->expandTabsWith = tabfill;
 	fp->flags = fileflag;
@@ -1392,7 +1392,7 @@ int EdFind(void)
 		IDD_REGEXP,	RE_DOREX,			& _currentSearchAndReplaceParams.options,
 		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
 		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
-		IDD_OPT1,		O_WRAPSCAN,		& _currentSearchAndReplaceParams.options,
+		IDD_OPT1,		RE_WRAPSCAN,		& _currentSearchAndReplaceParams.options,
 		IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern,	_currentSearchAndReplaceParams.searchPattern,
 		0
 	};

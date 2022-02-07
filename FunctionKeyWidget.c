@@ -164,6 +164,9 @@ static HWND fkey_createTip(HWND hDlg, int toolID) {
  * Create tooltips for the function keys.
  */
 static void fkey_createTips(HWND hwndParent) {
+	if (_hwndTips[0]) {
+		return;
+	}
 	for (int i = 0; i < MAX_FKEYS; i++) {
 		_hwndTips[i] = fkey_createTip(hwndParent, IDD_FKFK1 + i);
 	}

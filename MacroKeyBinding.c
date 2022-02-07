@@ -13,6 +13,7 @@
  * created: 11/89
  */
 
+#include "alloc.h"
 #include <tos.h>
 #include "customcontrols.h"
 #include <windowsx.h>
@@ -331,6 +332,15 @@ void macro_renameAndChangeComment(int nIndex, char* szName, char* szComment)
 		return;
 	_macrotab[nIndex] = mp;
 	free(mpold);
+}
+
+/*
+ * Destroy all allocated macros.
+ */
+void macro_destroy() {
+	for (int i = 0; i < DIM(_macrotab); i++) {
+		free(_macrotab[i]);
+	}
 }
 
 /*------------------------------------------------------------

@@ -527,7 +527,7 @@ static int ww_calculateLongestLine(WINFO* wp) {
 	int max = 0;
 
 	while (lp) {
-		int len = caret_lineOffset2screen(wp, &(CARET){lp, lp->len});
+		int len = caret_lineOffset2screen(wp, &(CARET){.linePointer = lp, .offset = lp->len});
 		if (max < len) {
 			max = len;
 		}

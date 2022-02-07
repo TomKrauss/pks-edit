@@ -322,13 +322,13 @@ EXPORT int caret_updateDueToMouseClick(WINFO *wp, long *ln, long *col, int updat
 	if (!updateVirtualColumn && i < wp->caret.virtualOffset) {
 		i = wp->caret.virtualOffset;
 	}
-	i = caret_screen2lineOffset(wp, &(CARET) {lp, i});
+	i = caret_screen2lineOffset(wp, &(CARET) {.linePointer = lp, .offset = i});
 	long maxcol = wp->renderer->r_calculateMaxColumn(wp, *ln, lp);
 	if (maxcol < i) {
 		i = maxcol;
 	}
 
-	*col = caret_lineOffset2screen(wp, &(CARET) { lp, i});
+	*col = caret_lineOffset2screen(wp, &(CARET) {.linePointer = lp, .offset = i});
 
 	caret_startExtendingSelection(wp);
 	wp->caret.linePointer = lp;
@@ -369,14 +369,14 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *
 		o = maxcol;
 	}
 
-	i = caret_lineOffset2screen(wp, &(CARET) { lp, o});
+	i = caret_lineOffset2screen(wp, &(CARET) {.linePointer = lp, .offset = o});
 	if (!updateVirtualOffset && i != wp->caret.virtualOffset && (wp->dispmode & SHOWCARET_PRESERVE_COLUMN))
 		o = caret_screen2lineOffset(wp, &(CARET) {
-			lp, wp->caret.virtualOffset
+		.linePointer = lp, .offset = wp->caret.virtualOffset
 		});
 	maxcol = wp->renderer->r_calculateMaxColumn(wp, *ln, lp);
 	if (maxcol < o) o = maxcol;
-	if (o != *col) i = caret_lineOffset2screen(wp, &(CARET) { lp, o});
+	if (o != *col) i = caret_lineOffset2screen(wp, &(CARET) {.linePointer = lp, .offset = o});
 
 	caret_startExtendingSelection(wp);
 	if (updateVirtualOffset) {
@@ -537,7 +537,7 @@ EXPORT int ln_lineIsEmpty(LINE *lp)
  * depending on shiftwidth
  */
 static int caret_countNumberOfTabs(LINE *lp) {
-	return caret_lineOffset2screen(NULL, &(CARET){ lp,ln_countLeadingSpaces(lp) });
+	return caret_lineOffset2screen(NULL, &(CARET){.linePointer = lp, .offset = ln_countLeadingSpaces(lp) });
 }
 
 /*--------------------------------------------------------------------------

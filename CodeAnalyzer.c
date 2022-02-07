@@ -24,6 +24,7 @@
 #include "hashmap.h"
 #include "codeanalyzer.h"
 #include "edfuncs.h"
+#include "funcdef.h"
 #include "fontawesome.h"
 
 typedef struct tagANALYZER {
@@ -71,10 +72,28 @@ static void analyzer_extractWords(WINFO* wp, int (*fMatch)(const char* pszMatch)
  * Returns a possible macro function names which can be used in PKS Edit macros.
  */
 static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback) {
-	for (int i = 0; i < _nfuncs; i++) {
-		EDFUNC* pFunc = &_edfunctab[i];
-		if (fMatch(pFunc->f_name)) {
-			fCallback(pFunc->f_name);
+	BOOL bInParams = FALSE;
+	for (int i = 0; i < wp->caret.offset; i++) {
+		char c = wp->caret.linePointer->lbuf[i];
+		if (c == '(') {
+			bInParams = TRUE;
+		} else if (c == ')') {
+			bInParams = FALSE;
+		}
+	}
+	if (bInParams) {
+		for (int i = 0; i < _nenelems; i++) {
+			const char* pszName = _enelemtab[i].te_name;
+			if (fMatch(pszName)) {
+				fCallback(pszName);
+			}
+		}
+	} else {
+		for (int i = 0; i < _nfuncs; i++) {
+			EDFUNC* pFunc = &_edfunctab[i];
+			if (fMatch(pFunc->f_name)) {
+				fCallback(pFunc->f_name);
+			}
 		}
 	}
 }

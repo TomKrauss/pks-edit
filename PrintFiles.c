@@ -445,7 +445,7 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing) {
 		nMaxCharsPerLine = -nCount;
 	}
 	_currentPrintScope.wp->mincol = pLine->firstc;
-	max = caret_lineOffset2screen(_currentPrintScope.wp, &(CARET) { pLine->lp, pLine->lp->len});
+	max = caret_lineOffset2screen(_currentPrintScope.wp, &(CARET) {.linePointer = pLine->lp, .offset = pLine->lp->len});
 	if (max > pLine->lastc) {
 		max = pLine->lastc;
 	}

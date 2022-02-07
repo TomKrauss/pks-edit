@@ -14,6 +14,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+#include "alloc.h"
 #include "customcontrols.h"
 #include "trace.h"
 #include "documentmodel.h"

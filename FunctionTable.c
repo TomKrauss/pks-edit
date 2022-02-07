@@ -29,6 +29,7 @@
 #include "menu.h"
 #include "markpositions.h"
 #include "windowselector.h"
+#include "edierror.h"
 #include "editoperations.h"
 #include "mainframe.h"
 #include "comparefiles.h"
@@ -166,7 +167,7 @@ EDFUNC _edfunctab[] = {
 {EdScrollCursor, '!', EW_NEEDSCURRF | 0,                                                         "ScrollCursor",               NULL },
 {fm_gotoLastPosition, '!', EW_CUSTOM_ENABLEMENT,                                                 "GotoLastPosition",  fm_canGotoLast},
 {EdAlignText, '!', EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                  "AlignText",                  NULL },
-{function_unused, '!', 0,                                                                     "unused",                  NULL },
+{error_setShowMessages, '!', 0,                                                                  "ShowMessages",               NULL },
 {EdBlockMouseMark, '!', EW_NEEDSCURRF | 0,                                                       "MouseMarkBlock",             NULL },
 {EdMouseMarkParts, '!', EW_NEEDSCURRF | 0,                                                       "MouseMarkParts",             NULL },
 {EdMouseMoveText, '!', EW_NEEDSCURRF | 0,                                                        "MouseMoveText",              NULL },

@@ -60,10 +60,10 @@ EXPORT int align_text(char *pszSearch, int scope, char filler, int flags)
 	else
 		/* looking for the right most position */
 		for (aligncol = 0, lp = mps->m_linePointer; lp != 0; lp = lp->next) {
-			i = caret_screen2lineOffset(wp, &(CARET){ lp, firstcol });
+			i = caret_screen2lineOffset(wp, &(CARET){ .linePointer = lp, .offset = firstcol });
 			if (regex_match(pattern, &lp->lbuf[i],&lp->lbuf[lp->len], &match)) {
 				loc = (flags & AL_END) ? &match.loc1 : &match.loc2;
-				col = caret_lineOffset2screen(wp, &(CARET) { lp, (int)(*loc - lp->lbuf)});
+				col = caret_lineOffset2screen(wp, &(CARET) { .linePointer = lp, .offset = (int)(*loc - lp->lbuf)});
 				if (col > aligncol)
 					aligncol = col;
 			}
@@ -74,7 +74,7 @@ EXPORT int align_text(char *pszSearch, int scope, char filler, int flags)
 	ret = 1;
 	for (lp = mps->m_linePointer; lp != 0; lp = lp->next) {
 		besti  = -1;
-		firsti = caret_screen2lineOffset(wp, &(CARET){ lp, firstcol });
+		firsti = caret_screen2lineOffset(wp, &(CARET){.linePointer = lp, .offset = firstcol });
 		if (flags & AL_FIX)
 			i = 0;		
 		else
@@ -92,7 +92,7 @@ EXPORT int align_text(char *pszSearch, int scope, char filler, int flags)
 			i++;
 		}
 		if (besti >= 0) {
-			bestcol = caret_lineOffset2screen(wp, &(CARET) { lp, besti});
+			bestcol = caret_lineOffset2screen(wp, &(CARET) {.linePointer = lp, .offset = besti});
 			nchars  = aligncol - bestcol;
 			if ((lp = ln_modify(fp,lp,besti,besti+nchars)) == 0L) {
 				ret = 0;

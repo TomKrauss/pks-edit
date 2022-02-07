@@ -87,11 +87,11 @@ static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
 			return;
 		}
 		if (P_EQ(lp, wp->blstart->m_linePointer))
-			r.left = caret_lineOffset2screen(wp, &(CARET) { lp, wp->blstart->m_column});
+			r.left = caret_lineOffset2screen(wp, &(CARET) {.linePointer = lp, .offset = wp->blstart->m_column});
 		else r.left = wp->mincol;
 
 		if (P_EQ(lp, wp->blend->m_linePointer))
-			r.right = caret_lineOffset2screen(wp, &(CARET) { lp, wp->blend->m_column});
+			r.right = caret_lineOffset2screen(wp, &(CARET) {.linePointer = lp, .offset = wp->blend->m_column});
 		else r.right = lastcol;
 	}
 	r.left -= wp->mincol; if (r.left < 0) r.left = 0;

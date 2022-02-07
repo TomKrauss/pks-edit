@@ -561,10 +561,10 @@ BEGIN
     CONTROL         "&OEM-Text",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,26,152,10
     CONTROL         "Read onl&y",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,36,152,10
     CONTROL         "&Bracket Checks",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,59,152,10
-    GROUPBOX        "Macros",-1,14,99,358,42
-    LTEXT           "On Creation:",-1,19,113,41,8
+    GROUPBOX        "Lifecycle Actions to Execute",-1,14,99,358,42
+    LTEXT           "On Creation:",-1,22,113,41,8
     EDITTEXT        IDD_STRING2,75,109,118,12
-    LTEXT           "On Save:",-1,19,127,43,8
+    LTEXT           "On Save:",-1,22,127,43,8
     EDITTEXT        IDD_STRING3,75,125,118,12
     LTEXT           "&Expand Tabs:",114,15,148,53,10,NOT WS_GROUP
     EDITTEXT        IDD_CHAR,74,146,36,12,ES_AUTOHSCROLL

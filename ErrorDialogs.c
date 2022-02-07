@@ -42,6 +42,8 @@ extern void sound_playChime(void);
 
 static HHOOK hHook;
 
+static BOOL _messagesDisabled;
+
 static LRESULT WINAPI error_messageBoxHook(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode < 0) {
 		return CallNextHookEx(hHook, nCode, wParam, lParam);
@@ -174,6 +176,9 @@ static void error_displayErrorToast(const char* fmt, va_list ap) {
 	char szBuf[1024];
 	BOOL bShowToast = fmt[0] != '~';
 
+	if (_messagesDisabled) {
+		return;
+	}
 	wvsprintf(szBuf,bShowToast ? fmt:fmt+1,ap);
 	st_setStatusLineMessage(szBuf);
 
@@ -210,6 +215,9 @@ static void err_show(int nId, va_list ap) {
 void error_showMessageInStatusbar(int nId, ...) {
 	va_list 	ap;
 
+	if (_messagesDisabled) {
+		return;
+	}
 	va_start(ap,nId);
 	err_show(nId,ap);
 	va_end(ap);
@@ -228,6 +236,9 @@ void error_closeErrorWindow(void)
  */
 static void error_signalUsingFlashing(void)
 {
+	if (_messagesDisabled) {
+		return;
+	}
 	FlashWindow(hwndMain,1);
 	FlashWindow(hwndMain,0);
 }
@@ -236,6 +247,9 @@ static void error_signalUsingFlashing(void)
  * Display an error in a "non-intrusive way" (status line etc...). 
  */
 void error_showError(char* s, va_list ap) {
+	if (_messagesDisabled) {
+		return;
+	}
 	error_displayErrorToast(s, ap);
 	if (GetConfiguration()->options & O_ERROR_TONE)
 		sound_playChime();
@@ -313,3 +327,13 @@ void error_openingFileFailed(char *fn, int fd)
 	error_showErrorById(IDS_MSGOPEN,(LPSTR)string_abbreviateFileName(fn), lpMsgBuf);
 	LocalFree(lpMsgBuf);
 }
+
+/*
+ * Can be used to temporarily disable the display of status messages in the status bar or the toast window.
+ * Useful and to be called from within macros to make execution of macros less verbose.
+ */
+int error_setShowMessages(BOOL aFlag) {
+	_messagesDisabled = !aFlag;
+	return 1;
+}
+

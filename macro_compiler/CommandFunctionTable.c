@@ -16,6 +16,7 @@
 #include <Windows.h>
 
 #include "funcdef.h"
+#include "regexp.h"
 /* Functions: */
 EDFUNCDEF _functab[] = {
 { 	0,	"\377\020" },
@@ -215,10 +216,12 @@ TYPEELEM	_enelemtab[] = {
 { "REP_REPLACE"               , 1   },
 { "REP_MARK"                  , 2   },
 { "REP_COUNT"                 , 3   },
-{ "RE_DOREX"                  , 1   },
-{ "RE_IGNCASE"                , 2   },
-{ "RE_SHELLWILD"              , 4   },
-{ "RE_WRAPSCAN"               , 8   },
+{ "RE_DOREX"                  , RE_DOREX   },
+{ "RE_IGNCASE"                , RE_IGNCASE   },
+{ "RE_SHELLWILD"              , RE_SHELLWILD   },
+{ "RE_PRESERVE_CASE",			RE_PRESERVE_CASE},
+{ "RE_SEARCH_IN_SEARCH_RESULTS",RE_SEARCH_IN_SEARCH_RESULTS},
+{ "RE_WRAPSCAN"               , RE_WRAPSCAN   },
 { "OREP_INQ"                  , 16  },
 { "OREP_MARKED"               , 32  },
 { "SO_SKIPSEPS"               , 1   },
@@ -395,6 +398,8 @@ TYPEELEM	_enelemtab[] = {
 { "QUERY_BLOCKXTNDMODE"       , 10 },
 { "SC_THUMBTRACK"             , 1 },
 { "SC_CURSORCATCH"            , 2 },
+{ "TRUE"			          , 1 },
+{ "FALSE"			          , 0 },
 { "MB_OK"             ,			MB_OK },
 { "MB_YESNOCANCEL"             ,MB_YESNOCANCEL },
 { "MB_RETRYCANCEL"             ,			MB_RETRYCANCEL },

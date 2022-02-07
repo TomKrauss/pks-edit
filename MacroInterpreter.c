@@ -648,8 +648,8 @@ int macro_executeSequence(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 				break;
 			case C_FORMSTART:
 				// TODO: not really - executing macros with forms is broken - should change the whole
-				// macro with forms mechanis, on a long term run.
-				return val;
+				// macro with forms mechanism, on a long term run.
+				return (int)val;
 			default:
 				macro_reportError();
 				return 0;
@@ -743,7 +743,9 @@ int macro_executeMacroByIndex(int macroindex)
 	_recording = hadrecstate;
 
 	level--;
-
+	if (level == 0) {
+		error_setShowMessages(TRUE);
+	}
 	return ret;
 }
 

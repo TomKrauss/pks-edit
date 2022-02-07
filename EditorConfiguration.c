@@ -16,6 +16,7 @@
  * 
  */
 
+#include "alloc.h"
 #include <windows.h>
 #include <commctrl.h>
 #include <direct.h>

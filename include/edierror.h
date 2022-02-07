@@ -16,6 +16,12 @@ extern void error_showMessage(char* s, ...);
 
 extern void error_showErrorById(int nId, ...);
 
+/*
+ * Can be used to temporarily disable the display of status messages in the status bar or the toast window.
+ * Useful and to be called from within macros to make execution of macros less verbose.
+ */
+extern int error_setShowMessages(BOOL aFlag);
+
 /**
  * 
  */
@@ -72,9 +78,6 @@ extern void ln_errorLineTooLong(void);
 
 #define	E_SERIOUSC		'!'
 
-/*----- ... --------------*/
-
-#define	O_WRAPSCAN 		0x8		/* wrap scan on search */
 
 /* Substitution dialog */
 

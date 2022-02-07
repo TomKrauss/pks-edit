@@ -58,6 +58,10 @@
 extern void		faicon_destroy();
 extern void		sym_destroyTable();
 extern void		bindings_destroy();
+/*
+ * Destroy all allocated macros.
+ */
+extern void macro_destroy();
 extern void		arguments_getPhase2(char *args);
 extern void		arguments_getForPhase1(char *args);
 extern void 	init_readConfigFiles(void);
@@ -462,6 +466,7 @@ void main_cleanup(void) {
 	sym_destroyTable();
 	faicon_destroy();
 	bindings_destroy();
+	macro_destroy();
 	analyzer_destroyAnalyzers();
 	evaluator_destroyEvaluators();
 	ww_destroyAll();
