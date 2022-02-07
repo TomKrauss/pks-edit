@@ -97,7 +97,6 @@ void fkey_updateTextOfFunctionKeys(int state) {
 	int     	i;
 	int			shift;
 	int			keycode1;
-	extern int _fkeysdirty;
 
 	if (state == _fkeyshiftstate || !hwndFkeys) {
 		return;
@@ -117,7 +116,6 @@ void fkey_updateTextOfFunctionKeys(int state) {
 	}
 
 	key_bindingsDo(NULL, fkey_setText, (void*)(intptr_t)keycode1);
-	_fkeysdirty = 0;
 }
 
 // Description:

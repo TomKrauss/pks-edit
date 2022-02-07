@@ -110,17 +110,6 @@ static struct kw {
 	-1,			0
 };
 
-char *tok2sym(int token)
-{	struct kw *kp = keywords;
-
-	while(kp->name) {
-		if (kp->toknum == token)
-			return kp->name;
-		kp++;
-	}
-	return (char*)0;
-}
-
 static int init_keywords(void)
 {	struct kw *kp = keywords;
 

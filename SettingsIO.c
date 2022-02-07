@@ -39,32 +39,11 @@
 #include "winutil.h"
 #include "themes.h"
 
-#define	PROF_OFFSET		1
-
-
-typedef enum {	I_FLAG, I_WINDOW, I_VAL, I_STRING, I_INVAL } ITEMTYPE;
-typedef enum {	G_DESK, G_ENVIRON, G_HISTORY } GRPTYPE;
-
-typedef struct tagPROFILEITEM {
-	ITEMTYPE	p_typ;
-	GRPTYPE	p_grp;
-	char 	*p_name;
-} PROFILEITEM;
-
-struct llist {
-	struct llist 	*next;
-	char			name[4];
-};
-
 /*
  * The absolute path name of the last pkseditini.json file read or written. 
  */
 static char _pksEditIniFilename[512];
 static FSELINFO _setfselinfo = { ".", DEFAULT_CONFIG_FILE_NAME, "*.json" };
-static char *_desk = "desk";
-static char* _mainframeDock = "mainframeDock";
-static char *_cxscreen = "CXScreen";
-static char *_cyscreen = "CYScreen";
 
 /*------------------------------------------------------------
  * LocatePksEditIni()
@@ -111,7 +90,6 @@ int prof_getstdopt(void) {
 int prof_save(int interactive) {
 	int  	fd;
 	char *	fn;
-	EDITOR_CONFIGURATION* configuration = GetConfiguration();
 
 	if (!interactive) {
 		fn = _pksEditIniFilename;

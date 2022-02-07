@@ -28,11 +28,6 @@ typedef int BOOL;
 extern const char *	macro_loadStringResource(int nId);
 extern void 		macro_showStatus(char *s, ...);
 
-/*--------------------------------------------------------------------------
- * macro_printListHeader()
- */
-extern void macro_printListHeader(FILE* fp, char* itemname);
-
 /*---------------------------------
  * macro_executeMacroByIndex()
  * Execute a macro given its logical
@@ -51,13 +46,6 @@ extern int print_saveMouseBindingsAndDisplay(void);
  * the given file name. If successful, open the file in PKS Edit.
  */
 extern BOOL macro_createFileAndDisplay(char* fn, long (*callback)(FILE* fp));
-
-/*--------------------------------------------------------------------------
- * macro_isInCurrentDocumentContext()
- * Check, whether the passed document context identifier matches the document
- * context of the current open file.
- */
-extern int 		macro_isInCurrentDocumentContext(int ctx);
 
 /*--------------------------------------------------------------------------
  * print_saveMenuBindingsAndDisplay()

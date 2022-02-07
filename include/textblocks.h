@@ -197,12 +197,6 @@ extern int bl_writePasteBufToFile(PASTE* pb, char* fn, int mode);
 extern int bl_paste(PASTE* pb, WINFO* fp, LINE* lpd, int col, int colflg);
 
 /*--------------------------------------------------------------------------
- * bl_hasClipboardBlock()
- * Check, whether the cut text block with the given number exists and can be inserted.
- */
-extern BOOL bl_hasClipboardBlock(char* pszId);
-
-/*--------------------------------------------------------------------------
  * bl_join()
  */
 extern int bl_join(PASTE* pd, PASTE* p2);

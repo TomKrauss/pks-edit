@@ -481,13 +481,6 @@ extern int macro_deleteByName(char* name);
  */
 extern int macro_validateMacroName(char* name, int origidx, int bOverride);
 
-/*--------------------------------------------------------------------------
- * macro_onKeybindingChanged()
- * invoked, when a keybinding has changed. May flag e.g. the function keyboard of PKSEDIT
- * as dirty.
- */
-extern void macro_onKeybindingChanged(KEYCODE key);
-
 /*------------------------------------------------------------
  * macro_bindKey()
  * bind a command to a keycode dynamically in a given context.

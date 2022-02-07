@@ -53,61 +53,11 @@ typedef struct tagTEMPLATE_ACTION {
  */
 extern	FSELINFO 	_linfsel;
 
-extern	PASTE	*bl_getTextBlock(char* pszId, PASTELIST *pp);
 extern 	int 	macro_createTempFile(char *linfn, char *tmpfn);
 /*
  * Calculate the lexical start state at a given line.
  */
 extern LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
-
-
-static 	PASTELIST *_abbrevlist;
-
-/* current macrofile line */
-static	LINE      *_macroline;
-static	FTABLE	*_keyfile;
-
-/* allow context sensitive makros and mappings */
-static	int		_context     = DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
-
-
-/*--------------------------------------------------------------------------
- * macro_error()
- */
-FTABLE _outfile;
-static void macro_error(int msgId)
-{	
-	long 	n;
-	char 	msg[128],b[512];
-
-	n = ln_cnt(_keyfile->firstl,_macroline);
-
-	if (LoadString(ui_getResourceModule(),msgId,msg,sizeof msg)) {
-		wsprintf(b,/*STR*/"Error %s %ld: %s",(LPSTR)_keyfile->fname,n,(LPSTR)msg);
-		ln_createAndAddSimple(&_outfile,b);
-	}
-}
-
-
-/*--------------------------------------------------------------------------
- * macro_getTextInQuotes()
- */
-static int _quotedLength;
-char *macro_getTextInQuotes(char *d,char *s,int maxlen)
-{	char *start = d;
-
-	while (*s && *s != '"') {
-		if (*s == '\\' && s[1])
-			s++;
-		if (--maxlen <= 0) {
-			macro_error(IDS_MSGMACROIDTOOLONG);
-			return 0;
-		}
-		*d++ = *s++;
-	}
-	_quotedLength = (int)(d-start);
-	return s;
-}
 
 /*
  * Expand a code template optionally containing ${....} references and return
@@ -303,14 +253,12 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 /*--------------------------------------------------------------------------
  * EdDocMacrosAdd()
  */
-int EdDocMacrosAdd(void)
-{
-	char	*	fn;
+int EdDocMacrosAdd(void) {
 	FILE_SELECT_PARAMS params;
 	params.fsp_saveAs = TRUE;
 	params.fsp_optionsAvailable = FALSE;
 
-	if (!ft_getCurrentDocument() || (fn = fsel_selectFileWithOptions(&_linfsel, CMD_ADD_DOC_MACROS, &params)) == 0) {
+	if (!ft_getCurrentDocument() || fsel_selectFileWithOptions(&_linfsel, CMD_ADD_DOC_MACROS, &params) == 0) {
 		return 0;
 	}
 

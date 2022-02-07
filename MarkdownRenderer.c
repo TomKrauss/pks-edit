@@ -1547,7 +1547,6 @@ static long mdr_calculateMaxLine(WINFO* wp) {
 }
 
 static int mdr_adjustScrollBounds(WINFO* wp) {
-	int oldMinLn = wp->minln;
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	int nDelta = pData->md_nElementsPerPage;
 	if (nDelta <= 0) {

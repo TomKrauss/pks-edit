@@ -68,7 +68,6 @@ unsigned char*  _readparamp;
 MACRO *			_macrotab[MAXMACRO];
 int				_lastinsertedmac = -1;
 int				_macedited;
-int				_fkeysdirty;
 MACROREF		currentSelectedMacro;
 /*
  * Start the recorder.
@@ -220,18 +219,6 @@ int macro_validateMacroName(char *name, int origidx, int bOverride)
 		}
 	}
 	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * macro_onKeybindingChanged()
- * invoked, when a keybinding has changed. May flag e.g. the function keyboard of PKSEDIT
- * as dirty.
- */
-void macro_onKeybindingChanged(KEYCODE key) {
-	key &= 0xFF;
-	if (key >= VK_F1 && key <= VK_F12) {
-		_fkeysdirty = 1;
-	}
 }
 
 /*--------------------------------------------------------------------------
@@ -1029,21 +1016,23 @@ upd: 				_macedited = 1;
 				}
 				return TRUE;
 
-			case IDD_MACFINDKEY:
-				/*
+			case IDD_MACFINDKEY: {
 				if ((keycode = macro_getCurrentKeycode()) == K_DELETED) {
 					break;
 				}
-				if ((kp = keybound(keycode)) == 0) {
+				MACROREF macroref;
+				macroref = bindings_getKeyBinding(keycode, 0);
+				if (macroref.typ == 0) {
 					error_showErrorById(IDS_MSGKEYNOTBOUND);
-				} else {
-					nIndex = kp->macref.index;
-					nType = kp->macref.typ;
+				}
+				else {
+					int nIndex = macroref.index;
+					int nType = macroref.typ;
 					macro_selectByValue(hwnd, MAKELONG(nType, nIndex));
 					macro_newMacroSelected(hwnd);
 				}
-				*/
 				return TRUE;
+			}
 
 			case IDD_STRING1:
 			case IDD_STRING2:

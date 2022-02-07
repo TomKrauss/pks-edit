@@ -558,7 +558,7 @@ EXPORT int bl_append(PASTE *pb,LINE *lnfirst,LINE *lnlast,int cfirst,int clast)
 }
 
 /*--------------------------------------------------------------------------
- * bl_getTextBlock()
+ * bl_findPasteList()
  * find a textblock in the linked list if named clipboards.
  */
 static PASTELIST* bl_findPasteList(char* pszId, PASTELIST* pl) {
@@ -568,14 +568,6 @@ static PASTELIST* bl_findPasteList(char* pszId, PASTELIST* pl) {
 	return ll_find(pl, pszId);
 }
 
-/*--------------------------------------------------------------------------
- * bl_getTextBlock()
- * find a textblock in the linked list if named clipboards.
- */
-EXPORT PASTE *bl_getTextBlock(char* pszId, PASTELIST *pl) {
-	pl = bl_findPasteList(pszId, pl);
-	return (pl == 0) ? (PASTE *) 0 : &pl->pl_pasteBuffer;
-}
 
 static BOOL bl_isEqualBuffer(PASTE* pb1, PASTE* pb2) {
 	LINE* lp1 = pb1->pln;
@@ -676,19 +668,6 @@ EXPORT PASTE *bl_lookupPasteBuffer(char* pszId, int bInsert, PASTE_LIST_TYPE tTy
 EXPORT PASTE *bl_addrbyid(char* pszId, int insert, PASTE_LIST_TYPE tType)
 {
 	return bl_lookupPasteBuffer(pszId,insert,tType, &_plist);
-}
-
-/*--------------------------------------------------------------------------
- * bl_hasClipboardBlock()
- * Check, whether the cut text block with the given number exists and can be inserted.
- */
-BOOL bl_hasClipboardBlock(char* pszId) {
-	PASTE *pb;
-
-	pb  = bl_addrbyid(pszId,0, PLT_NAMED_BUFFER);
-	if (bl_isDefaultClipboard(pszId) && (!pb || !pb->pln))
-		return IsClipboardFormatAvailable(CF_TEXT);
-	return (pb && pb->pln) ? 1  : 0;
 }
 
 /*

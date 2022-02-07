@@ -135,7 +135,7 @@ KEYCODE macro_parseKeycode(const unsigned char* pszKeycode) {
 	int  			code;
 	int nModifier = 0;
 
-	while (pszKeycode) {
+	while (1) {
 		char* pszNext = strchr(pszKeycode, '+');
 		if (pszNext) {
 			*pszNext++ = 0;

@@ -283,57 +283,6 @@ success:
 }
 
 /*--------------------------------------------------------------------------
- * br_indentsum()
- */
-static int br_indentsum(GRAMMAR* pGrammar, const LINE *lps, LINE *lp, BRACKET_RULE *mp, int *dcurr, int *hasind)
-{	unsigned char *s,*send;
-	int d1,d2,indent = 0;
-	MATCHED_BRACKET matched;
-
-	memset(&matched, 0, sizeof matched);
-	d1 = (mp->ci1[0]+mp->ci1[1]);
-	d2 = (mp->ci2[0]+mp->ci2[1]);
-
-	s = lp->lbuf;
-	send = s+lp->len;
-	
-	*hasind = 0;
-
-	while(s < send) {
-		if (uc_matchBracket(pGrammar, lp, (int)(s-lp->lbuf), &mp->lefthand, &matched)) {
-			*dcurr = mp->ci1[0];
-			*hasind = 1;
-			break;
-		}
-		if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf), &mp->righthand, &matched)) {
-			*dcurr = mp->ci2[0];
-			*hasind = 1;
-			break;
-		}
-		s++;
-	}
-
-	lp = lp->prev;
-
-	while (lp) {
-		send = lp->lbuf;
-		s = send + lp->len;
-		while (--s >= send) {
-			if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf),&mp->lefthand, &matched)) {
-				indent += d1;
-			} else if (uc_matchBracket(pGrammar, lp, (int)(s - lp->lbuf), &mp->righthand, &matched)) {
-				indent += d2;
-			}
-		}
-		if (lp == lps) {
-			break;
-		}
-		lp = lp->prev;
-	}
-	return indent;
-}
-
-/*--------------------------------------------------------------------------
  * uc_findBracketMatchInLine()
  */
 static BRACKET_RULE* uc_findBracketMatchInLine(GRAMMAR* pGrammar, UCLIST* pList, LINE *lp,long *ln,long *col)

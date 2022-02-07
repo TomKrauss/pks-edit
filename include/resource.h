@@ -58,10 +58,6 @@ typedef struct tagRSCFILE {
 extern RSCFILE*	rsc_open(char *fn, int mode);
 extern int 		rsc_close(RSCFILE *rp);
 extern int 		rsc_load(RSCFILE *rp, char *itemtyp, char *itemname, char *(*cnvfunc)());
-extern void *	rsc_tablefindcode(RSCTABLE *rp, int itemsize, unsigned code);
-extern void*	rsc_tableresize(RSCTABLE* rp, int itemsize, void* noalloc, BOOL(*emptyFunc)(void*));
-extern RSCTABLE* rsc_findtable(RSCTABLE *rp, char *pszTarget);
-extern int 		rsc_switchtotable(RSCTABLE **Rp, char *pszTarget);
 extern int		rsc_create(char* fname, int trunc);
 extern int rsc_put(int fd, char* itemtyp, char* itemname, int replace,
 	long (*wrfunc)(int, long, char*, long), char* buffer, long bufsize);
@@ -73,7 +69,6 @@ extern int rsc_put(int fd, char* itemtyp, char* itemname, int replace,
  * Return -2, if the disk is full, 1 upon success and 0 for other failures.
  */
 extern int file_flushBuffer(int fd, char* buffer, int size, int rest);
-extern int rsc_wrtables(int fd, char* itemtype, RSCTABLE* rp);
 
 #define	RESOURCE_H
 # endif

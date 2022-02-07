@@ -520,7 +520,6 @@ static void regex_debugPrintMatch(int nIndent, const char* pszText, const char* 
 	char *pszPattern;
 
 	pszPattern = calloc(1, 4096);
-	memset(pszPattern, 0, sizeof pszPattern);
 	do {
 		pMatcher = (MATCHER*)pszNext;
 		if (pMatcher->m_type >= 0 && pMatcher->m_type < sizeof(_matchTypeNames) / sizeof(_matchTypeNames[0])) {
@@ -1173,7 +1172,6 @@ static unsigned char* regex_advance(unsigned char* pBeginOfLine, unsigned char* 
 			lastMatch = 0;
 			char* lastLoc2 = 0;
 			char* lastBracket = 0;
-			char* lastStart = 0;
 			int nBracket = pMatch->nbrackets;
 			for (int i = (nLow > 0) ? 1 : 0; i <= nHigh; i++) {
 				if (bDebug) {

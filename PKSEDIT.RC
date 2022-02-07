@@ -432,11 +432,11 @@ BEGIN
     CONTROL         "&OEM-Text",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,24,138,10
     CONTROL         "Nur &lesen",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,34,138,10
     CONTROL         "&Klammerncheck",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,44,138,10
-    GROUPBOX        "Makros",-1,15,97,311,42
-    LTEXT           "Als &Vorlage:",-1,18,111,48,8
-    EDITTEXT        IDD_STRING2,74,107,118,12
-    LTEXT           "Beim Schlie&ßen:",-1,18,125,52,8
-    EDITTEXT        IDD_STRING3,74,123,118,12
+    GROUPBOX        "Auszuführende Lebenszyklus-Aktionen",-1,15,97,311,42
+    LTEXT           "Beim Anlegen:",-1,22,111,48,8
+    EDITTEXT        IDD_STRING2,82,107,118,12
+    LTEXT           "Beim S&peichern:",-1,22,125,52,8
+    EDITTEXT        IDD_STRING3,82,123,118,12
     LTEXT           "&Tabs expandieren zu:",114,13,149,70,10,NOT WS_GROUP
     EDITTEXT        IDD_CHAR,88,145,32,12,ES_AUTOHSCROLL
     CONTROL         "Mehrere Spaces löschen",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,55,138,10
@@ -932,6 +932,10 @@ BEGIN
     BEGIN
         RIGHTMARGIN, 329
         BOTTOMMARGIN, 176
+    END
+
+    DLGEXEC, DIALOG
+    BEGIN
     END
 
     DLGFIND, DIALOG

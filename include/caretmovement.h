@@ -128,13 +128,6 @@ extern int caret_placeCursorMakeVisibleAndSaveLocation(WINFO* wp, long ln, long 
 extern void caret_calculateOffsetFromScreen(WINFO* wp, int x, int y, long* line, long* column);
 
 /*--------------------------------------------------------------------------
- * caret_placeCursorMakeVisible()
- * Place a cursor to the new line number and column and scroll to make the cursor
- * visible.
- */
-extern int caret_placeCursorMakeVisible(WINFO* wp, long ln, long col);
-
-/*--------------------------------------------------------------------------
  * cphypos()
  * cursoraddressierung with slider and mouse
  */

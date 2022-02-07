@@ -42,8 +42,6 @@
 extern	MACRO *	macro_getByIndex(int i);
 extern 	char *	mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 
-void macro_printListHeader(FILE *fp, char *itemname);
-
 static char *print_buttonEvent(char *b, int button, int shift, int nclicks)
 {
 	char			*s;

@@ -95,7 +95,6 @@ int doctypes_documentTypeChanged(int bSave) {
 		return 0;
 	}
 	fp = wp->fp;
-	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
 	ww_applyDisplayProperties(wp);
 	ww_setwindowtitle(wp, TRUE);
 	grammar_documentTypeChanged(fp->documentDescriptor->grammar);

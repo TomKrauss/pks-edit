@@ -456,7 +456,6 @@ static int json_marshalObject(FILE* fp, int indent, BOOL bFirstIndent, void* pSo
  * Marshal a nested list of objects to the output stream.
  */
 static void json_marshalObjectList(FILE* fp, int indent, void* pSourceObject, struct tagARRAY_OBJECT_DESCRIPTOR* pArrayDescriptor) {
-	int bNeedsTermination;
 	int bFirst = 1;
 
 	while (pSourceObject) {
@@ -465,7 +464,7 @@ static void json_marshalObjectList(FILE* fp, int indent, void* pSourceObject, st
 		} else {
 			fprintf(fp, ",%s", _nl);
 		}
-		bNeedsTermination = json_marshalObject(fp, indent, TRUE, pSourceObject, pArrayDescriptor->ro_nestedRules);
+		json_marshalObject(fp, indent, TRUE, pSourceObject, pArrayDescriptor->ro_nestedRules);
 		pSourceObject = ((LINKED_LIST*)pSourceObject)->next;
 	}
 	fprintf(fp, _nl);
@@ -551,7 +550,7 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 			fprintf(fp, ",%s", _nl);
 		}
 		fprintf(fp, "%*c\"%s\":", indent, ' ', pRule->r_name);
-		bNeedsTermination = json_marshalObject(fp, indent, FALSE, pSourceSlot, pRule->r_descriptor.r_t_nestedObjectRules);
+		json_marshalObject(fp, indent, FALSE, pSourceSlot, pRule->r_descriptor.r_t_nestedObjectRules);
 		return 1;
 	case RT_OBJECT_LIST:
 		if (bNeedsTermination) {
@@ -560,7 +559,6 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 		fprintf(fp, "%*c\"%s\": [%s", indent, ' ', pRule->r_name, _nl);
 		json_marshalObjectList(fp, indent, *(void**)pSourceSlot, &pRule->r_descriptor.r_t_arrayDescriptor);
 		fprintf(fp, "%*c]", indent, ' ');
-		bNeedsTermination = TRUE;
 		return 1;
 	case RT_INTEGER_ARRAY:
 		if (!*((int*)pSourceSlot)) {
@@ -580,7 +578,6 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 		fprintf(fp, "%*c\"%s\": [%s", indent, ' ', pRule->r_name, _nl);
 		json_marshalStringArray(fp, indent+4, *(ARRAY_LIST**)pSourceSlot);
 		fprintf(fp, "%s%*c]", _nl, indent, ' ');
-		bNeedsTermination = TRUE;
 		return 1;
 	case RT_COLOR: {
 		long rgb = *(long*)pSourceSlot;

@@ -60,12 +60,6 @@ extern int win_moveWindowToDefaultPosition(HWND hDlg);
  */
 extern void win_destroyModelessDialog(HWND* hwnd);
 
-/*--------------------------------------------------------------------------
- * win_getstate()
- * Get the current window placement.
- */
-extern void win_getstate(HWND hwnd, WINDOWPLACEMENT* wsp);
-
 /**
  * Calculate the dimensions of a text and return the size encoded as a LONG.
  */

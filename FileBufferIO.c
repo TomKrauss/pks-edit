@@ -116,52 +116,6 @@ void ft_getCodepageName(FTABLE* fp, char* pszName, size_t nMaxNameLen) {
 	}
 }
 
-/*---------------------------------*/
-/* list_mk()					*/
-/*---------------------------------*/
-typedef struct p2list {
-	struct p2list *next;
-	char *p1,*p2;
-} P2LIST;
-
-static P2LIST *_p2list;
-
-/*---------------------------------*/
-/* list2_destroy()				*/
-/*---------------------------------*/
-static int list2_destroy(void *elem)
-{
-	free(((P2LIST*)elem)->p1);
-	free(((P2LIST*)elem)->p2);
-	return 1;
-}
-
-/*---------------------------------*/
-/* list2_insert()				*/
-/*---------------------------------*/
-static void list2_insert(P2LIST **head, char *p1, char *p2)
-{	P2LIST *pl;
-
-	if ((p1 = _strdup(p1)) != 0 &&
-	    (p2 = _strdup(p2)) != 0 &&
-	    (pl = ll_insert(head,sizeof *pl)) != 0) {
-		pl->p1 = p1;
-		pl->p2 = p2;
-	}
-}
-
-/*---------------------------------*/
-/* list2_mk()					*/
-/*---------------------------------*/
-static void list2_mk(P2LIST **head, char *p1, char *p2)
-{
-	if (p1 == 0) {
-		ll_destroy((LINKED_LIST**)head,list2_destroy);
-	} else {
-		list2_insert(head,p1,p2);
-	}
-}
-
 /*---------------------------------
  * file_closeFile()
  * close a file handle and report an error if unsuccessful. 
@@ -802,30 +756,16 @@ EXPORT BOOL ft_backupFileExists(FTABLE* fp) {
 /*---------------------------------*/
 EXPORT int ft_writeFileWithAlternateName(FTABLE *fp)
 {	char dirname[512],savefn[512],fname[512];
-	int  ret,flags;
-	P2LIST *pl;
+	int  ret;
 
 	strcpy(savefn,fp->fname);
 	string_splitFilename(savefn,dirname,fname);
-	flags = fp->flags;
-	pl = _p2list;
 
 	EDIT_CONFIGURATION* pDocumentDescriptor = fp->documentDescriptor;
 	if (pDocumentDescriptor && pDocumentDescriptor->saveActionName[0]) {
 		macro_executeByName(pDocumentDescriptor->saveActionName);
 	}
-	if ((ret = ft_writefileMode(fp,0)) != 0) {
-		while(pl) {
-			if (strcmp(pl->p1,dirname) == 0) {
-				string_concatPathAndFilename(fp->fname,pl->p2,fname);
-				fp->flags = flags;
-				if ((ret = ft_writefileMode(fp,0)) == 0)
-					break;
-			}
-			pl = pl->next;
-		}
-	}
-
+	ret = ft_writefileMode(fp, 0);
 	strcpy(fp->fname,savefn);
 	return ret;
 }
@@ -871,22 +811,6 @@ EXPORT int ft_readfileWithOptions(FTABLE *fp, FILE_READ_OPTIONS* pOptions) {
 	_verbose = 1;
 	file_closeFile(&fp->lockFd);
 
-	return ret;
-}
-
-/*---------------------------------*/
-/* ft_writeFileAndClose()				*/
-/*---------------------------------*/
-EXPORT int ft_writeFileAndClose(FTABLE *fp,char *name, int flags)
-{	
-	int 		ret;
-
-	fp->lastl = 0;
-	fp->documentDescriptor = 0;
-	ret = ft_writefileAsWithFlags(fp,name,flags, FALSE);
-	ln_listfree(fp->firstl);
-	fp->firstl = 0;
-	fp->lpReadPointer = 0;
 	return ret;
 }
 

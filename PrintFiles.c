@@ -621,7 +621,6 @@ footerprint:
  * Enable / disable the preview next/previous buttons. 
  */
 static prt_enablePreviewButtons(HWND hDlg, int numberOfPreviewPages, int newPage) {
-	PRTPARAM* pParams = config_getPrintConfiguration();
 	_currentPrintScope.printRange.prtr_fromPage = _currentPrintScope.printRange.prtr_toPage = newPage;
 	SetDlgItemInt(hDlg, IDD_INT1, newPage, 0);
 	EnableWindow(GetDlgItem(hDlg, IDD_FIRST_PAGE), newPage > 1);

@@ -343,7 +343,6 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 	int b = 1, dummy;
 	UINT_PTR id;
 	POINT pStart = (POINT){ x, y };
-	FTABLE* fp = wp->fp;
 
 	caret_placeToXY(wp, x, y);
 	if (!DragDetect(wp->ww_handle, pStart)) {

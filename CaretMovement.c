@@ -473,20 +473,6 @@ int caret_placeCursorAndSavePosition(WINFO* wp, long ln, long col)
 }
 
 /*--------------------------------------------------------------------------
- * caret_placeCursorMakeVisible()
- * Place a cursor to the new line number and column and scroll to make the cursor
- * visible.
- */
-EXPORT int caret_placeCursorMakeVisible(WINFO* wp, long ln, long col)
-{
-	if (wp == NULL) {
-		return 0;
-	}
-	wi_adjust(wp,ln,0);
-	return caret_placeCursorInCurrentFile(wp, ln,col);
-}
-
-/*--------------------------------------------------------------------------
  * caret_placeCursorAndMakevisibleWithSpace()
  * Place a cursor to the new line number and column and scroll to make the cursor
  * visible. Leave some rows space at top / bottom of the screen.

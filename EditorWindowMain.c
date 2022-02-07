@@ -263,16 +263,6 @@ HWND ww_createEditWindow(char* pTitle, LPVOID lParam, const char* pszHint) {
 	return mainframe_addWindow(&hHint, szEditClass, pTitle, lParam);
 }
 
-/*--------------------------------------------------------------------------
- * win_getstate()
- * Get the current window placement.
- */
-EXPORT void win_getstate(HWND hwnd, WINDOWPLACEMENT* wsp)
-{
-	wsp->length = sizeof * wsp;
-	GetWindowPlacement(hwnd, wsp);
-}
-
 /*-----------------------------------------------------------
  * ww_isColumnSelectionMode()
  */

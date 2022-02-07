@@ -445,11 +445,6 @@ typedef struct tagFILE_READ_OPTIONS {
 
 extern int ft_readfileWithOptions(FTABLE* fp, FILE_READ_OPTIONS* pOptions);
 
-/*---------------------------------*/
-/* ft_writeFileAndClose()				*/
-/*---------------------------------*/
-extern int ft_writeFileAndClose(FTABLE* fp, char* name, int flags);
-
 extern void ft_checkForChangedFiles(BOOL bActive);
 
 /*---------------------------------*/

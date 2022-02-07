@@ -47,31 +47,6 @@ static int getCurrentDocumentTypeContext(void)
 	return DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
 }
 
-/*--------------------------------------------------------------------------
- * macro_isInCurrentDocumentContext()
- * Check, whether the passed document context identifier matches the document
- * context of the current open file.
- */
-int macro_isInCurrentDocumentContext(int ctx)
-{
-	if (ctx != DEFAULT_DOCUMENT_DESCRIPTOR_CTX && ctx != getCurrentDocumentTypeContext())
-		return 0;
-	
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * macro_printListHeader()
- */
-void macro_printListHeader(FILE *fp, char *itemname)
-{	FTABLE *ftp;
-
-	ftp = ft_getCurrentDocument();
-
-	fprintf(fp,"\nList of active %s for file \"%s\"\n\n",itemname,
-		ftp ? string_getBaseFilename(ftp->fname) : "(no file)");
-}
-
 /*
  * file_createTempFile()
  * Create a temp file and return the name of the file created in "dest". The

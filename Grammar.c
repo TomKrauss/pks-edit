@@ -521,28 +521,29 @@ RE_PATTERN* grammar_compile(GRAMMAR* pGrammar, GRAMMAR_PATTERN* pGrammarPattern)
  */
 static void grammar_addCharTransition(GRAMMAR* pGrammar, unsigned char cChar, LEXICAL_STATE state) {
 	LONGLONG oldState = pGrammar->transitions[cChar];
+	LONGLONG newState = state;
 	if (oldState & (CHARACTER_STATE_MASK << (9* CHARACTER_STATE_SHIFT))) {
 		error_displayAlertDialog("More than 8 grammar states entered by character '%c'. Grammar '%s' may not work correctly.", cChar, pGrammar->scopeName);
 	} else if (oldState & (CHARACTER_STATE_MASK << (8 * CHARACTER_STATE_SHIFT))) {
-		state <<= (8 * CHARACTER_STATE_SHIFT);
+		newState <<= (8 * CHARACTER_STATE_SHIFT);
 	} else if (oldState & (CHARACTER_STATE_MASK << (7 * CHARACTER_STATE_SHIFT))) {
-		state <<= (7 * CHARACTER_STATE_SHIFT);
+		newState <<= (7 * CHARACTER_STATE_SHIFT);
 	} else if (oldState & (CHARACTER_STATE_MASK << (6 * CHARACTER_STATE_SHIFT))) {
-		state <<= (7 * CHARACTER_STATE_SHIFT);
+		newState <<= (7 * CHARACTER_STATE_SHIFT);
 	} else if (oldState & (CHARACTER_STATE_MASK << (5 * CHARACTER_STATE_SHIFT))) {
-		state <<= (6 * CHARACTER_STATE_SHIFT);
+		newState <<= (6 * CHARACTER_STATE_SHIFT);
 	} else if (oldState & (CHARACTER_STATE_MASK << (4* CHARACTER_STATE_SHIFT))) {
-		state <<= (5* CHARACTER_STATE_SHIFT);
+		newState <<= (5* CHARACTER_STATE_SHIFT);
 	} else if (oldState & (CHARACTER_STATE_MASK << (3* CHARACTER_STATE_SHIFT))) {
-		state <<= (4* CHARACTER_STATE_SHIFT);
+		newState <<= (4* CHARACTER_STATE_SHIFT);
 	} else if (oldState & (CHARACTER_STATE_MASK << (2* CHARACTER_STATE_SHIFT))) {
-		state <<= (3* CHARACTER_STATE_SHIFT);
+		newState <<= (3* CHARACTER_STATE_SHIFT);
 	} else if (oldState & (CHARACTER_STATE_MASK << CHARACTER_STATE_SHIFT)) {
-		state <<= (2* CHARACTER_STATE_SHIFT);
+		newState <<= (2* CHARACTER_STATE_SHIFT);
 	} else if (oldState & CHARACTER_STATE_MASK) {
-		state <<= CHARACTER_STATE_SHIFT;
+		newState <<= CHARACTER_STATE_SHIFT;
 	}
-	pGrammar->transitions[cChar] = oldState | state;
+	pGrammar->transitions[cChar] = oldState | newState;
 }
 
 /*
