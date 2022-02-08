@@ -616,8 +616,8 @@ void ww_modeChanged(WINFO* wp) {
 	if (wp->ww_handle) {
 		sl_size(wp);
 		font_selectStandardFont(wp->ww_handle, wp);
-		wt_tcursor(wp, 0);
-		wt_tcursor(wp, 1);
+		wt_setCaretVisibility(wp, 0);
+		wt_setCaretVisibility(wp, 1);
 		caret_placeCursorForFile(wp, wp->caret.ln, wp->caret.offset, wp->caret.col, 0);
 	}
 
@@ -887,6 +887,7 @@ void ww_destroy(WINFO *wp) {
 	}
 	ww_destroyRendererData(wp);
 	ll_destroy((LINKED_LIST**)&wp->fmark, (int (*)(void* elem))0);
+	ll_destroy((LINKED_LIST**)&wp->caret.next, (int (*)(void* elem))0);
 	wp->blstart = 0;
 	wp->blend = 0;
 	wp->fp = NULL;
@@ -1309,7 +1310,7 @@ static WINFUNC WorkAreaWndProc(
 
 	case WM_KILLFOCUS: {
 			if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
-				wt_tcursor(wp, 0);
+				wt_setCaretVisibility(wp, 0);
 			}
 		}
 		break;
@@ -1319,7 +1320,7 @@ static WINFUNC WorkAreaWndProc(
 		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
 			ll_moveElementToFront((LINKED_LIST**)&_winlist, wp);
 			mainframe_windowActivated(wpOld != NULL ? wpOld->edwin_handle : NULL, wp->edwin_handle);
-			wt_tcursor(wp, 1);
+			wt_setCaretVisibility(wp, 1);
 			FTABLE* fp = wp->fp;
 			ft_currentFileChanged(fp);
 		} else {

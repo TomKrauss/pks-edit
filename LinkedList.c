@@ -87,6 +87,9 @@ int ll_indexTwoElements(LINKED_LIST* pHead, void* lp1, void* lp2, long *pIdx1, l
 		if ((lc = lc->next) == 0) return 0;
 		if (lc == lp1) {
 			idx1 = ln;
+			if (lc == lp2) {
+				idx2 = ln;
+			}
 			if (idx2 >= 0) {
 				break;
 			}

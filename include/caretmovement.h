@@ -30,12 +30,27 @@ extern int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags);
  */
 extern void caret_placeToXY(WINFO* wp, int x, int y);
 
+/**
+ * Add a secondary window caret with the mouse.
+ */
+extern int caret_addSecondaryWithMouse();
+
 /*--------------------------------------------------------------------------
  * caret_getPreviousColumnInLine()
  * Got back one screen column in a line and return the new column considering internal
  * structure of the data and return the new offset into the line buffer.
  */
 extern int caret_getPreviousColumnInLine(WINFO* wp, LINE* lp, int col);
+
+/*
+ * Adds a secondary caret to a window.
+ */
+extern int caret_addSecondary(WINFO* wp, long ln, long nLineOffset);
+
+/*
+ * Removes all secondary carets from the screen.
+ */
+extern int caret_removeSecondaryCarets();
 
 /*
  * Update the current selection in a window. It is assumed that the caret has moved with an "extend selection"
@@ -128,8 +143,8 @@ extern int caret_placeCursorMakeVisibleAndSaveLocation(WINFO* wp, long ln, long 
 extern void caret_calculateOffsetFromScreen(WINFO* wp, int x, int y, long* line, long* column);
 
 /*--------------------------------------------------------------------------
- * cphypos()
- * cursoraddressierung with slider and mouse
+ * caret_updateDueToMouseClick()
+ * place carets when the mouse is clicked or the slider was moved.
  */
 extern int caret_updateDueToMouseClick(WINFO* wp, long* ln, long* col, int newcol);
 

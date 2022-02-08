@@ -21,6 +21,7 @@ Here are some highlights:
 - search & replace in multiple files
 - compare files
 - syntax highlighting
+- multi-caret editing
 - edit one file in multiple windows
 - follow cross references in code and references to other files and URLs (cross references in code requires a tag file - 
 e.g. created using ctags)

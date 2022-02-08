@@ -402,6 +402,51 @@ EXPORT int caret_placeCursorForFile(WINFO *wp, long ln, long col, long screenCol
 	return 1;
 }
 
+/*
+ * Adds a secondary caret to a window.
+ */
+int caret_addSecondary(WINFO* wp, long ln, long nLineOffset) {
+	LINE* lp = ln_goto(wp->fp, ln);
+	if (!lp) {
+		return 0;
+	}
+	CARET* pOld = wp->caret.next;
+	while (pOld) {
+		// do not add caret to existing secondary caret position.
+		if (pOld->linePointer == lp && pOld->offset == nLineOffset) {
+			return 0;
+		}
+		pOld = pOld->next;
+	}
+	CARET* pNew = (CARET*)ll_append((LINKED_LIST**) &wp->caret.next, sizeof(CARET));
+	if (!pNew) {
+		return 0;
+	}
+	pNew->offset = nLineOffset > lp->len ? lp->len : nLineOffset;
+	pNew->ln = ln;
+	pNew->linePointer = lp;
+	render_repaintLineRangeWindow(wp, lp, lp);
+	return 1;
+}
+
+/*
+ * Removes all secondary carets from the screen.
+ */
+int caret_removeSecondaryCarets() {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (wp == NULL) {
+		return 0;
+	}
+	CARET* pCaret = wp->caret.next;
+	while (pCaret) {
+		LINE* lp = pCaret->linePointer;
+		render_repaintLineRangeWindow(wp, lp, lp);
+		pCaret = pCaret->next;
+	}
+	ll_destroy((LINKED_LIST**) & wp->caret.next, 0);
+	return 1;
+}
+
 /*--------------------------------------------------------------------------
  * caret_placeCursorInCurrentFile()
  * cursor absolut positioning for the current file.

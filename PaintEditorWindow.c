@@ -120,6 +120,23 @@ static void render_fillBuf(char* pszBuf, int fillChar, int nLen) {
 	pszBuf[nLen] = 0;
 }
 
+/*
+ * Render a secondary caret.
+ */
+static void render_secondaryCaret(RENDER_CONTEXT* pRC, int x, int y, LINE* lp, CARET* pCaret) {
+	if (pCaret->linePointer == lp) {
+		WINFO* wp = pRC->rc_wp;
+		HDC hdc = pRC->rc_hdc;
+		int i = caret_lineOffset2screen(wp, &(CARET) {.linePointer = lp, .offset = pCaret->offset});
+		x += i * wp->cwidth;
+		HPEN hPen = CreatePen(PS_SOLID, 1, pRC->rc_theme->th_dialogBorder);
+		HPEN hPenOld = SelectObject(hdc, hPen);
+		MoveToEx(hdc, x, y, NULL);
+		LineTo(hdc, x, y + wp->cheight);
+		DeleteObject(SelectObject(hdc, hPenOld));
+	}
+}
+
 /*--------------------------------------------------------------------------
  * render_singleLineOnDevice()
  */
@@ -230,6 +247,11 @@ int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long 
 	}
 	if (showcontrol && i >= wp->mincol && !(lp->lflg & LNNOTERM) && x >= startX && s >= send) {
 		render_formattedString(pRC, x, y, (lp->lflg & LNNOCR) ? "¬" : "¶", 1, FS_CONTROL_CHARS, &fsPreviousClass);
+	}
+	CARET* pCaret = wp->caret.next;
+	while (pCaret) {
+		render_secondaryCaret(pRC, startX, y, lp, pCaret);
+		pCaret = pCaret->next;
 	}
 	return (x-startX)/wp->cwidth;
 }
@@ -656,8 +678,8 @@ void ww_setZoom(WINFO* wp, float newFactor) {
 	HDC hdc = BeginPaint(wp->ww_handle, &ps);
 	font_selectFontStyle(theme_getCurrent(), wp, FS_NORMAL, hdc);
 	EndPaint(wp->ww_handle, &ps);
-	wt_tcursor(wp, 0);
-	wt_tcursor(wp, 1);
+	wt_setCaretVisibility(wp, 0);
+	wt_setCaretVisibility(wp, 1);
 	wp->renderer->r_adjustScrollBounds(wp);
 	render_repaintForWindow(wp, NULL);
 

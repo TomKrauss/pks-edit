@@ -106,17 +106,22 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 		MARK* mp = wp->fmark;
 		while (mp) {
 			if (mp->m_linePointer == pChanged->lp) {
-				/* if (mp != wp->blstart && mp != wp->blend) { */
 				if (mp->m_column >= pChanged->col1) mp->m_column += pChanged->len;
 				else if (mp->m_column > pChanged->col2) mp->m_column = pChanged->col2;
-				/* } */
 			}
 			mp = mp->m_next;
 		}
+		CARET* pCaret = wp->caret.next;
+		while (pCaret) {
+			if (pCaret->linePointer == pChanged->lp) {
+				if (pCaret->offset >= pChanged->col1) pCaret->offset += pChanged->len;
+				else if (pCaret->offset > pChanged->col2) pCaret->offset = pChanged->col2;
+			}
+			pCaret = pCaret->next;
+		}
 		if (wp->blstart && wp->blend &&
 			wp->blstart->m_linePointer == wp->blend->m_linePointer &&
-			wp->blstart->m_column >= wp->blend->m_column
-			)
+			wp->blstart->m_column >= wp->blend->m_column)
 			bl_hideSelection(wp, 0);
 	}
     break;
@@ -129,8 +134,12 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 				}
 				mp = mp->m_next;
 			}
-			if (wp->caret.linePointer == pChanged->lp) {
-				wp->caret.linePointer = pChanged->lpNew;
+			CARET* pCaret = &wp->caret;
+			while (pCaret) {
+				if (pCaret->linePointer == pChanged->lp) {
+					pCaret->linePointer = pChanged->lpNew;
+				}
+				pCaret = pCaret->next;
 			}
 	}
 		break;
@@ -166,9 +175,14 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 	case LINE_DELETED:
 		ln_delmarks(wp, pChanged->lp);
 		// drop through
-	case LINE_INSERTED:
-		if (wp->caret.linePointer == pChanged->lp) {
-			wp->caret.linePointer = pChanged->lpNew;
+	case LINE_INSERTED: {
+			CARET* pCaret = &wp->caret;
+			while (pCaret) {
+				if (pCaret->linePointer == pChanged->lp) {
+					pCaret->linePointer = pChanged->lpNew;
+				}
+				pCaret = pCaret->next;
+			}
 		}
 		break;
 	}

@@ -39,11 +39,18 @@
 #include "funcdef.h"
 
 #define	MAX_CONTEXT	32
+#define MAX_SECONDARY 6
+
+typedef struct tagCARET_DELTA {
+	long cd_deltaLn;		// If the cursor should be positioned after inserting the template, this is the number of lines relative to the beginning of the inserted code.
+	long cd_deltaCol;		// If the cursor should be positioned after inserting the template, this is the number of columns relative to the beginning of the inserted code.
+} CARET_DELTA;
 
 typedef struct tagTEMPLATE_ACTION {
 	BOOL ta_positionCursor;		// true, if the cursor should be positioned after inserting the template.
-	long ta_cursorDeltaLn;		// If the cursor should be positioned after inserting the template, this is the number of lines relative to the beginning of the inserted code.
-	long ta_cursorDeltaCol;		// If the cursor should be positioned after inserting the template, this is the number of columns relative to the beginning of the inserted code.
+	CARET_DELTA ta_cursorDelta;	// If the cursor should be positioned after inserting the template, this is the number of lines relative to the beginning of the inserted code.
+	int  ta_secondaryCarets;	// Number of secondary carets.
+	CARET_DELTA ta_secondary[MAX_SECONDARY];	// The secondary carets to create.
 	long ta_selectionDeltaLn;	// If text should be selected after inserting the template, this is the number of lines relative to the cursor as specified by ta_cursorDeltaLn.
 	long ta_selectionDeltaCol;	// If text should be selected after inserting the template, this is the number of columns relative to the cursor as specified by ta_cursorDeltaLn.
 } TEMPLATE_ACTION;
@@ -83,9 +90,17 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction
 				*pVar = 0;
 				expandedVariable[0] = 0;
 				if (strcmp("cursor", variable) == 0) {
-					pTAction->ta_cursorDeltaCol = col;
-					pTAction->ta_cursorDeltaLn = ln;
+					pTAction->ta_cursorDelta.cd_deltaCol = col;
+					pTAction->ta_cursorDelta.cd_deltaLn = ln;
 					pTAction->ta_positionCursor = TRUE;
+				} else if (strcmp("secondary", variable) == 0) {
+					if (pTAction->ta_secondaryCarets < MAX_SECONDARY) {
+						CARET_DELTA* pDelta = &pTAction->ta_secondary[pTAction->ta_secondaryCarets++];
+						pDelta->cd_deltaCol = col;
+						pDelta->cd_deltaLn = ln;
+					}
+					// currently not supported.
+					bUseTabs = FALSE;
 				} else if (strcmp("indent", variable) == 0) {
 					for (int i = 0; i < nIndent; i++) {
 						stringbuf_appendChar(pResult, chSpace);
@@ -98,8 +113,8 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction
 					}
 					col += fp->documentDescriptor->tabsize;
 				} else if (strcmp("selection_end", variable) == 0) {
-					pTAction->ta_selectionDeltaCol = col - pTAction->ta_cursorDeltaCol;
-					pTAction->ta_selectionDeltaLn = ln - pTAction->ta_cursorDeltaLn;
+					pTAction->ta_selectionDeltaCol = col - pTAction->ta_cursorDelta.cd_deltaCol;
+					pTAction->ta_selectionDeltaLn = ln - pTAction->ta_cursorDelta.cd_deltaLn;
 				} else if (strcmp("word_selection", variable) == 0) {
 					strcpy(expandedVariable, pszSelected);
 				} else {
@@ -186,8 +201,8 @@ int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
 		CARET oldCaret = wp->caret;
 		bl_pasteBlock(&pasteBuffer, 0, oldCaret.offset, 0);
 		if (templateAction.ta_positionCursor) {
-			long col = templateAction.ta_cursorDeltaLn ? templateAction.ta_cursorDeltaCol : templateAction.ta_cursorDeltaCol + oldCaret.offset;
-			long ln = templateAction.ta_cursorDeltaLn + oldCaret.ln;
+			long col = templateAction.ta_cursorDelta.cd_deltaLn ? templateAction.ta_cursorDelta.cd_deltaCol : templateAction.ta_cursorDelta.cd_deltaCol + oldCaret.offset;
+			long ln = templateAction.ta_cursorDelta.cd_deltaLn + oldCaret.ln;
 			caret_placeCursorInCurrentFile(wp, ln, col);
 			if (templateAction.ta_selectionDeltaCol || templateAction.ta_selectionDeltaLn) {
 				bl_hideSelection(wp, 0);
@@ -196,6 +211,11 @@ int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
 				ln += templateAction.ta_selectionDeltaLn;
 				caret_placeCursorInCurrentFile(wp, ln, col);
 				EdSyncSelectionWithCaret(MARK_END);
+			}
+			for (int i = 0; i < templateAction.ta_secondaryCarets; i++) {
+				CARET_DELTA* pDelta = &templateAction.ta_secondary[i];
+				int col = pDelta->cd_deltaLn ? pDelta->cd_deltaCol : oldCaret.offset + pDelta->cd_deltaCol;
+				caret_addSecondary(wp, oldCaret.ln+pDelta->cd_deltaLn, col);
 			}
 		}
 		ln_listfree(pasteBuffer.pln);

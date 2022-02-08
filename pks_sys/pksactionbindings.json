@@ -477,6 +477,10 @@
       "command": "@split-line-indent-plus"
     },
     {
+      "key": "ESCAPE",
+      "command": "@remove-secondary-carets"
+    },
+    {
       "key": "Alt+ESCAPE",
       "command": "@set-multiplikator"
     },
@@ -726,7 +730,7 @@
     },
     {
       "mouse": "Alt+MLeft(1)",
-      "command": "@mouse-select-lines"
+      "command": "@add-secondary-caret-mouse"
     },
     {
       "mouse": "Alt+Shift+MLeft(1)",

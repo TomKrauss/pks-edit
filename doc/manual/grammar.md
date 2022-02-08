@@ -72,6 +72,8 @@ The following variables are supported:
 - `${indent}` - insert the number of spaces matching the indent of the line from which the template is inserted
 - `${tab}` - insert the number of spaces to fill up one tab position.
 - `${cursor}` - after inserting the template, place the cursor here
+- `${secondary}` - after inserting the template, place a secondary cursor here (up to 6 secondary carets are supported). This
+-    can be used to edit multiple places in the code concurrently / to start multi-caret input.
 - `${file_name}` - base name of the current file
 - `${selection_end}` - used in combination with ${cursor} to select a range of text after inserting the template.
 - `${word_selection}` - the "word/identifier" close to the input caret or text currently selected.

@@ -55,12 +55,6 @@ extern void 	render_updateCaret(WINFO *wp);
 extern long 	_multiplier;
 
 /*--------------------------------------------------------------------------
- * EdCharDelete()
- * delete character(s), words, ....
- */
-int EdCharDelete(int control);
-
-/*--------------------------------------------------------------------------
  * edit_calculateColumns2TabsBlanks()
  * calculate the number of TABs and SPACEs we need, if we want to insert
  * a certain # of "blank" columns on start of the line
@@ -200,6 +194,21 @@ static int edit_postProcessInsertLine(WINFO *wp, int dir, long ln, long col)
 		return TRUE;
 	}
 	return edit_handleBracketIndenting(wp,dir,lp->prev,lp);
+}
+
+/*
+ * Cursor placement also handling multi-cursors.
+ */
+static int edit_placeCursor(WINFO* wp, CARET* pCaret, long nLine, long nOffset) {
+	if (pCaret == &wp->caret) {
+		return caret_placeCursorInCurrentFile(wp, nLine, nOffset);
+	}
+	pCaret->offset = nOffset;
+	if (pCaret->ln != nLine) {
+		pCaret->linePointer = ln_relative(pCaret->linePointer, nLine - pCaret->ln);
+		pCaret->ln = nLine;
+	}
+	return 1;
 }
 
 /*
@@ -421,6 +430,36 @@ static int edit_breakline(WINFO* wp, CARET* pCaret, int soft)
 	return edit_postProcessInsertLine(wp,1, pCaret->ln+1L,(long)ai);
 }
 
+/*
+ * Split one line at the given caret position.
+ */
+static int edit_splitLine(WINFO* wp, CARET* pCaret, int flags) {
+	int control;
+	FTABLE* fp;
+	LINE* lp;
+
+	lp = pCaret->linePointer;
+	fp = wp->fp;
+	control = flags & (RET_PLUS | RET_MINUS);
+
+	if (wp->workmode & WM_INSERT) {
+		if (control & RET_PLUS) {
+			_deltaindent = 1;
+		}
+		else if (control & RET_MINUS) {
+			_deltaindent = -1;
+		}
+		edit_breakline(wp, pCaret, flags & RET_SOFT);
+	}
+	else if (lp->next != fp->lastl) {
+		edit_placeCursor(wp, pCaret, pCaret->ln + 1, 0L);
+	}
+	else if (!control) {
+		edit_insertLine(0);
+	}
+	return 1;
+}
+
 /*--------------------------------------------------------------------------
  * ww_getRightMargin()
  * Returns the right margin as current configured the way it should be used for e.g. painting.
@@ -484,18 +523,18 @@ static int edit_findWrappingPosition(WINFO* wp, LINE* lp, int cursoffset, int* n
 /*--------------------------------------------------------------------------
  * edit_wrapAround()
  */
-static void edit_wrapAround(WINFO *wp) {
+static void edit_wrapAround(WINFO *wp, CARET* pCaret) {
 	int nextword,delta;
 
-	if (edit_findWrappingPosition(wp, wp->caret.linePointer,wp->caret.offset,&nextword,ww_getRightMargin(wp)) > 0) {
+	if (edit_findWrappingPosition(wp, pCaret->linePointer, pCaret->offset,&nextword,ww_getRightMargin(wp)) > 0) {
 		delta = wp->caret.offset-nextword;
-		caret_placeCursorInCurrentFile(wp, wp->caret.ln,(long)nextword);
-		EdLineSplit(0);
+		edit_placeCursor(wp, pCaret, pCaret->ln,(long)nextword);
+		edit_splitLine(wp, pCaret, 0);
 		if (delta < 0)
 			delta += wp->caret.offset;
 		if (delta < 0)
 			delta = 0;
-		caret_placeCursorInCurrentFile(wp, wp->caret.ln,(long)(wp->caret.offset+delta));
+		edit_placeCursor(wp, pCaret, pCaret->ln,(long)(pCaret->offset+delta));
 	}
 }
 
@@ -715,110 +754,6 @@ static int edit_autoFormat(WINFO *wp) {
 	return edit_autoFormatRange(wp);
 }
 
-/*--------------------------------------------------------------------------
- * EdCharInsert()
- * normal Character insert
- */
-int EdCharInsert(int c)
-{	FTABLE *		fp;
-	EDIT_CONFIGURATION *		lnp;
-	LINE *		lp;
-	int			len;
-	int			offs;
-	int			nchars;
-	int			workmode;
-	extern int 	_playing;
-	WINFO* wp = ww_getCurrentEditorWindow();
-
-	fp = wp->fp;
-	lnp = fp->documentDescriptor;
-	if (c < 32 && c != 8 && c != '\t' && c != 10 && c != lnp->nl && c != lnp->cr) {
-		return 0;
-	}
-
-	if (_playing != 2) {
-		macro_recordFunction(fp, c);
-	}
-
-	if (c == lnp->nl || c == lnp->cr || (c == 10 && lnp->nl < 0)) {
-		return EdLineSplit(c == lnp->nl ? RET_SOFT : 0);
-	}
-
-	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_hasSelection(wp)) {
-		EdBlockDelete(0);
-		if (c == 8 || c == 127) {
-			return 1;
-		}
-	}
-
-	if (c == 8)
-		return EdCharDelete(-1);
-
-	if (c == 127)
-		return EdCharDelete(1);
-
-	workmode = wp->workmode;
-
-	if (c & 0x100) {
-		c &= 0xFF;
-	} else if (workmode & WM_OEMMODE) {
-		char source[2];
-		char string2[10];
-		source[0] = c;
-		source[1] = 0;
-		AnsiToOemBuff(source,string2,1);
-		c = *string2;
-	}
-
-	offs = wp->caret.offset;
-
-	if (c == '\t' && lnp->expandTabsWith) {
-		int n2 = caret_lineOffset2screen(wp, &wp->caret);
-		int n = indent_calculateNextTabStop(n2, &wp->indentation);
-		nchars = n - n2;
-		c = lnp->expandTabsWith;
-	} else {
-		nchars = 1;
-
-	}
-
-	if (workmode & WM_INSERT || offs >= wp->caret.linePointer->len) {
-		len = nchars;
-	} else {
-		len = 0;
-	}
-
-	if ((lp = ln_modify(fp,wp->caret.linePointer,offs,offs+len)) == 0L) return 0;
-	memset(&lp->lbuf[offs],c,nchars);
-
-#if 0
-	render_repaintLinePart(offs,10000);
-#else
-	render_repaintCurrentLine(wp);
-#endif
-
-	offs += nchars;
-	caret_placeCursorForFile(wp, wp->caret.ln, offs, wp->caret.col+nchars, 0);
-
-	codecomplete_updateCompletionList(wp, FALSE);
-	if (!_playing) {
-
-		if (workmode & WM_ABBREV) {
-			macro_expandAbbreviation(wp,lp,offs);
-		}
-		if (workmode & WM_SHOWMATCH) {
-			uc_showMatchingBracket(wp);
-		}
-
-		if (!edit_autoFormat(wp) &&
-		    (workmode & WM_AUTOWRAP) && 
-			wp->caret.offset >= ww_getRightMargin(wp)) {
-			edit_wrapAround(wp);
-		}
-	}
-	return 1;
-}
-
 /**
  * Return the next column up to which a single character DEL should delete.
  */
@@ -871,12 +806,14 @@ static int edit_findPreviousOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) 
 		if (nDelta > 1) {
 			if (nNewOffset < 0) {
 				nNewOffset = 0;
-			} else if (!edit_isSpace(lp, fp->documentDescriptor, nNewOffset)) {
+			}
+			else if (!edit_isSpace(lp, fp->documentDescriptor, nNewOffset)) {
 				nNewOffset++;
 				if (nDelta > 2) {
 					nNewOffset++;
 				}
-			} else if (nNewOffset > 0 && !edit_isSpace(lp, fp->documentDescriptor, nNewOffset-1)) {
+			}
+			else if (nNewOffset > 0 && !edit_isSpace(lp, fp->documentDescriptor, nNewOffset - 1)) {
 				nNewOffset++;
 			}
 		}
@@ -908,7 +845,7 @@ static int edit_deleteChar(WINFO* wp, CARET* pCaret, int control, int nMatchChar
 			return 1;
 		if ((lp = lp->prev) == 0L)
 			return 0;
-		caret_placeCursorInCurrentFile(wp, ln - 1L, (long)lp->len);
+		edit_placeCursor(wp, pCaret, ln - 1L, (long)lp->len);
 		return edit_joinLines(wp, pCaret);
 	}
 	else switch (control) {
@@ -940,17 +877,124 @@ static int edit_deleteChar(WINFO* wp, CARET* pCaret, int control, int nMatchChar
 	}
 
 	if (control < 0)
-		caret_placeCursorInCurrentFile(wp, ln, o1);
+		edit_placeCursor(wp, pCaret, ln, o1);
 
 	if (ln != ln1) {
 		render_repaintAllForFile(fp);
-	}
-	else {
-		render_repaintCurrentLine(wp);
+	} else {
+		render_repaintLine(fp, pCaret->linePointer);
 	}
 	edit_autoFormat(wp);
 	codecomplete_updateCompletionList(wp, FALSE);
 
+	return 1;
+}
+
+/*--------------------------------------------------------------------------
+ * EdCharInsert()
+ * normal Character insert
+ */
+int EdCharInsert(int c)
+{	FTABLE *		fp;
+	EDIT_CONFIGURATION *lnp;
+	LINE *		lp;
+	int			len;
+	int			offs;
+	int			nchars;
+	int			workmode;
+	extern int 	_playing;
+	WINFO* wp = ww_getCurrentEditorWindow();
+
+	fp = wp->fp;
+	lnp = fp->documentDescriptor;
+	if (c < 32 && c != 8 && c != '\t' && c != 10 && c != lnp->nl && c != lnp->cr) {
+		return 0;
+	}
+
+	if (_playing != 2) {
+		macro_recordFunction(fp, c);
+	}
+
+	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_hasSelection(wp)) {
+		EdBlockDelete(0);
+		if (c == 8 || c == 127) {
+			return 1;
+		}
+	}
+
+	CARET* pCaret = &wp->caret;
+	workmode = wp->workmode;
+	BOOL bNormalChar = FALSE;
+	while (pCaret) {
+		int nRet;
+		if (c == lnp->nl || c == lnp->cr || (c == 10 && lnp->nl < 0)) {
+			nRet = edit_splitLine(wp, pCaret, c == lnp->nl ? RET_SOFT : 0);
+		} else if (c == 8) {
+			nRet = edit_deleteChar(wp, pCaret, -1, 0);
+		}
+		else if (c == 127) {
+			nRet = edit_deleteChar(wp, pCaret, 1, 0);
+		} else {
+			bNormalChar = TRUE;
+			if (c & 0x100) {
+				c &= 0xFF;
+			} else if (workmode & WM_OEMMODE) {
+				char source[2];
+				char string2[10];
+				source[0] = c;
+				source[1] = 0;
+				AnsiToOemBuff(source, string2, 1);
+				c = *string2;
+			}
+			offs = pCaret->offset;
+			if (c == '\t' && lnp->expandTabsWith) {
+				int n2 = caret_lineOffset2screen(wp, pCaret);
+				int n = indent_calculateNextTabStop(n2, &wp->indentation);
+				nchars = n - n2;
+				c = lnp->expandTabsWith;
+			} else {
+				nchars = 1;
+			}
+			if (workmode & WM_INSERT || offs >= pCaret->linePointer->len) {
+				len = nchars;
+			} else {
+				len = 0;
+			}
+
+			if ((lp = ln_modify(fp, pCaret->linePointer, offs, offs + len)) == 0L) {
+				return 0;
+			}
+			memset(&lp->lbuf[offs], c, nchars);
+			render_repaintLine(fp, pCaret->linePointer);
+
+			offs += nchars;
+			edit_placeCursor(wp, pCaret, pCaret->ln, offs);
+			nRet = 1;
+		}
+		if (!nRet) {
+			return 0;
+		}
+		pCaret = pCaret->next;
+	}
+	if (!bNormalChar) {
+		return 1;
+	}
+	codecomplete_updateCompletionList(wp, FALSE);
+	if (!_playing) {
+
+		if (workmode & WM_ABBREV) {
+			macro_expandAbbreviation(wp,lp,offs);
+		}
+		if (workmode & WM_SHOWMATCH) {
+			uc_showMatchingBracket(wp);
+		}
+
+		if (!edit_autoFormat(wp) &&
+		    (workmode & WM_AUTOWRAP) && 
+			wp->caret.offset >= ww_getRightMargin(wp)) {
+			edit_wrapAround(wp, pCaret);
+		}
+	}
 	return 1;
 }
 
@@ -970,36 +1014,6 @@ int EdCharDelete(int control) {
 			return 0;
 		}
 		pCaret = pCaret->next;
-	}
-	return 1;
-}
-
-/*
- * Split one line at the given caret position.
- */
-static int edit_splitLine(WINFO* wp, CARET* pCaret, int flags) {
-	int control;
-	FTABLE* fp;
-	LINE* lp;
-
-	lp = pCaret->linePointer;
-	fp = wp->fp;
-	control = flags & (RET_PLUS | RET_MINUS);
-
-	if (wp->workmode & WM_INSERT) {
-		if (control & RET_PLUS) {
-			_deltaindent = 1;
-		}
-		else if (control & RET_MINUS) {
-			_deltaindent = -1;
-		}
-		edit_breakline(wp, pCaret, flags & RET_SOFT);
-	}
-	else if (lp->next != fp->lastl) {
-		caret_placeCursorInCurrentFile(wp, pCaret->ln + 1, 0L);
-	}
-	else if (!control) {
-		edit_insertLine(0);
 	}
 	return 1;
 }

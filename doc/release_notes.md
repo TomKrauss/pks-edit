@@ -5,6 +5,11 @@ This file contains the release notes for the latest **PKS Edit** releases.
 --- 
 ### 2.2.0
 
+#### New
+- PKS Edit supports now __multi-caret__ editing. Multi-caret editing is started by placing additional carets
+ with the mouse (`Alt+Click`) or by inserting a template which uses multi-caret input. In multi-caret mode all character inserts
+and character deletes (DEL + Backspace) are concurrently applied to multiple places in the code concurrently.
+
 ### Changed
 - all files previously stored in the old Windows INI-file format (`pksedit.his`, `pksedit.ini`) were replaced by JSON formatted files:
   `pkseditini.json` captures the standard PKS-Edit configuration, file `pkssession.json` contains _session_ information like the list

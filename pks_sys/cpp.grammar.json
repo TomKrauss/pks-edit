@@ -54,7 +54,7 @@
         },
         {
           "match": "for_loop",
-          "contents": "for (int ${word_selection}; ${word_selection} < ${cursor}10${selection_end}; ${word_selection}++) {\n${indent}${tab}printf(x);\n${indent}}\n"
+          "contents": "for (int x${cursor}; x${secondary} < 10; x${secondary}++) {\n${indent}${tab}printf(x${secondary});\n${indent}}\n"
         },
         {
           "match": "main_function",

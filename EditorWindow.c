@@ -174,10 +174,10 @@ void wt_curpos(WINFO *wp, long ln, long col)
 }
 
 /*------------------------------------------------------------
- * wt_tcursor()
- * change textcursor form
+ * wt_setCaretVisibility()
+ * Show hide the current main input caret.
  */
-void wt_tcursor(WINFO *wp,int type)
+void wt_setCaretVisibility(WINFO *wp,int type)
 {
 	if (type != wp->ctype) {
 		wp->ctype = type;

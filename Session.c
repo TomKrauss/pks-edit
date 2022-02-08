@@ -151,7 +151,7 @@ EXPORT void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type)
 
 	SendDlgItemMessage(hDlg, nItem, CB_RESETCONTENT, 0,0L);
 	int nSize = (int)arraylist_size(pArray);
-	for (int i = nSize; --i >= 0; i++) {
+	for (int i = nSize; --i >= 0; ) {
 		p = arraylist_get(pArray, i);
 		if (!q)
 			q = p;

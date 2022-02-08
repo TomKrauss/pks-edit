@@ -180,16 +180,39 @@ void caret_placeToXY(WINFO* wp, int x, int y) {
  * mouse_getXYPos()
  * Get the current window relative mouse position.
  */
-EXPORT void mouse_getXYPos(HANDLE hwnd, int *x, int *y)
-{	POINT p;
+EXPORT void mouse_getXYPos(HANDLE hwnd, int* x, int* y)
+{
+	POINT p;
 
 	if (!hwnd)
 		return;
-		
+
 	GetCursorPos(&p);
-	ScreenToClient(hwnd,&p);
+	ScreenToClient(hwnd, &p);
 	*x = p.x;
 	*y = p.y;
+}
+
+/**
+ * Add a secondary window caret with the mouse.
+ */
+int caret_addSecondaryWithMouse() {
+	long col, ln;
+	WINFO* wp = ww_getCurrentEditorWindow();
+
+	if (!wp) {
+		return 0;
+	}
+	int x, y;
+	mouse_getXYPos(wp->ww_handle, &x, &y);
+	wp->renderer->r_hitTest(wp, x, y, &ln, &col);
+	LINE* lp = ln_goto(wp->fp, ln);
+	if (!lp) {
+		return 0;
+	}
+	col = caret_screen2lineOffset(wp, &(CARET) {.linePointer = lp, .offset = col});
+	caret_addSecondary(wp, ln, col);
+	return 1;
 }
 
 /*------------------------------------------------------------
@@ -424,9 +447,9 @@ int macro_executeWithPosition(WINFO* wp, MACROREF* pRef, POINT pt) {
 }
 
 /*---------------------------------*/
-/* mfunct()					*/
+/* mouse_executeBinding()					*/
 /*---------------------------------*/
-static int mfunct(WINFO *wp, MOUSE_EVENT_BINDING *mp, int x, int y) {
+static int mouse_executeBinding(WINFO *wp, MOUSE_EVENT_BINDING *mp, int x, int y) {
 	const char* pszLabel = binding_getBoundText(&mp->msg);
 	if (pszLabel) {
 		error_displayErrorInToastWindow(pszLabel);
@@ -448,7 +471,7 @@ EXPORT int mouse_onMouseClicked(WINFO *wp, int x, int y, int b, int nclicks, int
 
 	if (mp || (mp = mouse_getMouseBind(b, nModifier, nclicks, wp->actionContext)) != 0) {
 		macro_stopRecordingFunctions();
-		mfunct(wp, mp, x, y);
+		mouse_executeBinding(wp, mp, x, y);
 		return 1;
 	}
 	return 0;

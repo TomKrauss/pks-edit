@@ -400,7 +400,7 @@ void render_asciiMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y)
  */
 void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y);
 
-extern void wt_tcursor(WINFO* wp, int type);
+extern void wt_setCaretVisibility(WINFO* wp, int type);
 
 /*------------------------------------------------------------
  * wt_scrollxy()

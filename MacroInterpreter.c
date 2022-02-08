@@ -27,6 +27,7 @@
 #include "mouseutil.h"
 #include "sym.h"
 #include "markpositions.h"
+#include "caretmovement.h"
 
 extern void 			macro_reportError(void);
 extern int 			EdMacroRecord(void);
@@ -373,10 +374,9 @@ void macro_recordFunction(FTABLE *fp, int p) {
 }
 
 /*---------------------------------*/
-/* macro_stopRecordingFunctions()					*/
+/* macro_stopRecordingFunctions()  */
 /*---------------------------------*/
-void macro_stopRecordingFunctions()
-{
+void macro_stopRecordingFunctions() {
 	_ccash.low  = 0;
 }
 
@@ -446,6 +446,7 @@ int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, voi
 
 	if ((fup->flags & EW_CCASH) == 0) {
 		macro_stopRecordingFunctions();
+		caret_removeSecondaryCarets();
 	}
 
 	if (_recording)
