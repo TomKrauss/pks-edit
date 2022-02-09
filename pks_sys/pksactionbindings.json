@@ -629,6 +629,10 @@
       "command": "@re-insert"
     },
     {
+      "key": "Ctrl+Shift+L",
+      "command": "@secondary-cursor-mark-words"
+    },
+    {
       "key": "Alt+Shift+LEFT",
       "command": "@goto-last-pos"
     },
@@ -661,15 +665,23 @@
       "command": "@cursor-to-space"
     },
     {
-      "key": "Alt+Ctrl+UP",
-      "command": "@scroll2-up-line"
-    },
-    {
       "key": "Alt+Ctrl+RIGHT",
       "command": "@cursor-back-to-space"
     },
     {
+      "key": "Alt+Ctrl+UP",
+      "command": "@secondary-cursor-up-line"
+    },
+    {
       "key": "Alt+Ctrl+DOWN",
+      "command": "@secondary-cursor-down-line"
+    },
+    {
+      "key": "Alt+Ctrl+Shift+UP",
+      "command": "@scroll2-up-line"
+    },
+    {
+      "key": "Alt+Ctrl+Shift+DOWN",
       "command": "@scroll2-down-line"
     },
     {

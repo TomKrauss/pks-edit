@@ -126,23 +126,27 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 	}
     break;
 	case LINE_REPLACED: {
-			MARK* mp = wp->fmark;
-
-			while (mp) {
-				if (mp->m_linePointer == pChanged->lp) {
-					mp->m_linePointer = pChanged->lpNew;
-				}
-				mp = mp->m_next;
+		MARK* mp = wp->fmark;
+		while (mp) {
+			if (mp->m_linePointer == pChanged->lp) {
+				mp->m_linePointer = pChanged->lpNew;
 			}
-			CARET* pCaret = &wp->caret;
-			while (pCaret) {
-				if (pCaret->linePointer == pChanged->lp) {
-					pCaret->linePointer = pChanged->lpNew;
-				}
-				pCaret = pCaret->next;
+			mp = mp->m_next;
+		}
+		CARET* pCaret = &wp->caret;
+		while (pCaret) {
+			if (pCaret->linePointer == pChanged->lp) {
+				pCaret->linePointer = pChanged->lpNew;
 			}
+			pCaret = pCaret->next;
+		}
+		WINFO* wp = WIPOI(fp);
+		// TODO: should be performed for all views.
+		if (wp && wp->lpMinln == pChanged->lp) {
+			wp->lpMinln = pChanged->lpNew;
+		}
 	}
-		break;
+	break;
 	case LINES_JOINED: {
 		MARK* mp = wp->fmark;
 		int		delta = pChanged->lp->len;

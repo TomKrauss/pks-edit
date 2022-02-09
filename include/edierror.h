@@ -118,9 +118,9 @@ extern void ln_errorLineTooLong(void);
 #define	MOT_SCREEN		4
 #define	MOT_UNTILC		4
 #define	MOT_PGRPH			4
-#define	MOT_FILE			4
-#define	MOT_SPACE			5
-#define	MOT_CENTER		5
+#define	MOT_FILE			4           // move to begin / end of file
+#define	MOT_SPACE			5           // move to next space
+#define	MOT_CENTER		    5           // move to center of page
 #define	MOT_XTNDBLOCK		0x100
 
 /* Flags for EdFileClose */

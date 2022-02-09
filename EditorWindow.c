@@ -124,10 +124,11 @@ int render_calculateScrollDelta(long val, long minval, long maxval, int scrollBy
 }
 
 /*------------------------------------------------------------
- * render_adjustScrollBounds()
+ * render_makeCaretVisible()
+ * scroll the window, so the given caret is visible.
  */
-int render_adjustScrollBounds(WINFO *wp) {
-	long dx,dy;
+int render_makeCaretVisible(WINFO* wp, CARET* pCaret) {
+	long dx, dy;
 
 	long minln = wp->mincursln;
 	long maxln = wp->maxcursln;
@@ -135,16 +136,24 @@ int render_adjustScrollBounds(WINFO *wp) {
 		// during startup - cannot adjust scroll bounds with 0 size.
 		return 0;
 	}
-	dy = render_calculateScrollDelta(wp->caret.ln, minln, maxln, wp->vscroll);
-	dx = render_calculateScrollDelta(wp->caret.col,wp->mincurscol,wp->maxcurscol,wp->hscroll);
+	dy = render_calculateScrollDelta(pCaret->ln, minln, maxln, wp->vscroll);
+	dx = render_calculateScrollDelta(pCaret->col, wp->mincurscol, wp->maxcurscol, wp->hscroll);
 
 	if (dx || dy) {
-		EdTRACE(log_errorArgs(DEBUG_WINMESS,"render_adjustScrollBounds -> (%ld,%ld)",dx,dy));
-		if (sl_scrollwinrange(wp,&dy,&dx))
-			sl_winchanged(wp,dy,dx);
+		EdTRACE(log_errorArgs(DEBUG_WINMESS, "render_adjustScrollBounds -> (%ld,%ld)", dx, dy));
+		if (sl_scrollwinrange(wp, &dy, &dx))
+			sl_winchanged(wp, dy, dx);
 		return 1;
 	}
 	return 0;
+}
+
+
+/*------------------------------------------------------------
+ * render_adjustScrollBounds()
+ */
+int render_adjustScrollBounds(WINFO *wp) {
+	return render_makeCaretVisible(wp, &wp->caret);
 }
 
 /*

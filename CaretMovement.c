@@ -21,6 +21,7 @@
 #include "edierror.h"
 #include "errordialogs.h"
 #include "editorconfiguration.h"
+#include "crossreferencelinks.h"
 
 #include "caretmovement.h"
 #include "linkedlist.h"
@@ -269,6 +270,7 @@ void caret_moveToLine(WINFO* wp, long ln) {
 	if (wp->caret.ln == ln || ln < 0) {
 		return;
 	}
+	caret_removeSecondaryCarets();
 	codecomplete_hideSuggestionWindow(wp);
 	long oldln = wp->caret.ln;
 	wp->caret.ln = ln;
@@ -405,7 +407,7 @@ EXPORT int caret_placeCursorForFile(WINFO *wp, long ln, long col, long screenCol
 /*
  * Adds a secondary caret to a window.
  */
-int caret_addSecondary(WINFO* wp, long ln, long nLineOffset) {
+CARET* caret_addSecondary(WINFO* wp, long ln, long nLineOffset) {
 	LINE* lp = ln_goto(wp->fp, ln);
 	if (!lp) {
 		return 0;
@@ -426,7 +428,7 @@ int caret_addSecondary(WINFO* wp, long ln, long nLineOffset) {
 	pNew->ln = ln;
 	pNew->linePointer = lp;
 	render_repaintLineRangeWindow(wp, lp, lp);
-	return 1;
+	return pNew;
 }
 
 /*
@@ -667,6 +669,75 @@ EXPORT int caret_advanceSection(WINFO* wp, int dir,int start)
 	return caret_placeCursorInCurrentFile(wp, ln,(long)ln_countLeadingSpaces(wp->caret.linePointer));
 }
 
+/*
+ * Find the caret with the highest / lowest line number. If dir < 0 find the one with the lowest line number (most top to the beginning of the file),
+ * otherwise the one most down.
+ */
+static CARET* caret_findMostUpDown(CARET* pCaret, int dir) {
+	int nMax = -1;
+	CARET* pFound = pCaret;
+
+	while (pCaret) {
+		if (nMax < 0 || (dir > 0 && pCaret->ln > nMax) || (dir < 0 && pCaret->ln < nMax)) {
+			nMax = pCaret->ln;
+			pFound = pCaret;
+		}
+		pCaret = pCaret->next;
+	}
+	return pFound;
+}
+
+/*
+ * Move the caret to add a secondary caret.
+ */
+int caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType) {
+	WINFO* wp = ww_getCurrentEditorWindow();
+
+	if (wp == NULL) {
+		return 0;
+	}
+	if (mType == MSM_WORDS) {
+		char buf[256];
+
+		if (!xref_getSelectedIdentifier(buf, sizeof buf)) {
+			return 0;
+		}
+		long nLine = wp->minln;
+		LINE* lp = ww_getMinLine(wp, nLine);
+		int nDelta = 0;
+		char* pMatch = wp->caret.linePointer->lbuf;
+		while ((pMatch = strstr(pMatch, buf)) != NULL) {
+			int nOffset = (int)(pMatch - wp->caret.linePointer->lbuf);
+			if (nOffset <= wp->caret.offset && (nOffset + strlen(buf)) >= wp->caret.offset) {
+				nDelta = wp->caret.offset - nOffset;
+				break;
+			}
+			pMatch++;
+		}
+		while (lp && nLine <= wp->maxln) {
+			pMatch = lp->lbuf;
+			while ((pMatch = strstr(pMatch, buf)) != NULL) {
+				int nOffset = (int)(pMatch - lp->lbuf) + nDelta;
+				if (lp != wp->caret.linePointer || nOffset != wp->caret.offset) {
+					caret_addSecondary(wp, nLine, nOffset);
+				}
+				pMatch++;
+			}
+			lp = lp->next;
+			nLine++;
+		}
+		return 1;
+	}
+	int nDir = mType == MSM_DOWN ? 1 : -1;
+	CARET* pCaret = caret_findMostUpDown(&wp->caret, nDir);
+	if ((pCaret = caret_addSecondary(wp, pCaret->ln + nDir, pCaret->offset)) != NULL) {
+		render_makeCaretVisible(wp, pCaret);
+		return 1;
+	}
+	return 0;
+
+}
+
 /*--------------------------------------------------------------------------
  * caret_moveUpOrDown()
  * general cursor advancing in
@@ -674,7 +745,7 @@ EXPORT int caret_advanceSection(WINFO* wp, int dir,int start)
  */
 EXPORT int caret_moveUpOrDown(WINFO* wp, int dir, int mtype)
 {
-	BOOL		bXtnd;
+	BOOL	bXtnd;
 	int		nRet;
 	long 	col;
 	long 	ln;

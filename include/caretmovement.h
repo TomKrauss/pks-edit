@@ -25,6 +25,12 @@
  */
 extern int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags);
 
+/*
+ * Move the caret to add one or more secondary carets.
+ */
+typedef enum { MSM_UP, MSM_DOWN, MSM_WORDS } MOT_SECONDARY_MOVEMENT;
+extern int caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType);
+
 /**
  * Utility function to place the caret according to screen coordinates.
  */
@@ -45,7 +51,7 @@ extern int caret_getPreviousColumnInLine(WINFO* wp, LINE* lp, int col);
 /*
  * Adds a secondary caret to a window.
  */
-extern int caret_addSecondary(WINFO* wp, long ln, long nLineOffset);
+extern CARET* caret_addSecondary(WINFO* wp, long ln, long nLineOffset);
 
 /*
  * Removes all secondary carets from the screen.

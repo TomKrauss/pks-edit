@@ -47,6 +47,20 @@ templates can also be configured in the _grammar_ of a file.
 - _Logfile mode_ - logfile mode can be used to automatically reload the file contents (or the end of a file for big files), when the
 opened file changes as new text is appended to that file. Files opened in _Logfile mode_ are by default also not editable.
 
+## Multi-caret editing
+
+PKS-Edit supports the definition of multiple insertion carets where changes can be made in a corresponding
+way on various places in the text/code edited. Multiple carets in PKS-Edit can be created by:
+
+- clicking to a place to add a secondary caret using `Alt+Click`
+- moving the caret up and down using `Ctrl+Alt+Up/Down` to add vertical secondary carets
+- by adding a `multi-word-match caret`: pressing `Ctrl+Shift+L` will place a secondary caret on all words
+**currently visible on the screen** matching the word close to the main input caret allowing to change all identical words
+with one operation.
+- inserting a template defining one or more secondary caret places for editing.
+
+Multi caret mode ends, when an operation is performed inside PKS-Edit other than inserting characters and deleting characters.
+
 ## Coding functions
 
 ### Code Completion

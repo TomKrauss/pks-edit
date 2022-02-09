@@ -466,6 +466,12 @@ extern void render_repaintWindowLine(WINFO* wp, long ln);
  */
 extern int render_adjustScrollBounds(WINFO* wp);
 
+/*------------------------------------------------------------
+ * render_makeCaretVisible()
+ * scroll the window, so the given caret is visible.
+ */
+int render_makeCaretVisible(WINFO* wp, CARET* pCaret);
+
 /*
  * Creates an editor window with the given title, instance count, creation parameter and window
  * placement.

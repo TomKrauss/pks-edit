@@ -58,7 +58,7 @@ extern int xref_addSearchListEntry(char* pszBuf, char* fn, long line, char* rema
  * If text is selected, use that as the identifier, otherwise try to identify the close
  * by identifier.
  */
-extern void xref_getSelectedIdentifier(char* pszText, size_t nMaxChars);
+extern int xref_getSelectedIdentifier(char* pszText, size_t nMaxChars);
 
 /**
  * xref_findIdentifierCloseToCaret

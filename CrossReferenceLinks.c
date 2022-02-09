@@ -793,12 +793,13 @@ int xref_navigateCrossReference(char* s) {
  * If text is selected, use that as the identifier, otherwise try to identify the close
  * by identifier.
  */
-void xref_getSelectedIdentifier(char* pszText, size_t nMaxChars) {
+int xref_getSelectedIdentifier(char* pszText, size_t nMaxChars) {
 	*pszText = 0;
 	bl_getSelectedText(pszText, nMaxChars);
 	if (!pszText[0]) {
-		xref_findIdentifierCloseToCaret(pszText, pszText + nMaxChars, NULL, NULL, FI_COMPLETE_WORD);
+		return xref_findIdentifierCloseToCaret(pszText, pszText + nMaxChars, NULL, NULL, FI_COMPLETE_WORD) != NULL;
 	}
+	return 1;
 }
 
 /*--------------------------------------------------------------------------
