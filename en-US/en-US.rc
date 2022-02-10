@@ -31,12 +31,12 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
     "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
@@ -48,7 +48,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
     "\r\n"
     "\0"
@@ -1394,7 +1394,7 @@ BEGIN
     IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
     IDS_INSERT              "Insert"
     IDS_CREATE_BUFFER       "Create"
-    IDS_NO_EVALUATION_SUPPORTED 
+    IDS_NO_EVALUATION_SUPPORTED
                             "The grammar of this file does not support evaluation of code."
     IDS_EVALUATION_FAILED   "The evaluation of the currently selected text failed."
     IDS_MSGRE_UNDEFINED_BACKREF "Undefined bracket back reference"
@@ -1411,7 +1411,7 @@ BEGIN
     IDS_MSGNTIMESFOUND      "%d times found"
     IDS_WINDOWLIST          "Open window list"
     IDS_SELECTCOMPILEWINDOW "File - Selection for Compilation"
-    IDS_TT_REGULAR_EXPRESSION 
+    IDS_TT_REGULAR_EXPRESSION
                             "Regular expressions support the following special characters\r\n""."" - (matches any char)\r\n""[a-z]"" - all characters from a-z\r\n""*"" - (an arbitrary number of times)\r\n""+"" - at least once\r\n""{x,y}"" - minimum x, maximum y times"
     IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text are preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
     IDS_FILE_MODIFIED       "Modified"
@@ -1572,16 +1572,16 @@ BEGIN
     IDS_COMMAND99           "Evaluate current line or selection;Evaluate Code"
     IDS_COMMAND100          "Toggle between fullscreen and normal mode;Toggle Fullscreen"
     IDS_COMMAND101          "Display markup text in wysiwyg mode;Wysiwyg Mode"
-    IDS_COMMAND102          "unused"
-    IDS_COMMAND103          "unused"
-    IDS_COMMAND104          "unused"
+    IDS_COMMAND102          "Add secondary caret with the mouse"
+    IDS_COMMAND103          "Clear all secondary carets"
+    IDS_COMMAND104          "Move caret one line up to add a secondary caret"
     IDS_COMMAND105          "Maximize editor window;Maximize Window"
     IDS_COMMAND106          "Add a horizontal window dock;Add horizontal Window Dock"
     IDS_COMMAND107          "Add a vertical window dock;Add vertical Window Dock"
     IDS_COMMAND108          "Navigate to a result displayed in the result list;Navigate Search Result"
     IDS_COMMAND109          "Opens the context menu;Open Context Menu"
     IDS_COMMAND110          "Searches the selected text on the Internet;Search on the Internet"
-    IDS_COMMAND111          "Set the window size corresponding to register #5;Window register #5"
+    IDS_COMMAND111          "Move caret one line down to add a secondary caret"
 END
 
 STRINGTABLE

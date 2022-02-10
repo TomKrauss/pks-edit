@@ -42,6 +42,7 @@
 #include "markpositions.h"
 #include "textblocks.h"
 #include "mainframe.h"
+#include "codeanalyzer.h"
 
 typedef enum TAG_KIND {
 	TK_FUNCTION = 'f', TK_MEMBER = 'm', TK_VARIABLE = 'v', TK_STRUCT = 's', TK_NUMBER_VALUE = 'n', TK_BOOLEAN_VALUE = 'b', TK_STRING_VALUE = 's', TK_OTHER
@@ -469,11 +470,17 @@ static void xref_fillTagList(HWND hwnd, void* crossReferenceWord) {
 	SendDlgItemMessage(hwnd, IDD_ICONLIST, LB_SELECTSTRING, -1, (LPARAM)_pSelectReference);
 }
 
+static ANALYZER_CALLBACK _addCallback;
+static int xref_processTag(intptr_t pszText, intptr_t pszVal) {
+	_addCallback((const char*)pszText, (void*)pszVal, NULL);
+	return 1;
+}
+
 /*
  * Iterate over all cross references defined for the grammar of the given editor window and
  * process all tags defined matching the text 'pszMatching'. Return 1 if successful.
  */
-int xref_forAllTagsDo(WINFO* wp, char* pszMatching, void(*processTag)(intptr_t tagName, intptr_t tag)) {
+int xref_forAllTagsDo(WINFO* wp, int (*matchfunc)(const char* pszMatching), ANALYZER_CALLBACK cbCallback) {
 	if (_allTags.tt_map == NULL) {
 		TAGSOURCE* ttl;
 		FTABLE* fp = wp->fp;
@@ -490,9 +497,9 @@ int xref_forAllTagsDo(WINFO* wp, char* pszMatching, void(*processTag)(intptr_t t
 		}
 	}
 	if (_allTags.tt_map != NULL) {
-		_pszFilterString = pszMatching;
-		hashmap_forKeysMatching(_allTags.tt_map, processTag, xref_filter);
-		_pszFilterString = NULL;
+		_addCallback = cbCallback;
+		hashmap_forKeysMatching(_allTags.tt_map, xref_processTag, (int(*)(intptr_t p))matchfunc);
+		_addCallback = NULL;
 		return 1;
 	}
 	return 0;

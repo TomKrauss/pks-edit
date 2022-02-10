@@ -55,7 +55,7 @@ static void analyzer_extractWords(WINFO* wp, int (*fMatch)(const char* pszMatch)
 					char* pszWord = stringbuf_getString(pBuf);
 					if (*pszWord) {
 						if (fMatch(pszWord)) {
-							fCallback(pszWord);
+							fCallback(pszWord, NULL, NULL);
 						}
 					}
 				}
@@ -66,6 +66,12 @@ static void analyzer_extractWords(WINFO* wp, int (*fMatch)(const char* pszMatch)
 		lp = lp->next;
 	}
 	stringbuf_destroy(pBuf);
+}
+
+static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
+	EDFUNC* pFunc = pEdFunc;
+
+	return NULL;
 }
 
 /*
@@ -85,17 +91,28 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 		for (int i = 0; i < _nenelems; i++) {
 			const char* pszName = _enelemtab[i].te_name;
 			if (fMatch(pszName)) {
-				fCallback(pszName);
+				fCallback(pszName, NULL, NULL);
 			}
 		}
 	} else {
 		for (int i = 0; i < _nfuncs; i++) {
 			EDFUNC* pFunc = &_edfunctab[i];
 			if (fMatch(pFunc->f_name)) {
-				fCallback(pFunc->f_name);
+				fCallback(pFunc->f_name, pFunc, analyzer_helpForFunc);
 			}
 		}
 	}
+}
+
+static const char* analyzer_helpForCommand(const char* pszCommandName, void* pCommand) {
+	MACROREF macref = INTPTR_TO_MACROREF((intptr_t)pCommand);
+	static char szTooltip[MAC_COMMENTLEN];
+	return command_getTooltipAndLabel(macref, szTooltip, NULL);
+}
+
+static ANALYZER_CALLBACK _keyAnalyzerCallback;
+static void analyzer_addKeycode(const char* pszKeycode) {
+	_keyAnalyzerCallback(pszKeycode, NULL, NULL);
 }
 
 /*
@@ -104,18 +121,20 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
  */
 static void analyzer_getBindingCompletions(WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback) {
 	if (wp->caret.offset > 0 && wp->caret.linePointer->lbuf[wp->caret.offset - 1] == '+') {
-		macro_addModifiersAndKeycodes(fMatch, fCallback);
+		_keyAnalyzerCallback = fCallback;
+		macro_addModifiersAndKeycodes(fMatch, analyzer_addKeycode);
 		return;
 	}
 	const char* pszWord;
 	for (int i = 0; (pszWord = macro_getCommandByIndex(i)) != 0; i++) {
 		if (fMatch(pszWord)) {
-			fCallback(pszWord);
+			MACROREF macref = (MACROREF){ .typ = CMD_CMDSEQ, .index = i };
+			fCallback(pszWord, (void*)MACROREF_TO_INTPTR(macref), analyzer_helpForCommand);
 		}
 	}
 	for (int i = 0; (pszWord = faicon_nameForIndex(i)) != 0; i++) {
 		if (fMatch(pszWord)) {
-			fCallback(pszWord);
+			fCallback(pszWord, NULL, NULL);
 		}
 	}
 }

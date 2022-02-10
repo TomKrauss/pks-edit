@@ -843,12 +843,12 @@ TEMPLATE                ICON                    "rc\\template.ico"
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
     "rc\\pksrc.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
     "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
@@ -859,7 +859,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
     "\r\n"
     "\0"
@@ -1414,11 +1414,11 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_ENTER_PASSWORD_TO_DECRYPT 
+    IDS_ENTER_PASSWORD_TO_DECRYPT
                             "Geben Sie das Passwort zum Enschlüsseln von %s ein:"
     IDS_INSERT              "Einfügen"
     IDS_CREATE_BUFFER       "Anlegen"
-    IDS_NO_EVALUATION_SUPPORTED 
+    IDS_NO_EVALUATION_SUPPORTED
                             "Die Grammatik der aktuellen Datei unterstützt keine Code Evaluierung."
     IDS_EVALUATION_FAILED   "Die Code Evaluierung ist fehl geschlagen."
     IDS_MSGRE_UNDEFINED_BACKREF "Noch nicht definierter Bezug"
@@ -1435,7 +1435,7 @@ BEGIN
     IDS_MSGNTIMESFOUND      "%d mal gefunden"
     IDS_WINDOWLIST          "Fensterliste"
     IDS_SELECTCOMPILEWINDOW "Datei - Auswahl für die Compilation"
-    IDS_TT_REGULAR_EXPRESSION 
+    IDS_TT_REGULAR_EXPRESSION
                             "Reguläre Ausdrücke unterstützen die folgenden Sonderzeichen:\r\n""."" - (alle Zeichen)\r\n""[a-z]"" - alle Zeichen a-z\r\n""*"" - (eine beliebige Anzahl Vorkommen)\r\n""+"" - 1 Vorkommen\r\n""{x,y}"" - mindestens x, maximal y Vorkommen"
     IDS_TT_PRESERVE_CASE    "Beim Ersetzen bleibt die Groß- Kleinschreibung des Ausgangstextes erhalten.\r\nBeispiel: ersetzt man das Wort ""Der"" durch ""die"" entsteht ""Die""."
     IDS_FILE_MODIFIED       "Geändert"
@@ -1443,7 +1443,7 @@ BEGIN
     IDS_SEARCH              "Inkrementell suchen"
     IDS_STATUSLINE          "Z: %2j$l, S: %2j$c!%s$&"
     IDS_NO_MACROS_DEFINED   "Keine Makros definiert."
-    IDS_ENTER_PASSWORD_TO_ENCRYPT 
+    IDS_ENTER_PASSWORD_TO_ENCRYPT
                             "Geben Sie das Passwort zum Verschlüsseln von %s ein:"
 END
 
@@ -1597,16 +1597,16 @@ BEGIN
     IDS_COMMAND99           "Evaluiert selektierten Text oder die aktuelle Zeile;Code evaluieren"
     IDS_COMMAND100          "Zwischen Vollbild- und Normaldarstellung wechseln;Vollbild Modus"
     IDS_COMMAND101          "Markup Text in Wysiwyg Darstellung anzeigen;Wysiwyg Darstellung"
-    IDS_COMMAND102          "unused"
-    IDS_COMMAND103          "unused"
-    IDS_COMMAND104          "unused"
+    IDS_COMMAND102          "2. Einfügecursor mit der Maus hinzufügen"
+    IDS_COMMAND103          "Alle Zusatzcursor löschen"
+    IDS_COMMAND104          "Cursor eine Zeile  nach oben gehen und Zusatzcursor einfügen"
     IDS_COMMAND105          "Vergrößert das Bearbeitungsfenster auf maximale Größe;Vollbild"
     IDS_COMMAND106          "Fensterbereich horizontal teilen;Fensterbereich horizontal teilen"
     IDS_COMMAND107          "Fensterbereich vertikal teilen;Fensterbereich vertikal teilen"
     IDS_COMMAND108          "Navigieren zum in der Suchliste ausgewählten Ergebnis;Zu Ergebnis navigieren"
     IDS_COMMAND109          "Öffnet das Kontextmenü;Kontextmenü öffnen"
     IDS_COMMAND110          "Sucht den ausgewählten Text (oder das aktuelle Wort) im Internet;Im Internet suchen"
-    IDS_COMMAND111          "Setzt Fenstergröße gemäß Fenster-Register #5;Größe Fenster #5"
+    IDS_COMMAND111          "Cursor eine Zeile  nach unten gehen und Zusatzcursor einfügen"
 END
 
 STRINGTABLE

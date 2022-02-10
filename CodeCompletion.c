@@ -23,6 +23,7 @@
 #include "arraylist.h"
 #include "hashmap.h"
 #include "winterf.h"
+#include "codeanalyzer.h"
 #include "grammar.h"
 #include "pksrc.h"
 #include "linkedlist.h"
@@ -30,9 +31,9 @@
 #include "codecompletion.h"
 #include "themes.h"
 #include "xdialog.h"
-#include "codeanalyzer.h"
 
-#define CLASS_CODE_COMPLETION	"CodeCompletion"
+#define CLASS_CODE_COMPLETION		"CodeCompletion"
+#define CLASS_CODE_COMPLETION_HELP	"CodeCompletionJHelp"
 #define CC_WIDTH			150
 #define CC_HEIGHT			200
 
@@ -45,9 +46,12 @@ typedef enum { CA_TEMPLATE, CA_TAG} CODE_ACTION_TYPE;
 typedef struct tagCODE_ACTION {
 	struct tagCODE_ACTION* ca_next;
 	CODE_ACTION_TYPE ca_type;
-	char*	ca_name;
+	const char* ca_name;
 	BOOL ca_replaceWord;
 	BOOL ca_freeName;
+	const char* (*ca_helpCB)(const char* pszCompletion, void* pParam);	// Callback to return a help text for this action
+	void* ca_object;				// an arbitrary object representing the details about the object for the code completion (e.g. a MACROREF object representing a macro/command)
+									// Can in particular used in the help callback to provide a help text for the action.
 	union {
 		UCLIST* template;
 		unsigned char* text;
@@ -64,7 +68,8 @@ typedef struct tagCODE_COMPLETION_PARAMS {
 	CODE_ACTION* ccp_actions;
 } CODE_COMPLETION_PARAMS;
 
-#define	GWL_PARAMS			0
+#define	GWL_PARAMS				0
+#define	GWL_SECONDARY_WINDOW	GWL_PARAMS+sizeof(CODE_COMPLETION_PARAMS*)
 
 static void codecomplete_updateScrollbar(HWND hwnd) {
 	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
@@ -90,27 +95,29 @@ static void codecomplete_updateScrollbar(HWND hwnd) {
 }
 
 static HASHMAP* _suggestions;
-static CODE_ACTION* codecomplete_addTagsWithAlloc(intptr_t pszTagName, BOOL bAlloc) {
-	if (hashmap_containsKey(_suggestions, pszTagName)) {
+static CODE_ACTION* codecomplete_addTagsWithAlloc(const char* pszTagName, const char* (*fHelpCB)(const char* pszCompletion, void* pParam), void* nParam, BOOL bAlloc) {
+	if (hashmap_containsKey(_suggestions, (intptr_t)pszTagName)) {
 		return NULL;
 	}
-	unsigned char* pszCopy = bAlloc ? _strdup((char*)pszTagName) : (unsigned char* )pszTagName;
+	unsigned char* pszCopy = bAlloc ? _strdup(pszTagName) : (unsigned char* )pszTagName;
 	CODE_ACTION* pCurrent = (CODE_ACTION*)calloc(1, sizeof * pCurrent);
 	pCurrent->ca_name = pszCopy;
 	pCurrent->ca_type = CA_TAG;
 	pCurrent->ca_param.text = pszCopy;
 	pCurrent->ca_replaceWord = TRUE;
 	pCurrent->ca_freeName = bAlloc;
+	pCurrent->ca_helpCB = fHelpCB;
+	pCurrent->ca_object = nParam;
 	hashmap_put(_suggestions, (intptr_t)pszCopy, (intptr_t)pCurrent);
 	return pCurrent;
 }
 
-static void codecomplete_addTags(intptr_t pszTagName, intptr_t pTag) {
-	codecomplete_addTagsWithAlloc(pszTagName, FALSE);
+static void codecomplete_addTags(const char* pszTagName, void* pParam, const char* (*fHelpCB)(const char* pszCompletion, void* pParam)) {
+	codecomplete_addTagsWithAlloc(pszTagName, fHelpCB, pParam, FALSE);
 }
 
-static void codecomplete_analyzerCallback(const char* pszRecommendation) {
-	codecomplete_addTagsWithAlloc((intptr_t) pszRecommendation, TRUE);
+static void codecomplete_analyzerCallback(const char* pszRecommendation, void* pParam, const char* (*fHelpCB)(const char* pszCompletion, void* pParam)) {
+	codecomplete_addTagsWithAlloc(pszRecommendation, fHelpCB, pParam, TRUE);
 }
 
 /*
@@ -118,8 +125,8 @@ static void codecomplete_analyzerCallback(const char* pszRecommendation) {
  */
 static 	char szIdent[100];
 static int codecomplete_compare(const CODE_ACTION** p1, const CODE_ACTION** p2) {
-	char* pszString1 = (*p1)->ca_name;
-	char* pszString2 = (*p2)->ca_name;
+	const char* pszString1 = (*p1)->ca_name;
+	const char* pszString2 = (*p2)->ca_name;
 	int ret = strcmp(pszString1, pszString2);
 	if (ret != 0) {
 		size_t nLen = strlen(szIdent);
@@ -149,7 +156,7 @@ static int codecomplete_matchWord(const char* pszWord) {
  */
 static int codecomplete_destroyAction(CODE_ACTION* pAction) {
 	if (pAction->ca_freeName) {
-		free(pAction->ca_name);
+		free((char*)pAction->ca_name);
 	}
 	return 1;
 }
@@ -186,10 +193,9 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	_suggestions = hashmap_create(37, NULL, NULL);
 	xref_findIdentifierCloseToCaret(szIdent, szIdent + sizeof szIdent, NULL, NULL, FI_BEGIN_WORD_TO_CURSOR);
 	_pszMatch = szIdent;
-	// (T) pass in the match function here as well rather than the identifier.
-	xref_forAllTagsDo(wp, szIdent, (void (*)(intptr_t, intptr_t))codecomplete_addTags);
+	xref_forAllTagsDo(wp, codecomplete_matchWord, codecomplete_addTags);
 	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
-	grammar_addSuggestionsMatching(pGrammar, codecomplete_matchWord, (void (*)(intptr_t, intptr_t))codecomplete_addTags);
+	grammar_addSuggestionsMatching(pGrammar, codecomplete_matchWord, codecomplete_addTags);
 	char* pszAnalyzer = grammar_getCodeAnalyzer(pGrammar);
 	analyzer_performAnalysis(pszAnalyzer, wp, codecomplete_matchWord, codecomplete_analyzerCallback);
 	ARRAY_LIST* actionList = hashmap_values(_suggestions);
@@ -205,6 +211,29 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	pCC->ccp_size = ll_size((LINKED_LIST*)pCC->ccp_actions);
 	codecomplete_updateScrollbar(wp->codecomplete_handle);
 	InvalidateRect(wp->codecomplete_handle, NULL, TRUE);
+}
+
+/*
+ * Paint the help window.
+ */
+static void codecomplete_paintHelp(HWND hwnd) {
+	THEME_DATA* pTheme = theme_getCurrent();
+	PAINTSTRUCT paint;
+	char szText[512];
+	GetWindowText(hwnd, szText, sizeof szText);
+
+	BeginPaint(hwnd, &paint);
+	SetBkMode(paint.hdc, TRANSPARENT);
+	SetTextColor(paint.hdc, pTheme->th_dialogForeground);
+	HFONT hFont = SelectObject(paint.hdc, theme_createSmallFixedFont());
+	HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogBackground);
+	FillRect(paint.hdc, &paint.rcPaint, hBrush);
+	DeleteObject(hBrush);
+	RECT rect;
+	GetClientRect(hwnd, &rect);
+	InflateRect(&rect, -4, -4);
+	DrawTextEx(paint.hdc, szText, -1, &rect, DT_EXPANDTABS|DT_WORDBREAK, NULL);
+	DeleteObject(SelectObject(paint.hdc, hFont));
 }
 
 /*
@@ -259,7 +288,7 @@ static void codecomplete_paint(HWND hwnd) {
 				else {
 					SetTextColor(paint.hdc, pTheme->th_dialogForeground);
 				}
-				char* pszDescription = up->ca_name;
+				const char* pszDescription = up->ca_name;
 				DrawIconEx(paint.hdc, x, y, up->ca_type == CA_TEMPLATE ? hIconTemplate : hIconTag, textmetric.tmHeight, textmetric.tmHeight, 0, NULL, DI_NORMAL);
 				TextOut(paint.hdc, x + nIconSize + 4, y + (nDelta / 2), pszDescription, (int)strlen(pszDescription));
 				y += textmetric.tmHeight + nDelta;
@@ -286,7 +315,72 @@ static void codecomplete_invalidateIndex(HWND hwnd, RECT* pRect, CODE_COMPLETION
 	r.top += idx * pCC->ccp_lineHeight;
 	r.bottom = r.top + pCC->ccp_lineHeight + CC_PADDING;
 	InvalidateRect(hwnd, &r, TRUE);
+}
 
+
+/*
+ * Creates the help (code completion secondary) window.
+ */
+static HWND codecomplete_createHelpWindow(HWND hwndParent) {
+	HWND hwnd = CreateWindow(CLASS_CODE_COMPLETION_HELP, NULL, WS_POPUP, 
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwndParent, NULL, hInst, 0);
+	if (hwnd) {
+		theme_enableDarkMode(hwnd);
+	}
+	return hwnd;
+}
+
+/*
+ * Update the window position of the help window
+ */
+static void codecomplete_updateHelpWindowPosition(HWND hwnd) {
+	HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
+	if (hwndSecondary) {
+		RECT rect;
+		GetWindowRect(hwnd, &rect);
+		SetWindowPos(hwndSecondary, NULL, rect.right + 5, rect.top, 400, rect.bottom - rect.top, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+	}
+}
+
+/*
+ * Displays a help for the current code completion suggestion-
+ */
+static void codecomplete_displayHelpFor(HWND hwnd, CODE_COMPLETION_PARAMS* pParam) {
+	const char* pszHelp = NULL;
+	if (pParam->ccp_selection >= 0) {
+		CODE_ACTION* pSelected = (CODE_ACTION * )ll_at((LINKED_LIST*)pParam->ccp_actions, pParam->ccp_selection);
+		if (pSelected) {
+			if (pSelected->ca_helpCB) {
+				pszHelp = pSelected->ca_helpCB(pSelected->ca_name, pSelected->ca_object);
+			} else if (pSelected->ca_type == CA_TEMPLATE) {
+				pszHelp = (const char*)pSelected->ca_param.template->p.uc_template;
+			}
+		}
+	}
+	HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
+	if (!pszHelp || !*pszHelp) {
+		if (hwndSecondary) {
+			ShowWindow(hwndSecondary, SW_HIDE);
+		}
+		return;
+	}
+	if (!hwndSecondary) {
+		hwndSecondary = codecomplete_createHelpWindow(GetParent(hwnd));
+		if (!hwndSecondary) {
+			return;
+		}
+		SetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW, (LONG_PTR)hwndSecondary);
+	}
+	codecomplete_updateHelpWindowPosition(hwnd);
+	SetWindowText(hwndSecondary, pszHelp);
+	InvalidateRect(hwndSecondary, NULL, FALSE);
+}
+
+static void codecomplete_changeSelection(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nNewSelection) {
+	if (pCC->ccp_selection != nNewSelection) {
+		pCC->ccp_selection = nNewSelection;
+		codecomplete_displayHelpFor(hwnd, pCC);
+	}
 }
 
 static void codecomplete_moveCaret(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nTo) {
@@ -299,7 +393,7 @@ static void codecomplete_moveCaret(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int n
 		return;
 	}
 	int nOld = pCC->ccp_selection;
-	pCC->ccp_selection = nTo;
+	codecomplete_changeSelection(hwnd, pCC, nTo);
 	int newTop = pCC->ccp_topRow;
 	if (pCC->ccp_selection < pCC->ccp_topRow) {
 		newTop = pCC->ccp_selection;
@@ -364,9 +458,9 @@ static void codecomplete_scrollTo(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nN
 	if (nNewTop != pCC->ccp_topRow) {
 		pCC->ccp_topRow = nNewTop;
 		if (pCC->ccp_selection < pCC->ccp_topRow) {
-			pCC->ccp_selection = pCC->ccp_topRow;
+			codecomplete_changeSelection(hwnd, pCC, pCC->ccp_topRow);
 		} else if (pCC->ccp_selection >= pCC->ccp_topRow + pCC->ccp_pageSize) {
-			pCC->ccp_selection = pCC->ccp_topRow;
+			codecomplete_changeSelection(hwnd, pCC, pCC->ccp_topRow);
 		}
 		codecomplete_updateScrollbar(hwnd);
 		InvalidateRect(hwnd, NULL, TRUE);
@@ -426,6 +520,21 @@ BOOL codecomplete_processKey(HWND hwnd, UINT message, WPARAM wParam) {
 }
 
 /*
+ * Window procedure of the code completion help window.
+ */
+static LRESULT codecomplete_helpWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	switch (message) {
+	case WM_ERASEBKGND:
+		return 0;
+
+	case WM_PAINT:
+		codecomplete_paintHelp(hwnd);
+		return 0;
+	}
+	return DefWindowProc(hwnd, message, wParam, lParam);
+}
+
+/*
  * Window procedure of the code completion window. 
  */
 static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -442,12 +551,26 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			SetWindowLongPtr(hwnd, GWL_PARAMS, (LONG_PTR)pCC);
 		}
 		break;
-		case WM_DESTROY:
-			pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
-			if (pCC) {
-				codecomplete_destroyActions(pCC);
-				free(pCC);
-				SetWindowLongPtr(hwnd, GWL_PARAMS, (LONG_PTR)NULL);
+		case WM_NCCALCSIZE:
+			if (wParam) {
+				LRESULT res = DefWindowProc(hwnd, message, wParam, lParam);
+				LPNCCALCSIZE_PARAMS pncc = (LPNCCALCSIZE_PARAMS)lParam;
+				pncc->rgrc[0].top -= 6;
+				pncc->rgrc[2].top = 0;
+				return res;
+			}
+			break;
+		case WM_DESTROY: {
+				HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
+				if (hwndSecondary) {
+					DestroyWindow(hwndSecondary);
+				}
+				pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
+				if (pCC) {
+					codecomplete_destroyActions(pCC);
+					free(pCC);
+					SetWindowLongPtr(hwnd, GWL_PARAMS, (LONG_PTR)NULL);
+				}
 			}
 			break;
 		case WM_SIZE:
@@ -469,10 +592,23 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 				}
 			}
 			break;
+		case WM_WINDOWPOSCHANGED: {
+			HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
+			if (hwndSecondary) {
+				WINDOWPOS* pWinpos = (WINDOWPOS*)lParam;
+				if (pWinpos->flags & SWP_HIDEWINDOW) {
+					ShowWindow(hwndSecondary, SW_HIDE);
+				} else {
+					codecomplete_updateHelpWindowPosition(hwnd);
+				}
+			}
+		}
+		break;
+
 		case WM_SHOWWINDOW:
 			pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
 			if (pCC) {
-				pCC->ccp_selection = 0;
+				codecomplete_changeSelection(hwnd, pCC, 0);
 			}
 			break;
 		case WM_VSCROLL: 
@@ -514,12 +650,22 @@ int codecomplete_registerWindowClass() {
 	cust_initializeWindowClassDefaults(&wc);
 	wc.style = CS_DBLCLKS;
 	wc.lpfnWndProc = codecomplete_wndProc;
-	wc.cbWndExtra = sizeof(CODE_COMPLETION_PARAMS);
+	wc.cbWndExtra = GWL_SECONDARY_WINDOW+sizeof(HWND);
 	wc.hIcon = NULL;
 	wc.hCursor = LoadCursor(0, IDC_ARROW);
 	wc.hbrBackground = GetSysColorBrush(COLOR_WINDOW);
 	wc.lpszClassName = CLASS_CODE_COMPLETION;
-	return (RegisterClass(&wc));
+	if (!RegisterClass(&wc)) {
+		return 0;
+	}
+
+	wc.lpfnWndProc = codecomplete_helpWndProc;
+	wc.cbWndExtra = 0;
+	wc.hIcon = NULL;
+	wc.hCursor = LoadCursor(0, IDC_ARROW);
+	wc.hbrBackground = GetSysColorBrush(COLOR_WINDOW);
+	wc.lpszClassName = CLASS_CODE_COMPLETION_HELP;
+	return RegisterClass(&wc);
 }
 
 /*

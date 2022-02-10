@@ -19,9 +19,12 @@
 
  /*
   * Callback to use to consume the recommendation found by an analyzer.
-  * The recommendation found must be copied inside the callback - if needed.
+  * The recommendation text found must be copied inside the callback - if needed.
+  * The callback returns the recommendation text pszRecommendation, an arbitrary param further describing the recommendation
+  * and an optional callback responsible for returning a help text for the recommendation getting passed the recommendation and the
+  * arbitrary param.
   */
-typedef void (*ANALYZER_CALLBACK)(const char* pszRecommendation);
+typedef void (*ANALYZER_CALLBACK)(const char* pszRecommendation, void* pParam, const char* (*cbHelp)(const char* pszText, void* pParam));
 
 /*
  * The analyzer function to operate on a file referred to by a view pointer 'wp'. Only recommendations

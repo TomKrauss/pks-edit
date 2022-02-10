@@ -44,6 +44,7 @@
 #include "themes.h"
 #include "mainframe.h"
 #include "hashmap.h"
+#include "codecompletion.h"
 
 #define	TABTHERE(indent,i)		(indent->tbits[i >> 3] &  bittab[i & 07])
 #define	TABPLACE(indent,i)		indent->tbits[i >> 3] |= bittab[i & 07]
@@ -1318,6 +1319,9 @@ static WINFUNC WorkAreaWndProc(
 	case WM_SETFOCUS: {
 		WINFO* wpOld = _winlist;
 		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
+			if (wpOld && wp != wpOld) {
+				codecomplete_hideSuggestionWindow(wpOld);
+			}
 			ll_moveElementToFront((LINKED_LIST**)&_winlist, wp);
 			mainframe_windowActivated(wpOld != NULL ? wpOld->edwin_handle : NULL, wp->edwin_handle);
 			wt_setCaretVisibility(wp, 1);

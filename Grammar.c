@@ -30,6 +30,7 @@
 #include "arraylist.h"
 #include "editorfont.h"
 #include "stringutil.h"
+#include "codeanalyzer.h"
 
 #define	HAS_CHAR(ep, c)			(ep[(c & 0xff) >> 3] & bittab[c & 07])
 #define PLACE_CHAR(ep, c)		ep[c >> 3] |= bittab[c & 07];
@@ -1122,9 +1123,9 @@ void grammar_documentTypeChanged(GRAMMAR* pGrammar) {
 }
 
 static int (*pKeywordMatch)(char* param);
-static int grammar_addKeyword(char* pszKeyWord, void (*addCallback)(intptr_t pszTagName, intptr_t pTag)) {
+static int grammar_addKeyword(char* pszKeyWord, ANALYZER_CALLBACK addCallback) {
 	if (pKeywordMatch(pszKeyWord)) {
-		(*addCallback)((intptr_t)pszKeyWord, (intptr_t)pszKeyWord);
+		(*addCallback)((const char*)pszKeyWord, NULL, NULL);
 	}
 	return 1;
 }
@@ -1134,7 +1135,7 @@ static int grammar_addKeyword(char* pszKeyWord, void (*addCallback)(intptr_t psz
  * This includes e.g. the keywords defined in a grammar but also "language specific" analysis results of the surrounding
  * file.
  */
-void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, int (*fMatch)(char* pszMatch), void (*addCallback)(intptr_t pszTagName, intptr_t pTag)) {
+void grammar_addSuggestionsMatching(GRAMMAR* pGrammar, int (*fMatch)(char* pszMatch), ANALYZER_CALLBACK addCallback) {
 	if (pGrammar == NULL) {
 		return;
 	}

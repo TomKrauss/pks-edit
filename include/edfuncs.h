@@ -75,6 +75,9 @@ typedef struct tagMACROREF {
 	MACROREFIDX		index;
 } MACROREF;
 
+#define MACROREF_TO_INTPTR(m)	(intptr_t)(((unsigned long)m.typ<<16) + (unsigned long)m.index)
+#define INTPTR_TO_MACROREF(m)	(MACROREF){.typ = (unsigned char)((unsigned long)m >> 16), .index = (unsigned char)((unsigned long)m&0xFFFF)}
+
 /*
  * KEYS ---------------------------------------------------------------
  */

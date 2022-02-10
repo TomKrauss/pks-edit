@@ -26,9 +26,6 @@
 #include "fontawesome.h"
 #include "xdialog.h"
 
-#define MACROREF_TO_INTPTR(m)	(intptr_t)(((unsigned long)m.typ<<16) + (unsigned long)m.index)
-#define INTPTR_TO_MACROREF(m)	(MACROREF){.typ = (unsigned char)((unsigned long)m >> 16), .index = (unsigned char)((unsigned long)m&0xFFFF)}
-
 #define MAX_CONTEXT_NAME_LEN		32
 #define MAX_ID_LEN					10
 

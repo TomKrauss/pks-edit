@@ -74,7 +74,9 @@ extern char* xref_findIdentifierCloseToCaret(unsigned char* pszTargetBuffer, uns
  * Iterate over all cross references defined for the grammar of the given editor window and
  * process all tags defined matching the text 'pszMatching'. Return 1 if successful.
  */
-extern int xref_forAllTagsDo(WINFO* wp, char* pszMatching, void(*processTag)(intptr_t tagName, intptr_t tag));
+#ifdef CODEANALYZER_H
+extern int xref_forAllTagsDo(WINFO* wp, int (*matchfunc)(const char* pszMatching), ANALYZER_CALLBACK cbAnalyzer);
+#endif
 
 extern int EdFindTagCursor(void);
 
