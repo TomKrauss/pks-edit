@@ -374,7 +374,7 @@ int macro_toggleRecordMaco(void)
 
 	if (!_recording) {		/* STOP */
 		if (_cmdfuncp && (size = (int)(_cmdparamp-_recorder)) > 0) {
-			wsprintf(buf,"Mac%d",++_ndef);
+			wsprintf(buf,"NewMacro%d",++_ndef);
 			if (!macro_getIndexForKeycode(&scan,buf,-1)) {
 				return 0;
 			}

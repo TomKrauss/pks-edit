@@ -49,7 +49,7 @@ typedef struct tagCODE_ACTION {
 	const char* ca_name;
 	BOOL ca_replaceWord;
 	BOOL ca_freeName;
-	const char* (*ca_helpCB)(const char* pszCompletion, void* pParam);	// Callback to return a help text for this action
+	const char* (*ca_helpCB)(const char* pszCompletion, void* pParam);	// Callback to return a help text for this action. Note that the returned string must be malloc'd and will be freed after use.
 	void* ca_object;				// an arbitrary object representing the details about the object for the code completion (e.g. a MACROREF object representing a macro/command)
 									// Can in particular used in the help callback to provide a help text for the action.
 	union {
@@ -181,7 +181,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	codecomplete_destroyActions(pCC);
 	pCC->ccp_topRow = 0;
 	while (up) {
-		if (up->action == UA_TEMPLATE || up->action == UA_ABBREV) {
+		if (up->action == UA_TEMPLATE) {
 			pCurrent = ll_insert(&pCC->ccp_actions, sizeof * pCC->ccp_actions);
 			pCurrent->ca_name = up->uc_pattern.pattern;
 			pCurrent->ca_type = CA_TEMPLATE;
@@ -322,7 +322,7 @@ static void codecomplete_invalidateIndex(HWND hwnd, RECT* pRect, CODE_COMPLETION
  * Creates the help (code completion secondary) window.
  */
 static HWND codecomplete_createHelpWindow(HWND hwndParent) {
-	HWND hwnd = CreateWindow(CLASS_CODE_COMPLETION_HELP, NULL, WS_POPUP, 
+	HWND hwnd = CreateWindow(CLASS_CODE_COMPLETION_HELP, NULL, WS_POPUP | WS_SIZEBOX, 
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwndParent, NULL, hInst, 0);
 	if (hwnd) {
 		theme_enableDarkMode(hwnd);
@@ -338,7 +338,13 @@ static void codecomplete_updateHelpWindowPosition(HWND hwnd) {
 	if (hwndSecondary) {
 		RECT rect;
 		GetWindowRect(hwnd, &rect);
-		SetWindowPos(hwndSecondary, NULL, rect.right + 5, rect.top, 400, rect.bottom - rect.top, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+		RECT rcOld;
+		GetClientRect(hwndSecondary, &rcOld);
+		int nFlags = SWP_SHOWWINDOW | SWP_NOACTIVATE;
+		if (rcOld.right - rcOld.left >= 100) {
+			nFlags |= SWP_NOSIZE;
+		}
+		SetWindowPos(hwndSecondary, NULL, rect.right + 5, rect.top, 400, rect.bottom - rect.top, nFlags);
 	}
 }
 
@@ -353,7 +359,7 @@ static void codecomplete_displayHelpFor(HWND hwnd, CODE_COMPLETION_PARAMS* pPara
 			if (pSelected->ca_helpCB) {
 				pszHelp = pSelected->ca_helpCB(pSelected->ca_name, pSelected->ca_object);
 			} else if (pSelected->ca_type == CA_TEMPLATE) {
-				pszHelp = (const char*)pSelected->ca_param.template->p.uc_template;
+				pszHelp = macro_expandCodeTemplateFor(pSelected->ca_param.template);
 			}
 		}
 	}
@@ -373,11 +379,12 @@ static void codecomplete_displayHelpFor(HWND hwnd, CODE_COMPLETION_PARAMS* pPara
 	}
 	codecomplete_updateHelpWindowPosition(hwnd);
 	SetWindowText(hwndSecondary, pszHelp);
+	free((char*)pszHelp);
 	InvalidateRect(hwndSecondary, NULL, FALSE);
 }
 
 static void codecomplete_changeSelection(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nNewSelection) {
-	if (pCC->ccp_selection != nNewSelection) {
+	if (pCC->ccp_selection != nNewSelection || nNewSelection == 0) {
 		pCC->ccp_selection = nNewSelection;
 		codecomplete_displayHelpFor(hwnd, pCC);
 	}
@@ -524,6 +531,15 @@ BOOL codecomplete_processKey(HWND hwnd, UINT message, WPARAM wParam) {
  */
 static LRESULT codecomplete_helpWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
+	case WM_NCCALCSIZE:
+		if (wParam) {
+			LRESULT res = DefWindowProc(hwnd, message, wParam, lParam);
+			LPNCCALCSIZE_PARAMS pncc = (LPNCCALCSIZE_PARAMS)lParam;
+			pncc->rgrc[0].top -= 6;
+			pncc->rgrc[2].top = 0;
+			return res;
+		}
+		break;
 	case WM_ERASEBKGND:
 		return 0;
 
@@ -692,6 +708,10 @@ static void codecomplete_calculateWindowPos(WINFO* wp, POINT *pPoint, int nHeigh
 void codecomplete_hideSuggestionWindow(WINFO* wp) {
 	if (wp && wp->codecomplete_handle) {
 		ShowWindow(wp->codecomplete_handle, SW_HIDE);
+		HWND hwndSecondary = (HWND)GetWindowLongPtr(wp->codecomplete_handle, GWL_SECONDARY_WINDOW);
+		if (hwndSecondary) {
+			ShowWindow(hwndSecondary, SW_HIDE);
+		}
 	}
 }
 

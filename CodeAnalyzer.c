@@ -106,8 +106,8 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 
 static const char* analyzer_helpForCommand(const char* pszCommandName, void* pCommand) {
 	MACROREF macref = INTPTR_TO_MACROREF((intptr_t)pCommand);
-	static char szTooltip[MAC_COMMENTLEN];
-	return command_getTooltipAndLabel(macref, szTooltip, NULL);
+	char szTooltip[MAC_COMMENTLEN];
+	return _strdup(command_getTooltipAndLabel(macref, szTooltip, NULL));
 }
 
 static ANALYZER_CALLBACK _keyAnalyzerCallback;

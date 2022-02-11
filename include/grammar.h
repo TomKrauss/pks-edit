@@ -180,6 +180,12 @@ extern void grammar_documentTypeChanged(GRAMMAR* pGrammar);
 extern int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord);
 
 /*
+ * Creates a String Buffer containing an expanded code template. The returned string buffer must be destroyed by the caller.
+ * If an error occurs or there is no current window, this will return NULL.
+ */
+extern char* macro_expandCodeTemplateFor(UCLIST* up);
+
+/*
  * Add all suggestions matching 'pszMatch', which can be derived from a grammar by invoking the addCallback.
  * This includes e.g. the keywords defined in a grammar but also "language specific" analysis results of the surrounding
  * file.

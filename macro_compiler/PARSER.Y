@@ -395,13 +395,15 @@ while		: T_WHILE {
 			} cond {
 				gotolabel(lendid,_breaklevel,BRA_EQ);
 				_breaklevel++;
-			} stmnt {
+			} local_block {
 				_breaklevel--;
 				gotolabel(lstartid,_breaklevel,BRA_ALWAYS);
 				makelabel(lendid,_breaklevel);
 				killabel(lstartid,_breaklevel);
 				killabel(lendid,_breaklevel);
 			}
+
+local_block: stmnt | '{' stmntlist '}'
 
 if			: T_IF cond {
 				gotolabel(iffailid,_iflevel,BRA_EQ);

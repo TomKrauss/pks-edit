@@ -176,6 +176,28 @@ static void macro_replaceCurrentWord(WINFO* wp) {
 		}
 	}
 }
+
+/*
+ * Creates a String Buffer containing an expanded code template. The returned string buffer must be destroyed by the caller.
+ * If an error occurs or there is no current window, this will return NULL.
+ */
+char* macro_expandCodeTemplateFor(UCLIST* up) {
+	char szIdentifier[100];
+	WINFO* wp = ww_getCurrentEditorWindow();
+	TEMPLATE_ACTION action;
+
+	if (wp == NULL) {
+		return NULL;
+	}
+	xref_getSelectedIdentifier(szIdentifier, sizeof szIdentifier);
+	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
+	STRING_BUF * pBuf = macro_expandCodeTemplate(wp, &action, nIndent, szIdentifier, up->p.uc_template);
+	char* pResult = _strdup(stringbuf_getString(pBuf));
+	stringbuf_destroy(pBuf);
+	return pResult;
+}
+
+
 /*
  * Insert a selected code template 'up'. 
  * If 'bReplaceCurrentWord' is TRUE, the currently selected word / identifier close to the
@@ -286,52 +308,6 @@ int EdDocMacrosAdd(void) {
 		return 0;
 	}
 
-	return 0;
-}
-
-/*--------------------------------------------------------------------------
- * macro_createTempFile()
- */
-static int macro_createTempFile(char* linfn, char* tmpfn) {
-	int		fd;
-	int		fd2;
-	long		size;
-
-	if ((fd = Fopen(linfn, OF_READ)) < 0) {
-		return 0;
-	}
-
-	if ((fd2 = Fcreate(tmpfn, 0)) < 0) {
-		tmpfn[0] = 0;
-	} else {
-		while ((size = Fread(fd, FBUFSIZE, _linebuf)) > 0) {
-			Fwrite(fd2, size, _linebuf);
-		}
-	}
-	if (fd2 > 0) {
-		Fclose(fd2);
-	}
-	Fclose(fd);
-	return tmpfn[0] ? 1 : 0;
-}
-
-
-/*--------------------------------------------------------------------------
- * EdDocMacrosEdit()
- */
-int EdDocMacrosEdit(void)
-{
-	char 	keyfile[256];
-	extern char *_pksSysFolder;
-
-	if (!ft_getCurrentDocument()) {
-		return 0;
-	}
-	string_concatPathAndFilename(keyfile, _pksSysFolder, "MODI.TMP");
-	if (macro_createTempFile(file_searchFileInPKSEditLocation(ft_getCurrentDocument()->documentDescriptor->name), keyfile)) {
-		return xref_openFile(keyfile, -1L, (void*)0);
-	}
-	error_showErrorById(IDS_NO_MACROS_DEFINED);
 	return 0;
 }
 

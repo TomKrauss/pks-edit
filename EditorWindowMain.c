@@ -1248,8 +1248,7 @@ static WINFUNC WorkAreaWndProc(
 					dy *= 4;
 				}
 				long dx = 0;
-				sl_scrollwinrange(wp, &dy, &dx);
-				sl_winchanged(wp, dy, dx);
+				sl_moved(wp, dy, 0L, (wp->scrollflags & SC_CURSORCATCH));
 			}
 		}
 		return TRUE;

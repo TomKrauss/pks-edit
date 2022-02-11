@@ -10,11 +10,19 @@ macro Test-Expr()
 
 }
 
+macro Test-While() {
+	int i = 0;
+	while (i < 20) {
+		CursorDown(MOT_SINGLE);
+		i = i + 1;
+	}
+}
+
 macro Test-Expr2()
 {
-   if (CursorDown(MOT_SINGLE) && CursorLeft(MOT_TOEND))
+   if (CursorDown(MOT_SINGLE) && CursorLeft(MOT_TOEND)) {
         InsertChar('x');
-   else
+   } else
         InsertChar('y');
 }
 

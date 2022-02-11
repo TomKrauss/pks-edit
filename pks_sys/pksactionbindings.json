@@ -593,10 +593,6 @@
       "command": "@set-options"
     },
     {
-      "key": "Alt+F1",
-      "command": "@edit-local-doc-macros"
-    },
-    {
       "key": "Alt+F2",
       "command": "@hide-block-marks"
     },
