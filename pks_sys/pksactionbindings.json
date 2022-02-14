@@ -998,15 +998,7 @@
         { "command": "@toggle-show-wysiwyg" },
         { "separator": true },
         { "command": "@toggle-line-selection" },
-        { "command": "@toggle-column-selection" },
-        { "separator": true },
-        {
-          "label-id": 1912,
-          "sub-menu": [
-            { "command": "@edit-doc-macros" },
-            { "command": "@add-doc-macros" }
-          ]
-        }
+        { "command": "@toggle-column-selection" }
       ]
     },
     {
@@ -1059,7 +1051,7 @@
       "icon": "fa-folder"
     },
     {
-      "command": "@save-save",
+      "command": "@save-file",
       "icon": "fa-save"
     },
     { "separator": true },
@@ -1085,7 +1077,7 @@
       "icon": "fa-exchange-alt"
     },
     {
-      "command": "@find-in-file-list",
+      "command": "@find-in-filelist",
       "icon": "fa-search-plus"
     },
     { "separator": true },

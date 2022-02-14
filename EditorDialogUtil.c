@@ -684,9 +684,9 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 		case IDD_LONG1: 
 			GetDlgItemText(hDlg,item,numbuf,sizeof numbuf-1);
 			if (item == IDD_LONG1) {
-				*((long*)dp->dp_data) = string_convertToLong(numbuf);
+				*((long*)dp->dp_data) = (long)string_convertToLong(numbuf);
 			} else {
-				*ip = numbuf[0] == 0 ? -1 : string_convertToLong(numbuf);
+				*ip = numbuf[0] == 0 ? -1 : (long)string_convertToLong(numbuf);
 			}
 			break;
 		case IDD_RNGE:

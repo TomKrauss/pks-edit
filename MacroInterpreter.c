@@ -300,13 +300,11 @@ int macro_recordOperation(PARAMS *pp)
  * macro_popParameter()
  * pop data from execution stack
  */
-intptr_t macro_popParameter(unsigned char **Sp)
-{
-	unsigned char *sp = *Sp;
+intptr_t macro_popParameter(unsigned char** Sp) {
+	unsigned char* sp = *Sp;
 	unsigned char typ = *sp;
 
 	*Sp += macro_getParameterSize(typ,&((COM_CHAR1 *)sp)->val);
-
 	switch(typ) {
 		case C_DATA:
 		case C_FORMSTART:
@@ -495,13 +493,13 @@ int macro_getDollarParameter(intptr_t offset, int *typ, intptr_t *value)
 intptr_t macro_doMacroFunctions(COM_1FUNC **Cp, const COM_1FUNC *cpmax) {
 	intptr_t 	stack[40];
 	intptr_t*	saveStack;
-	intptr_t	rc,*sp,*sp2;
+	intptr_t	rc,*sp,*functionStringParameters;
 	unsigned char 	typ;
 	int  		funcnum;
 	COM_1FUNC *	cp = *Cp;
 
 	sp = stack;
-	sp2 = sp+2;
+	functionStringParameters = sp+2;
 	sp[0] = sp[1] = sp[2] = sp[3] = 0;
 
 	if ((typ = cp->typ) == C_1FUNC) {
@@ -519,7 +517,7 @@ intptr_t macro_doMacroFunctions(COM_1FUNC **Cp, const COM_1FUNC *cpmax) {
 					*sp++ = 1;
 					*sp++ = macro_popParameter((unsigned char **)&cp);
 				} else {
-					*sp2++ = macro_popParameter((unsigned char **)&cp);
+					*functionStringParameters++ = macro_popParameter((unsigned char **)&cp);
 				}
 				break;
 			case C_LONGVAR:

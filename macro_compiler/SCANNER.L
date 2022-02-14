@@ -21,6 +21,7 @@
 #include <stdarg.h>
 
 #include "alloc.h"
+#include "stringutil.h"
 #include "sym.h"
 #include "edfuncs.h"
 #include "scanner.h"
@@ -29,7 +30,6 @@
 #include "linkedlist.h"
 #include "documentmodel.h"
 #include "pkscc.h"
-#include "stringutil.h"
 #include "crossreferencelinks.h"
 
 //
@@ -337,17 +337,40 @@ static char *unquotealloc(char *name, int len)
 /*------------------------------------------------------------
  * number()
  */
-long number(char *s)
-{
-	long  sign = 1;
-
-	if (*s == '+' || *s == '\\')
+long long number(char *s) {
+	char* pszStart = s;
+	if (*s == '\\') {
 		s++;
-	else if (*s == '-') {
-		sign = -1;
-		s++;
+	}
+	int nBase = 10;
+	if (*s == '0') {
+		if (s[1] == 'x' || s[1] == 'X') {
+			s += 2;
+			nBase = 16;
+		} else {
+			s++;
+			nBase = 8;
+		}
 	} 
-	return sign * strtol(s,(char **)0,0);
+	long long i = 0;
+	int o;
+	for (;;) {
+		if (*s >= '0' && *s <= '9')
+			o = (*s - '0');
+		else if (*s >= 'A' && *s <= 'F')
+			o = (*s - 'A' + 10);
+		else if (*s >= 'a' && *s <= 'f')
+			o = (*s - 'a' + 10);
+		else break;
+		i *= nBase;
+		i += o;
+		if (i < 0) {
+			yyerror("Integer overflow while converting %s", pszStart);
+			break;
+		}
+		s++;
+	}
+	return i;
 }
 
 /*---------------------------------*/
@@ -359,7 +382,6 @@ int yywrap(void )
 }
 
 %}
-SIGN		[-+]?
 OKTNUM	[0-7]
 NUM		[0-9]
 HEXNUM	[0-9a-fA-F]
@@ -389,15 +411,15 @@ WS		[ \t]
 				yylval.s = unquotealloc(yytext,yyleng);
 				return T_STRING;
 			}
-{SIGN}0[xX]{HEXNUM}+ {
+0[xX]{HEXNUM}+ {
 				yylval.num = number(yytext);
 				return T_NUM;
 			}
-<INITIAL>{SIGN}0{OKTNUM}+	{
+<INITIAL>0{OKTNUM}+	{
 				yylval.num = number(yytext);
 				return T_NUM;
 			}
-<INITIAL>{SIGN}{NUM}+	{
+<INITIAL>{NUM}+	{
 				yylval.num = number(yytext);
 				return T_NUM;
 			}
@@ -411,7 +433,7 @@ WS		[ \t]
 				yylval.num = yytext[1];
 				return T_NUM;
 			}
-{CHN}+		{	SYMBOL 	sym;
+{CHN}+		{	PKS_VALUE 	sym;
 				char *	key;
 
 				sym = sym_find(yytext,&key);

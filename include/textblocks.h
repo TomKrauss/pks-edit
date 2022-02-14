@@ -232,7 +232,7 @@ extern int bl_append(PASTE* pb, LINE* lnfirst, LINE* lnlast, int cfirst, int cla
 /*---------------------------------*/
 /* bl_pasteBlock()					*/
 /*---------------------------------*/
-extern int bl_pasteBlock(PASTE* buf, int colflg, int offset, int move);
+extern int bl_pasteBlock(WINFO* wp, PASTE* buf, int colflg, int offset, int move);
 
 /*
  * Save all named clipboards to external files. Invoked on exit.

@@ -40,10 +40,9 @@ int macro_isParameterStringType(unsigned char typ)
 /*
  * macro_getNumberParameter()
  */
-long macro_getNumberParameter(unsigned char *sp,unsigned char *spend)
-{
+static long long macro_getNumberParameter(unsigned char *sp,unsigned char *spend) {
 	char *		s;
-	extern long 	number(char *s);
+	extern long long number(char *s);
 
 	switch(*sp) {
 		case C_STRING1PAR:
@@ -54,11 +53,11 @@ long macro_getNumberParameter(unsigned char *sp,unsigned char *spend)
 		case C_INT1PAR:
 		case C_LONG1PAR:
 		case C_LONGVAR:
-			return (long) macro_popParameter(&sp);
+			return (long long) macro_popParameter(&sp);
 		case C_MACRO:
 		case C_0FUNC:
 		case C_1FUNC:
-			return (long)macro_doMacroFunctions((COM_1FUNC**)&sp, (COM_1FUNC*)spend);
+			return (long long)macro_doMacroFunctions((COM_1FUNC**)&sp, (COM_1FUNC*)spend);
 	}
 	return 0L;
 }
@@ -66,11 +65,9 @@ long macro_getNumberParameter(unsigned char *sp,unsigned char *spend)
 /*
  * macro_getStringParameter()
  */
-char *macro_getStringParameter(unsigned char *sp)
-{
+char *macro_getStringParameter(unsigned char *sp) {
 	intptr_t v;
 	static char buf[20];
-		
 
 	switch(*sp) {
 		case C_STRING1PAR:
@@ -123,7 +120,7 @@ static int strmatch(char *s1,char *s2) {
  * Test an expression in a macro.
  */
 int macro_testExpression(COM_TEST *sp) {	
-	long r1,r2;
+	long long r1,r2;
 	unsigned char *s1,*s2,*p2,*pend;
 	unsigned char op;
 
@@ -159,7 +156,7 @@ int macro_testExpression(COM_TEST *sp) {
 			case CT_SMATCH:  return r1 == 1;
 			case CT_SNMATCH: return r1 == 0;
 			default    : 
-notimpl:				error_displayAlertDialog("test: ~ OP 0x%x not implemented",op);
+notimpl:			error_displayAlertDialog("test: ~ OP 0x%x not implemented",op);
 					return 0;
 		}
 	} else
@@ -176,8 +173,8 @@ notimpl:				error_displayAlertDialog("test: ~ OP 0x%x not implemented",op);
  * macro_evaluateBinaryExpression()
  */
 void macro_evaluateBinaryExpression(COM_BINOP *sp)
-{	long 			r1;
-	long 			r2;
+{	long long		r1;
+	long long		r2;
 	int				typ1;
 	int				typ2;
 	unsigned char 		op;
@@ -206,7 +203,7 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 		return;	
 	}
 
-	if (!macro_isParameterStringType(typ1) || !macro_isParameterStringType(typ2)) {
+	if (!macro_isParameterStringType(typ1) && !macro_isParameterStringType(typ2)) {
 
 	    	/* one operand at least is numeric - force numeric calculations */
 
@@ -229,8 +226,8 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 		case BIN_MUL: r1 *= r2; break;
 		case BIN_DIV: 
 			if (!r2) {
-		zero:	error_displayAlertDialog("division by zero");
-				return;
+		zero:	error_displayAlertDialog("Division by zero");
+				break;
 			}
 			r1 /= r2; 
 			break;

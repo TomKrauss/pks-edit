@@ -1237,4 +1237,29 @@ int edit_convertCharacterCase(CC_OPERATION operation) {
 	return EdCursorRight(1);
 }
 
+/*
+ * Insert a string into the current file at the current cursor position.
+ */
+int edit_insertString(long unused, long u2, const char* pszString) {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (!wp || !pszString) {
+		return 0;
+	}
+	PASTE buffer;
+	memset(&buffer, 0, sizeof buffer);
+	size_t nSize = strlen(pszString);
+	char* pszCopy = calloc(1, nSize + 2);
+	strcpy(pszCopy, pszString);
+	// Need a trailing newline for convertTextToPasteBuffer....
+	pszCopy[nSize++] = '\n';
+	int ret = bl_convertTextToPasteBuffer(&buffer, (char*)pszCopy, (char*)(pszCopy + nSize), '\n', -1, '\r');
+	free(pszCopy);
+	if (ret) {
+		CARET oldCaret = wp->caret;
+		bl_pasteBlock(wp, &buffer, 0, oldCaret.offset, 0);
+		bl_free(&buffer);
+		return 1;
+	}
+	return 0;
+}
 

@@ -21,8 +21,8 @@ char *_strtolend;
 /**
  * Convert a string input to long assuming hexadecimal encoding. 
  */
-EXPORT long string_convertToLongBase16(char* s) {
-	long i = 0;
+EXPORT long long string_convertToLongBase16(char* s) {
+	long long i = 0;
 	int o;
 	for (;;) {
 		if (*s >= '0' && *s <= '9')
@@ -43,9 +43,10 @@ EXPORT long string_convertToLongBase16(char* s) {
 /*--------------------------------------------------------------------------
  * string_convertToLong()
  */
-EXPORT long string_convertToLong(char *s)
-{	long i = 0;
-	long minus = 1;
+EXPORT long long string_convertToLong(char *s)
+{
+	long long i = 0;
+	long long minus = 1;
 
 	while (*s == ' ' || *s == '\t') s++;	/* skip leading white */  
 	if (*s == '-') {

@@ -701,7 +701,7 @@ extern LINE* ln_insertIndent(WINFO* wp, LINE* lp, int col, int* inserted);
  * characters t1 and t2. If cr is passed (not 0), the cr character
  * is handled as such.
  */
-extern unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, unsigned char* p, unsigned char* pend, int t1, int t2, int cr);
+extern unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, const unsigned char* p, const unsigned char* pend, int t1, int t2, int cr);
 
 /*------------------------------------
  * ln_createMultipleLinesFromBuffer()
@@ -721,7 +721,7 @@ extern unsigned char* ln_createFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* docume
  * ln_createAndAdd()
  * create a line and add it to the editor model. Returns true, if successful.
  */
-extern int ln_createAndAdd(FTABLE* fp, char* q, int len, int flags);
+extern int ln_createAndAdd(FTABLE* fp, const char* q, int len, int flags);
 
 /*--------------------------------------------------------------------------
  * ln_createAndAddSimple()

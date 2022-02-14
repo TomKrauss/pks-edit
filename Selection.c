@@ -154,7 +154,8 @@ void bl_restorePasteBuffers() {
 
 /*--------------------------------------------------------------------------
  * bl_convertPasteBufferToText()
- * Convert a string buffer to a paste buffer.
+ * Convert a string buffer to a paste buffer. Note, that pText must be terminated by a cSeparator1 character.
+ * TODO: fix the necessity of the trailing newline.
  */
 int bl_convertTextToPasteBuffer(PASTE* bp, unsigned char* pText, unsigned char* pEnd, char cSeparator1, char cSeparator2, char cCr) {
 	FTABLE 	ft;

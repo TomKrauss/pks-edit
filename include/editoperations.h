@@ -22,6 +22,11 @@
   */
 extern int edit_toggleComment();
 
+/*
+ * Insert a string into the current file at the current cursor position.
+ */
+extern int edit_insertString(long unused, long u2, const char* pszString);
+
 /*--------------------------------------------------------------------------
  * Perform the given operation on the lines of the current file. Some of
  * the given operations required the line being marked before with "mark line".

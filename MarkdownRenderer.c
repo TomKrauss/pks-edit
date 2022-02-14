@@ -792,7 +792,7 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 			i++;
 		}
 	} else if (isdigit((unsigned char)c)) {
-		*pNumber = string_convertToLong(&lp->lbuf[i]);
+		*pNumber = (long)string_convertToLong(&lp->lbuf[i]);
 		if (*_strtolend == '.') {
 			*pOffset = (int)(_strtolend - lp->lbuf) + 1;
 			mType = MET_ORDERED_LIST;

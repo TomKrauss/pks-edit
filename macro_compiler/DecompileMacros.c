@@ -62,7 +62,7 @@ static EDFUNCDEF *idx2edfunc(int idx)
 {	int i;
 
 	for (i = 0; i < _nfunctions; i++) {
-		if (_functab[i].idx == idx) {
+		if (_functab[i].edf_idx == idx) {
 			return &_functab[i];
 		}
 	}
@@ -91,7 +91,7 @@ static char *quote(unsigned char *name)
 /*--------------------------------------------------------------------------
  * pr_xlated()
  */
-static int pr_xlated(FILE *fp,long val,signed char partyp)
+static int pr_xlated(FILE *fp,long long val,signed char partyp)
 {
 	OWNTYPE	*op;
 	TYPEELEM	*ep,*epend;
@@ -133,7 +133,7 @@ static int pr_xlated(FILE *fp,long val,signed char partyp)
 	if (val || !printed) {
 		if (printed)
 			fputc('|',fp);
-		fprintf(fp,"%ld",val);
+		fprintf(fp,"%lld",val);
 	}
 	return 1;
 }
@@ -144,7 +144,7 @@ static int pr_xlated(FILE *fp,long val,signed char partyp)
 static int pr_param(FILE *fp, unsigned char *sp, signed char partyp)
 {
 	unsigned char typ;
-	long val;
+	long long val;
 
 	if (((intptr_t)sp) & 1)
 		goto err;
@@ -164,7 +164,7 @@ static int pr_param(FILE *fp, unsigned char *sp, signed char partyp)
 			val = ((COM_INT1 *)sp)->val;
 			break;
 		case C_LONG1PAR:
-			val = (long)((COM_LONG1 *)sp)->val;
+			val = (long long)((COM_LONG1 *)sp)->val;
 			break;
 		case C_STRING1PAR:
 			if (partyp != PAR_STRING)
@@ -193,11 +193,7 @@ static int pr_param(FILE *fp, unsigned char *sp, signed char partyp)
 	if (partyp >= PAR_USER) 
 	    return pr_xlated(fp,val,partyp);
 
-	if (val >= ' ' && val < 127) {
-		fprintf(fp,"'%c'",(char)val);
-		return 1;
-	}
-	fprintf(fp,"%ld",val);
+	fprintf(fp,"%lld",val);
 	return 1;
 }
 
@@ -212,7 +208,7 @@ static void pr_func(FILE *fp, int idx)
 		error_displayAlertDialog("format error: bad function");
 		return;
 	}
-	fprintf(fp,"\t%s",macro_loadStringResource(ep->idx));
+	fprintf(fp,"\t%s",macro_loadStringResource(ep->edf_idx));
 }
 
 /*
@@ -249,7 +245,7 @@ static unsigned char *pr_function(FILE *fp, unsigned char *sp,
 
 	npars = 0;
 	if (cp->typ == C_1FUNC) {
-		partyp = ep->ftyps[1];
+		partyp = ep->edf_paramTypes[1];
 		/* c0_func glitch */
 		if (partyp != PAR_VOID &&
 		    (partyp < PAR_USER || (_typetab[partyp-PAR_USER].ot_flags & OF_ELIPSIS) == 0)) {
@@ -261,7 +257,7 @@ static unsigned char *pr_function(FILE *fp, unsigned char *sp,
 	sp += macro_getParameterSize(*sp,sp+1);
 
 	while(sp < spend && C_IS1PAR(*sp)) {
-		if ((partyp = ep->ftyps[npars+1]) != PAR_VOID) {
+		if ((partyp = ep->edf_paramTypes[npars+1]) != PAR_VOID) {
 			if (npars)
 				fputc(',',fp);
 			if (pr_param(fp,sp,partyp) < 0)

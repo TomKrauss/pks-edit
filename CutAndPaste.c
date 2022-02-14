@@ -83,13 +83,12 @@ EXPORT int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag) {
 /*---------------------------------*/
 /* bl_pasteBlock()					*/
 /*---------------------------------*/
-EXPORT int bl_pasteBlock(PASTE *buf, int colflg, int offset, int move) {
+EXPORT int bl_pasteBlock(WINFO* wp, PASTE *buf, int colflg, int offset, int move) {
 	LINE *	lp;
 	long 	col,ln;
 	long 	delta,oln;
 	int	    	ret;
 	FTABLE *	fp;
-	WINFO *	wp = ww_getCurrentEditorWindow();
 
 	fp = wp->fp;
 	if ((ret = bl_paste(buf,wp,wp->caret.linePointer, offset,colflg)) == 0 ||
@@ -134,7 +133,7 @@ EXPORT int paste(PASTE *buf,int move)
 {
 	WINFO* wp = ww_getCurrentEditorWindow();
 
-	return bl_pasteBlock(buf,ww_isColumnSelectionMode(wp), wp->caret.offset, move);
+	return bl_pasteBlock(wp, buf,ww_isColumnSelectionMode(wp), wp->caret.offset, move);
 }
 
 /*--------------------------------------------------------------------------
@@ -444,7 +443,7 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 			offs = wp->caret.offset;
 		}
 
-		ret = bl_pasteBlock(&pbuf,colflg,offs,move);
+		ret = bl_pasteBlock(wp, &pbuf,colflg,offs,move);
 		if (colflg) {
 			caret_placeCursorInCurrentFile(wp, wp->caret.ln,(long)offs);
 			wp->blcol1 = offs;

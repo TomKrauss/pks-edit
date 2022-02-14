@@ -30,7 +30,7 @@ int init_funcs(void)
 	char *			pszCopy;
 
 	for (ep = _functab, epend = ep+_nfunctions; ep < epend;  ep++) {
-		if ((pszCopy = (char*)macro_loadStringResource(ep->idx)) == 0 ||
+		if ((pszCopy = (char*)macro_loadStringResource(ep->edf_idx)) == 0 ||
 			!sym_insert(pszCopy,S_EDFUNC,(intptr_t)ep)) {
 			return 0;
 		}
@@ -59,7 +59,7 @@ long EnumValue(TYPEELEM *enp)
  */
 int FuncIdx(EDFUNCDEF *ep)
 {
-	return ep->idx;	
+	return ep->edf_idx;
 }
 
 /*--------------------------------------------------------------------------
@@ -72,7 +72,7 @@ int IsFormStart(EDFUNCDEF *ep,int parno)
 	if (parno > 1)
 		return 0;
 
-	idx = ep->ftyps[parno+1]-PAR_USER;
+	idx = ep->edf_paramTypes[parno+1]-PAR_USER;
 	if (idx < 0 || idx >= _ntypes)
 		return 0;
 	
@@ -87,6 +87,6 @@ int IsFormStart(EDFUNCDEF *ep,int parno)
  */
 int IsStringFunc(EDFUNCDEF *ep)
 {
-	return ep->ftyps[0] == PAR_STRING;
+	return ep->edf_paramTypes[0] == PAR_STRING;
 }
 

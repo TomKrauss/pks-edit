@@ -170,7 +170,7 @@ extern TOOLBAR_BUTTON_BINDING* binding_getToolbarBindingsFor(const char* pszActi
 
 /*
 
- typical seq. in the cmd. BUF:
+ Bytecodes of a macro.
  C_LOOP multiplier CMC_{MENU,CMDSEQ} funcnum {par} C_STR1PAR string ...
  all entities padded to ensure int alignment !!
 

@@ -106,9 +106,13 @@ unsigned char 	*AddComSeq(unsigned char *sp, unsigned char *spend,
 				     	 unsigned char typ, intptr_t par);
 int				FuncIdx(void *ep);
 int 			IsFormStart(void *ep,int parno);
-void 		key_destroytable(char *name);
-TYPEDVAL		PushBinop(int opd_typ, TYPEDVAL *v1, 
+extern TYPEDVAL		PushBinop(int opd_typ, TYPEDVAL *v1, 
 					TYPEDVAL *v2);
+/*
+ * Multiply an expression and return the TYPEDVAL result
+ */
+extern TYPEDVAL MultiplyValue(TYPEDVAL* v1, int nNumber);
+
 extern int yylex(void );
 void 		PushAssign(char *name, int typ, intptr_t val);
 void 		PushCreateVariable(char *name, int typ, long val);
@@ -117,7 +121,7 @@ char		 	*GotoLabel(char *name, char *sp, char *spend, int typ);
 int			MakeLabel(char *name, COM_GOTO *recp);
 void 		CloseLabelList(void);
 void 		KillLabel(char *name);
-char			*LabelAutoName(char *prefix, int num);
+ char			*LabelAutoName(char *prefix, int num);
 int 			IsStringFunc(void *ep);
 %}
 
@@ -235,7 +239,7 @@ stmnt		:            	';'
 			}
 
 
-assignment	: var assgn 		{
+assignment	: var assgn {
 				PushAssign($1.s,$2.v.type,(intptr_t)$2.v.val);
 			}
 
@@ -271,6 +275,8 @@ bterm		: s_bterm 		{ $$.v = $1.v;	}
 						C_STRINGVAR : C_LONGVAR;
 				}
 			}
+			| '+' bterm { $$.v = $2.v }
+			| '-' bterm { $$.v = MultiplyValue(&$2.v, -1); }
 			| bterm '&' bterm 	{ $$.v = PushBinop(BIN_AND,&$1.v,&$3.v); }
 			| bterm '|' bterm 	{ $$.v = PushBinop(BIN_OR,&$1.v,&$3.v); }
 			| bterm '+' bterm 	{ $$.v = PushBinop(BIN_ADD,&$1.v,&$3.v); }
@@ -283,15 +289,15 @@ bterm		: s_bterm 		{ $$.v = $1.v;	}
 
 /*----- conditions ------------------------------------------*/
 
-cond			: '(' { TestOp(); } expr { CloseTestOp(CT_BRACKETS); } ')'
+cond		: '(' { TestOp(); } expr { CloseTestOp(CT_BRACKETS); } ')'
 
-expr			: optandorexpr
+expr		: optandorexpr
 			| cond
 			| '!' { TestOp(); } expr { CloseTestOp(CT_NOT); }
 
-optandorexpr	: { TestOp(); } op2 optandor { CloseTestOp($3.type); }
+optandorexpr: { TestOp(); } op2 optandor { CloseTestOp($3.type); }
 
-optandor		: { $$.type = CT_BRACKETS; }
+optandor	: { $$.type = CT_BRACKETS; }
 			| and_or { $$.type = $1.type; BinOp1($1.type); } expr
 
 and_or		: T_AND		{	$$.type = CT_AND;	}
@@ -359,10 +365,10 @@ string		: T_STRING	{	$$.s = $1.s;	}
 			}
 
 break		: T_BREAK opt_num ';'
-			{	gotolabel(lendid,_breaklevel-$2.num,BRA_ALWAYS); }
+			{	gotolabel(lendid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
 
 continue		: T_CONTINUE opt_num ';'
-			{	gotolabel(lstartid,_breaklevel-$2.num,BRA_ALWAYS); }
+			{	gotolabel(lstartid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
 
 return		: T_RETURN opt_num {
 				_recp = AddComSeq(_recp,_recpend,C_STOP,$2.num);
@@ -475,9 +481,9 @@ cast			: '(' type_ident ')'	{	$$.type = $2.type;		}
 type_ident	: T_TCHAR				{	$$.type = C_CHAR1PAR;	}
 			| T_TINT				{	$$.type = C_INT1PAR;	}
 			| T_TLONG				{	$$.type = C_LONG1PAR;	}
-			| T_TSTRING			{	$$.type = C_STRING1PAR;	}
+			| T_TSTRING				{	$$.type = C_STRING1PAR;	}
 
-constval		: T_NUM {
+constval	: T_NUM {
 				$$.v.type = C_LONG1PAR; 
 				$$.v.val  = $1.num;
 			}

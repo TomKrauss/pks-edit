@@ -24,31 +24,58 @@ macro YesOrNo()
 }
 
 #
-# test of expressions, using functions
+# Test evaluation of String expressions, using the formatting function FormatPrint.
 #
-macro test() 
-{
-	string	x = GetSelected() + 
-			    "xx" + 
-			    FormatPrint("date: %D") + 
-			    FormatPrint("time: %T");
+macro insertFormattedString() {
+	string myString = GetSelected() +
+			    "* @author: Oscar\n" +
+			    FormatPrint("* date: %D\n") +
+			    FormatPrint("* time: %T\n");
+	InsertString(myString);
+}
 
-	InsertString(x);
+#
+# Insert a text at the same time incrementing a number to be used in the text.
+#
+macro insertWithIncrement() {
+	string t;
+	string suffix;
+	int n = 1;
+
+	while(n < 10) {
+		if (n == 1) {
+			suffix = "st";
+		}
+		if (n == 2) {
+			suffix = "nd";
+		}
+		if (n == 3) {
+			suffix = "rd";
+		}
+		if (n > 3) {
+			suffix = "nth";
+		}
+		t = "hello "+ n + suffix + " world\n";
+		InsertString(t);
+		n = n + 1;
+	}
 }
 
 #
 # Calculate the factorial of a number input into a message box.
-# Note: PKSMakroC - Integers are only 24 bit big, this macro
-# will cause overflows for fac(>12) !
+# Note: PKSMakroC - PKS MacroC Integers are 64 bit big, this macro
+# will cause overflows for fac(>16) !
 #
 macro calculateFactorial() {
-	int		count = 1;
 	int		n = 1;
 	int		save_n = 1;
 	int		res = 1;
 	string	result = "";
 
 	n = (int)PromptAssign("Calculate factorial of: ","10");
+	if (n == 0) {
+		return;
+	}
 	save_n = n;
 
 	while(n > 1) {
@@ -59,7 +86,7 @@ macro calculateFactorial() {
     if (res < 0) {
         MessageBox(0, MB_ICONERROR|MB_OK, "Overflow during calculation.");
     } else {
-	    result = "The factorial of " + (string) save_n + " is: " + (string) res;
+	    result = "The factorial of " + save_n + " is: " + res;
         MessageBox(0, MB_ICONINFORMATION|MB_OK, result);
     }
 }

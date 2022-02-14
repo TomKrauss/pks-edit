@@ -60,6 +60,9 @@ typedef struct tagCOMPILER_OUTPUT_PATTERN {
 	struct tagCOMPILER_OUTPUT_PATTERN* cop_next;
 	char cop_name[32];
 	char cop_pattern[200];
+	int  cop_filenameCapture;
+	int  cop_lineNumberCapture;
+	int  cop_commentCapture;
 } COMPILER_OUTPUT_PATTERN;
 
 typedef struct tagEDITOR_CONFIGURATION {

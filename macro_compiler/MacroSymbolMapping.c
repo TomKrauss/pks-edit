@@ -29,14 +29,14 @@ extern long 	number(char *s);
 extern int 		macro_isParameterStringType(unsigned char typ);
 extern int 		macro_getDollarParameter(intptr_t offset, int *typ, intptr_t *value);
 
-static SYMBOL	nullSymbol;
+static PKS_VALUE	nullSymbol;
 
 /*---------------------------------*/
 /* HASHTABLE					*/
 /*---------------------------------*/
 typedef struct hentry {
 	char 	*key;
-	SYMBOL 	sym;
+	PKS_VALUE 	sym;
 } ENTRY;
 
 typedef enum {	FIND,ENTER,DESTROY} ACTION;
@@ -142,7 +142,7 @@ int sym_create(unsigned nel) {
 /*--------------------------------------------------------------------------
  * sym_find()
  */
-SYMBOL sym_find(char *key,char **key_ret)
+PKS_VALUE sym_find(char *key,char **key_ret)
 {
 	ENTRY	*ep;
 
@@ -156,12 +156,12 @@ SYMBOL sym_find(char *key,char **key_ret)
 /*--------------------------------------------------------------------------
  * sym_insert()
  */
-int sym_insert(char *key, int symtype, intptr_t symdata)
+int sym_insert(char *key, SYMBOL_TYPE stType, intptr_t symdata)
 {
 	ENTRY	*ep;
 
 	if ((ep = hfind(key,ENTER)) != 0) {
-		SETSYMBOL(ep->sym,symtype,symdata);
+		SETSYMBOL(ep->sym,stType,symdata);
 		return 1;
 	}
 	return 0;	
@@ -171,19 +171,19 @@ int sym_insert(char *key, int symtype, intptr_t symdata)
 /*--------------------------------------------------------------------------
  * sym_makeInternalSymbol()
  */
-int sym_makeInternalSymbol(char *name, char ed_typ, intptr_t value) {
+int sym_makeInternalSymbol(char *name, SYMBOL_TYPE stType, intptr_t value) {
 	ENTRY	*ep;
 	int		type;
 
-	type = ed_typ;
-	if (ed_typ == S_STRING || ed_typ == S_CONSTSTRING) {
+	type = stType;
+	if (stType == S_STRING || stType == S_CONSTSTRING) {
 		if ((value = (intptr_t)_strdup((char*)value)) == 0) {
 			return 0;
 		}
 	}
 
 	if ((ep = hfind(name,FIND)) != 0) {
-		/* redefinition */
+			/* redefinition */
 		if (TYPEOF(ep->sym) == S_STRING || 
 			TYPEOF(ep->sym) == S_CONSTSTRING) {
 			free((void*)VALUE(ep->sym));
@@ -200,11 +200,11 @@ int sym_makeInternalSymbol(char *name, char ed_typ, intptr_t value) {
 }
 
 /*--------------------------------------------------------------------------
- * GetVariable()
+ * sym_getVariable()
  */
-static SYMBOL GetVariable(char *symbolname)
+static PKS_VALUE sym_getVariable(char *symbolname)
 {
-	SYMBOL 	sym;
+	PKS_VALUE 	sym;
 	char	*	tmp;
 
 	sym = sym_find(symbolname,&tmp);
@@ -225,11 +225,11 @@ static SYMBOL GetVariable(char *symbolname)
  * sym_integerForSymbol()
  */
 long sym_integerForSymbol(char *symbolname) {
-	SYMBOL 	sym;
+	PKS_VALUE 	sym;
 	int		isString;
 	intptr_t value;
 
-	sym = GetVariable(symbolname);
+	sym = sym_getVariable(symbolname);
 
 	if (NULLSYM(sym)) {
 		return 0L;
@@ -255,12 +255,12 @@ long sym_integerForSymbol(char *symbolname) {
  * sym_stringForSymbol()
  */
 intptr_t sym_stringForSymbol(char *symbolname) {
-	SYMBOL 	sym;
+	PKS_VALUE 	sym;
 	int		isString;
 	intptr_t		value;
 	static char buf[20];
 
-	sym = GetVariable(symbolname);
+	sym = sym_getVariable(symbolname);
 
 	if (NULLSYM(sym)) {
 		return (intptr_t)"";
@@ -294,7 +294,7 @@ long sym_assignSymbol(char *name, COM_LONG1 *v) {
 	intptr_t value;
 
 	typ = macro_isParameterStringType(v->typ) ? S_STRING : S_NUMBER;
-	value = macro_popParameter((unsigned char **)&v);
-	return sym_makeInternalSymbol(name,typ,value);
+	value = macro_popParameter((unsigned char**)&v);
+	return sym_makeInternalSymbol(name, typ, value);
 }
 

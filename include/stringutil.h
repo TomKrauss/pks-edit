@@ -28,12 +28,12 @@ extern char* _strtolend;
  * Convert the first integer value from the passed String (interpret hex numbers and
  * normal numbers) set the resulting pointer after parsing to _strtolend.
  */
-extern long string_convertToLong(char* s);
+extern long long string_convertToLong(char* s);
 
 /**
  * Convert a string input to long assuming hexadecimal encoding.
  */
-extern long string_convertToLongBase16(char* s);
+extern long long string_convertToLongBase16(char* s);
 
 /*
  * Compare a string with a second string to a maximum to the length of the 2nd string
@@ -41,12 +41,6 @@ extern long string_convertToLongBase16(char* s);
  * insensitive comparison is performed.
  */
 extern int string_compareWithSecond(const unsigned char* s1, const unsigned char* s2, int bCaseIgnore);
-
-/*--------------------------------------------------------------------------
- * string_countCharacters()
- * Count the number of occurrences of a character in a string.
- */
-extern int string_countCharacters(char* s, char c);
 
 /*
  * Return a pointer to the last matching position, where a character can be found in a String

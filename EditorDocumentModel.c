@@ -44,7 +44,7 @@ EXPORT int ln_createAndAddSimple(FTABLE* fp, char* b)
  * ln_createAndAdd()
  * create a line and add it to the editor model
  */
-BOOL ln_createAndAdd(FTABLE* fp, char* q, int len, int flags) {
+BOOL ln_createAndAdd(FTABLE* fp, const char* q, int len, int flags) {
 	LINE* lp;
 
 	if (len < 0) {

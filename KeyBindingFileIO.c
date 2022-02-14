@@ -221,7 +221,7 @@ int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
 			macro_replaceCurrentWord(wp);
 		}
 		CARET oldCaret = wp->caret;
-		bl_pasteBlock(&pasteBuffer, 0, oldCaret.offset, 0);
+		bl_pasteBlock(wp, &pasteBuffer, 0, oldCaret.offset, 0);
 		if (templateAction.ta_positionCursor) {
 			long col = templateAction.ta_cursorDelta.cd_deltaLn ? templateAction.ta_cursorDelta.cd_deltaCol : templateAction.ta_cursorDelta.cd_deltaCol + oldCaret.offset;
 			long ln = templateAction.ta_cursorDelta.cd_deltaLn + oldCaret.ln;

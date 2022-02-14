@@ -61,7 +61,7 @@ static int arguments_parsePhase2(char *arg)
 			break;
 		case 'l':
 		case 'g':	
-			line = string_convertToLong(arg) -1L;
+			line = (long)string_convertToLong(arg) -1L;
 			if ((wp = ww_getCurrentEditorWindow()) != NULL) {
 				caret_placeCursorInCurrentFile(wp, line, 0L);
 			}
@@ -73,7 +73,7 @@ static int arguments_parsePhase2(char *arg)
 			break;
 		case 'c':
 			if ((wp = ww_getCurrentEditorWindow()) != NULL) {
-				caret_placeCursorInCurrentFile(wp, wp->caret.ln,string_convertToLong(arg)-1L);
+				caret_placeCursorInCurrentFile(wp, wp->caret.ln, (long)string_convertToLong(arg)-1L);
 			}
 			break;
 		case 't':

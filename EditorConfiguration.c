@@ -148,6 +148,9 @@ static JSON_MAPPING_RULE _prtparamRules[] = {
 static JSON_MAPPING_RULE _copRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(COMPILER_OUTPUT_PATTERN, cop_name), sizeof(((COMPILER_OUTPUT_PATTERN*)NULL)->cop_name)},
 	{	RT_CHAR_ARRAY, "pattern", offsetof(COMPILER_OUTPUT_PATTERN, cop_pattern), sizeof(((COMPILER_OUTPUT_PATTERN*)NULL)->cop_pattern)},
+	{	RT_INTEGER, "filename-capture", offsetof(COMPILER_OUTPUT_PATTERN, cop_filenameCapture)},
+	{	RT_INTEGER, "linenumber-capture", offsetof(COMPILER_OUTPUT_PATTERN, cop_lineNumberCapture)},
+	{	RT_INTEGER, "comment-capture", offsetof(COMPILER_OUTPUT_PATTERN, cop_commentCapture)},
 	{	RT_END}
 };
 

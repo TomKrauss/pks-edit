@@ -1,0 +1,19 @@
+macro Test-Expr() {
+	int k = 23456234;
+	// Gives a compile error: integer overflow
+	//int llll = 87498237498237498237427349324;
+	int i = 2+0177;
+	int j = 0xB*4;
+	int l = 5%4;
+	int z = 23;
+	int div0 = 0;
+
+	// Gives a compile error: division by zero
+	// int m = 2/0;
+
+	// Is also detected as a compile error
+	// int opq = z / 0;
+
+	// will result in a runtime error
+	z = z % div0;
+}

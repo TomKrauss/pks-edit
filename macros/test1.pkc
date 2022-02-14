@@ -11,10 +11,10 @@ macro Test-Expr()
 }
 
 macro Test-While() {
-	int i = 0;
+	int i = 2+2;
 	while (i < 20) {
 		CursorDown(MOT_SINGLE);
-		i = i + 1;
+		i = i+1;
 	}
 }
 

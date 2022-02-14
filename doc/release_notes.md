@@ -14,6 +14,7 @@ and character deletes (DEL + Backspace) are concurrently applied to multiple pla
 - The code completion window displays now additional information about completions in a secondary window in situations
 where additional information is available. An example are templates, which show a preview of the text to insert or PKS-Edit
 commands which show an explanation about the command.
+- Expressions with strings in PKSMacroC such as "x"+1 are automatically casted to string. One does not need to write any more "x"+(string)1.
 
 ### Changed
 - all files previously stored in the old Windows INI-file format (`pksedit.his`, `pksedit.ini`) were replaced by JSON formatted files:
@@ -24,8 +25,12 @@ commands which show an explanation about the command.
 ### Fixes
 - A potential buffer overflow, when defining syntax error formats (navigation patterns) with long associated compiler names has been fixed.
 - A potential crash when closing a comparison window was fixed
-- A regression when compiling PKS-MacroC files containing strings, which cause a compilation error was fixed.
 - Save actions are now really executed just before a file is saved.
+- A regression when compiling PKS-MacroC files containing strings, which cause a compilation error was fixed.
+- Several small issues int compilation of PKSMacroC have been fixed:
+   - `1+1` is now correctly evaluated (before you needed to write `1 + 1` - space delimited) 
+   - integer values support a higher range of long long (C) now. Overflows during compilation are correctly reported as a compile error
+   - while loop bodys may now contain multiple statements enclosed in `{` and `}`.
  
 ### 2.1.0
 

@@ -87,7 +87,6 @@ static TAG_TABLE _allTags;
 
 #define	TAGMAXTRY			5
 
-static FTABLE	_stepfile;
 extern FTABLE 	*ft_getCurrentErrorDocument();
 
 static NAVIGATION_PATTERN _pksEditSearchlistFormat = { 
@@ -126,32 +125,19 @@ static void xref_destroyTagTable() {
 }
 
 /*
+ * Return the navigation pattern for a given compiler.
+ */
+static NAVIGATION_PATTERN* xref_getNavigationPatternFor(const char* pszCompiler) {
+	NAVIGATION_PATTERN* pResult = ll_find((LINKED_LIST*)_compilerOutputNavigationPatterns, (char*)pszCompiler);
+	return pResult ? pResult : _compilerOutputNavigationPatterns;
+}
+
+/*
  * Free all memory occupied by the cross reference lists. 
  */
 void xref_destroyAllCrossReferenceLists() {
 	ll_destroy((LINKED_LIST**)&_compilerOutputNavigationPatterns, xref_destroyCmpTag);
 	xref_destroyTagTable();
-}
-
-/*------------------------------------------------------------------------
- * get_quoted()
- */
-static char *get_quoted(char **src) {
-	char *d,*s,*start;
-
-	s = d = start = *src;
-	while (*s) {
-		if (*s == ',') {
-			s++;
-			break;
-		}
-		if (*s == '\\' && s[1])
-			s++;
-		*d++ = *s++;
-	}
-	*d = 0;
-	*src = s;
-	return start;
 }
 
 /*--------------------------------------------------------------------------
@@ -173,22 +159,16 @@ static NAVIGATION_PATTERN* compiler_llinsert(void* pHead, int size, char* pszCom
 /*--------------------------------------------------------------------------
  * compiler_mk()
  */
-static int compiler_mk(char *compiler, char* pszLine) {
+static int compiler_mk(COMPILER_OUTPUT_PATTERN *pPattern) {
 	NAVIGATION_PATTERN* ct;
-	char* s;
-	char* szNext;
 
-	if ((ct = compiler_llinsert(&_compilerOutputNavigationPatterns,sizeof *ct, compiler)) == 0) {
+	if ((ct = compiler_llinsert(&_compilerOutputNavigationPatterns,sizeof *ct, pPattern->cop_name)) == 0) {
 		return 0;
 	}
-	s = pszLine;
-	ct->pattern = _strdup(get_quoted(&s));
-	szNext = get_quoted(&s);
-	ct->filenameCapture = szNext[0]-'0';
-	szNext = get_quoted(&s);
-	ct->lineNumberCapture = szNext[0] -'0';
-	szNext = get_quoted(&s);
-	ct->commentCapture= szNext[0] - '0';
+	ct->pattern = _strdup(pPattern->cop_pattern);
+	ct->filenameCapture = pPattern->cop_filenameCapture;
+	ct->lineNumberCapture = pPattern->cop_lineNumberCapture;
+	ct->commentCapture= pPattern->cop_commentCapture;
 	return 1;
 }
 
@@ -200,7 +180,7 @@ int xref_restoreFromConfigFile(void)
 {
 	COMPILER_OUTPUT_PATTERN* pPattern = GetConfiguration()->outputPatterns;
 	while (pPattern) {
-		if (!compiler_mk(pPattern->cop_name, pPattern->cop_pattern)) {
+		if (!compiler_mk(pPattern)) {
 			return 0;
 		}
 		pPattern = pPattern->cop_next;
@@ -371,7 +351,7 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 			pReference->searchCommand = _strdup(extCommandCopy);
 		} else {
 			// lines are 0-based
-			pReference->ln = string_convertToLong(extCommand)-1l;
+			pReference->ln = (long)string_convertToLong(extCommand)-1l;
 		}
 		regex_getCapturingGroup(&match, _exprerror->tagExtensionFields - 1, extCommand, sizeof extCommand);
 		pReference->kind = extCommand[0];
@@ -932,18 +912,6 @@ int xref_navigateSearchErrorList(int dir) {
 	BOOL			bGoForward = FALSE;
 
 	memset(&navigationSpec, 0, sizeof navigationSpec);
-	if (dir & LIST_USETOPWINDOW) {
-	/* treat current window as error list */
-		dir &= ~LIST_USETOPWINDOW;
-		WINFO* wp = ww_getCurrentEditorWindow();
-		if (!wp) {
-			fp = NULL;
-		} else {
-			fp = wp->fp;
-			fp->navigationPattern = _compilerOutputNavigationPatterns;
-		}
-	}
-
 	if (fp) {
 		pNavigationPattern = fp->navigationPattern;
 		wp = WIPOI(fp);
@@ -1064,7 +1032,12 @@ static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *
 			if (xref_openFile(_fseltarget, 0L, DOCK_NAME_BOTTOM) && ft_getCurrentDocument()) {
 				EdFileAbandon();
 			}
-			return xref_navigateSearchErrorList(LIST_START|LIST_USETOPWINDOW);
+			fp = ft_fpbyname(_fseltarget);
+			if (fp) {
+				// TODO: make this configurable - currently only used by PKS MacroC compiler.
+				fp->navigationPattern = xref_getNavigationPatternFor("PKSMAKROC");
+			}
+			return xref_navigateSearchErrorList(LIST_START);
 		case ST_STEP:
 			fp = ft_openFileWithoutFileselector(_fseltarget, 0, &(FT_OPEN_OPTIONS) { DOCK_NAME_BOTTOM, CP_ACP });
 			if (fp) {

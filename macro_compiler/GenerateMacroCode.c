@@ -141,9 +141,7 @@ static void PushTypedAssign(int comType, char *name, int typ, intptr_t val)
 /*--------------------------------------------------------------------------
  * PushAssign()
  */
-void PushAssign(char *name, int typ, intptr_t val)
-{
-
+void PushAssign(char *name, int typ, intptr_t val) {
 	PushTypedAssign(C_ASSIGN, name, typ, val);
 }
 
@@ -177,18 +175,34 @@ void PushCreateVariable(char *name, int typ, intptr_t val)
  * PushBinop()
  */
 extern int vname_count;
-TYPEDVAL PushBinop(int opd_typ, TYPEDVAL*v1, TYPEDVAL*v2) {
+TYPEDVAL PushBinop(int nOperationType, TYPEDVAL*v1, TYPEDVAL*v2) {
 	unsigned char *	p1;
 	unsigned char *	p2;
 	COM_BINOP *		bp;
 	TYPEDVAL		ret;
 
+	if (nOperationType == BIN_DIV || nOperationType == BIN_MOD) {
+		if (v2->type == C_LONG1PAR && !v2->val) {
+			yyerror("Division by zero.");
+			return *v1;
+		}
+	}
+	if (v1->type == C_LONG1PAR && v2->type == C_LONG1PAR) {
+		switch (nOperationType) {
+		case BIN_MUL: return (TYPEDVAL) { .type = C_LONG1PAR, .val = v1->val * v2->val };
+		case BIN_ADD: return (TYPEDVAL) { .type = C_LONG1PAR, .val = v1->val + v2->val };
+		case BIN_SUB: return (TYPEDVAL) { .type = C_LONG1PAR, .val = v1->val - v2->val };
+		case BIN_MOD: return (TYPEDVAL) { .type = C_LONG1PAR, .val = v1->val % v2->val };
+		case BIN_DIV:
+			return (TYPEDVAL) { .type = C_LONG1PAR, .val = v1->val / v2->val };
+		}
+	}
 	bp = (COM_BINOP*)_recp;
 	bp->typ = C_BINOP;
-	bp->op = opd_typ;
+	bp->op = nOperationType;
 	sprintf(bp->result,"__ret%d",vname_count++);
 	ret.val = (intptr_t)bp->result;
-	ret.type = (macro_isParameterStringType(v1->type) && (!v2 || macro_isParameterStringType(v2->type))) ?
+	ret.type = (macro_isParameterStringType(v1->type) || !v2 || macro_isParameterStringType(v2->type)) ?
 		C_STRINGVAR : C_LONGVAR;
 	p1 = bp->result;
 
@@ -214,5 +228,15 @@ TYPEDVAL PushBinop(int opd_typ, TYPEDVAL*v1, TYPEDVAL*v2) {
 	return ret;
 }
 
+/*
+ * Multiply an expression and return the TYPEDVAL result
+ */
+TYPEDVAL MultiplyValue(TYPEDVAL* v1, int nNumber) {
+	if (v1->type == C_LONG1PAR) {
+		v1->val *= nNumber;
+		return *v1;
+	}
+	return PushBinop(BIN_MUL, v1, &(TYPEDVAL){.type = C_LONGVAR, .val = nNumber});
+}
 
 

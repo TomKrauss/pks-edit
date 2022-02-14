@@ -136,7 +136,7 @@ static char *sort_convertStringToDigitArray(struct dvec *v,char *s, char *e)
 		if (s >= e)
 			v->n = 0;
 		else {
-			v->n = string_convertToLong(s);
+			v->n = (long)string_convertToLong(s);
 			v->w = (int)(_strtolend-s);
 			s    = _strtolend;
 		}

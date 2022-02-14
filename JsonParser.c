@@ -113,7 +113,7 @@ static JSON_MAPPING_RULE* json_findRule(char* pJsonInput, jsmntok_t* pToken, JSO
  */
 static long json_convertColor(char* pszString) {
 	if (pszString[0] == '#') {
-		long l = string_convertToLongBase16(pszString + 1);
+		long l = (long)string_convertToLongBase16(pszString + 1);
 		return RGB((l >> 16) & 0xFF, (l >> 8) & 0xFF, l & 0xFF);
 	}
 	if (strcmp("white", pszString) == 0) {
@@ -171,7 +171,7 @@ static int json_getIntArray(char* pszBuf, jsmntok_t* tokens, int firstToken, int
 				if (--maxElements == 0) {
 					break;
 				}
-				long nLong = string_convertToLong(tokenContents);
+				long nLong = (long)string_convertToLong(tokenContents);
 				*pTargetSlot++ = nLong;
 			}
 		}
@@ -299,7 +299,7 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 				if (tokens[i].type == JSMN_STRING && tokenContents[1] == 0) {
 					*((char*)pTargetSlot) = tokenContents[0];
 				} else {
-					long nChar = string_convertToLong(tokenContents);
+					long nChar = (long)string_convertToLong(tokenContents);
 					*((char*)pTargetSlot) = (char)nChar;
 				}
 				break;
@@ -330,7 +330,7 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 				}
 				break;
 			case RT_INTEGER: {
-					long nInt = string_convertToLong(tokenContents);
+					long nInt = (long)string_convertToLong(tokenContents);
 					*((int*)pTargetSlot) = nInt;
 				}
 				break;
@@ -340,7 +340,7 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 				}
 				break;
 			case RT_SHORT: {
-					long nInt = string_convertToLong(tokenContents);
+					long nInt = (long)string_convertToLong(tokenContents);
 					*((short*)pTargetSlot) = (short)nInt;
 				}
 				break;
