@@ -30,6 +30,7 @@
 #include "pksrc.h"
 #include "resource.h"
 #include "edfuncs.h"
+#include "actionbindings.h"
 #include "history.h"
 #include "xdialog.h"
 #include "publicapi.h"
@@ -216,7 +217,7 @@ int EdSetup(void)
  */
 int DialogCharInput(int promptfield, unsigned char c)
 { 	static unsigned char _c;
-	static ITEMS	_i   =  	{ C_CHAR1PAR, &_c 		};
+	static ITEMS	_i   =  	{ C_CHARACTER_LITERAL, &_c 		};
 	static PARAMS	_bgc = 	{ DIM(_i), P_MAYOPEN, _i	};
 	static DIALPARS _d[] = {
 		IDD_WINTITLE,		0,			0,
@@ -371,7 +372,7 @@ int EdAbout(void)
  */
 static long dialogGetNumber(int nDialog)
 {	static long    num;
-	static ITEMS	_i   =  	{ C_LONG1PAR,  (unsigned char * ) &num };
+	static ITEMS	_i   =  	{ C_LONG_LITERAL,  (unsigned char * ) &num };
 	static PARAMS	_np  = 	{ 1, P_MAYOPEN, _i	  };
 	static DIALPARS _d[] = {
 		IDD_LONG1,	sizeof num,		&num,
@@ -406,11 +407,11 @@ int EdAlignText(void)
 		0
 	};
 	static ITEMS	_i   =  	{ 
-		{ C_STRING1PAR, _currentSearchAndReplaceParams.searchPattern	 				},
-		{ C_INT1PAR, (unsigned char *) &_alfiller 	},
-		{ C_INT1PAR, (unsigned char *) &_scope	 	},
-		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options 	},
-		{ C_INT1PAR, (unsigned char *) &_alflags	}
+		{ C_STRING_LITERAL, _currentSearchAndReplaceParams.searchPattern	 				},
+		{ C_INTEGER_LITERAL, (unsigned char *) &_alfiller 	},
+		{ C_INTEGER_LITERAL, (unsigned char *) &_scope	 	},
+		{ C_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options 	},
+		{ C_INTEGER_LITERAL, (unsigned char *) &_alflags	}
 	};
 	static PARAMS	_fp = { DIM(_i), P_MAYOPEN, _i	};
 	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
@@ -437,8 +438,8 @@ int EdFormatText(void)
 		0
 	};
 	ITEMS _i = { 
-		{ C_INT1PAR, (unsigned char *) &alignment     },
-		{ C_INT1PAR, (unsigned char *) &_scope	}
+		{ C_INTEGER_LITERAL, (unsigned char *) &alignment     },
+		{ C_INTEGER_LITERAL, (unsigned char *) &_scope	}
 	};
 	PARAMS _fp = 	{ DIM(_i), P_MAYOPEN, _i   };
 
@@ -469,11 +470,11 @@ int EdSort(void)
 		0
 	};
 	static ITEMS	_i   = {
-		{ C_STRING1PAR,_currentSearchAndReplaceParams.searchPattern },
-		{ C_STRING1PAR,fs },
-		{ C_STRING1PAR,key },
-		{ C_INT1PAR,	(unsigned char *)&flags },
-		{ C_INT1PAR,	(unsigned char *)&_scope }
+		{ C_STRING_LITERAL,_currentSearchAndReplaceParams.searchPattern },
+		{ C_STRING_LITERAL,fs },
+		{ C_STRING_LITERAL,key },
+		{ C_INTEGER_LITERAL,	(unsigned char *)&flags },
+		{ C_INTEGER_LITERAL,	(unsigned char *)&_scope }
 	};
 	static PARAMS	_sp = { DIM(_i), P_MAYOPEN, _i };
 	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
@@ -495,7 +496,7 @@ int EdSort(void)
 int EdKeycodeInsert(void)
 {	char 	*visible;
 	static KEYCODE 	 k;
-	static ITEMS		_i   = { C_INT1PAR,	(unsigned char *)&k };
+	static ITEMS		_i   = { C_INTEGER_LITERAL,	(unsigned char *)&k };
 	static PARAMS		_sp  = { DIM(_i), P_MAYOPEN, _i };
 	static DIALPARS 	_d[] = {
 		IDD_KEYCODE,	sizeof k,	&k,
@@ -505,7 +506,7 @@ int EdKeycodeInsert(void)
 	if (!win_callDialog(DLGKEYCODE,&_sp,_d, NULL))
 		return 0;
 
-	visible = macro_keycodeToString(k);
+	visible = bindings_keycodeToString(k);
 	return EdPasteString(0L, 0L, visible);
 }
 
@@ -583,7 +584,7 @@ static DIALPARS _dconvert[] = {
 	0
 };
 int EdReplaceTabs(int expand)
-{	static ITEMS	 _i   = { C_INT1PAR,  (unsigned char*)&_scope	};
+{	static ITEMS	 _i   = { C_INTEGER_LITERAL,  (unsigned char*)&_scope	};
 	static PARAMS	 _tp  = { 1, P_MAYOPEN, _i };
 
 	_dconvert->dp_size = expand ? IDS_EXPANDTABS : IDS_COMPRESSTABS;
@@ -1039,7 +1040,7 @@ int EdDocTypes(void)
  * EdRangeShift()
  */
 int EdRangeShift(int dir)
-{	static ITEMS	 _i   = { C_INT1PAR,  (unsigned char*)&_scope	};
+{	static ITEMS	 _i   = { C_INTEGER_LITERAL,  (unsigned char*)&_scope	};
 	static PARAMS	 _tp  = { 1, P_MAYOPEN, _i };
 
 	_dconvert->dp_size = dir < 0 ? IDS_SHIFTLEFT : IDS_SHIFTRIGHT;
@@ -1341,11 +1342,11 @@ int dlg_configureEditorModes(void) {
 int EdReplace(void)
 {	static int ret;
 	static ITEMS	_i   =  	{ 
-		{ C_STRING1PAR, _currentSearchAndReplaceParams.searchPattern },
-		{ C_STRING1PAR, _currentSearchAndReplaceParams.replaceWith },
-		{ C_INT1PAR, (unsigned char *) &ret },
-		{ C_INT1PAR, (unsigned char *) &_scope },
-		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options   }
+		{ C_STRING_LITERAL, _currentSearchAndReplaceParams.searchPattern },
+		{ C_STRING_LITERAL, _currentSearchAndReplaceParams.replaceWith },
+		{ C_INTEGER_LITERAL, (unsigned char *) &ret },
+		{ C_INTEGER_LITERAL, (unsigned char *) &_scope },
+		{ C_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options   }
 	};
 	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	static DIALPARS _d[] = {
@@ -1381,10 +1382,10 @@ int EdReplace(void)
 static int _dir = 1;
 int EdFind(void)
 {	static ITEMS	_i   =  	{ 
-		{ C_STRING1PAR, _currentSearchAndReplaceParams.searchPattern },
-		{ C_INT1PAR, (unsigned char *) &_dir   },
-		{ C_INT1PAR, (unsigned char *) &_scope },
-		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options   }
+		{ C_STRING_LITERAL, _currentSearchAndReplaceParams.searchPattern },
+		{ C_INTEGER_LITERAL, (unsigned char *) &_dir   },
+		{ C_INTEGER_LITERAL, (unsigned char *) &_scope },
+		{ C_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options   }
 	};
 	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	static DIALPARS _d[] = {
@@ -1442,10 +1443,10 @@ static INT_PTR find_inFilesDialogProc(HWND hDlg, UINT wMessage, WPARAM wParam, L
  */
 int EdFindInFileList(void)
 {	ITEMS	_i   =  	{ 
-		{ C_STRING1PAR, _currentSearchAndReplaceParams.searchPattern },
-		{ C_STRING1PAR, _currentSearchAndReplaceParams.pathlist },
-		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.fileScanDepth },
-		{ C_INT1PAR, (unsigned char *) &_currentSearchAndReplaceParams.options }
+		{ C_STRING_LITERAL, _currentSearchAndReplaceParams.searchPattern },
+		{ C_STRING_LITERAL, _currentSearchAndReplaceParams.pathlist },
+		{ C_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.fileScanDepth },
+		{ C_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options }
 	};
 	PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	DIALPARS _d[] = {
@@ -1533,7 +1534,7 @@ int macro_getIndexForKeycode(KEYCODE *scan,char *name,int oldidx)
  */
 int EdCharControlInsert(void)
 { 	static char c;
-	static ITEMS	 _i   = { C_CHAR1PAR,  (unsigned char*)&c	};
+	static ITEMS	 _i   = { C_CHARACTER_LITERAL,  (unsigned char*)&c	};
 	static PARAMS	 _p  = { 1, P_MAYOPEN, _i };
 	static DIALPARS _d[] = { 
 		IDD_POSITIONTCURS,	0,			0,
@@ -1576,7 +1577,7 @@ int EdCompileMacros(int bShowList)
 int EdListBindings(long lWhich)
 {
 	if (lWhich & LIST_MACROS) {
-		if (macro_saveMacrosAndDisplay((char*)0) == 0) {
+		if (decompile_saveMacrosAndDisplay((char*)0) == 0) {
 			return 0;
 		}
 	}
@@ -1614,10 +1615,10 @@ int EdCommandExecute(void)
 	static int  	opt;
 	static int	redir;
 	static ITEMS	_i   =  	{ 
-		{ C_STRING1PAR, 	cmd }, 
-		{ C_STRING1PAR, 	dir }, 
-		{ C_STRING1PAR, 	errlist },
-		{ C_INT1PAR, (unsigned char *) &opt }
+		{ C_STRING_LITERAL, 	cmd }, 
+		{ C_STRING_LITERAL, 	dir }, 
+		{ C_STRING_LITERAL, 	errlist },
+		{ C_INTEGER_LITERAL, (unsigned char *) &opt }
 	};
 	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	static DIALPARS _d[] = {

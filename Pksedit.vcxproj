@@ -1125,6 +1125,7 @@
     <ClCompile Include="WindowSelector.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\actionbindings.h" />
     <ClInclude Include="include\actions.h" />
     <ClInclude Include="include\alloc.h" />
     <ClInclude Include="include\arraylist.h" />

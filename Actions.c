@@ -20,6 +20,7 @@
 #include "edierror.h"
 #include "trace.h"
 #include "edfuncs.h"
+#include "funcdef.h"
 #include "arraylist.h"
 #include "editorconfiguration.h"
 

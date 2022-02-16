@@ -28,6 +28,7 @@
 #include "errordialogs.h"
 #include "winfo.h"
 #include "edfuncs.h"
+#include "actionbindings.h"
 #include "winterf.h"
 #include "pksedit.h"
 #include "context.h"

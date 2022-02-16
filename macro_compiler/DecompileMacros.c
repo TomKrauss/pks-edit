@@ -17,8 +17,9 @@
 #include <string.h>
 
 #include "edfuncs.h"
+#include "funcdef.h"
 #include "pksmod.h"
-
+#include "sym.h"
 #include "pkscc.h"
 #include "test.h"
 #include "funcdef.h"
@@ -26,17 +27,15 @@
 #include "errordialogs.h"
 
 int  MakeAutoLabel(COM_GOTO *cp);
-void StartAutoLabel(void);
-void NextAutoLabel(char **name, COM_GOTO **cp);
-void CloseAutoLabels(void);
-char *FindAutoLabel(COM_GOTO *cp);
-
-extern EDBINDS	_bindings;
+void bytecode_initializeAutoLabels(void);
+void bytecode_startNextAutoLabel(char **name, COM_GOTO **cp);
+void bytecode_closeAutoLabels(void);
+char *bytecode_findAutoLabelForInstruction(COM_GOTO *cp);
 
 /*
- * TestOp2Str()
+ * decompile_stringForTestOperator()
  */
-static char *TestOp2Str(unsigned char op)
+static char *decompile_stringForTestOperator(unsigned char op)
 {
 	switch(op & (~0x10)) {
 		case CT_AND:	return "&&";
@@ -56,26 +55,23 @@ static char *TestOp2Str(unsigned char op)
 }
 
 /*
- * idx2edfunc()
+ * decompile_getFunctionForIndex()
  */
-static EDFUNCDEF *idx2edfunc(int idx)
-{	int i;
-
-	for (i = 0; i < _nfunctions; i++) {
-		if (_functab[i].edf_idx == idx) {
-			return &_functab[i];
-		}
+static EDFUNC *decompile_getFunctionForIndex(int idx)
+{
+	if (idx >= 0 && idx < _nfuncs) {
+		return &_edfunctab[idx];
 	}
 	return 0;
 }
 
 
 /*
- * quote()
+ * decompile_quoteString()
  *
- * quote the following chars: <"\>
+ * decompile_quoteString the following chars: <"\>
  */
-static char *quote(unsigned char *name)
+static char *decompile_quoteString(unsigned char *name)
 {	static char qbuf[512];
 	unsigned char *d,*dend;
 	
@@ -89,21 +85,15 @@ static char *quote(unsigned char *name)
 }
 
 /*--------------------------------------------------------------------------
- * pr_xlated()
+ * decompile_printParameterAsConstant()
  */
-static int pr_xlated(FILE *fp,long long val,signed char partyp)
+static int decompile_printParameterAsConstant(FILE *fp,long long val, PARAMETER_TYPE_DESCRIPTOR partyp)
 {
 	OWNTYPE	*op;
 	TYPEELEM	*ep,*epend;
 	int printed = 0;
 
-	partyp -= PAR_USER;
-	if (partyp < 0 || partyp >= _ntypes) {
-		error_displayAlertDialog("Bad Parameter type %x",(unsigned)partyp);
-		return -1;
-	}
-
-	op = _typetab + partyp;
+	op = partyp.pt_enumType;
 	ep = &_enelemtab[op->ot_idx];
 	epend = ep+op->ot_nelem;
 
@@ -139,9 +129,9 @@ static int pr_xlated(FILE *fp,long long val,signed char partyp)
 }
 
 /*
- * pr_param()
+ * decompile_printParameter()
  */
-static int pr_param(FILE *fp, unsigned char *sp, signed char partyp)
+static int decompile_printParameter(FILE *fp, unsigned char *sp, PARAMETER_TYPE_DESCRIPTOR partyp)
 {
 	unsigned char typ;
 	long long val;
@@ -157,28 +147,29 @@ static int pr_param(FILE *fp, unsigned char *sp, signed char partyp)
 		case C_1FUNC:
 			val = ((COM_1FUNC *)sp)->p;
 			break;
-		case C_CHAR1PAR:
+		case C_CHARACTER_LITERAL:
 			val = ((COM_CHAR1 *)sp)->val;
 			break;
-		case C_INT1PAR:
+		case C_FLOAT_LITERAL:
+			fprintf(fp, "%lf", ((COM_FLOAT1*)sp)->val);
+			return 1;
+		case C_INTEGER_LITERAL:
 			val = ((COM_INT1 *)sp)->val;
 			break;
-		case C_LONG1PAR:
+		case C_LONG_LITERAL:
 			val = (long long)((COM_LONG1 *)sp)->val;
 			break;
-		case C_STRING1PAR:
-			if (partyp != PAR_STRING)
+		case C_STRING_LITERAL:
+			if (partyp.pt_type != PAR_STRING)
 				goto err;
-			fprintf(fp,"\"%s\"",quote(((COM_STRING1*)sp)->s));
+			fprintf(fp,"\"%s\"",decompile_quoteString(((COM_STRING1*)sp)->s));
 			return 1;
-		case C_STRINGVAR:
-			if (partyp != PAR_STRING)
-				goto err;
-			fputs(((COM_VAR*)sp)->name,fp);
-			return 1;
+		case C_FLOATVAR:
 		case C_LONGVAR:
-			if (partyp == PAR_STRING)
+			if (partyp.pt_type == PAR_STRING)
 				goto err;
+			// drop through
+		case C_STRINGVAR:
 			fputs(((COM_VAR*)sp)->name,fp);
 			return 1;
 		default:
@@ -187,34 +178,34 @@ static int pr_param(FILE *fp, unsigned char *sp, signed char partyp)
 			return -1;
 	}
 
-	if (partyp == PAR_STRING)
+	if (partyp.pt_type == PAR_STRING)
 		goto err;
 	
-	if (partyp >= PAR_USER) 
-	    return pr_xlated(fp,val,partyp);
+	if (partyp.pt_type == PAR_ENUM && partyp.pt_enumType)
+	    return decompile_printParameterAsConstant(fp,val,partyp);
 
 	fprintf(fp,"%lld",val);
 	return 1;
 }
 
 /*
- * pr_func
+ * decompile_printFunctionName
  */
-static void pr_func(FILE *fp, int idx)
+static void decompile_printFunctionName(FILE *fp, int idx)
 {
-	EDFUNCDEF	*ep = idx2edfunc(idx);
+	EDFUNC	*ep = decompile_getFunctionForIndex(idx);
 
 	if (!ep) {
 		error_displayAlertDialog("format error: bad function");
 		return;
 	}
-	fprintf(fp,"\t%s",macro_loadStringResource(ep->edf_idx));
+	fprintf(fp,"\t%s",macro_loadStringResource(idx));
 }
 
 /*
- * makeautolabels()
+ * decompile_makeAutoLabels()
  */
-static void makeautolabels(const char *start, const char *end)
+static void decompile_makeAutoLabels(const char *start, const char *end)
 {
 	while(start < end && *start != C_STOP) {
 		if (*start == C_GOTO)
@@ -224,32 +215,32 @@ static void makeautolabels(const char *start, const char *end)
 }
 
 /*
- * pr_function()
+ * decompile_function()
  */
-static unsigned char *pr_function(FILE *fp, unsigned char *sp, 
+static unsigned char *decompile_function(FILE *fp, unsigned char *sp, 
 								    unsigned char *spend)
 {
 	COM_1FUNC *		cp = (COM_1FUNC *)sp;
-	EDFUNCDEF	*	ep;
+	EDFUNC	*		ep;
 	int 			npars;
-	char 			partyp;
+	PARAMETER_TYPE_DESCRIPTOR partyp;
 
 	if (cp->typ == C_MACRO) {
 		fprintf(fp,"\t%s()",((COM_MAC*)sp)->name);
 		return sp+macro_getParameterSize(*sp,sp+1);
 	}
 
-	pr_func(fp,cp->funcnum);
-	ep = idx2edfunc(cp->funcnum);
+	decompile_printFunctionName(fp,cp->funcnum);
+	ep = decompile_getFunctionForIndex(cp->funcnum);
 	fputc('(',fp);
 
 	npars = 0;
 	if (cp->typ == C_1FUNC) {
-		partyp = ep->edf_paramTypes[1];
+		partyp = function_getParameterTypeDescriptor(ep, 1);
 		/* c0_func glitch */
-		if (partyp != PAR_VOID &&
-		    (partyp < PAR_USER || (_typetab[partyp-PAR_USER].ot_flags & OF_ELIPSIS) == 0)) {
-			if (pr_param(fp,sp,partyp) < 0)
+		if (partyp.pt_type != PAR_VOID &&
+		    (partyp.pt_enumType == NULL || (partyp.pt_enumType->ot_flags & OF_ELIPSIS) == 0)) {
+			if (decompile_printParameter(fp,sp,partyp) < 0)
 				return 0;
 			npars++;
 		}
@@ -257,10 +248,11 @@ static unsigned char *pr_function(FILE *fp, unsigned char *sp,
 	sp += macro_getParameterSize(*sp,sp+1);
 
 	while(sp < spend && C_IS1PAR(*sp)) {
-		if ((partyp = ep->edf_paramTypes[npars+1]) != PAR_VOID) {
+		partyp = function_getParameterTypeDescriptor(ep, npars + 1);
+		if (partyp.pt_type != PAR_VOID) {
 			if (npars)
 				fputc(',',fp);
-			if (pr_param(fp,sp,partyp) < 0)
+			if (decompile_printParameter(fp,sp,partyp) < 0)
 				return 0;
 			npars++;
 		}
@@ -272,23 +264,23 @@ static unsigned char *pr_function(FILE *fp, unsigned char *sp,
 }
 
 /*
- * pr_testopnd()
+ * decompile_printTestExpression()
  */
-static void pr_testopnd(FILE *fp, unsigned char *sp,unsigned char *spend)
+static void decompile_printTestExpression(FILE *fp, unsigned char *sp,unsigned char *spend)
 {	unsigned char t;
 
 	t = ((COM_1FUNC*)sp)->typ;
 	if (C_ISCMD(t))
-		pr_function(fp,sp,spend);
+		decompile_function(fp,sp,spend);
 	else {
-		pr_param(fp,sp,macro_isParameterStringType(*sp) ? PAR_STRING : PAR_INT);
+		decompile_printParameter(fp, sp, (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = macro_isParameterStringType(*sp) ? PAR_STRING : PAR_INT });
 	}
 }
 
 /*
- * pr_expr()
+ * decompile_printExpression()
  */
-static unsigned char *pr_expr(FILE *fp, COM_TEST *cp, int not)
+static unsigned char *decompile_printExpression(FILE *fp, COM_TEST *cp, int not)
 {	unsigned char *p2,*pend;
 	COM_TEST *p1;
 	int top;
@@ -299,22 +291,22 @@ static unsigned char *pr_expr(FILE *fp, COM_TEST *cp, int not)
 	switch(cp->testop & (~CT_STRING)) {
 		case CT_NOT:
 			if (!not)
-				fprintf(fp,"%s",TestOp2Str(cp->testop));
-			pr_expr(fp,p1,0);
+				fprintf(fp,"%s",decompile_stringForTestOperator(cp->testop));
+			decompile_printExpression(fp,p1,0);
 			break;			
 		case CT_OR:
 		case CT_AND:
-			pr_expr(fp,p1,0);
-			fprintf(fp,"%s\n\t\t",TestOp2Str(cp->testop));
+			decompile_printExpression(fp,p1,0);
+			fprintf(fp,"%s\n\t\t",decompile_stringForTestOperator(cp->testop));
 			if (p2 > (unsigned char *)p1)
-				pr_expr(fp,(COM_TEST*)p2,0);
+				decompile_printExpression(fp,(COM_TEST*)p2,0);
 			else
 				error_displayAlertDialog("expr: bad AND/OR|(p2 == 0x%lx)(p1 == 0x%lx)",
 					p2,p1);
 			break;
 		case CT_BRACKETS:
 			fprintf(fp,"(");
-			pr_expr(fp,p1,not);
+			decompile_printExpression(fp,p1,not);
 			fprintf(fp,")");
 			break;
 		case CT_GT:	top = (not) ? CT_LE : CT_GT; goto prdo;
@@ -323,9 +315,9 @@ static unsigned char *pr_expr(FILE *fp, COM_TEST *cp, int not)
 		case CT_NE:	top = (not) ? CT_EQ : CT_NE; goto prdo;
 		case CT_MATCH:	top = (not) ? CT_NMATCH : CT_MATCH; goto prdo;
 		case CT_NMATCH:top = (not) ? CT_MATCH : CT_NMATCH;
-prdo:		pr_testopnd(fp,(unsigned char *)p1,p2);
-			fprintf(fp," %s ",TestOp2Str(top));
-			pr_testopnd(fp,p2,pend);
+prdo:		decompile_printTestExpression(fp,(unsigned char *)p1,p2);
+			fprintf(fp," %s ",decompile_stringForTestOperator(top));
+			decompile_printTestExpression(fp,p2,pend);
 			break;
 		default:
 			fprintf(fp,"?expr 0x%x?",cp->testop);
@@ -334,9 +326,9 @@ prdo:		pr_testopnd(fp,(unsigned char *)p1,p2);
 }
 
 /*
- * pr_binop()
+ * decompile_printBinaryExpression()
  */
-static unsigned char *pr_binop(FILE *fp, COM_BINOP *cp)
+static unsigned char *decompile_printBinaryExpression(FILE *fp, COM_BINOP *cp)
 {
 	unsigned char *	p1;
 	unsigned char *	p2;
@@ -352,7 +344,7 @@ static unsigned char *pr_binop(FILE *fp, COM_BINOP *cp)
 
 	case BIN_BRACKETS: 
 		fprintf(fp,"("); 
-		pend = pr_binop(fp,(COM_BINOP*)p1);
+		pend = decompile_printBinaryExpression(fp,(COM_BINOP*)p1);
 		fprintf(fp,")"); 
 		return pend;
 	case BIN_XOR: 
@@ -361,9 +353,9 @@ static unsigned char *pr_binop(FILE *fp, COM_BINOP *cp)
 	case BIN_MUL: 
 	case BIN_DIV: 
 	case BIN_MOD: 
-		pr_testopnd(fp,p1,p2);
+		decompile_printTestExpression(fp,p1,p2);
 		fprintf(fp,"%c",cp->op);
-		pr_testopnd(fp,p2,pend);
+		decompile_printTestExpression(fp,p2,pend);
 		break;
 	case BIN_CONVERT:
 		fprintf(fp,"(%s) %s", (!macro_isParameterStringType(*p1)) ? "string" : "long",
@@ -374,25 +366,36 @@ static unsigned char *pr_binop(FILE *fp, COM_BINOP *cp)
 	return pend;
 }
 
+/**
+ * Return a type name for a symbol type. 
+ */
+static char* decompile_typenameFor(int nSymbolType) {
+	switch (nSymbolType) {
+	case S_FLOAT: return "float";
+	case S_NUMBER: return "int";
+	default: return "string";
+	}
+}
+
 /*
- * pr_mac
+ * decompile_macroToFile
  */
 #define COM1_INCR(cp,type,offset) (unsigned char *)(cp+((type *)cp)->offset)
-static void pr_mac(FILE *fp, MACRO *mp)
+static void decompile_macroToFile(FILE *fp, MACRO *mp)
 {	unsigned char 	*sp,*sp2,*spend,*gop,*data,*comment;
 	unsigned char 	t;
 	char			*lname;
 
-	fprintf(fp,"macro %s()",quote(MAC_NAME(mp)));
+	fprintf(fp,"macro %s()",decompile_quoteString(MAC_NAME(mp)));
 	comment = MAC_COMMENT(mp);
 	if (*comment)
-		fprintf(fp," \"%s\"",quote(comment));
+		fprintf(fp," \"%s\"",decompile_quoteString(comment));
 	fprintf(fp," {\n");
 	data = MAC_DATA(mp);
 
-	makeautolabels(data,&data[mp->size]);
-	StartAutoLabel();
-	NextAutoLabel(&lname,(COM_GOTO**)&gop);
+	decompile_makeAutoLabels(data,&data[mp->size]);
+	bytecode_initializeAutoLabels();
+	bytecode_startNextAutoLabel(&lname,(COM_GOTO**)&gop);
 
 	for (sp = data, spend = sp+mp->size; sp < spend; ) {
 		if (gop <= sp && lname) {
@@ -400,12 +403,12 @@ static void pr_mac(FILE *fp, MACRO *mp)
 				error_displayAlertDialog("format error: bad goto");
 			}
 			fprintf(fp,"%s:\n",lname);
-			NextAutoLabel(&lname, (COM_GOTO**)&gop);
+			bytecode_startNextAutoLabel(&lname, (COM_GOTO**)&gop);
 		}
 
 		t = ((COM_1FUNC*)sp)->typ;
 		if (C_ISCMD(t)) {
-			if ((sp = pr_function(fp,sp,spend)) == 0)
+			if ((sp = decompile_function(fp,sp,spend)) == 0)
 				goto out;
 			fprintf(fp,";\n");
 			continue;
@@ -415,7 +418,7 @@ static void pr_mac(FILE *fp, MACRO *mp)
 
 			fprintf(fp,"\t%s %s;\n",
 				(cp->bratyp == BRA_ALWAYS) ? "goto" : "braeq",
-			FindAutoLabel((COM_GOTO*)(sp+cp->offset)));
+			bytecode_findAutoLabelForInstruction((COM_GOTO*)(sp+cp->offset)));
 		} else if (t == C_STOP) {
 			if (sp + sizeof(COM_STOP) < spend)
 				fprintf(fp,"\treturn %d;\n",((COM_STOP*)sp)->rc);
@@ -428,29 +431,33 @@ static void pr_mac(FILE *fp, MACRO *mp)
 			if (cp->typ == C_GOTO &&
 			    cp->bratyp == BRA_EQ) {
 				fprintf(fp,"\tif ");
-				sp = pr_expr(fp,(COM_TEST*)sp,1);
+				sp = decompile_printExpression(fp,(COM_TEST*)sp,1);
 				fprintf(fp,"\n\t\tgoto %s;\n",
-						FindAutoLabel((COM_GOTO*)(sp+cp->offset)));
+						bytecode_findAutoLabelForInstruction((COM_GOTO*)(sp+cp->offset)));
 				sp = (unsigned char *)(cp+1);
 			} else {
 				fprintf(fp,"\tif ");
-				sp = pr_expr(fp,(COM_TEST*)sp,0);
+				sp = decompile_printExpression(fp,(COM_TEST*)sp,0);
 				fprintf(fp,"\n");
 			}
 			continue;
 		} else if (t == C_BINOP) {
-			pr_binop(fp, (COM_BINOP*)sp);
+			decompile_printBinaryExpression(fp, (COM_BINOP*)sp);
 			fprintf(fp,";\n");
 			sp = COM1_INCR(sp,COM_BINOP,size);
 			continue;
 		} else if (t == C_ASSIGN) {
 			fprintf(fp,"\t%s = ",((COM_ASSIGN*)sp)->name);
 			sp2 = COM1_INCR(sp,COM_ASSIGN,size);
-			pr_testopnd(fp,COM1_INCR(sp,COM_ASSIGN,opoffset),sp2);
+			decompile_printTestExpression(fp,COM1_INCR(sp,COM_ASSIGN,opoffset),sp2);
 			sp = sp2;
 			fprintf(fp,";\n");
 			continue;
-		} else if (t == C_CREATESYM) {
+		} else if (t == C_DEFINE_PARAMETER) {
+			sp = COM1_INCR(sp, COM_CREATESYM, size);
+		} else if (t == C_DEFINE_VARIABLE) {
+			char* pszType = decompile_typenameFor(((COM_CREATESYM*)sp)->symtype);
+			fprintf(fp, "\t%s %s;\n", pszType, ((COM_CREATESYM*)sp)->name);
 			sp = COM1_INCR(sp, COM_CREATESYM, size);
 		} else if (t == C_FURET) {
 		
@@ -462,32 +469,31 @@ static void pr_mac(FILE *fp, MACRO *mp)
 
 out:
 	fprintf(fp,"}\n\n");
-	CloseAutoLabels();
+	bytecode_closeAutoLabels();
 }
 
 /*
- * macro_printMacrosCallback
+ * decompile_printMacrosCallback
  */
 static char *_macroname;
-static long macro_printMacrosCallback(FILE *fp)
-{	EDBINDS	*ep = &_bindings;
-	MACRO	**mtable,*mp;
+static long decompile_printMacrosCallback(FILE *fp)
+{	MACRO	**mtable,*mp;
 	int	    	i;
 
-	for (mtable = ep->macp, i = 0; i < *(ep->nmacp); i++) {
+	for (mtable = _macrotab, i = 0; i < _nmacros; i++) {
 		if ((mp = mtable[i]) != 0) {
 			if (!_macroname ||
 			    strcmp(_macroname,MAC_NAME(mp)) == 0)
-				pr_mac(fp,mp);
+				decompile_macroToFile(fp,mp);
 		}
 	}
 	return 1;
 }
 
 /*
- * macro_saveMacrosAndDisplay
+ * decompile_saveMacrosAndDisplay
  */
-int macro_saveMacrosAndDisplay(char *macroname)
+int decompile_saveMacrosAndDisplay(char *macroname)
 {
 	char szBuf[16];
 
@@ -498,7 +504,7 @@ int macro_saveMacrosAndDisplay(char *macroname)
 	} else {
 		strcpy(szBuf, "macros.pkc");
 	}
-	return macro_createFileAndDisplay(szBuf, macro_printMacrosCallback);
+	return macro_createFileAndDisplay(szBuf, decompile_printMacrosCallback);
 }
 
 

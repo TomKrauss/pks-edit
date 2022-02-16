@@ -23,11 +23,6 @@
 
 #define	DIM(x)		(sizeof(x)/sizeof(x[0]))
 
-typedef struct tagHASH_ENTRY {
-	intptr_t he_key;
-	intptr_t he_value;
-} HASH_ENTRY;
-
 typedef struct tagHASHMAP {
 	int			ht_size;
 	int			ht_capacity;
@@ -183,6 +178,15 @@ int hashmap_size(HASHMAP* pTable) {
 }
 
 /*
+ * Remove an entry from the hashmap given the key.
+ */
+void hashmap_remove(HASHMAP* pTable, intptr_t key) {
+	int nIndex = hashmap_findIndex(pTable, key);
+	pTable->ht_entries[nIndex].he_key = 0;
+	pTable->ht_entries[nIndex].he_value = 0;
+}
+
+/*
  * Put an element into the hash table. Return 0 if an element with the named
  * key existed or 1 if a new entry was added. If 0 is returned, the old key
  * persists and the new key will not be used.
@@ -217,6 +221,16 @@ int hashmap_containsKey(HASHMAP* pTable, intptr_t key) {
 intptr_t hashmap_get(HASHMAP* pTable, intptr_t key) {
 	int nIndex = hashmap_findIndex(pTable, key);
 	return pTable->ht_entries[nIndex].he_value;
+}
+
+/*
+ * Return a hash entry for a particular key. 
+ * If the entry could be found return 1 otherwise 0.
+ */
+int hashmap_getEntry(HASHMAP* pTable, intptr_t key, HASH_ENTRY* pResult) {
+	int nIndex = hashmap_findIndex(pTable, key);
+	*pResult = pTable->ht_entries[nIndex];
+	return pResult->he_key != 0;
 }
 
 /*

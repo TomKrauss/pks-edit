@@ -80,7 +80,6 @@ typedef struct edx {
 	/* div. */
 	int		(*abort)(void );
 
-	EDBINDS	*_bindings;
 	LINE		*(*find_expr)(int dir,long *Ln,long *Col,LINE *lp,char *ebuf);
 	long		*_options;
 

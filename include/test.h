@@ -61,7 +61,7 @@ layout:
 #define CT_HAS2NUMOPNDS(opcode)	(((opcode) & 0xF0) == CT_NUM)
 #define CT_HAS2STROPNDS(opcode)	(((opcode) & 0xF0) == CT_STRING)
 
-extern char *TestOp2Str(unsigned char testop);
+extern char *decompile_stringForTestOperator(unsigned char testop);
 
 # endif	/* TEST_H */
 

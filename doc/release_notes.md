@@ -15,6 +15,7 @@ and character deletes (DEL + Backspace) are concurrently applied to multiple pla
 where additional information is available. An example are templates, which show a preview of the text to insert or PKS-Edit
 commands which show an explanation about the command.
 - Expressions with strings in PKSMacroC such as "x"+1 are automatically casted to string. One does not need to write any more "x"+(string)1.
+- PKSMacroC supports now `++` and `--` operators and the new datatype `float`.
 
 ### Changed
 - all files previously stored in the old Windows INI-file format (`pksedit.his`, `pksedit.ini`) were replaced by JSON formatted files:

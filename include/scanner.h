@@ -13,8 +13,8 @@
  * created: 03.02.1991
  */
 
-# ifndef SETLEX_H
-#define SETLEX_H
+# ifndef SCANNER_H
+#define SCANNER_H
 
 #define LEXEOF			0
 
@@ -27,13 +27,16 @@
 
 typedef struct tagTYPEDVAL {
 	unsigned char type;
-	intptr_t val;
+	GENERIC_DATA data;
 } TYPEDVAL;
 
 typedef union yytype {
 	long long num;
 	int		islocal;
-	char	*s;
+	struct {
+		char* s;
+		int	stringIsAlloced;
+	} ident;
 	void	*funcp;
 	char	c;
 	unsigned char type;
@@ -47,5 +50,7 @@ extern _YYSTYPE	yylval;
 #define YYEOF		0
 #endif
 
-# endif	/* SETLEX_H */
+extern unsigned char* bytecode_emitInstruction(unsigned char* sp, const unsigned char* spend, unsigned char typ, GENERIC_DATA data);
+
+# endif	/* SCANNER_H */
 

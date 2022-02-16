@@ -22,6 +22,7 @@
 #include "winfo.h"
 #include "resource.h"
 #include "edfuncs.h"
+#include "actionbindings.h"
 #include "helpitem.h"
 #include "stringutil.h"
 #include "actions.h"
@@ -51,7 +52,7 @@ static void menu_determineLabelWithMnemonic(char* pszLabel, MENU_ITEM_DEFINITION
 	const char* pszSource;
 	pszSource = szTemp;
 	BOOL bMnemonicAssigned = FALSE;
-	const char* pszBoundLabel = binding_getBoundText(&pMenu->mid_label);
+	const char* pszBoundLabel = bindings_getBoundText(&pMenu->mid_label);
 	if (pszBoundLabel) {
 		strcpy(szTemp, pszBoundLabel);
 	} else {
@@ -81,8 +82,8 @@ static void menu_determineLabelWithMnemonic(char* pszLabel, MENU_ITEM_DEFINITION
 	*pszLabel = 0;
 	if (!bSubmenu) {
 		KEYCODE k;
-		if ((k = macro_findKey(NULL, pMenu->mid_command)) != K_DELETED) {
-			strcpy(pszLabel, macro_keycodeToString(k));
+		if ((k = bindings_findBoundKey(NULL, pMenu->mid_command)) != K_DELETED) {
+			strcpy(pszLabel, bindings_keycodeToString(k));
 		}
 	}
 }
@@ -155,7 +156,7 @@ static BOOL menu_appendMenuItems(HMENU hMenu, MENU_ITEM_DEFINITION* pMenu) {
  * Populate the current context menu depending on the action context of the current editor window.
  */
 static BOOL menu_populateContextMenu(WINFO* wp) {
-	MENU_ITEM_DEFINITION* pMenu = binding_getContextMenuFor(wp->actionContext);
+	MENU_ITEM_DEFINITION* pMenu = bindings_getContextMenuFor(wp->actionContext);
 	return menu_appendMenuItems(_contextMenu, pMenu);
 }
 
@@ -217,7 +218,7 @@ void menu_updateMenubarPopup(HMENU hMenu) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	const char* pszContext = wp ? wp->actionContext : DEFAULT_ACTION_CONTEXT;
 
-	MENU_ITEM_DEFINITION* pMenu = binding_getMenuBarPopupDefinitionFor(pszContext, hMenu);
+	MENU_ITEM_DEFINITION* pMenu = bindings_getMenuBarPopupDefinitionFor(pszContext, hMenu);
 	if (pMenu != NULL) {
 		menu_removeAllItems(hMenu);
 		menu_appendMenuItems(hMenu, pMenu);
@@ -229,7 +230,7 @@ void menu_updateMenubarPopup(HMENU hMenu) {
  */
 HMENU menu_createMenubar() {
 	HMENU hMenuBar = CreateMenu();
-	MENU_ITEM_DEFINITION* pMenu = binding_getMenuBarFor(DEFAULT_ACTION_CONTEXT);
+	MENU_ITEM_DEFINITION* pMenu = bindings_getMenuBarFor(DEFAULT_ACTION_CONTEXT);
 	char szLabel[100];
 	char charsWithMnemonic[256];
 	memset(charsWithMnemonic, 0, sizeof charsWithMnemonic);

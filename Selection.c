@@ -419,7 +419,6 @@ EXPORT int bl_writePasteBufToFile(PASTE *pb, char* fn,  int mode) {
  * bl_paste()
  * paste a textblock
  */
-static _blkflg = 0;
 EXPORT int bl_paste(PASTE *pb, WINFO *wp, LINE *lpd, int col, int colflg)
 {
 	LINE *	lps;
@@ -431,7 +430,7 @@ EXPORT int bl_paste(PASTE *pb, WINFO *wp, LINE *lpd, int col, int colflg)
 		return 0;
 	}
 	fp = wp->fp;
-	if (colflg && _blkflg) {
+	if (colflg) {
 		return bl_pastecol(pb,wp,lpd,col);
 	}
 

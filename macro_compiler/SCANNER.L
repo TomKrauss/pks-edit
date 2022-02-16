@@ -22,8 +22,8 @@
 
 #include "alloc.h"
 #include "stringutil.h"
-#include "sym.h"
 #include "edfuncs.h"
+#include "sym.h"
 #include "scanner.h"
 #define YYSTYPE _YYSTYPE
 #include "parser.h"
@@ -73,8 +73,8 @@ int				_bDefiningConst;
 typedef void EDFUNCDEF;
 
 extern FILE		*file_createTempFile(char *fnd, char *fn);
-extern int 		init_funcs(void);
-extern long 	EnumValue(void *enp);
+extern int 		function_initializeFunctionsAndTypes(void);
+extern long 	function_enumValueFor(void *enp);
 extern void 	macro_selectDefaultBindings(void);
 extern void 	stepselectcompiler(char *pszName);
 extern int		_macedited;
@@ -91,21 +91,22 @@ static struct kw {
 	char *	name;
 } keywords[] = {
 	T_DEFMACRO,	"macro",
-	T_CONST,		"const",
+	T_CONST,	"const",
 	T_IF,		"if",
 	T_ELSE,		"else",
 	T_ELIF,		"elif",
-	T_SWITCH,		"switch",
-	T_WHILE,		"while",
+	T_SWITCH,	"switch",
+	T_WHILE,	"while",
 	T_CONTINUE,	"continue",
-	T_BREAK,		"break",
-	T_RETURN,		"return",
-	T_LOCAL,		"local",
+	T_BREAK,	"break",
+	T_RETURN,	"return",
+	T_LOCAL,	"local",
 	T_GOTO,		"goto",
-	T_BRAEQ,		"braeq",
-	T_TCHAR,		"char",
+	T_BRAEQ,	"braeq",
+	T_TCHAR,	"char",
 	T_TINT,		"int",
-	T_TLONG,		"long",
+	T_TLONG,	"long",
+	T_TFLOAT,	"float",
 	T_TSTRING,	"string",
 	-1,			0
 };
@@ -114,7 +115,7 @@ static int init_keywords(void)
 {	struct kw *kp = keywords;
 
 	while(kp->name) {
-		if (!sym_insert(kp->name,S_KEYWORD,kp->toknum))
+		if (!sym_insert(kp->name,S_KEYWORD,(GENERIC_DATA){.intValue = kp->toknum}))
 			return 0;
 		kp++;
 	}
@@ -216,7 +217,7 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe)
 	if (!tables_inited) {
 		if (sym_create(HSIZE) == 0 ||
 		    !init_keywords() ||
-		    !init_funcs()) {
+		    !function_initializeFunctionsAndTypes()) {
 			return 0;
 		}
 		tables_inited = 1;
@@ -373,6 +374,25 @@ long long number(char *s) {
 	return i;
 }
 
+/*------------------------------------------------------------
+ * number()
+ */
+static void numberOrFloat(char *s, _YYSTYPE* pType, int *bFloat) {
+	if (!*s) {
+		*bFloat = 0;
+		pType->num = 0;
+		return;
+	}
+	size_t nLen = strlen(s);
+	char* pszDot = strchr(s, '.');
+	*bFloat = pszDot || s[nLen-1] == 'd' ? 1 : 0;
+	if (pszDot) {
+		sscanf(s, "%lf", &pType->v.data.doubleValue);
+	} else {
+		pType->num = number(s);
+	}
+}
+
 /*---------------------------------*/
 /* yywrap()					*/
 /*---------------------------------*/
@@ -383,12 +403,10 @@ int yywrap(void )
 
 %}
 OKTNUM	[0-7]
-NUM		[0-9]
+NUM		[0-9.]
 HEXNUM	[0-9a-fA-F]
 CH		[a-z_A-Z]
-/* CHKEYS	[\-0-9a-z_A-ZîÑÅôéö] */
-CHN		[\-0-9a-z_A-Z]
-CHK		[\-0-9a-z_A-Z+]
+CHN		[0-9a-z_A-Z]+(-[0-9a-z_A-Z]+)*
 QUOTED	\\.
 NOS		[^"]
 WS		[ \t]
@@ -408,7 +426,8 @@ WS		[ \t]
 					if (c == '\\')
 						yytext[yyleng++] = input();
 				}
-				yylval.s = unquotealloc(yytext,yyleng);
+				yylval.ident.stringIsAlloced = 0;
+				yylval.ident.s = unquotealloc(yytext,yyleng);
 				return T_STRING;
 			}
 0[xX]{HEXNUM}+ {
@@ -419,9 +438,10 @@ WS		[ \t]
 				yylval.num = number(yytext);
 				return T_NUM;
 			}
-<INITIAL>{NUM}+	{
-				yylval.num = number(yytext);
-				return T_NUM;
+<INITIAL>{NUM}+d? {
+				int bFloat;
+				numberOrFloat(yytext, &yylval, &bFloat);
+				return bFloat ? T_FLOATING_POINT_NUMBER : T_NUM;
 			}
 @			{	return T_CMDSEQPREFIX; }
 #[^\n]*		{	;	}
@@ -433,17 +453,20 @@ WS		[ \t]
 				yylval.num = yytext[1];
 				return T_NUM;
 			}
+\+\+		{	return T_PLUSPLUS; }
+\-\-		{	return T_MINUSMINUS; }
 {CHN}+		{	PKS_VALUE 	sym;
 				char *	key;
 
 				sym = sym_find(yytext,&key);
 				if (VALUE(sym) == 0 && TYPEOF(sym) == 0) {
-retIdent:				yylval.s = yystralloc(yytext);
+retIdent:			yylval.ident.s = yystralloc(yytext);
+					yylval.ident.stringIsAlloced = 1;
 					return T_IDENT;
 				}
 
 				if (TYPEOF(sym) == S_KEYWORD) {
-					return VALUE_AS_INT(sym);
+					return sym.sym_data.intValue;
 				}
 
 				if (TYPEOF(sym) == S_EDFUNC) {
@@ -452,7 +475,7 @@ retIdent:				yylval.s = yystralloc(yytext);
 				}
 
 				if (TYPEOF(sym) == S_ENUM) {
-					yylval.num = EnumValue((void*)VALUE(sym));
+					yylval.num = function_enumValueFor((void*)VALUE(sym));
 					return T_NUM;
 				}
 				
@@ -460,7 +483,7 @@ retIdent:				yylval.s = yystralloc(yytext);
 					if (_bDefiningConst) {
 						goto retIdent;
 					}
-					yylval.num = VALUE_AS_INT(sym);
+					yylval.num = sym.sym_data.longValue;
 					return T_NUM;
 				}
 	
@@ -468,25 +491,25 @@ retIdent:				yylval.s = yystralloc(yytext);
 					if (_bDefiningConst) {
 						goto retIdent;
 					}
-					yylval.s = yystralloc((char *)VALUE(sym));
+					yylval.ident.stringIsAlloced = 0;
+					yylval.ident.s = yystralloc((char *)VALUE(sym));
 					return T_IDENT;
 				}
 
+				if (TYPEOF(sym) == S_FLOAT) {
+					yylval.ident.stringIsAlloced = 0;
+					yylval.ident.s = key;
+					return T_FLOATVAR;
+				}
 				if (TYPEOF(sym) == S_NUMBER || TYPEOF(sym) == S_DOLNUMBER) {
-# if 0
-					yylval.s = yystralloc(yytext);
-# else
-					yylval.s = key;
-# endif
+					yylval.ident.stringIsAlloced = 0;
+					yylval.ident.s = key;
 					return T_NUMVAR;
 				}
 
 				if (TYPEOF(sym) == S_STRING || TYPEOF(sym) == S_DOLSTRING) {
-# if 0
-					yylval.s = yystralloc(yytext);
-# else
-					yylval.s = key;
-# endif
+					yylval.ident.stringIsAlloced = 0;
+					yylval.ident.s = key;
 					return T_STRINGVAR;
 				}
 
@@ -498,9 +521,9 @@ retIdent:				yylval.s = yystralloc(yytext);
 !=			return T_NE;
 !~			return T_NMATCH;
 &&			return T_AND;
-\|\|			return T_OR;
+\|\|		return T_OR;
 =			return T_ASSIGN;
-\.\.			return T_DOTDOT;
+\.\.		return T_DOTDOT;
 .			return yytext[0];
 %%
 

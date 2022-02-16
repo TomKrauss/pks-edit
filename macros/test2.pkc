@@ -41,6 +41,7 @@ macro insertWithIncrement() {
 	string t;
 	string suffix;
 	int n = 1;
+	float f = 1.0d;
 
 	while(n < 10) {
 		if (n == 1) {
@@ -57,7 +58,8 @@ macro insertWithIncrement() {
 		}
 		t = "hello "+ n + suffix + " world\n";
 		InsertString(t);
-		n = n + 1;
+		n++;
+		// n = n + 1;
 	}
 }
 

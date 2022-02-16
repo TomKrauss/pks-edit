@@ -23,6 +23,7 @@
 
 #include "pksedit.h"
 #include "edfuncs.h"
+#include "scanner.h"
 #include "funcdef.h"
 #include "mouseutil.h"
 #include "sym.h"
@@ -30,12 +31,13 @@
 #include "caretmovement.h"
 
 extern void 			macro_reportError(void);
-extern int 			EdMacroRecord(void);
-extern int 			ft_selectWindowWithId(int winid, BOOL bPopup);
-extern int 			dlg_displayRecordMacroOptions(int *o);
+extern int 				EdMacroRecord(void);
+extern int 				ft_selectWindowWithId(int winid, BOOL bPopup);
+extern int 				dlg_displayRecordMacroOptions(int *o);
 
 extern long 			sym_integerForSymbol(char *p);
 extern intptr_t			sym_stringForSymbol(char *p);
+extern double			sym_floatForSymbol(char* symbolname);
 extern long 			sym_assignSymbol(char *name, COM_LONG1 *v);
 /*--------------------------------------------------------------------------
  * macro_testExpression()
@@ -80,7 +82,7 @@ int macro_getParameterSize(unsigned char typ, const char *s)
 	switch(typ) {
 		case C_FURET:
 		case C_0FUNC:
-		case C_CHAR1PAR:
+		case C_CHARACTER_LITERAL:
 			return sizeof(COM_CHAR1);
 		case C_1FUNC:
 			return sizeof(COM_1FUNC);
@@ -90,24 +92,29 @@ int macro_getParameterSize(unsigned char typ, const char *s)
 			return sizeof(COM_GOTO);
 		case C_STOP:
 			return sizeof(COM_STOP);
-		case C_INT1PAR:
+		case C_FLOAT_LITERAL:
+			/* only if your alignment = 2,2,2 */
+			return sizeof(COM_FLOAT1);
+		case C_INTEGER_LITERAL:
 			/* only if your alignment = 2,2,2 */
 			return sizeof(COM_INT1);
-		case C_LONG1PAR:
+		case C_DEFINE_PARAMETER:
+		case C_DEFINE_VARIABLE:
+			return (((COM_CREATESYM*)s)->size);
+		case C_LONG_LITERAL:
 			/* only if your alignment = 2,2,2 */
 			return sizeof(COM_LONG1);
 		case C_STRINGVAR:
+		case C_FLOATVAR:
 		case C_LONGVAR:
 		case C_MACRO:
-		case C_STRING1PAR:
+		case C_STRING_LITERAL:
 			size = (int)((sizeof(struct c_ident) - 1 /* pad byte*/) +
 					(strlen(s)+1)*sizeof(*s));
 			if (size & 1) size++;
 			return size;
 		case C_BINOP:
 			return ((COM_BINOP*)(s-1))->size;
-		case C_CREATESYM:
-			return ((COM_CREATESYM*)(s-1))->size;
 		case C_ASSIGN:
 			return ((COM_ASSIGN*)(s-1))->size;
 		case C_TEST:
@@ -150,7 +157,7 @@ static void macro_pushSequence(unsigned char typ, void* par)
 	switch(typ) {
 		case C_FURET:
 		case C_0FUNC:
-		case C_CHAR1PAR: 
+		case C_CHARACTER_LITERAL: 
 			((COM_CHAR1 *)sp)->val = (unsigned char)par;
 			break;
 		case C_FORMSTART:
@@ -159,13 +166,16 @@ static void macro_pushSequence(unsigned char typ, void* par)
 		case C_1FUNC:
 			*(COM_1FUNC *)sp = *(COM_1FUNC *)par;
 			break;
-		case C_INT1PAR:
+		case C_INTEGER_LITERAL:
 			((COM_INT1 *)sp)->val = (int) (intptr_t)par;
 			break;
-		case C_LONG1PAR:
+		case C_LONG_LITERAL:
 			((COM_LONG1 *)sp)->val = (long) (intptr_t) par;
 			break;
-		case C_STRING1PAR:
+		case C_FLOAT_LITERAL:
+			((COM_FLOAT1*)sp)->val = (double)(intptr_t)par;
+			break;
+		case C_STRING_LITERAL:
 		case C_MACRO:
 			strcpy(((COM_MAC*)sp)->name,(char *)par);
 			break;
@@ -185,7 +195,7 @@ static void macro_pushSequence(unsigned char typ, void* par)
 int macro_openDialog(PARAMS *pp)
 {	int 		i;
 	struct des 	*dp;
-	intptr_t	par;
+	GENERIC_DATA	par;
 	COM_FORM	*cp;
 	unsigned char	type;
 
@@ -196,7 +206,7 @@ int macro_openDialog(PARAMS *pp)
 err:		return FORM_SHOW;
 	}
 
-	cp = (COM_FORM *) macro_popParameter(&_readparamp);
+	cp = (COM_FORM *) macro_popParameter(&_readparamp).string;
 
 	if (!cp)
 		goto err;
@@ -214,12 +224,13 @@ err:		return FORM_SHOW;
 		par = macro_popParameter(&_readparamp);
 		if (cp->options & FORM_INIT) {
 		   switch(dp->cmd_type) {
-			case C_INT1PAR:  *dp->p.i = (int)par; break;
-			case C_CHAR1PAR: *dp->p.c = (char) par; break;
-			case C_LONG1PAR: *dp->p.l = (long) par; break;
-			case C_STRING1PAR:
-				if ((type == C_STRING1PAR || type == C_STRINGVAR) && par) {
-					strcpy(dp->p.s,(char *)par);
+			case C_INTEGER_LITERAL:  *dp->p.i = par.intValue; break;
+			case C_CHARACTER_LITERAL: *dp->p.c = par.uchar; break;
+			case C_FLOAT_LITERAL: *dp->p.d = par.doubleValue; break;
+			case C_LONG_LITERAL: *dp->p.l = (long)par.longValue; break;
+			case C_STRING_LITERAL:
+				if ((type == C_STRING_LITERAL || type == C_STRINGVAR) && par.string) {
+					strcpy(dp->p.s, par.string);
 				}
 				else {
 					error_showErrorById(IDS_MSGMACFORMATERR);
@@ -278,17 +289,20 @@ int macro_recordOperation(PARAMS *pp)
 	dp = pp->el;
 	for (i = cf.nfields; i > 0; i--, dp++) {
 		switch(dp->cmd_type) {
-			case C_INT1PAR:
-				macro_pushSequence(C_INT1PAR,(void*)((intptr_t) *dp->p.i));
+			case C_INTEGER_LITERAL:
+				macro_pushSequence(C_INTEGER_LITERAL,(void*)((intptr_t) *dp->p.i));
 				break;
-			case C_CHAR1PAR:
-				macro_pushSequence(C_CHAR1PAR, (void*)((intptr_t)*dp->p.c));
+			case C_CHARACTER_LITERAL:
+				macro_pushSequence(C_CHARACTER_LITERAL, (void*)((intptr_t)*dp->p.c));
 				break;
-			case C_LONG1PAR:
-				macro_pushSequence(C_LONG1PAR, (void*)((intptr_t)*dp->p.l));
+			case C_FLOAT_LITERAL:
+				macro_pushSequence(C_FLOAT_LITERAL, (void*)((intptr_t)*dp->p.d));
 				break;
-			case C_STRING1PAR:
-				macro_pushSequence(C_STRING1PAR, (void*)dp->p.s);
+			case C_LONG_LITERAL:
+				macro_pushSequence(C_LONG_LITERAL, (void*)((intptr_t)*dp->p.l));
+				break;
+			case C_STRING_LITERAL:
+				macro_pushSequence(C_STRING_LITERAL, (void*)dp->p.s);
 				break;
 		}		
 	}
@@ -300,7 +314,7 @@ int macro_recordOperation(PARAMS *pp)
  * macro_popParameter()
  * pop data from execution stack
  */
-intptr_t macro_popParameter(unsigned char** Sp) {
+GENERIC_DATA macro_popParameter(unsigned char** Sp) {
 	unsigned char* sp = *Sp;
 	unsigned char typ = *sp;
 
@@ -308,23 +322,31 @@ intptr_t macro_popParameter(unsigned char** Sp) {
 	switch(typ) {
 		case C_DATA:
 		case C_FORMSTART:
-			return (intptr_t)sp;
-		case C_CHAR1PAR:
+			return (GENERIC_DATA) { .string = sp };
+		case C_CHARACTER_LITERAL:
 		case C_FURET:
-			return ((COM_CHAR1 *)sp)->val;
-		case C_INT1PAR:
-			return ((COM_INT1 *)sp)->val;
-		case C_LONG1PAR:
-			return ((COM_LONG1 *)sp)->val;
+			return (GENERIC_DATA) { .uchar = ((COM_CHAR1*)sp)->val };
+		case C_INTEGER_LITERAL:
+			return (GENERIC_DATA) { .longValue = ((COM_INT1*)sp)->val };
+		case C_LONG_LITERAL:
+			return (GENERIC_DATA) { .longValue = ((COM_LONG1*)sp)->val };
+		case C_FLOAT_LITERAL: {
+			double dDouble = ((COM_FLOAT1*)sp)->val;
+			return (GENERIC_DATA) { .doubleValue = dDouble };
+		}
+		case C_FLOATVAR:
+			return (GENERIC_DATA) { .doubleValue = sym_floatForSymbol(((COM_VAR*)sp)->name) };
 		case C_LONGVAR:
-			return sym_integerForSymbol(((COM_VAR *)sp)->name);
+			return (GENERIC_DATA) { .longValue = sym_integerForSymbol(((COM_VAR*)sp)->name) };
 		case C_STRINGVAR:
-			return sym_stringForSymbol(((COM_VAR *)sp)->name);
-		case C_STRING1PAR:
-			return (intptr_t)&((COM_STRING1 *)sp)->s;
+			return (GENERIC_DATA) { .val = sym_stringForSymbol(((COM_VAR*)sp)->name) };
+		case C_STRING_LITERAL:
+			return (GENERIC_DATA) {
+				.val = (intptr_t) & ((COM_STRING1*)sp)->s
+			};
 		default:
 			macro_reportError();
-			return 0;
+			return (GENERIC_DATA) { 0 };
 	}
 }
 
@@ -341,11 +363,11 @@ static void macro_recordFunctionWithParameters(int fnum, int p, intptr_t p2, cha
 	c.p = p;
 
 	macro_pushSequence(C_1FUNC,(void*) &c);
-	if (p2) macro_pushSequence(C_LONG1PAR, (void*) p2);
+	if (p2) macro_pushSequence(C_LONG_LITERAL, (void*) p2);
 	if (s1) {
-		macro_pushSequence(C_STRING1PAR,(void*)s1);
+		macro_pushSequence(C_STRING_LITERAL,(void*)s1);
 		if (s2)
-			macro_pushSequence(C_STRING1PAR,(void*)s2);
+			macro_pushSequence(C_STRING_LITERAL,(void*)s2);
 	}
 }
 
@@ -512,22 +534,24 @@ intptr_t macro_doMacroFunctions(COM_1FUNC **Cp, const COM_1FUNC *cpmax) {
 	while(cp < cpmax && C_IS1PAR(cp->typ)) {
 		switch(cp->typ) {
 			case C_STRINGVAR:
-			case C_STRING1PAR:
+			case C_STRING_LITERAL:
 				if (typ == C_MACRO) {
 					*sp++ = 1;
-					*sp++ = macro_popParameter((unsigned char **)&cp);
+					*sp++ = macro_popParameter((unsigned char **)&cp).val;
 				} else {
-					*functionStringParameters++ = macro_popParameter((unsigned char **)&cp);
+					*functionStringParameters++ = macro_popParameter((unsigned char **)&cp).val;
 				}
 				break;
 			case C_LONGVAR:
-			case C_CHAR1PAR:
-			case C_INT1PAR:
-			case C_LONG1PAR:
+			case C_FLOATVAR:
+			case C_FLOAT_LITERAL:
+			case C_CHARACTER_LITERAL:
+			case C_INTEGER_LITERAL:
+			case C_LONG_LITERAL:
 				if (typ == C_MACRO) {
 					*sp++ = 0;
 				}
-				*sp++ = macro_popParameter((unsigned char **)&cp);
+				*sp++ = macro_popParameter((unsigned char **)&cp).val;
 				break;
 			default:
 				goto out;
@@ -573,7 +597,7 @@ static void macro_returnFunctionValue(unsigned char typ, intptr_t v)
 	}
 
 	value = (COM_STRING1 *)sp;
-	if ((value->typ = typ) == C_STRING1PAR) {
+	if ((value->typ = typ) == C_STRING_LITERAL) {
 		strcpy(value->s,(char *)v);
 	} else {
 		((COM_LONG1 *)value)->val = v;
@@ -589,16 +613,16 @@ static void macro_returnFunctionValue(unsigned char typ, intptr_t v)
  */
 void macro_returnString(char *string)
 {
-	macro_returnFunctionValue(C_STRING1PAR,(intptr_t)string);
+	macro_returnFunctionValue(C_STRING_LITERAL,(intptr_t)string);
 }
 
 /*---------------------------------*/
-/* macro_executeSequence()					*/
+/* macro_interpretByteCodes()					*/
 /*---------------------------------*/
 #define COM1_INCR(cp,type,offset) (COM_1FUNC*)(((unsigned char *)cp)+((type *)cp)->offset)
 #define COM_PARAMINCR(cp)		(COM_1FUNC*)(((unsigned char *)cp)+macro_getParameterSize(cp->typ,&cp->funcnum));
 static int _macaborted;
-int macro_executeSequence(COM_1FUNC *cp,COM_1FUNC *cpmax) {
+int macro_interpretByteCodes(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 	intptr_t	val;
 
 	for (val = 1; cp < cpmax; ) {
@@ -623,11 +647,15 @@ int macro_executeSequence(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 				val = 1;
 				cp = COM1_INCR(cp,COM_BINOP,size);
 				continue;
-			case C_CREATESYM:
+			case C_DEFINE_PARAMETER:
 				sym_makeInternalSymbol(((COM_CREATESYM*)cp)->name,
 					((COM_CREATESYM*)cp)->symtype,
-					((COM_CREATESYM*)cp)->value);
+					(GENERIC_DATA) {.longValue = ((COM_CREATESYM*)cp)->value});
 				cp = COM1_INCR(cp,COM_CREATESYM,size);
+				val = 1;
+				break;
+			case C_DEFINE_VARIABLE:
+				cp = COM1_INCR(cp, COM_CREATESYM, size);
 				val = 1;
 				break;
 			case C_ASSIGN:
@@ -640,10 +668,10 @@ int macro_executeSequence(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 				return ((COM_STOP *)cp)->rc;
 			case C_MACRO: case C_0FUNC: case C_1FUNC:
 				val = macro_doMacroFunctions(&cp,cpmax);
-				macro_returnFunctionValue(C_LONG1PAR,val);
+				macro_returnFunctionValue(C_LONG_LITERAL,val);
 				continue;
 			case C_FURET:
-				_fncmarker = macro_popParameter((unsigned char **)&cp);
+				_fncmarker = macro_popParameter((unsigned char **)&cp).val;
 				break;
 			case C_FORMSTART:
 				// TODO: not really - executing macros with forms is broken - should change the whole
@@ -715,7 +743,7 @@ int macro_executeMacroByIndex(int macroindex)
 				cpmax = (COM_1FUNC *)((char *)cp+mp->size);
 				break;
 		}
-		if ((ret = macro_executeSequence(cp,cpmax)) <= 0) {
+		if ((ret = macro_interpretByteCodes(cp,cpmax)) <= 0) {
 			ret = 0;
 			break;
 		}

@@ -24,6 +24,7 @@
 #include "hashmap.h"
 #include "codeanalyzer.h"
 #include "edfuncs.h"
+#include "actionbindings.h"
 #include "funcdef.h"
 #include "fontawesome.h"
 
@@ -122,7 +123,7 @@ static void analyzer_addKeycode(const char* pszKeycode) {
 static void analyzer_getBindingCompletions(WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback) {
 	if (wp->caret.offset > 0 && wp->caret.linePointer->lbuf[wp->caret.offset - 1] == '+') {
 		_keyAnalyzerCallback = fCallback;
-		macro_addModifiersAndKeycodes(fMatch, analyzer_addKeycode);
+		bindings_addModifiersAndKeycodes(fMatch, analyzer_addKeycode);
 		return;
 	}
 	const char* pszWord;

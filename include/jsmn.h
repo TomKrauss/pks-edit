@@ -199,7 +199,7 @@ extern "C" {
 
         parser->pos++;
 
-        /* Skip starting quote */
+        /* Skip starting decompile_quoteString */
         for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
             char c = js[parser->pos];
 

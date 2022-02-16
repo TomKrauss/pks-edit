@@ -21,6 +21,7 @@
 #include "alloc.h"
 #include "edfuncs.h"
 #include "pkscc.h"
+#include "hashmap.h"
 #include "sym.h"
 #include "stringutil.h"
 #include "errordialogs.h"
@@ -31,172 +32,86 @@ extern int 		macro_getDollarParameter(intptr_t offset, int *typ, intptr_t *value
 
 static PKS_VALUE	nullSymbol;
 
-/*---------------------------------*/
-/* HASHTABLE					*/
-/*---------------------------------*/
-typedef struct hentry {
-	char 	*key;
-	PKS_VALUE 	sym;
-} ENTRY;
-
 typedef enum {	FIND,ENTER,DESTROY} ACTION;
 
-static ENTRY *	_htab;
-static unsigned  	_hsize,_overflow;
+static HASHMAP * _htab;
 
-/*---------------------------------*/
-/* hindex()					*/
-/* Hash-Funktion (fast) nach Wirth	*/
-/*---------------------------------*/
-static unsigned int hindex(unsigned char *s)
-{
-	unsigned char c;
-	unsigned short l=0;
-
-	while ((c = *s++) != 0)
-		l += c;
-	return l;
-}
-
-/*--------------------------------------------------------------------------
- * hashed symbol lookup
- * hfind()
+/*
+ * Destroy a symbol registered in a symbol table.
  */
-static ENTRY *hfind(char *key,ACTION action)
-{	register unsigned sonde = 1;
-	register  unsigned h;
-	register  ENTRY *hp;
-	static 	ENTRY _ep;
-
-	if (!_htab) {
-		if (!sym_create(HSIZE)) {
-			return 0;
-		}
+static int sym_destroyEntry(intptr_t tKey, intptr_t tValue) {
+	PKS_VALUE* sym = (PKS_VALUE*)tValue;
+	SYMBOL_TYPE stType = sym->sym_type;
+	if (stType == S_STRING || stType == S_CONSTSTRING) {
+		free(sym->sym_data.string);
 	}
-
-	h = hindex(key);
-	do {
-		while(h >= _hsize)
-			h -= _hsize;
-		hp = &_htab[h];
-
-		if (!hp->key) {
-			if (action == DESTROY)
-				return 0;
-			if (action == FIND)
-				return 0;
-
-			/* action == ENTER */
-			hp->key = key;
-			return hp;
-
-		} else if (!strcmp(key,hp->key)) {
-		    	if (action == ENTER || action == FIND)
-				return hp;
-			/* destroy: return copy */
-			_ep.key = hp->key;
-			_ep.sym = hp->sym;
-			hp->key = 0;
-			return &_ep;
-		}
-		h += sonde; 
-		sonde += 2;
-	} while (sonde < _overflow);
-
-	if (action == ENTER)
-		error_displayAlertDialog("hash table overflow\n");
-	return 0;
+	free(sym);
+	char* pszKey = (char*)tKey;
+	free(pszKey);
+	return 1;
 }
 
 /*
  * Destroy the macro compiler internal symbol table.
  */
 void sym_destroyTable() {
-	free(_htab);
+	hashmap_destroy(_htab, sym_destroyEntry);
 	_htab = NULL;
 }
 
-/*---------------------------------*/
-/* sym_create()				*/
-/* neue Tabelle erzeugen			*/
-/* mit nel == 0, alte zerstoeren	*/
-/*---------------------------------*/
+/*---------------------------------
+ * sym_create()	
+ * Create a symbol table.
+ *---------------------------------*/
 int sym_create(unsigned nel) {
-	if (_htab) {
-		if (_hsize == nel) {
-			return 1;
-		}
-		free(_htab);
-		_htab = 0;
-	}
-	if (nel > 0) {
-		_hsize    = nel;
-	     _overflow = nel * 4 / 5;
-		nel *= sizeof(_htab[0]);
-		if ((_htab  = calloc(1, nel)) == 0)
-		    return 0;
-	}
-	return 1;
+	_htab = hashmap_create(nel, NULL, NULL);
+	return _htab != NULL;
 }
 
 /*--------------------------------------------------------------------------
  * sym_find()
  */
-PKS_VALUE sym_find(char *key,char **key_ret)
-{
-	ENTRY	*ep;
-
-	if ((ep = hfind(key,FIND)) != 0) {
-		*key_ret = ep->key;
-		return ep->sym;
+PKS_VALUE sym_find(char *key,char **key_ret) {
+	HASH_ENTRY entry;
+	if (!hashmap_getEntry(_htab, (intptr_t)key, &entry)) {
+		return nullSymbol;
 	}
-	return nullSymbol;	
+
+	*key_ret = (char*)entry.he_key;
+	PKS_VALUE* sym = (PKS_VALUE*)entry.he_value;
+	return *sym;
 }
 
 /*--------------------------------------------------------------------------
  * sym_insert()
  */
-int sym_insert(char *key, SYMBOL_TYPE stType, intptr_t symdata)
-{
-	ENTRY	*ep;
-
-	if ((ep = hfind(key,ENTER)) != 0) {
-		SETSYMBOL(ep->sym,stType,symdata);
-		return 1;
+int sym_insert(char *key, SYMBOL_TYPE stType, GENERIC_DATA symdata) {
+	HASH_ENTRY entry;
+	if (hashmap_getEntry(_htab, (intptr_t)key, &entry)) {
+		hashmap_remove(_htab, (intptr_t)entry.he_key);
+		key = (char*)entry.he_key;
+		sym_destroyEntry(0, entry.he_value);
+	} else {
+		key = _strdup(key);
 	}
-	return 0;	
+	PKS_VALUE* sym = calloc(1, sizeof * sym);
+	sym->sym_data = symdata;
+	sym->sym_type = stType;
+	hashmap_put(_htab, (intptr_t)key, (intptr_t)sym);
+	return 1;	
 }
 
 
 /*--------------------------------------------------------------------------
  * sym_makeInternalSymbol()
  */
-int sym_makeInternalSymbol(char *name, SYMBOL_TYPE stType, intptr_t value) {
-	ENTRY	*ep;
-	int		type;
-
-	type = stType;
+int sym_makeInternalSymbol(char *name, SYMBOL_TYPE stType, GENERIC_DATA value) {
 	if (stType == S_STRING || stType == S_CONSTSTRING) {
-		if ((value = (intptr_t)_strdup((char*)value)) == 0) {
+		if ((value.string = _strdup(value.string)) == 0) {
 			return 0;
 		}
 	}
-
-	if ((ep = hfind(name,FIND)) != 0) {
-			/* redefinition */
-		if (TYPEOF(ep->sym) == S_STRING || 
-			TYPEOF(ep->sym) == S_CONSTSTRING) {
-			free((void*)VALUE(ep->sym));
-		}
-		SETSYMBOL(ep->sym,type,value);
-		return 1;
-	} else {
-		if ((name = _strdup(name)) == 0) {
-			return 0;
-		}
-	}
-
-	return sym_insert(name,type,value);
+	return sym_insert(name, stType, value);
 }
 
 /*--------------------------------------------------------------------------
@@ -213,8 +128,9 @@ static PKS_VALUE sym_getVariable(char *symbolname)
 		return sym;
 	}
 
-	if (TYPEOF(sym) < S_NUMBER || TYPEOF(sym) > S_DOLSTRING) {
-		error_displayAlertDialog("bad symbol %s (%x)",symbolname,TYPEOF(sym));
+	SYMBOL_TYPE sType = TYPEOF(sym);
+	if (sType != S_FLOAT && (sType < S_NUMBER || sType > S_DOLSTRING)) {
+		error_displayAlertDialog("bad symbol '%s' (type==%d)",symbolname,sType);
 		return nullSymbol;
 	}
 
@@ -246,9 +162,24 @@ long sym_integerForSymbol(char *symbolname) {
 		return number((char *)value);
 	case S_CONSTNUM: case S_NUMBER:
 		return (long) (intptr_t)VALUE(sym);
+	case S_FLOAT:
+		return (long)(double)(intptr_t)VALUE(sym);
 	default:
 		return number((char*)VALUE(sym));
 	}
+}
+
+/*--------------------------------------------------------------------------
+ * sym_floatForSymbol()
+ */
+double sym_floatForSymbol(char* symbolname) {
+	PKS_VALUE 	sym;
+
+	sym = sym_getVariable(symbolname);
+	if (TYPEOF(sym) == S_FLOAT) {
+		return sym.sym_data.doubleValue;
+	}
+	return (double)sym_integerForSymbol(symbolname);
 }
 
 /*--------------------------------------------------------------------------
@@ -281,6 +212,12 @@ intptr_t sym_stringForSymbol(char *symbolname) {
 		}
 		sprintf(buf,"%ld", (long)value);
 		return (intptr_t)buf;
+	case S_FLOAT:
+		if (TYPEOF(sym) == S_FLOAT) {
+			value = (intptr_t)VALUE(sym);
+		}
+		sprintf(buf, "%lf", (double)value);
+		return (intptr_t)buf;
 	default:
 		return (intptr_t)VALUE(sym);
 	}
@@ -290,11 +227,11 @@ intptr_t sym_stringForSymbol(char *symbolname) {
  * sym_assignSymbol()
  */
 long sym_assignSymbol(char *name, COM_LONG1 *v) {
-	int 	typ;
-	intptr_t value;
+	SYMBOL_TYPE 	sSymbolType;
+	GENERIC_DATA value;
 
-	typ = macro_isParameterStringType(v->typ) ? S_STRING : S_NUMBER;
+	sSymbolType = macro_isParameterFloatType(v->typ) ? S_FLOAT : (macro_isParameterStringType(v->typ) ? S_STRING : S_NUMBER);
 	value = macro_popParameter((unsigned char**)&v);
-	return sym_makeInternalSymbol(name, typ, value);
+	return sym_makeInternalSymbol(name, sSymbolType, value);
 }
 

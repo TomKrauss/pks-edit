@@ -1,7 +1,7 @@
 /*
  * MacroKeyBinding.c
  *
- * editor command handling and key mapping
+ * Execute, edit, display and manage the macros defined in PKS-Edit
  *
  * PROJECT: PKSEDIT
  *
@@ -39,24 +39,19 @@
 #include "editorconfiguration.h"
 #include "menu.h"
 #include "funcdef.h"
+#include "actionbindings.h"
 
 extern long		_multiplier;
 
-/*---------------------------------*/
-/* key_delbindings()			*/
-/* delete all key bindings to a 	*/
-/* for inst. single macro,...		*/
-/*---------------------------------*/
 extern long			rsc_wrmacros(int fd, long offset, char *buf, long maxbytes);
 extern char *		rsc_rdmacros(char *param, unsigned char *p, unsigned char *pend);
 extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 /*
  * Loads the default action bindings (keys and mouse) for PKS-Edit from the PKS_SYS directory.
  */
-extern void key_loadBindings();
+extern void bindings_loadActionBindings();
 extern void 		st_switchtomenumode(BOOL bMenuMode);
-extern int			macro_executeSequence(COM_1FUNC* cp, COM_1FUNC* cpmax);
-MACROREF			bindings_getKeyBinding(KEYCODE keycode, const char* pszActionContext);
+extern int			macro_interpretByteCodes(COM_1FUNC* cp, COM_1FUNC* cpmax);
 
 int				_recording;
 int				_nmacros = MAXMACRO;
@@ -73,12 +68,6 @@ MACROREF		currentSelectedMacro;
  * Start the recorder.
  */
 extern int op_startMacroRecording();
-
-
-EDBINDS _bindings = {
-	_edfunctab,_cmdseqtab,_macrotab,
-	&_nfuncs,&_ncmdseq,&_nmacros
-};
 
 static FSELINFO 	_seqfsel = {	"","pksedit.mac", "*.mac" };
 
@@ -193,7 +182,7 @@ int macro_deleteByName(char *name)
 {	int idx;
 
 	if ((idx = macro_getInternalIndexByName(name)) >= 0) {
-		macro_deleteKeyBindingsForMacroRef((MACROREF) { .typ = CMD_MACRO, .index = idx });
+		bindings_deleteKeyBindingsForMacroRef((MACROREF) { .typ = CMD_MACRO, .index = idx });
 		destroy(&_macrotab[idx]);
 		_macedited = 1;
 		return 1;
@@ -246,25 +235,22 @@ int macro_readBindingsFromFile(char *fn) {
 	RSCFILE	*rp;
 
 	if (fn == 0) {
-		if ((fn = fsel_initPathes(&_seqfsel)) == 0)
-			return 0;
+		fn = fsel_initPathes(&_seqfsel);
 	}
 
-	if ((rp = rsc_open(fn,RSC_O_READ)) == 0) {
-		return 0;
-	}
-
-	key_loadBindings();
+	bindings_loadActionBindings();
 	macro_autosaveAllBindings(1);
 
-	/* load macros */
-	if (!rsc_load(rp, "MACROS", "", rsc_rdmacros)) {
-		error_showErrorById(IDS_MSGBADMACFORMAT);
-		rsc_close(rp);
-		return 0;
-	}
+	if (fn && (rp = rsc_open(fn,RSC_O_READ)) != 0) {
+		/* load macros */
+		if (!rsc_load(rp, "MACROS", "", rsc_rdmacros)) {
+			error_showErrorById(IDS_MSGBADMACFORMAT);
+			rsc_close(rp);
+			return 0;
+		}
 
-	rsc_close(rp);
+		rsc_close(rp);
+	}
 
 	macro_selectDefaultBindings();
 
@@ -382,7 +368,7 @@ int macro_toggleRecordMaco(void)
 				scan = K_DELETED;
 			}
 			if ((_lastinsertedmac = macro_insertNewMacro(buf,"",_recorder,size)) >= 0) {
-				macro_bindKey(scan, (MACROREF) { .index = _lastinsertedmac, .typ = CMD_MACRO }, NULL);
+				bindings_bindKey(scan, (MACROREF) { .index = _lastinsertedmac, .typ = CMD_MACRO }, NULL);
 			}
 		}
 	} else {						/* START */
@@ -460,47 +446,6 @@ int macro_onMenuAction(WINFO* wp, int menunum, POINT* aPositionClicked) {
 	return 0;
 }
 
-/*---------------------------------
- * macro_addModifierKeys()
- * Add the modifier key bits depending on whether
- * Shift, Control or Alt was pressed together with
- * the key passed as an argument.
- */
-KEYCODE macro_addModifierKeys(KEYCODE key)
-{
-	if ( GetKeyState(VK_SHIFT) < 0)
-		key |= K_SHIFT;
-	if ( GetKeyState(VK_CONTROL) < 0)
-		key |= K_CONTROL;
-	if ( GetKeyState(VK_MENU) < 0)
-		key |= K_ALTERNATE;
-	if (GetKeyState(VK_LWIN) < 0)
-		key |= K_WINDOWS;
-	return key;
-}
-
-/*---------------------------------*/
-/* macro_getKeyBinding()				*/
-/*---------------------------------*/
-MACROREF* macro_getKeyBinding(WPARAM key) {
-	KEYCODE keycode = (KEYCODE)macro_addModifierKeys((KEYCODE)key);
-	static MACROREF macroref;
-	WINFO* wp = ww_getCurrentEditorWindow();
-	const char* pszActionContext = NULL;
-	macroref.index = 0;
-	macroref.typ = 0;
-	if (wp) {
-		pszActionContext = wp->actionContext;
-		if (ww_hasSelection(wp)) {
-			macroref = bindings_getKeyBinding(keycode | K_HAS_SELECTION, pszActionContext);
-		}
-	}
-	if (macroref.index == 0 && macroref.typ == 0) {
-		macroref = bindings_getKeyBinding(keycode, pszActionContext);
-	}
-	return macroref.index == 0 && macroref.typ == 0 ? NULL : &macroref;;
-}
-
 /*---------------------------------*/
 /* macro_executeMacro()				*/
 /*---------------------------------*/
@@ -511,7 +456,7 @@ int macro_executeMacro(MACROREF *mp)
 	switch (mp->typ) {
 		case CMD_CMDSEQ:
 			cp = &_cmdseqtab[mp->index].c_functionDef;
-			return macro_executeSequence(cp,cp+1);
+			return macro_interpretByteCodes(cp,cp+1);
 		case CMD_MACRO:
 			return macro_executeMacroByIndex(mp->index);
 		default:
@@ -558,8 +503,8 @@ int macro_executeByName(char *name) {
  */
 char* macro_getKeyText(const char* pszActionContext, int nCmd) {
 	KEYCODE	k;
-	if ((k = macro_findKey(NULL, (MACROREF) { .typ = CMD_CMDSEQ, .index = nCmd })) != K_DELETED) {
-		return macro_keycodeToString(k);
+	if ((k = bindings_findBoundKey(NULL, (MACROREF) { .typ = CMD_CMDSEQ, .index = nCmd })) != K_DELETED) {
+		return bindings_keycodeToString(k);
 	}
 	return NULL;
 }
@@ -813,7 +758,7 @@ static void macro_newMacroSelected(HWND hwnd)
 	_nSelectedMacroIndex = macro_getSelectedMacro(hwnd);
 	_nBoundKeys = 0;
 	hwndList = macro_initializeListBox(hwnd,IDD_LISTBOX2,&nCurr);
-	key_bindingsDo(NULL, macro_addKeyCodeToList, hwndList);
+	bindings_forAllKeyBindingsDo(NULL, macro_addKeyCodeToList, hwndList);
 	macro_listEndFilling(hwndList,0);
 	macro_enableButton(hwnd,IDD_MACDELKEY,_nBoundKeys ? TRUE : FALSE);
 }
@@ -852,7 +797,7 @@ static void macro_ownerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem,
 	char	szBuf[128];
 
 	if (nID == IDD_LISTBOX2) {
-		lstrcpy(szBuf,macro_keycodeToString((KEYCODE) par));
+		lstrcpy(szBuf,bindings_keycodeToString((KEYCODE) par));
 	} else {
 		mac_name(szBuf, (MACROREFIDX)HIWORD(par), (MACROREFTYPE)LOWORD(par));
 	}
@@ -918,6 +863,28 @@ static int macro_charItemNextSelected(HWND hwndList, unsigned char ucKey)
 	} while(nPos != nOrigPos);
 	
 	return (int)nPos;
+}
+
+/*---------------------------------*/
+/* macro_getKeyBinding()				*/
+/*---------------------------------*/
+MACROREF* macro_getKeyBinding(WPARAM key) {
+	KEYCODE keycode = (KEYCODE)bindings_addModifierKeysToKeycode((KEYCODE)key);
+	static MACROREF macroref;
+	WINFO* wp = ww_getCurrentEditorWindow();
+	const char* pszActionContext = NULL;
+	macroref.index = 0;
+	macroref.typ = 0;
+	if (wp) {
+		pszActionContext = wp->actionContext;
+		if (ww_hasSelection(wp)) {
+			macroref = bindings_getKeyBinding(keycode | K_HAS_SELECTION, pszActionContext);
+		}
+	}
+	if (macroref.index == 0 && macroref.typ == 0) {
+		macroref = bindings_getKeyBinding(keycode, pszActionContext);
+	}
+	return macroref.index == 0 && macroref.typ == 0 ? NULL : &macroref;;
 }
 
 /*------------------------------------------------------------
@@ -991,12 +958,12 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 				if ((keycode = macro_getCurrentKeycode()) == K_DELETED) {
 					break;
 				}
-				macro_bindKey(keycode, (MACROREF) { .index = (MACROREFIDX)HIWORD(nSelected), .typ = (MACROREFTYPE)LOWORD(nSelected) }, NULL);
+				bindings_bindKey(keycode, (MACROREF) { .index = (MACROREFIDX)HIWORD(nSelected), .typ = (MACROREFTYPE)LOWORD(nSelected) }, NULL);
 				goto upd;
 
 			case IDD_MACDELKEY:
 				keycode = macro_getSelectedKey(hwnd);
-				macro_deleteKeyBinding(keycode,NULL);
+				bindings_deleteKeyBinding(keycode,NULL);
 				goto upd;
 
 			case IDD_MACDELETE:
@@ -1087,7 +1054,7 @@ int EdMacrosEdit(void)
 
 	if (_macroname) {
 		if (ret == IDD_MACEDIT) {
-			return macro_saveMacrosAndDisplay(_macroname);
+			return decompile_saveMacrosAndDisplay(_macroname);
 		}
 	}
 	return 0;

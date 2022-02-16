@@ -33,6 +33,7 @@
 #include "dial2.h"
 #include "pksrc.h"
 #include "edfuncs.h"
+#include "actionbindings.h"
 #include "history.h"
 #include "xdialog.h"
 #include "regexp.h"
@@ -223,7 +224,7 @@ static WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 
 		case WM_CHARCHANGE:
 			key = (KEYCODE)wParam;
-			SetWindowText(hwnd,macro_keycodeToString(key));
+			SetWindowText(hwnd,bindings_keycodeToString(key));
 			win_sendRedrawToWindow(hwnd);
 			return TRUE;
 
@@ -246,7 +247,7 @@ static WINFUNC KeyInputWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 			    wParam == VK_SHIFT)
 		    		break;
 			if (message == WM_KEYDOWN || message == WM_SYSKEYDOWN) {
-				key = macro_addModifierKeys((KEYCODE) wParam);
+				key = bindings_addModifierKeysToKeycode((KEYCODE) wParam);
 				SendMessage(hwnd,WM_CHARCHANGE,key,0L);
 				down++;
 			} else if (down) {
@@ -1081,7 +1082,7 @@ void win_destroyModelessDialog(HWND *hwnd)
 long EdPromptAssign(long unused1, long unused2, char *prompt, char *init)
 {
 	char 	buf[128];
-	static ITEMS	_i    =  	{ C_STRING1PAR,  (unsigned char * ) 0 };
+	static ITEMS	_i    =  	{ C_STRING_LITERAL,  (unsigned char * ) 0 };
 	static PARAMS	_np   = 	{ 1, P_MAYOPEN, _i	  };
 	static DIALPARS _d[] = 	{
 		IDD_RO1,		128,			0,

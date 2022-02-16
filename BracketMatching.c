@@ -178,7 +178,7 @@ static void br_replaceDynamicPattern(char* pszDest, const char* pszSource, const
 				*pszDest++ = c;
 			}
 		} else if (c == ')') {
-			// TODO: quote potential special chars in found subgroup (e,g, [ or * )
+			// TODO: decompile_quoteString potential special chars in found subgroup (e,g, [ or * )
 			strncpy(pszDest, pszReplace, nReplaceLen);
 			pszDest += nReplaceLen;
 			bInBracket = FALSE;

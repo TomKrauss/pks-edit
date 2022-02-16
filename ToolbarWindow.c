@@ -22,6 +22,7 @@
 #include "winterf.h"
 #include "pksedit.h"
 #include "edfuncs.h"
+#include "actionbindings.h"
 #include "pksrc.h"
 #include "funcdef.h"
 #include "actions.h"
@@ -220,7 +221,7 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     SendMessage(hwndToolbar, TB_BUTTONSTRUCTSIZE, (WPARAM) sizeof(TBBUTTON), 0);
     SendMessage(hwndToolbar, TB_SETMAXTEXTROWS, 0, 0);
 
-    TOOLBAR_BUTTON_BINDING* pButtons = binding_getToolbarBindingsFor(DEFAULT_ACTION_CONTEXT);
+    TOOLBAR_BUTTON_BINDING* pButtons = bindings_getToolbarBindingsFor(DEFAULT_ACTION_CONTEXT);
     int nButtons = ll_size((LINKED_LIST*)pButtons);
     tbb = calloc(nButtons, sizeof * tbb);
     wchar_t* pwImageCodes = calloc(nButtons, sizeof * pwImageCodes);
@@ -238,7 +239,7 @@ static HWND tb_initToolbar(HWND hwndOwner) {
             tbb[nButton].idCommand = M(nCmd);
             tb_registerBinding(nCmd, &tbb[nButton]);
             tbb[nButton].fsStyle = BTNS_BUTTON;
-            const char* pszBoundLabel = binding_getBoundText(&pButtons->tbb_label);
+            const char* pszBoundLabel = bindings_getBoundText(&pButtons->tbb_label);
             if (pszBoundLabel) {
                 // do not do this here: tbb[nButton].iString = (INT_PTR)pszBoundLabel; 
                 tbb[nButton].fsStyle = BTNS_SHOWTEXT;

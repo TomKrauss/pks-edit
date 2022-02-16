@@ -26,15 +26,20 @@
 #include "pkscc.h"
 #include "errordialogs.h"
 
-extern intptr_t		macro_popParameter(unsigned char **sp);
 extern intptr_t		macro_doMacroFunctions(COM_1FUNC **sp, COM_1FUNC *spend);
 
 /*--------------------------------------------------------------------------
  * macro_isParameterStringType()
  */
-int macro_isParameterStringType(unsigned char typ)
-{
-	return typ == C_STRING1PAR || typ == C_STRINGVAR;
+int macro_isParameterStringType(unsigned char typ) {
+	return typ == C_STRING_LITERAL || typ == C_STRINGVAR;
+}
+
+/*--------------------------------------------------------------------------
+ * macro_isParameterFloatType()
+ */
+int macro_isParameterFloatType(unsigned char typ) {
+	return typ == C_FLOAT_LITERAL || typ == C_FLOATVAR;
 }
 
 /*
@@ -45,15 +50,17 @@ static long long macro_getNumberParameter(unsigned char *sp,unsigned char *spend
 	extern long long number(char *s);
 
 	switch(*sp) {
-		case C_STRING1PAR:
+		case C_STRING_LITERAL:
 		case C_STRINGVAR:
-			s = (char *)macro_popParameter(&sp);
+			s = (char *)macro_popParameter(&sp).string;
 			return number(s);
-		case C_CHAR1PAR:
-		case C_INT1PAR:
-		case C_LONG1PAR:
+		case C_CHARACTER_LITERAL:
+		case C_INTEGER_LITERAL:
+		case C_FLOAT_LITERAL:
+		case C_LONG_LITERAL:
+		case C_FLOATVAR:
 		case C_LONGVAR:
-			return (long long) macro_popParameter(&sp);
+			return macro_popParameter(&sp).longValue;
 		case C_MACRO:
 		case C_0FUNC:
 		case C_1FUNC:
@@ -63,22 +70,47 @@ static long long macro_getNumberParameter(unsigned char *sp,unsigned char *spend
 }
 
 /*
+ * macro_getDoubleParameter()
+ */
+static double macro_getDoubleParameter(unsigned char* sp, unsigned char* spend) {
+	char* s;
+	double d;
+
+	switch (*sp) {
+	case C_STRING_LITERAL:
+	case C_STRINGVAR:
+		s = (char*)macro_popParameter(&sp).string;
+		sscanf(s, "%lf", &d);
+		return d;
+	case C_FLOAT_LITERAL:
+	case C_FLOATVAR:
+		return macro_popParameter(&sp).doubleValue;
+	default:
+		return (double)macro_getNumberParameter(sp, spend);
+	}
+}
+
+/*
  * macro_getStringParameter()
  */
 char *macro_getStringParameter(unsigned char *sp) {
-	intptr_t v;
+	long long lVal;
 	static char buf[20];
 
 	switch(*sp) {
-		case C_STRING1PAR:
+		case C_STRING_LITERAL:
 		case C_STRINGVAR:
-			return (char *)macro_popParameter(&sp);
-		case C_CHAR1PAR:
-		case C_INT1PAR:
-		case C_LONG1PAR:
+			return (char *)macro_popParameter(&sp).string;
+		case C_FLOAT_LITERAL:
+		case C_FLOATVAR:
+			sprintf(buf, "%.2lf", macro_popParameter(&sp).doubleValue);
+			return buf;
+		case C_CHARACTER_LITERAL:
+		case C_INTEGER_LITERAL:
+		case C_LONG_LITERAL:
 		case C_LONGVAR:
-			v = macro_popParameter(&sp);
-			sprintf(buf,"%ld",(long)v);
+			lVal = macro_popParameter(&sp).longValue;
+			sprintf(buf,"%lld", lVal);
 			return buf;
 	}
 	return "";
@@ -177,11 +209,11 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 	long long		r2;
 	int				typ1;
 	int				typ2;
-	unsigned char 		op;
+	unsigned char 	op;
 	unsigned char *	p1;
 	unsigned char *	p2;
 	unsigned char *	pend;
-	char				buf[1024];
+	char			buf[1024];
 
 	if (!sp)
 		return;
@@ -196,25 +228,47 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 
 	if (op == BIN_CONVERT) {
 		if (macro_isParameterStringType(typ1)) {
-			sym_makeInternalSymbol(sp->result,S_NUMBER,macro_getNumberParameter(p1,p2));
+			sym_makeInternalSymbol(sp->result, S_NUMBER, (GENERIC_DATA) {
+				.longValue = macro_getNumberParameter(p1, p2)
+			});
 		} else {
-			sym_makeInternalSymbol(sp->result,S_STRING,(intptr_t)macro_getStringParameter(p1));
+			sym_makeInternalSymbol(sp->result, S_STRING, (GENERIC_DATA) {
+				.string = macro_getStringParameter(p1)
+			});
 		}
 		return;	
 	}
 
 	if (!macro_isParameterStringType(typ1) && !macro_isParameterStringType(typ2)) {
+		if (macro_isParameterFloatType(typ1) || macro_isParameterFloatType(typ2)) {
+			// one operand at least is numeric - force numeric calculations
+			double d1 = macro_getDoubleParameter(p1, p2);
+			double d2 = macro_getDoubleParameter(p2, pend);
+			switch (op) {
 
-	    	/* one operand at least is numeric - force numeric calculations */
-
+			case BIN_NOT: d1 = !d1; break;
+			case BIN_ADD: d1 += d2; break;
+			case BIN_SUB: d1 -= d2; break;
+			case BIN_MUL: d1 *= d2; break;
+			case BIN_DIV:
+				if (!d2) {
+					error_displayAlertDialog("Division by zero");
+					break;
+				}
+				d1 /= d2;
+				break;
+			default:
+				error_displayAlertDialog("binop: ~ OP %c not implemented for float numbers", op);
+				d1 = 0;
+			}
+			sym_makeInternalSymbol(sp->result, S_FLOAT, (GENERIC_DATA) {
+				.doubleValue = d1
+			});
+			return;
+		}
+		// one operand at least is numeric - force numeric calculations
 		r1 = macro_getNumberParameter(p1,p2);
 		r2 = macro_getNumberParameter(p2,pend);
-
-# ifdef DEBUG
-	error_displayAlertDialog("numeric binop %s = %ld %c %ld|t1:%d - t2:%d",
-		  sp->result,r1,op,r2,typ1,typ2);
-# endif
-
 		switch(op) {
 
 		case BIN_NOT: r1 = !r1; break;
@@ -241,49 +295,48 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 			error_displayAlertDialog("binop: ~ OP %c not implemented",op);
 			r1 = 0;
 		}
-		sym_makeInternalSymbol(sp->result,S_NUMBER,r1);
-	} else {
-		p1 = macro_getStringParameter(p1);
-		p2 = macro_getStringParameter(p2);
-
-# ifdef DEBUG
-	error_displayAlertDialog("string binop %s = \"%s\" %c \"%s\"|t1:%d - t2:%d",
-		  sp->result,p1,op,p2,typ1,typ2);
-# endif
-		*buf = 0;
-
-		switch(op) {
-
-		case BIN_ADD: {
-			char* pszP1 = p1 ? p1 : "null";
-			char* pszP2 = p2 ? p2 : "null";
-			if (strlen(pszP1) + strlen(pszP2) > sizeof buf) {
-				error_displayAlertDialog("+: result to large");
-			}
-			else {
-				strcat(strcpy(buf, pszP1), pszP2);
-			}
-			break;
-		}
-		case BIN_SUB: {
-			char* pszP1 = p1 ? p1 : "null";
-			char* pszP2 = p2 ? p2 : "null";
-			if (strlen(pszP1) > sizeof buf) {
-				error_displayAlertDialog("-: result to large");
-			}
-			else {
-				strcpy(buf, pszP1);
-				if ((p1 = strstr(buf, pszP2)) != 0) {
-					strcpy(p1, p1 + strlen(pszP2));
-				}
-			}
-			break;
-		}
-		default: 
-			error_displayAlertDialog("string binop %c not impl.",op);
-
-		}
-		sym_makeInternalSymbol(sp->result,S_STRING,(intptr_t)buf);
+		sym_makeInternalSymbol(sp->result, S_NUMBER, (GENERIC_DATA) {
+			.longValue = r1
+		});
+		return;
 	}
+	p1 = macro_getStringParameter(p1);
+	p2 = macro_getStringParameter(p2);
+	*buf = 0;
+
+	switch(op) {
+
+	case BIN_ADD: {
+		char* pszP1 = p1 ? p1 : "null";
+		char* pszP2 = p2 ? p2 : "null";
+		if (strlen(pszP1) + strlen(pszP2) > sizeof buf) {
+			error_displayAlertDialog("+: result to large");
+		}
+		else {
+			strcat(strcpy(buf, pszP1), pszP2);
+		}
+		break;
+	}
+	case BIN_SUB: {
+		char* pszP1 = p1 ? p1 : "null";
+		char* pszP2 = p2 ? p2 : "null";
+		if (strlen(pszP1) > sizeof buf) {
+			error_displayAlertDialog("-: result to large");
+		}
+		else {
+			strcpy(buf, pszP1);
+			if ((p1 = strstr(buf, pszP2)) != 0) {
+				strcpy(p1, p1 + strlen(pszP2));
+			}
+		}
+		break;
+	}
+	default: 
+		error_displayAlertDialog("string binop %c not impl.",op);
+
+	}
+	sym_makeInternalSymbol(sp->result, S_STRING, (GENERIC_DATA) {
+		.string = buf
+	});
 }
 

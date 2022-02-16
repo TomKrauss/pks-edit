@@ -1,3 +1,13 @@
+
+macro Test-Floats() {
+	float ff = 2.3d;
+	string x;
+
+	ff = ff / 1.7;
+	x = "And the result is: " + ff;
+	MessageBox(MB_OKCANCEL, x);
+}
+
 macro Test-Expr() {
 	int k = 23456234;
 	// Gives a compile error: integer overflow

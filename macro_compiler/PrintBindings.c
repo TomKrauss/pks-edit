@@ -23,7 +23,7 @@
 #include "winterf.h"
 #include "edfuncs.h"
 #include "pksmod.h"
-#include "edfuncs.h"
+#include "actionbindings.h"
 
 #include "pkscc.h"
 #include "funcdef.h"
@@ -46,7 +46,7 @@ static char *print_buttonEvent(char *b, int button, int shift, int nclicks)
 {
 	char			*s;
 
-	s = macro_printModifier(b,(KEYCODE)(shift<<8));
+	s = bindings_printModifier(b,(KEYCODE)(shift<<8));
 	if (button & MBUT_L) {
 		strcpy(s,"MLeft+");
 		s += 5;
@@ -90,7 +90,6 @@ static char *print_comment(char *d, const char *comment)
  */
 static void print_keybinding(FILE *fp, KEY_BINDING *kp, char delim)
 {
-	EDBINDS *	ep = &_bindings;
 	char 	comment[100],command[128],n1[100],n2[100];
 	int  		findex;
 	MACRO	*macp;
@@ -105,7 +104,7 @@ static void print_keybinding(FILE *fp, KEY_BINDING *kp, char delim)
 
 	switch(kp->macref.typ) {
 		case CMD_MACRO:
-			if ((macp = ep->macp[findex]) != 0)
+			if ((macp = _macrotab[findex]) != 0)
 				strcpy(comment,MAC_COMMENT(macp)); 
 			break;
 		case CMD_CMDSEQ:
@@ -119,7 +118,7 @@ static void print_keybinding(FILE *fp, KEY_BINDING *kp, char delim)
 	mac_name(command, findex, (MACROREFTYPE)kp->macref.typ);
 
  	fprintf(fp,"%-25s= %-25s%s\n",
-		macro_keycodeToString(kp->keycode),print_commandDelimiter(n1,command,delim),
+		bindings_keycodeToString(kp->keycode),print_commandDelimiter(n1,command,delim),
 		print_comment(n2,comment));
 }
 
@@ -166,7 +165,7 @@ static int print_keyBindingsCallback(FILE *fp)
 	collected.nElements = 0;
 	collected.nCapacity = 300;
 	collected.table = calloc(collected.nCapacity, sizeof (KEY_BINDING));
-	key_bindingsDo(pszContext, print_collectKeybindings, &collected);
+	bindings_forAllKeyBindingsDo(pszContext, print_collectKeybindings, &collected);
 	kpd = collected.table;
 	n = collected.nElements;
 
@@ -255,7 +254,7 @@ static int print_mouseBindingCallback(FILE *fp) {
 	collected.nElements = 0;
 	collected.nCapacity = 300;
 	collected.table = calloc(collected.nCapacity, sizeof(struct tagCOLLECTED_MOUSEBINDS));
-	mouse_bindingsDo(pszContext, print_collectMousebindings, &collected);
+	bindings_forAllMouseBindingsDo(pszContext, print_collectMousebindings, &collected);
 	mpd = collected.table;
 	n = collected.nElements;
 	qsort(mpd,n,sizeof *mpd,(int (*)(const void*, const void*))print_compareMousebindings);

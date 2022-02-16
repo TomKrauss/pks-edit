@@ -19,6 +19,7 @@
 #include "alloc.h"
 #include "edfuncs.h"
 #include "pkscc.h"
+#include "scanner.h"
 
 # if !defined(_Cdecl)
 #define	_Cdecl	/**/
@@ -50,13 +51,11 @@ static int   _ngotos;
 
 void 	yyerror(char *s, ...);
 unsigned char  *yystralloc(unsigned char *s);
-unsigned char* AddComSeq(unsigned char* sp, unsigned char* spend,
-	unsigned char typ, intptr_t par);
 
 /*---------------------------------*/
-/* FindLabel()					*/
+/* bytecode_findLabelNamed()					*/
 /*---------------------------------*/
-static LABEL *FindLabel(LABEL *lp, char *name)
+static LABEL *bytecode_findLabelNamed(LABEL *lp, char *name)
 {	int i;
 
 	for (i = 0; i < MAXLABEL; i++, lp++)
@@ -67,13 +66,13 @@ static LABEL *FindLabel(LABEL *lp, char *name)
 }
 
 /*---------------------------------*/
-/* InsLabel()					*/
+/* bytecode_insertLabelType()					*/
 /*---------------------------------*/
-static LABEL *InsLabel(LABEL *lp, char *name, int type)
+static LABEL *bytecode_insertLabelType(LABEL *lp, char *name, int type)
 {	int i;
 	LABEL *lptmp;
 
-	if ((lptmp = FindLabel(lp,name)) != 0) {
+	if ((lptmp = bytecode_findLabelNamed(lp,name)) != 0) {
 		lp = lptmp;
 		goto redef;
 	}
@@ -93,9 +92,9 @@ redef:
 }
 
 /*---------------------------------*/
-/* DelLabel()					*/
+/* bytecode_destroyLabel()					*/
 /*---------------------------------*/
-static void DelLabel(LABEL *lp)
+static void bytecode_destroyLabel(LABEL *lp)
 {
 	if (lp->name)
 		free(lp->name);
@@ -105,9 +104,9 @@ static void DelLabel(LABEL *lp)
 }
 
 /*---------------------------------*/
-/* CloseLabels()				*/
+/* bytecode_closeLabels()				*/
 /*---------------------------------*/
-static int CloseLabels(LABEL *lp)
+static int bytecode_closeLabels(LABEL *lp)
 {	int ret = 1,i;
 
 	for (i = 0; i < MAXLABEL; i++, lp++)
@@ -116,23 +115,23 @@ static int CloseLabels(LABEL *lp)
 				yyerror("undefined label %s",lp->name);
 				ret = 0;
 			}
-			DelLabel(lp);
+			bytecode_destroyLabel(lp);
 		}
 	return ret;
 }
 
 /*---------------------------------*/
-/* MakeLabel()					*/
+/* bytecode_createBranchLabel()					*/
 /*---------------------------------*/
-int MakeLabel(char *name, char *recp)
+int bytecode_createBranchLabel(char *name, char *recp)
 {
 	LABEL *	lp;
 	int		i;
 
-	if ((lp = FindLabel(_labels,name)) != 0) {
+	if ((lp = bytecode_findLabelNamed(_labels,name)) != 0) {
 		yyerror("Label %s redefined",name);
 	} else	{
-		if ((lp = InsLabel(_labels,name,L_DEFINED)) == 0) {
+		if ((lp = bytecode_insertLabelType(_labels,name,L_DEFINED)) == 0) {
 			return 0;
 		}
 	}
@@ -141,7 +140,7 @@ int MakeLabel(char *name, char *recp)
 	/*
 	 * unresolved goto to this label ?
 	 */
-	if ((lp = FindLabel(_waitlist,name)) != 0) {
+	if ((lp = bytecode_findLabelNamed(_waitlist,name)) != 0) {
 		/*
 		 * this was a forward goto not yet resolved
 		 * here is the label, so insert rel. offset for branch
@@ -159,20 +158,20 @@ int MakeLabel(char *name, char *recp)
 }
 
 /*---------------------------------*/
-/* GotoLabel()					*/
+/* bytecode_emitGotoLabelInstruction()					*/
 /*---------------------------------*/
-char *GotoLabel(char *name, char *sp, char *spend, int bratyp)
+char *bytecode_emitGotoLabelInstruction(char *name, char *sp, char *spend, int bratyp)
 {	LABEL    *lp;
 	COM_GOTO *cp = (COM_GOTO *)sp;
 
-	if ((sp = AddComSeq(sp,spend,C_GOTO,bratyp)) == 0)
+	if ((sp = bytecode_emitInstruction(sp, spend, C_GOTO, (GENERIC_DATA) { bratyp })) == 0)
 		return 0;
 
-	if ((lp = FindLabel(_labels,name)) == 0) {
+	if ((lp = bytecode_findLabelNamed(_labels,name)) == 0) {
 		/*
 		 * branch forward - label not yet defined - push on waitstack
 		 */
-		if ((lp = InsLabel(_waitlist,name,L_WAITING)) == 0)
+		if ((lp = bytecode_insertLabelType(_waitlist,name,L_WAITING)) == 0)
 			return sp;
 		if (lp->recp) {
 			if (_ngotos >= MAXLABEL) {
@@ -196,22 +195,22 @@ char *GotoLabel(char *name, char *sp, char *spend, int bratyp)
 }
 
 /*---------------------------------*/
-/* CloseLabelList()				*/
+/* bytecode_closeOpenLabels()				*/
 /*---------------------------------*/
-int CloseLabelList(void)
+int bytecode_closeOpenLabels(void)
 {
 	int		ret;
 
-	CloseLabels(_labels);
-	ret = CloseLabels(_waitlist);
+	bytecode_closeLabels(_labels);
+	ret = bytecode_closeLabels(_waitlist);
 	_ngotos = 0;
 	return ret;
 }
 
 /*---------------------------------*/
-/* LabelAutoName()				*/
+/* bytecode_generateAutoLabelName()				*/
 /*---------------------------------*/
-char *LabelAutoName(char *prefix,int num)
+char *bytecode_generateAutoLabelName(char *prefix,int num)
 {	static char buf[20];
 
 	sprintf(buf,"%s__%d",prefix,num);
@@ -245,16 +244,16 @@ int MakeAutoLabel(COM_GOTO *cp)
 	/*
 	 * be careful: yystralloc requires a setjmp in main!
 	 */
-	lastfree->name = yystralloc(LabelAutoName("L",_autonum++));
+	lastfree->name = yystralloc(bytecode_generateAutoLabelName("L",_autonum++));
 	lastfree->recp = cp;
 	lastfree->type = L_DEFINED;
 	return 1;
 }
 
 /*---------------------------------*/
-/* StartAutoLabel()				*/
+/* bytecode_initializeAutoLabels()				*/
 /*---------------------------------*/
-static int _Cdecl lpcmp(const void _FAR *p1, const void _FAR *p2)
+static int _Cdecl bytecode_compareLabelsByName(const void _FAR *p1, const void _FAR *p2)
 {
 	LABEL *lp1,*lp2;
 
@@ -271,17 +270,17 @@ static int _Cdecl lpcmp(const void _FAR *p1, const void _FAR *p2)
 	return (int)(lp1->recp - lp2->recp);
 }
 
-void StartAutoLabel(void)
+void bytecode_initializeAutoLabels(void)
 {
 	_currautolabel = 0;
 	_autonum = 0;
-	qsort(_labels,MAXLABEL,sizeof _labels[0], lpcmp);
+	qsort(_labels,MAXLABEL,sizeof _labels[0], bytecode_compareLabelsByName);
 }
 
 /*---------------------------------*/
-/* NextAutoLabel()				*/
+/* bytecode_startNextAutoLabel()				*/
 /*---------------------------------*/
-void NextAutoLabel(char **name, COM_GOTO **cp)
+void bytecode_startNextAutoLabel(char **name, COM_GOTO **cp)
 {	LABEL *lp;
 
 	*cp = 0;
@@ -295,9 +294,9 @@ void NextAutoLabel(char **name, COM_GOTO **cp)
 }
 
 /*---------------------------------*/
-/* FindAutoLabel()				*/
+/* bytecode_findAutoLabelForInstruction()				*/
 /*---------------------------------*/
-char *FindAutoLabel(COM_GOTO *cp)
+char *bytecode_findAutoLabelForInstruction(COM_GOTO *cp)
 {	LABEL *lp;
 	int 	 i;
 
@@ -309,22 +308,22 @@ char *FindAutoLabel(COM_GOTO *cp)
 }
 
 /*---------------------------------*/
-/* CloseAutoLabels()			*/
+/* bytecode_closeAutoLabels()			*/
 /*---------------------------------*/
-void CloseAutoLabels(void)
+void bytecode_closeAutoLabels(void)
 {
-	CloseLabels(_labels);
+	bytecode_closeLabels(_labels);
 }
 
 /*---------------------------------*/
-/* KillLabel()					*/
+/* bytecode_destroyLabelNamed()					*/
 /*---------------------------------*/
-void KillLabel(char *name)
+void bytecode_destroyLabelNamed(char *name)
 {	LABEL *lp;
 
-	if ((lp = FindLabel(_labels,name)) != 0)
-		DelLabel(lp);
-	if ((lp = FindLabel(_waitlist,name)) != 0)
-		DelLabel(lp);
+	if ((lp = bytecode_findLabelNamed(_labels,name)) != 0)
+		bytecode_destroyLabel(lp);
+	if ((lp = bytecode_findLabelNamed(_waitlist,name)) != 0)
+		bytecode_destroyLabel(lp);
 }
 

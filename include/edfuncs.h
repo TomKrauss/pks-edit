@@ -26,7 +26,7 @@
 #define	BIN_MOD			'%'
 #define	BIN_OR			'|'
 #define	BIN_AND			'&'
-#define	BIN_BRACKETS		'('
+#define	BIN_BRACKETS	'('
 #define	BIN_SUB			'-'
 #define	BIN_NOT			'~'
 #define	BIN_XOR			'^'
@@ -61,12 +61,14 @@
 #define	CMD_BUFFER		0x4
 #define	CMD_KILLKEY		0x5
 
-// To be used, whenever text is defined in an action binding. Allows to define the text either plain
-// as text or alternatively as a resource given a resource index into PKS-Edits internal resource table.
-typedef struct tagBOUND_TEXT {
-	const char* bt_text;
-	int			bt_resourceId;
-} BOUND_TEXT;
+typedef union uGENERIC_DATA {
+	unsigned char uchar;
+	intptr_t val;
+	char* string;
+	int		intValue;
+	long long longValue;
+	double   doubleValue;
+} GENERIC_DATA;
 
 typedef unsigned char 	MACROREFTYPE;
 typedef unsigned char  	MACROREFIDX;
@@ -79,96 +81,6 @@ typedef struct tagMACROREF {
 #define INTPTR_TO_MACROREF(m)	(MACROREF){.typ = (unsigned char)((unsigned long)m >> 16), .index = (unsigned char)((unsigned long)m&0xFFFF)}
 
 /*
- * KEYS ---------------------------------------------------------------
- */
-
-typedef unsigned short KEYCODE;
-
-/* ASCII representation */
-#define ALT_MARK		'~'
-#define CTL_MARK		'^'
-#define SFT_MARK		'#'
-#define WIN_MARK		'&'
-#define SELECTED_MARK	'*'
-
-#define	K_SHIFT			0x300
-#define	K_CONTROL		0x400
-#define	K_ALTERNATE		0x800
-#define	K_HAS_SELECTION 0x1000
-#define	K_WINDOWS		0x2000
-
-#define	K_DELETED		0x1FFF		/* Impossible Key Combination	*/
-#define	K_INVALID		K_DELETED
-
-typedef struct tagKEY_BINDING {
-	KEYCODE		keycode;
-	MACROREF	macref;
-} KEY_BINDING;
-
-extern KEYCODE macro_parseKeycode(const unsigned char* k);
-/*
- * Parses a modifier (e.g. Shift) and returns the corresponding modifier constant.
- */
-extern int macro_parseModifier(const char* pszKeycode);
-
-/*
- * Can be used to add all keycode names and modifiers to a suggestion list.
- */
-extern void macro_addModifiersAndKeycodes(int (*fMatch)(const char* pszString), void (*fCallback)(const char* pszString));
-
-extern	char* macro_keycodeToString(KEYCODE code);
-extern KEYCODE macro_addModifierKeys(KEYCODE code);
-/*
- * macro_printModifier()
- * Print the modifiers in the form "Alt+Shift...." into pszDestination and return the character
- * pointer at the end of the printed text.
- */
-extern char* macro_printModifier(char* pszDestination, KEYCODE code);
-
-typedef struct tagTOOLBAR_BUTTON_BINDING {
-	struct tagTOOLBAR_BUTTON_BINDING* tbb_next;
-	BOOL        tbb_isSeparator;
-	wchar_t		tbb_faIcon;							// Font awesome icon code for this button
-	BOUND_TEXT	tbb_label;							// Optional label to use. only for buttons displaying a label.
-	MACROREF	tbb_macref;
-} TOOLBAR_BUTTON_BINDING;
-
-typedef struct tagMENU_ITEM_DEFINITION {
-	struct tagMENU_ITEM_DEFINITION* mid_next;
-	struct tagMENU_ITEM_DEFINITION* mid_children;	// for sub-menus, this is the list of child menu items.
-	HMENU		mid_menuHandle;						// For sub-menus, this is the menu handle of menu item, after it had been created.
-	BOUND_TEXT	mid_label;							// The label to display for the menu. If no label is specified, a default for the defined command is used.
-	BOOL		mid_isSeparator;					// true for separator menus. Separator menus do not need a label
-	BOOL		mid_isHistoryMenu;					// true for "history" menus. Will be replaced during runtime by a list of recently opened files.
-	MACROREF	mid_command;						// the associated command to execute.
-} MENU_ITEM_DEFINITION;
-
-/*
- * Returns a linked list of context menu entries for a given action context.
- */
-extern MENU_ITEM_DEFINITION*	binding_getContextMenuFor(const char* pszActionContext);
-
-/*
- * Returns a linked list of main menu entries for a given action context.
- */
-extern MENU_ITEM_DEFINITION* binding_getMenuBarFor(const char* pszActionContext);
-
-/*
- * Returns a linked list of main menu entries for a popup menu of the application menu bar with the given
- * menu handle and for an action context.
- */
-extern MENU_ITEM_DEFINITION* binding_getMenuBarPopupDefinitionFor(const char* pszActionContext, HMENU hMenu);
-
-/*
- * Returns a linked list of toolbar button bindings for an action context (currently ignored - toolbar is never dynamic).
- */
-extern TOOLBAR_BUTTON_BINDING* binding_getToolbarBindingsFor(const char* pszActionContext);
-
-/*
- * MACROS -----------------------------------------------------------
- */
-
-/*
 
  Bytecodes of a macro.
  C_LOOP multiplier CMC_{MENU,CMDSEQ} funcnum {par} C_STR1PAR string ...
@@ -176,25 +88,29 @@ extern TOOLBAR_BUTTON_BINDING* binding_getToolbarBindingsFor(const char* pszActi
 
  */
 
-#define	C_STOP		0	/* eof sequence */
-#define	C_0FUNC		0x1	/* Function # (char) */
-#define	C_1FUNC		0x2	/* Function # (char) + 1 int Param */
-#define	C_MACRO		0x3	/* macro "macroname" */
-#define	C_GOTO		0x4	/* (conditionally) goto offset */
-#define	C_TEST		0x6	/* Test: testop p1 p2 */
-#define	C_BINOP		0x7	/* binary operation: binop a b */
-#define	C_ASSIGN		0x8	/* assign: a = stackval */
-#define	C_CREATESYM	0x9	/* create symbol with type and value */
+#define	C_STOP				0		// eof sequence 
+#define	C_0FUNC				0x1		// Function # (char) 
+#define	C_1FUNC				0x2		// Function # (char) + 1 int Param 
+#define	C_MACRO				0x3		// macro "macroname"
+#define	C_GOTO				0x4		// (conditionally) goto offset
+#define	C_TEST				0x6		// Test: testop p1 p2
+#define	C_BINOP				0x7		// binary operation: binop a b
+#define	C_ASSIGN			0x8		// assign: a = stackval
+#define	C_DEFINE_PARAMETER	0x9		// create symbol with type and value 
 
-#define	C_CHAR1PAR	0x10 /* 1 Ascii character follows */
-#define	C_STRING1PAR	0x11	/* 1 string Asciistring\0 follows {pad} */
-#define	C_INT1PAR		0x12 /* pad, 1 int Parameter follows */
-#define	C_LONG1PAR	0x13 /* pad, 1 long Parameter follows */
-#define	C_STRINGVAR	0x14	/* variable reference to string */
-#define	C_LONGVAR		0x15	/* variable reference to long value */
-#define	C_FORMSTART	0x16	/* formular with parameters ... */
-#define	C_DATA		0x17	/* any data ... */
-#define	C_FURET		0x18 /* next function return is saved */
+#define	C_CHARACTER_LITERAL	0x10	// 1 Ascii character follows 
+#define	C_STRING_LITERAL	0x11	// 1 string Asciistring\0 follows {pad} 
+#define	C_INTEGER_LITERAL	0x12	// pad, 1 int Parameter follows 
+#define	C_LONG_LITERAL		0x13	// pad, 1 long Parameter follows 
+#define	C_FLOAT_LITERAL		0x14	// floating point literal
+#define	C_STRINGVAR			0x15	// variable reference to string
+#define	C_LONGVAR			0x16	// variable reference to long value
+#define	C_FORMSTART			0x17	// formular with parameters ...
+#define	C_DATA				0x18	// any data ... 
+#define	C_FURET				0x19	// next function return is saved 
+#define	C_FLOATVAR			0x20	// Floating point parameter
+
+#define	C_DEFINE_VARIABLE	0x21	// define a variable with type and value 
 
 #define	C_IS1PAR(typ)	(typ & 0x10)
 #define	C_ISCMD(typ)	(typ >= C_0FUNC && typ <= C_MACRO)
@@ -210,7 +126,7 @@ int  macro_getParameterSize(unsigned char typ, const char *s);
  * macro_popParameter()
  * pop data from execution stack
  */
-intptr_t macro_popParameter(unsigned char** sp);
+GENERIC_DATA macro_popParameter(unsigned char** sp);
 
 typedef struct c_1func {
 	unsigned char  typ;		/* C_1FUNC or C_0FUNC - defines the number of parameters to pass */
@@ -249,11 +165,11 @@ typedef struct c_assign {
 } COM_ASSIGN;
 
 typedef struct c_createsym {
-	unsigned char 	typ;		/* C_CREATESYM */
-	unsigned char 	symtype;
-	long			value;	/* value */
-	int		    	size;	/* size of total structure */
-	unsigned char	name[1];	/* variable name */
+	unsigned char 	typ;		// C_DEFINE_PARAMETER or C_DEFINE_VARIABLE
+	unsigned char 	symtype;	// variable type
+	long			value;		// value
+	int		    	size;		// size of total structure
+	unsigned char	name[1];	// variable name
 } COM_CREATESYM;
 
 #define	BRA_ALWAYS		0
@@ -283,7 +199,7 @@ typedef struct c_binop {
 } COM_BINOP;
 
 typedef struct c_char1 {
-	unsigned char typ;		/* C_CHAR1PAR */
+	unsigned char typ;		/* C_CHARACTER_LITERAL */
 	unsigned char val;
 } COM_CHAR1;
 
@@ -299,6 +215,12 @@ typedef struct c_int1 {
 	unsigned char res;
 	int		    val;
 } COM_INT1;
+
+typedef struct c_float1 {
+	unsigned char typ;		/* CMD_FLOAT1PAR */
+	unsigned char res;
+	double		  val;
+} COM_FLOAT1;
 
 typedef struct c_long1 {
 	unsigned char typ;		/* CMD_LONG1PAR */
@@ -327,23 +249,15 @@ typedef struct c_form {
 typedef union c_seq {
 	COM_1FUNC		*fu1;
 	COM_0FUNC		*fu0;
-	COM_MAC		*ma;
+	COM_MAC			*ma;
 	COM_GOTO		*go;
 	COM_FORM		*fo;
-	COM_STRING1	*st1;
+	COM_STRING1		*st1;
 	COM_LONG1		*lo1;
 	COM_INT1		*in1;
 	COM_CHAR1		*ch1;
-	unsigned char  *sp;
+	unsigned char	*sp;
 } COM_SEQ;
-
-typedef struct edfunc {
-	int	(*execute)();						// the actual callback to invoke 
-	unsigned char id;						// logical id for referencing it 
-	int		 flags;							// see EW_... flags above
-	const char* f_name;						// the name as it can be used inside the PKS Edit macro language to execute this function.
-	int (*isenabled)(long long pParam);		// Optional enablement function allowing to check, whether the execute function can currently be invoked.
-} EDFUNC;
 
 typedef struct tagMACRO {
 	unsigned char namelen;
@@ -359,51 +273,10 @@ typedef struct tagMACRO {
 #define	MAC_DATA(mp)		((unsigned char *)mp+mp->dstart)
 #define	MAC_COMMENT(mp)	((unsigned char *)mp+sizeof *mp+mp->namelen)
 
-/*
- * ICONS ---------------------------------------------------------------
- */
-
-/*
- * MOUSEBUTTONS -----------------------------------------------------------
- */
-
-#define	MBUT_L	0x1
-#define	MBUT_R	0x2
-#define	MBUT_M	0x4
-#define	MBUT_RL	(MBUT_L|MBUT_R)
-
-typedef struct tagMOUSECODE {
-	unsigned	button  : 4,
-			nclicks : 4,			/* # of button clicks */
-			shift   : 8;			/* kb-state */
-} MOUSECODE;
-
-typedef struct tagMOUSE_EVENT_BINDING {
-	char 		button;				// mousebutton
-	char 		nclicks;			// # of button clicks
-	int 		shift;				// kb-state shift/control/...
-	MACROREF	macref;
-	BOUND_TEXT	msg;				// Optional message to display....
-} MOUSE_EVENT_BINDING;
-
-/*
- *  ALL BINDING INFORMATIONS ----------------------------------------------
- */
-typedef struct edbinds {
-	EDFUNC		*ep;
-	COMMAND		*cp;
-	MACRO		**macp;
-	int			*nep,*ncp,*nmacp,*nip,*nmop;
-} EDBINDS;
-
-extern EDFUNC		_edfunctab[];
 extern COMMAND		_cmdseqtab[];
-extern EDBINDS		_bindings;
-
-extern int		 _nfuncs,_ncmdseq,_ncb_do_char,_lcomseq;
-
-extern char		_recorder[];
-extern unsigned char _cfdisable[],_blkdisable[],_rdodisable[];
+extern MACRO*		_macrotab[];
+extern int			_ncmdseq,_nmacros;
+extern char			_recorder[];
 
 #define	IDM_CMDNAME		1024
 #define	IDM_LOWENUMNAME	2512
@@ -419,6 +292,7 @@ typedef struct des {
 	union {
 		unsigned char  *s;
 		char			*c;
+		double			*d;
 		unsigned int	*i;
 		long			*l;
 	} p;
@@ -454,15 +328,10 @@ extern MACRO* macro_getByIndex(int idx);
  */
 extern int macro_getInternalIndexByName(const char* name);
 
-extern int 		macro_saveMacrosAndDisplay(char* macroname);
+extern int 		decompile_saveMacrosAndDisplay(char* macroname);
 extern int 		print_saveMouseBindingsAndDisplay(void);
 extern int 		print_saveKeyBindingsAndDisplay(void);
 extern int 		print_saveMenuBindingsAndDisplay(void);
-/*
- * Returns FALSE; if the function described by the function pointer cannot
- * be executed.
- */
-extern int macro_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn);
 
 /*------------------------------------------------------------
  * macro_autosaveAllBindings()
@@ -483,22 +352,6 @@ extern int macro_deleteByName(char* name);
  * Check, whether a mcro name is valid and whether it exists already.
  */
 extern int macro_validateMacroName(char* name, int origidx, int bOverride);
-
-/*------------------------------------------------------------
- * macro_bindKey()
- * bind a command to a keycode dynamically in a given context.
- */
-extern int macro_bindKey(KEYCODE key, MACROREF macro, const char* pszContext);
-
-/*
- * Delete all key bindings for a given macro ref. 
- */
-extern int macro_deleteKeyBindingsForMacroRef(MACROREF aMacroRef);
-
-/*
- * Delete a key binding.
- */
-extern int macro_deleteKeyBinding(KEYCODE key, const char* pszActionContext);
 
 /*--------------------------------------------------------------------------
  * macro_selectDefaultBindings()
@@ -544,14 +397,6 @@ extern int macro_toggleRecordMaco(void);
  * allows us to display an appropriate help for synthetic menus
  */
 extern int macro_translateToOriginalMenuIndex(int wParam);
-
-/*---------------------------------
- * macro_addModifierKeys()
- * Add the modifier key bits depending on whether
- * Shift, Control or Alt was pressed together with
- * the key passed as an argument.
- */
-extern KEYCODE macro_addModifierKeys(KEYCODE key);
 
 /*---------------------------------*/
 /* macro_getKeyBinding()				*/
@@ -643,12 +488,6 @@ extern char* macro_getCommandByIndex(int nIndex);
  */
 extern int macro_executeSingleLineMacro(const char* pszCode, BOOL bUnescape, const char* pszContext);
 
-/*--------------------------------------------------------------------------
- * macro_getIndexForKeycode()
- * Return the internall index for a given macro keycode and name.
- */
-extern int macro_getIndexForKeycode(KEYCODE* scan, char* name, int oldidx);
-
 /**
  * macro_returnString()
  * Return the passed String to the macro interpreter so it can be used for further processing.
@@ -663,31 +502,11 @@ extern void macro_stopRecordingFunctions();
  */
 extern int macro_isParameterStringType(unsigned char typ);
 
-/*
- * Iterate all key bindings and invoke a callback on every keybinding defined for one action context.
+/*--------------------------------------------------------------------------
+ * macro_isParameterFloatType()
  */
-extern void key_bindingsDo(const char* pszActionContext, int (*callback)(KEY_BINDING* pBinding, void* pParam), void* pParam);
+extern int macro_isParameterFloatType(unsigned char typ);
 
-/*
- * Iterate all mouse bindings and invoke a callback on every mousebinding defined for one action context.
- */
-extern void mouse_bindingsDo(const char* pszActionContext, int (*callback)(MOUSE_EVENT_BINDING* pBinding, void* pParam), void* pParam);
-
-/*
- * Returns the text to use for an aspect of an action binding, which describes a text to
- * display in an action trigger.
- */
-extern const char* binding_getBoundText(BOUND_TEXT* pText);
-
-/*
- * Find the 1st key bound to a given macro.
- */
-extern KEYCODE macro_findKey(const char* pszActionContext, MACROREF macro);
-
-/*
- * Name of the default action context to use in PKS-Edit.
- */
-extern const char* DEFAULT_ACTION_CONTEXT;
 
 #define	_EDFUNCS_H
 #endif

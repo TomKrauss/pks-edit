@@ -16,6 +16,11 @@
 
 #ifndef HASHTABLE_H
 
+typedef struct tagHASH_ENTRY {
+	intptr_t he_key;
+	intptr_t he_value;
+} HASH_ENTRY;
+
 typedef struct tagARRAY_LIST ARRAY_LIST;
 typedef struct tagHASHMAP HASHMAP;
 typedef unsigned int (*HASH_CODE)(intptr_t aKey);
@@ -26,6 +31,12 @@ typedef int (*HASH_DESTROY_ENTRY)(intptr_t anObj1, intptr_t anObj2);
  * Returns the size of a hash table.
  */
 extern int hashmap_size(HASHMAP* pTable);
+
+/*
+ * Return a hash entry for a particular key.
+ * If the entry could be found return 1 otherwise 0.
+ */
+extern int hashmap_getEntry(HASHMAP* pTable, intptr_t key, HASH_ENTRY* pResult);
 
 /*
  * Create a hash table with a desired capacity and a hash function
@@ -46,6 +57,11 @@ extern void hashmap_destroy(HASHMAP* pTable, HASH_DESTROY_ENTRY destroyEntryCall
  * key existed or 1 if a new entry was added.
  */
 extern int hashmap_put(HASHMAP* pTable, intptr_t key, intptr_t value);
+
+/*
+ * Remove an entry from the hashmap given the key.
+ */
+extern void hashmap_remove(HASHMAP* pTable, intptr_t key);
 
 /*
  * Return the value under which a particular key was registered or NULL

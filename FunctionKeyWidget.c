@@ -32,6 +32,7 @@
 #include "pksedit.h"
 #include "dial2.h"
 #include "edfuncs.h"
+#include "actionbindings.h"
 #include "actions.h"
 
 # undef IDD_FKFKLAST
@@ -115,7 +116,7 @@ void fkey_updateTextOfFunctionKeys(int state) {
 		EnableWindow(GetDlgItem(hwndFkeys, i + IDD_FKFK1), FALSE);
 	}
 
-	key_bindingsDo(NULL, fkey_setText, (void*)(intptr_t)keycode1);
+	bindings_forAllKeyBindingsDo(NULL, fkey_setText, (void*)(intptr_t)keycode1);
 }
 
 // Description:

@@ -68,6 +68,9 @@ int param_space(unsigned char typ, char *s)
 			return sizeof(COM_GOTO);
 		case C_STOP:
 			return sizeof(COM_STOP);
+		case C_FLOATVAR:
+			/* only if your alignment = 2,2,2 */
+			return sizeof(COM_FLOAT1);
 		case C_INT1PAR:
 			/* only if your alignment = 2,2,2 */
 			return sizeof(COM_INT1);
