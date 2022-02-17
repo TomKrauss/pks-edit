@@ -21,8 +21,8 @@
 /*--------------------------------------------------------------------------
  * function_initializeFunctionsAndTypes()
  */
-int function_initializeFunctionsAndTypes(void)
-{
+int function_initializeFunctionsAndTypes(void) {
+	static int initialized;
 	EDFUNC	*		ep;
 	EDFUNC *		epend;
 	TYPEELEM *		enp;
@@ -30,6 +30,10 @@ int function_initializeFunctionsAndTypes(void)
 	char *			pszCopy;
 	int				idx = 0;
 
+	if (initialized) {
+		return 1;
+	}
+	initialized = TRUE;
 	for (ep = _edfunctab, epend = ep+_nfuncs; ep < epend;  ep++, idx++) {
 		if ((pszCopy = (char*)macro_loadStringResource(idx)) == 0 ||
 			!sym_insert(pszCopy, S_EDFUNC, (GENERIC_DATA) {
@@ -59,8 +63,7 @@ int function_initializeFunctionsAndTypes(void)
 		}
 	}
 	for (enp = _enelemtab, enpend = enp+_nenelems; enp < enpend; enp++) {
-		if (enp->te_name == 0 ||
-			!sym_insert((char*)enp->te_name, S_ENUM, (GENERIC_DATA) {
+		if (enp->te_name == 0 || !sym_insert((char*)enp->te_name, S_ENUM, (GENERIC_DATA) {
 			.val = (intptr_t)enp
 		})) {
 			return 0;
@@ -92,6 +95,8 @@ int function_getIndexOfFunction(EDFUNC *ep)
  */
 PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(EDFUNC* ep, int nParamIdx) {
 	char* pT = ep->edf_paramTypes;
+
+	function_initializeFunctionsAndTypes();
 
 	while (*pT && --nParamIdx >= 0) {
 		if (*pT == PAR_ENUM) {

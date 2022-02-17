@@ -63,8 +63,8 @@ void sym_destroyTable() {
  * sym_create()	
  * Create a symbol table.
  *---------------------------------*/
-int sym_create(unsigned nel) {
-	_htab = hashmap_create(nel, NULL, NULL);
+static int sym_create() {
+	_htab = hashmap_create(HSIZE, NULL, NULL);
 	return _htab != NULL;
 }
 
@@ -72,6 +72,9 @@ int sym_create(unsigned nel) {
  * sym_find()
  */
 PKS_VALUE sym_find(char *key,char **key_ret) {
+	if (!_htab) {
+		sym_create();
+	}
 	HASH_ENTRY entry;
 	if (!hashmap_getEntry(_htab, (intptr_t)key, &entry)) {
 		return nullSymbol;
@@ -86,6 +89,9 @@ PKS_VALUE sym_find(char *key,char **key_ret) {
  * sym_insert()
  */
 int sym_insert(char *key, SYMBOL_TYPE stType, GENERIC_DATA symdata) {
+	if (!_htab) {
+		sym_create();
+	}
 	HASH_ENTRY entry;
 	if (hashmap_getEntry(_htab, (intptr_t)key, &entry)) {
 		hashmap_remove(_htab, (intptr_t)entry.he_key);

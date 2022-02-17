@@ -30,7 +30,6 @@ typedef struct tagPKS_VALUE {
 
 extern int 		 sym_insert(char *key, SYMBOL_TYPE stType, GENERIC_DATA symdata);
 extern PKS_VALUE sym_find(char *key, char **key_ret);
-extern int 		 sym_create(unsigned nel);
 extern int 		 sym_makeInternalSymbol(char *name, SYMBOL_TYPE stType, GENERIC_DATA value);
 
 #define	SYM_H

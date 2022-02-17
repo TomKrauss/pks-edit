@@ -670,6 +670,14 @@ EXPORT int caret_advanceSection(WINFO* wp, int dir,int start)
 }
 
 /*
+ * Remove the given secondary caret from the screen.
+ */
+static void caret_removeSecondaryCaret(WINFO* wp, CARET* pCaret) {
+	ll_delete(&wp->caret.next, pCaret);
+	render_repaintLineRangeWindow(wp, pCaret->linePointer, pCaret->linePointer);
+}
+
+/*
  * Find the caret with the highest / lowest line number. If dir < 0 find the one with the lowest line number (most top to the beginning of the file),
  * otherwise the one most down.
  */
@@ -728,9 +736,24 @@ int caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType) {
 		}
 		return 1;
 	}
-	int nDir = mType == MSM_DOWN ? 1 : -1;
+	int nDir = mType == MSM_DOWN ? -1 : 1;
 	CARET* pCaret = caret_findMostUpDown(&wp->caret, nDir);
-	if ((pCaret = caret_addSecondary(wp, pCaret->ln + nDir, pCaret->offset)) != NULL) {
+	if (pCaret->linePointer != wp->caret.linePointer) {
+		// we first moved up and then down
+		caret_removeSecondaryCaret(wp, pCaret);
+		return 1;
+	} else {
+		nDir = mType == MSM_DOWN ? 1 : -1;
+		pCaret = caret_findMostUpDown(&wp->caret, nDir);
+	}
+	LINE* lpMoveTo = pCaret->linePointer;
+	if (nDir > 0) {
+		lpMoveTo = lpMoveTo->next;
+	} else {
+		lpMoveTo = lpMoveTo->prev;
+	}
+	int nPos = caret_screen2lineOffset(wp, &(CARET){.linePointer = lpMoveTo, .offset = wp->caret.col});
+	if ((pCaret = caret_addSecondary(wp, pCaret->ln + nDir, nPos)) != NULL) {
 		render_makeCaretVisible(wp, pCaret);
 		return 1;
 	}

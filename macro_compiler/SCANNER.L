@@ -215,8 +215,7 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe)
 	static tables_inited;
 	_compilerConfiguration = pConfig;
 	if (!tables_inited) {
-		if (sym_create(HSIZE) == 0 ||
-		    !init_keywords() ||
+		if (!init_keywords() ||
 		    !function_initializeFunctionsAndTypes()) {
 			return 0;
 		}

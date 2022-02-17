@@ -218,10 +218,10 @@ char *bytecode_generateAutoLabelName(char *prefix,int num)
 }
 
 /*---------------------------------*/
-/* MakeAutoLabel()				*/
+/* bytecode_makeAutoLabel()				*/
 /*---------------------------------*/
 static int _autonum,_currautolabel;
-int MakeAutoLabel(COM_GOTO *cp)
+int bytecode_makeAutoLabel(COM_GOTO *cp)
 {	int i;
 	LABEL *lp,*lastfree = 0;
 

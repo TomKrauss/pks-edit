@@ -26,7 +26,7 @@
 #include "stringutil.h"
 #include "errordialogs.h"
 
-int  MakeAutoLabel(COM_GOTO *cp);
+int  bytecode_makeAutoLabel(COM_GOTO *cp);
 void bytecode_initializeAutoLabels(void);
 void bytecode_startNextAutoLabel(char **name, COM_GOTO **cp);
 void bytecode_closeAutoLabels(void);
@@ -184,7 +184,15 @@ static int decompile_printParameter(FILE *fp, unsigned char *sp, PARAMETER_TYPE_
 	if (partyp.pt_type == PAR_ENUM && partyp.pt_enumType)
 	    return decompile_printParameterAsConstant(fp,val,partyp);
 
-	fprintf(fp,"%lld",val);
+	if (typ == C_CHARACTER_LITERAL) {
+		if ((char)val == '\\') {
+			fprintf(fp, "'\\\\'");
+		} else {
+			fprintf(fp, "'%c'", (char)val);
+		}
+	} else {
+		fprintf(fp, "%lld", val);
+	}
 	return 1;
 }
 
@@ -209,7 +217,7 @@ static void decompile_makeAutoLabels(const char *start, const char *end)
 {
 	while(start < end && *start != C_STOP) {
 		if (*start == C_GOTO)
-			MakeAutoLabel((COM_GOTO*)(start+((COM_GOTO *)start)->offset));
+			bytecode_makeAutoLabel((COM_GOTO*)(start+((COM_GOTO *)start)->offset));
 		start += macro_getParameterSize(*start,start+1);
 	}
 }
