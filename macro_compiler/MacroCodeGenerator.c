@@ -1,5 +1,5 @@
 /*
- * GenerateMacroCode.c
+ * MacroCodeGenerator.c
  *
  * generate code for macros
  *
@@ -16,8 +16,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "pkscc.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "scanner.h"
 
 extern void 	yyerror(char *s, ...);
@@ -143,7 +143,7 @@ static void bytecode_emitTypedAssignment(int comType, const char *name, int typ,
 /*--------------------------------------------------------------------------
  * bytecode_emitAssignment()
  */
-void bytecode_emitAssignment(const char *name, int typ, GENERIC_DATA data) {
+void bytecode_emitAssignment(const char *name, PKS_VALUE_TYPE typ, GENERIC_DATA data) {
 	bytecode_emitTypedAssignment(C_ASSIGN, name, typ, data);
 }
 

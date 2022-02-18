@@ -1,4 +1,3 @@
-
 macro Test-Floats() {
 	float ff = 2.3d;
 	string x;
@@ -14,7 +13,7 @@ macro Test-Expr() {
 	// Gives a compile error: integer overflow
 	//int llll = 87498237498237498237427349324;
 	int i = 2+0177;
-	int j = 0xB*4;
+	int j = 0xB*4*i;
 	int l = 5%4;
 	int z = 23;
 	int div0 = 0;

@@ -29,7 +29,7 @@
 #include "xdialog.h"
 #include "printing.h"
 #include "editorconfiguration.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "stringutil.h"
 #include "errordialogs.h"
 #include "themes.h"

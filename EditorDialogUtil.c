@@ -32,7 +32,7 @@
 #include "edierror.h"
 #include "dial2.h"
 #include "pksrc.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "actionbindings.h"
 #include "history.h"
 #include "xdialog.h"
@@ -74,7 +74,7 @@ char* dlg_getResourceString(int nId) {
 }
 
 /*-----------------------------------------------
- * sym_assignSymbol a callback to be invoked to return the DIALOGPARS for a page (in a property sheet)
+ * assigns a callback to be invoked to return the DIALOGPARS for a page (in a property sheet)
  * for that particular page, if the page is activated. The callback is passed the index of the 
  * property page activated.
  */
@@ -1074,41 +1074,6 @@ void win_destroyModelessDialog(HWND *hwnd)
 	if (*hwnd) {
 		DestroyWindow(*hwnd);
 	}
-}
-
-/*--------------------------------------------------------------------------
- * EdPromptAssign()
- */
-long EdPromptAssign(long unused1, long unused2, char *prompt, char *init)
-{
-	char 	buf[128];
-	static ITEMS	_i    =  	{ C_STRING_LITERAL,  (unsigned char * ) 0 };
-	static PARAMS	_np   = 	{ 1, P_MAYOPEN, _i	  };
-	static DIALPARS _d[] = 	{
-		IDD_RO1,		128,			0,
-		IDD_STRING1,	128, 		0,
-		0
-	};
-
-	if (!prompt) {
-		prompt = " > ";
-	}
-	_d[0].dp_data = prompt;
-	_d[1].dp_data = buf;
-	_i->p.s = buf;
-	if (init) {
-		lstrcpy(buf, init);
-	} else {
-		buf[0] = 0;
-	}
-
-	if (win_callDialog(DLGPROMPT,&_np,_d, NULL) != IDOK) {
-		*buf = 0;
-	}
-
-	macro_returnString(buf);
-
-	return 1;
 }
 
 static int propSheetSubclassId = 2100;

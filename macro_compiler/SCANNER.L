@@ -22,14 +22,14 @@
 
 #include "alloc.h"
 #include "stringutil.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "symbols.h"
 #include "scanner.h"
 #define YYSTYPE _YYSTYPE
 #include "parser.h"
 #include "linkedlist.h"
 #include "documentmodel.h"
-#include "pkscc.h"
 #include "crossreferencelinks.h"
 
 //
@@ -58,9 +58,9 @@
 		YY_FATAL_ERROR( "input in flex scanner failed" );
 
 typedef struct yyerrstruct {
-	char		*srcname;
-	char		errname[84];
-	FILE		*errfp;
+	char	*srcname;
+	char	errname[84];
+	FILE	*errfp;
 	int		yynerr,yynwarn;
 	int		yymaxerr,yymaxwarn;
 	jmp_buf	*failpt;
@@ -216,6 +216,7 @@ COMPILER_CONFIGURATION* _compilerConfiguration;
 /*---------------------------------*/
 int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe) {
 	static tables_inited;
+	YY_FLUSH_BUFFER;
 	_compilerConfiguration = pConfig;
 	_currentIdentifierContext = sym_getGlobalContext();
 	if (!tables_inited) {
@@ -225,6 +226,7 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe)
 		}
 		tables_inited = 1;
 	}
+	yyerrflg = 0;
 	yylineno = 1;
 	yyerr.yynwarn = 0;
 	yyerr.yynerr = 0;
@@ -503,6 +505,11 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					yylval.ident.stringIsAlloced = 0;
 					yylval.ident.s = key;
 					return T_FLOATVAR;
+				}
+				if (TYPEOF(sym) == S_BOOLEAN) {
+					yylval.ident.stringIsAlloced = 0;
+					yylval.ident.s = key;
+					return T_BOOLEANVAR;
 				}
 				if (TYPEOF(sym) == S_NUMBER || TYPEOF(sym) == S_DOLNUMBER) {
 					yylval.ident.stringIsAlloced = 0;

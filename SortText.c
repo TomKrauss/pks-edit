@@ -23,7 +23,7 @@
 #include "winfo.h"
 #include "textblocks.h"
 #include "pksedit.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "edierror.h"
 #include "stringutil.h"
 #include "regexp.h"

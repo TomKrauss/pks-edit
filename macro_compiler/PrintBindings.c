@@ -21,11 +21,10 @@
 
 #include "alloc.h"
 #include "winterf.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "pksmod.h"
 #include "actionbindings.h"
 
-#include "pkscc.h"
 #include "funcdef.h"
 #include "helpitem.h"
 

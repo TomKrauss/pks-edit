@@ -19,7 +19,7 @@
 #include <edtypes.h>
 #include <stdio.h>
 #include <tos.h>
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "linkedlist.h"
 #include "documentmodel.h"
 #include "resource.h"

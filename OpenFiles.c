@@ -37,7 +37,7 @@
 #include "documenttypes.h"
 #include "editorconfiguration.h"
 #include "regexp.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "crossreferencelinks.h"
 #include "propertychange.h"
 #include "arraylist.h"

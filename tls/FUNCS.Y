@@ -24,7 +24,7 @@
 # include <string.h>
 # include <stdarg.h>
 # include <ctype.h>
-# include "edfuncs.h"
+# include "pksmacro.h"
 # include "parsefu.h"
 # include "mylib.h"
 # include "stringutil.h"

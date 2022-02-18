@@ -26,7 +26,7 @@
 #include "edierror.h"
 #include "documentmodel.h"
 #include "winfo.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "stringutil.h"
 #include "markpositions.h"
 #include "xdialog.h"

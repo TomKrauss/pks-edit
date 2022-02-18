@@ -35,6 +35,20 @@ typedef struct tagPARAMETER_TYPE_DESCRIPTOR {
 	int						pt_enumCount;	// for enum and bitset type parameters the number of enum values
 } PARAMETER_TYPE_DESCRIPTOR;
 
+#define	EW_MODIFY		0x1			// function modifies text
+#define	EW_NOCASH		0x2			// dont EdMacroRecord them
+#define	EW_NEEDSCURRF	0x4			// needs a current file 
+#define	EW_UNDOFLSH		0x8			// flush undo buffer before
+#define	EW_NEEDSBLK		0x10		// needs a current text block 
+#define	EW_HASFORM		0x20		// has a form which is opened, when the function is executed (record form params?)
+#define	EW_CCASH		0x40		// put them into char buffer
+#define	EW_MULTI		0x80		// has a Multiplier 
+#define EW_UNDO_AVAILABLE 0x100		// undo must be possible 
+#define EW_REDO_AVAILABLE 0x200		// redo must be possible 
+#define	EW_FINDCURS		0x400		// applies to command executed using the mouse: before executing the command position the caret to the clicked point
+#define	EW_COMPARISON_MODE	0x800	// only available in comparison mode
+#define	EW_CUSTOM_ENABLEMENT 0x1000	// custom enablement function must be evaluated to calculate enablement.
+
 typedef struct edfunc {
 	int	(*execute)();						// the actual callback to invoke 
 	unsigned char id;						// logical id for referencing it 

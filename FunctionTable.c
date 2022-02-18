@@ -17,7 +17,8 @@
  */
 
 #include <windows.h>
-#include "edfuncs.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "funcdef.h"
 #include "pksedit.h"
 #include "edierror.h"
@@ -46,11 +47,11 @@ EdBlockWrite(long ), bl_cutOrCopy(long ), EdBlockPaste(long ), bl_hideSelectionI
 EdSyncSelectionWithCaret(long ), bl_cutLines(long ), EdLineDelete(long ), bl_destroyAll(long ),
 EdKeycodeInsert(long ), EdCharInsert(long ), EdFormatText(long ), 
 EdSearchListRead(long ), EdErrorListRead(long ),
-EdMacrosEdit(long ), EdDocMacrosAdd(long ), macro_readWriteWithFileSelection(long ),
+EdMacrosEdit(long ), EdDocMacrosAdd(long ), 
 EdTagfileRead(long ), EdSetup(long ), EdSetMultiplier(long ), EdReplaceTabs(long ),
 EdLineSplit(int), EdParaGotoBegin(long ), edit_shiftSelection(int aDirection),
 EdParaGotoEnd(long ), EdCharDelete(long ), fkey_keyModifierStateChanged(long ), codecomplete_showSuggestionWindow(long ),
-macro_executeMacroByIndex(long ), EdMacroRecord(long ), EdFindInFileList(long ), EdFind(long ),
+EdMacroRecord(long ), EdFindInFileList(long ), EdFind(long ),
 EdReplace(long ), EdFindAgain(long ), EdReplaceAgain(long ), EdCharControlInsert(long ),
 EdGotoLine(long ), EdMarkSet(long ), EdMarkGoto(long ),
 EdLinesJoin(long ), EdEditFile(long, char* filename), EdOptionSet(long ),

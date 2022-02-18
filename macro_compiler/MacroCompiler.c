@@ -24,9 +24,8 @@
 #include "alloc.h"
 #include "regexp.h"
 #include "documentmodel.h"
-#include "pkscc.h"
 #include "stringutil.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "fileutil.h"
 #include "editorconfiguration.h"
 

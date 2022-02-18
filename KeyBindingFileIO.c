@@ -21,7 +21,7 @@
 #include "pksedit.h"
 #include "caretmovement.h"
 #include "edierror.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "fileselector.h"
 #include "winterf.h"
 #include "winfo.h"

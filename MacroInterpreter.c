@@ -22,11 +22,12 @@
 #include "errordialogs.h"
 
 #include "pksedit.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
+#include "symbols.h"
 #include "scanner.h"
 #include "funcdef.h"
 #include "mouseutil.h"
-#include "symbols.h"
 #include "markpositions.h"
 #include "caretmovement.h"
 
@@ -39,8 +40,8 @@ extern int 				dlg_displayRecordMacroOptions(int *o);
  * macro_testExpression()
  * Test an expression in a macro.
  */
-extern int macro_testExpression(COM_TEST* sp);
-extern void 			macro_evaluateBinaryExpression(COM_BINOP *sp);
+extern int macro_testExpression(EXECUTION_CONTEXT* pContext, COM_TEST* sp);
+extern void 			macro_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp);
 
 extern int 			progress_cancelMonitor(BOOL bRedraw);
 extern void 			ww_redrawAllWindows(int update);
@@ -68,6 +69,12 @@ typedef struct ccash {
 } CCASH;
 
 static CCASH			_ccash;
+
+static EXECUTION_CONTEXT* macro_getRecordingContext() {
+	static EXECUTION_CONTEXT _recordingContext;
+	_recordingContext.ec_identifierContext = sym_getGlobalContext();
+	return &_recordingContext;
+}
 
 /*---------------------------------*/
 /* macro_getParameterSize()				*/
@@ -124,6 +131,23 @@ int macro_getParameterSize(unsigned char typ, const char *s)
 	 */
 	macro_reportError();
 	return 10000L;
+}
+
+/*
+ * Creates an execution context for executing a macro function.
+ */
+static EXECUTION_CONTEXT* macro_createExecutionContext() {
+	EXECUTION_CONTEXT* pResult = calloc(1, sizeof * pResult);
+	pResult->ec_identifierContext = sym_pushContext(sym_getGlobalContext());
+	return pResult;
+}
+
+/*
+ * Destroy a previousy allocated execution context.
+ */
+static void macro_destroyExecutionContext(EXECUTION_CONTEXT* pContext) {
+	sym_popContext(pContext->ec_identifierContext);
+	free(pContext);
 }
 
 /*--------------------------------------------------------------------------
@@ -203,7 +227,7 @@ int macro_openDialog(PARAMS *pp)
 err:		return FORM_SHOW;
 	}
 
-	cp = (COM_FORM *) macro_popParameter(&_readparamp).string;
+	cp = (COM_FORM *) macro_popParameter(macro_getRecordingContext(), &_readparamp).string;
 
 	if (!cp)
 		goto err;
@@ -218,7 +242,7 @@ err:		return FORM_SHOW;
 
 	for (i = cp->nfields, dp = pp->el; i > 0; i--, dp++) {
 		type = *_readparamp;
-		par = macro_popParameter(&_readparamp);
+		par = macro_popParameter(macro_getRecordingContext(), &_readparamp);
 		if (cp->options & FORM_INIT) {
 		   switch(dp->cmd_type) {
 			case C_INTEGER_LITERAL:  *dp->p.i = par.intValue; break;
@@ -311,7 +335,7 @@ int macro_recordOperation(PARAMS *pp)
  * macro_popParameter()
  * pop data from execution stack
  */
-GENERIC_DATA macro_popParameter(unsigned char** Sp) {
+GENERIC_DATA macro_popParameter(EXECUTION_CONTEXT* pContext, unsigned char** Sp) {
 	unsigned char* sp = *Sp;
 	unsigned char typ = *sp;
 
@@ -332,11 +356,11 @@ GENERIC_DATA macro_popParameter(unsigned char** Sp) {
 			return (GENERIC_DATA) { .doubleValue = dDouble };
 		}
 		case C_FLOATVAR:
-			return (GENERIC_DATA) { .doubleValue = sym_floatForSymbol(sym_getGlobalContext(), ((COM_VAR*)sp)->name) };
+			return (GENERIC_DATA) { .doubleValue = sym_floatForSymbol(pContext->ec_identifierContext, ((COM_VAR*)sp)->name) };
 		case C_LONGVAR:
-			return (GENERIC_DATA) { .longValue = sym_integerForSymbol(sym_getGlobalContext(), ((COM_VAR*)sp)->name) };
+			return (GENERIC_DATA) { .longValue = sym_integerForSymbol(pContext->ec_identifierContext, ((COM_VAR*)sp)->name) };
 		case C_STRINGVAR:
-			return (GENERIC_DATA) { .val = sym_stringForSymbol(sym_getGlobalContext(), ((COM_VAR*)sp)->name) };
+			return (GENERIC_DATA) { .val = sym_stringForSymbol(pContext->ec_identifierContext, ((COM_VAR*)sp)->name) };
 		case C_STRING_LITERAL:
 			return (GENERIC_DATA) {
 				.val = (intptr_t) & ((COM_STRING1*)sp)->s
@@ -509,7 +533,7 @@ int macro_getDollarParameter(intptr_t offset, int *typ, intptr_t *value)
 /*---------------------------------*/
 /* macro_doMacroFunctions()				*/
 /*---------------------------------*/
-intptr_t macro_doMacroFunctions(COM_1FUNC **Cp, const COM_1FUNC *cpmax) {
+intptr_t macro_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **Cp, const COM_1FUNC *cpmax) {
 	intptr_t 	stack[40];
 	intptr_t*	saveStack;
 	intptr_t	rc,*sp,*functionStringParameters;
@@ -534,9 +558,9 @@ intptr_t macro_doMacroFunctions(COM_1FUNC **Cp, const COM_1FUNC *cpmax) {
 			case C_STRING_LITERAL:
 				if (typ == C_MACRO) {
 					*sp++ = 1;
-					*sp++ = macro_popParameter((unsigned char **)&cp).val;
+					*sp++ = macro_popParameter(pContext, (unsigned char **)&cp).val;
 				} else {
-					*functionStringParameters++ = macro_popParameter((unsigned char **)&cp).val;
+					*functionStringParameters++ = macro_popParameter(pContext, (unsigned char **)&cp).val;
 				}
 				break;
 			case C_LONGVAR:
@@ -548,7 +572,7 @@ intptr_t macro_doMacroFunctions(COM_1FUNC **Cp, const COM_1FUNC *cpmax) {
 				if (typ == C_MACRO) {
 					*sp++ = 0;
 				}
-				*sp++ = macro_popParameter((unsigned char **)&cp).val;
+				*sp++ = macro_popParameter(pContext, (unsigned char **)&cp).val;
 				break;
 			default:
 				goto out;
@@ -580,10 +604,23 @@ out:
 }
 
 /*--------------------------------------------------------------------------
+ * sym_assignSymbol()
+ */
+static long sym_assignSymbol(EXECUTION_CONTEXT* pContext, char* name, COM_LONG1* v) {
+	SYMBOL_TYPE 	sSymbolType;
+	GENERIC_DATA value;
+
+	sSymbolType = macro_isParameterFloatType(v->typ) ? S_FLOAT : (macro_isParameterStringType(v->typ) ? S_STRING : S_NUMBER);
+	value = macro_popParameter(pContext, (unsigned char**)&v);
+	return sym_makeInternalSymbol(pContext->ec_identifierContext, name, sSymbolType, value);
+}
+
+
+/*--------------------------------------------------------------------------
  * macro_returnFunctionValue()
  */
 static intptr_t _fncmarker = -1;
-static void macro_returnFunctionValue(unsigned char typ, intptr_t v)
+static void macro_returnFunctionValue(EXECUTION_CONTEXT* pContext, unsigned char typ, intptr_t v)
 {
 	char 		vname[] = "__ret__";
 	COM_STRING1  * value;
@@ -600,7 +637,7 @@ static void macro_returnFunctionValue(unsigned char typ, intptr_t v)
 		((COM_LONG1 *)value)->val = v;
 	}
 	vname[6] = '0' + (int)_fncmarker;
-	sym_assignSymbol(sym_getGlobalContext(), vname,(COM_LONG1 *)value);
+	sym_assignSymbol(pContext, vname,(COM_LONG1 *)value);
 	_fncmarker = -1;
 }
 
@@ -608,9 +645,8 @@ static void macro_returnFunctionValue(unsigned char typ, intptr_t v)
  * macro_returnString()
  * Return the passed String to the macro interpreter so it can be used for further processing.
  */
-void macro_returnString(char *string)
-{
-	macro_returnFunctionValue(C_STRING_LITERAL,(intptr_t)string);
+void macro_returnString(char *string) {
+	macro_returnFunctionValue(macro_getRecordingContext(), C_STRING_LITERAL, (intptr_t)string);
 }
 
 /*---------------------------------*/
@@ -619,12 +655,20 @@ void macro_returnString(char *string)
 #define COM1_INCR(cp,type,offset) (COM_1FUNC*)(((unsigned char *)cp)+((type *)cp)->offset)
 #define COM_PARAMINCR(cp)		(COM_1FUNC*)(((unsigned char *)cp)+macro_getParameterSize(cp->typ,&cp->funcnum));
 static int _macaborted;
-int macro_interpretByteCodes(COM_1FUNC *cp,COM_1FUNC *cpmax) {
+static int macro_interpretByteCodes(EXECUTION_CONTEXT* pContext, COM_1FUNC *cp,COM_1FUNC *cpmax) {
+	static int 	level;
 	intptr_t	val;
+	if (level > 10) {
+		error_showErrorById(IDS_MSGMACRORECURSION);
+		return 0;
+	}
 
+	level++;
 	for (val = 1; cp < cpmax; ) {
-		if (_macaborted || (_macaborted = progress_cancelMonitor(FALSE)) != 0)
-			return -1;
+		if (_macaborted || (_macaborted = progress_cancelMonitor(FALSE)) != 0) {
+			val = -1;
+			goto end;
+		}
 		switch(cp->typ) {
 			case C_GOTO:
 				if ( ((COM_GOTO *)cp)->bratyp == BRA_ALWAYS ||
@@ -636,16 +680,16 @@ int macro_interpretByteCodes(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 				val = 1;
 				break;
 			case C_TEST:
-				val = macro_testExpression((COM_TEST*)cp);
+				val = macro_testExpression(pContext, (COM_TEST*)cp);
 				cp = COM1_INCR(cp,COM_TEST,size);
 				continue;
 			case C_BINOP:
-				macro_evaluateBinaryExpression((COM_BINOP*)cp);
+				macro_evaluateBinaryExpression(pContext, (COM_BINOP*)cp);
 				val = 1;
 				cp = COM1_INCR(cp,COM_BINOP,size);
 				continue;
 			case C_DEFINE_PARAMETER:
-				sym_makeInternalSymbol(sym_getGlobalContext(), ((COM_CREATESYM*)cp)->name,
+				sym_makeInternalSymbol(pContext->ec_identifierContext, ((COM_CREATESYM*)cp)->name,
 					((COM_CREATESYM*)cp)->symtype,
 					(GENERIC_DATA) {.longValue = ((COM_CREATESYM*)cp)->value});
 				cp = COM1_INCR(cp,COM_CREATESYM,size);
@@ -656,28 +700,35 @@ int macro_interpretByteCodes(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 				val = 1;
 				break;
 			case C_ASSIGN:
-				sym_assignSymbol(sym_getGlobalContext(), ((COM_ASSIGN*)cp)->name,
+				sym_assignSymbol(pContext, ((COM_ASSIGN*)cp)->name,
 					(COM_LONG1 *)COM1_INCR(cp,COM_ASSIGN,opoffset));
 				cp = COM1_INCR(cp,COM_ASSIGN,size);
 				val = 1;
 				break;
 			case C_STOP:
-				return ((COM_STOP *)cp)->rc;
+				val = ((COM_STOP *)cp)->rc;
+				goto end;
 			case C_MACRO: case C_0FUNC: case C_1FUNC:
-				val = macro_doMacroFunctions(&cp,cpmax);
-				macro_returnFunctionValue(C_LONG_LITERAL,val);
+				val = macro_doMacroFunctions(pContext, &cp,cpmax);
+				macro_returnFunctionValue(pContext, C_LONG_LITERAL,val);
 				continue;
 			case C_FURET:
-				_fncmarker = macro_popParameter((unsigned char **)&cp).val;
+				_fncmarker = macro_popParameter(pContext, (unsigned char **)&cp).val;
 				break;
 			case C_FORMSTART:
 				// TODO: not really - executing macros with forms is broken - should change the whole
 				// macro with forms mechanism, on a long term run.
-				return (int)val;
+				goto end;
 			default:
 				macro_reportError();
-				return 0;
+				val = 0;
+				goto end;
 		}
+	}
+end:
+	level--;
+	if (level == 0) {
+		error_setShowMessages(TRUE);
 	}
 	return (int)val;
 }
@@ -697,24 +748,13 @@ int macro_executeMacroByIndex(int macroindex)
 	COM_1FUNC *	cpmax;
 	MACRO *		mp;
 	long   		hadrecstate = _recording;
-	static int 	level;
 
 	if (macroindex == MAC_LASTREC && 
 	    (macroindex = _lastinsertedmac) < 0)
 		return 0;
 
-	if (level > 10) {
-		error_showErrorById(IDS_MSGMACRORECURSION);
-		return 0;
-	}
-
-	level++;
-
 	if ((wasplaying = _playing) == 0 && ft_getCurrentDocument()) {
 		undo_startModification(ft_getCurrentDocument());
-# if defined(ATARI_ST)
-		rdcash(-2);					/* init redraw macro_recordFunctionWithParameters */
-# endif
 	} 
 
 	if (hadrecstate && macroindex >= 0) {
@@ -740,7 +780,10 @@ int macro_executeMacroByIndex(int macroindex)
 				cpmax = (COM_1FUNC *)((char *)cp+mp->size);
 				break;
 		}
-		if ((ret = macro_interpretByteCodes(cp,cpmax)) <= 0) {
+		EXECUTION_CONTEXT* pContext = macro_createExecutionContext();
+		ret = macro_interpretByteCodes(pContext, cp, cpmax);
+		macro_destroyExecutionContext(pContext);
+		if (ret <= 0) {
 			ret = 0;
 			break;
 		}
@@ -748,29 +791,37 @@ int macro_executeMacroByIndex(int macroindex)
 
 	if ((_playing = wasplaying) == 0) {
 		_macaborted = 0;
-
-# if defined(ATARI_ST)
-		EdSelectWindow(_cfileno);
-		rdupdate(0);
-		mouse_setDefaultCursor();
-# else
 		WINFO* wp = ww_getCurrentEditorWindow();
 		if (wp) {
 			ft_selectWindowWithId(wp->win_id, FALSE);
 		}
-# if 0
-		ww_redrawAllWindows(0);
-# endif
-# endif
 	}
 
 	_recording = hadrecstate;
 
-	level--;
-	if (level == 0) {
-		error_setShowMessages(TRUE);
-	}
 	return ret;
+}
+
+/*---------------------------------*/
+/* macro_executeMacro()				*/
+/*---------------------------------*/
+int macro_executeMacro(MACROREF* mp)
+{
+	COM_1FUNC* cp;
+
+	switch (mp->typ) {
+	case CMD_CMDSEQ:
+		cp = &_cmdseqtab[mp->index].c_functionDef;
+		EXECUTION_CONTEXT* pContext = macro_createExecutionContext();
+		int nRet = macro_interpretByteCodes(pContext, cp, cp + 1);
+		macro_destroyExecutionContext(pContext);
+		return nRet;
+	case CMD_MACRO:
+		return macro_executeMacroByIndex(mp->index);
+	default:
+		error_displayAlertDialog("bad command or macro");
+	}
+	return 0;
 }
 
 

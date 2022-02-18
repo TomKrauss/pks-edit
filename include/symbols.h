@@ -15,9 +15,11 @@
 # ifndef SYMBOLS_H
 
 typedef enum {
-	S_KEYWORD = 1,
+	S_BOOLEAN = 12,
 	S_NUMBER = 2,
 	S_STRING = 3,
+	S_FLOAT = 11,
+	S_KEYWORD = 1,
 	S_DOLNUMBER = 4,
 	S_DOLSTRING = 5,
 	S_EDFUNC = 6,
@@ -25,14 +27,7 @@ typedef enum {
 	S_ENUM = 8,
 	S_CONSTNUM = 9,
 	S_CONSTSTRING = 10,
-	S_FLOAT = 11,
-	S_BOOLEAN = 12
 } SYMBOL_TYPE;
-
-typedef struct tagPKS_VALUE {
-	SYMBOL_TYPE		sym_type;
-	GENERIC_DATA	sym_data;
-} PKS_VALUE;
 
 #define	TYPEOF(s)			((s).sym_type)
 #define	VALUE(s)			((s).sym_data).val
@@ -64,11 +59,6 @@ extern IDENTIFIER_CONTEXT* sym_pushContext(IDENTIFIER_CONTEXT* pParent);
  * global context will be a no-op.
  */
 extern IDENTIFIER_CONTEXT* sym_popContext(IDENTIFIER_CONTEXT* pContext);
-
-/*--------------------------------------------------------------------------
- * sym_assignSymbol()
- */
-extern long sym_assignSymbol(IDENTIFIER_CONTEXT* pContext, char* name, COM_LONG1* v);
 
 /*--------------------------------------------------------------------------
  * sym_stringForSymbol()

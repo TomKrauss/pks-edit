@@ -18,15 +18,15 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "edfuncs.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "regexp.h"
 #include "pksmod.h"
 #include "test.h"
 #include "symbols.h"
-#include "pkscc.h"
 #include "errordialogs.h"
 
-extern intptr_t		macro_doMacroFunctions(COM_1FUNC **sp, COM_1FUNC *spend);
+extern intptr_t		macro_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **sp, COM_1FUNC *spend);
 
 /*--------------------------------------------------------------------------
  * macro_isParameterStringType()
@@ -45,14 +45,14 @@ int macro_isParameterFloatType(unsigned char typ) {
 /*
  * macro_getNumberParameter()
  */
-static long long macro_getNumberParameter(unsigned char *sp,unsigned char *spend) {
+static long long macro_getNumberParameter(EXECUTION_CONTEXT* pContext, unsigned char *sp,unsigned char *spend) {
 	char *		s;
 	extern long long number(char *s);
 
 	switch(*sp) {
 		case C_STRING_LITERAL:
 		case C_STRINGVAR:
-			s = (char *)macro_popParameter(&sp).string;
+			s = (char *)macro_popParameter(pContext, &sp).string;
 			return number(s);
 		case C_CHARACTER_LITERAL:
 		case C_INTEGER_LITERAL:
@@ -60,11 +60,11 @@ static long long macro_getNumberParameter(unsigned char *sp,unsigned char *spend
 		case C_LONG_LITERAL:
 		case C_FLOATVAR:
 		case C_LONGVAR:
-			return macro_popParameter(&sp).longValue;
+			return macro_popParameter(pContext, &sp).longValue;
 		case C_MACRO:
 		case C_0FUNC:
 		case C_1FUNC:
-			return (long long)macro_doMacroFunctions((COM_1FUNC**)&sp, (COM_1FUNC*)spend);
+			return (long long)macro_doMacroFunctions(pContext, (COM_1FUNC**)&sp, (COM_1FUNC*)spend);
 	}
 	return 0L;
 }
@@ -72,44 +72,44 @@ static long long macro_getNumberParameter(unsigned char *sp,unsigned char *spend
 /*
  * macro_getDoubleParameter()
  */
-static double macro_getDoubleParameter(unsigned char* sp, unsigned char* spend) {
+static double macro_getDoubleParameter(EXECUTION_CONTEXT* pContext, unsigned char* sp, unsigned char* spend) {
 	char* s;
 	double d;
 
 	switch (*sp) {
 	case C_STRING_LITERAL:
 	case C_STRINGVAR:
-		s = (char*)macro_popParameter(&sp).string;
+		s = (char*)macro_popParameter(pContext, &sp).string;
 		sscanf(s, "%lf", &d);
 		return d;
 	case C_FLOAT_LITERAL:
 	case C_FLOATVAR:
-		return macro_popParameter(&sp).doubleValue;
+		return macro_popParameter(pContext, &sp).doubleValue;
 	default:
-		return (double)macro_getNumberParameter(sp, spend);
+		return (double)macro_getNumberParameter(pContext, sp, spend);
 	}
 }
 
 /*
  * macro_getStringParameter()
  */
-char *macro_getStringParameter(unsigned char *sp) {
+char *macro_getStringParameter(EXECUTION_CONTEXT* pContext, unsigned char *sp) {
 	long long lVal;
 	static char buf[20];
 
 	switch(*sp) {
 		case C_STRING_LITERAL:
 		case C_STRINGVAR:
-			return (char *)macro_popParameter(&sp).string;
+			return (char *)macro_popParameter(pContext, &sp).string;
 		case C_FLOAT_LITERAL:
 		case C_FLOATVAR:
-			sprintf(buf, "%.2lf", macro_popParameter(&sp).doubleValue);
+			sprintf(buf, "%.2lf", macro_popParameter(pContext, &sp).doubleValue);
 			return buf;
 		case C_CHARACTER_LITERAL:
 		case C_INTEGER_LITERAL:
 		case C_LONG_LITERAL:
 		case C_LONGVAR:
-			lVal = macro_popParameter(&sp).longValue;
+			lVal = macro_popParameter(pContext, &sp).longValue;
 			sprintf(buf,"%lld", lVal);
 			return buf;
 	}
@@ -151,7 +151,7 @@ static int strmatch(char *s1,char *s2) {
  * macro_testExpression()
  * Test an expression in a macro.
  */
-int macro_testExpression(COM_TEST *sp) {	
+int macro_testExpression(EXECUTION_CONTEXT* pContext, COM_TEST *sp) {
 	long long r1,r2;
 	unsigned char *s1,*s2,*p2,*pend;
 	unsigned char op;
@@ -164,8 +164,8 @@ int macro_testExpression(COM_TEST *sp) {
 	pend = (unsigned char *)(sp)+sp->size; 
 	sp++;
 	if (CT_HAS2NUMOPNDS(op)) {
-		r1 = macro_getNumberParameter((unsigned char *)sp,p2);
-		r2 = macro_getNumberParameter(p2,pend);
+		r1 = macro_getNumberParameter(pContext, (unsigned char *)sp,p2);
+		r2 = macro_getNumberParameter(pContext, p2,pend);
 		switch(op) {
 			case CT_EQ: return r1 == r2;
 			case CT_NE: return r1 != r2;
@@ -174,8 +174,8 @@ int macro_testExpression(COM_TEST *sp) {
 			default   : goto notimpl;
 		}
 	} else if (CT_HAS2STROPNDS(op)) {
-		s1 = macro_getStringParameter((unsigned char *)sp);
-		s2 = macro_getStringParameter(p2);
+		s1 = macro_getStringParameter(pContext, (unsigned char *)sp);
+		s2 = macro_getStringParameter(pContext, p2);
 		if (op != CT_SMATCH && op != CT_SNMATCH)
 			r1 = strcmp(s1,s2);
 		else
@@ -193,10 +193,10 @@ notimpl:			error_displayAlertDialog("test: ~ OP 0x%x not implemented",op);
 		}
 	} else
 		switch(op) {
-			case CT_NOT: return !macro_testExpression(sp);
-			case CT_AND: return macro_testExpression(sp) && macro_testExpression((COM_TEST*)p2);
-			case CT_OR:  return macro_testExpression(sp) || macro_testExpression((COM_TEST*)p2);
-			case CT_BRACKETS: return macro_testExpression(sp);
+			case CT_NOT: return !macro_testExpression(pContext, sp);
+			case CT_AND: return macro_testExpression(pContext, sp) && macro_testExpression(pContext, (COM_TEST*)p2);
+			case CT_OR:  return macro_testExpression(pContext, sp) || macro_testExpression(pContext, (COM_TEST*)p2);
+			case CT_BRACKETS: return macro_testExpression(pContext, sp);
 			default: goto notimpl;
 		}
 }
@@ -204,7 +204,7 @@ notimpl:			error_displayAlertDialog("test: ~ OP 0x%x not implemented",op);
 /*--------------------------------------------------------------------------
  * macro_evaluateBinaryExpression()
  */
-void macro_evaluateBinaryExpression(COM_BINOP *sp)
+void macro_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp)
 {	long long		r1;
 	long long		r2;
 	int				typ1;
@@ -229,12 +229,12 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 	if (op == BIN_CONVERT) {
 		if (macro_isParameterStringType(typ1)) {
 			// (T) use current method execution context
-			sym_makeInternalSymbol(sym_getGlobalContext(), sp->result, S_NUMBER, (GENERIC_DATA) {
-				.longValue = macro_getNumberParameter(p1, p2)
+			sym_makeInternalSymbol(pContext->ec_identifierContext, sp->result, S_NUMBER, (GENERIC_DATA) {
+				.longValue = macro_getNumberParameter(pContext, p1, p2)
 			});
 		} else {
-			sym_makeInternalSymbol(sym_getGlobalContext(), sp->result, S_STRING, (GENERIC_DATA) {
-				.string = macro_getStringParameter(p1)
+			sym_makeInternalSymbol(pContext->ec_identifierContext, sp->result, S_STRING, (GENERIC_DATA) {
+				.string = macro_getStringParameter(pContext, p1)
 			});
 		}
 		return;	
@@ -243,8 +243,8 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 	if (!macro_isParameterStringType(typ1) && !macro_isParameterStringType(typ2)) {
 		if (macro_isParameterFloatType(typ1) || macro_isParameterFloatType(typ2)) {
 			// one operand at least is numeric - force numeric calculations
-			double d1 = macro_getDoubleParameter(p1, p2);
-			double d2 = macro_getDoubleParameter(p2, pend);
+			double d1 = macro_getDoubleParameter(pContext, p1, p2);
+			double d2 = macro_getDoubleParameter(pContext, p2, pend);
 			switch (op) {
 
 			case BIN_NOT: d1 = !d1; break;
@@ -262,14 +262,14 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 				error_displayAlertDialog("binop: ~ OP %c not implemented for float numbers", op);
 				d1 = 0;
 			}
-			sym_makeInternalSymbol(sym_getGlobalContext(), sp->result, S_FLOAT, (GENERIC_DATA) {
+			sym_makeInternalSymbol(pContext->ec_identifierContext, sp->result, S_FLOAT, (GENERIC_DATA) {
 				.doubleValue = d1
 			});
 			return;
 		}
 		// one operand at least is numeric - force numeric calculations
-		r1 = macro_getNumberParameter(p1,p2);
-		r2 = macro_getNumberParameter(p2,pend);
+		r1 = macro_getNumberParameter(pContext, p1,p2);
+		r2 = macro_getNumberParameter(pContext, p2,pend);
 		switch(op) {
 
 		case BIN_NOT: r1 = !r1; break;
@@ -296,13 +296,13 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 			error_displayAlertDialog("binop: ~ OP %c not implemented",op);
 			r1 = 0;
 		}
-		sym_makeInternalSymbol(sym_getGlobalContext(), sp->result, S_NUMBER, (GENERIC_DATA) {
+		sym_makeInternalSymbol(pContext->ec_identifierContext, sp->result, S_NUMBER, (GENERIC_DATA) {
 			.longValue = r1
 		});
 		return;
 	}
-	p1 = macro_getStringParameter(p1);
-	p2 = macro_getStringParameter(p2);
+	p1 = macro_getStringParameter(pContext, p1);
+	p2 = macro_getStringParameter(pContext, p2);
 	*buf = 0;
 
 	switch(op) {
@@ -336,7 +336,7 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 		error_displayAlertDialog("string binop %c not impl.",op);
 
 	}
-	sym_makeInternalSymbol(sym_getGlobalContext(), sp->result, S_STRING, (GENERIC_DATA) {
+	sym_makeInternalSymbol(pContext->ec_identifierContext, sp->result, S_STRING, (GENERIC_DATA) {
 		.string = buf
 	});
 }

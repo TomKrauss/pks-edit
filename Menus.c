@@ -21,7 +21,7 @@
 #include "documentmodel.h"
 #include "winfo.h"
 #include "resource.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "actionbindings.h"
 #include "helpitem.h"
 #include "stringutil.h"
@@ -133,14 +133,14 @@ static BOOL menu_appendMenuItems(HMENU hMenu, MENU_ITEM_DEFINITION* pMenu) {
 			menu_determineLabelWithMnemonic(szLabel, pMenu, charsWithMnemonic, FALSE);
 			AppendMenu(hMenu, MF_STRING, ((int)pMenu->mid_command.typ << 16) + pMenu->mid_command.index, szLabel);
 			if (pMenu->mid_command.typ == CMD_CMDSEQ) {
-				COM_1FUNC* pCommand = &_cmdseqtab[pMenu->mid_command.index].c_functionDef;
-				int nFuncnum = pCommand->funcnum;
+				long long llParam;
+				int nFuncnum = macro_getFunctionNumberForCommand(pMenu->mid_command.index, &llParam);
 				EnableMenuItem(hMenu, wItem,
-					macro_canExecuteFunction(nFuncnum, pCommand->p, 0) ?
+					macro_canExecuteFunction(nFuncnum, llParam, 0) ?
 					MF_BYPOSITION | MF_ENABLED :
 					MF_BYPOSITION | MF_DISABLED | MF_GRAYED);
 				if (nFuncnum == FUNC_EdOptionToggle) {
-					if (op_defineOption(pCommand->p)) {
+					if (op_defineOption((long)llParam)) {
 						CheckMenuItem(hMenu, wItem, MF_CHECKED | MF_BYPOSITION);
 					}
 				}

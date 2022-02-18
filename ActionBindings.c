@@ -17,7 +17,7 @@
 
 #include "alloc.h"
 #include "documentmodel.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "actionbindings.h"
 #include "linkedlist.h"
 #include "resource.h"

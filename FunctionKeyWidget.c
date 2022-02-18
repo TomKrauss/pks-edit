@@ -31,7 +31,7 @@
 
 #include "pksedit.h"
 #include "dial2.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "actionbindings.h"
 #include "actions.h"
 

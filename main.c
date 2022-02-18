@@ -33,7 +33,7 @@
 #include "mainframe.h"
 #include "context.h"
 #include "fileutil.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "stringutil.h"
 #include "documenttypes.h"
 #include "xdialog.h"

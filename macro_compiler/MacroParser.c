@@ -11,10 +11,10 @@
  * created: 07.02.1991
  */
 
-#include "edfuncs.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "funcdef.h"
 #include "symbols.h"
-#include "pkscc.h"
 #include "stringutil.h"
 #include "xdialog.h"
 

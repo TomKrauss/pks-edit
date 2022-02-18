@@ -32,14 +32,15 @@
 #include "editorconfiguration.h"
 
 #include "documenttypes.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "pathname.h"
 #include "fileselector.h"
 #include "fsel.h"
 #include "pksedit.h"
 #include "stringutil.h"
 #include "fileutil.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 
 extern int 		doDocumentTypes(int nDlg);
 

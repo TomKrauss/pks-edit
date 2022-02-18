@@ -16,7 +16,7 @@
  */
 
 #include	"alloc.h"
-# include	"edfuncs.h"
+# include	"pksmacro.h"
 # include	"resource.h"
 
 extern char	*malloc();

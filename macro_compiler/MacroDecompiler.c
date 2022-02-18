@@ -16,11 +16,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "edfuncs.h"
+#include "pksmacrocvm.h"
+#include "pksmacro.h"
 #include "funcdef.h"
 #include "pksmod.h"
 #include "symbols.h"
-#include "pkscc.h"
 #include "test.h"
 #include "funcdef.h"
 #include "stringutil.h"
@@ -378,10 +378,11 @@ static unsigned char *decompile_printBinaryExpression(FILE *fp, COM_BINOP *cp)
 /**
  * Return a type name for a symbol type. 
  */
-static char* decompile_typenameFor(int nSymbolType) {
+static char* decompile_typenameFor(PKS_VALUE_TYPE nSymbolType) {
 	switch (nSymbolType) {
-	case S_FLOAT: return "float";
-	case S_NUMBER: return "int";
+	case VT_FLOAT: return "float";
+	case VT_INTEGER: return "int";
+	case VT_BOOLEAN: return "boolean";
 	default: return "string";
 	}
 }

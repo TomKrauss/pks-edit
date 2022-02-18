@@ -20,7 +20,7 @@
 #include "linkedlist.h"
 #include "documentmodel.h"
 #include "evaluator.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "grammar.h"
 #include "textblocks.h"
 #include "edierror.h"

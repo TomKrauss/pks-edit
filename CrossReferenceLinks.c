@@ -17,7 +17,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "alloc.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "funcdef.h"
 #include "winterf.h"
 #include "edctype.h"

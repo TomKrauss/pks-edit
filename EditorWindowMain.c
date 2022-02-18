@@ -27,7 +27,7 @@
 #include "regexp.h"
 #include "errordialogs.h"
 #include "winfo.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "actionbindings.h"
 #include "winterf.h"
 #include "pksedit.h"

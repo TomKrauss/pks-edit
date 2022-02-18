@@ -51,7 +51,7 @@
     <ClCompile Include="Compare.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="macro_compiler\GenerateMacroCode.c">
+    <ClCompile Include="macro_compiler\MacroCodeGenerator.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Encryption.c">
@@ -114,7 +114,7 @@
     <ClCompile Include="FunctionTable.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="macro_compiler\ParseMacros.c">
+    <ClCompile Include="macro_compiler\MacroParser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MarkFilePositions.c">
@@ -153,7 +153,7 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="macro_compiler\CompileMacros.c">
+    <ClCompile Include="macro_compiler\MacroCompiler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FilePattern.c">
@@ -186,7 +186,7 @@
     <ClCompile Include="macro_compiler\PrintBindings.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="macro_compiler\DecompileMacros.c">
+    <ClCompile Include="macro_compiler\MacroDecompiler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SettingsIO.c">
@@ -335,7 +335,7 @@
     <ClInclude Include="include\edexec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\edfuncs.h">
+    <ClInclude Include="include\pksmacro.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\history.h">
@@ -353,16 +353,13 @@
     <ClInclude Include="include\ftw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\funcdef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\iccall.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\pathname.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\pkscc.h">
+    <ClInclude Include="include\pksmacrocvm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\pksmod.h">
@@ -533,6 +530,12 @@
     <ClInclude Include="include\actionbindings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\funcdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="macro_compiler\parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">
@@ -615,6 +618,9 @@
     <None Include="doc\manual\pksedit_ui.md" />
     <None Include="doc\manual\printing.md" />
     <None Include="doc\manual\pksprintf.md" />
+    <None Include="README.md" />
+    <None Include="macro_compiler\PARSER.Y" />
+    <None Include="macro_compiler\SCANNER.L" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">

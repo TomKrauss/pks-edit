@@ -410,7 +410,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="macro_compiler\GenerateMacroCode.c">
+    <ClCompile Include="macro_compiler\MacroCodeGenerator.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -621,7 +621,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="macro_compiler\ParseMacros.c">
+    <ClCompile Include="macro_compiler\MacroParser.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -751,7 +751,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="macro_compiler\CompileMacros.c">
+    <ClCompile Include="macro_compiler\MacroCompiler.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -871,7 +871,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="macro_compiler\DecompileMacros.c">
+    <ClCompile Include="macro_compiler\MacroDecompiler.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1158,6 +1158,7 @@
     <ClInclude Include="include\markpositions.h" />
     <ClInclude Include="include\menu.h" />
     <ClInclude Include="include\mouseutil.h" />
+    <ClInclude Include="include\funcdef.h" />
     <ClInclude Include="include\propertychange.h" />
     <ClInclude Include="include\publicapi.h" />
     <ClInclude Include="include\stringutil.h" />
@@ -1167,6 +1168,7 @@
     <ClInclude Include="include\uahmenubar.h" />
     <ClInclude Include="include\windowselector.h" />
     <ClInclude Include="include\winutil.h" />
+    <ClInclude Include="macro_compiler\parser.h" />
     <ClInclude Include="rc\dial2.h" />
     <ClInclude Include="rc\fsel.h" />
     <ClInclude Include="include\brackets.h" />
@@ -1174,16 +1176,15 @@
     <ClInclude Include="include\encryption.h" />
     <ClInclude Include="include\edctype.h" />
     <ClInclude Include="include\edexec.h" />
-    <ClInclude Include="include\edfuncs.h" />
+    <ClInclude Include="include\pksmacro.h" />
     <ClInclude Include="include\history.h" />
     <ClInclude Include="include\edierror.h" />
     <ClInclude Include="include\documentmodel.h" />
     <ClInclude Include="include\edtypes.h" />
     <ClInclude Include="include\ftw.h" />
-    <ClInclude Include="include\funcdef.h" />
     <ClInclude Include="include\iccall.h" />
     <ClInclude Include="include\pathname.h" />
-    <ClInclude Include="include\pkscc.h" />
+    <ClInclude Include="include\pksmacrocvm.h" />
     <ClInclude Include="include\pksmod.h" />
     <ClInclude Include="include\printing.h" />
     <ClInclude Include="include\regexp.h" />
@@ -1215,6 +1216,8 @@
     <None Include="doc\manual\saving_files.md" />
     <None Include="doc\markdown.md" />
     <None Include="doc\release_notes.md" />
+    <None Include="macro_compiler\PARSER.Y" />
+    <None Include="macro_compiler\SCANNER.L" />
     <None Include="packages.config" />
     <None Include="PKSEDIT.DEF" />
     <None Include="rc\CLIP.ICO" />
@@ -1237,6 +1240,7 @@
     <None Include="rc\PRINT.ICO" />
     <None Include="rc\TRASH.ICO" />
     <None Include="rc\UNDO.ICO" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="PKSEDIT.RC">

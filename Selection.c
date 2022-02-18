@@ -37,7 +37,7 @@
 #include "pksedit.h"
 #include "fileutil.h"
 #include "clipboard.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "ftw.h"
 #include "xdialog.h"
 

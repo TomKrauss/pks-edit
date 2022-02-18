@@ -29,7 +29,7 @@
 #include "themes.h"
 #include "pathname.h"
 #include "winutil.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "mainframe.h"
 #include "edctype.h"
 

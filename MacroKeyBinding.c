@@ -25,7 +25,8 @@
 #include "winfo.h"
 #include "winterf.h"
 #include "fileselector.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "funcdef.h"
 #include "dial2.h"
 #include "iccall.h"
@@ -35,7 +36,6 @@
 #include "stringutil.h"
 #include "winutil.h"
 #include "mouseutil.h"
-#include "pkscc.h"
 #include "editorconfiguration.h"
 #include "menu.h"
 #include "funcdef.h"
@@ -51,7 +51,6 @@ extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
  */
 extern void bindings_loadActionBindings();
 extern void 		st_switchtomenumode(BOOL bMenuMode);
-extern int			macro_interpretByteCodes(COM_1FUNC* cp, COM_1FUNC* cpmax);
 
 int				_recording;
 int				_nmacros = MAXMACRO;
@@ -442,25 +441,6 @@ int macro_onMenuAction(WINFO* wp, int menunum, POINT* aPositionClicked) {
 	}
 	if (menunum >= IDM_HISTORY && menunum <= IDM_HISTORY + 30) {
 		return EdEditFile(OPEN_NOFN|OPEN_HISTORY | (menunum - IDM_HISTORY) << 12, 0);
-	}
-	return 0;
-}
-
-/*---------------------------------*/
-/* macro_executeMacro()				*/
-/*---------------------------------*/
-int macro_executeMacro(MACROREF *mp)
-{
-	COM_1FUNC   *cp;
-
-	switch (mp->typ) {
-		case CMD_CMDSEQ:
-			cp = &_cmdseqtab[mp->index].c_functionDef;
-			return macro_interpretByteCodes(cp,cp+1);
-		case CMD_MACRO:
-			return macro_executeMacroByIndex(mp->index);
-		default:
-			error_displayAlertDialog("bad command or macro");
 	}
 	return 0;
 }

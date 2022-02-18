@@ -19,7 +19,7 @@
 # include <string.h>
 
 #include "alloc.h"
-# include "edfuncs.h"
+# include "pksmacro.h"
 # include "parsefu.h"
 
 #define MAXFUNCS	128
@@ -770,7 +770,7 @@ int printfuncs(char *fname)
 		_fpout = fopen(fname,"w");
 		setvbuf(_fpout,(char *) 0, _IOFBF, 8192);
 		fprintf(_fpout,"#include <windows.h>\n");
-		fprintf(_fpout,"#include \"edfuncs.h\"\n");
+		fprintf(_fpout,"#include \"pksmacro.h\"\n");
 		fprintf(_fpout,"#include \"pksedit.h\"\n");
 		fprintf(_fpout,"#include \"pksedith.h\"\n");
 		fprintf(_fpout,"#include \"edierror.h\"\n\n");

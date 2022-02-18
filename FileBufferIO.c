@@ -24,7 +24,7 @@
 #include "editorconfiguration.h"
 #include "stringutil.h"
 #include "linkedlist.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "winfo.h"
 
 #include "pksedit.h"

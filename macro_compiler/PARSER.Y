@@ -22,7 +22,7 @@
 %token T_FUNC T_MACRO T_DOTDOT T_PLUSPLUS T_MINUSMINUS
 %token T_IF T_ELIF T_ELSE T_WHILE T_GOTO T_BRAEQ 
 %token T_LOCAL T_SWITCH T_BREAK T_CONTINUE T_RETURN 
-%token T_NUMVAR T_FLOATVAR T_STRINGVAR
+%token T_NUMVAR T_FLOATVAR T_STRINGVAR T_BOOLEANVAR
 %token T_NMATCH
 %token T_ASSIGN T_NE T_EQ
 %token T_OR T_AND
@@ -43,10 +43,10 @@
 #include <stdio.h>
 
 #include "alloc.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "scanner.h"
 #include "test.h"
-#include "pkscc.h"
 #include "symbols.h"
 
 # define 	YYSTYPE _YYSTYPE
@@ -377,6 +377,10 @@ value:		T_NUMVAR {
 			}
 			| T_STRINGVAR 	{
 				$$.v.type = C_STRINGVAR;  
+				$$.v.data.string  = $1.ident.s;
+			}
+			| T_BOOLEANVAR {
+				$$.v.type = C_BOOLEANVAR;  
 				$$.v.data.string  = $1.ident.s;
 			}
 			| string 	{

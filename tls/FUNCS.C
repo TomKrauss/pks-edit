@@ -32,7 +32,7 @@
 # include <ctype.h>
 
 #include "alloc.h"
-# include "edfuncs.h"
+# include "pksmacro.h"
 # include "parsefu.h"
 # include "mylib.h"
 # include "stringutil.h"

@@ -29,7 +29,8 @@
 #include "dial2.h"
 #include "pksrc.h"
 #include "resource.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "actionbindings.h"
 #include "history.h"
 #include "xdialog.h"
@@ -1734,5 +1735,41 @@ int EdIsDefined(long what)
 		return wp->bXtndBlock;
 	}
 	return 0;
+}
+
+/*--------------------------------------------------------------------------
+ * EdPromptAssign()
+ */
+long EdPromptAssign(long unused1, long unused2, char* prompt, char* init)
+{
+	char 	buf[128];
+	static ITEMS	_i = { C_STRING_LITERAL,  (unsigned char*)0 };
+	static PARAMS	_np = { 1, P_MAYOPEN, _i };
+	static DIALPARS _d[] = {
+		IDD_RO1,		128,			0,
+		IDD_STRING1,	128, 		0,
+		0
+	};
+
+	if (!prompt) {
+		prompt = " > ";
+	}
+	_d[0].dp_data = prompt;
+	_d[1].dp_data = buf;
+	_i->p.s = buf;
+	if (init) {
+		lstrcpy(buf, init);
+	}
+	else {
+		buf[0] = 0;
+	}
+
+	if (win_callDialog(DLGPROMPT, &_np, _d, NULL) != IDOK) {
+		*buf = 0;
+	}
+
+	macro_returnString(buf);
+
+	return 1;
 }
 

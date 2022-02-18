@@ -19,16 +19,14 @@
 #include <string.h>
 
 #include "alloc.h"
-#include "edfuncs.h"
-#include "pkscc.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "hashmap.h"
 #include "symbols.h"
 #include "stringutil.h"
 #include "errordialogs.h"
 
 extern long 	number(char *s);
-extern int 		macro_isParameterStringType(unsigned char typ);
-extern int 		macro_getDollarParameter(intptr_t offset, int *typ, intptr_t *value);
 
 static PKS_VALUE	nullSymbol;
 
@@ -270,17 +268,5 @@ intptr_t sym_stringForSymbol(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 	default:
 		return (intptr_t)VALUE(sym);
 	}
-}
-
-/*--------------------------------------------------------------------------
- * sym_assignSymbol()
- */
-long sym_assignSymbol(IDENTIFIER_CONTEXT* pContext, char *name, COM_LONG1 *v) {
-	SYMBOL_TYPE 	sSymbolType;
-	GENERIC_DATA value;
-
-	sSymbolType = macro_isParameterFloatType(v->typ) ? S_FLOAT : (macro_isParameterStringType(v->typ) ? S_STRING : S_NUMBER);
-	value = macro_popParameter((unsigned char**)&v);
-	return sym_makeInternalSymbol(pContext, name, sSymbolType, value);
 }
 

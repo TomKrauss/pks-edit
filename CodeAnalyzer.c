@@ -23,7 +23,7 @@
 #include "winfo.h"
 #include "hashmap.h"
 #include "codeanalyzer.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "actionbindings.h"
 #include "funcdef.h"
 #include "fontawesome.h"

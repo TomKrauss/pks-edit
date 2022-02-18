@@ -30,7 +30,7 @@
 #include "dial2.h"
 #include "pksedit.h"
 #include "edctype.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "regexp.h"
 #include "history.h"
 #include "errordialogs.h"

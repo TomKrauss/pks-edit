@@ -26,7 +26,7 @@
 #include "themes.h"
 #include "codecompletion.h"
 #include "winfo.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "errordialogs.h"
 #include "xdialog.h"
 #include "customcontrols.h"

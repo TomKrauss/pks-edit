@@ -22,13 +22,13 @@
 #include "trace.h"
 
 #include "winterf.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "actionbindings.h"
 #include "funcdef.h"
 #include "pksedit.h"
 #include "iccall.h" 
 #include "resource.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "winutil.h"
 
 static HCURSOR   hArrowCursor;	// Pointer cursor
@@ -438,9 +438,9 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
  */
 int macro_executeWithPosition(WINFO* wp, MACROREF* pRef, POINT pt) {
 	if (pRef->typ == CMD_CMDSEQ) {
-		COM_1FUNC* cp;
-		cp = &_cmdseqtab[pRef->index].c_functionDef;
-		if (_functionTable[cp->funcnum].flags & EW_FINDCURS) {
+		long long llParam;
+		int nFunctionNum = macro_getFunctionNumberForCommand(pRef->index, &llParam);
+		if (_functionTable[nFunctionNum].flags & EW_FINDCURS) {
 			caret_placeToXY(wp, pt.x, pt.y);
 		}
 	}

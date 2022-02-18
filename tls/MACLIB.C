@@ -25,7 +25,7 @@
 # endif
 
 # include	<string.h>
-# include	"edfuncs.h"
+# include	"pksmacro.h"
 
 extern	MACRO	*mac_byindex(int i);
 

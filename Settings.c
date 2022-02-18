@@ -26,7 +26,7 @@
 #include "pksedit.h"
 #include "dial2.h"
 #include "funcdef.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "regexp.h"
 #include "actions.h"
 #include "grammar.h"

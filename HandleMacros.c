@@ -24,9 +24,19 @@
 #define	hInst		0
 # endif
 
-#include "edfuncs.h"
+#include "pksmacrocvm.h"
+#include "pksmacro.h"
 
 extern void yyerror(char* s, ...);
+
+/*
+ * Return the logical function number (index into functionTable) of the function invoked by the command with the given index.
+ */
+int macro_getFunctionNumberForCommand(int nCommand, long long* llParam) {
+	COM_1FUNC* pCommand = &_cmdseqtab[nCommand].c_functionDef;
+	*llParam = pCommand->p;
+	return pCommand->funcnum;
+}
 
 /*------------------------------------------------------------
  * mac_name()

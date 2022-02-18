@@ -17,14 +17,9 @@
 #include <string.h>
 
 #include "alloc.h"
-#include "edfuncs.h"
-#include "pkscc.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "scanner.h"
-
-# if !defined(_Cdecl)
-#define	_Cdecl	/**/
-#define	_FAR		/**/
-# endif
 
 #define L_FREE			0
 #define L_DEFINED		1
@@ -33,8 +28,8 @@
 
 typedef struct label {
 	int			type;
-	char	*		name;
-	COM_GOTO 	*	recp;
+	char	*	name;
+	COM_GOTO*	recp;
 } LABEL;
 
 typedef struct gotos {
@@ -253,7 +248,7 @@ int bytecode_makeAutoLabel(COM_GOTO *cp)
 /*---------------------------------*/
 /* bytecode_initializeAutoLabels()				*/
 /*---------------------------------*/
-static int _Cdecl bytecode_compareLabelsByName(const void _FAR *p1, const void _FAR *p2)
+static int bytecode_compareLabelsByName(const void *p1, const void *p2)
 {
 	LABEL *lp1,*lp2;
 

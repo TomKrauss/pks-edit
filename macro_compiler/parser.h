@@ -72,14 +72,15 @@
      T_NUMVAR = 288,
      T_FLOATVAR = 289,
      T_STRINGVAR = 290,
-     T_NMATCH = 291,
-     T_ASSIGN = 292,
-     T_NE = 293,
-     T_EQ = 294,
-     T_OR = 295,
-     T_AND = 296,
-     T_DEFMACRO = 297,
-     T_CMDSEQPREFIX = 298
+     T_BOOLEANVAR = 291,
+     T_NMATCH = 292,
+     T_ASSIGN = 293,
+     T_NE = 294,
+     T_EQ = 295,
+     T_OR = 296,
+     T_AND = 297,
+     T_DEFMACRO = 298,
+     T_CMDSEQPREFIX = 299
    };
 #endif
 

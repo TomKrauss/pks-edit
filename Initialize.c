@@ -23,7 +23,7 @@
 #include "regexp.h"
 #include "crossreferencelinks.h"
 #include "documenttypes.h"
-#include "edfuncs.h"
+#include "pksmacro.h"
 #include "printing.h"
 
 #undef DELIVER

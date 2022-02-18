@@ -32,15 +32,12 @@ typedef struct tagTYPEDVAL {
 
 typedef union yytype {
 	long long num;
-	int		islocal;
 	struct {
 		char* s;
 		int	stringIsAlloced;
 	} ident;
 	void	*funcp;
-	char	c;
 	unsigned char type;
-	MACROREF	macref;
 	TYPEDVAL v;
 } _YYSTYPE;
 
