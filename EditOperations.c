@@ -306,7 +306,7 @@ int edit_toggleComment() {
  * edit_insertLine()
  * create newline and insert it
  */
-int edit_insertLine(int control)
+int edit_insertLine(EDIT_LINE_OPTIONS control)
 {	LINE     *olp,*nlp;
 	FTABLE 	*fp;
 	int      dir,ai;
@@ -322,7 +322,7 @@ int edit_insertLine(int control)
 		return 0;
 	nlp->len = 0;
 
-	ln_insert(fp,((control) ? wp->caret.linePointer : wp->caret.linePointer->next),nlp);
+	ln_insert(fp,((control == ELO_CARET_FOLLOWS) ? wp->caret.linePointer : wp->caret.linePointer->next),nlp);
 	fp->tln = nlp;
 
 	ln = wp->caret.ln;
@@ -344,7 +344,7 @@ int edit_insertLine(int control)
  * EdLineDelete()
  * deleteline
  */
-int EdLineDelete(control)
+int EdLineDelete(EDIT_LINE_OPTIONS control)
 {	LINE		*clfirst,*clast;
 	FTABLE	*fp;
 	WINFO	*wp = ww_getCurrentEditorWindow();
@@ -359,7 +359,7 @@ int EdLineDelete(control)
 	clfirst = wp->caret.linePointer;
 	clast   = clfirst->next;
 	if (!clast->next) {
-		if (control & CUT_APPND) return 0;
+		if (control & ELO_APPEND) return 0;
 		clast = clast->prev;
 		if ((lastlinelen = clast->len) == 0L) return 0;
 	} else lastlinelen = 0;

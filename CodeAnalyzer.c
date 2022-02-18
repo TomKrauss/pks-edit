@@ -89,15 +89,15 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 		}
 	}
 	if (bInParams) {
-		for (int i = 0; i < _nenelems; i++) {
-			const char* pszName = _enelemtab[i].te_name;
+		for (int i = 0; i < _parameterEnumValueTableSize; i++) {
+			const char* pszName = _parameterEnumValueTable[i].pev_name;
 			if (fMatch(pszName)) {
 				fCallback(pszName, NULL, NULL);
 			}
 		}
 	} else {
-		for (int i = 0; i < _nfuncs; i++) {
-			EDFUNC* pFunc = &_edfunctab[i];
+		for (int i = 0; i < _functionTableSize; i++) {
+			EDFUNC* pFunc = &_functionTable[i];
 			if (fMatch(pFunc->f_name)) {
 				fCallback(pFunc->f_name, pFunc, analyzer_helpForFunc);
 			}

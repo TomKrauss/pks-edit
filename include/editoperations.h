@@ -43,6 +43,12 @@ extern int edit_performLineFlagOperation(MARKED_LINE_OPERATION op);
 typedef enum { CC_TOGGLE, CC_UPPER, CC_LOWER} CC_OPERATION;
 extern int edit_convertCharacterCase(CC_OPERATION operation);
 
+/*--------------------------------------------------------------------------
+ * edit_insertLine()
+ * create newline and insert it
+ */
+typedef enum {ELO_CARET_STAYS = 0, ELO_CARET_FOLLOWS = 1, ELO_APPEND = 0x200} EDIT_LINE_OPTIONS;
+extern int edit_insertLine(EDIT_LINE_OPTIONS control);
 
 #define EDIT_OPERATIONS_H
 #endif

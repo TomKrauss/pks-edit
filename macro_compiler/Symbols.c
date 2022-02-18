@@ -1,9 +1,9 @@
 /*
- * MacroSymbolMapping.c
+ * Symbols.c
  *
  * PROJEKT: PKS-EDIT for MS - WINDOWS
  *
- * purpose: pksedit macro and resource compiler - symbols
+ * purpose: pksedit variables and symbols in PKSMacroC language.
  *
  * 										created: 
  * 										last modified:
@@ -22,7 +22,7 @@
 #include "edfuncs.h"
 #include "pkscc.h"
 #include "hashmap.h"
-#include "sym.h"
+#include "symbols.h"
 #include "stringutil.h"
 #include "errordialogs.h"
 
@@ -34,7 +34,19 @@ static PKS_VALUE	nullSymbol;
 
 typedef enum {	FIND,ENTER,DESTROY} ACTION;
 
-static HASHMAP * _htab;
+struct tagIDENTIFIER_CONTEXT {
+	struct tagIDENTIFIER_CONTEXT* ic_next;
+	HASHMAP* ic_table;
+};
+
+static IDENTIFIER_CONTEXT _globalContext;
+
+/*
+ * Returns the global identifier context.
+ */
+IDENTIFIER_CONTEXT* sym_getGlobalContext() {
+	return &_globalContext;
+}
 
 /*
  * Destroy a symbol registered in a symbol table.
@@ -55,28 +67,59 @@ static int sym_destroyEntry(intptr_t tKey, intptr_t tValue) {
  * Destroy the macro compiler internal symbol table.
  */
 void sym_destroyTable() {
-	hashmap_destroy(_htab, sym_destroyEntry);
-	_htab = NULL;
+	hashmap_destroy(_globalContext.ic_table, sym_destroyEntry);
+	_globalContext.ic_table = NULL;
+}
+
+/*
+ * Push a new identifier context chained to the given parent context and return
+ * the new context.
+ */
+IDENTIFIER_CONTEXT* sym_pushContext(IDENTIFIER_CONTEXT* pParent) {
+	IDENTIFIER_CONTEXT* pNew = calloc(1, sizeof * pNew);
+	if (!pNew) {
+		return NULL;
+	}
+	pNew->ic_next = pParent;
+	return pNew;
+}
+
+/*
+ * Pop an identifier identifier context chained to the given parent context and return
+ * the next context in the context chain. An attempt to pop a NULL context or the
+ * global context will be a no-op.
+ */
+IDENTIFIER_CONTEXT* sym_popContext(IDENTIFIER_CONTEXT* pContext) {
+	if (!pContext || pContext == sym_getGlobalContext()) {
+		return pContext;
+	}
+	hashmap_destroy(pContext->ic_table, sym_destroyEntry);
+	IDENTIFIER_CONTEXT* pRet = pContext->ic_next;
+	free(pContext);
+	return pRet;
 }
 
 /*---------------------------------
  * sym_create()	
  * Create a symbol table.
  *---------------------------------*/
-static int sym_create() {
-	_htab = hashmap_create(HSIZE, NULL, NULL);
-	return _htab != NULL;
+static int sym_create(IDENTIFIER_CONTEXT* pContext) {
+	pContext->ic_table = hashmap_create(HSIZE, NULL, NULL);
+	return pContext->ic_table != NULL;
 }
 
 /*--------------------------------------------------------------------------
  * sym_find()
  */
-PKS_VALUE sym_find(char *key,char **key_ret) {
-	if (!_htab) {
-		sym_create();
+PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, char *key,char **key_ret) {
+	if (!pContext->ic_table) {
+		sym_create(pContext);
 	}
 	HASH_ENTRY entry;
-	if (!hashmap_getEntry(_htab, (intptr_t)key, &entry)) {
+	if (!hashmap_getEntry(pContext->ic_table, (intptr_t)key, &entry)) {
+		if (pContext->ic_next) {
+			return sym_find(pContext->ic_next, key, key_ret);
+		}
 		return nullSymbol;
 	}
 
@@ -88,13 +131,13 @@ PKS_VALUE sym_find(char *key,char **key_ret) {
 /*--------------------------------------------------------------------------
  * sym_insert()
  */
-int sym_insert(char *key, SYMBOL_TYPE stType, GENERIC_DATA symdata) {
-	if (!_htab) {
-		sym_create();
+int sym_insert(IDENTIFIER_CONTEXT* pContext, char *key, SYMBOL_TYPE stType, GENERIC_DATA symdata) {
+	if (!pContext->ic_table) {
+		sym_create(pContext);
 	}
 	HASH_ENTRY entry;
-	if (hashmap_getEntry(_htab, (intptr_t)key, &entry)) {
-		hashmap_remove(_htab, (intptr_t)entry.he_key);
+	if (hashmap_getEntry(pContext->ic_table, (intptr_t)key, &entry)) {
+		hashmap_remove(pContext->ic_table, (intptr_t)entry.he_key);
 		key = (char*)entry.he_key;
 		sym_destroyEntry(0, entry.he_value);
 	} else {
@@ -103,7 +146,7 @@ int sym_insert(char *key, SYMBOL_TYPE stType, GENERIC_DATA symdata) {
 	PKS_VALUE* sym = calloc(1, sizeof * sym);
 	sym->sym_data = symdata;
 	sym->sym_type = stType;
-	hashmap_put(_htab, (intptr_t)key, (intptr_t)sym);
+	hashmap_put(pContext->ic_table, (intptr_t)key, (intptr_t)sym);
 	return 1;	
 }
 
@@ -111,24 +154,24 @@ int sym_insert(char *key, SYMBOL_TYPE stType, GENERIC_DATA symdata) {
 /*--------------------------------------------------------------------------
  * sym_makeInternalSymbol()
  */
-int sym_makeInternalSymbol(char *name, SYMBOL_TYPE stType, GENERIC_DATA value) {
+int sym_makeInternalSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, GENERIC_DATA value) {
 	if (stType == S_STRING || stType == S_CONSTSTRING) {
 		if ((value.string = _strdup(value.string)) == 0) {
 			return 0;
 		}
 	}
-	return sym_insert(name, stType, value);
+	return sym_insert(pContext, name, stType, value);
 }
 
 /*--------------------------------------------------------------------------
  * sym_getVariable()
  */
-static PKS_VALUE sym_getVariable(char *symbolname)
+static PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char *symbolname)
 {
 	PKS_VALUE 	sym;
-	char	*	tmp;
+	char* tmp;
 
-	sym = sym_find(symbolname,&tmp);
+	sym = sym_find(pContext, symbolname,&tmp);
 	if (NULLSYM(sym)) {
 		error_displayAlertDialog("undefined symbol %s",symbolname);
 		return sym;
@@ -146,12 +189,12 @@ static PKS_VALUE sym_getVariable(char *symbolname)
 /*--------------------------------------------------------------------------
  * sym_integerForSymbol()
  */
-long sym_integerForSymbol(char *symbolname) {
+long sym_integerForSymbol(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 	PKS_VALUE 	sym;
 	int		isString;
 	intptr_t value;
 
-	sym = sym_getVariable(symbolname);
+	sym = sym_getVariable(pContext, symbolname);
 
 	if (NULLSYM(sym)) {
 		return 0L;
@@ -178,26 +221,26 @@ long sym_integerForSymbol(char *symbolname) {
 /*--------------------------------------------------------------------------
  * sym_floatForSymbol()
  */
-double sym_floatForSymbol(char* symbolname) {
+double sym_floatForSymbol(IDENTIFIER_CONTEXT* pContext, char* symbolname) {
 	PKS_VALUE 	sym;
 
-	sym = sym_getVariable(symbolname);
+	sym = sym_getVariable(pContext, symbolname);
 	if (TYPEOF(sym) == S_FLOAT) {
 		return sym.sym_data.doubleValue;
 	}
-	return (double)sym_integerForSymbol(symbolname);
+	return (double)sym_integerForSymbol(pContext, symbolname);
 }
 
 /*--------------------------------------------------------------------------
  * sym_stringForSymbol()
  */
-intptr_t sym_stringForSymbol(char *symbolname) {
+intptr_t sym_stringForSymbol(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 	PKS_VALUE 	sym;
 	int		isString;
 	intptr_t		value;
 	static char buf[20];
 
-	sym = sym_getVariable(symbolname);
+	sym = sym_getVariable(pContext, symbolname);
 
 	if (NULLSYM(sym)) {
 		return (intptr_t)"";
@@ -232,12 +275,12 @@ intptr_t sym_stringForSymbol(char *symbolname) {
 /*--------------------------------------------------------------------------
  * sym_assignSymbol()
  */
-long sym_assignSymbol(char *name, COM_LONG1 *v) {
+long sym_assignSymbol(IDENTIFIER_CONTEXT* pContext, char *name, COM_LONG1 *v) {
 	SYMBOL_TYPE 	sSymbolType;
 	GENERIC_DATA value;
 
 	sSymbolType = macro_isParameterFloatType(v->typ) ? S_FLOAT : (macro_isParameterStringType(v->typ) ? S_STRING : S_NUMBER);
 	value = macro_popParameter((unsigned char**)&v);
-	return sym_makeInternalSymbol(name, sSymbolType, value);
+	return sym_makeInternalSymbol(pContext, name, sSymbolType, value);
 }
 

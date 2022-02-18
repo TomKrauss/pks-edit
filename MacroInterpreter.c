@@ -26,7 +26,7 @@
 #include "scanner.h"
 #include "funcdef.h"
 #include "mouseutil.h"
-#include "sym.h"
+#include "symbols.h"
 #include "markpositions.h"
 #include "caretmovement.h"
 
@@ -35,10 +35,6 @@ extern int 				EdMacroRecord(void);
 extern int 				ft_selectWindowWithId(int winid, BOOL bPopup);
 extern int 				dlg_displayRecordMacroOptions(int *o);
 
-extern long 			sym_integerForSymbol(char *p);
-extern intptr_t			sym_stringForSymbol(char *p);
-extern double			sym_floatForSymbol(char* symbolname);
-extern long 			sym_assignSymbol(char *name, COM_LONG1 *v);
 /*--------------------------------------------------------------------------
  * macro_testExpression()
  * Test an expression in a macro.
@@ -83,6 +79,7 @@ int macro_getParameterSize(unsigned char typ, const char *s)
 		case C_FURET:
 		case C_0FUNC:
 		case C_CHARACTER_LITERAL:
+		case C_BOOLEAN_LITERAL:
 			return sizeof(COM_CHAR1);
 		case C_1FUNC:
 			return sizeof(COM_1FUNC);
@@ -335,11 +332,11 @@ GENERIC_DATA macro_popParameter(unsigned char** Sp) {
 			return (GENERIC_DATA) { .doubleValue = dDouble };
 		}
 		case C_FLOATVAR:
-			return (GENERIC_DATA) { .doubleValue = sym_floatForSymbol(((COM_VAR*)sp)->name) };
+			return (GENERIC_DATA) { .doubleValue = sym_floatForSymbol(sym_getGlobalContext(), ((COM_VAR*)sp)->name) };
 		case C_LONGVAR:
-			return (GENERIC_DATA) { .longValue = sym_integerForSymbol(((COM_VAR*)sp)->name) };
+			return (GENERIC_DATA) { .longValue = sym_integerForSymbol(sym_getGlobalContext(), ((COM_VAR*)sp)->name) };
 		case C_STRINGVAR:
-			return (GENERIC_DATA) { .val = sym_stringForSymbol(((COM_VAR*)sp)->name) };
+			return (GENERIC_DATA) { .val = sym_stringForSymbol(sym_getGlobalContext(), ((COM_VAR*)sp)->name) };
 		case C_STRING_LITERAL:
 			return (GENERIC_DATA) {
 				.val = (intptr_t) & ((COM_STRING1*)sp)->s
@@ -356,7 +353,7 @@ GENERIC_DATA macro_popParameter(unsigned char** Sp) {
 static void macro_recordFunctionWithParameters(int fnum, int p, intptr_t p2, char *s1, char *s2)
 {	COM_1FUNC c;
 
-	if (_edfunctab[fnum].flags & EW_NOCASH)	/* avoid recursion	*/
+	if (_functionTable[fnum].flags & EW_NOCASH)	/* avoid recursion	*/
 		return;
 
 	c.funcnum = fnum;
@@ -443,7 +440,7 @@ int macro_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn) {
  * macro_canExecuteFunction()
  */
 int macro_canExecuteFunction(int num, long long pParam, int warn) {
-	EDFUNC *	fup = &_edfunctab[num];
+	EDFUNC *	fup = &_functionTable[num];
 	return macro_isFunctionEnabled(fup, pParam, warn);
 }
 
@@ -452,7 +449,7 @@ int macro_canExecuteFunction(int num, long long pParam, int warn) {
 /*---------------------------------*/
 int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3)
 {
-	EDFUNC *	fup = &_edfunctab[num];
+	EDFUNC *	fup = &_functionTable[num];
 	int 		ret = 0;
 	int			i;
 
@@ -603,7 +600,7 @@ static void macro_returnFunctionValue(unsigned char typ, intptr_t v)
 		((COM_LONG1 *)value)->val = v;
 	}
 	vname[6] = '0' + (int)_fncmarker;
-	sym_assignSymbol(vname,(COM_LONG1 *)value);
+	sym_assignSymbol(sym_getGlobalContext(), vname,(COM_LONG1 *)value);
 	_fncmarker = -1;
 }
 
@@ -648,7 +645,7 @@ int macro_interpretByteCodes(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 				cp = COM1_INCR(cp,COM_BINOP,size);
 				continue;
 			case C_DEFINE_PARAMETER:
-				sym_makeInternalSymbol(((COM_CREATESYM*)cp)->name,
+				sym_makeInternalSymbol(sym_getGlobalContext(), ((COM_CREATESYM*)cp)->name,
 					((COM_CREATESYM*)cp)->symtype,
 					(GENERIC_DATA) {.longValue = ((COM_CREATESYM*)cp)->value});
 				cp = COM1_INCR(cp,COM_CREATESYM,size);
@@ -659,7 +656,7 @@ int macro_interpretByteCodes(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 				val = 1;
 				break;
 			case C_ASSIGN:
-				sym_assignSymbol(((COM_ASSIGN*)cp)->name,
+				sym_assignSymbol(sym_getGlobalContext(), ((COM_ASSIGN*)cp)->name,
 					(COM_LONG1 *)COM1_INCR(cp,COM_ASSIGN,opoffset));
 				cp = COM1_INCR(cp,COM_ASSIGN,size);
 				val = 1;

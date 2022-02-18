@@ -16,43 +16,23 @@
 # ifndef FUNCDEF_H
 #define	FUNCDEF_H
 
- /*
-  * parameter flags
-  */
-#define	OF_ELIPSIS	0x8				// ... parameters may follow
-
-/*
- * kind of enum value types
- */
-#define	OT_ENUM			1			// enumeration type
-#define	OT_OPTION		2			// bitfield type
-
-typedef struct tagTYPEELEM {
-	const char* te_name;
-	long		te_val;
-} TYPEELEM;
-
-typedef struct tagOWNTYPE {
-	char			ot_name;
-	signed char		ot_typ;
-	char			ot_flags;
-	unsigned char	ot_idx;
-	unsigned char	ot_nelem;
-	char*			ot_enumPrefix;
-} OWNTYPE;
-
-#define	MAXPARS		10
+typedef struct tagPARAMETER_ENUM_VALUE {
+	const char* pev_name;
+	long		pev_val;
+} PARAMETER_ENUM_VALUE;
 
 typedef enum {
-	PAR_ENUM = 'e',			// An "enum" type parameter which can be determined from the TYPEELEM table. Index into that table follows.
-	PAR_VOID = 0,			// end of parameter list - should support real void
-	PAR_INT = 'i',			// this parameter is an integer
-	PAR_STRING = 's'		// this parameter is a String parameter
+	PARAM_TYPE_BITSET = 'b',		// An "enum" type parameter which can be determined from the PARAMETER_ENUM_VALUE table used as a flag / bitset. Index into that table follows.
+	PARAM_TYPE_ENUM = 'e',			// An "enum" type parameter which can be determined from the PARAMETER_ENUM_VALUE table. Index into that table follows.
+	PARAM_TYPE_VOID = 0,			// end of parameter list - should support real void
+	PARAM_TYPE_INT = 'i',			// this parameter is an integer
+	PARAM_TYPE_STRING = 's'			// this parameter is a String parameter
 } PARAMETER_TYPE;
 
 typedef struct tagPARAMETER_TYPE_DESCRIPTOR {
-	PARAMETER_TYPE		pt_type;
-	OWNTYPE*			pt_enumType;		// for enum type parameters the offset to the TYPEELEM table.
+	PARAMETER_TYPE			pt_type;
+	PARAMETER_ENUM_VALUE*	pt_enumVal;		// for enum and bitset type parameters the first enum value
+	int						pt_enumCount;	// for enum and bitset type parameters the number of enum values
 } PARAMETER_TYPE_DESCRIPTOR;
 
 typedef struct edfunc {
@@ -76,10 +56,11 @@ extern PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(EDFUNC* ep,
  */
 extern int macro_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn);
 
-extern int 		_nfuncs, _nfunctions,_nenelems, _ntypes;
-extern EDFUNC	_edfunctab[];
-extern OWNTYPE 	_typetab[];
-extern TYPEELEM	_enelemtab[];
+extern int 		_functionTableSize;
+extern EDFUNC	_functionTable[];
+
+extern int		_parameterEnumValueTableSize;
+extern PARAMETER_ENUM_VALUE	_parameterEnumValueTable[];
 
 #define 	FUNC_EdBlockCopy				2
 #define 	FUNC_EdBlockMove				6

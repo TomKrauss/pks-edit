@@ -225,7 +225,7 @@
     <ClCompile Include="StringTokenizer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="macro_compiler\MacroSymbolMapping.c">
+    <ClCompile Include="macro_compiler\Symbols.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CrossReferenceLinks.c">
@@ -283,9 +283,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CodeAnalyzer.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="macro_compiler\CommandFunctionTable.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MainFrame.c">
@@ -383,7 +380,7 @@
     <ClInclude Include="include\scanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\sym.h">
+    <ClInclude Include="include\symbols.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\test.h">

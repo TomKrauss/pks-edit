@@ -18,6 +18,7 @@
 
 %token T_TSTRING T_TINT T_TCHAR T_TLONG T_TFLOAT
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_OCTNUM T_CONST
+%token T_TRUE T_FALSE T_BOOLEAN
 %token T_FUNC T_MACRO T_DOTDOT T_PLUSPLUS T_MINUSMINUS
 %token T_IF T_ELIF T_ELSE T_WHILE T_GOTO T_BRAEQ 
 %token T_LOCAL T_SWITCH T_BREAK T_CONTINUE T_RETURN 
@@ -46,7 +47,7 @@
 #include "scanner.h"
 #include "test.h"
 #include "pkscc.h"
-#include "sym.h"
+#include "symbols.h"
 
 # define 	YYSTYPE _YYSTYPE
 # define 	STRINGTYPE(type)	((type == C_STRING_LITERAL||type == C_STRINGVAR) ? \
@@ -121,15 +122,21 @@ void 		bytecode_destroyLabelNamed(char *name);
  char			*bytecode_generateAutoLabelName(char *prefix, int num);
 int 			function_returnsString(void *ep);
 
-static void makeInternalSymbol(const char* pszName, int sType, intptr_t tVal) {
-	SYMBOL_TYPE nSymbolType;
-	switch(sType) {
-	   case C_STRING_LITERAL: nSymbolType = S_STRING; break;
-	   case C_FLOAT_LITERAL: nSymbolType = S_FLOAT; break;
-	   default: nSymbolType = S_NUMBER; break;
+IDENTIFIER_CONTEXT* _currentIdentifierContext;
+
+static SYMBOL_TYPE symbolTypeForLiteralType(int nLiteralType) {
+	switch(nLiteralType) {
+	   case C_STRING_LITERAL: return S_STRING; 
+	   case C_FLOAT_LITERAL: return S_FLOAT; 
+	   case C_BOOLEAN_LITERAL: return S_BOOLEAN; 
+	   default: return S_NUMBER; 
 	}
+}
+
+static void makeInternalSymbol(const char* pszName, int sType, intptr_t tVal) {
+	SYMBOL_TYPE nSymbolType = symbolTypeForLiteralType(sType);
 	bytecode_defineVariable(pszName, C_DEFINE_VARIABLE, nSymbolType, tVal);
-	sym_makeInternalSymbol((char*) pszName, nSymbolType, (GENERIC_DATA) {.val = tVal});
+	sym_makeInternalSymbol(_currentIdentifierContext, (char*) pszName, nSymbolType, (GENERIC_DATA) {.val = tVal});
 }
 
 %}
@@ -157,7 +164,7 @@ constdefs		: constdef
 constdef		: { _bDefiningConst = 1; } var_ident { _bDefiningConst = 0; } 
 				T_ASSIGN constnum_or_string
 			{
-				sym_makeInternalSymbol($2.ident.s,
+				sym_makeInternalSymbol(_currentIdentifierContext, $2.ident.s,
 					($5.v.type == C_STRING_LITERAL) ? 
 					S_CONSTSTRING : S_CONSTNUM, $5.v.data);
 				freeval(&$5.v);
@@ -185,7 +192,7 @@ par_decl: type_ident var_ident {
 				int typ;
 				
 				typ = ($1.type == C_STRING_LITERAL) ? S_DOLSTRING : S_DOLNUMBER;
-				sym_makeInternalSymbol($2.ident.s,typ,(GENERIC_DATA) {_nparam});
+				sym_makeInternalSymbol(_currentIdentifierContext, $2.ident.s,typ,(GENERIC_DATA) {_nparam});
 				bytecode_defineVariable($2.ident.s,C_DEFINE_PARAMETER,typ,_nparam);
 				_nparam++;
 			}
@@ -360,7 +367,7 @@ string_match_operator: '~'	{	$$.type = CT_MATCH;			}
 term:		fcall {	$$.type = C_LONG_LITERAL; 	 	}
 			| value		{	$$.type = bytecode_emitPushValueInstruction(&$1.v);	}
 
-value:		T_NUMVAR 	{
+value:		T_NUMVAR {
 				$$.v.type = C_LONGVAR;  
 				$$.v.data.string = $1.ident.s;
 			}
@@ -376,7 +383,12 @@ value:		T_NUMVAR 	{
 				$$.v.type = C_STRING_LITERAL;
 				$$.v.data.string  = $1.ident.s;
 			}
-			| constexpr 	{	$$.v = $1.v;	}
+			| constexpr {	$$.v = $1.v;	}
+			| T_IDENT {
+				yyerror("Undefined identifier %s", $1.ident.s);
+				$$.v.type = C_STRINGVAR;  
+				$$.v.data.string  = $1.ident.s;
+			}
 
 string		: T_STRING	{	$$.ident = $1.ident;	}
 			| string	T_STRING { 
@@ -408,12 +420,12 @@ case			: T_SWITCH cond '{' caselabels '}'
 caselabels	:
 			| label block caselabels
 
-label		: T_IDENT ':' {
+label:		T_IDENT ':' {
 				bytecode_createBranchLabel($1.ident.s,(COM_GOTO *)_recp);
 				freeitem(&$1.ident.s);
 			}
 
-goto: T_GOTO T_IDENT {
+goto:		T_GOTO T_IDENT {
 				_recp = bytecode_emitGotoLabelInstruction($2.ident.s,_recp,_recpend,BRA_ALWAYS);
 				freeitem(&$2.ident.s);
 			}
@@ -508,7 +520,16 @@ type_ident	: T_TCHAR				{	$$.type = C_CHARACTER_LITERAL;	}
 			| T_TINT				{	$$.type = C_INTEGER_LITERAL;	}
 			| T_TLONG				{	$$.type = C_LONG_LITERAL;	}
 			| T_TFLOAT				{	$$.type = C_FLOAT_LITERAL;	}
+			| T_BOOLEAN				{	$$.type = C_BOOLEAN_LITERAL; }
 			| T_TSTRING				{	$$.type = C_STRING_LITERAL;	}
+
+boolean_literal: T_TRUE {
+			$$.v.type = C_BOOLEAN_LITERAL; 
+			$$.v.data.booleanValue = 1;
+		} | T_FALSE {
+			$$.v.type = C_BOOLEAN_LITERAL; 
+			$$.v.data.booleanValue = 0;
+		}
 
 float_literal: T_FLOATING_POINT_NUMBER {
 				$$.v.type = C_FLOAT_LITERAL; 
@@ -529,6 +550,7 @@ constnum_or_string:
 
 constexpr: integer_literal 	{ $$.v = $1.v;	}
 			| float_literal { $$.v = $1.v; }
+			| boolean_literal { $$.v = $1.v; }
 			| constexpr '|' integer_literal {
 				$$.v.type = $1.v.type;
 				$$.v.data.longValue = $1.v.data.longValue | $3.v.data.longValue;
@@ -688,18 +710,19 @@ int	yydebug = 1;
 	_iflevel    = 0;
 	yyerrflg = 0;
 	_exprlevel = 0;
+	_currentIdentifierContext = sym_pushContext(_currentIdentifierContext);
 }
 
 /*---------------------------------*/
 /* endmacro()					*/
 /*---------------------------------*/
-static void endmacro(void)
-{
+static void endmacro(void) {
 	if (_recspace) {
 		free(_recspace);
 		_recspace = 0;
 		_recpend = 0;
 	}
+	_currentIdentifierContext = sym_popContext(_currentIdentifierContext);
 }
 
 #if 0

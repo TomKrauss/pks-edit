@@ -22,7 +22,7 @@
 #include "regexp.h"
 #include "pksmod.h"
 #include "test.h"
-#include "sym.h"
+#include "symbols.h"
 #include "pkscc.h"
 #include "errordialogs.h"
 
@@ -228,11 +228,12 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 
 	if (op == BIN_CONVERT) {
 		if (macro_isParameterStringType(typ1)) {
-			sym_makeInternalSymbol(sp->result, S_NUMBER, (GENERIC_DATA) {
+			// (T) use current method execution context
+			sym_makeInternalSymbol(sym_getGlobalContext(), sp->result, S_NUMBER, (GENERIC_DATA) {
 				.longValue = macro_getNumberParameter(p1, p2)
 			});
 		} else {
-			sym_makeInternalSymbol(sp->result, S_STRING, (GENERIC_DATA) {
+			sym_makeInternalSymbol(sym_getGlobalContext(), sp->result, S_STRING, (GENERIC_DATA) {
 				.string = macro_getStringParameter(p1)
 			});
 		}
@@ -261,7 +262,7 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 				error_displayAlertDialog("binop: ~ OP %c not implemented for float numbers", op);
 				d1 = 0;
 			}
-			sym_makeInternalSymbol(sp->result, S_FLOAT, (GENERIC_DATA) {
+			sym_makeInternalSymbol(sym_getGlobalContext(), sp->result, S_FLOAT, (GENERIC_DATA) {
 				.doubleValue = d1
 			});
 			return;
@@ -295,7 +296,7 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 			error_displayAlertDialog("binop: ~ OP %c not implemented",op);
 			r1 = 0;
 		}
-		sym_makeInternalSymbol(sp->result, S_NUMBER, (GENERIC_DATA) {
+		sym_makeInternalSymbol(sym_getGlobalContext(), sp->result, S_NUMBER, (GENERIC_DATA) {
 			.longValue = r1
 		});
 		return;
@@ -335,7 +336,7 @@ void macro_evaluateBinaryExpression(COM_BINOP *sp)
 		error_displayAlertDialog("string binop %c not impl.",op);
 
 	}
-	sym_makeInternalSymbol(sp->result, S_STRING, (GENERIC_DATA) {
+	sym_makeInternalSymbol(sym_getGlobalContext(), sp->result, S_STRING, (GENERIC_DATA) {
 		.string = buf
 	});
 }

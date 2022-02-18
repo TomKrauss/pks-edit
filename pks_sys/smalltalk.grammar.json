@@ -1,0 +1,80 @@
+{
+  "grammars": [
+    {
+      "scopeName": "smalltalk",
+      "description": "Grammar for Smalltalk files",
+      "templates": [
+        {
+          "match": "'",
+          "contents": "${cursor}'",
+          "auto-insert": true
+        },
+        {
+          "match": "(",
+          "contents": "${cursor})",
+          "auto-insert": true
+        },
+        {
+          "match": "[",
+          "contents": "\n${indent}${tab}${cursor}\n${indent}]",
+          "auto-insert": true
+        },
+        {
+          "match": "\"",
+          "contents": "${cursor}\"",
+          "auto-insert": true
+        }
+      ],
+      "patterns": [
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "<[a-zA-Z_0-9]+:>",
+          "style": "identifier",
+          "name": "identifier.method"
+        },
+        {
+          "match": "<#[a-zA-Z_0-9]+>",
+          "style": "annotation",
+          "name": "identifier.symbol"
+        },
+        {
+          "match": "<:[a-zA-Z_0-9]+>",
+          "style": "literal",
+          "name": "identifier.variable"
+        },
+        {
+          "begin": "\"",
+          "end": "\"",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "'(?:\\'|[^'])+?'",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "[+:=^[|\\]][=+]?",
+          "style": "operator",
+          "name": "keyword.operator"
+        },
+        {
+          "keywords": [
+            "true",
+            "false",
+            "self",
+            "super",
+            "nil",
+            "class"
+          ],
+          "style": "keyword",
+          "name": "keyword.cs"
+        }
+      ]
+    }
+  ]
+}

@@ -20,6 +20,18 @@
 
 #define PUBLICAPI_H
 
+#define	QUERY_CLIPBOARDAVAIL		0
+#define	QUERY_HAS_SELECTION_START			1
+#define	QUERY_HAS_SELECTION_END			2
+#define	QUERY_HAS_SELECTION			3
+#define	QUERY_CURRENTFILE			4
+#define	QUERY_OPTIONS				5
+#define	QUERY_LAYOUTOPTIONS			6
+#define	QUERY_WORKMODE				7
+#define	QUERY_DISPLAYMODE			8
+#define QUERY_FILEMODIFIED			9
+#define QUERY_BLOCKXTNDMODE			10
+
  /*--------------------------------------------------------------------------
   * EdCursorLeft()
   */

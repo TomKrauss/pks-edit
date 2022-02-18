@@ -950,7 +950,7 @@ endrep:
  * EdStringSubstitute()
  * substitute in a string
  */
-void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *pattern, char *with)
+void EdStringSubstitute(unsigned long nmax, long nREFlags, char *string, char *pattern, char *with)
 {
 	static char	ebuf[ESIZE];
 	char *	src;
@@ -971,8 +971,8 @@ void EdStringSubstitute(unsigned long nmax, long flags, char *string, char *patt
 	if (pattern &&
 	    string &&
 	    with &&
-	    (pPattern = find_regexCompile(ebuf, pattern, flags)) &&
-		regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) {	with, flags, nlchar, pPattern->nbrackets}, & _currentReplacementPattern)) {
+	    (pPattern = find_regexCompile(ebuf, pattern, nREFlags)) &&
+		regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) {	with, nREFlags, nlchar, pPattern->nbrackets}, & _currentReplacementPattern)) {
 		src = string;
 		send = _linebuf;
 		

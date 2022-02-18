@@ -318,7 +318,6 @@
     <ClCompile Include="MarkdownRenderer.c" />
     <ClCompile Include="JsonParser.c" />
     <ClCompile Include="Levensthein.c" />
-    <ClCompile Include="macro_compiler\CommandFunctionTable.c" />
     <ClCompile Include="MainFrame.c" />
     <ClCompile Include="ProgressMonitor.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -1032,7 +1031,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="macro_compiler\MacroSymbolMapping.c">
+    <ClCompile Include="macro_compiler\Symbols.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1190,7 +1189,7 @@
     <ClInclude Include="include\regexp.h" />
     <ClInclude Include="include\resource.h" />
     <ClInclude Include="include\scanner.h" />
-    <ClInclude Include="include\sym.h" />
+    <ClInclude Include="include\symbols.h" />
     <ClInclude Include="include\test.h" />
     <ClInclude Include="include\tos.h" />
     <ClInclude Include="include\trace.h" />

@@ -85,7 +85,6 @@ extern int find_replaceTabsWithSpaces(int scope, int flg);
  * EdReplaceText()
  * replace, mark, count... lines with RE
  */
-#ifdef _WINFO_H
 
 // Find and replace actions
 typedef enum {
@@ -103,6 +102,7 @@ typedef enum {
 	RTR_CANCELLED}		// some occurrances were potentially replaced, but the user cancelled the operation
 REPLACE_TEXT_RESULT;
 
+#ifdef _WINFO_H
 extern REPLACE_TEXT_RESULT EdReplaceText(WINFO* wp, int scope, REPLACE_TEXT_ACTION action);
 #endif
 

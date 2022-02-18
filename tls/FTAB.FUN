@@ -156,9 +156,6 @@ Defun(EdCursorDown(bool,CURSORMOTION),CM,
 Defun(EdCharDelete(bool,CURSORMOTION),CUm,
 	"Löscht .. Zeichen an der Cursor-Position",
 	"delete")
-Defun(EdFkeysSwitch(bool,FKEYSPARAM),-,
-	"Steuert die Funktionstastenanzeige",
-	"switch-fkeys")
 Defun(EdMacroEscape(bool,DIALOGOPT,"int:id:Kennung des Bausteins"),FCUm,
 	"Fügt einen Textbaustein ein",
 	"insert-text")

@@ -441,7 +441,7 @@ char *yytext;
 #include "alloc.h"
 #include "stringutil.h"
 #include "edfuncs.h"
-#include "sym.h"
+#include "symbols.h"
 #include "scanner.h"
 #define YYSTYPE _YYSTYPE
 #include "parser.h"
@@ -490,11 +490,11 @@ int				_bDefiningConst;
 
 typedef void EDFUNCDEF;
 
+extern IDENTIFIER_CONTEXT* _currentIdentifierContext;
 extern FILE		*file_createTempFile(char *fnd, char *fn);
 extern int 		function_initializeFunctionsAndTypes(void);
 extern long 	function_enumValueFor(void *enp);
 extern void 	macro_selectDefaultBindings(void);
-extern void 	stepselectcompiler(char *pszName);
 extern int		_macedited;
 
 #if defined(STAND_ALONE)
@@ -525,6 +525,9 @@ static struct kw {
 	T_TINT,		"int",
 	T_TLONG,	"long",
 	T_TFLOAT,	"float",
+	T_BOOLEAN,	"boolean",
+	T_TRUE,		"true",
+	T_FALSE,	"false",
 	T_TSTRING,	"string",
 	-1,			0
 };
@@ -533,7 +536,7 @@ static int init_keywords(void)
 {	struct kw *kp = keywords;
 
 	while(kp->name) {
-		if (!sym_insert(kp->name,S_KEYWORD,(GENERIC_DATA){.intValue = kp->toknum}))
+		if (!sym_insert(sym_getGlobalContext(), kp->name,S_KEYWORD,(GENERIC_DATA){.intValue = kp->toknum}))
 			return 0;
 		kp++;
 	}
@@ -632,6 +635,7 @@ COMPILER_CONFIGURATION* _compilerConfiguration;
 int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe) {
 	static tables_inited;
 	_compilerConfiguration = pConfig;
+	_currentIdentifierContext = sym_getGlobalContext();
 	if (!tables_inited) {
 		if (!init_keywords() ||
 		    !function_initializeFunctionsAndTypes()) {
@@ -1147,7 +1151,7 @@ YY_RULE_SETUP
 {	PKS_VALUE 	sym;
 				char *	key;
 
-				sym = sym_find(yytext,&key);
+				sym = sym_find(_currentIdentifierContext, yytext,&key);
 				if (VALUE(sym) == 0 && TYPEOF(sym) == 0) {
 retIdent:			yylval.ident.s = yystralloc(yytext);
 					yylval.ident.stringIsAlloced = 1;

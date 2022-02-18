@@ -19,7 +19,7 @@
 #include "edfuncs.h"
 #include "funcdef.h"
 #include "pksmod.h"
-#include "sym.h"
+#include "symbols.h"
 #include "pkscc.h"
 #include "test.h"
 #include "funcdef.h"
@@ -59,8 +59,8 @@ static char *decompile_stringForTestOperator(unsigned char op)
  */
 static EDFUNC *decompile_getFunctionForIndex(int idx)
 {
-	if (idx >= 0 && idx < _nfuncs) {
-		return &_edfunctab[idx];
+	if (idx >= 0 && idx < _functionTableSize) {
+		return &_functionTable[idx];
 	}
 	return 0;
 }
@@ -89,22 +89,20 @@ static char *decompile_quoteString(unsigned char *name)
  */
 static int decompile_printParameterAsConstant(FILE *fp,long long val, PARAMETER_TYPE_DESCRIPTOR partyp)
 {
-	OWNTYPE	*op;
-	TYPEELEM	*ep,*epend;
+	PARAMETER_ENUM_VALUE	*ep,*epend;
 	int printed = 0;
 
-	op = partyp.pt_enumType;
-	ep = &_enelemtab[op->ot_idx];
-	epend = ep+op->ot_nelem;
+	ep = partyp.pt_enumVal;
+	epend = partyp.pt_enumVal + partyp.pt_enumCount;
 
-	if (op->ot_typ == OT_OPTION) {
+	if (partyp.pt_type == PARAM_TYPE_BITSET) {
 		while(ep < epend) {
-			if (val & ep->te_val) {
+			if (val & ep->pev_val) {
 				if (printed)
 					fputc('|',fp);
-				fputs(ep->te_name,fp);
+				fputs(ep->pev_name,fp);
 				printed++;
-				val &= (~ep->te_val);
+				val &= (~ep->pev_val);
 				if (!val)
 					return 1;
 			}
@@ -113,8 +111,8 @@ static int decompile_printParameterAsConstant(FILE *fp,long long val, PARAMETER_
 	} else {
 		/* OT_ENUM */
 		while(ep < epend) {
-			if (val == ep->te_val) {
-				fputs(ep->te_name,fp);
+			if (val == ep->pev_val) {
+				fputs(ep->pev_name,fp);
 				return 1;
 			}
 			ep++;
@@ -153,6 +151,9 @@ static int decompile_printParameter(FILE *fp, unsigned char *sp, PARAMETER_TYPE_
 		case C_FLOAT_LITERAL:
 			fprintf(fp, "%lf", ((COM_FLOAT1*)sp)->val);
 			return 1;
+		case C_BOOLEAN_LITERAL:
+			fprintf(fp, "%s", ((COM_FLOAT1*)sp)->val ? "true" : "false");
+			return 1;
 		case C_INTEGER_LITERAL:
 			val = ((COM_INT1 *)sp)->val;
 			break;
@@ -160,13 +161,13 @@ static int decompile_printParameter(FILE *fp, unsigned char *sp, PARAMETER_TYPE_
 			val = (long long)((COM_LONG1 *)sp)->val;
 			break;
 		case C_STRING_LITERAL:
-			if (partyp.pt_type != PAR_STRING)
+			if (partyp.pt_type != PARAM_TYPE_STRING)
 				goto err;
 			fprintf(fp,"\"%s\"",decompile_quoteString(((COM_STRING1*)sp)->s));
 			return 1;
 		case C_FLOATVAR:
 		case C_LONGVAR:
-			if (partyp.pt_type == PAR_STRING)
+			if (partyp.pt_type == PARAM_TYPE_STRING)
 				goto err;
 			// drop through
 		case C_STRINGVAR:
@@ -174,17 +175,17 @@ static int decompile_printParameter(FILE *fp, unsigned char *sp, PARAMETER_TYPE_
 			return 1;
 		default:
 			err:
-			error_displayAlertDialog("format error in params");
+			error_displayAlertDialog("Format error in parameters of function to decompile");
 			return -1;
 	}
 
-	if (partyp.pt_type == PAR_STRING)
+	if (partyp.pt_type == PARAM_TYPE_STRING)
 		goto err;
 	
-	if (partyp.pt_type == PAR_ENUM && partyp.pt_enumType)
+	if (partyp.pt_type == PARAM_TYPE_ENUM && partyp.pt_enumVal)
 	    return decompile_printParameterAsConstant(fp,val,partyp);
 
-	if (typ == C_CHARACTER_LITERAL) {
+	if (typ == C_CHARACTER_LITERAL && val >= 32 && val <= 127) {
 		if ((char)val == '\\') {
 			fprintf(fp, "'\\\\'");
 		} else {
@@ -246,8 +247,8 @@ static unsigned char *decompile_function(FILE *fp, unsigned char *sp,
 	if (cp->typ == C_1FUNC) {
 		partyp = function_getParameterTypeDescriptor(ep, 1);
 		/* c0_func glitch */
-		if (partyp.pt_type != PAR_VOID &&
-		    (partyp.pt_enumType == NULL || (partyp.pt_enumType->ot_flags & OF_ELIPSIS) == 0)) {
+		if (partyp.pt_type != PARAM_TYPE_VOID &&
+		    (partyp.pt_enumVal == NULL)) {
 			if (decompile_printParameter(fp,sp,partyp) < 0)
 				return 0;
 			npars++;
@@ -257,7 +258,7 @@ static unsigned char *decompile_function(FILE *fp, unsigned char *sp,
 
 	while(sp < spend && C_IS1PAR(*sp)) {
 		partyp = function_getParameterTypeDescriptor(ep, npars + 1);
-		if (partyp.pt_type != PAR_VOID) {
+		if (partyp.pt_type != PARAM_TYPE_VOID) {
 			if (npars)
 				fputc(',',fp);
 			if (decompile_printParameter(fp,sp,partyp) < 0)
@@ -281,7 +282,7 @@ static void decompile_printTestExpression(FILE *fp, unsigned char *sp,unsigned c
 	if (C_ISCMD(t))
 		decompile_function(fp,sp,spend);
 	else {
-		decompile_printParameter(fp, sp, (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = macro_isParameterStringType(*sp) ? PAR_STRING : PAR_INT });
+		decompile_printParameter(fp, sp, (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = macro_isParameterStringType(*sp) ? PARAM_TYPE_STRING : PARAM_TYPE_INT });
 	}
 }
 

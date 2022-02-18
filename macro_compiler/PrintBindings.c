@@ -379,5 +379,5 @@ int print_saveMenuBindingsAndDisplay(void)
  * macro_loadStringResource()
  */
 const char *macro_loadStringResource(int nIndex) {
-	return nIndex >= 0 && nIndex < _nfuncs ? _edfunctab[nIndex].f_name : NULL;
+	return nIndex >= 0 && nIndex < _functionTableSize ? _functionTable[nIndex].f_name : NULL;
 }

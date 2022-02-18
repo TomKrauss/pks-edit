@@ -45,7 +45,7 @@ void action_commandEnablementChanged(ACTION_CHANGE_TYPE type) {
 			continue;
 		}
 		COMMAND* pCommand = &_cmdseqtab[pAction->ac_commandId];
-		EDFUNC* pFunc = &_edfunctab[pCommand->c_functionDef.funcnum];
+		EDFUNC* pFunc = &_functionTable[pCommand->c_functionDef.funcnum];
 		if (type.act_commandEnablement) {
 			int  bEnabled = macro_isFunctionEnabled(pFunc, pCommand->c_functionDef.p, 0);
 			if (bEnabled != pAction->ac_enabled) {
@@ -82,7 +82,7 @@ void action_deregisterAllActionsWithListener(const PROPERTY_CHANGE_LISTENER aLis
 }
 
 static void action_reevaluate(ACTION * pAction, ACTION_BINDING* pBinding) {
-	EDFUNC* pFunc = &_edfunctab[_cmdseqtab[pAction->ac_commandId].c_functionDef.funcnum];
+	EDFUNC* pFunc = &_functionTable[_cmdseqtab[pAction->ac_commandId].c_functionDef.funcnum];
 	pAction->ac_enabled  = macro_isFunctionEnabled(pFunc, 0l, 0);
 	(*pBinding->ab_propertyChanged)(pBinding, PC_ENABLED, pAction->ac_enabled);
 }

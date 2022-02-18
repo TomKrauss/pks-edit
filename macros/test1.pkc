@@ -32,10 +32,10 @@ macro Test-Params(int par, string par2)
 	string tmp;
 
     Alert("Hello");
-	tmp = "Es wurde " + (string)par + " als Parameter 1 angegeben und '" + (string)par2 + "' als Parameter 2";
+	tmp = "We have passed " + (string)par + " as parameter 1 and '" + (string)par2 + "' as parameter 2";
 	par2 = 14;
 	Alert(tmp);
-	tmp = "Nun habe ich Parameter 2 geändert zu:" + par2;
+	tmp = "Now parameter 2 was changed to:" + par2;
 	Alert(tmp);
 }
 
@@ -43,7 +43,7 @@ macro Test-Params(int par, string par2)
 macro Test-Call()
 {
 
-	Test-Params(12,"ein string");
+	Test-Params(12,"One string passed to function");
 	Test-Params(2,3);
 	Test-Params(3);
 }

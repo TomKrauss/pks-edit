@@ -13,11 +13,14 @@
 
 #include "edfuncs.h"
 #include "funcdef.h"
-#include "sym.h"
+#include "symbols.h"
 #include "pkscc.h"
 #include "stringutil.h"
 #include "xdialog.h"
 
+BOOLEAN string_startsWith(const char* pszString, const char* pszPrefix) {
+	return strncmp(pszPrefix, pszString, strlen(pszPrefix)) == 0;
+}
 /*--------------------------------------------------------------------------
  * function_initializeFunctionsAndTypes()
  */
@@ -25,8 +28,8 @@ int function_initializeFunctionsAndTypes(void) {
 	static int initialized;
 	EDFUNC	*		ep;
 	EDFUNC *		epend;
-	TYPEELEM *		enp;
-	TYPEELEM *		enpend;
+	PARAMETER_ENUM_VALUE *		enp;
+	PARAMETER_ENUM_VALUE *		enpend;
 	char *			pszCopy;
 	int				idx = 0;
 
@@ -34,36 +37,17 @@ int function_initializeFunctionsAndTypes(void) {
 		return 1;
 	}
 	initialized = TRUE;
-	for (ep = _edfunctab, epend = ep+_nfuncs; ep < epend;  ep++, idx++) {
+	for (ep = _functionTable, epend = ep+_functionTableSize; ep < epend;  ep++, idx++) {
 		if ((pszCopy = (char*)macro_loadStringResource(idx)) == 0 ||
-			!sym_insert(pszCopy, S_EDFUNC, (GENERIC_DATA) {
+			!sym_insert(sym_getGlobalContext(), pszCopy, S_EDFUNC, (GENERIC_DATA) {
 			.val = (intptr_t)ep
 		})) {
 			return 0;
 		}
 	}
 
-	for (int i = 0; i < _ntypes; i++) {
-		OWNTYPE* pType = &_typetab[i];
-		if (pType->ot_enumPrefix) {
-			int bFirst = 0;
-			int bLast = 0;
-			for (int j = 0; j < _nenelems; j++) {
-				const char* pszName = _enelemtab[j].te_name;
-				if (strstr(pszName, pType->ot_enumPrefix) == pszName) {
-					if (!bFirst) {
-						bFirst = 1;
-						pType->ot_idx = j;
-					}
-				} else if (bFirst) {
-					pType->ot_nelem = j - pType->ot_idx + 1;
-					break;
-				}
-			}
-		}
-	}
-	for (enp = _enelemtab, enpend = enp+_nenelems; enp < enpend; enp++) {
-		if (enp->te_name == 0 || !sym_insert((char*)enp->te_name, S_ENUM, (GENERIC_DATA) {
+	for (enp = _parameterEnumValueTable, enpend = enp+_parameterEnumValueTableSize; enp < enpend; enp++) {
+		if (enp->pev_name == 0 || !sym_insert(sym_getGlobalContext(), (char*)enp->pev_name, S_ENUM, (GENERIC_DATA) {
 			.val = (intptr_t)enp
 		})) {
 			return 0;
@@ -76,9 +60,9 @@ int function_initializeFunctionsAndTypes(void) {
 /*--------------------------------------------------------------------------
  * function_enumValueFor()
  */
-long function_enumValueFor(TYPEELEM *enp)
+long function_enumValueFor(PARAMETER_ENUM_VALUE *enp)
 {
-	return enp->te_val;
+	return enp->pev_val;
 }
 
 /*--------------------------------------------------------------------------
@@ -86,7 +70,7 @@ long function_enumValueFor(TYPEELEM *enp)
  */
 int function_getIndexOfFunction(EDFUNC *ep)
 {
-	return (int)(size_t)(ep - _edfunctab);
+	return (int)(size_t)(ep - _functionTable);
 }
 
 /*
@@ -99,22 +83,46 @@ PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(EDFUNC* ep, int nP
 	function_initializeFunctionsAndTypes();
 
 	while (*pT && --nParamIdx >= 0) {
-		if (*pT == PAR_ENUM) {
-			pT++;
+		if (*pT == PARAM_TYPE_ENUM || *pT == PARAM_TYPE_BITSET) {
+			while (*pT != '_') {
+				if (!*pT) {
+					goto notfound;
+				}
+				pT++;
+			}
 		}
 		pT++;
 	}
-	if (*pT == 'e') {
-		for (int i = 0; i < _ntypes; i++) {
-			if (_typetab[i].ot_name == pT[1]) {
+	PARAMETER_TYPE tType = *pT;
+	if (tType == PARAM_TYPE_ENUM || tType == PARAM_TYPE_BITSET) {
+		char szPrefix[20];
+		char* pszDest = szPrefix;
+		pT++;
+		while (*pT) {
+			*pszDest++ = *pT;
+			if (*pT++ == '_') {
+				break;
+			}
+		}
+		*pszDest = 0;
+		PARAMETER_ENUM_VALUE* pMatch = 0;
+		for (int i = 0; i < _parameterEnumValueTableSize; i++) {
+			const char* pszValueName = _parameterEnumValueTable[i].pev_name;
+			if (string_startsWith(pszValueName, szPrefix)) {
+				if (!pMatch) {
+					pMatch = &_parameterEnumValueTable[i];
+				}
+			} else if (pMatch) {
 				return (PARAMETER_TYPE_DESCRIPTOR) {
-					.pt_type = *pT,
-					.pt_enumType = &_typetab[i]
+					.pt_type = tType,
+					.pt_enumVal = pMatch,
+					.pt_enumCount = (int) (&_parameterEnumValueTable[i] - pMatch)
 				};
 			}
 		}
 	}
-	return (PARAMETER_TYPE_DESCRIPTOR) {.pt_type = *pT, .pt_enumType = 0 };
+notfound:
+	return (PARAMETER_TYPE_DESCRIPTOR) {.pt_type = tType};
 }
 
 /*--------------------------------------------------------------------------
@@ -123,8 +131,8 @@ PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(EDFUNC* ep, int nP
 int function_parameterIsFormStart(EDFUNC *ep, int parno) {
 	if (parno > 1)
 		return 0;
-	PARAMETER_TYPE_DESCRIPTOR ptd = function_getParameterTypeDescriptor(ep, parno + 1);
-	return ptd.pt_enumType && (ptd.pt_enumType->ot_flags & OF_ELIPSIS);
+	PARAMETER_TYPE_DESCRIPTOR ptd = function_getParameterTypeDescriptor(ep, parno);
+	return ptd.pt_enumVal && (string_startsWith(ptd.pt_enumVal->pev_name, "FORM_"));
 }
 
 /*--------------------------------------------------------------------------
@@ -132,6 +140,6 @@ int function_parameterIsFormStart(EDFUNC *ep, int parno) {
  */
 int function_returnsString(EDFUNC *ep)
 {
-	return ep->edf_paramTypes[0] == PAR_STRING;
+	return ep->edf_paramTypes[0] == PARAM_TYPE_STRING;
 }
 

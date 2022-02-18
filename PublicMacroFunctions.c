@@ -1685,17 +1685,6 @@ int dlg_enterPasswordForEncryption(LPSTR password, LPSTR pszFilename, int bSave)
 /*--------------------------------------------------------------------------
  * EdIsDefined()
  */
-#define	QUERY_CLIPBOARDAVAIL		0
-#define	QUERY_BLKMARKSTART			1
-#define	QUERY_BLKMARKEND			2
-#define	QUERY_BLKMARKED			3
-#define	QUERY_CURRENTFILE			4
-#define	QUERY_OPTIONS				5
-#define	QUERY_LAYOUTOPTIONS			6
-#define	QUERY_WORKMODE				7
-#define	QUERY_DISPLAYMODE			8
-#define 	QUERY_FILEMODIFIED			9
-#define 	QUERY_BLOCKXTNDMODE			10
 int EdIsDefined(long what)
 {
 	if (what == QUERY_CLIPBOARDAVAIL) {
@@ -1717,16 +1706,16 @@ int EdIsDefined(long what)
 
 	switch(what) {
 
-	case QUERY_BLKMARKSTART:
+	case QUERY_HAS_SELECTION_START:
 		return wp->blstart ? 1 : 0;
 
-	case QUERY_BLKMARKED:
+	case QUERY_HAS_SELECTION:
 		if (!wp->blstart) {
 			return 0;
 		}
 		/* drop through */
 
-	case QUERY_BLKMARKEND:
+	case QUERY_HAS_SELECTION_END:
 		return wp->blend ? 1 : 0;
 
 	case QUERY_WORKMODE:

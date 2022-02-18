@@ -64,6 +64,7 @@
 typedef union uGENERIC_DATA {
 	unsigned char uchar;
 	intptr_t val;
+	unsigned char booleanValue;
 	char* string;
 	int		intValue;
 	long long longValue;
@@ -103,23 +104,24 @@ typedef struct tagMACROREF {
 #define	C_INTEGER_LITERAL	0x12	// pad, 1 int Parameter follows 
 #define	C_LONG_LITERAL		0x13	// pad, 1 long Parameter follows 
 #define	C_FLOAT_LITERAL		0x14	// floating point literal
-#define	C_STRINGVAR			0x15	// variable reference to string
-#define	C_LONGVAR			0x16	// variable reference to long value
-#define	C_FORMSTART			0x17	// formular with parameters ...
-#define	C_DATA				0x18	// any data ... 
-#define	C_FURET				0x19	// next function return is saved 
-#define	C_FLOATVAR			0x20	// Floating point parameter
+#define	C_BOOLEAN_LITERAL	0x15	// 1 Ascii character follows 
+#define	C_STRINGVAR			0x16	// variable reference to string
+#define	C_LONGVAR			0x17	// variable reference to long value
+#define	C_FORMSTART			0x18	// formular with parameters ...
+#define	C_DATA				0x19	// any data ... 
+#define	C_FURET				0x20	// next function return is saved 
+#define	C_FLOATVAR			0x21	// Floating point parameter
 
-#define	C_DEFINE_VARIABLE	0x21	// define a variable with type and value 
+#define	C_DEFINE_VARIABLE	0x22	// define a variable with type and value 
 
 #define	C_IS1PAR(typ)	(typ & 0x10)
 #define	C_ISCMD(typ)	(typ >= C_0FUNC && typ <= C_MACRO)
 
 #define	C_NONE			0xFF
 
-#define	FORM_SHOW		0x40	/* form should be opened */
-#define	FORM_INIT		0x1	/* form " and be prefilled */
-#define	FORM_REDRAW	0x2	/* force redraw */
+#define	FORM_SHOW		0x40	// form should be opened 
+#define	FORM_INIT		0x1		// form " and be prefilled
+#define	FORM_REDRAW		0x2		// force redraw 
 
 int  macro_getParameterSize(unsigned char typ, const char *s);
 /*--------------------------------------------------------------------------
@@ -130,7 +132,7 @@ GENERIC_DATA macro_popParameter(unsigned char** sp);
 
 typedef struct c_1func {
 	unsigned char  typ;		/* C_1FUNC or C_0FUNC - defines the number of parameters to pass */
-	unsigned char  funcnum;	/* index into editor function table _edfunctab */
+	unsigned char  funcnum;	/* index into editor function table _functionTable */
 	long			p;		/* optional parameter to pass */
 } COM_1FUNC;
 

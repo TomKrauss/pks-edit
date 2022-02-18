@@ -1,8 +1,22 @@
+/*
+ * edexec.h
+ *
+ * PROJEKT: PKS-EDIT for Windows
+ *
+ * purpose: Options for executing external commands.
+ *
+ * 										created: 20.12.2021
+ * 										last modified:
+ *										author: Tom
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
 #ifndef EDEXEC_H
 
-
-/*
+ /*
  * options for execution
  */
 #define	EX_RDIN		0x1

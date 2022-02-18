@@ -14,9 +14,19 @@
           "name": "comment.singleLine2"
         },
         {
+          "match": "//.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "<[A-Z_][A-Z_0-9]*>",
+          "name": "constant.identifier",
+          "style": "identifier"
+        },
+        {
           "match": "<@[A-Za-z0-9_-]+>",
-          "name": "pksedit.identifier",
-          "style": "string"
+          "name": "pksedit.command.identifier",
+          "style": "annotation"
         },
         {
           "name": "keyword.pksedit",
@@ -40,6 +50,9 @@
             "int",
             "string",
             "long",
+            "boolean",
+            "true",
+            "false",
             "float"
           ]
         },
@@ -49,14 +62,24 @@
           "name": "string"
         },
         {
-          "match": "[\\[\\]{}]",
-          "name": "keyword.operator.json",
-          "style": "operator"
+          "match": "<0[xX][0-9a-fA-F]+>",
+          "name": "constant.numeric.hex",
+          "style": "literal"
         },
         {
           "match": "<[0-9.]+d?>",
           "name": "constant.numeric",
           "style": "literal"
+        },
+        {
+          "match": "<[A-Za-z0-9_-]+>",
+          "name": "pksedit.command.identifier",
+          "style": "default"
+        },
+        {
+          "match": "[*%/-+\\[\\]{}]",
+          "name": "keyword.operator",
+          "style": "operator"
         }
       ]
     }
