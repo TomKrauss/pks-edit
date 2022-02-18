@@ -17,8 +17,8 @@
 # ifndef RESOURCE_H
 
 #define	MAX_ENTITIES			16
-#define	RS_VERSION			0x00000900L
-#define 	RSC_NAMELEN			10
+#define	RS_VERSION				0x00000901L
+#define RSC_NAMELEN				10
 
 typedef unsigned short OFFSET;
 
