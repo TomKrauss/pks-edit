@@ -205,7 +205,7 @@ static int matcherSimpleLength[HEADER + 1] = {
 	/* HEADER */			0
 };
 
-extern unsigned char* tlcompile(unsigned char* transtab, unsigned char* t, unsigned char* wt);
+extern unsigned char* translate_compileCharacterTable(unsigned char* transtab, unsigned char* t, unsigned char* wt);
 static unsigned char* regex_advance(unsigned char* pszBeginOfLine, unsigned char* stringToMatch, unsigned char* endOfStringToMatch, 
 	unsigned char* pExpression, unsigned char* pExpressionEnd, RE_MATCH* pMatch, int bDebug, int nIndent);
 extern unsigned char _l2uset[256], _u2lset[256];
@@ -422,7 +422,7 @@ void regex_compileCharacterClasses(const unsigned char* pLowerToUpperPattern) {
 		_asciitab[i] &= (~_C);
 	}
 
-	tlcompile(_l2uset, (unsigned char*) pLowerToUpperPattern, _asciitab);
+	translate_compileCharacterTable(_l2uset, (unsigned char*) pLowerToUpperPattern, _asciitab);
 
 	/* calculate the inverse tab */
 
@@ -1511,7 +1511,7 @@ int regex_initializeReplaceByExpressionOptions(REPLACEMENT_OPTIONS* pOptions, RE
 			case '[':
 				if ((tab = createTranslationTable(tl++)) == 0)
 					return 0;
-				if ((replaceByExpression = tlcompile(tab, replaceByExpression,
+				if ((replaceByExpression = translate_compileCharacterTable(tab, replaceByExpression,
 					(unsigned char*)0)) == 0) {
 					pPattern->errorCode = IDS_MSGREMANYBRACKETS;
 					return 0;

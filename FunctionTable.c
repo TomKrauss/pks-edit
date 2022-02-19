@@ -213,7 +213,7 @@ EDFUNC _functionTable[] = {
 
 int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);
 
-COMMAND _cmdseqtab[] = {
+COMMAND _commandTable[] = {
 0, C_1FUNC, 58 /* EdEditFile */, 0 , "open-file",
 1, C_1FUNC, 58 /* EdEditFile */, OPEN_NOFN, "open-new-file",
 2, C_1FUNC, 58 /* EdEditFile */, OPEN_DIRGIVEN, "open-file-dir-given",
@@ -654,6 +654,5 @@ PARAMETER_ENUM_VALUE _parameterEnumValueTable[] = {
 // Must not be more currently than 256!!!!
 int _parameterEnumValueTableSize = sizeof(_parameterEnumValueTable) / sizeof(_parameterEnumValueTable[0]);
 
-char _recorder[RECORDERSPACE];
-int _ncmdseq = sizeof(_cmdseqtab)/sizeof(_cmdseqtab[0]);
+int _commandTableSize = sizeof(_commandTable)/sizeof(_commandTable[0]);
 

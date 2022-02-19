@@ -1035,7 +1035,7 @@ int win_callDialogCB(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING
 
 	if (macro_openDialog(pp)) {
 		ret = DoDialog(nId, pCallback,dp, pTooltips);
-		macro_recordOperation(pp);
+		recorder_recordOperation(pp);
 		if (ret == IDCANCEL || ret == -1)
 			return 0;
 	}

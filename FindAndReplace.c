@@ -47,8 +47,7 @@
 
 extern 	MARK		*mark_set(WINFO *wp, LINE *lp,int offs,int c);
 extern 	MARK		*mark_find(WINFO *wp, int c);
-extern	int    	_playing;
-unsigned char 		*tlcompile(unsigned char *transtab, 
+unsigned char 		*translate_compileCharacterTable(unsigned char *transtab, 
 						 unsigned char *t,
 						 unsigned char *wt);
 
@@ -754,8 +753,8 @@ REPLACE_TEXT_RESULT EdReplaceText(WINFO* wp, int scope, REPLACE_TEXT_ACTION acti
 	newlen = _currentReplacementPattern.preparedReplacementString ? (long)strlen(_currentReplacementPattern.preparedReplacementString) : 0;
 
 	/* call before assigning firstline	*/
-	hist_saveString(SEARCH_AND_REPLACE, _currentSearchAndReplaceParams.replaceWith);
 	hist_getSessionData()->sd_searchAndReplaceOptions = _currentSearchAndReplaceParams.options;
+	hist_saveString(SEARCH_AND_REPLACE, _currentSearchAndReplaceParams.replaceWith);
 	undo_startModification(fp);
 	caret_saveLastPosition();
 

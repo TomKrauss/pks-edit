@@ -28,7 +28,6 @@
 #include "pksedit.h"
 #include "dial2.h"
 #include "pksrc.h"
-#include "resource.h"
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
 #include "actionbindings.h"
@@ -1410,6 +1409,7 @@ int EdFind(void)
 	if (!win_callDialog(DLGFIND, &_fp, _d, _tt)) {
 		return 0;
 	}
+	hist_getSessionData()->sd_searchAndReplaceOptions = _currentSearchAndReplaceParams.options;
 
 	if (_dir == 0)
 		_dir = -1;

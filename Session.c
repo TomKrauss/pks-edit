@@ -22,6 +22,7 @@
 #include "jsonparser.h"
 #include "crossreferencelinks.h"
 #include "winterf.h"
+#include "findandreplace.h"
 
 static JSON_MAPPING_RULE _dockRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(MAINFRAME_DOCK, do_name), sizeof(((MAINFRAME_DOCK*)NULL)->do_name)},
@@ -46,6 +47,7 @@ static JSON_MAPPING_RULE _windowPlacementRules[] = {
 static JSON_MAPPING_RULE _sessionDataRules[] = {
 	{	RT_INTEGER, "screen-width", offsetof(SESSION_DATA, sd_screenCX)},
 	{	RT_INTEGER, "screen-height", offsetof(SESSION_DATA, sd_screenCY)},
+	{	RT_INTEGER, "search-replace-options", offsetof(SESSION_DATA, sd_searchAndReplaceOptions)},
 	{	RT_NESTED_OBJECT, "main-window-placement", offsetof(SESSION_DATA, sd_mainWindowPlacement), {.r_t_nestedObjectRules = _windowPlacementRules}},
 	{	RT_NESTED_OBJECT, "dock1", offsetof(SESSION_DATA, sd_dock1), {.r_t_nestedObjectRules = _dockRules}},
 	{	RT_NESTED_OBJECT, "dock2", offsetof(SESSION_DATA, sd_dock2), {.r_t_nestedObjectRules = _dockRules}},
@@ -246,6 +248,7 @@ EXPORT int hist_readSession(const char* pszFilename) {
 		hist_convertToLines(&lp, hist_getHistoryArray(OPEN_IN_EDITOR));
 		xref_openSearchListResultFromLine(lp);
 		ln_listfree(lp);
+		_currentSearchAndReplaceParams.options = hist_getSessionData()->sd_searchAndReplaceOptions;
 		return 1;
 	}
 	return 0;

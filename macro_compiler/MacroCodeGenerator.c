@@ -21,19 +21,18 @@
 #include "scanner.h"
 
 extern void 	yyerror(char *s, ...);
-extern int 	macro_insertNewMacro(char *name, char *comment, char *macdata, int size);
-extern int 	macro_isParameterStringType(unsigned char typ);
+extern int 		macro_insertNewMacro(char *name, char *comment, char *macdata, int size);
+extern int 		macro_isParameterStringType(unsigned char typ);
 extern void 	freeval(TYPEDVAL *v);
-extern unsigned char *	_recp;
-extern unsigned char *	_recpend;
 
 /*
  * bytecode_emitInstruction()
  */
 static COM_FORM *_lastformstart;
-unsigned char *bytecode_emitInstruction(unsigned char *sp, const unsigned char *spend, unsigned char typ, GENERIC_DATA data) {	
+unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char typ, GENERIC_DATA data) {	
 	long s;
 	unsigned char *spret;
+	unsigned char* sp = pBuffer->bb_current;
 
 	if (sp == 0) {
 		yyerror(/*STR*/"adding to zero buffer?");
@@ -49,7 +48,7 @@ unsigned char *bytecode_emitInstruction(unsigned char *sp, const unsigned char *
 	}
 
 	s = macro_getParameterSize(typ, data.string);
-	if ((spret = sp+s) > spend) {
+	if ((spret = sp+s) > pBuffer->bb_end) {
 		yyerror(/*STR*/"buffer overflow");
 		return 0;
 	}
@@ -120,11 +119,11 @@ unsigned char *bytecode_emitInstruction(unsigned char *sp, const unsigned char *
 /*--------------------------------------------------------------------------
  * bytecode_emitTypedAssignment()
  */
-static void bytecode_emitTypedAssignment(int comType, const char *name, int typ, GENERIC_DATA data) {
+static void bytecode_emitTypedAssignment(BYTECODE_BUFFER* pBuffer, int comType, const char *name, int typ, GENERIC_DATA data) {
 	unsigned char *	p1;
 	COM_ASSIGN *	ap;
 
-	ap = (COM_ASSIGN*)_recp;
+	ap = (COM_ASSIGN*)pBuffer->bb_current;
 	ap->typ = comType;
 	p1 = ap->name;
 	while(*name) {
@@ -134,28 +133,29 @@ static void bytecode_emitTypedAssignment(int comType, const char *name, int typ,
 	if ((short)p1 & 1) {
 		p1++;
 	}
+	pBuffer->bb_current = p1;
 
-	_recp = bytecode_emitInstruction(p1,_recpend,typ,data);
+	pBuffer->bb_current = bytecode_emitInstruction(pBuffer,typ,data);
 	ap->opoffset = (int)(p1 - (unsigned char*)ap);
-	ap->size = (int)(_recp - (unsigned char*)ap);
+	ap->size = (int)(pBuffer->bb_current - (unsigned char*)ap);
 }
 
 /*--------------------------------------------------------------------------
  * bytecode_emitAssignment()
  */
-void bytecode_emitAssignment(const char *name, PKS_VALUE_TYPE typ, GENERIC_DATA data) {
-	bytecode_emitTypedAssignment(C_ASSIGN, name, typ, data);
+void bytecode_emitAssignment(BYTECODE_BUFFER* pBuffer, const char *name, PKS_VALUE_TYPE typ, GENERIC_DATA data) {
+	bytecode_emitTypedAssignment(pBuffer, C_ASSIGN, name, typ, data);
 }
 
 /*--------------------------------------------------------------------------
  * bytecode_defineVariable()
  * Defines a variable or a parameter depending on nBytecode
  */
-void bytecode_defineVariable(const char *name, int nBytecode, int nSymbolType, intptr_t val) {
+void bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBytecode, int nSymbolType, intptr_t val) {
 	unsigned char *	p1;
 	COM_CREATESYM *	ap;
 
-	ap = (COM_CREATESYM*)_recp;
+	ap = (COM_CREATESYM*)pBuffer->bb_current;
 	ap->typ = nBytecode;
 	ap->symtype = nSymbolType;
 	ap->value = (long)val;
@@ -169,15 +169,15 @@ void bytecode_defineVariable(const char *name, int nBytecode, int nSymbolType, i
 		p1++;
 	}
 
-	_recp = p1;
-	ap->size = (int)(_recp - (unsigned char*)ap);
+	pBuffer->bb_current = p1;
+	ap->size = (int)(pBuffer->bb_current - (unsigned char*)ap);
 }
 
 /*--------------------------------------------------------------------------
  * bytecode_emitBinaryOperation()
  */
 extern int vname_count;
-TYPEDVAL bytecode_emitBinaryOperation(int nOperationType, TYPEDVAL*v1, TYPEDVAL*v2) {
+TYPEDVAL bytecode_emitBinaryOperation(BYTECODE_BUFFER* pBuffer, int nOperationType, TYPEDVAL*v1, TYPEDVAL*v2) {
 	unsigned char *	p1;
 	unsigned char *	p2;
 	COM_BINOP *		bp;
@@ -199,7 +199,7 @@ TYPEDVAL bytecode_emitBinaryOperation(int nOperationType, TYPEDVAL*v1, TYPEDVAL*
 			return (TYPEDVAL) { .type = C_LONG_LITERAL, .data.val = v1->data.val / v2->data.val };
 		}
 	}
-	bp = (COM_BINOP*)_recp;
+	bp = (COM_BINOP*)pBuffer->bb_current;
 	bp->typ = C_BINOP;
 	bp->op = nOperationType;
 	sprintf(bp->result,"__ret%d",vname_count++);
@@ -214,18 +214,19 @@ TYPEDVAL bytecode_emitBinaryOperation(int nOperationType, TYPEDVAL*v1, TYPEDVAL*
 		p1++;
 	}
 
-	p2 = bytecode_emitInstruction(p1,_recpend,v1->type,v1->data);
+	pBuffer->bb_current = p1;
+	pBuffer->bb_current = p2 = bytecode_emitInstruction(pBuffer,v1->type,v1->data);
 	freeval(v1);
 	if (v2) {
-		_recp = bytecode_emitInstruction(p2,_recpend,v2->type,v2->data);
+		pBuffer->bb_current = bytecode_emitInstruction(pBuffer,v2->type,v2->data);
 		freeval(v2);
 	} else {
-		_recp = bytecode_emitInstruction(p2, _recpend, C_LONG_LITERAL, (GENERIC_DATA) { 0 });
+		pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_LONG_LITERAL, (GENERIC_DATA) { 0 });
 	}
 
 	bp->op1offset = (int)(p1 - (unsigned char*)bp);
 	bp->op2offset = (int)(p2 - (unsigned char*)bp);
-	bp->size = (int)(_recp - (unsigned char*)bp);
+	bp->size = (int)(pBuffer->bb_current - (unsigned char*)bp);
 
 	return ret;
 }
@@ -233,7 +234,7 @@ TYPEDVAL bytecode_emitBinaryOperation(int nOperationType, TYPEDVAL*v1, TYPEDVAL*
 /*
  * Multiply an expression and return the TYPEDVAL result
  */
-TYPEDVAL bytecode_emitMultiplyWithLiteralExpression(TYPEDVAL* v1, int nNumber) {
+TYPEDVAL bytecode_emitMultiplyWithLiteralExpression(BYTECODE_BUFFER* pBuffer, TYPEDVAL* v1, int nNumber) {
 	if (v1->type == C_LONG_LITERAL) {
 		v1->data.val *= nNumber;
 		return *v1;
@@ -242,11 +243,11 @@ TYPEDVAL bytecode_emitMultiplyWithLiteralExpression(TYPEDVAL* v1, int nNumber) {
 		v1->data.doubleValue *= nNumber;
 		return *v1;
 	}
-	return bytecode_emitBinaryOperation(BIN_MUL, v1, &(TYPEDVAL){.type = C_LONGVAR, .data.val = nNumber});
+	return bytecode_emitBinaryOperation(pBuffer, BIN_MUL, v1, &(TYPEDVAL){.type = C_LONGVAR, .data.val = nNumber});
 }
 
-void bytecode_emitIncrementExpression(TYPEDVAL* v, int nIncrement) {
+void bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, TYPEDVAL* v, int nIncrement) {
 	const char* pszName = (const char*) v->data.val;
-	TYPEDVAL lResult = bytecode_emitBinaryOperation(BIN_ADD, v, &(TYPEDVAL){.type = C_LONG_LITERAL, .data.val = nIncrement});
-	bytecode_emitAssignment(pszName, v->type, lResult.data);
+	TYPEDVAL lResult = bytecode_emitBinaryOperation(pBuffer, BIN_ADD, v, &(TYPEDVAL){.type = C_LONG_LITERAL, .data.val = nIncrement});
+	bytecode_emitAssignment(pBuffer, pszName, v->type, lResult.data);
 }

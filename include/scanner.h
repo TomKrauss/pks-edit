@@ -47,7 +47,7 @@ extern _YYSTYPE	yylval;
 #define YYEOF		0
 #endif
 
-extern unsigned char* bytecode_emitInstruction(unsigned char* sp, const unsigned char* spend, unsigned char typ, GENERIC_DATA data);
+extern unsigned char* bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char typ, GENERIC_DATA data);
 
 # endif	/* SCANNER_H */
 

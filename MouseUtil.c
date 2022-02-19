@@ -27,7 +27,6 @@
 #include "funcdef.h"
 #include "pksedit.h"
 #include "iccall.h" 
-#include "resource.h"
 #include "pksmacro.h"
 #include "winutil.h"
 
@@ -134,9 +133,9 @@ static int mouse_textBlockEndDrag(WINFO* wp, int x, int y, int bCancel) {
 
 	if (hwnd == wp->ww_handle) {
 		if (_dragTextBlockMoveData.moving) {
-			ret = macro_executeFunction(FUNC_EdBlockMove, 0L, 0L, (void*)0, (void*)0, (void*)0);
+			ret = interpreter_executeFunction(FUNC_EdBlockMove, 0L, 0L, (void*)0, (void*)0, (void*)0);
 		} else {
-			ret = macro_executeFunction(FUNC_EdBlockCopy, 0L, 0L, (void*)0, (void*)0, (void*)0);
+			ret = interpreter_executeFunction(FUNC_EdBlockCopy, 0L, 0L, (void*)0, (void*)0, (void*)0);
 		}
 	} else if (hwnd) {
 		ret = PostMessage(hwnd, WM_ICONDROP, ICACT_TEXTBLOCK, 0L);
@@ -471,7 +470,7 @@ EXPORT int mouse_onMouseClicked(WINFO *wp, int x, int y, int b, int nclicks, int
 	MOUSE_EVENT_BINDING *	mp = NULL;
 
 	if (mp || (mp = bindings_getMouseBinding(b, nModifier, nclicks, wp->actionContext)) != 0) {
-		macro_stopRecordingFunctions();
+		recorder_stopAutoInsertRecording(NULL, NULL);
 		mouse_executeBinding(wp, mp, x, y);
 		return 1;
 	}

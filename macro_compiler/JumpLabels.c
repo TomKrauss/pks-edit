@@ -118,10 +118,11 @@ static int bytecode_closeLabels(LABEL *lp)
 /*---------------------------------*/
 /* bytecode_createBranchLabel()					*/
 /*---------------------------------*/
-int bytecode_createBranchLabel(char *name, char *recp)
+int bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name)
 {
 	LABEL *	lp;
 	int		i;
+	char* recp = pBuffer->bb_current;
 
 	if ((lp = bytecode_findLabelNamed(_labels,name)) != 0) {
 		yyerror("Label %s redefined",name);
@@ -155,11 +156,12 @@ int bytecode_createBranchLabel(char *name, char *recp)
 /*---------------------------------*/
 /* bytecode_emitGotoLabelInstruction()					*/
 /*---------------------------------*/
-char *bytecode_emitGotoLabelInstruction(char *name, char *sp, char *spend, int bratyp)
+char *bytecode_emitGotoLabelInstruction(char *name, BYTECODE_BUFFER* pBuffer, int bratyp)
 {	LABEL    *lp;
+	unsigned char* sp = pBuffer->bb_current;
 	COM_GOTO *cp = (COM_GOTO *)sp;
 
-	if ((sp = bytecode_emitInstruction(sp, spend, C_GOTO, (GENERIC_DATA) { bratyp })) == 0)
+	if ((sp = bytecode_emitInstruction(pBuffer, C_GOTO, (GENERIC_DATA) { bratyp })) == 0)
 		return 0;
 
 	if ((lp = bytecode_findLabelNamed(_labels,name)) == 0) {

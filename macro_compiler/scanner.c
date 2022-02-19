@@ -495,7 +495,7 @@ extern FILE		*file_createTempFile(char *fnd, char *fn);
 extern int 		function_initializeFunctionsAndTypes(void);
 extern long 	function_enumValueFor(void *enp);
 extern void 	macro_selectDefaultBindings(void);
-extern int		_macedited;
+extern int		_macrosWereChanged;
 
 #if defined(STAND_ALONE)
 static FILE *_lexFp;

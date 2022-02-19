@@ -28,7 +28,6 @@
 
 extern MACRO 	*macro_getByIndex(int idx);
 
-extern int	_nmacros;
 extern char	*_macroname;
 
 typedef struct macrodata {
@@ -69,8 +68,11 @@ char *rsc_rdmacros(char *name, unsigned char *p, unsigned char *pend)
 
 /*------------------------------------------------------------
  * rsc_wrmacros()
+ * Write out the given macros to an offset, given the buffer of the macro byte
+ * codes and the corresponding size and an optional name of a macro if only a single
+ * macro should be saved.
  */
-long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes)
+long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName)
 {
 	int 		offs,i;
 	long		total;
@@ -81,9 +83,9 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes)
 	offs = 0;
 	total = 0;
 
-	for (i = 0; i < _nmacros; i++) {
+	for (i = 0; i < _macroTableSize; i++) {
 		if ((mp = macro_getByIndex(i)) != 0 &&
-		    (_macroname == 0 || strcmp(_macroname,mp->name) == 0)) {
+		    (pMacroName == 0 || strcmp(pMacroName, mp->name) == 0)) {
 			if (offs >= maxbytes) {
 				offs -= maxbytes;
 				total += maxbytes;
@@ -180,7 +182,7 @@ int rsc_find(int fd, char *itemtyp, char *itemname, RSCHEADER *hp)
  * rsc_put()
  */
 int rsc_put(int fd, char *itemtyp, char *itemname, int replace, 
-		  long (*wrfunc)(int ,long ,char *, long ),char *buffer, long bufsize)
+		  long (*wrfunc)(int ,long ,char *, long, void* pParam), char *buffer, long bufsize, void* pParam)
 {
 	long 		size;
 	long		offset = 0;
@@ -198,7 +200,7 @@ int rsc_put(int fd, char *itemtyp, char *itemname, int replace,
 		/* not really a replace ............... */
 	}
 
-	if (offset < 0 || (size = (*wrfunc)(fd,offset,buffer,bufsize)) < 0)
+	if (offset < 0 || (size = (*wrfunc)(fd,offset,buffer,bufsize, pParam)) < 0)
 		return 0;
 
 	ep = &h.rs_ent[nItem];

@@ -43,7 +43,6 @@
 
 extern long		_multiplier;
 
-extern long			rsc_wrmacros(int fd, long offset, char *buf, long maxbytes);
 extern char *		rsc_rdmacros(char *param, unsigned char *p, unsigned char *pend);
 extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 /*
@@ -52,23 +51,13 @@ extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 extern void bindings_loadActionBindings();
 extern void 		st_switchtomenumode(BOOL bMenuMode);
 
-int				_recording;
-int				_nmacros = MAXMACRO;
-char *			_macroname;
-char *			_cmdfuncp;
-char *			_cmdmaxp;
-char *			_cmdparamp;
-unsigned char*  _readparamp;
-MACRO *			_macrotab[MAXMACRO];
-int				_lastinsertedmac = -1;
-int				_macedited;
-MACROREF		currentSelectedMacro;
-/*
- * Start the recorder.
- */
-extern int op_startMacroRecording();
+int				_macroTableSize = MAXMACRO;
+MACRO *			_macroTable[MAXMACRO];
+int				_macrosWereChanged;
 
-static FSELINFO 	_seqfsel = {	"","pksedit.mac", "*.mac" };
+static char*	_selectedMacroName;
+static MACROREF	currentSelectedMacro;
+static FSELINFO _seqfsel = {	"","pksedit.mac", "*.mac" };
 
 /*
  * Convert a menu command to a macroref. It is assumed, that the menu command
@@ -99,7 +88,7 @@ void macro_reportError(void)
  */
 MACRO *macro_getByIndex(int idx)
 {
-	return _macrotab[idx];
+	return _macroTable[idx];
 }
 
 /*---------------------------------
@@ -134,10 +123,10 @@ static int macro_writeMacroBindingsToFile(int whichresource, char *name)
 	}
 
 	if ((whichresource & RSC_SINGLEMACRO) == 0)
-		_macroname = 0;
+		_selectedMacroName = 0;
 
 	if (whichresource & (RSC_MACROS|RSC_SINGLEMACRO)) {
-		if (rsc_put(fd,"MACROS","",0,rsc_wrmacros,_linebuf,(long)FBUFSIZE) == 0) {
+		if (rsc_put(fd,"MACROS","",0,rsc_wrmacros,_linebuf,(long)FBUFSIZE, _selectedMacroName) == 0) {
 			error_showErrorById(IDS_MSGNODISKSPACE);
 			ret = 0;
 			goto done;
@@ -145,7 +134,7 @@ static int macro_writeMacroBindingsToFile(int whichresource, char *name)
 	}
 
 done:Fclose(fd);
-	_macroname = 0;
+	_selectedMacroName = 0;
 	return ret;
 }
 
@@ -158,18 +147,18 @@ void macro_autosaveAllBindings(int warnFlag)
 {
 	char fn[EDMAXPATHLEN];
 
-	if (_macedited) {
+	if (_macrosWereChanged) {
 		if (warnFlag == 0) {
 			string_concatPathAndFilename(fn,_seqfsel.path,_seqfsel.fname);
 			if (macro_writeMacroBindingsToFile(RSC_MACROS,fn))
-				_macedited = 0;
+				_macrosWereChanged = 0;
 		} else {
 			if (error_displayYesNoConfirmation(IDS_MSGSAVESEQ) == IDYES) {
 				macro_readWriteWithFileSelection(1);
 			}
 		}
 	}
-	_macedited = 0;
+	_macrosWereChanged = 0;
 }
 
 /*------------------------------------------------------------
@@ -182,8 +171,8 @@ int macro_deleteByName(char *name)
 
 	if ((idx = macro_getInternalIndexByName(name)) >= 0) {
 		bindings_deleteKeyBindingsForMacroRef((MACROREF) { .typ = CMD_MACRO, .index = idx });
-		destroy(&_macrotab[idx]);
-		_macedited = 1;
+		destroy(&_macroTable[idx]);
+		_macrosWereChanged = 1;
 		return 1;
 	}
 	return 0;
@@ -230,7 +219,7 @@ void macro_selectDefaultBindings(void) {
  * are flushed before.
  */
 int macro_readBindingsFromFile(char *fn) {
-	int 	 wasdirty = _macedited;
+	int 	 wasdirty = _macrosWereChanged;
 	RSCFILE	*rp;
 
 	if (fn == 0) {
@@ -253,7 +242,7 @@ int macro_readBindingsFromFile(char *fn) {
 
 	macro_selectDefaultBindings();
 
-	_macedited = wasdirty;
+	_macrosWereChanged = wasdirty;
 	return 1;
 }
 
@@ -299,10 +288,10 @@ void macro_renameAndChangeComment(int nIndex, char* szName, char* szComment)
 {
 	MACRO *mp,*mpold;
 
-	mpold = _macrotab[nIndex];
+	mpold = _macroTable[nIndex];
 	if ((mp = macro_createWithParams(szName,szComment,MAC_DATA(mpold),mpold->size)) == 0)
 		return;
-	_macrotab[nIndex] = mp;
+	_macroTable[nIndex] = mp;
 	free(mpold);
 }
 
@@ -310,8 +299,8 @@ void macro_renameAndChangeComment(int nIndex, char* szName, char* szComment)
  * Destroy all allocated macros.
  */
 void macro_destroy() {
-	for (int i = 0; i < DIM(_macrotab); i++) {
-		free(_macrotab[i]);
+	for (int i = 0; i < _macroTableSize; i++) {
+		free(_macroTable[i]);
 	}
 }
 
@@ -325,14 +314,14 @@ int macro_insertNewMacro(char *name, char *comment, char *macdata, int size)
 	int    i;
 
 	if ((i = macro_getInternalIndexByName(name)) >= 0) {
-		destroy(&_macrotab[i]);
+		destroy(&_macroTable[i]);
 	} else {
 		for (i = 0; ; i++) {
-			if (i >= DIM(_macrotab)) {
+			if (i >= DIM(_macroTable)) {
 				error_showErrorById(IDS_MSGTOOMANYMACROS);
 				return 0;
 			}
-			if (_macrotab[i] == 0) {
+			if (_macroTable[i] == 0) {
 				break;
 			}
 		}
@@ -341,40 +330,9 @@ int macro_insertNewMacro(char *name, char *comment, char *macdata, int size)
 	if ((mp = macro_createWithParams(name,comment,macdata,size)) == 0)
 		return -1;
 
-	_macrotab[i] = mp;
-	_macedited = 1;
+	_macroTable[i] = mp;
+	_macrosWereChanged = 1;
 	return i;
-}
-
-/*------------------------------------------------------------
- * macro_toggleRecordMaco()
- * start/stops the macro recorder.
- */
-static int _recsiz,_lastrecsiz=-1;
-int macro_toggleRecordMaco(void)
-{	int     size;
-	static KEYCODE scan = K_DELETED;
-	char    buf[100];
-	static  int _ndef;
-
-	if (!_recording) {		/* STOP */
-		if (_cmdfuncp && (size = (int)(_cmdparamp-_recorder)) > 0) {
-			wsprintf(buf,"NewMacro%d",++_ndef);
-			if (!macro_getIndexForKeycode(&scan,buf,-1)) {
-				return 0;
-			}
-			if (!scan) {
-				scan = K_DELETED;
-			}
-			if ((_lastinsertedmac = macro_insertNewMacro(buf,"",_recorder,size)) >= 0) {
-				bindings_bindKey(scan, (MACROREF) { .index = _lastinsertedmac, .typ = CMD_MACRO }, NULL);
-			}
-		}
-	} else {						/* START */
-		_cmdparamp =  _recorder;	/* maybe &_recorder[recno]	*/
-		_cmdmaxp	 =  &_recorder[RECORDERSPACE-12];
-	}
-	return 1;
 }
 
 /*------------------------------------------------------------
@@ -392,21 +350,13 @@ int macro_readWriteWithFileSelection(int wrflag) {
 
 	if (wrflag) {
 		if (macro_writeMacroBindingsToFile(RSC_MACROS,fn)) {
-			_macedited = 0;
+			_macrosWereChanged = 0;
 			return 1;
 		}
 		return 0;
 	}
 
 	return macro_readBindingsFromFile(fn);
-}
-
-/*------------------------------------------------------------
- * EdMacroRecord()
- */
-int EdMacroRecord(void)
-{
-	return op_startMacroRecording();
 }
 
 /*--------------------------------------------------------------------------
@@ -451,7 +401,7 @@ int macro_onMenuAction(WINFO* wp, int menunum, POINT* aPositionClicked) {
 int macro_onCharacterInserted(WORD c)
 {
 	return 
-		macro_executeFunction(FUNC_EdCharInsert,c,0,(void*)0,(void*)0,(void*)0);
+		interpreter_executeFunction(FUNC_EdCharInsert,c,0,(void*)0,(void*)0,(void*)0);
 }
 
 /*---------------------------------*/
@@ -591,7 +541,7 @@ static void macro_updateMacroList(HWND hwnd)
 	hwndList = macro_initializeListBox(hwnd, IDD_MACROLIST, &nCurr);
 
 	for (i = 0; i < MAXMACRO; i++) {
-		if (_macrotab[i] != 0) {
+		if (_macroTable[i] != 0) {
 			SendMessage(hwndList,LB_ADDSTRING,0,MAKELONG(CMD_MACRO,i));
 		}
 	}
@@ -599,7 +549,7 @@ static void macro_updateMacroList(HWND hwnd)
 	state = showInternals = IsDlgButtonChecked(hwnd,IDD_OPT1);
 
 	if (state) {
-		for (i = 0; i < _ncmdseq; i++)
+		for (i = 0; i < _commandTableSize; i++)
 			SendMessage(hwndList,LB_ADDSTRING,0,MAKELONG(CMD_CMDSEQ,i));
 	}
 
@@ -621,15 +571,15 @@ char *command_getTooltipAndLabel(MACROREF command, char* szTooltip, char* szLabe
 	int nIndex = command.index;
 	switch(command.typ) {
 		case CMD_MACRO: 
-			if (_macrotab[command.index] == 0) {
+			if (_macroTable[command.index] == 0) {
 				return "";
 			}
-			lstrcpy(szTooltip,MAC_COMMENT(_macrotab[nIndex]));
+			lstrcpy(szTooltip,MAC_COMMENT(_macroTable[nIndex]));
 			return szTooltip;
 		default:
 			s = NULL;
-			if (nIndex >= 0 && nIndex < _ncmdseq) {
-				s = dlg_getResourceString(_cmdseqtab[nIndex].c_index+IDS_BASE_COMMAND);
+			if (nIndex >= 0 && nIndex < _commandTableSize) {
+				s = dlg_getResourceString(_commandTable[nIndex].c_index+IDS_BASE_COMMAND);
 			}
 			if (s == NULL) {
 				return "";
@@ -913,8 +863,8 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 		case WM_COMMAND:
 			nSelected = macro_getSelectedMacro(hwnd);
 			GetDlgItemText(hwnd,IDD_STRING1,szName,sizeof szName);
-			_macroname = (LOWORD(nSelected) == CMD_MACRO) ?
-				_macrotab[HIWORD(nSelected)]->name : 0;
+			_selectedMacroName = (LOWORD(nSelected) == CMD_MACRO) ?
+				_macroTable[HIWORD(nSelected)]->name : 0;
 			nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
 			switch (nId = GET_WM_COMMAND_ID(wParam, lParam)) {
 
@@ -958,7 +908,7 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 					GetDlgItemText(hwnd,IDD_STRING2,szComment,
 								sizeof szComment);
 					macro_renameAndChangeComment(HIWORD(nSelected),szName,szComment);
-upd: 				_macedited = 1;
+upd: 				_macrosWereChanged = 1;
 					macro_newMacroSelected(hwnd);
 				}
 				return TRUE;
@@ -1015,7 +965,6 @@ upd: 				_macedited = 1;
 int EdMacrosEdit(void)
 {
 	int 				ret;
-	extern 	char* _macroname;
 	extern 	MACROREF	currentSelectedMacro;
 
 	ret = DoDialog(DLGMACROS, DlgMacEditProc, 0, NULL);
@@ -1032,9 +981,9 @@ int EdMacrosEdit(void)
 		return nResult;
 	}
 
-	if (_macroname) {
+	if (_selectedMacroName) {
 		if (ret == IDD_MACEDIT) {
-			return decompile_saveMacrosAndDisplay(_macroname);
+			return decompile_saveMacrosAndDisplay(_selectedMacroName);
 		}
 	}
 	return 0;

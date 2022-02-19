@@ -20,7 +20,6 @@
 #include "linkedlist.h"
 #include "documentmodel.h"
 #include "winfo.h"
-#include "resource.h"
 #include "pksmacro.h"
 #include "actionbindings.h"
 #include "helpitem.h"
@@ -37,9 +36,9 @@ static HMENU _contextMenu;
 static POINT _contextMenuPosition;
 
 /*--------------------------------------------------------------------------
- * macro_canExecuteFunction()
+ * interpreter_canExecuteFunction()
  */
-extern int macro_canExecuteFunction(int num, long long pParam, int warn);
+extern int interpreter_canExecuteFunction(int num, long long pParam, int warn);
 extern BOOL op_defineOption(long nFlag);
 
 /*
@@ -136,7 +135,7 @@ static BOOL menu_appendMenuItems(HMENU hMenu, MENU_ITEM_DEFINITION* pMenu) {
 				long long llParam;
 				int nFuncnum = macro_getFunctionNumberForCommand(pMenu->mid_command.index, &llParam);
 				EnableMenuItem(hMenu, wItem,
-					macro_canExecuteFunction(nFuncnum, llParam, 0) ?
+					interpreter_canExecuteFunction(nFuncnum, llParam, 0) ?
 					MF_BYPOSITION | MF_ENABLED :
 					MF_BYPOSITION | MF_DISABLED | MF_GRAYED);
 				if (nFuncnum == FUNC_EdOptionToggle) {

@@ -33,14 +33,22 @@
 
 #/*---- GLOBALS ---------------*/
 
-/* Autosave */
-extern int  _recording;
-extern int  _deadkey;
-
 int doctypes_documentTypeChanged(int aFlag);
 int doc_columnChanged(void);
-int macro_toggleRecordMaco(void);
+int recorder_toggleRecording(void);
 int bl_setColumnSelection(WINFO* wp);
+
+/*
+ * Answers true if we are currently recording macros
+ */
+extern BOOL recorder_isRecording();
+
+/*
+ * Start/stop the macro recorder.
+ */
+extern void recorder_setRecording(BOOL bStart);
+
+static int _recording;
 
 static int doctypes_changed() {
 	return doctypes_documentTypeChanged(FALSE);
@@ -70,7 +78,7 @@ static struct optiontab {
      IDD_FKFLG9,    F_RDONLY,      OP_FILEFLAG,   0,	doctypes_changed,
 	 IDD_FKFLG10,   F_WATCH_LOGFILE,OP_FILEFLAG,   0,	doctypes_changed,
 	 IDD_FKFLG10+1, SHOWCARET_LINE_HIGHLIGHT,  OP_DISPLAY_MODE,   0,	displaymode_changed,
-     IDD_FKFLG10+2, 1,            OP_MACRO,   0,	macro_toggleRecordMaco,
+     IDD_FKFLG10+2, 1,            OP_MACRO,   0,	recorder_toggleRecording,
      0,             SHOWCONTROL,   OP_DISPLAY_MODE,   0,	displaymode_changed,
 	 0,             SHOWCARET_PRESERVE_COLUMN,    OP_DISPLAY_MODE,   0,	displaymode_changed,
      0,             SHOWHEX,       OP_DISPLAY_MODE,   0,	displaymode_changed,
@@ -151,7 +159,7 @@ static int *op_getFlagToToggle(OP_FLAGTYPE flagType)
  * op_changeFlag()
  */
 static void op_changeFlag(struct optiontab *op, int dofunc)
-{	register state = 0;
+{	int state = 0;
 	int *flg;
 	
 	if ((flg = op_getFlagToToggle(op->op_type)) != 0) {
@@ -162,13 +170,15 @@ static void op_changeFlag(struct optiontab *op, int dofunc)
 			}
 		}
 	}
-	
 	if (op->flgkeynr > 0 && hwndFkeys > 0) {
 		SendDlgItemMessage(hwndFkeys,op->flgkeynr,BM_SETCHECK,state,0L);
 	}
 
 	if (op->func && dofunc) {
 		(*(op->func))(state);
+		if (op->func == recorder_toggleRecording) {
+			_recording = recorder_isRecording();
+		}
 	}
 }
 
@@ -230,14 +240,15 @@ EXPORT int op_onOptionWidgetSelected(int toggle)
 
 	for (op = _optiontab; op->flgkeynr >= 0; op++) {
 		if (op->flgkeynr == toggle) {
-			if (op->func == macro_toggleRecordMaco) {
-				/* this glitch avoids caching of the record 
+			if (op->func == recorder_toggleRecording) {
+				/* this check avoids caching of the record 
 				 * function itself
 				 */
 				EdOptionToggle(
 					MAKELONG(op->flag,op->op_type));
+				_recording = recorder_isRecording();
 			} else {
-				return macro_executeFunction(
+				return interpreter_executeFunction(
 					FUNC_EdOptionToggle,
 						MAKELONG(op->flag,op->op_type),
 						0L,(LPSTR)0,(LPSTR)0, (LPSTR)0);

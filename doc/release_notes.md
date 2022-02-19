@@ -27,12 +27,16 @@ commands which show an explanation about the command.
 - A potential buffer overflow, when defining syntax error formats (navigation patterns) with long associated compiler names has been fixed.
 - A potential crash when closing a comparison window was fixed
 - Save actions are now really executed just before a file is saved.
+- Find and replace options were not persisted correctly in the PKS Editor session.
 - A regression when compiling PKS-MacroC files containing strings, which cause a compilation error was fixed.
 - Several small issues int compilation of PKSMacroC have been fixed:
    - `1+1` is now correctly evaluated (before you needed to write `1 + 1` - space delimited) 
    - integer values support a higher range of long long (C) now. Overflows during compilation are correctly reported as a compile error
    - while loop bodys may now contain multiple statements enclosed in `{` and `}`.
- 
+   - local function variables are now correctly scoped locally.
+   - error reporting of the MacroC compiler has been improved.
+   - compiling bigger files with an error resulted in the macro compiler being not able to compile any macros afterwards.
+
 ### 2.1.0
 
 #### New

@@ -59,8 +59,16 @@ extern RSCFILE*	rsc_open(char *fn, int mode);
 extern int 		rsc_close(RSCFILE *rp);
 extern int 		rsc_load(RSCFILE *rp, char *itemtyp, char *itemname, char *(*cnvfunc)());
 extern int		rsc_create(char* fname, int trunc);
+/*------------------------------------------------------------
+ * rsc_wrmacros()
+ * Write out the given macros to an offset, given the buffer of the macro byte
+ * codes and the corresponding size and an optional name of a macro if only a single
+ * macro should be saved.
+ */
+extern long rsc_wrmacros(int fd, long offset, char* buf, long maxbytes, void* pMacroName);
+
 extern int rsc_put(int fd, char* itemtyp, char* itemname, int replace,
-	long (*wrfunc)(int, long, char*, long), char* buffer, long bufsize);
+	long (*wrfunc)(int, long, char*, long, void* pParam), char* buffer, long bufsize, void* pParam);
 
 /*--------------------------------------------------------------------------
  * file_flushBuffer()

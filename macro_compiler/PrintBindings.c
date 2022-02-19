@@ -28,7 +28,6 @@
 #include "funcdef.h"
 #include "helpitem.h"
 
-#include "resource.h"
 #include "stringutil.h"
 
 #if defined(WIN32)
@@ -103,7 +102,7 @@ static void print_keybinding(FILE *fp, KEY_BINDING *kp, char delim)
 
 	switch(kp->macref.typ) {
 		case CMD_MACRO:
-			if ((macp = _macrotab[findex]) != 0)
+			if ((macp = _macroTable[findex]) != 0)
 				strcpy(comment,MAC_COMMENT(macp)); 
 			break;
 		case CMD_CMDSEQ:

@@ -912,7 +912,7 @@ int EdCharInsert(int c)
 	}
 
 	if (_playing != 2) {
-		macro_recordFunction(fp, c);
+		recorder_recordAutoInsertFunction(fp, c);
 	}
 
 	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_hasSelection(wp)) {

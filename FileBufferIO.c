@@ -35,7 +35,6 @@
 #include "fileutil.h"
 #include "documenttypes.h"
 #include "mouseutil.h"
-#include "resource.h"
 
 /* #define DEMO 1 /* D E M O V E R S I O N */
 

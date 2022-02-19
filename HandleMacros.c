@@ -33,7 +33,7 @@ extern void yyerror(char* s, ...);
  * Return the logical function number (index into functionTable) of the function invoked by the command with the given index.
  */
 int macro_getFunctionNumberForCommand(int nCommand, long long* llParam) {
-	COM_1FUNC* pCommand = &_cmdseqtab[nCommand].c_functionDef;
+	COM_1FUNC* pCommand = &_commandTable[nCommand].c_functionDef;
 	*llParam = pCommand->p;
 	return pCommand->funcnum;
 }
@@ -46,10 +46,10 @@ char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
 	switch(type) {
 		case CMD_MACRO:  sprintf(szBuf,"%s",macro_getByIndex(nIndex)->name); break;
 		case CMD_CMDSEQ: 
-			if (nIndex < 0 || nIndex >= _ncmdseq) {
+			if (nIndex < 0 || nIndex >= _commandTableSize) {
 				sprintf(szBuf,"@Unnamed-%d",nIndex);
 			} else {
-				strcpy(szBuf + 1, _cmdseqtab[nIndex].c_name);
+				strcpy(szBuf + 1, _commandTable[nIndex].c_name);
 				szBuf[0] = '@';
 			}
 			break;
@@ -64,11 +64,11 @@ char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
  * located in the valid index range. Can be used to iterate all commands.
  */
 char* macro_getCommandByIndex(int nIndex) {
-	if (nIndex < 0 || nIndex >= _ncmdseq) {
+	if (nIndex < 0 || nIndex >= _commandTableSize) {
 		return 0;
 	}
 	static char szMac[80];
-	strcpy(szMac + 1, _cmdseqtab[nIndex].c_name);
+	strcpy(szMac + 1, _commandTable[nIndex].c_name);
 	szMac[0] = '@';
 	return szMac;
 }
@@ -80,8 +80,8 @@ int macro_getCmdIndexByName(const char *name) {
 	int			id;
 
 	// TODO: should perform a hash lookup on a long term run.
-	for (id = 0; id < _ncmdseq; id++) {
-		if (strcmp(_cmdseqtab[id].c_name, name) == 0) {
+	for (id = 0; id < _commandTableSize; id++) {
+		if (strcmp(_commandTable[id].c_name, name) == 0) {
 			return id;
 		}
 	}

@@ -200,7 +200,7 @@ long sym_integerForSymbol(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 
 	switch (TYPEOF(sym)) {
 	case S_DOLNUMBER: case S_DOLSTRING:
-		if (macro_getDollarParameter((intptr_t) VALUE(sym), &isString, &value) == 0) {
+		if (interpreter_getDollarParameter((intptr_t) VALUE(sym), &isString, &value) == 0) {
 			return 0;
 		}
 		if (!isString) {
@@ -246,7 +246,7 @@ intptr_t sym_stringForSymbol(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 
 	switch(TYPEOF(sym)) {
 	case S_DOLNUMBER: case S_DOLSTRING:
-		if (macro_getDollarParameter((intptr_t) VALUE(sym), &isString, &value) == 0) {
+		if (interpreter_getDollarParameter((intptr_t) VALUE(sym), &isString, &value) == 0) {
 			return 0;
 		}
 		if (isString) {

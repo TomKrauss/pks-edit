@@ -64,9 +64,7 @@
 
 # define	REC_SPACE			24000
 
-static unsigned char *_recspace;
-unsigned char *_recp;
-unsigned char *_recpend;
+static BYTECODE_BUFFER  _bytecodeBuffer;
 static void		*_lastfuncp;
 static int		_override,
 				_nparam,
@@ -100,27 +98,27 @@ static 		char *lstartid  = "%ls%",
 int			vname_count;
 extern 		int	yyerrflg;
 extern 		int	_bDefiningConst;
-extern void yyerror(char* s, ...);
+extern void		yyerror(char* s, ...);
 int				function_getIndexOfFunction(void *ep);
 int 			function_parameterIsFormStart(void *ep,int parno);
-extern TYPEDVAL		bytecode_emitBinaryOperation(int nOperationType, TYPEDVAL *v1, TYPEDVAL *v2);
-extern void bytecode_emitIncrementExpression(TYPEDVAL *v1, int nIncrement);
+extern TYPEDVAL	bytecode_emitBinaryOperation(BYTECODE_BUFFER* pBuffer, int nOperationType, TYPEDVAL *v1, TYPEDVAL *v2);
+extern void bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, TYPEDVAL *v1, int nIncrement);
 
 /*
  * Multiply an expression and return the TYPEDVAL result
  */
-extern TYPEDVAL bytecode_emitMultiplyWithLiteralExpression(TYPEDVAL* v1, int nNumber);
+extern TYPEDVAL bytecode_emitMultiplyWithLiteralExpression(BYTECODE_BUFFER* pBuffer, TYPEDVAL* v1, int nNumber);
 
 extern int yylex(void );
-void 		bytecode_emitAssignment(const char *name, int typ, GENERIC_DATA val);
-void 		bytecode_defineVariable(const char *name, int nBytecode, int typ, intptr_t val);
+void 		bytecode_emitAssignment(BYTECODE_BUFFER* pBuffer, const char *name, int typ, GENERIC_DATA val);
+void 		bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBytecode, int typ, intptr_t val);
 
-char		 	*bytecode_emitGotoLabelInstruction(char *name, char *sp, char *spend, int typ);
-int			bytecode_createBranchLabel(char *name, COM_GOTO *recp);
+char*		bytecode_emitGotoLabelInstruction(char *name, BYTECODE_BUFFER* pBuffer, int typ);
+int			bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name);
 void 		bytecode_closeOpenLabels(void);
 void 		bytecode_destroyLabelNamed(char *name);
- char			*bytecode_generateAutoLabelName(char *prefix, int num);
-int 			function_returnsString(void *ep);
+char*		bytecode_generateAutoLabelName(char *prefix, int num);
+int 		function_returnsString(void *ep);
 
 IDENTIFIER_CONTEXT* _currentIdentifierContext;
 
@@ -135,7 +133,7 @@ static SYMBOL_TYPE symbolTypeForLiteralType(int nLiteralType) {
 
 static void makeInternalSymbol(const char* pszName, int sType, intptr_t tVal) {
 	SYMBOL_TYPE nSymbolType = symbolTypeForLiteralType(sType);
-	bytecode_defineVariable(pszName, C_DEFINE_VARIABLE, nSymbolType, tVal);
+	bytecode_defineVariable(&_bytecodeBuffer, pszName, C_DEFINE_VARIABLE, nSymbolType, tVal);
 	sym_makeInternalSymbol(_currentIdentifierContext, (char*) pszName, nSymbolType, (GENERIC_DATA) {.val = tVal});
 }
 
@@ -193,7 +191,7 @@ par_decl: type_ident var_ident {
 				
 				typ = ($1.type == C_STRING_LITERAL) ? S_DOLSTRING : S_DOLNUMBER;
 				sym_makeInternalSymbol(_currentIdentifierContext, $2.ident.s,typ,(GENERIC_DATA) {_nparam});
-				bytecode_defineVariable($2.ident.s,C_DEFINE_PARAMETER,typ,_nparam);
+				bytecode_defineVariable(&_bytecodeBuffer, $2.ident.s,C_DEFINE_PARAMETER,typ,_nparam);
 				_nparam++;
 			}
 
@@ -203,9 +201,9 @@ macros		:  macrostart opt_string block
 					bytecode_generateAutoLabelNamePrefix(lreturnid,0);
 					bytecode_destroyAutoLabelNamePrefix(lreturnid,0);
 					macro_validateMacroName($1.ident.s, -1, 1);
-					_recp = bytecode_emitInstruction(_recp,_recpend,C_STOP, (GENERIC_DATA){1});
+					_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_STOP, (GENERIC_DATA){1});
 					_compilerConfiguration->cb_showStatus("Defining macro %s",$1.ident.s);
-					_compilerConfiguration->cb_insertNewMacro($1.ident.s,$2.ident.s,_recspace,(int)(_recp-_recspace));
+					_compilerConfiguration->cb_insertNewMacro($1.ident.s,$2.ident.s,_bytecodeBuffer.bb_start,(int)(_bytecodeBuffer.bb_current-_bytecodeBuffer.bb_start));
 				}
 				freeitem(&$2.ident.s);
 				freeitem(&$1.ident.s);
@@ -225,7 +223,7 @@ var_decl		: type_ident var_ident assgn ';'	{
 				makeInternalSymbol($2.ident.s,
 					$1.type,
 					($1.type == C_STRING_LITERAL) ? (intptr_t)"" : 0);
-				bytecode_emitAssignment($2.ident.s,$3.v.type, $3.v.data);
+				bytecode_emitAssignment(&_bytecodeBuffer, $2.ident.s,$3.v.type, $3.v.data);
 				freeval(&$3.v);
 				if ($2.ident.stringIsAlloced) {
 					free($2.ident.s);
@@ -234,10 +232,10 @@ var_decl		: type_ident var_ident assgn ';'	{
 			} | type_ident var_ident ';'	{
 				if ($1.type == C_STRING_LITERAL) {
 					makeInternalSymbol($2.ident.s, $1.type, (intptr_t)"");
-					bytecode_emitAssignment($2.ident.s, C_STRING_LITERAL, (GENERIC_DATA){.string = ""});
+					bytecode_emitAssignment(&_bytecodeBuffer, $2.ident.s, C_STRING_LITERAL, (GENERIC_DATA){.string = ""});
 				} else {
 					makeInternalSymbol($2.ident.s, $1.type, (intptr_t)0);
-					bytecode_emitAssignment($2.ident.s, $1.type, (GENERIC_DATA){ 0 });
+					bytecode_emitAssignment(&_bytecodeBuffer, $2.ident.s, $1.type, (GENERIC_DATA){ 0 });
 				}
 				if ($2.ident.stringIsAlloced) {
 					free($2.ident.s);
@@ -264,7 +262,7 @@ stmnt		:            	';'
 
 
 assignment	: var assgn {
-				bytecode_emitAssignment($1.ident.s,$2.v.type, $2.v.data);
+				bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s,$2.v.type, $2.v.data);
 			}
 
 assgn		: T_ASSIGN arithmetic_expression { 	$$.v = $2.v;	}
@@ -273,16 +271,16 @@ arithmetic_expression: simple_expression	{ $$.v = $1.v; }
 			| '(' simple_expression ')'		{ $$.v = $2.v; }
 
 simple_expression: bterm					{ $$.v = $1.v; }
-			| '~' arithmetic_expression 	{ $$.v = bytecode_emitBinaryOperation(BIN_NOT,&$2.v,0); 	}
+			| '~' arithmetic_expression 	{ $$.v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_NOT,&$2.v,0); 	}
 
 increment_expression: 
-			value T_MINUSMINUS  { bytecode_emitIncrementExpression(&$1.v, -1); }
+			value T_MINUSMINUS  { bytecode_emitIncrementExpression(&_bytecodeBuffer, &$1.v, -1); }
 			|
-			value T_PLUSPLUS { bytecode_emitIncrementExpression(&$1.v, 1); }
+			value T_PLUSPLUS { bytecode_emitIncrementExpression(&_bytecodeBuffer, &$1.v, 1); }
 
 s_bterm: 	value { $$.v = $1.v; }
 			| {
-				_recp = bytecode_emitInstruction(_recp,_recpend,C_FURET, (GENERIC_DATA){vname_count});
+				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_FURET, (GENERIC_DATA){vname_count});
 			} fcall {
 				if ($2.funcp && function_returnsString($2.funcp)) {
 					$$.v.type = C_STRINGVAR;
@@ -299,21 +297,21 @@ bterm		: s_bterm 		{ $$.v = $1.v;	}
 				    macro_isParameterStringType($2.v.type)) {
 					$$.v = $2.v;
 				} else {
-					$$.v = bytecode_emitBinaryOperation(BIN_CONVERT,&$2.v,0);
+					$$.v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_CONVERT,&$2.v,0);
 					$$.v.type = ($1.type == C_STRING_LITERAL) ?
 						C_STRINGVAR : (($1.type == C_FLOAT_LITERAL) ? C_FLOATVAR : C_LONGVAR);
 				}
 			}
 			| '+' bterm { $$.v = $2.v }
-			| '-' bterm { $$.v = bytecode_emitMultiplyWithLiteralExpression(&$2.v, -1); }
-			| bterm '&' bterm 	{ $$.v = bytecode_emitBinaryOperation(BIN_AND,&$1.v,&$3.v); }
-			| bterm '|' bterm 	{ $$.v = bytecode_emitBinaryOperation(BIN_OR,&$1.v,&$3.v); }
-			| bterm '+' bterm 	{ $$.v = bytecode_emitBinaryOperation(BIN_ADD,&$1.v,&$3.v); }
-			| bterm '^' bterm 	{ $$.v = bytecode_emitBinaryOperation(BIN_XOR,&$1.v,&$3.v); }
-			| bterm '-' bterm 	{ $$.v = bytecode_emitBinaryOperation(BIN_SUB,&$1.v,&$3.v); }
-			| bterm '*' bterm 	{ $$.v = bytecode_emitBinaryOperation(BIN_MUL,&$1.v,&$3.v); }
-			| bterm '/' bterm 	{ $$.v = bytecode_emitBinaryOperation(BIN_DIV,&$1.v,&$3.v); }
-			| bterm '%' bterm 	{ $$.v = bytecode_emitBinaryOperation(BIN_MOD,&$1.v,&$3.v); }
+			| '-' bterm { $$.v = bytecode_emitMultiplyWithLiteralExpression(&_bytecodeBuffer, &$2.v, -1); }
+			| bterm '&' bterm 	{ $$.v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_AND,&$1.v,&$3.v); }
+			| bterm '|' bterm 	{ $$.v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_OR,&$1.v,&$3.v); }
+			| bterm '+' bterm 	{ $$.v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_ADD,&$1.v,&$3.v); }
+			| bterm '^' bterm 	{ $$.v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_XOR,&$1.v,&$3.v); }
+			| bterm '-' bterm 	{ $$.v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_SUB,&$1.v,&$3.v); }
+			| bterm '*' bterm 	{ $$.v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_MUL,&$1.v,&$3.v); }
+			| bterm '/' bterm 	{ $$.v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_DIV,&$1.v,&$3.v); }
+			| bterm '%' bterm 	{ $$.v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_MOD,&$1.v,&$3.v); }
 			| '(' bterm ')'	{ $$.v = $2.v; }
 
 /*----- conditions ------------------------------------------*/
@@ -338,9 +336,9 @@ op2			: { bytecode_beginTestOperation(); }
 
 optterm2		: { 	
 				if (_stringflg)
-					_recp = bytecode_emitInstruction(_recp,_recpend,C_STRING_LITERAL,(GENERIC_DATA){.string=""});
+					_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_STRING_LITERAL,(GENERIC_DATA){.string=""});
 				else
-					_recp = bytecode_emitInstruction(_recp,_recpend,C_LONG_LITERAL,(GENERIC_DATA){0});
+					_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_LONG_LITERAL,(GENERIC_DATA){0});
 				$$.type = CT_NE;
 			}
 			| relop term 	{
@@ -413,7 +411,7 @@ continue		: T_CONTINUE opt_num ';'
 			{	bytecode_emitGotoInstruction(lstartid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
 
 return		: T_RETURN opt_num {
-				_recp = bytecode_emitInstruction(_recp,_recpend,C_STOP,(GENERIC_DATA){.longValue=$2.num});
+				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_STOP,(GENERIC_DATA){.longValue=$2.num});
 			}
 
 opt_num		: 		{	$$.num = 1;	}
@@ -425,16 +423,16 @@ caselabels	:
 			| label block caselabels
 
 label:		T_IDENT ':' {
-				bytecode_createBranchLabel($1.ident.s,(COM_GOTO *)_recp);
+				bytecode_createBranchLabel(&_bytecodeBuffer, $1.ident.s);
 				freeitem(&$1.ident.s);
 			}
 
 goto:		T_GOTO T_IDENT {
-				_recp = bytecode_emitGotoLabelInstruction($2.ident.s,_recp,_recpend,BRA_ALWAYS);
+				_bytecodeBuffer.bb_current = bytecode_emitGotoLabelInstruction($2.ident.s,&_bytecodeBuffer,BRA_ALWAYS);
 				freeitem(&$2.ident.s);
 			}
 			| T_BRAEQ T_IDENT {
-				_recp = bytecode_emitGotoLabelInstruction($2.ident.s,_recp,_recpend,BRA_EQ);
+				_bytecodeBuffer.bb_current = bytecode_emitGotoLabelInstruction($2.ident.s,&_bytecodeBuffer,BRA_EQ);
 				freeitem(&$2.ident.s);
 			}
 
@@ -475,13 +473,13 @@ stmntlist		:
 fcall		: T_FUNC {
 				_lastfuncp = $1.funcp;
 				_parno = 0;
-				_recp = bytecode_emitInstruction(_recp,_recpend,C_0FUNC,
+				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_0FUNC,
 							   (GENERIC_DATA){function_getIndexOfFunction($1.funcp)});
 				$$.funcp = $1.funcp;
 			} '(' parlist ')'
 			| T_IDENT {
 				_lastfuncp = 0;
-				_recp = bytecode_emitInstruction(_recp,_recpend,C_MACRO,(GENERIC_DATA){.string = $1.ident.s});
+				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_MACRO,(GENERIC_DATA){.string = $1.ident.s});
 				freeitem(&$1.ident.s);
 				$$.funcp = 0;
 			} '(' parlist ')'
@@ -569,7 +567,7 @@ static void binaryOperation1Found(unsigned char type)
 
 	if (cp) {
 		_stringflg = STRINGTYPE(type);
-		cp->p2offset = (int)(_recp-(unsigned char *)cp);
+		cp->p2offset = (int)(_bytecodeBuffer.bb_current-(unsigned char *)cp);
 	}
 }
 
@@ -583,7 +581,7 @@ static void bytecode_endTestOperation(unsigned char type)
 		yyerror("bad expression");
 	} else {
 		cp->testop = type;
-		cp->size = (int)(_recp - (unsigned char *)cp);
+		cp->size = (int)(_bytecodeBuffer.bb_current - (unsigned char *)cp);
 		_exprlevel--;
 	}
 }
@@ -597,8 +595,8 @@ static void bytecode_beginTestOperation()
 		yyerror("expression too complex");
 	} else {
 		_exprlevel++;
-		_exprstack[_exprlevel] = (COM_TEST*)_recp;
-		_recp = bytecode_emitInstruction(_recp,_recpend,C_TEST,(GENERIC_DATA){CT_BRACKETS});
+		_exprstack[_exprlevel] = (COM_TEST*)_bytecodeBuffer.bb_current;
+		_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_TEST,(GENERIC_DATA){CT_BRACKETS});
 	}
 }
 
@@ -607,7 +605,7 @@ static void bytecode_beginTestOperation()
 /*---------------------------------*/
 static unsigned char bytecode_emitPushValueInstruction(TYPEDVAL *vp)
 {
-	_recp = bytecode_emitInstruction(_recp,_recpend,vp->type,vp->data);
+	_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,vp->type,vp->data);
 	freeval(vp);
 	return vp->type;
 }
@@ -649,8 +647,8 @@ static char *bytecode_emitGotoInstruction(char *prefix, int level, int bratyp)
 	if (level < 0)
 		yyerror("illegal break/continue level");
 	else
-		_recp = bytecode_emitGotoLabelInstruction(name,_recp,_recpend,bratyp);
-	return _recp;
+		_bytecodeBuffer.bb_current = bytecode_emitGotoLabelInstruction(name,&_bytecodeBuffer,bratyp);
+	return _bytecodeBuffer.bb_current;
 }
 
 /*---------------------------------*/
@@ -659,7 +657,7 @@ static char *bytecode_emitGotoInstruction(char *prefix, int level, int bratyp)
 static int bytecode_generateAutoLabelNamePrefix(char *prefix,int level)
 {	char *name = bytecode_generateAutoLabelName(prefix,level);
 
-	return bytecode_createBranchLabel(name,(COM_GOTO *)_recp);
+	return bytecode_createBranchLabel(&_bytecodeBuffer, name);
 }
 
 /*---------------------------------*/
@@ -703,12 +701,12 @@ static void startmacro(void)
 #ifdef YYDEBUG
 int	yydebug = 1;
 #endif
-	if (!_recspace) {
-		_recpend = ((_recspace = malloc(REC_SPACE)) == 0) ? 
-			_recspace : _recspace + REC_SPACE;
+	if (!_bytecodeBuffer.bb_start) {
+		_bytecodeBuffer.bb_end = ((_bytecodeBuffer.bb_start = malloc(REC_SPACE)) == 0) ? 
+			_bytecodeBuffer.bb_start : _bytecodeBuffer.bb_start + REC_SPACE;
 	}
+	_bytecodeBuffer.bb_current = _bytecodeBuffer.bb_start; 
 	_nparam = 0;
-	_recp = _recspace;
 	_lastfuncp  = 0;
 	_breaklevel = 0;
 	_iflevel    = 0;
@@ -721,10 +719,10 @@ int	yydebug = 1;
 /* endmacro()					*/
 /*---------------------------------*/
 static void endmacro(void) {
-	if (_recspace) {
-		free(_recspace);
-		_recspace = 0;
-		_recpend = 0;
+	if (_bytecodeBuffer.bb_start) {
+		free(_bytecodeBuffer.bb_start);
+		_bytecodeBuffer.bb_start = 0;
+		_bytecodeBuffer.bb_end = 0;
 	}
 	_currentIdentifierContext = sym_popContext(_currentIdentifierContext);
 }

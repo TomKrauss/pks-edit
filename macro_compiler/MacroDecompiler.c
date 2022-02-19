@@ -490,7 +490,7 @@ static long decompile_printMacrosCallback(FILE *fp)
 {	MACRO	**mtable,*mp;
 	int	    	i;
 
-	for (mtable = _macrotab, i = 0; i < _nmacros; i++) {
+	for (mtable = _macroTable, i = 0; i < _macroTableSize; i++) {
 		if ((mp = mtable[i]) != 0) {
 			if (!_macroname ||
 			    strcmp(_macroname,MAC_NAME(mp)) == 0)

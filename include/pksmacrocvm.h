@@ -247,6 +247,14 @@ typedef union c_seq {
 	unsigned char* sp;
 } COM_SEQ;
 
+/*
+ * Describes a bytecode buffer for being manipulated or read. 
+ */
+typedef struct BYTECODE_BUFFER {
+	unsigned char* bb_start;
+	unsigned char* bb_current;
+	unsigned char* bb_end;
+} BYTECODE_BUFFER;
 
 #define PKSMACROCVM_H
 #endif

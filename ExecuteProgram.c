@@ -34,7 +34,6 @@ extern void xref_openSearchList(char *fn, int cmpflg);
 extern void undo_startModification(FTABLE *fp);
 
 extern FTABLE 	_outfile;
-extern int	_playing;
 
 BOOL	  		bTaskFinished;
 

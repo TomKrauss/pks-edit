@@ -56,10 +56,9 @@ typedef struct tagMACRO {
 #define	MAC_COMMENT(mp)	((unsigned char *)mp+sizeof *mp+mp->namelen)
 
 typedef struct tagCOMMAND COMMAND;
-extern COMMAND		_cmdseqtab[];
-extern MACRO*		_macrotab[];
-extern int			_ncmdseq,_nmacros;
-extern char			_recorder[];
+extern COMMAND		_commandTable[];
+extern MACRO*		_macroTable[];
+extern int			_commandTableSize,_macroTableSize;
 
 #define	IDM_CMDNAME		1024
 #define	IDM_LOWENUMNAME	2512
@@ -97,7 +96,7 @@ typedef struct tagCOMPILER_CONFIGURATION {
 extern COMPILER_CONFIGURATION* _compilerConfiguration;
 
 extern int macro_openDialog(PARAMS *p);
-extern int cdecl macro_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3);
+extern int cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3);
 
 /*------------------------------------------------------------
  * macro_getByIndex()
@@ -169,10 +168,10 @@ extern void macro_renameAndChangeComment(int nIndex, char* szName, char* szComme
 extern int macro_insertNewMacro(char* name, char* comment, char* macdata, int size);
 
 /*------------------------------------------------------------
- * macro_toggleRecordMaco()
+ * recorder_toggleRecording()
  * start/stops the macro recorder.
  */
-extern int macro_toggleRecordMaco(void);
+extern int recorder_toggleRecording(void);
 
 /*--------------------------------------------------------------------------
  * macro_translateToOriginalMenuIndex()
@@ -213,9 +212,9 @@ extern MACROREF* macro_translateMenuCommand(int nCommand);
 extern char* macro_getKeyText(const char* pszActionContext, int nCmd);
 
 /*---------------------------------*/
-/* macro_recordOperation()				*/
+/* recorder_recordOperation()				*/
 /*---------------------------------*/
-extern int macro_recordOperation(PARAMS* pp);
+extern int recorder_recordOperation(PARAMS* pp);
 
 #ifdef _WINFO_H
 /*
@@ -277,8 +276,7 @@ extern int macro_executeSingleLineMacro(const char* pszCode, BOOL bUnescape, con
  */
 extern void macro_returnString(char* string);
 
-
-extern void macro_stopRecordingFunctions();
+extern void recorder_stopAutoInsertRecording(void** pRecordBufferLow, void** pRecordBufferHigh);
 
 /*--------------------------------------------------------------------------
  * macro_isParameterStringType()
@@ -311,7 +309,7 @@ extern int macro_executeMacroByIndex(int macroindex);
  */
 extern int print_saveMouseBindingsAndDisplay(void);
 
-extern int macro_getDollarParameter(intptr_t offset, int* typ, intptr_t* value);
+extern int interpreter_getDollarParameter(intptr_t offset, int* typ, intptr_t* value);
 
 /*---------------------------------
  * macro_createFileAndDisplay()

@@ -26,7 +26,7 @@
 #include "symbols.h"
 #include "errordialogs.h"
 
-extern intptr_t		macro_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **sp, COM_1FUNC *spend);
+extern intptr_t		interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **sp, COM_1FUNC *spend);
 
 /*--------------------------------------------------------------------------
  * macro_isParameterStringType()
@@ -64,7 +64,7 @@ static long long macro_getNumberParameter(EXECUTION_CONTEXT* pContext, unsigned 
 		case C_MACRO:
 		case C_0FUNC:
 		case C_1FUNC:
-			return (long long)macro_doMacroFunctions(pContext, (COM_1FUNC**)&sp, (COM_1FUNC*)spend);
+			return (long long)interpreter_doMacroFunctions(pContext, (COM_1FUNC**)&sp, (COM_1FUNC*)spend);
 	}
 	return 0L;
 }

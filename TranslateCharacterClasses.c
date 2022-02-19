@@ -65,19 +65,19 @@ ovl:/*		printf("too many chars in class\n");
 }
 
 /*--------------------------------------------------------------------------
- * tlcompile()
+ * translate_compileCharacterTable()
  * make a translation table out of a notation, used in the following example
  * 
  * a-z1=A-Z!	 =>  translate all chars a->A,b->B...z->Z,1->!
  *
  */
-unsigned char *tlcompile(unsigned char *_transtab, 
+unsigned char *translate_compileCharacterTable(unsigned char *pszTranslationTable, 
 	const unsigned char *t, unsigned char *wtable) 
 {	unsigned char b1[256],b2[256],*p;
 	int i;
 
 	for (i = 0; i < 256; i++)
-		_transtab[i] = i;
+		pszTranslationTable[i] = i;
 
 	/* t++;		/* override	'[' !	*/
 
@@ -90,7 +90,7 @@ unsigned char *tlcompile(unsigned char *_transtab,
 			wtable[b1[i]] |= _C;
 			wtable[*p] |= _C;
 		}
-		_transtab[b1[i]] = *p;
+		pszTranslationTable[b1[i]] = *p;
 		if (p[1]) p++;
 	}
 	while (*p) {

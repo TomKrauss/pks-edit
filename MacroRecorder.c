@@ -1,0 +1,281 @@
+/*
+ * MacroRecorder.c
+ *
+ * record macros in PKS-Edit
+ *
+ * PROJECT: PKSEDIT
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * author: Tom
+ * created: 13.03.1991
+ */
+
+#include <stdio.h>
+#include <string.h>
+
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
+#include "pksedit.h"
+#include "documentmodel.h"
+#include "markpositions.h"
+#include "actionbindings.h"
+#include "xdialog.h"
+#include "errordialogs.h"
+#include "funcdef.h"
+
+/*
+ * Start the recorder.
+ */
+extern int op_startMacroRecording();
+
+static char _recorderByteCodes[RECORDERSPACE];
+static char* _cmdfuncp;
+static BYTECODE_BUFFER	_currentRecordingBuffer;
+typedef struct ccash {
+	unsigned char low;
+	COM_1FUNC	    b[200];
+} CCASH;
+
+static CCASH			_autoInsertCache;
+
+
+int				_lastinsertedmac = -1;
+
+/*------------------------------------------------------------
+ * EdMacroRecord()
+ */
+int EdMacroRecord(void)
+{
+	return op_startMacroRecording();
+}
+
+/*
+ * Answers true if we are currently recording macros
+ */
+BOOL recorder_isRecording() {
+	return _currentRecordingBuffer.bb_current != NULL;
+}
+
+/*
+ * Start/stop the macro recorder. 
+ */
+void recorder_setRecording(BOOL bStart) {
+	if (bStart) {
+		_currentRecordingBuffer.bb_current = _currentRecordingBuffer.bb_start = _recorderByteCodes;
+		_currentRecordingBuffer.bb_end = &_recorderByteCodes[RECORDERSPACE - 12];
+	} else {
+		_currentRecordingBuffer.bb_current = NULL;
+	}
+}
+
+/*--------------------------------------------------------------------------
+ * recorder_pushSequence()
+ *
+ * this is called, when recording
+ * we do not need, to handle all command types, cause in ineractive
+ * mode, delta like test or binop are not possible
+ */
+void recorder_pushSequence(unsigned char typ, void* par) {
+	char* spend;
+	char* sp;
+	int  s;
+
+	if (!recorder_isRecording()) {
+		return;
+	}
+
+	sp = _currentRecordingBuffer.bb_current;
+	s = macro_getParameterSize(typ, (char*)par);
+
+	if ((spend = sp + s) > _currentRecordingBuffer.bb_end) {
+		error_showErrorById(IDS_MSGMACOVERFLOW);
+		EdMacroRecord();			/* STOP the recording machine */
+		return;
+	}
+
+	switch (typ) {
+	case C_FURET:
+	case C_0FUNC:
+	case C_CHARACTER_LITERAL:
+		((COM_CHAR1*)sp)->val = (unsigned char)par;
+		break;
+	case C_FORMSTART:
+		*(COM_FORM*)sp = *(COM_FORM*)par;
+		break;
+	case C_1FUNC:
+		*(COM_1FUNC*)sp = *(COM_1FUNC*)par;
+		break;
+	case C_INTEGER_LITERAL:
+		((COM_INT1*)sp)->val = (int)(intptr_t)par;
+		break;
+	case C_LONG_LITERAL:
+		((COM_LONG1*)sp)->val = (long)(intptr_t)par;
+		break;
+	case C_FLOAT_LITERAL:
+		((COM_FLOAT1*)sp)->val = (double)(intptr_t)par;
+		break;
+	case C_STRING_LITERAL:
+	case C_MACRO:
+		strcpy(((COM_MAC*)sp)->name, (char*)par);
+		break;
+	}
+
+	if (C_ISCMD(typ))
+		_cmdfuncp = sp;
+
+	*sp = typ;
+	*spend = C_STOP;
+	_currentRecordingBuffer.bb_current = spend;
+}
+
+/*---------------------------------*/
+/* recorder_recordFunctionWithParameters()						*/
+/*---------------------------------*/
+void recorder_recordFunctionWithParameters(int fnum, int p, intptr_t p2, char* s1, char* s2) {
+	COM_1FUNC c;
+
+	if (!recorder_isRecording())
+		return;
+
+	if (_functionTable[fnum].flags & EW_NOCASH)	/* avoid recursion	*/
+		return;
+
+	c.funcnum = fnum;
+	c.p = p;
+
+	recorder_pushSequence(C_1FUNC, (void*)&c);
+	if (p2) recorder_pushSequence(C_LONG_LITERAL, (void*)p2);
+	if (s1) {
+		recorder_pushSequence(C_STRING_LITERAL, (void*)s1);
+		if (s2)
+			recorder_pushSequence(C_STRING_LITERAL, (void*)s2);
+	}
+}
+
+/*---------------------------------*/
+/* recorder_recordOperation()				*/
+/*---------------------------------*/
+int recorder_recordOperation(PARAMS* pp)
+{
+	int 		i, opt;
+	struct 	des* dp;
+	char* savepos;
+	COM_FORM	cf;
+
+	if (!recorder_isRecording())
+		return 0;
+
+	savepos = _currentRecordingBuffer.bb_current - macro_getParameterSize(C_1FUNC, (char*)0);
+	opt = 0;
+
+	if (pp->flags & P_MAYOPEN) {
+		if (dlg_displayRecordMacroOptions(&opt) == 0) {
+			/* dialog is cancelled */
+			_currentRecordingBuffer.bb_current = savepos;
+			return 0;
+		}
+	}
+
+	cf.options = opt;
+	cf.nfields = pp->nel;
+	/*
+	 * slight optimization: if form should be opened uninitialized,
+	 * dont EdMacroRecord the parameters
+	 */
+	if ((opt & FORM_INIT) == 0)
+		cf.nfields = 0;
+
+	recorder_pushSequence(C_FORMSTART, &cf);
+
+	dp = pp->el;
+	for (i = cf.nfields; i > 0; i--, dp++) {
+		switch (dp->cmd_type) {
+		case C_INTEGER_LITERAL:
+			recorder_pushSequence(C_INTEGER_LITERAL, (void*)((intptr_t)*dp->p.i));
+			break;
+		case C_CHARACTER_LITERAL:
+			recorder_pushSequence(C_CHARACTER_LITERAL, (void*)((intptr_t)*dp->p.c));
+			break;
+		case C_FLOAT_LITERAL:
+			recorder_pushSequence(C_FLOAT_LITERAL, (void*)((intptr_t)*dp->p.d));
+			break;
+		case C_LONG_LITERAL:
+			recorder_pushSequence(C_LONG_LITERAL, (void*)((intptr_t)*dp->p.l));
+			break;
+		case C_STRING_LITERAL:
+			recorder_pushSequence(C_STRING_LITERAL, (void*)dp->p.s);
+			break;
+		}
+	}
+
+	return 1;
+}
+
+/*------------------------------------------------------------
+ * recorder_toggleRecording()
+ * start/stops the macro recorder.
+ */
+int recorder_toggleRecording(void) {
+	int     size;
+	static KEYCODE scan = K_DELETED;
+	char    buf[100];
+	static  int _macroIndexRecorded;
+
+	if (recorder_isRecording()) {		// STOP RECORDING
+		if (_cmdfuncp && (size = (int)(_currentRecordingBuffer.bb_current - _recorderByteCodes)) > 0) {
+			wsprintf(buf, "NewMacro%d", ++_macroIndexRecorded);
+			if (!macro_getIndexForKeycode(&scan, buf, -1)) {
+				return 0;
+			}
+			if (!scan) {
+				scan = K_DELETED;
+			}
+			if ((_lastinsertedmac = macro_insertNewMacro(buf, "", _recorderByteCodes, size)) >= 0) {
+				bindings_bindKey(scan, (MACROREF) { .index = _lastinsertedmac, .typ = CMD_MACRO }, NULL);
+			}
+		}
+		recorder_setRecording(FALSE);
+	}  else {	// START RECORDING
+		recorder_setRecording(TRUE);;
+	}
+	return 1;
+}
+
+/*---------------------------------*/
+/* recorder_stopAutoInsertRecording()  */
+/*---------------------------------*/
+void recorder_stopAutoInsertRecording(void **pRecordBufferLow, void **pRecordBufferHigh) {
+	_autoInsertCache.low = 0;
+	if (pRecordBufferLow) {
+		*pRecordBufferLow = (COM_1FUNC*)_autoInsertCache.b;
+		*pRecordBufferHigh = (COM_1FUNC*)(&_autoInsertCache.b[DIM(_autoInsertCache.b)]);
+	}
+}
+
+/*---------------------------------*/
+/* recorder_recordAutoInsertFunction()					*/
+/*---------------------------------*/
+void recorder_recordAutoInsertFunction(FTABLE* fp, int p) {
+
+	if (_autoInsertCache.low < DIM(_autoInsertCache.b) - 2) {
+		COM_1FUNC* cp;
+		if (!_autoInsertCache.low) {
+			fm_savepos(MTE_AUTO_LAST_INSERT);
+			undo_startModification(fp);
+		}
+		cp = &_autoInsertCache.b[_autoInsertCache.low++];
+		cp->typ = C_1FUNC;
+		cp->funcnum = FUNC_EdCharInsert;
+		cp->p = p;
+		/*
+		 * stop mark
+		 */
+		cp[1].typ = C_STOP;
+	}
+}
+
+
+

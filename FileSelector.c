@@ -255,7 +255,7 @@ char *fsel_selectFileWithOptions(FSELINFO *fp, int nCommand, FILE_SELECT_PARAMS*
 
 		if (!SelectFile(nCommand,fp->path,fp->fname,fp->search, pFSP))
 			return (char *)0;
-		macro_recordOperation(&_p);
+		recorder_recordOperation(&_p);
 	}
 	return _fseltarget;
 }

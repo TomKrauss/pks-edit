@@ -27,8 +27,6 @@
 #include "xdialog.h"
 #include "themes.h"
 
-extern int	_playing;
-
 HWND hwndAbort;
 
 static DLGPROC lpfnAbort;

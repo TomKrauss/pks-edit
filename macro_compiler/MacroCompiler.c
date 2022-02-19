@@ -33,7 +33,7 @@ int  yyparse(void);
 void yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps,LINE *lpe);
 int  yyfinish(void);
 
-extern int		_macedited;
+extern int		_macrosWereChanged;
 
 /*--------------------------------------------------------------------------
  * getCurrentDocumentTypeContext(()
@@ -198,7 +198,7 @@ int macro_executeSingleLineMacro(const char *pszCode, BOOL bUnescape, const char
 	int			nFail;
 	int			saveMacEdited;
 
-	saveMacEdited = _macedited;
+	saveMacEdited = _macrosWereChanged;
 	_tempMacroName = NULL;
 	memset(&ft, 0, sizeof ft);
 	BOOL bNeedsWrapper = macro_needsWrapper(pszCode);
@@ -240,7 +240,7 @@ int macro_executeSingleLineMacro(const char *pszCode, BOOL bUnescape, const char
 		macro_deleteByName(_tempMacroName);
 	}
 	free(_tempMacroName);
-	_macedited = saveMacEdited;
+	_macrosWereChanged = saveMacEdited;
 	return ret;
 }
 

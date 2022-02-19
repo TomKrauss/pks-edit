@@ -20,7 +20,6 @@
 #include "pksmacro.h"
 #include "actionbindings.h"
 #include "linkedlist.h"
-#include "resource.h"
 #include "jsonparser.h"
 #include "hashmap.h"
 #include "arraylist.h"

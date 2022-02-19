@@ -653,7 +653,7 @@ extern BOOL undo_isRedoAvailable(FTABLE* fp);
  */
 extern BOOL undo_isUndoAvailable(FTABLE* fp);
 
-extern void macro_recordFunction(FTABLE* fp, int p);
+extern void recorder_recordAutoInsertFunction(FTABLE* fp, int p);
 
 /*--------------------------------------------------------------------------
  * string_formatDate()
