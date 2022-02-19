@@ -80,9 +80,11 @@ static EXECUTION_CONTEXT* macro_getRecordingContext() {
 	return &_recordingContext;
 }
 
-/*---------------------------------*/
-/* macro_getParameterSize()				*/
-/*---------------------------------*/
+/*
+ * macro_getParameterSize()
+ * typ: the bytecode
+ * s: pointer to the bytecode buffer past(!) the opcode (instructionPointer+1)
+ */
 int macro_getParameterSize(unsigned char typ, const char *s)
 {	int size;
 
@@ -108,13 +110,14 @@ int macro_getParameterSize(unsigned char typ, const char *s)
 			return sizeof(COM_INT1);
 		case C_DEFINE_PARAMETER:
 		case C_DEFINE_VARIABLE:
-			return (((COM_CREATESYM*)s)->size);
+			return (((COM_CREATESYM*)(s-1))->size);
 		case C_LONG_LITERAL:
 			/* only if your alignment = 2,2,2 */
 			return sizeof(COM_LONG1);
 		case C_STRINGVAR:
 		case C_FLOATVAR:
 		case C_LONGVAR:
+		case C_BOOLEANVAR:
 		case C_MACRO:
 		case C_STRING_LITERAL:
 			size = (int)((sizeof(struct c_ident) - 1 /* pad byte*/) +
@@ -516,15 +519,12 @@ static int macro_interpretByteCodes(EXECUTION_CONTEXT* pContext, COM_1FUNC *cp,C
 				val = 1;
 				cp = COM1_INCR(cp,COM_BINOP,size);
 				continue;
+			case C_DEFINE_VARIABLE:
 			case C_DEFINE_PARAMETER:
 				sym_makeInternalSymbol(pContext->ec_identifierContext, ((COM_CREATESYM*)cp)->name,
 					((COM_CREATESYM*)cp)->symtype,
 					(GENERIC_DATA) {.longValue = ((COM_CREATESYM*)cp)->value});
 				cp = COM1_INCR(cp,COM_CREATESYM,size);
-				val = 1;
-				break;
-			case C_DEFINE_VARIABLE:
-				cp = COM1_INCR(cp, COM_CREATESYM, size);
 				val = 1;
 				break;
 			case C_ASSIGN:

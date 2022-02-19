@@ -664,6 +664,7 @@ static void macro_updateCommentAndName(HWND hwnd)
 	macro_enableButton(hwnd,IDD_MACRENAME,editable);
 	macro_enableButton(hwnd,IDD_MACDELETE,editable);
 	macro_enableButton(hwnd,IDD_MACEDIT,editable);
+	macro_enableButton(hwnd, IDD_MACPRINTINSTRUCTIONS, editable);
 }
 
 static int _nBoundKeys;
@@ -947,6 +948,7 @@ upd: 				_macrosWereChanged = 1;
 			case IDOK:
 			case IDD_MACSTART:
 			case IDD_MACEDIT:
+			case IDD_MACPRINTINSTRUCTIONS:
 				if (nSelected) {
 					currentSelectedMacro.typ = (MACROREFTYPE)LOWORD(nSelected);
 					currentSelectedMacro.index = (MACROREFIDX)HIWORD(nSelected);
@@ -982,8 +984,8 @@ int EdMacrosEdit(void)
 	}
 
 	if (_selectedMacroName) {
-		if (ret == IDD_MACEDIT) {
-			return decompile_saveMacrosAndDisplay(_selectedMacroName);
+		if (ret == IDD_MACEDIT || ret == IDD_MACPRINTINSTRUCTIONS) {
+			return decompile_saveMacrosAndDisplay(_selectedMacroName, ret == IDD_MACEDIT ? DM_CODE : DM_INSTRUCTIONS);
 		}
 	}
 	return 0;

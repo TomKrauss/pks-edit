@@ -232,10 +232,8 @@ var_decl		: type_ident var_ident assgn ';'	{
 			} | type_ident var_ident ';'	{
 				if ($1.type == C_STRING_LITERAL) {
 					makeInternalSymbol($2.ident.s, $1.type, (intptr_t)"");
-					bytecode_emitAssignment(&_bytecodeBuffer, $2.ident.s, C_STRING_LITERAL, (GENERIC_DATA){.string = ""});
 				} else {
 					makeInternalSymbol($2.ident.s, $1.type, (intptr_t)0);
-					bytecode_emitAssignment(&_bytecodeBuffer, $2.ident.s, $1.type, (GENERIC_DATA){ 0 });
 				}
 				if ($2.ident.stringIsAlloced) {
 					free($2.ident.s);
@@ -245,7 +243,7 @@ var_decl		: type_ident var_ident assgn ';'	{
 
 stmnt		:            	';'
 			| fcall ';'
-			| assignment { vname_count = 0; } ';'
+			| assignment
 			| if
 			| while
 			| case
@@ -263,7 +261,8 @@ stmnt		:            	';'
 
 assignment	: var assgn {
 				bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s,$2.v.type, $2.v.data);
-			}
+				vname_count = 0;
+			} ';'
 
 assgn		: T_ASSIGN arithmetic_expression { 	$$.v = $2.v;	}
 
@@ -297,7 +296,7 @@ bterm		: s_bterm 		{ $$.v = $1.v;	}
 				    macro_isParameterStringType($2.v.type)) {
 					$$.v = $2.v;
 				} else {
-					$$.v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_CONVERT,&$2.v,0);
+					$$.v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_CAST,&$2.v,0);
 					$$.v.type = ($1.type == C_STRING_LITERAL) ?
 						C_STRINGVAR : (($1.type == C_FLOAT_LITERAL) ? C_FLOATVAR : C_LONGVAR);
 				}
@@ -434,7 +433,7 @@ goto:		T_GOTO T_IDENT {
 			| T_BRAEQ T_IDENT {
 				_bytecodeBuffer.bb_current = bytecode_emitGotoLabelInstruction($2.ident.s,&_bytecodeBuffer,BRA_EQ);
 				freeitem(&$2.ident.s);
-			}
+			} ';'
 
 while		: T_WHILE {
 				bytecode_generateAutoLabelNamePrefix(lstartid,_breaklevel);

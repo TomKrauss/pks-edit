@@ -29,7 +29,7 @@
 #define	BIN_SUB			'-'
 #define	BIN_NOT			'~'
 #define	BIN_XOR			'^'
-#define	BIN_CONVERT		'C'
+#define	BIN_CAST		'C'
 
 typedef union uGENERIC_DATA {
 	unsigned char uchar;
@@ -73,31 +73,32 @@ typedef struct tagEXECUTION_CONTEXT EXECUTION_CONTEXT;
 
  */
 
-#define	C_STOP				0		// eof sequence 
-#define	C_0FUNC				0x1		// Function # (char) 
-#define	C_1FUNC				0x2		// Function # (char) + 1 int Param 
-#define	C_MACRO				0x3		// macro "macroname"
-#define	C_GOTO				0x4		// (conditionally) goto offset
-#define	C_TEST				0x6		// Test: testop p1 p2
-#define	C_BINOP				0x7		// binary operation: binop a b
-#define	C_ASSIGN			0x8		// assign: a = stackval
-#define	C_DEFINE_PARAMETER	0x9		// create symbol with type and value 
+typedef enum {
+	C_STOP  = 0,    			// eof sequence 
+	C_0FUNC = 0x1,  			// Function # (char) 
+	C_1FUNC = 0x2,  			// Function # (char) + 1 int Param 
+	C_MACRO = 0x3,  			// macro "macroname"
+	C_GOTO  = 0x4,  			// (conditionally) goto offset
+	C_TEST  = 0x6,  			// Test: testop p1 p2
+	C_BINOP = 0x7,  			// binary operation: binop a b
+	C_ASSIGN= 0x8,  			// assign: a = stackval
+	C_DEFINE_PARAMETER  = 0x9,  // create symbol with type and value 
+	C_CHARACTER_LITERAL = 0x10, // 1 Ascii character follows 
+	C_STRING_LITERAL= 0x11, 	// 1 string Asciistring\0 follows {pad} 
+	C_INTEGER_LITERAL   = 0x12, // pad, 1 int Parameter follows 
+	C_LONG_LITERAL  = 0x13, 	// pad, 1 long Parameter follows 
+	C_FLOAT_LITERAL = 0x14, 	// floating point literal
+	C_BOOLEAN_LITERAL   = 0x15, // 1 Ascii character follows 
+	C_STRINGVAR = 0x16, 		// variable reference to string
+	C_LONGVAR   = 0x17, 		// variable reference to long value
+	C_FORMSTART = 0x18, 		// formular with parameters ...
+	C_DATA  = 0x19, 			// any data ... 
+	C_FURET = 0x20, 			// next function return is saved 
+	C_FLOATVAR  = 0x21, 		// Floating point parameter
+	C_BOOLEANVAR= 0x22, 		// Boolean parameter
+	C_DEFINE_VARIABLE   = 0x23  // define a variable with type and value 
+} MACROC_INSTRUCTION_OP_CODE;
 
-#define	C_CHARACTER_LITERAL	0x10	// 1 Ascii character follows 
-#define	C_STRING_LITERAL	0x11	// 1 string Asciistring\0 follows {pad} 
-#define	C_INTEGER_LITERAL	0x12	// pad, 1 int Parameter follows 
-#define	C_LONG_LITERAL		0x13	// pad, 1 long Parameter follows 
-#define	C_FLOAT_LITERAL		0x14	// floating point literal
-#define	C_BOOLEAN_LITERAL	0x15	// 1 Ascii character follows 
-#define	C_STRINGVAR			0x16	// variable reference to string
-#define	C_LONGVAR			0x17	// variable reference to long value
-#define	C_FORMSTART			0x18	// formular with parameters ...
-#define	C_DATA				0x19	// any data ... 
-#define	C_FURET				0x20	// next function return is saved 
-#define	C_FLOATVAR			0x21	// Floating point parameter
-#define	C_BOOLEANVAR		0x22	// Boolean parameter
-
-#define	C_DEFINE_VARIABLE	0x22	// define a variable with type and value 
 
 #define	C_IS1PAR(typ)	(typ & 0x10)
 #define	C_ISCMD(typ)	(typ >= C_0FUNC && typ <= C_MACRO)
@@ -108,6 +109,11 @@ typedef struct tagEXECUTION_CONTEXT EXECUTION_CONTEXT;
 #define	FORM_INIT		0x1		// form " and be prefilled
 #define	FORM_REDRAW		0x2		// force redraw 
 
+/*
+ * macro_getParameterSize()
+ * typ: the bytecode
+ * s: pointer to the bytecode buffer past(!) the opcode (instructionPointer+1)
+ */
 int  macro_getParameterSize(unsigned char typ, const char* s);
 
 /*--------------------------------------------------------------------------
@@ -155,7 +161,7 @@ typedef struct c_assign {
 typedef struct c_createsym {
 	unsigned char 	typ;		// C_DEFINE_PARAMETER or C_DEFINE_VARIABLE
 	unsigned char 	symtype;	// variable type
-	long			value;		// value
+	long long		value;		// value
 	int		    	size;		// size of total structure
 	unsigned char	name[1];	// variable name
 } COM_CREATESYM;

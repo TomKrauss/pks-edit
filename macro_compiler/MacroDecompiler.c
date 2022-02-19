@@ -334,6 +334,18 @@ prdo:		decompile_printTestExpression(fp,(unsigned char *)p1,p2);
 	return pend;
 }
 
+/**
+ * Return a type name for a symbol type.
+ */
+static char* decompile_typenameFor(PKS_VALUE_TYPE nSymbolType) {
+	switch (nSymbolType) {
+	case VT_FLOAT: return "float";
+	case VT_INTEGER: return "int";
+	case VT_BOOLEAN: return "boolean";
+	default: return "string";
+	}
+}
+
 /*
  * decompile_printBinaryExpression()
  */
@@ -366,24 +378,94 @@ static unsigned char *decompile_printBinaryExpression(FILE *fp, COM_BINOP *cp)
 		fprintf(fp,"%c",cp->op);
 		decompile_printTestExpression(fp,p2,pend);
 		break;
-	case BIN_CONVERT:
-		fprintf(fp,"(%s) %s", (!macro_isParameterStringType(*p1)) ? "string" : "long",
-			cp->result);
+	case BIN_CAST:
+		fprintf(fp,"(%s) %s", decompile_typenameFor(*p1), cp->result);
 		break;
 	}
 
 	return pend;
 }
 
-/**
- * Return a type name for a symbol type. 
+
+/*
+ * Return a string representation of a BINOP instruction.
  */
-static char* decompile_typenameFor(PKS_VALUE_TYPE nSymbolType) {
-	switch (nSymbolType) {
-	case VT_FLOAT: return "float";
-	case VT_INTEGER: return "int";
-	case VT_BOOLEAN: return "boolean";
-	default: return "string";
+static char* decompile_binaryOperationAsString(unsigned char op) {
+	static char szTemp[2];
+
+	if (op == BIN_CAST) {
+		return "cast";
+	}
+	szTemp[0] = op;
+	return szTemp;
+}
+
+/*
+ * Return a string representation of a test instruction.
+ */
+static char* decompile_testOperationAsString(unsigned char op) {
+
+	switch (op & (~CT_STRING)) {
+	case CT_AND: return "and";
+	case CT_OR: return "or";
+	case CT_BRACKETS: return "()";
+	case CT_EQ: return "==";
+	case CT_NE: return "!=";
+	case CT_GE: return ">=";
+	case CT_GT: return ">";
+	case CT_LE: return "<=";
+	case CT_LT: return "<";
+	case CT_NMATCH: return "not rematch";
+	case CT_MATCH: return "rematch";
+	case CT_NOT: return "not";
+	}
+	return "??";
+}
+
+
+/*
+ * decompile_macroInstructionsToFile
+ */
+static void (*_decompileFunction)(FILE* fp, MACRO* mp);
+static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
+{
+	unsigned char* sp, * spend, * data;
+	MACROC_INSTRUCTION_OP_CODE t;
+
+	fprintf(fp, "%s:", decompile_quoteString(MAC_NAME(mp)));
+	data = MAC_DATA(mp);
+
+	for (sp = data, spend = sp + mp->size; sp < spend; ) {
+		t = ((COM_1FUNC*)sp)->typ;
+		int nOffs = (int)(sp - data);
+		fprintf(fp, "\n0x%04x:   ", nOffs);
+		switch (t) {
+		case C_STOP: fprintf(fp, "stop"); break;
+		case C_TEST: fprintf(fp, "testAndGoto %s, 0x%x", decompile_testOperationAsString(((COM_TEST*)sp)->testop), nOffs + ((COM_TEST*)sp)->size); break;
+		case C_GOTO: fprintf(fp, "goto 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
+		case C_BINOP: fprintf(fp, "eval %s", decompile_binaryOperationAsString(((COM_BINOP*)sp)->op)); break;
+		case C_ASSIGN: fprintf(fp, "assignVar %s", ((COM_ASSIGN*)sp)->name); break;
+		case C_MACRO:fprintf(fp, "executeMacro %s", ((COM_MAC*)sp)->name); break;
+		case C_0FUNC: fprintf(fp, "param0Fun %d", ((COM_0FUNC*)sp)->funcnum); break;
+		case C_1FUNC: fprintf(fp, "param1Fun %d %d", ((COM_1FUNC*)sp)->funcnum, ((COM_1FUNC*)sp)->p); break;
+		case C_BOOLEANVAR: fprintf(fp, "bvar "); break;
+		case C_STRINGVAR: fprintf(fp, "svar "); break;
+		case C_FLOATVAR: fprintf(fp, "fvar "); break;
+		case C_LONGVAR: fprintf(fp, "lvar "); break;
+		case C_LONG_LITERAL: fprintf(fp, "longLiteral %lld", (long long)((COM_LONG1*)sp)->val); break;
+		case C_INTEGER_LITERAL: fprintf(fp, "intLiteral %d", ((COM_INT1*)sp)->val); break;
+		case C_FLOAT_LITERAL: fprintf(fp, "floatLiteral %f", ((COM_FLOAT1*)sp)->val); break;
+		case C_BOOLEAN_LITERAL: fprintf(fp, "booleanLiteral %d", ((COM_CHAR1*)sp)->val); break;
+		case C_CHARACTER_LITERAL: fprintf(fp, "charLiteral %d", ((COM_CHAR1*)sp)->val); break;
+		case C_STRING_LITERAL: fprintf(fp, "stringLiteral %s", ((COM_STRING1*)sp)->s); break;
+		case C_DEFINE_VARIABLE: fprintf(fp, "defineVar %s", ((COM_CREATESYM*)sp)->name); break;
+		case C_DEFINE_PARAMETER: fprintf(fp, "defineParam %s", ((COM_CREATESYM*)sp)->name); break;
+		default: fprintf(fp, "opcode 0x%x", t); break;
+		}
+		if (t == C_STRINGVAR || t == C_BOOLEANVAR || t == C_FLOATVAR || t == C_LONGVAR) {
+			decompile_printParameter(fp, sp, (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = macro_isParameterStringType(t) ? PARAM_TYPE_STRING : PARAM_TYPE_INT });
+		}
+		sp += macro_getParameterSize(*sp, sp+1);
 	}
 }
 
@@ -494,7 +576,7 @@ static long decompile_printMacrosCallback(FILE *fp)
 		if ((mp = mtable[i]) != 0) {
 			if (!_macroname ||
 			    strcmp(_macroname,MAC_NAME(mp)) == 0)
-				decompile_macroToFile(fp,mp);
+				_decompileFunction(fp,mp);
 		}
 	}
 	return 1;
@@ -502,18 +584,21 @@ static long decompile_printMacrosCallback(FILE *fp)
 
 /*
  * decompile_saveMacrosAndDisplay
+ * Decompiles one or all macros and prints the decompilation result to a given file.
+ * Decompilation may be performed by printing the code as source code or by printing the low level instructions
  */
-int decompile_saveMacrosAndDisplay(char *macroname)
-{
-	char szBuf[16];
+int decompile_saveMacrosAndDisplay(char *macroname, DECOMPILATION_MODE nMode) {
+	char szBuf[128];
+	char* pszExtension = nMode == DM_CODE ? ".pkc" : ".pkobj";
 
 	_macroname = macroname;
 	if (macroname) {
-		strmaxcpy(szBuf, _macroname, 8);
-		strcat(szBuf, ".pkc");
+		strmaxcpy(szBuf, macroname, sizeof szBuf-5);
 	} else {
-		strcpy(szBuf, "macros.pkc");
+		strcpy(szBuf, "macros");
 	}
+	strcat(szBuf, pszExtension);
+	_decompileFunction = nMode == DM_CODE ? decompile_macroToFile : decompile_macroInstructionsToFile;
 	return macro_createFileAndDisplay(szBuf, decompile_printMacrosCallback);
 }
 

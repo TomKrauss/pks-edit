@@ -1,13 +1,21 @@
 
 macro Test-Expr()
 {
-   if ("aec\\" ~ "[a-c]+\\\\")
-   // if (0 != 12 && 1 && "acx" == "..." || ("X" == "X" && 1 != 2) )
-   // if (! "x" == "y")
-        Alert("Expression OK");
-   else
-        Alert("Expression not OK");
-
+	string s1;
+	string s2;
+	string re;
+	string result;
+	
+	s1 = "aec\\";
+	re = "[a-e]+\\\\";
+	
+   	if (s1 ~ re)
+		s2 = "' is matched by '";
+   	else
+		s2 = "' is not matched by '";
+	
+	result = "String '" + s1 + s2 + re + "'";
+	MessageBox(MB_OK, result);
 }
 
 macro Test-While() {

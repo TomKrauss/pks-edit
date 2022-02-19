@@ -110,7 +110,8 @@ extern MACRO* macro_getByIndex(int idx);
  */
 extern int macro_getInternalIndexByName(const char* name);
 
-extern int 		decompile_saveMacrosAndDisplay(char* macroname);
+typedef enum { DM_CODE, DM_INSTRUCTIONS} DECOMPILATION_MODE;
+extern int 		decompile_saveMacrosAndDisplay(char* macroname, DECOMPILATION_MODE nMode);
 extern int 		print_saveMouseBindingsAndDisplay(void);
 extern int 		print_saveKeyBindingsAndDisplay(void);
 extern int 		print_saveMenuBindingsAndDisplay(void);

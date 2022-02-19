@@ -16,6 +16,7 @@ where additional information is available. An example are templates, which show 
 commands which show an explanation about the command.
 - Expressions with strings in PKSMacroC such as "x"+1 are automatically casted to string. One does not need to write any more "x"+(string)1.
 - PKSMacroC supports now `++` and `--` operators and the new datatype `float`.
+- One can now debug print the low level instructions of PKSMacroC macros (from the macro dialog).
 
 ### Changed
 - all files previously stored in the old Windows INI-file format (`pksedit.his`, `pksedit.ini`) were replaced by JSON formatted files:

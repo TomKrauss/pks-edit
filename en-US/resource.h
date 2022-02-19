@@ -15,6 +15,7 @@
 #define IDS_SHIFTRIGHT                  10
 #define IDS_CURSUNTILC                  11
 #define IDS_QUERYDELETE                 12
+#define IDD_MACEDIT2                    12
 #define IDS_QUERYMKDIR                  13
 #define IDS_RENAME                      14
 #define IDS_RNGONCE                     16
@@ -141,9 +142,9 @@
 #define IDS_MSGDELOLDKEYBIND            145
 #define IDS_MSGFILESHAVECHANGED         146
 #define IDS_STRING148                   148
-#define IDM_HLP_MANUAL_TOC                    150
+#define IDM_HLP_MANUAL_TOC              150
 #define IDM_HLPONDESKTOP                151
-#define IDM_HLPOVERVIEW                  152
+#define IDM_HLPOVERVIEW                 152
 #define IDM_HLPONKEYS                   153
 #define IDM_HLPONHLP                    154
 #define DLG_SAVEAS_OPTIONS              156

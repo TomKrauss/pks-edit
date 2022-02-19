@@ -226,7 +226,7 @@ void macro_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp)
 	typ1 = *p1;
 	typ2 = *p2;
 
-	if (op == BIN_CONVERT) {
+	if (op == BIN_CAST) {
 		if (macro_isParameterStringType(typ1)) {
 			// (T) use current method execution context
 			sym_makeInternalSymbol(pContext->ec_identifierContext, sp->result, S_NUMBER, (GENERIC_DATA) {

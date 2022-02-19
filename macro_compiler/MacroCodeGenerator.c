@@ -158,7 +158,7 @@ void bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBy
 	ap = (COM_CREATESYM*)pBuffer->bb_current;
 	ap->typ = nBytecode;
 	ap->symtype = nSymbolType;
-	ap->value = (long)val;
+	ap->value = (long long)val;
 
 	p1 = ap->name;
 	while(*name) {

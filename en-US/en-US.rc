@@ -31,12 +31,12 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE
+2 TEXTINCLUDE 
 BEGIN
     "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
@@ -48,7 +48,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -596,8 +596,8 @@ BEGIN
     LTEXT           "Keycode: ",IDD_LOWOPT,7,16,31,8,NOT WS_GROUP
 END
 
-DLGMACROS DIALOGEX 45, 60, 331, 183
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+DLGMACROS DIALOGEX 45, 60, 383, 175
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "List of Macros"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
@@ -605,19 +605,20 @@ BEGIN
     CONTROL         "&show internal macros",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,42,6,85,12
     EDITTEXT        IDD_STRING1,4,20,126,12
     LISTBOX         IDD_MACROLIST,4,36,126,136,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_WANTKEYBOARDINPUT | WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDD_STRING2,136,36,178,28,ES_MULTILINE | ES_AUTOVSCROLL
-    PUSHBUTTON      "E&dit",IDD_MACEDIT,163,68,48,14,WS_GROUP
-    PUSHBUTTON      "&Rename",IDD_MACRENAME,266,68,48,14,NOT WS_TABSTOP
-    PUSHBUTTON      "De&lete",IDD_MACDELETE,214,68,48,14,NOT WS_TABSTOP
-    DEFPUSHBUTTON   "&Start",IDD_MACSTART,267,10,48,14,NOT WS_TABSTOP
+    EDITTEXT        IDD_STRING2,136,36,239,28,ES_MULTILINE | ES_AUTOVSCROLL
+    PUSHBUTTON      "E&dit",IDD_MACEDIT,226,68,48,14,WS_GROUP
+    PUSHBUTTON      "&Rename",IDD_MACRENAME,327,68,48,14,NOT WS_TABSTOP
+    PUSHBUTTON      "De&lete",IDD_MACDELETE,277,68,48,14,NOT WS_TABSTOP
+    DEFPUSHBUTTON   "&Start",IDD_MACSTART,328,10,48,14,NOT WS_TABSTOP
     LTEXT           "&Keyboard bindings",114,136,86,64,8
-    LISTBOX         IDD_LISTBOX,136,97,118,34,LBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDD_LISTBOX,136,97,182,34,LBS_SORT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "&Shortcut",113,136,129,44,8,NOT WS_GROUP
-    LISTBOX         IDD_LISTBOX2,136,140,119,29,LBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "&Assign",IDD_BUT3,265,112,48,14
-    PUSHBUTTON      "&Disconnect",IDD_MACDELKEY,265,96,48,14,NOT WS_TABSTOP
-    PUSHBUTTON      "S&earch",IDD_MACFINDKEY,265,128,48,14,NOT WS_TABSTOP
-    PUSHBUTTON      "End",1,215,10,48,14
+    LISTBOX         IDD_LISTBOX2,136,140,182,29,LBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Assign",IDD_BUT3,326,111,48,14
+    PUSHBUTTON      "&Disconnect",IDD_MACDELKEY,326,95,48,14,NOT WS_TABSTOP
+    PUSHBUTTON      "S&earch",IDD_MACFINDKEY,326,127,48,14,NOT WS_TABSTOP
+    PUSHBUTTON      "End",1,273,10,48,14
+    PUSHBUTTON      "Dis&assemble",IDD_MACPRINTINSTRUCTIONS,136,68,88,14,WS_GROUP
 END
 
 DLGFILEFORMAT DIALOGEX 64, 58, 411, 141
@@ -993,8 +994,7 @@ BEGIN
 
     DLGMACROS, DIALOG
     BEGIN
-        RIGHTMARGIN, 242
-        BOTTOMMARGIN, 164
+        RIGHTMARGIN, 382
     END
 
     DLGFILEFORMAT, DIALOG
@@ -1394,7 +1394,7 @@ BEGIN
     IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
     IDS_INSERT              "Insert"
     IDS_CREATE_BUFFER       "Create"
-    IDS_NO_EVALUATION_SUPPORTED
+    IDS_NO_EVALUATION_SUPPORTED 
                             "The grammar of this file does not support evaluation of code."
     IDS_EVALUATION_FAILED   "The evaluation of the currently selected text failed."
     IDS_MSGRE_UNDEFINED_BACKREF "Undefined bracket back reference"
@@ -1411,7 +1411,7 @@ BEGIN
     IDS_MSGNTIMESFOUND      "%d times found"
     IDS_WINDOWLIST          "Open window list"
     IDS_SELECTCOMPILEWINDOW "File - Selection for Compilation"
-    IDS_TT_REGULAR_EXPRESSION
+    IDS_TT_REGULAR_EXPRESSION 
                             "Regular expressions support the following special characters\r\n""."" - (matches any char)\r\n""[a-z]"" - all characters from a-z\r\n""*"" - (an arbitrary number of times)\r\n""+"" - at least once\r\n""{x,y}"" - minimum x, maximum y times"
     IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text are preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
     IDS_FILE_MODIFIED       "Modified"
