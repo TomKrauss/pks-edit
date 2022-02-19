@@ -14,30 +14,34 @@ The editor contains only some basic features compared to modern text editors suc
 Here are some highlights:
 
 - it is very fast, if files do not get too big (no memory mapped files support yet). Opening a code file
-  with 1 Million lines of code takes less then a second on a medium equipped machine. Replacing every single character
+  with 1 million lines of code takes less then a second on a medium equipped machine. Replacing every single character
   by an 'x' (replace regular expression '.' by 'x' honoring case sensitivity) on that same file takes about
   5 seconds, undoing this operation takes about 1 second.
 - search & replace with options like regular expression matching
 - search & replace in multiple files
-- compare files
+- file comparison
 - syntax highlighting
 - multi-caret editing
-- edit one file in multiple windows
-- follow cross references in code and references to other files and URLs (cross references in code requires a tag file - 
+- user interface in English or German (other languages may follow)
+- multiple views on single file
+- cross references in code and references to other files and URLs (cross references in code requires a tag file - 
 e.g. created using ctags)
 - auto-indentation and some basic formatting
 - sorting files
 - code completion
 - support for zooming font sizes (using keyboard and scrollwheel)
 - record & play and a macro language allowing to edit the recorded macros
-- different selection styles (block, ...)
+- different selection styles (block, line, normal)
 - support for different file types and for user-defined grammars
-- support for inserting templates
+- user defined templates
 - hex editor mode for binary files
-- support for themes - e.g. support for a dark mode theme.
+- support for themes - e.g. support for a dark theme.
 - docking windows UI
-- [wysiwyg mode](doc/markdown.md) for markdown documents (currently readonly, but can be displayed as 2nd view of an editable document)
+- [wysiwyg mode](doc/markdown.md) for markdown documents (currently readonly, typically wysiwyg window opened as 2nd view of an editable document)
 - support for tail -f mode to view large log files and watch them being appended
+- additional simple coding features such as automatic bracket matching or auto-indenting or shifting or moving text blocks 
+  or toggle comments for text blocks
+- session management keeping track of previously opened files etc...
 
 ## Manual
 
@@ -50,11 +54,9 @@ of PKS-Edit when it comes to using it to edit files of a given supported type.
 
 ## Installing and Using PKS Edit
 
-To install **PKS-Edit**, you may use the provided `INNO` Setup based installer.
-
-Usually you will use PKS-Edit by associating it with certain file types.
-The registry file pksedit.reg contains an example on how 
-to register some default types (*.java, *.txt) to be edited by PKS-Edit.
+To install **PKS-Edit**, you may use the provided [Inno Setup](https://jrsoftware.org/ishelp/index.php) based installer. The
+installer will associate typical file extensions and make PKS-Edit the default editor for those extensions if you request it
+to do so.
 
 ## Cross References in source files and PKS Edit
 

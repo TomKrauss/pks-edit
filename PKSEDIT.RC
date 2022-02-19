@@ -467,28 +467,29 @@ BEGIN
     LTEXT           "Taste : ",IDD_LOWOPT,10,16,22,8,NOT WS_GROUP
 END
 
-DLGMACROS DIALOG 45, 60, 242, 164
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+DLGMACROS DIALOGEX 45, 60, 365, 166
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Makroliste"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "&Makro",111,4,8,28,8,NOT WS_GROUP
     CONTROL         "&interne sichtbar",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,56,6,60,12
     EDITTEXT        IDD_STRING1,4,20,114,12
-    LISTBOX         IDD_MACROLIST,4,36,113,120,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_WANTKEYBOARDINPUT | WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDD_STRING2,124,36,112,28,ES_MULTILINE | ES_AUTOVSCROLL
-    PUSHBUTTON      "B&earbeiten",IDD_MACEDIT,124,68,38,12,WS_GROUP
-    PUSHBUTTON      "&Benennen",IDD_MACRENAME,200,68,36,12,NOT WS_TABSTOP
-    PUSHBUTTON      "L&öschen",IDD_MACDELETE,164,68,34,12,NOT WS_TABSTOP
-    DEFPUSHBUTTON   "&Starten",IDD_MACSTART,188,10,48,14,NOT WS_TABSTOP
+    LISTBOX         IDD_MACROLIST,4,36,113,125,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_WANTKEYBOARDINPUT | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDD_STRING2,124,36,225,28,ES_MULTILINE | ES_AUTOVSCROLL
+    PUSHBUTTON      "B&earbeiten",IDD_MACEDIT,208,68,46,16,WS_GROUP
+    PUSHBUTTON      "&Benennen",IDD_MACRENAME,304,68,46,16,NOT WS_TABSTOP
+    PUSHBUTTON      "L&öschen",IDD_MACDELETE,256,68,46,16,NOT WS_TABSTOP
+    DEFPUSHBUTTON   "&Starten",IDD_MACSTART,304,10,46,16,NOT WS_TABSTOP
     LTEXT           "&Tastentabelle",114,124,86,64,8
-    LISTBOX         IDD_LISTBOX,124,96,64,34,LBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDD_LISTBOX,124,96,172,34,LBS_SORT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "&Auslösetaste",113,124,126,44,8,NOT WS_GROUP
-    LISTBOX         IDD_LISTBOX2,124,136,64,26,LBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "&Zuordnen",IDD_BUT3,192,128,42,12
-    PUSHBUTTON      "&Lösen",IDD_MACDELKEY,192,112,42,12,NOT WS_TABSTOP
-    PUSHBUTTON      "S&uchen",IDD_MACFINDKEY,192,144,42,12,NOT WS_TABSTOP
-    PUSHBUTTON      "Ende",1,136,10,48,14
+    LISTBOX         IDD_LISTBOX2,124,140,172,26,LBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Zuordnen",IDD_BUT3,303,116,46,15
+    PUSHBUTTON      "&Lösen",IDD_MACDELKEY,303,96,46,15,NOT WS_TABSTOP
+    PUSHBUTTON      "S&uchen",IDD_MACFINDKEY,303,136,46,15,NOT WS_TABSTOP
+    PUSHBUTTON      "Ende",1,252,10,46,16
+    PUSHBUTTON      "Dis&assemble",IDD_MACPRINTINSTRUCTIONS,125,68,82,16,WS_GROUP
 END
 
 DLGFILEFORMAT DIALOGEX 64, 58, 389, 117
@@ -843,12 +844,12 @@ TEMPLATE                ICON                    "rc\\template.ico"
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
     "rc\\pksrc.h\0"
 END
 
-2 TEXTINCLUDE
+2 TEXTINCLUDE 
 BEGIN
     "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
@@ -859,7 +860,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -974,6 +975,12 @@ BEGIN
 
     DLGKEYCODE, DIALOG
     BEGIN
+    END
+
+    DLGMACROS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 364
+        BOTTOMMARGIN, 164
     END
 
     DLGFILEFORMAT, DIALOG
@@ -1220,6 +1227,11 @@ BEGIN
     0
 END
 
+DLGMACROS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1414,17 +1426,17 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_ENTER_PASSWORD_TO_DECRYPT
+    IDS_ENTER_PASSWORD_TO_DECRYPT 
                             "Geben Sie das Passwort zum Enschlüsseln von %s ein:"
     IDS_INSERT              "Einfügen"
     IDS_CREATE_BUFFER       "Anlegen"
-    IDS_NO_EVALUATION_SUPPORTED
+    IDS_NO_EVALUATION_SUPPORTED 
                             "Die Grammatik der aktuellen Datei unterstützt keine Code Evaluierung."
     IDS_EVALUATION_FAILED   "Die Code Evaluierung ist fehl geschlagen."
     IDS_MSGRE_UNDEFINED_BACKREF "Noch nicht definierter Bezug"
     IDS_ICON_SIZE_SMALL     "klein"
     IDS_ICON_SIZE_MEDIUM    "mittel"
-    IDS_ICON_SIZE_big       "groß"
+    203                     "groß"
     IDS_ICON_SIZE_LARGE     "sehr groß"
 END
 
@@ -1435,7 +1447,7 @@ BEGIN
     IDS_MSGNTIMESFOUND      "%d mal gefunden"
     IDS_WINDOWLIST          "Fensterliste"
     IDS_SELECTCOMPILEWINDOW "Datei - Auswahl für die Compilation"
-    IDS_TT_REGULAR_EXPRESSION
+    IDS_TT_REGULAR_EXPRESSION 
                             "Reguläre Ausdrücke unterstützen die folgenden Sonderzeichen:\r\n""."" - (alle Zeichen)\r\n""[a-z]"" - alle Zeichen a-z\r\n""*"" - (eine beliebige Anzahl Vorkommen)\r\n""+"" - 1 Vorkommen\r\n""{x,y}"" - mindestens x, maximal y Vorkommen"
     IDS_TT_PRESERVE_CASE    "Beim Ersetzen bleibt die Groß- Kleinschreibung des Ausgangstextes erhalten.\r\nBeispiel: ersetzt man das Wort ""Der"" durch ""die"" entsteht ""Die""."
     IDS_FILE_MODIFIED       "Geändert"
@@ -1443,7 +1455,7 @@ BEGIN
     IDS_SEARCH              "Inkrementell suchen"
     IDS_STATUSLINE          "Z: %2j$l, S: %2j$c!%s$&"
     IDS_NO_MACROS_DEFINED   "Keine Makros definiert."
-    IDS_ENTER_PASSWORD_TO_ENCRYPT
+    IDS_ENTER_PASSWORD_TO_ENCRYPT 
                             "Geben Sie das Passwort zum Verschlüsseln von %s ein:"
 END
 

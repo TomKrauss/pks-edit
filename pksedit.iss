@@ -1,9 +1,13 @@
-﻿; Installs PKS Edit
+﻿; Installs PKS-Edit
 ; you must have a "x64" edition of Windows.
 
 #define MyAppName "PKSEdit.1"
 #define MyAppBaseName "pksedit"
+#define MyAppProductName "PKS-Edit"
 #define MyAppExeName  "pksedit.exe"
+
+[Tasks]
+Name: fileAssociation; Description: "{cm:AssociateFiles}"; GroupDescription: "{cm:ExtensionsGroup}"
 
 [Setup]
 AppName=PKS-Edit
@@ -48,6 +52,20 @@ fr.MsgOpenWith=Ouvrir avec
 nl.MsgOpenWith=Openen met
 ru.MsgOpenWith=Открыть с
 
+en.AssociateFiles=Associate typical file extensions with {#MyAppProductName}
+de.AssociateFiles=Typische Datei-Endungen mit {#MyAppProductName} verknüpfen
+fr.AssociateFiles=Associez les extensions de fichiers typiques à {#MyAppProductName}
+it.AssociateFiles=Associa le estensioni di file tipiche con {#MyAppProductName}
+nl.AssociateFiles=Koppel typische bestandsextensies aan {#MyAppProductName}
+ru.AssociateFiles=Свяжите типичные расширения файлов с {#MyAppProductName}
+
+de.ExtensionsGroup=Dateiendungen 
+en.ExtensionsGroup=File Extensions
+fr.ExtensionsGroup=Extensions de fichiers
+it.ExtensionsGroup=Estensioni di file
+nl.ExtensionsGroup=Bestandsextensies
+ru.ExtensionsGroup=Расширения файлов
+
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Parameters: "readme.md /w"; Flags: postinstall nowait
 
@@ -74,20 +92,21 @@ Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}"; ValueData: "{app}\pks_s
 Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\ddeexec";  ValueData: """%1""";  Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
 Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\ddeexec\Application";  ValueData: "{#MyAppName}";  Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
 Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\ddeexec\topic";  ValueData: "commandline";  Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.txt"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.c"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.md"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.json"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.js"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.ts"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.ddl"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.sql"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.java"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.css"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.xml"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.log"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.pas"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKLM; Subkey: "Software\Classes\.pkc"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
+Root: HKLM; Subkey: "Software\Classes\.txt"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.c"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.md"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.json"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.js"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.ts"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.ddl"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.sql"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.java"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.css"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.xml"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.log"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.pas"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.pkc"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
+Root: HKLM; Subkey: "Software\Classes\.cls"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation
 Root: HKLM; Subkey: "Software\Classes\{#MyAppName}"; ValueData: "{#MyAppName} Application"; Flags: uninsdeletekey noerror;   ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\{#MyAppName}\DefaultIcon";  ValueData: "{app}\pks_sys\pks.ico"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\{#MyAppName}\shell\open\command";  ValueData: """{app}\{#MyAppExeName}"" ""%1""";  Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
