@@ -74,18 +74,55 @@ extern int			_lastinsertedmac;
 extern BYTECODE_BUFFER _currentRecordingBuffer;
 static unsigned char* _dialogExecutionBytecodePointer;
 
-static EXECUTION_CONTEXT* macro_getRecordingContext() {
-	static EXECUTION_CONTEXT _recordingContext;
-	_recordingContext.ec_identifierContext = sym_getGlobalContext();
-	return &_recordingContext;
+static EXECUTION_CONTEXT* _currentExecutionContext;
+
+/*
+ * Interpreter error handling.
+ */
+static void interpreter_raiseError(const char* pMessage) {
+	error_displayAlertDialog(pMessage);
 }
 
 /*
- * macro_getParameterSize()
+ * Creates an execution context for executing a macro function.
+ */
+static EXECUTION_CONTEXT* interpreter_pushExecutionContext() {
+	EXECUTION_CONTEXT* pResult = calloc(1, sizeof * pResult);
+	pResult->ec_identifierContext = sym_pushContext(sym_getGlobalContext());
+	if (_currentExecutionContext != NULL) {
+		pResult->ec_stackBottom = _currentExecutionContext->ec_stackBottom;
+		pResult->ec_stackMax = _currentExecutionContext->ec_stackMax;
+		pResult->ec_stackCurrent = _currentExecutionContext->ec_stackCurrent;
+		pResult->ec_stackFrame = _currentExecutionContext->ec_stackFrame;
+	} else {
+		PKS_VALUE* pStack = calloc(MAX_STACK_SIZE, sizeof(*pStack));
+		pResult->ec_stackBottom = pStack;
+		pResult->ec_stackCurrent = pStack;
+		pResult->ec_stackFrame = pStack;
+		pResult->ec_stackMax = pStack + MAX_STACK_SIZE;
+	}
+	_currentExecutionContext = pResult;
+	return pResult;
+}
+
+/*
+ * Destroy a previousy allocated execution context.
+ */
+static void interpreter_popExecutionContext(EXECUTION_CONTEXT* pContext, EXECUTION_CONTEXT* pPreviousContext) {
+	sym_popContext(pContext->ec_identifierContext);
+	if (pPreviousContext == NULL) {
+		free(pContext->ec_stackBottom);
+	}
+	free(pContext);
+	_currentExecutionContext = pPreviousContext;
+}
+
+/*
+ * interpreter_getParameterSize()
  * typ: the bytecode
  * s: pointer to the bytecode buffer past(!) the opcode (instructionPointer+1)
  */
-int macro_getParameterSize(unsigned char typ, const char *s)
+int interpreter_getParameterSize(unsigned char typ, const char *s)
 {	int size;
 
 	switch(typ) {
@@ -130,31 +167,12 @@ int macro_getParameterSize(unsigned char typ, const char *s)
 			return ((COM_ASSIGN*)(s-1))->size;
 		case C_TEST:
 			return sizeof(COM_TEST);
-		case C_DATA:
-			return sizeof(COM_DATA) + ((COM_DATA*)s)->size;
 	}
 	/*
 	 * oops: this is an error
 	 */
 	macro_reportError();
 	return 10000L;
-}
-
-/*
- * Creates an execution context for executing a macro function.
- */
-static EXECUTION_CONTEXT* macro_createExecutionContext() {
-	EXECUTION_CONTEXT* pResult = calloc(1, sizeof * pResult);
-	pResult->ec_identifierContext = sym_pushContext(sym_getGlobalContext());
-	return pResult;
-}
-
-/*
- * Destroy a previousy allocated execution context.
- */
-static void macro_destroyExecutionContext(EXECUTION_CONTEXT* pContext) {
-	sym_popContext(pContext->ec_identifierContext);
-	free(pContext);
 }
 
 /*---------------------------------*/
@@ -174,7 +192,7 @@ int macro_openDialog(PARAMS *pp)
 err:		return FORM_SHOW;
 	}
 
-	cp = (COM_FORM *) macro_popParameter(macro_getRecordingContext(), &_dialogExecutionBytecodePointer).string;
+	cp = (COM_FORM *) interpreter_popParameter(_currentExecutionContext, &_dialogExecutionBytecodePointer).string;
 
 	if (!cp)
 		goto err;
@@ -189,7 +207,7 @@ err:		return FORM_SHOW;
 
 	for (i = cp->nfields, dp = pp->el; i > 0; i--, dp++) {
 		type = *_dialogExecutionBytecodePointer;
-		par = macro_popParameter(macro_getRecordingContext(), &_dialogExecutionBytecodePointer);
+		par = interpreter_popParameter(_currentExecutionContext, &_dialogExecutionBytecodePointer);
 		if (cp->options & FORM_INIT) {
 		   switch(dp->cmd_type) {
 			case C_INTEGER_LITERAL:  *dp->p.i = par.intValue; break;
@@ -214,16 +232,15 @@ err:		return FORM_SHOW;
 }
 
 /*--------------------------------------------------------------------------
- * macro_popParameter()
+ * interpreter_popParameter()
  * pop data from execution stack
  */
-GENERIC_DATA macro_popParameter(EXECUTION_CONTEXT* pContext, unsigned char** Sp) {
+GENERIC_DATA interpreter_popParameter(EXECUTION_CONTEXT* pContext, unsigned char** Sp) {
 	unsigned char* sp = *Sp;
 	unsigned char typ = *sp;
 
-	*Sp += macro_getParameterSize(typ,&((COM_CHAR1 *)sp)->val);
+	*Sp += interpreter_getParameterSize(typ,&((COM_CHAR1 *)sp)->val);
 	switch(typ) {
-		case C_DATA:
 		case C_FORMSTART:
 			return (GENERIC_DATA) { .string = sp };
 		case C_CHARACTER_LITERAL:
@@ -347,50 +364,71 @@ int cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, void *s
 /*--------------------------------------------------------------------------
  * interpreter_getDollarParameter()
  */
-static intptr_t * currentParamStack;
-int interpreter_getDollarParameter(intptr_t offset, int *typ, intptr_t *value) {
-	if (!currentParamStack || offset < 0 || offset >= 4) {
-		error_displayAlertDialog("no such parameter passed");
+int interpreter_getDollarParameter(intptr_t offset, PKS_VALUE *pValue) {
+	if (!_currentExecutionContext) {
+		interpreter_raiseError("No current execution stack");
 		return 0;
 	}
+	*pValue = _currentExecutionContext->ec_stackFrame[offset];
+	return 1;
+}
 
-	offset *= 2;
-	*typ = (int) currentParamStack[offset++];
-	*value = currentParamStack[offset];
+/*
+ * Push one value onto the stack and raise an error, if that fails. 
+ */
+static int interpreter_pushValue(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue) {
+	if (pContext->ec_stackCurrent >= pContext->ec_stackMax) {
+		interpreter_raiseError("Stack overflow");
+		return 0;
+	}
+	*pContext->ec_stackCurrent++ = nValue;
 	return 1;
 }
 
 /*---------------------------------*/
 /* interpreter_doMacroFunctions()				*/
 /*---------------------------------*/
-intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **Cp, const COM_1FUNC *cpmax) {
-	intptr_t stack[40];
-	intptr_t*	saveStack;
-	intptr_t	rc,*sp,*functionStringParameters;
+intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **pInstructionPointer, const COM_1FUNC *cpmax) {
+	intptr_t	nativeStack[5];
+	PKS_VALUE*	pStack;
+	intptr_t	rc;
+	intptr_t *	functionParameters;
+	intptr_t*	stringFunctionParameters;
 	unsigned char 	typ;
 	int  		funcnum;
-	COM_1FUNC *	cp = *Cp;
+	COM_1FUNC *	pLocalInstructionPointer = *pInstructionPointer;
 
-	sp = stack;
-	functionStringParameters = sp+2;
-	sp[0] = sp[1] = sp[2] = sp[3] = 0;
+	typ = pLocalInstructionPointer->typ;
 
-	if ((typ = cp->typ) == C_1FUNC) {
-		*sp++ = cp->p;
+	functionParameters = nativeStack;
+	funcnum = pLocalInstructionPointer->funcnum;
+	if (typ != C_MACRO) {
+		stringFunctionParameters = functionParameters + 2;
+		memset(nativeStack, 0, sizeof nativeStack);
+		if (typ == C_1FUNC) {
+			*functionParameters++ = pLocalInstructionPointer->p;
+		}
+	} else {
+		pStack = _currentExecutionContext->ec_stackCurrent;
+		int nMax = (int)(_currentExecutionContext->ec_stackMax - _currentExecutionContext->ec_stackCurrent);
+		// TODO: somewhat inefficient would be nice to know the number of parameters a macro has to clear out the corresponding number
+		// of stack elements only.
+		memset(pStack, 0, nMax * sizeof(_currentExecutionContext->ec_stackBottom[0]));
+		_currentExecutionContext->ec_stackFrame = pStack;
 	}
 
-	funcnum = cp->funcnum;
-	cp = (COM_1FUNC*)((unsigned char *)cp + macro_getParameterSize(typ,&cp->funcnum));
-
-	while(cp < cpmax && C_IS1PAR(cp->typ)) {
-		switch(cp->typ) {
+	pLocalInstructionPointer = (COM_1FUNC*)((unsigned char*)pLocalInstructionPointer + interpreter_getParameterSize(typ, &pLocalInstructionPointer->funcnum));
+	while(pLocalInstructionPointer < cpmax && C_IS1PAR(pLocalInstructionPointer->typ)) {
+		switch(pLocalInstructionPointer->typ) {
 			case C_STRINGVAR:
 			case C_STRING_LITERAL:
 				if (typ == C_MACRO) {
-					*sp++ = 1;
-					*sp++ = macro_popParameter(pContext, (unsigned char **)&cp).val;
+					PKS_VALUE val;
+					val.sym_data = interpreter_popParameter(pContext, (unsigned char**)&pLocalInstructionPointer);
+					val.sym_type = S_STRING;
+					interpreter_pushValue(pContext, val);
 				} else {
-					*functionStringParameters++ = macro_popParameter(pContext, (unsigned char **)&cp).val;
+					*stringFunctionParameters++ = interpreter_popParameter(pContext, (unsigned char **)&pLocalInstructionPointer).val;
 				}
 				break;
 			case C_LONGVAR:
@@ -400,9 +438,14 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **C
 			case C_INTEGER_LITERAL:
 			case C_LONG_LITERAL:
 				if (typ == C_MACRO) {
-					*sp++ = 0;
+					PKS_VALUE val;
+					val.sym_data = interpreter_popParameter(pContext, (unsigned char**)&pLocalInstructionPointer);
+					// TODO: support other types
+					val.sym_type = S_NUMBER;
+					interpreter_pushValue(pContext, val);
+				} else {
+					*functionParameters++ = interpreter_popParameter(pContext, (unsigned char**)&pLocalInstructionPointer).val;
 				}
-				*sp++ = macro_popParameter(pContext, (unsigned char **)&cp).val;
 				break;
 			default:
 				goto out;
@@ -411,25 +454,25 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **C
 
 out:
 	if (typ != C_MACRO) {
-		unsigned char* readparamp = (unsigned char *)cp;
+		unsigned char* readparamp = (unsigned char *)pLocalInstructionPointer;
 		_dialogExecutionBytecodePointer = readparamp;
-		rc = interpreter_executeFunction(funcnum,stack[0],stack[1],
-						 (void*)stack[2],
-						 (void*)stack[3],
-						 (void*)stack[4]);
+		rc = interpreter_executeFunction(funcnum,
+						nativeStack[0], 
+						nativeStack[1],
+						 (void*)nativeStack[2],
+						 (void*)nativeStack[3],
+						 (void*)nativeStack[4]);
 
 		/*
 		 * TODO: function execution may pop a parameter in case a form is opened
 		 * This is currently broken.
 		 */
-		*Cp = (COM_1FUNC*)readparamp;
+		*pInstructionPointer = (COM_1FUNC*)readparamp;
 	}
 	else {
-		saveStack = currentParamStack;
-		currentParamStack = stack;
-		rc = macro_executeByName(((COM_MAC*)*Cp)->name);
-		currentParamStack = saveStack;
-		*Cp = cp;
+		rc = macro_executeByName(((COM_MAC*)*pInstructionPointer)->name);
+		*pInstructionPointer = pLocalInstructionPointer;
+		_currentExecutionContext->ec_stackCurrent = pStack;
 	}
 	return rc;
 }
@@ -442,7 +485,7 @@ static long interpreter_assignSymbol(EXECUTION_CONTEXT* pContext, char* name, CO
 	GENERIC_DATA value;
 
 	sSymbolType = macro_isParameterFloatType(v->typ) ? S_FLOAT : (macro_isParameterStringType(v->typ) ? S_STRING : S_NUMBER);
-	value = macro_popParameter(pContext, (unsigned char**)&v);
+	value = interpreter_popParameter(pContext, (unsigned char**)&v);
 	return sym_makeInternalSymbol(pContext->ec_identifierContext, name, sSymbolType, value);
 }
 
@@ -477,22 +520,25 @@ static void interpreter_returnFunctionValue(EXECUTION_CONTEXT* pContext, unsigne
  * Return the passed String to the macro interpreter so it can be used for further processing.
  */
 void macro_returnString(char *string) {
-	interpreter_returnFunctionValue(macro_getRecordingContext(), C_STRING_LITERAL, (intptr_t)string);
+	interpreter_returnFunctionValue(_currentExecutionContext, C_STRING_LITERAL, (intptr_t)string);
 }
 
 /*---------------------------------*/
 /* macro_interpretByteCodes()					*/
 /*---------------------------------*/
-#define COM1_INCR(cp,type,offset) (COM_1FUNC*)(((unsigned char *)cp)+((type *)cp)->offset)
-#define COM_PARAMINCR(cp)		(COM_1FUNC*)(((unsigned char *)cp)+macro_getParameterSize(cp->typ,&cp->funcnum));
+#define COM1_INCR(pLocalInstructionPointer,type,offset) (COM_1FUNC*)(((unsigned char *)pLocalInstructionPointer)+((type *)pLocalInstructionPointer)->offset)
+#define COM_PARAMINCR(pLocalInstructionPointer)		(COM_1FUNC*)(((unsigned char *)pLocalInstructionPointer)+interpreter_getParameterSize(pLocalInstructionPointer->typ,&pLocalInstructionPointer->funcnum));
 static int _macaborted;
-static int macro_interpretByteCodes(EXECUTION_CONTEXT* pContext, COM_1FUNC *cp,COM_1FUNC *cpmax) {
+static int macro_interpretByteCodes(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 	static int 	level;
 	intptr_t	val;
 	if (level > 10) {
+		// TODO: make this dependent on stack
 		error_showErrorById(IDS_MSGMACRORECURSION);
 		return 0;
 	}
+	EXECUTION_CONTEXT* pOld = _currentExecutionContext;
+	EXECUTION_CONTEXT* pContext = interpreter_pushExecutionContext();
 
 	level++;
 	for (val = 1; cp < cpmax; ) {
@@ -541,7 +587,7 @@ static int macro_interpretByteCodes(EXECUTION_CONTEXT* pContext, COM_1FUNC *cp,C
 				interpreter_returnFunctionValue(pContext, C_LONG_LITERAL,val);
 				continue;
 			case C_FURET:
-				_fncmarker = macro_popParameter(pContext, (unsigned char **)&cp).val;
+				_fncmarker = interpreter_popParameter(pContext, (unsigned char **)&cp).val;
 				break;
 			case C_FORMSTART:
 				// TODO: not really - executing macros with forms is broken - should change the whole
@@ -558,6 +604,7 @@ end:
 	if (level == 0) {
 		error_setShowMessages(TRUE);
 	}
+	interpreter_popExecutionContext(pContext, pOld);
 	return (int)val;
 }
 
@@ -586,7 +633,7 @@ int macro_executeMacroByIndex(int macroindex)
 	} 
 
 	if (bWasRecording && macroindex >= 0) {
-		recorder_pushSequence(C_MACRO,_macroTable[macroindex]->name);
+		recorder_pushSequence(C_MACRO,MAC_NAME(_macroTable[macroindex]));
 		recorder_setRecording(FALSE);
 	}
 
@@ -603,12 +650,10 @@ int macro_executeMacroByIndex(int macroindex)
 				if ((mp = _macroTable[macroindex]) == 0)
 					return 0;
 				cp = (COM_1FUNC *)MAC_DATA(mp);
-				cpmax = (COM_1FUNC *)((char *)cp+mp->size);
+				cpmax = (COM_1FUNC *)((char *)cp+mp->mc_size);
 				break;
 		}
-		EXECUTION_CONTEXT* pContext = macro_createExecutionContext();
-		ret = macro_interpretByteCodes(pContext, cp, cpmax);
-		macro_destroyExecutionContext(pContext);
+		ret = macro_interpretByteCodes(cp, cpmax);
 		if (ret <= 0) {
 			ret = 0;
 			break;
@@ -638,14 +683,11 @@ int macro_executeMacro(MACROREF* mp)
 	switch (mp->typ) {
 	case CMD_CMDSEQ:
 		cp = &_commandTable[mp->index].c_functionDef;
-		EXECUTION_CONTEXT* pContext = macro_createExecutionContext();
-		int nRet = macro_interpretByteCodes(pContext, cp, cp + 1);
-		macro_destroyExecutionContext(pContext);
-		return nRet;
+		return macro_interpretByteCodes(cp, cp + 1);
 	case CMD_MACRO:
 		return macro_executeMacroByIndex(mp->index);
 	default:
-		error_displayAlertDialog("bad command or macro");
+		error_displayAlertDialog("Illegal command type to execute.");
 	}
 	return 0;
 }

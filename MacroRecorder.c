@@ -88,7 +88,7 @@ void recorder_pushSequence(unsigned char typ, void* par) {
 	}
 
 	sp = _currentRecordingBuffer.bb_current;
-	s = macro_getParameterSize(typ, (char*)par);
+	s = interpreter_getParameterSize(typ, (char*)par);
 
 	if ((spend = sp + s) > _currentRecordingBuffer.bb_end) {
 		error_showErrorById(IDS_MSGMACOVERFLOW);
@@ -168,7 +168,7 @@ int recorder_recordOperation(PARAMS* pp)
 	if (!recorder_isRecording())
 		return 0;
 
-	savepos = _currentRecordingBuffer.bb_current - macro_getParameterSize(C_1FUNC, (char*)0);
+	savepos = _currentRecordingBuffer.bb_current - interpreter_getParameterSize(C_1FUNC, (char*)0);
 	opt = 0;
 
 	if (pp->flags & P_MAYOPEN) {

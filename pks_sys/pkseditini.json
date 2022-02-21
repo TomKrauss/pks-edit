@@ -30,23 +30,23 @@
         {
             "name": "PKSMAKROC",
             "pattern": "^[^ ]+ ([^ ]+) ([0-9]+): *(.*)",
-            "filename-capture": 0,
-            "linenumber-capture": 0,
-            "comment-capture": 0
+            "filename-capture": 1,
+            "linenumber-capture": 2,
+            "comment-capture": 3
         },
         {
             "name": "MSC",
             "pattern": "^([^(]*)(([0-9]+)) : (.*)",
-            "filename-capture": 0,
-            "linenumber-capture": 0,
-            "comment-capture": 0
+            "filename-capture": 1,
+            "linenumber-capture": 2,
+            "comment-capture": 3
         },
         {
             "name": "BORLAND-C",
             "pattern": "^[^ ]+ ([^ ]+) ([0-9]+): *(.*)",
-            "filename-capture": 0,
-            "linenumber-capture": 0,
-            "comment-capture": 0
+            "filename-capture": 1,
+            "linenumber-capture": 2,
+            "comment-capture": 3
         }
         ]
     },

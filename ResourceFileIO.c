@@ -85,7 +85,7 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName
 
 	for (i = 0; i < _macroTableSize; i++) {
 		if ((mp = macro_getByIndex(i)) != 0 &&
-		    (pMacroName == 0 || strcmp(pMacroName, mp->name) == 0)) {
+		    (pMacroName == 0 || strcmp(pMacroName, MAC_NAME(mp)) == 0)) {
 			if (offs >= maxbytes) {
 				offs -= maxbytes;
 				total += maxbytes;
@@ -94,16 +94,16 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName
 			}
 			seqp = (struct macrodata *) &buf[offs];
 			seqp->cmdbyte 	= CMD_MACRO;
-			seqp->namelen = (unsigned char)(strlen(mp->name)+1);
+			seqp->namelen = (unsigned char)(strlen(MAC_NAME(mp))+1);
 			seqp->commentlen = (unsigned char)strlen(MAC_COMMENT(mp))+1;
-			strcpy(seqp->name,mp->name);
+			strcpy(seqp->name,MAC_NAME(mp));
 			comment = &seqp->name[seqp->namelen];
 			strcpy(comment,MAC_COMMENT(mp));
 			datap = comment+seqp->commentlen;
-			seqp->s1 = mp->size >> 8;
-			seqp->s2 = mp->size;
-			memmove(datap,MAC_DATA(mp),mp->size);
-			offs += (mp->size + (int)(datap-(unsigned char *)seqp));
+			seqp->s1 = mp->mc_size >> 8;
+			seqp->s2 = mp->mc_size;
+			memmove(datap,MAC_DATA(mp),mp->mc_size);
+			offs += (mp->mc_size + (int)(datap-(unsigned char *)seqp));
 		}
 	}
 	total += offs;

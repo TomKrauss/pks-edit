@@ -44,7 +44,7 @@ int macro_getFunctionNumberForCommand(int nCommand, long long* llParam) {
 char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
 {
 	switch(type) {
-		case CMD_MACRO:  sprintf(szBuf,"%s",macro_getByIndex(nIndex)->name); break;
+		case CMD_MACRO:  sprintf(szBuf,"%s",MAC_NAME(macro_getByIndex(nIndex))); break;
 		case CMD_CMDSEQ: 
 			if (nIndex < 0 || nIndex >= _commandTableSize) {
 				sprintf(szBuf,"@Unnamed-%d",nIndex);

@@ -98,6 +98,7 @@ static 		char *lstartid  = "%ls%",
 int			vname_count;
 extern 		int	yyerrflg;
 extern 		int	_bDefiningConst;
+extern char*    _yyCurrentComment;
 extern void		yyerror(char* s, ...);
 int				function_getIndexOfFunction(void *ep);
 int 			function_parameterIsFormStart(void *ep,int parno);
@@ -148,7 +149,7 @@ int yydebug = 1;
 #endif
 			} resource resources
 
-resource	: macros		
+resource	: macro_definition		
 			| constants
 
 
@@ -177,10 +178,19 @@ var:		T_STRINGVAR 	{	$$.ident = $1.ident; }
 
 /*-- MACROS -----------------------------------------------------*/
 
-macrostart	: { startmacro(); } T_DEFMACRO T_IDENT '(' par_decls ')' 
-			  { $$.ident = $3.ident; }
+macro_declaration: T_DEFMACRO T_IDENT {
+				$$.ident = $2.ident;
+			}
+			| T_DEFMACRO T_FUNC {
+				yyerror("Illegal attempt to redefine native method");
+				$$.ident.s = 0;
+				$$.ident.stringIsAlloced = 0;
+			}
 
-par_decls		:
+macrostart: { startmacro(); } macro_declaration '(' parameter_list ')' 
+			  { $$.ident = $2.ident; }
+
+parameter_list:
 			| non_empty_pardecl
 
 non_empty_pardecl: par_decl
@@ -195,24 +205,20 @@ par_decl: type_ident var_ident {
 				_nparam++;
 			}
 
-macros		:  macrostart opt_string block
-			{
+macro_definition: macrostart block {
 				if (!yyerrflg) {
 					bytecode_generateAutoLabelNamePrefix(lreturnid,0);
 					bytecode_destroyAutoLabelNamePrefix(lreturnid,0);
 					macro_validateMacroName($1.ident.s, -1, 1);
 					_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_STOP, (GENERIC_DATA){1});
 					_compilerConfiguration->cb_showStatus("Defining macro %s",$1.ident.s);
-					_compilerConfiguration->cb_insertNewMacro($1.ident.s,$2.ident.s,_bytecodeBuffer.bb_start,(int)(_bytecodeBuffer.bb_current-_bytecodeBuffer.bb_start));
+					_compilerConfiguration->cb_insertNewMacro($1.ident.s, _yyCurrentComment, _bytecodeBuffer.bb_start,(int)(_bytecodeBuffer.bb_current-_bytecodeBuffer.bb_start));
 				}
-				freeitem(&$2.ident.s);
 				freeitem(&$1.ident.s);
+				freeitem(&_yyCurrentComment);
 				bytecode_closeOpenLabels();
 				endmacro();
 			} 
-
-opt_string	:			{	$$.ident.s = 0; $$.ident.stringIsAlloced = 0; }
-			| T_STRING	{	$$.ident = $1.ident; }
 
 block		: '{' var_decls stmntlist '}'
 
@@ -242,7 +248,7 @@ var_decl		: type_ident var_ident assgn ';'	{
 			}
 
 stmnt		:            	';'
-			| fcall ';'
+			| call_expression ';'
 			| assignment
 			| if
 			| while
@@ -280,7 +286,7 @@ increment_expression:
 s_bterm: 	value { $$.v = $1.v; }
 			| {
 				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_FURET, (GENERIC_DATA){vname_count});
-			} fcall {
+			} call_expression {
 				if ($2.funcp && function_returnsString($2.funcp)) {
 					$$.v.type = C_STRINGVAR;
 				} else {
@@ -361,7 +367,7 @@ relop		: '<'		{	$$.type = CT_LT;	}
 string_match_operator: '~'	{	$$.type = CT_MATCH;			}
 			| T_NMATCH	{	$$.type = CT_NMATCH;		}
 
-term:		fcall {	$$.type = C_LONG_LITERAL; 	 	}
+term:		call_expression { $$.type = C_LONG_LITERAL; 	 	}
 			| value		{	$$.type = bytecode_emitPushValueInstruction(&$1.v);	}
 
 value:		T_NUMVAR {
@@ -469,7 +475,8 @@ elseclause	:
 stmntlist		:
 			| stmnt stmntlist
 
-fcall		: T_FUNC {
+call_expression: T_FUNC {
+				// Native call
 				_lastfuncp = $1.funcp;
 				_parno = 0;
 				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_0FUNC,
@@ -605,8 +612,9 @@ static void bytecode_beginTestOperation()
 static unsigned char bytecode_emitPushValueInstruction(TYPEDVAL *vp)
 {
 	_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,vp->type,vp->data);
+	unsigned char type = vp->type;
 	freeval(vp);
-	return vp->type;
+	return type;
 }
 
 /*---------------------------------*/

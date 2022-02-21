@@ -210,6 +210,7 @@ static int cmdgetc(void )
 # endif
 
 COMPILER_CONFIGURATION* _compilerConfiguration;
+char * _yyCurrentComment;
 
 /*---------------------------------*/
 /* yyinit()					*/
@@ -262,6 +263,9 @@ int yyfinish(void)
 	}
 #endif
 
+	if (_yyCurrentComment) {
+		free(_yyCurrentComment);
+	}			
 	macro_selectDefaultBindings();
 	if (yyerr.errfp) {
 		fprintf(yyerr.errfp,"\nTOTAL %d Errors\n",yyerr.yynerr);
@@ -422,6 +426,29 @@ WS		[ \t]
 <INITIAL>-	{
 				return '-';
 			}
+<INITIAL>\/\* {
+				int c, lastC = 0;
+
+				yyleng = 0;
+				while((c = input()) != 0) {
+					if (c == '*' && lastC == ' ' && yyleng > 1 && yytext[yyleng-2] == '\n') {
+						lastC = c;
+						yyleng--;
+						continue;
+					}
+					if (c == '/' && yyleng > 0 && lastC == '*') {
+						yytext[yyleng - 1] = 0;
+						break;
+					}
+					lastC = c;
+					yytext[yyleng++] = c;
+				}
+				yytext[yyleng] = 0;
+				if (_yyCurrentComment) {
+					free(_yyCurrentComment);
+				}
+				_yyCurrentComment = _strdup(yytext);
+}
 \" 			{
 				int c;
 

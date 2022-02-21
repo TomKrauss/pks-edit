@@ -55,12 +55,17 @@ typedef struct tagPKS_VALUE {
 	GENERIC_DATA	sym_data;
 } PKS_VALUE;
 
+extern int interpreter_getDollarParameter(intptr_t offset, PKS_VALUE* pValue);
+
 typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 
+#define MAX_STACK_SIZE		256
+
 struct tagEXECUTION_CONTEXT {
-	PKS_VALUE* ec_stackBottom;
-	PKS_VALUE* ec_stackCurrent;
-	PKS_VALUE* ec_stackMax;
+	PKS_VALUE* ec_stackBottom;			// the bottom of the value stack
+	PKS_VALUE* ec_stackFrame;			// the stack bottom of the stack frame for the current macro executed
+	PKS_VALUE* ec_stackCurrent;			// the pointer to the current stack offset
+	PKS_VALUE* ec_stackMax;				// the top of the stack. Must not be overridden
 	IDENTIFIER_CONTEXT* ec_identifierContext;
 };
 
@@ -92,7 +97,8 @@ typedef enum {
 	C_STRINGVAR = 0x16, 		// variable reference to string
 	C_LONGVAR   = 0x17, 		// variable reference to long value
 	C_FORMSTART = 0x18, 		// formular with parameters ...
-	C_DATA  = 0x19, 			// any data ... 
+	C_PUSH_VARIABLE = 0x20,		// Push a variable onto the stack
+	C_PUSH_LITERAL = 0x24,		// push a literal onto the stack
 	C_FURET = 0x20, 			// next function return is saved 
 	C_FLOATVAR  = 0x21, 		// Floating point parameter
 	C_BOOLEANVAR= 0x22, 		// Boolean parameter
@@ -105,65 +111,65 @@ typedef enum {
 
 #define	C_NONE			0xFF
 
-#define	FORM_SHOW		0x40	// form should be opened 
-#define	FORM_INIT		0x1		// form " and be prefilled
-#define	FORM_REDRAW		0x2		// force redraw 
+#define	FORM_SHOW		0x40		// form should be opened 
+#define	FORM_INIT		0x1			// form " and be prefilled
+#define	FORM_REDRAW		0x2			// force redraw 
 
 /*
- * macro_getParameterSize()
+ * interpreter_getParameterSize()
  * typ: the bytecode
  * s: pointer to the bytecode buffer past(!) the opcode (instructionPointer+1)
  */
-int  macro_getParameterSize(unsigned char typ, const char* s);
+int  interpreter_getParameterSize(unsigned char typ, const char* s);
 
 /*--------------------------------------------------------------------------
- * macro_popParameter()
+ * interpreter_popParameter()
  * pop data from execution stack
  */
-GENERIC_DATA macro_popParameter(EXECUTION_CONTEXT* pContext, unsigned char** sp);
+GENERIC_DATA interpreter_popParameter(EXECUTION_CONTEXT* pContext, unsigned char** sp);
 
 typedef struct c_1func {
-	unsigned char  typ;		/* C_1FUNC or C_0FUNC - defines the number of parameters to pass */
-	unsigned char  funcnum;	/* index into editor function table _functionTable */
-	long			p;		/* optional parameter to pass */
+	unsigned char  typ;				// C_1FUNC or C_0FUNC - defines the number of parameters to pass
+	unsigned char  funcnum;			// index into editor function table _functionTable
+	long			p;				// optional parameter to pass
 } COM_1FUNC;
 
 /*
  * Describes an editor command.
  */
 typedef struct tagCOMMAND {
-	int		  c_index;					// the command index used internally.
-	COM_1FUNC c_functionDef;			// the actual functionto execute including flags.
-	char* c_name;						// name of the command used in macros
+	int		  c_index;				// the command index used internally.
+	COM_1FUNC c_functionDef;		// the actual functionto execute including flags.
+	char* c_name;					// name of the command used in macros
 } COMMAND;
 
 typedef struct c_0func {
-	unsigned char typ;		/* C_0FUNC */
-	unsigned char funcnum;	/* index in function table */
+	unsigned char typ;				// C_0FUNC
+	unsigned char funcnum;			// index in function table 
 } COM_0FUNC;
 
 typedef struct c_ident {
-	unsigned char typ;		/* C_MACRO */
-	unsigned char name[1];	/* 0-term. string padded to even # */
+	unsigned char typ;				// C_MACRO 
+	unsigned char name[1];			// 0-term. string padded to even # 
 } COM_MAC;
 
 typedef struct c_ident COM_VAR;
 
 typedef struct c_assign {
-	unsigned char 	typ;		/* C_ASSIGN */
+	unsigned char 	typ;			// C_ASSIGN
 	unsigned char 	res;
-	int		    	opoffset;	/* source operand offset */
-	int		    	size;	/* size of total assignment */
-	unsigned char	name[1];	/* variable name */
-						/* operand (src) follows */
+	int		    	opoffset;		// source operand offset
+	int		    	size;			// size of total assignment
+	unsigned char	name[1];		// variable name
+									// operand (src) follows
 } COM_ASSIGN;
 
 typedef struct c_createsym {
-	unsigned char 	typ;		// C_DEFINE_PARAMETER or C_DEFINE_VARIABLE
-	unsigned char 	symtype;	// variable type
-	long long		value;		// value
-	int		    	size;		// size of total structure
-	unsigned char	name[1];	// variable name
+	unsigned char 	typ;			// C_DEFINE_PARAMETER or C_DEFINE_VARIABLE
+	unsigned char 	symtype;		// variable type
+	long long		value;			// value
+	int		    	size;			// size of total structure
+	unsigned char	name[1];		// variable name
 } COM_CREATESYM;
 
 #define	BRA_ALWAYS		0
@@ -171,29 +177,29 @@ typedef struct c_createsym {
 #define	BRA_EQ			2
 
 typedef struct c_goto {
-	unsigned char typ;		/* C_GOTO, C_GOCOND */
-	unsigned char bratyp;	/* BRA_ALWAYS, BRA_NE, BRA_EQ, */
+	unsigned char typ;				// C_GOTO, C_GOCOND */
+	unsigned char bratyp;			// BRA_ALWAYS, BRA_NE, BRA_EQ, */
 	int		    offset;
 } COM_GOTO;
 
 typedef struct c_test {
-	unsigned char typ;		/* C_TEST */
-	unsigned char testop;	/* see test.h */
+	unsigned char typ;				// C_TEST 
+	unsigned char testop;			// see test.h 
 	int		    p2offset;
 	int		    size;
 } COM_TEST;
 
 typedef struct c_binop {
-	unsigned char typ;		/* C_BINOP */
-	unsigned char op;		/* see above BIN_ADD etc... */
-	int           op1offset;	/* points to COM_1STRING,.... */
-	int           op2offset;	/* points to COM_1STRING,.... */
-	int		    size;		/* total size of binop */
-	unsigned char result[1]; /* result variable name */
+	unsigned char typ;				// C_BINOP 
+	unsigned char op;				// see above BIN_ADD etc... 
+	int           op1offset;		// points to COM_1STRING,....
+	int           op2offset;		// points to COM_1STRING,.... 
+	int		    size;				// total size of binop
+	unsigned char result[1];		// result variable name
 } COM_BINOP;
 
 typedef struct c_char1 {
-	unsigned char typ;		/* C_CHARACTER_LITERAL */
+	unsigned char typ;				// C_CHARACTER_LITERAL C_PUSH_LITERAL char
 	unsigned char val;
 } COM_CHAR1;
 
@@ -205,39 +211,32 @@ typedef struct c_stop {
 } COM_STOP;
 
 typedef struct c_int1 {
-	unsigned char typ;		/* CMD_INT1PAR */
-	unsigned char res;
-	int		    val;
+	unsigned char	typ;			// C_INTEGER_LITERAL, C_PUSH_LITERAL int
+	unsigned char	c_valueType;
+	int				val;
 } COM_INT1;
 
 typedef struct c_float1 {
-	unsigned char typ;		/* CMD_FLOAT1PAR */
-	unsigned char res;
+	unsigned char typ;				// C_INTEGER_LITERAL, C_PUSH_FLOAT int
+	unsigned char	c_valueType;
 	double		  val;
 } COM_FLOAT1;
 
 typedef struct c_long1 {
-	unsigned char typ;		/* CMD_LONG1PAR */
-	unsigned char res;
+	unsigned char typ;				// C_LONG_LITERAL, C_PUSH_FLOAT int
+	unsigned char	c_valueType;
 	intptr_t  	  val;
 } COM_LONG1;
 
 typedef struct c_string1 {
-	unsigned char typ;		/* C_STRING1 */
-	unsigned char s[1];		/* 0-term. string padded to even # */
+	unsigned char typ;				// C_STRING1, C_PUSH_VARIABLE
+	unsigned char s[1];				// 0-term. string padded to even #
 } COM_STRING1;
 
-typedef struct c_anydata {
-	unsigned char typ;		/* C_DATA */
-	unsigned char subtype;
-	unsigned long size;		/* sizeof data */
-	char		    data[1];	/* ... */
-} COM_DATA;
-
 typedef struct c_form {
-	unsigned char typ;		/* CMD_FORMSTART */
-	unsigned char options;	/* FORM_SHOW,... */
-	int		    nfields;	/* # of fields in formular */
+	unsigned char typ;				// CMD_FORMSTART 
+	unsigned char options;			// FORM_SHOW
+	int		    nfields;			// # of fields in formular
 } COM_FORM;
 
 typedef union c_seq {

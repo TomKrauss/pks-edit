@@ -102,7 +102,7 @@ int macro_getInternalIndexByName(const char *name)
 	if (name)
 	  for (i = 0; i < MAXMACRO; i++) {
 		if ((mp = macro_getByIndex(i)) != 0 && 
-			strcmp(mp->name,name) == 0)
+			strcmp(MAC_NAME(mp),name) == 0)
 				return i;
 	  }
 	return -1;
@@ -270,12 +270,12 @@ MACRO *macro_createWithParams(char* szName, char* szComment, char* bData, int si
 	if ((mp = malloc(MAC_SIZE(nLen+size))) == 0)
 		return (MACRO*)0;
 
-	mp->dstart = (unsigned char)(nLen+sizeof(*mp));
+	mp->mc_bytecodesOffset = (unsigned char)(nLen+sizeof(*mp));
 
-	mp->namelen = nNamelen;
-	mp->size = size;
+	mp->mc_namelen = nNamelen;
+	mp->mc_size = size;
 
-	lstrcpy(mp->name,szName);
+	lstrcpy(MAC_NAME(mp),szName);
 	lstrcpy(MAC_COMMENT(mp),szComment);
 	memmove(MAC_DATA(mp),bData,size);
 	return mp;
@@ -289,7 +289,7 @@ void macro_renameAndChangeComment(int nIndex, char* szName, char* szComment)
 	MACRO *mp,*mpold;
 
 	mpold = _macroTable[nIndex];
-	if ((mp = macro_createWithParams(szName,szComment,MAC_DATA(mpold),mpold->size)) == 0)
+	if ((mp = macro_createWithParams(szName,szComment,MAC_DATA(mpold),mpold->mc_size)) == 0)
 		return;
 	_macroTable[nIndex] = mp;
 	free(mpold);
@@ -865,7 +865,7 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 			nSelected = macro_getSelectedMacro(hwnd);
 			GetDlgItemText(hwnd,IDD_STRING1,szName,sizeof szName);
 			_selectedMacroName = (LOWORD(nSelected) == CMD_MACRO) ?
-				_macroTable[HIWORD(nSelected)]->name : 0;
+				MAC_NAME(_macroTable[HIWORD(nSelected)]) : 0;
 			nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
 			switch (nId = GET_WM_COMMAND_ID(wParam, lParam)) {
 

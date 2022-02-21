@@ -47,7 +47,7 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 			typ = C_CHARACTER_LITERAL;
 	}
 
-	s = macro_getParameterSize(typ, data.string);
+	s = interpreter_getParameterSize(typ, data.string);
 	if ((spret = sp+s) > pBuffer->bb_end) {
 		yyerror(/*STR*/"buffer overflow");
 		return 0;

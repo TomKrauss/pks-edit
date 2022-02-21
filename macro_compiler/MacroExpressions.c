@@ -52,7 +52,7 @@ static long long macro_getNumberParameter(EXECUTION_CONTEXT* pContext, unsigned 
 	switch(*sp) {
 		case C_STRING_LITERAL:
 		case C_STRINGVAR:
-			s = (char *)macro_popParameter(pContext, &sp).string;
+			s = (char *)interpreter_popParameter(pContext, &sp).string;
 			return number(s);
 		case C_CHARACTER_LITERAL:
 		case C_INTEGER_LITERAL:
@@ -60,7 +60,7 @@ static long long macro_getNumberParameter(EXECUTION_CONTEXT* pContext, unsigned 
 		case C_LONG_LITERAL:
 		case C_FLOATVAR:
 		case C_LONGVAR:
-			return macro_popParameter(pContext, &sp).longValue;
+			return interpreter_popParameter(pContext, &sp).longValue;
 		case C_MACRO:
 		case C_0FUNC:
 		case C_1FUNC:
@@ -79,12 +79,12 @@ static double macro_getDoubleParameter(EXECUTION_CONTEXT* pContext, unsigned cha
 	switch (*sp) {
 	case C_STRING_LITERAL:
 	case C_STRINGVAR:
-		s = (char*)macro_popParameter(pContext, &sp).string;
+		s = (char*)interpreter_popParameter(pContext, &sp).string;
 		sscanf(s, "%lf", &d);
 		return d;
 	case C_FLOAT_LITERAL:
 	case C_FLOATVAR:
-		return macro_popParameter(pContext, &sp).doubleValue;
+		return interpreter_popParameter(pContext, &sp).doubleValue;
 	default:
 		return (double)macro_getNumberParameter(pContext, sp, spend);
 	}
@@ -100,16 +100,16 @@ char *macro_getStringParameter(EXECUTION_CONTEXT* pContext, unsigned char *sp) {
 	switch(*sp) {
 		case C_STRING_LITERAL:
 		case C_STRINGVAR:
-			return (char *)macro_popParameter(pContext, &sp).string;
+			return (char *)interpreter_popParameter(pContext, &sp).string;
 		case C_FLOAT_LITERAL:
 		case C_FLOATVAR:
-			sprintf(buf, "%.2lf", macro_popParameter(pContext, &sp).doubleValue);
+			sprintf(buf, "%.2lf", interpreter_popParameter(pContext, &sp).doubleValue);
 			return buf;
 		case C_CHARACTER_LITERAL:
 		case C_INTEGER_LITERAL:
 		case C_LONG_LITERAL:
 		case C_LONGVAR:
-			lVal = macro_popParameter(pContext, &sp).longValue;
+			lVal = interpreter_popParameter(pContext, &sp).longValue;
 			sprintf(buf,"%lld", lVal);
 			return buf;
 	}

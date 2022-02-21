@@ -1,5 +1,7 @@
-
-macro Test-Expr()
+/*
+ * This is a comment
+ */
+macro Test-Expression()
 {
 	string s1;
 	string s2;
@@ -16,6 +18,10 @@ macro Test-Expr()
 	
 	result = "String '" + s1 + s2 + re + "'";
 	MessageBox(MB_OK, result);
+	
+	if (s1) {
+		MessageBox(MB_OK, "OK");
+	}
 }
 
 macro Test-While() {
@@ -39,10 +45,10 @@ macro Test-Params(int par, string par2)
 {
 	string tmp;
 
-    Alert("Hello");
 	tmp = "We have passed " + (string)par + " as parameter 1 and '" + (string)par2 + "' as parameter 2";
-	par2 = 14;
 	Alert(tmp);
+
+	par2 = 14;
 	tmp = "Now parameter 2 was changed to:" + par2;
 	Alert(tmp);
 }
@@ -51,9 +57,9 @@ macro Test-Params(int par, string par2)
 macro Test-Call()
 {
 
+	Test-Params(3);
 	Test-Params(12,"One string passed to function");
 	Test-Params(2,3);
-	Test-Params(3);
 }
 
 

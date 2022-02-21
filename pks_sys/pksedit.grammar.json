@@ -9,6 +9,12 @@
       "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9@-",
       "patterns": [
         {
+          "begin": "/*",
+          "end": "*/",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
           "match": "#.*",
           "style": "comment",
           "name": "comment.singleLine2"

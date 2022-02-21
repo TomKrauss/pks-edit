@@ -42,18 +42,18 @@ typedef struct tagMACROREF {
 #define INTPTR_TO_MACROREF(m)	(MACROREF){.typ = (unsigned char)((unsigned long)m >> 16), .index = (unsigned char)((unsigned long)m&0xFFFF)}
 
 typedef struct tagMACRO {
-	unsigned char namelen;
-	unsigned char dstart;
-	unsigned 	    size;
-	unsigned char name[2];
+	unsigned char mc_namelen;				// Length of the name of the macro
+	unsigned char mc_bytecodesOffset;		// Offset in bytes to the actual byte code of the macro.
+	unsigned mc_size;						// total size of the macro in bytes.
+	unsigned char mc_name[2];				// the macro name
 } MACRO;
 
 #define	MAC_COMMENTLEN		220
-#define	MAC_NAMELEN		32
-#define	MAC_NAME(mp)		((mp)->name)
+#define	MAC_NAMELEN			32
+#define	MAC_NAME(mp)		((mp)->mc_name)
 #define	MAC_SIZE(size)		((size) + sizeof(MACRO))
-#define	MAC_DATA(mp)		((unsigned char *)mp+mp->dstart)
-#define	MAC_COMMENT(mp)	((unsigned char *)mp+sizeof *mp+mp->namelen)
+#define	MAC_DATA(mp)		((unsigned char *)mp+mp->mc_bytecodesOffset)
+#define	MAC_COMMENT(mp)		((unsigned char *)mp+sizeof *mp+mp->mc_namelen)
 
 typedef struct tagCOMMAND COMMAND;
 extern COMMAND		_commandTable[];
@@ -309,8 +309,6 @@ extern int macro_executeMacroByIndex(int macroindex);
  * print the current mouse bindings to a file and display them to the user.
  */
 extern int print_saveMouseBindingsAndDisplay(void);
-
-extern int interpreter_getDollarParameter(intptr_t offset, int* typ, intptr_t* value);
 
 /*---------------------------------
  * macro_createFileAndDisplay()

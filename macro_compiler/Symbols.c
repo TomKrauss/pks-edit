@@ -189,8 +189,7 @@ static PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char *symbolname)
  */
 long sym_integerForSymbol(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 	PKS_VALUE 	sym;
-	int		isString;
-	intptr_t value;
+	PKS_VALUE 	stackValue;
 
 	sym = sym_getVariable(pContext, symbolname);
 
@@ -200,13 +199,13 @@ long sym_integerForSymbol(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 
 	switch (TYPEOF(sym)) {
 	case S_DOLNUMBER: case S_DOLSTRING:
-		if (interpreter_getDollarParameter((intptr_t) VALUE(sym), &isString, &value) == 0) {
+		if (interpreter_getDollarParameter((intptr_t) VALUE(sym), &stackValue) == 0) {
 			return 0;
 		}
-		if (!isString) {
-			return (long)value;
+		if (stackValue.sym_type != S_STRING) {
+			return (long)stackValue.sym_data.longValue;
 		}
-		return number((char *)value);
+		return number(stackValue.sym_data.string);
 	case S_CONSTNUM: case S_NUMBER:
 		return (long) (intptr_t)VALUE(sym);
 	case S_FLOAT:
@@ -234,8 +233,8 @@ double sym_floatForSymbol(IDENTIFIER_CONTEXT* pContext, char* symbolname) {
  */
 intptr_t sym_stringForSymbol(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 	PKS_VALUE 	sym;
-	int		isString;
-	intptr_t		value;
+	PKS_VALUE 	stackValue;
+	long long   value;
 	static char buf[20];
 
 	sym = sym_getVariable(pContext, symbolname);
@@ -246,18 +245,21 @@ intptr_t sym_stringForSymbol(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 
 	switch(TYPEOF(sym)) {
 	case S_DOLNUMBER: case S_DOLSTRING:
-		if (interpreter_getDollarParameter((intptr_t) VALUE(sym), &isString, &value) == 0) {
+		if (interpreter_getDollarParameter((intptr_t) VALUE(sym), &stackValue) == 0) {
 			return 0;
 		}
-		if (isString) {
-			return value;
+		if (stackValue.sym_type == S_STRING) {
+			return (intptr_t)stackValue.sym_data.string;
 		}
+		sym = stackValue;
 		/* drop through */
 	case S_CONSTNUM: case S_NUMBER:
 		if (TYPEOF(sym) == S_NUMBER || TYPEOF(sym) == S_CONSTNUM) {
-			value = (intptr_t)VALUE(sym);
+			value = sym.sym_data.longValue;
+		} else {
+			value = 0;
 		}
-		sprintf(buf,"%ld", (long)value);
+		sprintf(buf,"%lld", value);
 		return (intptr_t)buf;
 	case S_FLOAT:
 		if (TYPEOF(sym) == S_FLOAT) {

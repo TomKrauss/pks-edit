@@ -161,7 +161,7 @@ static int decompile_printParameter(FILE *fp, unsigned char *sp, PARAMETER_TYPE_
 			val = (long long)((COM_LONG1 *)sp)->val;
 			break;
 		case C_STRING_LITERAL:
-			if (partyp.pt_type != PARAM_TYPE_STRING)
+			if (partyp.pt_type != PARAM_TYPE_STRING && partyp.pt_type != PARAM_TYPE_VOID)
 				goto err;
 			fprintf(fp,"\"%s\"",decompile_quoteString(((COM_STRING1*)sp)->s));
 			return 1;
@@ -219,7 +219,7 @@ static void decompile_makeAutoLabels(const char *start, const char *end)
 	while(start < end && *start != C_STOP) {
 		if (*start == C_GOTO)
 			bytecode_makeAutoLabel((COM_GOTO*)(start+((COM_GOTO *)start)->offset));
-		start += macro_getParameterSize(*start,start+1);
+		start += interpreter_getParameterSize(*start,start+1);
 	}
 }
 
@@ -235,37 +235,35 @@ static unsigned char *decompile_function(FILE *fp, unsigned char *sp,
 	PARAMETER_TYPE_DESCRIPTOR partyp;
 
 	if (cp->typ == C_MACRO) {
-		fprintf(fp,"\t%s()",((COM_MAC*)sp)->name);
-		return sp+macro_getParameterSize(*sp,sp+1);
+		fprintf(fp,"\t%s",((COM_MAC*)sp)->name);
+		ep = NULL;
+	} else {
+		decompile_printFunctionName(fp, cp->funcnum);
+		ep = decompile_getFunctionForIndex(cp->funcnum);
 	}
 
-	decompile_printFunctionName(fp,cp->funcnum);
-	ep = decompile_getFunctionForIndex(cp->funcnum);
 	fputc('(',fp);
 
 	npars = 0;
 	if (cp->typ == C_1FUNC) {
 		partyp = function_getParameterTypeDescriptor(ep, 1);
 		/* c0_func glitch */
-		if (partyp.pt_type != PARAM_TYPE_VOID &&
-		    (partyp.pt_enumVal == NULL)) {
+		if (partyp.pt_enumVal == NULL) {
 			if (decompile_printParameter(fp,sp,partyp) < 0)
 				return 0;
 			npars++;
 		}
 	}
-	sp += macro_getParameterSize(*sp,sp+1);
+	sp += interpreter_getParameterSize(*sp,sp+1);
 
 	while(sp < spend && C_IS1PAR(*sp)) {
-		partyp = function_getParameterTypeDescriptor(ep, npars + 1);
-		if (partyp.pt_type != PARAM_TYPE_VOID) {
-			if (npars)
-				fputc(',',fp);
-			if (decompile_printParameter(fp,sp,partyp) < 0)
-				return 0;
-			npars++;
-		}
-		sp += macro_getParameterSize(*sp,sp+1);
+		partyp = ep == NULL ? (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = PARAM_TYPE_VOID} : function_getParameterTypeDescriptor(ep, npars + 1);
+		if (npars)
+			fputc(',',fp);
+		if (decompile_printParameter(fp,sp,partyp) < 0)
+			return 0;
+		npars++;
+		sp += interpreter_getParameterSize(*sp,sp+1);
 	}
 
 	fputc(')',fp);
@@ -435,7 +433,7 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 	fprintf(fp, "%s:", decompile_quoteString(MAC_NAME(mp)));
 	data = MAC_DATA(mp);
 
-	for (sp = data, spend = sp + mp->size; sp < spend; ) {
+	for (sp = data, spend = sp + mp->mc_size; sp < spend; ) {
 		t = ((COM_1FUNC*)sp)->typ;
 		int nOffs = (int)(sp - data);
 		fprintf(fp, "\n0x%04x:   ", nOffs);
@@ -445,9 +443,9 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 		case C_GOTO: fprintf(fp, "goto 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
 		case C_BINOP: fprintf(fp, "eval %s", decompile_binaryOperationAsString(((COM_BINOP*)sp)->op)); break;
 		case C_ASSIGN: fprintf(fp, "assignVar %s", ((COM_ASSIGN*)sp)->name); break;
-		case C_MACRO:fprintf(fp, "executeMacro %s", ((COM_MAC*)sp)->name); break;
-		case C_0FUNC: fprintf(fp, "param0Fun %d", ((COM_0FUNC*)sp)->funcnum); break;
-		case C_1FUNC: fprintf(fp, "param1Fun %d %d", ((COM_1FUNC*)sp)->funcnum, ((COM_1FUNC*)sp)->p); break;
+		case C_MACRO:fprintf(fp, "call %s", ((COM_MAC*)sp)->name); break;
+		case C_0FUNC: fprintf(fp, "nativeCall0 %d (%s)", ((COM_0FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name); break;
+		case C_1FUNC: fprintf(fp, "nativeCall1 %d (%s) %d", ((COM_1FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_1FUNC*)sp)->p); break;
 		case C_BOOLEANVAR: fprintf(fp, "bvar "); break;
 		case C_STRINGVAR: fprintf(fp, "svar "); break;
 		case C_FLOATVAR: fprintf(fp, "fvar "); break;
@@ -460,13 +458,35 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 		case C_STRING_LITERAL: fprintf(fp, "stringLiteral %s", ((COM_STRING1*)sp)->s); break;
 		case C_DEFINE_VARIABLE: fprintf(fp, "defineVar %s", ((COM_CREATESYM*)sp)->name); break;
 		case C_DEFINE_PARAMETER: fprintf(fp, "defineParam %s", ((COM_CREATESYM*)sp)->name); break;
+		case C_FORMSTART: fprintf(fp, "beginFormParameters"); break;
 		default: fprintf(fp, "opcode 0x%x", t); break;
 		}
 		if (t == C_STRINGVAR || t == C_BOOLEANVAR || t == C_FLOATVAR || t == C_LONGVAR) {
 			decompile_printParameter(fp, sp, (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = macro_isParameterStringType(t) ? PARAM_TYPE_STRING : PARAM_TYPE_INT });
 		}
-		sp += macro_getParameterSize(*sp, sp+1);
+		sp += interpreter_getParameterSize(*sp, sp+1);
 	}
+}
+
+static void decompile_printComment(FILE* fp, const char* pszComment) {
+	fprintf(fp, "/*\n");
+	int c;
+	BOOLEAN bNewLine = TRUE;
+	while (*pszComment == '\n') {
+		pszComment++;
+	}
+	while ((c = *pszComment++) != 0) {
+		if (bNewLine) {
+			fprintf(fp, " * ");
+			bNewLine = FALSE;
+			if (c == ' ') {
+				continue;
+			}
+		}
+		fputc(c, fp);
+		bNewLine = c == '\n';
+	}
+	fprintf(fp, "\n */\n");
 }
 
 /*
@@ -478,18 +498,19 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 	unsigned char 	t;
 	char			*lname;
 
-	fprintf(fp,"macro %s()",decompile_quoteString(MAC_NAME(mp)));
 	comment = MAC_COMMENT(mp);
-	if (*comment)
-		fprintf(fp," \"%s\"",decompile_quoteString(comment));
+	if (*comment) {
+		decompile_printComment(fp, comment);
+	}
+	fprintf(fp, "macro %s()", decompile_quoteString(MAC_NAME(mp)));
 	fprintf(fp," {\n");
 	data = MAC_DATA(mp);
 
-	decompile_makeAutoLabels(data,&data[mp->size]);
+	decompile_makeAutoLabels(data,&data[mp->mc_size]);
 	bytecode_initializeAutoLabels();
 	bytecode_startNextAutoLabel(&lname,(COM_GOTO**)&gop);
 
-	for (sp = data, spend = sp+mp->size; sp < spend; ) {
+	for (sp = data, spend = sp+mp->mc_size; sp < spend; ) {
 		if (gop <= sp && lname) {
 			if (gop < sp) {
 				error_displayAlertDialog("format error: bad goto");
@@ -556,7 +577,7 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 		} else {
 			error_displayAlertDialog("format error in %s type=%x",MAC_NAME(mp),t);
 		}
-		sp += macro_getParameterSize(*sp,sp+1);
+		sp += interpreter_getParameterSize(*sp,sp+1);
 	}
 
 out:
