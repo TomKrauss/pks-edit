@@ -75,6 +75,15 @@ static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
 	return NULL;
 }
 
+static const char* analyzer_helpForMacro(const char* pszName, void* pMac) {
+	MACRO* pMacro = pMac;
+	char* pszComment = MAC_COMMENT(pMacro);
+	if (pszComment) {
+		return _strdup(pszComment);
+	}
+	return NULL;
+}
+
 /*
  * Returns a possible macro function names which can be used in PKS Edit macros.
  */
@@ -100,6 +109,15 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 			EDFUNC* pFunc = &_functionTable[i];
 			if (fMatch(pFunc->f_name)) {
 				fCallback(pFunc->f_name, pFunc, analyzer_helpForFunc);
+			}
+		}
+		for (int i = 0; i < _macroTableSize; i++) {
+			MACRO* mp = _macroTable[i];
+			if (!mp) {
+				continue;
+			}
+			if (fMatch(MAC_NAME(mp))) {
+				fCallback(MAC_NAME(mp), mp, analyzer_helpForMacro);
 			}
 		}
 	}

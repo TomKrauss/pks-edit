@@ -1,5 +1,6 @@
 /*
- * This is a comment
+ * This method tests regular expression matching in
+ * PKS-MacroC code.
  */
 macro Test-Expression()
 {
@@ -41,6 +42,10 @@ macro Test-Expr2()
 }
 
 
+/*
+ * The Test-Params method can be invoked with one integer and one string
+ * parameter and will display the parameters passed in a message box.
+ */
 macro Test-Params(int par, string par2)
 {
 	string tmp;
