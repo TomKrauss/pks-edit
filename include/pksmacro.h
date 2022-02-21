@@ -86,15 +86,6 @@ typedef struct params {
 	struct	des *el;
 } PARAMS;
 
-typedef struct tagCOMPILER_CONFIGURATION {
-	int (*cb_insertNewMacro)(char* name, char* comment, char* macdata, int size);
-	void  (*cb_showStatus)(char* s, ...);
-	BOOL cb_openErrorList;
-	char* cb_source;
-} COMPILER_CONFIGURATION;
-
-extern COMPILER_CONFIGURATION* _compilerConfiguration;
-
 extern int macro_openDialog(PARAMS *p);
 extern int cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3);
 
@@ -160,13 +151,6 @@ extern MACRO* macro_createWithParams(char* szName, char* szComment, char* bData,
  * macro_renameAndChangeComment()
  */
 extern void macro_renameAndChangeComment(int nIndex, char* szName, char* szComment);
-
-/*------------------------------------------------------------
- * macro_insertNewMacro()
- * Insert a macro with a given name, comment and byte codes. If the named
- * macro already exists, it is deleted.
- */
-extern int macro_insertNewMacro(char* name, char* comment, char* macdata, int size);
 
 /*------------------------------------------------------------
  * recorder_toggleRecording()

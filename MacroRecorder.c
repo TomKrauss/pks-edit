@@ -219,13 +219,12 @@ int recorder_recordOperation(PARAMS* pp)
  * start/stops the macro recorder.
  */
 int recorder_toggleRecording(void) {
-	int     size;
 	static KEYCODE scan = K_DELETED;
 	char    buf[100];
 	static  int _macroIndexRecorded;
 
 	if (recorder_isRecording()) {		// STOP RECORDING
-		if (_cmdfuncp && (size = (int)(_currentRecordingBuffer.bb_current - _recorderByteCodes)) > 0) {
+		if (_cmdfuncp && _currentRecordingBuffer.bb_current !=_currentRecordingBuffer.bb_start) {
 			wsprintf(buf, "NewMacro%d", ++_macroIndexRecorded);
 			if (!macro_getIndexForKeycode(&scan, buf, -1)) {
 				return 0;
@@ -233,7 +232,7 @@ int recorder_toggleRecording(void) {
 			if (!scan) {
 				scan = K_DELETED;
 			}
-			if ((_lastinsertedmac = macro_insertNewMacro(buf, "", _recorderByteCodes, size)) >= 0) {
+			if ((_lastinsertedmac = macro_insertNewMacro(buf, "", &_currentRecordingBuffer)) >= 0) {
 				bindings_bindKey(scan, (MACROREF) { .index = _lastinsertedmac, .typ = CMD_MACRO }, NULL);
 			}
 		}

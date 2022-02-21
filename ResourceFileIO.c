@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <tos.h>
 #include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "linkedlist.h"
 #include "documentmodel.h"
 #include "resource.h"
@@ -44,26 +45,29 @@ typedef struct macrodata {
 char *rsc_rdmacros(char *name, unsigned char *p, unsigned char *pend)
 {
 	int  		len;
-	struct macrodata *seqp;
-	unsigned char  *datap,*comment;
+	MACRODATA *pMacroData;
+	BYTECODE_BUFFER bBuffer;
+	unsigned char  *comment;
 
+	bBuffer.bb_end = pend;
 	do {
-		seqp  = (struct macrodata *) p;
-		comment = &seqp->name[seqp->namelen];
-		datap = comment+seqp->commentlen;
-		len   = (seqp->s1 << 8) + seqp->s2;
-		p     = &datap[len];
+		pMacroData = (MACRODATA*) p;
+		comment = &pMacroData->name[pMacroData->namelen];
+		bBuffer.bb_start = comment+ pMacroData->commentlen;
+		len = (pMacroData->s1 << 8) + pMacroData->s2;
+		p = &bBuffer.bb_start[len];
 		if (p > pend)
 			break;
-		if (seqp->cmdbyte != CMD_MACRO) {
+		if (pMacroData->cmdbyte != CMD_MACRO) {
 			return 0;
 		}
-		if (macro_insertNewMacro(seqp->name, comment, datap, len) < 0) {
+		bBuffer.bb_current = p;
+		if (macro_insertNewMacro(pMacroData->name, comment, &bBuffer) < 0) {
 			return 0;
 		}
 	} while(p < pend);
 
-	return (unsigned char *) seqp;
+	return (unsigned char *)pMacroData;
 }
 
 /*------------------------------------------------------------

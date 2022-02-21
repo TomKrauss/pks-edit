@@ -309,10 +309,12 @@ void macro_destroy() {
  * Insert a macro with a given name, comment and byte codes. If the named
  * macro already exists, it is deleted.
  */
-int macro_insertNewMacro(char *name, char *comment, char *macdata, int size)
+int macro_insertNewMacro(char *name, char *comment, BYTECODE_BUFFER* pBuffer)
 {	MACRO  *mp;
 	int    i;
 
+	char* macdata = pBuffer->bb_start;
+	int size = (int)(pBuffer->bb_current - pBuffer->bb_start);
 	if ((i = macro_getInternalIndexByName(name)) >= 0) {
 		destroy(&_macroTable[i]);
 	} else {

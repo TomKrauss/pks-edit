@@ -175,14 +175,14 @@ static int decompile_printParameter(FILE *fp, unsigned char *sp, PARAMETER_TYPE_
 			return 1;
 		default:
 			err:
-			error_displayAlertDialog("Format error in parameters of function to decompile");
+			error_displayAlertDialog("Format error in parameters of function to decompile. Bytecode is 0x%x", typ);
 			return -1;
 	}
 
 	if (partyp.pt_type == PARAM_TYPE_STRING)
 		goto err;
 	
-	if (partyp.pt_type == PARAM_TYPE_ENUM && partyp.pt_enumVal)
+	if ((partyp.pt_type == PARAM_TYPE_ENUM || partyp.pt_type == PARAM_TYPE_BITSET) && partyp.pt_enumVal)
 	    return decompile_printParameterAsConstant(fp,val,partyp);
 
 	if (typ == C_CHARACTER_LITERAL && val >= 32 && val <= 127) {
@@ -247,20 +247,17 @@ static unsigned char *decompile_function(FILE *fp, unsigned char *sp,
 	npars = 0;
 	if (cp->typ == C_1FUNC) {
 		partyp = function_getParameterTypeDescriptor(ep, 1);
-		/* c0_func glitch */
-		if (partyp.pt_enumVal == NULL) {
-			if (decompile_printParameter(fp,sp,partyp) < 0)
-				return 0;
-			npars++;
-		}
+		if (decompile_printParameter(fp,sp,partyp) < 0)
+			return 0;
+		npars++;
 	}
 	sp += interpreter_getParameterSize(*sp,sp+1);
 
 	while(sp < spend && C_IS1PAR(*sp)) {
 		partyp = ep == NULL ? (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = PARAM_TYPE_VOID} : function_getParameterTypeDescriptor(ep, npars + 1);
 		if (npars)
-			fputc(',',fp);
-		if (decompile_printParameter(fp,sp,partyp) < 0)
+			fputc(',', fp);
+		if (decompile_printParameter(fp, sp, partyp) < 0)
 			return 0;
 		npars++;
 		sp += interpreter_getParameterSize(*sp,sp+1);

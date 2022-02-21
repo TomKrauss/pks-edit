@@ -193,8 +193,10 @@ macrostart: { startmacro(); } macro_declaration '(' parameter_list ')'
 parameter_list:
 			| non_empty_pardecl
 
-non_empty_pardecl: par_decl
-			| par_decl ',' non_empty_pardecl
+non_empty_pardecl:
+			non_empty_pardecl ',' par_decl 
+			|
+			par_decl
 
 par_decl: type_ident var_ident {
 				int typ;
@@ -212,7 +214,7 @@ macro_definition: macrostart block {
 					macro_validateMacroName($1.ident.s, -1, 1);
 					_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_STOP, (GENERIC_DATA){1});
 					_compilerConfiguration->cb_showStatus("Defining macro %s",$1.ident.s);
-					_compilerConfiguration->cb_insertNewMacro($1.ident.s, _yyCurrentComment, _bytecodeBuffer.bb_start,(int)(_bytecodeBuffer.bb_current-_bytecodeBuffer.bb_start));
+					_compilerConfiguration->cb_insertNewMacro($1.ident.s, _yyCurrentComment, &_bytecodeBuffer);
 				}
 				freeitem(&$1.ident.s);
 				freeitem(&_yyCurrentComment);
@@ -478,7 +480,7 @@ stmntlist		:
 call_expression: T_FUNC {
 				// Native call
 				_lastfuncp = $1.funcp;
-				_parno = 0;
+				_parno = 1;
 				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_0FUNC,
 							   (GENERIC_DATA){function_getIndexOfFunction($1.funcp)});
 				$$.funcp = $1.funcp;

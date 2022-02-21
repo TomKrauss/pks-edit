@@ -21,7 +21,6 @@
 #include "scanner.h"
 
 extern void 	yyerror(char *s, ...);
-extern int 		macro_insertNewMacro(char *name, char *comment, char *macdata, int size);
 extern int 		macro_isParameterStringType(unsigned char typ);
 extern void 	freeval(TYPEDVAL *v);
 

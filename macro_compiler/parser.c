@@ -553,7 +553,7 @@ static const yytype_uint16 yyprhs[] =
 {
        0,     0,     3,     4,     5,     9,    11,    13,    17,    19,
       23,    24,    25,    31,    33,    35,    37,    39,    41,    44,
-      47,    48,    54,    55,    57,    59,    63,    66,    69,    74,
+      47,    48,    54,    55,    57,    61,    63,    66,    69,    74,
       75,    78,    83,    87,    89,    92,    94,    96,    98,   100,
      102,   104,   106,   108,   110,   112,   114,   116,   117,   122,
      125,   127,   131,   133,   136,   139,   142,   144,   145,   148,
@@ -578,8 +578,8 @@ static const yytype_int16 yyrhs[] =
       57,    70,    -1,    -1,    -1,    71,    73,    72,    38,   143,
       -1,     8,    -1,    74,    -1,    35,    -1,    33,    -1,    34,
       -1,    43,     8,    -1,    43,    17,    -1,    -1,    77,    75,
-      58,    78,    59,    -1,    -1,    79,    -1,    80,    -1,    80,
-      57,    79,    -1,   139,    73,    -1,    76,    82,    -1,    60,
+      58,    78,    59,    -1,    -1,    79,    -1,    79,    57,    80,
+      -1,    80,    -1,   139,    73,    -1,    76,    82,    -1,    60,
       83,   131,    61,    -1,    -1,    84,    83,    -1,   139,    73,
       88,    56,    -1,   139,    73,    56,    -1,    56,    -1,   132,
       56,    -1,    86,    -1,   127,    -1,   123,    -1,   118,    -1,
@@ -622,21 +622,21 @@ static const yytype_uint16 yyrline[] =
 {
        0,   145,   145,   146,   146,   152,   153,   158,   160,   161,
      163,   163,   163,   172,   173,   175,   176,   177,   181,   184,
-     190,   190,   193,   194,   196,   197,   199,   208,   223,   225,
-     226,   228,   238,   250,   251,   252,   253,   254,   255,   256,
-     257,   258,   259,   260,   261,   262,   263,   268,   268,   273,
-     275,   276,   278,   279,   282,   284,   286,   287,   287,   299,
-     300,   310,   311,   312,   313,   314,   315,   316,   317,   318,
-     319,   320,   324,   324,   324,   326,   327,   328,   328,   330,
-     330,   332,   333,   333,   335,   336,   338,   339,   338,   342,
-     349,   357,   358,   359,   360,   361,   367,   368,   370,   371,
-     373,   377,   381,   385,   389,   393,   394,   400,   401,   412,
-     415,   418,   422,   423,   425,   427,   428,   430,   435,   439,
-     439,   444,   446,   444,   457,   457,   459,   462,   459,   472,
-     473,   475,   476,   478,   478,   486,   486,   493,   494,   496,
-     499,   502,   506,   523,   525,   527,   528,   529,   530,   531,
-     532,   534,   537,   542,   547,   553,   554,   559,   560,   561,
-     562
+     190,   190,   193,   194,   197,   199,   201,   210,   225,   227,
+     228,   230,   240,   252,   253,   254,   255,   256,   257,   258,
+     259,   260,   261,   262,   263,   264,   265,   270,   270,   275,
+     277,   278,   280,   281,   284,   286,   288,   289,   289,   301,
+     302,   312,   313,   314,   315,   316,   317,   318,   319,   320,
+     321,   322,   326,   326,   326,   328,   329,   330,   330,   332,
+     332,   334,   335,   335,   337,   338,   340,   341,   340,   344,
+     351,   359,   360,   361,   362,   363,   369,   370,   372,   373,
+     375,   379,   383,   387,   391,   395,   396,   402,   403,   414,
+     417,   420,   424,   425,   427,   429,   430,   432,   437,   441,
+     441,   446,   448,   446,   459,   459,   461,   464,   461,   474,
+     475,   477,   478,   480,   480,   488,   488,   495,   496,   498,
+     501,   504,   508,   525,   527,   529,   530,   531,   532,   533,
+     534,   536,   539,   544,   549,   555,   556,   561,   562,   563,
+     564
 };
 #endif
 
@@ -714,7 +714,7 @@ static const yytype_uint8 yyr2[] =
 {
        0,     2,     0,     0,     3,     1,     1,     3,     1,     3,
        0,     0,     5,     1,     1,     1,     1,     1,     2,     2,
-       0,     5,     0,     1,     1,     3,     2,     2,     4,     0,
+       0,     5,     0,     1,     3,     1,     2,     2,     4,     0,
        2,     4,     3,     1,     2,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     0,     4,     2,
        1,     3,     1,     2,     2,     2,     1,     0,     2,     1,
@@ -744,13 +744,13 @@ static const yytype_uint8 yydefact[] =
        0,     0,     0,   112,   112,   112,   100,   101,   102,   103,
       33,     0,    43,     0,    35,    44,     0,   104,    39,    40,
       41,    38,    45,    42,    37,    36,     0,     0,   159,   158,
-     157,   105,    30,     0,     0,    23,    24,     0,     0,   117,
+     157,   105,    30,     0,     0,    23,    25,     0,     0,   117,
        0,     0,    72,   126,     0,   118,   119,     0,   113,     0,
        0,   111,    57,    47,   132,    55,    54,   108,    28,    34,
        0,    32,     0,    21,     0,    26,   156,    12,   155,     0,
        0,    79,     0,   122,     0,   115,   109,   110,   106,   100,
      101,   102,    57,    57,    57,    57,    49,    50,    59,     0,
-      52,    56,    57,     0,   160,    31,    25,   141,     0,   143,
+      52,    56,    57,     0,   160,    31,    24,   141,     0,   143,
        0,   138,   139,     0,     0,    77,    76,    73,    75,    86,
      127,     0,   120,     0,     0,     0,    53,    57,    61,    62,
        0,     0,     0,   135,    58,    57,    57,    57,    57,    57,
@@ -790,7 +790,7 @@ static const yytype_int16 yypact[] =
      111,   112,    58,   116,   116,   116,    88,    92,    93,  -179,
     -179,    94,  -179,    35,  -179,  -179,    33,   124,  -179,  -179,
     -179,  -179,  -179,  -179,  -179,  -179,    79,    85,  -179,  -179,
-    -179,   104,  -179,   -21,    84,  -179,   107,    43,   113,  -179,
+    -179,   104,  -179,   -21,    84,   107,  -179,    43,   113,  -179,
      120,   133,  -179,  -179,    58,  -179,  -179,   105,  -179,   138,
      140,  -179,   349,  -179,  -179,  -179,  -179,  -179,  -179,  -179,
      160,  -179,   142,  -179,    18,  -179,  -179,  -179,   104,   250,
@@ -813,7 +813,7 @@ static const yytype_int16 yypact[] =
 static const yytype_int16 yypgoto[] =
 {
     -179,   237,  -179,  -179,  -179,  -179,   233,  -179,  -179,   -28,
-      -5,  -179,  -179,  -179,  -179,   139,  -179,  -179,    -6,   221,
+      -5,  -179,  -179,  -179,  -179,  -179,   139,  -179,    -6,   221,
     -179,  -119,  -179,  -179,   172,   125,   121,  -179,   126,  -179,
      146,   -22,  -179,  -179,  -178,  -179,  -179,  -179,  -179,  -179,
     -179,  -179,  -179,  -179,  -179,  -179,  -179,    24,   -32,  -179,
@@ -942,7 +942,7 @@ static const yytype_uint8 yystos[] =
       49,    56,    88,    59,    57,    73,    11,   143,   144,    58,
       58,    96,   128,    95,   122,    60,    56,    56,     8,    33,
       34,    35,    47,    50,    51,    58,    89,    90,    92,    93,
-      94,   112,   138,    87,   142,    56,    79,     1,    58,   112,
+      94,   112,   138,    87,   142,    56,    80,     1,    58,   112,
      135,   136,   137,   138,   135,    62,    95,    98,   100,   101,
       85,   125,    56,     8,   119,   120,    89,    58,    94,    94,
       90,    94,   139,     8,   132,    48,    49,    50,    51,    52,
@@ -1872,7 +1872,7 @@ int yydebug = 1;
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 199 "Parser.y"
+#line 201 "Parser.y"
     {
 				int typ;
 				
@@ -1886,7 +1886,7 @@ int yydebug = 1;
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 208 "Parser.y"
+#line 210 "Parser.y"
     {
 				if (!yyerrflg) {
 					bytecode_generateAutoLabelNamePrefix(lreturnid,0);
@@ -1894,7 +1894,7 @@ int yydebug = 1;
 					macro_validateMacroName((yyvsp[(1) - (2)]).ident.s, -1, 1);
 					_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_STOP, (GENERIC_DATA){1});
 					_compilerConfiguration->cb_showStatus("Defining macro %s",(yyvsp[(1) - (2)]).ident.s);
-					_compilerConfiguration->cb_insertNewMacro((yyvsp[(1) - (2)]).ident.s, _yyCurrentComment, _bytecodeBuffer.bb_start,(int)(_bytecodeBuffer.bb_current-_bytecodeBuffer.bb_start));
+					_compilerConfiguration->cb_insertNewMacro((yyvsp[(1) - (2)]).ident.s, _yyCurrentComment, &_bytecodeBuffer);
 				}
 				freeitem(&(yyvsp[(1) - (2)]).ident.s);
 				freeitem(&_yyCurrentComment);
@@ -1906,7 +1906,7 @@ int yydebug = 1;
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 228 "Parser.y"
+#line 230 "Parser.y"
     {
 				makeInternalSymbol((yyvsp[(2) - (4)]).ident.s,
 					(yyvsp[(1) - (4)]).type,
@@ -1923,7 +1923,7 @@ int yydebug = 1;
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 238 "Parser.y"
+#line 240 "Parser.y"
     {
 				if ((yyvsp[(1) - (3)]).type == C_STRING_LITERAL) {
 					makeInternalSymbol((yyvsp[(2) - (3)]).ident.s, (yyvsp[(1) - (3)]).type, (intptr_t)"");
@@ -1940,7 +1940,7 @@ int yydebug = 1;
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 263 "Parser.y"
+#line 265 "Parser.y"
     {
 				yyerror("Invalid statement. Expecting one of function call, assignment, if, while, case, break, continue, return, goto, increment_expression, block or label."); 
 			;}
@@ -1949,7 +1949,7 @@ int yydebug = 1;
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 268 "Parser.y"
+#line 270 "Parser.y"
     {
 				bytecode_emitAssignment(&_bytecodeBuffer, (yyvsp[(1) - (2)]).ident.s,(yyvsp[(2) - (2)]).v.type, (yyvsp[(2) - (2)]).v.data);
 				vname_count = 0;
@@ -1959,63 +1959,63 @@ int yydebug = 1;
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 273 "Parser.y"
+#line 275 "Parser.y"
     { 	(yyval).v = (yyvsp[(2) - (2)]).v;	;}
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 275 "Parser.y"
+#line 277 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v; ;}
     break;
 
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 276 "Parser.y"
+#line 278 "Parser.y"
     { (yyval).v = (yyvsp[(2) - (3)]).v; ;}
     break;
 
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 278 "Parser.y"
+#line 280 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v; ;}
     break;
 
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 279 "Parser.y"
+#line 281 "Parser.y"
     { (yyval).v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_NOT,&(yyvsp[(2) - (2)]).v,0); 	;}
     break;
 
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 282 "Parser.y"
+#line 284 "Parser.y"
     { bytecode_emitIncrementExpression(&_bytecodeBuffer, &(yyvsp[(1) - (2)]).v, -1); ;}
     break;
 
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 284 "Parser.y"
+#line 286 "Parser.y"
     { bytecode_emitIncrementExpression(&_bytecodeBuffer, &(yyvsp[(1) - (2)]).v, 1); ;}
     break;
 
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 286 "Parser.y"
+#line 288 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v; ;}
     break;
 
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 287 "Parser.y"
+#line 289 "Parser.y"
     {
 				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_FURET, (GENERIC_DATA){vname_count});
 			;}
@@ -2024,7 +2024,7 @@ int yydebug = 1;
   case 58:
 
 /* Line 1455 of yacc.c  */
-#line 289 "Parser.y"
+#line 291 "Parser.y"
     {
 				if ((yyvsp[(2) - (2)]).funcp && function_returnsString((yyvsp[(2) - (2)]).funcp)) {
 					(yyval).v.type = C_STRINGVAR;
@@ -2039,14 +2039,14 @@ int yydebug = 1;
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 299 "Parser.y"
+#line 301 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v;	;}
     break;
 
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 300 "Parser.y"
+#line 302 "Parser.y"
     {
 				if (macro_isParameterStringType((yyvsp[(1) - (2)]).type) ==
 				    macro_isParameterStringType((yyvsp[(2) - (2)]).v.type)) {
@@ -2062,175 +2062,175 @@ int yydebug = 1;
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 310 "Parser.y"
+#line 312 "Parser.y"
     { (yyval).v = (yyvsp[(2) - (2)]).v ;}
     break;
 
   case 62:
 
 /* Line 1455 of yacc.c  */
-#line 311 "Parser.y"
+#line 313 "Parser.y"
     { (yyval).v = bytecode_emitMultiplyWithLiteralExpression(&_bytecodeBuffer, &(yyvsp[(2) - (2)]).v, -1); ;}
     break;
 
   case 63:
 
 /* Line 1455 of yacc.c  */
-#line 312 "Parser.y"
+#line 314 "Parser.y"
     { (yyval).v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_AND,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 64:
 
 /* Line 1455 of yacc.c  */
-#line 313 "Parser.y"
+#line 315 "Parser.y"
     { (yyval).v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_OR,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 65:
 
 /* Line 1455 of yacc.c  */
-#line 314 "Parser.y"
+#line 316 "Parser.y"
     { (yyval).v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_ADD,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 66:
 
 /* Line 1455 of yacc.c  */
-#line 315 "Parser.y"
+#line 317 "Parser.y"
     { (yyval).v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_XOR,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 67:
 
 /* Line 1455 of yacc.c  */
-#line 316 "Parser.y"
+#line 318 "Parser.y"
     { (yyval).v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_SUB,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 317 "Parser.y"
+#line 319 "Parser.y"
     { (yyval).v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_MUL,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 318 "Parser.y"
+#line 320 "Parser.y"
     { (yyval).v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_DIV,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 70:
 
 /* Line 1455 of yacc.c  */
-#line 319 "Parser.y"
+#line 321 "Parser.y"
     { (yyval).v = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_MOD,&(yyvsp[(1) - (3)]).v,&(yyvsp[(3) - (3)]).v); ;}
     break;
 
   case 71:
 
 /* Line 1455 of yacc.c  */
-#line 320 "Parser.y"
+#line 322 "Parser.y"
     { (yyval).v = (yyvsp[(2) - (3)]).v; ;}
     break;
 
   case 72:
 
 /* Line 1455 of yacc.c  */
-#line 324 "Parser.y"
+#line 326 "Parser.y"
     { bytecode_beginTestOperation(); ;}
     break;
 
   case 73:
 
 /* Line 1455 of yacc.c  */
-#line 324 "Parser.y"
+#line 326 "Parser.y"
     { bytecode_endTestOperation(CT_BRACKETS); ;}
     break;
 
   case 77:
 
 /* Line 1455 of yacc.c  */
-#line 328 "Parser.y"
+#line 330 "Parser.y"
     { bytecode_beginTestOperation(); ;}
     break;
 
   case 78:
 
 /* Line 1455 of yacc.c  */
-#line 328 "Parser.y"
+#line 330 "Parser.y"
     { bytecode_endTestOperation(CT_NOT); ;}
     break;
 
   case 79:
 
 /* Line 1455 of yacc.c  */
-#line 330 "Parser.y"
+#line 332 "Parser.y"
     { bytecode_beginTestOperation(); ;}
     break;
 
   case 80:
 
 /* Line 1455 of yacc.c  */
-#line 330 "Parser.y"
+#line 332 "Parser.y"
     { bytecode_endTestOperation((yyvsp[(3) - (3)]).type); ;}
     break;
 
   case 81:
 
 /* Line 1455 of yacc.c  */
-#line 332 "Parser.y"
+#line 334 "Parser.y"
     { (yyval).type = CT_BRACKETS; ;}
     break;
 
   case 82:
 
 /* Line 1455 of yacc.c  */
-#line 333 "Parser.y"
+#line 335 "Parser.y"
     { (yyval).type = (yyvsp[(1) - (1)]).type; binaryOperation1Found((yyvsp[(1) - (1)]).type); ;}
     break;
 
   case 84:
 
 /* Line 1455 of yacc.c  */
-#line 335 "Parser.y"
+#line 337 "Parser.y"
     {	(yyval).type = CT_AND;	;}
     break;
 
   case 85:
 
 /* Line 1455 of yacc.c  */
-#line 336 "Parser.y"
+#line 338 "Parser.y"
     {	(yyval).type = CT_OR;	;}
     break;
 
   case 86:
 
 /* Line 1455 of yacc.c  */
-#line 338 "Parser.y"
+#line 340 "Parser.y"
     { bytecode_beginTestOperation(); ;}
     break;
 
   case 87:
 
 /* Line 1455 of yacc.c  */
-#line 339 "Parser.y"
+#line 341 "Parser.y"
     { binaryOperation1Found((yyvsp[(2) - (2)]).type);  ;}
     break;
 
   case 88:
 
 /* Line 1455 of yacc.c  */
-#line 340 "Parser.y"
+#line 342 "Parser.y"
     { bytecode_endTestOperation((yyvsp[(4) - (4)]).type); ;}
     break;
 
   case 89:
 
 /* Line 1455 of yacc.c  */
-#line 342 "Parser.y"
+#line 344 "Parser.y"
     { 	
 				if (_stringflg)
 					_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_STRING_LITERAL,(GENERIC_DATA){.string=""});
@@ -2243,7 +2243,7 @@ int yydebug = 1;
   case 90:
 
 /* Line 1455 of yacc.c  */
-#line 349 "Parser.y"
+#line 351 "Parser.y"
     {
 				int flg = STRINGTYPE((yyvsp[(2) - (2)]).type);
 				if (_stringflg != flg)
@@ -2256,35 +2256,35 @@ int yydebug = 1;
   case 91:
 
 /* Line 1455 of yacc.c  */
-#line 357 "Parser.y"
+#line 359 "Parser.y"
     {	(yyval).type = CT_LT;	;}
     break;
 
   case 92:
 
 /* Line 1455 of yacc.c  */
-#line 358 "Parser.y"
+#line 360 "Parser.y"
     {	(yyval).type = CT_GT;	;}
     break;
 
   case 93:
 
 /* Line 1455 of yacc.c  */
-#line 359 "Parser.y"
+#line 361 "Parser.y"
     {	(yyval).type = CT_EQ;	;}
     break;
 
   case 94:
 
 /* Line 1455 of yacc.c  */
-#line 360 "Parser.y"
+#line 362 "Parser.y"
     {	(yyval).type = CT_NE;	;}
     break;
 
   case 95:
 
 /* Line 1455 of yacc.c  */
-#line 361 "Parser.y"
+#line 363 "Parser.y"
     {
 				if (_stringflg == CT_NUM)
 					yyerror("String match operator not allowed on numbers");
@@ -2295,35 +2295,35 @@ int yydebug = 1;
   case 96:
 
 /* Line 1455 of yacc.c  */
-#line 367 "Parser.y"
+#line 369 "Parser.y"
     {	(yyval).type = CT_MATCH;			;}
     break;
 
   case 97:
 
 /* Line 1455 of yacc.c  */
-#line 368 "Parser.y"
+#line 370 "Parser.y"
     {	(yyval).type = CT_NMATCH;		;}
     break;
 
   case 98:
 
 /* Line 1455 of yacc.c  */
-#line 370 "Parser.y"
+#line 372 "Parser.y"
     { (yyval).type = C_LONG_LITERAL; 	 	;}
     break;
 
   case 99:
 
 /* Line 1455 of yacc.c  */
-#line 371 "Parser.y"
+#line 373 "Parser.y"
     {	(yyval).type = bytecode_emitPushValueInstruction(&(yyvsp[(1) - (1)]).v);	;}
     break;
 
   case 100:
 
 /* Line 1455 of yacc.c  */
-#line 373 "Parser.y"
+#line 375 "Parser.y"
     {
 				(yyval).v.type = C_LONGVAR;  
 				(yyval).v.data.string = (yyvsp[(1) - (1)]).ident.s;
@@ -2333,7 +2333,7 @@ int yydebug = 1;
   case 101:
 
 /* Line 1455 of yacc.c  */
-#line 377 "Parser.y"
+#line 379 "Parser.y"
     {
 				(yyval).v.type = C_FLOATVAR;  
 				(yyval).v.data.string = (yyvsp[(1) - (1)]).ident.s;
@@ -2343,7 +2343,7 @@ int yydebug = 1;
   case 102:
 
 /* Line 1455 of yacc.c  */
-#line 381 "Parser.y"
+#line 383 "Parser.y"
     {
 				(yyval).v.type = C_STRINGVAR;  
 				(yyval).v.data.string  = (yyvsp[(1) - (1)]).ident.s;
@@ -2353,7 +2353,7 @@ int yydebug = 1;
   case 103:
 
 /* Line 1455 of yacc.c  */
-#line 385 "Parser.y"
+#line 387 "Parser.y"
     {
 				(yyval).v.type = C_BOOLEANVAR;  
 				(yyval).v.data.string  = (yyvsp[(1) - (1)]).ident.s;
@@ -2363,7 +2363,7 @@ int yydebug = 1;
   case 104:
 
 /* Line 1455 of yacc.c  */
-#line 389 "Parser.y"
+#line 391 "Parser.y"
     {
 				(yyval).v.type = C_STRING_LITERAL;
 				(yyval).v.data.string  = (yyvsp[(1) - (1)]).ident.s;
@@ -2373,14 +2373,14 @@ int yydebug = 1;
   case 105:
 
 /* Line 1455 of yacc.c  */
-#line 393 "Parser.y"
+#line 395 "Parser.y"
     {	(yyval).v = (yyvsp[(1) - (1)]).v;	;}
     break;
 
   case 106:
 
 /* Line 1455 of yacc.c  */
-#line 394 "Parser.y"
+#line 396 "Parser.y"
     {
 				yyerror("Undefined identifier %s", (yyvsp[(1) - (1)]).ident.s);
 				(yyval).v.type = C_STRINGVAR;  
@@ -2391,14 +2391,14 @@ int yydebug = 1;
   case 107:
 
 /* Line 1455 of yacc.c  */
-#line 400 "Parser.y"
+#line 402 "Parser.y"
     {	(yyval).ident = (yyvsp[(1) - (1)]).ident;	;}
     break;
 
   case 108:
 
 /* Line 1455 of yacc.c  */
-#line 401 "Parser.y"
+#line 403 "Parser.y"
     { 
 				if (((yyval).ident.s = malloc(strlen((yyvsp[(1) - (2)]).ident.s)+strlen((yyvsp[(2) - (2)]).ident.s)+1)) != 0) {
 					strcat(strcpy((yyval).ident.s,(yyvsp[(1) - (2)]).ident.s),(yyvsp[(2) - (2)]).ident.s);
@@ -2414,21 +2414,21 @@ int yydebug = 1;
   case 109:
 
 /* Line 1455 of yacc.c  */
-#line 413 "Parser.y"
+#line 415 "Parser.y"
     {	bytecode_emitGotoInstruction(lendid,_breaklevel-(int)(yyvsp[(2) - (3)]).num,BRA_ALWAYS); ;}
     break;
 
   case 110:
 
 /* Line 1455 of yacc.c  */
-#line 416 "Parser.y"
+#line 418 "Parser.y"
     {	bytecode_emitGotoInstruction(lstartid,_breaklevel-(int)(yyvsp[(2) - (3)]).num,BRA_ALWAYS); ;}
     break;
 
   case 111:
 
 /* Line 1455 of yacc.c  */
-#line 418 "Parser.y"
+#line 420 "Parser.y"
     {
 				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_STOP,(GENERIC_DATA){.longValue=(yyvsp[(2) - (2)]).num});
 			;}
@@ -2437,21 +2437,21 @@ int yydebug = 1;
   case 112:
 
 /* Line 1455 of yacc.c  */
-#line 422 "Parser.y"
+#line 424 "Parser.y"
     {	(yyval).num = 1;	;}
     break;
 
   case 113:
 
 /* Line 1455 of yacc.c  */
-#line 423 "Parser.y"
+#line 425 "Parser.y"
     {	(yyval).num = (yyvsp[(1) - (1)]).num; ;}
     break;
 
   case 117:
 
 /* Line 1455 of yacc.c  */
-#line 430 "Parser.y"
+#line 432 "Parser.y"
     {
 				bytecode_createBranchLabel(&_bytecodeBuffer, (yyvsp[(1) - (2)]).ident.s);
 				freeitem(&(yyvsp[(1) - (2)]).ident.s);
@@ -2461,7 +2461,7 @@ int yydebug = 1;
   case 118:
 
 /* Line 1455 of yacc.c  */
-#line 435 "Parser.y"
+#line 437 "Parser.y"
     {
 				_bytecodeBuffer.bb_current = bytecode_emitGotoLabelInstruction((yyvsp[(2) - (2)]).ident.s,&_bytecodeBuffer,BRA_ALWAYS);
 				freeitem(&(yyvsp[(2) - (2)]).ident.s);
@@ -2471,7 +2471,7 @@ int yydebug = 1;
   case 119:
 
 /* Line 1455 of yacc.c  */
-#line 439 "Parser.y"
+#line 441 "Parser.y"
     {
 				_bytecodeBuffer.bb_current = bytecode_emitGotoLabelInstruction((yyvsp[(2) - (2)]).ident.s,&_bytecodeBuffer,BRA_EQ);
 				freeitem(&(yyvsp[(2) - (2)]).ident.s);
@@ -2481,7 +2481,7 @@ int yydebug = 1;
   case 121:
 
 /* Line 1455 of yacc.c  */
-#line 444 "Parser.y"
+#line 446 "Parser.y"
     {
 				bytecode_generateAutoLabelNamePrefix(lstartid,_breaklevel);
 			;}
@@ -2490,7 +2490,7 @@ int yydebug = 1;
   case 122:
 
 /* Line 1455 of yacc.c  */
-#line 446 "Parser.y"
+#line 448 "Parser.y"
     {
 				bytecode_emitGotoInstruction(lendid,_breaklevel,BRA_EQ);
 				_breaklevel++;
@@ -2500,7 +2500,7 @@ int yydebug = 1;
   case 123:
 
 /* Line 1455 of yacc.c  */
-#line 449 "Parser.y"
+#line 451 "Parser.y"
     {
 				_breaklevel--;
 				bytecode_emitGotoInstruction(lstartid,_breaklevel,BRA_ALWAYS);
@@ -2513,7 +2513,7 @@ int yydebug = 1;
   case 126:
 
 /* Line 1455 of yacc.c  */
-#line 459 "Parser.y"
+#line 461 "Parser.y"
     {
 				bytecode_emitGotoInstruction(iffailid,_iflevel,BRA_EQ);
 				_iflevel++;
@@ -2523,7 +2523,7 @@ int yydebug = 1;
   case 127:
 
 /* Line 1455 of yacc.c  */
-#line 462 "Parser.y"
+#line 464 "Parser.y"
     {
 				_iflevel--;
 				bytecode_emitGotoInstruction(ifdoneid,_iflevel,BRA_ALWAYS);
@@ -2535,7 +2535,7 @@ int yydebug = 1;
   case 128:
 
 /* Line 1455 of yacc.c  */
-#line 467 "Parser.y"
+#line 469 "Parser.y"
     {
 				bytecode_generateAutoLabelNamePrefix(ifdoneid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(ifdoneid,_iflevel);
@@ -2545,11 +2545,11 @@ int yydebug = 1;
   case 133:
 
 /* Line 1455 of yacc.c  */
-#line 478 "Parser.y"
+#line 480 "Parser.y"
     {
 				// Native call
 				_lastfuncp = (yyvsp[(1) - (1)]).funcp;
-				_parno = 0;
+				_parno = 1;
 				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_0FUNC,
 							   (GENERIC_DATA){function_getIndexOfFunction((yyvsp[(1) - (1)]).funcp)});
 				(yyval).funcp = (yyvsp[(1) - (1)]).funcp;
@@ -2559,7 +2559,7 @@ int yydebug = 1;
   case 135:
 
 /* Line 1455 of yacc.c  */
-#line 486 "Parser.y"
+#line 488 "Parser.y"
     {
 				_lastfuncp = 0;
 				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer,C_MACRO,(GENERIC_DATA){.string = (yyvsp[(1) - (1)]).ident.s});
@@ -2571,7 +2571,7 @@ int yydebug = 1;
   case 139:
 
 /* Line 1455 of yacc.c  */
-#line 496 "Parser.y"
+#line 498 "Parser.y"
     {
 				bytecode_emitPushParameterInstruction(&(yyvsp[(1) - (1)]).v);
 			;}
@@ -2580,7 +2580,7 @@ int yydebug = 1;
   case 140:
 
 /* Line 1455 of yacc.c  */
-#line 499 "Parser.y"
+#line 501 "Parser.y"
     {
 				bytecode_emitPushParameterInstruction(&(yyvsp[(3) - (3)]).v);
 			;}
@@ -2589,7 +2589,7 @@ int yydebug = 1;
   case 141:
 
 /* Line 1455 of yacc.c  */
-#line 502 "Parser.y"
+#line 504 "Parser.y"
     {
 				yyerror("illegal parameters for method call");
 			;}
@@ -2598,7 +2598,7 @@ int yydebug = 1;
   case 142:
 
 /* Line 1455 of yacc.c  */
-#line 506 "Parser.y"
+#line 508 "Parser.y"
     {
 				if (ISCONSTINT((yyvsp[(2) - (2)]).v.type)) {
 					if ((yyvsp[(1) - (2)]).type == C_CHARACTER_LITERAL &&
@@ -2621,63 +2621,63 @@ int yydebug = 1;
   case 143:
 
 /* Line 1455 of yacc.c  */
-#line 523 "Parser.y"
+#line 525 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v; ;}
     break;
 
   case 144:
 
 /* Line 1455 of yacc.c  */
-#line 525 "Parser.y"
+#line 527 "Parser.y"
     {	(yyval).type = (yyvsp[(2) - (3)]).type;		;}
     break;
 
   case 145:
 
 /* Line 1455 of yacc.c  */
-#line 527 "Parser.y"
+#line 529 "Parser.y"
     {	(yyval).type = C_CHARACTER_LITERAL;	;}
     break;
 
   case 146:
 
 /* Line 1455 of yacc.c  */
-#line 528 "Parser.y"
+#line 530 "Parser.y"
     {	(yyval).type = C_INTEGER_LITERAL;	;}
     break;
 
   case 147:
 
 /* Line 1455 of yacc.c  */
-#line 529 "Parser.y"
+#line 531 "Parser.y"
     {	(yyval).type = C_LONG_LITERAL;	;}
     break;
 
   case 148:
 
 /* Line 1455 of yacc.c  */
-#line 530 "Parser.y"
+#line 532 "Parser.y"
     {	(yyval).type = C_FLOAT_LITERAL;	;}
     break;
 
   case 149:
 
 /* Line 1455 of yacc.c  */
-#line 531 "Parser.y"
+#line 533 "Parser.y"
     {	(yyval).type = C_BOOLEAN_LITERAL; ;}
     break;
 
   case 150:
 
 /* Line 1455 of yacc.c  */
-#line 532 "Parser.y"
+#line 534 "Parser.y"
     {	(yyval).type = C_STRING_LITERAL;	;}
     break;
 
   case 151:
 
 /* Line 1455 of yacc.c  */
-#line 534 "Parser.y"
+#line 536 "Parser.y"
     {
 			(yyval).v.type = C_BOOLEAN_LITERAL; 
 			(yyval).v.data.booleanValue = 1;
@@ -2687,7 +2687,7 @@ int yydebug = 1;
   case 152:
 
 /* Line 1455 of yacc.c  */
-#line 537 "Parser.y"
+#line 539 "Parser.y"
     {
 			(yyval).v.type = C_BOOLEAN_LITERAL; 
 			(yyval).v.data.booleanValue = 0;
@@ -2697,7 +2697,7 @@ int yydebug = 1;
   case 153:
 
 /* Line 1455 of yacc.c  */
-#line 542 "Parser.y"
+#line 544 "Parser.y"
     {
 				(yyval).v.type = C_FLOAT_LITERAL; 
 				(yyval).v.data.doubleValue = (yyvsp[(1) - (1)]).v.data.doubleValue;
@@ -2707,7 +2707,7 @@ int yydebug = 1;
   case 154:
 
 /* Line 1455 of yacc.c  */
-#line 547 "Parser.y"
+#line 549 "Parser.y"
     {
 				(yyval).v.type = C_LONG_LITERAL; 
 				(yyval).v.data.longValue  = (yyvsp[(1) - (1)]).num;
@@ -2717,14 +2717,14 @@ int yydebug = 1;
   case 155:
 
 /* Line 1455 of yacc.c  */
-#line 553 "Parser.y"
+#line 555 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v; ;}
     break;
 
   case 156:
 
 /* Line 1455 of yacc.c  */
-#line 554 "Parser.y"
+#line 556 "Parser.y"
     {
 				(yyval).v.type = C_STRING_LITERAL;
 				(yyval).v.data.string = (yyvsp[(1) - (1)]).ident.s;
@@ -2734,28 +2734,28 @@ int yydebug = 1;
   case 157:
 
 /* Line 1455 of yacc.c  */
-#line 559 "Parser.y"
+#line 561 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v;	;}
     break;
 
   case 158:
 
 /* Line 1455 of yacc.c  */
-#line 560 "Parser.y"
+#line 562 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v; ;}
     break;
 
   case 159:
 
 /* Line 1455 of yacc.c  */
-#line 561 "Parser.y"
+#line 563 "Parser.y"
     { (yyval).v = (yyvsp[(1) - (1)]).v; ;}
     break;
 
   case 160:
 
 /* Line 1455 of yacc.c  */
-#line 562 "Parser.y"
+#line 564 "Parser.y"
     {
 				(yyval).v.type = (yyvsp[(1) - (3)]).v.type;
 				(yyval).v.data.longValue = (yyvsp[(1) - (3)]).v.data.longValue | (yyvsp[(3) - (3)]).v.data.longValue;
@@ -2977,7 +2977,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 566 "Parser.y"
+#line 568 "Parser.y"
 
 
 /*---------------------------------*/

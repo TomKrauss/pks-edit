@@ -261,6 +261,22 @@ typedef struct BYTECODE_BUFFER {
 	unsigned char* bb_end;
 } BYTECODE_BUFFER;
 
+typedef struct tagCOMPILER_CONFIGURATION {
+	int (*cb_insertNewMacro)(char* name, char* comment, BYTECODE_BUFFER* pBuffer);
+	void  (*cb_showStatus)(char* s, ...);
+	BOOL cb_openErrorList;
+	char* cb_source;
+} COMPILER_CONFIGURATION;
+
+extern COMPILER_CONFIGURATION* _compilerConfiguration;
+
+/*------------------------------------------------------------
+ * macro_insertNewMacro()
+ * Insert a macro with a given name, comment and byte codes. If the named
+ * macro already exists, it is deleted.
+ */
+extern int macro_insertNewMacro(char* name, char* comment, BYTECODE_BUFFER* pBuffer);
+
 #define PKSMACROCVM_H
 #endif
 

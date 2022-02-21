@@ -428,20 +428,29 @@ WS		[ \t]
 			}
 <INITIAL>\/\* {
 				int c, lastC = 0;
+				int bSkip = 0;
 
 				yyleng = 0;
 				while((c = input()) != 0) {
-					if (c == '*' && lastC == ' ' && yyleng > 1 && yytext[yyleng-2] == '\n') {
-						lastC = c;
-						yyleng--;
+					if (c == '\n') {
+						if (yyleng) {
+							yytext[yyleng++] = '\r';
+							yytext[yyleng++] = '\n';
+						}
+						bSkip = 1;
 						continue;
 					}
-					if (c == '/' && yyleng > 0 && lastC == '*') {
+					if (c == '/' && lastC == '*') {
 						yytext[yyleng - 1] = 0;
 						break;
 					}
 					lastC = c;
-					yytext[yyleng++] = c;
+					if (bSkip && c != ' ' && c != '*' && c != '\r') {
+						bSkip = 0;
+					}
+					if (!bSkip) {
+						yytext[yyleng++] = c;
+					}
 				}
 				yytext[yyleng] = 0;
 				if (_yyCurrentComment) {

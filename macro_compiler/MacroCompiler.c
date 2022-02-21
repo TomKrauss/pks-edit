@@ -26,6 +26,7 @@
 #include "documentmodel.h"
 #include "stringutil.h"
 #include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "fileutil.h"
 #include "editorconfiguration.h"
 
@@ -155,11 +156,11 @@ static void macro_unEscape(char *dst, const char *src, size_t nDestSize) {
  * macro already exists, it is deleted.
  */
 static char* _tempMacroName;
-static int macro_defineTemporaryMacro(char* name, char* comment, char* macdata, int size) {
+static int macro_defineTemporaryMacro(char* name, char* comment, BYTECODE_BUFFER* pBuffer) {
 	// TODO: when multiple macro functions are compiled as part of the evaluation, we should remove them all.
 	free(_tempMacroName);
 	_tempMacroName = _strdup(name);
-	return macro_insertNewMacro(name, comment, macdata, size);
+	return macro_insertNewMacro(name, comment, pBuffer);
 }
 
 static void macro_noStatus(char* fmt, ...) {
