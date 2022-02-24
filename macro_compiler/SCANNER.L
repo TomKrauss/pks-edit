@@ -568,6 +568,9 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 			}
 ==			return T_EQ;
 !=			return T_NE;
+\<\<		return T_SHIFT_LEFT;
+\>\>		return T_SHIFT_RIGHT;
+\^\^		return T_POWER_TO;
 \<=			return T_LE;
 \>=			return T_GE;
 !~			return T_NMATCH;

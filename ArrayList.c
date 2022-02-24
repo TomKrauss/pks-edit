@@ -91,6 +91,22 @@ void arraylist_add(ARRAY_LIST* pList, void* pElement) {
 }
 
 /*
+ * Remove one element from the array list at a given offset into the array list
+ - the array lists capacity is not shrinked.
+ * Return 1, if the element was successfully removed or 0, if it was not removed.
+ * If it is contained multiple times in the list, remove only the 1st occurrence.
+ */
+int arraylist_removeAt(ARRAY_LIST* pList, int idx) {
+	buf_t* pBuffer = pList->li_buffer;
+	if (idx < pList->li_size - 1) {
+		memmove((*pBuffer) + idx, (*pBuffer) + idx + 1, (pList->li_size - idx - 1) * sizeof(void*));
+	}
+	pList->li_size--;
+	return 1;
+}
+
+
+/*
  * Remove one element from the array list - the array lists capacity is not shrinked.
  * Return 1, if the element was successfully removed or 0, if it was not removed.
  * If it is contained multiple times in the list, remove only the 1st occurrence.
@@ -100,12 +116,7 @@ int arraylist_remove(ARRAY_LIST* pList, void* pElement) {
 	if (idx < 0) {
 		return 0;
 	}
-	buf_t* pBuffer = pList->li_buffer;
-	if (idx < pList->li_size - 1) {
-		memmove((*pBuffer) + idx, (*pBuffer) + idx + 1, (pList->li_size - idx - 1) * sizeof(void*));
-	}
-	pList->li_size--;
-	return 1;
+	return arraylist_removeAt(pList, idx);
 }
 
 /*

@@ -54,7 +54,6 @@
  */
 extern BOOL find_replacementHadBeenPerformed();
 
-extern int 		macro_executeMacro(MACROREF *mp);
 extern int 		align_text(char *pszSearch, int scope, char filler, int flags);
 extern int 		dlg_getListboxText(HWND hwnd, int id, void *szBuff);
 extern int 		EdExecute(long flags, long unused, 

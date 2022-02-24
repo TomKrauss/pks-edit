@@ -18,17 +18,21 @@
 #include <windows.h>
 
 #define	BIN_ADD			'+'
-#define	BIN_AND			'&'
-#define	BIN_OR			'|'
+#define	BIN_SUB			'-'
 #define	BIN_MUL			'*'
 #define	BIN_DIV			'/'
 #define	BIN_MOD			'%'
+#define	BIN_POWER		'P'
+
+#define	BIN_SHIFT_LEFT	'L'
+#define	BIN_SHIFT_RIGHT	'R'
+
 #define	BIN_OR			'|'
 #define	BIN_AND			'&'
-#define	BIN_BRACKETS	'('
-#define	BIN_SUB			'-'
-#define	BIN_NOT			'~'
 #define	BIN_XOR			'^'
+
+#define	BIN_BRACKETS	'('
+#define	BIN_NOT			'~'
 #define	BIN_CAST		'C'
 
 #define IS_UNARY_OPERATOR(op)		(op == BIN_NOT || op == BIN_CAST)

@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "alloc.h"
 #include "pksmacrocvm.h"
 #include "pksmacro.h"
 #include "funcdef.h"
@@ -363,16 +364,30 @@ static char** decompile_printBinaryExpression(COM_BINOP *cp, char** pStackCurren
 	char szBuf[512];
 
 	szBuf[0] = 0;
+	char* pszShift = "<<";
 	switch(cp->op) {
 	case BIN_BRACKETS: 
 		return pStackCurrent;
-	case BIN_XOR: 
 	case BIN_ADD: 
-	case BIN_SUB: 
-	case BIN_MUL: 
-	case BIN_DIV: 
-	case BIN_MOD: 
+	case BIN_SUB:
+	case BIN_MUL:
+	case BIN_DIV:
+	case BIN_MOD:
+	case BIN_XOR:
+	case BIN_AND:
+	case BIN_OR:
 		sprintf(szBuf,"%s %c %s",pLeft, cp->op, pRight);
+		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
+		break;
+	case BIN_POWER:
+		sprintf(szBuf, "%s ^^ %s", pLeft, pRight);
+		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
+		break;
+	case BIN_SHIFT_RIGHT:
+		pszShift = ">>";
+		// drop through
+	case BIN_SHIFT_LEFT:
+		sprintf(szBuf, "%s %s %s", pLeft, pszShift, pRight);
 		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
 		break;
 	case BIN_CAST:
@@ -409,6 +424,12 @@ static char* decompile_binaryOperationAsString(unsigned char op) {
 
 	if (op == BIN_CAST) {
 		return "cast";
+	}
+	if (op == BIN_SHIFT_LEFT) {
+		return "<<";
+	}
+	if (op == BIN_SHIFT_RIGHT) {
+		return ">>";
 	}
 	szTemp[0] = op;
 	return szTemp;

@@ -70,6 +70,14 @@ extern void* arraylist_get(ARRAY_LIST* pList, int nIndex);
  */
 extern int arraylist_remove(ARRAY_LIST* pList, void* pElement);
 
+/*
+ * Remove one element from the array list at a given offset into the array list
+ - the array lists capacity is not shrinked.
+ * Return 1, if the element was successfully removed or 0, if it was not removed.
+ * If it is contained multiple times in the list, remove only the 1st occurrence.
+ */
+extern int arraylist_removeAt(ARRAY_LIST* pList, int idx);
+
 /**
  * Returns an "iterator", which allows fast iteration over the list elements.
  */

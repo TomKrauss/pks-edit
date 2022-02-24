@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
@@ -209,6 +210,7 @@ void macro_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) 
 			double d1 = v1.sym_data.doubleValue;
 			double d2 = v2.sym_data.doubleValue;
 			switch (op) {
+			case BIN_POWER: d1 = pow(d1, d2); break;
 			case BIN_NOT: d1 = !d1; break;
 			case BIN_ADD: d1 += d2; break;
 			case BIN_SUB: d1 -= d2; break;
@@ -240,6 +242,9 @@ void macro_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) 
 		case BIN_XOR: r1 ^= r2; break;
 		case BIN_OR:  r1 |= r2; break;
 		case BIN_AND: r1 &= r2; break;
+		case BIN_SHIFT_LEFT: r1 <<= r2; break;
+		case BIN_SHIFT_RIGHT: r1 >>= r2; break;
+		case BIN_POWER: r1 = (long long)pow((double)r1, (double)r2); break;
 		case BIN_ADD: r1 += r2; break;
 		case BIN_SUB: r1 -= r2; break;
 		case BIN_MUL: r1 *= r2; break;

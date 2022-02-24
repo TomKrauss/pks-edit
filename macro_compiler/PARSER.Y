@@ -24,17 +24,17 @@
 %token T_LOCAL T_SWITCH T_BREAK T_CONTINUE T_RETURN 
 %token T_NUMVAR T_FLOATVAR T_STRINGVAR T_BOOLEANVAR
 %token T_NMATCH
-%token T_ASSIGN T_NE T_EQ
-%token T_OR T_AND T_LE T_GE
+%token T_ASSIGN T_NE T_EQ T_SHIFT_LEFT T_SHIFT_RIGHT
+%token T_OR T_AND T_LE T_GE T_POWER_TO
 %token T_DEFMACRO 
 %token T_CMDSEQPREFIX
 
 %nonassoc T_NE T_EQ '~' T_NMATCH
 %left    '<' '>' T_LT T_GT  
 %left    T_OR T_AND
-%left	'&' '|'
+%left	'&' '|' T_SHIFT_LEFT T_SHIFT_RIGHT 
 %left	'+' '-' '^'
-%left	'*' '/' '%'
+%left	'*' '/' '%' T_POWER_TO
 
 /* %right	T_NOTGLITCH */
 
@@ -296,13 +296,7 @@ increment_expression:
 			variable_reference T_PLUSPLUS { _bytecodeBuffer.bb_current = bytecode_emitIncrementExpression(&_bytecodeBuffer, $1.ident.s, 1); }
 
 s_bterm: 	value { $$.v = $1.v; }
-			| call_expression {
-				if ($1.funcp && function_returnsString($1.funcp)) {
-					$$.type = S_STRING;
-				} else {
-					$$.type = S_NUMBER;
-				}
-			}
+			| call_expression 
 
 bterm:		s_bterm 	{ $$.type = $1.type;	}
 			| type_cast s_bterm		{
@@ -319,6 +313,9 @@ bterm:		s_bterm 	{ $$.type = $1.type;	}
 			| bterm '*' bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_MUL}); }
 			| bterm '/' bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_DIV}); }
 			| bterm '%' bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_MOD}); }
+			| bterm T_SHIFT_LEFT bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SHIFT_LEFT}); }
+			| bterm T_SHIFT_RIGHT bterm { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SHIFT_RIGHT}); }
+			| bterm T_POWER_TO bterm { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_POWER}); }
 
 			| '(' bterm ')'	{ $$.v = $2.v; }
 

@@ -77,14 +77,17 @@
      T_ASSIGN = 293,
      T_NE = 294,
      T_EQ = 295,
-     T_OR = 296,
-     T_AND = 297,
-     T_LE = 298,
-     T_GE = 299,
-     T_DEFMACRO = 300,
-     T_CMDSEQPREFIX = 301,
-     T_GT = 302,
-     T_LT = 303
+     T_SHIFT_LEFT = 296,
+     T_SHIFT_RIGHT = 297,
+     T_OR = 298,
+     T_AND = 299,
+     T_LE = 300,
+     T_GE = 301,
+     T_POWER_TO = 302,
+     T_DEFMACRO = 303,
+     T_CMDSEQPREFIX = 304,
+     T_GT = 305,
+     T_LT = 306
    };
 #endif
 

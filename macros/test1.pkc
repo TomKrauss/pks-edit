@@ -23,6 +23,36 @@ macro Test-Expression()
 	}
 }
 
+/*
+ * Evaluate various binary expressions and print the results.
+ */
+macro Test-Binary-Expressions() {
+	MessageBox(MB_OK, "1 | 0xA -> " + (1 | 0xA));
+	MessageBox(MB_OK, "1 & 0xA -> " + (1 & 0xA));
+	MessageBox(MB_OK, "3 ^^ 3 -> " + (3 ^^ 3));
+	MessageBox(MB_OK, "12 >> 2 -> " + (12 >> 2));
+	MessageBox(MB_OK, "8 << 2 -> " + (8 << 2));
+	MessageBox(MB_OK, "2 + 3 * 3 -> " + (2 + 3 * 3));
+	MessageBox(MB_OK, "4 - 3 / 2 -> " + (4 - 3 / 2));
+	MessageBox(MB_OK, "7 * 3 % 4 ^ 2 -> " + (7 * 3 % 4 ^ 2));
+}
+
+
+/*
+ * This method allocates one million objects in a loop and can be used to
+ * debug the simple GC of PKS-Edit.
+ */
+macro Test-GC() {
+	string x;
+	int i = 0;
+	
+	while(i < 1000000) {
+		x = "Hello World " + i;
+		i++;
+	}
+	MessageBox(MB_OK, x);
+}
+
 macro Test-While() {
 	int i = 2+2;
 	while (i < 20) {
@@ -51,19 +81,21 @@ macro Test-Params(int par, string par2)
 	tmp = "We have passed " + (string)par + " as parameter 1 and '" + (string)par2 + "' as parameter 2";
 	Alert(tmp);
 
-	par2 = 14;
-	tmp = "Now parameter 2 was changed to:" + par2;
-	//Alert(tmp);
+	return "This is the text returned from Test-Params";
 }
 
 
-macro Test-Call()
-{
+/*
+ * Calls a macro declaring parameters with various examples.
+ */
+macro Test-Call() {
+	string result;
+	result = Test-Params(1,3);
+	MessageBox(result);
 	Test-Params(1,"One string passed to function");
 	Test-Params(1, "a"+"b");
-	// 1+"x" will be coerced to an integer -> will print '1'
+	// 1+"x" will be coerced to an integer -> will print '1' instead of '1x'
 	Test-Params(1 + "x");
-	Test-Params(1,3);
 }
 
 

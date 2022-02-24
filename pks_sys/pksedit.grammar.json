@@ -4,6 +4,14 @@
       "scopeName": "pksedit",
       "description": "Grammar for the PKS-Edit macro language PKSMacroC",
       "import": [ "commonc" ],
+      "increaseIndentPatterns": [
+        { "pattern": "{" },
+        { "pattern": "(" }
+      ],
+      "decreaseIndentPatterns": [
+        { "pattern": "}" },
+        { "pattern": ")" }
+      ],
       "analyzer": "pks-macros",
       "evaluator": "pks-macros",
       "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9@-",
@@ -83,7 +91,7 @@
           "style": "default"
         },
         {
-          "match": "[*%/-+\\[\\]{}]",
+          "match": "[*%/+\\[\\]{}^&|-]+",
           "name": "keyword.operator",
           "style": "operator"
         }

@@ -191,10 +191,36 @@ int interpreter_pushValueOntoStack(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue
 }
 
 /*
+ * Try to get rid of some allocated memory not referenced by the stack any more.
+ */
+static void interpreter_garbaggeCollect(EXECUTION_CONTEXT* pContext) {
+	size_t nSize = arraylist_size(pContext->ec_allocations);
+	if (nSize > 15) {
+		for (int i = (int)nSize; --i >= 0; ) {
+			char* pszEntry = arraylist_get(pContext->ec_allocations, i);
+			PKS_VALUE* pStackValues = pContext->ec_stackBottom;
+			BOOL bDelete = TRUE;
+			while (pStackValues < pContext->ec_stackCurrent) {
+				PKS_VALUE v = *pStackValues++;
+				if (v.sym_type == S_STRING && v.sym_data.string == pszEntry) {
+					bDelete = FALSE;
+					break;
+				}
+			}
+			if (bDelete) {
+				arraylist_removeAt(pContext->ec_allocations, i);
+				free(pszEntry);
+			}
+		}
+	}
+}
+
+/*
  * Mini memory management function of PKS MacroC, which temporarily allocates a string to
  * be released later.
  */
 char* interpreter_allocateString(EXECUTION_CONTEXT* pContext, const char* pszSource) {
+	interpreter_garbaggeCollect(pContext);
 	char* pszResult = _strdup(pszSource);
 	arraylist_add(pContext->ec_allocations, pszResult);
 	return pszResult;
@@ -318,8 +344,9 @@ err:		return FORM_SHOW;
  * be executed.
  */
 int macro_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn) {
-	FTABLE* fp = ft_getCurrentDocument();
 	WINFO* wp = ww_getCurrentEditorWindow();
+
+	FTABLE* fp = wp ? wp->fp : NULL;
 
 	if (fup->flags & EW_NEEDSCURRF && fp == 0) {
 		return 0;
@@ -480,6 +507,8 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 	} else {
 		rc = macro_executeByName(((COM_MAC*)*pInstructionPointer)->name);
 		*pInstructionPointer = pLocalInstructionPointer;
+		// Work around for wrong stack manipulation on call site.
+		pContext->ec_stackCurrent++;
 		returnValue = interpreter_popStackValue(pContext);
 		pContext->ec_stackCurrent = pContext->ec_stackFrame;
 	}
@@ -714,19 +743,24 @@ int macro_executeMacroByIndex(int macroindex)
 /*---------------------------------*/
 /* macro_executeMacro()				*/
 /*---------------------------------*/
-int macro_executeMacro(MACROREF* mp)
-{
+int macro_executeMacro(MACROREF* mp) {
 	COM_1FUNC* cp;
+	int ret;
 
 	switch (mp->typ) {
 	case CMD_CMDSEQ:
 		cp = &_commandTable[mp->index].c_functionDef;
 		return macro_interpretByteCodes(cp, cp + 1);
 	case CMD_MACRO:
-		return macro_executeMacroByIndex(mp->index);
+		// TODO: need a progress indicator popping up after an initial delay.
+		// progress_startMonitor(IDS_ABRTMACRO);
+		ret = macro_executeMacroByIndex(mp->index);
+		progress_closeMonitor(0);
+		return ret;
 	default:
 		error_displayAlertDialog("Illegal command type to execute.");
 	}
+
 	return 0;
 }
 
