@@ -163,9 +163,9 @@ int sym_makeInternalSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE
 
 /*--------------------------------------------------------------------------
  * sym_getVariable()
+ * Returns the value associated with a symbol.
  */
-static PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char *symbolname)
-{
+PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 	PKS_VALUE 	sym;
 	char* tmp;
 
@@ -176,7 +176,7 @@ static PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char *symbolname)
 	}
 
 	SYMBOL_TYPE sType = TYPEOF(sym);
-	if (sType != S_FLOAT && (sType < S_NUMBER || sType > S_DOLSTRING)) {
+	if (sType != S_FLOAT && (sType < S_BOOLEAN || sType > S_CHARACTER)) {
 		error_displayAlertDialog("bad symbol '%s' (type==%d)",symbolname,sType);
 		return nullSymbol;
 	}
@@ -184,91 +184,4 @@ static PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char *symbolname)
 	return sym;
 }
 
-/*--------------------------------------------------------------------------
- * sym_integerForSymbol()
- */
-long sym_integerForSymbol(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
-	PKS_VALUE 	sym;
-	PKS_VALUE 	stackValue;
-
-	sym = sym_getVariable(pContext, symbolname);
-
-	if (NULLSYM(sym)) {
-		return 0L;
-	}
-
-	switch (TYPEOF(sym)) {
-	case S_DOLNUMBER: case S_DOLSTRING:
-		if (interpreter_getDollarParameter((intptr_t) VALUE(sym), &stackValue) == 0) {
-			return 0;
-		}
-		if (stackValue.sym_type != S_STRING) {
-			return (long)stackValue.sym_data.longValue;
-		}
-		return number(stackValue.sym_data.string);
-	case S_CONSTNUM: case S_NUMBER:
-		return (long) (intptr_t)VALUE(sym);
-	case S_FLOAT:
-		return (long)(double)(intptr_t)VALUE(sym);
-	default:
-		return number((char*)VALUE(sym));
-	}
-}
-
-/*--------------------------------------------------------------------------
- * sym_floatForSymbol()
- */
-double sym_floatForSymbol(IDENTIFIER_CONTEXT* pContext, char* symbolname) {
-	PKS_VALUE 	sym;
-
-	sym = sym_getVariable(pContext, symbolname);
-	if (TYPEOF(sym) == S_FLOAT) {
-		return sym.sym_data.doubleValue;
-	}
-	return (double)sym_integerForSymbol(pContext, symbolname);
-}
-
-/*--------------------------------------------------------------------------
- * sym_stringForSymbol()
- */
-intptr_t sym_stringForSymbol(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
-	PKS_VALUE 	sym;
-	PKS_VALUE 	stackValue;
-	long long   value;
-	static char buf[20];
-
-	sym = sym_getVariable(pContext, symbolname);
-
-	if (NULLSYM(sym)) {
-		return (intptr_t)"";
-	}
-
-	switch(TYPEOF(sym)) {
-	case S_DOLNUMBER: case S_DOLSTRING:
-		if (interpreter_getDollarParameter((intptr_t) VALUE(sym), &stackValue) == 0) {
-			return 0;
-		}
-		if (stackValue.sym_type == S_STRING) {
-			return (intptr_t)stackValue.sym_data.string;
-		}
-		sym = stackValue;
-		/* drop through */
-	case S_CONSTNUM: case S_NUMBER:
-		if (TYPEOF(sym) == S_NUMBER || TYPEOF(sym) == S_CONSTNUM) {
-			value = sym.sym_data.longValue;
-		} else {
-			value = 0;
-		}
-		sprintf(buf,"%lld", value);
-		return (intptr_t)buf;
-	case S_FLOAT:
-		if (TYPEOF(sym) == S_FLOAT) {
-			value = (intptr_t)VALUE(sym);
-		}
-		sprintf(buf, "%lf", (double)value);
-		return (intptr_t)buf;
-	default:
-		return (intptr_t)VALUE(sym);
-	}
-}
 

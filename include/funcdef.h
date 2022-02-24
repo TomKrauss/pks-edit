@@ -65,6 +65,11 @@ typedef struct edfunc {
 extern PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(EDFUNC* ep, int nParamIdx);
 
 /*
+ * Returns the number of parameters of a native macro function.
+ */
+extern int function_getParameterCount(EDFUNC* ep);
+
+/*
  * Returns FALSE; if the function described by the function pointer cannot
  * be executed.
  */

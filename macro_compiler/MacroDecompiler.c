@@ -32,6 +32,19 @@ void bytecode_startNextAutoLabel(char **name, COM_GOTO **cp);
 void bytecode_closeAutoLabels(void);
 char *bytecode_findAutoLabelForInstruction(COM_GOTO *cp);
 
+typedef enum {
+	CFM_IF,					// if () ...
+	CFM_WHILE,				// while () ...
+	CFM_ELSE,				// } else { ...
+	CFM_END_BLOCK,			// }
+} CONTROL_FLOW_MARK;
+
+typedef struct tagCONTROL_FLOW_MARK_INDEX {
+	void *				cfmi_bytecodeAddress;		// Address in the bytecode
+	CONTROL_FLOW_MARK	cfmi_mark;					// The marker associated dwith the offset.
+} CONTROL_FLOW_MARK_INDEX;
+
+
 /*
  * decompile_stringForTestOperator()
  */
@@ -72,7 +85,7 @@ static EDFUNC *decompile_getFunctionForIndex(int idx)
  * decompile_quoteString the following chars: <"\>
  */
 static char *decompile_quoteString(unsigned char *name)
-{	static char qbuf[512];
+{	static char qbuf[1024];
 	unsigned char *d,*dend;
 	
 	for (d = qbuf, dend= &qbuf[sizeof qbuf-2]; d < dend && *name; name++) {
@@ -87,24 +100,23 @@ static char *decompile_quoteString(unsigned char *name)
 /*--------------------------------------------------------------------------
  * decompile_printParameterAsConstant()
  */
-static int decompile_printParameterAsConstant(FILE *fp,long long val, PARAMETER_TYPE_DESCRIPTOR partyp)
-{
+static void decompile_printParameterAsConstant(char* pTargetString, long long val, PARAMETER_TYPE_DESCRIPTOR partyp) {
 	PARAMETER_ENUM_VALUE	*ep,*epend;
 	int printed = 0;
 
 	ep = partyp.pt_enumVal;
 	epend = partyp.pt_enumVal + partyp.pt_enumCount;
-
+	pTargetString[0] = 0;
 	if (partyp.pt_type == PARAM_TYPE_BITSET) {
 		while(ep < epend) {
 			if (val & ep->pev_val) {
 				if (printed)
-					fputc('|',fp);
-				fputs(ep->pev_name,fp);
+					strcat(pTargetString, "|");
+				strcat(pTargetString, ep->pev_name);
 				printed++;
 				val &= (~ep->pev_val);
 				if (!val)
-					return 1;
+					return;
 			}
 			ep++;
 		}
@@ -112,25 +124,25 @@ static int decompile_printParameterAsConstant(FILE *fp,long long val, PARAMETER_
 		/* OT_ENUM */
 		while(ep < epend) {
 			if (val == ep->pev_val) {
-				fputs(ep->pev_name,fp);
-				return 1;
+				strcpy(pTargetString, ep->pev_name);
+				return;
 			}
 			ep++;
 		}
 	}
 	if (val || !printed) {
 		if (printed)
-			fputc('|',fp);
-		fprintf(fp,"%lld",val);
+			strcat(pTargetString, "|");
+		char szBuf[39];
+		sprintf(szBuf,"%lld",val);
+		strcat(pTargetString, szBuf);
 	}
-	return 1;
 }
 
 /*
  * decompile_printParameter()
  */
-static int decompile_printParameter(FILE *fp, unsigned char *sp, PARAMETER_TYPE_DESCRIPTOR partyp)
-{
+static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_TYPE_DESCRIPTOR partyp) {
 	unsigned char typ;
 	long long val;
 
@@ -139,39 +151,34 @@ static int decompile_printParameter(FILE *fp, unsigned char *sp, PARAMETER_TYPE_
 
 	typ = ((COM_CHAR1 *)sp)->typ;
 	switch(typ) {
-		case C_FORMSTART:
+		case C_FORM_START:
 			val = ((COM_FORM *)sp)->options;
 			break;
 		case C_1FUNC:
 			val = ((COM_1FUNC *)sp)->p;
 			break;
-		case C_CHARACTER_LITERAL:
+		case C_PUSH_CHARACTER_LITERAL:
 			val = ((COM_CHAR1 *)sp)->val;
 			break;
-		case C_FLOAT_LITERAL:
-			fprintf(fp, "%lf", ((COM_FLOAT1*)sp)->val);
+		case C_PUSH_FLOAT_LITERAL:
+			sprintf(pszBuf, "%lf", ((COM_FLOAT1*)sp)->val);
 			return 1;
-		case C_BOOLEAN_LITERAL:
-			fprintf(fp, "%s", ((COM_FLOAT1*)sp)->val ? "true" : "false");
+		case C_PUSH_BOOLEAN_LITERAL:
+			sprintf(pszBuf, "%s", ((COM_FLOAT1*)sp)->val ? "true" : "false");
 			return 1;
-		case C_INTEGER_LITERAL:
+		case C_PUSH_INTEGER_LITERAL:
 			val = ((COM_INT1 *)sp)->val;
 			break;
-		case C_LONG_LITERAL:
+		case C_PUSH_LONG_LITERAL:
 			val = (long long)((COM_LONG1 *)sp)->val;
 			break;
-		case C_STRING_LITERAL:
+		case C_PUSH_STRING_LITERAL:
 			if (partyp.pt_type != PARAM_TYPE_STRING && partyp.pt_type != PARAM_TYPE_VOID)
 				goto err;
-			fprintf(fp,"\"%s\"",decompile_quoteString(((COM_STRING1*)sp)->s));
+			sprintf(pszBuf,"\"%s\"",decompile_quoteString(((COM_STRING1*)sp)->s));
 			return 1;
-		case C_FLOATVAR:
-		case C_LONGVAR:
-			if (partyp.pt_type == PARAM_TYPE_STRING)
-				goto err;
-			// drop through
-		case C_STRINGVAR:
-			fputs(((COM_VAR*)sp)->name,fp);
+		case C_PUSH_VARIABLE:
+			strcpy(pszBuf, ((COM_VAR*)sp)->name);
 			return 1;
 		default:
 			err:
@@ -182,17 +189,19 @@ static int decompile_printParameter(FILE *fp, unsigned char *sp, PARAMETER_TYPE_
 	if (partyp.pt_type == PARAM_TYPE_STRING)
 		goto err;
 	
-	if ((partyp.pt_type == PARAM_TYPE_ENUM || partyp.pt_type == PARAM_TYPE_BITSET) && partyp.pt_enumVal)
-	    return decompile_printParameterAsConstant(fp,val,partyp);
+	if ((partyp.pt_type == PARAM_TYPE_ENUM || partyp.pt_type == PARAM_TYPE_BITSET) && partyp.pt_enumVal) {
+		decompile_printParameterAsConstant(pszBuf, val, partyp);
+		return 1;
+	}
 
-	if (typ == C_CHARACTER_LITERAL && val >= 32 && val <= 127) {
+	if (typ == C_PUSH_CHARACTER_LITERAL && val >= 32 && val <= 127) {
 		if ((char)val == '\\') {
-			fprintf(fp, "'\\\\'");
+			sprintf(pszBuf, "'\\\\'");
 		} else {
-			fprintf(fp, "'%c'", (char)val);
+			sprintf(pszBuf, "'%c'", (char)val);
 		}
 	} else {
-		fprintf(fp, "%lld", val);
+		sprintf(pszBuf, "%lld", val);
 	}
 	return 1;
 }
@@ -200,7 +209,7 @@ static int decompile_printParameter(FILE *fp, unsigned char *sp, PARAMETER_TYPE_
 /*
  * decompile_printFunctionName
  */
-static void decompile_printFunctionName(FILE *fp, int idx)
+static void decompile_printFunctionName(char* pszBuf, int idx)
 {
 	EDFUNC	*ep = decompile_getFunctionForIndex(idx);
 
@@ -208,7 +217,7 @@ static void decompile_printFunctionName(FILE *fp, int idx)
 		error_displayAlertDialog("format error: bad function");
 		return;
 	}
-	fprintf(fp,"\t%s",macro_loadStringResource(idx));
+	sprintf(pszBuf,"%s",macro_loadStringResource(idx));
 }
 
 /*
@@ -217,116 +226,74 @@ static void decompile_printFunctionName(FILE *fp, int idx)
 static void decompile_makeAutoLabels(const char *start, const char *end)
 {
 	while(start < end && *start != C_STOP) {
-		if (*start == C_GOTO)
+		if (*start == C_GOTO && ((COM_GOTO*)start)->offset != sizeof(COM_GOTO))
 			bytecode_makeAutoLabel((COM_GOTO*)(start+((COM_GOTO *)start)->offset));
 		start += interpreter_getParameterSize(*start,start+1);
 	}
 }
 
+static char** decompile_popStack(char** pStackCurrent, char** pStack) {
+	if (pStackCurrent > pStack) {
+		free(*--pStackCurrent);
+		*pStackCurrent = NULL;
+	}
+	return pStackCurrent;
+}
+
 /*
  * decompile_function()
  */
-static unsigned char *decompile_function(FILE *fp, unsigned char *sp, 
-								    unsigned char *spend)
-{
-	COM_1FUNC *		cp = (COM_1FUNC *)sp;
+static char ** decompile_function(COM_1FUNC* sp, char **pStackCurrent, char** pStack) {
 	EDFUNC	*		ep;
 	int 			npars;
 	PARAMETER_TYPE_DESCRIPTOR partyp;
+	char szFunctionCall[512];
+	char szParam[128];
 
-	if (cp->typ == C_MACRO) {
-		fprintf(fp,"\t%s",((COM_MAC*)sp)->name);
+	if (sp->typ == C_MACRO) {
+		sprintf(szFunctionCall,"%s",((COM_MAC*)sp)->name);
 		ep = NULL;
 	} else {
-		decompile_printFunctionName(fp, cp->funcnum);
-		ep = decompile_getFunctionForIndex(cp->funcnum);
+		decompile_printFunctionName(szFunctionCall, sp->funcnum);
+		ep = decompile_getFunctionForIndex(sp->funcnum);
 	}
-
-	fputc('(',fp);
+	strcat(szFunctionCall, "(");
 
 	npars = 0;
-	if (cp->typ == C_1FUNC) {
+	if (sp->typ == C_1FUNC) {
 		partyp = function_getParameterTypeDescriptor(ep, 1);
-		if (decompile_printParameter(fp,sp,partyp) < 0)
+		if (decompile_printParameter(szParam,(unsigned char*)sp,partyp) < 0)
 			return 0;
+		strcat(szFunctionCall, szParam);
 		npars++;
 	}
-	sp += interpreter_getParameterSize(*sp,sp+1);
 
-	while(sp < spend && C_IS1PAR(*sp)) {
+	char** pStackPointer = ep ? (pStackCurrent-function_getParameterCount(ep)) : pStack;
+	if (pStackPointer < pStack) {
+		pStackPointer = pStack;
+	}
+	char** pStackFrame = pStackPointer;
+	while(pStackPointer < pStackCurrent) {
+		if (!*pStackPointer) {
+			pStackPointer++;
+			continue;
+		}
 		partyp = ep == NULL ? (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = PARAM_TYPE_VOID} : function_getParameterTypeDescriptor(ep, npars + 1);
-		if (npars)
-			fputc(',', fp);
-		if (decompile_printParameter(fp, sp, partyp) < 0)
-			return 0;
+		if (npars) {
+			strcat(szFunctionCall, ",");
+		}
+		size_t nBytes = strlen(szFunctionCall);
+		strncat(szFunctionCall, *pStackPointer, sizeof(szFunctionCall)-3-nBytes);
+		pStackPointer++;
 		npars++;
-		sp += interpreter_getParameterSize(*sp,sp+1);
+	}
+	while (pStackCurrent > pStackFrame) {
+		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
 	}
 
-	fputc(')',fp);
-	return sp;
-}
-
-/*
- * decompile_printTestExpression()
- */
-static void decompile_printTestExpression(FILE *fp, unsigned char *sp,unsigned char *spend)
-{	unsigned char t;
-
-	t = ((COM_1FUNC*)sp)->typ;
-	if (C_ISCMD(t))
-		decompile_function(fp,sp,spend);
-	else {
-		decompile_printParameter(fp, sp, (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = macro_isParameterStringType(*sp) ? PARAM_TYPE_STRING : PARAM_TYPE_INT });
-	}
-}
-
-/*
- * decompile_printExpression()
- */
-static unsigned char *decompile_printExpression(FILE *fp, COM_TEST *cp, int not)
-{	unsigned char *p2,*pend;
-	COM_TEST *p1;
-	int top;
-
-	p1 = cp+1;
-	p2 = (unsigned char *)cp + cp->p2offset;
-	pend = (unsigned char *)cp + cp->size;
-	switch(cp->testop & (~CT_STRING)) {
-		case CT_NOT:
-			if (!not)
-				fprintf(fp,"%s",decompile_stringForTestOperator(cp->testop));
-			decompile_printExpression(fp,p1,0);
-			break;			
-		case CT_OR:
-		case CT_AND:
-			decompile_printExpression(fp,p1,0);
-			fprintf(fp,"%s\n\t\t",decompile_stringForTestOperator(cp->testop));
-			if (p2 > (unsigned char *)p1)
-				decompile_printExpression(fp,(COM_TEST*)p2,0);
-			else
-				error_displayAlertDialog("expr: bad AND/OR|(p2 == 0x%lx)(p1 == 0x%lx)",
-					p2,p1);
-			break;
-		case CT_BRACKETS:
-			fprintf(fp,"(");
-			decompile_printExpression(fp,p1,not);
-			fprintf(fp,")");
-			break;
-		case CT_GT:	top = (not) ? CT_LE : CT_GT; goto prdo;
-		case CT_LT:	top = (not) ? CT_GE : CT_LT; goto prdo;
-		case CT_EQ:	top = (not) ? CT_NE : CT_EQ; goto prdo;
-		case CT_NE:	top = (not) ? CT_EQ : CT_NE; goto prdo;
-		case CT_MATCH:	top = (not) ? CT_NMATCH : CT_MATCH; goto prdo;
-		case CT_NMATCH:top = (not) ? CT_MATCH : CT_NMATCH;
-prdo:		decompile_printTestExpression(fp,(unsigned char *)p1,p2);
-			fprintf(fp," %s ",decompile_stringForTestOperator(top));
-			decompile_printTestExpression(fp,p2,pend);
-			break;
-		default:
-			fprintf(fp,"?expr 0x%x?",cp->testop);
-	}
-	return pend;
+	strcat(szFunctionCall, ")");
+	*pStackCurrent++ = _strdup(szFunctionCall);
+	return pStackCurrent;
 }
 
 /**
@@ -335,52 +302,104 @@ prdo:		decompile_printTestExpression(fp,(unsigned char *)p1,p2);
 static char* decompile_typenameFor(PKS_VALUE_TYPE nSymbolType) {
 	switch (nSymbolType) {
 	case VT_FLOAT: return "float";
-	case VT_INTEGER: return "int";
+	case VT_NUMBER: return "int";
 	case VT_BOOLEAN: return "boolean";
+	case VT_CHAR: return "char";
 	default: return "string";
 	}
 }
 
 /*
+ * Return a string representation of a test instruction.
+ */
+static char* decompile_testOperationAsString(unsigned char op) {
+
+	switch (op) {
+	case CT_AND: return "and";
+	case CT_OR: return "or";
+	case CT_BRACKETS: return "()";
+	case CT_EQ: return "equals";
+	case CT_NE: return "not-equals";
+	case CT_GE: return "greater-equals";
+	case CT_GT: return "greater";
+	case CT_LE: return "less-equals";
+	case CT_LT: return "<";
+	case CT_NMATCH: return "!matches";
+	case CT_MATCH: return "matches";
+	case CT_NOT: return "not";
+	}
+	return "??";
+}
+
+/*
  * decompile_printBinaryExpression()
  */
-static unsigned char *decompile_printBinaryExpression(FILE *fp, COM_BINOP *cp)
-{
-	unsigned char *	p1;
-	unsigned char *	p2;
-	unsigned char *	pend;
+static char** decompile_printTestExpression(COM_BINOP* cp, char** pStackCurrent, char** pStack) {
+	char* pRight = pStackCurrent > pStack ? pStackCurrent[-1] : "";
+	char* pLeft = cp->op != CT_NOT && pStackCurrent > pStack-1 ? pStackCurrent[-2] : "";
+	char szBuf[512];
 
-	p1 = (unsigned char *)(cp)+cp->op1offset;
-	pend = (unsigned char *)(cp)+cp->size;
-	p2 = (unsigned char *)(cp)+cp->op2offset;
+	szBuf[0] = 0;
+	switch (cp->op) {
+	default:
+		sprintf(szBuf, "%s %s %s", pLeft, decompile_stringForTestOperator(cp->op), pRight);
+		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
+		break;
+	case CT_NOT:
+		sprintf(szBuf, "!%s", pRight);
+		break;
+	}
+	pStackCurrent = decompile_popStack(pStackCurrent, pStack);
+	*pStackCurrent++ = _strdup(szBuf);
+	return pStackCurrent;
+}
 
-	fprintf(fp,"\t%s = ",cp->result);
+/*
+ * decompile_printBinaryExpression()
+ */
+static char** decompile_printBinaryExpression(COM_BINOP *cp, char** pStackCurrent, char** pStack) {
+	char* pRight = pStackCurrent > pStack ? pStackCurrent[-1] : "";
+	char* pLeft = cp->op != BIN_CAST && pStackCurrent > pStack-1 ? pStackCurrent[-2] : "";
+	char szBuf[512];
 
+	szBuf[0] = 0;
 	switch(cp->op) {
-
 	case BIN_BRACKETS: 
-		fprintf(fp,"("); 
-		pend = decompile_printBinaryExpression(fp,(COM_BINOP*)p1);
-		fprintf(fp,")"); 
-		return pend;
+		return pStackCurrent;
 	case BIN_XOR: 
 	case BIN_ADD: 
 	case BIN_SUB: 
 	case BIN_MUL: 
 	case BIN_DIV: 
 	case BIN_MOD: 
-		decompile_printTestExpression(fp,p1,p2);
-		fprintf(fp,"%c",cp->op);
-		decompile_printTestExpression(fp,p2,pend);
+		sprintf(szBuf,"%s %c %s",pLeft, cp->op, pRight);
+		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
 		break;
 	case BIN_CAST:
-		fprintf(fp,"(%s) %s", decompile_typenameFor(*p1), cp->result);
+		sprintf(szBuf,"(%s) %s", decompile_typenameFor(cp->targetType), pRight);
 		break;
 	}
-
-	return pend;
+	pStackCurrent = decompile_popStack(pStackCurrent, pStack);
+	*pStackCurrent++ = _strdup(szBuf);
+	return pStackCurrent;
 }
 
+/*
+ * decompile_printPushOperation()
+ */
+static char** decompile_printPushOperation(COM_CHAR1* cp, char** pStackCurrent, char** pStack, EDFUNC* pFunc, int nParamIndex) {
+	char szBuf[512];
+	szBuf[0] = 0;
+	PARAMETER_TYPE_DESCRIPTOR pDescriptor = (PARAMETER_TYPE_DESCRIPTOR) {
+		.pt_type = PARAM_TYPE_VOID
+	};
+	if (pFunc) {
+		pDescriptor = function_getParameterTypeDescriptor(pFunc, nParamIndex);
+	}
+	decompile_printParameter(szBuf, (unsigned char*)cp, pDescriptor);
+	*pStackCurrent++ = _strdup(szBuf);
+	return pStackCurrent;
+}
 
 /*
  * Return a string representation of a BINOP instruction.
@@ -394,29 +413,6 @@ static char* decompile_binaryOperationAsString(unsigned char op) {
 	szTemp[0] = op;
 	return szTemp;
 }
-
-/*
- * Return a string representation of a test instruction.
- */
-static char* decompile_testOperationAsString(unsigned char op) {
-
-	switch (op & (~CT_STRING)) {
-	case CT_AND: return "and";
-	case CT_OR: return "or";
-	case CT_BRACKETS: return "()";
-	case CT_EQ: return "==";
-	case CT_NE: return "!=";
-	case CT_GE: return ">=";
-	case CT_GT: return ">";
-	case CT_LE: return "<=";
-	case CT_LT: return "<";
-	case CT_NMATCH: return "not rematch";
-	case CT_MATCH: return "rematch";
-	case CT_NOT: return "not";
-	}
-	return "??";
-}
-
 
 /*
  * decompile_macroInstructionsToFile
@@ -436,30 +432,38 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 		fprintf(fp, "\n0x%04x:   ", nOffs);
 		switch (t) {
 		case C_STOP: fprintf(fp, "stop"); break;
-		case C_TEST: fprintf(fp, "testAndGoto %s, 0x%x", decompile_testOperationAsString(((COM_TEST*)sp)->testop), nOffs + ((COM_TEST*)sp)->size); break;
-		case C_GOTO: fprintf(fp, "goto 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
-		case C_BINOP: fprintf(fp, "eval %s", decompile_binaryOperationAsString(((COM_BINOP*)sp)->op)); break;
-		case C_ASSIGN: fprintf(fp, "assignVar %s", ((COM_ASSIGN*)sp)->name); break;
+		case C_LOGICAL_OPERATION: fprintf(fp, "logicalOperation %s", decompile_testOperationAsString(((COM_BINOP*)sp)->op)); break;
+		case C_GOTO:
+			switch (((COM_GOTO*)sp)->bratyp) {
+			case BRA_ALWAYS: fprintf(fp, "goto 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
+			case BRA_EQ: fprintf(fp, "testAndBranchEQ 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
+			case BRA_NE: fprintf(fp, "testAndBranchNE 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
+			}
+			break;
+		case C_BINOP: fprintf(fp, "binaryOperation %s", decompile_binaryOperationAsString(((COM_BINOP*)sp)->op)); break;
+		case C_ASSIGN: fprintf(fp, "assignVariable %s", ((COM_ASSIGN*)sp)->name); break;
 		case C_MACRO:fprintf(fp, "call %s", ((COM_MAC*)sp)->name); break;
-		case C_0FUNC: fprintf(fp, "nativeCall0 %d (%s)", ((COM_0FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name); break;
+		case C_0FUNC: fprintf(fp, "nativeCall0 %d (%s) (%d params)", ((COM_0FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_0FUNC*)sp)->func_nargs); break;
 		case C_1FUNC: fprintf(fp, "nativeCall1 %d (%s) %d", ((COM_1FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_1FUNC*)sp)->p); break;
-		case C_BOOLEANVAR: fprintf(fp, "bvar "); break;
-		case C_STRINGVAR: fprintf(fp, "svar "); break;
-		case C_FLOATVAR: fprintf(fp, "fvar "); break;
-		case C_LONGVAR: fprintf(fp, "lvar "); break;
-		case C_LONG_LITERAL: fprintf(fp, "longLiteral %lld", (long long)((COM_LONG1*)sp)->val); break;
-		case C_INTEGER_LITERAL: fprintf(fp, "intLiteral %d", ((COM_INT1*)sp)->val); break;
-		case C_FLOAT_LITERAL: fprintf(fp, "floatLiteral %f", ((COM_FLOAT1*)sp)->val); break;
-		case C_BOOLEAN_LITERAL: fprintf(fp, "booleanLiteral %d", ((COM_CHAR1*)sp)->val); break;
-		case C_CHARACTER_LITERAL: fprintf(fp, "charLiteral %d", ((COM_CHAR1*)sp)->val); break;
-		case C_STRING_LITERAL: fprintf(fp, "stringLiteral %s", ((COM_STRING1*)sp)->s); break;
-		case C_DEFINE_VARIABLE: fprintf(fp, "defineVar %s", ((COM_CREATESYM*)sp)->name); break;
-		case C_DEFINE_PARAMETER: fprintf(fp, "defineParam %s", ((COM_CREATESYM*)sp)->name); break;
-		case C_FORMSTART: fprintf(fp, "beginFormParameters"); break;
+		case C_PUSH_VARIABLE: fprintf(fp, "pushVariable "); break;
+		case C_PUSH_LONG_LITERAL: fprintf(fp, "pushLongLiteral %lld", (long long)((COM_LONG1*)sp)->val); break;
+		case C_PUSH_INTEGER_LITERAL: fprintf(fp, "pushIntLiteral %d", ((COM_INT1*)sp)->val); break;
+		case C_PUSH_FLOAT_LITERAL: fprintf(fp, "pushFloatLiteral %f", ((COM_FLOAT1*)sp)->val); break;
+		case C_PUSH_BOOLEAN_LITERAL: fprintf(fp, "pushBooleanLiteral %d", ((COM_CHAR1*)sp)->val); break;
+		case C_PUSH_CHARACTER_LITERAL: fprintf(fp, "pushCharLiteral %d", ((COM_CHAR1*)sp)->val); break;
+		case C_PUSH_STRING_LITERAL: fprintf(fp, "pushStringLiteral %s", ((COM_STRING1*)sp)->s); break;
+		case C_DEFINE_VARIABLE: fprintf(fp, "defineVariable %s", ((COM_CREATESYM*)sp)->name); break;
+		case C_DEFINE_PARAMETER: fprintf(fp, "defineParameter %s", ((COM_CREATESYM*)sp)->name); break;
+		case C_FORM_START: fprintf(fp, "beginFormParameters"); break;
+		case C_SET_STACKFRAME: fprintf(fp, "setStackFrame"); break;
+		case C_SET_PARAMETER_STACK: fprintf(fp, "startParameters"); break;
+		case C_POP_STACK: fprintf(fp, "pop"); break;
 		default: fprintf(fp, "opcode 0x%x", t); break;
 		}
-		if (t == C_STRINGVAR || t == C_BOOLEANVAR || t == C_FLOATVAR || t == C_LONGVAR) {
-			decompile_printParameter(fp, sp, (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = macro_isParameterStringType(t) ? PARAM_TYPE_STRING : PARAM_TYPE_INT });
+		if (t == C_PUSH_VARIABLE) {
+			char szBuf[128];
+			decompile_printParameter(szBuf, sp, (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = macro_isParameterStringType(t) ? PARAM_TYPE_STRING : PARAM_TYPE_INT });
+			fputs(szBuf, fp);
 		}
 		sp += interpreter_getParameterSize(*sp, sp+1);
 	}
@@ -487,97 +491,236 @@ static void decompile_printComment(FILE* fp, const char* pszComment) {
 }
 
 /*
+ * Flush the current code generation stack. 
+ */
+static char** decompile_flushStack(FILE* fp, char** pStackCurrent, char** pStack) {
+	if (pStackCurrent > pStack) {
+		fprintf(fp, "%s", pStackCurrent[-1]);
+		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
+	}
+	while (pStackCurrent > pStack) {
+		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
+	}
+	return pStackCurrent;
+}
+
+/* 
+ * Analyse the byte code jump instructions and "guess" the original control flow from which they were created.
+ */
+static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char* pBytecode, unsigned char* pBytecodeEnd, int* nMarks) {
+	unsigned char* pStart = pBytecode;
+	int nMax = 128;
+	CONTROL_FLOW_MARK_INDEX* pResult = calloc(nMax, sizeof * pResult);
+	int nFound = 0;
+
+	while (pBytecode < pBytecodeEnd) {
+		if (*pBytecode == C_GOTO) {
+			COM_GOTO* pGoto = (COM_GOTO*)pBytecode;
+			if (nFound > nMax - 2) {
+				nMax += 100;
+				pResult = realloc(pResult, nMax * sizeof *pResult);
+			}
+			if (pGoto->bratyp == BRA_EQ && pGoto->offset > 0) {
+				BOOL bDone = FALSE;
+				int nOffs = pGoto->offset - sizeof(COM_GOTO);
+				if (nOffs > 0) {
+					COM_GOTO* pBack = (COM_GOTO*)(pBytecode + nOffs);
+					if (pBack->typ == C_GOTO && pBack->bratyp == BRA_ALWAYS && pBack->offset < 0) {
+						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_WHILE, .cfmi_bytecodeAddress = (unsigned char*)pGoto};
+						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_END_BLOCK, .cfmi_bytecodeAddress = (unsigned char*)pBack };
+						bDone = TRUE;
+					}
+				}
+				if (!bDone) {
+					pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_IF, .cfmi_bytecodeAddress = (unsigned char*)pGoto};
+					COM_GOTO* pElse = (COM_GOTO*)(pBytecode + pGoto->offset - sizeof(COM_GOTO));
+					if (pElse->typ == C_GOTO && pElse->bratyp == BRA_ALWAYS && pElse->offset > 0 && /* work around for no-op goto / empty else*/ pElse->offset != sizeof(COM_GOTO)) {
+						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_ELSE, .cfmi_bytecodeAddress = (unsigned char*)pElse};
+						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_END_BLOCK, .cfmi_bytecodeAddress = ((unsigned char*)pElse)+pElse->offset };
+					}
+					else {
+						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_END_BLOCK, .cfmi_bytecodeAddress = (unsigned char*)pElse};
+					}
+
+				}
+			}
+		}
+		pBytecode += interpreter_getParameterSize(*pBytecode, pBytecode + 1);
+	}
+	*nMarks = nFound;
+	return pResult;
+}
+
+/*
+ * Returns a control flow mark for a given byte code offset or null if no mark can be found.
+ */
+static CONTROL_FLOW_MARK_INDEX* decompile_controlFlowMarkForOffset(CONTROL_FLOW_MARK_INDEX* pTable, int nTableSize, void* pAddress) {
+	for (int i = 0; i < nTableSize; i++) {
+		if (pTable[i].cfmi_bytecodeAddress == pAddress) {
+			return &pTable[i];
+		}
+	}
+	return NULL;
+}
+
+static decompile_indent(FILE* fp, int nIndent) {
+	while (--nIndent >= 0) {
+		fputc('\t', fp);
+	}
+}
+
+/*
+ * Finc the next native function call statement and return the function descriptor, if a call statement was found.
+ */
+static EDFUNC* decompile_findFunctionDescriptor(unsigned char* pBytecode, unsigned char* spend) {
+	while (pBytecode < spend) {
+		if (!C_IS_PUSH_OPCODE(*pBytecode)) {
+			if (*pBytecode == C_0FUNC) {
+				return decompile_getFunctionForIndex(((COM_0FUNC*)pBytecode)->funcnum);
+			}
+			if (*pBytecode == C_1FUNC) {
+				return decompile_getFunctionForIndex(((COM_1FUNC*)pBytecode)->funcnum);
+			}
+			break;
+		}
+		pBytecode += interpreter_getParameterSize(*pBytecode, pBytecode + 1);
+	}
+	return NULL;
+}
+
+/*
  * decompile_macroToFile
  */
 #define COM1_INCR(cp,type,offset) (unsigned char *)(cp+((type *)cp)->offset)
 static void decompile_macroToFile(FILE *fp, MACRO *mp)
-{	unsigned char 	*sp,*sp2,*spend,*gop,*data,*comment;
-	unsigned char 	t;
-	char			*lname;
+{	unsigned char 	*sp,*spend,*gop,*data,*comment;
+	unsigned char 	opCode;
+	EDFUNC* pCurrentFunctionDescriptor = NULL;
+	char	*lname;
+	char*	pStack[80];
+	int nIndent = 1;
+	CONTROL_FLOW_MARK_INDEX* pFlowMarks;
+	int     nMarks;
+	char**	pStackCurrent = pStack;
+	char**	pStackEnd = pStack + DIM(pStack);
 
+	memset(pStack, 0, sizeof pStack);
 	comment = MAC_COMMENT(mp);
 	if (*comment) {
 		decompile_printComment(fp, comment);
 	}
-	fprintf(fp, "macro %s()", decompile_quoteString(MAC_NAME(mp)));
-	fprintf(fp," {\n");
 	data = MAC_DATA(mp);
+	sp = data;
+	spend = sp + mp->mc_size;
 
-	decompile_makeAutoLabels(data,&data[mp->mc_size]);
+	pFlowMarks = decompile_analyseControlFlowMarks(sp, spend, &nMarks);
+
+	fprintf(fp, "macro %s(", decompile_quoteString(MAC_NAME(mp)));
+	while (sp < spend) {
+		if (*sp != C_DEFINE_PARAMETER) {
+			break;
+		}
+		COM_CREATESYM* pSym = (COM_CREATESYM*)sp;
+		if (sp > data) {
+			fprintf(fp, ", ");
+		}
+		fprintf(fp, "%s %s", decompile_typenameFor(pSym->typ), pSym->name);
+		sp += interpreter_getParameterSize(*sp, sp + 1);
+	}
+	fprintf(fp, ") {\n");
+
+	decompile_makeAutoLabels(data, spend);
 	bytecode_initializeAutoLabels();
-	bytecode_startNextAutoLabel(&lname,(COM_GOTO**)&gop);
-
-	for (sp = data, spend = sp+mp->mc_size; sp < spend; ) {
+	bytecode_startNextAutoLabel(&lname, (COM_GOTO**)&gop);
+	int nParamIndex = 1;
+	while (sp < spend) {
+		CONTROL_FLOW_MARK_INDEX* pFoundMark = decompile_controlFlowMarkForOffset(pFlowMarks, nMarks, sp);
 		if (gop <= sp && lname) {
 			if (gop < sp) {
 				error_displayAlertDialog("format error: bad goto");
 			}
-			fprintf(fp,"%s:\n",lname);
+			if (!pFoundMark) {
+				fprintf(fp, "%s:\n", lname);
+			}
 			bytecode_startNextAutoLabel(&lname, (COM_GOTO**)&gop);
 		}
 
-		t = ((COM_1FUNC*)sp)->typ;
-		if (C_ISCMD(t)) {
-			if ((sp = decompile_function(fp,sp,spend)) == 0)
-				goto out;
-			fprintf(fp,";\n");
+		opCode = ((COM_1FUNC*)sp)->typ;
+		if (C_IS_PUSH_OPCODE(opCode)) {
+			if (!pCurrentFunctionDescriptor && nParamIndex == 1) {
+				pCurrentFunctionDescriptor = decompile_findFunctionDescriptor(sp, spend);
+			}
+			pStackCurrent = decompile_printPushOperation((COM_CHAR1*)sp, pStackCurrent, pStack, pCurrentFunctionDescriptor, nParamIndex);
+			sp += interpreter_getParameterSize(*sp, sp + 1);
+			nParamIndex++;
 			continue;
 		}
-		if (t == C_GOTO) {
-			COM_GOTO *cp = (COM_GOTO *)sp;
-
-			fprintf(fp,"\t%s %s;\n",
-				(cp->bratyp == BRA_ALWAYS) ? "goto" : "braeq",
-			bytecode_findAutoLabelForInstruction((COM_GOTO*)(sp+cp->offset)));
-		} else if (t == C_STOP) {
-			if (sp + sizeof(COM_STOP) < spend)
-				fprintf(fp,"\treturn %d;\n",((COM_STOP*)sp)->rc);
-		} else if (t == C_TEST) {
-			COM_GOTO *cp =  (COM_GOTO *)(sp + ((COM_TEST*)sp)->size);
-
-			/*
-			 * generated if,while code
-			 */
-			if (cp->typ == C_GOTO &&
-			    cp->bratyp == BRA_EQ) {
-				fprintf(fp,"\tif ");
-				sp = decompile_printExpression(fp,(COM_TEST*)sp,1);
-				fprintf(fp,"\n\t\tgoto %s;\n",
-						bytecode_findAutoLabelForInstruction((COM_GOTO*)(sp+cp->offset)));
-				sp = (unsigned char *)(cp+1);
-			} else {
-				fprintf(fp,"\tif ");
-				sp = decompile_printExpression(fp,(COM_TEST*)sp,0);
-				fprintf(fp,"\n");
+		nParamIndex = 1;
+		pCurrentFunctionDescriptor = NULL;
+		if (C_ISCMD(opCode)) {
+			pStackCurrent = decompile_function((COM_1FUNC*)sp, pStackCurrent, pStack);
+		} else if (opCode == C_GOTO) {
+			COM_GOTO* cp = (COM_GOTO*)sp;
+			if (pStackCurrent > pStack && pFoundMark) {
+				decompile_indent(fp, nIndent);
+				fprintf(fp, "%s (", pFoundMark->cfmi_mark == CFM_WHILE ? "while" : "if");
+				nIndent++;
+				pStackCurrent = decompile_flushStack(fp, pStackCurrent, pStack);
+				fprintf(fp, ") {\n");
 			}
-			continue;
-		} else if (t == C_BINOP) {
-			decompile_printBinaryExpression(fp, (COM_BINOP*)sp);
-			fprintf(fp,";\n");
-			sp = COM1_INCR(sp,COM_BINOP,size);
-			continue;
-		} else if (t == C_ASSIGN) {
-			fprintf(fp,"\t%s = ",((COM_ASSIGN*)sp)->name);
-			sp2 = COM1_INCR(sp,COM_ASSIGN,size);
-			decompile_printTestExpression(fp,COM1_INCR(sp,COM_ASSIGN,opoffset),sp2);
-			sp = sp2;
-			fprintf(fp,";\n");
-			continue;
-		} else if (t == C_DEFINE_PARAMETER) {
-			sp = COM1_INCR(sp, COM_CREATESYM, size);
-		} else if (t == C_DEFINE_VARIABLE) {
+			else if (pFoundMark && pFoundMark->cfmi_mark == CFM_ELSE) {
+				decompile_indent(fp, nIndent-1);
+				fprintf(fp, "} else {\n");
+			} else if (!pFoundMark && cp->offset != sizeof(COM_GOTO)) {
+				decompile_indent(fp, nIndent);
+				fprintf(fp, "%s %s;\n",
+					(cp->bratyp == BRA_ALWAYS) ? "goto" : "braeq",
+					bytecode_findAutoLabelForInstruction((COM_GOTO*)(sp + cp->offset)));
+			}
+		}
+		else if (opCode == C_STOP) {
+			if (sp + sizeof(COM_STOP) < spend) {
+				decompile_indent(fp, nIndent);
+				fprintf(fp, "return ");
+				pStackCurrent = decompile_flushStack(fp, pStackCurrent, pStack);
+				fprintf(fp, ";\n");
+			}
+		}
+		else if (opCode == C_LOGICAL_OPERATION) {
+			pStackCurrent = decompile_printTestExpression((COM_BINOP*)sp, pStackCurrent, pStack);
+		} 
+		else if (opCode == C_BINOP) {
+			pStackCurrent = decompile_printBinaryExpression((COM_BINOP*)sp, pStackCurrent, pStack);
+		}
+		else if (opCode == C_DEFINE_VARIABLE) {
 			char* pszType = decompile_typenameFor(((COM_CREATESYM*)sp)->symtype);
-			fprintf(fp, "\t%s %s;\n", pszType, ((COM_CREATESYM*)sp)->name);
-			sp = COM1_INCR(sp, COM_CREATESYM, size);
-		} else if (t == C_FURET) {
-		
+			decompile_indent(fp, nIndent);
+			fprintf(fp, "%s %s;\n", pszType, ((COM_CREATESYM*)sp)->name);
+		}
+		else if (opCode == C_ASSIGN) {
+			decompile_indent(fp, nIndent);
+			fprintf(fp, "%s = ", ((COM_ASSIGN*)sp)->name);
+			pStackCurrent = decompile_flushStack(fp, pStackCurrent, pStack);
+			fprintf(fp, ";\n");
+		}
+		else if (opCode == C_POP_STACK) {
+			if (pStackCurrent > pStack) {
+				decompile_indent(fp, nIndent);
+				pStackCurrent = decompile_flushStack(fp, pStackCurrent, pStack);
+				fprintf(fp, ";\n");
+			}
+		} else if (opCode == C_SET_PARAMETER_STACK || opCode == C_SET_STACKFRAME) {
 		} else {
-			error_displayAlertDialog("format error in %s type=%x",MAC_NAME(mp),t);
+			error_displayAlertDialog("format error in %s type=%x",MAC_NAME(mp),opCode);
+		}
+		if (pFoundMark && pFoundMark->cfmi_mark == CFM_END_BLOCK) {
+			nIndent--;
+			decompile_indent(fp, nIndent);
+			fprintf(fp, "}\n");
 		}
 		sp += interpreter_getParameterSize(*sp,sp+1);
 	}
-
-out:
+	free(pFlowMarks);
 	fprintf(fp,"}\n\n");
 	bytecode_closeAutoLabels();
 }

@@ -5,21 +5,19 @@
 macro Test-Expression()
 {
 	string s1;
-	string s2;
+	string s2 = "x";
 	string re;
-	string result;
-	
+
 	s1 = "aec\\";
 	re = "[a-e]+\\\\";
-	
+
    	if (s1 ~ re)
 		s2 = "' is matched by '";
    	else
 		s2 = "' is not matched by '";
-	
-	result = "String '" + s1 + s2 + re + "'";
-	MessageBox(MB_OK, result);
-	
+
+	MessageBox(MB_OK, "String '" + s1 + s2 + re + "'");
+
 	if (s1) {
 		MessageBox(MB_OK, "OK");
 	}
@@ -29,7 +27,7 @@ macro Test-While() {
 	int i = 2+2;
 	while (i < 20) {
 		CursorDown(MOT_SINGLE);
-		i = i+1;
+		i++;
 	}
 }
 
@@ -55,16 +53,17 @@ macro Test-Params(int par, string par2)
 
 	par2 = 14;
 	tmp = "Now parameter 2 was changed to:" + par2;
-	Alert(tmp);
+	//Alert(tmp);
 }
 
 
 macro Test-Call()
 {
-
-	Test-Params(3);
-	Test-Params(12,"One string passed to function");
-	Test-Params(2,3);
+	Test-Params(1,"One string passed to function");
+	Test-Params(1, "a"+"b");
+	// 1+"x" will be coerced to an integer -> will print '1'
+	Test-Params(1 + "x");
+	Test-Params(1,3);
 }
 
 

@@ -300,7 +300,7 @@ unsigned char *yystralloc(unsigned char *s)
 /* unquotealloc()				*/
 /*---------------------------------*/
 static char *unquotealloc(char *name, int len)
-{	char qbuf[256],*d,*dend,*send;
+{	char qbuf[512],*d,*dend,*send;
 	int  cnt,i;
 
 	for (d = qbuf, dend= &qbuf[sizeof qbuf-2], send = &name[len]; 	
@@ -500,6 +500,9 @@ WS		[ \t]
 				char *	key;
 
 				sym = sym_find(_currentIdentifierContext, yytext,&key);
+				if (key == 0) {
+					key = yytext;
+				}
 				if (VALUE(sym) == 0 && TYPEOF(sym) == 0) {
 retIdent:			yylval.ident.s = yystralloc(yytext);
 					yylval.ident.stringIsAlloced = 1;
@@ -532,9 +535,9 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					if (_bDefiningConst) {
 						goto retIdent;
 					}
-					yylval.ident.stringIsAlloced = 0;
+					yylval.ident.stringIsAlloced = 1;
 					yylval.ident.s = yystralloc((char *)VALUE(sym));
-					return T_IDENT;
+					return T_STRING;
 				}
 
 				if (TYPEOF(sym) == S_FLOAT) {
@@ -547,13 +550,13 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					yylval.ident.s = key;
 					return T_BOOLEANVAR;
 				}
-				if (TYPEOF(sym) == S_NUMBER || TYPEOF(sym) == S_DOLNUMBER) {
+				if (TYPEOF(sym) == S_NUMBER) {
 					yylval.ident.stringIsAlloced = 0;
 					yylval.ident.s = key;
 					return T_NUMVAR;
 				}
 
-				if (TYPEOF(sym) == S_STRING || TYPEOF(sym) == S_DOLSTRING) {
+				if (TYPEOF(sym) == S_STRING) {
 					yylval.ident.stringIsAlloced = 0;
 					yylval.ident.s = key;
 					return T_STRINGVAR;
@@ -565,6 +568,8 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 			}
 ==			return T_EQ;
 !=			return T_NE;
+\<=			return T_LE;
+\>=			return T_GE;
 !~			return T_NMATCH;
 &&			return T_AND;
 \|\|		return T_OR;

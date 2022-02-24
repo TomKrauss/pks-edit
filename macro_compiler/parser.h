@@ -79,8 +79,12 @@
      T_EQ = 295,
      T_OR = 296,
      T_AND = 297,
-     T_DEFMACRO = 298,
-     T_CMDSEQPREFIX = 299
+     T_LE = 298,
+     T_GE = 299,
+     T_DEFMACRO = 300,
+     T_CMDSEQPREFIX = 301,
+     T_GT = 302,
+     T_LT = 303
    };
 #endif
 

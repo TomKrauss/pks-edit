@@ -34,32 +34,23 @@ layout:
 
 */
 
-#define CT_NUM			0x00
-#define CT_EQ				0x01
-#define CT_NE				0x02
-#define CT_LT				0x03
-#define CT_GT				0x04
-#define CT_LE				0x05
-#define CT_GE				0x06
-#define CT_MATCH			0x07
-#define CT_NMATCH			0x08
-
-#define CT_STRING			0x10
-#define CT_SEQ			(CT_EQ|CT_STRING)
-#define CT_SNE			(CT_NE|CT_STRING)
-#define CT_SLT			(CT_LT|CT_STRING)
-#define CT_SGT			(CT_GT|CT_STRING)
-#define CT_SMATCH			(CT_MATCH|CT_STRING)
-#define CT_SNMATCH			(CT_NMATCH|CT_STRING)
+#define CT_EQ			0x01
+#define CT_NE			0x02
+#define CT_LT			0x03
+#define CT_GT			0x04
+#define CT_LE			0x05
+#define CT_GE			0x06
+#define CT_MATCH		0x07
+#define CT_NMATCH		0x08
 
 #define CT_NOT			0x21
 
 #define CT_AND			0x41
-#define CT_OR				0x42
+#define CT_OR			0x42
 #define CT_BRACKETS		0x43
 
-#define CT_HAS2NUMOPNDS(opcode)	(((opcode) & 0xF0) == CT_NUM)
-#define CT_HAS2STROPNDS(opcode)	(((opcode) & 0xF0) == CT_STRING)
+#define CT_IS_UNARY(opcode)		(opcode == CT_NOT)
+#define CT_IS_LOGICAL(opcode)	(opcode == CT_AND || opcode == CT_NOT || opcode == CT_OR)
 
 extern char *decompile_stringForTestOperator(unsigned char testop);
 

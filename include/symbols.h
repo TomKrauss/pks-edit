@@ -15,18 +15,17 @@
 # ifndef SYMBOLS_H
 
 typedef enum {
-	S_BOOLEAN = 12,
+	S_BOOLEAN = 1,
 	S_NUMBER = 2,
 	S_STRING = 3,
-	S_FLOAT = 11,
-	S_KEYWORD = 1,
-	S_DOLNUMBER = 4,
-	S_DOLSTRING = 5,
-	S_EDFUNC = 6,
-	S_TYPE = 7,
-	S_ENUM = 8,
-	S_CONSTNUM = 9,
-	S_CONSTSTRING = 10,
+	S_FLOAT = 4,
+	S_CHARACTER = 5,
+	S_KEYWORD = 6,
+	S_EDFUNC = 7,
+	S_TYPE = 8,
+	S_ENUM = 9,
+	S_CONSTNUM = 10,
+	S_CONSTSTRING = 11,
 } SYMBOL_TYPE;
 
 #define	TYPEOF(s)			((s).sym_type)
@@ -61,19 +60,10 @@ extern IDENTIFIER_CONTEXT* sym_pushContext(IDENTIFIER_CONTEXT* pParent);
 extern IDENTIFIER_CONTEXT* sym_popContext(IDENTIFIER_CONTEXT* pContext);
 
 /*--------------------------------------------------------------------------
- * sym_stringForSymbol()
+ * sym_getVariable()
+ * Returns the value associated with a symbol.
  */
-extern intptr_t sym_stringForSymbol(IDENTIFIER_CONTEXT* pContext, char* symbolname);
-
-/*--------------------------------------------------------------------------
- * sym_floatForSymbol()
- */
-extern double sym_floatForSymbol(IDENTIFIER_CONTEXT* pContext, char* symbolname);
-
-/*--------------------------------------------------------------------------
- * sym_integerForSymbol()
- */
-extern long sym_integerForSymbol(IDENTIFIER_CONTEXT* pContext, char* symbolname);
+extern PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char* symbolname);
 
 #define	SYMBOLS_H
 # endif

@@ -74,6 +74,31 @@ int function_getIndexOfFunction(EDFUNC *ep)
 }
 
 /*
+ * Returns the number of parameters of a native macro function.
+ */
+int function_getParameterCount(EDFUNC* ep) {
+	char* pT = ep->edf_paramTypes;
+
+	function_initializeFunctionsAndTypes();
+	int nCount = 0;
+	pT++;
+
+	while (*pT) {
+		if (*pT == PARAM_TYPE_ENUM || *pT == PARAM_TYPE_BITSET) {
+			while (*pT != '_') {
+				if (!*pT) {
+					return nCount;
+				}
+				pT++;
+			}
+		}
+		nCount++;
+		pT++;
+	}
+	return nCount;
+}
+
+/*
  * Returns the parameter descriptor for a function for the n-th parameter. Parameter count
  * starts with 1, parameter type 0 is the return type of the function.
  */

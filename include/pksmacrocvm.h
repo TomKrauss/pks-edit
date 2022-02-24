@@ -31,6 +31,8 @@
 #define	BIN_XOR			'^'
 #define	BIN_CAST		'C'
 
+#define IS_UNARY_OPERATOR(op)		(op == BIN_NOT || op == BIN_CAST)
+
 typedef union uGENERIC_DATA {
 	unsigned char uchar;
 	intptr_t val;
@@ -41,13 +43,13 @@ typedef union uGENERIC_DATA {
 	double   doubleValue;
 } GENERIC_DATA;
 
+// Must match the corresponding symbol types in symbols.h
 typedef enum {
-	VT_BOOLEAN = 12,
-	VT_INTEGER = 2,
+	VT_BOOLEAN = 1,
+	VT_NUMBER = 2,
 	VT_STRING = 3,
-	VT_FLOAT = 11,
-	VT_CHAR = 13,
-	VT_LONG
+	VT_FLOAT = 4,
+	VT_CHAR = 5
 } PKS_VALUE_TYPE;
 
 typedef struct tagPKS_VALUE {
@@ -65,11 +67,30 @@ struct tagEXECUTION_CONTEXT {
 	PKS_VALUE* ec_stackBottom;			// the bottom of the value stack
 	PKS_VALUE* ec_stackFrame;			// the stack bottom of the stack frame for the current macro executed
 	PKS_VALUE* ec_stackCurrent;			// the pointer to the current stack offset
+	PKS_VALUE* ec_parameterStack;		// the pointer to the current parameter stack offset.
 	PKS_VALUE* ec_stackMax;				// the top of the stack. Must not be overridden
+	void* ec_allocations;				// list of allocated objects to be released, when execution halts.
 	IDENTIFIER_CONTEXT* ec_identifierContext;
 };
 
 typedef struct tagEXECUTION_CONTEXT EXECUTION_CONTEXT;
+
+/*
+ * Pop one value of the stack of our stack machine
+ */
+extern PKS_VALUE interpreter_popStackValue(EXECUTION_CONTEXT* pContext);
+
+/*
+ * Mini memory management function of PKS MacroC, which temporarily allocates a string to
+ * be released later.
+ */
+extern char* interpreter_allocateString(EXECUTION_CONTEXT* pContext, const char* pszSource);
+
+/*
+ * Push one value onto the stack and raise an error, if that fails.
+ */
+extern int interpreter_pushValueOntoStack(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue);
+
 
 /*
  Bytecodes of a macro.
@@ -79,35 +100,42 @@ typedef struct tagEXECUTION_CONTEXT EXECUTION_CONTEXT;
  */
 
 typedef enum {
+	// Flow control
 	C_STOP  = 0,    			// eof sequence 
 	C_0FUNC = 0x1,  			// Function # (char) 
 	C_1FUNC = 0x2,  			// Function # (char) + 1 int Param 
 	C_MACRO = 0x3,  			// macro "macroname"
 	C_GOTO  = 0x4,  			// (conditionally) goto offset
-	C_TEST  = 0x6,  			// Test: testop p1 p2
-	C_BINOP = 0x7,  			// binary operation: binop a b
+
+	// Operations
+	C_LOGICAL_OPERATION = 0x6,	// Test: binary logical operation between stack[0] and stack[1]
+	C_BINOP = 0x7,  			// binary operation between stack[0] and stack[1]
 	C_ASSIGN= 0x8,  			// assign: a = stackval
-	C_DEFINE_PARAMETER  = 0x9,  // create symbol with type and value 
-	C_CHARACTER_LITERAL = 0x10, // 1 Ascii character follows 
-	C_STRING_LITERAL= 0x11, 	// 1 string Asciistring\0 follows {pad} 
-	C_INTEGER_LITERAL   = 0x12, // pad, 1 int Parameter follows 
-	C_LONG_LITERAL  = 0x13, 	// pad, 1 long Parameter follows 
-	C_FLOAT_LITERAL = 0x14, 	// floating point literal
-	C_BOOLEAN_LITERAL   = 0x15, // 1 Ascii character follows 
-	C_STRINGVAR = 0x16, 		// variable reference to string
-	C_LONGVAR   = 0x17, 		// variable reference to long value
-	C_FORMSTART = 0x18, 		// formular with parameters ...
-	C_PUSH_VARIABLE = 0x20,		// Push a variable onto the stack
-	C_PUSH_LITERAL = 0x24,		// push a literal onto the stack
-	C_FURET = 0x20, 			// next function return is saved 
-	C_FLOATVAR  = 0x21, 		// Floating point parameter
-	C_BOOLEANVAR= 0x22, 		// Boolean parameter
-	C_DEFINE_VARIABLE   = 0x23  // define a variable with type and value 
+
+	// Push objects onto the stack
+	C_PUSH_CHARACTER_LITERAL = 0x10, // Push character literal. 1 Ascii character follows 
+	C_PUSH_STRING_LITERAL = 0x11, 	// Push string literal, 1 string Asciistring\0 follows {pad} 
+	C_PUSH_INTEGER_LITERAL   = 0x12, // Push Integer literal, pad, 1 int Parameter follows 
+	C_PUSH_LONG_LITERAL  = 0x13, 	// Push long literal, pad, 1 long Parameter follows 
+	C_PUSH_FLOAT_LITERAL = 0x14, 	// Push floating point literal
+	C_PUSH_BOOLEAN_LITERAL   = 0x15, // Push boolean literal 1 Ascii character follows 
+	C_PUSH_VARIABLE = 0x16, 	// variable reference to string
+	C_FORM_START = 0x17, 			// formular with parameters ...
+	
+	// Define parameters and variables
+	C_DEFINE_PARAMETER = 0x18,		// create symbol with type and value 
+	C_DEFINE_VARIABLE = 0x19,		// define a variable with type and value 
+
+	// Stack manipulation
+	C_SET_STACKFRAME = 0x20,		// start a new stack frame in an invoked method (after parameter have been retrieved)
+	C_SET_PARAMETER_STACK = 0x21,	// save the current stack pointer as the bottom of the parameter stack.
+	C_POP_STACK = 0x22				// pop one element of the stack. Marks the end of a statement.
 } MACROC_INSTRUCTION_OP_CODE;
 
 
-#define	C_IS1PAR(typ)	(typ & 0x10)
-#define	C_ISCMD(typ)	(typ >= C_0FUNC && typ <= C_MACRO)
+#define	C_IS1PAR(typ)			 (typ & 0x10)
+#define	C_ISCMD(typ)			 (typ >= C_0FUNC && typ <= C_MACRO)
+#define C_IS_PUSH_OPCODE(opCode) (opCode >= C_PUSH_CHARACTER_LITERAL && opCode <= C_FORM_START)
 
 #define	C_NONE			0xFF
 
@@ -120,19 +148,25 @@ typedef enum {
  * typ: the bytecode
  * s: pointer to the bytecode buffer past(!) the opcode (instructionPointer+1)
  */
-int  interpreter_getParameterSize(unsigned char typ, const char* s);
+extern int interpreter_getParameterSize(unsigned char typ, const char* s);
 
-/*--------------------------------------------------------------------------
- * interpreter_popParameter()
- * pop data from execution stack
+/*
+ * Generic coercion function to coerce PKS-Edit values.
  */
-GENERIC_DATA interpreter_popParameter(EXECUTION_CONTEXT* pContext, unsigned char** sp);
+extern PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_VALUE_TYPE tTargetType);
 
 typedef struct c_1func {
-	unsigned char  typ;				// C_1FUNC or C_0FUNC - defines the number of parameters to pass
-	unsigned char  funcnum;			// index into editor function table _functionTable
+	unsigned char	typ;			// C_1FUNC - carries one explicit param to pass
+	unsigned char	funcnum;		// index into editor function table _functionTable
 	long			p;				// optional parameter to pass
 } COM_1FUNC;
+
+typedef struct c_0func {
+	unsigned char typ;				// C_0FUNC all params are located on the stack
+	unsigned char funcnum;			// index in function table 
+	int			  func_nargs;		// Number of arguments passed
+} COM_0FUNC;
+
 
 /*
  * Describes an editor command.
@@ -143,11 +177,6 @@ typedef struct tagCOMMAND {
 	char* c_name;					// name of the command used in macros
 } COMMAND;
 
-typedef struct c_0func {
-	unsigned char typ;				// C_0FUNC
-	unsigned char funcnum;			// index in function table 
-} COM_0FUNC;
-
 typedef struct c_ident {
 	unsigned char typ;				// C_MACRO 
 	unsigned char name[1];			// 0-term. string padded to even # 
@@ -156,12 +185,8 @@ typedef struct c_ident {
 typedef struct c_ident COM_VAR;
 
 typedef struct c_assign {
-	unsigned char 	typ;			// C_ASSIGN
-	unsigned char 	res;
-	int		    	opoffset;		// source operand offset
-	int		    	size;			// size of total assignment
-	unsigned char	name[1];		// variable name
-									// operand (src) follows
+	unsigned char 	typ;			// C_ASSIGN assign current stack top to a variable
+	unsigned char	name[1];		// variable name of variable assigned
 } COM_ASSIGN;
 
 typedef struct c_createsym {
@@ -182,24 +207,14 @@ typedef struct c_goto {
 	int		    offset;
 } COM_GOTO;
 
-typedef struct c_test {
-	unsigned char typ;				// C_TEST 
-	unsigned char testop;			// see test.h 
-	int		    p2offset;
-	int		    size;
-} COM_TEST;
-
 typedef struct c_binop {
 	unsigned char typ;				// C_BINOP 
 	unsigned char op;				// see above BIN_ADD etc... 
-	int           op1offset;		// points to COM_1STRING,....
-	int           op2offset;		// points to COM_1STRING,.... 
-	int		    size;				// total size of binop
-	unsigned char result[1];		// result variable name
+	PKS_VALUE_TYPE targetType;		// for cast operators this is the target type.
 } COM_BINOP;
 
 typedef struct c_char1 {
-	unsigned char typ;				// C_CHARACTER_LITERAL C_PUSH_LITERAL char
+	unsigned char typ;				// C_PUSH_CHARACTER_LITERAL C_PUSH_LITERAL char
 	unsigned char val;
 } COM_CHAR1;
 
@@ -211,19 +226,19 @@ typedef struct c_stop {
 } COM_STOP;
 
 typedef struct c_int1 {
-	unsigned char	typ;			// C_INTEGER_LITERAL, C_PUSH_LITERAL int
+	unsigned char	typ;			// C_PUSH_INTEGER_LITERAL, C_PUSH_LITERAL int
 	unsigned char	c_valueType;
 	int				val;
 } COM_INT1;
 
 typedef struct c_float1 {
-	unsigned char typ;				// C_INTEGER_LITERAL, C_PUSH_FLOAT int
+	unsigned char typ;				// C_PUSH_INTEGER_LITERAL, C_PUSH_FLOAT int
 	unsigned char	c_valueType;
 	double		  val;
 } COM_FLOAT1;
 
 typedef struct c_long1 {
-	unsigned char typ;				// C_LONG_LITERAL, C_PUSH_FLOAT int
+	unsigned char typ;				// C_PUSH_LONG_LITERAL, C_PUSH_FLOAT int
 	unsigned char	c_valueType;
 	intptr_t  	  val;
 } COM_LONG1;
@@ -276,6 +291,7 @@ extern COMPILER_CONFIGURATION* _compilerConfiguration;
  * macro already exists, it is deleted.
  */
 extern int macro_insertNewMacro(char* name, char* comment, BYTECODE_BUFFER* pBuffer);
+
 
 #define PKSMACROCVM_H
 #endif

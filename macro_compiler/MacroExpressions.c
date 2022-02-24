@@ -26,94 +26,52 @@
 #include "symbols.h"
 #include "errordialogs.h"
 
-extern intptr_t		interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **sp, COM_1FUNC *spend);
+extern long long number(char* s);
 
 /*--------------------------------------------------------------------------
  * macro_isParameterStringType()
  */
 int macro_isParameterStringType(unsigned char typ) {
-	return typ == C_STRING_LITERAL || typ == C_STRINGVAR;
-}
-
-/*--------------------------------------------------------------------------
- * macro_isParameterFloatType()
- */
-int macro_isParameterFloatType(unsigned char typ) {
-	return typ == C_FLOAT_LITERAL || typ == C_FLOATVAR;
+	return typ == C_PUSH_STRING_LITERAL || typ == C_PUSH_VARIABLE;
 }
 
 /*
- * macro_getNumberParameter()
+ * Generic coercion function to coerce PKS-Edit values.
  */
-static long long macro_getNumberParameter(EXECUTION_CONTEXT* pContext, unsigned char *sp,unsigned char *spend) {
-	char *		s;
-	extern long long number(char *s);
-
-	switch(*sp) {
-		case C_STRING_LITERAL:
-		case C_STRINGVAR:
-			s = (char *)interpreter_popParameter(pContext, &sp).string;
-			return number(s);
-		case C_CHARACTER_LITERAL:
-		case C_INTEGER_LITERAL:
-		case C_FLOAT_LITERAL:
-		case C_LONG_LITERAL:
-		case C_FLOATVAR:
-		case C_LONGVAR:
-			return interpreter_popParameter(pContext, &sp).longValue;
-		case C_MACRO:
-		case C_0FUNC:
-		case C_1FUNC:
-			return (long long)interpreter_doMacroFunctions(pContext, (COM_1FUNC**)&sp, (COM_1FUNC*)spend);
+PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_VALUE_TYPE tTargetType) {
+	if (nValue.sym_type == tTargetType) {
+		return nValue;
 	}
-	return 0L;
-}
-
-/*
- * macro_getDoubleParameter()
- */
-static double macro_getDoubleParameter(EXECUTION_CONTEXT* pContext, unsigned char* sp, unsigned char* spend) {
-	char* s;
-	double d;
-
-	switch (*sp) {
-	case C_STRING_LITERAL:
-	case C_STRINGVAR:
-		s = (char*)interpreter_popParameter(pContext, &sp).string;
-		sscanf(s, "%lf", &d);
-		return d;
-	case C_FLOAT_LITERAL:
-	case C_FLOATVAR:
-		return interpreter_popParameter(pContext, &sp).doubleValue;
-	default:
-		return (double)macro_getNumberParameter(pContext, sp, spend);
+	if (tTargetType == S_FLOAT) {
+		if (nValue.sym_type == S_STRING) {
+			double d;
+			sscanf(nValue.sym_data.string, "%lf", &d);
+			return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.doubleValue = d };
+		}
+		return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.doubleValue = (double)nValue.sym_data.longValue };
 	}
-}
-
-/*
- * macro_getStringParameter()
- */
-char *macro_getStringParameter(EXECUTION_CONTEXT* pContext, unsigned char *sp) {
-	long long lVal;
-	static char buf[20];
-
-	switch(*sp) {
-		case C_STRING_LITERAL:
-		case C_STRINGVAR:
-			return (char *)interpreter_popParameter(pContext, &sp).string;
-		case C_FLOAT_LITERAL:
-		case C_FLOATVAR:
-			sprintf(buf, "%.2lf", interpreter_popParameter(pContext, &sp).doubleValue);
-			return buf;
-		case C_CHARACTER_LITERAL:
-		case C_INTEGER_LITERAL:
-		case C_LONG_LITERAL:
-		case C_LONGVAR:
-			lVal = interpreter_popParameter(pContext, &sp).longValue;
-			sprintf(buf,"%lld", lVal);
-			return buf;
+	if (tTargetType == S_NUMBER) {
+		if (nValue.sym_type == S_STRING) {
+			return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.longValue = number(nValue.sym_data.string) };
+		}
+		if (nValue.sym_type == S_FLOAT) {
+			return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.longValue = (long long)nValue.sym_data.doubleValue };
+		}
+		return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.longValue = nValue.sym_data.longValue };
 	}
-	return "";
+	if (tTargetType == S_BOOLEAN) {
+		return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.booleanValue = nValue.sym_data.longValue != 0 };
+	}
+	if (tTargetType == S_STRING) {
+		char buf[20];
+		if (nValue.sym_type == S_FLOAT) {
+			sprintf(buf, "%.2lf", nValue.sym_data.doubleValue);
+		} else {
+			sprintf(buf, "%lld", nValue.sym_data.longValue);
+		}
+		return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.string = interpreter_allocateString(pContext, buf) };
+	}
+	return nValue;
 }
 
 /*
@@ -136,11 +94,7 @@ static int strmatch(char *s1,char *s2) {
 	}
 	RE_MATCH match;
 
-#if defined(ATARI_ST)
-	if regex_match(&pattern, s1, (long)eol) &&
-#else
 	if (regex_match(&pattern, s1, eol, &match) &&
-#endif
 	    match.loc1 == s1 && match.loc2 == eol)
 		return 1;
 
@@ -148,105 +102,113 @@ static int strmatch(char *s1,char *s2) {
 }
 
 /*--------------------------------------------------------------------------
- * macro_testExpression()
+ * interpreter_testExpression()
  * Test an expression in a macro.
  */
-int macro_testExpression(EXECUTION_CONTEXT* pContext, COM_TEST *sp) {
-	long long r1,r2;
-	unsigned char *s1,*s2,*p2,*pend;
+int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
+	PKS_VALUE v1;
+	PKS_VALUE v2;
+	BOOL bResult = FALSE;
 	unsigned char op;
 
 	if (!sp)
 		return 0;
 
-	op = sp->testop;
-	p2 = (unsigned char *)(sp)+sp->p2offset;
-	pend = (unsigned char *)(sp)+sp->size; 
-	sp++;
-	if (CT_HAS2NUMOPNDS(op)) {
-		r1 = macro_getNumberParameter(pContext, (unsigned char *)sp,p2);
-		r2 = macro_getNumberParameter(pContext, p2,pend);
+	op = sp->op;
+	v1 = interpreter_popStackValue(pContext);
+	if (!CT_IS_UNARY(op)) {
+		v2 = v1;
+		v1 = interpreter_popStackValue(pContext);
+	}
+	if (v1.sym_type != S_STRING && !CT_IS_LOGICAL(op)) {
+		long long r1, r2;
+		v1 = interpreter_coerce(pContext, v1, S_NUMBER);
+		v2 = interpreter_coerce(pContext, v2, S_NUMBER);
+		r1 = v1.sym_data.longValue;
+		r2 = v2.sym_data.longValue;
 		switch(op) {
-			case CT_EQ: return r1 == r2;
-			case CT_NE: return r1 != r2;
-			case CT_GT: return r1 > r2;
-			case CT_LT: return r1 < r2;
+			case CT_EQ: bResult = r1 == r2; break;
+			case CT_NE: bResult = r1 != r2; break;
+			case CT_GT: bResult = r1 > r2; break;
+			case CT_LT: bResult = r1 < r2; break;
 			default   : goto notimpl;
 		}
-	} else if (CT_HAS2STROPNDS(op)) {
-		s1 = macro_getStringParameter(pContext, (unsigned char *)sp);
-		s2 = macro_getStringParameter(pContext, p2);
-		if (op != CT_SMATCH && op != CT_SNMATCH)
+	} else if (v1.sym_type == S_STRING) {
+		int r1;
+		v1 = interpreter_coerce(pContext, v1, S_STRING);
+		v2 = interpreter_coerce(pContext, v2, S_STRING);
+		unsigned char* s1, * s2;
+		s1 = v1.sym_data.string;
+		s2 = v2.sym_data.string;
+		if (op != CT_MATCH && op != CT_NMATCH)
 			r1 = strcmp(s1,s2);
 		else
 			r1 = strmatch(s1,s2);
 		switch(op) {
-			case CT_SEQ: return (r1 == 0);
-			case CT_SNE: return (r1 != 0);
-			case CT_SGT: return (r1 > 0);
-			case CT_SLT: return (r1 < 0);
-			case CT_SMATCH:  return r1 == 1;
-			case CT_SNMATCH: return r1 == 0;
+			case CT_EQ: bResult = (r1 == 0); break;
+			case CT_NE: bResult = (r1 != 0); break;
+			case CT_GT: bResult = (r1 > 0); break;
+			case CT_LT: bResult = (r1 < 0); break;
+			case CT_MATCH:  bResult = r1 == 1; break;
+			case CT_NMATCH: bResult = r1 == 0; break;
 			default    : 
-notimpl:			error_displayAlertDialog("test: ~ OP 0x%x not implemented",op);
-					return 0;
+notimpl:		error_displayAlertDialog("test: ~ OP 0x%x not implemented",op);
 		}
-	} else
-		switch(op) {
-			case CT_NOT: return !macro_testExpression(pContext, sp);
-			case CT_AND: return macro_testExpression(pContext, sp) && macro_testExpression(pContext, (COM_TEST*)p2);
-			case CT_OR:  return macro_testExpression(pContext, sp) || macro_testExpression(pContext, (COM_TEST*)p2);
-			case CT_BRACKETS: return macro_testExpression(pContext, sp);
-			default: goto notimpl;
+	} else {
+		v1 = interpreter_coerce(pContext, v1, S_BOOLEAN);
+		BOOL bBool1 = v1.sym_data.booleanValue;
+		BOOL bBool2;
+		if (!CT_IS_UNARY(op)) {
+			v2 = interpreter_coerce(pContext, v2, S_BOOLEAN);
+			bBool2 = v2.sym_data.booleanValue;
 		}
+		switch (op) {
+		case CT_NOT: bResult = !bBool1; break;
+		case CT_AND: bResult = bBool1 && bBool2; break;
+		case CT_OR: bResult = bBool1 || bBool2; break;
+		case CT_BRACKETS: bResult = bBool1;
+		default: goto notimpl;
+		}
+	}
+	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) {.sym_type = S_BOOLEAN, .sym_data.booleanValue = bResult});
+	return 1;
 }
+
 
 /*--------------------------------------------------------------------------
  * macro_evaluateBinaryExpression()
  */
-void macro_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp)
-{	long long		r1;
-	long long		r2;
-	int				typ1;
-	int				typ2;
+void macro_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {	
+	PKS_VALUE v1;
+	PKS_VALUE v2;
 	unsigned char 	op;
-	unsigned char *	p1;
-	unsigned char *	p2;
-	unsigned char *	pend;
-	char			buf[1024];
 
 	if (!sp)
 		return;
-
+	v1 = interpreter_popStackValue(pContext);
 	op = sp->op;
-	
-	p1 = (unsigned char *)(sp)+sp->op1offset;
-	pend = (unsigned char *)(sp)+sp->size;
-	p2 = (unsigned char *)(sp)+sp->op2offset;
-	typ1 = *p1;
-	typ2 = *p2;
-
-	if (op == BIN_CAST) {
-		if (macro_isParameterStringType(typ1)) {
-			// (T) use current method execution context
-			sym_makeInternalSymbol(pContext->ec_identifierContext, sp->result, S_NUMBER, (GENERIC_DATA) {
-				.longValue = macro_getNumberParameter(pContext, p1, p2)
-			});
-		} else {
-			sym_makeInternalSymbol(pContext->ec_identifierContext, sp->result, S_STRING, (GENERIC_DATA) {
-				.string = macro_getStringParameter(pContext, p1)
-			});
-		}
-		return;	
+	if (!IS_UNARY_OPERATOR(op)) {
+		v2 = v1;
+		v1 = interpreter_popStackValue(pContext);
 	}
 
-	if (!macro_isParameterStringType(typ1) && !macro_isParameterStringType(typ2)) {
-		if (macro_isParameterFloatType(typ1) || macro_isParameterFloatType(typ2)) {
-			// one operand at least is numeric - force numeric calculations
-			double d1 = macro_getDoubleParameter(pContext, p1, p2);
-			double d2 = macro_getDoubleParameter(pContext, p2, pend);
-			switch (op) {
+	if (op == BIN_CAST) {
+		if (sp->targetType == v1.sym_type) {
+			interpreter_pushValueOntoStack(pContext, v1);
+			return;
+		}
+		interpreter_pushValueOntoStack(pContext, interpreter_coerce(pContext, v1, sp->targetType));
+		return;
+	}
 
+	if (v1.sym_type != S_STRING && v2.sym_type != S_STRING) {
+		if (v1.sym_type == S_FLOAT || v2.sym_type == S_FLOAT) {
+			v1 = interpreter_coerce(pContext, v1, S_FLOAT);
+			v2 = interpreter_coerce(pContext, v2, S_FLOAT);
+			// one operand at least is numeric - force numeric calculations
+			double d1 = v1.sym_data.doubleValue;
+			double d2 = v2.sym_data.doubleValue;
+			switch (op) {
 			case BIN_NOT: d1 = !d1; break;
 			case BIN_ADD: d1 += d2; break;
 			case BIN_SUB: d1 -= d2; break;
@@ -262,14 +224,16 @@ void macro_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp)
 				error_displayAlertDialog("binop: ~ OP %c not implemented for float numbers", op);
 				d1 = 0;
 			}
-			sym_makeInternalSymbol(pContext->ec_identifierContext, sp->result, S_FLOAT, (GENERIC_DATA) {
-				.doubleValue = d1
-			});
+			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) {.sym_type = S_FLOAT, .sym_data.doubleValue = d1});
 			return;
 		}
+		v1 = interpreter_coerce(pContext, v1, S_NUMBER);
+		v2 = interpreter_coerce(pContext, v2, S_NUMBER);
+		long long		r1;
+		long long		r2;
 		// one operand at least is numeric - force numeric calculations
-		r1 = macro_getNumberParameter(pContext, p1,p2);
-		r2 = macro_getNumberParameter(pContext, p2,pend);
+		r1 = v1.sym_data.longValue;
+		r2 = v2.sym_data.longValue;
 		switch(op) {
 
 		case BIN_NOT: r1 = !r1; break;
@@ -296,15 +260,17 @@ void macro_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp)
 			error_displayAlertDialog("binop: ~ OP %c not implemented",op);
 			r1 = 0;
 		}
-		sym_makeInternalSymbol(pContext->ec_identifierContext, sp->result, S_NUMBER, (GENERIC_DATA) {
-			.longValue = r1
-		});
+		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_NUMBER, .sym_data.longValue = r1 });
 		return;
 	}
-	p1 = macro_getStringParameter(pContext, p1);
-	p2 = macro_getStringParameter(pContext, p2);
+	unsigned char* p1;
+	unsigned char* p2;
+	char		   buf[1024];
+	v1 = interpreter_coerce(pContext, v1, S_STRING);
+	v2 = interpreter_coerce(pContext, v2, S_STRING);
+	p1 = v1.sym_data.string;
+	p2 = v2.sym_data.string;
 	*buf = 0;
-
 	switch(op) {
 
 	case BIN_ADD: {
@@ -336,8 +302,6 @@ void macro_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp)
 		error_displayAlertDialog("string binop %c not impl.",op);
 
 	}
-	sym_makeInternalSymbol(pContext->ec_identifierContext, sp->result, S_STRING, (GENERIC_DATA) {
-		.string = buf
-	});
+	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_STRING, .sym_data.string = interpreter_allocateString(pContext, buf) });
 }
 

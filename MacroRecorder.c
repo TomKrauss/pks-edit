@@ -97,27 +97,26 @@ void recorder_pushSequence(unsigned char typ, void* par) {
 	}
 
 	switch (typ) {
-	case C_FURET:
 	case C_0FUNC:
-	case C_CHARACTER_LITERAL:
+	case C_PUSH_CHARACTER_LITERAL:
 		((COM_CHAR1*)sp)->val = (unsigned char)par;
 		break;
-	case C_FORMSTART:
+	case C_FORM_START:
 		*(COM_FORM*)sp = *(COM_FORM*)par;
 		break;
 	case C_1FUNC:
 		*(COM_1FUNC*)sp = *(COM_1FUNC*)par;
 		break;
-	case C_INTEGER_LITERAL:
+	case C_PUSH_INTEGER_LITERAL:
 		((COM_INT1*)sp)->val = (int)(intptr_t)par;
 		break;
-	case C_LONG_LITERAL:
+	case C_PUSH_LONG_LITERAL:
 		((COM_LONG1*)sp)->val = (long)(intptr_t)par;
 		break;
-	case C_FLOAT_LITERAL:
+	case C_PUSH_FLOAT_LITERAL:
 		((COM_FLOAT1*)sp)->val = (double)(intptr_t)par;
 		break;
-	case C_STRING_LITERAL:
+	case C_PUSH_STRING_LITERAL:
 	case C_MACRO:
 		strcpy(((COM_MAC*)sp)->name, (char*)par);
 		break;
@@ -147,11 +146,11 @@ void recorder_recordFunctionWithParameters(int fnum, int p, intptr_t p2, char* s
 	c.p = p;
 
 	recorder_pushSequence(C_1FUNC, (void*)&c);
-	if (p2) recorder_pushSequence(C_LONG_LITERAL, (void*)p2);
+	if (p2) recorder_pushSequence(C_PUSH_LONG_LITERAL, (void*)p2);
 	if (s1) {
-		recorder_pushSequence(C_STRING_LITERAL, (void*)s1);
+		recorder_pushSequence(C_PUSH_STRING_LITERAL, (void*)s1);
 		if (s2)
-			recorder_pushSequence(C_STRING_LITERAL, (void*)s2);
+			recorder_pushSequence(C_PUSH_STRING_LITERAL, (void*)s2);
 	}
 }
 
@@ -188,25 +187,25 @@ int recorder_recordOperation(PARAMS* pp)
 	if ((opt & FORM_INIT) == 0)
 		cf.nfields = 0;
 
-	recorder_pushSequence(C_FORMSTART, &cf);
+	recorder_pushSequence(C_FORM_START, &cf);
 
 	dp = pp->el;
 	for (i = cf.nfields; i > 0; i--, dp++) {
 		switch (dp->cmd_type) {
-		case C_INTEGER_LITERAL:
-			recorder_pushSequence(C_INTEGER_LITERAL, (void*)((intptr_t)*dp->p.i));
+		case C_PUSH_INTEGER_LITERAL:
+			recorder_pushSequence(C_PUSH_INTEGER_LITERAL, (void*)((intptr_t)*dp->p.i));
 			break;
-		case C_CHARACTER_LITERAL:
-			recorder_pushSequence(C_CHARACTER_LITERAL, (void*)((intptr_t)*dp->p.c));
+		case C_PUSH_CHARACTER_LITERAL:
+			recorder_pushSequence(C_PUSH_CHARACTER_LITERAL, (void*)((intptr_t)*dp->p.c));
 			break;
-		case C_FLOAT_LITERAL:
-			recorder_pushSequence(C_FLOAT_LITERAL, (void*)((intptr_t)*dp->p.d));
+		case C_PUSH_FLOAT_LITERAL:
+			recorder_pushSequence(C_PUSH_FLOAT_LITERAL, (void*)((intptr_t)*dp->p.d));
 			break;
-		case C_LONG_LITERAL:
-			recorder_pushSequence(C_LONG_LITERAL, (void*)((intptr_t)*dp->p.l));
+		case C_PUSH_LONG_LITERAL:
+			recorder_pushSequence(C_PUSH_LONG_LITERAL, (void*)((intptr_t)*dp->p.l));
 			break;
-		case C_STRING_LITERAL:
-			recorder_pushSequence(C_STRING_LITERAL, (void*)dp->p.s);
+		case C_PUSH_STRING_LITERAL:
+			recorder_pushSequence(C_PUSH_STRING_LITERAL, (void*)dp->p.s);
 			break;
 		}
 	}

@@ -1,59 +1,61 @@
-const	code = "";
+const	STRING_CONSTANT = "hello world - I am a PKSMacroC constant";
+const   MY_NUMBER_CONSTANT = 4711;
 
-#########################################################################
-# Restyle-Block
-# restyle the current block in a given attribute
-# attribute type is passed via string variable "code"
-#
-macro Restyle-Block()
+/*
+ * Restyle-Block
+ * restyle the current block in a given attribute
+ * attribute type is passed via string variable "code"
+ */
+macro Restyle-Block(string restyleCode)
 {
-	SetMark(FO_INIT,'?');
+	SetMark(FORM_INIT,'?');
 	if (!FindBlockEnd() || !FindBlockStart()) {
-		Alert("kein Block markiert");
+		Alert("No current selection");
 		return 0;
 	}
-	Replace(FO_INIT,".","",1,REP_REPLACE,RNG_BLOCK,RE_DOREX,0);
+	Alert(STRING_CONSTANT);
+	Replace(FORM_INIT,".","",1,REP_REPLACE,RNG_BLOCK,RE_DOREX,MY_NUMBER_CONSTANT);
 	FindBlockEnd();
 	InsertString("€");
-	if (code != "") {
+	if (restyleCode != "") {
 		FindBlockStart();
-		InsertString(code);
+		InsertString(restyleCode);
 		SetBlockMark(MARK_START);
 	}
-	GotoMark(FO_INIT,'?');
+	GotoMark(FORM_INIT,'?');
 }
 
-#########################################################################
-# Underline-Block
-# restyle the currently marked block underlined
-#
+/*
+ * Underline-Block
+ * restyle the currently marked block underlined
+ */
 macro Underline-Block()
 {
-	string code = "ˆ";
+	string restyleCode = "ˆ";
 	
-	Restyle-Block();
+	Restyle-Block(restyleCode);
 }
 
-#########################################################################
-# Italicise-Block
-# restyle the currently marked block underlined
-#
+/*
+ * Italicise-Block
+ * restyle the currently marked block underlined
+ */
 macro Italicise-Block()
 {
-	string code = "„";
+	string restyleCode = "„";
 	
-	Restyle-Block();
+	Restyle-Block(restyleCode);
 }
 
-#########################################################################
-# Remove-Block-Atrtributes
-# restyle the currently marked block underlined
-#
+/*
+ * Remove-Block-Atrtributes
+ * restyle the currently marked block underlined
+ */
 macro Remove-Block-Atrtributes()
 {
-	string code = "";
+	string restyleCode = "";
 	
-	Restyle-Block();
+	Restyle-Block(restyleCode);
 }
 
 

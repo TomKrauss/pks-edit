@@ -5,6 +5,9 @@ This file contains the release notes for the latest **PKS Edit** releases.
 --- 
 ### 2.2.0
 
+This release features besides the new __multi-caret__ editing feature a major update of the PKSMacroC language
+and related tools.
+
 #### New
 - PKS Edit supports now __multi-caret__ editing. Multi-caret editing is started by placing additional carets
  with the mouse (`Alt+Click`) or by inserting a template which uses multi-caret input. In multi-caret mode all character inserts
@@ -19,6 +22,7 @@ commands which show an explanation about the command.
 - One can now debug print the low level instructions of PKSMacroC macros (from the macro dialog).
 - /* */ comments in macros are now supported and automatically attached to a macro as a comment (e.g. used as help in code completion), 
   if placed in front of a macro definition.
+- Decompilation of macros will better reverse engineer control flow expressions (if, while, else....).
 
 ### Changed
 - all files previously stored in the old Windows INI-file format (`pksedit.his`, `pksedit.ini`) were replaced by JSON formatted files:

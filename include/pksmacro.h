@@ -268,11 +268,6 @@ extern void recorder_stopAutoInsertRecording(void** pRecordBufferLow, void** pRe
  */
 extern int macro_isParameterStringType(unsigned char typ);
 
-/*--------------------------------------------------------------------------
- * macro_isParameterFloatType()
- */
-extern int macro_isParameterFloatType(unsigned char typ);
-
 #ifndef DIM
 #define DIM(x)		sizeof(x)/sizeof(x[0])
 #endif

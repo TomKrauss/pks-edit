@@ -62,7 +62,7 @@ int param_space(unsigned char typ, char *s)
 			return sizeof(COM_CHAR1);
 		case C_1FUNC:
 			return sizeof(COM_1FUNC);
-		case C_FORMSTART:
+		case C_FORM_START:
 			return sizeof(COM_FORM);
 		case C_GOTO:
 			return sizeof(COM_GOTO);
@@ -77,7 +77,7 @@ int param_space(unsigned char typ, char *s)
 		case C_LONG1PAR:
 			/* only if your alignment = 2,2,2 */
 			return sizeof(COM_LONG1);
-		case C_STRINGVAR:
+		case C_PUSH_VARIABLE:
 		case C_LONGVAR:
 		case C_MACRO:
 		case C_STRING1PAR:
@@ -85,7 +85,7 @@ int param_space(unsigned char typ, char *s)
 					(strlen(s)+1)*sizeof(*s);
 			if (size & 1) size++;
 			return size;
-		case C_TEST:
+		case C_LOGICAL_OPERATION:
 			return sizeof(COM_TEST);
 		case C_DATA:
 			size = sizeof(COM_DATA) + ((COM_DATA*)s)->size;
