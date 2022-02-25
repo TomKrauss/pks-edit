@@ -26,7 +26,7 @@ extern int windowselector_registerWindowClass();
  * windowselector_showWindowList()
  * Shows the window selector list.
  */
-extern int windowselector_showWindowList();
+extern long long windowselector_showWindowList();
 
 /*
  * Returns != 0, if the passed HWND is a window handle to be used by the window selector.

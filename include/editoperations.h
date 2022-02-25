@@ -20,12 +20,12 @@
  /*
   * Comment in/out the selected lines in the current editor.
   */
-extern int edit_toggleComment();
+extern long long edit_toggleComment();
 
 /*
  * Insert a string into the current file at the current cursor position.
  */
-extern int edit_insertString(long unused, long u2, const char* pszString);
+extern long long edit_insertString(long unused, long u2, const char* pszString);
 
 /*--------------------------------------------------------------------------
  * Perform the given operation on the lines of the current file. Some of
@@ -33,7 +33,7 @@ extern int edit_insertString(long unused, long u2, const char* pszString);
  */
  /* Flags for marked line delta */
 typedef enum { MLN_DELETE = 0, MLN_JOIN = 1, MLN_TOGGLE = 2, MLN_FINDSOFT = 3, MLN_MAKESOFT = 4, MLN_MAKEHARD = 5, MLN_CUT = 6 } MARKED_LINE_OPERATION;
-extern int edit_performLineFlagOperation(MARKED_LINE_OPERATION op);
+extern long long edit_performLineFlagOperation(MARKED_LINE_OPERATION op);
 
  /*--------------------------------------------------------------------------
   * edit_convertCharacterCase()
@@ -41,14 +41,14 @@ extern int edit_performLineFlagOperation(MARKED_LINE_OPERATION op);
   * the passed operation flag.
   */
 typedef enum { CC_TOGGLE, CC_UPPER, CC_LOWER} CC_OPERATION;
-extern int edit_convertCharacterCase(CC_OPERATION operation);
+extern long long edit_convertCharacterCase(CC_OPERATION operation);
 
 /*--------------------------------------------------------------------------
  * edit_insertLine()
  * create newline and insert it
  */
 typedef enum {ELO_CARET_STAYS = 0, ELO_CARET_FOLLOWS = 1, ELO_APPEND = 0x200} EDIT_LINE_OPTIONS;
-extern int edit_insertLine(EDIT_LINE_OPTIONS control);
+extern long long edit_insertLine(EDIT_LINE_OPTIONS control);
 
 #define EDIT_OPERATIONS_H
 #endif

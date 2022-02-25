@@ -61,8 +61,6 @@ typedef struct tagPKS_VALUE {
 	GENERIC_DATA	sym_data;
 } PKS_VALUE;
 
-extern int interpreter_getDollarParameter(intptr_t offset, PKS_VALUE* pValue);
-
 typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 
 #define MAX_STACK_SIZE		256
@@ -202,12 +200,12 @@ typedef struct c_createsym {
 } COM_CREATESYM;
 
 #define	BRA_ALWAYS		0
-#define	BRA_NE			1
-#define	BRA_EQ			2
+#define	BRA_IF_FALSE			1
+#define	BRA_IF_TRUE			2
 
 typedef struct c_goto {
 	unsigned char typ;				// C_GOTO, C_GOCOND */
-	unsigned char bratyp;			// BRA_ALWAYS, BRA_NE, BRA_EQ, */
+	unsigned char bratyp;			// BRA_ALWAYS, BRA_IF_FALSE, BRA_IF_TRUE, */
 	int		    offset;
 } COM_GOTO;
 

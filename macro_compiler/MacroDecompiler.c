@@ -174,23 +174,19 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 			val = (long long)((COM_LONG1 *)sp)->val;
 			break;
 		case C_PUSH_STRING_LITERAL:
-			if (partyp.pt_type != PARAM_TYPE_STRING && partyp.pt_type != PARAM_TYPE_VOID)
-				goto err;
-			sprintf(pszBuf,"\"%s\"",decompile_quoteString(((COM_STRING1*)sp)->s));
+			sprintf(pszBuf, "\"%s\"", decompile_quoteString(((COM_STRING1*)sp)->s));
 			return 1;
 		case C_PUSH_VARIABLE:
 			strcpy(pszBuf, ((COM_VAR*)sp)->name);
 			return 1;
 		default:
-			err:
-			error_displayAlertDialog("Format error in parameters of function to decompile. Bytecode is 0x%x", typ);
+err:		error_displayAlertDialog("Format error in parameters of function to decompile. Bytecode is 0x%x", typ);
 			return -1;
 	}
 
-	if (partyp.pt_type == PARAM_TYPE_STRING)
-		goto err;
-	
-	if ((partyp.pt_type == PARAM_TYPE_ENUM || partyp.pt_type == PARAM_TYPE_BITSET) && partyp.pt_enumVal) {
+	if (partyp.pt_type == PARAM_TYPE_STRING) {
+		sprintf(pszBuf, "\"%d\"", ((COM_INT1*)sp)->val);
+	} else if ((partyp.pt_type == PARAM_TYPE_ENUM || partyp.pt_type == PARAM_TYPE_BITSET) && partyp.pt_enumVal) {
 		decompile_printParameterAsConstant(pszBuf, val, partyp);
 		return 1;
 	}
@@ -219,18 +215,6 @@ static void decompile_printFunctionName(char* pszBuf, int idx)
 		return;
 	}
 	sprintf(pszBuf,"%s",macro_loadStringResource(idx));
-}
-
-/*
- * decompile_makeAutoLabels()
- */
-static void decompile_makeAutoLabels(const char *start, const char *end)
-{
-	while(start < end && *start != C_STOP) {
-		if (*start == C_GOTO && ((COM_GOTO*)start)->offset != sizeof(COM_GOTO))
-			bytecode_makeAutoLabel((COM_GOTO*)(start+((COM_GOTO *)start)->offset));
-		start += interpreter_getParameterSize(*start,start+1);
-	}
 }
 
 static char** decompile_popStack(char** pStackCurrent, char** pStack) {
@@ -457,11 +441,11 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 		case C_GOTO:
 			switch (((COM_GOTO*)sp)->bratyp) {
 			case BRA_ALWAYS: fprintf(fp, "goto 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
-			case BRA_EQ: fprintf(fp, "testAndBranchEQ 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
-			case BRA_NE: fprintf(fp, "testAndBranchNE 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
+			case BRA_IF_TRUE: fprintf(fp, "branchIfTrue 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
+			case BRA_IF_FALSE: fprintf(fp, "branchIfFalse 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
 			}
 			break;
-		case C_BINOP: fprintf(fp, "binaryOperation %s", decompile_binaryOperationAsString(((COM_BINOP*)sp)->op)); break;
+		case C_BINOP: fprintf(fp, "operation %s", decompile_binaryOperationAsString(((COM_BINOP*)sp)->op)); break;
 		case C_ASSIGN: fprintf(fp, "assignVariable %s", ((COM_ASSIGN*)sp)->name); break;
 		case C_MACRO:fprintf(fp, "call %s", ((COM_MAC*)sp)->name); break;
 		case C_0FUNC: fprintf(fp, "nativeCall0 %d (%s) (%d params)", ((COM_0FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_0FUNC*)sp)->func_nargs); break;
@@ -541,7 +525,7 @@ static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char*
 				nMax += 100;
 				pResult = realloc(pResult, nMax * sizeof *pResult);
 			}
-			if (pGoto->bratyp == BRA_EQ && pGoto->offset > 0) {
+			if (pGoto->bratyp == BRA_IF_FALSE && pGoto->offset > 0) {
 				BOOL bDone = FALSE;
 				int nOffs = pGoto->offset - sizeof(COM_GOTO);
 				if (nOffs > 0) {
@@ -560,7 +544,7 @@ static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char*
 						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_END_BLOCK, .cfmi_bytecodeAddress = ((unsigned char*)pElse)+pElse->offset };
 					}
 					else {
-						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_END_BLOCK, .cfmi_bytecodeAddress = (unsigned char*)pElse};
+						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_END_BLOCK, .cfmi_bytecodeAddress = ((unsigned char*)pElse)+sizeof(COM_GOTO)};
 					}
 
 				}
@@ -575,7 +559,7 @@ static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char*
 /*
  * Returns a control flow mark for a given byte code offset or null if no mark can be found.
  */
-static CONTROL_FLOW_MARK_INDEX* decompile_controlFlowMarkForOffset(CONTROL_FLOW_MARK_INDEX* pTable, int nTableSize, void* pAddress) {
+static CONTROL_FLOW_MARK_INDEX* decompile_controlFlowMarkForOffset(CONTROL_FLOW_MARK_INDEX* pTable, int nTableSize, const void* pAddress) {
 	for (int i = 0; i < nTableSize; i++) {
 		if (pTable[i].cfmi_bytecodeAddress == pAddress) {
 			return &pTable[i];
@@ -610,12 +594,29 @@ static EDFUNC* decompile_findFunctionDescriptor(unsigned char* pBytecode, unsign
 }
 
 /*
+ * decompile_makeAutoLabels()
+ */
+static void decompile_makeAutoLabels(const char* start, const char* end, CONTROL_FLOW_MARK_INDEX* pMarks, int nMarks)
+{
+	while (start < end && *start != C_STOP) {
+		if (*start == C_GOTO && ((COM_GOTO*)start)->offset != sizeof(COM_GOTO)) {
+			const unsigned char* pOffset = (start + ((COM_GOTO*)start)->offset);
+			CONTROL_FLOW_MARK_INDEX* pFoundMark = decompile_controlFlowMarkForOffset(pMarks, nMarks, start);
+			if (!pFoundMark) {
+				bytecode_makeAutoLabel((COM_GOTO*)pOffset);
+			}
+		}
+		start += interpreter_getParameterSize(*start, start + 1);
+	}
+}
+
+/*
  * decompile_macroToFile
  */
 #define COM1_INCR(cp,type,offset) (unsigned char *)(cp+((type *)cp)->offset)
 static void decompile_macroToFile(FILE *fp, MACRO *mp)
 {	unsigned char 	*sp,*spend,*gop,*data,*comment;
-	unsigned char 	opCode;
+	MACROC_INSTRUCTION_OP_CODE 	opCode;
 	EDFUNC* pCurrentFunctionDescriptor = NULL;
 	char	*lname;
 	char*	pStack[80];
@@ -650,7 +651,7 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 	}
 	fprintf(fp, ") {\n");
 
-	decompile_makeAutoLabels(data, spend);
+	decompile_makeAutoLabels(data, spend, pFlowMarks, nMarks);
 	bytecode_initializeAutoLabels();
 	bytecode_startNextAutoLabel(&lname, (COM_GOTO**)&gop);
 	int nParamIndex = 1;
@@ -732,7 +733,8 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 			}
 		} else if (opCode == C_SET_PARAMETER_STACK || opCode == C_SET_STACKFRAME) {
 		} else {
-			error_displayAlertDialog("format error in %s type=%x",MAC_NAME(mp),opCode);
+			decompile_indent(fp, nIndent);
+			fprintf(fp, "// format error in %s type=%x",MAC_NAME(mp),opCode);
 		}
 		if (pFoundMark && pFoundMark->cfmi_mark == CFM_END_BLOCK) {
 			nIndent--;

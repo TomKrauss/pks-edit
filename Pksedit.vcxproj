@@ -1190,7 +1190,7 @@
     <ClInclude Include="include\printing.h" />
     <ClInclude Include="include\regexp.h" />
     <ClInclude Include="include\resource.h" />
-    <ClInclude Include="include\scanner.h" />
+    <ClInclude Include="macro_compiler\scanner.h" />
     <ClInclude Include="include\symbols.h" />
     <ClInclude Include="include\test.h" />
     <ClInclude Include="include\tos.h" />

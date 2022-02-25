@@ -20,7 +20,8 @@
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_OCTNUM T_CONST
 %token T_TRUE T_FALSE T_BOOLEAN
 %token T_FUNC T_MACRO T_DOTDOT T_PLUSPLUS T_MINUSMINUS
-%token T_IF T_ELIF T_ELSE T_WHILE T_GOTO T_BRAEQ 
+%token T_IF T_ELIF T_ELSE T_WHILE T_GOTO T_BRAEQ
+%token T_SH_ASSIGN_PLUS T_SH_ASSIGN_MINUS T_SH_ASSIGN_MULT T_SH_ASSIGN_DIV T_SH_ASSIGN_MOD
 %token T_LOCAL T_SWITCH T_BREAK T_CONTINUE T_RETURN 
 %token T_NUMVAR T_FLOATVAR T_STRINGVAR T_BOOLEANVAR
 %token T_NMATCH
@@ -78,6 +79,7 @@ static		int bytecode_generateAutoLabelNamePrefix(char *prefix,int level);
 static		void bytecode_destroyAutoLabelNamePrefix(char *prefix, int level);
 static void 	bytecode_emitPushParameterInstruction(long lValue);
 
+static int		_generateShorthandAssignment;
 static 		char *lstartid  = "%ls%",
 			     *lendid    = "%le%",
 				*lreturnid = "%rt%",
@@ -93,6 +95,8 @@ int				function_getIndexOfFunction(void *ep);
 int 			function_parameterIsFormStart(void *ep,int parno);
 extern unsigned char* bytecode_emitBinaryOperation(BYTECODE_BUFFER* pBuffer, int nOperationType, PKS_VALUE_TYPE nTargetType);
 extern unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, char* pszName, int nIncrement);
+extern unsigned char* bytecode_emitShorthandAssignment(BYTECODE_BUFFER* pBuffer, int nBinaryOp, char* pszName);
+extern unsigned char* bytecode_emitAssignment(BYTECODE_BUFFER* pBuffer, const char *name);
 extern unsigned char* bytecode_emitFunctionCall(BYTECODE_BUFFER* pBuffer, unsigned char typ, GENERIC_DATA data, int nArgs);
 
 /*
@@ -103,7 +107,6 @@ extern unsigned char* bytecode_emitMultiplyWithLiteralExpression(BYTECODE_BUFFER
 #define		YY_EMIT(opCode, param)		_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer, opCode, param);
 
 extern int yylex(void );
-unsigned char* bytecode_emitAssignment(BYTECODE_BUFFER* pBuffer, const char *name);
 void 		bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBytecode, int typ, intptr_t val);
 
 char*		bytecode_emitGotoLabelInstruction(char *name, BYTECODE_BUFFER* pBuffer, int typ);
@@ -257,27 +260,50 @@ var_decl: type_ident variable_identifier assignment_expression ';'	{
 			}
 
 statement: ';'
-			| call_expression ';'
-			| assignment ';'
-			| if
-			| while
-			| case
-			| break
-			| continue
-			| return
-			| goto
-			| block
-			| increment_expression
-			| label
+			| call_expression ';' { $$.needsPop = 1; }
+			| assignment ';' { $$.needsPop = 1; }
+			| if_expression { $$.needsPop = 1; }
+			| while { $$.needsPop = 1; }
+			| case { $$.needsPop = 1; }
+			| break { $$.needsPop = 0; }
+			| continue { $$.needsPop = 0; }
+			| return_expression { $$.needsPop = 0; }
+			| goto	{ $$.needsPop = 0; }
+			| block { $$.needsPop = 1; }
+			| increment_expression { $$.needsPop = 1; }
+			| label { $$.needsPop = 0; }
 			| error {
 				yyerror("Invalid statement. Expecting one of function call, assignment, if, while, case, break, continue, return, goto, increment_expression, block or label."); 
 			}
 
 
-assignment	: variable_reference assignment_expression {
-				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
+assignment	: variable_reference assignment_or_shorthand_assignment {
+				if (_generateShorthandAssignment) {
+					_bytecodeBuffer.bb_current = bytecode_emitShorthandAssignment(&_bytecodeBuffer, _generateShorthandAssignment, $1.ident.s);
+				} else {
+					_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
+				}
 				vname_count = 0;
+				_generateShorthandAssignment = 0;
 			}
+
+assignment_or_shorthand_assignment:
+			assignment_expression {
+				_generateShorthandAssignment = 0;
+				$$.v = $1.v;
+			}
+			|
+			shorthand_assignment_operator arithmetic_expression	{ 
+				_generateShorthandAssignment = $1.type;
+				$$.v = $2.v;
+			}
+
+shorthand_assignment_operator: 
+			T_SH_ASSIGN_MULT { $$.type = BIN_MUL; }
+			| T_SH_ASSIGN_DIV { $$.type = BIN_DIV; }
+			| T_SH_ASSIGN_MOD { $$.type = BIN_MOD; }
+			| T_SH_ASSIGN_PLUS { $$.type = BIN_ADD; }
+			| T_SH_ASSIGN_MINUS { $$.type = BIN_SUB; }
 
 assignment_expression:	T_ASSIGN arithmetic_expression	{ $$.v = $2.v;	}
 
@@ -386,9 +412,13 @@ break		: T_BREAK opt_num ';'
 continue		: T_CONTINUE opt_num ';'
 			{	bytecode_emitGotoInstruction(lstartid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
 
-return		: T_RETURN bterm {
+return_expression: 
+			T_RETURN optional_bterm {
 				YY_EMIT(C_STOP,(GENERIC_DATA){0});
 			}
+
+optional_bterm:
+			| bterm
 
 opt_num	: 	{	$$.num = 1;	}
 			| T_NUM	{	$$.num = $1.num; }
@@ -408,14 +438,14 @@ goto:		T_GOTO T_IDENT {
 				freeitem(&$2.ident.s);
 			}
 			| T_BRAEQ T_IDENT {
-				_bytecodeBuffer.bb_current = bytecode_emitGotoLabelInstruction($2.ident.s,&_bytecodeBuffer,BRA_EQ);
+				_bytecodeBuffer.bb_current = bytecode_emitGotoLabelInstruction($2.ident.s,&_bytecodeBuffer,BRA_IF_TRUE);
 				freeitem(&$2.ident.s);
 			} ';'
 
 while		: T_WHILE {
 				bytecode_generateAutoLabelNamePrefix(lstartid,_breaklevel);
 			} condition {
-				bytecode_emitGotoInstruction(lendid,_breaklevel,BRA_EQ);
+				bytecode_emitGotoInstruction(lendid,_breaklevel,BRA_IF_FALSE);
 				_breaklevel++;
 			} local_block {
 				_breaklevel--;
@@ -427,24 +457,34 @@ while		: T_WHILE {
 
 local_block: statement | '{' stmntlist '}'
 
-if			: T_IF condition {
-				bytecode_emitGotoInstruction(iffailid,_iflevel,BRA_EQ);
+if_expression:
+			T_IF condition {
+				bytecode_emitGotoInstruction(iffailid,_iflevel,BRA_IF_FALSE);
 				_iflevel++;
-			} statement {
+			} local_block {
 				_iflevel--;
-				bytecode_emitGotoInstruction(ifdoneid,_iflevel,BRA_ALWAYS);
-				bytecode_generateAutoLabelNamePrefix(iffailid,_iflevel);
-				bytecode_destroyAutoLabelNamePrefix(iffailid,_iflevel);
 			} elseclause {
 				bytecode_generateAutoLabelNamePrefix(ifdoneid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(ifdoneid,_iflevel);
 			}
 
-elseclause	: 
-			| T_ELSE statement 
+elseclause: {
+				bytecode_generateAutoLabelNamePrefix(iffailid,_iflevel);
+				bytecode_destroyAutoLabelNamePrefix(iffailid,_iflevel);
+			}
+			| T_ELSE {
+				bytecode_emitGotoInstruction(ifdoneid,_iflevel,BRA_ALWAYS);
+				bytecode_generateAutoLabelNamePrefix(iffailid,_iflevel);
+				bytecode_destroyAutoLabelNamePrefix(iffailid,_iflevel);
+			}
+			local_block
 
-stmntlist		:
-			| statement { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); } stmntlist
+stmntlist:	{ $$.needsPop = 0; }
+			| statement { 
+				if ($1.needsPop) {
+					YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); 
+				}
+			} stmntlist
 
 call_expression: T_FUNC {
 				// Native call

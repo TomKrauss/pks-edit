@@ -73,7 +73,7 @@ typedef enum { MD_ADD_HORIZONTAL, MD_ADD_VERTICAL, MD_ENSURE_DEFAULT } MANAGE_DO
 /*
  * Add new docks to the mainframe.
  */
-extern int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType);
+extern long long mainframe_manageDocks(MANAGE_DOCKS_TYPE mType);
 
 /*
  * Returns a string to be used as an open hint later, when opening the window. Use the edwin_handle window of the window to test.
@@ -98,7 +98,7 @@ extern OPEN_HINT mainframe_parseOpenHint(char* pszHint);
 /*
  * Used to switch to full screen mode and back.
  */
-extern int mainframe_toggleFullScreen();
+extern long long mainframe_toggleFullScreen();
 
 /*
  * Returns the window dock name for a given window. Use the edwin_handle window of the window to test.

@@ -27,7 +27,7 @@ extern int compare_files(WINFO* wp0, WINFO* wp1);
 /*
  * Clear the current comparison link.
  */
-extern int compare_clear();
+extern long long compare_clear();
 
  /*
   * Used to navigate the differences found during a comparison. wp points to the first
@@ -36,7 +36,7 @@ extern int compare_clear();
   *
   * If navigation is successful, 1 is returned.
   */
-extern int compare_navigate(int aDirection);
+extern long long compare_navigate(int aDirection);
 
 #define COMPAREFILES_H
 #endif

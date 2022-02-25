@@ -29,7 +29,7 @@ extern int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags);
  * Move the caret to add one or more secondary carets.
  */
 typedef enum { MSM_UP, MSM_DOWN, MSM_WORDS } MOT_SECONDARY_MOVEMENT;
-extern int caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType);
+extern long long caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType);
 
 /**
  * Utility function to place the caret according to screen coordinates.
@@ -39,7 +39,7 @@ extern void caret_placeToXY(WINFO* wp, int x, int y);
 /**
  * Add a secondary window caret with the mouse.
  */
-extern int caret_addSecondaryWithMouse();
+extern long long caret_addSecondaryWithMouse();
 
 /*--------------------------------------------------------------------------
  * caret_getPreviousColumnInLine()
@@ -56,7 +56,7 @@ extern CARET* caret_addSecondary(WINFO* wp, long ln, long nLineOffset);
 /*
  * Removes all secondary carets from the screen.
  */
-extern int caret_removeSecondaryCarets();
+extern long long caret_removeSecondaryCarets();
 
 /*
  * Update the current selection in a window. It is assumed that the caret has moved with an "extend selection"
@@ -193,7 +193,7 @@ extern int caret_advanceSection(WINFO* wp, int dir, int start);
  * general cursor advancing in
  * vertical direction
  */
-extern int caret_moveUpOrDown(WINFO* wp, int dir, int mtype);
+extern long long caret_moveUpOrDown(WINFO* wp, int dir, int mtype);
 
 /*--------------------------------------------------------------------------
  * caret_moveToCurrentMousePosition()

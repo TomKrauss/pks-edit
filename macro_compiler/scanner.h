@@ -38,6 +38,7 @@ typedef union yytype {
 	} ident;
 	void	*funcp;
 	unsigned char type;
+	unsigned char needsPop;
 	TYPEDVAL v;
 } _YYSTYPE;
 

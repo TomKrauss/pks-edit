@@ -212,7 +212,7 @@ static int op_toggleOption(struct optiontab *op)
 /*--------------------------------------------------------------------------
  * EdOptionToggle()
  */
-int EdOptionToggle(long par)
+long long EdOptionToggle(long par)
 {	struct optiontab *op;
 	int flag = LOWORD(par);
 	OP_FLAGTYPE local = (OP_FLAGTYPE)(short)HIWORD(par);
@@ -228,7 +228,7 @@ int EdOptionToggle(long par)
  * Start the recorder. 
  */
 int op_startMacroRecording() {
-	return EdOptionToggle(MAKELONG(1, OP_MACRO));
+	return (int)EdOptionToggle(MAKELONG(1, OP_MACRO));
 }
 
 /*--------------------------------------------------------------------------
@@ -248,7 +248,7 @@ EXPORT int op_onOptionWidgetSelected(int toggle)
 					MAKELONG(op->flag,op->op_type));
 				_recording = recorder_isRecording();
 			} else {
-				return interpreter_executeFunction(
+				return (int)interpreter_executeFunction(
 					FUNC_EdOptionToggle,
 						MAKELONG(op->flag,op->op_type),
 						0L,(LPSTR)0,(LPSTR)0, (LPSTR)0);

@@ -484,7 +484,7 @@ extern BOOL ft_backupFileExists(FTABLE* fp);
 /*------------------------------------------------------------
  * EdSelectWindow()
  */
-int EdSelectWindow(int winid);
+extern long long EdSelectWindow(int winid);
 
 extern char* ft_visibleName(FTABLE* fp);
 /*------------------------------------------------------------
@@ -664,7 +664,7 @@ extern void string_formatDate(char* szDbuf, EDTIME* ltime);
  * EdEditFile()
  * Edit a file with a filename and with potential flags.
  */
-extern int EdEditFile(long editflags, char* filename);
+extern long long EdEditFile(long editflags, char* filename);
 
 /*------------------------------------------------------------
  * EdSaveFile()
@@ -672,19 +672,19 @@ extern int EdEditFile(long editflags, char* filename);
  * this may require the user to enter a file name or to do nothing (if the file
  * is unchanged) etc...
  */
-extern int EdSaveFile(int flg);
+extern long long  EdSaveFile(int flg);
 
 /*--------------------------------------------------------------------------
  * EdFileAbandon()
  * Cancel all changes in he current file.
  */
-extern int EdFileAbandon(void);
+extern long long EdFileAbandon(void);
 
 /*--------------------------------------------------------------------------
  * EdLineSplit()
  * do cr+lf-Actions
  */
-extern int EdLineSplit(int flags);
+extern long long  EdLineSplit(int flags);
 
 /*--------------------------------------------------------------------------
  * ln_insertIndent()

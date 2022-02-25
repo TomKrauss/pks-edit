@@ -402,7 +402,7 @@ int fkey_initKeyboardWidget(HWND hwndPapa)
  * Update the PKS edit FKEYs to display the next
  * group of FKEYS (for alternate modifiers).
  *---------------------------------*/
-int fkey_keyModifierStateChanged() {
+long long fkey_keyModifierStateChanged() {
 	int keys;
 
 	if (!hwndFkeys) {

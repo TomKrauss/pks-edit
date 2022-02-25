@@ -24,7 +24,6 @@
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
 #include "symbols.h"
-#include "scanner.h"
 #include "funcdef.h"
 #include "mouseutil.h"
 #include "caretmovement.h"
@@ -390,10 +389,9 @@ int interpreter_canExecuteFunction(int num, long long pParam, int warn) {
 /*---------------------------------*/
 /* interpreter_executeFunction()					*/
 /*---------------------------------*/
-int cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3)
-{
+long long cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3) {
 	EDFUNC *	fup = &_functionTable[num];
-	int 		ret = 0;
+	long long 	ret = 0;
 	int			i;
 
 	if (!interpreter_canExecuteFunction(num, (long long)p1, 1)) {
@@ -432,15 +430,13 @@ int cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, void *s
 }
 
 /*--------------------------------------------------------------------------
- * interpreter_getDollarParameter()
+ * interpreter_returnFunctionValue()
  */
-int interpreter_getDollarParameter(intptr_t offset, PKS_VALUE *pValue) {
-	if (!_currentExecutionContext) {
-		interpreter_raiseError("No current execution stack");
-		return 0;
+static void interpreter_returnFunctionValue(EXECUTION_CONTEXT* pContext, unsigned char typ, intptr_t v) {
+	if (typ == S_STRING) {
+		v = (intptr_t)interpreter_allocateString(pContext, (const char*)v);
 	}
-	*pValue = _currentExecutionContext->ec_stackFrame[offset];
-	return 1;
+	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = typ, .sym_data.longValue = v });
 }
 
 /*---------------------------------*/
@@ -491,19 +487,19 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 	if (typ != C_MACRO) {
 		unsigned char* readparamp = (unsigned char *)pLocalInstructionPointer;
 		_dialogExecutionBytecodePointer = readparamp;
+		EDFUNC* fup = &_functionTable[funcnum];
 		rc = interpreter_executeFunction(funcnum,
 						nativeStack[0], 
 						nativeStack[1],
 						 (void*)nativeStack[2],
 						 (void*)nativeStack[3],
 						 (void*)nativeStack[4]);
-
+		interpreter_returnFunctionValue(pContext, function_returnsString(fup) ? S_STRING : S_NUMBER, rc);
 		/*
 		 * TODO: function execution may pop a parameter in case a form is opened
 		 * This is currently broken.
 		 */
 		*pInstructionPointer = (COM_1FUNC*)readparamp;
-		returnValue = (PKS_VALUE){ .sym_type = S_NUMBER, .sym_data.longValue = (long long)rc };
 	} else {
 		rc = macro_executeByName(((COM_MAC*)*pInstructionPointer)->name);
 		*pInstructionPointer = pLocalInstructionPointer;
@@ -511,8 +507,8 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 		pContext->ec_stackCurrent++;
 		returnValue = interpreter_popStackValue(pContext);
 		pContext->ec_stackCurrent = pContext->ec_stackFrame;
+		interpreter_pushValueOntoStack(pContext, returnValue);
 	}
-	interpreter_pushValueOntoStack(pContext, returnValue);
 	return rc;
 }
 
@@ -525,24 +521,6 @@ static long interpreter_assignSymbol(EXECUTION_CONTEXT* pContext, char* name) {
 	return sym_makeInternalSymbol(pContext->ec_identifierContext, name, v.sym_type, v.sym_data);
 }
 
-
-/*--------------------------------------------------------------------------
- * interpreter_returnFunctionValue()
- */
-static void interpreter_returnFunctionValue(EXECUTION_CONTEXT* pContext, unsigned char typ, intptr_t v) {
-	if (typ == S_STRING) {
-		v = (intptr_t)interpreter_allocateString(pContext, (const char*)v);
-	}
-	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) {.sym_type = typ, .sym_data.longValue = v});
-}
-
-/**
- * macro_returnString()
- * Return the passed String to the macro interpreter so it can be used for further processing.
- */
-void macro_returnString(char *string) {
-	interpreter_returnFunctionValue(_currentExecutionContext, C_PUSH_STRING_LITERAL, (intptr_t)string);
-}
 
 /*
  * Returns a value from the parameter stack. 
@@ -590,8 +568,8 @@ static int macro_interpretByteCodes(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 					PKS_VALUE stackTop = interpreter_popStackValue(pContext);
 					stackTop = interpreter_coerce(pContext, stackTop, S_BOOLEAN);
 					int val = stackTop.sym_data.booleanValue;
-					if ((((COM_GOTO*)cp)->bratyp == BRA_EQ && val == 0) ||
-						(((COM_GOTO*)cp)->bratyp == BRA_NE && val != 0))
+					if ((((COM_GOTO*)cp)->bratyp == BRA_IF_TRUE && val != 0) ||
+						(((COM_GOTO*)cp)->bratyp == BRA_IF_FALSE && val == 0))
 						pInstr = COM1_INCR(cp, COM_GOTO, offset);
 					else
 						pInstr = COM_PARAMINCR(cp);
@@ -680,7 +658,7 @@ end:
  * Execute a macro given its logical
  * internal macro number.
  */
-int macro_executeMacroByIndex(int macroindex)
+long long macro_executeMacroByIndex(int macroindex)
 {
 	int 		ret = 1;
 	int			i;
@@ -743,9 +721,9 @@ int macro_executeMacroByIndex(int macroindex)
 /*---------------------------------*/
 /* macro_executeMacro()				*/
 /*---------------------------------*/
-int macro_executeMacro(MACROREF* mp) {
+long long macro_executeMacro(MACROREF* mp) {
 	COM_1FUNC* cp;
-	int ret;
+	long long ret;
 
 	switch (mp->typ) {
 	case CMD_CMDSEQ:

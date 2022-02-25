@@ -2050,7 +2050,7 @@ int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(), LONG lP
 /*
  * Add new docks to the mainframe. 
  */
-int mainframe_manageDocks(MANAGE_DOCKS_TYPE mType) {
+long long mainframe_manageDocks(MANAGE_DOCKS_TYPE mType) {
 	DOCKING_SLOT* pDefaultSlot = mainframe_getSlot(szDefaultSlotName);
 	DOCKING_SLOT* pRightSlot = mainframe_getSlot(DOCK_NAME_RIGHT);
 	DOCKING_SLOT* pBottomSlot = mainframe_getSlot(DOCK_NAME_BOTTOM);
@@ -2215,7 +2215,7 @@ OPEN_HINT mainframe_parseOpenHint(char* pszHint) {
 /*
  * Used to switch to full screen mode and back. 
  */
-int mainframe_toggleFullScreen() {
+long long mainframe_toggleFullScreen() {
 	static RECT previousBounds;
 	static HMENU hDefaultMenu;
 	static int oldLayoutOptions;

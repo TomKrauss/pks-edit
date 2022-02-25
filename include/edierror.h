@@ -20,12 +20,12 @@ extern void error_showErrorById(int nId, ...);
  * Can be used to temporarily disable the display of status messages in the status bar or the toast window.
  * Useful and to be called from within macros to make execution of macros less verbose.
  */
-extern int error_setShowMessages(BOOL aFlag);
+extern long long error_setShowMessages(BOOL aFlag);
 
 /**
  * 
  */
-extern int EdOptionToggle(long option);
+extern long long EdOptionToggle(long option);
 
 /*------------------------------------------------------------
  * progress_cancelMonitor()

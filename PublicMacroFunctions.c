@@ -59,7 +59,7 @@ extern int 		dlg_getListboxText(HWND hwnd, int id, void *szBuff);
 extern int 		EdExecute(long flags, long unused, 
 					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
-extern int 		EdCharInsert(int c);
+extern long long	EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		mac_compileMacros(void);
 extern int		doctypes_addDocumentTypesToListView(HWND hwnd, const void* pSelected);
@@ -102,7 +102,7 @@ void EdAlert(long unused1, long unused2, char *s)
 /*--------------------------------------------------------------------------
  * EdCursorLeft()
  */
-int EdCursorLeft(int mtype)
+long long EdCursorLeft(int mtype)
 {
 	return caret_moveLeftRight(ww_getCurrentEditorWindow(), -1, mtype);
 }
@@ -110,7 +110,7 @@ int EdCursorLeft(int mtype)
 /*--------------------------------------------------------------------------
  * EdCursorRight()
  */
-int EdCursorRight(int mtype)
+long long EdCursorRight(int mtype)
 {
 	return caret_moveLeftRight(ww_getCurrentEditorWindow(), 1, mtype);
 }
@@ -118,7 +118,7 @@ int EdCursorRight(int mtype)
 /*--------------------------------------------------------------------------
  * EdCursorUp()
  */
-int EdCursorUp(int mtype)
+long long EdCursorUp(int mtype)
 {
 	return caret_moveUpOrDown(ww_getCurrentEditorWindow(), -1,mtype);
 }
@@ -126,7 +126,7 @@ int EdCursorUp(int mtype)
 /*--------------------------------------------------------------------------
  * EdCursorDown()
  */
-int EdCursorDown(int mtype)
+long long EdCursorDown(int mtype)
 {
 	return caret_moveUpOrDown(ww_getCurrentEditorWindow(), 1,mtype);
 }
@@ -134,7 +134,7 @@ int EdCursorDown(int mtype)
 /*--------------------------------------------------------------------------
  * EdChapterGotoBegin()
  */
-int EdChapterGotoBegin(int dir)
+long long EdChapterGotoBegin(int dir)
 {
 	return caret_advanceSection(ww_getCurrentEditorWindow(), dir,1);
 }
@@ -142,7 +142,7 @@ int EdChapterGotoBegin(int dir)
 /*--------------------------------------------------------------------------
  * EdChapterGotoEnd()
  */
-int EdChapterGotoEnd(int dir)
+long long EdChapterGotoEnd(int dir)
 {
 	return caret_advanceSection(ww_getCurrentEditorWindow(), dir,0);
 }
@@ -734,7 +734,7 @@ static int showWindowList(int nTitleId)
 		return 0;
 	}
 
-	return EdSelectWindow(wp->win_id);
+	return (int)EdSelectWindow(wp->win_id);
 }
 
 /*--------------------------------------------------------------------------
@@ -1532,7 +1532,7 @@ int macro_getIndexForKeycode(KEYCODE *scan,char *name,int oldidx)
 /*--------------------------------------------------------------------------
  * EdCharControlInsert()
  */
-int EdCharControlInsert(void)
+long long EdCharControlInsert(void)
 { 	static char c;
 	static ITEMS	 _i   = { C_PUSH_CHARACTER_LITERAL,  (unsigned char*)&c	};
 	static PARAMS	 _p  = { 1, P_MAYOPEN, _i };
@@ -1739,9 +1739,9 @@ int EdIsDefined(long what)
 /*--------------------------------------------------------------------------
  * EdPromptAssign()
  */
-long EdPromptAssign(long unused1, long unused2, char* prompt, char* init)
+char* EdPromptAssign(long unused1, long unused2, char* prompt, char* init)
 {
-	char 	buf[128];
+	static char buf[128];
 	static ITEMS	_i = { C_PUSH_STRING_LITERAL,  (unsigned char*)0 };
 	static PARAMS	_np = { 1, P_MAYOPEN, _i };
 	static DIALPARS _d[] = {
@@ -1767,8 +1767,6 @@ long EdPromptAssign(long unused1, long unused2, char* prompt, char* init)
 		*buf = 0;
 	}
 
-	macro_returnString(buf);
-
-	return 1;
+	return buf;
 }
 

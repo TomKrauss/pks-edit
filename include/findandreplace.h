@@ -64,7 +64,7 @@ extern int find_startIncrementalSearch();
 /*
  * Move the input focus to the incremental search UI entry field.
  */
-extern int find_initiateIncrementalSearch();
+extern long long find_initiateIncrementalSearch();
 
 /*--------------------------------------------------------------------------
  * find_matchesInFiles()

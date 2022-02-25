@@ -176,7 +176,7 @@ static int fm_gotoLastPositionDir(MARK_TYPE_ENUM type, int dir) {
  * fm_gotoLastPosition()
  * Goto to the last navigation/insertion position depending on the mark type.
  */
-int fm_gotoLastPosition(MARK_TYPE_ENUM type) {
+long long fm_gotoLastPosition(MARK_TYPE_ENUM type) {
 	return fm_gotoLastPositionDir(type, 1);
 }
 
@@ -184,7 +184,7 @@ int fm_gotoLastPosition(MARK_TYPE_ENUM type) {
  * fm_gotoMextPosition()
  * Goto to the next navigation/insertion position depending on the mark type.
  */
-int fm_gotoNextPosition(MARK_TYPE_ENUM type) {
+long long fm_gotoNextPosition(MARK_TYPE_ENUM type) {
 	return fm_gotoLastPositionDir(type, -1);
 }
 

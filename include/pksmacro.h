@@ -87,7 +87,7 @@ typedef struct params {
 } PARAMS;
 
 extern int macro_openDialog(PARAMS *p);
-extern int cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3);
+extern long long cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3);
 
 /*------------------------------------------------------------
  * macro_getByIndex()
@@ -173,7 +173,7 @@ extern MACROREF* macro_getKeyBinding(WPARAM key);
 /*---------------------------------*/
 /* macro_executeMacro()				*/
 /*---------------------------------*/
-extern int macro_executeMacro(MACROREF* mp);
+extern long long macro_executeMacro(MACROREF* mp);
 
 /*------------------------------------------------------------
  * macro_onCharacterInserted()
@@ -255,12 +255,6 @@ extern char* macro_getCommandByIndex(int nIndex);
  */
 extern int macro_executeSingleLineMacro(const char* pszCode, BOOL bUnescape, const char* pszContext);
 
-/**
- * macro_returnString()
- * Return the passed String to the macro interpreter so it can be used for further processing.
- */
-extern void macro_returnString(char* string);
-
 extern void recorder_stopAutoInsertRecording(void** pRecordBufferLow, void** pRecordBufferHigh);
 
 /*--------------------------------------------------------------------------
@@ -282,7 +276,7 @@ extern void 	   macro_showStatus(char* s, ...);
  * Execute a macro given its logical
  * internal macro number.
  */
-extern int macro_executeMacroByIndex(int macroindex);
+extern long long macro_executeMacroByIndex(int macroindex);
 
 /*
  * print the current mouse bindings to a file and display them to the user.
@@ -306,7 +300,7 @@ extern int print_saveMenuBindingsAndDisplay(void);
 /*------------------------------------------------------------
  * macro_readWriteWithFileSelection()
  */
-extern int macro_readWriteWithFileSelection(int wrflag);
+extern long long macro_readWriteWithFileSelection(int wrflag);
 
 /*
  * Return the logical function number (index into functionTable) of the function invoked by the command with the given index.

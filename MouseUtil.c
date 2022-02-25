@@ -133,9 +133,9 @@ static int mouse_textBlockEndDrag(WINFO* wp, int x, int y, int bCancel) {
 
 	if (hwnd == wp->ww_handle) {
 		if (_dragTextBlockMoveData.moving) {
-			ret = interpreter_executeFunction(FUNC_EdBlockMove, 0L, 0L, (void*)0, (void*)0, (void*)0);
+			ret = (int)interpreter_executeFunction(FUNC_EdBlockMove, 0L, 0L, (void*)0, (void*)0, (void*)0);
 		} else {
-			ret = interpreter_executeFunction(FUNC_EdBlockCopy, 0L, 0L, (void*)0, (void*)0, (void*)0);
+			ret = (int)interpreter_executeFunction(FUNC_EdBlockCopy, 0L, 0L, (void*)0, (void*)0, (void*)0);
 		}
 	} else if (hwnd) {
 		ret = PostMessage(hwnd, WM_ICONDROP, ICACT_TEXTBLOCK, 0L);
@@ -196,7 +196,7 @@ EXPORT void mouse_getXYPos(HANDLE hwnd, int* x, int* y)
 /**
  * Add a secondary window caret with the mouse.
  */
-int caret_addSecondaryWithMouse() {
+long long caret_addSecondaryWithMouse() {
 	long col, ln;
 	WINFO* wp = ww_getCurrentEditorWindow();
 
@@ -443,7 +443,7 @@ int macro_executeWithPosition(WINFO* wp, MACROREF* pRef, POINT pt) {
 			caret_placeToXY(wp, pt.x, pt.y);
 		}
 	}
-	return macro_executeMacro(pRef);
+	return (int)macro_executeMacro(pRef);
 }
 
 /*---------------------------------*/

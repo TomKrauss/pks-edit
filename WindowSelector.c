@@ -199,7 +199,7 @@ int windowselector_registerWindowClass() {
  * windowselector_showWindowList()
  * Shows the window selector list.
  */
-int windowselector_showWindowList(void) {
+long long windowselector_showWindowList(void) {
 	int nWindows = ww_getNumberOfOpenWindows();
 	if (nWindows < 1) {
 		return 0;

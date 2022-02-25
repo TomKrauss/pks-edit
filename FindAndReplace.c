@@ -949,7 +949,7 @@ endrep:
  * EdStringSubstitute()
  * substitute in a string
  */
-void EdStringSubstitute(unsigned long nmax, long nREFlags, char *string, char *pattern, char *with)
+char* EdStringSubstitute(unsigned long nmax, long nREFlags, char *string, char *pattern, char *with)
 {
 	static char	ebuf[ESIZE];
 	char *	src;
@@ -998,7 +998,7 @@ void EdStringSubstitute(unsigned long nmax, long nREFlags, char *string, char *p
 		}
 	}
 
-	macro_returnString(_linebuf);
+	return _linebuf;
 }
 
 /*--------------------------------------------------------------------------

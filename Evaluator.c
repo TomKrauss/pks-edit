@@ -82,7 +82,7 @@ void evaluator_destroyEvaluators() {
  * Evaluate the current selection or the line containing the cursor.
  * If the selection exists a maximum size, return an error.
  */
-int evaluator_evaluateCurrentSelection() {
+long long evaluator_evaluateCurrentSelection() {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	if (wp == NULL) {
 		return 0;

@@ -377,7 +377,7 @@
     <ClInclude Include="include\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\scanner.h">
+    <ClInclude Include="macro_compiler\scanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\symbols.h">

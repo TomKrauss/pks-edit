@@ -35,31 +35,31 @@
  /*--------------------------------------------------------------------------
   * EdCursorLeft()
   */
-extern int EdCursorLeft(int mtype);
+extern long long EdCursorLeft(int mtype);
 
 /*--------------------------------------------------------------------------
  * EdCursorRight()
  */
-extern int EdCursorRight(int mtype);
+extern long long EdCursorRight(int mtype);
 
 /*--------------------------------------------------------------------------
  * EdCursorUp()
  */
-extern int EdCursorUp(int mtype);
+extern long long EdCursorUp(int mtype);
 
 /*--------------------------------------------------------------------------
  * EdCursorDown()
  */
-extern int EdCursorDown(int mtype);
+extern long long EdCursorDown(int mtype);
 
 /*--------------------------------------------------------------------------
  * EdChapterGotoBegin()
  */
-extern int EdChapterGotoBegin(int dir);
+extern long long EdChapterGotoBegin(int dir);
 
 /*--------------------------------------------------------------------------
  * EdChapterGotoEnd()
  */
-extern int EdChapterGotoEnd(int dir);
+extern long long EdChapterGotoEnd(int dir);
 
 #endif

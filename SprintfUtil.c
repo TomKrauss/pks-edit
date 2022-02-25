@@ -395,16 +395,16 @@ void string_getVariable(WINFO* wp, unsigned char* pVar, unsigned char* pResult) 
 /*--------------------------------------------------------------------------
  * EdFormatPrint()
  */
-void EdFormatPrint(long dummy1, long dummy2, char *format, char *p)
+char* EdFormatPrint(long dummy1, long dummy2, char *format, char *p)
 {
-	char buf[1024];
+	static char buf[1024];
 
 	if (format) {
 		mysprintf(ww_getCurrentEditorWindow(), buf, format, p, 0L);
 	} else {
 		buf[0] = 0;
 	}
-	macro_returnString(buf);
+	return buf;
 }
 
 

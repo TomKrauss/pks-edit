@@ -341,7 +341,7 @@ static HWND tb_initSearchEntryField(HWND hwndOwner) {
 /*
  * Move the input focus to the incremental search UI entry field. 
  */
-int find_initiateIncrementalSearch() {
+long long find_initiateIncrementalSearch() {
     SetFocus(hwndIncrementalSearchField);
     return 1;
 }

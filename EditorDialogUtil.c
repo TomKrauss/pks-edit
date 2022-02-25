@@ -48,7 +48,6 @@
 extern int 		_translatekeys;
 
 extern int		mysprintf(WINFO *wp, char *d,char *format,...);
-extern void 	macro_returnString(char *string);
 extern BOOL 	DlgChooseFont(HWND hWnd, char *pszFontName, BOOL bPrinter);
 
 static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;

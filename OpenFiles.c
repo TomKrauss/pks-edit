@@ -599,7 +599,7 @@ int ft_selectWindowWithId(int winid, BOOL bPopup) {
 /*------------------------------------------------------------
  * EdSelectWindow()
  */
-int EdSelectWindow(int winid)
+long long EdSelectWindow(int winid)
 {
 	return ft_selectWindowWithId(winid, TRUE);
 }
@@ -660,7 +660,7 @@ int ft_activateWindowOfFileNamed(char *fn) {
 	if (wp == NULL) {
 		return 0;
 	}
-	return EdSelectWindow(wp->win_id);
+	return (int)EdSelectWindow(wp->win_id);
 }
 
 /*------------------------------------------------------------
@@ -776,7 +776,7 @@ FTABLE* ft_openBackupfile(FTABLE* fp) {
  * EdEditFile()
  * Edit a file with a filename and with potential flags.
  */
-int EdEditFile(long editflags, char *filename) {
+long long EdEditFile(long editflags, char *filename) {
 	int		nEntry;
 
 	if ((editflags & OPEN_DIRGIVEN) && filename) {
@@ -891,14 +891,14 @@ int ft_isReadonly(FTABLE* fp) {
  * EdFileAbandon()
  * Cancel all changes in he current file.
  */
-int EdFileAbandon(void) {
+long long EdFileAbandon(void) {
 	return ft_abandonFile(ft_getCurrentDocument(), (EDIT_CONFIGURATION *)0);
 }
 
 /**
  * Save all files currently in state modified. 
  */
-int EdSaveAllFiles() {
+long long EdSaveAllFiles() {
 	for (FTABLE* fp = _filelist; fp; fp = fp->next) {
 		if ((fp->flags & (F_NAME_INPUT_REQUIRED | F_MODIFIED)) == F_MODIFIED && !ft_checkReadonlyWithError(fp)) {
 			if (!ft_writefileMode(fp, WFM_QUIET)) {
@@ -915,7 +915,7 @@ int EdSaveAllFiles() {
  * this may require the user to enter a file name or to do nothing (if the file
  * is unchanged) etc...
  */
-int EdSaveFile(int flg) {
+long long EdSaveFile(int flg) {
 	FTABLE *fp;
 
 #ifdef	DEMO

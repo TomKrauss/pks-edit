@@ -7,15 +7,18 @@ macro Test-Expression()
 	string s1;
 	string s2 = "x";
 	string re;
+	int x;
 
 	s1 = "aec\\";
 	re = "[a-e]+\\\\";
 
-   	if (s1 ~ re)
+   	if (s1 ~ re) {
 		s2 = "' is matched by '";
-   	else
+   	} else {
 		s2 = "' is not matched by '";
-
+		x = 13;
+	}
+	
 	MessageBox(MB_OK, "String '" + s1 + s2 + re + "'");
 
 	if (s1) {

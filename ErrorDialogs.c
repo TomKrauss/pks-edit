@@ -332,7 +332,7 @@ void error_openingFileFailed(char *fn, int fd)
  * Can be used to temporarily disable the display of status messages in the status bar or the toast window.
  * Useful and to be called from within macros to make execution of macros less verbose.
  */
-int error_setShowMessages(BOOL aFlag) {
+long long error_setShowMessages(BOOL aFlag) {
 	_messagesDisabled = !aFlag;
 	return 1;
 }

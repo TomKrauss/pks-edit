@@ -340,7 +340,7 @@ int macro_insertNewMacro(char *name, char *comment, BYTECODE_BUFFER* pBuffer)
 /*------------------------------------------------------------
  * macro_readWriteWithFileSelection()
  */
-int macro_readWriteWithFileSelection(int wrflag) {	
+long long macro_readWriteWithFileSelection(int wrflag) {
 	char *fn;
 
 	FILE_SELECT_PARAMS params;
@@ -388,11 +388,11 @@ int macro_onMenuAction(WINFO* wp, int menunum, POINT* aPositionClicked) {
 		if (aPositionClicked) {
 			return macro_executeWithPosition(wp, mp, *aPositionClicked);
 		} else {
-			return macro_executeMacro(mp);
+			return (int)macro_executeMacro(mp);
 		}
 	}
 	if (menunum >= IDM_HISTORY && menunum <= IDM_HISTORY + 30) {
-		return EdEditFile(OPEN_NOFN|OPEN_HISTORY | (menunum - IDM_HISTORY) << 12, 0);
+		return (int)EdEditFile(OPEN_NOFN|OPEN_HISTORY | (menunum - IDM_HISTORY) << 12, 0);
 	}
 	return 0;
 }
@@ -400,10 +400,8 @@ int macro_onMenuAction(WINFO* wp, int menunum, POINT* aPositionClicked) {
 /*------------------------------------------------------------
  * macro_onCharacterInserted()
  */
-int macro_onCharacterInserted(WORD c)
-{
-	return 
-		interpreter_executeFunction(FUNC_EdCharInsert,c,0,(void*)0,(void*)0,(void*)0);
+int macro_onCharacterInserted(WORD c) {
+	return (int) interpreter_executeFunction(FUNC_EdCharInsert,c,0,(void*)0,(void*)0,(void*)0);
 }
 
 /*---------------------------------*/
@@ -427,7 +425,7 @@ int macro_executeByName(char *name) {
 		return 0;
 	}
 	macref.index = i;
-	return macro_executeMacro(&macref);
+	return (int)macro_executeMacro(&macref);
 }
 
 /*
@@ -976,13 +974,13 @@ int EdMacrosEdit(void)
 
 	if (ret == IDD_MACSTART) {
 		long m = _multiplier;
-		int  nResult = 0;
+		long long  nResult = 0;
 
 		_multiplier = 1;
 		while (m-- > 0) {
 			nResult = macro_executeMacro(&currentSelectedMacro);
 		}
-		return nResult;
+		return (int)nResult;
 	}
 
 	if (_selectedMacroName) {

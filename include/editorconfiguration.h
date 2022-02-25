@@ -160,7 +160,7 @@ extern int op_onOptionWidgetSelected(int toggle);
  * Update the PKS edit FKEYs to display the next
  * group of FKEYS (for alternate modifiers).
  *---------------------------------*/
-extern int fkey_keyModifierStateChanged();
+extern long long fkey_keyModifierStateChanged();
 
 /*--------------------------------------------------------------------------
  * fkey_register()

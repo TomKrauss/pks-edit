@@ -1,5 +1,5 @@
 /*
- * CompileMacros.c
+ * MacroCompiler.c
  *
  * makro compiler module
  *

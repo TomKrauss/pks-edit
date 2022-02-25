@@ -67,13 +67,13 @@ extern int mark_destroy(MARK* mp);
  * fm_gotoLastPosition()
  * Goto to the last navigation/insertion position depending on the mark type.
  */
-extern int fm_gotoLastPosition(MARK_TYPE_ENUM type);
+extern long long fm_gotoLastPosition(MARK_TYPE_ENUM type);
 
 /*--------------------------------------------------------------------------
  * fm_gotoMextPosition()
  * Goto to the next navigation/insertion position depending on the mark type.
  */
-extern int fm_gotoNextPosition(MARK_TYPE_ENUM type);
+extern long long fm_gotoNextPosition(MARK_TYPE_ENUM type);
 
 /*--------------------------------------------------------------------------
  * fm_canGotoNext()

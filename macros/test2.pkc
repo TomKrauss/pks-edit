@@ -63,33 +63,32 @@ macro insertWithIncrement() {
 	}
 }
 
-#
-# Calculate the factorial of a number input into a message box.
-# Note: PKSMakroC - PKS MacroC Integers are 64 bit big, this macro
-# will cause overflows for fac(>16) !
-#
+/*
+ * Calculate the factorial of a number input into a message box.
+ * Note: PKSMakroC - PKS MacroC Integers are 64 bit big, this macro
+ * will cause overflows for fac(>16) !
+ */
 macro calculateFactorial() {
-	int		n = 1;
-	int		save_n = 1;
-	int		res = 1;
-	string	result = "";
+    int     n = 1;
+    int     nSelected = 1;
+    int     result = 1;
 
-	n = (int)PromptAssign("Calculate factorial of: ","10");
-	if (n == 0) {
-		return;
-	}
-	save_n = n;
+    nSelected = (int)PromptAssign("Calculate factorial of: ","10");
+    if (nSelected == 0) {
+        MessageBox(MB_ICONINFORMATION|MB_OK, "Calculation aborted.");
+        return;
+    }
+    n = nSelected;
 
-	while(n > 1) {
-		res = res * n;
-		n = n - 1;
-	}
+    while(n > 1) {
+        result *= n;
+        n--;
+    }
 
-    if (res < 0) {
-        MessageBox(0, MB_ICONERROR|MB_OK, "Overflow during calculation.");
+    if (result < 0) {
+        MessageBox(MB_ICONERROR|MB_OK, "Overflow during calculation.");
     } else {
-	    result = "The factorial of " + save_n + " is: " + res;
-        MessageBox(0, MB_ICONINFORMATION|MB_OK, result);
+        MessageBox(MB_ICONINFORMATION|MB_OK, "The factorial of " + nSelected + " is: " + result);
     }
 }
 

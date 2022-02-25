@@ -434,7 +434,7 @@ CARET* caret_addSecondary(WINFO* wp, long ln, long nLineOffset) {
 /*
  * Removes all secondary carets from the screen.
  */
-int caret_removeSecondaryCarets() {
+long long caret_removeSecondaryCarets() {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	if (wp == NULL) {
 		return 0;
@@ -698,7 +698,7 @@ static CARET* caret_findMostUpDown(CARET* pCaret, int dir) {
 /*
  * Move the caret to add a secondary caret.
  */
-int caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType) {
+long long caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 
 	if (wp == NULL) {
@@ -766,7 +766,7 @@ int caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType) {
  * general cursor advancing in
  * vertical direction
  */
-EXPORT int caret_moveUpOrDown(WINFO* wp, int dir, int mtype)
+long long caret_moveUpOrDown(WINFO* wp, int dir, int mtype)
 {
 	BOOL	bXtnd;
 	int		nRet;

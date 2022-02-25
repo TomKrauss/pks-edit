@@ -235,7 +235,7 @@ static BOOL edit_isAllCommented(LINE* lpFirst, const LINE* lpLast, const char* p
 /*
  * Comment in/out the selected lines in the current editor.
  */
-int edit_toggleComment() {
+long long edit_toggleComment() {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	COMMENT_DESCRIPTOR commentDescriptor;
 
@@ -306,7 +306,7 @@ int edit_toggleComment() {
  * edit_insertLine()
  * create newline and insert it
  */
-int edit_insertLine(EDIT_LINE_OPTIONS control)
+long long edit_insertLine(EDIT_LINE_OPTIONS control)
 {	LINE     *olp,*nlp;
 	FTABLE 	*fp;
 	int      dir,ai;
@@ -894,7 +894,7 @@ static int edit_deleteChar(WINFO* wp, CARET* pCaret, int control, int nMatchChar
  * EdCharInsert()
  * normal Character insert
  */
-int EdCharInsert(int c)
+long long EdCharInsert(int c)
 {	FTABLE *		fp;
 	EDIT_CONFIGURATION *lnp;
 	LINE *		lp;
@@ -1002,7 +1002,7 @@ int EdCharInsert(int c)
  * EdCharDelete()
  * delete character(s), words, ....
  */
-int EdCharDelete(int control) {
+long long EdCharDelete(int control) {
 	int matchc;
 	WINFO* wp = ww_getCurrentEditorWindow();
 
@@ -1021,7 +1021,7 @@ int EdCharDelete(int control) {
 /*--------------------------------------------------------------------------
  * edit_performLineFlagOperation()
  */
-int edit_performLineFlagOperation(MARKED_LINE_OPERATION op) {
+long long edit_performLineFlagOperation(MARKED_LINE_OPERATION op) {
 	long 	ln;
 	FTABLE* fp;
 	LINE* lp;
@@ -1076,7 +1076,7 @@ int edit_performLineFlagOperation(MARKED_LINE_OPERATION op) {
  * EdLineSplit()
  * do cr+lf-Actions
  */
-int EdLineSplit(int flags) {
+long long EdLineSplit(int flags) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	int nRet = 1;
 
@@ -1175,7 +1175,7 @@ int EdExpandAbbreviation(void)
  * the passed operation flag.
  */
 extern unsigned char _l2uset[], _u2lset[];
-int edit_convertCharacterCase(CC_OPERATION operation) {
+long long edit_convertCharacterCase(CC_OPERATION operation) {
 	LINE* lp;
 	unsigned char c, c1;
 	int  offs;
@@ -1240,7 +1240,7 @@ int edit_convertCharacterCase(CC_OPERATION operation) {
 /*
  * Insert a string into the current file at the current cursor position.
  */
-int edit_insertString(long unused, long u2, const char* pszString) {
+long long edit_insertString(long unused, long u2, const char* pszString) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	if (!wp || !pszString) {
 		return 0;

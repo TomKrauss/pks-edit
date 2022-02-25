@@ -177,7 +177,13 @@ unsigned char* bytecode_emitMultiplyWithLiteralExpression(BYTECODE_BUFFER* pBuff
 
 unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, char* pszName, int nIncrement) {
 	pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_VARIABLE, (GENERIC_DATA) { .string=pszName });
-	pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_INTEGER_LITERAL, (GENERIC_DATA) { nIncrement });
+	pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_INTEGER_LITERAL, (GENERIC_DATA) { .intValue = nIncrement });
 	pBuffer->bb_current = bytecode_emitBinaryOperation(pBuffer, BIN_ADD, VT_NUMBER);
+	return bytecode_emitAssignment(pBuffer, pszName);
+}
+
+unsigned char* bytecode_emitShorthandAssignment(BYTECODE_BUFFER* pBuffer, int nBinaryOp, char* pszName) {
+	pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_VARIABLE, (GENERIC_DATA) { .string = pszName });
+	pBuffer->bb_current = bytecode_emitBinaryOperation(pBuffer, nBinaryOp, VT_NUMBER);
 	return bytecode_emitAssignment(pBuffer, pszName);
 }

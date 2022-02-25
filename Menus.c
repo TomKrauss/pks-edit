@@ -179,7 +179,7 @@ static void menu_showContextMenu(HWND hwndParent, WINFO* wp, int x, int y) {
  * Open the context menu in the current editor window (if any) close to the current mouse position.
  * The context menu will be popuplated with the appropriate items. Return 1 if successful, 0 otherwise.
  */
-int menu_openContextMenu() {
+long long menu_openContextMenu() {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	if (!wp) {
 		return 0;

@@ -162,7 +162,7 @@ static long compare_diffFiles(WINFO* wp1, WINFO* wp2) {
 /*
  * Clear the current comparison link.
  */
-EXPORT int compare_clear() {
+EXPORT long long compare_clear() {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	if (wp != NULL && wp->comparisonLink) {
 		ww_releaseComparisonLink(wp, TRUE);
@@ -195,7 +195,7 @@ EXPORT int compare_files(WINFO* wp0, WINFO* wp1) {
  *
  * If navigation is successful, 1 is returned.
  */
-EXPORT int compare_navigate(int aDirection) {
+EXPORT long long compare_navigate(int aDirection) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	if (wp == NULL) {
 		return 0;

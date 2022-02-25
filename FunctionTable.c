@@ -40,8 +40,8 @@
 #include "edexec.h"
 #include "findandreplace.h"
 
-extern int
-EdFileAbandon(), EdAbout(long ), EdBlockCopy(long ), EdBlockDelete(),
+extern long long
+EdAbout(long ), EdBlockCopy(long ), EdBlockDelete(),
 EdBlockFindEnd(long ), EdBlockFindStart(long ), EdBlockMove(long ), EdBlockRead(long ),
 EdBlockWrite(long ), bl_cutOrCopy(long ), EdBlockPaste(long ), bl_hideSelectionInCurrentWindow(),
 EdSyncSelectionWithCaret(long ), bl_cutLines(long ), EdLineDelete(long ), bl_destroyAll(long ),
@@ -49,17 +49,17 @@ EdKeycodeInsert(long ), EdCharInsert(long ), EdFormatText(long ),
 EdSearchListRead(long ), EdErrorListRead(long ),
 EdMacrosEdit(long ), EdDocMacrosAdd(long ), 
 EdTagfileRead(long ), EdSetup(long ), EdSetMultiplier(long ), EdReplaceTabs(long ),
-EdLineSplit(int), EdParaGotoBegin(long ), edit_shiftSelection(int aDirection),
-EdParaGotoEnd(long ), EdCharDelete(long ), fkey_keyModifierStateChanged(long ), codecomplete_showSuggestionWindow(long ),
+EdParaGotoBegin(long ), edit_shiftSelection(int aDirection),
+EdParaGotoEnd(long ), EdCharDelete(long ), codecomplete_showSuggestionWindow(long ),
 EdMacroRecord(long ), EdFindInFileList(long ), EdFind(long ),
 EdReplace(long ), EdFindAgain(long ), EdReplaceAgain(long ), EdCharControlInsert(long ),
 EdGotoLine(long ), EdMarkSet(long ), EdMarkGoto(long ),
-EdLinesJoin(long ), EdEditFile(long, char* filename), EdOptionSet(long ),
+EdLinesJoin(long ), EdOptionSet(long ),
 EdPrint(long ), EdExitAndSave(long ), EdExit(long ), EdCloseAll(),
-EdSaveFile(int ), EdSelectWindow(int), EdCommandExecute(long ), EdExecute(long ),
+EdCommandExecute(long ), EdExecute(long ),
 EdShiftBetweenBrackets(long ), EdSort(long ), EdLinesShift(long ), EdInfoFiles(long ),
 EdShowMatch(long ), dlg_configureEditorModes(long ),
-EdOptionToggle(long ), EdPasteString(long ),
+EdPasteString(long ),
 EdFindTag(long ), EdFindFileCursor(long ), xref_navigateSearchErrorList(long ), EdFindTagCursor(long ),
 EdFindWordCursor(long ), EdRangeShift(long ),
 EdUndo(long ), EdRedo(long), EdFilesCompare(long ), EdScrollScreen(long ), EdScrollCursor(long ),
@@ -68,11 +68,11 @@ EdMouseMarkParts(long ), EdMouseMoveText(long ), EdMouseSelectLines(long ), EdMo
 EdAlert(long ), error_displayAlertBoxWithOptions(long ), EdPromptAssign(long ), EdFormatPrint(long ),
 macro_getSelectedText(long ), EdHideLines(long ), EdUnHideLine(long ), EdStringSubstitute(long ),
 EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdListBindings(long ),
-EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(), ww_zoomWindow(int anIncreaseFactor),
+EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(), 
 bl_moveSelectionUpDown(long),
-EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), edit_toggleComment(),EdFindOnInternet();
+EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), EdFindOnInternet();
 
-static int function_unused() {
+static long long function_unused() {
     // NOT USED ANY MORE
     return 0;
 }

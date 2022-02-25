@@ -20,7 +20,7 @@
   * Open the context menu in the current editor window (if any) close to the current mouse position.
   * The context menu will be popuplated with the appropriate items. Return 1 if successful, 0 otherwise.
   */
-extern int menu_openContextMenu();
+extern long long menu_openContextMenu();
 
 /*
  * Returns the position where the last context menu was shown.

@@ -222,11 +222,11 @@ int bl_getSelectedText(char* pszBuf, size_t nCapacity) {
  * PKS Edit macro commad which gets the selected text and makes it available
  * to the macro interpreter.
  */
-void macro_getSelectedText(void) {
-	char		buf[256];
+char* macro_getSelectedText(void) {
+	static char	buf[256];
 
 	bl_getSelectedText(buf, sizeof buf);
-	macro_returnString(buf);
+	return buf;
 }
 
 /*--------------------------------------------------------------------------
