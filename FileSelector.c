@@ -243,7 +243,7 @@ char *fsel_selectFileWithOptions(FSELINFO *fp, int nCommand, FILE_SELECT_PARAMS*
 	static ITEMS	_i = { C_PUSH_STRING_LITERAL, _fseltarget };
 	static PARAMS	_p = { DIM(_i), P_MAYOPEN, _i	};
 
-	if (macro_openDialog(&_p)) {
+	if (interpreter_openDialog(&_p)) {
 
 		if (fp->path[0] == 0) {	
 			lstrcpy(fp->path,_pksSysFolder);
@@ -426,7 +426,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
 		if(Errval!=0) {
 			// TODO: I18N
 			wsprintf(szTemp, "GetOpenFileName returned Error # 0x%lx", Errval);
-			error_displayAlertBoxWithOptions(MB_OK | MB_ICONSTOP, 0, szTemp);
+			error_displayAlertBoxWithOptions(MB_OK | MB_ICONSTOP, szTemp);
 		}
 	}
 	if (ofn.lpfnHook) {

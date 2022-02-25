@@ -1240,7 +1240,7 @@ long long edit_convertCharacterCase(CC_OPERATION operation) {
 /*
  * Insert a string into the current file at the current cursor position.
  */
-long long edit_insertString(long unused, long u2, const char* pszString) {
+long long edit_insertString(const char* pszString) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	if (!wp || !pszString) {
 		return 0;

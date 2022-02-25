@@ -86,7 +86,7 @@ typedef struct params {
 	struct	des *el;
 } PARAMS;
 
-extern int macro_openDialog(PARAMS *p);
+extern int interpreter_openDialog(PARAMS *p);
 extern long long cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3);
 
 /*------------------------------------------------------------

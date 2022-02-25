@@ -282,9 +282,9 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 }
 
 /*---------------------------------*/
-/* macro_openDialog()				*/
+/* interpreter_openDialog()				*/
 /*---------------------------------*/
-int macro_openDialog(PARAMS *pp)
+int interpreter_openDialog(PARAMS *pp)
 {	int 		i;
 	struct des 	*dp;
 	GENERIC_DATA	par;
@@ -295,13 +295,14 @@ int macro_openDialog(PARAMS *pp)
 		return FORM_SHOW;
 
 	if (*_dialogExecutionBytecodePointer != C_FORM_START) {
-err:		return FORM_SHOW;
+		return FORM_SHOW;
 	}
 
 	cp = (COM_FORM *) (interpreter_getValueForOpCode(_currentExecutionContext, _dialogExecutionBytecodePointer).sym_data.string);
 	_dialogExecutionBytecodePointer += interpreter_getParameterSize(*_dialogExecutionBytecodePointer, _dialogExecutionBytecodePointer + 1);
-	if (!cp)
-		goto err;
+	if (!cp) {
+		return FORM_SHOW;
+	}
 
 	if (cp->options & FORM_REDRAW) {
 		ww_redrawAllWindows(1);
@@ -342,7 +343,10 @@ err:		return FORM_SHOW;
  * Returns FALSE; if the function described by the function pointer cannot 
  * be executed.
  */
-int macro_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn) {
+int interpreter_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn) {
+	if (!fup->flags) {
+		return 1;
+	}
 	WINFO* wp = ww_getCurrentEditorWindow();
 
 	FTABLE* fp = wp ? wp->fp : NULL;
@@ -383,7 +387,36 @@ int macro_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn) {
  */
 int interpreter_canExecuteFunction(int num, long long pParam, int warn) {
 	EDFUNC *	fup = &_functionTable[num];
-	return macro_isFunctionEnabled(fup, pParam, warn);
+	return interpreter_isFunctionEnabled(fup, pParam, warn);
+}
+
+/*
+ * Call a method generically (foreign function interface) - should use libffi on a long term run.
+ */
+static long long cdecl interpreter_callFfi(EDFUNC* pFunc, intptr_t p1, intptr_t p2, void* s1, void* s2, void* s3) {
+	if (!pFunc->execute) {
+		return 0;
+	}
+	// Handle typical function prototypes explicitly
+	int nParams = function_getParameterCount(pFunc);
+	if (nParams == 1) {
+		if (function_getParameterTypeDescriptor(pFunc, 1).pt_type == PARAM_TYPE_STRING) {
+			return (*pFunc->execute)(s1);
+		}
+	}
+	else if (nParams == 2) {
+		PARAMETER_TYPE_DESCRIPTOR pd1 = function_getParameterTypeDescriptor(pFunc, 1);
+		PARAMETER_TYPE_DESCRIPTOR pd2 = function_getParameterTypeDescriptor(pFunc, 2);
+		if (pd2.pt_type == PARAM_TYPE_STRING) {
+			if (pd1.pt_type == PARAM_TYPE_STRING) {
+				return (*pFunc->execute)(s1, s2);
+			}
+			if (pd1.pt_type != PARAM_TYPE_STRING) {
+				return (*pFunc->execute)(p1, s1);
+			}
+		}
+	}
+	return (*pFunc->execute)(p1, p2, s1, s2, s3);
 }
 
 /*---------------------------------*/
@@ -394,7 +427,7 @@ long long cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, v
 	long long 	ret = 0;
 	int			i;
 
-	if (!interpreter_canExecuteFunction(num, (long long)p1, 1)) {
+	if (!interpreter_isFunctionEnabled(fup, (long long)p1, 1)) {
 		return 0;
 	}
 
@@ -410,13 +443,11 @@ long long cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, v
 	recorder_recordFunctionWithParameters(num,(int)p1,p2,s1,s2);
 
 	if ((i = _multiplier) > 1 && (fup->flags & EW_MULTI) == 0) {
-		while (i-- > 0 && (ret = (* fup->execute)(p1,p2,s1,s2,s3)) != 0)
+		while (i-- > 0 && (ret = interpreter_callFfi(fup, p1,p2,s1,s2,s3)) != 0)
 			;
 		_multiplier = 1;
 	} else {
-		if (fup->execute) {
-			ret = (*fup->execute)(p1, p2, s1, s2, s3);
-		}
+		ret = interpreter_callFfi(fup, p1, p2, s1, s2, s3);
 	}
 
 	FTABLE* fp;
@@ -424,8 +455,9 @@ long long cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, v
 		ft_settime(&fp->ti_lastChanged);
 	}
 
-	if (i > 1)
+	if (i > 1) {
 		_multiplier = 1;
+	}
 	return ret;
 }
 
@@ -465,20 +497,24 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 	}
 
 	if (typ != C_MACRO) {
+		EDFUNC* fup = &_functionTable[funcnum];
 		int i;
 		int nMax = ((COM_0FUNC*)pLocalInstructionPointer)->func_nargs;
-		if (nMax > DIM(nativeStack)) {
-			nMax = DIM(nativeStack);
+		int nNativeParams = function_getParameterCount(fup);
+		if (nMax > nNativeParams) {
+			nMax = nNativeParams;
 		}
 		for (i = 0; i < nMax; i++) {
 			tempStack[i] = interpreter_popStackValue(pContext);
 		}
-		for (int j = i; --j >= 0; ) {
-			PKS_VALUE v = tempStack[j];
+		for (i = 0; i < nMax; i++) {
+			PKS_VALUE v = tempStack[nMax-i-1];
+			if (function_getParameterTypeDescriptor(fup, i + 1).pt_type == PARAM_TYPE_STRING) {
+				v = interpreter_coerce(pContext, v, S_STRING);
+			}
 			if (v.sym_type == S_STRING) {
 				*stringFunctionParameters++ = v.sym_data.string;
-			}
-			else {
+			} else {
 				*functionParameters++ = v.sym_data.intValue;
 			}
 		}

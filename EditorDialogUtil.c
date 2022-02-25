@@ -1032,7 +1032,7 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 int win_callDialogCB(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback)
 { 	int ret = 1;
 
-	if (macro_openDialog(pp)) {
+	if (interpreter_openDialog(pp)) {
 		ret = DoDialog(nId, pCallback,dp, pTooltips);
 		recorder_recordOperation(pp);
 		if (ret == IDCANCEL || ret == -1)

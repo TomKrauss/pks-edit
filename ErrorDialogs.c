@@ -57,7 +57,7 @@ static LRESULT WINAPI error_messageBoxHook(int nCode, WPARAM wParam, LPARAM lPar
 /*------------------------------------------------------------
  * error_displayAlertBoxWithOptions()
  */
-int error_displayAlertBoxWithOptions(long buttons, long unused, const char* fmt) {
+int error_displayAlertBoxWithOptions(long buttons, const char* fmt) {
 	if (!fmt || hHook) {
 		return -1;
 	}
@@ -110,7 +110,7 @@ static int error_openConfigurableAlert(int buttons, LPSTR fmt, va_list ap)
 
 	// 1024 == maximum result size for wvsprintf
     wvsprintf(szBuf,(LPSTR)fmt, ap);
-	int ret = error_displayAlertBoxWithOptions(buttons, 0, szBuf);
+	int ret = error_displayAlertBoxWithOptions(buttons, szBuf);
 	return ret;
 }
 

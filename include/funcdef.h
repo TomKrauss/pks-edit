@@ -50,12 +50,12 @@ typedef struct tagPARAMETER_TYPE_DESCRIPTOR {
 #define	EW_CUSTOM_ENABLEMENT 0x1000	// custom enablement function must be evaluated to calculate enablement.
 
 typedef struct edfunc {
-	long long (*execute)();			// the actual callback to invoke 
-	unsigned char id;				// logical id for referencing it 
-	int		 flags;					// see EW_... flags above
-	const char* f_name;				// the name as it can be used inside the PKS Edit macro language to execute this function.
+	long long (*execute)();					// the actual callback to invoke 
+	char paramCount;						// Cache for storing the parameter count.
+	int	 flags;								// see EW_... flags above
+	const char* f_name;						// the name as it can be used inside the PKS Edit macro language to execute this function.
 	int (*isenabled)(long long pParam);		// Optional enablement function allowing to check, whether the execute function can currently be invoked.
-	signed char* edf_paramTypes;		// Signature description of the function. Contains a string encoded using the constants defined above (PAR_...)
+	signed char* edf_paramTypes;			// Signature description of the function. Contains a string encoded using the constants defined above (PAR_...)
 } EDFUNC;
 
 /*
@@ -63,6 +63,8 @@ typedef struct edfunc {
  * starts with 1, parameter type 0 is the return type of the function.
  */
 extern PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(EDFUNC* ep, int nParamIdx);
+
+extern int function_parameterIsFormStart(EDFUNC* ep, int parno);
 
 extern int function_returnsString(EDFUNC* ep);
 
@@ -75,7 +77,7 @@ extern int function_getParameterCount(EDFUNC* ep);
  * Returns FALSE; if the function described by the function pointer cannot
  * be executed.
  */
-extern int macro_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn);
+extern int interpreter_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn);
 
 extern int 		_functionTableSize;
 extern EDFUNC	_functionTable[];

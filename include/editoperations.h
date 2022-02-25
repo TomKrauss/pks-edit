@@ -25,7 +25,7 @@ extern long long edit_toggleComment();
 /*
  * Insert a string into the current file at the current cursor position.
  */
-extern long long edit_insertString(long unused, long u2, const char* pszString);
+extern long long edit_insertString(const char* pszString);
 
 /*--------------------------------------------------------------------------
  * Perform the given operation on the lines of the current file. Some of

@@ -677,8 +677,8 @@ static void mdr_renderMarkdownBlockPart(WINFO* wp, RENDER_VIEW_PART* pPart, HDC 
 		TEXTMETRIC tm;
 		GetTextMetrics(hdc, &tm);
 		RECT r;
-		r.top = pBounds->top + pPart->rvp_margins.m_top - 10;
-		r.bottom = y + (pPart->rvp_number * tm.tmHeight) + pPart->rvp_margins.m_bottom;
+		r.top = y-5;
+		r.bottom = r.top + (pPart->rvp_number * tm.tmHeight) + pMargins->m_bottom+10;
 		r.left = x-10;
 		r.right = nRight > 1200 ? nRight - 100 : nRight;
 		HBRUSH hBrOld = SelectObject(hdc, theme_getDialogLightBackgroundBrush());
@@ -1007,6 +1007,11 @@ static LINE* mdr_parseFencedCodeBlock(RENDER_VIEW_PART* pPart, LINE* lp, STRING_
 
 		}
 		size_t nSize = stringbuf_size(pSB) - nLastOffset;
+		if (nSize == 0) {
+			// do not skip empty lines.
+			stringbuf_appendChar(pSB, ' ');
+			nSize++;
+		}
 		mdr_appendRun(&pPart->rvp_data.rvp_flow.tf_runs, &_formatFenced, nSize, ATTR_LINE_BREAK);
 		nLastOffset += nSize;
 		lp = lp->next;
@@ -1148,7 +1153,7 @@ static LINE* mdr_parseFlow(LINE* lp, int nStartOffset, int nEndOffset, RENDER_VI
 			if (c == '\\' && i < lp->len - 1 && strchr(_escapedChars, lp->lbuf[i + 1]) != NULL) {
 				i++;
 				c = lp->lbuf[i];
-			} else if (c == '=' && i < lp->len-1 && lp->lbuf[i+1] == c) {
+			} else if (!(mAttrs & ATTR_CODE) && c == '=' && i < lp->len-1 && lp->lbuf[i+1] == c) {
 				i++;
 				nSize = stringbuf_size(pSB) - nLastOffset;
 				mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs);

@@ -58,7 +58,6 @@ typedef struct edx {
 	void 	(*Aes_draw  )(OBJECT *tree,int centered);
 	void 	(*Aes_undraw)(OBJECT *tree,int centered);
 	int		(*form_do   )(OBJECT *tree,int edit_obj);
-	int		(*Form_EdAlert)(int def_but, const char *b);
 
 	/* Memory */
 	void 	*(*_alloc)(unsigned size);

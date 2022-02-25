@@ -93,7 +93,7 @@ int EdExitAndSave(int rc)
 /*------------------------------------------------------------
  * EdAlert()
  */
-void EdAlert(long unused1, long unused2, char *s)
+void EdAlert(char *s)
 {
 	if (s)
 		error_displayAlertDialog(s);
@@ -1739,8 +1739,7 @@ int EdIsDefined(long what)
 /*--------------------------------------------------------------------------
  * EdPromptAssign()
  */
-char* EdPromptAssign(long unused1, long unused2, char* prompt, char* init)
-{
+char* EdPromptAssign(char* prompt, char* init) {
 	static char buf[128];
 	static ITEMS	_i = { C_PUSH_STRING_LITERAL,  (unsigned char*)0 };
 	static PARAMS	_np = { 1, P_MAYOPEN, _i };

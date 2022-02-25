@@ -25,7 +25,7 @@ To compile one or more macros, you open a macro file (see the `macros` sub-direc
 a message is displayed, that no error was found. Otherwise an error log is opened, which can be navigated with Ctrl+N and Ctrl+P to jump to the corresponding line numbers with the
 erors.
 
-## PKSMacroC Language
+## The PKSMacroC Language
 
 The PKS-Edit Macro Language is pretty similar to the C programming language and supports the most common operators 
 and functions and variable declarations as a C program with some modifications and extensions. There is no explicit memory management
@@ -65,17 +65,16 @@ macro calculateFactorial() {
 }
 ```
 
-
 ## PKSMacroC Types
 
-PKSMacroC supports 3 types of commments:
+**PKSMacroC** supports 3 types of commments:
 
 - `#` as first character introduces single-line comments
 - `//` also introduces single-line comments
 - `/*` and `*/` may introduce multi-line comments similar to C. If one places a multi-lane comment before a macro, the comment will be used as 
   the description / help (in code completion) text for that macro.
  
-The PKSMacroC languages supports the following types, which can be used:
+The **PKSMacroC** languages supports the following types, which can be used:
 
 - `string` as the name implies a string (internally implemented using zero terminated strings). Strings in PKS-Edit are dynamically allocated and de-allocated.
   no memory management is necessary in PKSMacroC code. One can concatenate strings by using the '+' operator. `string` literals follow C syntax and are enclosed
@@ -101,11 +100,11 @@ PKSMacroC supports the most common operators also supported in the C language.
 
 - `+`, `-`, `*`, `/`, `%`   	   arithmetic operators
 - `!`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `&&`, `||`  logical operators
-- &, |, ^ 						   bitwise operators
-- ~                                matches operator. Can be used to match a string with a regular expression ("aa" ~ "[a]+")
-- ^^                               power to operator to be applied to float or int data types
+- `&`, `|`, `^` bitwise operators
+- `~`, `!~` _matches_ / _does_not_match_ operator. Can be used to match a string with a regular expression (`"aa" ~ "[a]+"`)
+- `^^`  power to operator to be applied to float or int data types
 
-PKSMacroC also allows to use the typical C assignment shorthand notations such as
+**PKSMacroC** also allows to use the typical C assignment shorthand notations such as
 
 - `i++`, `i--` increment or decrement operators
 - `i += x`, `i *= x`, ... shorthand assignment and calculation operators.

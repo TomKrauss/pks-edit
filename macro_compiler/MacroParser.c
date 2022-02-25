@@ -77,9 +77,11 @@ int function_getIndexOfFunction(EDFUNC *ep)
  * Returns the number of parameters of a native macro function.
  */
 int function_getParameterCount(EDFUNC* ep) {
-	char* pT = ep->edf_paramTypes;
-
+	if (ep->paramCount >= 0) {
+		return ep->paramCount;
+	}
 	function_initializeFunctionsAndTypes();
+	char* pT = ep->edf_paramTypes;
 	int nCount = 0;
 	pT++;
 
@@ -95,6 +97,7 @@ int function_getParameterCount(EDFUNC* ep) {
 		nCount++;
 		pT++;
 	}
+	ep->paramCount = nCount;
 	return nCount;
 }
 
