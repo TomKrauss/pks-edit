@@ -607,15 +607,17 @@ static TAG_REFERENCE *xref_lookupTagReference(char *tagName, BOOL bForceDialog) 
  **/
 static char* xref_findExpressionCloseToCaret(unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
 	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int (*matchesCharacter)(unsigned char c), FIND_IDENTIFIER_OPTIONS fiOptions) {
-	char* s, * pszStart;
+	char* s, *pszStart, *pszEnd;
 	char* pszCursor;
 	char* s1 = pszTargetBuffer;
 	WINFO* wp;
 
 	if ((wp = ww_getCurrentEditorWindow()) == 0L)
 		return (char*)0;
-	pszStart = wp->caret.linePointer->lbuf;
+	LINE* lp = wp->caret.linePointer;
+	pszStart = lp->lbuf;
 	s = &pszStart[wp->caret.offset];
+	pszEnd = &lp->lbuf[lp->len];
 	pszCursor = s;
 
 	if (fiOptions != FI_CURSOR_TO_END_WORD) {
@@ -627,7 +629,7 @@ static char* xref_findExpressionCloseToCaret(unsigned char* pszTargetBuffer, uns
 		*pszExpressionBegin = s;
 	}
 
-	while ((fiOptions != FI_BEGIN_WORD_TO_CURSOR || s < pszCursor) && (*matchesCharacter)(*s) && pszTargetBuffer < pszTargetBufferEnd) {
+	while (s < pszEnd && (fiOptions != FI_BEGIN_WORD_TO_CURSOR || s < pszCursor) && (*matchesCharacter)(*s) && pszTargetBuffer < pszTargetBufferEnd) {
 		*pszTargetBuffer++ = *s++;
 	}
 	if (pszExpressionEnd) {

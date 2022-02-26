@@ -15,6 +15,7 @@
 
 #include <string.h>
 #include <windows.h>
+#include <setjmp.h>
 
 #include "winfo.h"
 #include "edierror.h"
@@ -58,7 +59,7 @@ extern int 				ft_selectWindowWithId(int winid, BOOL bPopup);
  * Test an expression in a macro.
  */
 extern int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP* sp);
-extern void macro_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp);
+extern void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp);
 
 extern int 	progress_cancelMonitor(BOOL bRedraw);
 extern void ww_redrawAllWindows(int update);
@@ -66,20 +67,31 @@ extern void undo_startModification(FTABLE *fp);
 extern void ft_settime(EDTIME *tp);
 extern int 	macro_executeByName(char *name);
 
-int			_playing;
-
 extern long	_multiplier;
 extern int	_lastinsertedmac;
 
 extern BYTECODE_BUFFER _currentRecordingBuffer;
+
+int			_playing;
 static unsigned char* _dialogExecutionBytecodePointer;
+static ARRAY_LIST* _contextStack;
 static EXECUTION_CONTEXT* _currentExecutionContext;
+static jmp_buf _currentJumpBuffer;
 
 /*
- * Interpreter error handling.
+ * An error has occurred during execution of a macro. Display a descriptive error and abort the execution.
  */
-static void interpreter_raiseError(const char* pMessage) {
-	error_displayAlertDialog(pMessage);
+void interpreter_raiseError(const char* pFormat, ...) {
+	char szBuffer[256];
+	char szMessage[512];
+	va_list ap;
+
+	va_start(ap, pFormat);
+	vsprintf(szBuffer, pFormat, ap);
+	va_end(ap);
+	sprintf(szMessage, "Exception occurred when executing macro/function '%s'\n%s", _currentExecutionContext ? _currentExecutionContext->ec_currentFunction : "?", szBuffer);
+	error_displayAlertDialog(szMessage);
+	longjmp(_currentJumpBuffer, 1);
 }
 
 /*--------------------------------------------------------------------------
@@ -92,15 +104,17 @@ static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsi
 	switch (typ) {
 	case C_FORM_START:
 		return (PKS_VALUE) { .sym_type = S_NUMBER, .sym_data.string = pInstructionPointer};
-	case C_PUSH_CHARACTER_LITERAL:
+	case C_PUSH_SMALL_INT_LITERAL:
 		return (PKS_VALUE) { .sym_type = S_NUMBER, .sym_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
+	case C_PUSH_CHARACTER_LITERAL:
+		return (PKS_VALUE) { .sym_type = S_CHARACTER, .sym_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
 	case C_PUSH_INTEGER_LITERAL:
 		return (PKS_VALUE) { .sym_type = S_NUMBER, .sym_data.longValue = ((COM_INT1*)pInstructionPointer)->val };
 	case C_PUSH_LONG_LITERAL:
 		return (PKS_VALUE) { .sym_type = S_NUMBER, .sym_data.longValue = ((COM_LONG1*)pInstructionPointer)->val };
 	case C_PUSH_FLOAT_LITERAL: {
 		double dDouble = ((COM_FLOAT1*)pInstructionPointer)->val;
-		return (PKS_VALUE) { .sym_type = S_NUMBER, .sym_data.doubleValue = dDouble };
+		return (PKS_VALUE) { .sym_type = S_FLOAT, .sym_data.doubleValue = dDouble };
 	}
 	case C_PUSH_STRING_LITERAL:
 		return (PKS_VALUE) {
@@ -117,9 +131,13 @@ static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsi
 /*
  * Creates an execution context for executing a macro function.
  */
-static EXECUTION_CONTEXT* interpreter_pushExecutionContext() {
+static EXECUTION_CONTEXT* interpreter_pushExecutionContext(const char* pszFunctionName) {
 	EXECUTION_CONTEXT* pResult = calloc(1, sizeof * pResult);
 	pResult->ec_identifierContext = sym_pushContext(sym_getGlobalContext());
+	if (_contextStack == NULL) {
+		_contextStack = arraylist_create(7);
+	}
+	arraylist_add(_contextStack, pResult);
 	if (_currentExecutionContext != NULL) {
 		pResult->ec_stackBottom = _currentExecutionContext->ec_stackBottom;
 		pResult->ec_stackMax = _currentExecutionContext->ec_stackMax;
@@ -136,6 +154,7 @@ static EXECUTION_CONTEXT* interpreter_pushExecutionContext() {
 		pResult->ec_stackMax = pStack + MAX_STACK_SIZE;
 		pResult->ec_allocations = arraylist_create(37);
 	}
+	pResult->ec_currentFunction = pszFunctionName;
 	_currentExecutionContext = pResult;
 	return pResult;
 }
@@ -154,7 +173,27 @@ static void interpreter_popExecutionContext(EXECUTION_CONTEXT* pContext, EXECUTI
 		arraylist_destroy(pContext->ec_allocations);
 	}
 	free(pContext);
+	if (_contextStack) {
+		arraylist_remove(_contextStack, pContext);
+		if (!pPreviousContext) {
+			arraylist_destroy(_contextStack);
+			_contextStack = NULL;
+		}
+	}
 	_currentExecutionContext = pPreviousContext;
+}
+
+/*
+ * Used to release resources after an exception.
+ */
+static void interpreter_cleanupContextStacks() {
+	if (_contextStack) {
+		int nLast = (int)arraylist_size(_contextStack);
+		while (--nLast >= 0) {
+			EXECUTION_CONTEXT* pPrevious = nLast - 1 >= 0 ? arraylist_get(_contextStack, nLast - 1) : 0;
+			interpreter_popExecutionContext(arraylist_get(_contextStack, nLast), pPrevious);
+		}
+	}
 }
 
 /*
@@ -240,6 +279,7 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 		case C_SET_STACKFRAME:
 		case C_SET_PARAMETER_STACK:
 		case C_PUSH_CHARACTER_LITERAL:
+		case C_PUSH_SMALL_INT_LITERAL:
 		case C_PUSH_BOOLEAN_LITERAL:
 			return sizeof(COM_CHAR1);
 		case C_1FUNC:
@@ -319,6 +359,7 @@ int interpreter_openDialog(PARAMS *pp)
 		if (cp->options & FORM_INIT) {
 		   switch(dp->cmd_type) {
 			case C_PUSH_INTEGER_LITERAL:  *dp->p.i = par.intValue; break;
+			case C_PUSH_SMALL_INT_LITERAL:
 			case C_PUSH_CHARACTER_LITERAL: *dp->p.c = par.uchar; break;
 			case C_PUSH_FLOAT_LITERAL: *dp->p.d = par.doubleValue; break;
 			case C_PUSH_LONG_LITERAL: *dp->p.l = (long)par.longValue; break;
@@ -542,7 +583,7 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 		// Work around for wrong stack manipulation on call site.
 		pContext->ec_stackCurrent++;
 		returnValue = interpreter_popStackValue(pContext);
-		pContext->ec_stackCurrent = pContext->ec_stackFrame;
+		pContext->ec_stackCurrent = pContext->ec_parameterStack;
 		interpreter_pushValueOntoStack(pContext, returnValue);
 	}
 	return rc;
@@ -570,23 +611,24 @@ static PKS_VALUE interpreter_getParameterStackValue(EXECUTION_CONTEXT* pContext,
 }
 
 /*---------------------------------*/
-/* macro_interpretByteCodes()					*/
+/* macro_interpretByteCodes()      */
 /*---------------------------------*/
 #define COM1_INCR(pLocalInstructionPointer,type,offset) (((unsigned char *)pLocalInstructionPointer)+((type *)pLocalInstructionPointer)->offset)
 #define COM_PARAMINCR(pLocalInstructionPointer)		(((unsigned char *)pLocalInstructionPointer)+interpreter_getParameterSize(pLocalInstructionPointer->typ,&pLocalInstructionPointer->funcnum));
 static int _macaborted;
-static int macro_interpretByteCodes(COM_1FUNC *cp,COM_1FUNC *cpmax) {
+static int macro_interpretByteCodes(const char* pszFunctionName, COM_1FUNC *cp,COM_1FUNC *cpmax) {
 	static int 	level;
 	unsigned char* pInstr;
 	unsigned char* pInstrMax;
-	if (level > 10) {
-		// TODO: make this dependent on stack
-		error_showErrorById(IDS_MSGMACRORECURSION);
-		return 0;
-	}
 	EXECUTION_CONTEXT* pOld = _currentExecutionContext;
-	EXECUTION_CONTEXT* pContext = interpreter_pushExecutionContext();
+	EXECUTION_CONTEXT* pContext = interpreter_pushExecutionContext(pszFunctionName);
 
+	if (level == 0 && setjmp(_currentJumpBuffer)) {
+		// TODO: more cleanup!
+		interpreter_cleanupContextStacks();
+		level = 0;
+		return -1;
+	}
 	level++;
 	pInstr = (unsigned char*)cp;
 	pInstrMax = (unsigned char*)cpmax;
@@ -630,11 +672,12 @@ static int macro_interpretByteCodes(COM_1FUNC *cp,COM_1FUNC *cpmax) {
 				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 				continue;
 			case C_BINOP:
-				macro_evaluateBinaryExpression(pContext, (COM_BINOP*)cp);
+				interpreter_evaluateBinaryExpression(pContext, (COM_BINOP*)cp);
 				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 				continue;
 			case C_PUSH_BOOLEAN_LITERAL:
 			case C_PUSH_LONG_LITERAL:
+			case C_PUSH_SMALL_INT_LITERAL:
 			case C_PUSH_CHARACTER_LITERAL:
 			case C_PUSH_FLOAT_LITERAL:
 			case C_PUSH_INTEGER_LITERAL:
@@ -722,6 +765,7 @@ long long macro_executeMacroByIndex(int macroindex)
 	count = _multiplier;
 	_multiplier = 1;
 	for (i = 0; i < count; i++) {
+		const char* pszName = "auto";
 		switch(macroindex) {
 			case MAC_AUTO:	
 				recorder_stopAutoInsertRecording(&cp, &cpmax);
@@ -732,9 +776,10 @@ long long macro_executeMacroByIndex(int macroindex)
 					return 0;
 				cp = (COM_1FUNC *)MAC_DATA(mp);
 				cpmax = (COM_1FUNC *)((char *)cp+mp->mc_size);
+				pszName = mp->mc_name;
 				break;
 		}
-		ret = macro_interpretByteCodes(cp, cpmax);
+		ret = macro_interpretByteCodes(pszName, cp, cpmax);
 		if (ret <= 0) {
 			ret = 0;
 			break;
@@ -764,7 +809,7 @@ long long macro_executeMacro(MACROREF* mp) {
 	switch (mp->typ) {
 	case CMD_CMDSEQ:
 		cp = &_commandTable[mp->index].c_functionDef;
-		return macro_interpretByteCodes(cp, cp + 1);
+		return macro_interpretByteCodes(_commandTable[mp->index].c_name, cp, cp + 1);
 	case CMD_MACRO:
 		// TODO: need a progress indicator popping up after an initial delay.
 		// progress_startMonitor(IDS_ABRTMACRO);

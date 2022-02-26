@@ -1,8 +1,8 @@
 const MB_YESNO	                = 0x0004;
 const IDYES	                = 6;
-#
-# Windows MessageBox
-#
+/*
+ * Windows MessageBox
+ */
 macro YesOrNo()
 {
 	// int 	ret;
@@ -23,9 +23,9 @@ macro YesOrNo()
 	//}
 }
 
-#
-# Test evaluation of String expressions, using the formatting function FormatPrint.
-#
+/*
+ * Test evaluation of String expressions, using the formatting function FormatPrint.
+ */
 macro insertFormattedString() {
 	string myString = GetSelected() +
 			    "* @author: Oscar\n" +

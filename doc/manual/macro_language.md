@@ -83,7 +83,8 @@ The **PKSMacroC** languages supports the following types, which can be used:
   octal numbers (`\0234`).
 - `float` represents floating point numbers. Floating point literals contain either a `.` character and may have a trailing `d` suffix (`12d`).
 - `boolean` boolean types are very often not explicitly defined, but created temporarily by executing a logical / relational operator on other types.
-
+- `range` ranges can be used to select a range of text etc. Currently their use is limited to extract a piece of a string.
+  
 PKSMacoC will try to coerce values to their "right" types or you may `cast` a value type to another explicitly using a cast operator. The following examples
 shows implicit and explicit coercions.
 
@@ -98,14 +99,45 @@ shows implicit and explicit coercions.
 
 PKSMacroC supports the most common operators also supported in the C language.
 
-- `+`, `-`, `*`, `/`, `%`   	   arithmetic operators
+- `+`, `-`, `*`, `/`, `%` arithmetic operators
 - `!`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `&&`, `||`  logical operators
 - `&`, `|`, `^` bitwise operators
-- `~`, `!~` _matches_ / _does_not_match_ operator. Can be used to match a string with a regular expression (`"aa" ~ "[a]+"`)
 - `^^`  power to operator to be applied to float or int data types
+- `..` the range operator allowing to construct a range type from two integer values. `3..5` creates a range from 3-5. See string functions for more details.
+ 
+One of the strengths of PKSMacroC are the special string manipulation operators supported:
 
+- string1 `+` string2 - will contatenate the two strings. If only one of the operands is a string, the other one is automatically
+  coerced to a string.
+- string1 `-` string2 - will remove the 1st occurrence of string2 from string1. "abcd" - "bc" -> "ad". 
+- `~`, `!~` _matches_ / _does_not_match_ operator. Can be used to match a string with a regular expression (`"aa" ~ "[a]+"`)
+- multiplier `*` stringOrChar - can be applied on character and string arguments and creates a resulting string containing multiplier occurrences of the string passed.
+- `[numOrRange]` - can be used to get a single char of a string or a range of characters. "hello"[1] will result in 'e' and "hello"[0..3] will result in "hel".
+  
 **PKSMacroC** also allows to use the typical C assignment shorthand notations such as
 
 - `i++`, `i--` increment or decrement operators
 - `i += x`, `i *= x`, ... shorthand assignment and calculation operators.
+- one can access the characters of strings using the `[]` operator such as in C.
+  
+## PKSMacroC constants
+
+You can define constants outside of macros for convenient naming of typical literals. Constants are inlined
+when a macro is compiled as their respective literal and cannot be changed as the name implies.
+
+Here is an example for a declaration of some common constants:
+
+```
+const TAB = '\t';
+const PI = 3.14159265359d;
+```
+
+## PKSMacroC control flow
+
+PKSMacroC currently supports the following control flow expressions:
+
+- `while (xx) { ... }` - allows to implement a while loop. While loops support nested `break` and `contrinue` statements.
+- `goto label` allows you to jump to a given label defined with `label_name:`.
+- `if (condition) ... [else ...]` - allows to conditionally execute one block with an optional else clause.
+
 

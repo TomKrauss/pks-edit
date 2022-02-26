@@ -136,8 +136,16 @@ void error_displayAlertDialog(const char* fmt, ...)
     va_start(ap,fmt);
     // make Alert boxes system modal, cause they may be opened
     // in situations, we should not use the input focus
-    (void)error_openConfigurableAlert(MB_OK|MB_ICONEXCLAMATION,(char*)fmt,ap);
+	error_vdisplayAlertDialog(fmt, ap);
     va_end(ap);
+}
+
+/*------------------------------------------------------------
+ * error_displayAlertDialog()
+ * Display an alert dialog box passing a variadic arg list.
+ */
+void error_vdisplayAlertDialog(const char* fmt, va_list ap) {
+	(void)error_openConfigurableAlert(MB_OK | MB_ICONEXCLAMATION, (char*)fmt, ap);
 }
 
 /*------------------------------------------------------------

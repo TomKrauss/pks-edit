@@ -176,7 +176,7 @@ PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 	}
 
 	SYMBOL_TYPE sType = TYPEOF(sym);
-	if (sType != S_FLOAT && (sType < S_BOOLEAN || sType > S_CHARACTER)) {
+	if (sType != S_FLOAT && (sType < S_BOOLEAN || sType > S_RANGE)) {
 		error_displayAlertDialog("bad symbol '%s' (type==%d)",symbolname,sType);
 		return nullSymbol;
 	}

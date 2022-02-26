@@ -33,7 +33,7 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 	unsigned char* sp = pBuffer->bb_current;
 
 	if (sp == 0) {
-		yyerror(/*STR*/"adding to zero buffer?");
+		yyerror("Illegal expression outside the context of a macro definition.");
 		return 0;
 	}
 
@@ -42,7 +42,7 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 	 */
 	if (typ == C_PUSH_LONG_LITERAL || typ == C_PUSH_INTEGER_LITERAL) {
 		if (data.val >= 0 && data.val <= 255)
-			typ = C_PUSH_CHARACTER_LITERAL;
+			typ = C_PUSH_SMALL_INT_LITERAL;
 	}
 
 	s = interpreter_getParameterSize(typ, data.string);
@@ -55,6 +55,7 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 		case C_STOP:
 		case C_SET_STACKFRAME:
 		case C_PUSH_CHARACTER_LITERAL: 
+		case C_PUSH_SMALL_INT_LITERAL:
 			((COM_CHAR1 *)sp)->val = data.uchar;
 			break;
 		case C_0FUNC:

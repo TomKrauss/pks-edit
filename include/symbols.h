@@ -20,12 +20,15 @@ typedef enum {
 	S_STRING = 3,
 	S_FLOAT = 4,
 	S_CHARACTER = 5,
-	S_KEYWORD = 6,
-	S_EDFUNC = 7,
-	S_TYPE = 8,
-	S_ENUM = 9,
-	S_CONSTNUM = 10,
-	S_CONSTSTRING = 11,
+	S_RANGE = 6,
+	S_KEYWORD = 7,
+	S_EDFUNC = 8,
+	S_TYPE = 9,
+	S_ENUM = 10,
+	S_CONSTNUM = 11,
+	S_CONSTSTRING = 12,
+	S_CONSTCHARACTER = 13,
+	S_CONSTFLOAT = 14
 } SYMBOL_TYPE;
 
 #define	TYPEOF(s)			((s).sym_type)

@@ -45,6 +45,12 @@ extern int error_displayYesNoCancelConfirmation(int nId, ...);
 extern void error_showErrorById(int nId, ...);
 
 /*------------------------------------------------------------
+ * error_displayAlertDialog()
+ * Display an alert dialog box passing a variadic arg list.
+ */
+void error_vdisplayAlertDialog(const char* fmt, va_list ap);
+
+/*------------------------------------------------------------
  * error_openingFileFailed()
  * Display an (OS level) error about a file.
  */

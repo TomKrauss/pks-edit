@@ -45,6 +45,10 @@ typedef struct tagCONTROL_FLOW_MARK_INDEX {
 	CONTROL_FLOW_MARK	cfmi_mark;					// The marker associated dwith the offset.
 } CONTROL_FLOW_MARK_INDEX;
 
+typedef struct tagDECOMPILATION_STACK_ELEMENT {
+	COM_0FUNC* dse_instruction;
+	char* dse_printed;
+} DECOMPILATION_STACK_ELEMENT;
 
 /*
  * decompile_stringForTestOperator()
@@ -158,6 +162,7 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 		case C_1FUNC:
 			val = ((COM_1FUNC *)sp)->p;
 			break;
+		case C_PUSH_SMALL_INT_LITERAL:
 		case C_PUSH_CHARACTER_LITERAL:
 			val = ((COM_CHAR1 *)sp)->val;
 			break;
@@ -191,9 +196,27 @@ err:		error_displayAlertDialog("Format error in parameters of function to decomp
 		return 1;
 	}
 
-	if (typ == C_PUSH_CHARACTER_LITERAL && val >= 32 && val <= 127) {
+	if (typ == C_PUSH_CHARACTER_LITERAL) {
+		char escape = 0;
 		if ((char)val == '\\') {
-			sprintf(pszBuf, "'\\\\'");
+			escape = '\\';
+		} else if ((char)val == '\t') {
+			escape = '\t';
+		}
+		else if ((char)val == '\r') {
+			escape = 'r';
+		}
+		else if ((char)val == '\f') {
+			escape = 'f';
+		}
+		else if ((char)val == '\a') {
+			escape = 'a';
+		}
+		else if ((char)val == '\n') {
+			escape = 'n';
+		}
+		if (escape) {
+			sprintf(pszBuf, "'\\%c'", escape);
 		} else {
 			sprintf(pszBuf, "'%c'", (char)val);
 		}
@@ -217,18 +240,28 @@ static void decompile_printFunctionName(char* pszBuf, int idx)
 	sprintf(pszBuf,"%s",macro_loadStringResource(idx));
 }
 
-static char** decompile_popStack(char** pStackCurrent, char** pStack) {
+static DECOMPILATION_STACK_ELEMENT* decompile_popStack(DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
 	if (pStackCurrent > pStack) {
-		free(*--pStackCurrent);
-		*pStackCurrent = NULL;
+		--pStackCurrent;
+		free(pStackCurrent->dse_printed);
+		pStackCurrent->dse_instruction = NULL;
+		pStackCurrent->dse_printed = NULL;
 	}
 	return pStackCurrent;
 }
 
+static DECOMPILATION_STACK_ELEMENT* decompile_findParamStack(DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
+	while (--pStackCurrent >= pStack) {
+		if (!pStackCurrent->dse_printed && pStackCurrent->dse_instruction && pStackCurrent->dse_instruction->typ == C_SET_PARAMETER_STACK) {
+			return pStackCurrent;
+		}
+	}
+	return pStack;
+}
 /*
  * decompile_function()
  */
-static char ** decompile_function(COM_1FUNC* sp, char **pStackCurrent, char** pStack) {
+static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
 	EDFUNC	*		ep;
 	int 			npars;
 	PARAMETER_TYPE_DESCRIPTOR partyp;
@@ -253,13 +286,13 @@ static char ** decompile_function(COM_1FUNC* sp, char **pStackCurrent, char** pS
 		npars++;
 	}
 
-	char** pStackPointer = ep ? (pStackCurrent-function_getParameterCount(ep)) : pStack;
+	DECOMPILATION_STACK_ELEMENT* pStackPointer = ep ? (pStackCurrent-function_getParameterCount(ep)) : decompile_findParamStack(pStackCurrent, pStack);
 	if (pStackPointer < pStack) {
 		pStackPointer = pStack;
 	}
-	char** pStackFrame = pStackPointer;
+	DECOMPILATION_STACK_ELEMENT* pStackFrame = pStackPointer;
 	while(pStackPointer < pStackCurrent) {
-		if (!*pStackPointer) {
+		if (!pStackPointer->dse_printed) {
 			pStackPointer++;
 			continue;
 		}
@@ -268,7 +301,7 @@ static char ** decompile_function(COM_1FUNC* sp, char **pStackCurrent, char** pS
 			strcat(szFunctionCall, ",");
 		}
 		size_t nBytes = strlen(szFunctionCall);
-		strncat(szFunctionCall, *pStackPointer, sizeof(szFunctionCall)-3-nBytes);
+		strncat(szFunctionCall, pStackPointer->dse_printed, sizeof(szFunctionCall) - 3 - nBytes);
 		pStackPointer++;
 		npars++;
 	}
@@ -277,7 +310,9 @@ static char ** decompile_function(COM_1FUNC* sp, char **pStackCurrent, char** pS
 	}
 
 	strcat(szFunctionCall, ")");
-	*pStackCurrent++ = _strdup(szFunctionCall);
+	pStackCurrent->dse_instruction = (COM_0FUNC*)sp;
+	pStackCurrent->dse_printed = _strdup(szFunctionCall);
+	pStackCurrent++;
 	return pStackCurrent;
 }
 
@@ -319,9 +354,9 @@ static char* decompile_testOperationAsString(unsigned char op) {
 /*
  * decompile_printBinaryExpression()
  */
-static char** decompile_printTestExpression(COM_BINOP* cp, char** pStackCurrent, char** pStack) {
-	char* pRight = pStackCurrent > pStack ? pStackCurrent[-1] : "";
-	char* pLeft = cp->op != CT_NOT && pStackCurrent > pStack-1 ? pStackCurrent[-2] : "";
+static DECOMPILATION_STACK_ELEMENT* decompile_printTestExpression(COM_BINOP* cp, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
+	char* pRight = pStackCurrent > pStack ? pStackCurrent[-1].dse_printed : "";
+	char* pLeft = cp->op != CT_NOT && pStackCurrent > pStack-1 ? pStackCurrent[-2].dse_printed : "";
 	char szBuf[512];
 
 	szBuf[0] = 0;
@@ -335,23 +370,23 @@ static char** decompile_printTestExpression(COM_BINOP* cp, char** pStackCurrent,
 		break;
 	}
 	pStackCurrent = decompile_popStack(pStackCurrent, pStack);
-	*pStackCurrent++ = _strdup(szBuf);
+	pStackCurrent->dse_instruction = (COM_0FUNC*)cp;
+	pStackCurrent->dse_printed = _strdup(szBuf);
+	pStackCurrent++;
 	return pStackCurrent;
 }
 
 /*
  * decompile_printBinaryExpression()
  */
-static char** decompile_printBinaryExpression(COM_BINOP *cp, char** pStackCurrent, char** pStack) {
-	char* pRight = pStackCurrent > pStack ? pStackCurrent[-1] : "";
-	char* pLeft = cp->op != BIN_CAST && pStackCurrent > pStack-1 ? pStackCurrent[-2] : "";
+static DECOMPILATION_STACK_ELEMENT* decompile_printBinaryExpression(COM_BINOP *cp, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
+	char* pRight = pStackCurrent > pStack ? pStackCurrent[-1].dse_printed : "";
+	char* pLeft = cp->op != BIN_CAST && pStackCurrent > pStack-1 ? pStackCurrent[-2].dse_printed : "";
 	char szBuf[512];
 
 	szBuf[0] = 0;
 	char* pszShift = "<<";
 	switch(cp->op) {
-	case BIN_BRACKETS: 
-		return pStackCurrent;
 	case BIN_ADD: 
 	case BIN_SUB:
 	case BIN_MUL:
@@ -361,6 +396,14 @@ static char** decompile_printBinaryExpression(COM_BINOP *cp, char** pStackCurren
 	case BIN_AND:
 	case BIN_OR:
 		sprintf(szBuf,"%s %c %s",pLeft, cp->op, pRight);
+		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
+		break;
+	case BIN_AT:
+		sprintf(szBuf, "%s[%s]", pLeft, pRight);
+		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
+		break;
+	case BIN_RANGE:
+		sprintf(szBuf, "%s .. %s", pLeft, pRight);
 		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
 		break;
 	case BIN_POWER:
@@ -379,14 +422,16 @@ static char** decompile_printBinaryExpression(COM_BINOP *cp, char** pStackCurren
 		break;
 	}
 	pStackCurrent = decompile_popStack(pStackCurrent, pStack);
-	*pStackCurrent++ = _strdup(szBuf);
+	pStackCurrent->dse_instruction = (COM_0FUNC*)cp;
+	pStackCurrent->dse_printed = _strdup(szBuf);
+	pStackCurrent++;
 	return pStackCurrent;
 }
 
 /*
  * decompile_printPushOperation()
  */
-static char** decompile_printPushOperation(COM_CHAR1* cp, char** pStackCurrent, char** pStack, EDFUNC* pFunc, int nParamIndex) {
+static DECOMPILATION_STACK_ELEMENT* decompile_printPushOperation(COM_CHAR1* cp, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack, EDFUNC* pFunc, int nParamIndex) {
 	char szBuf[512];
 	szBuf[0] = 0;
 	PARAMETER_TYPE_DESCRIPTOR pDescriptor = (PARAMETER_TYPE_DESCRIPTOR) {
@@ -396,7 +441,9 @@ static char** decompile_printPushOperation(COM_CHAR1* cp, char** pStackCurrent, 
 		pDescriptor = function_getParameterTypeDescriptor(pFunc, nParamIndex);
 	}
 	decompile_printParameter(szBuf, (unsigned char*)cp, pDescriptor);
-	*pStackCurrent++ = _strdup(szBuf);
+	pStackCurrent->dse_instruction = (COM_0FUNC*)cp;
+	pStackCurrent->dse_printed = _strdup(szBuf);
+	pStackCurrent++;
 	return pStackCurrent;
 }
 
@@ -452,6 +499,7 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 		case C_1FUNC: fprintf(fp, "nativeCall1 %d (%s) %d", ((COM_1FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_1FUNC*)sp)->p); break;
 		case C_PUSH_VARIABLE: fprintf(fp, "pushVariable "); break;
 		case C_PUSH_LONG_LITERAL: fprintf(fp, "pushLongLiteral %lld", (long long)((COM_LONG1*)sp)->val); break;
+		case C_PUSH_SMALL_INT_LITERAL: fprintf(fp, "pushSmallIntLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_INTEGER_LITERAL: fprintf(fp, "pushIntLiteral %d", ((COM_INT1*)sp)->val); break;
 		case C_PUSH_FLOAT_LITERAL: fprintf(fp, "pushFloatLiteral %f", ((COM_FLOAT1*)sp)->val); break;
 		case C_PUSH_BOOLEAN_LITERAL: fprintf(fp, "pushBooleanLiteral %d", ((COM_CHAR1*)sp)->val); break;
@@ -498,9 +546,9 @@ static void decompile_printComment(FILE* fp, const char* pszComment) {
 /*
  * Flush the current code generation stack. 
  */
-static char** decompile_flushStack(FILE* fp, char** pStackCurrent, char** pStack) {
+static DECOMPILATION_STACK_ELEMENT* decompile_flushStack(FILE* fp, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
 	if (pStackCurrent > pStack) {
-		fprintf(fp, "%s", pStackCurrent[-1]);
+		fprintf(fp, "%s", pStackCurrent[-1].dse_printed);
 		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
 	}
 	while (pStackCurrent > pStack) {
@@ -619,12 +667,12 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 	MACROC_INSTRUCTION_OP_CODE 	opCode;
 	EDFUNC* pCurrentFunctionDescriptor = NULL;
 	char	*lname;
-	char*	pStack[80];
 	int nIndent = 1;
 	CONTROL_FLOW_MARK_INDEX* pFlowMarks;
 	int     nMarks;
-	char**	pStackCurrent = pStack;
-	char**	pStackEnd = pStack + DIM(pStack);
+	DECOMPILATION_STACK_ELEMENT  pStack[80];
+	DECOMPILATION_STACK_ELEMENT* pStackCurrent = pStack;
+	DECOMPILATION_STACK_ELEMENT* pStackEnd = pStack + DIM(pStack);
 
 	memset(pStack, 0, sizeof pStack);
 	comment = MAC_COMMENT(mp);
@@ -731,7 +779,12 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 				pStackCurrent = decompile_flushStack(fp, pStackCurrent, pStack);
 				fprintf(fp, ";\n");
 			}
-		} else if (opCode == C_SET_PARAMETER_STACK || opCode == C_SET_STACKFRAME) {
+		}
+		else if (opCode == C_SET_PARAMETER_STACK) {
+			pStackCurrent->dse_printed = 0;
+			pStackCurrent->dse_instruction = (COM_0FUNC*)sp;
+			pStackCurrent++;
+		} else if (opCode == C_SET_STACKFRAME) {
 		} else {
 			decompile_indent(fp, nIndent);
 			fprintf(fp, "// format error in %s type=%x",MAC_NAME(mp),opCode);

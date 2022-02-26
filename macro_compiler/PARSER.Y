@@ -16,16 +16,16 @@
  */
 %}
 
-%token T_TSTRING T_TINT T_TCHAR T_TLONG T_TFLOAT
-%token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_OCTNUM T_CONST
+%token T_TSTRING T_TINT T_TCHAR T_TLONG T_TFLOAT T_RANGE
+%token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_CHARACTER T_CONST
 %token T_TRUE T_FALSE T_BOOLEAN
 %token T_FUNC T_MACRO T_DOTDOT T_PLUSPLUS T_MINUSMINUS
 %token T_IF T_ELIF T_ELSE T_WHILE T_GOTO T_BRAEQ
 %token T_SH_ASSIGN_PLUS T_SH_ASSIGN_MINUS T_SH_ASSIGN_MULT T_SH_ASSIGN_DIV T_SH_ASSIGN_MOD
 %token T_LOCAL T_SWITCH T_BREAK T_CONTINUE T_RETURN 
-%token T_NUMVAR T_FLOATVAR T_STRINGVAR T_BOOLEANVAR
+%token T_NUMVAR T_RANGEVAR T_FLOATVAR T_STRINGVAR T_BOOLEANVAR T_CHARACTERVAR
 %token T_NMATCH
-%token T_ASSIGN T_NE T_EQ T_SHIFT_LEFT T_SHIFT_RIGHT
+%token T_ASSIGN T_NE T_EQ T_SHIFT_LEFT T_SHIFT_RIGHT 
 %token T_OR T_AND T_LE T_GE T_POWER_TO
 %token T_DEFMACRO 
 %token T_CMDSEQPREFIX
@@ -36,6 +36,7 @@
 %left	'&' '|' T_SHIFT_LEFT T_SHIFT_RIGHT 
 %left	'+' '-' '^'
 %left	'*' '/' '%' T_POWER_TO
+%left	'[' T_DOTDOT
 
 /* %right	T_NOTGLITCH */
 
@@ -55,7 +56,7 @@
 # define 	STRINGTYPE(type)	((type == C_PUSH_STRING_LITERAL||type == C_PUSH_VARIABLE) ? \
 							CT_STRING : CT_NUM)
 # define 	ISCONSTINT(t)		(t == C_PUSH_LONG_LITERAL|| t == C_PUSH_INTEGER_LITERAL || \
-						 t == C_PUSH_CHARACTER_LITERAL)
+								 t == C_PUSH_SMALL_INT_LITERAL)
 # define	ISVARINT(t)		(t == C_LONGVAR)
 
 # define 	MAXEXPR			12
@@ -123,6 +124,15 @@ static void makeInternalSymbol(const char* pszName, SYMBOL_TYPE sType, intptr_t 
 	sym_makeInternalSymbol(_currentIdentifierContext, (char*) pszName, sType, (GENERIC_DATA) {.val = tVal});
 }
 
+static SYMBOL_TYPE constantTypeFor(SYMBOL_TYPE aValueType) {
+	switch(aValueType) {
+	case S_FLOAT: return S_CONSTFLOAT;
+	case S_STRING: return S_CONSTSTRING;
+	case S_CHARACTER: return S_CONSTCHARACTER;
+	}
+	return S_CONSTNUM;
+}
+
 %}
 
 %%
@@ -149,8 +159,7 @@ constdef:	{ _bDefiningConst = 1; } variable_identifier T_ASSIGN constant_literal
 			{
 				BOOL bString = ($4.v.type == S_STRING);
 				sym_makeInternalSymbol(_currentIdentifierContext, $2.ident.s,
-					bString ? 
-					S_CONSTSTRING : S_CONSTNUM, $4.v.data);
+					constantTypeFor($4.v.type), $4.v.data);
 				free($2.ident.s);
 				if (bString) {
 					free($4.v.data.string);
@@ -158,9 +167,8 @@ constdef:	{ _bDefiningConst = 1; } variable_identifier T_ASSIGN constant_literal
 			}
 
 constant_literal:
-			simple_literal 	{ 
+			simple_literal { 
 				$$.v = $1.v; 
-				$$.v.type = S_NUMBER;
 			}
 			| T_STRING	{
 				$$.v.data.string = $1.ident.s;
@@ -183,9 +191,12 @@ variable_identifier:	T_IDENT 	{	$$.ident = $1.ident; }
 			}
 
 variable_reference:	
-			T_STRINGVAR 	{	$$.ident = $1.ident; }
-			| T_NUMVAR 		{	$$.ident = $1.ident; }
-			| T_FLOATVAR 	{	$$.ident = $1.ident; }
+			T_STRINGVAR 		{	$$.ident = $1.ident; }
+			| T_NUMVAR 			{	$$.ident = $1.ident; }
+			| T_RANGEVAR 		{	$$.ident = $1.ident; }
+			| T_CHARACTERVAR	{	$$.ident = $1.ident; }
+			| T_BOOLEANVAR		{	$$.ident = $1.ident; }
+			| T_FLOATVAR 		{	$$.ident = $1.ident; }
 
 /*-- MACROS -----------------------------------------------------*/
 
@@ -310,7 +321,9 @@ assignment_expression:	T_ASSIGN arithmetic_expression	{ $$.v = $2.v;	}
 arithmetic_expression: simple_expression	{ $$.v = $1.v; }
 			| '(' simple_expression ')'		{ $$.v = $2.v; }
 
-simple_expression: bterm					{ $$.v = $1.v; }
+simple_expression: binary_expression { $$.v = $1.v; }
+			| binary_expression '[' binary_expression ']' { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); }
+			| binary_expression T_DOTDOT binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_RANGE}); }
 			| '~' arithmetic_expression 	{ 
 				$$.type = S_BOOLEAN;
 				_bytecodeBuffer.bb_current = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_NOT, 0);
@@ -324,26 +337,25 @@ increment_expression:
 s_bterm: 	value { $$.v = $1.v; }
 			| call_expression 
 
-bterm:		s_bterm 	{ $$.type = $1.type;	}
+binary_expression:	s_bterm  { $$.type = $1.type;	}
 			| type_cast s_bterm		{
 				$$.type = $1.type;
 				_bytecodeBuffer.bb_current = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_CAST, $$.type);
 			}
-			| '+' bterm { $$.v = $2.v }
-			| '-' bterm { _bytecodeBuffer.bb_current = bytecode_emitMultiplyWithLiteralExpression(&_bytecodeBuffer, &$2.v, -1); }
-			| bterm '&' bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AND}); }
-			| bterm '|' bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_OR}); }
-			| bterm '+' bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_ADD}); }
-			| bterm '^' bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_XOR}); }
-			| bterm '-' bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SUB}); }
-			| bterm '*' bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_MUL}); }
-			| bterm '/' bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_DIV}); }
-			| bterm '%' bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_MOD}); }
-			| bterm T_SHIFT_LEFT bterm 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SHIFT_LEFT}); }
-			| bterm T_SHIFT_RIGHT bterm { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SHIFT_RIGHT}); }
-			| bterm T_POWER_TO bterm { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_POWER}); }
-
-			| '(' bterm ')'	{ $$.v = $2.v; }
+			| '+' binary_expression { $$.v = $2.v }
+			| '-' binary_expression { _bytecodeBuffer.bb_current = bytecode_emitMultiplyWithLiteralExpression(&_bytecodeBuffer, &$2.v, -1); }
+			| binary_expression '&' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AND}); }
+			| binary_expression '|' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_OR}); }
+			| binary_expression '+' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_ADD}); }
+			| binary_expression '^' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_XOR}); }
+			| binary_expression '-' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SUB}); }
+			| binary_expression '*' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_MUL}); }
+			| binary_expression '/' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_DIV}); }
+			| binary_expression '%' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_MOD}); }
+			| binary_expression T_SHIFT_LEFT binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SHIFT_LEFT}); }
+			| binary_expression T_SHIFT_RIGHT binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SHIFT_RIGHT}); }
+			| binary_expression T_POWER_TO binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_POWER}); }
+			| '(' binary_expression ')'	{ $$.v = $2.v; }
 
 /*----- conditions ------------------------------------------*/
 
@@ -360,8 +372,8 @@ logical_expression:
 			| logical_expression T_GE logical_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_GE}); }
 			| logical_expression T_EQ logical_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_EQ}); }
 			| logical_expression T_NE logical_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NE}); }
-			| bterm '~' bterm   { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_MATCH}); }
-			| bterm T_NMATCH bterm   { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NMATCH}); }
+			| binary_expression '~' binary_expression   { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_MATCH}); }
+			| binary_expression T_NMATCH binary_expression   { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NMATCH}); }
 
 term:		call_expression { $$.type = S_NUMBER; 	 	}
 			| value {	$$.type = $1.type;	}
@@ -374,9 +386,17 @@ value:		T_NUMVAR {
 				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
 				$$.type = S_FLOAT;
 			}
-			| T_STRINGVAR 	{
+			| T_RANGEVAR {
+				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
+				$$.type = S_RANGE;
+			}
+			| T_STRINGVAR {
 				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
 				$$.type = S_STRING;
+			}
+			| T_CHARACTERVAR {
+				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
+				$$.type = S_CHARACTER;
 			}
 			| T_BOOLEANVAR {
 				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
@@ -418,7 +438,7 @@ return_expression:
 			}
 
 optional_bterm:
-			| bterm
+			| binary_expression
 
 opt_num	: 	{	$$.num = 1;	}
 			| T_NUM	{	$$.num = $1.num; }
@@ -514,7 +534,7 @@ nonempty_parameters: parameter
 				yyerror("illegal parameters for method call");
 			}
 
-parameter:	bterm { $$.type = $1.type; _currentFunctionCallParamIndex++; }
+parameter:	binary_expression { $$.type = $1.type; _currentFunctionCallParamIndex++; }
 
 type_cast:	'(' type_ident ')'	{	$$.type = $2.type;		}
 
@@ -524,6 +544,7 @@ type_ident:   T_TCHAR				{	$$.type = S_CHARACTER;	}
 			| T_TFLOAT				{	$$.type = S_FLOAT;	}
 			| T_BOOLEAN				{	$$.type = S_BOOLEAN; }
 			| T_TSTRING				{	$$.type = S_STRING;	}
+			| T_RANGE				{	$$.type = S_RANGE;	}
 
 boolean_literal: T_TRUE {
 			$$.v.type = C_PUSH_BOOLEAN_LITERAL; 
@@ -543,6 +564,11 @@ integer_literal: T_NUM {
 				$$.v.data.longValue  = $1.num;
 			}
 
+character_literal: T_CHARACTER {
+				$$.v.type = C_PUSH_CHARACTER_LITERAL; 
+				$$.v.data.uchar = (char)$1.num;
+			}
+
 simple_literal:	integer_literal { 
 				if (!_bDefiningConst) {
 					bytecode_emitPushParameterInstruction($1.v.data.intValue);
@@ -558,6 +584,14 @@ simple_literal:	integer_literal {
 					$$.v = $1.v;
 				}
 				$$.type = S_FLOAT;
+			}
+			| character_literal { 
+				if (!_bDefiningConst) {
+					YY_EMIT(C_PUSH_CHARACTER_LITERAL, $1.v.data);
+				} else {
+					$$.v = $1.v;
+				}
+				$$.type = S_CHARACTER;
 			}
 			| boolean_literal { 
 				if (!_bDefiningConst) {

@@ -208,7 +208,9 @@ EDFUNC _functionTable[] = {
 {/*126*/compare_navigate,-1, EW_NEEDSCURRF| EW_COMPARISON_MODE,                                        "CompareNavigate",            NULL,  "ii"                                          },
 {/*127*/compare_clear, -1, EW_NEEDSCURRF | EW_COMPARISON_MODE,                                         "CompareClear",               NULL,  "ii"                                          },
 {/*128*/bl_moveSelectionUpDown, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                       "MoveSelection",              NULL,  "ii"                                          },
-{/*129*/edit_insertString, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                            "InsertString",               NULL,  "is"                                          }
+{/*129*/edit_insertString, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                            "InsertString",               NULL,  "is"                                          },
+{/*130*/strlen, -1, 0,                                                                                  "strlen",                    NULL,  "is" },
+{/*131*/(long long (*)())strstr, -1, 0,                                                                 "strstr",                    NULL, "iss"}
 };
 
 int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);

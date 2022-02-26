@@ -58,6 +58,7 @@
             "const",
             "break",
             "return",
+            "range",
             "local",
             "goto",
             "char",
@@ -71,9 +72,14 @@
           ]
         },
         {
-          "match": "\"(?:[^\"]|\\\")*?\"",
+          "match": "'.{1,2}'",
+          "style": "literal",
+          "name": "literal.character"
+        },
+        {
+          "match": "\"(?:\\\"|[^\"])+?\"",
           "style": "string",
-          "name": "string"
+          "name": "literal.string"
         },
         {
           "match": "<0[xX][0-9a-fA-F]+>",

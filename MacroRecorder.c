@@ -98,6 +98,7 @@ void recorder_pushSequence(unsigned char typ, void* par) {
 
 	switch (typ) {
 	case C_0FUNC:
+	case C_PUSH_SMALL_INT_LITERAL:
 	case C_PUSH_CHARACTER_LITERAL:
 		((COM_CHAR1*)sp)->val = (unsigned char)par;
 		break;
@@ -194,6 +195,9 @@ int recorder_recordOperation(PARAMS* pp)
 		switch (dp->cmd_type) {
 		case C_PUSH_INTEGER_LITERAL:
 			recorder_pushSequence(C_PUSH_INTEGER_LITERAL, (void*)((intptr_t)*dp->p.i));
+			break;
+		case C_PUSH_SMALL_INT_LITERAL:
+			recorder_pushSequence(C_PUSH_SMALL_INT_LITERAL, (void*)((intptr_t)*dp->p.c));
 			break;
 		case C_PUSH_CHARACTER_LITERAL:
 			recorder_pushSequence(C_PUSH_CHARACTER_LITERAL, (void*)((intptr_t)*dp->p.c));

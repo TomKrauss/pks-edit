@@ -103,6 +103,7 @@ static struct kw {
 	T_LOCAL,	"local",
 	T_GOTO,		"goto",
 	T_BRAEQ,	"braeq",
+	T_RANGE,	"range",
 	T_TCHAR,	"char",
 	T_TINT,		"int",
 	T_TLONG,	"long",
@@ -265,7 +266,8 @@ int yyfinish(void)
 
 	if (_yyCurrentComment) {
 		free(_yyCurrentComment);
-	}			
+		_yyCurrentComment = NULL;
+	}
 	macro_selectDefaultBindings();
 	if (yyerr.errfp) {
 		fprintf(yyerr.errfp,"\nTOTAL %d Errors\n",yyerr.yynerr);
@@ -296,6 +298,22 @@ unsigned char *yystralloc(unsigned char *s)
 	return d;
 }
 
+/*
+ * Decode a quoted character in string and character literals.
+ */
+static int quotedchar(int c) {
+	switch(c) {
+	case 'a': return '\a';
+	case 'b': return '\b';
+	case 'f': return '\f';
+	case 'n': return '\n';
+	case 'r': return '\r';
+	case 't': return '\t';
+	case 'v': return '\v';
+	}
+	return c;
+}
+
 /*---------------------------------*/
 /* unquotealloc()				*/
 /*---------------------------------*/
@@ -310,22 +328,16 @@ static char *unquotealloc(char *name, int len)
 			break;
 		}
 		if (*name == '\\') {
-			switch(name[1]) {
-				case 'n': *d++ = '\n'; break;
-				case 'r': *d++ = '\r'; break;
-				case 't': *d++ = '\t'; break;
-				case '0': 
-					for (i = 0, cnt = 0; cnt < 3; cnt++) {
-						if (name[2] >= '0' && name[2] <= '7') {
-							i = 8*i + (name[2] - '0');
-							name++;
-						}
+			if (name[1] != '0') {
+				*d++ = quotedchar(name[1]); 
+			} else {
+				for (i = 0, cnt = 0; cnt < 3; cnt++) {
+					if (name[2] >= '0' && name[2] <= '7') {
+						i = 8*i + (name[2] - '0');
+						name++;
 					}
-					*d++ = i;
-					break;
-				default:
-					*d++ = name[1];
-					break;
+				}
+				*d++ = i;
 			}
 			name++;
 		} else {
@@ -412,7 +424,7 @@ int yywrap(void )
 
 %}
 OKTNUM	[0-7]
-NUM		[0-9.]
+NUM		[0-9]
 HEXNUM	[0-9a-fA-F]
 CH		[a-z_A-Z]
 CHN		[0-9a-z_A-Z]+(-[0-9a-z_A-Z]+)*
@@ -462,14 +474,26 @@ WS		[ \t]
 				int c;
 
 				yyleng = 0;
-				while((c = input()) != 0 && c != '"') {
+				while((c = input()) > 0 && c != '"') {
 					yytext[yyleng++] = c;
-					if (c == '\\')
-						yytext[yyleng++] = input();
+					if (c == '\\') {
+						c = input();
+						if (c > 0) {
+							yytext[yyleng++] = c;
+						}
+					}
 				}
 				yylval.ident.stringIsAlloced = 0;
 				yylval.ident.s = unquotealloc(yytext,yyleng);
 				return T_STRING;
+			}
+'([^'\\]|\\['\\abnrftv])'	{	/* Character literal */
+				if (yytext[1] == '\\') {
+					yylval.num = quotedchar(yytext[2]);
+				} else {
+					yylval.num = yytext[1];
+				}
+				return T_CHARACTER;
 			}
 0[xX]{HEXNUM}+ {
 				yylval.num = number(yytext);
@@ -479,7 +503,8 @@ WS		[ \t]
 				yylval.num = number(yytext);
 				return T_NUM;
 			}
-<INITIAL>{NUM}+d? {
+\.\.		return T_DOTDOT;
+<INITIAL>{NUM}+(\.{NUM}+)?d? {
 				int bFloat;
 				numberOrFloat(yytext, &yylval, &bFloat);
 				return bFloat ? T_FLOATING_POINT_NUMBER : T_NUM;
@@ -487,13 +512,9 @@ WS		[ \t]
 @			{	return T_CMDSEQPREFIX; }
 #[^\n]*		{	;	}
 \/\/[^\n]*	{	;	}
-{WS}			{	;	}
+{WS}		{	;	}
 \n 			{	;	}	/* skip comments and white space */
 \r 			{	;	}	/* skip comments and white space */
-'.'			{	/* Character constant */
-				yylval.num = yytext[1];
-				return T_NUM;
-			}
 \+\+		{	return T_PLUSPLUS; }
 \-\-		{	return T_MINUSMINUS; }
 {CHN}+		{	PKS_VALUE 	sym;
@@ -531,6 +552,22 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					return T_NUM;
 				}
 	
+				if (TYPEOF(sym) == S_CONSTFLOAT) {
+					if (_bDefiningConst) {
+						goto retIdent;
+					}
+					yylval.v.data.doubleValue = sym.sym_data.doubleValue;
+					return T_FLOATING_POINT_NUMBER;
+				}
+	
+				if (TYPEOF(sym) == S_CONSTCHARACTER) {
+					if (_bDefiningConst) {
+						goto retIdent;
+					}
+					yylval.num = sym.sym_data.uchar;
+					return T_CHARACTER;
+				}
+	
 				if (TYPEOF(sym) == S_CONSTSTRING) {
 					if (_bDefiningConst) {
 						goto retIdent;
@@ -550,10 +587,20 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					yylval.ident.s = key;
 					return T_BOOLEANVAR;
 				}
+				if (TYPEOF(sym) == S_CHARACTER) {
+					yylval.ident.stringIsAlloced = 0;
+					yylval.ident.s = key;
+					return T_CHARACTERVAR;
+				}
 				if (TYPEOF(sym) == S_NUMBER) {
 					yylval.ident.stringIsAlloced = 0;
 					yylval.ident.s = key;
 					return T_NUMVAR;
+				}
+				if (TYPEOF(sym) == S_RANGE) {
+					yylval.ident.stringIsAlloced = 0;
+					yylval.ident.s = key;
+					return T_RANGEVAR;
 				}
 
 				if (TYPEOF(sym) == S_STRING) {
@@ -582,7 +629,6 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 &&			return T_AND;
 \|\|		return T_OR;
 =			return T_ASSIGN;
-\.\.		return T_DOTDOT;
 .			return yytext[0];
 %%
 

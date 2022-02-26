@@ -26,14 +26,16 @@
 
 #define	BIN_SHIFT_LEFT	'L'
 #define	BIN_SHIFT_RIGHT	'R'
+#define BIN_AT			'['
 
 #define	BIN_OR			'|'
 #define	BIN_AND			'&'
 #define	BIN_XOR			'^'
 
-#define	BIN_BRACKETS	'('
 #define	BIN_NOT			'~'
 #define	BIN_CAST		'C'
+
+#define BIN_RANGE		','
 
 #define IS_UNARY_OPERATOR(op)		(op == BIN_NOT || op == BIN_CAST)
 
@@ -45,6 +47,11 @@ typedef union uGENERIC_DATA {
 	int		intValue;
 	long long longValue;
 	double   doubleValue;
+	struct tagRANGE {
+		int r_start : 24;
+		int r_end : 24;
+		int r_increment : 16;
+	} range;
 } GENERIC_DATA;
 
 // Must match the corresponding symbol types in symbols.h
@@ -53,7 +60,8 @@ typedef enum {
 	VT_NUMBER = 2,
 	VT_STRING = 3,
 	VT_FLOAT = 4,
-	VT_CHAR = 5
+	VT_CHAR = 5,
+	VT_RANGE = 6
 } PKS_VALUE_TYPE;
 
 typedef struct tagPKS_VALUE {
@@ -71,6 +79,7 @@ struct tagEXECUTION_CONTEXT {
 	PKS_VALUE* ec_stackCurrent;			// the pointer to the current stack offset
 	PKS_VALUE* ec_parameterStack;		// the pointer to the current parameter stack offset.
 	PKS_VALUE* ec_stackMax;				// the top of the stack. Must not be overridden
+	const char* ec_currentFunction;		// name of the current function/macro being executed.
 	void* ec_allocations;				// list of allocated objects to be released, when execution halts.
 	IDENTIFIER_CONTEXT* ec_identifierContext;
 };
@@ -81,6 +90,11 @@ typedef struct tagEXECUTION_CONTEXT EXECUTION_CONTEXT;
  * Pop one value of the stack of our stack machine
  */
 extern PKS_VALUE interpreter_popStackValue(EXECUTION_CONTEXT* pContext);
+
+/*
+ * An error has occurred during execution of a macro. Display a descriptive error using the passed format and parameters and abort the execution.
+ */
+extern void interpreter_raiseError(const char* pFormat, ...);
 
 /*
  * Mini memory management function of PKS MacroC, which temporarily allocates a string to
@@ -116,17 +130,18 @@ typedef enum {
 
 	// Push objects onto the stack
 	C_PUSH_CHARACTER_LITERAL = 0x10, // Push character literal. 1 Ascii character follows 
-	C_PUSH_STRING_LITERAL = 0x11, 	// Push string literal, 1 string Asciistring\0 follows {pad} 
-	C_PUSH_INTEGER_LITERAL   = 0x12, // Push Integer literal, pad, 1 int Parameter follows 
-	C_PUSH_LONG_LITERAL  = 0x13, 	// Push long literal, pad, 1 long Parameter follows 
-	C_PUSH_FLOAT_LITERAL = 0x14, 	// Push floating point literal
-	C_PUSH_BOOLEAN_LITERAL   = 0x15, // Push boolean literal 1 Ascii character follows 
-	C_PUSH_VARIABLE = 0x16, 	// variable reference to string
-	C_FORM_START = 0x17, 			// formular with parameters ...
+	C_PUSH_SMALL_INT_LITERAL = 0x11, // Push an integer literal in a compacted way (0-255).
+	C_PUSH_STRING_LITERAL = 0x12, 	 // Push string literal, 1 string Asciistring\0 follows {pad} 
+	C_PUSH_INTEGER_LITERAL = 0x13,   // Push Integer literal, pad, 1 int Parameter follows 
+	C_PUSH_LONG_LITERAL  = 0x14, 	 // Push long literal, pad, 1 long Parameter follows 
+	C_PUSH_FLOAT_LITERAL = 0x15, 	 // Push floating point literal
+	C_PUSH_BOOLEAN_LITERAL   = 0x16, // Push boolean literal 1 Ascii character follows 
+	C_PUSH_VARIABLE = 0x17,			 // variable reference to string
+	C_FORM_START = 0x18, 			 // formular with parameters ...
 	
 	// Define parameters and variables
-	C_DEFINE_PARAMETER = 0x18,		// create symbol with type and value 
-	C_DEFINE_VARIABLE = 0x19,		// define a variable with type and value 
+	C_DEFINE_PARAMETER = 0x19,		// create symbol with type and value 
+	C_DEFINE_VARIABLE = 0x1A,		// define a variable with type and value 
 
 	// Stack manipulation
 	C_SET_STACKFRAME = 0x20,		// start a new stack frame in an invoked method (after parameter have been retrieved)
@@ -216,7 +231,7 @@ typedef struct c_binop {
 } COM_BINOP;
 
 typedef struct c_char1 {
-	unsigned char typ;				// C_PUSH_CHARACTER_LITERAL C_PUSH_LITERAL char
+	unsigned char typ;				// C_PUSH_CHARACTER_LITERAL C_PUSH_LITERAL or C_PUSH_SMALL_INT_LITERAL
 	unsigned char val;
 } COM_CHAR1;
 
