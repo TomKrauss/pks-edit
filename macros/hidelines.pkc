@@ -1,15 +1,15 @@
 
-macro HideText() {
+void HideText() {
 
 	while(1) {
 		CursorRight(MOT_TOEND);
-		SetMark(FO_INIT,'?');
-		if (!Find(FO_INIT,"^\\*",DIR_FORWARD,RNG_ONCE,RE_DOREX)) {
+		SetMark(FORM_INIT,'?');
+		if (!Find(FORM_INIT,"^\\*",DIR_FORWARD,RNG_ONCE,RE_DOREX)) {
 			break;
 		}
 		CursorLeft(MOT_SINGLE);
 		SetBlockMark(MARK_END);
-		GotoMark(FO_INIT,'?');
+		GotoMark(FORM_INIT,'?');
 		CursorRight(MOT_SINGLE);
 		SetBlockMark(MARK_START);
 		HideLines();
@@ -22,8 +22,8 @@ macro HideText() {
 # assumptions: C-function bodies begin with { in the first column,+
 #              all { brackets match
 #
-macro HideCFunctions() {
-	while(Find(FO_INIT,"^\\{",DIR_FORWARD,RNG_ONCE,RE_DOREX)) {
+void HideCFunctions() {
+	while(Find(FORM_INIT,"^\\{",DIR_FORWARD,RNG_ONCE,RE_DOREX)) {
 		SetBlockMark(MARK_START);
 		CheckBrackets();
 		SetBlockMark(MARK_END);
@@ -31,13 +31,13 @@ macro HideCFunctions() {
 	}
 }
 
-macro HLines() {
+void HLines() {
 
 	HideLines();
 
 }
 
-macro UnHLines() {
+void UnHLines() {
 
 	UnHideLine();
 

@@ -1,5 +1,5 @@
 
-macro GotoCurrentError() {
+void GotoCurrentError() {
 	MousePosition(0);
 	FindError(LIST_USETOPWINDOW|LIST_CURR);
 }

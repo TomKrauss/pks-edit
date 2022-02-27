@@ -70,7 +70,8 @@ macro_getSelectedText(long ), EdHideLines(long ), EdUnHideLine(long ), EdStringS
 EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdListBindings(long ),
 EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(), 
 bl_moveSelectionUpDown(long),
-EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), EdFindOnInternet();
+EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), EdFindOnInternet(), macroc_printToConsole(const char*), macroc_clearConsole(),
+interpreter_typeOf();
 
 static long long function_unused() {
     // NOT USED ANY MORE
@@ -210,7 +211,10 @@ EDFUNC _functionTable[] = {
 {/*128*/bl_moveSelectionUpDown, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                       "MoveSelection",              NULL,  "ii"                                          },
 {/*129*/edit_insertString, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                            "InsertString",               NULL,  "is"                                          },
 {/*130*/strlen, -1, 0,                                                                                  "strlen",                    NULL,  "is" },
-{/*131*/(long long (*)())strstr, -1, 0,                                                                 "strstr",                    NULL, "iss"}
+{/*131*/(long long (*)())strstr, -1, 0,                                                                 "strstr",                    NULL, "iss"},
+{/*132*/macroc_printToConsole, -1, 0, "print", NULL, "is"},
+{/*133*/macroc_clearConsole, -1, 0, "clear", NULL, "i"},
+{/*134*/interpreter_typeOf, -1, 0, "typeof", NULL, "P"}
 };
 
 int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);

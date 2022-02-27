@@ -1,4 +1,4 @@
-macro ToggleLineMode()
+void ToggleLineMode()
 "Schaltet den Blockmodus um;Block Zeilenmodus"
 {
 	int	workmode;
@@ -13,7 +13,7 @@ macro ToggleLineMode()
 		workmode = workmode | WM_BLK_LINES;
 		SetBlockExtensionMode(1);
 	}
-	SetWorkMode(FO_INIT, "", workmode);
+	SetWorkMode(FORM_INIT, "", workmode);
 }
 
 replace KEYS default 

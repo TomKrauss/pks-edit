@@ -22,7 +22,7 @@ typedef time_t EDTIME;
  * file_exists()
  * Test the existance of a file. If it exists, return 0 otherwise -1.
  */
-extern int file_exists(char* s);
+extern int file_exists(const char* s);
 
 /*--------------------------------------------------------------------------
  * file_getFileMode()

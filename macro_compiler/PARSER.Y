@@ -18,7 +18,7 @@
 
 %token T_TSTRING T_TINT T_TCHAR T_TLONG T_TFLOAT T_RANGE
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_CHARACTER T_CONST
-%token T_TRUE T_FALSE T_BOOLEAN
+%token T_TRUE T_FALSE T_TBOOLEAN
 %token T_FUNC T_MACRO T_DOTDOT T_PLUSPLUS T_MINUSMINUS
 %token T_IF T_ELIF T_ELSE T_WHILE T_GOTO T_BRAEQ
 %token T_SH_ASSIGN_PLUS T_SH_ASSIGN_MINUS T_SH_ASSIGN_MULT T_SH_ASSIGN_DIV T_SH_ASSIGN_MOD
@@ -27,7 +27,7 @@
 %token T_NMATCH
 %token T_ASSIGN T_NE T_EQ T_SHIFT_LEFT T_SHIFT_RIGHT 
 %token T_OR T_AND T_LE T_GE T_POWER_TO
-%token T_DEFMACRO 
+%token T_VOID
 %token T_CMDSEQPREFIX
 
 %nonassoc T_NE T_EQ '~' T_NMATCH
@@ -200,14 +200,22 @@ variable_reference:
 
 /*-- MACROS -----------------------------------------------------*/
 
-macro_declaration: T_DEFMACRO T_IDENT {
+macro_declaration: macro_type T_IDENT {
 				$$.ident = $2.ident;
 			}
-			| T_DEFMACRO T_FUNC {
+			| macro_type T_FUNC {
 				yyerror("Illegal attempt to redefine native method");
 				$$.ident.s = 0;
 				$$.ident.stringIsAlloced = 0;
 			}
+
+macro_type:	T_VOID
+			| T_TSTRING
+			| T_TBOOLEAN
+			| T_TINT 
+			| T_TCHAR 
+			| T_TLONG 
+			| T_TFLOAT
 
 macrostart: { startmacro(); } macro_declaration '(' parameter_list ')' 
 			{	$$.ident = $2.ident; 
@@ -511,6 +519,7 @@ call_expression: T_FUNC {
 				_currentNativeMethodCalled = $1.funcp;
 				_currentFunctionCallParamIndex = 0;
 				$$.funcp = $1.funcp;
+				YY_EMIT(C_SET_PARAMETER_STACK,(GENERIC_DATA){0});
 			} '(' parameter_list ')' {
 				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction($1.funcp)}, _currentFunctionCallParamIndex);
 				_currentNativeMethodCalled = 0;
@@ -542,7 +551,7 @@ type_ident:   T_TCHAR				{	$$.type = S_CHARACTER;	}
 			| T_TINT				{	$$.type = S_NUMBER;	}
 			| T_TLONG				{	$$.type = S_NUMBER;	}
 			| T_TFLOAT				{	$$.type = S_FLOAT;	}
-			| T_BOOLEAN				{	$$.type = S_BOOLEAN; }
+			| T_TBOOLEAN			{	$$.type = S_BOOLEAN; }
 			| T_TSTRING				{	$$.type = S_STRING;	}
 			| T_RANGE				{	$$.type = S_RANGE;	}
 

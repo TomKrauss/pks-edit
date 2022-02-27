@@ -40,7 +40,7 @@ result in a message box:
  * Note: PKSMakroC - PKS MacroC Integers are 64 bit big, this macro
  * will cause overflows for fac(>16) !
  */
-macro calculateFactorial() {
+void calculateFactorial() {
     int     n = 1;
     int     nSelected = 1;
     int     result = 1;
@@ -89,8 +89,8 @@ PKSMacoC will try to coerce values to their "right" types or you may `cast` a va
 shows implicit and explicit coercions.
 
 ```
-(int)"123"                -> 123
-(string)1                 -> "1"
+(int)"123" -> 123
+(string)1 -> "1"
 // implicit coercion
 "Hello " + 3 + " worlds"  -> "Hello 3 worlds"
 ```
@@ -102,7 +102,7 @@ PKSMacroC supports the most common operators also supported in the C language.
 - `+`, `-`, `*`, `/`, `%` arithmetic operators
 - `!`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `&&`, `||`  logical operators
 - `&`, `|`, `^` bitwise operators
-- `^^`  power to operator to be applied to float or int data types
+- `**`  power to operator to be applied to float or int data types
 - `..` the range operator allowing to construct a range type from two integer values. `3..5` creates a range from 3-5. See string functions for more details.
  
 One of the strengths of PKSMacroC are the special string manipulation operators supported:
@@ -136,7 +136,7 @@ const PI = 3.14159265359d;
 
 PKSMacroC currently supports the following control flow expressions:
 
-- `while (xx) { ... }` - allows to implement a while loop. While loops support nested `break` and `contrinue` statements.
+- `while (xx) { ... }` - allows to implement a while loop. While loops support nested `break` and `continue` statements.
 - `goto label` allows you to jump to a given label defined with `label_name:`.
 - `if (condition) ... [else ...]` - allows to conditionally execute one block with an optional else clause.
 

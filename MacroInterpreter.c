@@ -197,6 +197,24 @@ static void interpreter_cleanupContextStacks() {
 }
 
 /*
+ * Implements the typeof() method.
+ */
+PKS_VALUE interpreter_typeOf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	if (nArgs < 1) {
+		return (PKS_VALUE) {0};
+	}
+	const char* pszName = "string";
+	switch (pValues->sym_type) {
+	case S_RANGE: pszName = "range"; break;
+	case S_NUMBER: pszName = "int"; break;
+	case S_FLOAT: pszName = "float"; break;
+	case S_BOOLEAN: pszName = "boolean"; break;
+	case S_CHARACTER: pszName = "char"; break;
+	}
+	return (PKS_VALUE) { .sym_type = S_STRING, .sym_data.string = interpreter_allocateString(pContext, pszName) };
+}
+
+/*
  * Pop one value of the stack of our stack machine 
  */
 PKS_VALUE interpreter_popStackValue(EXECUTION_CONTEXT* pContext) {
@@ -238,7 +256,7 @@ static void interpreter_garbaggeCollect(EXECUTION_CONTEXT* pContext) {
 			char* pszEntry = arraylist_get(pContext->ec_allocations, i);
 			PKS_VALUE* pStackValues = pContext->ec_stackBottom;
 			BOOL bDelete = TRUE;
-			while (pStackValues < pContext->ec_stackCurrent) {
+			while (pStackValues <= pContext->ec_stackCurrent) {
 				PKS_VALUE v = *pStackValues++;
 				if (v.sym_type == S_STRING && v.sym_data.string == pszEntry) {
 					bDelete = FALSE;
@@ -523,13 +541,23 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 	char**		stringFunctionParameters;
 	unsigned char 	typ;
 	int  		funcnum;
+	BOOL		bNativeCall;
+	BOOL		bInternalNativeCall = FALSE;
 	PKS_VALUE   returnValue;
 	COM_1FUNC *	pLocalInstructionPointer = *pInstructionPointer;
 
 	typ = pLocalInstructionPointer->typ;
 	functionParameters = nativeStack;
 	funcnum = pLocalInstructionPointer->funcnum;
-	if (typ != C_MACRO) {
+	bNativeCall = typ != C_MACRO;
+	if (bNativeCall) {
+		EDFUNC* fup = &_functionTable[funcnum];
+		if (function_hasInternalVMPrototype(fup)) {
+			bInternalNativeCall = TRUE;
+			bNativeCall = FALSE;
+		}
+	}
+	if (bNativeCall) {
 		stringFunctionParameters = (char**)(functionParameters + 2);
 		memset(nativeStack, 0, sizeof nativeStack);
 		if (typ == C_1FUNC) {
@@ -537,7 +565,7 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 		}
 	}
 
-	if (typ != C_MACRO) {
+	if (bNativeCall) {
 		EDFUNC* fup = &_functionTable[funcnum];
 		int i;
 		int nMax = ((COM_0FUNC*)pLocalInstructionPointer)->func_nargs;
@@ -561,7 +589,7 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 		}
 	}
 	pLocalInstructionPointer = (COM_1FUNC*)((unsigned char*)pLocalInstructionPointer + interpreter_getParameterSize(typ, &pLocalInstructionPointer->funcnum));
-	if (typ != C_MACRO) {
+	if (bNativeCall) {
 		unsigned char* readparamp = (unsigned char *)pLocalInstructionPointer;
 		_dialogExecutionBytecodePointer = readparamp;
 		EDFUNC* fup = &_functionTable[funcnum];
@@ -578,11 +606,21 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 		 */
 		*pInstructionPointer = (COM_1FUNC*)readparamp;
 	} else {
-		rc = macro_executeByName(((COM_MAC*)*pInstructionPointer)->name);
-		*pInstructionPointer = pLocalInstructionPointer;
-		// Work around for wrong stack manipulation on call site.
-		pContext->ec_stackCurrent++;
-		returnValue = interpreter_popStackValue(pContext);
+		if (bInternalNativeCall) {
+			int nMax = (int)(pContext->ec_stackCurrent - pContext->ec_parameterStack);
+			for (int i = 0; i < nMax; i++) {
+				tempStack[nMax-i-1] = interpreter_popStackValue(pContext);
+			}
+			EDFUNC* fup = &_functionTable[funcnum];
+			returnValue = ((PKS_VALUE (*)())fup->execute)(pContext, tempStack, nMax);
+			*pInstructionPointer = (COM_1FUNC*)pLocalInstructionPointer;
+		} else {
+			rc = macro_executeByName(((COM_MAC*)*pInstructionPointer)->name);
+			*pInstructionPointer = pLocalInstructionPointer;
+			// Work around for wrong stack manipulation on call site.
+			pContext->ec_stackCurrent++;
+			returnValue = interpreter_popStackValue(pContext);
+		}
 		pContext->ec_stackCurrent = pContext->ec_parameterStack;
 		interpreter_pushValueOntoStack(pContext, returnValue);
 	}

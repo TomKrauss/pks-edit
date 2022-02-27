@@ -2,7 +2,7 @@
 
 const	max = 20;
 
-macro Example1()
+void Example1()
 {
 	#
 	# local variables, declaration needs an initialization
@@ -54,7 +54,7 @@ macro Example1()
 # this macro generates a function header and body with 
 # comments and date stamp
 #
-macro FunctionHeader() 
+void FunctionHeader() 
 {
 	string	funame = "";
 	string	futype = "void";
@@ -100,7 +100,7 @@ macro FunctionHeader()
 # this macro generates an include file template
 # this could be given as a "VORLAGE" - macro for document type "*.h"
 #
-macro IncludeTemplate()
+void IncludeTemplate()
 {
 	# Basename of the current file
 	string	filename = FormatPrint("%s$f");
@@ -146,14 +146,14 @@ macro IncludeTemplate()
 #
 # this macro looks for the current selected text
 #
-macro FindSelected()
+void FindSelected()
 {
 	string	selected = GetSelected();
 
-	Find(FO_INIT,selected,DIR_FORWARD,RNG_GLOBAL,RE_DOREX);
+	Find(FORM_INIT,selected,DIR_FORWARD,RNG_GLOBAL,RE_DOREX);
 }
 
-macro Ciaou()
+void Ciaou()
 {
 	Alert("Good Bye");
 }

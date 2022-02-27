@@ -90,7 +90,7 @@ static struct kw {
 	int			toknum;
 	char *	name;
 } keywords[] = {
-	T_DEFMACRO,	"macro",
+	T_VOID,		"void",
 	T_CONST,	"const",
 	T_IF,		"if",
 	T_ELSE,		"else",
@@ -108,7 +108,7 @@ static struct kw {
 	T_TINT,		"int",
 	T_TLONG,	"long",
 	T_TFLOAT,	"float",
-	T_BOOLEAN,	"boolean",
+	T_TBOOLEAN,	"boolean",
 	T_TRUE,		"true",
 	T_FALSE,	"false",
 	T_TSTRING,	"string",
@@ -617,7 +617,7 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 !=			return T_NE;
 \<\<		return T_SHIFT_LEFT;
 \>\>		return T_SHIFT_RIGHT;
-\^\^		return T_POWER_TO;
+\*\*		return T_POWER_TO;
 \<=			return T_LE;
 \>=			return T_GE;
 \*=			return T_SH_ASSIGN_MULT;

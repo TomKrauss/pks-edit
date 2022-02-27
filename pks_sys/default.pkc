@@ -2,7 +2,7 @@
  * Macro, which can be used as a save action in PKS-Edit to trim
  * all trailing blanks in the document saved.
  */
-macro TrimTrailingBlanks() {
+void TrimTrailingBlanks() {
 	// disable all messages (toast / status bar etc...) while running this macro.
 	ShowMessages(FALSE);
 	Replace(FORM_INIT,"\\s+$","",REP_REPLACE,RNG_GLOBAL,RE_DOREX);

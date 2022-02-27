@@ -37,6 +37,8 @@ typedef enum {
 	CFM_IF,					// if () ...
 	CFM_WHILE,				// while () ...
 	CFM_ELSE,				// } else { ...
+	CFM_CONTINUE,			// continue...
+	CFM_BREAK,				// break...
 	CFM_END_BLOCK,			// }
 } CONTROL_FLOW_MARK;
 
@@ -407,7 +409,7 @@ static DECOMPILATION_STACK_ELEMENT* decompile_printBinaryExpression(COM_BINOP *c
 		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
 		break;
 	case BIN_POWER:
-		sprintf(szBuf, "%s ^^ %s", pLeft, pRight);
+		sprintf(szBuf, "%s ** %s", pLeft, pRight);
 		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
 		break;
 	case BIN_SHIFT_RIGHT:
@@ -557,7 +559,19 @@ static DECOMPILATION_STACK_ELEMENT* decompile_flushStack(FILE* fp, DECOMPILATION
 	return pStackCurrent;
 }
 
-/* 
+/*
+ * Returns a control flow mark for a given byte code offset or null if no mark can be found.
+ */
+static CONTROL_FLOW_MARK_INDEX* decompile_controlFlowMarkForOffset(CONTROL_FLOW_MARK_INDEX* pTable, int nTableSize, const void* pAddress) {
+	for (int i = 0; i < nTableSize; i++) {
+		if (pTable[i].cfmi_bytecodeAddress == pAddress) {
+			return &pTable[i];
+		}
+	}
+	return NULL;
+}
+
+/*
  * Analyse the byte code jump instructions and "guess" the original control flow from which they were created.
  */
 static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char* pBytecode, unsigned char* pBytecodeEnd, int* nMarks) {
@@ -573,21 +587,35 @@ static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char*
 				nMax += 100;
 				pResult = realloc(pResult, nMax * sizeof *pResult);
 			}
-			if (pGoto->bratyp == BRA_IF_FALSE && pGoto->offset > 0) {
+			if (pGoto->bratyp == BRA_ALWAYS) {
+				CONTROL_FLOW_MARK_INDEX* pFoundMark = decompile_controlFlowMarkForOffset(pResult, nFound, pGoto);
+				if (!pFoundMark) {
+					pFoundMark = decompile_controlFlowMarkForOffset(pResult, nFound, pBytecode+pGoto->offset);
+					if (pFoundMark) {
+						if (pFoundMark->cfmi_mark == CFM_WHILE) {
+							pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_CONTINUE, .cfmi_bytecodeAddress = (unsigned char*)pGoto };
+						} else if (pFoundMark->cfmi_mark == CFM_END_BLOCK) {
+							pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_BREAK, .cfmi_bytecodeAddress = (unsigned char*)pGoto };
+						}
+					}
+				}
+			} else if (pGoto->bratyp == BRA_IF_FALSE && pGoto->offset > 0) {
 				BOOL bDone = FALSE;
 				int nOffs = pGoto->offset - sizeof(COM_GOTO);
 				if (nOffs > 0) {
 					COM_GOTO* pBack = (COM_GOTO*)(pBytecode + nOffs);
 					if (pBack->typ == C_GOTO && pBack->bratyp == BRA_ALWAYS && pBack->offset < 0) {
-						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_WHILE, .cfmi_bytecodeAddress = (unsigned char*)pGoto};
-						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_END_BLOCK, .cfmi_bytecodeAddress = (unsigned char*)pBack };
-						bDone = TRUE;
+						if (pBytecode + nOffs + pBack->offset < (unsigned char*)pGoto) {
+							pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_WHILE, .cfmi_bytecodeAddress = (unsigned char*)pGoto };
+							pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_END_BLOCK, .cfmi_bytecodeAddress = (unsigned char*)pBack };
+							bDone = TRUE;
+						}
 					}
 				}
 				if (!bDone) {
 					pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_IF, .cfmi_bytecodeAddress = (unsigned char*)pGoto};
 					COM_GOTO* pElse = (COM_GOTO*)(pBytecode + pGoto->offset - sizeof(COM_GOTO));
-					if (pElse->typ == C_GOTO && pElse->bratyp == BRA_ALWAYS && pElse->offset > 0 && /* work around for no-op goto / empty else*/ pElse->offset != sizeof(COM_GOTO)) {
+					if (pElse->typ == C_GOTO && pElse->bratyp == BRA_ALWAYS && pElse->offset > 0) {
 						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_ELSE, .cfmi_bytecodeAddress = (unsigned char*)pElse};
 						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_END_BLOCK, .cfmi_bytecodeAddress = ((unsigned char*)pElse)+pElse->offset };
 					}
@@ -602,18 +630,6 @@ static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char*
 	}
 	*nMarks = nFound;
 	return pResult;
-}
-
-/*
- * Returns a control flow mark for a given byte code offset or null if no mark can be found.
- */
-static CONTROL_FLOW_MARK_INDEX* decompile_controlFlowMarkForOffset(CONTROL_FLOW_MARK_INDEX* pTable, int nTableSize, const void* pAddress) {
-	for (int i = 0; i < nTableSize; i++) {
-		if (pTable[i].cfmi_bytecodeAddress == pAddress) {
-			return &pTable[i];
-		}
-	}
-	return NULL;
 }
 
 static decompile_indent(FILE* fp, int nIndent) {
@@ -685,7 +701,8 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 
 	pFlowMarks = decompile_analyseControlFlowMarks(sp, spend, &nMarks);
 
-	fprintf(fp, "macro %s(", decompile_quoteString(MAC_NAME(mp)));
+	// (T) find out the return type of the macro - is currently not stored.
+	fprintf(fp, "void %s(", decompile_quoteString(MAC_NAME(mp)));
 	while (sp < spend) {
 		if (*sp != C_DEFINE_PARAMETER) {
 			break;
@@ -738,10 +755,22 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 				pStackCurrent = decompile_flushStack(fp, pStackCurrent, pStack);
 				fprintf(fp, ") {\n");
 			}
-			else if (pFoundMark && pFoundMark->cfmi_mark == CFM_ELSE) {
-				decompile_indent(fp, nIndent-1);
-				fprintf(fp, "} else {\n");
-			} else if (!pFoundMark && cp->offset != sizeof(COM_GOTO)) {
+			else if (pFoundMark) {
+				if (pFoundMark->cfmi_mark == CFM_ELSE) {
+					decompile_indent(fp, nIndent - 1);
+					fprintf(fp, "} else {\n");
+				} else if (pFoundMark->cfmi_mark == CFM_BREAK) {
+					decompile_indent(fp, nIndent - 1);
+					fprintf(fp, "break;\n");
+				} else if (pFoundMark->cfmi_mark == CFM_CONTINUE) {
+					decompile_indent(fp, nIndent - 1);
+					fprintf(fp, "continue;\n");
+				}
+				else {
+					pFoundMark = 0;
+				}
+			}
+			if (!pFoundMark && cp->offset != sizeof(COM_GOTO)) {
 				decompile_indent(fp, nIndent);
 				fprintf(fp, "%s %s;\n",
 					(cp->bratyp == BRA_ALWAYS) ? "goto" : "braeq",

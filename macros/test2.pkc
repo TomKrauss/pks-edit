@@ -3,7 +3,7 @@ const IDYES	                = 6;
 /*
  * Windows MessageBox
  */
-macro YesOrNo()
+void YesOrNo()
 {
 	// int 	ret;
 	// string 	s;
@@ -26,7 +26,7 @@ macro YesOrNo()
 /*
  * Test evaluation of String expressions, using the formatting function FormatPrint.
  */
-macro insertFormattedString() {
+void insertFormattedString() {
 	string myString = GetSelected() +
 			    "* @author: Oscar\n" +
 			    FormatPrint("* date: %D\n") +
@@ -37,7 +37,7 @@ macro insertFormattedString() {
 #
 # Insert a text at the same time incrementing a number to be used in the text.
 #
-macro insertWithIncrement() {
+void insertWithIncrement() {
 	string t;
 	string suffix;
 	int n = 1;
@@ -68,7 +68,7 @@ macro insertWithIncrement() {
  * Note: PKSMakroC - PKS MacroC Integers are 64 bit big, this macro
  * will cause overflows for fac(>16) !
  */
-macro calculateFactorial() {
+void calculateFactorial() {
     int     n = 1;
     int     nSelected = 1;
     int     result = 1;
@@ -92,7 +92,7 @@ macro calculateFactorial() {
     }
 }
 
-macro test2()
+void test2()
 {
 	int		a = 10;
 	int		b = 2;

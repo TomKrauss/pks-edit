@@ -1,5 +1,5 @@
 
-macro testfmtprint() {	
+void testfmtprint() {	
 	string s = "";
 
 	s = FormatPrint("%j$l %j$c");
@@ -14,7 +14,7 @@ macro testfmtprint() {
 // 
 // @param x a test param
 // macro findtest(int x) {
-//	Find(FO_INIT, "^\\T*$", "", DIR_BACKWARD, REP_FIND, RNG_ONCE, 
+//	Find(FORM_INIT, "^\\T*$", "", DIR_BACKWARD, REP_FIND, RNG_ONCE, 
 //		RE_DOREX, 0);
 //}
 

@@ -6,7 +6,7 @@ const   MY_NUMBER_CONSTANT = 4711;
  * restyle the current block in a given attribute
  * attribute type is passed via string variable "code"
  */
-macro Restyle-Block(string restyleCode)
+void Restyle-Block(string restyleCode)
 {
 	SetMark(FORM_INIT,'?');
 	if (!FindBlockEnd() || !FindBlockStart()) {
@@ -29,7 +29,7 @@ macro Restyle-Block(string restyleCode)
  * Underline-Block
  * restyle the currently marked block underlined
  */
-macro Underline-Block()
+void Underline-Block()
 {
 	string restyleCode = "ˆ";
 	
@@ -40,7 +40,7 @@ macro Underline-Block()
  * Italicise-Block
  * restyle the currently marked block underlined
  */
-macro Italicise-Block()
+void Italicise-Block()
 {
 	string restyleCode = "„";
 	
@@ -51,7 +51,7 @@ macro Italicise-Block()
  * Remove-Block-Atrtributes
  * restyle the currently marked block underlined
  */
-macro Remove-Block-Atrtributes()
+void Remove-Block-Atrtributes()
 {
 	string restyleCode = "";
 	

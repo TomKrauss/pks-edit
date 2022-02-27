@@ -503,7 +503,8 @@ static FORMATTER _defaultFormatter = {
  */
 static FORMATTER* format_getFormatter(WINFO* wp) {
 	FTABLE* fp = wp->fp;
-	char* pszFormatter = grammar_getFormatter(fp->documentDescriptor->grammar);
+	EDIT_CONFIGURATION* pDescriptor = fp->documentDescriptor;
+	char* pszFormatter = !pDescriptor ? 0 : grammar_getFormatter(pDescriptor->grammar);
 	if (!pszFormatter) {
 		return &_defaultFormatter;
 	}

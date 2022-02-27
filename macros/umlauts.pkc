@@ -3,19 +3,19 @@
 #
 # Author: mit freundl. Genehmigung: Andreas Schrell
 #
-macro Umlaute() {
+void Umlaute() {
      HideBlock(); HideBlock();
      CursorUp(MOT_FILE);
-     Replace(FO_INIT,"Ñ","\"a",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
-     Replace(FO_INIT,"î","\"o",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
-     Replace(FO_INIT,"Å","\"u",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
-     Replace(FO_INIT,"é","\"A",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
-     Replace(FO_INIT,"ô","\"O",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
-     Replace(FO_INIT,"ö","\"U",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
-     Replace(FO_INIT,"û","\"s",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
-     Replace(FO_INIT,"\O341","\"s",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
+     Replace(FORM_INIT,"Ñ","\"a",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
+     Replace(FORM_INIT,"î","\"o",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
+     Replace(FORM_INIT,"Å","\"u",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
+     Replace(FORM_INIT,"é","\"A",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
+     Replace(FORM_INIT,"ô","\"O",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
+     Replace(FORM_INIT,"ö","\"U",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
+     Replace(FORM_INIT,"û","\"s",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
+     Replace(FORM_INIT,"\O341","\"s",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,0,0);
      MarkLineOp(MLN_FINDSOFT); MarkLineOp(MLN_MAKEHARD);
-     Replace(FO_INIT," *$","",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,RE_DOREX,0);
+     Replace(FORM_INIT," *$","",DIR_FORWARD,REP_REPLACE,RNG_GLOBAL,RE_DOREX,0);
      HideBlock(); HideBlock();
 }
 

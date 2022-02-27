@@ -1,7 +1,7 @@
 
 
 
-macro Sub() {
+void Sub() {
 	string	t = "dies ist ein teststring";
 	
 	
@@ -9,7 +9,7 @@ macro Sub() {
 	Alert(t);
 }
 
-macro Dirname() {
+void Dirname() {
 
 	string filename = "C:\\AUTO\\TOSPATCH.PRG";
 	string directory = "";

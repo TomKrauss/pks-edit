@@ -53,7 +53,7 @@
      T_CONST = 269,
      T_TRUE = 270,
      T_FALSE = 271,
-     T_BOOLEAN = 272,
+     T_TBOOLEAN = 272,
      T_FUNC = 273,
      T_MACRO = 274,
      T_DOTDOT = 275,
@@ -92,7 +92,7 @@
      T_LE = 308,
      T_GE = 309,
      T_POWER_TO = 310,
-     T_DEFMACRO = 311,
+     T_VOID = 311,
      T_CMDSEQPREFIX = 312,
      T_GT = 313,
      T_LT = 314

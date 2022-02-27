@@ -1,17 +1,17 @@
 #
 # die folgenden Makros beachten nur die Umlaute bei der Konvertierung
 #
-macro ConvertOemToAnsi() 
+void ConvertOemToAnsi() 
 "Konvertiert einen Text mit OEM Zeichensatz in ANSI - Zeichensatz"
 {
-	Replace(FO_INIT,"[„”™ב]","\\[„”™ב=הצüִײÜßß]\\&",
+	Replace(FORM_INIT,"[„”™ב]","\\[„”™ב=הצüִײÜßß]\\&",
 		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
 }
 
-macro ConvertAnsiToOem() 
+void ConvertAnsiToOem() 
 "Konvertiert einen Text mit ANSI Zeichensatz in OEM - Zeichensatz"
 {
-	Replace(FO_INIT,"[הצüִײÜß]","\\[הצüִײÜß=„”™ב]\\&",
+	Replace(FORM_INIT,"[הצüִײÜß]","\\[הצüִײÜß=„”™ב]\\&",
 		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
 }
 

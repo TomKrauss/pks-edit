@@ -68,7 +68,7 @@ int				_ExSave;
 /*--------------------------------------------------------------------------
  * ft_generateAutosavePathname()
  */
-static int ft_generateAutosavePathname(char *destinationName, char *fname)
+static int ft_generateAutosavePathname(char *destinationName, const char *fname)
 {	char fn[EDMAXPATHLEN];
 	char szBuff[EDMAXPATHLEN];
 
@@ -137,7 +137,7 @@ static int ft_appendFileChanges(WINFO* wp) {
  * Checks whether two file names describe two different files. Returns
  * value != 0, if different
  */
-static BOOL areFilenamesDifferent(char* fileName1, char* fileName2) {
+static BOOL areFilenamesDifferent(const char* fileName1, const char* fileName2) {
 	char tempFn1[EDMAXPATHLEN];
 	char tempFn2[EDMAXPATHLEN];
 
@@ -477,7 +477,7 @@ EXPORT int ww_checkSelectionWithError(WINFO* wp) {
  * ft_fpbyname()
  * Find a filebuffer given the name of the file.
  */
-FTABLE *ft_fpbyname(char *fn)
+FTABLE *ft_fpbyname(const char *fn)
 {	FTABLE *fp;
 
 	for (fp = _filelist; fp; fp = fp->next) {
@@ -492,7 +492,7 @@ FTABLE *ft_fpbyname(char *fn)
  * ft_editing()
  * Answer true, if we are editing the file named filename.
  */
-int ft_editing(char *fn)
+int ft_editing(const char *fn)
 {
 	return ft_fpbyname(fn) ? 1 : 0;
 }
@@ -647,7 +647,7 @@ int fsel_selectFileWithTitle(int nCommand, char *result, FILE_SELECT_PARAMS* pFS
  * ft_activateWindowOfFileNamed()
  * Activate the window of the file named 'fn'.
  */
-int ft_activateWindowOfFileNamed(char *fn) {
+int ft_activateWindowOfFileNamed(const char *fn) {
 	FTABLE 	*fp;
 	char 	fullname[EDMAXPATHLEN];
 
@@ -668,7 +668,7 @@ int ft_activateWindowOfFileNamed(char *fn) {
  * Open a file with a file name and jump into a line. Place the window to
  * open as defined in the param wsp.
  */
-FTABLE* ft_openFileWithoutFileselector(char *fn, long line, FT_OPEN_OPTIONS* pOptions) {   
+FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTIONS* pOptions) {   
 	char 		szResultFn[EDMAXPATHLEN];
 	char		szAsPath[EDMAXPATHLEN];
 	FTABLE 		*fp;
@@ -695,7 +695,7 @@ FTABLE* ft_openFileWithoutFileselector(char *fn, long line, FT_OPEN_OPTIONS* pOp
 		}
 	}
 	if (fn && file_exists(fn) < 0) {
-		if (error_displayYesNoConfirmation(IDS_MSGQUERYNEWFILE, string_abbreviateFileNameOem(fn)) == IDNO) {
+		if (!pOptions->fo_isNewFile && error_displayYesNoConfirmation(IDS_MSGQUERYNEWFILE, string_abbreviateFileNameOem(fn)) == IDNO) {
 			return 0;
 		}
 		nFileCreationFlags = F_NEWFILE;

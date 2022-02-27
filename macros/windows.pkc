@@ -10,15 +10,15 @@
 const MB_YESNO	      = 0x0004;
 const IDYES	      = 6;
 
-macro HelpMakroC() {
+void HelpMakroC() {
 	InternalHelpContext(3000);
 }
 
-macro HelpInternalMacs() {
+void HelpInternalMacs() {
 	InternalHelpContext(3001);
 }
 
-macro CompileMacro()
+void CompileMacro()
 {
     if (QueryStatus(QUERY_FILEMODIFIED) &&
     	MessageBox(MB_YESNO, 0, 
@@ -27,24 +27,24 @@ macro CompileMacro()
     }
 }
 
-macro CharacterLow2Up() 
+void CharacterLow2Up() 
 "Zeichentausch Textblock Klein->Groß"
 {
-	Replace(FO_INIT,"([a-zäöü])","\\u\\1",
+	Replace(FORM_INIT,"([a-zäöü])","\\u\\1",
 		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
 }
 
-macro CharacterUp2Low() 
+void CharacterUp2Low() 
 "Zeichentausch Textblock Groß->Klein"
 {
-	Replace(FO_INIT,"([A-ZÄÖÜ])","\\l\\1",
+	Replace(FORM_INIT,"([A-ZÄÖÜ])","\\l\\1",
 		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
 }
 
-macro CharacterVersale() 
+void CharacterVersale() 
 "Zeichentausch Textblock Versalien"
 {
-	Replace(FO_INIT,"([a-zäöüA-ZÄÖÜ])([a-zäöüA-ZÄÖÜ]+)","\\u\\1\\l\\2",
+	Replace(FORM_INIT,"([a-zäöüA-ZÄÖÜ])([a-zäöüA-ZÄÖÜ]+)","\\u\\1\\l\\2",
 		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
 }
 
@@ -54,81 +54,81 @@ macro CharacterVersale()
 # für das Markieren von Blöcken zur Verfügung 
 #
 
-macro XtndBlockCursRight() 
+void XtndBlockCursRight() 
 "Erweiterung Block / Cursor rechts"
 {
 
 	CursorRight(MOT_SINGLE|MOT_XTNDBLOCK);
 }
 
-macro XtndBlockCursLeft() 
+void XtndBlockCursLeft() 
 "Erweiterung Block / Cursor links"
 {
 	CursorLeft(MOT_SINGLE|MOT_XTNDBLOCK);
 }
 
-macro XtndBlockCursDown() 
+void XtndBlockCursDown() 
 "Erweiterung Block / Cursor nach unten"
 {
 	CursorDown(MOT_SINGLE|MOT_XTNDBLOCK);
 }
 
-macro XtndBlockCursUp() 
+void XtndBlockCursUp() 
 "Erweiterung Block / Cursor nach oben"
 {
 	CursorUp(MOT_SINGLE|MOT_XTNDBLOCK);
 }
 
-macro XtndBlockCursWordRight() 
+void XtndBlockCursWordRight() 
 "Erweiterung Block wortweise / Cursor nach rechts"
 {
 	CursorRight(MOT_WORD|MOT_XTNDBLOCK);
 }
 
-macro XtndBlockCursWordLeft() 
+void XtndBlockCursWordLeft() 
 "Erweiterung Block wortweise / Cursor nach links"
 {
 	CursorLeft(MOT_WORD|MOT_XTNDBLOCK);
 }
 
-macro XtndBlockCursHome() 
+void XtndBlockCursHome() 
 "Erweiterung Block / Cursor zum Anfang der Datei"
 {
 	CursorUp(MOT_FILE|MOT_XTNDBLOCK);
 }
 
-macro XtndBlockCursBottom() 
+void XtndBlockCursBottom() 
 "Erweiterung Block / Cursor zum Ende der Datei"
 {
 	CursorDown(MOT_FILE|MOT_XTNDBLOCK);
 }
 
-macro XtndBlockCursLineStart() 
+#### XtndBlockCursLineStart() 
 "Erweiterung Block / Cursor zum Anfang der Zeile"
 {
 	CursorLeft(MOT_TOEND|MOT_XTNDBLOCK);
 }
 
-macro XtndBlockCursLineEnd() 
+void XtndBlockCursLineEnd() 
 "Erweiterung Block / Cursor zum Ende der Zeile"
 {
 	CursorRight(MOT_TOEND|MOT_XTNDBLOCK);
 }
 
-macro XtndBlockCursPageUp() 
+void XtndBlockCursPageUp() 
 "Erweiterung Block / Cursor eine Seite hoch"
 {
 	CursorUp(MOT_PAGE|MOT_XTNDBLOCK);
 }
 
-macro XtndBlockCursPageDown() 
+void XtndBlockCursPageDown() 
 "Erweiterung Block / Cursor eine Seite nach unten"
 {
 	CursorDown(MOT_PAGE|MOT_XTNDBLOCK);
 }
 
 
-macro ToggleBlockXtndMode()
+void ToggleBlockXtndMode()
 "Schaltet den Blockerweiterungsmodus um;Block erweitern"
 {
 	if (QueryStatus(QUERY_BLOCKXTNDMODE)) {
@@ -138,7 +138,7 @@ macro ToggleBlockXtndMode()
 	}
 }
 
-macro ToggleLineMode()
+void ToggleLineMode()
 "Schaltet den Blockmodus um;Block Zeilenmodus"
 {
 	int	workmode;
@@ -146,7 +146,7 @@ macro ToggleLineMode()
 	workmode = QueryStatus(QUERY_WORKMODE);
 	
 	workmode = workmode ^ WM_BLK_LINES;
-	SetWorkMode(FO_INIT, "", workmode);
+	SetWorkMode(FORM_INIT, "", workmode);
 }
 
 #
@@ -155,27 +155,27 @@ macro ToggleLineMode()
 # eine Erweiterung auf alle Zeichen (für die das entsprechende Zeichen
 # im anderen Zeichensatz existiert, sollte jedoch keine Schwierigkeit sein.)
 #
-macro ConvertOemToAnsi() 
+void ConvertOemToAnsi() 
 "Konvertiert einen Text mit OEM Zeichensatz in ANSI - Zeichensatz"
 {
-	Replace(FO_INIT,"[„”™šá]","\\[„”™šá=äöüÄÖÜßß]\\&",
+	Replace(FORM_INIT,"[„”™šá]","\\[„”™šá=äöüÄÖÜßß]\\&",
 		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
 }
 
-macro ConvertAnsiToOem() 
+void ConvertAnsiToOem() 
 "Konvertiert einen Text mit ANSI Zeichensatz in OEM - Zeichensatz"
 {
-	Replace(FO_INIT,"[äöüÄÖÜß]","\\[äöüÄÖÜß=„”™šá]\\&",
+	Replace(FORM_INIT,"[äöüÄÖÜß]","\\[äöüÄÖÜß=„”™šá]\\&",
 		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
 }
 
-macro PairArrangeWindows()
+void PairArrangeWindows()
 "Legt die beiden oberen Fenster nebeneinander"
 {
 	WindowArrange(WIN_PAIRS);
 }
 
-macro MousePositionUngrabbed()
+void MousePositionUngrabbed()
 {
 	MousePosition(0);
 }

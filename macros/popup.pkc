@@ -8,7 +8,7 @@
 #
 # Öffnet das Popup-Menu "Beispiel"
 #
-macro Popup() {
+void Popup() {
 	TrackPopup(0,0,"Beispiel");
 }
 

@@ -80,6 +80,7 @@ static LABEL *bytecode_insertLabelType(LABEL *lp, char *name, int type)
 	}
 
 	lp->name = yystralloc(name);
+	lp->recp = 0;
 
 redef:
 	lp->type = type;
@@ -146,7 +147,7 @@ int bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name)
 		lp->type = L_RESOLVED;
 		for (i = 0; i < _ngotos; i++) {
 			if (_gotos[i].lp == lp) {
-				_gotos[i].recp->offset = lp->recp->offset;
+				_gotos[i].recp->offset = recp - (unsigned char*)_gotos[i].recp;
 			}
 		}
 	}

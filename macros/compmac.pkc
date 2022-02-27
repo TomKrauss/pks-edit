@@ -40,7 +40,7 @@ const IDYES	                = 6;
 const IDNO	                = 7;
 
 
-macro CompileMacro()
+void CompileMacro()
 {
     if (QueryStatus(QUERY_FILEMODIFIED) &&
     	MessageBox(MB_YESNO, 0, 

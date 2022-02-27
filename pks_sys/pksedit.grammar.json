@@ -46,7 +46,7 @@
           "name": "keyword.pksedit",
           "style": "keyword",
           "keywords": [
-            "macro",
+            "void",
             "do",
             "if",
             "else",

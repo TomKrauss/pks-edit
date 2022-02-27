@@ -1,10 +1,10 @@
 
-macro TileHoriz()
+void TileHoriz()
 {
 	WindowArrange(WIN_HOR);
 }
 
-macro TilePairs()
+void TilePairs()
 {
 	WindowArrange(WIN_PAIRS);
 }

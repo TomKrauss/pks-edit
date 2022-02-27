@@ -1,10 +1,10 @@
 
 
-macro FindSelected()
+void FindSelected()
 {
 	string s;
 	
 	s = GetSelected();
-	Find(FO_INIT|FO_SHOW, s, 1, 0, RE_WRAPSCAN);
+	Find(FORM_INIT|FORM_SHOW, s, 1, 0, RE_WRAPSCAN);
 }
 

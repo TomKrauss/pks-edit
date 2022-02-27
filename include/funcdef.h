@@ -26,6 +26,8 @@ typedef enum {
 	PARAM_TYPE_ENUM = 'e',			// An "enum" type parameter which can be determined from the PARAMETER_ENUM_VALUE table. Index into that table follows.
 	PARAM_TYPE_VOID = 0,			// end of parameter list - should support real void
 	PARAM_TYPE_INT = 'i',			// this parameter is an integer
+	PARAM_TYPE_PKS_VALUE = 'P',		// Special parameter type used as first parameter type to mark native functions working on the internal data structures of PKSMacroC and having the 
+									// signature: PKS_VALUE myMethod(EXECUTION_CONTEXT*pContext, PKS_VALUE* pValues, int nArguments)
 	PARAM_TYPE_STRING = 's'			// this parameter is a String parameter
 } PARAMETER_TYPE;
 
@@ -57,6 +59,12 @@ typedef struct edfunc {
 	int (*isenabled)(long long pParam);		// Optional enablement function allowing to check, whether the execute function can currently be invoked.
 	signed char* edf_paramTypes;			// Signature description of the function. Contains a string encoded using the constants defined above (PAR_...)
 } EDFUNC;
+
+/*
+ * Can be used to find out, whether a method is more tightly integrated with the macroC VM and works on PKS_VALUES directly.
+ * Signature is: PKS_VALUE myMethod(EXECUTION_CONTEXT*pContext, PKS_VALUE* pValues, int nArguments)
+ */
+extern int function_hasInternalVMPrototype(EDFUNC* ep);
 
 /*
  * Returns the parameter descriptor for a function for the n-th parameter. Parameter count

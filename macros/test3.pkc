@@ -1,12 +1,32 @@
 
-
-macro TestOr()
+/*
+ * Is an example for a somewhat more sophisticated flow of control include if, while break
+ * and continue.
+ */
+void Test-Control-Flow()
 {
+	int     indent;
     int		i;
-    string	s;
-
-    i = FO_INIT|FO_SHOW;
-    s = FormatPrint("%j", i);
-    Alert(s);
+	string r = "x";
+	
+	i = 0;
+	clear();
+	print("Starting execution!!!");
+	while(i < 40) {
+		i++;
+		if (i == 3) {
+			r = "y";
+			continue;
+		}
+		if (i == 27) {
+			break;
+		}
+		indent = 17 - i;
+		if (indent < 0) {
+			indent = 0;
+		}
+		print(indent * ' ' + "->Result: " + r + " " + i);
+	}
+	print("DONE!");
 }
 

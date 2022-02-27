@@ -1,4 +1,4 @@
-macro Test-Floats() {
+void Test-Floats() {
 	float ff = 2.3d;
 	string x;
 
@@ -7,7 +7,7 @@ macro Test-Floats() {
 	MessageBox(MB_OKCANCEL, x);
 }
 
-macro Test-Expr() {
+void Test-Expr() {
 	boolean bb = true;
 	int k = 23456234;
 	// Gives a compile error: integer overflow

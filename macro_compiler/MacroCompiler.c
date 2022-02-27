@@ -36,17 +36,6 @@ int  yyfinish(void);
 
 extern int		_macrosWereChanged;
 
-/*--------------------------------------------------------------------------
- * getCurrentDocumentTypeContext(()
- */
-static int getCurrentDocumentTypeContext(void)
-{	FTABLE *fp;
-
-	if ((fp = ft_getCurrentDocument()) != 0)
-		return fp->documentDescriptor->id;
-	return DEFAULT_DOCUMENT_DESCRIPTOR_CTX;
-}
-
 /*
  * file_createTempFile()
  * Create a temp file and return the name of the file created in "dest". The
@@ -60,7 +49,8 @@ FILE *file_createTempFile(char *dest, char *filename) {
 		strcat(dest, ".pkc");
 	}
 	if ((fp = fopen(dest,"w")) == 0) {
-		error_displayAlertDialog(/*STR*/"kann %s nicht erzeugen", dest);
+		// (T) I18N
+		error_displayAlertDialog(/*STR*/"Cannot create file %s", dest);
 		return 0;
 	}
 	return fp;
@@ -179,7 +169,7 @@ static BOOL macro_needsWrapper(const char* pszCode) {
 	options.flags = RE_DOREX;
 	options.patternBuf = patternBuf;
 	options.endOfPatternBuf = &patternBuf[sizeof patternBuf];
-	options.expression = "^\\s*macro\\s+";
+	options.expression = "^\\s*(string|void|int|bool)\\s+";
 	if (!regex_compile(&options, &pattern)) {
 		return TRUE;
 	}
@@ -204,7 +194,7 @@ int macro_executeSingleLineMacro(const char *pszCode, BOOL bUnescape, const char
 	memset(&ft, 0, sizeof ft);
 	BOOL bNeedsWrapper = macro_needsWrapper(pszCode);
 	if (bNeedsWrapper) {
-		ln_createAndAdd(&ft, "macro temp-block() {", -1, 0);
+		ln_createAndAdd(&ft, "string temp-block() {", -1, 0);
 	}
 	size_t nSize = strlen(pszCode);
 	if (bUnescape) {

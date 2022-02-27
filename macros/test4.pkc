@@ -1,9 +1,9 @@
 
-macro TestQuit() {
+void TestQuit() {
 	ExitEdit(0);
 }
 
-macro TestAlert()
+void TestAlert()
 {
     int 	ret;
     string 	res;

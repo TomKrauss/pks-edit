@@ -286,12 +286,6 @@ extern FTABLE* ft_getCurrentDocument();
  */
 extern FTABLE* ft_getCurrentDocument();
 
-/*------------------------------------------------------------
- * ft_activateWindowOfFileNamed()
- * Activate the window of the file named...
- */
-extern int ft_activateWindowOfFileNamed(char* fn);
-
 /*---------------------------------
  * ft_cutMarkedLines()
  * Cut out the lines which which have a line marker flag.
@@ -342,8 +336,9 @@ typedef struct tagWINDOWPLACEMENT WINDOWPLACEMENT;
  * Options for opening a file. 
  */
 typedef struct tagFT_OPEN_OPTIONS {
-	const char* fo_dockName;
-	const long  fo_codePage;
+	const char* fo_dockName;			// The place on the screen where the initial window is being displayed.
+	const long  fo_codePage;			// The code page to use when opening the document
+	int         fo_isNewFile;			// can be set to true, to open a window for a new file with a given name.
 } FT_OPEN_OPTIONS;
 
 /*------------------------------------------------------------
@@ -351,7 +346,7 @@ typedef struct tagFT_OPEN_OPTIONS {
  * Open a file with a file name and jump into a line. Place the window to
  * open as defined in the param wsp.
  */
-extern FTABLE* ft_openFileWithoutFileselector(char* fn, long line, FT_OPEN_OPTIONS* pOptions);
+extern FTABLE* ft_openFileWithoutFileselector(const char* fn, long line, FT_OPEN_OPTIONS* pOptions);
 
 /*------------------------------------------------------------
  * ft_openBackupfile()
@@ -496,12 +491,12 @@ extern long ft_size(FTABLE* fp);
  * ft_fpbyname()
  * Find a filebuffer given the name of the file.
  */
-extern FTABLE* ft_fpbyname(char* fn);
+extern FTABLE* ft_fpbyname(const char* fn);
 /*------------------------------------------------------------
  * ft_editing()
  * Answer true, if we are editing the file named filename.
  */
-extern int ft_editing(char* fn);
+extern int ft_editing(const char* fn);
 
 /*--------------------------------------------------------------------------
  * ft_sortFile()
@@ -544,7 +539,7 @@ void ft_destroyCaches();
  * ft_activateWindowOfFileNamed()
  * Activate the window of the file with the given name.
  */
-extern int ft_activateWindowOfFileNamed(char* fn);
+extern int ft_activateWindowOfFileNamed(const char* fn);
 
 /*--------------------------------------------------------------------------
  * ln_destroy()
@@ -727,7 +722,7 @@ extern int ln_createAndAdd(FTABLE* fp, const char* q, int len, int flags);
  * ln_createAndAddSimple()
  * Similar to ln_createAndAdd() - default size and default flags.
  */
-extern int ln_createAndAddSimple(FTABLE* fp, char* b);
+extern int ln_createAndAddSimple(FTABLE* fp, const char* b);
 
 /*---------------------------------
  * ft_formatText()

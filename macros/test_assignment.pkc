@@ -1,5 +1,5 @@
 
-macro testAssignment() {
+void testAssignment() {
 	string x = "1";
 	int y = 2;
 

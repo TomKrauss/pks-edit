@@ -5,7 +5,7 @@ const MB_YESNOCANCEL    = 0x0003;
 const IDYES 		= 6;
 const IDCANCEL		= 2;
 
-macro ReplaceInFileList() 
+void ReplaceInFileList() 
 {
 
     string  	search;
@@ -18,8 +18,8 @@ macro ReplaceInFileList()
         return;
     }
 
-    replaceBoxFlags = FO_SHOW|FO_INIT;
-    if (FindInFileList(FO_SHOW|FO_INIT, search, "", 1, 1, RE_DOREX|RE_WRAPSCAN)) {
+    replaceBoxFlags = FORM_SHOW|FORM_INIT;
+    if (FindInFileList(FORM_SHOW|FORM_INIT, search, "", 1, 1, RE_DOREX|RE_WRAPSCAN)) {
         while(1) {
 	    Replace(replaceBoxFlags, search, search, REP_REPLACE, RNG_GLOBAL,
         	RE_DOREX|RE_WRAPSCAN,OREP_INQ);

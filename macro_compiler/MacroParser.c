@@ -153,6 +153,14 @@ notfound:
 	return (PARAMETER_TYPE_DESCRIPTOR) {.pt_type = tType};
 }
 
+/*
+ * Can be used to find out, whether a method is more tightly integrated with the macroC VM and works on PKS_VALUES directly.
+ * Signature is: PKS_VALUE myMethod(EXECUTION_CONTEXT*pContext, PKS_VALUE* pValues, int nArguments)
+ */
+int function_hasInternalVMPrototype(EDFUNC* ep) {
+	return ep->edf_paramTypes[0] == PARAM_TYPE_PKS_VALUE;
+}
+
 /*--------------------------------------------------------------------------
  * function_parameterIsFormStart()
  */
