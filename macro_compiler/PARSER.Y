@@ -80,7 +80,7 @@ static 		void freeitem(char **p);
 static 		char *bytecode_emitGotoInstruction(char *prefix, int level, int bratyp);
 static		int bytecode_generateAutoLabelNamePrefix(char *prefix,int level);
 static		void bytecode_destroyAutoLabelNamePrefix(char *prefix, int level);
-static void 	bytecode_emitPushParameterInstruction(long lValue);
+static void 	bytecode_emitPushParameterInstruction(long long lValue);
 
 static int		_generateShorthandAssignment;
 static 		char *lstartid  = "%ls%",
@@ -588,7 +588,7 @@ character_literal: T_CHARACTER {
 
 simple_literal:	integer_literal { 
 				if (!_bDefiningConst) {
-					bytecode_emitPushParameterInstruction($1.v.data.intValue);
+					bytecode_emitPushParameterInstruction($1.v.data.longValue);
 				} else {
 					$$.v = $1.v;
 				}
@@ -626,13 +626,13 @@ simple_literal:	integer_literal {
  * parameter of a native function and this is form-related native function push a special
  * byte code as a marker.
  */
-static void bytecode_emitPushParameterInstruction(long lValue)
+static void bytecode_emitPushParameterInstruction(long long lValue)
 {
 	int opCode = C_PUSH_INTEGER_LITERAL;
 	if (_currentNativeMethodCalled && function_parameterIsFormStart(_currentNativeMethodCalled,_currentFunctionCallParamIndex+1)) {
 		opCode = C_FORM_START;
 	}
-	YY_EMIT(opCode, (GENERIC_DATA){.val = lValue});
+	YY_EMIT(opCode, (GENERIC_DATA){.longValue = lValue});
 }
 
 /*---------------------------------*/
