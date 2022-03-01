@@ -291,7 +291,7 @@ extern FTABLE* ft_getCurrentDocument();
  * Cut out the lines which which have a line marker flag.
  * Depending on the bDelete param delete the line.
  *---------------------------------*/
-void ft_cutMarkedLines(FTABLE* fp, BOOL bDelete);
+void ft_cutMarkedLines(WINFO* wp, BOOL bDelete);
 
 /*------------------------------------------------------------
  * ft_abandonFile()

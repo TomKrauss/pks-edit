@@ -75,9 +75,8 @@ static LINE *caret_copyIndent(WINFO *wp, LINE **Lps, int cfirst, int clast,
  * bl_cutBlockInColumnMode()
  * Cut out a column shaped block of text and optionally delete it
  *----------------------------*/
-EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int freeflg)
+EXPORT int bl_cutBlockInColumnMode(WINFO* wp, PASTE *pp,LINE *lnfirst,LINE *lnlast,int freeflg)
 {
-	WINFO* wp;
 	LINE *	lpnew;
 	LINE *	lpd = 0;
 	LINE *	lp;
@@ -86,7 +85,6 @@ EXPORT int bl_cutBlockInColumnMode(PASTE *pp,LINE *lnfirst,LINE *lnlast,int free
 	int		clast;
 	int		ctrl;
 
-	wp = ww_getCurrentEditorWindow();
 	lp     = lnfirst;
 	cnt    = ln_cnt(lp,lnlast);
 	cfirst = wp->blcol1;

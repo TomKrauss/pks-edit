@@ -52,10 +52,14 @@ static int st_format(char *dest)
 	if (!wp) {
 		return 0;
 	}
-	len = mysprintf(wp, dest,
+	union U_ARG_VALUE values[] = {
+		{0}
+	};
+	SPRINTF_ARGS args = (SPRINTF_ARGS){ .sa_wp = wp, .sa_values = values };
+	len = mysprintf(dest,
 				 (wp && wp->statusline) ? 
 				 wp->statusline : 
-				 dlg_getResourceString(IDS_STATUSLINE));
+				 dlg_getResourceString(IDS_STATUSLINE), &args);
 	return len;
 }
 

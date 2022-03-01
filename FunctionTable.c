@@ -65,13 +65,13 @@ EdFindWordCursor(long ), EdRangeShift(long ),
 EdUndo(long ), EdRedo(long), EdFilesCompare(long ), EdScrollScreen(long ), EdScrollCursor(long ),
 EdAlignText(long ), EdBlockMouseMark(long ),
 EdMouseMarkParts(long ), EdMouseMoveText(long ), EdMouseSelectLines(long ), EdMousePositionUngrabbed(long ),
-EdAlert(long ), error_displayAlertBoxWithOptions(long ), EdPromptAssign(long ), EdFormatPrint(long ),
+EdAlert(long ), error_displayAlertBoxWithOptions(long ), EdPromptAssign(long ), interpreter_sprintf(long ),
 macro_getSelectedText(long ), EdHideLines(long ), EdUnHideLine(long ), EdStringSubstitute(long ),
 EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdListBindings(long ),
 EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(), 
 bl_moveSelectionUpDown(long),
-EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), EdFindOnInternet(), macroc_printToConsole(const char*), macroc_clearConsole(),
-interpreter_typeOf();
+EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
+interpreter_typeOf(), macroc_toupper(), macroc_tolower();
 
 static long long function_unused() {
     // NOT USED ANY MORE
@@ -183,7 +183,7 @@ EDFUNC _functionTable[] = {
 {/*100*/EdAlert, -1, 0,                                                                                "Alert",                      NULL,  "is"                                          },
 {error_displayAlertBoxWithOptions, -1, 0,                                                              "MessageBox",                 NULL,  "ieMB_s"                                        },
 {EdPromptAssign, -1, 0,                                                                                "PromptAssign",               NULL,  "sss"                                         },
-{EdFormatPrint, -1, 0,                                                                                 "FormatPrint",                NULL,  "sss"                                         },
+{ interpreter_sprintf, -1, 0,                                                                          "sprintf",                    NULL,  "P"                                         },
 {macro_getSelectedText, -1, 0,                                                                         "GetSelected",                NULL,  "s"                                           },
 {EdHideLines, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                         "HideLines",                  NULL,  "i"                                           },
 {EdUnHideLine, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                        "UnHideLine",                 NULL,  "i"                                           },
@@ -212,9 +212,12 @@ EDFUNC _functionTable[] = {
 {/*129*/edit_insertString, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                            "InsertString",               NULL,  "is"                                          },
 {/*130*/strlen, -1, 0,                                                                                  "strlen",                    NULL,  "is" },
 {/*131*/(long long (*)())strstr, -1, 0,                                                                 "strstr",                    NULL, "iss"},
-{/*132*/macroc_printToConsole, -1, 0, "print", NULL, "is"},
+{/*132*/macroc_print, -1, 0, "print", NULL, "is"},
+{/*132*/macroc_println, -1, 0, "println", NULL, "is" },
 {/*133*/macroc_clearConsole, -1, 0, "clear", NULL, "i"},
-{/*134*/interpreter_typeOf, -1, 0, "typeof", NULL, "P"}
+{/*134*/interpreter_typeOf, -1, 0, "typeof", NULL, "P"},
+{/*135*/macroc_toupper, -1, 0, "toupper", NULL, "ss" },
+{/*136*/macroc_tolower, -1, 0, "tolower", NULL, "ss" }
 };
 
 int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);

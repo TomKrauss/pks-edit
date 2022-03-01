@@ -153,7 +153,6 @@ static BOOL add_stepToCommand(UNDO_COMMAND* pCommand, LINE* lp, LINE* lpAnchor, 
 	register struct tagUNDO_DELTA* pDelta;
 
 	if (pCommand == NULL) {
-		// error_displayAlertDialog("Bad undo state");
 		return FALSE;
 	}
 	pOperation = pCommand->atomicSteps;
@@ -186,6 +185,7 @@ EXPORT BOOL undo_saveOperation(FTABLE *fp, LINE *lp, LINE *lpAnchor,int op) {
 	register UNDO_COMMAND *pCommand;
 
 	if (!isUndoEnabled()) {
+noundoAvaioable:
 		if (!_undoOperationInProgress && lp != NULL && (op == O_MODIFY || op == O_DELETE)) {
 			free(lp);
 		}
@@ -194,7 +194,9 @@ EXPORT BOOL undo_saveOperation(FTABLE *fp, LINE *lp, LINE *lpAnchor,int op) {
 
 	pUndoStack = UNDOPOI(fp);
 	pCommand = undo_getCurrentCommand(pUndoStack);
-	// (A) should be not null
+	if (!pCommand) {
+		goto noundoAvaioable;
+	}
 	return add_stepToCommand(pCommand, lp, lpAnchor, op);
 }
 

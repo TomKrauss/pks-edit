@@ -168,7 +168,7 @@ extern BOOL bl_isDefaultClipboard(const char* pszId);
  * and (opt) delete it
  * pp == 0: only delete block
  */
-extern int bl_cutTextWithOptions(PASTE* pp, LINE* lnfirst, LINE* lnlast,
+extern int bl_cutTextWithOptions(WINFO* wp, PASTE* pp, LINE* lnfirst, LINE* lnlast,
 	int cfirst, int clast, int freeflg);
 
 /*--------------------------------------------------------------------------
@@ -182,7 +182,7 @@ extern int bl_readFileIntoPasteBuf(PASTE* pb, FILE_READ_OPTIONS* pOptions);
  * bl_cutBlockInColumnMode()
  * Cut out a column shaped selection of text and optionally delete it
  *----------------------------*/
-extern int bl_cutBlockInColumnMode(PASTE* pp, LINE* lnfirst, LINE* lnlast, int freeflg);
+extern int bl_cutBlockInColumnMode(WINFO* wp, PASTE* pp, LINE* lnfirst, LINE* lnlast, int freeflg);
 
 /*--------------------------------------------------------------------------
  * bl_writePasteBufToFile()
@@ -204,7 +204,7 @@ extern int bl_join(PASTE* pd, PASTE* p2);
 /*--------------------------------------------------------------------------
  * bl_cut()
  */
-extern int bl_cut(PASTE* pp, LINE* l1, LINE* l2, int c1, int c2, int freeflg, int colflg);
+extern int bl_cut(WINFO* wp, PASTE* pp, LINE* l1, LINE* l2, int c1, int c2, int freeflg, int colflg);
 
 /*--------------------------------------*/
 /* bl_pastecol()					*/
@@ -227,7 +227,7 @@ extern int bl_getSelectedText(char* pszBuf, size_t nCapacity);
  * bl_append()
  * to append something to the passed paste buffer.
  */
-extern int bl_append(PASTE* pb, LINE* lnfirst, LINE* lnlast, int cfirst, int clast);
+extern int bl_append(WINFO* wp, PASTE* pb, LINE* lnfirst, LINE* lnlast, int cfirst, int clast);
 
 /*---------------------------------*/
 /* bl_pasteBlock()					*/

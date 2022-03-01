@@ -695,10 +695,11 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 		}
 	}
 	if (fn && file_exists(fn) < 0) {
+		nFileCreationFlags = F_NEWFILE;
 		if (!pOptions->fo_isNewFile && error_displayYesNoConfirmation(IDS_MSGQUERYNEWFILE, string_abbreviateFileNameOem(fn)) == IDNO) {
 			return 0;
 		}
-		nFileCreationFlags = F_NEWFILE;
+		szAsPath[0] = 0;
 	} else {
 		char szBuf[80];
 		if (fn == NULL) {

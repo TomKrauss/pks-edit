@@ -231,6 +231,15 @@ extern void stringbuf_truncate(STRING_BUF* pBuf, size_t nNewSize);
  */
 extern void stringbuf_insertChar(STRING_BUF* pBuf, int nPosition, char cChar);
 
+typedef struct tagSPRINTF_ARGS {
+	WINFO* sa_wp;
+	union U_ARG_VALUE {					// 0-terminated data structure.
+		long	v_l;
+		double	v_d;
+		char*	v_s;
+	} *sa_values;
+} SPRINTF_ARGS;
+
 /*--------------------------------------------------------------------------
  * mysprintf()
 
@@ -254,7 +263,7 @@ extern void stringbuf_insertChar(STRING_BUF* pBuf, int nPosition, char cChar);
 	%D		current date
 	%T		current time
 */
-extern int mysprintf(WINFO* wp, char* d, char* format, ...);
+extern int mysprintf(char* pDestination, char* format, SPRINTF_ARGS* pArgs);
 
 /*
  * Return a PKS EDIT variable to be used e.g. in code templates.

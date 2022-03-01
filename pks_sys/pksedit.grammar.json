@@ -87,7 +87,7 @@
           "style": "literal"
         },
         {
-          "match": "<[0-9.]+d?>",
+          "match": "<-?[0-9.]+d?>",
           "name": "constant.numeric",
           "style": "literal"
         },

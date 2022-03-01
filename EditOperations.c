@@ -1064,7 +1064,7 @@ long long edit_performLineFlagOperation(MARKED_LINE_OPERATION op) {
 		if (op == MLN_JOIN)
 			ln_joinLines(fp);
 		else
-			ft_cutMarkedLines(fp, (op == MLN_DELETE));
+			ft_cutMarkedLines(wp, (op == MLN_DELETE));
 	}
 	if (changed) {
 		ft_setFlags(fp, fp->flags | F_CHANGEMARK);

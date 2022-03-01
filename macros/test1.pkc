@@ -2,6 +2,17 @@
 const PI = 3.14159265359d;
 const QUOTE = '\'';
 
+void Test-Console-Stress() {
+	int i = 0;
+	while(i < 10) {
+		Test-Strings();
+		Test-Sprintf();
+		Test-Binary-Expressions();
+		i++;
+	}
+
+}
+
 /*
  * This method tests regular expression matching in
  * PKS-MacroC code.
@@ -44,19 +55,32 @@ void Test-Calc-Radius() {
  * String functions and operators.
  */
 void Test-Strings() {
-	string myString = "hello world";
+	string myString = "heLLo WORld";
 	string subString;
+	string xlated;
 	char x;
 	range r;
 	int n = strlen(myString);
 	
-	MessageBox(MB_OK, "String is " + n + " characters long");
+	clear();
+	println("String is " + n + " characters long");
 	x = myString[7];
-	MessageBox(MB_OK, "The 7th character is: '" + x + QUOTE);
+	println("The 7th character is: '" + x + QUOTE);
 
 	r = 1..3;
 	subString = myString[r];
-	MessageBox(MB_OK, "The substring(1,3) is '" + subString + QUOTE);
+	println("The substring(1,3) is '" + subString + QUOTE);
+
+	xlated = toupper(myString);
+	println("toupper(" + myString + ") is: " + xlated);
+	xlated = tolower(myString);
+	println("tolower(" + myString + ") is: " + xlated);
+}
+
+void Test-Decompile-Binary() {
+	int x;
+	
+	x = 3 * (7+2);
 }
 
 /*
@@ -64,19 +88,30 @@ void Test-Strings() {
  */
 void Test-Binary-Expressions() {
 	clear();
-	print("type of 'a' is: " + typeof('a'));
-	print("\"a\" + \"b\" -> " + ("a" + "b"));
-	print("\"abcd\" - \"bc\" -> " + ("abcd" - "bc"));
-	print("7 * 'x' -> " + (7 * 'x'));
-	print("7 * \"xy\" -> " + (7 * "xy"));
-	print("1 | 0xA -> " + (1 | 0xA));
-	print("1 & 0xA -> " + (1 & 0xA));
-	print("3 ** 3 -> " + (3 ** 3));
-	print("12 >> 2 -> " + (12 >> 2));
-	print("8 << 2 -> " + (8 << 2));
-	print("2 + 3 * 3 -> " + (2 + 3 * 3));
-	print("4 - 3 / 2 -> " + (4 - 3 / 2));
-	print("7 * 3 % 4 ^ 2 -> " + (7 * 3 % 4 ^ 2));
+	println("type of 'a' is: " + typeof('a'));
+	println("\"a\" + \"b\" -> " + ("a" + "b"));
+	println("\"abcd\" - \"bc\" -> " + ("abcd" - "bc"));
+	println("7 * 'x' -> " + (7 * 'x'));
+	println("7 * \"xy\" -> " + (7 * "xy"));
+	println("1 | 0xA -> " + (1 | 0xA));
+	println("1 & 0xA -> " + (1 & 0xA));
+	println("3 ** 3 -> " + (3 ** 3));
+	println("12 >> 2 -> " + (12 >> 2));
+	println("8 << 2 -> " + (8 << 2));
+	println("2 + 3 * 3 -> " + (2 + 3 * 3));
+	println("4 - 3 / 2 -> " + (4 - 3 / 2));
+	println("7 * 3 % 4 ^ 2 -> " + (7 * 3 % 4 ^ 2));
+}
+
+void Test-Sprintf() {
+	float d;
+
+	clear();
+	d = 17.4424242224d;
+	println(-32);
+	println(sprintf("Formatting of integers Decimal: %d Hexadecimal: %#x Binary:%b %5d", 1723462748, -200, 32, -456));
+	println(sprintf("format a floating point number %.5f %1.3e %2g", d, d, d));
+	println(sprintf("Character formatting %2c", 'X'));
 }
 
 

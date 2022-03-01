@@ -264,13 +264,27 @@ static long caret_calculateSyncedLine(FTABLE* fp1, FTABLE* fp2, long ln, int nFl
 }
 
 /*
+ * Removes all secondary carets from the screen.
+ */
+static long long caret_removeSecondaryCaretsWindow(WINFO* wp) {
+	CARET* pCaret = wp->caret.next;
+	while (pCaret) {
+		LINE* lp = pCaret->linePointer;
+		render_repaintLineRangeWindow(wp, lp, lp);
+		pCaret = pCaret->next;
+	}
+	ll_destroy((LINKED_LIST**)&wp->caret.next, 0);
+	return 1;
+}
+
+/*
  * Move the caret to the given line. 
  */
 void caret_moveToLine(WINFO* wp, long ln) {
 	if (wp->caret.ln == ln || ln < 0) {
 		return;
 	}
-	caret_removeSecondaryCarets();
+	caret_removeSecondaryCaretsWindow(wp);
 	codecomplete_hideSuggestionWindow(wp);
 	long oldln = wp->caret.ln;
 	wp->caret.ln = ln;
@@ -439,14 +453,7 @@ long long caret_removeSecondaryCarets() {
 	if (wp == NULL) {
 		return 0;
 	}
-	CARET* pCaret = wp->caret.next;
-	while (pCaret) {
-		LINE* lp = pCaret->linePointer;
-		render_repaintLineRangeWindow(wp, lp, lp);
-		pCaret = pCaret->next;
-	}
-	ll_destroy((LINKED_LIST**) & wp->caret.next, 0);
-	return 1;
+	return caret_removeSecondaryCaretsWindow(wp);
 }
 
 /*--------------------------------------------------------------------------

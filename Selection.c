@@ -299,11 +299,11 @@ EXPORT int bl_destroyAll(void)
  * and (opt) delete it
  * pPasteBuffer == 0: only delete block
  */
-EXPORT int bl_cutTextWithOptions(PASTE *pp,LINE *lnfirst,LINE *lnlast,
+EXPORT int bl_cutTextWithOptions(WINFO* wp, PASTE *pp,LINE *lnfirst,LINE *lnlast,
 		int cfirst,int clast,int bDelete)
 {	register LINE	*lpd,*lps,*lpnew,*lpx;
 	register int	last;
-
+	FTABLE* fp = wp->fp;
 	last = P_EQ(lnfirst,lnlast) ? clast : lnfirst->len;	
 
 	if (pp) {
@@ -316,23 +316,21 @@ EXPORT int bl_cutTextWithOptions(PASTE *pp,LINE *lnfirst,LINE *lnlast,
 
 	lpnew = lnlast->prev; /* zum Checken ob sich lnlast bei ln_modify „ndert */
 	lpx   = lnlast->next; /* und auch wirklich nicht lnlast->prev !		*/
+	BOOL bLastEliminated = fp->tln == lnlast;
 	if (bDelete) {
-		if ((lps = ln_modify(ft_getCurrentDocument(),lnfirst,last,cfirst)) == 0L) 
+		if ((lps = ln_modify(fp,lnfirst,last,cfirst)) == 0L) 
 			return 0;
 	} else lps = lnfirst;
 	if (P_EQ(lnlast,lnfirst)) return 1;
 
-	/* Au weia, lnlast k”nnte die tempor„re Zeile sei und von ln_modify
-	   weggeschmissen werden, dann hat sie nach dem Aufruf einen anderen
-	   Pointer, dafr diese harte Konstruktion, ob lpnew NIL ist muss fr
-	   den Fall dass lnlast != lnfirst nicht berprft werden !!!!
-	*/
-	if (P_NE(lpx->prev,lnlast) && P_NE(lpnew->next,lnlast))
+	// This kludge works around the case that the ln_modify above "changes" the lnlast pointer, as
+	// that had been our "temporary" line currently edited. (fp->tln).
+	if (bLastEliminated)
 		lnlast = lpnew->next;
 
-	for(;;) {
-		lps = lps->next;
-		if (P_EQ(lps,lnlast)) last = clast;
+	LINE* lpsNext = lps->next;
+	while((lps = lpsNext) != 0) {
+		if ( lps == lnlast) last = clast;
 		else last = lps->len; 
 		
 		if (pp) {
@@ -345,12 +343,14 @@ EXPORT int bl_cutTextWithOptions(PASTE *pp,LINE *lnfirst,LINE *lnlast,
 		}
 		if (P_EQ(lps,lnlast)) break;
 		lpd = lpnew;
+		// Save pointer to next line, as ln_delete may invalidate pointer.
+		lpsNext = lps->next;
 		if (bDelete) 
-			ln_delete(ft_getCurrentDocument(),lps);
+			ln_delete(fp,lps);
 	}
 	if (bDelete) {
-		if ((lps = ln_modify(ft_getCurrentDocument(),lps,clast,0)) == 0L) return 0;
-		if (!(ln_join(ft_getCurrentDocument(),lps->prev,lps,1))) return 0;
+		if ((lps = ln_modify(fp,lps,clast,0)) == 0L) return 0;
+		if (!(ln_join(fp,lps->prev,lps,1))) return 0;
 	}
 	return 1;
 }
@@ -358,11 +358,11 @@ EXPORT int bl_cutTextWithOptions(PASTE *pp,LINE *lnfirst,LINE *lnlast,
 /*--------------------------------------------------------------------------
  * bl_cut()
  */
-EXPORT int bl_cut(PASTE *pp,LINE *l1,LINE *l2,int c1,int c2,int freeflg,int colflg)
+EXPORT int bl_cut(WINFO* wp, PASTE *pp,LINE *l1,LINE *l2,int c1,int c2,int freeflg,int colflg)
 {
 	if (colflg)
-	    return bl_cutBlockInColumnMode(pp,l1,l2,freeflg);
-	return bl_cutTextWithOptions(pp,l1,l2,c1,c2,freeflg); 
+	    return bl_cutBlockInColumnMode(wp, pp,l1,l2,freeflg);
+	return bl_cutTextWithOptions(wp, pp,l1,l2,c1,c2,freeflg); 
 }
 
 /*--------------------------------------------------------------------------
@@ -520,20 +520,20 @@ EXPORT int bl_delete(WINFO *wp, LINE *lnfirst, LINE *lnlast, int cfirst,
 
 	if (blkflg && ww_isColumnSelectionMode(wp)) {
 		if (bSaveOnClip) {
-			if (!bl_cutBlockInColumnMode(bl_addrbyid(0,0, PLT_CLIPBOARD), lnfirst, lnlast,0)) {
+			if (!bl_cutBlockInColumnMode(wp, bl_addrbyid(0,0, PLT_CLIPBOARD), lnfirst, lnlast,0)) {
 				return 0;
 			}
 		}
-		if (!bl_cutBlockInColumnMode(ppTrash,lnfirst,lnlast,1)) {
+		if (!bl_cutBlockInColumnMode(wp, ppTrash,lnfirst,lnlast,1)) {
 			return 0;
 		}
 	} else {
 		if (bSaveOnClip) {
-			if (!bl_cutTextWithOptions (bl_addrbyid(0,0, PLT_CLIPBOARD) ,lnfirst,lnlast,cfirst,clast,0)) {
+			if (!bl_cutTextWithOptions (wp, bl_addrbyid(0,0, PLT_CLIPBOARD) ,lnfirst,lnlast,cfirst,clast,0)) {
 				return 0;
 			}
 		}
-		if (!bl_cutTextWithOptions (ppTrash,lnfirst,lnlast,cfirst,clast,1)) {
+		if (!bl_cutTextWithOptions (wp, ppTrash,lnfirst,lnlast,cfirst,clast,1)) {
 			return 0;
 		}
 	}
@@ -549,10 +549,10 @@ EXPORT int bl_delete(WINFO *wp, LINE *lnfirst, LINE *lnlast, int cfirst,
 /*--------------------------------------------------------------------------
  * bl_append()
  */
-EXPORT int bl_append(PASTE *pb,LINE *lnfirst,LINE *lnlast,int cfirst,int clast)
+EXPORT int bl_append(WINFO* wp, PASTE *pb,LINE *lnfirst,LINE *lnlast,int cfirst,int clast)
 {	PASTE _p;
 
-	if (!bl_cutTextWithOptions(&_p,lnfirst,lnlast,cfirst,clast,0)) 
+	if (!bl_cutTextWithOptions(wp, &_p,lnfirst,lnlast,cfirst,clast,0)) 
 		return 0;
 	return bl_join(pb,&_p);
 }

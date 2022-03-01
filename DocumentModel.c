@@ -323,22 +323,23 @@ void ln_insert(FTABLE *fp, LINE *pos, LINE *lp) {
 int ln_delete(FTABLE *fp, LINE *lp)
 {
 	LINE *next;
+	LINE* prev;
 
 	if (!lp || (next = lp->next) == 0L) {
 		return 0;
 	}
-
+	prev = lp->prev;
 	undo_saveOperation(fp, lp, next, O_DELETE);
 	ft_setFlags(fp, fp->flags | F_CHANGEMARK);
-	if (!lp->prev) {
+	if (!prev) {
 		if (next == fp->lastl) {
 			return 0;
 		}
 		next->prev = 0;
 		fp->firstl = next;
 	} else {
-		next->prev = lp->prev;
-		lp->prev->next = next;
+		next->prev = prev;
+		prev->next = next;
 	}
 	if (lp == fp->tln) {
 		fp->tln = 0;
@@ -353,10 +354,11 @@ int ln_delete(FTABLE *fp, LINE *lp)
  * Cut out the lines which which have a line marker flag.
  * The cut operation is one of the MLN_... constants defined for files.
  *---------------------------------*/
-void ft_cutMarkedLines(FTABLE *fp, BOOL bDelete)
+void ft_cutMarkedLines(WINFO* wp, BOOL bDelete)
 {	LINE *		lp;
 	LINE *		lpnext;
 	PASTE *		pb;
+	FTABLE* fp = wp->fp;
 
 	pb = bl_addrbyid(0, 0, PLT_CLIPBOARD);
 
@@ -371,7 +373,7 @@ void ft_cutMarkedLines(FTABLE *fp, BOOL bDelete)
 			}
 
 			if (lpnext->next == 0) {
-				bl_append(pb,lp,lp,0,lp->len);
+				bl_append(wp, pb,lp,lp,0,lp->len);
 				if (bDelete) {
 					lp->len   = 0;
 					lp->lbuf[0] = 0;
@@ -380,7 +382,7 @@ void ft_cutMarkedLines(FTABLE *fp, BOOL bDelete)
 				return;
 			}
 
-			if (!bl_append(pb,lp,lpnext,0,0)) {
+			if (!bl_append(wp, pb,lp,lpnext,0,0)) {
 				return;
 			}
 

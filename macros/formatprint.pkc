@@ -2,12 +2,12 @@
 void testfmtprint() {	
 	string s = "";
 
-	s = FormatPrint("%j$l %j$c");
+	s = sprintf("%j$l %j$c");
 	Alert(s);
-	s = FormatPrint("Hexoffset %j$O");
+	s = sprintf("Hexoffset %j$O");
 	Alert(s);
 	CursorDown(MOT_SINGLE); // currently causing problems, as MOT_SINGLE is not defined. 
-	s = FormatPrint("%j$l %j$c");
+	s = sprintf("%j$l %j$c");
 	Alert(s);
 }
 

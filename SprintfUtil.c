@@ -231,6 +231,28 @@ static long sprintf_getValueFromWindow(WINFO *wp, char **fmt) {
 	return 0L;	
 }
 
+static int sprintf_isFloatFormat(char c) {
+	return (c == 'a' || c >= 'e' && c <= 'g') || (c == 'A' || c >= 'E' && c <= 'G');
+}
+
+/*
+ * Delegate float formatting to sprintf.
+ */
+static char* sprintf_float(char* pszDest, char* fmt, double nNumber) {
+	char szFloatFormat[32];
+	char* pszD = szFloatFormat;
+	while (*fmt && pszD < szFloatFormat + sizeof(szFloatFormat) - 1) {
+		char c = *fmt++;
+		*pszD++ = c;
+		if (sprintf_isFloatFormat(c)) {
+			break;
+		}
+	}
+	*pszD = 0;
+	sprintf(pszDest, szFloatFormat, nNumber);
+	return fmt;
+}
+
 /*--------------------------------------------------------------------------
  * mysprintf()
  
@@ -254,9 +276,10 @@ static long sprintf_getValueFromWindow(WINFO *wp, char **fmt) {
 	%D		current date
 	%T		current time
 */
-int mysprintf(WINFO *wp, char *d, char *format,...) {
+int mysprintf(char *d, char *format, SPRINTF_ARGS* pArgs) {
 	static char *_digits = "0123456789ABCDEFGHIJ";
 	long 	val;
+	int     bHexPrefix;
 	int		c;
 	int		l;
 	int		base;
@@ -264,45 +287,78 @@ int mysprintf(WINFO *wp, char *d, char *format,...) {
 	char *	buf = d;
 	char *	x;
 	char *	dend;
-	va_list	args;
+	char* formatStart = 0;
+	WINFO* wp = pArgs->sa_wp;
+	union U_ARG_VALUE* args = pArgs->sa_values;
 	char 	stack[512];
 	char 	fname[512];
 
 	dend = d + MAXSSIZE;
-	va_start(args, format);
 
 	while((c = *format++) != 0) {
 		if (c != '%') *d++ = c;
 		else {
-
+			formatStart = format - 1;
 			l  = 0;
 			f0 = 0;
-			if (*format == '0' || *format == ' ')
+			bHexPrefix = 0;
+			if (*format == '#') {
+				bHexPrefix = 1;
+				format++;
+			}
+			if (*format == '0' || *format == ' ') {
 				f0 = *format++;
-
+			}
 			while ((c = *format++) >= '0' && c <= '9') {
 				l *= 10;
 				l += (c - '0');
 			}
-			if (c >= 'b' && c <= 'r') { /* base > 2 !!	*/
-				base = c - 'a' + 1;
+			base = -1;
+			if (c == 'd') {
+				base = 10;
+			}
+			else if (c == 'x') {
+				base = 16;
+			}
+			else if (c == 'b') {
+				base = 2;
+			}
+			else if (c == 'o') {
+				base = 8;
+			}
+			else if (c == 'c') {
+				base = 1;
+			}
+			if (base > 0) {
 				if (*format == '$') {
 					format++;
 					val = sprintf_getValueFromWindow(wp, &format);
 					format++;
-				} else {
-					val  = va_arg(args,long);
 				}
-				if (val < 0 && base == 10) {
+				else {
+					val = args->v_l;
+					if (val) {
+						args++;
+					}
+				}
+				if (val < 0 && base > 1) {
 					*d++ = '-';
-					val  = -val;
+					val = -val;
 				}
-				x  = &stack[sizeof(stack)-1];
+				x = &stack[sizeof(stack) - 1];
 				*x = 0;
+				if (c == 'c') {
+					*--x = (char)val;
+					goto cpyout;
+				}
 				do {
 					*--x = _digits[val % base];
 					val /= base;
-				} while(val);
+				} while (val);
+				if (bHexPrefix) {
+					*--x = 'X';
+					*--x = '0';
+				}
 				goto cpyout;
 			} else if (c == 's') {
 				if (*format == '$') {
@@ -313,7 +369,10 @@ int mysprintf(WINFO *wp, char *d, char *format,...) {
 				} else {
 					if (!_psenabled)
 						break;
-					x = va_arg(args,char *);
+					x = args->v_s;
+					if (x) {
+						args++;
+					}
 				}
 cpyout:			if (d + l > dend)
 					break;
@@ -351,11 +410,25 @@ cp2:			x = stack;
 				tm = localtime(&ltime);
 				agetdate(stack, tm);
 				goto cp2;
-			} else *d++ = c;
+			} else if (sprintf_isFloatFormat(c) || c == '.') {
+				double dNumber = args->v_d;
+				if (args->v_d) {
+					args++;
+				}
+				format = sprintf_float(fname, formatStart, dNumber);
+				l = (int)strlen(fname);
+				if (d + l > dend) {
+					break;
+				}
+				strcpy(d, fname);
+				d += l;
+			}
+			else {
+				*d++ = c;
+			}
 		}
 	}
 	*d = 0;
-	va_end(args);
 	return (int)(d-buf);
 }
 
@@ -389,22 +462,6 @@ void string_getVariable(WINFO* wp, unsigned char* pVar, unsigned char* pResult) 
 		strcpy(pResult, pVar);
 		return;
 	}
-	mysprintf(wp, pResult, pFormat);
+	mysprintf(pResult, pFormat, &(SPRINTF_ARGS){.sa_wp = wp});
 }
-
-/*--------------------------------------------------------------------------
- * EdFormatPrint()
- */
-char* EdFormatPrint(long dummy1, long dummy2, char *format, char *p)
-{
-	static char buf[1024];
-
-	if (format) {
-		mysprintf(ww_getCurrentEditorWindow(), buf, format, p, 0L);
-	} else {
-		buf[0] = 0;
-	}
-	return buf;
-}
-
 

@@ -20,6 +20,7 @@
 #include "winfo.h"
 #include "edierror.h"
 #include "errordialogs.h"
+#include "stringutil.h"
 
 #include "pksedit.h"
 #include "pksmacro.h"
@@ -213,6 +214,34 @@ PKS_VALUE interpreter_typeOf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, in
 	}
 	return (PKS_VALUE) { .sym_type = S_STRING, .sym_data.string = interpreter_allocateString(pContext, pszName) };
 }
+
+/*--------------------------------------------------------------------------
+ * macroc_sprintf()
+ * Similar to C sprintf, this will take a format and two parameters and print the result
+ * and return the formatted result.
+ */
+PKS_VALUE interpreter_sprintf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	char buf[1024];
+
+	if (nArgs < 1 || pValues->sym_type != S_STRING) {
+		return (PKS_VALUE) { .sym_type = S_NUMBER, 0 };
+	}
+	char* pszFormat = pValues->sym_data.string;
+	union U_ARG_VALUE* values = calloc(nArgs, sizeof ( * values));
+	for (int i = 1; i < nArgs; i++) {
+		if (pValues[i].sym_type == S_FLOAT) {
+			values[i - 1].v_d = pValues[i].sym_data.doubleValue;
+		} else if (pValues[i].sym_type == S_STRING) {
+			values[i - 1].v_s = pValues[i].sym_data.string;
+		} else {
+			values[i - 1].v_l = (long)pValues[i].sym_data.longValue;
+		}
+	}
+	mysprintf(buf, pszFormat, &(SPRINTF_ARGS){.sa_wp = ww_getCurrentEditorWindow(), .sa_values = values});
+	free(values);
+	return (PKS_VALUE) { .sym_type = S_STRING, .sym_data.string = interpreter_allocateString(pContext, buf) };
+}
+
 
 /*
  * Pop one value of the stack of our stack machine 
@@ -565,13 +594,13 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 		}
 	}
 
+	int nParametersPassed = (int)(pContext->ec_stackCurrent - pContext->ec_parameterStack);
 	if (bNativeCall) {
 		EDFUNC* fup = &_functionTable[funcnum];
 		int i;
 		int nMax = ((COM_0FUNC*)pLocalInstructionPointer)->func_nargs;
-		int nNativeParams = function_getParameterCount(fup);
-		if (nMax > nNativeParams) {
-			nMax = nNativeParams;
+		if (nMax > nParametersPassed) {
+			nMax = nParametersPassed;
 		}
 		for (i = 0; i < nMax; i++) {
 			tempStack[i] = interpreter_popStackValue(pContext);
@@ -607,12 +636,11 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 		*pInstructionPointer = (COM_1FUNC*)readparamp;
 	} else {
 		if (bInternalNativeCall) {
-			int nMax = (int)(pContext->ec_stackCurrent - pContext->ec_parameterStack);
-			for (int i = 0; i < nMax; i++) {
-				tempStack[nMax-i-1] = interpreter_popStackValue(pContext);
+			for (int i = 0; i < nParametersPassed; i++) {
+				tempStack[nParametersPassed -i-1] = interpreter_popStackValue(pContext);
 			}
 			EDFUNC* fup = &_functionTable[funcnum];
-			returnValue = ((PKS_VALUE (*)())fup->execute)(pContext, tempStack, nMax);
+			returnValue = ((PKS_VALUE (*)())fup->execute)(pContext, tempStack, nParametersPassed);
 			*pInstructionPointer = (COM_1FUNC*)pLocalInstructionPointer;
 		} else {
 			rc = macro_executeByName(((COM_MAC*)*pInstructionPointer)->name);
@@ -622,6 +650,8 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 			returnValue = interpreter_popStackValue(pContext);
 		}
 		pContext->ec_stackCurrent = pContext->ec_parameterStack;
+		// This is not correct for the case we have something like f_a(f_b(f_c(1,2,3)));
+		pContext->ec_parameterStack = pContext->ec_stackFrame;
 		interpreter_pushValueOntoStack(pContext, returnValue);
 	}
 	return rc;

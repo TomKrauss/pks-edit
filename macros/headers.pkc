@@ -78,7 +78,7 @@ void FunctionHeader()
 	}
 
 	# make date stamp
-	tmp = FormatPrint("%s %D\n"," * created at:");
+	tmp = sprintf("%s %D\n"," * created at:");
 	InsertString(tmp);
 	CursorDown(MOT_SINGLE);
 
@@ -103,9 +103,9 @@ void FunctionHeader()
 void IncludeTemplate()
 {
 	# Basename of the current file
-	string	filename = FormatPrint("%s$f");
+	string	filename = sprintf("%s$f");
 	string	s = "";
-	string	date = FormatPrint("%s %D\n"," * All Rights Reserved.					created: ");
+	string	date = sprintf("%s %D\n"," * All Rights Reserved.					created: ");
 	string	tag = "";
 
 	if (filename !~ ".*\\.H") {

@@ -353,6 +353,20 @@ static char* decompile_testOperationAsString(unsigned char op) {
 	return "??";
 }
 
+static BOOL decompile_expressionNeedsBrackets(COM_BINOP* cp, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
+	if (pStackCurrent <= pStack) {
+		return FALSE;
+	}
+	DECOMPILATION_STACK_ELEMENT* pPrevious = &pStackCurrent[-1];
+	if (pStackCurrent > pStack && pPrevious->dse_instruction->typ == C_BINOP) {
+		COM_BINOP* pExpr = (COM_BINOP * )pPrevious->dse_instruction;
+		// TODO: other precedences to be handled here?
+		if (pExpr->op == BIN_ADD || pExpr->op == BIN_SUB) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
 /*
  * decompile_printBinaryExpression()
  */
@@ -385,9 +399,15 @@ static DECOMPILATION_STACK_ELEMENT* decompile_printBinaryExpression(COM_BINOP *c
 	char* pRight = pStackCurrent > pStack ? pStackCurrent[-1].dse_printed : "";
 	char* pLeft = cp->op != BIN_CAST && pStackCurrent > pStack-1 ? pStackCurrent[-2].dse_printed : "";
 	char szBuf[512];
+	char szBrackets[512];
 
 	szBuf[0] = 0;
 	char* pszShift = "<<";
+	BOOL bNeedsBrackets = decompile_expressionNeedsBrackets(cp, pStackCurrent, pStack);
+	if (bNeedsBrackets) {
+		sprintf(szBrackets, "(%s)", pRight);
+		pRight = szBrackets;
+	}
 	switch(cp->op) {
 	case BIN_ADD: 
 	case BIN_SUB:

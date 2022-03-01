@@ -47,7 +47,6 @@
 
 extern int 		_translatekeys;
 
-extern int		mysprintf(WINFO *wp, char *d,char *format,...);
 extern BOOL 	DlgChooseFont(HWND hWnd, char *pszFontName, BOOL bPrinter);
 
 static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
@@ -782,8 +781,11 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 		case IDD_CSEL:
 			if (nNotify == CSN_CHARSELECT) {
 				c = (LONG)LOWORD(lParam);
-				mysprintf((WINFO*)0,szBuff,
-					"DEZ: %03j  OKT: %03i  HEX: 0x%02p  BIN: %08b",c,c,c,c);
+				union U_ARG_VALUE values[] = {
+					{c},{c},{c},{c},{0}
+				};
+				mysprintf(szBuff,
+					"DEZ: %03j  OKT: %03i  HEX: 0x%02p  BIN: %08b", &(SPRINTF_ARGS){.sa_values = values});
 				SetDlgItemText(hDlg,IDD_CSELT1,szBuff);
 			}
 			break;

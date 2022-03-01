@@ -26,6 +26,7 @@ commands which show an explanation about the command.
 - Decompilation of macros will better reverse engineer control flow expressions (if, while, else....).
 - Error diagnostics and error handling in PKSMacroC has been improved (there is still room for improvement). Errors in macroc code
   will now always stop execution and print the name of the macro in which the error occurred.
+- One can open, print to and clear a console from macroC code for logging or debugging purpose.
 
 ### Changed
 - all files previously stored in the old Windows INI-file format (`pksedit.his`, `pksedit.ini`) were replaced by JSON formatted files:
@@ -34,6 +35,8 @@ commands which show an explanation about the command.
   written, when print or configuration settings are changed, but is also intended for manual editing.
 - PKSMacroC syntax has changed on some places to make it more compatible with simple "C" code. Macros are not any more marked with a special
   keyword "macro", but are proceeded by either "void" or by specifying the return type (e.g. `string concatStrings(string s1, string 2)`).
+- The format of the internal printf facility format specifiers (as being unsed in PKSMacroC macros or to format statusline and printed
+  headers and footers) is now more compatible with standard C-printf-format and uses %d, %o, %x to format integer numbers (as opposed to %j, ... as before).
 
 ### Fixes
 - A potential buffer overflow, when defining syntax error formats (navigation patterns) with long associated compiler names has been fixed.
@@ -41,6 +44,7 @@ commands which show an explanation about the command.
 - Save actions are now really executed just before a file is saved.
 - Find and replace options were not persisted correctly in the PKS Editor session.
 - A regression when compiling PKS-MacroC files containing strings, which cause a compilation error was fixed.
+- A potential exception occurring when deleting the selected text with undo being disabled was fixed.
 - Several small issues int compilation of PKSMacroC have been fixed:
    - `1+1` is now correctly evaluated (before you needed to write `1 + 1` - space delimited) 
    - integer values support a higher range of long long (C) now. Overflows during compilation are correctly reported as a compile error

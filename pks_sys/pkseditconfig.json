@@ -288,7 +288,7 @@
         "showSyntaxHighlight": true,
         "highlightCaretLine": true,
         "insertMode": true,
-        "statuslineFormat": "%6j$O: 0%h$C",
+        "statuslineFormat": "%6d$O: 0%o$C",
         "tabCharacter": " ",
         "newlineCharacter": "\n",
         "crCharacter": "\r",

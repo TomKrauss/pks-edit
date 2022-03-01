@@ -30,11 +30,13 @@
 %token T_VOID
 %token T_CMDSEQPREFIX
 
-%nonassoc T_NE T_EQ '~' T_NMATCH
-%left    '<' '>' T_LT T_GT  
 %left    T_OR T_AND
-%left	'&' '|' T_SHIFT_LEFT T_SHIFT_RIGHT 
-%left	'+' '-' '^'
+%left	'&' '|' '^'
+%nonassoc T_NE T_EQ 
+%left    '~' T_NMATCH
+%left    '<' '>' T_LT T_GT  
+%left	T_SHIFT_LEFT T_SHIFT_RIGHT 
+%left	'+' '-' 
 %left	'*' '/' '%' T_POWER_TO
 %left	'[' T_DOTDOT
 
@@ -332,10 +334,6 @@ arithmetic_expression: simple_expression	{ $$.v = $1.v; }
 simple_expression: binary_expression { $$.v = $1.v; }
 			| binary_expression '[' binary_expression ']' { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); }
 			| binary_expression T_DOTDOT binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_RANGE}); }
-			| '~' arithmetic_expression 	{ 
-				$$.type = S_BOOLEAN;
-				_bytecodeBuffer.bb_current = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_NOT, 0);
-			}
 
 increment_expression: 
 			variable_reference T_MINUSMINUS  { _bytecodeBuffer.bb_current = bytecode_emitIncrementExpression(&_bytecodeBuffer, $1.ident.s, -1); }
@@ -350,6 +348,16 @@ binary_expression:	s_bterm  { $$.type = $1.type;	}
 				$$.type = $1.type;
 				_bytecodeBuffer.bb_current = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_CAST, $$.type);
 			}
+			| '-' T_NUM {
+				if (!_bDefiningConst) {
+					bytecode_emitPushParameterInstruction(-$2.num);
+				} else {
+					$$.type = S_NUMBER;
+					$$.v.type = C_PUSH_LONG_LITERAL; 
+					$$.v.data.longValue  = -$2.num;
+				}
+			}
+			| '~' binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_NOT}); }
 			| '+' binary_expression { $$.v = $2.v }
 			| '-' binary_expression { _bytecodeBuffer.bb_current = bytecode_emitMultiplyWithLiteralExpression(&_bytecodeBuffer, &$2.v, -1); }
 			| binary_expression '&' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AND}); }

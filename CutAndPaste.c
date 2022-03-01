@@ -217,7 +217,7 @@ EXPORT int bl_insertPasteBufFromFile(char *fn)
 	char 	fname[256];
 	int		ret;
 
-	if (!ft_getCurrentDocument()) 
+	if (!ww_getCurrentEditorWindow()) 
 		return 0;
 	if (fn == 0) {
 		FILE_SELECT_PARAMS pFSP;
@@ -280,7 +280,7 @@ static int bl_cutOrCopyBlock(WINFO*wp, MARK *ms, MARK *me, int flg, PASTE *pp) {
 		pp->pln = 0;
 	}
 
-	if (bl_cut(&_p,ms->m_linePointer,me->m_linePointer,ms->m_column,me->m_column,0,colflg)) {
+	if (bl_cut(wp, &_p,ms->m_linePointer,me->m_linePointer,ms->m_column,me->m_column,0,colflg)) {
 
 		if (!(flg & CUT_APPND))
 			bl_free(pp);
@@ -427,7 +427,7 @@ EXPORT int EdBlockCopyOrMove(BOOL move) {
 	}
 
 	pbuf.pln = 0;
-	if ((ret = bl_cut(&pbuf,ls,le,cs,ce,move,colflg)) != 0) {
+	if ((ret = bl_cut(wp, &pbuf,ls,le,cs,ce,move,colflg)) != 0) {
 		if (move_nocolblk) {
 			caret_placeCursorInCurrentFile(wp, (long)(wp->caret.ln+dln),(long)(offs + delta));
 			bl_hideSelection(wp, 0);
@@ -488,9 +488,8 @@ int bl_moveSelectionUpDown(long delta) {
 /*---------------------------------*/
 /* bl_placeCursorOnBlockMark()					*/
 /*---------------------------------*/
-static int bl_placeCursorOnBlockMark(MARK *mp) {	
+static int bl_placeCursorOnBlockMark(WINFO* wp, MARK *mp) {	
 	long newln;
-	WINFO* wp = ww_getCurrentEditorWindow();
 
 	if (mp != 0) {
 		newln = ln_indexOf(wp->fp,mp->m_linePointer);
@@ -507,7 +506,9 @@ static int bl_placeCursorOnBlockMark(MARK *mp) {
 /*---------------------------------*/
 EXPORT void EdBlockFindEnd(void)
 {
-	if (ww_getCurrentEditorWindow()) bl_placeCursorOnBlockMark(ww_getCurrentEditorWindow()->blend);
+	WINFO* wp = ww_getCurrentEditorWindow();
+
+	if (wp) bl_placeCursorOnBlockMark(wp, wp->blend);
 }
 
 /*---------------------------------*/
@@ -515,7 +516,9 @@ EXPORT void EdBlockFindEnd(void)
 /*---------------------------------*/
 EXPORT int EdBlockFindStart()
 {
-	if (ww_getCurrentEditorWindow()) return bl_placeCursorOnBlockMark(ww_getCurrentEditorWindow()->blstart);
+	WINFO* wp = ww_getCurrentEditorWindow();
+
+	if (wp) return bl_placeCursorOnBlockMark(wp, wp->blstart);
 	return 0;
 }
 
@@ -556,7 +559,7 @@ EXPORT int bl_cutLines()
 	ls = wp->caret.linePointer;
 	if ((le = ln_relative(wp->caret.linePointer,n)) == 0) return 0;
 	
-	if (bl_cut(bp,ls,le,0,(P_EQ(ls,le)) ? ls->len : 0, 0, 0)) {
+	if (bl_cut(wp, bp,ls,le,0,(P_EQ(ls,le)) ? ls->len : 0, 0, 0)) {
 		clp_setmine();
 		return 1;
 	}

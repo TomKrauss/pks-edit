@@ -41,7 +41,7 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 	 * pack longs
 	 */
 	if (typ == C_PUSH_LONG_LITERAL || typ == C_PUSH_INTEGER_LITERAL) {
-		if (data.val >= 0 && data.val <= 255)
+		if (data.longValue >= 0 && data.longValue <= 255)
 			typ = C_PUSH_SMALL_INT_LITERAL;
 	}
 
@@ -172,7 +172,7 @@ unsigned char* bytecode_emitBinaryOperation(BYTECODE_BUFFER* pBuffer, int nOpera
  * Multiply an expression and return the TYPEDVAL result
  */
 unsigned char* bytecode_emitMultiplyWithLiteralExpression(BYTECODE_BUFFER* pBuffer, TYPEDVAL* v1, int nNumber) {
-	pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_INTEGER_LITERAL, (GENERIC_DATA) { nNumber });
+	pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_INTEGER_LITERAL, (GENERIC_DATA) { .longValue = nNumber });
 	return bytecode_emitBinaryOperation(pBuffer, BIN_MUL, 0);
 }
 

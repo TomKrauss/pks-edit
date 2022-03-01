@@ -343,13 +343,17 @@ static int print_formatheader(unsigned char *d1, unsigned char *d2,
 	nParts = 1;
 	// TODO: allow using character ! in headers and footers.
 	if ((s = strtok(buf,"!")) != 0) {
-		mysprintf(_currentPrintScope.wp,d1,s,pageno);
+		union U_ARG_VALUE values[] = {
+			{.v_s = s},{.v_l = pageno},{0}
+		};
+		SPRINTF_ARGS args = (SPRINTF_ARGS){.sa_wp = _currentPrintScope.wp, .sa_values = values};
+		mysprintf(d1,s,&args);
 		if ((s = strtok((char *)0,"!")) != 0) {
 			nParts++;
-			mysprintf(_currentPrintScope.wp,d2,s,pageno);
+			mysprintf(d2, s, &args);
 			if ((s = strtok((char *)0,"!")) != 0) {
 				nParts++;
-				mysprintf(_currentPrintScope.wp,d3,s,pageno);
+				mysprintf(d3, s, &args);
 			}
 		}
 	}
