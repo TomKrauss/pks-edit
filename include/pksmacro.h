@@ -24,6 +24,8 @@
 
 #define	RECORDERSPACE	512
 
+#define MACRO_NAMESPACE_DEFAULT "global"
+
 /* "macro reference" types */
 #define	CMD_NONE		0
 #define	CMD_CMDSEQ		0x2
@@ -40,7 +42,12 @@ typedef struct tagMACROREF {
 #define MACROREF_TO_INTPTR(m)	(intptr_t)(((unsigned long)m.typ<<16) + (unsigned long)m.index)
 #define INTPTR_TO_MACROREF(m)	(MACROREF){.typ = (unsigned char)((unsigned long)m >> 16), .index = (unsigned char)((unsigned long)m&0xFFFF)}
 
+typedef enum { MS_GLOBAL = 0, MS_LOCAL = 1 } MACRO_SCOPE;
+
 typedef struct tagMACRO {
+	unsigned char  mc_isNamespace;			// 1 for namespace macros.
+	unsigned char  mc_isInitialized;		// book keeping of namespace initialization (had the namespace code be executed yet?).
+	MACRO_SCOPE    mc_scope;				// The scope of a macro
 	unsigned char  mc_namespaceIdx;			// Index of the corresponding name space (or 0 for default namespace).
 	unsigned char* mc_name;					// the macro name
 	unsigned char* mc_comment;				// the macro name
@@ -50,6 +57,7 @@ typedef struct tagMACRO {
 
 typedef struct tagMACRO_PARAM {
 	unsigned char mp_namespaceIdx;
+	MACRO_SCOPE mp_scope;
 	char* mp_name;
 	char* mp_comment;
 	size_t mp_bytecodeLength;
@@ -111,6 +119,30 @@ extern int macro_getInternalIndexByName(const char* name);
  * Returns the number of macros defined
  */
 extern int macro_getNumberOfMacros();
+
+#ifdef ARRAYLIST_H
+/*
+ * Returns a union of all namespaces and macros.
+ * The returned arraylist must be freed by the caller.
+ */
+extern ARRAY_LIST* macro_getNamespacesAndMacros();
+#endif
+
+/*------------------------------------------------------------
+ * macro_defineNamespace()
+ * Define a new namespace object.
+ */
+extern int macro_defineNamespace(MACRO_PARAM* mpParam);
+
+/*
+ * Define the namespace initializer code.
+ */
+extern void macro_defineNamespaceInitializer(int nNamespaceIdx, const char* pBytes, size_t nByteLen);
+
+/*
+ * Returns a namespace object given its logical index.
+ */
+extern MACRO* macro_getNamespaceByIdx(int idx);
 
 typedef enum { DM_CODE, DM_INSTRUCTIONS} DECOMPILATION_MODE;
 extern int 		decompile_saveMacrosAndDisplay(char* macroname, DECOMPILATION_MODE nMode);

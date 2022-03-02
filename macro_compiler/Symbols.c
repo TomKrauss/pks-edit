@@ -106,21 +106,31 @@ static int sym_create(IDENTIFIER_CONTEXT* pContext) {
 	return pContext->ic_table != NULL;
 }
 
+/*
+ * Tries to find the most local identifier context in which a symbol is located.
+ */
+static IDENTIFIER_CONTEXT* sym_findContext(IDENTIFIER_CONTEXT* pContext, const char* key, HASH_ENTRY* pEntry) {
+	if (pContext->ic_next) {
+		IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext->ic_next, key, pEntry);
+		if (pFound) {
+			return pFound;
+		}
+	}
+	if (pContext->ic_table && hashmap_getEntry(pContext->ic_table, (intptr_t)key, pEntry)) {
+		return pContext;
+	}
+	return 0;
+}
+
 /*--------------------------------------------------------------------------
  * sym_find()
  */
 PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, char *key,char **key_ret) {
-	if (!pContext->ic_table) {
-		sym_create(pContext);
-	}
 	HASH_ENTRY entry;
-	if (!hashmap_getEntry(pContext->ic_table, (intptr_t)key, &entry)) {
-		if (pContext->ic_next) {
-			return sym_find(pContext->ic_next, key, key_ret);
-		}
+	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry);
+	if (!pFound) {
 		return nullSymbol;
 	}
-
 	*key_ret = (char*)entry.he_key;
 	PKS_VALUE* sym = (PKS_VALUE*)entry.he_value;
 	return *sym;
@@ -130,21 +140,24 @@ PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, char *key,char **key_ret) {
  * sym_insert()
  */
 int sym_insert(IDENTIFIER_CONTEXT* pContext, char *key, SYMBOL_TYPE stType, GENERIC_DATA symdata) {
-	if (!pContext->ic_table) {
-		sym_create(pContext);
-	}
 	HASH_ENTRY entry;
-	if (hashmap_getEntry(pContext->ic_table, (intptr_t)key, &entry)) {
-		hashmap_remove(pContext->ic_table, (intptr_t)entry.he_key);
+	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry);
+	if (pFound) {
+		hashmap_remove(pFound->ic_table, (intptr_t)entry.he_key);
 		key = (char*)entry.he_key;
 		sym_destroyEntry(0, entry.he_value);
-	} else {
+	}
+	else {
 		key = _strdup(key);
+		pFound = pContext;
+		if (!pFound->ic_table) {
+			sym_create(pContext);
+		}
 	}
 	PKS_VALUE* sym = calloc(1, sizeof * sym);
 	sym->sym_data = symdata;
 	sym->sym_type = stType;
-	hashmap_put(pContext->ic_table, (intptr_t)key, (intptr_t)sym);
+	hashmap_put(pFound->ic_table, (intptr_t)key, (intptr_t)sym);
 	return 1;	
 }
 

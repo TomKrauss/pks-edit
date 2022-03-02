@@ -350,7 +350,7 @@ EXPORT int bl_cutTextWithOptions(WINFO* wp, PASTE *pp,LINE *lnfirst,LINE *lnlast
 	}
 	if (bDelete) {
 		if ((lps = ln_modify(fp,lps,clast,0)) == 0L) return 0;
-		if (!(ln_join(fp,lps->prev,lps,1))) return 0;
+		if (lps->prev && !(ln_join(fp,lps->prev,lps,1))) return 0;
 	}
 	return 1;
 }

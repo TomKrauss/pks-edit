@@ -5,13 +5,25 @@ const PI = 3.14159265359d;
 const QUOTE = '\'';
 
 // Define a namespace local variable
-static int errorCount = 0;
+static int errorCount = 18;
+
+
+/**
+ * Our test suite. Note, that the 1st macro definition in a file may not be static.
+ */
+void Suite() {
+	Test-Binary-Expressions();
+	Test-ChangeGlobal();
+	Test-Sprintf();
+	Test-Strings();
+}
+
 
 /*
  * Tests the console by opening clearing it several times. Can be used
  * to test the console as well stability as also performance wise.
  */
-void Test-Console-Stress() {
+static void Test-Console-Stress() {
 	int i = 0;
 	while(i < 10) {
 		Test-Strings();
@@ -26,8 +38,7 @@ void Test-Console-Stress() {
  * This method tests regular expression matching in
  * PKS-MacroC code.
  */
-void Test-Expression()
-{
+static void Test-Expression() {
 	string s1;
 	string s2 = "x";
 	string re;
@@ -50,20 +61,38 @@ void Test-Expression()
 	}
 }
 
-float Calculate-Circle-Area(float radius) {
+static float Calculate-Circle-Area(float radius) {
 	return radius * radius * PI;
 }
 
-void Test-Calc-Radius() {
+static void Test-Calc-Radius() {
 	float r = 3.5;
 
-	MessageBox(MB_OK, "The Area of a circle with radius " + r + " is " + Calculate-Circle-Area(r));
+	print(MB_OK, "The Area of a circle with radius " + r + " is " + sprintf("%.5f", Calculate-Circle-Area(r)));
+}
+
+static void Test-ChangeGlobal(int incr) {
+	errorCount += incr;
+}
+
+static void Test-Globals() {
+	int i = 0;
+	int incr = 5;
+	clear();
+	println(sprintf("(%D %T) - value of global var is initially %d", errorCount));
+	while(i < 10) {
+		Test-ChangeGlobal(incr);
+		println(sprintf("(%D %T) - I changed it with an increment of %d to %d ", incr, errorCount));
+		i++;
+		incr += 3;
+	}
+
 }
 
 /*
  * String functions and operators.
  */
-void Test-Strings() {
+static void Test-Strings() {
 	string myString = "heLLo WORld";
 	string subString;
 	string xlated;
@@ -86,7 +115,7 @@ void Test-Strings() {
 	println("tolower(" + myString + ") is: " + xlated);
 }
 
-void Test-Decompile-Binary() {
+static void Test-Decompile-Binary() {
 	int x;
 
 	x = 3 * (7+2);
@@ -95,9 +124,10 @@ void Test-Decompile-Binary() {
 /*
  * Evaluate various binary expressions and print the results.
  */
-void Test-Binary-Expressions() {
+static void Test-Binary-Expressions() {
 	clear();
 	println("type of 'a' is: " + typeof('a'));
+	println("typeof(typeof('a')) is: " + typeof(typeof('a')));
 	println("\"a\" + \"b\" -> " + ("a" + "b"));
 	println("\"abcd\" - \"bc\" -> " + ("abcd" - "bc"));
 	println("7 * 'x' -> " + (7 * 'x'));
@@ -112,7 +142,7 @@ void Test-Binary-Expressions() {
 	println("7 * 3 % 4 ^ 2 -> " + (7 * 3 % 4 ^ 2));
 }
 
-void Test-Sprintf() {
+static void Test-Sprintf() {
 	float d;
 
 	clear();
@@ -120,7 +150,7 @@ void Test-Sprintf() {
 	println(-32);
 	println(sprintf("Formatting of integers Decimal: %d Hexadecimal: %#x Binary:%b %5d", 1723462748, -200, 32, -456));
 	println(sprintf("format a floating point number %.5f %1.3e %2g", d, d, d));
-	println(sprintf("Character formatting %2c", 'X'));
+	println(sprintf("Character formatting <%-2c>", '&'));
 }
 
 
@@ -128,7 +158,7 @@ void Test-Sprintf() {
  * This method allocates one million objects in a loop and can be used to
  * debug the simple GC of PKS-Edit.
  */
-void Test-GC() {
+static void Test-GC() {
 	string x;
 	int i = 0;
 
@@ -139,7 +169,7 @@ void Test-GC() {
 	MessageBox(MB_OK, x);
 }
 
-void Test-While() {
+static void Test-While() {
 	int i = 2+2;
 	while (i < 20) {
 		CursorDown(MOT_SINGLE);
@@ -147,7 +177,7 @@ void Test-While() {
 	}
 }
 
-void Test-Expr2()
+static void Test-Expr2()
 {
    if (CursorDown(MOT_SINGLE) && CursorLeft(MOT_TOEND)) {
         InsertChar('x');
@@ -160,12 +190,12 @@ void Test-Expr2()
  * The Test-Params method can be invoked with one integer and one string
  * parameter and will display the parameters passed in a message box.
  */
-string Test-Params(int par, string par2)
+static string Test-Params(int par, string par2)
 {
 	string tmp;
 
 	tmp = "We have passed " + par + " as parameter 1 and '" + par2 + "' as parameter 2";
-	Alert(tmp);
+	print(tmp);
 
 	return "This is the text returned from Test-Params";
 }
@@ -174,15 +204,14 @@ string Test-Params(int par, string par2)
 /*
  * Calls a macro declaring parameters with various examples.
  */
-void Test-Call() {
+static void Test-Call() {
 	string result;
 	result = Test-Params(1,3);
-	MessageBox(result);
+	print(result);
 	Test-Params(1,"One string passed to function");
 	Test-Params(1, "a"+"b");
 	// 1+"x" will be coerced to an integer -> will print '1' instead of '1x'
 	Test-Params(1 + "x");
 }
-
 
 

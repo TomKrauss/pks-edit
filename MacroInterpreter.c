@@ -7,7 +7,7 @@
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.					
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  * 
  * author: Tom
  * created: 11/89
@@ -129,6 +129,28 @@ static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsi
 	}
 }
 
+static void interpreter_deallocateStack(EXECUTION_CONTEXT* pContext) {
+	free(pContext->ec_stackBottom);
+	size_t nSize = arraylist_size(pContext->ec_allocations);
+	for (int i = 0; i < nSize; i++) {
+		free(arraylist_get(pContext->ec_allocations, i));
+	}
+	arraylist_destroy(pContext->ec_allocations);
+}
+
+/*
+ * Initialize a new context - its stack and allocation values.
+ */
+static void interpreter_allocateStack(EXECUTION_CONTEXT* pResult) {
+	PKS_VALUE* pStack = calloc(MAX_STACK_SIZE, sizeof(*pStack));
+	pResult->ec_stackBottom = pStack;
+	pResult->ec_stackCurrent = pStack;
+	pResult->ec_stackFrame = pStack;
+	pResult->ec_parameterStack = pStack;
+	pResult->ec_stackMax = pStack + MAX_STACK_SIZE;
+	pResult->ec_allocations = arraylist_create(37);
+}
+
 /*
  * Creates an execution context for executing a macro function.
  */
@@ -147,13 +169,7 @@ static EXECUTION_CONTEXT* interpreter_pushExecutionContext(const char* pszFuncti
 		pResult->ec_parameterStack = _currentExecutionContext->ec_parameterStack;
 		pResult->ec_allocations = _currentExecutionContext->ec_allocations;
 	} else {
-		PKS_VALUE* pStack = calloc(MAX_STACK_SIZE, sizeof(*pStack));
-		pResult->ec_stackBottom = pStack;
-		pResult->ec_stackCurrent = pStack;
-		pResult->ec_stackFrame = pStack;
-		pResult->ec_parameterStack = pStack;
-		pResult->ec_stackMax = pStack + MAX_STACK_SIZE;
-		pResult->ec_allocations = arraylist_create(37);
+		interpreter_allocateStack(pResult);
 	}
 	pResult->ec_currentFunction = pszFunctionName;
 	_currentExecutionContext = pResult;
@@ -166,12 +182,7 @@ static EXECUTION_CONTEXT* interpreter_pushExecutionContext(const char* pszFuncti
 static void interpreter_popExecutionContext(EXECUTION_CONTEXT* pContext, EXECUTION_CONTEXT* pPreviousContext) {
 	sym_popContext(pContext->ec_identifierContext);
 	if (pPreviousContext == NULL) {
-		free(pContext->ec_stackBottom);
-		size_t nSize = arraylist_size(pContext->ec_allocations);
-		for (int i = 0; i < nSize; i++) {
-			free(arraylist_get(pContext->ec_allocations, i));
-		}
-		arraylist_destroy(pContext->ec_allocations);
+		interpreter_deallocateStack(pContext);
 	}
 	free(pContext);
 	if (_contextStack) {
@@ -585,19 +596,17 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 		}
 	}
 
-	int nParametersPassed = (int)(pContext->ec_stackCurrent - pContext->ec_parameterStack);
+	int nParametersPassed = typ == C_0FUNC ? 
+			((COM_0FUNC*)pLocalInstructionPointer)->func_nargs :
+			(int)(pContext->ec_stackCurrent - pContext->ec_parameterStack);
 	if (bNativeCall && !_currentFormInstruction) {
 		EDFUNC* fup = &_functionTable[funcnum];
 		int i;
-		int nMax = ((COM_0FUNC*)pLocalInstructionPointer)->func_nargs;
-		if (nMax > nParametersPassed) {
-			nMax = nParametersPassed;
-		}
-		for (i = 0; i < nMax; i++) {
+		for (i = 0; i < nParametersPassed; i++) {
 			tempStack[i] = interpreter_popStackValue(pContext);
 		}
-		for (i = 0; i < nMax; i++) {
-			PKS_VALUE v = tempStack[nMax-i-1];
+		for (i = 0; i < nParametersPassed; i++) {
+			PKS_VALUE v = tempStack[nParametersPassed-i-1];
 			if (function_getParameterTypeDescriptor(fup, i + 1).pt_type == PARAM_TYPE_STRING) {
 				v = interpreter_coerce(pContext, v, S_STRING);
 			}
@@ -630,10 +639,8 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 			// Work around for wrong stack manipulation on call site.
 			pContext->ec_stackCurrent++;
 			returnValue = interpreter_popStackValue(pContext);
+			pContext->ec_stackCurrent = pContext->ec_parameterStack;
 		}
-		pContext->ec_stackCurrent = pContext->ec_parameterStack;
-		// This is not correct for the case we have something like f_a(f_b(f_c(1,2,3)));
-		pContext->ec_parameterStack = pContext->ec_stackFrame;
 		interpreter_pushValueOntoStack(pContext, returnValue);
 	}
 	*pInstructionPointer = pLocalInstructionPointer;
@@ -667,10 +674,114 @@ static PKS_VALUE interpreter_getParameterStackValue(EXECUTION_CONTEXT* pContext,
 #define COM1_INCR(pLocalInstructionPointer,type,offset) (((unsigned char *)pLocalInstructionPointer)+((type *)pLocalInstructionPointer)->offset)
 #define COM_PARAMINCR(pLocalInstructionPointer)		(((unsigned char *)pLocalInstructionPointer)+interpreter_getParameterSize(pLocalInstructionPointer->typ,&pLocalInstructionPointer->funcnum));
 static int _macaborted;
+static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const char* pszFunctionName, COM_1FUNC* cp, COM_1FUNC* cpmax) {
+
+	unsigned char* pInstr = (unsigned char*)cp;
+	unsigned char* pInstrMax = (unsigned char*)cpmax;
+	while (pInstr < pInstrMax) {
+		cp = (COM_1FUNC*)pInstr;
+		if (_macaborted || (_macaborted = progress_cancelMonitor(FALSE)) != 0) {
+			goto end;
+		}
+		switch (cp->typ) {
+		case C_GOTO:
+			if (((COM_GOTO*)cp)->bratyp == BRA_ALWAYS) {
+				pInstr = COM1_INCR(cp, COM_GOTO, offset);
+			}
+			else {
+				PKS_VALUE stackTop = interpreter_popStackValue(pContext);
+				stackTop = interpreter_coerce(pContext, stackTop, S_BOOLEAN);
+				int val = stackTop.sym_data.booleanValue;
+				if ((((COM_GOTO*)cp)->bratyp == BRA_IF_TRUE && val != 0) ||
+					(((COM_GOTO*)cp)->bratyp == BRA_IF_FALSE && val == 0))
+					pInstr = COM1_INCR(cp, COM_GOTO, offset);
+				else
+					pInstr = COM_PARAMINCR(cp);
+			}
+			break;
+		case C_POP_STACK:
+			if (pContext->ec_stackCurrent > pContext->ec_stackFrame) {
+				pContext->ec_stackCurrent--;
+			}
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+			break;
+		case C_SET_PARAMETER_STACK:
+			pContext->ec_parameterStack = pContext->ec_stackCurrent;
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+			break;
+		case C_SET_STACKFRAME:
+			pContext->ec_stackFrame = pContext->ec_parameterStack;
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+			break;
+		case C_LOGICAL_OPERATION:
+			interpreter_testExpression(pContext, (COM_BINOP*)cp);
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+			continue;
+		case C_BINOP:
+			interpreter_evaluateBinaryExpression(pContext, (COM_BINOP*)cp);
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+			continue;
+		case C_FORM_START:
+			_currentFormInstruction = (COM_FORM*)pInstr;
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+			break;
+		case C_PUSH_BOOLEAN_LITERAL:
+		case C_PUSH_LONG_LITERAL:
+		case C_PUSH_SMALL_INT_LITERAL:
+		case C_PUSH_CHARACTER_LITERAL:
+		case C_PUSH_FLOAT_LITERAL:
+		case C_PUSH_INTEGER_LITERAL:
+		case C_PUSH_VARIABLE:
+		case C_PUSH_STRING_LITERAL: {
+			PKS_VALUE value = interpreter_getValueForOpCode(pContext, pInstr);
+			interpreter_pushValueOntoStack(pContext, value);
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+			break;
+		}
+		case C_DEFINE_PARAMETER: {
+			PKS_VALUE value = interpreter_getParameterStackValue(pContext, (int)((COM_CREATESYM*)cp)->value);
+			// automatic type coercion of parameter types.
+			value = interpreter_coerce(pContext, value, ((COM_CREATESYM*)cp)->symtype);
+			sym_makeInternalSymbol(pContext->ec_identifierContext, ((COM_CREATESYM*)cp)->name,
+				value.sym_type,
+				value.sym_data);
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+			break;
+		}
+		case C_DEFINE_VARIABLE:
+			sym_makeInternalSymbol(pContext->ec_identifierContext, ((COM_CREATESYM*)cp)->name,
+				((COM_CREATESYM*)cp)->symtype,
+				(GENERIC_DATA) {
+				.longValue = ((COM_CREATESYM*)cp)->value
+			});
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+			break;
+		case C_ASSIGN:
+			interpreter_assignSymbol(pContext, ((COM_ASSIGN*)cp)->name);
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+			break;
+		case C_STOP:
+			goto end;
+		case C_MACRO: case C_0FUNC: case C_1FUNC:
+			interpreter_doMacroFunctions(pContext, &cp, cpmax);
+			pInstr = (unsigned char*)cp;
+			continue;
+		default:
+			interpreter_raiseError("Corrupted bytecodes - cannot continue.");
+			// never reached
+			goto end;
+		}
+	}
+end:
+	return (int)1;
+}
+
+
+/*---------------------------------*/
+/* macro_interpretByteCodes()      */
+/*---------------------------------*/
 static int macro_interpretByteCodes(const char* pszFunctionName, COM_1FUNC *cp,COM_1FUNC *cpmax) {
 	static int 	level;
-	unsigned char* pInstr;
-	unsigned char* pInstrMax;
 	EXECUTION_CONTEXT* pOld = _currentExecutionContext;
 	EXECUTION_CONTEXT* pContext = interpreter_pushExecutionContext(pszFunctionName);
 
@@ -681,106 +792,30 @@ static int macro_interpretByteCodes(const char* pszFunctionName, COM_1FUNC *cp,C
 		return -1;
 	}
 	level++;
-	pInstr = (unsigned char*)cp;
-	pInstrMax = (unsigned char*)cpmax;
-	while (pInstr < pInstrMax) {
-		cp = (COM_1FUNC*) pInstr;
-		if (_macaborted || (_macaborted = progress_cancelMonitor(FALSE)) != 0) {
-			goto end;
-		}
-		switch(cp->typ) {
-			case C_GOTO:
-				if (((COM_GOTO*)cp)->bratyp == BRA_ALWAYS) {
-					pInstr = COM1_INCR(cp, COM_GOTO, offset);
-				}
-				else {
-					PKS_VALUE stackTop = interpreter_popStackValue(pContext);
-					stackTop = interpreter_coerce(pContext, stackTop, S_BOOLEAN);
-					int val = stackTop.sym_data.booleanValue;
-					if ((((COM_GOTO*)cp)->bratyp == BRA_IF_TRUE && val != 0) ||
-						(((COM_GOTO*)cp)->bratyp == BRA_IF_FALSE && val == 0))
-						pInstr = COM1_INCR(cp, COM_GOTO, offset);
-					else
-						pInstr = COM_PARAMINCR(cp);
-				}
-				break;
-			case C_POP_STACK:
-				if (pContext->ec_stackCurrent > pContext->ec_stackFrame) {
-					pContext->ec_stackCurrent--;
-				}
-				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-				break;
-			case C_SET_PARAMETER_STACK:
-				pContext->ec_parameterStack = pContext->ec_stackCurrent;
-				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-				break;
-			case C_SET_STACKFRAME:
-				pContext->ec_stackFrame = pContext->ec_parameterStack;
-				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-				break;
-			case C_LOGICAL_OPERATION:
-				interpreter_testExpression(pContext, (COM_BINOP*)cp);
-				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-				continue;
-			case C_BINOP:
-				interpreter_evaluateBinaryExpression(pContext, (COM_BINOP*)cp);
-				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-				continue;
-			case C_FORM_START:
-				_currentFormInstruction = (COM_FORM*)pInstr;
-				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-				break;
-			case C_PUSH_BOOLEAN_LITERAL:
-			case C_PUSH_LONG_LITERAL:
-			case C_PUSH_SMALL_INT_LITERAL:
-			case C_PUSH_CHARACTER_LITERAL:
-			case C_PUSH_FLOAT_LITERAL:
-			case C_PUSH_INTEGER_LITERAL:
-			case C_PUSH_VARIABLE:
-			case C_PUSH_STRING_LITERAL: {
-				PKS_VALUE value = interpreter_getValueForOpCode(pContext, pInstr);
-				interpreter_pushValueOntoStack(pContext, value);
-				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-				break;
-			}
-			case C_DEFINE_PARAMETER: {
-				PKS_VALUE value = interpreter_getParameterStackValue(pContext, (int)((COM_CREATESYM*)cp)->value);
-				// automatic type coercion of parameter types.
-				value = interpreter_coerce(pContext, value, ((COM_CREATESYM*)cp)->symtype);
-				sym_makeInternalSymbol(pContext->ec_identifierContext, ((COM_CREATESYM*)cp)->name,
-					value.sym_type,
-					value.sym_data);
-				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-				break;
-			}
-			case C_DEFINE_VARIABLE:
-				sym_makeInternalSymbol(pContext->ec_identifierContext, ((COM_CREATESYM*)cp)->name,
-					((COM_CREATESYM*)cp)->symtype,
-					(GENERIC_DATA) {.longValue = ((COM_CREATESYM*)cp)->value});
-				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-				break;
-			case C_ASSIGN:
-				interpreter_assignSymbol(pContext, ((COM_ASSIGN*)cp)->name);
-				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-				break;
-			case C_STOP:
-				goto end;
-			case C_MACRO: case C_0FUNC: case C_1FUNC:
-				interpreter_doMacroFunctions(pContext, &cp,cpmax);
-				pInstr = (unsigned char*)cp;
-				continue;
-			default:
-				macro_reportError();
-				goto end;
-		}
-	}
-end:
+	int ret = macro_interpretByteCodesContext(pContext, pszFunctionName, cp, cpmax);
 	level--;
 	if (level == 0) {
 		error_setShowMessages(TRUE);
 	}
 	interpreter_popExecutionContext(pContext, pOld);
 	return (int)1;
+}
+
+/*
+ * Initialize a namespace.
+ */
+static int interpreter_initializeNamespace(MACRO* mpNamespace) {
+	EXECUTION_CONTEXT* pOld = _currentExecutionContext;
+	EXECUTION_CONTEXT ecNamespace;
+	ecNamespace.ec_identifierContext = sym_getGlobalContext();
+	_currentExecutionContext = &ecNamespace;
+	interpreter_allocateStack(_currentExecutionContext);
+	int ret = macro_interpretByteCodesContext(_currentExecutionContext, mpNamespace->mc_name, 
+		(COM_1FUNC*)mpNamespace->mc_bytecodes, (COM_1FUNC*)(mpNamespace->mc_bytecodes+ mpNamespace->mc_bytecodeLength));
+	interpreter_deallocateStack(_currentExecutionContext);
+	_currentExecutionContext = pOld;
+	mpNamespace->mc_isInitialized = TRUE;
+	return 1;
 }
 
 /*---------------------------------
@@ -797,6 +832,7 @@ long long macro_executeMacroByIndex(int macroindex)
 	COM_1FUNC *	cp;
 	COM_1FUNC *	cpmax;
 	MACRO *		mp;
+	MACRO*		mpNamespace;
 	long   		bWasRecording = recorder_isRecording();
 
 	if (macroindex == MAC_LASTREC && 
@@ -828,6 +864,12 @@ long long macro_executeMacroByIndex(int macroindex)
 				cp = (COM_1FUNC *)MAC_DATA(mp);
 				cpmax = (COM_1FUNC *)((char *)cp+mp->mc_bytecodeLength);
 				pszName = mp->mc_name;
+				mpNamespace = macro_getNamespaceByIdx(mp->mc_namespaceIdx);
+				if (mpNamespace && !mpNamespace->mc_isInitialized) {
+					if (!interpreter_initializeNamespace(mpNamespace)) {
+						return 0;
+					}
+				}
 				break;
 		}
 		ret = macro_interpretByteCodes(pszName, cp, cpmax);

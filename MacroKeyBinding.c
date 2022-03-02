@@ -67,6 +67,112 @@ static void macro_destroyMacro(MACRO* mp) {
 	free(mp);
 }
 
+/*---------------------------------
+ * macro_getInternalIndexByName()
+ * Return the internal index of a macro given its name.
+ */
+static int macro_getIndexInTableByName(ARRAY_LIST* pList, const char* name)
+{
+	if (!pList) {
+		return -1;
+	}
+	int i;
+	int nMax = (int)arraylist_size(pList);
+	MACRO* mp;
+
+	if (name)
+		for (i = 0; i < nMax; i++) {
+			if ((mp = (MACRO*)arraylist_get(pList, i)) != 0 &&
+				strcmp(MAC_NAME(mp), name) == 0)
+				return i;
+		}
+	return -1;
+}
+
+
+/* 
+ * Returns a union of all namespaces and macros.
+ * The returned arraylist must be freed by the caller.
+ */
+ARRAY_LIST* macro_getNamespacesAndMacros() {
+	ARRAY_LIST* pResult = arraylist_create(70);
+	if (_namespaces) {
+		ARRAY_ITERATOR pIter = arraylist_iterator(_namespaces);
+		while (pIter.i_buffer < pIter.i_bufferEnd) {
+			arraylist_add(pResult, *pIter.i_buffer++);
+		}
+	}
+	if (_macroTable) {
+		ARRAY_ITERATOR pIter = arraylist_iterator(_macroTable);
+		while (pIter.i_buffer < pIter.i_bufferEnd) {
+			arraylist_add(pResult, *pIter.i_buffer++);
+		}
+	}
+	return pResult;
+}
+
+/*
+ * Lookup the index of a named macro namespace. If the namespace is not yet defined, define one on the fly. 
+ */
+int macro_lookupNamespace(const char* pszNamespaceName) {
+	MACRO* mp;
+	if (!_namespaces) {
+		_namespaces = arraylist_create(13);
+		mp = calloc(1, sizeof * mp);
+		mp->mc_name = _strdup(MACRO_NAMESPACE_DEFAULT);
+		mp->mc_isNamespace = TRUE;
+		arraylist_add(_namespaces, mp);
+	}
+	int idx = macro_getIndexInTableByName(_namespaces, pszNamespaceName);
+	if (idx < 0) {
+		mp = calloc(1, sizeof * mp);
+		mp->mc_name = _strdup(pszNamespaceName);
+		mp->mc_isNamespace = TRUE;
+		arraylist_add(_namespaces, mp);
+		idx = (int) arraylist_size(_namespaces) - 1;
+	}
+	return idx;
+}
+
+/*
+ * Define the namespace initializer code.
+ */
+void macro_defineNamespaceInitializer(int nNamespaceIdx, const char* pBytes, size_t nByteLen) {
+	if (!_namespaces || nNamespaceIdx >= arraylist_size(_namespaces)) {
+		return;
+	}
+	MACRO* mp = arraylist_get(_namespaces, nNamespaceIdx);
+	mp->mc_bytecodeLength = (unsigned int)nByteLen;
+	free(mp->mc_bytecodes);
+	mp->mc_bytecodes = malloc(mp->mc_bytecodeLength);
+	memmove(mp->mc_bytecodes, pBytes, nByteLen);
+	// treat as un-initialized, after the bytecode has changed.
+	mp->mc_isInitialized = FALSE;
+}
+
+/*------------------------------------------------------------
+ * macro_defineNamespace()
+ * Define a new namespace object.
+ */
+int macro_defineNamespace(MACRO_PARAM* mpParam) {
+	int    i;
+
+	i = macro_lookupNamespace(mpParam->mp_name);
+	macro_defineNamespaceInitializer(i, mpParam->mp_buffer, mpParam->mp_bytecodeLength);
+	_macrosWereChanged = 1;
+	return i;
+}
+
+/*
+ * Returns a namespace object given its logical index.
+ */
+MACRO* macro_getNamespaceByIdx(int idx) {
+	if (!_namespaces) {
+		return 0;
+	}
+	return (MACRO*)arraylist_get(_namespaces, idx);
+}
+
 /*
  * Convert a menu command to a macroref. It is assumed, that the menu command
  * is an encoded macroref structure.
@@ -104,17 +210,8 @@ MACRO *macro_getByIndex(int idx)
  * Return the internal index of a macro given its name.
  */
 int macro_getInternalIndexByName(const char *name)
-{	int i;
-	int nMax = macro_getNumberOfMacros();
-	MACRO *mp;
-
-	if (name)
-	  for (i = 0; i < nMax; i++) {
-		if ((mp = macro_getByIndex(i)) != 0 && 
-			strcmp(MAC_NAME(mp),name) == 0)
-				return i;
-	  }
-	return -1;
+{
+	return macro_getIndexInTableByName(_macroTable, name);
 }
 
 /*------------------------------------------------------------
@@ -258,6 +355,7 @@ MACRO *macro_createWithParams(MACRO_PARAM *pParam) {
 	mp = calloc(1, sizeof * mp);
 	mp->mc_comment = _strdup(szComment);
 	mp->mc_name= _strdup(szName);
+	mp->mc_scope = pParam->mp_scope;
 	mp->mc_namespaceIdx = pParam->mp_namespaceIdx;
 
 	mp->mc_bytecodeLength = (unsigned int)pParam->mp_bytecodeLength;
@@ -285,7 +383,7 @@ static void macro_destroyTable(ARRAY_LIST** pList) {
 	if (*pList) {
 		int nMax = (int)arraylist_size(*pList);
 		for (int i = 0; i < nMax; i++) {
-			MACRO* mp = macro_getByIndex(i);
+			MACRO* mp = arraylist_get(*pList, i);
 			if (mp) {
 				macro_destroyMacro(mp);
 			}
@@ -538,13 +636,14 @@ static void macro_updateMacroList(HWND hwnd)
 	int nMax = macro_getNumberOfMacros();
 	hwndList = macro_initializeListBox(hwnd, IDD_MACROLIST, &nCurr);
 
+	state = showInternals = IsDlgButtonChecked(hwnd, IDD_OPT1);
+
 	for (i = 0; i < nMax; i++) {
-		if (macro_getByIndex(i) != 0) {
+		MACRO* mp = macro_getByIndex(i);
+		if (mp != 0 && (state || mp->mc_scope == MS_GLOBAL)) {
 			SendMessage(hwndList,LB_ADDSTRING,0,MAKELONG(CMD_MACRO,i));
 		}
 	}
-
-	state = showInternals = IsDlgButtonChecked(hwnd,IDD_OPT1);
 
 	if (state) {
 		for (i = 0; i < _commandTableSize; i++)

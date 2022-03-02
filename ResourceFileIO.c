@@ -19,6 +19,7 @@
 #include <edtypes.h>
 #include <stdio.h>
 #include <tos.h>
+#include "arraylist.h"
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
 #include "linkedlist.h"
@@ -36,6 +37,7 @@ typedef struct tagMACRODATA  {
 	unsigned char	namelen;		// including 0byte
 	unsigned char	commentlen;		// including 0byte
 	unsigned char   namespaceIdx;	// The index of the associated namespace
+	int				macroScope;		// The scope of the macro.
 	int				bytecodeLength;
 	unsigned char   name[2];
 } MACRODATA;
@@ -60,19 +62,22 @@ char *rsc_rdmacros(char *name, unsigned char *p, unsigned char *pend)
 		p = &pBufferStart[len];
 		if (p > pend)
 			break;
+		MACRO_PARAM param = {
+			.mp_name = pMacroData->name,
+			.mp_comment = pComment,
+			.mp_buffer = pBufferStart,
+			.mp_bytecodeLength = len,
+			.mp_scope = pMacroData->macroScope,
+			.mp_namespaceIdx = pMacroData->namespaceIdx
+		};
 		if (pMacroData->cmdbyte == CMD_MACRO) {
-			MACRO_PARAM param = {
-				.mp_name = pMacroData->name,
-				.mp_comment = pComment,
-				.mp_buffer = pBufferStart,
-				.mp_bytecodeLength = len,
-				.mp_namespaceIdx = pMacroData->namespaceIdx
-			};
 			if (macro_insertNewMacro(&param) < 0) {
 				return 0;
 			}
 		} else if (pMacroData->cmdbyte == CMD_NAMESPACE) {
-
+			if (macro_defineNamespace(&param) < 0) {
+				return 0;
+			}
 		}
 	} while(p < pend);
 
@@ -92,28 +97,35 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName
 	MACRO  	*mp;
 	MACRODATA *pMacroData;
 	unsigned char *datap,*comment;
+	ARRAY_LIST* pMacrosAndNamespaces;
 
 	offs = 0;
 	total = 0;
-	int nMax = macro_getNumberOfMacros();
+	pMacrosAndNamespaces = macro_getNamespacesAndMacros();
+	int nMax = (int) arraylist_size(pMacrosAndNamespaces);
 
 	for (i = 0; i < nMax; i++) {
-		if ((mp = macro_getByIndex(i)) != 0 &&
-		    (pMacroName == 0 || strcmp(pMacroName, MAC_NAME(mp)) == 0)) {
+		mp = arraylist_get(pMacrosAndNamespaces, i);
+		if (pMacroName == 0 || strcmp(pMacroName, MAC_NAME(mp)) == 0) {
 			if (offs >= maxbytes) {
 				offs -= maxbytes;
 				total += maxbytes;
-				if (file_flushBuffer((int)fd,buf,(int)maxbytes,offs) < 1)
-					return -1;
+				if (file_flushBuffer((int)fd, buf, (int)maxbytes, offs) < 1) {
+					total = -1;
+					goto done;
+				}
 			}
 			pMacroData = (MACRODATA *) &buf[offs];
-			pMacroData->cmdbyte = CMD_MACRO;
+			pMacroData->cmdbyte = mp->mc_isNamespace ? CMD_NAMESPACE : CMD_MACRO;
 			pMacroData->namelen = (unsigned char)strlen(MAC_NAME(mp))+1;
-			pMacroData->commentlen = (unsigned char)strlen(mp->mc_comment)+1;
+			pMacroData->commentlen = mp->mc_comment ? (unsigned char)strlen(mp->mc_comment)+1 : 0;
 			pMacroData->namespaceIdx = mp->mc_namespaceIdx;
+			pMacroData->macroScope = mp->mc_scope;
 			strcpy(pMacroData->name, mp->mc_name);
 			comment = &pMacroData->name[pMacroData->namelen];
-			strcpy(comment, mp->mc_comment);
+			if (mp->mc_comment) {
+				strcpy(comment, mp->mc_comment);
+			}
 			datap = comment+pMacroData->commentlen;
 			pMacroData->bytecodeLength = mp->mc_bytecodeLength;
 			memmove(datap, mp->mc_bytecodes, mp->mc_bytecodeLength);
@@ -124,6 +136,8 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName
 	if (file_flushBuffer(fd, buf, offs, 0) < 1) {
 		return -1;
 	}
+done: 
+	arraylist_destroy(pMacrosAndNamespaces);
 	return total;
 }
 

@@ -5,6 +5,7 @@ extern "C" {
 #include "../include/documentmodel.h"
 #include "../include/regexp.h"
 #include "../rc/pksedit.h"
+#include "../include/stringutil.h"
 #include "../include/arraylist.h"
 #include "../include/linkedlist.h"
 #include "../include/hashmap.h"
@@ -688,10 +689,21 @@ namespace pkseditTests
 		}
 	};
 
-		TEST_CLASS(hashMap)
+	TEST_CLASS(strings)
 	{
-
 	public:
+		TEST_METHOD(stringbufTest) {
+			STRING_BUF* pBuf;
+			pBuf = stringbuf_create(13);
+			stringbuf_appendChar(pBuf, 'a');
+			Assert::AreEqual((size_t)1, stringbuf_size(pBuf));
+			stringbuf_appendString(pBuf, (unsigned char*)"fritz");
+			Assert::AreEqual((size_t)6, stringbuf_size(pBuf));
+			stringbuf_destroy(pBuf);
+		}
+	};
+	 TEST_CLASS(hashMap) {
+	 public:
 		TEST_METHOD(BasicOperations)
 		{
 			HASHMAP* pMap = hashmap_create(13, NULL, NULL);

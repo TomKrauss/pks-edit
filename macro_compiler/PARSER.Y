@@ -72,10 +72,10 @@ static void		*_currentNativeMethodCalled;
 static char*	_calledFunctionOrMacro;
 static int		_nparam,
 				_breaklevel,
-				_currentFunctionCallParamIndex,
 				_iflevel,
 				_stringflg;
-
+static      int  _currentFunctionCallParamIndices[32];
+static      int  *_currentFunctionCallParamIndexP = _currentFunctionCallParamIndices;
 static 		void init_header(void);
 static 		void finalize_header(void);
 static 		void init_macroDefinition(void);
@@ -86,7 +86,9 @@ static		int bytecode_generateAutoLabelNamePrefix(char *prefix,int level);
 static		void bytecode_destroyAutoLabelNamePrefix(char *prefix, int level);
 static void 	bytecode_emitPushParameterInstruction(long long lValue);
 
-static int		_generateShorthandAssignment;
+static MACRO_SCOPE _macroScope;
+static int	_currentNamespaceIndex;
+static int	_generateShorthandAssignment;
 static 		char *lstartid  = "%ls%",
 			     *lendid    = "%le%",
 				*lreturnid = "%rt%",
@@ -100,6 +102,7 @@ extern char*    _yyCurrentComment;
 extern void		yyerror(char* s, ...);
 int				function_getIndexOfFunction(void *ep);
 int 			function_parameterIsFormStart(void *ep,int parno);
+extern int macro_lookupNamespace(const char* pszNamespacename);
 extern unsigned char* bytecode_emitBinaryOperation(BYTECODE_BUFFER* pBuffer, int nOperationType, PKS_VALUE_TYPE nTargetType);
 extern unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, char* pszName, int nIncrement);
 extern unsigned char* bytecode_emitShorthandAssignment(BYTECODE_BUFFER* pBuffer, int nBinaryOp, char* pszName);
@@ -157,8 +160,13 @@ int yydebug = 1;
 header_declarations:
 			namespace global_declarations
 
-namespace:
-			| T_NAMESPACE T_IDENT ';'
+namespace:  {
+				_currentNamespaceIndex = macro_lookupNamespace(MACRO_NAMESPACE_DEFAULT);
+			}
+			| T_NAMESPACE T_IDENT ';' {
+				_currentNamespaceIndex = macro_lookupNamespace($2.ident.s);
+				free($2.ident.s);
+			}
 
 global_declarations:
 			| global_declarations constants 
@@ -167,9 +175,11 @@ global_declarations:
 global_vars:
 			| global_var global_vars
 
-global_var: T_STATIC var_decl
-			| var_decl
+global_var: scope var_decl
 
+scope: { _macroScope = MS_GLOBAL; }
+			| T_STATIC { _macroScope = MS_LOCAL; }
+			
 macro_definitions: 
 			| macro_definitions macro_definition 
 
@@ -263,22 +273,24 @@ par_decl: type_ident variable_identifier {
 				_nparam++;
 			}
 
-macro_definition: macrostart block {
+macro_definition: scope macrostart block {
 				if (!yyerrflg) {
 					bytecode_generateAutoLabelNamePrefix(lreturnid,0);
 					bytecode_destroyAutoLabelNamePrefix(lreturnid,0);
-					macro_validateMacroName($1.ident.s, -1, 1);
+					macro_validateMacroName($2.ident.s, -1, 1);
 					YY_EMIT(C_STOP, (GENERIC_DATA){1});
-					_compilerConfiguration->cb_showStatus("Defining macro %s",$1.ident.s);
+					_compilerConfiguration->cb_showStatus("Defining macro %s",$2.ident.s);
 					MACRO_PARAM param = {
-						.mp_name = $1.ident.s,
+						.mp_name = $2.ident.s,
 						.mp_comment = _yyCurrentComment,
 						.mp_bytecodeLength = _bytecodeBuffer.bb_current - _bytecodeBuffer.bb_start,
-						.mp_buffer = _bytecodeBuffer.bb_start
+						.mp_buffer = _bytecodeBuffer.bb_start,
+						.mp_scope = _macroScope,
+						.mp_namespaceIdx = _currentNamespaceIndex
 					};
 					_compilerConfiguration->cb_insertNewMacro(&param);
 				}
-				freeitem(&$1.ident.s);
+				freeitem(&$2.ident.s);
 				freeitem(&_yyCurrentComment);
 				bytecode_closeOpenLabels();
 				finalize_macroDefinition();
@@ -552,24 +564,28 @@ stmntlist:	{ $$.needsPop = 0; }
 				}
 			} stmntlist
 
-call_expression: T_FUNC {
+call_expression: T_FUNC '(' {
 				// Native call
 				_currentNativeMethodCalled = $1.funcp;
-				_currentFunctionCallParamIndex = 0;
+				_currentFunctionCallParamIndexP++;
+				*_currentFunctionCallParamIndexP = 0;
 				$$.funcp = $1.funcp;
 				YY_EMIT(C_SET_PARAMETER_STACK,(GENERIC_DATA){0});
-			} '(' parameter_list ')' {
-				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction($1.funcp)}, _currentFunctionCallParamIndex);
+			} parameter_list ')' {
+				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction($1.funcp)}, *_currentFunctionCallParamIndexP);
+				_currentFunctionCallParamIndexP--;
 				_currentNativeMethodCalled = 0;
 			}
-			| T_IDENT {
+			| T_IDENT '(' {
 				_currentNativeMethodCalled = 0;
-				_currentFunctionCallParamIndex = 0;
+				_currentFunctionCallParamIndexP++;
+				*_currentFunctionCallParamIndexP = 0;
 				_calledFunctionOrMacro = $1.ident.s;
 				$$.funcp = 0;
 				YY_EMIT(C_SET_PARAMETER_STACK,(GENERIC_DATA){0});
-			} '(' parameter_list ')' {
+			} parameter_list ')' {
 				YY_EMIT(C_MACRO,(GENERIC_DATA){.string = _calledFunctionOrMacro});
+				_currentFunctionCallParamIndexP--;
 				freeitem(&_calledFunctionOrMacro);
 			}
 
@@ -581,7 +597,7 @@ nonempty_parameters: parameter
 				yyerror("illegal parameters for method call");
 			}
 
-parameter:	binary_expression { $$.type = $1.type; _currentFunctionCallParamIndex++; }
+parameter:	binary_expression { $$.type = $1.type; (*_currentFunctionCallParamIndexP)++; }
 
 type_cast:	'(' type_ident ')'	{	$$.type = $2.type;		}
 
@@ -659,7 +675,7 @@ simple_literal:	integer_literal {
 static void bytecode_emitPushParameterInstruction(long long lValue)
 {
 	int opCode = C_PUSH_INTEGER_LITERAL;
-	if (_currentNativeMethodCalled && function_parameterIsFormStart(_currentNativeMethodCalled,_currentFunctionCallParamIndex+1)) {
+	if (_currentNativeMethodCalled && function_parameterIsFormStart(_currentNativeMethodCalled,*_currentFunctionCallParamIndexP+1)) {
 		opCode = C_FORM_START;
 	}
 	YY_EMIT(opCode, (GENERIC_DATA){.longValue = lValue});
@@ -748,6 +764,7 @@ static void init_header() {
 }
 
 static void finalize_header() {
+	macro_defineNamespaceInitializer(_currentNamespaceIndex, _bytecodeBuffer.bb_start, _bytecodeBuffer.bb_current - _bytecodeBuffer.bb_start);
 	destroy_bytecodeBuffer();
 }
 
@@ -759,6 +776,7 @@ static void init_macroDefinition(void)
 #ifdef YYDEBUG
 int	yydebug = 1;
 #endif
+	_currentFunctionCallParamIndexP = _currentFunctionCallParamIndices;
 	init_bytecodeBuffer();
 	_nparam = 0;
 	_currentNativeMethodCalled  = 0;

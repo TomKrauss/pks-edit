@@ -191,13 +191,13 @@ static long sprintf_getValueFromWindow(WINFO *wp, char **fmt) {
 	switch(*format) {
 
 	case 'O':
-		if (wp->renderer->r_screenToBuffer(wp, wp->caret.ln, wp->caret.col, &pos)) {
+		if (wp && wp->renderer->r_screenToBuffer(wp, wp->caret.ln, wp->caret.col, &pos)) {
 			return pos.ibp_byteOffset;
 		}
 		return 0;
 
 	case 'C': {
-		if (wp->renderer->r_screenToBuffer(wp, wp->caret.ln, wp->caret.col, &pos)) {
+		if (wp && wp->renderer->r_screenToBuffer(wp, wp->caret.ln, wp->caret.col, &pos)) {
 			LINE* lp = pos.ibp_lp;
 			int nOffs = pos.ibp_lineOffset;
 			if (nOffs >= lp->len) {
@@ -215,20 +215,20 @@ static long sprintf_getValueFromWindow(WINFO *wp, char **fmt) {
 	}
 
 	case 'l':
-		return wp->caret.ln + 1L;
+		return wp ? wp->caret.ln + 1L : 0;
 
 	case 'c':
-		return wp->caret.col + 1L;
+		return wp ? wp->caret.col + 1L : 0;
 
 	case 'w':
-		return wp->win_id;
+		return wp ? wp->win_id : 0;
 
 	default:
 		*fmt -= 2;
 
 	}
 	
-	return 0L;	
+	return 0L;
 }
 
 static int sprintf_isFloatFormat(char c) {

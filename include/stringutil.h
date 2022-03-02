@@ -43,12 +43,6 @@ extern long long string_convertToLongBase16(char* s);
 extern int string_compareWithSecond(const unsigned char* s1, const unsigned char* s2, int bCaseIgnore);
 
 /*
- * Return a pointer to the last matching position, where a character can be found in a String
- * or NULL if it cannot be found at all.
- */
-extern char* strrchr(const char* str, int ch);
-
-/*
  * Return the pointer to the first matching position of a character in a String or NULL
  * if no match is found.
  */

@@ -20,6 +20,7 @@ commands which show an explanation about the command.
 - Expressions with strings in PKSMacroC such as "x"+1 are automatically casted to string. One does not need to write any more "x"+(string)1.
 - PKSMacroC supports now `++` and `--` operators, the new datatypes `float`, `boolean` and `range` and shorthand assignment operators (e.g. `*=`, `+=`, ...).
 - PKSMacroC supports now [] operators to extract single characters or a range of characters from a string.
+- PKSMacroC supports now global (namespace local / static) variables. Namespaces are currently limited however.
 - One can now debug print the low level instructions of PKSMacroC macros (from the macro dialog).
 - /* */ comments in macros are now supported and automatically attached to a macro as a comment (e.g. used as help in code completion), 
   if placed in front of a macro definition.
