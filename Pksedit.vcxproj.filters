@@ -315,7 +315,7 @@
     <ClCompile Include="MacroRecorder.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MaroCFunctions.c">
+    <ClCompile Include="MacroCFunctions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

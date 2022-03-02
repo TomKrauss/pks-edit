@@ -32,6 +32,7 @@
 #include "iccall.h"
 #include "resource.h"
 #include "xdialog.h"
+#include "arraylist.h"
 #include "errordialogs.h"
 #include "stringutil.h"
 #include "winutil.h"
@@ -51,13 +52,20 @@ extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 extern void bindings_loadActionBindings();
 extern void 		st_switchtomenumode(BOOL bMenuMode);
 
-int				_macroTableSize = MAXMACRO;
-MACRO *			_macroTable[MAXMACRO];
-int				_macrosWereChanged;
+static ARRAY_LIST*		_macroTable;
+static ARRAY_LIST*		_namespaces;
+int						_macrosWereChanged;
 
 static char*	_selectedMacroName;
 static MACROREF	currentSelectedMacro;
 static FSELINFO _seqfsel = {	"","pksedit.mac", "*.mac" };
+
+static void macro_destroyMacro(MACRO* mp) {
+	free(mp->mc_bytecodes);
+	free(mp->mc_comment);
+	free(mp->mc_name);
+	free(mp);
+}
 
 /*
  * Convert a menu command to a macroref. It is assumed, that the menu command
@@ -88,7 +96,7 @@ void macro_reportError(void)
  */
 MACRO *macro_getByIndex(int idx)
 {
-	return _macroTable[idx];
+	return _macroTable ? arraylist_get(_macroTable, idx) : 0;
 }
 
 /*---------------------------------
@@ -97,10 +105,11 @@ MACRO *macro_getByIndex(int idx)
  */
 int macro_getInternalIndexByName(const char *name)
 {	int i;
+	int nMax = macro_getNumberOfMacros();
 	MACRO *mp;
 
 	if (name)
-	  for (i = 0; i < MAXMACRO; i++) {
+	  for (i = 0; i < nMax; i++) {
 		if ((mp = macro_getByIndex(i)) != 0 && 
 			strcmp(MAC_NAME(mp),name) == 0)
 				return i;
@@ -171,7 +180,9 @@ int macro_deleteByName(char *name)
 
 	if ((idx = macro_getInternalIndexByName(name)) >= 0) {
 		bindings_deleteKeyBindingsForMacroRef((MACROREF) { .typ = CMD_MACRO, .index = idx });
-		destroy(&_macroTable[idx]);
+		MACRO* mp = macro_getByIndex(idx);
+		macro_destroyMacro(mp);
+		arraylist_removeAt(_macroTable, idx);
 		_macrosWereChanged = 1;
 		return 1;
 	}
@@ -198,27 +209,11 @@ int macro_validateMacroName(char *name, int origidx, int bOverride)
 	return 1;
 }
 
-/*--------------------------------------------------------------------------
- * macro_selectDefaultBindings()
- * Select the default key- / menu- / mouse bindings for PKS Edit.
- */
-void macro_selectDefaultBindings(void) {
-	const char *pszMode;
-
-	if (ft_getCurrentDocument()) {
-		pszMode = ft_getCurrentDocument()->documentDescriptor->actionContext;
-	} else {
-		pszMode = DEFAULT_ACTION_CONTEXT;
-	}
-	menu_selectActionContext(pszMode);
-}
-
 /*------------------------------------------------------------
- * macro_readBindingsFromFile()
- * Read new bindings from a file. If the current bindings are "dirty" they
- * are flushed before.
+ * macro_readCompiledMacroFile()
+ * Read a compiled macro file.
  */
-int macro_readBindingsFromFile(char *fn) {
+int macro_readCompiledMacroFile(char *fn) {
 	int 	 wasdirty = _macrosWereChanged;
 	RSCFILE	*rp;
 
@@ -240,8 +235,6 @@ int macro_readBindingsFromFile(char *fn) {
 		rsc_close(rp);
 	}
 
-	macro_selectDefaultBindings();
-
 	_macrosWereChanged = wasdirty;
 	return 1;
 }
@@ -251,33 +244,25 @@ int macro_readBindingsFromFile(char *fn) {
  * create a new macro with a name, a comment and the actual byte codes
  * to execute.
  */
-MACRO *macro_createWithParams(char* szName, char* szComment, char* bData, int size)
-{
-	int   nLen,nNamelen,nCommentlen;
+MACRO *macro_createWithParams(MACRO_PARAM *pParam) {
 	MACRO *mp;
 	
+	char* szComment = pParam->mp_comment;
 	if (!szComment)
 		szComment = "";
 
-	nNamelen = (int)strlen(szName) + 1;
-	nCommentlen = (int)strlen(szComment) + 1;
-
-	nLen = nNamelen+nCommentlen;
-	if (nLen & 1) {
-		nLen++;
+	char* szName = pParam->mp_name;
+	if (szName == 0) {
+		szName = "#anonymous";
 	}
+	mp = calloc(1, sizeof * mp);
+	mp->mc_comment = _strdup(szComment);
+	mp->mc_name= _strdup(szName);
+	mp->mc_namespaceIdx = pParam->mp_namespaceIdx;
 
-	if ((mp = malloc(MAC_SIZE(nLen+size))) == 0)
-		return (MACRO*)0;
-
-	mp->mc_bytecodesOffset = (unsigned char)(nLen+sizeof(*mp));
-
-	mp->mc_namelen = nNamelen;
-	mp->mc_size = size;
-
-	lstrcpy(MAC_NAME(mp),szName);
-	lstrcpy(MAC_COMMENT(mp),szComment);
-	memmove(MAC_DATA(mp),bData,size);
+	mp->mc_bytecodeLength = (unsigned int)pParam->mp_bytecodeLength;
+	mp->mc_bytecodes = malloc(mp->mc_bytecodeLength);
+	memmove(mp->mc_bytecodes,pParam->mp_buffer, mp->mc_bytecodeLength);
 	return mp;
 }
 
@@ -286,22 +271,36 @@ MACRO *macro_createWithParams(char* szName, char* szComment, char* bData, int si
  */
 void macro_renameAndChangeComment(int nIndex, char* szName, char* szComment)
 {
-	MACRO *mp,*mpold;
+	MACRO *mpold = macro_getByIndex(nIndex);
 
-	mpold = _macroTable[nIndex];
-	if ((mp = macro_createWithParams(szName,szComment,MAC_DATA(mpold),mpold->mc_size)) == 0)
-		return;
-	_macroTable[nIndex] = mp;
-	free(mpold);
+	if (mpold) {
+		free(mpold->mc_comment);
+		free(mpold->mc_name);
+		mpold->mc_comment = _strdup(szComment);
+		mpold->mc_name = _strdup(szName);
+	}
+}
+
+static void macro_destroyTable(ARRAY_LIST** pList) {
+	if (*pList) {
+		int nMax = (int)arraylist_size(*pList);
+		for (int i = 0; i < nMax; i++) {
+			MACRO* mp = macro_getByIndex(i);
+			if (mp) {
+				macro_destroyMacro(mp);
+			}
+		}
+		arraylist_destroy(*pList);
+		*pList = 0;
+	}
 }
 
 /*
  * Destroy all allocated macros.
  */
 void macro_destroy() {
-	for (int i = 0; i < _macroTableSize; i++) {
-		free(_macroTable[i]);
-	}
+	macro_destroyTable(&_macroTable);
+	macro_destroyTable(&_namespaces);
 }
 
 /*------------------------------------------------------------
@@ -309,30 +308,23 @@ void macro_destroy() {
  * Insert a macro with a given name, comment and byte codes. If the named
  * macro already exists, it is deleted.
  */
-int macro_insertNewMacro(char *name, char *comment, BYTECODE_BUFFER* pBuffer)
+int macro_insertNewMacro(MACRO_PARAM *mpParam)
 {	MACRO  *mp;
 	int    i;
 
-	char* macdata = pBuffer->bb_start;
-	int size = (int)(pBuffer->bb_current - pBuffer->bb_start);
-	if ((i = macro_getInternalIndexByName(name)) >= 0) {
-		destroy(&_macroTable[i]);
-	} else {
-		for (i = 0; ; i++) {
-			if (i >= DIM(_macroTable)) {
-				error_showErrorById(IDS_MSGTOOMANYMACROS);
-				return 0;
-			}
-			if (_macroTable[i] == 0) {
-				break;
-			}
-		}
+	if (!_macroTable) {
+		_macroTable = arraylist_create(32);
+	}
+	if ((i = macro_getInternalIndexByName(mpParam->mp_name)) >= 0) {
+		macro_destroyMacro(arraylist_get(_macroTable, i));
+		arraylist_removeAt(_macroTable, i);
 	}
 
-	if ((mp = macro_createWithParams(name,comment,macdata,size)) == 0)
+	if ((mp = macro_createWithParams(mpParam)) == 0)
 		return -1;
 
-	_macroTable[i] = mp;
+	i = 1;
+	arraylist_add(_macroTable, mp);
 	_macrosWereChanged = 1;
 	return i;
 }
@@ -358,7 +350,7 @@ long long macro_readWriteWithFileSelection(int wrflag) {
 		return 0;
 	}
 
-	return macro_readBindingsFromFile(fn);
+	return macro_readCompiledMacroFile(fn);
 }
 
 /*--------------------------------------------------------------------------
@@ -528,6 +520,12 @@ static BOOL macro_selectByValue(HWND hwnd, LONG lValue)
 	return FALSE;
 }
 
+/*
+ * Returns the number of macros defined
+ */
+int macro_getNumberOfMacros() {
+	return _macroTable == 0 ? 0 : (int)arraylist_size(_macroTable);
+}
 /*------------------------------------------------------------
  * macro_updateMacroList()
  */
@@ -537,11 +535,11 @@ static void macro_updateMacroList(HWND hwnd)
 	HWND 	hwndList;
 	int  	i,state;
 	LRESULT nCurr;
-
+	int nMax = macro_getNumberOfMacros();
 	hwndList = macro_initializeListBox(hwnd, IDD_MACROLIST, &nCurr);
 
-	for (i = 0; i < MAXMACRO; i++) {
-		if (_macroTable[i] != 0) {
+	for (i = 0; i < nMax; i++) {
+		if (macro_getByIndex(i) != 0) {
 			SendMessage(hwndList,LB_ADDSTRING,0,MAKELONG(CMD_MACRO,i));
 		}
 	}
@@ -570,12 +568,14 @@ char *command_getTooltipAndLabel(MACROREF command, char* szTooltip, char* szLabe
 	}
 	int nIndex = command.index;
 	switch(command.typ) {
-		case CMD_MACRO: 
-			if (_macroTable[command.index] == 0) {
+	case CMD_MACRO: {
+			MACRO* mp = macro_getByIndex(command.index);
+			if (mp == 0) {
 				return "";
 			}
-			lstrcpy(szTooltip,MAC_COMMENT(_macroTable[nIndex]));
+			lstrcpy(szTooltip, MAC_COMMENT(mp));
 			return szTooltip;
+		}
 		default:
 			s = NULL;
 			if (nIndex >= 0 && nIndex < _commandTableSize) {
@@ -861,11 +861,11 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 				mac_name(szName, (MACROREFIDX)HIWORD(cp->itemData1), (MACROREFTYPE)LOWORD(cp->itemData1)),
 				mac_name(szN2, (MACROREFIDX)HIWORD(cp->itemData2), (MACROREFTYPE)LOWORD(cp->itemData2)));
 
-		case WM_COMMAND:
+		case WM_COMMAND: 
 			nSelected = macro_getSelectedMacro(hwnd);
 			GetDlgItemText(hwnd,IDD_STRING1,szName,sizeof szName);
 			_selectedMacroName = (LOWORD(nSelected) == CMD_MACRO) ?
-				MAC_NAME(_macroTable[HIWORD(nSelected)]) : 0;
+				MAC_NAME(macro_getByIndex(HIWORD(nSelected))) : 0;
 			nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
 			switch (nId = GET_WM_COMMAND_ID(wParam, lParam)) {
 
@@ -949,7 +949,7 @@ upd: 				_macrosWereChanged = 1;
 			case IDD_MACSTART:
 			case IDD_MACEDIT:
 			case IDD_MACPRINTINSTRUCTIONS:
-				if (nSelected) {
+				if (nSelected != -1) {
 					currentSelectedMacro.typ = (MACROREFTYPE)LOWORD(nSelected);
 					currentSelectedMacro.index = (MACROREFIDX)HIWORD(nSelected);
 				}
@@ -970,7 +970,6 @@ int EdMacrosEdit(void)
 	extern 	MACROREF	currentSelectedMacro;
 
 	ret = DoDialog(DLGMACROS, DlgMacEditProc, 0, NULL);
-	macro_selectDefaultBindings();
 
 	if (ret == IDD_MACSTART) {
 		long m = _multiplier;

@@ -18,8 +18,6 @@
 
 #include <windows.h>
 
-#define	MAXMACRO		64
-
 #ifndef DIM
 #define	DIM(tab)		(sizeof(tab)/sizeof(tab[0]))
 #endif
@@ -30,6 +28,7 @@
 #define	CMD_NONE		0
 #define	CMD_CMDSEQ		0x2
 #define	CMD_MACRO		0x3
+#define CMD_NAMESPACE   0x10				// Used inside macro file format to mark name spaces.
 
 typedef unsigned char 	MACROREFTYPE;
 typedef unsigned char  	MACROREFIDX;
@@ -42,23 +41,31 @@ typedef struct tagMACROREF {
 #define INTPTR_TO_MACROREF(m)	(MACROREF){.typ = (unsigned char)((unsigned long)m >> 16), .index = (unsigned char)((unsigned long)m&0xFFFF)}
 
 typedef struct tagMACRO {
-	unsigned char mc_namelen;				// Length of the name of the macro
-	unsigned char mc_bytecodesOffset;		// Offset in bytes to the actual byte code of the macro.
-	unsigned mc_size;						// total size of the macro in bytes.
-	unsigned char mc_name[2];				// the macro name
+	unsigned char  mc_namespaceIdx;			// Index of the corresponding name space (or 0 for default namespace).
+	unsigned char* mc_name;					// the macro name
+	unsigned char* mc_comment;				// the macro name
+	unsigned int mc_bytecodeLength;			// total size of the macro in bytes.
+	unsigned char* mc_bytecodes;			// the actual bytecodes of the macro
 } MACRO;
 
+typedef struct tagMACRO_PARAM {
+	unsigned char mp_namespaceIdx;
+	char* mp_name;
+	char* mp_comment;
+	size_t mp_bytecodeLength;
+	void* mp_buffer;
+} MACRO_PARAM;
+
 #define	MAC_COMMENTLEN		220
-#define	MAC_NAMELEN			32
+
+#define	MAC_NAMELEN			32				// no real limitation - only used in the UI.
 #define	MAC_NAME(mp)		((mp)->mc_name)
-#define	MAC_SIZE(size)		((size) + sizeof(MACRO))
-#define	MAC_DATA(mp)		((unsigned char *)mp+mp->mc_bytecodesOffset)
-#define	MAC_COMMENT(mp)		((unsigned char *)mp+sizeof *mp+mp->mc_namelen)
+#define	MAC_DATA(mp)		((unsigned char *)mp->mc_bytecodes)
+#define	MAC_COMMENT(mp)		((mp)->mc_comment)
 
 typedef struct tagCOMMAND COMMAND;
 extern COMMAND		_commandTable[];
-extern MACRO*		_macroTable[];
-extern int			_commandTableSize,_macroTableSize;
+extern int			_commandTableSize;
 
 #define	IDM_CMDNAME		1024
 #define	IDM_LOWENUMNAME	2512
@@ -100,6 +107,10 @@ extern MACRO* macro_getByIndex(int idx);
  * Return the internal index of a macro given its name.
  */
 extern int macro_getInternalIndexByName(const char* name);
+/*
+ * Returns the number of macros defined
+ */
+extern int macro_getNumberOfMacros();
 
 typedef enum { DM_CODE, DM_INSTRUCTIONS} DECOMPILATION_MODE;
 extern int 		decompile_saveMacrosAndDisplay(char* macroname, DECOMPILATION_MODE nMode);
@@ -127,25 +138,28 @@ extern int macro_deleteByName(char* name);
  */
 extern int macro_validateMacroName(char* name, int origidx, int bOverride);
 
-/*--------------------------------------------------------------------------
- * macro_selectDefaultBindings()
- * Select the default key- / menu- / mouse bindings for PKS Edit.
- */
-extern void macro_selectDefaultBindings(void);
 
 /*------------------------------------------------------------
- * macro_readBindingsFromFile()
+ * macro_readCompiledMacroFile()
  * Read new bindings from a file. If the current bindings are "dirty" they
  * are flushed before.
  */
-extern int macro_readBindingsFromFile(char* fn);
+extern int macro_readCompiledMacroFile(char* fn);
 
 /*------------------------------------------------------------
  * macro_createWithParams()
  * create a new macro with a name, a comment and the actual byte codes
  * to execute.
  */
-extern MACRO* macro_createWithParams(char* szName, char* szComment, char* bData, int size);
+extern MACRO* macro_createWithParams(MACRO_PARAM* pParam);
+
+/*------------------------------------------------------------
+ * macro_insertNewMacro()
+ * Insert a macro with a given name, comment and byte codes. If the named
+ * macro already exists, it is deleted.
+ */
+extern int macro_insertNewMacro(MACRO_PARAM* mpParam);
+
 
 /*------------------------------------------------------------
  * macro_renameAndChangeComment()

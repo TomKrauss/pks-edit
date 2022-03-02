@@ -615,7 +615,6 @@ int ft_currentFileChanged(FTABLE *fp) {
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_select File 0x%lx",fp));
 	_currentFile = fp;
 	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ALL);
-	macro_selectDefaultBindings();
 	if (fp == 0) {
 		return 0;
 	}

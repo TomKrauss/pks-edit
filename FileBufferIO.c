@@ -409,6 +409,7 @@ nullfile:
 		if (!ln_createAndAdd(fp,"",0,(nl < 0) ? LNNOTERM : 0)) {
 			goto ret0;
 		}
+		ret = 1;
 		fp->nlines = 1;
 	} else {
 		file_getAccessTime(fp->fname, &fp->ti_created, &fp->ti_modified);

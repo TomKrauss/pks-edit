@@ -1,7 +1,16 @@
 
+namespace test;
+
 const PI = 3.14159265359d;
 const QUOTE = '\'';
 
+// Define a namespace local variable
+static int errorCount = 0;
+
+/*
+ * Tests the console by opening clearing it several times. Can be used
+ * to test the console as well stability as also performance wise.
+ */
 void Test-Console-Stress() {
 	int i = 0;
 	while(i < 10) {
@@ -33,7 +42,7 @@ void Test-Expression()
 		s2 = "' is not matched by '";
 		x = 13;
 	}
-	
+
 	MessageBox(MB_OK, "String '" + s1 + s2 + re + QUOTE);
 
 	if (s1) {
@@ -47,7 +56,7 @@ float Calculate-Circle-Area(float radius) {
 
 void Test-Calc-Radius() {
 	float r = 3.5;
-	
+
 	MessageBox(MB_OK, "The Area of a circle with radius " + r + " is " + Calculate-Circle-Area(r));
 }
 
@@ -61,7 +70,7 @@ void Test-Strings() {
 	char x;
 	range r;
 	int n = strlen(myString);
-	
+
 	clear();
 	println("String is " + n + " characters long");
 	x = myString[7];
@@ -79,7 +88,7 @@ void Test-Strings() {
 
 void Test-Decompile-Binary() {
 	int x;
-	
+
 	x = 3 * (7+2);
 }
 
@@ -122,7 +131,7 @@ void Test-Sprintf() {
 void Test-GC() {
 	string x;
 	int i = 0;
-	
+
 	while(i < 1000000) {
 		x = "Hello World " + i;
 		i++;

@@ -74,10 +74,10 @@ extern int	_lastinsertedmac;
 extern BYTECODE_BUFFER _currentRecordingBuffer;
 
 int			_playing;
-static unsigned char* _dialogExecutionBytecodePointer;
 static ARRAY_LIST* _contextStack;
 static EXECUTION_CONTEXT* _currentExecutionContext;
 static jmp_buf _currentJumpBuffer;
+static COM_FORM* _currentFormInstruction;
 
 /*
  * An error has occurred during execution of a macro. Display a descriptive error and abort the execution.
@@ -227,7 +227,7 @@ PKS_VALUE interpreter_sprintf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 		return (PKS_VALUE) { .sym_type = S_NUMBER, 0 };
 	}
 	char* pszFormat = pValues->sym_data.string;
-	union U_ARG_VALUE* values = calloc(nArgs, sizeof ( * values));
+	union U_ARG_VALUE* values = calloc(nArgs, sizeof (* values));
 	for (int i = 1; i < nArgs; i++) {
 		if (pValues[i].sym_type == S_FLOAT) {
 			values[i - 1].v_d = pValues[i].sym_data.doubleValue;
@@ -376,33 +376,24 @@ int interpreter_openDialog(PARAMS *pp)
 	struct des 	*dp;
 	GENERIC_DATA	par;
 	COM_FORM	*cp;
-	unsigned char	type;
 
-	if (!_playing)
+	if (!_playing || !_currentFormInstruction || !_currentExecutionContext)
 		return FORM_SHOW;
 
-	if (*_dialogExecutionBytecodePointer != C_FORM_START) {
-		return FORM_SHOW;
-	}
-
-	cp = (COM_FORM *) (interpreter_getValueForOpCode(_currentExecutionContext, _dialogExecutionBytecodePointer).sym_data.string);
-	_dialogExecutionBytecodePointer += interpreter_getParameterSize(*_dialogExecutionBytecodePointer, _dialogExecutionBytecodePointer + 1);
-	if (!cp) {
-		return FORM_SHOW;
-	}
+	cp = _currentFormInstruction;
+	_currentFormInstruction = 0;
 
 	if (cp->options & FORM_REDRAW) {
 		ww_redrawAllWindows(1);
 	}
 
+	PKS_VALUE* pParams = _currentExecutionContext->ec_parameterStack;
 	/*
 	 * use form, if no fields known
 	 */
-
 	for (i = cp->nfields, dp = pp->el; i > 0; i--, dp++) {
-		type = *_dialogExecutionBytecodePointer;
-		par = interpreter_getValueForOpCode(_currentExecutionContext, _dialogExecutionBytecodePointer).sym_data;
-		_dialogExecutionBytecodePointer += interpreter_getParameterSize(*_dialogExecutionBytecodePointer, _dialogExecutionBytecodePointer + 1);
+		PKS_VALUE v = *pParams++;
+		par = v.sym_data;
 		if (cp->options & FORM_INIT) {
 		   switch(dp->cmd_type) {
 			case C_PUSH_INTEGER_LITERAL:  *dp->p.i = par.intValue; break;
@@ -411,7 +402,7 @@ int interpreter_openDialog(PARAMS *pp)
 			case C_PUSH_FLOAT_LITERAL: *dp->p.d = par.doubleValue; break;
 			case C_PUSH_LONG_LITERAL: *dp->p.l = (long)par.longValue; break;
 			case C_PUSH_STRING_LITERAL:
-				if ((type == C_PUSH_STRING_LITERAL || type == C_PUSH_VARIABLE) && par.string) {
+				if ((v.sym_type == S_STRING) && par.string) {
 					strcpy(dp->p.s, par.string);
 				}
 				else {
@@ -595,7 +586,7 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 	}
 
 	int nParametersPassed = (int)(pContext->ec_stackCurrent - pContext->ec_parameterStack);
-	if (bNativeCall) {
+	if (bNativeCall && !_currentFormInstruction) {
 		EDFUNC* fup = &_functionTable[funcnum];
 		int i;
 		int nMax = ((COM_0FUNC*)pLocalInstructionPointer)->func_nargs;
@@ -619,8 +610,6 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 	}
 	pLocalInstructionPointer = (COM_1FUNC*)((unsigned char*)pLocalInstructionPointer + interpreter_getParameterSize(typ, &pLocalInstructionPointer->funcnum));
 	if (bNativeCall) {
-		unsigned char* readparamp = (unsigned char *)pLocalInstructionPointer;
-		_dialogExecutionBytecodePointer = readparamp;
 		EDFUNC* fup = &_functionTable[funcnum];
 		rc = interpreter_executeFunction(funcnum,
 						nativeStack[0], 
@@ -629,11 +618,6 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 						 (void*)nativeStack[3],
 						 (void*)nativeStack[4]);
 		interpreter_returnFunctionValue(pContext, function_returnsString(fup) ? S_STRING : S_NUMBER, rc);
-		/*
-		 * TODO: function execution may pop a parameter in case a form is opened
-		 * This is currently broken.
-		 */
-		*pInstructionPointer = (COM_1FUNC*)readparamp;
 	} else {
 		if (bInternalNativeCall) {
 			for (int i = 0; i < nParametersPassed; i++) {
@@ -641,10 +625,8 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 			}
 			EDFUNC* fup = &_functionTable[funcnum];
 			returnValue = ((PKS_VALUE (*)())fup->execute)(pContext, tempStack, nParametersPassed);
-			*pInstructionPointer = (COM_1FUNC*)pLocalInstructionPointer;
 		} else {
 			rc = macro_executeByName(((COM_MAC*)*pInstructionPointer)->name);
-			*pInstructionPointer = pLocalInstructionPointer;
 			// Work around for wrong stack manipulation on call site.
 			pContext->ec_stackCurrent++;
 			returnValue = interpreter_popStackValue(pContext);
@@ -654,6 +636,7 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 		pContext->ec_parameterStack = pContext->ec_stackFrame;
 		interpreter_pushValueOntoStack(pContext, returnValue);
 	}
+	*pInstructionPointer = pLocalInstructionPointer;
 	return rc;
 }
 
@@ -743,6 +726,10 @@ static int macro_interpretByteCodes(const char* pszFunctionName, COM_1FUNC *cp,C
 				interpreter_evaluateBinaryExpression(pContext, (COM_BINOP*)cp);
 				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 				continue;
+			case C_FORM_START:
+				_currentFormInstruction = (COM_FORM*)pInstr;
+				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+				break;
 			case C_PUSH_BOOLEAN_LITERAL:
 			case C_PUSH_LONG_LITERAL:
 			case C_PUSH_SMALL_INT_LITERAL:
@@ -782,10 +769,6 @@ static int macro_interpretByteCodes(const char* pszFunctionName, COM_1FUNC *cp,C
 				interpreter_doMacroFunctions(pContext, &cp,cpmax);
 				pInstr = (unsigned char*)cp;
 				continue;
-			case C_FORM_START:
-				// TODO: not really - executing macros with forms is broken - should change the whole
-				// macro with forms mechanism, on a long term run.
-				goto end;
 			default:
 				macro_reportError();
 				goto end;
@@ -825,7 +808,7 @@ long long macro_executeMacroByIndex(int macroindex)
 	} 
 
 	if (bWasRecording && macroindex >= 0) {
-		recorder_pushSequence(C_MACRO,MAC_NAME(_macroTable[macroindex]));
+		recorder_pushSequence(C_MACRO,MAC_NAME(macro_getByIndex(macroindex)));
 		recorder_setRecording(FALSE);
 	}
 
@@ -840,10 +823,10 @@ long long macro_executeMacroByIndex(int macroindex)
 				_playing = 2;
 				break;
 			default:
-				if ((mp = _macroTable[macroindex]) == 0)
+				if ((mp = macro_getByIndex(macroindex)) == 0)
 					return 0;
 				cp = (COM_1FUNC *)MAC_DATA(mp);
-				cpmax = (COM_1FUNC *)((char *)cp+mp->mc_size);
+				cpmax = (COM_1FUNC *)((char *)cp+mp->mc_bytecodeLength);
 				pszName = mp->mc_name;
 				break;
 		}

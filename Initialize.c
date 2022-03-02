@@ -115,7 +115,7 @@ EXPORT BOOL init_initializeVariables(void )
 EXPORT void init_readConfigFiles(void)
 {
 	prof_getstdopt();
-	macro_readBindingsFromFile((char *)0);
+	macro_readCompiledMacroFile((char *)0);
 	doctypes_initAllDocumentTypes();
 	xref_restoreFromConfigFile();
 	regex_compileCharacterClasses((char *) 0);

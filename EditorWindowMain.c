@@ -66,7 +66,6 @@ typedef struct xywh {
 static WINFO *_winlist;
 
 extern int  mouse_onMouseClicked(WINFO *fp, int x,int y,int b, int nclicks,int shift);
-extern void macro_selectDefaultBindings(void);
 extern RENDERER* hex_getRenderer();
 extern RENDERER* mdr_getRenderer();
 

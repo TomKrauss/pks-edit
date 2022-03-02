@@ -16,6 +16,8 @@
  */
 %}
 
+
+%token T_NAMESPACE T_STATIC T_IN T_FOREACH
 %token T_TSTRING T_TINT T_TCHAR T_TLONG T_TFLOAT T_RANGE
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_CHARACTER T_CONST
 %token T_TRUE T_FALSE T_TBOOLEAN
@@ -74,8 +76,10 @@ static int		_nparam,
 				_iflevel,
 				_stringflg;
 
-static 		void endmacro(void);
-static 		void startmacro(void);
+static 		void init_header(void);
+static 		void finalize_header(void);
+static 		void init_macroDefinition(void);
+static 		void finalize_macroDefinition(void);
 static 		void freeitem(char **p);
 static 		char *bytecode_emitGotoInstruction(char *prefix, int level, int bratyp);
 static		int bytecode_generateAutoLabelNamePrefix(char *prefix,int level);
@@ -139,23 +143,43 @@ static SYMBOL_TYPE constantTypeFor(SYMBOL_TYPE aValueType) {
 
 %%
 
-resources		: 
-			| { 
+file_structure: {
 #ifdef YYDEBUG
 int yydebug = 1; 
 #endif
-			} resource resources
+				init_header();
+			}
+			header_declarations {
+				finalize_header();
+			}
+			macro_definitions 
 
-resource	: macro_definition		
-			| constants
+header_declarations:
+			namespace global_declarations
 
+namespace:
+			| T_NAMESPACE T_IDENT ';'
+
+global_declarations:
+			| global_declarations constants 
+			| global_declarations global_vars
+
+global_vars:
+			| global_var global_vars
+
+global_var: T_STATIC var_decl
+			| var_decl
+
+macro_definitions: 
+			| macro_definitions macro_definition 
 
 /*-- CONSTANTS --------------------------------------------------*/
 
-constants		: T_CONST constdefs ';'
+constants:	T_CONST constant_list ';'
 
-constdefs		: constdef
-			| constdefs ',' constdef
+constant_list:
+			constdef
+			| constant_list ',' constdef
 
 constdef:	{ _bDefiningConst = 1; } variable_identifier T_ASSIGN constant_literal { _bDefiningConst = 0; } 
 			{
@@ -219,7 +243,7 @@ macro_type:	T_VOID
 			| T_TLONG 
 			| T_TFLOAT
 
-macrostart: { startmacro(); } macro_declaration '(' parameter_list ')' 
+macrostart: { init_macroDefinition(); } macro_declaration '(' parameter_list ')' 
 			{	$$.ident = $2.ident; 
 				YY_EMIT(C_SET_STACKFRAME,(GENERIC_DATA){0});
 			}
@@ -246,12 +270,18 @@ macro_definition: macrostart block {
 					macro_validateMacroName($1.ident.s, -1, 1);
 					YY_EMIT(C_STOP, (GENERIC_DATA){1});
 					_compilerConfiguration->cb_showStatus("Defining macro %s",$1.ident.s);
-					_compilerConfiguration->cb_insertNewMacro($1.ident.s, _yyCurrentComment, &_bytecodeBuffer);
+					MACRO_PARAM param = {
+						.mp_name = $1.ident.s,
+						.mp_comment = _yyCurrentComment,
+						.mp_bytecodeLength = _bytecodeBuffer.bb_current - _bytecodeBuffer.bb_start,
+						.mp_buffer = _bytecodeBuffer.bb_start
+					};
+					_compilerConfiguration->cb_insertNewMacro(&param);
 				}
 				freeitem(&$1.ident.s);
 				freeitem(&_yyCurrentComment);
 				bytecode_closeOpenLabels();
-				endmacro();
+				finalize_macroDefinition();
 			} 
 
 block:		'{' var_decls stmntlist '}'
@@ -697,19 +727,39 @@ static void freeitem(char **p)
 	}
 }
 
-/*---------------------------------*/
-/* startmacro()				*/
-/*---------------------------------*/
-static void startmacro(void)
-{
-#ifdef YYDEBUG
-int	yydebug = 1;
-#endif
+static void init_bytecodeBuffer() {
 	if (!_bytecodeBuffer.bb_start) {
 		_bytecodeBuffer.bb_end = ((_bytecodeBuffer.bb_start = malloc(REC_SPACE)) == 0) ? 
 			_bytecodeBuffer.bb_start : _bytecodeBuffer.bb_start + REC_SPACE;
 	}
 	_bytecodeBuffer.bb_current = _bytecodeBuffer.bb_start; 
+}
+
+static void destroy_bytecodeBuffer() {
+	if (_bytecodeBuffer.bb_start) {
+		free(_bytecodeBuffer.bb_start);
+		_bytecodeBuffer.bb_start = 0;
+		_bytecodeBuffer.bb_end = 0;
+	}
+}
+
+static void init_header() {
+	init_bytecodeBuffer(); 
+}
+
+static void finalize_header() {
+	destroy_bytecodeBuffer();
+}
+
+/*---------------------------------*/
+/* init_macroDefinition()				*/
+/*---------------------------------*/
+static void init_macroDefinition(void)
+{
+#ifdef YYDEBUG
+int	yydebug = 1;
+#endif
+	init_bytecodeBuffer();
 	_nparam = 0;
 	_currentNativeMethodCalled  = 0;
 	_breaklevel = 0;
@@ -719,14 +769,10 @@ int	yydebug = 1;
 }
 
 /*---------------------------------*/
-/* endmacro()					*/
+/* finalize_macroDefinition()					*/
 /*---------------------------------*/
-static void endmacro(void) {
-	if (_bytecodeBuffer.bb_start) {
-		free(_bytecodeBuffer.bb_start);
-		_bytecodeBuffer.bb_start = 0;
-		_bytecodeBuffer.bb_end = 0;
-	}
+static void finalize_macroDefinition(void) {
+	destroy_bytecodeBuffer();
 	_currentIdentifierContext = sym_popContext(_currentIdentifierContext);
 }
 

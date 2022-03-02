@@ -235,7 +235,11 @@ int recorder_toggleRecording(void) {
 			if (!scan) {
 				scan = K_DELETED;
 			}
-			if ((_lastinsertedmac = macro_insertNewMacro(buf, "", &_currentRecordingBuffer)) >= 0) {
+			MACRO_PARAM pParam = { 
+					.mp_name = buf, 
+					.mp_bytecodeLength = _currentRecordingBuffer.bb_current-_currentRecordingBuffer.bb_start, 
+					.mp_buffer = _currentRecordingBuffer.bb_start };
+			if ((_lastinsertedmac = macro_insertNewMacro(&pParam)) >= 0) {
 				bindings_bindKey(scan, (MACROREF) { .index = _lastinsertedmac, .typ = CMD_MACRO }, NULL);
 			}
 		}

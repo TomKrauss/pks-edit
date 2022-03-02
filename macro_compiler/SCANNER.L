@@ -76,7 +76,6 @@ extern IDENTIFIER_CONTEXT* _currentIdentifierContext;
 extern FILE		*file_createTempFile(char *fnd, char *fn);
 extern int 		function_initializeFunctionsAndTypes(void);
 extern long 	function_enumValueFor(void *enp);
-extern void 	macro_selectDefaultBindings(void);
 extern int		_macrosWereChanged;
 
 #if defined(STAND_ALONE)
@@ -109,6 +108,10 @@ static struct kw {
 	T_TLONG,	"long",
 	T_TFLOAT,	"float",
 	T_TBOOLEAN,	"boolean",
+	T_NAMESPACE, "namespace",
+	T_FOREACH, "foreach",
+	T_STATIC,	"static",
+	T_IN,		"in",
 	T_TRUE,		"true",
 	T_FALSE,	"false",
 	T_TSTRING,	"string",
@@ -268,7 +271,8 @@ int yyfinish(void)
 		free(_yyCurrentComment);
 		_yyCurrentComment = NULL;
 	}
-	macro_selectDefaultBindings();
+	yy_delete_buffer(yy_current_buffer);
+	yy_init = 1;
 	if (yyerr.errfp) {
 		fprintf(yyerr.errfp,"\nTOTAL %d Errors\n",yyerr.yynerr);
 		fclose(yyerr.errfp);

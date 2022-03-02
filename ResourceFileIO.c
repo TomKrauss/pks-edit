@@ -31,12 +31,13 @@ extern MACRO 	*macro_getByIndex(int idx);
 
 extern char	*_macroname;
 
-typedef struct macrodata {
+typedef struct tagMACRODATA  {
 	char			cmdbyte;
-	unsigned char	namelen;			/* including 0byte */
-	unsigned char	commentlen;		/* including 0byte */
-	unsigned char 	s1,s2;
-	unsigned char 	name[1];
+	unsigned char	namelen;		// including 0byte
+	unsigned char	commentlen;		// including 0byte
+	unsigned char   namespaceIdx;	// The index of the associated namespace
+	int				bytecodeLength;
+	unsigned char   name[2];
 } MACRODATA;
 
 /*------------------------------------------------------------
@@ -46,24 +47,32 @@ char *rsc_rdmacros(char *name, unsigned char *p, unsigned char *pend)
 {
 	int  		len;
 	MACRODATA *pMacroData;
-	BYTECODE_BUFFER bBuffer;
-	unsigned char  *comment;
+	unsigned char* pBufferStart;
+	unsigned char* pComment;
+	unsigned char* pName;
 
-	bBuffer.bb_end = pend;
 	do {
 		pMacroData = (MACRODATA*) p;
-		comment = &pMacroData->name[pMacroData->namelen];
-		bBuffer.bb_start = comment+ pMacroData->commentlen;
-		len = (pMacroData->s1 << 8) + pMacroData->s2;
-		p = &bBuffer.bb_start[len];
+		pName = pMacroData->name;
+		pComment = &pMacroData->name[0] + pMacroData->namelen;
+		pBufferStart  = pComment+ pMacroData->commentlen;
+		len = pMacroData->bytecodeLength;
+		p = &pBufferStart[len];
 		if (p > pend)
 			break;
-		if (pMacroData->cmdbyte != CMD_MACRO) {
-			return 0;
-		}
-		bBuffer.bb_current = p;
-		if (macro_insertNewMacro(pMacroData->name, comment, &bBuffer) < 0) {
-			return 0;
+		if (pMacroData->cmdbyte == CMD_MACRO) {
+			MACRO_PARAM param = {
+				.mp_name = pMacroData->name,
+				.mp_comment = pComment,
+				.mp_buffer = pBufferStart,
+				.mp_bytecodeLength = len,
+				.mp_namespaceIdx = pMacroData->namespaceIdx
+			};
+			if (macro_insertNewMacro(&param) < 0) {
+				return 0;
+			}
+		} else if (pMacroData->cmdbyte == CMD_NAMESPACE) {
+
 		}
 	} while(p < pend);
 
@@ -81,13 +90,14 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName
 	int 		offs,i;
 	long		total;
 	MACRO  	*mp;
-	struct macrodata *seqp;
+	MACRODATA *pMacroData;
 	unsigned char *datap,*comment;
 
 	offs = 0;
 	total = 0;
+	int nMax = macro_getNumberOfMacros();
 
-	for (i = 0; i < _macroTableSize; i++) {
+	for (i = 0; i < nMax; i++) {
 		if ((mp = macro_getByIndex(i)) != 0 &&
 		    (pMacroName == 0 || strcmp(pMacroName, MAC_NAME(mp)) == 0)) {
 			if (offs >= maxbytes) {
@@ -96,18 +106,18 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName
 				if (file_flushBuffer((int)fd,buf,(int)maxbytes,offs) < 1)
 					return -1;
 			}
-			seqp = (struct macrodata *) &buf[offs];
-			seqp->cmdbyte 	= CMD_MACRO;
-			seqp->namelen = (unsigned char)(strlen(MAC_NAME(mp))+1);
-			seqp->commentlen = (unsigned char)strlen(MAC_COMMENT(mp))+1;
-			strcpy(seqp->name,MAC_NAME(mp));
-			comment = &seqp->name[seqp->namelen];
-			strcpy(comment,MAC_COMMENT(mp));
-			datap = comment+seqp->commentlen;
-			seqp->s1 = mp->mc_size >> 8;
-			seqp->s2 = mp->mc_size;
-			memmove(datap,MAC_DATA(mp),mp->mc_size);
-			offs += (mp->mc_size + (int)(datap-(unsigned char *)seqp));
+			pMacroData = (MACRODATA *) &buf[offs];
+			pMacroData->cmdbyte = CMD_MACRO;
+			pMacroData->namelen = (unsigned char)strlen(MAC_NAME(mp))+1;
+			pMacroData->commentlen = (unsigned char)strlen(mp->mc_comment)+1;
+			pMacroData->namespaceIdx = mp->mc_namespaceIdx;
+			strcpy(pMacroData->name, mp->mc_name);
+			comment = &pMacroData->name[pMacroData->namelen];
+			strcpy(comment, mp->mc_comment);
+			datap = comment+pMacroData->commentlen;
+			pMacroData->bytecodeLength = mp->mc_bytecodeLength;
+			memmove(datap, mp->mc_bytecodes, mp->mc_bytecodeLength);
+			offs += (mp->mc_bytecodeLength + (int)(datap-(unsigned char *)pMacroData));
 		}
 	}
 	total += offs;

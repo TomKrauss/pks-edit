@@ -147,7 +147,7 @@ int bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name)
 		lp->type = L_RESOLVED;
 		for (i = 0; i < _ngotos; i++) {
 			if (_gotos[i].lp == lp) {
-				_gotos[i].recp->offset = recp - (unsigned char*)_gotos[i].recp;
+				_gotos[i].recp->offset = (int)(recp - (unsigned char*)_gotos[i].recp);
 			}
 		}
 	}

@@ -111,8 +111,8 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 				fCallback(pFunc->f_name, pFunc, analyzer_helpForFunc);
 			}
 		}
-		for (int i = 0; i < _macroTableSize; i++) {
-			MACRO* mp = _macroTable[i];
+		for (int i = 0; i < macro_getNumberOfMacros(); i++) {
+			MACRO* mp = macro_getByIndex(i);
 			if (!mp) {
 				continue;
 			}

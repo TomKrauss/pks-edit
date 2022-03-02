@@ -146,11 +146,11 @@ static void macro_unEscape(char *dst, const char *src, size_t nDestSize) {
  * macro already exists, it is deleted.
  */
 static char* _tempMacroName;
-static int macro_defineTemporaryMacro(char* name, char* comment, BYTECODE_BUFFER* pBuffer) {
+static int macro_defineTemporaryMacro(MACRO_PARAM *pParam) {
 	// TODO: when multiple macro functions are compiled as part of the evaluation, we should remove them all.
 	free(_tempMacroName);
-	_tempMacroName = _strdup(name);
-	return macro_insertNewMacro(name, comment, pBuffer);
+	_tempMacroName = _strdup(pParam->mp_name);
+	return macro_insertNewMacro(pParam);
 }
 
 static void macro_noStatus(char* fmt, ...) {

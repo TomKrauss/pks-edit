@@ -255,7 +255,7 @@ static DECOMPILATION_STACK_ELEMENT* decompile_popStack(DECOMPILATION_STACK_ELEME
 static DECOMPILATION_STACK_ELEMENT* decompile_findParamStack(DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
 	while (--pStackCurrent >= pStack) {
 		if (!pStackCurrent->dse_printed && pStackCurrent->dse_instruction && pStackCurrent->dse_instruction->typ == C_SET_PARAMETER_STACK) {
-			return pStackCurrent;
+			return pStackCurrent+1;
 		}
 	}
 	return pStack;
@@ -288,23 +288,22 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 		npars++;
 	}
 
-	DECOMPILATION_STACK_ELEMENT* pStackPointer = ep ? (pStackCurrent-function_getParameterCount(ep)) : decompile_findParamStack(pStackCurrent, pStack);
-	if (pStackPointer < pStack) {
-		pStackPointer = pStack;
+	DECOMPILATION_STACK_ELEMENT* pParamStack = decompile_findParamStack(pStackCurrent, pStack);
+	if (pParamStack < pStack) {
+		pParamStack = pStack;
 	}
-	DECOMPILATION_STACK_ELEMENT* pStackFrame = pStackPointer;
-	while(pStackPointer < pStackCurrent) {
-		if (!pStackPointer->dse_printed) {
-			pStackPointer++;
-			continue;
+	DECOMPILATION_STACK_ELEMENT* pStackFrame = pParamStack-1;
+	while(pParamStack < pStackCurrent) {
+		if (!pParamStack->dse_printed) {
+			break;
 		}
 		partyp = ep == NULL ? (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = PARAM_TYPE_VOID} : function_getParameterTypeDescriptor(ep, npars + 1);
 		if (npars) {
 			strcat(szFunctionCall, ",");
 		}
 		size_t nBytes = strlen(szFunctionCall);
-		strncat(szFunctionCall, pStackPointer->dse_printed, sizeof(szFunctionCall) - 3 - nBytes);
-		pStackPointer++;
+		strncat(szFunctionCall, pParamStack->dse_printed, sizeof(szFunctionCall) - 3 - nBytes);
+		pParamStack++;
 		npars++;
 	}
 	while (pStackCurrent > pStackFrame) {
@@ -500,7 +499,7 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 	fprintf(fp, "%s:", decompile_quoteString(MAC_NAME(mp)));
 	data = MAC_DATA(mp);
 
-	for (sp = data, spend = sp + mp->mc_size; sp < spend; ) {
+	for (sp = data, spend = sp + mp->mc_bytecodeLength; sp < spend; ) {
 		t = ((COM_1FUNC*)sp)->typ;
 		int nOffs = (int)(sp - data);
 		fprintf(fp, "\n0x%04x:   ", nOffs);
@@ -717,7 +716,7 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 	}
 	data = MAC_DATA(mp);
 	sp = data;
-	spend = sp + mp->mc_size;
+	spend = sp + mp->mc_bytecodeLength;
 
 	pFlowMarks = decompile_analyseControlFlowMarks(sp, spend, &nMarks);
 
@@ -855,11 +854,13 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
  */
 static char *_macroname;
 static long decompile_printMacrosCallback(FILE *fp)
-{	MACRO	**mtable,*mp;
+{
+	int nMacros = macro_getNumberOfMacros();
+	MACRO		*mp;
 	int	    	i;
 
-	for (mtable = _macroTable, i = 0; i < _macroTableSize; i++) {
-		if ((mp = mtable[i]) != 0) {
+	for (i = 0; i < nMacros; i++) {
+		if ((mp = macro_getByIndex(i)) != 0) {
 			if (!_macroname ||
 			    strcmp(_macroname,MAC_NAME(mp)) == 0)
 				_decompileFunction(fp,mp);

@@ -102,7 +102,7 @@ static void print_keybinding(FILE *fp, KEY_BINDING *kp, char delim)
 
 	switch(kp->macref.typ) {
 		case CMD_MACRO:
-			if ((macp = _macroTable[findex]) != 0)
+			if ((macp = macro_getByIndex(findex)) != 0)
 				strcpy(comment,MAC_COMMENT(macp)); 
 			break;
 		case CMD_CMDSEQ:
