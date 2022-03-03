@@ -35,6 +35,22 @@ static void Test-Console-Stress() {
 }
 
 /*
+ * Tests ranges in combinations with foreach.
+ * A range has a lower bounds, an upper bounds and an optional increment.
+ */
+void Test-Ranges() {
+	clear();
+	for (int i : 1..17) {
+		println("Next is " + i);
+	}
+
+	for (int j : 1..209..13) {
+		println("Next is " + j);
+	}
+}
+
+
+/*
  * This method tests regular expression matching in
  * PKS-MacroC code.
  */

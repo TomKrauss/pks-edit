@@ -146,7 +146,6 @@ static void interpreter_allocateStack(EXECUTION_CONTEXT* pResult) {
 	pResult->ec_stackBottom = pStack;
 	pResult->ec_stackCurrent = pStack;
 	pResult->ec_stackFrame = pStack;
-	pResult->ec_parameterStack = pStack;
 	pResult->ec_stackMax = pStack + MAX_STACK_SIZE;
 	pResult->ec_allocations = arraylist_create(37);
 }
@@ -166,7 +165,6 @@ static EXECUTION_CONTEXT* interpreter_pushExecutionContext(const char* pszFuncti
 		pResult->ec_stackMax = _currentExecutionContext->ec_stackMax;
 		pResult->ec_stackCurrent = _currentExecutionContext->ec_stackCurrent;
 		pResult->ec_stackFrame = _currentExecutionContext->ec_stackFrame;
-		pResult->ec_parameterStack = _currentExecutionContext->ec_parameterStack;
 		pResult->ec_allocations = _currentExecutionContext->ec_allocations;
 	} else {
 		interpreter_allocateStack(pResult);
@@ -206,6 +204,51 @@ static void interpreter_cleanupContextStacks() {
 			interpreter_popExecutionContext(arraylist_get(_contextStack, nLast), pPrevious);
 		}
 	}
+}
+
+/*
+ * Implements the foreach() method used in for(x : y) loops.
+ */
+PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	if (nArgs < 3) {
+		return (PKS_VALUE) { .sym_type=S_BOOLEAN, .sym_data.booleanValue = 0 };
+	}
+	char* pszCaretVar = pValues[0].sym_data.string;
+	char* pszResultVar = pValues[1].sym_data.string;
+	PKS_VALUE v = pValues[2];
+	int idxLast;
+	if (v.sym_type == S_RANGE) {
+		idxLast = v.sym_data.range.r_end + 1;
+	}
+	else if (v.sym_type == S_STRING) {
+		idxLast = (int)strlen(v.sym_data.string);
+	} else {
+		return (PKS_VALUE) { .sym_type = S_BOOLEAN, .sym_data.booleanValue = 0 };
+	}
+	char* pszUnused;
+	PKS_VALUE caretV = sym_find(pContext->ec_identifierContext, pszCaretVar, &pszUnused);
+	if (NULLSYM(caretV)) {
+		caretV = (PKS_VALUE){.sym_type = S_NUMBER, .sym_data.intValue = 0};
+		sym_insert(pContext->ec_identifierContext, pszCaretVar, S_NUMBER, caretV.sym_data);
+	}
+	int idx = caretV.sym_data.intValue;
+	if (v.sym_type == S_RANGE) {
+		int nMult = v.sym_data.range.r_increment ? v.sym_data.range.r_increment : 1;
+		idx = v.sym_data.range.r_start + (nMult*idx);
+	}
+	if (idx >= idxLast) {
+		sym_remove(pContext->ec_identifierContext, pszCaretVar);
+		return (PKS_VALUE) { .sym_type = S_BOOLEAN, .sym_data.booleanValue = 0 };
+	}
+	if (v.sym_type == S_RANGE) {
+		sym_insert(pContext->ec_identifierContext, pszResultVar, S_NUMBER, (GENERIC_DATA) {.intValue = idx});
+	} else {		// string
+		sym_insert(pContext->ec_identifierContext, pszResultVar, S_CHARACTER, (GENERIC_DATA) { .uchar = v.sym_data.string[idx] });
+	}
+	caretV.sym_data.intValue++;
+	sym_insert(pContext->ec_identifierContext, pszCaretVar, S_NUMBER, caretV.sym_data);
+
+	return (PKS_VALUE) { .sym_type = S_BOOLEAN, .sym_data.booleanValue = 1 };
 }
 
 /*
@@ -335,7 +378,6 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 			return sizeof(COM_0FUNC);
 		case C_POP_STACK:
 		case C_SET_STACKFRAME:
-		case C_SET_PARAMETER_STACK:
 		case C_PUSH_CHARACTER_LITERAL:
 		case C_PUSH_SMALL_INT_LITERAL:
 		case C_PUSH_BOOLEAN_LITERAL:
@@ -360,11 +402,13 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 		case C_PUSH_LONG_LITERAL:
 			/* only if your alignment = 2,2,2 */
 			return sizeof(COM_LONG1);
-		case C_PUSH_VARIABLE:
 		case C_MACRO:
+			s = ((COM_MAC*)(s - 1))->name;
+			return (int)(sizeof(COM_MAC) + strlen(s));
+		case C_PUSH_VARIABLE:
 		case C_ASSIGN:
 		case C_PUSH_STRING_LITERAL:
-			size = (int)((sizeof(struct c_ident) - 1 /* pad byte*/) +
+			size = (int)((sizeof(struct tagCOM_INLINE_STRING) - 1 /* pad byte*/) +
 					(strlen(s)+1)*sizeof(*s));
 			if (size & 1) size++;
 			return size;
@@ -398,7 +442,7 @@ int interpreter_openDialog(PARAMS *pp)
 		ww_redrawAllWindows(1);
 	}
 
-	PKS_VALUE* pParams = _currentExecutionContext->ec_parameterStack;
+	PKS_VALUE* pParams = _currentExecutionContext->ec_stackCurrent-cp->nfields;
 	/*
 	 * use form, if no fields known
 	 */
@@ -588,17 +632,16 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 			bNativeCall = FALSE;
 		}
 	}
+	int nParametersPassed = ((COM_0FUNC*)pLocalInstructionPointer)->func_nargs;
 	if (bNativeCall) {
 		stringFunctionParameters = (char**)(functionParameters + 2);
 		memset(nativeStack, 0, sizeof nativeStack);
 		if (typ == C_1FUNC) {
 			*functionParameters++ = pLocalInstructionPointer->p;
+			nParametersPassed--;
 		}
 	}
 
-	int nParametersPassed = typ == C_0FUNC ? 
-			((COM_0FUNC*)pLocalInstructionPointer)->func_nargs :
-			(int)(pContext->ec_stackCurrent - pContext->ec_parameterStack);
 	if (bNativeCall && !_currentFormInstruction) {
 		EDFUNC* fup = &_functionTable[funcnum];
 		int i;
@@ -639,7 +682,6 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 			// Work around for wrong stack manipulation on call site.
 			pContext->ec_stackCurrent++;
 			returnValue = interpreter_popStackValue(pContext);
-			pContext->ec_stackCurrent = pContext->ec_parameterStack;
 		}
 		interpreter_pushValueOntoStack(pContext, returnValue);
 	}
@@ -661,7 +703,7 @@ static long interpreter_assignSymbol(EXECUTION_CONTEXT* pContext, char* name) {
  * Returns a value from the parameter stack. 
  */
 static PKS_VALUE interpreter_getParameterStackValue(EXECUTION_CONTEXT* pContext, int nParamIndex) {
-	PKS_VALUE* pSlot = pContext->ec_parameterStack + nParamIndex;
+	PKS_VALUE* pSlot = pContext->ec_stackFrame + nParamIndex;
 	if (pSlot < pContext->ec_stackCurrent) {
 		return *pSlot;
 	}
@@ -705,12 +747,8 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 			}
 			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
-		case C_SET_PARAMETER_STACK:
-			pContext->ec_parameterStack = pContext->ec_stackCurrent;
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-			break;
 		case C_SET_STACKFRAME:
-			pContext->ec_stackFrame = pContext->ec_parameterStack;
+			pContext->ec_stackFrame = pContext->ec_stackCurrent;
 			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		case C_LOGICAL_OPERATION:

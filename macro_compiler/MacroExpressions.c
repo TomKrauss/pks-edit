@@ -209,9 +209,15 @@ static void interpreter_evaluateMultiplicationWithStrings(EXECUTION_CONTEXT* pCo
  * Create a range.
  */
 static void interpreter_createRange(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, PKS_VALUE v2) {
-	int nStart = interpreter_coerce(pContext, v1, S_NUMBER).sym_data.intValue;
 	int nEnd = interpreter_coerce(pContext, v2, S_NUMBER).sym_data.intValue;
-	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) {.sym_type = S_RANGE, .sym_data.range.r_start = nStart, .sym_data.range.r_end = nEnd});
+	if (v1.sym_type == S_RANGE) {
+		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_RANGE, .sym_data.range.r_start = v1.sym_data.range.r_start, 
+			.sym_data.range.r_end = v1.sym_data.range.r_end, .sym_data.range.r_increment = nEnd });
+	}
+	else {
+		int nStart = interpreter_coerce(pContext, v1, S_NUMBER).sym_data.intValue;
+		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_RANGE, .sym_data.range.r_start = nStart, .sym_data.range.r_end = nEnd });
+	}
 }
 
 /*--------------------------------------------------------------------------

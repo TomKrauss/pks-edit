@@ -89,6 +89,7 @@ static struct kw {
 	int			toknum;
 	char *	name;
 } keywords[] = {
+	T_TAUTO,	"auto",
 	T_VOID,		"void",
 	T_CONST,	"const",
 	T_IF,		"if",
@@ -109,9 +110,8 @@ static struct kw {
 	T_TFLOAT,	"float",
 	T_TBOOLEAN,	"boolean",
 	T_NAMESPACE, "namespace",
-	T_FOREACH, "foreach",
+	T_FOR,		"for",
 	T_STATIC,	"static",
-	T_IN,		"in",
 	T_TRUE,		"true",
 	T_FALSE,	"false",
 	T_TSTRING,	"string",

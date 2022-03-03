@@ -44,6 +44,12 @@ typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 extern int 		 sym_insert(IDENTIFIER_CONTEXT* pContext, char *key, SYMBOL_TYPE stType, GENERIC_DATA symdata);
 extern PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, char *key, char **key_ret);
 extern int 		 sym_makeInternalSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, GENERIC_DATA value);
+
+/*
+ * Remove one symbol from an identifier context.
+ */
+extern void sym_remove(IDENTIFIER_CONTEXT* pContext, char* key);
+
 /*
  * Returns the global identifier context.
  */

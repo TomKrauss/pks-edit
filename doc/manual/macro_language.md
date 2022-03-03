@@ -41,7 +41,6 @@ result in a message box:
  * will cause overflows for fac(>16) !
  */
 void calculateFactorial() {
-    int     n = 1;
     int     nSelected = 1;
     int     result = 1;
 
@@ -50,12 +49,10 @@ void calculateFactorial() {
         MessageBox(MB_ICONINFORMATION|MB_OK, "Calculation aborted.");
         return;
     }
-    n = nSelected;
 
-    while(n > 1) {
+	for (int n : 1..nSelected) {
         result *= n;
-        n--;
-    }
+	}
 
     if (result < 0) {
         MessageBox(MB_ICONERROR|MB_OK, "Overflow during calculation.");
@@ -74,7 +71,7 @@ void calculateFactorial() {
 - `/*` and `*/` may introduce multi-line comments similar to C. If one places a multi-lane comment before a macro, the comment will be used as 
   the description / help (in code completion) text for that macro.
  
-The **PKSMacroC** languages supports the following types, which can be used:
+All values in **PKSMacroC** code are `immutable`. Values may have one of the following types:
 
 - `string` as the name implies a string (internally implemented using zero terminated strings). Strings in PKS-Edit are dynamically allocated and de-allocated.
   no memory management is necessary in PKSMacroC code. One can concatenate strings by using the '+' operator. `string` literals follow C syntax and are enclosed
@@ -83,8 +80,11 @@ The **PKSMacroC** languages supports the following types, which can be used:
   octal numbers (`\0234`).
 - `float` represents floating point numbers. Floating point literals contain either a `.` character and may have a trailing `d` suffix (`12d`).
 - `boolean` boolean types are very often not explicitly defined, but created temporarily by executing a logical / relational operator on other types.
-- `range` ranges can be used to select a range of text etc. Currently their use is limited to extract a piece of a string.
-  
+- `range` ranges can be used to select a range of text or they can be iterated over using the foreach expression. A range has a lower and an upper bounds and
+   an optional increment. Ranges are built using the `..` operator as in `1..5` (Numbers 1 to 5 inclusively) or `0..21..3` (Numbers from 0 to 21 inclusively
+   but with an increment of 3).
+- `array` an array may contain 0 to n strings currently and is typically defined using an array literal such as `["hello", "world"]` (not yet fully implemented).
+
 PKSMacoC will try to coerce values to their "right" types or you may `cast` a value type to another explicitly using a cast operator. The following examples
 shows implicit and explicit coercions.
 
@@ -139,5 +139,6 @@ PKSMacroC currently supports the following control flow expressions:
 - `while (xx) { ... }` - allows to implement a while loop. While loops support nested `break` and `continue` statements.
 - `goto label` allows you to jump to a given label defined with `label_name:`.
 - `if (condition) ... [else ...]` - allows to conditionally execute one block with an optional else clause.
-
+. 'for(type var : expression) {}` - a foreach loop iterating over the elements of the result of evaluating `expression` setting the 
+   variable `v` to the elements produced. Currently one can iterate strings and ranges.
 

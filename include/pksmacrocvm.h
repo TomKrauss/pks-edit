@@ -77,7 +77,6 @@ struct tagEXECUTION_CONTEXT {
 	PKS_VALUE* ec_stackBottom;			// the bottom of the value stack
 	PKS_VALUE* ec_stackFrame;			// the stack bottom of the stack frame for the current macro executed
 	PKS_VALUE* ec_stackCurrent;			// the pointer to the current stack offset
-	PKS_VALUE* ec_parameterStack;		// the pointer to the current parameter stack offset.
 	PKS_VALUE* ec_stackMax;				// the top of the stack. Must not be overridden
 	const char* ec_currentFunction;		// name of the current function/macro being executed.
 	void* ec_allocations;				// list of allocated objects to be released, when execution halts.
@@ -145,7 +144,6 @@ typedef enum {
 
 	// Stack manipulation
 	C_SET_STACKFRAME = 0x20,		// start a new stack frame in an invoked method (after parameter have been retrieved)
-	C_SET_PARAMETER_STACK = 0x21,	// save the current stack pointer as the bottom of the parameter stack.
 	C_POP_STACK = 0x22				// pop one element of the stack. Marks the end of a statement.
 } MACROC_INSTRUCTION_OP_CODE;
 
@@ -175,15 +173,22 @@ extern PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValu
 typedef struct c_1func {
 	unsigned char	typ;			// C_1FUNC - carries one explicit param to pass
 	unsigned char	funcnum;		// index into editor function table _functionTable
+	int				func_args;		// Number of arguments actually passed.
 	long			p;				// optional parameter to pass
 } COM_1FUNC;
 
 typedef struct c_0func {
 	unsigned char typ;				// C_0FUNC all params are located on the stack
 	unsigned char funcnum;			// index in function table 
-	int			  func_nargs;		// Number of arguments passed
+	int			  func_nargs;		// Number of arguments actually passed.
 } COM_0FUNC;
 
+typedef struct tagCOM_MAC {
+	unsigned char typ;				// C_MACRO
+	unsigned char reserved;
+	int			  func_args;		// Number of arguments actually passed.
+	unsigned char name[1];			// 0-term. string padded to even # 
+} COM_MAC;
 
 /*
  * Describes an editor command.
@@ -191,17 +196,15 @@ typedef struct c_0func {
 typedef struct tagCOMMAND {
 	int		  c_index;				// the command index used internally.
 	COM_1FUNC c_functionDef;		// the actual functionto execute including flags.
-	char* c_name;					// name of the command used in macros
+	char*	  c_name;				// name of the command used in macros
 } COMMAND;
 
-typedef struct c_ident {
+typedef struct tagCOM_INLINE_STRING {
 	unsigned char typ;				// C_MACRO 
 	unsigned char name[1];			// 0-term. string padded to even # 
-} COM_MAC;
+} COM_VAR;
 
-typedef struct c_ident COM_VAR;
-
-typedef struct c_assign {
+typedef struct tagCOM_ASSIGN {
 	unsigned char 	typ;			// C_ASSIGN assign current stack top to a variable
 	unsigned char	name[1];		// variable name of variable assigned
 } COM_ASSIGN;

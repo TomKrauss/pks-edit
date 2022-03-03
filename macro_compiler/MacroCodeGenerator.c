@@ -45,7 +45,11 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 			typ = C_PUSH_SMALL_INT_LITERAL;
 	}
 
-	s = interpreter_getParameterSize(typ, data.string);
+	if (typ == C_MACRO) {
+		s = (long)(strlen(data.string) + sizeof(COM_MAC));
+	} else {
+		s = interpreter_getParameterSize(typ, data.string);
+	}
 	if ((spret = sp+s) > pBuffer->bb_end) {
 		yyerror(/*STR*/"Code generation buffer overflow. Macro to big.");
 		return 0;
@@ -88,6 +92,8 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 			break;
 		case C_ASSIGN:
 		case C_PUSH_VARIABLE:
+			strcpy(((COM_VAR*)sp)->name, data.string);
+			break;
 		case C_MACRO:
 			strcpy(((COM_MAC*)sp)->name, data.string);
 			break;

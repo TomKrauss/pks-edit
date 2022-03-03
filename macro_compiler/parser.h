@@ -41,8 +41,8 @@
    enum yytokentype {
      T_NAMESPACE = 258,
      T_STATIC = 259,
-     T_IN = 260,
-     T_FOREACH = 261,
+     T_FOR = 260,
+     T_TAUTO = 261,
      T_TSTRING = 262,
      T_TINT = 263,
      T_TCHAR = 264,

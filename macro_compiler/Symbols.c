@@ -122,6 +122,19 @@ static IDENTIFIER_CONTEXT* sym_findContext(IDENTIFIER_CONTEXT* pContext, const c
 	return 0;
 }
 
+/*
+ * Remove one symbol from an identifier context.
+ */
+void sym_remove(IDENTIFIER_CONTEXT* pContext, char* key) {
+	HASH_ENTRY entry;
+	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry);
+	if (pFound) {
+		hashmap_remove(pFound->ic_table, (intptr_t)key);
+		free((void*)entry.he_key);
+		sym_destroyEntry(0, entry.he_value);
+	}
+}
+
 /*--------------------------------------------------------------------------
  * sym_find()
  */

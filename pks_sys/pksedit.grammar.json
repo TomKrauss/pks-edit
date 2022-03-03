@@ -46,6 +46,7 @@
           "name": "keyword.pksedit",
           "style": "keyword",
           "keywords": [
+            "auto",
             "void",
             "do",
             "if",
@@ -56,8 +57,7 @@
             "braeq",
             "continue",
             "namespace",
-            "foreach",
-            "in",
+            "for",
             "const",
             "break",
             "return",

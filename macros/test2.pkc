@@ -69,7 +69,6 @@ void insertWithIncrement() {
  * will cause overflows for fac(>16) !
  */
 void calculateFactorial() {
-    int     n = 1;
     int     nSelected = 1;
     int     result = 1;
 
@@ -78,12 +77,11 @@ void calculateFactorial() {
         MessageBox(MB_ICONINFORMATION|MB_OK, "Calculation aborted.");
         return;
     }
-    n = nSelected;
 
-    while(n > 1) {
+	for (int n : 1..nSelected) {
         result *= n;
-        n--;
-    }
+	}
+
 
     if (result < 0) {
         MessageBox(MB_ICONERROR|MB_OK, "Overflow during calculation.");

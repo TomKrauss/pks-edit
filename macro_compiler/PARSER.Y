@@ -17,7 +17,7 @@
 %}
 
 
-%token T_NAMESPACE T_STATIC T_IN T_FOREACH
+%token T_NAMESPACE T_STATIC T_FOR T_TAUTO
 %token T_TSTRING T_TINT T_TCHAR T_TLONG T_TFLOAT T_RANGE
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_CHARACTER T_CONST
 %token T_TRUE T_FALSE T_TBOOLEAN
@@ -89,6 +89,7 @@ static void 	bytecode_emitPushParameterInstruction(long long lValue);
 static MACRO_SCOPE _macroScope;
 static int	_currentNamespaceIndex;
 static int	_generateShorthandAssignment;
+static int  _foreachCursorIndex;
 static 		char *lstartid  = "%ls%",
 			     *lendid    = "%le%",
 				*lreturnid = "%rt%",
@@ -140,6 +141,12 @@ static SYMBOL_TYPE constantTypeFor(SYMBOL_TYPE aValueType) {
 	case S_CHARACTER: return S_CONSTCHARACTER;
 	}
 	return S_CONSTNUM;
+}
+
+static void push_newForeachCursor() {
+	char buf[32];
+	sprintf(buf, "#c%d", _foreachCursorIndex++);
+	YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=buf});
 }
 
 %}
@@ -327,6 +334,7 @@ statement: ';'
 			| assignment ';' { $$.needsPop = 1; }
 			| if_expression { $$.needsPop = 1; }
 			| while { $$.needsPop = 1; }
+			| foreach { $$.needsPop = 1; }
 			| case { $$.needsPop = 1; }
 			| break { $$.needsPop = 0; }
 			| continue { $$.needsPop = 0; }
@@ -375,7 +383,13 @@ arithmetic_expression: simple_expression	{ $$.v = $1.v; }
 
 simple_expression: binary_expression { $$.v = $1.v; }
 			| binary_expression '[' binary_expression ']' { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); }
-			| binary_expression T_DOTDOT binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_RANGE}); }
+			| range_expression
+
+range_expression:
+			| binary_expression T_DOTDOT binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_RANGE}); } range_increment
+
+range_increment:
+			| T_DOTDOT binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_RANGE}); }
 
 increment_expression: 
 			variable_reference T_MINUSMINUS  { _bytecodeBuffer.bb_current = bytecode_emitIncrementExpression(&_bytecodeBuffer, $1.ident.s, -1); }
@@ -520,7 +534,38 @@ goto:		T_GOTO T_IDENT {
 				freeitem(&$2.ident.s);
 			} ';'
 
-while		: T_WHILE {
+in_clause:	'(' type_ident variable_identifier {
+				push_newForeachCursor();
+				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$3.ident.s});
+				if ($2.type == S_STRING) {
+					makeInternalSymbol($3.ident.s, $2.type, (intptr_t)"");
+				} else {
+					makeInternalSymbol($3.ident.s, $2.type, (intptr_t)0);
+				}
+				if ($3.ident.stringIsAlloced) {
+					free($3.ident.s);
+				}
+			} ':' simple_expression ')' {
+				PKS_VALUE 	sym;
+				char *	key;
+				sym = sym_find(_currentIdentifierContext, "foreach",&key);
+				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction((void*)VALUE(sym))}, 3);
+			}
+
+foreach:	T_FOR {
+				bytecode_generateAutoLabelNamePrefix(lstartid,_breaklevel);
+			} in_clause {
+				bytecode_emitGotoInstruction(lendid,_breaklevel,BRA_IF_FALSE);
+				_breaklevel++;
+			} local_block {
+				_breaklevel--;
+				bytecode_emitGotoInstruction(lstartid,_breaklevel,BRA_ALWAYS);
+				bytecode_generateAutoLabelNamePrefix(lendid,_breaklevel);
+				bytecode_destroyAutoLabelNamePrefix(lstartid,_breaklevel);
+				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
+			}
+
+while:		T_WHILE {
 				bytecode_generateAutoLabelNamePrefix(lstartid,_breaklevel);
 			} condition {
 				bytecode_emitGotoInstruction(lendid,_breaklevel,BRA_IF_FALSE);
@@ -541,12 +586,12 @@ if_expression:
 				_iflevel++;
 			} local_block {
 				_iflevel--;
-			} elseclause {
+			} else_clause {
 				bytecode_generateAutoLabelNamePrefix(ifdoneid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(ifdoneid,_iflevel);
 			}
 
-elseclause: {
+else_clause: {
 				bytecode_generateAutoLabelNamePrefix(iffailid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(iffailid,_iflevel);
 			}
@@ -570,7 +615,6 @@ call_expression: T_FUNC '(' {
 				_currentFunctionCallParamIndexP++;
 				*_currentFunctionCallParamIndexP = 0;
 				$$.funcp = $1.funcp;
-				YY_EMIT(C_SET_PARAMETER_STACK,(GENERIC_DATA){0});
 			} parameter_list ')' {
 				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction($1.funcp)}, *_currentFunctionCallParamIndexP);
 				_currentFunctionCallParamIndexP--;
@@ -582,9 +626,8 @@ call_expression: T_FUNC '(' {
 				*_currentFunctionCallParamIndexP = 0;
 				_calledFunctionOrMacro = $1.ident.s;
 				$$.funcp = 0;
-				YY_EMIT(C_SET_PARAMETER_STACK,(GENERIC_DATA){0});
 			} parameter_list ')' {
-				YY_EMIT(C_MACRO,(GENERIC_DATA){.string = _calledFunctionOrMacro});
+				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, C_MACRO,(GENERIC_DATA){.string = _calledFunctionOrMacro}, *_currentFunctionCallParamIndexP);
 				_currentFunctionCallParamIndexP--;
 				freeitem(&_calledFunctionOrMacro);
 			}
@@ -607,6 +650,7 @@ type_ident:   T_TCHAR				{	$$.type = S_CHARACTER;	}
 			| T_TFLOAT				{	$$.type = S_FLOAT;	}
 			| T_TBOOLEAN			{	$$.type = S_BOOLEAN; }
 			| T_TSTRING				{	$$.type = S_STRING;	}
+			| T_TAUTO				{	$$.type = S_NUMBER; /* TODO: introduce type-inference type placeholder here */	}
 			| T_RANGE				{	$$.type = S_RANGE;	}
 
 boolean_literal: T_TRUE {
@@ -776,6 +820,7 @@ static void init_macroDefinition(void)
 #ifdef YYDEBUG
 int	yydebug = 1;
 #endif
+	_foreachCursorIndex = 0;
 	_currentFunctionCallParamIndexP = _currentFunctionCallParamIndices;
 	init_bytecodeBuffer();
 	_nparam = 0;

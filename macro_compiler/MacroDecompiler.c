@@ -27,10 +27,10 @@
 #include "stringutil.h"
 #include "errordialogs.h"
 
+void bytecode_closeAutoLabels(void);
 int  bytecode_makeAutoLabel(COM_GOTO *cp);
 void bytecode_initializeAutoLabels(void);
 void bytecode_startNextAutoLabel(char **name, COM_GOTO **cp);
-void bytecode_closeAutoLabels(void);
 char *bytecode_findAutoLabelForInstruction(COM_GOTO *cp);
 
 typedef enum {
@@ -252,14 +252,6 @@ static DECOMPILATION_STACK_ELEMENT* decompile_popStack(DECOMPILATION_STACK_ELEME
 	return pStackCurrent;
 }
 
-static DECOMPILATION_STACK_ELEMENT* decompile_findParamStack(DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
-	while (--pStackCurrent >= pStack) {
-		if (!pStackCurrent->dse_printed && pStackCurrent->dse_instruction && pStackCurrent->dse_instruction->typ == C_SET_PARAMETER_STACK) {
-			return pStackCurrent+1;
-		}
-	}
-	return pStack;
-}
 /*
  * decompile_function()
  */
@@ -271,7 +263,7 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 	char szParam[128];
 
 	if (sp->typ == C_MACRO) {
-		sprintf(szFunctionCall,"%s",((COM_MAC*)sp)->name);
+		sprintf(szFunctionCall,"%s (%d params)",((COM_MAC*)sp)->name, ((COM_MAC*)sp)->func_args);
 		ep = NULL;
 	} else {
 		decompile_printFunctionName(szFunctionCall, sp->funcnum);
@@ -280,34 +272,44 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 	strcat(szFunctionCall, "(");
 
 	npars = 0;
+	int passedArgs = ((COM_0FUNC*)sp)->func_nargs;
 	if (sp->typ == C_1FUNC) {
 		partyp = function_getParameterTypeDescriptor(ep, 1);
 		if (decompile_printParameter(szParam,(unsigned char*)sp,partyp) < 0)
 			return 0;
 		strcat(szFunctionCall, szParam);
 		npars++;
+		passedArgs--;
 	}
 
-	DECOMPILATION_STACK_ELEMENT* pParamStack = decompile_findParamStack(pStackCurrent, pStack);
+	DECOMPILATION_STACK_ELEMENT* pParamStack = pStackCurrent-passedArgs;
 	if (pParamStack < pStack) {
 		pParamStack = pStack;
 	}
-	DECOMPILATION_STACK_ELEMENT* pStackFrame = pParamStack-1;
-	while(pParamStack < pStackCurrent) {
-		if (!pParamStack->dse_printed) {
-			break;
-		}
-		partyp = ep == NULL ? (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = PARAM_TYPE_VOID} : function_getParameterTypeDescriptor(ep, npars + 1);
-		if (npars) {
-			strcat(szFunctionCall, ",");
-		}
-		size_t nBytes = strlen(szFunctionCall);
-		strncat(szFunctionCall, pParamStack->dse_printed, sizeof(szFunctionCall) - 3 - nBytes);
+	DECOMPILATION_STACK_ELEMENT* pStackFrame = pParamStack;
+	if (passedArgs == 3 && sp->typ == C_0FUNC && sp->funcnum == FUNC_Foreach) {
+		strcpy(szFunctionCall, "for (");
 		pParamStack++;
-		npars++;
+		strcat(szFunctionCall, "auto ");
+		strcat(szFunctionCall, ((COM_VAR*) pParamStack->dse_instruction)->name);
+		strcat(szFunctionCall, " : ");
+		pParamStack++;
+		strcat(szFunctionCall, pParamStack->dse_printed);
 	}
-	while (pStackCurrent > pStackFrame) {
-		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
+	else {
+		while(pParamStack < pStackCurrent) {
+			if (!pParamStack->dse_printed) {
+				break;
+			}
+			partyp = ep == NULL ? (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = PARAM_TYPE_VOID} : function_getParameterTypeDescriptor(ep, npars + 1);
+			if (npars) {
+				strcat(szFunctionCall, ",");
+			}
+			size_t nBytes = strlen(szFunctionCall);
+			strncat(szFunctionCall, pParamStack->dse_printed, sizeof(szFunctionCall) - 3 - nBytes);
+			pParamStack++;
+			npars++;
+		}
 	}
 
 	strcat(szFunctionCall, ")");
@@ -483,6 +485,12 @@ static char* decompile_binaryOperationAsString(unsigned char op) {
 	if (op == BIN_SHIFT_RIGHT) {
 		return ">>";
 	}
+	if (op == BIN_POWER) {
+		return "**";
+	}
+	if (op == BIN_RANGE) {
+		return "..";
+	}
 	szTemp[0] = op;
 	return szTemp;
 }
@@ -517,7 +525,8 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 		case C_ASSIGN: fprintf(fp, "assignVariable %s", ((COM_ASSIGN*)sp)->name); break;
 		case C_MACRO:fprintf(fp, "call %s", ((COM_MAC*)sp)->name); break;
 		case C_0FUNC: fprintf(fp, "nativeCall0 %d (%s) (%d params)", ((COM_0FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_0FUNC*)sp)->func_nargs); break;
-		case C_1FUNC: fprintf(fp, "nativeCall1 %d (%s) %d", ((COM_1FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_1FUNC*)sp)->p); break;
+		case C_1FUNC: fprintf(fp, "nativeCall1 %d (%s) (%d params) %d", ((COM_1FUNC*)sp)->funcnum, 
+				_functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_0FUNC*)sp)->func_nargs, ((COM_1FUNC*)sp)->p); break;
 		case C_PUSH_VARIABLE: fprintf(fp, "pushVariable "); break;
 		case C_PUSH_LONG_LITERAL: fprintf(fp, "pushLongLiteral %lld", (long long)((COM_LONG1*)sp)->val); break;
 		case C_PUSH_SMALL_INT_LITERAL: fprintf(fp, "pushSmallIntLiteral %d", ((COM_CHAR1*)sp)->val); break;
@@ -530,7 +539,6 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 		case C_DEFINE_PARAMETER: fprintf(fp, "defineParameter %s", ((COM_CREATESYM*)sp)->name); break;
 		case C_FORM_START: fprintf(fp, "beginFormParameters"); break;
 		case C_SET_STACKFRAME: fprintf(fp, "setStackFrame"); break;
-		case C_SET_PARAMETER_STACK: fprintf(fp, "startParameters"); break;
 		case C_POP_STACK: fprintf(fp, "pop"); break;
 		default: fprintf(fp, "opcode 0x%x", t); break;
 		}
@@ -769,10 +777,18 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 			COM_GOTO* cp = (COM_GOTO*)sp;
 			if (pStackCurrent > pStack && pFoundMark) {
 				decompile_indent(fp, nIndent);
-				fprintf(fp, "%s (", pFoundMark->cfmi_mark == CFM_WHILE ? "while" : "if");
-				nIndent++;
-				pStackCurrent = decompile_flushStack(fp, pStackCurrent, pStack);
-				fprintf(fp, ") {\n");
+				BOOL bWhile = pFoundMark->cfmi_mark == CFM_WHILE;
+				if (bWhile && pStackCurrent[-1].dse_instruction->typ == C_0FUNC && pStackCurrent[-1].dse_instruction->funcnum == FUNC_Foreach) {
+					pStackCurrent = decompile_flushStack(fp, pStackCurrent, pStack);
+					nIndent++;
+					fprintf(fp, " {\n");
+				}
+				else {
+					fprintf(fp, "%s (", bWhile ? "while" : "if");
+					nIndent++;
+					pStackCurrent = decompile_flushStack(fp, pStackCurrent, pStack);
+					fprintf(fp, ") {\n");
+				}
 			}
 			else if (pFoundMark) {
 				if (pFoundMark->cfmi_mark == CFM_ELSE) {
@@ -785,7 +801,7 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 					decompile_indent(fp, nIndent - 1);
 					fprintf(fp, "continue;\n");
 				}
-				else {
+				else if (pFoundMark->cfmi_mark != CFM_END_BLOCK) {
 					pFoundMark = 0;
 				}
 			}
@@ -828,11 +844,7 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 				fprintf(fp, ";\n");
 			}
 		}
-		else if (opCode == C_SET_PARAMETER_STACK) {
-			pStackCurrent->dse_printed = 0;
-			pStackCurrent->dse_instruction = (COM_0FUNC*)sp;
-			pStackCurrent++;
-		} else if (opCode == C_SET_STACKFRAME) {
+		else if (opCode == C_SET_STACKFRAME) {
 		} else {
 			decompile_indent(fp, nIndent);
 			fprintf(fp, "// format error in %s type=%x",MAC_NAME(mp),opCode);
