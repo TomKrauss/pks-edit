@@ -207,8 +207,3 @@ unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, char* 
 	return bytecode_emitAssignment(pBuffer, pszName);
 }
 
-unsigned char* bytecode_emitShorthandAssignment(BYTECODE_BUFFER* pBuffer, int nBinaryOp, char* pszName) {
-	pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_VARIABLE, (GENERIC_DATA) { .string = pszName });
-	pBuffer->bb_current = bytecode_emitBinaryOperation(pBuffer, nBinaryOp, VT_NUMBER);
-	return bytecode_emitAssignment(pBuffer, pszName);
-}

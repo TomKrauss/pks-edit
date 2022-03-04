@@ -89,7 +89,6 @@ static void 	bytecode_emitPushParameterInstruction(long long lValue);
 
 static MACRO_SCOPE _macroScope;
 static int	_currentNamespaceIndex;
-static int	_generateShorthandAssignment;
 static int  _foreachCursorIndex;
 static 		char *lstartid  = "%ls%",
 			     *lendid    = "%le%",
@@ -107,7 +106,6 @@ int 			function_parameterIsFormStart(void *ep,int parno);
 extern int macro_lookupNamespace(const char* pszNamespacename);
 extern unsigned char* bytecode_emitBinaryOperation(BYTECODE_BUFFER* pBuffer, int nOperationType, PKS_VALUE_TYPE nTargetType);
 extern unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, char* pszName, int nIncrement);
-extern unsigned char* bytecode_emitShorthandAssignment(BYTECODE_BUFFER* pBuffer, int nBinaryOp, char* pszName);
 extern unsigned char* bytecode_emitAssignment(BYTECODE_BUFFER* pBuffer, const char *name);
 extern unsigned char* bytecode_emitFunctionCall(BYTECODE_BUFFER* pBuffer, unsigned char typ, GENERIC_DATA data, int nArgs);
 
@@ -355,25 +353,17 @@ statement: ';'
 errors:		error 
 			| errors error
 
-assignment	: variable_reference assignment_or_shorthand_assignment {
-				if (_generateShorthandAssignment) {
-					_bytecodeBuffer.bb_current = bytecode_emitShorthandAssignment(&_bytecodeBuffer, _generateShorthandAssignment, $1.ident.s);
-				} else {
-					_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
-				}
+assignment	: variable_reference assignment_expression {
+				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
 				vname_count = 0;
-				_generateShorthandAssignment = 0;
-			}
-
-assignment_or_shorthand_assignment:
-			assignment_expression {
-				_generateShorthandAssignment = 0;
-				$$.v = $1.v;
 			}
 			|
-			shorthand_assignment_operator arithmetic_expression	{ 
-				_generateShorthandAssignment = $1.type;
-				$$.v = $2.v;
+			variable_reference {
+				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
+			} shorthand_assignment_operator arithmetic_expression {
+				YY_EMIT(C_BINOP, (GENERIC_DATA){$3.type});
+				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
+				vname_count = 0;
 			}
 
 shorthand_assignment_operator: 

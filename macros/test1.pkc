@@ -15,6 +15,10 @@ void Suite() {
 	clear();
 	Start-Test("Test-Binary-Expressions");
 	Test-Binary-Expressions();
+	Start-Test("Test-Expression");
+	Test-Expression();
+	Start-Test("Test-Ranges");
+	Test-Ranges();
 	Start-Test("Test-Sprintf");
 	Test-Sprintf();
 	Start-Test("Test-Strings");
@@ -48,7 +52,7 @@ static void Test-Console-Stress() {
 
 }
 
-void Test-Arrays() {
+static void Test-Arrays() {
 	string[] myArray = {"hello", "world", "how", "are", "you", "doing"};
 	string[] array2 = {"array", "two" };
 	string[] extracted;
@@ -63,7 +67,7 @@ void Test-Arrays() {
 	myArray = myArray + "lastword";
 	println("One word appended to array: " + myArray);
 
-	myArray = myArray + array2;
+	myArray += array2;
 	println("Another array appended: " + myArray);
 
 	extracted = myArray[1..4];
@@ -75,7 +79,7 @@ void Test-Arrays() {
  * Tests ranges in combinations with foreach.
  * A range has a lower bounds, an upper bounds and an optional increment.
  */
-void Test-Ranges() {
+static void Test-Ranges() {
 	for (int i : 1..17) {
 		println("Next is " + i);
 	}
@@ -106,10 +110,10 @@ static void Test-Expression() {
 		x = 13;
 	}
 
-	MessageBox(MB_OK, "String '" + s1 + s2 + re + QUOTE);
+	println("String '" + s1 + s2 + re + QUOTE);
 
 	if (s1) {
-		MessageBox(MB_OK, "OK");
+		println("OK");
 	}
 }
 
