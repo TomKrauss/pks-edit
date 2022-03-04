@@ -44,6 +44,7 @@ typedef union uGENERIC_DATA {
 	intptr_t val;
 	unsigned char booleanValue;
 	char* string;
+	void* stringList;
 	int		intValue;
 	long long longValue;
 	double   doubleValue;
@@ -61,7 +62,8 @@ typedef enum {
 	VT_STRING = 3,
 	VT_FLOAT = 4,
 	VT_CHAR = 5,
-	VT_RANGE = 6
+	VT_RANGE = 6,
+	VT_STRING_ARRAY = 7
 } PKS_VALUE_TYPE;
 
 typedef struct tagPKS_VALUE {
@@ -73,13 +75,15 @@ typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 
 #define MAX_STACK_SIZE		256
 
+typedef struct tagOBJECT_MEMORY OBJECT_MEMORY;
+
 struct tagEXECUTION_CONTEXT {
 	PKS_VALUE* ec_stackBottom;			// the bottom of the value stack
 	PKS_VALUE* ec_stackFrame;			// the stack bottom of the stack frame for the current macro executed
 	PKS_VALUE* ec_stackCurrent;			// the pointer to the current stack offset
 	PKS_VALUE* ec_stackMax;				// the top of the stack. Must not be overridden
 	const char* ec_currentFunction;		// name of the current function/macro being executed.
-	void* ec_allocations;				// list of allocated objects to be released, when execution halts.
+	OBJECT_MEMORY* ec_allocations;		// list of allocated objects to be released, when execution halts.
 	IDENTIFIER_CONTEXT* ec_identifierContext;
 };
 
@@ -128,23 +132,24 @@ typedef enum {
 	C_ASSIGN= 0x8,  			// assign: a = stackval
 
 	// Push objects onto the stack
-	C_PUSH_CHARACTER_LITERAL = 0x10, // Push character literal. 1 Ascii character follows 
-	C_PUSH_SMALL_INT_LITERAL = 0x11, // Push an integer literal in a compacted way (0-255).
-	C_PUSH_STRING_LITERAL = 0x12, 	 // Push string literal, 1 string Asciistring\0 follows {pad} 
-	C_PUSH_INTEGER_LITERAL = 0x13,   // Push Integer literal, pad, 1 int Parameter follows 
-	C_PUSH_LONG_LITERAL  = 0x14, 	 // Push long literal, pad, 1 long Parameter follows 
-	C_PUSH_FLOAT_LITERAL = 0x15, 	 // Push floating point literal
-	C_PUSH_BOOLEAN_LITERAL   = 0x16, // Push boolean literal 1 Ascii character follows 
-	C_PUSH_VARIABLE = 0x17,			 // variable reference to string
-	C_FORM_START = 0x18, 			 // formular with parameters ...
+	C_PUSH_CHARACTER_LITERAL = 0x10,		// Push character literal. 1 Ascii character follows 
+	C_PUSH_SMALL_INT_LITERAL = 0x11,		// Push an integer literal in a compacted way (0-255).
+	C_PUSH_STRING_LITERAL = 0x12, 			// Push string literal, 1 string Asciistring\0 follows {pad} 
+	C_PUSH_INTEGER_LITERAL = 0x13,			// Push Integer literal, pad, 1 int Parameter follows 
+	C_PUSH_LONG_LITERAL  = 0x14, 			// Push long literal, pad, 1 long Parameter follows 
+	C_PUSH_FLOAT_LITERAL = 0x15, 			// Push floating point literal
+	C_PUSH_BOOLEAN_LITERAL   = 0x16,		// Push boolean literal 1 Ascii character follows 
+	C_PUSH_STRING_ARRAY_LITERAL = 0x17, 	// Push string array literal, n strings\0 follow  
+	C_PUSH_VARIABLE = 0x18,					// variable reference to string
+	C_FORM_START = 0x19, 					// formular with parameters ...
 	
 	// Define parameters and variables
-	C_DEFINE_PARAMETER = 0x19,		// create symbol with type and value 
-	C_DEFINE_VARIABLE = 0x1A,		// define a variable with type and value 
+	C_DEFINE_PARAMETER = 0x1A,				// create symbol with type and value 
+	C_DEFINE_VARIABLE = 0x1B,				// define a variable with type and value 
 
 	// Stack manipulation
-	C_SET_STACKFRAME = 0x20,		// start a new stack frame in an invoked method (after parameter have been retrieved)
-	C_POP_STACK = 0x22				// pop one element of the stack. Marks the end of a statement.
+	C_SET_STACKFRAME = 0x20,				// start a new stack frame in an invoked method (after parameter have been retrieved)
+	C_POP_STACK = 0x22						// pop one element of the stack. Marks the end of a statement.
 } MACROC_INSTRUCTION_OP_CODE;
 
 
@@ -203,6 +208,14 @@ typedef struct tagCOM_INLINE_STRING {
 	unsigned char typ;				// C_MACRO 
 	unsigned char name[1];			// 0-term. string padded to even # 
 } COM_VAR;
+
+typedef struct tagCOM_STRING_ARRAYLITERAL {
+	unsigned char 	typ;			// C_PUSH_STRING_ARRAY_LITERAL push a string array
+	unsigned char   length;			// length of the array
+	unsigned int    totalBytes;		// Total size of this instruction in bytes.
+	unsigned char	strings[1];		// 'length' number of 0-terminated strings follow now.
+} COM_STRING_ARRAYLITERAL;
+
 
 typedef struct tagCOM_ASSIGN {
 	unsigned char 	typ;			// C_ASSIGN assign current stack top to a variable
@@ -306,6 +319,22 @@ typedef struct tagCOMPILER_CONFIGURATION {
 } COMPILER_CONFIGURATION;
 
 extern COMPILER_CONFIGURATION* _compilerConfiguration;
+
+/*
+ * Adds one value to the object memory.
+ */
+extern void memory_add(EXECUTION_CONTEXT* pContext, PKS_VALUE value);
+
+/*
+ * Creates a new object memory;
+ */
+extern OBJECT_MEMORY* memory_create();
+
+/*
+ * Free the allocated object memory and all objects remaining in the memory.
+ */
+extern void memory_destroy(OBJECT_MEMORY* pMemory);
+
 
 #define PKSMACROCVM_H
 #endif

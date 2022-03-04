@@ -25,7 +25,7 @@
 %token T_IF T_ELIF T_ELSE T_WHILE T_GOTO T_BRAEQ
 %token T_SH_ASSIGN_PLUS T_SH_ASSIGN_MINUS T_SH_ASSIGN_MULT T_SH_ASSIGN_DIV T_SH_ASSIGN_MOD
 %token T_LOCAL T_SWITCH T_BREAK T_CONTINUE T_RETURN 
-%token T_NUMVAR T_RANGEVAR T_FLOATVAR T_STRINGVAR T_BOOLEANVAR T_CHARACTERVAR
+%token T_NUMVAR T_RANGEVAR T_FLOATVAR T_STRINGVAR T_STRINGARRAYVAR T_BOOLEANVAR T_CHARACTERVAR
 %token T_NMATCH
 %token T_ASSIGN T_NE T_EQ T_SHIFT_LEFT T_SHIFT_RIGHT 
 %token T_OR T_AND T_LE T_GE T_POWER_TO
@@ -55,6 +55,7 @@
 #include "scanner.h"
 #include "test.h"
 #include "symbols.h"
+#include "arraylist.h"
 
 # define 	YYSTYPE _YYSTYPE
 # define 	STRINGTYPE(type)	((type == C_PUSH_STRING_LITERAL||type == C_PUSH_VARIABLE) ? \
@@ -126,6 +127,7 @@ void 		bytecode_closeOpenLabels(void);
 void 		bytecode_destroyLabelNamed(char *name);
 char*		bytecode_generateAutoLabelName(char *prefix, int num);
 int 		function_returnsString(void *ep);
+static ARRAY_LIST* _currentArrayLiteral;
 
 IDENTIFIER_CONTEXT* _currentIdentifierContext;
 
@@ -218,7 +220,8 @@ constant_literal:
 				$$.v.type = S_STRING;
 			}
 
-variable_identifier:	T_IDENT 	{	$$.ident = $1.ident; }
+variable_identifier:	
+			T_IDENT 				{	$$.ident = $1.ident; }
 			| variable_reference	{	$$.ident = $1.ident; }
 			| T_NUM
 			{
@@ -235,6 +238,7 @@ variable_identifier:	T_IDENT 	{	$$.ident = $1.ident; }
 
 variable_reference:	
 			T_STRINGVAR 		{	$$.ident = $1.ident; }
+			| T_STRINGARRAYVAR 	{	$$.ident = $1.ident; }
 			| T_NUMVAR 			{	$$.ident = $1.ident; }
 			| T_RANGEVAR 		{	$$.ident = $1.ident; }
 			| T_CHARACTERVAR	{	$$.ident = $1.ident; }
@@ -254,6 +258,7 @@ macro_declaration: macro_type T_IDENT {
 
 macro_type:	T_VOID
 			| T_TSTRING
+			| T_TSTRING '[' ']'
 			| T_TBOOLEAN
 			| T_TINT 
 			| T_TCHAR 
@@ -273,7 +278,7 @@ non_empty_pardecl:
 			|
 			par_decl
 
-par_decl: type_ident variable_identifier {
+par_decl:	type_name variable_identifier {
 				sym_makeInternalSymbol(_currentIdentifierContext, $2.ident.s, S_NUMBER, (GENERIC_DATA) {_nparam});
 				bytecode_defineVariable(&_bytecodeBuffer, $2.ident.s,C_DEFINE_PARAMETER,$1.type,_nparam);
 				free($2.ident.s);
@@ -308,7 +313,7 @@ block:		'{' var_decls stmntlist '}'
 var_decls:
 			| var_decl var_decls
 
-var_decl: type_ident variable_identifier assignment_expression ';'	{
+var_decl:	type_name variable_identifier assignment_expression ';'	{
 				makeInternalSymbol($2.ident.s,
 					$1.type,
 					($1.type == S_STRING) ? (intptr_t)"" : 0);
@@ -317,7 +322,7 @@ var_decl: type_ident variable_identifier assignment_expression ';'	{
 					free($2.ident.s);
 				}
 				vname_count = 0;
-			} | type_ident variable_identifier ';'	{
+			} | type_name variable_identifier ';'	{
 				if ($1.type == S_STRING) {
 					makeInternalSymbol($2.ident.s, $1.type, (intptr_t)"");
 				} else {
@@ -343,10 +348,12 @@ statement: ';'
 			| block { $$.needsPop = 1; }
 			| increment_expression { $$.needsPop = 1; }
 			| label { $$.needsPop = 0; }
-			| error {
+			| errors {
 				yyerror("Invalid statement. Expecting one of function call, assignment, if, while, case, break, continue, return, goto, increment_expression, block or label."); 
 			}
 
+errors:		error 
+			| errors error
 
 assignment	: variable_reference assignment_or_shorthand_assignment {
 				if (_generateShorthandAssignment) {
@@ -382,7 +389,11 @@ arithmetic_expression: simple_expression	{ $$.v = $1.v; }
 			| '(' simple_expression ')'		{ $$.v = $2.v; }
 
 simple_expression: binary_expression { $$.v = $1.v; }
-			| binary_expression '[' binary_expression ']' { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); }
+			| binary_expression '[' binary_expression_or_range ']' { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); }
+			| range_expression
+
+binary_expression_or_range:
+			binary_expression
 			| range_expression
 
 range_expression:
@@ -458,6 +469,10 @@ value:		T_NUMVAR {
 				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
 				$$.type = S_FLOAT;
 			}
+			| T_STRINGARRAYVAR 	{
+				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
+				$$.type = S_STRING_ARRAY;
+			}
 			| T_RANGEVAR {
 				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
 				$$.type = S_RANGE;
@@ -480,13 +495,36 @@ value:		T_NUMVAR {
 				free($1.ident.s);
 			}
 			| simple_literal {	$$.type = $1.type;	}
+			| array_literal {	
+				$$.type = S_STRING_ARRAY;
+				YY_EMIT(C_PUSH_STRING_ARRAY_LITERAL, (GENERIC_DATA){.stringList=_currentArrayLiteral});
+				arraylist_destroyStringList(_currentArrayLiteral);
+				_currentArrayLiteral = 0;
+			}
 			| T_IDENT {
 				yyerror("Undefined identifier %s", $1.ident.s);
 				$$.v.type = C_PUSH_VARIABLE;  
 				$$.v.data.string  = $1.ident.s;
 			}
 
-string:		T_STRING {	$$.ident = $1.ident;	}
+array_literal: '{' {
+				_currentArrayLiteral = arraylist_create(1);
+			} 
+			'}'
+			| '{' {
+				_currentArrayLiteral = arraylist_create(3);
+			} array_elements '}'
+
+array_elements:
+			array_elements ',' T_STRING {
+				arraylist_add(_currentArrayLiteral, $3.ident.s);
+			}
+			|
+			T_STRING {
+				arraylist_add(_currentArrayLiteral, $1.ident.s);
+			}
+
+string:		T_STRING {	$$.ident = $1.ident; }
 			| string T_STRING { 
 				if (($$.ident.s = malloc(strlen($1.ident.s)+strlen($2.ident.s)+1)) != 0) {
 					strcat(strcpy($$.ident.s,$1.ident.s),$2.ident.s);
@@ -534,7 +572,7 @@ goto:		T_GOTO T_IDENT {
 				freeitem(&$2.ident.s);
 			} ';'
 
-in_clause:	'(' type_ident variable_identifier {
+in_clause:	'(' type_name variable_identifier {
 				push_newForeachCursor();
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$3.ident.s});
 				if ($2.type == S_STRING) {
@@ -640,16 +678,17 @@ nonempty_parameters: parameter
 				yyerror("illegal parameters for method call");
 			}
 
-parameter:	binary_expression { $$.type = $1.type; (*_currentFunctionCallParamIndexP)++; }
+parameter:	simple_expression { $$.type = $1.type; (*_currentFunctionCallParamIndexP)++; }
 
-type_cast:	'(' type_ident ')'	{	$$.type = $2.type;		}
+type_cast:	'(' type_name ')'	{	$$.type = $2.type;		}
 
-type_ident:   T_TCHAR				{	$$.type = S_CHARACTER;	}
+type_name:   T_TCHAR				{	$$.type = S_CHARACTER;	}
 			| T_TINT				{	$$.type = S_NUMBER;	}
 			| T_TLONG				{	$$.type = S_NUMBER;	}
 			| T_TFLOAT				{	$$.type = S_FLOAT;	}
 			| T_TBOOLEAN			{	$$.type = S_BOOLEAN; }
 			| T_TSTRING				{	$$.type = S_STRING;	}
+			| T_TSTRING '[' ']'		{	$$.type = S_STRING_ARRAY;	}
 			| T_TAUTO				{	$$.type = S_NUMBER; /* TODO: introduce type-inference type placeholder here */	}
 			| T_RANGE				{	$$.type = S_RANGE;	}
 

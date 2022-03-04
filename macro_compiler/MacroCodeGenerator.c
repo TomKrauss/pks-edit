@@ -18,6 +18,7 @@
 
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
+#include "arraylist.h"
 #include "scanner.h"
 
 extern void 	yyerror(char *s, ...);
@@ -45,7 +46,22 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 			typ = C_PUSH_SMALL_INT_LITERAL;
 	}
 
-	if (typ == C_MACRO) {
+	if (typ == C_PUSH_STRING_ARRAY_LITERAL) {
+		ARRAY_LIST* pList = data.stringList;
+		size_t nElements = arraylist_size(pList);
+		COM_STRING_ARRAYLITERAL* pLiteral = (COM_STRING_ARRAYLITERAL * )sp;
+		spret = (char*)((COM_STRING_ARRAYLITERAL*)sp)->strings;
+		pLiteral->length = (int)nElements;
+		for (int i = 0; i < nElements; i++) {
+			char* pString = arraylist_get(pList, i);
+			size_t nLen = strlen(pString);
+			strcpy(spret, pString);
+			spret += nLen;
+			*spret++ = 0;
+		}
+		s = (int)(spret - sp);
+		pLiteral->totalBytes = s;
+	} else if (typ == C_MACRO) {
 		s = (long)(strlen(data.string) + sizeof(COM_MAC));
 	} else {
 		s = interpreter_getParameterSize(typ, data.string);
@@ -56,6 +72,8 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 	}
 
 	switch(typ) {
+	case C_PUSH_STRING_ARRAY_LITERAL:
+		break;
 		case C_STOP:
 		case C_SET_STACKFRAME:
 		case C_PUSH_CHARACTER_LITERAL: 

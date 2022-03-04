@@ -50,8 +50,11 @@ static FTABLE* macroc_openConsole() {
  */
 static long long macroc_printToConsole(int bNewLine, const char* pszText) {
 	FTABLE* fp = macroc_openConsole();
-	if (!fp || !pszText) {
+	if (!fp) {
 		return 0;
+	}
+	if (!pszText) {
+		pszText = "";
 	}
 	WINFO* wp = WIPOI(fp);
 	PASTE pasteBuffer;

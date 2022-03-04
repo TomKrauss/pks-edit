@@ -315,6 +315,7 @@
     <ClCompile Include="CodeCompletion.c" />
     <ClCompile Include="HexRenderer.c" />
     <ClCompile Include="DpiSupport.c" />
+    <ClCompile Include="MacroMemory.c" />
     <ClCompile Include="MacroRecorder.c" />
     <ClCompile Include="MarkdownRenderer.c" />
     <ClCompile Include="JsonParser.c" />

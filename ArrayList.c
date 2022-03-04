@@ -39,7 +39,13 @@ ARRAY_LIST* arraylist_create(size_t capacity) {
 		capacity = INITIAL_CAPACITY;
 	}
 	ARRAY_LIST* pResult = calloc(1, sizeof * pResult);
+	if (!pResult) {
+		return NULL;
+	}
 	pResult->li_buffer = calloc(capacity, sizeof (void*));
+	if (!pResult->li_buffer) {
+		return NULL;
+	}
 	pResult->li_capacity = capacity;
 	return pResult;
 }
@@ -52,6 +58,38 @@ void arraylist_destroy(ARRAY_LIST* pList) {
 		free(pList->li_buffer);
 		free(pList);
 	}
+}
+
+/*
+ * Destroy an array list containing string malloced before. The elements
+ * of the array are freed as well.
+ */
+void arraylist_destroyStringList(ARRAY_LIST* pList) {
+	if (!pList) {
+		return;
+	}
+	ARRAY_ITERATOR iterator = arraylist_iterator(pList);
+	void** p = iterator.i_buffer;
+	while (p < iterator.i_bufferEnd) {
+		char* pszString = *p++;
+		free(pszString);
+	}
+	arraylist_destroy(pList);
+}
+
+/*
+ * Clone an array list containing strings. The strings are also cloned.
+ */
+ARRAY_LIST* arraylist_cloneStringList(ARRAY_LIST* pList) {
+	ARRAY_LIST* pNew = arraylist_create(pList->li_size);
+	if (pNew == NULL) {
+		return pNew;
+	}
+	buf_t* pBuffer = pList->li_buffer;
+	for (int i = 0; i < pList->li_size; i++) {
+		arraylist_add(pNew, _strdup((*pBuffer)[i]));
+	}
+	return pNew;
 }
 
 /*---------------------------

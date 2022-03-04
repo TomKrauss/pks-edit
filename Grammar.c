@@ -339,14 +339,7 @@ static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
 	ll_destroy((LINKED_LIST**)&pGrammar->navigation, grammar_destroyNavigationPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->tagSources, grammar_destroyTagSource);
 	ll_destroy((LINKED_LIST**)&pGrammar->templates, grammar_destroyTemplates);
-	if (pGrammar->importedGrammarNames) {
-		ARRAY_ITERATOR iterator = arraylist_iterator(pGrammar->importedGrammarNames);
-		void** p = iterator.i_buffer;
-		while (p < iterator.i_bufferEnd) {
-			free(*p++);
-		}
-		arraylist_destroy(pGrammar->importedGrammarNames);
-	}
+	arraylist_destroyStringList(pGrammar->importedGrammarNames);
 	free(pGrammar->analyzer);
 	free(pGrammar->evaluator);
 	free(pGrammar->formatter);

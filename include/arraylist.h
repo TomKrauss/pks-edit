@@ -43,6 +43,17 @@ extern ARRAY_LIST* arraylist_create(size_t capacity);
  */
 extern void arraylist_destroy(ARRAY_LIST* pList);
 
+/*
+ * Destroy an array list containing string malloced before. The elements
+ * of the array are freed as well.
+ */
+extern void arraylist_destroyStringList(ARRAY_LIST* pList);
+
+/*
+ * Clone an array list containing strings. The strings are also cloned.
+ */
+extern ARRAY_LIST* arraylist_cloneStringList(ARRAY_LIST* pList);
+
 /*---------------------------
  * Returns the size of an array list - i.e. the number of elements contained.
  */

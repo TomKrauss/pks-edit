@@ -83,7 +83,7 @@ All values in **PKSMacroC** code are `immutable`. Values may have one of the fol
 - `range` ranges can be used to select a range of text or they can be iterated over using the foreach expression. A range has a lower and an upper bounds and
    an optional increment. Ranges are built using the `..` operator as in `1..5` (Numbers 1 to 5 inclusively) or `0..21..3` (Numbers from 0 to 21 inclusively
    but with an increment of 3).
-- `array` an array may contain 0 to n strings currently and is typically defined using an array literal such as `["hello", "world"]` (not yet fully implemented).
+- `string[]` an array may contain 0 to n strings currently and is typically defined using an array literal such as `["hello", "world"]`. 
 
 PKSMacoC will try to coerce values to their "right" types or you may `cast` a value type to another explicitly using a cast operator. The following examples
 shows implicit and explicit coercions.
@@ -113,7 +113,14 @@ One of the strengths of PKSMacroC are the special string manipulation operators 
 - `~`, `!~` _matches_ / _does_not_match_ operator. Can be used to match a string with a regular expression (`"aa" ~ "[a]+"`)
 - multiplier `*` stringOrChar - can be applied on character and string arguments and creates a resulting string containing multiplier occurrences of the string passed.
 - `[numOrRange]` - can be used to get a single char of a string or a range of characters. "hello"[1] will result in 'e' and "hello"[0..3] will result in "hel".
-  
+
+Operators can also be used on `string[]` type values:
+
+- array `+` string append a string to the array and return a new array.
+- array `+` array2 append an array2 to the 1st array.
+- array`[0]` return the first element of an array
+- array`[range]` returns the elements matching range. Using a range of 1..8..2 (range starting from one including 8 with an increment of 2) 
+  will extract elements 2, 4, 6, 8.
 **PKSMacroC** also allows to use the typical C assignment shorthand notations such as
 
 - `i++`, `i--` increment or decrement operators

@@ -1322,6 +1322,12 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					yylval.ident.s = key;
 					return T_STRINGVAR;
 				}
+				if (TYPEOF(sym) == S_STRING_ARRAY) {
+					yylval.ident.stringIsAlloced = 0;
+					yylval.ident.s = key;
+					return T_STRINGARRAYVAR;
+				}
+
 
 				yyerror("bad symbol %s type %d",yytext,TYPEOF(sym));
 				yylval.num = 0;

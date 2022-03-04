@@ -12,11 +12,25 @@ static int errorCount = 18;
  * Our test suite. Note, that the 1st macro definition in a file may not be static.
  */
 void Suite() {
+	clear();
+	Start-Test("Test-Binary-Expressions");
 	Test-Binary-Expressions();
-	Test-ChangeGlobal();
+	Start-Test("Test-Sprintf");
 	Test-Sprintf();
+	Start-Test("Test-Strings");
 	Test-Strings();
+	Start-Test("Test-Globals");
+	Test-Globals();
+	Start-Test("Test-Arrays");
+	Test-Arrays();
+	Start-Test("Test-Call");
+	Test-Call();
 }
+
+static void Start-Test(string msg) {
+	println(sprintf("\n####### %D %T: Running test case '%s'...\n", msg));
+}
+
 
 
 /*
@@ -34,12 +48,34 @@ static void Test-Console-Stress() {
 
 }
 
+void Test-Arrays() {
+	string[] myArray = {"hello", "world", "how", "are", "you", "doing"};
+	string[] array2 = {"array", "two" };
+	string[] extracted;
+	int i = 0;
+
+	for (string s : myArray) {
+		println(s + "---" + i);
+		i++;
+	}
+	println("3rd word in array is: " + myArray[3]);
+	println("Coerce array to string: " + myArray);
+	myArray = myArray + "lastword";
+	println("One word appended to array: " + myArray);
+
+	myArray = myArray + array2;
+	println("Another array appended: " + myArray);
+
+	extracted = myArray[1..4];
+	println("Array extracted using range: " + extracted);
+}
+
+
 /*
  * Tests ranges in combinations with foreach.
  * A range has a lower bounds, an upper bounds and an optional increment.
  */
 void Test-Ranges() {
-	clear();
 	for (int i : 1..17) {
 		println("Next is " + i);
 	}
@@ -94,7 +130,6 @@ static void Test-ChangeGlobal(int incr) {
 static void Test-Globals() {
 	int i = 0;
 	int incr = 5;
-	clear();
 	println(sprintf("(%D %T) - value of global var is initially %d", errorCount));
 	while(i < 10) {
 		Test-ChangeGlobal(incr);
@@ -113,16 +148,13 @@ static void Test-Strings() {
 	string subString;
 	string xlated;
 	char x;
-	range r;
 	int n = strlen(myString);
 
-	clear();
 	println("String is " + n + " characters long");
 	x = myString[7];
 	println("The 7th character is: '" + x + QUOTE);
 
-	r = 1..3;
-	subString = myString[r];
+	subString = myString[1..3];
 	println("The substring(1,3) is '" + subString + QUOTE);
 
 	xlated = toupper(myString);
@@ -141,7 +173,6 @@ static void Test-Decompile-Binary() {
  * Evaluate various binary expressions and print the results.
  */
 static void Test-Binary-Expressions() {
-	clear();
 	println("type of 'a' is: " + typeof('a'));
 	println("typeof(typeof('a')) is: " + typeof(typeof('a')));
 	println("\"a\" + \"b\" -> " + ("a" + "b"));
@@ -161,7 +192,6 @@ static void Test-Binary-Expressions() {
 static void Test-Sprintf() {
 	float d;
 
-	clear();
 	d = 17.4424242224d;
 	println(-32);
 	println(sprintf("Formatting of integers Decimal: %d Hexadecimal: %#x Binary:%b %5d", 1723462748, -200, 32, -456));
@@ -208,11 +238,7 @@ static void Test-Expr2()
  */
 static string Test-Params(int par, string par2)
 {
-	string tmp;
-
-	tmp = "We have passed " + par + " as parameter 1 and '" + par2 + "' as parameter 2";
-	print(tmp);
-
+	println( "1st param: " + par + ", 2nd param: '" + par2 + "'");
 	return "This is the text returned from Test-Params";
 }
 
@@ -223,7 +249,7 @@ static string Test-Params(int par, string par2)
 static void Test-Call() {
 	string result;
 	result = Test-Params(1,3);
-	print(result);
+	println("Value returned by Test-Params:" + result);
 	Test-Params(1,"One string passed to function");
 	Test-Params(1, "a"+"b");
 	// 1+"x" will be coerced to an integer -> will print '1' instead of '1x'

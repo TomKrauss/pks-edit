@@ -95,6 +95,22 @@ void interpreter_raiseError(const char* pFormat, ...) {
 	longjmp(_currentJumpBuffer, 1);
 }
 
+/*
+ * Decode a push-arraylist operation and convert to an array list. 
+ */
+static ARRAY_LIST* interpreter_decodeArrayList(EXECUTION_CONTEXT* pContext, COM_STRING_ARRAYLITERAL* pPointer) {
+	ARRAY_LIST* pList = arraylist_create(pPointer->length);
+	char* p = pPointer->strings;
+	for (int i = 0; i < pPointer->length; i++) {
+		arraylist_add(pList, _strdup(p));
+		while (*p++) {
+
+		}
+	}
+	memory_add(pContext, (PKS_VALUE) { .sym_type = S_STRING_ARRAY, .sym_data.stringList = pList });
+	return pList;
+}
+
 /*--------------------------------------------------------------------------
  * interpreter_getValueForOpCode()
  * pop data from execution stack
@@ -117,6 +133,11 @@ static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsi
 		double dDouble = ((COM_FLOAT1*)pInstructionPointer)->val;
 		return (PKS_VALUE) { .sym_type = S_FLOAT, .sym_data.doubleValue = dDouble };
 	}
+	case C_PUSH_STRING_ARRAY_LITERAL:
+		return (PKS_VALUE) {
+			// TODO
+			.sym_type = S_STRING_ARRAY, .sym_data.stringList = interpreter_decodeArrayList(pContext, (COM_STRING_ARRAYLITERAL*)pInstructionPointer)
+		};
 	case C_PUSH_STRING_LITERAL:
 		return (PKS_VALUE) {
 			.sym_type = S_STRING, .sym_data.string = ((COM_STRING1*)pInstructionPointer)->s
@@ -124,18 +145,15 @@ static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsi
 	case C_PUSH_VARIABLE:
 		return sym_getVariable(pContext->ec_identifierContext, ((COM_VAR*)pInstructionPointer)->name);
 	default:
-		macro_reportError();
+		interpreter_raiseError("Illegal push operation %d", typ);
+		// not reached
 		return (PKS_VALUE) { 0 };
 	}
 }
 
 static void interpreter_deallocateStack(EXECUTION_CONTEXT* pContext) {
 	free(pContext->ec_stackBottom);
-	size_t nSize = arraylist_size(pContext->ec_allocations);
-	for (int i = 0; i < nSize; i++) {
-		free(arraylist_get(pContext->ec_allocations, i));
-	}
-	arraylist_destroy(pContext->ec_allocations);
+	memory_destroy(pContext->ec_allocations);
 }
 
 /*
@@ -147,7 +165,7 @@ static void interpreter_allocateStack(EXECUTION_CONTEXT* pResult) {
 	pResult->ec_stackCurrent = pStack;
 	pResult->ec_stackFrame = pStack;
 	pResult->ec_stackMax = pStack + MAX_STACK_SIZE;
-	pResult->ec_allocations = arraylist_create(37);
+	pResult->ec_allocations = memory_create();
 }
 
 /*
@@ -222,6 +240,8 @@ PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 	}
 	else if (v.sym_type == S_STRING) {
 		idxLast = (int)strlen(v.sym_data.string);
+	} else if (v.sym_type == S_STRING_ARRAY) {
+		idxLast = (int)arraylist_size(v.sym_data.stringList);
 	} else {
 		return (PKS_VALUE) { .sym_type = S_BOOLEAN, .sym_data.booleanValue = 0 };
 	}
@@ -233,7 +253,7 @@ PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 	}
 	int idx = caretV.sym_data.intValue;
 	if (v.sym_type == S_RANGE) {
-		int nMult = v.sym_data.range.r_increment ? v.sym_data.range.r_increment : 1;
+		int nMult = v.sym_data.range.r_increment > 0 ? v.sym_data.range.r_increment : 1;
 		idx = v.sym_data.range.r_start + (nMult*idx);
 	}
 	if (idx >= idxLast) {
@@ -241,7 +261,10 @@ PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 		return (PKS_VALUE) { .sym_type = S_BOOLEAN, .sym_data.booleanValue = 0 };
 	}
 	if (v.sym_type == S_RANGE) {
-		sym_insert(pContext->ec_identifierContext, pszResultVar, S_NUMBER, (GENERIC_DATA) {.intValue = idx});
+		sym_insert(pContext->ec_identifierContext, pszResultVar, S_NUMBER, (GENERIC_DATA) { .intValue = idx });
+	} else if (v.sym_type == S_STRING_ARRAY) {
+		sym_makeInternalSymbol(pContext->ec_identifierContext, pszResultVar, S_STRING, 
+			(GENERIC_DATA) { .string = arraylist_get(v.sym_data.stringList, idx) });
 	} else {		// string
 		sym_insert(pContext->ec_identifierContext, pszResultVar, S_CHARACTER, (GENERIC_DATA) { .uchar = v.sym_data.string[idx] });
 	}
@@ -265,6 +288,7 @@ PKS_VALUE interpreter_typeOf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, in
 	case S_FLOAT: pszName = "float"; break;
 	case S_BOOLEAN: pszName = "boolean"; break;
 	case S_CHARACTER: pszName = "char"; break;
+	case S_STRING_ARRAY: pszName = "string[]"; break;
 	}
 	return (PKS_VALUE) { .sym_type = S_STRING, .sym_data.string = interpreter_allocateString(pContext, pszName) };
 }
@@ -330,39 +354,13 @@ int interpreter_pushValueOntoStack(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue
 }
 
 /*
- * Try to get rid of some allocated memory not referenced by the stack any more.
- */
-static void interpreter_garbaggeCollect(EXECUTION_CONTEXT* pContext) {
-	size_t nSize = arraylist_size(pContext->ec_allocations);
-	if (nSize > 15) {
-		for (int i = (int)nSize; --i >= 0; ) {
-			char* pszEntry = arraylist_get(pContext->ec_allocations, i);
-			PKS_VALUE* pStackValues = pContext->ec_stackBottom;
-			BOOL bDelete = TRUE;
-			while (pStackValues <= pContext->ec_stackCurrent) {
-				PKS_VALUE v = *pStackValues++;
-				if (v.sym_type == S_STRING && v.sym_data.string == pszEntry) {
-					bDelete = FALSE;
-					break;
-				}
-			}
-			if (bDelete) {
-				arraylist_removeAt(pContext->ec_allocations, i);
-				free(pszEntry);
-			}
-		}
-	}
-}
-
-/*
  * Mini memory management function of PKS MacroC, which temporarily allocates a string to
  * be released later.
  */
 char* interpreter_allocateString(EXECUTION_CONTEXT* pContext, const char* pszSource) {
-	interpreter_garbaggeCollect(pContext);
-	char* pszResult = _strdup(pszSource);
-	arraylist_add(pContext->ec_allocations, pszResult);
-	return pszResult;
+	const char* pszResult = _strdup(pszSource);
+	memory_add(pContext, (PKS_VALUE) { .sym_type = S_STRING, .sym_data.string = (char*)pszResult });
+	return (char* )pszResult;
 }
 
 /*
@@ -382,6 +380,8 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 		case C_PUSH_SMALL_INT_LITERAL:
 		case C_PUSH_BOOLEAN_LITERAL:
 			return sizeof(COM_CHAR1);
+		case C_PUSH_STRING_ARRAY_LITERAL:
+			return ((COM_STRING_ARRAYLITERAL*)(s - 1))->totalBytes;
 		case C_1FUNC:
 			return sizeof(COM_1FUNC);
 		case C_FORM_START:
@@ -601,6 +601,9 @@ long long cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, v
 static void interpreter_returnFunctionValue(EXECUTION_CONTEXT* pContext, unsigned char typ, intptr_t v) {
 	if (typ == S_STRING) {
 		v = (intptr_t)interpreter_allocateString(pContext, (const char*)v);
+	} else if (typ == S_STRING_ARRAY) {
+		// (A) . string arrays will always be allocated by caller
+		memory_add(pContext, (PKS_VALUE) { .sym_type = S_STRING_ARRAY, .sym_data.stringList = (void*)v });
 	}
 	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = typ, .sym_data.longValue = v });
 }
@@ -678,10 +681,15 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 			EDFUNC* fup = &_functionTable[funcnum];
 			returnValue = ((PKS_VALUE (*)())fup->execute)(pContext, tempStack, nParametersPassed);
 		} else {
+			PKS_VALUE* pOld = pContext->ec_stackFrame;
+			pContext->ec_stackFrame = pContext->ec_stackCurrent - nParametersPassed;
+			if (pContext->ec_stackFrame < pContext->ec_stackBottom) {
+				pContext->ec_stackFrame = pContext->ec_stackBottom;
+			}
 			rc = macro_executeByName(((COM_MAC*)*pInstructionPointer)->name);
-			// Work around for wrong stack manipulation on call site.
 			pContext->ec_stackCurrent++;
 			returnValue = interpreter_popStackValue(pContext);
+			pContext->ec_stackFrame = pOld;
 		}
 		interpreter_pushValueOntoStack(pContext, returnValue);
 	}
@@ -770,6 +778,7 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 		case C_PUSH_FLOAT_LITERAL:
 		case C_PUSH_INTEGER_LITERAL:
 		case C_PUSH_VARIABLE:
+		case C_PUSH_STRING_ARRAY_LITERAL: 
 		case C_PUSH_STRING_LITERAL: {
 			PKS_VALUE value = interpreter_getValueForOpCode(pContext, pInstr);
 			interpreter_pushValueOntoStack(pContext, value);

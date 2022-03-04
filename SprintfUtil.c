@@ -376,23 +376,26 @@ int mysprintf(char *d, char *format, SPRINTF_ARGS* pArgs) {
 				}
 cpyout:			if (d + l > dend)
 					break;
-				if (f0) {
-					l -= lstrlen(x);
-					if (l > 0) {
-						memset(d,f0,l);
-						d += l;
+				if (x) {
+					if (f0) {
+						l -= lstrlen(x);
+						if (l > 0) {
+							memset(d, f0, l);
+							d += l;
+						}
+						l = 0;
+						while (*x)
+							*d++ = *x++;
 					}
-					l  = 0;
-					while(*x)
-						*d++ = *x++;
-				} else {
-					while(*x) {
-						l--;
-						*d++ = *x++;
-					}
-					if (l > 0) {
-						d = memset(d,' ', l);
-						d += l;
+					else {
+						while (*x) {
+							l--;
+							*d++ = *x++;
+						}
+						if (l > 0) {
+							d = memset(d, ' ', l);
+							d += l;
+						}
 					}
 				}
 			} else if (c == 'T') {

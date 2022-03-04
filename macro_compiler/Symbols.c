@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "alloc.h"
+#include "arraylist.h"
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
 #include "hashmap.h"
@@ -52,11 +53,14 @@ IDENTIFIER_CONTEXT* sym_getGlobalContext() {
 static int sym_destroyEntry(intptr_t tKey, intptr_t tValue) {
 	PKS_VALUE* sym = (PKS_VALUE*)tValue;
 	SYMBOL_TYPE stType = sym->sym_type;
+	char* pszKey = (char*)tKey;
 	if (stType == S_STRING || stType == S_CONSTSTRING) {
 		free(sym->sym_data.string);
 	}
+	else if (stType == S_STRING_ARRAY) {
+		arraylist_destroyStringList(sym->sym_data.stringList);
+	}
 	free(sym);
-	char* pszKey = (char*)tKey;
 	free(pszKey);
 	return 1;
 }
@@ -183,6 +187,14 @@ int sym_makeInternalSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE
 		if ((value.string = _strdup(value.string)) == 0) {
 			return 0;
 		}
+	} else if (stType == S_STRING_ARRAY) {
+		if (value.stringList) {
+			void* pClone = arraylist_cloneStringList(value.stringList);
+			if (!pClone) {
+				return 0;
+			}
+			value.stringList = pClone;
+		}
 	}
 	return sym_insert(pContext, name, stType, value);
 }
@@ -202,7 +214,7 @@ PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 	}
 
 	SYMBOL_TYPE sType = TYPEOF(sym);
-	if (sType != S_FLOAT && (sType < S_BOOLEAN || sType > S_RANGE)) {
+	if (sType < S_BOOLEAN || sType > S_STRING_ARRAY) {
 		error_displayAlertDialog("bad symbol '%s' (type==%d)",symbolname,sType);
 		return nullSymbol;
 	}

@@ -19,6 +19,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "arraylist.h"
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
 #include "regexp.h"
@@ -37,6 +38,26 @@ int macro_isParameterStringType(unsigned char typ) {
 	return typ == C_PUSH_STRING_LITERAL || typ == C_PUSH_VARIABLE;
 }
 
+static void interpreter_asString(char* pBuf, char* pBufEnd, ARRAY_LIST* pList) {
+	size_t nSize = arraylist_size(pList);
+	int i = 0;
+	while (i < nSize && pBuf < pBufEnd - 4) {
+		if (i > 0) {
+			*pBuf++ = ',';
+			*pBuf++ = ' ';
+		}
+		char* pszS = arraylist_get(pList, i);
+		size_t nLen = strlen(pszS);
+		char* pszEnd = pBuf + nLen;
+		if (pszEnd > pBufEnd - 4) {
+			break;
+		}
+		strcpy(pBuf, pszS);
+		pBuf = pszEnd;
+		i++;
+	}
+	*pBuf = 0;
+}
 /*
  * Generic coercion function to coerce PKS-Edit values.
  */
@@ -65,13 +86,16 @@ PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_
 		return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.booleanValue = nValue.sym_data.longValue != 0 };
 	}
 	if (tTargetType == S_STRING) {
-		char buf[128];
+		char buf[200];
 		if (nValue.sym_type == S_FLOAT) {
 			sprintf(buf, "%.2lf", nValue.sym_data.doubleValue);
 		} else if (nValue.sym_type == S_CHARACTER) {
 			sprintf(buf, "%c", nValue.sym_data.uchar);
-		} else if (nValue.sym_type == S_BOOLEAN) {
+		}
+		else if (nValue.sym_type == S_BOOLEAN) {
 			sprintf(buf, "%s", nValue.sym_data.booleanValue ? "true" : "false");
+		} else if (nValue.sym_type == S_STRING_ARRAY) {
+			interpreter_asString(buf, &buf[sizeof buf], (ARRAY_LIST*)nValue.sym_data.stringList);
 		} else {
 			sprintf(buf, "%lld", nValue.sym_data.longValue);
 		}
@@ -220,6 +244,59 @@ static void interpreter_createRange(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, P
 	}
 }
 
+/*
+ * interpreter_extractArrayElementsAndPush
+ */
+static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext, int bOperation, ARRAY_LIST* pList, PKS_VALUE vIndex) {
+	size_t nMax = arraylist_size(pList);
+	if (bOperation == BIN_ADD) {
+		ARRAY_LIST* pClone = arraylist_cloneStringList(pList);
+		if (vIndex.sym_type == S_STRING) {
+			arraylist_add(pClone, _strdup(vIndex.sym_data.string));
+		} else if (vIndex.sym_type == S_STRING_ARRAY) {
+			ARRAY_LIST* pSource = vIndex.sym_data.stringList;
+			int nMax = (int)arraylist_size(pSource);
+			for (int i = 0; i < nMax; i++) {
+				char* pszString = _strdup(arraylist_get(pSource, i));
+				arraylist_add(pClone, pszString);
+			}
+		}
+		PKS_VALUE vResult = { .sym_type = S_STRING_ARRAY, .sym_data.stringList = pClone };
+		memory_add(pContext, vResult);
+		interpreter_pushValueOntoStack(pContext, vResult);
+		return;
+	}
+	if (vIndex.sym_type == S_RANGE) {
+		ARRAY_LIST* pClone = arraylist_create(5);
+		int idxStart = vIndex.sym_data.range.r_start;
+		int idxEnd = vIndex.sym_data.range.r_end;
+		int iIncr = vIndex.sym_data.range.r_increment;
+		if (iIncr <= 0) {
+			iIncr = 1;
+		}
+		while (idxStart <= idxEnd && idxStart < nMax) {
+			char* pszString = _strdup(arraylist_get(pList, idxStart));
+			arraylist_add(pClone, pszString);
+			idxStart += iIncr;
+		}
+		PKS_VALUE vResult = { .sym_type = S_STRING_ARRAY, .sym_data.stringList = pClone };
+		memory_add(pContext, vResult);
+		interpreter_pushValueOntoStack(pContext, vResult);
+		return;
+	}
+	else {
+		vIndex = interpreter_coerce(pContext, vIndex, S_NUMBER);
+		int nIndex = vIndex.sym_data.intValue;
+		if (nIndex >= 0 && nIndex < nMax) {
+			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_STRING, .sym_data.string = 
+				interpreter_allocateString(pContext, arraylist_get(pList, nIndex)) });
+			return;
+		}
+	}
+	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { 
+			.sym_type = S_NUMBER, .sym_data.intValue = 0 });
+}
+
 /*--------------------------------------------------------------------------
  * interpreter_evaluateBinaryExpression()
  */
@@ -252,6 +329,10 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 	}
 	if (op == BIN_MUL && (v2.sym_type == S_CHARACTER || v2.sym_type == S_STRING)) {
 		interpreter_evaluateMultiplicationWithStrings(pContext, v1, v2);
+		return;
+	}
+	if (v1.sym_type == S_STRING_ARRAY && ((op == BIN_AT && (v2.sym_type == S_NUMBER || v2.sym_type == S_RANGE)) || (op == BIN_ADD))) {
+		interpreter_extractArrayElementsAndPush(pContext, op, v1.sym_data.stringList, v2);
 		return;
 	}
 	if (v1.sym_type != S_STRING && v2.sym_type != S_STRING) {

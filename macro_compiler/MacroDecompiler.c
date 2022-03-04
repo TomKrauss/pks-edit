@@ -168,6 +168,9 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 		case C_PUSH_CHARACTER_LITERAL:
 			val = ((COM_CHAR1 *)sp)->val;
 			break;
+		case C_PUSH_STRING_ARRAY_LITERAL:
+			sprintf(pszBuf, "{ ... }");
+			return 1;
 		case C_PUSH_FLOAT_LITERAL:
 			sprintf(pszBuf, "%lf", ((COM_FLOAT1*)sp)->val);
 			return 1;
@@ -532,6 +535,7 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 		case C_PUSH_SMALL_INT_LITERAL: fprintf(fp, "pushSmallIntLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_INTEGER_LITERAL: fprintf(fp, "pushIntLiteral %d", ((COM_INT1*)sp)->val); break;
 		case C_PUSH_FLOAT_LITERAL: fprintf(fp, "pushFloatLiteral %f", ((COM_FLOAT1*)sp)->val); break;
+		case C_PUSH_STRING_ARRAY_LITERAL: fprintf(fp, "pushStringArrayLiteral size==%d", ((COM_STRING_ARRAYLITERAL*)sp)->length); break;
 		case C_PUSH_BOOLEAN_LITERAL: fprintf(fp, "pushBooleanLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_CHARACTER_LITERAL: fprintf(fp, "pushCharLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_STRING_LITERAL: fprintf(fp, "pushStringLiteral %s", ((COM_STRING1*)sp)->s); break;

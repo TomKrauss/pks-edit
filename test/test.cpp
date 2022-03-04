@@ -660,6 +660,14 @@ namespace pkseditTests
 			}
 			arraylist_destroy(pList);
 
+			pList = arraylist_create(13);
+			for (int i = 0; i < 3; i++) {
+				arraylist_add(pList, _strdup("Hello"));
+			}
+			ARRAY_LIST* pList2 = arraylist_cloneStringList(pList);
+			arraylist_destroyStringList(pList);
+			arraylist_destroyStringList(pList2);
+
 		}
 	};
 
