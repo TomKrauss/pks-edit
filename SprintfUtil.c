@@ -253,6 +253,37 @@ static char* sprintf_float(char* pszDest, char* fmt, double nNumber) {
 	return fmt;
 }
 
+/*
+ * Format a string into an output buffer 
+ */
+static char* string_formatWithPadding(char* pszDestination, char* pszEnd, char* pszText, int nWidth, int cFiller, int bLeftJustify) {
+	if (pszDestination + nWidth > pszEnd)
+		return pszDestination;
+	if (pszText) {
+		if (!cFiller) {
+			cFiller = ' ';
+		}
+		size_t nLen = strlen(pszText);
+		nWidth -= (int)nLen;
+		if (bLeftJustify) {
+			strcpy(pszDestination, pszText);
+			pszDestination += nLen;
+			if (nWidth > 0) {
+				pszDestination = memset(pszDestination, cFiller, nWidth);
+				pszDestination += nWidth;
+			}
+		} else {
+			if (nWidth > 0) {
+				memset(pszDestination, cFiller, nWidth);
+				pszDestination += nWidth;
+			}
+			strcpy(pszDestination, pszText);
+			pszDestination += nLen;
+		}
+	}
+	return pszDestination;
+}
+
 /*--------------------------------------------------------------------------
  * mysprintf()
  
@@ -279,11 +310,13 @@ static char* sprintf_float(char* pszDest, char* fmt, double nNumber) {
 int mysprintf(char *d, char *format, SPRINTF_ARGS* pArgs) {
 	static char *_digits = "0123456789ABCDEFGHIJ";
 	long 	val;
+	int     bForcePlus;
 	int     bHexPrefix;
 	int		c;
-	int		l;
+	int		nWidth;
 	int		base;
-	int		f0;
+	int		cFiller;
+	int     bLeftJustify;
 	char *	buf = d;
 	char *	x;
 	char *	dend;
@@ -298,20 +331,30 @@ int mysprintf(char *d, char *format, SPRINTF_ARGS* pArgs) {
 	while((c = *format++) != 0) {
 		if (c != '%') *d++ = c;
 		else {
+			bForcePlus = 0;
+			bLeftJustify = 0;
 			formatStart = format - 1;
-			l  = 0;
-			f0 = 0;
+			nWidth  = 0;
+			cFiller = 0;
 			bHexPrefix = 0;
+			if (*format == '-') {
+				bLeftJustify = 1;
+				format++;
+			}
+			if (*format == '+') {
+				bForcePlus = 1;
+				format++;
+			}
 			if (*format == '#') {
 				bHexPrefix = 1;
 				format++;
 			}
 			if (*format == '0' || *format == ' ') {
-				f0 = *format++;
+				cFiller = *format++;
 			}
 			while ((c = *format++) >= '0' && c <= '9') {
-				l *= 10;
-				l += (c - '0');
+				nWidth *= 10;
+				nWidth += (c - '0');
 			}
 			base = -1;
 			if (c == 'd') {
@@ -341,15 +384,16 @@ int mysprintf(char *d, char *format, SPRINTF_ARGS* pArgs) {
 						args++;
 					}
 				}
-				if (val < 0 && base > 1) {
-					*d++ = '-';
-					val = -val;
-				}
 				x = &stack[sizeof(stack) - 1];
 				*x = 0;
 				if (c == 'c') {
 					*--x = (char)val;
 					goto cpyout;
+				}
+				BOOL bNegative = 0;
+				if (val < 0 && base > 1) {
+					val = -val;
+					bNegative = 1;
 				}
 				do {
 					*--x = _digits[val % base];
@@ -358,6 +402,11 @@ int mysprintf(char *d, char *format, SPRINTF_ARGS* pArgs) {
 				if (bHexPrefix) {
 					*--x = 'X';
 					*--x = '0';
+				}
+				if (bNegative) {
+					*--x = '-';
+				} else if (bForcePlus) {
+					*--x = '+';
 				}
 				goto cpyout;
 			} else if (c == 's') {
@@ -374,30 +423,7 @@ int mysprintf(char *d, char *format, SPRINTF_ARGS* pArgs) {
 						args++;
 					}
 				}
-cpyout:			if (d + l > dend)
-					break;
-				if (x) {
-					if (f0) {
-						l -= lstrlen(x);
-						if (l > 0) {
-							memset(d, f0, l);
-							d += l;
-						}
-						l = 0;
-						while (*x)
-							*d++ = *x++;
-					}
-					else {
-						while (*x) {
-							l--;
-							*d++ = *x++;
-						}
-						if (l > 0) {
-							d = memset(d, ' ', l);
-							d += l;
-						}
-					}
-				}
+cpyout:			d = string_formatWithPadding(d, dend, x, nWidth, cFiller, bLeftJustify);
 			} else if (c == 'T') {
 				struct tm *tm;
 				time_t ltime;
@@ -419,12 +445,12 @@ cp2:			x = stack;
 					args++;
 				}
 				format = sprintf_float(fname, formatStart, dNumber);
-				l = (int)strlen(fname);
-				if (d + l > dend) {
+				nWidth = (int)strlen(fname);
+				if (d + nWidth > dend) {
 					break;
 				}
 				strcpy(d, fname);
-				d += l;
+				d += nWidth;
 			}
 			else {
 				*d++ = c;

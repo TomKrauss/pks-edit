@@ -1,0 +1,24 @@
+
+
+void UseUndeclaredVariable() {
+	string xx;
+
+	xX = "1";
+	xX = 2;
+}
+
+void BadStatement() {
+	int a;
+	int v;
+
+	hello(a);
+	int c;
+	(*a)(v);
+	if (a > 0 {
+		bla(c);
+	}
+	while(a > 10) {
+		v = 17;
+
+}
+

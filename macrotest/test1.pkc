@@ -194,13 +194,14 @@ static void Test-Binary-Expressions() {
 }
 
 static void Test-Sprintf() {
-	float d;
+	float d = 17.4424242224d;
 
-	d = 17.4424242224d;
 	println(-32);
-	println(sprintf("Formatting of integers Decimal: %d Hexadecimal: %#x Binary:%b %5d", 1723462748, -200, 32, -456));
-	println(sprintf("format a floating point number %.5f %1.3e %2g", d, d, d));
-	println(sprintf("Character formatting <%-2c>", '&'));
+	println(sprintf("Formatting of integers Decimal: %d Hexadecimal: %#x Binary:%b <%5d>", 1723462748, -200, 32, -456));
+	println(sprintf("Formatting floating point number %.5f %1.3e %2g", d, d, d));
+	println(sprintf("Formatting characters <%-5c> <%5c>", 'C', 'D'));
+	println(sprintf("Formatting with leading zeros <%010d> and forced sign <%+d>", 42, 42));
+	println(sprintf("Formatting strings with padding <%20s>", "Hello world"));
 }
 
 

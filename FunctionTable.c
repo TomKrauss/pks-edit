@@ -71,7 +71,7 @@ EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdLi
 EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(),
 bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
-interpreter_typeOf(), interpreter_foreach(), macroc_toupper(), macroc_tolower();
+interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_tolower();
 
 static long long function_unused() {
     // NOT USED ANY MORE
@@ -210,7 +210,7 @@ EDFUNC _functionTable[] = {
 {/*127*/compare_clear, -1, EW_NEEDSCURRF | EW_COMPARISON_MODE,                                         "CompareClear",               NULL,  "ii"                                          },
 {/*128*/bl_moveSelectionUpDown, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                       "MoveSelection",              NULL,  "ii"                                          },
 {/*129*/edit_insertString, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                            "InsertString",               NULL,  "is"                                          },
-{/*130*/strlen, -1, 0,                                                                                  "strlen",                    NULL,  "is" },
+{/*130*/interpreter_size, -1, 0,                                                                       "size",                     NULL,  "P" },
 {/*131*/(long long (*)())strstr, -1, 0,                                                                 "strstr",                    NULL, "iss"},
 {/*132*/macroc_print, -1, 0, "print", NULL, "is"},
 {/*133*/macroc_println, -1, 0, "println", NULL, "is" },

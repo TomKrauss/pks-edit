@@ -225,6 +225,23 @@ static void interpreter_cleanupContextStacks() {
 }
 
 /*
+ * Implements the size() method used to determine the length of a string or the size of an array or object.
+ */
+PKS_VALUE interpreter_size(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	if (nArgs < 1) {
+		return (PKS_VALUE) { .sym_type = S_BOOLEAN, .sym_data.booleanValue = 0 };
+	}
+	PKS_VALUE v = pValues[0];
+	size_t nLen = 0;
+	if (v.sym_type == S_STRING) {
+		nLen = strlen(v.sym_data.string);
+	} else if (v.sym_type == S_STRING_ARRAY) {
+		nLen = arraylist_size(v.sym_data.stringList);
+	}
+	return (PKS_VALUE) { .sym_type = S_NUMBER, .sym_data.longValue = nLen };
+}
+
+/*
  * Implements the foreach() method used in for(x : y) loops.
  */
 PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {

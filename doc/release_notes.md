@@ -27,6 +27,8 @@ commands which show an explanation about the command.
 - /* */ comments in macros are now supported and automatically attached to a macro as a comment (e.g. used as help in code completion), 
   if placed in front of a macro definition.
 - Decompilation of macros will better reverse engineer control flow expressions (if, while, else....).
+- PKSMacroC compiler error diagnostics was improved. Error messages will now more likely point you to the actual problem. Special
+  error reporting for common programming errors (missing closing brackets, use of undeclared vars etc...) was added.
 - Error diagnostics and error handling in PKSMacroC has been improved (there is still room for improvement). Errors in macroc code
   will now always stop execution and print the name of the macro in which the error occurred.
 - One can open, print to and clear a console from macroC code for logging or debugging purpose.

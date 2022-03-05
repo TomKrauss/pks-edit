@@ -16,6 +16,7 @@
  */
 %}
 
+%error-verbose
 
 %token T_NAMESPACE T_STATIC T_FOR T_TAUTO
 %token T_TSTRING T_TINT T_TCHAR T_TLONG T_TFLOAT T_RANGE
@@ -242,6 +243,13 @@ variable_reference:
 			| T_CHARACTERVAR	{	$$.ident = $1.ident; }
 			| T_BOOLEANVAR		{	$$.ident = $1.ident; }
 			| T_FLOATVAR 		{	$$.ident = $1.ident; }
+			| T_IDENT			{   
+				yyerror("Using undeclared variable %s", $1.ident.s);
+				// auto-correct by introducing variable
+				sym_makeInternalSymbol(_currentIdentifierContext, $1.ident.s, S_NUMBER, (GENERIC_DATA) {0});
+				free($1.ident.s);
+				$$.ident = $1.ident;
+			}
 
 /*-- MACROS -----------------------------------------------------*/
 
@@ -306,7 +314,7 @@ macro_definition: scope macrostart block {
 				finalize_macroDefinition();
 			} 
 
-block:		'{' var_decls stmntlist '}'
+block:		'{' var_decls stmntlist closing_brace
 
 var_decls:
 			| var_decl var_decls
@@ -346,8 +354,13 @@ statement: ';'
 			| block { $$.needsPop = 1; }
 			| increment_expression { $$.needsPop = 1; }
 			| label { $$.needsPop = 0; }
-			| errors {
-				yyerror("Invalid statement. Expecting one of function call, assignment, if, while, case, break, continue, return, goto, increment_expression, block or label."); 
+			| var_decl {
+				yyerror("Variable declarations outside method variable declaration section not yet supported.");
+			}
+			| errors ';' {
+				$$.needsPop = 0; 
+				yyerror("Invalid statement. Expecting one of function call, assignment, if, while, case, break, continue, return, goto, increment_expression, block or label.");
+				yyerrok;
 			}
 
 errors:		error 
@@ -433,6 +446,9 @@ binary_expression:	s_bterm  { $$.type = $1.type;	}
 /*----- conditions ------------------------------------------*/
 
 condition:	'(' logical_expression ')'
+			| '(' logical_expression {
+				yyerror("Missing closing parenthesis )");
+			}
 
 logical_expression:	
 			| term
@@ -500,10 +516,10 @@ value:		T_NUMVAR {
 array_literal: '{' {
 				_currentArrayLiteral = arraylist_create(1);
 			} 
-			'}'
+			closing_brace
 			| '{' {
 				_currentArrayLiteral = arraylist_create(3);
-			} array_elements '}'
+			} array_elements closing_brace
 
 array_elements:
 			array_elements ',' T_STRING {
@@ -606,7 +622,12 @@ while:		T_WHILE {
 				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
 			}
 
-local_block: statement | '{' stmntlist '}'
+local_block: statement | '{' stmntlist closing_brace
+
+closing_brace:
+			{ yyerror("Missing closing brace '}'"); }
+			|
+			'}'
 
 if_expression:
 			T_IF condition {
