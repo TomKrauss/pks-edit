@@ -17,10 +17,13 @@ and character deletes (DEL + Backspace) are concurrently applied to multiple pla
 - The code completion window displays now additional information about completions in a secondary window in situations
 where additional information is available. An example are templates, which show a preview of the text to insert or PKS-Edit
 commands which show an explanation about the command.
-- Expressions with strings in PKSMacroC such as "x"+1 are automatically casted to string. One does not need to write any more "x"+(string)1.
+- Expressions with strings in PKSMacroC such as "x"+1 are automatically coerced to string. One does not need to write any more "x"+(string)1.
 - PKSMacroC supports now `++` and `--` operators, the new datatypes `float`, `boolean`, `range` and `string[]` and shorthand assignment operators (e.g. `*=`, `+=`, ...).
 - PKSMacroC supports now foreach loops using the following syntax: `for (type variable : expression) {...}`. One can currently iterate
   over ranges, strings and arrays.
+- One may define a macroC function parameter with a type of `auto` to allow for arbitrary values being passed to a MacroC function
+- One may use the new syntax `*function(params...)` now to execute a function (macro or native) **by name**.
+- Expressions can now be correctly passed as function arguments.
 - PKSMacroC supports now [] operators to extract single characters or a range of characters from a string or one or more words from a string array.
 - PKSMacroC supports now global (namespace local / static) variables. Namespaces are currently limited however.
 - One can now debug print the low level instructions of PKSMacroC macros (from the macro dialog).
@@ -50,12 +53,13 @@ commands which show an explanation about the command.
 - Find and replace options were not persisted correctly in the PKS Editor session.
 - A regression when compiling PKS-MacroC files containing strings, which cause a compilation error was fixed.
 - A potential exception occurring when deleting the selected text with undo being disabled was fixed.
-- Several small issues int compilation of PKSMacroC have been fixed:
+- Execution of nested MacroC calls could cause a corrupted MacroC stack causing wrong results. This is fixed.
+- Several operators in MacroC had not been correctly implemented before (<=, >=, ...) and should work now.
+- Several small issues regarding the compilation of PKSMacroC have been fixed:
    - `1+1` is now correctly evaluated (before you needed to write `1 + 1` - space delimited) 
    - integer values support a higher range of long long (C) now. Overflows during compilation are correctly reported as a compile error
    - while loop bodys may now contain multiple statements enclosed in `{` and `}`.
    - local function variables are now correctly scoped locally.
-   - error reporting of the MacroC compiler has been improved.
    - compiling bigger files with an error resulted in the macro compiler being not able to compile any macros afterwards.
 
 ### 2.1.0
