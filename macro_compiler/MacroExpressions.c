@@ -149,6 +149,8 @@ int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
 	if (!CT_IS_UNARY(op)) {
 		v2 = v1;
 		v1 = interpreter_popStackValue(pContext);
+	} else {
+		v1 = (PKS_VALUE){.sym_type = S_BOOLEAN, .sym_data.booleanValue = v1.sym_data.longValue != 0};
 	}
 	if (v1.sym_type != S_STRING && !CT_IS_LOGICAL(op)) {
 		long long r1, r2;
@@ -159,8 +161,10 @@ int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
 		switch(op) {
 			case CT_EQ: bResult = r1 == r2; break;
 			case CT_NE: bResult = r1 != r2; break;
+			case CT_GE: bResult = r1 >= r2; break;
 			case CT_GT: bResult = r1 > r2; break;
 			case CT_LT: bResult = r1 < r2; break;
+			case CT_LE: bResult = r1 <= r2; break;
 			default   : goto notimpl;
 		}
 	} else if (v1.sym_type == S_STRING) {
@@ -413,7 +417,9 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 			if (n1 < 0 || n1 > n2 || n2 > nLen) {
 				interpreter_raiseError("Illegal range %d, %d for string %s", n1, n2, p1);
 			}
-			strmaxcpy(buf, &p1[n1], n2 - n1 + 1);
+			size_t nLen = n2 - n1 + 1;
+			strncpy(buf, &p1[n1], nLen);
+			buf[nLen] = 0;
 			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_STRING, .sym_data.string = interpreter_allocateString(pContext, buf) });
 		} else {
 			v2 = interpreter_coerce(pContext, v2, S_NUMBER);

@@ -4,35 +4,59 @@ namespace test;
 const PI = 3.14159265359d;
 const QUOTE = '\'';
 
-// Define a namespace local variable
-static int errorCount = 18;
+static int errorCount;
+static int successCount;
+static int testcaseCount;
+static string currentMethodExecuted;
 
+// Define a namespace local variable
+static int sampleGlobal = 18;
 
 /**
  * Our test suite. Note, that the 1st macro definition in a file may not be static.
  */
 void Suite() {
+	int assertionCount;
+	// (T) Introduce setup concept
+	sampleGlobal = 18;
+
+	errorCount = 0;
+	testcaseCount = 0;
 	clear();
-	Start-Test("Test-Binary-Expressions");
-	Test-Binary-Expressions();
-	Start-Test("Test-Expression");
-	Test-Expression();
-	Start-Test("Test-Ranges");
-	Test-Ranges();
-	Start-Test("Test-Sprintf");
-	Test-Sprintf();
-	Start-Test("Test-Strings");
-	Test-Strings();
-	Start-Test("Test-Globals");
-	Test-Globals();
-	Start-Test("Test-Arrays");
-	Test-Arrays();
-	Start-Test("Test-Call");
-	Test-Call();
+	for (string s : FunctionNamesMatching("Test-.*", LMT_STATIC_MACROS)) {
+		Run-TestCase(s);
+	}
+	assertionCount = successCount+errorCount;
+	println();
+	println("Total # of Test-Cases " + testcaseCount + " with " + assertionCount + " assertions.");
+	if (errorCount > 0) {
+		println("Error: total status is ****FAILURE****.  " + errorCount + " test cases failed.");
+	} else {
+		println("Congratulations: all test cases succesfully executed");
+	}
+
 }
 
-static void Start-Test(string msg) {
-	println(sprintf("\n####### %D %T: Running test case '%s'...\n", msg));
+static void AssertEquals(auto expected, auto result, string msg) {
+	if (expected != result) {
+		errorCount++;
+		if (!msg) {
+			msg = "assertion failed";
+		}
+		println("Error: Failure in " + currentMethodExecuted + ":" + msg + " " + expected + "(expected) is not equals to " + result);
+	} else {
+		successCount++;
+	}
+}
+
+static void Run-TestCase(string function) {
+	int t = GetTickCount();
+	currentMethodExecuted = function;
+	println(sprintf("\n#################### %D %t: starting test case '%s'...", function));
+	*function();
+	testcaseCount++;
+	t = GetTickCount() - t;
+	println(sprintf("finished. total time %d[ms]", t));
 }
 
 
@@ -41,7 +65,7 @@ static void Start-Test(string msg) {
  * Tests the console by opening clearing it several times. Can be used
  * to test the console as well stability as also performance wise.
  */
-static void Test-Console-Stress() {
+static void XTest-Console-Stress() {
 	int i = 0;
 	while(i < 10) {
 		Test-Strings();
@@ -58,20 +82,19 @@ static void Test-Arrays() {
 	string[] extracted;
 	int i = 0;
 
-	for (string s : myArray) {
-		println(s + "---" + i);
-		i++;
-	}
-	println("3rd word in array is: " + myArray[3]);
-	println("Coerce array to string: " + myArray);
+	AssertEquals("are", myArray[3]);
+	AssertEquals("hello, world, how, are, you, doing", (string)myArray, "Coercing array to string failed.");
 	myArray = myArray + "lastword";
-	println("One word appended to array: " + myArray);
+	AssertEquals(7, size(myArray));
+	AssertEquals("lastword", myArray[6]);
 
 	myArray += array2;
-	println("Another array appended: " + myArray);
+	AssertEquals(9, size(myArray));
+	AssertEquals("two", myArray[8]);
 
 	extracted = myArray[1..4];
-	println("Array extracted using range: " + extracted);
+	AssertEquals(4, size(extracted));
+	AssertEquals("world, how, are, you", (string)extracted);
 }
 
 
@@ -80,13 +103,23 @@ static void Test-Arrays() {
  * A range has a lower bounds, an upper bounds and an optional increment.
  */
 static void Test-Ranges() {
+	int count = 0;
+	int breakVal;
 	for (int i : 1..17) {
-		println("Next is " + i);
+		count++;
 	}
+	AssertEquals(17, count, "Simple range iteration");
 
+	count = 0;
 	for (int j : 1..209..13) {
-		println("Next is " + j);
+		if (j > 27) {
+			break;
+		}
+		count++;
+		breakVal = j;
 	}
+	AssertEquals(3, count, "Range iteration with increment");
+	AssertEquals(27, breakVal, "Values produced by range iteration with increment");
 }
 
 
@@ -96,25 +129,15 @@ static void Test-Ranges() {
  */
 static void Test-Expression() {
 	string s1;
-	string s2 = "x";
 	string re;
-	int x;
 
 	s1 = "aec\\";
 	re = "[a-e]+\\\\";
 
-   	if (s1 ~ re) {
-		s2 = "' is matched by '";
-   	} else {
-		s2 = "' is not matched by '";
-		x = 13;
-	}
-
-	println("String '" + s1 + s2 + re + QUOTE);
-
-	if (s1) {
-		println("OK");
-	}
+	AssertEquals(s1 ~ re, true, "Expression should match");
+	AssertEquals(s1 !~ re, false, "Expression should not not match");
+	AssertEquals((boolean)s1, true, "Non - null string should be treated as true");
+	AssertEquals(QUOTE, '\'', "Match with constant");
 }
 
 static float Calculate-Circle-Area(float radius) {
@@ -123,25 +146,22 @@ static float Calculate-Circle-Area(float radius) {
 
 static void Test-Calc-Radius() {
 	float r = 3.5;
+	string formatted;
 
-	print(MB_OK, "The Area of a circle with radius " + r + " is " + sprintf("%.5f", Calculate-Circle-Area(r)));
+	formatted = sprintf("%.5f", Calculate-Circle-Area(r));
+	AssertEquals("38.48451", formatted);
 }
 
-static void Test-ChangeGlobal(int incr) {
-	errorCount += incr;
+static void ChangeGlobal(int incr) {
+	sampleGlobal += incr;
 }
 
 static void Test-Globals() {
-	int i = 0;
-	int incr = 5;
-	println(sprintf("(%D %T) - value of global var is initially %d", errorCount));
-	while(i < 10) {
-		Test-ChangeGlobal(incr);
-		println(sprintf("(%D %T) - I changed it with an increment of %d to %d ", incr, errorCount));
-		i++;
-		incr += 3;
-	}
-
+	AssertEquals(18, sampleGlobal);
+	ChangeGlobal(3);
+	AssertEquals(21, sampleGlobal);
+	ChangeGlobal(9);
+	AssertEquals(30, sampleGlobal);
 }
 
 /*
@@ -152,19 +172,19 @@ static void Test-Strings() {
 	string subString;
 	string xlated;
 	char x;
-	int n = strlen(myString);
+	int n = size(myString);
 
-	println("String is " + n + " characters long");
+	AssertEquals(11, n);
 	x = myString[7];
-	println("The 7th character is: '" + x + QUOTE);
+	AssertEquals('O', x);
 
 	subString = myString[1..3];
-	println("The substring(1,3) is '" + subString + QUOTE);
+	AssertEquals("eLL", subString);
 
 	xlated = toupper(myString);
-	println("toupper(" + myString + ") is: " + xlated);
+	AssertEquals("HELLO WORLD", xlated);
 	xlated = tolower(myString);
-	println("tolower(" + myString + ") is: " + xlated);
+	AssertEquals("hello world", xlated);
 }
 
 static void Test-Decompile-Binary() {
@@ -177,31 +197,29 @@ static void Test-Decompile-Binary() {
  * Evaluate various binary expressions and print the results.
  */
 static void Test-Binary-Expressions() {
-	println("type of 'a' is: " + typeof('a'));
-	println("typeof(typeof('a')) is: " + typeof(typeof('a')));
-	println("\"a\" + \"b\" -> " + ("a" + "b"));
-	println("\"abcd\" - \"bc\" -> " + ("abcd" - "bc"));
-	println("7 * 'x' -> " + (7 * 'x'));
-	println("7 * \"xy\" -> " + (7 * "xy"));
-	println("1 | 0xA -> " + (1 | 0xA));
-	println("1 & 0xA -> " + (1 & 0xA));
-	println("3 ** 3 -> " + (3 ** 3));
-	println("12 >> 2 -> " + (12 >> 2));
-	println("8 << 2 -> " + (8 << 2));
-	println("2 + 3 * 3 -> " + (2 + 3 * 3));
-	println("4 - 3 / 2 -> " + (4 - 3 / 2));
-	println("7 * 3 % 4 ^ 2 -> " + (7 * 3 % 4 ^ 2));
+	AssertEquals("char", typeof('a'));
+	AssertEquals("string", typeof(typeof('a')));
+	AssertEquals("ab", ("a" + "b"));
+	AssertEquals("ad", ("abcd" - "bc"));
+	AssertEquals("xxxxxxx", (7 * 'x'));
+	AssertEquals("xyxyxy", (3 * "xy"));
+	AssertEquals(11, (1 | 0xA));
+	AssertEquals(0, (1 & 0xA));
+	AssertEquals(27, (3 ** 3));
+	AssertEquals(3, (12 >> 2));
+	AssertEquals(32, (8 << 2));
+	AssertEquals(11, (2 + 3 * 3));
+	AssertEquals(3, (4 - 3 / 2));
+	AssertEquals(3, (7 * 3 % 4 ^ 2));
 }
 
 static void Test-Sprintf() {
 	float d = 17.4424242224d;
 
-	println(-32);
-	println(sprintf("Formatting of integers Decimal: %d Hexadecimal: %#x Binary:%b <%5d>", 1723462748, -200, 32, -456));
-	println(sprintf("Formatting floating point number %.5f %1.3e %2g", d, d, d));
-	println(sprintf("Formatting characters <%-5c> <%5c>", 'C', 'D'));
-	println(sprintf("Formatting with leading zeros <%010d> and forced sign <%+d>", 42, 42));
-	println(sprintf("Formatting strings with padding <%20s>", "Hello world"));
+	AssertEquals("-32", sprintf("%d", -32));
+	AssertEquals("1723462748 -0XC8 100000 < -456>", sprintf("%d %#x %b <%5d>", 1723462748, -200, 32, -456));	AssertEquals("17.44242 1.744e+01 17.4424", sprintf("%.5f %1.3e %2g", d, d, d));	AssertEquals("<C    > <    D>", sprintf("<%-5c> <%5c>", 'C', 'D'));
+	AssertEquals("<0000000042> <+42>", sprintf("<%010d> <%+d>", 42, 42));
+	AssertEquals("<         Hello world>", sprintf("<%20s>", "Hello world"));
 }
 
 
@@ -217,34 +235,43 @@ static void Test-GC() {
 		x = "Hello World " + i;
 		i++;
 	}
-	MessageBox(MB_OK, x);
 }
 
 static void Test-While() {
 	int i = 2+2;
+	int k = 0;
 	while (i < 20) {
-		CursorDown(MOT_SINGLE);
 		i++;
+		k += 3;
 	}
+	AssertEquals(20, i, "After while");
+	AssertEquals(48, k, "After while");
 }
 
-static void Test-Expr2()
+static void Test-Simple-Expression()
 {
-   if (CursorDown(MOT_SINGLE) && CursorLeft(MOT_TOEND)) {
-        InsertChar('x');
-   } else
-        InsertChar('y');
+	int a = 1;
+	int b = 2;
+	boolean bResult;
+
+   	bResult = a > 0 && b == 2;
+	AssertEquals(true, bResult);
 }
 
 
 /*
- * The Test-Params method can be invoked with one integer and one string
- * parameter and will display the parameters passed in a message box.
+ * This method can be invoked with one integer and one string
+ * parameter and will display the parameters passed in the console.
+ * It will also return a string which can be used by the caller.
  */
-static string Test-Params(int par, string par2)
+static string Call-Params(int par, string par2)
 {
 	println( "1st param: " + par + ", 2nd param: '" + par2 + "'");
-	return "This is the text returned from Test-Params";
+	if (par2) {
+		return "r2:" + par2;
+	}
+
+	return "r1:" + par;
 }
 
 
@@ -253,12 +280,15 @@ static string Test-Params(int par, string par2)
  */
 static void Test-Call() {
 	string result;
-	result = Test-Params(1,3);
-	println("Value returned by Test-Params:" + result);
-	Test-Params(1,"One string passed to function");
-	Test-Params(1, "a"+"b");
+	result = Call-Params(1,3);
+	AssertEquals("r2:3", result);
+	result = Call-Params(1,"s2");
+	AssertEquals("r2:s2", result);
+	result = Call-Params(1, "a"+"b");
+	AssertEquals("r2:ab", result);
 	// 1+"x" will be coerced to an integer -> will print '1' instead of '1x'
-	Test-Params(1 + "x");
+	result = Call-Params(1 + "x");
+	AssertEquals("r1:1", result);
 }
 
 

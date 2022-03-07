@@ -30,6 +30,7 @@
 #include "caretmovement.h"
 #include "pksrc.h"
 #include "menu.h"
+#include "pksmacro.h"
 #include "markpositions.h"
 #include "windowselector.h"
 #include "edierror.h"
@@ -47,7 +48,7 @@ EdBlockWrite(long ), bl_cutOrCopy(long ), EdBlockPaste(long ), bl_hideSelectionI
 EdSyncSelectionWithCaret(long ), bl_cutLines(long ), EdLineDelete(long ), bl_destroyAll(long ),
 EdKeycodeInsert(long ), EdCharInsert(long ), EdFormatText(long ),
 EdSearchListRead(long ), EdErrorListRead(long ),
-EdMacrosEdit(long ), EdDocMacrosAdd(long ),
+EdMacrosEdit(long ), doctypes_saveToFile(long ),
 EdTagfileRead(long ), EdSetup(long ), EdSetMultiplier(long ), EdReplaceTabs(long ),
 EdParaGotoBegin(long ), edit_shiftSelection(int aDirection),
 EdParaGotoEnd(long ), EdCharDelete(long ), codecomplete_showSuggestionWindow(long ),
@@ -71,7 +72,7 @@ EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdLi
 EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(),
 bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
-interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_tolower();
+interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_tolower(), macro_getFunctionNamesMatching();
 
 static long long function_unused() {
     // NOT USED ANY MORE
@@ -106,7 +107,7 @@ EDFUNC _functionTable[] = {
 {/*23*/  ww_zoomWindow, -1, EW_NEEDSCURRF | 0,                                                         "ZoomWindow",                 NULL,  "ii"                                           },
 {/*24*/  EdMacrosEdit, -1, EW_MULTI | 0,                                                               "EditMacros",                 NULL,  "i"                                           },
 {/*25*/  function_unused, -1, 0,                                                                       "unused",                     NULL,  "i"                                           },
-{/*26*/  EdDocMacrosAdd, -1, EW_HASFORM | 0,                                                           "MergeDocMacrosWith",         NULL,  "ibFORM_s"                                     },
+{/*26*/  doctypes_saveToFile, -1, EW_HASFORM | 0,                                                           "MergeDocMacrosWith",         NULL,  "ibFORM_s"                                     },
 {/*27*/  macro_readWriteWithFileSelection, -1, EW_HASFORM | 0,                                         "RwMacros",                   NULL,  "iibFORM_s"                                },
 {/*28*/  EdTagfileRead, -1, EW_HASFORM | 0,                                                            "ReadTagfile",                NULL,  "ibFORM_s"                                     },
 {/*29*/  EdSetup, -1, 0,                                                                               "RwSetup",                    NULL,  "ibFORM_s"                                     },
@@ -218,7 +219,10 @@ EDFUNC _functionTable[] = {
 {/*135*/interpreter_typeOf, -1, 0, "typeof", NULL, "P"},
 {/*136*/macroc_toupper, -1, 0, "toupper", NULL, "ss" },
 {/*137*/macroc_tolower, -1, 0, "tolower", NULL, "ss" },
-{/*138*/interpreter_foreach, -1, 0, "foreach", NULL, "P"}
+{/*138*/interpreter_foreach, -1, 0, "foreach", NULL, "P"},
+{/*139*/(long long (*)())GetTickCount, -1, 0, "GetTickCount", NULL, "i" },
+{/*140*/macro_getFunctionNamesMatching, -1, 0, "FunctionNamesMatching", NULL, "aseLMT" }
+
 };
 
 int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);
@@ -298,7 +302,7 @@ COMMAND _commandTable[] = {
 71, C_0FUNC, 28 /* EdTagfileRead */, 						1, 0, "read-tagfile",
 72, C_0FUNC, 21 /* EdSearchListRead */, 					1, 0, "read-search-list",
 73, C_1FUNC, 22 /* EdErrorListRead */, 						1, 0, "read-compiler-errors",
-74, C_0FUNC, 26 /* EdDocMacrosAdd */, 						1, 0, "add-doc-macros",
+74, C_0FUNC, 26 /* doctypes_saveToFile */, 					1, 0,  "save-document-settings",
 75, C_0FUNC, 45 /* EdMacroRecord */, 						1, 0 , "record-macro",
 76, C_0FUNC, 24 /* EdMacrosEdit */, 						1, 0 , "dialog-macros",
 77, C_1FUNC, 27 /* macro_readWriteWithFileSelection */, 	1, 1 , "write-macros",
@@ -618,6 +622,9 @@ PARAMETER_ENUM_VALUE _parameterEnumValueTable[] = {
 { "CT_COMPRESS"               , 0 },
 { "MAC_AUTO"                  , -1 },
 { "MAC_LASTREC"               , -2 },
+{ "LMT_FUNCTION",   LMT_FUNCTION},
+{ "LMT_GLOBAL_MACROS",   LMT_GLOBAL_MACROS },
+{ "LMT_STATIC_MACROS",   LMT_STATIC_MACROS },
 { "MTE_AUTO_LAST_SEARCH"             , MTE_AUTO_LAST_SEARCH },
 { "MTE_AUTO_LAST_INSERT"             , MTE_AUTO_LAST_INSERT },
 { "OPEN_LINEAL"               , OPEN_LINEAL },

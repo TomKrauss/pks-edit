@@ -96,8 +96,14 @@ static char *decompile_quoteString(unsigned char *name)
 	unsigned char *d,*dend;
 	
 	for (d = qbuf, dend= &qbuf[sizeof qbuf-2]; d < dend && *name; name++) {
-		if (*name == '\\' || *name == '"')
+		if (*name == '\n') {
 			*d++ = '\\';
+			*d++ = 'n';
+			continue;
+		}
+		if (*name == '\\' || *name == '"') {
+			*d++ = '\\';
+		}
 		*d++ = *name;
 	}
 	*d = 0;
@@ -153,9 +159,6 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 	unsigned char typ;
 	long long val;
 
-	if (((intptr_t)sp) & 1)
-		goto err;
-
 	typ = ((COM_CHAR1 *)sp)->typ;
 	switch(typ) {
 		case C_FORM_START:
@@ -168,7 +171,7 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 		case C_PUSH_CHARACTER_LITERAL:
 			val = ((COM_CHAR1 *)sp)->val;
 			break;
-		case C_PUSH_STRING_ARRAY_LITERAL:
+		case C_PUSH_ARRAY_LITERAL:
 			sprintf(pszBuf, "{ ... }");
 			return 1;
 		case C_PUSH_FLOAT_LITERAL:
@@ -187,10 +190,10 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 			sprintf(pszBuf, "\"%s\"", decompile_quoteString(((COM_STRING1*)sp)->s));
 			return 1;
 		case C_PUSH_VARIABLE:
-			strcpy(pszBuf, ((COM_VAR*)sp)->name);
+			strcpy(pszBuf, ((COM_STRING1*)sp)->s);
 			return 1;
 		default:
-err:		error_displayAlertDialog("Format error in parameters of function to decompile. Bytecode is 0x%x", typ);
+			error_displayAlertDialog("Format error in parameters of function to decompile. Bytecode is 0x%x", typ);
 			return -1;
 	}
 
@@ -265,8 +268,14 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 	char szFunctionCall[512];
 	char szParam[128];
 
-	if (sp->typ == C_MACRO) {
-		sprintf(szFunctionCall,"%s (%d params)",((COM_MAC*)sp)->name, ((COM_MAC*)sp)->func_args);
+	if (sp->typ == C_MACRO || sp->typ == C_MACRO_REF) {
+		char* pszFunction = ((COM_MAC*)sp)->name;
+		char szFunctionPrinted[128];
+		if (sp->typ == C_MACRO_REF) {
+			sprintf(szFunctionPrinted, "*%s", pszFunction);
+			pszFunction = szFunctionPrinted;
+		}
+		strcpy(szFunctionCall, pszFunction);
 		ep = NULL;
 	} else {
 		decompile_printFunctionName(szFunctionCall, sp->funcnum);
@@ -294,7 +303,7 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 		strcpy(szFunctionCall, "for (");
 		pParamStack++;
 		strcat(szFunctionCall, "auto ");
-		strcat(szFunctionCall, ((COM_VAR*) pParamStack->dse_instruction)->name);
+		strcat(szFunctionCall, ((COM_STRING1*) pParamStack->dse_instruction)->s);
 		strcat(szFunctionCall, " : ");
 		pParamStack++;
 		strcat(szFunctionCall, pParamStack->dse_printed);
@@ -527,6 +536,7 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 		case C_BINOP: fprintf(fp, "operation %s", decompile_binaryOperationAsString(((COM_BINOP*)sp)->op)); break;
 		case C_ASSIGN: fprintf(fp, "assignVariable %s", ((COM_ASSIGN*)sp)->name); break;
 		case C_MACRO:fprintf(fp, "call %s", ((COM_MAC*)sp)->name); break;
+		case C_MACRO_REF:fprintf(fp, "eval %s", ((COM_MAC*)sp)->name); break;
 		case C_0FUNC: fprintf(fp, "nativeCall0 %d (%s) (%d params)", ((COM_0FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_0FUNC*)sp)->func_nargs); break;
 		case C_1FUNC: fprintf(fp, "nativeCall1 %d (%s) (%d params) %d", ((COM_1FUNC*)sp)->funcnum, 
 				_functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_0FUNC*)sp)->func_nargs, ((COM_1FUNC*)sp)->p); break;
@@ -535,7 +545,7 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 		case C_PUSH_SMALL_INT_LITERAL: fprintf(fp, "pushSmallIntLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_INTEGER_LITERAL: fprintf(fp, "pushIntLiteral %d", ((COM_INT1*)sp)->val); break;
 		case C_PUSH_FLOAT_LITERAL: fprintf(fp, "pushFloatLiteral %f", ((COM_FLOAT1*)sp)->val); break;
-		case C_PUSH_STRING_ARRAY_LITERAL: fprintf(fp, "pushStringArrayLiteral size==%d", ((COM_STRING_ARRAYLITERAL*)sp)->length); break;
+		case C_PUSH_ARRAY_LITERAL: fprintf(fp, "pushStringArrayLiteral size==%d", ((COM_ARRAYLITERAL*)sp)->length); break;
 		case C_PUSH_BOOLEAN_LITERAL: fprintf(fp, "pushBooleanLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_CHARACTER_LITERAL: fprintf(fp, "pushCharLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_STRING_LITERAL: fprintf(fp, "pushStringLiteral %s", ((COM_STRING1*)sp)->s); break;

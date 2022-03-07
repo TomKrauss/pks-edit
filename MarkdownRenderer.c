@@ -1725,8 +1725,8 @@ static void mdr_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 		ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
 		pData->md_pElements = NULL;
 		InvalidateRect(wp->ww_handle, (LPRECT)0, 0);
-		UpdateWindow(wp->ww_handle);
-		//RedrawWindow(wp->ww_handle, NULL, NULL, RDW_ERASE | RDW_INVALIDATE);
+		// do not: UpdateWindow(wp->ww_handle); at this point the model may not be completely edited - further editing operations
+		// may follow - so invalidate only and paint when really done.
 	}
 }
 

@@ -1,9 +1,9 @@
 /*
- * KeyBindingFileIO.c
+ * Templates.c
  *
  * PROJEKT: PKS-EDIT for Windows
  *
- * purpose: read the PKSEDIT.KEY File
+ * purpose: define, evaluate and insert templates into a document.
  *
  * 										created: 27.01.1991
  * 										last modified:
@@ -18,7 +18,6 @@
 #include <string.h>
 #include "tos.h"
 #include "pksrc.h"
-#include "pksedit.h"
 #include "caretmovement.h"
 #include "edierror.h"
 #include "pksmacro.h"
@@ -36,7 +35,6 @@
 #include "crossreferencelinks.h"
 #include "editorconfiguration.h"
 #include "brackets.h"
-#include "funcdef.h"
 
 #define	MAX_CONTEXT	32
 #define MAX_SECONDARY 6
@@ -55,12 +53,6 @@ typedef struct tagTEMPLATE_ACTION {
 	long ta_selectionDeltaCol;	// If text should be selected after inserting the template, this is the number of columns relative to the cursor as specified by ta_cursorDeltaLn.
 } TEMPLATE_ACTION;
 
-/*--------------------------------------------------------------------------
- * EXTERNALS
- */
-extern	FSELINFO 	_linfsel;
-
-extern 	int 	macro_createTempFile(char *linfn, char *tmpfn);
 /*
  * Calculate the lexical start state at a given line.
  */
@@ -70,7 +62,7 @@ extern LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlight
  * Expand a code template optionally containing ${....} references and return
  * the expanded text.
  */
-static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction, int nIndent, unsigned char* pszSelected, unsigned char* pszSource) {
+static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction, int nIndent, unsigned char* pszSelected, unsigned char* pszSource) {
 	size_t nInitialSize = strlen(pszSource);
 	size_t nLineBegin = 0;
 	STRING_BUF* pResult = stringbuf_create(nInitialSize);
@@ -160,7 +152,7 @@ static STRING_BUF* macro_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction
 /*
  * Delete the current identifier left to or under the cursor for the purpose of being replaced by a macro. 
  */
-static void macro_replaceCurrentWord(WINFO* wp) {
+static void template_replaceCurrentWord(WINFO* wp) {
 	if (ww_hasSelection(wp)) {
 		EdBlockDelete(0);
 	} else {
@@ -181,7 +173,7 @@ static void macro_replaceCurrentWord(WINFO* wp) {
  * Creates a String Buffer containing an expanded code template. The returned string buffer must be destroyed by the caller.
  * If an error occurs or there is no current window, this will return NULL.
  */
-char* macro_expandCodeTemplateFor(UCLIST* up) {
+char* template_expandCodeTemplateFor(UCLIST* up) {
 	char szIdentifier[100];
 	WINFO* wp = ww_getCurrentEditorWindow();
 	TEMPLATE_ACTION action;
@@ -191,7 +183,7 @@ char* macro_expandCodeTemplateFor(UCLIST* up) {
 	}
 	xref_getSelectedIdentifier(szIdentifier, sizeof szIdentifier);
 	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
-	STRING_BUF * pBuf = macro_expandCodeTemplate(wp, &action, nIndent, szIdentifier, up->p.uc_template);
+	STRING_BUF * pBuf = template_expandCodeTemplate(wp, &action, nIndent, szIdentifier, up->p.uc_template);
 	char* pResult = _strdup(stringbuf_getString(pBuf));
 	stringbuf_destroy(pBuf);
 	return pResult;
@@ -203,7 +195,7 @@ char* macro_expandCodeTemplateFor(UCLIST* up) {
  * If 'bReplaceCurrentWord' is TRUE, the currently selected word / identifier close to the
  * cursor is replaced by the inserted template.
  */
-int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
+int template_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
 	char szIdentifier[100];
 	FTABLE* fp = wp->fp;
 	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
@@ -212,13 +204,13 @@ int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
 	memset(&templateAction, 0, sizeof templateAction);
 	xref_getSelectedIdentifier(szIdentifier, sizeof szIdentifier);
 	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
-	STRING_BUF* pSB = macro_expandCodeTemplate(wp, &templateAction, nIndent, szIdentifier, up->p.uc_template);
+	STRING_BUF* pSB = template_expandCodeTemplate(wp, &templateAction, nIndent, szIdentifier, up->p.uc_template);
 	PASTE pasteBuffer;
 	memset(&pasteBuffer, 0, sizeof pasteBuffer);
 	unsigned char* pszText = stringbuf_getString(pSB);
 	if (bl_convertTextToPasteBuffer(&pasteBuffer, pszText, pszText + strlen(pszText), pConfig->nl, pConfig->nl2, pConfig->cr)) {
 		if (bReplaceCurrentWord) {
-			macro_replaceCurrentWord(wp);
+			template_replaceCurrentWord(wp);
 		}
 		CARET oldCaret = wp->caret;
 		bl_pasteBlock(wp, &pasteBuffer, 0, oldCaret.offset, 0);
@@ -249,9 +241,9 @@ int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
 }
 
 /*--------------------------------------------------------------------------
- * macro_expandAbbreviation()
+ * template_expandAbbreviation()
  */
-int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
+int template_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 	UCLIST *up;
 	long 		o2;
 	int			domacro = 0;
@@ -286,28 +278,10 @@ int macro_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 	}
 	caret_placeCursorInCurrentFile(wp, wp->caret.ln,o2);
 	if (!domacro) {
-		return macro_insertCodeTemplate(wp, up, FALSE);
+		return template_insertCodeTemplate(wp, up, FALSE);
 	}
 	render_repaintCurrentLine(wp); 
 	return macro_executeByName(up->p.uc_macro);
 }
 
-/*--------------------------------------------------------------------------
- * EdDocMacrosAdd()
- */
-int EdDocMacrosAdd(void) {
-	FILE_SELECT_PARAMS params;
-	params.fsp_saveAs = TRUE;
-	params.fsp_optionsAvailable = FALSE;
-
-	if (!ft_getCurrentDocument() || fsel_selectFileWithOptions(&_linfsel, CMD_ADD_DOC_MACROS, &params) == 0) {
-		return 0;
-	}
-
-	if (EdSaveFile(SAV_SAVE|SAV_FORCED) == 0) { 
-		return 0;
-	}
-
-	return 0;
-}
 

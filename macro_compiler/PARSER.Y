@@ -71,7 +71,6 @@
 
 static BYTECODE_BUFFER  _bytecodeBuffer;
 static void		*_currentNativeMethodCalled;
-static char*	_calledFunctionOrMacro;
 static int		_nparam,
 				_breaklevel,
 				_iflevel,
@@ -89,6 +88,7 @@ static		void bytecode_destroyAutoLabelNamePrefix(char *prefix, int level);
 static void 	bytecode_emitPushParameterInstruction(long long lValue);
 
 static MACRO_SCOPE _macroScope;
+static MACROC_INSTRUCTION_OP_CODE _functionCallOp;
 static int	_currentNamespaceIndex;
 static int  _foreachCursorIndex;
 static 		char *lstartid  = "%ls%",
@@ -132,6 +132,10 @@ IDENTIFIER_CONTEXT* _currentIdentifierContext;
 
 static void makeInternalSymbol(const char* pszName, SYMBOL_TYPE sType, intptr_t tVal) {
 	bytecode_defineVariable(&_bytecodeBuffer, pszName, C_DEFINE_VARIABLE, sType, tVal);
+	IDENTIFIER_CONTEXT* pContext = sym_getContext(_currentIdentifierContext, (char*)pszName);
+	if (pContext && pContext != sym_getGlobalContext()) {
+		yyerror("Redefinition of variable %s", pszName);
+	}
 	sym_makeInternalSymbol(_currentIdentifierContext, (char*) pszName, sType, (GENERIC_DATA) {.val = tVal});
 }
 
@@ -430,6 +434,8 @@ binary_expression:	s_bterm  { $$.type = $1.type;	}
 			| '~' binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_NOT}); }
 			| '+' binary_expression { $$.v = $2.v }
 			| '-' binary_expression { _bytecodeBuffer.bb_current = bytecode_emitMultiplyWithLiteralExpression(&_bytecodeBuffer, &$2.v, -1); }
+			| binary_expression '~' binary_expression   { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_MATCH}); }
+			| binary_expression T_NMATCH binary_expression   { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NMATCH}); }
 			| binary_expression '&' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AND}); }
 			| binary_expression '|' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_OR}); }
 			| binary_expression '+' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_ADD}); }
@@ -441,11 +447,20 @@ binary_expression:	s_bterm  { $$.type = $1.type;	}
 			| binary_expression T_SHIFT_LEFT binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SHIFT_LEFT}); }
 			| binary_expression T_SHIFT_RIGHT binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SHIFT_RIGHT}); }
 			| binary_expression T_POWER_TO binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_POWER}); }
+			| binary_expression T_AND binary_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_AND}); }
+			| binary_expression T_OR binary_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_OR}); }
+			| binary_expression '<' binary_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_LT}); }
+			| binary_expression '>' binary_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_GT}); }
+			| binary_expression T_LE binary_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_LE}); }
+			| binary_expression T_GE binary_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_GE}); }
+			| binary_expression T_EQ binary_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_EQ}); }
+			| binary_expression T_NE binary_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NE}); }
 			| '(' binary_expression ')'	{ $$.v = $2.v; }
 
 /*----- conditions ------------------------------------------*/
 
 condition:	'(' logical_expression ')'
+			| '(' binary_expression ')'
 			| '(' logical_expression {
 				yyerror("Missing closing parenthesis )");
 			}
@@ -453,16 +468,6 @@ condition:	'(' logical_expression ')'
 logical_expression:	
 			| term
 			| '!' logical_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NOT}); }
-			| logical_expression T_AND logical_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_AND}); }
-			| logical_expression T_OR logical_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_OR}); }
-			| logical_expression '<' logical_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_LT}); }
-			| logical_expression '>' logical_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_GT}); }
-			| logical_expression T_LE logical_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_LE}); }
-			| logical_expression T_GE logical_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_GE}); }
-			| logical_expression T_EQ logical_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_EQ}); }
-			| logical_expression T_NE logical_expression { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NE}); }
-			| binary_expression '~' binary_expression   { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_MATCH}); }
-			| binary_expression T_NMATCH binary_expression   { $$.type = S_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NMATCH}); }
 
 term:		call_expression { $$.type = S_NUMBER; 	 	}
 			| value {	$$.type = $1.type;	}
@@ -503,7 +508,7 @@ value:		T_NUMVAR {
 			| simple_literal {	$$.type = $1.type;	}
 			| array_literal {	
 				$$.type = S_STRING_ARRAY;
-				YY_EMIT(C_PUSH_STRING_ARRAY_LITERAL, (GENERIC_DATA){.stringList=_currentArrayLiteral});
+				YY_EMIT(C_PUSH_ARRAY_LITERAL, (GENERIC_DATA){.stringList=_currentArrayLiteral});
 				arraylist_destroyStringList(_currentArrayLiteral);
 				_currentArrayLiteral = 0;
 			}
@@ -669,16 +674,32 @@ call_expression: T_FUNC '(' {
 				_currentFunctionCallParamIndexP--;
 				_currentNativeMethodCalled = 0;
 			}
-			| T_IDENT '(' {
+			| function_id_or_pointer '(' {
 				_currentNativeMethodCalled = 0;
 				_currentFunctionCallParamIndexP++;
 				*_currentFunctionCallParamIndexP = 0;
-				_calledFunctionOrMacro = $1.ident.s;
 				$$.funcp = 0;
 			} parameter_list ')' {
-				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, C_MACRO,(GENERIC_DATA){.string = _calledFunctionOrMacro}, *_currentFunctionCallParamIndexP);
+				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, _functionCallOp,(GENERIC_DATA){.string = $1.ident.s}, *_currentFunctionCallParamIndexP);
 				_currentFunctionCallParamIndexP--;
-				freeitem(&_calledFunctionOrMacro);
+				freeitem(&$1.ident.s);
+			}
+
+function_id_or_pointer:
+			'*' variable_reference {
+				_functionCallOp = C_MACRO_REF;
+				$$.ident.s = _strdup($2.ident.s);
+				$$.ident.stringIsAlloced = 1;
+			}
+			|
+			T_IDENT {
+				_functionCallOp = C_MACRO;
+				$$.ident = $1.ident;
+			}
+			| error {
+				yyerror("Illegal function call expression");
+				yyerrok;
+				$$.ident.s = 0;
 			}
 
 parameter_list: nonempty_parameters
@@ -700,7 +721,7 @@ type_name:   T_TCHAR				{	$$.type = S_CHARACTER;	}
 			| T_TBOOLEAN			{	$$.type = S_BOOLEAN; }
 			| T_TSTRING				{	$$.type = S_STRING;	}
 			| T_TSTRING '[' ']'		{	$$.type = S_STRING_ARRAY;	}
-			| T_TAUTO				{	$$.type = S_NUMBER; /* TODO: introduce type-inference type placeholder here */	}
+			| T_TAUTO				{	$$.type = S_AUTO; }
 			| T_RANGE				{	$$.type = S_RANGE;	}
 
 boolean_literal: T_TRUE {

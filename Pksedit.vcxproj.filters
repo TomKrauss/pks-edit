@@ -129,7 +129,7 @@
     <ClCompile Include="Initialize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="KeyBindingFileIO.c">
+    <ClCompile Include="Templates.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ActionBindings.c">
@@ -147,7 +147,7 @@
     <ClCompile Include="HandleMacros.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MacroKeyBinding.c">
+    <ClCompile Include="MacroManagement.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.c">

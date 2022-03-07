@@ -284,6 +284,25 @@ static char* string_formatWithPadding(char* pszDestination, char* pszEnd, char* 
 	return pszDestination;
 }
 
+static void string_formatSystemTime(char* pszDest, SYSTEMTIME* pTime, char c) {
+
+	if (c == 'D') {
+		char lim = sDate[0];
+		sprintf(pszDest, "%02d%c%02d%c%02d",
+			iDate == 1 ? pTime->wDay : iDate == 2 ? pTime->wYear : pTime->wMonth, lim,
+			iDate == 0 ? pTime->wDay : pTime->wMonth, lim,
+			iDate == 2 ? pTime->wDay : (pTime->wYear + 1900));
+	} else {
+		char lim = sTime[0];
+		sprintf(pszDest, "%02d%c%02d%c%02d",
+			pTime->wHour, lim, pTime->wMinute, lim, pTime->wSecond);
+		if (c == 't') {
+			pszDest += strlen(pszDest);
+			sprintf(pszDest, ".%d", pTime->wMilliseconds);
+		}
+	}
+}
+
 /*--------------------------------------------------------------------------
  * mysprintf()
  
@@ -424,21 +443,12 @@ int mysprintf(char *d, char *format, SPRINTF_ARGS* pArgs) {
 					}
 				}
 cpyout:			d = string_formatWithPadding(d, dend, x, nWidth, cFiller, bLeftJustify);
-			} else if (c == 'T') {
-				struct tm *tm;
-				time_t ltime;
-				time(&ltime);
-				tm = localtime(&ltime);
-			 	agettime(stack, tm);
-cp2:			x = stack;
+			} else if (c == 'T' || c == 'D' || c == 't') {
+				SYSTEMTIME st;
+				GetLocalTime(&st);
+				string_formatSystemTime(stack, &st, c);
+				x = stack;
 				goto cpyout;
-			} else if (c == 'D') {
-				struct tm *tm;
-				time_t ltime;
-				time(&ltime);
-				tm = localtime(&ltime);
-				agetdate(stack, tm);
-				goto cp2;
 			} else if (sprintf_isFloatFormat(c) || c == '.') {
 				double dNumber = args->v_d;
 				if (args->v_d) {

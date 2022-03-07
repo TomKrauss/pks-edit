@@ -89,7 +89,7 @@ int function_getParameterCount(EDFUNC* ep) {
 		if (*pT == PARAM_TYPE_ENUM || *pT == PARAM_TYPE_BITSET) {
 			while (*pT != '_') {
 				if (!*pT) {
-					return nCount;
+					return nCount+1;
 				}
 				pT++;
 			}
@@ -171,11 +171,5 @@ int function_parameterIsFormStart(EDFUNC *ep, int parno) {
 	return ptd.pt_enumVal && (string_startsWith(ptd.pt_enumVal->pev_name, "FORM_"));
 }
 
-/*--------------------------------------------------------------------------
- * function_returnsString()
- */
-int function_returnsString(EDFUNC *ep)
-{
-	return ep->edf_paramTypes[0] == PARAM_TYPE_STRING;
-}
+
 

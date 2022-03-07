@@ -120,12 +120,23 @@ extern int macro_getInternalIndexByName(const char* name);
  */
 extern int macro_getNumberOfMacros();
 
+typedef enum {
+	LMT_FUNCTION = 0x1,				// return the names of matching native functions
+	LMT_GLOBAL_MACROS = 0x2,		// return the names of matching macros
+	LMT_STATIC_MACROS = 0x4			// must be included to also return static macro names
+} LIST_MACRO_TYPES;
+
 #ifdef ARRAYLIST_H
 /*
  * Returns a union of all namespaces and macros.
  * The returned arraylist must be freed by the caller.
  */
 extern ARRAY_LIST* macro_getNamespacesAndMacros();
+
+/*
+ * List the names of known macros of a given type (used as flag).
+ */
+extern ARRAY_LIST* macro_getFunctionNamesMatching(const char* pszPattern, LIST_MACRO_TYPES lTypes);
 #endif
 
 /*------------------------------------------------------------

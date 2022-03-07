@@ -31,12 +31,12 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
     "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
@@ -48,7 +48,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
     "\r\n"
     "\0"
@@ -1393,7 +1393,7 @@ BEGIN
     IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
     IDS_INSERT              "Insert"
     IDS_CREATE_BUFFER       "Create"
-    IDS_NO_EVALUATION_SUPPORTED 
+    IDS_NO_EVALUATION_SUPPORTED
                             "The grammar of this file does not support evaluation of code."
     IDS_EVALUATION_FAILED   "The evaluation of the currently selected text failed."
     IDS_MSGRE_UNDEFINED_BACKREF "Undefined bracket back reference"
@@ -1410,7 +1410,7 @@ BEGIN
     IDS_MSGNTIMESFOUND      "%d times found"
     IDS_WINDOWLIST          "Open window list"
     IDS_SELECTCOMPILEWINDOW "File - Selection for Compilation"
-    IDS_TT_REGULAR_EXPRESSION 
+    IDS_TT_REGULAR_EXPRESSION
                             "Regular expressions support the following special characters\r\n""."" - (matches any char)\r\n""[a-z]"" - all characters from a-z\r\n""*"" - (an arbitrary number of times)\r\n""+"" - at least once\r\n""{x,y}"" - minimum x, maximum y times"
     IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text are preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
     IDS_FILE_MODIFIED       "Modified"
@@ -1535,12 +1535,12 @@ BEGIN
     IDS_COMMAND71           "Read a tag file;Read Tag File"
     IDS_COMMAND72           "Use old search result list;Use Search Results"
     IDS_COMMAND73           "Read compiler output file;Read Compiler Output File"
-    IDS_COMMAND74           "Adds document settings to the current settings;Add Settings"
+    IDS_COMMAND74           "Save all current Document Settings;Save Document Settings..."
     IDS_COMMAND75           "Start stop macro recorder;Record Macro"
     IDS_COMMAND76           "Edit ans start marcros and bind;Edit Macros"
-    IDS_COMMAND77           "Save macros to file;Save Macros"
-    IDS_COMMAND78           "Read macros from file;Read Macros"
-    IDS_COMMAND79           "Save all settings;Save Settings"
+    IDS_COMMAND77           "Save macros to file;Save Macros..."
+    IDS_COMMAND78           "Read macros from file;Read Macros..."
+    IDS_COMMAND79           "Save all settings;Save Settings..."
 END
 
 STRINGTABLE

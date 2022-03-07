@@ -25,6 +25,7 @@
 
 #include "alloc.h"
 #include "tos.h"
+#include "funcdef.h"
 #include "jsonparser.h"
 #include "linkedlist.h"
 #include "documentmodel.h"
@@ -566,3 +567,21 @@ int doctypes_initAllDocumentTypes(void) {
 	return ret;
 }
 
+/*--------------------------------------------------------------------------
+ * doctypes_saveToFile()
+ */
+int doctypes_saveToFile(void) {
+	FILE_SELECT_PARAMS params;
+	params.fsp_saveAs = TRUE;
+	params.fsp_optionsAvailable = FALSE;
+
+	if (!ft_getCurrentDocument() || fsel_selectFileWithOptions(&_linfsel, CMD_ADD_DOC_MACROS, &params) == 0) {
+		return 0;
+	}
+
+	if (EdSaveFile(SAV_SAVE | SAV_FORCED) == 0) {
+		return 0;
+	}
+
+	return 0;
+}

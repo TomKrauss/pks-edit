@@ -46,11 +46,11 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 			typ = C_PUSH_SMALL_INT_LITERAL;
 	}
 
-	if (typ == C_PUSH_STRING_ARRAY_LITERAL) {
+	if (typ == C_PUSH_ARRAY_LITERAL) {
 		ARRAY_LIST* pList = data.stringList;
 		size_t nElements = arraylist_size(pList);
-		COM_STRING_ARRAYLITERAL* pLiteral = (COM_STRING_ARRAYLITERAL * )sp;
-		spret = (char*)((COM_STRING_ARRAYLITERAL*)sp)->strings;
+		COM_ARRAYLITERAL* pLiteral = (COM_ARRAYLITERAL * )sp;
+		spret = (char*)((COM_ARRAYLITERAL*)sp)->strings;
 		pLiteral->length = (int)nElements;
 		for (int i = 0; i < nElements; i++) {
 			char* pString = arraylist_get(pList, i);
@@ -61,21 +61,26 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 		}
 		s = (int)(spret - sp);
 		pLiteral->totalBytes = s;
-	} else if (typ == C_MACRO) {
+	} else if (typ == C_MACRO || typ == C_MACRO_REF) {
+		if (data.string == 0) {
+			yyerror("Illegal %s without name.", typ == C_MACRO ? "macro call" : "eval call");
+			return sp;
+		}
 		s = (long)(strlen(data.string) + sizeof(COM_MAC));
 	} else {
 		s = interpreter_getParameterSize(typ, data.string);
 	}
 	if ((spret = sp+s) > pBuffer->bb_end) {
 		yyerror(/*STR*/"Code generation buffer overflow. Macro to big.");
-		return 0;
+		return pBuffer->bb_end;
 	}
 
 	switch(typ) {
-	case C_PUSH_STRING_ARRAY_LITERAL:
+		case C_PUSH_ARRAY_LITERAL:
 		break;
 		case C_STOP:
 		case C_SET_STACKFRAME:
+		case C_PUSH_BOOLEAN_LITERAL:
 		case C_PUSH_CHARACTER_LITERAL: 
 		case C_PUSH_SMALL_INT_LITERAL:
 			((COM_CHAR1 *)sp)->val = data.uchar;
@@ -110,8 +115,9 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 			break;
 		case C_ASSIGN:
 		case C_PUSH_VARIABLE:
-			strcpy(((COM_VAR*)sp)->name, data.string);
+			strcpy(((COM_STRING1*)sp)->s, data.string);
 			break;
+		case C_MACRO_REF:
 		case C_MACRO:
 			strcpy(((COM_MAC*)sp)->name, data.string);
 			break;

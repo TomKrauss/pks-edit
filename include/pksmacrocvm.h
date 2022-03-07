@@ -124,9 +124,11 @@ typedef enum {
 	C_0FUNC = 0x1,  			// Function # (char) 
 	C_1FUNC = 0x2,  			// Function # (char) + 1 int Param 
 	C_MACRO = 0x3,  			// macro "macroname"
-	C_GOTO  = 0x4,  			// (conditionally) goto offset
+	C_MACRO_REF = 0x4,  		// variable reference to a macro to invoke / function pointer
 
-	// Operations
+	C_GOTO = 0x5,  			// (conditionally) goto offset
+
+							// Operations
 	C_LOGICAL_OPERATION = 0x6,	// Test: binary logical operation between stack[0] and stack[1]
 	C_BINOP = 0x7,  			// binary operation between stack[0] and stack[1]
 	C_ASSIGN= 0x8,  			// assign: a = stackval
@@ -139,7 +141,7 @@ typedef enum {
 	C_PUSH_LONG_LITERAL  = 0x14, 			// Push long literal, pad, 1 long Parameter follows 
 	C_PUSH_FLOAT_LITERAL = 0x15, 			// Push floating point literal
 	C_PUSH_BOOLEAN_LITERAL   = 0x16,		// Push boolean literal 1 Ascii character follows 
-	C_PUSH_STRING_ARRAY_LITERAL = 0x17, 	// Push string array literal, n strings\0 follow  
+	C_PUSH_ARRAY_LITERAL = 0x17, 	// Push string array literal, n strings\0 follow  
 	C_PUSH_VARIABLE = 0x18,					// variable reference to string
 	C_FORM_START = 0x19, 					// formular with parameters ...
 	
@@ -154,7 +156,7 @@ typedef enum {
 
 
 #define	C_IS1PAR(typ)			 (typ & 0x10)
-#define	C_ISCMD(typ)			 (typ >= C_0FUNC && typ <= C_MACRO)
+#define	C_ISCMD(typ)			 (typ >= C_0FUNC && typ <= C_MACRO_REF)
 #define C_IS_PUSH_OPCODE(opCode) (opCode >= C_PUSH_CHARACTER_LITERAL && opCode <= C_FORM_START)
 
 #define	C_NONE			0xFF
@@ -189,7 +191,7 @@ typedef struct c_0func {
 } COM_0FUNC;
 
 typedef struct tagCOM_MAC {
-	unsigned char typ;				// C_MACRO
+	unsigned char typ;				// C_MACRO, C_MACRO_REF
 	unsigned char reserved;
 	int			  func_args;		// Number of arguments actually passed.
 	unsigned char name[1];			// 0-term. string padded to even # 
@@ -204,17 +206,12 @@ typedef struct tagCOMMAND {
 	char*	  c_name;				// name of the command used in macros
 } COMMAND;
 
-typedef struct tagCOM_INLINE_STRING {
-	unsigned char typ;				// C_MACRO 
-	unsigned char name[1];			// 0-term. string padded to even # 
-} COM_VAR;
-
 typedef struct tagCOM_STRING_ARRAYLITERAL {
 	unsigned char 	typ;			// C_PUSH_STRING_ARRAY_LITERAL push a string array
 	unsigned char   length;			// length of the array
 	unsigned int    totalBytes;		// Total size of this instruction in bytes.
 	unsigned char	strings[1];		// 'length' number of 0-terminated strings follow now.
-} COM_STRING_ARRAYLITERAL;
+} COM_ARRAYLITERAL;
 
 
 typedef struct tagCOM_ASSIGN {
@@ -264,27 +261,27 @@ typedef struct c_int1 {
 	int				val;
 } COM_INT1;
 
-typedef struct c_float1 {
-	unsigned char typ;				// C_PUSH_INTEGER_LITERAL, C_PUSH_FLOAT int
-	unsigned char	c_valueType;
+typedef struct tagCOM_FLOAT1 {
+	unsigned char typ;				// C_PUSH_FLOAT int
+	unsigned char c_valueType;
 	double		  val;
 } COM_FLOAT1;
 
-typedef struct c_long1 {
-	unsigned char typ;				// C_PUSH_LONG_LITERAL, C_PUSH_FLOAT int
+typedef struct tagCOM_LONG1 {
+	unsigned char	typ;			// C_PUSH_LONG_LITERAL, C_PUSH_FLOAT int
 	unsigned char	c_valueType;
-	intptr_t  	  val;
+	intptr_t  		val;
 } COM_LONG1;
 
-typedef struct c_string1 {
+typedef struct tagCOM_STRING1 {
 	unsigned char typ;				// C_STRING1, C_PUSH_VARIABLE
 	unsigned char s[1];				// 0-term. string padded to even #
 } COM_STRING1;
 
 typedef struct c_form {
-	unsigned char typ;				// CMD_FORMSTART 
-	unsigned char options;			// FORM_SHOW
-	int		    nfields;			// # of fields in formular
+	unsigned char	typ;			// CMD_FORMSTART 
+	unsigned char	options;		// FORM_SHOW
+	int				nfields;		// # of fields in formular
 } COM_FORM;
 
 typedef union c_seq {

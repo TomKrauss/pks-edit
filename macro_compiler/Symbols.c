@@ -139,6 +139,15 @@ void sym_remove(IDENTIFIER_CONTEXT* pContext, char* key) {
 	}
 }
 
+
+/*--------------------------------------------------------------------------
+ * Determines the identifier context of a symbol.
+ */
+IDENTIFIER_CONTEXT* sym_getContext(IDENTIFIER_CONTEXT* pContext, char* key) {
+	HASH_ENTRY entry;
+	return sym_findContext(pContext, key, &entry);
+}
+
 /*--------------------------------------------------------------------------
  * sym_find()
  */

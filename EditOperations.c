@@ -49,7 +49,7 @@ extern int 	ln_countLeadingSpaces(LINE *l);
 extern int 	string_isSpace(unsigned char c);
 extern int 	string_countSpacesIn(unsigned char *s, int pos);
 extern void 	wt_insline(FTABLE *fp, int caretLine, int nlines);
-extern int 	macro_expandAbbreviation(WINFO *fp, LINE *lp,int offs);
+extern int 	template_expandAbbreviation(WINFO *fp, LINE *lp,int offs);
 extern void 	render_updateCaret(WINFO *wp);
 
 extern long 	_multiplier;
@@ -983,7 +983,7 @@ long long EdCharInsert(int c)
 	if (!_playing) {
 
 		if (workmode & WM_ABBREV) {
-			macro_expandAbbreviation(wp,lp,offs);
+			template_expandAbbreviation(wp,lp,offs);
 		}
 		if (workmode & WM_SHOWMATCH) {
 			uc_showMatchingBracket(wp);
@@ -1164,7 +1164,7 @@ int EdExpandAbbreviation(void)
 
 	if (wp) {
 		return
-			macro_expandAbbreviation(wp->fp,wp->caret.linePointer,wp->caret.offset);
+			template_expandAbbreviation(wp->fp,wp->caret.linePointer,wp->caret.offset);
 	}
 	return 0;
 }

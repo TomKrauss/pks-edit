@@ -987,6 +987,9 @@
       "label-id": 1906,
       "sub-menu": [
         { "command": "@dialog-doc-types" },
+        {
+          "command": "@save-document-settings"
+        },
         { "separator": true },
         { "command": "@dialog-display-mode" },
         { "separator": true },

@@ -22,14 +22,15 @@ typedef enum {
 	S_CHARACTER = 5,
 	S_RANGE = 6,
 	S_STRING_ARRAY = 7,
-	S_KEYWORD = 8,
-	S_EDFUNC = 9,
-	S_TYPE = 10,
-	S_ENUM = 11,
-	S_CONSTNUM = 12,
-	S_CONSTSTRING = 13,
-	S_CONSTCHARACTER = 14,
-	S_CONSTFLOAT = 15
+	S_AUTO = 8,
+	S_KEYWORD = 9,
+	S_EDFUNC = 10,
+	S_TYPE = 11,
+	S_ENUM = 12,
+	S_CONSTNUM = 13,
+	S_CONSTSTRING = 14,
+	S_CONSTCHARACTER = 15,
+	S_CONSTFLOAT = 16
 } SYMBOL_TYPE;
 
 #define	TYPEOF(s)			((s).sym_type)
@@ -45,6 +46,10 @@ typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 extern int 		 sym_insert(IDENTIFIER_CONTEXT* pContext, char *key, SYMBOL_TYPE stType, GENERIC_DATA symdata);
 extern PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, char *key, char **key_ret);
 extern int 		 sym_makeInternalSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, GENERIC_DATA value);
+/*--------------------------------------------------------------------------
+ * Determines the identifier context of a symbol.
+ */
+extern IDENTIFIER_CONTEXT* sym_getContext(IDENTIFIER_CONTEXT* pContext, char* key);
 
 /*
  * Remove one symbol from an identifier context.

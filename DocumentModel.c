@@ -618,8 +618,12 @@ long ln_cnt(LINE* lps, LINE* lpe) {
 void ln_replace(FTABLE *fp, LINE *oln, LINE *nl)
 {
 	nl->next = oln->next;
-	if ((nl->prev = oln->prev) != 0) nl->prev->next = nl;
-	nl->next->prev = nl;
+	if ((nl->prev = oln->prev) != 0) {
+		nl->prev->next = nl;
+	}
+	if (nl->next != 0) {
+		nl->next->prev = nl;
+	}
 	ln_singleLineChanged(fp, LINE_REPLACED, oln, nl);
 	if (fp->firstl == oln) fp->firstl = nl;
 }

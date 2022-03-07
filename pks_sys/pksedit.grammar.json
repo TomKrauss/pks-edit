@@ -101,7 +101,7 @@
           "style": "default"
         },
         {
-          "match": "[*%/+\\[\\]{}^&|-]+",
+          "match": "[*%/+\\[\\]{}^&|!-]+",
           "name": "keyword.operator",
           "style": "operator"
         }

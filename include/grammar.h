@@ -177,13 +177,13 @@ extern void grammar_documentTypeChanged(GRAMMAR* pGrammar);
  * If 'bReplaceCurrentWord' is TRUE, the currently selected word / identifier close to the
  * cursor is replaced by the inserted template.
  */
-extern int macro_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord);
+extern int template_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord);
 
 /*
  * Creates a String Buffer containing an expanded code template. The returned string buffer must be destroyed by the caller.
  * If an error occurs or there is no current window, this will return NULL.
  */
-extern char* macro_expandCodeTemplateFor(UCLIST* up);
+extern char* template_expandCodeTemplateFor(UCLIST* up);
 
 /*
  * Add all suggestions matching 'pszMatch', which can be derived from a grammar by invoking the addCallback.

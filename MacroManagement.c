@@ -1,5 +1,5 @@
 /*
- * MacroKeyBinding.c
+ * MacroManagement.c
  *
  * Execute, edit, display and manage the macros defined in PKS-Edit
  *
@@ -24,21 +24,19 @@
 #include "pksedit.h"
 #include "winfo.h"
 #include "winterf.h"
+#include "regexp.h"
 #include "fileselector.h"
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
 #include "funcdef.h"
 #include "dial2.h"
-#include "iccall.h"
 #include "resource.h"
 #include "xdialog.h"
 #include "arraylist.h"
 #include "errordialogs.h"
 #include "stringutil.h"
 #include "winutil.h"
-#include "mouseutil.h"
 #include "editorconfiguration.h"
-#include "menu.h"
 #include "funcdef.h"
 #include "actionbindings.h"
 
@@ -111,6 +109,49 @@ ARRAY_LIST* macro_getNamespacesAndMacros() {
 	return pResult;
 }
 
+static int macro_compileRegularExpression(const char* pszPattern, char* pExpressionBuf, size_t nExpBufSize, RE_PATTERN* pResult) {
+	RE_OPTIONS options;
+	memset(&options, 0, sizeof options);
+	options.expression = (char*)pszPattern;
+	options.patternBuf = pExpressionBuf;
+	options.eof = 0;
+	options.endOfPatternBuf = pExpressionBuf + nExpBufSize;
+	options.flags = RE_DOREX | RE_NOADVANCE;
+	return regex_compile(&options, pResult);
+}
+
+
+/*
+ * List the names of all macros/functions matching a pattern.
+ */
+ARRAY_LIST* macro_getFunctionNamesMatching(const char* pszPattern, LIST_MACRO_TYPES lTypes) {
+	char ebuf[256];
+	ARRAY_LIST* pResult = arraylist_create(64);
+	RE_PATTERN rePattern;
+	RE_MATCH result;
+	if (!macro_compileRegularExpression(pszPattern, ebuf, sizeof ebuf, &rePattern)) {
+		// Error handling?
+		return pResult;
+	}
+	if ((lTypes & (LMT_GLOBAL_MACROS | LMT_STATIC_MACROS)) && _macroTable) {
+		ARRAY_ITERATOR pIter = arraylist_iterator(_macroTable);
+		while (pIter.i_buffer < pIter.i_bufferEnd) {
+			MACRO* mp = *pIter.i_buffer++;
+			if (((mp->mc_scope == MS_GLOBAL && (lTypes & LMT_GLOBAL_MACROS)) || (mp->mc_scope == MS_LOCAL && (lTypes & LMT_STATIC_MACROS)))
+					&& regex_match(&rePattern, mp->mc_name, NULL, &result)) {
+				arraylist_add(pResult, _strdup(mp->mc_name));
+			}
+		}
+	}
+	if (lTypes & LMT_FUNCTION) {
+		for (int i = 0; i < _functionTableSize; i++) {
+			if (regex_match(&rePattern, _functionTable[i].f_name, NULL, &result)) {
+				arraylist_add(pResult, _strdup(_functionTable[i].f_name));
+			}
+		}
+	}
+	return pResult;
+}
 /*
  * Lookup the index of a named macro namespace. If the namespace is not yet defined, define one on the fly. 
  */
@@ -186,14 +227,6 @@ MACROREF* macro_translateMenuCommand(int nCommand) {
 		return &macroref;
 	}
 	return NULL;
-}
-
-/*------------------------------------------------------------
- * macro_reportError()
- */
-void macro_reportError(void)
-{
-	error_showErrorById(IDS_MSGEXECERR);
 }
 
 /*------------------------------------------------------------

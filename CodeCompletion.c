@@ -359,7 +359,7 @@ static void codecomplete_displayHelpFor(HWND hwnd, CODE_COMPLETION_PARAMS* pPara
 			if (pSelected->ca_helpCB) {
 				pszHelp = pSelected->ca_helpCB(pSelected->ca_name, pSelected->ca_object);
 			} else if (pSelected->ca_type == CA_TEMPLATE) {
-				pszHelp = macro_expandCodeTemplateFor(pSelected->ca_param.template);
+				pszHelp = template_expandCodeTemplateFor(pSelected->ca_param.template);
 			}
 		}
 	}
@@ -444,12 +444,12 @@ static void codecomplete_action(HWND hwnd) {
 	cap = (CODE_ACTION*) ll_at((LINKED_LIST*)cap, nSelectedIndex);
 	if (cap) {
 		if (cap->ca_type == CA_TEMPLATE) {
-			macro_insertCodeTemplate(wp, cap->ca_param.template, TRUE);
+			template_insertCodeTemplate(wp, cap->ca_param.template, TRUE);
 		} else {
 			UCLIST uclTemp;
 			uclTemp.action = UA_ABBREV;
 			uclTemp.p.uc_template = cap->ca_param.text;
-			macro_insertCodeTemplate(wp, &uclTemp, cap->ca_replaceWord);
+			template_insertCodeTemplate(wp, &uclTemp, cap->ca_replaceWord);
 		}
 	}
 	ShowWindow(hwnd, SW_HIDE);

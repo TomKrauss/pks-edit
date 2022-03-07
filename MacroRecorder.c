@@ -118,7 +118,7 @@ void recorder_pushSequence(unsigned char typ, void* par) {
 		((COM_FLOAT1*)sp)->val = (double)(intptr_t)par;
 		break;
 	case C_PUSH_STRING_LITERAL:
-		strcpy(((COM_VAR*)sp)->name, (char*)par);
+		strcpy(((COM_STRING1*)sp)->s, (char*)par);
 		break;
 	case C_MACRO:
 		strcpy(((COM_MAC*)sp)->name, (char*)par);

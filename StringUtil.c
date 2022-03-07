@@ -75,13 +75,13 @@ char* string_strcasestr(const char* p1, const char* p2) {
 	}
 }
 /*
- * Copies a pathname string into a destrination string - at max nMax characters.
+ * Copies a string into a destrination string - at max nMax characters.
  * Returns the pointer to the end of the string.
  */
 char* strmaxcpy(char* pszDest, const char* pszSource, int nMax) {
 	LPSTR		pszEnd;
 	
-	pszEnd = pszDest + nMax - 1;
+	pszEnd = pszDest + nMax;
 	while(pszDest < pszEnd) {
 		if ((*pszDest = *pszSource) == 0) {
 			return pszDest;
