@@ -554,7 +554,7 @@ static int init_keywords(void)
 {	struct kw *kp = keywords;
 
 	while(kp->name) {
-		if (!sym_insert(sym_getGlobalContext(), kp->name,S_KEYWORD,(GENERIC_DATA){.intValue = kp->toknum}))
+		if (!sym_createSymbol(sym_getGlobalContext(), kp->name,S_KEYWORD,(GENERIC_DATA){.intValue = kp->toknum}))
 			return 0;
 		kp++;
 	}

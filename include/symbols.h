@@ -43,9 +43,15 @@ typedef enum {
 
 typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 
-extern int 		 sym_insert(IDENTIFIER_CONTEXT* pContext, char *key, SYMBOL_TYPE stType, GENERIC_DATA symdata);
 extern PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, char *key, char **key_ret);
-extern int 		 sym_makeInternalSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, GENERIC_DATA value);
+
+/*
+ * Create a symbol primarily to be used in the context of the macroc parser to define
+ * keywords, variables, enum values etc... All objects created requiring memory (e.g. strings etc)
+ * are copied internally.
+ */
+extern int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, GENERIC_DATA value);
+
 /*--------------------------------------------------------------------------
  * Determines the identifier context of a symbol.
  */

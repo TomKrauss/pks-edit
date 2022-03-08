@@ -136,7 +136,7 @@ static void makeInternalSymbol(const char* pszName, SYMBOL_TYPE sType, intptr_t 
 	if (pContext && pContext != sym_getGlobalContext()) {
 		yyerror("Redefinition of variable %s", pszName);
 	}
-	sym_makeInternalSymbol(_currentIdentifierContext, (char*) pszName, sType, (GENERIC_DATA) {.val = tVal});
+	sym_createSymbol(_currentIdentifierContext, (char*) pszName, sType, (GENERIC_DATA) {.val = tVal});
 }
 
 static SYMBOL_TYPE constantTypeFor(SYMBOL_TYPE aValueType) {
@@ -206,7 +206,7 @@ constant_list:
 constdef:	{ _bDefiningConst = 1; } variable_identifier T_ASSIGN constant_literal { _bDefiningConst = 0; } 
 			{
 				BOOL bString = ($4.v.type == S_STRING);
-				sym_makeInternalSymbol(_currentIdentifierContext, $2.ident.s,
+				sym_createSymbol(_currentIdentifierContext, $2.ident.s,
 					constantTypeFor($4.v.type), $4.v.data);
 				free($2.ident.s);
 				if (bString) {
@@ -250,7 +250,7 @@ variable_reference:
 			| T_IDENT			{   
 				yyerror("Using undeclared variable %s", $1.ident.s);
 				// auto-correct by introducing variable
-				sym_makeInternalSymbol(_currentIdentifierContext, $1.ident.s, S_NUMBER, (GENERIC_DATA) {0});
+				sym_createSymbol(_currentIdentifierContext, $1.ident.s, S_NUMBER, (GENERIC_DATA) {0});
 				free($1.ident.s);
 				$$.ident = $1.ident;
 			}
@@ -289,7 +289,7 @@ non_empty_pardecl:
 			par_decl
 
 par_decl:	type_name variable_identifier {
-				sym_makeInternalSymbol(_currentIdentifierContext, $2.ident.s, S_NUMBER, (GENERIC_DATA) {_nparam});
+				sym_createSymbol(_currentIdentifierContext, $2.ident.s, S_NUMBER, (GENERIC_DATA) {_nparam});
 				bytecode_defineVariable(&_bytecodeBuffer, $2.ident.s,C_DEFINE_PARAMETER,$1.type,_nparam);
 				free($2.ident.s);
 				_nparam++;

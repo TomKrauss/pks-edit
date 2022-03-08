@@ -179,7 +179,7 @@ static void makeInternalSymbol(const char* pszName, SYMBOL_TYPE sType, intptr_t 
 	if (pContext && pContext != sym_getGlobalContext()) {
 		yyerror("Redefinition of variable %s", pszName);
 	}
-	sym_makeInternalSymbol(_currentIdentifierContext, (char*) pszName, sType, (GENERIC_DATA) {.val = tVal});
+	sym_createSymbol(_currentIdentifierContext, (char*) pszName, sType, (GENERIC_DATA) {.val = tVal});
 }
 
 static SYMBOL_TYPE constantTypeFor(SYMBOL_TYPE aValueType) {
@@ -2164,7 +2164,7 @@ int yydebug = 1;
 #line 207 "Parser.y"
     {
 				BOOL bString = ((yyvsp[(4) - (5)]).v.type == S_STRING);
-				sym_makeInternalSymbol(_currentIdentifierContext, (yyvsp[(2) - (5)]).ident.s,
+				sym_createSymbol(_currentIdentifierContext, (yyvsp[(2) - (5)]).ident.s,
 					constantTypeFor((yyvsp[(4) - (5)]).v.type), (yyvsp[(4) - (5)]).v.data);
 				free((yyvsp[(2) - (5)]).ident.s);
 				if (bString) {
@@ -2284,7 +2284,7 @@ int yydebug = 1;
     {   
 				yyerror("Using undeclared variable %s", (yyvsp[(1) - (1)]).ident.s);
 				// auto-correct by introducing variable
-				sym_makeInternalSymbol(_currentIdentifierContext, (yyvsp[(1) - (1)]).ident.s, S_NUMBER, (GENERIC_DATA) {0});
+				sym_createSymbol(_currentIdentifierContext, (yyvsp[(1) - (1)]).ident.s, S_NUMBER, (GENERIC_DATA) {0});
 				free((yyvsp[(1) - (1)]).ident.s);
 				(yyval).ident = (yyvsp[(1) - (1)]).ident;
 			;}
@@ -2331,7 +2331,7 @@ int yydebug = 1;
 /* Line 1455 of yacc.c  */
 #line 291 "Parser.y"
     {
-				sym_makeInternalSymbol(_currentIdentifierContext, (yyvsp[(2) - (2)]).ident.s, S_NUMBER, (GENERIC_DATA) {_nparam});
+				sym_createSymbol(_currentIdentifierContext, (yyvsp[(2) - (2)]).ident.s, S_NUMBER, (GENERIC_DATA) {_nparam});
 				bytecode_defineVariable(&_bytecodeBuffer, (yyvsp[(2) - (2)]).ident.s,C_DEFINE_PARAMETER,(yyvsp[(1) - (2)]).type,_nparam);
 				free((yyvsp[(2) - (2)]).ident.s);
 				_nparam++;

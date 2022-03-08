@@ -263,7 +263,7 @@ PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 	PKS_VALUE caretV = sym_find(pContext->ec_identifierContext, pszCaretVar, &pszUnused);
 	if (NULLSYM(caretV)) {
 		caretV = (PKS_VALUE){.sym_type = S_NUMBER, .sym_data.intValue = 0};
-		sym_insert(pContext->ec_identifierContext, pszCaretVar, S_NUMBER, caretV.sym_data);
+		sym_createSymbol(pContext->ec_identifierContext, pszCaretVar, S_NUMBER, caretV.sym_data);
 	}
 	int idx = caretV.sym_data.intValue;
 	if (v.sym_type == S_RANGE) {
@@ -275,15 +275,15 @@ PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 		return (PKS_VALUE) { .sym_type = S_BOOLEAN, .sym_data.booleanValue = 0 };
 	}
 	if (v.sym_type == S_RANGE) {
-		sym_insert(pContext->ec_identifierContext, pszResultVar, S_NUMBER, (GENERIC_DATA) { .intValue = idx });
+		sym_createSymbol(pContext->ec_identifierContext, pszResultVar, S_NUMBER, (GENERIC_DATA) { .intValue = idx });
 	} else if (v.sym_type == S_STRING_ARRAY) {
-		sym_makeInternalSymbol(pContext->ec_identifierContext, pszResultVar, S_STRING, 
+		sym_createSymbol(pContext->ec_identifierContext, pszResultVar, S_STRING, 
 			(GENERIC_DATA) { .string = arraylist_get(v.sym_data.stringList, idx) });
 	} else {		// string
-		sym_insert(pContext->ec_identifierContext, pszResultVar, S_CHARACTER, (GENERIC_DATA) { .uchar = v.sym_data.string[idx] });
+		sym_createSymbol(pContext->ec_identifierContext, pszResultVar, S_CHARACTER, (GENERIC_DATA) { .uchar = v.sym_data.string[idx] });
 	}
 	caretV.sym_data.intValue++;
-	sym_insert(pContext->ec_identifierContext, pszCaretVar, S_NUMBER, caretV.sym_data);
+	sym_createSymbol(pContext->ec_identifierContext, pszCaretVar, S_NUMBER, caretV.sym_data);
 
 	return (PKS_VALUE) { .sym_type = S_BOOLEAN, .sym_data.booleanValue = 1 };
 }
@@ -766,7 +766,7 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 static long interpreter_assignSymbol(EXECUTION_CONTEXT* pContext, char* name) {
 	PKS_VALUE v = interpreter_peekStackValue(pContext);
 
-	return sym_makeInternalSymbol(pContext->ec_identifierContext, name, v.sym_type, v.sym_data);
+	return sym_createSymbol(pContext->ec_identifierContext, name, v.sym_type, v.sym_data);
 }
 
 
@@ -860,14 +860,14 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 			else if (((COM_CREATESYM*)cp)->symtype != S_AUTO) {
 				value = interpreter_coerce(pContext, value, ((COM_CREATESYM*)cp)->symtype);
 			}
-			sym_makeInternalSymbol(pContext->ec_identifierContext, ((COM_CREATESYM*)cp)->name,
+			sym_createSymbol(pContext->ec_identifierContext, ((COM_CREATESYM*)cp)->name,
 				value.sym_type,
 				value.sym_data);
 			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		}
 		case C_DEFINE_VARIABLE:
-			sym_makeInternalSymbol(pContext->ec_identifierContext, ((COM_CREATESYM*)cp)->name,
+			sym_createSymbol(pContext->ec_identifierContext, ((COM_CREATESYM*)cp)->name,
 				((COM_CREATESYM*)cp)->symtype,
 				(GENERIC_DATA) {
 				.longValue = ((COM_CREATESYM*)cp)->value

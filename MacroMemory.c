@@ -28,6 +28,17 @@ typedef struct tagOBJECT_MEMORY {
 	PKS_VALUE *om_objects;				// list of allocated objects to be released, when execution halts.
 } OBJECT_MEMORY;
 
+typedef struct tagOBJECT_DATA {
+	short od_gcFlag : 1;				// A flag for the mark phase of the mark&sweep algo to mark the object.
+	short od_class : 15;				// either a primitive value type or an index into the class object description table.
+	int	  od_size;						// either the number of objects (size of array type objects) or the length of a string
+	int   od_capacity;					// capacity for number of dependent objects.
+	union {
+		const char* string;				// for strings the actual pointer to the string
+		struct tagOBJECTDATA* objects;	// for arrays and structured objects the array of dependent objects
+	} od_data;
+} OBJECT_DATA;
+
 /*
  * Destroy one value from the object memory.
  */

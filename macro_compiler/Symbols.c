@@ -54,11 +54,13 @@ static int sym_destroyEntry(intptr_t tKey, intptr_t tValue) {
 	PKS_VALUE* sym = (PKS_VALUE*)tValue;
 	SYMBOL_TYPE stType = sym->sym_type;
 	char* pszKey = (char*)tKey;
-	if (stType == S_STRING || stType == S_CONSTSTRING) {
-		free(sym->sym_data.string);
-	}
-	else if (stType == S_STRING_ARRAY) {
-		arraylist_destroyStringList(sym->sym_data.stringList);
+	if (sym->pkv_isPointer && !sym->pkv_managed) {
+		if (stType == S_STRING || stType == S_CONSTSTRING) {
+			free(sym->sym_data.string);
+		}
+		else if (stType == S_STRING_ARRAY) {
+			arraylist_destroyStringList(sym->sym_data.stringList);
+		}
 	}
 	free(sym);
 	free(pszKey);
@@ -165,7 +167,7 @@ PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, char *key,char **key_ret) {
 /*--------------------------------------------------------------------------
  * sym_insert()
  */
-int sym_insert(IDENTIFIER_CONTEXT* pContext, char *key, SYMBOL_TYPE stType, GENERIC_DATA symdata) {
+static int sym_insert(IDENTIFIER_CONTEXT* pContext, char *key, PKS_VALUE vValue) {
 	HASH_ENTRY entry;
 	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry);
 	if (pFound) {
@@ -181,31 +183,46 @@ int sym_insert(IDENTIFIER_CONTEXT* pContext, char *key, SYMBOL_TYPE stType, GENE
 		}
 	}
 	PKS_VALUE* sym = calloc(1, sizeof * sym);
-	sym->sym_data = symdata;
-	sym->sym_type = stType;
+	*sym = vValue;
 	hashmap_put(pFound->ic_table, (intptr_t)key, (intptr_t)sym);
 	return 1;	
 }
 
 
 /*--------------------------------------------------------------------------
- * sym_makeInternalSymbol()
+ * sym_createSymbol()
  */
-int sym_makeInternalSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, GENERIC_DATA value) {
+int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, GENERIC_DATA value) {
+	PKS_VALUE v = {.sym_type = stType};
 	if (stType == S_STRING || stType == S_CONSTSTRING) {
-		if ((value.string = _strdup(value.string)) == 0) {
+		if ((v.sym_data.string = _strdup(value.string)) == 0) {
 			return 0;
 		}
+		v.pkv_isPointer = TRUE;
 	} else if (stType == S_STRING_ARRAY) {
 		if (value.stringList) {
 			void* pClone = arraylist_cloneStringList(value.stringList);
 			if (!pClone) {
 				return 0;
 			}
-			value.stringList = pClone;
+			v.sym_data.stringList = pClone;
 		}
+		v.pkv_isPointer = TRUE;
+	} else {
+		v.sym_data.val = value.val;
+		v.pkv_isPointer = FALSE;
 	}
-	return sym_insert(pContext, name, stType, value);
+	return sym_insert(pContext, name, v);
+}
+
+/*
+ * Defines a variable reference to a value managed in the scope of the PKSMacroC object memory
+ * management. It is assumed, that the corresponding data is "managed" outside the scope of the
+ * symbol table.
+ */
+int inline sym_defineVariable(IDENTIFIER_CONTEXT* pContext, char* name, PKS_VALUE vValue) {
+	vValue.pkv_managed = FALSE;
+	return sym_insert(pContext, name, vValue);
 }
 
 /*--------------------------------------------------------------------------

@@ -39,15 +39,18 @@
 
 #define IS_UNARY_OPERATOR(op)		(op == BIN_NOT || op == BIN_CAST)
 
+typedef struct tagOBJECT_DATA OBJECT_DATA;
+
 typedef union uGENERIC_DATA {
-	unsigned char uchar;
-	intptr_t val;
-	unsigned char booleanValue;
-	char* string;
-	void* stringList;
-	int		intValue;
-	long long longValue;
-	double   doubleValue;
+	unsigned char	uchar;
+	intptr_t		val;
+	unsigned char	booleanValue;
+	OBJECT_DATA*	objectMemory;			// for objects managed by the macroC VM object memory this points to the object data.
+	char*			string;
+	void*			stringList;
+	int				intValue;
+	long long		longValue;
+	double			doubleValue;
 	struct tagRANGE {
 		int r_start : 24;
 		int r_end : 24;
@@ -67,8 +70,10 @@ typedef enum {
 } PKS_VALUE_TYPE;
 
 typedef struct tagPKS_VALUE {
-	PKS_VALUE_TYPE	sym_type;
-	GENERIC_DATA	sym_data;
+	int				pkv_managed : 1;				// the memory of this object is managed by the MacroVM object memory
+	int				pkv_isPointer : 1;				// the actual data of this value is contained in the linked object
+	PKS_VALUE_TYPE	sym_type : 6;					// one of the "basic types" defined by PKS_VALUE_TYPE
+	GENERIC_DATA	sym_data;						// the data of this value.
 } PKS_VALUE;
 
 typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
