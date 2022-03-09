@@ -159,16 +159,9 @@ static void LexInit(LINE *lps, LINE *lpe)
 	_lexEnd   	= &_lexStart[lps->len];
 }
 
-/*---------------------------------*/
-/* yyerror()					*/
-/*---------------------------------*/
-void yyerror(char* s, ...)
-{
+static yyreport(char* s, int bError, va_list ap) {
 	char buf1[512];
 	char buf[512];
-	va_list ap;
-
-    va_start(ap,s);
 	if (!yyerr.srcname)
 		yyerr.srcname = "STDIN";
 
@@ -176,15 +169,38 @@ void yyerror(char* s, ...)
 		(yyerr.errfp = file_createTempFile(yyerr.errname, "pksmacro.err")) != 0) {
 		yyerrflg = 1;
 		wvsprintf(buf1, s, ap);
-		sprintf(buf, "Error %s %d: %s\n", yyerr.srcname, yylineno, buf1);
+		sprintf(buf, "%s %s %d: %s\n", (bError) ? "Error" : "Warning", yyerr.srcname, yylineno, buf1);
 		fprintf(yyerr.errfp, buf);
 		fflush(yyerr.errfp);
-		if (++yyerr.yynerr >= yyerr.yymaxerr) {
+		if (bError && ++yyerr.yynerr >= yyerr.yymaxerr) {
 			fprintf(yyerr.errfp, "\n*** too many errors ***\n");
 			if (yyerr.failpt)
 				longjmp(*yyerr.failpt, ERR_TOOMANYERR);
 		}
+		if (!bError && ++yyerr.yynwarn  >= yyerr.yymaxwarn) {
+			fprintf(yyerr.errfp, "\n*** too many warnings ***\n");
+			if (yyerr.failpt)
+				longjmp(*yyerr.failpt, ERR_TOOMANYERR);
+		}
 	}
+}
+
+/*---------------------------------*/
+/* yyerror()					*/
+/*---------------------------------*/
+void yyerror(char* s, ...) {
+	va_list ap;
+
+    va_start(ap,s);
+	yyreport(s, 1, ap);
+	va_end(ap);
+}
+
+void yywarning(char* s, ...) {
+	va_list ap;
+
+    va_start(ap,s);
+	yyreport(s, 0, ap);
 	va_end(ap);
 }
 

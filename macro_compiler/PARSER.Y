@@ -103,6 +103,7 @@ extern 		int	yyerrflg;
 extern 		int	_bDefiningConst;
 extern char*    _yyCurrentComment;
 extern void		yyerror(char* s, ...);
+extern void		yywarning(char* s, ...);
 int				function_getIndexOfFunction(void *ep);
 int 			function_parameterIsFormStart(void *ep,int parno);
 extern int macro_lookupNamespace(const char* pszNamespacename);
@@ -225,7 +226,9 @@ constdef:	{ _bDefiningConst = 1; } variable_identifier T_ASSIGN constant_literal
 				BOOL bString = ($4.v.type == S_STRING);
 				sym_createSymbol(_currentIdentifierContext, $2.ident.s,
 					constantTypeFor($4.v.type), $4.v.data);
-				free($2.ident.s);
+				if ($2.ident.stringIsAlloced) {
+					free($2.ident.s);
+				}
 				if (bString) {
 					free($4.v.data.string);
 				}
@@ -292,9 +295,17 @@ macro_type:	T_VOID
 			| T_TLONG 
 			| T_TFLOAT
 
-macrostart: { init_macroDefinition(); } macro_declaration '(' parameter_list ')' 
+macrostart: { init_macroDefinition(); } macro_declaration '(' parameter_list ')' optional_description 
 			{	$$.ident = $2.ident; 
 				YY_EMIT(C_SET_STACKFRAME,(GENERIC_DATA){0});
+			}
+			
+
+optional_description:
+			|
+			T_STRING {
+				yywarning("Old Style macro descriptions not supported any more. Use C-Syntax style comments to describe macros.");
+				free($1.ident.s);
 			}
 
 parameter_list:

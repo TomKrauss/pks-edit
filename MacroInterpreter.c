@@ -80,12 +80,28 @@ static COM_FORM* _currentFormInstruction;
 void interpreter_raiseError(const char* pFormat, ...) {
 	char szBuffer[256];
 	char szMessage[512];
+	char szTrace[512];
 	va_list ap;
 
 	va_start(ap, pFormat);
 	vsprintf(szBuffer, pFormat, ap);
 	va_end(ap);
-	sprintf(szMessage, "Exception occurred when executing macro/function '%s'\n%s", _currentExecutionContext ? _currentExecutionContext->ec_currentFunction : "?", szBuffer);
+	char* p = szTrace;
+	*p = 0;
+	EXECUTION_CONTEXT* pContext = _currentExecutionContext;
+	while (pContext && p < &szTrace[450]) {
+		strcpy(p, pContext->ec_currentFunction);
+		p += strlen(p);
+		if (pContext->ec_parent) {
+			strcpy(p, "<-");
+			p += 2;
+			pContext = pContext->ec_parent;
+		}
+		else {
+			break;
+		}
+	}
+	sprintf(szMessage, "Exception occurred executing %s\n%s", szTrace, szBuffer);
 	error_displayAlertDialog(szMessage);
 	longjmp(_currentJumpBuffer, 1);
 }
@@ -186,6 +202,7 @@ static EXECUTION_CONTEXT* interpreter_pushExecutionContext(const char* pszFuncti
 		interpreter_allocateStack(pResult);
 	}
 	pResult->ec_currentFunction = pszFunctionName;
+	pResult->ec_parent = _currentExecutionContext;
 	_currentExecutionContext = pResult;
 	return pResult;
 }
@@ -613,10 +630,11 @@ static void interpreter_returnNativeFunctionResult(EXECUTION_CONTEXT* pContext, 
 	PKS_VALUE_TYPE vt = VT_NUMBER;
 
 	if (typ == PARAM_TYPE_STRING) {
+		// (A) strings are not(!) allocated by caller. Caller returns a static buffer or so.
 		interpreter_pushValueOntoStack(pContext, interpreter_allocateString(pContext, (const void*)v));
 		return;
 	} else if (typ == PARAM_TYPE_STRING_ARRAY) {
-		// (A) . string arrays will always be allocated by caller
+		// (A) string arrays will always be allocated by caller - array list including nested elements
 		interpreter_pushValueOntoStack(pContext, memory_createObject(pContext, S_ARRAY, 0, (const void*)v));
 		arraylist_destroyStringList((ARRAY_LIST*)v);
 		return;
@@ -803,12 +821,13 @@ static PKS_VALUE interpreter_getParameterStackValue(EXECUTION_CONTEXT* pContext,
 #define COM1_INCR(pLocalInstructionPointer,type,offset) (((unsigned char *)pLocalInstructionPointer)+((type *)pLocalInstructionPointer)->offset)
 #define COM_PARAMINCR(pLocalInstructionPointer)		(((unsigned char *)pLocalInstructionPointer)+interpreter_getParameterSize(pLocalInstructionPointer->typ,&pLocalInstructionPointer->funcnum));
 static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const char* pszFunctionName, COM_1FUNC* cp, COM_1FUNC* cpmax) {
+	static int _progressCount;
 
 	unsigned char* pInstr = (unsigned char*)cp;
 	unsigned char* pInstrMax = (unsigned char*)cpmax;
 	while (pInstr < pInstrMax) {
 		cp = (COM_1FUNC*)pInstr;
-		if (progress_cancelMonitor(FALSE) != 0) {
+		if ((_progressCount++ % 100) == 99 && progress_cancelMonitor(FALSE) != 0) {
 			interpreter_raiseError("Macro execution aborted by user.");
 		}
 		switch (cp->typ) {

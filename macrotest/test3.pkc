@@ -8,10 +8,10 @@ void Test-Control-Flow()
 	int     indent;
     int		i;
 	string r = "x";
-	
+
 	i = 0;
 	clear();
-	print("Starting execution!!!");
+	println("Starting execution!!!");
 	while(i < 40) {
 		i++;
 		if (i == 3) {
@@ -25,8 +25,8 @@ void Test-Control-Flow()
 		if (indent < 0) {
 			indent = 0;
 		}
-		print(indent * ' ' + "->Result: " + r + " " + i);
+		println(indent * ' ' + "->Result: " + r + " " + i);
 	}
-	print("DONE!");
+	println("DONE!");
 }
 

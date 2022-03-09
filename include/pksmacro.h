@@ -64,7 +64,7 @@ typedef struct tagMACRO_PARAM {
 	void* mp_buffer;
 } MACRO_PARAM;
 
-#define	MAC_COMMENTLEN		220
+#define	MAC_COMMENTLEN		256
 
 #define	MAC_NAMELEN			32				// no real limitation - only used in the UI.
 #define	MAC_NAME(mp)		((mp)->mc_name)

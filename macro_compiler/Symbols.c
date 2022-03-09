@@ -238,6 +238,9 @@ int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stTyp
  */
 int inline sym_defineVariable(IDENTIFIER_CONTEXT* pContext, const char* name, PKS_VALUE vValue) {
 	vValue.pkv_managed = vValue.pkv_isPointer;
+	if (vValue.sym_type == S_ARRAY) {
+		printf("xxxx");
+	}
 	return sym_insert(pContext, name, vValue);
 }
 
@@ -253,12 +256,10 @@ static int sym_processManagedCB(intptr_t k, intptr_t v, int (*callback)(void* pO
 }
 
 /*
- * Execute a callback for all values in the passed context "managed" by the PKS Object memory.
+ * Execute a callback for all values in the passed context "managed" by the PKS Object memory in this
+ * context only.
  */
 void sym_traverseManagedObjects(IDENTIFIER_CONTEXT* pContext, int (*callback)(void* pObject)) {
-	if (pContext->ic_next && pContext->ic_next != &_keywordContext) {
-		sym_traverseManagedObjects(pContext->ic_next, callback);
-	}
 	if (pContext->ic_table) {
 		hashmap_forEachEntry(pContext->ic_table, sym_processManagedCB, callback);
 	}

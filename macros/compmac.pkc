@@ -1,34 +1,6 @@
-  
+
 // MessageBox Flags
-
-const MB_OK			= 0x0000;
-const MB_OKCANCEL	        = 0x0001;
-const MB_ABORTRETRYIGNORE	= 0x0002;
-const MB_YESNOCANCEL	        = 0x0003;
 const MB_YESNO	                = 0x0004;
-const MB_RETRYCANCEL	        = 0x0005;
-const MB_TYPEMASK	        = 0x000F;
-
-const MB_ICONHAND	        = 0x0010;
-const MB_ICONQUESTION	        = 0x0020;
-const MB_ICONEXCLAMATION	= 0x0030;
-const MB_ICONASTERISK	        = 0x0040;
-const MB_ICONMASK	        = 0x00F0;
-
-const MB_ICONINFORMATION	= MB_ICONASTERISK;
-const MB_ICONSTOP	        = MB_ICONHAND;
-
-const MB_DEFBUTTON1	        = 0x0000;
-const MB_DEFBUTTON2	        = 0x0100;
-const MB_DEFBUTTON3	        = 0x0200;
-const MB_DEFMASK	        = 0x0F00;
-
-const MB_APPLMODAL	        = 0x0000;
-const MB_SYSTEMMODAL	        = 0x1000;
-const MB_TASKMODAL	        = 0x2000;
-
-const MB_NOFOCUS	        = 0x8000;
-
 
 // MessageBox button ID returns
 const IDOK	                = 1;
@@ -43,10 +15,10 @@ const IDNO	                = 7;
 void CompileMacro()
 {
     if (QueryStatus(QUERY_FILEMODIFIED) &&
-    	MessageBox(MB_YESNO, 0, 
+    	MessageBox(MB_YESNO, 0,
 		"Sollen die Makros in diesem Fensters compiliert werden") == IDYES) {
     	CompileMacros(0);
     }
     return 1;
 }
- 
+

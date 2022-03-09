@@ -13,7 +13,11 @@ static string currentMethodExecuted;
 static int sampleGlobal = 18;
 
 /**
- * Our test suite. Note, that the 1st macro definition in a file may not be static.
+ * Our PKSMacroC test suite. Tests as well language features like expression evaluation
+ * or working with PKSMacroC values as also some primitive functions and operations like
+ * sprintf or the like, which are useful in the context of writing PKSMacroC scripts.
+ *
+ * Note, that the 1st macro definition in a file may not be static.
  */
 void Suite() {
 	int assertionCount;
@@ -47,6 +51,14 @@ static void AssertEquals(auto expected, auto result, string msg) {
 	} else {
 		successCount++;
 	}
+}
+
+static void AssertTrue(auto expected, string msg) {
+	AssertEquals(expected, true, msg);
+}
+
+static void AssertFalse(auto expected, string msg) {
+	AssertEquals(expected, false, msg);
 }
 
 static void Run-TestCase(string function) {
@@ -98,18 +110,18 @@ static void Test-Sieve() {
             // of p and are less than p^2
             // are already been marked.
 			i = p * p;
-            while (i <= n) {
+            while (i < n) {
 				prime[i] = false;
 				i += p;
 			}
         }
 		p++;
 	}
-	AssertEquals(true, prime[13]);
-	AssertEquals(false, prime[8]);
-	AssertEquals(true, prime[17]);
-	AssertEquals(true, prime[19]);
-	AssertEquals(false, prime[25]);
+	AssertTrue(prime[13]);
+	AssertFalse(prime[8]);
+	AssertTrue(prime[17]);
+	AssertTrue(prime[19]);
+	AssertFalse(prime[25]);
 }
 
 static void Test-Arrays() {
@@ -174,9 +186,9 @@ static void Test-Expression() {
 	s1 = "aec\\";
 	re = "[a-e]+\\\\";
 
-	AssertEquals(s1 ~ re, true, "Expression should match");
-	AssertEquals(s1 !~ re, false, "Expression should not not match");
-	AssertEquals((boolean)s1, true, "Non - null string should be treated as true");
+	AssertTrue(s1 ~ re, "Expression should match");
+	AssertFalse(s1 !~ re, "Expression should not not match");
+	AssertTrue((boolean)s1, "Non - null string should be treated as true");
 	AssertEquals(QUOTE, '\'', "Match with constant");
 }
 

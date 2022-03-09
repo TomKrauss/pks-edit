@@ -1,11 +1,10 @@
 //
 // replace a pattern in all files in a directory
 //
-const MB_YESNOCANCEL    = 0x0003;
 const IDYES 		= 6;
 const IDCANCEL		= 2;
 
-void ReplaceInFileList() 
+void ReplaceInFileList()
 {
 
     string  	search;
@@ -21,8 +20,7 @@ void ReplaceInFileList()
     replaceBoxFlags = FORM_SHOW|FORM_INIT;
     if (FindInFileList(FORM_SHOW|FORM_INIT, search, "", 1, 1, RE_DOREX|RE_WRAPSCAN)) {
         while(1) {
-	    Replace(replaceBoxFlags, search, search, REP_REPLACE, RNG_GLOBAL,
-        	RE_DOREX|RE_WRAPSCAN,OREP_INQ);
+	    Replace(replaceBoxFlags, search, search, REP_REPLACE, RNG_GLOBAL,RE_DOREX|RE_WRAPSCAN);
             answer = MessageBox(MB_YESNOCANCEL, 0, "Datei sichern");
 	    ret = "Antwort: " + (string)answer;
 	    Alert(ret);

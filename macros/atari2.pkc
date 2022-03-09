@@ -21,7 +21,7 @@ void HelpInternalMacs() {
 void CompileMacro()
 {
     if (QueryStatus(QUERY_FILEMODIFIED) &&
-    	MessageBox(MB_YESNO, 0, 
+    	MessageBox(MB_YESNO, 0,
 		"Sollen die Makros in diesem Fensters compiliert werden") == IDYES) {
     	return CompileMacros();
     }
@@ -30,7 +30,7 @@ void CompileMacro()
 /*
  * "Zeichentausch Textblock Klein->Groﬂ"
  */
-void CharacterLow2Up() 
+void CharacterLow2Up()
 {
 	Replace(FORM_INIT,"([a-z‰ˆ¸])","\\u\\1",
 		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
@@ -39,7 +39,7 @@ void CharacterLow2Up()
 /*
  * "Zeichentausch Textblock Groﬂ->Klein"
  */
-void CharacterUp2Low() 
+void CharacterUp2Low()
 {
 	Replace(FORM_INIT,"([A-Zƒ÷‹])","\\l\\1",
 		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
@@ -48,7 +48,7 @@ void CharacterUp2Low()
 /*
  * "Zeichentausch Textblock Versalien"
  */
-void CharacterVersale() 
+void CharacterVersale()
 {
 	Replace(FORM_INIT,"([a-z‰ˆ¸A-Zƒ÷‹])([a-z‰ˆ¸A-Zƒ÷‹]+)","\\u\\1\\l\\2",
 		REP_REPLACE, RNG_BLOCK, RE_DOREX|RE_WRAPSCAN,0);
@@ -57,13 +57,13 @@ void CharacterVersale()
 
 #
 # Diese Makros stellen ein Keyboard Interface
-# f¸r das Markieren von Blˆcken zur Verf¸gung 
+# f¸r das Markieren von Blˆcken zur Verf¸gung
 #
 
 /*
  * "Erweiterung Block / Cursor rechts"
  */
-void XtndBlockCursRight() 
+void XtndBlockCursRight()
 {
 
 	CursorRight(MOT_SINGLE|MOT_XTNDBLOCK);
@@ -72,7 +72,7 @@ void XtndBlockCursRight()
 /*
  * "Erweiterung Block / Cursor links"
  */
-void XtndBlockCursLeft() 
+void XtndBlockCursLeft()
 {
 	CursorLeft(MOT_SINGLE|MOT_XTNDBLOCK);
 }
@@ -80,7 +80,7 @@ void XtndBlockCursLeft()
 /*
  * "Erweiterung Block / Cursor nach unten"
  */
-void XtndBlockCursDown() 
+void XtndBlockCursDown()
 {
 	CursorDown(MOT_SINGLE|MOT_XTNDBLOCK);
 }
@@ -88,7 +88,7 @@ void XtndBlockCursDown()
 /*
  * "Erweiterung Block / Cursor nach oben"
  */
-void XtndBlockCursUp() 
+void XtndBlockCursUp()
 {
 	CursorUp(MOT_SINGLE|MOT_XTNDBLOCK);
 }
@@ -96,7 +96,7 @@ void XtndBlockCursUp()
 /*
  * "Erweiterung Block wortweise / Cursor nach rechts"
  */
-void XtndBlockCursWordRight() 
+void XtndBlockCursWordRight()
 {
 	CursorRight(MOT_WORD|MOT_XTNDBLOCK);
 }
@@ -104,7 +104,7 @@ void XtndBlockCursWordRight()
 /*
  * "Erweiterung Block wortweise / Cursor nach links"
  */
-void XtndBlockCursWordLeft() 
+void XtndBlockCursWordLeft()
 {
 	CursorLeft(MOT_WORD|MOT_XTNDBLOCK);
 }
@@ -112,7 +112,7 @@ void XtndBlockCursWordLeft()
 /*
  * "Erweiterung Block / Cursor zum Anfang der Datei"
  */
-void XtndBlockCursHome() 
+void XtndBlockCursHome()
 {
 	CursorUp(MOT_FILE|MOT_XTNDBLOCK);
 }
@@ -120,7 +120,7 @@ void XtndBlockCursHome()
 /*
  * "Erweiterung Block / Cursor zum Ende der Datei"
  */
-void XtndBlockCursBottom() 
+void XtndBlockCursBottom()
 {
 	CursorDown(MOT_FILE|MOT_XTNDBLOCK);
 }
@@ -128,7 +128,7 @@ void XtndBlockCursBottom()
 /*
  * "Erweiterung Block / Cursor zum Anfang der Zeile"
  */
-void XtndBlockCursLineStart() 
+void XtndBlockCursLineStart()
 {
 	CursorLeft(MOT_TOEND|MOT_XTNDBLOCK);
 }
@@ -136,7 +136,7 @@ void XtndBlockCursLineStart()
 /*
  * "Erweiterung Block / Cursor zum Ende der Zeile"
  */
-void XtndBlockCursLineEnd() 
+void XtndBlockCursLineEnd()
 {
 	CursorRight(MOT_TOEND|MOT_XTNDBLOCK);
 }
@@ -144,7 +144,7 @@ void XtndBlockCursLineEnd()
 /*
  * "Erweiterung Block / Cursor eine Seite hoch"
  */
-void XtndBlockCursPageUp() 
+void XtndBlockCursPageUp()
 {
 	CursorUp(MOT_PAGE|MOT_XTNDBLOCK);
 }
@@ -152,7 +152,7 @@ void XtndBlockCursPageUp()
 /*
  * "Erweiterung Block / Cursor eine Seite nach unten"
  */
-void XtndBlockCursPageDown() 
+void XtndBlockCursPageDown()
 {
 	CursorDown(MOT_PAGE|MOT_XTNDBLOCK);
 }
@@ -188,7 +188,7 @@ void ToggleBlockXtndMode()
 /*
  * "Konvertiert einen Text mit OEM Zeichensatz in ANSI - Zeichensatz"
  */
-void ConvertOemToAnsi() 
+void ConvertOemToAnsi()
 {
 	Replace(FORM_INIT,"[ÑîÅéôö·û]","\\[ÑîÅéôö·û=‰ˆ¸ƒ÷‹ﬂﬂ]\\&",
 		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
@@ -197,19 +197,12 @@ void ConvertOemToAnsi()
 /*
  * "Konvertiert einen Text mit ANSI Zeichensatz in OEM - Zeichensatz
  */
-void ConvertAnsiToOem() 
+void ConvertAnsiToOem()
 {
 	Replace(FORM_INIT,"[‰ˆ¸ƒ÷‹ﬂ]","\\[‰ˆ¸ƒ÷‹ﬂ=ÑîÅéôö·]\\&",
 		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
 }
 
-/*
- * "Legt die beiden oberen Fenster nebeneinander
- */
-void PairArrangeWindows()
-{
-	WindowArrange(WIN_PAIRS);
-}
 
 void MousePositionUngrabbed()
 {

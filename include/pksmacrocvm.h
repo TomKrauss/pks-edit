@@ -83,6 +83,7 @@ typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 typedef struct tagOBJECT_MEMORY OBJECT_MEMORY;
 
 struct tagEXECUTION_CONTEXT {
+	struct tagEXECUTION_CONTEXT* ec_parent;		// the parent context
 	PKS_VALUE* ec_stackBottom;			// the bottom of the value stack
 	PKS_VALUE* ec_stackFrame;			// the stack bottom of the stack frame for the current macro executed
 	PKS_VALUE* ec_stackCurrent;			// the pointer to the current stack offset
@@ -192,14 +193,14 @@ extern int interpreter_getParameterSize(unsigned char typ, const char* s);
  */
 extern PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_VALUE_TYPE tTargetType);
 
-typedef struct c_1func {
+typedef struct tagCOM_1FUNC {
 	unsigned char	typ;			// C_1FUNC - carries one explicit param to pass
 	unsigned char	funcnum;		// index into editor function table _functionTable
 	int				func_args;		// Number of arguments actually passed.
 	long			p;				// optional parameter to pass
 } COM_1FUNC;
 
-typedef struct c_0func {
+typedef struct tagCOM_0FUNC {
 	unsigned char typ;				// C_0FUNC all params are located on the stack
 	unsigned char funcnum;			// index in function table 
 	int			  func_nargs;		// Number of arguments actually passed.

@@ -712,7 +712,8 @@ char *command_getTooltipAndLabel(MACROREF command, char* szTooltip, char* szLabe
 			if (mp == 0) {
 				return "";
 			}
-			lstrcpy(szTooltip, MAC_COMMENT(mp));
+			strncpy(szTooltip, MAC_COMMENT(mp), MAC_COMMENTLEN);
+			szTooltip[MAC_COMMENTLEN-1] = 0;
 			return szTooltip;
 		}
 		default:
@@ -781,7 +782,7 @@ static void macro_updateCommentAndName(HWND hwnd)
 	MACROREFIDX	nIndex;
 	MACROREFTYPE type;
 	BOOL		editable;
-	char		szName[64],szComment[256],szK[128];
+	char		szName[64],szComment[MAC_COMMENTLEN],szK[128];
 
 	nSelected = macro_getSelectedMacro(hwnd);
 	nIndex = (MACROREFIDX)HIWORD(nSelected);

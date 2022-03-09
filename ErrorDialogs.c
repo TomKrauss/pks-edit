@@ -65,7 +65,11 @@ int error_displayAlertBoxWithOptions(long buttons, const char* fmt) {
 	wchar_t szwFmt[512];
 	wchar_t szwDetails[5];
 	mbstowcs(szwAppName, szAppName, strlen(szAppName) + 1);
-	mbstowcs(szwFmt, fmt, strlen(fmt) + 1);
+	size_t nSize = strlen(fmt) + 1;
+	if (nSize > sizeof(szwFmt) / sizeof(szwFmt[0])) {
+		nSize = 500;
+	}
+	mbstowcs(szwFmt, fmt, nSize);
 	mbstowcs(szwDetails, "", 1);
 	hHook = SetWindowsHookEx(WH_CALLWNDPROC, error_messageBoxHook, hInst, GetCurrentThreadId());
 	int nButtons = 0;

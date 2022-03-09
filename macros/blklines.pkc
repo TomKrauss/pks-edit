@@ -6,17 +6,13 @@ void ToggleLineMode()
 	workmode = QueryStatus(QUERY_WORKMODE);
 
 	if (QueryStatus(QUERY_BLOCKXTNDMODE)) {
-		notmode = ~ WM_BLK_LINES;
+		notmode = ~ WM_LINE_SELECTION;
 		workmode = workmode & notmode;
 		SetBlockExtensionMode(0);
 	} else {
-		workmode = workmode | WM_BLK_LINES;
+		workmode = workmode | WM_LINE_SELECTION;
 		SetBlockExtensionMode(1);
 	}
 	SetWorkMode(FORM_INIT, "", workmode);
 }
-
-replace KEYS default 
-# Blöcke markieren und bewegen
-Ctrl+L            = ToggleLineMode;
 

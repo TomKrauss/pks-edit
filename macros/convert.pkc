@@ -1,15 +1,16 @@
-#
-# die folgenden Makros beachten nur die Umlaute bei der Konvertierung
-#
-void ConvertOemToAnsi() 
-"Konvertiert einen Text mit OEM Zeichensatz in ANSI - Zeichensatz"
+/*
+ * Converts a text with OEM character set into ANSI character set
+ */
+void ConvertOemToAnsi()
 {
 	Replace(FORM_INIT,"[„”™šá]","\\[„”™šá=äöüÄÖÜßß]\\&",
 		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
 }
 
-void ConvertAnsiToOem() 
-"Konvertiert einen Text mit ANSI Zeichensatz in OEM - Zeichensatz"
+/*
+ * Converts a text with ANSI character set into OEM character set
+ */
+void ConvertAnsiToOem()
 {
 	Replace(FORM_INIT,"[äöüÄÖÜß]","\\[äöüÄÖÜß=„”™šá]\\&",
 		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);

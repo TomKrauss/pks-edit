@@ -101,7 +101,12 @@ static void memory_markObjects(EXECUTION_CONTEXT* pContext) {
 			pszEntry->od_gcFlag = 0;
 		}
 	}
-	sym_traverseManagedObjects(pContext->ec_identifierContext, memory_markObject);
+	EXECUTION_CONTEXT* pCtx = pContext;
+	while (pCtx) {
+		sym_traverseManagedObjects(pCtx->ec_identifierContext, memory_markObject);
+		pCtx = pCtx->ec_parent;
+	}
+	sym_traverseManagedObjects(sym_getGlobalContext(), memory_markObject);
 	PKS_VALUE* pValue = pContext->ec_stackBottom;
 	while (pValue <= pContext->ec_stackCurrent) {
 		if (pValue->pkv_managed) {
@@ -125,26 +130,17 @@ void memory_garbaggeCollect(EXECUTION_CONTEXT* pContext) {
 	memory_markObjects(pContext);
 	size_t nSize = pMemory->om_capacity;
 	for (int i = (int)nSize; --i >= 0; ) {
-		OBJECT_DATA* pszEntry = pMemory->om_objects[i];
-		if (!pszEntry) {
+		OBJECT_DATA* pData = pMemory->om_objects[i];
+		if (!pData) {
 			continue;
 		}
-		if (!pszEntry->od_gcFlag) {
+		if (!pData->od_gcFlag) {
 			memory_destroyData(&pMemory->om_objects[i]);
-		}
-	}
-	// Compact object table
-	int nDest = 0;
-	for (int i = 0; i < pMemory->om_capacity; i++) {
-		OBJECT_DATA* pSource = pMemory->om_objects[i];
-		if (pSource) {
-			pMemory->om_objects[nDest++] = pSource;
-			if (i >= nDest) {
-				pMemory->om_objects[i] = 0;
+			if (i < pMemory->om_freeSlot) {
+				pMemory->om_freeSlot = i;
 			}
 		}
 	}
-	pMemory->om_freeSlot = nDest;
 }
 
 /*
@@ -159,7 +155,9 @@ static int memory_nextFreeSlot(OBJECT_MEMORY* pMemory) {
 			for (int i = pMemory->om_capacity; i < nNewCapacity; i++) {
 				pMemory->om_objects[i] = 0;
 			}
+			idx = pMemory->om_capacity;
 			pMemory->om_capacity = nNewCapacity;
+			return idx;
 		}
 		idx++;
 	}
@@ -169,14 +167,14 @@ static int memory_nextFreeSlot(OBJECT_MEMORY* pMemory) {
 static OBJECT_DATA* memory_createObjectData(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType, int nInitialSize, const void* pInput) {
 	memory_create();
 	OBJECT_MEMORY* pMemory = &_objectSpace;
-	int idx = memory_nextFreeSlot(pMemory);
 	OBJECT_DATA* pData;
 	size_t nLen = 0;
 	if (sType == S_STRING) {
 		if (pInput) {
 			nLen = strlen(pInput);
 		}
-		pData = calloc(1, sizeof(OBJECT_DATA) + nLen);
+		size_t l = sizeof(OBJECT_DATA) + nLen;
+		pData = calloc(1, l);
 		if (pInput) {
 			strcpy((char*)pData->od_data.string, pInput);
 		}
@@ -199,6 +197,7 @@ static OBJECT_DATA* memory_createObjectData(EXECUTION_CONTEXT* pContext, PKS_VAL
 	pData->od_size = (int)(pInput ? nLen : 0);
 	pData->od_capacity = (int)nLen;
 	pData->od_class = sType;
+	int idx = memory_nextFreeSlot(pMemory);
 	pMemory->om_objects[idx++] = pData;
 	pMemory->om_freeSlot = idx;
 	return pData;
@@ -302,6 +301,7 @@ int memory_setNestedObject(PKS_VALUE vTarget, int nIndex, PKS_VALUE vElement) {
 			}
 			return 1;
 		}
+		interpreter_raiseError("Index %d out of range[%d..%d] for assigning array element.", nIndex, 0, pPointer->od_capacity);
 	}
 	return 0;
 }
@@ -333,6 +333,7 @@ PKS_VALUE memory_getNestedObject(PKS_VALUE v, int nIndex) {
 				.sym_data.longValue = (long)(intptr_t)TOP_DATA_POINTER(top)
 			};
 		}
+		interpreter_raiseError("Index %d out of range[%d..%d] for accessing array.", nIndex, 0, pPointer->od_capacity);
 	}
 	return (PKS_VALUE) { 0 };
 }
