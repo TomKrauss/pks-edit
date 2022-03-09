@@ -45,7 +45,7 @@ typedef union uGENERIC_DATA {
 	unsigned char	uchar;
 	intptr_t		val;
 	unsigned char	booleanValue;
-	OBJECT_DATA*	objectMemory;			// for objects managed by the macroC VM object memory this points to the object data.
+	OBJECT_DATA*	objectPointer;			// for objects managed by the macroC VM object memory this points to the object data.
 	char*			string;
 	void*			stringList;
 	int				intValue;
@@ -66,7 +66,7 @@ typedef enum {
 	VT_FLOAT = 4,
 	VT_CHAR = 5,
 	VT_RANGE = 6,
-	VT_STRING_ARRAY = 7
+	VT_OBJECT_ARRAY = 7
 } PKS_VALUE_TYPE;
 
 typedef struct tagPKS_VALUE {
@@ -88,11 +88,20 @@ struct tagEXECUTION_CONTEXT {
 	PKS_VALUE* ec_stackCurrent;			// the pointer to the current stack offset
 	PKS_VALUE* ec_stackMax;				// the top of the stack. Must not be overridden
 	const char* ec_currentFunction;		// name of the current function/macro being executed.
-	OBJECT_MEMORY* ec_allocations;		// list of allocated objects to be released, when execution halts.
 	IDENTIFIER_CONTEXT* ec_identifierContext;
 };
 
 typedef struct tagEXECUTION_CONTEXT EXECUTION_CONTEXT;
+
+// Compressed value pointers - used to store as well simple values as also pointers to objects
+
+typedef long long TYPED_OBJECT_POINTER;
+
+#define POINTER_MASK ~(0xFFULL << 56)
+#define TOP_DATA_POINTER(p)				(OBJECT_DATA*)((long long)p & POINTER_MASK)
+#define TOP_IS_POINTER(p)				(((long long)p) >> 62)
+#define TOP_TYPE(p)						((((long long)p) >> 56) & 0x3F)
+#define MAKE_TYPED_OBJECT_POINTER(bIsPointer, sType, pPointer)	(((long long)bIsPointer<<62) | ((long long)sType << 56) | (((uintptr_t)pPointer) & POINTER_MASK))
 
 /*
  * Pop one value of the stack of our stack machine
@@ -108,7 +117,7 @@ extern void interpreter_raiseError(const char* pFormat, ...);
  * Mini memory management function of PKS MacroC, which temporarily allocates a string to
  * be released later.
  */
-extern char* interpreter_allocateString(EXECUTION_CONTEXT* pContext, const char* pszSource);
+extern PKS_VALUE interpreter_allocateString(EXECUTION_CONTEXT* pContext, const char* pszSource);
 
 /*
  * Push one value onto the stack and raise an error, if that fails.
@@ -131,12 +140,13 @@ typedef enum {
 	C_MACRO = 0x3,  			// macro "macroname"
 	C_MACRO_REF = 0x4,  		// variable reference to a macro to invoke / function pointer
 
-	C_GOTO = 0x5,  			// (conditionally) goto offset
+	C_GOTO = 0x5,  				// (conditionally) goto offset
 
-							// Operations
+								// Operations
 	C_LOGICAL_OPERATION = 0x6,	// Test: binary logical operation between stack[0] and stack[1]
 	C_BINOP = 0x7,  			// binary operation between stack[0] and stack[1]
-	C_ASSIGN= 0x8,  			// assign: a = stackval
+	C_ASSIGN = 0x8,  			// assign: a = stackval
+	C_ASSIGN_SLOT = 0x9,  		// assign: a.x = stackval or a[x] = stackval
 
 	// Push objects onto the stack
 	C_PUSH_CHARACTER_LITERAL = 0x10,		// Push character literal. 1 Ascii character follows 
@@ -220,40 +230,40 @@ typedef struct tagCOM_STRING_ARRAYLITERAL {
 
 
 typedef struct tagCOM_ASSIGN {
-	unsigned char 	typ;			// C_ASSIGN assign current stack top to a variable
+	unsigned char 	typ;			// C_ASSIGN assign current stack top to a variable or C_ASSIGN_SLOT with slot being stack top and value being next to top.
 	unsigned char	name[1];		// variable name of variable assigned
 } COM_ASSIGN;
 
-typedef struct c_createsym {
+typedef struct tagCOM_DEFINE_SYMBOL {
 	unsigned char 	typ;			// C_DEFINE_PARAMETER or C_DEFINE_VARIABLE
 	unsigned char 	symtype;		// variable type
-	long long		value;			// value
+	long			value;			// for array type variables the size of the array for parameters the index of the parameter or index for C_ASSIGN_SLOT
 	int		    	size;			// size of total structure
 	unsigned char	name[1];		// variable name
-} COM_CREATESYM;
+} COM_DEFINE_SYMBOL;
 
 #define	BRA_ALWAYS		0
 #define	BRA_IF_FALSE			1
 #define	BRA_IF_TRUE			2
 
-typedef struct c_goto {
+typedef struct tagCOM_GOTO {
 	unsigned char typ;				// C_GOTO, C_GOCOND */
-	unsigned char bratyp;			// BRA_ALWAYS, BRA_IF_FALSE, BRA_IF_TRUE, */
+	unsigned char branchType;		// BRA_ALWAYS, BRA_IF_FALSE, BRA_IF_TRUE, */
 	int		    offset;
 } COM_GOTO;
 
-typedef struct c_binop {
+typedef struct tagCOM_BINOP {
 	unsigned char typ;				// C_BINOP 
 	unsigned char op;				// see above BIN_ADD etc... 
 	PKS_VALUE_TYPE targetType;		// for cast operators this is the target type.
 } COM_BINOP;
 
-typedef struct c_char1 {
+typedef struct tagCOM_CHAR1 {
 	unsigned char typ;				// C_PUSH_CHARACTER_LITERAL C_PUSH_LITERAL or C_PUSH_SMALL_INT_LITERAL
 	unsigned char val;
 } COM_CHAR1;
 
-typedef struct c_char1 COM_FURET;
+typedef struct tagCOM_CHAR1 COM_FURET;
 
 typedef struct c_stop {
 	unsigned char typ;
@@ -283,7 +293,7 @@ typedef struct tagCOM_STRING1 {
 	unsigned char s[1];				// 0-term. string padded to even #
 } COM_STRING1;
 
-typedef struct c_form {
+typedef struct tagCOM_FORM {
 	unsigned char	typ;			// CMD_FORMSTART 
 	unsigned char	options;		// FORM_SHOW
 	int				nfields;		// # of fields in formular
@@ -323,20 +333,52 @@ typedef struct tagCOMPILER_CONFIGURATION {
 extern COMPILER_CONFIGURATION* _compilerConfiguration;
 
 /*
- * Adds one value to the object memory.
+ * Creates one object memory and optionally copies the provided native
+ * data into the object memory. Currently two special cases for input are supported:
+ * the value is a string - input is interpreted as zero terminated byte string char*,
+ * the value is an arraylist of strings - input is interpreted as an ARRAY_LIST containing
+ * strings. nInitialSize is used for creating arrays - otherwise one may safely pass 0.
  */
-extern void memory_add(EXECUTION_CONTEXT* pContext, PKS_VALUE value);
+extern PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType, int nInitialSize, const void* pInput);
 
 /*
- * Creates a new object memory;
+ * Return the logical size of one object - either the number of chars for a string or the number of instance
+ * variables or the length of an array. Return 0 for other primitive types.
  */
-extern OBJECT_MEMORY* memory_create();
+extern int memory_size(PKS_VALUE v);
+
+/*
+ * Set a nested object of a value at slot nIndex.
+ */
+extern int memory_setNestedObject(PKS_VALUE vTarget, int nIndex, PKS_VALUE vElement);
+
+/*
+ * Try to get rid of some allocated memory not referenced by the stack any more.
+ * This method must be invoked with care and not in the middle of an operation
+ * allocating more objects not yet referenced or the objects just created might
+ * get disposed to early.
+ */
+void memory_garbaggeCollect(EXECUTION_CONTEXT* pContext);
 
 /*
  * Free the allocated object memory and all objects remaining in the memory.
  */
-extern void memory_destroy(OBJECT_MEMORY* pMemory);
+extern void memory_destroy();
 
+/*
+ * Get a string pointer to the actual string for a value.
+ */
+extern const char* memory_accessString(PKS_VALUE v);
+
+/*
+ * Access the nested object of a value at slot nIndex.
+ */
+extern PKS_VALUE memory_getNestedObject(PKS_VALUE, int nIndex);
+
+/*
+ * Add one object to an array type object.
+ */
+extern int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS_VALUE vElement);
 
 #define PKSMACROCVM_H
 #endif

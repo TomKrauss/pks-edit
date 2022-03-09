@@ -554,7 +554,7 @@ static int init_keywords(void)
 {	struct kw *kp = keywords;
 
 	while(kp->name) {
-		if (!sym_createSymbol(sym_getGlobalContext(), kp->name,S_KEYWORD,(GENERIC_DATA){.intValue = kp->toknum}))
+		if (!sym_createSymbol(sym_getKeywordContext(), kp->name,S_KEYWORD,(GENERIC_DATA){.intValue = kp->toknum}))
 			return 0;
 		kp++;
 	}
@@ -1322,7 +1322,7 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					yylval.ident.s = key;
 					return T_STRINGVAR;
 				}
-				if (TYPEOF(sym) == S_STRING_ARRAY) {
+				if (TYPEOF(sym) == S_ARRAY) {
 					yylval.ident.stringIsAlloced = 0;
 					yylval.ident.s = key;
 					return T_STRINGARRAYVAR;

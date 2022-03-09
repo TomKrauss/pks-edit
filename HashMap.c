@@ -184,6 +184,7 @@ void hashmap_remove(HASHMAP* pTable, intptr_t key) {
 	int nIndex = hashmap_findIndex(pTable, key);
 	pTable->ht_entries[nIndex].he_key = 0;
 	pTable->ht_entries[nIndex].he_value = 0;
+	pTable->ht_size--;
 }
 
 /*

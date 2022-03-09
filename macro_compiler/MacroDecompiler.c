@@ -527,7 +527,7 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 		case C_STOP: fprintf(fp, "stop"); break;
 		case C_LOGICAL_OPERATION: fprintf(fp, "logicalOperation %s", decompile_testOperationAsString(((COM_BINOP*)sp)->op)); break;
 		case C_GOTO:
-			switch (((COM_GOTO*)sp)->bratyp) {
+			switch (((COM_GOTO*)sp)->branchType) {
 			case BRA_ALWAYS: fprintf(fp, "goto 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
 			case BRA_IF_TRUE: fprintf(fp, "branchIfTrue 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
 			case BRA_IF_FALSE: fprintf(fp, "branchIfFalse 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
@@ -535,6 +535,7 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 			break;
 		case C_BINOP: fprintf(fp, "operation %s", decompile_binaryOperationAsString(((COM_BINOP*)sp)->op)); break;
 		case C_ASSIGN: fprintf(fp, "assignVariable %s", ((COM_ASSIGN*)sp)->name); break;
+		case C_ASSIGN_SLOT: fprintf(fp, "assignSlot %s", ((COM_ASSIGN*)sp)->name); break;
 		case C_MACRO:fprintf(fp, "call %s", ((COM_MAC*)sp)->name); break;
 		case C_MACRO_REF:fprintf(fp, "eval %s", ((COM_MAC*)sp)->name); break;
 		case C_0FUNC: fprintf(fp, "nativeCall0 %d (%s) (%d params)", ((COM_0FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_0FUNC*)sp)->func_nargs); break;
@@ -549,8 +550,8 @@ static void decompile_macroInstructionsToFile(FILE* fp, MACRO* mp)
 		case C_PUSH_BOOLEAN_LITERAL: fprintf(fp, "pushBooleanLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_CHARACTER_LITERAL: fprintf(fp, "pushCharLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_STRING_LITERAL: fprintf(fp, "pushStringLiteral %s", ((COM_STRING1*)sp)->s); break;
-		case C_DEFINE_VARIABLE: fprintf(fp, "defineVariable %s", ((COM_CREATESYM*)sp)->name); break;
-		case C_DEFINE_PARAMETER: fprintf(fp, "defineParameter %s", ((COM_CREATESYM*)sp)->name); break;
+		case C_DEFINE_VARIABLE: fprintf(fp, "defineVariable %s", ((COM_DEFINE_SYMBOL*)sp)->name); break;
+		case C_DEFINE_PARAMETER: fprintf(fp, "defineParameter %s", ((COM_DEFINE_SYMBOL*)sp)->name); break;
 		case C_FORM_START: fprintf(fp, "beginFormParameters"); break;
 		case C_SET_STACKFRAME: fprintf(fp, "setStackFrame"); break;
 		case C_POP_STACK: fprintf(fp, "pop"); break;
@@ -628,7 +629,7 @@ static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char*
 				nMax += 100;
 				pResult = realloc(pResult, nMax * sizeof *pResult);
 			}
-			if (pGoto->bratyp == BRA_ALWAYS) {
+			if (pGoto->branchType == BRA_ALWAYS) {
 				CONTROL_FLOW_MARK_INDEX* pFoundMark = decompile_controlFlowMarkForOffset(pResult, nFound, pGoto);
 				if (!pFoundMark) {
 					pFoundMark = decompile_controlFlowMarkForOffset(pResult, nFound, pBytecode+pGoto->offset);
@@ -640,12 +641,12 @@ static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char*
 						}
 					}
 				}
-			} else if (pGoto->bratyp == BRA_IF_FALSE && pGoto->offset > 0) {
+			} else if (pGoto->branchType == BRA_IF_FALSE && pGoto->offset > 0) {
 				BOOL bDone = FALSE;
 				int nOffs = pGoto->offset - sizeof(COM_GOTO);
 				if (nOffs > 0) {
 					COM_GOTO* pBack = (COM_GOTO*)(pBytecode + nOffs);
-					if (pBack->typ == C_GOTO && pBack->bratyp == BRA_ALWAYS && pBack->offset < 0) {
+					if (pBack->typ == C_GOTO && pBack->branchType == BRA_ALWAYS && pBack->offset < 0) {
 						if (pBytecode + nOffs + pBack->offset < (unsigned char*)pGoto) {
 							pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_WHILE, .cfmi_bytecodeAddress = (unsigned char*)pGoto };
 							pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_END_BLOCK, .cfmi_bytecodeAddress = (unsigned char*)pBack };
@@ -656,7 +657,7 @@ static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char*
 				if (!bDone) {
 					pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_IF, .cfmi_bytecodeAddress = (unsigned char*)pGoto};
 					COM_GOTO* pElse = (COM_GOTO*)(pBytecode + pGoto->offset - sizeof(COM_GOTO));
-					if (pElse->typ == C_GOTO && pElse->bratyp == BRA_ALWAYS && pElse->offset > 0) {
+					if (pElse->typ == C_GOTO && pElse->branchType == BRA_ALWAYS && pElse->offset > 0) {
 						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_ELSE, .cfmi_bytecodeAddress = (unsigned char*)pElse};
 						pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = CFM_END_BLOCK, .cfmi_bytecodeAddress = ((unsigned char*)pElse)+pElse->offset };
 					}
@@ -748,7 +749,7 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 		if (*sp != C_DEFINE_PARAMETER) {
 			break;
 		}
-		COM_CREATESYM* pSym = (COM_CREATESYM*)sp;
+		COM_DEFINE_SYMBOL* pSym = (COM_DEFINE_SYMBOL*)sp;
 		if (sp > data) {
 			fprintf(fp, ", ");
 		}
@@ -822,7 +823,7 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 			if (!pFoundMark && cp->offset != sizeof(COM_GOTO)) {
 				decompile_indent(fp, nIndent);
 				fprintf(fp, "%s %s;\n",
-					(cp->bratyp == BRA_ALWAYS) ? "goto" : "braeq",
+					(cp->branchType == BRA_ALWAYS) ? "goto" : "braeq",
 					bytecode_findAutoLabelForInstruction((COM_GOTO*)(sp + cp->offset)));
 			}
 		}
@@ -841,13 +842,19 @@ static void decompile_macroToFile(FILE *fp, MACRO *mp)
 			pStackCurrent = decompile_printBinaryExpression((COM_BINOP*)sp, pStackCurrent, pStack);
 		}
 		else if (opCode == C_DEFINE_VARIABLE) {
-			char* pszType = decompile_typenameFor(((COM_CREATESYM*)sp)->symtype);
+			char* pszType = decompile_typenameFor(((COM_DEFINE_SYMBOL*)sp)->symtype);
 			decompile_indent(fp, nIndent);
-			fprintf(fp, "%s %s;\n", pszType, ((COM_CREATESYM*)sp)->name);
+			fprintf(fp, "%s %s;\n", pszType, ((COM_DEFINE_SYMBOL*)sp)->name);
 		}
 		else if (opCode == C_ASSIGN) {
 			decompile_indent(fp, nIndent);
 			fprintf(fp, "%s = ", ((COM_ASSIGN*)sp)->name);
+			pStackCurrent = decompile_flushStack(fp, pStackCurrent, pStack);
+			fprintf(fp, ";\n");
+		}
+		else if (opCode == C_ASSIGN_SLOT) {
+			decompile_indent(fp, nIndent);
+			fprintf(fp, "%s[%s] = ", ((COM_ASSIGN*)sp)->name, pStackCurrent[-2].dse_printed);
 			pStackCurrent = decompile_flushStack(fp, pStackCurrent, pStack);
 			fprintf(fp, ";\n");
 		}

@@ -53,11 +53,20 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 		spret = (char*)((COM_ARRAYLITERAL*)sp)->strings;
 		pLiteral->length = (int)nElements;
 		for (int i = 0; i < nElements; i++) {
-			char* pString = arraylist_get(pList, i);
-			size_t nLen = strlen(pString);
-			strcpy(spret, pString);
-			spret += nLen;
-			*spret++ = 0;
+			TYPED_OBJECT_POINTER top = (TYPED_OBJECT_POINTER) arraylist_get(pList, i);
+			PKS_VALUE_TYPE pType = TOP_TYPE(top);
+			*spret++ = pType;
+			if (pType == VT_STRING) {
+				char* pString = (char*)TOP_DATA_POINTER(top);
+				size_t nLen = strlen(pString);
+				strcpy(spret, pString);
+				spret += nLen;
+				*spret++ = 0;
+			} else if (pType == VT_NUMBER || pType == VT_CHAR || pType == VT_BOOL) {
+				long lValue = (long)(uintptr_t)TOP_DATA_POINTER(top);
+				memcpy(spret, &lValue, sizeof(lValue));
+				spret += sizeof(lValue);
+			}
 		}
 		s = (int)(spret - sp);
 		pLiteral->totalBytes = s;
@@ -107,13 +116,14 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 			((COM_FLOAT1*)sp)->val = data.doubleValue;
 			break;
 		case C_GOTO:
-			((COM_GOTO *)sp)->bratyp = data.uchar;
+			((COM_GOTO *)sp)->branchType = data.uchar;
 			((COM_GOTO *)sp)->offset = sizeof(COM_GOTO);
 			break;
 		case C_PUSH_LONG_LITERAL:
 			((COM_LONG1 *)sp)->val = data.longValue;
 			break;
 		case C_ASSIGN:
+		case C_ASSIGN_SLOT:
 		case C_PUSH_VARIABLE:
 			strcpy(((COM_STRING1*)sp)->s, data.string);
 			break;
@@ -163,18 +173,35 @@ unsigned char* bytecode_emitAssignment(BYTECODE_BUFFER* pBuffer, const char *nam
 	return bytecode_emitInstruction(pBuffer, C_ASSIGN, (GENERIC_DATA) { .string = (char*)name });
 }
 
+/*
+ * Destroy an array list containing TYPE_OBJECT_POINTERs.
+ */
+void bytecode_destroyArraylistWithPointers(ARRAY_LIST* pList) {
+	if (!pList) {
+		return;
+	}
+	ARRAY_ITERATOR iterator = arraylist_iterator(pList);
+	void** p = iterator.i_buffer;
+	while (p < iterator.i_bufferEnd) {
+		TYPED_OBJECT_POINTER pszPointer = (TYPED_OBJECT_POINTER) * p++;
+		if (TOP_IS_POINTER(pszPointer)) {
+			free(TOP_DATA_POINTER(pszPointer));
+		}
+	}
+	arraylist_destroy(pList);
+}
 /*--------------------------------------------------------------------------
  * bytecode_defineVariable()
  * Defines a variable or a parameter depending on nBytecode
  */
-void bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBytecode, int nSymbolType, intptr_t val) {
+void bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBytecode, int nSymbolType, long nArraySizeOrParamIndex) {
 	unsigned char *	p1;
-	COM_CREATESYM *	ap;
+	COM_DEFINE_SYMBOL *	ap;
 
-	ap = (COM_CREATESYM*)pBuffer->bb_current;
+	ap = (COM_DEFINE_SYMBOL*)pBuffer->bb_current;
 	ap->typ = nBytecode;
 	ap->symtype = nSymbolType;
-	ap->value = (long long)val;
+	ap->value = nArraySizeOrParamIndex;
 
 	p1 = ap->name;
 	while(*name) {

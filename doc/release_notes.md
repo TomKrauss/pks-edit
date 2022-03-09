@@ -18,13 +18,15 @@ and character deletes (DEL + Backspace) are concurrently applied to multiple pla
 where additional information is available. An example are templates, which show a preview of the text to insert or PKS-Edit
 commands which show an explanation about the command.
 - Expressions with strings in PKSMacroC such as "x"+1 are automatically coerced to string. One does not need to write any more "x"+(string)1.
-- PKSMacroC supports now `++` and `--` operators, the new datatypes `float`, `boolean`, `range` and `string[]` and shorthand assignment operators (e.g. `*=`, `+=`, ...).
+- PKSMacroC supports now `++` and `--` operators, the new datatypes `float`, `boolean`, `range` and array types (`string[]`, `int[]`, ...) 
+  and shorthand assignment operators (e.g. `*=`, `+=`, ...).
 - PKSMacroC supports now foreach loops using the following syntax: `for (type variable : expression) {...}`. One can currently iterate
   over ranges, strings and arrays.
 - One may define a macroC function parameter with a type of `auto` to allow for arbitrary values being passed to a MacroC function
 - One may use the new syntax `*function(params...)` now to execute a function (macro or native) **by name**.
 - Expressions can now be correctly passed as function arguments.
 - PKSMacroC supports now [] operators to extract single characters or a range of characters from a string or one or more words from a string array.
+  or in assigments to change elements of an array.
 - PKSMacroC supports now global (namespace local / static) variables. Namespaces are currently limited however.
 - One can now debug print the low level instructions of PKSMacroC macros (from the macro dialog).
 - /* */ comments in macros are now supported and automatically attached to a macro as a comment (e.g. used as help in code completion), 
@@ -32,6 +34,8 @@ commands which show an explanation about the command.
 - Decompilation of macros will better reverse engineer control flow expressions (if, while, else....).
 - PKSMacroC compiler error diagnostics was improved. Error messages will now more likely point you to the actual problem. Special
   error reporting for common programming errors (missing closing brackets, use of undeclared vars etc...) was added.
+- Internally objects allocated by the MacroC VM are dynamically garbagge collected. No memory leaks any more like before, when executing
+  macroC code.
 - Error diagnostics and error handling in PKSMacroC has been improved (there is still room for improvement). Errors in macroc code
   will now always stop execution and print the name of the macro in which the error occurred.
 - One can open, print to and clear a console from macroC code for logging or debugging purpose.

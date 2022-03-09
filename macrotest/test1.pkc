@@ -76,10 +76,47 @@ static void XTest-Console-Stress() {
 
 }
 
+/*
+ * Calculate prime numbers using the "sieve of eratosthenes" algorithm.
+ */
+static void Test-Sieve() {
+	int[1000] prime;
+	int p = 2;
+	int n = 1000;
+	int i;
+
+	for (int x : 0..999) {
+		prime[x] = true;
+	}
+
+	while(p * p < n) {
+		if (prime[p]) {
+            // Update all multiples
+            // of p greater than or
+            // equal to the square of it
+            // numbers which are multiple
+            // of p and are less than p^2
+            // are already been marked.
+			i = p * p;
+            while (i <= n) {
+				prime[i] = false;
+				i += p;
+			}
+        }
+		p++;
+	}
+	AssertEquals(true, prime[13]);
+	AssertEquals(false, prime[8]);
+	AssertEquals(true, prime[17]);
+	AssertEquals(true, prime[19]);
+	AssertEquals(false, prime[25]);
+}
+
 static void Test-Arrays() {
 	string[] myArray = {"hello", "world", "how", "are", "you", "doing"};
 	string[] array2 = {"array", "two" };
 	string[] extracted;
+	int[10] intArray;
 	int i = 0;
 
 	AssertEquals("are", myArray[3]);
@@ -95,6 +132,9 @@ static void Test-Arrays() {
 	extracted = myArray[1..4];
 	AssertEquals(4, size(extracted));
 	AssertEquals("world, how, are, you", (string)extracted);
+
+	intArray[i] = 42;
+	AssertEquals(42, intArray[i]);
 }
 
 
@@ -225,7 +265,7 @@ static void Test-Sprintf() {
 
 /*
  * This method allocates one million objects in a loop and can be used to
- * debug the simple GC of PKS-Edit.
+ * debug the simple mark and sweep GC of PKS-Edit.
  */
 static void Test-GC() {
 	string x;

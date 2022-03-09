@@ -157,12 +157,12 @@ int bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name)
 /*---------------------------------*/
 /* bytecode_emitGotoLabelInstruction()					*/
 /*---------------------------------*/
-char *bytecode_emitGotoLabelInstruction(char *name, BYTECODE_BUFFER* pBuffer, int bratyp)
+char *bytecode_emitGotoLabelInstruction(char *name, BYTECODE_BUFFER* pBuffer, int branchType)
 {	LABEL    *lp;
 	unsigned char* sp = pBuffer->bb_current;
 	COM_GOTO *cp = (COM_GOTO *)sp;
 
-	if ((sp = bytecode_emitInstruction(pBuffer, C_GOTO, (GENERIC_DATA) { bratyp })) == 0)
+	if ((sp = bytecode_emitInstruction(pBuffer, C_GOTO, (GENERIC_DATA) { branchType })) == 0)
 		return 0;
 
 	if ((lp = bytecode_findLabelNamed(_labels,name)) == 0) {

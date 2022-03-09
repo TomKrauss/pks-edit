@@ -38,12 +38,24 @@ struct tagIDENTIFIER_CONTEXT {
 	HASHMAP* ic_table;
 };
 
+static IDENTIFIER_CONTEXT _keywordContext;
 static IDENTIFIER_CONTEXT _globalContext;
+
+extern void memory_destroy();
+
+/*
+ * Returns the global identifier context.
+ */
+IDENTIFIER_CONTEXT* sym_getKeywordContext() {
+	return &_keywordContext;
+}
+
 
 /*
  * Returns the global identifier context.
  */
 IDENTIFIER_CONTEXT* sym_getGlobalContext() {
+	_globalContext.ic_next = &_keywordContext;
 	return &_globalContext;
 }
 
@@ -58,7 +70,7 @@ static int sym_destroyEntry(intptr_t tKey, intptr_t tValue) {
 		if (stType == S_STRING || stType == S_CONSTSTRING) {
 			free(sym->sym_data.string);
 		}
-		else if (stType == S_STRING_ARRAY) {
+		else if (stType == S_ARRAY) {
 			arraylist_destroyStringList(sym->sym_data.stringList);
 		}
 	}
@@ -71,8 +83,11 @@ static int sym_destroyEntry(intptr_t tKey, intptr_t tValue) {
  * Destroy the macro compiler internal symbol table.
  */
 void sym_destroyTable() {
+	hashmap_destroy(_keywordContext.ic_table, sym_destroyEntry);
+	_keywordContext.ic_table = NULL;
 	hashmap_destroy(_globalContext.ic_table, sym_destroyEntry);
 	_globalContext.ic_table = NULL;
+	memory_destroy();
 }
 
 /*
@@ -108,16 +123,17 @@ IDENTIFIER_CONTEXT* sym_popContext(IDENTIFIER_CONTEXT* pContext) {
  * Create a symbol table.
  *---------------------------------*/
 static int sym_create(IDENTIFIER_CONTEXT* pContext) {
-	pContext->ic_table = hashmap_create(HSIZE, NULL, NULL);
+	int nSize = pContext == &_keywordContext ? 337 : HSIZE;
+	pContext->ic_table = hashmap_create(nSize, NULL, NULL);
 	return pContext->ic_table != NULL;
 }
 
 /*
  * Tries to find the most local identifier context in which a symbol is located.
  */
-static IDENTIFIER_CONTEXT* sym_findContext(IDENTIFIER_CONTEXT* pContext, const char* key, HASH_ENTRY* pEntry) {
-	if (pContext->ic_next) {
-		IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext->ic_next, key, pEntry);
+static IDENTIFIER_CONTEXT* sym_findContext(IDENTIFIER_CONTEXT* pContext, const char* key, HASH_ENTRY* pEntry, BOOL bIncludeKeywordContext) {
+	if (pContext->ic_next && (pContext->ic_next != &_keywordContext || bIncludeKeywordContext)) {
+		IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext->ic_next, key, pEntry, bIncludeKeywordContext);
 		if (pFound) {
 			return pFound;
 		}
@@ -131,9 +147,9 @@ static IDENTIFIER_CONTEXT* sym_findContext(IDENTIFIER_CONTEXT* pContext, const c
 /*
  * Remove one symbol from an identifier context.
  */
-void sym_remove(IDENTIFIER_CONTEXT* pContext, char* key) {
+void sym_remove(IDENTIFIER_CONTEXT* pContext, const char* key) {
 	HASH_ENTRY entry;
-	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry);
+	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry, FALSE);
 	if (pFound) {
 		hashmap_remove(pFound->ic_table, (intptr_t)key);
 		free((void*)entry.he_key);
@@ -145,17 +161,17 @@ void sym_remove(IDENTIFIER_CONTEXT* pContext, char* key) {
 /*--------------------------------------------------------------------------
  * Determines the identifier context of a symbol.
  */
-IDENTIFIER_CONTEXT* sym_getContext(IDENTIFIER_CONTEXT* pContext, char* key) {
+IDENTIFIER_CONTEXT* sym_getContext(IDENTIFIER_CONTEXT* pContext, const char* key) {
 	HASH_ENTRY entry;
-	return sym_findContext(pContext, key, &entry);
+	return sym_findContext(pContext, key, &entry, TRUE);
 }
 
 /*--------------------------------------------------------------------------
  * sym_find()
  */
-PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, char *key,char **key_ret) {
+PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, const char *key,char **key_ret) {
 	HASH_ENTRY entry;
-	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry);
+	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry, TRUE);
 	if (!pFound) {
 		return nullSymbol;
 	}
@@ -167,9 +183,9 @@ PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, char *key,char **key_ret) {
 /*--------------------------------------------------------------------------
  * sym_insert()
  */
-static int sym_insert(IDENTIFIER_CONTEXT* pContext, char *key, PKS_VALUE vValue) {
+static int sym_insert(IDENTIFIER_CONTEXT* pContext, const char *key, PKS_VALUE vValue) {
 	HASH_ENTRY entry;
-	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry);
+	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry, FALSE);
 	if (pFound) {
 		hashmap_remove(pFound->ic_table, (intptr_t)entry.he_key);
 		key = (char*)entry.he_key;
@@ -199,7 +215,7 @@ int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stTyp
 			return 0;
 		}
 		v.pkv_isPointer = TRUE;
-	} else if (stType == S_STRING_ARRAY) {
+	} else if (stType == S_ARRAY) {
 		if (value.stringList) {
 			void* pClone = arraylist_cloneStringList(value.stringList);
 			if (!pClone) {
@@ -220,9 +236,32 @@ int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stTyp
  * management. It is assumed, that the corresponding data is "managed" outside the scope of the
  * symbol table.
  */
-int inline sym_defineVariable(IDENTIFIER_CONTEXT* pContext, char* name, PKS_VALUE vValue) {
-	vValue.pkv_managed = FALSE;
+int inline sym_defineVariable(IDENTIFIER_CONTEXT* pContext, const char* name, PKS_VALUE vValue) {
+	vValue.pkv_managed = vValue.pkv_isPointer;
 	return sym_insert(pContext, name, vValue);
+}
+
+/*
+ * Invoked for every entry in the symbol space and executes a callback for all "managed objects".
+ */
+static int sym_processManagedCB(intptr_t k, intptr_t v, int (*callback)(void* pObject)) {
+	PKS_VALUE* pVal = (PKS_VALUE*)v;
+	if (pVal->pkv_managed && pVal->pkv_isPointer) {
+		return callback(pVal->sym_data.objectPointer);
+	}
+	return 1;
+}
+
+/*
+ * Execute a callback for all values in the passed context "managed" by the PKS Object memory.
+ */
+void sym_traverseManagedObjects(IDENTIFIER_CONTEXT* pContext, int (*callback)(void* pObject)) {
+	if (pContext->ic_next && pContext->ic_next != &_keywordContext) {
+		sym_traverseManagedObjects(pContext->ic_next, callback);
+	}
+	if (pContext->ic_table) {
+		hashmap_forEachEntry(pContext->ic_table, sym_processManagedCB, callback);
+	}
 }
 
 /*--------------------------------------------------------------------------
@@ -233,15 +272,16 @@ PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 	PKS_VALUE 	sym;
 	char* tmp;
 
-	sym = sym_find(pContext, symbolname,&tmp);
-	if (NULLSYM(sym)) {
-		error_displayAlertDialog("undefined symbol %s",symbolname);
-		return sym;
+	HASH_ENTRY entry;
+	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, symbolname, &entry, FALSE);
+	if (!pFound) {
+		interpreter_raiseError("undefined symbol %s", symbolname);
 	}
-
+	tmp = (char*)entry.he_key;
+	sym = *(PKS_VALUE*)entry.he_value;
 	SYMBOL_TYPE sType = TYPEOF(sym);
-	if (sType < S_BOOLEAN || sType > S_STRING_ARRAY) {
-		error_displayAlertDialog("bad symbol '%s' (type==%d)",symbolname,sType);
+	if (sType < S_BOOLEAN || sType > S_ARRAY) {
+		interpreter_raiseError("bad symbol '%s' (type==%d)",symbolname,sType);
 		return nullSymbol;
 	}
 

@@ -19,7 +19,6 @@
 #include <string.h>
 #include <math.h>
 
-#include "arraylist.h"
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
 #include "regexp.h"
@@ -38,16 +37,17 @@ int macro_isParameterStringType(unsigned char typ) {
 	return typ == C_PUSH_STRING_LITERAL || typ == C_PUSH_VARIABLE;
 }
 
-static void interpreter_asString(char* pBuf, char* pBufEnd, ARRAY_LIST* pList) {
-	size_t nSize = arraylist_size(pList);
+static void interpreter_asString(char* pBuf, char* pBufEnd, PKS_VALUE v) {
+	size_t nSize = memory_size(v);
 	int i = 0;
 	while (i < nSize && pBuf < pBufEnd - 4) {
 		if (i > 0) {
 			*pBuf++ = ',';
 			*pBuf++ = ' ';
 		}
-		char* pszS = arraylist_get(pList, i);
-		size_t nLen = strlen(pszS);
+		PKS_VALUE nNested = memory_getNestedObject(v, i);
+		const char* pszS = memory_accessString(nNested);
+		size_t nLen = memory_size(nNested);
 		char* pszEnd = pBuf + nLen;
 		if (pszEnd > pBufEnd - 4) {
 			break;
@@ -58,6 +58,7 @@ static void interpreter_asString(char* pBuf, char* pBufEnd, ARRAY_LIST* pList) {
 	}
 	*pBuf = 0;
 }
+
 /*
  * Generic coercion function to coerce PKS-Edit values.
  */
@@ -68,14 +69,14 @@ PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_
 	if (tTargetType == S_FLOAT) {
 		if (nValue.sym_type == S_STRING) {
 			double d;
-			sscanf(nValue.sym_data.string, "%lf", &d);
+			sscanf(memory_accessString(nValue), "%lf", &d);
 			return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.doubleValue = d };
 		}
 		return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.doubleValue = (double)nValue.sym_data.longValue };
 	}
 	if (tTargetType == S_NUMBER) {
 		if (nValue.sym_type == S_STRING) {
-			return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.longValue = number(nValue.sym_data.string) };
+			return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.longValue = number((char*)memory_accessString(nValue)) };
 		}
 		if (nValue.sym_type == S_FLOAT) {
 			return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.longValue = (long long)nValue.sym_data.doubleValue };
@@ -94,12 +95,12 @@ PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_
 		}
 		else if (nValue.sym_type == S_BOOLEAN) {
 			sprintf(buf, "%s", nValue.sym_data.booleanValue ? "true" : "false");
-		} else if (nValue.sym_type == S_STRING_ARRAY) {
-			interpreter_asString(buf, &buf[sizeof buf], (ARRAY_LIST*)nValue.sym_data.stringList);
+		} else if (nValue.sym_type == S_ARRAY) {
+			interpreter_asString(buf, &buf[sizeof buf], nValue);
 		} else {
 			sprintf(buf, "%lld", nValue.sym_data.longValue);
 		}
-		return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.string = interpreter_allocateString(pContext, buf) };
+		return interpreter_allocateString(pContext, buf);
 	}
 	return nValue;
 }
@@ -107,8 +108,9 @@ PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_
 /*
  * strmatch()
  */
-static int strmatch(char *s1,char *s2) {	
-	char   ebuf[256],*eol;
+static int strmatch(const char *s1,const char *s2) {	
+	char   ebuf[256];
+	const char *eol;
 	RE_PATTERN pattern;
 	RE_OPTIONS options;
 
@@ -116,7 +118,7 @@ static int strmatch(char *s1,char *s2) {
 	options.patternBuf = ebuf;
 	options.endOfPatternBuf = &ebuf[sizeof ebuf];
 	options.flags = RE_DOREX;
-	options.expression = s2;
+	options.expression = (char*)s2;
 	eol = &s1[strlen(s1)];
 	if (regex_compile(&options,&pattern) == 0) {
 		interpreter_raiseError("Illegal regular expression %s", s2);
@@ -171,9 +173,9 @@ int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
 		int r1;
 		v1 = interpreter_coerce(pContext, v1, S_STRING);
 		v2 = interpreter_coerce(pContext, v2, S_STRING);
-		unsigned char* s1, * s2;
-		s1 = v1.sym_data.string;
-		s2 = v2.sym_data.string;
+		unsigned const char* s1, * s2;
+		s1 = memory_accessString(v1);
+		s2 = memory_accessString(v2);
 		if (op != CT_MATCH && op != CT_NMATCH)
 			r1 = strcmp(s1,s2);
 		else
@@ -215,7 +217,7 @@ static void interpreter_evaluateMultiplicationWithStrings(EXECUTION_CONTEXT* pCo
 	char buf[1024];
 	v1 = interpreter_coerce(pContext, v1, S_NUMBER);
 	int l1 = v1.sym_data.intValue;
-	int nMult = v2.sym_type == S_CHARACTER ? 1 : (int)strlen(v2.sym_data.string);
+	int nMult = v2.sym_type == S_CHARACTER ? 1 : (int)memory_size(v2);
 	if (l1 * nMult > sizeof(buf) - 2) {
 		interpreter_raiseError("Attempt to create a string of excessive size %d using a multiplication operator", l1 * nMult);
 	}
@@ -225,12 +227,12 @@ static void interpreter_evaluateMultiplicationWithStrings(EXECUTION_CONTEXT* pCo
 			*d++ = v2.sym_data.uchar;
 		}
 		else {
-			strcpy(d, v2.sym_data.string);
+			strcpy(d, memory_accessString(v2));
 			d += nMult;
 		}
 	}
 	*d = 0;
-	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_STRING, .sym_data.string = interpreter_allocateString(pContext, buf) });
+	interpreter_pushValueOntoStack(pContext, interpreter_allocateString(pContext, buf));
 }
 
 /*
@@ -251,40 +253,38 @@ static void interpreter_createRange(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, P
 /*
  * interpreter_extractArrayElementsAndPush
  */
-static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext, int bOperation, ARRAY_LIST* pList, PKS_VALUE vIndex) {
-	size_t nMax = arraylist_size(pList);
+static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext, int bOperation, PKS_VALUE vSource, PKS_VALUE vIndex) {
+	size_t nMax = memory_size(vSource);
 	if (bOperation == BIN_ADD) {
-		ARRAY_LIST* pClone = arraylist_cloneStringList(pList);
+		size_t nOrig = memory_size(vSource);
+		// TODO: calculate the result size for all cases and pass here.
+		PKS_VALUE vResult = memory_createObject(pContext, S_ARRAY, (int)(nOrig+1), 0);
+		for (int i = 0; i < nOrig; i++) {
+			memory_addObject(pContext, &vResult, memory_getNestedObject(vSource, i));
+		}
 		if (vIndex.sym_type == S_STRING) {
-			arraylist_add(pClone, _strdup(vIndex.sym_data.string));
-		} else if (vIndex.sym_type == S_STRING_ARRAY) {
-			ARRAY_LIST* pSource = vIndex.sym_data.stringList;
-			int nMax = (int)arraylist_size(pSource);
+			memory_addObject(pContext, &vResult, vIndex);
+		} else if (vIndex.sym_type == S_ARRAY) {
+			int nMax = (int)memory_size(vIndex);
 			for (int i = 0; i < nMax; i++) {
-				char* pszString = _strdup(arraylist_get(pSource, i));
-				arraylist_add(pClone, pszString);
+				memory_addObject(pContext, &vResult, memory_getNestedObject(vIndex, i));
 			}
 		}
-		PKS_VALUE vResult = { .sym_type = S_STRING_ARRAY, .sym_data.stringList = pClone };
-		memory_add(pContext, vResult);
 		interpreter_pushValueOntoStack(pContext, vResult);
 		return;
 	}
 	if (vIndex.sym_type == S_RANGE) {
-		ARRAY_LIST* pClone = arraylist_create(5);
 		int idxStart = vIndex.sym_data.range.r_start;
 		int idxEnd = vIndex.sym_data.range.r_end;
 		int iIncr = vIndex.sym_data.range.r_increment;
 		if (iIncr <= 0) {
 			iIncr = 1;
 		}
+		PKS_VALUE vResult = memory_createObject(pContext, S_ARRAY, (idxEnd-idxStart)/iIncr +1, 0);
 		while (idxStart <= idxEnd && idxStart < nMax) {
-			char* pszString = _strdup(arraylist_get(pList, idxStart));
-			arraylist_add(pClone, pszString);
+			memory_addObject(pContext, &vResult, memory_getNestedObject(vSource, idxStart));
 			idxStart += iIncr;
 		}
-		PKS_VALUE vResult = { .sym_type = S_STRING_ARRAY, .sym_data.stringList = pClone };
-		memory_add(pContext, vResult);
 		interpreter_pushValueOntoStack(pContext, vResult);
 		return;
 	}
@@ -292,8 +292,7 @@ static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext,
 		vIndex = interpreter_coerce(pContext, vIndex, S_NUMBER);
 		int nIndex = vIndex.sym_data.intValue;
 		if (nIndex >= 0 && nIndex < nMax) {
-			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_STRING, .sym_data.string = 
-				interpreter_allocateString(pContext, arraylist_get(pList, nIndex)) });
+			interpreter_pushValueOntoStack(pContext, memory_getNestedObject(vSource, nIndex));
 			return;
 		}
 	}
@@ -335,8 +334,8 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 		interpreter_evaluateMultiplicationWithStrings(pContext, v1, v2);
 		return;
 	}
-	if (v1.sym_type == S_STRING_ARRAY && ((op == BIN_AT && (v2.sym_type == S_NUMBER || v2.sym_type == S_RANGE)) || (op == BIN_ADD))) {
-		interpreter_extractArrayElementsAndPush(pContext, op, v1.sym_data.stringList, v2);
+	if (v1.sym_type == S_ARRAY && ((op == BIN_AT && (v2.sym_type == S_NUMBER || v2.sym_type == S_RANGE)) || (op == BIN_ADD))) {
+		interpreter_extractArrayElementsAndPush(pContext, op, v1, v2);
 		return;
 	}
 	if (v1.sym_type != S_STRING && v2.sym_type != S_STRING) {
@@ -405,10 +404,10 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_NUMBER, .sym_data.longValue = r1 });
 		return;
 	}
-	unsigned char* p1;
-	unsigned char* p2;
+	unsigned const char* p1;
+	unsigned const char* p2;
 	v1 = interpreter_coerce(pContext, v1, S_STRING);
-	p1 = v1.sym_data.string;
+	p1 = memory_accessString(v1);
 	if (op == BIN_AT) {
 		size_t nLen = strlen(p1);
 		if (v2.sym_type == S_RANGE) {
@@ -420,7 +419,7 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 			size_t nLen = n2 - n1 + 1;
 			strncpy(buf, &p1[n1], nLen);
 			buf[nLen] = 0;
-			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_STRING, .sym_data.string = interpreter_allocateString(pContext, buf) });
+			interpreter_pushValueOntoStack(pContext, interpreter_allocateString(pContext, buf));
 		} else {
 			v2 = interpreter_coerce(pContext, v2, S_NUMBER);
 			int nIndex = v2.sym_data.intValue;
@@ -430,13 +429,13 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 		return;
 	}
 	v2 = interpreter_coerce(pContext, v2, S_STRING);
-	p2 = v2.sym_data.string;
+	p2 = memory_accessString(v2);
 	*buf = 0;
 	switch(op) {
 
 	case BIN_ADD: {
-		char* pszP1 = p1 ? p1 : "null";
-		char* pszP2 = p2 ? p2 : "null";
+		const char* pszP1 = p1 ? p1 : "null";
+		const char* pszP2 = p2 ? p2 : "null";
 		if (strlen(pszP1) + strlen(pszP2) > sizeof buf) {
 			interpreter_raiseError("+ operation on strings: result to large");
 		}
@@ -446,15 +445,15 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 		break;
 	}
 	case BIN_SUB: {
-		char* pszP1 = p1 ? p1 : "null";
-		char* pszP2 = p2 ? p2 : "null";
+		const char* pszP1 = p1 ? p1 : "null";
+		const char* pszP2 = p2 ? p2 : "null";
 		if (strlen(pszP1) > sizeof buf) {
 			interpreter_raiseError("- operation on strings: result to large");
 		}
 		else {
 			strcpy(buf, pszP1);
 			if ((p1 = strstr(buf, pszP2)) != 0) {
-				strcpy(p1, p1 + strlen(pszP2));
+				strcpy((char*)p1, p1 + strlen(pszP2));
 			}
 		}
 		break;
@@ -463,6 +462,6 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 		interpreter_raiseError("Binary operation %c on string arguments not implemented.",op);
 
 	}
-	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_STRING, .sym_data.string = interpreter_allocateString(pContext, buf) });
+	interpreter_pushValueOntoStack(pContext, interpreter_allocateString(pContext, buf));
 }
 

@@ -21,7 +21,7 @@ typedef enum {
 	S_FLOAT = 4,
 	S_CHARACTER = 5,
 	S_RANGE = 6,
-	S_STRING_ARRAY = 7,
+	S_ARRAY = 7,
 	S_AUTO = 8,
 	S_KEYWORD = 9,
 	S_EDFUNC = 10,
@@ -39,11 +39,11 @@ typedef enum {
 #define	SETTYPE(s,type)		((s).sym_type = type)
 #define	NULLSYM(s)			(TYPEOF(s) == 0 && VALUE(s) == 0)
 
-#define	HSIZE		697
+#define	HSIZE		37
 
 typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 
-extern PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, char *key, char **key_ret);
+extern PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, const char *key, char **key_ret);
 
 /*
  * Create a symbol primarily to be used in the context of the macroc parser to define
@@ -52,20 +52,37 @@ extern PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, char *key, char **key_re
  */
 extern int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, GENERIC_DATA value);
 
+/*
+ * Execute a callback for all values in the passed context "managed" by the PKS Object memory.
+ */
+extern void sym_traverseManagedObjects(IDENTIFIER_CONTEXT* pContext, int (*callback)(void* pObject));
+
 /*--------------------------------------------------------------------------
  * Determines the identifier context of a symbol.
  */
-extern IDENTIFIER_CONTEXT* sym_getContext(IDENTIFIER_CONTEXT* pContext, char* key);
+extern IDENTIFIER_CONTEXT* sym_getContext(IDENTIFIER_CONTEXT* pContext, const char* key);
+
+/*
+ * Defines a variable reference to a value managed in the scope of the PKSMacroC object memory
+ * management. It is assumed, that the corresponding data is "managed" outside the scope of the
+ * symbol table.
+ */
+extern int sym_defineVariable(IDENTIFIER_CONTEXT* pContext, const char* name, PKS_VALUE vValue);
 
 /*
  * Remove one symbol from an identifier context.
  */
-extern void sym_remove(IDENTIFIER_CONTEXT* pContext, char* key);
+extern void sym_remove(IDENTIFIER_CONTEXT* pContext, const char* key);
 
 /*
  * Returns the global identifier context.
  */
 extern IDENTIFIER_CONTEXT* sym_getGlobalContext();
+
+/*
+ * Returns the identifier context, where keywords are registered.
+ */
+extern IDENTIFIER_CONTEXT* sym_getKeywordContext();
 
 /*
  * Push a new identifier context chained to the given parent context and return
