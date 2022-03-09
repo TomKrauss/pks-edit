@@ -527,6 +527,13 @@ int macro_onCharacterInserted(WORD c) {
 	return (int) interpreter_executeFunction(FUNC_EdCharInsert,c,0,(void*)0,(void*)0,(void*)0);
 }
 
+static int macro_executeWithProgress(MACROREF* mp) {
+	progress_startMonitor(IDS_ABRTMACRO, 1000);
+	int ret = (int)macro_executeMacro(mp);
+	progress_closeMonitor(0);
+	return ret;
+}
+
 /*---------------------------------*/
 /* macro_executeByName()				*/
 /*---------------------------------*/
@@ -548,7 +555,7 @@ int macro_executeByName(char *name) {
 		return 0;
 	}
 	macref.index = i;
-	return (int)macro_executeMacro(&macref);
+	return macro_executeWithProgress(&macref);
 }
 
 /*
@@ -1109,7 +1116,7 @@ int EdMacrosEdit(void)
 
 		_multiplier = 1;
 		while (m-- > 0) {
-			nResult = macro_executeMacro(&currentSelectedMacro);
+			nResult = macro_executeWithProgress(&currentSelectedMacro);
 		}
 		return (int)nResult;
 	}

@@ -47,7 +47,7 @@ EXPORT int align_text(char *pszSearch, int scope, char filler, int flags)
 		return 0;
 	if (filler == 0)
 		filler = ' ';
-	progress_startMonitor(IDS_ABRTALIGN);
+	progress_startMonitor(IDS_ABRTALIGN, 1000);
 
 	if (flags & (AL_CPOS|AL_FIX)) {
 		firstcol = caret_lineOffset2screen(wp,&wp->caret);

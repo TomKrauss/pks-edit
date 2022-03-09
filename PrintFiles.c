@@ -1011,7 +1011,7 @@ int EdPrint(long what, long p1, LPSTR fname) {
 		docinfo.cbSize = sizeof docinfo;
 		docinfo.lpszDocName = message;
 		docinfo.lpszDatatype = "Text";
-		progress_startMonitor(IDS_ABRTPRINT);
+		progress_startMonitor(IDS_ABRTPRINT, 1000);
 		SetAbortProc(hdcPrn, (ABORTPROC)PrtAbortProc);
 		if ((PREVIEWING() || (errEscape = StartDoc(hdcPrn, &docinfo)) > 0) &&
 			(errEscape = print_file(hdcPrn, FALSE)) >= 0) {

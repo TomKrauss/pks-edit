@@ -31,6 +31,8 @@ HWND hwndAbort;
 
 static DLGPROC lpfnAbort;
 static int  	_cancelled;
+static long		_tickCountToStart = -1;
+static int		_nMessageId;
 
 /*------------------------------------------------------------
  * DlgProgressProc()
@@ -59,9 +61,14 @@ static INT_PTR DlgProgressProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPa
 /*------------------------------------------------------------
  * progress_startMonitor()
  */
-void progress_startMonitor(unsigned int ids) {
-
-	if (!_playing && !hwndAbort) {
+void progress_startMonitor(unsigned int ids, int nWaitForPopup) {
+	_nMessageId = ids;
+	if (nWaitForPopup > 0) {
+		_tickCountToStart = GetTickCount() + nWaitForPopup;
+		return;
+	}
+	_tickCountToStart = -1;
+	if (!hwndAbort) {
 		char szB1[30];
 		char szBuff[256];
 		szB1[0] = 0;
@@ -79,11 +86,19 @@ void progress_startMonitor(unsigned int ids) {
 	}
 }
 
+static void progress_popupAfterDelay() {
+	if (_tickCountToStart > 0 && GetTickCount() > (unsigned long)_tickCountToStart) {
+		_tickCountToStart = -1;
+		progress_startMonitor(_nMessageId, 0);
+	}
+}
+
 /*------------------------------------------------------------
  * progress_stepIndicator()
  * Animate the actual progress bar displayed in the progress dialog.
  */
 void progress_stepIndicator() {
+	progress_popupAfterDelay();
 	if (hwndAbort) {
 		MSG msg;
 		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE | PM_NOYIELD)) {
@@ -96,8 +111,8 @@ void progress_stepIndicator() {
  * progress_showMonitorMessage()
  * Show a progress message and animate the progress control.
  */
-void progress_showMonitorMessage(const char* message)
-{
+void progress_showMonitorMessage(const char* message) {
+	progress_popupAfterDelay();
 	if (hwndAbort) {
 		SetDlgItemText(hwndAbort, IDD_STRING2, message);
 		progress_stepIndicator();
@@ -109,6 +124,7 @@ void progress_showMonitorMessage(const char* message)
  */
 void progress_closeMonitor(int always)
 {
+	_tickCountToStart = -1;
 	if (hwndAbort) {
 		EnableWindow(hwndMain,TRUE);
 		win_destroyModelessDialog(&hwndAbort);
@@ -124,6 +140,7 @@ int progress_cancelMonitor(BOOL bRedraw)
 {
 	MSG			msg;
 
+	progress_popupAfterDelay();
 	if (hwndAbort == NULL) {
 		return 0;
 	}

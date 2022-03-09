@@ -802,15 +802,14 @@ static PKS_VALUE interpreter_getParameterStackValue(EXECUTION_CONTEXT* pContext,
 /*---------------------------------*/
 #define COM1_INCR(pLocalInstructionPointer,type,offset) (((unsigned char *)pLocalInstructionPointer)+((type *)pLocalInstructionPointer)->offset)
 #define COM_PARAMINCR(pLocalInstructionPointer)		(((unsigned char *)pLocalInstructionPointer)+interpreter_getParameterSize(pLocalInstructionPointer->typ,&pLocalInstructionPointer->funcnum));
-static int _macaborted;
 static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const char* pszFunctionName, COM_1FUNC* cp, COM_1FUNC* cpmax) {
 
 	unsigned char* pInstr = (unsigned char*)cp;
 	unsigned char* pInstrMax = (unsigned char*)cpmax;
 	while (pInstr < pInstrMax) {
 		cp = (COM_1FUNC*)pInstr;
-		if (_macaborted || (_macaborted = progress_cancelMonitor(FALSE)) != 0) {
-			goto end;
+		if (progress_cancelMonitor(FALSE) != 0) {
+			interpreter_raiseError("Macro execution aborted by user.");
 		}
 		switch (cp->typ) {
 		case C_GOTO:
@@ -902,8 +901,6 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 			continue;
 		default:
 			interpreter_raiseError("Corrupted bytecodes - cannot continue.");
-			// never reached
-			goto end;
 		}
 	}
 end:
@@ -923,6 +920,7 @@ static int macro_interpretByteCodes(const char* pszFunctionName, COM_1FUNC *cp,C
 		// TODO: more cleanup!
 		interpreter_cleanupContextStacks();
 		level = 0;
+		progress_closeMonitor(0);
 		return -1;
 	}
 	level++;
@@ -1013,7 +1011,6 @@ long long macro_executeMacroByIndex(int macroindex) {
 	}
 
 	if ((_playing = wasplaying) == 0) {
-		_macaborted = 0;
 		WINFO* wp = ww_getCurrentEditorWindow();
 		if (wp) {
 			ft_selectWindowWithId(wp->win_id, FALSE);
@@ -1037,10 +1034,7 @@ long long macro_executeMacro(MACROREF* mp) {
 		cp = &_commandTable[mp->index].c_functionDef;
 		return macro_interpretByteCodes(_commandTable[mp->index].c_name, cp, cp + 1);
 	case CMD_MACRO:
-		// TODO: need a progress indicator popping up after an initial delay.
-		// progress_startMonitor(IDS_ABRTMACRO);
 		ret = macro_executeMacroByIndex(mp->index);
-		progress_closeMonitor(0);
 		return ret;
 	default:
 		error_displayAlertDialog("Illegal command type to execute.");

@@ -648,7 +648,7 @@ int find_replaceTabsWithSpaces(int scope, int flg)
 	if (!find_selectRangeWithMarkers(scope,&mps,&mpe))
 		return 0;
 
-	progress_startMonitor(IDS_ABRTCONVERT);
+	progress_startMonitor(IDS_ABRTCONVERT, 1000);
 	find_modifyTextSection(ww_getCurrentEditorWindow(),(flg) ? edit_expandTabsInLineWithSpaces : edit_compactLineSpacingWithTabs,&nt,&nl,mps,mpe);
 	progress_closeMonitor(0);
 
@@ -789,7 +789,7 @@ REPLACE_TEXT_RESULT EdReplaceText(WINFO* wp, int scope, REPLACE_TEXT_ACTION acti
 		_playing = 0;
 
 	if (!(query || scope == RNG_ONCE)) {
-		progress_startMonitor(IDS_ABRTREPLACE);
+		progress_startMonitor(IDS_ABRTREPLACE, 1000);
 	}
 
 	while(lp) {

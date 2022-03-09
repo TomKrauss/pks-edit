@@ -586,7 +586,7 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 		rp.lpfirst = lpfirst->prev;
 		rp.lplast = lplast ->next;
 		rp.nrec = n+n2;
-		progress_startMonitor(IDS_ABRTSORT);
+		progress_startMonitor(IDS_ABRTSORT, 1000);
 		undo_cash(fp,lpfirst,lplast);
 		if (sort_quickSortList(_rectab,n)) {
 			caret_placeCursorInCurrentFile(wp,0L,0L);

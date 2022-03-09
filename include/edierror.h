@@ -42,7 +42,7 @@ extern void progress_closeMonitor(int always);
 /*------------------------------------------------------------
  * progress_startMonitor()
  */
-extern void progress_startMonitor(unsigned int ids);
+extern void progress_startMonitor(unsigned int ids, int nMillisToPopup);
 
 /*------------------------------------------------------------
  * progress_showMonitorMessage()

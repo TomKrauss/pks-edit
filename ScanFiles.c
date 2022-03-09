@@ -366,7 +366,7 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 	_searchContext.sc_ftable = fp;
 	ft_setTitle(fp, title);
 	lstrcpy(pathlist,pPathes);
-	progress_startMonitor(IDS_ABRTRETREIVE);
+	progress_startMonitor(IDS_ABRTRETREIVE, 1000);
 	if (nOptions & RE_SEARCH_IN_SEARCH_RESULTS) {
 		find_matchesInSearchResults(pFilesMap);
 		hashmap_destroySet(pFilesMap);
