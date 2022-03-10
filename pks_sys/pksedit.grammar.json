@@ -86,12 +86,17 @@
           "name": "literal.string"
         },
         {
-          "match": "<0[xX][0-9a-fA-F]+>",
+          "match": "<0[xX][0-9a-fA-F_]+>",
           "name": "constant.numeric.hex",
           "style": "literal"
         },
         {
-          "match": "<-?[0-9.]+d?>",
+          "match": "<0b[01_]+>",
+          "name": "constant.numeric.binary",
+          "style": "literal"
+        },
+        {
+          "match": "<-?[0-9_.]+d?>",
           "name": "constant.numeric",
           "style": "literal"
         },

@@ -21,25 +21,32 @@
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
 #include "symbols.h"
+#include "trace.h"
+
+#define INITIAL_OT_SIZE			2048
 
 typedef struct tagOBJECT_DATA {
-	short od_gcFlag : 1;				// A flag for the mark phase of the mark&sweep algo to mark the object.
-	PKS_VALUE_TYPE od_class : 15;		// either a primitive value type or an index into the class object description table.
-	int	  od_size;						// either the number of objects (size of array type objects) or the length of a string
-	int   od_capacity;					// capacity for number of dependent objects.
+	char od_gcFlag : 1;						// A flag for the mark phase of the mark&sweep algo to mark the object.
+	PKS_VALUE_TYPE od_class : 15;			// either a primitive value type or an index into the class object description table.
+	int	  od_size;							// either the number of objects (size of array type objects) or the length of a string
+	int   od_capacity;						// capacity for number of dependent objects.
 	union {
-		const char string[1];			// for strings the start of the zero terminated string 
-		TYPED_OBJECT_POINTER objects[1];// for arrays and structured objects the array of dependent objects
+		const char string[0];				// for strings the start of the zero terminated string 
+		TYPED_OBJECT_POINTER objects[0];	// for arrays and structured objects the array of dependent objects
 	} od_data;
 } OBJECT_DATA;
 
 typedef struct tagOBJECT_MEMORY {
-	int om_capacity;					// The number of available objects.
-	int om_freeSlot;					// last free slot where new objects are inserted
-	OBJECT_DATA** om_objects;			// list of allocated objects to be released, when execution halts.
+	int om_capacity;						// The number of available objects.
+	int om_freeSlot;						// last free slot where new objects are inserted
+	OBJECT_DATA** om_objects;				// list of allocated objects to be released, when execution halts.
 } OBJECT_MEMORY;
 
 static OBJECT_MEMORY _objectSpace;
+
+static inline void memory_assignSlot(OBJECT_MEMORY* pMemory, int idx, OBJECT_DATA* pData) {
+	pMemory->om_objects[idx] = pData;
+}
 
 static void memory_destroyData(OBJECT_DATA** pData) {
 	free(*pData);
@@ -65,7 +72,7 @@ void memory_destroy() {
 static void memory_create() {
 	OBJECT_MEMORY* pMemory = &_objectSpace;
 	if (pMemory->om_objects == 0) {
-		int nCapacity = 1024;
+		int nCapacity = INITIAL_OT_SIZE;
 		pMemory->om_objects = calloc(nCapacity, sizeof(PKS_VALUE));
 		pMemory->om_capacity = nCapacity;
 	}
@@ -124,23 +131,27 @@ static void memory_markObjects(EXECUTION_CONTEXT* pContext) {
  */
 void memory_garbaggeCollect(EXECUTION_CONTEXT* pContext) {
 	OBJECT_MEMORY* pMemory = &_objectSpace;
-	if (!pMemory->om_objects || pMemory->om_freeSlot < pMemory->om_capacity - 10) {
+	if (!pMemory->om_objects || pMemory->om_freeSlot < pMemory->om_capacity - (INITIAL_OT_SIZE/8)) {
 		return;
 	}
 	memory_markObjects(pContext);
 	size_t nSize = pMemory->om_capacity;
+	EdTRACE(int nCollected = 0; int nObjects = 0;)
 	for (int i = (int)nSize; --i >= 0; ) {
 		OBJECT_DATA* pData = pMemory->om_objects[i];
 		if (!pData) {
 			continue;
 		}
+		EdTRACE(nObjects++;)
 		if (!pData->od_gcFlag) {
+			EdTRACE(nCollected++;)
 			memory_destroyData(&pMemory->om_objects[i]);
 			if (i < pMemory->om_freeSlot) {
 				pMemory->om_freeSlot = i;
 			}
 		}
 	}
+	EdTRACE(log_errorArgs(DEBUG_TRACE, "GC finished: reclaimed %d objects out of %d", nCollected, nObjects));
 }
 
 /*
@@ -148,19 +159,19 @@ void memory_garbaggeCollect(EXECUTION_CONTEXT* pContext) {
  */
 static int memory_nextFreeSlot(OBJECT_MEMORY* pMemory) {
 	int idx = pMemory->om_freeSlot;
-	while (pMemory->om_objects[idx]) {
-		if (idx >= pMemory->om_capacity) {
-			int nNewCapacity = pMemory->om_capacity + 256;
-			pMemory->om_objects = realloc(pMemory->om_objects, nNewCapacity * sizeof(OBJECT_DATA*));
-			for (int i = pMemory->om_capacity; i < nNewCapacity; i++) {
-				pMemory->om_objects[i] = 0;
-			}
-			idx = pMemory->om_capacity;
-			pMemory->om_capacity = nNewCapacity;
+	while (idx < pMemory->om_capacity) {
+		if (!pMemory->om_objects[idx]) {
 			return idx;
 		}
 		idx++;
 	}
+	int nNewCapacity = pMemory->om_capacity + (INITIAL_OT_SIZE/2);
+	pMemory->om_objects = realloc(pMemory->om_objects, nNewCapacity * sizeof(OBJECT_DATA*));
+	for (int i = pMemory->om_capacity; i < nNewCapacity; i++) {
+		memory_assignSlot(pMemory, i, 0);
+	}
+	idx = pMemory->om_capacity;
+	pMemory->om_capacity = nNewCapacity;
 	return idx;
 }
 
@@ -173,7 +184,7 @@ static OBJECT_DATA* memory_createObjectData(EXECUTION_CONTEXT* pContext, PKS_VAL
 		if (pInput) {
 			nLen = strlen(pInput);
 		}
-		size_t l = sizeof(OBJECT_DATA) + nLen;
+		size_t l = sizeof(OBJECT_DATA) + nLen+1;
 		pData = calloc(1, l);
 		if (pInput) {
 			strcpy((char*)pData->od_data.string, pInput);
@@ -198,7 +209,7 @@ static OBJECT_DATA* memory_createObjectData(EXECUTION_CONTEXT* pContext, PKS_VAL
 	pData->od_capacity = (int)nLen;
 	pData->od_class = sType;
 	int idx = memory_nextFreeSlot(pMemory);
-	pMemory->om_objects[idx++] = pData;
+	memory_assignSlot(pMemory, idx++, pData);
 	pMemory->om_freeSlot = idx;
 	return pData;
 }
@@ -256,7 +267,9 @@ int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS_VALUE 
 		if (!pData) {
 			return 0;
 		}
-		_objectSpace.om_objects[objIdx] = pData;
+		if (objIdx < _objectSpace.om_capacity) {
+			memory_assignSlot(&_objectSpace, objIdx, pData);
+		}
 		vObject->sym_data.objectPointer = pData;
 		size_t diff = newSize - oldSize;
 		void* pStart = ((char*)pData) + oldSize;

@@ -27,6 +27,7 @@ commands which show an explanation about the command.
 - Expressions can now be correctly passed as function arguments.
 - PKSMacroC supports now [] operators to extract single characters or a range of characters from a string or one or more words from a string array.
   or in assigments to change elements of an array.
+- PKSMacroC integer literals were extended to also support `_` and other representations (binary, octal, ...).
 - PKSMacroC supports now global (namespace local / static) variables. Namespaces are currently limited however.
 - Long running macroC macros can now be interrupted - a progress bar pops up after a while to cancel them (e.g. if the macro code contains
   an error such as an endless loop).

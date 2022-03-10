@@ -97,6 +97,19 @@ shows implicit and explicit coercions.
 "Hello " + 3 + " worlds"  -> "Hello 3 worlds"
 ```
 
+## PKSMacroC literals
+
+PKSMacroC supports **literals** for defining int, string, boolean, float, char, string and array type values.
+
+- `int` values can be defined using either decimal, hexadecimal, octal or binary representation using a C like syntax as for example: 
+  `-42` (decimal) `0xA0` (hexadecimal) `071` (octal) `0b10010100` (binary). To make long numbers more readable, one may inject underscores. One million
+  could be written as example as 1_000_000.
+- `float` type values currently only support the simple syntax [sign][digits].[digits] as in `3.14`.
+- string type literal are enclosed in `"`. Special characters such as `"`, `\n`, `\r`, `\f`, `\\` ,... (see C syntax) must be quoted using`the `\` character.
+  Examples are "hello\nworld" or "this is my \"favorite\" movie"
+- array type literal  support currently only the specification of simple array of string values. The individual elements are enclosed in `{`and `}` and seperated
+  by `,`. Example: `{ "hello", "world" }`
+
 ## PKSMacroC operators
 
 PKSMacroC supports the most common operators also supported in the C language.

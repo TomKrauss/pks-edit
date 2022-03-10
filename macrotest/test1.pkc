@@ -283,7 +283,7 @@ static void Test-GC() {
 	string x;
 	int i = 0;
 
-	while(i < 1000000) {
+	while(i < 1_000_000) {
 		x = "Hello World " + i;
 		i++;
 	}
@@ -310,6 +310,27 @@ static void Test-Simple-Expression()
 	AssertEquals(true, bResult);
 }
 
+/*
+ * Test various notations of integer values
+ */
+static void Test-IntegerLiterals() {
+	AssertEquals(0x10, 16);
+	AssertEquals(0b1000, 8);
+	AssertEquals(0b10_00, 8);
+	AssertEquals(0xA____0, 160);
+}
+
+/*
+ * Test various notations of string constants.
+ */
+static void Test-StringLiterals() {
+	string tester = "ab\a\f\n\\";
+
+	AssertEquals('\a', tester[2]);
+	AssertEquals('\f', tester[3]);
+	AssertEquals(10, tester[4]);
+	AssertEquals('\\', tester[5]);
+}
 
 /*
  * This method can be invoked with one integer and one string

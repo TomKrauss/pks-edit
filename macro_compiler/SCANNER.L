@@ -389,6 +389,9 @@ long long number(char *s) {
 		if (s[1] == 'x' || s[1] == 'X') {
 			s += 2;
 			nBase = 16;
+		} else if (s[1] == 'b') {
+			s += 2;
+			nBase = 2;
 		} else {
 			s++;
 			nBase = 8;
@@ -397,13 +400,23 @@ long long number(char *s) {
 	long long i = 0;
 	int o;
 	for (;;) {
-		if (*s >= '0' && *s <= '9')
+		if (*s == '_') {
+			s++;
+			continue;
+		}
+		if (*s >= '0' && *s <= '9') {
 			o = (*s - '0');
-		else if (*s >= 'A' && *s <= 'F')
-			o = (*s - 'A' + 10);
-		else if (*s >= 'a' && *s <= 'f')
-			o = (*s - 'a' + 10);
-		else break;
+		} else if (nBase == 16) {
+			if (*s >= 'A' && *s <= 'F') {
+				o = (*s - 'A' + 10);
+			} else if (*s >= 'a' && *s <= 'f') {
+				o = (*s - 'a' + 10);
+			} else {
+				break;
+			}
+		} else {
+			break;
+		}
 		i *= nBase;
 		i += o;
 		if (i < 0) {
@@ -443,9 +456,10 @@ int yywrap(void )
 }
 
 %}
-OKTNUM	[0-7]
-NUM		[0-9]
-HEXNUM	[0-9a-fA-F]
+BINNUM	[01_]
+OKTNUM	[0-7_]
+NUM		[0-9_]
+HEXNUM	[0-9a-fA-F_]
 CH		[a-z_A-Z]
 CHN		[0-9a-z_A-Z]+(-[0-9a-z_A-Z]+)*
 QUOTED	\\.
@@ -514,6 +528,10 @@ WS		[ \t]
 					yylval.num = yytext[1];
 				}
 				return T_CHARACTER;
+			}
+0b{BINNUM}+ {
+				yylval.num = number(yytext);
+				return T_NUM;
 			}
 0[xX]{HEXNUM}+ {
 				yylval.num = number(yytext);

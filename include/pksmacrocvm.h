@@ -89,6 +89,7 @@ struct tagEXECUTION_CONTEXT {
 	PKS_VALUE* ec_stackCurrent;			// the pointer to the current stack offset
 	PKS_VALUE* ec_stackMax;				// the top of the stack. Must not be overridden
 	const char* ec_currentFunction;		// name of the current function/macro being executed.
+	void* ec_instructionPointer;		// The current instruction pointer for debugging
 	IDENTIFIER_CONTEXT* ec_identifierContext;
 };
 

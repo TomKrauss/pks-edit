@@ -93,8 +93,7 @@ void interpreter_raiseError(const char* pFormat, ...) {
 		strcpy(p, pContext->ec_currentFunction);
 		p += strlen(p);
 		if (pContext->ec_parent) {
-			strcpy(p, "<-");
-			p += 2;
+			*p++ = '\n';
 			pContext = pContext->ec_parent;
 		}
 		else {
@@ -827,6 +826,7 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 	unsigned char* pInstrMax = (unsigned char*)cpmax;
 	while (pInstr < pInstrMax) {
 		cp = (COM_1FUNC*)pInstr;
+		pContext->ec_instructionPointer = cp;
 		if ((_progressCount++ % 100) == 99 && progress_cancelMonitor(FALSE) != 0) {
 			interpreter_raiseError("Macro execution aborted by user.");
 		}
