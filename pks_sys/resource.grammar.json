@@ -60,7 +60,7 @@
           "name": "keyword.pascal"
         },
         {
-          "match": "<[WEBDCS]B?[S]_[A-Z_0-9]+>",
+          "match": "<[WEBDLCS]B?[SV]_[A-Z_0-9]+>",
           "style": "identifier",
           "name": "constant.flag"
         },

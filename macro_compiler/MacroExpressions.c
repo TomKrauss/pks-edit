@@ -423,7 +423,10 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 		} else {
 			v2 = interpreter_coerce(pContext, v2, S_NUMBER);
 			int nIndex = v2.sym_data.intValue;
-			char nResult = (nIndex < 0 && nIndex >= nLen) ? 0 : p1[nIndex];
+			if (nIndex < 0 || nIndex >= nLen) {
+				interpreter_raiseError("Index %d out of range for string %s", nIndex, p1);
+			}
+			char nResult = p1[nIndex];
 			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_CHARACTER, .sym_data.uchar = nResult });
 		}
 		return;

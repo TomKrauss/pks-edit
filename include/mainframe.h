@@ -36,7 +36,7 @@ extern int mainframe_registerWinClass();
 /*
  * Open the Mainframe window.
  */
-extern HWND mainframe_open(int nInstanceCount, HMENU hDefaultMenu);
+extern HWND mainframe_open(HMENU hDefaultMenu);
 
 /*
  * Add a window with the given window class to our tab control managing the edit windows.

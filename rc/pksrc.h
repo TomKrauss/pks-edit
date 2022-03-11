@@ -47,16 +47,21 @@
 #define DLG_OPT_LAYOUT                  558
 #define DLGCOMPAREFILES                 559
 #define DLG_OPEN_OPTIONS                560
+#define DLG_DEBUG                       561
 #define IDD_STRINGLIST3                 804
 #define IDC_GENERIC2                    1001
 #define IDC_CHECK_ENCRYPT               1003
 #define IDC_DOCTYPES                    1004
 #define IDC_FILE_ENCONDING              1005
+#define IDC_LOCAL_VARS                  1005
 #define IDC_CUSTOM1                     1006
 #define IDD_PREVIEW_FRAME               1006
 #define IDC_STRING1                     1007
+#define IDC_METHOD_STACK                1008
 #define IDC_PROGRESS                    1009
+#define IDC_GLOBAL_VARS                 1009
 #define IDD_BACK_PAGE                   1010
+#define IDC_CODE                        1010
 #define IDD_NEXT_PAGE                   1011
 #define IDD_FIRST_PAGE                  1012
 #define IDD_LAST_PAGE                   1013
@@ -67,6 +72,7 @@
 #define IDS_COMMAND253                  2301
 #define IDS_COMMAND254                  2302
 #define IDC_STATIC                      -1
+#define IDS_ERROR_MESSAGE               3000
 
 // Next default values for new objects
 // 

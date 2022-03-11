@@ -161,6 +161,15 @@ extern int 		print_saveMouseBindingsAndDisplay(void);
 extern int 		print_saveKeyBindingsAndDisplay(void);
 extern int 		print_saveMenuBindingsAndDisplay(void);
 
+/*
+ * Decompile a macro with the given mode and return the result of the decompilation
+ * in an array list. The array list must be destroyed by the caller using arraylist_destroyStringList.
+ * The decompilation with also return the line number containing the instruction pointer passed.
+ */
+#ifdef ARRAYLIST_H
+ARRAY_LIST* deccompile_macroNamed(const char* pszName, DECOMPILATION_MODE nMode, const char* pszInstructionPointer, int* pNLine);
+#endif
+
 /*------------------------------------------------------------
  * macro_autosaveAllBindings()
  * Save all changed macro bindings and new macros to the corresponding file.

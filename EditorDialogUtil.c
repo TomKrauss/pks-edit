@@ -164,7 +164,6 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPP
 	DLGTEMPLATE* pTemplate = (DLGTEMPLATE*)LoadResource(ui_getResourceModule(), hRes);
 	ret = DialogBoxIndirect(0, pTemplate, hwndMain, DlgProc);
 
-	//ret = DialogBox(ui_getResourceModule(), MAKEINTRESOURCE(nIdDialog), hwndMain, DlgProc);
 	if (ret == -1) {
 		log_lastWindowsError("DoDialog");
 	}
@@ -599,6 +598,9 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 	int  	item,*ip;
 	BOOL	buttonChecked;
 
+	if (!dp) {
+		return idCtrl == IDCANCEL;
+	}
 	while((item = dp->dp_item) != 0) {
 		ip = (int*)dp->dp_data;
 		switch(item) {
@@ -934,7 +936,6 @@ INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 		SetBkColor(hdc, pTheme->th_dialogBackground);
 		return (INT_PTR)theme_getDialogBackgroundBrush();
 	}
-
 	case WM_INITDIALOG:
 		theme_enableDarkMode(hDlg);
 		theme_prepareChildrenForDarkmode(hDlg);

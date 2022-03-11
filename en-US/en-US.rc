@@ -31,12 +31,12 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE
+2 TEXTINCLUDE 
 BEGIN
     "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
@@ -48,7 +48,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -898,6 +898,22 @@ BEGIN
     COMBOBOX        IDD_ICONLIST,168,73,54,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
+DLG_DEBUG DIALOGEX 13, 39, 525, 298
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "PKS-MacroC Debugger"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    CONTROL         "",IDC_GLOBAL_VARS,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,321,191,196,106
+    LTEXT           "Global Variables",-1,325,178,60,8
+    DEFPUSHBUTTON   "&Cancel",1,464,12,44,14,WS_GROUP
+    CONTROL         "",IDC_LOCAL_VARS,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,124,191,196,106
+    LTEXT           "Local Variables",-1,125,179,60,8
+    LISTBOX         IDC_METHOD_STACK,1,42,121,255,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Call Stack",-1,3,30,60,8
+    LISTBOX         IDC_CODE,123,42,395,133,LBS_USETABSTOPS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "The following error has occurred.....",IDS_ERROR_MESSAGE,5,4,436,19,SS_CENTERIMAGE | SS_WORDELLIPSIS
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1057,6 +1073,12 @@ BEGIN
     BEGIN
         BOTTOMMARGIN, 85
     END
+
+    DLG_DEBUG, DIALOG
+    BEGIN
+        RIGHTMARGIN, 524
+        BOTTOMMARGIN, 297
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -1202,6 +1224,11 @@ BEGIN
 END
 
 DLGFORMAT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLG_DEBUG AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1393,7 +1420,7 @@ BEGIN
     IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
     IDS_INSERT              "Insert"
     IDS_CREATE_BUFFER       "Create"
-    IDS_NO_EVALUATION_SUPPORTED
+    IDS_NO_EVALUATION_SUPPORTED 
                             "The grammar of this file does not support evaluation of code."
     IDS_EVALUATION_FAILED   "The evaluation of the currently selected text failed."
     IDS_MSGRE_UNDEFINED_BACKREF "Undefined bracket back reference"
@@ -1410,7 +1437,7 @@ BEGIN
     IDS_MSGNTIMESFOUND      "%d times found"
     IDS_WINDOWLIST          "Open window list"
     IDS_SELECTCOMPILEWINDOW "File - Selection for Compilation"
-    IDS_TT_REGULAR_EXPRESSION
+    IDS_TT_REGULAR_EXPRESSION 
                             "Regular expressions support the following special characters\r\n""."" - (matches any char)\r\n""[a-z]"" - all characters from a-z\r\n""*"" - (an arbitrary number of times)\r\n""+"" - at least once\r\n""{x,y}"" - minimum x, maximum y times"
     IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text are preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
     IDS_FILE_MODIFIED       "Modified"

@@ -105,6 +105,8 @@ typedef long long TYPED_OBJECT_POINTER;
 #define TOP_TYPE(p)						((((long long)p) >> 56) & 0x3F)
 #define MAKE_TYPED_OBJECT_POINTER(bIsPointer, sType, pPointer)	(((long long)bIsPointer<<62) | ((long long)sType << 56) | (((uintptr_t)pPointer) & POINTER_MASK))
 
+extern void decompile_printValue(char* pszBuf, PKS_VALUE v);
+
 /*
  * Pop one value of the stack of our stack machine
  */
@@ -381,6 +383,11 @@ extern PKS_VALUE memory_getNestedObject(PKS_VALUE, int nIndex);
  * Add one object to an array type object.
  */
 extern int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS_VALUE vElement);
+
+/*
+ * Open the debug window.
+ */
+extern void debugger_open(EXECUTION_CONTEXT* pContext, char* pszError);
 
 #define PKSMACROCVM_H
 #endif

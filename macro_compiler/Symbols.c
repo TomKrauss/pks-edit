@@ -238,9 +238,6 @@ int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stTyp
  */
 int inline sym_defineVariable(IDENTIFIER_CONTEXT* pContext, const char* name, PKS_VALUE vValue) {
 	vValue.pkv_managed = vValue.pkv_isPointer;
-	if (vValue.sym_type == S_ARRAY) {
-		printf("xxxx");
-	}
 	return sym_insert(pContext, name, vValue);
 }
 
@@ -263,6 +260,25 @@ void sym_traverseManagedObjects(IDENTIFIER_CONTEXT* pContext, int (*callback)(vo
 	if (pContext->ic_table) {
 		hashmap_forEachEntry(pContext->ic_table, sym_processManagedCB, callback);
 	}
+}
+
+static int sym_variableDo(intptr_t k, intptr_t v, ARRAY_LIST* pList) {
+	PKS_VALUE* pV = (PKS_VALUE*)v;
+	if (pV->sym_type >= S_BOOLEAN && pV->sym_type <= S_ARRAY) {
+		arraylist_add(pList, (void*)k);
+	}
+	return 1;
+}
+
+/*
+ * Returns an array list with all variables defined in this context. The returned array list must be freed by the caller.
+ */
+ARRAY_LIST* sym_getVariables(IDENTIFIER_CONTEXT* pContext) {
+	ARRAY_LIST*  resultList = arraylist_create(19);
+	if (pContext->ic_table) {
+		hashmap_forEachEntry(pContext->ic_table, sym_variableDo, resultList);
+	}
+	return resultList;
 }
 
 /*--------------------------------------------------------------------------

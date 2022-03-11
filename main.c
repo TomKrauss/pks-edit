@@ -76,7 +76,6 @@ static HDDEDATA	hDDEService;
 static HSZ		hszDDECommandLine;
 static HSZ		hszDDEExecuteMacro;
 static HSZ		hszDDEService;
-static int		nInstanceCount;
 
 #define	MAXCONTEXT		3
 
@@ -225,7 +224,6 @@ static void checkCommonControlLibraryVersion() {
  * InitInstance()
  */
 static BOOL InitInstance(LPSTR lpCmdLine) {
-	char				szTitle[64];
 	wchar_t				szwLocale[64];
 	char				szLocale[64];
 
@@ -245,12 +243,7 @@ static BOOL InitInstance(LPSTR lpCmdLine) {
 	init_readConfigFiles();
 	bl_restorePasteBuffers();
 	hDefaultMenu = menu_createMenubar();
-	if (nInstanceCount > 1) {
-		wsprintf(szTitle, "* PKS EDIT * (%d)", nInstanceCount);
-	} else {
-		lstrcpy(szTitle, "PKS EDIT");
-	}
-	hwndMain = mainframe_open(nInstanceCount, hDefaultMenu);
+	hwndMain = mainframe_open(hDefaultMenu);
 	 
 	DragAcceptFiles(hwndMain, TRUE);
 	while(!SetTimer(hwndMain,TIM_FRAME,TIMER_INTERVALL,NULL)) {
@@ -394,10 +387,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	}
 	if (!init_initializeVariables()) {	/* need environment for sizing the frame window... */
 		return FALSE;
-	}
-	nInstanceCount = 1;
-	if (mainframe_findExistingWindow()) {
-		nInstanceCount = 2;
 	}
 	RegisterServerDDE();
 	if (!hPrevInstance) {

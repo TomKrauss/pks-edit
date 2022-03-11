@@ -708,6 +708,18 @@ namespace pkseditTests
 			stringbuf_appendString(pBuf, (unsigned char*)"fritz");
 			Assert::AreEqual((size_t)6, stringbuf_size(pBuf));
 			stringbuf_destroy(pBuf);
+
+			pBuf;
+			pBuf = stringbuf_create(13);
+			stringbuf_setFlags(pBuf, SB_COUNT_LINE_NUMBERS);
+			stringbuf_appendChar(pBuf, '\n');
+			stringbuf_appendChar(pBuf, 'c');
+			stringbuf_appendString(pBuf, (unsigned char*)"hello\nworld\nxxx");
+			Assert::AreEqual(3, stringbuf_getLineNuber(pBuf));
+			stringbuf_appendStringLength(pBuf, (unsigned char*)"hello\nworld\nxxx", 7);
+			Assert::AreEqual(4, stringbuf_getLineNuber(pBuf));
+			stringbuf_reset(pBuf);
+			Assert::AreEqual(0, stringbuf_getLineNuber(pBuf));
 		}
 	};
 	 TEST_CLASS(hashMap) {

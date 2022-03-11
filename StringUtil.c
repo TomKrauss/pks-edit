@@ -25,6 +25,8 @@
 #include "stringutil.h"
 
 struct tagSTRING_BUF {
+	int sb_flags;				// see SB_ constants
+	int sb_lineNumber;
 	size_t	sb_capacity;
 	unsigned char* sb_string;
 	unsigned char* sb_current;
@@ -270,6 +272,14 @@ STRING_BUF* stringbuf_create(size_t nDefaultSize) {
 }
 
 /*
+ * Assigns options to the string buffer. Note, that this is only legal right
+ * after having created the string buffer.
+ */
+void stringbuf_setFlags(STRING_BUF* pBuf, int nFlags) {
+	pBuf->sb_flags = nFlags;
+}
+
+/*
  * Make sure, a string buffer may hold a number of characters. 
  */
 static void stringbuf_accomodateSpace(STRING_BUF* pBuf, size_t nAdditional) {
@@ -299,7 +309,19 @@ char stringbuf_lastChar(STRING_BUF* pBuf) {
 void stringbuf_appendChar(STRING_BUF* pBuf, unsigned char c) {
 	stringbuf_accomodateSpace(pBuf, 1);
 	*pBuf->sb_current++ = c;
+	if (c == '\n') {
+		pBuf->sb_lineNumber++;
+	}
 	*pBuf->sb_current = 0;
+}
+
+static void stringbuf_countNL(STRING_BUF* pBuf, char* pszString) {
+	char c;
+	while ((c = *pszString++) != 0) {
+		if (c == '\n') {
+			pBuf->sb_lineNumber++;
+		}
+	}
 }
 
 /*
@@ -309,6 +331,9 @@ void stringbuf_appendString(STRING_BUF* pBuf, unsigned char* pszString) {
 	size_t nAdditional = strlen(pszString);
 	stringbuf_accomodateSpace(pBuf, nAdditional);
 	strcpy(pBuf->sb_current, pszString);
+	if (pBuf->sb_flags & SB_COUNT_LINE_NUMBERS) {
+		stringbuf_countNL(pBuf, pszString);
+	}
 	pBuf->sb_current += nAdditional;
 }
 
@@ -318,6 +343,15 @@ void stringbuf_appendString(STRING_BUF* pBuf, unsigned char* pszString) {
 void stringbuf_appendStringLength(STRING_BUF* pBuf, unsigned char* pszString, size_t nAdditional) {
 	stringbuf_accomodateSpace(pBuf, nAdditional);
 	strncpy(pBuf->sb_current, pszString, nAdditional);
+	if (pBuf->sb_flags & SB_COUNT_LINE_NUMBERS) {
+		char c;
+		char* pszEnd = pszString + nAdditional;
+		while (pszString < pszEnd && (c = *pszString++) != 0) {
+			if (c == '\n') {
+				pBuf->sb_lineNumber++;
+			}
+		}
+	}
 	pBuf->sb_current[nAdditional] = 0;
 	pBuf->sb_current += nAdditional;
 }
@@ -334,6 +368,9 @@ void stringbuf_insertChar(STRING_BUF* pBuf, int nPosition, char cChar) {
 	}
 	memcpy(pBuf->sb_string + nPosition + 1, pBuf->sb_string + nPosition, (nSize - nPosition) + 1);
 	pBuf->sb_string[nPosition] = cChar;
+	if (cChar == '\n') {
+		pBuf->sb_lineNumber++;
+	}
 	pBuf->sb_current++;
 }
 
@@ -365,6 +402,7 @@ unsigned char* stringbuf_getString(STRING_BUF* pBuf) {
 void stringbuf_reset(STRING_BUF* pBuf) {
 	pBuf->sb_current = pBuf->sb_string;
 	pBuf->sb_string[0] = 0;
+	pBuf->sb_lineNumber = 0;
 }
 
 /*
@@ -376,5 +414,16 @@ void stringbuf_truncate(STRING_BUF* pBuf, size_t nNewSize) {
 	}
 	pBuf->sb_current = pBuf->sb_string + nNewSize;
 	pBuf->sb_current[0] = 0;
+	if (pBuf->sb_flags & SB_COUNT_LINE_NUMBERS) {
+		pBuf->sb_lineNumber = 0;
+		stringbuf_countNL(pBuf, pBuf->sb_string);
+	}
 }
 
+/*
+ * Returns the "current line number" 0-based in the string stored in the string buffer.
+ * This will work only if stringbuf_setFlags(... SB_COUNT_LINE_NUMBER) had been invoked.
+ */
+int stringbuf_getLineNuber(STRING_BUF* pBuf) {
+	return pBuf->sb_lineNumber;
+}

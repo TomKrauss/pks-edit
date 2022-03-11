@@ -48,6 +48,8 @@ extern int 		clp_setdata(char* pszBufferName);
 extern void 	EditDroppedFiles(HDROP hdrop);
 extern void tb_updateImageList(wchar_t* tbIcons, int nCount);
 
+static const char* _applicationName = "PKS EDIT";
+
 /*------------------------------------------------------------
  * EdCloseAll()
  */
@@ -1604,6 +1606,49 @@ static BOOL mainframe_dragSplitter(HWND hwnd, LPARAM lParam) {
 }
 
 static BOOL controlKeyChanged;
+static BOOL mainWindowIsOther;
+
+static BOOL mainframe_enumChildWindowProc(HWND hwnd, LPARAM pParam) {
+	int* pCount = (int*)pParam;
+	char winClass[64];
+	if (hwnd == hwndMain) {
+		(*pCount)++;
+	}
+	else {
+		GetClassName(hwnd, winClass, sizeof winClass);
+		if (strcmp(winClass, szFrameClass) == 0) {
+			char winTitle[64];
+			GetWindowText(hwnd, winTitle, sizeof winTitle);
+			if (strcmp(_applicationName, winTitle) == 0) {
+				mainWindowIsOther = TRUE;
+			}
+			(*pCount)++;
+		}
+	}
+	return TRUE;
+}
+
+/*
+ * Checks, whether there is an active PKS edit window already somewhere on the screen (maybe other process).
+ */
+static int mainframe_countCompanions() {
+	int mainFrameCount = 0;
+	EnumChildWindows(0, mainframe_enumChildWindowProc, (LPARAM) & mainFrameCount);
+	return mainFrameCount;
+}
+
+static void mainframe_updateTitle() {
+	char szTitle[120];
+	mainWindowIsOther = FALSE;
+	int nCount = mainframe_countCompanions();
+	if (nCount > 1 && mainWindowIsOther) {
+		wsprintf(szTitle, "* %s * (%d)", _applicationName, nCount);
+	}
+	else {
+		lstrcpy(szTitle, _applicationName);
+	}
+	SetWindowText(hwndMain, szTitle);
+}
 
 /*
  * Window procedure of the main frame window.
@@ -1628,6 +1673,9 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 
 	case WM_ACTIVATEAPP:
 		appActivated = (BOOL)wParam;
+		if (appActivated) {
+			mainframe_updateTitle();
+		}
 		break;
 	case WM_CREATE:
 		hwndFrameWindow = hwnd;
@@ -1905,18 +1953,11 @@ int mainframe_registerWinClass() {
 /*
  * Open the Mainframe window. 
  */
-HWND mainframe_open(int nInstanceCount, HMENU hDefaultMenu) {
-	char szTitle[1200];
+HWND mainframe_open(HMENU hDefaultMenu) {
 	DWORD dwStyle;
 
-	if (nInstanceCount > 1) {
-		wsprintf(szTitle, "* PKS EDIT * (%d)", nInstanceCount);
-	}
-	else {
-		lstrcpy(szTitle, "PKS EDIT");
-	}
 	dwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
-	hwndFrameWindow = CreateWindow(szFrameClass, szTitle, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT,
+	hwndFrameWindow = CreateWindow(szFrameClass, _applicationName, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT,
 		CW_USEDEFAULT, CW_USEDEFAULT, 0, hDefaultMenu, hInst, 0);
 
 	if (!hwndFrameWindow) {
@@ -1924,13 +1965,6 @@ HWND mainframe_open(int nInstanceCount, HMENU hDefaultMenu) {
 	}
 	theme_enableDarkMode(hwndFrameWindow);
 	return hwndFrameWindow;
-}
-
-/*
- * Checks, whether there is an active PKS edit window already somewhere on the screen (maybe other process).
- */
-BOOL mainframe_findExistingWindow() {
-	return FindWindow(szFrameClass, 0) != 0;
 }
 
 /*------------------------------------------------------------

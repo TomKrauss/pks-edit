@@ -57,6 +57,13 @@ extern int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYP
  */
 extern void sym_traverseManagedObjects(IDENTIFIER_CONTEXT* pContext, int (*callback)(void* pObject));
 
+/*
+ * Returns an array list with all variables defined in this context. The returned array list must be freed by the caller.
+ */
+#ifdef ARRAYLIST_H
+extern ARRAY_LIST* sym_getVariables(IDENTIFIER_CONTEXT* pContext);
+#endif 
+
 /*--------------------------------------------------------------------------
  * Determines the identifier context of a symbol.
  */

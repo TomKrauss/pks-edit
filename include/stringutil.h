@@ -196,6 +196,19 @@ extern void stringbuf_appendString(STRING_BUF* pBuf, unsigned char * pszString);
 extern void stringbuf_appendStringLength(STRING_BUF* pBuf, unsigned char* pszString, size_t nAdditional);
 
 /*
+ * Assigns options to the string buffer. Note, that this is only legal right
+ * after having created the string buffer.
+ */
+#define SB_COUNT_LINE_NUMBERS 0x1
+extern void stringbuf_setFlags(STRING_BUF* pBuf, int nFlags);
+
+/*
+ * Returns the "current line number" 0-based in the string stored in the string buffer.
+ * This will work only if stringbuf_setFlags(... SB_COUNT_LINE_NUMBER) had been invoked.
+ */
+extern int stringbuf_getLineNuber(STRING_BUF* pBuf);
+
+/*
  * Returns the number of characters in the string buffer.
  */
 extern size_t stringbuf_size(STRING_BUF* pBuf);

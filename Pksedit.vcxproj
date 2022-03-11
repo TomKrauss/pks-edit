@@ -317,6 +317,7 @@
     <ClCompile Include="DpiSupport.c" />
     <ClCompile Include="MacroMemory.c" />
     <ClCompile Include="MacroRecorder.c" />
+    <ClCompile Include="MacroDebugger.c" />
     <ClCompile Include="MarkdownRenderer.c" />
     <ClCompile Include="JsonParser.c" />
     <ClCompile Include="Levensthein.c" />

@@ -80,28 +80,14 @@ static COM_FORM* _currentFormInstruction;
 void interpreter_raiseError(const char* pFormat, ...) {
 	char szBuffer[256];
 	char szMessage[512];
-	char szTrace[512];
 	va_list ap;
 
 	va_start(ap, pFormat);
 	vsprintf(szBuffer, pFormat, ap);
 	va_end(ap);
-	char* p = szTrace;
-	*p = 0;
-	EXECUTION_CONTEXT* pContext = _currentExecutionContext;
-	while (pContext && p < &szTrace[450]) {
-		strcpy(p, pContext->ec_currentFunction);
-		p += strlen(p);
-		if (pContext->ec_parent) {
-			*p++ = '\n';
-			pContext = pContext->ec_parent;
-		}
-		else {
-			break;
-		}
-	}
-	sprintf(szMessage, "Exception occurred executing %s\n%s", szTrace, szBuffer);
-	error_displayAlertDialog(szMessage);
+	sprintf(szMessage, "%s during execution of %s", szBuffer, _currentExecutionContext->ec_currentFunction);
+	debugger_open(_currentExecutionContext, szMessage);
+	//error_displayAlertDialog(szMessage);
 	longjmp(_currentJumpBuffer, 1);
 }
 

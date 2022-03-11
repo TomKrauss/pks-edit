@@ -188,19 +188,26 @@
 #define IDM_REDO                        213
 #define DLGFINDINFILES                  535
 #define DLG_OPEN_OPTIONS                560
+#define DLG_DEBUG                       561
 #define IDD_ICONLIST2                   801
 #define IDD_STRINGLIST3                 804
 #define IDC_CUSTOM2                     1002
 #define IDC_CHECK_ENCRYPT               1003
 #define IDC_DOCTYPES                    1004
 #define IDC_FILE_ENCONDING              1005
+#define IDC_LOCAL_VARS                  1005
 #define IDD_ICO                         1006
+#define IDC_METHOD_STACK                1008
+#define IDC_GLOBAL_VARS                 1009
+#define IDC_EDIT1                       1010
+#define IDC_CODE                        1010
 #define IDS_COMMAND251                  2299
 #define IDS_COMMAND252                  2300
 #define IDS_COMMAND253                  2301
 #define IDS_COMMAND254                  2302
 #define ID_FILE_HISTORY                 40008
 #define IDC_STATIC                      -1
+#define IDS_ERROR_MESSAGE               3000
 
 // Next default values for new objects
 // 
@@ -208,7 +215,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        200
 #define _APS_NEXT_COMMAND_VALUE         40010
-#define _APS_NEXT_CONTROL_VALUE         1008
+#define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

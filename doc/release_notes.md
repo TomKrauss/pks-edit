@@ -40,7 +40,8 @@ commands which show an explanation about the command.
 - Internally objects allocated by the MacroC VM are dynamically garbagge collected. No memory leaks any more like before, when executing
   macroC code.
 - Error diagnostics and error handling in PKSMacroC has been improved (there is still room for improvement). Errors in macroc code
-  will now always stop execution and print the name of the macro in which the error occurred.
+  will now always stop execution and open a simple debugger allowing to inspect the stack frame and the variables of each function
+  executed. Step, Run and Continue is not yet implemented in the debugger.
 - One can open, print to and clear a console from macroC code for logging or debugging purpose.
 
 ### Changed
