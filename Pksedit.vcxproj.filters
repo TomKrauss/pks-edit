@@ -324,6 +324,9 @@
     <ClCompile Include="MacroDebugger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="macro_compiler\MacroTypes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">

@@ -35,6 +35,7 @@ typedef union yytype {
 	struct {
 		char* s;
 		int	stringIsAlloced;
+		int type;
 	} ident;
 	void	*funcp;
 	unsigned char type;

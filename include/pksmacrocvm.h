@@ -60,13 +60,15 @@ typedef union uGENERIC_DATA {
 
 // Must match the corresponding symbol types in symbols.h
 typedef enum {
+	VT_NIL = 0,
 	VT_BOOLEAN = 1,
 	VT_NUMBER = 2,
 	VT_STRING = 3,
 	VT_FLOAT = 4,
 	VT_CHAR = 5,
 	VT_RANGE = 6,
-	VT_OBJECT_ARRAY = 7
+	VT_OBJECT_ARRAY = 7,
+	VT_AUTO = 8
 } PKS_VALUE_TYPE;
 
 typedef struct tagPKS_VALUE {
@@ -75,6 +77,31 @@ typedef struct tagPKS_VALUE {
 	PKS_VALUE_TYPE	sym_type : 6;					// one of the "basic types" defined by PKS_VALUE_TYPE
 	GENERIC_DATA	sym_data;						// the data of this value.
 } PKS_VALUE;
+
+typedef struct tagTYPE_CALLBACKS {
+	int	(*tc_iteratorStart)(PKS_VALUE* pValue);		// Callback method to start an iterator type 
+	int	(*tc_iteratorNext)(PKS_VALUE* pValue);		// Callback method to advance an iterator
+	int	(*tc_close)(PKS_VALUE* pValue);				// Callback method to close an internal resource associated with a value
+} TYPE_CALLBACKS;
+
+typedef struct tagTYPE_PROPERTY_DESCRIPTOR {
+	PKS_VALUE_TYPE	tpd_type;
+	const char*		tpd_name;
+} TYPE_PROPERTY_DESCRIPTOR;
+
+typedef struct tagPKS_TYPE_DESCRIPTOR {
+	PKS_VALUE_TYPE	ptd_type;						// the index used internally in macros for this type
+	const char*		ptd_name;						// the printed named of this type
+	int				ptd_isValueType : 1;			// whether this is an immutable value type (number, float boolean etc...)
+	int				ptd_hasDynamicSize : 1;			// whether objects of this type may change in size (arrays for instance).
+	int				ptd_objectSize;					// the size of a non-value type object - typically identifcal to ptd_numberOfProperties, but for some
+													// native types additional "internal pointers" are maintained not accessible as properties.
+	int				ptd_numberOfProperties;			// the number of properties described by a property descriptor
+	TYPE_PROPERTY_DESCRIPTOR *ptd_properties;
+	TYPE_CALLBACKS	ptd_callbacks;
+} PKS_TYPE_DESCRIPTOR;
+
+#define IS_NIL(v)			v.sym_type == VT_NIL
 
 typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 
@@ -106,6 +133,11 @@ typedef long long TYPED_OBJECT_POINTER;
 #define MAKE_TYPED_OBJECT_POINTER(bIsPointer, sType, pPointer)	(((long long)bIsPointer<<62) | ((long long)sType << 56) | (((uintptr_t)pPointer) & POINTER_MASK))
 
 extern void decompile_printValue(char* pszBuf, PKS_VALUE v);
+
+/*
+ * Returns the name of a given PKSMacroC value type.
+ */
+extern const char* types_nameFor(PKS_VALUE_TYPE t);
 
 /*
  * Pop one value of the stack of our stack machine

@@ -13,8 +13,6 @@
  * created: 13.03.1991
  */
 
-/* #define	DEBUG */
-
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -66,36 +64,36 @@ PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_
 	if (nValue.sym_type == tTargetType) {
 		return nValue;
 	}
-	if (tTargetType == S_FLOAT) {
-		if (nValue.sym_type == S_STRING) {
+	if (tTargetType == VT_FLOAT) {
+		if (nValue.sym_type == VT_STRING) {
 			double d;
 			sscanf(memory_accessString(nValue), "%lf", &d);
 			return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.doubleValue = d };
 		}
 		return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.doubleValue = (double)nValue.sym_data.longValue };
 	}
-	if (tTargetType == S_NUMBER) {
-		if (nValue.sym_type == S_STRING) {
+	if (tTargetType == VT_NUMBER) {
+		if (nValue.sym_type == VT_STRING) {
 			return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.longValue = number((char*)memory_accessString(nValue)) };
 		}
-		if (nValue.sym_type == S_FLOAT) {
+		if (nValue.sym_type == VT_FLOAT) {
 			return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.longValue = (long long)nValue.sym_data.doubleValue };
 		}
 		return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.longValue = nValue.sym_data.longValue };
 	}
-	if (tTargetType == S_BOOLEAN) {
+	if (tTargetType == VT_BOOLEAN) {
 		return (PKS_VALUE) { .sym_type = tTargetType, .sym_data.booleanValue = nValue.sym_data.longValue != 0 };
 	}
-	if (tTargetType == S_STRING) {
+	if (tTargetType == VT_STRING) {
 		char buf[200];
-		if (nValue.sym_type == S_FLOAT) {
+		if (nValue.sym_type == VT_FLOAT) {
 			sprintf(buf, "%.2lf", nValue.sym_data.doubleValue);
-		} else if (nValue.sym_type == S_CHARACTER) {
+		} else if (nValue.sym_type == VT_CHAR) {
 			sprintf(buf, "%c", nValue.sym_data.uchar);
 		}
-		else if (nValue.sym_type == S_BOOLEAN) {
+		else if (nValue.sym_type == VT_BOOLEAN) {
 			sprintf(buf, "%s", nValue.sym_data.booleanValue ? "true" : "false");
-		} else if (nValue.sym_type == S_ARRAY) {
+		} else if (nValue.sym_type == VT_OBJECT_ARRAY) {
 			interpreter_asString(buf, &buf[sizeof buf], nValue);
 		} else {
 			sprintf(buf, "%lld", nValue.sym_data.longValue);
@@ -152,12 +150,12 @@ int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
 		v2 = v1;
 		v1 = interpreter_popStackValue(pContext);
 	} else {
-		v1 = (PKS_VALUE){.sym_type = S_BOOLEAN, .sym_data.booleanValue = v1.sym_data.longValue != 0};
+		v1 = (PKS_VALUE){.sym_type = VT_BOOLEAN, .sym_data.booleanValue = v1.sym_data.longValue != 0};
 	}
-	if (v1.sym_type != S_STRING && !CT_IS_LOGICAL(op)) {
+	if (v1.sym_type != VT_STRING && !CT_IS_LOGICAL(op)) {
 		long long r1, r2;
-		v1 = interpreter_coerce(pContext, v1, S_NUMBER);
-		v2 = interpreter_coerce(pContext, v2, S_NUMBER);
+		v1 = interpreter_coerce(pContext, v1, VT_NUMBER);
+		v2 = interpreter_coerce(pContext, v2, VT_NUMBER);
 		r1 = v1.sym_data.longValue;
 		r2 = v2.sym_data.longValue;
 		switch(op) {
@@ -169,10 +167,10 @@ int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
 			case CT_LE: bResult = r1 <= r2; break;
 			default   : goto notimpl;
 		}
-	} else if (v1.sym_type == S_STRING) {
+	} else if (v1.sym_type == VT_STRING) {
 		int r1;
-		v1 = interpreter_coerce(pContext, v1, S_STRING);
-		v2 = interpreter_coerce(pContext, v2, S_STRING);
+		v1 = interpreter_coerce(pContext, v1, VT_STRING);
+		v2 = interpreter_coerce(pContext, v2, VT_STRING);
 		unsigned const char* s1, * s2;
 		s1 = memory_accessString(v1);
 		s2 = memory_accessString(v2);
@@ -191,11 +189,11 @@ int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
 notimpl:		interpreter_raiseError("Test: Operator 0x%x not implemented",op);
 		}
 	} else {
-		v1 = interpreter_coerce(pContext, v1, S_BOOLEAN);
+		v1 = interpreter_coerce(pContext, v1, VT_BOOLEAN);
 		BOOL bBool1 = v1.sym_data.booleanValue;
 		BOOL bBool2;
 		if (!CT_IS_UNARY(op)) {
-			v2 = interpreter_coerce(pContext, v2, S_BOOLEAN);
+			v2 = interpreter_coerce(pContext, v2, VT_BOOLEAN);
 			bBool2 = v2.sym_data.booleanValue;
 		}
 		switch (op) {
@@ -206,7 +204,7 @@ notimpl:		interpreter_raiseError("Test: Operator 0x%x not implemented",op);
 		default: goto notimpl;
 		}
 	}
-	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) {.sym_type = S_BOOLEAN, .sym_data.booleanValue = bResult});
+	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) {.sym_type = VT_BOOLEAN, .sym_data.booleanValue = bResult});
 	return 1;
 }
 
@@ -215,15 +213,15 @@ notimpl:		interpreter_raiseError("Test: Operator 0x%x not implemented",op);
  */
 static void interpreter_evaluateMultiplicationWithStrings(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, PKS_VALUE v2) {
 	char buf[1024];
-	v1 = interpreter_coerce(pContext, v1, S_NUMBER);
+	v1 = interpreter_coerce(pContext, v1, VT_NUMBER);
 	int l1 = v1.sym_data.intValue;
-	int nMult = v2.sym_type == S_CHARACTER ? 1 : (int)memory_size(v2);
+	int nMult = v2.sym_type == VT_CHAR ? 1 : (int)memory_size(v2);
 	if (l1 * nMult > sizeof(buf) - 2) {
 		interpreter_raiseError("Attempt to create a string of excessive size %d using a multiplication operator", l1 * nMult);
 	}
 	char* d = buf;
 	for (int i = 0; i < l1; i++) {
-		if (v2.sym_type == S_CHARACTER) {
+		if (v2.sym_type == VT_CHAR) {
 			*d++ = v2.sym_data.uchar;
 		}
 		else {
@@ -239,14 +237,14 @@ static void interpreter_evaluateMultiplicationWithStrings(EXECUTION_CONTEXT* pCo
  * Create a range.
  */
 static void interpreter_createRange(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, PKS_VALUE v2) {
-	int nEnd = interpreter_coerce(pContext, v2, S_NUMBER).sym_data.intValue;
-	if (v1.sym_type == S_RANGE) {
-		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_RANGE, .sym_data.range.r_start = v1.sym_data.range.r_start, 
+	int nEnd = interpreter_coerce(pContext, v2, VT_NUMBER).sym_data.intValue;
+	if (v1.sym_type == VT_RANGE) {
+		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = VT_RANGE, .sym_data.range.r_start = v1.sym_data.range.r_start, 
 			.sym_data.range.r_end = v1.sym_data.range.r_end, .sym_data.range.r_increment = nEnd });
 	}
 	else {
-		int nStart = interpreter_coerce(pContext, v1, S_NUMBER).sym_data.intValue;
-		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_RANGE, .sym_data.range.r_start = nStart, .sym_data.range.r_end = nEnd });
+		int nStart = interpreter_coerce(pContext, v1, VT_NUMBER).sym_data.intValue;
+		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = VT_RANGE, .sym_data.range.r_start = nStart, .sym_data.range.r_end = nEnd });
 	}
 }
 
@@ -258,13 +256,13 @@ static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext,
 	if (bOperation == BIN_ADD) {
 		size_t nOrig = memory_size(vSource);
 		// TODO: calculate the result size for all cases and pass here.
-		PKS_VALUE vResult = memory_createObject(pContext, S_ARRAY, (int)(nOrig+1), 0);
+		PKS_VALUE vResult = memory_createObject(pContext, VT_OBJECT_ARRAY, (int)(nOrig+1), 0);
 		for (int i = 0; i < nOrig; i++) {
 			memory_addObject(pContext, &vResult, memory_getNestedObject(vSource, i));
 		}
-		if (vIndex.sym_type == S_STRING) {
+		if (vIndex.sym_type == VT_STRING) {
 			memory_addObject(pContext, &vResult, vIndex);
-		} else if (vIndex.sym_type == S_ARRAY) {
+		} else if (vIndex.sym_type == VT_OBJECT_ARRAY) {
 			int nMax = (int)memory_size(vIndex);
 			for (int i = 0; i < nMax; i++) {
 				memory_addObject(pContext, &vResult, memory_getNestedObject(vIndex, i));
@@ -273,14 +271,14 @@ static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext,
 		interpreter_pushValueOntoStack(pContext, vResult);
 		return;
 	}
-	if (vIndex.sym_type == S_RANGE) {
+	if (vIndex.sym_type == VT_RANGE) {
 		int idxStart = vIndex.sym_data.range.r_start;
 		int idxEnd = vIndex.sym_data.range.r_end;
 		int iIncr = vIndex.sym_data.range.r_increment;
 		if (iIncr <= 0) {
 			iIncr = 1;
 		}
-		PKS_VALUE vResult = memory_createObject(pContext, S_ARRAY, (idxEnd-idxStart)/iIncr +1, 0);
+		PKS_VALUE vResult = memory_createObject(pContext, VT_OBJECT_ARRAY, (idxEnd-idxStart)/iIncr +1, 0);
 		while (idxStart <= idxEnd && idxStart < nMax) {
 			memory_addObject(pContext, &vResult, memory_getNestedObject(vSource, idxStart));
 			idxStart += iIncr;
@@ -289,7 +287,7 @@ static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext,
 		return;
 	}
 	else {
-		vIndex = interpreter_coerce(pContext, vIndex, S_NUMBER);
+		vIndex = interpreter_coerce(pContext, vIndex, VT_NUMBER);
 		int nIndex = vIndex.sym_data.intValue;
 		if (nIndex >= 0 && nIndex < nMax) {
 			interpreter_pushValueOntoStack(pContext, memory_getNestedObject(vSource, nIndex));
@@ -297,7 +295,7 @@ static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext,
 		}
 	}
 	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { 
-			.sym_type = S_NUMBER, .sym_data.intValue = 0 });
+			.sym_type = VT_NUMBER, .sym_data.intValue = 0 });
 }
 
 /*--------------------------------------------------------------------------
@@ -330,18 +328,18 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 		interpreter_createRange(pContext, v1, v2);
 		return;
 	}
-	if (op == BIN_MUL && (v2.sym_type == S_CHARACTER || v2.sym_type == S_STRING)) {
+	if (op == BIN_MUL && (v2.sym_type == VT_CHAR || v2.sym_type == VT_STRING)) {
 		interpreter_evaluateMultiplicationWithStrings(pContext, v1, v2);
 		return;
 	}
-	if (v1.sym_type == S_ARRAY && ((op == BIN_AT && (v2.sym_type == S_NUMBER || v2.sym_type == S_RANGE)) || (op == BIN_ADD))) {
+	if (v1.sym_type == VT_OBJECT_ARRAY && ((op == BIN_AT && (v2.sym_type == VT_NUMBER || v2.sym_type == VT_RANGE)) || (op == BIN_ADD))) {
 		interpreter_extractArrayElementsAndPush(pContext, op, v1, v2);
 		return;
 	}
-	if (v1.sym_type != S_STRING && v2.sym_type != S_STRING) {
-		if (v1.sym_type == S_FLOAT || v2.sym_type == S_FLOAT) {
-			v1 = interpreter_coerce(pContext, v1, S_FLOAT);
-			v2 = interpreter_coerce(pContext, v2, S_FLOAT);
+	if (v1.sym_type != VT_STRING && v2.sym_type != VT_STRING) {
+		if (v1.sym_type == VT_FLOAT || v2.sym_type == VT_FLOAT) {
+			v1 = interpreter_coerce(pContext, v1, VT_FLOAT);
+			v2 = interpreter_coerce(pContext, v2, VT_FLOAT);
 			// one operand at least is numeric - force numeric calculations
 			double d1 = v1.sym_data.doubleValue;
 			double d2 = v2.sym_data.doubleValue;
@@ -362,11 +360,11 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 				interpreter_raiseError("Binary operator: ~ OP %c not implemented for float numbers", op);
 				d1 = 0;
 			}
-			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) {.sym_type = S_FLOAT, .sym_data.doubleValue = d1});
+			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) {.sym_type = VT_FLOAT, .sym_data.doubleValue = d1});
 			return;
 		}
-		v1 = interpreter_coerce(pContext, v1, S_NUMBER);
-		v2 = interpreter_coerce(pContext, v2, S_NUMBER);
+		v1 = interpreter_coerce(pContext, v1, VT_NUMBER);
+		v2 = interpreter_coerce(pContext, v2, VT_NUMBER);
 		long long		r1;
 		long long		r2;
 		// one operand at least is numeric - force numeric calculations
@@ -401,16 +399,16 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 			interpreter_raiseError("Binary operator: ~ OP %c not implemented",op);
 			r1 = 0;
 		}
-		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_NUMBER, .sym_data.longValue = r1 });
+		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = VT_NUMBER, .sym_data.longValue = r1 });
 		return;
 	}
 	unsigned const char* p1;
 	unsigned const char* p2;
-	v1 = interpreter_coerce(pContext, v1, S_STRING);
+	v1 = interpreter_coerce(pContext, v1, VT_STRING);
 	p1 = memory_accessString(v1);
 	if (op == BIN_AT) {
 		size_t nLen = strlen(p1);
-		if (v2.sym_type == S_RANGE) {
+		if (v2.sym_type == VT_RANGE) {
 			int n1 = v2.sym_data.range.r_start;
 			int n2 = v2.sym_data.range.r_end;
 			if (n1 < 0 || n1 > n2 || n2 > nLen) {
@@ -421,17 +419,17 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 			buf[nLen] = 0;
 			interpreter_pushValueOntoStack(pContext, interpreter_allocateString(pContext, buf));
 		} else {
-			v2 = interpreter_coerce(pContext, v2, S_NUMBER);
+			v2 = interpreter_coerce(pContext, v2, VT_NUMBER);
 			int nIndex = v2.sym_data.intValue;
 			if (nIndex < 0 || nIndex >= nLen) {
 				interpreter_raiseError("Index %d out of range for string %s", nIndex, p1);
 			}
 			char nResult = p1[nIndex];
-			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = S_CHARACTER, .sym_data.uchar = nResult });
+			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = VT_CHAR, .sym_data.uchar = nResult });
 		}
 		return;
 	}
-	v2 = interpreter_coerce(pContext, v2, S_STRING);
+	v2 = interpreter_coerce(pContext, v2, VT_STRING);
 	p2 = memory_accessString(v2);
 	*buf = 0;
 	switch(op) {

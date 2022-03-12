@@ -1,7 +1,9 @@
 /*
  * symbols.h
  *
- * Handling identifiers and symbols in PKSMacroC
+ * Support symbols in PKSMacroC. Symbols allow the "scoped" lookup of a names associated value. 
+ * They are used during compilation to lookup keywords, native method names, variable names by scope etc...
+ * They are used during runtime to store variables in a context (global / method local).
  *
  * PROJECT: PKSEDIT/Command Editor
  *
@@ -15,42 +17,50 @@
 # ifndef SYMBOLS_H
 
 typedef enum {
-	S_BOOLEAN = 1,
-	S_NUMBER = 2,
-	S_STRING = 3,
-	S_FLOAT = 4,
-	S_CHARACTER = 5,
-	S_RANGE = 6,
-	S_ARRAY = 7,
-	S_AUTO = 8,
 	S_KEYWORD = 9,
 	S_EDFUNC = 10,
-	S_TYPE = 11,
+	S_TYPE_IDENTIFIER = 11,
 	S_ENUM = 12,
-	S_CONSTNUM = 13,
-	S_CONSTSTRING = 14,
-	S_CONSTCHARACTER = 15,
-	S_CONSTFLOAT = 16
+	S_CONSTANT = 13,
+	S_VARIABLE = 14,
+	S_RUNTIME_VALUE = 15
 } SYMBOL_TYPE;
 
-#define	TYPEOF(s)			((s).sym_type)
-#define	VALUE(s)			((s).sym_data).val
-#define	CLEARSYM(s)			{(s).sym_data.val = 0, (s).sym_type = 0;}
-#define	SETTYPE(s,type)		((s).sym_type = type)
-#define	NULLSYM(s)			(TYPEOF(s) == 0 && VALUE(s) == 0)
+typedef struct tagSYMBOL {
+	SYMBOL_TYPE				s_type;					// the symbol-type - for runtime variables this is S_RUNTIME_VALUE
+	union {
+		struct {
+			int				s_managed : 1;			// 0 in the context of the compilation - not managed by object memory
+			int				s_pointer : 1;			// pointer type symbols to be dynamically allocated and freed have this flag set
+			PKS_VALUE_TYPE	s_valueType : 8;		// the value type for variables and constants otherwise 0
+			GENERIC_DATA	s_data;					// the data.
+		} symbol;
+		PKS_VALUE value;
+	} s;
+} SYMBOL;
+
+#define	TYPEOF(xyz)			((xyz).s_type)
+#define VALUE_TYPE(xyz)		((xyz).s.symbol.s_valueType)
+#define	VALUE(xyz)			((xyz).s.symbol.s_data).val
+#define	CLEARSYM(xyz)		{(xyz).s.data.val = 0, (xyz).s_type = 0;}
+#define	SETTYPE(xyz,type)	((xyz).s_type = type)
+#define	NULLSYM(xyz)		(TYPEOF(xyz) == 0 && VALUE(xyz) == 0)
 
 #define	HSIZE		37
 
 typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 
-extern PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, const char *key, char **key_ret);
+/*
+ * Lookup a symbol - used in the context of PKSMacroC complation
+ */
+extern SYMBOL sym_find(IDENTIFIER_CONTEXT* pContext, const char *key, char **key_ret);
 
 /*
  * Create a symbol primarily to be used in the context of the macroc parser to define
  * keywords, variables, enum values etc... All objects created requiring memory (e.g. strings etc)
  * are copied internally.
  */
-extern int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, GENERIC_DATA value);
+extern int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, PKS_VALUE_TYPE stValueType, GENERIC_DATA value);
 
 /*
  * Execute a callback for all values in the passed context "managed" by the PKS Object memory.
@@ -72,7 +82,7 @@ extern IDENTIFIER_CONTEXT* sym_getContext(IDENTIFIER_CONTEXT* pContext, const ch
 /*
  * Defines a variable reference to a value managed in the scope of the PKSMacroC object memory
  * management. It is assumed, that the corresponding data is "managed" outside the scope of the
- * symbol table.
+ * symbol table. This API is used during runtime of a PKSMacroC macro.
  */
 extern int sym_defineVariable(IDENTIFIER_CONTEXT* pContext, const char* name, PKS_VALUE vValue);
 
@@ -109,6 +119,11 @@ extern IDENTIFIER_CONTEXT* sym_popContext(IDENTIFIER_CONTEXT* pContext);
  * Returns the value associated with a symbol.
  */
 extern PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char* symbolname);
+
+/*
+ * Can be used to define whether a variable in the given context is defined.
+ */
+extern BOOL sym_existsVariable(IDENTIFIER_CONTEXT* pContext, char* symbolname);
 
 #define	SYMBOLS_H
 # endif

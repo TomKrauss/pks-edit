@@ -29,7 +29,7 @@
 
 extern long 	number(char *s);
 
-static PKS_VALUE	nullSymbol;
+static SYMBOL	nullSymbol;
 
 typedef enum {	FIND,ENTER,DESTROY} ACTION;
 
@@ -42,6 +42,7 @@ static IDENTIFIER_CONTEXT _keywordContext;
 static IDENTIFIER_CONTEXT _globalContext;
 
 extern void memory_destroy();
+extern void types_destroy();
 
 /*
  * Returns the global identifier context.
@@ -63,15 +64,15 @@ IDENTIFIER_CONTEXT* sym_getGlobalContext() {
  * Destroy a symbol registered in a symbol table.
  */
 static int sym_destroyEntry(intptr_t tKey, intptr_t tValue) {
-	PKS_VALUE* sym = (PKS_VALUE*)tValue;
-	SYMBOL_TYPE stType = sym->sym_type;
+	SYMBOL* sym = (SYMBOL*)tValue;
 	char* pszKey = (char*)tKey;
-	if (sym->pkv_isPointer && !sym->pkv_managed) {
-		if (stType == S_STRING || stType == S_CONSTSTRING) {
-			free(sym->sym_data.string);
+	if (sym->s_type != S_RUNTIME_VALUE && sym->s_type != S_TYPE_IDENTIFIER) {
+		PKS_VALUE_TYPE vt = sym->s.symbol.s_valueType;
+		if (vt == VT_STRING) {
+			free(sym->s.symbol.s_data.string);
 		}
-		else if (stType == S_ARRAY) {
-			arraylist_destroyStringList(sym->sym_data.stringList);
+		else if (vt == VT_OBJECT_ARRAY) {
+			arraylist_destroyStringList(sym->s.symbol.s_data.stringList);
 		}
 	}
 	free(sym);
@@ -88,6 +89,7 @@ void sym_destroyTable() {
 	hashmap_destroy(_globalContext.ic_table, sym_destroyEntry);
 	_globalContext.ic_table = NULL;
 	memory_destroy();
+	types_destroy();
 }
 
 /*
@@ -169,21 +171,21 @@ IDENTIFIER_CONTEXT* sym_getContext(IDENTIFIER_CONTEXT* pContext, const char* key
 /*--------------------------------------------------------------------------
  * sym_find()
  */
-PKS_VALUE sym_find(IDENTIFIER_CONTEXT* pContext, const char *key,char **key_ret) {
+SYMBOL sym_find(IDENTIFIER_CONTEXT* pContext, const char *key,char **key_ret) {
 	HASH_ENTRY entry;
 	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry, TRUE);
 	if (!pFound) {
 		return nullSymbol;
 	}
 	*key_ret = (char*)entry.he_key;
-	PKS_VALUE* sym = (PKS_VALUE*)entry.he_value;
+	SYMBOL* sym = (SYMBOL*)entry.he_value;
 	return *sym;
 }
 
 /*--------------------------------------------------------------------------
  * sym_insert()
  */
-static int sym_insert(IDENTIFIER_CONTEXT* pContext, const char *key, PKS_VALUE vValue) {
+static int sym_insert(IDENTIFIER_CONTEXT* pContext, const char *key, SYMBOL vValue) {
 	HASH_ENTRY entry;
 	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry, FALSE);
 	if (pFound) {
@@ -198,7 +200,7 @@ static int sym_insert(IDENTIFIER_CONTEXT* pContext, const char *key, PKS_VALUE v
 			sym_create(pContext);
 		}
 	}
-	PKS_VALUE* sym = calloc(1, sizeof * sym);
+	SYMBOL* sym = calloc(1, sizeof * sym);
 	*sym = vValue;
 	hashmap_put(pFound->ic_table, (intptr_t)key, (intptr_t)sym);
 	return 1;	
@@ -208,25 +210,29 @@ static int sym_insert(IDENTIFIER_CONTEXT* pContext, const char *key, PKS_VALUE v
 /*--------------------------------------------------------------------------
  * sym_createSymbol()
  */
-int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, GENERIC_DATA value) {
-	PKS_VALUE v = {.sym_type = stType};
-	if (stType == S_STRING || stType == S_CONSTSTRING) {
-		if ((v.sym_data.string = _strdup(value.string)) == 0) {
-			return 0;
-		}
-		v.pkv_isPointer = TRUE;
-	} else if (stType == S_ARRAY) {
-		if (value.stringList) {
-			void* pClone = arraylist_cloneStringList(value.stringList);
-			if (!pClone) {
+int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, PKS_VALUE_TYPE stValueType, GENERIC_DATA value) {
+	SYMBOL v = { .s_type = stType, .s.symbol.s_valueType = stValueType};
+	if (stType != S_TYPE_IDENTIFIER) {
+		if (stValueType == VT_STRING) {
+			if ((v.s.symbol.s_data.string = _strdup(value.string)) == 0) {
 				return 0;
 			}
-			v.sym_data.stringList = pClone;
+			v.s.symbol.s_pointer = TRUE;
 		}
-		v.pkv_isPointer = TRUE;
-	} else {
-		v.sym_data.val = value.val;
-		v.pkv_isPointer = FALSE;
+		else if (stType == VT_OBJECT_ARRAY) {
+			if (value.stringList) {
+				void* pClone = arraylist_cloneStringList(value.stringList);
+				if (!pClone) {
+					return 0;
+				}
+				v.s.symbol.s_data.stringList = pClone;
+			}
+			v.s.symbol.s_pointer = TRUE;
+		}
+		else {
+			v.s.symbol.s_data.val = value.val;
+			v.s.symbol.s_pointer = FALSE;
+		}
 	}
 	return sym_insert(pContext, name, v);
 }
@@ -238,16 +244,16 @@ int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stTyp
  */
 int inline sym_defineVariable(IDENTIFIER_CONTEXT* pContext, const char* name, PKS_VALUE vValue) {
 	vValue.pkv_managed = vValue.pkv_isPointer;
-	return sym_insert(pContext, name, vValue);
+	return sym_insert(pContext, name, (SYMBOL) { .s_type = S_RUNTIME_VALUE, .s.value = vValue });
 }
 
 /*
  * Invoked for every entry in the symbol space and executes a callback for all "managed objects".
  */
 static int sym_processManagedCB(intptr_t k, intptr_t v, int (*callback)(void* pObject)) {
-	PKS_VALUE* pVal = (PKS_VALUE*)v;
-	if (pVal->pkv_managed && pVal->pkv_isPointer) {
-		return callback(pVal->sym_data.objectPointer);
+	SYMBOL* pVal = (SYMBOL*)v;
+	if (pVal->s_type == S_RUNTIME_VALUE &&  pVal->s.value.pkv_managed && pVal->s.value.pkv_isPointer) {
+		return callback(pVal->s.value.sym_data.objectPointer);
 	}
 	return 1;
 }
@@ -263,8 +269,8 @@ void sym_traverseManagedObjects(IDENTIFIER_CONTEXT* pContext, int (*callback)(vo
 }
 
 static int sym_variableDo(intptr_t k, intptr_t v, ARRAY_LIST* pList) {
-	PKS_VALUE* pV = (PKS_VALUE*)v;
-	if (pV->sym_type >= S_BOOLEAN && pV->sym_type <= S_ARRAY) {
+	SYMBOL* pV = (SYMBOL*)v;
+	if (pV->s_type == S_RUNTIME_VALUE) {
 		arraylist_add(pList, (void*)k);
 	}
 	return 1;
@@ -281,28 +287,34 @@ ARRAY_LIST* sym_getVariables(IDENTIFIER_CONTEXT* pContext) {
 	return resultList;
 }
 
+/*
+ * Can be used to define whether a variable in the given context is defined. 
+ */
+BOOL sym_existsVariable(IDENTIFIER_CONTEXT* pContext, char* symbolname) {
+	HASH_ENTRY entry;
+	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, symbolname, &entry, FALSE);
+	return pFound != 0;
+}
+
 /*--------------------------------------------------------------------------
  * sym_getVariable()
  * Returns the value associated with a symbol.
  */
 PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
-	PKS_VALUE 	sym;
-	char* tmp;
 
 	HASH_ENTRY entry;
 	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, symbolname, &entry, FALSE);
 	if (!pFound) {
 		interpreter_raiseError("undefined symbol %s", symbolname);
 	}
-	tmp = (char*)entry.he_key;
-	sym = *(PKS_VALUE*)entry.he_value;
-	SYMBOL_TYPE sType = TYPEOF(sym);
-	if (sType < S_BOOLEAN || sType > S_ARRAY) {
+	char* tmp = (char*)entry.he_key;
+	SYMBOL 	sym = *(SYMBOL*)entry.he_value;
+	SYMBOL_TYPE sType = sym.s_type;
+	if (sType != S_RUNTIME_VALUE) {
 		interpreter_raiseError("bad symbol '%s' (type==%d)",symbolname,sType);
-		return nullSymbol;
+		return nullSymbol.s.value;
 	}
-
-	return sym;
+	return sym.s.value;
 }
 
 

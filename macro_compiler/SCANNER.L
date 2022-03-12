@@ -77,6 +77,7 @@ extern FILE		*file_createTempFile(char *fnd, char *fn);
 extern int 		function_initializeFunctionsAndTypes(void);
 extern long 	function_enumValueFor(void *enp);
 extern int		_macrosWereChanged;
+extern void		types_registerDefaultTypes();
 
 #if defined(STAND_ALONE)
 static FILE *_lexFp;
@@ -89,7 +90,6 @@ static struct kw {
 	int			toknum;
 	char *	name;
 } keywords[] = {
-	T_TAUTO,	"auto",
 	T_VOID,		"void",
 	T_CONST,	"const",
 	T_IF,		"if",
@@ -103,18 +103,11 @@ static struct kw {
 	T_LOCAL,	"local",
 	T_GOTO,		"goto",
 	T_BRAEQ,	"braeq",
-	T_RANGE,	"range",
-	T_TCHAR,	"char",
-	T_TINT,		"int",
-	T_TLONG,	"long",
-	T_TFLOAT,	"float",
-	T_TBOOLEAN,	"boolean",
 	T_NAMESPACE, "namespace",
 	T_FOR,		"for",
 	T_STATIC,	"static",
 	T_TRUE,		"true",
 	T_FALSE,	"false",
-	T_TSTRING,	"string",
 	-1,			0
 };
 
@@ -122,7 +115,7 @@ static int init_keywords(void)
 {	struct kw *kp = keywords;
 
 	while(kp->name) {
-		if (!sym_createSymbol(sym_getKeywordContext(), kp->name,S_KEYWORD,(GENERIC_DATA){.intValue = kp->toknum}))
+		if (!sym_createSymbol(sym_getKeywordContext(), kp->name,S_KEYWORD,0,(GENERIC_DATA){.intValue = kp->toknum}))
 			return 0;
 		kp++;
 	}
@@ -245,6 +238,7 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe)
 		    !function_initializeFunctionsAndTypes()) {
 			return 0;
 		}
+		types_registerDefaultTypes();
 		tables_inited = 1;
 	}
 	yyerrflg = 0;
@@ -555,21 +549,26 @@ WS		[ \t]
 \r 			{	;	}	/* skip comments and white space */
 \+\+		{	return T_PLUSPLUS; }
 \-\-		{	return T_MINUSMINUS; }
-{CHN}+		{	PKS_VALUE 	sym;
+{CHN}+		{	SYMBOL 	sym;
 				char *	key;
 
 				sym = sym_find(_currentIdentifierContext, yytext,&key);
 				if (key == 0) {
 					key = yytext;
 				}
-				if (VALUE(sym) == 0 && TYPEOF(sym) == 0) {
+				if (NULLSYM(sym)) {
 retIdent:			yylval.ident.s = yystralloc(yytext);
 					yylval.ident.stringIsAlloced = 1;
 					return T_IDENT;
 				}
 
 				if (TYPEOF(sym) == S_KEYWORD) {
-					return sym.sym_data.intValue;
+					return sym.s.symbol.s_data.intValue;
+				}
+
+				if (TYPEOF(sym) == S_TYPE_IDENTIFIER) {
+					yylval.type = VALUE_TYPE(sym);
+					return T_TYPE_IDENTIFIER;
 				}
 
 				if (TYPEOF(sym) == S_EDFUNC) {
@@ -582,76 +581,34 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					return T_NUM;
 				}
 				
-				if (TYPEOF(sym) == S_CONSTNUM) {
+				if (TYPEOF(sym) == S_CONSTANT) {
 					if (_bDefiningConst) {
 						goto retIdent;
 					}
-					yylval.num = sym.sym_data.longValue;
-					return T_NUM;
+					switch (VALUE_TYPE(sym)) {
+					case VT_NUMBER: 
+						yylval.num = sym.s.symbol.s_data.longValue;
+						return T_NUM;
+					case VT_FLOAT:
+						yylval.v.data.doubleValue = sym.s.symbol.s_data.doubleValue;
+						return T_FLOATING_POINT_NUMBER;
+					case VT_CHAR:
+						yylval.num = sym.s.symbol.s_data.uchar;
+						return T_CHARACTER;
+					case VT_STRING:
+						yylval.ident.stringIsAlloced = 1;
+						yylval.ident.s = yystralloc((char *)VALUE(sym));
+						return T_STRING;
+					default: yyerror("Unsupported constant type %d", VALUE_TYPE(sym));
+					}
 				}
 	
-				if (TYPEOF(sym) == S_CONSTFLOAT) {
-					if (_bDefiningConst) {
-						goto retIdent;
-					}
-					yylval.v.data.doubleValue = sym.sym_data.doubleValue;
-					return T_FLOATING_POINT_NUMBER;
-				}
-	
-				if (TYPEOF(sym) == S_CONSTCHARACTER) {
-					if (_bDefiningConst) {
-						goto retIdent;
-					}
-					yylval.num = sym.sym_data.uchar;
-					return T_CHARACTER;
-				}
-	
-				if (TYPEOF(sym) == S_CONSTSTRING) {
-					if (_bDefiningConst) {
-						goto retIdent;
-					}
-					yylval.ident.stringIsAlloced = 1;
-					yylval.ident.s = yystralloc((char *)VALUE(sym));
-					return T_STRING;
-				}
-
-				if (TYPEOF(sym) == S_FLOAT) {
+				if (TYPEOF(sym) == S_VARIABLE) {
 					yylval.ident.stringIsAlloced = 0;
 					yylval.ident.s = key;
-					return T_FLOATVAR;
+					yylval.ident.type = VALUE_TYPE(sym);
+					return T_VARIABLE;
 				}
-				if (TYPEOF(sym) == S_BOOLEAN) {
-					yylval.ident.stringIsAlloced = 0;
-					yylval.ident.s = key;
-					return T_BOOLEANVAR;
-				}
-				if (TYPEOF(sym) == S_CHARACTER) {
-					yylval.ident.stringIsAlloced = 0;
-					yylval.ident.s = key;
-					return T_CHARACTERVAR;
-				}
-				if (TYPEOF(sym) == S_NUMBER) {
-					yylval.ident.stringIsAlloced = 0;
-					yylval.ident.s = key;
-					return T_NUMVAR;
-				}
-				if (TYPEOF(sym) == S_RANGE) {
-					yylval.ident.stringIsAlloced = 0;
-					yylval.ident.s = key;
-					return T_RANGEVAR;
-				}
-
-				if (TYPEOF(sym) == S_STRING) {
-					yylval.ident.stringIsAlloced = 0;
-					yylval.ident.s = key;
-					return T_STRINGVAR;
-				}
-				if (TYPEOF(sym) == S_ARRAY) {
-					yylval.ident.stringIsAlloced = 0;
-					yylval.ident.s = key;
-					return T_STRINGARRAYVAR;
-				}
-
 
 				yyerror("bad symbol %s type %d",yytext,TYPEOF(sym));
 				yylval.num = 0;

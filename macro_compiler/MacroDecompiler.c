@@ -169,13 +169,13 @@ static void decompile_printParameterAsConstant(char* pTargetString, long long va
 }
 
 void decompile_printValue(char* pszBuf, PKS_VALUE v) {
-	if (v.sym_type == S_BOOLEAN) {
+	if (v.sym_type == VT_BOOLEAN) {
 		sprintf(pszBuf, "%s", v.sym_data.booleanValue ? "true" : "false");
 	}
-	else if (v.sym_type == S_FLOAT) {
+	else if (v.sym_type == VT_FLOAT) {
 		sprintf(pszBuf, "%lf", v.sym_data.doubleValue);
 	}
-	else if (v.sym_type == S_STRING) {
+	else if (v.sym_type == VT_STRING) {
 		// check size and buffer overflow
 		const char* pString = v.pkv_managed ? memory_accessString(v) : v.sym_data.string;
 		sprintf(pszBuf, "\"%.*s\"", 200, decompile_quoteString(pString));
@@ -208,12 +208,12 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 			return 1;
 		case C_PUSH_FLOAT_LITERAL:
 			decompile_printValue(pszBuf, (PKS_VALUE) {
-				.sym_type = S_FLOAT, .sym_data.doubleValue = ((COM_FLOAT1*)sp)->val
+				.sym_type = VT_FLOAT, .sym_data.doubleValue = ((COM_FLOAT1*)sp)->val
 			});
 			return 1;
 		case C_PUSH_BOOLEAN_LITERAL:
 			decompile_printValue(pszBuf, (PKS_VALUE) {
-				.sym_type = S_BOOLEAN, .sym_data.booleanValue = ((COM_CHAR1*)sp)->val
+				.sym_type = VT_BOOLEAN, .sym_data.booleanValue = ((COM_CHAR1*)sp)->val
 			});
 			return 1;
 		case C_PUSH_INTEGER_LITERAL:
@@ -224,7 +224,7 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 			break;
 		case C_PUSH_STRING_LITERAL:
 			decompile_printValue(pszBuf, (PKS_VALUE) {
-				.sym_type = S_STRING, .sym_data.string = ((COM_STRING1*)sp)->s
+				.sym_type = VT_STRING, .sym_data.string = ((COM_STRING1*)sp)->s
 			});
 			return 1;
 		case C_PUSH_VARIABLE:
@@ -246,8 +246,12 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 		char escape = 0;
 		if ((char)val == '\\') {
 			escape = '\\';
-		} else if ((char)val == '\t') {
+		}
+		else if ((char)val == '\t') {
 			escape = '\t';
+		}
+		else if ((char)val == '\'') {
+			escape = '\'';
 		}
 		else if ((char)val == '\r') {
 			escape = 'r';
@@ -369,19 +373,6 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 	return pStackCurrent;
 }
 
-/**
- * Return a type name for a symbol type.
- */
-static char* decompile_typenameFor(PKS_VALUE_TYPE nSymbolType) {
-	switch (nSymbolType) {
-	case VT_FLOAT: return "float";
-	case VT_NUMBER: return "int";
-	case VT_BOOLEAN: return "boolean";
-	case VT_CHAR: return "char";
-	default: return "string";
-	}
-}
-
 /*
  * Return a string representation of a test instruction.
  */
@@ -491,7 +482,7 @@ static DECOMPILATION_STACK_ELEMENT* decompile_printBinaryExpression(COM_BINOP *c
 		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
 		break;
 	case BIN_CAST:
-		sprintf(szBuf,"(%s) %s", decompile_typenameFor(cp->targetType), pRight);
+		sprintf(szBuf,"(%s) %s", types_nameFor(cp->targetType), pRight);
 		break;
 	}
 	pStackCurrent = decompile_popStack(pStackCurrent, pStack);
@@ -796,7 +787,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 		if (sp > data) {
 			decompile_print(pBuf, ", ");
 		}
-		decompile_print(pBuf, "%s %s", decompile_typenameFor(pSym->typ), pSym->name);
+		decompile_print(pBuf, "%s %s", types_nameFor(pSym->typ), pSym->name);
 		sp += interpreter_getParameterSize(*sp, sp + 1);
 	}
 	decompile_print(pBuf, ") {\n");
@@ -887,7 +878,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 			pStackCurrent = decompile_printBinaryExpression((COM_BINOP*)sp, pStackCurrent, pStack);
 		}
 		else if (opCode == C_DEFINE_VARIABLE) {
-			char* pszType = decompile_typenameFor(((COM_DEFINE_SYMBOL*)sp)->symtype);
+			const char* pszType = types_nameFor(((COM_DEFINE_SYMBOL*)sp)->symtype);
 			decompile_indent(pBuf, nIndent);
 			decompile_print(pBuf, "%s %s;\n", pszType, ((COM_DEFINE_SYMBOL*)sp)->name);
 		}

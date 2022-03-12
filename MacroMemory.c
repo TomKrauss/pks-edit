@@ -85,7 +85,7 @@ static int memory_markObject(void* pPointer) {
 		return 1;
 	}
 	pData->od_gcFlag = 1;
-	if (pData->od_class != S_STRING) {
+	if (pData->od_class != VT_STRING) {
 		for (int i = 0; i < pData->od_size; i++) {
 			TYPED_OBJECT_POINTER top = pData->od_data.objects[i];
 			if (TOP_IS_POINTER(top)) {
@@ -180,7 +180,7 @@ static OBJECT_DATA* memory_createObjectData(EXECUTION_CONTEXT* pContext, PKS_VAL
 	OBJECT_MEMORY* pMemory = &_objectSpace;
 	OBJECT_DATA* pData;
 	size_t nLen = 0;
-	if (sType == S_STRING) {
+	if (sType == VT_STRING) {
 		if (pInput) {
 			nLen = strlen(pInput);
 		}
@@ -190,7 +190,7 @@ static OBJECT_DATA* memory_createObjectData(EXECUTION_CONTEXT* pContext, PKS_VAL
 			strcpy((char*)pData->od_data.string, pInput);
 		}
 	}
-	else if (sType == S_ARRAY) {
+	else if (sType == VT_OBJECT_ARRAY) {
 		nLen = nInitialSize;
 		if (pInput) {
 			size_t nInitSize = arraylist_size((ARRAY_LIST*)pInput);
@@ -229,14 +229,14 @@ PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType,
 			.sym_type = sType, .sym_data.val = (intptr_t)pInput
 		};
 	}
-	if (sType == S_ARRAY && pInput) {
+	if (sType == VT_OBJECT_ARRAY && pInput) {
 		size_t nLen = pData->od_size;
 		for (int i = 0; i < nLen; i++) {
 			TYPED_OBJECT_POINTER pszPointer = (TYPED_OBJECT_POINTER)arraylist_get((ARRAY_LIST*)pInput, i);
 			PKS_VALUE_TYPE t = TOP_TYPE(pszPointer);
 			// Hack: t == 0 means we create an object from a native string array - not yet converted to TYPED_OBJECT_POINTERS
-			if (t == S_STRING || t == 0) {
-				pszPointer = MAKE_TYPED_OBJECT_POINTER(1, S_STRING, memory_createObjectData(pContext, S_STRING, 0, TOP_DATA_POINTER(pszPointer)));
+			if (t == VT_STRING || t == 0) {
+				pszPointer = MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, memory_createObjectData(pContext, VT_STRING, 0, TOP_DATA_POINTER(pszPointer)));
 			}
 			pData->od_data.objects[i] = pszPointer;
 		}
@@ -295,7 +295,7 @@ int memory_size(PKS_VALUE v) {
  * Get a string pointer to the actual string for a value.
  */
 const char* memory_accessString(PKS_VALUE v) {
-	if (v.pkv_managed && v.sym_type == S_STRING) {
+	if (v.pkv_managed && v.sym_type == VT_STRING) {
 		return ((OBJECT_DATA*)v.sym_data.objectPointer)->od_data.string;
 	}
 	return "";
@@ -305,7 +305,7 @@ const char* memory_accessString(PKS_VALUE v) {
  * Set a nested object of a value at slot nIndex.
  */
 int memory_setNestedObject(PKS_VALUE vTarget, int nIndex, PKS_VALUE vElement) {
-	if (vTarget.pkv_managed && vTarget.sym_type == S_ARRAY) {
+	if (vTarget.pkv_managed && vTarget.sym_type == VT_OBJECT_ARRAY) {
 		OBJECT_DATA* pPointer = ((OBJECT_DATA*)vTarget.sym_data.objectPointer);
 		if (nIndex >= 0 && nIndex < pPointer->od_capacity) {
 			pPointer->od_data.objects[nIndex] = MAKE_TYPED_OBJECT_POINTER(vElement.pkv_isPointer, vElement.sym_type, vElement.sym_data.val);
@@ -323,7 +323,7 @@ int memory_setNestedObject(PKS_VALUE vTarget, int nIndex, PKS_VALUE vElement) {
  * Access the nested object of a value at slot nIndex.
  */
 PKS_VALUE memory_getNestedObject(PKS_VALUE v, int nIndex) {
-	if (v.pkv_managed && v.sym_type == S_ARRAY) {
+	if (v.pkv_managed && v.sym_type == VT_OBJECT_ARRAY) {
 		OBJECT_DATA* pPointer = ((OBJECT_DATA*)v.sym_data.objectPointer);
 		if (nIndex >= 0 && nIndex < pPointer->od_size) {
 			TYPED_OBJECT_POINTER top = pPointer->od_data.objects[nIndex];
