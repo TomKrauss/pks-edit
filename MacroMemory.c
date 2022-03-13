@@ -18,6 +18,7 @@
 #include <windows.h>
 
 #include "arraylist.h"
+#include "hashmap.h"
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
 #include "symbols.h"
@@ -32,7 +33,7 @@ typedef struct tagOBJECT_DATA {
 	int   od_capacity;						// capacity for number of dependent objects.
 	union {
 		const char string[0];				// for strings the start of the zero terminated string 
-		TYPED_OBJECT_POINTER objects[0];	// for arrays and structured objects the array of dependent objects
+		TYPED_OBJECT_POINTER objects[0];	// for arrays and structured objects the array of dependent objects. For hashmaps contains a pointer to hashmap
 	} od_data;
 } OBJECT_DATA;
 
@@ -42,13 +43,22 @@ typedef struct tagOBJECT_MEMORY {
 	OBJECT_DATA** om_objects;				// list of allocated objects to be released, when execution halts.
 } OBJECT_MEMORY;
 
+static int memory_markObject(void* pPointer);
+
 static OBJECT_MEMORY _objectSpace;
 
 static inline void memory_assignSlot(OBJECT_MEMORY* pMemory, int idx, OBJECT_DATA* pData) {
 	pMemory->om_objects[idx] = pData;
 }
 
+static HASHMAP* memory_accessMap(OBJECT_DATA* pData) {
+	return (HASHMAP*)pData->od_data.objects[0];
+}
+
 static void memory_destroyData(OBJECT_DATA** pData) {
+	if (*pData && (*pData)->od_class == VT_MAP) {
+		hashmap_destroy(memory_accessMap(*pData), 0);
+	}
 	free(*pData);
 	*pData = 0;
 }
@@ -78,6 +88,15 @@ static void memory_create() {
 	}
 }
 
+static int memory_markMapEntries(intptr_t k, intptr_t v, void* unused) {
+	TYPED_OBJECT_POINTER pPointer = k;
+	memory_markObject(TOP_DATA_POINTER(pPointer));
+	pPointer = v;
+	if (TOP_IS_POINTER(pPointer)) {
+		memory_markObject(TOP_DATA_POINTER(pPointer));
+	}
+	return 1;
+}
 
 static int memory_markObject(void* pPointer) {
 	OBJECT_DATA* pData = pPointer;
@@ -86,10 +105,16 @@ static int memory_markObject(void* pPointer) {
 	}
 	pData->od_gcFlag = 1;
 	if (pData->od_class != VT_STRING) {
-		for (int i = 0; i < pData->od_size; i++) {
-			TYPED_OBJECT_POINTER top = pData->od_data.objects[i];
-			if (TOP_IS_POINTER(top)) {
-				memory_markObject(TOP_DATA_POINTER(top));
+		if (pData->od_class == VT_MAP) {
+			HASHMAP* pMap = (HASHMAP * )TOP_DATA_POINTER(pData->od_data.objects[0]);
+			hashmap_forEachEntry(pMap, memory_markMapEntries, 0);
+		}
+		else {
+			for (int i = 0; i < pData->od_size; i++) {
+				TYPED_OBJECT_POINTER top = pData->od_data.objects[i];
+				if (TOP_IS_POINTER(top)) {
+					memory_markObject(TOP_DATA_POINTER(top));
+				}
 			}
 		}
 	}
@@ -175,12 +200,24 @@ static int memory_nextFreeSlot(OBJECT_MEMORY* pMemory) {
 	return idx;
 }
 
+static int memory_comparePointer(intptr_t a, intptr_t b) {
+	return strcmp((TOP_DATA_POINTER(a))->od_data.string, (TOP_DATA_POINTER(b))->od_data.string);
+}
+
+static int memory_hashPointer(intptr_t k) {
+	return hashmap_hashCodeString((intptr_t)(TOP_DATA_POINTER(k))->od_data.string);
+}
+
 static OBJECT_DATA* memory_createObjectData(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType, int nInitialSize, const void* pInput) {
 	memory_create();
 	OBJECT_MEMORY* pMemory = &_objectSpace;
 	OBJECT_DATA* pData;
 	size_t nLen = 0;
-	if (sType == VT_STRING) {
+	if (sType == VT_MAP) {
+		nLen = 1;
+		pData = calloc(1, sizeof(OBJECT_DATA) + sizeof(OBJECT_DATA*));
+		pData->od_data.objects[0] = MAKE_TYPED_OBJECT_POINTER(0,0, hashmap_create(nInitialSize ? nInitialSize : 19, memory_hashPointer, memory_comparePointer));
+	} else if (sType == VT_STRING) {
 		if (pInput) {
 			nLen = strlen(pInput);
 		}
@@ -319,6 +356,27 @@ int memory_setNestedObject(PKS_VALUE vTarget, int nIndex, PKS_VALUE vElement) {
 	return 0;
 }
 
+static PKS_VALUE memory_asValue(TYPED_OBJECT_POINTER top) {
+	PKS_VALUE_TYPE t = TOP_TYPE(top);
+	if (TOP_IS_POINTER(top)) {
+		return (PKS_VALUE) {
+			.sym_type = t,
+				.pkv_isPointer = 1,
+				.pkv_managed = 1,
+				.sym_data.objectPointer = TOP_DATA_POINTER(top)
+		};
+	}
+	if (t == 0) {
+		t = VT_BOOLEAN;
+	}
+	return (PKS_VALUE) {
+		.sym_type = t,
+			.pkv_isPointer = 0,
+			.pkv_managed = 0,
+			.sym_data.longValue = (long)(intptr_t)TOP_DATA_POINTER(top)
+	};
+}
+
 /*
  * Access the nested object of a value at slot nIndex.
  */
@@ -327,28 +385,40 @@ PKS_VALUE memory_getNestedObject(PKS_VALUE v, int nIndex) {
 		OBJECT_DATA* pPointer = ((OBJECT_DATA*)v.sym_data.objectPointer);
 		if (nIndex >= 0 && nIndex < pPointer->od_size) {
 			TYPED_OBJECT_POINTER top = pPointer->od_data.objects[nIndex];
-			PKS_VALUE_TYPE t = TOP_TYPE(top);
-			if (TOP_IS_POINTER(top)) {
-				return (PKS_VALUE) {
-					.sym_type = t,
-					.pkv_isPointer = 1,
-					.pkv_managed = 1,
-					.sym_data.objectPointer = TOP_DATA_POINTER(top)
-				};
-			}
-			if (t == 0) {
-				t = VT_BOOLEAN;
-			}
-			return (PKS_VALUE) {
-				.sym_type = t,
-				.pkv_isPointer = 0,
-				.pkv_managed = 0,
-				.sym_data.longValue = (long)(intptr_t)TOP_DATA_POINTER(top)
-			};
+			return memory_asValue(top);
 		}
 		interpreter_raiseError("Index %d out of range[%d..%d] for accessing array.", nIndex, 0, pPointer->od_capacity);
 	}
 	return (PKS_VALUE) { 0 };
 }
 
+
+/*
+ * Set a nested object using a key (must be a string) assuming the target object is a map.
+ */
+int memory_atPutObject(PKS_VALUE vTarget, PKS_VALUE vKey, PKS_VALUE vElement) {
+	if (vTarget.pkv_managed && vTarget.sym_type == VT_MAP && vKey.sym_type == VT_STRING) {
+		HASHMAP* pMap = memory_accessMap(vTarget.sym_data.objectPointer);
+		hashmap_put(pMap,
+				MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, vKey.sym_data.objectPointer),
+				MAKE_TYPED_OBJECT_POINTER(vElement.pkv_isPointer, vElement.sym_type, vElement.sym_data.val));
+	}
+	else {
+		interpreter_raiseError("Can assign map elements only to maps with string type keys.");
+	}
+	return 0;
+}
+
+/*
+ * Access an object by string key in a map.
+ */
+PKS_VALUE memory_atObject(PKS_VALUE vTarget, PKS_VALUE vKey) {
+	if (vTarget.pkv_managed && vTarget.sym_type == VT_MAP && vKey.sym_type == VT_STRING) {
+		HASHMAP* pMap = memory_accessMap(vTarget.sym_data.objectPointer);
+		TYPED_OBJECT_POINTER top= hashmap_get(pMap, MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, vKey.sym_data.objectPointer));
+		return memory_asValue(top);
+	}
+	interpreter_raiseError("Can only access map elements with string type keys.");
+	return (PKS_VALUE) { 0 };
+}
 

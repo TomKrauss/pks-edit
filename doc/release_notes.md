@@ -18,7 +18,7 @@ and character deletes (DEL + Backspace) are concurrently applied to multiple pla
 where additional information is available. An example are templates, which show a preview of the text to insert or PKS-Edit
 commands which show an explanation about the command.
 - Expressions with strings in PKSMacroC such as "x"+1 are automatically coerced to string. One does not need to write any more "x"+(string)1.
-- PKSMacroC supports now `++` and `--` operators, the new datatypes `float`, `boolean`, `range` and array types (`string[]`, `int[]`, ...) 
+- PKSMacroC supports now `++` and `--` operators, the new datatypes `float`, `boolean`, `range`, `map` and array types (`string[]`, `int[]`, ...) 
   and shorthand assignment operators (e.g. `*=`, `+=`, ...).
 - PKSMacroC supports now foreach loops using the following syntax: `for (type variable : expression) {...}`. One can currently iterate
   over ranges, strings and arrays.
@@ -26,7 +26,7 @@ commands which show an explanation about the command.
 - One may use the new syntax `*function(params...)` now to execute a function (macro or native) **by name**.
 - Expressions can now be correctly passed as function arguments.
 - PKSMacroC supports now [] operators to extract single characters or a range of characters from a string or one or more words from a string array.
-  or in assigments to change elements of an array.
+  or in assigments to change elements of an array or to access elements of a map.
 - PKSMacroC integer literals were extended to also support `_` and other representations (binary, octal, ...).
 - PKSMacroC supports now global (namespace local / static) variables. Namespaces are currently limited however.
 - Long running macroC macros can now be interrupted - a progress bar pops up after a while to cancel them (e.g. if the macro code contains

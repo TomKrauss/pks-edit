@@ -26,7 +26,7 @@
 %token T_IF T_ELIF T_ELSE T_WHILE T_GOTO T_BRAEQ
 %token T_SH_ASSIGN_PLUS T_SH_ASSIGN_MINUS T_SH_ASSIGN_MULT T_SH_ASSIGN_DIV T_SH_ASSIGN_MOD
 %token T_LOCAL T_SWITCH T_BREAK T_CONTINUE T_RETURN 
-%token T_VARIABLE
+%token T_VARIABLE T_ASSOC_ARROW 
 %token T_NMATCH
 %token T_ASSIGN T_NE T_EQ T_SHIFT_LEFT T_SHIFT_RIGHT 
 %token T_OR T_AND T_LE T_GE T_POWER_TO
@@ -144,7 +144,7 @@ static void makeInternalSymbol(const char* pszName, SYMBOL_TYPE sType, intptr_t 
 	bytecode_defineVariable(&_bytecodeBuffer, pszName, C_DEFINE_VARIABLE, sType, _arraySize);
 	_arraySize = 0;
 	IDENTIFIER_CONTEXT* pContext = sym_getContext(_currentIdentifierContext, (char*)pszName);
-	if (pContext && pContext != sym_getGlobalContext()) {
+	if (pContext && pContext != sym_getGlobalCompilerContext()) {
 		yyerror("Redefinition of variable %s", pszName);
 	}
 	if (sType == VT_STRING) {
@@ -488,6 +488,10 @@ value:		T_VARIABLE {
 				free($1.ident.s);
 			}
 			| simple_literal {	$$.type = $1.type;	}
+			| map_literal {
+				$$.type = VT_MAP;
+				yywarning("Map literals not yet supported");
+			}
 			| array_literal {	
 				$$.type = VT_OBJECT_ARRAY;
 				YY_EMIT(C_PUSH_ARRAY_LITERAL, (GENERIC_DATA){.stringList=_currentArrayLiteral});
@@ -499,6 +503,16 @@ value:		T_VARIABLE {
 				$$.v.type = C_PUSH_VARIABLE;  
 				$$.v.data.string  = $1.ident.s;
 			}
+
+map_literal: '(' map_associates ')'
+
+map_associates:
+			map_associates ',' map_associate
+			| map_associate
+
+map_associate:
+			T_STRING T_ASSOC_ARROW simple_literal { free($1.ident.s); }
+			| T_STRING T_ASSOC_ARROW T_STRING	  { free($1.ident.s); free($3.ident.s); }
 
 array_literal: '{' {
 				_currentArrayLiteral = arraylist_create(1);
@@ -513,9 +527,19 @@ array_elements:
 			| array_element
 
 array_element:
+			simple_array_element {
+				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(0, $1.v.type, $1.v.data.longValue));
+			}
+			|
 			T_STRING {
 				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, $1.ident.s));
 			}
+
+simple_array_element:
+			T_NUM			{ $$.v.type = VT_NUMBER; $$.v.data.longValue = $1.num; }
+			| T_CHARACTER	{ $$.v.type = VT_CHAR; $$.v.data.longValue = $1.num; }
+			| T_TRUE		{ $$.v.type = VT_BOOLEAN; $$.v.data.longValue = 1; }
+			| T_FALSE		{ $$.v.type = VT_BOOLEAN; $$.v.data.longValue = 0; }
 
 string:		T_STRING {	$$.ident = $1.ident; }
 			| string T_STRING { 

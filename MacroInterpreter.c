@@ -108,7 +108,7 @@ static PKS_VALUE interpreter_decodeArrayList(EXECUTION_CONTEXT* pContext, COM_AR
 			long l;
 			memcpy(&l, p, sizeof l);
 			p += sizeof l;
-			arraylist_add(pList, (void*)MAKE_TYPED_OBJECT_POINTER(1, t, l));
+			arraylist_add(pList, (void*)MAKE_TYPED_OBJECT_POINTER(0, t, l));
 		}
 	}
 	PKS_VALUE v = memory_createObject(pContext, VT_OBJECT_ARRAY, 0, pList);
@@ -763,19 +763,25 @@ static long interpreter_assignSymbol(EXECUTION_CONTEXT* pContext, char* name) {
 /*--------------------------------------------------------------------------
  * interpreter_assignOffset()
  * x[nOffset] = ....
+ * or x["yz"] = ....
  */
 static void interpreter_assignOffset(EXECUTION_CONTEXT* pContext, char* name) {
 	PKS_VALUE v = interpreter_popStackValue(pContext);
 	PKS_VALUE vOffset = interpreter_popStackValue(pContext);
 	PKS_VALUE target = sym_getVariable(pContext->ec_identifierContext, name);
-	if (target.sym_type != VT_OBJECT_ARRAY) {
-		interpreter_raiseError("Illegal target object %s for offset assignment.", name);
+	if (target.sym_type == VT_MAP) {
+		memory_atPutObject(target, vOffset, v);
 	}
-	int nIndex = interpreter_coerce(pContext, vOffset, VT_NUMBER).sym_data.intValue;
-	if (nIndex < 0) {
-		interpreter_raiseError("Illegal negative index %d to assign element of %s.", nIndex, name);
+	else {
+		if (target.sym_type != VT_OBJECT_ARRAY) {
+			interpreter_raiseError("Illegal target object %s for offset assignment.", name);
+		}
+		int nIndex = interpreter_coerce(pContext, vOffset, VT_NUMBER).sym_data.intValue;
+		if (nIndex < 0) {
+			interpreter_raiseError("Illegal negative index %d to assign element of %s.", nIndex, name);
+		}
+		memory_setNestedObject(target, nIndex, v);
 	}
-	memory_setNestedObject(target, nIndex, v);
 	interpreter_pushValueOntoStack(pContext, v);
 }
 

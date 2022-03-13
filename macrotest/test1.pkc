@@ -127,6 +127,7 @@ static void Test-Sieve() {
 static void Test-Arrays() {
 	string[] myArray = {"hello", "world", "how", "are", "you", "doing"};
 	string[] array2 = {"array", "two" };
+	string[] mixedArray = {1, true, "hello"};
 	string[] extracted;
 	int[10] intArray;
 	int i = 0;
@@ -147,8 +148,32 @@ static void Test-Arrays() {
 
 	intArray[i] = 42;
 	AssertEquals(42, intArray[i]);
+
+	AssertTrue(mixedArray[1]);
+	AssertEquals(1, mixedArray[0]);
+	AssertEquals("hello", mixedArray[2]);
 }
 
+static void Test-Maps() {
+	map demoMap = (
+		"x" => 12,
+		"y" => "z"
+	);
+	string s;
+
+	demoMap["hello"] = "world";
+	demoMap["world"] = "mars";
+	demoMap["mars"] = 42;
+	AssertEquals("world", demoMap["hello"]);
+	AssertEquals("mars", demoMap["world"]);
+	AssertEquals(42, demoMap["mars"]);
+	for (int i : 1..999) {
+		s = "key"+i;
+		demoMap[s] = i;
+	}
+	AssertEquals(42, demoMap["key42"]);
+
+}
 
 /*
  * Tests ranges in combinations with foreach.

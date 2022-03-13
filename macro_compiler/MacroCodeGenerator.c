@@ -62,7 +62,7 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 				strcpy(spret, pString);
 				spret += nLen;
 				*spret++ = 0;
-			} else if (pType == VT_NUMBER || pType == VT_CHAR || pType == VT_BOOL) {
+			} else if (pType == VT_NUMBER || pType == VT_CHAR || pType == VT_BOOLEAN) {
 				long lValue = (long)(uintptr_t)TOP_DATA_POINTER(top);
 				memcpy(spret, &lValue, sizeof(lValue));
 				spret += sizeof(lValue);

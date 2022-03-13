@@ -336,6 +336,10 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 		interpreter_extractArrayElementsAndPush(pContext, op, v1, v2);
 		return;
 	}
+	if (v1.sym_type == VT_MAP && op == BIN_AT && v2.sym_type == VT_STRING) {
+		interpreter_pushValueOntoStack(pContext, memory_atObject(v1, v2));
+		return;
+	}
 	if (v1.sym_type != VT_STRING && v2.sym_type != VT_STRING) {
 		if (v1.sym_type == VT_FLOAT || v2.sym_type == VT_FLOAT) {
 			v1 = interpreter_coerce(pContext, v1, VT_FLOAT);

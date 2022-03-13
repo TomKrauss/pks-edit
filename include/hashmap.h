@@ -28,6 +28,11 @@ typedef int (*HASH_COMPARE)(intptr_t anObj1, intptr_t anObj2);
 typedef int (*HASH_DESTROY_ENTRY)(intptr_t anObj1, intptr_t anObj2);
 
 /*
+ * Calculate the hash code value for a string type key.
+ */
+extern unsigned int hashmap_hashCodeString(intptr_t pParam);
+
+/*
  * Returns the size of a hash table.
  */
 extern int hashmap_size(HASHMAP* pTable);

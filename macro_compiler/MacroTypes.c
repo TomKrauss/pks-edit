@@ -95,6 +95,7 @@ void types_registerDefaultTypes() {
 	types_register(VT_CHAR, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "char", .ptd_isValueType = 1});
 	types_register(VT_RANGE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "range", .ptd_isValueType = 1});
 	types_register(VT_OBJECT_ARRAY, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "#array#", .ptd_isValueType = 0, .ptd_hasDynamicSize = 1});
+	types_register(VT_MAP, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "map", .ptd_isValueType = 0, .ptd_hasDynamicSize = 1});
 	types_register(VT_AUTO, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "auto", .ptd_isValueType = 1});
 }
 

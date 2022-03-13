@@ -92,7 +92,12 @@ extern int sym_defineVariable(IDENTIFIER_CONTEXT* pContext, const char* name, PK
 extern void sym_remove(IDENTIFIER_CONTEXT* pContext, const char* key);
 
 /*
- * Returns the global identifier context.
+ * Returns the global compiler context.
+ */
+extern IDENTIFIER_CONTEXT* sym_getGlobalCompilerContext();
+
+/*
+ * Returns the global identifier context to be used during macro execution.
  */
 extern IDENTIFIER_CONTEXT* sym_getGlobalContext();
 

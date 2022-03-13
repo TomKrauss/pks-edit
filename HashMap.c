@@ -43,7 +43,7 @@ static int _primes[] = {
 /*
  * Calculate the hash code value for a string type key. 
  */
-static unsigned int hashmap_hashCodeString(intptr_t pParam) {
+unsigned int hashmap_hashCodeString(intptr_t pParam) {
 	unsigned char* pszString = (unsigned char*)pParam;
 	unsigned int nResult = 0;
 	int nDelta;

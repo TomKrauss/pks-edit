@@ -70,6 +70,7 @@
             "string",
             "long",
             "boolean",
+            "map",
             "true",
             "false",
             "float"

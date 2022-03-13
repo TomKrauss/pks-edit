@@ -40,6 +40,7 @@ struct tagIDENTIFIER_CONTEXT {
 
 static IDENTIFIER_CONTEXT _keywordContext;
 static IDENTIFIER_CONTEXT _globalContext;
+static IDENTIFIER_CONTEXT _globalCompilerContext;
 
 extern void memory_destroy();
 extern void types_destroy();
@@ -53,11 +54,19 @@ IDENTIFIER_CONTEXT* sym_getKeywordContext() {
 
 
 /*
- * Returns the global identifier context.
+ * Returns the global identifier context to be used during macro execution.
  */
 IDENTIFIER_CONTEXT* sym_getGlobalContext() {
 	_globalContext.ic_next = &_keywordContext;
 	return &_globalContext;
+}
+
+/*
+ * Returns the global compiler context.
+ */
+IDENTIFIER_CONTEXT* sym_getGlobalCompilerContext() {
+	_globalCompilerContext.ic_next = &_keywordContext;
+	return &_globalCompilerContext;
 }
 
 /*
@@ -88,6 +97,8 @@ void sym_destroyTable() {
 	_keywordContext.ic_table = NULL;
 	hashmap_destroy(_globalContext.ic_table, sym_destroyEntry);
 	_globalContext.ic_table = NULL;
+	hashmap_destroy(_globalCompilerContext.ic_table, sym_destroyEntry);
+	_globalCompilerContext.ic_table = NULL;
 	memory_destroy();
 	types_destroy();
 }

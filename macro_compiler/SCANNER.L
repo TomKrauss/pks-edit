@@ -232,7 +232,7 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe)
 	static tables_inited;
 	YY_FLUSH_BUFFER;
 	_compilerConfiguration = pConfig;
-	_currentIdentifierContext = sym_getGlobalContext();
+	_currentIdentifierContext = sym_getGlobalCompilerContext();
 	if (!tables_inited) {
 		if (!init_keywords() ||
 		    !function_initializeFunctionsAndTypes()) {
@@ -619,6 +619,7 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 \<\<		return T_SHIFT_LEFT;
 \>\>		return T_SHIFT_RIGHT;
 \*\*		return T_POWER_TO;
+=\>			return T_ASSOC_ARROW;
 \<=			return T_LE;
 \>=			return T_GE;
 \*=			return T_SH_ASSIGN_MULT;

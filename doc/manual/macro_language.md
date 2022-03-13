@@ -86,7 +86,9 @@ Values may have one of the following types:
    but with an increment of 3).
 - `string[]`, `int[]`,.... an array may contain 0 to n nested values currently and is typically defined using an array literal such as `["hello", "world"]`. Array
 literals with other element types are currently not yet supported.
-
+- `map`s can be used to associate arbitrary values with string type keys (so far only string type keys are supported). To put a value into a map
+   use map["key"] = value, to access a value in a map use map["key"]. 
+ 
 PKSMacoC will try to coerce values to their "right" types or you may `cast` a value type to another explicitly using a cast operator. The following examples
 shows implicit and explicit coercions.
 
@@ -107,8 +109,10 @@ PKSMacroC supports **literals** for defining int, string, boolean, float, char, 
 - `float` type values currently only support the simple syntax [sign][digits].[digits] as in `3.14`.
 - string type literal are enclosed in `"`. Special characters such as `"`, `\n`, `\r`, `\f`, `\\` ,... (see C syntax) must be quoted using`the `\` character.
   Examples are "hello\nworld" or "this is my \"favorite\" movie"
-- array type literal  support currently only the specification of simple array of string values. The individual elements are enclosed in `{`and `}` and seperated
-  by `,`. Example: `{ "hello", "world" }`
+- array type literal support currently only the specification of simple arrays - not nested ones. The individual elements are enclosed in 
+ `{`and `}` and seperated  by `,`. Examples: `{ "hello", "world" }` or `{ true, 42, "oscar"}`.
+- Literals for maps are not yet fully supported. They are enclosed in round brackets and the key and values are associated using `=>` as in:
+  `( "key" => 42, "key" => "valueforKey2", ...)`
 
 ## PKSMacroC operators
 

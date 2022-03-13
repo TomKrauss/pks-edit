@@ -68,7 +68,8 @@ typedef enum {
 	VT_CHAR = 5,
 	VT_RANGE = 6,
 	VT_OBJECT_ARRAY = 7,
-	VT_AUTO = 8
+	VT_MAP = 8,
+	VT_AUTO = 9
 } PKS_VALUE_TYPE;
 
 typedef struct tagPKS_VALUE {
@@ -410,6 +411,16 @@ extern const char* memory_accessString(PKS_VALUE v);
  * Access the nested object of a value at slot nIndex.
  */
 extern PKS_VALUE memory_getNestedObject(PKS_VALUE, int nIndex);
+
+/*
+ * Set a nested object using a key (must be a string) assuming the target object is a map.
+ */
+extern int memory_atPutObject(PKS_VALUE vTarget, PKS_VALUE vKey, PKS_VALUE vElement);
+
+/*
+ * Access an object by string key in a map.
+ */
+extern PKS_VALUE memory_atObject(PKS_VALUE vTarget, PKS_VALUE vKey);
 
 /*
  * Add one object to an array type object.
