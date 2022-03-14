@@ -79,10 +79,13 @@ typedef struct tagPKS_VALUE {
 	GENERIC_DATA	sym_data;						// the data of this value.
 } PKS_VALUE;
 
+typedef (*T_FINALIZER)(PKS_VALUE v);
+
 typedef struct tagTYPE_CALLBACKS {
 	int	(*tc_iteratorStart)(PKS_VALUE* pValue);		// Callback method to start an iterator type 
 	int	(*tc_iteratorNext)(PKS_VALUE* pValue);		// Callback method to advance an iterator
-	int	(*tc_close)(PKS_VALUE* pValue);				// Callback method to close an internal resource associated with a value
+	T_FINALIZER tc_close;							// Callback method to close an internal resource associated with a value Gets passed the PKS_VALUE
+													// containing the actual handle object.
 } TYPE_CALLBACKS;
 
 typedef struct tagTYPE_PROPERTY_DESCRIPTOR {
@@ -94,8 +97,9 @@ typedef struct tagPKS_TYPE_DESCRIPTOR {
 	PKS_VALUE_TYPE	ptd_type;						// the index used internally in macros for this type
 	const char*		ptd_name;						// the printed named of this type
 	int				ptd_isValueType : 1;			// whether this is an immutable value type (number, float boolean etc...)
+	int				ptd_hasDefaultValue : 1;		// Whether defining a variable of the described type will automatically create an "empty" instance of the type.
 	int				ptd_hasDynamicSize : 1;			// whether objects of this type may change in size (arrays for instance).
-	int				ptd_objectSize;					// the size of a non-value type object - typically identifcal to ptd_numberOfProperties, but for some
+	int				ptd_objectSize;					// the size of a non-value type object - typically identical to ptd_numberOfProperties, but for some
 													// native types additional "internal pointers" are maintained not accessible as properties.
 	int				ptd_numberOfProperties;			// the number of properties described by a property descriptor
 	TYPE_PROPERTY_DESCRIPTOR *ptd_properties;
@@ -136,9 +140,29 @@ typedef long long TYPED_OBJECT_POINTER;
 extern void decompile_printValue(char* pszBuf, PKS_VALUE v);
 
 /*
+ * Return the finalizer for a given value type or 0 if not finalizer exists.
+ */
+extern T_FINALIZER types_getFinalizer(PKS_VALUE_TYPE vType);
+
+/*
+ * Returns true, if a type is a value type.
+ */
+extern BOOL types_isValueType(PKS_VALUE_TYPE vType);
+
+/*
+ * Returns true, if objects of the given type are automatically created when declaring them.
+ */
+extern BOOL types_hasDefaultValue(PKS_VALUE_TYPE vType);
+
+/*
  * Returns the name of a given PKSMacroC value type.
  */
 extern const char* types_nameFor(PKS_VALUE_TYPE t);
+
+/*
+ * Returns a pks-value-type for a given type name.
+ */
+extern PKS_VALUE_TYPE types_typeIndexFor(const char* pszTypename);
 
 /*
  * Pop one value of the stack of our stack machine
@@ -385,12 +409,23 @@ extern PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE
 extern int memory_size(PKS_VALUE v);
 
 /*
+ * Set a nested pointer of a value at slot nIndex. Can be used to store "handles" in an object rather
+ * than a nested object / value.
+ */
+extern int memory_setNestedPointer(PKS_VALUE vTarget, int nIndex, TYPED_OBJECT_POINTER vPointer);
+
+/*
+ * Access a nested object pointer of a value at slot nIndex.
+ */
+extern TYPED_OBJECT_POINTER memory_getNestedObjectPointer(PKS_VALUE v, int nIndex);
+
+/*
  * Set a nested object of a value at slot nIndex.
  */
 extern int memory_setNestedObject(PKS_VALUE vTarget, int nIndex, PKS_VALUE vElement);
 
-/*
- * Try to get rid of some allocated memory not referenced by the stack any more.
+
+/* * Try to get rid of some allocated memory not referenced by the stack any more.
  * This method must be invoked with care and not in the middle of an operation
  * allocating more objects not yet referenced or the objects just created might
  * get disposed to early.

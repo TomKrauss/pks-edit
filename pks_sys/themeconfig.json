@@ -438,7 +438,7 @@
         {
           "styleName": "warning",
           "weight": 700,
-          "foregroundColor": "#2222FF"
+          "foregroundColor": "#66AAFF"
         },
         {
           "styleName": "operator",

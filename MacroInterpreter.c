@@ -85,6 +85,10 @@ void interpreter_raiseError(const char* pFormat, ...) {
 	va_start(ap, pFormat);
 	vsprintf(szBuffer, pFormat, ap);
 	va_end(ap);
+	if (_currentExecutionContext == 0) {
+		error_showMessage(szBuffer);
+		return;
+	}
 	sprintf(szMessage, "%s during execution of %s", szBuffer, _currentExecutionContext->ec_currentFunction);
 	debugger_open(_currentExecutionContext, szMessage);
 	//error_displayAlertDialog(szMessage);
@@ -884,8 +888,11 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 			break;
 		}
 		case C_DEFINE_VARIABLE: {
-			PKS_VALUE v = memory_createObject(pContext, ((COM_DEFINE_SYMBOL*)cp)->symtype, ((COM_DEFINE_SYMBOL*)cp)->value, 0);
-			sym_defineVariable(pContext->ec_identifierContext, ((COM_DEFINE_SYMBOL*)cp)->name, v);
+			PKS_VALUE_TYPE t = ((COM_DEFINE_SYMBOL*)cp)->symtype;
+			if (types_hasDefaultValue(t)) {
+				PKS_VALUE v = memory_createObject(pContext, t, ((COM_DEFINE_SYMBOL*)cp)->value, 0);
+				sym_defineVariable(pContext->ec_identifierContext, ((COM_DEFINE_SYMBOL*)cp)->name, v);
+			}
 			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		}

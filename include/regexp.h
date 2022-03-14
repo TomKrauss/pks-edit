@@ -32,6 +32,7 @@
 #define RE_CONFIRM_REPLACEMENT		0x200	// applicable to replacement only: if set the user is asked before every replacement 
 #define RE_CONSIDER_MARKED_LINES	0x400	// whether only marked lines should be considered
 #define RE_DEBUG					0x800	// whether debug information should be printed to the console, when matching a pattern.
+#define RE_KEEP_CARET				0x1000	// do not move caret during find&replace.
 
 #define	NBRA			9		/* maximum number of brackets	*/
 

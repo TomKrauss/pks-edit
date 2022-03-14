@@ -56,11 +56,18 @@ static HASHMAP* memory_accessMap(OBJECT_DATA* pData) {
 }
 
 static void memory_destroyData(OBJECT_DATA** pData) {
-	if (*pData && (*pData)->od_class == VT_MAP) {
-		hashmap_destroy(memory_accessMap(*pData), 0);
+	OBJECT_DATA* pOD = *pData;
+	if (pOD) {
+		T_FINALIZER finalizer = types_getFinalizer(pOD->od_class);
+		if (finalizer) {
+			finalizer((PKS_VALUE) { .pkv_managed = 1, .pkv_isPointer = 1, .sym_type = pOD->od_class, .sym_data.objectPointer = pOD});
+		}
+		if (pOD->od_class == VT_MAP) {
+			hashmap_destroy(memory_accessMap(pOD), 0);
+		}
+		free(pOD);
+		*pData = 0;
 	}
-	free(*pData);
-	*pData = 0;
 }
 
 /*
@@ -239,8 +246,11 @@ static OBJECT_DATA* memory_createObjectData(EXECUTION_CONTEXT* pContext, PKS_VAL
 		}
 		pData = calloc(1, sizeof(OBJECT_DATA) + (nLen * sizeof(OBJECT_DATA*)));
 	}
-	else {
+	else if (types_isValueType(sType)) {
 		return 0;
+	} else {
+		nLen = nInitialSize;
+		pData = calloc(1, sizeof(OBJECT_DATA) + (nLen * sizeof(OBJECT_DATA*)));
 	}
 	pData->od_size = (int)(pInput ? nLen : 0);
 	pData->od_capacity = (int)nLen;
@@ -339,13 +349,14 @@ const char* memory_accessString(PKS_VALUE v) {
 }
 
 /*
- * Set a nested object of a value at slot nIndex.
+ * Set a nested pointer of a value at slot nIndex. Can be used to store "handles" in an object rather
+ * than a nested object / value.
  */
-int memory_setNestedObject(PKS_VALUE vTarget, int nIndex, PKS_VALUE vElement) {
-	if (vTarget.pkv_managed && vTarget.sym_type == VT_OBJECT_ARRAY) {
+int memory_setNestedPointer(PKS_VALUE vTarget, int nIndex, TYPED_OBJECT_POINTER vPointer) {
+	if (vTarget.pkv_managed) {
 		OBJECT_DATA* pPointer = ((OBJECT_DATA*)vTarget.sym_data.objectPointer);
 		if (nIndex >= 0 && nIndex < pPointer->od_capacity) {
-			pPointer->od_data.objects[nIndex] = MAKE_TYPED_OBJECT_POINTER(vElement.pkv_isPointer, vElement.sym_type, vElement.sym_data.val);
+			pPointer->od_data.objects[nIndex] = vPointer;
 			if (nIndex >= pPointer->od_size) {
 				pPointer->od_size = nIndex + 1;
 			}
@@ -354,6 +365,14 @@ int memory_setNestedObject(PKS_VALUE vTarget, int nIndex, PKS_VALUE vElement) {
 		interpreter_raiseError("Index %d out of range[%d..%d] for assigning array element.", nIndex, 0, pPointer->od_capacity);
 	}
 	return 0;
+}
+
+
+/*
+ * Set a nested object of a value at slot nIndex.
+ */
+int memory_setNestedObject(PKS_VALUE vTarget, int nIndex, PKS_VALUE vElement) {
+	return memory_setNestedPointer(vTarget, nIndex, MAKE_TYPED_OBJECT_POINTER(vElement.pkv_isPointer, vElement.sym_type, vElement.sym_data.val));
 }
 
 static PKS_VALUE memory_asValue(TYPED_OBJECT_POINTER top) {
@@ -378,6 +397,20 @@ static PKS_VALUE memory_asValue(TYPED_OBJECT_POINTER top) {
 }
 
 /*
+ * Access a nested object pointer of a value at slot nIndex.
+ */
+TYPED_OBJECT_POINTER memory_getNestedObjectPointer(PKS_VALUE v, int nIndex) {
+	if (v.pkv_managed) {
+		OBJECT_DATA* pPointer = ((OBJECT_DATA*)v.sym_data.objectPointer);
+		if (nIndex >= 0 && nIndex < pPointer->od_capacity) {
+			return pPointer->od_data.objects[nIndex];
+		}
+		interpreter_raiseError("Index %d out of range[%d..%d] for accessing array.", nIndex, 0, pPointer->od_capacity);
+	}
+	return 0;
+}
+
+/*
  * Access the nested object of a value at slot nIndex.
  */
 PKS_VALUE memory_getNestedObject(PKS_VALUE v, int nIndex) {
@@ -391,7 +424,6 @@ PKS_VALUE memory_getNestedObject(PKS_VALUE v, int nIndex) {
 	}
 	return (PKS_VALUE) { 0 };
 }
-
 
 /*
  * Set a nested object using a key (must be a string) assuming the target object is a map.

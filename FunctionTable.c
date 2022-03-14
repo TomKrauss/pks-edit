@@ -72,7 +72,8 @@ EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdLi
 EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(),
 bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
-interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_tolower(), macro_getFunctionNamesMatching();
+interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(),
+macroc_tolower(), macro_getFunctionNamesMatching();
 
 static long long function_unused() {
     // NOT USED ANY MORE
@@ -221,7 +222,12 @@ EDFUNC _functionTable[] = {
 {/*137*/macroc_tolower, -1, 0, "tolower", NULL, "ss" },
 {/*138*/interpreter_foreach, -1, 0, "foreach", NULL, "P"},
 {/*139*/(long long (*)())GetTickCount, -1, 0, "GetTickCount", NULL, "i" },
-{/*140*/macro_getFunctionNamesMatching, -1, 0, "FunctionNamesMatching", NULL, "aseLMT" }
+{/*140*/macro_getFunctionNamesMatching, -1, 0, "FunctionNamesMatching", NULL, "aseLMT" },
+{/*141*/(long long (*)())GetLastError, -1, 0, "GetLastError", NULL, "i" },
+{/*142*/macroc_fileOpen, -1, 0, "FileOpen", NULL, "P" },
+{/*143*/macroc_fileClose, -1, 0, "FileClose", NULL, "P" },
+{/*143*/macroc_fileReadLine, -1, 0, "FileReadLine", NULL, "P" },
+{/*143*/macroc_fileWriteLine, -1, 0, "FileWriteLine", NULL, "P" }
 
 };
 
@@ -555,6 +561,7 @@ PARAMETER_ENUM_VALUE _parameterEnumValueTable[] = {
 { "RE_NOADVANCE"    ,           RE_NOADVANCE   },
 { "RE_CONSIDER_MARKED_LINES",   RE_CONSIDER_MARKED_LINES   },
 { "RE_CONFIRM_REPLACEMENT"    , RE_CONFIRM_REPLACEMENT   },
+{ "RE_KEEP_CARET"             , RE_KEEP_CARET   },
 { "AL_CPOS"                   , AL_CPOS   },
 { "AL_FIX"                    , AL_FIX   },
 { "AL_END"                    , AL_END   },

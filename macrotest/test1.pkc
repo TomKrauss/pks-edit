@@ -72,7 +72,6 @@ static void Run-TestCase(string function) {
 }
 
 
-
 /*
  * Tests the console by opening clearing it several times. Can be used
  * to test the console as well stability as also performance wise.
@@ -85,6 +84,24 @@ static void XTest-Console-Stress() {
 		Test-Binary-Expressions();
 		i++;
 	}
+
+}
+
+/*
+ * Tests operations on files.
+ */
+static void Test-FileIO() {
+	FILE fp;
+	string s;
+
+	fp = FileOpen("Actions.c", "r");
+	AssertTrue(fp != false);
+	AssertEquals(0, GetLastError());
+	s = FileReadLine(fp);
+	AssertTrue(size(s) > 1);
+
+	// not necessary - will be closed by garbagge collector.
+	FileClose(fp);
 
 }
 

@@ -917,13 +917,18 @@ endrep:
 
 	if (nReplacements) {
 		if (action != REP_COUNT) {
+			BOOL bKeepCaret = _currentSearchAndReplaceParams.options & RE_KEEP_CARET;
 			if (_currentReplacementPattern.lineSplittingNeeded) {
 				caret_placeCursorInCurrentFile(wp, startln,0L);
 				ln = breaklines(fp,0,startln,ln);
-				caret_placeCursorMakeVisibleAndSaveLocation(wp, ln,col);
+				if (!bKeepCaret) {
+					caret_placeCursorMakeVisibleAndSaveLocation(wp, ln, col);
+				}
 				render_repaintAllForFile(fp);
 			} else {
-				caret_placeCursorMakeVisibleAndSaveLocation(wp, lastfln,lastfcol);
+				if (!bKeepCaret) {
+					caret_placeCursorMakeVisibleAndSaveLocation(wp, lastfln, lastfcol);
+				}
 				if (scope == RNG_ONCE && action == REP_REPLACE) {
 					render_repaintCurrentLine(wp);
 				} else {

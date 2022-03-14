@@ -15,6 +15,7 @@
  */
 
 #include <windows.h>
+#include <stdio.h>
 #include "documentmodel.h"
 #include "mainframe.h"
 #include "winfo.h"
@@ -25,6 +26,7 @@
 #include "caretmovement.h"
 #include "stringutil.h"
 #include "edctype.h"
+#include "pksmacrocvm.h"
 
 static const char* consoleFileName = "console.log";
 
@@ -136,4 +138,78 @@ char* macroc_toupper(const char* pszString) {
 char* macroc_tolower(const char* pszString) {
 	return macroc_convertChars(pszString, CC_LOWER);
 }
+
+
+/*
+ * Implements the FileOpen() which opens a file for reading or writing.
+ */
+PKS_VALUE macroc_fileOpen(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	if (nArgs < 1) {
+		interpreter_raiseError("No filename specified for fileopen");
+	}
+	const char* pszFilename = memory_accessString(pValues[0]);
+	const char* pszAccessMode = nArgs > 1 ? memory_accessString(pValues[1]) : "r";
+	FILE* fp = fopen(pszFilename, pszAccessMode);
+	if (!fp) {
+		return (PKS_VALUE) {.sym_type = VT_NIL};
+	}
+	PKS_VALUE vResult = memory_createObject(pContext, types_typeIndexFor("FILE"), 1, 0);
+	memory_setNestedPointer(vResult, 0, (MAKE_TYPED_OBJECT_POINTER(0, 0, fp)));
+	return vResult;
+}
+
+/*
+ * Implements the FileReadLine() method, which reads and returns one line of text from a given file (FileReadLine(fp)).
+ */
+PKS_VALUE macroc_fileReadLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	PKS_VALUE_TYPE t = types_typeIndexFor("FILE");
+	if (nArgs < 1 || pValues[0].sym_type != t) {
+		interpreter_raiseError("No file pointer passed to FileReadLine");
+	}
+	TYPED_OBJECT_POINTER p = memory_getNestedObjectPointer(pValues[0], 0);
+	FILE* fp = (FILE*)TOP_DATA_POINTER(p);
+	if (fgets(_linebuf, MAXLINELEN, fp)) {
+		_linebuf[strcspn(_linebuf, "\r\n")] = 0;
+		return memory_createObject(pContext, VT_STRING, 0, _linebuf);
+	}
+	return (PKS_VALUE) {
+		.sym_type = VT_NIL
+	};
+}
+
+/*
+ * Implements the FileWriteLine() method, which writes one line of text to a given file (FileWriteLine(fp, s)).
+ */
+PKS_VALUE macroc_fileWriteLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	PKS_VALUE_TYPE t = types_typeIndexFor("FILE");
+	if (nArgs < 2 || pValues[0].sym_type != t) {
+		interpreter_raiseError("No file pointer / no line to write passed to FileWriteLine");
+	}
+	TYPED_OBJECT_POINTER p = memory_getNestedObjectPointer(pValues[0], 0);
+	FILE* fp = (FILE*)TOP_DATA_POINTER(p);
+	BOOL bSuccess = fputs(memory_accessString(pValues[1]), fp) >= 0;
+	fputc('\n', fp);
+	return (PKS_VALUE) {
+		.sym_type = VT_BOOL, .sym_data.booleanValue = bSuccess
+	};
+}
+
+/*
+ * Implements the FileOpen() which opens a file for reading or writing.
+ */
+PKS_VALUE macroc_fileClose(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	PKS_VALUE_TYPE t = types_typeIndexFor("FILE");
+	if (nArgs < 1 || pValues[0].sym_type != t) {
+		interpreter_raiseError("No file pointer passed to FileClose");
+	}
+	TYPED_OBJECT_POINTER p = memory_getNestedObjectPointer(pValues[0], 0);
+	if (p) {
+		fclose((FILE*)TOP_DATA_POINTER(p));
+		memory_setNestedPointer(pValues[0], 0, (MAKE_TYPED_OBJECT_POINTER(0, 0, 0)));
+	}
+	return (PKS_VALUE) {
+		.sym_type = VT_BOOLEAN, .sym_data.booleanValue = 1
+	};
+}
+
 
