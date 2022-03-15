@@ -287,6 +287,19 @@ PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType,
 			}
 			pData->od_data.objects[i] = pszPointer;
 		}
+	} else if (sType == VT_MAP && pInput) {
+		size_t nLen = pData->od_size;
+		HASHMAP* pMap = memory_accessMap(pData);
+		for (int i = 0; i < nLen-1; i += 2) {
+			TYPED_OBJECT_POINTER pszPointer1 = (TYPED_OBJECT_POINTER)arraylist_get((ARRAY_LIST*)pInput, i);
+			TYPED_OBJECT_POINTER pszPointer2 = (TYPED_OBJECT_POINTER)arraylist_get((ARRAY_LIST*)pInput, i+1);
+			PKS_VALUE_TYPE t = TOP_TYPE(pszPointer2);
+			pszPointer1 = MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, memory_createObjectData(pContext, VT_STRING, 0, TOP_DATA_POINTER(pszPointer1)));
+			if (t == VT_STRING || t == 0) {
+				pszPointer2 = MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, memory_createObjectData(pContext, VT_STRING, 0, TOP_DATA_POINTER(pszPointer2)));
+			}
+			hashmap_put(pMap, pszPointer1, pszPointer2);
+		}
 	}
 	return (PKS_VALUE) { .sym_type = sType, .sym_data.objectPointer = pData, .pkv_isPointer = 1, .pkv_managed = 1 };
 }

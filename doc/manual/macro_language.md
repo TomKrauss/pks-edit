@@ -111,8 +111,8 @@ PKSMacroC supports **literals** for defining int, string, boolean, float, char, 
   Examples are "hello\nworld" or "this is my \"favorite\" movie"
 - array type literal support currently only the specification of simple arrays - not nested ones. The individual elements are enclosed in 
  `{`and `}` and seperated  by `,`. Examples: `{ "hello", "world" }` or `{ true, 42, "oscar"}`.
-- Literals for maps are not yet fully supported. They are enclosed in round brackets and the key and values are associated using `=>` as in:
-  `( "key" => 42, "key" => "valueforKey2", ...)`
+- Literals for maps are not yet fully supported. They are enclosed in square brackets and the key and values are associated using `=>` as in:
+  `[ "key" => 42, "key" => "valueforKey2", ...]`
 
 ## PKSMacroC operators
 

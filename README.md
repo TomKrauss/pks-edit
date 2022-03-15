@@ -72,11 +72,10 @@ To change, edit, compile and run the source code of PKS Edit, we recommend to us
 edition will do it - you do not need a professional or enterprise edition. Simply
 open the Pksedit.sln solution and run / debug / build it.
 
-To enhance the macro compiler, you need flex and bison. You may download flex and bison from
-here:
-- http://gnuwin32.sourceforge.net/packages/flex.htm
-- http://gnuwin32.sourceforge.net/packages/bison.htm
-Install flex and bison into a directory GNU_HOME and set the environment variable GNU_HOME to
+To enhance the macro compiler, you need win__flex and win__bison. You may download flex and bison from
+here. We currently use the latest version 2.5.25.
+- https://github.com/lexxmark/winflexbison
+Install win_flex and win_bison into a directory GNU_HOME/bin and set the environment variable GNU_HOME to
 point to that directory: The bin directory containing the files should be below GNU_HOME.
 
 In order to edit the or execute the installation script (pksedit.iss), you need to download

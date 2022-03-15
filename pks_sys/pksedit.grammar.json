@@ -71,6 +71,7 @@
             "long",
             "boolean",
             "map",
+            "require",
             "true",
             "false",
             "float"

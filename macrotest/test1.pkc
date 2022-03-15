@@ -1,8 +1,11 @@
 
 namespace test;
 
+require "unittest";
+
 const PI = 3.14159265359d;
 const QUOTE = '\'';
+const ENOENT = 2;
 
 static int errorCount;
 static int successCount;
@@ -21,12 +24,15 @@ static int sampleGlobal = 18;
  */
 void Suite() {
 	int assertionCount;
-	// (T) Introduce setup concept
-	sampleGlobal = 18;
 
 	errorCount = 0;
 	testcaseCount = 0;
 	clear();
+
+	for (string setup : FunctionNamesMatching("Setup-.*", LMT_STATIC_MACROS)) {
+		*setup();
+	}
+
 	for (string s : FunctionNamesMatching("Test-.*", LMT_STATIC_MACROS)) {
 		Run-TestCase(s);
 	}
@@ -87,6 +93,10 @@ static void XTest-Console-Stress() {
 
 }
 
+static void Setup-Suite() {
+	sampleGlobal = 18;
+}
+
 /*
  * Tests operations on files.
  */
@@ -100,8 +110,13 @@ static void Test-FileIO() {
 	s = FileReadLine(fp);
 	AssertTrue(size(s) > 1);
 
-	// not necessary - will be closed by garbagge collector.
+	// not necessary - would be closed by garbagge collector.
 	FileClose(fp);
+
+	fp = FileOpen("FileWhichDoesNotExist.c", "r");
+	AssertTrue(fp == false);
+	// no such file or directory
+	AssertEquals(ENOENT, GetLastError());
 
 }
 
@@ -171,13 +186,14 @@ static void Test-Arrays() {
 	AssertEquals("hello", mixedArray[2]);
 }
 
-static void Test-Maps() {
-	map demoMap = (
-		"x" => 12,
-		"y" => "z"
-	);
+void Test-Maps() {
+	map demoMap = [
+		"fritz" => 42,
+		"franz" => "otto"
+	];
 	string s;
 
+	AssertEquals(42, demoMap["fritz"]);
 	demoMap["hello"] = "world";
 	demoMap["world"] = "mars";
 	demoMap["mars"] = 42;

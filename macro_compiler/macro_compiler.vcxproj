@@ -93,22 +93,22 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">set path=$(GNU_HOME)\bin;%PATH% &amp;&amp; bison -d Parser.y &amp;&amp; move parser.tab.c parser.c &amp;&amp; move parser.tab.h parser.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">set path=$(GNU_HOME)\bin;%PATH% &amp;&amp; win_bison.exe -d Parser.y --output=parser.c --header=parser.h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Running Bison</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">parser.c;parser.h</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">parser.c;parser.h</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Running Bison</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">set path=$(GNU_HOME)\bin;%PATH% &amp;&amp; bison -d Parser.y &amp;&amp; move parser.tab.c parser.c  &amp;&amp; move parser.tab.h parser.h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">set path=$(GNU_HOME)\bin;%PATH% &amp;&amp; win_bison.exe -d Parser.y --output=parser.c --header=parser.h</Command>
     </CustomBuild>
     <CustomBuild Include="SCANNER.L">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GNU_HOME)\bin\flex.exe -L scanner.l -&amp;&amp; move lex.yy.c scanner.c</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GNU_HOME)\bin\win_flex.exe scanner.l -&amp;&amp; move lex.yy.c scanner.c</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Running Flex</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">scanner.c</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Running Flex</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(GNU_HOME)\bin\flex.exe -L scanner.l -&amp;&amp; move lex.yy.c scanner.c</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(GNU_HOME)\bin\win_flex.exe scanner.l -&amp;&amp; move lex.yy.c scanner.c</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">scanner.c</Outputs>
     </CustomBuild>
   </ItemGroup>

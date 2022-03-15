@@ -95,10 +95,7 @@ void interpreter_raiseError(const char* pFormat, ...) {
 	longjmp(_currentJumpBuffer, 1);
 }
 
-/*
- * Decode a push-arraylist operation and convert to an array list. 
- */
-static PKS_VALUE interpreter_decodeArrayList(EXECUTION_CONTEXT* pContext, COM_ARRAYLITERAL* pPointer) {
+static ARRAY_LIST* interpreter_extractArrayListFromBytecodes(COM_ARRAYLITERAL* pPointer) {
 	ARRAY_LIST* pList = arraylist_create(pPointer->length);
 	char* p = pPointer->strings;
 	for (int i = 0; i < pPointer->length; i++) {
@@ -108,14 +105,33 @@ static PKS_VALUE interpreter_decodeArrayList(EXECUTION_CONTEXT* pContext, COM_AR
 			while (*p++) {
 
 			}
-		} else {
+		}
+		else {
 			long l;
 			memcpy(&l, p, sizeof l);
 			p += sizeof l;
 			arraylist_add(pList, (void*)MAKE_TYPED_OBJECT_POINTER(0, t, l));
 		}
 	}
+	return pList;
+}
+
+/*
+ * Decode a push-arraylist operation and convert to an array list. 
+ */
+static PKS_VALUE interpreter_decodeArrayList(EXECUTION_CONTEXT* pContext, COM_ARRAYLITERAL* pPointer) {
+	ARRAY_LIST* pList = interpreter_extractArrayListFromBytecodes(pPointer);
 	PKS_VALUE v = memory_createObject(pContext, VT_OBJECT_ARRAY, 0, pList);
+	arraylist_destroy(pList);
+	return v;
+}
+
+/*
+ * Decode a push-arraylist operation and convert to an array list.
+ */
+static PKS_VALUE interpreter_decodeMap(EXECUTION_CONTEXT* pContext, COM_ARRAYLITERAL* pPointer) {
+	ARRAY_LIST* pList = interpreter_extractArrayListFromBytecodes(pPointer);
+	PKS_VALUE v = memory_createObject(pContext, VT_MAP, 0, pList);
 	arraylist_destroy(pList);
 	return v;
 }
@@ -146,6 +162,8 @@ static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsi
 	}
 	case C_PUSH_ARRAY_LITERAL:
 		return interpreter_decodeArrayList(pContext, (COM_ARRAYLITERAL*)pInstructionPointer);
+	case C_PUSH_MAP_LITERAL:
+		return interpreter_decodeMap(pContext, (COM_ARRAYLITERAL*)pInstructionPointer);
 	case C_PUSH_STRING_LITERAL:
 		return memory_createObject(pContext, VT_STRING, 0, ((COM_STRING1*)pInstructionPointer)->s);
 	case C_PUSH_VARIABLE:
@@ -384,6 +402,7 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 		case C_PUSH_SMALL_INT_LITERAL:
 		case C_PUSH_BOOLEAN_LITERAL:
 			return sizeof(COM_CHAR1);
+		case C_PUSH_MAP_LITERAL:
 		case C_PUSH_ARRAY_LITERAL:
 			return ((COM_ARRAYLITERAL*)(s - 1))->totalBytes;
 		case C_1FUNC:
@@ -866,6 +885,7 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 		case C_PUSH_INTEGER_LITERAL:
 		case C_PUSH_VARIABLE:
 		case C_PUSH_ARRAY_LITERAL: 
+		case C_PUSH_MAP_LITERAL:
 		case C_PUSH_STRING_LITERAL: {
 			PKS_VALUE value = interpreter_getValueForOpCode(pContext, pInstr);
 			interpreter_pushValueOntoStack(pContext, value);

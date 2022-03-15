@@ -16,16 +16,16 @@
  */
 %}
 
-%error-verbose
+%define parse.error verbose
 
-%token T_NAMESPACE T_STATIC T_FOR 
+%token T_NAMESPACE T_REQUIRE T_STATIC T_FOR 
 %token T_TYPE_IDENTIFIER
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_CHARACTER T_CONST
 %token T_TRUE T_FALSE T_TBOOLEAN
 %token T_FUNC T_MACRO T_DOTDOT T_PLUSPLUS T_MINUSMINUS
 %token T_IF T_ELIF T_ELSE T_WHILE T_GOTO T_BRAEQ
 %token T_SH_ASSIGN_PLUS T_SH_ASSIGN_MINUS T_SH_ASSIGN_MULT T_SH_ASSIGN_DIV T_SH_ASSIGN_MOD
-%token T_LOCAL T_SWITCH T_BREAK T_CONTINUE T_RETURN 
+%token T_LOCAL T_SWITCH T_CASE T_BREAK T_CONTINUE T_RETURN 
 %token T_VARIABLE T_ASSOC_ARROW 
 %token T_NMATCH
 %token T_ASSIGN T_NE T_EQ T_SHIFT_LEFT T_SHIFT_RIGHT 
@@ -49,6 +49,7 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include <stddef.h>
 
 #include "alloc.h"
 #include "pksmacro.h"
@@ -57,6 +58,9 @@
 #include "test.h"
 #include "symbols.h"
 #include "arraylist.h"
+
+# define	YYPTRDIFF_T ptrdiff_t
+# define	YYPTRDIFF_MAXIMUM SIZE_MAX
 
 # define 	YYSTYPE _YYSTYPE
 # define 	STRINGTYPE(type)	((type == C_PUSH_STRING_LITERAL||type == C_PUSH_VARIABLE) ? \
@@ -99,11 +103,11 @@ static 		char *lstartid  = "%ls%",
 				*ifdoneid  = "%id%";
 
 int			vname_count;
-extern 		int	yyerrflg;
 extern 		int	_bDefiningConst;
 extern char*    _yyCurrentComment;
-extern void		yyerror(char* s, ...);
+extern void		yyerror(const char* s, ...);
 extern void		yywarning(char* s, ...);
+extern void		yyrequire(const char* pszNamespace);
 int				function_getIndexOfFunction(void *ep);
 int 			function_parameterIsFormStart(void *ep,int parno);
 extern int macro_lookupNamespace(const char* pszNamespacename);
@@ -179,13 +183,22 @@ int yydebug = 1;
 			macro_definitions 
 
 header_declarations:
-			namespace global_declarations
+			namespace prerequisites global_declarations
 
 namespace:  {
 				_currentNamespaceIndex = macro_lookupNamespace(MACRO_NAMESPACE_DEFAULT);
 			}
 			| T_NAMESPACE T_IDENT ';' {
 				_currentNamespaceIndex = macro_lookupNamespace($2.ident.s);
+				free($2.ident.s);
+			}
+
+prerequisites:
+			|
+			require prerequisites
+
+require:	T_REQUIRE T_STRING ';' {
+				yyrequire($2.ident.s);
 				free($2.ident.s);
 			}
 
@@ -303,22 +316,20 @@ par_decl:	type_name variable_identifier {
 			}
 
 macro_definition: scope macrostart block {
-				if (!yyerrflg) {
-					bytecode_generateAutoLabelNamePrefix(lreturnid,0);
-					bytecode_destroyAutoLabelNamePrefix(lreturnid,0);
-					macro_validateMacroName($2.ident.s, -1, 1);
-					YY_EMIT(C_STOP, (GENERIC_DATA){1});
-					_compilerConfiguration->cb_showStatus("Defining macro %s",$2.ident.s);
-					MACRO_PARAM param = {
-						.mp_name = $2.ident.s,
-						.mp_comment = _yyCurrentComment,
-						.mp_bytecodeLength = _bytecodeBuffer.bb_current - _bytecodeBuffer.bb_start,
-						.mp_buffer = _bytecodeBuffer.bb_start,
-						.mp_scope = _macroScope,
-						.mp_namespaceIdx = _currentNamespaceIndex
-					};
-					_compilerConfiguration->cb_insertNewMacro(&param);
-				}
+				bytecode_generateAutoLabelNamePrefix(lreturnid,0);
+				bytecode_destroyAutoLabelNamePrefix(lreturnid,0);
+				macro_validateMacroName($2.ident.s, -1, 1);
+				YY_EMIT(C_STOP, (GENERIC_DATA){1});
+				_compilerConfiguration->cb_showStatus("Defining macro %s",$2.ident.s);
+				MACRO_PARAM param = {
+					.mp_name = $2.ident.s,
+					.mp_comment = _yyCurrentComment,
+					.mp_bytecodeLength = _bytecodeBuffer.bb_current - _bytecodeBuffer.bb_start,
+					.mp_buffer = _bytecodeBuffer.bb_start,
+					.mp_scope = _macroScope,
+					.mp_namespaceIdx = _currentNamespaceIndex
+				};
+				_compilerConfiguration->cb_insertNewMacro(&param);
 				freeitem(&$2.ident.s);
 				freeitem(&_yyCurrentComment);
 				bytecode_closeOpenLabels();
@@ -383,7 +394,7 @@ assignment: variable_reference assignment_expression {
 			|
 			variable_reference {
 				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
-			} shorthand_assignment_operator arithmetic_expression {
+			} shorthand_assignment_operator simple_expression {
 				YY_EMIT(C_BINOP, (GENERIC_DATA){$3.type});
 				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
 				vname_count = 0;
@@ -396,10 +407,7 @@ shorthand_assignment_operator:
 			| T_SH_ASSIGN_PLUS { $$.type = BIN_ADD; }
 			| T_SH_ASSIGN_MINUS { $$.type = BIN_SUB; }
 
-assignment_expression:	T_ASSIGN arithmetic_expression	{ $$.v = $2.v;	}
-
-arithmetic_expression: simple_expression	{ $$.v = $1.v; }
-			| '(' simple_expression ')'		{ $$.v = $2.v; }
+assignment_expression:	T_ASSIGN simple_expression	{ $$.v = $2.v;	}
 
 simple_expression: binary_expression { $$.v = $1.v; }
 			| range_expression
@@ -422,7 +430,8 @@ increment_expression:
 s_bterm: 	value { $$.v = $1.v; }
 			| call_expression 
 
-binary_expression:	s_bterm  { $$.type = $1.type;	}
+binary_expression:
+			s_bterm  { $$.type = $1.type;	}
 			| type_cast s_bterm		{
 				$$.type = $1.type;
 				_bytecodeBuffer.bb_current = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_CAST, $$.type);
@@ -437,8 +446,9 @@ binary_expression:	s_bterm  { $$.type = $1.type;	}
 				}
 			}
 			| binary_expression '[' binary_expression_or_range ']' { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); }
+			| '!' binary_expression { $$.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NOT}); }
 			| '~' binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_NOT}); }
-			| '+' binary_expression { $$.v = $2.v }
+			| '+' binary_expression { $$.v = $2.v; }
 			| '-' binary_expression { _bytecodeBuffer.bb_current = bytecode_emitMultiplyWithLiteralExpression(&_bytecodeBuffer, &$2.v, -1); }
 			| binary_expression '~' binary_expression   { $$.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_MATCH}); }
 			| binary_expression T_NMATCH binary_expression   { $$.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NMATCH}); }
@@ -462,21 +472,17 @@ binary_expression:	s_bterm  { $$.type = $1.type;	}
 			| binary_expression T_EQ binary_expression { $$.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_EQ}); }
 			| binary_expression T_NE binary_expression { $$.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NE}); }
 			| '(' binary_expression ')'	{ $$.v = $2.v; }
+			| variable_reference assignment_expression {
+				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
+				vname_count = 0;
+			}
 
 /*----- conditions ------------------------------------------*/
 
-condition:	'(' logical_expression ')'
-			| '(' binary_expression ')'
-			| '(' logical_expression {
+condition:	'(' binary_expression ')'
+			| '(' binary_expression {
 				yyerror("Missing closing parenthesis )");
 			}
-
-logical_expression:	
-			| term
-			| '!' logical_expression { $$.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NOT}); }
-
-term:		call_expression { $$.type = VT_NUMBER; 	 	}
-			| value {	$$.type = $1.type;	}
 
 value:		T_VARIABLE {
 				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
@@ -490,9 +496,11 @@ value:		T_VARIABLE {
 			| simple_literal {	$$.type = $1.type;	}
 			| map_literal {
 				$$.type = VT_MAP;
-				yywarning("Map literals not yet supported");
+				YY_EMIT(C_PUSH_MAP_LITERAL, (GENERIC_DATA){.stringList=_currentArrayLiteral});
+				bytecode_destroyArraylistWithPointers(_currentArrayLiteral);
+				_currentArrayLiteral = 0;
 			}
-			| array_literal {	
+			| array_literal {
 				$$.type = VT_OBJECT_ARRAY;
 				YY_EMIT(C_PUSH_ARRAY_LITERAL, (GENERIC_DATA){.stringList=_currentArrayLiteral});
 				bytecode_destroyArraylistWithPointers(_currentArrayLiteral);
@@ -504,15 +512,24 @@ value:		T_VARIABLE {
 				$$.v.data.string  = $1.ident.s;
 			}
 
-map_literal: '(' map_associates ')'
+map_literal: '[' {
+				_currentArrayLiteral = arraylist_create(1);
+			} map_associates ']'
 
 map_associates:
+			map_associate
+			|
 			map_associates ',' map_associate
-			| map_associate
 
 map_associate:
-			T_STRING T_ASSOC_ARROW simple_literal { free($1.ident.s); }
-			| T_STRING T_ASSOC_ARROW T_STRING	  { free($1.ident.s); free($3.ident.s); }
+			T_STRING T_ASSOC_ARROW simple_literal { 
+				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, $1.ident.s));
+				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(0, $3.v.type, $3.v.data.longValue));
+			}
+			| T_STRING T_ASSOC_ARROW T_STRING { 
+				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, $1.ident.s));
+				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, $3.ident.s));
+			}
 
 array_literal: '{' {
 				_currentArrayLiteral = arraylist_create(1);
@@ -570,10 +587,12 @@ optional_bterm:
 opt_num	: 	{	$$.num = 1;	}
 			| T_NUM	{	$$.num = $1.num; }
 
-case:		T_SWITCH condition '{' caselabels '}'
+case:		T_SWITCH condition '{' case_expressions '}'
 
-caselabels:
-			| label block caselabels
+case_expressions:
+			| case_expression case_expressions
+
+case_expression: T_CASE label block
 
 label:		T_IDENT ':' {
 				bytecode_createBranchLabel(&_bytecodeBuffer, $1.ident.s);
@@ -665,13 +684,17 @@ stmntlist:	{ $$.needsPop = 0; }
 				}
 			} stmntlist
 
+closing_paren:
+				')'
+				| error {		yyerror("Missing closing )"); }
+
 call_expression: T_FUNC '(' {
 				// Native call
 				_currentNativeMethodCalled = $1.funcp;
 				_currentFunctionCallParamIndexP++;
 				*_currentFunctionCallParamIndexP = 0;
 				$$.funcp = $1.funcp;
-			} parameter_list ')' {
+			} parameter_list closing_paren {
 				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction($1.funcp)}, *_currentFunctionCallParamIndexP);
 				_currentFunctionCallParamIndexP--;
 				_currentNativeMethodCalled = 0;
@@ -681,7 +704,7 @@ call_expression: T_FUNC '(' {
 				_currentFunctionCallParamIndexP++;
 				*_currentFunctionCallParamIndexP = 0;
 				$$.funcp = 0;
-			} parameter_list ')' {
+			} parameter_list closing_paren {
 				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, _functionCallOp,(GENERIC_DATA){.string = $1.ident.s}, *_currentFunctionCallParamIndexP);
 				_currentFunctionCallParamIndexP--;
 				freeitem(&$1.ident.s);
@@ -898,7 +921,6 @@ int	yydebug = 1;
 	_currentNativeMethodCalled  = 0;
 	_breaklevel = 0;
 	_iflevel    = 0;
-	yyerrflg = 0;
 	_currentIdentifierContext = sym_pushContext(_currentIdentifierContext);
 }
 

@@ -19,24 +19,28 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <io.h>
 
-#include "alloc.h"
-#include "stringutil.h"
-#include "pksmacro.h"
-#include "pksmacrocvm.h"
-#include "symbols.h"
+#include "../include/alloc.h"
+#include "../include/stringutil.h"
+#include "../include/arraylist.h"
+#include "../include/pksmacro.h"
+#include "../include/pksmacrocvm.h"
+#include "../include/symbols.h"
 #include "scanner.h"
 #define YYSTYPE _YYSTYPE
 #include "parser.h"
-#include "linkedlist.h"
-#include "documentmodel.h"
-#include "crossreferencelinks.h"
+#include "../include/linkedlist.h"
+#include "../include/documentmodel.h"
+#include "../include/crossreferencelinks.h"
 
+#define isatty _isatty
 //
 // work around for flex generating redundant goto label, when line numbers option is used
 //
 #pragma warning(disable: 4102)
 
+#define YY_NO_UNISTD_H
 #define fileno(x)		_fileno(x)
 #define YY_FATAL_ERROR(msg) yyerror( msg )
 
@@ -59,7 +63,7 @@
 
 typedef struct yyerrstruct {
 	char	*srcname;
-	char	errname[84];
+	char	errname[200];
 	FILE	*errfp;
 	int		yynerr,yynwarn;
 	int		yymaxerr,yymaxwarn;
@@ -78,6 +82,7 @@ extern int 		function_initializeFunctionsAndTypes(void);
 extern long 	function_enumValueFor(void *enp);
 extern int		_macrosWereChanged;
 extern void		types_registerDefaultTypes();
+int yylex_destroy ( void );
 
 #if defined(STAND_ALONE)
 static FILE *_lexFp;
@@ -92,10 +97,12 @@ static struct kw {
 } keywords[] = {
 	T_VOID,		"void",
 	T_CONST,	"const",
+	T_REQUIRE,	"require",
 	T_IF,		"if",
 	T_ELSE,		"else",
 	T_ELIF,		"elif",
 	T_SWITCH,	"switch",
+	T_CASE,		"case",
 	T_WHILE,	"while",
 	T_CONTINUE,	"continue",
 	T_BREAK,	"break",
@@ -141,18 +148,8 @@ static int cmdgetc(void )
 # else
 static unsigned char 	*_lexStart,*_lexEnd;
 static LINE			*_lexLine,*_lexLastLine;
-/*---------------------------------*/
-/* LexInit()					*/
-/*---------------------------------*/
-static void LexInit(LINE *lps, LINE *lpe)
-{
-	_lexLine  	= lps;
-	_lexLastLine 	= lpe;
-	_lexStart 	= lps->lbuf;
-	_lexEnd   	= &_lexStart[lps->len];
-}
 
-static yyreport(char* s, int bError, va_list ap) {
+static yyreport(const char* s, int bError, va_list ap) {
 	char buf1[512];
 	char buf[512];
 	if (!yyerr.srcname)
@@ -160,7 +157,6 @@ static yyreport(char* s, int bError, va_list ap) {
 
 	if (yyerr.errfp != 0 ||
 		(yyerr.errfp = file_createTempFile(yyerr.errname, "pksmacro.err")) != 0) {
-		yyerrflg = 1;
 		wvsprintf(buf1, s, ap);
 		sprintf(buf, "%s %s %d: %s\n", (bError) ? "Error" : "Warning", yyerr.srcname, yylineno, buf1);
 		fprintf(yyerr.errfp, buf);
@@ -181,7 +177,7 @@ static yyreport(char* s, int bError, va_list ap) {
 /*---------------------------------*/
 /* yyerror()					*/
 /*---------------------------------*/
-void yyerror(char* s, ...) {
+void yyerror(const char* s, ...) {
 	va_list ap;
 
     va_start(ap,s);
@@ -189,12 +185,19 @@ void yyerror(char* s, ...) {
 	va_end(ap);
 }
 
-void yywarning(char* s, ...) {
+void yywarning(const char* s, ...) {
 	va_list ap;
 
     va_start(ap,s);
 	yyreport(s, 0, ap);
 	va_end(ap);
+}
+
+static void yy_initLinePointers(LINE* lps, LINE* lpe) {
+	_lexLine = lps;
+	_lexLastLine = lpe;
+	_lexStart = lps->lbuf;
+	_lexEnd = &_lexStart[lps->len];
 }
 
 /*---------------------------------*/
@@ -212,7 +215,7 @@ static int cmdgetc(void )
 		if (_lexLine != _lexLastLine &&
 		    (lp = _lexLine->next) != 0 && 
 		    lp->next != 0) {
-			LexInit(lp,_lexLastLine);
+			yy_initLinePointers(lp,_lexLastLine);
 			return '\n';
 		}
 		return EOF;
@@ -222,8 +225,15 @@ static int cmdgetc(void )
 
 # endif
 
+static ARRAY_LIST*      _dependencies;
 COMPILER_CONFIGURATION* _compilerConfiguration;
 char * _yyCurrentComment;
+
+void yyrequire(const char* pszNamespace) {
+	if (!macro_requireNamespace(_dependencies, yyerr.srcname, pszNamespace)) {
+		yyerror("Cannot locate source file for required namespace %s", pszNamespace);
+	}
+}
 
 /*---------------------------------*/
 /* yyinit()					*/
@@ -241,13 +251,15 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe)
 		types_registerDefaultTypes();
 		tables_inited = 1;
 	}
-	yyerrflg = 0;
 	yylineno = 1;
-	yyerr.yynwarn = 0;
-	yyerr.yynerr = 0;
-	yyerr.yymaxerr = 30;
-	yyerr.yymaxwarn= 30;
-	yyerr.failpt = errb;
+	if (pConfig->cb_topLevelFile) {
+		_dependencies = arraylist_create(11);
+		yyerr.yynwarn = 0;
+		yyerr.yynerr = 0;
+		yyerr.yymaxerr = 30;
+		yyerr.yymaxwarn = 30;
+		yyerr.failpt = errb;
+	}
 	if (yyerr.errfp) {
 		fclose(yyerr.errfp);
 		yyerr.errfp = 0;
@@ -260,7 +272,7 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe)
 		return 0;
 	}
 # else
-	LexInit(lps,lpe);
+	yy_initLinePointers(lps, lpe);
 # endif
 	return 1;
 }
@@ -281,8 +293,10 @@ int yyfinish(void)
 		free(_yyCurrentComment);
 		_yyCurrentComment = NULL;
 	}
-	yy_delete_buffer(yy_current_buffer);
-	yy_init = 1;
+	arraylist_destroyStringList(_dependencies);
+	_dependencies = 0;
+	yy_init = 0;
+	yylex_destroy();
 	if (yyerr.errfp) {
 		fprintf(yyerr.errfp,"\nTOTAL %d Errors\n",yyerr.yynerr);
 		fclose(yyerr.errfp);

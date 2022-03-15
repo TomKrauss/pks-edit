@@ -25,6 +25,7 @@
 #include "winfo.h"
 #include "winterf.h"
 #include "regexp.h"
+#include "fileutil.h"
 #include "fileselector.h"
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
@@ -245,6 +246,15 @@ MACRO *macro_getByIndex(int idx)
 int macro_getInternalIndexByName(const char *name)
 {
 	return macro_getIndexInTableByName(_macroTable, name);
+}
+
+/*---------------------------------
+ * macro_hasNamespace()
+ * Return true. if the namespace with the given name had been defined.
+ */
+BOOL macro_hasNamespace(const char* name)
+{
+	return macro_getIndexInTableByName(_namespaces, name) >= 0;
 }
 
 /*------------------------------------------------------------

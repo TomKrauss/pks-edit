@@ -65,9 +65,16 @@ extern size_t arraylist_size(ARRAY_LIST* pList);
 extern void arraylist_add(ARRAY_LIST* pList, void* pElement);
 
 /*
- * Returns the index of an element in the list. If it cannot be found, -1 is returned.
+ * Returns the index of an element in the list. The element is compared by identity.
+ * If it cannot be found, -1 is returned.
  */
 extern int arraylist_indexOf(const ARRAY_LIST* pList, const void* pElement);
+
+/*
+ * Returns the index of an element in the list. The object is located by using the passed comparison function,
+ * which must return 0 for equivalence. If it cannot be found, -1 is returned.
+ */
+extern int arraylist_indexOfComparing(const ARRAY_LIST* pList, const void* pElement, int (*compare)(const void* p1, const void* p2));
 
 /*
  * Returns the element at index. If the index is out of range NULL is returned.

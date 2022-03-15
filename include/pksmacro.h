@@ -50,9 +50,9 @@ typedef struct tagMACRO {
 	MACRO_SCOPE    mc_scope;				// The scope of a macro
 	unsigned char  mc_namespaceIdx;			// Index of the corresponding name space (or 0 for default namespace).
 	unsigned char* mc_name;					// the macro name
-	unsigned char* mc_comment;				// the macro name
-	unsigned int mc_bytecodeLength;			// total size of the macro in bytes.
-	unsigned char* mc_bytecodes;			// the actual bytecodes of the macro
+	unsigned char* mc_comment;				// the macro comment
+	unsigned int mc_bytecodeLength;			// total size of the macro byte code in bytes.
+	unsigned char* mc_bytecodes;			// the actual bytecode of the macro
 } MACRO;
 
 typedef struct tagMACRO_PARAM {
@@ -60,6 +60,7 @@ typedef struct tagMACRO_PARAM {
 	MACRO_SCOPE mp_scope;
 	char* mp_name;
 	char* mp_comment;
+	char* mp_sourceFile;
 	size_t mp_bytecodeLength;
 	void* mp_buffer;
 } MACRO_PARAM;
@@ -111,6 +112,12 @@ extern long long cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_
 extern MACRO* macro_getByIndex(int idx);
 
 /*---------------------------------
+ * macro_hasNamespace()
+ * Return true. if the namespace with the given name had been defined.
+ */
+extern BOOL macro_hasNamespace(const char* name);
+
+/*---------------------------------
  * macro_getInternalIndexByName()
  * Return the internal index of a macro given its name.
  */
@@ -137,6 +144,13 @@ extern ARRAY_LIST* macro_getNamespacesAndMacros();
  * List the names of known macros of a given type (used as flag).
  */
 extern ARRAY_LIST* macro_getFunctionNamesMatching(const char* pszPattern, LIST_MACRO_TYPES lTypes);
+
+/*
+ * A macro source file requires a namespace to be defined (loaded). If that is not the case
+ * load it first relative to the given source file. Returns 0, if the namespace cannot be located.
+ */
+extern int macro_requireNamespace(ARRAY_LIST* pSources, const char* pszSourcefile, const char* pszNamespacename);
+
 #endif
 
 /*------------------------------------------------------------

@@ -169,16 +169,29 @@ void* arraylist_get(ARRAY_LIST* pList, int nIndex) {
 }
 
 /*
- * Returns the index of an element in the list. If it cannot be found, -1 is returned.
+ * Returns the index of an element in the list. The object is located by using the passed comparison function,
+ * which must return 0 for equivalence. If it cannot be found, -1 is returned.
  */
-int arraylist_indexOf(const ARRAY_LIST* pList, const void* pElement) {
+int arraylist_indexOfComparing(const ARRAY_LIST* pList, const void* pElement, int (*compare)(const void* p1, const void* p2)) {
 	buf_t* pBuffer = pList->li_buffer;
 	for (int i = 0; i < pList->li_size; i++) {
-		if (pElement == (*pBuffer)[i]) {
+		if (compare(pElement, (*pBuffer)[i]) == 0) {
 			return i;
 		}
 	}
 	return -1;
+}
+
+static int arraylist_equalsObjects(const void* p1, const void* p2) {
+	return p1 == p2 ? 0 : 1;
+}
+
+/*
+ * Returns the index of an element in the list. The element is compared by identity. 
+ * If it cannot be found, -1 is returned.
+ */
+int arraylist_indexOf(const ARRAY_LIST* pList, const void* pElement) {
+	return arraylist_indexOfComparing(pList, pElement, arraylist_equalsObjects);
 }
 
 /**

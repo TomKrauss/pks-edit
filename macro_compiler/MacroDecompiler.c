@@ -206,6 +206,9 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 		case C_PUSH_ARRAY_LITERAL:
 			sprintf(pszBuf, "{ ... }");
 			return 1;
+		case C_PUSH_MAP_LITERAL:
+			sprintf(pszBuf, "[ \"x\" => 2 ]");
+			return 1;
 		case C_PUSH_FLOAT_LITERAL:
 			decompile_printValue(pszBuf, (PKS_VALUE) {
 				.sym_type = VT_FLOAT, .sym_data.doubleValue = ((COM_FLOAT1*)sp)->val
@@ -579,7 +582,8 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 		case C_PUSH_SMALL_INT_LITERAL: decompile_print(pBuf, "pushSmallIntLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_INTEGER_LITERAL: decompile_print(pBuf, "pushIntLiteral %d", ((COM_INT1*)sp)->val); break;
 		case C_PUSH_FLOAT_LITERAL: decompile_print(pBuf, "pushFloatLiteral %f", ((COM_FLOAT1*)sp)->val); break;
-		case C_PUSH_ARRAY_LITERAL: decompile_print(pBuf, "pushStringArrayLiteral size==%d", ((COM_ARRAYLITERAL*)sp)->length); break;
+		case C_PUSH_ARRAY_LITERAL: decompile_print(pBuf, "pushArrayLiteral size==%d", ((COM_ARRAYLITERAL*)sp)->length); break;
+		case C_PUSH_MAP_LITERAL: decompile_print(pBuf, "pushMapLiteral size==%d", ((COM_ARRAYLITERAL*)sp)->length); break;
 		case C_PUSH_BOOLEAN_LITERAL: decompile_print(pBuf, "pushBooleanLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_CHARACTER_LITERAL: decompile_print(pBuf, "pushCharLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_STRING_LITERAL: decompile_print(pBuf, "pushStringLiteral %s", ((COM_STRING1*)sp)->s); break;

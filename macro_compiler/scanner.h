@@ -45,10 +45,6 @@ typedef union yytype {
 
 extern _YYSTYPE	yylval;
 
-#ifndef YYEOF
-#define YYEOF		0
-#endif
-
 extern unsigned char* bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char typ, GENERIC_DATA data);
 
 # endif	/* SCANNER_H */

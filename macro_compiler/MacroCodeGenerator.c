@@ -46,7 +46,7 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 			typ = C_PUSH_SMALL_INT_LITERAL;
 	}
 
-	if (typ == C_PUSH_ARRAY_LITERAL) {
+	if (typ == C_PUSH_ARRAY_LITERAL  || typ == C_PUSH_MAP_LITERAL) {
 		ARRAY_LIST* pList = data.stringList;
 		size_t nElements = arraylist_size(pList);
 		COM_ARRAYLITERAL* pLiteral = (COM_ARRAYLITERAL * )sp;
@@ -85,8 +85,9 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 	}
 
 	switch(typ) {
+		case C_PUSH_MAP_LITERAL:
 		case C_PUSH_ARRAY_LITERAL:
-		break;
+			break;
 		case C_STOP:
 		case C_SET_STACKFRAME:
 		case C_PUSH_BOOLEAN_LITERAL:

@@ -217,7 +217,9 @@ typedef enum {
 	C_PUSH_LONG_LITERAL  = 0x14, 			// Push long literal, pad, 1 long Parameter follows 
 	C_PUSH_FLOAT_LITERAL = 0x15, 			// Push floating point literal
 	C_PUSH_BOOLEAN_LITERAL   = 0x16,		// Push boolean literal 1 Ascii character follows 
-	C_PUSH_ARRAY_LITERAL = 0x17, 	// Push string array literal, n strings\0 follow  
+	C_PUSH_ARRAY_LITERAL = 0x17, 			// Push array literal, n PKSValues starting with a type byte and 
+											// either a string with \0 end or 4 bytes for other values (int etc...)
+	C_PUSH_MAP_LITERAL = 0x1C, 				// Push map literal, same format as array literal. Successive values are treated as key, value pairs
 	C_PUSH_VARIABLE = 0x18,					// variable reference to string
 	C_FORM_START = 0x19, 					// formular with parameters ...
 	
@@ -386,9 +388,10 @@ typedef struct tagMACRO_PARAM MACRO_PARAM;
 
 typedef struct tagCOMPILER_CONFIGURATION {
 	int (*cb_insertNewMacro)(MACRO_PARAM *pParam);
-	void  (*cb_showStatus)(char* s, ...);
-	BOOL cb_openErrorList;
-	char* cb_source;
+	void  (*cb_showStatus)(char* s, ...); 
+	BOOL cb_openErrorList;				// true, when the error list should be opened after compiling
+	BOOL cb_topLevelFile;				// set to true for "top-level" files to compile, must be false for files compiled as prerequisites for other files.
+	char* cb_source;					// The name of the source file
 } COMPILER_CONFIGURATION;
 
 extern COMPILER_CONFIGURATION* _compilerConfiguration;

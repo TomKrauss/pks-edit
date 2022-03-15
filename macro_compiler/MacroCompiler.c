@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "errordialogs.h"
+#include "arraylist.h"
 #include "alloc.h"
 #include "regexp.h"
 #include "documentmodel.h"
@@ -99,10 +100,11 @@ int mac_compileMacros()
 	jmp_buf 		errb;
 	if ((fp = ft_getCurrentDocument()) != 0) {
 		COMPILER_CONFIGURATION config = {
-			macro_insertNewMacro,
-			macro_showStatus,
-			TRUE,
-			fp->fname
+			.cb_insertNewMacro = macro_insertNewMacro,
+			.cb_showStatus = macro_showStatus,
+			.cb_topLevelFile = TRUE,
+			.cb_openErrorList = TRUE,
+			.cb_source = fp->fname
 		};
 		if (!setjmp(errb)) {
 			yyinit(&errb, &config, fp->firstl, fp->lastl->prev);
@@ -177,6 +179,30 @@ static BOOL macro_needsWrapper(const char* pszCode) {
 	return !match.matches;
 }
 
+/*
+ * A macro source file requires a namespace to be defined (loaded). If that is not the case
+ * load it first relative to the given source file.
+ */
+int macro_requireNamespace(ARRAY_LIST* pDependentFiles, const char* pszSourcefile, const char* pszNamespacename) {
+	if (macro_hasNamespace(pszNamespacename)) {
+		return 1;
+	}
+	char szPath[EDMAXPATHLEN];
+	char szFilename[80];
+	char szBuf[EDMAXPATHLEN];
+
+	string_splitFilename(pszSourcefile, szPath, 0);
+	sprintf(szFilename, "%s.pkc", pszNamespacename);
+	string_concatPathAndFilename(szBuf, szPath, szFilename);
+	if (arraylist_indexOfComparing(pDependentFiles, szBuf, _stricmp) >= 0) {
+		return 1;
+	}
+	if (file_exists(szBuf) < 0) {
+		return 0;
+	}
+	return 1;
+}
+
 /**
 * Execute a macro given a single line text to execute.
 * pszCode ist the string of code to execute. If bUnescape is true, we treat \ and " special
@@ -214,10 +240,11 @@ int macro_executeSingleLineMacro(const char *pszCode, BOOL bUnescape, const char
 	}
 	if (!(nFail = setjmp(errb))) {
 		COMPILER_CONFIGURATION config = {
-			macro_defineTemporaryMacro,
-			macro_noStatus,
-			FALSE,
-			(char*)pszContext
+			.cb_insertNewMacro = macro_defineTemporaryMacro,
+			.cb_showStatus = macro_noStatus,
+			.cb_topLevelFile = TRUE,
+			.cb_openErrorList = FALSE,
+			.cb_source = (char*)pszContext
 		};
 		yyinit(&errb, &config, ft.firstl, NULL);
 		yyparse();

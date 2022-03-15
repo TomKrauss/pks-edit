@@ -1,0 +1,70 @@
+namespace unittest;
+
+static int errorCount;
+static int successCount;
+static int testcaseCount;
+static string currentMethodExecuted;
+
+/**
+ * Our PKSMacroC test suite. Tests as well language features like expression evaluation
+ * or working with PKSMacroC values as also some primitive functions and operations like
+ * sprintf or the like, which are useful in the context of writing PKSMacroC scripts.
+ *
+ * Note, that the 1st macro definition in a file may not be static.
+ */
+void Suite() {
+	int assertionCount;
+
+	errorCount = 0;
+	testcaseCount = 0;
+	clear();
+
+	for (string setup : FunctionNamesMatching("Setup-.*", LMT_STATIC_MACROS)) {
+		*setup();
+	}
+
+	for (string s : FunctionNamesMatching("Test-.*", LMT_STATIC_MACROS)) {
+		Run-TestCase(s);
+	}
+	assertionCount = successCount+errorCount;
+	println();
+	println("Total # of Test-Cases " + testcaseCount + " with " + assertionCount + " assertions.");
+	if (errorCount > 0) {
+		println("Error: total status is ****FAILURE****.  " + errorCount + " test cases failed.");
+	} else {
+		println("Congratulations: all test cases succesfully executed");
+	}
+
+}
+
+static void AssertEquals(auto expected, auto result, string msg) {
+	if (expected != result) {
+		errorCount++;
+		if (!msg) {
+			msg = "assertion failed";
+		}
+		println("Error: Failure in " + currentMethodExecuted + ":" + msg + " " + expected + "(expected) is not equals to " + result);
+	} else {
+		successCount++;
+	}
+}
+
+static void AssertTrue(auto expected, string msg) {
+	AssertEquals(expected, true, msg);
+}
+
+static void AssertFalse(auto expected, string msg) {
+	AssertEquals(expected, false, msg);
+}
+
+static void Run-TestCase(string function) {
+	int t = GetTickCount();
+	currentMethodExecuted = function;
+	println(sprintf("\n#################### %D %t: starting test case '%s'...", function));
+	*function();
+	testcaseCount++;
+	t = GetTickCount() - t;
+	println(sprintf("finished. total time %d[ms]", t));
+}
+
+
