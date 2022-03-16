@@ -61,7 +61,7 @@ extern int 		EdExecute(long flags, long unused,
 extern int 		clp_getdata(void);
 extern long long	EdCharInsert(int c);
 extern int 		undo_lastModification(FTABLE *fp);
-extern int 		mac_compileMacros(void);
+extern int 		compiler_compileCurrentDocument(void);
 extern int		doctypes_addDocumentTypesToListView(HWND hwnd, const void* pSelected);
 
 extern long		_multiplier;
@@ -1566,7 +1566,7 @@ int EdPromptForCharacter(int ids_num)
 int EdCompileMacros(int bShowList)
 {
 	if (!bShowList || showWindowList(IDS_SELECTCOMPILEWINDOW)) {
-		return mac_compileMacros();
+		return compiler_compileCurrentDocument();
 	}
 	return 0;
 }

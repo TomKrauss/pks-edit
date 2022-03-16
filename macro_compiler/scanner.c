@@ -546,31 +546,23 @@ char *yytext;
 #include <stdarg.h>
 #include <io.h>
 
-#include "../include/alloc.h"
-#include "../include/stringutil.h"
-#include "../include/arraylist.h"
-#include "../include/pksmacro.h"
-#include "../include/pksmacrocvm.h"
-#include "../include/symbols.h"
+#include "alloc.h"
+#include "stringutil.h"
+#include "arraylist.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
+#include "symbols.h"
 #include "scanner.h"
 #define YYSTYPE _YYSTYPE
 #include "parser.h"
-#include "../include/linkedlist.h"
-#include "../include/documentmodel.h"
-#include "../include/crossreferencelinks.h"
 
 #define isatty _isatty
-//
-// work around for flex generating redundant goto label, when line numbers option is used
-//
-#pragma warning(disable: 4102)
 
 #define YY_NO_UNISTD_H
 #define fileno(x)		_fileno(x)
 #define YY_FATAL_ERROR(msg) yyerror( msg )
 
 #define YY_INPUT(buf,result,max_size) \
-	if ( 1) \
 		{ \
 		int c = '*', n; \
 		for ( n = 0; n < (int)max_size && \
@@ -581,22 +573,18 @@ char *yytext;
 		if ( c == EOF && ferror( yyin ) ) \
 			YY_FATAL_ERROR( "input in flex scanner failed" ); \
 		result = n; \
-		} \
-	else if ( ((result = (int)fread( buf, 1, max_size, yyin )) == 0) \
-		  && ferror( yyin ) ) \
-		YY_FATAL_ERROR( "input in flex scanner failed" );
+		} 
 
 typedef struct yyerrstruct {
-	char	*srcname;
-	char	errname[200];
-	FILE	*errfp;
-	int		yynerr,yynwarn;
-	int		yymaxerr,yymaxwarn;
-	jmp_buf	*failpt;
+	const char *srcname;
+	char		errname[200];
+	FILE		*errfp;
+	int			yynerr,yynwarn;
+	int			yymaxerr,yymaxwarn;
+	jmp_buf		*failpt;
 } YYERRSTRUCT;
 
 static YYERRSTRUCT	yyerr;
-int	  			yyerrflg;
 int				_bDefiningConst;
 
 typedef void EDFUNCDEF;
@@ -608,10 +596,6 @@ extern long 	function_enumValueFor(void *enp);
 extern int		_macrosWereChanged;
 extern void		types_registerDefaultTypes();
 int yylex_destroy ( void );
-
-#if defined(STAND_ALONE)
-static FILE *_lexFp;
-#endif
 
 /*---------------------------------*/
 /* keyword()					*/
@@ -628,13 +612,13 @@ static struct kw {
 	T_ELIF,		"elif",
 	T_SWITCH,	"switch",
 	T_CASE,		"case",
+	T_DEFAULT,	"default",
 	T_WHILE,	"while",
 	T_CONTINUE,	"continue",
 	T_BREAK,	"break",
 	T_RETURN,	"return",
 	T_LOCAL,	"local",
 	T_GOTO,		"goto",
-	T_BRAEQ,	"braeq",
 	T_NAMESPACE, "namespace",
 	T_FOR,		"for",
 	T_STATIC,	"static",
@@ -654,37 +638,15 @@ static int init_keywords(void)
 	return 1;
 }
 
-#if defined(STAND_ALONE)
-/*---------------------------------*/
-/* cmdgetc()					*/
-/*---------------------------------*/
-static int cmdgetc(void )
-{	
-	int	c;
-
-	if (yyleng > YY_BUF_SIZE -4) {
-		yyerror("token too long");
-		yyleng = 0;
-	}
-
-	return fgetc(_lexFp);
-}
-
-# else
-static unsigned char 	*_lexStart,*_lexEnd;
-static LINE			*_lexLine,*_lexLastLine;
-
 static yyreport(const char* s, int bError, va_list ap) {
 	char buf1[512];
-	char buf[512];
 	if (!yyerr.srcname)
 		yyerr.srcname = "STDIN";
 
 	if (yyerr.errfp != 0 ||
 		(yyerr.errfp = file_createTempFile(yyerr.errname, "pksmacro.err")) != 0) {
 		wvsprintf(buf1, s, ap);
-		sprintf(buf, "%s %s %d: %s\n", (bError) ? "Error" : "Warning", yyerr.srcname, yylineno, buf1);
-		fprintf(yyerr.errfp, buf);
+		fprintf(yyerr.errfp, "%s %s %d: %s\n", (bError) ? "Error" : "Warning", yyerr.srcname, yylineno, buf1);
 		fflush(yyerr.errfp);
 		if (bError && ++yyerr.yynerr >= yyerr.yymaxerr) {
 			fprintf(yyerr.errfp, "\n*** too many errors ***\n");
@@ -692,6 +654,7 @@ static yyreport(const char* s, int bError, va_list ap) {
 				longjmp(*yyerr.failpt, ERR_TOOMANYERR);
 		}
 		if (!bError && ++yyerr.yynwarn  >= yyerr.yymaxwarn) {
+			yyerr.yynerr++;
 			fprintf(yyerr.errfp, "\n*** too many warnings ***\n");
 			if (yyerr.failpt)
 				longjmp(*yyerr.failpt, ERR_TOOMANYERR);
@@ -718,44 +681,25 @@ void yywarning(const char* s, ...) {
 	va_end(ap);
 }
 
-static void yy_initLinePointers(LINE* lps, LINE* lpe) {
-	_lexLine = lps;
-	_lexLastLine = lpe;
-	_lexStart = lps->lbuf;
-	_lexEnd = &_lexStart[lps->len];
-}
+COMPILER_CONFIGURATION* _compilerConfiguration;
+static COMPILER_INPUT_STREAM	*_compilerInputStream;
 
 /*---------------------------------*/
 /* cmdgetc()					*/
 /*---------------------------------*/
-static int cmdgetc(void )
-{	LINE *lp;
+static int cmdgetc(void ) {
 
 	if (yyleng > YY_BUF_SIZE-4) {
 		yyerror("token too long");
 		yyleng = 0;
 	}
-
-	if (_lexStart >= _lexEnd) {
-		if (_lexLine != _lexLastLine &&
-		    (lp = _lexLine->next) != 0 && 
-		    lp->next != 0) {
-			yy_initLinePointers(lp,_lexLastLine);
-			return '\n';
-		}
-		return EOF;
-	}
-	return *_lexStart++;
+	return _compilerInputStream->cis_next(_compilerInputStream);
 }
 
-# endif
-
-static ARRAY_LIST*      _dependencies;
-COMPILER_CONFIGURATION* _compilerConfiguration;
 char * _yyCurrentComment;
 
 void yyrequire(const char* pszNamespace) {
-	if (!macro_requireNamespace(_dependencies, yyerr.srcname, pszNamespace)) {
+	if (!compiler_requireNamespace(_compilerConfiguration->cb_dependencies, yyerr.srcname, pszNamespace)) {
 		yyerror("Cannot locate source file for required namespace %s", pszNamespace);
 	}
 }
@@ -763,10 +707,11 @@ void yyrequire(const char* pszNamespace) {
 /*---------------------------------*/
 /* yyinit()					*/
 /*---------------------------------*/
-int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe) {
+int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig) {
 	static tables_inited;
 	YY_FLUSH_BUFFER;
 	_compilerConfiguration = pConfig;
+	_compilerInputStream = pConfig->cb_stream;
 	_currentIdentifierContext = sym_getGlobalCompilerContext();
 	if (!tables_inited) {
 		if (!init_keywords() ||
@@ -778,27 +723,18 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe)
 	}
 	yylineno = 1;
 	if (pConfig->cb_topLevelFile) {
-		_dependencies = arraylist_create(11);
-		yyerr.yynwarn = 0;
-		yyerr.yynerr = 0;
-		yyerr.yymaxerr = 30;
-		yyerr.yymaxwarn = 30;
-		yyerr.failpt = errb;
+		pConfig->cb_dependencies = arraylist_create(11);
+		if (yyerr.errfp) {
+			fclose(yyerr.errfp);
+			yyerr.errfp = 0;
+		}
 	}
-	if (yyerr.errfp) {
-		fclose(yyerr.errfp);
-		yyerr.errfp = 0;
-	}
+	yyerr.yynwarn = 0;
+	yyerr.yynerr = 0;
+	yyerr.yymaxerr = 30;
+	yyerr.yymaxwarn = 30;
+	yyerr.failpt = errb;
 	yyerr.srcname = pConfig->cb_source;
-
-#if defined(STAND_ALONE)
-	if ((_lexFp = fopen(sourcefile,"r")) == 0) {
-		yyerror("cannot open \"%s\"\n",sourcefile);
-		return 0;
-	}
-# else
-	yy_initLinePointers(lps, lpe);
-# endif
 	return 1;
 }
 
@@ -807,34 +743,30 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe)
 /*---------------------------------*/
 int yyfinish(void)
 {
-#if defined(STAND_ALONE)
-	if (_lexFp) {
-		fclose(_lexFp);
-		_lexFp = 0;
+	if (_compilerInputStream->cis_close) {
+		_compilerInputStream->cis_close(_compilerInputStream);
 	}
-#endif
-
 	if (_yyCurrentComment) {
 		free(_yyCurrentComment);
 		_yyCurrentComment = NULL;
 	}
-	arraylist_destroyStringList(_dependencies);
-	_dependencies = 0;
 	yy_init = 0;
 	yylex_destroy();
-	if (yyerr.errfp) {
-		fprintf(yyerr.errfp,"\nTOTAL %d Errors\n",yyerr.yynerr);
-		fclose(yyerr.errfp);
-		yyerr.errfp = 0;
-		yyerr.failpt = 0;
-		if (_compilerConfiguration->cb_openErrorList) {
-			xref_openSearchList(yyerr.errname,1);
+	_compilerConfiguration->cb_errorFile = yyerr.errname;
+	int nRet = 1;
+	_compilerConfiguration->cb_numberOfErrors += yyerr.yynerr;
+	_compilerConfiguration->cb_numberOfWarnings += yyerr.yynwarn;
+	if (yyerr.yynerr) {
+		if (yyerr.errfp) {
+			fclose(yyerr.errfp);
+			yyerr.errfp = 0;
 		}
-		return 0;
+		yyerr.failpt = 0;
+		nRet = 0;
 	} else {
-		_compilerConfiguration->cb_showStatus("No Errors detected");
+		_compilerConfiguration->cb_numberOfFilesCompiled++;
 	}
-	return 1;
+	return nRet;
 }
 
 /*---------------------------------*/
@@ -988,8 +920,8 @@ int yywrap(void )
 	return 1;
 }
 
-#line 991 "lex.yy.c"
-#line 992 "lex.yy.c"
+#line 923 "lex.yy.c"
+#line 924 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -1206,9 +1138,9 @@ YY_DECL
 		}
 
 	{
-#line 479 "scanner.l"
+#line 411 "scanner.l"
 
-#line 1211 "lex.yy.c"
+#line 1143 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1277,14 +1209,14 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 480 "scanner.l"
+#line 412 "scanner.l"
 {
 				return '-';
 			}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 483 "scanner.l"
+#line 415 "scanner.l"
 {
 				int c, lastC = 0;
 				int bSkip = 0;
@@ -1320,7 +1252,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 515 "scanner.l"
+#line 447 "scanner.l"
 {
 				int c;
 
@@ -1342,7 +1274,7 @@ YY_RULE_SETUP
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 532 "scanner.l"
+#line 464 "scanner.l"
 {	/* Character literal */
 				if (yytext[1] == '\\') {
 					yylval.num = quotedchar(yytext[2]);
@@ -1354,7 +1286,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 540 "scanner.l"
+#line 472 "scanner.l"
 {
 				yylval.num = number(yytext);
 				return T_NUM;
@@ -1362,7 +1294,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 544 "scanner.l"
+#line 476 "scanner.l"
 {
 				yylval.num = number(yytext);
 				return T_NUM;
@@ -1370,7 +1302,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 548 "scanner.l"
+#line 480 "scanner.l"
 {
 				yylval.num = number(yytext);
 				return T_NUM;
@@ -1378,12 +1310,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 552 "scanner.l"
+#line 484 "scanner.l"
 return T_DOTDOT;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 553 "scanner.l"
+#line 485 "scanner.l"
 {
 				int bFloat;
 				numberOrFloat(yytext, &yylval, &bFloat);
@@ -1392,48 +1324,48 @@ YY_RULE_SETUP
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 558 "scanner.l"
+#line 490 "scanner.l"
 {	return T_CMDSEQPREFIX; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 559 "scanner.l"
+#line 491 "scanner.l"
 {	;	}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 560 "scanner.l"
+#line 492 "scanner.l"
 {	;	}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 561 "scanner.l"
+#line 493 "scanner.l"
 {	;	}
 	YY_BREAK
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 562 "scanner.l"
+#line 494 "scanner.l"
 {	;	}	/* skip comments and white space */
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 563 "scanner.l"
+#line 495 "scanner.l"
 {	;	}	/* skip comments and white space */
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 564 "scanner.l"
+#line 496 "scanner.l"
 {	return T_PLUSPLUS; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 565 "scanner.l"
+#line 497 "scanner.l"
 {	return T_MINUSMINUS; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 566 "scanner.l"
+#line 498 "scanner.l"
 {	SYMBOL 	sym;
 				char *	key;
 
@@ -1502,100 +1434,100 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 631 "scanner.l"
+#line 563 "scanner.l"
 return T_EQ;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 632 "scanner.l"
+#line 564 "scanner.l"
 return T_NE;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 633 "scanner.l"
+#line 565 "scanner.l"
 return T_SHIFT_LEFT;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 634 "scanner.l"
+#line 566 "scanner.l"
 return T_SHIFT_RIGHT;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 635 "scanner.l"
+#line 567 "scanner.l"
 return T_POWER_TO;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 636 "scanner.l"
+#line 568 "scanner.l"
 return T_ASSOC_ARROW;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 637 "scanner.l"
+#line 569 "scanner.l"
 return T_LE;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 638 "scanner.l"
+#line 570 "scanner.l"
 return T_GE;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 639 "scanner.l"
+#line 571 "scanner.l"
 return T_SH_ASSIGN_MULT;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 640 "scanner.l"
+#line 572 "scanner.l"
 return T_SH_ASSIGN_PLUS;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 641 "scanner.l"
+#line 573 "scanner.l"
 return T_SH_ASSIGN_MINUS;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 642 "scanner.l"
+#line 574 "scanner.l"
 return T_SH_ASSIGN_DIV;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 643 "scanner.l"
+#line 575 "scanner.l"
 return T_SH_ASSIGN_MOD;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 644 "scanner.l"
+#line 576 "scanner.l"
 return T_NMATCH;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 645 "scanner.l"
+#line 577 "scanner.l"
 return T_AND;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 646 "scanner.l"
+#line 578 "scanner.l"
 return T_OR;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 647 "scanner.l"
+#line 579 "scanner.l"
 return T_ASSIGN;
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 648 "scanner.l"
+#line 580 "scanner.l"
 return yytext[0];
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 649 "scanner.l"
+#line 581 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 1598 "lex.yy.c"
+#line 1530 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2612,7 +2544,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 649 "scanner.l"
+#line 581 "scanner.l"
 
 
 

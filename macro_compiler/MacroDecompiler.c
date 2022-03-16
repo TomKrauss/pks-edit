@@ -565,7 +565,7 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 		case C_GOTO:
 			switch (((COM_GOTO*)sp)->branchType) {
 			case BRA_ALWAYS: decompile_print(pBuf, "goto 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
-			case BRA_IF_TRUE: decompile_print(pBuf, "branchIfTrue 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
+			case BRA_CASE: decompile_print(pBuf, "branchCase 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
 			case BRA_IF_FALSE: decompile_print(pBuf, "branchIfFalse 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
 			}
 			break;

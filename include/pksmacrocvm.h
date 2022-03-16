@@ -305,13 +305,16 @@ typedef struct tagCOM_DEFINE_SYMBOL {
 	unsigned char	name[1];		// variable name
 } COM_DEFINE_SYMBOL;
 
-#define	BRA_ALWAYS		0
-#define	BRA_IF_FALSE			1
-#define	BRA_IF_TRUE			2
+typedef enum {
+	BRA_ALWAYS = 0,
+	BRA_IF_FALSE = 1,
+	BRA_CASE = 2					// Used to evaluate case-labels of a switch expression. Will compare two stack top values and if they 
+									// match, perform a branch
+} BRANCH_TYPE;
 
 typedef struct tagCOM_GOTO {
 	unsigned char typ;				// C_GOTO, C_GOCOND */
-	unsigned char branchType;		// BRA_ALWAYS, BRA_IF_FALSE, BRA_IF_TRUE, */
+	unsigned char branchType;		// BRA_ALWAYS, BRA_IF_FALSE, BRA_CASE */
 	int		    offset;
 } COM_GOTO;
 
@@ -386,12 +389,25 @@ typedef struct BYTECODE_BUFFER {
 
 typedef struct tagMACRO_PARAM MACRO_PARAM;
 
+typedef struct tagCOMPILER_INPUT_STREAM {
+	void* cis_pointer;												// parameter for the stream implementation. Maybe for instance of type FILE* 
+																	// or point to some other structure necessary to handle the input.
+	int (*cis_next)(struct tagCOMPILER_INPUT_STREAM* pStream);		// Read one character from the input stream
+	void (*cis_close)(struct tagCOMPILER_INPUT_STREAM* pStream);	// Close the input stream
+} COMPILER_INPUT_STREAM;
+
 typedef struct tagCOMPILER_CONFIGURATION {
+	COMPILER_INPUT_STREAM* cb_stream;
 	int (*cb_insertNewMacro)(MACRO_PARAM *pParam);
 	void  (*cb_showStatus)(char* s, ...); 
-	BOOL cb_openErrorList;				// true, when the error list should be opened after compiling
-	BOOL cb_topLevelFile;				// set to true for "top-level" files to compile, must be false for files compiled as prerequisites for other files.
-	char* cb_source;					// The name of the source file
+	int  cb_numberOfFilesCompiled;									// Book keeping of the number of files compiled.
+	int  cb_numberOfErrors;											// Book keeping of the total number of errors during the compilation
+	int  cb_numberOfWarnings;										// Book keeping of the total number of warnings during the compilation
+	BOOL cb_topLevelFile;											// set to true for "top-level" files to compile, must be false for 
+																	// files compiled as prerequisites for other files.
+	const char* cb_source;											// The name of the source file
+	const char* cb_errorFile;										// The name of the file, where the errors and warnings are recorded.
+	void* cb_dependencies;											// Dependencies / required files also to load detected during analysis
 } COMPILER_CONFIGURATION;
 
 extern COMPILER_CONFIGURATION* _compilerConfiguration;

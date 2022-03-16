@@ -7,82 +7,22 @@ const PI = 3.14159265359d;
 const QUOTE = '\'';
 const ENOENT = 2;
 
-static int errorCount;
-static int successCount;
-static int testcaseCount;
-static string currentMethodExecuted;
+
+/*
+ * This file contains and defines some test cases for PKSMacroC. These can be executed by
+ * our generic unit testing Suite defined in namespace "unittest".
+ */
 
 // Define a namespace local variable
 static int sampleGlobal = 18;
 
-/**
- * Our PKSMacroC test suite. Tests as well language features like expression evaluation
- * or working with PKSMacroC values as also some primitive functions and operations like
- * sprintf or the like, which are useful in the context of writing PKSMacroC scripts.
- *
- * Note, that the 1st macro definition in a file may not be static.
- */
-void Suite() {
-	int assertionCount;
-
-	errorCount = 0;
-	testcaseCount = 0;
-	clear();
-
-	for (string setup : FunctionNamesMatching("Setup-.*", LMT_STATIC_MACROS)) {
-		*setup();
-	}
-
-	for (string s : FunctionNamesMatching("Test-.*", LMT_STATIC_MACROS)) {
-		Run-TestCase(s);
-	}
-	assertionCount = successCount+errorCount;
-	println();
-	println("Total # of Test-Cases " + testcaseCount + " with " + assertionCount + " assertions.");
-	if (errorCount > 0) {
-		println("Error: total status is ****FAILURE****.  " + errorCount + " test cases failed.");
-	} else {
-		println("Congratulations: all test cases succesfully executed");
-	}
-
-}
-
-static void AssertEquals(auto expected, auto result, string msg) {
-	if (expected != result) {
-		errorCount++;
-		if (!msg) {
-			msg = "assertion failed";
-		}
-		println("Error: Failure in " + currentMethodExecuted + ":" + msg + " " + expected + "(expected) is not equals to " + result);
-	} else {
-		successCount++;
-	}
-}
-
-static void AssertTrue(auto expected, string msg) {
-	AssertEquals(expected, true, msg);
-}
-
-static void AssertFalse(auto expected, string msg) {
-	AssertEquals(expected, false, msg);
-}
-
-static void Run-TestCase(string function) {
-	int t = GetTickCount();
-	currentMethodExecuted = function;
-	println(sprintf("\n#################### %D %t: starting test case '%s'...", function));
-	*function();
-	testcaseCount++;
-	t = GetTickCount() - t;
-	println(sprintf("finished. total time %d[ms]", t));
-}
-
 
 /*
+ * Note: the 1st method in a macro file must have a global scope currently.
  * Tests the console by opening clearing it several times. Can be used
  * to test the console as well stability as also performance wise.
  */
-static void XTest-Console-Stress() {
+void Console-Stress-Test() {
 	int i = 0;
 	while(i < 10) {
 		Test-Strings();
@@ -93,7 +33,10 @@ static void XTest-Console-Stress() {
 
 }
 
-static void Setup-Suite() {
+/*
+ * Found by naming convention and executed before the test suite is run.
+ */
+static void Setup-SuiteBaseTests() {
 	sampleGlobal = 18;
 }
 
@@ -157,9 +100,9 @@ static void Test-Sieve() {
 }
 
 static void Test-Arrays() {
-	string[] myArray = {"hello", "world", "how", "are", "you", "doing"};
-	string[] array2 = {"array", "two" };
-	string[] mixedArray = {1, true, "hello"};
+	string[] myArray = ["hello", "world", "how", "are", "you", "doing"];
+	string[] array2 = ["array", "two" ];
+	string[] mixedArray = [1, true, "hello"];
 	string[] extracted;
 	int[10] intArray;
 	int i = 0;
@@ -186,11 +129,28 @@ static void Test-Arrays() {
 	AssertEquals("hello", mixedArray[2]);
 }
 
-void Test-Maps() {
-	map demoMap = [
+/*
+ * Tests switch expressions.
+ */
+static void Test-SwitchExpressions() {
+	int cc;
+
+	cc = 3;
+	switch(cc) {
+		case 1: println("1"); break;
+		case 3: println("3"); break;
+		default: println("DEFAULT!"); break;
+	}
+}
+
+/*
+ * Tests creation, processing and accessing maps in PKSMacroC
+ */
+static void Test-Maps() {
+	map demoMap = {
 		"fritz" => 42,
 		"franz" => "otto"
-	];
+	};
 	string s;
 
 	AssertEquals(42, demoMap["fritz"]);

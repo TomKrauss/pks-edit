@@ -21,31 +21,23 @@
 #include <stdarg.h>
 #include <io.h>
 
-#include "../include/alloc.h"
-#include "../include/stringutil.h"
-#include "../include/arraylist.h"
-#include "../include/pksmacro.h"
-#include "../include/pksmacrocvm.h"
-#include "../include/symbols.h"
+#include "alloc.h"
+#include "stringutil.h"
+#include "arraylist.h"
+#include "pksmacro.h"
+#include "pksmacrocvm.h"
+#include "symbols.h"
 #include "scanner.h"
 #define YYSTYPE _YYSTYPE
 #include "parser.h"
-#include "../include/linkedlist.h"
-#include "../include/documentmodel.h"
-#include "../include/crossreferencelinks.h"
 
 #define isatty _isatty
-//
-// work around for flex generating redundant goto label, when line numbers option is used
-//
-#pragma warning(disable: 4102)
 
 #define YY_NO_UNISTD_H
 #define fileno(x)		_fileno(x)
 #define YY_FATAL_ERROR(msg) yyerror( msg )
 
 #define YY_INPUT(buf,result,max_size) \
-	if ( 1) \
 		{ \
 		int c = '*', n; \
 		for ( n = 0; n < (int)max_size && \
@@ -56,22 +48,18 @@
 		if ( c == EOF && ferror( yyin ) ) \
 			YY_FATAL_ERROR( "input in flex scanner failed" ); \
 		result = n; \
-		} \
-	else if ( ((result = (int)fread( buf, 1, max_size, yyin )) == 0) \
-		  && ferror( yyin ) ) \
-		YY_FATAL_ERROR( "input in flex scanner failed" );
+		} 
 
 typedef struct yyerrstruct {
-	char	*srcname;
-	char	errname[200];
-	FILE	*errfp;
-	int		yynerr,yynwarn;
-	int		yymaxerr,yymaxwarn;
-	jmp_buf	*failpt;
+	const char *srcname;
+	char		errname[200];
+	FILE		*errfp;
+	int			yynerr,yynwarn;
+	int			yymaxerr,yymaxwarn;
+	jmp_buf		*failpt;
 } YYERRSTRUCT;
 
 static YYERRSTRUCT	yyerr;
-int	  			yyerrflg;
 int				_bDefiningConst;
 
 typedef void EDFUNCDEF;
@@ -83,10 +71,6 @@ extern long 	function_enumValueFor(void *enp);
 extern int		_macrosWereChanged;
 extern void		types_registerDefaultTypes();
 int yylex_destroy ( void );
-
-#if defined(STAND_ALONE)
-static FILE *_lexFp;
-#endif
 
 /*---------------------------------*/
 /* keyword()					*/
@@ -103,13 +87,13 @@ static struct kw {
 	T_ELIF,		"elif",
 	T_SWITCH,	"switch",
 	T_CASE,		"case",
+	T_DEFAULT,	"default",
 	T_WHILE,	"while",
 	T_CONTINUE,	"continue",
 	T_BREAK,	"break",
 	T_RETURN,	"return",
 	T_LOCAL,	"local",
 	T_GOTO,		"goto",
-	T_BRAEQ,	"braeq",
 	T_NAMESPACE, "namespace",
 	T_FOR,		"for",
 	T_STATIC,	"static",
@@ -129,37 +113,15 @@ static int init_keywords(void)
 	return 1;
 }
 
-#if defined(STAND_ALONE)
-/*---------------------------------*/
-/* cmdgetc()					*/
-/*---------------------------------*/
-static int cmdgetc(void )
-{	
-	int	c;
-
-	if (yyleng > YY_BUF_SIZE -4) {
-		yyerror("token too long");
-		yyleng = 0;
-	}
-
-	return fgetc(_lexFp);
-}
-
-# else
-static unsigned char 	*_lexStart,*_lexEnd;
-static LINE			*_lexLine,*_lexLastLine;
-
 static yyreport(const char* s, int bError, va_list ap) {
 	char buf1[512];
-	char buf[512];
 	if (!yyerr.srcname)
 		yyerr.srcname = "STDIN";
 
 	if (yyerr.errfp != 0 ||
 		(yyerr.errfp = file_createTempFile(yyerr.errname, "pksmacro.err")) != 0) {
 		wvsprintf(buf1, s, ap);
-		sprintf(buf, "%s %s %d: %s\n", (bError) ? "Error" : "Warning", yyerr.srcname, yylineno, buf1);
-		fprintf(yyerr.errfp, buf);
+		fprintf(yyerr.errfp, "%s %s %d: %s\n", (bError) ? "Error" : "Warning", yyerr.srcname, yylineno, buf1);
 		fflush(yyerr.errfp);
 		if (bError && ++yyerr.yynerr >= yyerr.yymaxerr) {
 			fprintf(yyerr.errfp, "\n*** too many errors ***\n");
@@ -167,6 +129,7 @@ static yyreport(const char* s, int bError, va_list ap) {
 				longjmp(*yyerr.failpt, ERR_TOOMANYERR);
 		}
 		if (!bError && ++yyerr.yynwarn  >= yyerr.yymaxwarn) {
+			yyerr.yynerr++;
 			fprintf(yyerr.errfp, "\n*** too many warnings ***\n");
 			if (yyerr.failpt)
 				longjmp(*yyerr.failpt, ERR_TOOMANYERR);
@@ -193,44 +156,25 @@ void yywarning(const char* s, ...) {
 	va_end(ap);
 }
 
-static void yy_initLinePointers(LINE* lps, LINE* lpe) {
-	_lexLine = lps;
-	_lexLastLine = lpe;
-	_lexStart = lps->lbuf;
-	_lexEnd = &_lexStart[lps->len];
-}
+COMPILER_CONFIGURATION* _compilerConfiguration;
+static COMPILER_INPUT_STREAM	*_compilerInputStream;
 
 /*---------------------------------*/
 /* cmdgetc()					*/
 /*---------------------------------*/
-static int cmdgetc(void )
-{	LINE *lp;
+static int cmdgetc(void ) {
 
 	if (yyleng > YY_BUF_SIZE-4) {
 		yyerror("token too long");
 		yyleng = 0;
 	}
-
-	if (_lexStart >= _lexEnd) {
-		if (_lexLine != _lexLastLine &&
-		    (lp = _lexLine->next) != 0 && 
-		    lp->next != 0) {
-			yy_initLinePointers(lp,_lexLastLine);
-			return '\n';
-		}
-		return EOF;
-	}
-	return *_lexStart++;
+	return _compilerInputStream->cis_next(_compilerInputStream);
 }
 
-# endif
-
-static ARRAY_LIST*      _dependencies;
-COMPILER_CONFIGURATION* _compilerConfiguration;
 char * _yyCurrentComment;
 
 void yyrequire(const char* pszNamespace) {
-	if (!macro_requireNamespace(_dependencies, yyerr.srcname, pszNamespace)) {
+	if (!compiler_requireNamespace(_compilerConfiguration->cb_dependencies, yyerr.srcname, pszNamespace)) {
 		yyerror("Cannot locate source file for required namespace %s", pszNamespace);
 	}
 }
@@ -238,10 +182,11 @@ void yyrequire(const char* pszNamespace) {
 /*---------------------------------*/
 /* yyinit()					*/
 /*---------------------------------*/
-int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe) {
+int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig) {
 	static tables_inited;
 	YY_FLUSH_BUFFER;
 	_compilerConfiguration = pConfig;
+	_compilerInputStream = pConfig->cb_stream;
 	_currentIdentifierContext = sym_getGlobalCompilerContext();
 	if (!tables_inited) {
 		if (!init_keywords() ||
@@ -253,27 +198,18 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe)
 	}
 	yylineno = 1;
 	if (pConfig->cb_topLevelFile) {
-		_dependencies = arraylist_create(11);
-		yyerr.yynwarn = 0;
-		yyerr.yynerr = 0;
-		yyerr.yymaxerr = 30;
-		yyerr.yymaxwarn = 30;
-		yyerr.failpt = errb;
+		pConfig->cb_dependencies = arraylist_create(11);
+		if (yyerr.errfp) {
+			fclose(yyerr.errfp);
+			yyerr.errfp = 0;
+		}
 	}
-	if (yyerr.errfp) {
-		fclose(yyerr.errfp);
-		yyerr.errfp = 0;
-	}
+	yyerr.yynwarn = 0;
+	yyerr.yynerr = 0;
+	yyerr.yymaxerr = 30;
+	yyerr.yymaxwarn = 30;
+	yyerr.failpt = errb;
 	yyerr.srcname = pConfig->cb_source;
-
-#if defined(STAND_ALONE)
-	if ((_lexFp = fopen(sourcefile,"r")) == 0) {
-		yyerror("cannot open \"%s\"\n",sourcefile);
-		return 0;
-	}
-# else
-	yy_initLinePointers(lps, lpe);
-# endif
 	return 1;
 }
 
@@ -282,34 +218,30 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps, LINE *lpe)
 /*---------------------------------*/
 int yyfinish(void)
 {
-#if defined(STAND_ALONE)
-	if (_lexFp) {
-		fclose(_lexFp);
-		_lexFp = 0;
+	if (_compilerInputStream->cis_close) {
+		_compilerInputStream->cis_close(_compilerInputStream);
 	}
-#endif
-
 	if (_yyCurrentComment) {
 		free(_yyCurrentComment);
 		_yyCurrentComment = NULL;
 	}
-	arraylist_destroyStringList(_dependencies);
-	_dependencies = 0;
 	yy_init = 0;
 	yylex_destroy();
-	if (yyerr.errfp) {
-		fprintf(yyerr.errfp,"\nTOTAL %d Errors\n",yyerr.yynerr);
-		fclose(yyerr.errfp);
-		yyerr.errfp = 0;
-		yyerr.failpt = 0;
-		if (_compilerConfiguration->cb_openErrorList) {
-			xref_openSearchList(yyerr.errname,1);
+	_compilerConfiguration->cb_errorFile = yyerr.errname;
+	int nRet = 1;
+	_compilerConfiguration->cb_numberOfErrors += yyerr.yynerr;
+	_compilerConfiguration->cb_numberOfWarnings += yyerr.yynwarn;
+	if (yyerr.yynerr) {
+		if (yyerr.errfp) {
+			fclose(yyerr.errfp);
+			yyerr.errfp = 0;
 		}
-		return 0;
+		yyerr.failpt = 0;
+		nRet = 0;
 	} else {
-		_compilerConfiguration->cb_showStatus("No Errors detected");
+		_compilerConfiguration->cb_numberOfFilesCompiled++;
 	}
-	return 1;
+	return nRet;
 }
 
 /*---------------------------------*/

@@ -16,16 +16,16 @@
  */
 %}
 
-%define parse.error verbose
+%define parse.error detailed
 
 %token T_NAMESPACE T_REQUIRE T_STATIC T_FOR 
 %token T_TYPE_IDENTIFIER
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_CHARACTER T_CONST
 %token T_TRUE T_FALSE T_TBOOLEAN
 %token T_FUNC T_MACRO T_DOTDOT T_PLUSPLUS T_MINUSMINUS
-%token T_IF T_ELIF T_ELSE T_WHILE T_GOTO T_BRAEQ
+%token T_IF T_ELIF T_ELSE T_WHILE T_GOTO
 %token T_SH_ASSIGN_PLUS T_SH_ASSIGN_MINUS T_SH_ASSIGN_MULT T_SH_ASSIGN_DIV T_SH_ASSIGN_MOD
-%token T_LOCAL T_SWITCH T_CASE T_BREAK T_CONTINUE T_RETURN 
+%token T_LOCAL T_SWITCH T_CASE T_DEFAULT T_BREAK T_CONTINUE T_RETURN 
 %token T_VARIABLE T_ASSOC_ARROW 
 %token T_NMATCH
 %token T_ASSIGN T_NE T_EQ T_SHIFT_LEFT T_SHIFT_RIGHT 
@@ -63,15 +63,9 @@
 # define	YYPTRDIFF_MAXIMUM SIZE_MAX
 
 # define 	YYSTYPE _YYSTYPE
-# define 	STRINGTYPE(type)	((type == C_PUSH_STRING_LITERAL||type == C_PUSH_VARIABLE) ? \
-							CT_STRING : CT_NUM)
-# define 	ISCONSTINT(t)		(t == C_PUSH_LONG_LITERAL|| t == C_PUSH_INTEGER_LITERAL || \
-								 t == C_PUSH_SMALL_INT_LITERAL)
-# define	ISVARINT(t)		(t == C_LONGVAR)
 
 # define 	MAXEXPR			12
-
-# define	REC_SPACE			24000
+# define	REC_SPACE		32000
 
 static BYTECODE_BUFFER  _bytecodeBuffer;
 static void		*_currentNativeMethodCalled;
@@ -177,13 +171,9 @@ int yydebug = 1;
 #endif
 				init_header();
 			}
-			header_declarations {
+			namespace prerequisites global_declarations {
 				finalize_header();
-			}
-			macro_definitions 
-
-header_declarations:
-			namespace prerequisites global_declarations
+			} macro_definitions 
 
 namespace:  {
 				_currentNamespaceIndex = macro_lookupNamespace(MACRO_NAMESPACE_DEFAULT);
@@ -194,8 +184,7 @@ namespace:  {
 			}
 
 prerequisites:
-			|
-			require prerequisites
+			| require prerequisites
 
 require:	T_REQUIRE T_STRING ';' {
 				yyrequire($2.ident.s);
@@ -204,18 +193,18 @@ require:	T_REQUIRE T_STRING ';' {
 
 global_declarations:
 			| global_declarations constants 
-			| global_declarations global_vars
-
-global_vars:
-			| global_var global_vars
+			| global_declarations global_var
+			| global_declarations T_STATIC T_VOID {
+				yyerror("Invalid global declaration. Note: 1st macro definition must be globally accessible.");
+			}
 
 global_var: scope var_decl
 
-scope: { _macroScope = MS_GLOBAL; }
+scope:		{ _macroScope = MS_GLOBAL; }
 			| T_STATIC { _macroScope = MS_LOCAL; }
 			
 macro_definitions: 
-			| macro_definitions macro_definition 
+			| macro_definition macro_definitions 
 
 /*-- CONSTANTS --------------------------------------------------*/
 
@@ -362,7 +351,7 @@ statement: ';'
 			| if_expression { $$.needsPop = 1; }
 			| while { $$.needsPop = 1; }
 			| foreach { $$.needsPop = 1; }
-			| case { $$.needsPop = 1; }
+			| switch_expression { $$.needsPop = 1; }
 			| break { $$.needsPop = 0; }
 			| continue { $$.needsPop = 0; }
 			| return_expression { $$.needsPop = 0; }
@@ -512,9 +501,9 @@ value:		T_VARIABLE {
 				$$.v.data.string  = $1.ident.s;
 			}
 
-map_literal: '[' {
+map_literal: '{' {
 				_currentArrayLiteral = arraylist_create(1);
-			} map_associates ']'
+			} map_associates closing_brace
 
 map_associates:
 			map_associate
@@ -531,13 +520,13 @@ map_associate:
 				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, $3.ident.s));
 			}
 
-array_literal: '{' {
+array_literal: '[' {
 				_currentArrayLiteral = arraylist_create(1);
 			} 
-			closing_brace
-			| '{' {
+			']'
+			| '[' {
 				_currentArrayLiteral = arraylist_create(3);
-			} array_elements closing_brace
+			} array_elements ']'
 
 array_elements:
 			array_elements ',' array_element
@@ -570,10 +559,10 @@ string:		T_STRING {	$$.ident = $1.ident; }
 				}
 			}
 
-break		: T_BREAK opt_num ';'
+break:		T_BREAK opt_num ';'
 			{	bytecode_emitGotoInstruction(lendid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
 
-continue		: T_CONTINUE opt_num ';'
+continue:	T_CONTINUE opt_num ';'
 			{	bytecode_emitGotoInstruction(lstartid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
 
 return_expression: 
@@ -587,12 +576,27 @@ optional_bterm:
 opt_num	: 	{	$$.num = 1;	}
 			| T_NUM	{	$$.num = $1.num; }
 
-case:		T_SWITCH condition '{' case_expressions '}'
+case_clauses:
+			| case_clause case_clauses
 
-case_expressions:
-			| case_expression case_expressions
+case_clause: case_selector stmntlist
 
-case_expression: T_CASE label block
+case_selector: T_CASE case_condition ':' {
+				$$.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_EQ});
+				bytecode_emitGotoInstruction(lendid,_breaklevel,BRA_IF_FALSE);
+			}
+			|
+			T_DEFAULT ':'
+
+case_condition:
+			T_NUM {
+				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.longValue=$1.num});
+			}
+			| T_STRING {
+				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$1.ident.s});
+				$$.v.type = C_PUSH_STRING_LITERAL;
+				free($1.ident.s);
+			}
 
 label:		T_IDENT ':' {
 				bytecode_createBranchLabel(&_bytecodeBuffer, $1.ident.s);
@@ -603,10 +607,6 @@ goto:		T_GOTO T_IDENT {
 				_bytecodeBuffer.bb_current = bytecode_emitGotoLabelInstruction($2.ident.s,&_bytecodeBuffer,BRA_ALWAYS);
 				freeitem(&$2.ident.s);
 			}
-			| T_BRAEQ T_IDENT {
-				_bytecodeBuffer.bb_current = bytecode_emitGotoLabelInstruction($2.ident.s,&_bytecodeBuffer,BRA_IF_TRUE);
-				freeitem(&$2.ident.s);
-			} ';'
 
 in_clause:	'(' type_name variable_identifier {
 				push_newForeachCursor();
@@ -620,6 +620,19 @@ in_clause:	'(' type_name variable_identifier {
 				char *	key;
 				sym = sym_find(_currentIdentifierContext, "foreach",&key);
 				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction((void*)VALUE(sym))}, 3);
+			}
+
+switch_expression:		
+			T_SWITCH {
+			} '(' value ')' {
+				_breaklevel++;
+			}
+			'{' case_clauses '}'
+			{
+				bytecode_generateAutoLabelNamePrefix(lendid,_breaklevel);
+				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
+				_breaklevel--;
+				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
 			}
 
 foreach:	T_FOR {

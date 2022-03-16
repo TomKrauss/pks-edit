@@ -30,12 +30,22 @@
 #include "pksmacrocvm.h"
 #include "fileutil.h"
 #include "editorconfiguration.h"
+#include "crossreferencelinks.h"
+
+typedef struct tagLINE_INPUT {
+	LINE* li_firstLine;
+	LINE* li_lastLine;
+	LINE* li_currentLine;
+	char* li_buf;
+	char* li_bufEnd;
+} LINE_INPUT;
 
 int  yyparse(void);
-void yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig, LINE *lps,LINE *lpe);
+void yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig);
 int  yyfinish(void);
 
 extern int		_macrosWereChanged;
+static int compiler_compileWithParams(COMPILER_CONFIGURATION* pConfig);
 
 /*
  * file_createTempFile()
@@ -55,6 +65,30 @@ FILE *file_createTempFile(char *dest, char *filename) {
 		return 0;
 	}
 	return fp;
+}
+
+static int compile_lineInputNext(COMPILER_INPUT_STREAM* pStream) {
+	LINE_INPUT* pLI = pStream->cis_pointer;
+	LINE* lp;
+
+	if (pLI->li_currentLine == 0) {
+		lp = pLI->li_firstLine;
+		pLI->li_currentLine = lp;
+		pLI->li_buf = lp->lbuf;
+		pLI->li_bufEnd = &lp->lbuf[lp->len];
+	}
+	if (pLI->li_buf >= pLI->li_bufEnd) {
+		if (pLI->li_currentLine != pLI->li_lastLine &&
+			(lp = pLI->li_currentLine->next) != 0 &&
+			lp->next != 0) {
+			pLI->li_currentLine = lp;
+			pLI->li_buf = lp->lbuf;
+			pLI->li_bufEnd = &lp->lbuf[lp->len];
+			return '\n';
+		}
+		return EOF;
+	}
+	return *pLI->li_buf++;
 }
 
 /*---------------------------------
@@ -91,26 +125,93 @@ BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 	return TRUE;
 }
 
+static void compile_showSummary(COMPILER_CONFIGURATION* pConfig, int nErr, int nWarn) {
+	if (nErr || nWarn) {
+		xref_openSearchList((char*)pConfig->cb_errorFile, 1);
+	} else {
+		macro_showStatus("Compilation of %d file(s) successful. No errors and no warnings found.", pConfig->cb_numberOfFilesCompiled);
+	}
+}
+
+static void compiler_closeFilestream(COMPILER_INPUT_STREAM* pStream) {
+	if (pStream->cis_pointer) {
+		fclose(pStream->cis_pointer);
+		pStream->cis_pointer = 0;
+	}
+}
+
+static int compiler_nextFromFilestream(COMPILER_INPUT_STREAM* pStream) {
+	return pStream->cis_pointer ? fgetc(pStream->cis_pointer) : EOF;
+}
+
+static int compiler_compileDependentFile(COMPILER_CONFIGURATION* pBaseConfig, const char* pszFilename) {
+	FILE* fp = fopen(pszFilename, "r");
+	if (!fp) {
+		pBaseConfig->cb_showStatus("Cannot open input file %s", pszFilename);
+		return 0;
+	}
+	COMPILER_INPUT_STREAM inputStream = {
+		.cis_close = compiler_closeFilestream,
+		.cis_next = compiler_nextFromFilestream,
+		.cis_pointer = fp
+	};
+	COMPILER_CONFIGURATION config = {
+		.cb_showStatus = pBaseConfig->cb_showStatus,
+		.cb_insertNewMacro = pBaseConfig->cb_insertNewMacro,
+		.cb_source = pszFilename,
+		.cb_topLevelFile = FALSE,
+		.cb_stream = &inputStream
+	};
+	int nRet = compiler_compileWithParams(&config);
+	pBaseConfig->cb_numberOfWarnings += config.cb_numberOfWarnings;
+	pBaseConfig->cb_numberOfErrors += config.cb_numberOfErrors;
+	pBaseConfig->cb_numberOfFilesCompiled += config.cb_numberOfFilesCompiled;
+	return nRet;
+}
+
+static int compiler_compileWithParams(COMPILER_CONFIGURATION* pConfig) {
+	int nRet;
+	jmp_buf errb;
+	if (!setjmp(errb)) {
+		yyinit(&errb, pConfig);
+		yyparse();
+	}
+	nRet = yyfinish();
+	if (nRet && pConfig->cb_dependencies) {
+		size_t nSize = arraylist_size(pConfig->cb_dependencies);
+		for (int i = 0; i < nSize; i++) {
+			const char* pszFile = arraylist_get(pConfig->cb_dependencies, i);
+			if (!compiler_compileDependentFile(pConfig, pszFile)) {
+				nRet = 0;
+				break;
+			}
+		}
+	}
+	arraylist_destroyStringList(pConfig->cb_dependencies);
+	return nRet;
+}
+
 /*---------------------------------*/
-/* mac_compileMacros()				*/
+/* compiler_compileCurrentDocument()				*/
 /*---------------------------------*/
-int mac_compileMacros()
-{	
+int compiler_compileCurrentDocument() {
 	FTABLE *		fp;
-	jmp_buf 		errb;
 	if ((fp = ft_getCurrentDocument()) != 0) {
 		COMPILER_CONFIGURATION config = {
 			.cb_insertNewMacro = macro_insertNewMacro,
 			.cb_showStatus = macro_showStatus,
 			.cb_topLevelFile = TRUE,
-			.cb_openErrorList = TRUE,
 			.cb_source = fp->fname
 		};
-		if (!setjmp(errb)) {
-			yyinit(&errb, &config, fp->firstl, fp->lastl->prev);
-			yyparse();
-		}
-		return yyfinish();
+		LINE_INPUT lineInput = { .li_firstLine = fp->firstl, .li_lastLine = fp->lastl };
+		COMPILER_INPUT_STREAM cis = {
+			.cis_next = compile_lineInputNext,
+			.cis_pointer = &lineInput
+		};
+		config.cb_stream = &cis;
+		int nRet = compiler_compileWithParams(&config);
+		compile_showSummary(&config, config.cb_numberOfErrors, config.cb_numberOfWarnings);
+		return nRet;
 	}
 
 	// TODO: I18N
@@ -183,7 +284,7 @@ static BOOL macro_needsWrapper(const char* pszCode) {
  * A macro source file requires a namespace to be defined (loaded). If that is not the case
  * load it first relative to the given source file.
  */
-int macro_requireNamespace(ARRAY_LIST* pDependentFiles, const char* pszSourcefile, const char* pszNamespacename) {
+int compiler_requireNamespace(ARRAY_LIST* pDependentFiles, const char* pszSourcefile, const char* pszNamespacename) {
 	if (macro_hasNamespace(pszNamespacename)) {
 		return 1;
 	}
@@ -200,6 +301,7 @@ int macro_requireNamespace(ARRAY_LIST* pDependentFiles, const char* pszSourcefil
 	if (file_exists(szBuf) < 0) {
 		return 0;
 	}
+	arraylist_add(pDependentFiles, _strdup(szBuf));
 	return 1;
 }
 
@@ -211,8 +313,6 @@ int macro_requireNamespace(ARRAY_LIST* pDependentFiles, const char* pszSourcefil
  */
 int macro_executeSingleLineMacro(const char *pszCode, BOOL bUnescape, const char* pszContext) {	
 	FTABLE 		ft;
-	jmp_buf 	errb;
-	int			nFail;
 	int			saveMacEdited;
 
 	saveMacEdited = _macrosWereChanged;
@@ -238,19 +338,20 @@ int macro_executeSingleLineMacro(const char *pszCode, BOOL bUnescape, const char
 	if (!ln_createAndAdd(&ft, "", -1, 0)) {
 		return 0;
 	}
-	if (!(nFail = setjmp(errb))) {
-		COMPILER_CONFIGURATION config = {
-			.cb_insertNewMacro = macro_defineTemporaryMacro,
-			.cb_showStatus = macro_noStatus,
-			.cb_topLevelFile = TRUE,
-			.cb_openErrorList = FALSE,
-			.cb_source = (char*)pszContext
-		};
-		yyinit(&errb, &config, ft.firstl, NULL);
-		yyparse();
-	}
+	COMPILER_CONFIGURATION config = {
+		.cb_insertNewMacro = macro_defineTemporaryMacro,
+		.cb_showStatus = macro_noStatus,
+		.cb_topLevelFile = TRUE,
+		.cb_source = (char*)pszContext
+	};
+	LINE_INPUT lineInput = { .li_firstLine = ft.firstl };
+	COMPILER_INPUT_STREAM cis = {
+		.cis_next = compile_lineInputNext,
+		.cis_pointer = &lineInput
+	};
+	config.cb_stream = &cis;
 	int ret = 1;
-	if (!yyfinish() || nFail) {
+	if (!compiler_compileWithParams(&config)) {
 		error_displayAlertDialog("Error in command: %s", pszCode);
 		ret = 0;
 	} else {

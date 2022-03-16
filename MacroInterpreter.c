@@ -847,7 +847,7 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 				PKS_VALUE stackTop = interpreter_popStackValue(pContext);
 				stackTop = interpreter_coerce(pContext, stackTop, VT_BOOLEAN);
 				int val = stackTop.sym_data.booleanValue;
-				if ((((COM_GOTO*)cp)->branchType == BRA_IF_TRUE && val != 0) ||
+				if ((((COM_GOTO*)cp)->branchType == BRA_CASE && val != 0) ||
 					(((COM_GOTO*)cp)->branchType == BRA_IF_FALSE && val == 0))
 					pInstr = COM1_INCR(cp, COM_GOTO, offset);
 				else

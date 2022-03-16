@@ -149,7 +149,7 @@ extern ARRAY_LIST* macro_getFunctionNamesMatching(const char* pszPattern, LIST_M
  * A macro source file requires a namespace to be defined (loaded). If that is not the case
  * load it first relative to the given source file. Returns 0, if the namespace cannot be located.
  */
-extern int macro_requireNamespace(ARRAY_LIST* pSources, const char* pszSourcefile, const char* pszNamespacename);
+extern int compiler_requireNamespace(ARRAY_LIST* pSources, const char* pszSourcefile, const char* pszNamespacename);
 
 #endif
 
