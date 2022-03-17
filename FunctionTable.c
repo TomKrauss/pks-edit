@@ -27,6 +27,7 @@
 #include "findandreplace.h"
 #include "iccall.h"
 #include "winfo.h"
+#include "stringutil.h"
 #include "caretmovement.h"
 #include "pksrc.h"
 #include "menu.h"
@@ -72,8 +73,8 @@ EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdLi
 EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(),
 bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
-interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(),
-macroc_tolower(), macro_getFunctionNamesMatching();
+interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(), macroc_indexOf(), macroc_stringTokenize(), macroc_tolower(), macro_getFunctionNamesMatching(), macroc_fileTest(),
+macroc_fileListFiles();
 
 static long long function_unused() {
     // NOT USED ANY MORE
@@ -107,8 +108,8 @@ EDFUNC _functionTable[] = {
 {/*22*/  EdErrorListRead, -1, 0,                                                                       "ReadErrorList",              NULL,  "isbFORM_s"                                    },
 {/*23*/  ww_zoomWindow, -1, EW_NEEDSCURRF | 0,                                                         "ZoomWindow",                 NULL,  "ii"                                           },
 {/*24*/  EdMacrosEdit, -1, EW_MULTI | 0,                                                               "EditMacros",                 NULL,  "i"                                           },
-{/*25*/  function_unused, -1, 0,                                                                       "unused",                     NULL,  "i"                                           },
-{/*26*/  doctypes_saveToFile, -1, EW_HASFORM | 0,                                                           "MergeDocMacrosWith",         NULL,  "ibFORM_s"                                     },
+{/*25*/  (long long (*)())string_getVariableWithDefaults, -1, 0,                                        "GetVariable",                NULL,  "ss"                                           },
+{/*26*/  doctypes_saveToFile, -1, EW_HASFORM | 0,                                                       "MergeDocMacrosWith",         NULL,  "ibFORM_s"                                     },
 {/*27*/  macro_readWriteWithFileSelection, -1, EW_HASFORM | 0,                                         "RwMacros",                   NULL,  "iibFORM_s"                                },
 {/*28*/  EdTagfileRead, -1, EW_HASFORM | 0,                                                            "ReadTagfile",                NULL,  "ibFORM_s"                                     },
 {/*29*/  EdSetup, -1, 0,                                                                               "RwSetup",                    NULL,  "ibFORM_s"                                     },
@@ -220,15 +221,20 @@ EDFUNC _functionTable[] = {
 {/*135*/interpreter_typeOf, -1, 0, "typeof", NULL, "P"},
 {/*136*/macroc_toupper, -1, 0, "toupper", NULL, "ss" },
 {/*137*/macroc_tolower, -1, 0, "tolower", NULL, "ss" },
-{/*138*/interpreter_foreach, -1, 0, "foreach", NULL, "P"},
-{/*139*/(long long (*)())GetTickCount, -1, 0, "GetTickCount", NULL, "i" },
-{/*140*/macro_getFunctionNamesMatching, -1, 0, "FunctionNamesMatching", NULL, "aseLMT" },
-{/*141*/(long long (*)())GetLastError, -1, 0, "GetLastError", NULL, "i" },
-{/*142*/macroc_fileOpen, -1, 0, "FileOpen", NULL, "P" },
-{/*143*/macroc_fileClose, -1, 0, "FileClose", NULL, "P" },
-{/*143*/macroc_fileReadLine, -1, 0, "FileReadLine", NULL, "P" },
-{/*143*/macroc_fileWriteLine, -1, 0, "FileWriteLine", NULL, "P" }
-
+{/*138*/macroc_stringTokenize, -1, 0, "StringTokenize", NULL, "ass" },
+{/*139*/interpreter_foreach, -1, 0, "foreach", NULL, "P"},
+{/*140*/macroc_indexOf, -1, 0, "IndexOf", NULL, "P" },
+{/*141*/(long long (*)())GetTickCount, -1, 0, "GetTickCount", NULL, "i" },
+{/*142*/macro_getFunctionNamesMatching, -1, 0, "FunctionNamesMatching", NULL, "aseLMT" },
+{/*143*/(long long (*)())GetLastError, -1, 0, "GetLastError", NULL, "i" },
+{/*144*/macroc_fileOpen, -1, 0, "FileOpen", NULL, "P" },
+{/*145*/macroc_fileClose, -1, 0, "FileClose", NULL, "P" },
+{/*146*/macroc_fileReadLine, -1, 0, "FileReadLine", NULL, "P" },
+{/*147*/macroc_fileWriteLine, -1, 0, "FileWriteLine", NULL, "P" },
+{/*148*/macroc_fileTest, -1, 0, "FileTest", NULL, "iss" },
+{/*149*/macroc_fileListFiles, -1, 0, "FileListFiles", NULL, "ass" },
+{/*150*/(long long (*)())memory_mapKeys, -1, 0, "MapKeys", NULL, "P" },
+{/*151*/(long long (*)())memory_mapValues, -1, 0, "MapValues", NULL, "P" }
 };
 
 int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);

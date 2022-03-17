@@ -37,7 +37,7 @@ typedef struct gotos {
 	COM_GOTO *	recp;
 } GOTOS;
 
-#define MAXLABEL	20
+#define MAXLABEL	32
 
 static LABEL _labels[MAXLABEL];
 static LABEL _waitlist[DIM(_labels)];
@@ -108,7 +108,7 @@ static int bytecode_closeLabels(LABEL *lp)
 	for (i = 0; i < MAXLABEL; i++, lp++)
 		if (lp->name) {
 			if (lp->type == L_WAITING) {
-				yyerror("undefined label %s",lp->name);
+				yyerror("Unresolved label %s (state waiting to be resolved)",lp->name);
 				ret = 0;
 			}
 			bytecode_destroyLabel(lp);
@@ -137,7 +137,7 @@ int bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name)
 	/*
 	 * unresolved goto to this label ?
 	 */
-	if ((lp = bytecode_findLabelNamed(_waitlist,name)) != 0) {
+	if (lp->type != L_RESOLVED && (lp = bytecode_findLabelNamed(_waitlist,name)) != 0) {
 		/*
 		 * this was a forward goto not yet resolved
 		 * here is the label, so insert rel. offset for branch
@@ -148,6 +148,8 @@ int bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name)
 		for (i = 0; i < _ngotos; i++) {
 			if (_gotos[i].lp == lp) {
 				_gotos[i].recp->offset = (int)(recp - (unsigned char*)_gotos[i].recp);
+				// mark goto as being resolved.
+				_gotos[i].lp = 0;
 			}
 		}
 	}

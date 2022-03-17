@@ -75,8 +75,8 @@ typedef enum {
 typedef struct tagPKS_VALUE {
 	int				pkv_managed : 1;				// the memory of this object is managed by the MacroVM object memory
 	int				pkv_isPointer : 1;				// the actual data of this value is contained in the linked object
-	PKS_VALUE_TYPE	sym_type : 6;					// one of the "basic types" defined by PKS_VALUE_TYPE
-	GENERIC_DATA	sym_data;						// the data of this value.
+	PKS_VALUE_TYPE	pkv_type : 6;					// one of the "basic types" defined by PKS_VALUE_TYPE
+	GENERIC_DATA	pkv_data;						// the data of this value.
 } PKS_VALUE;
 
 typedef (*T_FINALIZER)(PKS_VALUE v);
@@ -106,7 +106,7 @@ typedef struct tagPKS_TYPE_DESCRIPTOR {
 	TYPE_CALLBACKS	ptd_callbacks;
 } PKS_TYPE_DESCRIPTOR;
 
-#define IS_NIL(v)			v.sym_type == VT_NIL
+#define IS_NIL(v)			v.pkv_type == VT_NIL
 
 typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 
@@ -306,8 +306,8 @@ typedef struct tagCOM_DEFINE_SYMBOL {
 } COM_DEFINE_SYMBOL;
 
 typedef enum {
-	BRA_ALWAYS = 0,
-	BRA_IF_FALSE = 1,
+	BRA_ALWAYS = 0,					// Branch always independent of a condition / the value on the stack.
+	BRA_IF_FALSE = 1,				// Take the top value of the stack, If that is false -> perform a branch
 	BRA_CASE = 2					// Used to evaluate case-labels of a switch expression. Will compare two stack top values and if they 
 									// match, perform a branch
 } BRANCH_TYPE;
@@ -480,6 +480,21 @@ extern PKS_VALUE memory_atObject(PKS_VALUE vTarget, PKS_VALUE vKey);
  * Add one object to an array type object.
  */
 extern int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS_VALUE vElement);
+
+/*
+ * Returns an array object with all keys contained in the map type value passed as single argument.
+ */
+extern PKS_VALUE memory_mapKeys(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs);
+
+/*
+ * Returns an array object with all values contained in the map type value passed as single argument.
+ */
+extern PKS_VALUE memory_mapValues(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs);
+
+/*
+ * Return the "index" of one object in a give array type object.
+ */
+extern int memory_indexOf(PKS_VALUE vArray, PKS_VALUE vOther);
 
 /*
  * Open the debug window.

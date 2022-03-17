@@ -22,6 +22,8 @@ commands which show an explanation about the command.
   and shorthand assignment operators (e.g. `*=`, `+=`, ...).
 - PKSMacroC supports now foreach loops using the following syntax: `for (type variable : expression) {...}`. One can currently iterate
   over ranges, strings and arrays.
+- PKSMacroC supports now simple switch expressions.
+- Many utility methods in particular for working with arrays, files and strings were added to PKSMacroC.
 - One may define a macroC function parameter with a type of `auto` to allow for arbitrary values being passed to a MacroC function
 - One may use the new syntax `*function(params...)` now to execute a function (macro or native) **by name**.
 - Expressions can now be correctly passed as function arguments.

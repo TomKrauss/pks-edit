@@ -169,18 +169,18 @@ static void decompile_printParameterAsConstant(char* pTargetString, long long va
 }
 
 void decompile_printValue(char* pszBuf, PKS_VALUE v) {
-	if (v.sym_type == VT_BOOLEAN) {
-		sprintf(pszBuf, "%s", v.sym_data.booleanValue ? "true" : "false");
+	if (v.pkv_type == VT_BOOLEAN) {
+		sprintf(pszBuf, "%s", v.pkv_data.booleanValue ? "true" : "false");
 	}
-	else if (v.sym_type == VT_FLOAT) {
-		sprintf(pszBuf, "%lf", v.sym_data.doubleValue);
+	else if (v.pkv_type == VT_FLOAT) {
+		sprintf(pszBuf, "%lf", v.pkv_data.doubleValue);
 	}
-	else if (v.sym_type == VT_STRING) {
+	else if (v.pkv_type == VT_STRING) {
 		// check size and buffer overflow
-		const char* pString = v.pkv_managed ? memory_accessString(v) : v.sym_data.string;
+		const char* pString = v.pkv_managed ? memory_accessString(v) : v.pkv_data.string;
 		sprintf(pszBuf, "\"%.*s\"", 200, decompile_quoteString(pString));
 	} else {
-		sprintf(pszBuf, "%lld", v.sym_data.longValue);
+		sprintf(pszBuf, "%lld", v.pkv_data.longValue);
 	}
 }
 
@@ -211,12 +211,12 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 			return 1;
 		case C_PUSH_FLOAT_LITERAL:
 			decompile_printValue(pszBuf, (PKS_VALUE) {
-				.sym_type = VT_FLOAT, .sym_data.doubleValue = ((COM_FLOAT1*)sp)->val
+				.pkv_type = VT_FLOAT, .pkv_data.doubleValue = ((COM_FLOAT1*)sp)->val
 			});
 			return 1;
 		case C_PUSH_BOOLEAN_LITERAL:
 			decompile_printValue(pszBuf, (PKS_VALUE) {
-				.sym_type = VT_BOOLEAN, .sym_data.booleanValue = ((COM_CHAR1*)sp)->val
+				.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = ((COM_CHAR1*)sp)->val
 			});
 			return 1;
 		case C_PUSH_INTEGER_LITERAL:
@@ -227,7 +227,7 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 			break;
 		case C_PUSH_STRING_LITERAL:
 			decompile_printValue(pszBuf, (PKS_VALUE) {
-				.sym_type = VT_STRING, .sym_data.string = ((COM_STRING1*)sp)->s
+				.pkv_type = VT_STRING, .pkv_data.string = ((COM_STRING1*)sp)->s
 			});
 			return 1;
 		case C_PUSH_VARIABLE:

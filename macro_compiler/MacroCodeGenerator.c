@@ -23,6 +23,14 @@
 
 extern void 	yyerror(char *s, ...);
 extern int 		macro_isParameterStringType(unsigned char typ);
+extern char* bytecode_generateAutoLabelName(char* prefix, int num);
+extern void bytecode_destroyLabelNamed(char* name);
+extern int bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char* name);
+extern void bytecode_emitGotoInstruction(BYTECODE_BUFFER* pBuffer, char* prefix, int level, int bratyp);
+extern char* bytecode_emitGotoLabelInstruction(char* name, BYTECODE_BUFFER* pBuffer, int branchType);
+
+static PKS_VALUE	_switchValues[32];
+static int			_currentSwitchValue = -1;
 
 /*
  * bytecode_emitInstruction()
@@ -172,6 +180,86 @@ unsigned char* bytecode_emitFunctionCall(BYTECODE_BUFFER* pBuffer, unsigned char
  */
 unsigned char* bytecode_emitAssignment(BYTECODE_BUFFER* pBuffer, const char *name) {
 	return bytecode_emitInstruction(pBuffer, C_ASSIGN, (GENERIC_DATA) { .string = (char*)name });
+}
+
+/*---------------------------------*/
+/* bytecode_generateAutoLabelNamePrefix()					*/
+/*---------------------------------*/
+int bytecode_generateAutoLabelNamePrefix(BYTECODE_BUFFER* pBuffer, char* prefix, int level)
+{
+	char* name = bytecode_generateAutoLabelName(prefix, level);
+
+	return bytecode_createBranchLabel(pBuffer, name);
+}
+
+/*---------------------------------*/
+/* bytecode_destroyAutoLabelNamePrefix()					*/
+/*---------------------------------*/
+void bytecode_destroyAutoLabelNamePrefix(char* prefix, int level) {
+	char* name = bytecode_generateAutoLabelName(prefix, level);
+
+	/*
+	 * autolabel is not used any more: kill it
+	 */
+	bytecode_destroyLabelNamed(name);
+}
+
+/*---------------------------------*/
+/* bytecode_emitGotoInstruction()					*/
+/*---------------------------------*/
+void bytecode_emitGotoInstruction(BYTECODE_BUFFER* pBuffer, char* prefix, int level, int bratyp) {
+	char* name = bytecode_generateAutoLabelName(prefix, level);
+
+	if (level < 0)
+		yyerror("illegal break/continue level");
+	else
+		pBuffer->bb_current = bytecode_emitGotoLabelInstruction(name, pBuffer, bratyp);
+}
+
+
+static char* _caseLabelId = "%case%";
+
+/*
+ * Add a switch case condition to the current switch table being constructed.
+ */
+void bytecode_addSwitchCondition(BYTECODE_BUFFER* pBuffer, int aLevel, PKS_VALUE_TYPE t, GENERIC_DATA data) {
+	if (_currentSwitchValue >= DIM(_switchValues)) {
+		yyerror("Too many case labels");
+		return;
+	}
+	bytecode_generateAutoLabelNamePrefix(pBuffer, _caseLabelId, _currentSwitchValue);
+	_switchValues[_currentSwitchValue++] = (PKS_VALUE){ .pkv_type = t, .pkv_data = data };
+}
+
+void bytecode_startSwitchTable(int aLevel) {
+	if (_currentSwitchValue >= 0) {
+		yyerror("Nested switch expressions currently not supported");
+		return;
+	}
+	_currentSwitchValue = 0;
+}
+
+/*
+ * Write out the recorded case jumps and cleanup switch table.
+ */
+void bytecode_flushSwitchTable(BYTECODE_BUFFER* pBuffer, int aLevel) {
+
+	for (int i = 0; i < _currentSwitchValue; i++) {
+		PKS_VALUE v = _switchValues[i];
+		if (v.pkv_type == VT_NIL) {
+			// default case
+			bytecode_emitGotoInstruction(pBuffer, _caseLabelId, i, BRA_ALWAYS);
+		} else {
+			pBuffer->bb_current = bytecode_emitInstruction(pBuffer, v.pkv_type == VT_STRING ? C_PUSH_STRING_LITERAL : C_PUSH_INTEGER_LITERAL, v.pkv_data);
+			if (v.pkv_type == VT_STRING) {
+				free(v.pkv_data.string);
+			}
+			bytecode_emitGotoInstruction(pBuffer, _caseLabelId, i, BRA_CASE);
+
+		}
+		bytecode_destroyAutoLabelNamePrefix(_caseLabelId, i);
+	}
+	_currentSwitchValue = -1;
 }
 
 /*

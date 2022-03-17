@@ -100,7 +100,7 @@ static void file_close(PKS_VALUE v) {
 	FILE* fp = (FILE*)TOP_DATA_POINTER(memory_getNestedObjectPointer(v, 0));
 	if (fp) {
 		fclose(fp);
-		memory_setNestedObject(v, 0, (PKS_VALUE) {.sym_type = VT_NIL});
+		memory_setNestedObject(v, 0, (PKS_VALUE) {.pkv_type = VT_NIL});
 	}
 }
 

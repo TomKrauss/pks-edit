@@ -275,7 +275,15 @@ extern int mysprintf(char* pDestination, char* format, SPRINTF_ARGS* pArgs);
 /*
  * Return a PKS EDIT variable to be used e.g. in code templates.
  */
-extern void string_getVariable(WINFO* wp, unsigned char* pVar, unsigned char* pResult);
+extern void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResult, size_t nSize);
+
+/*
+ * Get a variable and return the value of it in a buffer. The buffer will be valid until
+ * the next invocation of this method.
+ */
+extern char* string_getVariableWithDefaults(const char* pVar);
+
+extern char _pksVersion[];
 
 #define STRINGUTIL_H
 #endif

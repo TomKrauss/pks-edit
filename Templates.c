@@ -110,7 +110,7 @@ static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAct
 				} else if (strcmp("word_selection", variable) == 0) {
 					strcpy(expandedVariable, pszSelected);
 				} else {
-					string_getVariable(wp, variable, expandedVariable);
+					string_getVariable(wp, variable, expandedVariable, sizeof expandedVariable);
 				}
 				stringbuf_appendString(pResult, expandedVariable);
 				col += (long)strlen(expandedVariable);

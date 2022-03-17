@@ -145,20 +145,20 @@ static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsi
 
 	switch (typ) {
 	case C_FORM_START:
-		return (PKS_VALUE) { .sym_type = VT_NUMBER, .sym_data.longValue = (long long)pInstructionPointer};
+		return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = (long long)pInstructionPointer};
 	case C_PUSH_BOOLEAN_LITERAL:
-		return (PKS_VALUE) { .sym_type = VT_BOOLEAN, .sym_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val};
+		return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val};
 	case C_PUSH_SMALL_INT_LITERAL:
-		return (PKS_VALUE) { .sym_type = VT_NUMBER, .sym_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
+		return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
 	case C_PUSH_CHARACTER_LITERAL:
-		return (PKS_VALUE) { .sym_type = VT_CHAR, .sym_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
+		return (PKS_VALUE) { .pkv_type = VT_CHAR, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
 	case C_PUSH_INTEGER_LITERAL:
-		return (PKS_VALUE) { .sym_type = VT_NUMBER, .sym_data.longValue = ((COM_INT1*)pInstructionPointer)->val };
+		return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = ((COM_INT1*)pInstructionPointer)->val };
 	case C_PUSH_LONG_LITERAL:
-		return (PKS_VALUE) { .sym_type = VT_NUMBER, .sym_data.longValue = ((COM_LONG1*)pInstructionPointer)->val };
+		return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = ((COM_LONG1*)pInstructionPointer)->val };
 	case C_PUSH_FLOAT_LITERAL: {
 		double dDouble = ((COM_FLOAT1*)pInstructionPointer)->val;
-		return (PKS_VALUE) { .sym_type = VT_FLOAT, .sym_data.doubleValue = dDouble };
+		return (PKS_VALUE) { .pkv_type = VT_FLOAT, .pkv_data.doubleValue = dDouble };
 	}
 	case C_PUSH_ARRAY_LITERAL:
 		return interpreter_decodeArrayList(pContext, (COM_ARRAYLITERAL*)pInstructionPointer);
@@ -251,11 +251,11 @@ static void interpreter_cleanupContextStacks() {
  */
 PKS_VALUE interpreter_size(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	if (nArgs < 1) {
-		return (PKS_VALUE) { .sym_type = VT_BOOLEAN, .sym_data.booleanValue = 0 };
+		return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 0 };
 	}
 	PKS_VALUE v = pValues[0];
 	size_t nLen = memory_size(v);
-	return (PKS_VALUE) { .sym_type = VT_NUMBER, .sym_data.longValue = nLen };
+	return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = nLen };
 }
 
 /*
@@ -263,47 +263,47 @@ PKS_VALUE interpreter_size(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int 
  */
 PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	if (nArgs < 3) {
-		return (PKS_VALUE) { .sym_type=VT_BOOLEAN, .sym_data.booleanValue = 0 };
+		return (PKS_VALUE) { .pkv_type=VT_BOOLEAN, .pkv_data.booleanValue = 0 };
 	}
 	const char* pszCaretVar = memory_accessString(pValues[0]);
 	const char* pszResultVar = memory_accessString(pValues[1]);
 	PKS_VALUE v = pValues[2];
 	int idxLast;
-	if (v.sym_type == VT_RANGE) {
-		idxLast = v.sym_data.range.r_end + 1;
+	if (v.pkv_type == VT_RANGE) {
+		idxLast = v.pkv_data.range.r_end + 1;
 	}
-	else if (v.sym_type == VT_STRING || v.sym_type == VT_OBJECT_ARRAY) {
+	else if (v.pkv_type == VT_STRING || v.pkv_type == VT_OBJECT_ARRAY) {
 		idxLast = (int)memory_size(v);
 	} else {
-		return (PKS_VALUE) { .sym_type = VT_BOOLEAN, .sym_data.booleanValue = 0 };
+		return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 0 };
 	}
 	PKS_VALUE caretV;
 	if (!sym_existsVariable(pContext->ec_identifierContext, (char*)pszCaretVar)) {
-		caretV = (PKS_VALUE){.sym_type = VT_NUMBER, .sym_data.intValue = 0};
+		caretV = (PKS_VALUE){.pkv_type = VT_NUMBER, .pkv_data.intValue = 0};
 		sym_defineVariable(pContext->ec_identifierContext, pszCaretVar, caretV);
 	} else {
 		caretV = sym_getVariable(pContext->ec_identifierContext, (char*)pszCaretVar);
 	}
-	int idx = caretV.sym_data.intValue;
-	if (v.sym_type == VT_RANGE) {
-		int nMult = v.sym_data.range.r_increment > 0 ? v.sym_data.range.r_increment : 1;
-		idx = v.sym_data.range.r_start + (nMult*idx);
+	int idx = caretV.pkv_data.intValue;
+	if (v.pkv_type == VT_RANGE) {
+		int nMult = v.pkv_data.range.r_increment > 0 ? v.pkv_data.range.r_increment : 1;
+		idx = v.pkv_data.range.r_start + (nMult*idx);
 	}
 	if (idx >= idxLast) {
 		sym_remove(pContext->ec_identifierContext, pszCaretVar);
-		return (PKS_VALUE) { .sym_type = VT_BOOLEAN, .sym_data.booleanValue = 0 };
+		return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 0 };
 	}
-	if (v.sym_type == VT_RANGE) {
-		sym_defineVariable(pContext->ec_identifierContext, pszResultVar, (PKS_VALUE){.sym_type = VT_NUMBER, .sym_data.intValue = idx });
-	} else if (v.sym_type == VT_OBJECT_ARRAY) {
+	if (v.pkv_type == VT_RANGE) {
+		sym_defineVariable(pContext->ec_identifierContext, pszResultVar, (PKS_VALUE){.pkv_type = VT_NUMBER, .pkv_data.intValue = idx });
+	} else if (v.pkv_type == VT_OBJECT_ARRAY) {
 		sym_defineVariable(pContext->ec_identifierContext, pszResultVar, memory_getNestedObject(v, idx));
 	} else {		// string
-		sym_defineVariable(pContext->ec_identifierContext, pszResultVar, (PKS_VALUE){.sym_type = VT_CHAR, .sym_data.uchar = memory_accessString(v)[idx] });
+		sym_defineVariable(pContext->ec_identifierContext, pszResultVar, (PKS_VALUE){.pkv_type = VT_CHAR, .pkv_data.uchar = memory_accessString(v)[idx] });
 	}
-	caretV.sym_data.intValue++;
+	caretV.pkv_data.intValue++;
 	sym_defineVariable(pContext->ec_identifierContext, pszCaretVar, caretV);
 
-	return (PKS_VALUE) { .sym_type = VT_BOOLEAN, .sym_data.booleanValue = 1 };
+	return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 1 };
 }
 
 /*
@@ -313,7 +313,7 @@ PKS_VALUE interpreter_typeOf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, in
 	if (nArgs < 1) {
 		return (PKS_VALUE) {0};
 	}
-	const char* pszName = types_nameFor(pValues->sym_type);
+	const char* pszName = types_nameFor(pValues->pkv_type);
 	return interpreter_allocateString(pContext, pszName);
 }
 
@@ -325,18 +325,18 @@ PKS_VALUE interpreter_typeOf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, in
 PKS_VALUE interpreter_sprintf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	char buf[1024];
 
-	if (nArgs < 1 || pValues->sym_type != VT_STRING) {
-		return (PKS_VALUE) { .sym_type = VT_NUMBER, 0 };
+	if (nArgs < 1 || pValues->pkv_type != VT_STRING) {
+		return (PKS_VALUE) { .pkv_type = VT_NUMBER, 0 };
 	}
 	const char* pszFormat = memory_accessString(pValues[0]);
 	union U_ARG_VALUE* values = calloc(nArgs, sizeof (* values));
 	for (int i = 1; i < nArgs; i++) {
-		if (pValues[i].sym_type == VT_FLOAT) {
-			values[i - 1].v_d = pValues[i].sym_data.doubleValue;
-		} else if (pValues[i].sym_type == VT_STRING) {
+		if (pValues[i].pkv_type == VT_FLOAT) {
+			values[i - 1].v_d = pValues[i].pkv_data.doubleValue;
+		} else if (pValues[i].pkv_type == VT_STRING) {
 			values[i - 1].v_s = (char*)memory_accessString(pValues[i]);
 		} else {
-			values[i - 1].v_l = (long)pValues[i].sym_data.longValue;
+			values[i - 1].v_l = (long)pValues[i].pkv_data.longValue;
 		}
 	}
 	mysprintf(buf, (char*)pszFormat, &(SPRINTF_ARGS){.sa_wp = ww_getCurrentEditorWindow(), .sa_values = values});
@@ -352,7 +352,7 @@ PKS_VALUE interpreter_popStackValue(EXECUTION_CONTEXT* pContext) {
 	if (pContext->ec_stackCurrent > pContext->ec_stackFrame) {
 		return *--pContext->ec_stackCurrent;
 	}
-	return (PKS_VALUE) {.sym_data = 0, .sym_type = VT_NUMBER};
+	return (PKS_VALUE) {.pkv_data = 0, .pkv_type = VT_NUMBER};
 }
 
 /*
@@ -362,7 +362,7 @@ PKS_VALUE interpreter_peekStackValue(EXECUTION_CONTEXT* pContext) {
 	if (pContext->ec_stackCurrent > pContext->ec_stackFrame) {
 		return pContext->ec_stackCurrent[-1];
 	}
-	return (PKS_VALUE) { .sym_data = 0, .sym_type = VT_NUMBER };
+	return (PKS_VALUE) { .pkv_data = 0, .pkv_type = VT_NUMBER };
 }
 
 /*
@@ -473,7 +473,7 @@ int interpreter_openDialog(PARAMS *pp)
 	 */
 	for (i = cp->nfields, dp = pp->el; i > 0; i--, dp++) {
 		PKS_VALUE v = *pParams++;
-		par = v.sym_data;
+		par = v.pkv_data;
 		if (cp->options & FORM_INIT) {
 		   switch(dp->cmd_type) {
 			case C_PUSH_INTEGER_LITERAL:  *dp->p.i = par.intValue; break;
@@ -482,7 +482,7 @@ int interpreter_openDialog(PARAMS *pp)
 			case C_PUSH_FLOAT_LITERAL: *dp->p.d = par.doubleValue; break;
 			case C_PUSH_LONG_LITERAL: *dp->p.l = (long)par.longValue; break;
 			case C_PUSH_STRING_LITERAL:
-				if ((v.sym_type == VT_STRING) && par.string) {
+				if ((v.pkv_type == VT_STRING) && par.string) {
 					strcpy(dp->p.s, memory_accessString(v));
 				}
 				else {
@@ -640,7 +640,7 @@ static void interpreter_returnNativeFunctionResult(EXECUTION_CONTEXT* pContext, 
 		arraylist_destroyStringList((ARRAY_LIST*)v);
 		return;
 	}
-	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .sym_type = vt, .sym_data.longValue = v });
+	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .pkv_type = vt, .pkv_data.longValue = v });
 }
 
 /*
@@ -689,7 +689,7 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 	bNativeCall = typ != C_MACRO && typ != C_MACRO_REF;
 	if (typ == C_MACRO_REF) {
 		PKS_VALUE v = sym_getVariable(pContext->ec_identifierContext, (char*)pszMacro);
-		if (v.sym_type != VT_STRING) {
+		if (v.pkv_type != VT_STRING) {
 			interpreter_raiseError("Illegal reference to macro function named %s", pszMacro);
 		}
 		pszMacro = memory_accessString(v);
@@ -727,10 +727,10 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 			if (function_getParameterTypeDescriptor(fup, i + 1).pt_type == PARAM_TYPE_STRING) {
 				v = interpreter_coerce(pContext, v, VT_STRING);
 			}
-			if (v.sym_type == VT_STRING) {
+			if (v.pkv_type == VT_STRING) {
 				*stringFunctionParameters++ = (char*)memory_accessString(v);
 			} else {
-				*functionParameters++ = v.sym_data.intValue;
+				*functionParameters++ = v.pkv_data.intValue;
 			}
 		}
 	}
@@ -792,14 +792,14 @@ static void interpreter_assignOffset(EXECUTION_CONTEXT* pContext, char* name) {
 	PKS_VALUE v = interpreter_popStackValue(pContext);
 	PKS_VALUE vOffset = interpreter_popStackValue(pContext);
 	PKS_VALUE target = sym_getVariable(pContext->ec_identifierContext, name);
-	if (target.sym_type == VT_MAP) {
+	if (target.pkv_type == VT_MAP) {
 		memory_atPutObject(target, vOffset, v);
 	}
 	else {
-		if (target.sym_type != VT_OBJECT_ARRAY) {
+		if (target.pkv_type != VT_OBJECT_ARRAY) {
 			interpreter_raiseError("Illegal target object %s for offset assignment.", name);
 		}
-		int nIndex = interpreter_coerce(pContext, vOffset, VT_NUMBER).sym_data.intValue;
+		int nIndex = interpreter_coerce(pContext, vOffset, VT_NUMBER).pkv_data.intValue;
 		if (nIndex < 0) {
 			interpreter_raiseError("Illegal negative index %d to assign element of %s.", nIndex, name);
 		}
@@ -819,7 +819,19 @@ static PKS_VALUE interpreter_getParameterStackValue(EXECUTION_CONTEXT* pContext,
 		return *pSlot;
 	}
 	// NIL
-	return (PKS_VALUE) {.sym_type = 0, .sym_data.longValue = 0};
+	return (PKS_VALUE) {.pkv_type = 0, .pkv_data.longValue = 0};
+}
+
+/*
+ * Compare two values and return 1 if they are identical.
+ */
+static int interpreter_compareValues(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, PKS_VALUE v2) {
+	if (v1.pkv_type == VT_STRING) {
+		v2 = interpreter_coerce(pContext, v2, VT_STRING);
+		return strcmp(memory_accessString(v1), memory_accessString(v2)) == 0;
+	}
+	v2 = interpreter_coerce(pContext, v2, VT_NUMBER);
+	return v1.pkv_data.intValue == v2.pkv_data.intValue;
 }
 
 /*---------------------------------*/
@@ -839,21 +851,28 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 			interpreter_raiseError("Macro execution aborted by user.");
 		}
 		switch (cp->typ) {
-		case C_GOTO:
-			if (((COM_GOTO*)cp)->branchType == BRA_ALWAYS) {
+		case C_GOTO: {
+			BRANCH_TYPE bt = ((COM_GOTO*)cp)->branchType;
+			int val;
+			if (bt == BRA_ALWAYS) {
 				pInstr = COM1_INCR(cp, COM_GOTO, offset);
+				break;
 			}
-			else {
+			else if (bt == BRA_IF_FALSE) {
 				PKS_VALUE stackTop = interpreter_popStackValue(pContext);
 				stackTop = interpreter_coerce(pContext, stackTop, VT_BOOLEAN);
-				int val = stackTop.sym_data.booleanValue;
-				if ((((COM_GOTO*)cp)->branchType == BRA_CASE && val != 0) ||
-					(((COM_GOTO*)cp)->branchType == BRA_IF_FALSE && val == 0))
-					pInstr = COM1_INCR(cp, COM_GOTO, offset);
-				else
-					pInstr = COM_PARAMINCR(cp);
+				val = !stackTop.pkv_data.booleanValue;
+			} else if (bt == BRA_CASE) {
+				PKS_VALUE stackTop = interpreter_popStackValue(pContext);
+				PKS_VALUE compareWith = interpreter_peekStackValue(pContext);
+				val = interpreter_compareValues(pContext, stackTop, compareWith);
 			}
+			if (val == TRUE)
+				pInstr = COM1_INCR(cp, COM_GOTO, offset);
+			else
+				pInstr = COM_PARAMINCR(cp);
 			break;
+		}
 		case C_POP_STACK:
 			if (pContext->ec_stackCurrent > pContext->ec_stackFrame) {
 				pContext->ec_stackCurrent--;
@@ -895,10 +914,10 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 		case C_DEFINE_PARAMETER: {
 			PKS_VALUE value = interpreter_getParameterStackValue(pContext, (int)((COM_DEFINE_SYMBOL*)cp)->value);
 			// automatic type coercion of parameter types.
-			if (!value.sym_type && ((COM_DEFINE_SYMBOL*)cp)->symtype == VT_STRING) {
+			if (!value.pkv_type && ((COM_DEFINE_SYMBOL*)cp)->symtype == VT_STRING) {
 				// TODO: this is a hack - if the parameter was not passed we need to define the symbol and assign it a NIL value, 
 				// which is currently not supported. So convert to false to allow us for testing, whether the parameter was passed.
-				value = (PKS_VALUE){.sym_type = VT_BOOLEAN, .sym_data.booleanValue = 0};
+				value = (PKS_VALUE){.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 0};
 			}
 			else if (((COM_DEFINE_SYMBOL*)cp)->symtype != VT_AUTO) {
 				value = interpreter_coerce(pContext, value, ((COM_DEFINE_SYMBOL*)cp)->symtype);

@@ -67,8 +67,14 @@ is performed:
 The following variables are supported:
 
 - `${user}` - name of the current logged in user
+- `${time}` - the current time
+- `${cwd}` - the current working directory
+- `${time_long_}` - the current time including milliseconds
 - `${date}` - the current date (by default in format dd.mm.yyyy)
 - `${year}` - the current year (e.g. 2021)
+- `${pks_sys}` - the PKS_SYS directory**
+- `${pks_tmp}` - the temporary directory for PKS-Edit.
+- `${pks_executable}` - the PKS-Edit executable full path.
 - `${indent}` - insert the number of spaces matching the indent of the line from which the template is inserted
 - `${tab}` - insert the number of spaces to fill up one tab position.
 - `${cursor}` - after inserting the template, place the cursor here

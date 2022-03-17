@@ -1,8 +1,8 @@
-
 namespace test;
 
 require "unittest";
 
+const MANUAL_DIRECTORY = "\\doc\\manual";
 const PI = 3.14159265359d;
 const QUOTE = '\'';
 const ENOENT = 2;
@@ -16,13 +16,13 @@ const ENOENT = 2;
 // Define a namespace local variable
 static int sampleGlobal = 18;
 
+! // MACRO Definitions follow. Note, that the ! is only necessary when the first macro has a static scope.
 
 /*
- * Note: the 1st method in a macro file must have a global scope currently.
  * Tests the console by opening clearing it several times. Can be used
  * to test the console as well stability as also performance wise.
  */
-void Console-Stress-Test() {
+static void Console-Stress-Test() {
 	int i = 0;
 	while(i < 10) {
 		Test-Strings();
@@ -46,7 +46,10 @@ static void Setup-SuiteBaseTests() {
 static void Test-FileIO() {
 	FILE fp;
 	string s;
+	string manualDir = GetVariable("cwd") + MANUAL_DIRECTORY;
 
+	AssertTrue(FileTest("Actions.c"), "Actions.c should exist");
+	AssertFalse(FileTest("Actions.c", "-d"), "Actions.c not be a directory");
 	fp = FileOpen("Actions.c", "r");
 	AssertTrue(fp != false);
 	AssertEquals(0, GetLastError());
@@ -61,7 +64,56 @@ static void Test-FileIO() {
 	// no such file or directory
 	AssertEquals(ENOENT, GetLastError());
 
+	for (string file : FileListFiles(manualDir, "*.md")) {
+		AssertTrue(IndexOf(file, ".md") > 0);
+	}
 }
+
+static void CountWordsIn(map words, string file) {
+	FILE fp = FileOpen(file, "r");
+	int count;
+	string line;
+
+	AssertTrue(fp != false);
+
+	while (line = FileReadLine(fp)) {
+		for (string word : StringTokenize(line, " []=#():\t,;.\"`")) {
+			if (size(word) < 2) {
+				continue;
+			}
+			count = words[word];
+			if (!count) {
+				words[word] = 1;
+			} else {
+				words[word] = count+1;
+			}
+		}
+	}
+}
+
+/*
+ * Halfway through implementation of a word count for our manual files.
+ * Will count the occurrences of all words used in the manual files.
+ * No sorting yet - requires map.entry datatype.
+ */
+static void Test-WordCount() {
+	string manualDir = GetVariable("cwd") + MANUAL_DIRECTORY;
+	map words;
+	int count;
+	int numberOfFrequentWords = 0;
+
+	for (string file : FileListFiles(manualDir, "*.md")) {
+		CountWordsIn(words, manualDir + "\\" + file);
+	}
+	for (string word : MapKeys(words)) {
+		count = words[word];
+		if (count > 100) {
+			numberOfFrequentWords++;
+		}
+	}
+	AssertTrue(numberOfFrequentWords > 5, "should find at least 6 words more than 100 times");
+}
+
 
 /*
  * Calculate prime numbers using the "sieve of eratosthenes" algorithm.
@@ -134,13 +186,23 @@ static void Test-Arrays() {
  */
 static void Test-SwitchExpressions() {
 	int cc;
+	string s;
 
 	cc = 3;
 	switch(cc) {
-		case 1: println("1"); break;
-		case 3: println("3"); break;
-		default: println("DEFAULT!"); break;
+		case 1: s = "1"; break;
+		case 3: s = "3"; break;
+		default: s = "DEFAULT!"; break;
 	}
+	AssertEquals("3", s);
+
+	cc = 5;
+	switch(cc) {
+		case 1: s = "1"; break;
+		case 3: s = "3"; break;
+		default: s = "DEFAULT!"; break;
+	}
+	AssertEquals("DEFAULT!", s);
 }
 
 /*
@@ -153,6 +215,10 @@ static void Test-Maps() {
 	};
 	string s;
 
+	AssertEquals(2, size(demoMap));
+	AssertEquals(2, size(MapKeys(demoMap)));
+	AssertEquals(2, size(MapValues(demoMap)));
+
 	AssertEquals(42, demoMap["fritz"]);
 	demoMap["hello"] = "world";
 	demoMap["world"] = "mars";
@@ -160,6 +226,9 @@ static void Test-Maps() {
 	AssertEquals("world", demoMap["hello"]);
 	AssertEquals("mars", demoMap["world"]);
 	AssertEquals(42, demoMap["mars"]);
+	AssertEquals(5, size(demoMap));
+	AssertTrue(IndexOf(MapKeys(demoMap), "fritz") >= 0);
+
 	for (int i : 1..999) {
 		s = "key"+i;
 		demoMap[s] = i;
@@ -241,6 +310,7 @@ static void Test-Strings() {
 	string myString = "heLLo WORld";
 	string subString;
 	string xlated;
+	string[] tokens;
 	char x;
 	int n = size(myString);
 
@@ -255,6 +325,12 @@ static void Test-Strings() {
 	AssertEquals("HELLO WORLD", xlated);
 	xlated = tolower(myString);
 	AssertEquals("hello world", xlated);
+
+	AssertEquals(6, IndexOf("hello world", "world"));
+	AssertEquals(4, IndexOf("hello world", 'o'));
+
+	tokens = StringTokenize("hello world");
+	AssertEquals(2, size(tokens));
 }
 
 static void Test-Decompile-Binary() {

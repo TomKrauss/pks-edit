@@ -36,17 +36,16 @@
 #define YY_NO_UNISTD_H
 #define fileno(x)		_fileno(x)
 #define YY_FATAL_ERROR(msg) yyerror( msg )
+#define MAX_COMMENT_SIZE		16000
 
 #define YY_INPUT(buf,result,max_size) \
 		{ \
 		int c = '*', n; \
 		for ( n = 0; n < (int)max_size && \
-			     (c = cmdgetc()) != EOF && c != '\n'; ++n ) \
+			     (c = _compilerInputStream->cis_next(_compilerInputStream)) != EOF && c != '\n'; ++n ) \
 			buf[n] = (char) c; \
 		if ( c == '\n' ) \
 			buf[n++] = (char) c; \
-		if ( c == EOF && ferror( yyin ) ) \
-			YY_FATAL_ERROR( "input in flex scanner failed" ); \
 		result = n; \
 		} 
 
@@ -61,6 +60,7 @@ typedef struct yyerrstruct {
 
 static YYERRSTRUCT	yyerr;
 int				_bDefiningConst;
+int				_bInHeader;
 
 typedef void EDFUNCDEF;
 
@@ -68,7 +68,6 @@ extern IDENTIFIER_CONTEXT* _currentIdentifierContext;
 extern FILE		*file_createTempFile(char *fnd, char *fn);
 extern int 		function_initializeFunctionsAndTypes(void);
 extern long 	function_enumValueFor(void *enp);
-extern int		_macrosWereChanged;
 extern void		types_registerDefaultTypes();
 int yylex_destroy ( void );
 
@@ -84,7 +83,6 @@ static struct kw {
 	T_REQUIRE,	"require",
 	T_IF,		"if",
 	T_ELSE,		"else",
-	T_ELIF,		"elif",
 	T_SWITCH,	"switch",
 	T_CASE,		"case",
 	T_DEFAULT,	"default",
@@ -92,7 +90,6 @@ static struct kw {
 	T_CONTINUE,	"continue",
 	T_BREAK,	"break",
 	T_RETURN,	"return",
-	T_LOCAL,	"local",
 	T_GOTO,		"goto",
 	T_NAMESPACE, "namespace",
 	T_FOR,		"for",
@@ -158,18 +155,6 @@ void yywarning(const char* s, ...) {
 
 COMPILER_CONFIGURATION* _compilerConfiguration;
 static COMPILER_INPUT_STREAM	*_compilerInputStream;
-
-/*---------------------------------*/
-/* cmdgetc()					*/
-/*---------------------------------*/
-static int cmdgetc(void ) {
-
-	if (yyleng > YY_BUF_SIZE-4) {
-		yyerror("token too long");
-		yyleng = 0;
-	}
-	return _compilerInputStream->cis_next(_compilerInputStream);
-}
 
 char * _yyCurrentComment;
 
@@ -408,72 +393,56 @@ WS		[ \t]
 
 %option yylineno
 
-%%
-<INITIAL>-	{
-				return '-';
-			}
-<INITIAL>\/\* {
-				int c, lastC = 0;
-				int bSkip = 0;
+%s IN_COMMENT
 
-				yyleng = 0;
-				while((c = input()) != 0) {
-					if (c == '\n') {
-						if (yyleng) {
-							yytext[yyleng++] = '\r';
-							yytext[yyleng++] = '\n';
-						}
-						bSkip = 1;
-						continue;
-					}
-					if (c == '/' && lastC == '*') {
-						yytext[yyleng - 1] = 0;
-						break;
-					}
-					lastC = c;
-					if (bSkip && c != ' ' && c != '*' && c != '\r') {
-						bSkip = 0;
-					}
-					if (!bSkip) {
+%%
+<INITIAL>"/*"	{	
+	if (!_yyCurrentComment) {
+		_yyCurrentComment = calloc(1, MAX_COMMENT_SIZE);
+	} else {
+		_yyCurrentComment[0] = 0;
+	}
+	BEGIN(IN_COMMENT); 
+}
+<INITIAL>-		return '-';
+<INITIAL>\" {
+			int c;
+
+			yyleng = 0;
+			while((c = input()) > 0 && c != '"') {
+				yytext[yyleng++] = c;
+				if (c == '\\') {
+					c = input();
+					if (c > 0) {
 						yytext[yyleng++] = c;
 					}
 				}
-				yytext[yyleng] = 0;
-				if (_yyCurrentComment) {
-					free(_yyCurrentComment);
-				}
-				_yyCurrentComment = _strdup(yytext);
+			}
+			yylval.ident.stringIsAlloced = 0;
+			yylval.ident.s = unquotealloc(yytext,yyleng);
+			return T_STRING;
 }
-\" 			{
-				int c;
-
-				yyleng = 0;
-				while((c = input()) > 0 && c != '"') {
-					yytext[yyleng++] = c;
-					if (c == '\\') {
-						c = input();
-						if (c > 0) {
-							yytext[yyleng++] = c;
-						}
-					}
-				}
-				yylval.ident.stringIsAlloced = 0;
-				yylval.ident.s = unquotealloc(yytext,yyleng);
-				return T_STRING;
+<INITIAL>'([^'\\]|\\['\\abnrftv])'	{	/* Character literal */
+			if (yytext[1] == '\\') {
+				yylval.num = quotedchar(yytext[2]);
+			} else {
+				yylval.num = yytext[1];
 			}
-'([^'\\]|\\['\\abnrftv])'	{	/* Character literal */
-				if (yytext[1] == '\\') {
-					yylval.num = quotedchar(yytext[2]);
-				} else {
-					yylval.num = yytext[1];
-				}
-				return T_CHARACTER;
-			}
-0b{BINNUM}+ {
+			return T_CHARACTER;
+}
+<IN_COMMENT>"*/"      {		BEGIN(INITIAL);	}
+<IN_COMMENT>[^*\n]+   {
+		if ((strlen(_yyCurrentComment) + strlen(yytext)) < MAX_COMMENT_SIZE-32) {
+			strcat(_yyCurrentComment, yytext);	
+		}
+}
+<IN_COMMENT>"*"       // eat the lone star
+<IN_COMMENT>\n        {		if (_yyCurrentComment[0]) strcat(_yyCurrentComment, "\r\n");	yylineno++;}
+<INITIAL>0b{BINNUM}+ {
 				yylval.num = number(yytext);
 				return T_NUM;
 			}
-0[xX]{HEXNUM}+ {
+<INITIAL>0[xX]{HEXNUM}+ {
 				yylval.num = number(yytext);
 				return T_NUM;
 			}
@@ -487,7 +456,6 @@ WS		[ \t]
 				numberOrFloat(yytext, &yylval, &bFloat);
 				return bFloat ? T_FLOATING_POINT_NUMBER : T_NUM;
 			}
-@			{	return T_CMDSEQPREFIX; }
 #[^\n]*		{	;	}
 \/\/[^\n]*	{	;	}
 {WS}		{	;	}
@@ -550,6 +518,9 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 				}
 	
 				if (TYPEOF(sym) == S_VARIABLE) {
+					if (_bInHeader) {
+						goto retIdent;
+					}
 					yylval.ident.stringIsAlloced = 0;
 					yylval.ident.s = key;
 					yylval.ident.type = VALUE_TYPE(sym);

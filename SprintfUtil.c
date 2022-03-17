@@ -21,6 +21,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <direct.h> 
 
 #include "winterf.h"
 #include "edierror.h"
@@ -31,12 +32,16 @@
 #include "markpositions.h"
 #include "xdialog.h"
 #include "pksrc.h"
+#include "fileutil.h"
+#include "editorconfiguration.h"
 
 extern char *ft_visibleName(FTABLE *fp);
 
 int  _psenabled = 1;
 
 #define MAXSSIZE		256
+
+char _pksVersion[] = "2.2.0";
 
 static char sDate[2], sTime[2];
 static int  iDate;
@@ -291,7 +296,7 @@ static void string_formatSystemTime(char* pszDest, SYSTEMTIME* pTime, char c) {
 		sprintf(pszDest, "%02d%c%02d%c%02d",
 			iDate == 1 ? pTime->wDay : iDate == 2 ? pTime->wYear : pTime->wMonth, lim,
 			iDate == 0 ? pTime->wDay : pTime->wMonth, lim,
-			iDate == 2 ? pTime->wDay : (pTime->wYear + 1900));
+			iDate == 2 ? pTime->wDay : pTime->wYear);
 	} else {
 		char lim = sTime[0];
 		sprintf(pszDest, "%02d%c%02d%c%02d",
@@ -325,6 +330,7 @@ static void string_formatSystemTime(char* pszDest, SYSTEMTIME* pTime, char c) {
 	Special % formats supported:
 	%D		current date
 	%T		current time
+	%t		current time including milliseconds
 */
 int mysprintf(char *d, char *format, SPRINTF_ARGS* pArgs) {
 	static char *_digits = "0123456789ABCDEFGHIJ";
@@ -472,9 +478,10 @@ cpyout:			d = string_formatWithPadding(d, dend, x, nWidth, cFiller, bLeftJustify
 }
 
 /*
- * Return a PKS EDIT variable to be used e.g. in code templates.
+ * Return a PKS EDIT variable to be used e.g. in code templates or to be used in 
+ * PKSMacroC scripts.
  */
-void string_getVariable(WINFO* wp, unsigned char* pVar, unsigned char* pResult) {
+void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResult, size_t nSize) {
 	if (strcmp("year2", pVar) == 0) {
 		SYSTEMTIME time;
 		GetLocalTime(&time);
@@ -487,8 +494,29 @@ void string_getVariable(WINFO* wp, unsigned char* pVar, unsigned char* pResult) 
 		sprintf(pResult, "%d", (int)time.wYear);
 		return;
 	}
+	if (strcmp("cwd", pVar) == 0) {
+		_getcwd(pResult, nSize);
+		return;
+	}
+	if (strcmp("pks_tmp", pVar) == 0) {
+		strcpy(pResult, GetConfiguration()->pksEditTempPath);
+		return;
+	}
+	if (strcmp("pks_sys", pVar) == 0) {
+		strcpy(pResult, _pksSysFolder);
+		return;
+	}
+	if (strcmp("pks_version", pVar) == 0) {
+		strcpy(pResult, _pksVersion);
+		return;
+	}
+	if (strcmp("pks_executable", pVar) == 0) {
+		DWORD dLen = GetModuleFileName(NULL, pResult, (DWORD)nSize);
+		pResult[dLen] = 0;
+		return;
+	}
 	if (strcmp("user", pVar) == 0) {
-		DWORD nBytes = 128;
+		DWORD nBytes = (DWORD)nSize;
 		GetUserName(pResult, &nBytes);
 		return;
 	}
@@ -497,6 +525,11 @@ void string_getVariable(WINFO* wp, unsigned char* pVar, unsigned char* pResult) 
 		pFormat = "%s$f";
 	} else if (strcmp("date", pVar) == 0) {
 		pFormat = "%D";
+	} else if (strcmp("time", pVar) == 0) {
+		pFormat = "%T";
+	}
+	else if (strcmp("time_long", pVar) == 0) {
+		pFormat = "%t";
 	} else {
 		strcpy(pResult, pVar);
 		return;
@@ -504,3 +537,12 @@ void string_getVariable(WINFO* wp, unsigned char* pVar, unsigned char* pResult) 
 	mysprintf(pResult, pFormat, &(SPRINTF_ARGS){.sa_wp = wp});
 }
 
+/*
+ * Get a variable and return the value of it in a buffer. The buffer will be valid until
+ * the next invocation of this method.
+ */
+char* string_getVariableWithDefaults(const char* pVar) {
+	static char szResult[256];
+	string_getVariable(ww_getCurrentEditorWindow(), pVar, szResult, sizeof szResult);
+	return szResult;
+}

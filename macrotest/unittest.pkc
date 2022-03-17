@@ -14,11 +14,18 @@ static string currentMethodExecuted;
  */
 void Suite() {
 	int assertionCount;
+	int t = GetTickCount();
+	string version = GetVariable("pks_version");
+	string executable = GetVariable("pks_executable");
+	string time = GetVariable("time_long");
+	string date = GetVariable("date");
+	string cwd = GetVariable("cwd");
 
 	errorCount = 0;
 	testcaseCount = 0;
 	clear();
-
+	println("Starting test suite for " + executable + " version " + version + ". Date: " + date + ", Time:" + time);
+	println("Current directory: " + cwd);
 	for (string setup : FunctionNamesMatching("Setup-.*", LMT_STATIC_MACROS)) {
 		*setup();
 	}
@@ -34,8 +41,11 @@ void Suite() {
 	} else {
 		println("Congratulations: all test cases succesfully executed");
 	}
+	t = GetTickCount() - t;
+	println(sprintf("Total test suite execution time is: %d[ms]", t));
 
 }
+
 
 static void AssertEquals(auto expected, auto result, string msg) {
 	if (expected != result) {
@@ -50,21 +60,23 @@ static void AssertEquals(auto expected, auto result, string msg) {
 }
 
 static void AssertTrue(auto expected, string msg) {
-	AssertEquals(expected, true, msg);
+	AssertEquals(true, expected, msg);
 }
 
 static void AssertFalse(auto expected, string msg) {
-	AssertEquals(expected, false, msg);
+	AssertEquals(false, expected, msg);
 }
 
 static void Run-TestCase(string function) {
 	int t = GetTickCount();
+	int nAssertions = successCount + errorCount;
 	currentMethodExecuted = function;
 	println(sprintf("\n#################### %D %t: starting test case '%s'...", function));
 	*function();
 	testcaseCount++;
 	t = GetTickCount() - t;
-	println(sprintf("finished. total time %d[ms]", t));
+	nAssertions = (successCount + errorCount)-nAssertions;
+	println(sprintf("Finished with " + nAssertions + " assertions. Total time %d[ms]", t));
 }
 
 

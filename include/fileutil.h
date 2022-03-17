@@ -28,7 +28,7 @@ extern int file_exists(const char* s);
  * file_getFileMode()
  * Return the "modes" (read write, A_NORMAL, A_READONLY, A_HIDDEN, A_SYSTEM, ...) of a file.
  */
-extern int file_getFileMode(char* s);
+extern int file_getFileMode(const char* s);
 
 /*
  * Can be used to check, whether a given filename describes an absolute path.

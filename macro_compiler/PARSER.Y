@@ -18,26 +18,24 @@
 
 %define parse.error detailed
 
-%token T_NAMESPACE T_REQUIRE T_STATIC T_FOR 
-%token T_TYPE_IDENTIFIER
+%token T_NAMESPACE T_REQUIRE T_FOR 
+%token T_STATIC T_VOID T_TYPE_IDENTIFIER
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_CHARACTER T_CONST
-%token T_TRUE T_FALSE T_TBOOLEAN
-%token T_FUNC T_MACRO T_DOTDOT T_PLUSPLUS T_MINUSMINUS
-%token T_IF T_ELIF T_ELSE T_WHILE T_GOTO
+%token T_TRUE T_FALSE 
+%token T_FUNC T_DOTDOT T_PLUSPLUS T_MINUSMINUS
+%token T_IF T_ELSE T_WHILE T_GOTO
 %token T_SH_ASSIGN_PLUS T_SH_ASSIGN_MINUS T_SH_ASSIGN_MULT T_SH_ASSIGN_DIV T_SH_ASSIGN_MOD
-%token T_LOCAL T_SWITCH T_CASE T_DEFAULT T_BREAK T_CONTINUE T_RETURN 
+%token T_SWITCH T_CASE T_DEFAULT T_BREAK T_CONTINUE T_RETURN 
 %token T_VARIABLE T_ASSOC_ARROW 
 %token T_NMATCH
 %token T_ASSIGN T_NE T_EQ T_SHIFT_LEFT T_SHIFT_RIGHT 
 %token T_OR T_AND T_LE T_GE T_POWER_TO
-%token T_VOID
-%token T_CMDSEQPREFIX
 
 %left    T_OR T_AND
 %left	'&' '|' '^'
 %nonassoc T_NE T_EQ 
 %left    '~' T_NMATCH
-%left    '<' '>' T_LT T_GT  
+%left    '<' '>' T_LE T_GE  
 %left	T_SHIFT_LEFT T_SHIFT_RIGHT 
 %left	'+' '-' 
 %left	'*' '/' '%' T_POWER_TO
@@ -80,9 +78,6 @@ static 		void finalize_header(void);
 static 		void init_macroDefinition(void);
 static 		void finalize_macroDefinition(void);
 static 		void freeitem(char **p);
-static 		char *bytecode_emitGotoInstruction(char *prefix, int level, int bratyp);
-static		int bytecode_generateAutoLabelNamePrefix(char *prefix,int level);
-static		void bytecode_destroyAutoLabelNamePrefix(char *prefix, int level);
 static void 	bytecode_emitPushParameterInstruction(long long lValue);
 
 static int _arraySize;
@@ -92,12 +87,14 @@ static int	_currentNamespaceIndex;
 static int  _foreachCursorIndex;
 static 		char *lstartid  = "%ls%",
 			     *lendid    = "%le%",
+				 *switchTableId  = "%sw%",
 				*lreturnid = "%rt%",
 				*iffailid  = "%if%",
 				*ifdoneid  = "%id%";
 
 int			vname_count;
 extern 		int	_bDefiningConst;
+extern 		int	_bInHeader;
 extern char*    _yyCurrentComment;
 extern void		yyerror(const char* s, ...);
 extern void		yywarning(char* s, ...);
@@ -105,10 +102,25 @@ extern void		yyrequire(const char* pszNamespace);
 int				function_getIndexOfFunction(void *ep);
 int 			function_parameterIsFormStart(void *ep,int parno);
 extern int macro_lookupNamespace(const char* pszNamespacename);
+extern void bytecode_emitGotoInstruction(BYTECODE_BUFFER* pBuffer, char *prefix, int level, int bratyp);
 extern unsigned char* bytecode_emitBinaryOperation(BYTECODE_BUFFER* pBuffer, int nOperationType, PKS_VALUE_TYPE nTargetType);
 extern unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, char* pszName, int nIncrement);
 extern unsigned char* bytecode_emitAssignment(BYTECODE_BUFFER* pBuffer, const char *name);
 extern unsigned char* bytecode_emitFunctionCall(BYTECODE_BUFFER* pBuffer, unsigned char typ, GENERIC_DATA data, int nArgs);
+extern void bytecode_startSwitchTable(int aLevel);
+extern int bytecode_generateAutoLabelNamePrefix(BYTECODE_BUFFER* pBuffer, char *prefix,int level);
+extern void bytecode_destroyAutoLabelNamePrefix(char *prefix, int level);
+
+/*
+ * Write out the recorded case jumps and cleanup switch table.
+ */
+extern void bytecode_flushSwitchTable(BYTECODE_BUFFER* pBuffer, int aLevel);
+
+/*
+ * Add a switch case condition to the current switch table being constructed.
+ */
+extern void bytecode_addSwitchCondition(BYTECODE_BUFFER* pBuffer, int aLevel, PKS_VALUE_TYPE t, GENERIC_DATA data);
+
 /*
  * Destroy an array list containing TYPE_OBJECT_POINTERs.
  */
@@ -173,7 +185,13 @@ int yydebug = 1;
 			}
 			namespace prerequisites global_declarations {
 				finalize_header();
-			} macro_definitions 
+			} header_delimiter macro_definitions 
+
+header_delimiter:
+			| '!'
+
+macro_definitions: 
+			| macro_definition macro_definitions 
 
 namespace:  {
 				_currentNamespaceIndex = macro_lookupNamespace(MACRO_NAMESPACE_DEFAULT);
@@ -184,7 +202,7 @@ namespace:  {
 			}
 
 prerequisites:
-			| require prerequisites
+			| prerequisites require
 
 require:	T_REQUIRE T_STRING ';' {
 				yyrequire($2.ident.s);
@@ -192,23 +210,15 @@ require:	T_REQUIRE T_STRING ';' {
 			}
 
 global_declarations:
-			| global_declarations constants 
-			| global_declarations global_var
-			| global_declarations T_STATIC T_VOID {
-				yyerror("Invalid global declaration. Note: 1st macro definition must be globally accessible.");
-			}
-
-global_var: scope var_decl
+			| global_declarations constants ';'
+			| global_declarations global_var ';' 
 
 scope:		{ _macroScope = MS_GLOBAL; }
 			| T_STATIC { _macroScope = MS_LOCAL; }
 			
-macro_definitions: 
-			| macro_definition macro_definitions 
-
 /*-- CONSTANTS --------------------------------------------------*/
 
-constants:	T_CONST constant_list ';'
+constants:	T_CONST constant_list
 
 constant_list:
 			constdef
@@ -238,7 +248,6 @@ constant_literal:
 
 variable_identifier:	
 			T_IDENT 				{	$$.ident = $1.ident; }
-			| variable_reference	{	$$.ident = $1.ident; }
 			| T_NUM
 			{
 				$$.ident = $1.ident;
@@ -264,23 +273,40 @@ variable_reference:
 
 /*-- MACROS -----------------------------------------------------*/
 
-macro_declaration: macro_type T_IDENT {
-				$$.ident = $2.ident;
+macro_declaration: T_IDENT {
+				$$.ident = $1.ident;
 			}
-			| macro_type T_FUNC {
+			| T_FUNC {
 				yyerror("Illegal attempt to redefine native method");
 				$$.ident.s = 0;
 				$$.ident.stringIsAlloced = 0;
 			}
 
-macro_type:	T_VOID
-			| T_TYPE_IDENTIFIER
+macro_type:	scope T_VOID 
+			| 
+			scope type_name
 
-macrostart: { init_macroDefinition(); } macro_declaration '(' parameter_list ')' optional_description 
+macrostart: macro_type macro_declaration '(' parameter_list ')' optional_description 
 			{	$$.ident = $2.ident; 
 				YY_EMIT(C_SET_STACKFRAME,(GENERIC_DATA){0});
 			}
 			
+global_var: scope var_decl
+
+var_decl:	type_name variable_identifier assignment_expression {
+				makeInternalSymbol($2.ident.s, $1.type, 0);
+				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $2.ident.s);
+				if ($2.ident.stringIsAlloced) {
+					free($2.ident.s);
+				}
+				vname_count = 0;
+			} | type_name variable_identifier {
+				makeInternalSymbol($2.ident.s, $1.type, 0);
+				if ($2.ident.stringIsAlloced) {
+					free($2.ident.s);
+				}
+				vname_count = 0;
+			}
 
 optional_description:
 			|
@@ -293,9 +319,10 @@ parameter_list:
 			| non_empty_pardecl
 
 non_empty_pardecl:
-			non_empty_pardecl ',' par_decl 
-			|
 			par_decl
+			|
+			non_empty_pardecl ',' par_decl
+
 
 par_decl:	type_name variable_identifier {
 				sym_createSymbol(_currentIdentifierContext, $2.ident.s, S_VARIABLE, VT_NUMBER, (GENERIC_DATA) {_nparam});
@@ -304,8 +331,9 @@ par_decl:	type_name variable_identifier {
 				_nparam++;
 			}
 
-macro_definition: scope macrostart block {
-				bytecode_generateAutoLabelNamePrefix(lreturnid,0);
+macro_definition: { init_macroDefinition(); } 
+				macrostart block {
+				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, lreturnid,0);
 				bytecode_destroyAutoLabelNamePrefix(lreturnid,0);
 				macro_validateMacroName($2.ident.s, -1, 1);
 				YY_EMIT(C_STOP, (GENERIC_DATA){1});
@@ -328,22 +356,7 @@ macro_definition: scope macrostart block {
 block:		'{' var_decls stmntlist closing_brace
 
 var_decls:
-			| var_decl var_decls
-
-var_decl:	type_name variable_identifier assignment_expression ';'	{
-				makeInternalSymbol($2.ident.s, $1.type, 0);
-				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $2.ident.s);
-				if ($2.ident.stringIsAlloced) {
-					free($2.ident.s);
-				}
-				vname_count = 0;
-			} | type_name variable_identifier ';'	{
-				makeInternalSymbol($2.ident.s, $1.type, 0);
-				if ($2.ident.stringIsAlloced) {
-					free($2.ident.s);
-				}
-				vname_count = 0;
-			}
+			| var_decls var_decl ';' 
 
 statement: ';'
 			| call_expression ';' { $$.needsPop = 1; }
@@ -362,14 +375,11 @@ statement: ';'
 			| var_decl {
 				yyerror("Variable declarations outside method variable declaration section not yet supported.");
 			}
-			| errors ';' {
+			| error ';' {
 				$$.needsPop = 0; 
 				yyerror("Invalid statement. Expecting one of function call, assignment, if, while, case, break, continue, return, goto, increment_expression, block or label.");
 				yyerrok;
 			}
-
-errors:		error 
-			| errors error
 
 assignment: variable_reference assignment_expression {
 				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
@@ -560,10 +570,10 @@ string:		T_STRING {	$$.ident = $1.ident; }
 			}
 
 break:		T_BREAK opt_num ';'
-			{	bytecode_emitGotoInstruction(lendid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
+			{	bytecode_emitGotoInstruction(&_bytecodeBuffer, lendid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
 
 continue:	T_CONTINUE opt_num ';'
-			{	bytecode_emitGotoInstruction(lstartid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
+			{	bytecode_emitGotoInstruction(&_bytecodeBuffer, lstartid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
 
 return_expression: 
 			T_RETURN optional_bterm {
@@ -581,21 +591,18 @@ case_clauses:
 
 case_clause: case_selector stmntlist
 
-case_selector: T_CASE case_condition ':' {
-				$$.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_EQ});
-				bytecode_emitGotoInstruction(lendid,_breaklevel,BRA_IF_FALSE);
-			}
+case_selector: T_CASE case_condition ':' 
 			|
-			T_DEFAULT ':'
+			T_DEFAULT ':' {
+				bytecode_addSwitchCondition(&_bytecodeBuffer, _breaklevel, VT_NIL, (GENERIC_DATA){.longValue=0});
+			}
 
 case_condition:
 			T_NUM {
-				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.longValue=$1.num});
+				bytecode_addSwitchCondition(&_bytecodeBuffer, _breaklevel, VT_NUMBER, (GENERIC_DATA){.longValue=$1.num});
 			}
 			| T_STRING {
-				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$1.ident.s});
-				$$.v.type = C_PUSH_STRING_LITERAL;
-				free($1.ident.s);
+				bytecode_addSwitchCondition(&_bytecodeBuffer, _breaklevel, VT_STRING, (GENERIC_DATA){.string=$1.ident.s});
 			}
 
 label:		T_IDENT ':' {
@@ -623,69 +630,70 @@ in_clause:	'(' type_name variable_identifier {
 			}
 
 switch_expression:		
-			T_SWITCH {
-			} '(' value ')' {
+			T_SWITCH  '(' value ')' 
+			{
 				_breaklevel++;
+				bytecode_emitGotoInstruction(&_bytecodeBuffer, switchTableId,_breaklevel,BRA_ALWAYS);
+				bytecode_startSwitchTable(_breaklevel);
 			}
 			'{' case_clauses '}'
 			{
-				bytecode_generateAutoLabelNamePrefix(lendid,_breaklevel);
-				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
+				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, switchTableId,_breaklevel);
+				bytecode_destroyAutoLabelNamePrefix(switchTableId,_breaklevel);
+				bytecode_flushSwitchTable(&_bytecodeBuffer, _breaklevel);
 				_breaklevel--;
+				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, lendid,_breaklevel);
 				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
 			}
 
 foreach:	T_FOR {
-				bytecode_generateAutoLabelNamePrefix(lstartid,_breaklevel);
+				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, lstartid,_breaklevel);
 			} in_clause {
-				bytecode_emitGotoInstruction(lendid,_breaklevel,BRA_IF_FALSE);
+				bytecode_emitGotoInstruction(&_bytecodeBuffer, lendid,_breaklevel,BRA_IF_FALSE);
 				_breaklevel++;
 			} local_block {
 				_breaklevel--;
-				bytecode_emitGotoInstruction(lstartid,_breaklevel,BRA_ALWAYS);
-				bytecode_generateAutoLabelNamePrefix(lendid,_breaklevel);
+				bytecode_emitGotoInstruction(&_bytecodeBuffer, lstartid,_breaklevel,BRA_ALWAYS);
+				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, lendid,_breaklevel);
 				bytecode_destroyAutoLabelNamePrefix(lstartid,_breaklevel);
 				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
 			}
 
 while:		T_WHILE {
-				bytecode_generateAutoLabelNamePrefix(lstartid,_breaklevel);
+				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, lstartid,_breaklevel);
 			} condition {
-				bytecode_emitGotoInstruction(lendid,_breaklevel,BRA_IF_FALSE);
+				bytecode_emitGotoInstruction(&_bytecodeBuffer, lendid,_breaklevel,BRA_IF_FALSE);
 				_breaklevel++;
 			} local_block {
 				_breaklevel--;
-				bytecode_emitGotoInstruction(lstartid,_breaklevel,BRA_ALWAYS);
-				bytecode_generateAutoLabelNamePrefix(lendid,_breaklevel);
+				bytecode_emitGotoInstruction(&_bytecodeBuffer, lstartid,_breaklevel,BRA_ALWAYS);
+				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, lendid,_breaklevel);
 				bytecode_destroyAutoLabelNamePrefix(lstartid,_breaklevel);
 				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
 			}
 
 local_block: statement | '{' stmntlist closing_brace
 
-closing_brace:
-			{ yyerror("Missing closing brace '}'"); }
-			|
-			'}'
+closing_brace: '}'
 
 if_expression:
 			T_IF condition {
-				bytecode_emitGotoInstruction(iffailid,_iflevel,BRA_IF_FALSE);
+				bytecode_emitGotoInstruction(&_bytecodeBuffer, iffailid,_iflevel,BRA_IF_FALSE);
 				_iflevel++;
 			} local_block {
 				_iflevel--;
 			} else_clause {
-				bytecode_generateAutoLabelNamePrefix(ifdoneid,_iflevel);
+				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, ifdoneid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(ifdoneid,_iflevel);
 			}
 
 else_clause: {
-				bytecode_generateAutoLabelNamePrefix(iffailid,_iflevel);
+				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, iffailid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(iffailid,_iflevel);
 			}
 			| T_ELSE {
-				bytecode_emitGotoInstruction(ifdoneid,_iflevel,BRA_ALWAYS);
-				bytecode_generateAutoLabelNamePrefix(iffailid,_iflevel);
+				bytecode_emitGotoInstruction(&_bytecodeBuffer, ifdoneid,_iflevel,BRA_ALWAYS);
+				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, iffailid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(iffailid,_iflevel);
 			}
 			local_block
@@ -697,9 +705,7 @@ stmntlist:	{ $$.needsPop = 0; }
 				}
 			} stmntlist
 
-closing_paren:
-				')'
-				| error {		yyerror("Missing closing )"); }
+closing_paren: ')'
 
 call_expression: T_FUNC '(' {
 				// Native call
@@ -850,40 +856,6 @@ void YYtrace(char *fmt, ...)
 #endif
 
 /*---------------------------------*/
-/* bytecode_emitGotoInstruction()					*/
-/*---------------------------------*/
-static char *bytecode_emitGotoInstruction(char *prefix, int level, int bratyp)
-{	char *name = bytecode_generateAutoLabelName(prefix,level);
-
-	if (level < 0)
-		yyerror("illegal break/continue level");
-	else
-		_bytecodeBuffer.bb_current = bytecode_emitGotoLabelInstruction(name,&_bytecodeBuffer,bratyp);
-	return _bytecodeBuffer.bb_current;
-}
-
-/*---------------------------------*/
-/* bytecode_generateAutoLabelNamePrefix()					*/
-/*---------------------------------*/
-static int bytecode_generateAutoLabelNamePrefix(char *prefix,int level)
-{	char *name = bytecode_generateAutoLabelName(prefix,level);
-
-	return bytecode_createBranchLabel(&_bytecodeBuffer, name);
-}
-
-/*---------------------------------*/
-/* bytecode_destroyAutoLabelNamePrefix()					*/
-/*---------------------------------*/
-static void bytecode_destroyAutoLabelNamePrefix(char *prefix, int level)
-{	char *name = bytecode_generateAutoLabelName(prefix,level);
-
-	/*
-	 * autolabel is not used any more: kill it
-	 */
-	bytecode_destroyLabelNamed(name);
-}
-
-/*---------------------------------*/
 /* freeitem()					*/
 /*---------------------------------*/
 static void freeitem(char **p)
@@ -911,12 +883,14 @@ static void destroy_bytecodeBuffer() {
 }
 
 static void init_header() {
-	init_bytecodeBuffer(); 
+	init_bytecodeBuffer();
+	_bInHeader = 1;
 }
 
 static void finalize_header() {
 	macro_defineNamespaceInitializer(_currentNamespaceIndex, _bytecodeBuffer.bb_start, _bytecodeBuffer.bb_current - _bytecodeBuffer.bb_start);
 	destroy_bytecodeBuffer();
+	_bInHeader = 0;
 }
 
 /*---------------------------------*/

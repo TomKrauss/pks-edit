@@ -16,6 +16,8 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include <corecrt_io.h>
+#include "arraylist.h"
 #include "documentmodel.h"
 #include "mainframe.h"
 #include "winfo.h"
@@ -27,8 +29,16 @@
 #include "stringutil.h"
 #include "edctype.h"
 #include "pksmacrocvm.h"
+#include "fileutil.h"
 
 static const char* consoleFileName = "console.log";
+
+static void macroc_expectNumberOfArgs(int nExpected, int nArgs, const char* pszFunction) {
+	if (nArgs < nExpected) {
+		interpreter_raiseError("Invalid number of arguments (%d) for %s. Must pass at least %d arguments.", nArgs, pszFunction, nExpected);
+	}
+
+}
 
 /*
  * Opens the console, if not yet open. 
@@ -139,19 +149,37 @@ char* macroc_tolower(const char* pszString) {
 	return macroc_convertChars(pszString, CC_LOWER);
 }
 
+/*
+ * Tokenize a string and split into subtokens delimited by pszCharacters.
+ */
+ARRAY_LIST * macroc_stringTokenize(const char* pszString, const char* pszCharacters) {
+	ARRAY_LIST* pResult = arraylist_create(7);
+	if (!pszString) {
+		return pResult;
+	}
+	if (!pszCharacters) {
+		pszCharacters = " \t";
+	}
+	char* pszInput = _strdup(pszString);
+	const char* pszNext = strtok(pszInput, pszCharacters);
+	while (pszNext) {
+		arraylist_add(pResult, _strdup(pszNext));
+		pszNext = strtok(0, pszCharacters);
+	}
+	free(pszInput);
+	return pResult;
+}
 
 /*
  * Implements the FileOpen() which opens a file for reading or writing.
  */
 PKS_VALUE macroc_fileOpen(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
-	if (nArgs < 1) {
-		interpreter_raiseError("No filename specified for fileopen");
-	}
+	macroc_expectNumberOfArgs(1, nArgs, "FileOpen");
 	const char* pszFilename = memory_accessString(pValues[0]);
 	const char* pszAccessMode = nArgs > 1 ? memory_accessString(pValues[1]) : "r";
 	FILE* fp = fopen(pszFilename, pszAccessMode);
 	if (!fp) {
-		return (PKS_VALUE) {.sym_type = VT_NIL};
+		return (PKS_VALUE) {.pkv_type = VT_NIL};
 	}
 	PKS_VALUE vResult = memory_createObject(pContext, types_typeIndexFor("FILE"), 1, 0);
 	memory_setNestedPointer(vResult, 0, (MAKE_TYPED_OBJECT_POINTER(0, 0, fp)));
@@ -163,7 +191,7 @@ PKS_VALUE macroc_fileOpen(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int n
  */
 PKS_VALUE macroc_fileReadLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	PKS_VALUE_TYPE t = types_typeIndexFor("FILE");
-	if (nArgs < 1 || pValues[0].sym_type != t) {
+	if (nArgs < 1 || pValues[0].pkv_type != t) {
 		interpreter_raiseError("No file pointer passed to FileReadLine");
 	}
 	TYPED_OBJECT_POINTER p = memory_getNestedObjectPointer(pValues[0], 0);
@@ -173,7 +201,7 @@ PKS_VALUE macroc_fileReadLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 		return memory_createObject(pContext, VT_STRING, 0, _linebuf);
 	}
 	return (PKS_VALUE) {
-		.sym_type = VT_NIL
+		.pkv_type = VT_NIL
 	};
 }
 
@@ -181,16 +209,17 @@ PKS_VALUE macroc_fileReadLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
  * Implements the FileWriteLine() method, which writes one line of text to a given file (FileWriteLine(fp, s)).
  */
 PKS_VALUE macroc_fileWriteLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	macroc_expectNumberOfArgs(2, nArgs, "FileWriteLine");
 	PKS_VALUE_TYPE t = types_typeIndexFor("FILE");
-	if (nArgs < 2 || pValues[0].sym_type != t) {
-		interpreter_raiseError("No file pointer / no line to write passed to FileWriteLine");
+	if (pValues[0].pkv_type != t || pValues[1].pkv_type != VT_STRING) {
+		interpreter_raiseError("No file pointer / no string to write passed to FileWriteLine");
 	}
 	TYPED_OBJECT_POINTER p = memory_getNestedObjectPointer(pValues[0], 0);
 	FILE* fp = (FILE*)TOP_DATA_POINTER(p);
 	BOOL bSuccess = fputs(memory_accessString(pValues[1]), fp) >= 0;
 	fputc('\n', fp);
 	return (PKS_VALUE) {
-		.sym_type = VT_BOOL, .sym_data.booleanValue = bSuccess
+		.pkv_type = VT_BOOL, .pkv_data.booleanValue = bSuccess
 	};
 }
 
@@ -198,8 +227,9 @@ PKS_VALUE macroc_fileWriteLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, 
  * Implements the FileOpen() which opens a file for reading or writing.
  */
 PKS_VALUE macroc_fileClose(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	macroc_expectNumberOfArgs(1, nArgs, "FileClose");
 	PKS_VALUE_TYPE t = types_typeIndexFor("FILE");
-	if (nArgs < 1 || pValues[0].sym_type != t) {
+	if (pValues[0].pkv_type != t) {
 		interpreter_raiseError("No file pointer passed to FileClose");
 	}
 	TYPED_OBJECT_POINTER p = memory_getNestedObjectPointer(pValues[0], 0);
@@ -208,8 +238,103 @@ PKS_VALUE macroc_fileClose(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int 
 		memory_setNestedPointer(pValues[0], 0, (MAKE_TYPED_OBJECT_POINTER(0, 0, 0)));
 	}
 	return (PKS_VALUE) {
-		.sym_type = VT_BOOLEAN, .sym_data.booleanValue = 1
+		.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 1
 	};
 }
 
+/*
+ * Determine the index of one object in another. Supported combinations: search any type of object in an array
+ * or search a substring or a character inside a string.
+ */
+PKS_VALUE macroc_indexOf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	macroc_expectNumberOfArgs(2, nArgs, "IndexOf");
+	PKS_VALUE vTarget = pValues[0];
+	PKS_VALUE vOf = pValues[1];
+	int nIndex = -2;
+	if (vTarget.pkv_type == VT_OBJECT_ARRAY) {
+		nIndex = memory_indexOf(vTarget, vOf);
+	} else if (vTarget.pkv_type == VT_STRING) {
+		const char* pszString = memory_accessString(vTarget);
+		const char* pszIndex = 0;
+		if (vOf.pkv_type == VT_STRING) {
+			const char* pszOther = memory_accessString(vOf);
+			pszIndex = strstr(pszString, pszOther);
+		} else if (vOf.pkv_type == VT_CHAR) {
+			pszIndex = strchr(pszString, vOf.pkv_data.uchar);
+		}
+		nIndex = pszIndex ? (int)(pszIndex - pszString) : -1;
+	}
+	if (nIndex == -2) {
+		interpreter_raiseError("Unsupported argument type for IndexOf");
+	}
+	return (PKS_VALUE) {.pkv_type = VT_NUMBER, .pkv_data.intValue = nIndex};
+}
+
+/*
+ * Test a number of flags to check the type of a file.
+ * -e - file exists?
+ * -d - file is directory?
+ * -s - file is a system file?
+ * -r - file is readonly ?
+ * -a - file is archive?
+ */
+int macroc_fileTest(const char* pszFile, const char* pszMode) {
+	if (!pszFile) {
+		return 0;
+	}
+	if (file_exists(pszFile) < 0) {
+		return 0;
+	}
+	while (pszMode && *pszMode) {
+		char c = *pszMode++;
+		if (c == '-') {
+			continue;
+		}
+		if (c == 'e') {
+			continue;
+		}
+		int nMode = file_getFileMode(pszFile);
+		if (c == 'd' && (nMode & _A_SUBDIR) == 0) {
+			return 0;
+		}
+		if (c == 'r' && (nMode & _A_RDONLY) == 0) {
+			return 0;
+		}
+		if (c == 's' && (nMode & _A_SYSTEM) == 0) {
+			return 0;
+		}
+		if (c == 'h' && (nMode & _A_HIDDEN) == 0) {
+			return 0;
+		}
+		if (c == 'a' && (nMode & _A_ARCH) == 0) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
+/*
+ * Lists all files in a directory given a matching pattern.
+ */
+ARRAY_LIST* macroc_fileListFiles(const char* pszDir, const char* pszPattern) {
+	ARRAY_LIST* pResult = arraylist_create(17);
+	if (pszDir) {
+		char szBuf[EDMAXPATHLEN];
+		if (!pszPattern) {
+			pszPattern = "*.*";
+		}
+		string_concatPathAndFilename(szBuf, pszDir, pszPattern);
+		struct _finddata_t dta;
+		intptr_t handle;
+
+		if ((handle = _findfirst(szBuf, &dta)) >= 0) {
+			arraylist_add(pResult, _strdup(dta.name));
+			while (_findnext(handle, &dta) >= 0) {
+				arraylist_add(pResult, _strdup(dta.name));
+			}
+			_findclose(handle);
+		}
+	}
+	return pResult;
+}
 

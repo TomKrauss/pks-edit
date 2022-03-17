@@ -57,7 +57,7 @@ EXPORT int file_exists(const char *s)
  * file_getFileMode()
  * Return the "modes" (read write, A_NORMAL, A_READONLY, A_HIDDEN, A_SYSTEM, ...) of a file.
  */
-EXPORT int file_getFileMode(char *s) {
+EXPORT int file_getFileMode(const char *s) {
 	if (!dostat(s)) {
 		return -1;
 	}

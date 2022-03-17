@@ -60,7 +60,7 @@ static void memory_destroyData(OBJECT_DATA** pData) {
 	if (pOD) {
 		T_FINALIZER finalizer = types_getFinalizer(pOD->od_class);
 		if (finalizer) {
-			finalizer((PKS_VALUE) { .pkv_managed = 1, .pkv_isPointer = 1, .sym_type = pOD->od_class, .sym_data.objectPointer = pOD});
+			finalizer((PKS_VALUE) { .pkv_managed = 1, .pkv_isPointer = 1, .pkv_type = pOD->od_class, .pkv_data.objectPointer = pOD});
 		}
 		if (pOD->od_class == VT_MAP) {
 			hashmap_destroy(memory_accessMap(pOD), 0);
@@ -149,7 +149,7 @@ static void memory_markObjects(EXECUTION_CONTEXT* pContext) {
 	PKS_VALUE* pValue = pContext->ec_stackBottom;
 	while (pValue <= pContext->ec_stackCurrent) {
 		if (pValue->pkv_managed) {
-			memory_markObject(pValue->sym_data.objectPointer);
+			memory_markObject(pValue->pkv_data.objectPointer);
 		}
 		pValue++;
 	}
@@ -273,7 +273,7 @@ PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType,
 	OBJECT_DATA* pData = memory_createObjectData(pContext, sType, nInitialSize, pInput);
 	if (!pData) {
 		return (PKS_VALUE) {
-			.sym_type = sType, .sym_data.val = (intptr_t)pInput
+			.pkv_type = sType, .pkv_data.val = (intptr_t)pInput
 		};
 	}
 	if (sType == VT_OBJECT_ARRAY && pInput) {
@@ -303,7 +303,56 @@ PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType,
 		}
 		pData->od_size = (int)(nLen / 2);
 	}
-	return (PKS_VALUE) { .sym_type = sType, .sym_data.objectPointer = pData, .pkv_isPointer = 1, .pkv_managed = 1 };
+	return (PKS_VALUE) { .pkv_type = sType, .pkv_data.objectPointer = pData, .pkv_isPointer = 1, .pkv_managed = 1 };
+}
+
+static int memory_collectKey(intptr_t k, intptr_t v, void* pParam) {
+	PKS_VALUE* pArray = pParam;
+	OBJECT_DATA* pData = pArray->pkv_data.objectPointer;
+	pData->od_data.objects[pData->od_size++] = (TYPED_OBJECT_POINTER)k;
+	return 1;
+}
+
+static int memory_collectValue(intptr_t k, intptr_t v, void* pParam) {
+	PKS_VALUE* pArray = pParam;
+	OBJECT_DATA* pData = pArray->pkv_data.objectPointer;
+	pData->od_data.objects[pData->od_size++] = (TYPED_OBJECT_POINTER)v;
+	return 1;
+}
+
+static PKS_VALUE memory_collectElements(EXECUTION_CONTEXT* pContext, PKS_VALUE vTarget, int (*func)(intptr_t k, intptr_t v, void *p)) {
+	if (vTarget.pkv_managed && vTarget.pkv_type == VT_MAP) {
+		HASHMAP* pMap = memory_accessMap(vTarget.pkv_data.objectPointer);
+		PKS_VALUE tempArray = memory_createObject(pContext, VT_OBJECT_ARRAY, hashmap_size(pMap), 0);
+		hashmap_forEachEntry(pMap, func, &tempArray);
+		return tempArray;
+	}
+	interpreter_raiseError("Illegal map operation on a non map value %s", types_nameFor(vTarget.pkv_type));
+	return (PKS_VALUE) { 0 };
+}
+
+/*
+ * Returns an array object with all keys contained in the map type value passed as single argument.
+ */
+PKS_VALUE memory_mapKeys(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	if (nArgs >= 1) {
+		PKS_VALUE vTarget = pValues[0];
+		return memory_collectElements(pContext, vTarget, memory_collectKey);
+	}
+	interpreter_raiseError("mapKeys requires an arguments");
+	return (PKS_VALUE) {0};
+}
+
+/*
+ * Returns an array object with all values contained in the map type value passed as single argument.
+ */
+PKS_VALUE memory_mapValues(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	if (nArgs >= 1) {
+		PKS_VALUE vTarget = pValues[0];
+		return memory_collectElements(pContext, vTarget, memory_collectValue);
+	}
+	interpreter_raiseError("mapValues requires an arguments");
+	return (PKS_VALUE) { 0 };
 }
 
 /*
@@ -313,7 +362,7 @@ int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS_VALUE 
 	if (!vObject->pkv_managed || !vElement.pkv_managed) {
 		return 0;
 	}
-	OBJECT_DATA* pData = vObject->sym_data.objectPointer;
+	OBJECT_DATA* pData = vObject->pkv_data.objectPointer;
 	if (pData->od_size >= pData->od_capacity) {
 		size_t oldSize = sizeof(OBJECT_DATA) + pData->od_capacity * sizeof(OBJECT_DATA*);
 		pData->od_capacity += 10;
@@ -332,13 +381,13 @@ int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS_VALUE 
 		if (objIdx < _objectSpace.om_capacity) {
 			memory_assignSlot(&_objectSpace, objIdx, pData);
 		}
-		vObject->sym_data.objectPointer = pData;
+		vObject->pkv_data.objectPointer = pData;
 		size_t diff = newSize - oldSize;
 		void* pStart = ((char*)pData) + oldSize;
 		memset(pStart, 0, diff);
 	}
 	BOOL bPointer = vElement.pkv_isPointer;
-	pData->od_data.objects[pData->od_size++] = MAKE_TYPED_OBJECT_POINTER(bPointer, vElement.sym_type, vElement.sym_data.objectPointer);
+	pData->od_data.objects[pData->od_size++] = MAKE_TYPED_OBJECT_POINTER(bPointer, vElement.pkv_type, vElement.pkv_data.objectPointer);
 	return 1;
 }
 
@@ -348,7 +397,7 @@ int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS_VALUE 
  */
 int memory_size(PKS_VALUE v) {
 	if (v.pkv_managed && v.pkv_isPointer) {
-		return ((OBJECT_DATA*)v.sym_data.objectPointer)->od_size;
+		return ((OBJECT_DATA*)v.pkv_data.objectPointer)->od_size;
 	}
 	return 0;
 }
@@ -357,8 +406,8 @@ int memory_size(PKS_VALUE v) {
  * Get a string pointer to the actual string for a value.
  */
 const char* memory_accessString(PKS_VALUE v) {
-	if (v.pkv_managed && v.sym_type == VT_STRING) {
-		return ((OBJECT_DATA*)v.sym_data.objectPointer)->od_data.string;
+	if (v.pkv_managed && v.pkv_type == VT_STRING) {
+		return ((OBJECT_DATA*)v.pkv_data.objectPointer)->od_data.string;
 	}
 	return "";
 }
@@ -369,7 +418,7 @@ const char* memory_accessString(PKS_VALUE v) {
  */
 int memory_setNestedPointer(PKS_VALUE vTarget, int nIndex, TYPED_OBJECT_POINTER vPointer) {
 	if (vTarget.pkv_managed) {
-		OBJECT_DATA* pPointer = ((OBJECT_DATA*)vTarget.sym_data.objectPointer);
+		OBJECT_DATA* pPointer = ((OBJECT_DATA*)vTarget.pkv_data.objectPointer);
 		if (nIndex >= 0 && nIndex < pPointer->od_capacity) {
 			pPointer->od_data.objects[nIndex] = vPointer;
 			if (nIndex >= pPointer->od_size) {
@@ -387,27 +436,27 @@ int memory_setNestedPointer(PKS_VALUE vTarget, int nIndex, TYPED_OBJECT_POINTER 
  * Set a nested object of a value at slot nIndex.
  */
 int memory_setNestedObject(PKS_VALUE vTarget, int nIndex, PKS_VALUE vElement) {
-	return memory_setNestedPointer(vTarget, nIndex, MAKE_TYPED_OBJECT_POINTER(vElement.pkv_isPointer, vElement.sym_type, vElement.sym_data.val));
+	return memory_setNestedPointer(vTarget, nIndex, MAKE_TYPED_OBJECT_POINTER(vElement.pkv_isPointer, vElement.pkv_type, vElement.pkv_data.val));
 }
 
 static PKS_VALUE memory_asValue(TYPED_OBJECT_POINTER top) {
 	PKS_VALUE_TYPE t = TOP_TYPE(top);
 	if (TOP_IS_POINTER(top)) {
 		return (PKS_VALUE) {
-			.sym_type = t,
+			.pkv_type = t,
 				.pkv_isPointer = 1,
 				.pkv_managed = 1,
-				.sym_data.objectPointer = TOP_DATA_POINTER(top)
+				.pkv_data.objectPointer = TOP_DATA_POINTER(top)
 		};
 	}
 	if (t == 0) {
 		t = VT_BOOLEAN;
 	}
 	return (PKS_VALUE) {
-		.sym_type = t,
+		.pkv_type = t,
 			.pkv_isPointer = 0,
 			.pkv_managed = 0,
-			.sym_data.longValue = (long)(intptr_t)TOP_DATA_POINTER(top)
+			.pkv_data.longValue = (long)(intptr_t)TOP_DATA_POINTER(top)
 	};
 }
 
@@ -416,7 +465,7 @@ static PKS_VALUE memory_asValue(TYPED_OBJECT_POINTER top) {
  */
 TYPED_OBJECT_POINTER memory_getNestedObjectPointer(PKS_VALUE v, int nIndex) {
 	if (v.pkv_managed) {
-		OBJECT_DATA* pPointer = ((OBJECT_DATA*)v.sym_data.objectPointer);
+		OBJECT_DATA* pPointer = ((OBJECT_DATA*)v.pkv_data.objectPointer);
 		if (nIndex >= 0 && nIndex < pPointer->od_capacity) {
 			return pPointer->od_data.objects[nIndex];
 		}
@@ -426,11 +475,33 @@ TYPED_OBJECT_POINTER memory_getNestedObjectPointer(PKS_VALUE v, int nIndex) {
 }
 
 /*
+ * Return the "index" of one object in a give array type object.
+ */
+int memory_indexOf(PKS_VALUE vArray, PKS_VALUE vOther) {
+	if (vArray.pkv_managed && vArray.pkv_type == VT_OBJECT_ARRAY) {
+		OBJECT_DATA* pPointer = ((OBJECT_DATA*)vArray.pkv_data.objectPointer);
+		for (int i = 0; i < pPointer->od_size; i++) {
+			TYPED_OBJECT_POINTER top = pPointer->od_data.objects[i];
+			if (TOP_TYPE(top) == vOther.pkv_type) {
+				if (vOther.pkv_type == VT_STRING) {
+					if (strcmp(memory_accessString(vOther), (char*)TOP_DATA_POINTER(top)) == 0) {
+						return i;
+					}
+				}
+				else if (vOther.pkv_data.longValue == (long long)TOP_DATA_POINTER(top)) {
+					return i;
+				}
+			}
+		}
+	}
+	return -1;
+}
+/*
  * Access the nested object of a value at slot nIndex.
  */
 PKS_VALUE memory_getNestedObject(PKS_VALUE v, int nIndex) {
-	if (v.pkv_managed && v.sym_type == VT_OBJECT_ARRAY) {
-		OBJECT_DATA* pPointer = ((OBJECT_DATA*)v.sym_data.objectPointer);
+	if (v.pkv_managed && v.pkv_type == VT_OBJECT_ARRAY) {
+		OBJECT_DATA* pPointer = ((OBJECT_DATA*)v.pkv_data.objectPointer);
 		if (nIndex >= 0 && nIndex < pPointer->od_size) {
 			TYPED_OBJECT_POINTER top = pPointer->od_data.objects[nIndex];
 			return memory_asValue(top);
@@ -444,11 +515,12 @@ PKS_VALUE memory_getNestedObject(PKS_VALUE v, int nIndex) {
  * Set a nested object using a key (must be a string) assuming the target object is a map.
  */
 int memory_atPutObject(PKS_VALUE vTarget, PKS_VALUE vKey, PKS_VALUE vElement) {
-	if (vTarget.pkv_managed && vTarget.sym_type == VT_MAP && vKey.sym_type == VT_STRING) {
-		HASHMAP* pMap = memory_accessMap(vTarget.sym_data.objectPointer);
+	if (vTarget.pkv_managed && vTarget.pkv_type == VT_MAP && vKey.pkv_type == VT_STRING) {
+		HASHMAP* pMap = memory_accessMap(vTarget.pkv_data.objectPointer);
 		hashmap_put(pMap,
-				MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, vKey.sym_data.objectPointer),
-				MAKE_TYPED_OBJECT_POINTER(vElement.pkv_isPointer, vElement.sym_type, vElement.sym_data.val));
+				MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, vKey.pkv_data.objectPointer),
+				MAKE_TYPED_OBJECT_POINTER(vElement.pkv_isPointer, vElement.pkv_type, vElement.pkv_data.val));
+		vTarget.pkv_data.objectPointer->od_size = hashmap_size(pMap);
 	}
 	else {
 		interpreter_raiseError("Can assign map elements only to maps with string type keys.");
@@ -460,9 +532,9 @@ int memory_atPutObject(PKS_VALUE vTarget, PKS_VALUE vKey, PKS_VALUE vElement) {
  * Access an object by string key in a map.
  */
 PKS_VALUE memory_atObject(PKS_VALUE vTarget, PKS_VALUE vKey) {
-	if (vTarget.pkv_managed && vTarget.sym_type == VT_MAP && vKey.sym_type == VT_STRING) {
-		HASHMAP* pMap = memory_accessMap(vTarget.sym_data.objectPointer);
-		TYPED_OBJECT_POINTER top= hashmap_get(pMap, MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, vKey.sym_data.objectPointer));
+	if (vTarget.pkv_managed && vTarget.pkv_type == VT_MAP && vKey.pkv_type == VT_STRING) {
+		HASHMAP* pMap = memory_accessMap(vTarget.pkv_data.objectPointer);
+		TYPED_OBJECT_POINTER top= hashmap_get(pMap, MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, vKey.pkv_data.objectPointer));
 		return memory_asValue(top);
 	}
 	interpreter_raiseError("Can only access map elements with string type keys.");

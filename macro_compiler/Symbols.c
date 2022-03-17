@@ -264,7 +264,7 @@ int inline sym_defineVariable(IDENTIFIER_CONTEXT* pContext, const char* name, PK
 static int sym_processManagedCB(intptr_t k, intptr_t v, int (*callback)(void* pObject)) {
 	SYMBOL* pVal = (SYMBOL*)v;
 	if (pVal->s_type == S_RUNTIME_VALUE &&  pVal->s.value.pkv_managed && pVal->s.value.pkv_isPointer) {
-		return callback(pVal->s.value.sym_data.objectPointer);
+		return callback(pVal->s.value.pkv_data.objectPointer);
 	}
 	return 1;
 }
