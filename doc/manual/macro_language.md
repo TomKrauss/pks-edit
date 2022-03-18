@@ -15,15 +15,13 @@ To record a macro, use "Macro->Record" and start doing some actions (e.g. move t
 allowing to "name" the macro and bind it to a keyboard key so it can be used subsequently. Note, that in order to make the macro persistent, you must save the the current set of macros.
 When PKS-Edit exits and there are unsaved macros, it warns about that and asks the user to save the macros now.
 
-## The Maco menu
+## The Macro menu
 
 Allows you to edit macros defined. One may add comments / remove macros, decompile a recorded macro, disassemble a macro from here.
 
 ## Compiling macros
 
-To compile one or more macros, you open a macro file (see the `macros` sub-directory for samples) and press F10 once the file is loaded and then OK. If the compilation is successful
-a message is displayed, that no error was found. Otherwise an error log is opened, which can be navigated with Ctrl+N and Ctrl+P to jump to the corresponding line numbers with the
-erors.
+To compile one or more macros, you open a macro file (see the `macros` sub-directory for samples) and press F10 once the file is loaded and then OK. If the compilation is successful a message is displayed, that no error was found. Otherwise an error log is opened, which can be navigated with Ctrl+N and Ctrl+P to jump to the corresponding line numbers with the erors.
 
 ## The PKSMacroC Language
 
@@ -76,7 +74,7 @@ Values may have one of the following types:
 
 - `string` as the name implies a string (internally implemented using zero terminated strings). Strings in PKS-Edit are dynamically allocated and de-allocated.
   no memory management is necessary in PKSMacroC code. One can concatenate strings by using the '+' operator. `string` literals follow C syntax and are enclosed
-  in `"´` characters.
+  in `"Â´` characters.
 - `int` represents integer numbers in a 64 bit value range. `int` literals may be written as either decimal numbers (`123`), hexadecimal numbers (`0xAF34`) or
   octal numbers (`\0234`).
 - `float` represents floating point numbers. Floating point literals contain either a `.` character and may have a trailing `d` suffix (`12d`).
