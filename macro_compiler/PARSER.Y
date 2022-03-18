@@ -604,6 +604,9 @@ case_condition:
 			| T_STRING {
 				bytecode_addSwitchCondition(&_bytecodeBuffer, _breaklevel, VT_STRING, (GENERIC_DATA){.string=$1.ident.s});
 			}
+			| T_NUM T_DOTDOT T_NUM {
+				bytecode_addSwitchCondition(&_bytecodeBuffer, _breaklevel, VT_RANGE, (GENERIC_DATA){.range.r_start=$1.num, .range.r_end=$3.num});
+			}
 
 label:		T_IDENT ':' {
 				bytecode_createBranchLabel(&_bytecodeBuffer, $1.ident.s);

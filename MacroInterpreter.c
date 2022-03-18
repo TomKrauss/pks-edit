@@ -825,13 +825,16 @@ static PKS_VALUE interpreter_getParameterStackValue(EXECUTION_CONTEXT* pContext,
 /*
  * Compare two values and return 1 if they are identical.
  */
-static int interpreter_compareValues(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, PKS_VALUE v2) {
-	if (v1.pkv_type == VT_STRING) {
+static int interpreter_testCaseLabelMatch(EXECUTION_CONTEXT* pContext, PKS_VALUE nCaseLabelValue, PKS_VALUE v2) {
+	if (nCaseLabelValue.pkv_type == VT_STRING) {
 		v2 = interpreter_coerce(pContext, v2, VT_STRING);
-		return strcmp(memory_accessString(v1), memory_accessString(v2)) == 0;
+		return strcmp(memory_accessString(nCaseLabelValue), memory_accessString(v2)) == 0;
 	}
 	v2 = interpreter_coerce(pContext, v2, VT_NUMBER);
-	return v1.pkv_data.intValue == v2.pkv_data.intValue;
+	if (nCaseLabelValue.pkv_type == VT_RANGE) {
+		return nCaseLabelValue.pkv_data.range.r_start <= v2.pkv_data.intValue && nCaseLabelValue.pkv_data.range.r_end >= v2.pkv_data.intValue;
+	}
+	return nCaseLabelValue.pkv_data.intValue == v2.pkv_data.intValue;
 }
 
 /*---------------------------------*/
@@ -863,9 +866,9 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 				stackTop = interpreter_coerce(pContext, stackTop, VT_BOOLEAN);
 				val = !stackTop.pkv_data.booleanValue;
 			} else if (bt == BRA_CASE) {
-				PKS_VALUE stackTop = interpreter_popStackValue(pContext);
+				PKS_VALUE caseLabelValue = interpreter_popStackValue(pContext);
 				PKS_VALUE compareWith = interpreter_peekStackValue(pContext);
-				val = interpreter_compareValues(pContext, stackTop, compareWith);
+				val = interpreter_testCaseLabelMatch(pContext, caseLabelValue, compareWith);
 			}
 			if (val == TRUE)
 				pInstr = COM1_INCR(cp, COM_GOTO, offset);

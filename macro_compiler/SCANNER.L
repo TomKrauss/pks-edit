@@ -437,7 +437,7 @@ WS		[ \t]
 		}
 }
 <IN_COMMENT>"*"       // eat the lone star
-<IN_COMMENT>\n        {		if (_yyCurrentComment[0]) strcat(_yyCurrentComment, "\r\n");	yylineno++;}
+<IN_COMMENT>\n        {		if (_yyCurrentComment[0]) strcat(_yyCurrentComment, "\r\n");}
 <INITIAL>0b{BINNUM}+ {
 				yylval.num = number(yytext);
 				return T_NUM;

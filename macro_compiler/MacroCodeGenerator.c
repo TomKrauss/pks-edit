@@ -29,7 +29,12 @@ extern int bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char* name);
 extern void bytecode_emitGotoInstruction(BYTECODE_BUFFER* pBuffer, char* prefix, int level, int bratyp);
 extern char* bytecode_emitGotoLabelInstruction(char* name, BYTECODE_BUFFER* pBuffer, int branchType);
 
-static PKS_VALUE	_switchValues[32];
+typedef struct tagSWITCH_LABEL {
+	int  sl_index;
+	PKS_VALUE sl_value;
+} SWITCH_LABEL;
+
+static SWITCH_LABEL	_switchValues[32];
 static int			_currentSwitchValue = -1;
 
 /*
@@ -220,6 +225,18 @@ void bytecode_emitGotoInstruction(BYTECODE_BUFFER* pBuffer, char* prefix, int le
 static char* _caseLabelId = "%case%";
 
 /*
+ * Calculate the number range of a value.
+ */
+static void bytecode_calculateRange(PKS_VALUE_TYPE t, GENERIC_DATA data, int* pLow, int* pHigh) {
+	if (t == VT_NUMBER) {
+		*pLow = *pHigh = data.intValue;
+	}
+	else if (t == VT_RANGE) {
+		*pLow = data.range.r_start;
+		*pHigh = data.range.r_end;
+	}
+}
+/*
  * Add a switch case condition to the current switch table being constructed.
  */
 void bytecode_addSwitchCondition(BYTECODE_BUFFER* pBuffer, int aLevel, PKS_VALUE_TYPE t, GENERIC_DATA data) {
@@ -228,7 +245,34 @@ void bytecode_addSwitchCondition(BYTECODE_BUFFER* pBuffer, int aLevel, PKS_VALUE
 		return;
 	}
 	bytecode_generateAutoLabelNamePrefix(pBuffer, _caseLabelId, _currentSwitchValue);
-	_switchValues[_currentSwitchValue++] = (PKS_VALUE){ .pkv_type = t, .pkv_data = data };
+	int i = 0;
+	for (; i < _currentSwitchValue; i++) {
+		PKS_VALUE vExist = _switchValues[i].sl_value;
+		if (t == VT_STRING) {
+			if (vExist.pkv_type == VT_STRING && strcmp(vExist.pkv_data.string, data.string) == 0) {
+				yyerror("Illegal redefinition of case label value %s", data.string);
+			}
+		} else {
+			int nExistLow;
+			int nExistHigh;
+			int nNewLow;
+			int nNewHigh;
+			bytecode_calculateRange(vExist.pkv_type, vExist.pkv_data, &nExistLow, &nExistHigh);
+			bytecode_calculateRange(t, data, &nNewLow, &nNewHigh);
+			if ((nNewLow >= nExistLow && nNewLow <= nExistHigh) || (nNewHigh >= nExistLow && nNewHigh <= nExistHigh))  {
+				yyerror("Illegal redefinition of case label value range %d..%d", nNewLow, nNewHigh);
+			}
+		}
+		if (vExist.pkv_type == VT_NIL) {
+			// Insert switch condition always before default condition
+			break;
+		}
+	}
+	if (i < _currentSwitchValue) {
+		memmove(&_switchValues[i + 1], &_switchValues[i], (_currentSwitchValue - i) * sizeof _switchValues[0]);
+	}
+	_switchValues[i] = (SWITCH_LABEL){ .sl_index = _currentSwitchValue, .sl_value.pkv_type = t, .sl_value.pkv_data = data };
+	_currentSwitchValue++;
 }
 
 void bytecode_startSwitchTable(int aLevel) {
@@ -245,16 +289,25 @@ void bytecode_startSwitchTable(int aLevel) {
 void bytecode_flushSwitchTable(BYTECODE_BUFFER* pBuffer, int aLevel) {
 
 	for (int i = 0; i < _currentSwitchValue; i++) {
-		PKS_VALUE v = _switchValues[i];
+		PKS_VALUE v = _switchValues[i].sl_value;
+		int nLabelIndex = _switchValues[i].sl_index;
 		if (v.pkv_type == VT_NIL) {
 			// default case
-			bytecode_emitGotoInstruction(pBuffer, _caseLabelId, i, BRA_ALWAYS);
+			bytecode_emitGotoInstruction(pBuffer, _caseLabelId, nLabelIndex, BRA_ALWAYS);
 		} else {
-			pBuffer->bb_current = bytecode_emitInstruction(pBuffer, v.pkv_type == VT_STRING ? C_PUSH_STRING_LITERAL : C_PUSH_INTEGER_LITERAL, v.pkv_data);
+			if (v.pkv_type == VT_RANGE) {
+				// TODO: we could introduce a PUS_RANGE Operation to handle this more efficiently.
+				pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_INTEGER_LITERAL, (GENERIC_DATA) { .intValue = v.pkv_data.range.r_start });
+				pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_INTEGER_LITERAL, (GENERIC_DATA) { .intValue = v.pkv_data.range.r_end });
+				pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_BINOP, (GENERIC_DATA) { BIN_RANGE });
+			}
+			else {
+				pBuffer->bb_current = bytecode_emitInstruction(pBuffer, v.pkv_type == VT_STRING ? C_PUSH_STRING_LITERAL : C_PUSH_INTEGER_LITERAL, v.pkv_data);
+			}
 			if (v.pkv_type == VT_STRING) {
 				free(v.pkv_data.string);
 			}
-			bytecode_emitGotoInstruction(pBuffer, _caseLabelId, i, BRA_CASE);
+			bytecode_emitGotoInstruction(pBuffer, _caseLabelId, nLabelIndex, BRA_CASE);
 
 		}
 		bytecode_destroyAutoLabelNamePrefix(_caseLabelId, i);

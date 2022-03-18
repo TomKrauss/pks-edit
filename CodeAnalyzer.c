@@ -26,6 +26,8 @@
 #include "pksmacro.h"
 #include "actionbindings.h"
 #include "funcdef.h"
+#include "pksmacrocvm.h"
+#include "symbols.h"
 #include "fontawesome.h"
 
 typedef struct tagANALYZER {
@@ -89,15 +91,37 @@ static const char* analyzer_helpForMacro(const char* pszName, void* pMac) {
  */
 static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback) {
 	BOOL bInParams = FALSE;
+	char szIdentifier[256];
+	char* pszDest = 0;
+	szIdentifier[0] = 0;
 	for (int i = 0; i < wp->caret.offset; i++) {
 		char c = wp->caret.linePointer->lbuf[i];
-		if (c == '(') {
+		if (isalpha(c)) {
+			if (!pszDest) {
+				pszDest = szIdentifier;
+			}
+			*pszDest++ = c;
+			continue;
+		} else {
+			if (pszDest) {
+				*pszDest = 0;
+			}
+			pszDest = 0;
+		}
+		if (isspace(c)) {
+			continue;
+		}
+		if (c == '(' && szIdentifier[0]) {
 			bInParams = TRUE;
-		} else if (c == ')') {
+		} else {
+			szIdentifier[0] = 0;
 			bInParams = FALSE;
 		}
 	}
-	if (bInParams) {
+	char* key;
+	SYMBOL sym = sym_find(sym_getGlobalCompilerContext(), szIdentifier, &key);
+	if (sym.s_type == S_EDFUNC) {
+		// should select the proper constants for the native function currently edited. function_getParameterTypeDescriptor((void*)VALUE(sym),)
 		for (int i = 0; i < _parameterEnumValueTableSize; i++) {
 			const char* pszName = _parameterEnumValueTable[i].pev_name;
 			if (fMatch(pszName)) {

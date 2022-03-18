@@ -1313,7 +1313,7 @@ case 8:
 /* rule 8 can match eol */
 YY_RULE_SETUP
 #line 440 "scanner.l"
-{		if (_yyCurrentComment[0]) strcat(_yyCurrentComment, "\r\n");	yylineno++;}
+{		if (_yyCurrentComment[0]) strcat(_yyCurrentComment, "\r\n");}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP

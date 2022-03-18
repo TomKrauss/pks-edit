@@ -167,4 +167,30 @@ PKSMacroC currently supports the following control flow expressions:
 - `if (condition) ... [else ...]` - allows to conditionally execute one block with an optional else clause.
 . 'for(type var : expression) {}` - a foreach loop iterating over the elements of the result of evaluating `expression` setting the 
    variable `v` to the elements produced. Currently one can iterate strings and ranges.
+- `switch(var) ... [case ...: statements]` - an almost classical switch statemen (see below).
 
+### PKSMacroC switch expressions
+
+In PKSMacroC, case labels must uniquely select the statements to execute or a compile error is displayed. One may specify
+either a number, a number range (a..b), a string or the default case, Case labels must uniquely select a block of statements
+to execute. Here is an example for a PKSMacroC switch statement.
+
+```
+switch (myNumber) {
+    case 1: println("1"); break;
+    case 2..5: println("range selected"); break;
+    // here you will get a compile error: 2..5 overlaps 3..6
+    case 3..6: println("range selected"); break;
+    default: println("DEFAULT");
+}
+
+switch (myString) {
+    case "##":  println("double hash"); break;
+    case "--":  println("double dash"); break;
+}
+
+```
+
+
+
+ 
