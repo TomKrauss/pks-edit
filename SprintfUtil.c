@@ -495,7 +495,7 @@ void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResult, siz
 		return;
 	}
 	if (strcmp("cwd", pVar) == 0) {
-		_getcwd(pResult, nSize);
+		_getcwd(pResult, (int)nSize);
 		return;
 	}
 	if (strcmp("pks_tmp", pVar) == 0) {

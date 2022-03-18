@@ -47,7 +47,7 @@ extern void analyzer_destroyAnalyzers();
  * Extract all recommendations from the file edited in the view identified by 'wp'.
  * Use the analyzer with the given analyzer name. If successful, return 1, otherwise 0.
  */
-extern int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, int (*fMatch)(char* pszMatch), ANALYZER_CALLBACK fCallback);
+extern int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback);
 
 /*
  * Register some "default" analyzers, which can be referenced in grammar files given their respective names.

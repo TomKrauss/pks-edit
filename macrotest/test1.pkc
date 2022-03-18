@@ -44,7 +44,7 @@ static void Setup-SuiteBaseTests() {
  * Tests operations on files.
  */
 static void Test-FileIO() {
-	FILE fp;
+	file fp;
 	string s;
 	string manualDir = GetVariable("cwd") + MANUAL_DIRECTORY;
 
@@ -64,13 +64,13 @@ static void Test-FileIO() {
 	// no such file or directory
 	AssertEquals(ENOENT, GetLastError());
 
-	for (string file : FileListFiles(manualDir, "*.md")) {
-		AssertTrue(IndexOf(file, ".md") > 0);
+	for (string fileName : FileListFiles(manualDir, "*.md")) {
+		AssertTrue(IndexOf(fileName, ".md") > 0);
 	}
 }
 
-static void CountWordsIn(map words, string file) {
-	FILE fp = FileOpen(file, "r");
+static void CountWordsIn(map words, string fileName) {
+	file fp = FileOpen(fileName, "r");
 	int count;
 	string line;
 
@@ -102,8 +102,8 @@ static void Test-WordCount() {
 	int count;
 	int numberOfFrequentWords = 0;
 
-	for (string file : FileListFiles(manualDir, "*.md")) {
-		CountWordsIn(words, manualDir + "\\" + file);
+	for (string fileName : FileListFiles(manualDir, "*.md")) {
+		CountWordsIn(words, manualDir + "\\" + fileName);
 	}
 	for (string word : MapKeys(words)) {
 		count = words[word];

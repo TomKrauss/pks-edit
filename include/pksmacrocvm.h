@@ -72,6 +72,9 @@ typedef enum {
 	VT_AUTO = 9
 } PKS_VALUE_TYPE;
 
+#define PKS_TYPE_FILE		"file"
+#define PKS_TYPE_MAP_ENTRY	"map-entry"
+
 typedef struct tagPKS_VALUE {
 	int				pkv_managed : 1;				// the memory of this object is managed by the MacroVM object memory
 	int				pkv_isPointer : 1;				// the actual data of this value is contained in the linked object

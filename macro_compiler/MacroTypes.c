@@ -28,12 +28,30 @@ static PKS_TYPE_DESCRIPTOR* _typeDescriptors[MAX_TYPES];
 static int _maxTypeIndex;
 
 /*
+ * Destroy a type descriptor created with ...register...
+ */
+static void types_destroyDescriptor(PKS_TYPE_DESCRIPTOR* pType) {
+	if(!pType) {
+		return;
+	}
+	TYPE_PROPERTY_DESCRIPTOR* pDescriptors = pType->ptd_properties;
+	if (pDescriptors) {
+		for (int nProp = 0; nProp < pType->ptd_numberOfProperties; nProp++) {
+			free((char*)pDescriptors[nProp].tpd_name);
+		}
+		free(pDescriptors);
+	}
+	free((char*)pType->ptd_name);
+	free(pType);
+}
+
+/*
  * Destroy all types previously registered.
  */
 void types_destroy() {
 	for (int i = 0; i < _maxTypeIndex; i++) {
-		free((char*)_typeDescriptors[i]->ptd_name);
-		free(_typeDescriptors[i]);
+		types_destroyDescriptor(_typeDescriptors[i]);
+		_typeDescriptors[i] = 0;
 	}
 	_maxTypeIndex = 0;
 }
@@ -77,7 +95,13 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 	if (t >= _maxTypeIndex) {
 		_maxTypeIndex = t+1;
 	}
-	// TODO - more
+	if (pTemplate->ptd_properties) {
+		pDescriptor->ptd_properties = calloc(pTemplate->ptd_numberOfProperties, sizeof * pTemplate->ptd_properties);
+		for (int i = 0; i < pDescriptor->ptd_numberOfProperties; i++) {
+			pDescriptor->ptd_properties[i].tpd_type = pTemplate->ptd_properties[i].tpd_type;
+			pDescriptor->ptd_properties[i].tpd_name = _strdup(pTemplate->ptd_properties[i].tpd_name);
+		}
+	}
 	return 1;
 }
 
@@ -121,9 +145,16 @@ void types_registerDefaultTypes() {
 	types_register(VT_OBJECT_ARRAY, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "#array#", .ptd_isValueType = 0, .ptd_hasDynamicSize = 1, .ptd_hasDefaultValue = 1});
 	types_register(VT_MAP, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "map", .ptd_isValueType = 0, .ptd_hasDynamicSize = 1, .ptd_hasDefaultValue = 1});
 	types_register(VT_AUTO, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "auto", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
-	types_register(-1, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "FILE", .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0, .ptd_callbacks = {
+	types_register(-1, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "file", .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0, .ptd_callbacks = {
 		.tc_close = (T_FINALIZER)file_close
 		}});
+	TYPE_PROPERTY_DESCRIPTOR descriptors[] = {
+			{.tpd_type = VT_STRING, .tpd_name = "key"},
+			{.tpd_type = VT_AUTO, .tpd_name = "value"},
+	};
+	types_register(-1, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "map-entry", .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0, 
+		.ptd_properties = descriptors, .ptd_numberOfProperties = DIM(descriptors)
+	});
 }
 
 /*

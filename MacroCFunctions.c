@@ -181,7 +181,7 @@ PKS_VALUE macroc_fileOpen(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int n
 	if (!fp) {
 		return (PKS_VALUE) {.pkv_type = VT_NIL};
 	}
-	PKS_VALUE vResult = memory_createObject(pContext, types_typeIndexFor("FILE"), 1, 0);
+	PKS_VALUE vResult = memory_createObject(pContext, types_typeIndexFor(PKS_TYPE_FILE), 1, 0);
 	memory_setNestedPointer(vResult, 0, (MAKE_TYPED_OBJECT_POINTER(0, 0, fp)));
 	return vResult;
 }
@@ -190,7 +190,7 @@ PKS_VALUE macroc_fileOpen(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int n
  * Implements the FileReadLine() method, which reads and returns one line of text from a given file (FileReadLine(fp)).
  */
 PKS_VALUE macroc_fileReadLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
-	PKS_VALUE_TYPE t = types_typeIndexFor("FILE");
+	PKS_VALUE_TYPE t = types_typeIndexFor(PKS_TYPE_FILE);
 	if (nArgs < 1 || pValues[0].pkv_type != t) {
 		interpreter_raiseError("No file pointer passed to FileReadLine");
 	}
@@ -210,7 +210,7 @@ PKS_VALUE macroc_fileReadLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
  */
 PKS_VALUE macroc_fileWriteLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	macroc_expectNumberOfArgs(2, nArgs, "FileWriteLine");
-	PKS_VALUE_TYPE t = types_typeIndexFor("FILE");
+	PKS_VALUE_TYPE t = types_typeIndexFor(PKS_TYPE_FILE);
 	if (pValues[0].pkv_type != t || pValues[1].pkv_type != VT_STRING) {
 		interpreter_raiseError("No file pointer / no string to write passed to FileWriteLine");
 	}
@@ -228,7 +228,7 @@ PKS_VALUE macroc_fileWriteLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, 
  */
 PKS_VALUE macroc_fileClose(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	macroc_expectNumberOfArgs(1, nArgs, "FileClose");
-	PKS_VALUE_TYPE t = types_typeIndexFor("FILE");
+	PKS_VALUE_TYPE t = types_typeIndexFor(PKS_TYPE_FILE);
 	if (pValues[0].pkv_type != t) {
 		interpreter_raiseError("No file pointer passed to FileClose");
 	}
