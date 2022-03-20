@@ -69,11 +69,13 @@ typedef enum {
 	VT_RANGE = 6,
 	VT_OBJECT_ARRAY = 7,
 	VT_MAP = 8,
-	VT_AUTO = 9
+	VT_AUTO = 9,
+	VT_FILE = 10,
+	VT_MAP_ENTRY = 11,
 } PKS_VALUE_TYPE;
 
-#define PKS_TYPE_FILE		"file"
-#define PKS_TYPE_MAP_ENTRY	"map-entry"
+#define PKS_TYPE_FILE		"FILE"
+#define PKS_TYPE_MAP_ENTRY	"MAP_ENTRY"
 
 typedef struct tagPKS_VALUE {
 	int				pkv_managed : 1;				// the memory of this object is managed by the MacroVM object memory
@@ -223,6 +225,7 @@ typedef enum {
 	C_PUSH_ARRAY_LITERAL = 0x17, 			// Push array literal, n PKSValues starting with a type byte and 
 											// either a string with \0 end or 4 bytes for other values (int etc...)
 	C_PUSH_MAP_LITERAL = 0x1C, 				// Push map literal, same format as array literal. Successive values are treated as key, value pairs
+	C_PUSH_NEW_INSTANCE = 0x1D,				// create a new instance of an object.
 	C_PUSH_VARIABLE = 0x18,					// variable reference to string
 	C_FORM_START = 0x19, 					// formular with parameters ...
 	
@@ -238,7 +241,7 @@ typedef enum {
 
 #define	C_IS1PAR(typ)			 (typ & 0x10)
 #define	C_ISCMD(typ)			 (typ >= C_0FUNC && typ <= C_MACRO_REF)
-#define C_IS_PUSH_OPCODE(opCode) (opCode >= C_PUSH_CHARACTER_LITERAL && opCode <= C_FORM_START)
+#define C_IS_PUSH_OPCODE(opCode) ((opCode >= C_PUSH_CHARACTER_LITERAL && opCode <= C_FORM_START) || opCode == C_PUSH_NEW_INSTANCE || opCode == C_PUSH_MAP_LITERAL)
 
 #define	C_NONE			0xFF
 
@@ -340,7 +343,7 @@ typedef struct c_stop {
 } COM_STOP;
 
 typedef struct c_int1 {
-	unsigned char	typ;			// C_PUSH_INTEGER_LITERAL, C_PUSH_LITERAL int
+	unsigned char	typ;			// C_PUSH_INTEGER_LITERAL, C_PUSH_LITERAL int, C_PUSH_NEW_INSTANCE
 	unsigned char	c_valueType;
 	int				val;
 } COM_INT1;
@@ -495,6 +498,11 @@ extern PKS_VALUE memory_mapKeys(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues,
 extern PKS_VALUE memory_mapValues(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs);
 
 /*
+ * Returns an array object with all MAP_ENTRY objects in the map type value passed as single argument.
+ */
+extern PKS_VALUE memory_mapEntries(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs);
+
+/*
  * Return the "index" of one object in a give array type object.
  */
 extern int memory_indexOf(PKS_VALUE vArray, PKS_VALUE vOther);
@@ -503,6 +511,21 @@ extern int memory_indexOf(PKS_VALUE vArray, PKS_VALUE vOther);
  * Open the debug window.
  */
 extern void debugger_open(EXECUTION_CONTEXT* pContext, char* pszError);
+
+/*
+ * Returns the index for a given types property name or -1, if that cannot be determined.
+ */
+extern int types_indexForProperty(PKS_VALUE_TYPE t, const char* pszPropertyName, PKS_VALUE_TYPE *tProperty);
+
+/*
+ * Used for structured data types to define the number of instance variables.
+ */
+extern int types_getObjectSize(PKS_VALUE_TYPE t);
+
+/*
+ * Returns true, if the passed value type is a "structured" type.
+ */
+extern BOOL types_isStructuredType(PKS_VALUE_TYPE t);
 
 #define PKSMACROCVM_H
 #endif

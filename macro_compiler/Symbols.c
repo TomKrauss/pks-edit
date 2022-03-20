@@ -35,6 +35,7 @@ typedef enum {	FIND,ENTER,DESTROY} ACTION;
 
 struct tagIDENTIFIER_CONTEXT {
 	struct tagIDENTIFIER_CONTEXT* ic_next;
+	int ic_runtimeContext;
 	HASHMAP* ic_table;
 };
 
@@ -107,11 +108,12 @@ void sym_destroyTable() {
  * Push a new identifier context chained to the given parent context and return
  * the new context.
  */
-IDENTIFIER_CONTEXT* sym_pushContext(IDENTIFIER_CONTEXT* pParent) {
+IDENTIFIER_CONTEXT* sym_pushContext(IDENTIFIER_CONTEXT* pParent, int bRuntimeContext) {
 	IDENTIFIER_CONTEXT* pNew = calloc(1, sizeof * pNew);
 	if (!pNew) {
 		return NULL;
 	}
+	pNew->ic_runtimeContext = bRuntimeContext;
 	pNew->ic_next = pParent;
 	return pNew;
 }
@@ -200,6 +202,11 @@ static int sym_insert(IDENTIFIER_CONTEXT* pContext, const char *key, SYMBOL vVal
 	HASH_ENTRY entry;
 	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry, FALSE);
 	if (pFound) {
+		if (vValue.s_type == S_RUNTIME_VALUE) {
+			SYMBOL* sym = (SYMBOL*)(intptr_t)entry.he_value;
+			*sym = vValue;
+			return 1;
+		}
 		hashmap_remove(pFound->ic_table, (intptr_t)entry.he_key);
 		key = (char*)entry.he_key;
 		sym_destroyEntry(0, entry.he_value);
@@ -312,7 +319,6 @@ BOOL sym_existsVariable(IDENTIFIER_CONTEXT* pContext, char* symbolname) {
  * Returns the value associated with a symbol.
  */
 PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
-
 	HASH_ENTRY entry;
 	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, symbolname, &entry, FALSE);
 	if (!pFound) {

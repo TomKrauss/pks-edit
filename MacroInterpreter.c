@@ -160,6 +160,10 @@ static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsi
 		double dDouble = ((COM_FLOAT1*)pInstructionPointer)->val;
 		return (PKS_VALUE) { .pkv_type = VT_FLOAT, .pkv_data.doubleValue = dDouble };
 	}
+	case C_PUSH_NEW_INSTANCE: {
+		PKS_VALUE_TYPE t = ((COM_INT1*)pInstructionPointer)->c_valueType;
+		return memory_createObject(pContext, t, types_getObjectSize(t), 0);
+	}
 	case C_PUSH_ARRAY_LITERAL:
 		return interpreter_decodeArrayList(pContext, (COM_ARRAYLITERAL*)pInstructionPointer);
 	case C_PUSH_MAP_LITERAL:
@@ -195,7 +199,7 @@ static void interpreter_allocateStack(EXECUTION_CONTEXT* pResult) {
  */
 static EXECUTION_CONTEXT* interpreter_pushExecutionContext(const char* pszFunctionName) {
 	EXECUTION_CONTEXT* pResult = calloc(1, sizeof * pResult);
-	pResult->ec_identifierContext = sym_pushContext(sym_getGlobalContext());
+	pResult->ec_identifierContext = sym_pushContext(sym_getGlobalContext(), 1);
 	if (_contextStack == NULL) {
 		_contextStack = arraylist_create(7);
 	}
@@ -416,6 +420,7 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 		case C_PUSH_FLOAT_LITERAL:
 			/* only if your alignment = 2,2,2 */
 			return sizeof(COM_FLOAT1);
+		case C_PUSH_NEW_INSTANCE:
 		case C_PUSH_INTEGER_LITERAL:
 			/* only if your alignment = 2,2,2 */
 			return sizeof(COM_INT1);
@@ -796,7 +801,7 @@ static void interpreter_assignOffset(EXECUTION_CONTEXT* pContext, char* name) {
 		memory_atPutObject(target, vOffset, v);
 	}
 	else {
-		if (target.pkv_type != VT_OBJECT_ARRAY) {
+		if (target.pkv_type != VT_OBJECT_ARRAY && !types_isStructuredType(target.pkv_type)) {
 			interpreter_raiseError("Illegal target object %s for offset assignment.", name);
 		}
 		int nIndex = interpreter_coerce(pContext, vOffset, VT_NUMBER).pkv_data.intValue;
@@ -850,8 +855,11 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 	while (pInstr < pInstrMax) {
 		cp = (COM_1FUNC*)pInstr;
 		pContext->ec_instructionPointer = cp;
-		if ((_progressCount++ % 100) == 99 && progress_cancelMonitor(FALSE) != 0) {
-			interpreter_raiseError("Macro execution aborted by user.");
+		if (_progressCount++ > 1000) {
+			if (progress_cancelMonitor(FALSE) != 0) {
+				interpreter_raiseError("Macro execution aborted by user.");
+			}
+			_progressCount = 0;
 		}
 		switch (cp->typ) {
 		case C_GOTO: {
@@ -905,6 +913,7 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 		case C_PUSH_CHARACTER_LITERAL:
 		case C_PUSH_FLOAT_LITERAL:
 		case C_PUSH_INTEGER_LITERAL:
+		case C_PUSH_NEW_INSTANCE:
 		case C_PUSH_VARIABLE:
 		case C_PUSH_ARRAY_LITERAL: 
 		case C_PUSH_MAP_LITERAL:

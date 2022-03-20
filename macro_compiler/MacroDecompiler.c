@@ -219,6 +219,9 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 				.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = ((COM_CHAR1*)sp)->val
 			});
 			return 1;
+		case C_PUSH_NEW_INSTANCE:
+			sprintf(pszBuf, "new %s()", types_nameFor(((COM_INT1*)sp)->c_valueType));
+			return 1;
 		case C_PUSH_INTEGER_LITERAL:
 			val = ((COM_INT1 *)sp)->val;
 			break;
@@ -580,6 +583,7 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 		case C_PUSH_VARIABLE: decompile_print(pBuf, "pushVariable "); break;
 		case C_PUSH_LONG_LITERAL: decompile_print(pBuf, "pushLongLiteral %lld", (long long)((COM_LONG1*)sp)->val); break;
 		case C_PUSH_SMALL_INT_LITERAL: decompile_print(pBuf, "pushSmallIntLiteral %d", ((COM_CHAR1*)sp)->val); break;
+		case C_PUSH_NEW_INSTANCE: decompile_print(pBuf, "pushNewInstance %s", types_nameFor(((COM_INT1*)sp)->c_valueType)); break;
 		case C_PUSH_INTEGER_LITERAL: decompile_print(pBuf, "pushIntLiteral %d", ((COM_INT1*)sp)->val); break;
 		case C_PUSH_FLOAT_LITERAL: decompile_print(pBuf, "pushFloatLiteral %f", ((COM_FLOAT1*)sp)->val); break;
 		case C_PUSH_ARRAY_LITERAL: decompile_print(pBuf, "pushArrayLiteral size==%d", ((COM_ARRAYLITERAL*)sp)->length); break;

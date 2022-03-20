@@ -46,7 +46,7 @@ typedef struct tagSYMBOL {
 #define	SETTYPE(xyz,type)	((xyz).s_type = type)
 #define	NULLSYM(xyz)		(TYPEOF(xyz) == 0 && VALUE(xyz) == 0)
 
-#define	HSIZE		37
+#define	HSIZE		19
 
 typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 
@@ -110,7 +110,7 @@ extern IDENTIFIER_CONTEXT* sym_getKeywordContext();
  * Push a new identifier context chained to the given parent context and return
  * the new context.
  */
-extern IDENTIFIER_CONTEXT* sym_pushContext(IDENTIFIER_CONTEXT* pParent);
+extern IDENTIFIER_CONTEXT* sym_pushContext(IDENTIFIER_CONTEXT* pParent, int bRuntimeContext);
 
 /*
  * Pop an identifier identifier context chained to the given parent context and return

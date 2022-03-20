@@ -234,7 +234,8 @@ EDFUNC _functionTable[] = {
 {/*148*/macroc_fileTest, -1, 0, "FileTest", NULL, "iss" },
 {/*149*/macroc_fileListFiles, -1, 0, "FileListFiles", NULL, "ass" },
 {/*150*/(long long (*)())memory_mapKeys, -1, 0, "MapKeys", NULL, "P" },
-{/*151*/(long long (*)())memory_mapValues, -1, 0, "MapValues", NULL, "P" }
+{/*151*/(long long (*)())memory_mapValues, -1, 0, "MapValues", NULL, "P" },
+{/*151*/(long long (*)())memory_mapEntries, -1, 0, "MapEntries", NULL, "P" }
 };
 
 int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);

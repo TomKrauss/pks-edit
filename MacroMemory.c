@@ -289,7 +289,7 @@ PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType,
 		}
 	} else if (sType == VT_MAP && pInput) {
 		ARRAY_LIST* pList = (ARRAY_LIST*)pInput;
-		size_t nLen = arraylist_size(pList);
+		int nLen = (int)arraylist_size(pList);
 		HASHMAP* pMap = memory_accessMap(pData);
 		for (int i = 0; i < nLen-1; i += 2) {
 			TYPED_OBJECT_POINTER pszPointer1 = (TYPED_OBJECT_POINTER)arraylist_get(pList, i);
@@ -302,6 +302,9 @@ PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType,
 			hashmap_put(pMap, pszPointer1, pszPointer2);
 		}
 		pData->od_size = (int)(nLen / 2);
+	} else if (sType != VT_STRING && types_isStructuredType(sType)) {
+		// structured objects
+		pData->od_size = pData->od_capacity;
 	}
 	return (PKS_VALUE) { .pkv_type = sType, .pkv_data.objectPointer = pData, .pkv_isPointer = 1, .pkv_managed = 1 };
 }
@@ -320,8 +323,23 @@ static int memory_collectValue(intptr_t k, intptr_t v, void* pParam) {
 	return 1;
 }
 
+static EXECUTION_CONTEXT* _currentContext;
+
+static int memory_collectEntries(intptr_t k, intptr_t v, void* pParam) {
+	PKS_VALUE* pArray = pParam;
+	OBJECT_DATA* pData = pArray->pkv_data.objectPointer;
+	PKS_VALUE_TYPE sMapEntryType = VT_MAP_ENTRY;
+	PKS_VALUE vEntry = memory_createObject(_currentContext, sMapEntryType, 2, 0);
+	OBJECT_DATA* pEData = vEntry.pkv_data.objectPointer;
+	pEData->od_data.objects[0] = (TYPED_OBJECT_POINTER)k;
+	pEData->od_data.objects[1] = (TYPED_OBJECT_POINTER)v;
+	pData->od_data.objects[pData->od_size++] = MAKE_TYPED_OBJECT_POINTER(1, sMapEntryType, vEntry.pkv_data.objectPointer);
+	return 1;
+}
+
 static PKS_VALUE memory_collectElements(EXECUTION_CONTEXT* pContext, PKS_VALUE vTarget, int (*func)(intptr_t k, intptr_t v, void *p)) {
 	if (vTarget.pkv_managed && vTarget.pkv_type == VT_MAP) {
+		_currentContext = pContext;
 		HASHMAP* pMap = memory_accessMap(vTarget.pkv_data.objectPointer);
 		PKS_VALUE tempArray = memory_createObject(pContext, VT_OBJECT_ARRAY, hashmap_size(pMap), 0);
 		hashmap_forEachEntry(pMap, func, &tempArray);
@@ -352,6 +370,18 @@ PKS_VALUE memory_mapValues(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int 
 		return memory_collectElements(pContext, vTarget, memory_collectValue);
 	}
 	interpreter_raiseError("mapValues requires an arguments");
+	return (PKS_VALUE) { 0 };
+}
+
+/*
+ * Returns an array object with all MAP_ENTRY objects in the map type value passed as single argument.
+ */
+PKS_VALUE memory_mapEntries(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	if (nArgs >= 1) {
+		PKS_VALUE vTarget = pValues[0];
+		return memory_collectElements(pContext, vTarget, memory_collectEntries);
+	}
+	interpreter_raiseError("mapEntries requires an arguments");
 	return (PKS_VALUE) { 0 };
 }
 
@@ -500,7 +530,7 @@ int memory_indexOf(PKS_VALUE vArray, PKS_VALUE vOther) {
  * Access the nested object of a value at slot nIndex.
  */
 PKS_VALUE memory_getNestedObject(PKS_VALUE v, int nIndex) {
-	if (v.pkv_managed && v.pkv_type == VT_OBJECT_ARRAY) {
+	if (v.pkv_managed) {
 		OBJECT_DATA* pPointer = ((OBJECT_DATA*)v.pkv_data.objectPointer);
 		if (nIndex >= 0 && nIndex < pPointer->od_size) {
 			TYPED_OBJECT_POINTER top = pPointer->od_data.objects[nIndex];

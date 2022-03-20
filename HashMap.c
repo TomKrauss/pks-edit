@@ -33,6 +33,7 @@ typedef struct tagHASHMAP {
 
 static int _primes[] = {
 	13,
+	19,
 	29,
 	47,
 	89,
@@ -48,7 +49,7 @@ unsigned int hashmap_hashCodeString(intptr_t pParam) {
 	unsigned int nResult = 0;
 	int nDelta;
 	while ((nDelta = *pszString++) != 0) {
-		nResult = 17 * nResult + nDelta;
+		nResult = 31 * nResult + nDelta;
 	}
 	return nResult;
 }
@@ -61,7 +62,7 @@ static unsigned int hashmap_hashCodeStringIgnoreCase(intptr_t pParam) {
 	unsigned int nResult = 0;
 	int nDelta;
 	while ((nDelta = *pszString++) != 0) {
-		nResult = 17 * nResult + tolower(nDelta);
+		nResult = 31 * nResult + tolower(nDelta);
 	}
 	return nResult;
 }
@@ -71,7 +72,7 @@ static unsigned int hashmap_hashCodeStringIgnoreCase(intptr_t pParam) {
  */
 static int hashmap_nextPrimeFor(int nCapacity) {
 	for (int i = 0; i < DIM(_primes); i++) {
-		if (_primes[i] > nCapacity) {
+		if (_primes[i] >= nCapacity) {
 			return _primes[i];
 		}
 	}
@@ -259,12 +260,11 @@ int hashmap_forEachKey(HASHMAP* pTable, int (*function)(intptr_t k, void* pParam
  * 0. Otherwise forEachKey returns 1.
  */
 int hashmap_forEachEntry(HASHMAP* pTable, int (*function)(intptr_t k, intptr_t v, void* pParam), void* pParam) {
-	for (int i = 0; i < pTable->ht_capacity; i++) {
-		intptr_t k = pTable->ht_entries[i].he_key;
-		if (k) {
-			if (!function(k, pTable->ht_entries[i].he_value, pParam)) {
-				return 0;
-			}
+	HASH_ENTRY* pEntries = pTable->ht_entries;
+	for (int i = 0; i < pTable->ht_capacity; pEntries++,i++) {
+		intptr_t k = pEntries->he_key;
+		if (k && !function(k, pEntries->he_value, pParam)) {
+			return 0;
 		}
 	}
 	return 1;

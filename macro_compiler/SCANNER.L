@@ -82,6 +82,7 @@ static struct kw {
 	T_CONST,	"const",
 	T_REQUIRE,	"require",
 	T_IF,		"if",
+	T_NEW,		"new",
 	T_ELSE,		"else",
 	T_SWITCH,	"switch",
 	T_CASE,		"case",

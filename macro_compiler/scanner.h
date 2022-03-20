@@ -33,9 +33,11 @@ typedef struct tagTYPEDVAL {
 typedef union yytype {
 	long long num;
 	struct {
+		MACRO_SCOPE scope;
+		char  operation;			// the current operation constructed (if applicable)
 		char* s;
-		int	stringIsAlloced;
-		int type;
+		int	stringIsAlloced;		// whether the string was alloced
+		int type;					// PKS Value type
 	} ident;
 	void	*funcp;
 	unsigned char type;

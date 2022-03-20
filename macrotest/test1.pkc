@@ -44,7 +44,7 @@ static void Setup-SuiteBaseTests() {
  * Tests operations on files.
  */
 static void Test-FileIO() {
-	file fp;
+	FILE fp;
 	string s;
 	string manualDir = GetVariable("cwd") + MANUAL_DIRECTORY;
 
@@ -70,7 +70,7 @@ static void Test-FileIO() {
 }
 
 static void CountWordsIn(map words, string fileName) {
-	file fp = FileOpen(fileName, "r");
+	FILE fp = FileOpen(fileName, "r");
 	int count;
 	string line;
 
@@ -91,6 +91,35 @@ static void CountWordsIn(map words, string fileName) {
 	}
 }
 
+static void BubbleSortWordEntries(auto[] entries) {
+	boolean bNeedsSorting = true;
+	int i;
+	MAP_ENTRY swap;
+	MAP_ENTRY first;
+	int count1;
+	int count2;
+	int nSize = size(entries)-1;
+	while(bNeedsSorting) {
+		bNeedsSorting = false;
+		i = 0;
+		while(i < nSize) {
+			first = entries[i];
+			swap = entries[i+1];
+			count1 = first.value;
+			count2 = swap.value;
+			if (count2 > count1) {
+				entries[i+1] = first;
+				entries[i] = swap;
+				//println("swapping " + i + " and " + (i+1));
+				bNeedsSorting = true;
+			}
+			i++;
+		}
+	}
+
+
+}
+
 /*
  * Halfway through implementation of a word count for our manual files.
  * Will count the occurrences of all words used in the manual files.
@@ -99,16 +128,21 @@ static void CountWordsIn(map words, string fileName) {
 static void Test-WordCount() {
 	string manualDir = GetVariable("cwd") + MANUAL_DIRECTORY;
 	map words;
+	auto[] entries;
 	int count;
 	int numberOfFrequentWords = 0;
 
 	for (string fileName : FileListFiles(manualDir, "*.md")) {
 		CountWordsIn(words, manualDir + "\\" + fileName);
 	}
-	for (string word : MapKeys(words)) {
-		count = words[word];
-		if (count > 100) {
+	entries = MapEntries(words);
+	BubbleSortWordEntries(entries);
+	for (MAP_ENTRY entry : entries) {
+		if (entry.value > 100) {
 			numberOfFrequentWords++;
+			if (numberOfFrequentWords > 5) {
+				break;
+			}
 		}
 	}
 	AssertTrue(numberOfFrequentWords > 5, "should find at least 6 words more than 100 times");
@@ -229,7 +263,11 @@ static void Test-Maps() {
 		"franz" => "otto"
 	};
 	string s;
+	MAP_ENTRY entry = new MAP_ENTRY();
 
+	entry.key = 4711;
+	AssertEquals(4711, entry.key);
+	AssertEquals(2, size(entry));
 	AssertEquals(2, size(demoMap));
 	AssertEquals(2, size(MapKeys(demoMap)));
 	AssertEquals(2, size(MapValues(demoMap)));

@@ -123,6 +123,9 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 		case C_1FUNC:
 			*(COM_1FUNC *)sp = *(COM_1FUNC *)data.val;
 			break;
+		case C_PUSH_NEW_INSTANCE:
+			((COM_INT1*)sp)->c_valueType = (int)data.intValue;
+			break;
 		case C_PUSH_INTEGER_LITERAL:
 			((COM_INT1 *)sp)->val = (int)data.intValue;
 			break;

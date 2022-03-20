@@ -145,14 +145,14 @@ void types_registerDefaultTypes() {
 	types_register(VT_OBJECT_ARRAY, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "#array#", .ptd_isValueType = 0, .ptd_hasDynamicSize = 1, .ptd_hasDefaultValue = 1});
 	types_register(VT_MAP, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "map", .ptd_isValueType = 0, .ptd_hasDynamicSize = 1, .ptd_hasDefaultValue = 1});
 	types_register(VT_AUTO, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "auto", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
-	types_register(-1, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "file", .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0, .ptd_callbacks = {
+	types_register(VT_FILE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_FILE, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0, .ptd_callbacks = {
 		.tc_close = (T_FINALIZER)file_close
 		}});
 	TYPE_PROPERTY_DESCRIPTOR descriptors[] = {
 			{.tpd_type = VT_STRING, .tpd_name = "key"},
 			{.tpd_type = VT_AUTO, .tpd_name = "value"},
 	};
-	types_register(-1, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "map-entry", .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0, 
+	types_register(VT_MAP_ENTRY, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_MAP_ENTRY, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0,
 		.ptd_properties = descriptors, .ptd_numberOfProperties = DIM(descriptors)
 	});
 }
@@ -189,3 +189,38 @@ BOOL types_hasDefaultValue(PKS_VALUE_TYPE vType) {
 	return _typeDescriptors[vType]->ptd_hasDefaultValue;
 }
 
+/*
+ * Used for structured data types to define the number of instance variables. 
+ */
+int types_getObjectSize(PKS_VALUE_TYPE t) {
+	if (t >= 0 && t < _maxTypeIndex) {
+		PKS_TYPE_DESCRIPTOR* pDescriptor = _typeDescriptors[t];
+		return pDescriptor->ptd_numberOfProperties;
+	}
+	return 0;
+}
+
+/*
+ * Returns true, if the passed value type is a "structured" type.
+ */
+inline BOOL types_isStructuredType(PKS_VALUE_TYPE t) {
+	return types_getObjectSize(t) > 0;
+}
+
+/*
+ * Returns the index for a given types property name or -1, if that cannot be determined.
+ */
+int types_indexForProperty(PKS_VALUE_TYPE t, const char* pszPropertyName, PKS_VALUE_TYPE* tProperty) {
+	if (t >= 0 && t < _maxTypeIndex) {
+		PKS_TYPE_DESCRIPTOR* pDescriptor = _typeDescriptors[t];
+		if (pDescriptor != 0 && pDescriptor->ptd_properties != 0) {
+			for (int i = 0; i < pDescriptor->ptd_numberOfProperties; i++) {
+				if (strcmp(pszPropertyName, pDescriptor->ptd_properties[i].tpd_name) == 0) {
+					*tProperty = pDescriptor->ptd_properties[i].tpd_type;
+					return i;
+				}
+			}
+		}
+	}
+	return -1;
+}

@@ -332,6 +332,11 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 		interpreter_evaluateMultiplicationWithStrings(pContext, v1, v2);
 		return;
 	}
+	if (op == BIN_AT && v2.pkv_type == VT_NUMBER && types_getObjectSize(v1.pkv_type) > 0) {
+		int nIndex = v2.pkv_data.intValue;
+		interpreter_pushValueOntoStack(pContext, memory_getNestedObject(v1, nIndex));
+		return;
+	}
 	if (v1.pkv_type == VT_OBJECT_ARRAY && ((op == BIN_AT && (v2.pkv_type == VT_NUMBER || v2.pkv_type == VT_RANGE)) || (op == BIN_ADD))) {
 		interpreter_extractArrayElementsAndPush(pContext, op, v1, v2);
 		return;

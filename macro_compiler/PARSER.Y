@@ -19,7 +19,7 @@
 %define parse.error detailed
 
 %token T_NAMESPACE T_REQUIRE T_FOR 
-%token T_STATIC T_VOID T_TYPE_IDENTIFIER
+%token T_NEW T_STATIC T_VOID T_TYPE_IDENTIFIER
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_CHARACTER T_CONST
 %token T_TRUE T_FALSE 
 %token T_FUNC T_DOTDOT T_PLUSPLUS T_MINUSMINUS
@@ -81,8 +81,6 @@ static 		void freeitem(char **p);
 static void 	bytecode_emitPushParameterInstruction(long long lValue);
 
 static int _arraySize;
-static MACRO_SCOPE _macroScope;
-static MACROC_INSTRUCTION_OP_CODE _functionCallOp;
 static int	_currentNamespaceIndex;
 static int  _foreachCursorIndex;
 static 		char *lstartid  = "%ls%",
@@ -92,9 +90,8 @@ static 		char *lstartid  = "%ls%",
 				*iffailid  = "%if%",
 				*ifdoneid  = "%id%";
 
-int			vname_count;
-extern 		int	_bDefiningConst;
-extern 		int	_bInHeader;
+extern 			int	_bDefiningConst;
+extern 			int	_bInHeader;
 extern char*    _yyCurrentComment;
 extern void		yyerror(const char* s, ...);
 extern void		yywarning(char* s, ...);
@@ -146,7 +143,7 @@ static ARRAY_LIST* _currentArrayLiteral;
 
 IDENTIFIER_CONTEXT* _currentIdentifierContext;
 
-static void makeInternalSymbol(const char* pszName, SYMBOL_TYPE sType, intptr_t tVal) {
+static void parser_defineVariable(const char* pszName, SYMBOL_TYPE sType, intptr_t tVal) {
 	if (_arraySize < 0) {
 		yyerror("Illegal negative array size %d", _arraySize);
 		_arraySize = 0;
@@ -157,12 +154,8 @@ static void makeInternalSymbol(const char* pszName, SYMBOL_TYPE sType, intptr_t 
 	if (pContext && pContext != sym_getGlobalCompilerContext()) {
 		yyerror("Redefinition of variable %s", pszName);
 	}
-	if (sType == VT_STRING) {
-		if (!tVal) {
-			tVal = (intptr_t)"";
-		}
-			
-
+	if (sType == VT_STRING && !tVal) {
+		tVal = (intptr_t)"";
 	}
 	sym_createSymbol(_currentIdentifierContext, (char*) pszName, S_VARIABLE, sType, (GENERIC_DATA) {.val = tVal});
 }
@@ -171,6 +164,18 @@ static void push_newForeachCursor() {
 	char buf[32];
 	sprintf(buf, "#c%d", _foreachCursorIndex++);
 	YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=buf});
+}
+
+static PKS_VALUE_TYPE types_pushFieldIndexWithError(PKS_VALUE_TYPE t, const char* pszFieldName) {
+	PKS_VALUE_TYPE tProp;
+	int nIndex = types_indexForProperty(t, pszFieldName, &tProp);
+	if (nIndex < 0) {
+		yyerror("unknown field %s of type %s", pszFieldName, types_nameFor(t));
+	} else {
+		YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue = nIndex});
+	}
+	free((char*)pszFieldName);
+	return tProp;
 }
 
 %}
@@ -213,8 +218,8 @@ global_declarations:
 			| global_declarations constants ';'
 			| global_declarations global_var ';' 
 
-scope:		{ _macroScope = MS_GLOBAL; }
-			| T_STATIC { _macroScope = MS_LOCAL; }
+scope:		{ $$.ident.scope = MS_GLOBAL; }
+			| T_STATIC { $$.ident.scope = MS_LOCAL; }
 			
 /*-- CONSTANTS --------------------------------------------------*/
 
@@ -282,30 +287,33 @@ macro_declaration: T_IDENT {
 				$$.ident.stringIsAlloced = 0;
 			}
 
-macro_type:	scope T_VOID 
+macro_type:	scope T_VOID {
+				$$.ident.scope = $1.ident.scope;
+			}
 			| 
-			scope type_name
+			scope type_name {
+				$$.ident.scope = $1.ident.scope;
+			}
 
 macrostart: macro_type macro_declaration '(' parameter_list ')' optional_description 
-			{	$$.ident = $2.ident; 
+			{	$$.ident = $2.ident;
+				$$.ident.scope = $1.ident.scope;
 				YY_EMIT(C_SET_STACKFRAME,(GENERIC_DATA){0});
 			}
 			
 global_var: scope var_decl
 
 var_decl:	type_name variable_identifier assignment_expression {
-				makeInternalSymbol($2.ident.s, $1.type, 0);
+				parser_defineVariable($2.ident.s, $1.type, 0);
 				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $2.ident.s);
 				if ($2.ident.stringIsAlloced) {
 					free($2.ident.s);
 				}
-				vname_count = 0;
 			} | type_name variable_identifier {
-				makeInternalSymbol($2.ident.s, $1.type, 0);
+				parser_defineVariable($2.ident.s, $1.type, 0);
 				if ($2.ident.stringIsAlloced) {
 					free($2.ident.s);
 				}
-				vname_count = 0;
 			}
 
 optional_description:
@@ -343,7 +351,7 @@ macro_definition: { init_macroDefinition(); }
 					.mp_comment = _yyCurrentComment,
 					.mp_bytecodeLength = _bytecodeBuffer.bb_current - _bytecodeBuffer.bb_start,
 					.mp_buffer = _bytecodeBuffer.bb_start,
-					.mp_scope = _macroScope,
+					.mp_scope = $2.ident.scope,
 					.mp_namespaceIdx = _currentNamespaceIndex
 				};
 				_compilerConfiguration->cb_insertNewMacro(&param);
@@ -382,13 +390,20 @@ statement: ';'
 			}
 
 assignment: variable_reference assignment_expression {
+				if ($1.ident.type != $2.v.type) {
+				// not enough type info yet for this:	yyerror("Trying to assign incompatible types.");
+				}
 				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
-				vname_count = 0;
 			}
 			|
-			variable_reference '[' value ']' assignment_expression {
+			variable_reference '.' T_IDENT {
+				types_pushFieldIndexWithError($1.ident.type, $3.ident.s);
+			} assignment_expression {
 				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer, C_ASSIGN_SLOT, (GENERIC_DATA) { .string = (char*)$1.ident.s });
-				vname_count = 0;
+			} 
+			|
+			variable_reference '[' binary_expression ']' assignment_expression {
+				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer, C_ASSIGN_SLOT, (GENERIC_DATA) { .string = (char*)$1.ident.s });
 			} 
 			|
 			variable_reference {
@@ -396,7 +411,6 @@ assignment: variable_reference assignment_expression {
 			} shorthand_assignment_operator simple_expression {
 				YY_EMIT(C_BINOP, (GENERIC_DATA){$3.type});
 				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
-				vname_count = 0;
 			}
 
 shorthand_assignment_operator: 
@@ -428,9 +442,14 @@ increment_expression:
 
 s_bterm: 	value { $$.v = $1.v; }
 			| call_expression 
+			| constructor_expression
+
+constructor_expression: T_NEW T_TYPE_IDENTIFIER '(' ')' {
+				YY_EMIT(C_PUSH_NEW_INSTANCE, (GENERIC_DATA){$2.type});
+			}
 
 binary_expression:
-			s_bterm  { $$.type = $1.type;	}
+			s_bterm { $$.type = $1.type;	}
 			| type_cast s_bterm		{
 				$$.type = $1.type;
 				_bytecodeBuffer.bb_current = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_CAST, $$.type);
@@ -473,7 +492,6 @@ binary_expression:
 			| '(' binary_expression ')'	{ $$.v = $2.v; }
 			| variable_reference assignment_expression {
 				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
-				vname_count = 0;
 			}
 
 /*----- conditions ------------------------------------------*/
@@ -487,6 +505,7 @@ value:		T_VARIABLE {
 				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
 				$$.type = $1.ident.type;
 			}
+			| struct_reference
 			| string {
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$1.ident.s});
 				$$.v.type = C_PUSH_STRING_LITERAL;
@@ -511,9 +530,23 @@ value:		T_VARIABLE {
 				$$.v.data.string  = $1.ident.s;
 			}
 
+struct_reference: T_VARIABLE '.' T_IDENT {
+				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
+				$$.ident.type = types_pushFieldIndexWithError($1.ident.type, $3.ident.s);
+				YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); 
+			}
+			| struct_reference '.' T_IDENT {
+				$$.ident.type = types_pushFieldIndexWithError($1.ident.type, $3.ident.s);
+				YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); 
+			}
+
 map_literal: '{' {
 				_currentArrayLiteral = arraylist_create(1);
-			} map_associates closing_brace
+			} optional_map_associates closing_brace
+
+optional_map_associates:
+			|
+			map_associates
 
 map_associates:
 			map_associate
@@ -621,7 +654,7 @@ goto:		T_GOTO T_IDENT {
 in_clause:	'(' type_name variable_identifier {
 				push_newForeachCursor();
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$3.ident.s});
-				makeInternalSymbol($3.ident.s, $2.type, (intptr_t)0);
+				parser_defineVariable($3.ident.s, $2.type, (intptr_t)0);
 				if ($3.ident.stringIsAlloced) {
 					free($3.ident.s);
 				}
@@ -727,21 +760,21 @@ call_expression: T_FUNC '(' {
 				*_currentFunctionCallParamIndexP = 0;
 				$$.funcp = 0;
 			} parameter_list closing_paren {
-				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, _functionCallOp,(GENERIC_DATA){.string = $1.ident.s}, *_currentFunctionCallParamIndexP);
+				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, $1.ident.operation,(GENERIC_DATA){.string = $1.ident.s}, *_currentFunctionCallParamIndexP);
 				_currentFunctionCallParamIndexP--;
 				freeitem(&$1.ident.s);
 			}
 
 function_id_or_pointer:
 			'*' variable_reference {
-				_functionCallOp = C_MACRO_REF;
+				$$.ident.operation = C_MACRO_REF;
 				$$.ident.s = _strdup($2.ident.s);
 				$$.ident.stringIsAlloced = 1;
 			}
 			|
 			T_IDENT {
-				_functionCallOp = C_MACRO;
 				$$.ident = $1.ident;
+				$$.ident.operation = C_MACRO;
 			}
 			| error {
 				yyerror("Illegal function call expression");
@@ -901,17 +934,14 @@ static void finalize_header() {
 /*---------------------------------*/
 static void init_macroDefinition(void)
 {
-#ifdef YYDEBUG
-int	yydebug = 1;
-#endif
 	_foreachCursorIndex = 0;
 	_currentFunctionCallParamIndexP = _currentFunctionCallParamIndices;
-	init_bytecodeBuffer();
 	_nparam = 0;
 	_currentNativeMethodCalled  = 0;
 	_breaklevel = 0;
 	_iflevel    = 0;
-	_currentIdentifierContext = sym_pushContext(_currentIdentifierContext);
+	_currentIdentifierContext = sym_pushContext(_currentIdentifierContext, 0);
+	init_bytecodeBuffer();
 }
 
 /*---------------------------------*/
