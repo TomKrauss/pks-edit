@@ -89,18 +89,19 @@ extern int yydebug;
     T_CONTINUE = 290,              /* T_CONTINUE  */
     T_RETURN = 291,                /* T_RETURN  */
     T_VARIABLE = 292,              /* T_VARIABLE  */
-    T_ASSOC_ARROW = 293,           /* T_ASSOC_ARROW  */
-    T_NMATCH = 294,                /* T_NMATCH  */
-    T_ASSIGN = 295,                /* T_ASSIGN  */
-    T_NE = 296,                    /* T_NE  */
-    T_EQ = 297,                    /* T_EQ  */
-    T_SHIFT_LEFT = 298,            /* T_SHIFT_LEFT  */
-    T_SHIFT_RIGHT = 299,           /* T_SHIFT_RIGHT  */
-    T_OR = 300,                    /* T_OR  */
-    T_AND = 301,                   /* T_AND  */
-    T_LE = 302,                    /* T_LE  */
-    T_GE = 303,                    /* T_GE  */
-    T_POWER_TO = 304               /* T_POWER_TO  */
+    T_LOCAL_VARIABLE = 293,        /* T_LOCAL_VARIABLE  */
+    T_ASSOC_ARROW = 294,           /* T_ASSOC_ARROW  */
+    T_NMATCH = 295,                /* T_NMATCH  */
+    T_ASSIGN = 296,                /* T_ASSIGN  */
+    T_NE = 297,                    /* T_NE  */
+    T_EQ = 298,                    /* T_EQ  */
+    T_SHIFT_LEFT = 299,            /* T_SHIFT_LEFT  */
+    T_SHIFT_RIGHT = 300,           /* T_SHIFT_RIGHT  */
+    T_OR = 301,                    /* T_OR  */
+    T_AND = 302,                   /* T_AND  */
+    T_LE = 303,                    /* T_LE  */
+    T_GE = 304,                    /* T_GE  */
+    T_POWER_TO = 305               /* T_POWER_TO  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

@@ -41,7 +41,7 @@ int function_initializeFunctionsAndTypes(void) {
 		if ((pszCopy = (char*)macro_loadStringResource(idx)) == 0 ||
 			!sym_createSymbol(sym_getKeywordContext(), pszCopy, S_EDFUNC, 0, (GENERIC_DATA) {
 			.val = (intptr_t)ep
-		})) {
+		}, 0)) {
 			return 0;
 		}
 	}
@@ -49,7 +49,7 @@ int function_initializeFunctionsAndTypes(void) {
 	for (enp = _parameterEnumValueTable, enpend = enp+_parameterEnumValueTableSize; enp < enpend; enp++) {
 		if (enp->pev_name == 0 || !sym_createSymbol(sym_getKeywordContext(), (char*)enp->pev_name, S_ENUM, 0, (GENERIC_DATA) {
 			.val = (intptr_t)enp
-		})) {
+		}, 0)) {
 			return 0;
 		}
 	}

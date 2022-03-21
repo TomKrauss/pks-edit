@@ -150,6 +150,8 @@ static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsi
 		return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val};
 	case C_PUSH_SMALL_INT_LITERAL:
 		return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
+	case C_PUSH_LOCAL_VARIABLE:
+		return pContext->ec_localVariables[((COM_CHAR1*)pInstructionPointer)->val];
 	case C_PUSH_CHARACTER_LITERAL:
 		return (PKS_VALUE) { .pkv_type = VT_CHAR, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
 	case C_PUSH_INTEGER_LITERAL:
@@ -197,7 +199,7 @@ static void interpreter_allocateStack(EXECUTION_CONTEXT* pResult) {
 /*
  * Creates an execution context for executing a macro function.
  */
-static EXECUTION_CONTEXT* interpreter_pushExecutionContext(const char* pszFunctionName) {
+static EXECUTION_CONTEXT* interpreter_pushExecutionContext(MACRO* mpMacro) {
 	EXECUTION_CONTEXT* pResult = calloc(1, sizeof * pResult);
 	pResult->ec_identifierContext = sym_pushContext(sym_getGlobalContext(), 1);
 	if (_contextStack == NULL) {
@@ -212,7 +214,12 @@ static EXECUTION_CONTEXT* interpreter_pushExecutionContext(const char* pszFuncti
 	} else {
 		interpreter_allocateStack(pResult);
 	}
-	pResult->ec_currentFunction = pszFunctionName;
+	int nLocalVars = mpMacro->mc_numberOfLocalVars;
+	if (nLocalVars > 0) {
+		pResult->ec_localVariables = calloc(nLocalVars, sizeof * pResult->ec_localVariables);
+		pResult->ec_localVariableCount = mpMacro->mc_numberOfLocalVars;
+	}
+	pResult->ec_currentFunction = mpMacro->mc_name;
 	pResult->ec_parent = _currentExecutionContext;
 	_currentExecutionContext = pResult;
 	return pResult;
@@ -226,6 +233,7 @@ static void interpreter_popExecutionContext(EXECUTION_CONTEXT* pContext, EXECUTI
 	if (pPreviousContext == NULL) {
 		interpreter_deallocateStack(pContext);
 	}
+	free(pContext->ec_localVariables);
 	free(pContext);
 	if (_contextStack) {
 		arraylist_remove(_contextStack, pContext);
@@ -404,6 +412,8 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 		case C_SET_STACKFRAME:
 		case C_PUSH_CHARACTER_LITERAL:
 		case C_PUSH_SMALL_INT_LITERAL:
+		case C_PUSH_LOCAL_VARIABLE:
+		case C_ASSIGN_LOCAL_VAR:
 		case C_PUSH_BOOLEAN_LITERAL:
 			return sizeof(COM_CHAR1);
 		case C_PUSH_MAP_LITERAL:
@@ -415,6 +425,7 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 			return sizeof(COM_FORM);
 		case C_GOTO:
 			return sizeof(COM_GOTO);
+		case C_ASSIGN_SLOT:
 		case C_STOP:
 			return sizeof(COM_STOP);
 		case C_PUSH_FLOAT_LITERAL:
@@ -426,6 +437,7 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 			return sizeof(COM_INT1);
 		case C_DEFINE_PARAMETER:
 		case C_DEFINE_VARIABLE:
+		case C_DEFINE_LOCAL_VARIABLE:
 			return (((COM_DEFINE_SYMBOL*)(s-1))->size);
 		case C_PUSH_LONG_LITERAL:
 			/* only if your alignment = 2,2,2 */
@@ -436,7 +448,6 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 			return (int)(sizeof(COM_MAC) + strlen(s));
 		case C_PUSH_VARIABLE:
 		case C_ASSIGN:
-		case C_ASSIGN_SLOT:
 		case C_PUSH_STRING_LITERAL:
 			size = (int)((sizeof(COM_STRING1) - 1 /* pad byte*/) +
 					(strlen(s)+1)*sizeof(*s));
@@ -789,24 +800,33 @@ static long interpreter_assignSymbol(EXECUTION_CONTEXT* pContext, char* name) {
 }
 
 /*--------------------------------------------------------------------------
+ * interpreter_assignLocalVar()
+ */
+static void interpreter_assignLocalVar(EXECUTION_CONTEXT* pContext, int nOffset) {
+	PKS_VALUE v = interpreter_peekStackValue(pContext);
+
+	pContext->ec_localVariables[nOffset] = v;
+}
+
+/*--------------------------------------------------------------------------
  * interpreter_assignOffset()
  * x[nOffset] = ....
  * or x["yz"] = ....
  */
-static void interpreter_assignOffset(EXECUTION_CONTEXT* pContext, char* name) {
+static void interpreter_assignOffset(EXECUTION_CONTEXT* pContext) {
 	PKS_VALUE v = interpreter_popStackValue(pContext);
 	PKS_VALUE vOffset = interpreter_popStackValue(pContext);
-	PKS_VALUE target = sym_getVariable(pContext->ec_identifierContext, name);
+	PKS_VALUE target = interpreter_popStackValue(pContext);
 	if (target.pkv_type == VT_MAP) {
 		memory_atPutObject(target, vOffset, v);
 	}
 	else {
 		if (target.pkv_type != VT_OBJECT_ARRAY && !types_isStructuredType(target.pkv_type)) {
-			interpreter_raiseError("Illegal target object %s for offset assignment.", name);
+			interpreter_raiseError("Illegal target object of type %s for offset assignment.", types_nameFor(target.pkv_type));
 		}
 		int nIndex = interpreter_coerce(pContext, vOffset, VT_NUMBER).pkv_data.intValue;
 		if (nIndex < 0) {
-			interpreter_raiseError("Illegal negative index %d to assign element of %s.", nIndex, name);
+			interpreter_raiseError("Illegal negative index %d to assign element of type %s.", nIndex, types_nameFor(target.pkv_type));
 		}
 		memory_setNestedObject(target, nIndex, v);
 	}
@@ -847,7 +867,10 @@ static int interpreter_testCaseLabelMatch(EXECUTION_CONTEXT* pContext, PKS_VALUE
 /*---------------------------------*/
 #define COM1_INCR(pLocalInstructionPointer,type,offset) (((unsigned char *)pLocalInstructionPointer)+((type *)pLocalInstructionPointer)->offset)
 #define COM_PARAMINCR(pLocalInstructionPointer)		(((unsigned char *)pLocalInstructionPointer)+interpreter_getParameterSize(pLocalInstructionPointer->typ,&pLocalInstructionPointer->funcnum));
-static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const char* pszFunctionName, COM_1FUNC* cp, COM_1FUNC* cpmax) {
+static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* mpMacro) {
+	char* pszFunctionName´ = mpMacro->mc_name;
+	COM_1FUNC* cp = (COM_1FUNC*)mpMacro->mc_bytecodes;
+	COM_1FUNC* cpmax = (COM_1FUNC*)(mpMacro->mc_bytecodes + mpMacro->mc_bytecodeLength);
 	static int _progressCount;
 
 	unsigned char* pInstr = (unsigned char*)cp;
@@ -909,6 +932,7 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 			break;
 		case C_PUSH_BOOLEAN_LITERAL:
 		case C_PUSH_LONG_LITERAL:
+		case C_PUSH_LOCAL_VARIABLE:
 		case C_PUSH_SMALL_INT_LITERAL:
 		case C_PUSH_CHARACTER_LITERAL:
 		case C_PUSH_FLOAT_LITERAL:
@@ -926,33 +950,42 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, const ch
 		case C_DEFINE_PARAMETER: {
 			PKS_VALUE value = interpreter_getParameterStackValue(pContext, (int)((COM_DEFINE_SYMBOL*)cp)->value);
 			// automatic type coercion of parameter types.
-			if (!value.pkv_type && ((COM_DEFINE_SYMBOL*)cp)->symtype == VT_STRING) {
+			if (!value.pkv_type && ((COM_DEFINE_SYMBOL*)cp)->vartype == VT_STRING) {
 				// TODO: this is a hack - if the parameter was not passed we need to define the symbol and assign it a NIL value, 
 				// which is currently not supported. So convert to false to allow us for testing, whether the parameter was passed.
 				value = (PKS_VALUE){.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 0};
 			}
-			else if (((COM_DEFINE_SYMBOL*)cp)->symtype != VT_AUTO) {
-				value = interpreter_coerce(pContext, value, ((COM_DEFINE_SYMBOL*)cp)->symtype);
+			else if (((COM_DEFINE_SYMBOL*)cp)->vartype != VT_AUTO) {
+				value = interpreter_coerce(pContext, value, ((COM_DEFINE_SYMBOL*)cp)->vartype);
 			}
 			sym_defineVariable(pContext->ec_identifierContext, ((COM_DEFINE_SYMBOL*)cp)->name,value);
 			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		}
+		case C_DEFINE_LOCAL_VARIABLE:
 		case C_DEFINE_VARIABLE: {
-			PKS_VALUE_TYPE t = ((COM_DEFINE_SYMBOL*)cp)->symtype;
+			PKS_VALUE_TYPE t = ((COM_DEFINE_SYMBOL*)cp)->vartype;
 			if (types_hasDefaultValue(t)) {
 				PKS_VALUE v = memory_createObject(pContext, t, ((COM_DEFINE_SYMBOL*)cp)->value, 0);
-				sym_defineVariable(pContext->ec_identifierContext, ((COM_DEFINE_SYMBOL*)cp)->name, v);
+				if (cp->typ == C_DEFINE_LOCAL_VARIABLE) {
+					pContext->ec_localVariables[((COM_DEFINE_SYMBOL*)cp)->heapIndex] = v;
+				} else {
+					sym_defineVariable(pContext->ec_identifierContext, ((COM_DEFINE_SYMBOL*)cp)->name, v);
+				}
 			}
 			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		}
 		case C_ASSIGN_SLOT:
-			interpreter_assignOffset(pContext, ((COM_ASSIGN*)cp)->name);
+			interpreter_assignOffset(pContext);
 			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		case C_ASSIGN:
 			interpreter_assignSymbol(pContext, ((COM_ASSIGN*)cp)->name);
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+			break;
+		case C_ASSIGN_LOCAL_VAR:
+			interpreter_assignLocalVar(pContext, ((COM_CHAR1*)cp)->val);
 			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		case C_STOP:
@@ -973,10 +1006,10 @@ end:
 /*---------------------------------*/
 /* macro_interpretByteCodes()      */
 /*---------------------------------*/
-static int macro_interpretByteCodes(const char* pszFunctionName, COM_1FUNC *cp,COM_1FUNC *cpmax) {
+static int macro_interpretByteCodes(MACRO* mp) {
 	static int 	level;
 	EXECUTION_CONTEXT* pOld = _currentExecutionContext;
-	EXECUTION_CONTEXT* pContext = interpreter_pushExecutionContext(pszFunctionName);
+	EXECUTION_CONTEXT* pContext = interpreter_pushExecutionContext(mp);
 
 	if (level == 0 && setjmp(_currentJumpBuffer)) {
 		// TODO: more cleanup!
@@ -986,7 +1019,7 @@ static int macro_interpretByteCodes(const char* pszFunctionName, COM_1FUNC *cp,C
 		return -1;
 	}
 	level++;
-	int ret = macro_interpretByteCodesContext(pContext, pszFunctionName, cp, cpmax);
+	int ret = macro_interpretByteCodesContext(pContext, mp);
 	level--;
 	if (level == 0) {
 		error_setShowMessages(TRUE);
@@ -1004,8 +1037,7 @@ static int interpreter_initializeNamespace(MACRO* mpNamespace) {
 	ecNamespace.ec_identifierContext = sym_getGlobalContext();
 	_currentExecutionContext = &ecNamespace;
 	interpreter_allocateStack(_currentExecutionContext);
-	int ret = macro_interpretByteCodesContext(_currentExecutionContext, mpNamespace->mc_name, 
-		(COM_1FUNC*)mpNamespace->mc_bytecodes, (COM_1FUNC*)(mpNamespace->mc_bytecodes+ mpNamespace->mc_bytecodeLength));
+	int ret = macro_interpretByteCodesContext(_currentExecutionContext, mpNamespace);
 	interpreter_deallocateStack(_currentExecutionContext);
 	_currentExecutionContext = pOld;
 	mpNamespace->mc_isInitialized = TRUE;
@@ -1022,8 +1054,7 @@ long long macro_executeMacroByIndex(int macroindex) {
 	int			i;
 	int			count;
 	int			wasplaying;
-	COM_1FUNC *	cp;
-	COM_1FUNC *	cpmax;
+	MACRO		macAuto;
 	MACRO *		mp;
 	MACRO*		mpNamespace;
 	long   		bWasRecording = recorder_isRecording();
@@ -1045,18 +1076,23 @@ long long macro_executeMacroByIndex(int macroindex) {
 	count = _multiplier;
 	_multiplier = 1;
 	for (i = 0; i < count; i++) {
-		const char* pszName = "auto";
 		switch(macroindex) {
-			case MAC_AUTO:	
-				recorder_stopAutoInsertRecording(&cp, &cpmax);
-				_playing = 2;
-				break;
+		case MAC_AUTO: {
+			COM_1FUNC* cp;
+			COM_1FUNC* cpmax;
+			recorder_stopAutoInsertRecording(&cp, &cpmax);
+			_playing = 2;
+			memset(&macAuto, 0, sizeof macAuto);
+			macAuto.mc_bytecodes = (unsigned char*)cp;
+			macAuto.mc_bytecodeLength = (int)((unsigned char*)cpmax - (unsigned char*)cp);
+			macAuto.mc_name = "auto";
+			mp = &macAuto;
+			break;
+
+			}
 			default:
 				if ((mp = macro_getByIndex(macroindex)) == 0)
 					return 0;
-				cp = (COM_1FUNC *)MAC_DATA(mp);
-				cpmax = (COM_1FUNC *)((char *)cp+mp->mc_bytecodeLength);
-				pszName = mp->mc_name;
 				mpNamespace = macro_getNamespaceByIdx(mp->mc_namespaceIdx);
 				if (mpNamespace && !mpNamespace->mc_isInitialized) {
 					if (!interpreter_initializeNamespace(mpNamespace)) {
@@ -1065,7 +1101,7 @@ long long macro_executeMacroByIndex(int macroindex) {
 				}
 				break;
 		}
-		ret = macro_interpretByteCodes(pszName, cp, cpmax);
+		ret = macro_interpretByteCodes(mp);
 		if (ret <= 0) {
 			ret = 0;
 			break;
@@ -1090,11 +1126,15 @@ long long macro_executeMacroByIndex(int macroindex) {
 long long macro_executeMacro(MACROREF* mp) {
 	COM_1FUNC* cp;
 	long long ret;
-
+	MACRO macro;
 	switch (mp->typ) {
 	case CMD_CMDSEQ:
 		cp = &_commandTable[mp->index].c_functionDef;
-		return macro_interpretByteCodes(_commandTable[mp->index].c_name, cp, cp + 1);
+		memset(&macro, 0, sizeof macro);
+		macro.mc_name = _commandTable[mp->index].c_name;
+		macro.mc_bytecodes = (unsigned char*)cp;
+		macro.mc_bytecodeLength = sizeof(*cp);
+		return macro_interpretByteCodes(&macro);
 	case CMD_MACRO:
 		ret = macro_executeMacroByIndex(mp->index);
 		return ret;

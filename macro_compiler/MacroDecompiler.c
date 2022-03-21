@@ -199,6 +199,8 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 		case C_1FUNC:
 			val = ((COM_1FUNC *)sp)->p;
 			break;
+		case C_ASSIGN_LOCAL_VAR:
+		case C_PUSH_LOCAL_VARIABLE:
 		case C_PUSH_SMALL_INT_LITERAL:
 		case C_PUSH_CHARACTER_LITERAL:
 			val = ((COM_CHAR1 *)sp)->val;
@@ -574,7 +576,7 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 			break;
 		case C_BINOP: decompile_print(pBuf, "operation %s", decompile_binaryOperationAsString(((COM_BINOP*)sp)->op)); break;
 		case C_ASSIGN: decompile_print(pBuf, "assignVariable %s", ((COM_ASSIGN*)sp)->name); break;
-		case C_ASSIGN_SLOT: decompile_print(pBuf, "assignSlot %s", ((COM_ASSIGN*)sp)->name); break;
+		case C_ASSIGN_SLOT: decompile_print(pBuf, "assignSlot"); break;
 		case C_MACRO:decompile_print(pBuf, "call %s", ((COM_MAC*)sp)->name); break;
 		case C_MACRO_REF:decompile_print(pBuf, "eval %s", ((COM_MAC*)sp)->name); break;
 		case C_0FUNC: decompile_print(pBuf, "nativeCall0 %d (%s) (%d params)", ((COM_0FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_0FUNC*)sp)->func_nargs); break;
@@ -589,6 +591,8 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 		case C_PUSH_ARRAY_LITERAL: decompile_print(pBuf, "pushArrayLiteral size==%d", ((COM_ARRAYLITERAL*)sp)->length); break;
 		case C_PUSH_MAP_LITERAL: decompile_print(pBuf, "pushMapLiteral size==%d", ((COM_ARRAYLITERAL*)sp)->length); break;
 		case C_PUSH_BOOLEAN_LITERAL: decompile_print(pBuf, "pushBooleanLiteral %d", ((COM_CHAR1*)sp)->val); break;
+		case C_ASSIGN_LOCAL_VAR: decompile_print(pBuf, "assignLocalVar %d", ((COM_CHAR1*)sp)->val); break;
+		case C_PUSH_LOCAL_VARIABLE: decompile_print(pBuf, "pushLocalVar %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_CHARACTER_LITERAL: decompile_print(pBuf, "pushCharLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_STRING_LITERAL: decompile_print(pBuf, "pushStringLiteral %s", ((COM_STRING1*)sp)->s); break;
 		case C_DEFINE_VARIABLE: decompile_print(pBuf, "defineVariable %s", ((COM_DEFINE_SYMBOL*)sp)->name); break;
@@ -898,7 +902,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 		}
 		else if (opCode == C_ASSIGN_SLOT) {
 			decompile_indent(pBuf, nIndent);
-			decompile_print(pBuf, "%s[%s] = ", ((COM_ASSIGN*)sp)->name, pStackCurrent[-2].dse_printed);
+			decompile_print(pBuf, "%s[%s] = ", pStackCurrent[-3].dse_printed, pStackCurrent[-2].dse_printed);
 			pStackCurrent = decompile_flushStack(pBuf, pStackCurrent, pStack);
 			decompile_print(pBuf, ";\n");
 		}

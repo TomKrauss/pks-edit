@@ -10,7 +10,7 @@
  *										author: Tom
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * License, sSymbol. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *
  */
@@ -228,14 +228,14 @@ static int sym_insert(IDENTIFIER_CONTEXT* pContext, const char *key, SYMBOL vVal
 /*--------------------------------------------------------------------------
  * sym_createSymbol()
  */
-int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, PKS_VALUE_TYPE stValueType, GENERIC_DATA value) {
-	SYMBOL v = { .s_type = stType, .s.symbol.s_valueType = stValueType};
+int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, PKS_VALUE_TYPE stValueType, GENERIC_DATA value, int nVariableOffset) {
+	SYMBOL sSymbol = { .s_type = stType, .s.symbol.s_valueType = stValueType};
 	if (stType != S_TYPE_IDENTIFIER) {
 		if (stValueType == VT_STRING) {
-			if ((v.s.symbol.s_data.string = _strdup(value.string)) == 0) {
+			if ((sSymbol.s.symbol.s_data.string = _strdup(value.string)) == 0) {
 				return 0;
 			}
-			v.s.symbol.s_pointer = TRUE;
+			sSymbol.s.symbol.s_pointer = TRUE;
 		}
 		else if (stType == VT_OBJECT_ARRAY) {
 			if (value.stringList) {
@@ -243,16 +243,17 @@ int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stTyp
 				if (!pClone) {
 					return 0;
 				}
-				v.s.symbol.s_data.stringList = pClone;
+				sSymbol.s.symbol.s_data.stringList = pClone;
 			}
-			v.s.symbol.s_pointer = TRUE;
+			sSymbol.s.symbol.s_pointer = TRUE;
 		}
 		else {
-			v.s.symbol.s_data.val = value.val;
-			v.s.symbol.s_pointer = FALSE;
+			sSymbol.s.symbol.s_data.val = value.val;
+			sSymbol.s.symbol.s_pointer = FALSE;
 		}
 	}
-	return sym_insert(pContext, name, v);
+	sSymbol.s_index = nVariableOffset;
+	return sym_insert(pContext, name, sSymbol);
 }
 
 /*

@@ -51,6 +51,7 @@ typedef struct tagMACRO {
 	unsigned char  mc_namespaceIdx;			// Index of the corresponding name space (or 0 for default namespace).
 	unsigned char* mc_name;					// the macro name
 	unsigned char* mc_comment;				// the macro comment
+	int			   mc_numberOfLocalVars;			// # of local variables - used to allocate local variable heap.
 	unsigned int mc_bytecodeLength;			// total size of the macro byte code in bytes.
 	unsigned char* mc_bytecodes;			// the actual bytecode of the macro
 } MACRO;
@@ -60,7 +61,8 @@ typedef struct tagMACRO_PARAM {
 	MACRO_SCOPE mp_scope;
 	char* mp_name;
 	char* mp_comment;
-	char* mp_sourceFile;
+	const char* mp_sourceFile;
+	int mp_numberOfLocalVariables;
 	size_t mp_bytecodeLength;
 	void* mp_buffer;
 } MACRO_PARAM;

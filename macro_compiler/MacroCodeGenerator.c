@@ -102,9 +102,12 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 		case C_PUSH_ARRAY_LITERAL:
 			break;
 		case C_STOP:
+		case C_ASSIGN_SLOT:
 		case C_SET_STACKFRAME:
 		case C_PUSH_BOOLEAN_LITERAL:
-		case C_PUSH_CHARACTER_LITERAL: 
+		case C_ASSIGN_LOCAL_VAR:
+		case C_PUSH_LOCAL_VARIABLE:
+		case C_PUSH_CHARACTER_LITERAL:
 		case C_PUSH_SMALL_INT_LITERAL:
 			((COM_CHAR1 *)sp)->val = data.uchar;
 			break;
@@ -140,7 +143,6 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 			((COM_LONG1 *)sp)->val = data.longValue;
 			break;
 		case C_ASSIGN:
-		case C_ASSIGN_SLOT:
 		case C_PUSH_VARIABLE:
 			strcpy(((COM_STRING1*)sp)->s, data.string);
 			break;
@@ -339,13 +341,13 @@ void bytecode_destroyArraylistWithPointers(ARRAY_LIST* pList) {
  * bytecode_defineVariable()
  * Defines a variable or a parameter depending on nBytecode
  */
-void bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBytecode, int nSymbolType, long nArraySizeOrParamIndex) {
+void bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBytecode, PKS_VALUE_TYPE nType, unsigned short nArraySizeOrParamIndex) {
 	unsigned char *	p1;
 	COM_DEFINE_SYMBOL *	ap;
 
 	ap = (COM_DEFINE_SYMBOL*)pBuffer->bb_current;
 	ap->typ = nBytecode;
-	ap->symtype = nSymbolType;
+	ap->vartype = nType;
 	ap->value = nArraySizeOrParamIndex;
 
 	p1 = ap->name;

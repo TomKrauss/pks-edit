@@ -620,7 +620,6 @@ char *yytext;
 		} 
 
 typedef struct yyerrstruct {
-	const char *srcname;
 	char		errname[200];
 	FILE		*errfp;
 	int			yynerr,yynwarn;
@@ -639,7 +638,13 @@ extern FILE		*file_createTempFile(char *fnd, char *fn);
 extern int 		function_initializeFunctionsAndTypes(void);
 extern long 	function_enumValueFor(void *enp);
 extern void		types_registerDefaultTypes();
-int yylex_destroy ( void );
+extern int yylex_destroy ( void );
+
+COMPILER_CONFIGURATION* _compilerConfiguration;
+
+const char* yy_getCurrentInputFilename() {
+	return _compilerConfiguration->cb_source;
+}
 
 /*---------------------------------*/
 /* keyword()					*/
@@ -674,7 +679,7 @@ static int init_keywords(void)
 {	struct kw *kp = keywords;
 
 	while(kp->name) {
-		if (!sym_createSymbol(sym_getKeywordContext(), kp->name,S_KEYWORD,0,(GENERIC_DATA){.intValue = kp->toknum}))
+		if (!sym_createSymbol(sym_getKeywordContext(), kp->name,S_KEYWORD,0,(GENERIC_DATA){.intValue = kp->toknum}, 0))
 			return 0;
 		kp++;
 	}
@@ -683,13 +688,10 @@ static int init_keywords(void)
 
 static yyreport(const char* s, int bError, va_list ap) {
 	char buf1[512];
-	if (!yyerr.srcname)
-		yyerr.srcname = "STDIN";
-
 	if (yyerr.errfp != 0 ||
 		(yyerr.errfp = file_createTempFile(yyerr.errname, "pksmacro.err")) != 0) {
 		wvsprintf(buf1, s, ap);
-		fprintf(yyerr.errfp, "%s %s %d: %s\n", (bError) ? "Error" : "Warning", yyerr.srcname, yylineno, buf1);
+		fprintf(yyerr.errfp, "%s %s %d: %s\n", (bError) ? "Error" : "Warning", yy_getCurrentInputFilename(), yylineno, buf1);
 		fflush(yyerr.errfp);
 		if (bError && ++yyerr.yynerr >= yyerr.yymaxerr) {
 			fprintf(yyerr.errfp, "\n*** too many errors ***\n");
@@ -724,13 +726,12 @@ void yywarning(const char* s, ...) {
 	va_end(ap);
 }
 
-COMPILER_CONFIGURATION* _compilerConfiguration;
 static COMPILER_INPUT_STREAM	*_compilerInputStream;
 
 char * _yyCurrentComment;
 
 void yyrequire(const char* pszNamespace) {
-	if (!compiler_requireNamespace(_compilerConfiguration->cb_dependencies, yyerr.srcname, pszNamespace)) {
+	if (!compiler_requireNamespace(_compilerConfiguration->cb_dependencies, yy_getCurrentInputFilename(), pszNamespace)) {
 		yyerror("Cannot locate source file for required namespace %s", pszNamespace);
 	}
 }
@@ -765,7 +766,6 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig) {
 	yyerr.yymaxerr = 30;
 	yyerr.yymaxwarn = 30;
 	yyerr.failpt = errb;
-	yyerr.srcname = pConfig->cb_source;
 	return 1;
 }
 
@@ -1395,6 +1395,7 @@ YY_RULE_SETUP
 #line 467 "scanner.l"
 {	SYMBOL 	sym;
 				char *	key;
+				SYMBOL_TYPE t;
 
 				sym = sym_find(_currentIdentifierContext, yytext,&key);
 				if (key == 0) {
@@ -1405,27 +1406,27 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					yylval.ident.stringIsAlloced = 1;
 					return T_IDENT;
 				}
-
-				if (TYPEOF(sym) == S_KEYWORD) {
+				t = TYPEOF(sym);
+				if (t == S_KEYWORD) {
 					return sym.s.symbol.s_data.intValue;
 				}
 
-				if (TYPEOF(sym) == S_TYPE_IDENTIFIER) {
-					yylval.type = VALUE_TYPE(sym);
+				if (t == S_TYPE_IDENTIFIER) {
+					yylval.ident.type = VALUE_TYPE(sym);
 					return T_TYPE_IDENTIFIER;
 				}
 
-				if (TYPEOF(sym) == S_EDFUNC) {
+				if (t == S_EDFUNC) {
 					yylval.funcp = (void*)VALUE(sym);
 					return T_FUNC;
 				}
 
-				if (TYPEOF(sym) == S_ENUM) {
+				if (t == S_ENUM) {
 					yylval.num = function_enumValueFor((void*)VALUE(sym));
 					return T_NUM;
 				}
 				
-				if (TYPEOF(sym) == S_CONSTANT) {
+				if (t == S_CONSTANT) {
 					if (_bDefiningConst) {
 						goto retIdent;
 					}
@@ -1447,7 +1448,7 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					}
 				}
 	
-				if (TYPEOF(sym) == S_VARIABLE) {
+				if (t == S_VARIABLE || t == S_LOCAL_VARIABLE) {
 					if (_bInHeader) {
 						goto retIdent;
 					}
@@ -1464,100 +1465,100 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 535 "scanner.l"
+#line 536 "scanner.l"
 return T_EQ;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 536 "scanner.l"
+#line 537 "scanner.l"
 return T_NE;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 537 "scanner.l"
+#line 538 "scanner.l"
 return T_SHIFT_LEFT;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 538 "scanner.l"
+#line 539 "scanner.l"
 return T_SHIFT_RIGHT;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 539 "scanner.l"
+#line 540 "scanner.l"
 return T_POWER_TO;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 540 "scanner.l"
+#line 541 "scanner.l"
 return T_ASSOC_ARROW;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 541 "scanner.l"
+#line 542 "scanner.l"
 return T_LE;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 542 "scanner.l"
+#line 543 "scanner.l"
 return T_GE;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 543 "scanner.l"
+#line 544 "scanner.l"
 return T_SH_ASSIGN_MULT;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 544 "scanner.l"
+#line 545 "scanner.l"
 return T_SH_ASSIGN_PLUS;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 545 "scanner.l"
+#line 546 "scanner.l"
 return T_SH_ASSIGN_MINUS;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 546 "scanner.l"
+#line 547 "scanner.l"
 return T_SH_ASSIGN_DIV;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 547 "scanner.l"
+#line 548 "scanner.l"
 return T_SH_ASSIGN_MOD;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 548 "scanner.l"
+#line 549 "scanner.l"
 return T_NMATCH;
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 549 "scanner.l"
+#line 550 "scanner.l"
 return T_AND;
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 550 "scanner.l"
+#line 551 "scanner.l"
 return T_OR;
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 551 "scanner.l"
+#line 552 "scanner.l"
 return T_ASSIGN;
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 552 "scanner.l"
+#line 553 "scanner.l"
 return yytext[0];
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 553 "scanner.l"
+#line 554 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 1560 "lex.yy.c"
+#line 1561 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(IN_COMMENT):
 	yyterminate();
@@ -2575,7 +2576,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 553 "scanner.l"
+#line 554 "scanner.l"
 
 
 

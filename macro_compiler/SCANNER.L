@@ -50,7 +50,6 @@
 		} 
 
 typedef struct yyerrstruct {
-	const char *srcname;
 	char		errname[200];
 	FILE		*errfp;
 	int			yynerr,yynwarn;
@@ -69,7 +68,13 @@ extern FILE		*file_createTempFile(char *fnd, char *fn);
 extern int 		function_initializeFunctionsAndTypes(void);
 extern long 	function_enumValueFor(void *enp);
 extern void		types_registerDefaultTypes();
-int yylex_destroy ( void );
+extern int yylex_destroy ( void );
+
+COMPILER_CONFIGURATION* _compilerConfiguration;
+
+const char* yy_getCurrentInputFilename() {
+	return _compilerConfiguration->cb_source;
+}
 
 /*---------------------------------*/
 /* keyword()					*/
@@ -104,7 +109,7 @@ static int init_keywords(void)
 {	struct kw *kp = keywords;
 
 	while(kp->name) {
-		if (!sym_createSymbol(sym_getKeywordContext(), kp->name,S_KEYWORD,0,(GENERIC_DATA){.intValue = kp->toknum}))
+		if (!sym_createSymbol(sym_getKeywordContext(), kp->name,S_KEYWORD,0,(GENERIC_DATA){.intValue = kp->toknum}, 0))
 			return 0;
 		kp++;
 	}
@@ -113,13 +118,10 @@ static int init_keywords(void)
 
 static yyreport(const char* s, int bError, va_list ap) {
 	char buf1[512];
-	if (!yyerr.srcname)
-		yyerr.srcname = "STDIN";
-
 	if (yyerr.errfp != 0 ||
 		(yyerr.errfp = file_createTempFile(yyerr.errname, "pksmacro.err")) != 0) {
 		wvsprintf(buf1, s, ap);
-		fprintf(yyerr.errfp, "%s %s %d: %s\n", (bError) ? "Error" : "Warning", yyerr.srcname, yylineno, buf1);
+		fprintf(yyerr.errfp, "%s %s %d: %s\n", (bError) ? "Error" : "Warning", yy_getCurrentInputFilename(), yylineno, buf1);
 		fflush(yyerr.errfp);
 		if (bError && ++yyerr.yynerr >= yyerr.yymaxerr) {
 			fprintf(yyerr.errfp, "\n*** too many errors ***\n");
@@ -154,13 +156,12 @@ void yywarning(const char* s, ...) {
 	va_end(ap);
 }
 
-COMPILER_CONFIGURATION* _compilerConfiguration;
 static COMPILER_INPUT_STREAM	*_compilerInputStream;
 
 char * _yyCurrentComment;
 
 void yyrequire(const char* pszNamespace) {
-	if (!compiler_requireNamespace(_compilerConfiguration->cb_dependencies, yyerr.srcname, pszNamespace)) {
+	if (!compiler_requireNamespace(_compilerConfiguration->cb_dependencies, yy_getCurrentInputFilename(), pszNamespace)) {
 		yyerror("Cannot locate source file for required namespace %s", pszNamespace);
 	}
 }
@@ -195,7 +196,6 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig) {
 	yyerr.yymaxerr = 30;
 	yyerr.yymaxwarn = 30;
 	yyerr.failpt = errb;
-	yyerr.srcname = pConfig->cb_source;
 	return 1;
 }
 
@@ -466,6 +466,7 @@ WS		[ \t]
 \-\-		{	return T_MINUSMINUS; }
 {CHN}+		{	SYMBOL 	sym;
 				char *	key;
+				SYMBOL_TYPE t;
 
 				sym = sym_find(_currentIdentifierContext, yytext,&key);
 				if (key == 0) {
@@ -476,27 +477,27 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					yylval.ident.stringIsAlloced = 1;
 					return T_IDENT;
 				}
-
-				if (TYPEOF(sym) == S_KEYWORD) {
+				t = TYPEOF(sym);
+				if (t == S_KEYWORD) {
 					return sym.s.symbol.s_data.intValue;
 				}
 
-				if (TYPEOF(sym) == S_TYPE_IDENTIFIER) {
-					yylval.type = VALUE_TYPE(sym);
+				if (t == S_TYPE_IDENTIFIER) {
+					yylval.ident.type = VALUE_TYPE(sym);
 					return T_TYPE_IDENTIFIER;
 				}
 
-				if (TYPEOF(sym) == S_EDFUNC) {
+				if (t == S_EDFUNC) {
 					yylval.funcp = (void*)VALUE(sym);
 					return T_FUNC;
 				}
 
-				if (TYPEOF(sym) == S_ENUM) {
+				if (t == S_ENUM) {
 					yylval.num = function_enumValueFor((void*)VALUE(sym));
 					return T_NUM;
 				}
 				
-				if (TYPEOF(sym) == S_CONSTANT) {
+				if (t == S_CONSTANT) {
 					if (_bDefiningConst) {
 						goto retIdent;
 					}
@@ -518,7 +519,7 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					}
 				}
 	
-				if (TYPEOF(sym) == S_VARIABLE) {
+				if (t == S_VARIABLE || t == S_LOCAL_VARIABLE) {
 					if (_bInHeader) {
 						goto retIdent;
 					}

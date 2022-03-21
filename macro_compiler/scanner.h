@@ -32,17 +32,18 @@ typedef struct tagTYPEDVAL {
 
 typedef union yytype {
 	long long num;
-	struct {
+	struct tagPARSE_IDENTIFIER {
+		int type;					// PKS Value type. Hack: that this must be the first struct element, as it is somewhat confused with v.type (see below)
 		MACRO_SCOPE scope;
 		char  operation;			// the current operation constructed (if applicable)
-		char* s;
+		char* s;					// the actual string of the identifier
 		int	stringIsAlloced;		// whether the string was alloced
-		int type;					// PKS Value type
+		int arraySize;				// for array type variables the size of the array
 	} ident;
-	void	*funcp;
-	unsigned char type;
-	unsigned char needsPop;
-	TYPEDVAL v;
+	TYPEDVAL		v;
+	void			*funcp;
+	unsigned char	binop;			// Used to remember a concrete binary operation
+	unsigned char	needsPop;
 } _YYSTYPE;
 
 extern _YYSTYPE	yylval;

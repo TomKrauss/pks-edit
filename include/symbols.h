@@ -23,11 +23,13 @@ typedef enum {
 	S_ENUM = 12,
 	S_CONSTANT = 13,
 	S_VARIABLE = 14,
-	S_RUNTIME_VALUE = 15
+	S_LOCAL_VARIABLE = 15,
+	S_RUNTIME_VALUE = 16
 } SYMBOL_TYPE;
 
 typedef struct tagSYMBOL {
 	SYMBOL_TYPE				s_type;					// the symbol-type - for runtime variables this is S_RUNTIME_VALUE
+	int						s_index;				// for local variables the offset into the local method heap
 	union {
 		struct {
 			int				s_managed : 1;			// 0 in the context of the compilation - not managed by object memory
@@ -58,9 +60,10 @@ extern SYMBOL sym_find(IDENTIFIER_CONTEXT* pContext, const char *key, char **key
 /*
  * Create a symbol primarily to be used in the context of the macroc parser to define
  * keywords, variables, enum values etc... All objects created requiring memory (e.g. strings etc)
- * are copied internally.
+ * are copied internally. The variable heap offset is used in local variables to access the value on the method
+ * heap.
  */
-extern int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, PKS_VALUE_TYPE stValueType, GENERIC_DATA value);
+extern int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, PKS_VALUE_TYPE stValueType, GENERIC_DATA value, int nVariableHeapOffset);
 
 /*
  * Execute a callback for all values in the passed context "managed" by the PKS Object memory.

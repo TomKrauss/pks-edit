@@ -84,7 +84,7 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 		pDescriptor->ptd_type = t;
 		if (pDescriptor->ptd_name[0] != '#') {
 			// do not register "special types names"
-			sym_createSymbol(sym_getKeywordContext(), (char*)pDescriptor->ptd_name, S_TYPE_IDENTIFIER, t, (GENERIC_DATA) { 0 });
+			sym_createSymbol(sym_getKeywordContext(), (char*)pDescriptor->ptd_name, S_TYPE_IDENTIFIER, t, (GENERIC_DATA) { 0 }, 0);
 		}
 	}
 	pDescriptor->ptd_hasDefaultValue = pTemplate->ptd_hasDefaultValue;

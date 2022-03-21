@@ -125,6 +125,8 @@ struct tagEXECUTION_CONTEXT {
 	PKS_VALUE* ec_stackFrame;			// the stack bottom of the stack frame for the current macro executed
 	PKS_VALUE* ec_stackCurrent;			// the pointer to the current stack offset
 	PKS_VALUE* ec_stackMax;				// the top of the stack. Must not be overridden
+	PKS_VALUE* ec_localVariables;		// the local variables of a function
+	int ec_localVariableCount;			// Number of local variables stored in the localVariables context.
 	const char* ec_currentFunction;		// name of the current function/macro being executed.
 	void* ec_instructionPointer;		// The current instruction pointer for debugging
 	IDENTIFIER_CONTEXT* ec_identifierContext;
@@ -212,7 +214,8 @@ typedef enum {
 	C_LOGICAL_OPERATION = 0x6,	// Test: binary logical operation between stack[0] and stack[1]
 	C_BINOP = 0x7,  			// binary operation between stack[0] and stack[1]
 	C_ASSIGN = 0x8,  			// assign: a = stackval
-	C_ASSIGN_SLOT = 0x9,  		// assign: a.x = stackval or a[x] = stackval
+	C_ASSIGN_LOCAL_VAR = 0x9,  	// assign: localVars[i] = stackval
+	C_ASSIGN_SLOT = 0xA,  		// assign: a.x = stackval or a[x] = stackval
 
 	// Push objects onto the stack
 	C_PUSH_CHARACTER_LITERAL = 0x10,		// Push character literal. 1 Ascii character follows 
@@ -224,24 +227,27 @@ typedef enum {
 	C_PUSH_BOOLEAN_LITERAL   = 0x16,		// Push boolean literal 1 Ascii character follows 
 	C_PUSH_ARRAY_LITERAL = 0x17, 			// Push array literal, n PKSValues starting with a type byte and 
 											// either a string with \0 end or 4 bytes for other values (int etc...)
-	C_PUSH_MAP_LITERAL = 0x1C, 				// Push map literal, same format as array literal. Successive values are treated as key, value pairs
-	C_PUSH_NEW_INSTANCE = 0x1D,				// create a new instance of an object.
-	C_PUSH_VARIABLE = 0x18,					// variable reference to string
-	C_FORM_START = 0x19, 					// formular with parameters ...
-	
+	C_PUSH_VARIABLE = 0x18,					// push named var (global var) onto stack
+	C_PUSH_LOCAL_VARIABLE = 0x19,			// push local var onto stack
+	C_FORM_START = 0x1A, 					// formular with parameters ...
+	C_PUSH_MAP_LITERAL = 0x1B, 				// Push map literal, same format as array literal. Successive values are treated as key, value pairs
+	C_PUSH_NEW_INSTANCE = 0x1C,				// create a new instance of an object.
+
 	// Define parameters and variables
-	C_DEFINE_PARAMETER = 0x1A,				// create symbol with type and value 
-	C_DEFINE_VARIABLE = 0x1B,				// define a variable with type and value 
+	C_DEFINE_PARAMETER = 0x20,				// create symbol with type and value 
+	C_DEFINE_LOCAL_VARIABLE = 0x21,			// define a local variable with type and value. Local variables are maintained by index on the heap
+											// rather than in the symbol table
+	C_DEFINE_VARIABLE = 0x22,				// define a (global) variable with type and value, maintained and accessed by name from the symbol table.
 
 	// Stack manipulation
-	C_SET_STACKFRAME = 0x20,				// start a new stack frame in an invoked method (after parameter have been retrieved)
-	C_POP_STACK = 0x22						// pop one element of the stack. Marks the end of a statement.
+	C_SET_STACKFRAME = 0x2A,				// start a new stack frame in an invoked method (after parameter have been retrieved)
+	C_POP_STACK = 0x2B						// pop one element of the stack. Marks the end of a statement.
 } MACROC_INSTRUCTION_OP_CODE;
 
 
 #define	C_IS1PAR(typ)			 (typ & 0x10)
 #define	C_ISCMD(typ)			 (typ >= C_0FUNC && typ <= C_MACRO_REF)
-#define C_IS_PUSH_OPCODE(opCode) ((opCode >= C_PUSH_CHARACTER_LITERAL && opCode <= C_FORM_START) || opCode == C_PUSH_NEW_INSTANCE || opCode == C_PUSH_MAP_LITERAL)
+#define C_IS_PUSH_OPCODE(opCode) (opCode >= C_PUSH_CHARACTER_LITERAL && opCode <= C_PUSH_NEW_INSTANCE)
 
 #define	C_NONE			0xFF
 
@@ -305,9 +311,10 @@ typedef struct tagCOM_ASSIGN {
 
 typedef struct tagCOM_DEFINE_SYMBOL {
 	unsigned char 	typ;			// C_DEFINE_PARAMETER or C_DEFINE_VARIABLE
-	unsigned char 	symtype;		// variable type
-	long			value;			// for array type variables the size of the array for parameters the index of the parameter or index for C_ASSIGN_SLOT
-	int		    	size;			// size of total structure
+	unsigned char 	vartype;		// variable type
+	unsigned char	heapIndex;		// For non-global vars - the offset into the heap / the slot in the heap.
+	unsigned short	value;			// for array type variables the size of the array for parameters the index of the parameter or index for C_ASSIGN_SLOT
+	unsigned short 	size;			// size of total structure
 	unsigned char	name[1];		// variable name
 } COM_DEFINE_SYMBOL;
 
@@ -331,18 +338,18 @@ typedef struct tagCOM_BINOP {
 } COM_BINOP;
 
 typedef struct tagCOM_CHAR1 {
-	unsigned char typ;				// C_PUSH_CHARACTER_LITERAL C_PUSH_LITERAL or C_PUSH_SMALL_INT_LITERAL
+	unsigned char typ;				// C_PUSH_CHARACTER_LITERAL, C_PUSH_SMALL_INT_LITERAL, C_PUSH_LOCAL_VAR, C_ASSIGN_LOCAL_VAR
 	unsigned char val;
 } COM_CHAR1;
 
 typedef struct tagCOM_CHAR1 COM_FURET;
 
-typedef struct c_stop {
+typedef struct tagCOM_STOP {				// C_STOP, C_ASSIGN_SLOT - no real param needed
 	unsigned char typ;
-	unsigned char rc;
+	unsigned char unused;
 } COM_STOP;
 
-typedef struct c_int1 {
+typedef struct tagCOM_INT1 {
 	unsigned char	typ;			// C_PUSH_INTEGER_LITERAL, C_PUSH_LITERAL int, C_PUSH_NEW_INSTANCE
 	unsigned char	c_valueType;
 	int				val;
