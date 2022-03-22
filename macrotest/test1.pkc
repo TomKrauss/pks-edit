@@ -91,33 +91,59 @@ static void CountWordsIn(map words, string fileName) {
 	}
 }
 
-static void BubbleSortWordEntries(auto[] entries) {
-	boolean bNeedsSorting = true;
-	int i;
-	MAP_ENTRY swap;
-	MAP_ENTRY first;
-	int count1;
-	int count2;
-	int nSize = size(entries)-1;
-	while(bNeedsSorting) {
-		bNeedsSorting = false;
-		i = 0;
-		while(i < nSize) {
-			first = entries[i];
-			swap = entries[i+1];
-			count1 = first.value;
-			count2 = swap.value;
-			if (count2 > count1) {
-				entries[i+1] = first;
-				entries[i] = swap;
-				//println("swapping " + i + " and " + (i+1));
-				bNeedsSorting = true;
-			}
-			i++;
-		}
+// function to find the partition position
+static int partition(auto[] array, int low, int high) {
+	int j;
+  // select the rightmost element as pivot
+  MAP_ENTRY pivot = array[high];
+  MAP_ENTRY tmp;
+
+  // pointer for greater element
+  int i = (low - 1);
+
+  // traverse each element of the array
+  // compare them with the pivot
+  j = low;
+  while (j < high) {
+	  tmp = array[j];
+      if (tmp.value <= pivot.value) {
+
+      // if element smaller than pivot is found
+      // swap it with the greater element pointed by i
+      i++;
+
+      // swap element at i with element at j
+	  tmp = array[j];
+	  array[j] = array[i];
+	  array[i] = tmp;
 	}
+  	j++;
+  }
 
+  // swap the pivot element with the greater element at i
+  tmp = array[i+1];
+  array[i+1] = array[high];
+  array[high] = tmp;
 
+  // return the partition point
+  return (i + 1);
+}
+
+static void quickSort(auto[] array, int low, int high) {
+	int pi;
+  if (low < high) {
+
+    // find the pivot element such that
+    // elements smaller than pivot are on left of pivot
+    // elements greater than pivot are on right of pivot
+    pi = partition(array, low, high);
+
+    // recursive call on the left of pivot
+    quickSort(array, low, pi - 1);
+
+    // recursive call on the right of pivot
+    quickSort(array, pi + 1, high);
+  }
 }
 
 /*
@@ -136,7 +162,7 @@ static void Test-WordCount() {
 		CountWordsIn(words, manualDir + "\\" + fileName);
 	}
 	entries = MapEntries(words);
-	BubbleSortWordEntries(entries);
+	quickSort(entries, size(entries)-1);
 	for (MAP_ENTRY entry : entries) {
 		if (entry.value > 100) {
 			numberOfFrequentWords++;

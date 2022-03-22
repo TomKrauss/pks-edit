@@ -17,12 +17,20 @@
 #include <windowsx.h>
 #include <CommCtrl.h>
 #include "arraylist.h"
-#include "pksmacrocvm.h"
 #include "pksmacro.h"
+#include "pksmacrocvm.h"
 #include "linkedlist.h"
 #include "symbols.h"
 #include "pksrc.h"
 #include "xdialog.h"
+
+#define MAXVARS 32
+
+typedef struct tagINSPECTOR_VARIABLE {
+	int iv_index;
+	const char* iv_name;
+	PKS_VALUE iv_value;
+} INSPECTOR_VARIABLE;
 
 /*
  * Initialize the debugger list views.
@@ -50,48 +58,77 @@ static void debugger_initVariablesView(HWND hwnd) {
   * debugger_addVariablesTypesToListView()
   * Adds all variable names+values to a list view.
   */
-static void debugger_addVariablesTypesToListView(HWND hwndList, IDENTIFIER_CONTEXT* pContext) {
+static void debugger_addVariablesTypesToListView(HWND hwndList, INSPECTOR_VARIABLE *pVariables, int nSize) {
 	ListView_DeleteAllItems(hwndList);
 	LVITEM lvI;
 
 	lvI.stateMask = LVIS_SELECTED | LVIS_FOCUSED;
 	lvI.state = 0;
-	ARRAY_LIST* pVarnames = sym_getVariables(pContext);
-	size_t nSize = arraylist_size(pVarnames);
 	for (int i = 0; i < nSize; i++) {
-		const char* pszName = arraylist_get(pVarnames, i);
 		lvI.mask = LVIF_TEXT | LVIF_STATE | LVIF_PARAM;
 		lvI.iItem = i;
-		lvI.lParam = (LPARAM)pszName;
+		lvI.lParam = (LPARAM)&pVariables[i];
 		lvI.pszText = LPSTR_TEXTCALLBACK;
 		lvI.iSubItem = 0;
 		if (ListView_InsertItem(hwndList, &lvI) == -1) {
 			return;
 		}
 	}
-	arraylist_destroy(pVarnames);
 }
 
 /*------------------------------------------------------------
  * doctypes_fillListbox()
  */
 static void debugger_fillVariables(HWND hwnd, EXECUTION_CONTEXT* pContext) {
-	HWND hwndList = GetDlgItem(hwnd, IDC_LOCAL_VARS);
-	debugger_addVariablesTypesToListView(hwndList, pContext->ec_identifierContext);
+	static INSPECTOR_VARIABLE _localVars[MAXVARS];
+	static INSPECTOR_VARIABLE _globalVars[MAXVARS];
+	TYPE_PROPERTY_DESCRIPTOR descriptors[MAXVARS];
+	HWND hwndList;
+
+	memset(descriptors, 0, sizeof descriptors);
+	int nIndex = macro_getInternalIndexByName(pContext->ec_currentFunction);
+	if (nIndex >= 0) {
+		hwndList = GetDlgItem(hwnd, IDC_LOCAL_VARS);
+		//debugger_addVariablesTypesToListView(hwndList, pContext->ec_identifierContext);
+		MACRO* mp = macro_getByIndex(nIndex);
+		int nVars = decompile_getLocalVariableInfo(mp, descriptors, DIM(descriptors));
+		for (int i = 0; i < nVars; i++) {
+			_localVars[i].iv_index = i;
+			_localVars[i].iv_name = (char*)descriptors[i].tpd_name;
+			_localVars[i].iv_value = pContext->ec_localVariables[i];
+		}
+		debugger_addVariablesTypesToListView(hwndList, _localVars, nVars);
+	}
 	hwndList = GetDlgItem(hwnd, IDC_GLOBAL_VARS);
-	debugger_addVariablesTypesToListView(hwndList, sym_getGlobalContext());
+	ARRAY_LIST* pVarnames = sym_getVariables(sym_getGlobalContext());
+	int nVars = (int)arraylist_size(pVarnames);
+	if (nVars > MAXVARS) {
+		nVars = MAXVARS;
+	}
+	for (int i = 0; i < nVars; i++) {
+		_globalVars[i].iv_index = i;
+		_globalVars[i].iv_name = (char*)arraylist_get(pVarnames, i);
+		_globalVars[i].iv_value = sym_getVariable(sym_getGlobalContext(), (char*)_globalVars[i].iv_name);
+	}
+	debugger_addVariablesTypesToListView(hwndList, _globalVars, nVars);
+	arraylist_destroy(pVarnames);
 }
 
-static void debugger_getColumnParameters(NMLVDISPINFO* plvdi, IDENTIFIER_CONTEXT* pContext) {
-	char* pszName = (char*)plvdi->item.lParam;
+static void debugger_getColumnParameters(NMLVDISPINFO* plvdi, int nLocal) {
+	INSPECTOR_VARIABLE* pParam = (INSPECTOR_VARIABLE*)plvdi->item.lParam;
 	static char szValueBuffer[256];
+	static char szName[32];
 
 	switch (plvdi->item.iSubItem) {
 	case 0:
-		plvdi->item.pszText = pszName;
+		plvdi->item.pszText = (char*)pParam->iv_name;
+		if (!pParam->iv_name) {
+			sprintf(szName, "#c%d", pParam->iv_index);
+			plvdi->item.pszText = szName;
+		}
 		break;
 	case 1: {
-		PKS_VALUE v = sym_getVariable(pContext, pszName);
+		PKS_VALUE v = pParam->iv_value;
 		decompile_printValue(szValueBuffer, v);
 		plvdi->item.pszText = szValueBuffer;
 		break;
@@ -167,7 +204,7 @@ static INT_PTR debugger_dialogProcedure(HWND hwnd, UINT message, WPARAM wParam, 
 	case WM_NOTIFY:
 		if (((LPNMHDR)lParam)->code == LVN_GETDISPINFO) {
 			NMLVDISPINFO* plvdi = (NMLVDISPINFO*)lParam;
-			debugger_getColumnParameters(plvdi, ((LPNMHDR)lParam)->idFrom == IDC_LOCAL_VARS ? _selectedContext->ec_identifierContext : sym_getGlobalContext());
+			debugger_getColumnParameters(plvdi, ((LPNMHDR)lParam)->idFrom == IDC_LOCAL_VARS);
 		}
 		break;
 	}

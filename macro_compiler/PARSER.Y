@@ -26,7 +26,7 @@
 %token T_IF T_ELSE T_WHILE T_GOTO
 %token T_SH_ASSIGN_PLUS T_SH_ASSIGN_MINUS T_SH_ASSIGN_MULT T_SH_ASSIGN_DIV T_SH_ASSIGN_MOD
 %token T_SWITCH T_CASE T_DEFAULT T_BREAK T_CONTINUE T_RETURN 
-%token T_VARIABLE T_LOCAL_VARIABLE T_ASSOC_ARROW 
+%token T_VARIABLE T_ASSOC_ARROW 
 %token T_NMATCH
 %token T_ASSIGN T_NE T_EQ T_SHIFT_LEFT T_SHIFT_RIGHT 
 %token T_OR T_AND T_LE T_GE T_POWER_TO
@@ -81,7 +81,6 @@ static 		void freeitem(char **p);
 static void 	bytecode_emitPushParameterInstruction(long long lValue);
 
 static int	_currentNamespaceIndex;
-static int  _foreachCursorIndex;
 static 		char *lstartid  = "%ls%",
 			     *lendid    = "%le%",
 				 *switchTableId  = "%sw%",
@@ -100,8 +99,9 @@ int 			function_parameterIsFormStart(void *ep,int parno);
 extern int macro_lookupNamespace(const char* pszNamespacename);
 extern void bytecode_emitGotoInstruction(BYTECODE_BUFFER* pBuffer, char *prefix, int level, int bratyp);
 extern unsigned char* bytecode_emitBinaryOperation(BYTECODE_BUFFER* pBuffer, int nOperationType, PKS_VALUE_TYPE nTargetType);
-extern unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, char* pszName, int nIncrement);
+extern unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, char* pszName, int nHeapIndex, int bLocalVar, int nIncrement);
 extern unsigned char* bytecode_emitAssignment(BYTECODE_BUFFER* pBuffer, const char *name);
+extern unsigned char* bytecode_emitLocalAssignment(BYTECODE_BUFFER* pBuffer, int nHeapIndex);
 extern unsigned char* bytecode_emitFunctionCall(BYTECODE_BUFFER* pBuffer, unsigned char typ, GENERIC_DATA data, int nArgs);
 extern void bytecode_startSwitchTable(int aLevel);
 extern int bytecode_generateAutoLabelNamePrefix(BYTECODE_BUFFER* pBuffer, char *prefix,int level);
@@ -131,7 +131,7 @@ extern unsigned char* bytecode_emitMultiplyWithLiteralExpression(BYTECODE_BUFFER
 #define		YY_EMIT(opCode, param)		_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer, opCode, param);
 
 extern int yylex(void );
-void 		bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBytecode, int typ, unsigned short arraySizeOrParamIndex);
+void 		bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBytecode, int typ, unsigned short arraySizeOrParamIndex, int nHeapIndex);
 
 char*		bytecode_emitGotoLabelInstruction(char *name, BYTECODE_BUFFER* pBuffer, int typ);
 int			bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name);
@@ -144,11 +144,31 @@ static int			_localVariableIndex;
 
 IDENTIFIER_CONTEXT* _currentIdentifierContext;
 
+static void parser_emitAssignment(struct tagPARSE_IDENTIFIER* pIdent) {
+	if (pIdent->isLocalVar) {
+		_bytecodeBuffer.bb_current = bytecode_emitLocalAssignment(&_bytecodeBuffer, pIdent->heapIndex);
+	} else {
+		_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, pIdent->s);
+	}
+}
+
+static void parser_emitPushVariable(struct tagPARSE_IDENTIFIER* pIdent) {
+	if (pIdent->isLocalVar) {
+		_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer, C_PUSH_LOCAL_VARIABLE, (GENERIC_DATA){.intValue=pIdent->heapIndex});
+	} else {
+		YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=pIdent->s});
+	}
+}
+
 static void parser_defineVariable(const char* pszName, SYMBOL_TYPE sType, intptr_t tVal, int arraySize) {
 	if (arraySize < 0) {
 		yyerror("Illegal negative array size %d", arraySize);
 	}
-	bytecode_defineVariable(&_bytecodeBuffer, pszName, C_DEFINE_VARIABLE, sType, arraySize);
+	if (_bInHeader) {
+		bytecode_defineVariable(&_bytecodeBuffer, pszName, C_DEFINE_VARIABLE, sType, arraySize, 0);
+	} else {
+		bytecode_defineVariable(&_bytecodeBuffer, pszName, C_DEFINE_LOCAL_VARIABLE, sType, arraySize, _localVariableIndex);
+	}
 	IDENTIFIER_CONTEXT* pContext = sym_getContext(_currentIdentifierContext, (char*)pszName);
 	if (pContext && pContext != sym_getGlobalCompilerContext()) {
 		yyerror("Redefinition of variable %s", pszName);
@@ -164,9 +184,7 @@ static void parser_defineVariable(const char* pszName, SYMBOL_TYPE sType, intptr
 }
 
 static void push_newForeachCursor() {
-	char buf[32];
-	sprintf(buf, "#c%d", _foreachCursorIndex++);
-	YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=buf});
+	YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_localVariableIndex++});
 }
 
 static PKS_VALUE_TYPE types_pushFieldIndexWithError(PKS_VALUE_TYPE t, const char* pszFieldName) {
@@ -255,7 +273,11 @@ constant_literal:
 			}
 
 variable_identifier:	
-			T_IDENT {	$$.ident = $1.ident; }
+			T_IDENT {
+				$$.ident = $1.ident; 
+				$$.ident.heapIndex = _localVariableIndex;
+				$$.ident.isLocalVar = !_bInHeader;
+			}
 			| T_NUM
 			{
 				$$.ident = $1.ident;
@@ -310,7 +332,7 @@ global_var: scope var_decl
 
 var_decl:	type_name variable_identifier assignment_expression {
 				parser_defineVariable($2.ident.s, $1.ident.type, 0, $1.ident.arraySize);
-				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $2.ident.s);
+				parser_emitAssignment(&$2.ident);
 				if ($2.ident.stringIsAlloced) {
 					free($2.ident.s);
 				}
@@ -338,8 +360,8 @@ non_empty_pardecl:
 
 
 par_decl:	type_name variable_identifier {
-				sym_createSymbol(_currentIdentifierContext, $2.ident.s, S_LOCAL_VARIABLE, VT_NUMBER, (GENERIC_DATA) {_nparam}, _localVariableIndex++);
-				bytecode_defineVariable(&_bytecodeBuffer, $2.ident.s,C_DEFINE_PARAMETER,$1.ident.type,_nparam);
+				sym_createSymbol(_currentIdentifierContext, $2.ident.s, S_LOCAL_VARIABLE, VT_NUMBER, (GENERIC_DATA) {_nparam}, _localVariableIndex);
+				bytecode_defineVariable(&_bytecodeBuffer, $2.ident.s,C_DEFINE_PARAMETER,$1.ident.type,_nparam, _localVariableIndex++);
 				free($2.ident.s);
 				_nparam++;
 			}
@@ -397,10 +419,7 @@ statement: ';'
 			}
 
 assignment: variable_reference assignment_expression {
-				if ($1.ident.type != $2.v.type) {
-				// not enough type info yet for this:	yyerror("Trying to assign incompatible types.");
-				}
-				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
+				parser_emitAssignment(&$1.ident);
 			}
 			|
 			assignment_target '.' T_IDENT {
@@ -414,14 +433,14 @@ assignment: variable_reference assignment_expression {
 			} 
 			|
 			variable_reference {
-				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
+				parser_emitPushVariable(&$1.ident);
 			} shorthand_assignment_operator simple_expression {
 				YY_EMIT(C_BINOP, (GENERIC_DATA){$3.binop});
-				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
+				parser_emitAssignment(&$1.ident);
 			}
 
 assignment_target: variable_reference {
-				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
+				parser_emitPushVariable(&$1.ident);
 			}
 
 shorthand_assignment_operator: 
@@ -447,9 +466,9 @@ range_increment:
 			| T_DOTDOT binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_RANGE}); }
 
 increment_expression: 
-			variable_reference T_MINUSMINUS  { _bytecodeBuffer.bb_current = bytecode_emitIncrementExpression(&_bytecodeBuffer, $1.ident.s, -1); }
+			variable_reference T_MINUSMINUS  { _bytecodeBuffer.bb_current = bytecode_emitIncrementExpression(&_bytecodeBuffer, $1.ident.s, $1.ident.heapIndex, $1.ident.isLocalVar, -1); }
 			|
-			variable_reference T_PLUSPLUS { _bytecodeBuffer.bb_current = bytecode_emitIncrementExpression(&_bytecodeBuffer, $1.ident.s, 1); }
+			variable_reference T_PLUSPLUS { _bytecodeBuffer.bb_current = bytecode_emitIncrementExpression(&_bytecodeBuffer, $1.ident.s, $1.ident.heapIndex, $1.ident.isLocalVar, 1); }
 
 s_bterm: 	value { $$.v = $1.v; }
 			| call_expression 
@@ -502,7 +521,7 @@ binary_expression:
 			| binary_expression T_NE binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NE}); }
 			| '(' binary_expression ')'	{ $$.v = $2.v; }
 			| variable_reference assignment_expression {
-				_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, $1.ident.s);
+				parser_emitAssignment(&$1.ident);
 			}
 
 /*----- conditions ------------------------------------------*/
@@ -513,7 +532,7 @@ condition:	'(' binary_expression ')'
 			}
 
 value:		T_VARIABLE {
-				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
+				parser_emitPushVariable(&$1.ident);
 				$$.ident.type = $1.ident.type;
 			}
 			| struct_reference
@@ -537,12 +556,12 @@ value:		T_VARIABLE {
 			}
 			| T_IDENT {
 				yyerror("Undefined identifier %s", $1.ident.s);
-				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
+				parser_emitPushVariable(&$1.ident);
 				$$.ident.type = VT_STRING;  
 			}
 
 struct_reference: T_VARIABLE '.' T_IDENT {
-				YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=$1.ident.s});
+				parser_emitPushVariable(&$1.ident);
 				$$.ident.type = types_pushFieldIndexWithError($1.ident.type, $3.ident.s);
 				YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); 
 			}
@@ -664,7 +683,7 @@ goto:		T_GOTO T_IDENT {
 
 in_clause:	'(' type_name variable_identifier {
 				push_newForeachCursor();
-				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$3.ident.s});
+				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_localVariableIndex});
 				parser_defineVariable($3.ident.s, $2.ident.type, (intptr_t)0, $1.ident.arraySize);
 				if ($3.ident.stringIsAlloced) {
 					free($3.ident.s);
@@ -771,16 +790,24 @@ call_expression: T_FUNC '(' {
 				*_currentFunctionCallParamIndexP = 0;
 				$$.funcp = 0;
 			} parameter_list closing_paren {
-				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, $1.ident.operation,(GENERIC_DATA){.string = $1.ident.s}, *_currentFunctionCallParamIndexP);
+				if ($1.ident.operation == C_MACRO_REF_LOCAL) {
+					_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, $1.ident.operation,(GENERIC_DATA){.intValue = $1.ident.heapIndex}, *_currentFunctionCallParamIndexP);
+				} else {
+					_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, $1.ident.operation,(GENERIC_DATA){.string = $1.ident.s}, *_currentFunctionCallParamIndexP);
+					freeitem(&$1.ident.s);
+				}
 				_currentFunctionCallParamIndexP--;
-				freeitem(&$1.ident.s);
 			}
 
 function_id_or_pointer:
 			'*' variable_reference {
-				$$.ident.operation = C_MACRO_REF;
-				$$.ident.s = _strdup($2.ident.s);
-				$$.ident.stringIsAlloced = 1;
+				$$.ident.operation =  $2.ident.isLocalVar ? C_MACRO_REF_LOCAL : C_MACRO_REF;
+				if ($2.ident.isLocalVar) {
+					$$.ident.heapIndex = $2.ident.heapIndex;
+				} else {
+					$$.ident.s = _strdup($2.ident.s);
+					$$.ident.stringIsAlloced = 1;
+				}
 			}
 			|
 			T_IDENT {
@@ -811,14 +838,14 @@ type_cast:	'(' type_name ')'	{
 type_name:   T_TYPE_IDENTIFIER {
 				$$.ident.arraySize = 0;
 			}
-			| T_TYPE_IDENTIFIER array_dimension	{	
+			| T_TYPE_IDENTIFIER array_size	{	
 				$$.ident.type = VT_OBJECT_ARRAY;
 				$$.ident.arraySize = $2.ident.arraySize;
 			}
 
-array_dimension: '[' ']'
+array_size: '[' ']'
 			| '[' T_NUM ']' {
-				$$.ident.arraySize = (long)$2.num;
+				$$.ident.arraySize = (int)$2.num;
 			}
 
 boolean_literal: T_TRUE {
@@ -953,7 +980,6 @@ static void finalize_header() {
 /*---------------------------------*/
 static void init_macroDefinition(void)
 {
-	_foreachCursorIndex = 0;
 	_currentFunctionCallParamIndexP = _currentFunctionCallParamIndices;
 	_nparam = 0;
 	_currentNativeMethodCalled  = 0;

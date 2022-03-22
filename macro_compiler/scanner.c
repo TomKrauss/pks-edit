@@ -1455,6 +1455,8 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					yylval.ident.stringIsAlloced = 0;
 					yylval.ident.s = key;
 					yylval.ident.type = VALUE_TYPE(sym);
+					yylval.ident.heapIndex = sym.s_index;
+					yylval.ident.isLocalVar = t == S_LOCAL_VARIABLE;
 					return T_VARIABLE;
 				}
 
@@ -1465,100 +1467,100 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 536 "scanner.l"
+#line 538 "scanner.l"
 return T_EQ;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 537 "scanner.l"
+#line 539 "scanner.l"
 return T_NE;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 538 "scanner.l"
+#line 540 "scanner.l"
 return T_SHIFT_LEFT;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 539 "scanner.l"
+#line 541 "scanner.l"
 return T_SHIFT_RIGHT;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 540 "scanner.l"
+#line 542 "scanner.l"
 return T_POWER_TO;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 541 "scanner.l"
+#line 543 "scanner.l"
 return T_ASSOC_ARROW;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 542 "scanner.l"
+#line 544 "scanner.l"
 return T_LE;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 543 "scanner.l"
+#line 545 "scanner.l"
 return T_GE;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 544 "scanner.l"
+#line 546 "scanner.l"
 return T_SH_ASSIGN_MULT;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 545 "scanner.l"
+#line 547 "scanner.l"
 return T_SH_ASSIGN_PLUS;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 546 "scanner.l"
+#line 548 "scanner.l"
 return T_SH_ASSIGN_MINUS;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 547 "scanner.l"
+#line 549 "scanner.l"
 return T_SH_ASSIGN_DIV;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 548 "scanner.l"
+#line 550 "scanner.l"
 return T_SH_ASSIGN_MOD;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 549 "scanner.l"
+#line 551 "scanner.l"
 return T_NMATCH;
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 550 "scanner.l"
+#line 552 "scanner.l"
 return T_AND;
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 551 "scanner.l"
+#line 553 "scanner.l"
 return T_OR;
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 552 "scanner.l"
+#line 554 "scanner.l"
 return T_ASSIGN;
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 553 "scanner.l"
+#line 555 "scanner.l"
 return yytext[0];
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 554 "scanner.l"
+#line 556 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 1561 "lex.yy.c"
+#line 1563 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(IN_COMMENT):
 	yyterminate();
@@ -2576,7 +2578,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 554 "scanner.l"
+#line 556 "scanner.l"
 
 
 

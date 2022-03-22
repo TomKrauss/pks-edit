@@ -83,6 +83,8 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 		}
 		s = (int)(spret - sp);
 		pLiteral->totalBytes = s;
+	} else if (typ == C_MACRO_REF_LOCAL) {
+		s = (long)(sizeof(COM_MAC));
 	} else if (typ == C_MACRO || typ == C_MACRO_REF) {
 		if (data.string == 0) {
 			yyerror("Illegal %s without name.", typ == C_MACRO ? "macro call" : "eval call");
@@ -146,6 +148,9 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 		case C_PUSH_VARIABLE:
 			strcpy(((COM_STRING1*)sp)->s, data.string);
 			break;
+		case C_MACRO_REF_LOCAL:
+			((COM_MAC*)sp)->heapIndex = data.intValue;
+			break;
 		case C_MACRO_REF:
 		case C_MACRO:
 			strcpy(((COM_MAC*)sp)->name, data.string);
@@ -190,6 +195,13 @@ unsigned char* bytecode_emitFunctionCall(BYTECODE_BUFFER* pBuffer, unsigned char
  */
 unsigned char* bytecode_emitAssignment(BYTECODE_BUFFER* pBuffer, const char *name) {
 	return bytecode_emitInstruction(pBuffer, C_ASSIGN, (GENERIC_DATA) { .string = (char*)name });
+}
+
+/*--------------------------------------------------------------------------
+ * bytecode_emitLocalAssignment()
+ */
+unsigned char* bytecode_emitLocalAssignment(BYTECODE_BUFFER* pBuffer, int nHeapIndex) {
+	return bytecode_emitInstruction(pBuffer, C_ASSIGN_LOCAL_VAR, (GENERIC_DATA) { .intValue = nHeapIndex });
 }
 
 /*---------------------------------*/
@@ -341,7 +353,7 @@ void bytecode_destroyArraylistWithPointers(ARRAY_LIST* pList) {
  * bytecode_defineVariable()
  * Defines a variable or a parameter depending on nBytecode
  */
-void bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBytecode, PKS_VALUE_TYPE nType, unsigned short nArraySizeOrParamIndex) {
+void bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBytecode, PKS_VALUE_TYPE nType, unsigned short nArraySizeOrParamIndex, int nHeapIndex) {
 	unsigned char *	p1;
 	COM_DEFINE_SYMBOL *	ap;
 
@@ -349,7 +361,7 @@ void bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBy
 	ap->typ = nBytecode;
 	ap->vartype = nType;
 	ap->value = nArraySizeOrParamIndex;
-
+	ap->heapIndex = nHeapIndex;
 	p1 = ap->name;
 	while(*name) {
 		*p1++ = *name++;
@@ -380,10 +392,17 @@ unsigned char* bytecode_emitMultiplyWithLiteralExpression(BYTECODE_BUFFER* pBuff
 	return bytecode_emitBinaryOperation(pBuffer, BIN_MUL, 0);
 }
 
-unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, char* pszName, int nIncrement) {
-	pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_VARIABLE, (GENERIC_DATA) { .string=pszName });
+unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, char* pszName, int nHeapIndex, int bLocalVar, int nIncrement) {
+	if (bLocalVar) {
+		pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_LOCAL_VARIABLE, (GENERIC_DATA) { .intValue = nHeapIndex });
+	} else {
+		pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_VARIABLE, (GENERIC_DATA) { .string = pszName });
+	}
 	pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_INTEGER_LITERAL, (GENERIC_DATA) { .intValue = nIncrement });
 	pBuffer->bb_current = bytecode_emitBinaryOperation(pBuffer, BIN_ADD, VT_NUMBER);
+	if (bLocalVar) {
+		return bytecode_emitLocalAssignment(pBuffer, nHeapIndex);
+	}
 	return bytecode_emitAssignment(pBuffer, pszName);
 }
 

@@ -400,7 +400,7 @@ MACRO *macro_createWithParams(MACRO_PARAM *pParam) {
 	mp->mc_name= _strdup(szName);
 	mp->mc_scope = pParam->mp_scope;
 	mp->mc_namespaceIdx = pParam->mp_namespaceIdx;
-
+	mp->mc_numberOfLocalVars = pParam->mp_numberOfLocalVariables;
 	mp->mc_bytecodeLength = (unsigned int)pParam->mp_bytecodeLength;
 	mp->mc_bytecodes = malloc(mp->mc_bytecodeLength);
 	memmove(mp->mc_bytecodes,pParam->mp_buffer, mp->mc_bytecodeLength);

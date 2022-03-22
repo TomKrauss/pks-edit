@@ -526,6 +526,8 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 					yylval.ident.stringIsAlloced = 0;
 					yylval.ident.s = key;
 					yylval.ident.type = VALUE_TYPE(sym);
+					yylval.ident.heapIndex = sym.s_index;
+					yylval.ident.isLocalVar = t == S_LOCAL_VARIABLE;
 					return T_VARIABLE;
 				}
 

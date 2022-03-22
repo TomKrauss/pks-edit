@@ -1,8 +1,3 @@
-Terminals unused in grammar
-
-    T_LOCAL_VARIABLE
-
-
 State 11 conflicts: 1 shift/reduce, 1 reduce/reduce
 State 49 conflicts: 10 shift/reduce
 State 90 conflicts: 23 shift/reduce
@@ -345,10 +340,10 @@ Grammar
   211 type_cast: '(' type_name ')'
 
   212 type_name: T_TYPE_IDENTIFIER
-  213          | T_TYPE_IDENTIFIER array_dimension
+  213          | T_TYPE_IDENTIFIER array_size
 
-  214 array_dimension: '[' ']'
-  215                | '[' T_NUM ']'
+  214 array_size: '[' ']'
+  215           | '[' T_NUM ']'
 
   216 boolean_literal: T_TRUE
   217                | T_FALSE
@@ -426,344 +421,343 @@ Terminals, with rules where they appear
     T_CONTINUE (290) 160
     T_RETURN (291) 161
     T_VARIABLE (292) 29 128 135
-    T_LOCAL_VARIABLE (293)
-    T_ASSOC_ARROW (294) 143 144
-    T_NMATCH (295) 104
-    T_ASSIGN (296) 23 79
-    T_NE (297) 123
-    T_EQ (298) 122
-    T_SHIFT_LEFT (299) 113
-    T_SHIFT_RIGHT (300) 114
-    T_OR (301) 117
-    T_AND (302) 116
-    T_LE (303) 120
-    T_GE (304) 121
-    T_POWER_TO (305) 115
+    T_ASSOC_ARROW (293) 143 144
+    T_NMATCH (294) 104
+    T_ASSIGN (295) 23 79
+    T_NE (296) 123
+    T_EQ (297) 122
+    T_SHIFT_LEFT (298) 113
+    T_SHIFT_RIGHT (299) 114
+    T_OR (300) 117
+    T_AND (301) 116
+    T_LE (302) 120
+    T_GE (303) 121
+    T_POWER_TO (304) 115
 
 
 Nonterminals, with rules where they appear
 
-    $accept (73)
+    $accept (72)
         on left: 0
-    file_structure (74)
+    file_structure (73)
         on left: 3
         on right: 0
-    $@1 (75)
+    $@1 (74)
         on left: 1
         on right: 3
-    $@2 (76)
+    $@2 (75)
         on left: 2
         on right: 3
-    header_delimiter (77)
+    header_delimiter (76)
         on left: 4 5
         on right: 3
-    macro_definitions (78)
+    macro_definitions (77)
         on left: 6 7
         on right: 3 7
-    namespace (79)
+    namespace (78)
         on left: 8 9
         on right: 3
-    prerequisites (80)
+    prerequisites (79)
         on left: 10 11
         on right: 3 11
-    require (81)
+    require (80)
         on left: 12
         on right: 11
-    global_declarations (82)
+    global_declarations (81)
         on left: 13 14 15
         on right: 3 14 15
-    scope (83)
+    scope (82)
         on left: 16 17
         on right: 33 34 36
-    constants (84)
+    constants (83)
         on left: 18
         on right: 14
-    constant_list (85)
+    constant_list (84)
         on left: 19 20
         on right: 18 20
-    constdef (86)
+    constdef (85)
         on left: 23
         on right: 19 20
-    $@3 (87)
+    $@3 (86)
         on left: 21
         on right: 23
-    $@4 (88)
+    $@4 (87)
         on left: 22
         on right: 23
-    constant_literal (89)
+    constant_literal (88)
         on left: 24 25
         on right: 23
-    variable_identifier (90)
+    variable_identifier (89)
         on left: 26 27 28
         on right: 23 37 38 45 177
-    variable_reference (91)
+    variable_reference (90)
         on left: 29 30
         on right: 67 72 73 89 90 125 203
-    macro_declaration (92)
+    macro_declaration (91)
         on left: 31 32
         on right: 35
-    macro_type (93)
+    macro_type (92)
         on left: 33 34
         on right: 35
-    macrostart (94)
+    macrostart (93)
         on left: 35
         on right: 47
-    global_var (95)
+    global_var (94)
         on left: 36
         on right: 15
-    var_decl (96)
+    var_decl (95)
         on left: 37 38
         on right: 36 50 65
-    optional_description (97)
+    optional_description (96)
         on left: 39 40
         on right: 35
-    parameter_list (98)
+    parameter_list (97)
         on left: 41 42 206
         on right: 35 200 202
-    non_empty_pardecl (99)
+    non_empty_pardecl (98)
         on left: 43 44
         on right: 42 44
-    par_decl (100)
+    par_decl (99)
         on left: 45
         on right: 43 44
-    macro_definition (101)
+    macro_definition (100)
         on left: 47
         on right: 7
-    $@5 (102)
+    $@5 (101)
         on left: 46
         on right: 47
-    block (103)
+    block (102)
         on left: 48
         on right: 47 62
-    var_decls (104)
+    var_decls (103)
         on left: 49 50
         on right: 48 50
-    statement (105)
+    statement (104)
         on left: 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66
         on right: 186 197
-    assignment (106)
+    assignment (105)
         on left: 67 69 70 72
         on right: 53
-    $@6 (107)
+    $@6 (106)
         on left: 68
         on right: 69
-    $@7 (108)
+    $@7 (107)
         on left: 71
         on right: 72
-    assignment_target (109)
+    assignment_target (108)
         on left: 73
         on right: 69 70
-    shorthand_assignment_operator (110)
+    shorthand_assignment_operator (109)
         on left: 74 75 76 77 78
         on right: 72
-    assignment_expression (111)
+    assignment_expression (110)
         on left: 79
         on right: 37 67 69 70 125
-    simple_expression (112)
+    simple_expression (111)
         on left: 80 81
         on right: 72 79 177 210
-    binary_expression_or_range (113)
+    binary_expression_or_range (112)
         on left: 82 83
         on right: 98
-    range_expression (114)
+    range_expression (113)
         on left: 84 86
         on right: 81 83
-    $@8 (115)
+    $@8 (114)
         on left: 85
         on right: 86
-    range_increment (116)
+    range_increment (115)
         on left: 87 88
         on right: 86
-    increment_expression (117)
+    increment_expression (116)
         on left: 89 90
         on right: 63
-    s_bterm (118)
+    s_bterm (117)
         on left: 91 92 93
         on right: 95 96
-    constructor_expression (119)
+    constructor_expression (118)
         on left: 94
         on right: 93
-    binary_expression (120)
+    binary_expression (119)
         on left: 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125
         on right: 70 80 82 86 88 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 126 127 163
-    condition (121)
+    condition (120)
         on left: 126 127
         on right: 185 191
-    value (122)
+    value (121)
         on left: 128 129 130 131 132 133 134
         on right: 91 179
-    struct_reference (123)
+    struct_reference (122)
         on left: 135 136
         on right: 129 136
-    map_literal (124)
+    map_literal (123)
         on left: 138
         on right: 132
-    $@9 (125)
+    $@9 (124)
         on left: 137
         on right: 138
-    optional_map_associates (126)
+    optional_map_associates (125)
         on left: 139 140
         on right: 138
-    map_associates (127)
+    map_associates (126)
         on left: 141 142
         on right: 140 142
-    map_associate (128)
+    map_associate (127)
         on left: 143 144
         on right: 141 142
-    array_literal (129)
+    array_literal (128)
         on left: 146 148
         on right: 133
-    $@10 (130)
+    $@10 (129)
         on left: 145
         on right: 146
-    $@11 (131)
+    $@11 (130)
         on left: 147
         on right: 148
-    array_elements (132)
+    array_elements (131)
         on left: 149 150
         on right: 148 149
-    array_element (133)
+    array_element (132)
         on left: 151 152
         on right: 149 150
-    simple_array_element (134)
+    simple_array_element (133)
         on left: 153 154 155 156
         on right: 151
-    string (135)
+    string (134)
         on left: 157 158
         on right: 130 158
-    break (136)
+    break (135)
         on left: 159
         on right: 58
-    continue (137)
+    continue (136)
         on left: 160
         on right: 59
-    return_expression (138)
+    return_expression (137)
         on left: 161
         on right: 60
-    optional_bterm (139)
+    optional_bterm (138)
         on left: 162 163
         on right: 161
-    opt_num (140)
+    opt_num (139)
         on left: 164 165
         on right: 159 160
-    case_clauses (141)
+    case_clauses (140)
         on left: 166 167
         on right: 167 179
-    case_clause (142)
+    case_clause (141)
         on left: 168
         on right: 167
-    case_selector (143)
+    case_selector (142)
         on left: 169 170
         on right: 168
-    case_condition (144)
+    case_condition (143)
         on left: 171 172 173
         on right: 169
-    label (145)
+    label (144)
         on left: 174
         on right: 64
-    goto (146)
+    goto (145)
         on left: 175
         on right: 61
-    in_clause (147)
+    in_clause (146)
         on left: 177
         on right: 182
-    $@12 (148)
+    $@12 (147)
         on left: 176
         on right: 177
-    switch_expression (149)
+    switch_expression (148)
         on left: 179
         on right: 57
-    $@13 (150)
+    $@13 (149)
         on left: 178
         on right: 179
-    foreach (151)
+    foreach (150)
         on left: 182
         on right: 56
-    $@14 (152)
+    $@14 (151)
         on left: 180
         on right: 182
-    $@15 (153)
+    $@15 (152)
         on left: 181
         on right: 182
-    while (154)
+    while (153)
         on left: 185
         on right: 55
-    $@16 (155)
+    $@16 (154)
         on left: 183
         on right: 185
-    $@17 (156)
+    $@17 (155)
         on left: 184
         on right: 185
-    local_block (157)
+    local_block (156)
         on left: 186 187
         on right: 182 185 191 194
-    closing_brace (158)
+    closing_brace (157)
         on left: 188
         on right: 48 138 187
-    if_expression (159)
+    if_expression (158)
         on left: 191
         on right: 54
-    $@18 (160)
+    $@18 (159)
         on left: 189
         on right: 191
-    $@19 (161)
+    $@19 (160)
         on left: 190
         on right: 191
-    else_clause (162)
+    else_clause (161)
         on left: 192 194
         on right: 191
-    $@20 (163)
+    $@20 (162)
         on left: 193
         on right: 194
-    stmntlist (164)
+    stmntlist (163)
         on left: 195 197
         on right: 48 168 187 197
-    $@21 (165)
+    $@21 (164)
         on left: 196
         on right: 197
-    closing_paren (166)
+    closing_paren (165)
         on left: 198
         on right: 200 202
-    call_expression (167)
+    call_expression (166)
         on left: 200 202
         on right: 52 92
-    @22 (168)
+    @22 (167)
         on left: 199
         on right: 200
-    @23 (169)
+    @23 (168)
         on left: 201
         on right: 202
-    function_id_or_pointer (170)
+    function_id_or_pointer (169)
         on left: 203 204 205
         on right: 202
-    nonempty_parameters (171)
+    nonempty_parameters (170)
         on left: 207 208 209
         on right: 206 208
-    parameter (172)
+    parameter (171)
         on left: 210
         on right: 207 208
-    type_cast (173)
+    type_cast (172)
         on left: 211
         on right: 96
-    type_name (174)
+    type_name (173)
         on left: 212 213
         on right: 34 37 38 45 177 211
-    array_dimension (175)
+    array_size (174)
         on left: 214 215
         on right: 213
-    boolean_literal (176)
+    boolean_literal (175)
         on left: 216 217
         on right: 224
-    float_literal (177)
+    float_literal (176)
         on left: 218
         on right: 222
-    integer_literal (178)
+    integer_literal (177)
         on left: 219
         on right: 221
-    character_literal (179)
+    character_literal (178)
         on left: 220
         on right: 223
-    simple_literal (180)
+    simple_literal (179)
         on left: 221 222 223 224
         on right: 24 131 143
 
@@ -997,13 +991,13 @@ State 24
 State 25
 
   212 type_name: T_TYPE_IDENTIFIER .
-  213          | T_TYPE_IDENTIFIER . array_dimension
+  213          | T_TYPE_IDENTIFIER . array_size
 
     '['  shift, and go to state 38
 
     $default  reduce using rule 212 (type_name)
 
-    array_dimension  go to state 39
+    array_size  go to state 39
 
 
 State 26
@@ -1111,8 +1105,8 @@ State 37
 
 State 38
 
-  214 array_dimension: '[' . ']'
-  215                | '[' . T_NUM ']'
+  214 array_size: '[' . ']'
+  215           | '[' . T_NUM ']'
 
     T_NUM  shift, and go to state 47
     ']'    shift, and go to state 48
@@ -1120,7 +1114,7 @@ State 38
 
 State 39
 
-  213 type_name: T_TYPE_IDENTIFIER array_dimension .
+  213 type_name: T_TYPE_IDENTIFIER array_size .
 
     $default  reduce using rule 213 (type_name)
 
@@ -1202,16 +1196,16 @@ State 46
 
 State 47
 
-  215 array_dimension: '[' T_NUM . ']'
+  215 array_size: '[' T_NUM . ']'
 
     ']'  shift, and go to state 70
 
 
 State 48
 
-  214 array_dimension: '[' ']' .
+  214 array_size: '[' ']' .
 
-    $default  reduce using rule 214 (array_dimension)
+    $default  reduce using rule 214 (array_size)
 
 
 State 49
@@ -1451,9 +1445,9 @@ State 69
 
 State 70
 
-  215 array_dimension: '[' T_NUM ']' .
+  215 array_size: '[' T_NUM ']' .
 
-    $default  reduce using rule 215 (array_dimension)
+    $default  reduce using rule 215 (array_size)
 
 
 State 71

@@ -142,14 +142,13 @@ static void memory_markObjects(EXECUTION_CONTEXT* pContext) {
 	}
 	EXECUTION_CONTEXT* pCtx = pContext;
 	while (pCtx) {
-		PKS_VALUE* pLocalVars = pContext->ec_localVariables;
 		for (int i = 0; i < pCtx->ec_localVariableCount; i++) {
-			if (pLocalVars->pkv_managed) {
-				memory_markObject(pLocalVars->pkv_data.objectPointer);
+			PKS_VALUE* pVar = &pCtx->ec_localVariables[i];
+			if (pVar->pkv_isPointer) {
+				pVar->pkv_managed = 1;
+				memory_markObject(pVar->pkv_data.objectPointer);
 			}
-			pLocalVars++;
 		}
-		sym_traverseManagedObjects(pCtx->ec_identifierContext, memory_markObject);
 		pCtx = pCtx->ec_parent;
 	}
 	sym_traverseManagedObjects(sym_getGlobalContext(), memory_markObject);

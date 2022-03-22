@@ -224,3 +224,16 @@ int types_indexForProperty(PKS_VALUE_TYPE t, const char* pszPropertyName, PKS_VA
 	}
 	return -1;
 }
+
+/*
+ * Returns the name of a property of a structured object given the type index and the property index.
+ */
+const char* types_getPropertyName(PKS_VALUE_TYPE t, int aPropertyIndex) {
+	if (t >= 0 && t < _maxTypeIndex) {
+		PKS_TYPE_DESCRIPTOR* pDescriptor = _typeDescriptors[t];
+		if (pDescriptor != 0 && pDescriptor->ptd_properties != 0 && pDescriptor->ptd_numberOfProperties > aPropertyIndex) {
+			return pDescriptor->ptd_properties[aPropertyIndex].tpd_name;
+		}
+	}
+	return 0;
+}

@@ -129,7 +129,6 @@ struct tagEXECUTION_CONTEXT {
 	int ec_localVariableCount;			// Number of local variables stored in the localVariables context.
 	const char* ec_currentFunction;		// name of the current function/macro being executed.
 	void* ec_instructionPointer;		// The current instruction pointer for debugging
-	IDENTIFIER_CONTEXT* ec_identifierContext;
 };
 
 typedef struct tagEXECUTION_CONTEXT EXECUTION_CONTEXT;
@@ -145,6 +144,15 @@ typedef long long TYPED_OBJECT_POINTER;
 #define MAKE_TYPED_OBJECT_POINTER(bIsPointer, sType, pPointer)	(((long long)bIsPointer<<62) | ((long long)sType << 56) | (((uintptr_t)pPointer) & POINTER_MASK))
 
 extern void decompile_printValue(char* pszBuf, PKS_VALUE v);
+
+/*
+ * Extract the type info from a macro into the passed array of descriptors up to nMaxVars.
+ * The infos are inserted according to the position in the heap, where they are maintained.
+ * Return the maximum index of variables extracted.
+ */
+#if defined(_EDFUNCS_H)
+extern int decompile_getLocalVariableInfo(MACRO* mp, TYPE_PROPERTY_DESCRIPTOR* pDescriptors, int nMaxVars);
+#endif
 
 /*
  * Return the finalizer for a given value type or 0 if not finalizer exists.
@@ -165,6 +173,11 @@ extern BOOL types_hasDefaultValue(PKS_VALUE_TYPE vType);
  * Returns the name of a given PKSMacroC value type.
  */
 extern const char* types_nameFor(PKS_VALUE_TYPE t);
+
+/*
+ * Returns the name of a property of a structured object given the type index and the property index.
+ */
+extern const char* types_getPropertyName(PKS_VALUE_TYPE t, int aPropertyIndex);
 
 /*
  * Returns a pks-value-type for a given type name.
@@ -207,15 +220,16 @@ typedef enum {
 	C_1FUNC = 0x2,  			// Function # (char) + 1 int Param 
 	C_MACRO = 0x3,  			// macro "macroname"
 	C_MACRO_REF = 0x4,  		// variable reference to a macro to invoke / function pointer
+	C_MACRO_REF_LOCAL = 0x5,  	// local variable reference to a macro to invoke / function pointer
 
-	C_GOTO = 0x5,  				// (conditionally) goto offset
+	C_GOTO = 0x6,  				// (conditionally) goto offset
 
 								// Operations
-	C_LOGICAL_OPERATION = 0x6,	// Test: binary logical operation between stack[0] and stack[1]
-	C_BINOP = 0x7,  			// binary operation between stack[0] and stack[1]
-	C_ASSIGN = 0x8,  			// assign: a = stackval
-	C_ASSIGN_LOCAL_VAR = 0x9,  	// assign: localVars[i] = stackval
-	C_ASSIGN_SLOT = 0xA,  		// assign: a.x = stackval or a[x] = stackval
+	C_LOGICAL_OPERATION = 0x7,	// Test: binary logical operation between stack[0] and stack[1]
+	C_BINOP = 0x8,  			// binary operation between stack[0] and stack[1]
+	C_ASSIGN = 0x9,  			// assign: a = stackval
+	C_ASSIGN_LOCAL_VAR = 0xA,  	// assign: localVars[i] = stackval
+	C_ASSIGN_SLOT = 0xB,  		// assign: a.x = stackval or a[x] = stackval
 
 	// Push objects onto the stack
 	C_PUSH_CHARACTER_LITERAL = 0x10,		// Push character literal. 1 Ascii character follows 
@@ -246,7 +260,7 @@ typedef enum {
 
 
 #define	C_IS1PAR(typ)			 (typ & 0x10)
-#define	C_ISCMD(typ)			 (typ >= C_0FUNC && typ <= C_MACRO_REF)
+#define	C_ISCMD(typ)			 (typ >= C_0FUNC && typ <= C_MACRO_REF_LOCAL)
 #define C_IS_PUSH_OPCODE(opCode) (opCode >= C_PUSH_CHARACTER_LITERAL && opCode <= C_PUSH_NEW_INSTANCE)
 
 #define	C_NONE			0xFF
@@ -282,7 +296,7 @@ typedef struct tagCOM_0FUNC {
 
 typedef struct tagCOM_MAC {
 	unsigned char typ;				// C_MACRO, C_MACRO_REF
-	unsigned char reserved;
+	unsigned char heapIndex;		// for C_MACRO_REF, if referring to local variable
 	int			  func_args;		// Number of arguments actually passed.
 	unsigned char name[1];			// 0-term. string padded to even # 
 } COM_MAC;

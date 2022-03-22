@@ -34,6 +34,9 @@ void bytecode_initializeAutoLabels(void);
 void bytecode_startNextAutoLabel(char **name, COM_GOTO **cp);
 char *bytecode_findAutoLabelForInstruction(COM_GOTO *cp);
 
+static TYPE_PROPERTY_DESCRIPTOR _propertyDescriptors[32];
+static int _numberOfLocalVars;
+
 typedef struct tagDECOMPILE_OPTIONS {
 	MACRO*			do_macro;								// The macro to decompile
 	const char*		do_instructionPointer;					// the current instruction pointer - if != 0, the decompiler tries to find the line in the 
@@ -168,6 +171,35 @@ static void decompile_printParameterAsConstant(char* pTargetString, long long va
 	}
 }
 
+/*
+ * Extract the type info from a macro into the passed array of descriptors up to nMaxVars.
+ * The infos are inserted according to the position in the heap, where they are maintained.
+ */
+int decompile_getLocalVariableInfo(MACRO* mp, TYPE_PROPERTY_DESCRIPTOR* pDescriptors, int nMaxVars) {
+	int nVarIdx = 0;
+	char* pInstr = mp->mc_bytecodes;
+	char* pInstrEnd = mp->mc_bytecodes+mp->mc_bytecodeLength;
+	int nMax = 0;
+	while (pInstr < pInstrEnd) {
+		if (*pInstr == C_DEFINE_LOCAL_VARIABLE || *pInstr == C_DEFINE_PARAMETER) {
+			COM_DEFINE_SYMBOL* pSymbol = (COM_DEFINE_SYMBOL * )pInstr;
+			int nIdx = pSymbol->heapIndex;
+			if (nIdx < nMaxVars) {
+				pDescriptors[nIdx].tpd_type = pSymbol->vartype;
+				pDescriptors[nIdx].tpd_name = pSymbol->name;
+				if (nIdx > nMax) {
+					nMax = nIdx;
+				}
+			}
+		}
+		pInstr += interpreter_getParameterSize(*pInstr, pInstr + 1);
+	}
+	return nMax;
+}
+
+/*
+ * Print a value for the purpose of debugging or decompilation into the destination buffer.
+ */
 void decompile_printValue(char* pszBuf, PKS_VALUE v) {
 	if (v.pkv_type == VT_BOOLEAN) {
 		sprintf(pszBuf, "%s", v.pkv_data.booleanValue ? "true" : "false");
@@ -185,6 +217,21 @@ void decompile_printValue(char* pszBuf, PKS_VALUE v) {
 }
 
 /*
+ *  Get the name of the local var as defined by the instruction.
+ */
+static char* decompile_getLocalVarname(int nHeapIndex) {
+	if (nHeapIndex < _numberOfLocalVars) {
+		char* pszName = (char*)_propertyDescriptors[nHeapIndex].tpd_name;
+		if (pszName) {
+			return pszName;
+		}
+	}
+	static char szBuf[32];
+	sprintf(szBuf, "lvar%d", nHeapIndex);
+	return szBuf;
+}
+
+/*
  * decompile_printParameter()
  */
 static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_TYPE_DESCRIPTOR partyp) {
@@ -199,8 +246,10 @@ static int decompile_printParameter(char* pszBuf, unsigned char *sp, PARAMETER_T
 		case C_1FUNC:
 			val = ((COM_1FUNC *)sp)->p;
 			break;
-		case C_ASSIGN_LOCAL_VAR:
 		case C_PUSH_LOCAL_VARIABLE:
+			strcpy(pszBuf, decompile_getLocalVarname(((COM_CHAR1*)sp)->val));
+			return 1;
+		case C_ASSIGN_LOCAL_VAR:
 		case C_PUSH_SMALL_INT_LITERAL:
 		case C_PUSH_CHARACTER_LITERAL:
 			val = ((COM_CHAR1 *)sp)->val;
@@ -318,11 +367,15 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 	char szFunctionCall[512];
 	char szParam[128];
 
-	if (sp->typ == C_MACRO || sp->typ == C_MACRO_REF) {
+	if (sp->typ == C_MACRO || sp->typ == C_MACRO_REF || sp->typ == C_MACRO_REF_LOCAL) {
 		char* pszFunction = ((COM_MAC*)sp)->name;
 		char szFunctionPrinted[128];
 		if (sp->typ == C_MACRO_REF) {
 			sprintf(szFunctionPrinted, "*%s", pszFunction);
+			pszFunction = szFunctionPrinted;
+		}
+		else if (sp->typ == C_MACRO_REF_LOCAL) {
+			sprintf(szFunctionPrinted, "*%s", decompile_getLocalVarname(((COM_MAC*)sp)->heapIndex));
 			pszFunction = szFunctionPrinted;
 		}
 		strcpy(szFunctionCall, pszFunction);
@@ -578,6 +631,7 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 		case C_ASSIGN: decompile_print(pBuf, "assignVariable %s", ((COM_ASSIGN*)sp)->name); break;
 		case C_ASSIGN_SLOT: decompile_print(pBuf, "assignSlot"); break;
 		case C_MACRO:decompile_print(pBuf, "call %s", ((COM_MAC*)sp)->name); break;
+		case C_MACRO_REF_LOCAL:decompile_print(pBuf, "evalLocalVar %d", ((COM_MAC*)sp)->heapIndex); break;
 		case C_MACRO_REF:decompile_print(pBuf, "eval %s", ((COM_MAC*)sp)->name); break;
 		case C_0FUNC: decompile_print(pBuf, "nativeCall0 %d (%s) (%d params)", ((COM_0FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_0FUNC*)sp)->func_nargs); break;
 		case C_1FUNC: decompile_print(pBuf, "nativeCall1 %d (%s) (%d params) %d", ((COM_1FUNC*)sp)->funcnum, 
@@ -596,6 +650,7 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 		case C_PUSH_CHARACTER_LITERAL: decompile_print(pBuf, "pushCharLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_STRING_LITERAL: decompile_print(pBuf, "pushStringLiteral %s", ((COM_STRING1*)sp)->s); break;
 		case C_DEFINE_VARIABLE: decompile_print(pBuf, "defineVariable %s", ((COM_DEFINE_SYMBOL*)sp)->name); break;
+		case C_DEFINE_LOCAL_VARIABLE: decompile_print(pBuf, "defineLocalVariable %s -> %d", ((COM_DEFINE_SYMBOL*)sp)->name, ((COM_DEFINE_SYMBOL*)sp)->heapIndex); break;
 		case C_DEFINE_PARAMETER: decompile_print(pBuf, "defineParameter %s", ((COM_DEFINE_SYMBOL*)sp)->name); break;
 		case C_FORM_START: decompile_print(pBuf, "beginFormParameters"); break;
 		case C_SET_STACKFRAME: decompile_print(pBuf, "setStackFrame"); break;
@@ -774,7 +829,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 	CONTROL_FLOW_MARK_INDEX* pFlowMarks;
 	int     nMarks;
 	MACRO* mp = pOptions->do_macro;
-	DECOMPILATION_STACK_ELEMENT  pStack[80];
+	DECOMPILATION_STACK_ELEMENT  pStack[64];
 	DECOMPILATION_STACK_ELEMENT* pStackCurrent = pStack;
 	DECOMPILATION_STACK_ELEMENT* pStackEnd = pStack + DIM(pStack);
 
@@ -786,6 +841,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 	data = MAC_DATA(mp);
 	sp = data;
 	spend = sp + mp->mc_bytecodeLength;
+	_numberOfLocalVars = decompile_getLocalVariableInfo(mp, _propertyDescriptors, DIM(_propertyDescriptors));
 
 	pFlowMarks = decompile_analyseControlFlowMarks(sp, spend, &nMarks);
 
@@ -889,8 +945,8 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 		else if (opCode == C_BINOP) {
 			pStackCurrent = decompile_printBinaryExpression((COM_BINOP*)sp, pStackCurrent, pStack);
 		}
-		else if (opCode == C_DEFINE_VARIABLE) {
-			const char* pszType = types_nameFor(((COM_DEFINE_SYMBOL*)sp)->symtype);
+		else if (opCode == C_DEFINE_VARIABLE || opCode == C_DEFINE_LOCAL_VARIABLE) {
+			const char* pszType = types_nameFor(((COM_DEFINE_SYMBOL*)sp)->vartype);
 			decompile_indent(pBuf, nIndent);
 			decompile_print(pBuf, "%s %s;\n", pszType, ((COM_DEFINE_SYMBOL*)sp)->name);
 		}
@@ -900,9 +956,26 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 			pStackCurrent = decompile_flushStack(pBuf, pStackCurrent, pStack);
 			decompile_print(pBuf, ";\n");
 		}
+		else if (opCode == C_ASSIGN_LOCAL_VAR) {
+			decompile_indent(pBuf, nIndent);
+			decompile_print(pBuf, "%s = ", decompile_getLocalVarname(((COM_CHAR1*)sp)->val));
+			pStackCurrent = decompile_flushStack(pBuf, pStackCurrent, pStack);
+			decompile_print(pBuf, ";\n");
+		}
 		else if (opCode == C_ASSIGN_SLOT) {
 			decompile_indent(pBuf, nIndent);
-			decompile_print(pBuf, "%s[%s] = ", pStackCurrent[-3].dse_printed, pStackCurrent[-2].dse_printed);
+			const char* pszProp = 0;
+			if ((pStackCurrent[-3].dse_instruction)->typ == C_PUSH_LOCAL_VARIABLE && (pStackCurrent[-2].dse_instruction)->typ == C_PUSH_SMALL_INT_LITERAL) {
+				PKS_VALUE_TYPE t = _propertyDescriptors[((COM_CHAR1*)pStackCurrent[-3].dse_instruction)->val].tpd_type;
+				if (types_isStructuredType(t)) {
+					pszProp = types_getPropertyName(t, ((COM_CHAR1*)pStackCurrent[-2].dse_instruction)->val);
+				}
+			}
+			if (pszProp) {
+				decompile_print(pBuf, "%s.%s = ", pStackCurrent[-3].dse_printed, pszProp);
+			} else {
+				decompile_print(pBuf, "%s[%s] = ", pStackCurrent[-3].dse_printed, pStackCurrent[-2].dse_printed);
+			}
 			pStackCurrent = decompile_flushStack(pBuf, pStackCurrent, pStack);
 			decompile_print(pBuf, ";\n");
 		}

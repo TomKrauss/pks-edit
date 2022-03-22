@@ -36,9 +36,11 @@ typedef union yytype {
 		int type;					// PKS Value type. Hack: that this must be the first struct element, as it is somewhat confused with v.type (see below)
 		MACRO_SCOPE scope;
 		char  operation;			// the current operation constructed (if applicable)
+		char  stringIsAlloced : 1;	// whether the string was alloced
+		char  isLocalVar : 1;		// used to differentiate between local and global vars
+		unsigned short heapIndex;	// for local variables - the index into the local var heap.
+		int  arraySize;				// for array type variables the size of the array
 		char* s;					// the actual string of the identifier
-		int	stringIsAlloced;		// whether the string was alloced
-		int arraySize;				// for array type variables the size of the array
 	} ident;
 	TYPEDVAL		v;
 	void			*funcp;
