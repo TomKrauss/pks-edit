@@ -161,7 +161,7 @@ void types_registerDefaultTypes() {
  * Returns the name of a given PKSMacroC value type.
  */
 const char* types_nameFor(PKS_VALUE_TYPE t) {
-	if (t == VT_ARRAY) {
+	if (t == VT_OBJECT_ARRAY) {
 		return "string[]";
 	}
 	PKS_TYPE_DESCRIPTOR* pDescriptor = t>=0 && t < MAX_TYPES ? _typeDescriptors[t] : 0;

@@ -100,7 +100,7 @@ extern PARAMETER_ENUM_VALUE	_parameterEnumValueTable[];
 #define 	FUNC_EdKeycodeInsert			16
 #define 	FUNC_EdCharInsert				17
 #define 	FUNC_EdOptionToggle				78
-#define 	FUNC_Foreach					138
+#define 	FUNC_Foreach					139
 
 #define CMD_OPEN_FILE	0 
 #define CMD_OPEN_NEW_FILE	1 

@@ -572,7 +572,11 @@ struct_reference: T_VARIABLE '.' T_IDENT {
 
 map_literal: '{' {
 				_currentArrayLiteral = arraylist_create(1);
-			} optional_map_associates closing_brace
+				// Hack - avoid push instruction being generated for map literal elements.
+				_bDefiningConst = 1;
+			} optional_map_associates closing_brace {
+				_bDefiningConst = 0;
+			}
 
 optional_map_associates:
 			|

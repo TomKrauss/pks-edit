@@ -146,6 +146,15 @@ static void quickSort(auto[] array, int low, int high) {
   }
 }
 
+static void Test-ForEach() {
+	string[] coll = ["a", "b"];
+	string res = "";
+	for (string s : coll) {
+		res += s;
+	}
+	AssertEquals(2, size(res));
+}
+
 /*
  * Halfway through implementation of a word count for our manual files.
  * Will count the occurrences of all words used in the manual files.
