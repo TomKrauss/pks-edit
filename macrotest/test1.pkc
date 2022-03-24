@@ -240,6 +240,29 @@ static void Test-ForLoop() {
 }
 
 /*
+ * Checks, whether we are breaking any limits, when having huge literals and the like.
+ * Should also be used to test de-compilation.
+ */
+static void Test-Overflows() {
+	string[] longArray = [
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzsdjhfskhfsjdfhksfhfasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiuasdaiusdzasuidzasiudzsdjhfskhfsjdfhksfhfasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiasdaiusdzasuidzasiudzsdjhfskhfsjdfhksfhfasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaid",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
+		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud"
+	];
+}
+
+/*
  * Tests various operations on arrays.
  */
 static void Test-Arrays() {
