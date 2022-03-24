@@ -41,8 +41,6 @@
 %left	'*' '/' '%' T_POWER_TO
 %left	'[' T_DOTDOT
 
-/* %right	T_NOTGLITCH */
-
 %{
 
 #include <windows.h>
@@ -62,10 +60,11 @@
 
 # define 	YYSTYPE _YYSTYPE
 
-# define 	MAXEXPR			12
+# define 	MAX_BREAK_LEVEL	6
 # define	REC_SPACE		32000
 
-static BYTECODE_BUFFER  _bytecodeBuffer;
+static BYTECODE_BUFFER  _buffers[MAX_BREAK_LEVEL];
+static BYTECODE_BUFFER* _currentBytecodeBuffer;
 static void		*_currentNativeMethodCalled;
 static int		_nparam,
 				_breaklevel,
@@ -128,7 +127,7 @@ extern void bytecode_destroyArraylistWithPointers(ARRAY_LIST* pList);
  */
 extern unsigned char* bytecode_emitMultiplyWithLiteralExpression(BYTECODE_BUFFER* pBuffer, TYPEDVAL* v1, int nNumber);
 
-#define		YY_EMIT(opCode, param)		_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer, opCode, param);
+#define		YY_EMIT(opCode, param)		_currentBytecodeBuffer->bb_current = bytecode_emitInstruction(_currentBytecodeBuffer, opCode, param);
 
 extern int yylex(void );
 void 		bytecode_defineVariable(BYTECODE_BUFFER* pBuffer, const char *name, int nBytecode, int typ, unsigned short arraySizeOrParamIndex, int nHeapIndex);
@@ -144,17 +143,42 @@ static int			_localVariableIndex;
 
 IDENTIFIER_CONTEXT* _currentIdentifierContext;
 
+static void parser_switchToBuffer(int aLevel) {
+	if (aLevel >= DIM(_buffers)) {
+		yyerror("Nesting level of pushbacks exceeded. (maybe to many nested loops)");
+		return;
+	}
+	_currentBytecodeBuffer = &_buffers[aLevel];
+	if (!_currentBytecodeBuffer->bb_start) {
+		_currentBytecodeBuffer->bb_end = ((_currentBytecodeBuffer->bb_start = malloc(REC_SPACE)) == 0) ? 
+			_currentBytecodeBuffer->bb_start : _currentBytecodeBuffer->bb_start + REC_SPACE;
+		_currentBytecodeBuffer->bb_current = _currentBytecodeBuffer->bb_start;
+	}
+}
+
+static void parser_flushBuffer(int aLevel) {
+	if (aLevel <= 0 ||aLevel >= DIM(_buffers) || !_buffers[aLevel].bb_start) {
+		return;
+	}
+	size_t nBytes = _buffers[aLevel].bb_current - _buffers[aLevel].bb_start;
+	if (nBytes != 0) {
+		memcpy(_buffers[0].bb_current, _buffers[aLevel].bb_start, nBytes);
+		_buffers[0].bb_current += nBytes;
+		_buffers[aLevel].bb_current = _buffers[aLevel].bb_start;
+	}
+}
+
 static void parser_emitAssignment(struct tagPARSE_IDENTIFIER* pIdent) {
 	if (pIdent->isLocalVar) {
-		_bytecodeBuffer.bb_current = bytecode_emitLocalAssignment(&_bytecodeBuffer, pIdent->heapIndex);
+		_currentBytecodeBuffer->bb_current = bytecode_emitLocalAssignment(_currentBytecodeBuffer, pIdent->heapIndex);
 	} else {
-		_bytecodeBuffer.bb_current = bytecode_emitAssignment(&_bytecodeBuffer, pIdent->s);
+		_currentBytecodeBuffer->bb_current = bytecode_emitAssignment(_currentBytecodeBuffer, pIdent->s);
 	}
 }
 
 static void parser_emitPushVariable(struct tagPARSE_IDENTIFIER* pIdent) {
 	if (pIdent->isLocalVar) {
-		_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer, C_PUSH_LOCAL_VARIABLE, (GENERIC_DATA){.intValue=pIdent->heapIndex});
+		_currentBytecodeBuffer->bb_current = bytecode_emitInstruction(_currentBytecodeBuffer, C_PUSH_LOCAL_VARIABLE, (GENERIC_DATA){.intValue=pIdent->heapIndex});
 	} else {
 		YY_EMIT(C_PUSH_VARIABLE, (GENERIC_DATA){.string=pIdent->s});
 	}
@@ -165,9 +189,9 @@ static void parser_defineVariable(const char* pszName, SYMBOL_TYPE sType, intptr
 		yyerror("Illegal negative array size %d", arraySize);
 	}
 	if (_bInHeader) {
-		bytecode_defineVariable(&_bytecodeBuffer, pszName, C_DEFINE_VARIABLE, sType, arraySize, 0);
+		bytecode_defineVariable(_currentBytecodeBuffer, pszName, C_DEFINE_VARIABLE, sType, arraySize, 0);
 	} else {
-		bytecode_defineVariable(&_bytecodeBuffer, pszName, C_DEFINE_LOCAL_VARIABLE, sType, arraySize, _localVariableIndex);
+		bytecode_defineVariable(_currentBytecodeBuffer, pszName, C_DEFINE_LOCAL_VARIABLE, sType, arraySize, _localVariableIndex);
 	}
 	IDENTIFIER_CONTEXT* pContext = sym_getContext(_currentIdentifierContext, (char*)pszName);
 	if (pContext && pContext != sym_getGlobalCompilerContext()) {
@@ -292,8 +316,8 @@ variable_identifier:
 			}
 
 variable_reference:	
-			T_VARIABLE	 		{	$$.ident = $1.ident; }
-			| T_IDENT			{   
+			T_VARIABLE	{	$$.ident = $1.ident; }
+			| T_IDENT	{   
 				yyerror("Using undeclared variable %s", $1.ident.s);
 				// auto-correct by introducing variable
 				sym_createSymbol(_currentIdentifierContext, $1.ident.s, _bInHeader ? S_VARIABLE : S_LOCAL_VARIABLE, VT_NUMBER, (GENERIC_DATA) {0}, 0);
@@ -361,14 +385,14 @@ non_empty_pardecl:
 
 par_decl:	type_name variable_identifier {
 				sym_createSymbol(_currentIdentifierContext, $2.ident.s, S_LOCAL_VARIABLE, VT_NUMBER, (GENERIC_DATA) {_nparam}, _localVariableIndex);
-				bytecode_defineVariable(&_bytecodeBuffer, $2.ident.s,C_DEFINE_PARAMETER,$1.ident.type,_nparam, _localVariableIndex++);
+				bytecode_defineVariable(_currentBytecodeBuffer, $2.ident.s,C_DEFINE_PARAMETER,$1.ident.type,_nparam, _localVariableIndex++);
 				free($2.ident.s);
 				_nparam++;
 			}
 
 macro_definition: { init_macroDefinition(); } 
 				macrostart block {
-				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, lreturnid,0);
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lreturnid,0);
 				bytecode_destroyAutoLabelNamePrefix(lreturnid,0);
 				macro_validateMacroName($2.ident.s, -1, 1);
 				YY_EMIT(C_STOP, (GENERIC_DATA){1});
@@ -377,8 +401,8 @@ macro_definition: { init_macroDefinition(); }
 					.mp_name = $2.ident.s,
 					.mp_comment = _yyCurrentComment,
 					.mp_numberOfLocalVariables = _localVariableIndex,
-					.mp_bytecodeLength = _bytecodeBuffer.bb_current - _bytecodeBuffer.bb_start,
-					.mp_buffer = _bytecodeBuffer.bb_start,
+					.mp_bytecodeLength = _currentBytecodeBuffer->bb_current - _currentBytecodeBuffer->bb_start,
+					.mp_buffer = _currentBytecodeBuffer->bb_start,
 					.mp_scope = $2.ident.scope,
 					.mp_sourceFile = yy_getCurrentInputFilename(),
 					.mp_namespaceIdx = _currentNamespaceIndex
@@ -400,7 +424,7 @@ statement: ';'
 			| assignment ';' { $$.needsPop = 1; }
 			| if_expression { $$.needsPop = 1; }
 			| while { $$.needsPop = 1; }
-			| foreach { $$.needsPop = 1; }
+			| for_loop_expression { $$.needsPop = 1; }
 			| switch_expression { $$.needsPop = 1; }
 			| break { $$.needsPop = 0; }
 			| continue { $$.needsPop = 0; }
@@ -425,13 +449,15 @@ assignment: variable_reference assignment_expression {
 			assignment_target '.' T_IDENT {
 				types_pushFieldIndexWithError($1.ident.type, $3.ident.s);
 			} assignment_expression {
-				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer, C_ASSIGN_SLOT, (GENERIC_DATA) { 0 });
+				_currentBytecodeBuffer->bb_current = bytecode_emitInstruction(_currentBytecodeBuffer, C_ASSIGN_SLOT, (GENERIC_DATA) { 0 });
 			} 
 			|
 			assignment_target '[' binary_expression ']' assignment_expression {
-				_bytecodeBuffer.bb_current = bytecode_emitInstruction(&_bytecodeBuffer, C_ASSIGN_SLOT, (GENERIC_DATA) { 0 });
+				_currentBytecodeBuffer->bb_current = bytecode_emitInstruction(_currentBytecodeBuffer, C_ASSIGN_SLOT, (GENERIC_DATA) { 0 });
 			} 
-			|
+			| shorthand_assignment
+
+shorthand_assignment:
 			variable_reference {
 				parser_emitPushVariable(&$1.ident);
 			} shorthand_assignment_operator simple_expression {
@@ -465,10 +491,14 @@ range_expression:
 range_increment:
 			| T_DOTDOT binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_RANGE}); }
 
+minusminus_plusplus:
+			T_MINUSMINUS { $$.num = -1; }
+			| T_PLUSPLUS { $$.num = 1; }
+
 increment_expression: 
-			variable_reference T_MINUSMINUS  { _bytecodeBuffer.bb_current = bytecode_emitIncrementExpression(&_bytecodeBuffer, $1.ident.s, $1.ident.heapIndex, $1.ident.isLocalVar, -1); }
-			|
-			variable_reference T_PLUSPLUS { _bytecodeBuffer.bb_current = bytecode_emitIncrementExpression(&_bytecodeBuffer, $1.ident.s, $1.ident.heapIndex, $1.ident.isLocalVar, 1); }
+			variable_reference minusminus_plusplus { 
+				_currentBytecodeBuffer->bb_current = bytecode_emitIncrementExpression(_currentBytecodeBuffer, $1.ident.s, $1.ident.heapIndex, $1.ident.isLocalVar, (int)$2.num);
+			}
 
 s_bterm: 	value { $$.v = $1.v; }
 			| call_expression 
@@ -482,22 +512,18 @@ binary_expression:
 			s_bterm { $$.ident.type = $1.ident.type;}
 			| type_cast s_bterm	{
 				$$.ident.type = $1.ident.type;
-				_bytecodeBuffer.bb_current = bytecode_emitBinaryOperation(&_bytecodeBuffer, BIN_CAST, $$.binop);
+				_currentBytecodeBuffer->bb_current = bytecode_emitBinaryOperation(_currentBytecodeBuffer, BIN_CAST, $$.binop);
 			}
-			| '-' T_NUM {
-				if (!_bDefiningConst) {
-					bytecode_emitPushParameterInstruction(-$2.num);
-				} else {
-					$$.ident.type = VT_NUMBER;
-					$$.v.type = C_PUSH_LONG_LITERAL; 
-					$$.v.data.longValue  = -$2.num;
-				}
+			|
+			binary_expression '.' T_IDENT {
+				$$.ident.type = types_pushFieldIndexWithError($1.ident.type, $3.ident.s);
+				YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); 
 			}
 			| binary_expression '[' binary_expression_or_range ']' { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); }
 			| '!' binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NOT}); }
 			| '~' binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_NOT}); }
 			| '+' binary_expression { $$.v = $2.v; }
-			| '-' binary_expression { _bytecodeBuffer.bb_current = bytecode_emitMultiplyWithLiteralExpression(&_bytecodeBuffer, &$2.v, -1); }
+			| '-' variable_reference { _currentBytecodeBuffer->bb_current = bytecode_emitMultiplyWithLiteralExpression(_currentBytecodeBuffer, &$2.v, -1); }
 			| binary_expression '~' binary_expression   { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_MATCH}); }
 			| binary_expression T_NMATCH binary_expression   { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NMATCH}); }
 			| binary_expression '&' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AND}); }
@@ -535,7 +561,6 @@ value:		T_VARIABLE {
 				parser_emitPushVariable(&$1.ident);
 				$$.ident.type = $1.ident.type;
 			}
-			| struct_reference
 			| string {
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$1.ident.s});
 				$$.v.type = C_PUSH_STRING_LITERAL;
@@ -558,16 +583,6 @@ value:		T_VARIABLE {
 				yyerror("Undefined identifier %s", $1.ident.s);
 				parser_emitPushVariable(&$1.ident);
 				$$.ident.type = VT_STRING;  
-			}
-
-struct_reference: T_VARIABLE '.' T_IDENT {
-				parser_emitPushVariable(&$1.ident);
-				$$.ident.type = types_pushFieldIndexWithError($1.ident.type, $3.ident.s);
-				YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); 
-			}
-			| struct_reference '.' T_IDENT {
-				$$.ident.type = types_pushFieldIndexWithError($1.ident.type, $3.ident.s);
-				YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); 
 			}
 
 map_literal: '{' {
@@ -619,7 +634,7 @@ array_element:
 			}
 
 simple_array_element:
-			T_NUM			{ $$.v.type = VT_NUMBER; $$.v.data.longValue = $1.num; }
+			integer_literal	{ $$.v.type = VT_NUMBER; $$.v.data.longValue = $1.v.data.longValue; }
 			| T_CHARACTER	{ $$.v.type = VT_CHAR; $$.v.data.longValue = $1.num; }
 			| T_TRUE		{ $$.v.type = VT_BOOLEAN; $$.v.data.longValue = 1; }
 			| T_FALSE		{ $$.v.type = VT_BOOLEAN; $$.v.data.longValue = 0; }
@@ -631,16 +646,16 @@ string:		T_STRING {	$$.ident = $1.ident; }
 					free($1.ident.s);
 					free($2.ident.s);
 				} else {
-					yyerror("buffer overlow");
+					yyerror("String too long: buffer overflow");
 					$$.ident = $2.ident;
 				}
 			}
 
 break:		T_BREAK opt_num ';'
-			{	bytecode_emitGotoInstruction(&_bytecodeBuffer, lendid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
+			{	bytecode_emitGotoInstruction(_currentBytecodeBuffer, lendid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
 
 continue:	T_CONTINUE opt_num ';'
-			{	bytecode_emitGotoInstruction(&_bytecodeBuffer, lstartid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
+			{	bytecode_emitGotoInstruction(_currentBytecodeBuffer, lstartid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
 
 return_expression: 
 			T_RETURN optional_bterm {
@@ -661,34 +676,89 @@ case_clause: case_selector stmntlist
 case_selector: T_CASE case_condition ':' 
 			|
 			T_DEFAULT ':' {
-				bytecode_addSwitchCondition(&_bytecodeBuffer, _breaklevel, VT_NIL, (GENERIC_DATA){.longValue=0});
+				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, VT_NIL, (GENERIC_DATA){.longValue=0});
 			}
 
 case_condition:
-			T_NUM {
-				bytecode_addSwitchCondition(&_bytecodeBuffer, _breaklevel, VT_NUMBER, (GENERIC_DATA){.longValue=$1.num});
+			integer_literal {
+				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, VT_NUMBER, (GENERIC_DATA){.longValue=$1.v.data.longValue});
 			}
 			| T_STRING {
-				bytecode_addSwitchCondition(&_bytecodeBuffer, _breaklevel, VT_STRING, (GENERIC_DATA){.string=$1.ident.s});
+				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, VT_STRING, (GENERIC_DATA){.string=$1.ident.s});
 			}
 			| T_NUM T_DOTDOT T_NUM {
-				bytecode_addSwitchCondition(&_bytecodeBuffer, _breaklevel, VT_RANGE, (GENERIC_DATA){.range.r_start=$1.num, .range.r_end=$3.num});
+				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, VT_RANGE, (GENERIC_DATA){.range.r_start=$1.num, .range.r_end=$3.num});
 			}
 
 label:		T_IDENT ':' {
-				bytecode_createBranchLabel(&_bytecodeBuffer, $1.ident.s);
+				bytecode_createBranchLabel(_currentBytecodeBuffer, $1.ident.s);
 				freeitem(&$1.ident.s);
 			}
 
 goto:		T_GOTO T_IDENT {
-				_bytecodeBuffer.bb_current = bytecode_emitGotoLabelInstruction($2.ident.s,&_bytecodeBuffer,BRA_ALWAYS);
+				_currentBytecodeBuffer->bb_current = bytecode_emitGotoLabelInstruction($2.ident.s,_currentBytecodeBuffer,BRA_ALWAYS);
 				freeitem(&$2.ident.s);
 			}
 
+switch_expression:		
+			T_SWITCH  '(' value ')' 
+			{
+				_breaklevel++;
+				bytecode_emitGotoInstruction(_currentBytecodeBuffer, switchTableId,_breaklevel,BRA_ALWAYS);
+				bytecode_startSwitchTable(_breaklevel);
+			}
+			'{' case_clauses '}'
+			{
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, switchTableId,_breaklevel);
+				bytecode_destroyAutoLabelNamePrefix(switchTableId,_breaklevel);
+				bytecode_flushSwitchTable(_currentBytecodeBuffer, _breaklevel);
+				_breaklevel--;
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lendid,_breaklevel);
+				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
+			}
+
+for_loop_expression:
+			T_FOR for_clause {
+				bytecode_emitGotoInstruction(_currentBytecodeBuffer, lendid,_breaklevel,BRA_IF_FALSE);
+				_breaklevel++;
+			} local_block {
+				parser_flushBuffer(_breaklevel);
+				_breaklevel--;
+				bytecode_emitGotoInstruction(_currentBytecodeBuffer, lstartid,_breaklevel,BRA_ALWAYS);
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lendid,_breaklevel);
+				bytecode_destroyAutoLabelNamePrefix(lstartid,_breaklevel);
+				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
+			}
+
+for_increment: increment_expression
+			| shorthand_assignment
+
+for_to_clause: '(' opt_for_initializer {
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lstartid,_breaklevel);
+			} ';' binary_expression ';' {
+				parser_switchToBuffer(_breaklevel+1);
+			} for_increment {
+				parser_switchToBuffer(0);
+			} ')'
+
+opt_for_initializer:
+			| type_name variable_identifier {
+				parser_defineVariable($2.ident.s, $1.ident.type, (intptr_t)0, $1.ident.arraySize);
+				free($2.ident.s);
+			} assignment_expression 
+
+for_clause:	for_to_clause
+			| in_clause
+			| error {
+				yyerror("Illegal for-loop expression.");
+				yyerrok;
+			}
+
 in_clause:	'(' type_name variable_identifier {
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lstartid,_breaklevel);
 				push_newForeachCursor();
 				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_localVariableIndex});
-				parser_defineVariable($3.ident.s, $2.ident.type, (intptr_t)0, $1.ident.arraySize);
+				parser_defineVariable($3.ident.s, $2.ident.type, (intptr_t)0, $2.ident.arraySize);
 				if ($3.ident.stringIsAlloced) {
 					free($3.ident.s);
 				}
@@ -696,48 +766,18 @@ in_clause:	'(' type_name variable_identifier {
 				SYMBOL 	sym;
 				char *	key;
 				sym = sym_find(_currentIdentifierContext, "foreach",&key);
-				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction((void*)VALUE(sym))}, 3);
-			}
-
-switch_expression:		
-			T_SWITCH  '(' value ')' 
-			{
-				_breaklevel++;
-				bytecode_emitGotoInstruction(&_bytecodeBuffer, switchTableId,_breaklevel,BRA_ALWAYS);
-				bytecode_startSwitchTable(_breaklevel);
-			}
-			'{' case_clauses '}'
-			{
-				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, switchTableId,_breaklevel);
-				bytecode_destroyAutoLabelNamePrefix(switchTableId,_breaklevel);
-				bytecode_flushSwitchTable(&_bytecodeBuffer, _breaklevel);
-				_breaklevel--;
-				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, lendid,_breaklevel);
-				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
-			}
-
-foreach:	T_FOR {
-				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, lstartid,_breaklevel);
-			} in_clause {
-				bytecode_emitGotoInstruction(&_bytecodeBuffer, lendid,_breaklevel,BRA_IF_FALSE);
-				_breaklevel++;
-			} local_block {
-				_breaklevel--;
-				bytecode_emitGotoInstruction(&_bytecodeBuffer, lstartid,_breaklevel,BRA_ALWAYS);
-				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, lendid,_breaklevel);
-				bytecode_destroyAutoLabelNamePrefix(lstartid,_breaklevel);
-				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
+				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction((void*)VALUE(sym))}, 3);
 			}
 
 while:		T_WHILE {
-				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, lstartid,_breaklevel);
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lstartid,_breaklevel);
 			} condition {
-				bytecode_emitGotoInstruction(&_bytecodeBuffer, lendid,_breaklevel,BRA_IF_FALSE);
+				bytecode_emitGotoInstruction(_currentBytecodeBuffer, lendid,_breaklevel,BRA_IF_FALSE);
 				_breaklevel++;
 			} local_block {
 				_breaklevel--;
-				bytecode_emitGotoInstruction(&_bytecodeBuffer, lstartid,_breaklevel,BRA_ALWAYS);
-				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, lendid,_breaklevel);
+				bytecode_emitGotoInstruction(_currentBytecodeBuffer, lstartid,_breaklevel,BRA_ALWAYS);
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lendid,_breaklevel);
 				bytecode_destroyAutoLabelNamePrefix(lstartid,_breaklevel);
 				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
 			}
@@ -748,22 +788,22 @@ closing_brace: '}'
 
 if_expression:
 			T_IF condition {
-				bytecode_emitGotoInstruction(&_bytecodeBuffer, iffailid,_iflevel,BRA_IF_FALSE);
+				bytecode_emitGotoInstruction(_currentBytecodeBuffer, iffailid,_iflevel,BRA_IF_FALSE);
 				_iflevel++;
 			} local_block {
 				_iflevel--;
 			} else_clause {
-				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, ifdoneid,_iflevel);
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, ifdoneid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(ifdoneid,_iflevel);
 			}
 
 else_clause: {
-				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, iffailid,_iflevel);
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, iffailid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(iffailid,_iflevel);
 			}
 			| T_ELSE {
-				bytecode_emitGotoInstruction(&_bytecodeBuffer, ifdoneid,_iflevel,BRA_ALWAYS);
-				bytecode_generateAutoLabelNamePrefix(&_bytecodeBuffer, iffailid,_iflevel);
+				bytecode_emitGotoInstruction(_currentBytecodeBuffer, ifdoneid,_iflevel,BRA_ALWAYS);
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, iffailid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(iffailid,_iflevel);
 			}
 			local_block
@@ -784,7 +824,7 @@ call_expression: T_FUNC '(' {
 				*_currentFunctionCallParamIndexP = 0;
 				$$.funcp = $1.funcp;
 			} parameter_list closing_paren {
-				_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction($1.funcp)}, *_currentFunctionCallParamIndexP);
+				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction($1.funcp)}, *_currentFunctionCallParamIndexP);
 				_currentFunctionCallParamIndexP--;
 				_currentNativeMethodCalled = 0;
 			}
@@ -795,9 +835,9 @@ call_expression: T_FUNC '(' {
 				$$.funcp = 0;
 			} parameter_list closing_paren {
 				if ($1.ident.operation == C_MACRO_REF_LOCAL) {
-					_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, $1.ident.operation,(GENERIC_DATA){.intValue = $1.ident.heapIndex}, *_currentFunctionCallParamIndexP);
+					_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, $1.ident.operation,(GENERIC_DATA){.intValue = $1.ident.heapIndex}, *_currentFunctionCallParamIndexP);
 				} else {
-					_bytecodeBuffer.bb_current = bytecode_emitFunctionCall(&_bytecodeBuffer, $1.ident.operation,(GENERIC_DATA){.string = $1.ident.s}, *_currentFunctionCallParamIndexP);
+					_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, $1.ident.operation,(GENERIC_DATA){.string = $1.ident.s}, *_currentFunctionCallParamIndexP);
 					freeitem(&$1.ident.s);
 				}
 				_currentFunctionCallParamIndexP--;
@@ -868,7 +908,13 @@ float_literal: T_FLOATING_POINT_NUMBER {
 integer_literal: T_NUM {
 				$$.v.type = C_PUSH_LONG_LITERAL; 
 				$$.v.data.longValue  = $1.num;
+			} 
+			| '-' T_NUM {
+				$$.ident.type = VT_NUMBER;
+				$$.v.type = C_PUSH_LONG_LITERAL; 
+				$$.v.data.longValue  = -$2.num;
 			}
+
 
 character_literal: T_CHARACTER {
 				$$.v.type = C_PUSH_CHARACTER_LITERAL; 
@@ -952,19 +998,19 @@ static void freeitem(char **p)
 	}
 }
 
+
 static void init_bytecodeBuffer() {
-	if (!_bytecodeBuffer.bb_start) {
-		_bytecodeBuffer.bb_end = ((_bytecodeBuffer.bb_start = malloc(REC_SPACE)) == 0) ? 
-			_bytecodeBuffer.bb_start : _bytecodeBuffer.bb_start + REC_SPACE;
-	}
-	_bytecodeBuffer.bb_current = _bytecodeBuffer.bb_start; 
+	parser_switchToBuffer(0);
+	_currentBytecodeBuffer->bb_current = _currentBytecodeBuffer->bb_start;
 }
 
 static void destroy_bytecodeBuffer() {
-	if (_bytecodeBuffer.bb_start) {
-		free(_bytecodeBuffer.bb_start);
-		_bytecodeBuffer.bb_start = 0;
-		_bytecodeBuffer.bb_end = 0;
+	for (int i = 0; i < DIM(_buffers); i++) {
+		if (_buffers[i].bb_start) {
+			free(_buffers[i].bb_start);
+			_buffers[i].bb_start = 0;
+			_buffers[i].bb_end = 0;
+		}
 	}
 }
 
@@ -974,7 +1020,7 @@ static void init_header() {
 }
 
 static void finalize_header() {
-	macro_defineNamespaceInitializer(_currentNamespaceIndex, _bytecodeBuffer.bb_start, _bytecodeBuffer.bb_current - _bytecodeBuffer.bb_start);
+	macro_defineNamespaceInitializer(_currentNamespaceIndex, _currentBytecodeBuffer->bb_start, _currentBytecodeBuffer->bb_current - _currentBytecodeBuffer->bb_start);
 	destroy_bytecodeBuffer();
 	_bInHeader = 0;
 }

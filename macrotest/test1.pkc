@@ -91,9 +91,11 @@ static void CountWordsIn(map words, string fileName) {
 	}
 }
 
-// function to find the partition position
-static int partition(auto[] array, int low, int high) {
-	int j;
+/*
+ * Part of the quick-sort algorithm: function to find the partition position.
+ */
+static int partition(MAP_ENTRY[] array, int low, int high) {
+  int j;
   // select the rightmost element as pivot
   MAP_ENTRY pivot = array[high];
   MAP_ENTRY tmp;
@@ -105,8 +107,9 @@ static int partition(auto[] array, int low, int high) {
   // compare them with the pivot
   j = low;
   while (j < high) {
-	  tmp = array[j];
-      if (tmp.value <= pivot.value) {
+	// PKSMacroC doesnot yet recognize the element type of an array.
+	// Therefore we need a type cast here to help out.
+	if (((MAP_ENTRY)array[j]).value <= pivot.value) {
 
       // if element smaller than pivot is found
       // swap it with the greater element pointed by i
@@ -130,7 +133,7 @@ static int partition(auto[] array, int low, int high) {
 }
 
 static void quickSort(auto[] array, int low, int high) {
-	int pi;
+  int pi;
   if (low < high) {
 
     // find the pivot element such that
@@ -146,6 +149,9 @@ static void quickSort(auto[] array, int low, int high) {
   }
 }
 
+/*
+ * Tests the for(x : y) loop.
+ */
 static void Test-ForEach() {
 	string[] coll = ["a", "b"];
 	string res = "";
@@ -220,10 +226,26 @@ static void Test-Sieve() {
 	AssertFalse(prime[25]);
 }
 
+/*
+ * Tests regular for loops with increments.
+ */
+static void Test-ForLoop() {
+	int count = 0;
+	for (int k = 0; k < 3; k++) {
+		for (int i = 0; i < 10; i += 2) {
+			count++;
+		}
+	}
+	AssertEquals(15, count);
+}
+
+/*
+ * Tests various operations on arrays.
+ */
 static void Test-Arrays() {
 	string[] myArray = ["hello", "world", "how", "are", "you", "doing"];
 	string[] array2 = ["array", "two" ];
-	string[] mixedArray = [1, true, "hello"];
+	string[] mixedArray = [1, true, "hello", -4];
 	string[] extracted;
 	int[10] intArray;
 	int i = 0;
@@ -248,6 +270,7 @@ static void Test-Arrays() {
 	AssertTrue(mixedArray[1]);
 	AssertEquals(1, mixedArray[0]);
 	AssertEquals("hello", mixedArray[2]);
+	AssertEquals(-4, mixedArray[3]);
 }
 
 /*

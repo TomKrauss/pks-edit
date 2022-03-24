@@ -163,7 +163,13 @@ PKSMacroC currently supports the following control flow expressions:
 - `while (xx) { ... }` - allows to implement a while loop. While loops support nested `break` and `continue` statements.
 - `goto label` allows you to jump to a given label defined with `label_name:`.
 - `if (condition) ... [else ...]` - allows to conditionally execute one block with an optional else clause.
-. 'for(type var : expression) {}` - a foreach loop iterating over the elements of the result of evaluating `expression` setting the 
+- `for (initializer; condition; incrementExpression) {...}` - regular C-style for loop. E.g. 
+```
+    for (int i = 0; i < 100; i += 3) {
+        println(i);
+    }
+```
+- `for(type var : expression) {}` - a foreach loop iterating over the elements of the result of evaluating `expression` setting the 
    variable `v` to the elements produced. Currently one can iterate strings and ranges.
 - `switch(var) ... [case ...: statements]` - an almost classical switch statemen (see below).
 
