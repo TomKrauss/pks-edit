@@ -148,7 +148,7 @@ EDFUNC _functionTable[] = {
 {/*62*/  EdExit, -1, 0,                                                                                "QuitEdit",                   NULL,  "ii"                                          },
 {/*63*/  EdCloseAll, -1, 0,                                                                            "CloseAllWindows",            NULL,  "ii"                                          },
 {/*64*/  EdSaveFile, -1, EW_NEEDSCURRF | 0,                                                            "SaveFile",                   NULL,  "ibSAV_bFORM_s"                                },
-{/*65*/  EdSelectWindow, -1, 0,                                                                        "SelectWindow",               NULL,  "ii"                                      },
+{/*65*/  (long long (*)())ft_selectWindowWithId, -1, 0,                                                "SelectWindow",               NULL,  "ii"                                      },
 {/*66*/  EdCommandExecute, -1, EW_HASFORM | 0,                                                         "ExecuteCommand",             NULL,  "ibFORM_ssseEX_"                              },
 {/*67*/  EdExecute, -1, EW_HASFORM | 0,                                                                "Exec",                       NULL,  "ibFORM_ssseEX_"                              },
 {/*68*/  EdShiftBetweenBrackets, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                      "ShiftBetweenBrackets",       NULL,  "iei"                                      },
@@ -212,7 +212,7 @@ EDFUNC _functionTable[] = {
 {/*126*/compare_navigate,-1, EW_NEEDSCURRF| EW_COMPARISON_MODE,                                        "CompareNavigate",            NULL,  "ii"                                          },
 {/*127*/compare_clear, -1, EW_NEEDSCURRF | EW_COMPARISON_MODE,                                         "CompareClear",               NULL,  "ii"                                          },
 {/*128*/bl_moveSelectionUpDown, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                       "MoveSelection",              NULL,  "ii"                                          },
-{/*129*/edit_insertString, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                            "InsertString",               NULL,  "iWs"                                          },
+{/*129*/edit_insertString, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                            "EditorInsertString",         NULL,  "iWs"                                          },
 {/*130*/interpreter_size, -1, 0,                                                                       "size",                     NULL,  "P" },
 {/*131*/(long long (*)())strstr, -1, 0,                                                                 "strstr",                    NULL, "iss"},
 {/*132*/macroc_print, -1, 0, "print", NULL, "is"},
@@ -237,7 +237,9 @@ EDFUNC _functionTable[] = {
 {/*151*/(long long (*)())memory_mapValues, -1, 0, "MapValues", NULL, "P" },
 {/*151*/(long long (*)())memory_mapEntries, -1, 0, "MapEntries", NULL, "P" },
 {/*152*/(long long (*)())edit_replaceText, -1, 0, "EditorReplaceText", NULL, "iWssbRE_eRNG_eREP_" },
-{/*153*/(long long (*)())ww_getCurrentEditorWindow, -1, 0, "EditorGetCurrent", NULL, "W" }
+{/*153*/(long long (*)())ww_getCurrentEditorWindow, -1, 0, "EditorGetCurrent", NULL, "W" },
+{/*154*/(long long (*)())ww_selectWindow, -1, 0, "EditorSetCurrent", NULL, "iW" }
+
 };
 
 int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);
@@ -355,13 +357,13 @@ CMD_KEYCODE_INSERT, C_0FUNC, 16 /* EdKeycodeInsert */, 		1, 0 , "keycode-insert"
 109, C_1FUNC, 56 /* menu_openContextMenu */, 				1, 0, "open-context-menu",
 110, C_1FUNC, 77 /* EdFindOnInternet */, 					1, 0, "search-on-internet",
 111, C_1FUNC, 118 /* caret_moveAndAddSecondary*/, 			1, MSM_DOWN, "secondary-cursor-down-line",
-112, C_1FUNC, 65 /* EdSelectWindow */, 						1, 1 , "select-window-1",
-113, C_1FUNC, 65 /* EdSelectWindow */, 						1, 2 , "select-window-2",
-114, C_1FUNC, 65 /* EdSelectWindow */, 						1, 3 , "select-window-3",
-115, C_1FUNC, 65 /* EdSelectWindow */, 						1, 4 , "select-window-4",
-116, C_1FUNC, 65 /* EdSelectWindow */, 						1, 5 , "select-window-5",
-117, C_1FUNC, 65 /* EdSelectWindow */, 						1, 6 , "select-window-6",
-118, C_1FUNC, 65 /* EdSelectWindow */, 						1, -1 , "select-previous-window",
+112, C_1FUNC, 65 /* ft_selectWindowWithId */, 						1, 1 , "select-window-1",
+113, C_1FUNC, 65 /* ft_selectWindowWithId */, 						1, 2 , "select-window-2",
+114, C_1FUNC, 65 /* ft_selectWindowWithId */, 						1, 3 , "select-window-3",
+115, C_1FUNC, 65 /* ft_selectWindowWithId */, 						1, 4 , "select-window-4",
+116, C_1FUNC, 65 /* ft_selectWindowWithId */, 						1, 5 , "select-window-5",
+117, C_1FUNC, 65 /* ft_selectWindowWithId */, 						1, 6 , "select-window-6",
+118, C_1FUNC, 65 /* ft_selectWindowWithId */, 						1, -1 , "select-previous-window",
 119, C_1FUNC, 125 /* windowselector_showWindowList */, 		1, 0, "cycle-window",
 120, C_1FUNC, 73 /* edit_convertCharacterCase */, 			1, CC_TOGGLE, "char-up-low",
 121, C_1FUNC, 70 /* EdLinesShift */,   						1, -1 , "shift-line-left",

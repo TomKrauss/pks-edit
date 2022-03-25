@@ -483,9 +483,10 @@ static void Test-Binary-Expressions() {
 	AssertEquals("ad", ("abcd" - "bc"));
 	AssertEquals("xxxxxxx", (7 * 'x'));
 	AssertEquals("xyxyxy", (3 * "xy"));
-	AssertEquals(11, (1 | 0xA));
-	AssertEquals(0, (1 & 0xA));
-	AssertEquals(27, (3 ** 3));
+	AssertEquals(11, 1 | 0xA);
+	AssertEquals(15, 1 | 2 | 4 | 8);
+	AssertEquals(0, 1 & 0xA);
+	AssertEquals(27, 3 ** 3);
 	AssertEquals(3, 12 >> 2);
 	AssertEquals(32, 8 << 2);
 	AssertEquals(1, 13 % 2);

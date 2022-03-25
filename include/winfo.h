@@ -362,6 +362,11 @@ extern void render_updateCaret(WINFO* wp);
 extern int ww_documentPropertyChanged(WINFO* wp, PROPERTY_CHANGE* pChange);
 
 /*
+ * Select the window with the given WINFO pointer.
+ */
+extern int ww_selectWindow(WINFO* wp);
+
+/*
  * The display / workmode of a window has changed - update appropriately.
  */
 extern void ww_modeChanged(WINFO* wp);

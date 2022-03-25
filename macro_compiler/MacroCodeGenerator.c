@@ -423,61 +423,76 @@ static int bytecode_getPushInt(char* pInstr, int* pVal) {
  * Should be done on a long term run based on an intermediate AST created by the parser.
  */
 void bytecode_optimizeInstructions(BYTECODE_BUFFER* pBuffer) {
-	char* pSource = pBuffer->bb_start;
-	char* pTarget = pBuffer->bb_start;
-	char* pI2;
-	char* pI3;
-	int v1;
-	int v2;
+	int bOptimizeMore = 1;
 
-	while (pSource < pBuffer->bb_current) {
-		size_t nSize = interpreter_getParameterSize(*pSource, pSource + 1);
-		pI2 = pSource + nSize;
-		if (pI2 >= pBuffer->bb_current) {
-			break;
-		}
-		pI3 = pI2 + interpreter_getParameterSize(*pI2, pI2 + 1);
-		if (bytecode_getPushInt(pSource, &v1) && bytecode_getPushInt(pI2, &v2) && *pI3 == C_BINOP) {
-			COM_BINOP* pOp = (COM_BINOP*)pI3;
-			int nVal;
-			int bOptimize = 1;
-			if (pOp->op == BIN_OR) {
-				nVal = v1 | v2;
-			} else if (pOp->op == BIN_ADD) {
-				nVal = v1 + v2;
-			} else if (pOp->op == BIN_AND) {
-				nVal = v1 & v2;
-			} else if (pOp->op == BIN_SHIFT_LEFT) {
-				nVal = v1 << v2;
-			} else if (pOp->op == BIN_SHIFT_RIGHT) {
-				nVal = v1 >> v2;
-			} else if (pOp->op == BIN_DIV && v2) {
-				nVal = v1 / v2;
-			} else if (pOp->op == BIN_MOD && v2) {
-				nVal = v1 % v2;
-			} else if (pOp->op == BIN_MUL) {
-				nVal = v1 * v2;
-			} else {
-				bOptimize = 0;
-			}
-			if (bOptimize) {
-				if (nVal < 256) {
-					*pTarget++ = C_PUSH_SMALL_INT_LITERAL;
-					*pTarget++ = nVal;
-				} else {
-					*pTarget = C_PUSH_INTEGER_LITERAL;
-					((COM_INT1*)pTarget)->val = (int)nVal;
-					pTarget += interpreter_getParameterSize(*pTarget, pTarget + 1);
+	while (bOptimizeMore) {
+		bOptimizeMore = 0;
+		char* pSource = pBuffer->bb_start;
+		char* pTarget = pBuffer->bb_start;
+		while (pSource < pBuffer->bb_current) {
+			char* pI2;
+			char* pI3;
+			int v1;
+			int v2;
+			size_t nSize = interpreter_getParameterSize(*pSource, pSource + 1);
+			pI2 = pSource + nSize;
+			if (pI2 < pBuffer->bb_current) {
+				pI3 = pI2 + interpreter_getParameterSize(*pI2, pI2 + 1);
+				if (bytecode_getPushInt(pSource, &v1) && bytecode_getPushInt(pI2, &v2) && *pI3 == C_BINOP) {
+					COM_BINOP* pOp = (COM_BINOP*)pI3;
+					int nVal;
+					int bOptimize = 1;
+					if (pOp->op == BIN_OR) {
+						nVal = v1 | v2;
+					}
+					else if (pOp->op == BIN_ADD) {
+						nVal = v1 + v2;
+					}
+					else if (pOp->op == BIN_AND) {
+						nVal = v1 & v2;
+					}
+					else if (pOp->op == BIN_SHIFT_LEFT) {
+						nVal = v1 << v2;
+					}
+					else if (pOp->op == BIN_SHIFT_RIGHT) {
+						nVal = v1 >> v2;
+					}
+					else if (pOp->op == BIN_DIV && v2) {
+						nVal = v1 / v2;
+					}
+					else if (pOp->op == BIN_MOD && v2) {
+						nVal = v1 % v2;
+					}
+					else if (pOp->op == BIN_MUL) {
+						nVal = v1 * v2;
+					}
+					else {
+						bOptimize = 0;
+					}
+					if (bOptimize) {
+						if (nVal < 256) {
+							*pTarget++ = C_PUSH_SMALL_INT_LITERAL;
+							*pTarget++ = nVal;
+						}
+						else {
+							*pTarget = C_PUSH_INTEGER_LITERAL;
+							((COM_INT1*)pTarget)->val = (int)nVal;
+							pTarget += interpreter_getParameterSize(*pTarget, pTarget + 1);
+						}
+						pSource = pI3 + interpreter_getParameterSize(*pI3, pI3 + 1);
+						if (pSource < pBuffer->bb_current && (*pSource == C_PUSH_SMALL_INT_LITERAL || *pSource == C_PUSH_INTEGER_LITERAL)) {
+							bOptimizeMore = 1;
+						}
+						continue;
+					}
 				}
-				pSource = pI3 + interpreter_getParameterSize(*pI3, pI3 + 1);
-				continue;
 			}
+			if (pTarget != pSource) {
+				memcpy(pTarget, pSource, nSize);
+			}
+			pSource += nSize;
+			pTarget += nSize;
 		}
-		if (pTarget != pSource) {
-			memcpy(pTarget, pSource, nSize);
-		}
-		pSource += nSize;
-		pTarget += nSize;
+		pBuffer->bb_current = pTarget;
 	}
-	pBuffer->bb_current = pTarget;
 }

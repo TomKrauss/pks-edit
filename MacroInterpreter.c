@@ -49,7 +49,6 @@ extern BOOL recorder_isRecording();
  */
 extern void recorder_setRecording(BOOL bStart);
 extern void recorder_recordFunctionWithParameters(int fnum, int p, intptr_t p2, char* s1, char* s2);
-extern int  ft_selectWindowWithId(int winid, BOOL bPopup);
 
 /*--------------------------------------------------------------------------
  * interpreter_testExpression()
@@ -1131,15 +1130,8 @@ long long macro_executeMacroByIndex(int macroindex) {
 		}
 	}
 
-	if ((_playing = wasplaying) == 0) {
-		WINFO* wp = ww_getCurrentEditorWindow();
-		if (wp) {
-			ft_selectWindowWithId(wp->win_id, FALSE);
-		}
-	}
-
 	recorder_setRecording(bWasRecording);
-
+	_playing = wasplaying;
 	return ret;
 }
 

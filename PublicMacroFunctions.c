@@ -734,7 +734,7 @@ static int showWindowList(int nTitleId)
 		return 0;
 	}
 
-	return (int)EdSelectWindow(wp->win_id);
+	return ww_selectWindow(wp);
 }
 
 /*--------------------------------------------------------------------------

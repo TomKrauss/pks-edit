@@ -883,7 +883,7 @@ void xref_openSearchListResultFromLine(LINE *lp) {
 		lp = lp->next;
 	}
 	if (pActivate) {
-		ft_selectWindowWithId(pActivate->win_id, TRUE);
+		ww_selectWindow(pActivate);
 		pActivate->workmode &= ~WM_STICKY;
 	}
 }
@@ -962,7 +962,6 @@ int xref_navigateSearchErrorList(int dir) {
 	}
 	if (lp && navigationSpec.filename[0]) {
 		if ((wp = WIPOI(fp)) != 0) {
-			/* EdSelectWindow(wp->win_id); */
 			long lineno = ln_indexOf(fp, lp);
 			caret_placeCursorForFile(wp, lineno, 0, 0, 0);
 			fp->lpReadPointer->lflg &= ~LNXMARKED;

@@ -91,7 +91,7 @@ static void windowselector_selectWindow(HWND hwnd) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	while (wp) {
 		if (--nWindow < 0) {
-			ft_selectWindowWithId(wp->win_id, TRUE);
+			ww_selectWindow(wp);
 			return;
 		}
 		wp = wp->next;

@@ -181,7 +181,7 @@ void ft_checkForChangedFiles(BOOL bActive) {
 					if (!bActive) {
 						continue;
 					}
-					EdSelectWindow(wp->win_id);
+					ww_selectWindow(wp);
 					if (error_displayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
 						ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
 						// may make the list of files invalid.
@@ -558,7 +558,7 @@ int ww_requestToClose(WINFO *wp)
 	FTABLE* fp = wp->fp;
 	if (ft_isFileModified(fp)) {
 		ShowWindow(hwndMain,SW_SHOW);
-		EdSelectWindow(wp->win_id);
+		ww_selectWindow(wp);
 		if (_ExSave || (GetConfiguration()->options & O_AUTOSAVE_FILES_ON_EXIT)) {
 	     	return ft_writeFileWithAlternateName(fp);
 		}
@@ -578,11 +578,20 @@ int ww_requestToClose(WINFO *wp)
 	return 1;
 }
 
+/*
+ * Select the window with the given WINFO pointer.
+ */
+int ww_selectWindow(WINFO* wp) {
+	SendMessage(hwndMain, WM_MDIACTIVATE, (WPARAM)wp->edwin_handle, (LPARAM)0L);
+	SetFocus(wp->edwin_handle);
+	return 1;
+}
+
 /*------------------------------------------------------------
  * ft_selectWindowWithId()
  * Select and activate the window with the given window id.
  */
-int ft_selectWindowWithId(int winid, BOOL bPopup) {
+int ft_selectWindowWithId(int winid) {
 	WINFO *	wp;
 
 	wp = ww_findwinid(winid);
@@ -590,18 +599,7 @@ int ft_selectWindowWithId(int winid, BOOL bPopup) {
 		error_showErrorById(IDS_MSGWRONGWINDOW);
 		return 0;
 	}
-
-	SendMessage(hwndMain,WM_MDIACTIVATE,(WPARAM)wp->edwin_handle,(LPARAM)0L);
-	SetFocus(wp->edwin_handle);
-	return 1;
-}
-
-/*------------------------------------------------------------
- * EdSelectWindow()
- */
-long long EdSelectWindow(int winid)
-{
-	return ft_selectWindowWithId(winid, TRUE);
+	return ww_selectWindow(wp);
 }
 
 /*------------------------------------------------------------
@@ -659,7 +657,7 @@ int ft_activateWindowOfFileNamed(const char *fn) {
 	if (wp == NULL) {
 		return 0;
 	}
-	return (int)EdSelectWindow(wp->win_id);
+	return (int)ww_selectWindow(wp);
 }
 
 /*------------------------------------------------------------

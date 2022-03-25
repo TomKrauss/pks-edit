@@ -463,7 +463,7 @@ extern int ft_restorePreviouslyOpenedWindows(void);
  * ft_selectWindowWithId()
  * Select and activate the window with the given window id.
  */
-extern int ft_selectWindowWithId(int winid, BOOL bPopup);
+extern int ft_selectWindowWithId(int winid);
 
 /*
  * Calculate the name of the backup file to create for file fp. The pszResult
@@ -475,11 +475,6 @@ void ft_getBackupFilename(FTABLE* fp, char* pszResult);
  * Return TRUE if for the passed file a backup file had been created previously.
  */
 extern BOOL ft_backupFileExists(FTABLE* fp);
-
-/*------------------------------------------------------------
- * EdSelectWindow()
- */
-extern long long EdSelectWindow(int winid);
 
 extern char* ft_visibleName(FTABLE* fp);
 /*------------------------------------------------------------

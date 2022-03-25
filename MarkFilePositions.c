@@ -159,7 +159,7 @@ static int fm_gotoLastPositionDir(MARK_TYPE_ENUM type, int dir) {
 	} else {
 		wp = WIPOI(fp);
 		if (wp) {
-			ft_selectWindowWithId(wp->win_id, 1);
+			ww_selectWindow(wp);
 		}
 	}
 	if (wp) {

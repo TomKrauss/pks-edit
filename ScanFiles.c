@@ -202,7 +202,7 @@ static int find_replaceInFile(intptr_t pFilename, SEARCH_AND_REPLACE_PARAMETER* 
 		FTABLE* fp = ft_openFileWithoutFileselector(pszFilename, 0, &(FT_OPEN_OPTIONS) { NULL, -1 });
 		if (fp) {
 			wp = WIPOI(fp);
-			EdSelectWindow(wp->win_id);
+			ww_selectWindow(wp);
 		}
 		bSaveAndClose = TRUE;
 	}

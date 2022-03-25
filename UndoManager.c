@@ -431,7 +431,7 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand, BOOL bR
 		pOperation = pOperation->prev;
 	}
 	if (wp) {
-		ft_selectWindowWithId(wp->win_id, TRUE);
+		ww_selectWindow(wp);
 		wp->blcol1 = pCommand->c1;
 		wp->blcol2 = pCommand->c2;
 		bl_setSelection(wp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
