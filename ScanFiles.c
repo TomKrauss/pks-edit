@@ -210,7 +210,8 @@ static int find_replaceInFile(intptr_t pFilename, SEARCH_AND_REPLACE_PARAMETER* 
 		return 0;
 	}
 	caret_placeCursorInCurrentFile(wp, 0, 0);
-	REPLACE_TEXT_RESULT rResult = EdReplaceText(wp, RNG_GLOBAL, REP_REPLACE);
+	REPLACE_TEXT_RESULT rResult = edit_replaceText(wp, _currentSearchAndReplaceParams.searchPattern, _currentSearchAndReplaceParams.replaceWith,
+		_currentSearchAndReplaceParams.options, RNG_GLOBAL, REP_REPLACE);
 	if (rResult == RTR_ALL) {
 		pParam->options &= ~RE_CONFIRM_REPLACEMENT;
 	}

@@ -122,7 +122,7 @@ int hist_readDockingPlacement(int aNumber, char* pszDockName, float* x, float* y
 /*---------------------------------*/
 /* hist_saveString()					*/
 /*---------------------------------*/
-EXPORT void hist_saveString(HISTORY_TYPE type, char *string) {
+EXPORT void hist_saveString(HISTORY_TYPE type, const char *string) {
 	ARRAY_LIST* pArray = hist_getHistoryArray(type);
 
 	if (arraylist_size(pArray) >= MAXHIST) {

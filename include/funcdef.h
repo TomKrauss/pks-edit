@@ -28,6 +28,7 @@ typedef enum {
 	PARAM_TYPE_INT = 'i',			// this parameter is an integer
 	PARAM_TYPE_STRING_ARRAY = 'a',	// this parameter / return value is an arraylist containing strings also allocated. The values are allocated by the function 
 									// called and freed by the macro VM later.
+	PARAM_TYPE_EDITOR_WINDOW = 'W',	// this parameter must point to a current editor window.
 	PARAM_TYPE_PKS_VALUE = 'P',		// Special parameter type used as first parameter type to mark native functions working on the internal data structures of PKSMacroC and having the 
 									// signature: PKS_VALUE myMethod(EXECUTION_CONTEXT*pContext, PKS_VALUE* pValues, int nArguments)
 	PARAM_TYPE_STRING = 's'			// this parameter is a String parameter

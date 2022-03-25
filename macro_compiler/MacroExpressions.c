@@ -82,6 +82,9 @@ PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_
 		return (PKS_VALUE) { .pkv_type = tTargetType, .pkv_data.longValue = nValue.pkv_data.longValue };
 	}
 	if (tTargetType == VT_BOOLEAN) {
+		if (types_isHandleType(nValue.pkv_type)) {
+			return (PKS_VALUE) { .pkv_type = tTargetType, .pkv_data.booleanValue = memory_handleForValue(nValue) != 0 };
+		}
 		return (PKS_VALUE) { .pkv_type = tTargetType, .pkv_data.booleanValue = nValue.pkv_data.longValue != 0 };
 	}
 	if (tTargetType == VT_STRING) {

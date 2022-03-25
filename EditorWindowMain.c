@@ -924,6 +924,13 @@ int ww_getNumberOfOpenWindows(void)
 	return nwindows;
 }
 
+/*
+ * Returns the WINFO data structure for a workwindow window handle. 
+ */
+WINFO* ww_winfoFromWorkwinHandle(HWND hwnd) {
+	return (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR);
+}
+
 /*------------------------------------------------------------
  * ww_close()
  * Close the passed editor window.
@@ -1075,7 +1082,7 @@ int do_mouse(HWND hwnd, int nClicks, UINT message, WPARAM wParam, LPARAM lParam)
 	if ((wParam & (MK_LBUTTON | MK_RBUTTON | MK_MBUTTON)) == 0) {
 		return 0;
 	}
-	if ((wp = (WINFO *) GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
+	if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {
 		x = GET_X_LPARAM(lParam), y = GET_Y_LPARAM(lParam);
 	} else {
 		return 0;
@@ -1195,7 +1202,7 @@ static WINFUNC WorkAreaWndProc(
 			if (GetAsyncKeyState(VK_CONTROL)) {
 				mouse_setHandCursor();
 			} else {
-				if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0 && !wp->renderer->r_canEdit) {
+				if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0 && !wp->renderer->r_canEdit) {
 					mouse_setArrowCursor();
 				}
 				else {
@@ -1211,7 +1218,7 @@ static WINFUNC WorkAreaWndProc(
 
 	case WM_COMMAND: {
 		int nCommand = (int)wParam;
-		wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR);
+		wp = ww_winfoFromWorkwinHandle(hwnd);
 		POINT pt = menu_getContextMenuPopupPosition();
 		if (nCommand && macro_onMenuAction(wp, nCommand, &pt)) {
 			return 1;
@@ -1227,7 +1234,7 @@ static WINFUNC WorkAreaWndProc(
 		return SendMessage(hwndMain,message,wParam,lParam);
 
 	case WM_MOUSEMOVE:
-		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
+		if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {
 			if (wp->renderer->r_mouseMove) {
 				int xPos = GET_X_LPARAM(lParam);
 				int yPos = GET_Y_LPARAM(lParam);
@@ -1238,7 +1245,7 @@ static WINFUNC WorkAreaWndProc(
 
 	case WM_MOUSEWHEEL:
 		zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
+		if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {
 			if (GetAsyncKeyState(VK_CONTROL)) {
 				ww_zoomWindow(zDelta > 0);
 			} else {
@@ -1268,7 +1275,7 @@ static WINFUNC WorkAreaWndProc(
 
 	case WM_HSCROLL:
 	case WM_VSCROLL:
-		if ((wp = (WINFO *) GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
+		if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {
 			int nCode = LOWORD(wParam);
 			int nPos = HIWORD(wParam);
 			if (nCode == SB_THUMBTRACK || nCode == SB_THUMBPOSITION) {
@@ -1294,13 +1301,13 @@ static WINFUNC WorkAreaWndProc(
 		return 0;
 
 	case WM_PAINT:
-		if ((wp = (WINFO *) GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
+		if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {
 		   render_paintWindow(wp);
 		}
 		return 0;
 
 	case WM_SIZE:
-		if ((wp = (WINFO *) GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
+		if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {
 			if (!ww_updateWindowBounds(wp, LOWORD(lParam), HIWORD(lParam))) {
 				return 0;
 			}
@@ -1309,7 +1316,7 @@ static WINFUNC WorkAreaWndProc(
 	    break;
 
 	case WM_KILLFOCUS: {
-			if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
+			if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {
 				wt_setCaretVisibility(wp, 0);
 			}
 		}
@@ -1317,7 +1324,7 @@ static WINFUNC WorkAreaWndProc(
 
 	case WM_SETFOCUS: {
 		WINFO* wpOld = _winlist;
-		if ((wp = (WINFO*)GetWindowLongPtr(hwnd, GWL_WWPTR)) != 0) {
+		if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {
 			if (wpOld && wp != wpOld) {
 				codecomplete_hideSuggestionWindow(wpOld);
 			}

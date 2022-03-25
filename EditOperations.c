@@ -1238,11 +1238,10 @@ long long edit_convertCharacterCase(CC_OPERATION operation) {
 }
 
 /*
- * Insert a string into the current file at the current cursor position.
+ * Insert a string into the passed file at the current cursor position.
  */
-long long edit_insertString(const char* pszString) {
-	WINFO* wp = ww_getCurrentEditorWindow();
-	if (!wp || !pszString) {
+long long edit_insertString(WINFO* wp, const char* pszString) {
+	if (!pszString) {
 		return 0;
 	}
 	PASTE buffer;

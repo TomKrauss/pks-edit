@@ -4,8 +4,8 @@
  */
 void TrimTrailingBlanks() {
 	// disable all messages (toast / status bar etc...) while running this macro.
-	ShowMessages(FALSE);
-	Replace(FORM_INIT,"\\s+$","",REP_REPLACE,RNG_GLOBAL,RE_DOREX);
-	ShowMessages(TRUE);
+	ShowMessages(false);
+	EditorReplaceText("\\s+$","",RE_DOREX|RE_KEEP_CARET, RNG_GLOBAL, REP_REPLACE);
+	ShowMessages(true);
 }
 

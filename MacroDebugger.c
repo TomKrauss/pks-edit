@@ -116,7 +116,7 @@ static void debugger_fillVariables(HWND hwnd, EXECUTION_CONTEXT* pContext) {
 
 static void debugger_getColumnParameters(NMLVDISPINFO* plvdi, int nLocal) {
 	INSPECTOR_VARIABLE* pParam = (INSPECTOR_VARIABLE*)plvdi->item.lParam;
-	static char szValueBuffer[256];
+	static char szValueBuffer[1024];
 	static char szName[32];
 
 	switch (plvdi->item.iSubItem) {
@@ -129,7 +129,7 @@ static void debugger_getColumnParameters(NMLVDISPINFO* plvdi, int nLocal) {
 		break;
 	case 1: {
 		PKS_VALUE v = pParam->iv_value;
-		decompile_printValue(szValueBuffer, v);
+		decompile_printValue(szValueBuffer, sizeof szValueBuffer, v);
 		plvdi->item.pszText = szValueBuffer;
 		break;
 	}

@@ -132,10 +132,11 @@ static int mouse_textBlockEndDrag(WINFO* wp, int x, int y, int bCancel) {
 	hwnd = WindowFromPoint(p);
 
 	if (hwnd == wp->ww_handle) {
+		intptr_t stack[8];
 		if (_dragTextBlockMoveData.moving) {
-			ret = (int)interpreter_executeFunction(FUNC_EdBlockMove, 0L, 0L, (void*)0, (void*)0, (void*)0);
+			ret = (int)interpreter_executeFunction(FUNC_EdBlockMove, stack);
 		} else {
-			ret = (int)interpreter_executeFunction(FUNC_EdBlockCopy, 0L, 0L, (void*)0, (void*)0, (void*)0);
+			ret = (int)interpreter_executeFunction(FUNC_EdBlockCopy, stack);
 		}
 	} else if (hwnd) {
 		ret = PostMessage(hwnd, WM_ICONDROP, ICACT_TEXTBLOCK, 0L);

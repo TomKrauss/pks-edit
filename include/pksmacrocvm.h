@@ -72,10 +72,12 @@ typedef enum {
 	VT_AUTO = 9,
 	VT_FILE = 10,
 	VT_MAP_ENTRY = 11,
+	VT_EDITOR_HANDLE = 12							// Editor window handle
 } PKS_VALUE_TYPE;
 
 #define PKS_TYPE_FILE		"FILE"
 #define PKS_TYPE_MAP_ENTRY	"MAP_ENTRY"
+#define PKS_TYPE_EDITOR		"EDITOR"
 
 typedef struct tagPKS_VALUE {
 	int				pkv_managed : 1;				// the memory of this object is managed by the MacroVM object memory
@@ -85,10 +87,11 @@ typedef struct tagPKS_VALUE {
 } PKS_VALUE;
 
 typedef (*T_FINALIZER)(PKS_VALUE v);
+typedef void* (*T_CONVERT_HANDLE)(void* pPointer);
 
 typedef struct tagTYPE_CALLBACKS {
-	int	(*tc_iteratorStart)(PKS_VALUE* pValue);		// Callback method to start an iterator type 
-	int	(*tc_iteratorNext)(PKS_VALUE* pValue);		// Callback method to advance an iterator
+	T_CONVERT_HANDLE tc_handleToMacroMemory;		// Callback to convert an object for being stored in the macro memory.
+	T_CONVERT_HANDLE tc_handleFromMacroMemory;		// Callback to convert an object from macro memory to being used in C code.
 	T_FINALIZER tc_close;							// Callback method to close an internal resource associated with a value Gets passed the PKS_VALUE
 													// containing the actual handle object.
 } TYPE_CALLBACKS;
@@ -101,6 +104,7 @@ typedef struct tagTYPE_PROPERTY_DESCRIPTOR {
 typedef struct tagPKS_TYPE_DESCRIPTOR {
 	PKS_VALUE_TYPE	ptd_type;						// the index used internally in macros for this type
 	const char*		ptd_name;						// the printed named of this type
+	int				ptd_isHandleType : 1;			// whether this is a "handle" type wrapping a native C pointer (FILE*, WINFO*, ...)
 	int				ptd_isValueType : 1;			// whether this is an immutable value type (number, float boolean etc...)
 	int				ptd_hasDefaultValue : 1;		// Whether defining a variable of the described type will automatically create an "empty" instance of the type.
 	int				ptd_hasDynamicSize : 1;			// whether objects of this type may change in size (arrays for instance).
@@ -143,7 +147,7 @@ typedef long long TYPED_OBJECT_POINTER;
 #define TOP_TYPE(p)						((((long long)p) >> 56) & 0x3F)
 #define MAKE_TYPED_OBJECT_POINTER(bIsPointer, sType, pPointer)	(((long long)bIsPointer<<62) | ((long long)sType << 56) | (((uintptr_t)pPointer) & POINTER_MASK))
 
-extern void decompile_printValue(char* pszBuf, PKS_VALUE v);
+extern void decompile_printValue(char* pszBuf, size_t nMaxChars, PKS_VALUE v);
 
 /*
  * Extract the type info from a macro into the passed array of descriptors up to nMaxVars.
@@ -165,6 +169,11 @@ extern T_FINALIZER types_getFinalizer(PKS_VALUE_TYPE vType);
 extern BOOL types_isValueType(PKS_VALUE_TYPE vType);
 
 /*
+ * Returns true, if this is a "handle" type wrapping a native C pointer (FILE*, WINFO*, ...)
+ */
+extern BOOL types_isHandleType(PKS_VALUE_TYPE vType);
+
+/*
  * Returns true, if objects of the given type are automatically created when declaring them.
  */
 extern BOOL types_hasDefaultValue(PKS_VALUE_TYPE vType);
@@ -183,6 +192,12 @@ extern const char* types_getPropertyName(PKS_VALUE_TYPE t, int aPropertyIndex);
  * Returns a pks-value-type for a given type name.
  */
 extern PKS_VALUE_TYPE types_typeIndexFor(const char* pszTypename);
+
+/*
+ * Return the converter for a given value handle or 0 if not converter exists.
+ */
+extern T_CONVERT_HANDLE types_getConverterToMemory(PKS_VALUE_TYPE vType);
+extern T_CONVERT_HANDLE types_getConverterFromMemory(PKS_VALUE_TYPE vType);
 
 /*
  * Pop one value of the stack of our stack machine
@@ -512,6 +527,19 @@ extern int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS
  * Returns an array object with all keys contained in the map type value passed as single argument.
  */
 extern PKS_VALUE memory_mapKeys(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs);
+
+/*
+ * If the passed value is of type "handle" (file handle, editor handle etc...), it is assumed,
+ * that one foreign memory nested object exists, which can be uwrapped using this method. In
+ * other words: return the FILE* or WINFO* objects associated with the given value.
+ */
+void* memory_handleForValue(PKS_VALUE vValue);
+
+/*
+ * Creates a "handle" type PKSMacroC object, which wraps a native C pointer to be passed around
+ * in macroC code.
+ */
+extern PKS_VALUE memory_createHandleObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE tType, void* p);
 
 /*
  * Returns an array object with all values contained in the map type value passed as single argument.

@@ -74,7 +74,7 @@ EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(),
 bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
 interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(), macroc_indexOf(), macroc_stringTokenize(), macroc_tolower(), macro_getFunctionNamesMatching(), macroc_fileTest(),
-macroc_fileListFiles();
+macroc_fileListFiles(), edit_replaceText();
 
 static long long function_unused() {
     // NOT USED ANY MORE
@@ -129,9 +129,9 @@ EDFUNC _functionTable[] = {
 {/*43*/  codecomplete_showSuggestionWindow, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_HASFORM , "CodeCompleteSuggest",        NULL,  "ibFORM_i"                                     },
 {/*44*/  macro_executeMacroByIndex, -1, EW_NOCASH | EW_CCASH | 0,                                      "PlayMacro",                  NULL,  "ieMAC_"                                      },
 {/*45*/  EdMacroRecord, -1, EW_NOCASH | 0,                                                             "RecordMacro",                NULL,  "i"                                           },
-{/*46*/  EdFindInFileList, -1, EW_HASFORM | 0,                                                         "FindInFileList",             NULL,  "ibFORM_ssieRE_"                             },
-{/*47*/  EdFind, -1, EW_NEEDSCURRF | EW_HASFORM | 0,                                                   "Find",                       NULL,  "ibFORM_seDIR_eRNG_eRE_"                      },
-{/*48*/  EdReplace, -1, EW_MODIFY | EW_NEEDSCURRF | EW_HASFORM | 0,                                    "Replace",                    NULL,  "ibFORM_sseREP_eRNG_eRE_"                    },
+{/*46*/  EdFindInFileList, -1, EW_HASFORM | 0,                                                         "FindInFileList",             NULL,  "ibFORM_ssibRE_"                             },
+{/*47*/  EdFind, -1, EW_NEEDSCURRF | EW_HASFORM | 0,                                                   "Find",                       NULL,  "ibFORM_seDIR_eRNG_bRE_"                      },
+{/*48*/  EdReplace, -1, EW_MODIFY | EW_NEEDSCURRF | EW_HASFORM | 0,                                    "Replace",                    NULL,  "ibFORM_sseREP_eRNG_bRE_"                    },
 {/*49*/  EdFindAgain, -1, EW_NEEDSCURRF | 0,                                                           "FindAgain",                  NULL,  "ieDIR_"                                      },
 {/*50*/  EdReplaceAgain, -1, EW_MODIFY | EW_NEEDSCURRF | 0,                                            "ReplaceAgain",               NULL,  "i"                                           },
 {/*51*/  EdCharControlInsert, -1, EW_MODIFY | EW_NEEDSCURRF | EW_HASFORM | EW_CCASH | 0,               "InsertControl",              NULL,  "ibFORM_i"                                     },
@@ -176,7 +176,7 @@ EDFUNC _functionTable[] = {
 {/*90*/EdScrollScreen, -1, EW_NEEDSCURRF | 0,                                                          "ScrollScreen",               NULL,  "ieMOT_"                                      },
 {/*91*/EdScrollCursor, -1, EW_NEEDSCURRF | 0,                                                          "ScrollCursor",               NULL,  "ieMOT_"                                      },
 {/*92*/fm_gotoLastPosition, -1, EW_CUSTOM_ENABLEMENT,                                                  "GotoLastPosition", fm_canGotoLast,  "i"                                           },
-{/*93*/EdAlignText, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                   "AlignText",                  NULL,  "ibFORM_sieRNG_eRE_eAL_"                     },
+{/*93*/EdAlignText, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                   "AlignText",                  NULL,  "ibFORM_sieRNG_bRE_eAL_"                     },
 {/*94*/error_setShowMessages, -1, 0,                                                                   "ShowMessages",               NULL,  "ii"                                          },
 {/*95*/EdBlockMouseMark, -1, EW_NEEDSCURRF | 0,                                                        "MouseMarkBlock",             NULL,  "ii"                                      },
 {/*96*/EdMouseMarkParts, -1, EW_NEEDSCURRF | 0,                                                        "MouseMarkParts",             NULL,  "ieMOT_"                                      },
@@ -190,7 +190,7 @@ EDFUNC _functionTable[] = {
 {/*104*/macro_getSelectedText, -1, 0,                                                                         "GetSelected",                NULL,  "s"                                           },
 {/*105*/EdHideLines, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                         "HideLines",                  NULL,  "i"                                           },
 {/*106*/EdUnHideLine, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                        "UnHideLine",                 NULL,  "i"                                           },
-{/*107*/EdStringSubstitute, -1, 0,                                                                            "ReplaceInString",            NULL,  "sieRE_sss"                                  },
+{/*107*/EdStringSubstitute, -1, 0,                                                                            "ReplaceInString",            NULL,  "sibRE_bsss"                                  },
 {/*108*/EdExpandAbbreviation, -1, 0,                                                                          "ExpandAbbreviation",         NULL,  "i"                                           },
 {/*109*/caret_addSecondaryWithMouse, -1, EW_NEEDSCURRF| EW_CCASH ,                                     "AddSecondaryCaretMouse",     NULL,  "ibFORM_i"                                     },
 {/*110*/EdHelpContext, -1, 0,                                                                          "ShowHelp",                   NULL,  "ii"                                          },
@@ -212,7 +212,7 @@ EDFUNC _functionTable[] = {
 {/*126*/compare_navigate,-1, EW_NEEDSCURRF| EW_COMPARISON_MODE,                                        "CompareNavigate",            NULL,  "ii"                                          },
 {/*127*/compare_clear, -1, EW_NEEDSCURRF | EW_COMPARISON_MODE,                                         "CompareClear",               NULL,  "ii"                                          },
 {/*128*/bl_moveSelectionUpDown, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                       "MoveSelection",              NULL,  "ii"                                          },
-{/*129*/edit_insertString, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                            "InsertString",               NULL,  "is"                                          },
+{/*129*/edit_insertString, -1, EW_NEEDSCURRF | EW_UNDOFLSH,                                            "InsertString",               NULL,  "iWs"                                          },
 {/*130*/interpreter_size, -1, 0,                                                                       "size",                     NULL,  "P" },
 {/*131*/(long long (*)())strstr, -1, 0,                                                                 "strstr",                    NULL, "iss"},
 {/*132*/macroc_print, -1, 0, "print", NULL, "is"},
@@ -235,7 +235,9 @@ EDFUNC _functionTable[] = {
 {/*149*/macroc_fileListFiles, -1, 0, "FileListFiles", NULL, "ass" },
 {/*150*/(long long (*)())memory_mapKeys, -1, 0, "MapKeys", NULL, "P" },
 {/*151*/(long long (*)())memory_mapValues, -1, 0, "MapValues", NULL, "P" },
-{/*151*/(long long (*)())memory_mapEntries, -1, 0, "MapEntries", NULL, "P" }
+{/*151*/(long long (*)())memory_mapEntries, -1, 0, "MapEntries", NULL, "P" },
+{/*152*/(long long (*)())edit_replaceText, -1, 0, "EditorReplaceText", NULL, "iWssbRE_eRNG_eREP_" },
+{/*153*/(long long (*)())ww_getCurrentEditorWindow, -1, 0, "EditorGetCurrent", NULL, "W" }
 };
 
 int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);
@@ -682,9 +684,7 @@ PARAMETER_ENUM_VALUE _parameterEnumValueTable[] = {
 { "QUERY_WORKMODE"            , QUERY_WORKMODE },
 { "QUERY_DISPLAYMODE"         , QUERY_DISPLAYMODE },
 { "QUERY_FILEMODIFIED"        , QUERY_FILEMODIFIED },
-{ "QUERY_BLOCKXTNDMODE"       , QUERY_BLOCKXTNDMODE },
-{ "TRUE"			          , 1 },
-{ "FALSE"			          , 0 },
+{ "QUERY_BLOCKXTNDMODE"       , QUERY_BLOCKXTNDMODE }
 };
 // Must not be more currently than 256!!!!
 int _parameterEnumValueTableSize = sizeof(_parameterEnumValueTable) / sizeof(_parameterEnumValueTable[0]);

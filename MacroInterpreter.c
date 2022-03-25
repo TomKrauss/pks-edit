@@ -567,44 +567,47 @@ int interpreter_canExecuteFunction(int num, long long pParam, int warn) {
 /*
  * Call a method generically (foreign function interface) - should use libffi on a long term run.
  */
-static long long cdecl interpreter_callFfi(EDFUNC* pFunc, intptr_t p1, intptr_t p2, void* s1, void* s2, void* s3) {
+static long long cdecl interpreter_callFfi(EDFUNC* pFunc, intptr_t* pStack) {
 	if (!pFunc->execute) {
 		return 0;
 	}
+
 	// Handle typical function prototypes explicitly
 	int nParams = function_getParameterCount(pFunc);
+	PARAMETER_TYPE_DESCRIPTOR pd1;
+	if (nParams >= 1) {
+		pd1 = function_getParameterTypeDescriptor(pFunc, 1);
+	} 
 	if (nParams == 1) {
-		if (function_getParameterTypeDescriptor(pFunc, 1).pt_type == PARAM_TYPE_STRING) {
-			return (*pFunc->execute)(s1);
+		if (pd1.pt_type == PARAM_TYPE_STRING) {
+			return (*pFunc->execute)(((void**)pStack)[0]);
 		}
-	}
-	else if (nParams == 2) {
-		PARAMETER_TYPE_DESCRIPTOR pd1 = function_getParameterTypeDescriptor(pFunc, 1);
+	} else if (nParams == 2) {
 		PARAMETER_TYPE_DESCRIPTOR pd2 = function_getParameterTypeDescriptor(pFunc, 2);
 		if (pd1.pt_type == PARAM_TYPE_STRING) {
 			if (pd2.pt_type == PARAM_TYPE_STRING) {
-				return (*pFunc->execute)(s1, s2);
+				return (*pFunc->execute)((void*)pStack[0], (void*)pStack[1]);
 			}
-			return (*pFunc->execute)(s1, p1);
+			return (*pFunc->execute)((void*)pStack[0], (long)pStack[1]);
 		}
 		if (pd2.pt_type == PARAM_TYPE_STRING) {
 			if (pd1.pt_type != PARAM_TYPE_STRING) {
-				return (*pFunc->execute)(p1, s1);
+				return (*pFunc->execute)((long)pStack[0], (void*)pStack[1]);
 			}
 		}
 	}
-	return (*pFunc->execute)(p1, p2, s1, s2, s3);
+	return (*pFunc->execute)((long)pStack[0], (long)pStack[1], (void*)pStack[2], (void*)pStack[3], (void*)pStack[4]);
 }
 
 /*---------------------------------*/
 /* interpreter_executeFunction()					*/
 /*---------------------------------*/
-long long cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, void *s1, void *s2, void *s3) {
+long long cdecl interpreter_executeFunction(int num, intptr_t *stack) {
 	EDFUNC *	fup = &_functionTable[num];
 	long long 	ret = 0;
 	int			i;
 
-	if (!interpreter_isFunctionEnabled(fup, (long long)p1, 1)) {
+	if (!interpreter_isFunctionEnabled(fup, (long long)*stack, 1)) {
 		return 0;
 	}
 
@@ -617,14 +620,14 @@ long long cdecl interpreter_executeFunction(int num, intptr_t p1, intptr_t p2, v
 		caret_removeSecondaryCarets();
 	}
 
-	recorder_recordFunctionWithParameters(num,(int)p1,p2,s1,s2);
+	recorder_recordFunctionWithParameters(num,(int)*stack,stack[1], (char*)stack[2], (char*)stack[3]);
 
 	if ((i = _multiplier) > 1 && (fup->flags & EW_MULTI) == 0) {
-		while (i-- > 0 && (ret = interpreter_callFfi(fup, p1,p2,s1,s2,s3)) != 0)
+		while (i-- > 0 && (ret = interpreter_callFfi(fup, stack)) != 0)
 			;
 		_multiplier = 1;
 	} else {
-		ret = interpreter_callFfi(fup, p1, p2, s1, s2, s3);
+		ret = interpreter_callFfi(fup, stack);
 	}
 
 	FTABLE* fp;
@@ -653,6 +656,10 @@ static void interpreter_returnNativeFunctionResult(EXECUTION_CONTEXT* pContext, 
 		// (A) string arrays will always be allocated by caller - array list including nested elements
 		interpreter_pushValueOntoStack(pContext, memory_createObject(pContext, VT_OBJECT_ARRAY, 0, (const void*)v));
 		arraylist_destroyStringList((ARRAY_LIST*)v);
+		return;
+	}
+	else if (typ == PARAM_TYPE_EDITOR_WINDOW) {
+		interpreter_pushValueOntoStack(pContext, memory_createHandleObject(pContext, VT_EDITOR_HANDLE, (void*)v));
 		return;
 	}
 	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .pkv_type = vt, .pkv_data.longValue = v });
@@ -684,11 +691,10 @@ static int interpreter_executeMacroByName(char* name) {
 /* interpreter_doMacroFunctions()				*/
 /*---------------------------------*/
 intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **pInstructionPointer, const COM_1FUNC *cpmax) {
-	intptr_t	nativeStack[5];
-	PKS_VALUE	tempStack[5];
+	intptr_t	nativeStack[8];
+	PKS_VALUE	tempStack[8];
 	intptr_t	rc;
 	intptr_t *	functionParameters;
-	char**		stringFunctionParameters;
 	unsigned char 	typ;
 	int  		funcnum;
 	BOOL		bNativeCall;
@@ -732,7 +738,6 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 	}
 	int nParametersPassed = ((COM_0FUNC*)pLocalInstructionPointer)->func_nargs;
 	if (bNativeCall) {
-		stringFunctionParameters = (char**)(functionParameters + 2);
 		memset(nativeStack, 0, sizeof nativeStack);
 		if (typ == C_1FUNC) {
 			*functionParameters++ = pLocalInstructionPointer->p;
@@ -746,13 +751,28 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 		for (i = 0; i < nParametersPassed; i++) {
 			tempStack[i] = interpreter_popStackValue(pContext);
 		}
+		int idxParam = 1;
 		for (i = 0; i < nParametersPassed; i++) {
 			PKS_VALUE v = tempStack[nParametersPassed-i-1];
-			if (function_getParameterTypeDescriptor(fup, i + 1).pt_type == PARAM_TYPE_STRING) {
+			PARAMETER_TYPE_DESCRIPTOR pdt = function_getParameterTypeDescriptor(fup, idxParam++);
+			if (pdt.pt_type == PARAM_TYPE_STRING) {
 				v = interpreter_coerce(pContext, v, VT_STRING);
 			}
-			if (v.pkv_type == VT_STRING) {
-				*stringFunctionParameters++ = (char*)memory_accessString(v);
+			if (pdt.pt_type == PARAM_TYPE_EDITOR_WINDOW) {
+				WINFO* wp;
+				if (v.pkv_type == VT_EDITOR_HANDLE) {
+					wp = memory_handleForValue(v);
+				} else {
+					// assume, that no editor handle param had been passed - use the default editor.
+					wp = ww_getCurrentEditorWindow();
+					i--;
+				}
+				if (wp == 0) {
+					interpreter_raiseError("Null editor handle passed to MacroC function");
+				}
+				*functionParameters++ = (intptr_t)wp;
+			} else if (v.pkv_type == VT_STRING) {
+				*functionParameters++ = (intptr_t)memory_accessString(v);
 			} else {
 				*functionParameters++ = v.pkv_data.intValue;
 			}
@@ -761,12 +781,7 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 	pLocalInstructionPointer = (COM_1FUNC*)((unsigned char*)pLocalInstructionPointer + interpreter_getParameterSize(typ, &pLocalInstructionPointer->funcnum));
 	if (bNativeCall) {
 		EDFUNC* fup = &_functionTable[funcnum];
-		rc = interpreter_executeFunction(funcnum,
-						nativeStack[0], 
-						nativeStack[1],
-						 (void*)nativeStack[2],
-						 (void*)nativeStack[3],
-						 (void*)nativeStack[4]);
+		rc = interpreter_executeFunction(funcnum, nativeStack);
 		PARAMETER_TYPE pReturnType = function_getParameterTypeDescriptor(fup, 0).pt_type;
 		interpreter_returnNativeFunctionResult(pContext, pReturnType, rc);
 	} else {

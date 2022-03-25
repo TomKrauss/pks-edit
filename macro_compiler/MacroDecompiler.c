@@ -216,7 +216,7 @@ int decompile_getLocalVariableInfo(MACRO* mp, TYPE_PROPERTY_DESCRIPTOR* pDescrip
 /*
  * Print a value for the purpose of debugging or decompilation into the destination buffer.
  */
-void decompile_printValue(char* pszBuf, PKS_VALUE v) {
+void decompile_printValue(char* pszBuf, size_t nMaxChars, PKS_VALUE v) {
 	if (v.pkv_type == VT_BOOLEAN) {
 		strcpy(pszBuf, v.pkv_data.booleanValue ? "true" : "false");
 	}
@@ -224,9 +224,45 @@ void decompile_printValue(char* pszBuf, PKS_VALUE v) {
 		sprintf(pszBuf, "%lf", v.pkv_data.doubleValue);
 	}
 	else if (v.pkv_type == VT_STRING) {
-		// check size and buffer overflow
 		const char* pString = v.pkv_managed ? memory_accessString(v) : v.pkv_data.string;
-		sprintf(pszBuf, "\"%.*s\"", 200, decompile_quoteString(pString));
+		sprintf(pszBuf, "\"%.*s\"", (int)nMaxChars-4, decompile_quoteString(pString));
+	} else if (v.pkv_type == VT_OBJECT_ARRAY) {
+		size_t nLen = memory_size(v);
+		*pszBuf = 0;
+		for (int i = 0; i < nLen; i++) {
+			char szTemp[128];
+			char szTemp2[200];
+			PKS_VALUE vNested = memory_getNestedObject(v, i);
+			decompile_printValue(szTemp, sizeof szTemp, vNested);
+			sprintf(szTemp2, "%d: %s", i, szTemp);
+			if (strlen(szTemp2) + strlen(pszBuf) >= nMaxChars) {
+				break;
+			}
+			if (i > 0) {
+				strcat(pszBuf, ", ");
+			}
+			strcat(pszBuf, szTemp2);
+		}
+	} else if (v.pkv_type == VT_MAP) {
+		// TODO: print contents
+		sprintf(pszBuf, "map(size=%d)", memory_size(v));
+	} else if (types_isStructuredType(v.pkv_type)) {
+		size_t nLen = memory_size(v);
+		*pszBuf = 0;
+		for (int i = 0; i < nLen; i++) {
+			char szTemp[128];
+			char szTemp2[200];
+			PKS_VALUE vNested = memory_getNestedObject(v, i);
+			decompile_printValue(szTemp, sizeof szTemp, vNested);
+			sprintf(szTemp2, "%s: %s", types_getPropertyName(v.pkv_type, i), szTemp);
+			if (strlen(szTemp2) + strlen(pszBuf) >= nMaxChars) {
+				break;
+			}
+			if (i > 0) {
+				strcat(pszBuf, ", ");
+			}
+			strcat(pszBuf, szTemp2);
+		}
 	} else {
 		sprintf(pszBuf, "%lld", v.pkv_data.longValue);
 	}
@@ -340,13 +376,13 @@ static int decompile_printParameter(STRING_BUF* pBuf, unsigned char *sp, PARAMET
 			stringbuf_appendChar(pBuf, '}');
 			return 1;
 		case C_PUSH_FLOAT_LITERAL:
-			decompile_printValue(szTemp, (PKS_VALUE) {
+			decompile_printValue(szTemp, sizeof szTemp, (PKS_VALUE) {
 				.pkv_type = VT_FLOAT, .pkv_data.doubleValue = ((COM_FLOAT1*)sp)->val
 			});
 			stringbuf_appendString(pBuf, szTemp);
 			return 1;
 		case C_PUSH_BOOLEAN_LITERAL:
-			decompile_printValue(szTemp, (PKS_VALUE) {
+			decompile_printValue(szTemp, sizeof szTemp, (PKS_VALUE) {
 				.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = ((COM_CHAR1*)sp)->val
 			});
 			stringbuf_appendString(pBuf, szTemp);
@@ -362,7 +398,7 @@ static int decompile_printParameter(STRING_BUF* pBuf, unsigned char *sp, PARAMET
 			val = (long long)((COM_LONG1 *)sp)->val;
 			break;
 		case C_PUSH_STRING_LITERAL:
-			decompile_printValue(szTemp, (PKS_VALUE) {
+			decompile_printValue(szTemp, sizeof szTemp, (PKS_VALUE) {
 				.pkv_type = VT_STRING, .pkv_data.string = ((COM_STRING1*)sp)->s
 			});
 			stringbuf_appendString(pBuf, szTemp);
@@ -974,6 +1010,11 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 		if (C_IS_PUSH_OPCODE(opCode)) {
 			if (!pCurrentFunctionDescriptor && nParamIndex == 1) {
 				pCurrentFunctionDescriptor = decompile_findFunctionDescriptor(sp, spend);
+				if (pCurrentFunctionDescriptor && function_getParameterTypeDescriptor(pCurrentFunctionDescriptor, 1).pt_type == PARAM_TYPE_EDITOR_WINDOW) {
+					if (opCode != C_PUSH_LOCAL_VARIABLE) {
+						nParamIndex++;
+					}
+				}
 			}
 			pStackCurrent = decompile_printPushOperation((COM_CHAR1*)sp, pStackCurrent, pStack, pCurrentFunctionDescriptor, nParamIndex);
 			sp += interpreter_getParameterSize(*sp, sp + 1);

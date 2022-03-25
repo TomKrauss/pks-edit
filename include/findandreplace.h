@@ -38,7 +38,7 @@ extern void find_setCurrentSearchExpression(const char* pExpression);
  * find_initializeReplaceByExpression()
  * Initialize the pattern used as the replace by pattern in find and replace.
  */
-extern int find_initializeReplaceByExpression(unsigned char* replaceByExpression);
+extern int find_initializeReplaceByExpression(unsigned const char* replaceByExpression);
 
 /*--------------------------------------------------------------------------
  * find_expressionInCurrentFile()
@@ -82,7 +82,7 @@ extern int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParam, FIND_IN_FIL
 extern int find_replaceTabsWithSpaces(int scope, int flg);
 
 /*--------------------------------------------------------------------------
- * EdReplaceText()
+ * edit_replaceText()
  * replace, mark, count... lines with RE
  */
 
@@ -103,7 +103,7 @@ typedef enum {
 REPLACE_TEXT_RESULT;
 
 #ifdef _WINFO_H
-extern REPLACE_TEXT_RESULT EdReplaceText(WINFO* wp, int scope, REPLACE_TEXT_ACTION action);
+extern REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, const char* pszReplaceWith, int nOptions, int scope, REPLACE_TEXT_ACTION action);
 #endif
 
 

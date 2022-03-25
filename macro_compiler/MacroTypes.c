@@ -21,6 +21,7 @@
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
 #include "symbols.h"
+#include "winfo.h"
 
 #define MAX_TYPES		64
 
@@ -91,6 +92,7 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 	pDescriptor->ptd_callbacks = pTemplate->ptd_callbacks;
 	pDescriptor->ptd_hasDynamicSize = pTemplate->ptd_hasDynamicSize;
 	pDescriptor->ptd_isValueType = pTemplate->ptd_isValueType;
+	pDescriptor->ptd_isHandleType = pTemplate->ptd_isHandleType;
 	pDescriptor->ptd_numberOfProperties = pTemplate->ptd_numberOfProperties;
 	if (t >= _maxTypeIndex) {
 		_maxTypeIndex = t+1;
@@ -129,6 +131,13 @@ static void file_close(PKS_VALUE v) {
 }
 
 /*
+ * Converts a WINFO structure to a HWND handle to be stored in the EDITOR_HANDLE. 
+ */
+static void* types_toHwnd(WINFO* wp) {
+	return wp->ww_handle;
+}
+
+/*
  * Register the default types of PKSMacroC
  */
 void types_registerDefaultTypes() {
@@ -145,8 +154,10 @@ void types_registerDefaultTypes() {
 	types_register(VT_OBJECT_ARRAY, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "#array#", .ptd_isValueType = 0, .ptd_hasDynamicSize = 1, .ptd_hasDefaultValue = 1});
 	types_register(VT_MAP, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "map", .ptd_isValueType = 0, .ptd_hasDynamicSize = 1, .ptd_hasDefaultValue = 1});
 	types_register(VT_AUTO, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "auto", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
-	types_register(VT_FILE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_FILE, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0, .ptd_callbacks = {
-		.tc_close = (T_FINALIZER)file_close
+	types_register(VT_FILE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_FILE, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0, 
+		.ptd_isHandleType = 1,
+		.ptd_callbacks = {
+			.tc_close = (T_FINALIZER)file_close
 		}});
 	TYPE_PROPERTY_DESCRIPTOR descriptors[] = {
 			{.tpd_type = VT_STRING, .tpd_name = "key"},
@@ -155,6 +166,12 @@ void types_registerDefaultTypes() {
 	types_register(VT_MAP_ENTRY, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_MAP_ENTRY, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0,
 		.ptd_properties = descriptors, .ptd_numberOfProperties = DIM(descriptors)
 	});
+	types_register(VT_EDITOR_HANDLE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_EDITOR, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0,
+		.ptd_isHandleType = 1,
+		.ptd_callbacks = {
+			.tc_handleFromMacroMemory = ww_winfoFromWorkwinHandle,
+			.tc_handleToMacroMemory = types_toHwnd,
+	}});
 }
 
 /*
@@ -176,10 +193,31 @@ T_FINALIZER types_getFinalizer(PKS_VALUE_TYPE vType) {
 }
 
 /*
+ * Return the converter for a given value handle or 0 if not converter exists.
+ */
+T_CONVERT_HANDLE types_getConverterFromMemory(PKS_VALUE_TYPE vType) {
+	return _typeDescriptors[vType]->ptd_callbacks.tc_handleFromMacroMemory;
+}
+
+/*
+ * Return the converter for a given value handle or 0 if not converter exists.
+ */
+T_CONVERT_HANDLE types_getConverterToMemory(PKS_VALUE_TYPE vType) {
+	return _typeDescriptors[vType]->ptd_callbacks.tc_handleToMacroMemory;
+}
+
+/*
  * Returns true, if a type is a value type.
  */
 BOOL types_isValueType(PKS_VALUE_TYPE vType) {
 	return _typeDescriptors[vType]->ptd_isValueType;
+}
+
+/*
+ * Returns true, if this is a "handle" type wrapping a native C pointer (FILE*, WINFO*, ...) 
+ */
+BOOL types_isHandleType(PKS_VALUE_TYPE vType) {
+	return _typeDescriptors[vType]->ptd_isHandleType;
 }
 
 /*

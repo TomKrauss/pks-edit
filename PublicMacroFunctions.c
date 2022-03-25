@@ -1372,7 +1372,8 @@ int EdReplace(void)
 		return 0;
 	}
 
-	return EdReplaceText(wp, _scope,ret);
+	return edit_replaceText(wp, _currentSearchAndReplaceParams.searchPattern, 
+		_currentSearchAndReplaceParams.replaceWith, _currentSearchAndReplaceParams.options, _scope,ret);
 }
 
 /*--------------------------------------------------------------------------
@@ -1492,7 +1493,8 @@ int EdReplaceAgain(void) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 
 	if (wp && find_replacementHadBeenPerformed())
-		return EdReplaceText(wp, RNG_ONCE,REP_REPLACE); 
+		return edit_replaceText(wp, _currentSearchAndReplaceParams.searchPattern, 
+			_currentSearchAndReplaceParams.replaceWith, _currentSearchAndReplaceParams.options, RNG_ONCE,REP_REPLACE);
 	error_showErrorById(IDS_MSGNOREPLACESTRING);
 	return 0;
 }

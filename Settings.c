@@ -248,10 +248,11 @@ EXPORT int op_onOptionWidgetSelected(int toggle)
 					MAKELONG(op->flag,op->op_type));
 				_recording = recorder_isRecording();
 			} else {
+				intptr_t stack[8];
+				stack[0] = MAKELONG(op->flag, op->op_type);
 				return (int)interpreter_executeFunction(
 					FUNC_EdOptionToggle,
-						MAKELONG(op->flag,op->op_type),
-						0L,(LPSTR)0,(LPSTR)0, (LPSTR)0);
+						stack);
 			}
           }
 	}

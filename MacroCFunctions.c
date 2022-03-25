@@ -181,9 +181,7 @@ PKS_VALUE macroc_fileOpen(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int n
 	if (!fp) {
 		return (PKS_VALUE) {.pkv_type = VT_NIL};
 	}
-	PKS_VALUE vResult = memory_createObject(pContext, VT_FILE, 1, 0);
-	memory_setNestedPointer(vResult, 0, (MAKE_TYPED_OBJECT_POINTER(0, 0, fp)));
-	return vResult;
+	return memory_createHandleObject(pContext, VT_FILE, fp);
 }
 
 /*
@@ -194,8 +192,7 @@ PKS_VALUE macroc_fileReadLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 	if (nArgs < 1 || pValues[0].pkv_type != t) {
 		interpreter_raiseError("No file pointer passed to FileReadLine");
 	}
-	TYPED_OBJECT_POINTER p = memory_getNestedObjectPointer(pValues[0], 0);
-	FILE* fp = (FILE*)TOP_DATA_POINTER(p);
+	FILE* fp = memory_handleForValue(pValues[0]);
 	if (fgets(_linebuf, MAXLINELEN, fp)) {
 		_linebuf[strcspn(_linebuf, "\r\n")] = 0;
 		return memory_createObject(pContext, VT_STRING, 0, _linebuf);
@@ -214,8 +211,7 @@ PKS_VALUE macroc_fileWriteLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, 
 	if (pValues[0].pkv_type != t || pValues[1].pkv_type != VT_STRING) {
 		interpreter_raiseError("No file pointer / no string to write passed to FileWriteLine");
 	}
-	TYPED_OBJECT_POINTER p = memory_getNestedObjectPointer(pValues[0], 0);
-	FILE* fp = (FILE*)TOP_DATA_POINTER(p);
+	FILE* fp = memory_handleForValue(pValues[0]);
 	BOOL bSuccess = fputs(memory_accessString(pValues[1]), fp) >= 0;
 	fputc('\n', fp);
 	return (PKS_VALUE) {
@@ -232,9 +228,9 @@ PKS_VALUE macroc_fileClose(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int 
 	if (pValues[0].pkv_type != t) {
 		interpreter_raiseError("No file pointer passed to FileClose");
 	}
-	TYPED_OBJECT_POINTER p = memory_getNestedObjectPointer(pValues[0], 0);
-	if (p) {
-		fclose((FILE*)TOP_DATA_POINTER(p));
+	FILE* fp = memory_handleForValue(pValues[0]);
+	if (fp) {
+		fclose(fp);
 		memory_setNestedPointer(pValues[0], 0, (MAKE_TYPED_OBJECT_POINTER(0, 0, 0)));
 	}
 	return (PKS_VALUE) {

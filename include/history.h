@@ -48,7 +48,7 @@ typedef struct tagSESSION_DATA {
 	void* sd_histories[OPEN_IN_EDITOR+1];				// the various histories
 } SESSION_DATA;
 
-extern void hist_saveString(HISTORY_TYPE type, char *string);
+extern void hist_saveString(HISTORY_TYPE type, const char *string);
 extern void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type);
 extern char *hist_getString(HISTORY_TYPE type, int nItem);
 

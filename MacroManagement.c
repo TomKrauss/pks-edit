@@ -534,7 +534,9 @@ int macro_onMenuAction(WINFO* wp, int menunum, POINT* aPositionClicked) {
  * macro_onCharacterInserted()
  */
 int macro_onCharacterInserted(WORD c) {
-	return (int) interpreter_executeFunction(FUNC_EdCharInsert,c,0,(void*)0,(void*)0,(void*)0);
+	intptr_t stack[8];
+	stack[0] = c;
+	return (int) interpreter_executeFunction(FUNC_EdCharInsert, stack);
 }
 
 static int macro_executeWithProgress(MACROREF* mp) {

@@ -486,8 +486,9 @@ static void Test-Binary-Expressions() {
 	AssertEquals(11, (1 | 0xA));
 	AssertEquals(0, (1 & 0xA));
 	AssertEquals(27, (3 ** 3));
-	AssertEquals(3, (12 >> 2));
-	AssertEquals(32, (8 << 2));
+	AssertEquals(3, 12 >> 2);
+	AssertEquals(32, 8 << 2);
+	AssertEquals(1, 13 % 2);
 	AssertEquals(11, (2 + 3 * 3));
 	AssertEquals(3, (4 - 3 / 2));
 	AssertEquals(3, (7 * 3 % 4 ^ 2));

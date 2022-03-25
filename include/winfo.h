@@ -402,6 +402,11 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y);
 
 extern void wt_setCaretVisibility(WINFO* wp, int type);
 
+/*
+ * Returns the WINFO data structure for a workwindow window handle.
+ */
+extern WINFO* ww_winfoFromWorkwinHandle(HWND hwnd);
+
 /*------------------------------------------------------------
  * wt_scrollxy()
  * Scroll the current window by a number of lines and columns.

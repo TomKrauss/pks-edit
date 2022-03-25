@@ -110,7 +110,7 @@ BOOL find_replacementHadBeenPerformed() {
  * find_initializeReplaceByExpression()
  * Initialize the pattern used as the replace by pattern in find and replace.
  */
-int find_initializeReplaceByExpression(unsigned char* replaceByExpression) {
+int find_initializeReplaceByExpression(unsigned const char* replaceByExpression) {
 	unsigned char nlchar;
 	if (ft_getCurrentDocument()) {
 		nlchar = ft_getCurrentDocument()->documentDescriptor->nl;
@@ -118,7 +118,7 @@ int find_initializeReplaceByExpression(unsigned char* replaceByExpression) {
 	else {
 		nlchar = '\n';
 	}
-	int result = regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) { replaceByExpression, _currentSearchAndReplaceParams.options, nlchar, _lastCompiledPattern.nbrackets },
+	int result = regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) { (char*)replaceByExpression, _currentSearchAndReplaceParams.options, nlchar, _lastCompiledPattern.nbrackets },
 		& _currentReplacementPattern);
 	if (_currentReplacementPattern.errorCode) {
 		regex_compilationFailed(_currentReplacementPattern.errorCode);
@@ -722,10 +722,10 @@ static void strxcpy(char *d, char *s, int newlen)
 }
 
 /*--------------------------------------------------------------------------
- * EdReplaceText()
+ * edit_replaceText()
  * replace, mark, count... lines with RE
  */
-REPLACE_TEXT_RESULT EdReplaceText(WINFO* wp, int scope, REPLACE_TEXT_ACTION action) {
+REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, const char* pszReplaceWith, int nOptions, int scope, REPLACE_TEXT_ACTION action) {
 	long 	ln, col, startln, lastfln;
 	long    nReplacements = 0L;
 	unsigned char 	*q;
@@ -748,13 +748,13 @@ REPLACE_TEXT_RESULT EdReplaceText(WINFO* wp, int scope, REPLACE_TEXT_ACTION acti
 	if (ft_checkReadonlyWithError(fp) && action == REP_REPLACE) {
 		return RTR_ERROR;
 	}
-	regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
-	find_initializeReplaceByExpression(_currentSearchAndReplaceParams.replaceWith);
+	regex_compileWithDefault(pszSearchPattern);
+	find_initializeReplaceByExpression(pszReplaceWith);
 	newlen = _currentReplacementPattern.preparedReplacementString ? (long)strlen(_currentReplacementPattern.preparedReplacementString) : 0;
 
 	/* call before assigning firstline	*/
-	hist_getSessionData()->sd_searchAndReplaceOptions = _currentSearchAndReplaceParams.options;
-	hist_saveString(SEARCH_AND_REPLACE, _currentSearchAndReplaceParams.replaceWith);
+	hist_getSessionData()->sd_searchAndReplaceOptions = nOptions;
+	hist_saveString(SEARCH_AND_REPLACE, pszReplaceWith);
 	undo_startModification(fp);
 	caret_saveLastPosition();
 
@@ -771,8 +771,8 @@ REPLACE_TEXT_RESULT EdReplaceText(WINFO* wp, int scope, REPLACE_TEXT_ACTION acti
 	lastfln = wp->caret.ln;
 	lastfcol = wp->caret.offset;
 
-	query  = _currentSearchAndReplaceParams.options & RE_CONFIRM_REPLACEMENT;
-	marked = _currentSearchAndReplaceParams.options & RE_CONSIDER_MARKED_LINES;
+	query  = nOptions & RE_CONFIRM_REPLACEMENT;
+	marked = nOptions & RE_CONSIDER_MARKED_LINES;
 	if (ww_isColumnSelectionMode(wp) && scope == RNG_BLOCK)
 		column = 1;
 
@@ -917,7 +917,7 @@ endrep:
 
 	if (nReplacements) {
 		if (action != REP_COUNT) {
-			BOOL bKeepCaret = _currentSearchAndReplaceParams.options & RE_KEEP_CARET;
+			BOOL bKeepCaret = nOptions & RE_KEEP_CARET;
 			if (_currentReplacementPattern.lineSplittingNeeded) {
 				caret_placeCursorInCurrentFile(wp, startln,0L);
 				ln = breaklines(fp,0,startln,ln);
@@ -939,9 +939,9 @@ endrep:
 		/* ft_countlinesStartingFromDirection MUST be called to clear lineflags !!!! */
 		ln = ft_countlinesStartingFromDirection(fp,startln,1);
 		if (action != REP_REPLACE) {
-			error_showMessageInStatusbar(IDS_MSGNFOUND, _currentSearchAndReplaceParams.searchPattern, ln, nReplacements);
+			error_showMessageInStatusbar(IDS_MSGNFOUND, pszSearchPattern, ln, nReplacements);
 		} else {
-			error_showMessageInStatusbar(IDS_MSGNREPL, _currentSearchAndReplaceParams.searchPattern, nReplacements, ln);
+			error_showMessageInStatusbar(IDS_MSGNREPL, pszSearchPattern, nReplacements, ln);
 		}
 	} else if (bResult != RTR_CANCELLED) {
 		error_showErrorById(IDS_MSGSTRINGNOTFOUND);

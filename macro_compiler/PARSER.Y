@@ -102,6 +102,10 @@ extern unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer,
 extern unsigned char* bytecode_emitAssignment(BYTECODE_BUFFER* pBuffer, const char *name);
 extern unsigned char* bytecode_emitLocalAssignment(BYTECODE_BUFFER* pBuffer, int nHeapIndex);
 extern unsigned char* bytecode_emitFunctionCall(BYTECODE_BUFFER* pBuffer, unsigned char typ, GENERIC_DATA data, int nArgs);
+/*
+ * Eliminate unneccessary instructions from the byte codes generated.
+ */
+extern void bytecode_optimizeInstructions(BYTECODE_BUFFER* pBuffer);
 extern void bytecode_startSwitchTable(int aLevel);
 extern int bytecode_generateAutoLabelNamePrefix(BYTECODE_BUFFER* pBuffer, char *prefix,int level);
 extern void bytecode_destroyAutoLabelNamePrefix(char *prefix, int level);
@@ -397,6 +401,7 @@ macro_definition: { init_macroDefinition(); }
 				macro_validateMacroName($2.ident.s, -1, 1);
 				YY_EMIT(C_STOP, (GENERIC_DATA){1});
 				_compilerConfiguration->cb_showStatus("Defining macro %s",$2.ident.s);
+				bytecode_optimizeInstructions(_currentBytecodeBuffer);
 				MACRO_PARAM param = {
 					.mp_name = $2.ident.s,
 					.mp_comment = _yyCurrentComment,

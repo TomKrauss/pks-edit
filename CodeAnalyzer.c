@@ -96,6 +96,13 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 	szIdentifier[0] = 0;
 	for (int i = 0; i < wp->caret.offset; i++) {
 		char c = wp->caret.linePointer->lbuf[i];
+		if (bInParams) {
+			if (c == ')') {
+				szIdentifier[0] = 0;
+				bInParams = FALSE;
+			}
+			continue;
+		}
 		if (isalpha(c)) {
 			if (!pszDest) {
 				pszDest = szIdentifier;
@@ -113,9 +120,6 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 		}
 		if (c == '(' && szIdentifier[0]) {
 			bInParams = TRUE;
-		} else {
-			szIdentifier[0] = 0;
-			bInParams = FALSE;
 		}
 	}
 	char* key;

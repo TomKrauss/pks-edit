@@ -577,3 +577,29 @@ PKS_VALUE memory_atObject(PKS_VALUE vTarget, PKS_VALUE vKey) {
 	return (PKS_VALUE) { 0 };
 }
 
+/*
+ * If the passed value is of type "handle" (file handle, editor handle etc...), it is assumed,
+ * that one foreign memory nested object exists, which can be uwrapped using this method. In
+ * other words: return the FILE* or WINFO* objects associated with the given value.
+ */
+void* memory_handleForValue(PKS_VALUE vValue) {
+	TYPED_OBJECT_POINTER p = memory_getNestedObjectPointer(vValue, 0);
+	void *pResult = TOP_DATA_POINTER(p);
+	T_CONVERT_HANDLE tConverter = types_getConverterFromMemory(vValue.pkv_type);
+	return tConverter ? tConverter(pResult) : pResult;
+}
+
+/*
+ * Creates a "handle" type PKSMacroC object, which wraps a native C pointer to be passed around
+ * in macroC code.
+ */
+PKS_VALUE memory_createHandleObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE tType, void* p) {
+	PKS_VALUE vResult = memory_createObject(pContext, tType, 1, 0);
+	T_CONVERT_HANDLE tConverter = types_getConverterToMemory(tType);
+	if (tConverter) {
+		p = tConverter(p);
+	}
+	memory_setNestedPointer(vResult, 0, (MAKE_TYPED_OBJECT_POINTER(0, 0, p)));
+	return vResult;
+}
+
