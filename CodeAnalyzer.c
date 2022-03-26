@@ -139,6 +139,12 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 				fCallback(pFunc->f_name, pFunc, analyzer_helpForFunc);
 			}
 		}
+		for (PKS_VALUE_TYPE vt = VT_FILE; types_existsType(vt); vt++) {
+			const char* pName = types_nameFor(vt);
+			if (fMatch(pName)) {
+				fCallback(pName, NULL, NULL);
+			}
+		}
 		for (int i = 0; i < macro_getNumberOfMacros(); i++) {
 			MACRO* mp = macro_getByIndex(i);
 			if (!mp) {

@@ -164,6 +164,11 @@ extern int decompile_getLocalVariableInfo(MACRO* mp, TYPE_PROPERTY_DESCRIPTOR* p
 extern T_FINALIZER types_getFinalizer(PKS_VALUE_TYPE vType);
 
 /*
+ * Answer true, if the passed type exists.
+ */
+extern int types_existsType(PKS_VALUE_TYPE t);
+
+/*
  * Returns true, if a type is a value type.
  */
 extern BOOL types_isValueType(PKS_VALUE_TYPE vType);

@@ -74,11 +74,16 @@ EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(),
 bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
 interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(), macroc_indexOf(), macroc_stringTokenize(), macroc_tolower(), macro_getFunctionNamesMatching(), macroc_fileTest(),
-macroc_fileListFiles(), edit_replaceText();
+macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors();
 
 static long long function_unused() {
     // NOT USED ANY MORE
     return 0;
+}
+
+static const char* ww_getFilename(WINFO* wp) {
+    FTABLE* fp = wp->fp;
+    return fp->fname;
 }
 
 // Describes functions and their respective names, options and parameter type descriptions for being used e.g. from within PKSMacroC.
@@ -190,7 +195,7 @@ EDFUNC _functionTable[] = {
 {/*104*/macro_getSelectedText, -1, 0,                                                                         "GetSelected",                NULL,  "s"                                           },
 {/*105*/EdHideLines, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                         "HideLines",                  NULL,  "i"                                           },
 {/*106*/EdUnHideLine, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                        "UnHideLine",                 NULL,  "i"                                           },
-{/*107*/EdStringSubstitute, -1, 0,                                                                            "ReplaceInString",            NULL,  "sibRE_bsss"                                  },
+{/*107*/EdStringSubstitute, -1, 0,                                                                            "StringReplace",            NULL,  "ssssbRE_i"                                  },
 {/*108*/EdExpandAbbreviation, -1, 0,                                                                          "ExpandAbbreviation",         NULL,  "i"                                           },
 {/*109*/caret_addSecondaryWithMouse, -1, EW_NEEDSCURRF| EW_CCASH ,                                     "AddSecondaryCaretMouse",     NULL,  "ibFORM_i"                                     },
 {/*110*/EdHelpContext, -1, 0,                                                                          "ShowHelp",                   NULL,  "ii"                                          },
@@ -238,8 +243,9 @@ EDFUNC _functionTable[] = {
 {/*151*/(long long (*)())memory_mapEntries, -1, 0, "MapEntries", NULL, "P" },
 {/*152*/(long long (*)())edit_replaceText, -1, 0, "EditorReplaceText", NULL, "iWssbRE_eRNG_eREP_" },
 {/*153*/(long long (*)())ww_getCurrentEditorWindow, -1, 0, "EditorGetCurrent", NULL, "W" },
-{/*154*/(long long (*)())ww_selectWindow, -1, 0, "EditorSetCurrent", NULL, "iW" }
-
+{/*154*/(long long (*)())ww_selectWindow, -1, 0, "EditorSetCurrent", NULL, "iW" },
+{/*155*/(long long (*)())edit_getAllEditors, -1, 0, "EditorGetAll", NULL, "P" },
+{/*155*/(long long (*)())ww_getFilename, -1, 0, "EditorGetFilename", NULL, "sW" }
 };
 
 int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);

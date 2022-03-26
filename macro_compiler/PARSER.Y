@@ -743,6 +743,7 @@ for_to_clause: '(' opt_for_initializer {
 			} ';' binary_expression ';' {
 				parser_switchToBuffer(_breaklevel+1);
 			} for_increment {
+				YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); 
 				parser_switchToBuffer(0);
 			} ')'
 

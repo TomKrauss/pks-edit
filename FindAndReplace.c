@@ -954,9 +954,8 @@ endrep:
  * EdStringSubstitute()
  * substitute in a string
  */
-char* EdStringSubstitute(unsigned long nmax, long nREFlags, char *string, char *pattern, char *with)
-{
-	static char	ebuf[ESIZE];
+char* EdStringSubstitute(char *string, char *pattern, char *with, long nREFlags, int maxOccurence) {
+	char	ebuf[ESIZE];
 	char *	src;
 	char *	send;
 	int		newlen;
@@ -985,7 +984,7 @@ char* EdStringSubstitute(unsigned long nmax, long nREFlags, char *string, char *
 			;
 		src = _linebuf;
 
-		while(nmax-- > 0) {
+		while(maxOccurence-- > 0) {
 			if (!regex_match(pPattern, src,send, &match)) {
 				break;
 			}

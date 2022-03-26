@@ -162,6 +162,38 @@ static void memory_markObjects(EXECUTION_CONTEXT* pContext) {
 }
 
 /*
+ * Puh: worst case: an object was resized and its pointer has moved. Update all PKS_VALUES
+ * using that pointer.
+ */
+static void memory_pointerChanged(EXECUTION_CONTEXT* pContext, void* pOld, void* pNew) {
+	int objIdx = 0;
+	while (objIdx < _objectSpace.om_capacity) {
+		if (_objectSpace.om_objects[objIdx] == pOld) {
+			_objectSpace.om_objects[objIdx] = pNew;
+		}
+		objIdx++;
+	}
+	EXECUTION_CONTEXT* pCtx = pContext;
+	while (pCtx) {
+		for (int i = 0; i < pCtx->ec_localVariableCount; i++) {
+			PKS_VALUE* pVar = &pCtx->ec_localVariables[i];
+			if (pVar->pkv_isPointer && pVar->pkv_data.objectPointer == pOld) {
+				pVar->pkv_data.objectPointer = pNew;
+			}
+		}
+		pCtx = pCtx->ec_parent;
+	}
+	// TODO: update globals as well - sym_traverseManagedObjects(sym_getGlobalContext(), memory_updatePointer);
+	PKS_VALUE* pVar = pContext->ec_stackBottom;
+	while (pVar <= pContext->ec_stackCurrent) {
+		if (pVar->pkv_isPointer && pVar->pkv_data.objectPointer == pOld) {
+			pVar->pkv_data.objectPointer = pNew;
+		}
+		pVar++;
+	}
+}
+
+/*
  * Try to get rid of some allocated memory not referenced by the stack any more.
  * This method must be invoked with care and not in the middle of an operation
  * allocating more objects not yet referenced or the objects just created might
@@ -401,21 +433,19 @@ int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS_VALUE 
 	OBJECT_DATA* pData = vObject->pkv_data.objectPointer;
 	if (pData->od_size >= pData->od_capacity) {
 		size_t oldSize = sizeof(OBJECT_DATA) + pData->od_capacity * sizeof(OBJECT_DATA*);
-		pData->od_capacity += 10;
-		size_t newSize = sizeof(OBJECT_DATA) + pData->od_capacity * sizeof(OBJECT_DATA*);
-		int objIdx = 0;
-		while (objIdx < _objectSpace.om_capacity) {
-			if (_objectSpace.om_objects[objIdx] == pData) {
-				break;
-			}
-			objIdx++;
+		if (pData->od_capacity > 100) {
+			pData->od_capacity = pData->od_capacity * 5 / 4;
+		} else {
+			pData->od_capacity += 10;
 		}
+		size_t newSize = sizeof(OBJECT_DATA) + pData->od_capacity * sizeof(OBJECT_DATA*);
+		void* pOld = pData;
 		pData = realloc(pData, newSize);
 		if (!pData) {
 			return 0;
 		}
-		if (objIdx < _objectSpace.om_capacity) {
-			memory_assignSlot(&_objectSpace, objIdx, pData);
+		if (pOld != pData) {
+			memory_pointerChanged(pContext, pOld, pData);
 		}
 		vObject->pkv_data.objectPointer = pData;
 		size_t diff = newSize - oldSize;

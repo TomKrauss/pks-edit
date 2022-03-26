@@ -296,6 +296,14 @@ static void Test-Arrays() {
 	AssertEquals(-4, mixedArray[3]);
 }
 
+static void Test-ArrayAdd() {
+	string[] a;
+	for (int i = 0; i < 10_000; i++) {
+		a += "->" + i;
+	}
+	AssertEquals(10_000, size(a));
+}
+
 /*
  * Tests switch expressions.
  */
@@ -437,6 +445,20 @@ static void Test-Globals() {
 	AssertEquals(30, sampleGlobal);
 }
 
+static void Test-EditorHandles() {
+	EDITOR hCurrent = EditorGetCurrent();
+	boolean bFound = false;
+	for (EDITOR hFile : EditorGetAll()) {
+		EditorSetCurrent(hFile);
+		println(EditorGetFilename(hFile));
+		if (hFile == hCurrent) {
+			bFound = true;
+		}
+	}
+	EditorSetCurrent(hCurrent);
+	AssertTrue(bFound, "Should have found editor handle of current editor in list of all handles");
+}
+
 /*
  * String functions and operators.
  */
@@ -465,6 +487,10 @@ static void Test-Strings() {
 
 	tokens = StringTokenize("hello world");
 	AssertEquals(2, size(tokens));
+
+	myString = "the quick brown fox jumps over the lazy dog";
+	xlated = StringReplace(myString, "\\s", "_", RE_DOREX, 10000);
+	AssertEquals("the_quick_brown_fox_jumps_over_the_lazy_dog", xlated);
 }
 
 static void Test-Decompile-Binary() {

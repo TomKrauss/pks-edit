@@ -1,4 +1,4 @@
-## Saving Files
+# Saving Files
 
 You may save you changes at any time by pressing `Ctrl+S`. Note, that one may configure PKS-Edit to automatically
 save files. There are two autosave modes:

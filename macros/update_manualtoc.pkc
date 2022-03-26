@@ -1,0 +1,63 @@
+
+
+const MANUAL_DIRECTORY = "\\doc\\manual";
+
+!
+
+static void ProcessFile(string directory, string fileName, string[] toc) {
+	string line;
+	string title;
+	string anchor;
+	int len;
+	FILE fp = FileOpen(directory + "\\" + fileName, "r");
+
+	while (line = FileReadLine(fp)) {
+		len = size(line);
+		if (line ~ "^# .*") {
+			toc += "- [" + line[2..len] + "](" + fileName + ")";
+		} else if (line ~ "^## .*") {
+			title = line[3..len];
+			anchor = StringReplace(title, " ", "_", 0, 100);
+			toc += "  - [" + title + "](" + fileName + "#" + anchor + ")";
+		}
+	}
+
+	FileClose(fp);
+}
+
+static void ReadTOCStart(string directory, string[] toc) {
+	FILE fp = FileOpen(directory + "\\toc.md", "r");
+	string line;
+
+	while (line = FileReadLine(fp)) {
+		toc += line;
+		if (line ~ "^## Table.*") {
+			toc += "";
+			break;
+		}
+	}
+
+	FileClose(fp);
+}
+
+/*
+ * Updates the PKS-Edit manual TOC.
+ */
+void UpdateManualToc() {
+	string[5] tocs;
+	string manualDir = GetVariable("pks_sys") + "\\.." + MANUAL_DIRECTORY;
+
+	clear();
+	println("Starting to update TOC in directory " + manualDir);
+	ReadTOCStart(manualDir, tocs);
+	for (string fileName : FileListFiles(manualDir, "*.md")) {
+		if (fileName != "toc.md") {
+			ProcessFile(manualDir, fileName, tocs);
+		}
+	}
+	for (string s : tocs) {
+		println(s);
+	}
+
+}
+

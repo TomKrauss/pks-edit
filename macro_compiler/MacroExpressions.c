@@ -110,7 +110,7 @@ PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_
  * strmatch()
  */
 static int strmatch(const char *s1,const char *s2) {	
-	char   ebuf[256];
+	char ebuf[512];
 	const char *eol;
 	RE_PATTERN pattern;
 	RE_OPTIONS options;
@@ -127,11 +127,9 @@ static int strmatch(const char *s1,const char *s2) {
 	}
 	RE_MATCH match;
 
-	if (regex_match(&pattern, s1, eol, &match) &&
-	    match.loc1 == s1 && match.loc2 == eol)
-		return 1;
-
-	return 0;
+	return regex_match(&pattern, s1, eol, &match) &&
+	    match.loc1 == s1 && 
+		match.loc2 == eol;
 }
 
 /*--------------------------------------------------------------------------
@@ -156,19 +154,31 @@ int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
 		v1 = (PKS_VALUE){.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = v1.pkv_data.longValue != 0};
 	}
 	if (v1.pkv_type != VT_STRING && !CT_IS_LOGICAL(op)) {
-		long long r1, r2;
-		v1 = interpreter_coerce(pContext, v1, VT_NUMBER);
-		v2 = interpreter_coerce(pContext, v2, VT_NUMBER);
-		r1 = v1.pkv_data.longValue;
-		r2 = v2.pkv_data.longValue;
-		switch(op) {
-			case CT_EQ: bResult = r1 == r2; break;
-			case CT_NE: bResult = r1 != r2; break;
-			case CT_GE: bResult = r1 >= r2; break;
-			case CT_GT: bResult = r1 > r2; break;
-			case CT_LT: bResult = r1 < r2; break;
-			case CT_LE: bResult = r1 <= r2; break;
-			default   : goto notimpl;
+		if (v1.pkv_type == v2.pkv_type && types_isHandleType(v1.pkv_type)) {
+			void* p1 = memory_handleForValue(v1);
+			void* p2 = memory_handleForValue(v2);
+			if (op == CT_EQ) {
+				bResult = p1 == p2;
+			} else if (op == CT_NE) {
+				bResult = p1 != p2;
+			} else {
+				goto notimpl;
+			}
+		} else {
+			long long r1, r2;
+			v1 = interpreter_coerce(pContext, v1, VT_NUMBER);
+			v2 = interpreter_coerce(pContext, v2, VT_NUMBER);
+			r1 = v1.pkv_data.longValue;
+			r2 = v2.pkv_data.longValue;
+			switch(op) {
+				case CT_EQ: bResult = r1 == r2; break;
+				case CT_NE: bResult = r1 != r2; break;
+				case CT_GE: bResult = r1 >= r2; break;
+				case CT_GT: bResult = r1 > r2; break;
+				case CT_LT: bResult = r1 < r2; break;
+				case CT_LE: bResult = r1 <= r2; break;
+				default   : goto notimpl;
+			}
 		}
 	} else if (v1.pkv_type == VT_STRING) {
 		int r1;
@@ -215,12 +225,13 @@ notimpl:		interpreter_raiseError("Test: Operator 0x%x not implemented",op);
  * Evaluate expressions like 7 * "xy" or 4 * '\t'
  */
 static void interpreter_evaluateMultiplicationWithStrings(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, PKS_VALUE v2) {
-	char buf[1024];
+	char *buf;
 	v1 = interpreter_coerce(pContext, v1, VT_NUMBER);
 	int l1 = v1.pkv_data.intValue;
 	int nMult = v2.pkv_type == VT_CHAR ? 1 : (int)memory_size(v2);
-	if (l1 * nMult > sizeof(buf) - 2) {
-		interpreter_raiseError("Attempt to create a string of excessive size %d using a multiplication operator", l1 * nMult);
+	buf = calloc(1, l1*nMult+5);
+	if (!buf) {
+		interpreter_raiseError("out of memory");
 	}
 	char* d = buf;
 	for (int i = 0; i < l1; i++) {
@@ -234,6 +245,7 @@ static void interpreter_evaluateMultiplicationWithStrings(EXECUTION_CONTEXT* pCo
 	}
 	*d = 0;
 	interpreter_pushValueOntoStack(pContext, interpreter_allocateString(pContext, buf));
+	free(buf);
 }
 
 /*
@@ -257,21 +269,15 @@ static void interpreter_createRange(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, P
 static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext, int bOperation, PKS_VALUE vSource, PKS_VALUE vIndex) {
 	size_t nMax = memory_size(vSource);
 	if (bOperation == BIN_ADD) {
-		size_t nOrig = memory_size(vSource);
-		// TODO: calculate the result size for all cases and pass here.
-		PKS_VALUE vResult = memory_createObject(pContext, VT_OBJECT_ARRAY, (int)(nOrig+1), 0);
-		for (int i = 0; i < nOrig; i++) {
-			memory_addObject(pContext, &vResult, memory_getNestedObject(vSource, i));
-		}
 		if (vIndex.pkv_type == VT_STRING) {
-			memory_addObject(pContext, &vResult, vIndex);
+			memory_addObject(pContext, &vSource, vIndex);
 		} else if (vIndex.pkv_type == VT_OBJECT_ARRAY) {
 			int nMax = (int)memory_size(vIndex);
 			for (int i = 0; i < nMax; i++) {
-				memory_addObject(pContext, &vResult, memory_getNestedObject(vIndex, i));
+				memory_addObject(pContext, &vSource, memory_getNestedObject(vIndex, i));
 			}
 		}
-		interpreter_pushValueOntoStack(pContext, vResult);
+		interpreter_pushValueOntoStack(pContext, vSource);
 		return;
 	}
 	if (vIndex.pkv_type == VT_RANGE) {
@@ -427,6 +433,9 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 				interpreter_raiseError("Illegal range %d, %d for string %s", n1, n2, p1);
 			}
 			size_t nLen = n2 - n1 + 1;
+			if (nLen >= sizeof buf - 2) {
+				interpreter_raiseError("At operation fails due to lack of memory.");
+			}
 			strncpy(buf, &p1[n1], nLen);
 			buf[nLen] = 0;
 			interpreter_pushValueOntoStack(pContext, interpreter_allocateString(pContext, buf));
@@ -449,7 +458,7 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 	case BIN_ADD: {
 		const char* pszP1 = p1 ? p1 : "null";
 		const char* pszP2 = p2 ? p2 : "null";
-		if (strlen(pszP1) + strlen(pszP2) > sizeof buf) {
+		if (strlen(pszP1) + strlen(pszP2) >= sizeof buf) {
 			interpreter_raiseError("+ operation on strings: result to large");
 		}
 		else {

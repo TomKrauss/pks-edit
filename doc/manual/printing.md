@@ -1,5 +1,5 @@
 
-## Printing
+# Printing
 
 PKS-Edit can be used to print files. Currently printing is always performed in Ascii mode. For files supporting other 
 rendering modes (hex editor mode or wysiwyg mode rendering in markdown files), the special rendering modes will currently
@@ -10,7 +10,7 @@ or an arbitrary document to be opened for printing using the file selector. When
 allowing to enter additional options like the range of text to print (selection - if a piece of the text is selected or a range of pages)
 and to select the printer to which the print output should be directed.
 
-### Print Settings
+## Print Settings
 
 The `Print Settings` page allows to specify additional hints regarding the layout of the text to print like the specification of
 optional header and footer sections, options regarding the way the text is formatted and options affecting the number of lines and

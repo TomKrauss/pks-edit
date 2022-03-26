@@ -334,3 +334,16 @@ ARRAY_LIST* macroc_fileListFiles(const char* pszDir, const char* pszPattern) {
 	return pResult;
 }
 
+/*
+ * Returns an array with all window handles.
+ */
+PKS_VALUE edit_getAllEditors(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	PKS_VALUE tResult = memory_createObject(pContext, VT_OBJECT_ARRAY, 5, 0);
+	WINFO* wp = ww_getCurrentEditorWindow();
+	while (wp) {
+		PKS_VALUE vWin = memory_createHandleObject(pContext, VT_EDITOR_HANDLE, wp);
+		memory_addObject(pContext, &tResult, vWin);
+		wp = wp->next;
+	}
+	return tResult;
+}
