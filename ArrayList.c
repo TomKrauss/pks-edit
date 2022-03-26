@@ -107,30 +107,36 @@ static void arraylist_resize(ARRAY_LIST* pList, size_t nNewCapacity) {
 	pList->li_capacity = nNewCapacity;
 }
 
-/*---------------------------
- * Adds one element to the array list (at the end). 
- */
-void arraylist_add(ARRAY_LIST* pList, void* pElement) {
-	if (pList->li_size >= pList->li_capacity) {
+static void arraylist_ensureFits(ARRAY_LIST* pList, size_t nNewsize) {
+	if (nNewsize >= pList->li_capacity) {
 		size_t nNewCapacity = pList->li_capacity;
 		if (nNewCapacity > 200) {
 			if (nNewCapacity > 2000) {
 				nNewCapacity += 2000;
-			} else {
+			}
+			else {
 				nNewCapacity += 200;
 			}
-		} else {
+		}
+		else {
 			nNewCapacity *= 2;
 		}
 		arraylist_resize(pList, nNewCapacity);
 	}
+}
+
+/*---------------------------
+ * Adds one element to the array list (at the end). 
+ */
+void arraylist_add(ARRAY_LIST* pList, void* pElement) {
+	arraylist_ensureFits(pList, pList->li_size);
 	buf_t* pBuffer = pList->li_buffer;
 	(*pBuffer)[pList->li_size++] = pElement;
 }
 
 /*
  * Remove one element from the array list at a given offset into the array list
- - the array lists capacity is not shrinked.
+ * the array lists capacity is not shrinked.
  * Return 1, if the element was successfully removed or 0, if it was not removed.
  * If it is contained multiple times in the list, remove only the 1st occurrence.
  */
@@ -166,6 +172,22 @@ void* arraylist_get(ARRAY_LIST* pList, int nIndex) {
 		return (*pBuffer)[nIndex];
 	}
 	return NULL;
+}
+
+/*
+ * Assigns an element at index. If the index is out of range the array is resized so the element can be added
+ * at the position.
+ */
+void arraylist_set(ARRAY_LIST* pList, int nIndex, void *pElement) {
+	if (nIndex < 0) {
+		return;
+	}
+	buf_t* pBuffer = pList->li_buffer;
+	arraylist_ensureFits(pList, nIndex);
+	(*pBuffer)[nIndex] = pElement;
+	if (nIndex >= pList->li_size) {
+		pList->li_size = nIndex+1;
+	}
 }
 
 /*

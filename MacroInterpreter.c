@@ -689,7 +689,7 @@ static int interpreter_executeMacroByName(char* name) {
 /*---------------------------------*/
 /* interpreter_doMacroFunctions()				*/
 /*---------------------------------*/
-intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **pInstructionPointer, const COM_1FUNC *cpmax) {
+static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC *pInstructionPointer) {
 	intptr_t	nativeStack[8];
 	PKS_VALUE	tempStack[8];
 	intptr_t	rc;
@@ -699,18 +699,17 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 	BOOL		bNativeCall;
 	BOOL		bInternalNativeCall = FALSE;
 	PKS_VALUE   returnValue;
-	COM_1FUNC *	pLocalInstructionPointer = *pInstructionPointer;
 
-	typ = pLocalInstructionPointer->typ;
+	typ = pInstructionPointer->typ;
 	functionParameters = nativeStack;
-	const char* pszMacro = ((COM_MAC*)*pInstructionPointer)->name;
-	funcnum = pLocalInstructionPointer->funcnum;
+	const char* pszMacro = ((COM_MAC*)pInstructionPointer)->name;
+	funcnum = pInstructionPointer->funcnum;
 	EDFUNC* fup = &_functionTable[funcnum];
 	bNativeCall = typ != C_MACRO && typ != C_MACRO_REF && typ != C_MACRO_REF_LOCAL;
 	if (typ == C_MACRO_REF || typ == C_MACRO_REF_LOCAL) {
 		PKS_VALUE v;
 		if (typ == C_MACRO_REF_LOCAL) {
-			int idx = ((COM_MAC*)pLocalInstructionPointer)->heapIndex;
+			int idx = ((COM_MAC*)pInstructionPointer)->heapIndex;
 			v = pContext->ec_localVariables[idx];
 			if (v.pkv_type != VT_STRING) {
 				interpreter_raiseError("Illegal reference to macro through instancevar %d", idx);
@@ -735,11 +734,11 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 			bNativeCall = FALSE;
 		}
 	}
-	int nParametersPassed = ((COM_0FUNC*)pLocalInstructionPointer)->func_nargs;
+	int nParametersPassed = ((COM_0FUNC*)pInstructionPointer)->func_nargs;
 	if (bNativeCall) {
 		memset(nativeStack, 0, sizeof nativeStack);
 		if (typ == C_1FUNC) {
-			*functionParameters++ = pLocalInstructionPointer->p;
+			*functionParameters++ = pInstructionPointer->p;
 			nParametersPassed--;
 		}
 	}
@@ -777,7 +776,6 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 			}
 		}
 	}
-	pLocalInstructionPointer = (COM_1FUNC*)((unsigned char*)pLocalInstructionPointer + interpreter_getParameterSize(typ, &pLocalInstructionPointer->funcnum));
 	if (bNativeCall) {
 		EDFUNC* fup = &_functionTable[funcnum];
 		rc = interpreter_executeFunction(funcnum, nativeStack);
@@ -808,7 +806,6 @@ intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC **p
 		}
 		interpreter_pushValueOntoStack(pContext, returnValue);
 	}
-	*pInstructionPointer = pLocalInstructionPointer;
 	return rc;
 }
 
@@ -1014,8 +1011,8 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 		case C_STOP:
 			goto end;
 		case C_MACRO_REF: case C_MACRO_REF_LOCAL: case C_MACRO: case C_0FUNC: case C_1FUNC:
-			interpreter_doMacroFunctions(pContext, &cp, cpmax);
-			pInstr = (unsigned char*)cp;
+			interpreter_doMacroFunctions(pContext, cp);
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			continue;
 		default:
 			interpreter_raiseError("Corrupted bytecodes - cannot continue.");

@@ -86,6 +86,14 @@ static const char* ww_getFilename(WINFO* wp) {
     return fp->fname;
 }
 
+static WINFO* ww_openFile(const char* pszFilename, int nOptions) {
+    FTABLE* fp = ft_openFileWithoutFileselector(pszFilename, 0, &(FT_OPEN_OPTIONS) {.fo_isNewFile = 0});
+    if (!fp) {
+        return 0;
+    }
+    return WIPOI(fp);
+}
+
 // Describes functions and their respective names, options and parameter type descriptions for being used e.g. from within PKSMacroC.
 EDFUNC _functionTable[] = {
 {/*0*/   EdFileAbandon , -1,EW_NEEDSCURRF | 0,                                                         "AbandonFile",                NULL,  "i"                                           },
@@ -245,7 +253,8 @@ EDFUNC _functionTable[] = {
 {/*153*/(long long (*)())ww_getCurrentEditorWindow, -1, 0, "EditorGetCurrent", NULL, "W" },
 {/*154*/(long long (*)())ww_selectWindow, -1, 0, "EditorSetCurrent", NULL, "iW" },
 {/*155*/(long long (*)())edit_getAllEditors, -1, 0, "EditorGetAll", NULL, "P" },
-{/*155*/(long long (*)())ww_getFilename, -1, 0, "EditorGetFilename", NULL, "sW" }
+{/*155*/(long long (*)())ww_getFilename, -1, 0, "EditorGetFilename", NULL, "sW" },
+{/*156*/(long long (*)())ww_openFile, -1, 0, "EditorOpenFile", NULL, "Wsi" }
 };
 
 int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);

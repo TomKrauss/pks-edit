@@ -40,24 +40,33 @@ static void ReadTOCStart(string directory, string[] toc) {
 	FileClose(fp);
 }
 
+static void UpdateTOC(string directory, string[] toc) {
+	FILE fp = FileOpen(directory + "\\toc.md", "w");
+
+	for (string line : toc) {
+		FileWriteLine(fp, line);
+	}
+
+	FileClose(fp);
+}
+
 /*
  * Updates the PKS-Edit manual TOC.
  */
 void UpdateManualToc() {
-	string[5] tocs;
+	string[5] tocLines;
 	string manualDir = GetVariable("pks_sys") + "\\.." + MANUAL_DIRECTORY;
 
 	clear();
 	println("Starting to update TOC in directory " + manualDir);
-	ReadTOCStart(manualDir, tocs);
+	ReadTOCStart(manualDir, tocLines);
 	for (string fileName : FileListFiles(manualDir, "*.md")) {
 		if (fileName != "toc.md") {
-			ProcessFile(manualDir, fileName, tocs);
+			ProcessFile(manualDir, fileName, tocLines);
 		}
 	}
-	for (string s : tocs) {
-		println(s);
-	}
-
+	UpdateTOC(manualDir, tocLines);
+	println("done... ");
+	EditorOpenFile(manualDir + "\\toc.md");
 }
 

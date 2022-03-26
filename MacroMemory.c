@@ -55,6 +55,11 @@ static HASHMAP* memory_accessMap(OBJECT_DATA* pData) {
 	return (HASHMAP*)pData->od_data.objects[0];
 }
 
+static ARRAY_LIST* memory_accessArray(OBJECT_DATA* pData) {
+	return (ARRAY_LIST*)pData->od_data.objects[0];
+}
+
+
 static void memory_destroyData(OBJECT_DATA** pData) {
 	OBJECT_DATA* pOD = *pData;
 	if (pOD) {
@@ -64,6 +69,8 @@ static void memory_destroyData(OBJECT_DATA** pData) {
 		}
 		if (pOD->od_class == VT_MAP) {
 			hashmap_destroy(memory_accessMap(pOD), 0);
+		} else if (pOD->od_class == VT_OBJECT_ARRAY) {
+			arraylist_destroy(memory_accessArray(pOD));
 		}
 		free(pOD);
 		*pData = 0;
@@ -115,8 +122,14 @@ static int memory_markObject(void* pPointer) {
 		if (pData->od_class == VT_MAP) {
 			HASHMAP* pMap = (HASHMAP * )TOP_DATA_POINTER(pData->od_data.objects[0]);
 			hashmap_forEachEntry(pMap, memory_markMapEntries, 0);
-		}
-		else {
+		} else if (pData->od_class == VT_OBJECT_ARRAY) {
+			ARRAY_LIST* pList = (ARRAY_LIST*)TOP_DATA_POINTER(pData->od_data.objects[0]);
+			ARRAY_ITERATOR pIter = arraylist_iterator(pList);
+			while (pIter.i_buffer < pIter.i_bufferEnd) {
+				memory_markObject(TOP_DATA_POINTER(*pIter.i_buffer));
+				pIter.i_buffer++;
+			}
+		} else {
 			for (int i = 0; i < pData->od_size; i++) {
 				TYPED_OBJECT_POINTER top = pData->od_data.objects[i];
 				if (TOP_IS_POINTER(top)) {
@@ -158,38 +171,6 @@ static void memory_markObjects(EXECUTION_CONTEXT* pContext) {
 			memory_markObject(pValue->pkv_data.objectPointer);
 		}
 		pValue++;
-	}
-}
-
-/*
- * Puh: worst case: an object was resized and its pointer has moved. Update all PKS_VALUES
- * using that pointer.
- */
-static void memory_pointerChanged(EXECUTION_CONTEXT* pContext, void* pOld, void* pNew) {
-	int objIdx = 0;
-	while (objIdx < _objectSpace.om_capacity) {
-		if (_objectSpace.om_objects[objIdx] == pOld) {
-			_objectSpace.om_objects[objIdx] = pNew;
-		}
-		objIdx++;
-	}
-	EXECUTION_CONTEXT* pCtx = pContext;
-	while (pCtx) {
-		for (int i = 0; i < pCtx->ec_localVariableCount; i++) {
-			PKS_VALUE* pVar = &pCtx->ec_localVariables[i];
-			if (pVar->pkv_isPointer && pVar->pkv_data.objectPointer == pOld) {
-				pVar->pkv_data.objectPointer = pNew;
-			}
-		}
-		pCtx = pCtx->ec_parent;
-	}
-	// TODO: update globals as well - sym_traverseManagedObjects(sym_getGlobalContext(), memory_updatePointer);
-	PKS_VALUE* pVar = pContext->ec_stackBottom;
-	while (pVar <= pContext->ec_stackCurrent) {
-		if (pVar->pkv_isPointer && pVar->pkv_data.objectPointer == pOld) {
-			pVar->pkv_data.objectPointer = pNew;
-		}
-		pVar++;
 	}
 }
 
@@ -258,8 +239,9 @@ static OBJECT_DATA* memory_createObjectData(EXECUTION_CONTEXT* pContext, PKS_VAL
 	OBJECT_MEMORY* pMemory = &_objectSpace;
 	OBJECT_DATA* pData;
 	size_t nLen = 0;
+	int nCapacity = 1;
 	if (sType == VT_MAP) {
-		nLen = 1;
+		nLen = 0;
 		pData = calloc(1, sizeof(OBJECT_DATA) + sizeof(OBJECT_DATA*));
 		pData->od_data.objects[0] = MAKE_TYPED_OBJECT_POINTER(0,0, hashmap_create(nInitialSize ? nInitialSize : 19, memory_hashPointer, memory_comparePointer));
 	} else if (sType == VT_STRING) {
@@ -271,27 +253,29 @@ static OBJECT_DATA* memory_createObjectData(EXECUTION_CONTEXT* pContext, PKS_VAL
 		if (pInput) {
 			strcpy((char*)pData->od_data.string, pInput);
 		}
+		nCapacity = (int)(nLen+1);
 	}
 	else if (sType == VT_OBJECT_ARRAY) {
-		nLen = nInitialSize;
+		nLen = 0;
+		size_t nArraySize = nInitialSize;
 		if (pInput) {
 			size_t nInitSize = arraylist_size((ARRAY_LIST*)pInput);
-			if (nInitSize > nLen) {
-				nLen = (int)nInitSize;
+			if (nInitSize > nArraySize) {
+				nArraySize = nInitSize;
 			}
-		} else if (nLen <= 0) {
-			nLen = 5;
 		}
-		pData = calloc(1, sizeof(OBJECT_DATA) + (nLen * sizeof(OBJECT_DATA*)));
+		pData = calloc(1, sizeof(OBJECT_DATA) + sizeof(OBJECT_DATA*));
+		pData->od_data.objects[0] = MAKE_TYPED_OBJECT_POINTER(0, 0, arraylist_create(nArraySize));
 	}
 	else if (types_isValueType(sType)) {
 		return 0;
 	} else {
 		nLen = nInitialSize;
+		nCapacity = (int)nLen;
 		pData = calloc(1, sizeof(OBJECT_DATA) + (nLen * sizeof(OBJECT_DATA*)));
 	}
-	pData->od_size = (int)(pInput ? nLen : 0);
-	pData->od_capacity = (int)nLen;
+	pData->od_size = (int)nLen;
+	pData->od_capacity = nCapacity;
 	pData->od_class = sType;
 	int idx = memory_nextFreeSlot(pMemory);
 	memory_assignSlot(pMemory, idx++, pData);
@@ -315,7 +299,8 @@ PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType,
 		};
 	}
 	if (sType == VT_OBJECT_ARRAY && pInput) {
-		size_t nLen = pData->od_size;
+		ARRAY_LIST* pTarget = memory_accessArray(pData);
+		size_t nLen = arraylist_size((ARRAY_LIST*)pInput);
 		for (int i = 0; i < nLen; i++) {
 			TYPED_OBJECT_POINTER pszPointer = (TYPED_OBJECT_POINTER)arraylist_get((ARRAY_LIST*)pInput, i);
 			PKS_VALUE_TYPE t = TOP_TYPE(pszPointer);
@@ -323,8 +308,10 @@ PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType,
 			if (t == VT_STRING || t == 0) {
 				pszPointer = MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, memory_createObjectData(pContext, VT_STRING, 0, TOP_DATA_POINTER(pszPointer)));
 			}
-			pData->od_data.objects[i] = pszPointer;
+		
+			arraylist_add(pTarget, (void*)pszPointer);
 		}
+		pData->od_size = (int)nLen;
 	} else if (sType == VT_MAP && pInput) {
 		ARRAY_LIST* pList = (ARRAY_LIST*)pInput;
 		int nLen = (int)arraylist_size(pList);
@@ -350,14 +337,18 @@ PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType,
 static int memory_collectKey(intptr_t k, intptr_t v, void* pParam) {
 	PKS_VALUE* pArray = pParam;
 	OBJECT_DATA* pData = pArray->pkv_data.objectPointer;
-	pData->od_data.objects[pData->od_size++] = (TYPED_OBJECT_POINTER)k;
+	ARRAY_LIST* pList = memory_accessArray(pData);
+	arraylist_add(pList, (void*)k);
+	pData->od_size++;
 	return 1;
 }
 
 static int memory_collectValue(intptr_t k, intptr_t v, void* pParam) {
 	PKS_VALUE* pArray = pParam;
 	OBJECT_DATA* pData = pArray->pkv_data.objectPointer;
-	pData->od_data.objects[pData->od_size++] = (TYPED_OBJECT_POINTER)v;
+	ARRAY_LIST* pList = memory_accessArray(pData);
+	arraylist_add(pList, (void*)v);
+	pData->od_size++;
 	return 1;
 }
 
@@ -371,7 +362,9 @@ static int memory_collectEntries(intptr_t k, intptr_t v, void* pParam) {
 	OBJECT_DATA* pEData = vEntry.pkv_data.objectPointer;
 	pEData->od_data.objects[0] = (TYPED_OBJECT_POINTER)k;
 	pEData->od_data.objects[1] = (TYPED_OBJECT_POINTER)v;
-	pData->od_data.objects[pData->od_size++] = MAKE_TYPED_OBJECT_POINTER(1, sMapEntryType, vEntry.pkv_data.objectPointer);
+	ARRAY_LIST* pList = memory_accessArray(pData);
+	arraylist_add(pList, (void*)MAKE_TYPED_OBJECT_POINTER(1, sMapEntryType, vEntry.pkv_data.objectPointer));
+	pData->od_size++;
 	return 1;
 }
 
@@ -431,29 +424,10 @@ int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS_VALUE 
 		return 0;
 	}
 	OBJECT_DATA* pData = vObject->pkv_data.objectPointer;
-	if (pData->od_size >= pData->od_capacity) {
-		size_t oldSize = sizeof(OBJECT_DATA) + pData->od_capacity * sizeof(OBJECT_DATA*);
-		if (pData->od_capacity > 100) {
-			pData->od_capacity = pData->od_capacity * 5 / 4;
-		} else {
-			pData->od_capacity += 10;
-		}
-		size_t newSize = sizeof(OBJECT_DATA) + pData->od_capacity * sizeof(OBJECT_DATA*);
-		void* pOld = pData;
-		pData = realloc(pData, newSize);
-		if (!pData) {
-			return 0;
-		}
-		if (pOld != pData) {
-			memory_pointerChanged(pContext, pOld, pData);
-		}
-		vObject->pkv_data.objectPointer = pData;
-		size_t diff = newSize - oldSize;
-		void* pStart = ((char*)pData) + oldSize;
-		memset(pStart, 0, diff);
-	}
+	ARRAY_LIST* pTarget = memory_accessArray(pData);
 	BOOL bPointer = vElement.pkv_isPointer;
-	pData->od_data.objects[pData->od_size++] = MAKE_TYPED_OBJECT_POINTER(bPointer, vElement.pkv_type, vElement.pkv_data.objectPointer);
+	arraylist_add(pTarget, (void*)MAKE_TYPED_OBJECT_POINTER(bPointer, vElement.pkv_type, vElement.pkv_data.objectPointer));
+	pData->od_size = (int)arraylist_size(pTarget);
 	return 1;
 }
 
@@ -485,6 +459,14 @@ const char* memory_accessString(PKS_VALUE v) {
 int memory_setNestedPointer(PKS_VALUE vTarget, int nIndex, TYPED_OBJECT_POINTER vPointer) {
 	if (vTarget.pkv_managed) {
 		OBJECT_DATA* pPointer = ((OBJECT_DATA*)vTarget.pkv_data.objectPointer);
+		if (pPointer->od_class == VT_OBJECT_ARRAY) {
+			ARRAY_LIST* pList = memory_accessArray(pPointer);
+			arraylist_set(pList, nIndex, (void*)vPointer);
+			if (nIndex >= pPointer->od_size) {
+				pPointer->od_size = nIndex + 1;
+			}
+			return 1;
+		}
 		if (nIndex >= 0 && nIndex < pPointer->od_capacity) {
 			pPointer->od_data.objects[nIndex] = vPointer;
 			if (nIndex >= pPointer->od_size) {
@@ -532,6 +514,10 @@ static PKS_VALUE memory_asValue(TYPED_OBJECT_POINTER top) {
 TYPED_OBJECT_POINTER memory_getNestedObjectPointer(PKS_VALUE v, int nIndex) {
 	if (v.pkv_managed) {
 		OBJECT_DATA* pPointer = ((OBJECT_DATA*)v.pkv_data.objectPointer);
+		if (pPointer->od_class == VT_OBJECT_ARRAY) {
+			ARRAY_LIST* pList = memory_accessArray(pPointer);
+			return (TYPED_OBJECT_POINTER)arraylist_get(pList, nIndex);
+		}
 		if (nIndex >= 0 && nIndex < pPointer->od_capacity) {
 			return pPointer->od_data.objects[nIndex];
 		}
@@ -545,9 +531,10 @@ TYPED_OBJECT_POINTER memory_getNestedObjectPointer(PKS_VALUE v, int nIndex) {
  */
 int memory_indexOf(PKS_VALUE vArray, PKS_VALUE vOther) {
 	if (vArray.pkv_managed && vArray.pkv_type == VT_OBJECT_ARRAY) {
-		OBJECT_DATA* pPointer = ((OBJECT_DATA*)vArray.pkv_data.objectPointer);
-		for (int i = 0; i < pPointer->od_size; i++) {
-			TYPED_OBJECT_POINTER top = pPointer->od_data.objects[i];
+		ARRAY_LIST* pList = memory_accessArray(((OBJECT_DATA*)vArray.pkv_data.objectPointer));
+		size_t nSize = arraylist_size(pList);
+		for (int i = 0; i < nSize; i++) {
+			TYPED_OBJECT_POINTER top = (TYPED_OBJECT_POINTER)arraylist_get(pList, i);
 			if (TOP_TYPE(top) == vOther.pkv_type) {
 				if (vOther.pkv_type == VT_STRING) {
 					if (strcmp(memory_accessString(vOther), (char*)TOP_DATA_POINTER(top)) == 0) {
@@ -562,12 +549,18 @@ int memory_indexOf(PKS_VALUE vArray, PKS_VALUE vOther) {
 	}
 	return -1;
 }
+
 /*
  * Access the nested object of a value at slot nIndex.
  */
 PKS_VALUE memory_getNestedObject(PKS_VALUE v, int nIndex) {
 	if (v.pkv_managed) {
 		OBJECT_DATA* pPointer = ((OBJECT_DATA*)v.pkv_data.objectPointer);
+		if (pPointer->od_class == VT_OBJECT_ARRAY) {
+			ARRAY_LIST* pList = memory_accessArray(pPointer);
+			TYPED_OBJECT_POINTER top = (TYPED_OBJECT_POINTER)arraylist_get(pList, nIndex);
+			return memory_asValue(top);
+		}
 		if (nIndex >= 0 && nIndex < pPointer->od_size) {
 			TYPED_OBJECT_POINTER top = pPointer->od_data.objects[nIndex];
 			return memory_asValue(top);
