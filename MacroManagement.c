@@ -740,7 +740,7 @@ char *command_getTooltipAndLabel(MACROREF command, char* szTooltip, char* szLabe
 
 	char* pszComment = s;
 	strcpy(szTooltip, s);
-	if ((s = lstrchr(s,';')) != 0) {
+	if ((s = strchr(s,';')) != 0) {
 		if (szLabel) {
 			lstrcpy(szLabel, s + 1);
 		}

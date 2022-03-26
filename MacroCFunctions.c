@@ -16,6 +16,7 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include <Shlwapi.h>
 #include <corecrt_io.h>
 #include "arraylist.h"
 #include "documentmodel.h"
@@ -182,6 +183,34 @@ PKS_VALUE macroc_fileOpen(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int n
 		return (PKS_VALUE) {.pkv_type = VT_NIL};
 	}
 	return memory_createHandleObject(pContext, VT_FILE, fp);
+}
+
+const char* macroc_accessString(PKS_VALUE v, int idx) {
+	const char* pszResult = memory_accessString(v);
+	if (!pszResult) {
+		interpreter_raiseError("Expecting argument %d to be of type string.", idx);
+	}
+	return pszResult;
+}
+
+/*
+ * Implements the PathCreateFromSegments() which creates a windows path concatenating multiple path segments.
+ */
+PKS_VALUE macroc_pathCreateFromSegments(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	macroc_expectNumberOfArgs(2, nArgs, "PathCreateFromSegments");
+	int i = 0;
+	const char* pszDir = macroc_accessString(pValues[0], 0);
+	char* pszResult = malloc(EDMAXPATHLEN);
+	while (i < nArgs - 1) {
+		const char* pszNext = macroc_accessString(pValues[i+1], i+1);
+		string_concatPathAndFilename(_linebuf, pszDir, pszNext);
+		strcpy(pszResult, _linebuf);
+		pszDir = pszResult;
+		i++;
+	}
+	PathCanonicalize(_linebuf, pszResult);
+	free(pszResult);
+	return memory_createObject(pContext, VT_STRING, 0, _linebuf);
 }
 
 /*

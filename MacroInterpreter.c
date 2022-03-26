@@ -1035,6 +1035,7 @@ static int macro_interpretByteCodes(MACRO* mp) {
 		// TODO: more cleanup!
 		interpreter_cleanupContextStacks();
 		level = 0;
+		_playing = 0;
 		progress_closeMonitor(0);
 		return -1;
 	}

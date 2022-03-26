@@ -235,7 +235,7 @@ EXPORT char *file_searchFileInPath(char *fn,char *path) {
 
 	if ((path = strtok(p,",;")) != 0)
 	for (;;) {	
-		if (lstrchr(path,'*')) {
+		if (strchr(path,'*')) {
 			string_splitFilename(path,p2,(char *)0);
 			path = p2;
 		}

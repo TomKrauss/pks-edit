@@ -1,6 +1,6 @@
 
 
-const MANUAL_DIRECTORY = "\\doc\\manual";
+const MANUAL_DIRECTORY = "doc\\manual";
 
 !
 
@@ -9,7 +9,7 @@ static void ProcessFile(string directory, string fileName, string[] toc) {
 	string title;
 	string anchor;
 	int len;
-	FILE fp = FileOpen(directory + "\\" + fileName, "r");
+	FILE fp = FileOpen(PathCreateFromSegments(directory, fileName), "r");
 
 	while (line = FileReadLine(fp)) {
 		len = size(line);
@@ -26,7 +26,7 @@ static void ProcessFile(string directory, string fileName, string[] toc) {
 }
 
 static void ReadTOCStart(string directory, string[] toc) {
-	FILE fp = FileOpen(directory + "\\toc.md", "r");
+	FILE fp = FileOpen(PathCreateFromSegments(directory, "toc.md"), "r");
 	string line;
 
 	while (line = FileReadLine(fp)) {
@@ -41,7 +41,7 @@ static void ReadTOCStart(string directory, string[] toc) {
 }
 
 static void UpdateTOC(string directory, string[] toc) {
-	FILE fp = FileOpen(directory + "\\toc.md", "w");
+	FILE fp = FileOpen(PathCreateFromSegments(directory, "toc.md"), "w");
 
 	for (string line : toc) {
 		FileWriteLine(fp, line);
@@ -55,7 +55,7 @@ static void UpdateTOC(string directory, string[] toc) {
  */
 void UpdateManualToc() {
 	string[5] tocLines;
-	string manualDir = GetVariable("pks_sys") + "\\.." + MANUAL_DIRECTORY;
+	string manualDir = PathCreateFromSegments(GetVariable("pks_sys"), "..", MANUAL_DIRECTORY);
 
 	clear();
 	println("Starting to update TOC in directory " + manualDir);
@@ -67,6 +67,6 @@ void UpdateManualToc() {
 	}
 	UpdateTOC(manualDir, tocLines);
 	println("done... ");
-	EditorOpenFile(manualDir + "\\toc.md");
+	EditorOpenFile(PathCreateFromSegments(manualDir, "toc.md"));
 }
 

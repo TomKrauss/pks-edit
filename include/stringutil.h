@@ -43,12 +43,6 @@ extern long long string_convertToLongBase16(char* s);
 extern int string_compareWithSecond(const unsigned char* s1, const unsigned char* s2, int bCaseIgnore);
 
 /*
- * Return the pointer to the first matching position of a character in a String or NULL
- * if no match is found.
- */
-extern char* lstrchr(const char* str, char ch);
-
-/*
  * Copies a source string into a destrination string - at max nMax characters.
  * Returns the pointer to the end of the string.
  */
@@ -66,12 +60,6 @@ extern void string_concatPathAndFilename(char* dest, const char* pathname, const
  * return pointer to filename component of a path
  */
 extern char* string_getBaseFilename(const char* fullname);
-
-/*--------------------------------------------------------------------------
- * string_getFileExtension()
- * return pointer to the extension component of a path
- */
-extern char* string_getFileExtension(const char* fullname);
 
 /*
  * Returns a last character of a string.

@@ -44,19 +44,6 @@ unsigned char* string_skipBlanks(unsigned char* s) {
 }
 
 /*
- * Return the pointer to the first matching position of a character in a String or NULL
- * if no match is found.
- */
-char *lstrchr(const char *str, char ch) {
-	while(*str) {
-		if (ch == *str)
-			return (char*)str;
-		str = AnsiNext(str);
-	}
-	return NULL;
-}
-
-/*
  * Find a substring p2 in a string p1 comparing all characters in a case ignore way.
  */
 char* string_strcasestr(const char* p1, const char* p2) {

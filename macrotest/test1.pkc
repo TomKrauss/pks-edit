@@ -2,7 +2,7 @@ namespace test;
 
 require "unittest";
 
-const MANUAL_DIRECTORY = "\\doc\\manual";
+const MANUAL_DIRECTORY = "doc\\manual";
 const PI = 3.14159265359d;
 const QUOTE = '\'';
 const ENOENT = 2;
@@ -46,7 +46,7 @@ static void Setup-SuiteBaseTests() {
 static void Test-FileIO() {
 	FILE fp;
 	string s;
-	string manualDir = GetVariable("cwd") + MANUAL_DIRECTORY;
+	string manualDir = PathCreateFromSegments(GetVariable("pks_sys"), "..", MANUAL_DIRECTORY);
 
 	AssertTrue(FileTest("Actions.c"), "Actions.c should exist");
 	AssertFalse(FileTest("Actions.c", "-d"), "Actions.c not be a directory");
@@ -167,14 +167,14 @@ static void Test-ForEach() {
  * No sorting yet - requires map.entry datatype.
  */
 static void Test-WordCount() {
-	string manualDir = GetVariable("cwd") + MANUAL_DIRECTORY;
+	string manualDir = PathCreateFromSegments(GetVariable("pks_sys"), "..", MANUAL_DIRECTORY);
 	map words;
 	auto[] entries;
 	int count;
 	int numberOfFrequentWords = 0;
 
 	for (string fileName : FileListFiles(manualDir, "*.md")) {
-		CountWordsIn(words, manualDir + "\\" + fileName);
+		CountWordsIn(words, PathCreateFromSegments(manualDir, fileName));
 	}
 	entries = MapEntries(words);
 	quickSort(entries, size(entries)-1);

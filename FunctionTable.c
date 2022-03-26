@@ -74,7 +74,7 @@ EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(),
 bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdBlockXtndMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
 interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(), macroc_indexOf(), macroc_stringTokenize(), macroc_tolower(), macro_getFunctionNamesMatching(), macroc_fileTest(),
-macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors();
+macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors(), macroc_pathCreateFromSegments();
 
 static long long function_unused() {
     // NOT USED ANY MORE
@@ -254,7 +254,8 @@ EDFUNC _functionTable[] = {
 {/*154*/(long long (*)())ww_selectWindow, -1, 0, "EditorSetCurrent", NULL, "iW" },
 {/*155*/(long long (*)())edit_getAllEditors, -1, 0, "EditorGetAll", NULL, "P" },
 {/*155*/(long long (*)())ww_getFilename, -1, 0, "EditorGetFilename", NULL, "sW" },
-{/*156*/(long long (*)())ww_openFile, -1, 0, "EditorOpenFile", NULL, "Wsi" }
+{/*156*/(long long (*)())ww_openFile, -1, 0, "EditorOpenFile", NULL, "Wsi" },
+{/*157*/macroc_pathCreateFromSegments, -1, 0, "PathCreateFromSegments", NULL, "P" }
 };
 
 int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);

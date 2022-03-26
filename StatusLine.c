@@ -86,7 +86,7 @@ static void st_setparts(char *text, BOOL bUpdateMessageOnly)
 			if (nSegments >= MAXSEGMENTS-2) {
 				break;
 			}
-			if ((pszEnd = lstrchr(s, '!')) != 0) {
+			if ((pszEnd = strchr(s, '!')) != 0) {
 				*pszEnd++ = 0;
 			}
 			pszStrArr[nSegments++] = s;
