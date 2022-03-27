@@ -95,7 +95,7 @@ static WINFO* ww_openFile(const char* pszFilename, int nOptions) {
 }
 
 // Describes functions and their respective names, options and parameter type descriptions for being used e.g. from within PKSMacroC.
-EDFUNC _functionTable[] = {
+EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*0*/   EdFileAbandon , -1,EW_NEEDSCURRF | 0,                                                         "AbandonFile",                NULL,  "i"                                           },
 {/*1*/   EdAbout       , -1,0,                                                                         "About",                      NULL,  "i"                                           },
 {/*2*/   EdBlockCopy   , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_NEEDSBLK | 0,                 "CopyBlock",                  NULL,  "i"                                           },
@@ -237,28 +237,52 @@ EDFUNC _functionTable[] = {
 {/*138*/macroc_stringTokenize, -1, 0, "StringTokenize", NULL, "ass" },
 {/*139*/interpreter_foreach, -1, 0, "foreach", NULL, "P"},
 {/*140*/macroc_indexOf, -1, 0, "IndexOf", NULL, "P" },
-{/*141*/(long long (*)())GetTickCount, -1, 0, "GetTickCount", NULL, "i" },
-{/*142*/macro_getFunctionNamesMatching, -1, 0, "FunctionNamesMatching", NULL, "aseLMT" },
-{/*143*/(long long (*)())GetLastError, -1, 0, "GetLastError", NULL, "i" },
-{/*144*/macroc_fileOpen, -1, 0, "FileOpen", NULL, "P" },
-{/*145*/macroc_fileClose, -1, 0, "FileClose", NULL, "P" },
-{/*146*/macroc_fileReadLine, -1, 0, "FileReadLine", NULL, "P" },
-{/*147*/macroc_fileWriteLine, -1, 0, "FileWriteLine", NULL, "P" },
-{/*148*/macroc_fileTest, -1, 0, "FileTest", NULL, "iss" },
-{/*149*/macroc_fileListFiles, -1, 0, "FileListFiles", NULL, "ass" },
-{/*150*/(long long (*)())memory_mapKeys, -1, 0, "MapKeys", NULL, "P" },
-{/*151*/(long long (*)())memory_mapValues, -1, 0, "MapValues", NULL, "P" },
-{/*151*/(long long (*)())memory_mapEntries, -1, 0, "MapEntries", NULL, "P" },
-{/*152*/(long long (*)())edit_replaceText, -1, 0, "EditorReplaceText", NULL, "iWssbRE_eRNG_eREP_" },
-{/*153*/(long long (*)())ww_getCurrentEditorWindow, -1, 0, "EditorGetCurrent", NULL, "W" },
-{/*154*/(long long (*)())ww_selectWindow, -1, 0, "EditorSetCurrent", NULL, "iW" },
-{/*155*/(long long (*)())edit_getAllEditors, -1, 0, "EditorGetAll", NULL, "P" },
+{/*141*/macro_getFunctionNamesMatching, -1, 0, "FunctionNamesMatching", NULL, "aseLMT" },
+{/*142*/macroc_fileOpen, -1, 0, "FileOpen", NULL, "P" },
+{/*143*/macroc_fileClose, -1, 0, "FileClose", NULL, "P" },
+{/*144*/macroc_fileReadLine, -1, 0, "FileReadLine", NULL, "P" },
+{/*145*/macroc_fileWriteLine, -1, 0, "FileWriteLine", NULL, "P" },
+{/*146*/macroc_fileTest, -1, 0, "FileTest", NULL, "iss" },
+{/*147*/macroc_fileListFiles, -1, 0, "FileListFiles", NULL, "ass" },
+{/*148*/(long long (*)())memory_mapKeys, -1, 0, "MapKeys", NULL, "P" },
+{/*149*/(long long (*)())memory_mapValues, -1, 0, "MapValues", NULL, "P" },
+{/*150*/(long long (*)())memory_mapEntries, -1, 0, "MapEntries", NULL, "P" },
+{/*151*/(long long (*)())edit_replaceText, -1, 0, "EditorReplaceText", NULL, "iWssbRE_eRNG_eREP_" },
+{/*152*/(long long (*)())ww_getCurrentEditorWindow, -1, 0, "EditorGetCurrent", NULL, "W" },
+{/*153*/(long long (*)())ww_selectWindow, -1, 0, "EditorSetCurrent", NULL, "iW" },
+{/*154*/(long long (*)())edit_getAllEditors, -1, 0, "EditorGetAll", NULL, "P" },
 {/*155*/(long long (*)())ww_getFilename, -1, 0, "EditorGetFilename", NULL, "sW" },
 {/*156*/(long long (*)())ww_openFile, -1, 0, "EditorOpenFile", NULL, "Wsi" },
-{/*157*/macroc_pathCreateFromSegments, -1, 0, "PathCreateFromSegments", NULL, "P" }
+{/*157*/macroc_pathCreateFromSegments, -1, 0, "PathCreateFromSegments", NULL, "P"},
+{/*158*/(long long (*)())function_registerNativeFunction, -1, 0, "RegisterNative", NULL, "isssss" }
 };
 
-int _functionTableSize = sizeof(_functionTable)/sizeof(_functionTable[0]);
+int _functionTableSize = STATICALLY_DEFINED_FUNCTIONS;
+
+void function_destroyRegisteredNative(EDFUNC* pFunc) {
+    free((char*)pFunc->edf_description);
+    free((char*)pFunc->f_name);
+    free((char*)pFunc->edf_paramTypes);
+    pFunc->edf_description = 0;
+    pFunc->f_name = 0;
+    pFunc->edf_paramTypes = 0;
+}
+
+/*
+ * Release all dynamically defined functions.
+ */
+void function_destroy() {
+    // For statically defined functions we allow to define the documentation
+    // using MacroC code.
+    for (int i = 0; i < STATICALLY_DEFINED_FUNCTIONS; i++) {
+        free((char*)_functionTable[i].edf_description);
+        _functionTable[i].edf_description = 0;
+    }
+    for (int i = STATICALLY_DEFINED_FUNCTIONS; i < _functionTableSize; i++) {
+        function_destroyRegisteredNative(& _functionTable[i]);
+    }
+    _functionTableSize = STATICALLY_DEFINED_FUNCTIONS;
+}
 
 COMMAND _commandTable[] = {
 0, C_1FUNC, 58 /* EdEditFile */, 							1, 0 , "open-file",

@@ -58,6 +58,7 @@
 extern void		faicon_destroy();
 extern void		sym_destroyTable();
 extern void		bindings_destroy();
+extern void		function_destroy();
 /*
  * Destroy all allocated macros.
  */
@@ -233,8 +234,9 @@ static BOOL InitInstance(LPSTR lpCmdLine) {
 	wcstombs(szLocale, szwLocale, wcslen(szwLocale) + 1);
 	ui_switchToLanguage(szLocale);
 	// Initialize common controls.
-	INITCOMMONCONTROLSEX icex;
-	icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
+	INITCOMMONCONTROLSEX icex = {
+		.dwSize = sizeof(INITCOMMONCONTROLSEX)
+	};
 	icex.dwICC = ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_PROGRESS_CLASS | ICC_STANDARD_CLASSES | ICC_TAB_CLASSES | ICC_LISTVIEW_CLASSES;
 	InitCommonControlsEx(&icex);
 	string_initDateformats();
@@ -460,6 +462,7 @@ void main_cleanup(void) {
 	evaluator_destroyEvaluators();
 	ww_destroyAll();
 	config_destroy();
+	function_destroy();
 }
 
 

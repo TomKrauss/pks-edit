@@ -1633,14 +1633,19 @@ static BOOL mainframe_enumChildWindowProc(HWND hwnd, LPARAM pParam) {
  */
 static int mainframe_countCompanions() {
 	int mainFrameCount = 0;
-	EnumChildWindows(0, mainframe_enumChildWindowProc, (LPARAM) & mainFrameCount);
+	EnumWindows(mainframe_enumChildWindowProc, (LPARAM) & mainFrameCount);
 	return mainFrameCount;
 }
 
 static void mainframe_updateTitle() {
+	static int lastCount;
 	char szTitle[120];
 	mainWindowIsOther = FALSE;
 	int nCount = mainframe_countCompanions();
+	if (nCount == lastCount) {
+		return;
+	}
+	lastCount = nCount;
 	if (nCount > 1 && mainWindowIsOther) {
 		wsprintf(szTitle, "* %s * (%d)", _applicationName, nCount);
 	}

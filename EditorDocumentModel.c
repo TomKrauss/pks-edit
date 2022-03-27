@@ -32,14 +32,6 @@ EXPORT void ln_listfree(register LINE* lp) {
 	}
 }
 
-/*--------------------------------------------------------------------------
-  * ln_createAndAddSimple()
-  */
-EXPORT int ln_createAndAddSimple(FTABLE* fp, const char* b)
-{
-	return ln_createAndAdd(fp, (char*)b, (int)strlen(b), 0);
-}
-
 /*----------------------------------------------
  * ln_createAndAdd()
  * create a line and add it to the editor model

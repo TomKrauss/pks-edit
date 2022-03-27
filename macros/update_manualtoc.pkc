@@ -17,7 +17,7 @@ static void ProcessFile(string directory, string fileName, string[] toc) {
 			toc += "- [" + line[2..len] + "](" + fileName + ")";
 		} else if (line ~ "^## .*") {
 			title = line[3..len];
-			anchor = StringReplace(title, " ", "_", 0, 100);
+			anchor = StringReplace(title, " ", "-", 0, 100);
 			toc += "  - [" + title + "](" + fileName + "#" + anchor + ")";
 		}
 	}

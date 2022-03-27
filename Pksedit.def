@@ -4,5 +4,5 @@ HEAPSIZE     64000
 STACKSIZE    64000
 
 EXPORTS
-	EditWndProc
+	macroc_pathCreateFromSegments
 

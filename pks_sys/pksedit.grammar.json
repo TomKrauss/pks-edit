@@ -51,6 +51,7 @@
             "do",
             "if",
             "default",
+            "native",
             "else",
             "elif",
             "switch",

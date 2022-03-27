@@ -18,7 +18,7 @@
 
 %define parse.error detailed
 
-%token T_NAMESPACE T_REQUIRE T_FOR 
+%token T_NAMESPACE T_REQUIRE T_FOR T_ANNOTATION T_NATIVE
 %token T_NEW T_STATIC T_VOID T_TYPE_IDENTIFIER
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_CHARACTER T_CONST
 %token T_TRUE T_FALSE 
@@ -52,8 +52,10 @@
 #include "pksmacrocvm.h"
 #include "scanner.h"
 #include "test.h"
+#include "funcdef.h"
 #include "symbols.h"
 #include "arraylist.h"
+#include "hashmap.h"
 
 # define	YYPTRDIFF_T ptrdiff_t
 # define	YYPTRDIFF_MAXIMUM SIZE_MAX
@@ -89,12 +91,12 @@ static 		char *lstartid  = "%ls%",
 
 extern 			int	_bDefiningConst;
 extern 			int	_bInHeader;
+extern 			int	_bInNativeDefinition;
 extern char*    _yyCurrentComment;
 extern void		yyerror(const char* s, ...);
 extern void		yywarning(char* s, ...);
 extern void		yyrequire(const char* pszNamespace);
 int				function_getIndexOfFunction(void *ep);
-int 			function_parameterIsFormStart(void *ep,int parno);
 extern int macro_lookupNamespace(const char* pszNamespacename);
 extern void bytecode_emitGotoInstruction(BYTECODE_BUFFER* pBuffer, char *prefix, int level, int bratyp);
 extern unsigned char* bytecode_emitBinaryOperation(BYTECODE_BUFFER* pBuffer, int nOperationType, PKS_VALUE_TYPE nTargetType);
@@ -102,6 +104,7 @@ extern unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer,
 extern unsigned char* bytecode_emitAssignment(BYTECODE_BUFFER* pBuffer, const char *name);
 extern unsigned char* bytecode_emitLocalAssignment(BYTECODE_BUFFER* pBuffer, int nHeapIndex);
 extern unsigned char* bytecode_emitFunctionCall(BYTECODE_BUFFER* pBuffer, unsigned char typ, GENERIC_DATA data, int nArgs);
+
 /*
  * Eliminate unneccessary instructions from the byte codes generated.
  */
@@ -141,11 +144,25 @@ int			bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name);
 void 		bytecode_closeOpenLabels(void);
 void 		bytecode_destroyLabelNamed(char *name);
 char*		bytecode_generateAutoLabelName(char *prefix, int num);
-int 		function_returnsString(void *ep);
 static ARRAY_LIST* _currentArrayLiteral;
+static HASHMAP*	   _currentNativeMethodAnnotation;
 static int			_localVariableIndex;
-
+static char _nativeMethodSignature[128];
 IDENTIFIER_CONTEXT* _currentIdentifierContext;
+
+static char* bytecode_signatureForType(PKS_VALUE_TYPE type) {
+	char* pSig = "i";
+	if (type == VT_STRING) {
+		pSig = "s";
+	} else if (type == VT_EDITOR_HANDLE) {
+		pSig = "W";
+	}
+	return pSig;
+}
+
+static void bytecode_nativeMethodAddParam(PKS_VALUE_TYPE type, char* pszParamName) {
+	strcat(_nativeMethodSignature, bytecode_signatureForType(type));
+}
 
 static void parser_switchToBuffer(int aLevel) {
 	if (aLevel >= DIM(_buffers)) {
@@ -266,6 +283,7 @@ require:	T_REQUIRE T_STRING ';' {
 global_declarations:
 			| global_declarations constants ';'
 			| global_declarations global_var ';' 
+			| global_declarations native_macro_definition ';' 
 
 scope:		{ $$.ident.scope = MS_GLOBAL; }
 			| T_STATIC { $$.ident.scope = MS_LOCAL; }
@@ -343,16 +361,25 @@ macro_declaration: T_IDENT {
 macro_type:	scope T_VOID {
 				$$.ident.scope = $1.ident.scope;
 				$$.ident.arraySize = 0;
+				$$.ident.type = VT_NIL;
+				if (_bInNativeDefinition) {
+					strcpy(_nativeMethodSignature, bytecode_signatureForType(VT_NIL));
+				}
 			}
 			| 
 			scope type_name {
+				$$.ident.type = $2.ident.type;
 				$$.ident.scope = $1.ident.scope;
 				$$.ident.arraySize = $2.ident.arraySize;
+				if (_bInNativeDefinition) {
+					strcpy(_nativeMethodSignature, bytecode_signatureForType($2.ident.type));
+				}
 			}
 
 macrostart: macro_type macro_declaration '(' parameter_list ')' optional_description 
 			{	$$.ident = $2.ident;
 				$$.ident.scope = $1.ident.scope;
+				$$.ident.type = $1.ident.type;
 				YY_EMIT(C_SET_STACKFRAME,(GENERIC_DATA){0});
 			}
 			
@@ -382,17 +409,77 @@ parameter_list:
 			| non_empty_pardecl
 
 non_empty_pardecl:
-			par_decl
+			parameter_declaration
 			|
-			non_empty_pardecl ',' par_decl
+			non_empty_pardecl ',' parameter_declaration
 
 
-par_decl:	type_name variable_identifier {
-				sym_createSymbol(_currentIdentifierContext, $2.ident.s, S_LOCAL_VARIABLE, VT_NUMBER, (GENERIC_DATA) {_nparam}, _localVariableIndex);
-				bytecode_defineVariable(_currentBytecodeBuffer, $2.ident.s,C_DEFINE_PARAMETER,$1.ident.type,_nparam, _localVariableIndex++);
+parameter_declaration:	type_name variable_identifier {
+				if (_bInNativeDefinition) {
+					bytecode_nativeMethodAddParam($1.ident.type, $2.ident.s);
+				} else {
+					sym_createSymbol(_currentIdentifierContext, $2.ident.s, S_LOCAL_VARIABLE, VT_NUMBER, (GENERIC_DATA) {_nparam}, _localVariableIndex);
+					bytecode_defineVariable(_currentBytecodeBuffer, $2.ident.s,C_DEFINE_PARAMETER, $1.ident.type,_nparam, _localVariableIndex++);
+				}
 				free($2.ident.s);
 				_nparam++;
 			}
+
+annotations:
+			| annotation annotations
+
+annotation: T_ANNOTATION {
+				if (strcmp($1.ident.s, "@Method") == 0) {
+					_currentNativeMethodAnnotation = hashmap_create(3, 0 ,0);
+				}
+				free($1.ident.s);
+			}'(' annotation_values ')' 
+
+annotation_value: T_IDENT T_ASSIGN T_STRING {
+				if (_currentNativeMethodAnnotation) {
+					hashmap_put(_currentNativeMethodAnnotation, (intptr_t)$1.ident.s, (intptr_t)$3.ident.s);
+				} else {
+					free($1.ident.s);
+					free($3.ident.s);
+				}
+			}
+
+annotation_values: 
+				| annotation_value
+				| annotation_value ',' annotation_values
+
+native_macro_definition:  {
+					_bInNativeDefinition = 1;
+				} 
+				annotations T_NATIVE macrostart {
+					if (!_currentNativeMethodAnnotation) {
+						_currentNativeMethodAnnotation = hashmap_create(3, 0, 0);
+					}
+					char* pszLib = (char*)hashmap_get(_currentNativeMethodAnnotation, (intptr_t)"lib");
+					char* pszMacroCName = (char*)hashmap_get(_currentNativeMethodAnnotation, (intptr_t)"name");
+					char* pszSignature = (char*)hashmap_get(_currentNativeMethodAnnotation, (intptr_t)"signature");
+					if (!pszSignature) {
+						pszSignature = _nativeMethodSignature;
+					}
+					if (!pszMacroCName) {
+						pszMacroCName = $4.ident.s;
+					}
+					_bInNativeDefinition = 0;
+					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=pszMacroCName});
+					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$4.ident.s});
+					if (!pszLib) {
+						pszLib = "PKSEDIT";
+					}
+					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=pszLib});
+					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=pszSignature});
+					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=_yyCurrentComment});
+					_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
+							C_0FUNC, (GENERIC_DATA){ FUNC_RegisterNative}, 5);
+					// register right away as well, so we can use it.
+					function_registerNativeFunction(pszMacroCName, $4.ident.s, pszLib, pszSignature, _yyCurrentComment);
+					free($4.ident.s);
+					hashmap_destroyWithKeysAndValues(_currentNativeMethodAnnotation);
+				} 
 
 macro_definition: { init_macroDefinition(); } 
 				macrostart block {

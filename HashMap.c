@@ -122,6 +122,19 @@ void hashmap_destroy(HASHMAP* pTable, HASH_DESTROY_ENTRY destroyCallback) {
 	free(pTable);
 }
 
+static int hashmap_destroyKeyAndValue(intptr_t key, intptr_t value) {
+	free((void*)key);
+	free((void*)value);
+	return 1;
+}
+
+/*
+ * Destroy a hashtable also destroying keys and values.
+ */
+void hashmap_destroyWithKeysAndValues(HASHMAP* pTable) {
+	hashmap_destroy(pTable, hashmap_destroyKeyAndValue);
+}
+
 static int hashmap_destroyHashEntry(intptr_t key, intptr_t value) {
 	free((void*)key);
 	return 1;

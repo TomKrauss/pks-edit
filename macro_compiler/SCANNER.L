@@ -60,6 +60,7 @@ typedef struct yyerrstruct {
 static YYERRSTRUCT	yyerr;
 int				_bDefiningConst;
 int				_bInHeader;
+int				_bInNativeDefinition;
 
 typedef void EDFUNCDEF;
 
@@ -93,6 +94,7 @@ static struct kw {
 	T_CASE,		"case",
 	T_DEFAULT,	"default",
 	T_WHILE,	"while",
+	T_NATIVE,	"native",
 	T_CONTINUE,	"continue",
 	T_BREAK,	"break",
 	T_RETURN,	"return",
@@ -116,7 +118,7 @@ static int init_keywords(void)
 	return 1;
 }
 
-static yyreport(const char* s, int bError, va_list ap) {
+static void yyreport(const char* s, int bError, va_list ap) {
 	char buf1[512];
 	if (yyerr.errfp != 0 ||
 		(yyerr.errfp = file_createTempFile(yyerr.errname, "pksmacro.err")) != 0) {
@@ -464,6 +466,11 @@ WS		[ \t]
 \r 			{	;	}	/* skip comments and white space */
 \+\+		{	return T_PLUSPLUS; }
 \-\-		{	return T_MINUSMINUS; }
+@{CHN}+		{
+				yylval.ident.s = yystralloc(yytext);
+				yylval.ident.stringIsAlloced = 1;
+				return T_ANNOTATION;
+			}
 {CHN}+		{	SYMBOL 	sym;
 				char *	key;
 				SYMBOL_TYPE t;
@@ -488,6 +495,9 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 				}
 
 				if (t == S_EDFUNC) {
+					if (_bInNativeDefinition) {
+						goto retIdent;
+					}
 					yylval.funcp = (void*)VALUE(sym);
 					return T_FUNC;
 				}

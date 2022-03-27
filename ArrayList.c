@@ -44,6 +44,7 @@ ARRAY_LIST* arraylist_create(size_t capacity) {
 	}
 	pResult->li_buffer = calloc(capacity, sizeof (void*));
 	if (!pResult->li_buffer) {
+		free(pResult);
 		return NULL;
 	}
 	pResult->li_capacity = capacity;

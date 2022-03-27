@@ -17,6 +17,7 @@
 
 #include <windows.h>
 #include <string.h>
+#include <stdio.h>
 #include "stringutil.h"
 #include "documentmodel.h"
 #include "linkedlist.h"
@@ -71,10 +72,35 @@ static void analyzer_extractWords(WINFO* wp, int (*fMatch)(const char* pszMatch)
 	stringbuf_destroy(pBuf);
 }
 
+static const char* analyzer_pksTypeFromParamtype(PARAMETER_TYPE pt) {
+	if (pt == PARAM_TYPE_EDITOR_WINDOW) {
+		return types_nameFor(VT_EDITOR_HANDLE);
+	}
+	if (pt == PARAM_TYPE_STRING) {
+		return types_nameFor(VT_STRING);
+	}
+	return types_nameFor(VT_NUMBER);
+}
+
 static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
 	EDFUNC* pFunc = pEdFunc;
-
-	return NULL;
+	if (!pFunc->edf_description) {
+		return 0;
+	}
+	char* pszRet = malloc(strlen(pszName) + 100 + strlen(pFunc->edf_description));
+	sprintf(pszRet, "Synopsis: %s %s(", analyzer_pksTypeFromParamtype(function_getParameterTypeDescriptor(pFunc, 0).pt_type), pszName);
+	for (int i = 1; i <= function_getParameterCount(pFunc); i++) {
+		char szParamName[20];
+		if (i > 1) {
+			strcat(pszRet, ", ");
+		}
+		strcat(pszRet, analyzer_pksTypeFromParamtype(function_getParameterTypeDescriptor(pFunc, i).pt_type));
+		sprintf(szParamName, " p%d", i);
+		strcat(pszRet, szParamName);
+	}
+	strcat(pszRet, ")\n");
+	strcat(pszRet, pFunc->edf_description);
+	return pszRet;
 }
 
 static const char* analyzer_helpForMacro(const char* pszName, void* pMac) {
@@ -132,27 +158,26 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 				fCallback(pszName, NULL, NULL);
 			}
 		}
-	} else {
-		for (int i = 0; i < _functionTableSize; i++) {
-			EDFUNC* pFunc = &_functionTable[i];
-			if (fMatch(pFunc->f_name)) {
-				fCallback(pFunc->f_name, pFunc, analyzer_helpForFunc);
-			}
+	}
+	for (PKS_VALUE_TYPE vt = VT_FILE; types_existsType(vt); vt++) {
+		const char* pName = types_nameFor(vt);
+		if (fMatch(pName)) {
+			fCallback(pName, NULL, NULL);
 		}
-		for (PKS_VALUE_TYPE vt = VT_FILE; types_existsType(vt); vt++) {
-			const char* pName = types_nameFor(vt);
-			if (fMatch(pName)) {
-				fCallback(pName, NULL, NULL);
-			}
+	}
+	for (int i = 0; i < _functionTableSize; i++) {
+		EDFUNC* pFunc = &_functionTable[i];
+		if (fMatch(pFunc->f_name)) {
+			fCallback(pFunc->f_name, pFunc, analyzer_helpForFunc);
 		}
-		for (int i = 0; i < macro_getNumberOfMacros(); i++) {
-			MACRO* mp = macro_getByIndex(i);
-			if (!mp) {
-				continue;
-			}
-			if (fMatch(MAC_NAME(mp))) {
-				fCallback(MAC_NAME(mp), mp, analyzer_helpForMacro);
-			}
+	}
+	for (int i = 0; i < macro_getNumberOfMacros(); i++) {
+		MACRO* mp = macro_getByIndex(i);
+		if (!mp) {
+			continue;
+		}
+		if (fMatch(MAC_NAME(mp))) {
+			fCallback(MAC_NAME(mp), mp, analyzer_helpForMacro);
 		}
 	}
 }

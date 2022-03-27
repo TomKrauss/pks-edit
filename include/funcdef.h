@@ -61,6 +61,7 @@ typedef struct edfunc {
 	const char* f_name;						// the name as it can be used inside the PKS Edit macro language to execute this function.
 	int (*isenabled)(long long pParam);		// Optional enablement function allowing to check, whether the execute function can currently be invoked.
 	signed char* edf_paramTypes;			// Signature description of the function. Contains a string encoded using the constants defined above (PAR_...)
+	const char* edf_description;			// Optional help text used during code completion.
 } EDFUNC;
 
 /*
@@ -69,6 +70,15 @@ typedef struct edfunc {
  */
 extern int function_hasInternalVMPrototype(EDFUNC* ep);
 
+extern void function_destroyRegisteredNative(EDFUNC* pFunc);
+
+/*
+ * Register a macro C function given the name with which it should be visible in PKSMacroC, the windows proc name, the optional
+ * module (if null it is loaded from PKS-Edit), the signature description and an optional help text.
+ */
+int function_registerNativeFunction(const char* pszMacroCName, const char* pszFunctionName, 
+		const char* pszModule, const char* pszSignature, const char* pszDescription);
+
 /*
  * Returns the parameter descriptor for a function for the n-th parameter. Parameter count
  * starts with 1, parameter type 0 is the return type of the function.
@@ -76,8 +86,6 @@ extern int function_hasInternalVMPrototype(EDFUNC* ep);
 extern PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(EDFUNC* ep, int nParamIdx);
 
 extern int function_parameterIsFormStart(EDFUNC* ep, int parno);
-
-extern int function_returnsString(EDFUNC* ep);
 
 /*
  * Returns the number of parameters of a native macro function.
@@ -89,6 +97,9 @@ extern int function_getParameterCount(EDFUNC* ep);
  * be executed.
  */
 extern int interpreter_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn);
+
+#define STATICALLY_DEFINED_FUNCTIONS        159
+#define MAX_NATIVE_FUNCTIONS				256
 
 extern int 		_functionTableSize;
 extern EDFUNC	_functionTable[];
@@ -102,6 +113,7 @@ extern PARAMETER_ENUM_VALUE	_parameterEnumValueTable[];
 #define 	FUNC_EdCharInsert				17
 #define 	FUNC_EdOptionToggle				78
 #define 	FUNC_Foreach					139
+#define 	FUNC_RegisterNative				158
 
 #define CMD_OPEN_FILE	0 
 #define CMD_OPEN_NEW_FILE	1 

@@ -411,6 +411,6 @@ void stringbuf_truncate(STRING_BUF* pBuf, size_t nNewSize) {
  * Returns the "current line number" 0-based in the string stored in the string buffer.
  * This will work only if stringbuf_setFlags(... SB_COUNT_LINE_NUMBER) had been invoked.
  */
-int stringbuf_getLineNuber(STRING_BUF* pBuf) {
+int stringbuf_getLineNumber(STRING_BUF* pBuf) {
 	return pBuf->sb_lineNumber;
 }

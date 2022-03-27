@@ -23,7 +23,8 @@ commands which show an explanation about the command.
 - PKSMacroC supports now foreach loops using the following syntax: `for (type variable : expression) {...}`. One can currently iterate
   over ranges, strings and arrays.
 - PKSMacroC supports now regular C style for loops with the following syntax `for (initializer; condition; increment) {...}`.
-- PKSMacroC supports now simple switch expressions.
+- PKSMacroC supports now switch expressions.
+- PKSMacroC allows for simple extension using native (WIN32 API) methods.
 - Many utility methods in particular for working with arrays, files and strings were added to PKSMacroC.
 - One may define a macroC function parameter with a type of `auto` to allow for arbitrary values being passed to a MacroC function
 - One may use the new syntax `*function(params...)` now to execute a function (macro or native) **by name**.

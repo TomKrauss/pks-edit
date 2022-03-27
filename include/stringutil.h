@@ -194,7 +194,7 @@ extern void stringbuf_setFlags(STRING_BUF* pBuf, int nFlags);
  * Returns the "current line number" 0-based in the string stored in the string buffer.
  * This will work only if stringbuf_setFlags(... SB_COUNT_LINE_NUMBER) had been invoked.
  */
-extern int stringbuf_getLineNuber(STRING_BUF* pBuf);
+extern int stringbuf_getLineNumber(STRING_BUF* pBuf);
 
 /*
  * Returns the number of characters in the string buffer.

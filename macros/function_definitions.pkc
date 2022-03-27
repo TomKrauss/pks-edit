@@ -1,0 +1,88 @@
+
+/*
+ * Retrieves the number of milliseconds that have elapsed since the system was started, up to 49.7 days.
+ */
+@Method(lib="kernel32.dll")
+native int GetTickCount();
+
+/*
+ * Retrieves the calling thread's last-error code value. The last-error code is maintained on a per-thread basis.
+ * Multiple threads do not overwrite each other's last-error code.
+ */
+@Method(lib="kernel32.dll")
+native int GetLastError();
+
+/*
+ * Inserts the passed string into the currently active editor or into the editor passed as 1st parameter.
+ */
+@Method(name="EditorInsertString")
+native int edit_insertString(EDITOR anEditor, string aString);
+
+/*
+ * Returns the currently active editor or null, if no editor is active.
+ */
+@Method(name="EditorGetCurrent")
+native EDITOR ww_getCurrentEditorWindow();
+
+/*
+ * Replace all occurrences of the search string with the replacement parameter using
+ * the specified regular expression flags in a given range. Besides replacing this method
+ * may also perform an alternate replacement action defined using the last argument.
+ */
+@Method(name="EditorReplaceText", signature="iWssbRE_eRNG_eREP_")
+native int edit_replaceText(EDITOR anEditor, string aSearch, string aReplace, int reOptions, int nRange, int nReplaceActions);
+
+/*
+ * Return the fully qualified file name of the file edited in the editor identified
+ * by the editor handle.
+ */
+@Method(name="EditorGetFilename")
+native string ww_getFilename(EDITOR anEditor);
+
+/*
+ * Select (i.e. activate) the editor identified by the editor handle.
+ */
+@Method(name="EditorSetCurrent")
+native boolean ww_selectWindow(EDITOR anEditor);
+
+/*
+ * Returns a list of all open editors.
+ */
+@Method(name="EditorGetAll", signature="P")
+native EDITOR[] edit_getAllEditors();
+
+/*
+ * Returns the file name of the editor passed with the editor handle. Note, that
+ * the editor handle parameter is optional as always. If not passed, the currently
+ * active editor is used.
+ */
+@Method(name="EditorGetFilename")
+native string ww_getFilename(EDITOR anEditor);
+
+/*
+ * Open the file with the given filename and return an editor handle for manipulating it.
+ */
+@Method(name="EditorOpenFile")
+native EDITOR ww_openFile(string aFilename, int nSomeFlags);
+
+/*
+ * Creates a windows path concatenating multiple path segments.
+ * Example: PathCreateFromSegments("c:\\pks_edit\\pks_sys", "..", "readme.txt") will create a path "c:\\pks_edit\\readme.txt".
+ */
+@Method(name="PathCreateFromSegments", signature="P")
+native string macroc_pathCreateFromSegments();
+
+/*
+ * Retrieves the number of milliseconds that have elapsed since the system was started, up to 49.7 days.
+ */
+@Method(lib="kernel32.dll")
+native int GetTickCount();
+
+/*
+ * Retrieves the calling thread's last-error code value. The last-error code is maintained on a per-thread basis.
+ * Multiple threads do not overwrite each other's last-error code.
+ */
+@Method(lib="kernel32.dll")
+native int GetLastError();
+
+

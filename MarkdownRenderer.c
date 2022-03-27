@@ -1970,13 +1970,11 @@ static void mdr_navigateToAnchor(WINFO* wp, const char* pszAnchor) {
 					char c = *pszTitle++;
 					if (c == ' ') {
 						c = '-';
-					} else if (pks_isupper(c)) {
-						c = tolower(c);
 					}
 					*pszDest++ = c;
 				}
 				*pszDest = 0;
-				if (strcmp(pszAnchor, szTitleAsAnchor) == 0) {
+				if (_stricmp(pszAnchor, szTitleAsAnchor) == 0) {
 					int nCol = 0;
 					caret_placeCursorAndValidate(wp, &nLine, 0, &nCol, 0, 0);
 					wt_curpos(wp, nLine, 0);

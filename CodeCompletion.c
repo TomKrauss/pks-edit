@@ -34,10 +34,11 @@
 
 #define CLASS_CODE_COMPLETION		"CodeCompletion"
 #define CLASS_CODE_COMPLETION_HELP	"CodeCompletionJHelp"
-#define CC_WIDTH			150
+#define CC_WIDTH			180
 #define CC_HEIGHT			200
+#define CC_HELP_LINE_LEN	80
 
-#define CC_PADDING			2
+#define CC_PADDING			4
 
 extern HINSTANCE hInst;
 
@@ -81,7 +82,7 @@ static void codecomplete_updateScrollbar(HWND hwnd) {
 	SCROLLINFO info = { sizeof(info)};
 
 	GetClientRect(hwnd, &rect);
-	rect.top += CC_PADDING;
+	//rect.top += CC_PADDING;
 	int nVisibleRows = (rect.bottom - rect.top + pCC->ccp_lineHeight - 1) / pCC->ccp_lineHeight;
 	int nRows = pCC->ccp_size;
 	info.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
@@ -112,6 +113,14 @@ static CODE_ACTION* codecomplete_addTagsWithAlloc(const char* pszTagName, const 
 	return pCurrent;
 }
 
+static void codecomplete_hideWindow(HWND hwnd) {
+	ShowWindow(hwnd, SW_HIDE);
+	HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
+	if (hwndSecondary) {
+		ShowWindow(hwndSecondary, SW_HIDE);
+	}
+
+}
 static void codecomplete_addTags(const char* pszTagName, void* pParam, const char* (*fHelpCB)(const char* pszCompletion, void* pParam)) {
 	codecomplete_addTagsWithAlloc(pszTagName, fHelpCB, pParam, FALSE);
 }
@@ -269,7 +278,7 @@ static void codecomplete_paint(HWND hwnd) {
 		}
 	} else {
 		int x = CC_PADDING;
-		int y = CC_PADDING;
+		int y = 0;
 		int nDelta = CC_PADDING;
 		int nIconSize = 16;
 		for (int i = 0; up; i++) {
@@ -289,7 +298,7 @@ static void codecomplete_paint(HWND hwnd) {
 					SetTextColor(paint.hdc, pTheme->th_dialogForeground);
 				}
 				const char* pszDescription = up->ca_name;
-				DrawIconEx(paint.hdc, x, y, up->ca_type == CA_TEMPLATE ? hIconTemplate : hIconTag, textmetric.tmHeight, textmetric.tmHeight, 0, NULL, DI_NORMAL);
+				DrawIconEx(paint.hdc, x, y+nDelta/2, up->ca_type == CA_TEMPLATE ? hIconTemplate : hIconTag, textmetric.tmHeight, textmetric.tmHeight, 0, NULL, DI_NORMAL);
 				TextOut(paint.hdc, x + nIconSize + 4, y + (nDelta / 2), pszDescription, (int)strlen(pszDescription));
 				y += textmetric.tmHeight + nDelta;
 				if (y > paint.rcPaint.bottom) {
@@ -344,7 +353,7 @@ static void codecomplete_updateHelpWindowPosition(HWND hwnd) {
 		if (rcOld.right - rcOld.left >= 100) {
 			nFlags |= SWP_NOSIZE;
 		}
-		SetWindowPos(hwndSecondary, NULL, rect.right + 5, rect.top, 400, rect.bottom - rect.top, nFlags);
+		SetWindowPos(hwndSecondary, NULL, rect.right + 5, rect.top, CC_HELP_LINE_LEN * 7, rect.bottom - rect.top, nFlags);
 	}
 }
 
@@ -365,6 +374,7 @@ static void codecomplete_displayHelpFor(HWND hwnd, CODE_COMPLETION_PARAMS* pPara
 	}
 	HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
 	if (!pszHelp || !*pszHelp) {
+		SetWindowText(hwndSecondary, "");
 		if (hwndSecondary) {
 			ShowWindow(hwndSecondary, SW_HIDE);
 		}
@@ -452,7 +462,7 @@ static void codecomplete_action(HWND hwnd) {
 			template_insertCodeTemplate(wp, &uclTemp, cap->ca_replaceWord);
 		}
 	}
-	ShowWindow(hwnd, SW_HIDE);
+	codecomplete_hideWindow(hwnd);
 }
 
 static void codecomplete_scrollTo(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nNewTop) {
@@ -515,7 +525,7 @@ BOOL codecomplete_processKey(HWND hwnd, UINT message, WPARAM wParam) {
 		return TRUE;
 	}
 	if (wParam == VK_ESCAPE) {
-		ShowWindow(hwnd, SW_HIDE);
+		codecomplete_hideWindow(hwnd);
 		return TRUE;
 	}
 	if (wParam == VK_RETURN) {
@@ -531,21 +541,15 @@ BOOL codecomplete_processKey(HWND hwnd, UINT message, WPARAM wParam) {
  */
 static LRESULT codecomplete_helpWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
-	case WM_NCCALCSIZE:
-		if (wParam) {
-			LRESULT res = DefWindowProc(hwnd, message, wParam, lParam);
-			LPNCCALCSIZE_PARAMS pncc = (LPNCCALCSIZE_PARAMS)lParam;
-			pncc->rgrc[0].top -= 6;
-			pncc->rgrc[2].top = 0;
-			return res;
-		}
-		break;
 	case WM_ERASEBKGND:
 		return 0;
 
 	case WM_PAINT:
 		codecomplete_paintHelp(hwnd);
 		return 0;
+	case WM_SIZE:
+		InvalidateRect(hwnd, 0, FALSE);
+		break;
 	}
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
@@ -556,7 +560,6 @@ static LRESULT codecomplete_helpWndProc(HWND hwnd, UINT message, WPARAM wParam, 
 static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	WINFO* wp;
 	CODE_COMPLETION_PARAMS* pCC;
-	THEME_DATA* pTheme = theme_getCurrent();
 
 	switch (message) {
 		case WM_CREATE: {
@@ -567,15 +570,6 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			SetWindowLongPtr(hwnd, GWL_PARAMS, (LONG_PTR)pCC);
 		}
 		break;
-		case WM_NCCALCSIZE:
-			if (wParam) {
-				LRESULT res = DefWindowProc(hwnd, message, wParam, lParam);
-				LPNCCALCSIZE_PARAMS pncc = (LPNCCALCSIZE_PARAMS)lParam;
-				pncc->rgrc[0].top -= 6;
-				pncc->rgrc[2].top = 0;
-				return res;
-			}
-			break;
 		case WM_DESTROY: {
 				HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
 				if (hwndSecondary) {
@@ -595,7 +589,6 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 
 		case WM_ERASEBKGND: 
 			return 0;
-
 		case WM_PAINT:
 			codecomplete_paint(hwnd);
 			return 0;
@@ -610,9 +603,11 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			break;
 		case WM_WINDOWPOSCHANGED: {
 			HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
-			if (hwndSecondary) {
+			if (hwndSecondary && IsWindowVisible(hwnd)) {
+				char szBuf[10];
 				WINDOWPOS* pWinpos = (WINDOWPOS*)lParam;
-				if (pWinpos->flags & SWP_HIDEWINDOW) {
+				GetWindowText(hwndSecondary, szBuf, sizeof szBuf);
+				if (!szBuf[0] || (pWinpos->flags & SWP_HIDEWINDOW)) {
 					ShowWindow(hwndSecondary, SW_HIDE);
 				} else {
 					codecomplete_updateHelpWindowPosition(hwnd);
@@ -702,16 +697,13 @@ static void codecomplete_calculateWindowPos(WINFO* wp, POINT *pPoint, int nHeigh
 	}
 }
 
+
 /*
  * Hide the current suggestion window. 
  */
 void codecomplete_hideSuggestionWindow(WINFO* wp) {
 	if (wp && wp->codecomplete_handle) {
-		ShowWindow(wp->codecomplete_handle, SW_HIDE);
-		HWND hwndSecondary = (HWND)GetWindowLongPtr(wp->codecomplete_handle, GWL_SECONDARY_WINDOW);
-		if (hwndSecondary) {
-			ShowWindow(hwndSecondary, SW_HIDE);
-		}
+		codecomplete_hideWindow(wp->codecomplete_handle);
 	}
 }
 
@@ -731,7 +723,8 @@ int codecomplete_showSuggestionWindow(void) {
 	int height = CC_HEIGHT;
 	if (wp->codecomplete_handle == NULL) {
 		codecomplete_calculateWindowPos(wp, &pt, height);
-		wp->codecomplete_handle = CreateWindow(CLASS_CODE_COMPLETION, NULL, WS_POPUP|WS_SIZEBOX|WS_VSCROLL, pt.x, pt.y, width, height, wp->ww_handle, NULL, hInst, wp);
+		wp->codecomplete_handle = CreateWindow(CLASS_CODE_COMPLETION, NULL, WS_POPUP|WS_SIZEBOX|WS_VSCROLL|WS_BORDER, 
+			pt.x, pt.y, width, height, wp->ww_handle, NULL, hInst, wp);
 	} else {
 		RECT rect;
 		GetWindowRect(wp->codecomplete_handle, &rect);

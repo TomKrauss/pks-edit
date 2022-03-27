@@ -49,7 +49,11 @@ extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
  * Loads the default action bindings (keys and mouse) for PKS-Edit from the PKS_SYS directory.
  */
 extern void bindings_loadActionBindings();
-extern void 		st_switchtomenumode(BOOL bMenuMode);
+extern void st_switchtomenumode(BOOL bMenuMode);
+/*
+ * Initialize a namespace.
+ */
+extern int interpreter_initializeNamespace(MACRO* mpNamespace);
 
 static ARRAY_LIST*		_macroTable;
 static ARRAY_LIST*		_namespaces;
@@ -373,6 +377,12 @@ int macro_readCompiledMacroFile(char *fn) {
 		}
 
 		rsc_close(rp);
+		MACRO* mpNamespace = macro_getNamespaceByIdx(0);
+		if (mpNamespace && !mpNamespace->mc_isInitialized) {
+			if (!interpreter_initializeNamespace(mpNamespace)) {
+				return 0;
+			}
+		}
 	}
 
 	_macrosWereChanged = wasdirty;

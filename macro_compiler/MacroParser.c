@@ -18,6 +18,9 @@
 #include "stringutil.h"
 #include "xdialog.h"
 
+extern HINSTANCE	hInst;
+extern void yyerror(const char* s, ...);
+
 BOOLEAN string_startsWith(const char* pszString, const char* pszPrefix) {
 	return strncmp(pszPrefix, pszString, strlen(pszPrefix)) == 0;
 }
@@ -169,6 +172,58 @@ int function_parameterIsFormStart(EDFUNC *ep, int parno) {
 		return 0;
 	PARAMETER_TYPE_DESCRIPTOR ptd = function_getParameterTypeDescriptor(ep, parno);
 	return ptd.pt_enumVal && (string_startsWith(ptd.pt_enumVal->pev_name, "FORM_"));
+}
+
+/*
+ * Register a macro C function given the name with which it should be visible in PKSMacroC, the windows proc name, the optional
+ * module (if null it is loaded from PKS-Edit), the signature description and an optional help text.
+ */
+int function_registerNativeFunction(const char* pszMacroCName, const char* pszFunctionName, const char* pszModule, const char* pszSignature, const char* pszDescription) {
+	int ret = 1;
+	HINSTANCE hInstance = hInst;
+	if (pszModule && strcmp(pszModule, "PKSEDIT") != 0) {
+		hInstance = LoadLibrary(pszModule);
+	}
+	char* existingKey;
+	SYMBOL symbol = sym_find(sym_getKeywordContext(), pszMacroCName, &existingKey);
+	int nIndex;
+	if (symbol.s_type == S_EDFUNC) {
+		nIndex = (int)((EDFUNC*)VALUE(symbol) - _functionTable);
+	}
+	else {
+		nIndex = _functionTableSize++;
+	}
+	long long (*p)() = GetProcAddress(hInstance, pszFunctionName);
+	if (!p && nIndex >= STATICALLY_DEFINED_FUNCTIONS) {
+		ret = 0;
+		interpreter_raiseError("Cannot find proc address for %s (lib=%s)", pszFunctionName, pszModule ? pszModule : "PKSEDIT");
+	}
+	else {
+		int nMax = MAX_NATIVE_FUNCTIONS;
+		if (nIndex >= nMax) {
+			interpreter_raiseError("Too many native functions.");
+			ret = 0;
+		}
+		else {
+			if (nIndex < STATICALLY_DEFINED_FUNCTIONS) {
+				free((char*)_functionTable[nIndex].edf_description);
+				_functionTable[nIndex].edf_description = 0;
+			} else {
+				function_destroyRegisteredNative(&_functionTable[nIndex]);
+				sym_createSymbol(sym_getKeywordContext(), (char*)pszMacroCName, S_EDFUNC, 0, (GENERIC_DATA) {
+					.val = (intptr_t)&_functionTable[nIndex]
+				}, 0);
+				_functionTable[nIndex].f_name = _strdup(pszMacroCName);
+				_functionTable[nIndex].edf_paramTypes = _strdup(pszSignature);
+				_functionTable[nIndex].execute = p;
+			}
+			_functionTable[nIndex].edf_description = pszDescription ? _strdup(pszDescription) : 0;
+		}
+	}
+	if (hInstance != hInst) {
+		FreeLibrary(hInstance);
+	}
+	return ret;
 }
 
 

@@ -185,18 +185,20 @@ int types_existsType(PKS_VALUE_TYPE t) {
  * Returns the name of a given PKSMacroC value type.
  */
 const char* types_nameFor(PKS_VALUE_TYPE t) {
+	types_registerDefaultTypes();
 	if (t == VT_OBJECT_ARRAY) {
 		return "string[]";
 	}
 	PKS_TYPE_DESCRIPTOR* pDescriptor = t>=0 && t < MAX_TYPES ? _typeDescriptors[t] : 0;
-	return pDescriptor ? pDescriptor->ptd_name : "??";
+	return pDescriptor ? pDescriptor->ptd_name : "?";
 }
 
 /*
  * Return the finalizer for a given value type or 0 if not finalizer exists.
  */
 T_FINALIZER types_getFinalizer(PKS_VALUE_TYPE vType) {
-	return _typeDescriptors[vType]->ptd_callbacks.tc_close;
+	PKS_TYPE_DESCRIPTOR* pDescriptor = _typeDescriptors[vType];
+	return pDescriptor ? pDescriptor->ptd_callbacks.tc_close : 0;
 }
 
 /*

@@ -58,6 +58,11 @@ extern HASHMAP* hashmap_create(int nCapacity, HASH_CODE hashCode, HASH_COMPARE c
 extern void hashmap_destroy(HASHMAP* pTable, HASH_DESTROY_ENTRY destroyEntryCallback);
 
 /*
+ * Destroy a hashtable also destroying keys and values.
+ */
+extern void hashmap_destroyWithKeysAndValues(HASHMAP* pTable);
+
+/*
  * Put an element into the hash table. Return 0 if an element with the named
  * key existed or 1 if a new entry was added.
  */

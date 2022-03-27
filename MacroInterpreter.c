@@ -8,7 +8,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- * 
+ *
  * author: Tom
  * created: 11/89
  */
@@ -58,7 +58,6 @@ extern int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP* sp
 extern void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp);
 
 extern int 	progress_cancelMonitor(BOOL bRedraw);
-extern void ww_redrawAllWindows(int update);
 extern void undo_startModification(FTABLE *fp);
 extern void ft_settime(EDTIME *tp);
 
@@ -116,7 +115,7 @@ static ARRAY_LIST* interpreter_extractArrayListFromBytecodes(COM_ARRAYLITERAL* p
 }
 
 /*
- * Decode a push-arraylist operation and convert to an array list. 
+ * Decode a push-arraylist operation and convert to an array list.
  */
 static PKS_VALUE interpreter_decodeArrayList(EXECUTION_CONTEXT* pContext, COM_ARRAYLITERAL* pPointer) {
 	ARRAY_LIST* pList = interpreter_extractArrayListFromBytecodes(pPointer);
@@ -354,7 +353,7 @@ PKS_VALUE interpreter_sprintf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 
 
 /*
- * Pop one value of the stack of our stack machine 
+ * Pop one value of the stack of our stack machine
  */
 PKS_VALUE interpreter_popStackValue(EXECUTION_CONTEXT* pContext) {
 	if (pContext->ec_stackCurrent > pContext->ec_stackFrame) {
@@ -506,14 +505,14 @@ int interpreter_openDialog(PARAMS *pp)
 		   }
 		}
 	}
-	
+
 	recorder_recordOperation(pp);
 
 	return cp->options & FORM_SHOW;
 }
 
 /*
- * Returns FALSE; if the function described by the function pointer cannot 
+ * Returns FALSE; if the function described by the function pointer cannot
  * be executed.
  */
 int interpreter_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn) {
@@ -576,7 +575,7 @@ static long long cdecl interpreter_callFfi(EDFUNC* pFunc, intptr_t* pStack) {
 	PARAMETER_TYPE_DESCRIPTOR pd1;
 	if (nParams >= 1) {
 		pd1 = function_getParameterTypeDescriptor(pFunc, 1);
-	} 
+	}
 	if (nParams == 1) {
 		if (pd1.pt_type == PARAM_TYPE_STRING) {
 			return (*pFunc->execute)(((void**)pStack)[0]);
@@ -855,7 +854,7 @@ static void interpreter_assignOffset(EXECUTION_CONTEXT* pContext) {
 
 
 /*
- * Returns a value from the parameter stack. 
+ * Returns a value from the parameter stack.
  */
 static PKS_VALUE interpreter_getParameterStackValue(EXECUTION_CONTEXT* pContext, int nParamIndex) {
 	PKS_VALUE* pSlot = pContext->ec_stackFrame + nParamIndex;
@@ -887,7 +886,7 @@ static int interpreter_testCaseLabelMatch(EXECUTION_CONTEXT* pContext, PKS_VALUE
 #define COM1_INCR(pLocalInstructionPointer,type,offset) (((unsigned char *)pLocalInstructionPointer)+((type *)pLocalInstructionPointer)->offset)
 #define COM_PARAMINCR(pLocalInstructionPointer)		(((unsigned char *)pLocalInstructionPointer)+interpreter_getParameterSize(pLocalInstructionPointer->typ,&pLocalInstructionPointer->funcnum));
 static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* mpMacro) {
-	char* pszFunctionName´ = mpMacro->mc_name;
+	char* pszFunctionName = mpMacro->mc_name;
 	COM_1FUNC* cp = (COM_1FUNC*)mpMacro->mc_bytecodes;
 	COM_1FUNC* cpmax = (COM_1FUNC*)(mpMacro->mc_bytecodes + mpMacro->mc_bytecodeLength);
 	static int _progressCount;
@@ -958,7 +957,7 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 		case C_PUSH_INTEGER_LITERAL:
 		case C_PUSH_NEW_INSTANCE:
 		case C_PUSH_VARIABLE:
-		case C_PUSH_ARRAY_LITERAL: 
+		case C_PUSH_ARRAY_LITERAL:
 		case C_PUSH_MAP_LITERAL:
 		case C_PUSH_STRING_LITERAL: {
 			PKS_VALUE value = interpreter_getValueForOpCode(pContext, pInstr);
@@ -970,7 +969,7 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 			PKS_VALUE value = interpreter_getParameterStackValue(pContext, (int)((COM_DEFINE_SYMBOL*)cp)->value);
 			// automatic type coercion of parameter types.
 			if (!value.pkv_type && ((COM_DEFINE_SYMBOL*)cp)->vartype == VT_STRING) {
-				// TODO: this is a hack - if the parameter was not passed we need to define the symbol and assign it a NIL value, 
+				// TODO: this is a hack - if the parameter was not passed we need to define the symbol and assign it a NIL value,
 				// which is currently not supported. So convert to false to allow us for testing, whether the parameter was passed.
 				value = (PKS_VALUE){.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 0};
 			}
@@ -1052,7 +1051,7 @@ static int macro_interpretByteCodes(MACRO* mp) {
 /*
  * Initialize a namespace.
  */
-static int interpreter_initializeNamespace(MACRO* mpNamespace) {
+int interpreter_initializeNamespace(MACRO* mpNamespace) {
 	EXECUTION_CONTEXT* pOld = _currentExecutionContext;
 	EXECUTION_CONTEXT ecNamespace;
 	_currentExecutionContext = &ecNamespace;
@@ -1079,13 +1078,13 @@ long long macro_executeMacroByIndex(int macroindex) {
 	MACRO*		mpNamespace;
 	long   		bWasRecording = recorder_isRecording();
 
-	if (macroindex == MAC_LASTREC && 
+	if (macroindex == MAC_LASTREC &&
 	    (macroindex = _lastinsertedmac) < 0)
 		return 0;
 
 	if ((wasplaying = _playing) == 0 && ft_getCurrentDocument()) {
 		undo_startModification(ft_getCurrentDocument());
-	} 
+	}
 
 	if (bWasRecording && macroindex >= 0) {
 		recorder_pushSequence(C_MACRO,MAC_NAME(macro_getByIndex(macroindex)));

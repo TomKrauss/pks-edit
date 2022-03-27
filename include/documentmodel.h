@@ -713,11 +713,6 @@ extern unsigned char* ln_createFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* docume
  */
 extern int ln_createAndAdd(FTABLE* fp, const char* q, int len, int flags);
 
-/*--------------------------------------------------------------------------
- * ln_createAndAddSimple()
- * Similar to ln_createAndAdd() - default size and default flags.
- */
-extern int ln_createAndAddSimple(FTABLE* fp, const char* b);
 
 /*---------------------------------
  * ft_formatText()

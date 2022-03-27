@@ -195,6 +195,64 @@ switch (myString) {
 
 ```
 
+## Defining native methods
+
+One can extend PKSMacroC to some extent using native method bindings. A native method binding is defined
+in the header of a PKSMacroC file as shown in the following example:
+
+```
+/*
+ * Retrieves the calling thread's last-error code value. The last-error code is maintained on a per-thread basis.
+ * Multiple threads do not overwrite each other's last-error code.
+ */
+@Method(lib="kernel32.dll")
+native int GetLastError();
+```
+
+The shown examples makes it possible to invoke "GetLastError" from PKSMacroC code to invoke the corresponding WIN32 API
+from kernel32.dll. Adding native method binding has currently quite some limitations - only simple parameter types
+are supported.
+
+The next example is used to document a defined PKS-Edit standard native method:
+
+```
+/*
+ * Inserts the passed string into the currently active editor or into the editor passed as 1st parameter.
+ */
+@Method(name="EditorInsertString")
+native int edit_insertString(EDITOR anEditor, string aString);
+```
+
+Note that this time the `@Method` annotation does not need to specify the lib from which the method is loaded,
+as it is loaded from the PKS-Edit exe itself. Here we specify an alternate API name to be used inside PKSMacroC (EditorInsertString
+instead of edit_insertString, which is the corresponding native method name).
+
+Finally one may pass information about the signature of the method not expressible in PKSMacroC syntax. 
+The following example defines the MacroC `signature` of the method also specifying enum values which can be used for
+parameters.
+
+```
+/*
+ * Replace all occurrences of the search string with the replacement parameter using
+ * the specified regular expression flags in a given range. Besides replacing this method
+ * may also perform an alternate replacement action defined using the last argument.
+ */
+@Method(name="EditorReplaceText", signature="iWssbRE_eRNG_eREP_")
+native int edit_replaceText(EDITOR anEditor, string aSearch, string aReplace, int reOptions, int nRange, int nReplaceActions);
+```
+
+### PKSMacroC signatures
+
+1st signature token defines the return type of the method.
+
+Signature tokens may be:
+
+- i - parameter / return type is an integer
+- s - parameter / return type is a string
+- W - parameter / return type is an EDITOR handle
+- b... - parameter / return type is a bit set of enum values starting with ... (e.g. `bRE_` a bit combination of regular expression options)
+- e... - parameter / return type is a single enum value starting with ... 
+- P... special token to mark the method a natively defined method (used internally in PKS-Edit for more advanced handling of parameters)
 
 
- 
+

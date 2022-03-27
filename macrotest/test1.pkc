@@ -7,7 +7,6 @@ const PI = 3.14159265359d;
 const QUOTE = '\'';
 const ENOENT = 2;
 
-
 /*
  * This file contains and defines some test cases for PKSMacroC. These can be executed by
  * our generic unit testing Suite defined in namespace "unittest".

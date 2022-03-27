@@ -743,7 +743,7 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 		int nOffs = (int)(sp - data);
 		decompile_print(pBuf, "\n0x%04x:   ", nOffs);
 		if (pOptions->do_instructionPointer == sp) {
-			pOptions->do_lineNumberForInstructionPointer = stringbuf_getLineNuber(pBuf);
+			pOptions->do_lineNumberForInstructionPointer = stringbuf_getLineNumber(pBuf);
 		}
 		switch (t) {
 		case C_STOP: decompile_print(pBuf, "stop"); break;
@@ -1004,7 +1004,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 			bytecode_startNextAutoLabel(&lname, (COM_GOTO**)&gop);
 		}
 		if (sp == pOptions->do_instructionPointer) {
-			pOptions->do_lineNumberForInstructionPointer = stringbuf_getLineNuber(pBuf);
+			pOptions->do_lineNumberForInstructionPointer = stringbuf_getLineNumber(pBuf);
 		}
 		opCode = ((COM_1FUNC*)sp)->typ;
 		if (C_IS_PUSH_OPCODE(opCode)) {

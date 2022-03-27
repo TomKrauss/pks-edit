@@ -55,10 +55,10 @@ namespace pkseditTests
 		{
 			FTABLE ftable;
 			memset(&ftable, 0, sizeof ftable);
-			ln_createAndAddSimple(&ftable, "Hello world");
+			ln_createAndAdd(&ftable, "Hello world", 11, 0);
 			Assert::IsNotNull(ftable.firstl);
 			Assert::AreEqual(1l, ll_size((LINKED_LIST*)ftable.firstl));
-			ln_createAndAddSimple(&ftable, "Hello world2");
+			ln_createAndAdd(&ftable, "Hello world2", 12 ,0);
 			Assert::AreEqual(2l, ll_size((LINKED_LIST*)ftable.firstl));
 			LINE* pLast = (LINE*)ll_at((LINKED_LIST*)ftable.firstl, 1);
 			Assert::IsNotNull(pLast);
@@ -715,11 +715,11 @@ namespace pkseditTests
 			stringbuf_appendChar(pBuf, '\n');
 			stringbuf_appendChar(pBuf, 'c');
 			stringbuf_appendString(pBuf, (unsigned char*)"hello\nworld\nxxx");
-			Assert::AreEqual(3, stringbuf_getLineNuber(pBuf));
+			Assert::AreEqual(3, stringbuf_getLineNumber(pBuf));
 			stringbuf_appendStringLength(pBuf, (unsigned char*)"hello\nworld\nxxx", 7);
-			Assert::AreEqual(4, stringbuf_getLineNuber(pBuf));
+			Assert::AreEqual(4, stringbuf_getLineNumber(pBuf));
 			stringbuf_reset(pBuf);
-			Assert::AreEqual(0, stringbuf_getLineNuber(pBuf));
+			Assert::AreEqual(0, stringbuf_getLineNumber(pBuf));
 		}
 	};
 	 TEST_CLASS(hashMap) {

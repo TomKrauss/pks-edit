@@ -21,13 +21,13 @@
 #include "arraylist.h"
 #include "scanner.h"
 
-extern void 	yyerror(char *s, ...);
-extern int 		macro_isParameterStringType(unsigned char typ);
-extern char* bytecode_generateAutoLabelName(char* prefix, int num);
-extern void bytecode_destroyLabelNamed(char* name);
-extern int bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char* name);
-extern void bytecode_emitGotoInstruction(BYTECODE_BUFFER* pBuffer, char* prefix, int level, int bratyp);
-extern char* bytecode_emitGotoLabelInstruction(char* name, BYTECODE_BUFFER* pBuffer, int branchType);
+extern void 		yyerror(char *s, ...);
+extern int 			macro_isParameterStringType(unsigned char typ);
+extern char*		bytecode_generateAutoLabelName(char* prefix, int num);
+extern void			bytecode_destroyLabelNamed(char* name);
+extern int			bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char* name);
+extern void			bytecode_emitGotoInstruction(BYTECODE_BUFFER* pBuffer, char* prefix, int level, int bratyp);
+extern char*		bytecode_emitGotoLabelInstruction(char* name, BYTECODE_BUFFER* pBuffer, int branchType);
 
 typedef struct tagSWITCH_LABEL {
 	int  sl_index;
@@ -496,3 +496,5 @@ void bytecode_optimizeInstructions(BYTECODE_BUFFER* pBuffer) {
 		pBuffer->bb_current = pTarget;
 	}
 }
+
+
