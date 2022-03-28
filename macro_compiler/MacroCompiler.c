@@ -31,6 +31,7 @@
 #include "fileutil.h"
 #include "editorconfiguration.h"
 #include "crossreferencelinks.h"
+#include "winfo.h"
 
 typedef struct tagLINE_INPUT {
 	LINE* li_firstLine;
@@ -108,7 +109,7 @@ BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 		fflush(fp);
 		fclose(fp);
 		if (ft_activateWindowOfFileNamed(tmpfn)) {
-			EdFileAbandon();
+			EdFileAbandon(ww_getCurrentEditorWindow());
 		}
 		else {
 			FTABLE* fpTable = ft_openFileWithoutFileselector(tmpfn,-1L, &(FT_OPEN_OPTIONS) { 0, CP_ACP });

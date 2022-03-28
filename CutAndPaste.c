@@ -365,17 +365,15 @@ static void bl_resetCurrentLine(WINFO* wp) {
  * EdBlockCopyOrMove()
  * PKS Edit command to copy or move a block.
  *----------------------------*/
-EXPORT int EdBlockCopyOrMove(BOOL move) {	
+EXPORT int EdBlockCopyOrMove(WINFO* wp, BOOL move) {	
 	LINE   *ls,*le;
 	int	  cs,ce,offs;
 	long   delta,dln;
 	PASTE  pbuf;
 	FTABLE *fp;
-	WINFO* wp;
 	MARK   *bstart,*bend;
 	int	  move_nocolblk,ret,colflg;
 
-	wp = ww_getCurrentEditorWindow();
 	fp = wp->fp;
 	colflg = ww_isColumnSelectionMode(wp);
 
@@ -480,7 +478,7 @@ int bl_moveSelectionUpDown(long delta) {
 		return 0;
 	}
 	caret_placeCursorInCurrentFile(wp, newPos, 0);
-	int ret = EdBlockCopyOrMove(TRUE);
+	int ret = EdBlockCopyOrMove(wp, TRUE);
 	caret_placeCursorInCurrentFile(wp, newPos, 0);
 	return ret;
 }

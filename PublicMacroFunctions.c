@@ -189,14 +189,14 @@ int EdRedo(WINFO* wp) {
 /*--------------------------------------------------------------------------
  * EdBlockCopy()
  */
-int EdBlockCopy(void)
-{	 return EdBlockCopyOrMove(0);	}
+int EdBlockCopy(WINFO* wp)
+{	 return EdBlockCopyOrMove(wp, 0);	}
 
 /*--------------------------------------------------------------------------
  * EdBlockMove()
  */
-int EdBlockMove(void)
-{	return EdBlockCopyOrMove(1);	}
+int EdBlockMove(WINFO* wp)
+{	return EdBlockCopyOrMove(wp,1);	}
 
 /*--------------------------------------------------------------------------
  * bl_hideSelectionInCurrentWindow()

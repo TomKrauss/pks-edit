@@ -890,10 +890,10 @@ int ft_isReadonly(FTABLE* fp) {
 
 /*--------------------------------------------------------------------------
  * EdFileAbandon()
- * Cancel all changes in he current file.
+ * Cancel all changes in the specified editor..
  */
-long long EdFileAbandon(void) {
-	return ft_abandonFile(ft_getCurrentDocument(), (EDIT_CONFIGURATION *)0);
+long long EdFileAbandon(WINFO* wp) {
+	return ft_abandonFile(wp->fp, (EDIT_CONFIGURATION *)0);
 }
 
 /**

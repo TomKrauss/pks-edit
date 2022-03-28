@@ -1020,6 +1020,7 @@ static FSELINFO _cmpfselinfo = { ".", "build.out", "*.out" };
 static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *fsp) {
 	FILE_SELECT_PARAMS params;
 	FTABLE* fp;
+	WINFO* wp;
 	memset(&params, 0, sizeof params);
 	params.fsp_saveAs = FALSE;
 	if (nCommand && fsel_selectFileWithOptions(fsp, nCommand, &params) == 0) {
@@ -1028,8 +1029,9 @@ static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *
 
 	switch(st_type) {
 		case ST_ERRORS:
-			if (xref_openFile(_fseltarget, 0L, DOCK_NAME_BOTTOM) && ft_getCurrentDocument()) {
-				EdFileAbandon();
+			wp = ww_getCurrentEditorWindow();
+			if (xref_openFile(_fseltarget, 0L, DOCK_NAME_BOTTOM) && wp) {
+				EdFileAbandon(wp);
 			}
 			fp = ft_fpbyname(_fseltarget);
 			if (fp) {

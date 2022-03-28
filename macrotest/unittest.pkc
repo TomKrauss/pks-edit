@@ -46,7 +46,10 @@ void Suite() {
 
 }
 
-
+/*
+ * Asserts that the expected parameter is equals to a result. If not display
+ * msg (if specified) or a generic error message and fail.
+ */
 static void AssertEquals(auto expected, auto result, string msg) {
 	if (expected != result) {
 		errorCount++;
@@ -59,10 +62,18 @@ static void AssertEquals(auto expected, auto result, string msg) {
 	}
 }
 
+/*
+ * Asserts that the expected parameter is true (not null). If not display
+ * msg (if specified) or a generic error message and fail.
+ */
 static void AssertTrue(auto expected, string msg) {
 	AssertEquals(true, expected, msg);
 }
 
+/*
+ * Asserts that the expected parameter is false (not null). If not display
+ * msg (if specified) or a generic error message and fail.
+ */
 static void AssertFalse(auto expected, string msg) {
 	AssertEquals(false, expected, msg);
 }

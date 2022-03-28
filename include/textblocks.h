@@ -33,7 +33,7 @@ extern int EdBlockRead(void);
  * EdBlockCopyOrMove()
  * PKS Edit command to copy or move a block.
  *----------------------------*/
-extern int EdBlockCopyOrMove(BOOL move);
+extern int EdBlockCopyOrMove(WINFO* wp, BOOL move);
 
 /*
  * Move the current selection one line up / down depending on 'delta'.

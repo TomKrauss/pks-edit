@@ -668,7 +668,7 @@ extern long long  EdSaveFile(int flg);
  * EdFileAbandon()
  * Cancel all changes in he current file.
  */
-extern long long EdFileAbandon(void);
+extern long long EdFileAbandon(WINFO* wp);
 
 /*--------------------------------------------------------------------------
  * EdLineSplit()

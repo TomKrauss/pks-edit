@@ -95,13 +95,13 @@ static WINFO* ww_openFile(const char* pszFilename, int nOptions) {
 
 // Describes functions and their respective names, options and parameter type descriptions for being used e.g. from within PKSMacroC.
 EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
-{/*0*/   EdFileAbandon , -1,EW_NEEDSCURRF | 0,                                                         "AbandonFile",                NULL,  "i"                                           },
+{/*0*/   EdFileAbandon , -1,EW_NEEDSCURRF | 0,                                                         "AbandonFile",                NULL,  "iW"                                           },
 {/*1*/   EdAbout       , -1,0,                                                                         "About",                      NULL,  "i"                                           },
-{/*2*/   EdBlockCopy   , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_NEEDSBLK | 0,                 "CopyBlock",                  NULL,  "i"                                           },
+{/*2*/   EdBlockCopy   , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_NEEDSBLK | 0,                 "CopyBlock",                  NULL,  "iW"                                           },
 {/*3*/   EdBlockDelete , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_NEEDSBLK | 0,                 "DeleteBlock",                NULL,  "ii"                                          },
 {/*4*/   EdBlockFindEnd, -1,EW_NEEDSCURRF | EW_NEEDSBLK | 0,                                           "FindBlockEnd",               NULL,  "i"                                           },
 {/*5*/   EdBlockFindStart, -1,  EW_NEEDSCURRF | EW_NEEDSBLK | 0,                                       "FindBlockStart",             NULL,  "i"                                           },
-{/*6*/   EdBlockMove   , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_NEEDSBLK | 0,                 "MoveBlock",                  NULL,  "i"                                           },
+{/*6*/   EdBlockMove   , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_NEEDSBLK | 0,                 "MoveBlock",                  NULL,  "iW"                                           },
 {/*7*/   EdBlockRead   , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                               "ReadBlock",                  NULL,  "i"                                           },
 {/*8*/   EdBlockWrite  , -1,EW_NEEDSCURRF | EW_NEEDSBLK | 0,                                           "WriteBlock",                 NULL,  "i"                                           },
 {/*9*/   bl_cutOrCopy    , -1,EW_UNDOFLSH|EW_NEEDSCURRF | EW_NEEDSBLK | 0,                             "CutBlock",                   NULL,  "ieCUT_i"                                },
@@ -455,7 +455,7 @@ CMD_KEYCODE_INSERT, C_0FUNC, 16 /* EdKeycodeInsert */, 		1, 0 , "keycode-insert"
 164, C_1FUNC, 14 /* EdLineDelete */, 						1, ELO_CARET_STAYS, "delete-line-stay",
 165, C_1FUNC, 14 /* EdLineDelete */, 						1, ELO_APPEND , "delete-line-append",
 166, C_1FUNC, 14 /* EdLineDelete */, 						1, ELO_CARET_FOLLOWS, "delete-line-follow",
-167, C_1FUNC, 0 /* EdFileAbandon */, 						1, 0 , "abandon-file",
+167, C_0FUNC, 0 /* EdFileAbandon */, 						1, 0 , "abandon-file",
 168, C_1FUNC, 64 /* EdSaveFile */, 							1, SAV_SAVE|SAV_QUIT, "save-and-close",
 169, C_1FUNC, 19 /* edit_insertLine */, 					1, 1, "insert-line-stay",
 170, C_0FUNC, 25 /* unused */, 								1, 0 , "unused",

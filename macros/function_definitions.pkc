@@ -1,18 +1,18 @@
 /*
- * DESCRIPTION
+ * Abondon all changes in the given editor.
  */
 @Method(name="AbandonFile", signature="i")
 native int EdFileAbandon();
 /*
- * DESCRIPTION
+ * Displays the PKS-Edit About dialog.
  */
-@Method(name="About", signature="i")
+@Method(name="About")
 native int EdAbout();
 /*
- * DESCRIPTION
+ * Copy the selected block of text to the caret position in the specified editor.
  */
-@Method(name="CopyBlock", signature="i")
-native int EdBlockCopy();
+@Method(name="CopyBlock")
+native int EdBlockCopy(EDITOR editor);
 /*
  * DESCRIPTION
  */

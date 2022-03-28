@@ -546,10 +546,10 @@ statement: ';'
 			| switch_expression { $$.needsPop = 1; }
 			| break { $$.needsPop = 0; }
 			| continue { $$.needsPop = 0; }
-			| return_expression { $$.needsPop = 0; }
-			| goto	{ $$.needsPop = 0; }
+			| return_expression ';' { $$.needsPop = 0; }
+			| goto_expression ';' { $$.needsPop = 0; }
 			| block { $$.needsPop = 1; }
-			| increment_expression { $$.needsPop = 1; }
+			| increment_expression ';' { $$.needsPop = 1; }
 			| label { $$.needsPop = 0; }
 			| var_decl {
 				yyerror("Variable declarations outside method variable declaration section not yet supported.");
@@ -813,7 +813,8 @@ label:		T_IDENT ':' {
 				freeitem(&$1.ident.s);
 			}
 
-goto:		T_GOTO T_IDENT {
+goto_expression:
+			T_GOTO T_IDENT {
 				_currentBytecodeBuffer->bb_current = bytecode_emitGotoLabelInstruction($2.ident.s,_currentBytecodeBuffer,BRA_ALWAYS);
 				freeitem(&$2.ident.s);
 			}
@@ -976,11 +977,6 @@ function_id_or_pointer:
 			T_IDENT {
 				$$.ident = $1.ident;
 				$$.ident.operation = C_MACRO;
-			}
-			| error {
-				yyerror("Illegal function call expression");
-				yyerrok;
-				$$.ident.s = 0;
 			}
 
 parameter_list: nonempty_parameters
