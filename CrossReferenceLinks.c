@@ -605,18 +605,15 @@ static TAG_REFERENCE *xref_lookupTagReference(char *tagName, BOOL bForceDialog) 
  * Copy the found identifier into pszTargetBuffer and return the pointer to the start of
  * the expression in pszExpressionBegin.
  **/
-static char* xref_findExpressionCloseToCaret(unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
+static char* xref_findExpressionCloseToCaret(WINFO* wp, CARET* pCaret, unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
 	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int (*matchesCharacter)(unsigned char c), FIND_IDENTIFIER_OPTIONS fiOptions) {
 	char* s, *pszStart, *pszEnd;
 	char* pszCursor;
 	char* s1 = pszTargetBuffer;
-	WINFO* wp;
 
-	if ((wp = ww_getCurrentEditorWindow()) == 0L)
-		return (char*)0;
-	LINE* lp = wp->caret.linePointer;
+	LINE* lp = pCaret->linePointer;
 	pszStart = lp->lbuf;
-	s = &pszStart[wp->caret.offset];
+	s = &pszStart[pCaret->offset];
 	pszEnd = &lp->lbuf[lp->len];
 	pszCursor = s;
 
@@ -652,10 +649,10 @@ static int xref_matchIdentifier(unsigned char c) {
  * Copy the found identifier into pszTargetBuffer and return the pointer to the start of
  * the expression in pszExpressionBegin and return the end of the found expression in pszExpressionEnd.
  **/
-char* xref_findIdentifierCloseToCaret(unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
+char* xref_findIdentifierCloseToCaret(WINFO* wp, CARET* pCaret, unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
 	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, FIND_IDENTIFIER_OPTIONS fiOptions) {
 
-	return xref_findExpressionCloseToCaret(pszTargetBuffer, pszTargetBufferEnd, pszExpressionBegin, pszExpressionEnd, 
+	return xref_findExpressionCloseToCaret(wp, pCaret, pszTargetBuffer, pszTargetBufferEnd, pszExpressionBegin, pszExpressionEnd, 
 		xref_matchIdentifier, fiOptions);
 }
 
@@ -669,7 +666,8 @@ static char *xref_saveCrossReferenceWord(unsigned char *d,unsigned char *dend) {
 		return _tagword;
 	}
 
-	return xref_findIdentifierCloseToCaret(d,dend,NULL, NULL, 1);
+	WINFO* wp = ww_getCurrentEditorWindow();
+	return xref_findIdentifierCloseToCaret(wp, &wp->caret, d,dend,NULL, NULL, 1);
 }
 
 /*------------------*/
@@ -782,11 +780,11 @@ int xref_navigateCrossReference(char* s) {
  * If text is selected, use that as the identifier, otherwise try to identify the close
  * by identifier.
  */
-int xref_getSelectedIdentifier(char* pszText, size_t nMaxChars) {
+int xref_getSelectedIdentifier(WINFO* wp, char* pszText, size_t nMaxChars) {
 	*pszText = 0;
-	bl_getSelectedText(ww_getCurrentEditorWindow(), pszText, nMaxChars);
+	bl_getSelectedText(wp, pszText, nMaxChars);
 	if (!pszText[0]) {
-		return xref_findIdentifierCloseToCaret(pszText, pszText + nMaxChars, NULL, NULL, FI_COMPLETE_WORD) != NULL;
+		return xref_findIdentifierCloseToCaret(wp, &wp->caret, pszText, pszText + nMaxChars, NULL, NULL, FI_COMPLETE_WORD) != NULL;
 	}
 	return 1;
 }
@@ -794,9 +792,9 @@ int xref_getSelectedIdentifier(char* pszText, size_t nMaxChars) {
 /*--------------------------------------------------------------------------
  * EdFindTag()
  */
-int EdFindTag(void) {
+int EdFindTag() {
 	char selected[80];
-	xref_getSelectedIdentifier(selected, sizeof selected);
+	xref_getSelectedIdentifier(ww_getCurrentEditorWindow(), selected, sizeof selected);
 	return xref_navigateCrossReferenceForceDialog(selected, TRUE);
 }
 
@@ -1184,11 +1182,11 @@ static void xref_urlEncode(char* pszDest, char* pszSource) {
 /*
  * Perform a google / bing / duckduck go / ... search for the current word or selection.
  */
-int EdFindOnInternet(void) {
+int EdFindOnInternet() {
 	char buf[128];
 	char command[512];
 
-	xref_getSelectedIdentifier(buf, sizeof buf);
+	xref_getSelectedIdentifier(ww_getCurrentEditorWindow(), buf, sizeof buf);
 	if (!*buf) {
 		return 0;
 	}
@@ -1222,7 +1220,7 @@ int EdFindTagCursor(void)
 int EdFindWordCursor(dir)
 {	char buf[256];
 
-	xref_getSelectedIdentifier(buf, sizeof buf);
+	xref_getSelectedIdentifier(ww_getCurrentEditorWindow(), buf, sizeof buf);
 	RE_PATTERN *pPattern = regex_compileWithDefault(buf);
 	return pPattern && find_expressionInCurrentFile(dir, pPattern, _currentSearchAndReplaceParams.options);
 }

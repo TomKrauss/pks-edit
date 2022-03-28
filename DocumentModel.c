@@ -111,13 +111,15 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 			}
 			mp = mp->m_next;
 		}
-		CARET* pCaret = wp->caret.next;
-		while (pCaret) {
-			if (pCaret->linePointer == pChanged->lp) {
-				if (pCaret->offset >= pChanged->col1) pCaret->offset += pChanged->len;
-				else if (pCaret->offset > pChanged->col2) pCaret->offset = pChanged->col2;
+		CARET* pCaret = &wp->caret;
+		if (pCaret->next) {
+			while (pCaret) {
+				if (pCaret->linePointer == pChanged->lp) {
+					if (pCaret->offset >= pChanged->col1) pCaret->offset += pChanged->len;
+					else if (pCaret->offset > pChanged->col2) pCaret->offset = pChanged->col2;
+				}
+				pCaret = pCaret->next;
 			}
-			pCaret = pCaret->next;
 		}
 		if (wp->blstart && wp->blend &&
 			wp->blstart->m_linePointer == wp->blend->m_linePointer &&

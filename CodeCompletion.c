@@ -200,7 +200,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 		up = up->next;
 	}
 	_suggestions = hashmap_create(37, NULL, NULL);
-	xref_findIdentifierCloseToCaret(szIdent, szIdent + sizeof szIdent, NULL, NULL, FI_BEGIN_WORD_TO_CURSOR);
+	xref_findIdentifierCloseToCaret(wp, &wp->caret, szIdent, szIdent + sizeof szIdent, NULL, NULL, FI_BEGIN_WORD_TO_CURSOR);
 	_pszMatch = szIdent;
 	xref_forAllTagsDo(wp, codecomplete_matchWord, codecomplete_addTags);
 	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;

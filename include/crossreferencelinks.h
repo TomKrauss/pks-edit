@@ -58,7 +58,7 @@ extern int xref_addSearchListEntry(char* pszBuf, char* fn, long line, char* rema
  * If text is selected, use that as the identifier, otherwise try to identify the close
  * by identifier.
  */
-extern int xref_getSelectedIdentifier(char* pszText, size_t nMaxChars);
+extern int xref_getSelectedIdentifier(WINFO* wp, char* pszText, size_t nMaxChars);
 
 /**
  * xref_findIdentifierCloseToCaret
@@ -67,7 +67,7 @@ extern int xref_getSelectedIdentifier(char* pszText, size_t nMaxChars);
  * the expression in pszExpressionBegin and return the end of the found expression in pszExpressionEnd if not NULL.
  **/
 typedef enum { FI_BEGIN_WORD_TO_CURSOR, FI_CURSOR_TO_END_WORD, FI_COMPLETE_WORD} FIND_IDENTIFIER_OPTIONS;
-extern char* xref_findIdentifierCloseToCaret(unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
+extern char* xref_findIdentifierCloseToCaret(WINFO* wp, CARET* pCaret, unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
 	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, FIND_IDENTIFIER_OPTIONS fiOptions);
 
 /*

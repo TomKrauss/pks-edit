@@ -159,7 +159,7 @@ static void template_replaceCurrentWord(WINFO* wp) {
 		char szIdentifier[100];
 		char* pszBegin;
 		char* pszEnd;
-		if (xref_findIdentifierCloseToCaret(szIdentifier, szIdentifier + sizeof szIdentifier, &pszBegin, &pszEnd, FI_COMPLETE_WORD)) {
+		if (xref_findIdentifierCloseToCaret(wp, &wp->caret, szIdentifier, szIdentifier + sizeof szIdentifier, &pszBegin, &pszEnd, FI_COMPLETE_WORD)) {
 			size_t o1 = pszBegin - wp->caret.linePointer->lbuf;
 			size_t o2 = o1 + pszEnd - pszBegin;
 			ln_modify(wp->fp, wp->caret.linePointer, (int)o2, (int)o1);
@@ -181,7 +181,7 @@ char* template_expandCodeTemplateFor(UCLIST* up) {
 	if (wp == NULL) {
 		return NULL;
 	}
-	xref_getSelectedIdentifier(szIdentifier, sizeof szIdentifier);
+	xref_getSelectedIdentifier(wp, szIdentifier, sizeof szIdentifier);
 	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
 	STRING_BUF * pBuf = template_expandCodeTemplate(wp, &action, nIndent, szIdentifier, up->p.uc_template);
 	char* pResult = _strdup(stringbuf_getString(pBuf));
@@ -202,7 +202,7 @@ int template_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord)
 	TEMPLATE_ACTION templateAction;
 	int ret = 0;
 	memset(&templateAction, 0, sizeof templateAction);
-	xref_getSelectedIdentifier(szIdentifier, sizeof szIdentifier);
+	xref_getSelectedIdentifier(wp, szIdentifier, sizeof szIdentifier);
 	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
 	STRING_BUF* pSB = template_expandCodeTemplate(wp, &templateAction, nIndent, szIdentifier, up->p.uc_template);
 	PASTE pasteBuffer;
