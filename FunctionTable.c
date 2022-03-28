@@ -237,7 +237,7 @@ EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*138*/macroc_stringTokenize, -1, 0, "StringTokenize", NULL, "ass" },
 {/*139*/interpreter_foreach, -1, 0, "foreach", NULL, "P"},
 {/*140*/macroc_indexOf, -1, 0, "IndexOf", NULL, "P" },
-{/*141*/macro_getFunctionNamesMatching, -1, 0, "FunctionNamesMatching", NULL, "aseLMT" },
+{/*141*/macro_getFunctionNamesMatching, -1, 0, "FunctionNamesMatching", NULL, "asbLMT" },
 {/*142*/macroc_fileOpen, -1, 0, "FileOpen", NULL, "P" },
 {/*143*/macroc_fileClose, -1, 0, "FileClose", NULL, "P" },
 {/*144*/macroc_fileReadLine, -1, 0, "FileReadLine", NULL, "P" },
@@ -247,14 +247,14 @@ EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*148*/(long long (*)())memory_mapKeys, -1, 0, "MapKeys", NULL, "P" },
 {/*149*/(long long (*)())memory_mapValues, -1, 0, "MapValues", NULL, "P" },
 {/*150*/(long long (*)())memory_mapEntries, -1, 0, "MapEntries", NULL, "P" },
-{/*151*/(long long (*)())edit_replaceText, -1, 0, "EditorReplaceText", NULL, "iWssbRE_eRNG_eREP_" },
+{/*151*/(long long (*)())edit_replaceText, -1, EW_NEEDSCURRF, "EditorReplaceText", NULL, "iWssbRE_eRNG_eREP_" },
 {/*152*/(long long (*)())ww_getCurrentEditorWindow, -1, 0, "EditorGetCurrent", NULL, "W" },
-{/*153*/(long long (*)())ww_selectWindow, -1, 0, "EditorSetCurrent", NULL, "iW" },
+{/*153*/(long long (*)())ww_selectWindow, -1, EW_NEEDSCURRF, "EditorSetCurrent", NULL, "iW" },
 {/*154*/(long long (*)())edit_getAllEditors, -1, 0, "EditorGetAll", NULL, "P" },
-{/*155*/(long long (*)())ww_getFilename, -1, 0, "EditorGetFilename", NULL, "sW" },
+{/*155*/(long long (*)())ww_getFilename, -1, EW_NEEDSCURRF, "EditorGetFilename", NULL, "sW" },
 {/*156*/(long long (*)())ww_openFile, -1, 0, "EditorOpenFile", NULL, "Wsi" },
 {/*157*/macroc_pathCreateFromSegments, -1, 0, "PathCreateFromSegments", NULL, "P"},
-{/*158*/(long long (*)())function_registerNativeFunction, -1, 0, "RegisterNative", NULL, "isssss" }
+{/*158*/(long long (*)())function_registerNativeFunction, -1, 0, "RegisterNative", NULL, "issssss" }
 };
 
 int _functionTableSize = STATICALLY_DEFINED_FUNCTIONS;
@@ -263,9 +263,11 @@ void function_destroyRegisteredNative(EDFUNC* pFunc) {
     free((char*)pFunc->edf_description);
     free((char*)pFunc->f_name);
     free((char*)pFunc->edf_paramTypes);
+    free((char*)pFunc->edf_parameters);
     pFunc->edf_description = 0;
     pFunc->f_name = 0;
     pFunc->edf_paramTypes = 0;
+    pFunc->edf_parameters = 0;
 }
 
 /*
@@ -276,7 +278,9 @@ void function_destroy() {
     // using MacroC code.
     for (int i = 0; i < STATICALLY_DEFINED_FUNCTIONS; i++) {
         free((char*)_functionTable[i].edf_description);
+        free((char*)_functionTable[i].edf_parameters);
         _functionTable[i].edf_description = 0;
+        _functionTable[i].edf_parameters = 0;
     }
     for (int i = STATICALLY_DEFINED_FUNCTIONS; i < _functionTableSize; i++) {
         function_destroyRegisteredNative(& _functionTable[i]);

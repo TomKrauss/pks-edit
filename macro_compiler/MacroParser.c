@@ -178,7 +178,8 @@ int function_parameterIsFormStart(EDFUNC *ep, int parno) {
  * Register a macro C function given the name with which it should be visible in PKSMacroC, the windows proc name, the optional
  * module (if null it is loaded from PKS-Edit), the signature description and an optional help text.
  */
-int function_registerNativeFunction(const char* pszMacroCName, const char* pszFunctionName, const char* pszModule, const char* pszSignature, const char* pszDescription) {
+int function_registerNativeFunction(const char* pszMacroCName, const char* pszFunctionName, const char* pszModule, 
+		const char* pszSignature, const char* pszDescription, const char* pszParameters) {
 	int ret = 1;
 	HINSTANCE hInstance = hInst;
 	if (pszModule && strcmp(pszModule, "PKSEDIT") != 0) {
@@ -205,19 +206,23 @@ int function_registerNativeFunction(const char* pszMacroCName, const char* pszFu
 			ret = 0;
 		}
 		else {
+			EDFUNC* pFunc = &_functionTable[nIndex];
 			if (nIndex < STATICALLY_DEFINED_FUNCTIONS) {
-				free((char*)_functionTable[nIndex].edf_description);
-				_functionTable[nIndex].edf_description = 0;
+				free((char*)pFunc->edf_description);
+				free((char*)pFunc->edf_parameters);
+				pFunc->edf_description = 0;
+				pFunc->edf_parameters = 0;
 			} else {
-				function_destroyRegisteredNative(&_functionTable[nIndex]);
+				function_destroyRegisteredNative(pFunc);
 				sym_createSymbol(sym_getKeywordContext(), (char*)pszMacroCName, S_EDFUNC, 0, (GENERIC_DATA) {
-					.val = (intptr_t)&_functionTable[nIndex]
+					.val = (intptr_t)pFunc
 				}, 0);
-				_functionTable[nIndex].f_name = _strdup(pszMacroCName);
-				_functionTable[nIndex].edf_paramTypes = _strdup(pszSignature);
-				_functionTable[nIndex].execute = p;
+				pFunc->f_name = _strdup(pszMacroCName);
+				pFunc->edf_paramTypes = _strdup(pszSignature);
+				pFunc->execute = p;
 			}
-			_functionTable[nIndex].edf_description = pszDescription ? _strdup(pszDescription) : 0;
+			pFunc->edf_description = pszDescription ? _strdup(pszDescription) : 0;
+			pFunc->edf_parameters = pszParameters ? _strdup(pszParameters) : 0;
 		}
 	}
 	if (hInstance != hInst) {

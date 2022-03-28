@@ -15,6 +15,7 @@
  *
  */
 
+#include "alloc.h"
 #include <windows.h>
 #include <string.h>
 #include <stdio.h>
@@ -72,12 +73,21 @@ static void analyzer_extractWords(WINFO* wp, int (*fMatch)(const char* pszMatch)
 	stringbuf_destroy(pBuf);
 }
 
-static const char* analyzer_pksTypeFromParamtype(PARAMETER_TYPE pt) {
-	if (pt == PARAM_TYPE_EDITOR_WINDOW) {
+static const char* analyzer_pksTypeFromParamtype(PARAMETER_TYPE_DESCRIPTOR pt) {
+	if (pt.pt_type == PARAM_TYPE_EDITOR_WINDOW) {
 		return types_nameFor(VT_EDITOR_HANDLE);
 	}
-	if (pt == PARAM_TYPE_STRING) {
+	if (pt.pt_type == PARAM_TYPE_STRING) {
 		return types_nameFor(VT_STRING);
+	}
+	if (pt.pt_type == PARAM_TYPE_STRING_ARRAY) {
+		return "string[]";
+	}
+	if (pt.pt_type == PARAM_TYPE_BITSET && pt.pt_enumVal) {
+		return pt.pt_enumVal->pev_name;
+	}
+	if (pt.pt_type == PARAM_TYPE_ENUM && pt.pt_enumVal) {
+		return pt.pt_enumVal->pev_name;
 	}
 	return types_nameFor(VT_NUMBER);
 }
@@ -87,17 +97,34 @@ static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
 	if (!pFunc->edf_description) {
 		return 0;
 	}
-	char* pszRet = malloc(strlen(pszName) + 100 + strlen(pFunc->edf_description));
-	sprintf(pszRet, "Synopsis: %s %s(", analyzer_pksTypeFromParamtype(function_getParameterTypeDescriptor(pFunc, 0).pt_type), pszName);
-	for (int i = 1; i <= function_getParameterCount(pFunc); i++) {
+	const char* pszParameterDescription = pFunc->edf_parameters;
+	STRING_BUF* pszParams = stringbuf_create(100);
+	int nParams = function_getParameterCount(pFunc);
+	for (int i = 1; i <= nParams || (pszParameterDescription && *pszParameterDescription); i++) {
 		char szParamName[20];
 		if (i > 1) {
-			strcat(pszRet, ", ");
+			stringbuf_appendString(pszParams, ", ");
 		}
-		strcat(pszRet, analyzer_pksTypeFromParamtype(function_getParameterTypeDescriptor(pFunc, i).pt_type));
-		sprintf(szParamName, " p%d", i);
-		strcat(pszRet, szParamName);
+		if (!pszParameterDescription || !*pszParameterDescription) {
+			stringbuf_appendString(pszParams, (char*)analyzer_pksTypeFromParamtype(function_getParameterTypeDescriptor(pFunc, i)));
+			stringbuf_appendChar(pszParams, ' ');
+			sprintf(szParamName, "p%d", i);
+			stringbuf_appendString(pszParams, szParamName);
+		} else {
+			while (*pszParameterDescription) {
+				char c = *pszParameterDescription++;
+				if (c == ',') {
+					break;
+				}
+				stringbuf_appendChar(pszParams, c);
+			}
+		}
 	}
+	char* pszParamsS = stringbuf_getString(pszParams);
+	char* pszRet = malloc(strlen(pszName) + 32 + strlen(pszParamsS) + strlen(pFunc->edf_description));
+	sprintf(pszRet, "Synopsis: %s %s(", analyzer_pksTypeFromParamtype(function_getParameterTypeDescriptor(pFunc, 0)), pszName);
+	strcat(pszRet, pszParamsS);
+	stringbuf_destroy(pszParams);
 	strcat(pszRet, ")\n");
 	strcat(pszRet, pFunc->edf_description);
 	return pszRet;

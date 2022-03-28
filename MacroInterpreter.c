@@ -594,7 +594,7 @@ static long long cdecl interpreter_callFfi(EDFUNC* pFunc, intptr_t* pStack) {
 			}
 		}
 	}
-	return (*pFunc->execute)((long)pStack[0], (long)pStack[1], (void*)pStack[2], (void*)pStack[3], (void*)pStack[4]);
+	return (*pFunc->execute)((long)pStack[0], (long)pStack[1], (void*)pStack[2], (void*)pStack[3], (void*)pStack[4], (void*)pStack[5]);
 }
 
 /*---------------------------------*/
@@ -1035,6 +1035,7 @@ static int macro_interpretByteCodes(MACRO* mp) {
 		interpreter_cleanupContextStacks();
 		level = 0;
 		_playing = 0;
+		_currentExecutionContext = 0;
 		progress_closeMonitor(0);
 		return -1;
 	}
@@ -1052,10 +1053,19 @@ static int macro_interpretByteCodes(MACRO* mp) {
  * Initialize a namespace.
  */
 int interpreter_initializeNamespace(MACRO* mpNamespace) {
+	char szBuf[128];
 	EXECUTION_CONTEXT* pOld = _currentExecutionContext;
 	EXECUTION_CONTEXT ecNamespace;
+	memset(&ecNamespace, 0, sizeof ecNamespace);
+	sprintf(szBuf, "namespace %s", mpNamespace->mc_name);
+	ecNamespace.ec_currentFunction = szBuf;
 	_currentExecutionContext = &ecNamespace;
 	interpreter_allocateStack(_currentExecutionContext);
+	if (setjmp(_currentJumpBuffer)) {
+		interpreter_deallocateStack(_currentExecutionContext);
+		_currentExecutionContext = 0;
+		return -1;
+	}
 	int ret = macro_interpretByteCodesContext(_currentExecutionContext, mpNamespace);
 	interpreter_deallocateStack(_currentExecutionContext);
 	_currentExecutionContext = pOld;

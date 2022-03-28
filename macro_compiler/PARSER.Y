@@ -19,7 +19,7 @@
 %define parse.error detailed
 
 %token T_NAMESPACE T_REQUIRE T_FOR T_ANNOTATION T_NATIVE
-%token T_NEW T_STATIC T_VOID T_TYPE_IDENTIFIER
+%token T_NEW T_STATIC T_VOID T_TYPE_IDENTIFIER T_ELLIPSIS
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_CHARACTER T_CONST
 %token T_TRUE T_FALSE 
 %token T_FUNC T_DOTDOT T_PLUSPLUS T_MINUSMINUS
@@ -52,6 +52,7 @@
 #include "pksmacrocvm.h"
 #include "scanner.h"
 #include "test.h"
+#include "stringutil.h"
 #include "funcdef.h"
 #include "symbols.h"
 #include "arraylist.h"
@@ -70,8 +71,7 @@ static BYTECODE_BUFFER* _currentBytecodeBuffer;
 static void		*_currentNativeMethodCalled;
 static int		_nparam,
 				_breaklevel,
-				_iflevel,
-				_stringflg;
+				_iflevel;
 static      int  _currentFunctionCallParamIndices[32];
 static      int  *_currentFunctionCallParamIndexP = _currentFunctionCallParamIndices;
 static 		void init_header(void);
@@ -80,8 +80,8 @@ static 		void init_macroDefinition(void);
 static 		void finalize_macroDefinition(void);
 static 		void freeitem(char **p);
 static void 	bytecode_emitPushParameterInstruction(long long lValue);
-
 static int	_currentNamespaceIndex;
+
 static 		char *lstartid  = "%ls%",
 			     *lendid    = "%le%",
 				 *switchTableId  = "%sw%",
@@ -89,9 +89,10 @@ static 		char *lstartid  = "%ls%",
 				*iffailid  = "%if%",
 				*ifdoneid  = "%id%";
 
+extern 			int	_bInNativeDefinition;
 extern 			int	_bDefiningConst;
 extern 			int	_bInHeader;
-extern 			int	_bInNativeDefinition;
+
 extern char*    _yyCurrentComment;
 extern void		yyerror(const char* s, ...);
 extern void		yywarning(char* s, ...);
@@ -144,13 +145,14 @@ int			bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name);
 void 		bytecode_closeOpenLabels(void);
 void 		bytecode_destroyLabelNamed(char *name);
 char*		bytecode_generateAutoLabelName(char *prefix, int num);
-static ARRAY_LIST* _currentArrayLiteral;
-static HASHMAP*	   _currentNativeMethodAnnotation;
+static ARRAY_LIST*	_currentArrayLiteral;
+static HASHMAP*		_currentNativeMethodAnnotation;
 static int			_localVariableIndex;
-static char _nativeMethodSignature[128];
+static STRING_BUF*  _nativeMethodSignature;
+static STRING_BUF*	_nativeMethodArgs;
 IDENTIFIER_CONTEXT* _currentIdentifierContext;
 
-static char* bytecode_signatureForType(PKS_VALUE_TYPE type) {
+static char* parser_signatureForType(PKS_VALUE_TYPE type) {
 	char* pSig = "i";
 	if (type == VT_STRING) {
 		pSig = "s";
@@ -160,8 +162,22 @@ static char* bytecode_signatureForType(PKS_VALUE_TYPE type) {
 	return pSig;
 }
 
-static void bytecode_nativeMethodAddParam(PKS_VALUE_TYPE type, char* pszParamName) {
-	strcat(_nativeMethodSignature, bytecode_signatureForType(type));
+static void parser_startNativeMethod(PKS_VALUE_TYPE t) {
+	_nativeMethodSignature = stringbuf_create(128);
+	_nativeMethodArgs = stringbuf_create(128);
+	stringbuf_appendString(_nativeMethodSignature, parser_signatureForType(t));
+}
+
+static void parser_nativeMethodAddParam(PKS_VALUE_TYPE type, char* pszParamName) {
+	if (strcmp("...", pszParamName) == 0) {
+		stringbuf_appendString(_nativeMethodArgs, pszParamName);
+	} else {
+		stringbuf_appendString(_nativeMethodSignature, parser_signatureForType(type));
+		stringbuf_appendString(_nativeMethodArgs, (char*)types_nameFor(type));
+		stringbuf_appendChar(_nativeMethodArgs,' ');
+		stringbuf_appendString(_nativeMethodArgs, pszParamName);
+	}
+	stringbuf_appendChar(_nativeMethodArgs,',');
 }
 
 static void parser_switchToBuffer(int aLevel) {
@@ -228,11 +244,11 @@ static void parser_defineVariable(const char* pszName, SYMBOL_TYPE sType, intptr
 	}
 }
 
-static void push_newForeachCursor() {
+static void parser_newForeachCursor() {
 	YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_localVariableIndex++});
 }
 
-static PKS_VALUE_TYPE types_pushFieldIndexWithError(PKS_VALUE_TYPE t, const char* pszFieldName) {
+static PKS_VALUE_TYPE parser_pushFieldIndexWithError(PKS_VALUE_TYPE t, const char* pszFieldName) {
 	PKS_VALUE_TYPE tProp;
 	int nIndex = types_indexForProperty(t, pszFieldName, &tProp);
 	if (nIndex < 0) {
@@ -363,7 +379,7 @@ macro_type:	scope T_VOID {
 				$$.ident.arraySize = 0;
 				$$.ident.type = VT_NIL;
 				if (_bInNativeDefinition) {
-					strcpy(_nativeMethodSignature, bytecode_signatureForType(VT_NIL));
+					parser_startNativeMethod(VT_NIL);
 				}
 			}
 			| 
@@ -372,7 +388,7 @@ macro_type:	scope T_VOID {
 				$$.ident.scope = $1.ident.scope;
 				$$.ident.arraySize = $2.ident.arraySize;
 				if (_bInNativeDefinition) {
-					strcpy(_nativeMethodSignature, bytecode_signatureForType($2.ident.type));
+					parser_startNativeMethod($2.ident.type);
 				}
 			}
 
@@ -416,13 +432,17 @@ non_empty_pardecl:
 
 parameter_declaration:	type_name variable_identifier {
 				if (_bInNativeDefinition) {
-					bytecode_nativeMethodAddParam($1.ident.type, $2.ident.s);
+					parser_nativeMethodAddParam($1.ident.type, $2.ident.s);
 				} else {
 					sym_createSymbol(_currentIdentifierContext, $2.ident.s, S_LOCAL_VARIABLE, VT_NUMBER, (GENERIC_DATA) {_nparam}, _localVariableIndex);
 					bytecode_defineVariable(_currentBytecodeBuffer, $2.ident.s,C_DEFINE_PARAMETER, $1.ident.type,_nparam, _localVariableIndex++);
 				}
 				free($2.ident.s);
 				_nparam++;
+			} | T_ELLIPSIS {
+				if (_bInNativeDefinition) {
+					parser_nativeMethodAddParam($1.ident.type, "...");
+				}
 			}
 
 annotations:
@@ -458,8 +478,9 @@ native_macro_definition:  {
 					char* pszLib = (char*)hashmap_get(_currentNativeMethodAnnotation, (intptr_t)"lib");
 					char* pszMacroCName = (char*)hashmap_get(_currentNativeMethodAnnotation, (intptr_t)"name");
 					char* pszSignature = (char*)hashmap_get(_currentNativeMethodAnnotation, (intptr_t)"signature");
+					char* pszArgs = stringbuf_getString(_nativeMethodArgs);
 					if (!pszSignature) {
-						pszSignature = _nativeMethodSignature;
+						pszSignature = stringbuf_getString(_nativeMethodSignature);
 					}
 					if (!pszMacroCName) {
 						pszMacroCName = $4.ident.s;
@@ -473,12 +494,17 @@ native_macro_definition:  {
 					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=pszLib});
 					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=pszSignature});
 					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=_yyCurrentComment});
+					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=pszArgs});
 					_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
-							C_0FUNC, (GENERIC_DATA){ FUNC_RegisterNative}, 5);
+							C_0FUNC, (GENERIC_DATA){ FUNC_RegisterNative}, 6);
 					// register right away as well, so we can use it.
-					function_registerNativeFunction(pszMacroCName, $4.ident.s, pszLib, pszSignature, _yyCurrentComment);
+					function_registerNativeFunction(pszMacroCName, $4.ident.s, pszLib, pszSignature, _yyCurrentComment, pszArgs);
 					free($4.ident.s);
 					hashmap_destroyWithKeysAndValues(_currentNativeMethodAnnotation);
+					stringbuf_destroy(_nativeMethodArgs);
+					stringbuf_destroy(_nativeMethodSignature);
+					_nativeMethodArgs = 0;
+					_nativeMethodSignature = 0;
 				} 
 
 macro_definition: { init_macroDefinition(); } 
@@ -539,7 +565,7 @@ assignment: variable_reference assignment_expression {
 			}
 			|
 			assignment_target '.' T_IDENT {
-				types_pushFieldIndexWithError($1.ident.type, $3.ident.s);
+				parser_pushFieldIndexWithError($1.ident.type, $3.ident.s);
 			} assignment_expression {
 				_currentBytecodeBuffer->bb_current = bytecode_emitInstruction(_currentBytecodeBuffer, C_ASSIGN_SLOT, (GENERIC_DATA) { 0 });
 			} 
@@ -608,7 +634,7 @@ binary_expression:
 			}
 			|
 			binary_expression '.' T_IDENT {
-				$$.ident.type = types_pushFieldIndexWithError($1.ident.type, $3.ident.s);
+				$$.ident.type = parser_pushFieldIndexWithError($1.ident.type, $3.ident.s);
 				YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); 
 			}
 			| binary_expression '[' binary_expression_or_range ']' { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); }
@@ -849,7 +875,7 @@ for_clause:	for_to_clause
 
 in_clause:	'(' type_name variable_identifier {
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lstartid,_breaklevel);
-				push_newForeachCursor();
+				parser_newForeachCursor();
 				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_localVariableIndex});
 				parser_defineVariable($3.ident.s, $2.ident.type, (intptr_t)0, $2.ident.arraySize);
 				if ($3.ident.stringIsAlloced) {

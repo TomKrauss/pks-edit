@@ -29,7 +29,8 @@ typedef enum {
 	PARAM_TYPE_STRING_ARRAY = 'a',	// this parameter / return value is an arraylist containing strings also allocated. The values are allocated by the function 
 									// called and freed by the macro VM later.
 	PARAM_TYPE_EDITOR_WINDOW = 'W',	// this parameter must point to a current editor window.
-	PARAM_TYPE_PKS_VALUE = 'P',		// Special parameter type used as first parameter type to mark native functions working on the internal data structures of PKSMacroC and having the 
+	PARAM_TYPE_PKS_VALUE = 'P',		// Special parameter type used as first parameter type to mark native functions working 
+									// on the internal data structures of PKSMacroC and having the 
 									// signature: PKS_VALUE myMethod(EXECUTION_CONTEXT*pContext, PKS_VALUE* pValues, int nArguments)
 	PARAM_TYPE_STRING = 's'			// this parameter is a String parameter
 } PARAMETER_TYPE;
@@ -62,6 +63,7 @@ typedef struct edfunc {
 	int (*isenabled)(long long pParam);		// Optional enablement function allowing to check, whether the execute function can currently be invoked.
 	signed char* edf_paramTypes;			// Signature description of the function. Contains a string encoded using the constants defined above (PAR_...)
 	const char* edf_description;			// Optional help text used during code completion.
+	const char* edf_parameters;				// Optional comma seperated list of parameters passed (type + name). Used for documentary purpose.
 } EDFUNC;
 
 /*
@@ -77,7 +79,7 @@ extern void function_destroyRegisteredNative(EDFUNC* pFunc);
  * module (if null it is loaded from PKS-Edit), the signature description and an optional help text.
  */
 int function_registerNativeFunction(const char* pszMacroCName, const char* pszFunctionName, 
-		const char* pszModule, const char* pszSignature, const char* pszDescription);
+		const char* pszModule, const char* pszSignature, const char* pszDescription, const char* pszParameters);
 
 /*
  * Returns the parameter descriptor for a function for the n-th parameter. Parameter count

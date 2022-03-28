@@ -1,3 +1,723 @@
+/*
+ * DESCRIPTION
+ */
+@Method(name="AbandonFile", signature="i")
+native int EdFileAbandon();
+/*
+ * DESCRIPTION
+ */
+@Method(name="About", signature="i")
+native int EdAbout();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CopyBlock", signature="i")
+native int EdBlockCopy();
+/*
+ * DESCRIPTION
+ */
+@Method(name="DeleteBlock", signature="ii")
+native int EdBlockDelete();
+/*
+ * DESCRIPTION
+ */
+@Method(name="FindBlockEnd", signature="i")
+native int EdBlockFindEnd();
+/*
+ * DESCRIPTION
+ */
+@Method(name="FindBlockStart", signature="i")
+native int EdBlockFindStart();
+/*
+ * DESCRIPTION
+ */
+@Method(name="MoveBlock", signature="i")
+native int EdBlockMove();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ReadBlock", signature="i")
+native int EdBlockRead();
+/*
+ * DESCRIPTION
+ */
+@Method(name="WriteBlock", signature="i")
+native int EdBlockWrite();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CutBlock", signature="ieCUT_i")
+native int bl_cutOrCopy();
+/*
+ * DESCRIPTION
+ */
+@Method(name="PasteBlock", signature="ibPASTE_bFORM_i")
+native int EdBlockPaste();
+/*
+ * DESCRIPTION
+ */
+@Method(name="HideBlock", signature="i")
+native int bl_hideSelectionInCurrentWindow();
+/*
+ * DESCRIPTION
+ */
+@Method(name="SetBlockMark", signature="ieMARK_")
+native int EdSyncSelectionWithCaret();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CutLines", signature="i")
+native int bl_cutLines();
+/*
+ * DESCRIPTION
+ */
+@Method(name="DeleteLines", signature="ibELO_")
+native int EdLineDelete();
+/*
+ * DESCRIPTION
+ */
+@Method(name="FreeBuffer", signature="i")
+native int bl_destroyAll();
+/*
+ * DESCRIPTION
+ */
+@Method(name="InsertKeycode", signature="ibFORM_i")
+native int EdKeycodeInsert();
+/*
+ * DESCRIPTION
+ */
+@Method(name="InsertChar", signature="ii")
+native int EdCharInsert();
+/*
+ * DESCRIPTION
+ */
+@Method(name="FormatText", signature="ibFORM_eAL_eRNG_")
+native int EdFormatText();
+/*
+ * DESCRIPTION
+ */
+@Method(name="InsertLine", signature="ieELO_")
+native int edit_insertLine();
+/*
+ * DESCRIPTION
+ */
+@Method(name="MarkLineOp", signature="ieMLN_")
+native int edit_performLineFlagOperation();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ReadSearchList", signature="ibFORM_s")
+native int EdSearchListRead();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ReadErrorList", signature="isbFORM_s")
+native int EdErrorListRead();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ZoomWindow", signature="ii")
+native int ww_zoomWindow();
+/*
+ * DESCRIPTION
+ */
+@Method(name="EditMacros", signature="i")
+native int EdMacrosEdit();
+/*
+ * DESCRIPTION
+ */
+@Method(name="GetVariable", signature="ss")
+native int long();
+/*
+ * DESCRIPTION
+ */
+@Method(name="MergeDocMacrosWith", signature="ibFORM_s")
+native int doctypes_saveToFile();
+/*
+ * DESCRIPTION
+ */
+@Method(name="RwMacros", signature="iibFORM_s")
+native int macro_readWriteWithFileSelection();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ReadTagfile", signature="ibFORM_s")
+native int EdTagfileRead();
+/*
+ * DESCRIPTION
+ */
+@Method(name="RwSetup", signature="ibFORM_s")
+native int EdSetup();
+/*
+ * DESCRIPTION
+ */
+@Method(name="SetMultiplier", signature="ibFORM_i")
+native int EdSetMultiplier();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ReplaceTabs", signature="ieCT_bFORM_eRNG_")
+native int EdReplaceTabs();
+/*
+ * DESCRIPTION
+ */
+@Method(name="SplitLine", signature="ieRET_")
+native int EdLineSplit();
+/*
+ * DESCRIPTION
+ */
+@Method(name="GotoChapterStart", signature="ieDIR_")
+native int EdChapterGotoBegin();
+/*
+ * DESCRIPTION
+ */
+@Method(name="GotoChapterEnd", signature="ieMOT_")
+native int EdChapterGotoEnd();
+/*
+ * DESCRIPTION
+ */
+@Method(name="GotoPgrphStart", signature="ieMOT_")
+native int EdParaGotoBegin();
+/*
+ * DESCRIPTION
+ */
+@Method(name="GotoPgrphEnd", signature="ieMOT_")
+native int EdParaGotoEnd();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CursorRight", signature="ieMOT_")
+native int EdCursorRight();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CursorLeft", signature="ieMOT_")
+native int EdCursorLeft();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CursorUp", signature="ieMOT_")
+native int EdCursorUp();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CursorDown", signature="ieMOT_")
+native int EdCursorDown();
+/*
+ * DESCRIPTION
+ */
+@Method(name="Delete", signature="ieMOT_")
+native int EdCharDelete();
+/*
+ * DESCRIPTION
+ */
+@Method(name="SwitchFkeys", signature="i")
+native int fkey_keyModifierStateChanged();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CodeCompleteSuggest", signature="ibFORM_i")
+native int codecomplete_showSuggestionWindow();
+/*
+ * DESCRIPTION
+ */
+@Method(name="PlayMacro", signature="ieMAC_")
+native int macro_executeMacroByIndex();
+/*
+ * DESCRIPTION
+ */
+@Method(name="RecordMacro", signature="i")
+native int EdMacroRecord();
+/*
+ * DESCRIPTION
+ */
+@Method(name="FindInFileList", signature="ibFORM_ssibRE_")
+native int EdFindInFileList();
+/*
+ * DESCRIPTION
+ */
+@Method(name="Find", signature="ibFORM_seDIR_eRNG_bRE_")
+native int EdFind();
+/*
+ * DESCRIPTION
+ */
+@Method(name="Replace", signature="ibFORM_sseREP_eRNG_bRE_")
+native int EdReplace();
+/*
+ * DESCRIPTION
+ */
+@Method(name="FindAgain", signature="ieDIR_")
+native int EdFindAgain();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ReplaceAgain", signature="i")
+native int EdReplaceAgain();
+/*
+ * DESCRIPTION
+ */
+@Method(name="InsertControl", signature="ibFORM_i")
+native int EdCharControlInsert();
+/*
+ * DESCRIPTION
+ */
+@Method(name="GotoLastpos", signature="ieMTE_")
+native int fm_gotoNextPosition();
+/*
+ * DESCRIPTION
+ */
+@Method(name="GotoLine", signature="ibFORM_i")
+native int EdGotoLine();
+/*
+ * DESCRIPTION
+ */
+@Method(name="SetMark", signature="ibFORM_i")
+native int EdMarkSet();
+/*
+ * DESCRIPTION
+ */
+@Method(name="GotoMark", signature="ibFORM_i")
+native int EdMarkGoto();
+/*
+ * DESCRIPTION
+ */
+@Method(name="OpenContextMenu", signature="ii")
+native int menu_openContextMenu();
+/*
+ * DESCRIPTION
+ */
+@Method(name="JoinLines", signature="i")
+native int EdLinesJoin();
+/*
+ * DESCRIPTION
+ */
+@Method(name="EditFile", signature="ibOPEN_bFORM_s")
+native int EdEditFile();
+/*
+ * DESCRIPTION
+ */
+@Method(name="SetOptions", signature="ibFORM_eO_")
+native int EdOptionSet();
+/*
+ * DESCRIPTION
+ */
+@Method(name="Print", signature="iePRT_s")
+native int EdPrint();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ExitEdit", signature="ii")
+native int EdExitAndSave();
+/*
+ * DESCRIPTION
+ */
+@Method(name="QuitEdit", signature="ii")
+native int EdExit();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CloseAllWindows", signature="ii")
+native int EdCloseAll();
+/*
+ * DESCRIPTION
+ */
+@Method(name="SaveFile", signature="ibSAV_bFORM_s")
+native int EdSaveFile();
+/*
+ * DESCRIPTION
+ */
+@Method(name="SelectWindow", signature="ii")
+native int long();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ExecuteCommand", signature="ibFORM_ssseEX_")
+native int EdCommandExecute();
+/*
+ * DESCRIPTION
+ */
+@Method(name="Exec", signature="ibFORM_ssseEX_")
+native int EdExecute();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ShiftBetweenBrackets", signature="iei")
+native int EdShiftBetweenBrackets();
+/*
+ * DESCRIPTION
+ */
+@Method(name="Sort", signature="ibFORM_ssseRNG_eSO_")
+native int EdSort();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ShiftLines", signature="ii")
+native int EdLinesShift();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ShowInfo", signature="i")
+native int EdInfoFiles();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CheckBrackets", signature="i")
+native int EdShowMatch();
+/*
+ * DESCRIPTION
+ */
+@Method(name="UpToLow", signature="i")
+native int edit_convertCharacterCase();
+/*
+ * DESCRIPTION
+ */
+@Method(name="EvaluateSelection", signature="i")
+native int evaluator_evaluateCurrentSelection();
+/*
+ * DESCRIPTION
+ */
+@Method(name="SetDispMode", signature="ibFORM_siiiieSHOW_")
+native int dlg_configureEditorModes();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ToggleFullScreen", signature="i")
+native int mainframe_toggleFullScreen();
+/*
+ * DESCRIPTION
+ */
+@Method(name="FindOnInternet", signature="ibFORM_siii")
+native int EdFindOnInternet();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ToggleTextMode", signature="ieWM_")
+native int EdOptionToggle();
+/*
+ * DESCRIPTION
+ */
+@Method(name="PasteString", signature="is")
+native int EdPasteString();
+/*
+ * DESCRIPTION
+ */
+@Method(name="FindTag", signature="iibFORM_s")
+native int EdFindTag();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CursorFindFile", signature="i")
+native int EdFindFileCursor();
+/*
+ * DESCRIPTION
+ */
+@Method(name="FindError", signature="ieLIST_")
+native int xref_navigateSearchErrorList();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CursorFindTag", signature="i")
+native int EdFindTagCursor();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CursorFindWord", signature="ieDIR_")
+native int EdFindWordCursor();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ManageDocks", signature="ii")
+native int mainframe_manageDocks();
+/*
+ * DESCRIPTION
+ */
+@Method(name="FindErrorMouseClick", signature="ii")
+native int xref_navigateSearchErrorList();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ShiftText", signature="ieDIR_bFORM_eRNG_")
+native int EdRangeShift();
+/*
+ * DESCRIPTION
+ */
+@Method(name="Undo", signature="i")
+native int EdUndo();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CompareWindows", signature="ieDIR_")
+native int EdFilesCompare();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ScrollScreen", signature="ieMOT_")
+native int EdScrollScreen();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ScrollCursor", signature="ieMOT_")
+native int EdScrollCursor();
+/*
+ * DESCRIPTION
+ */
+@Method(name="GotoLastPosition", signature="i")
+native int fm_gotoLastPosition();
+/*
+ * DESCRIPTION
+ */
+@Method(name="AlignText", signature="ibFORM_sieRNG_bRE_eAL_")
+native int EdAlignText();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ShowMessages", signature="ii")
+native int error_setShowMessages();
+/*
+ * DESCRIPTION
+ */
+@Method(name="MouseMarkBlock", signature="ii")
+native int EdBlockMouseMark();
+/*
+ * DESCRIPTION
+ */
+@Method(name="MouseMarkParts", signature="ieMOT_")
+native int EdMouseMarkParts();
+/*
+ * DESCRIPTION
+ */
+@Method(name="MouseMoveText", signature="ieMM_")
+native int EdMouseMoveText();
+/*
+ * DESCRIPTION
+ */
+@Method(name="MouseSelectLines", signature="ii")
+native int EdMouseSelectLines();
+/*
+ * DESCRIPTION
+ */
+@Method(name="MousePosition", signature="ii")
+native int EdMousePositionUngrabbed();
+/*
+ * DESCRIPTION
+ */
+@Method(name="Alert", signature="is")
+native int EdAlert();
+/*
+ * DESCRIPTION
+ */
+@Method(name="MessageBox", signature="ieMB_s")
+native int error_displayAlertBoxWithOptions();
+/*
+ * DESCRIPTION
+ */
+@Method(name="PromptAssign", signature="sss")
+native int EdPromptAssign();
+/*
+ * DESCRIPTION
+ */
+@Method(name="sprintf", signature="P")
+native int interpreter_sprintf();
+/*
+ * DESCRIPTION
+ */
+@Method(name="GetSelected", signature="s")
+native int macro_getSelectedText();
+/*
+ * DESCRIPTION
+ */
+@Method(name="HideLines", signature="i")
+native int EdHideLines();
+/*
+ * DESCRIPTION
+ */
+@Method(name="UnHideLine", signature="i")
+native int EdUnHideLine();
+/*
+ * DESCRIPTION
+ */
+@Method(name="StringReplace", signature="ssssbRE_i")
+native int EdStringSubstitute();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ExpandAbbreviation", signature="i")
+native int EdExpandAbbreviation();
+/*
+ * DESCRIPTION
+ */
+@Method(name="AddSecondaryCaretMouse", signature="ibFORM_i")
+native int caret_addSecondaryWithMouse();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ShowHelp", signature="ii")
+native int EdHelpContext();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ListBindings", signature="ieLISTB_")
+native int EdListBindings();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CompileMacros", signature="ii")
+native int EdCompileMacros();
+/*
+ * DESCRIPTION
+ */
+@Method(name="DefineDocTypes", signature="i")
+native int EdDocTypes();
+/*
+ * DESCRIPTION
+ */
+@Method(name="SetPrinterLayout", signature="i")
+native int find_initiateIncrementalSearch();
+/*
+ * DESCRIPTION
+ */
+@Method(name="QueryStatus", signature="ieQUERY_")
+native int EdIsDefined();
+/*
+ * DESCRIPTION
+ */
+@Method(name="RemoveSecondaryCarets", signature="isii")
+native int caret_removeSecondaryCarets();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ShowClipboard", signature="ii")
+native int EdShowClipboard();
+/*
+ * DESCRIPTION
+ */
+@Method(name="MoveAndAddSecondaryCaret", signature="iiis")
+native int caret_moveAndAddSecondary();
+/*
+ * DESCRIPTION
+ */
+@Method(name="SetBlockExtensionMode", signature="ii")
+native int EdBlockXtndMode();
+/*
+ * DESCRIPTION
+ */
+@Method(name="Redo", signature="ii")
+native int EdRedo();
+/*
+ * DESCRIPTION
+ */
+@Method(name="SaveAll", signature="ii")
+native int EdSaveAllFiles();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CloneWindow", signature="ii")
+native int ft_cloneWindow();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ShiftSelection", signature="ii")
+native int edit_shiftSelection();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ToggleComment", signature="ii")
+native int edit_toggleComment();
+/*
+ * DESCRIPTION
+ */
+@Method(name="ShowWindowSelector", signature="ii")
+native int windowselector_showWindowList();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CompareNavigate", signature="ii")
+native int compare_navigate();
+/*
+ * DESCRIPTION
+ */
+@Method(name="CompareClear", signature="ii")
+native int compare_clear();
+/*
+ * DESCRIPTION
+ */
+@Method(name="MoveSelection", signature="ii")
+native int bl_moveSelectionUpDown();
+/*
+ * DESCRIPTION
+ */
+@Method(name="EditorInsertString", signature="iWs")
+native int edit_insertString();
+/*
+ * DESCRIPTION
+ */
+@Method(name="size", signature="P")
+native int interpreter_size();
+/*
+ * DESCRIPTION
+ */
+@Method(name="strstr", signature="iss")
+native int strstr();
+/*
+ * DESCRIPTION
+ */
+@Method(name="print", signature="is")
+native int macroc_print();
+/*
+ * DESCRIPTION
+ */
+@Method(name="println", signature="is")
+native int macroc_println();
+/*
+ * DESCRIPTION
+ */
+@Method(name="clear", signature="i")
+native int macroc_clearConsole();
+/*
+ * DESCRIPTION
+ */
+@Method(name="typeof", signature="P")
+native int interpreter_typeOf();
+/*
+ * Upper case a string and return upper case result.
+ */
+@Method(name="toupper", signature="ss")
+native string macroc_toupper(string stringToUpperCase);
+
+/*
+ * Lower case a string and return the lower case result.
+ */
+@Method(name="tolower", signature="ss")
+native string macroc_tolower(string stringToLowerCase);
+
+/*
+ * Splits a string using any of the token separator characters passed with the tokenSeparators
+ * argument as a delimiter. Multiple delimiters are ignored - i.e. "x    a" will be split to "x" and "a".
+ * When no tokenSeparators are passed, the default behavior is to split at space positions.
+ */
+@Method(name="StringTokenize", signature="ass")
+native string[] macroc_stringTokenize(string stringToSplit, string tokenSeparators);
+
+/*
+ * Internal PKSMacroC function used to implement for(x :y) loops.
+ */
+@Method(name="foreach", signature="P")
+native int interpreter_foreach();
+
+/*
+ * Returns the index of a given element in either an array or a string.
+ * If the nested element cannot be found -1 is returned. In the case
+ * a parameter is searched in a string, that parameter may either be a single
+ * character or a substring to locate.
+ */
+@Method(name="IndexOf", signature="P")
+native int macroc_indexOf(string[] arrayOrString, auto param);
+/*
+ * Returns all native functions and or macro names matching the specified name (specified
+ * as regular expression) and given the named flags.
+ */
+@Method(name="FunctionNamesMatching", signature="asbLMT")
+native string[] macro_getFunctionNamesMatching(string namePattern);
 
 /*
  * Retrieves the number of milliseconds that have elapsed since the system was started, up to 49.7 days.
@@ -11,6 +731,12 @@ native int GetTickCount();
  */
 @Method(lib="kernel32.dll")
 native int GetLastError();
+
+/*
+ * Read one line from the input file specified and return the string excluding the terminating newline.
+ */
+@Method(name="FileReadLine", signature="P")
+native string macroc_fileReadLine(FILE file);
 
 /*
  * Inserts the passed string into the currently active editor or into the editor passed as 1st parameter.
@@ -70,7 +796,7 @@ native EDITOR ww_openFile(string aFilename, int nSomeFlags);
  * Example: PathCreateFromSegments("c:\\pks_edit\\pks_sys", "..", "readme.txt") will create a path "c:\\pks_edit\\readme.txt".
  */
 @Method(name="PathCreateFromSegments", signature="P")
-native string macroc_pathCreateFromSegments();
+native string macroc_pathCreateFromSegments(string part1, string part2, ...);
 
 /*
  * Retrieves the number of milliseconds that have elapsed since the system was started, up to 49.7 days.

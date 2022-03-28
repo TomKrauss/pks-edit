@@ -453,6 +453,7 @@ WS		[ \t]
 				yylval.num = number(yytext);
 				return T_NUM;
 			}
+\.\.\.		return T_ELLIPSIS;
 \.\.		return T_DOTDOT;
 <INITIAL>{NUM}+(\.{NUM}+)?d? {
 				int bFloat;

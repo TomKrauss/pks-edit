@@ -29,7 +29,6 @@ static void Console-Stress-Test() {
 		Test-Binary-Expressions();
 		i++;
 	}
-
 }
 
 /*
