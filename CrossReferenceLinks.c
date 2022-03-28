@@ -784,7 +784,7 @@ int xref_navigateCrossReference(char* s) {
  */
 int xref_getSelectedIdentifier(char* pszText, size_t nMaxChars) {
 	*pszText = 0;
-	bl_getSelectedText(pszText, nMaxChars);
+	bl_getSelectedText(ww_getCurrentEditorWindow(), pszText, nMaxChars);
 	if (!pszText[0]) {
 		return xref_findIdentifierCloseToCaret(pszText, pszText + nMaxChars, NULL, NULL, FI_COMPLETE_WORD) != NULL;
 	}

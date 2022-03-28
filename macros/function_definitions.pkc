@@ -396,11 +396,6 @@ native int EdOptionToggle();
 /*
  * DESCRIPTION
  */
-@Method(name="PasteString", signature="is")
-native int EdPasteString();
-/*
- * DESCRIPTION
- */
 @Method(name="FindTag", signature="iibFORM_s")
 native int EdFindTag();
 /*
@@ -434,15 +429,15 @@ native int mainframe_manageDocks();
 @Method(name="FindErrorMouseClick", signature="ii")
 native int xref_navigateSearchErrorList();
 /*
- * DESCRIPTION
+ * Shift a range of text in the given direction.
  */
 @Method(name="ShiftText", signature="ieDIR_bFORM_eRNG_")
 native int EdRangeShift();
 /*
- * DESCRIPTION
+ * Undo the last modification in the passed editor.
  */
 @Method(name="Undo", signature="i")
-native int EdUndo();
+native int EdUndo(EDITOR editor);
 /*
  * DESCRIPTION
  */
@@ -459,20 +454,23 @@ native int EdScrollScreen();
 @Method(name="ScrollCursor", signature="ieMOT_")
 native int EdScrollCursor();
 /*
- * DESCRIPTION
+ * Goto (move the caret) to the location before the previous
+ * search or major navigation (e.g. having followed a hyperlink).
  */
-@Method(name="GotoLastPosition", signature="i")
+@Method(name="GotoLastPosition")
 native int fm_gotoLastPosition();
 /*
- * DESCRIPTION
+ * Align a range of text.
  */
 @Method(name="AlignText", signature="ibFORM_sieRNG_bRE_eAL_")
 native int EdAlignText();
 /*
- * DESCRIPTION
+ * Temporarily enable or disable the display of messages. This
+ * is useful from PKSMacroC code to avoid too many messages popping
+ * up on the screen, when a macro is performed.
  */
 @Method(name="ShowMessages", signature="ii")
-native int error_setShowMessages();
+native int error_setShowMessages(boolean bEnable);
 /*
  * DESCRIPTION
  */
@@ -498,86 +496,110 @@ native int EdMouseSelectLines();
  */
 @Method(name="MousePosition", signature="ii")
 native int EdMousePositionUngrabbed();
+
 /*
- * DESCRIPTION
+ * Shows an alert box with a text.
  */
-@Method(name="Alert", signature="is")
-native int EdAlert();
+@Method(name="Alert")
+native int EdAlert(string text);
+
 /*
- * DESCRIPTION
+ * Display a message box with options and return an integer
+ * value with the selected result.
  */
 @Method(name="MessageBox", signature="ieMB_s")
 native int error_displayAlertBoxWithOptions();
+
 /*
- * DESCRIPTION
+ * Open a prompt dialog asking the user to input a text. The initial string
+ * will be shown on opening. If the user aborts the dialog, 0 is returned.
  */
 @Method(name="PromptAssign", signature="sss")
-native int EdPromptAssign();
+native string EdPromptAssign(string message, string initialString);
+
 /*
- * DESCRIPTION
+ * Format printf similar to sprintf in C. See PKS-Edit printf format for details
+ * on supported formats.
  */
 @Method(name="sprintf", signature="P")
-native int interpreter_sprintf();
+native int interpreter_sprintf(string format, ...);
+
 /*
- * DESCRIPTION
+ * Returns the text currently selected in the passed editor.
  */
-@Method(name="GetSelected", signature="s")
-native int macro_getSelectedText();
+@Method(name="GetSelected")
+native string macro_getSelectedText(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Hides the lines currently selected in the passed editor.
  */
-@Method(name="HideLines", signature="i")
-native int EdHideLines();
+@Method(name="HideLines")
+native int EdHideLines(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Shows all hidden lines currently selected in the passed editor.
  */
-@Method(name="UnHideLine", signature="i")
-native int EdUnHideLine();
+@Method(name="UnHideLine")
+native int EdUnHideLine(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Replace a given pattern in a target string with another pattern and the given
+ * REGEX options and a maximum number of times.
  */
 @Method(name="StringReplace", signature="ssssbRE_i")
-native int EdStringSubstitute();
+native string EdStringSubstitute(string target, string pattern, string with);
+
 /*
- * DESCRIPTION
+ * Tries to identify an abbreviation at the current caret position in
+ * the specified editor and expand it.
  */
-@Method(name="ExpandAbbreviation", signature="i")
-native int EdExpandAbbreviation();
+@Method(name="ExpandAbbreviation")
+native int EdExpandAbbreviation(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Adds a secondary caret with the mouse.
  */
 @Method(name="AddSecondaryCaretMouse", signature="ibFORM_i")
 native int caret_addSecondaryWithMouse();
+
 /*
- * DESCRIPTION
+ * Shows help (PKS-Edit documentation).
  */
 @Method(name="ShowHelp", signature="ii")
 native int EdHelpContext();
 /*
- * DESCRIPTION
+ * Opens a dialog window showing the current keyboard / mouse or context menu
+ * bindings or defined macros.
  */
 @Method(name="ListBindings", signature="ieLISTB_")
 native int EdListBindings();
+
 /*
- * DESCRIPTION
+ * Compile the macros either edited in  the currently active editor or
+ * by opening a dialog allowing to select the editor displaying the macros
+ * to compile.
  */
-@Method(name="CompileMacros", signature="ii")
-native int EdCompileMacros();
+@Method(name="CompileMacros")
+native int EdCompileMacros(boolean bShowList);
+
 /*
- * DESCRIPTION
+ * Opens the dialog to define the document types.
  */
-@Method(name="DefineDocTypes", signature="i")
+@Method(name="DefineDocTypes")
 native int EdDocTypes();
+
 /*
- * DESCRIPTION
+ * Starts the incremental search - moves the focus to the incremental search box.
  */
-@Method(name="SetPrinterLayout", signature="i")
+@Method(name="StartIncrementalSearch")
 native int find_initiateIncrementalSearch();
+
 /*
- * DESCRIPTION
+ * Can be used to query various information about the current status of PKS-Edit.
  */
 @Method(name="QueryStatus", signature="ieQUERY_")
 native int EdIsDefined();
+
 /*
  * DESCRIPTION
  */
@@ -599,85 +621,96 @@ native int caret_moveAndAddSecondary();
 @Method(name="SetBlockExtensionMode", signature="ii")
 native int EdBlockXtndMode();
 /*
- * DESCRIPTION
+ * Redo the las undone command in the passed editor.
  */
-@Method(name="Redo", signature="ii")
-native int EdRedo();
+@Method(name="Redo")
+native int EdRedo(EDITOR editor);
+
 /*
  * DESCRIPTION
  */
 @Method(name="SaveAll", signature="ii")
 native int EdSaveAllFiles();
 /*
- * DESCRIPTION
+ * Clone the window of the passed editor or of the current editor.
  */
-@Method(name="CloneWindow", signature="ii")
-native int ft_cloneWindow();
+@Method(name="CloneWindow")
+native int ft_cloneWindow(EDITOR editor);
 /*
- * DESCRIPTION
+ * Indent/outdent the current selection in the current editor depending on direction.
  */
-@Method(name="ShiftSelection", signature="ii")
-native int edit_shiftSelection();
+@Method(name="ShiftSelection")
+native int edit_shiftSelection(int direction);
 /*
- * DESCRIPTION
+ * Toggle the comment in the currently selected lines in the passed editor or in the current line.
  */
-@Method(name="ToggleComment", signature="ii")
-native int edit_toggleComment();
+@Method(name="ToggleComment")
+native int edit_toggleComment(EDITOR editor);
 /*
- * DESCRIPTION
+ * Show the window list selector.
  */
-@Method(name="ShowWindowSelector", signature="ii")
+@Method(name="ShowWindowSelector")
 native int windowselector_showWindowList();
 /*
- * DESCRIPTION
+ * Navigate to the next or previous difference depending
+ * on direction.
  */
-@Method(name="CompareNavigate", signature="ii")
-native int compare_navigate();
+@Method(name="CompareNavigate")
+native int compare_navigate(int direction);
+
 /*
- * DESCRIPTION
+ * Clears the current comparison operation (removes the comparison markers).
  */
-@Method(name="CompareClear", signature="ii")
+@Method(name="CompareClear")
 native int compare_clear();
 /*
- * DESCRIPTION
+ * Move the selected text up or down depending on direction.
  */
-@Method(name="MoveSelection", signature="ii")
-native int bl_moveSelectionUpDown();
+@Method(name="MoveSelection")
+native int bl_moveSelectionUpDown(int direction);
 /*
- * DESCRIPTION
+ * Insert a string into the passed editor. If no editor is specified, use the
+ * currently active editor.
  */
-@Method(name="EditorInsertString", signature="iWs")
-native int edit_insertString();
+@Method(name="EditorInsertString")
+native int edit_insertString(EDITOR editor, string stringToInsert);
 /*
- * DESCRIPTION
+ * Return the size of the object. This is the length of a string
+ * or the number of entries in an array or map.
  */
 @Method(name="size", signature="P")
-native int interpreter_size();
+native int interpreter_size(auto stringOrArrayOrMap);
 /*
- * DESCRIPTION
+ * Search for an occurrence of a string in another string and return the index.
  */
 @Method(name="strstr", signature="iss")
-native int strstr();
+native int strstr(string target, string subString);
+
 /*
- * DESCRIPTION
+ * Print the passed string to the console.
  */
-@Method(name="print", signature="is")
-native int macroc_print();
+@Method(name="print")
+native int macroc_print(string stringToPrint);
+
 /*
- * DESCRIPTION
+ * Print the passed string including a newline to the console.
  */
-@Method(name="println", signature="is")
-native int macroc_println();
+@Method(name="println")
+native int macroc_println(string stringToPrint);
+
 /*
- * DESCRIPTION
+ * Clear the console
  */
-@Method(name="clear", signature="i")
+@Method(name="clear")
 native int macroc_clearConsole();
+
 /*
- * DESCRIPTION
+ * Return a printed version of the object passed as an argument. typeof("x") will
+ * return "string" for instance.
  */
 @Method(name="typeof", signature="P")
-native int interpreter_typeOf();
+native string interpreter_typeOf(auto object);
+
 /*
  * Upper case a string and return upper case result.
  */
@@ -737,6 +770,38 @@ native int GetLastError();
  */
 @Method(name="FileReadLine", signature="P")
 native string macroc_fileReadLine(FILE file);
+
+/*
+ * Write one one line from the input file specified and including the terminating newline.
+ */
+@Method(name="FileWriteLine", signature="P")
+native string macroc_fileWriteLine(FILE file, string line);
+
+/*
+ * Close the specified file. Note, that files need not be closed in PKSMacroC - their handles
+ * will be garbagge collected. However closing a file explicitly, when it is not needed any more is
+ * a good practice to avoid problems with locked files.
+ */
+@Method(name="FileClose", signature="P")
+native string macroc_fileClose(FILE file);
+
+/*
+ * Test a number of flags to check the type/mode of a file.
+ * -e - file exists?
+ * -d - file is directory?
+ * -s - file is a system file?
+ * -r - file is readonly?
+ * -a - file is archive?
+ */
+@Method(name="FileTest", signature="P")
+native string macroc_fileTest(string file, string mode);
+
+/*
+ * Lists all files in a directory given a matching pattern.
+ */
+@Method(name="FileListFiles", signature="P")
+native string[] macroc_fileListFiles(string directory, string namePattern);
+
 
 /*
  * Inserts the passed string into the currently active editor or into the editor passed as 1st parameter.

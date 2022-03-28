@@ -41,12 +41,6 @@ extern int EdBlockCopyOrMove(BOOL move);
  */
 extern int bl_moveSelectionUpDown(long delta);
 
-/*--------------------------------------------------------------------------
- * EdPasteString()
- * Paste a String at the current cursor location in the currently open window.
- */
-extern int EdPasteString(long dummy1, long dummy2, char* string);
-
 /*----------------------------
  * EdBlockDelete()
  * PKS Edit command to delete the current selection
@@ -221,7 +215,7 @@ extern 	PASTE* bl_addrbyid(char* pszId, int insert, PASTE_LIST_TYPE tType);
  * Tries to return the text from the current selection in the passed buffer, assuming a maximum
  * of nCapacity characters to return.
  */
-extern int bl_getSelectedText(char* pszBuf, size_t nCapacity);
+extern int bl_getSelectedText(WINFO* wp, char* pszBuf, size_t nCapacity);
 
 	/*--------------------------------------------------------------------------
  * bl_append()

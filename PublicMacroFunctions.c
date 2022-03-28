@@ -48,6 +48,7 @@
 #include "customcontrols.h"
 #include "comparefiles.h"
 #include "linkedlist.h"
+#include "editoperations.h"
 
 /*
  * Answer TRUE if a replacement had been performed before.
@@ -166,22 +167,22 @@ int EdParaGotoEnd(int dir)
 /*--------------------------------------------------------------------------
  * EdUndo()
  */
-int EdUndo(void) {
-	FTABLE* fp = ft_getCurrentDocument();
-	if (!fp) {
+int EdUndo(WINFO* wp) {
+	if (!wp) {
 		return 0;
 	}
+	FTABLE* fp = wp->fp;
 	return undo_lastModification(fp);
 }
 
 /*--------------------------------------------------------------------------
  * EdUndo()
  */
-int EdRedo(void) {
-	FTABLE* fp = ft_getCurrentDocument();
-	if (!fp) {
+int EdRedo(WINFO* wp) {
+	if (!wp) {
 		return 0;
 	}
+	FTABLE* fp = wp->fp;
 	return undo_redoLastModification(fp);
 }
 
@@ -418,7 +419,7 @@ int EdAlignText(void)
 		0
 	};
 
-	bl_getSelectedText(_currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
+	bl_getSelectedText(ww_getCurrentEditorWindow(), _currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
 	if (!win_callDialog(DLGALIGN, &_fp, _d, _tt)) {
 		return 0;
 	}
@@ -480,12 +481,13 @@ int EdSort(void)
 		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
 		0
 	};
+	WINFO* wp = ww_getCurrentEditorWindow();
 
-	bl_getSelectedText(_currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
+	bl_getSelectedText(wp, _currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
 	if (!win_callDialog(DLGSORT,&_sp,_d, _tt))
 		return 0;
 
-	return ft_sortFile(ft_getCurrentDocument(), _scope,fs,key, _currentSearchAndReplaceParams.searchPattern,flags);
+	return ft_sortFile(wp->fp, _scope,fs,key, _currentSearchAndReplaceParams.searchPattern,flags);
 }
 
 /*--------------------------------------------------------------------------
@@ -506,7 +508,7 @@ int EdKeycodeInsert(void)
 		return 0;
 
 	visible = bindings_keycodeToString(k);
-	return EdPasteString(0L, 0L, visible);
+	return (int)edit_insertString(ww_getCurrentEditorWindow(), visible);
 }
 
 /*--------------------------------------------------------------------------
@@ -1405,7 +1407,7 @@ int EdFind(void)
 	if (_dir == -1) {
 		_dir = 0;
 	}
-	bl_getSelectedText(_currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
+	bl_getSelectedText(ww_getCurrentEditorWindow(), _currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
 	if (!win_callDialog(DLGFIND, &_fp, _d, _tt)) {
 		return 0;
 	}
@@ -1478,7 +1480,7 @@ int EdFindInFileList(void)
 	if (!_currentSearchAndReplaceParams.pathlist[0]) {
 		_getcwd(_currentSearchAndReplaceParams.pathlist, sizeof _currentSearchAndReplaceParams.pathlist);
 	}
-	bl_getSelectedText(_currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
+	bl_getSelectedText(ww_getCurrentEditorWindow(), _currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
 	int ret = win_callDialogCB(DLGFINDINFILES, &_fp, _d, _tt, find_inFilesDialogProc);
 	if (ret == 0) {
 		return 0;
@@ -1634,7 +1636,7 @@ int EdCommandExecute(void)
 		0
 	};
 
-	bl_getSelectedText(cmd, sizeof cmd);
+	bl_getSelectedText(ww_getCurrentEditorWindow(), cmd, sizeof cmd);
 	if (!win_callDialog(DLGEXEC,&_fp,_d, NULL)) {
 		return 0;
 	}

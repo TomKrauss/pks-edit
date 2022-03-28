@@ -200,12 +200,11 @@ unsigned char *bl_convertPasteBufferToText(unsigned char *pDestination, unsigned
  * Tries to return the text from the current selection in the passed buffer, assuming a maximum
  * of nCapacity characters to return.
  */
-int bl_getSelectedText(char* pszBuf, size_t nCapacity) {
+int bl_getSelectedText(WINFO* wp, char* pszBuf, size_t nCapacity) {
 	PASTE* pp;
 	PASTE  pbuf;
 
 	*pszBuf = 0;
-	WINFO* wp = ww_getCurrentEditorWindow();
 	if (!ww_hasSelection(wp)) {
 		return 0;
 	}
@@ -222,10 +221,10 @@ int bl_getSelectedText(char* pszBuf, size_t nCapacity) {
  * PKS Edit macro commad which gets the selected text and makes it available
  * to the macro interpreter.
  */
-char* macro_getSelectedText(void) {
+char* macro_getSelectedText(WINFO* wp) {
 	static char	buf[256];
 
-	bl_getSelectedText(buf, sizeof buf);
+	bl_getSelectedText(wp, buf, sizeof buf);
 	return buf;
 }
 

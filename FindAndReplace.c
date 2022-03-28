@@ -687,32 +687,6 @@ rescan:
 }
 
 /*--------------------------------------------------------------------------
- * EdPasteString()
- * Paste a String at the current cursor location in the currently open window.
- */
-int EdPasteString(long dummy1, long dummy2, char *string)
-{
-	WINFO* wp = ww_getCurrentEditorWindow();
-	FTABLE *	fp;
-	LINE *	lp;
-	int		len;
-
-	if (!wp || string == 0)
-		return 0;
-	fp = wp->fp;
-	len = (int) strlen(string);
-	if ((lp = ln_modify(fp,wp->caret.linePointer,wp->caret.offset,wp->caret.offset+len)) == 0L)
-		return 0;
-
-	memmove(&lp->lbuf[wp->caret.offset],string,len);
-	breaklines(fp,1,wp->caret.ln,wp->caret.ln);
-
-	render_repaintAllForFile(fp);
-
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
  * strxcpy()
  */
 static void strxcpy(char *d, char *s, int newlen)

@@ -1155,7 +1155,7 @@ long long macro_executeMacro(MACROREF* mp) {
 		memset(&macro, 0, sizeof macro);
 		macro.mc_name = _commandTable[mp->index].c_name;
 		macro.mc_bytecodes = (unsigned char*)cp;
-		macro.mc_bytecodeLength = sizeof(*cp);
+		macro.mc_bytecodeLength = interpreter_getParameterSize(cp->typ, ((const char*)cp)+1);
 		return macro_interpretByteCodes(&macro);
 	case CMD_MACRO:
 		ret = macro_executeMacroByIndex(mp->index);

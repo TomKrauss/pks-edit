@@ -526,10 +526,13 @@ static int ft_openwin(FTABLE *fp, const char* pszHint) {
 
 
 /*
- * Open a second window for the current open file. 
+ * Open a second window for the passed file. 
  */
-int ft_cloneWindow() {
-	FTABLE* fp = ft_getCurrentDocument();
+int ft_cloneWindow(WINFO* wp) {
+	if (!wp) {
+		return 0;
+	}
+	FTABLE* fp = wp->fp;
 	if (fp == NULL) {
 		return 0;
 	}

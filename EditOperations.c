@@ -235,8 +235,7 @@ static BOOL edit_isAllCommented(LINE* lpFirst, const LINE* lpLast, const char* p
 /*
  * Comment in/out the selected lines in the current editor.
  */
-long long edit_toggleComment() {
-	WINFO* wp = ww_getCurrentEditorWindow();
+long long edit_toggleComment(WINFO* wp) {
 	COMMENT_DESCRIPTOR commentDescriptor;
 
 	if (wp == 0L) {
@@ -1094,9 +1093,7 @@ long long EdLineSplit(int flags) {
 /*--------------------------------------------------------------------------
  * EdHideLines()
  */
-int EdHideLines(void)
-{	
-	WINFO* wp = ww_getCurrentEditorWindow();
+int EdHideLines(WINFO* wp) {	
 	FTABLE *	fp;
 	LINE *	lp1;
 	LINE *	lp2;
@@ -1121,9 +1118,8 @@ int EdHideLines(void)
 /*--------------------------------------------------------------------------
  * EdUnHideLine()
  */
-int EdUnHideLine(void)
+int EdUnHideLine(WINFO* wp)
 {
-	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE *	fp;
 
 	if (wp == 0) {
@@ -1158,10 +1154,7 @@ void EdMouseSelectLines(int flg)
 /*--------------------------------------------------------------------------
  * EdExpandAbbreviation()
  */
-int EdExpandAbbreviation(void)
-{
-	WINFO* wp = ww_getCurrentEditorWindow();
-
+int EdExpandAbbreviation(WINFO* wp) {
 	if (wp) {
 		return
 			template_expandAbbreviation(wp->fp,wp->caret.linePointer,wp->caret.offset);

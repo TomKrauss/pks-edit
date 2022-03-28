@@ -101,7 +101,7 @@ long long evaluator_evaluateCurrentSelection() {
 	} else {
 		size_t nMaxSize = MAX_SELECTION_SIZE_TO_EXECUTE;
 		pszText = calloc(nMaxSize, 1);
-		bSuccess = bl_getSelectedText(pszText, nMaxSize);
+		bSuccess = bl_getSelectedText(wp, pszText, nMaxSize);
 	}
 	if (bSuccess) {
 		pEvaluator->ev_function(pszText, EV_EXECUTE);
