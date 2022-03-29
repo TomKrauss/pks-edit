@@ -32,34 +32,37 @@
 #define QUERY_FILEMODIFIED			9
 #define QUERY_BLOCKXTNDMODE			10
 
+#if defined (_WINFO_H)
  /*--------------------------------------------------------------------------
   * EdCursorLeft()
   */
-extern long long EdCursorLeft(int mtype);
+extern long long EdCursorLeft(WINFO* wp, int mtype);
 
 /*--------------------------------------------------------------------------
  * EdCursorRight()
  */
-extern long long EdCursorRight(int mtype);
+extern long long EdCursorRight(WINFO* wp, int mtype);
 
 /*--------------------------------------------------------------------------
  * EdCursorUp()
  */
-extern long long EdCursorUp(int mtype);
+extern long long EdCursorUp(WINFO* wp, int mtype);
 
 /*--------------------------------------------------------------------------
  * EdCursorDown()
  */
-extern long long EdCursorDown(int mtype);
+extern long long EdCursorDown(WINFO* wp, int mtype);
 
 /*--------------------------------------------------------------------------
  * EdChapterGotoBegin()
  */
-extern long long EdChapterGotoBegin(int dir);
+extern long long EdChapterGotoBegin(WINFO* wp, int dir);
 
 /*--------------------------------------------------------------------------
  * EdChapterGotoEnd()
  */
-extern long long EdChapterGotoEnd(int dir);
+extern long long EdChapterGotoEnd(WINFO* wp, int dir);
+
+#endif
 
 #endif

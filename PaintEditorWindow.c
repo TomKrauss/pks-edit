@@ -688,9 +688,7 @@ void ww_setZoom(WINFO* wp, float newFactor) {
 /*
  * Increase / decrease the zoom factor of the current window. 
  */
-long long ww_zoomWindow(int anIncreaseFactor) {
-	WINFO* wp = ww_getCurrentEditorWindow();
-
+long long ww_zoomWindow(WINFO* wp, int anIncreaseFactor) {
 	if (wp == 0) {
 		return 0;
 	}

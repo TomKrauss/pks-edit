@@ -48,7 +48,7 @@ extern BOOL recorder_isRecording();
  * Start/stop the macro recorder.
  */
 extern void recorder_setRecording(BOOL bStart);
-extern void recorder_recordFunctionWithParameters(int fnum, int p, intptr_t p2, char* s1, char* s2);
+extern void recorder_recordFunctionWithParameters(int fnum, intptr_t p, intptr_t p2, char* s1, char* s2);
 
 /*--------------------------------------------------------------------------
  * interpreter_testExpression()
@@ -618,7 +618,7 @@ long long cdecl interpreter_executeFunction(int num, intptr_t *stack) {
 		caret_removeSecondaryCarets();
 	}
 
-	recorder_recordFunctionWithParameters(num,(int)*stack,stack[1], (char*)stack[2], (char*)stack[3]);
+	recorder_recordFunctionWithParameters(num,stack[0], stack[1], (char*)stack[2], (char*)stack[3]);
 
 	if ((i = _multiplier) > 1 && (fup->flags & EW_MULTI) == 0) {
 		while (i-- > 0 && (ret = interpreter_callFfi(fup, stack)) != 0)
@@ -737,6 +737,10 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 	if (bNativeCall) {
 		memset(nativeStack, 0, sizeof nativeStack);
 		if (typ == C_1FUNC) {
+			PARAMETER_TYPE_DESCRIPTOR pdt = function_getParameterTypeDescriptor(fup, 1);
+			if (pdt.pt_type == PARAM_TYPE_EDITOR_WINDOW) {
+				*functionParameters++ = (intptr_t) ww_getCurrentEditorWindow();
+			}
 			*functionParameters++ = pInstructionPointer->p;
 			nParametersPassed--;
 		}

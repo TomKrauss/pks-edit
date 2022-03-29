@@ -103,65 +103,65 @@ void EdAlert(char *s)
 /*--------------------------------------------------------------------------
  * EdCursorLeft()
  */
-long long EdCursorLeft(int mtype)
+long long EdCursorLeft(WINFO* wp, int mtype)
 {
-	return caret_moveLeftRight(ww_getCurrentEditorWindow(), -1, mtype);
+	return caret_moveLeftRight(wp, -1, mtype);
 }
 
 /*--------------------------------------------------------------------------
  * EdCursorRight()
  */
-long long EdCursorRight(int mtype)
+long long EdCursorRight(WINFO* wp, int mtype)
 {
-	return caret_moveLeftRight(ww_getCurrentEditorWindow(), 1, mtype);
+	return caret_moveLeftRight(wp, 1, mtype);
 }
 
 /*--------------------------------------------------------------------------
  * EdCursorUp()
  */
-long long EdCursorUp(int mtype)
+long long EdCursorUp(WINFO* wp, int mtype)
 {
-	return caret_moveUpOrDown(ww_getCurrentEditorWindow(), -1,mtype);
+	return caret_moveUpOrDown(wp, -1,mtype);
 }
 
 /*--------------------------------------------------------------------------
  * EdCursorDown()
  */
-long long EdCursorDown(int mtype)
+long long EdCursorDown(WINFO* wp, int mtype)
 {
-	return caret_moveUpOrDown(ww_getCurrentEditorWindow(), 1,mtype);
+	return caret_moveUpOrDown(wp, 1,mtype);
 }
 
 /*--------------------------------------------------------------------------
  * EdChapterGotoBegin()
  */
-long long EdChapterGotoBegin(int dir)
+long long EdChapterGotoBegin(WINFO* wp, int dir)
 {
-	return caret_advanceSection(ww_getCurrentEditorWindow(), dir,1);
+	return caret_advanceSection(wp, dir,1);
 }
 
 /*--------------------------------------------------------------------------
  * EdChapterGotoEnd()
  */
-long long EdChapterGotoEnd(int dir)
+long long EdChapterGotoEnd(WINFO* wp, int dir)
 {
-	return caret_advanceSection(ww_getCurrentEditorWindow(), dir,0);
+	return caret_advanceSection(wp, dir,0);
 }
 
 /*--------------------------------------------------------------------------
  * EdParaGotoBegin()
  */
-int EdParaGotoBegin(int dir)
+int EdParaGotoBegin(WINFO* wp, int dir)
 {
-	return caret_advanceParagraphFromCurrentLine(ww_getCurrentEditorWindow(), dir,1);
+	return caret_advanceParagraphFromCurrentLine(wp, dir,1);
 }
 
 /*--------------------------------------------------------------------------
  * EdParaGotoEnd()
  */
-int EdParaGotoEnd(int dir)
+int EdParaGotoEnd(WINFO* wp, int dir)
 {
-	return caret_advanceParagraphFromCurrentLine(ww_getCurrentEditorWindow(), dir,0);
+	return caret_advanceParagraphFromCurrentLine(wp, dir,0);
 }
 
 /*--------------------------------------------------------------------------
@@ -521,6 +521,15 @@ int EdSetMultiplier(void)
 		return 1;
 	_multiplier = 1;
 	return 0;
+}
+
+/* 
+ * Returns the last defined multiplier resetting the current multiplier to be 1.
+ */
+long long EdGetMultiplier() {
+	long long ret = _multiplier;
+	_multiplier = 1;
+	return ret;
 }
 
 /*--------------------------------------------------------------------------

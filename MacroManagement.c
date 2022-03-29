@@ -545,7 +545,10 @@ int macro_onMenuAction(WINFO* wp, int menunum, POINT* aPositionClicked) {
  */
 int macro_onCharacterInserted(WORD c) {
 	intptr_t stack[8];
-	stack[0] = c;
+	stack[0] = (intptr_t) ww_getCurrentEditorWindow();
+	stack[1] = c;
+	stack[2] = 0;
+	stack[3] = 0;
 	return (int) interpreter_executeFunction(FUNC_EdCharInsert, stack);
 }
 

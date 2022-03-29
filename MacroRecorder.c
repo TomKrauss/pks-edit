@@ -136,7 +136,7 @@ void recorder_pushSequence(unsigned char typ, void* par) {
 /*---------------------------------*/
 /* recorder_recordFunctionWithParameters()						*/
 /*---------------------------------*/
-void recorder_recordFunctionWithParameters(int fnum, int p, intptr_t p2, char* s1, char* s2) {
+void recorder_recordFunctionWithParameters(int fnum, intptr_t p, intptr_t p2, char* s1, char* s2) {
 	COM_1FUNC c;
 
 	if (!recorder_isRecording())
@@ -145,8 +145,15 @@ void recorder_recordFunctionWithParameters(int fnum, int p, intptr_t p2, char* s
 	if (_functionTable[fnum].flags & EW_NOCASH)	/* avoid recursion	*/
 		return;
 
+	BOOL bEditorFunc = function_getParameterTypeDescriptor(&_functionTable[fnum], 1).pt_type == PARAM_TYPE_EDITOR_WINDOW;
+	if (bEditorFunc) {
+		p = (intptr_t)p2;
+		p2 = (intptr_t) s1;
+		s1 = s2;
+		s2 = 0;
+	}
 	c.funcnum = fnum;
-	c.p = p;
+	c.p = (long) p;
 
 	recorder_pushSequence(C_1FUNC, (void*)&c);
 	if (p2) recorder_pushSequence(C_PUSH_LONG_LITERAL, (void*)p2);

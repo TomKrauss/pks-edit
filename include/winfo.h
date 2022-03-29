@@ -617,7 +617,7 @@ extern int sl_moved(WINFO* wp, long dy, long dx, int cursor_adjust);
 /*
  * Increase / decrease the zoom factor of the current window.
  */
-extern long long ww_zoomWindow(int anIncreaseFactor);
+extern long long ww_zoomWindow(WINFO* wp, int anIncreaseFactor);
 
 /*
  * Set a fixed zoom factor for a window.

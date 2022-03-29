@@ -674,7 +674,7 @@ extern long long EdFileAbandon(WINFO* wp);
  * EdLineSplit()
  * do cr+lf-Actions
  */
-extern long long  EdLineSplit(int flags);
+extern long long  EdLineSplit(WINFO* wp, int flags);
 
 /*--------------------------------------------------------------------------
  * ln_insertIndent()

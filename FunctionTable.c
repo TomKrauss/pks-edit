@@ -23,10 +23,10 @@
 #include "pksedit.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
-#include "publicapi.h"
 #include "findandreplace.h"
 #include "iccall.h"
 #include "winfo.h"
+#include "publicapi.h"
 #include "stringutil.h"
 #include "caretmovement.h"
 #include "pksrc.h"
@@ -50,7 +50,7 @@ EdSyncSelectionWithCaret(long ), bl_cutLines(long ), EdLineDelete(long ), bl_des
 EdKeycodeInsert(long ), EdCharInsert(long ), EdFormatText(long ),
 EdSearchListRead(long ), EdErrorListRead(long ),
 EdMacrosEdit(long ), doctypes_saveToFile(long ),
-EdTagfileRead(long ), EdSetup(long ), EdSetMultiplier(long ), EdReplaceTabs(long ),
+EdTagfileRead(long ), EdSetup(long ), EdSetMultiplier(long ), EdGetMultiplier(long), EdReplaceTabs(long ),
 EdParaGotoBegin(long ), edit_shiftSelection(int aDirection),
 EdParaGotoEnd(long ), EdCharDelete(long ), codecomplete_showSuggestionWindow(long ),
 EdMacroRecord(long ), EdFindInFileList(long ), EdFind(long ),
@@ -108,17 +108,17 @@ EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*10*/  EdBlockPaste  , -1,EW_MODIFY | EW_FINDCURS | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                 "PasteBlock",                 NULL,  "ibPASTE_bFORM_i"                                },
 {/*11*/  bl_hideSelectionInCurrentWindow   , -1,EW_NEEDSCURRF | 0,                                     "HideBlock",                  NULL,  "i"                                           },
 {/*12*/  EdSyncSelectionWithCaret   , -1,   EW_NEEDSCURRF | 0,                                         "SetBlockMark",               NULL,  "ieMARK_"                                      },
-{/*13*/  bl_cutLines   , -1,EW_NEEDSCURRF | EW_MULTI | 0,                                              "CutLines",                   NULL,  "i"                                           },
-{/*14*/  EdLineDelete  , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                               "DeleteLines",                NULL,  "ibELO_"                                      },
+{/*13*/  bl_cutLines   , -1,EW_NEEDSCURRF | EW_MULTI | 0,                                              "CutLines",                   NULL,  "iW"                                           },
+{/*14*/  EdLineDelete  , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                               "DeleteLines",                NULL,  "iWbELO_"                                      },
 {/*15*/  bl_destroyAll  , -1,0,                                                                        "FreeBuffer",                 NULL,  "i"                                           },
 {/*16*/  EdKeycodeInsert, -1,   EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                           "InsertKeycode",              NULL,  "ibFORM_i"                                     },
-{/*17*/  EdCharInsert  , -1,EW_MODIFY | EW_NEEDSCURRF | EW_CCASH | 0,                                  "InsertChar",                 NULL,  "ii"                                          },
+{/*17*/  EdCharInsert  , -1,EW_MODIFY | EW_NEEDSCURRF | EW_CCASH | 0,                                  "InsertChar",                 NULL,  "iWi"                                          },
 {/*18*/  EdFormatText  , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_CUSTOM_ENABLEMENT,            "FormatText",ft_supportsFormatting,  "ibFORM_eAL_eRNG_"                       },
-{/*19*/  edit_insertLine  , -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                           "InsertLine",                 NULL,  "ieELO_"                                      },
-{/*20*/  edit_performLineFlagOperation, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,               "MarkLineOp",                 NULL,  "ieMLN_"                                      },
+{/*19*/  edit_insertLine  , -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                           "InsertLine",                 NULL,  "ieWELO_"                                      },
+{/*20*/  edit_performLineFlagOperation, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,               "MarkLineOp",                 NULL,  "iWeMLN_"                                      },
 {/*21*/  EdSearchListRead, -1, EW_HASFORM | 0,                                                         "ReadSearchList",             NULL,  "ibFORM_s"                                     },
 {/*22*/  EdErrorListRead, -1, 0,                                                                       "ReadErrorList",              NULL,  "isbFORM_s"                                    },
-{/*23*/  ww_zoomWindow, -1, EW_NEEDSCURRF | 0,                                                         "ZoomWindow",                 NULL,  "ii"                                           },
+{/*23*/  ww_zoomWindow, -1, EW_NEEDSCURRF | 0,                                                         "ZoomWindow",                 NULL,  "iWi"                                           },
 {/*24*/  EdMacrosEdit, -1, EW_MULTI | 0,                                                               "EditMacros",                 NULL,  "i"                                           },
 {/*25*/  (long long (*)())string_getVariableWithDefaults, -1, 0,                                        "GetVariable",                NULL,  "ss"                                           },
 {/*26*/  doctypes_saveToFile, -1, EW_HASFORM | 0,                                                       "MergeDocMacrosWith",         NULL,  "ibFORM_s"                                     },
@@ -127,16 +127,16 @@ EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*29*/  EdSetup, -1, 0,                                                                               "RwSetup",                    NULL,  "ibFORM_s"                                     },
 {/*30*/  EdSetMultiplier, -1, 0,                                                                       "SetMultiplier",              NULL,  "ibFORM_i"                                     },
 {/*31*/  EdReplaceTabs, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                               "ReplaceTabs",                NULL,  "ieCT_bFORM_eRNG_"                            },
-{/*32*/  EdLineSplit, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                 "SplitLine",                  NULL,  "ieRET_"                                      },
-{/*33*/  EdChapterGotoBegin, -1, EW_NEEDSCURRF | EW_MULTI | 0,                                         "GotoChapterStart",           NULL,  "ieDIR_"                                      },
-{/*34*/  EdChapterGotoEnd, -1, EW_NEEDSCURRF | EW_MULTI | 0,                                           "GotoChapterEnd",             NULL,  "ieMOT_"                                      },
-{/*35*/  EdParaGotoBegin, -1, EW_NEEDSCURRF | EW_MULTI | 0,                                            "GotoPgrphStart",             NULL,  "ieMOT_"                                      },
-{/*36*/  EdParaGotoEnd, -1, EW_NEEDSCURRF | EW_MULTI | 0,                                              "GotoPgrphEnd",               NULL,  "ieMOT_"                                      },
-{/*37*/  EdCursorRight, -1, EW_NEEDSCURRF | 0,                                                         "CursorRight",                NULL,  "ieMOT_"                                      },
-{/*38*/  EdCursorLeft, -1, EW_NEEDSCURRF | 0,                                                          "CursorLeft",                 NULL,  "ieMOT_"                                      },
-{/*39*/  EdCursorUp, -1, EW_NEEDSCURRF | EW_MULTI | 0,                                                 "CursorUp",                   NULL,  "ieMOT_"                                      },
-{/*40*/  EdCursorDown, -1, EW_NEEDSCURRF | EW_MULTI | 0,                                               "CursorDown",                 NULL,  "ieMOT_"                                      },
-{/*41*/  EdCharDelete, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                "Delete",                     NULL,  "ieMOT_"                                      },
+{/*32*/  EdLineSplit, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                 "SplitLine",                  NULL,  "iWeRET_"                                      },
+{/*33*/  EdChapterGotoBegin, -1, EW_NEEDSCURRF | EW_MULTI | 0,                                         "GotoChapterStart",           NULL,  "iWeDIR_"                                      },
+{/*34*/  EdChapterGotoEnd, -1, EW_NEEDSCURRF | EW_MULTI | 0,                                           "GotoChapterEnd",             NULL,  "iWeMOT_"                                      },
+{/*35*/  EdParaGotoBegin, -1, EW_NEEDSCURRF | EW_MULTI | 0,                                            "GotoPgrphStart",             NULL,  "iWeMOT_"                                      },
+{/*36*/  EdParaGotoEnd, -1, EW_NEEDSCURRF | EW_MULTI | 0,                                              "GotoPgrphEnd",               NULL,  "iWeMOT_"                                      },
+{/*37*/  EdCursorRight, -1, EW_NEEDSCURRF | 0,                                                         "CursorRight",                NULL,  "iWeMOT_"                                      },
+{/*38*/  EdCursorLeft, -1, EW_NEEDSCURRF | 0,                                                          "CursorLeft",                 NULL,  "iWeMOT_"                                      },
+{/*39*/  EdCursorUp, -1, EW_NEEDSCURRF | EW_MULTI | 0,                                                 "CursorUp",                   NULL,  "iWeMOT_"                                      },
+{/*40*/  EdCursorDown, -1, EW_NEEDSCURRF | EW_MULTI | 0,                                               "CursorDown",                 NULL,  "iWeMOT_"                                      },
+{/*41*/  EdCharDelete, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                "Delete",                     NULL,  "iWeMOT_"                                      },
 {/*42*/  fkey_keyModifierStateChanged, -1, 0,                                                          "SwitchFkeys",                NULL,  "i"                                      },
 {/*43*/  codecomplete_showSuggestionWindow, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_HASFORM , "CodeCompleteSuggest",        NULL,  "ibFORM_i"                                     },
 {/*44*/  macro_executeMacroByIndex, -1, EW_NOCASH | EW_CCASH | 0,                                      "PlayMacro",                  NULL,  "ieMAC_"                                      },
@@ -168,13 +168,13 @@ EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*70*/  EdLinesShift, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_MULTI | 0,                     "ShiftLines",                 NULL,  "ii"                                      },
 {/*71*/  EdInfoFiles, -1, 0,                                                                           "ShowInfo",                   NULL,  "i"                                           },
 {/*72*/  EdShowMatch, -1, EW_NEEDSCURRF | 0,                                                           "CheckBrackets",              NULL,  "i"                                           },
-{/*73*/  edit_convertCharacterCase, -1, EW_MODIFY | EW_FINDCURS | EW_NEEDSCURRF | EW_UNDOFLSH | 0,     "UpToLow",                    NULL,  "i"                                           },
+{/*73*/  edit_convertCharacterCase, -1, EW_MODIFY | EW_FINDCURS | EW_NEEDSCURRF | EW_UNDOFLSH | 0,     "UpToLow",                    NULL,  "iWeCC_"                                           },
 {/*74*/  evaluator_evaluateCurrentSelection, -1, EW_NEEDSCURRF | EW_FINDCURS | 0,                      "EvaluateSelection",          NULL,  "i"                                        },
 {/*75*/  dlg_configureEditorModes, -1, EW_NEEDSCURRF | 0,                                              "SetDispMode",                NULL,  "ibFORM_siiiieSHOW_"                            },
 {/*76*/  mainframe_toggleFullScreen, -1, 0,                                                            "ToggleFullScreen",           NULL,  "i"                                           },
 {/*77*/  EdFindOnInternet, -1, EW_NEEDSCURRF | EW_FINDCURS | 0,                                        "FindOnInternet",             NULL,  "ibFORM_siii"                                  },
 {/*78*/  EdOptionToggle, -1, EW_NEEDSCURRF | 0,                                                        "ToggleTextMode",             NULL,  "ieWM_"                                      },
-{/*79*/  function_unused, -1, EW_NEEDSCURRF | EW_FINDCURS | 0,                                         "unused",                NULL,  "i"                                          },
+{/*79*/  EdGetMultiplier, -1, 0,                                                                       "SetMultiplier",              NULL,  "i"                                     },
 {/*80*/  EdFindTag, -1, EW_HASFORM | 0,                                                                "FindTag",                    NULL,  "iibFORM_s"                                    },
 {/*81*/  EdFindFileCursor, -1, EW_NEEDSCURRF | 0,                                                      "CursorFindFile",             NULL,  "i"                                           },
 {/*82*/  xref_navigateSearchErrorList, -1, 0,                                                          "FindError",                  NULL,  "ieLIST_"                                      },
@@ -729,7 +729,10 @@ PARAMETER_ENUM_VALUE _parameterEnumValueTable[] = {
 { "QUERY_WORKMODE"            , QUERY_WORKMODE },
 { "QUERY_DISPLAYMODE"         , QUERY_DISPLAYMODE },
 { "QUERY_FILEMODIFIED"        , QUERY_FILEMODIFIED },
-{ "QUERY_BLOCKXTNDMODE"       , QUERY_BLOCKXTNDMODE }
+{ "QUERY_BLOCKXTNDMODE"       , QUERY_BLOCKXTNDMODE },
+{ "CC_TOGGLE"                 , CC_TOGGLE}, 
+{ "CC_UPPER"                  , CC_UPPER }, 
+{"CC_LOWER"                   , CC_LOWER}
 };
 // Must not be more currently than 256!!!!
 int _parameterEnumValueTableSize = sizeof(_parameterEnumValueTable) / sizeof(_parameterEnumValueTable[0]);

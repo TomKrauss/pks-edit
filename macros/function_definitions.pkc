@@ -63,46 +63,59 @@ native int bl_hideSelectionInCurrentWindow();
  */
 @Method(name="SetBlockMark", signature="ieMARK_")
 native int EdSyncSelectionWithCaret();
+
 /*
- * DESCRIPTION
+ * Delete the selected lines of text from the editor passed as an argument.
  */
 @Method(name="CutLines", signature="i")
-native int bl_cutLines();
+native int bl_cutLines(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Delete the line in the current editor. The behavior
+ * of the current caret position depends on the passed ELO flags.
  */
-@Method(name="DeleteLines", signature="ibELO_")
-native int EdLineDelete();
+@Method(name="DeleteLines", signature="iWbELO_")
+native int EdLineDelete(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Destroy / release all input buffers.
  */
 @Method(name="FreeBuffer", signature="i")
 native int bl_destroyAll();
+
 /*
- * DESCRIPTION
+ * Opens a dialog allowing to enter a key and inserts the corresponding keycode into the text
+ * of the currently active editor.
  */
 @Method(name="InsertKeycode", signature="ibFORM_i")
 native int EdKeycodeInsert();
+
 /*
- * DESCRIPTION
+ * Insert a character into the editor passed at the current care position.
  */
-@Method(name="InsertChar", signature="ii")
-native int EdCharInsert();
+@Method(name="InsertChar")
+native int EdCharInsert(EDITOR editor, char c);
+
 /*
- * DESCRIPTION
+ * Opens a dialog allowing to format the text in the current editor.
+ * Text formatting is currently supported only for a couple of grammars.
  */
 @Method(name="FormatText", signature="ibFORM_eAL_eRNG_")
 native int EdFormatText();
+
 /*
- * DESCRIPTION
+ * Insert a new line at the current caret position. The behavior of the
+ * new line indent and the caret movement is defined by the ELO_ flag passed.
  */
 @Method(name="InsertLine", signature="ieELO_")
-native int edit_insertLine();
+native int edit_insertLine(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Perform the given operation on the lines of the specified edior. Some of
+ * the given operations require the line being marked before with "mark line".
  */
 @Method(name="MarkLineOp", signature="ieMLN_")
-native int edit_performLineFlagOperation();
+native int edit_performLineFlagOperation(EDITOR editor);
 /*
  * DESCRIPTION
  */
@@ -113,21 +126,42 @@ native int EdSearchListRead();
  */
 @Method(name="ReadErrorList", signature="isbFORM_s")
 native int EdErrorListRead();
+
 /*
- * DESCRIPTION
+ * Zooms the text font size in the given window.
  */
-@Method(name="ZoomWindow", signature="ii")
-native int ww_zoomWindow();
+@Method(name="ZoomWindow", )
+native int ww_zoomWindow(EDITOR editor, int factor);
+
 /*
- * DESCRIPTION
+ * Opens the macro administration editor.
  */
 @Method(name="EditMacros", signature="i")
 native int EdMacrosEdit();
+
 /*
- * DESCRIPTION
+ * Returns the value of a pre-defined PKS-Edit template variable:
+ * ${user} - name of the current logged in user
+ * ${time} - the current time
+ * ${cwd} - the current working directory
+ * ${time_long_} - the current time including milliseconds
+ * ${date} - the current date (by default in format dd.mm.yyyy)
+ * ${year} - the current year (e.g. 2021)
+ * ${pks_sys} - the PKS_SYS directory**
+ * ${pks_tmp} - the temporary directory for PKS-Edit.
+ * ${pks_executable} - the PKS-Edit executable full path.
+ * ${indent} - insert the number of spaces matching the indent of the line from which the template is inserted
+ * ${tab} - insert the number of spaces to fill up one tab position.
+ * ${cursor} - after inserting the template, place the cursor here
+ * ${secondary} - after inserting the template, place a secondary cursor here (up to 6 secondary carets are supported). This
+ * can be used to edit multiple places in the code concurrently / to start multi-caret input.
+ * ${file_name} - base name of the current file
+ * ${selection_end} - used in combination with ${cursor} to select a range of text after inserting the template.
+ * ${word_selection} - the "word/identifier" close to the input caret or text currently selected.
  */
 @Method(name="GetVariable", signature="ss")
-native int long();
+native string string_getVariableWithDefaults();
+
 /*
  * DESCRIPTION
  */
@@ -144,70 +178,93 @@ native int macro_readWriteWithFileSelection();
 @Method(name="ReadTagfile", signature="ibFORM_s")
 native int EdTagfileRead();
 /*
- * DESCRIPTION
+ * Opens the setup dialog allowing to change the PKS-Edit configuration.
  */
 @Method(name="RwSetup", signature="ibFORM_s")
 native int EdSetup();
+
 /*
- * DESCRIPTION
+ * Opens a dialog letting the user define a multiplicator for the command to
+ * execute. Selecting 5 and inserting an 'x' will insert "xxxxx" into the text
+ * for instance.
  */
 @Method(name="SetMultiplier", signature="ibFORM_i")
 native int EdSetMultiplier();
+
 /*
- * DESCRIPTION
+ * Returns the last multiplier set with SetMultiplier. Can be used in PKS-Edit MacroC code
+ * to perform an operation multiple times.
+ */
+@Method(name="SetMultiplier")
+native int EdGetMultiplier();
+
+/*
+ * Replace tabs with spaces in the specified range.
  */
 @Method(name="ReplaceTabs", signature="ieCT_bFORM_eRNG_")
 native int EdReplaceTabs();
+
 /*
- * DESCRIPTION
+ * SPlit the line in the specified editor at the current input caret position.
+ * Handling of indentation in the new line created depends on the RET_ flag.
  */
-@Method(name="SplitLine", signature="ieRET_")
-native int EdLineSplit();
+@Method(name="SplitLine", signature="iWeRET_")
+native int EdLineSplit(EDITOR editor);
 /*
- * DESCRIPTION
+ * Moves the input caret to the beginning / end of the chapter depending on direction.
  */
-@Method(name="GotoChapterStart", signature="ieDIR_")
-native int EdChapterGotoBegin();
+@Method(name="GotoChapterStart", signature="iWeDIR_")
+native int EdChapterGotoBegin(EDITOR editor);
 /*
- * DESCRIPTION
+ * Moves the input caret to the beginning / end of the paragraph depending on direction.
  */
-@Method(name="GotoChapterEnd", signature="ieMOT_")
-native int EdChapterGotoEnd();
+@Method(name="GotoChapterEnd", signature="iWeMOT_")
+native int EdChapterGotoEnd(EDITOR editor);
 /*
- * DESCRIPTION
+ * Moves the input caret to the beginning of the page/... depending on the motion flag.
  */
-@Method(name="GotoPgrphStart", signature="ieMOT_")
-native int EdParaGotoBegin();
+@Method(name="GotoPgrphStart", signature="iWeMOT_")
+native int EdParaGotoBegin(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Moves the input caret to the end of the page/... depending on the motion flag.
  */
-@Method(name="GotoPgrphEnd", signature="ieMOT_")
-native int EdParaGotoEnd();
+@Method(name="GotoPgrphEnd", signature="iWeMOT_")
+native int EdParaGotoEnd(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Moves the input caret to the right by one position / word etc... depending on
+ * the motion flag.
  */
-@Method(name="CursorRight", signature="ieMOT_")
-native int EdCursorRight();
+@Method(name="CursorRight", signature="iWeMOT_")
+native int EdCursorRight(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Moves the input caret to the left by one position / word etc... depending on
+ * the motion flag.
  */
-@Method(name="CursorLeft", signature="ieMOT_")
-native int EdCursorLeft();
+@Method(name="CursorLeft", signature="iWeMOT_")
+native int EdCursorLeft(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Moves the input caret one line / page etc... up depending on
+ * the motion flag.
  */
-@Method(name="CursorUp", signature="ieMOT_")
-native int EdCursorUp();
+@Method(name="CursorUp", signature="iWeMOT_")
+native int EdCursorUp(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Moves the input caret one line / page etc... down depending on
+ * the motion flag.
  */
-@Method(name="CursorDown", signature="ieMOT_")
-native int EdCursorDown();
+@Method(name="CursorDown", signature="iWeMOT_")
+native int EdCursorDown(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Delete one character and move the input caret depending on the motion flag.
  */
-@Method(name="Delete", signature="ieMOT_")
-native int EdCharDelete();
+@Method(name="Delete", signature="iWeMOT_")
+native int EdCharDelete(EDITOR editor);
 /*
  * DESCRIPTION
  */

@@ -546,12 +546,11 @@ EXPORT int EdBlockDelete(int bSaveOnClip) {
 /*---------------------------------*/
 /* bl_cutLines() 				*/
 /*---------------------------------*/
-EXPORT int bl_cutLines()
+EXPORT int bl_cutLines(WINFO* wp)
 {
 	LINE *ls,*le;
 	long n = _multiplier;
 	PASTE *bp = bl_addrbyid(0,0, PLT_CLIPBOARD);
-	WINFO* wp = ww_getCurrentEditorWindow();
 
 	if (bp == 0 || wp == 0L) return 0;
 	ls = wp->caret.linePointer;

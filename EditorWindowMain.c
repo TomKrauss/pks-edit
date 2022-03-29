@@ -1247,7 +1247,7 @@ static WINFUNC WorkAreaWndProc(
 		zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 		if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {
 			if (GetAsyncKeyState(VK_CONTROL)) {
-				ww_zoomWindow(zDelta > 0);
+				ww_zoomWindow(wp, zDelta > 0);
 			} else {
 				long dy = zDelta > 0 ? -1 : 1;
 				dy *= 2;

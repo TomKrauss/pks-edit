@@ -305,12 +305,11 @@ long long edit_toggleComment(WINFO* wp) {
  * edit_insertLine()
  * create newline and insert it
  */
-long long edit_insertLine(EDIT_LINE_OPTIONS control)
+long long edit_insertLine(WINFO* wp, EDIT_LINE_OPTIONS control)
 {	LINE     *olp,*nlp;
 	FTABLE 	*fp;
 	int      dir,ai;
 	long 	ln;
-	WINFO* wp = ww_getCurrentEditorWindow();
 
 	if (wp == 0L) {
 		return 0;
@@ -343,10 +342,9 @@ long long edit_insertLine(EDIT_LINE_OPTIONS control)
  * EdLineDelete()
  * deleteline
  */
-int EdLineDelete(EDIT_LINE_OPTIONS control)
+int EdLineDelete(WINFO* wp, EDIT_LINE_OPTIONS control)
 {	LINE		*clfirst,*clast;
 	FTABLE	*fp;
-	WINFO	*wp = ww_getCurrentEditorWindow();
 	int 		lastlinelen;
 
 	fp = wp->fp;
@@ -454,7 +452,7 @@ static int edit_splitLine(WINFO* wp, CARET* pCaret, int flags) {
 		edit_placeCursor(wp, pCaret, pCaret->ln + 1, 0L);
 	}
 	else if (!control) {
-		edit_insertLine(0);
+		edit_insertLine(wp, 0);
 	}
 	return 1;
 }
@@ -893,7 +891,7 @@ static int edit_deleteChar(WINFO* wp, CARET* pCaret, int control, int nMatchChar
  * EdCharInsert()
  * normal Character insert
  */
-long long EdCharInsert(int c)
+long long EdCharInsert(WINFO* wp, int c)
 {	FTABLE *		fp;
 	EDIT_CONFIGURATION *lnp;
 	LINE *		lp;
@@ -902,7 +900,6 @@ long long EdCharInsert(int c)
 	int			nchars;
 	int			workmode;
 	extern int 	_playing;
-	WINFO* wp = ww_getCurrentEditorWindow();
 
 	fp = wp->fp;
 	lnp = fp->documentDescriptor;
@@ -1001,9 +998,8 @@ long long EdCharInsert(int c)
  * EdCharDelete()
  * delete character(s), words, ....
  */
-long long EdCharDelete(int control) {
+long long EdCharDelete(WINFO* wp, int control) {
 	int matchc;
-	WINFO* wp = ww_getCurrentEditorWindow();
 
 	render_updateCaret(wp);
 	CARET* pCaret = &wp->caret;
@@ -1020,12 +1016,11 @@ long long EdCharDelete(int control) {
 /*--------------------------------------------------------------------------
  * edit_performLineFlagOperation()
  */
-long long edit_performLineFlagOperation(MARKED_LINE_OPERATION op) {
+long long edit_performLineFlagOperation(WINFO* wp, MARKED_LINE_OPERATION op) {
 	long 	ln;
 	FTABLE* fp;
 	LINE* lp;
 	LINE* last;
-	WINFO* wp = ww_getCurrentEditorWindow();
 	int changed = 0;
 	fp = wp->fp;
 	last = fp->lastl->prev;
@@ -1075,8 +1070,7 @@ long long edit_performLineFlagOperation(MARKED_LINE_OPERATION op) {
  * EdLineSplit()
  * do cr+lf-Actions
  */
-long long EdLineSplit(int flags) {
-	WINFO* wp = ww_getCurrentEditorWindow();
+long long EdLineSplit(WINFO* wp, int flags) {
 	int nRet = 1;
 
 	CARET* pCaret = &wp->caret;
@@ -1168,11 +1162,10 @@ int EdExpandAbbreviation(WINFO* wp) {
  * the passed operation flag.
  */
 extern unsigned char _l2uset[], _u2lset[];
-long long edit_convertCharacterCase(CC_OPERATION operation) {
+long long edit_convertCharacterCase(WINFO* wp, CC_OPERATION operation) {
 	LINE* lp;
 	unsigned char c, c1;
 	int  offs;
-	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE* fp = wp->fp;
 	BOOL bBlockMode;
 	BOOL bLastLine;
@@ -1227,7 +1220,7 @@ long long edit_convertCharacterCase(CC_OPERATION operation) {
 		return 1;
 	}
 	render_repaintLine(fp, wp->caret.linePointer);
-	return EdCursorRight(1);
+	return EdCursorRight(wp, 1);
 }
 
 /*

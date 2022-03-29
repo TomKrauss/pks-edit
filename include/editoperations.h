@@ -20,7 +20,7 @@
  /*
   * Comment in/out the selected lines in the current editor.
   */
-extern long long edit_toggleComment();
+extern long long edit_toggleComment(WINFO* wp);
 
 /*
  * Insert a string into the current file at the current cursor position.
@@ -28,12 +28,12 @@ extern long long edit_toggleComment();
 extern long long edit_insertString(WINFO* wp, const char* pszString);
 
 /*--------------------------------------------------------------------------
- * Perform the given operation on the lines of the current file. Some of
- * the given operations required the line being marked before with "mark line".
+ * Perform the given operation on the lines of the specified edior. Some of
+ * the given operations require the line being marked before with "mark line".
  */
  /* Flags for marked line delta */
 typedef enum { MLN_DELETE = 0, MLN_JOIN = 1, MLN_TOGGLE = 2, MLN_FINDSOFT = 3, MLN_MAKESOFT = 4, MLN_MAKEHARD = 5, MLN_CUT = 6 } MARKED_LINE_OPERATION;
-extern long long edit_performLineFlagOperation(MARKED_LINE_OPERATION op);
+extern long long edit_performLineFlagOperation(WINFO* wp, MARKED_LINE_OPERATION op);
 
  /*--------------------------------------------------------------------------
   * edit_convertCharacterCase()
@@ -41,14 +41,14 @@ extern long long edit_performLineFlagOperation(MARKED_LINE_OPERATION op);
   * the passed operation flag.
   */
 typedef enum { CC_TOGGLE, CC_UPPER, CC_LOWER} CC_OPERATION;
-extern long long edit_convertCharacterCase(CC_OPERATION operation);
+extern long long edit_convertCharacterCase(WINFO* wp, CC_OPERATION operation);
 
 /*--------------------------------------------------------------------------
  * edit_insertLine()
  * create newline and insert it
  */
 typedef enum {ELO_CARET_STAYS = 0, ELO_CARET_FOLLOWS = 1, ELO_APPEND = 0x200} EDIT_LINE_OPTIONS;
-extern long long edit_insertLine(EDIT_LINE_OPTIONS control);
+extern long long edit_insertLine(WINFO* wp, EDIT_LINE_OPTIONS control);
 
 #define EDIT_OPERATIONS_H
 #endif
