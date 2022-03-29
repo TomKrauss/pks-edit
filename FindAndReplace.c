@@ -393,7 +393,7 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 	}
 	if (*pszString == 0) {
 		if (incrementalStart.linePointer != NULL) {
-			bl_hideSelectionInCurrentWindow();
+			bl_hideSelectionInCurrentWindow(wp);
 			caret_placeCursorMakeVisibleAndSaveLocation(wp, incrementalStart.ln, incrementalStart.offset);
 		}
 		return 1;
@@ -702,6 +702,7 @@ static void strxcpy(char *d, char *s, int newlen)
 REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, const char* pszReplaceWith, int nOptions, int scope, REPLACE_TEXT_ACTION action) {
 	long 	ln, col, startln, lastfln;
 	long    nReplacements = 0L;
+	long    nLinesChanged = 0;
 	unsigned char 	*q;
 	LINE *lp;
 	FTABLE *fp;
@@ -709,6 +710,7 @@ REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, co
 	MARK*		pNewMarkEnd;
 	MARK *		pMarkEnd;
 	LINE		*oldxpnd = 0;
+	LINE* lastChangedLp = 0;
 	long newlen;
 	int maxlen,delta;
 	RE_MATCH	match;
@@ -868,8 +870,13 @@ success:	olen = (int)(match.loc2 - match.loc1);
 			render_repaintCurrentLine(wp);
 
 		delta = (int)newlen;
-advance1:	nReplacements++;
-		lp->lflg |= LNMODIFIED;
+	advance1:
+		nReplacements++;
+		if (lp != lastChangedLp) {
+			nLinesChanged++;
+			lastChangedLp = lp;
+		}
+		ln_markModified(lp);
 		if (scope == RNG_ONCE)
 			break;
 
@@ -895,12 +902,12 @@ endrep:
 			if (_currentReplacementPattern.lineSplittingNeeded) {
 				caret_placeCursorInCurrentFile(wp, startln,0L);
 				ln = breaklines(fp,0,startln,ln);
-				if (!bKeepCaret) {
+				if (!bKeepCaret || ln == wp->caret.ln) {
 					caret_placeCursorMakeVisibleAndSaveLocation(wp, ln, col);
 				}
 				render_repaintAllForFile(fp);
 			} else {
-				if (!bKeepCaret) {
+				if (!bKeepCaret || lastfln == wp->caret.ln) {
 					caret_placeCursorMakeVisibleAndSaveLocation(wp, lastfln, lastfcol);
 				}
 				if (scope == RNG_ONCE && action == REP_REPLACE) {
@@ -910,8 +917,7 @@ endrep:
 				}
 			}
 		}
-		/* ft_countlinesStartingFromDirection MUST be called to clear lineflags !!!! */
-		ln = ft_countlinesStartingFromDirection(fp,startln,1);
+		ln = nLinesChanged;
 		if (action != REP_REPLACE) {
 			error_showMessageInStatusbar(IDS_MSGNFOUND, pszSearchPattern, ln, nReplacements);
 		} else {

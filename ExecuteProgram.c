@@ -86,7 +86,7 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 		string_concatPathAndFilename(outfile, tmp, "OUT.___");
 
 		if (flags & EX_RDOUT) {
-			if (!bl_writeToFile(infile)) {
+			if (!bl_writeToFile(ww_getCurrentEditorWindow(), infile)) {
 				return 0;
 			}
 		}
@@ -142,21 +142,22 @@ int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfil
 	// Close process and thread handles. 
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
+	WINFO* wp = ww_getCurrentEditorWindow();
 
-	if (flags & EX_RDCONV) {
-		undo_startModification(ft_getCurrentDocument());
+	if ((flags & EX_RDCONV) && wp) {
+		undo_startModification(wp->fp);
 		bUInited = TRUE;
-		EdBlockDelete(0);
+		EdBlockDelete(wp, 0);
 	}
 
 
 	if (errfile && errfile[0]) {
 		xref_openSearchList(errfile, 1);
-	} else if (ft_getCurrentDocument() && (flags & EX_RDIN)) {
+	} else if (wp && wp->fp && (flags & EX_RDIN)) {
 		if (!bUInited) {
-			undo_startModification(ft_getCurrentDocument());
+			undo_startModification(wp->fp);
 		}
-		bl_insertPasteBufFromFile(outfile);
+		bl_insertPasteBufFromFile(wp, outfile);
 	}
 
 	return 1;

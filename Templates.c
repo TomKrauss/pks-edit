@@ -154,7 +154,7 @@ static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAct
  */
 static void template_replaceCurrentWord(WINFO* wp) {
 	if (ww_hasSelection(wp)) {
-		EdBlockDelete(0);
+		EdBlockDelete(wp, 0);
 	} else {
 		char szIdentifier[100];
 		char* pszBegin;
@@ -220,11 +220,11 @@ int template_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord)
 			caret_placeCursorInCurrentFile(wp, ln, col);
 			if (templateAction.ta_selectionDeltaCol || templateAction.ta_selectionDeltaLn) {
 				bl_hideSelection(wp, 0);
-				EdSyncSelectionWithCaret(MARK_START);
+				EdSyncSelectionWithCaret(wp, MARK_START);
 				col += templateAction.ta_selectionDeltaCol;
 				ln += templateAction.ta_selectionDeltaLn;
 				caret_placeCursorInCurrentFile(wp, ln, col);
-				EdSyncSelectionWithCaret(MARK_END);
+				EdSyncSelectionWithCaret(wp, MARK_END);
 			}
 			for (int i = 0; i < templateAction.ta_secondaryCarets; i++) {
 				CARET_DELTA* pDelta = &templateAction.ta_secondary[i];

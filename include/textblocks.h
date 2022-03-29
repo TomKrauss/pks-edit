@@ -22,12 +22,12 @@
 /*
  * PKS Edit command to write a block to a default file name.
  */
-extern int EdBlockWrite(void);
+extern int EdBlockWrite(WINFO* wp);
 
 /*
  * PKS Edit command to read a block from a default file name
  */
-extern int EdBlockRead(void);
+extern int EdBlockRead(WINFO* wp);
 
 /*------------------------------
  * EdBlockCopyOrMove()
@@ -45,20 +45,20 @@ extern int bl_moveSelectionUpDown(long delta);
  * EdBlockDelete()
  * PKS Edit command to delete the current selection
  *----------------------------*/
-extern int EdBlockDelete(int bSaveOnClip);
+extern int EdBlockDelete(WINFO* wp, int bSaveOnClip);
 
 /*---------------------------------*
  * bl_writeToFile()
  * PKS Edit command to write a block to a file with the given name.
  *---------------------------------*/
-extern int bl_writeToFile(char* fn);
+extern int bl_writeToFile(WINFO* wp, char* fn);
 
 /*----------------------------
  * bl_cutOrCopy()
  * PKS Edit command to cut / copy a block.
  * The flag is a combination of CUT_QUERYID, CUT_USEPP, CUT_APPND.
  *----------------------------*/
-extern int bl_cutOrCopy(int flg, PASTE* pp);
+extern int bl_cutOrCopy(WINFO* wp, int flg, PASTE* pp);
 
 /*--------------------------------------------------------------------------
  * EdBufferFree()
@@ -79,25 +79,18 @@ extern char* bl_getTextForClipboardNamed(PASTE* pp, BOOL bDefaultClipboard);
 typedef enum { SNCO_CREATE, SNCO_LIST, SNCO_SELECT } SELECT_NAMED_CLIPBOARD_ACTION;
 char* bl_showClipboardList(SELECT_NAMED_CLIPBOARD_ACTION nOption);
 
-/*--------------------------------------------------------------------------
- * EdGetSelectedText()
- * PKS Edit command which gets the selected text and makes it available
- * to the macro interpreter.
- */
-extern void EdGetSelectedText(void);
-
 /*---------------------------------
  * EdSyncSelectionWithCaret()
  * PKS Edit command to set the end of the current selection to the caret position.
  *---------------------------------*/
-extern int EdSyncSelectionWithCaret(int flags);
+extern int EdSyncSelectionWithCaret(WINFO* wp, int flags);
 
 /*--------------------------------------------------------------------------
  * bl_convertPasteBufferToText()
  * Convert a paste buffer to a regular string buffer.
  */
-extern unsigned char* bl_convertPasteBufferToText(unsigned char* pDestination, unsigned char* pDestinationEnd,
-	PASTE* pPasteBuffer);
+extern unsigned char* bl_convertPasteBufferToText(
+	unsigned char* pDestination, unsigned char* pDestinationEnd, PASTE* pPasteBuffer);
 
 /*--------------------------------------------------------------------------
  * bl_convertPasteBufferToText()
@@ -133,7 +126,7 @@ extern int bl_setSelection(WINFO* wp, LINE* lps, int cs, LINE* lpe, int ce);
  * Read a text block from a file with the given name
  * and insert it into the current document.
  *----------------------------*/
-extern int bl_insertPasteBufFromFile(char* fn);
+extern int bl_insertPasteBufFromFile(WINFO* wp, char* fn);
 
 /*---------------------------------
  * bl_syncSelectionWithCaret()
@@ -242,7 +235,7 @@ extern void bl_restorePasteBuffers();
  * bl_hideSelectionInCurrentWindow()
  * Hide the current selection in the current window.
  */
-extern int bl_hideSelectionInCurrentWindow(void);
+extern int bl_hideSelectionInCurrentWindow(WINFO* wp);
 
 #define TEXTBLOCKS_H
 #endif // !TEXTBLOCKS_H

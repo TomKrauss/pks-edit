@@ -14,55 +14,67 @@ native int EdAbout();
 @Method(name="CopyBlock")
 native int EdBlockCopy(EDITOR editor);
 /*
- * DESCRIPTION
+ * Delete the current selection and save the contents optionally on the clipboard.
  */
-@Method(name="DeleteBlock", signature="ii")
-native int EdBlockDelete();
+@Method(name="DeleteBlock")
+native int EdBlockDelete(EDITOR editor, boolean saveOnClipboard);
+
 /*
- * DESCRIPTION
+ * Moves the caret to end of the current selection.
  */
-@Method(name="FindBlockEnd", signature="i")
-native int EdBlockFindEnd();
+@Method(name="FindBlockEnd")
+native int EdBlockFindEnd(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Moves the caret to beginning of the current selection.
  */
-@Method(name="FindBlockStart", signature="i")
+@Method(name="FindBlockStart")
 native int EdBlockFindStart();
+
 /*
- * DESCRIPTION
+ * Moves the selected block of text to the caret.
  */
-@Method(name="MoveBlock", signature="i")
-native int EdBlockMove();
+@Method(name="MoveBlock")
+native int EdBlockMove(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Reads a text from a file and inserts it at the current caret position of the passed
+ * editor.
  */
-@Method(name="ReadBlock", signature="i")
-native int EdBlockRead();
+@Method(name="ReadBlock")
+native int EdBlockRead(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Saves the current selected text in the passed editor to a file.
  */
-@Method(name="WriteBlock", signature="i")
-native int EdBlockWrite();
+@Method(name="WriteBlock")
+native int EdBlockWrite(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Cut or copies a selected block of text from the passed editor with the given flags.
  */
-@Method(name="CutBlock", signature="ieCUT_i")
-native int bl_cutOrCopy();
+@Method(name="CutBlock", signature="iWeCUT_i")
+native int bl_cutOrCopy(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Paste the contents of a clipboard at the current caret position for
+ * the given editor.
  */
 @Method(name="PasteBlock", signature="ibPASTE_bFORM_i")
-native int EdBlockPaste();
+native int EdBlockPaste(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Hide / removes the selection in the passed editor.
  */
 @Method(name="HideBlock", signature="i")
-native int bl_hideSelectionInCurrentWindow();
+native int bl_hideSelectionInCurrentWindow(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Sync either the selection start or end with the current caret position
+ * in the passed editor.
  */
-@Method(name="SetBlockMark", signature="ieMARK_")
-native int EdSyncSelectionWithCaret();
+@Method(name="SetBlockMark", signature="iWeMARK_")
+native int EdSyncSelectionWithCaret(EDITOR editor);
 
 /*
  * Delete the selected lines of text from the editor passed as an argument.
@@ -756,7 +768,7 @@ native int macroc_print(string stringToPrint);
 native int macroc_println(string stringToPrint);
 
 /*
- * Clear the console
+ * Clear the console.
  */
 @Method(name="clear")
 native int macroc_clearConsole();

@@ -208,7 +208,7 @@ int bl_getSelectedText(WINFO* wp, char* pszBuf, size_t nCapacity) {
 	if (!ww_hasSelection(wp)) {
 		return 0;
 	}
-	if (bl_cutOrCopy(0, &pbuf)) {
+	if (bl_cutOrCopy(wp, 0, &pbuf)) {
 		pp = bl_addrbyid(0, 0, PLT_CLIPBOARD);
 		bl_convertPasteBufferToText(pszBuf, &pszBuf[nCapacity - 2], pp);
 		return 1;

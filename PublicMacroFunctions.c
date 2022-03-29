@@ -201,8 +201,9 @@ int EdBlockMove(WINFO* wp)
 /*--------------------------------------------------------------------------
  * bl_hideSelectionInCurrentWindow()
  */
-int bl_hideSelectionInCurrentWindow(void)	
-{	return bl_hideSelection(ww_getCurrentEditorWindow(), 1);		}
+int bl_hideSelectionInCurrentWindow(WINFO* wp)	 {
+	return bl_hideSelection(wp, 1);
+}
 
 /*--------------------------------------------------------------------------
  * EdSetup()

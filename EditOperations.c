@@ -912,7 +912,7 @@ long long EdCharInsert(WINFO* wp, int c)
 	}
 
 	if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_hasSelection(wp)) {
-		EdBlockDelete(0);
+		EdBlockDelete(wp, 0);
 		if (c == 8 || c == 127) {
 			return 1;
 		}

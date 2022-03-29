@@ -121,7 +121,7 @@ EXPORT int bl_pasteBlock(WINFO* wp, PASTE *buf, int colflg, int offset, int move
 		wp->blstart->m_column++; /* get block marked afterwards (s. cpy_mv) */
 		caret_placeCursorInCurrentFile(wp, ln,col);
 		render_repaintAllForFile(fp);
-		EdSyncSelectionWithCaret(MARK_END);
+		EdSyncSelectionWithCaret(wp, MARK_END);
 	}
 	return ret;
 }
@@ -129,10 +129,7 @@ EXPORT int bl_pasteBlock(WINFO* wp, PASTE *buf, int colflg, int offset, int move
 /*-----------------------*/
 /* paste()			*/
 /*-----------------------*/
-EXPORT int paste(PASTE *buf,int move)
-{
-	WINFO* wp = ww_getCurrentEditorWindow();
-
+EXPORT int paste(WINFO* wp, PASTE *buf,int move) {
 	return bl_pasteBlock(wp, buf,ww_isColumnSelectionMode(wp), wp->caret.offset, move);
 }
 
@@ -192,16 +189,14 @@ EXPORT PASTE *bl_getPasteBuffer(int which) {
 /*------------------------------------------------------------
  * EdBlockPaste()
  */
-EXPORT int EdBlockPaste(int which)
+EXPORT int EdBlockPaste(WINFO* wp, int which)
 {	PASTE *	pp;
-	WINFO *	wp;
 
-     wp = ww_getCurrentEditorWindow();
 	if ((pp = bl_getPasteBuffer(which)) != 0) {
 		if ((GetConfiguration()->options & O_HIDE_BLOCK_ON_CARET_MOVE) && ww_hasSelection(wp)) {
-			EdBlockDelete(0);
+			EdBlockDelete(wp, 0);
 		}
-		return paste(pp,0);
+		return paste(wp, pp,0);
 	}
 
 	return 0;
@@ -212,12 +207,12 @@ EXPORT int EdBlockPaste(int which)
  * Read a text block from a file with the given name
  * and insert it into the current document.
  *----------------------------*/
-EXPORT int bl_insertPasteBufFromFile(char *fn)
+EXPORT int bl_insertPasteBufFromFile(WINFO* wp, char *fn)
 {	PASTE	pbuf;
 	char 	fname[256];
 	int		ret;
 
-	if (!ww_getCurrentEditorWindow()) 
+	if (!wp) 
 		return 0;
 	if (fn == 0) {
 		FILE_SELECT_PARAMS pFSP;
@@ -234,7 +229,7 @@ EXPORT int bl_insertPasteBufFromFile(char *fn)
 	fro.fro_fileName = fn;
 	fro.fro_useDefaultDocDescriptor = 0;
 	if ((ret = bl_readFileIntoPasteBuf(&pbuf, &fro)) != 0)
-		paste(&pbuf,0);
+		paste(wp, &pbuf,0);
 	ln_listfree(pbuf.pln);
 	return ret;
 }
@@ -242,15 +237,15 @@ EXPORT int bl_insertPasteBufFromFile(char *fn)
 /*
  * PKS Edit command to read a block from a default file name 
  */
-EXPORT int EdBlockRead(void ) { 
-	return bl_insertPasteBufFromFile((char *)0);	
+EXPORT int EdBlockRead(WINFO* wp) { 
+	return bl_insertPasteBufFromFile(wp, (char *)0);	
 }
 
 /*
  * PKS Edit command to write a block to a default file name. 
  */
-EXPORT int EdBlockWrite(void ){ 	
-	return bl_writeToFile((char *)0);	
+EXPORT int EdBlockWrite(WINFO* wp){ 	
+	return bl_writeToFile(wp, (char *)0);	
 }
 
 /*---------------------------------*/
@@ -302,15 +297,13 @@ static int bl_cutOrCopyBlock(WINFO*wp, MARK *ms, MARK *me, int flg, PASTE *pp) {
 /*----------------------------*/
 /* bl_cutOrCopy()				*/
 /*----------------------------*/
-EXPORT int bl_cutOrCopy(int flg,PASTE *pp)
+EXPORT int bl_cutOrCopy(WINFO* wp, int flg,PASTE *pp)
 {
-	WINFO* wp = ww_getCurrentEditorWindow();
-
 	if (!ww_checkSelectionWithError(wp))
 		return 0;
 	int ret = bl_cutOrCopyBlock(wp, wp->blstart,wp->blend,flg,pp);
 	if (ret && (flg & CUT_DELETE)) {
-		EdBlockDelete(0);
+		EdBlockDelete(wp, 0);
 	}
 	return ret;
 }
@@ -319,13 +312,13 @@ EXPORT int bl_cutOrCopy(int flg,PASTE *pp)
  * bl_writeToFile()
  * PKS Edit command to write a block to a file with the given name. 
  *---------------------------------*/
-EXPORT int bl_writeToFile(char *fn)
+EXPORT int bl_writeToFile(WINFO* wp, char *fn)
 {	PASTE  pbuf;
 	char   fname[256];
 	int	  ret;
 	int   mode;
 
-	if (bl_cutOrCopy(CUT_USEPP,&pbuf)) {
+	if (bl_cutOrCopy(wp, CUT_USEPP,&pbuf)) {
 		if (fn != 0) {
 			ret = TRUE;
 			mode = F_NORMOPEN;
@@ -429,7 +422,7 @@ EXPORT int EdBlockCopyOrMove(WINFO* wp, BOOL move) {
 		if (move_nocolblk) {
 			caret_placeCursorInCurrentFile(wp, (long)(wp->caret.ln+dln),(long)(offs + delta));
 			bl_hideSelection(wp, 0);
-			EdSyncSelectionWithCaret(MARK_START);
+			EdSyncSelectionWithCaret(wp, MARK_START);
 			wp->blstart->m_column--;
 			bl_resetCurrentLine(wp);
 		}
@@ -502,20 +495,14 @@ static int bl_placeCursorOnBlockMark(WINFO* wp, MARK *mp) {
 /*---------------------------------*/
 /* EdBlockFindEnd() 				*/
 /*---------------------------------*/
-EXPORT void EdBlockFindEnd(void)
-{
-	WINFO* wp = ww_getCurrentEditorWindow();
-
+EXPORT void EdBlockFindEnd(WINFO* wp) {
 	if (wp) bl_placeCursorOnBlockMark(wp, wp->blend);
 }
 
 /*---------------------------------*/
 /* EdBlockFindStart()				*/
 /*---------------------------------*/
-EXPORT int EdBlockFindStart()
-{
-	WINFO* wp = ww_getCurrentEditorWindow();
-
+EXPORT int EdBlockFindStart(WINFO* wp) {
 	if (wp) return bl_placeCursorOnBlockMark(wp, wp->blstart);
 	return 0;
 }
@@ -525,18 +512,16 @@ EXPORT int EdBlockFindStart()
  * PKS Edit macro command to delete the current selection and
  * optionally save the text in the trashcan clipboard of PKS Edit
  *----------------------------*/
-EXPORT int EdBlockDelete(int bSaveOnClip) {
+EXPORT int EdBlockDelete(WINFO* wp, int bSaveOnClip) {
 	MARK		ms;
 	MARK		me;
-	WINFO*		wp;
 	int 		ret;
 	
-	wp = ww_getCurrentEditorWindow();
 	if (!ww_checkSelectionWithError(wp))
 		return 0;
 	ms = *wp->blstart;
 	me = *wp->blend;
-	EdBlockFindStart();
+	EdBlockFindStart(wp);
 	bl_hideSelection(wp, 0);
 	ret = bl_delete(wp, ms.m_linePointer, me.m_linePointer, ms.m_column, me.m_column, 1, bSaveOnClip);
 	render_repaintAllForFile(wp->fp);
@@ -696,7 +681,7 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 		if (flags & MARK_RECALCULATE) {
 			bSwap = 1;
 		} else if (!(flags & MARK_NO_HIDE)) {
-			bl_hideSelectionInCurrentWindow();
+			bl_hideSelectionInCurrentWindow(wp);
 		}
 	}
 
@@ -789,7 +774,7 @@ EXPORT int EdMouseMarkParts(int type)
 	if ((lp = ln_goto(fp,ln)) == 0)
 		return 0;
 
-	bl_hideSelectionInCurrentWindow();
+	bl_hideSelectionInCurrentWindow(wp);
 
 	o1 = 0;
 	o2 = 0;
@@ -822,11 +807,8 @@ EXPORT int EdMouseMarkParts(int type)
  * EdSyncSelectionWithCaret()
  * PKS Edit command to set the end of the current selection to the caret position.
  *---------------------------------*/
-EXPORT int EdSyncSelectionWithCaret(int flags)
+EXPORT int EdSyncSelectionWithCaret(WINFO* wp, int flags)
 {	
-	WINFO *		wp;
-
-	wp = ww_getCurrentEditorWindow();
 	// for now: always consider to swap the block marks, if the end mark is placed
 	// before the start mark. In fact we should introduce the concept of a selection head instead
 	// of swapping marks.
