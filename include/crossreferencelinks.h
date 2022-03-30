@@ -60,6 +60,10 @@ extern int xref_addSearchListEntry(char* pszBuf, char* fn, long line, char* rema
  */
 extern int xref_getSelectedIdentifier(WINFO* wp, char* pszText, size_t nMaxChars);
 
+extern int EdFindTagCursor(WINFO* wp);
+
+extern int EdFindFileCursor(WINFO* wp);
+
 /**
  * xref_findIdentifierCloseToCaret
  * Find an identifier close to the caret in the current editor window.
@@ -77,10 +81,6 @@ extern char* xref_findIdentifierCloseToCaret(WINFO* wp, CARET* pCaret, unsigned 
 #ifdef CODEANALYZER_H
 extern int xref_forAllTagsDo(WINFO* wp, int (*matchfunc)(const char* pszMatching), ANALYZER_CALLBACK cbAnalyzer);
 #endif
-
-extern int EdFindTagCursor(void);
-
-extern int EdFindFileCursor(void);
 
 extern int EdFindWordCursor(dir);
 

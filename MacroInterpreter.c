@@ -31,6 +31,12 @@
 #include "caretmovement.h"
 #include "arraylist.h"
 
+typedef struct tagDEBUG_CONFIGURATION {
+	BOOL dc_stepping;
+} DEBUG_CONFIGURATION;
+
+static DEBUG_CONFIGURATION _debugConfiguration;
+
  /*--------------------------------------------------------------------------
   * recorder_pushSequence()
   *
@@ -88,9 +94,14 @@ void interpreter_raiseError(const char* pFormat, ...) {
 		return;
 	}
 	sprintf(szMessage, "%s during execution of %s", szBuffer, _currentExecutionContext->ec_currentFunction);
-	debugger_open(_currentExecutionContext, szMessage);
-	//error_displayAlertDialog(szMessage);
-	longjmp(_currentJumpBuffer, 1);
+	DEBUG_ACTION action = debugger_open(_currentExecutionContext, szMessage);
+	if (action == DA_ABORT) {
+		longjmp(_currentJumpBuffer, 1);
+		// not reached
+	}
+	if (action == DA_STEP) {
+		_debugConfiguration.dc_stepping = TRUE;
+	}
 }
 
 static ARRAY_LIST* interpreter_extractArrayListFromBytecodes(COM_ARRAYLITERAL* pPointer) {
@@ -906,6 +917,10 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 			}
 			_progressCount = 0;
 		}
+		if (_debugConfiguration.dc_stepping) {
+			_debugConfiguration.dc_stepping = FALSE;
+			interpreter_raiseError("Breakpoint reached.");
+		}
 		switch (cp->typ) {
 		case C_GOTO: {
 			BRANCH_TYPE bt = ((COM_GOTO*)cp)->branchType;
@@ -1025,7 +1040,6 @@ end:
 	return (int)1;
 }
 
-
 /*---------------------------------*/
 /* macro_interpretByteCodes()      */
 /*---------------------------------*/
@@ -1054,9 +1068,9 @@ static int macro_interpretByteCodes(MACRO* mp) {
 }
 
 /*
- * Initialize a namespace.
+ * Initialize a namespace. If bSetJump == TRUE, prepare for exception handling.
  */
-int interpreter_initializeNamespace(MACRO* mpNamespace) {
+int interpreter_initializeNamespace(MACRO* mpNamespace, BOOL bSetJump) {
 	char szBuf[128];
 	EXECUTION_CONTEXT* pOld = _currentExecutionContext;
 	EXECUTION_CONTEXT ecNamespace;
@@ -1065,7 +1079,7 @@ int interpreter_initializeNamespace(MACRO* mpNamespace) {
 	ecNamespace.ec_currentFunction = szBuf;
 	_currentExecutionContext = &ecNamespace;
 	interpreter_allocateStack(_currentExecutionContext);
-	if (setjmp(_currentJumpBuffer)) {
+	if (bSetJump && setjmp(_currentJumpBuffer)) {
 		interpreter_deallocateStack(_currentExecutionContext);
 		_currentExecutionContext = 0;
 		return -1;
@@ -1128,7 +1142,7 @@ long long macro_executeMacroByIndex(int macroindex) {
 					return 0;
 				mpNamespace = macro_getNamespaceByIdx(mp->mc_namespaceIdx);
 				if (mpNamespace && !mpNamespace->mc_isInitialized) {
-					if (!interpreter_initializeNamespace(mpNamespace)) {
+					if (!interpreter_initializeNamespace(mpNamespace, FALSE)) {
 						return 0;
 					}
 				}

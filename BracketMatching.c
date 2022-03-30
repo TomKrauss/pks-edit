@@ -333,9 +333,8 @@ static void uc_waitForTimerElapsed(int ms) {
  * EdShowMatch()
  * show matching brackets
  */
-EXPORT int EdShowMatch(void)
-{	WINFO *wp = ww_getCurrentEditorWindow();
-	long 	 ln,col;
+EXPORT int EdShowMatch(WINFO* wp)
+{	long 	 ln,col;
 
 	if (!wp) return 0;
 	FTABLE* fp = wp->fp;
@@ -447,9 +446,8 @@ EXPORT int uc_shiftLinesByIndent(WINFO *wp, long ln, long nlines, int dir)
  * EdShiftBetweenBrackets()
  * shift the text between brackets
  */
-EXPORT int EdShiftBetweenBrackets(int dir)
+EXPORT int EdShiftBetweenBrackets(WINFO* wp, int dir)
 {	
-	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE* fp = wp->fp;
 	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
 	BRACKET_RULE* mp;
@@ -480,9 +478,8 @@ EXPORT int EdShiftBetweenBrackets(int dir)
  * EdLinesShift()
  * shift _multiplier lines
  */
-EXPORT int EdLinesShift(int dir)
-{	WINFO *wp = ww_getCurrentEditorWindow();
-
+EXPORT int EdLinesShift(WINFO* wp, int dir)
+{
 	if (!wp) {
 		return 0;
 	}

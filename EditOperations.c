@@ -394,8 +394,7 @@ static int edit_joinLines(WINFO* wp, CARET* pCaret) {
  * be sure that cursor is in
  * first line to join
  */
-int EdLinesJoin() {
-	WINFO* wp = ww_getCurrentEditorWindow();
+int EdLinesJoin(WINFO* wp) {
 	return edit_joinLines(wp, &wp -> caret);
 }
 

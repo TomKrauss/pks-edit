@@ -129,12 +129,12 @@ native int edit_insertLine(EDITOR editor);
 @Method(name="MarkLineOp", signature="ieMLN_")
 native int edit_performLineFlagOperation(EDITOR editor);
 /*
- * DESCRIPTION
+ * Opens a file selector to read a previously saved search list.
  */
 @Method(name="ReadSearchList", signature="ibFORM_s")
 native int EdSearchListRead();
 /*
- * DESCRIPTION
+ * Opens a file selector to read a compiler error output list.
  */
 @Method(name="ReadErrorList", signature="isbFORM_s")
 native int EdErrorListRead();
@@ -175,20 +175,24 @@ native int EdMacrosEdit();
 native string string_getVariableWithDefaults();
 
 /*
- * DESCRIPTION
+ * Opens a file selector to save the document settings to a file.
  */
-@Method(name="MergeDocMacrosWith", signature="ibFORM_s")
+@Method(name="SaveDocumentSettings", signature="ibFORM_s")
 native int doctypes_saveToFile();
+
 /*
- * DESCRIPTION
+ * Read or write the currently compiled macros to from an external format.
  */
-@Method(name="RwMacros", signature="iibFORM_s")
+@Method(name="MacrosReadWrite", signature="iibFORM_s")
 native int macro_readWriteWithFileSelection();
+
 /*
- * DESCRIPTION
+ * Read a "tag file" created with ctags containing cross references, that can be navigated
+ * then in PKS-Edit.
  */
 @Method(name="ReadTagfile", signature="ibFORM_s")
 native int EdTagfileRead();
+
 /*
  * Opens the setup dialog allowing to change the PKS-Edit configuration.
  */
@@ -278,165 +282,173 @@ native int EdCursorDown(EDITOR editor);
 @Method(name="Delete", signature="iWeMOT_")
 native int EdCharDelete(EDITOR editor);
 /*
- * DESCRIPTION
+ * Internal PKS-Edit method to switch the function keyboard to display the function key settings for
+ * the current keyboard modifier state.
  */
 @Method(name="SwitchFkeys", signature="i")
 native int fkey_keyModifierStateChanged();
 /*
- * DESCRIPTION
+ * Open the code completion suggestion window.
  */
 @Method(name="CodeCompleteSuggest", signature="ibFORM_i")
 native int codecomplete_showSuggestionWindow();
 /*
- * DESCRIPTION
+ * Execute/play a macro given its internal index.
  */
 @Method(name="PlayMacro", signature="ieMAC_")
 native int macro_executeMacroByIndex();
 /*
- * DESCRIPTION
+ * Start the macro recorder.
  */
 @Method(name="RecordMacro", signature="i")
 native int EdMacroRecord();
 /*
- * DESCRIPTION
+ * Open the search in files dialog to search / replace search patterns recursively
+ * in directories in multiple files.
  */
 @Method(name="FindInFileList", signature="ibFORM_ssibRE_")
 native int EdFindInFileList();
 /*
- * DESCRIPTION
+ * Open the search dialog.
  */
 @Method(name="Find", signature="ibFORM_seDIR_eRNG_bRE_")
 native int EdFind();
 /*
- * DESCRIPTION
+ * Open the replace dialog.
  */
 @Method(name="Replace", signature="ibFORM_sseREP_eRNG_bRE_")
 native int EdReplace();
 /*
- * DESCRIPTION
+ * Repeat the last search in the given direction.
  */
 @Method(name="FindAgain", signature="ieDIR_")
-native int EdFindAgain();
+native int EdFindAgain(EDITOR editor);
 /*
- * DESCRIPTION
+ * Rpeat the last replacement in the given editor.
  */
-@Method(name="ReplaceAgain", signature="i")
-native int EdReplaceAgain();
+@Method(name="ReplaceAgain")
+native int EdReplaceAgain(EDITOR editor);
 /*
- * DESCRIPTION
+ * Open a dialog allowing to select a special (control) character
+ * to insert into the text.
  */
 @Method(name="InsertControl", signature="ibFORM_i")
 native int EdCharControlInsert();
 /*
- * DESCRIPTION
+ * Goto the next position from the remembered position stack.
  */
 @Method(name="GotoLastpos", signature="ieMTE_")
 native int fm_gotoNextPosition();
 /*
- * DESCRIPTION
+ * Open the goto line dialog box.
  */
 @Method(name="GotoLine", signature="ibFORM_i")
 native int EdGotoLine();
 /*
- * DESCRIPTION
+ * Open a dialog box to set a mark to goto.
  */
 @Method(name="SetMark", signature="ibFORM_i")
 native int EdMarkSet();
 /*
- * DESCRIPTION
+ * Open a dialog box to goto a mark previously set.
  */
 @Method(name="GotoMark", signature="ibFORM_i")
 native int EdMarkGoto();
 /*
- * DESCRIPTION
+ * Open the context menu.
  */
 @Method(name="OpenContextMenu", signature="ii")
 native int menu_openContextMenu();
 /*
- * DESCRIPTION
+ * Join the line with the caret with the next line in the given editor.
  */
 @Method(name="JoinLines", signature="i")
-native int EdLinesJoin();
+native int EdLinesJoin(EDITOR editor);
 /*
- * DESCRIPTION
+ * Open a file selector to edit a file.
  */
 @Method(name="EditFile", signature="ibOPEN_bFORM_s")
 native int EdEditFile();
 /*
- * DESCRIPTION
+ * Open the PKS-Edit configuration dialog.
  */
 @Method(name="SetOptions", signature="ibFORM_eO_")
 native int EdOptionSet();
 /*
- * DESCRIPTION
+ * Open the Printer dialog to print the current edited text..
  */
 @Method(name="Print", signature="iePRT_s")
 native int EdPrint();
 /*
- * DESCRIPTION
+ * Exit PKS-Edit and pass an exit code to the operating system saving all changed editors before.
  */
 @Method(name="ExitEdit", signature="ii")
 native int EdExitAndSave();
 /*
- * DESCRIPTION
+ * Exit PKS-Edit and pass an exit code to the operating system.
  */
 @Method(name="QuitEdit", signature="ii")
-native int EdExit();
+native int EdExit(int exitCode);
 /*
- * DESCRIPTION
+ * Close all editors.
  */
-@Method(name="CloseAllWindows", signature="ii")
+@Method(name="CloseAllWindows")
 native int EdCloseAll();
 /*
- * DESCRIPTION
+ * Save a file with the given options.
  */
 @Method(name="SaveFile", signature="ibSAV_bFORM_s")
 native int EdSaveFile();
 /*
- * DESCRIPTION
+ * Select a window with a given ID - in PKSMacroC macros you would
+ * probably use EditorSetCurrent instead.
  */
 @Method(name="SelectWindow", signature="ii")
-native int long();
+native int ft_selectWindowWithId();
 /*
- * DESCRIPTION
+ * Open a dialog to execute a system command.
  */
-@Method(name="ExecuteCommand", signature="ibFORM_ssseEX_")
+@Method(name="ExecuteCommandDialog", signature="ibFORM_ssseEX_")
 native int EdCommandExecute();
 /*
- * DESCRIPTION
+ * Execute the specified command explicitly.
  */
-@Method(name="Exec", signature="ibFORM_ssseEX_")
-native int EdExecute();
+@Method(name="ExecuteCommand", signature="ieEX_sss")
+native int EdExecute(int flags, string cmdline, string directory, string errfile);
 /*
- * DESCRIPTION
+ * Shift the lines between the current brackets in the passed editor in the given direction.
  */
-@Method(name="ShiftBetweenBrackets", signature="iei")
-native int EdShiftBetweenBrackets();
+@Method(name="ShiftBetweenBrackets", signature="iWeDIR_")
+native int EdShiftBetweenBrackets(EDITOR editor);
 /*
- * DESCRIPTION
+ * Open a dialog to "sort" the current document.
  */
 @Method(name="Sort", signature="ibFORM_ssseRNG_eSO_")
 native int EdSort();
 /*
- * DESCRIPTION
+ * Shift the currently selected lines or the current line (when no selection)
+ * in the given EDITOR in the given direction.
  */
-@Method(name="ShiftLines", signature="ii")
-native int EdLinesShift();
+@Method(name="ShiftLines", signature="iWeDIR_")
+native int EdLinesShift(EDITOR editor);
 /*
- * DESCRIPTION
+ * Shows the info dialog showing all files and their edit start.
  */
-@Method(name="ShowInfo", signature="i")
+@Method(name="ShowInfo")
 native int EdInfoFiles();
+
 /*
- * DESCRIPTION
+ * Check the current brackets at the current caret position in the given editor.
  */
-@Method(name="CheckBrackets", signature="i")
-native int EdShowMatch();
+@Method(name="CheckBrackets")
+native int EdShowMatch(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Convert the casing of the selected characters in the passed editor.
  */
-@Method(name="UpToLow", signature="i")
-native int edit_convertCharacterCase();
+@Method(name="UpToLow", signature="iWeCC_")
+native int edit_convertCharacterCase(EDITOR editor);
+
 /*
  * DESCRIPTION
  */
@@ -466,37 +478,39 @@ native int EdOptionToggle();
  * DESCRIPTION
  */
 @Method(name="FindTag", signature="iibFORM_s")
-native int EdFindTag();
+native int EdFindTag(EDITOR editor);
 /*
- * DESCRIPTION
+ * Find a file (navigate a hyperlink) for the file name under the caret (e.g. navigate
+ * to an include file in a C-source code for the given editor.
  */
-@Method(name="CursorFindFile", signature="i")
-native int EdFindFileCursor();
+@Method(name="CursorFindFile")
+native int EdFindFileCursor(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Find the cross reference under the caret in the specified editor.
  */
-@Method(name="FindError", signature="ieLIST_")
-native int xref_navigateSearchErrorList();
+@Method(name="CursorFindTag")
+native int EdFindTagCursor(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Find the word under the caret in the given editor and specified direction.
  */
-@Method(name="CursorFindTag", signature="i")
-native int EdFindTagCursor();
+@Method(name="CursorFindWord", signature="iWeDIR_")
+native int EdFindWordCursor(EDITOR editor);
+
 /*
- * DESCRIPTION
+ * Manage the PKS-Edit main frame layout and hide / show additional areas.
  */
-@Method(name="CursorFindWord", signature="ieDIR_")
-native int EdFindWordCursor();
-/*
- * DESCRIPTION
- */
-@Method(name="ManageDocks", signature="ii")
+@Method(name="ManageDocks", signature="ieMD_")
 native int mainframe_manageDocks();
+
 /*
- * DESCRIPTION
+ * Navigate along the current search result list (or error list) in the specified direction or to
+ * the specified position in the error list.
  */
-@Method(name="FindErrorMouseClick", signature="ii")
+@Method(name="NextResultOrError", signature="ieLIST_")
 native int xref_navigateSearchErrorList();
+
 /*
  * Shift a range of text in the given direction.
  */

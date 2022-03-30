@@ -329,12 +329,11 @@ static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, in
 /*--------------------------------------------------------------------------
  * find_expressionInCurrentFile()
  */
-int find_expressionInCurrentFile(int dir, RE_PATTERN *pPattern,int options) {
+int find_expressionInCurrentFile(WINFO* wp, int dir, RE_PATTERN *pPattern,int options) {
 	long ln,col;
 	int ret = 0;
 	int wrap = options & RE_WRAPSCAN;
 	int wrapped = 0;
-	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE *fp;
 	static RE_MATCH match;
 	static WINFO* lastWP;
@@ -423,15 +422,17 @@ int find_startIncrementalSearch() {
 /*--------------------------------------------------------------------------
  * find_expressionAgainInCurrentFile()
  */
-int find_expressionAgainInCurrentFile(dir) {
+int find_expressionAgainInCurrentFile(WINFO* wp, int dir) {
 	RE_PATTERN* pPattern;
 
 	pPattern = _lastSearchPattern.compiledExpression ? &_lastSearchPattern : regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
-	return pPattern && find_expressionInCurrentFile(dir,pPattern, _currentSearchAndReplaceParams.options);
+	return pPattern && find_expressionInCurrentFile(wp, dir,pPattern, _currentSearchAndReplaceParams.options);
 }
 
 /*--------------------------------------------------------------------------
  * ft_countlinesStartingFromDirection()
+ * Count all lines marked with the LNMARKED_FOR_COUNTING flag and reset the flag
+ * on the corresponding lines as a side effect.
  */
 long ft_countlinesStartingFromDirection(FTABLE* fp, long start, int dir) {	
 	register long nl = 0;
@@ -440,15 +441,15 @@ long ft_countlinesStartingFromDirection(FTABLE* fp, long start, int dir) {
 	lp = ln_goto(fp,start);
 	if (dir > 0) {
 		while (lp->next) {
-			if (lp->lflg & LNMODIFIED) {
-				nl++, lp->lflg &= ~LNMODIFIED;
+			if (lp->lflg & LN_MARKED_FOR_COUNTING) {
+				nl++, lp->lflg &= ~LN_MARKED_FOR_COUNTING;
 			}
 			lp = lp->next;
 		}
 	} else {
 		while (lp) {
-			if (lp->lflg & LNMODIFIED) {
-				nl++, lp->lflg &= ~LNMODIFIED;
+			if (lp->lflg & LN_MARKED_FOR_COUNTING) {
+				nl++, lp->lflg &= ~LN_MARKED_FOR_COUNTING;
 			}
 			lp = lp->prev;
 		}
@@ -562,8 +563,10 @@ static LINE *edit_expandTabsInLineWithSpaces(WINFO *wp, LINE *lp,long *nt)
 	size = ft_expandTabsWithSpaces(wp, _linebuf, LINEBUFSIZE, lp->lbuf, lp->len, &t);
 	if (t) {
 		*nt += t;
-		if ((lp = ln_modify(wp->fp,lp,lp->len,size)) == 0L)
+		if ((lp = ln_modify(wp->fp, lp, lp->len, size)) == 0L) {
 			return 0;
+		}
+		lp->lflg |= LN_MARKED_FOR_COUNTING;
 		memmove(lp->lbuf,_linebuf,size);
 	}
 	return lp;
@@ -593,6 +596,7 @@ static LINE *edit_compactLineSpacingWithTabs(WINFO *wp, LINE *lp,long *nt)
 		if ((lp = ln_modify(wp->fp, lp, lp->len, nSize)) == 0L) {
 			return 0;
 		}
+		lp->lflg |= LN_MARKED_FOR_COUNTING;
 		memcpy(lp->lbuf, _linebuf, nSize);
 		render_repaintLine(wp->fp, lp);
 	}
@@ -702,7 +706,6 @@ static void strxcpy(char *d, char *s, int newlen)
 REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, const char* pszReplaceWith, int nOptions, int scope, REPLACE_TEXT_ACTION action) {
 	long 	ln, col, startln, lastfln;
 	long    nReplacements = 0L;
-	long    nLinesChanged = 0;
 	unsigned char 	*q;
 	LINE *lp;
 	FTABLE *fp;
@@ -710,7 +713,6 @@ REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, co
 	MARK*		pNewMarkEnd;
 	MARK *		pMarkEnd;
 	LINE		*oldxpnd = 0;
-	LINE* lastChangedLp = 0;
 	long newlen;
 	int maxlen,delta;
 	RE_MATCH	match;
@@ -872,11 +874,8 @@ success:	olen = (int)(match.loc2 - match.loc1);
 		delta = (int)newlen;
 	advance1:
 		nReplacements++;
-		if (lp != lastChangedLp) {
-			nLinesChanged++;
-			lastChangedLp = lp;
-		}
 		ln_markModified(lp);
+		lp->lflg |= LN_MARKED_FOR_COUNTING;
 		if (scope == RNG_ONCE)
 			break;
 
@@ -917,7 +916,8 @@ endrep:
 				}
 			}
 		}
-		ln = nLinesChanged;
+		/* ft_countlinesStartingFromDirection -> clear change line flags */
+		ln = ft_countlinesStartingFromDirection(fp, startln, 1);
 		if (action != REP_REPLACE) {
 			error_showMessageInStatusbar(IDS_MSGNFOUND, pszSearchPattern, ln, nReplacements);
 		} else {

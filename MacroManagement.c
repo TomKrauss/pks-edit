@@ -53,7 +53,7 @@ extern void st_switchtomenumode(BOOL bMenuMode);
 /*
  * Initialize a namespace.
  */
-extern int interpreter_initializeNamespace(MACRO* mpNamespace);
+extern int interpreter_initializeNamespace(MACRO* mpNamespace, BOOL bSetJmp);
 
 static ARRAY_LIST*		_macroTable;
 static ARRAY_LIST*		_namespaces;
@@ -379,7 +379,7 @@ int macro_readCompiledMacroFile(char *fn) {
 		rsc_close(rp);
 		MACRO* mpNamespace = macro_getNamespaceByIdx(0);
 		if (mpNamespace && !mpNamespace->mc_isInitialized) {
-			if (!interpreter_initializeNamespace(mpNamespace)) {
+			if (!interpreter_initializeNamespace(mpNamespace, TRUE)) {
 				return 0;
 			}
 		}

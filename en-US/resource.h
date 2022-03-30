@@ -5,6 +5,7 @@
 #define IDS_DELUNTILC                   0
 #define IDS_MARKGOTO                    1
 #define IDS_MARKSET                     2
+#define IDD_STEP                        3
 #define IDS_MACROESCAPE                 3
 #define IDBUT3                          3
 #define IDS_GETBLOCK                    4
@@ -205,9 +206,9 @@
 #define IDS_COMMAND252                  2300
 #define IDS_COMMAND253                  2301
 #define IDS_COMMAND254                  2302
+#define IDS_ERROR_MESSAGE               3000
 #define ID_FILE_HISTORY                 40008
 #define IDC_STATIC                      -1
-#define IDS_ERROR_MESSAGE               3000
 
 // Next default values for new objects
 // 

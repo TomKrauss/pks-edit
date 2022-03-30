@@ -32,6 +32,7 @@
 #include "hashmap.h"
 #include "dial2.h"
 #include "grammar.h"
+#include "winfo.h"
 #include "findandreplace.h"
 #include "linkedlist.h"
 #include "stringutil.h"
@@ -713,13 +714,12 @@ static int xref_navigateToHyperlink(char* urlSpec, char* pTag) {
  * are navigated right away. Otherwise a picker for the matches is 
  * always presented to the user.
  *---------------------------------*/
-static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bForceDialog) {
+static int xref_navigateCrossReferenceForceDialog(WINFO* wp, char *s, BOOL bForceDialog) {
 	TAG_REFERENCE * tp;
 	char     	buffer[256];
 	int			ret = 0;
 	TAGSOURCE* ttl;
 	FTABLE* fp;
-	WINFO* wp = ww_getCurrentEditorWindow();
 
 	if (!s || wp == NULL)
 		return 0;
@@ -746,7 +746,7 @@ static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bForceDialog) {
 				if (tp->searchCommand && ft_getCurrentDocument()) {
 					RE_PATTERN* pPattern;
 					if (pPattern = find_regexCompile(buffer, tp->searchCommand, (int)RE_DOREX)) {
-						find_expressionInCurrentFile(1, pPattern, RE_WRAPSCAN);
+						find_expressionInCurrentFile(wp, 1, pPattern, RE_WRAPSCAN);
 					}
 				}
 				ret = 1;
@@ -772,7 +772,7 @@ static int xref_navigateCrossReferenceForceDialog(char *s, BOOL bForceDialog) {
  * selection of multiple matches yet.
  *---------------------------------*/
 int xref_navigateCrossReference(char* s) {
-	return xref_navigateCrossReferenceForceDialog(s, TRUE);
+	return xref_navigateCrossReferenceForceDialog(ww_getCurrentEditorWindow(), s, TRUE);
 }
 
 /*
@@ -792,10 +792,10 @@ int xref_getSelectedIdentifier(WINFO* wp, char* pszText, size_t nMaxChars) {
 /*--------------------------------------------------------------------------
  * EdFindTag()
  */
-int EdFindTag() {
+int EdFindTag(WINFO* wp) {
 	char selected[80];
-	xref_getSelectedIdentifier(ww_getCurrentEditorWindow(), selected, sizeof selected);
-	return xref_navigateCrossReferenceForceDialog(selected, TRUE);
+	xref_getSelectedIdentifier(wp, selected, sizeof selected);
+	return xref_navigateCrossReferenceForceDialog(wp, selected, TRUE);
 }
 
 /*
@@ -1108,13 +1108,12 @@ static int xref_shellExecute(char* pszCommand) {
 /*--------------------------------*/
 /* EdFindFileCursor() */
 /*---------------------------------*/
-int EdFindFileCursor(void)
+int EdFindFileCursor(WINFO* wp)
 {	char	*found;
 	char	fselpath[128];
 	char	currentFilePath[512];
 	char	filename[128];
 	NAVIGATION_INFO_PARSE_RESULT result;
-	WINFO* wp = ww_getCurrentEditorWindow();
 	extern char *file_searchFileInPath();
 
 	if (wp == NULL) {
@@ -1208,23 +1207,23 @@ int EdFindOnInternet() {
 /*---------------------------------*/
 /* EdFindTagCursor()			*/
 /*---------------------------------*/
-int EdFindTagCursor(void)
+int EdFindTagCursor(WINFO* wp)
 {
-	if (EdFindFileCursor()) {
+	if (EdFindFileCursor(wp)) {
 		return 1;
 	}
-	return xref_navigateCrossReferenceForceDialog(xref_saveCrossReferenceWord(_linebuf, &_linebuf[LINEBUFSIZE]), FALSE);
+	return xref_navigateCrossReferenceForceDialog(wp, xref_saveCrossReferenceWord(_linebuf, &_linebuf[LINEBUFSIZE]), FALSE);
 }
 
 /*---------------------------------*/
 /* EdFindWordCursor() 			*/
 /*---------------------------------*/
-int EdFindWordCursor(dir)
+int EdFindWordCursor(WINFO* wp, int dir)
 {	char buf[256];
 
-	xref_getSelectedIdentifier(ww_getCurrentEditorWindow(), buf, sizeof buf);
+	xref_getSelectedIdentifier(wp, buf, sizeof buf);
 	RE_PATTERN *pPattern = regex_compileWithDefault(buf);
-	return pPattern && find_expressionInCurrentFile(dir, pPattern, _currentSearchAndReplaceParams.options);
+	return pPattern && find_expressionInCurrentFile(wp, dir, pPattern, _currentSearchAndReplaceParams.options);
 }
 
 /*---------------------------------*/

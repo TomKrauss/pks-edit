@@ -56,7 +56,7 @@ static void exec_error(char *cmd, int errcode)
  *   EX_RDOUT     : write the marked block to an output file before execution
  * 
  */
-int EdExecute(long flags, long unused, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
+int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 	int				show;
 	char			szTemp[256];
 	char			outfile[256];

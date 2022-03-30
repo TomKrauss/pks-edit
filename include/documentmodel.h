@@ -789,6 +789,7 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 #define LN_COMPARE_MODIFIED 0x100	// during compare with another file this line was considered to be modified.
 #define LN_COMPARE_ADDED	0x200	// during compare with another file this line was considered to be added.
 #define LN_COMPARE_DELETED	0x400	// during compare with another file this line was considered to be deleted.
+#define LN_MARKED_FOR_COUNTING 0x800	// lines were marked for being counted using the ft_countlinesStartingFromDirection function.
 #define	LN_COMPARE_DIFFERENT	(LN_COMPARE_MODIFIED|LN_COMPARE_ADDED|LN_COMPARE_DELETED) 		
 									// this line was either found modified, added or deleted during a compare files
 

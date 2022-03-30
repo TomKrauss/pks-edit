@@ -49,6 +49,7 @@
 #include "comparefiles.h"
 #include "linkedlist.h"
 #include "editoperations.h"
+#include "mainframe.h"
 
 /*
  * Answer TRUE if a replacement had been performed before.
@@ -57,10 +58,9 @@ extern BOOL find_replacementHadBeenPerformed();
 
 extern int 		align_text(char *pszSearch, int scope, char filler, int flags);
 extern int 		dlg_getListboxText(HWND hwnd, int id, void *szBuff);
-extern int 		EdExecute(long flags, long unused, 
-					LPSTR cmdline, LPSTR newdir, LPSTR errfile);
+extern int 		EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
-extern long long	EdCharInsert(int c);
+extern long long EdCharInsert(WINFO* wp, int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		compiler_compileCurrentDocument(void);
 extern int		doctypes_addDocumentTypesToListView(HWND hwnd, const void* pSelected);
@@ -652,6 +652,9 @@ void dlg_drawFileInfo(HDC hdc, RECT *rcp, HWND hwnd, int nItem, BOOL bSelected) 
 	}
 	GetWindowText(hwnd, szBuf, sizeof szBuf);
 	HICON hIcon = (HICON)SendMessage(hwnd, WM_GETICON, 0, 0L);
+	if (hIcon == NULL) {
+		hIcon = mainframe_getDefaultEditorIcon();
+	}
 	cust_drawListBoxRowWithIcon(hdc, rcp, hIcon, szBuf);
 }
 
@@ -1417,7 +1420,8 @@ int EdFind(void)
 	if (_dir == -1) {
 		_dir = 0;
 	}
-	bl_getSelectedText(ww_getCurrentEditorWindow(), _currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
+	WINFO* wp = ww_getCurrentEditorWindow();
+	bl_getSelectedText(wp, _currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
 	if (!win_callDialog(DLGFIND, &_fp, _d, _tt)) {
 		return 0;
 	}
@@ -1426,7 +1430,7 @@ int EdFind(void)
 	if (_dir == 0)
 		_dir = -1;
 
-	return find_expressionAgainInCurrentFile(_dir);
+	return find_expressionAgainInCurrentFile(wp, _dir);
 }
 
 /*
@@ -1501,8 +1505,7 @@ int EdFindInFileList(void)
 /*--------------------------------------------------------------------------
  * EdReplaceAgain()
  */
-int EdReplaceAgain(void) {
-	WINFO* wp = ww_getCurrentEditorWindow();
+int EdReplaceAgain(WINFO* wp) {
 
 	if (wp && find_replacementHadBeenPerformed())
 		return edit_replaceText(wp, _currentSearchAndReplaceParams.searchPattern, 
@@ -1514,13 +1517,13 @@ int EdReplaceAgain(void) {
 /*--------------------------------------------------------------------------
  * EdFindAgain()
  */
-int EdFindAgain(int dir)
+int EdFindAgain(WINFO *wp, int dir)
 {	
 	if (!_currentSearchAndReplaceParams.searchPattern[0]) {
 		error_showErrorById(IDS_MSGNOSEARCHSTRING);
 		return 0;
 	}
-	return find_expressionAgainInCurrentFile((dir) ? (_dir = dir) : _dir);
+	return find_expressionAgainInCurrentFile(wp, (dir) ? (_dir = dir) : _dir);
 }
 
 /*--------------------------------------------------------------------------
@@ -1559,7 +1562,7 @@ long long EdCharControlInsert(void)
    if (!win_callDialog(DLGCONTROLINS,&_p,_d, NULL)) {
 		return 0;
 	}
-	return EdCharInsert(0x100|(int)(unsigned char)c);
+	return EdCharInsert(ww_getCurrentEditorWindow(), 0x100|(int)(unsigned char)c);
 }
 
 /*--------------------------------------------------------------------------
@@ -1652,7 +1655,7 @@ int EdCommandExecute(void)
 	}
 
 	return EdExecute((long)(opt | (EX_RDNONE<<redir)), 
-		(long)0, cmd, dir, errlist);
+		cmd, dir, errlist);
 }
 
 /*--------------------------------------------------------------------------

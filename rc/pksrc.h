@@ -4,7 +4,9 @@
 //
 #define ID_COMPARE_BACKUP               3
 #define IDD_APP_ICON                    3
+#define IDD_STEP                        3
 #define IDD_ALL_OCCURRENCES             4
+#define IDD_CONTINUE                    4
 #define IDS_STRING15                    15
 #define IDS_NO_TEMPLATES_DEFINED        15
 #define IDD_RO6                         80
@@ -71,8 +73,8 @@
 #define IDS_COMMAND252                  2300
 #define IDS_COMMAND253                  2301
 #define IDS_COMMAND254                  2302
-#define IDC_STATIC                      -1
 #define IDS_ERROR_MESSAGE               3000
+#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 

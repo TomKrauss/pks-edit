@@ -46,9 +46,9 @@ extern HWND mainframe_open(HMENU hDefaultMenu);
 extern HWND mainframe_addWindow(OPEN_HINT* pHint, const char* pszChildWindowClass, const char* pszTitle, LPVOID lParam);
 
 /*
- * Checks, whether there is an active PKS edit window already somewhere on the screen (maybe other process).
+ * Returns a default icon to display for editors not having an own icon defined by the Windows file type.
  */
-extern BOOL mainframe_findExistingWindow();
+extern HICON mainframe_getDefaultEditorIcon();
 
 /*
  * Process the main messages in the mainframe window (in particular keyboard messages etc...).

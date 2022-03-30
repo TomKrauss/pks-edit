@@ -564,7 +564,8 @@ extern int memory_indexOf(PKS_VALUE vArray, PKS_VALUE vOther);
 /*
  * Open the debug window.
  */
-extern void debugger_open(EXECUTION_CONTEXT* pContext, char* pszError);
+typedef enum { DA_STEP, DA_ABORT, DA_CONTINUE } DEBUG_ACTION;
+extern DEBUG_ACTION debugger_open(EXECUTION_CONTEXT* pContext, char* pszError);
 
 /*
  * Returns the index for a given types property name or -1, if that cannot be determined.

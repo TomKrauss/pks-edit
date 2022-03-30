@@ -196,7 +196,7 @@ static INT_PTR debugger_dialogProcedure(HWND hwnd, UINT message, WPARAM wParam, 
 				debugger_fillCodeDisplay(GetDlgItem(hwnd, IDC_CODE), _selectedContext);
 			}
 		}
-		if (idCtrl == IDCANCEL || idCtrl == IDOK) {
+		if (idCtrl == IDCANCEL || idCtrl == IDOK || idCtrl == IDD_CONTINUE || idCtrl == IDD_STEP) {
 			EndDialog(hwnd, idCtrl);
 			return TRUE;
 		}
@@ -211,8 +211,13 @@ static INT_PTR debugger_dialogProcedure(HWND hwnd, UINT message, WPARAM wParam, 
 	return dlg_standardDialogProcedure(hwnd, message, wParam, lParam);
 }
 
-void debugger_open(EXECUTION_CONTEXT* pContext, char* pszError) {
+DEBUG_ACTION debugger_open(EXECUTION_CONTEXT* pContext, char* pszError) {
 	_stackTopContext = pContext;
 	_debugErrorMessage = pszError;
-	DoDialog(DLG_DEBUG, debugger_dialogProcedure, 0, 0);
+	int nRet = DoDialog(DLG_DEBUG, debugger_dialogProcedure, 0, 0);
+	switch (nRet) {
+	case IDD_STEP: return DA_STEP;
+	case IDD_CONTINUE: return DA_CONTINUE;
+	}
+	return DA_ABORT;
 }

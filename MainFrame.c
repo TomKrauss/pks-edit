@@ -128,7 +128,7 @@ static const char* szDragProxyClass = "PKSDragProxyControl";
 static TAB_CONTROL* currentDropTarget;
 static DOCKING_SLOT* dockingSlots;
 static HWND  hwndFrameWindow;
-static HICON defaultIcon;
+HICON defaultEditorIcon;
 static MACROREF* _executeKeyBinding;
 static BOOL _fullscreenMode;
 static char* szDefaultSlotName = DOCK_NAME_DEFAULT;
@@ -742,6 +742,16 @@ static void tabcontrol_measureTabStrip(HWND hwnd, TAB_CONTROL* pControl) {
 }
 
 /*
+ * Returns a default icon to display for editors not having an own icon defined by the Windows file type. 
+ */
+HICON mainframe_getDefaultEditorIcon() {
+	if (defaultEditorIcon == NULL) {
+		defaultEditorIcon = LoadIcon(hInst, "EDIT");
+	}
+	return defaultEditorIcon;
+}
+
+/*
  * Paint one tab of the tabstrip of our tab control displaying the edit tabs. 
  */
 static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL bRollover, int x, int y, int height, int xMax) {
@@ -781,10 +791,7 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	int yIcon = (height - nIconSize) / 2;
 	HICON hIcon = pPage->tp_hwnd ? (HICON)SendMessage(pPage->tp_hwnd, WM_GETICON, 0, 0L) : (HICON)NULL;
 	if (!hIcon) {
-		if (defaultIcon == NULL) {
-			defaultIcon = LoadIcon(hInst, "EDIT");
-		}
-		hIcon = defaultIcon;
+		hIcon = mainframe_getDefaultEditorIcon();
 	}
 	DrawIconEx(hdc, rect.left + nMargin, yIcon, hIcon, nIconSize, nIconSize, 0, NULL, DI_NORMAL);
 	rect.left += 2 * nMargin + nIconSize;

@@ -40,15 +40,17 @@ extern void find_setCurrentSearchExpression(const char* pExpression);
  */
 extern int find_initializeReplaceByExpression(unsigned const char* replaceByExpression);
 
+#ifdef _WINFO_H
 /*--------------------------------------------------------------------------
  * find_expressionInCurrentFile()
  */
-extern int find_expressionInCurrentFile(int dir, RE_PATTERN* pPattern, int options);
+extern int find_expressionInCurrentFile(WINFO* wp, int dir, RE_PATTERN* pPattern, int options);
 
 /*--------------------------------------------------------------------------
  * find_expressionAgainInCurrentFile()
  */
-extern int find_expressionAgainInCurrentFile(dir);
+extern int find_expressionAgainInCurrentFile(WINFO* wp, int dir);
+#endif
 
 /*
  * Find a string incremental with given options either forward or backward depending on nDirection.
