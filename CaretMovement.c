@@ -1106,11 +1106,9 @@ EXPORT int caret_moveToCurrentMousePosition(WINFO *wp, long bAsk)
 /*--------------------------------------------------------------------------
  * caret_positionCloseToMouseWithConfirmation()
  */
-EXPORT int caret_positionCloseToMouseWithConfirmation(long bAsk)
+EXPORT int caret_positionCloseToMouseWithConfirmation(WINFO* wp, long bAsk)
 {	
-	WINFO *	wp;
-
-	if ((wp = ww_getCurrentEditorWindow()) == 0) {
+	if (wp == 0) {
 		return 0;
 	}
 
@@ -1121,26 +1119,24 @@ EXPORT int caret_positionCloseToMouseWithConfirmation(long bAsk)
 /*--------------------------------------------------------------------------
  * EdMousePositionUngrabbed()
  */
-int EdMousePositionUngrabbed(long bGrab) {
-	return caret_positionCloseToMouseWithConfirmation(1);
+int EdMousePositionUngrabbed(WINFO* wp, long bGrab) {
+	return caret_positionCloseToMouseWithConfirmation(wp, 1);
 }
 
 /*------------------------------------------------------------
  * EdMouseMoveText()
  * Synonym for mouse position.
  */
-EXPORT int EdMouseMoveText(int move) {
-	return EdMousePositionUngrabbed(TRUE);
+EXPORT int EdMouseMoveText(WINFO* wp, int move) {
+	return EdMousePositionUngrabbed(wp, TRUE);
 }
 
 /*--------------------------------------------------------------------------
- * EdBlockXtndMode()
+ * EdSetExtendSelectionMode()
  */
-int EdBlockXtndMode(long bOn)
+int EdSetExtendSelectionMode(WINFO* wp, long bOn)
 {
-	WINFO *	wp;
-
-	if ((wp = ww_getCurrentEditorWindow()) == 0) {
+	if (wp == 0) {
 		return 0;
 	}
 

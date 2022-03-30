@@ -450,32 +450,34 @@ native int EdShowMatch(EDITOR editor);
 native int edit_convertCharacterCase(EDITOR editor);
 
 /*
- * DESCRIPTION
+ * Evaluate the currently selected text (interpret it as e.g. PKSMacroC commands to execute).
+ * Will try to interpret the evaluation based on the underlying grammar of the document edited.
  */
 @Method(name="EvaluateSelection", signature="i")
-native int evaluator_evaluateCurrentSelection();
+native int evaluator_evaluateCurrentSelection(EDITOR editor);
 /*
- * DESCRIPTION
+ * Open the dialog
  */
-@Method(name="SetDispMode", signature="ibFORM_siiiieSHOW_")
+@Method(name="SetEditorSettings", signature="ibFORM_siiiieSHOW_")
 native int dlg_configureEditorModes();
 /*
- * DESCRIPTION
+ * Go to fullscreen mode or back to normal mode.
  */
 @Method(name="ToggleFullScreen", signature="i")
 native int mainframe_toggleFullScreen();
 /*
- * DESCRIPTION
+ * Use the word under the caret in the passed editor and perform
+ * a lookup using the currently configured search engine.
  */
-@Method(name="FindOnInternet", signature="ibFORM_siii")
-native int EdFindOnInternet();
+@Method(name="FindOnInternet", signature="iWbFORM_siii")
+native int EdFindOnInternet(EDITOR editor);
 /*
- * DESCRIPTION
+ * Toggle the specified option.
  */
 @Method(name="ToggleTextMode", signature="ieWM_")
 native int EdOptionToggle();
 /*
- * DESCRIPTION
+ * Find a cross reference from the word under the caret in the specified editor.
  */
 @Method(name="FindTag", signature="iibFORM_s")
 native int EdFindTag(EDITOR editor);
@@ -522,20 +524,20 @@ native int EdRangeShift();
 @Method(name="Undo", signature="i")
 native int EdUndo(EDITOR editor);
 /*
- * DESCRIPTION
+ * Start a file comparison.
  */
 @Method(name="CompareWindows", signature="ieDIR_")
 native int EdFilesCompare();
 /*
- * DESCRIPTION
+ * Scroll the screen in the passed editor.
  */
-@Method(name="ScrollScreen", signature="ieMOT_")
-native int EdScrollScreen();
+@Method(name="ScrollScreen", signature="iWeMOT_")
+native int EdScrollScreen(EDITOR editor);
 /*
- * DESCRIPTION
+ * Scroll the screen with the caret staying on the same logical position on the screen.
  */
-@Method(name="ScrollCursor", signature="ieMOT_")
-native int EdScrollCursor();
+@Method(name="ScrollCursor", signature="iWeMOT_")
+native int EdScrollCursor(EDITOR editor);
 /*
  * Goto (move the caret) to the location before the previous
  * search or major navigation (e.g. having followed a hyperlink).
@@ -555,27 +557,22 @@ native int EdAlignText();
 @Method(name="ShowMessages", signature="ii")
 native int error_setShowMessages(boolean bEnable);
 /*
- * DESCRIPTION
+ * Used to start a text selection gesture.
  */
-@Method(name="MouseMarkBlock", signature="ii")
-native int EdBlockMouseMark();
+@Method(name="MouseMarkParts", signature="iWeMOT_")
+native int EdMouseMarkParts(EDITOR editor);
 /*
- * DESCRIPTION
- */
-@Method(name="MouseMarkParts", signature="ieMOT_")
-native int EdMouseMarkParts();
-/*
- * DESCRIPTION
+ * Use to move the selected text with the mouse.
  */
 @Method(name="MouseMoveText", signature="ieMM_")
 native int EdMouseMoveText();
 /*
- * DESCRIPTION
+ * Use to move the (un)"mark" a line with the mouse.
  */
 @Method(name="MouseSelectLines", signature="ii")
-native int EdMouseSelectLines();
+native int EdMouseSelectLines(EDITOR editor, int selectOrUnselect);
 /*
- * DESCRIPTION
+ * Positions the mouse.
  */
 @Method(name="MousePosition", signature="ii")
 native int EdMousePositionUngrabbed();
@@ -684,35 +681,35 @@ native int find_initiateIncrementalSearch();
 native int EdIsDefined();
 
 /*
- * DESCRIPTION
+ * Remove / clear all defined secondary carets.
  */
 @Method(name="RemoveSecondaryCarets", signature="isii")
 native int caret_removeSecondaryCarets();
 /*
- * DESCRIPTION
+ * Opens a dialog displaying the list of defined copy buffers or clipboards.
  */
 @Method(name="ShowClipboard", signature="ii")
 native int EdShowClipboard();
 /*
- * DESCRIPTION
+ * Move the caret to a new position and add a secondary caret at the position.
  */
 @Method(name="MoveAndAddSecondaryCaret", signature="iiis")
 native int caret_moveAndAddSecondary();
 /*
- * DESCRIPTION
+ * Extend the selection, when the caret moves to a new position.
  */
-@Method(name="SetBlockExtensionMode", signature="ii")
-native int EdBlockXtndMode();
+@Method(name="SetSelectionExtensionMode", signature="iWi")
+native int EdBlockXtndMode(EDITOR editor);
 /*
- * Redo the las undone command in the passed editor.
+ * Redo the last undone command in the passed editor.
  */
 @Method(name="Redo")
 native int EdRedo(EDITOR editor);
 
 /*
- * DESCRIPTION
+ * Save all files, which are currently in state dirty.
  */
-@Method(name="SaveAll", signature="ii")
+@Method(name="SaveAll")
 native int EdSaveAllFiles();
 /*
  * Clone the window of the passed editor or of the current editor.

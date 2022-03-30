@@ -790,7 +790,8 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	}
 	int yIcon = (height - nIconSize) / 2;
 	HICON hIcon = pPage->tp_hwnd ? (HICON)SendMessage(pPage->tp_hwnd, WM_GETICON, 0, 0L) : (HICON)NULL;
-	if (!hIcon) {
+	// hack for invalid icon sometimes being returned "wrong"
+	if (((intptr_t)hIcon & 0xFFFFFF) == 0) {
 		hIcon = mainframe_getDefaultEditorIcon();
 	}
 	DrawIconEx(hdc, rect.left + nMargin, yIcon, hIcon, nIconSize, nIconSize, 0, NULL, DI_NORMAL);

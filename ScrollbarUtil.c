@@ -215,10 +215,9 @@ int sl_moved(WINFO *wp, long dy, long dx, int cursor_adjust)
  * EdScrollCursor()
  * Scroll - cursor sticks to text
  */
-void EdScrollCursor(int mtype)
+void EdScrollCursor(WINFO* wp, int mtype)
 {
 	long 	delta = 0;
-	WINFO *	wp = ww_getCurrentEditorWindow();
 	
 	if (wp == NULL) {
 		return;
@@ -239,10 +238,9 @@ void EdScrollCursor(int mtype)
  * EdScrollScreen()
  * Scroll - cursor sticks to screen
  */
-int EdScrollScreen(int mtype)
+int EdScrollScreen(WINFO* wp, int mtype)
 {	long	dln,ln,col;
 	int		ret;
-	WINFO	*wp = ww_getCurrentEditorWindow();
 
 	if (!wp)
 		return 0;

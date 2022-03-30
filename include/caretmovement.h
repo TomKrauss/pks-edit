@@ -211,7 +211,7 @@ extern int caret_saveLastPosition(void);
  * caret_positionCloseToMouseWithConfirmation()
  * Position the caret in the current window potentially asking the user before doing so.
  */
-extern int caret_positionCloseToMouseWithConfirmation(long bAsk);
+extern int caret_positionCloseToMouseWithConfirmation(WINFO* wp, long bAsk);
 
 extern LINE* caret_gotoIdentifierEnd(LINE* lp, long* ln, long* col, int dir);
 extern LINE* caret_gotoIdentifierSkipSpace(LINE* lp, long* ln, long* col, int dir);

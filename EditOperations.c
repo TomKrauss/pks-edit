@@ -1129,9 +1129,8 @@ int EdUnHideLine(WINFO* wp)
 /*--------------------------------------------------------------------------
  * EdMouseSelectLines()
  */
-void EdMouseSelectLines(int flg)
+void EdMouseSelectLines(WINFO* wp, int flg)
 {	
-	WINFO* wp = ww_getCurrentEditorWindow();
 	LINE *lp = wp->caret.linePointer;
 	int  oflg;
 

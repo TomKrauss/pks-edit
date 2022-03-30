@@ -21,13 +21,17 @@ static int sampleGlobal = 18;
  * Tests the console by opening clearing it several times. Can be used
  * to test the console as well stability as also performance wise.
  */
-static void Console-Stress-Test() {
-	int i = 0;
-	while(i < 10) {
-		Test-Strings();
-		Test-Sprintf();
-		Test-Binary-Expressions();
-		i++;
+void Console-Stress-Test() {
+	string x = "hello world hello world hello world hello world hello world hello world hello world ";
+
+	for (int i =0; i < 10; i++) {
+		println(x + i);
+		println(x + i);
+		println(x + i);
+		println(x + i);
+		if (i % 5 == 3) {
+			clear();
+		}
 	}
 }
 

@@ -751,22 +751,20 @@ int bl_syncSelectionWithCaret(WINFO *wp, CARET *lpCaret, int flags, int *pMarkSe
 /*---------------------------------*/
 /* EdMouseMarkParts()				*/
 /*---------------------------------*/
-EXPORT int EdMouseMarkParts(int type)
+EXPORT int EdMouseMarkParts(WINFO* wp, int type)
 {
 	long   	ln,col;
 	LINE *	lp;
 	LINE *	lp2;
 	long   	o1;
 	long 	o2;
-	WINFO* wp;
 	FTABLE *	fp;
 	int    	colflg;
 
-	wp = ww_getCurrentEditorWindow();
 	fp = wp->fp;
 	colflg = ww_isColumnSelectionMode(wp);
 
-	caret_positionCloseToMouseWithConfirmation(0L);
+	caret_positionCloseToMouseWithConfirmation(wp,0L);
 
 	ln  = wp->caret.ln;
 	col = wp->caret.offset;

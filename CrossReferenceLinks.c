@@ -1183,11 +1183,11 @@ static void xref_urlEncode(char* pszDest, char* pszSource) {
 /*
  * Perform a google / bing / duckduck go / ... search for the current word or selection.
  */
-int EdFindOnInternet() {
+int EdFindOnInternet(WINFO* wp) {
 	char buf[128];
 	char command[512];
 
-	xref_getSelectedIdentifier(ww_getCurrentEditorWindow(), buf, sizeof buf);
+	xref_getSelectedIdentifier(wp, buf, sizeof buf);
 	if (!*buf) {
 		return 0;
 	}

@@ -351,15 +351,6 @@ EXPORT void mouse_setDefaultCursor(void)
 	SetCursor(hDefaultCurs);
 }
 
-/*------------------------------------------------------------
- * EdBlockMouseMark()
- * NOT USED ANY MORE.
- */
-EXPORT int EdBlockMouseMark(int typ)
-{
-	return 0;
-}
-
 /*--------------------------------------------------------------------------
  * caret_moveToXY()
  * move the caret to follow the mouse pressed on the screen coordinates x and y.
