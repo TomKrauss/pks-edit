@@ -241,6 +241,7 @@ int doctypes_addDocumentTypesToListView(HWND hwndList, const void* pSelected) {
 		if (ListView_InsertItem(hwndList, &lvI) == -1) {
 			return FALSE;
 		}
+		DestroyIcon(sfi.hIcon);
 		nCnt++;
 	}
 	ListView_SetImageList(hwndList, hSmall, LVSIL_SMALL);
