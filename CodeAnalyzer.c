@@ -131,12 +131,19 @@ static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
 }
 
 static const char* analyzer_helpForMacro(const char* pszName, void* pMac) {
+	STRING_BUF* pBuf = stringbuf_create(200);
 	MACRO* pMacro = pMac;
+
+	stringbuf_appendString(pBuf, "Synopsis: ");
+	decompile_printMacroSignature(pMacro, pBuf, 0);
 	char* pszComment = MAC_COMMENT(pMacro);
 	if (pszComment) {
-		return _strdup(pszComment);
+		stringbuf_appendChar(pBuf, '\n');
+		stringbuf_appendString(pBuf, pszComment);
 	}
-	return NULL;
+	char * pszRet = _strdup(stringbuf_getString(pBuf));
+	stringbuf_destroy(pBuf);
+	return pszRet;
 }
 
 /*

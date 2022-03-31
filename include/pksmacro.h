@@ -186,6 +186,15 @@ extern int 		print_saveMenuBindingsAndDisplay(void);
 ARRAY_LIST* deccompile_macroNamed(const char* pszName, DECOMPILATION_MODE nMode, const char* pszInstructionPointer, int* pNLine);
 #endif
 
+/*
+ * Generate the signature of a macro into the given string buffer. If a pointer to the instructions is passed (not 0),
+ * it is assumed that this points to the 1st parameter definition, if that is 0, the function tries to find the parameter
+ * definitions in the byte code.
+ */
+#ifdef STRINGUTIL_H
+extern unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsigned char* pInstructionPointer);
+#endif
+
 /*------------------------------------------------------------
  * macro_autosaveAllBindings()
  * Save all changed macro bindings and new macros to the corresponding file.

@@ -943,7 +943,45 @@ static void decompile_makeAutoLabels(const char* start, const char* end, CONTROL
 }
 
 /*
- * decompile_macroCode
+ * Generate the signature of a macro into the given string buffer. If a pointer to the instructions is passed (not 0),
+ * it is assumed that this points to the 1st parameter definition, if that is 0, the function tries to find the parameter
+ * definitions in the byte code.
+ */
+unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsigned char* sp) {
+	unsigned char* pBytecodes = mp->mc_bytecodes;
+	unsigned char* spend = pBytecodes + mp->mc_bytecodeLength;
+	if (sp == 0) {
+		sp = pBytecodes;
+		while (sp < spend) {
+			if (*sp == C_DEFINE_PARAMETER) {
+				break;
+			}
+			sp += interpreter_getParameterSize(*sp, sp + 1);
+		}
+	}
+	unsigned char* pInstrStart = sp;
+	// (T) find out the return type of the macro - is currently not stored.
+	if (mp->mc_scope == MS_LOCAL) {
+		stringbuf_appendString(pBuf, "static ");
+	}
+	decompile_print(pBuf, "void %s(", decompile_quoteString(MAC_NAME(mp)));
+	while (sp < spend) {
+		if (*sp != C_DEFINE_PARAMETER) {
+			break;
+		}
+		COM_DEFINE_SYMBOL* pSym = (COM_DEFINE_SYMBOL*)sp;
+		if (sp > pInstrStart) {
+			decompile_print(pBuf, ", ");
+		}
+		decompile_print(pBuf, "%s %s", types_nameFor(pSym->vartype), pSym->name);
+		sp += interpreter_getParameterSize(*sp, sp + 1);
+	}
+	decompile_print(pBuf, ") {\n");
+	return sp;
+}
+
+/*
+ * Decompiles the byte codes of a macro and places the result in the passed string buf.
  */
 #define COM1_INCR(cp,type,offset) (unsigned char *)(cp+((type *)cp)->offset)
 static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
@@ -973,21 +1011,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 
 	pFlowMarks = decompile_analyseControlFlowMarks(sp, spend, &nMarks);
 
-	// (T) find out the return type of the macro - is currently not stored.
-	decompile_print(pBuf, "void %s(", decompile_quoteString(MAC_NAME(mp)));
-	while (sp < spend) {
-		if (*sp != C_DEFINE_PARAMETER) {
-			break;
-		}
-		COM_DEFINE_SYMBOL* pSym = (COM_DEFINE_SYMBOL*)sp;
-		if (sp > data) {
-			decompile_print(pBuf, ", ");
-		}
-		decompile_print(pBuf, "%s %s", types_nameFor(pSym->typ), pSym->name);
-		sp += interpreter_getParameterSize(*sp, sp + 1);
-	}
-	decompile_print(pBuf, ") {\n");
-
+	sp = decompile_printMacroSignature(mp, pBuf, sp);
 	decompile_makeAutoLabels(data, spend, pFlowMarks, nMarks);
 	bytecode_initializeAutoLabels();
 	bytecode_startNextAutoLabel(&lname, (COM_GOTO**)&gop);

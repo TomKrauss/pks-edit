@@ -5,21 +5,23 @@ This file contains the release notes for the latest **PKS Edit** releases.
 --- 
 ### 2.2.0
 
-This release features besides the new __multi-caret__ editing feature and a major update of the PKSMacroC language
-and related tools.
+This release features __multi-caret__ editing and a major update of the PKSMacroC language and related tools.
 
 #### New
 - PKS Edit supports now __multi-caret__ editing. Multi-caret editing is started by placing additional carets
- with the mouse (`Alt+Click`) or by inserting a template which uses multi-caret input. In multi-caret mode all character inserts
-and character deletes (DEL + Backspace) are concurrently applied to multiple places in the code concurrently.
+  with the mouse (`Alt+Click`) or by inserting a template which uses multi-caret input. In multi-caret mode all character inserts
+  and character deletes (DEL + Backspace) are concurrently applied to multiple places in the code concurrently.
+- Errors in macroc code can now be debugged in a simple debugger allowing to inspect the stack frame, global and local 
+  variables of each function executed. The debugger supports to step, continue and abort the current macroC execution.
 
 ### Improved
 - The code completion window displays now additional information about completions in a secondary window in situations
 where additional information is available. An example are templates, which show a preview of the text to insert or PKS-Edit
 commands which show an explanation about the command.
 - Expressions with strings in PKSMacroC such as "x"+1 are automatically coerced to string. One does not need to write any more "x"+(string)1.
-- PKSMacroC supports now `++` and `--` operators, the new datatypes `float`, `boolean`, `range`, `map` and array types (`string[]`, `int[]`, ...) 
-  and shorthand assignment operators (e.g. `*=`, `+=`, ...).
+- PKSMacroC supports now postfix `++` and `--` operators and shorthand assignment operators (e.g. `*=`, `+=`, ...).
+- New datatypes `float`, `boolean`, `range`, `map`, array types (`string[]`, `int[]`, ...) and some additional special types like `FILE`
+  and `EDITOR` were introduced in PKSMacroC.
 - PKSMacroC supports now foreach loops using the following syntax: `for (type variable : expression) {...}`. One can currently iterate
   over ranges, strings and arrays.
 - PKSMacroC supports now regular C style for loops with the following syntax `for (initializer; condition; increment) {...}`.
@@ -43,10 +45,8 @@ commands which show an explanation about the command.
   error reporting for common programming errors (missing closing brackets, use of undeclared vars etc...) was added.
 - Internally objects allocated by the MacroC VM are dynamically garbagge collected. No memory leaks any more like before, when executing
   macroC code.
-- Error diagnostics and error handling in PKSMacroC has been improved (there is still room for improvement). Errors in macroc code
-  will now always stop execution and open a simple debugger allowing to inspect the stack frame and the variables of each function
-  executed. Step, Run and Continue is not yet implemented in the debugger.
 - One can open, print to and clear a console from macroC code for logging or debugging purpose.
+- Error diagnostics of the PKSMacroC compiler and error handling in PKSMacroC has been improved (there is still room for improvement). 
 
 ### Changed
 - all files previously stored in the old Windows INI-file format (`pksedit.his`, `pksedit.ini`) were replaced by JSON formatted files:
@@ -60,7 +60,7 @@ commands which show an explanation about the command.
 
 ### Fixes
 - A potential buffer overflow, when defining syntax error formats (navigation patterns) with long associated compiler names has been fixed.
-- A potential crash when closing a comparison window was fixed
+- A potential crash when closing a comparison window was fixed.
 - Save actions are now really executed just before a file is saved.
 - Find and replace options were not persisted correctly in the PKS Editor session.
 - A regression when compiling PKS-MacroC files containing strings, which cause a compilation error was fixed.
@@ -73,6 +73,9 @@ commands which show an explanation about the command.
    - while loop bodys may now contain multiple statements enclosed in `{` and `}`.
    - local function variables are now correctly scoped locally.
    - compiling bigger files with an error resulted in the macro compiler being not able to compile any macros afterwards.
+- Some GDI resource leaks were fixed. In particular the Configure Document Types dialog box had been leaking resources but also opening
+  and closing many editor tabs wasted considerable GDI resources.
+- The code completion help secondary window was sometimes not correctly closed and stayed open on the screen - this is fixed.
 
 ### 2.1.0
 
