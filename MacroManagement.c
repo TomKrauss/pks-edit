@@ -409,6 +409,7 @@ MACRO *macro_createWithParams(MACRO_PARAM *pParam) {
 	mp->mc_comment = _strdup(szComment);
 	mp->mc_name= _strdup(szName);
 	mp->mc_scope = pParam->mp_scope;
+	mp->mc_returnType = pParam->mp_returnType;
 	mp->mc_namespaceIdx = pParam->mp_namespaceIdx;
 	mp->mc_numberOfLocalVars = pParam->mp_numberOfLocalVariables;
 	mp->mc_bytecodeLength = (unsigned int)pParam->mp_bytecodeLength;

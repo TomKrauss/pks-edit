@@ -37,6 +37,7 @@ typedef struct tagMACRODATA  {
 	unsigned char	namelen;			// including 0byte
 	unsigned char   namespaceIdx;		// The index of the associated namespace
 	unsigned char	numberOfLocalVars;	// The number of local variables.
+	unsigned char	returnType;			// Return type of a macro.
 	unsigned short	commentlen;			// including 0byte
 	int				macroScope;			// The scope of the macro.
 	int				bytecodeLength;
@@ -70,6 +71,7 @@ char *rsc_rdmacros(char *name, unsigned char *p, unsigned char *pend)
 			.mp_bytecodeLength = len,
 			.mp_numberOfLocalVariables = pMacroData->numberOfLocalVars,
 			.mp_scope = pMacroData->macroScope,
+			.mp_returnType = pMacroData->returnType,
 			.mp_namespaceIdx = pMacroData->namespaceIdx
 		};
 		if (pMacroData->cmdbyte == CMD_MACRO) {
@@ -122,6 +124,7 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName
 			pMacroData->namelen = (unsigned char)strlen(MAC_NAME(mp))+1;
 			pMacroData->commentlen = mp->mc_comment ? (unsigned char)strlen(mp->mc_comment)+1 : 0;
 			pMacroData->namespaceIdx = mp->mc_namespaceIdx;
+			pMacroData->returnType = mp->mc_returnType;
 			pMacroData->macroScope = mp->mc_scope;
 			pMacroData->numberOfLocalVars = mp->mc_numberOfLocalVars;
 			strcpy(pMacroData->name, mp->mc_name);

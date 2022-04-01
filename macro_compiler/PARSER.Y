@@ -518,6 +518,7 @@ macro_definition: { init_macroDefinition(); }
 				MACRO_PARAM param = {
 					.mp_name = $2.ident.s,
 					.mp_comment = _yyCurrentComment,
+					.mp_returnType = $2.ident.type,
 					.mp_numberOfLocalVariables = _localVariableIndex,
 					.mp_bytecodeLength = _currentBytecodeBuffer->bb_current - _currentBytecodeBuffer->bb_start,
 					.mp_buffer = _currentBytecodeBuffer->bb_start,

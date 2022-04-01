@@ -960,11 +960,10 @@ unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsign
 		}
 	}
 	unsigned char* pInstrStart = sp;
-	// (T) find out the return type of the macro - is currently not stored.
 	if (mp->mc_scope == MS_LOCAL) {
 		stringbuf_appendString(pBuf, "static ");
 	}
-	decompile_print(pBuf, "void %s(", decompile_quoteString(MAC_NAME(mp)));
+	decompile_print(pBuf, "%s %s(", types_nameFor(mp->mc_returnType), decompile_quoteString(MAC_NAME(mp)));
 	while (sp < spend) {
 		if (*sp != C_DEFINE_PARAMETER) {
 			break;

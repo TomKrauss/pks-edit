@@ -49,6 +49,7 @@ typedef struct tagMACRO {
 	unsigned char  mc_isInitialized;		// book keeping of namespace initialization (had the namespace code be executed yet?).
 	MACRO_SCOPE    mc_scope;				// The scope of a macro
 	unsigned char  mc_namespaceIdx;			// Index of the corresponding name space (or 0 for default namespace).
+	unsigned char  mc_returnType;			// The PKS_VALUE_TYPE return type.
 	unsigned char* mc_name;					// the macro name
 	unsigned char* mc_comment;				// the macro comment
 	int			   mc_numberOfLocalVars;			// # of local variables - used to allocate local variable heap.
@@ -58,7 +59,9 @@ typedef struct tagMACRO {
 
 typedef struct tagMACRO_PARAM {
 	unsigned char mp_namespaceIdx;
+	unsigned char mp_returnType;
 	MACRO_SCOPE mp_scope;
+	int mp_type;
 	char* mp_name;
 	char* mp_comment;
 	const char* mp_sourceFile;
