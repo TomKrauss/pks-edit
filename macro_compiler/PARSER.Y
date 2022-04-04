@@ -191,6 +191,9 @@ static void parser_switchToBuffer(int aLevel) {
 			_currentBytecodeBuffer->bb_start : _currentBytecodeBuffer->bb_start + REC_SPACE;
 		_currentBytecodeBuffer->bb_current = _currentBytecodeBuffer->bb_start;
 	}
+	if (aLevel) {
+		_currentBytecodeBuffer->bb_current = _currentBytecodeBuffer->bb_start;
+	}
 }
 
 static void parser_flushBuffer(int aLevel) {
@@ -201,7 +204,7 @@ static void parser_flushBuffer(int aLevel) {
 	if (nBytes != 0) {
 		memcpy(_buffers[0].bb_current, _buffers[aLevel].bb_start, nBytes);
 		_buffers[0].bb_current += nBytes;
-		_buffers[aLevel].bb_current = _buffers[aLevel].bb_start;
+		// _buffers[aLevel].bb_current = _buffers[aLevel].bb_start;
 	}
 }
 
@@ -340,15 +343,13 @@ variable_identifier:
 				$$.ident.heapIndex = _localVariableIndex;
 				$$.ident.isLocalVar = !_bInHeader;
 			}
-			| T_NUM
-			{
+			| T_NUM {
 				$$.ident = $1.ident;
 				$$.ident.s = "#dummy";
 				$$.ident.stringIsAlloced = 0;
 				yyerror("Cannot redefine constant / cannot use number as variable identifier.");
 			}
-			| T_STRING 
-			{
+			| T_STRING {
 				$$.ident = $1.ident; 
 				yyerror("Identifier cannot be used to define variable (redefinition of constant?).");
 			}
@@ -773,8 +774,11 @@ string:		T_STRING {	$$.ident = $1.ident; }
 break:		T_BREAK opt_num ';'
 			{	bytecode_emitGotoInstruction(_currentBytecodeBuffer, lendid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
 
-continue:	T_CONTINUE opt_num ';'
-			{	bytecode_emitGotoInstruction(_currentBytecodeBuffer, lstartid,_breaklevel-(int)$2.num,BRA_ALWAYS); }
+continue:	T_CONTINUE opt_num ';' {
+				// in the case this is a continue in a for(int i;b;i++) loop, generate the i++ code before continuing.
+				parser_flushBuffer(_breaklevel-(int)$2.num+1);
+				bytecode_emitGotoInstruction(_currentBytecodeBuffer, lstartid,_breaklevel-(int)$2.num,BRA_ALWAYS); 
+			}
 
 return_expression: 
 			T_RETURN optional_bterm {

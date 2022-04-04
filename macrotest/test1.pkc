@@ -233,6 +233,15 @@ static void Test-Sieve() {
  */
 static void Test-ForLoop() {
 	int count = 0;
+	for (int i = 0; i < 10; i++) {
+		// Continue in for loops are currently handled special.
+		if (i == 2) {
+			continue;
+		}
+		count++;
+	}
+	AssertEquals(9, count);
+	count = 0;
 	for (int k = 0; k < 3; k++) {
 		for (int i = 0; i < 10; i += 2) {
 			count++;
@@ -247,7 +256,6 @@ static void Test-ForLoop() {
 		}
 	}
 	AssertEquals(1115, count);
-
 }
 
 /*
@@ -508,6 +516,17 @@ static void Test-Strings() {
 	myString = "the quick brown fox jumps over the lazy dog";
 	xlated = StringReplace(myString, "\\s", "_", RE_DOREX, 10000);
 	AssertEquals("the_quick_brown_fox_jumps_over_the_lazy_dog", xlated);
+}
+
+static void Test-Size() {
+	range r;
+	MAP_ENTRY e = new MAP_ENTRY();
+
+	r = 1..5;
+	AssertEquals(5, size(r));
+	r = 1..5..2;
+	AssertEquals(2, size(r));
+	AssertEquals(2, size(e));
 }
 
 static void Test-Decompile-Binary() {

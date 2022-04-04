@@ -273,6 +273,14 @@ PKS_VALUE interpreter_size(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int 
 		return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 0 };
 	}
 	PKS_VALUE v = pValues[0];
+	if (v.pkv_type == VT_RANGE) {
+		int nCount = (v.pkv_data.range.r_end - v.pkv_data.range.r_start + 1);
+		int nDelta = v.pkv_data.range.r_increment;
+		if (nDelta > 1) {
+			nCount /= nDelta;
+		}
+		return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = nCount };
+	}
 	size_t nLen = memory_size(v);
 	return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = nLen };
 }

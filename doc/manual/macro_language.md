@@ -254,5 +254,16 @@ Signature tokens may be:
 - e... - parameter / return type is a single enum value starting with ... 
 - P... special token to mark the method a natively defined method (used internally in PKS-Edit for more advanced handling of parameters)
 
+## Optional Parameters
+Some native methods - in particular those operating on an editor support passing the editor (type `EDITOR`) as the first argument of
+the method to invoke. An example is the method `EditorReplaceText(EDITOR editor, string pattern, string replaceWith, ...)`. In these
+cases the first parameter (`editor`) is optional. If no editor is passed, the currently active (focussed) editor is used as a default
+value.
+
+## Caveats
+
+PKSMacroC currently does not support short-circuiting boolean expressions (McCarthy evaluations). In the expression `if (len < 10 && array[len] == c)` 
+array[len] == c is **always evaluated** regardless of the outcome of the test `len < 10`. We will fix this later to make boolean expressions more
+powerful and simpler to write.
 
 
