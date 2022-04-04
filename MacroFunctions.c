@@ -24,6 +24,7 @@
 #include "winfo.h"
 #include "pathname.h"
 #include "textblocks.h"
+#include "findandreplace.h"
 #include "editorconfiguration.h"
 #include "editoperations.h"
 #include "caretmovement.h"
@@ -376,3 +377,128 @@ PKS_VALUE edit_getAllEditors(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, in
 	}
 	return tResult;
 }
+
+/*
+ * Returns a range of the lines currently selected in the editor passed as the 1st argument or
+ * the current editor. If no lines are selected a range with a single line - the line containing
+ * the caret is returned.
+ */
+PKS_VALUE edit_getSelectedLineRange(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (nArgs == 1 && pValues->pkv_type == VT_EDITOR_HANDLE) {
+		wp = memory_handleForValue(*pValues);
+	}
+	if (wp == NULL) {
+		return (PKS_VALUE) {.pkv_type = VT_NIL};
+	}
+	long nLow = wp->caret.ln;
+	long nHigh = nLow;
+	if (wp->blstart && wp->blend) {
+		FTABLE* fp = wp->fp;
+		nLow = ln_indexOf(fp, wp->blstart->m_linePointer);
+		nHigh = ln_indexOf(fp, wp->blend->m_linePointer);
+		if (nHigh > nLow && wp->blend->m_column == 0) {
+			nHigh--;
+		}
+	}
+	return (PKS_VALUE) { .pkv_type = VT_RANGE, .pkv_data.range.r_start = nLow, .pkv_data.range.r_end = nHigh };
+}
+
+/*
+ * Returns the length of the specified line in number of characters.
+ */
+int edit_getLineLen(WINFO* wp, long nLine) {
+	FTABLE* fp = wp->fp;
+	LINE* lp = ln_goto(fp, nLine);
+	return lp ? lp->len : -1;
+}
+
+/*
+ * Returns the string representing the contents of the specified line.
+ */
+char* edit_getLineText(WINFO* wp, long nLine) {
+	FTABLE* fp = wp->fp;
+	LINE* lp = ln_goto(fp, nLine);
+	if (!lp) {
+		return 0;
+	}
+	memcpy(_linebuf, lp->lbuf, lp->len + 1);
+	return _linebuf;
+}
+
+/*--------------------------------------------------------------------------
+ * macroc_substituteStringWith()
+ * substitute in a string
+ */
+char* macroc_substituteStringWith(char* string, char* pattern, char* with, long nREFlags, int maxOccurence) {
+	char	ebuf[ESIZE];
+	char* src;
+	char* send;
+	int		newlen;
+	unsigned char nlchar;
+	char		replace[256];
+	RE_MATCH	match;
+	REPLACEMENT_PATTERN replacementPattern;
+
+	_linebuf[0] = 0;
+	RE_PATTERN* pPattern;
+	if (ft_getCurrentDocument()) {
+		nlchar = ft_getCurrentDocument()->documentDescriptor->nl;
+	}
+	else {
+		nlchar = '\n';
+	}
+	if (pattern &&
+		string &&
+		with &&
+		(pPattern = find_regexCompile(ebuf, pattern, nREFlags)) &&
+		regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) { with, nREFlags, nlchar, pPattern->nbrackets }, & replacementPattern)) {
+		src = string;
+		send = _linebuf;
+
+		/* copy default string */
+		while ((*send++ = *src++) != 0)
+			;
+		src = _linebuf;
+
+		while (maxOccurence-- > 0) {
+			if (!regex_match(pPattern, src, send, &match)) {
+				break;
+			}
+			if (match.circf && match.loc1 != _linebuf) {
+				break;
+			}
+			if ((newlen = regex_replaceSearchString(&replacementPattern, replace, sizeof replace, &match)) < 0) {
+				break;
+			}
+			memmove(match.loc1 + newlen, match.loc2, (int)(send - match.loc2));
+			send += (newlen - (match.loc2 - match.loc1));
+			*send = 0;
+			memcpy(match.loc1, replace, newlen);
+			src = match.loc2;
+		}
+	}
+	return _linebuf;
+}
+
+/*--------------------------------------------------------------------------
+ * macroc_findPattern()
+ * Find a pattern in a string and return the index in the string or -1 if not found.
+ */
+long long macroc_findPattern(const char* string, char* pattern, int nREFlags) {
+	char		ebuf[ESIZE];
+	RE_MATCH	match;
+	RE_PATTERN* pPattern;
+
+	if (!pattern ||
+		!string ||
+		!(pPattern = find_regexCompile(ebuf, pattern, nREFlags))) {
+		interpreter_raiseError("Wrong parameters or failure to compile pattern %s", pattern ? pattern : "NO_PATTERN");
+	}
+	if (!regex_match(pPattern, string, 0, &match)) {
+		return -1;
+	}
+	return (long long)(match.loc1 - string);
+}
+
+

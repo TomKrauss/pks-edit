@@ -353,11 +353,14 @@ int ww_setwindowtitle(WINFO *wp, BOOL bRepaint) {
 	}
 	SetWindowText(wp->edwin_handle,buf);
 	SHFILEINFO sfi;
+	memset(&sfi, 0, sizeof sfi);
 	SHGetFileInfo(fp->fname, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, SHGFI_ICON | SHGFI_SMALLICON);
-	if (sfi.hIcon) {
-		HICON hIconOld = (HICON)SendMessage(wp->edwin_handle, WM_SETICON, ICON_SMALL, (LPARAM)sfi.hIcon);
-		mainframe_destroyEditorIcon(hIconOld);
+	HICON icon = sfi.hIcon;
+	if (!icon) {
+		icon = mainframe_getDefaultEditorIcon();
 	}
+	HICON hIconOld = (HICON)SendMessage(wp->edwin_handle, WM_SETICON, ICON_SMALL, (LPARAM)icon);
+	mainframe_destroyEditorIcon(hIconOld);
 	if (bRepaint) {
 		mainframe_windowTitleChanged();
 	}

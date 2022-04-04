@@ -239,6 +239,15 @@ static void Test-ForLoop() {
 		}
 	}
 	AssertEquals(15, count);
+	for (int i = 0; i < 1000; i++) {
+		if (i >= 100) {
+			count++;
+		} else {
+			count += 2;
+		}
+	}
+	AssertEquals(1115, count);
+
 }
 
 /*
@@ -271,6 +280,7 @@ static void Test-Arrays() {
 	string[] myArray = ["hello", "world", "how", "are", "you", "doing"];
 	string[] array2 = ["array", "two" ];
 	string[] mixedArray = [1, true, "hello", -4];
+	string[] mixedArray2;
 	string[] extracted;
 	int[10] intArray;
 	int i = 0;
@@ -296,6 +306,11 @@ static void Test-Arrays() {
 	AssertEquals(1, mixedArray[0]);
 	AssertEquals("hello", mixedArray[2]);
 	AssertEquals(-4, mixedArray[3]);
+
+	mixedArray2 += 1;
+	mixedArray2 += false;
+	mixedArray2 += "a";
+	AssertEquals("1, false, a", (string)mixedArray2);
 }
 
 static void Test-ArrayAdd() {
@@ -597,8 +612,7 @@ static void Test-StringLiterals() {
  * parameter and will display the parameters passed in the console.
  * It will also return a string which can be used by the caller.
  */
-static string Call-Params(int par, string par2)
-{
+static string Call-Params(int par, string par2) {
 	println( "1st param: " + par + ", 2nd param: '" + par2 + "'");
 	if (par2) {
 		return "r2:" + par2;
@@ -607,6 +621,13 @@ static string Call-Params(int par, string par2)
 	return "r1:" + par;
 }
 
+static int Return-Value() {
+	// Had been missing stack drops leading to wrong result being returned.
+	string x = "x";
+	int y = 2;
+
+	return 42;
+}
 
 /*
  * Calls a macro declaring parameters with various examples.
@@ -622,6 +643,8 @@ static void Test-Call() {
 	// 1+"x" will be coerced to an integer -> will print '1' instead of '1x'
 	result = Call-Params(1 + "x");
 	AssertEquals("r1:1", result);
+
+	AssertEquals(42, Return-Value());
 }
 
 

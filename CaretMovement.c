@@ -51,14 +51,14 @@ static void wi_scrollTop(WINFO* wp, long dy) {
  * Calculate an offset of character buffer positions to the corresponding number
  * of columns as displayed on the screen.
  */
-int caret_bufferOffset2screen(WINFO* wp, const char* lbuf, int lnoffset) {
-	register int  col = 0;
+size_t caret_bufferOffset2Screen(WINFO* wp, const char* lbuf, int lnoffset) {
+	size_t  col = 0;
 	register const char* p = lbuf;
 
 	lbuf += lnoffset;
 	while (p < lbuf) {
 		if (*p++ == '\t')
-			col = indent_calculateNextTabStop(col, &wp->indentation);
+			col = indent_calculateNextTabStop((int)col, &wp->indentation);
 		else col++;
 	}
 	return col;
@@ -82,7 +82,22 @@ EXPORT int caret_lineOffset2screen(WINFO *wp, CARET *cp) {
 	if (lnoffset > lp->len) {
 		lnoffset = lp->len;
 	}
-	return caret_bufferOffset2screen(wp, lp->lbuf, lnoffset);
+	return (int)caret_bufferOffset2Screen(wp, lp->lbuf, lnoffset);
+}
+
+/*
+ * Calculate the buffer offset in a line given the corresponding screeen column.
+ */
+size_t caret_screenOffset2Buffer(WINFO* wp, const char* p, size_t lineLen, size_t col) {
+	int i = 0;
+	const char* pStart = p;
+	const char* pend = &p[lineLen];
+	while (i < col && p < pend) {
+		if (*p++ == '\t')
+			i = indent_calculateNextTabStop(i, &wp->indentation);
+		else i++;
+	}
+	return p - pStart;
 }
 
 /*--------------------------------------------------------------------------
@@ -90,13 +105,10 @@ EXPORT int caret_lineOffset2screen(WINFO *wp, CARET *cp) {
  * Calculate the internal offset in the line buffer
  * for a given cursor screen position
  */
-EXPORT int caret_screen2lineOffset(WINFO *wp, CARET *pCaret)
-{
-	int  	i=0;
+EXPORT int caret_screen2lineOffset(WINFO *wp, CARET *pCaret) {
 	int col = pCaret->offset;
 	LINE* lp = pCaret->linePointer;
 	char *	p = lp->lbuf;
-	char *	pend = &lp->lbuf[lp->len];
 
 	if (wp == NULL) {
 		wp = ww_getCurrentEditorWindow();
@@ -104,12 +116,7 @@ EXPORT int caret_screen2lineOffset(WINFO *wp, CARET *pCaret)
 			return 0;
 		}
 	}
-	while (i < col && p < pend) {
-		if (*p++ == '\t')
-			i = indent_calculateNextTabStop(i, &wp->indentation);
-		else i++;
-	}
-	return (int)(p-lp->lbuf);
+	return (int)caret_screenOffset2Buffer(wp, p, lp->len, col);
 }
 
 

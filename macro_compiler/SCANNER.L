@@ -389,7 +389,7 @@ OKTNUM	[0-7_]
 NUM		[0-9_]
 HEXNUM	[0-9a-fA-F_]
 CH		[a-z_A-Z]
-CHN		[0-9a-z_A-Z]+(-[0-9a-z_A-Z]+)*
+CHN		[0-9a-z_A-Z]+(-[a-z_A-Z][0-9a-z_A-Z]*)*
 QUOTED	\\.
 NOS		[^"]
 WS		[ \t]

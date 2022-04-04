@@ -85,7 +85,12 @@ extern int caret_advanceParagraphFromCurrentLine(WINFO* wp, int dir, int start);
  * Calculate an offset of character buffer positions to the corresponding number
  * of columns as displayed on the screen.
  */
-extern int caret_bufferOffset2screen(WINFO* wp, const char* lbuf, int lnoffset);
+extern size_t caret_bufferOffset2Screen(WINFO* wp, const char* lbuf, int lnoffset);
+
+/*
+ * Calculate the buffer offset in a line given the corresponding screeen column.
+ */
+extern size_t caret_screenOffset2Buffer(WINFO* wp, const char* p, size_t lineLen, size_t col);
 
 /*--------------------------------------------------------------------------
   * caret_lineOffset2screen()

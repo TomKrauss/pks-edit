@@ -83,11 +83,16 @@ static const char* analyzer_pksTypeFromParamtype(PARAMETER_TYPE_DESCRIPTOR pt) {
 	if (pt.pt_type == PARAM_TYPE_STRING_ARRAY) {
 		return "string[]";
 	}
-	if (pt.pt_type == PARAM_TYPE_BITSET && pt.pt_enumVal) {
-		return pt.pt_enumVal->pev_name;
-	}
-	if (pt.pt_type == PARAM_TYPE_ENUM && pt.pt_enumVal) {
-		return pt.pt_enumVal->pev_name;
+	if (pt.pt_enumVal) {
+		static char szType[32];
+		const char* pszEnumName = pt.pt_enumVal->pev_name;
+		char* pszUnder = strchr(pszEnumName, '_');
+		if (pszUnder) {
+			size_t nCount = pszUnder - pszEnumName+1;
+			memcpy(szType, pszEnumName, nCount);
+			strcpy(szType+nCount, pt.pt_type == PARAM_TYPE_BITSET ? "FLAGS" : "ENUM");
+			return szType;
+		}
 	}
 	return types_nameFor(VT_NUMBER);
 }
@@ -101,24 +106,39 @@ static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
 	STRING_BUF* pszParams = stringbuf_create(100);
 	int nParams = function_getParameterCount(pFunc);
 	for (int i = 1; i <= nParams || (pszParameterDescription && *pszParameterDescription); i++) {
-		char szParamName[20];
+		char szParamType[256];
+		char szParamName[256];
 		if (i > 1) {
 			stringbuf_appendString(pszParams, ", ");
 		}
-		if (!pszParameterDescription || !*pszParameterDescription) {
-			stringbuf_appendString(pszParams, (char*)analyzer_pksTypeFromParamtype(function_getParameterTypeDescriptor(pFunc, i)));
-			stringbuf_appendChar(pszParams, ' ');
-			sprintf(szParamName, "p%d", i);
-			stringbuf_appendString(pszParams, szParamName);
-		} else {
+		PARAMETER_TYPE_DESCRIPTOR pt = function_getParameterTypeDescriptor(pFunc, i);
+		szParamType[0] = 0;
+		szParamName[0] = 0;
+		if (pszParameterDescription && *pszParameterDescription) {
+			char* pszDest = szParamType;
 			while (*pszParameterDescription) {
 				char c = *pszParameterDescription++;
 				if (c == ',') {
 					break;
 				}
-				stringbuf_appendChar(pszParams, c);
+				if (c == ' ') {
+					*pszDest = 0;
+					pszDest = szParamName;
+					continue;
+				}
+				*pszDest++ = c;
 			}
+			*pszDest = 0;
 		}
+		if (!szParamType[0] || pt.pt_type == PARAM_TYPE_ENUM || pt.pt_type == PARAM_TYPE_BITSET) {
+			strcpy(szParamType, (char*)analyzer_pksTypeFromParamtype(pt));
+		}
+		if (!szParamName[0]) {
+			sprintf(szParamName, "p%d", i);
+		}
+		stringbuf_appendString(pszParams, szParamType);
+		stringbuf_appendChar(pszParams, ' ');
+		stringbuf_appendString(pszParams, szParamName);
 	}
 	char* pszParamsS = stringbuf_getString(pszParams);
 	char* pszRet = malloc(strlen(pszName) + 32 + strlen(pszParamsS) + strlen(pFunc->edf_description));

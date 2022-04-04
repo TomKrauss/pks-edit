@@ -420,9 +420,6 @@ PKS_VALUE memory_mapEntries(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int
  * Add one object to an array type object.
  */
 int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS_VALUE vElement) {
-	if (!vObject->pkv_managed || !vElement.pkv_managed) {
-		return 0;
-	}
 	OBJECT_DATA* pData = vObject->pkv_data.objectPointer;
 	ARRAY_LIST* pTarget = memory_accessArray(pData);
 	BOOL bPointer = vElement.pkv_isPointer;

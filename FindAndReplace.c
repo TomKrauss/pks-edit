@@ -931,61 +931,6 @@ endrep:
 }
 
 /*--------------------------------------------------------------------------
- * EdStringSubstitute()
- * substitute in a string
- */
-char* EdStringSubstitute(char *string, char *pattern, char *with, long nREFlags, int maxOccurence) {
-	char	ebuf[ESIZE];
-	char *	src;
-	char *	send;
-	int		newlen;
-	unsigned char nlchar;
-	char		replace[256];
-	RE_MATCH	match;
-
-	_linebuf[0] = 0;
-	RE_PATTERN* pPattern;
-	if (ft_getCurrentDocument()) {
-		nlchar = ft_getCurrentDocument()->documentDescriptor->nl;
-	}
-	else {
-		nlchar = '\n';
-	}
-	if (pattern &&
-	    string &&
-	    with &&
-	    (pPattern = find_regexCompile(ebuf, pattern, nREFlags)) &&
-		regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) {	with, nREFlags, nlchar, pPattern->nbrackets}, & _currentReplacementPattern)) {
-		src = string;
-		send = _linebuf;
-		
-		/* copy default string */
-		while((*send++ = *src++) != 0)
-			;
-		src = _linebuf;
-
-		while(maxOccurence-- > 0) {
-			if (!regex_match(pPattern, src,send, &match)) {
-				break;
-			}
-			if (match.circf && match.loc1 != _linebuf) {
-				break;
-			}
-			if ((newlen = regex_replaceSearchString(&_currentReplacementPattern, replace, sizeof replace, &match)) < 0) {
-				break;
-			}
-			memmove(match.loc1+newlen, match.loc2,(int)(send- match.loc2));
-			send += (newlen - (match.loc2 - match.loc1));
-			*send = 0;
-			strxcpy(match.loc1,replace,newlen);
-			src = match.loc2;
-		}
-	}
-
-	return _linebuf;
-}
-
-/*--------------------------------------------------------------------------
  * find_setTextSelection()
  * 
  * Select a range of text in the file identified by fp.

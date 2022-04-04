@@ -39,6 +39,8 @@ int function_initializeFunctionsAndTypes(void) {
 	if (initialized) {
 		return 1;
 	}
+	// Initializes the function table sizes.
+	function_getNumberOfStaticallyDefinedFunctions();
 	initialized = TRUE;
 	for (ep = _functionTable, epend = ep+_functionTableSize; ep < epend;  ep++, idx++) {
 		if ((pszCopy = (char*)macro_loadStringResource(idx)) == 0 ||
@@ -182,6 +184,9 @@ int function_registerNativeFunction(const char* pszMacroCName, const char* pszFu
 		const char* pszSignature, const char* pszDescription, const char* pszParameters) {
 	int ret = 1;
 	HINSTANCE hInstance = hInst;
+	int newTableSize;
+	int nStatic = function_getNumberOfStaticallyDefinedFunctions();
+	newTableSize = _functionTableSize;
 	if (pszModule && strcmp(pszModule, "PKSEDIT") != 0) {
 		hInstance = LoadLibrary(pszModule);
 	}
@@ -192,10 +197,10 @@ int function_registerNativeFunction(const char* pszMacroCName, const char* pszFu
 		nIndex = (int)((EDFUNC*)VALUE(symbol) - _functionTable);
 	}
 	else {
-		nIndex = _functionTableSize++;
+		nIndex = newTableSize++;
 	}
 	long long (*p)() = GetProcAddress(hInstance, pszFunctionName);
-	if (!p && nIndex >= STATICALLY_DEFINED_FUNCTIONS) {
+	if (!p && nIndex > nStatic) {
 		ret = 0;
 		interpreter_raiseError("Cannot find proc address for %s (lib=%s)", pszFunctionName, pszModule ? pszModule : "PKSEDIT");
 	}
@@ -203,11 +208,12 @@ int function_registerNativeFunction(const char* pszMacroCName, const char* pszFu
 		int nMax = MAX_NATIVE_FUNCTIONS;
 		if (nIndex >= nMax) {
 			interpreter_raiseError("Too many native functions.");
+			// not reached
 			ret = 0;
 		}
 		else {
 			EDFUNC* pFunc = &_functionTable[nIndex];
-			if (nIndex < STATICALLY_DEFINED_FUNCTIONS) {
+			if (nIndex < nStatic) {
 				free((char*)pFunc->edf_description);
 				free((char*)pFunc->edf_parameters);
 				pFunc->edf_description = 0;
@@ -223,6 +229,7 @@ int function_registerNativeFunction(const char* pszMacroCName, const char* pszFu
 			}
 			pFunc->edf_description = pszDescription ? _strdup(pszDescription) : 0;
 			pFunc->edf_parameters = pszParameters ? _strdup(pszParameters) : 0;
+			_functionTableSize = newTableSize;
 		}
 	}
 	if (hInstance != hInst) {

@@ -323,7 +323,7 @@
     <ClCompile Include="JsonParser.c" />
     <ClCompile Include="Levensthein.c" />
     <ClCompile Include="MainFrame.c" />
-    <ClCompile Include="MacroCFunctions.c" />
+    <ClCompile Include="MacroFunctions.c" />
     <ClCompile Include="ProgressMonitor.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

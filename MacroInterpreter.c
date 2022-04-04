@@ -1058,7 +1058,7 @@ static int macro_interpretByteCodes(MACRO* mp) {
 		return -1;
 	}
 	level++;
-	int ret = macro_interpretByteCodesContext(pContext, mp);
+	macro_interpretByteCodesContext(pContext, mp);
 	level--;
 	if (level == 0) {
 		error_setShowMessages(TRUE);

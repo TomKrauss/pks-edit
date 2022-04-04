@@ -28,11 +28,38 @@
 
 extern long long number(char* s);
 
+static void interpreter_asString(char* pBuf, char* pBufEnd, PKS_VALUE v);
+
 /*--------------------------------------------------------------------------
  * macro_isParameterStringType()
  */
 int macro_isParameterStringType(unsigned char typ) {
 	return typ == C_PUSH_STRING_LITERAL || typ == C_PUSH_VARIABLE;
+}
+
+static void interpreter_printString(char* pTargetBuf, size_t nSize, PKS_VALUE nValue) {
+	if (nValue.pkv_type == VT_FLOAT) {
+		sprintf(pTargetBuf, "%.2lf", nValue.pkv_data.doubleValue);
+	}
+	else if (nValue.pkv_type == VT_CHAR) {
+		sprintf(pTargetBuf, "%c", nValue.pkv_data.uchar);
+	}
+	else if (nValue.pkv_type == VT_BOOLEAN) {
+		sprintf(pTargetBuf, "%s", nValue.pkv_data.booleanValue ? "true" : "false");
+	}
+	else if (nValue.pkv_type == VT_STRING) {
+		const char* pszS = memory_accessString(nValue);
+		size_t nLen = memory_size(nValue);
+		if (nLen +3 < nSize) {
+			strcpy(pTargetBuf, pszS);
+		}
+	}
+	else if (nValue.pkv_type == VT_OBJECT_ARRAY) {
+		interpreter_asString(pTargetBuf, &pTargetBuf[nSize], nValue);
+	}
+	else {
+		sprintf(pTargetBuf, "%lld", nValue.pkv_data.longValue);
+	}
 }
 
 static void interpreter_asString(char* pBuf, char* pBufEnd, PKS_VALUE v) {
@@ -44,14 +71,10 @@ static void interpreter_asString(char* pBuf, char* pBufEnd, PKS_VALUE v) {
 			*pBuf++ = ' ';
 		}
 		PKS_VALUE nNested = memory_getNestedObject(v, i);
-		const char* pszS = memory_accessString(nNested);
-		size_t nLen = memory_size(nNested);
-		char* pszEnd = pBuf + nLen;
-		if (pszEnd > pBufEnd - 4) {
-			break;
-		}
-		strcpy(pBuf, pszS);
-		pBuf = pszEnd;
+		char buf[200];
+		interpreter_printString(buf, sizeof buf, nNested);
+		strcpy(pBuf, buf);
+		pBuf += strlen(buf);
 		i++;
 	}
 	*pBuf = 0;
@@ -89,18 +112,7 @@ PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_
 	}
 	if (tTargetType == VT_STRING) {
 		char buf[200];
-		if (nValue.pkv_type == VT_FLOAT) {
-			sprintf(buf, "%.2lf", nValue.pkv_data.doubleValue);
-		} else if (nValue.pkv_type == VT_CHAR) {
-			sprintf(buf, "%c", nValue.pkv_data.uchar);
-		}
-		else if (nValue.pkv_type == VT_BOOLEAN) {
-			sprintf(buf, "%s", nValue.pkv_data.booleanValue ? "true" : "false");
-		} else if (nValue.pkv_type == VT_OBJECT_ARRAY) {
-			interpreter_asString(buf, &buf[sizeof buf], nValue);
-		} else {
-			sprintf(buf, "%lld", nValue.pkv_data.longValue);
-		}
+		interpreter_printString(buf, sizeof buf, nValue);
 		return interpreter_allocateString(pContext, buf);
 	}
 	return nValue;
@@ -269,13 +281,13 @@ static void interpreter_createRange(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, P
 static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext, int bOperation, PKS_VALUE vSource, PKS_VALUE vIndex) {
 	size_t nMax = memory_size(vSource);
 	if (bOperation == BIN_ADD) {
-		if (vIndex.pkv_type == VT_STRING) {
-			memory_addObject(pContext, &vSource, vIndex);
-		} else if (vIndex.pkv_type == VT_OBJECT_ARRAY) {
+		if (vIndex.pkv_type == VT_OBJECT_ARRAY) {
 			int nMax = (int)memory_size(vIndex);
 			for (int i = 0; i < nMax; i++) {
 				memory_addObject(pContext, &vSource, memory_getNestedObject(vIndex, i));
 			}
+		} else {
+			memory_addObject(pContext, &vSource, vIndex);
 		}
 		interpreter_pushValueOntoStack(pContext, vSource);
 		return;

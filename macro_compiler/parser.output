@@ -30,11 +30,11 @@ State 239 conflicts: 1 shift/reduce
 State 240 conflicts: 1 shift/reduce
 State 241 conflicts: 1 shift/reduce
 State 246 conflicts: 1 reduce/reduce
-State 293 conflicts: 1 shift/reduce
-State 303 conflicts: 1 shift/reduce
-State 331 conflicts: 16 shift/reduce, 1 reduce/reduce
-State 341 conflicts: 1 shift/reduce
-State 346 conflicts: 1 shift/reduce
+State 294 conflicts: 1 shift/reduce
+State 304 conflicts: 1 shift/reduce
+State 330 conflicts: 16 shift/reduce, 1 reduce/reduce
+State 340 conflicts: 1 shift/reduce
+State 345 conflicts: 1 shift/reduce
 
 
 Grammar
@@ -368,54 +368,51 @@ Grammar
   216 else_clause: T_ELSE $@25 local_block
 
   217 stmntlist: %empty
+  218          | statement stmntlist
 
-  218 $@26: %empty
+  219 closing_paren: ')'
 
-  219 stmntlist: statement $@26 stmntlist
+  220 @26: %empty
 
-  220 closing_paren: ')'
+  221 call_expression: T_FUNC '(' @26 parameter_list closing_paren
 
-  221 @27: %empty
+  222 @27: %empty
 
-  222 call_expression: T_FUNC '(' @27 parameter_list closing_paren
+  223 call_expression: function_id_or_pointer '(' @27 parameter_list closing_paren
 
-  223 @28: %empty
+  224 function_id_or_pointer: '*' variable_reference
+  225                       | T_IDENT
 
-  224 call_expression: function_id_or_pointer '(' @28 parameter_list closing_paren
+  226 parameter_list: nonempty_parameters
 
-  225 function_id_or_pointer: '*' variable_reference
-  226                       | T_IDENT
+  227 nonempty_parameters: parameter
+  228                    | nonempty_parameters ',' parameter
+  229                    | error
 
-  227 parameter_list: nonempty_parameters
+  230 parameter: simple_expression
 
-  228 nonempty_parameters: parameter
-  229                    | nonempty_parameters ',' parameter
-  230                    | error
+  231 type_cast: '(' type_name ')'
 
-  231 parameter: simple_expression
+  232 type_name: T_TYPE_IDENTIFIER
+  233          | T_TYPE_IDENTIFIER array_size
 
-  232 type_cast: '(' type_name ')'
+  234 array_size: '[' ']'
+  235           | '[' T_NUM ']'
 
-  233 type_name: T_TYPE_IDENTIFIER
-  234          | T_TYPE_IDENTIFIER array_size
+  236 boolean_literal: T_TRUE
+  237                | T_FALSE
 
-  235 array_size: '[' ']'
-  236           | '[' T_NUM ']'
+  238 float_literal: T_FLOATING_POINT_NUMBER
 
-  237 boolean_literal: T_TRUE
-  238                | T_FALSE
+  239 integer_literal: T_NUM
+  240                | '-' T_NUM
 
-  239 float_literal: T_FLOATING_POINT_NUMBER
+  241 character_literal: T_CHARACTER
 
-  240 integer_literal: T_NUM
-  241                | '-' T_NUM
-
-  242 character_literal: T_CHARACTER
-
-  243 simple_literal: integer_literal
-  244               | float_literal
-  245               | character_literal
-  246               | boolean_literal
+  242 simple_literal: integer_literal
+  243               | float_literal
+  244               | character_literal
+  245               | boolean_literal
 
 
 Terminals, with rules where they appear
@@ -424,26 +421,26 @@ Terminals, with rules where they appear
     '!' (33) 5 113
     '%' (37) 126
     '&' (38) 119
-    '(' (40) 36 51 108 138 140 141 188 196 204 222 224 232
-    ')' (41) 36 51 108 138 140 188 196 204 220 232
-    '*' (42) 124 225
+    '(' (40) 36 51 108 138 140 141 188 196 204 221 223 231
+    ')' (41) 36 51 108 138 140 188 196 204 219 231
+    '*' (42) 124 224
     '+' (43) 115 121
-    ',' (44) 21 45 55 153 160 229
-    '-' (45) 116 123 241
+    ',' (44) 21 45 55 153 160 228
+    '-' (45) 116 123 240
     '.' (46) 81 111
     '/' (47) 125
     ':' (58) 180 181 185 204
     ';' (59) 9 12 14 15 16 62 63 64 65 72 73 75 78 170 171 196
     '<' (60) 132
     '>' (62) 133
-    '[' (91) 82 112 157 159 235 236
-    ']' (93) 82 112 157 159 235 236
+    '[' (91) 82 112 157 159 234 235
+    ']' (93) 82 112 157 159 234 235
     '^' (94) 122
     '{' (123) 60 149 188 209
     '|' (124) 120
     '}' (125) 188 210
     '~' (126) 114 117
-    error (256) 78 202 230
+    error (256) 78 202 229
     T_NAMESPACE (258) 9
     T_REQUIRE (259) 12
     T_FOR (260) 190
@@ -452,17 +449,17 @@ Terminals, with rules where they appear
     T_NEW (263) 108
     T_STATIC (264) 18
     T_VOID (265) 34
-    T_TYPE_IDENTIFIER (266) 108 233 234
+    T_TYPE_IDENTIFIER (266) 108 232 233
     T_ELLIPSIS (267) 47
-    T_IDENT (268) 9 27 31 32 52 81 111 147 185 186 226
-    T_NUM (269) 28 176 184 236 240 241
-    T_FLOATING_POINT_NUMBER (270) 239
+    T_IDENT (268) 9 27 31 32 52 81 111 147 185 186 225
+    T_NUM (269) 28 176 184 235 239 240
+    T_FLOATING_POINT_NUMBER (270) 238
     T_STRING (271) 12 26 29 41 52 154 155 163 168 169 183
-    T_CHARACTER (272) 165 242
+    T_CHARACTER (272) 165 241
     T_CONST (273) 19
-    T_TRUE (274) 166 237
-    T_FALSE (275) 167 238
-    T_FUNC (276) 33 222
+    T_TRUE (274) 166 236
+    T_FALSE (275) 167 237
+    T_FUNC (276) 33 221
     T_DOTDOT (277) 99 101 184
     T_PLUSPLUS (278) 103
     T_MINUSMINUS (279) 102
@@ -553,7 +550,7 @@ Nonterminals, with rules where they appear
         on right: 24 38 39 46 199 204
     variable_reference (93)
         on left: 30 31
-        on right: 79 85 86 104 116 139 225
+        on right: 79 85 86 104 116 139 224
     macro_declaration (94)
         on left: 32 33
         on right: 36
@@ -573,8 +570,8 @@ Nonterminals, with rules where they appear
         on left: 40 41
         on right: 36
     parameter_list (100)
-        on left: 42 43 227
-        on right: 36 222 224
+        on left: 42 43 226
+        on right: 36 221 223
     non_empty_pardecl (101)
         on left: 44 45
         on right: 43 45
@@ -616,7 +613,7 @@ Nonterminals, with rules where they appear
         on right: 60 62
     statement (114)
         on left: 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78
-        on right: 208 219
+        on right: 208 218
     assignment (115)
         on left: 79 81 82 83
         on right: 65
@@ -640,7 +637,7 @@ Nonterminals, with rules where they appear
         on right: 38 79 81 82 139 199
     simple_expression (122)
         on left: 93 94
-        on right: 85 92 204 231
+        on right: 85 92 204 230
     binary_expression_or_range (123)
         on left: 95 96
         on right: 112
@@ -816,55 +813,52 @@ Nonterminals, with rules where they appear
         on left: 215
         on right: 216
     stmntlist (181)
-        on left: 217 219
-        on right: 60 179 209 219
-    $@26 (182)
-        on left: 218
-        on right: 219
-    closing_paren (183)
-        on left: 220
-        on right: 222 224
-    call_expression (184)
-        on left: 222 224
+        on left: 217 218
+        on right: 60 179 209 218
+    closing_paren (182)
+        on left: 219
+        on right: 221 223
+    call_expression (183)
+        on left: 221 223
         on right: 64 106
+    @26 (184)
+        on left: 220
+        on right: 221
     @27 (185)
-        on left: 221
-        on right: 222
-    @28 (186)
-        on left: 223
-        on right: 224
-    function_id_or_pointer (187)
-        on left: 225 226
-        on right: 224
-    nonempty_parameters (188)
-        on left: 228 229 230
-        on right: 227 229
-    parameter (189)
+        on left: 222
+        on right: 223
+    function_id_or_pointer (186)
+        on left: 224 225
+        on right: 223
+    nonempty_parameters (187)
+        on left: 227 228 229
+        on right: 226 228
+    parameter (188)
+        on left: 230
+        on right: 227 228
+    type_cast (189)
         on left: 231
-        on right: 228 229
-    type_cast (190)
-        on left: 232
         on right: 110
-    type_name (191)
-        on left: 233 234
-        on right: 35 38 39 46 199 204 232
-    array_size (192)
-        on left: 235 236
-        on right: 234
-    boolean_literal (193)
-        on left: 237 238
-        on right: 246
-    float_literal (194)
-        on left: 239
-        on right: 244
-    integer_literal (195)
-        on left: 240 241
-        on right: 164 182 243
-    character_literal (196)
-        on left: 242
+    type_name (190)
+        on left: 232 233
+        on right: 35 38 39 46 199 204 231
+    array_size (191)
+        on left: 234 235
+        on right: 233
+    boolean_literal (192)
+        on left: 236 237
         on right: 245
-    simple_literal (197)
-        on left: 243 244 245 246
+    float_literal (193)
+        on left: 238
+        on right: 243
+    integer_literal (194)
+        on left: 239 240
+        on right: 164 182 242
+    character_literal (195)
+        on left: 241
+        on right: 244
+    simple_literal (196)
+        on left: 242 243 244 245
         on right: 25 144 154
 
 
@@ -1120,12 +1114,12 @@ State 26
 
 State 27
 
-  233 type_name: T_TYPE_IDENTIFIER .
-  234          | T_TYPE_IDENTIFIER . array_size
+  232 type_name: T_TYPE_IDENTIFIER .
+  233          | T_TYPE_IDENTIFIER . array_size
 
     '['  shift, and go to state 44
 
-    $default  reduce using rule 233 (type_name)
+    $default  reduce using rule 232 (type_name)
 
     array_size  go to state 45
 
@@ -1270,8 +1264,8 @@ State 43
 
 State 44
 
-  235 array_size: '[' . ']'
-  236           | '[' . T_NUM ']'
+  234 array_size: '[' . ']'
+  235           | '[' . T_NUM ']'
 
     T_NUM  shift, and go to state 56
     ']'    shift, and go to state 57
@@ -1279,9 +1273,9 @@ State 44
 
 State 45
 
-  234 type_name: T_TYPE_IDENTIFIER array_size .
+  233 type_name: T_TYPE_IDENTIFIER array_size .
 
-    $default  reduce using rule 234 (type_name)
+    $default  reduce using rule 233 (type_name)
 
 
 State 46
@@ -1389,16 +1383,16 @@ State 55
 
 State 56
 
-  236 array_size: '[' T_NUM . ']'
+  235 array_size: '[' T_NUM . ']'
 
     ']'  shift, and go to state 82
 
 
 State 57
 
-  235 array_size: '[' ']' .
+  234 array_size: '[' ']' .
 
-    $default  reduce using rule 235 (array_size)
+    $default  reduce using rule 234 (array_size)
 
 
 State 58
@@ -1483,16 +1477,16 @@ State 61
 
 State 62
 
-  240 integer_literal: T_NUM .
+  239 integer_literal: T_NUM .
 
-    $default  reduce using rule 240 (integer_literal)
+    $default  reduce using rule 239 (integer_literal)
 
 
 State 63
 
-  239 float_literal: T_FLOATING_POINT_NUMBER .
+  238 float_literal: T_FLOATING_POINT_NUMBER .
 
-    $default  reduce using rule 239 (float_literal)
+    $default  reduce using rule 238 (float_literal)
 
 
 State 64
@@ -1504,28 +1498,28 @@ State 64
 
 State 65
 
-  242 character_literal: T_CHARACTER .
+  241 character_literal: T_CHARACTER .
 
-    $default  reduce using rule 242 (character_literal)
+    $default  reduce using rule 241 (character_literal)
 
 
 State 66
 
-  237 boolean_literal: T_TRUE .
+  236 boolean_literal: T_TRUE .
 
-    $default  reduce using rule 237 (boolean_literal)
+    $default  reduce using rule 236 (boolean_literal)
 
 
 State 67
 
-  238 boolean_literal: T_FALSE .
+  237 boolean_literal: T_FALSE .
 
-    $default  reduce using rule 238 (boolean_literal)
+    $default  reduce using rule 237 (boolean_literal)
 
 
 State 68
 
-  241 integer_literal: '-' . T_NUM
+  240 integer_literal: '-' . T_NUM
 
     T_NUM  shift, and go to state 113
 
@@ -1541,30 +1535,30 @@ State 69
 
 State 70
 
-  246 simple_literal: boolean_literal .
+  245 simple_literal: boolean_literal .
 
-    $default  reduce using rule 246 (simple_literal)
+    $default  reduce using rule 245 (simple_literal)
 
 
 State 71
 
-  244 simple_literal: float_literal .
-
-    $default  reduce using rule 244 (simple_literal)
-
-
-State 72
-
-  243 simple_literal: integer_literal .
+  243 simple_literal: float_literal .
 
     $default  reduce using rule 243 (simple_literal)
 
 
+State 72
+
+  242 simple_literal: integer_literal .
+
+    $default  reduce using rule 242 (simple_literal)
+
+
 State 73
 
-  245 simple_literal: character_literal .
+  244 simple_literal: character_literal .
 
-    $default  reduce using rule 245 (simple_literal)
+    $default  reduce using rule 244 (simple_literal)
 
 
 State 74
@@ -1627,9 +1621,9 @@ State 81
 
 State 82
 
-  236 array_size: '[' T_NUM ']' .
+  235 array_size: '[' T_NUM ']' .
 
-    $default  reduce using rule 236 (array_size)
+    $default  reduce using rule 235 (array_size)
 
 
 State 83
@@ -1643,10 +1637,10 @@ State 84
 
    31 variable_reference: T_IDENT .
   147 value: T_IDENT .
-  226 function_id_or_pointer: T_IDENT .
+  225 function_id_or_pointer: T_IDENT .
 
     T_ASSIGN  reduce using rule 31 (variable_reference)
-    '('       reduce using rule 226 (function_id_or_pointer)
+    '('       reduce using rule 225 (function_id_or_pointer)
     $default  reduce using rule 147 (value)
 
 
@@ -1659,7 +1653,7 @@ State 85
 
 State 86
 
-  222 call_expression: T_FUNC . '(' @27 parameter_list closing_paren
+  221 call_expression: T_FUNC . '(' @26 parameter_list closing_paren
 
     '('  shift, and go to state 118
 
@@ -1758,7 +1752,7 @@ State 89
 State 90
 
   116 binary_expression: '-' . variable_reference
-  241 integer_literal: '-' . T_NUM
+  240 integer_literal: '-' . T_NUM
 
     T_IDENT     shift, and go to state 121
     T_NUM       shift, and go to state 113
@@ -1769,7 +1763,7 @@ State 90
 
 State 91
 
-  225 function_id_or_pointer: '*' . variable_reference
+  224 function_id_or_pointer: '*' . variable_reference
 
     T_IDENT     shift, and go to state 121
     T_VARIABLE  shift, and go to state 122
@@ -1833,7 +1827,7 @@ State 93
 State 94
 
   138 binary_expression: '(' . binary_expression ')'
-  232 type_cast: '(' . type_name ')'
+  231 type_cast: '(' . type_name ')'
 
     T_NEW                    shift, and go to state 83
     T_TYPE_IDENTIFIER        shift, and go to state 27
@@ -2040,7 +2034,7 @@ State 106
 
 State 107
 
-  224 call_expression: function_id_or_pointer . '(' @28 parameter_list closing_paren
+  223 call_expression: function_id_or_pointer . '(' @27 parameter_list closing_paren
 
     '('  shift, and go to state 157
 
@@ -2112,9 +2106,9 @@ State 112
 
 State 113
 
-  241 integer_literal: '-' T_NUM .
+  240 integer_literal: '-' T_NUM .
 
-    $default  reduce using rule 241 (integer_literal)
+    $default  reduce using rule 240 (integer_literal)
 
 
 State 114
@@ -2236,11 +2230,11 @@ State 117
 
 State 118
 
-  222 call_expression: T_FUNC '(' . @27 parameter_list closing_paren
+  221 call_expression: T_FUNC '(' . @26 parameter_list closing_paren
 
-    $default  reduce using rule 221 (@27)
+    $default  reduce using rule 220 (@26)
 
-    @27  go to state 204
+    @26  go to state 204
 
 
 State 119
@@ -2350,9 +2344,9 @@ State 123
 
 State 124
 
-  225 function_id_or_pointer: '*' variable_reference .
+  224 function_id_or_pointer: '*' variable_reference .
 
-    $default  reduce using rule 225 (function_id_or_pointer)
+    $default  reduce using rule 224 (function_id_or_pointer)
 
 
 State 125
@@ -2511,7 +2505,7 @@ State 128
 
 State 129
 
-  232 type_cast: '(' type_name . ')'
+  231 type_cast: '(' type_name . ')'
 
     ')'  shift, and go to state 215
 
@@ -3499,19 +3493,19 @@ State 156
 
 State 157
 
-  224 call_expression: function_id_or_pointer '(' . @28 parameter_list closing_paren
+  223 call_expression: function_id_or_pointer '(' . @27 parameter_list closing_paren
 
-    $default  reduce using rule 223 (@28)
+    $default  reduce using rule 222 (@27)
 
-    @28  go to state 246
+    @27  go to state 246
 
 
 State 158
 
   147 value: T_IDENT .
-  226 function_id_or_pointer: T_IDENT .
+  225 function_id_or_pointer: T_IDENT .
 
-    '('       reduce using rule 226 (function_id_or_pointer)
+    '('       reduce using rule 225 (function_id_or_pointer)
     $default  reduce using rule 147 (value)
 
 
@@ -3557,9 +3551,9 @@ State 163
 
 State 164
 
-  230 nonempty_parameters: error .
+  229 nonempty_parameters: error .
 
-    $default  reduce using rule 230 (nonempty_parameters)
+    $default  reduce using rule 229 (nonempty_parameters)
 
 
 State 165
@@ -3595,26 +3589,26 @@ State 168
 
 State 169
 
-  231 parameter: simple_expression .
+  230 parameter: simple_expression .
 
-    $default  reduce using rule 231 (parameter)
+    $default  reduce using rule 230 (parameter)
 
 
 State 170
 
-  227 parameter_list: nonempty_parameters .
-  229 nonempty_parameters: nonempty_parameters . ',' parameter
+  226 parameter_list: nonempty_parameters .
+  228 nonempty_parameters: nonempty_parameters . ',' parameter
 
     ','  shift, and go to state 251
 
-    $default  reduce using rule 227 (parameter_list)
+    $default  reduce using rule 226 (parameter_list)
 
 
 State 171
 
-  228 nonempty_parameters: parameter .
+  227 nonempty_parameters: parameter .
 
-    $default  reduce using rule 228 (nonempty_parameters)
+    $default  reduce using rule 227 (nonempty_parameters)
 
 
 State 172
@@ -3651,11 +3645,11 @@ State 175
 
    31 variable_reference: T_IDENT .
   185 label: T_IDENT . ':'
-  226 function_id_or_pointer: T_IDENT .
+  225 function_id_or_pointer: T_IDENT .
 
     ':'  shift, and go to state 259
 
-    '('       reduce using rule 226 (function_id_or_pointer)
+    '('       reduce using rule 225 (function_id_or_pointer)
     $default  reduce using rule 31 (variable_reference)
 
 
@@ -3804,18 +3798,57 @@ State 186
 
 State 187
 
-  219 stmntlist: statement . $@26 stmntlist
+  218 stmntlist: statement . stmntlist
 
-    $default  reduce using rule 218 ($@26)
+    error              shift, and go to state 173
+    T_FOR              shift, and go to state 174
+    T_TYPE_IDENTIFIER  shift, and go to state 27
+    T_IDENT            shift, and go to state 175
+    T_FUNC             shift, and go to state 86
+    T_IF               shift, and go to state 176
+    T_WHILE            shift, and go to state 177
+    T_GOTO             shift, and go to state 178
+    T_SWITCH           shift, and go to state 179
+    T_BREAK            shift, and go to state 180
+    T_CONTINUE         shift, and go to state 181
+    T_RETURN           shift, and go to state 182
+    T_VARIABLE         shift, and go to state 122
+    '*'                shift, and go to state 91
+    ';'                shift, and go to state 183
+    '{'                shift, and go to state 80
 
-    $@26  go to state 276
+    T_CASE     reduce using rule 217 (stmntlist)
+    T_DEFAULT  reduce using rule 217 (stmntlist)
+    '}'        reduce using rule 217 (stmntlist)
+
+    variable_reference      go to state 184
+    var_decl                go to state 276
+    block                   go to state 186
+    statement               go to state 187
+    assignment              go to state 188
+    shorthand_assignment    go to state 189
+    assignment_target       go to state 190
+    increment_expression    go to state 191
+    break                   go to state 192
+    continue                go to state 193
+    return_expression       go to state 194
+    label                   go to state 195
+    goto_expression         go to state 196
+    switch_expression       go to state 197
+    for_loop_expression     go to state 198
+    while                   go to state 199
+    if_expression           go to state 200
+    stmntlist               go to state 277
+    call_expression         go to state 202
+    function_id_or_pointer  go to state 107
+    type_name               go to state 29
 
 
 State 188
 
    65 statement: assignment . ';'
 
-    ';'  shift, and go to state 277
+    ';'  shift, and go to state 278
 
 
 State 189
@@ -3830,15 +3863,15 @@ State 190
    81 assignment: assignment_target . '.' T_IDENT $@8 assignment_expression
    82           | assignment_target . '[' binary_expression ']' assignment_expression
 
-    '['  shift, and go to state 278
-    '.'  shift, and go to state 279
+    '['  shift, and go to state 279
+    '.'  shift, and go to state 280
 
 
 State 191
 
    75 statement: increment_expression . ';'
 
-    ';'  shift, and go to state 280
+    ';'  shift, and go to state 281
 
 
 State 192
@@ -3859,7 +3892,7 @@ State 194
 
    72 statement: return_expression . ';'
 
-    ';'  shift, and go to state 281
+    ';'  shift, and go to state 282
 
 
 State 195
@@ -3873,7 +3906,7 @@ State 196
 
    73 statement: goto_expression . ';'
 
-    ';'  shift, and go to state 282
+    ';'  shift, and go to state 283
 
 
 State 197
@@ -3908,28 +3941,28 @@ State 201
 
    60 block: '{' var_decls stmntlist . closing_brace
 
-    '}'  shift, and go to state 283
+    '}'  shift, and go to state 284
 
-    closing_brace  go to state 284
+    closing_brace  go to state 285
 
 
 State 202
 
    64 statement: call_expression . ';'
 
-    ';'  shift, and go to state 285
+    ';'  shift, and go to state 286
 
 
 State 203
 
   108 constructor_expression: T_NEW T_TYPE_IDENTIFIER '(' . ')'
 
-    ')'  shift, and go to state 286
+    ')'  shift, and go to state 287
 
 
 State 204
 
-  222 call_expression: T_FUNC '(' @27 . parameter_list closing_paren
+  221 call_expression: T_FUNC '(' @26 . parameter_list closing_paren
 
     error                    shift, and go to state 164
     T_NEW                    shift, and go to state 83
@@ -3958,7 +3991,7 @@ State 204
     ')'  [reduce using rule 97 (range_expression)]
 
     variable_reference      go to state 96
-    parameter_list          go to state 287
+    parameter_list          go to state 288
     non_empty_pardecl       go to state 167
     parameter_declaration   go to state 168
     simple_expression       go to state 169
@@ -4023,8 +4056,8 @@ State 210
   159 array_literal: '[' $@13 array_elements . ']'
   160 array_elements: array_elements . ',' array_element
 
-    ','  shift, and go to state 288
-    ']'  shift, and go to state 289
+    ','  shift, and go to state 289
+    ']'  shift, and go to state 290
 
 
 State 211
@@ -4057,9 +4090,9 @@ State 214
 
 State 215
 
-  232 type_cast: '(' type_name ')' .
+  231 type_cast: '(' type_name ')' .
 
-    $default  reduce using rule 232 (type_cast)
+    $default  reduce using rule 231 (type_cast)
 
 
 State 216
@@ -4067,16 +4100,16 @@ State 216
   154 map_associate: T_STRING . T_ASSOC_ARROW simple_literal
   155              | T_STRING . T_ASSOC_ARROW T_STRING
 
-    T_ASSOC_ARROW  shift, and go to state 290
+    T_ASSOC_ARROW  shift, and go to state 291
 
 
 State 217
 
   149 map_literal: '{' $@11 optional_map_associates . closing_brace
 
-    '}'  shift, and go to state 283
+    '}'  shift, and go to state 284
 
-    closing_brace  go to state 291
+    closing_brace  go to state 292
 
 
 State 218
@@ -4084,7 +4117,7 @@ State 218
   151 optional_map_associates: map_associates .
   153 map_associates: map_associates . ',' map_associate
 
-    ','  shift, and go to state 292
+    ','  shift, and go to state 293
 
     $default  reduce using rule 151 (optional_map_associates)
 
@@ -4172,7 +4205,7 @@ State 220
     '.'            [reduce using rule 98 ($@10)]
     $default       reduce using rule 98 ($@10)
 
-    $@10  go to state 293
+    $@10  go to state 294
 
 
 State 221
@@ -5089,7 +5122,7 @@ State 242
 
   112 binary_expression: binary_expression '[' binary_expression_or_range . ']'
 
-    ']'  shift, and go to state 294
+    ']'  shift, and go to state 295
 
 
 State 243
@@ -5164,7 +5197,7 @@ State 245
 
 State 246
 
-  224 call_expression: function_id_or_pointer '(' @28 . parameter_list closing_paren
+  223 call_expression: function_id_or_pointer '(' @27 . parameter_list closing_paren
 
     error                    shift, and go to state 164
     T_NEW                    shift, and go to state 83
@@ -5193,7 +5226,7 @@ State 246
     ')'  [reduce using rule 97 (range_expression)]
 
     variable_reference      go to state 96
-    parameter_list          go to state 295
+    parameter_list          go to state 296
     non_empty_pardecl       go to state 167
     parameter_declaration   go to state 168
     simple_expression       go to state 169
@@ -5236,11 +5269,11 @@ State 249
 
    36 macrostart: macro_type macro_declaration '(' parameter_list ')' . optional_description
 
-    T_STRING  shift, and go to state 296
+    T_STRING  shift, and go to state 297
 
     $default  reduce using rule 40 (optional_description)
 
-    optional_description  go to state 297
+    optional_description  go to state 298
 
 
 State 250
@@ -5250,13 +5283,13 @@ State 250
     T_TYPE_IDENTIFIER  shift, and go to state 27
     T_ELLIPSIS         shift, and go to state 165
 
-    parameter_declaration  go to state 298
+    parameter_declaration  go to state 299
     type_name              go to state 172
 
 
 State 251
 
-  229 nonempty_parameters: nonempty_parameters ',' . parameter
+  228 nonempty_parameters: nonempty_parameters ',' . parameter
 
     T_NEW                    shift, and go to state 83
     T_IDENT                  shift, and go to state 84
@@ -5291,7 +5324,7 @@ State 251
     string                  go to state 105
     call_expression         go to state 106
     function_id_or_pointer  go to state 107
-    parameter               go to state 299
+    parameter               go to state 300
     type_cast               go to state 108
     boolean_literal         go to state 70
     float_literal           go to state 71
@@ -5330,8 +5363,8 @@ State 255
 
     $default  reduce using rule 197 (opt_for_initializer)
 
-    opt_for_initializer  go to state 300
-    type_name            go to state 301
+    opt_for_initializer  go to state 301
+    type_name            go to state 302
 
 
 State 256
@@ -5347,7 +5380,7 @@ State 257
 
     $default  reduce using rule 189 ($@15)
 
-    $@15  go to state 302
+    $@15  go to state 303
 
 
 State 258
@@ -5391,7 +5424,7 @@ State 260
     variable_reference      go to state 96
     s_bterm                 go to state 99
     constructor_expression  go to state 100
-    binary_expression       go to state 303
+    binary_expression       go to state 304
     value                   go to state 102
     map_literal             go to state 103
     array_literal           go to state 104
@@ -5412,7 +5445,7 @@ State 261
 
     $default  reduce using rule 211 ($@23)
 
-    $@23  go to state 304
+    $@23  go to state 305
 
 
 State 262
@@ -5421,7 +5454,7 @@ State 262
 
     '('  shift, and go to state 260
 
-    condition  go to state 305
+    condition  go to state 306
 
 
 State 263
@@ -5435,7 +5468,7 @@ State 264
 
   188 switch_expression: T_SWITCH '(' . value ')' $@14 '{' case_clauses '}'
 
-    T_IDENT                  shift, and go to state 306
+    T_IDENT                  shift, and go to state 307
     T_NUM                    shift, and go to state 62
     T_FLOATING_POINT_NUMBER  shift, and go to state 63
     T_STRING                 shift, and go to state 85
@@ -5447,7 +5480,7 @@ State 264
     '['                      shift, and go to state 92
     '{'                      shift, and go to state 95
 
-    value              go to state 307
+    value              go to state 308
     map_literal        go to state 103
     array_literal      go to state 104
     string             go to state 105
@@ -5469,14 +5502,14 @@ State 266
 
   170 break: T_BREAK opt_num . ';'
 
-    ';'  shift, and go to state 308
+    ';'  shift, and go to state 309
 
 
 State 267
 
   171 continue: T_CONTINUE opt_num . ';'
 
-    ';'  shift, and go to state 309
+    ';'  shift, and go to state 310
 
 
 State 268
@@ -5558,13 +5591,13 @@ State 272
 
    85 shorthand_assignment: variable_reference $@9 . shorthand_assignment_operator simple_expression
 
-    T_SH_ASSIGN_PLUS   shift, and go to state 310
-    T_SH_ASSIGN_MINUS  shift, and go to state 311
-    T_SH_ASSIGN_MULT   shift, and go to state 312
-    T_SH_ASSIGN_DIV    shift, and go to state 313
-    T_SH_ASSIGN_MOD    shift, and go to state 314
+    T_SH_ASSIGN_PLUS   shift, and go to state 311
+    T_SH_ASSIGN_MINUS  shift, and go to state 312
+    T_SH_ASSIGN_MULT   shift, and go to state 313
+    T_SH_ASSIGN_DIV    shift, and go to state 314
+    T_SH_ASSIGN_MOD    shift, and go to state 315
 
-    shorthand_assignment_operator  go to state 315
+    shorthand_assignment_operator  go to state 316
 
 
 State 273
@@ -5590,60 +5623,26 @@ State 275
 
 State 276
 
-  219 stmntlist: statement $@26 . stmntlist
+   77 statement: var_decl .
 
-    error              shift, and go to state 173
-    T_FOR              shift, and go to state 174
-    T_TYPE_IDENTIFIER  shift, and go to state 27
-    T_IDENT            shift, and go to state 175
-    T_FUNC             shift, and go to state 86
-    T_IF               shift, and go to state 176
-    T_WHILE            shift, and go to state 177
-    T_GOTO             shift, and go to state 178
-    T_SWITCH           shift, and go to state 179
-    T_BREAK            shift, and go to state 180
-    T_CONTINUE         shift, and go to state 181
-    T_RETURN           shift, and go to state 182
-    T_VARIABLE         shift, and go to state 122
-    '*'                shift, and go to state 91
-    ';'                shift, and go to state 183
-    '{'                shift, and go to state 80
-
-    T_CASE     reduce using rule 217 (stmntlist)
-    T_DEFAULT  reduce using rule 217 (stmntlist)
-    '}'        reduce using rule 217 (stmntlist)
-
-    variable_reference      go to state 184
-    var_decl                go to state 316
-    block                   go to state 186
-    statement               go to state 187
-    assignment              go to state 188
-    shorthand_assignment    go to state 189
-    assignment_target       go to state 190
-    increment_expression    go to state 191
-    break                   go to state 192
-    continue                go to state 193
-    return_expression       go to state 194
-    label                   go to state 195
-    goto_expression         go to state 196
-    switch_expression       go to state 197
-    for_loop_expression     go to state 198
-    while                   go to state 199
-    if_expression           go to state 200
-    stmntlist               go to state 317
-    call_expression         go to state 202
-    function_id_or_pointer  go to state 107
-    type_name               go to state 29
+    $default  reduce using rule 77 (statement)
 
 
 State 277
+
+  218 stmntlist: statement stmntlist .
+
+    $default  reduce using rule 218 (stmntlist)
+
+
+State 278
 
    65 statement: assignment ';' .
 
     $default  reduce using rule 65 (statement)
 
 
-State 278
+State 279
 
    82 assignment: assignment_target '[' . binary_expression ']' assignment_expression
 
@@ -5669,7 +5668,7 @@ State 278
     variable_reference      go to state 96
     s_bterm                 go to state 99
     constructor_expression  go to state 100
-    binary_expression       go to state 318
+    binary_expression       go to state 317
     value                   go to state 102
     map_literal             go to state 103
     array_literal           go to state 104
@@ -5684,72 +5683,72 @@ State 278
     simple_literal          go to state 109
 
 
-State 279
+State 280
 
    81 assignment: assignment_target '.' . T_IDENT $@8 assignment_expression
 
-    T_IDENT  shift, and go to state 319
+    T_IDENT  shift, and go to state 318
 
 
-State 280
+State 281
 
    75 statement: increment_expression ';' .
 
     $default  reduce using rule 75 (statement)
 
 
-State 281
+State 282
 
    72 statement: return_expression ';' .
 
     $default  reduce using rule 72 (statement)
 
 
-State 282
+State 283
 
    73 statement: goto_expression ';' .
 
     $default  reduce using rule 73 (statement)
 
 
-State 283
+State 284
 
   210 closing_brace: '}' .
 
     $default  reduce using rule 210 (closing_brace)
 
 
-State 284
+State 285
 
    60 block: '{' var_decls stmntlist closing_brace .
 
     $default  reduce using rule 60 (block)
 
 
-State 285
+State 286
 
    64 statement: call_expression ';' .
 
     $default  reduce using rule 64 (statement)
 
 
-State 286
+State 287
 
   108 constructor_expression: T_NEW T_TYPE_IDENTIFIER '(' ')' .
 
     $default  reduce using rule 108 (constructor_expression)
 
 
-State 287
-
-  222 call_expression: T_FUNC '(' @27 parameter_list . closing_paren
-
-    ')'  shift, and go to state 320
-
-    closing_paren  go to state 321
-
-
 State 288
+
+  221 call_expression: T_FUNC '(' @26 parameter_list . closing_paren
+
+    ')'  shift, and go to state 319
+
+    closing_paren  go to state 320
+
+
+State 289
 
   160 array_elements: array_elements ',' . array_element
 
@@ -5760,26 +5759,26 @@ State 288
     T_FALSE      shift, and go to state 209
     '-'          shift, and go to state 68
 
-    array_element         go to state 322
+    array_element         go to state 321
     simple_array_element  go to state 212
     integer_literal       go to state 213
 
 
-State 289
+State 290
 
   159 array_literal: '[' $@13 array_elements ']' .
 
     $default  reduce using rule 159 (array_literal)
 
 
-State 290
+State 291
 
   154 map_associate: T_STRING T_ASSOC_ARROW . simple_literal
   155              | T_STRING T_ASSOC_ARROW . T_STRING
 
     T_NUM                    shift, and go to state 62
     T_FLOATING_POINT_NUMBER  shift, and go to state 63
-    T_STRING                 shift, and go to state 323
+    T_STRING                 shift, and go to state 322
     T_CHARACTER              shift, and go to state 65
     T_TRUE                   shift, and go to state 66
     T_FALSE                  shift, and go to state 67
@@ -5789,91 +5788,91 @@ State 290
     float_literal      go to state 71
     integer_literal    go to state 72
     character_literal  go to state 73
-    simple_literal     go to state 324
+    simple_literal     go to state 323
 
 
-State 291
+State 292
 
   149 map_literal: '{' $@11 optional_map_associates closing_brace .
 
     $default  reduce using rule 149 (map_literal)
 
 
-State 292
+State 293
 
   153 map_associates: map_associates ',' . map_associate
 
     T_STRING  shift, and go to state 216
 
-    map_associate  go to state 325
+    map_associate  go to state 324
 
 
-State 293
+State 294
 
    99 range_expression: binary_expression T_DOTDOT binary_expression $@10 . range_increment
 
-    T_DOTDOT  shift, and go to state 326
+    T_DOTDOT  shift, and go to state 325
 
     T_DOTDOT  [reduce using rule 100 (range_increment)]
     $default  reduce using rule 100 (range_increment)
 
-    range_increment  go to state 327
+    range_increment  go to state 326
 
 
-State 294
+State 295
 
   112 binary_expression: binary_expression '[' binary_expression_or_range ']' .
 
     $default  reduce using rule 112 (binary_expression)
 
 
-State 295
-
-  224 call_expression: function_id_or_pointer '(' @28 parameter_list . closing_paren
-
-    ')'  shift, and go to state 320
-
-    closing_paren  go to state 328
-
-
 State 296
+
+  223 call_expression: function_id_or_pointer '(' @27 parameter_list . closing_paren
+
+    ')'  shift, and go to state 319
+
+    closing_paren  go to state 327
+
+
+State 297
 
    41 optional_description: T_STRING .
 
     $default  reduce using rule 41 (optional_description)
 
 
-State 297
+State 298
 
    36 macrostart: macro_type macro_declaration '(' parameter_list ')' optional_description .
 
     $default  reduce using rule 36 (macrostart)
 
 
-State 298
+State 299
 
    45 non_empty_pardecl: non_empty_pardecl ',' parameter_declaration .
 
     $default  reduce using rule 45 (non_empty_pardecl)
 
 
-State 299
-
-  229 nonempty_parameters: nonempty_parameters ',' parameter .
-
-    $default  reduce using rule 229 (nonempty_parameters)
-
-
 State 300
+
+  228 nonempty_parameters: nonempty_parameters ',' parameter .
+
+    $default  reduce using rule 228 (nonempty_parameters)
+
+
+State 301
 
   196 for_to_clause: '(' opt_for_initializer . $@16 ';' binary_expression ';' $@17 for_increment $@18 ')'
 
     $default  reduce using rule 193 ($@16)
 
-    $@16  go to state 329
+    $@16  go to state 328
 
 
-State 301
+State 302
 
   199 opt_for_initializer: type_name . variable_identifier $@19 assignment_expression
   204 in_clause: '(' type_name . variable_identifier $@20 ':' simple_expression ')'
@@ -5882,10 +5881,10 @@ State 301
     T_NUM     shift, and go to state 38
     T_STRING  shift, and go to state 39
 
-    variable_identifier  go to state 330
+    variable_identifier  go to state 329
 
 
-State 302
+State 303
 
   190 for_loop_expression: T_FOR for_clause $@15 . local_block
 
@@ -5904,12 +5903,12 @@ State 302
     T_VARIABLE         shift, and go to state 122
     '*'                shift, and go to state 91
     ';'                shift, and go to state 183
-    '{'                shift, and go to state 331
+    '{'                shift, and go to state 330
 
     variable_reference      go to state 184
-    var_decl                go to state 316
+    var_decl                go to state 276
     block                   go to state 186
-    statement               go to state 332
+    statement               go to state 331
     assignment              go to state 188
     shorthand_assignment    go to state 189
     assignment_target       go to state 190
@@ -5922,14 +5921,14 @@ State 302
     switch_expression       go to state 197
     for_loop_expression     go to state 198
     while                   go to state 199
-    local_block             go to state 333
+    local_block             go to state 332
     if_expression           go to state 200
     call_expression         go to state 202
     function_id_or_pointer  go to state 107
     type_name               go to state 29
 
 
-State 303
+State 304
 
   111 binary_expression: binary_expression . '.' T_IDENT
   112                  | binary_expression . '[' binary_expression_or_range ']'
@@ -5979,14 +5978,14 @@ State 303
     '/'            shift, and go to state 152
     '%'            shift, and go to state 153
     '['            shift, and go to state 154
-    ')'            shift, and go to state 334
+    ')'            shift, and go to state 333
     '.'            shift, and go to state 155
 
     '*'       [reduce using rule 141 (condition)]
     $default  reduce using rule 141 (condition)
 
 
-State 304
+State 305
 
   213 if_expression: T_IF condition $@23 . local_block $@24 else_clause
 
@@ -6005,12 +6004,12 @@ State 304
     T_VARIABLE         shift, and go to state 122
     '*'                shift, and go to state 91
     ';'                shift, and go to state 183
-    '{'                shift, and go to state 331
+    '{'                shift, and go to state 330
 
     variable_reference      go to state 184
-    var_decl                go to state 316
+    var_decl                go to state 276
     block                   go to state 186
-    statement               go to state 332
+    statement               go to state 331
     assignment              go to state 188
     shorthand_assignment    go to state 189
     assignment_target       go to state 190
@@ -6023,86 +6022,86 @@ State 304
     switch_expression       go to state 197
     for_loop_expression     go to state 198
     while                   go to state 199
-    local_block             go to state 335
+    local_block             go to state 334
     if_expression           go to state 200
     call_expression         go to state 202
     function_id_or_pointer  go to state 107
     type_name               go to state 29
 
 
-State 305
+State 306
 
   207 while: T_WHILE $@21 condition . $@22 local_block
 
     $default  reduce using rule 206 ($@22)
 
-    $@22  go to state 336
+    $@22  go to state 335
 
 
-State 306
+State 307
 
   147 value: T_IDENT .
 
     $default  reduce using rule 147 (value)
 
 
-State 307
+State 308
 
   188 switch_expression: T_SWITCH '(' value . ')' $@14 '{' case_clauses '}'
 
-    ')'  shift, and go to state 337
+    ')'  shift, and go to state 336
 
 
-State 308
+State 309
 
   170 break: T_BREAK opt_num ';' .
 
     $default  reduce using rule 170 (break)
 
 
-State 309
+State 310
 
   171 continue: T_CONTINUE opt_num ';' .
 
     $default  reduce using rule 171 (continue)
 
 
-State 310
+State 311
 
    90 shorthand_assignment_operator: T_SH_ASSIGN_PLUS .
 
     $default  reduce using rule 90 (shorthand_assignment_operator)
 
 
-State 311
+State 312
 
    91 shorthand_assignment_operator: T_SH_ASSIGN_MINUS .
 
     $default  reduce using rule 91 (shorthand_assignment_operator)
 
 
-State 312
+State 313
 
    87 shorthand_assignment_operator: T_SH_ASSIGN_MULT .
 
     $default  reduce using rule 87 (shorthand_assignment_operator)
 
 
-State 313
+State 314
 
    88 shorthand_assignment_operator: T_SH_ASSIGN_DIV .
 
     $default  reduce using rule 88 (shorthand_assignment_operator)
 
 
-State 314
+State 315
 
    89 shorthand_assignment_operator: T_SH_ASSIGN_MOD .
 
     $default  reduce using rule 89 (shorthand_assignment_operator)
 
 
-State 315
+State 316
 
    85 shorthand_assignment: variable_reference $@9 shorthand_assignment_operator . simple_expression
 
@@ -6128,7 +6127,7 @@ State 315
     $default  reduce using rule 97 (range_expression)
 
     variable_reference      go to state 96
-    simple_expression       go to state 338
+    simple_expression       go to state 337
     range_expression        go to state 98
     s_bterm                 go to state 99
     constructor_expression  go to state 100
@@ -6147,21 +6146,7 @@ State 315
     simple_literal          go to state 109
 
 
-State 316
-
-   77 statement: var_decl .
-
-    $default  reduce using rule 77 (statement)
-
-
 State 317
-
-  219 stmntlist: statement $@26 stmntlist .
-
-    $default  reduce using rule 219 (stmntlist)
-
-
-State 318
 
    82 assignment: assignment_target '[' binary_expression . ']' assignment_expression
   111 binary_expression: binary_expression . '.' T_IDENT
@@ -6211,61 +6196,61 @@ State 318
     '%'            shift, and go to state 153
     '['            shift, and go to state 154
     '.'            shift, and go to state 155
-    ']'            shift, and go to state 339
+    ']'            shift, and go to state 338
 
 
-State 319
+State 318
 
    81 assignment: assignment_target '.' T_IDENT . $@8 assignment_expression
 
     $default  reduce using rule 80 ($@8)
 
-    $@8  go to state 340
+    $@8  go to state 339
+
+
+State 319
+
+  219 closing_paren: ')' .
+
+    $default  reduce using rule 219 (closing_paren)
 
 
 State 320
 
-  220 closing_paren: ')' .
+  221 call_expression: T_FUNC '(' @26 parameter_list closing_paren .
 
-    $default  reduce using rule 220 (closing_paren)
+    $default  reduce using rule 221 (call_expression)
 
 
 State 321
-
-  222 call_expression: T_FUNC '(' @27 parameter_list closing_paren .
-
-    $default  reduce using rule 222 (call_expression)
-
-
-State 322
 
   160 array_elements: array_elements ',' array_element .
 
     $default  reduce using rule 160 (array_elements)
 
 
-State 323
+State 322
 
   155 map_associate: T_STRING T_ASSOC_ARROW T_STRING .
 
     $default  reduce using rule 155 (map_associate)
 
 
-State 324
+State 323
 
   154 map_associate: T_STRING T_ASSOC_ARROW simple_literal .
 
     $default  reduce using rule 154 (map_associate)
 
 
-State 325
+State 324
 
   153 map_associates: map_associates ',' map_associate .
 
     $default  reduce using rule 153 (map_associates)
 
 
-State 326
+State 325
 
   101 range_increment: T_DOTDOT . binary_expression
 
@@ -6291,7 +6276,7 @@ State 326
     variable_reference      go to state 96
     s_bterm                 go to state 99
     constructor_expression  go to state 100
-    binary_expression       go to state 341
+    binary_expression       go to state 340
     value                   go to state 102
     map_literal             go to state 103
     array_literal           go to state 104
@@ -6306,28 +6291,28 @@ State 326
     simple_literal          go to state 109
 
 
-State 327
+State 326
 
    99 range_expression: binary_expression T_DOTDOT binary_expression $@10 range_increment .
 
     $default  reduce using rule 99 (range_expression)
 
 
+State 327
+
+  223 call_expression: function_id_or_pointer '(' @27 parameter_list closing_paren .
+
+    $default  reduce using rule 223 (call_expression)
+
+
 State 328
-
-  224 call_expression: function_id_or_pointer '(' @28 parameter_list closing_paren .
-
-    $default  reduce using rule 224 (call_expression)
-
-
-State 329
 
   196 for_to_clause: '(' opt_for_initializer $@16 . ';' binary_expression ';' $@17 for_increment $@18 ')'
 
-    ';'  shift, and go to state 342
+    ';'  shift, and go to state 341
 
 
-State 330
+State 329
 
   199 opt_for_initializer: type_name variable_identifier . $@19 assignment_expression
   204 in_clause: '(' type_name variable_identifier . $@20 ':' simple_expression ')'
@@ -6335,11 +6320,11 @@ State 330
     ':'       reduce using rule 203 ($@20)
     $default  reduce using rule 198 ($@19)
 
-    $@19  go to state 343
-    $@20  go to state 344
+    $@19  go to state 342
+    $@20  go to state 343
 
 
-State 331
+State 330
 
    60 block: '{' . var_decls stmntlist closing_brace
   209 local_block: '{' . stmntlist closing_brace
@@ -6381,7 +6366,7 @@ State 331
     '}'                [reduce using rule 217 (stmntlist)]
 
     variable_reference      go to state 184
-    var_decl                go to state 316
+    var_decl                go to state 276
     block                   go to state 186
     var_decls               go to state 116
     statement               go to state 187
@@ -6398,43 +6383,43 @@ State 331
     for_loop_expression     go to state 198
     while                   go to state 199
     if_expression           go to state 200
-    stmntlist               go to state 345
+    stmntlist               go to state 344
     call_expression         go to state 202
     function_id_or_pointer  go to state 107
     type_name               go to state 29
 
 
-State 332
+State 331
 
   208 local_block: statement .
 
     $default  reduce using rule 208 (local_block)
 
 
-State 333
+State 332
 
   190 for_loop_expression: T_FOR for_clause $@15 local_block .
 
     $default  reduce using rule 190 (for_loop_expression)
 
 
-State 334
+State 333
 
   140 condition: '(' binary_expression ')' .
 
     $default  reduce using rule 140 (condition)
 
 
-State 335
+State 334
 
   213 if_expression: T_IF condition $@23 local_block . $@24 else_clause
 
     $default  reduce using rule 212 ($@24)
 
-    $@24  go to state 346
+    $@24  go to state 345
 
 
-State 336
+State 335
 
   207 while: T_WHILE $@21 condition $@22 . local_block
 
@@ -6453,12 +6438,12 @@ State 336
     T_VARIABLE         shift, and go to state 122
     '*'                shift, and go to state 91
     ';'                shift, and go to state 183
-    '{'                shift, and go to state 331
+    '{'                shift, and go to state 330
 
     variable_reference      go to state 184
-    var_decl                go to state 316
+    var_decl                go to state 276
     block                   go to state 186
-    statement               go to state 332
+    statement               go to state 331
     assignment              go to state 188
     shorthand_assignment    go to state 189
     assignment_target       go to state 190
@@ -6471,32 +6456,41 @@ State 336
     switch_expression       go to state 197
     for_loop_expression     go to state 198
     while                   go to state 199
-    local_block             go to state 347
+    local_block             go to state 346
     if_expression           go to state 200
     call_expression         go to state 202
     function_id_or_pointer  go to state 107
     type_name               go to state 29
 
 
-State 337
+State 336
 
   188 switch_expression: T_SWITCH '(' value ')' . $@14 '{' case_clauses '}'
 
     $default  reduce using rule 187 ($@14)
 
-    $@14  go to state 348
+    $@14  go to state 347
 
 
-State 338
+State 337
 
    85 shorthand_assignment: variable_reference $@9 shorthand_assignment_operator simple_expression .
 
     $default  reduce using rule 85 (shorthand_assignment)
 
 
-State 339
+State 338
 
    82 assignment: assignment_target '[' binary_expression ']' . assignment_expression
+
+    T_ASSIGN  shift, and go to state 58
+
+    assignment_expression  go to state 348
+
+
+State 339
+
+   81 assignment: assignment_target '.' T_IDENT $@8 . assignment_expression
 
     T_ASSIGN  shift, and go to state 58
 
@@ -6504,15 +6498,6 @@ State 339
 
 
 State 340
-
-   81 assignment: assignment_target '.' T_IDENT $@8 . assignment_expression
-
-    T_ASSIGN  shift, and go to state 58
-
-    assignment_expression  go to state 350
-
-
-State 341
 
   101 range_increment: T_DOTDOT binary_expression .
   111 binary_expression: binary_expression . '.' T_IDENT
@@ -6545,7 +6530,7 @@ State 341
     $default  reduce using rule 101 (range_increment)
 
 
-State 342
+State 341
 
   196 for_to_clause: '(' opt_for_initializer $@16 ';' . binary_expression ';' $@17 for_increment $@18 ')'
 
@@ -6571,7 +6556,7 @@ State 342
     variable_reference      go to state 96
     s_bterm                 go to state 99
     constructor_expression  go to state 100
-    binary_expression       go to state 351
+    binary_expression       go to state 350
     value                   go to state 102
     map_literal             go to state 103
     array_literal           go to state 104
@@ -6586,72 +6571,72 @@ State 342
     simple_literal          go to state 109
 
 
-State 343
+State 342
 
   199 opt_for_initializer: type_name variable_identifier $@19 . assignment_expression
 
     T_ASSIGN  shift, and go to state 58
 
-    assignment_expression  go to state 352
+    assignment_expression  go to state 351
+
+
+State 343
+
+  204 in_clause: '(' type_name variable_identifier $@20 . ':' simple_expression ')'
+
+    ':'  shift, and go to state 352
 
 
 State 344
 
-  204 in_clause: '(' type_name variable_identifier $@20 . ':' simple_expression ')'
+  209 local_block: '{' stmntlist . closing_brace
 
-    ':'  shift, and go to state 353
+    '}'  shift, and go to state 284
+
+    closing_brace  go to state 353
 
 
 State 345
 
-  209 local_block: '{' stmntlist . closing_brace
-
-    '}'  shift, and go to state 283
-
-    closing_brace  go to state 354
-
-
-State 346
-
   213 if_expression: T_IF condition $@23 local_block $@24 . else_clause
 
-    T_ELSE  shift, and go to state 355
+    T_ELSE  shift, and go to state 354
 
     T_ELSE    [reduce using rule 214 (else_clause)]
     $default  reduce using rule 214 (else_clause)
 
-    else_clause  go to state 356
+    else_clause  go to state 355
 
 
-State 347
+State 346
 
   207 while: T_WHILE $@21 condition $@22 local_block .
 
     $default  reduce using rule 207 (while)
 
 
-State 348
+State 347
 
   188 switch_expression: T_SWITCH '(' value ')' $@14 . '{' case_clauses '}'
 
-    '{'  shift, and go to state 357
+    '{'  shift, and go to state 356
 
 
-State 349
+State 348
 
    82 assignment: assignment_target '[' binary_expression ']' assignment_expression .
 
     $default  reduce using rule 82 (assignment)
 
 
-State 350
+State 349
 
    81 assignment: assignment_target '.' T_IDENT $@8 assignment_expression .
 
     $default  reduce using rule 81 (assignment)
 
 
-State 351
+State 350
 
   111 binary_expression: binary_expression . '.' T_IDENT
   112                  | binary_expression . '[' binary_expression_or_range ']'
@@ -6700,18 +6685,18 @@ State 351
     '/'            shift, and go to state 152
     '%'            shift, and go to state 153
     '['            shift, and go to state 154
-    ';'            shift, and go to state 358
+    ';'            shift, and go to state 357
     '.'            shift, and go to state 155
 
 
-State 352
+State 351
 
   199 opt_for_initializer: type_name variable_identifier $@19 assignment_expression .
 
     $default  reduce using rule 199 (opt_for_initializer)
 
 
-State 353
+State 352
 
   204 in_clause: '(' type_name variable_identifier $@20 ':' . simple_expression ')'
 
@@ -6737,7 +6722,7 @@ State 353
     $default  reduce using rule 97 (range_expression)
 
     variable_reference      go to state 96
-    simple_expression       go to state 359
+    simple_expression       go to state 358
     range_expression        go to state 98
     s_bterm                 go to state 99
     constructor_expression  go to state 100
@@ -6756,60 +6741,60 @@ State 353
     simple_literal          go to state 109
 
 
-State 354
+State 353
 
   209 local_block: '{' stmntlist closing_brace .
 
     $default  reduce using rule 209 (local_block)
 
 
-State 355
+State 354
 
   216 else_clause: T_ELSE . $@25 local_block
 
     $default  reduce using rule 215 ($@25)
 
-    $@25  go to state 360
+    $@25  go to state 359
 
 
-State 356
+State 355
 
   213 if_expression: T_IF condition $@23 local_block $@24 else_clause .
 
     $default  reduce using rule 213 (if_expression)
 
 
-State 357
+State 356
 
   188 switch_expression: T_SWITCH '(' value ')' $@14 '{' . case_clauses '}'
 
-    T_CASE     shift, and go to state 361
-    T_DEFAULT  shift, and go to state 362
+    T_CASE     shift, and go to state 360
+    T_DEFAULT  shift, and go to state 361
 
     $default  reduce using rule 177 (case_clauses)
 
-    case_clauses   go to state 363
-    case_clause    go to state 364
-    case_selector  go to state 365
+    case_clauses   go to state 362
+    case_clause    go to state 363
+    case_selector  go to state 364
 
 
-State 358
+State 357
 
   196 for_to_clause: '(' opt_for_initializer $@16 ';' binary_expression ';' . $@17 for_increment $@18 ')'
 
     $default  reduce using rule 194 ($@17)
 
-    $@17  go to state 366
+    $@17  go to state 365
 
 
-State 359
+State 358
 
   204 in_clause: '(' type_name variable_identifier $@20 ':' simple_expression . ')'
 
-    ')'  shift, and go to state 367
+    ')'  shift, and go to state 366
 
 
-State 360
+State 359
 
   216 else_clause: T_ELSE $@25 . local_block
 
@@ -6828,12 +6813,12 @@ State 360
     T_VARIABLE         shift, and go to state 122
     '*'                shift, and go to state 91
     ';'                shift, and go to state 183
-    '{'                shift, and go to state 331
+    '{'                shift, and go to state 330
 
     variable_reference      go to state 184
-    var_decl                go to state 316
+    var_decl                go to state 276
     block                   go to state 186
-    statement               go to state 332
+    statement               go to state 331
     assignment              go to state 188
     shorthand_assignment    go to state 189
     assignment_target       go to state 190
@@ -6846,54 +6831,54 @@ State 360
     switch_expression       go to state 197
     for_loop_expression     go to state 198
     while                   go to state 199
-    local_block             go to state 368
+    local_block             go to state 367
     if_expression           go to state 200
     call_expression         go to state 202
     function_id_or_pointer  go to state 107
     type_name               go to state 29
 
 
-State 361
+State 360
 
   180 case_selector: T_CASE . case_condition ':'
 
-    T_NUM     shift, and go to state 369
-    T_STRING  shift, and go to state 370
+    T_NUM     shift, and go to state 368
+    T_STRING  shift, and go to state 369
     '-'       shift, and go to state 68
 
-    case_condition   go to state 371
-    integer_literal  go to state 372
+    case_condition   go to state 370
+    integer_literal  go to state 371
+
+
+State 361
+
+  181 case_selector: T_DEFAULT . ':'
+
+    ':'  shift, and go to state 372
 
 
 State 362
 
-  181 case_selector: T_DEFAULT . ':'
+  188 switch_expression: T_SWITCH '(' value ')' $@14 '{' case_clauses . '}'
 
-    ':'  shift, and go to state 373
+    '}'  shift, and go to state 373
 
 
 State 363
 
-  188 switch_expression: T_SWITCH '(' value ')' $@14 '{' case_clauses . '}'
-
-    '}'  shift, and go to state 374
-
-
-State 364
-
   178 case_clauses: case_clause . case_clauses
 
-    T_CASE     shift, and go to state 361
-    T_DEFAULT  shift, and go to state 362
+    T_CASE     shift, and go to state 360
+    T_DEFAULT  shift, and go to state 361
 
     $default  reduce using rule 177 (case_clauses)
 
-    case_clauses   go to state 375
-    case_clause    go to state 364
-    case_selector  go to state 365
+    case_clauses   go to state 374
+    case_clause    go to state 363
+    case_selector  go to state 364
 
 
-State 365
+State 364
 
   179 case_clause: case_selector . stmntlist
 
@@ -6919,7 +6904,7 @@ State 365
     '}'        reduce using rule 217 (stmntlist)
 
     variable_reference      go to state 184
-    var_decl                go to state 316
+    var_decl                go to state 276
     block                   go to state 186
     statement               go to state 187
     assignment              go to state 188
@@ -6935,99 +6920,99 @@ State 365
     for_loop_expression     go to state 198
     while                   go to state 199
     if_expression           go to state 200
-    stmntlist               go to state 376
+    stmntlist               go to state 375
     call_expression         go to state 202
     function_id_or_pointer  go to state 107
     type_name               go to state 29
 
 
-State 366
+State 365
 
   196 for_to_clause: '(' opt_for_initializer $@16 ';' binary_expression ';' $@17 . for_increment $@18 ')'
 
     T_IDENT     shift, and go to state 121
     T_VARIABLE  shift, and go to state 122
 
-    variable_reference    go to state 377
-    shorthand_assignment  go to state 378
-    increment_expression  go to state 379
-    for_increment         go to state 380
+    variable_reference    go to state 376
+    shorthand_assignment  go to state 377
+    increment_expression  go to state 378
+    for_increment         go to state 379
 
 
-State 367
+State 366
 
   204 in_clause: '(' type_name variable_identifier $@20 ':' simple_expression ')' .
 
     $default  reduce using rule 204 (in_clause)
 
 
-State 368
+State 367
 
   216 else_clause: T_ELSE $@25 local_block .
 
     $default  reduce using rule 216 (else_clause)
 
 
-State 369
+State 368
 
   184 case_condition: T_NUM . T_DOTDOT T_NUM
-  240 integer_literal: T_NUM .
+  239 integer_literal: T_NUM .
 
-    T_DOTDOT  shift, and go to state 381
+    T_DOTDOT  shift, and go to state 380
 
-    $default  reduce using rule 240 (integer_literal)
+    $default  reduce using rule 239 (integer_literal)
 
 
-State 370
+State 369
 
   183 case_condition: T_STRING .
 
     $default  reduce using rule 183 (case_condition)
 
 
-State 371
+State 370
 
   180 case_selector: T_CASE case_condition . ':'
 
-    ':'  shift, and go to state 382
+    ':'  shift, and go to state 381
 
 
-State 372
+State 371
 
   182 case_condition: integer_literal .
 
     $default  reduce using rule 182 (case_condition)
 
 
-State 373
+State 372
 
   181 case_selector: T_DEFAULT ':' .
 
     $default  reduce using rule 181 (case_selector)
 
 
-State 374
+State 373
 
   188 switch_expression: T_SWITCH '(' value ')' $@14 '{' case_clauses '}' .
 
     $default  reduce using rule 188 (switch_expression)
 
 
-State 375
+State 374
 
   178 case_clauses: case_clause case_clauses .
 
     $default  reduce using rule 178 (case_clauses)
 
 
-State 376
+State 375
 
   179 case_clause: case_selector stmntlist .
 
     $default  reduce using rule 179 (case_clause)
 
 
-State 377
+State 376
 
    85 shorthand_assignment: variable_reference . $@9 shorthand_assignment_operator simple_expression
   104 increment_expression: variable_reference . minusminus_plusplus
@@ -7041,58 +7026,58 @@ State 377
     minusminus_plusplus  go to state 274
 
 
-State 378
+State 377
 
   192 for_increment: shorthand_assignment .
 
     $default  reduce using rule 192 (for_increment)
 
 
-State 379
+State 378
 
   191 for_increment: increment_expression .
 
     $default  reduce using rule 191 (for_increment)
 
 
-State 380
+State 379
 
   196 for_to_clause: '(' opt_for_initializer $@16 ';' binary_expression ';' $@17 for_increment . $@18 ')'
 
     $default  reduce using rule 195 ($@18)
 
-    $@18  go to state 383
+    $@18  go to state 382
 
 
-State 381
+State 380
 
   184 case_condition: T_NUM T_DOTDOT . T_NUM
 
-    T_NUM  shift, and go to state 384
+    T_NUM  shift, and go to state 383
 
 
-State 382
+State 381
 
   180 case_selector: T_CASE case_condition ':' .
 
     $default  reduce using rule 180 (case_selector)
 
 
-State 383
+State 382
 
   196 for_to_clause: '(' opt_for_initializer $@16 ';' binary_expression ';' $@17 for_increment $@18 . ')'
 
-    ')'  shift, and go to state 385
+    ')'  shift, and go to state 384
 
 
-State 384
+State 383
 
   184 case_condition: T_NUM T_DOTDOT T_NUM .
 
     $default  reduce using rule 184 (case_condition)
 
 
-State 385
+State 384
 
   196 for_to_clause: '(' opt_for_initializer $@16 ';' binary_expression ';' $@17 for_increment $@18 ')' .
 

@@ -67,13 +67,14 @@ EdUndo(long ), EdRedo(long), EdFilesCompare(long ), EdScrollScreen(long ), EdScr
 EdAlignText(long ), 
 EdMouseMarkParts(long ), EdMouseMoveText(long ), EdMouseSelectLines(long ), EdMousePositionUngrabbed(long ),
 EdAlert(long ), error_displayAlertBoxWithOptions(long ), EdPromptAssign(long ), interpreter_sprintf(long ),
-macro_getSelectedText(long ), EdHideLines(long ), EdUnHideLine(long ), EdStringSubstitute(long ),
+macro_getSelectedText(long ), EdHideLines(long ), EdUnHideLine(long ), macroc_substituteStringWith(long ),
 EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdListBindings(long ),
 EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(),
 bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdSetExtendSelectionMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
 interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(), macroc_indexOf(), macroc_stringTokenize(), macroc_tolower(), macro_getFunctionNamesMatching(), macroc_fileTest(),
-macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors(), macroc_pathCreateFromSegments();
+macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors(), macroc_pathCreateFromSegments(), edit_getSelectedLineRange(), edit_getLineLen(), edit_getLineText(),
+macroc_findPattern();
 
 static long long function_unused() {
     // NOT USED ANY MORE
@@ -202,7 +203,7 @@ EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*104*/macro_getSelectedText, -1, 0,                                                                         "GetSelected",                NULL,  "sW"                                           },
 {/*105*/EdHideLines, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                         "HideLines",                  NULL,  "iW"                                           },
 {/*106*/EdUnHideLine, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                        "UnHideLine",                 NULL,  "iW"                                           },
-{/*107*/EdStringSubstitute, -1, 0,                                                                            "StringReplace",            NULL,  "ssssbRE_i"                                  },
+{/*107*/macroc_substituteStringWith, -1, 0,                                                                    "StringReplace",            NULL,  "ssssbRE_i"                                  },
 {/*108*/EdExpandAbbreviation, -1, 0,                                                                          "ExpandAbbreviation",         NULL,  "i"                                           },
 {/*109*/caret_addSecondaryWithMouse, -1, EW_NEEDSCURRF| EW_CCASH ,                                     "AddSecondaryCaretMouse",     NULL,  "ibFORM_i"                                     },
 {/*110*/EdHelpContext, -1, 0,                                                                          "ShowHelp",                   NULL,  "ii"                                          },
@@ -253,10 +254,18 @@ EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*155*/(long long (*)())ww_getFilename, -1, EW_NEEDSCURRF, "EditorGetFilename", NULL, "sW" },
 {/*156*/(long long (*)())ww_openFile, -1, 0, "EditorOpenFile", NULL, "Wsi" },
 {/*157*/macroc_pathCreateFromSegments, -1, 0, "PathCreateFromSegments", NULL, "P"},
-{/*158*/(long long (*)())function_registerNativeFunction, -1, 0, "RegisterNative", NULL, "issssss" }
+{/*158*/(long long (*)())function_registerNativeFunction, -1, 0, "RegisterNative", NULL, "issssss" },
+{/*159*/(long long (*)())edit_getSelectedLineRange, -1, 0, "EditorSelectedLineRange", NULL, "P" },
+{/*160*/(long long (*)())edit_getLineText, -1, 0, "EditorGetLineText", NULL, "sWi" },
+{/*161*/(long long (*)())edit_getLineLen, -1, 0, "EditorGetLineLen", NULL, "iWi" },
+{/*162*/macroc_findPattern, -1, 0, "StringFindPattern", NULL, "issbRE_" },
+{/*163*/caret_bufferOffset2Screen, -1, 0, "EditorBufferOffset2Screen", NULL, "iWsi" },
+{/*164*/caret_screenOffset2Buffer, -1, 0, "EditorScreenOffset2Buffer", NULL, "iWsii" },
+0
 };
 
-int _functionTableSize = STATICALLY_DEFINED_FUNCTIONS;
+static int _staticallyDefinedFunctions;
+int _functionTableSize;
 
 void function_destroyRegisteredNative(EDFUNC* pFunc) {
     free((char*)pFunc->edf_description);
@@ -270,21 +279,35 @@ void function_destroyRegisteredNative(EDFUNC* pFunc) {
 }
 
 /*
+ * Returns the number of statically defined functions.
+ */
+int function_getNumberOfStaticallyDefinedFunctions() {
+    if (_staticallyDefinedFunctions == 0) {
+        while (_functionTable[_staticallyDefinedFunctions].f_name) {
+            _staticallyDefinedFunctions++;
+        }
+        _functionTableSize = _staticallyDefinedFunctions;
+    }
+    return _staticallyDefinedFunctions;
+}
+
+/*
  * Release all dynamically defined functions.
  */
 void function_destroy() {
     // For statically defined functions we allow to define the documentation
     // using MacroC code.
-    for (int i = 0; i < STATICALLY_DEFINED_FUNCTIONS; i++) {
+    function_getNumberOfStaticallyDefinedFunctions();
+    for (int i = 0; i < _staticallyDefinedFunctions; i++) {
         free((char*)_functionTable[i].edf_description);
         free((char*)_functionTable[i].edf_parameters);
         _functionTable[i].edf_description = 0;
         _functionTable[i].edf_parameters = 0;
     }
-    for (int i = STATICALLY_DEFINED_FUNCTIONS; i < _functionTableSize; i++) {
+    for (int i = _staticallyDefinedFunctions; i < _functionTableSize; i++) {
         function_destroyRegisteredNative(& _functionTable[i]);
     }
-    _functionTableSize = STATICALLY_DEFINED_FUNCTIONS;
+    _functionTableSize = 0;
 }
 
 COMMAND _commandTable[] = {

@@ -652,11 +652,9 @@ void dlg_drawFileInfo(HDC hdc, RECT *rcp, HWND hwnd, int nItem, BOOL bSelected) 
 	}
 	GetWindowText(hwnd, szBuf, sizeof szBuf);
 	HICON hIcon = (HICON)SendMessageW(hwnd, WM_GETICON, ICON_SMALL, 0L);
-	// hack for invalid icon sometimes being returned "wrong"
-	if (((intptr_t)hIcon & 0xFFFFFF) == 0) {
-		hIcon = mainframe_getDefaultEditorIcon();
+	if (hIcon) {
+		cust_drawListBoxRowWithIcon(hdc, rcp, hIcon, szBuf);
 	}
-	cust_drawListBoxRowWithIcon(hdc, rcp, hIcon, szBuf);
 }
 
 

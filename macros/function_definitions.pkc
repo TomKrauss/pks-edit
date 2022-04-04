@@ -1,7 +1,7 @@
 /*
  * Abondon all changes in the given editor.
  */
-@Method(name="AbandonFile", signature="i")
+@Method(name="AbandonFile")
 native int EdFileAbandon();
 /*
  * Displays the PKS-Edit About dialog.
@@ -53,20 +53,20 @@ native int EdBlockWrite(EDITOR editor);
 /*
  * Cut or copies a selected block of text from the passed editor with the given flags.
  */
-@Method(name="CutBlock", signature="iWeCUT_i")
-native int bl_cutOrCopy(EDITOR editor);
+@Method(name="CutBlock", signature="iWeCUT_")
+native int bl_cutOrCopy(EDITOR editor, int nCutFlags);
 
 /*
  * Paste the contents of a clipboard at the current caret position for
  * the given editor.
  */
 @Method(name="PasteBlock", signature="ibPASTE_bFORM_i")
-native int EdBlockPaste(EDITOR editor);
+native int EdBlockPaste(EDITOR editor, int nPasteFlag, int nFormFlag);
 
 /*
  * Hide / removes the selection in the passed editor.
  */
-@Method(name="HideBlock", signature="i")
+@Method(name="HideBlock")
 native int bl_hideSelectionInCurrentWindow(EDITOR editor);
 
 /*
@@ -74,12 +74,12 @@ native int bl_hideSelectionInCurrentWindow(EDITOR editor);
  * in the passed editor.
  */
 @Method(name="SetBlockMark", signature="iWeMARK_")
-native int EdSyncSelectionWithCaret(EDITOR editor);
+native int EdSyncSelectionWithCaret(EDITOR editor, int nMarkType);
 
 /*
  * Delete the selected lines of text from the editor passed as an argument.
  */
-@Method(name="CutLines", signature="i")
+@Method(name="CutLines")
 native int bl_cutLines(EDITOR editor);
 
 /*
@@ -87,12 +87,12 @@ native int bl_cutLines(EDITOR editor);
  * of the current caret position depends on the passed ELO flags.
  */
 @Method(name="DeleteLines", signature="iWbELO_")
-native int EdLineDelete(EDITOR editor);
+native int EdLineDelete(EDITOR editor, int lineOptions);
 
 /*
  * Destroy / release all input buffers.
  */
-@Method(name="FreeBuffer", signature="i")
+@Method(name="FreeBuffer")
 native int bl_destroyAll();
 
 /*
@@ -119,15 +119,15 @@ native int EdFormatText();
  * Insert a new line at the current caret position. The behavior of the
  * new line indent and the caret movement is defined by the ELO_ flag passed.
  */
-@Method(name="InsertLine", signature="ieELO_")
-native int edit_insertLine(EDITOR editor);
+@Method(name="InsertLine", signature="iWeELO_")
+native int edit_insertLine(EDITOR editor, int lineInsertOptions);
 
 /*
  * Perform the given operation on the lines of the specified edior. Some of
  * the given operations require the line being marked before with "mark line".
  */
-@Method(name="MarkLineOp", signature="ieMLN_")
-native int edit_performLineFlagOperation(EDITOR editor);
+@Method(name="MarkLineOp", signature="iWeMLN_")
+native int edit_performLineFlagOperation(EDITOR editor, int lineMarkOptions);
 /*
  * Opens a file selector to read a previously saved search list.
  */
@@ -142,13 +142,13 @@ native int EdErrorListRead();
 /*
  * Zooms the text font size in the given window.
  */
-@Method(name="ZoomWindow", )
+@Method(name="ZoomWindow")
 native int ww_zoomWindow(EDITOR editor, int factor);
 
 /*
  * Opens the macro administration editor.
  */
-@Method(name="EditMacros", signature="i")
+@Method(name="EditMacros")
 native int EdMacrosEdit();
 
 /*
@@ -172,7 +172,7 @@ native int EdMacrosEdit();
  * ${word_selection} - the "word/identifier" close to the input caret or text currently selected.
  */
 @Method(name="GetVariable", signature="ss")
-native string string_getVariableWithDefaults();
+native string string_getVariableWithDefaults(string variableName);
 
 /*
  * Opens a file selector to save the document settings to a file.
@@ -225,22 +225,22 @@ native int EdReplaceTabs();
  * Handling of indentation in the new line created depends on the RET_ flag.
  */
 @Method(name="SplitLine", signature="iWeRET_")
-native int EdLineSplit(EDITOR editor);
+native int EdLineSplit(EDITOR editor, int newLineBehavior);
 /*
  * Moves the input caret to the beginning / end of the chapter depending on direction.
  */
 @Method(name="GotoChapterStart", signature="iWeDIR_")
-native int EdChapterGotoBegin(EDITOR editor);
+native int EdChapterGotoBegin(EDITOR editor, int direction);
 /*
  * Moves the input caret to the beginning / end of the paragraph depending on direction.
  */
 @Method(name="GotoChapterEnd", signature="iWeMOT_")
-native int EdChapterGotoEnd(EDITOR editor);
+native int EdChapterGotoEnd(EDITOR editorr, int motionType);
 /*
  * Moves the input caret to the beginning of the page/... depending on the motion flag.
  */
 @Method(name="GotoPgrphStart", signature="iWeMOT_")
-native int EdParaGotoBegin(EDITOR editor);
+native int EdParaGotoBegin(EDITOR editorr, int motionType);
 
 /*
  * Moves the input caret to the end of the page/... depending on the motion flag.
@@ -627,7 +627,13 @@ native int EdUnHideLine(EDITOR editor);
  * REGEX options and a maximum number of times.
  */
 @Method(name="StringReplace", signature="ssssbRE_i")
-native string EdStringSubstitute(string target, string pattern, string with);
+native string macro_substituteStringWith(string target, string pattern, string with, int reFlags, int nTimes);
+
+/*
+ * Find a pattern in a string and return the index in the string or -1 if not found.
+ */
+@Method(name="StringFindPattern", signature="ssbRE_")
+native int macro_findPattern(string target, string pattern, int reFlags);
 
 /*
  * Tries to identify an abbreviation at the current caret position in
@@ -882,6 +888,12 @@ native string macroc_fileTest(string file, string mode);
 @Method(name="FileListFiles", signature="P")
 native string[] macroc_fileListFiles(string directory, string namePattern);
 
+/*
+ * Creates a windows path concatenating multiple path segments.
+ * Example: PathCreateFromSegments("c:\\pks_edit\\pks_sys", "..", "readme.txt") will create a path "c:\\pks_edit\\readme.txt".
+ */
+@Method(name="PathCreateFromSegments", signature="P")
+native string macroc_pathCreateFromSegments(string part1, string part2, ...);
 
 /*
  * Inserts the passed string into the currently active editor or into the editor passed as 1st parameter.
@@ -937,11 +949,37 @@ native string ww_getFilename(EDITOR anEditor);
 native EDITOR ww_openFile(string aFilename, int nSomeFlags);
 
 /*
- * Creates a windows path concatenating multiple path segments.
- * Example: PathCreateFromSegments("c:\\pks_edit\\pks_sys", "..", "readme.txt") will create a path "c:\\pks_edit\\readme.txt".
+ * Returns a range of the lines currently selected in the editor passed as the 1st argument or
+ * the current editor. If no lines are selected a range with a single line - the line containing
+ * the caret is returned.
  */
-@Method(name="PathCreateFromSegments", signature="P")
-native string macroc_pathCreateFromSegments(string part1, string part2, ...);
+@Method(name="EditorSelectedLineRange", signature="P")
+native range edit_getSelectedLineRange(EDITOR editor);
+
+/*
+ * Returns the length of the specified line in number of characters.
+ */
+@Method(name="EditorGetLineLen")
+native int edit_getLineLen(EDITOR editor, int lineNumber);
+
+/*
+ * Returns the string representing the contents of the specified line.
+ */
+@Method(name="EditorGetLineText")
+native string edit_getLineText(EDITOR editor, int lineNumber);
+
+/*
+ * Calculate an offset of character buffer positions to the corresponding number
+ * of columns as displayed on the screen.
+ */
+@Method(name="EditorBufferOffset2Screen")
+native int caret_bufferOffset2Screen(EDITOR wp, string buffer, int lineOffset);
+
+/*
+ * Calculate the buffer offset in a line given the corresponding screeen column.
+ */
+@Method(name="EditorScreenOffset2Buffer")
+native int caret_screenOffset2Buffer(EDITOR wp, string buffer, int lineLen, int column);
 
 /*
  * Retrieves the number of milliseconds that have elapsed since the system was started, up to 49.7 days.

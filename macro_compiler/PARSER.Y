@@ -407,6 +407,7 @@ var_decl:	type_name variable_identifier assignment_expression {
 				if ($2.ident.stringIsAlloced) {
 					free($2.ident.s);
 				}
+				YY_EMIT(C_POP_STACK,(GENERIC_DATA){0});
 			} | type_name variable_identifier {
 				parser_defineVariable($2.ident.s, $1.ident.type, 0, $1.ident.arraySize);
 				if ($2.ident.stringIsAlloced) {
@@ -539,24 +540,23 @@ var_decls:
 			| var_decls var_decl ';' 
 
 statement: ';'
-			| call_expression ';' { $$.needsPop = 1; }
-			| assignment ';' { $$.needsPop = 1; }
-			| if_expression { $$.needsPop = 1; }
-			| while { $$.needsPop = 1; }
-			| for_loop_expression { $$.needsPop = 1; }
-			| switch_expression { $$.needsPop = 1; }
-			| break { $$.needsPop = 0; }
-			| continue { $$.needsPop = 0; }
-			| return_expression ';' { $$.needsPop = 0; }
-			| goto_expression ';' { $$.needsPop = 0; }
-			| block { $$.needsPop = 1; }
-			| increment_expression ';' { $$.needsPop = 1; }
-			| label { $$.needsPop = 0; }
+			| call_expression ';' { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); }
+			| assignment ';' { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); }
+			| if_expression { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); }
+			| while { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); }
+			| for_loop_expression { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); }
+			| switch_expression { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0});  }
+			| break
+			| continue
+			| return_expression ';'
+			| goto_expression ';'
+			| block { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0});  }
+			| increment_expression ';' { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0});  }
+			| label
 			| var_decl {
 				yyerror("Variable declarations outside method variable declaration section not yet supported.");
 			}
 			| error ';' {
-				$$.needsPop = 0; 
 				yyerror("Invalid statement. Expecting one of function call, assignment, if, while, case, break, continue, return, goto, increment_expression, block or label.");
 				yyerrok;
 			}
@@ -842,6 +842,10 @@ for_loop_expression:
 				bytecode_emitGotoInstruction(_currentBytecodeBuffer, lendid,_breaklevel,BRA_IF_FALSE);
 				_breaklevel++;
 			} local_block {
+				if ($2.ident.s) {
+					sym_remove(_currentIdentifierContext, $2.ident.s);
+					free($2.ident.s);
+				}
 				parser_flushBuffer(_breaklevel);
 				_breaklevel--;
 				bytecode_emitGotoInstruction(_currentBytecodeBuffer, lstartid,_breaklevel,BRA_ALWAYS);
@@ -860,17 +864,25 @@ for_to_clause: '(' opt_for_initializer {
 			} for_increment {
 				YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); 
 				parser_switchToBuffer(0);
-			} ')'
+			} ')' {
+				$$.ident.s = $2.ident.s;
+			}
 
 opt_for_initializer:
 			| type_name variable_identifier {
 				parser_defineVariable($2.ident.s, $1.ident.type, (intptr_t)0, $1.ident.arraySize);
-				free($2.ident.s);
-			} assignment_expression 
+			} assignment_expression {
+				$$.ident.s = $2.ident.s;
+			}
 
-for_clause:	for_to_clause
-			| in_clause
+for_clause:	for_to_clause {
+				$$.ident.s = $1.ident.s;
+			}
+			| in_clause {
+				$$.ident.s = $1.ident.s;
+			}
 			| error {
+				$$.ident.s = 0;
 				yyerror("Illegal for-loop expression.");
 				yyerrok;
 			}
@@ -880,14 +892,12 @@ in_clause:	'(' type_name variable_identifier {
 				parser_newForeachCursor();
 				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_localVariableIndex});
 				parser_defineVariable($3.ident.s, $2.ident.type, (intptr_t)0, $2.ident.arraySize);
-				if ($3.ident.stringIsAlloced) {
-					free($3.ident.s);
-				}
 			} ':' simple_expression ')' {
 				SYMBOL 	sym;
 				char *	key;
 				sym = sym_find(_currentIdentifierContext, "foreach",&key);
 				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction((void*)VALUE(sym))}, 3);
+				$$.ident.s = $3.ident.s;
 			}
 
 while:		T_WHILE {
@@ -929,12 +939,8 @@ else_clause: {
 			}
 			local_block
 
-stmntlist:	{ $$.needsPop = 0; }
-			| statement { 
-				if ($1.needsPop) {
-					YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); 
-				}
-			} stmntlist
+stmntlist:	
+			| statement stmntlist
 
 closing_paren: ')'
 

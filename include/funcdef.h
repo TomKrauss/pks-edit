@@ -100,11 +100,15 @@ extern int function_getParameterCount(EDFUNC* ep);
  */
 extern int interpreter_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn);
 
-#define STATICALLY_DEFINED_FUNCTIONS        159
 #define MAX_NATIVE_FUNCTIONS				256
 
 extern int 		_functionTableSize;
 extern EDFUNC	_functionTable[];
+
+/*
+ * Returns the number of statically defined functions.
+ */
+extern int function_getNumberOfStaticallyDefinedFunctions();
 
 extern int		_parameterEnumValueTableSize;
 extern PARAMETER_ENUM_VALUE	_parameterEnumValueTable[];

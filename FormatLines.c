@@ -106,7 +106,7 @@ static int format_calculateTextIndent(FORMATTER* pFormatter, FORMATTER_PARAM* fp
 		}
 		break;
 	}
-	*pScreenCol = caret_bufferOffset2screen(wp, pBuf, j);
+	*pScreenCol = (int)caret_bufferOffset2Screen(wp, pBuf, j);
 	return j;
 }
 
@@ -124,7 +124,7 @@ static int format_calculateIndent(FORMATTER* pFormatter, FORMATTER_PARAM* fparam
 		}
 		break;
 	}
-	*pScreenCol = caret_bufferOffset2screen(wp, pBuf, j);
+	*pScreenCol = (int)caret_bufferOffset2Screen(wp, pBuf, j);
 	return j;
 }
 
@@ -172,7 +172,7 @@ static int format_calculateCodeIndent(FORMATTER* pFormatter, FORMATTER_PARAM* fp
 	int screenCol;
 	int j = format_calculateIndent(pFormatter, fparam, pBuf, nLen, &screenCol);
 	INDENTATION_DELTA idDelta = pFormatter->f_calculateIndentationDelta(pFormatter, fparam, pBuf, nLen);
-	int nScreen = caret_bufferOffset2screen(wp, pBuf, j);
+	int nScreen = (int)caret_bufferOffset2Screen(wp, pBuf, j);
 	int ts = fparam->fparam_wp->indentation.tabsize;
 	if (idDelta == ID_INDENT_NEXT) {
 		nScreen += ts;
@@ -343,7 +343,7 @@ static LINE* format_textInto(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LIN
 				nSourceWrappingPos = nCurrentLineOffset;
 				nLastWrappingPos = (int)nTargetSize;
 			}
-			int nScreen = caret_bufferOffset2screen(wp, stringbuf_getString(sb), (int)nTargetSize);
+			int nScreen = (int)caret_bufferOffset2Screen(wp, stringbuf_getString(sb), (int)nTargetSize);
 			if (nScreen >= wp->rmargin && nLastWrappingPos > 0) {
 				stringbuf_truncate(sb, nLastWrappingPos);
 				format_insertLine(pFormatter, fparam, &lpDest, sb, nAlignment);

@@ -12,3 +12,68 @@ void TrimTrailingBlanks() {
 	ShowMessages(true);
 }
 
+/*
+ * find a single line comment in a text. Skip over string literals.
+ */
+static int FindSingleLineComment(string text, string comment) {
+	boolean inString = false;
+	int len = size(text);
+	int len1 = len-1;
+	char c;
+
+	for (int i = 0; i < len; i++) {
+		c = text[i];
+		if (inString) {
+			if (c == '\\' && i < len1) {
+				i++;
+				continue;
+			}
+			if (c == '"') {
+				inString = false;
+			}
+		} else {
+			if (c == '"') {
+				inString = true;
+			} else if (c == comment[0] && i < len1) {
+				if (text[i+1] == comment[1]) {
+					return i;
+				}
+			}
+		}
+	}
+	return -1;
+}
+
+/*
+ * Format all single line comments in a piece of C source code so they are correctly indented.
+ */
+void FormatSingleLineComments() {
+	string text;
+	string[] lines;
+	int[] indices;
+	int index;
+	int maxIndex = 0;
+
+	clear();
+	for (int i : EditorSelectedLineRange()) {
+		text = EditorGetLineText(i);
+		lines += text;
+		index = FindSingleLineComment(text, "//");				// find the most right aligned comment in the list of lines
+		if (index < 0) {
+			indices += -1;
+			continue;
+		}
+		index = EditorBufferOffset2Screen(text, index);   // another line with a comment
+		indices += index;
+		if (index > maxIndex) {
+			maxIndex = index;
+		}
+	}
+	for (int i = 0; i < size(lines); i++) {
+		if (indices[i] >= 0 && indices[i] < maxIndex) {
+			println(lines[i]);
+			println("Would insert " + (maxIndex - indices[i]) + " spaces at column " + indices[i]);
+		}
+	}
+}
+
