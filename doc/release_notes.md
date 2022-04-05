@@ -76,6 +76,7 @@ commands which show an explanation about the command.
 - Some GDI resource leaks were fixed. In particular the Configure Document Types dialog box had been leaking resources but also opening
   and closing many editor tabs wasted considerable GDI resources.
 - The code completion help secondary window was sometimes not correctly closed and stayed open on the screen - this is fixed.
+- Convert spaces to tabs did not convert all possible spaces to tabs, but only the ones at the beginning of lines.
 
 ### 2.1.0
 

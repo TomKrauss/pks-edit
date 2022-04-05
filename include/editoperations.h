@@ -35,6 +35,15 @@ extern long long edit_insertString(WINFO* wp, const char* pszString);
 typedef enum { MLN_DELETE = 0, MLN_JOIN = 1, MLN_TOGGLE = 2, MLN_FINDSOFT = 3, MLN_MAKESOFT = 4, MLN_MAKEHARD = 5, MLN_CUT = 6 } MARKED_LINE_OPERATION;
 extern long long edit_performLineFlagOperation(WINFO* wp, MARKED_LINE_OPERATION op);
 
+/*
+ * Replace a range of lines text with a list of other lines. The algorithm tries to modify only lines
+ * really affected and will insert new lines / delete lines if the size of the affected lines and the
+ * lines to insert differs.
+ */
+#ifdef ARRAYLIST_H
+long long edit_replaceSelectedRange(WINFO* wp, long nLineFrom, long nLineTo, ARRAY_LIST* pLines);
+#endif
+
  /*--------------------------------------------------------------------------
   * edit_convertCharacterCase()
   * Map lower characters to upper, upper to lowers and toggle case depending on

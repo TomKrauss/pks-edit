@@ -379,6 +379,37 @@ PKS_VALUE edit_getAllEditors(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, in
 }
 
 /*
+ * Replace all lines in the specified range with a list of strings.
+ */
+PKS_VALUE edit_replaceLines(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	int nFirst = 0;
+	if (nArgs >= 1 && pValues->pkv_type == VT_EDITOR_HANDLE) {
+		wp = memory_handleForValue(*pValues);
+		nFirst = 1;
+	}
+	macroc_expectNumberOfArgs(2, nArgs-nFirst, "EditorReplaceLines");
+	PKS_VALUE range = pValues[nFirst];
+	PKS_VALUE lines = pValues[nFirst+1];
+	long long bRet = 0;
+	if (range.pkv_type == VT_RANGE && lines.pkv_type == VT_OBJECT_ARRAY) {
+		size_t nSize = memory_size(lines);
+		ARRAY_LIST* pStrings = arraylist_create(nSize);
+		for (int i = 0; i < nSize; i++) {
+			PKS_VALUE vElement = memory_getNestedObject(lines, i);
+			if (vElement.pkv_type == VT_STRING) {
+				arraylist_add(pStrings, (void*)memory_accessString(vElement));
+			}
+		}
+		bRet = edit_replaceSelectedRange(wp, range.pkv_data.range.r_start, range.pkv_data.range.r_end, pStrings);
+		arraylist_destroy(pStrings);
+	} else {
+		interpreter_raiseError("Expecting range and line array argument in EditorReplaceLines");
+	}
+	return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = (int)bRet};
+}
+
+/*
  * Returns a range of the lines currently selected in the editor passed as the 1st argument or
  * the current editor. If no lines are selected a range with a single line - the line containing
  * the caret is returned.
@@ -423,6 +454,24 @@ char* edit_getLineText(WINFO* wp, long nLine) {
 		return 0;
 	}
 	memcpy(_linebuf, lp->lbuf, lp->len + 1);
+	return _linebuf;
+}
+
+/*
+ * In the passed text replace spaces with tabs according to the tab stop specification for the given editor.
+ */
+char* edit_replaceSpacesWithTabs(WINFO* wp, char* pszLine) {
+	int t;
+	ft_compressSpacesToTabs(wp, _linebuf, LINEBUFSIZE, pszLine, strlen(pszLine), &t);
+	return _linebuf;
+}
+
+/*
+ * In the passed text replace all tabs with spaces according to the tab stop specification for the given editor.
+ */
+char* edit_replaceTabsWithSpaces(WINFO* wp, char* pszLine) {
+	int t;
+	ft_expandTabsWithSpaces(wp, _linebuf, LINEBUFSIZE, pszLine, strlen(pszLine), &t);
 	return _linebuf;
 }
 

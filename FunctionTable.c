@@ -74,7 +74,7 @@ bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdSetExtendSelectionMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
 interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(), macroc_indexOf(), macroc_stringTokenize(), macroc_tolower(), macro_getFunctionNamesMatching(), macroc_fileTest(),
 macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors(), macroc_pathCreateFromSegments(), edit_getSelectedLineRange(), edit_getLineLen(), edit_getLineText(),
-macroc_findPattern();
+macroc_findPattern(), edit_replaceLines(), edit_replaceSpacesWithTabs(), edit_replaceTabsWithSpaces();
 
 static long long function_unused() {
     // NOT USED ANY MORE
@@ -261,6 +261,9 @@ EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*162*/macroc_findPattern, -1, 0, "StringFindPattern", NULL, "issbRE_" },
 {/*163*/caret_bufferOffset2Screen, -1, 0, "EditorBufferOffset2Screen", NULL, "iWsi" },
 {/*164*/caret_screenOffset2Buffer, -1, 0, "EditorScreenOffset2Buffer", NULL, "iWsii" },
+{/*165*/edit_replaceLines, -1, 0, "EditorReplaceLines", NULL, "P" },
+{/*166*/edit_replaceSpacesWithTabs, -1, 0, "EditorReplaceSpacesWithTabs", NULL, "sWs" },
+{/*167*/edit_replaceTabsWithSpaces, -1, 0, "EditorReplaceTabsWithSpaces", NULL, "sWs" },
 0
 };
 

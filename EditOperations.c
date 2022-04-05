@@ -28,6 +28,7 @@
 #include "editorconfiguration.h"
 #include "mouseutil.h"
 #include "stringutil.h"
+#include "arraylist.h"
 #include "editoperations.h"
 #include "publicapi.h"
 #include "codecompletion.h"
@@ -1246,3 +1247,50 @@ long long edit_insertString(WINFO* wp, const char* pszString) {
 	return 0;
 }
 
+/*
+ * Replace a range of lines text with a list of other lines. The algorithm tries to modify only lines
+ * really affected and will insert new lines / delete lines if the size of the affected lines and the
+ * lines to insert differs.
+ */
+long long edit_replaceSelectedRange(WINFO* wp, long nLineFrom, long nLineTo, ARRAY_LIST* pLines) {
+	if (!wp || !pLines) {
+		return 0;
+	}
+	FTABLE* fp = wp->fp;
+	LINE* lp = ln_goto(fp, nLineFrom);
+	if (!lp || !lp->next) {
+		return 0;
+	}
+	size_t nLines = arraylist_size(pLines);
+	int i = 0;
+	bl_hideSelection(wp, 1);
+	while (i+nLineFrom <= nLineTo || i < nLines) {
+		if (i >= nLines) {
+			LINE* lpnext = lp->next;
+			ln_delete(fp, lp);
+			lp = lp->next;
+			i++;
+			continue;
+		}
+		char* pszText = arraylist_get(pLines, i);
+		size_t nLen = strlen(pszText);
+		if (lp == fp->lastl) {
+			ln_createAndAdd(fp, pszText, (int)nLen, 0);
+		} else {
+			if (memcmp(lp->lbuf, pszText, nLen) != 0) {
+				LINE* lpold;
+				lp = ln_settmp(fp, lp, &lpold);
+				lp->len = (int)nLen;
+				memcpy(lp->lbuf, pszText, nLen + 1);
+				ln_markModified(lp);
+				render_repaintLine(fp, lp);
+			}
+			lp = lp->next;
+		}
+		i++;
+	}
+	if (i != nLineTo) {
+		render_repaintAllForFile(fp);
+	}
+	return 1;
+}

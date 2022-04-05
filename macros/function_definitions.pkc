@@ -982,6 +982,26 @@ native int caret_bufferOffset2Screen(EDITOR wp, string buffer, int lineOffset);
 native int caret_screenOffset2Buffer(EDITOR wp, string buffer, int lineLen, int column);
 
 /*
+ * Replace a range of lines text with a list of other lines. The algorithm tries to modify only lines
+ * really affected and will insert new lines / delete lines if the size of the affected lines and the
+ * lines to insert differs.
+ */
+@Method(name="EditorReplaceLines", signature="P")
+native boolean edit_replaceLines(EDITOR wp, range lineRange, string[] lines);
+
+/*
+ * In the passed text replace spaces with tabs according to the tab stop specification for the given editor.
+ */
+@Method(name="EditorReplaceSpacesWithTabs")
+native string edit_replaceSpacesWithTabs(EDITOR editor, string text);
+
+/*
+ * In the passed text replace all tabs with spaces according to the tab stop specification for the given editor.
+ */
+@Method(name="EditorReplaceTabsWithSpaces")
+native string edit_replaceTabsWithSpaces(EDITOR editor, string text);
+
+/*
  * Retrieves the number of milliseconds that have elapsed since the system was started, up to 49.7 days.
  */
 @Method(lib="kernel32.dll")

@@ -506,49 +506,45 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 	const char* s = pszSource;
 	char* pszDestStart = pszDest;
 	const char* pszEnd = &s[nSourceLen];
+	const char* pszDestEnd = &pszSource[nDestLen-1];
 	const char* pszFound;
-	const char* pszSpaceStart = NULL;
-	int    col, tab;
+	int   col;
+	int   nextTabStop;
 
 	s = pszSource;
 	col = 0;
-	tab = -1;
 	FTABLE* fp = wp->fp;
 	char chSpace = ft_getSpaceFillCharacter(wp);
-	while (s < pszEnd) {
-		if (tab < 0) {
-			tab = indent_calculateNextTabStop(col, &wp->indentation);
-		}
+	while (s < pszEnd && pszDest < pszDestEnd) {
+		nextTabStop = indent_calculateNextTabStop(col, &wp->indentation);
 		pszFound = NULL;
 		char c = *s++;
-		if (c == chSpace) {
-			col++;
-			if (pszSpaceStart == NULL) {
-				pszSpaceStart = s - 1;
-			}
-			if (col == tab) {
-				if (s > pszSpaceStart + 1) {
+		if (c == '\t') {
+			col = nextTabStop;
+		} else if (c == chSpace) {
+			s--;
+			for (int i = 0; s + i < pszEnd; i++) {
+				if (i + col == nextTabStop) {
 					*pszDest++ = '\t';
-					(*nt)++;
-				} else {
-					*pszDest++ = chSpace;
+					s += i;
+					col = nextTabStop;
+					(* nt)++;
+					break;
 				}
-				pszSpaceStart = NULL;
-				tab = -1;
+				if (s[i] != chSpace) {
+					// Cannot compress
+					while (--i >= 0) {
+						*pszDest++ = *s++;
+						col++;
+					}
+					break;
+				}
 			}
 			continue;
-		} else if (c == '\t') {
-			tab = -1;
 		} else {
 			col++;
 		}
-		if (pszSpaceStart) {
-			while (pszSpaceStart < s-1) {
-				*pszDest++ = *pszSpaceStart++;
-			}
-		}
 		*pszDest++ = c;
-		pszSpaceStart = NULL;
 	}
 	return (int)(pszDest - pszDestStart);
 }

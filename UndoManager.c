@@ -435,6 +435,9 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand, BOOL bR
 		wp->blcol1 = pCommand->c1;
 		wp->blcol2 = pCommand->c2;
 		bl_setSelection(wp, pCommand->bls, pCommand->bcs, pCommand->ble, pCommand->bce);
+		if (pCommand->bls && pCommand->ble) {
+			render_repaintLineRange(fp, pCommand->bls, pCommand->ble);
+		}
 		caret_placeCursorInCurrentFile(wp, pCommand->ln, pCommand->col);
 	}
 	if (bRedrawAll) {
