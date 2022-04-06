@@ -145,7 +145,6 @@ int			bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name);
 void 		bytecode_closeOpenLabels(void);
 void 		bytecode_destroyLabelNamed(char *name);
 char*		bytecode_generateAutoLabelName(char *prefix, int num);
-static ARRAY_LIST*	_currentArrayLiteral;
 static HASHMAP*		_currentNativeMethodAnnotation;
 static int			_localVariableIndex;
 static STRING_BUF*  _nativeMethodSignature;
@@ -687,77 +686,11 @@ value:		T_VARIABLE {
 				free($1.ident.s);
 			}
 			| simple_literal {	$$.ident.type = $1.ident.type;	}
-			| map_literal {
-				$$.ident.type = VT_MAP;
-				YY_EMIT(C_PUSH_MAP_LITERAL, (GENERIC_DATA){.stringList=_currentArrayLiteral});
-				bytecode_destroyArraylistWithPointers(_currentArrayLiteral);
-				_currentArrayLiteral = 0;
-			}
-			| array_literal {
-				$$.ident.type = VT_OBJECT_ARRAY;
-				YY_EMIT(C_PUSH_ARRAY_LITERAL, (GENERIC_DATA){.stringList=_currentArrayLiteral});
-				bytecode_destroyArraylistWithPointers(_currentArrayLiteral);
-				_currentArrayLiteral = 0;
-			}
 			| T_IDENT {
 				yyerror("Undefined identifier %s", $1.ident.s);
 				parser_emitPushVariable(&$1.ident);
 				$$.ident.type = VT_STRING;  
 			}
-
-map_literal: '{' {
-				_currentArrayLiteral = arraylist_create(1);
-				// Hack - avoid push instruction being generated for map literal elements.
-				_bDefiningConst = 1;
-			} optional_map_associates closing_brace {
-				_bDefiningConst = 0;
-			}
-
-optional_map_associates:
-			|
-			map_associates
-
-map_associates:
-			map_associate
-			|
-			map_associates ',' map_associate
-
-map_associate:
-			T_STRING T_ASSOC_ARROW simple_literal { 
-				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, $1.ident.s));
-				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(0, $3.v.type, $3.v.data.longValue));
-			}
-			| T_STRING T_ASSOC_ARROW T_STRING { 
-				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, $1.ident.s));
-				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, $3.ident.s));
-			}
-
-array_literal: '[' {
-				_currentArrayLiteral = arraylist_create(1);
-			} 
-			']'
-			| '[' {
-				_currentArrayLiteral = arraylist_create(3);
-			} array_elements ']'
-
-array_elements:
-			array_elements ',' array_element
-			| array_element
-
-array_element:
-			simple_array_element {
-				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(0, $1.v.type, $1.v.data.longValue));
-			}
-			|
-			T_STRING {
-				arraylist_add(_currentArrayLiteral, (void*)MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, $1.ident.s));
-			}
-
-simple_array_element:
-			integer_literal	{ $$.v.type = VT_NUMBER; $$.v.data.longValue = $1.v.data.longValue; }
-			| T_CHARACTER	{ $$.v.type = VT_CHAR; $$.v.data.longValue = $1.num; }
-			| T_TRUE		{ $$.v.type = VT_BOOLEAN; $$.v.data.longValue = 1; }
-			| T_FALSE		{ $$.v.type = VT_BOOLEAN; $$.v.data.longValue = 0; }
 
 string:		T_STRING {	$$.ident = $1.ident; }
 			| string T_STRING { 
@@ -973,6 +906,49 @@ call_expression: T_FUNC '(' {
 				}
 				_currentFunctionCallParamIndexP--;
 			}
+			| array_constructor
+			| map_constructor
+
+array_constructor: '[' {
+				_currentNativeMethodCalled = &_functionTable[FUNC_CreateArray];
+				_currentFunctionCallParamIndexP++;
+				*_currentFunctionCallParamIndexP = 0;
+				$$.funcp = $1.funcp;
+			} parameter_list ']' {
+				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
+					C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction(_currentNativeMethodCalled)}, *_currentFunctionCallParamIndexP);
+				_currentFunctionCallParamIndexP--;
+				_currentNativeMethodCalled = 0;
+			}
+
+map_constructor: '{' {
+		_currentNativeMethodCalled = &_functionTable[FUNC_CreateMap];
+		_currentFunctionCallParamIndexP++;
+		*_currentFunctionCallParamIndexP = 0;
+		$$.funcp = $1.funcp;
+	} optional_map_associates '}' {
+		_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
+			C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction(_currentNativeMethodCalled)}, *_currentFunctionCallParamIndexP);
+		_currentFunctionCallParamIndexP--;
+		_currentNativeMethodCalled = 0;
+	}
+
+optional_map_associates:
+			|
+			map_associates
+
+map_associates:
+			map_associate
+			|
+			map_associates ',' map_associate
+
+map_associate:
+			T_STRING T_ASSOC_ARROW { 
+				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$1.ident.s});
+				$$.v.type = C_PUSH_STRING_LITERAL;
+				free($1.ident.s);
+				(*_currentFunctionCallParamIndexP) += 2;
+			} value
 
 function_id_or_pointer:
 			'*' variable_reference {

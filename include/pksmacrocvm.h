@@ -250,6 +250,7 @@ typedef enum {
 	C_ASSIGN = 0x9,  			// assign: a = stackval
 	C_ASSIGN_LOCAL_VAR = 0xA,  	// assign: localVars[i] = stackval
 	C_ASSIGN_SLOT = 0xB,  		// assign: a.x = stackval or a[x] = stackval
+	C_SPREAD = 0xC,				// Spread operator for spreading an array into a sequence of values
 
 	// Push objects onto the stack
 	C_PUSH_CHARACTER_LITERAL = 0x10,		// Push character literal. 1 Ascii character follows 
@@ -259,12 +260,9 @@ typedef enum {
 	C_PUSH_LONG_LITERAL  = 0x14, 			// Push long literal, pad, 1 long Parameter follows 
 	C_PUSH_FLOAT_LITERAL = 0x15, 			// Push floating point literal
 	C_PUSH_BOOLEAN_LITERAL   = 0x16,		// Push boolean literal 1 Ascii character follows 
-	C_PUSH_ARRAY_LITERAL = 0x17, 			// Push array literal, n PKSValues starting with a type byte and 
-											// either a string with \0 end or 4 bytes for other values (int etc...)
 	C_PUSH_VARIABLE = 0x18,					// push named var (global var) onto stack
 	C_PUSH_LOCAL_VARIABLE = 0x19,			// push local var onto stack
 	C_FORM_START = 0x1A, 					// formular with parameters ...
-	C_PUSH_MAP_LITERAL = 0x1B, 				// Push map literal, same format as array literal. Successive values are treated as key, value pairs
 	C_PUSH_NEW_INSTANCE = 0x1C,				// create a new instance of an object.
 
 	// Define parameters and variables
@@ -329,14 +327,6 @@ typedef struct tagCOMMAND {
 	COM_1FUNC c_functionDef;		// the actual functionto execute including flags.
 	char*	  c_name;				// name of the command used in macros
 } COMMAND;
-
-typedef struct tagCOM_STRING_ARRAYLITERAL {
-	unsigned char 	typ;			// C_PUSH_STRING_ARRAY_LITERAL push a string array
-	unsigned char   length;			// length of the array
-	unsigned int    totalBytes;		// Total size of this instruction in bytes.
-	unsigned char	strings[1];		// 'length' number of 0-terminated strings follow now.
-} COM_ARRAYLITERAL;
-
 
 typedef struct tagCOM_ASSIGN {
 	unsigned char 	typ;			// C_ASSIGN assign current stack top to a variable or C_ASSIGN_SLOT with slot being stack top and value being next to top.

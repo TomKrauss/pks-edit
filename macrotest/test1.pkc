@@ -263,6 +263,7 @@ static void Test-ForLoop() {
  * Should also be used to test de-compilation.
  */
 static void Test-Overflows() {
+	string s;
 	string[] longArray = [
 		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzsdjhfskhfsjdfhksfhfasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiuasdaiusdzasuidzasiudzsdjhfskhfsjdfhksfhfasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiasdaiusdzasuidzasiudzsdjhfskhfsjdfhksfhfasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaid",
 		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
@@ -279,6 +280,10 @@ static void Test-Overflows() {
 		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud",
 		"hello", "world", "how", "are", "you", "doing", "asdaiusdzasuidzasiudzasidzaiszdaiuszdaidzausdzaiszdauidzauszdiauzsdauiszaiusdzauiszdauiszdaiuziauszdaiuszdaiudzaiuszdiausdzaiusdzsaiud"
 	];
+	AssertEquals(98, size(longArray));
+	// should not crash
+	s = (string)longArray;
+	println(s);
 }
 
 /*
@@ -319,6 +324,10 @@ static void Test-Arrays() {
 	mixedArray2 += false;
 	mixedArray2 += "a";
 	AssertEquals("1, false, a", (string)mixedArray2);
+
+	i = 12;
+	mixedArray2 = [i,i,"hello"];
+	AssertEquals("12, 12, hello", (string)mixedArray2);
 }
 
 static void Test-ArrayAdd() {
@@ -401,7 +410,10 @@ static void Test-Maps() {
 		demoMap[s] = i;
 	}
 	AssertEquals(42, demoMap["key42"]);
-
+	s = "hello";
+	demoMap = { "x" => s };
+	AssertEquals(1, size(demoMap));
+	AssertEquals("hello", demoMap["x"]);
 }
 
 /*

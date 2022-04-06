@@ -73,8 +73,15 @@ static void interpreter_asString(char* pBuf, char* pBufEnd, PKS_VALUE v) {
 		PKS_VALUE nNested = memory_getNestedObject(v, i);
 		char buf[200];
 		interpreter_printString(buf, sizeof buf, nNested);
+		size_t len = strlen(buf);
+		if (pBuf + len > pBufEnd - 1) {
+			if (pBuf + 3 < pBufEnd - 1) {
+				strcpy(pBuf, "...");
+			}
+			break;
+		}
 		strcpy(pBuf, buf);
-		pBuf += strlen(buf);
+		pBuf += len;
 		i++;
 	}
 	*pBuf = 0;

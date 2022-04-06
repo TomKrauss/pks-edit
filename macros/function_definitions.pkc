@@ -598,13 +598,6 @@ native int error_displayAlertBoxWithOptions();
 native string EdPromptAssign(string message, string initialString);
 
 /*
- * Format printf similar to sprintf in C. See PKS-Edit printf format for details
- * on supported formats.
- */
-@Method(name="sprintf", signature="P")
-native int interpreter_sprintf(string format, ...);
-
-/*
  * Returns the text currently selected in the passed editor.
  */
 @Method(name="GetSelected")
@@ -760,12 +753,7 @@ native int bl_moveSelectionUpDown(int direction);
  */
 @Method(name="EditorInsertString")
 native int edit_insertString(EDITOR editor, string stringToInsert);
-/*
- * Return the size of the object. This is the length of a string
- * or the number of entries in an array or map.
- */
-@Method(name="size", signature="P")
-native int interpreter_size(auto stringOrArrayOrMap);
+
 /*
  * Search for an occurrence of a string in another string and return the index.
  */
@@ -789,13 +777,6 @@ native int macroc_println(string stringToPrint);
  */
 @Method(name="clear")
 native int macroc_clearConsole();
-
-/*
- * Return a printed version of the object passed as an argument. typeof("x") will
- * return "string" for instance.
- */
-@Method(name="typeof", signature="P")
-native string interpreter_typeOf(auto object);
 
 /*
  * Upper case a string and return upper case result.
@@ -822,6 +803,40 @@ native string[] macroc_stringTokenize(string stringToSplit, string tokenSeparato
  */
 @Method(name="foreach", signature="P")
 native int interpreter_foreach();
+
+/*
+ * Return a printed version of the object passed as an argument. typeof("x") will
+ * return "string" for instance.
+ */
+@Method(name="typeof", signature="P")
+native string interpreter_typeOf(auto object);
+
+/*
+ * Return the size of the object. This is the length of a string
+ * or the number of entries in an array or map.
+ */
+@Method(name="size", signature="P")
+native int interpreter_size(auto stringOrArrayOrMap);
+
+/*
+ * Format printf similar to sprintf in C. See PKS-Edit printf format for details
+ * on supported formats.
+ */
+@Method(name="sprintf", signature="P")
+native int interpreter_sprintf(string format, ...);
+
+/*
+ * Create a map with a variable number of arguments. The number must be even. Arguments are interpreted
+ * as key value pairs. Keys are currently limited to be strings.
+ */
+@Method(name="CreateMap", signature="P")
+native int interpreter_createMap(...);
+
+/*
+ * Create an array  with a variable number of arguments.
+ */
+@Method(name="CreateArray", signature="P")
+native int interpreter_createArray(...);
 
 /*
  * Returns the index of a given element in either an array or a string.

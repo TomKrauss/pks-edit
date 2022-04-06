@@ -72,7 +72,7 @@ EdExpandAbbreviation(long ), EdConfigureIcons(long ), EdHelpContext(long ), EdLi
 EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(),
 bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdSetExtendSelectionMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
-interpreter_typeOf(), interpreter_foreach(), interpreter_size(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(), macroc_indexOf(), macroc_stringTokenize(), macroc_tolower(), macro_getFunctionNamesMatching(), macroc_fileTest(),
+interpreter_typeOf(), interpreter_foreach(), interpreter_size(), interpreter_createArray(), interpreter_createMap(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(), macroc_indexOf(), macroc_stringTokenize(), macroc_tolower(), macro_getFunctionNamesMatching(), macroc_fileTest(),
 macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors(), macroc_pathCreateFromSegments(), edit_getSelectedLineRange(), edit_getLineLen(), edit_getLineText(),
 macroc_findPattern(), edit_replaceLines(), edit_replaceSpacesWithTabs(), edit_replaceTabsWithSpaces();
 
@@ -191,7 +191,7 @@ EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*92*/fm_gotoLastPosition, -1, EW_CUSTOM_ENABLEMENT,                                                  "GotoLastPosition", fm_canGotoLast,  "i"                                           },
 {/*93*/EdAlignText, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                   "AlignText",                  NULL,  "ibFORM_sieRNG_bRE_eAL_"                     },
 {/*94*/error_setShowMessages, -1, 0,                                                                   "ShowMessages",               NULL,  "ii"                                          },
-{/*95*/function_unused, -1, EW_NEEDSCURRF | 0,                                                        "unused",             NULL,  "ii"                                      },
+{/*95*/interpreter_createArray, -1, EW_NEEDSCURRF | 0,                                                 "CreateArray",             NULL,  "P"                                      },
 {/*96*/EdMouseMarkParts, -1, EW_NEEDSCURRF | 0,                                                        "MouseMarkParts",             NULL,  "iWeMOT_"                                      },
 {/*97*/EdMouseMoveText, -1, EW_NEEDSCURRF | 0,                                                         "MouseMoveText",              NULL,  "iWeMM_"                                      },
 {/*98*/EdMouseSelectLines, -1, EW_NEEDSCURRF | EW_FINDCURS | 0,                                        "MouseSelectLines",           NULL,  "iWi"                                      },
@@ -264,6 +264,7 @@ EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*165*/edit_replaceLines, -1, 0, "EditorReplaceLines", NULL, "P" },
 {/*166*/edit_replaceSpacesWithTabs, -1, 0, "EditorReplaceSpacesWithTabs", NULL, "sWs" },
 {/*167*/edit_replaceTabsWithSpaces, -1, 0, "EditorReplaceTabsWithSpaces", NULL, "sWs" },
+{/*168*/interpreter_createMap, -1, 0, "CreateMap", NULL, "P" },
 0
 };
 

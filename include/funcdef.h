@@ -118,6 +118,8 @@ extern PARAMETER_ENUM_VALUE	_parameterEnumValueTable[];
 #define 	FUNC_EdKeycodeInsert			16
 #define 	FUNC_EdCharInsert				17
 #define 	FUNC_EdOptionToggle				78
+#define		FUNC_CreateArray				95
+#define		FUNC_CreateMap					168
 #define 	FUNC_Foreach					139
 #define 	FUNC_RegisterNative				158
 

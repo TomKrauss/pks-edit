@@ -104,47 +104,6 @@ void interpreter_raiseError(const char* pFormat, ...) {
 	}
 }
 
-static ARRAY_LIST* interpreter_extractArrayListFromBytecodes(COM_ARRAYLITERAL* pPointer) {
-	ARRAY_LIST* pList = arraylist_create(pPointer->length);
-	char* p = pPointer->strings;
-	for (int i = 0; i < pPointer->length; i++) {
-		PKS_VALUE_TYPE t = *p++;
-		if (t == VT_STRING) {
-			arraylist_add(pList, (void*)MAKE_TYPED_OBJECT_POINTER(1, t, p));
-			while (*p++) {
-
-			}
-		}
-		else {
-			long l;
-			memcpy(&l, p, sizeof l);
-			p += sizeof l;
-			arraylist_add(pList, (void*)MAKE_TYPED_OBJECT_POINTER(0, t, l));
-		}
-	}
-	return pList;
-}
-
-/*
- * Decode a push-arraylist operation and convert to an array list.
- */
-static PKS_VALUE interpreter_decodeArrayList(EXECUTION_CONTEXT* pContext, COM_ARRAYLITERAL* pPointer) {
-	ARRAY_LIST* pList = interpreter_extractArrayListFromBytecodes(pPointer);
-	PKS_VALUE v = memory_createObject(pContext, VT_OBJECT_ARRAY, 0, pList);
-	arraylist_destroy(pList);
-	return v;
-}
-
-/*
- * Decode a push-arraylist operation and convert to an array list.
- */
-static PKS_VALUE interpreter_decodeMap(EXECUTION_CONTEXT* pContext, COM_ARRAYLITERAL* pPointer) {
-	ARRAY_LIST* pList = interpreter_extractArrayListFromBytecodes(pPointer);
-	PKS_VALUE v = memory_createObject(pContext, VT_MAP, 0, pList);
-	arraylist_destroy(pList);
-	return v;
-}
-
 /*--------------------------------------------------------------------------
  * interpreter_getValueForOpCode()
  * pop data from execution stack
@@ -175,10 +134,6 @@ static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsi
 		PKS_VALUE_TYPE t = ((COM_INT1*)pInstructionPointer)->c_valueType;
 		return memory_createObject(pContext, t, types_getObjectSize(t), 0);
 	}
-	case C_PUSH_ARRAY_LITERAL:
-		return interpreter_decodeArrayList(pContext, (COM_ARRAYLITERAL*)pInstructionPointer);
-	case C_PUSH_MAP_LITERAL:
-		return interpreter_decodeMap(pContext, (COM_ARRAYLITERAL*)pInstructionPointer);
 	case C_PUSH_STRING_LITERAL:
 		return memory_createObject(pContext, VT_STRING, 0, ((COM_STRING1*)pInstructionPointer)->s);
 	case C_PUSH_VARIABLE:
@@ -283,6 +238,31 @@ PKS_VALUE interpreter_size(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int 
 	}
 	size_t nLen = memory_size(v);
 	return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = nLen };
+}
+
+/*
+ * Implements the CreateArray() method used when arrays are created: [...].
+ */
+PKS_VALUE interpreter_createArray(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	PKS_VALUE vArray = memory_createObject(pContext, VT_OBJECT_ARRAY, nArgs, 0);
+	for (int i = 0; i < nArgs; i++) {
+		memory_setNestedObject(vArray, i, pValues[i]);
+	}
+	return vArray;
+}
+
+/*
+ * Implements the CreateMap() method used when maps are created: ´{"x" => x}.
+ */
+PKS_VALUE interpreter_createMap(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	PKS_VALUE vArray = memory_createObject(pContext, VT_MAP, nArgs, 0);
+	for (int i = 0; i < nArgs; i += 2) {
+		if (pValues[i].pkv_type != VT_STRING) {
+			interpreter_raiseError("Illegal attempt to create a map with a non string key.");
+		}
+		memory_atPutObject(vArray, pValues[i], pValues[i+1]);
+	}
+	return vArray;
 }
 
 /*
@@ -430,9 +410,6 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 		case C_ASSIGN_LOCAL_VAR:
 		case C_PUSH_BOOLEAN_LITERAL:
 			return sizeof(COM_CHAR1);
-		case C_PUSH_MAP_LITERAL:
-		case C_PUSH_ARRAY_LITERAL:
-			return ((COM_ARRAYLITERAL*)(s - 1))->totalBytes;
 		case C_1FUNC:
 			return sizeof(COM_1FUNC);
 		case C_FORM_START:
@@ -805,12 +782,13 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 		interpreter_returnNativeFunctionResult(pContext, pReturnType, rc);
 	} else {
 		if (bInternalNativeCall) {
-			memset(tempStack, 0, sizeof tempStack);
+			PKS_VALUE* pStack = calloc(nParametersPassed ? nParametersPassed : 1, sizeof * pStack);
 			for (int i = 0; i < nParametersPassed; i++) {
-				tempStack[nParametersPassed -i-1] = interpreter_popStackValue(pContext);
+				pStack[nParametersPassed -i-1] = interpreter_popStackValue(pContext);
 			}
 			EDFUNC* fup = &_functionTable[funcnum];
-			returnValue = ((PKS_VALUE (*)())fup->execute)(pContext, tempStack, nParametersPassed);
+			returnValue = ((PKS_VALUE (*)())fup->execute)(pContext, pStack, nParametersPassed);
+			free(pStack);
 		} else {
 			PKS_VALUE* pOld = pContext->ec_stackFrame;
 			pContext->ec_stackFrame = pContext->ec_stackCurrent - nParametersPassed;
@@ -984,8 +962,6 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 		case C_PUSH_INTEGER_LITERAL:
 		case C_PUSH_NEW_INSTANCE:
 		case C_PUSH_VARIABLE:
-		case C_PUSH_ARRAY_LITERAL:
-		case C_PUSH_MAP_LITERAL:
 		case C_PUSH_STRING_LITERAL: {
 			PKS_VALUE value = interpreter_getValueForOpCode(pContext, pInstr);
 			interpreter_pushValueOntoStack(pContext, value);

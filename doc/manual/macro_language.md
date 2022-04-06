@@ -82,11 +82,13 @@ Values may have one of the following types:
 - `range` ranges can be used to select a range of text or they can be iterated over using the foreach expression. A range has a lower and an upper bounds and
    an optional increment. Ranges are built using the `..` operator as in `1..5` (Numbers 1 to 5 inclusively) or `0..21..3` (Numbers from 0 to 21 inclusively
    but with an increment of 3).
-- `string[]`, `int[]`,.... an array may contain 0 to n nested values currently and is typically defined using an array literal such as `["hello", "world"]`. Array
-literals with other element types are currently not yet supported.
+- `string[]`, `int[]`,.... an array may contain 0 to n nested values currently and is typically defined using an _array constructor_ such as `["hello", "world"]` or
+`[ true, 4711, i ]` (creates an array containing the values `true`, `4711` and the current value of the variable `i`).
 - `map`s can be used to associate arbitrary values with string type keys (so far only string type keys are supported). To put a value into a map
-   use map["key"] = value, to access a value in a map use map["key"]. 
- 
+   use map["key"] = value, to access a value in a map use map["key"]. Maps can also be created using a _map constructor_, which has a syntax like
+   in the following sample `{ "x" => 42 }` (a map with one association of "x" with the value 42) or `{ "a" => v1, "b" => "anotherString" }` (map
+   with two associations "a" with the value of variable v1 and "b" associated with the string "anotherString").
+
 PKSMacoC will try to coerce values to their "right" types or you may `cast` a value type to another explicitly using a cast operator. The following examples
 shows implicit and explicit coercions.
 

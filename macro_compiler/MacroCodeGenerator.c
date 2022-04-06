@@ -59,31 +59,7 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 			typ = C_PUSH_SMALL_INT_LITERAL;
 	}
 
-	if (typ == C_PUSH_ARRAY_LITERAL  || typ == C_PUSH_MAP_LITERAL) {
-		ARRAY_LIST* pList = data.stringList;
-		size_t nElements = arraylist_size(pList);
-		COM_ARRAYLITERAL* pLiteral = (COM_ARRAYLITERAL * )sp;
-		spret = (char*)((COM_ARRAYLITERAL*)sp)->strings;
-		pLiteral->length = (int)nElements;
-		for (int i = 0; i < nElements; i++) {
-			TYPED_OBJECT_POINTER top = (TYPED_OBJECT_POINTER) arraylist_get(pList, i);
-			PKS_VALUE_TYPE pType = TOP_TYPE(top);
-			*spret++ = pType;
-			if (pType == VT_STRING) {
-				char* pString = (char*)TOP_DATA_POINTER(top);
-				size_t nLen = strlen(pString);
-				strcpy(spret, pString);
-				spret += nLen;
-				*spret++ = 0;
-			} else if (pType == VT_NUMBER || pType == VT_CHAR || pType == VT_BOOLEAN) {
-				long lValue = (long)(uintptr_t)TOP_DATA_POINTER(top);
-				memcpy(spret, &lValue, sizeof(lValue));
-				spret += sizeof(lValue);
-			}
-		}
-		s = (int)(spret - sp);
-		pLiteral->totalBytes = s;
-	} else if (typ == C_MACRO_REF_LOCAL) {
+	if (typ == C_MACRO_REF_LOCAL) {
 		s = (long)(sizeof(COM_MAC));
 	} else if (typ == C_MACRO || typ == C_MACRO_REF) {
 		if (data.string == 0) {
@@ -100,9 +76,6 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 	}
 
 	switch(typ) {
-		case C_PUSH_MAP_LITERAL:
-		case C_PUSH_ARRAY_LITERAL:
-			break;
 		case C_STOP:
 		case C_ASSIGN_SLOT:
 		case C_SET_STACKFRAME:

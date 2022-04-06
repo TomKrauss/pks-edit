@@ -298,48 +298,6 @@ static char* decompile_skip(char* szBuf) {
 	return szBuf;
 }
 
-static void decompile_objectLiteral(STRING_BUF* pBuf, void* pInstr, int bArray) {
-	COM_ARRAYLITERAL* pPointer = pInstr;
-	int nElements = pPointer->length;
-	char* p = pPointer->strings;
-	int bFirst = 1;
-	size_t nLineStart = 0;
-	while (nElements > 0) {
-		if (bFirst) {
-			bFirst = 0;
-		}
-		else {
-			if (bArray || (nElements % 2) == 0) {
-				stringbuf_appendChar(pBuf, ',');
-				if (stringbuf_size(pBuf) - nLineStart > 120) {
-					nLineStart = stringbuf_size(pBuf);
-					stringbuf_appendChar(pBuf, '\n');
-				}
-				else {
-					stringbuf_appendChar(pBuf, ' ');
-				}
-			}
-			else {
-				stringbuf_appendString(pBuf, "=>");
-			}
-		}
-		PKS_VALUE_TYPE t = *p++;
-		if (t == VT_STRING) {
-			stringbuf_appendChar(pBuf, '"');
-			stringbuf_appendString(pBuf, decompile_quoteString(p));
-			stringbuf_appendChar(pBuf, '"');
-			p = decompile_skip(p)+1;
-		} else {
-			char szTemp[64];
-			long l;
-			memcpy(&l, p, sizeof l);
-			p += sizeof l;
-			sprintf(szTemp, "%d", l);
-			stringbuf_appendString(pBuf, szTemp);
-		}
-		nElements--;
-	}
-}
 
 /*
  * decompile_printParameter()
@@ -365,16 +323,6 @@ static int decompile_printParameter(STRING_BUF* pBuf, unsigned char *sp, PARAMET
 		case C_PUSH_CHARACTER_LITERAL:
 			val = ((COM_CHAR1 *)sp)->val;
 			break;
-		case C_PUSH_ARRAY_LITERAL:
-			stringbuf_appendChar(pBuf, '[');
-			decompile_objectLiteral(pBuf, sp, 1);
-			stringbuf_appendChar(pBuf, ']');
-			return 1;
-		case C_PUSH_MAP_LITERAL:
-			stringbuf_appendChar(pBuf, '{');
-			decompile_objectLiteral(pBuf, sp, 0);
-			stringbuf_appendChar(pBuf, '}');
-			return 1;
 		case C_PUSH_FLOAT_LITERAL:
 			decompile_printValue(szTemp, sizeof szTemp, (PKS_VALUE) {
 				.pkv_type = VT_FLOAT, .pkv_data.doubleValue = ((COM_FLOAT1*)sp)->val
@@ -770,8 +718,6 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 		case C_PUSH_NEW_INSTANCE: decompile_print(pBuf, "pushNewInstance %s", types_nameFor(((COM_INT1*)sp)->c_valueType)); break;
 		case C_PUSH_INTEGER_LITERAL: decompile_print(pBuf, "pushIntLiteral %d", ((COM_INT1*)sp)->val); break;
 		case C_PUSH_FLOAT_LITERAL: decompile_print(pBuf, "pushFloatLiteral %f", ((COM_FLOAT1*)sp)->val); break;
-		case C_PUSH_ARRAY_LITERAL: decompile_print(pBuf, "pushArrayLiteral size==%d", ((COM_ARRAYLITERAL*)sp)->length); break;
-		case C_PUSH_MAP_LITERAL: decompile_print(pBuf, "pushMapLiteral size==%d", ((COM_ARRAYLITERAL*)sp)->length); break;
 		case C_PUSH_BOOLEAN_LITERAL: decompile_print(pBuf, "pushBooleanLiteral %d", ((COM_CHAR1*)sp)->val); break;
 		case C_ASSIGN_LOCAL_VAR: decompile_print(pBuf, "assignLocalVar %d", ((COM_CHAR1*)sp)->val); break;
 		case C_PUSH_LOCAL_VARIABLE: decompile_print(pBuf, "pushLocalVar %d", ((COM_CHAR1*)sp)->val); break;
