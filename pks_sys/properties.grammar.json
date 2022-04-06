@@ -1,0 +1,39 @@
+{
+  "grammars": [
+    {
+      "scopeName": "properties",
+      "patterns": [
+        {
+          "match": "^#.*",
+          "style": "comment",
+          "ignore-case": true,
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "^\\s*([0-9a-zA-Z_.]+)\\s*=",
+          "style": "string",
+          "name": "properties.start",
+          "captures": [
+            {
+              "pattern": "properties.key"
+            }
+          ]
+        },
+        {
+          "name": "properties.key",
+          "style": "identifier"
+        },
+        {
+          "match": "\\$([{}0-9a-zA-Z_.]+)",
+          "style": "annotation",
+          "name": "variable"
+        },
+        {
+          "match": "=",
+          "style": "operator",
+          "name": "operator.equals"
+        }
+      ]
+    }
+  ]
+}
