@@ -418,6 +418,7 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 			return sizeof(COM_GOTO);
 		case C_ASSIGN_SLOT:
 		case C_STOP:
+		case C_SPREAD:
 			return sizeof(COM_STOP);
 		case C_PUSH_FLOAT_LITERAL:
 			/* only if your alignment = 2,2,2 */
@@ -684,7 +685,7 @@ static int interpreter_executeMacroByName(char* name) {
 /*---------------------------------*/
 /* interpreter_doMacroFunctions()				*/
 /*---------------------------------*/
-static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC *pInstructionPointer) {
+static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1FUNC *pInstructionPointer, int nArgumentDelta) {
 	intptr_t	nativeStack[8];
 	PKS_VALUE	tempStack[8];
 	intptr_t	rc;
@@ -729,7 +730,7 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 			bNativeCall = FALSE;
 		}
 	}
-	int nParametersPassed = ((COM_0FUNC*)pInstructionPointer)->func_nargs;
+	int nParametersPassed = ((COM_0FUNC*)pInstructionPointer)->func_nargs+nArgumentDelta;
 	if (bNativeCall) {
 		memset(nativeStack, 0, sizeof nativeStack);
 		if (typ == C_1FUNC) {
@@ -881,6 +882,24 @@ static int interpreter_testCaseLabelMatch(EXECUTION_CONTEXT* pContext, PKS_VALUE
 	return nCaseLabelValue.pkv_data.intValue == v2.pkv_data.intValue;
 }
 
+/*
+ * Implements the spread operator.
+ */
+static int interpreter_spread(EXECUTION_CONTEXT* pContext) {
+	PKS_VALUE v = interpreter_peekStackValue(pContext);
+	if (v.pkv_type != VT_OBJECT_ARRAY) {
+		interpreter_raiseError("Illegal object type %s for spread operator.", types_nameFor(v.pkv_type));
+	}
+	interpreter_popStackValue(pContext);
+	size_t nSize = memory_size(v);
+	int nDelta = nSize ? (int)(nSize - 1) : -1;
+	for (int i = 0; i < nSize; i++) {
+		PKS_VALUE vElement = memory_getNestedObject(v, i);
+		interpreter_pushValueOntoStack(pContext, vElement);
+	}
+	return nDelta;
+}
+
 /*---------------------------------*/
 /* macro_interpretByteCodes()      */
 /*---------------------------------*/
@@ -889,6 +908,7 @@ static int interpreter_testCaseLabelMatch(EXECUTION_CONTEXT* pContext, PKS_VALUE
 static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* mpMacro) {
 	char* pszFunctionName = mpMacro->mc_name;
 	COM_1FUNC* cp = (COM_1FUNC*)mpMacro->mc_bytecodes;
+	int nArgumentDelta = 0;
 	COM_1FUNC* cpmax = (COM_1FUNC*)(mpMacro->mc_bytecodes + mpMacro->mc_bytecodeLength);
 	static int _progressCount;
 
@@ -913,7 +933,7 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 			int val;
 			if (bt == BRA_ALWAYS) {
 				pInstr = COM1_INCR(cp, COM_GOTO, offset);
-				break;
+				continue;
 			}
 			else if (bt == BRA_IF_FALSE) {
 				PKS_VALUE stackTop = interpreter_popStackValue(pContext);
@@ -928,30 +948,28 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 				pInstr = COM1_INCR(cp, COM_GOTO, offset);
 			else
 				pInstr = COM_PARAMINCR(cp);
-			break;
+			continue;
 		}
 		case C_POP_STACK:
 			if (pContext->ec_stackCurrent > pContext->ec_stackFrame) {
 				pContext->ec_stackCurrent--;
 			}
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			memory_garbaggeCollect(pContext);
+			break;
+		case C_SPREAD:
+			nArgumentDelta += interpreter_spread(pContext);
 			break;
 		case C_SET_STACKFRAME:
 			pContext->ec_stackFrame = pContext->ec_stackCurrent;
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		case C_LOGICAL_OPERATION:
 			interpreter_testExpression(pContext, (COM_BINOP*)cp);
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-			continue;
+			break;
 		case C_BINOP:
 			interpreter_evaluateBinaryExpression(pContext, (COM_BINOP*)cp);
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-			continue;
+			break;
 		case C_FORM_START:
 			_currentFormInstruction = (COM_FORM*)pInstr;
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		case C_PUSH_BOOLEAN_LITERAL:
 		case C_PUSH_LONG_LITERAL:
@@ -965,7 +983,6 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 		case C_PUSH_STRING_LITERAL: {
 			PKS_VALUE value = interpreter_getValueForOpCode(pContext, pInstr);
 			interpreter_pushValueOntoStack(pContext, value);
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		}
 		case C_DEFINE_PARAMETER: {
@@ -981,7 +998,6 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 			}
 			int idx = ((COM_DEFINE_SYMBOL*)cp)->heapIndex;
 			pContext->ec_localVariables[idx] = value;
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		}
 		case C_DEFINE_LOCAL_VARIABLE:
@@ -995,30 +1011,27 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 					sym_defineVariable(sym_getGlobalContext(), ((COM_DEFINE_SYMBOL*)cp)->name, v);
 				}
 			}
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		}
 		case C_ASSIGN_SLOT:
 			interpreter_assignOffset(pContext);
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		case C_ASSIGN:
 			interpreter_assignSymbol(pContext, ((COM_ASSIGN*)cp)->name);
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		case C_ASSIGN_LOCAL_VAR:
 			interpreter_assignLocalVar(pContext, ((COM_CHAR1*)cp)->val);
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 			break;
 		case C_STOP:
 			goto end;
 		case C_MACRO_REF: case C_MACRO_REF_LOCAL: case C_MACRO: case C_0FUNC: case C_1FUNC:
-			interpreter_doMacroFunctions(pContext, cp);
-			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
-			continue;
+			interpreter_doMacroFunctions(pContext, cp, nArgumentDelta);
+			nArgumentDelta = 0;
+			break;
 		default:
 			interpreter_raiseError("Corrupted bytecodes - cannot continue.");
 		}
+		pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
 	}
 end:
 	return (int)1;

@@ -77,6 +77,7 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 
 	switch(typ) {
 		case C_STOP:
+		case C_SPREAD:
 		case C_ASSIGN_SLOT:
 		case C_SET_STACKFRAME:
 		case C_PUSH_BOOLEAN_LITERAL:

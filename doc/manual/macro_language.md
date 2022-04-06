@@ -145,7 +145,26 @@ Operators can also be used on `string[]` type values:
 - `i++`, `i--` increment or decrement operators
 - `i += x`, `i *= x`, ... shorthand assignment and calculation operators.
 - one can access the characters of strings using the `[]` operator such as in C.
-  
+
+### spread operator
+
+The spread operator can be used to expand an array into a parameter list of a function or an array constructor. 
+Let's look at the following example:
+
+```
+myArray = [editor, 1];
+EditorGotoLine(...myArray);
+// equivalent to call EditorGotoLine(editor, 1);
+```
+
+The spread operator is in particular useful for appending arrays to other arrays.
+
+```
+array1 = ["a", "b"];
+array2 = [1,2, ...array1];
+// -> array2 == [1,2,"a","b"];
+```
+
 ## PKSMacroC constants
 
 You can define constants outside of macros for convenient naming of typical literals. Constants are inlined

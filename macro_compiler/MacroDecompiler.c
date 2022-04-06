@@ -695,6 +695,7 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 		}
 		switch (t) {
 		case C_STOP: decompile_print(pBuf, "stop"); break;
+		case C_SPREAD: decompile_print(pBuf, "spread"); break;
 		case C_LOGICAL_OPERATION: decompile_print(pBuf, "logicalOperation %s", decompile_testOperationAsString(((COM_BINOP*)sp)->op)); break;
 		case C_GOTO:
 			switch (((COM_GOTO*)sp)->branchType) {

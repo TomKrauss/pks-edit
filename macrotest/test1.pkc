@@ -304,7 +304,8 @@ static void Test-Arrays() {
 	AssertEquals(7, size(myArray));
 	AssertEquals("lastword", myArray[6]);
 
-	myArray += array2;
+	// Concatenate arrays using the spread operator
+	myArray = [...myArray, ...array2];
 	AssertEquals(9, size(myArray));
 	AssertEquals("two", myArray[8]);
 
@@ -328,6 +329,10 @@ static void Test-Arrays() {
 	i = 12;
 	mixedArray2 = [i,i,"hello"];
 	AssertEquals("12, 12, hello", (string)mixedArray2);
+	i = size(mixedArray2);
+	mixedArray = [1, 2, ...mixedArray2];
+	AssertEquals(i+2, size(mixedArray));
+	AssertEquals("1, 2, 12, 12, hello", (string)mixedArray);
 }
 
 static void Test-ArrayAdd() {

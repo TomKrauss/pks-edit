@@ -975,6 +975,10 @@ nonempty_parameters: parameter
 			}
 
 parameter:	simple_expression { $$.ident.type = $1.ident.type; (*_currentFunctionCallParamIndexP)++; }
+			| T_ELLIPSIS simple_expression { 
+				$$.ident.type = $2.ident.type; (*_currentFunctionCallParamIndexP)++; 
+				YY_EMIT(C_SPREAD, (GENERIC_DATA){1});
+			}
 
 type_cast:	'(' type_name ')'	{	
 				$$.ident.type = $2.ident.type;

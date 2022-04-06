@@ -368,7 +368,7 @@ typedef struct tagCOM_CHAR1 {
 
 typedef struct tagCOM_CHAR1 COM_FURET;
 
-typedef struct tagCOM_STOP {				// C_STOP, C_ASSIGN_SLOT - no real param needed
+typedef struct tagCOM_STOP {				// C_STOP, C_SPREAD, C_ASSIGN_SLOT - no real param needed
 	unsigned char typ;
 	unsigned char unused;
 } COM_STOP;
