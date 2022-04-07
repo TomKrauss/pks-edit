@@ -101,7 +101,8 @@ shows implicit and explicit coercions.
 
 ## PKSMacroC literals
 
-PKSMacroC supports **literals** for defining int, string, boolean, float, char, string and array type values.
+PKSMacroC supports **literals** for defining int, string, boolean, float, char and string type values. Maps and arrays may be specified using _constructor_
+expressions, which are similar to literals but support also enclusion of variable references and sub-expressions.
 
 - `int` values can be defined using either decimal, hexadecimal, octal or binary representation using a C like syntax as for example: 
   `-42` (decimal) `0xA0` (hexadecimal) `071` (octal) `0b10010100` (binary). To make long numbers more readable, one may inject underscores. One million
@@ -109,10 +110,11 @@ PKSMacroC supports **literals** for defining int, string, boolean, float, char, 
 - `float` type values currently only support the simple syntax [sign][digits].[digits] as in `3.14`.
 - string type literal are enclosed in `"`. Special characters such as `"`, `\n`, `\r`, `\f`, `\\` ,... (see C syntax) must be quoted using`the `\` character.
   Examples are "hello\nworld" or "this is my \"favorite\" movie"
-- array type literal support currently only the specification of simple arrays - not nested ones. The individual elements are enclosed in 
- `{`and `}` and seperated  by `,`. Examples: `{ "hello", "world" }` or `{ true, 42, "oscar"}`.
-- Literals for maps are not yet fully supported. They are enclosed in square brackets and the key and values are associated using `=>` as in:
-  `[ "key" => 42, "key" => "valueforKey2", ...]`
+- arrays may be specified using array _constructor_ expressions. The individual elements are enclosed in 
+ `[`and `]` and seperated  by `,`. Examples: `[ "hello", "world" ]` or `[ true, 42, "oscar"]`. Note, that this syntax supports also enclosing
+ expressions and the use of variables as in `[var1, 1+2]`.
+- Maps may also be specified using a _constructor_ statement. They are enclosed in curly brackets and the key and values are associated using `=>` as in:
+  `{ "key" => 42, "key" => "valueforKey2", ...}`
 
 ## PKSMacroC operators
 
