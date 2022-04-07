@@ -35,11 +35,14 @@
 
 static const char* consoleFileName = "console.log";
 
-static void macroc_expectNumberOfArgs(int nExpected, int nArgs, const char* pszFunction) {
+static const PKS_VALUE NIL = {.pkv_type = VT_NIL};
+
+static int macroc_expectNumberOfArgs(int nExpected, int nArgs, const char* pszFunction) {
 	if (nArgs < nExpected) {
 		interpreter_raiseError("Invalid number of arguments (%d) for %s. Must pass at least %d arguments.", nArgs, pszFunction, nExpected);
+		return 0;
 	}
-
+	return 1;
 }
 
 /*
@@ -176,12 +179,14 @@ ARRAY_LIST * macroc_stringTokenize(const char* pszString, const char* pszCharact
  * Implements the FileOpen() which opens a file for reading or writing.
  */
 PKS_VALUE macroc_fileOpen(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
-	macroc_expectNumberOfArgs(1, nArgs, "FileOpen");
+	if (!macroc_expectNumberOfArgs(1, nArgs, "FileOpen")) {
+		return NIL;
+	}
 	const char* pszFilename = memory_accessString(pValues[0]);
 	const char* pszAccessMode = nArgs > 1 ? memory_accessString(pValues[1]) : "r";
 	FILE* fp = fopen(pszFilename, pszAccessMode);
 	if (!fp) {
-		return (PKS_VALUE) {.pkv_type = VT_NIL};
+		return NIL;
 	}
 	return memory_createHandleObject(pContext, VT_FILE, fp);
 }
@@ -190,6 +195,7 @@ const char* macroc_accessString(PKS_VALUE v, int idx) {
 	const char* pszResult = memory_accessString(v);
 	if (!pszResult) {
 		interpreter_raiseError("Expecting argument %d to be of type string.", idx);
+		return "";
 	}
 	return pszResult;
 }
@@ -198,7 +204,9 @@ const char* macroc_accessString(PKS_VALUE v, int idx) {
  * Implements the PathCreateFromSegments() which creates a windows path concatenating multiple path segments.
  */
 PKS_VALUE macroc_pathCreateFromSegments(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
-	macroc_expectNumberOfArgs(2, nArgs, "PathCreateFromSegments");
+	if (!macroc_expectNumberOfArgs(2, nArgs, "PathCreateFromSegments")) {
+		return NIL;
+	}
 	int i = 0;
 	const char* pszDir = macroc_accessString(pValues[0], 0);
 	char* pszResult = malloc(EDMAXPATHLEN);
@@ -221,29 +229,42 @@ PKS_VALUE macroc_fileReadLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 	PKS_VALUE_TYPE t = VT_FILE;
 	if (nArgs < 1 || pValues[0].pkv_type != t) {
 		interpreter_raiseError("No file pointer passed to FileReadLine");
+		return NIL;
 	}
 	FILE* fp = memory_handleForValue(pValues[0]);
-	if (fgets(_linebuf, MAXLINELEN, fp)) {
-		_linebuf[strcspn(_linebuf, "\r\n")] = 0;
-		return memory_createObject(pContext, VT_STRING, 0, _linebuf);
+	if (fp == 0) {
+		interpreter_raiseError("0 filepointer used in FileReadLine");
+	} else {
+		if (fgets(_linebuf, MAXLINELEN, fp)) {
+			_linebuf[strcspn(_linebuf, "\r\n")] = 0;
+			return memory_createObject(pContext, VT_STRING, 0, _linebuf);
+		}
 	}
-	return (PKS_VALUE) {
-		.pkv_type = VT_NIL
-	};
+	return NIL;
 }
 
 /*
  * Implements the FileWriteLine() method, which writes one line of text to a given file (FileWriteLine(fp, s)).
  */
 PKS_VALUE macroc_fileWriteLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
-	macroc_expectNumberOfArgs(2, nArgs, "FileWriteLine");
+	BOOL bSuccess = 0;
+	if (!macroc_expectNumberOfArgs(2, nArgs, "FileWriteLine")) {
+		return NIL;
+	}
 	PKS_VALUE_TYPE t = VT_FILE;
 	if (pValues[0].pkv_type != t || pValues[1].pkv_type != VT_STRING) {
 		interpreter_raiseError("No file pointer / no string to write passed to FileWriteLine");
 	}
-	FILE* fp = memory_handleForValue(pValues[0]);
-	BOOL bSuccess = fputs(memory_accessString(pValues[1]), fp) >= 0;
-	fputc('\n', fp);
+	else {
+		FILE* fp = memory_handleForValue(pValues[0]);
+		if (fp == 0) {
+			interpreter_raiseError("0 filepointer used in FileWriteLine");
+		}
+		else {
+			bSuccess = fputs(memory_accessString(pValues[1]), fp) >= 0;
+			fputc('\n', fp);
+		}
+	}
 	return (PKS_VALUE) {
 		.pkv_type = VT_BOOL, .pkv_data.booleanValue = bSuccess
 	};
@@ -258,10 +279,12 @@ PKS_VALUE macroc_fileClose(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int 
 	if (pValues[0].pkv_type != t) {
 		interpreter_raiseError("No file pointer passed to FileClose");
 	}
-	FILE* fp = memory_handleForValue(pValues[0]);
-	if (fp) {
-		fclose(fp);
-		memory_setNestedPointer(pValues[0], 0, (MAKE_TYPED_OBJECT_POINTER(0, 0, 0)));
+	else {
+		FILE* fp = memory_handleForValue(pValues[0]);
+		if (fp) {
+			fclose(fp);
+			memory_setNestedPointer(pValues[0], 0, (MAKE_TYPED_OBJECT_POINTER(0, 0, 0)));
+		}
 	}
 	return (PKS_VALUE) {
 		.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 1
@@ -420,7 +443,7 @@ PKS_VALUE edit_getSelectedLineRange(EXECUTION_CONTEXT* pContext, PKS_VALUE* pVal
 		wp = memory_handleForValue(*pValues);
 	}
 	if (wp == NULL) {
-		return (PKS_VALUE) {.pkv_type = VT_NIL};
+		return NIL;
 	}
 	long nLow = wp->caret.ln;
 	long nHigh = nLow;
@@ -543,7 +566,8 @@ long long macroc_findPattern(const char* string, char* pattern, int nREFlags) {
 		!string ||
 		!(pPattern = find_regexCompile(ebuf, pattern, nREFlags))) {
 		interpreter_raiseError("Wrong parameters or failure to compile pattern %s", pattern ? pattern : "NO_PATTERN");
-	}
+		return -1;
+	} 
 	if (!regex_match(pPattern, string, 0, &match)) {
 		return -1;
 	}

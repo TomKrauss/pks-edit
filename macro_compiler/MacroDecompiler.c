@@ -521,8 +521,8 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
 	}
 	pStackCurrent->dse_instruction = (COM_0FUNC*)sp;
-	stringbuf_destroy(pBuf);
 	pStackCurrent->dse_printed = _strdup(stringbuf_getString(pBuf));
+	stringbuf_destroy(pBuf);
 	pStackCurrent++;
 	return pStackCurrent;
 }

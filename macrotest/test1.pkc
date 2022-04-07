@@ -49,10 +49,11 @@ static void Test-FileIO() {
 	FILE fp;
 	string s;
 	string manualDir = PathCreateFromSegments(GetVariable("pks_sys"), "..", MANUAL_DIRECTORY);
+	string fn = "Actions.c";
 
-	AssertTrue(FileTest("Actions.c"), "Actions.c should exist");
-	AssertFalse(FileTest("Actions.c", "-d"), "Actions.c not be a directory");
-	fp = FileOpen("Actions.c", "r");
+	AssertTrue(FileTest(fn), fn + " should exist");
+	AssertFalse(FileTest(fn, "-d"), fn + " not be a directory");
+	fp = FileOpen(fn, "r");
 	AssertTrue(fp != false);
 	AssertEquals(0, GetLastError());
 	s = FileReadLine(fp);
