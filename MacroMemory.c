@@ -126,7 +126,10 @@ static int memory_markObject(void* pPointer) {
 			ARRAY_LIST* pList = (ARRAY_LIST*)TOP_DATA_POINTER(pData->od_data.objects[0]);
 			ARRAY_ITERATOR pIter = arraylist_iterator(pList);
 			while (pIter.i_buffer < pIter.i_bufferEnd) {
-				memory_markObject(TOP_DATA_POINTER(*pIter.i_buffer));
+				TYPED_OBJECT_POINTER top = (TYPED_OBJECT_POINTER) * pIter.i_buffer;
+				if (TOP_IS_POINTER(top)) {
+					memory_markObject(TOP_DATA_POINTER(top));
+				}
 				pIter.i_buffer++;
 			}
 		} else {

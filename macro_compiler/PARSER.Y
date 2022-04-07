@@ -26,20 +26,19 @@
 %token T_IF T_ELSE T_WHILE T_GOTO
 %token T_SH_ASSIGN_PLUS T_SH_ASSIGN_MINUS T_SH_ASSIGN_MULT T_SH_ASSIGN_DIV T_SH_ASSIGN_MOD
 %token T_SWITCH T_CASE T_DEFAULT T_BREAK T_CONTINUE T_RETURN 
-%token T_VARIABLE T_ASSOC_ARROW 
+%token T_VARIABLE 
 %token T_NMATCH
 %token T_ASSIGN T_NE T_EQ T_SHIFT_LEFT T_SHIFT_RIGHT 
 %token T_OR T_AND T_LE T_GE T_POWER_TO
 
 %left    T_OR T_AND
-%left	'&' '|' '^'
-%nonassoc T_NE T_EQ 
-%left    '~' T_NMATCH
+%left	'&' '|' '^' '!'
+%nonassoc T_NE T_EQ T_NMATCH '~' 
 %left    '<' '>' T_LE T_GE  
 %left	T_SHIFT_LEFT T_SHIFT_RIGHT 
 %left	'+' '-' 
 %left	'*' '/' '%' T_POWER_TO
-%left	'[' T_DOTDOT
+%left	'[' T_DOTDOT '.'
 
 %{
 
@@ -392,7 +391,7 @@ macro_type:	scope T_VOID {
 				}
 			}
 
-macrostart: macro_type macro_declaration '(' parameter_list ')' optional_description 
+macrostart: macro_type macro_declaration '(' argument_list ')' optional_description 
 			{	$$.ident = $2.ident;
 				$$.ident.scope = $1.ident.scope;
 				$$.ident.type = $1.ident.type;
@@ -422,16 +421,24 @@ optional_description:
 				free($1.ident.s);
 			}
 
-parameter_list:
-			| non_empty_pardecl
+argument_list:
+			| non_empty_arguments
 
-non_empty_pardecl:
-			parameter_declaration
+non_empty_arguments:
+			argument_declaration
 			|
-			non_empty_pardecl ',' parameter_declaration
+			non_empty_arguments ',' argument_declaration
 
+parameter_list:
+			| non_empty_parameters
 
-parameter_declaration:	type_name variable_identifier {
+non_empty_parameters: parameter
+			| non_empty_parameters ',' parameter
+			| error {
+				yyerror("illegal parameters for method call");
+			}
+
+argument_declaration: type_name variable_identifier {
 				if (_bInNativeDefinition) {
 					parser_nativeMethodAddParam($1.ident.type, $2.ident.s);
 				} else {
@@ -579,7 +586,7 @@ assignment: variable_reference assignment_expression {
 shorthand_assignment:
 			variable_reference {
 				parser_emitPushVariable(&$1.ident);
-			} shorthand_assignment_operator simple_expression {
+			} shorthand_assignment_operator expression {
 				YY_EMIT(C_BINOP, (GENERIC_DATA){$3.binop});
 				parser_emitAssignment(&$1.ident);
 			}
@@ -595,13 +602,9 @@ shorthand_assignment_operator:
 			| T_SH_ASSIGN_PLUS { $$.binop = BIN_ADD; }
 			| T_SH_ASSIGN_MINUS { $$.binop = BIN_SUB; }
 
-assignment_expression:	T_ASSIGN simple_expression	{ $$.v = $2.v;	}
+assignment_expression:	T_ASSIGN expression	{ $$.v = $2.v;	}
 
-simple_expression: binary_expression { $$.v = $1.v; }
-			| range_expression
-
-binary_expression_or_range:
-			binary_expression
+expression: binary_expression { $$.v = $1.v; }
 			| range_expression
 
 range_expression:
@@ -619,7 +622,7 @@ increment_expression:
 				_currentBytecodeBuffer->bb_current = bytecode_emitIncrementExpression(_currentBytecodeBuffer, $1.ident.s, $1.ident.heapIndex, $1.ident.isLocalVar, (int)$2.num);
 			}
 
-s_bterm: 	value { $$.v = $1.v; }
+simple_term: 	value { $$.v = $1.v; }
 			| call_expression 
 			| constructor_expression
 
@@ -627,9 +630,14 @@ constructor_expression: T_NEW T_TYPE_IDENTIFIER '(' ')' {
 				YY_EMIT(C_PUSH_NEW_INSTANCE, (GENERIC_DATA){$2.ident.type});
 			}
 
+unary_expression:  '!' binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NOT}); }
+			| '~' binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_NOT}); }
+			| '+' binary_expression { $$.v = $2.v; }
+			| '-' variable_reference { _currentBytecodeBuffer->bb_current = bytecode_emitMultiplyWithLiteralExpression(_currentBytecodeBuffer, &$2.v, -1); }
+
 binary_expression:
-			s_bterm { $$.ident.type = $1.ident.type;}
-			| type_cast s_bterm	{
+			simple_term { $$.ident.type = $1.ident.type;}
+			| type_cast simple_term	{
 				$$.ident.type = $1.ident.type;
 				_currentBytecodeBuffer->bb_current = bytecode_emitBinaryOperation(_currentBytecodeBuffer, BIN_CAST, $$.binop);
 			}
@@ -638,11 +646,8 @@ binary_expression:
 				$$.ident.type = parser_pushFieldIndexWithError($1.ident.type, $3.ident.s);
 				YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); 
 			}
-			| binary_expression '[' binary_expression_or_range ']' { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); }
-			| '!' binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NOT}); }
-			| '~' binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_NOT}); }
-			| '+' binary_expression { $$.v = $2.v; }
-			| '-' variable_reference { _currentBytecodeBuffer->bb_current = bytecode_emitMultiplyWithLiteralExpression(_currentBytecodeBuffer, &$2.v, -1); }
+			| unary_expression
+			| binary_expression '[' expression ']' { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); }
 			| binary_expression '~' binary_expression   { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_MATCH}); }
 			| binary_expression T_NMATCH binary_expression   { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NMATCH}); }
 			| binary_expression '&' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AND}); }
@@ -829,7 +834,7 @@ in_clause:	'(' type_name variable_identifier {
 				parser_newForeachCursor();
 				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_localVariableIndex});
 				parser_defineVariable($3.ident.s, $2.ident.type, (intptr_t)0, $2.ident.arraySize);
-			} ':' simple_expression ')' {
+			} ':' expression ')' {
 				SYMBOL 	sym;
 				char *	key;
 				sym = sym_find(_currentIdentifierContext, "foreach",&key);
@@ -850,7 +855,10 @@ while:		T_WHILE {
 				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
 			}
 
-local_block: statement | '{' stmntlist closing_brace
+local_block: 
+		statement
+		|
+		'{' stmntlist closing_brace
 
 closing_brace: '}'
 
@@ -966,16 +974,8 @@ function_id_or_pointer:
 				$$.ident.operation = C_MACRO;
 			}
 
-parameter_list: nonempty_parameters
-
-nonempty_parameters: parameter 
-			| nonempty_parameters ',' parameter
-			| error {
-				yyerror("illegal parameters for method call");
-			}
-
-parameter:	simple_expression { $$.ident.type = $1.ident.type; (*_currentFunctionCallParamIndexP)++; }
-			| T_ELLIPSIS simple_expression { 
+parameter:	expression { $$.ident.type = $1.ident.type; (*_currentFunctionCallParamIndexP)++; }
+			| T_ELLIPSIS expression { 
 				$$.ident.type = $2.ident.type; (*_currentFunctionCallParamIndexP)++; 
 				YY_EMIT(C_SPREAD, (GENERIC_DATA){1});
 			}

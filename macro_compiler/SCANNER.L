@@ -551,7 +551,6 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 <INITIAL>\<\<	return T_SHIFT_LEFT;
 <INITIAL>\>\>	return T_SHIFT_RIGHT;
 <INITIAL>\*\*	return T_POWER_TO;
-<INITIAL>=\>	return T_ASSOC_ARROW;
 <INITIAL>\<=	return T_LE;
 <INITIAL>\>=	return T_GE;
 <INITIAL>\*=	return T_SH_ASSIGN_MULT;

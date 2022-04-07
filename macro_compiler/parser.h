@@ -92,18 +92,17 @@ extern int yydebug;
     T_CONTINUE = 293,              /* T_CONTINUE  */
     T_RETURN = 294,                /* T_RETURN  */
     T_VARIABLE = 295,              /* T_VARIABLE  */
-    T_ASSOC_ARROW = 296,           /* T_ASSOC_ARROW  */
-    T_NMATCH = 297,                /* T_NMATCH  */
-    T_ASSIGN = 298,                /* T_ASSIGN  */
-    T_NE = 299,                    /* T_NE  */
-    T_EQ = 300,                    /* T_EQ  */
-    T_SHIFT_LEFT = 301,            /* T_SHIFT_LEFT  */
-    T_SHIFT_RIGHT = 302,           /* T_SHIFT_RIGHT  */
-    T_OR = 303,                    /* T_OR  */
-    T_AND = 304,                   /* T_AND  */
-    T_LE = 305,                    /* T_LE  */
-    T_GE = 306,                    /* T_GE  */
-    T_POWER_TO = 307               /* T_POWER_TO  */
+    T_NMATCH = 296,                /* T_NMATCH  */
+    T_ASSIGN = 297,                /* T_ASSIGN  */
+    T_NE = 298,                    /* T_NE  */
+    T_EQ = 299,                    /* T_EQ  */
+    T_SHIFT_LEFT = 300,            /* T_SHIFT_LEFT  */
+    T_SHIFT_RIGHT = 301,           /* T_SHIFT_RIGHT  */
+    T_OR = 302,                    /* T_OR  */
+    T_AND = 303,                   /* T_AND  */
+    T_LE = 304,                    /* T_LE  */
+    T_GE = 305,                    /* T_GE  */
+    T_POWER_TO = 306               /* T_POWER_TO  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

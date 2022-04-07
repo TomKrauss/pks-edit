@@ -252,14 +252,11 @@ PKS_VALUE interpreter_createArray(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValue
 }
 
 /*
- * Implements the CreateMap() method used when maps are created: ´{"x" => x}.
+ * Implements the CreateMap() method used when maps are created: ´{"x": x}.
  */
 PKS_VALUE interpreter_createMap(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	PKS_VALUE vArray = memory_createObject(pContext, VT_MAP, nArgs, 0);
 	for (int i = 0; i < nArgs; i += 2) {
-		if (pValues[i].pkv_type != VT_STRING) {
-			interpreter_raiseError("Illegal attempt to create a map with a non string key.");
-		}
 		memory_atPutObject(vArray, pValues[i], pValues[i+1]);
 	}
 	return vArray;
