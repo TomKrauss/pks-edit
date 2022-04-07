@@ -4,6 +4,11 @@ const MANUAL_DIRECTORY = "doc\\manual";
 
 !
 
+/*
+ * Read each markdown file in the manual directory and find all chapter headers.
+ * If a header of level 1 or 2 is found, add a link to the array of toc entries
+ * to be used later to update the table of contents file.
+ */
 static void ProcessFile(string directory, string fileName, string[] toc) {
 	string line;
 	string title;
