@@ -60,7 +60,7 @@ Here is a description of some of the defined properties of an `editor configurat
 - `actionContext` - a context to use for documents of the described types for the bound _actions_. Every PKS-Edit action binding (keyboard binding, mouse binding
   menus, ...) can have an _action context_ in which the corresponding binding is active. If no action context is defined explicitly a default action context
   is assumed.
-- `shifWidth` the number of columns defining one `logical edited tab` - i.e. the number of columns by which a selected range of text is indented, when pressing Tab.
+- `shiftWidth` the number of columns defining one `logical edited tab` - i.e. the number of columns by which a selected range of text is indented, when pressing Tab.
 - `tabSize` - the number of columns defining one `logical visible tab`
 - `showWhitespace` - whether whitespace characters (tab, spaces, line-ends) are displayed during editing.
 - `expandAbbreviations` - if set to true, templates defined in the [grammar](grammar.md) which are marked with `auto-insert=true` will be
