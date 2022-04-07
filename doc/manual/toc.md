@@ -45,6 +45,7 @@ simply navigate over the link and click it.
   - [The Macro menu](macro_language.md#The-Macro-menu)
   - [Compiling macros](macro_language.md#Compiling-macros)
   - [The PKSMacroC Language](macro_language.md#The-PKSMacroC-Language)
+  - [PKSMacroC Comments](macro_language.md#PKSMacroC-Comments)
   - [PKSMacroC Types](macro_language.md#PKSMacroC-Types)
   - [PKSMacroC literals](macro_language.md#PKSMacroC-literals)
   - [PKSMacroC operators](macro_language.md#PKSMacroC-operators)

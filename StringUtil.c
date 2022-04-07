@@ -302,7 +302,7 @@ void stringbuf_appendChar(STRING_BUF* pBuf, unsigned char c) {
 	*pBuf->sb_current = 0;
 }
 
-static void stringbuf_countNL(STRING_BUF* pBuf, char* pszString) {
+static void stringbuf_countNL(STRING_BUF* pBuf, const char* pszString) {
 	char c;
 	while ((c = *pszString++) != 0) {
 		if (c == '\n') {
@@ -314,7 +314,7 @@ static void stringbuf_countNL(STRING_BUF* pBuf, char* pszString) {
 /*
  * Append a string to a string buffer.
  */
-void stringbuf_appendString(STRING_BUF* pBuf, unsigned char* pszString) {
+void stringbuf_appendString(STRING_BUF* pBuf, const unsigned char* pszString) {
 	size_t nAdditional = strlen(pszString);
 	stringbuf_accomodateSpace(pBuf, nAdditional);
 	strcpy(pBuf->sb_current, pszString);
@@ -327,12 +327,12 @@ void stringbuf_appendString(STRING_BUF* pBuf, unsigned char* pszString) {
 /*
  * Append a given number of bytes of a string to a string buffer.
  */
-void stringbuf_appendStringLength(STRING_BUF* pBuf, unsigned char* pszString, size_t nAdditional) {
+void stringbuf_appendStringLength(STRING_BUF* pBuf, const unsigned char* pszString, size_t nAdditional) {
 	stringbuf_accomodateSpace(pBuf, nAdditional);
 	strncpy(pBuf->sb_current, pszString, nAdditional);
 	if (pBuf->sb_flags & SB_COUNT_LINE_NUMBERS) {
 		char c;
-		char* pszEnd = pszString + nAdditional;
+		const char* pszEnd = pszString + nAdditional;
 		while (pszString < pszEnd && (c = *pszString++) != 0) {
 			if (c == '\n') {
 				pBuf->sb_lineNumber++;

@@ -1,3 +1,8 @@
+Terminals unused in grammar
+
+    T_ASSOC_ARROW
+
+
 State 11 conflicts: 1 shift/reduce, 1 reduce/reduce
 State 58 conflicts: 9 shift/reduce
 State 101 conflicts: 24 shift/reduce
@@ -367,7 +372,7 @@ Grammar
 
   212 @27: %empty
 
-  213 map_associate: T_STRING T_ASSOC_ARROW @27 value
+  213 map_associate: T_STRING ':' @27 value
 
   214 function_id_or_pointer: '*' variable_reference
   215                       | T_IDENT
@@ -419,7 +424,7 @@ Terminals, with rules where they appear
     '-' (45) 116 123 231
     '.' (46) 81 111
     '/' (47) 125
-    ':' (58) 158 159 163 182
+    ':' (58) 158 159 163 182 213
     ';' (59) 9 12 14 15 16 62 63 64 65 72 73 75 78 148 149 174
     '<' (60) 132
     '>' (62) 133
@@ -469,7 +474,7 @@ Terminals, with rules where they appear
     T_CONTINUE (293) 149
     T_RETURN (294) 150
     T_VARIABLE (295) 30 142
-    T_ASSOC_ARROW (296) 213
+    T_ASSOC_ARROW (296)
     T_NMATCH (297) 118
     T_ASSIGN (298) 24 52 92
     T_NE (299) 137
@@ -4114,9 +4119,9 @@ State 207
 
 State 208
 
-  213 map_associate: T_STRING . T_ASSOC_ARROW @27 value
+  213 map_associate: T_STRING . ':' @27 value
 
-    T_ASSOC_ARROW  shift, and go to state 283
+    ':'  shift, and go to state 283
 
 
 State 209
@@ -5775,7 +5780,7 @@ State 282
 
 State 283
 
-  213 map_associate: T_STRING T_ASSOC_ARROW . @27 value
+  213 map_associate: T_STRING ':' . @27 value
 
     $default  reduce using rule 212 (@27)
 
@@ -6274,7 +6279,7 @@ State 314
 
 State 315
 
-  213 map_associate: T_STRING T_ASSOC_ARROW @27 . value
+  213 map_associate: T_STRING ':' @27 . value
 
     T_IDENT                  shift, and go to state 301
     T_NUM                    shift, and go to state 62
@@ -6562,7 +6567,7 @@ State 331
 
 State 332
 
-  213 map_associate: T_STRING T_ASSOC_ARROW @27 value .
+  213 map_associate: T_STRING ':' @27 value .
 
     $default  reduce using rule 213 (map_associate)
 

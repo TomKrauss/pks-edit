@@ -203,7 +203,7 @@ int decompile_getLocalVariableInfo(MACRO* mp, TYPE_PROPERTY_DESCRIPTOR* pDescrip
 			if (nIdx < nMaxVars) {
 				pDescriptors[nIdx].tpd_type = pSymbol->vartype;
 				pDescriptors[nIdx].tpd_name = pSymbol->name;
-				if (nIdx > nMax) {
+				if (nIdx >= nMax) {
 					nMax = nIdx+1;
 				}
 			}
@@ -405,7 +405,7 @@ static int decompile_printParameter(STRING_BUF* pBuf, unsigned char *sp, PARAMET
 /*
  * decompile_printFunctionName
  */
-static void decompile_printFunctionName(char* pszBuf, int idx)
+static void decompile_printFunctionName(STRING_BUF* pBuf, int idx)
 {
 	EDFUNC	*ep = decompile_getFunctionForIndex(idx);
 
@@ -413,7 +413,7 @@ static void decompile_printFunctionName(char* pszBuf, int idx)
 		error_displayAlertDialog("format error: bad function");
 		return;
 	}
-	strcpy(pszBuf, macro_loadStringResource(idx));
+	stringbuf_appendString(pBuf, macro_loadStringResource(idx));
 }
 
 static DECOMPILATION_STACK_ELEMENT* decompile_popStack(DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
@@ -433,8 +433,10 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 	EDFUNC	*		ep;
 	int 			npars;
 	PARAMETER_TYPE_DESCRIPTOR partyp;
-	char szFunctionCall[512];
+	char cEnd = ')';
+	int bMap = 0;
 
+	STRING_BUF* pBuf = stringbuf_create(128);
 	if (sp->typ == C_MACRO || sp->typ == C_MACRO_REF || sp->typ == C_MACRO_REF_LOCAL) {
 		char* pszFunction = ((COM_MAC*)sp)->name;
 		char szFunctionPrinted[256];
@@ -446,23 +448,32 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 			sprintf(szFunctionPrinted, "*%s", decompile_getLocalVarname(((COM_MAC*)sp)->heapIndex));
 			pszFunction = szFunctionPrinted;
 		}
-		strcpy(szFunctionCall, pszFunction);
+		stringbuf_appendString(pBuf, pszFunction);
+		stringbuf_appendChar(pBuf, '(');
 		ep = NULL;
 	} else {
-		decompile_printFunctionName(szFunctionCall, sp->funcnum);
+		if (sp->funcnum == FUNC_CreateArray) {
+			stringbuf_appendChar(pBuf, '[');
+			cEnd = ']';
+		}
+		else if (sp->funcnum == FUNC_CreateMap) {
+			stringbuf_appendChar(pBuf, '{');
+			bMap = 1;
+			cEnd = '}';
+		}
+		else {
+			decompile_printFunctionName(pBuf, sp->funcnum);
+			stringbuf_appendChar(pBuf, '(');
+		}
 		ep = decompile_getFunctionForIndex(sp->funcnum);
 	}
-	strcat(szFunctionCall, "(");
 
 	npars = 0;
 	int passedArgs = ((COM_0FUNC*)sp)->func_nargs;
 	if (sp->typ == C_1FUNC) {
 		partyp = function_getParameterTypeDescriptor(ep, 1);
-		STRING_BUF* pBuf = stringbuf_create(128);
 		if (decompile_printParameter(pBuf,(unsigned char*)sp,partyp) < 0)
 			return 0;
-		strcat(szFunctionCall, stringbuf_getString(pBuf));
-		stringbuf_destroy(pBuf);
 		npars++;
 		passedArgs--;
 	}
@@ -473,14 +484,15 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 	}
 	DECOMPILATION_STACK_ELEMENT* pStackFrame = pParamStack;
 	if (passedArgs == 3 && sp->typ == C_0FUNC && sp->funcnum == FUNC_Foreach) {
-		strcpy(szFunctionCall, "for (");
+		stringbuf_reset(pBuf);
+		stringbuf_appendString(pBuf, "for (");
 		pParamStack++;
-		strcat(szFunctionCall, decompile_getLocalVarTypename(((COM_CHAR1*)pStack[1].dse_instruction)->val));
-		strcat(szFunctionCall, " ");
-		strcat(szFunctionCall, decompile_getLocalVarname(((COM_CHAR1*)pStack[1].dse_instruction)->val));
-		strcat(szFunctionCall, " : ");
+		stringbuf_appendString(pBuf, decompile_getLocalVarTypename(((COM_CHAR1*)pStack[1].dse_instruction)->val));
+		stringbuf_appendChar(pBuf, ' ');
+		stringbuf_appendString(pBuf, decompile_getLocalVarname(((COM_CHAR1*)pStack[1].dse_instruction)->val));
+		stringbuf_appendString(pBuf, " : ");
 		pParamStack++;
-		strcat(szFunctionCall, pParamStack->dse_printed);
+		stringbuf_appendString(pBuf, pParamStack->dse_printed);
 	}
 	else {
 		while(pParamStack < pStackCurrent) {
@@ -489,23 +501,28 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 			}
 			partyp = ep == NULL ? (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = PARAM_TYPE_VOID} : function_getParameterTypeDescriptor(ep, npars + 1);
 			if (npars) {
-				strcat(szFunctionCall, ",");
+				if (bMap && (npars & 1)) {
+					stringbuf_appendString(pBuf, ": ");
+				}
+				else {
+					stringbuf_appendString(pBuf, ", ");
+				}
 			}
-			size_t nBytes = strlen(szFunctionCall);
-			strncat(szFunctionCall, pParamStack->dse_printed, sizeof(szFunctionCall) - 3 - nBytes);
+			stringbuf_appendString(pBuf, pParamStack->dse_printed);
 			pParamStack++;
 			npars++;
 		}
 	}
 
-	strcat(szFunctionCall, ")");
+	stringbuf_appendChar(pBuf, cEnd);
 
 	pParamStack = pStackCurrent - passedArgs;
 	while (pStackCurrent > pParamStack && pStackCurrent > pStack) {
 		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
 	}
 	pStackCurrent->dse_instruction = (COM_0FUNC*)sp;
-	pStackCurrent->dse_printed = _strdup(szFunctionCall);
+	stringbuf_destroy(pBuf);
+	pStackCurrent->dse_printed = _strdup(stringbuf_getString(pBuf));
 	pStackCurrent++;
 	return pStackCurrent;
 }
@@ -1046,6 +1063,14 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 		else if (opCode == C_LOGICAL_OPERATION) {
 			pStackCurrent = decompile_printTestExpression((COM_BINOP*)sp, pStackCurrent, pStack);
 		} 
+		else if (opCode == C_SPREAD && pStackCurrent[-1].dse_printed) {
+			char* pszParam = pStackCurrent[-1].dse_printed;
+			char* pszNew = malloc(4 + strlen(pszParam));
+			strcpy(pszNew, "...");
+			strcpy(pszNew + 3, pszParam);
+			free(pszParam);
+			pStackCurrent[-1].dse_printed = pszNew;
+		}
 		else if (opCode == C_BINOP) {
 			pStackCurrent = decompile_printBinaryExpression((COM_BINOP*)sp, pStackCurrent, pStack);
 		}

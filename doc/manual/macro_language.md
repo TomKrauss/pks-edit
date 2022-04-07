@@ -3,20 +3,19 @@
 ## Macros in PKS-Edit
 
 Macros in PKS-Edit can be recorded or manually edited using the _PKSMacroC Language_ and compiled inside PKS-Edit.
-All known macros are loaded from a file called **pksedit.mac** loaded from the `pks_sys` directory.
+PKSMacroC compiles files (by default with an extension .pkc) into a binary format, which can be saved and loaded
+by PKS-Edit. By default a file called **pksedit.mac** is loaded from the `pks_sys` directory containing the standard
+macros available in PKS-Edit.
 
-The macro file contains currently:
-
+The standard macro file shipped with PKS-Edit currently contains:
 - custom macros performing text operations - for instance used as post-save actions or the like.
 
 ## Recording macros
-
 To record a macro, use "Macro->Record" and start doing some actions (e.g. move the cursor, insert text, etc...). When done press "Macro->Record" again. This will open a little dialog
 allowing to "name" the macro and bind it to a keyboard key so it can be used subsequently. Note, that in order to make the macro persistent, you must save the the current set of macros.
 When PKS-Edit exits and there are unsaved macros, it warns about that and asks the user to save the macros now.
 
 ## The Macro menu
-
 Allows you to edit macros defined. One may add comments / remove macros, decompile a recorded macro, disassemble a macro from here.
 
 ## Compiling macros
@@ -25,9 +24,13 @@ To compile one or more macros, you open a macro file (see the `macros` sub-direc
 
 ## The PKSMacroC Language
 
-The PKS-Edit Macro Language is pretty similar to the C programming language and supports the most common operators 
-and functions and variable declarations as a C program with some modifications and extensions. There is no explicit memory management
-necessary - the macro interpreter performs all object allocations automatically for you.
+### PKSMacroC Design
+PKSMacroC as the name suggests has a C like syntax (not object oriented in particular) with some ideas borrowed from JavaScript
+and Java such as a JSON like syntax for declaring maps, spread operators, annotations and Java like numeric literals.
+
+### Syntax overview
+The PKS-Edit Macro Language supports the most common operators  and functions and variable declarations as a C program. 
+There is no explicit memory management necessary - the macro interpreter performs all object allocations and deallocations automatically for you.
 
 Here is a sample showing a piece of macro code, which will calculate the factorial of a number to enter and display the
 result in a message box:
@@ -60,6 +63,24 @@ void calculateFactorial() {
 }
 ```
 
+## PKSMacroC Comments
+PKSMacroC supports - as C or Java single line comments introduced using `//` as in the following sample:
+```
+   int i = 0;       // initialize although 0 is the default value of int values
+```
+
+One may also use multiline comments as in C or Java enclosed in `/*` and `*/`.  If a multiline
+comment is placed in front of a MacroC function declaration, it is used internally (during code completion etc...)
+as the main description of the described function. Here is an example:
+```
+/*
+ * Macro, which can be used as a save action in PKS-Edit to trim
+ * all trailing blanks in the document saved.
+ */
+void TrimTrailingBlanks() {
+...
+```
+
 ## PKSMacroC Types
 
 **PKSMacroC** supports 3 types of commments:
@@ -86,7 +107,7 @@ Values may have one of the following types:
 `[ true, 4711, i ]` (creates an array containing the values `true`, `4711` and the current value of the variable `i`).
 - `map`s can be used to associate arbitrary values with string type keys (so far only string type keys are supported). To put a value into a map
    use map["key"] = value, to access a value in a map use map["key"]. Maps can also be created using a _map constructor_, which has a syntax like
-   in the following sample `{ "x" => 42 }` (a map with one association of "x" with the value 42) or `{ "a" => v1, "b" => "anotherString" }` (map
+   in the following sample `{ "x": 42 }` (a map with one association of "x" with the value 42) or `{ "a": v1, "b": "anotherString" }` (map
    with two associations "a" with the value of variable v1 and "b" associated with the string "anotherString").
 
 PKSMacoC will try to coerce values to their "right" types or you may `cast` a value type to another explicitly using a cast operator. The following examples
@@ -113,8 +134,8 @@ expressions, which are similar to literals but support also enclusion of variabl
 - arrays may be specified using array _constructor_ expressions. The individual elements are enclosed in 
  `[`and `]` and seperated  by `,`. Examples: `[ "hello", "world" ]` or `[ true, 42, "oscar"]`. Note, that this syntax supports also enclosing
  expressions and the use of variables as in `[var1, 1+2]`.
-- Maps may also be specified using a _constructor_ statement. They are enclosed in curly brackets and the key and values are associated using `=>` as in:
-  `{ "key" => 42, "key" => "valueforKey2", ...}`
+- Maps may also be specified using a _constructor_ statement. They are enclosed in curly brackets and the key and values are associated using `:` (JSON like syntax) as in:
+  `{ "key": 42, "key": "valueforKey2", ...}`
 
 ## PKSMacroC operators
 

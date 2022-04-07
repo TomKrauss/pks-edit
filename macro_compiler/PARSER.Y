@@ -943,7 +943,7 @@ map_associates:
 			map_associates ',' map_associate
 
 map_associate:
-			T_STRING T_ASSOC_ARROW { 
+			T_STRING ':' { 
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$1.ident.s});
 				$$.v.type = C_PUSH_STRING_LITERAL;
 				free($1.ident.s);

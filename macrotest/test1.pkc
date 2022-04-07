@@ -387,8 +387,8 @@ static void Test-SwitchExpressions() {
  */
 static void Test-Maps() {
 	map demoMap = {
-		"fritz" => 42,
-		"franz" => "otto"
+		"fritz": 42,
+		"franz": "otto"
 	};
 	string s;
 	MAP_ENTRY entry = new MAP_ENTRY();
@@ -416,7 +416,7 @@ static void Test-Maps() {
 	}
 	AssertEquals(42, demoMap["key42"]);
 	s = "hello";
-	demoMap = { "x" => s };
+	demoMap = { "x": s };
 	AssertEquals(1, size(demoMap));
 	AssertEquals("hello", demoMap["x"]);
 }

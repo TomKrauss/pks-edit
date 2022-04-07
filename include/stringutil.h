@@ -111,16 +111,6 @@ extern int string_matchFilename(char* string, char* pattern);
  */
 extern BOOL string_isSpace(unsigned char c);
 
-/*---------------------------------*/
-/* string_skipSpacesIn()					*/
-/*---------------------------------*/
-extern unsigned char* string_skipSpacesIn(unsigned char* s, unsigned char* send);
-
-/*---------------------------------*/
-/* string_skipNonSpaceCharactersIn()				*/
-/*---------------------------------*/
-extern unsigned char* string_skipNonSpaceCharactersIn(unsigned char* s, unsigned char* send);
-
 /*--------------------------------------------------------------------------
  * string_countSpacesIn()
  * count spaces up to a given position
@@ -176,12 +166,12 @@ extern void stringbuf_appendChar(STRING_BUF* pBuf, unsigned char c);
 /*
  * Append a string to a string buffer.
  */
-extern void stringbuf_appendString(STRING_BUF* pBuf, unsigned char * pszString);
+extern void stringbuf_appendString(STRING_BUF* pBuf, const unsigned char * pszString);
 
 /*
  * Append a given number of bytes of a string to a string buffer.
  */
-extern void stringbuf_appendStringLength(STRING_BUF* pBuf, unsigned char* pszString, size_t nAdditional);
+extern void stringbuf_appendStringLength(STRING_BUF* pBuf, const unsigned char* pszString, size_t nAdditional);
 
 /*
  * Assigns options to the string buffer. Note, that this is only legal right
