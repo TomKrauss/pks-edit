@@ -918,27 +918,23 @@ call_expression: T_FUNC '(' {
 			| map_constructor
 
 array_constructor: '[' {
-				_currentNativeMethodCalled = &_functionTable[FUNC_CreateArray];
 				_currentFunctionCallParamIndexP++;
 				*_currentFunctionCallParamIndexP = 0;
-				$$.funcp = $1.funcp;
+				$$.funcp = &_functionTable[FUNC_CreateArray];
 			} parameter_list ']' {
 				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
-					C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction(_currentNativeMethodCalled)}, *_currentFunctionCallParamIndexP);
+					C_0FUNC,(GENERIC_DATA){FUNC_CreateArray}, *_currentFunctionCallParamIndexP);
 				_currentFunctionCallParamIndexP--;
-				_currentNativeMethodCalled = 0;
 			}
 
 map_constructor: '{' {
-		_currentNativeMethodCalled = &_functionTable[FUNC_CreateMap];
 		_currentFunctionCallParamIndexP++;
 		*_currentFunctionCallParamIndexP = 0;
-		$$.funcp = $1.funcp;
+		$$.funcp = &_functionTable[FUNC_CreateMap];
 	} optional_map_associates '}' {
 		_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
-			C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction(_currentNativeMethodCalled)}, *_currentFunctionCallParamIndexP);
+			C_0FUNC,(GENERIC_DATA){FUNC_CreateMap}, *_currentFunctionCallParamIndexP);
 		_currentFunctionCallParamIndexP--;
-		_currentNativeMethodCalled = 0;
 	}
 
 optional_map_associates:

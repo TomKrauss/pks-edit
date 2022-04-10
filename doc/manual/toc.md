@@ -51,6 +51,7 @@ simply navigate over the link and click it.
   - [PKSMacroC operators](macro_language.md#PKSMacroC-operators)
   - [PKSMacroC constants](macro_language.md#PKSMacroC-constants)
   - [PKSMacroC control flow](macro_language.md#PKSMacroC-control-flow)
+  - [Namespaces, visibility and require](macro_language.md#Namespaces,-visibility-and-require)
   - [Defining native methods](macro_language.md#Defining-native-methods)
   - [Optional Parameters](macro_language.md#Optional-Parameters)
   - [Caveats](macro_language.md#Caveats)

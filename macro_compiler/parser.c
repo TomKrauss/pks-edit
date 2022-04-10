@@ -940,9 +940,9 @@ static const yytype_int16 yyrline[] =
      813,   814,   814,   820,   823,   826,   832,   832,   845,   847,
      845,   859,   861,   863,   866,   869,   866,   876,   880,   880,
      887,   888,   890,   892,   892,   903,   903,   917,   918,   920,
-     920,   932,   932,   944,   946,   949,   951,   954,   954,   962,
-     972,   977,   978,   983,   988,   991,   996,   997,  1001,  1004,
-    1009,  1014,  1018,  1025,  1030,  1038,  1046,  1054
+     920,   930,   930,   940,   942,   945,   947,   950,   950,   958,
+     968,   973,   974,   979,   984,   987,   992,   993,   997,  1000,
+    1005,  1010,  1014,  1021,  1026,  1034,  1042,  1050
 };
 #endif
 
@@ -3301,60 +3301,56 @@ int yydebug = 1;
   case 209: /* @25: %empty  */
 #line 920 "Parser.y"
                        {
-				_currentNativeMethodCalled = &_functionTable[FUNC_CreateArray];
 				_currentFunctionCallParamIndexP++;
 				*_currentFunctionCallParamIndexP = 0;
-				yyval.funcp = yyvsp[0].funcp;
+				yyval.funcp = &_functionTable[FUNC_CreateArray];
 			}
-#line 3310 "parser.c"
+#line 3309 "parser.c"
     break;
 
   case 210: /* array_constructor: '[' @25 parameter_list ']'  */
-#line 925 "Parser.y"
+#line 924 "Parser.y"
                                              {
 				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
-					C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction(_currentNativeMethodCalled)}, *_currentFunctionCallParamIndexP);
+					C_0FUNC,(GENERIC_DATA){FUNC_CreateArray}, *_currentFunctionCallParamIndexP);
 				_currentFunctionCallParamIndexP--;
-				_currentNativeMethodCalled = 0;
 			}
-#line 3321 "parser.c"
+#line 3319 "parser.c"
     break;
 
   case 211: /* @26: %empty  */
-#line 932 "Parser.y"
+#line 930 "Parser.y"
                      {
-		_currentNativeMethodCalled = &_functionTable[FUNC_CreateMap];
 		_currentFunctionCallParamIndexP++;
 		*_currentFunctionCallParamIndexP = 0;
-		yyval.funcp = yyvsp[0].funcp;
+		yyval.funcp = &_functionTable[FUNC_CreateMap];
 	}
-#line 3332 "parser.c"
+#line 3329 "parser.c"
     break;
 
   case 212: /* map_constructor: '{' @26 optional_map_associates '}'  */
-#line 937 "Parser.y"
+#line 934 "Parser.y"
                                       {
 		_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
-			C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction(_currentNativeMethodCalled)}, *_currentFunctionCallParamIndexP);
+			C_0FUNC,(GENERIC_DATA){FUNC_CreateMap}, *_currentFunctionCallParamIndexP);
 		_currentFunctionCallParamIndexP--;
-		_currentNativeMethodCalled = 0;
 	}
-#line 3343 "parser.c"
+#line 3339 "parser.c"
     break;
 
   case 217: /* @27: %empty  */
-#line 954 "Parser.y"
+#line 950 "Parser.y"
                                      { 
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=yyvsp[-1].ident.s});
 				yyval.v.type = C_PUSH_STRING_LITERAL;
 				free(yyvsp[-1].ident.s);
 				(*_currentFunctionCallParamIndexP) += 2;
 			}
-#line 3354 "parser.c"
+#line 3350 "parser.c"
     break;
 
   case 219: /* function_id_or_pointer: '*' variable_reference  */
-#line 962 "Parser.y"
+#line 958 "Parser.y"
                                                {
 				yyval.ident.operation =  yyvsp[0].ident.isLocalVar ? C_MACRO_REF_LOCAL : C_MACRO_REF;
 				if (yyvsp[0].ident.isLocalVar) {
@@ -3364,124 +3360,124 @@ int yydebug = 1;
 					yyval.ident.stringIsAlloced = 1;
 				}
 			}
-#line 3368 "parser.c"
+#line 3364 "parser.c"
     break;
 
   case 220: /* function_id_or_pointer: T_IDENT  */
-#line 972 "Parser.y"
+#line 968 "Parser.y"
                                 {
 				yyval.ident = yyvsp[0].ident;
 				yyval.ident.operation = C_MACRO;
 			}
-#line 3377 "parser.c"
+#line 3373 "parser.c"
     break;
 
   case 221: /* parameter: expression  */
-#line 977 "Parser.y"
+#line 973 "Parser.y"
                            { yyval.ident.type = yyvsp[0].ident.type; (*_currentFunctionCallParamIndexP)++; }
-#line 3383 "parser.c"
+#line 3379 "parser.c"
     break;
 
   case 222: /* parameter: T_ELLIPSIS expression  */
-#line 978 "Parser.y"
+#line 974 "Parser.y"
                                                 { 
 				yyval.ident.type = yyvsp[0].ident.type; (*_currentFunctionCallParamIndexP)++; 
 				YY_EMIT(C_SPREAD, (GENERIC_DATA){1});
 			}
-#line 3392 "parser.c"
+#line 3388 "parser.c"
     break;
 
   case 223: /* type_cast: '(' type_name ')'  */
-#line 983 "Parser.y"
+#line 979 "Parser.y"
                                         {	
 				yyval.ident.type = yyvsp[-1].ident.type;
 				yyval.ident.arraySize = yyvsp[-1].ident.arraySize;
 			}
-#line 3401 "parser.c"
+#line 3397 "parser.c"
     break;
 
   case 224: /* type_name: T_TYPE_IDENTIFIER  */
-#line 988 "Parser.y"
+#line 984 "Parser.y"
                                {
 				yyval.ident.arraySize = 0;
 			}
-#line 3409 "parser.c"
+#line 3405 "parser.c"
     break;
 
   case 225: /* type_name: T_TYPE_IDENTIFIER array_size  */
-#line 991 "Parser.y"
+#line 987 "Parser.y"
                                                         {	
 				yyval.ident.type = VT_OBJECT_ARRAY;
 				yyval.ident.arraySize = yyvsp[0].ident.arraySize;
 			}
-#line 3418 "parser.c"
+#line 3414 "parser.c"
     break;
 
   case 227: /* array_size: '[' T_NUM ']'  */
-#line 997 "Parser.y"
+#line 993 "Parser.y"
                                         {
 				yyval.ident.arraySize = (int)yyvsp[-1].num;
 			}
-#line 3426 "parser.c"
+#line 3422 "parser.c"
     break;
 
   case 228: /* boolean_literal: T_TRUE  */
-#line 1001 "Parser.y"
+#line 997 "Parser.y"
                         {
 			yyval.v.type = C_PUSH_BOOLEAN_LITERAL; 
 			yyval.v.data.booleanValue = 1;
 		}
-#line 3435 "parser.c"
+#line 3431 "parser.c"
     break;
 
   case 229: /* boolean_literal: T_FALSE  */
-#line 1004 "Parser.y"
+#line 1000 "Parser.y"
                             {
 			yyval.v.type = C_PUSH_BOOLEAN_LITERAL; 
 			yyval.v.data.booleanValue = 0;
 		}
-#line 3444 "parser.c"
+#line 3440 "parser.c"
     break;
 
   case 230: /* float_literal: T_FLOATING_POINT_NUMBER  */
-#line 1009 "Parser.y"
+#line 1005 "Parser.y"
                                        {
 				yyval.v.type = C_PUSH_FLOAT_LITERAL; 
 				yyval.v.data.doubleValue = yyvsp[0].v.data.doubleValue;
 			}
-#line 3453 "parser.c"
+#line 3449 "parser.c"
     break;
 
   case 231: /* integer_literal: T_NUM  */
-#line 1014 "Parser.y"
+#line 1010 "Parser.y"
                        {
 				yyval.v.type = C_PUSH_LONG_LITERAL; 
 				yyval.v.data.longValue  = yyvsp[0].num;
 			}
-#line 3462 "parser.c"
+#line 3458 "parser.c"
     break;
 
   case 232: /* integer_literal: '-' T_NUM  */
-#line 1018 "Parser.y"
+#line 1014 "Parser.y"
                                     {
 				yyval.ident.type = VT_NUMBER;
 				yyval.v.type = C_PUSH_LONG_LITERAL; 
 				yyval.v.data.longValue  = -yyvsp[0].num;
 			}
-#line 3472 "parser.c"
+#line 3468 "parser.c"
     break;
 
   case 233: /* character_literal: T_CHARACTER  */
-#line 1025 "Parser.y"
+#line 1021 "Parser.y"
                                {
 				yyval.v.type = C_PUSH_CHARACTER_LITERAL; 
 				yyval.v.data.uchar = (char)yyvsp[0].num;
 			}
-#line 3481 "parser.c"
+#line 3477 "parser.c"
     break;
 
   case 234: /* simple_literal: integer_literal  */
-#line 1030 "Parser.y"
+#line 1026 "Parser.y"
                                 { 
 				if (!_bDefiningConst) {
 					bytecode_emitPushParameterInstruction(yyvsp[0].v.data.longValue);
@@ -3490,11 +3486,11 @@ int yydebug = 1;
 				}
 				yyval.ident.type = VT_NUMBER;
 			}
-#line 3494 "parser.c"
+#line 3490 "parser.c"
     break;
 
   case 235: /* simple_literal: float_literal  */
-#line 1038 "Parser.y"
+#line 1034 "Parser.y"
                                         { 
 				if (!_bDefiningConst) {
 					YY_EMIT(C_PUSH_FLOAT_LITERAL, yyvsp[0].v.data);
@@ -3503,11 +3499,11 @@ int yydebug = 1;
 				}
 				yyval.ident.type = VT_FLOAT;
 			}
-#line 3507 "parser.c"
+#line 3503 "parser.c"
     break;
 
   case 236: /* simple_literal: character_literal  */
-#line 1046 "Parser.y"
+#line 1042 "Parser.y"
                                             { 
 				if (!_bDefiningConst) {
 					YY_EMIT(C_PUSH_CHARACTER_LITERAL, yyvsp[0].v.data);
@@ -3516,11 +3512,11 @@ int yydebug = 1;
 				}
 				yyval.ident.type = VT_CHAR;
 			}
-#line 3520 "parser.c"
+#line 3516 "parser.c"
     break;
 
   case 237: /* simple_literal: boolean_literal  */
-#line 1054 "Parser.y"
+#line 1050 "Parser.y"
                                           { 
 				if (!_bDefiningConst) {
 					YY_EMIT(C_PUSH_BOOLEAN_LITERAL, yyvsp[0].v.data);
@@ -3529,11 +3525,11 @@ int yydebug = 1;
 				}
 				yyval.ident.type = VT_BOOLEAN;
 			}
-#line 3533 "parser.c"
+#line 3529 "parser.c"
     break;
 
 
-#line 3537 "parser.c"
+#line 3533 "parser.c"
 
       default: break;
     }
@@ -3757,7 +3753,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 1062 "Parser.y"
+#line 1058 "Parser.y"
 
 
 /**

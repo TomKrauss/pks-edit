@@ -294,6 +294,8 @@ static void Test-Arrays() {
 	string[] myArray = ["hello", "world", "how", "are", "you", "doing"];
 	string[] array2 = ["array", "two" ];
 	string[] mixedArray = [1, true, "hello", -4];
+	string[] nestedArray = [1, 2, ["a", "b"]];
+	string[] arrayWithMap = [1, 2, {"a": "b"}];
 	string[] mixedArray2;
 	string[] extracted;
 	int[10] intArray;
@@ -326,6 +328,12 @@ static void Test-Arrays() {
 	mixedArray2 += false;
 	mixedArray2 += "a";
 	AssertEquals("1, false, a", (string)mixedArray2);
+
+	AssertEquals(3, size(nestedArray), "Nested array should have size 3");
+	AssertEquals(2, size(nestedArray[2]), "Inner array of nested array should have size 2");
+	AssertEquals(3, size(arrayWithMap), "Array with map should have size 3");
+	AssertEquals("map", typeof(arrayWithMap[2]));
+	AssertEquals("b", arrayWithMap[2]["a"]);
 
 	i = 12;
 	mixedArray2 = [i,i,"hello"];

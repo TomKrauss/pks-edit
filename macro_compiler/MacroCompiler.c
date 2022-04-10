@@ -282,19 +282,26 @@ static BOOL macro_needsWrapper(const char* pszCode) {
 }
 
 /*
- * A macro source file requires a namespace to be defined (loaded). If that is not the case
+ * A macro source file requires a namespace (or file name) to be defined (loaded). If that is not the case
  * load it first relative to the given source file.
  */
-int compiler_requireNamespace(ARRAY_LIST* pDependentFiles, const char* pszSourcefile, const char* pszNamespacename) {
-	if (macro_hasNamespace(pszNamespacename)) {
+int compiler_requireNamespaceOrFilename(ARRAY_LIST* pDependentFiles, const char* pszSourcefile, const char* pszRequired) {
+	char szNamespacename[128];
+	char szFilename[128];
+	char szPath[EDMAXPATHLEN];
+	char szBuf[EDMAXPATHLEN];
+	strmaxcpy(szNamespacename, pszRequired, sizeof szNamespacename);
+	char* pszExt = strrchr(szNamespacename, '.');
+	if (pszExt) {
+		strcpy(szFilename, szNamespacename);
+		*pszExt++ = 0;
+	} else {
+		sprintf(szFilename, "%s.pkc", pszRequired);
+	}
+	if (macro_hasNamespace(szNamespacename)) {
 		return 1;
 	}
-	char szPath[EDMAXPATHLEN];
-	char szFilename[80];
-	char szBuf[EDMAXPATHLEN];
-
 	string_splitFilename(pszSourcefile, szPath, 0);
-	sprintf(szFilename, "%s.pkc", pszNamespacename);
 	string_concatPathAndFilename(szBuf, szPath, szFilename);
 	if (arraylist_indexOfComparing(pDependentFiles, szBuf, _stricmp) >= 0) {
 		return 1;

@@ -740,7 +740,7 @@ static COMPILER_INPUT_STREAM	*_compilerInputStream;
 char * _yyCurrentComment;
 
 void yyrequire(const char* pszNamespace) {
-	if (!compiler_requireNamespace(_compilerConfiguration->cb_dependencies, yy_getCurrentInputFilename(), pszNamespace)) {
+	if (!compiler_requireNamespaceOrFilename(_compilerConfiguration->cb_dependencies, yy_getCurrentInputFilename(), pszNamespace)) {
 		yyerror("Cannot locate source file for required namespace %s", pszNamespace);
 	}
 }

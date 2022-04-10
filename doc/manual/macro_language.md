@@ -239,6 +239,35 @@ switch (myString) {
 
 ```
 
+## Namespaces, visibility and require
+
+Support for namespaces and visibility is currently of limited use. 
+
+You define the `namespace` in which one or more macros are defined using a `namespace declaration` at the beginning 
+of the file as in the following sample.
+
+```
+namespace unittest;
+``` 
+
+If no explicit namespace is defined, a namespace named `default` is active.
+
+You may make a macro method `static` to restrict its visibility. This restriction is currently only used to make the 
+corresponding function not visible by default at places where macro fuction names are displayed in the UI (macro editor, action list, etc...). 
+You should not try to use a static macro in an action binding. This will work currently but not on a long term run. 
+On a long term run static methods can only be called by methods defined in the same `namespace`.
+
+You may import declarations from another namespace (see caveats for comments) using the `require` statement. Here
+is an example:
+
+```
+require "unittest";
+```
+
+Note, that require has currently several limitations, one of which is, that the required namespace is only found, if it is 
+defined in a file called _namespacename_.pkc. You may however also require a file name directly. File pathes must always be
+relative to the path of the file using the require statement (or absolut, which is not recommended).
+
 ## Defining native methods
 
 One can extend PKSMacroC to some extent using native method bindings. A native method binding is defined
@@ -309,5 +338,9 @@ value.
 PKSMacroC currently does not support short-circuiting boolean expressions (McCarthy evaluations). In the expression `if (len < 10 && array[len] == c)` 
 array[len] == c is **always evaluated** regardless of the outcome of the test `len < 10`. We will fix this later to make boolean expressions more
 powerful and simpler to write.
+
+The `require` keyword does not work as expected. It will load the "required" source **after** the file requiring it was loaded. We will fix that as
+well on a long term run in particular when introducing the ability to define own types (enums and structs) to be able to load declarations before
+they are used.
 
 
