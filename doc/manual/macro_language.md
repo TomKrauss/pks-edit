@@ -10,15 +10,17 @@ macros available in PKS-Edit.
 The standard macro file shipped with PKS-Edit currently contains:
 - custom macros performing text operations - for instance used as post-save actions or the like.
 
-## Recording macros
+## Recording Macros
 To record a macro, use "Macro->Record" and start doing some actions (e.g. move the cursor, insert text, etc...). When done press "Macro->Record" again. This will open a little dialog
 allowing to "name" the macro and bind it to a keyboard key so it can be used subsequently. Note, that in order to make the macro persistent, you must save the the current set of macros.
 When PKS-Edit exits and there are unsaved macros, it warns about that and asks the user to save the macros now.
 
-## The Macro menu
+## The Macro Menu
 Allows you to edit macros defined. One may add comments / remove macros, decompile a recorded macro, disassemble a macro from here.
 
-## Compiling macros
+Also contains menu entries created from the macros defined allowing to use any defined macro.
+
+## Compiling Macros
 
 To compile one or more macros, you open a macro file (see the `macros` sub-directory for samples) and press F10 once the file is loaded and then OK. If the compilation is successful a message is displayed, that no error was found. Otherwise an error log is opened, which can be navigated with Ctrl+N and Ctrl+P to jump to the corresponding line numbers with the erors.
 
@@ -28,7 +30,7 @@ To compile one or more macros, you open a macro file (see the `macros` sub-direc
 PKSMacroC as the name suggests has a C like syntax (not object oriented in particular) with some ideas borrowed from JavaScript
 and Java such as a JSON like syntax for declaring maps, spread operators, annotations and Java like numeric literals.
 
-### Syntax overview
+### Syntax Overview
 The PKS-Edit Macro Language supports the most common operators  and functions and variable declarations as a C program. 
 There is no explicit memory management necessary - the macro interpreter performs all object allocations and deallocations automatically for you.
 
@@ -81,7 +83,7 @@ void TrimTrailingBlanks() {
 ...
 ```
 
-## PKSMacroC Types
+## Types
 
 **PKSMacroC** supports 3 types of commments:
 
@@ -120,7 +122,7 @@ shows implicit and explicit coercions.
 "Hello " + 3 + " worlds"  -> "Hello 3 worlds"
 ```
 
-## PKSMacroC literals
+## Literals
 
 PKSMacroC supports **literals** for defining int, string, boolean, float, char and string type values. Maps and arrays may be specified using _constructor_
 expressions, which are similar to literals but support also enclusion of variable references and sub-expressions.
@@ -137,7 +139,7 @@ expressions, which are similar to literals but support also enclusion of variabl
 - Maps may also be specified using a _constructor_ statement. They are enclosed in curly brackets and the key and values are associated using `:` (JSON like syntax) as in:
   `{ "key": 42, "key": "valueforKey2", ...}`
 
-## PKSMacroC operators
+## Operators
 
 PKSMacroC supports the most common operators also supported in the C language.
 
@@ -163,13 +165,14 @@ Operators can also be used on `string[]` type values:
 - array`[0]` return the first element of an array
 - array`[range]` returns the elements matching range. Using a range of 1..8..2 (range starting from one including 8 with an increment of 2) 
   will extract elements 2, 4, 6, 8.
+  
 **PKSMacroC** also allows to use the typical C assignment shorthand notations such as
 
 - `i++`, `i--` increment or decrement operators
 - `i += x`, `i *= x`, ... shorthand assignment and calculation operators.
 - one can access the characters of strings using the `[]` operator such as in C.
 
-### spread operator
+### The Spread Operator
 
 The spread operator can be used to expand an array into a parameter list of a function or an array constructor. 
 Let's look at the following example:
@@ -188,7 +191,7 @@ array2 = [1,2, ...array1];
 // -> array2 == [1,2,"a","b"];
 ```
 
-## PKSMacroC constants
+## Constants
 
 You can define constants outside of macros for convenient naming of typical literals. Constants are inlined
 when a macro is compiled as their respective literal and cannot be changed as the name implies.
@@ -200,7 +203,7 @@ const TAB = '\t';
 const PI = 3.14159265359d;
 ```
 
-## PKSMacroC control flow
+## Control Flow Statements
 
 PKSMacroC currently supports the following control flow expressions:
 
@@ -217,7 +220,7 @@ PKSMacroC currently supports the following control flow expressions:
    variable `v` to the elements produced. Currently one can iterate strings and ranges.
 - `switch(var) ... [case ...: statements]` - an almost classical switch statemen (see below).
 
-### PKSMacroC switch expressions
+### Switch Expressions
 
 In PKSMacroC, case labels must uniquely select the statements to execute or a compile error is displayed. One may specify
 either a number, a number range (a..b), a string or the default case, Case labels must uniquely select a block of statements
@@ -239,7 +242,7 @@ switch (myString) {
 
 ```
 
-## Namespaces, visibility and require
+## Namespaces, Visibility and Require
 
 Support for namespaces and visibility is currently of limited use. 
 
@@ -268,7 +271,7 @@ Note, that require has currently several limitations, one of which is, that the 
 defined in a file called _namespacename_.pkc. You may however also require a file name directly. File pathes must always be
 relative to the path of the file using the require statement (or absolut, which is not recommended).
 
-## Defining native methods
+## Defining Native Methods
 
 One can extend PKSMacroC to some extent using native method bindings. A native method binding is defined
 in the header of a PKSMacroC file as shown in the following example:
@@ -314,9 +317,12 @@ parameters.
 native int edit_replaceText(EDITOR anEditor, string aSearch, string aReplace, int reOptions, int nRange, int nReplaceActions);
 ```
 
-### PKSMacroC signatures
+### Signatures
 
-1st signature token defines the return type of the method.
+Signature define the way, macros and functions may be called in the PKSMacroC language. Signatures are by default defined through the
+declaration of a native method (return type + parameter types). To describe special call behavior, one may defined an explicit signature 
+parameter on the @Method annotation. In the explicit signature definined, the 1st signature token defines the return type of the method.
+Subsequent tokens define the type of the call parameters.
 
 Signature tokens may be:
 
