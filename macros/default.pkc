@@ -5,6 +5,7 @@ require "function_definitions";
  * Macro, which can be used as a save action in PKS-Edit to trim
  * all trailing blanks in the document saved.
  */
+@ActionLabel("Trim trailing blanks")
 @ActionFlags(needsCurrentEditor, modifiesText)
 void TrimTrailingBlanks() {
 	// disable all messages (toast / status bar etc...) while running this macro.
@@ -48,6 +49,7 @@ static int FindSingleLineComment(string text, string comment) {
 /*
  * Format all single line comments in a piece of C or PKSMacroC source code so they are indented in an aligned way.
  */
+@ActionLabel("Align Single-Line-Comment")
 @ActionFlags(needsCurrentEditor, modifiesText)
 void FormatSingleLineComments() {
 	string text;

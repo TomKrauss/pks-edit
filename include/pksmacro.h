@@ -74,6 +74,7 @@ typedef struct tagMACRO_PARAM {
 
 #ifdef HASHMAP_H
 typedef struct tagANNOTATION {
+	struct tagANNOTATION* a_next;
 	const char* a_name;
 	HASHMAP* a_values;
 } ANNOTATION;
@@ -81,7 +82,7 @@ typedef struct tagANNOTATION {
  * An annotation on a macro was detected during compilation. Try to apply to the macro parameter
  * used to later create the macro and record important information.
  */
-extern void macro_processAnnotation(MACRO_PARAM* pParam, ANNOTATION* pAnnotation);
+extern void macro_processAnnotations(MACRO_PARAM* pParam, ANNOTATION* pAnnotation);
 #endif
 
 #define	MAC_COMMENTLEN		256

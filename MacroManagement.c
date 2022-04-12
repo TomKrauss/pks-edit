@@ -424,23 +424,26 @@ MACRO *macro_createWithParams(MACRO_PARAM *pParam) {
  * An annotation on a macro was detected during compilation. Try to apply to the macro parameter
  * used to later create the macro and record important information.
  */
-void macro_processAnnotation(MACRO_PARAM* pParam, ANNOTATION* pAnnotation) {
-	if (strcmp(pAnnotation->a_name, "@ActionFlags") == 0) {
-		if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"needsCurrentEditor")) {
-			pParam->mp_actionFlags |= EW_NEEDSCURRF;
+void macro_processAnnotations(MACRO_PARAM* pParam, ANNOTATION* pAnnotation) {
+	while (pAnnotation) {
+		if (strcmp(pAnnotation->a_name, "@ActionFlags") == 0) {
+			if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"needsCurrentEditor")) {
+				pParam->mp_actionFlags |= EW_NEEDSCURRF;
+			}
+			if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"needsSelection")) {
+				pParam->mp_actionFlags |= EW_NEEDSBLK;
+			}
+			if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"modifiesText")) {
+				pParam->mp_actionFlags |= EW_MODIFY;
+			}
+			if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"ignoreDuringRecording")) {
+				pParam->mp_actionFlags |= EW_NOCASH;
+			}
+			if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"undoAvailable")) {
+				pParam->mp_actionFlags |= EW_UNDO_AVAILABLE;
+			}
 		}
-		if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"needsSelection")) {
-			pParam->mp_actionFlags |= EW_NEEDSBLK;
-		}
-		if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"modifiesText")) {
-			pParam->mp_actionFlags |= EW_MODIFY;
-		}
-		if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"ignoreDuringRecording")) {
-			pParam->mp_actionFlags |= EW_NOCASH;
-		}
-		if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"undoAvailable")) {
-			pParam->mp_actionFlags |= EW_UNDO_AVAILABLE;
-		}
+		pAnnotation = pAnnotation->a_next;
 	}
 }
 

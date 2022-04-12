@@ -55,6 +55,7 @@
 #include "stringutil.h"
 #include "funcdef.h"
 #include "symbols.h"
+#include "linkedlist.h"
 #include "arraylist.h"
 
 # define	YYPTRDIFF_T ptrdiff_t
@@ -148,7 +149,7 @@ int			bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name);
 void 		bytecode_closeOpenLabels(void);
 void 		bytecode_destroyLabelNamed(char *name);
 char*		bytecode_generateAutoLabelName(char *prefix, int num);
-static ANNOTATION	_currentMethodAnnotation;
+static ANNOTATION*	_currentMethodAnnotations;
 static int			_localVariableIndex;
 static STRING_BUF*  _nativeMethodSignature;
 static STRING_BUF*	_nativeMethodArgs;
@@ -249,23 +250,54 @@ static void parser_defineVariable(const char* pszName, SYMBOL_TYPE sType, intptr
 	}
 }
 
-static void destroy_annotation() {
-	if (_currentMethodAnnotation.a_name) {
-		free((char*)_currentMethodAnnotation.a_name);
-		hashmap_destroyWithKeysAndValues(_currentMethodAnnotation.a_values);
-		_currentMethodAnnotation.a_values = 0;
-		_currentMethodAnnotation.a_name = 0;
+static void destroy_annotations() {
+	ANNOTATION *pAnnotation = _currentMethodAnnotations;
+	while(pAnnotation) {
+		ANNOTATION* pNext = pAnnotation->a_next;
+		free((char*)pAnnotation->a_name);
+		hashmap_destroyWithKeysAndValues(pAnnotation->a_values);
+		free(pAnnotation);
+		pAnnotation = pNext;
 	}
+	_currentMethodAnnotations = 0;
 }
 
 static void start_annotation(const char* pszName) {
-	destroy_annotation();
-	_currentMethodAnnotation.a_name = pszName;
-	_currentMethodAnnotation.a_values = hashmap_create(7, 0 , 0);
+	ANNOTATION* pNew = ll_append(&_currentMethodAnnotations, sizeof *pNew);
+	pNew->a_name = pszName;
+	pNew->a_values = hashmap_create(7, 0 , 0);
+}
+
+static void parser_defineAnnotationValue(char* pszKey, char* pszValue) {
+	ANNOTATION* pAnnotation = _currentMethodAnnotations;
+	while(pAnnotation && pAnnotation->a_next) {
+		pAnnotation = pAnnotation->a_next;
+	}
+	if (pAnnotation) {
+		hashmap_put(pAnnotation->a_values, (intptr_t)pszKey, (intptr_t)pszValue);
+	} else {
+		free(pszKey);
+		free(pszValue);
+	}
 }
 
 static void parser_newForeachCursor() {
 	YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_localVariableIndex++});
+}
+
+static void parser_processNativeMethodAnnotations(char** pszLib, char** pszMacroCName, char** pszSignature) {
+	*pszLib = 0;
+	*pszMacroCName = 0;
+	*pszSignature = 0;
+	ANNOTATION* pAnnotation = _currentMethodAnnotations;
+	while(pAnnotation) {
+		if (strcmp("@Method", pAnnotation->a_name) == 0) {
+			*pszLib = (char*)hashmap_get(pAnnotation->a_values, (intptr_t)"lib");
+			*pszMacroCName = (char*)hashmap_get(pAnnotation->a_values, (intptr_t)"name");
+			*pszSignature = (char*)hashmap_get(pAnnotation->a_values, (intptr_t)"signature");
+		}
+		pAnnotation = pAnnotation->a_next;
+	}
 }
 
 static PKS_VALUE_TYPE parser_pushFieldIndexWithError(PKS_VALUE_TYPE t, const char* pszFieldName) {
@@ -482,23 +514,14 @@ annotations:
 
 annotation: T_ANNOTATION {
 				start_annotation($1.ident.s);
-			} '(' annotation_values ')' {
-				macro_processAnnotation(&_macroParam, &_currentMethodAnnotation);
-			}
+			} '(' annotation_values ')' 
 
 annotation_value: T_IDENT T_ASSIGN T_STRING {
-				if (_currentMethodAnnotation.a_values) {
-					hashmap_put(_currentMethodAnnotation.a_values, (intptr_t)$1.ident.s, (intptr_t)$3.ident.s);
-				} else {
-					free($1.ident.s);
-					free($3.ident.s);
-				}
+				parser_defineAnnotationValue($1.ident.s, $3.ident.s);
 			} | T_IDENT {
-				if (_currentMethodAnnotation.a_values) {
-					hashmap_put(_currentMethodAnnotation.a_values, (intptr_t)$1.ident.s, (intptr_t)_strdup("true"));
-				} else {
-					free($1.ident.s);
-				}
+				parser_defineAnnotationValue($1.ident.s, _strdup("true"));
+			} | T_STRING {
+				parser_defineAnnotationValue(_strdup("value"), $1.ident.s);
 			}
 
 annotation_values: 
@@ -509,14 +532,10 @@ native_function_definition:
 				T_NATIVE {
 					init_native();
 				} macrostart {
-					char* pszLib = 0;
-					char* pszMacroCName = 0;
-					char* pszSignature = 0;
-					if (_currentMethodAnnotation.a_values && strcmp("@Method", _currentMethodAnnotation.a_name) == 0) {
-						pszLib = (char*)hashmap_get(_currentMethodAnnotation.a_values, (intptr_t)"lib");
-						pszMacroCName = (char*)hashmap_get(_currentMethodAnnotation.a_values, (intptr_t)"name");
-						pszSignature = (char*)hashmap_get(_currentMethodAnnotation.a_values, (intptr_t)"signature");
-					}
+					char* pszLib;
+					char* pszMacroCName;
+					char* pszSignature;
+					parser_processNativeMethodAnnotations(&pszLib, &pszMacroCName, &pszSignature);
 					char* pszArgs = stringbuf_getString(_nativeMethodArgs);
 					if (!pszSignature) {
 						pszSignature = stringbuf_getString(_nativeMethodSignature);
@@ -549,6 +568,7 @@ macro_definition: { init_macroDefinition(); }
 				YY_EMIT(C_STOP, (GENERIC_DATA){1});
 				_compilerConfiguration->cb_showStatus("Defining macro %s",$2.ident.s);
 				bytecode_optimizeInstructions(_currentBytecodeBuffer);
+				macro_processAnnotations(&_macroParam, _currentMethodAnnotations);
 				_macroParam.mp_name = $2.ident.s;
 				_macroParam.mp_comment = _yyCurrentComment;
 				_macroParam.mp_returnType = $2.ident.type;
@@ -1156,7 +1176,7 @@ static void finalize_native() {
 	destroy_bytecodeBuffer();
 	_bInHeader = 0;
 	_bInNativeDefinition = 0;
-	destroy_annotation();
+	destroy_annotations();
 	stringbuf_destroy(_nativeMethodArgs);
 	stringbuf_destroy(_nativeMethodSignature);
 	_nativeMethodArgs = 0;
@@ -1188,7 +1208,7 @@ static void init_macroDefinition(void)
 /* finalize_macroDefinition()					*/
 /*---------------------------------*/
 static void finalize_macroDefinition(void) {
-	destroy_annotation();
+	destroy_annotations();
 	destroy_bytecodeBuffer();
 	_currentIdentifierContext = sym_popContext(_currentIdentifierContext);
 }
