@@ -48,6 +48,7 @@ typedef struct tagMACRO {
 	unsigned char  mc_isNamespace;			// 1 for namespace macros.
 	unsigned char  mc_isInitialized;		// book keeping of namespace initialization (had the namespace code be executed yet?).
 	MACRO_SCOPE    mc_scope;				// The scope of a macro
+	int			   mc_actionFlags;		// The flags defining, when the macro is "enabled"
 	unsigned char  mc_namespaceIdx;			// Index of the corresponding name space (or 0 for default namespace).
 	unsigned char  mc_returnType;			// The PKS_VALUE_TYPE return type.
 	unsigned char* mc_name;					// the macro name
@@ -61,6 +62,7 @@ typedef struct tagMACRO_PARAM {
 	unsigned char mp_namespaceIdx;
 	unsigned char mp_returnType;
 	MACRO_SCOPE mp_scope;
+	int mp_actionFlags;
 	int mp_type;
 	char* mp_name;
 	char* mp_comment;
@@ -69,6 +71,18 @@ typedef struct tagMACRO_PARAM {
 	size_t mp_bytecodeLength;
 	void* mp_buffer;
 } MACRO_PARAM;
+
+#ifdef HASHMAP_H
+typedef struct tagANNOTATION {
+	const char* a_name;
+	HASHMAP* a_values;
+} ANNOTATION;
+/*
+ * An annotation on a macro was detected during compilation. Try to apply to the macro parameter
+ * used to later create the macro and record important information.
+ */
+extern void macro_processAnnotation(MACRO_PARAM* pParam, ANNOTATION* pAnnotation);
+#endif
 
 #define	MAC_COMMENTLEN		256
 
@@ -109,6 +123,8 @@ typedef struct params {
 
 extern int interpreter_openDialog(PARAMS *p);
 extern long long cdecl interpreter_executeFunction(int num, intptr_t* pStack);
+extern int interpreter_canExecuteNativeFunction(int num, long long pParam, int warn);
+extern int interpreter_canExecuteMacro(int num, int warn);
 
 /*------------------------------------------------------------
  * macro_getByIndex()
@@ -173,6 +189,12 @@ extern void macro_defineNamespaceInitializer(int nNamespaceIdx, const char* pByt
  * Returns a namespace object given its logical index.
  */
 extern MACRO* macro_getNamespaceByIdx(int idx);
+
+/*
+ * Returns the label to use in a user interface to start the macro passed.
+ * This is by default calculated from the macro name.
+ */
+extern void macro_getLabelFor(MACRO* mp, char* pszBuf, size_t nBufferSize);
 
 typedef enum { DM_CODE, DM_INSTRUCTIONS} DECOMPILATION_MODE;
 extern int 		decompile_saveMacrosAndDisplay(char* macroname, DECOMPILATION_MODE nMode);

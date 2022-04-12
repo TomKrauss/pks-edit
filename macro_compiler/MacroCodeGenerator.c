@@ -306,23 +306,6 @@ void bytecode_flushSwitchTable(BYTECODE_BUFFER* pBuffer, int aLevel) {
 	_currentSwitchValue = -1;
 }
 
-/*
- * Destroy an array list containing TYPE_OBJECT_POINTERs.
- */
-void bytecode_destroyArraylistWithPointers(ARRAY_LIST* pList) {
-	if (!pList) {
-		return;
-	}
-	ARRAY_ITERATOR iterator = arraylist_iterator(pList);
-	void** p = iterator.i_buffer;
-	while (p < iterator.i_bufferEnd) {
-		TYPED_OBJECT_POINTER pszPointer = (TYPED_OBJECT_POINTER) * p++;
-		if (TOP_IS_POINTER(pszPointer)) {
-			free(TOP_DATA_POINTER(pszPointer));
-		}
-	}
-	arraylist_destroy(pList);
-}
 /*--------------------------------------------------------------------------
  * bytecode_defineVariable()
  * Defines a variable or a parameter depending on nBytecode

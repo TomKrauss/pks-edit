@@ -374,8 +374,8 @@ static void codecomplete_displayHelpFor(HWND hwnd, CODE_COMPLETION_PARAMS* pPara
 	}
 	HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
 	if (!pszHelp || !*pszHelp) {
-		SetWindowText(hwndSecondary, "");
 		if (hwndSecondary) {
+			SetWindowText(hwndSecondary, "");
 			ShowWindow(hwndSecondary, SW_HIDE);
 		}
 		return;

@@ -27,6 +27,18 @@
 
 static ARRAY_LIST* _allActions;
 
+static BOOL action_isEnabled(ACTION* pAction) {
+	if (pAction->ac_commandType == CMD_CMDSEQ) {
+		COMMAND* pCommand = &_commandTable[pAction->ac_commandId];
+		NATIVE_FUNCTION* pFunc = &_functionTable[pCommand->c_functionDef.funcnum];
+		return interpreter_canExecuteNativeFunction(_commandTable[pAction->ac_commandId].c_functionDef.funcnum, pCommand->c_functionDef.p, 0);
+	}
+	else if (pAction->ac_commandType == CMD_MACRO) {
+		return interpreter_canExecuteMacro(pAction->ac_commandId, 0);
+	}
+	return TRUE;
+}
+
 /**
  * One of the flags defining the enablement of a command has changed. Recalculate the action enablement
  * and notify all action bindings of the change.
@@ -45,10 +57,8 @@ void action_commandEnablementChanged(ACTION_CHANGE_TYPE type) {
 		if (type.act_commandId >= 0 && pAction->ac_commandId != type.act_commandId) {
 			continue;
 		}
-		COMMAND* pCommand = &_commandTable[pAction->ac_commandId];
-		EDFUNC* pFunc = &_functionTable[pCommand->c_functionDef.funcnum];
 		if (type.act_commandEnablement) {
-			int  bEnabled = interpreter_isFunctionEnabled(pFunc, pCommand->c_functionDef.p, 0);
+			int  bEnabled = action_isEnabled(pAction);
 			if (bEnabled != pAction->ac_enabled) {
 				pAction->ac_enabled = bEnabled;
 				for (int j = 0; j < DIM(pAction->ac_bindings); j++) {
@@ -83,22 +93,21 @@ void action_deregisterAllActionsWithListener(const PROPERTY_CHANGE_LISTENER aLis
 }
 
 static void action_reevaluate(ACTION * pAction, ACTION_BINDING* pBinding) {
-	EDFUNC* pFunc = &_functionTable[_commandTable[pAction->ac_commandId].c_functionDef.funcnum];
-	pAction->ac_enabled  = interpreter_isFunctionEnabled(pFunc, 0l, 0);
+	pAction->ac_enabled = action_isEnabled(pAction);
 	(*pBinding->ab_propertyChanged)(pBinding, PC_ENABLED, pAction->ac_enabled);
 }
 
 /**
  * Register an action binding for a command.
  */
-void action_registerAction(int commandId, ACTION_BINDING binding, BOOL bEvaluate) {
+void action_registerAction(int commandId, int nType, ACTION_BINDING binding, BOOL bEvaluate) {
 	if (_allActions == NULL) {
 		_allActions = arraylist_create(33);
 	}
 	size_t nSize = arraylist_size(_allActions);
 	for (int i = 0; i < nSize; i++) {
 		ACTION* pAction = arraylist_get(_allActions, i);
-		if (pAction->ac_commandId == commandId) {
+		if (pAction->ac_commandId == commandId && pAction->ac_commandType == nType) {
 			for (int j = 0; j < DIM(pAction->ac_bindings); j++) {
 				if (pAction->ac_bindings[j].ab_propertyChanged == NULL) {
 					pAction->ac_bindings[j] = binding;
@@ -115,6 +124,7 @@ void action_registerAction(int commandId, ACTION_BINDING binding, BOOL bEvaluate
 	ACTION* pNew = calloc(1, sizeof *pNew);
 	arraylist_add(_allActions, pNew);
 	pNew->ac_commandId = commandId;
+	pNew->ac_commandType = nType;
 	pNew->ac_enabled = -1;
 	pNew->ac_bindings[0] = binding;
 	if (bEvaluate) {

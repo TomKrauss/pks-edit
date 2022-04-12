@@ -1873,8 +1873,9 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			break;
 		}
 		// special hack for toolbars supporting only 16 bit commands ??
-		if ((idCtrl >> 8) == CMD_CMDSEQ) {
-			idCtrl = (CMD_CMDSEQ << 16) + (idCtrl & 0xFF);
+		int nType = idCtrl >> 8;
+		if (nType == CMD_CMDSEQ || nType == CMD_MACRO) {
+			idCtrl = (nType << 16) + (idCtrl & 0xFF);
 		}
 		if (idCtrl == IDM_INCREMENTAL_SEARCH) {
 			break;

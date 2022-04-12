@@ -67,9 +67,9 @@ static void fk_propertyChanged(ACTION_BINDING* pActionBinding, PROPERTY_CHANGE_T
 /*
  * Register a toolbar action binding.
  */
-static void fk_registerBinding(int nIdx, int nCommand) {
-	ACTION_BINDING binding = { fk_propertyChanged, hwndFkeys, nIdx };
-	action_registerAction(nCommand, binding, TRUE);
+static void fk_registerBinding(int nIdx, int nCommand, int nType) {
+	ACTION_BINDING binding = { .ab_propertyChanged = fk_propertyChanged, .ab_hwnd = hwndFkeys, .ab_item = nIdx};
+	action_registerAction(nCommand, nType, binding, TRUE);
 }
 
 
@@ -78,7 +78,7 @@ static int fkey_setText(KEY_BINDING* kp, void * pParam) {
 	int keycode1 = (int)(intptr_t)pParam;
 	int k = (int)kp->keycode - (int)keycode1;
 	if (k >= 0 && k < MAX_FKEYS) {
-		fk_registerBinding(k, kp->macref.index);
+		fk_registerBinding(k, kp->macref.index, kp->macref.typ);
 		command_getTooltipAndLabel(kp->macref, szComment, szKtext);
 		wsprintf(szKey, "F%d %s", k + 1, szKtext);
 	}

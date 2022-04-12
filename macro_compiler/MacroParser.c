@@ -29,8 +29,8 @@ BOOLEAN string_startsWith(const char* pszString, const char* pszPrefix) {
  */
 int function_initializeFunctionsAndTypes(void) {
 	static int initialized;
-	EDFUNC	*		ep;
-	EDFUNC *		epend;
+	NATIVE_FUNCTION	*		ep;
+	NATIVE_FUNCTION *		epend;
 	PARAMETER_ENUM_VALUE *		enp;
 	PARAMETER_ENUM_VALUE *		enpend;
 	char *			pszCopy;
@@ -73,7 +73,7 @@ long function_enumValueFor(PARAMETER_ENUM_VALUE *enp)
 /*--------------------------------------------------------------------------
  * function_getIndexOfFunction()
  */
-int function_getIndexOfFunction(EDFUNC *ep)
+int function_getIndexOfFunction(NATIVE_FUNCTION *ep)
 {
 	return (int)(size_t)(ep - _functionTable);
 }
@@ -81,12 +81,12 @@ int function_getIndexOfFunction(EDFUNC *ep)
 /*
  * Returns the number of parameters of a native macro function.
  */
-int function_getParameterCount(EDFUNC* ep) {
-	if (ep->paramCount >= 0) {
-		return ep->paramCount;
+int function_getParameterCount(NATIVE_FUNCTION* ep) {
+	if (ep->nf_paramCount >= 0) {
+		return ep->nf_paramCount;
 	}
 	function_initializeFunctionsAndTypes();
-	char* pT = ep->edf_paramTypes;
+	char* pT = ep->nf_paramTypes;
 	int nCount = 0;
 	pT++;
 
@@ -102,7 +102,7 @@ int function_getParameterCount(EDFUNC* ep) {
 		nCount++;
 		pT++;
 	}
-	ep->paramCount = nCount;
+	ep->nf_paramCount = nCount;
 	return nCount;
 }
 
@@ -110,8 +110,8 @@ int function_getParameterCount(EDFUNC* ep) {
  * Returns the parameter descriptor for a function for the n-th parameter. Parameter count
  * starts with 1, parameter type 0 is the return type of the function.
  */
-PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(EDFUNC* ep, int nParamIdx) {
-	char* pT = ep->edf_paramTypes;
+PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(NATIVE_FUNCTION* ep, int nParamIdx) {
+	char* pT = ep->nf_paramTypes;
 
 	function_initializeFunctionsAndTypes();
 
@@ -162,14 +162,14 @@ notfound:
  * Can be used to find out, whether a method is more tightly integrated with the macroC VM and works on PKS_VALUES directly.
  * Signature is: PKS_VALUE myMethod(EXECUTION_CONTEXT*pContext, PKS_VALUE* pValues, int nArguments)
  */
-int function_hasInternalVMPrototype(EDFUNC* ep) {
-	return ep->edf_paramTypes[0] == PARAM_TYPE_PKS_VALUE;
+int function_hasInternalVMPrototype(NATIVE_FUNCTION* ep) {
+	return ep->nf_paramTypes[0] == PARAM_TYPE_PKS_VALUE;
 }
 
 /*--------------------------------------------------------------------------
  * function_parameterIsFormStart()
  */
-int function_parameterIsFormStart(EDFUNC *ep, int parno) {
+int function_parameterIsFormStart(NATIVE_FUNCTION *ep, int parno) {
 	if (parno > 1)
 		return 0;
 	PARAMETER_TYPE_DESCRIPTOR ptd = function_getParameterTypeDescriptor(ep, parno);
@@ -194,7 +194,7 @@ int function_registerNativeFunction(const char* pszMacroCName, const char* pszFu
 	SYMBOL symbol = sym_find(sym_getKeywordContext(), pszMacroCName, &existingKey);
 	int nIndex;
 	if (symbol.s_type == S_EDFUNC) {
-		nIndex = (int)((EDFUNC*)VALUE(symbol) - _functionTable);
+		nIndex = (int)((NATIVE_FUNCTION*)VALUE(symbol) - _functionTable);
 	}
 	else {
 		nIndex = newTableSize++;
@@ -212,23 +212,23 @@ int function_registerNativeFunction(const char* pszMacroCName, const char* pszFu
 			ret = 0;
 		}
 		else {
-			EDFUNC* pFunc = &_functionTable[nIndex];
+			NATIVE_FUNCTION* pFunc = &_functionTable[nIndex];
 			if (nIndex < nStatic) {
-				free((char*)pFunc->edf_description);
-				free((char*)pFunc->edf_parameters);
-				pFunc->edf_description = 0;
-				pFunc->edf_parameters = 0;
+				free((char*)pFunc->nf_description);
+				free((char*)pFunc->nf_parameters);
+				pFunc->nf_description = 0;
+				pFunc->nf_parameters = 0;
 			} else {
 				function_destroyRegisteredNative(pFunc);
 				sym_createSymbol(sym_getKeywordContext(), (char*)pszMacroCName, S_EDFUNC, 0, (GENERIC_DATA) {
 					.val = (intptr_t)pFunc
 				}, 0);
-				pFunc->f_name = _strdup(pszMacroCName);
-				pFunc->edf_paramTypes = _strdup(pszSignature);
-				pFunc->execute = p;
+				pFunc->nf_name = _strdup(pszMacroCName);
+				pFunc->nf_paramTypes = _strdup(pszSignature);
+				pFunc->nf_execute = p;
 			}
-			pFunc->edf_description = pszDescription ? _strdup(pszDescription) : 0;
-			pFunc->edf_parameters = pszParameters ? _strdup(pszParameters) : 0;
+			pFunc->nf_description = pszDescription ? _strdup(pszDescription) : 0;
+			pFunc->nf_parameters = pszParameters ? _strdup(pszParameters) : 0;
 			_functionTableSize = newTableSize;
 		}
 	}

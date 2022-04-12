@@ -272,9 +272,9 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 			case RT_ENUM:
 				if (tokens[i].type == JSMN_STRING) {
 					size_t nLength = strlen(tokenContents);
-					for (int i = 0; pRule->r_descriptor.r_t_enumNames[i]; i++) {
-						if (strncmp(tokenContents, pRule->r_descriptor.r_t_enumNames[i], nLength) == 0) {
-							*((int*)pTargetSlot) = i;
+					for (int nStrIndex = 0; pRule->r_descriptor.r_t_enumNames[nStrIndex]; nStrIndex++) {
+						if (strncmp(tokenContents, pRule->r_descriptor.r_t_enumNames[nStrIndex], nLength) == 0) {
+							*((int*)pTargetSlot) = nStrIndex;
 							break;
 						}
 					}

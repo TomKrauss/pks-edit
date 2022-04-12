@@ -98,11 +98,11 @@ static const char* analyzer_pksTypeFromParamtype(PARAMETER_TYPE_DESCRIPTOR pt) {
 }
 
 static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
-	EDFUNC* pFunc = pEdFunc;
-	if (!pFunc->edf_description) {
+	NATIVE_FUNCTION* pFunc = pEdFunc;
+	if (!pFunc->nf_description) {
 		return 0;
 	}
-	const char* pszParameterDescription = pFunc->edf_parameters;
+	const char* pszParameterDescription = pFunc->nf_parameters;
 	STRING_BUF* pszParams = stringbuf_create(100);
 	int nParams = function_getParameterCount(pFunc);
 	for (int i = 1; i <= nParams || (pszParameterDescription && *pszParameterDescription); i++) {
@@ -141,12 +141,12 @@ static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
 		stringbuf_appendString(pszParams, szParamName);
 	}
 	char* pszParamsS = stringbuf_getString(pszParams);
-	char* pszRet = malloc(strlen(pszName) + 32 + strlen(pszParamsS) + strlen(pFunc->edf_description));
+	char* pszRet = malloc(strlen(pszName) + 32 + strlen(pszParamsS) + strlen(pFunc->nf_description));
 	sprintf(pszRet, "Synopsis: %s %s(", analyzer_pksTypeFromParamtype(function_getParameterTypeDescriptor(pFunc, 0)), pszName);
 	strcat(pszRet, pszParamsS);
 	stringbuf_destroy(pszParams);
 	strcat(pszRet, ")\n");
-	strcat(pszRet, pFunc->edf_description);
+	strcat(pszRet, pFunc->nf_description);
 	return pszRet;
 }
 
@@ -220,9 +220,9 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 		}
 	}
 	for (int i = 0; i < _functionTableSize; i++) {
-		EDFUNC* pFunc = &_functionTable[i];
-		if (fMatch(pFunc->f_name)) {
-			fCallback(pFunc->f_name, pFunc, analyzer_helpForFunc);
+		NATIVE_FUNCTION* pFunc = &_functionTable[i];
+		if (fMatch(pFunc->nf_name)) {
+			fCallback(pFunc->nf_name, pFunc, analyzer_helpForFunc);
 		}
 	}
 	for (int i = 0; i < macro_getNumberOfMacros(); i++) {

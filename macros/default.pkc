@@ -5,6 +5,7 @@ require "function_definitions";
  * Macro, which can be used as a save action in PKS-Edit to trim
  * all trailing blanks in the document saved.
  */
+@ActionFlags(needsCurrentEditor, modifiesText)
 void TrimTrailingBlanks() {
 	// disable all messages (toast / status bar etc...) while running this macro.
 	ShowMessages(false);
@@ -47,6 +48,7 @@ static int FindSingleLineComment(string text, string comment) {
 /*
  * Format all single line comments in a piece of C or PKSMacroC source code so they are indented in an aligned way.
  */
+@ActionFlags(needsCurrentEditor, modifiesText)
 void FormatSingleLineComments() {
 	string text;
 	string[] lines;
@@ -62,14 +64,14 @@ void FormatSingleLineComments() {
 	for (int i : selected) {
 		text = EditorGetLineText(i);
 		lines += text;
-		index = FindSingleLineComment(text, "//");        // find the most right aligned comment in the list of lines
-		if (index < 0) {                              // Have we really found a comment
-			indices += -1;                           // Remember, this line is not affected
-			continue;                               // No single line comment in this line
+		index =	FindSingleLineComment(text,	"//");			// find	the	most right aligned comment in the list of lines) coordinates.
+		if (index <	0) {									// Have	we really found	a commentost right aligned comment in the list of lines) coordinates.
+			indices	+= -1;									// Remember, this line is not affectedright aligned comment in the list of lines) coordinates.
+			continue;										// No single line comment in this linectedright aligned comment in the list of lines) coordinates.
 		}
 		index = EditorBufferOffset2Screen(text, index);     // transate the column to screen (rather than buffer) coordinates.
-		indices += index;                               // remember the index
-		if (index > maxIndex) {                        // is it the most right aligned index?
+		indices	+= index;									// remember	the	indexn this linectedright aligned comment in the list of lines) coordinates.
+		if (index >	maxIndex) {								// is it the most right	aligned	index?ligned comment in the list of lines) coordinates.
 			maxIndex = index;
 		}
 	}

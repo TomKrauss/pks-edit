@@ -20,6 +20,7 @@
 #include "linkedlist.h"
 #include "documentmodel.h"
 #include "winfo.h"
+#include "arraylist.h"
 #include "pksmacro.h"
 #include "actionbindings.h"
 #include "helpitem.h"
@@ -38,7 +39,6 @@ static POINT _contextMenuPosition;
 /*--------------------------------------------------------------------------
  * interpreter_canExecuteFunction()
  */
-extern int interpreter_canExecuteFunction(int num, long long pParam, int warn);
 extern BOOL op_defineOption(long nFlag);
 
 /*
@@ -111,6 +111,55 @@ static int menu_appendHistoryEntries(HMENU hMenu, BOOL bAppendSeparator) {
 	return nItems;
 }
 
+static void menu_enableItem(HMENU hMenu, int wItem, int nType, int nIndex) {
+	BOOL bEnable = TRUE;
+	if (nType == CMD_CMDSEQ) {
+		long long llParam;
+		int nFuncnum = macro_getFunctionNumberForCommand(nIndex, &llParam);
+		bEnable = interpreter_canExecuteNativeFunction(nFuncnum, llParam, 0);
+		if (nFuncnum == FUNC_EdOptionToggle) {
+			if (op_defineOption((long)llParam)) {
+				CheckMenuItem(hMenu, wItem, MF_CHECKED | MF_BYPOSITION);
+			}
+		}
+	}
+	else if (nType == CMD_MACRO) {
+		bEnable = interpreter_canExecuteMacro(nIndex, 0);
+	}
+	EnableMenuItem(hMenu, wItem,
+		bEnable ?
+		MF_BYPOSITION | MF_ENABLED :
+		MF_BYPOSITION | MF_DISABLED | MF_GRAYED);
+}
+
+/*
+ * Append the list of macro menu function bindings to a menu.
+ */
+static int menu_appendMacroEntries(HMENU hMenu, int wItemIndex, const char* pszPrefix, BOOL bAppendSeparator) {
+	char szLabel[512];
+	BOOL bFirst = TRUE;
+	int nMacros = macro_getNumberOfMacros();
+	int nItems = 0;
+	for (int i = 0; i < nMacros; i++) {
+		MACRO* mp = macro_getByIndex(i);
+		if (mp->mc_scope == MS_LOCAL) {
+			continue;
+		}
+		if (pszPrefix && *pszPrefix && strstr(mp->mc_name, pszPrefix) == 0) {
+			continue;
+		}
+		if (bFirst && bAppendSeparator) {
+			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
+			bFirst = FALSE;
+		}
+		macro_getLabelFor(mp, szLabel, sizeof szLabel);
+		AppendMenu(hMenu, MF_STRING, (CMD_MACRO << 16) + i, szLabel);
+		nItems++;
+		menu_enableItem(hMenu, wItemIndex + nItems, CMD_MACRO, i);
+	}
+	return nItems;
+}
+
 static BOOL menu_appendMenuItems(HMENU hMenu, MENU_ITEM_DEFINITION* pMenu) {
 	char szLabel[100];
 	char charsWithMnemonic[256];
@@ -120,6 +169,8 @@ static BOOL menu_appendMenuItems(HMENU hMenu, MENU_ITEM_DEFINITION* pMenu) {
 	while (pMenu) {
 		if (pMenu->mid_isHistoryMenu) {
 			wItem += menu_appendHistoryEntries(hMenu, pMenu->mid_isSeparator) - 1;
+		} else if (pMenu->mid_isMacroMenu) {
+			wItem += menu_appendMacroEntries(hMenu, wItem, pMenu->mid_label.bt_text, pMenu->mid_isSeparator) - 1;
 		}  else if (pMenu->mid_isSeparator) {
 			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
 		} else if (pMenu->mid_children) {
@@ -131,19 +182,7 @@ static BOOL menu_appendMenuItems(HMENU hMenu, MENU_ITEM_DEFINITION* pMenu) {
 		else {
 			menu_determineLabelWithMnemonic(szLabel, pMenu, charsWithMnemonic, FALSE);
 			AppendMenu(hMenu, MF_STRING, ((int)pMenu->mid_command.typ << 16) + pMenu->mid_command.index, szLabel);
-			if (pMenu->mid_command.typ == CMD_CMDSEQ) {
-				long long llParam;
-				int nFuncnum = macro_getFunctionNumberForCommand(pMenu->mid_command.index, &llParam);
-				EnableMenuItem(hMenu, wItem,
-					interpreter_canExecuteFunction(nFuncnum, llParam, 0) ?
-					MF_BYPOSITION | MF_ENABLED :
-					MF_BYPOSITION | MF_DISABLED | MF_GRAYED);
-				if (nFuncnum == FUNC_EdOptionToggle) {
-					if (op_defineOption((long)llParam)) {
-						CheckMenuItem(hMenu, wItem, MF_CHECKED | MF_BYPOSITION);
-					}
-				}
-			}
+			menu_enableItem(hMenu, wItem, pMenu->mid_command.typ, pMenu->mid_command.index);
 		}
 		pMenu = pMenu->mid_next;
 		wItem++;

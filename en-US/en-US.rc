@@ -31,12 +31,12 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
     "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
@@ -48,7 +48,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
     "\r\n"
     "\0"
@@ -1422,7 +1422,7 @@ BEGIN
     IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
     IDS_INSERT              "Insert"
     IDS_CREATE_BUFFER       "Create"
-    IDS_NO_EVALUATION_SUPPORTED 
+    IDS_NO_EVALUATION_SUPPORTED
                             "The grammar of this file does not support evaluation of code."
     IDS_EVALUATION_FAILED   "The evaluation of the currently selected text failed."
     IDS_MSGRE_UNDEFINED_BACKREF "Undefined bracket back reference"
@@ -1439,7 +1439,7 @@ BEGIN
     IDS_MSGNTIMESFOUND      "%d times found"
     IDS_WINDOWLIST          "Open window list"
     IDS_SELECTCOMPILEWINDOW "File - Selection for Compilation"
-    IDS_TT_REGULAR_EXPRESSION 
+    IDS_TT_REGULAR_EXPRESSION
                             "Regular expressions support the following special characters\r\n""."" - (matches any char)\r\n""[a-z]"" - all characters from a-z\r\n""*"" - (an arbitrary number of times)\r\n""+"" - at least once\r\n""{x,y}"" - minimum x, maximum y times"
     IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text are preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
     IDS_FILE_MODIFIED       "Modified"
@@ -1521,7 +1521,7 @@ BEGIN
     IDS_COMMAND36           "Hides the text selection;Hide Selection"
     IDS_COMMAND37           "Goto begin of text selection;Goto Selection Start"
     IDS_COMMAND38           "Goto end of text selection;Goto Selection End"
-    IDS_COMMAND39           "Copy selection to clipboard; Copy to Clipboard"
+    IDS_COMMAND39           "Copy selection to clipboard;Copy to Clipboard"
     IDS_COMMAND40           "Appends a named buffer to another buffer...;Copy a named Clipboard to other Clipboard.."
     IDS_COMMAND41           "Append the selection to a named buffer;Copy Selection to named Clipboard"
     IDS_COMMAND42           "Append selection to clipboard;Copy to Clipboard"

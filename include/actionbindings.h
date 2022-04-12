@@ -79,6 +79,7 @@ typedef struct tagMENU_ITEM_DEFINITION {
 	BOUND_TEXT	mid_label;							// The label to display for the menu. If no label is specified, a default for the defined command is used.
 	BOOL		mid_isSeparator;					// true for separator menus. Separator menus do not need a label
 	BOOL		mid_isHistoryMenu;					// true for "history" menus. Will be replaced during runtime by a list of recently opened files.
+	BOOL		mid_isMacroMenu;					// true for "macro" menus. Will be replaced during runtime by a list of global macro function bindings.
 	MACROREF	mid_command;						// the associated command to execute.
 } MENU_ITEM_DEFINITION;
 

@@ -509,40 +509,40 @@ int interpreter_openDialog(PARAMS *pp)
  * Returns FALSE; if the function described by the function pointer cannot
  * be executed.
  */
-int interpreter_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn) {
-	if (!fup->flags) {
+static int interpreter_isFunctionEnabled(int nf_flags, int (*nf_checkEnabled)(long long p), long long pParam, int warn) {
+	if (!nf_flags) {
 		return 1;
 	}
 	WINFO* wp = ww_getCurrentEditorWindow();
 
 	FTABLE* fp = wp ? wp->fp : NULL;
 
-	if (fup->flags & EW_NEEDSCURRF && fp == 0) {
+	if (nf_flags & EW_NEEDSCURRF && fp == 0) {
 		return 0;
 	}
-	if ((fup->flags & EW_MODIFY) && (ft_isReadonly(fp) || !wp->renderer->r_canEdit)) {
+	if ((nf_flags & EW_MODIFY) && (ft_isReadonly(fp) || !wp->renderer->r_canEdit)) {
 		if (warn) {
 			ft_checkReadonlyWithError(fp);
 		}
 		return 0;
 	}
 
-	if (fup->flags & EW_NEEDSBLK && (!wp || !ww_hasSelection(wp))) {
+	if (nf_flags & EW_NEEDSBLK && (!wp || !ww_hasSelection(wp))) {
 		return 0;
 	}
-	if ((fup->flags & EW_REDO_AVAILABLE) && !undo_isRedoAvailable(fp)) {
+	if ((nf_flags & EW_REDO_AVAILABLE) && !undo_isRedoAvailable(fp)) {
 		return 0;
 	}
-	if ((fup->flags & EW_UNDO_AVAILABLE) && !undo_isUndoAvailable(fp)) {
+	if ((nf_flags & EW_UNDO_AVAILABLE) && !undo_isUndoAvailable(fp)) {
 		if (warn) {
 			ww_checkSelectionWithError(wp);
 		}
 		return 0;
 	}
-	if (fup->flags & EW_COMPARISON_MODE && (wp == NULL || wp->comparisonLink == NULL)) {
+	if (nf_flags & EW_COMPARISON_MODE && (wp == NULL || wp->comparisonLink == NULL)) {
 		return 0;
 	}
-	if (fup->flags & EW_CUSTOM_ENABLEMENT && !fup->isenabled(pParam)) {
+	if (nf_flags & EW_CUSTOM_ENABLEMENT && !nf_checkEnabled(pParam)) {
 		return 0;
 	}
 	return 1;
@@ -551,16 +551,24 @@ int interpreter_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn) {
 /*--------------------------------------------------------------------------
  * interpreter_canExecuteFunction()
  */
-int interpreter_canExecuteFunction(int num, long long pParam, int warn) {
-	EDFUNC *	fup = &_functionTable[num];
-	return interpreter_isFunctionEnabled(fup, pParam, warn);
+int interpreter_canExecuteNativeFunction(int num, long long pParam, int warn) {
+	NATIVE_FUNCTION *	fup = &_functionTable[num];
+	return interpreter_isFunctionEnabled(fup->nf_flags, fup->nf_checkEnabled, pParam, warn);
+}
+
+/*
+ * Checks, whether the execution of a macro is currently enabled.
+ */
+int interpreter_canExecuteMacro(int nMacroNum, int warn) {
+	MACRO* mp = macro_getByIndex(nMacroNum);
+	return mp && interpreter_isFunctionEnabled(mp->mc_actionFlags, 0, 0, warn);
 }
 
 /*
  * Call a method generically (foreign function interface) - should use libffi on a long term run.
  */
-static long long cdecl interpreter_callFfi(EDFUNC* pFunc, intptr_t* pStack) {
-	if (!pFunc->execute) {
+static long long cdecl interpreter_callFfi(NATIVE_FUNCTION* pFunc, intptr_t* pStack) {
+	if (!pFunc->nf_execute) {
 		return 0;
 	}
 
@@ -572,49 +580,49 @@ static long long cdecl interpreter_callFfi(EDFUNC* pFunc, intptr_t* pStack) {
 	}
 	if (nParams == 1) {
 		if (pd1.pt_type == PARAM_TYPE_STRING) {
-			return (*pFunc->execute)(((void**)pStack)[0]);
+			return (*pFunc->nf_execute)(((void**)pStack)[0]);
 		}
 	} else if (nParams == 2) {
 		PARAMETER_TYPE_DESCRIPTOR pd2 = function_getParameterTypeDescriptor(pFunc, 2);
 		if (pd1.pt_type == PARAM_TYPE_STRING) {
 			if (pd2.pt_type == PARAM_TYPE_STRING) {
-				return (*pFunc->execute)((void*)pStack[0], (void*)pStack[1]);
+				return (*pFunc->nf_execute)((void*)pStack[0], (void*)pStack[1]);
 			}
-			return (*pFunc->execute)((void*)pStack[0], (long)pStack[1]);
+			return (*pFunc->nf_execute)((void*)pStack[0], (long)pStack[1]);
 		}
 		if (pd2.pt_type == PARAM_TYPE_STRING) {
 			if (pd1.pt_type != PARAM_TYPE_STRING) {
-				return (*pFunc->execute)((long)pStack[0], (void*)pStack[1]);
+				return (*pFunc->nf_execute)((long)pStack[0], (void*)pStack[1]);
 			}
 		}
 	}
-	return (*pFunc->execute)((long)pStack[0], (long)pStack[1], (void*)pStack[2], (void*)pStack[3], (void*)pStack[4], (void*)pStack[5]);
+	return (*pFunc->nf_execute)((long)pStack[0], (long)pStack[1], (void*)pStack[2], (void*)pStack[3], (void*)pStack[4], (void*)pStack[5]);
 }
 
 /*---------------------------------*/
 /* interpreter_executeFunction()					*/
 /*---------------------------------*/
 long long cdecl interpreter_executeFunction(int num, intptr_t *stack) {
-	EDFUNC *	fup = &_functionTable[num];
+	NATIVE_FUNCTION *	fup = &_functionTable[num];
 	long long 	ret = 0;
 	int			i;
 
-	if (!interpreter_isFunctionEnabled(fup, (long long)*stack, 1)) {
+	if (!interpreter_isFunctionEnabled(fup->nf_flags, fup->nf_checkEnabled, (long long)*stack, 1)) {
 		return 0;
 	}
 
-	if (fup->flags & EW_UNDOFLSH) {
+	if (fup->nf_flags & EW_UNDOFLSH) {
 		undo_startModification(ft_getCurrentDocument());
 	}
 
-	if ((fup->flags & EW_CCASH) == 0) {
+	if ((fup->nf_flags & EW_CCASH) == 0) {
 		recorder_stopAutoInsertRecording(NULL, NULL);
 		caret_removeSecondaryCarets();
 	}
 
 	recorder_recordFunctionWithParameters(num,stack[0], stack[1], (char*)stack[2], (char*)stack[3]);
 
-	if ((i = _multiplier) > 1 && (fup->flags & EW_MULTI) == 0) {
+	if ((i = _multiplier) > 1 && (fup->nf_flags & EW_MULTI) == 0) {
 		while (i-- > 0 && (ret = interpreter_callFfi(fup, stack)) != 0)
 			;
 		_multiplier = 1;
@@ -623,7 +631,7 @@ long long cdecl interpreter_executeFunction(int num, intptr_t *stack) {
 	}
 
 	FTABLE* fp;
-	if (ret > 0 && (fup->flags & EW_MODIFY) && (fp = ft_getCurrentDocument()) != NULL) {
+	if (ret > 0 && (fup->nf_flags & EW_MODIFY) && (fp = ft_getCurrentDocument()) != NULL) {
 		ft_settime(&fp->ti_lastChanged);
 	}
 
@@ -697,7 +705,7 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 	functionParameters = nativeStack;
 	const char* pszMacro = ((COM_MAC*)pInstructionPointer)->name;
 	funcnum = pInstructionPointer->funcnum;
-	EDFUNC* fup = &_functionTable[funcnum];
+	NATIVE_FUNCTION* fup = &_functionTable[funcnum];
 	bNativeCall = typ != C_MACRO && typ != C_MACRO_REF && typ != C_MACRO_REF_LOCAL;
 	if (typ == C_MACRO_REF || typ == C_MACRO_REF_LOCAL) {
 		PKS_VALUE v;
@@ -741,7 +749,7 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 	}
 
 	if (bNativeCall && !_currentFormInstruction) {
-		EDFUNC* fup = &_functionTable[funcnum];
+		NATIVE_FUNCTION* fup = &_functionTable[funcnum];
 		int i;
 		for (i = 0; i < nParametersPassed; i++) {
 			tempStack[i] = interpreter_popStackValue(pContext);
@@ -774,7 +782,7 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 		}
 	}
 	if (bNativeCall) {
-		EDFUNC* fup = &_functionTable[funcnum];
+		NATIVE_FUNCTION* fup = &_functionTable[funcnum];
 		rc = interpreter_executeFunction(funcnum, nativeStack);
 		PARAMETER_TYPE pReturnType = function_getParameterTypeDescriptor(fup, 0).pt_type;
 		interpreter_returnNativeFunctionResult(pContext, pReturnType, rc);
@@ -784,8 +792,8 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 			for (int i = 0; i < nParametersPassed; i++) {
 				pStack[nParametersPassed -i-1] = interpreter_popStackValue(pContext);
 			}
-			EDFUNC* fup = &_functionTable[funcnum];
-			returnValue = ((PKS_VALUE (*)())fup->execute)(pContext, pStack, nParametersPassed);
+			NATIVE_FUNCTION* fup = &_functionTable[funcnum];
+			returnValue = ((PKS_VALUE (*)())fup->nf_execute)(pContext, pStack, nParametersPassed);
 			free(pStack);
 		} else {
 			PKS_VALUE* pOld = pContext->ec_stackFrame;
@@ -940,6 +948,8 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 				PKS_VALUE caseLabelValue = interpreter_popStackValue(pContext);
 				PKS_VALUE compareWith = interpreter_peekStackValue(pContext);
 				val = interpreter_testCaseLabelMatch(pContext, caseLabelValue, compareWith);
+			} else {
+				val = 0;
 			}
 			if (val == TRUE)
 				pInstr = COM1_INCR(cp, COM_GOTO, offset);

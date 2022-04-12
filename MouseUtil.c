@@ -433,7 +433,7 @@ int macro_executeWithPosition(WINFO* wp, MACROREF* pRef, POINT pt) {
 	if (pRef->typ == CMD_CMDSEQ) {
 		long long llParam;
 		int nFunctionNum = macro_getFunctionNumberForCommand(pRef->index, &llParam);
-		if (_functionTable[nFunctionNum].flags & EW_FINDCURS) {
+		if (_functionTable[nFunctionNum].nf_flags & EW_FINDCURS) {
 			caret_placeToXY(wp, pt.x, pt.y);
 		}
 	}

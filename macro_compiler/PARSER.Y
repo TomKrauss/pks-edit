@@ -47,6 +47,7 @@
 #include <stddef.h>
 
 #include "alloc.h"
+#include "hashmap.h"
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
 #include "scanner.h"
@@ -55,7 +56,6 @@
 #include "funcdef.h"
 #include "symbols.h"
 #include "arraylist.h"
-#include "hashmap.h"
 
 # define	YYPTRDIFF_T ptrdiff_t
 # define	YYPTRDIFF_MAXIMUM SIZE_MAX
@@ -67,6 +67,8 @@
 
 static BYTECODE_BUFFER  _buffers[MAX_BREAK_LEVEL];
 static BYTECODE_BUFFER* _currentBytecodeBuffer;
+static MACRO_PARAM		_macroParam;
+
 static void		*_currentNativeMethodCalled;
 static int		_nparam,
 				_breaklevel,
@@ -75,6 +77,8 @@ static      int  _currentFunctionCallParamIndices[32];
 static      int  *_currentFunctionCallParamIndexP = _currentFunctionCallParamIndices;
 static 		void init_header(void);
 static 		void finalize_header(void);
+static 		void init_native(void);
+static 		void finalize_native(void);
 static 		void init_macroDefinition(void);
 static 		void finalize_macroDefinition(void);
 static 		void freeitem(char **p);
@@ -144,7 +148,7 @@ int			bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name);
 void 		bytecode_closeOpenLabels(void);
 void 		bytecode_destroyLabelNamed(char *name);
 char*		bytecode_generateAutoLabelName(char *prefix, int num);
-static HASHMAP*		_currentNativeMethodAnnotation;
+static ANNOTATION	_currentMethodAnnotation;
 static int			_localVariableIndex;
 static STRING_BUF*  _nativeMethodSignature;
 static STRING_BUF*	_nativeMethodArgs;
@@ -245,6 +249,21 @@ static void parser_defineVariable(const char* pszName, SYMBOL_TYPE sType, intptr
 	}
 }
 
+static void destroy_annotation() {
+	if (_currentMethodAnnotation.a_name) {
+		free((char*)_currentMethodAnnotation.a_name);
+		hashmap_destroyWithKeysAndValues(_currentMethodAnnotation.a_values);
+		_currentMethodAnnotation.a_values = 0;
+		_currentMethodAnnotation.a_name = 0;
+	}
+}
+
+static void start_annotation(const char* pszName) {
+	destroy_annotation();
+	_currentMethodAnnotation.a_name = pszName;
+	_currentMethodAnnotation.a_values = hashmap_create(7, 0 , 0);
+}
+
 static void parser_newForeachCursor() {
 	YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_localVariableIndex++});
 }
@@ -279,7 +298,13 @@ header_delimiter:
 			| '!'
 
 macro_definitions: 
-			| macro_definition macro_definitions 
+			| m_o_f macro_definitions 
+
+m_o_f:		annotations macro_or_native_function
+
+macro_or_native_function:
+			native_function_definition ';' 
+			| macro_definition
 
 namespace:  {
 				_currentNamespaceIndex = macro_lookupNamespace(MACRO_NAMESPACE_DEFAULT);
@@ -300,7 +325,6 @@ require:	T_REQUIRE T_STRING ';' {
 global_declarations:
 			| global_declarations constants ';'
 			| global_declarations global_var ';' 
-			| global_declarations native_macro_definition ';' 
 
 scope:		{ $$.ident.scope = MS_GLOBAL; }
 			| T_STATIC { $$.ident.scope = MS_LOCAL; }
@@ -457,18 +481,23 @@ annotations:
 			| annotation annotations
 
 annotation: T_ANNOTATION {
-				if (strcmp($1.ident.s, "@Method") == 0) {
-					_currentNativeMethodAnnotation = hashmap_create(3, 0 ,0);
-				}
-				free($1.ident.s);
-			}'(' annotation_values ')' 
+				start_annotation($1.ident.s);
+			} '(' annotation_values ')' {
+				macro_processAnnotation(&_macroParam, &_currentMethodAnnotation);
+			}
 
 annotation_value: T_IDENT T_ASSIGN T_STRING {
-				if (_currentNativeMethodAnnotation) {
-					hashmap_put(_currentNativeMethodAnnotation, (intptr_t)$1.ident.s, (intptr_t)$3.ident.s);
+				if (_currentMethodAnnotation.a_values) {
+					hashmap_put(_currentMethodAnnotation.a_values, (intptr_t)$1.ident.s, (intptr_t)$3.ident.s);
 				} else {
 					free($1.ident.s);
 					free($3.ident.s);
+				}
+			} | T_IDENT {
+				if (_currentMethodAnnotation.a_values) {
+					hashmap_put(_currentMethodAnnotation.a_values, (intptr_t)$1.ident.s, (intptr_t)_strdup("true"));
+				} else {
+					free($1.ident.s);
 				}
 			}
 
@@ -476,26 +505,27 @@ annotation_values:
 				| annotation_value
 				| annotation_value ',' annotation_values
 
-native_macro_definition:  {
-					_bInNativeDefinition = 1;
-				} 
-				annotations T_NATIVE macrostart {
-					if (!_currentNativeMethodAnnotation) {
-						_currentNativeMethodAnnotation = hashmap_create(3, 0, 0);
+native_function_definition: 
+				T_NATIVE {
+					init_native();
+				} macrostart {
+					char* pszLib = 0;
+					char* pszMacroCName = 0;
+					char* pszSignature = 0;
+					if (_currentMethodAnnotation.a_values && strcmp("@Method", _currentMethodAnnotation.a_name) == 0) {
+						pszLib = (char*)hashmap_get(_currentMethodAnnotation.a_values, (intptr_t)"lib");
+						pszMacroCName = (char*)hashmap_get(_currentMethodAnnotation.a_values, (intptr_t)"name");
+						pszSignature = (char*)hashmap_get(_currentMethodAnnotation.a_values, (intptr_t)"signature");
 					}
-					char* pszLib = (char*)hashmap_get(_currentNativeMethodAnnotation, (intptr_t)"lib");
-					char* pszMacroCName = (char*)hashmap_get(_currentNativeMethodAnnotation, (intptr_t)"name");
-					char* pszSignature = (char*)hashmap_get(_currentNativeMethodAnnotation, (intptr_t)"signature");
 					char* pszArgs = stringbuf_getString(_nativeMethodArgs);
 					if (!pszSignature) {
 						pszSignature = stringbuf_getString(_nativeMethodSignature);
 					}
 					if (!pszMacroCName) {
-						pszMacroCName = $4.ident.s;
+						pszMacroCName = $3.ident.s;
 					}
-					_bInNativeDefinition = 0;
 					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=pszMacroCName});
-					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$4.ident.s});
+					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$3.ident.s});
 					if (!pszLib) {
 						pszLib = "PKSEDIT";
 					}
@@ -506,13 +536,9 @@ native_macro_definition:  {
 					_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
 							C_0FUNC, (GENERIC_DATA){ FUNC_RegisterNative}, 6);
 					// register right away as well, so we can use it.
-					function_registerNativeFunction(pszMacroCName, $4.ident.s, pszLib, pszSignature, _yyCurrentComment, pszArgs);
-					free($4.ident.s);
-					hashmap_destroyWithKeysAndValues(_currentNativeMethodAnnotation);
-					stringbuf_destroy(_nativeMethodArgs);
-					stringbuf_destroy(_nativeMethodSignature);
-					_nativeMethodArgs = 0;
-					_nativeMethodSignature = 0;
+					function_registerNativeFunction(pszMacroCName, $3.ident.s, pszLib, pszSignature, _yyCurrentComment, pszArgs);
+					free($3.ident.s);
+					finalize_native();
 				} 
 
 macro_definition: { init_macroDefinition(); } 
@@ -523,18 +549,17 @@ macro_definition: { init_macroDefinition(); }
 				YY_EMIT(C_STOP, (GENERIC_DATA){1});
 				_compilerConfiguration->cb_showStatus("Defining macro %s",$2.ident.s);
 				bytecode_optimizeInstructions(_currentBytecodeBuffer);
-				MACRO_PARAM param = {
-					.mp_name = $2.ident.s,
-					.mp_comment = _yyCurrentComment,
-					.mp_returnType = $2.ident.type,
-					.mp_numberOfLocalVariables = _localVariableIndex,
-					.mp_bytecodeLength = _currentBytecodeBuffer->bb_current - _currentBytecodeBuffer->bb_start,
-					.mp_buffer = _currentBytecodeBuffer->bb_start,
-					.mp_scope = $2.ident.scope,
-					.mp_sourceFile = yy_getCurrentInputFilename(),
-					.mp_namespaceIdx = _currentNamespaceIndex
-				};
-				_compilerConfiguration->cb_insertNewMacro(&param);
+				_macroParam.mp_name = $2.ident.s;
+				_macroParam.mp_comment = _yyCurrentComment;
+				_macroParam.mp_returnType = $2.ident.type;
+				_macroParam.mp_numberOfLocalVariables = _localVariableIndex;
+				_macroParam.mp_bytecodeLength = _currentBytecodeBuffer->bb_current - _currentBytecodeBuffer->bb_start;
+				_macroParam.mp_buffer = _currentBytecodeBuffer->bb_start;
+				_macroParam.mp_scope = $2.ident.scope;
+				_macroParam.mp_sourceFile = yy_getCurrentInputFilename();
+				_macroParam.mp_namespaceIdx = _currentNamespaceIndex;
+				_compilerConfiguration->cb_insertNewMacro(&_macroParam);
+				memset(&_macroParam, 0, sizeof _macroParam);
 				freeitem(&$2.ident.s);
 				freeitem(&_yyCurrentComment);
 				bytecode_closeOpenLabels();
@@ -1121,6 +1146,23 @@ static void init_header() {
 	_bInHeader = 1;
 }
 
+static void init_native() {
+	init_bytecodeBuffer();
+	_bInHeader = 1;
+	_bInNativeDefinition = 1;
+}
+
+static void finalize_native() {
+	destroy_bytecodeBuffer();
+	_bInHeader = 0;
+	_bInNativeDefinition = 0;
+	destroy_annotation();
+	stringbuf_destroy(_nativeMethodArgs);
+	stringbuf_destroy(_nativeMethodSignature);
+	_nativeMethodArgs = 0;
+	_nativeMethodSignature = 0;
+}
+
 static void finalize_header() {
 	macro_defineNamespaceInitializer(_currentNamespaceIndex, _currentBytecodeBuffer->bb_start, _currentBytecodeBuffer->bb_current - _currentBytecodeBuffer->bb_start);
 	destroy_bytecodeBuffer();
@@ -1146,6 +1188,7 @@ static void init_macroDefinition(void)
 /* finalize_macroDefinition()					*/
 /*---------------------------------*/
 static void finalize_macroDefinition(void) {
+	destroy_annotation();
 	destroy_bytecodeBuffer();
 	_currentIdentifierContext = sym_popContext(_currentIdentifierContext);
 }

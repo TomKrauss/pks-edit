@@ -979,7 +979,11 @@
         },
         { "separator": true },
         { "command": "@read-macros" },
-        { "command": "@write-macros" }
+        { "command": "@write-macros" },
+        {
+          "separator": true,
+          "macro-menu": true
+        }
       ]
     },
     {
@@ -1152,6 +1156,11 @@
     {
       "command": "@help-release-notes",
       "icon": "fa-pencil-square-o"
+    },
+    { "separator": true },
+    {
+      "command": "TrimTrailingBlanks",
+      "icon": "fa-star"
     }
   ]
 }

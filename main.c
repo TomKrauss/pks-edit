@@ -59,6 +59,7 @@ extern void		faicon_destroy();
 extern void		sym_destroyTable();
 extern void		bindings_destroy();
 extern void		function_destroy();
+
 /*
  * Destroy all allocated macros.
  */
@@ -67,6 +68,7 @@ extern void		arguments_getPhase2(char *args);
 extern void		arguments_getForPhase1(char *args);
 extern void 	init_readConfigFiles(void);
 extern BOOL 	init_initializeVariables(void);
+extern void		types_registerDefaultTypes();
 
 extern BOOL	bTaskFinished;
 
@@ -140,6 +142,7 @@ static BOOL InitApplication(void)
 			!windowselector_registerWindowClass()) {
 	    return FALSE;
 	}
+	types_registerDefaultTypes();
 	analyzer_registerDefaultAnalyzers();
 	evaluator_registerDefaultEvaluators();
 	return TRUE;
@@ -408,6 +411,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	if (!ww_getNumberOfOpenWindows() && _runInteractive) {
 		EdEditFile(0L,(char*)0);
 	}
+	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
 	/* show PKS Edit now! */
 	main_restoreSizeAndMakeVisible();
 	return mainframe_messageLoop();

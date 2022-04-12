@@ -39,7 +39,7 @@
 
 #define TB_IMAGE_SIZE       18
 
-#define M(CMD)      ((int)(CMD_CMDSEQ<<8)|CMD)
+#define M(T,CMD)      ((int)(T<<8)|CMD)
 
 static HWND	hwndToolbar;
 static int nToolbarButtons;
@@ -59,22 +59,27 @@ extern HBITMAP tb_createAwesomeIcons(COLORREF nColorRef, int nSize, wchar_t icon
 static void tb_propertyChanged(ACTION_BINDING* pActionBinding, PROPERTY_CHANGE_TYPE type, int newVal) {
     if (type == PC_ENABLED) {
         SendMessage(pActionBinding->ab_hwnd, TB_ENABLEBUTTON,
-            M(pActionBinding->ab_item), MAKELPARAM(newVal, 0));
+            M(pActionBinding->ab_type, pActionBinding->ab_item), MAKELPARAM(newVal, 0));
     }
 }
 
 /*
  * Register a toolbar action binding. 
  */
-static void tb_registerBinding(int nCommand, TBBUTTON *pButton) {
-    char szComment[128];
+static void tb_registerBinding(int nCommand, int nType, TBBUTTON *pButton) {
+    char szComment[MAC_COMMENTLEN];
     char szKtext[128];
-    MACROREF command = (MACROREF){ .index = nCommand, .typ = CMD_CMDSEQ};
-    ACTION_BINDING binding = { tb_propertyChanged, hwndToolbar, nCommand };
-    action_registerAction(nCommand, binding, FALSE);
+    MACROREF command = (MACROREF){ .index = nCommand, .typ = nType};
+    ACTION_BINDING binding = { .ab_propertyChanged = tb_propertyChanged, .ab_hwnd = hwndToolbar, .ab_item = nCommand, .ab_type = nType };
+    action_registerAction(nCommand, nType, binding, FALSE);
     command_getTooltipAndLabel(command, szComment, szKtext);
     if (szKtext[0]) {
         pButton->iString = (intptr_t)_strdup(szKtext);
+    }
+    else if (nType == CMD_MACRO) {
+        MACRO* mp = macro_getByIndex(nCommand);
+        macro_getLabelFor(mp, szComment, sizeof szComment);
+        pButton->iString = (intptr_t)_strdup(szComment);
     }
 }
 
@@ -236,8 +241,9 @@ static HWND tb_initToolbar(HWND hwndOwner) {
             tbb[nButton].fsStyle = BTNS_SEP;
         } else {
             int nCmd = pButtons->tbb_macref.index;
-            tbb[nButton].idCommand = M(nCmd);
-            tb_registerBinding(nCmd, &tbb[nButton]);
+            int nType = pButtons->tbb_macref.typ;
+            tbb[nButton].idCommand = M(nType, nCmd);
+            tb_registerBinding(nCmd, nType, &tbb[nButton]);
             tbb[nButton].fsStyle = BTNS_BUTTON;
             const char* pszBoundLabel = bindings_getBoundText(&pButtons->tbb_label);
             if (pszBoundLabel) {
@@ -333,7 +339,7 @@ static HWND tb_initSearchEntryField(HWND hwndOwner) {
         hInst, NULL);
     SendMessage(hwndIncrementalSearchField, WM_SETFONT, (WPARAM)cust_getDefaultEditorFont(), 0);
     oldEditProc = (WNDPROC)SetWindowLongPtr(hwndIncrementalSearchField, GWLP_WNDPROC, (LONG_PTR)incrementalSearchEditWndProc);
-    action_registerAction(CMD_SEARCH_INCREMENTALLY, (ACTION_BINDING) { tb_enableEntryField, 0L, 0 }, TRUE);
+    action_registerAction(CMD_SEARCH_INCREMENTALLY, CMD_CMDSEQ, (ACTION_BINDING) { tb_enableEntryField, 0L, 0 }, TRUE);
     return hwndIncrementalSearchField;
 }
 

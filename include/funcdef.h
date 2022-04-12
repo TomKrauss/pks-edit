@@ -55,24 +55,24 @@ typedef struct tagPARAMETER_TYPE_DESCRIPTOR {
 #define	EW_COMPARISON_MODE	0x800	// only available in comparison mode
 #define	EW_CUSTOM_ENABLEMENT 0x1000	// custom enablement function must be evaluated to calculate enablement.
 
-typedef struct edfunc {
-	long long (*execute)();					// the actual callback to invoke 
-	char paramCount;						// Cache for storing the parameter count.
-	int	 flags;								// see EW_... flags above
-	const char* f_name;						// the name as it can be used inside the PKS Edit macro language to execute this function.
-	int (*isenabled)(long long pParam);		// Optional enablement function allowing to check, whether the execute function can currently be invoked.
-	signed char* edf_paramTypes;			// Signature description of the function. Contains a string encoded using the constants defined above (PAR_...)
-	const char* edf_description;			// Optional help text used during code completion.
-	const char* edf_parameters;				// Optional comma seperated list of parameters passed (type + name). Used for documentary purpose.
-} EDFUNC;
+typedef struct tagNATIVE_FUNCTION {
+	long long (*nf_execute)();			// the actual callback to invoke 
+	char nf_paramCount;					// Cache for storing the parameter count.
+	int	 nf_flags;						// see EW_... flags above
+	const char* nf_name;				// the name as it can be used inside the PKS Edit macro language to execute this function.
+	int (*nf_checkEnabled)(long long pParam);	// Optional enablement function allowing to check, whether the execute function can currently be invoked.
+	signed char* nf_paramTypes;			// Signature description of the function. Contains a string encoded using the constants defined above (PAR_...)
+	const char* nf_description;			// Optional help text used during code completion.
+	const char* nf_parameters;			// Optional comma seperated list of parameters passed (type + name). Used for documentary purpose.
+} NATIVE_FUNCTION;
 
 /*
  * Can be used to find out, whether a method is more tightly integrated with the macroC VM and works on PKS_VALUES directly.
  * Signature is: PKS_VALUE myMethod(EXECUTION_CONTEXT*pContext, PKS_VALUE* pValues, int nArguments)
  */
-extern int function_hasInternalVMPrototype(EDFUNC* ep);
+extern int function_hasInternalVMPrototype(NATIVE_FUNCTION* ep);
 
-extern void function_destroyRegisteredNative(EDFUNC* pFunc);
+extern void function_destroyRegisteredNative(NATIVE_FUNCTION* pFunc);
 
 /*
  * Register a macro C function given the name with which it should be visible in PKSMacroC, the windows proc name, the optional
@@ -85,25 +85,19 @@ int function_registerNativeFunction(const char* pszMacroCName, const char* pszFu
  * Returns the parameter descriptor for a function for the n-th parameter. Parameter count
  * starts with 1, parameter type 0 is the return type of the function.
  */
-extern PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(EDFUNC* ep, int nParamIdx);
+extern PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(NATIVE_FUNCTION* ep, int nParamIdx);
 
-extern int function_parameterIsFormStart(EDFUNC* ep, int parno);
+extern int function_parameterIsFormStart(NATIVE_FUNCTION* ep, int parno);
 
 /*
  * Returns the number of parameters of a native macro function.
  */
-extern int function_getParameterCount(EDFUNC* ep);
-
-/*
- * Returns FALSE; if the function described by the function pointer cannot
- * be executed.
- */
-extern int interpreter_isFunctionEnabled(EDFUNC* fup, long long pParam, int warn);
+extern int function_getParameterCount(NATIVE_FUNCTION* ep);
 
 #define MAX_NATIVE_FUNCTIONS				256
 
 extern int 		_functionTableSize;
-extern EDFUNC	_functionTable[];
+extern NATIVE_FUNCTION	_functionTable[];
 
 /*
  * Returns the number of statically defined functions.

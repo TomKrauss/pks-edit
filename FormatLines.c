@@ -47,7 +47,7 @@ typedef LINE* (*F_FORMAT_INTO)(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, L
 typedef INDENTATION_DELTA(*F_CALC_INDENTATION_DELTA)(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, const char* pBuf, size_t nLen);
 
 struct tagFORMATTER {
-	const char* f_name;								// a unique name to identify the formatter.
+	const char* nf_name;								// a unique name to identify the formatter.
 	const F_CALCULATE_INDENT f_calculateIndent;		// a callback for calculating the buffer offset in a line as it should be used for successive lines.
 													// The line prior to the line currently formatted is passed to this method
 	const F_STARTS_NEW_PARAGRAPH f_startsNewParagraph; // a callback determining, whether the specified line will start a new paragraph
@@ -462,7 +462,7 @@ static LINE* format_otherInto(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LI
 }
 
 static FORMATTER _textAndMarkupFormatter = {
-	.f_name = "text",
+	.nf_name = "text",
 	.f_maySplitAt = format_maySplitTextlineAt,
 	.f_calculateIndent = format_calculateTextIndent,
 	.f_startsNewParagraph = format_startsParagraphInTextFiles,
@@ -474,7 +474,7 @@ static FORMATTER _textAndMarkupFormatter = {
 };
 
 static FORMATTER _codeFormatter = {
-	.f_name = "code",
+	.nf_name = "code",
 	.f_maySplitAt = format_maySplitTextlineAt,
 	.f_calculateIndent = format_calculateCodeIndent,
 	.f_startsNewParagraph = format_startsParagraphInCodeFiles,
@@ -486,7 +486,7 @@ static FORMATTER _codeFormatter = {
 };
 
 static FORMATTER _defaultFormatter = {
-	.f_name = "default",
+	.nf_name = "default",
 	.f_maySplitAt = format_maySplitTextlineAt,
 	.f_calculateIndent = format_calculateIndent,
 	.f_startsNewParagraph = format_startsParagraphInTextFiles,
@@ -508,10 +508,10 @@ static FORMATTER* format_getFormatter(WINFO* wp) {
 	if (!pszFormatter) {
 		return &_defaultFormatter;
 	}
-	if (strcmp(pszFormatter, _codeFormatter.f_name) == 0) {
+	if (strcmp(pszFormatter, _codeFormatter.nf_name) == 0) {
 		return &_codeFormatter;
 	}
-	if (strcmp(pszFormatter, _textAndMarkupFormatter.f_name) == 0) {
+	if (strcmp(pszFormatter, _textAndMarkupFormatter.nf_name) == 0) {
 		return &_textAndMarkupFormatter;
 	}
 	return &_defaultFormatter;

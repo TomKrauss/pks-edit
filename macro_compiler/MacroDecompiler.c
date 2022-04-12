@@ -113,7 +113,7 @@ static void decompile_printArrayAccess(char* pBuf, DECOMPILATION_STACK_ELEMENT* 
 /*
  * decompile_getFunctionForIndex()
  */
-static EDFUNC *decompile_getFunctionForIndex(int idx)
+static NATIVE_FUNCTION *decompile_getFunctionForIndex(int idx)
 {
 	if (idx >= 0 && idx < _functionTableSize) {
 		return &_functionTable[idx];
@@ -407,7 +407,7 @@ static int decompile_printParameter(STRING_BUF* pBuf, unsigned char *sp, PARAMET
  */
 static void decompile_printFunctionName(STRING_BUF* pBuf, int idx)
 {
-	EDFUNC	*ep = decompile_getFunctionForIndex(idx);
+	NATIVE_FUNCTION	*ep = decompile_getFunctionForIndex(idx);
 
 	if (!ep) {
 		error_displayAlertDialog("format error: bad function");
@@ -430,7 +430,7 @@ static DECOMPILATION_STACK_ELEMENT* decompile_popStack(DECOMPILATION_STACK_ELEME
  * decompile_function()
  */
 static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
-	EDFUNC	*		ep;
+	NATIVE_FUNCTION	*		ep;
 	int 			npars;
 	PARAMETER_TYPE_DESCRIPTOR partyp;
 	char cEnd = ')';
@@ -649,7 +649,7 @@ static DECOMPILATION_STACK_ELEMENT* decompile_printBinaryExpression(COM_BINOP *c
 /*
  * decompile_printPushOperation()
  */
-static DECOMPILATION_STACK_ELEMENT* decompile_printPushOperation(COM_CHAR1* cp, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack, EDFUNC* pFunc, int nParamIndex) {
+static DECOMPILATION_STACK_ELEMENT* decompile_printPushOperation(COM_CHAR1* cp, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack, NATIVE_FUNCTION* pFunc, int nParamIndex) {
 	PARAMETER_TYPE_DESCRIPTOR pDescriptor = (PARAMETER_TYPE_DESCRIPTOR) {
 		.pt_type = PARAM_TYPE_VOID
 	};
@@ -727,9 +727,9 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 		case C_MACRO:decompile_print(pBuf, "call %s", ((COM_MAC*)sp)->name); break;
 		case C_MACRO_REF_LOCAL:decompile_print(pBuf, "evalLocalVar %d", ((COM_MAC*)sp)->heapIndex); break;
 		case C_MACRO_REF:decompile_print(pBuf, "eval %s", ((COM_MAC*)sp)->name); break;
-		case C_0FUNC: decompile_print(pBuf, "nativeCall0 %d (%s) (%d params)", ((COM_0FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_0FUNC*)sp)->func_nargs); break;
+		case C_0FUNC: decompile_print(pBuf, "nativeCall0 %d (%s) (%d params)", ((COM_0FUNC*)sp)->funcnum, _functionTable[((COM_0FUNC*)sp)->funcnum].nf_name, ((COM_0FUNC*)sp)->func_nargs); break;
 		case C_1FUNC: decompile_print(pBuf, "nativeCall1 %d (%s) (%d params) %d", ((COM_1FUNC*)sp)->funcnum, 
-				_functionTable[((COM_0FUNC*)sp)->funcnum].f_name, ((COM_0FUNC*)sp)->func_nargs, ((COM_1FUNC*)sp)->p); break;
+				_functionTable[((COM_0FUNC*)sp)->funcnum].nf_name, ((COM_0FUNC*)sp)->func_nargs, ((COM_1FUNC*)sp)->p); break;
 		case C_PUSH_VARIABLE: decompile_print(pBuf, "pushVariable "); break;
 		case C_PUSH_LONG_LITERAL: decompile_print(pBuf, "pushLongLiteral %lld", (long long)((COM_LONG1*)sp)->val); break;
 		case C_PUSH_SMALL_INT_LITERAL: decompile_print(pBuf, "pushSmallIntLiteral %d", ((COM_CHAR1*)sp)->val); break;
@@ -873,7 +873,7 @@ static decompile_indent(STRING_BUF* pBuf, int nIndent) {
 /*
  * Finc the next native function call statement and return the function descriptor, if a call statement was found.
  */
-static EDFUNC* decompile_findFunctionDescriptor(unsigned char* pBytecode, unsigned char* spend) {
+static NATIVE_FUNCTION* decompile_findFunctionDescriptor(unsigned char* pBytecode, unsigned char* spend) {
 	while (pBytecode < spend) {
 		if (!C_IS_PUSH_OPCODE(*pBytecode)) {
 			if (*pBytecode == C_0FUNC) {
@@ -950,7 +950,7 @@ unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsign
 static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 {	unsigned char 	*sp,*spend,*gop,*data,*comment;
 	MACROC_INSTRUCTION_OP_CODE 	opCode;
-	EDFUNC* pCurrentFunctionDescriptor = NULL;
+	NATIVE_FUNCTION* pCurrentFunctionDescriptor = NULL;
 	char	*lname;
 	int		bWaitForAssignment = 0;
 	int nIndent = 1;

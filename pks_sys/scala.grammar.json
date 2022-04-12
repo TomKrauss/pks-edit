@@ -1,0 +1,88 @@
+{
+  "grammars": [
+    {
+      "scopeName": "scala",
+      "description": "Grammar for Scala code files",
+      "import": [ "commonc" ],
+      "patterns": [
+        {
+          "begin": "/**",
+          "end": "*/",
+          "style": "comment",
+          "patterns": [
+            {
+              "match": "@[a-zA-Z]+",
+              "style": "bold-comment",
+              "name": "javadoc.tags"
+            }
+          ],
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "<[A-Z_][a-zA-Z_0-9]*>",
+          "style": "identifier",
+          "name": "type.scala.identifier"
+        },
+        {
+          "keywords": [
+            "class",
+            "def",
+            "extends",
+            "forSome",
+            "import",
+            "object",
+            "package",
+            "trait",
+            "type",
+            "val",
+            "var",
+            "with",
+            "boolean",
+            "byte",
+            "char",
+            "double",
+            "float",
+            "int",
+            "short",
+            "long",
+            "false",
+            "true",
+            "new",
+            "null",
+            "super",
+            "this",
+            "case",
+            "catch",
+            "else",
+            "do",
+            "finally",
+            "for",
+            "if",
+            "match",
+            "requires",
+            "return",
+            "throw",
+            "try",
+            "while",
+            "yield",
+            "abstract",
+            "final",
+            "lazy",
+            "override",
+            "private",
+            "protectd",
+            "sealed",
+            "implicit"
+          ],
+          "style": "keyword",
+          "name": "keyword.scala"
+        },
+        {
+          "match": "<@[A-Za-z][A-Za-z0-9]*>",
+          "style": "annotation",
+          "name": "annotation.identifier"
+        }
+      ]
+    }
+  ]
+}

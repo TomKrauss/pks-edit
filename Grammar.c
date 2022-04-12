@@ -795,7 +795,7 @@ static int grammar_addDelta(LEXICAL_STATE newState, int nDelta, int nElementCoun
  * Styling was defined with capture groups of a pattern - apply the styling from the found capture groups.
  */
 static int grammar_addStyledGroups(int nElementCount, RE_MATCH* pMatch, PATTERN_GROUP* pGroup,
-			LEXICAL_STATE defaultState, LEXICAL_ELEMENT* pResult, int *pNewOffset) {
+			LEXICAL_STATE defaultState, LEXICAL_ELEMENT* pResult, const char* pszStart, int *pNewOffset) {
 	int nBracket = 0;
 	char* pPrevious = pMatch->loc1;
 
@@ -804,7 +804,7 @@ static int grammar_addStyledGroups(int nElementCount, RE_MATCH* pMatch, PATTERN_
 		char* p2 = pMatch->braelist[nBracket];
 		nElementCount = grammar_addDelta(defaultState, (int)(p1 - pPrevious), nElementCount, pResult);
 		nElementCount = grammar_addDelta(pGroup->state, (int)(p2 - p1), nElementCount, pResult);
-		*pNewOffset = (int)(p2 - pMatch->loc1);
+		*pNewOffset = (int)(p2 - pszStart);
 		pPrevious = p2;
 		pGroup = pGroup->next;
 		nBracket++;
@@ -829,7 +829,7 @@ static int grammar_matchPattern(GRAMMAR* pGrammar, GRAMMAR_PATTERN* pPattern, LE
 			int nNewOffset = (int)(match.loc2 - pszBuf);
 			if (pPattern->captures) {
 				*pElementCount = grammar_addDelta(currentState, (int)(i - *pStateOffset), *pElementCount, pResult);
-				*pElementCount = grammar_addStyledGroups(*pElementCount, &match, pPattern->captures, currentState, pResult, &nNewOffset);
+				*pElementCount = grammar_addStyledGroups(*pElementCount, &match, pPattern->captures, currentState, pResult, pszBuf, &nNewOffset);
 				*pStateOffset = nNewOffset;
 				return 1;
 			} else if (grammar_matchKeyword(pPattern->keywords, match.loc1, match.loc2)) {

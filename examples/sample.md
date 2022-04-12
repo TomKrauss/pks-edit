@@ -31,6 +31,8 @@ Shift and click on the link to navigate to the sample:
 - [sample.integrity](sample.integrity)
 - [sample.txt](sample.txt)
 - [sample.log](sample.log)
+- [sample.properties](sample.properties)
+- [sample.scala](sample.scala)
 
 
 **Note**:

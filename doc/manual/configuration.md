@@ -9,7 +9,7 @@ You may set the overall PKS-Edit options by pressing the COG icon in the toolbar
 The following files are loaded by PKS-Edit during startup form the 'pks_sys' folder.
 
 |File|Purpose|
-|====|=====|
+|----|----|
 |`pkseditini.json`|The main editor configuration containing the information edited in the Setup... menu|
 |`pkssession.json`|Contains _session_ information such as list of recent searches and open files and currently open editor windows|
 |`pkseditconfig.json`|Contains all defined document types (matched by their file name patterns) and the corresponding properties such as associated grammar|

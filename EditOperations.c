@@ -899,7 +899,6 @@ long long EdCharInsert(WINFO* wp, int c)
 	int			offs;
 	int			nchars;
 	int			workmode;
-	extern int 	_playing;
 
 	fp = wp->fp;
 	lnp = fp->documentDescriptor;

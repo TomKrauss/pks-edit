@@ -95,7 +95,7 @@ static WINFO* ww_openFile(const char* pszFilename, int nOptions) {
 }
 
 // Describes functions and their respective names, options and parameter type descriptions for being used e.g. from within PKSMacroC.
-EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
+NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*0*/   EdFileAbandon , -1,EW_NEEDSCURRF | 0,                                                         "AbandonFile",                NULL,  "iW"                                           },
 {/*1*/   EdAbout       , -1,0,                                                                         "About",                      NULL,  "i"                                           },
 {/*2*/   EdBlockCopy   , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_NEEDSBLK | 0,                 "CopyBlock",                  NULL,  "iW"                                           },
@@ -271,15 +271,15 @@ EDFUNC _functionTable[MAX_NATIVE_FUNCTIONS] = {
 static int _staticallyDefinedFunctions;
 int _functionTableSize;
 
-void function_destroyRegisteredNative(EDFUNC* pFunc) {
-    free((char*)pFunc->edf_description);
-    free((char*)pFunc->f_name);
-    free((char*)pFunc->edf_paramTypes);
-    free((char*)pFunc->edf_parameters);
-    pFunc->edf_description = 0;
-    pFunc->f_name = 0;
-    pFunc->edf_paramTypes = 0;
-    pFunc->edf_parameters = 0;
+void function_destroyRegisteredNative(NATIVE_FUNCTION* pFunc) {
+    free((char*)pFunc->nf_description);
+    free((char*)pFunc->nf_name);
+    free((char*)pFunc->nf_paramTypes);
+    free((char*)pFunc->nf_parameters);
+    pFunc->nf_description = 0;
+    pFunc->nf_name = 0;
+    pFunc->nf_paramTypes = 0;
+    pFunc->nf_parameters = 0;
 }
 
 /*
@@ -287,7 +287,7 @@ void function_destroyRegisteredNative(EDFUNC* pFunc) {
  */
 int function_getNumberOfStaticallyDefinedFunctions() {
     if (_staticallyDefinedFunctions == 0) {
-        while (_functionTable[_staticallyDefinedFunctions].f_name) {
+        while (_functionTable[_staticallyDefinedFunctions].nf_name) {
             _staticallyDefinedFunctions++;
         }
         _functionTableSize = _staticallyDefinedFunctions;
@@ -303,10 +303,10 @@ void function_destroy() {
     // using MacroC code.
     function_getNumberOfStaticallyDefinedFunctions();
     for (int i = 0; i < _staticallyDefinedFunctions; i++) {
-        free((char*)_functionTable[i].edf_description);
-        free((char*)_functionTable[i].edf_parameters);
-        _functionTable[i].edf_description = 0;
-        _functionTable[i].edf_parameters = 0;
+        free((char*)_functionTable[i].nf_description);
+        free((char*)_functionTable[i].nf_parameters);
+        _functionTable[i].nf_description = 0;
+        _functionTable[i].nf_parameters = 0;
     }
     for (int i = _staticallyDefinedFunctions; i < _functionTableSize; i++) {
         function_destroyRegisteredNative(& _functionTable[i]);

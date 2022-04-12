@@ -35,6 +35,13 @@
       "filenamePatterns": "*.java"
     },
     {
+      "name": "scala",
+      "description": "Scala files (*.scala)",
+      "grammar": "scala",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.scala"
+    },
+    {
       "name": "go",
       "description": "GO files (*.go)",
       "grammar": "go",

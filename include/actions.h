@@ -26,10 +26,12 @@ typedef struct tagACTION_BINDING {
 	PROPERTY_CHANGE_LISTENER ab_propertyChanged;
 	HWND ab_hwnd;
 	int ab_item;
+	int ab_type;
 } ACTION_BINDING;
 
 typedef struct tagACTION {
-	int ac_commandId;					// index into the command table
+	int ac_commandId;					// index into the command table or macro table
+	int ac_commandType;					// The type of command to execute - may be a macro.
 	int ac_previousCommandState;
 	BOOL ac_enabled;
 	ACTION_BINDING ac_bindings[3];		// currently maximum 3 bindings supported per command.
@@ -55,7 +57,7 @@ extern void action_commandEnablementChanged(ACTION_CHANGE_TYPE type);
  * Register an action binding for a command. 
  * If bEvaluate is true, the binding is evaluated right away.
  */
-extern void action_registerAction(int commandId, ACTION_BINDING binding, BOOL bEvaluate);
+extern void action_registerAction(int commandId, int nType, ACTION_BINDING binding, BOOL bEvaluate);
 
 /*
  * Deregister all action property change listeners of a given type.

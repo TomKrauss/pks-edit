@@ -68,7 +68,6 @@ extern IDENTIFIER_CONTEXT* _currentIdentifierContext;
 extern FILE		*file_createTempFile(char *fnd, char *fn);
 extern int 		function_initializeFunctionsAndTypes(void);
 extern long 	function_enumValueFor(void *enp);
-extern void		types_registerDefaultTypes();
 extern int yylex_destroy ( void );
 
 COMPILER_CONFIGURATION* _compilerConfiguration;
@@ -163,7 +162,7 @@ static COMPILER_INPUT_STREAM	*_compilerInputStream;
 char * _yyCurrentComment;
 
 void yyrequire(const char* pszNamespace) {
-	if (!compiler_requireNamespace(_compilerConfiguration->cb_dependencies, yy_getCurrentInputFilename(), pszNamespace)) {
+	if (!compiler_requireNamespaceOrFilename(_compilerConfiguration->cb_dependencies, yy_getCurrentInputFilename(), pszNamespace)) {
 		yyerror("Cannot locate source file for required namespace %s", pszNamespace);
 	}
 }
@@ -182,7 +181,6 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig) {
 		    !function_initializeFunctionsAndTypes()) {
 			return 0;
 		}
-		types_registerDefaultTypes();
 		tables_inited = 1;
 	}
 	yylineno = 1;

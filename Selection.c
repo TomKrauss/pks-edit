@@ -300,7 +300,7 @@ EXPORT int bl_destroyAll(void)
  */
 EXPORT int bl_cutTextWithOptions(WINFO* wp, PASTE *pp,LINE *lnfirst,LINE *lnlast,
 		int cfirst,int clast,int bDelete)
-{	register LINE	*lpd,*lps,*lpnew,*lpx;
+{	register LINE	*lpd,*lps,*lpnew;
 	register int	last;
 	FTABLE* fp = wp->fp;
 	last = P_EQ(lnfirst,lnlast) ? clast : lnfirst->len;	
@@ -314,7 +314,6 @@ EXPORT int bl_cutTextWithOptions(WINFO* wp, PASTE *pp,LINE *lnfirst,LINE *lnlast
 	}
 
 	lpnew = lnlast->prev; /* zum Checken ob sich lnlast bei ln_modify „ndert */
-	lpx   = lnlast->next; /* und auch wirklich nicht lnlast->prev !		*/
 	BOOL bLastEliminated = fp->tln == lnlast;
 	if (bDelete) {
 		if ((lps = ln_modify(fp,lnfirst,last,cfirst)) == 0L) 

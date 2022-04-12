@@ -142,7 +142,7 @@ void recorder_recordFunctionWithParameters(int fnum, intptr_t p, intptr_t p2, ch
 	if (!recorder_isRecording())
 		return;
 
-	if (_functionTable[fnum].flags & EW_NOCASH)	/* avoid recursion	*/
+	if (_functionTable[fnum].nf_flags & EW_NOCASH)	/* avoid recursion	*/
 		return;
 
 	BOOL bEditorFunc = function_getParameterTypeDescriptor(&_functionTable[fnum], 1).pt_type == PARAM_TYPE_EDITOR_WINDOW;

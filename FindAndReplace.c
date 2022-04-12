@@ -741,7 +741,6 @@ REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, co
 	col = pMarkStart->m_column;
 	startln = ln = ln_indexOf(fp,lp);
 
-	startln = ln;
 	lastfln = wp->caret.ln;
 	lastfcol = wp->caret.offset;
 
@@ -879,7 +878,10 @@ advance:	if (delta <= 0 && olen <= 0)	/* empty expr. glitch */
 			col++;
 		else
 			col += delta;
-
+		
+		if (!lp) {
+			break;
+		}
 		if (col >= lp->len || (column && col >= maxlen))
 			goto nextline;
 	}

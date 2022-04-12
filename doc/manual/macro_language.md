@@ -339,6 +339,19 @@ the method to invoke. An example is the method `EditorReplaceText(EDITOR editor,
 cases the first parameter (`editor`) is optional. If no editor is passed, the currently active (focussed) editor is used as a default
 value.
 
+## Annotations
+Native method (as shown before) and macro definitions can be annotated to add _meta-data_ information to the native method or macro. Currently only a limited
+set of annoations is supported:
+
+- `@Method` this annoation can be added to native method definitions primarily to document the native method (see above for details).
+- `@ActionFlags` this annotation can be added to a macro to control the behavior of actions (menu entry, toolbar actions etc...) created
+  with the macro. One can use the nested properties
+  - `needsCurrentEditor` can be used to express, that an action for this macro is only available, if there is a current editor
+  - `needsSelection` can be used to express, that an action for this macro is only available, if text is selected in the current editor
+  - `modifiesText` can be used to express, that this action will modify the text
+  - `ignoreDuringRecording` can be used to express, that the execution of this macro will not be recorded by the macro recorder
+  - `undoAvailable` can be used to express, that the execution of this macro requires undo to be possible.
+
 ## Caveats
 
 PKSMacroC currently does not support short-circuiting boolean expressions (McCarthy evaluations). In the expression `if (len < 10 && array[len] == c)` 

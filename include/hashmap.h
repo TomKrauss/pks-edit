@@ -14,7 +14,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#ifndef HASHTABLE_H
+#ifndef HASHMAP_H
 
 typedef struct tagHASH_ENTRY {
 	intptr_t he_key;
@@ -127,6 +127,6 @@ extern ARRAY_LIST* hashmap_values(HASHMAP* pTable);
  */
 extern void hashmap_destroySet(HASHMAP* pTable);
 
-#define HASHTABLE_H
+#define HASHMAP_H
 
 #endif

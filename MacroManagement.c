@@ -27,6 +27,7 @@
 #include "regexp.h"
 #include "fileutil.h"
 #include "fileselector.h"
+#include "hashmap.h"
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
 #include "funcdef.h"
@@ -150,8 +151,8 @@ ARRAY_LIST* macro_getFunctionNamesMatching(const char* pszPattern, LIST_MACRO_TY
 	}
 	if (lTypes & LMT_FUNCTION) {
 		for (int i = 0; i < _functionTableSize; i++) {
-			if (regex_match(&rePattern, _functionTable[i].f_name, NULL, &result)) {
-				arraylist_add(pResult, _strdup(_functionTable[i].f_name));
+			if (regex_match(&rePattern, _functionTable[i].nf_name, NULL, &result)) {
+				arraylist_add(pResult, _strdup(_functionTable[i].nf_name));
 			}
 		}
 	}
@@ -365,7 +366,6 @@ int macro_readCompiledMacroFile(char *fn) {
 		fn = fsel_initPathes(&_seqfsel);
 	}
 
-	bindings_loadActionBindings();
 	macro_autosaveAllBindings(1);
 
 	if (fn && (rp = rsc_open(fn,RSC_O_READ)) != 0) {
@@ -384,7 +384,8 @@ int macro_readCompiledMacroFile(char *fn) {
 			}
 		}
 	}
-
+	// load action bindings after macros to allow for binding macros to actions.
+	bindings_loadActionBindings();
 	_macrosWereChanged = wasdirty;
 	return 1;
 }
@@ -409,6 +410,7 @@ MACRO *macro_createWithParams(MACRO_PARAM *pParam) {
 	mp->mc_comment = _strdup(szComment);
 	mp->mc_name= _strdup(szName);
 	mp->mc_scope = pParam->mp_scope;
+	mp->mc_actionFlags = pParam->mp_actionFlags;
 	mp->mc_returnType = pParam->mp_returnType;
 	mp->mc_namespaceIdx = pParam->mp_namespaceIdx;
 	mp->mc_numberOfLocalVars = pParam->mp_numberOfLocalVariables;
@@ -416,6 +418,30 @@ MACRO *macro_createWithParams(MACRO_PARAM *pParam) {
 	mp->mc_bytecodes = malloc(mp->mc_bytecodeLength);
 	memmove(mp->mc_bytecodes,pParam->mp_buffer, mp->mc_bytecodeLength);
 	return mp;
+}
+
+/*
+ * An annotation on a macro was detected during compilation. Try to apply to the macro parameter
+ * used to later create the macro and record important information.
+ */
+void macro_processAnnotation(MACRO_PARAM* pParam, ANNOTATION* pAnnotation) {
+	if (strcmp(pAnnotation->a_name, "@ActionFlags") == 0) {
+		if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"needsCurrentEditor")) {
+			pParam->mp_actionFlags |= EW_NEEDSCURRF;
+		}
+		if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"needsSelection")) {
+			pParam->mp_actionFlags |= EW_NEEDSBLK;
+		}
+		if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"modifiesText")) {
+			pParam->mp_actionFlags |= EW_MODIFY;
+		}
+		if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"ignoreDuringRecording")) {
+			pParam->mp_actionFlags |= EW_NOCASH;
+		}
+		if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"undoAvailable")) {
+			pParam->mp_actionFlags |= EW_UNDO_AVAILABLE;
+		}
+	}
 }
 
 /*------------------------------------------------------------
@@ -690,6 +716,33 @@ static BOOL macro_selectByValue(HWND hwnd, LONG lValue)
 int macro_getNumberOfMacros() {
 	return _macroTable == 0 ? 0 : (int)arraylist_size(_macroTable);
 }
+
+/*
+ * Returns the label to use in a user interface to start the macro passed.
+ * This is by default calculated from the macro name.
+ */
+void macro_getLabelFor(MACRO* mp, char* pszBuf, size_t nBufferSize) {
+	char* pszEnd = pszBuf + nBufferSize - 1;
+	char* pszSource = mp->mc_name;
+	BOOL isUpper = TRUE;
+	while (*pszSource && pszBuf < pszEnd) {
+		char c = *pszSource++;
+		if (c == '-') {
+			*pszBuf++ = ' ';
+			isUpper = TRUE;
+			continue;
+		}
+		if (!isUpper && isupper(c)) {
+			*pszBuf++ = ' ';
+			isUpper = TRUE;
+		} else {
+			isUpper = FALSE;
+		}
+		*pszBuf++ = c;
+	}
+	*pszBuf = 0;
+}
+
 /*------------------------------------------------------------
  * macro_updateMacroList()
  */

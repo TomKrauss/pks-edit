@@ -188,7 +188,6 @@ const char* types_nameFor(PKS_VALUE_TYPE t) {
 	if (t == VT_NIL) {
 		return "void";
 	}
-	types_registerDefaultTypes();
 	if (t == VT_OBJECT_ARRAY) {
 		return "string[]";
 	}
