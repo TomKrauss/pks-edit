@@ -31,6 +31,7 @@
 #include "pksmacrocvm.h"
 #include "symbols.h"
 #include "fontawesome.h"
+#include "grammar.h"
 
 typedef struct tagANALYZER {
 	struct tagANALYZER* an_next;
@@ -39,6 +40,11 @@ typedef struct tagANALYZER {
 } ANALYZER;
 
 static ANALYZER *_analyzers;
+
+/*
+ * Calculate the lexical start state at a given line.
+ */
+extern LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
 
 /*
  * Extract all identifiers from a file regardless of comments etc ignoring the file syntax.
@@ -166,57 +172,86 @@ static const char* analyzer_helpForMacro(const char* pszName, void* pMac) {
 	return pszRet;
 }
 
+static void analyzer_getToken(char* pszDest, LINE* lp, int nStart, int nLen) {
+	int nEnd = nLen + nStart;
+	while (nStart < nEnd && nStart < lp->len) {
+		*pszDest++ = lp->lbuf[nStart++];
+	}
+	*pszDest = 0;
+}
+
 /*
  * Returns a possible macro function names which can be used in PKS Edit macros.
  */
 static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback) {
-	BOOL bInParams = FALSE;
-	char szIdentifier[256];
-	char* pszDest = 0;
-	szIdentifier[0] = 0;
-	for (int i = 0; i < wp->caret.offset; i++) {
-		char c = wp->caret.linePointer->lbuf[i];
-		if (bInParams) {
-			if (c == ')') {
-				szIdentifier[0] = 0;
-				bInParams = FALSE;
+	char szBuf[256];
+	char szFunction[256];
+	int detectedEnd = 0;
+	FTABLE* fp = wp->fp;
+	LINE* lp = wp->caret.linePointer;
+	long nLine = wp->caret.ln;
+	LEXICAL_ELEMENT lexicalElements[MAX_LEXICAL_ELEMENT];
+	HIGHLIGHTER* pHighlighter = wp->highlighter;
+	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
+	LEXICAL_STATE lexicalState = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
+	int nElements = grammar_parse(pGrammar, lexicalElements, lexicalState, lp->lbuf, lp->len, &detectedEnd);
+	int nOffset = 0;
+	int state = 0;
+	int nParamIndex = 0;
+	int bInIdent = 0;
+	for (int i = 0; i < nElements; i++) {
+		if (nOffset >= wp->caret.offset) {
+			break;
+		}
+		const char* pState = grammar_getPatternName(pGrammar, lexicalElements[i].le_state);
+		if (pState) {
+			bInIdent = 0;
+			analyzer_getToken(szBuf, lp, nOffset, lexicalElements[i].le_length);
+			if (strcmp(pState, "pksmacroc.identifier") == 0) {
+				bInIdent = 1;
+				strcpy(szFunction, szBuf);
+			} else if (strcmp(pState, "keyword.function.delimiter") == 0) {
+				if (strcmp("(", szBuf) == 0) {
+					nParamIndex = 0;
+					state++;
+				}
+				else if (strcmp(")", szBuf) == 0) {
+					nParamIndex = -1;
+					state--;
+				} else if (strcmp(",", szBuf) == 0 && nParamIndex >= 0) {
+					nParamIndex++;
+				}
+				if (!state) {
+					szFunction[0] = 0;
+				}
 			}
-			continue;
 		}
-		if (isalpha(c)) {
-			if (!pszDest) {
-				pszDest = szIdentifier;
-			}
-			*pszDest++ = c;
-			continue;
-		} else {
-			if (pszDest) {
-				*pszDest = 0;
-			}
-			pszDest = 0;
-		}
-		if (isspace(c)) {
-			continue;
-		}
-		if (c == '(' && szIdentifier[0]) {
-			bInParams = TRUE;
-		}
+		nOffset += lexicalElements[i].le_length;
 	}
+	BOOL bInParams = FALSE;
 	char* key;
-	SYMBOL sym = sym_find(sym_getGlobalCompilerContext(), szIdentifier, &key);
+	SYMBOL sym = szFunction[0] ? sym_find(sym_getGlobalCompilerContext(), szFunction, &key) : (SYMBOL) { 0 };
 	if (sym.s_type == S_EDFUNC) {
 		// should select the proper constants for the native function currently edited. function_getParameterTypeDescriptor((void*)VALUE(sym),)
-		for (int i = 0; i < _parameterEnumValueTableSize; i++) {
-			const char* pszName = _parameterEnumValueTable[i].pev_name;
-			if (fMatch(pszName)) {
-				fCallback(pszName, NULL, NULL);
-			}
+		NATIVE_FUNCTION* pFunc = (NATIVE_FUNCTION*)VALUE(sym);
+		if (!bInIdent) {
+			fCallback(pFunc->nf_name, pFunc, analyzer_helpForFunc);
 		}
-	}
-	for (PKS_VALUE_TYPE vt = VT_FILE; types_existsType(vt); vt++) {
-		const char* pName = types_nameFor(vt);
-		if (fMatch(pName)) {
-			fCallback(pName, NULL, NULL);
+		int nParameters = function_getParameterCount(pFunc);
+		int bEditorParam = 0;
+		for (int nPar = 0; nPar < nParameters; nPar++) {
+			PARAMETER_TYPE_DESCRIPTOR ptd = function_getParameterTypeDescriptor(pFunc, nPar+1);
+			if (nPar == 0 && ptd.pt_type == PARAM_TYPE_EDITOR_WINDOW) {
+				bEditorParam = 1;
+			}
+			if (ptd.pt_enumVal) {
+				for (int i = ptd.pt_enumFirstIndex; i < ptd.pt_enumFirstIndex + ptd.pt_enumCount; i++) {
+					const char* pszName = _parameterEnumValueTable[i].pev_name;
+					if ((bInIdent && fMatch(pszName)) || nPar == nParamIndex || (bEditorParam && (nPar - 1 == nParamIndex))) {
+						fCallback(pszName, NULL, NULL);
+					}
+				}
+			}
 		}
 	}
 	for (int i = 0; i < _functionTableSize; i++) {
@@ -225,12 +260,15 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 			fCallback(pFunc->nf_name, pFunc, analyzer_helpForFunc);
 		}
 	}
+	for (PKS_VALUE_TYPE vt = VT_FILE; types_existsType(vt); vt++) {
+		const char* pName = types_nameFor(vt);
+		if (fMatch(pName)) {
+			fCallback(pName, NULL, NULL);
+		}
+	}
 	for (int i = 0; i < macro_getNumberOfMacros(); i++) {
 		MACRO* mp = macro_getByIndex(i);
-		if (!mp) {
-			continue;
-		}
-		if (fMatch(MAC_NAME(mp))) {
+		if (mp && fMatch(MAC_NAME(mp))) {
 			fCallback(MAC_NAME(mp), mp, analyzer_helpForMacro);
 		}
 	}

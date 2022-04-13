@@ -96,6 +96,8 @@ static void codecomplete_updateScrollbar(HWND hwnd) {
 }
 
 static HASHMAP* _suggestions;
+static ARRAY_LIST* _actionList;
+
 static CODE_ACTION* codecomplete_addTagsWithAlloc(const char* pszTagName, const char* (*fHelpCB)(const char* pszCompletion, void* pParam), void* nParam, BOOL bAlloc) {
 	if (hashmap_containsKey(_suggestions, (intptr_t)pszTagName)) {
 		return NULL;
@@ -110,6 +112,7 @@ static CODE_ACTION* codecomplete_addTagsWithAlloc(const char* pszTagName, const 
 	pCurrent->ca_helpCB = fHelpCB;
 	pCurrent->ca_object = nParam;
 	hashmap_put(_suggestions, (intptr_t)pszCopy, (intptr_t)pCurrent);
+	arraylist_add(_actionList, pCurrent);
 	return pCurrent;
 }
 
@@ -132,27 +135,7 @@ static void codecomplete_analyzerCallback(const char* pszRecommendation, void* p
 /*
  * The current identifier under the cursor. 
  */
-static 	char szIdent[100];
-static int codecomplete_compare(const CODE_ACTION** p1, const CODE_ACTION** p2) {
-	const char* pszString1 = (*p1)->ca_name;
-	const char* pszString2 = (*p2)->ca_name;
-	int ret = strcmp(pszString1, pszString2);
-	if (ret != 0) {
-		size_t nLen = strlen(szIdent);
-		if (strncmp(szIdent, pszString1, nLen) == 0) {
-			if (strncmp(szIdent, pszString2, nLen) == 0) {
-				return ret;
-			}
-			return -1;
-		} else {
-			if (strncmp(szIdent, pszString2, nLen) == 0) {
-				return 1;
-			}
-		}
-	}
-	return ret;
-}
-
+static char szIdent[100];
 static char* _pszMatch;
 static int codecomplete_matchWord(const char* pszWord) {
 	// add all words to the completion list, which are not identical to the word searched, but where the word
@@ -200,24 +183,25 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 		up = up->next;
 	}
 	_suggestions = hashmap_create(37, NULL, NULL);
+	_actionList = arraylist_create(37);
 	xref_findIdentifierCloseToCaret(wp, &wp->caret, szIdent, szIdent + sizeof szIdent, NULL, NULL, FI_BEGIN_WORD_TO_CURSOR);
 	_pszMatch = szIdent;
-	xref_forAllTagsDo(wp, codecomplete_matchWord, codecomplete_addTags);
 	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
-	grammar_addSuggestionsMatching(pGrammar, codecomplete_matchWord, codecomplete_addTags);
 	char* pszAnalyzer = grammar_getCodeAnalyzer(pGrammar);
 	analyzer_performAnalysis(pszAnalyzer, wp, codecomplete_matchWord, codecomplete_analyzerCallback);
-	ARRAY_LIST* actionList = hashmap_values(_suggestions);
+	xref_forAllTagsDo(wp, codecomplete_matchWord, codecomplete_addTags);
+	grammar_addSuggestionsMatching(pGrammar, codecomplete_matchWord, codecomplete_addTags);
 	hashmap_destroy(_suggestions, NULL);
 	_suggestions = NULL;
-	arraylist_sort(actionList, codecomplete_compare);
-	for (int i = (int)arraylist_size(actionList); --i >= 0; ) {
-		CODE_ACTION* pAction = arraylist_get(actionList, i);
+	// Process in reverse order to efficiently create linked list.
+	size_t nSize = arraylist_size(_actionList);
+	for (int i = (int)nSize; --i >= 0; ) {
+		CODE_ACTION* pAction = arraylist_get(_actionList, i);
 		pAction->ca_next = pCC->ccp_actions;
 		pCC->ccp_actions = pAction;
 	}
-	arraylist_destroy(actionList);
-	pCC->ccp_size = ll_size((LINKED_LIST*)pCC->ccp_actions);
+	arraylist_destroy(_actionList);
+	pCC->ccp_size = nSize;
 	codecomplete_updateScrollbar(wp->codecomplete_handle);
 	InvalidateRect(wp->codecomplete_handle, NULL, TRUE);
 }

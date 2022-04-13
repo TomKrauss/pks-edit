@@ -1365,3 +1365,13 @@ BOOL grammar_isMultilineState(GRAMMAR* pGrammar, LEXICAL_STATE aState) {
 	return pPattern->end[0] != 0;
 }
 
+/*
+ * Returns the pattern name for a given lexical state as defined in the grammar. 
+ */
+const char* grammar_getPatternName(GRAMMAR* pGrammar, LEXICAL_STATE aState) {
+	GRAMMAR_PATTERN* pPattern = pGrammar == 0 ? NULL : pGrammar->patternsByState[aState];
+	if (pPattern) {
+		return pPattern->name;
+	}
+	return 0;
+}

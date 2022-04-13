@@ -106,13 +106,18 @@
         },
         {
           "match": "<[A-Za-z0-9_-]+>",
-          "name": "pksedit.command.identifier",
+          "name": "pksmacroc.identifier",
           "style": "default"
         },
         {
           "match": "[*%/+\\[\\]{}^&|!-]+",
           "name": "keyword.operator",
           "style": "operator"
+        },
+        {
+          "match": "[(),]+",
+          "name": "keyword.function.delimiter",
+          "style": "regexp"
         }
       ]
     }

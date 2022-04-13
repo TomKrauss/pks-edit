@@ -184,6 +184,8 @@ static void parser_nativeMethodAddParam(PKS_VALUE_TYPE type, char* pszParamName)
 }
 
 static void parser_switchToBuffer(int aLevel) {
+	_bInHeader = aLevel < 0;
+	aLevel++;
 	if (aLevel >= DIM(_buffers)) {
 		yyerror("Nesting level of pushbacks exceeded. (maybe to many nested loops)");
 		return;
@@ -194,19 +196,20 @@ static void parser_switchToBuffer(int aLevel) {
 			_currentBytecodeBuffer->bb_start : _currentBytecodeBuffer->bb_start + REC_SPACE;
 		_currentBytecodeBuffer->bb_current = _currentBytecodeBuffer->bb_start;
 	}
-	if (aLevel) {
+	if (aLevel > 1) {
 		_currentBytecodeBuffer->bb_current = _currentBytecodeBuffer->bb_start;
 	}
 }
 
 static void parser_flushBuffer(int aLevel) {
-	if (aLevel <= 0 ||aLevel >= DIM(_buffers) || !_buffers[aLevel].bb_start) {
+	if (aLevel <= 0 ||aLevel >= DIM(_buffers)-1 || !_buffers[aLevel+1].bb_start) {
 		return;
 	}
+	aLevel++;
 	size_t nBytes = _buffers[aLevel].bb_current - _buffers[aLevel].bb_start;
 	if (nBytes != 0) {
-		memcpy(_buffers[0].bb_current, _buffers[aLevel].bb_start, nBytes);
-		_buffers[0].bb_current += nBytes;
+		memcpy(_buffers[1].bb_current, _buffers[aLevel].bb_start, nBytes);
+		_buffers[1].bb_current += nBytes;
 		// _buffers[aLevel].bb_current = _buffers[aLevel].bb_start;
 	}
 }
@@ -317,22 +320,20 @@ static PKS_VALUE_TYPE parser_pushFieldIndexWithError(PKS_VALUE_TYPE t, const cha
 %%
 
 file_structure: {
-#ifdef YYDEBUG
-int yydebug = 1; 
-#endif
 				init_header();
 			}
-			namespace prerequisites global_declarations {
+			namespace prerequisites global_declarations header_delimiter macro_definitions {
 				finalize_header();
-			} header_delimiter macro_definitions 
+			}
 
 header_delimiter:
 			| '!'
 
 macro_definitions: 
-			| m_o_f macro_definitions 
+			| element_with_annotations macro_definitions 
 
-m_o_f:		annotations macro_or_native_function
+element_with_annotations:
+			annotations macro_or_native_function
 
 macro_or_native_function:
 			native_function_definition ';' 
@@ -1146,13 +1147,13 @@ static void freeitem(char **p)
 }
 
 
-static void init_bytecodeBuffer() {
-	parser_switchToBuffer(0);
+static void init_bytecodeBuffer(int nIndex) {
+	parser_switchToBuffer(nIndex);
 	_currentBytecodeBuffer->bb_current = _currentBytecodeBuffer->bb_start;
 }
 
-static void destroy_bytecodeBuffer() {
-	for (int i = 0; i < DIM(_buffers); i++) {
+static void destroy_bytecodeBuffer(int nStart) {
+	for (int i = nStart; i < DIM(_buffers); i++) {
 		if (_buffers[i].bb_start) {
 			free(_buffers[i].bb_start);
 			_buffers[i].bb_start = 0;
@@ -1162,19 +1163,15 @@ static void destroy_bytecodeBuffer() {
 }
 
 static void init_header() {
-	init_bytecodeBuffer();
-	_bInHeader = 1;
+	init_bytecodeBuffer(-1);
 }
 
 static void init_native() {
-	init_bytecodeBuffer();
-	_bInHeader = 1;
+	parser_switchToBuffer(-1);
 	_bInNativeDefinition = 1;
 }
 
 static void finalize_native() {
-	destroy_bytecodeBuffer();
-	_bInHeader = 0;
 	_bInNativeDefinition = 0;
 	destroy_annotations();
 	stringbuf_destroy(_nativeMethodArgs);
@@ -1184,9 +1181,9 @@ static void finalize_native() {
 }
 
 static void finalize_header() {
+	parser_switchToBuffer(-1);
 	macro_defineNamespaceInitializer(_currentNamespaceIndex, _currentBytecodeBuffer->bb_start, _currentBytecodeBuffer->bb_current - _currentBytecodeBuffer->bb_start);
-	destroy_bytecodeBuffer();
-	_bInHeader = 0;
+	destroy_bytecodeBuffer(0);
 }
 
 /*---------------------------------*/
@@ -1201,7 +1198,7 @@ static void init_macroDefinition(void)
 	_iflevel    = 0;
 	_localVariableIndex = 0;
 	_currentIdentifierContext = sym_pushContext(_currentIdentifierContext, 0);
-	init_bytecodeBuffer();
+	init_bytecodeBuffer(0);
 }
 
 /*---------------------------------*/
@@ -1209,7 +1206,7 @@ static void init_macroDefinition(void)
 /*---------------------------------*/
 static void finalize_macroDefinition(void) {
 	destroy_annotations();
-	destroy_bytecodeBuffer();
+	destroy_bytecodeBuffer(1);
 	_currentIdentifierContext = sym_popContext(_currentIdentifierContext);
 }
 

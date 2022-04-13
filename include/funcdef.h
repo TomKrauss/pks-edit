@@ -37,8 +37,9 @@ typedef enum {
 
 typedef struct tagPARAMETER_TYPE_DESCRIPTOR {
 	PARAMETER_TYPE			pt_type;
-	PARAMETER_ENUM_VALUE*	pt_enumVal;		// for enum and bitset type parameters the first enum value
-	int						pt_enumCount;	// for enum and bitset type parameters the number of enum values
+	PARAMETER_ENUM_VALUE*	pt_enumVal;			// for enum and bitset type parameters the first enum value
+	int						pt_enumFirstIndex;	// Index of the first enum value in the enum value table.
+	int						pt_enumCount;		// for enum and bitset type parameters the number of enum values
 } PARAMETER_TYPE_DESCRIPTOR;
 
 #define	EW_MODIFY		0x1			// function modifies text

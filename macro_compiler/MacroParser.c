@@ -139,16 +139,19 @@ PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(NATIVE_FUNCTION* e
 		}
 		*pszDest = 0;
 		PARAMETER_ENUM_VALUE* pMatch = 0;
+		int pFirst = -1;
 		for (int i = 0; i < _parameterEnumValueTableSize; i++) {
 			const char* pszValueName = _parameterEnumValueTable[i].pev_name;
 			if (string_startsWith(pszValueName, szPrefix)) {
 				if (!pMatch) {
 					pMatch = &_parameterEnumValueTable[i];
+					pFirst = i;
 				}
 			} else if (pMatch) {
 				return (PARAMETER_TYPE_DESCRIPTOR) {
 					.pt_type = tType,
 					.pt_enumVal = pMatch,
+					.pt_enumFirstIndex = pFirst,
 					.pt_enumCount = (int) (&_parameterEnumValueTable[i] - pMatch)
 				};
 			}

@@ -267,5 +267,10 @@ void grammar_processMatchPattern(UC_MATCH_PATTERN* pPattern, char* pScopeName);
  */
 extern void grammar_destroyUCMatchPattern(UC_MATCH_PATTERN* pMatchPattern);
 
+/*
+ * Returns the pattern name for a given lexical state as defined in the grammar.
+ */
+extern const char* grammar_getPatternName(GRAMMAR* pGrammar, LEXICAL_STATE aState);
+
 #define GRAMMAR_H
 #endif
