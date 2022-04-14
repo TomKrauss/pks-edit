@@ -239,6 +239,10 @@ void bytecode_addSwitchCondition(BYTECODE_BUFFER* pBuffer, int aLevel, PKS_VALUE
 	int i = 0;
 	for (; i < _currentSwitchValue; i++) {
 		PKS_VALUE vExist = _switchValues[i].sl_value;
+		if (vExist.pkv_type == VT_NIL) {
+			// Insert switch condition always before default condition
+			break;
+		}
 		if (t == VT_STRING) {
 			if (vExist.pkv_type == VT_STRING && strcmp(vExist.pkv_data.string, data.string) == 0) {
 				yyerror("Illegal redefinition of case label value %s", data.string);
@@ -253,10 +257,6 @@ void bytecode_addSwitchCondition(BYTECODE_BUFFER* pBuffer, int aLevel, PKS_VALUE
 			if ((nNewLow >= nExistLow && nNewLow <= nExistHigh) || (nNewHigh >= nExistLow && nNewHigh <= nExistHigh))  {
 				yyerror("Illegal redefinition of case label value range %d..%d", nNewLow, nNewHigh);
 			}
-		}
-		if (vExist.pkv_type == VT_NIL) {
-			// Insert switch condition always before default condition
-			break;
 		}
 	}
 	if (i < _currentSwitchValue) {
