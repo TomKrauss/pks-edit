@@ -5,7 +5,7 @@
  *
  * purpose: showing code completion and suggestion windows.
  *
- * 										created: 12.08.21
+ * 										created: 14.04.22
  * 										last modified:
  *										author: Tom
  *
@@ -201,7 +201,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 		pCC->ccp_actions = pAction;
 	}
 	arraylist_destroy(_actionList);
-	pCC->ccp_size = nSize;
+	pCC->ccp_size = (long)nSize;
 	codecomplete_updateScrollbar(wp->codecomplete_handle);
 	InvalidateRect(wp->codecomplete_handle, NULL, TRUE);
 }

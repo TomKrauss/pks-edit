@@ -18,8 +18,6 @@
 
  /*----- ... --------------*/
 
-#define	RE_WRAPSCAN 		0x8					// wrap scan on search 
-
 #define	RE_DOREX		0x1					// use .{}*?+ and all the stuff
 #define	RE_IGNCASE		0x2					// ignore case 
 #define	RE_SHELLWILD	0x4					// wildcards are: *?[] 
@@ -33,6 +31,9 @@
 #define RE_CONSIDER_MARKED_LINES	0x400	// whether only marked lines should be considered
 #define RE_DEBUG					0x800	// whether debug information should be printed to the console, when matching a pattern.
 #define RE_KEEP_CARET				0x1000	// do not move caret during find&replace.
+#define	RE_WRAPSCAN 				0x2000	// wrap around to search from the beginning if not found 
+
+
 
 #define	NBRA			9		/* maximum number of brackets	*/
 

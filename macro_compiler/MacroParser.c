@@ -180,6 +180,24 @@ int function_parameterIsFormStart(NATIVE_FUNCTION *ep, int parno) {
 }
 
 /*
+ * Register an enum value including its descripton.
+ */
+int function_registerEnum(const char* pszEnumType, const char* pszEnumValue, int nValue, const char* pszDescription) {
+	for (int i = 0; i < _parameterEnumValueTableSize; i++) {
+		PARAMETER_ENUM_VALUE* pValue = &_parameterEnumValueTable[i];
+		if (strcmp(pszEnumValue, pValue->pev_name) == 0) {
+			free(pValue->pev_description);
+			if (pszDescription) {
+				pValue->pev_description = _strdup(pszDescription);
+			}
+			pValue->pev_val = nValue;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+/*
  * Register a macro C function given the name with which it should be visible in PKSMacroC, the windows proc name, the optional
  * module (if null it is loaded from PKS-Edit), the signature description and an optional help text.
  */

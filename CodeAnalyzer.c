@@ -156,6 +156,13 @@ static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
 	return pszRet;
 }
 
+/*
+ * Returns the help for an enum value.
+ */
+static const char* analyzer_helpForEnum(const char* pszName, PARAMETER_ENUM_VALUE* pEnumValue) {
+	return pEnumValue->pev_description ? _strdup(pEnumValue->pev_description) : 0;
+}
+
 static const char* analyzer_helpForMacro(const char* pszName, void* pMac) {
 	STRING_BUF* pBuf = stringbuf_create(200);
 	MACRO* pMacro = pMac;
@@ -246,9 +253,10 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 			}
 			if (ptd.pt_enumVal) {
 				for (int i = ptd.pt_enumFirstIndex; i < ptd.pt_enumFirstIndex + ptd.pt_enumCount; i++) {
-					const char* pszName = _parameterEnumValueTable[i].pev_name;
+					PARAMETER_ENUM_VALUE* pValue = &_parameterEnumValueTable[i];
+					const char* pszName = pValue->pev_name;
 					if ((bInIdent && fMatch(pszName)) || nPar == nParamIndex || (bEditorParam && (nPar - 1 == nParamIndex))) {
-						fCallback(pszName, NULL, NULL);
+						fCallback(pszName, pValue, analyzer_helpForEnum);
 					}
 				}
 			}

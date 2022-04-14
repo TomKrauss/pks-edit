@@ -271,17 +271,30 @@ typedef struct tagWINFO {
 } WINFO;
 
 /* valid working range types */
-#define	RNG_INVALID		   -1
-#define	RNG_ONCE			0
-#define	RNG_LINE			1
-#define	RNG_CHAPTER		    2
-#define	RNG_BLOCK			3
-#define	RNG_TOCURS		    4
-#define	RNG_FROMCURS		5
-#define	RNG_GLOBAL		    6
-#define	RNG_FREE			7
-#define	RNG_BLOCK_LINES		8       // the current selection, but for the purpose of applying an operation one a list of lines (e.g. toggle-comment or shift-lines).
-                                    // In this case the last selected line is treated as "not selected", if the column is 0.
+typedef enum {
+    // an invalid range
+    RNG_INVALID = -1,
+    // perform once / search once, replace once, ...
+    RNG_ONCE = 0,
+    // perform in line containing caret
+    RNG_LINE = 1,
+    // perform in a "chapter"
+    RNG_CHAPTER = 2,
+    // perform in the currently selected range of text
+    RNG_BLOCK = 3,
+    // perform from begin of file to the current caret
+    RNG_TOCURS = 4,
+    // perform from current caret to the end of the file
+    RNG_FROMCURS = 5,
+    // perform globally in the current file
+    RNG_GLOBAL = 6,
+    // currently not really used
+    RNG_FREE = 7,
+    /* the current selection, but for the purpose of applying an operation one a list of lines(e.g.toggle - comment or shift - lines).
+     * In this case the last selected line is treated as "not selected", if the column is 0.
+     */
+    RNG_BLOCK_LINES = 8
+} RANGE_TYPE;
 
 /*--------------------------------------------------------------------------
  * find_setTextSelection()

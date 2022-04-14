@@ -61,6 +61,7 @@ static YYERRSTRUCT	yyerr;
 int				_bDefiningConst;
 int				_bInHeader;
 int				_bInNativeDefinition;
+int				_bInEnumDefinition;
 
 typedef void EDFUNCDEF;
 
@@ -96,6 +97,9 @@ static struct kw {
 	T_NATIVE,	"native",
 	T_CONTINUE,	"continue",
 	T_BREAK,	"break",
+	T_TYPEDEF,	"typedef",
+	T_ENUM,		"enum",
+	T_STRUCT,	"struct",
 	T_RETURN,	"return",
 	T_GOTO,		"goto",
 	T_NAMESPACE, "namespace",
@@ -459,7 +463,15 @@ WS		[ \t]
 				return bFloat ? T_FLOATING_POINT_NUMBER : T_NUM;
 			}
 #[^\n]*		{	;	}
-\/\/[^\n]*	{	;	}
+\/\/[^\n]*	{	if (_bInEnumDefinition) {
+					if (!_yyCurrentComment) {
+						_yyCurrentComment = calloc(1, MAX_COMMENT_SIZE);
+					}
+					if (strlen(yytext) < MAX_COMMENT_SIZE) {
+						strcpy(_yyCurrentComment, yytext+3);
+					}
+				}
+			}
 {WS}		{	;	}
 \n 			{	;	}	/* skip comments and white space */
 \r 			{	;	}	/* skip comments and white space */
@@ -502,6 +514,9 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 				}
 
 				if (t == S_ENUM) {
+					if (_bInEnumDefinition) {
+						goto retIdent;
+					}
 					yylval.num = function_enumValueFor((void*)VALUE(sym));
 					return T_NUM;
 				}

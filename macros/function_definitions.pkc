@@ -1,3 +1,73 @@
+
+/*
+ * Sample for the definition of a custom structured type in PKSMacroC.
+ * Not yet fully supported.
+ */
+typedef struct {
+	int t_start;							// 0-based start of the lexical token
+	int	t_end;								// 0-based start end of	the	lexical	token
+	int	t_type;								// logical type	of the lexical token
+	string t_text;							// The text	of the token.
+} TOKEN;
+
+typedef enum {
+    // use .{}*?+ and all the stuff
+    RE_DOREX = 0x1,
+    // ignore case
+    RE_IGNCASE = 0x2,
+    // wildcards are: *?[]
+    RE_SHELLWILD = 0x4,
+    /* applies to replacement only: if set, try to preserve upper lower case spelling of
+	 * replaced words Dog -> Cat, DOG -> CAT, etc...
+	 */
+    RE_PRESERVE_CASE = 0x8,
+    // applies to find in files only - if set, do not traverse "binary files".
+    RE_IGNORE_BINARY = 0x10,
+    // match at the current position passed without trying to find a match later in line.
+    RE_NOADVANCE = 0x20,
+    // applicable only to "find in files" - if set - stop searching after first match
+    RE_SEARCH_ONCE = 0x40,
+    // applicable only to "find in files" - if set - append results to existing search result list
+    RE_APPEND_TO_SEARCH_RESULTS = 0x80,
+    // applicable only to "find in files" - if set - consider only files from previous search result list.
+    RE_SEARCH_IN_SEARCH_RESULTS = 0x100,
+    // applicable to replacement only: if set the user is asked before every replacement
+    RE_CONFIRM_REPLACEMENT = 0x200,
+    // whether only marked lines should be considered
+    RE_CONSIDER_MARKED_LINES = 0x400,
+    // whether debug information should be printed to the console, when matching a pattern.
+    RE_DEBUG = 0x800,
+    // do not move caret during find&replace.
+    RE_KEEP_CARET = 0x1000,
+    // wrap around to search from the beginning if not found
+    RE_WRAPSCAN = 0x2000
+} REGEX_OPTION;
+
+typedef enum {
+    // an invalid range
+    RNG_INVALID = -1,
+    // perform once / search once, replace once, ...
+    RNG_ONCE = 0,
+    // perform in line containing caret
+    RNG_LINE = 1,
+    // perform in a "chapter"
+    RNG_CHAPTER = 2,
+    // perform in the currently selected range of text
+    RNG_BLOCK = 3,
+    // perform from begin of file to the current caret
+    RNG_TOCURS = 4,
+    // perform from current caret to the end of the file
+    RNG_FROMCURS = 5,
+    // perform globally in the current file
+    RNG_GLOBAL = 6,
+    // currently not really used
+    RNG_FREE = 7,
+    /* the current selection, but for the purpose of applying an operation one a list of lines(e.g.toggle - comment or shift - lines).
+     * In this case the last selected line is treated as "not selected", if the column is 0.
+     */
+    RNG_BLOCK_LINES = 8
+} RANGE_TYPE;
+
 /*
  * Abondon all changes in the given editor.
  */

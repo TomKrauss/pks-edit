@@ -18,7 +18,7 @@
 
 %define parse.error detailed
 
-%token T_NAMESPACE T_REQUIRE T_FOR T_ANNOTATION T_NATIVE
+%token T_NAMESPACE T_TYPEDEF T_ENUM T_STRUCT T_REQUIRE T_FOR T_ANNOTATION T_NATIVE
 %token T_NEW T_STATIC T_VOID T_TYPE_IDENTIFIER T_ELLIPSIS
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_CHARACTER T_CONST
 %token T_TRUE T_FALSE 
@@ -96,6 +96,7 @@ static 		char *lstartid  = "%ls%",
 extern 			int	_bInNativeDefinition;
 extern 			int	_bDefiningConst;
 extern 			int	_bInHeader;
+extern 			int	_bInEnumDefinition;
 
 extern char*    _yyCurrentComment;
 extern void		yyerror(const char* s, ...);
@@ -322,7 +323,10 @@ static PKS_VALUE_TYPE parser_pushFieldIndexWithError(PKS_VALUE_TYPE t, const cha
 file_structure: {
 				init_header();
 			}
-			namespace prerequisites global_declarations header_delimiter macro_definitions {
+			namespace prerequisites 
+			global_declarations 
+			header_delimiter 
+			macro_definitions {
 				finalize_header();
 			}
 
@@ -358,6 +362,54 @@ require:	T_REQUIRE T_STRING ';' {
 global_declarations:
 			| global_declarations constants ';'
 			| global_declarations global_var ';' 
+			| global_declarations T_TYPEDEF typedef ';'
+
+typedef:	enum_definition
+			| struct_definition
+
+struct_definition: T_STRUCT '{' struct_element_definitions '}' T_IDENT {
+				free($5.ident.s);
+			}
+
+enum_definition: T_ENUM { _bInEnumDefinition = 1; } '{' enum_value_definitions '}' T_IDENT {
+				_bInEnumDefinition = 0;
+				free($6.ident.s);
+			}
+
+struct_element_definitions: struct_element
+			| struct_element struct_element_definitions
+
+struct_element: type_name variable_identifier ';' {
+				if ($2.ident.stringIsAlloced) {
+					free($2.ident.s);
+				}
+			}
+
+enum_value_definitions: 
+			| enum_values
+
+enum_values: enum_value
+			| enum_value ',' enum_values
+
+enum_value:	T_IDENT opt_enum_assignment {
+				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=""});
+				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$1.ident.s});
+				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){(int)$2.num});
+				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=_yyCurrentComment});
+				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
+						C_0FUNC, (GENERIC_DATA){ FUNC_RegisterEnumValue}, 4);
+				// register right away as well, so we can use it.
+				function_registerEnum((const char*) 0, $1.ident.s, (int)$2.num, _yyCurrentComment);
+				free($1.ident.s);
+			}
+
+opt_enum_assignment: 
+			| T_ASSIGN T_NUM {
+				$$.num = $2.num;
+			}
+			| T_ASSIGN '-' T_NUM {
+				$$.num = -$3.num;
+			}
 
 scope:		{ $$.ident.scope = MS_GLOBAL; }
 			| T_STATIC { $$.ident.scope = MS_LOCAL; }

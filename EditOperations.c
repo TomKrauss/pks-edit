@@ -1277,11 +1277,12 @@ long long edit_replaceSelectedRange(WINFO* wp, long nLineFrom, long nLineTo, ARR
 			ln_createAndAdd(fp, pszText, (int)nLen, 0);
 		} else {
 			if (memcmp(lp->lbuf, pszText, nLen) != 0) {
-				LINE* lpold;
-				lp = ln_settmp(fp, lp, &lpold);
+				lp = ln_modify(fp, lp, lp->len, (int)nLen);
+				if (!lp) {
+					break;
+				}
 				lp->len = (int)nLen;
 				memcpy(lp->lbuf, pszText, nLen + 1);
-				ln_markModified(lp);
 				render_repaintLine(fp, lp);
 			}
 			lp = lp->next;

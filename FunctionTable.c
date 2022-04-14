@@ -76,11 +76,6 @@ interpreter_typeOf(), interpreter_foreach(), interpreter_size(), interpreter_cre
 macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors(), macroc_pathCreateFromSegments(), edit_getSelectedLineRange(), edit_getLineLen(), edit_getLineText(),
 macroc_findPattern(), edit_replaceLines(), edit_replaceSpacesWithTabs(), edit_replaceTabsWithSpaces();
 
-static long long function_unused() {
-    // NOT USED ANY MORE
-    return 0;
-}
-
 static const char* ww_getFilename(WINFO* wp) {
     FTABLE* fp = wp->fp;
     return fp->fname;
@@ -121,8 +116,8 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*22*/  EdErrorListRead, -1, 0,                                                                       "ReadErrorList",              NULL,  "isbFORM_s"                                    },
 {/*23*/  ww_zoomWindow, -1, EW_NEEDSCURRF | 0,                                                         "ZoomWindow",                 NULL,  "iWi"                                           },
 {/*24*/  EdMacrosEdit, -1, EW_MULTI | 0,                                                               "EditMacros",                 NULL,  "i"                                           },
-{/*25*/  (long long (*)())string_getVariableWithDefaults, -1, 0,                                        "GetVariable",               NULL,  "ss"                                           },
-{/*26*/  doctypes_saveToFile, -1, EW_HASFORM | 0,                                                       "SaveDocumentSettings",      NULL,  "ibFORM_s"                                     },
+{/*25*/  (long long (*)())string_getVariableWithDefaults, -1, 0,                                       "GetVariable",               NULL,  "ss"                                           },
+{/*26*/  doctypes_saveToFile, -1, EW_HASFORM | 0,                                                      "SaveDocumentSettings",      NULL,  "ibFORM_s"                                     },
 {/*27*/  macro_readWriteWithFileSelection, -1, EW_HASFORM | 0,                                         "MacrosReadWrite",            NULL,  "iibFORM_s"                                },
 {/*28*/  EdTagfileRead, -1, EW_HASFORM | 0,                                                            "ReadTagfile",                NULL,  "ibFORM_s"                                     },
 {/*29*/  EdSetup, -1, 0,                                                                               "RwSetup",                    NULL,  "ibFORM_s"                                     },
@@ -171,7 +166,7 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*72*/  EdShowMatch, -1, EW_NEEDSCURRF | 0,                                                           "CheckBrackets",              NULL,  "iW"                                           },
 {/*73*/  edit_convertCharacterCase, -1, EW_MODIFY | EW_FINDCURS | EW_NEEDSCURRF | EW_UNDOFLSH | 0,     "UpToLow",                    NULL,  "iWeCC_"                                           },
 {/*74*/  evaluator_evaluateCurrentSelection, -1, EW_NEEDSCURRF | EW_FINDCURS | 0,                      "EvaluateSelection",          NULL,  "iW"                                        },
-{/*75*/  dlg_configureEditorModes, -1, EW_NEEDSCURRF | 0,                                              "SetEditorSettings",                NULL,  "ibFORM_siiiieSHOW_"                            },
+{/*75*/  dlg_configureEditorModes, -1, EW_NEEDSCURRF | 0,                                              "SetEditorSettings",                NULL, "ibFORM_siiiieSHOW_"                            },
 {/*76*/  mainframe_toggleFullScreen, -1, 0,                                                            "ToggleFullScreen",           NULL,  "i"                                           },
 {/*77*/  EdFindOnInternet, -1, EW_NEEDSCURRF | EW_FINDCURS | 0,                                        "FindOnInternet",             NULL,  "iWbFORM_siii"                                  },
 {/*78*/  EdOptionToggle, -1, EW_NEEDSCURRF | 0,                                                        "ToggleTextMode",             NULL,  "ieWM_"                                      },
@@ -191,31 +186,31 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*92*/fm_gotoLastPosition, -1, EW_CUSTOM_ENABLEMENT,                                                  "GotoLastPosition", fm_canGotoLast,  "i"                                           },
 {/*93*/EdAlignText, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                   "AlignText",                  NULL,  "ibFORM_sieRNG_bRE_eAL_"                     },
 {/*94*/error_setShowMessages, -1, 0,                                                                   "ShowMessages",               NULL,  "ii"                                          },
-{/*95*/interpreter_createArray, -1, EW_NEEDSCURRF | 0,                                                 "CreateArray",             NULL,  "P"                                      },
+{/*95*/interpreter_createArray, -1, EW_NEEDSCURRF | 0,                                                 "CreateArray",                NULL,  "P"                                      },
 {/*96*/EdMouseMarkParts, -1, EW_NEEDSCURRF | 0,                                                        "MouseMarkParts",             NULL,  "iWeMOT_"                                      },
 {/*97*/EdMouseMoveText, -1, EW_NEEDSCURRF | 0,                                                         "MouseMoveText",              NULL,  "iWeMM_"                                      },
 {/*98*/EdMouseSelectLines, -1, EW_NEEDSCURRF | EW_FINDCURS | 0,                                        "MouseSelectLines",           NULL,  "iWi"                                      },
 {/*99*/EdMousePositionUngrabbed, -1, EW_NEEDSCURRF | 0,                                                "MousePosition",              NULL,  "iWi"                                          },
 {/*100*/EdAlert, -1, 0,                                                                                "Alert",                      NULL,  "is"                                          },
-{/*101*/error_displayAlertBoxWithOptions, -1, 0,                                                              "MessageBox",                 NULL,  "ieMB_s"                                        },
-{/*102*/EdPromptAssign, -1, 0,                                                                                "PromptAssign",               NULL,  "sss"                                         },
-{/*103*/ interpreter_sprintf, -1, 0,                                                                          "sprintf",                    NULL,  "P"                                         },
-{/*104*/macro_getSelectedText, -1, 0,                                                                         "GetSelected",                NULL,  "sW"                                           },
-{/*105*/EdHideLines, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                         "HideLines",                  NULL,  "iW"                                           },
-{/*106*/EdUnHideLine, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                        "UnHideLine",                 NULL,  "iW"                                           },
-{/*107*/macroc_substituteStringWith, -1, 0,                                                                    "StringReplace",            NULL,  "ssssbRE_i"                                  },
-{/*108*/EdExpandAbbreviation, -1, 0,                                                                          "ExpandAbbreviation",         NULL,  "i"                                           },
+{/*101*/error_displayAlertBoxWithOptions, -1, 0,                                                       "MessageBox",                 NULL,  "ieMB_s"                                        },
+{/*102*/EdPromptAssign, -1, 0,                                                                         "PromptAssign",               NULL,  "sss"                                         },
+{/*103*/ interpreter_sprintf, -1, 0,                                                                   "sprintf",                    NULL,  "P"                                         },
+{/*104*/macro_getSelectedText, -1, 0,                                                                  "GetSelected",                NULL,  "sW"                                           },
+{/*105*/EdHideLines, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                  "HideLines",                  NULL,  "iW"                                           },
+{/*106*/EdUnHideLine, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                 "UnHideLine",                 NULL,  "iW"                                           },
+{/*107*/macroc_substituteStringWith, -1, 0,                                                            "StringReplace",              NULL,  "ssssbRE_i"                                  },
+{/*108*/EdExpandAbbreviation, -1, 0,                                                                   "ExpandAbbreviation",         NULL,  "i"                                           },
 {/*109*/caret_addSecondaryWithMouse, -1, EW_NEEDSCURRF| EW_CCASH ,                                     "AddSecondaryCaretMouse",     NULL,  "ibFORM_i"                                     },
 {/*110*/EdHelpContext, -1, 0,                                                                          "ShowHelp",                   NULL,  "ii"                                          },
 {/*111*/EdListBindings, -1, 0,                                                                         "ListBindings",               NULL,  "ieLISTB_"                                    },
 {/*112*/EdCompileMacros, -1, EW_NEEDSCURRF | 0,                                                        "CompileMacros",              NULL,  "ii"                                          },
 {/*113*/EdDocTypes, -1, 0,                                                                             "DefineDocTypes",             NULL,  "i"                                           },
-{/*114*/find_initiateIncrementalSearch, -1, EW_NEEDSCURRF,                                             "StartIncrementalSearch",           NULL,  "i"                                           },
+{/*114*/find_initiateIncrementalSearch, -1, EW_NEEDSCURRF,                                             "StartIncrementalSearch",     NULL,   "i" },
 {/*115*/EdIsDefined, -1, 0,                                                                            "QueryStatus",                NULL,  "ieQUERY_"                                    },
 {/*116*/caret_removeSecondaryCarets, -1, EW_NEEDSCURRF,                                                "RemoveSecondaryCarets",      NULL,  "isii"                                        },
 {/*117*/EdShowClipboard, -1, 0,                                                                        "ShowClipboard",              NULL,  "ii"                                          },
 {/*118*/caret_moveAndAddSecondary, -1, EW_CCASH | EW_NEEDSCURRF | 0,                                   "MoveAndAddSecondaryCaret",   NULL,  "iiis"                                        },
-{/*119*/EdSetExtendSelectionMode, -1, EW_NEEDSCURRF | 0,                                                        "SetSelectionExtensionMode",      NULL,  "iWi"                                          },
+{/*119*/EdSetExtendSelectionMode, -1, EW_NEEDSCURRF | 0,                                               "SetSelectionExtensionMode",  NULL,  "iWi"                                          },
 {/*120*/EdRedo, -1, EW_MODIFY | EW_NEEDSCURRF | EW_REDO_AVAILABLE,                                     "Redo",                       NULL,  "iW"                                          },
 {/*121*/EdSaveAllFiles, -1, EW_NEEDSCURRF | 0,                                                         "SaveAll",                    NULL,  "i"                                          },
 {/*122*/ft_cloneWindow, -1, EW_NEEDSCURRF,                                                             "CloneWindow",                NULL,  "iW"                                          },
@@ -265,6 +260,7 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*166*/edit_replaceSpacesWithTabs, -1, 0, "EditorReplaceSpacesWithTabs", NULL, "sWs" },
 {/*167*/edit_replaceTabsWithSpaces, -1, 0, "EditorReplaceTabsWithSpaces", NULL, "sWs" },
 {/*168*/interpreter_createMap, -1, 0, "CreateMap", NULL, "P" },
+{/*169*/(long long (*)())function_registerEnum, -1, 0, "RegisterEnumValue", NULL, "issis" },
 0
 };
 
@@ -310,6 +306,10 @@ void function_destroy() {
     }
     for (int i = _staticallyDefinedFunctions; i < _functionTableSize; i++) {
         function_destroyRegisteredNative(& _functionTable[i]);
+    }
+    for (int i = 0; i < _parameterEnumValueTableSize; i++) {
+        free(_parameterEnumValueTable[i].pev_description);
+        _parameterEnumValueTable[i].pev_description = 0;
     }
     _functionTableSize = 0;
 }

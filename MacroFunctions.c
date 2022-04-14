@@ -477,6 +477,7 @@ char* edit_getLineText(WINFO* wp, long nLine) {
 		return 0;
 	}
 	memcpy(_linebuf, lp->lbuf, lp->len + 1);
+	_linebuf[lp->len] = 0;
 	return _linebuf;
 }
 
@@ -485,7 +486,8 @@ char* edit_getLineText(WINFO* wp, long nLine) {
  */
 char* edit_replaceSpacesWithTabs(WINFO* wp, char* pszLine) {
 	int t;
-	ft_compressSpacesToTabs(wp, _linebuf, LINEBUFSIZE, pszLine, strlen(pszLine), &t);
+	int nLen = ft_compressSpacesToTabs(wp, _linebuf, LINEBUFSIZE, pszLine, strlen(pszLine), &t);
+	_linebuf[nLen] = 0;
 	return _linebuf;
 }
 
@@ -494,7 +496,8 @@ char* edit_replaceSpacesWithTabs(WINFO* wp, char* pszLine) {
  */
 char* edit_replaceTabsWithSpaces(WINFO* wp, char* pszLine) {
 	int t;
-	ft_expandTabsWithSpaces(wp, _linebuf, LINEBUFSIZE, pszLine, strlen(pszLine), &t);
+	int nLen = ft_expandTabsWithSpaces(wp, _linebuf, LINEBUFSIZE, pszLine, strlen(pszLine), &t);
+	_linebuf[nLen] = 0;
 	return _linebuf;
 }
 
