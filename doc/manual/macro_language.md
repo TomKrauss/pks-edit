@@ -355,7 +355,7 @@ set of annoations is supported:
 ## Caveats
 
 PKSMacroC currently does not support short-circuiting boolean expressions (McCarthy evaluations). In the expression `if (len < 10 && array[len] == c)` 
-array[len] == c is **always evaluated** regardless of the outcome of the test `len < 10`. We will fix this later to make boolean expressions more
+`array[len] == c` is **always evaluated** regardless of the outcome of the test `len < 10`. We will fix this later to make boolean expressions more
 powerful and simpler to write.
 
 The `require` keyword does not work as expected. It will load the "required" source **after** the file requiring it was loaded. We will fix that as
