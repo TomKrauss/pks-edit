@@ -158,6 +158,10 @@ typedef void (*RENDERER_MOUSEMOVE)(WINFO* wp, int x, int y);
 
 typedef BOOL(*RENDERER_FIND_LINK)(WINFO* wp, char* pszDest, size_t nMaxChars, NAVIGATION_INFO_PARSE_RESULT* pResult);
 
+// Repaint a range of "logical lines" starting with a logical screen colum and ending with a screen column
+// line numbers are counted in terms of internal buffer line indices.
+typedef int (*RENDERER_REPAINT)(WINFO* wp, int nFirstLine, int nLastLine, int nFirstCol, int nLastCol);
+
 typedef struct tagRENDERER {
     const RENDER_LINE_FUNCTION r_renderLine;
     const RENDER_PAGE_FUNCTION r_renderPage;
@@ -178,6 +182,7 @@ typedef struct tagRENDERER {
     const RENDERER_HIT_TEST r_hitTest;                            // Return the info about a clicked element.
     const BOOL r_canEdit;                                         // whether this renderer supports editing.
     const void (*r_modelChanged)(WINFO* wp, MODEL_CHANGE* pMC);   // The method to invoke, when the model changes.
+    const RENDERER_REPAINT r_repaint;                             // Mandatory callback for triggering a repaint of a screen range.
     const char* r_context;                                        // Optional action context to allow for specific input actions for this renderer. Maybe null.
     const RENDERER_FIND_LINK r_findLink;                          // Optional callback to find a link at the "current" caret position.
     const RENDERER_NAVIGATE_ANCHOR r_navigateAnchor;              // Optional callback to navigate to an "anchor" specification
@@ -342,6 +347,17 @@ extern void render_repaintCurrentFile(void);
  * Send a repaint to a part of a line.
  */
 extern void render_repaintLinePart(FTABLE* fp, long ln, int col1, int col2);
+
+/*
+ * Can be used as renderer default implementation
+ */
+extern int render_repaintDefault(WINFO* wp, int nFirstLine, int nLastLine, int nFirstCol, int nLastCol);
+
+/*
+ * Invalidate an area of the work window to cause a repaint and possibly
+ * "associated" windows.
+ */
+extern void render_invalidateRect(WINFO* wp, RECT* pRect);
 
 /*--------------------------------------------------------------------------
  * render_repaintLineRange()
@@ -598,12 +614,6 @@ extern int 	uc_shiftLinesByIndent(WINFO* fp, long ln, long nlines, int dir);
  * Register the window classes for PKS edit editor windows.
  */
 extern int ww_register(void);
-
-/*------------------------------------------------------------
- * ww_popup()
- * Bring a child to top - if iconized restore.
- */
-extern void ww_popup(HWND hwndChild);
 
 /*-----------------------------------------------------------
  * sl_winchanged()

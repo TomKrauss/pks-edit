@@ -440,7 +440,7 @@ EXPORT void render_paintWindow(WINFO* wp)
  * Invalidate an area of the work window to cause a repaint and possibly
  * "associated" windows.
  */
-static void render_invalidateRect(WINFO* wp, RECT* pRect) {
+void render_invalidateRect(WINFO* wp, RECT* pRect) {
 	RECT r2;
 	InvalidateRect(wp->ww_handle, pRect, 0);
 	if (wp->lineNumbers_handle != NULL) {
@@ -463,18 +463,7 @@ struct tagLINE_FROM_TO {
 	long maxln;
 };
 static int render_repaintWindowFromLineTo(WINFO* wp, struct tagLINE_FROM_TO* pParam) {
-	if (wp->ww_handle) {
-		RECT rect;
-		GetClientRect(wp->ww_handle, &rect);
-		if (pParam->minln > wp->minln) {
-			rect.top += (pParam->minln - wp->minln) * wp->cheight;
-		}
-		if (pParam->maxln < wp->maxln - 1) {
-			rect.bottom = rect.top + (pParam->maxln - pParam->minln + 1) * wp->cheight;
-		}
-		render_invalidateRect(wp, &rect);
-	}
-	return 1;
+	return wp->renderer->r_repaint(wp, pParam->minln, pParam->maxln, -1, -1);
 }
 
 EXPORT void render_repaintFromLineTo(FTABLE* fp, long minln, long maxln) {
@@ -537,27 +526,32 @@ struct tagLINE_REDRAW {
 };
 
 static int render_repaintLineForWindow(WINFO* wp, struct tagLINE_REDRAW* pRedraw) {
-	RECT  	r;
-	int col1 = pRedraw->col1;
-	int col2 = pRedraw->col2;
-	if (col2 < 0) {
-		col2 = wp->maxcol;
-	}
-	if (wp->ww_handle > 0 && pRedraw->ln >= wp->minln && pRedraw->ln <= wp->maxln) {
+	return wp->renderer->r_repaint(wp, pRedraw->ln, pRedraw->ln, pRedraw->col1, pRedraw->col2);
+}
+
+int render_repaintDefault(WINFO* wp, int nFirstLine, int nLastLine, int nFirstCol, int nLastCol) {
+	if (wp->ww_handle && nFirstLine >= wp->minln && nLastLine <= wp->maxln) {
+		RECT  	r;
+		int col1 = nFirstCol;
+		int col2 = nLastCol;
+		if (col2 < 0) {
+			col2 = wp->maxcol;
+		}
+		GetClientRect(wp->ww_handle, &r);
 		if (col1 < wp->mincol) {
 			col1 = wp->mincol;
 		}
 		if (col2 > wp->maxcol) {
 			col2 = wp->maxcol;
 		}
-		GetClientRect(wp->ww_handle, &r);
 		r.left += (col1 - wp->mincol) * wp->cwidth;
 		r.right = r.left + (col2 - col1) * wp->cwidth;
-		r.top += wp->cheight * (pRedraw->ln - wp->minln);
-		r.bottom = r.top + wp->cheight;
+		r.top += wp->cheight * (nFirstLine - wp->minln);
+		r.bottom = r.top + (nLastLine-nFirstLine+1)*wp->cheight;
 		render_invalidateRect(wp, &r);
+		return 1;
 	}
-	return 1;
+	return 0;
 }
 
 /*--------------------------------------------------------------------------

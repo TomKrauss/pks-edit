@@ -561,7 +561,8 @@ static RENDERER _asciiRenderer = {
 	ascii_rendererSupportsMode,
 	caret_calculateOffsetFromScreen,
 	TRUE,
-	ww_modelChanged
+	ww_modelChanged,
+	render_repaintDefault
 };
 
 /*

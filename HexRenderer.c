@@ -407,7 +407,8 @@ static RENDERER _hexRenderer = {
 	hex_rendererSupportsMode,
 	caret_calculateOffsetFromScreen,
 	TRUE,
-	hex_modelChanged
+	hex_modelChanged,
+	render_repaintDefault
 };
 
 /*
