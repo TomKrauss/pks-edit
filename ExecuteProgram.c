@@ -35,8 +35,6 @@ extern void undo_startModification(FTABLE *fp);
 
 extern FTABLE 	_outfile;
 
-BOOL	  		bTaskFinished;
-
 #define	EX_DOS				EX_CD
 
 /*--------------------------------------------------------------------------

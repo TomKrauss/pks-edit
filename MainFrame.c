@@ -29,6 +29,7 @@
 #include "pksmacro.h"
 #include "errordialogs.h"
 #include "xdialog.h"
+#include "textblocks.h"
 #include "customcontrols.h"
 #include "mouseutil.h"
 #include "windowselector.h"
@@ -37,7 +38,6 @@
 #include "menu.h"
 
 extern HINSTANCE		hInst;
-extern BOOL		bTaskFinished;
 extern void 	st_init(HWND hwndDaddy);
 extern void		st_redraw(BOOL bErase);
 extern void		st_resize(int nStatusHeight, RECT* pRect);
@@ -46,7 +46,7 @@ extern void 	tb_wh(WORD* width, WORD* height);
 extern BOOL 	ww_workWinHasFocus(void);
 extern int 		clp_setdata(char* pszBufferName);
 extern void 	EditDroppedFiles(HDROP hdrop);
-extern void tb_updateImageList(wchar_t* tbIcons, int nCount);
+extern void		tb_updateImageList(wchar_t* tbIcons, int nCount);
 
 static const char* _applicationName = "PKS EDIT";
 
@@ -1288,8 +1288,8 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 
 	case WM_DESTROY:
 		pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
-		tabcontrol_destroy(pControl);
 		SetWindowLongPtr(hwnd, GWLP_TAB_CONTROL, (LONG_PTR)NULL);
+		tabcontrol_destroy(pControl);
 		return 0;
 	}
 	return DefWindowProc(hwnd, message, wParam, lParam);
@@ -1911,6 +1911,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		OpenClipboard(hwnd);
 		EmptyClipboard();
 		clp_setdata(0);
+		bl_destroyPasteList(FALSE);
 		CloseClipboard();
 		return 0;
 
@@ -1923,10 +1924,6 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 	case WM_CLOSE_DOCK:
 		mainframe_closeDock((HWND)wParam);
 		break;
-
-	case WM_TASKFINISHED:
-		bTaskFinished = TRUE;
-		return 0;
 
 	case WM_QUERYENDSESSION:
 		DestroyWindow(hwnd);
@@ -2071,25 +2068,32 @@ void mainframe_windowTitleChanged() {
  */
 int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(), LONG lParam) {
 	DOCKING_SLOT* pSlot = dockingSlots;
+	DOCKING_SLOT* pNext;
 	int ret = 1;
 	while (pSlot) {
+		pNext = pSlot->ds_next;
 		if (pSlot->ds_type == DS_EDIT_WINDOW) {
 			if (bHideTabsDuringEnum) {
 				ShowWindow(pSlot->ds_hwnd, SW_HIDE);
 			}
-			TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
+			HWND hwndCurrent = pSlot->ds_hwnd;
+			TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwndCurrent, GWLP_TAB_CONTROL);
 			while (arraylist_size(pControl->tc_pages) > 0) {
 				TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, 0);
 				if (pPage->tp_hwnd && (ret = (*funcp)(pPage->tp_hwnd, lParam)) == 0) {
 					ret = 0;
 					break;
 				}
+				// May be closed by callback - in that case do not continue iterating pages
+				if (!IsWindow(hwndCurrent)) {
+					break;
+				}
 			}
 			if (bHideTabsDuringEnum) {
-				ShowWindow(pSlot->ds_hwnd, SW_SHOW);
+				ShowWindow(hwndCurrent, SW_SHOW);
 			}
 		}
-		pSlot = pSlot->ds_next;
+		pSlot = pNext;
 	}
 	return ret;
 }

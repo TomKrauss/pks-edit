@@ -70,8 +70,6 @@ extern void 	init_readConfigFiles(void);
 extern BOOL 	init_initializeVariables(void);
 extern void		types_registerDefaultTypes();
 
-extern BOOL	bTaskFinished;
-
 HINSTANCE		hInst;
 HWND			hwndMain;
 static DWORD	hDDE;
