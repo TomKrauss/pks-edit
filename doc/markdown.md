@@ -41,6 +41,19 @@ You may also ==highlight== important places in the text.
 
 [In-document links to anchors](#images "this brings you to the images") are supported as well.
 
+## HTML Support
+
+Some HTML formatting is supported in markdown documents. Here are some samples and below one can see the effect.
+
+```
+- <code>code tag to style code</code >.
+- <em>Emphasis</em>, < i >italic</i>, <b>bold</b> and then <br > text wrapped around.
+- <span class="operator">Text enclosed in a spen with a class</span>
+```
+- <code>code tag to style code</code >.
+- <em>Emphasis</em>, < i >italic</i>, <b>bold</b> and then <br > text wrapped around.
+- <span class="operator">Text enclosed in a &lt;span&gt; tag with a style class (taken from the PKS-Edit theme) is used to select the foreground color.</span>
+
 ### Block Quotes
 
 > This is a block quote

@@ -890,9 +890,12 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 	return mType;
 }
 
-static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, size_t nSize, int mAttrs, LINE* lp, int nLineOffset) {
+static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, size_t nSize, int mAttrs, char* szStyle, LINE* lp, int nLineOffset) {
 	if (nSize == 0 && *pRuns) {
 		return NULL;
+	}
+	if (!pFormat) {
+		pFormat = &_formatText;
 	}
 	TEXT_RUN* pRun = ll_append(pRuns, sizeof(TEXT_RUN));
 	pRun->tr_size = nSize;
@@ -912,9 +915,16 @@ static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, si
 	}
 	if (mAttrs & ATTR_LINK) {
 		pRun->tr_attributes.underline = 1;
-		pRun->tr_attributes.fgColor = theme_textStyleForeground("hyperlink", RGB(120, 120, 255));
+	}
+	if (szStyle) {
+		pRun->tr_attributes.fgColor = theme_textStyleForeground(szStyle, NO_COLOR);
 	} else {
-		pRun->tr_attributes.fgColor = NO_COLOR;
+		if (mAttrs & ATTR_LINK) {
+			pRun->tr_attributes.fgColor = theme_textStyleForeground("hyperlink", RGB(120, 120, 255));
+		}
+		else {
+			pRun->tr_attributes.fgColor = NO_COLOR;
+		}
 	}
 	if (mAttrs & ATTR_EMPHASIS) {
 		pRun->tr_attributes.italic = 1;
@@ -1082,7 +1092,7 @@ static LINE* mdr_parseFencedCodeBlock(RENDER_VIEW_PART* pPart, LINE* lp, STRING_
 			stringbuf_appendChar(pSB, ' ');
 			nSize++;
 		}
-		mdr_appendRun(&pPart->rvp_data.rvp_flow.tf_runs, &_formatFenced, nSize, ATTR_LINE_BREAK, lp, nRunStart);
+		mdr_appendRun(&pPart->rvp_data.rvp_flow.tf_runs, &_formatFenced, nSize, ATTR_LINE_BREAK, 0, lp, nRunStart);
 		nLastOffset += nSize;
 		lp = lp->next;
 	}
@@ -1098,7 +1108,7 @@ static BOOL mdr_parseAutolinks(TEXT_FLOW* pFlow, LINE* lp, STRING_BUF* pSB, MDR_
 	char* pLast = strchr(&lp->lbuf[nTextStart], '>');
 	if (pLast && strchr(&lp->lbuf[i], '.') != 0) {
 		size_t nSize = stringbuf_size(pSB) - *pLastOffset;
-		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs, lp, (int) * pLastOffset);
+		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs, 0, lp, (int) * pLastOffset);
 		(*pLastOffset) += nSize;
 		char szTemp[512];
 		char* pszLink;
@@ -1112,7 +1122,7 @@ static BOOL mdr_parseAutolinks(TEXT_FLOW* pFlow, LINE* lp, STRING_BUF* pSB, MDR_
 		szTemp[nSize] = 0;
 		stringbuf_appendStringLength(pSB, &lp->lbuf[nTextStart], nSize);
 		nSize = stringbuf_size(pSB) - *pLastOffset;
-		TEXT_RUN* pRun = mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, ATTR_LINK, lp, nTextStart);
+		TEXT_RUN* pRun = mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, ATTR_LINK, 0, lp, nTextStart);
 		int nWidth = 0;
 		int nHeight = 0;
 		if (!mdr_parseLinkUrl(0, szTemp, &pszLink, &pszTitle, &nWidth, &nHeight)) {
@@ -1174,6 +1184,106 @@ static BOOL mdr_isIndentedFencedBlock(LINE* lp, int mType) {
 	return FALSE;
 }
 
+static struct tagHTML_TAG_MAPPING {
+	const char* tm_element;
+	int tm_textAttr;
+} _tagMappings[] = {
+	{"em", ATTR_EMPHASIS},
+	{"b", ATTR_STRONG},
+	{"i", ATTR_EMPHASIS},
+	{"code", ATTR_CODE},
+	{"span", 0},
+	{"tt", ATTR_CODE}
+};
+
+/*
+ * Parse an HTML tag: <b> or </em> or the like.
+ */
+typedef enum {
+	HPS_INIT = 0,
+	HPS_ELEM = 1,
+	HPS_BETWEEN_ATTR = 2,
+	HPS_ATTR = 3,
+	HPS_WAIT_FOR_VALUE = 4,
+	HPS_VALUE = 5
+} HTML_PARSE_STATE;
+static int mdr_getTag(const char* pszSource, char* pszDest, size_t nDestSize, char** pszStyle, BOOL* pEnd) {
+	char szAttribute[32];
+	static char szValue[128];
+	char* pszAttr = 0;
+	char* pszValue = 0;
+	const char* pszStart = pszSource;
+	HTML_PARSE_STATE nState = HPS_INIT;
+	if (*pszSource == '/') {
+		*pEnd = 1;
+		pszSource++;
+	}
+	else {
+		*pEnd = 0;
+	}
+	*pszStyle = 0;
+	while (nDestSize > 1) {
+		char c = *pszSource++;
+		if (c == '>') {
+			*pszDest = 0;
+			return (int)(pszSource - pszStart);
+		}
+		switch (nState) {
+		case HPS_INIT:
+			if (isalpha(c)) {
+				nState = HPS_ELEM;
+				*pszDest++ = c;
+			}
+			break;
+		case HPS_ELEM:
+			if (isalpha(c)) {
+				if (pszDest < pszStart + nDestSize - 1) {
+					*pszDest++ = c;
+				}
+			}
+			else {
+				nState = HPS_BETWEEN_ATTR;
+			}
+			break;
+		case HPS_WAIT_FOR_VALUE:
+		case HPS_BETWEEN_ATTR:
+			if (isalpha(c)) {
+				pszAttr = szAttribute;
+				*pszAttr++ = c;
+				nState = HPS_ATTR;
+			}
+			if (c == '"' && nState == HPS_WAIT_FOR_VALUE) {
+				nState = HPS_VALUE;
+				pszValue = szValue;
+			}
+			break;
+		case HPS_ATTR:
+			if (isalpha(c)) {
+				if (pszAttr < (szAttribute + sizeof szAttribute - 1)) {
+					*pszAttr++ = c;
+				}
+			}
+			else {
+				nState = HPS_WAIT_FOR_VALUE;
+			}
+			break;
+		case HPS_VALUE:
+			if (c != '"') {
+				if (pszValue < (szValue + sizeof szValue - 1)) {
+					*pszValue++ = c;
+				}
+			} else {
+				*pszValue = 0;
+				if (strcmp("class", szAttribute) == 0) {
+					*pszStyle = szValue;
+				}
+				nState = HPS_BETWEEN_ATTR;
+			}
+		}
+	}
+	return 0;
+}
+
 /*
  * Parse a top-level element to be rendered with a view part possibly containing nested formatting. 
  */
@@ -1184,6 +1294,8 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 	int nLevel = 0;
 	int nLineOffset = 0;
 	int nRunLineOffset = 0;
+	char* pszFontstyle = 0;
+	char* pszNextstyle = 0;
 	LINE* lpRun = lp;
 	int mAttrs = nInitialAttrs;
 	size_t nLastOffset = 0;
@@ -1246,13 +1358,15 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 				nState = 2;
 			}
 			bEnforceBreak = FALSE;
+			int nToggle = 0;
+			pszNextstyle = 0;
 			if (c == '\\' && i < lp->len - 1 && strchr(_escapedChars, lp->lbuf[i + 1]) != NULL) {
 				i++;
 				c = lp->lbuf[i];
 			} else if (!(mAttrs & ATTR_CODE) && c == '=' && i < lp->len-1 && lp->lbuf[i+1] == c) {
 				i++;
 				nSize = stringbuf_size(pSB) - nLastOffset;
-				mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs, lpRun, nRunLineOffset);
+				mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs, pszFontstyle, lpRun, nRunLineOffset);
 				nRunLineOffset = i;
 				lpRun = lp;
 				mAttrs ^= ATTR_HIGHLIGHT;
@@ -1262,7 +1376,6 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 				// allow for _ only at word borders.
 					(c == '_' && mdr_isAtWordBorder(lp, i)) ||
 				c == '~'))) {
-				int nToggle = 0;
 				if (c == '*' || c == '_') {
 					if (i < lp->len - 1 && lp->lbuf[i + 1] == c) {
 						nToggle = ATTR_STRONG;
@@ -1282,8 +1395,11 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 					nToggle = ATTR_CODE;
 				}
 				if (nToggle) {
+text_attrs_changed:
 					nSize = stringbuf_size(pSB) - nLastOffset;
-					mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs, lpRun, nRunLineOffset);
+					mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs, pszFontstyle, lpRun, nRunLineOffset);
+					pszFontstyle = pszNextstyle;
+					pszNextstyle = 0;
 					nRunLineOffset = i+1;
 					lpRun = lp;
 					mAttrs ^= nToggle;
@@ -1302,7 +1418,7 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 				if (mdr_parseLink(pszRelative, lp, &nTextEnd, &pos, &pLink, &pTitle, &nWidth, &nHeight)) {
 					int nAttr = 0;
 					nSize = stringbuf_size(pSB) - nLastOffset;
-					mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs, lpRun, nRunLineOffset);
+					mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs, pszFontstyle, lpRun, nRunLineOffset);
 					lpRun = lp;
 					nLastOffset += nSize;
 					char c2 = lp->lbuf[nTextStart];
@@ -1326,7 +1442,7 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 					}
 					stringbuf_appendStringLength(pSB, &lp->lbuf[nTextStart], nTextEnd - nTextStart);
 					nSize = stringbuf_size(pSB) - nLastOffset;
-					TEXT_RUN* pRun = mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, nAttr | ATTR_LINK, lpRun, nTextStart);
+					TEXT_RUN* pRun = mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, nAttr | ATTR_LINK, pszFontstyle, lpRun, nTextStart);
 					lpRun = lp;
 					if (bImage) {
 						pRun->tr_image = calloc(1, sizeof(MD_IMAGE));
@@ -1358,17 +1474,32 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 					continue;
 				}
 			} else if (c == '<') {
-				if (strncmp(&lp->lbuf[i], "<br>", 4) == 0) {
-					i += 3;
-					while (i < lp->len - 1 && lp->lbuf[i+1] == ' ') {
+				char szTag[10];
+				BOOL bClose;
+				int iDelta = mdr_getTag(&lp->lbuf[i + 1], szTag, sizeof szTag, &pszNextstyle, &bClose);
+				if (iDelta) {
+					for (int nElement = 0; nElement < DIM(_tagMappings); nElement++) {
+						if (strcmp(_tagMappings[nElement].tm_element, szTag) == 0) {
+							nToggle = _tagMappings[nElement].tm_textAttr;
+							if (((mAttrs & nToggle) != 0) == bClose || ((pszNextstyle != 0) != (pszFontstyle != 0))) {
+								i += iDelta;
+								goto text_attrs_changed;
+							}
+							break;
+						}
+					}
+					if (strcmp(szTag, "br") == 0) {
+						nSize = stringbuf_size(pSB) - nLastOffset;
+						mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs | ATTR_LINE_BREAK, pszFontstyle, lpRun, nRunLineOffset);
+						bEnforceBreak = TRUE;
+						nLastOffset += nSize;
+					}
+					i += iDelta;
+					while (i < lp->len - 1 && lp->lbuf[i + 1] == ' ') {
 						i++;
 					}
-					nSize = stringbuf_size(pSB) - nLastOffset;
-					mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs | ATTR_LINE_BREAK, lpRun, nRunLineOffset);
 					nRunLineOffset = i;
 					lpRun = lp;
-					bEnforceBreak = TRUE;
-					nLastOffset += nSize;
 					continue;
 				}
 				if (mdr_parseAutolinks(pFlow, lp, pSB, pFormat, mAttrs, &i, &nLastOffset)) {
@@ -1383,7 +1514,7 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 			stringbuf_appendChar(pSB, ' ');
 		}
 		nSize = stringbuf_size(pSB) - nLastOffset;
-		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, bEnforceBreak ? mAttrs|ATTR_LINE_BREAK : mAttrs, lpRun, nRunLineOffset);
+		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, bEnforceBreak ? mAttrs|ATTR_LINE_BREAK : mAttrs, pszFontstyle, lpRun, nRunLineOffset);
 		nLastOffset += nSize;
 		if (nEndOffset >= 0) {
 			break;
@@ -1408,7 +1539,7 @@ outer:
 	pFlow->tf_text = nLen == 0 ? NULL : _strdup(stringbuf_getString(pSB));
 
 	nSize = nLen - nLastOffset;
-	mdr_appendRun(&pFlow->tf_runs, pFormat ? pFormat : &_formatText, nSize, mAttrs, lpRun, nRunLineOffset);
+	mdr_appendRun(&pFlow->tf_runs, pFormat ? pFormat : &_formatText, nSize, mAttrs, pszFontstyle, lpRun, nRunLineOffset);
 
 	return lp;
 }
