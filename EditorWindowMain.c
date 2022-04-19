@@ -740,10 +740,6 @@ int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex) {
  * ww_new()
  */
 static int nwindows;
-static FSTYLE _fstyles[2] = {
-	5,			BLACK_BRUSH,	/* Or */
-	5,			BLACK_BRUSH		/* Invert */
-};
 static WINFO *ww_new(FTABLE *fp,HWND hwnd) {
 	WINFO  *wp;
 
@@ -757,8 +753,6 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd) {
 		return 0;
 	}
 
-	wp->markstyles[FS_XMARKED] = _fstyles[0];
-	wp->markstyles[FS_BMARKED] = _fstyles[1];
 	ft_connectViewWithFT(fp, wp);
 	wp->edwin_handle = hwnd;
 

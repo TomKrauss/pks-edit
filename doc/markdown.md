@@ -9,8 +9,12 @@ ascii rendering mode.
 
 ## General Limitations
 
-- Inline HTML is currently not supported (except using \<br> to force a line break in a paragraph)
+- Only very few embedded HTML tags are currently supported (e.g. \<br> to force a line break in a paragraph)
 - Only some extended markdown features are supported (tables). Other things like emoticons etc... are not supported.
+- Searching in markdown documents in Wysiwyg mode will only find matches which do not include style changes. For
+  example the string _markdown_ mode will be rendered in Wysiwyg mode as "markdown mode". Using Find in PKS Edit
+  to search for "markdown mode" will not find a match, as searches are always performed on the underlying unformatted
+  text.
 
 ## Supported Block Level Elements
 

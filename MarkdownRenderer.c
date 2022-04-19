@@ -534,15 +534,10 @@ static void mdr_paintSelection(HDC hdc, int x, int y, RENDER_FLOW_PARAMS* pRFP, 
 		2000, &nUnused, 0, &selectionSize);
 	RECT selectionRect;
 	selectionRect.top = y;
-	selectionRect.bottom = y + selectionSize.cy;
+	selectionRect.bottom = selectionRect.top + selectionSize.cy;
 	selectionRect.left = x + startSize.cx;
 	selectionRect.right = selectionRect.left + selectionSize.cx;
-	HPEN hPen = CreatePen(PS_SOLID, 1, theme_getCurrent()->th_dialogBorder);
-	HPEN hPenOld = SelectObject(hdc, hPen);
-	HBRUSH hBrOld = SelectObject(hdc, GetStockObject(NULL_BRUSH));
-	Rectangle(hdc, selectionRect.left, selectionRect.top, selectionRect.right, selectionRect.bottom);
-	DeleteObject(SelectObject(hdc, hPenOld));
-	SelectObject(hdc, hBrOld);
+	render_paintSelectionRect(hdc, &selectionRect);
 }
 
 /*
@@ -1066,7 +1061,7 @@ static LINE* mdr_parseFencedCodeBlock(RENDER_VIEW_PART* pPart, LINE* lp, STRING_
 			return lp->next;
 		}
 		pPart->rvp_number++;
-		nRunStart = nOffs-1;
+		nRunStart = nOffs;
 		while (nOffs < lp->len) {
 			char c = lp->lbuf[nOffs++];
 			if (c == '\t') {
@@ -1213,9 +1208,6 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 				goto outer;
 			} else if (nState <= 1 && string_isSpace(c)) {
 				nRunLineOffset = i+1;
-				if (!bEnforceBreak) {
-					nRunLineOffset--;
-				}
 				continue;
 			}
 			if (nState == 1 && mType == MET_BLOCK_QUOTE && c == '>' && !bSkipped) {
@@ -1387,6 +1379,8 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 		}
 		if (c == ' ' && lastC == ' ') {
 			bEnforceBreak = TRUE;
+		} else {
+			stringbuf_appendChar(pSB, ' ');
 		}
 		nSize = stringbuf_size(pSB) - nLastOffset;
 		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, bEnforceBreak ? mAttrs|ATTR_LINE_BREAK : mAttrs, lpRun, nRunLineOffset);
@@ -1401,11 +1395,6 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 		lpRun = lp;
 		nState = 1;
 		nRunLineOffset = 0;
-		if (!bEnforceBreak) {
-			// TODO: this corrupts selection painting - selection will be off by 1 in this case
-			// if next line does not start with blanks.
-			stringbuf_appendChar(pSB, ' ');
-		}
 	}
 outer:
 	if (pPart) {
@@ -1615,10 +1604,40 @@ static void mdr_parseViewParts(WINFO *wp, MARKDOWN_RENDERER_DATA* pData) {
 }
 
 /*
+ * Returns the n-th view part.
+ */
+static RENDER_VIEW_PART* mdr_getViewPartAt(RENDER_VIEW_PART* pFirstPart, long n) {
+	return (RENDER_VIEW_PART * )ll_at((LINKED_LIST*)pFirstPart, n);
+}
+
+/*
  * Returns the view part corresponding with the 'nline' line.
  */
-static RENDER_VIEW_PART* mdr_getViewPartForLine(RENDER_VIEW_PART* pFirstPart, long nLine) {
-	return (RENDER_VIEW_PART * )ll_at((LINKED_LIST*)pFirstPart, nLine);
+static RENDER_VIEW_PART* mdr_getViewPartForLine(RENDER_VIEW_PART* pFirstPart, LINE* lp, int* pIndex) {
+	RENDER_VIEW_PART* pNext;
+	LINE* lpPart;
+	*pIndex = 0;
+	while (pFirstPart) {
+		lpPart = pFirstPart->rvp_lpStart;
+		if (lpPart == lp) {
+			return pFirstPart;
+		}
+		pNext = pFirstPart->rvp_next;
+		if (pNext) {
+			do {
+				lpPart = lpPart->next;
+				if (lpPart == pNext->rvp_lpStart) {
+					break;
+				}
+				if (lpPart == lp) {
+					return pFirstPart;
+				}
+			} while (lpPart);
+		}
+		(*pIndex)++;
+		pFirstPart = pNext;
+	}
+	return 0;
 }
 
 static void mdr_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* pHeight) {
@@ -1684,18 +1703,18 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 	if (nMaxScreen > nMax) {
 		nMaxScreen = (long)nMax;
 	}
-	if (wp->caret.ln < nMaxScreen && wp->caret.ln >= wp->minln) {
+	if (pData->md_caretLineIndex < nMaxScreen && pData->md_caretLineIndex >= wp->minln) {
 		wp->maxcursln = wp->maxln = nMaxScreen;
 		return 0;
 	}
-	if (wp->caret.ln < wp->minln) {
-		wp->minln = wp->mincursln = wp->caret.ln;
+	if (pData->md_caretLineIndex < wp->minln) {
+		wp->minln = wp->mincursln = pData->md_caretLineIndex;
 	} else {
 		if (pData->md_displayingEndOfFile) {
 			return 0;
 		}
-		RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, nMaxScreen);
-		nDelta = wp->caret.ln - nMaxScreen + 1;
+		RENDER_VIEW_PART* pPart = mdr_getViewPartAt(pData->md_pElements, nMaxScreen);
+		nDelta = pData->md_caretLineIndex - nMaxScreen + 1;
 		if (pPart) {
 			nDelta += (pPart->rvp_bounds.bottom - pPart->rvp_bounds.top) / 16;
 		}
@@ -1714,7 +1733,6 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 	}
 	wp->maxln = wp->maxcursln;
 	InvalidateRect(wp->ww_handle, (LPRECT)0, 0);
-	UpdateWindow(wp->ww_handle);
 	if (pData->md_hwndTooltip) {
 		ShowWindow(pData->md_hwndTooltip, SW_HIDE);
 	}
@@ -1750,7 +1768,7 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 	if (!pData->md_pElements) {
 		mdr_parseViewParts(wp, pData);
 	}
-	pPart = mdr_getViewPartForLine(pData->md_pElements, wp->minln);
+	pPart = mdr_getViewPartAt(pData->md_pElements, wp->minln);
 	RECT occupiedBounds;
 	int nElements = 0;
 	FillRect(pCtx->rc_hdc, pClip, hBrushBg);
@@ -1876,14 +1894,14 @@ static void* mdr_allocData(WINFO* wp) {
  * Calculate the longes line to be rather small
  */
 static long mdr_calculateLongestLine(WINFO* wp) {
-	return 10;
+	return 200;
 }
 
 /*
  * Calculate the maximum column for column moves. 
  */
 static long mdr_calculateMaxColumn(WINFO* wp, long ln, LINE* lp) {
-	return 10;
+	return 200;
 }
 
 /*
@@ -1901,30 +1919,34 @@ static void mdr_scroll(WINFO* wp, int dx, int dy) {
 	RedrawWindow(wp->ww_handle, NULL, NULL, RDW_ERASE|RDW_INVALIDATE);
 }
 
-static int mdr_placeCaret(WINFO* wp, long* ln, long offset, const long* col, int updateVirtualOffset, int xDelta) {
-	if (*ln < 0) {
-		return 0;
-	}
-	long nMDCaretLine = *ln;
-	long lnMax = mdr_calculateMaxLine(wp);
-	if (nMDCaretLine >= lnMax) {
-		nMDCaretLine = lnMax > 0 ? lnMax-1 : 0;
-	}
+static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updateVirtualOffset, int xDelta) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (!pData) {
 		return 0;
 	}
-	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, nMDCaretLine);
+	// This is a hack for checking, whether we only scrolled up/down by 1: ideally relative caret positioning should be passed on to the renderer
+	// if we scroll one buffer line up or down we simulate a scroll up/down by markdown paragrah.
+	int dl = offset == wp->caret.offset ? *ln - wp->caret.ln : 0;
+	RENDER_VIEW_PART* pPart = pData->md_caretView;
+	if (dl == 1 && pPart && pPart->rvp_next) {
+		dl = ln_cnt(pPart->rvp_lpStart, pPart->rvp_next->rvp_lpStart)-1;
+		*ln = wp->caret.ln + dl;
+	} else if (dl == -1 && pData->md_caretLineIndex > 0) {
+		RENDER_VIEW_PART* pPartPrevious = mdr_getViewPartAt(pData->md_pElements, pData->md_caretLineIndex-1);
+		dl = ln_cnt(pPartPrevious->rvp_lpStart, pPart->rvp_lpStart) - 1;
+		*ln = wp->caret.ln - dl;
+	}
+	int nColumn = *col;
+	if (!caret_placeCursorAndValidate(wp, ln, offset, col, updateVirtualOffset, xDelta)) {
+		return 0;
+	}
+	int nMDCaretLine;
+	pPart = mdr_getViewPartForLine(pData->md_pElements, wp->caret.linePointer, &nMDCaretLine);
 	pData->md_caretView = pPart;
 	pData->md_caretLineIndex = nMDCaretLine;
-	if (pPart) {
-		if (pPart->rvp_data.rvp_flow.tf_runs) {
-			pData->md_flowCaretIndex = *col;
-		}
+	if (pPart && pPart->rvp_data.rvp_flow.tf_runs) {
+		pData->md_flowCaretIndex = nColumn;
 	}
-
-	wp->caret.ln = *ln;
-	wp->caret.offset = offset;
 	return 1;
 }
 
@@ -1947,7 +1969,7 @@ static BOOL mdr_hitTestInternal(WINFO* wp, int cx, int cy, long* pLine, long* pC
 	if (!pData) {
 		return FALSE;
 	}
-	RENDER_VIEW_PART* pPart = mdr_getViewPartForLine(pData->md_pElements, wp->minln);
+	RENDER_VIEW_PART* pPart = mdr_getViewPartAt(pData->md_pElements, wp->minln);
 	POINT pt = { cx, cy };
 	long ln = wp->minln;
 	while (pPart) {
@@ -2119,12 +2141,33 @@ static void mdr_navigateAnchor(WINFO* wp, const char* pszAnchor) {
 }
 
 static int mdr_placeCaretAfterClick(WINFO* wp, long* ln, long* col, int updateVirtualColumn) {
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	if (!pData) {
+		return 0;
+	}
+	RENDER_VIEW_PART* rvp = mdr_getViewPartAt(pData->md_pElements, *ln);
+	if (rvp) {
+		FTABLE* fp = wp->fp;
+		*ln = ln_cnt(fp->firstl, rvp->rvp_lpStart)-1;
+	}
 	return mdr_placeCaret(wp, ln, *col, col, updateVirtualColumn, 0);
 }
 
 static int mdr_repaint(WINFO* wp, int ln1, int ln2, int col1, int col2) {
-	if (wp->ww_handle) {
-		render_invalidateRect(wp, NULL);
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	if (wp->ww_handle && pData) {
+		FTABLE* fp = wp->fp;
+		LINE* lp1 = ln_goto(fp, ln1);
+		LINE* lp2 = ln_goto(fp, ln2);
+		int dummy;
+		RENDER_VIEW_PART* p1 = mdr_getViewPartForLine(pData->md_pElements, lp1, &dummy);
+		RENDER_VIEW_PART* p2 = mdr_getViewPartForLine(pData->md_pElements, lp2, &dummy);
+		if (p1 != 0 && p1 == p2) {
+			render_invalidateRect(wp, &p1->rvp_bounds);
+		}
+		else {
+			render_invalidateRect(wp, NULL);
+		}
 		return 1;
 	}
 	return 0;

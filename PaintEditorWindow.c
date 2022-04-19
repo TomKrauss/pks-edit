@@ -66,6 +66,23 @@ int render_formattedString(RENDER_CONTEXT* pRC, int x, int y, unsigned char* cBu
 
 typedef enum { RS_WORD, RS_SPACE, RS_CONTROL, RS_START, RS_TAB } RENDER_STATE;
 
+static FSTYLE _fstyles[2] = {
+	5,			BLACK_BRUSH,	/* Or */
+	5,			BLACK_BRUSH		/* Invert */
+};
+
+/*
+ * Paints a rect in the passed window by performing a ROP operation.
+ */
+void render_paintSelectionRect(HDC hdc, RECT* pRect) {
+	if (pRect->right > pRect->left) {
+		SelectObject(hdc, GetStockObject(_fstyles[FS_BMARKED].style));
+		PatBlt(hdc, pRect->left, pRect->top,
+			pRect->right - pRect->left, pRect->bottom - pRect->top,
+			_ROPcodes[_fstyles[FS_BMARKED].mode]);
+	}
+}
+
 /*--------------------------------------------------------------------------
  * markline()
  * Paint the selection in a line.
@@ -83,7 +100,7 @@ static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
 	}
 	else {
 		if (!wp->blstart || !wp->blend) {
-			error_displayAlertDialog("bad marked line");
+			EdTRACE(log_errorArgs(DEBUG_ERR, "bad marked line. No start/end selection markers."));
 			return;
 		}
 		if (P_EQ(lp, wp->blstart->m_linePointer))
@@ -102,12 +119,7 @@ static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
 
 	r.left = r.left * wp->cwidth;
 	r.right = r.right * wp->cwidth;
-	if (r.right > r.left) {
-		SelectObject(hdc, GetStockObject(wp->markstyles[FS_BMARKED].style));
-		PatBlt(hdc, r.left, r.top,
-			r.right - r.left, r.bottom - r.top,
-			_ROPcodes[wp->markstyles[FS_BMARKED].mode]);
-	}
+	render_paintSelectionRect(hdc, &r);
 }
 
 static void render_fillBuf(char* pszBuf, int fillChar, int nLen) {

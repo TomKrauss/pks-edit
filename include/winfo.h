@@ -267,7 +267,6 @@ typedef struct tagWINFO {
               mincol,maxcol,mincurscol,maxcurscol;
     long   maxVisibleLineLen;       // The maximum length of a line in columns - used to calculate the size of the horizontal scrollbar
                                     // Is reset to -1 on model changes and recalculated when needed.
-     FSTYLE	markstyles[2];			// text block appearance
      void	*	fp;
      float      zoomFactor;         // The text font size zoom factor.
      COMPARISON_LINK* comparisonLink;
@@ -423,6 +422,11 @@ extern int bl_delete(WINFO* wp, LINE* lnfirst, LINE* lnlast, int cfirst,
  * render_singleLineOnDevice()
  */
 extern int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE* lp, long lineNo);
+
+/*
+ * Paints a rect in the passed window by performing a ROP operation.
+ */
+extern void render_paintSelectionRect(HDC hdc, RECT* pRect);
 
 /*
  * Render the current window in normal ascii / code mode assuming a fixed character spacing font.

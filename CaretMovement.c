@@ -295,7 +295,7 @@ void caret_moveToLine(WINFO* wp, long ln) {
 	codecomplete_hideSuggestionWindow(wp);
 	long oldln = wp->caret.ln;
 	wp->caret.ln = ln;
-	if (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT) {
+	if (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT && wp->renderer->r_supportsMode(SHOWCARET_LINE_HIGHLIGHT)) {
 		render_repaintWindowLine(wp, oldln);
 		render_repaintWindowLine(wp, ln);
 	}
