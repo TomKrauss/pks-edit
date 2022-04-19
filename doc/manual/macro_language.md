@@ -65,13 +65,13 @@ void calculateFactorial() {
 }
 ```
 
-## PKSMacroC Comments
-PKSMacroC supports - as C or Java single line comments introduced using `//` as in the following sample:
+## Comments
+PKSMacroC supports - similar to C or Java - single line comments introduced using `//` as in the following sample:
 ```
    int i = 0;       // initialize although 0 is the default value of int values
 ```
 
-One may also use multiline comments as in C or Java enclosed in `/*` and `*/`.  If a multiline
+One may also use multiline comments enclosed in `/*` and `*/`.  If a multiline
 comment is placed in front of a MacroC function declaration, it is used internally (during code completion etc...)
 as the main description of the described function. Here is an example:
 ```
@@ -82,6 +82,17 @@ as the main description of the described function. Here is an example:
 void TrimTrailingBlanks() {
 ...
 ```
+
+Inside multiline comments describing a macro, one may shoul simple HTML for formatting and the following
+special syntax to describe parameters and return types:
+
+- `@param paramName` description of parameter follows
+- `@returns` description of returned values follows.
+- `@see macroName` add a reference to another macro
+ 
+The following HTML tags in comments should be used:
+
+- `<br>`, `<em>`, `<b>`, `<i>`
 
 ## Types
 
