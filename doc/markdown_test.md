@@ -8,7 +8,7 @@
 ```
 - <code>code tag to style code</code >.
 - <em>Emphasis</em>, < i >italic</i>, <b>bold</b> and then <br > text wrapped around.
-- <span class="operator">Text enclosed in a spen with a class</span>
+- <span class="operator">Text enclosed in a <span> tag with a class</span>
 ```
 
 

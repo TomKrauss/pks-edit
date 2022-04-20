@@ -720,7 +720,8 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 				} else if (cNext == 'w') {
 					pMatcher->m_type = WORD_CCLASS;
 					pPatternRun += matcherSizes[WORD_CCLASS];
-				} else if (cNext >= '1' && cNext <= '9') {
+				}
+				else if (cNext >= '1' && cNext <= '9') {
 					cNext -= '1';
 					if (cNext >= pResult->nbrackets) {
 						REGEX_ERROR(IDS_MSGRE_UNDEFINED_BACKREF);
@@ -728,6 +729,12 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 					pMatcher->m_type = BACK_REFERENCE;
 					pMatcher->m_param.m_reference = cNext;
 					pPatternRun += matcherSizes[BACK_REFERENCE];
+				} else if (cNext == 't') {
+					pPatternRun = regex_compileSingleChar(pMatcher, flags, '\t');
+				} else if (cNext == 'f') {
+					pPatternRun = regex_compileSingleChar(pMatcher, flags, '\f');
+				} else if (cNext == 'b') {
+					pPatternRun = regex_compileSingleChar(pMatcher, flags, '\b');
 				} else {
 					pPatternRun = regex_compileSingleChar(pMatcher, flags, cNext);
 				}

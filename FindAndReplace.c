@@ -118,7 +118,11 @@ int find_initializeReplaceByExpression(unsigned const char* replaceByExpression)
 	else {
 		nlchar = '\n';
 	}
-	int result = regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) { (char*)replaceByExpression, _currentSearchAndReplaceParams.options, nlchar, _lastCompiledPattern.nbrackets },
+	int result = regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) { 
+			.replacementPattern = (char*)replaceByExpression, 
+			.flags = _currentSearchAndReplaceParams.options, 
+			.newlineCharacter = nlchar, 
+			.maxCaptureGroups = _lastCompiledPattern.nbrackets },
 		& _currentReplacementPattern);
 	if (_currentReplacementPattern.errorCode) {
 		regex_compilationFailed(_currentReplacementPattern.errorCode);

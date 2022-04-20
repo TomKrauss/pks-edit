@@ -16,19 +16,21 @@ This release features __multi-caret__ editing and a major update of the PKSMacro
 
 ### Improved
 - The code completion window displays now additional information about completions in a secondary window in situations
-where additional information is available. An example are templates, which show a preview of the text to insert or PKS-Edit
-commands which show an explanation about the command.
-- Expressions with strings in PKSMacroC such as "x"+1 are automatically coerced to string. One does not need to write any more "x"+(string)1.
+where additional information is available. An example are templates, which show a preview of the text to insert or PKSMacroC
+functions and macros which show the description of the respective function or macro.
+
+#### PKSMacroC
+- Expressions with strings such as "x"+1 are automatically coerced to string. One does not need to write any more "x"+(string)1.
 - PKSMacroC supports now postfix `++` and `--` operators and shorthand assignment operators (e.g. `*=`, `+=`, ...).
 - New datatypes `float`, `boolean`, `range`, `map`, array types (`string[]`, `int[]`, ...) and some additional special types like `FILE`
-  and `EDITOR` were introduced in PKSMacroC.
+  and `EDITOR` were introduced.
 - PKSMacroC supports now foreach loops using the following syntax: `for (type variable : expression) {...}`. One can currently iterate
   over ranges, strings and arrays.
 - PKSMacroC supports now regular C style for loops with the following syntax `for (initializer; condition; increment) {...}`.
 - PKSMacroC supports now switch expressions.
 - PKSMacroC allows for simple extension using native (WIN32 API) methods.
 - Many utility methods in particular for working with arrays, files and strings were added to PKSMacroC.
-- One may define a macroC function parameter with a type of `auto` to allow for arbitrary values being passed to a MacroC function
+- One may define a macroC function parameter with a type of `auto` to allow for arbitrary values being passed to a PKSMacroC function
 - One may use the new syntax `*function(params...)` now to execute a function (macro or native) **by name**.
 - Expressions can now be correctly passed as function arguments.
 - PKSMacroC supports now [] operators to extract single characters or a range of characters from a string or one or more words from a string array.
@@ -43,11 +45,15 @@ commands which show an explanation about the command.
 - Decompilation of macros will better reverse engineer control flow expressions (if, while, else....).
 - PKSMacroC compiler error diagnostics was improved. Error messages will now more likely point you to the actual problem. Special
   error reporting for common programming errors (missing closing brackets, use of undeclared vars etc...) was added.
-- Internally objects allocated by the MacroC VM are dynamically garbagge collected. No memory leaks any more like before, when executing
-  macroC code.
+- Internal objects allocated by the MacroC VM are dynamically garbagge collected. No memory leaks any more like before, when executing
+  PKSMacroC code.
 - One can open, print to and clear a console from macroC code for logging or debugging purpose.
 - Error diagnostics of the PKSMacroC compiler and error handling in PKSMacroC has been improved (there is still room for improvement). 
 
+#### Markdown wysiwyg mode
+- One can search now and find matches in markdown documents rendered in Wysiwyg format
+- More HTML formatting is now supported in wysiwyg rendering
+- 
 ### Changed
 - all files previously stored in the old Windows INI-file format (`pksedit.his`, `pksedit.ini`) were replaced by JSON formatted files:
   `pkseditini.json` captures the standard PKS-Edit configuration, file `pkssession.json` contains _session_ information like the list
@@ -77,6 +83,8 @@ commands which show an explanation about the command.
   and closing many editor tabs wasted considerable GDI resources.
 - The code completion help secondary window was sometimes not correctly closed and stayed open on the screen - this is fixed.
 - Convert spaces to tabs did not convert all possible spaces to tabs, but only the ones at the beginning of lines.
+- Searching for \t, \f and \b had been broken when searching using regular expressions and did not find the respective characters.
+- Replacing expressions with \n in the replace by patterns did not automatically split lines any more. This regression was fixed.
 
 ### 2.1.0
 
