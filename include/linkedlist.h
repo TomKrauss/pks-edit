@@ -98,7 +98,7 @@ extern long ll_size(LINKED_LIST* linkedList);
  *
  * Find an element in a linked list, with a given name.
  */
-extern void* ll_find(void* linkedList, char* name);
+extern void* ll_find(void* linkedList, const char* name);
 
 
 

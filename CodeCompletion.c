@@ -31,6 +31,10 @@
 #include "codecompletion.h"
 #include "themes.h"
 #include "xdialog.h"
+#include "htmlrendering.h"
+
+#define GWL_HELPWINDOW_VIEWPARTS		0
+#define GWL_HELPWINDOW_EXTRA	GWL_HELPWINDOW_VIEWPARTS+sizeof(void*)
 
 #define CLASS_CODE_COMPLETION		"CodeCompletion"
 #define CLASS_CODE_COMPLETION_HELP	"CodeCompletionJHelp"
@@ -210,23 +214,13 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
  * Paint the help window.
  */
 static void codecomplete_paintHelp(HWND hwnd) {
-	THEME_DATA* pTheme = theme_getCurrent();
 	PAINTSTRUCT paint;
-	char szText[512];
-	GetWindowText(hwnd, szText, sizeof szText);
 
 	BeginPaint(hwnd, &paint);
-	SetBkMode(paint.hdc, TRANSPARENT);
-	SetTextColor(paint.hdc, pTheme->th_dialogForeground);
-	HFONT hFont = SelectObject(paint.hdc, theme_createSmallFixedFont());
-	HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogBackground);
-	FillRect(paint.hdc, &paint.rcPaint, hBrush);
-	DeleteObject(hBrush);
-	RECT rect;
-	GetClientRect(hwnd, &rect);
-	InflateRect(&rect, -4, -4);
-	DrawTextEx(paint.hdc, szText, -1, &rect, DT_EXPANDTABS|DT_WORDBREAK, NULL);
-	DeleteObject(SelectObject(paint.hdc, hFont));
+	RENDER_VIEW_PART* pFirst = (RENDER_VIEW_PART * )GetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS);
+	if (pFirst) {
+		mdr_renderViewparts(hwnd, &paint, pFirst);
+	}
 }
 
 /*
@@ -342,6 +336,22 @@ static void codecomplete_updateHelpWindowPosition(HWND hwnd) {
 }
 
 /*
+ * Update the help window contents (HTML formatted text) to display.
+ */
+static void codecomplete_setHelpContents(HWND hwnd, const char* pszHelp) {
+	RENDER_VIEW_PART* pFirst = (RENDER_VIEW_PART *)GetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS);
+	if (pFirst) {
+		mdr_destroyViewParts(&pFirst);
+		SetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS, 0);
+	}
+	if (pszHelp && *pszHelp) {
+		pFirst = mdr_parseHTML(pszHelp);
+		SetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS, (LONG_PTR)pFirst);
+		InvalidateRect(hwnd, 0, 1);
+	}
+}
+
+/*
  * Displays a help for the current code completion suggestion-
  */
 static void codecomplete_displayHelpFor(HWND hwnd, CODE_COMPLETION_PARAMS* pParam) {
@@ -359,7 +369,7 @@ static void codecomplete_displayHelpFor(HWND hwnd, CODE_COMPLETION_PARAMS* pPara
 	HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
 	if (!pszHelp || !*pszHelp) {
 		if (hwndSecondary) {
-			SetWindowText(hwndSecondary, "");
+			codecomplete_setHelpContents(hwndSecondary, 0);
 			ShowWindow(hwndSecondary, SW_HIDE);
 		}
 		return;
@@ -372,7 +382,7 @@ static void codecomplete_displayHelpFor(HWND hwnd, CODE_COMPLETION_PARAMS* pPara
 		SetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW, (LONG_PTR)hwndSecondary);
 	}
 	codecomplete_updateHelpWindowPosition(hwnd);
-	SetWindowText(hwndSecondary, pszHelp);
+	codecomplete_setHelpContents(hwndSecondary, pszHelp);
 	free((char*)pszHelp);
 	InvalidateRect(hwndSecondary, NULL, FALSE);
 }
@@ -527,12 +537,14 @@ static LRESULT codecomplete_helpWndProc(HWND hwnd, UINT message, WPARAM wParam, 
 	switch (message) {
 	case WM_ERASEBKGND:
 		return 0;
-
 	case WM_PAINT:
 		codecomplete_paintHelp(hwnd);
 		return 0;
 	case WM_SIZE:
 		InvalidateRect(hwnd, 0, FALSE);
+		break;
+	case WM_DESTROY:
+		codecomplete_setHelpContents(hwnd, 0);
 		break;
 	}
 	return DefWindowProc(hwnd, message, wParam, lParam);
@@ -588,10 +600,9 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		case WM_WINDOWPOSCHANGED: {
 			HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
 			if (hwndSecondary && IsWindowVisible(hwnd)) {
-				char szBuf[10];
 				WINDOWPOS* pWinpos = (WINDOWPOS*)lParam;
-				GetWindowText(hwndSecondary, szBuf, sizeof szBuf);
-				if (!szBuf[0] || (pWinpos->flags & SWP_HIDEWINDOW)) {
+				BOOL bHasContents = GetWindowLongPtr(hwndSecondary, GWL_HELPWINDOW_VIEWPARTS) != 0;
+				if (!bHasContents || (pWinpos->flags & SWP_HIDEWINDOW)) {
 					ShowWindow(hwndSecondary, SW_HIDE);
 				} else {
 					codecomplete_updateHelpWindowPosition(hwnd);
@@ -655,7 +666,7 @@ int codecomplete_registerWindowClass() {
 	}
 
 	wc.lpfnWndProc = codecomplete_helpWndProc;
-	wc.cbWndExtra = 0;
+	wc.cbWndExtra = GWL_HELPWINDOW_EXTRA;
 	wc.hIcon = NULL;
 	wc.hCursor = LoadCursor(0, IDC_ARROW);
 	wc.hbrBackground = GetSysColorBrush(COLOR_WINDOW);

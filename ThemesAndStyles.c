@@ -1318,7 +1318,7 @@ void theme_prepareChildrenForDarkmode(HWND hParent) {
  * Returns the foreground color of a text style with a given name in the current theme.
  * If the style cannot be found a default value is returned.
  */
-long theme_textStyleForeground(char* pszStylename, long lDefault) {
+long theme_textStyleForeground(const char* pszStylename, long lDefault) {
 	EDTEXTSTYLE* pStyle = ll_find((void*)theme_getCurrent()->th_styles, pszStylename);
 	return pStyle ? pStyle->fgcolor : lDefault;
 }
@@ -1327,7 +1327,7 @@ long theme_textStyleForeground(char* pszStylename, long lDefault) {
  * Returns the background color of a text style with a given name in the current theme.
  * If the style cannot be found a default value is returned.
  */
-long theme_textStyleBackground(char* pszStylename, long lDefault) {
+long theme_textStyleBackground(const char* pszStylename, long lDefault) {
 	EDTEXTSTYLE* pStyle = ll_find((void*)theme_getCurrent()->th_styles, pszStylename);
 	return pStyle ? pStyle->bgcolor : lDefault;
 }

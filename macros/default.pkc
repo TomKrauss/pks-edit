@@ -15,7 +15,12 @@ void TrimTrailingBlanks() {
 }
 
 /*
- * find a single line comment in a text. Skip over string literals.
+ * Find a single line comment in a text. Skip over string literals.
+ * @param text the text in which a single line comment is <em>searched</em>.
+ * @param comment the string introducing single line comments, e.g. <code>//</code>.
+ * <span class="error">Caveat</span>: Currently limited to 2-character size delimiters.
+ * @return the index in 'text' where the comment starts or -1, if no single
+ * line comment is contained in 'text'.
  */
 static int FindSingleLineComment(string text, string comment) {
 	boolean inString = false;

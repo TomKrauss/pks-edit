@@ -103,6 +103,66 @@ static const char* analyzer_pksTypeFromParamtype(PARAMETER_TYPE_DESCRIPTOR pt) {
 	return types_nameFor(VT_NUMBER);
 }
 
+static void analyzer_startHelpSection(STRING_BUF* pBuf, const char* pszName) {
+	stringbuf_appendString(pBuf, "<p><b>");
+	stringbuf_appendString(pBuf, pszName);
+	stringbuf_appendString(pBuf, "</b>:<br>");
+}
+
+static analyzer_formatJavadocComment(STRING_BUF* pBuf, const char* pszInput) {
+	char szTag[64];
+	char* pszTag = 0;
+	BOOL bParamsFound = 0;
+	BOOL bHighlightWord = 0;
+	char c;
+
+	analyzer_startHelpSection(pBuf, "Description");
+	while ((c = *pszInput++) != 0) {
+		if (!pszTag) {
+			if (c == '@') {
+				pszTag = szTag;
+				bHighlightWord = 0;
+			}
+			else {
+				if (bHighlightWord == 1 && isalpha(c)) {
+					stringbuf_appendString(pBuf, "<em>");
+					bHighlightWord = 2;
+				}
+				else if (bHighlightWord == 2 && !isalpha(c)) {
+					stringbuf_appendString(pBuf, "</em> - ");
+					bHighlightWord = 0;
+				}
+				stringbuf_appendChar(pBuf, c);
+			}
+		}
+		else if (pszTag) {
+			if (!isalpha(c)) {
+				*pszTag = 0;
+				pszTag = 0;
+				if (strcmp("param", szTag) == 0) {
+					if (!bParamsFound) {
+						stringbuf_appendString(pBuf, "</p>");
+						analyzer_startHelpSection(pBuf, "Parameters");
+						bParamsFound = 1;
+					} else {
+						stringbuf_appendString(pBuf, "<br>");
+					}
+					bHighlightWord = 1;
+				}
+				else {
+					szTag[0] = toupper(szTag[0]);
+					stringbuf_appendString(pBuf, "</p>");
+					analyzer_startHelpSection(pBuf, szTag);
+				}
+			}
+			else {
+				*pszTag++ = c;
+			}
+		}
+	}
+	stringbuf_appendString(pBuf, "</p>");
+}
+
 static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
 	NATIVE_FUNCTION* pFunc = pEdFunc;
 	if (!pFunc->nf_description) {
@@ -146,13 +206,20 @@ static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
 		stringbuf_appendChar(pszParams, ' ');
 		stringbuf_appendString(pszParams, szParamName);
 	}
-	char* pszParamsS = stringbuf_getString(pszParams);
-	char* pszRet = malloc(strlen(pszName) + 32 + strlen(pszParamsS) + strlen(pFunc->nf_description));
-	sprintf(pszRet, "Synopsis: %s %s(", analyzer_pksTypeFromParamtype(function_getParameterTypeDescriptor(pFunc, 0)), pszName);
-	strcat(pszRet, pszParamsS);
+	STRING_BUF* pBuf = stringbuf_create(200);
+	analyzer_startHelpSection(pBuf, "Synopsis");
+	stringbuf_appendString(pBuf, analyzer_pksTypeFromParamtype(function_getParameterTypeDescriptor(pFunc, 0)));
+	stringbuf_appendChar(pBuf, ' ');
+	stringbuf_appendString(pBuf, pszName);
+	stringbuf_appendChar(pBuf, '(');
+	stringbuf_appendString(pBuf, stringbuf_getString(pszParams));
 	stringbuf_destroy(pszParams);
-	strcat(pszRet, ")\n");
-	strcat(pszRet, pFunc->nf_description);
+	stringbuf_appendString(pBuf, "</p>");
+	
+	analyzer_formatJavadocComment(pBuf, pFunc->nf_description);
+	char* pszRet = _strdup(stringbuf_getString(pBuf));
+	stringbuf_destroy(pBuf);
+
 	return pszRet;
 }
 
@@ -167,12 +234,12 @@ static const char* analyzer_helpForMacro(const char* pszName, void* pMac) {
 	STRING_BUF* pBuf = stringbuf_create(200);
 	MACRO* pMacro = pMac;
 
-	stringbuf_appendString(pBuf, "Synopsis: ");
+	analyzer_startHelpSection(pBuf, "Synopsis");
 	decompile_printMacroSignature(pMacro, pBuf, 0);
+	stringbuf_appendString(pBuf, "</p>");
 	char* pszComment = MAC_COMMENT(pMacro);
 	if (pszComment) {
-		stringbuf_appendChar(pBuf, '\n');
-		stringbuf_appendString(pBuf, pszComment);
+		analyzer_formatJavadocComment(pBuf, pszComment);
 	}
 	char * pszRet = _strdup(stringbuf_getString(pBuf));
 	stringbuf_destroy(pBuf);

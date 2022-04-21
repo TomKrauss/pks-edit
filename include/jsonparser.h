@@ -74,6 +74,11 @@ typedef struct tagJSON_MAPPING_RULE {
 extern int json_parse(const char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* pRules);
 
 /*
+ * Convert a (CSS) color specification from the JSON file.
+ */
+extern COLORREF json_convertColor(char* pszString);
+
+/*
  * Write out an object with a given set of mapping rules in JSON format.
  */
 int json_marshal(const char* pszFilename, void* pSourceObject, JSON_MAPPING_RULE* pRules);

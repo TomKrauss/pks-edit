@@ -17,7 +17,8 @@ This release features __multi-caret__ editing and a major update of the PKSMacro
 ### Improved
 - The code completion window displays now additional information about completions in a secondary window in situations
 where additional information is available. An example are templates, which show a preview of the text to insert or PKSMacroC
-functions and macros which show the description of the respective function or macro.
+functions and macros which show the description of the respective function or macro. The code completion help window supports
+simple HTML formatting.
 
 #### PKSMacroC
 - Expressions with strings such as "x"+1 are automatically coerced to string. One does not need to write any more "x"+(string)1.
@@ -26,6 +27,8 @@ functions and macros which show the description of the respective function or ma
   and `EDITOR` were introduced.
 - PKSMacroC supports now foreach loops using the following syntax: `for (type variable : expression) {...}`. One can currently iterate
   over ranges, strings and arrays.
+- Macro comments in PKSMacroC support now a 'Java' - like syntax for formatting comments. In particular one may use 
+  @param or @return tags to describe return values or parameters.
 - PKSMacroC supports now regular C style for loops with the following syntax `for (initializer; condition; increment) {...}`.
 - PKSMacroC supports now switch expressions.
 - PKSMacroC allows for simple extension using native (WIN32 API) methods.

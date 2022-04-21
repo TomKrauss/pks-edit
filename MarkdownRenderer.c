@@ -32,6 +32,8 @@
 #include "pksmacro.h"
 #include "mainframe.h"
 #include "edctype.h"
+#include "jsonparser.h"
+#include "htmlrendering.h"
 
 #define NO_COLOR			-1		// marker for no color defined
 #define PARAGRAPH_OFFSET	15		// offset in pixels between paragraph type elements.
@@ -41,12 +43,10 @@
 
 extern HINSTANCE		hInst;
 
-static const char _escapedChars[] = "\\`*_{}[]<>()#+-.!|";
+static const char _escapedChars[] = "\\`*_{}[]<>()#+-.!|&";
 
 // Loads the an image with a name and a format into a HBITMAP.
 extern HBITMAP loadimage_load(char* pszName);
-
-typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 
 typedef void (*RENDER_PAINT)(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, RECT* pUsed, float zoomFactor);
 
@@ -61,9 +61,12 @@ static ENTITY_MAPPING _entities[] = {
 	{'\'', "apos;"},
 	{'<', "lt;"},
 	{'>', "gt;"},
+	{'@', "#64;"},
+	{'/', "#47;"},
 	{' ', "nbsp;"},
 	{'®', "reg;"},
-};
+	{'¥', "yen;"}
+}; 
 
 //
 // Describes the bounds of a text run with the following shape.
@@ -108,6 +111,12 @@ typedef struct tagMD_IMAGE {
 	int					mdi_height;
 	HBITMAP				mdi_image;
 } MD_IMAGE;
+
+typedef struct tagFONT_STYLE_DELTA {
+	int fsd_logicalStyles;
+	COLORREF fsd_fgColor;
+	const char* fsd_styleName;
+} FONT_STYLE_DELTA;
 
 typedef struct tagTEXT_RUN {
 	struct tagTEXT_RUN* tr_next;
@@ -199,9 +208,10 @@ typedef struct tagMDR_ELEMENT_FORMAT {
 #define ATTR_STRONG		0x2
 #define ATTR_STRIKE		0x4
 #define ATTR_CODE		0x8
-#define ATTR_HIGHLIGHT		0x10
+#define ATTR_HIGHLIGHT	0x10
 #define ATTR_LINK		0x20
 #define ATTR_LINE_BREAK 0x40
+#define ATTR_UNDERLINE	0x80
 
 typedef struct tagRENDER_FLOW_PARAMS {
 	HDC rfp_hdc;
@@ -225,6 +235,10 @@ static MDR_ELEMENT_FORMAT _formatFenced = {
 
 #define BLOCK_QUOTE_INDENT		25
 #define BLOCK_QUOTE_MARGIN		4
+
+static MDR_ELEMENT_FORMAT _formatParagraph = {
+	0, 10, 0, 10, 14, FW_NORMAL
+};
 
 static MDR_ELEMENT_FORMAT _formatBlockQuote = {
 	0, 0, DEFAULT_LEFT_MARGIN+BLOCK_QUOTE_INDENT, 20, 14, FW_NORMAL
@@ -557,6 +571,9 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 	TEXT_RUN* pTR = pTF->tf_runs;
 	int nOffs = 0;
 	size_t nLen;
+	if (!pTR) {
+		return;
+	}
 	nLen = pTR->tr_size;
 	int nHeight = 0;
 	HDC hdc = pRFP->rfp_hdc;
@@ -890,8 +907,9 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(LINE* lp, int *pOffset, int
 	return mType;
 }
 
-static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, size_t nSize, int mAttrs, char* szStyle, LINE* lp, int nLineOffset) {
-	if (nSize == 0 && *pRuns) {
+static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, size_t nSize, FONT_STYLE_DELTA *pFSD, LINE* lp, int nLineOffset) {
+	int mAttrs = pFSD->fsd_logicalStyles;
+	if (nSize == 0 && *pRuns && (mAttrs & ATTR_LINE_BREAK) == 0) {
 		return NULL;
 	}
 	if (!pFormat) {
@@ -913,17 +931,18 @@ static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, si
 	} else {
 		pRun->tr_attributes.bgColor = NO_COLOR;
 	}
-	if (mAttrs & ATTR_LINK) {
+	if (mAttrs & (ATTR_LINK|ATTR_UNDERLINE)) {
 		pRun->tr_attributes.underline = 1;
 	}
-	if (szStyle) {
-		pRun->tr_attributes.fgColor = theme_textStyleForeground(szStyle, NO_COLOR);
+	if (pFSD->fsd_styleName) {
+		pRun->tr_attributes.fgColor = theme_textStyleForeground(pFSD->fsd_styleName, NO_COLOR);
 	} else {
 		if (mAttrs & ATTR_LINK) {
 			pRun->tr_attributes.fgColor = theme_textStyleForeground("hyperlink", RGB(120, 120, 255));
 		}
 		else {
-			pRun->tr_attributes.fgColor = NO_COLOR;
+			pRun->tr_attributes.fgColor = pFSD->fsd_fgColor;
+			pFSD->fsd_fgColor = NO_COLOR;
 		}
 	}
 	if (mAttrs & ATTR_EMPHASIS) {
@@ -938,6 +957,7 @@ static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, si
 	if (mAttrs & ATTR_LINE_BREAK) {
 		pRun->tr_attributes.lineBreak = 1;
 	}
+	pFSD->fsd_logicalStyles &= ~(ATTR_LINE_BREAK | ATTR_LINK);
 	return pRun;
 }
 
@@ -1092,7 +1112,7 @@ static LINE* mdr_parseFencedCodeBlock(RENDER_VIEW_PART* pPart, LINE* lp, STRING_
 			stringbuf_appendChar(pSB, ' ');
 			nSize++;
 		}
-		mdr_appendRun(&pPart->rvp_data.rvp_flow.tf_runs, &_formatFenced, nSize, ATTR_LINE_BREAK, 0, lp, nRunStart);
+		mdr_appendRun(&pPart->rvp_data.rvp_flow.tf_runs, &_formatFenced, nSize, &(FONT_STYLE_DELTA){ATTR_LINE_BREAK, .fsd_fgColor = NO_COLOR, 0}, lp, nRunStart);
 		nLastOffset += nSize;
 		lp = lp->next;
 	}
@@ -1102,13 +1122,14 @@ static LINE* mdr_parseFencedCodeBlock(RENDER_VIEW_PART* pPart, LINE* lp, STRING_
 /*
  * Parses the auto-link syntax.
  */
-static BOOL mdr_parseAutolinks(TEXT_FLOW* pFlow, LINE* lp, STRING_BUF* pSB, MDR_ELEMENT_FORMAT* pFormat, int mAttrs, int* pOffset, size_t* pLastOffset) {
+static BOOL mdr_parseAutolinks(TEXT_FLOW* pFlow, LINE* lp, STRING_BUF* pSB, MDR_ELEMENT_FORMAT* pFormat, FONT_STYLE_DELTA* pFSD, 
+		int* pOffset, size_t* pLastOffset) {
 	int i = *pOffset;
 	int nTextStart = i + 1;
 	char* pLast = strchr(&lp->lbuf[nTextStart], '>');
 	if (pLast && strchr(&lp->lbuf[i], '.') != 0) {
 		size_t nSize = stringbuf_size(pSB) - *pLastOffset;
-		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs, 0, lp, (int) * pLastOffset);
+		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pFSD, lp, (int) * pLastOffset);
 		(*pLastOffset) += nSize;
 		char szTemp[512];
 		char* pszLink;
@@ -1122,7 +1143,7 @@ static BOOL mdr_parseAutolinks(TEXT_FLOW* pFlow, LINE* lp, STRING_BUF* pSB, MDR_
 		szTemp[nSize] = 0;
 		stringbuf_appendStringLength(pSB, &lp->lbuf[nTextStart], nSize);
 		nSize = stringbuf_size(pSB) - *pLastOffset;
-		TEXT_RUN* pRun = mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, ATTR_LINK, 0, lp, nTextStart);
+		TEXT_RUN* pRun = mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, &(FONT_STYLE_DELTA){ATTR_LINK, .fsd_fgColor = NO_COLOR, 0}, lp, nTextStart);
 		int nWidth = 0;
 		int nHeight = 0;
 		if (!mdr_parseLinkUrl(0, szTemp, &pszLink, &pszTitle, &nWidth, &nHeight)) {
@@ -1191,10 +1212,78 @@ static struct tagHTML_TAG_MAPPING {
 	{"em", ATTR_EMPHASIS},
 	{"b", ATTR_STRONG},
 	{"i", ATTR_EMPHASIS},
+	{"u", ATTR_UNDERLINE},
+	{"del", ATTR_STRIKE},
+	{"strike", ATTR_STRIKE},
+	{"s", ATTR_STRIKE},
 	{"code", ATTR_CODE},
 	{"span", 0},
+	{"br", ATTR_LINE_BREAK},
+	{"p", ATTR_LINE_BREAK},
 	{"tt", ATTR_CODE}
 };
+
+/*
+ * Parse a CSS style specification. Currently only color: #xxx / color: red or similar specifications
+ * are supported.
+ */
+static void mdr_parseStyle(FONT_STYLE_DELTA* pFSD, const char* pszStyleSpec) {
+	int tState = 0;
+	char szAttribute[128];
+	char szAttrValue[128];
+	char* pszAttr;
+	char* pszValue;
+	char c;
+
+	while (1) {
+		c = *pszStyleSpec++;
+		if (tState == 0) {
+			if (isalpha(c)) {
+				pszAttr = szAttribute;
+				tState = 1;
+			}
+			else {
+				if (!c) {
+					break;
+				}
+				continue;
+			}
+		}
+		if (tState == 1) {
+			if (!c) {
+				break;
+			}
+			if (c == ':') {
+				*pszAttr = 0;
+				tState = 2;
+				pszValue = szAttrValue;
+				continue;
+			}
+			*pszAttr++ = c;
+			continue;
+		}
+		if (tState == 2) {
+			if (c == ';' || c == 0) {
+				*pszValue = 0;
+				tState = 0;
+				if (strcmp("color", szAttribute) == 0) {
+					pFSD->fsd_fgColor = json_convertColor(szAttrValue);
+				} else if (strcmp("text-decoration", szAttribute) == 0) {
+					if (strcmp("underline", szAttrValue)) {
+						pFSD->fsd_logicalStyles |= ATTR_UNDERLINE;
+					} else if (strcmp("line-through", szAttrValue)) {
+						pFSD->fsd_logicalStyles |= ATTR_STRIKE;
+					}
+				}
+				if (!c) {
+					break;
+				}
+			} else if (c != ' ') {
+				*pszValue++ = c;
+			}
+		}
+	}
+}
 
 /*
  * Parse an HTML tag: <b> or </em> or the like.
@@ -1207,12 +1296,15 @@ typedef enum {
 	HPS_WAIT_FOR_VALUE = 4,
 	HPS_VALUE = 5
 } HTML_PARSE_STATE;
-static int mdr_getTag(const char* pszSource, char* pszDest, size_t nDestSize, char** pszStyle, BOOL* pEnd) {
+static int mdr_getTag(const char* pszSource, FONT_STYLE_DELTA* pFSD, struct tagHTML_TAG_MAPPING** ppMapping, BOOL* pEnd) {
+	char szTag[10];
 	char szAttribute[32];
 	static char szValue[128];
 	char* pszAttr = 0;
 	char* pszValue = 0;
 	const char* pszStart = pszSource;
+	char* pszDest = szTag;
+	size_t nDestSize = sizeof szTag;
 	HTML_PARSE_STATE nState = HPS_INIT;
 	if (*pszSource == '/') {
 		*pEnd = 1;
@@ -1221,12 +1313,18 @@ static int mdr_getTag(const char* pszSource, char* pszDest, size_t nDestSize, ch
 	else {
 		*pEnd = 0;
 	}
-	*pszStyle = 0;
+	pFSD->fsd_styleName = 0;
 	while (nDestSize > 1) {
 		char c = *pszSource++;
 		if (c == '>') {
 			*pszDest = 0;
-			return (int)(pszSource - pszStart);
+			for (int nElement = 0; nElement < DIM(_tagMappings); nElement++) {
+				if (strcmp(_tagMappings[nElement].tm_element, szTag) == 0) {
+					*ppMapping = &_tagMappings[nElement];
+					return (int)(pszSource - pszStart);
+				}
+			}
+			return 0;
 		}
 		switch (nState) {
 		case HPS_INIT:
@@ -1275,13 +1373,152 @@ static int mdr_getTag(const char* pszSource, char* pszDest, size_t nDestSize, ch
 			} else {
 				*pszValue = 0;
 				if (strcmp("class", szAttribute) == 0) {
-					*pszStyle = szValue;
+					pFSD->fsd_styleName = szValue;
+				} else if (strcmp("style", szAttribute) == 0) {
+					mdr_parseStyle(pFSD, szValue);
 				}
 				nState = HPS_BETWEEN_ATTR;
 			}
 		}
 	}
 	return 0;
+}
+
+/*
+ * Parse an HTML entity spec and convert into a character if successful. 
+ */
+static int mdr_parseEntity(STRING_BUF* pSB, const char* pszInput, int* pNewIndex) {
+	BOOL bFound = FALSE;
+	for (int nE = 0; nE < DIM(_entities); nE++) {
+		size_t nLen = strlen(_entities[nE].entity);
+		if (strncmp(pszInput, _entities[nE].entity, nLen) == 0) {
+			stringbuf_appendChar(pSB, _entities[nE].c);
+			*pNewIndex += (int)nLen;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static RENDER_VIEW_PART* mdr_newPart(RENDER_VIEW_PART** pFirst, FONT_STYLE_DELTA* pFSD, STRING_BUF* pSB, MDR_ELEMENT_FORMAT* pFormat) {
+	RENDER_VIEW_PART* pPart = ll_append(pFirst, sizeof * pPart);
+	pPart->rvp_paint = mdr_renderMarkdownBlockPart;
+	pPart->rvp_type = MET_NORMAL;
+	pFSD->fsd_logicalStyles = 0;
+	pFSD->fsd_styleName = 0;
+	pFSD->fsd_fgColor = NO_COLOR;
+	pPart->rvp_margins = pFormat->mef_margins;
+	pPart->rvp_margins.m_left = 5;
+	pPart->rvp_margins.m_right = 5;
+	stringbuf_reset(pSB);
+	return pPart;
+}
+
+/*
+ * Skip all leading space chars in an input string.
+ */
+static const char* mdr_skipLeadingSpace(const char* pInput) {
+	while (isspace(*pInput)) {
+		pInput++;
+	}
+	return pInput;
+}
+
+/*
+ * Parse a text and convert it into a list of view parts to be rendered later.
+ * Note, that the viewparts must be destroyed, when they are not needed any more
+ * using mdr_destroyViewParts.
+ */
+RENDER_VIEW_PART* mdr_parseHTML(const char* pszText) {
+	MDR_ELEMENT_FORMAT* pFormat = &_formatText;
+	RENDER_VIEW_PART* pFirst = 0;
+	FONT_STYLE_DELTA fsdTable[20];
+	FONT_STYLE_DELTA* pfsd = fsdTable;
+	STRING_BUF* pSB = stringbuf_create(256);
+	RENDER_VIEW_PART* pPart = mdr_newPart(&pFirst, pfsd, pSB, pFormat);
+	TEXT_FLOW* pFlow = &pPart->rvp_data.rvp_flow;
+	size_t nLastOffset = 0;
+	char c;
+	size_t nSize;
+
+	while ((c = *pszText++) != 0) {
+		if (c == '&') {
+			int i = 0;
+			if (mdr_parseEntity(pSB, pszText, &i)) {
+				pszText += i;
+				continue;
+			}
+		} else if (c == '<') {
+			BOOL bClose;
+			struct tagHTML_TAG_MAPPING* pMapping;
+			FONT_STYLE_DELTA fsdNext = *pfsd;
+			int iDelta = mdr_getTag(pszText, &fsdNext, &pMapping, &bClose);
+			if (iDelta) {
+				pszText += iDelta;
+				nSize = stringbuf_size(pSB) - nLastOffset;
+				if (strcmp("p", pMapping->tm_element) == 0) {
+					if (nSize) {
+						mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, 0, 0);
+						nLastOffset += nSize;
+					}
+					if (pFlow->tf_runs) {
+						pFlow->tf_text = _strdup(stringbuf_getString(pSB));
+						pFormat = bClose ? &_formatText : &_formatParagraph;
+						FONT_STYLE_DELTA* pfsd = fsdTable;
+						pPart = mdr_newPart(&pFirst, pfsd, pSB, pFormat);
+						pFlow = &pPart->rvp_data.rvp_flow;
+						nLastOffset = 0;
+						pszText = mdr_skipLeadingSpace(pszText);
+					}
+					else if (!bClose) {
+						pFormat = &_formatParagraph;
+						pPart->rvp_margins.m_top = pFormat->mef_margins.m_top;
+						pPart->rvp_margins.m_bottom = pFormat->mef_margins.m_bottom;
+					}
+					continue;
+				}
+				BOOL bBreak = pMapping->tm_textAttr & ATTR_LINE_BREAK;
+				if (bBreak) {
+					pfsd->fsd_logicalStyles |= ATTR_LINE_BREAK;
+					pszText = mdr_skipLeadingSpace(pszText);
+				} else {
+					while (isspace(*pszText) && isspace(pszText[1])) {
+						pszText++;
+					}
+				}
+				mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, 0, 0);
+				nLastOffset += nSize;
+				if (!bBreak) {
+					if (bClose) {
+						if (pfsd > fsdTable) {
+							pfsd--;
+						}
+					}
+					else if (pfsd < &fsdTable[DIM(fsdTable)]) {
+						fsdNext.fsd_logicalStyles |= pMapping->tm_textAttr;
+						*++pfsd = fsdNext;
+					}
+				}
+				continue;
+			}
+		} else if (c == '\n' && *pszText == '\n') {
+			// treat empty line as real line break.
+			nSize = stringbuf_size(pSB) - nLastOffset;
+			pfsd->fsd_logicalStyles |= ATTR_LINE_BREAK;
+			mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, 0, 0);
+			nLastOffset += nSize;
+			pszText++;
+			continue;
+		}
+		stringbuf_appendChar(pSB, c);
+	}
+	nSize = stringbuf_size(pSB) - nLastOffset;
+	if (nSize) {
+		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, 0, 0);
+	}
+	pFlow->tf_text = _strdup(stringbuf_getString(pSB));
+	stringbuf_destroy(pSB);
+	return pFirst;
 }
 
 /*
@@ -1294,14 +1531,16 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 	int nLevel = 0;
 	int nLineOffset = 0;
 	int nRunLineOffset = 0;
-	char* pszFontstyle = 0;
-	char* pszNextstyle = 0;
 	LINE* lpRun = lp;
-	int mAttrs = nInitialAttrs;
+	FONT_STYLE_DELTA fsd;
+	FONT_STYLE_DELTA fsdNext;
 	size_t nLastOffset = 0;
 	size_t nSize;
 	MDR_ELEMENT_FORMAT* pFormat = NULL;
 
+	fsd.fsd_logicalStyles = nInitialAttrs;
+	fsd.fsd_styleName = 0;
+	fsd.fsd_fgColor = NO_COLOR;
 	MDR_ELEMENT_TYPE mType = MET_NORMAL;
 	BOOL bEnforceBreak = TRUE;
 	while (lp) {
@@ -1359,20 +1598,20 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 			}
 			bEnforceBreak = FALSE;
 			int nToggle = 0;
-			pszNextstyle = 0;
+			fsdNext = fsd;
 			if (c == '\\' && i < lp->len - 1 && strchr(_escapedChars, lp->lbuf[i + 1]) != NULL) {
 				i++;
 				c = lp->lbuf[i];
-			} else if (!(mAttrs & ATTR_CODE) && c == '=' && i < lp->len-1 && lp->lbuf[i+1] == c) {
+			} else if (!(fsd.fsd_logicalStyles & ATTR_CODE) && c == '=' && i < lp->len-1 && lp->lbuf[i+1] == c) {
 				i++;
 				nSize = stringbuf_size(pSB) - nLastOffset;
-				mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs, pszFontstyle, lpRun, nRunLineOffset);
+				mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, &fsd, lpRun, nRunLineOffset);
 				nRunLineOffset = i;
 				lpRun = lp;
-				mAttrs ^= ATTR_HIGHLIGHT;
+				fsd.fsd_logicalStyles ^= ATTR_HIGHLIGHT;
 				nLastOffset += nSize;
 				continue;
-			} else if (c == '`' || (!(mAttrs & ATTR_CODE) && (c == '*' ||
+			} else if (c == '`' || (!(fsd.fsd_logicalStyles & ATTR_CODE) && (c == '*' ||
 				// allow for _ only at word borders.
 					(c == '_' && mdr_isAtWordBorder(lp, i)) ||
 				c == '~'))) {
@@ -1397,12 +1636,13 @@ static LINE* mdr_parseFlow(char* pszRelative, LINE* lp, int nStartOffset, int nE
 				if (nToggle) {
 text_attrs_changed:
 					nSize = stringbuf_size(pSB) - nLastOffset;
-					mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs, pszFontstyle, lpRun, nRunLineOffset);
-					pszFontstyle = pszNextstyle;
-					pszNextstyle = 0;
+					mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, &fsd, lpRun, nRunLineOffset);
+					fsd = fsdNext;
+					fsd.fsd_logicalStyles ^= nToggle;
+					fsdNext.fsd_styleName = 0;
+					fsdNext.fsd_fgColor = NO_COLOR;
 					nRunLineOffset = i+1;
 					lpRun = lp;
-					mAttrs ^= nToggle;
 					nLastOffset += nSize;
 					continue;
 				}
@@ -1418,7 +1658,7 @@ text_attrs_changed:
 				if (mdr_parseLink(pszRelative, lp, &nTextEnd, &pos, &pLink, &pTitle, &nWidth, &nHeight)) {
 					int nAttr = 0;
 					nSize = stringbuf_size(pSB) - nLastOffset;
-					mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs, pszFontstyle, lpRun, nRunLineOffset);
+					mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, &fsd, lpRun, nRunLineOffset);
 					lpRun = lp;
 					nLastOffset += nSize;
 					char c2 = lp->lbuf[nTextStart];
@@ -1442,7 +1682,8 @@ text_attrs_changed:
 					}
 					stringbuf_appendStringLength(pSB, &lp->lbuf[nTextStart], nTextEnd - nTextStart);
 					nSize = stringbuf_size(pSB) - nLastOffset;
-					TEXT_RUN* pRun = mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, nAttr | ATTR_LINK, pszFontstyle, lpRun, nTextStart);
+					fsd.fsd_logicalStyles |= ATTR_LINK;
+					TEXT_RUN* pRun = mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, &fsd, lpRun, nTextStart);
 					lpRun = lp;
 					if (bImage) {
 						pRun->tr_image = calloc(1, sizeof(MD_IMAGE));
@@ -1460,39 +1701,24 @@ text_attrs_changed:
 					continue;
 				}
 			} else if (c == '&') {
-				BOOL bFound = FALSE;
-				for (int nE = 0; _entities[nE].c; nE++) {
-					size_t nLen = strlen(_entities[nE].entity);
-					if (strncmp(&lp->lbuf[i+1], _entities[nE].entity, nLen) == 0) {
-						stringbuf_appendChar(pSB, _entities[nE].c);
-						i += (int)nLen;
-						bFound = TRUE;
-						continue;
-					}
-				}
-				if (bFound) {
+				if (mdr_parseEntity(pSB, &lp->lbuf[i + 1], &i)) {
 					continue;
 				}
 			} else if (c == '<') {
-				char szTag[10];
 				BOOL bClose;
-				int iDelta = mdr_getTag(&lp->lbuf[i + 1], szTag, sizeof szTag, &pszNextstyle, &bClose);
+				struct tagHTML_TAG_MAPPING* pMapping;
+				int iDelta = mdr_getTag(&lp->lbuf[i + 1], &fsdNext, &pMapping, &bClose);
 				if (iDelta) {
-					for (int nElement = 0; nElement < DIM(_tagMappings); nElement++) {
-						if (strcmp(_tagMappings[nElement].tm_element, szTag) == 0) {
-							nToggle = _tagMappings[nElement].tm_textAttr;
-							if (((mAttrs & nToggle) != 0) == bClose || ((pszNextstyle != 0) != (pszFontstyle != 0))) {
-								i += iDelta;
-								goto text_attrs_changed;
-							}
-							break;
-						}
-					}
-					if (strcmp(szTag, "br") == 0) {
+					nToggle = pMapping->tm_textAttr;
+					if (nToggle & ATTR_LINE_BREAK) {
 						nSize = stringbuf_size(pSB) - nLastOffset;
-						mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, mAttrs | ATTR_LINE_BREAK, pszFontstyle, lpRun, nRunLineOffset);
+						fsd.fsd_logicalStyles |= ATTR_LINE_BREAK;
+						mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, &fsd, lpRun, nRunLineOffset);
 						bEnforceBreak = TRUE;
 						nLastOffset += nSize;
+					} else if (((fsd.fsd_logicalStyles & nToggle) != 0) == bClose || ((fsdNext.fsd_styleName != 0) != (fsd.fsd_styleName != 0))) {
+						i += iDelta;
+						goto text_attrs_changed;
 					}
 					i += iDelta;
 					while (i < lp->len - 1 && lp->lbuf[i + 1] == ' ') {
@@ -1502,7 +1728,7 @@ text_attrs_changed:
 					lpRun = lp;
 					continue;
 				}
-				if (mdr_parseAutolinks(pFlow, lp, pSB, pFormat, mAttrs, &i, &nLastOffset)) {
+				if (mdr_parseAutolinks(pFlow, lp, pSB, pFormat, &fsd, &i, &nLastOffset)) {
 					continue;
 				}
 			}
@@ -1514,7 +1740,10 @@ text_attrs_changed:
 			stringbuf_appendChar(pSB, ' ');
 		}
 		nSize = stringbuf_size(pSB) - nLastOffset;
-		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, bEnforceBreak ? mAttrs|ATTR_LINE_BREAK : mAttrs, pszFontstyle, lpRun, nRunLineOffset);
+		if (bEnforceBreak) {
+			fsd.fsd_logicalStyles |= ATTR_LINE_BREAK;
+		}
+		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, &fsd, lpRun, nRunLineOffset);
 		nLastOffset += nSize;
 		if (nEndOffset >= 0) {
 			break;
@@ -1539,7 +1768,7 @@ outer:
 	pFlow->tf_text = nLen == 0 ? NULL : _strdup(stringbuf_getString(pSB));
 
 	nSize = nLen - nLastOffset;
-	mdr_appendRun(&pFlow->tf_runs, pFormat ? pFormat : &_formatText, nSize, mAttrs, pszFontstyle, lpRun, nRunLineOffset);
+	mdr_appendRun(&pFlow->tf_runs, pFormat ? pFormat : &_formatText, nSize, &fsd, lpRun, nRunLineOffset);
 
 	return lp;
 }
@@ -1894,8 +2123,6 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 			pPart = pPart->rvp_next;
 		}
 	}
-	// Todo - highlight caret line
-	HBRUSH hBrushCaretLine = CreateSolidBrush(pCtx->rc_theme->th_caretLineColor);
 	if (!pData->md_pElements) {
 		mdr_parseViewParts(wp, pData);
 	}
@@ -1927,11 +2154,31 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 		pPart = pPart->rvp_next;
 		nElements++;
 	}
-	DeleteObject(hBrushCaretLine);
 	if (bSizeChanged) {
 		pData->md_nElementsPerPage = nElements-1;
 		pData->md_displayingEndOfFile = pPart == NULL;
-		//mdr_adjustScrollBounds(wp);
+	}
+}
+
+/*
+ * Render some render view parts as a response to a WM_PAINT message.
+ */
+void mdr_renderViewparts(HWND hwnd, PAINTSTRUCT* ps, RENDER_VIEW_PART* pFirst) {
+	RECT rect;
+	RECT occupiedBounds;
+	HDC hdc = ps->hdc;
+	RECT* pClip = &ps->rcPaint;
+	GetClientRect(hwnd, &rect);
+	HBRUSH hBrushBg = theme_getDialogBackgroundBrush();
+	RENDER_VIEW_PART* pPart = pFirst;
+
+	FillRect(hdc, pClip, hBrushBg);
+	for (; pPart && rect.top < pClip->bottom; rect.top = occupiedBounds.bottom) {
+		pPart->rvp_paint(pPart, hdc, &rect, &occupiedBounds, 1.0f);
+		if (occupiedBounds.bottom > rect.bottom) {
+			break;
+		}
+		pPart = pPart->rvp_next;
 	}
 }
 
@@ -1982,6 +2229,13 @@ static int mdr_destroyViewPart(RENDER_VIEW_PART *pRVP) {
 }
 
 /*
+ * Destroy a list of view parts releasing unneeded memory.
+ */
+void mdr_destroyViewParts(RENDER_VIEW_PART** pHEAD) {
+	ll_destroy(pHEAD, mdr_destroyViewPart);
+}
+
+/*
  * Destroy the renderer data. 
  */
 static void mdr_destroyData(WINFO* wp) {
@@ -1990,7 +2244,7 @@ static void mdr_destroyData(WINFO* wp) {
 		if (pData->md_hwndTooltip) {
 			DestroyWindow(pData->md_hwndTooltip);
 		}
-		ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
+		mdr_destroyViewParts(&pData->md_pElements);
 		free(pData->md_pElements);
 		pData->md_pElements = NULL;
 		free(pData);
@@ -2059,13 +2313,16 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 	// if we scroll one buffer line up or down we simulate a scroll up/down by markdown paragrah.
 	int dl = offset == wp->caret.offset ? *ln - wp->caret.ln : 0;
 	RENDER_VIEW_PART* pPart = pData->md_caretView;
-	if (dl == 1 && pPart && pPart->rvp_next) {
-		dl = ln_cnt(pPart->rvp_lpStart, pPart->rvp_next->rvp_lpStart)-1;
-		*ln = wp->caret.ln + dl;
-	} else if (dl == -1 && pData->md_caretLineIndex > 0) {
-		RENDER_VIEW_PART* pPartPrevious = mdr_getViewPartAt(pData->md_pElements, pData->md_caretLineIndex-1);
-		dl = ln_cnt(pPartPrevious->rvp_lpStart, pPart->rvp_lpStart) - 1;
-		*ln = wp->caret.ln - dl;
+	if (pPart) {
+		if (dl == 1 && pPart->rvp_next) {
+			dl = ln_cnt(pPart->rvp_lpStart, pPart->rvp_next->rvp_lpStart) - 1;
+			*ln = wp->caret.ln + dl;
+		}
+		else if (dl == -1 && pData->md_caretLineIndex > 0) {
+			RENDER_VIEW_PART* pPartPrevious = mdr_getViewPartAt(pData->md_pElements, pData->md_caretLineIndex - 1);
+			dl = ln_cnt(pPartPrevious->rvp_lpStart, pPart->rvp_lpStart) - 1;
+			*ln = wp->caret.ln - dl;
+		}
 	}
 	int nColumn = *col;
 	if (!caret_placeCursorAndValidate(wp, ln, offset, col, updateVirtualOffset, xDelta)) {

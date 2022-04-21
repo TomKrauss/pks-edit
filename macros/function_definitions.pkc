@@ -122,9 +122,12 @@ native int EdBlockWrite(EDITOR editor);
 
 /*
  * Cut or copies a selected block of text from the passed editor with the given flags.
+ * @param editor the editor in which the current selection is copied/cut. As always
+ * this parameter is optional.
+ * @param flags the flags defining the details about the operation.
  */
 @Method(name="CutBlock", signature="iWeCUT_")
-native int bl_cutOrCopy(EDITOR editor, int nCutFlags);
+native int bl_cutOrCopy(EDITOR editor, int flags);
 
 /*
  * Paste the contents of a clipboard at the current caret position for
@@ -994,8 +997,9 @@ native EDITOR ww_getCurrentEditorWindow();
 
 /*
  * Replace all occurrences of the search string with the replacement parameter using
- * the specified regular expression flags in a given range. Besides replacing this method
- * may also perform an alternate replacement action defined using the last argument.
+ * the specified regular expression flags in a given range. Besides <b>replacing text</b>
+ * this method may also be used to perform an alternate <em>replacement action</em>
+ * defined using the last argument.
  */
 @Method(name="EditorReplaceText", signature="iWssbRE_eRNG_eREP_")
 native int edit_replaceText(EDITOR anEditor, string aSearch, string aReplace, int reOptions, int nRange, int nReplaceActions);

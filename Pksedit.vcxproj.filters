@@ -551,6 +551,9 @@
     <ClInclude Include="macro_compiler\parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\htmlrendering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">

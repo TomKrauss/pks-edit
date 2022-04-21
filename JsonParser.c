@@ -108,25 +108,39 @@ static JSON_MAPPING_RULE* json_findRule(char* pJsonInput, jsmntok_t* pToken, JSO
 	return NULL;
 }
 
+static struct tagCSS_COLOR {
+	const char* cc_name;
+	COLORREF    cc_color;
+} _cssColors[] = {
+	{"white", RGB(255,255,255)},
+	{"red", RGB(255,0,0)},
+	{"green", RGB(0,128,0)},
+	{"blue", RGB(0,0,255)},
+	{"silver", RGB(192,192,192)},
+	{"gray", RGB(128,128,128)},
+	{"yellow", RGB(255,255,0)},
+	{"maroon", RGB(128,0,0)},
+	{"olive", RGB(128,128,0)},
+	{"lime", RGB(0,255,0)},
+	{"navy", RGB(0,0,128)},
+	{"aqua", RGB(0,255,255)},
+	{"teal", RGB(0,128,128)},
+	{"fuchsia", RGB(255,0,255)},
+	{"purple", RGB(128,0,128)}
+};
+
 /*
- * Convert a color specification from the JSON file. 
+ * Convert a (CSS) color specification from the JSON file. 
  */
-static long json_convertColor(char* pszString) {
+COLORREF json_convertColor(char* pszString) {
 	if (pszString[0] == '#') {
 		long l = (long)string_convertToLongBase16(pszString + 1);
 		return RGB((l >> 16) & 0xFF, (l >> 8) & 0xFF, l & 0xFF);
 	}
-	if (strcmp("white", pszString) == 0) {
-		return RGB(255, 255, 255);
-	}
-	if (strcmp("red", pszString) == 0) {
-		return RGB(255, 0, 0);
-	}
-	if (strcmp("green", pszString) == 0) {
-		return RGB(0, 255, 0);
-	}
-	if (strcmp("blue", pszString) == 0) {
-		return RGB(0, 0, 255);
+	for (int i = 0; i < DIM(_cssColors); i++) {
+		if (strcmp(_cssColors[i].cc_name, pszString) == 0) {
+			return _cssColors[i].cc_color;
+		}
 	}
 	return RGB(0, 0, 0);
 }

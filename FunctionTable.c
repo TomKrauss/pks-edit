@@ -100,7 +100,7 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*6*/   EdBlockMove   , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | EW_NEEDSBLK | 0,                 "MoveBlock",                  NULL,  "iW"                                           },
 {/*7*/   EdBlockRead   , -1,EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                               "ReadBlock",                  NULL,  "iW"                                           },
 {/*8*/   EdBlockWrite  , -1,EW_NEEDSCURRF | EW_NEEDSBLK | 0,                                           "WriteBlock",                 NULL,  "iW"                                           },
-{/*9*/   bl_cutOrCopy    , -1,EW_UNDOFLSH|EW_NEEDSCURRF | EW_NEEDSBLK | 0,                             "CutBlock",                   NULL,  "iWeCUT_i"                                },
+{/*9*/   bl_cutOrCopy    , -1,EW_UNDOFLSH|EW_NEEDSCURRF | EW_NEEDSBLK | 0,                             "CutBlock",                   NULL,  "iWeCUT_"                                },
 {/*10*/  EdBlockPaste  , -1,EW_MODIFY | EW_FINDCURS | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                 "PasteBlock",                 NULL,  "iWbPASTE_bFORM_i"                                },
 {/*11*/  bl_hideSelectionInCurrentWindow   , -1,EW_NEEDSCURRF | 0,                                     "HideBlock",                  NULL,  "iW"                                           },
 {/*12*/  EdSyncSelectionWithCaret   , -1,   EW_NEEDSCURRF | 0,                                         "SetBlockMark",               NULL,  "iWeMARK_"                                      },

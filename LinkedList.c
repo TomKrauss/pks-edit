@@ -190,7 +190,7 @@ void ll_add(void** pointerLinkedList, LINKED_LIST* pElement) {
  * 
  * Find an element in a linked list, with a given name.
  */
-void *ll_find(void *linkedList, char *name)
+void *ll_find(void *linkedList, const char *name)
 {
 	LINKED_LIST *lp;
 

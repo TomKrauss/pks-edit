@@ -504,8 +504,8 @@
         },
         {
           "styleName": "bold-comment",
-          "weight": 900,
-          "foregroundColor": "#55EE55"
+          "weight": 950,
+          "foregroundColor": "#68a319"
         },
         {
           "styleName": "task",

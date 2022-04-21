@@ -1155,6 +1155,7 @@
     <ClInclude Include="include\formatting.h" />
     <ClInclude Include="include\grammar.h" />
     <ClInclude Include="include\hashmap.h" />
+    <ClInclude Include="include\htmlrendering.h" />
     <ClInclude Include="include\jsmn.h" />
     <ClInclude Include="include\jsonparser.h" />
     <ClInclude Include="include\levensthein.h" />
