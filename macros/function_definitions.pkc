@@ -214,6 +214,9 @@ native int EdErrorListRead();
 
 /*
  * Zooms the text font size in the given window.
+ * @param editor the editor in which the font size should be scaled. If not
+ * specified, the current active editor is used.
+ * @param factor the scaling/zoom factor to use multiplied by 100 (120 == 120%).
  */
 @Method(name="ZoomWindow")
 native int ww_zoomWindow(EDITOR editor, int factor);
@@ -225,27 +228,30 @@ native int ww_zoomWindow(EDITOR editor, int factor);
 native int EdMacrosEdit();
 
 /*
- * Returns the value of a pre-defined PKS-Edit template variable:
- * ${user} - name of the current logged in user
- * ${time} - the current time
- * ${cwd} - the current working directory
- * ${time_long_} - the current time including milliseconds
- * ${date} - the current date (by default in format dd.mm.yyyy)
- * ${year} - the current year (e.g. 2021)
- * ${pks_sys} - the PKS_SYS directory**
- * ${pks_tmp} - the temporary directory for PKS-Edit.
- * ${pks_executable} - the PKS-Edit executable full path.
- * ${indent} - insert the number of spaces matching the indent of the line from which the template is inserted
- * ${tab} - insert the number of spaces to fill up one tab position.
- * ${cursor} - after inserting the template, place the cursor here
- * ${secondary} - after inserting the template, place a secondary cursor here (up to 6 secondary carets are supported). This
- * can be used to edit multiple places in the code concurrently / to start multi-caret input.
- * ${file_name} - base name of the current file
- * ${selection_end} - used in combination with ${cursor} to select a range of text after inserting the template.
- * ${word_selection} - the "word/identifier" close to the input caret or text currently selected.
+ * Returns the value of a pre-defined PKS-Edit template variable.
+ * <dl>
+ * <dd>${user}</dd><dt>name of the currently logged in user</dt>
+ * <dd>${time}</dd><dt>the current time</dt>
+ * <dd>${cwd}</dd><dt>the current working directory</dt>
+ * <dd>${time_long}</dd><dt>the current time including milliseconds</dt>
+ * <dd>${date}</dd><dt>the current date (by default in format dd.mm.yyyy)</dt>
+ * <dd>${year}</dd><dt>the current year (e.g. 2021)</dt>
+ * <dd>${pks_sys}</dd><dt>the PKS_SYS directory**</dt>
+ * <dd>${pks_tmp}</dd><dt>the temporary directory for PKS-Edit.</dt>
+ * <dd>${pks_executable}</dd><dt>the PKS-Edit executable full path.</dt>
+ * <dd>${indent}</dd><dt>insert the number of spaces matching the indent of the line from which the template is inserted</dt>
+ * <dd>${tab}</dd><dt>insert the number of spaces to fill up one tab position.</dt>
+ * <dd>${cursor}</dd><dt>after inserting the template, place the cursor here</dt>
+ * <dd>${secondary}</dd><dt>after inserting the template, place a secondary cursor here (up to 6 secondary carets are supported). This
+ * can be used to edit multiple places in the code concurrently / to start multi-caret input.</dt>
+ * <dd>${file_name}</dd><dt>base name of the current file</dt>
+ * <dd>${selection_end}</dd><dt>used in combination with ${cursor} to select a range of text after inserting the template.</dt>
+ * <dd>${word_selection}</dd><dt>the "word/identifier" close to the input caret or text currently selected.</dt>
+ * </dl>
+ * @param variable one of the strings displayed above.
  */
 @Method(name="GetVariable", signature="ss")
-native string string_getVariableWithDefaults(string variableName);
+native string string_getVariableWithDefaults(string variable);
 
 /*
  * Opens a file selector to save the document settings to a file.

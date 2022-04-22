@@ -939,7 +939,7 @@ unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsign
 		decompile_print(pBuf, "%s %s", types_nameFor(pSym->vartype), pSym->name);
 		sp += interpreter_getParameterSize(*sp, sp + 1);
 	}
-	decompile_print(pBuf, ") {\n");
+	decompile_print(pBuf, ")");
 	return sp;
 }
 
@@ -975,6 +975,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 	pFlowMarks = decompile_analyseControlFlowMarks(sp, spend, &nMarks);
 
 	sp = decompile_printMacroSignature(mp, pBuf, sp);
+	stringbuf_appendString(pBuf, "{ \n");
 	decompile_makeAutoLabels(data, spend, pFlowMarks, nMarks);
 	bytecode_initializeAutoLabels();
 	bytecode_startNextAutoLabel(&lname, (COM_GOTO**)&gop);

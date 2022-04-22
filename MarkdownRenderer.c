@@ -100,6 +100,7 @@ typedef struct tagFONT_ATTRIBUTES {
 	int		underline;
 	int		weight;
 	int		lineBreak;
+	int		indent;
 	BOOL	rollover;
 	COLORREF bgColor;
 	COLORREF fgColor;
@@ -114,6 +115,7 @@ typedef struct tagMD_IMAGE {
 
 typedef struct tagFONT_STYLE_DELTA {
 	int fsd_logicalStyles;
+	int fsd_indent;
 	COLORREF fsd_fgColor;
 	const char* fsd_styleName;
 } FONT_STYLE_DELTA;
@@ -188,6 +190,7 @@ struct tagRENDER_VIEW_PART {
 	RENDER_PAINT rvp_paint;
 	MARGINS rvp_margins;
 	RECT rvp_bounds;			// Bounds of an element excluding the margins.
+	BOOL rvp_layouted;			// TRUE, if the layout bounds of the view part are valid.
 	MDR_ELEMENT_TYPE rvp_type;
 	long rvp_number;			// for numbered lists
 	int	rvp_level;				// for headers and lists - the level.
@@ -374,6 +377,7 @@ static void mdr_renderHorizontalRule(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBo
 	pUsed->right = pBounds->right - 20;
 	mdr_paintRule(hdc, pUsed->left, pUsed->right, (pUsed->top + pUsed->bottom - 3) / 2, 3);
 	memcpy(&pPart->rvp_bounds, pUsed, sizeof * pUsed);
+	pPart->rvp_layouted = 1;
 }
 
 /*
@@ -461,6 +465,7 @@ static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, REC
 	pUsed->right = right;
 	pUsed->bottom = pUsed->top + nTableHeight;
 	memcpy(&pPart->rvp_bounds, pUsed, sizeof * pUsed);
+	pPart->rvp_layouted = 1;
 }
 
 /*
@@ -592,6 +597,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 	while (pTR) {
 		SIZE size;
 		int nFit = 0;
+		x += pTR->tr_attributes.indent;
 		if (pTR->tr_image) {
 			mdr_paintImage(hdc, pTR, x, y, &size, pRFP->rfp_zoomFactor);
 			if (size.cy > nHeight) {
@@ -742,8 +748,13 @@ static void mdr_renderMarkdownBlockPart(RENDER_VIEW_PART* pPart, HDC hdc, RECT* 
 		GetTextMetrics(hdc, &tm);
 		RECT r;
 		r.top = y-5;
-		// TODO: does currently not take into consideration the fact, that lines wrap around in a fenced code block.
-		r.bottom = r.top + (pPart->rvp_number * tm.tmHeight) + pMargins->m_bottom+10;
+		if (pPart->rvp_layouted) {
+			r.bottom = r.top + pPart->rvp_bounds.bottom - pPart->rvp_bounds.top;
+		} else {
+			// TODO: does currently not take into consideration the fact, that lines wrap around in a fenced code block.
+			// we should change the protocol to ensure, layout is calculated in a first phase.
+			r.bottom = r.top + (pPart->rvp_number * tm.tmHeight) + pMargins->m_bottom + 10;
+		}
 		r.left = x-10;
 		r.right = nRight > 1200 ? nRight - 100 : nRight;
 		HBRUSH hBrOld = SelectObject(hdc, theme_getDialogLightBackgroundBrush());
@@ -766,6 +777,7 @@ static void mdr_renderMarkdownBlockPart(RENDER_VIEW_PART* pPart, HDC hdc, RECT* 
 		mdr_paintRule(hdc, pBounds->left + DEFAULT_LEFT_MARGIN, pBounds->right - DEFAULT_LEFT_MARGIN, pUsed->bottom - 2, 1);
 	}
 	RestoreDC(hdc, nDCId);
+	pPart->rvp_layouted = TRUE;
 }
 
 static BOOL mdr_isTopLevelOrBreak(LINE* lp, MDR_ELEMENT_TYPE mCurrentType, int nLevel) {
@@ -945,6 +957,7 @@ static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, si
 			pFSD->fsd_fgColor = NO_COLOR;
 		}
 	}
+	pRun->tr_attributes.indent = pFSD->fsd_indent;
 	if (mAttrs & ATTR_EMPHASIS) {
 		pRun->tr_attributes.italic = 1;
 	}
@@ -1208,15 +1221,20 @@ static BOOL mdr_isIndentedFencedBlock(LINE* lp, int mType) {
 static struct tagHTML_TAG_MAPPING {
 	const char* tm_element;
 	int tm_textAttr;
+	int tm_textAttrClose;
+	int tm_indent;
 } _tagMappings[] = {
 	{"em", ATTR_EMPHASIS},
 	{"b", ATTR_STRONG},
+	{"dt", 0, ATTR_LINE_BREAK, DEFAULT_LEFT_MARGIN*2},
+	{"dd", ATTR_STRONG, ATTR_LINE_BREAK},
 	{"i", ATTR_EMPHASIS},
 	{"u", ATTR_UNDERLINE},
 	{"del", ATTR_STRIKE},
 	{"strike", ATTR_STRIKE},
 	{"s", ATTR_STRIKE},
 	{"code", ATTR_CODE},
+	{"dl", ATTR_LINE_BREAK},
 	{"span", 0},
 	{"br", ATTR_LINE_BREAK},
 	{"p", ATTR_LINE_BREAK},
@@ -1321,6 +1339,7 @@ static int mdr_getTag(const char* pszSource, FONT_STYLE_DELTA* pFSD, struct tagH
 			for (int nElement = 0; nElement < DIM(_tagMappings); nElement++) {
 				if (strcmp(_tagMappings[nElement].tm_element, szTag) == 0) {
 					*ppMapping = &_tagMappings[nElement];
+					pFSD->fsd_indent = (*ppMapping)->tm_indent;
 					return (int)(pszSource - pszStart);
 				}
 			}
@@ -1406,6 +1425,7 @@ static RENDER_VIEW_PART* mdr_newPart(RENDER_VIEW_PART** pFirst, FONT_STYLE_DELTA
 	pPart->rvp_type = MET_NORMAL;
 	pFSD->fsd_logicalStyles = 0;
 	pFSD->fsd_styleName = 0;
+	pFSD->fsd_indent = 0;
 	pFSD->fsd_fgColor = NO_COLOR;
 	pPart->rvp_margins = pFormat->mef_margins;
 	pPart->rvp_margins.m_left = 5;
@@ -1477,7 +1497,7 @@ RENDER_VIEW_PART* mdr_parseHTML(const char* pszText) {
 					}
 					continue;
 				}
-				BOOL bBreak = pMapping->tm_textAttr & ATTR_LINE_BREAK;
+				BOOL bBreak = bClose ? (pMapping->tm_textAttrClose & ATTR_LINE_BREAK) : (pMapping->tm_textAttr & ATTR_LINE_BREAK);
 				if (bBreak) {
 					pfsd->fsd_logicalStyles |= ATTR_LINE_BREAK;
 					pszText = mdr_skipLeadingSpace(pszText);
@@ -1488,13 +1508,11 @@ RENDER_VIEW_PART* mdr_parseHTML(const char* pszText) {
 				}
 				mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, 0, 0);
 				nLastOffset += nSize;
-				if (!bBreak) {
-					if (bClose) {
-						if (pfsd > fsdTable) {
-							pfsd--;
-						}
-					}
-					else if (pfsd < &fsdTable[DIM(fsdTable)]) {
+				if (bClose && pfsd > fsdTable) {
+					pfsd--;
+				}
+				if (!bBreak && !bClose) {
+					if (pfsd < &fsdTable[DIM(fsdTable)]) {
 						fsdNext.fsd_logicalStyles |= pMapping->tm_textAttr;
 						*++pfsd = fsdNext;
 					}
@@ -2104,7 +2122,48 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 }
 
 /*
- * Render the current window in hexadecimal display.
+ * Invalidate the layout of all view parts starting with 'pFirst'.
+ */
+void mdr_invalidateViewpartsLayout(RENDER_VIEW_PART* pFirst) {
+	while (pFirst) {
+		// clear out old existing bounds.
+		memset(&pFirst->rvp_bounds, 0, sizeof pFirst->rvp_bounds);
+		pFirst->rvp_layouted = 0;
+		pFirst = pFirst->rvp_next;
+	}
+}
+
+/*
+ * Returns the assumed bounds of one view part. The view part must be layouted for this to work.
+ */
+static void mdr_getViewpartExtend(RENDER_VIEW_PART* pPart, SIZE* pSize) {
+	if (pPart->rvp_layouted) {
+		pSize->cy = (pPart->rvp_bounds.bottom + pPart->rvp_margins.m_bottom) - (pPart->rvp_bounds.top - pPart->rvp_margins.m_top);
+		pSize->cx = (pPart->rvp_bounds.right - pPart->rvp_margins.m_right) - (pPart->rvp_bounds.left - pPart->rvp_margins.m_left);
+	}
+}
+/*
+ * Returns the total extent in pixels of the current layout described by the list
+ * of view parts.
+ */
+void mdr_getViewpartsExtend(RENDER_VIEW_PART* pFirst, SIZE* pSize) {
+	pSize->cx = 10;
+	pSize->cy = 10;
+	while (pFirst) {
+		if (pFirst->rvp_layouted) {
+			SIZE sPart;
+			mdr_getViewpartExtend(pFirst, &sPart);
+			int nWidth = sPart.cx;
+			if (nWidth > pSize->cy) {
+				pSize->cx = nWidth;
+			}
+			pSize->cy += sPart.cy;
+		}
+		pFirst = pFirst->rvp_next;
+	}
+}
+/*
+ * Render the current window displaying MARKDOWN/HTML wysiwyg contents.
  */
 static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 	RECT rect;
@@ -2112,21 +2171,16 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	GetClientRect(wp->ww_handle, &rect);
 	BOOL bSizeChanged = FALSE;
-	RENDER_VIEW_PART* pPart = pData->md_pElements;
 	if (rect.right != pData->md_lastBounds.right || rect.bottom != pData->md_lastBounds.bottom || wp->minln != pData->md_lastMinLn) {
 		bSizeChanged = TRUE;
 		pData->md_lastMinLn = wp->minln;
 		CopyRect(&pData->md_lastBounds, &rect);
-		while (pPart) {
-			// clear out old existing bounds.
-			memset(&pPart->rvp_bounds, 0, sizeof pPart->rvp_bounds);
-			pPart = pPart->rvp_next;
-		}
+		mdr_invalidateViewpartsLayout(pData->md_pElements);
 	}
 	if (!pData->md_pElements) {
 		mdr_parseViewParts(wp, pData);
 	}
-	pPart = mdr_getViewPartAt(pData->md_pElements, wp->minln);
+	RENDER_VIEW_PART* pPart = mdr_getViewPartAt(pData->md_pElements, wp->minln);
 	RECT occupiedBounds;
 	int nElements = 0;
 	FillRect(pCtx->rc_hdc, pClip, hBrushBg);
@@ -2161,9 +2215,11 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 }
 
 /*
- * Render some render view parts as a response to a WM_PAINT message.
+ * Render some render view parts as a response to a WM_PAINT message into the window given with 'hwnd',
+ * using the repaint areas and device context defined in 'ps' assuming the screen top is scrolled to
+ * logical position 'nTopY' render the linked list of view parts starting with 'pFirst'.
  */
-void mdr_renderViewparts(HWND hwnd, PAINTSTRUCT* ps, RENDER_VIEW_PART* pFirst) {
+void mdr_renderViewparts(HWND hwnd, PAINTSTRUCT* ps, int nTopY, RENDER_VIEW_PART* pFirst) {
 	RECT rect;
 	RECT occupiedBounds;
 	HDC hdc = ps->hdc;
@@ -2173,12 +2229,19 @@ void mdr_renderViewparts(HWND hwnd, PAINTSTRUCT* ps, RENDER_VIEW_PART* pFirst) {
 	RENDER_VIEW_PART* pPart = pFirst;
 
 	FillRect(hdc, pClip, hBrushBg);
+	rect.top -= nTopY;
 	for (; pPart && rect.top < pClip->bottom; rect.top = occupiedBounds.bottom) {
-		pPart->rvp_paint(pPart, hdc, &rect, &occupiedBounds, 1.0f);
-		if (occupiedBounds.bottom > rect.bottom) {
-			break;
+		SIZE sPart;
+		mdr_getViewpartExtend(pPart, &sPart);
+		if (pPart->rvp_layouted && rect.top+sPart.cy < pClip->top) {
+			occupiedBounds.bottom = rect.top + sPart.cy;
+		} else {
+			pPart->rvp_paint(pPart, hdc, &rect, &occupiedBounds, 1.0f);
 		}
 		pPart = pPart->rvp_next;
+		if (pPart == 0 || (pPart->rvp_layouted && occupiedBounds.bottom > rect.bottom)) {
+			break;
+		}
 	}
 }
 

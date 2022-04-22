@@ -89,10 +89,14 @@ special syntax to describe parameters and return types:
 - `@param paramName` description of parameter follows
 - `@returns` description of returned values follows.
 - `@see macroName` add a reference to another macro
- 
-The following HTML tags in comments should be used:
 
-- `<br>`, `<em>`, `<b>`, `<i>`
+The following HTML tags in comments are supported:
+
+- `<br>`, `<em>`, `<b>`, `<i>`, `<span class=.. style=...>`, `<dd>`, `<dl>`, `<dt>`, `<p>`, `<s>`, `<code>`, 
+  `<del>`, `<strike>`
+
+Open Issues
+- Hyperlinks in comments are not yet supported
 
 ## Types
 

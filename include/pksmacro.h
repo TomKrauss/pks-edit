@@ -85,7 +85,7 @@ typedef struct tagANNOTATION {
 extern void macro_processAnnotations(MACRO_PARAM* pParam, ANNOTATION* pAnnotation);
 #endif
 
-#define	MAC_COMMENTLEN		256
+#define	MAC_COMMENTLEN		1024
 
 #define	MAC_NAMELEN			32				// no real limitation - only used in the UI.
 #define	MAC_NAME(mp)		((mp)->mc_name)

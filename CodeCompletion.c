@@ -219,7 +219,83 @@ static void codecomplete_paintHelp(HWND hwnd) {
 	BeginPaint(hwnd, &paint);
 	RENDER_VIEW_PART* pFirst = (RENDER_VIEW_PART * )GetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS);
 	if (pFirst) {
-		mdr_renderViewparts(hwnd, &paint, pFirst);
+		SCROLLINFO info = {
+			.cbSize = sizeof info,
+			.fMask = SIF_POS,
+		};
+		GetScrollInfo(hwnd, SB_VERT, &info);
+		mdr_renderViewparts(hwnd, &paint, info.nPos, pFirst);
+	}
+}
+
+/*
+ * Update the size and position of the scrollbar as either the window size has changed
+ * or a WM_VSCROLL message had been sent to the help window. In the later case bScrollChanged is 1
+ * and wParam contains the details about the message.
+ */
+static void codecomplete_helpWindowUpdateScrollbar(HWND hwnd, int bScrollChanged, WPARAM wParam) {
+	RENDER_VIEW_PART* pFirst = (RENDER_VIEW_PART*)GetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS);
+	if (pFirst) {
+		RECT rect;
+		GetClientRect(hwnd, &rect);
+		SIZE size;
+		mdr_getViewpartsExtend(pFirst, &size);
+		SCROLLINFO info = {
+			.cbSize = sizeof info,
+			.fMask = SIF_RANGE | SIF_PAGE | SIF_POS 
+		};
+		GetScrollInfo(hwnd, SB_VERT, &info);
+		info.nMin = 0;
+		info.nPage = rect.bottom;
+		info.nMax = size.cy;
+		if (bScrollChanged) {
+			int nCode = LOWORD(wParam);
+			if (nCode == SB_LINEUP) {
+				info.nPos--;
+			}
+			else if (nCode == SB_LINEDOWN) {
+				info.nPos++;
+			}
+			else if (nCode == SB_PAGEDOWN) {
+				info.nPos += 20;
+			}
+			else if (nCode == SB_PAGEUP) {
+				info.nPos -= 20;
+			}
+			else if (nCode == SB_TOP) {
+				info.nPos = 0;
+			}
+			else if (nCode == SB_BOTTOM) {
+				info.nPos = rect.bottom - size.cy;
+			}
+			else if (nCode == SB_ENDSCROLL) {
+				return;
+			}
+			else {
+				info.nPos = HIWORD(wParam);
+			}
+			if (info.nPos < 0) {
+				info.nPos = 0;
+			}
+		}
+		SetScrollInfo(hwnd, SB_VERT, &info, TRUE);
+		if (bScrollChanged) {
+			InvalidateRect(hwnd, 0, 0);
+		}
+	}
+}
+
+/*
+ * The size of the hwlp window has changed. Invalidate the view parts and recalculate the total size to
+ * update the scrollbars.
+ */
+static void codecomplete_helpWindowSizeChanged(HWND hwnd) {
+	RENDER_VIEW_PART* pFirst = (RENDER_VIEW_PART*)GetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS);
+	if (pFirst) {
+		mdr_invalidateViewpartsLayout(pFirst);
+		InvalidateRect(hwnd, 0, FALSE);
+		UpdateWindow(hwnd);
+		codecomplete_helpWindowUpdateScrollbar(hwnd, 0, 0);
 	}
 }
 
@@ -309,7 +385,7 @@ static void codecomplete_invalidateIndex(HWND hwnd, RECT* pRect, CODE_COMPLETION
  * Creates the help (code completion secondary) window.
  */
 static HWND codecomplete_createHelpWindow(HWND hwndParent) {
-	HWND hwnd = CreateWindow(CLASS_CODE_COMPLETION_HELP, NULL, WS_POPUP | WS_SIZEBOX, 
+	HWND hwnd = CreateWindow(CLASS_CODE_COMPLETION_HELP, NULL, WS_POPUP | WS_SIZEBOX | WS_VSCROLL, 
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwndParent, NULL, hInst, 0);
 	if (hwnd) {
 		theme_enableDarkMode(hwnd);
@@ -347,7 +423,8 @@ static void codecomplete_setHelpContents(HWND hwnd, const char* pszHelp) {
 	if (pszHelp && *pszHelp) {
 		pFirst = mdr_parseHTML(pszHelp);
 		SetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS, (LONG_PTR)pFirst);
-		InvalidateRect(hwnd, 0, 1);
+		codecomplete_helpWindowSizeChanged(hwnd);
+		//InvalidateRect(hwnd, 0, 1);
 	}
 }
 
@@ -540,8 +617,16 @@ static LRESULT codecomplete_helpWndProc(HWND hwnd, UINT message, WPARAM wParam, 
 	case WM_PAINT:
 		codecomplete_paintHelp(hwnd);
 		return 0;
+	case WM_MOUSEWHEEL: {
+			int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+			codecomplete_helpWindowUpdateScrollbar(hwnd, 1, zDelta > 0 ? SB_PAGEDOWN : SB_PAGEUP);
+		}
+		break;
+	case WM_VSCROLL:
+		codecomplete_helpWindowUpdateScrollbar(hwnd, 1, wParam);
+		break;
 	case WM_SIZE:
-		InvalidateRect(hwnd, 0, FALSE);
+		codecomplete_helpWindowSizeChanged(hwnd);
 		break;
 	case WM_DESTROY:
 		codecomplete_setHelpContents(hwnd, 0);

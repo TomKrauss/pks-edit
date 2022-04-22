@@ -109,7 +109,7 @@
 # define 	YYSTYPE _YYSTYPE
 
 # define 	MAX_BREAK_LEVEL	6
-# define	REC_SPACE		32000
+# define	MACRO_BYTECODE_SPACE	32000
 
 static BYTECODE_BUFFER  _buffers[MAX_BREAK_LEVEL];
 static BYTECODE_BUFFER* _currentBytecodeBuffer;
@@ -238,8 +238,9 @@ static void parser_switchToBuffer(int aLevel) {
 	}
 	_currentBytecodeBuffer = &_buffers[aLevel];
 	if (!_currentBytecodeBuffer->bb_start) {
-		_currentBytecodeBuffer->bb_end = ((_currentBytecodeBuffer->bb_start = malloc(REC_SPACE)) == 0) ? 
-			_currentBytecodeBuffer->bb_start : _currentBytecodeBuffer->bb_start + REC_SPACE;
+		int nCapacity = aLevel < 1 ? MACRO_BYTECODE_SPACE*4 : MACRO_BYTECODE_SPACE;
+		_currentBytecodeBuffer->bb_end = ((_currentBytecodeBuffer->bb_start = malloc(nCapacity)) == 0) ? 
+			_currentBytecodeBuffer->bb_start : _currentBytecodeBuffer->bb_start + nCapacity;
 		_currentBytecodeBuffer->bb_current = _currentBytecodeBuffer->bb_start;
 	}
 	if (aLevel > 1) {
@@ -362,7 +363,7 @@ static PKS_VALUE_TYPE parser_pushFieldIndexWithError(PKS_VALUE_TYPE t, const cha
 }
 
 
-#line 366 "parser.c"
+#line 367 "parser.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -988,32 +989,32 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   323,   323,   323,   333,   334,   336,   337,   340,   343,
-     344,   346,   349,   354,   355,   357,   362,   363,   364,   365,
-     367,   368,   370,   374,   374,   379,   380,   382,   388,   389,
-     391,   392,   394,   406,   407,   410,   414,   415,   419,   422,
-     423,   425,   425,   425,   439,   442,   448,   453,   459,   465,
-     466,   476,   479,   485,   494,   503,   510,   512,   519,   526,
-     528,   533,   534,   537,   539,   541,   542,   544,   545,   546,
-     550,   559,   565,   566,   568,   568,   572,   574,   576,   580,
-     581,   582,   585,   585,   616,   616,   642,   644,   645,   647,
-     648,   649,   650,   651,   652,   653,   654,   655,   656,   657,
-     658,   659,   660,   661,   664,   669,   673,   673,   679,   682,
-     685,   685,   692,   697,   698,   699,   700,   701,   703,   705,
-     706,   708,   709,   709,   711,   712,   715,   716,   719,   723,
-     724,   725,   727,   731,   732,   733,   734,   737,   738,   743,
-     747,   748,   749,   750,   751,   752,   753,   754,   755,   756,
-     757,   758,   759,   760,   761,   762,   763,   764,   765,   766,
-     767,   768,   769,   770,   771,   777,   778,   782,   786,   791,
-     792,   798,   799,   810,   813,   820,   824,   825,   827,   828,
-     830,   831,   833,   835,   837,   842,   845,   848,   852,   858,
-     865,   864,   881,   881,   897,   898,   900,   902,   904,   900,
-     911,   912,   912,   918,   921,   924,   930,   930,   943,   945,
-     943,   957,   959,   961,   964,   967,   964,   974,   978,   978,
-     985,   986,   988,   990,   990,  1001,  1001,  1015,  1016,  1018,
-    1018,  1028,  1028,  1038,  1040,  1043,  1045,  1048,  1048,  1056,
-    1066,  1071,  1072,  1077,  1082,  1085,  1090,  1091,  1095,  1098,
-    1103,  1108,  1112,  1119,  1124,  1132,  1140,  1148
+       0,   324,   324,   324,   334,   335,   337,   338,   341,   344,
+     345,   347,   350,   355,   356,   358,   363,   364,   365,   366,
+     368,   369,   371,   375,   375,   380,   381,   383,   389,   390,
+     392,   393,   395,   407,   408,   411,   415,   416,   420,   423,
+     424,   426,   426,   426,   440,   443,   449,   454,   460,   466,
+     467,   477,   480,   486,   495,   504,   511,   513,   520,   527,
+     529,   534,   535,   538,   540,   542,   543,   545,   546,   547,
+     551,   560,   566,   567,   569,   569,   573,   575,   577,   581,
+     582,   583,   586,   586,   617,   617,   643,   645,   646,   648,
+     649,   650,   651,   652,   653,   654,   655,   656,   657,   658,
+     659,   660,   661,   662,   665,   670,   674,   674,   680,   683,
+     686,   686,   693,   698,   699,   700,   701,   702,   704,   706,
+     707,   709,   710,   710,   712,   713,   716,   717,   720,   724,
+     725,   726,   728,   732,   733,   734,   735,   738,   739,   744,
+     748,   749,   750,   751,   752,   753,   754,   755,   756,   757,
+     758,   759,   760,   761,   762,   763,   764,   765,   766,   767,
+     768,   769,   770,   771,   772,   778,   779,   783,   787,   792,
+     793,   799,   800,   811,   814,   821,   825,   826,   828,   829,
+     831,   832,   834,   836,   838,   843,   846,   849,   853,   859,
+     866,   865,   882,   882,   898,   899,   901,   903,   905,   901,
+     912,   913,   913,   919,   922,   925,   931,   931,   944,   946,
+     944,   958,   960,   962,   965,   968,   965,   975,   979,   979,
+     986,   987,   989,   991,   991,  1002,  1002,  1016,  1017,  1019,
+    1019,  1029,  1029,  1039,  1041,  1044,  1046,  1049,  1049,  1057,
+    1067,  1072,  1073,  1078,  1083,  1086,  1091,  1092,  1096,  1099,
+    1104,  1109,  1113,  1120,  1125,  1133,  1141,  1149
 };
 #endif
 
@@ -2185,82 +2186,82 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* $@1: %empty  */
-#line 323 "Parser.y"
+#line 324 "Parser.y"
                 {
 				init_header();
 			}
-#line 2193 "parser.c"
+#line 2194 "parser.c"
     break;
 
   case 3: /* file_structure: $@1 namespace prerequisites global_declarations header_delimiter macro_definitions  */
-#line 329 "Parser.y"
+#line 330 "Parser.y"
                                           {
 				finalize_header();
 			}
-#line 2201 "parser.c"
+#line 2202 "parser.c"
     break;
 
   case 11: /* namespace: %empty  */
-#line 346 "Parser.y"
+#line 347 "Parser.y"
             {
 				_currentNamespaceIndex = macro_lookupNamespace(MACRO_NAMESPACE_DEFAULT);
 			}
-#line 2209 "parser.c"
+#line 2210 "parser.c"
     break;
 
   case 12: /* namespace: T_NAMESPACE T_IDENT ';'  */
-#line 349 "Parser.y"
+#line 350 "Parser.y"
                                                   {
 				_currentNamespaceIndex = macro_lookupNamespace(yyvsp[-1].ident.s);
 				free(yyvsp[-1].ident.s);
 			}
-#line 2218 "parser.c"
+#line 2219 "parser.c"
     break;
 
   case 15: /* require: T_REQUIRE T_STRING ';'  */
-#line 357 "Parser.y"
+#line 358 "Parser.y"
                                        {
 				yyrequire(yyvsp[-1].ident.s);
 				free(yyvsp[-1].ident.s);
 			}
-#line 2227 "parser.c"
+#line 2228 "parser.c"
     break;
 
   case 22: /* struct_definition: T_STRUCT '{' struct_element_definitions '}' T_IDENT  */
-#line 370 "Parser.y"
+#line 371 "Parser.y"
                                                                        {
 				free(yyvsp[0].ident.s);
 			}
-#line 2235 "parser.c"
+#line 2236 "parser.c"
     break;
 
   case 23: /* $@2: %empty  */
-#line 374 "Parser.y"
+#line 375 "Parser.y"
                         { _bInEnumDefinition = 1; }
-#line 2241 "parser.c"
+#line 2242 "parser.c"
     break;
 
   case 24: /* enum_definition: T_ENUM $@2 '{' enum_value_definitions '}' T_IDENT  */
-#line 374 "Parser.y"
+#line 375 "Parser.y"
                                                                                            {
 				_bInEnumDefinition = 0;
 				free(yyvsp[0].ident.s);
 			}
-#line 2250 "parser.c"
+#line 2251 "parser.c"
     break;
 
   case 27: /* struct_element: type_name variable_identifier ';'  */
-#line 382 "Parser.y"
+#line 383 "Parser.y"
                                                   {
 				if (yyvsp[-1].ident.stringIsAlloced) {
 					free(yyvsp[-1].ident.s);
 				}
 			}
-#line 2260 "parser.c"
+#line 2261 "parser.c"
     break;
 
   case 32: /* enum_value: T_IDENT opt_enum_assignment  */
-#line 394 "Parser.y"
+#line 395 "Parser.y"
                                             {
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=""});
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=yyvsp[-1].ident.s});
@@ -2272,51 +2273,51 @@ yyreduce:
 				function_registerEnum((const char*) 0, yyvsp[-1].ident.s, (int)yyvsp[0].num, _yyCurrentComment);
 				free(yyvsp[-1].ident.s);
 			}
-#line 2276 "parser.c"
+#line 2277 "parser.c"
     break;
 
   case 34: /* opt_enum_assignment: T_ASSIGN T_NUM  */
-#line 407 "Parser.y"
+#line 408 "Parser.y"
                                          {
 				yyval.num = yyvsp[0].num;
 			}
-#line 2284 "parser.c"
+#line 2285 "parser.c"
     break;
 
   case 35: /* opt_enum_assignment: T_ASSIGN '-' T_NUM  */
-#line 410 "Parser.y"
+#line 411 "Parser.y"
                                              {
 				yyval.num = -yyvsp[0].num;
 			}
-#line 2292 "parser.c"
+#line 2293 "parser.c"
     break;
 
   case 36: /* scope: %empty  */
-#line 414 "Parser.y"
+#line 415 "Parser.y"
                 { yyval.ident.scope = MS_GLOBAL; }
-#line 2298 "parser.c"
+#line 2299 "parser.c"
     break;
 
   case 37: /* scope: T_STATIC  */
-#line 415 "Parser.y"
+#line 416 "Parser.y"
                                    { yyval.ident.scope = MS_LOCAL; }
-#line 2304 "parser.c"
+#line 2305 "parser.c"
     break;
 
   case 41: /* $@3: %empty  */
-#line 425 "Parser.y"
+#line 426 "Parser.y"
                 { _bDefiningConst = 1; }
-#line 2310 "parser.c"
+#line 2311 "parser.c"
     break;
 
   case 42: /* $@4: %empty  */
-#line 425 "Parser.y"
+#line 426 "Parser.y"
                                                                                        { _bDefiningConst = 0; }
-#line 2316 "parser.c"
+#line 2317 "parser.c"
     break;
 
   case 43: /* constdef: $@3 variable_identifier T_ASSIGN constant_literal $@4  */
-#line 426 "Parser.y"
+#line 427 "Parser.y"
                         {
 				BOOL bString = (yyvsp[-1].v.type == VT_STRING);
 				sym_createSymbol(_currentIdentifierContext, yyvsp[-3].ident.s,
@@ -2328,64 +2329,64 @@ yyreduce:
 					free(yyvsp[-1].v.data.string);
 				}
 			}
-#line 2332 "parser.c"
+#line 2333 "parser.c"
     break;
 
   case 44: /* constant_literal: simple_literal  */
-#line 439 "Parser.y"
+#line 440 "Parser.y"
                                        { 
 				yyval.v = yyvsp[0].v; 
 			}
-#line 2340 "parser.c"
+#line 2341 "parser.c"
     break;
 
   case 45: /* constant_literal: T_STRING  */
-#line 442 "Parser.y"
+#line 443 "Parser.y"
                                         {
 				yyval.v.data.string = yyvsp[0].ident.s;
 				yyval.v.type = VT_STRING;
 			}
-#line 2349 "parser.c"
+#line 2350 "parser.c"
     break;
 
   case 46: /* variable_identifier: T_IDENT  */
-#line 448 "Parser.y"
+#line 449 "Parser.y"
                                 {
 				yyval.ident = yyvsp[0].ident; 
 				yyval.ident.heapIndex = _localVariableIndex;
 				yyval.ident.isLocalVar = !_bInHeader;
 			}
-#line 2359 "parser.c"
+#line 2360 "parser.c"
     break;
 
   case 47: /* variable_identifier: T_NUM  */
-#line 453 "Parser.y"
+#line 454 "Parser.y"
                                 {
 				yyval.ident = yyvsp[0].ident;
 				yyval.ident.s = "#dummy";
 				yyval.ident.stringIsAlloced = 0;
 				yyerror("Cannot redefine constant / cannot use number as variable identifier.");
 			}
-#line 2370 "parser.c"
+#line 2371 "parser.c"
     break;
 
   case 48: /* variable_identifier: T_STRING  */
-#line 459 "Parser.y"
+#line 460 "Parser.y"
                                    {
 				yyval.ident = yyvsp[0].ident; 
 				yyerror("Identifier cannot be used to define variable (redefinition of constant?).");
 			}
-#line 2379 "parser.c"
+#line 2380 "parser.c"
     break;
 
   case 49: /* variable_reference: T_VARIABLE  */
-#line 465 "Parser.y"
+#line 466 "Parser.y"
                                         {	yyval.ident = yyvsp[0].ident; }
-#line 2385 "parser.c"
+#line 2386 "parser.c"
     break;
 
   case 50: /* variable_reference: T_IDENT  */
-#line 466 "Parser.y"
+#line 467 "Parser.y"
                                         {   
 				yyerror("Using undeclared variable %s", yyvsp[0].ident.s);
 				// auto-correct by introducing variable
@@ -2393,29 +2394,29 @@ yyreduce:
 				free(yyvsp[0].ident.s);
 				yyval.ident = yyvsp[0].ident;
 			}
-#line 2397 "parser.c"
+#line 2398 "parser.c"
     break;
 
   case 51: /* macro_declaration: T_IDENT  */
-#line 476 "Parser.y"
+#line 477 "Parser.y"
                            {
 				yyval.ident = yyvsp[0].ident;
 			}
-#line 2405 "parser.c"
+#line 2406 "parser.c"
     break;
 
   case 52: /* macro_declaration: T_FUNC  */
-#line 479 "Parser.y"
+#line 480 "Parser.y"
                                  {
 				yyerror("Illegal attempt to redefine native method");
 				yyval.ident.s = 0;
 				yyval.ident.stringIsAlloced = 0;
 			}
-#line 2415 "parser.c"
+#line 2416 "parser.c"
     break;
 
   case 53: /* macro_type: scope T_VOID  */
-#line 485 "Parser.y"
+#line 486 "Parser.y"
                              {
 				yyval.ident.scope = yyvsp[-1].ident.scope;
 				yyval.ident.arraySize = 0;
@@ -2424,11 +2425,11 @@ yyreduce:
 					parser_startNativeMethod(VT_NIL);
 				}
 			}
-#line 2428 "parser.c"
+#line 2429 "parser.c"
     break;
 
   case 54: /* macro_type: scope type_name  */
-#line 494 "Parser.y"
+#line 495 "Parser.y"
                                         {
 				yyval.ident.type = yyvsp[0].ident.type;
 				yyval.ident.scope = yyvsp[-1].ident.scope;
@@ -2437,21 +2438,21 @@ yyreduce:
 					parser_startNativeMethod(yyvsp[0].ident.type);
 				}
 			}
-#line 2441 "parser.c"
+#line 2442 "parser.c"
     break;
 
   case 55: /* macrostart: macro_type macro_declaration '(' argument_list ')' optional_description  */
-#line 504 "Parser.y"
+#line 505 "Parser.y"
                         {	yyval.ident = yyvsp[-4].ident;
 				yyval.ident.scope = yyvsp[-5].ident.scope;
 				yyval.ident.type = yyvsp[-5].ident.type;
 				YY_EMIT(C_SET_STACKFRAME,(GENERIC_DATA){0});
 			}
-#line 2451 "parser.c"
+#line 2452 "parser.c"
     break;
 
   case 57: /* var_decl: type_name variable_identifier assignment_expression  */
-#line 512 "Parser.y"
+#line 513 "Parser.y"
                                                                     {
 				parser_defineVariable(yyvsp[-1].ident.s, yyvsp[-2].ident.type, 0, yyvsp[-2].ident.arraySize);
 				parser_emitAssignment(&yyvsp[-1].ident);
@@ -2460,39 +2461,39 @@ yyreduce:
 				}
 				YY_EMIT(C_POP_STACK,(GENERIC_DATA){0});
 			}
-#line 2464 "parser.c"
+#line 2465 "parser.c"
     break;
 
   case 58: /* var_decl: type_name variable_identifier  */
-#line 519 "Parser.y"
+#line 520 "Parser.y"
                                                           {
 				parser_defineVariable(yyvsp[0].ident.s, yyvsp[-1].ident.type, 0, yyvsp[-1].ident.arraySize);
 				if (yyvsp[0].ident.stringIsAlloced) {
 					free(yyvsp[0].ident.s);
 				}
 			}
-#line 2475 "parser.c"
+#line 2476 "parser.c"
     break;
 
   case 60: /* optional_description: T_STRING  */
-#line 528 "Parser.y"
+#line 529 "Parser.y"
                                  {
 				yywarning("Old Style macro descriptions not supported any more. Use C-Syntax style comments to describe macros.");
 				free(yyvsp[0].ident.s);
 			}
-#line 2484 "parser.c"
+#line 2485 "parser.c"
     break;
 
   case 69: /* non_empty_parameters: error  */
-#line 546 "Parser.y"
+#line 547 "Parser.y"
                                 {
 				yyerror("illegal parameters for method call");
 			}
-#line 2492 "parser.c"
+#line 2493 "parser.c"
     break;
 
   case 70: /* argument_declaration: type_name variable_identifier  */
-#line 550 "Parser.y"
+#line 551 "Parser.y"
                                                     {
 				if (_bInNativeDefinition) {
 					parser_nativeMethodAddParam(yyvsp[-1].ident.type, yyvsp[0].ident.s);
@@ -2503,61 +2504,61 @@ yyreduce:
 				free(yyvsp[0].ident.s);
 				_nparam++;
 			}
-#line 2507 "parser.c"
+#line 2508 "parser.c"
     break;
 
   case 71: /* argument_declaration: T_ELLIPSIS  */
-#line 559 "Parser.y"
+#line 560 "Parser.y"
                                        {
 				if (_bInNativeDefinition) {
 					parser_nativeMethodAddParam(yyvsp[0].ident.type, "...");
 				}
 			}
-#line 2517 "parser.c"
+#line 2518 "parser.c"
     break;
 
   case 74: /* $@5: %empty  */
-#line 568 "Parser.y"
+#line 569 "Parser.y"
                          {
 				start_annotation(yyvsp[0].ident.s);
 			}
-#line 2525 "parser.c"
+#line 2526 "parser.c"
     break;
 
   case 76: /* annotation_value: T_IDENT T_ASSIGN T_STRING  */
-#line 572 "Parser.y"
+#line 573 "Parser.y"
                                             {
 				parser_defineAnnotationValue(yyvsp[-2].ident.s, yyvsp[0].ident.s);
 			}
-#line 2533 "parser.c"
+#line 2534 "parser.c"
     break;
 
   case 77: /* annotation_value: T_IDENT  */
-#line 574 "Parser.y"
+#line 575 "Parser.y"
                                     {
 				parser_defineAnnotationValue(yyvsp[0].ident.s, _strdup("true"));
 			}
-#line 2541 "parser.c"
+#line 2542 "parser.c"
     break;
 
   case 78: /* annotation_value: T_STRING  */
-#line 576 "Parser.y"
+#line 577 "Parser.y"
                                      {
 				parser_defineAnnotationValue(_strdup("value"), yyvsp[0].ident.s);
 			}
-#line 2549 "parser.c"
+#line 2550 "parser.c"
     break;
 
   case 82: /* $@6: %empty  */
-#line 585 "Parser.y"
+#line 586 "Parser.y"
                                          {
 					init_native();
 				}
-#line 2557 "parser.c"
+#line 2558 "parser.c"
     break;
 
   case 83: /* native_function_definition: T_NATIVE $@6 macrostart  */
-#line 587 "Parser.y"
+#line 588 "Parser.y"
                                              {
 					char* pszLib;
 					char* pszMacroCName;
@@ -2586,17 +2587,17 @@ yyreduce:
 					free(yyvsp[0].ident.s);
 					finalize_native();
 				}
-#line 2590 "parser.c"
+#line 2591 "parser.c"
     break;
 
   case 84: /* $@7: %empty  */
-#line 616 "Parser.y"
+#line 617 "Parser.y"
                   { init_macroDefinition(); }
-#line 2596 "parser.c"
+#line 2597 "parser.c"
     break;
 
   case 85: /* macro_definition: $@7 macrostart block  */
-#line 617 "Parser.y"
+#line 618 "Parser.y"
                                                  {
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lreturnid,0);
 				bytecode_destroyAutoLabelNamePrefix(lreturnid,0);
@@ -2621,464 +2622,464 @@ yyreduce:
 				bytecode_closeOpenLabels();
 				finalize_macroDefinition();
 			}
-#line 2625 "parser.c"
+#line 2626 "parser.c"
     break;
 
   case 90: /* statement: call_expression ';'  */
-#line 648 "Parser.y"
+#line 649 "Parser.y"
                                               { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); }
-#line 2631 "parser.c"
+#line 2632 "parser.c"
     break;
 
   case 91: /* statement: assignment ';'  */
-#line 649 "Parser.y"
+#line 650 "Parser.y"
                                          { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); }
-#line 2637 "parser.c"
+#line 2638 "parser.c"
     break;
 
   case 92: /* statement: if_expression  */
-#line 650 "Parser.y"
+#line 651 "Parser.y"
                                         { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); }
-#line 2643 "parser.c"
+#line 2644 "parser.c"
     break;
 
   case 93: /* statement: while  */
-#line 651 "Parser.y"
+#line 652 "Parser.y"
                                 { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); }
-#line 2649 "parser.c"
+#line 2650 "parser.c"
     break;
 
   case 94: /* statement: for_loop_expression  */
-#line 652 "Parser.y"
+#line 653 "Parser.y"
                                               { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); }
-#line 2655 "parser.c"
+#line 2656 "parser.c"
     break;
 
   case 95: /* statement: switch_expression  */
-#line 653 "Parser.y"
+#line 654 "Parser.y"
                                             { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0});  }
-#line 2661 "parser.c"
+#line 2662 "parser.c"
     break;
 
   case 100: /* statement: block  */
-#line 658 "Parser.y"
+#line 659 "Parser.y"
                                 { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0});  }
-#line 2667 "parser.c"
+#line 2668 "parser.c"
     break;
 
   case 101: /* statement: increment_expression ';'  */
-#line 659 "Parser.y"
+#line 660 "Parser.y"
                                                    { YY_EMIT(C_POP_STACK,(GENERIC_DATA){0});  }
-#line 2673 "parser.c"
+#line 2674 "parser.c"
     break;
 
   case 103: /* statement: var_decl  */
-#line 661 "Parser.y"
+#line 662 "Parser.y"
                                    {
 				yyerror("Variable declarations outside method variable declaration section not yet supported.");
 			}
-#line 2681 "parser.c"
+#line 2682 "parser.c"
     break;
 
   case 104: /* statement: error ';'  */
-#line 664 "Parser.y"
+#line 665 "Parser.y"
                                     {
 				yyerror("Invalid statement. Expecting one of function call, assignment, if, while, case, break, continue, return, goto, increment_expression, block or label.");
 				yyerrok;
 			}
-#line 2690 "parser.c"
+#line 2691 "parser.c"
     break;
 
   case 105: /* assignment: variable_reference assignment_expression  */
-#line 669 "Parser.y"
+#line 670 "Parser.y"
                                                      {
 				parser_emitAssignment(&yyvsp[-1].ident);
 			}
-#line 2698 "parser.c"
+#line 2699 "parser.c"
     break;
 
   case 106: /* $@8: %empty  */
-#line 673 "Parser.y"
+#line 674 "Parser.y"
                                                       {
 				parser_pushFieldIndexWithError(yyvsp[-2].ident.type, yyvsp[0].ident.s);
 			}
-#line 2706 "parser.c"
+#line 2707 "parser.c"
     break;
 
   case 107: /* assignment: assignment_target '.' T_IDENT $@8 assignment_expression  */
-#line 675 "Parser.y"
+#line 676 "Parser.y"
                                                 {
 				_currentBytecodeBuffer->bb_current = bytecode_emitInstruction(_currentBytecodeBuffer, C_ASSIGN_SLOT, (GENERIC_DATA) { 0 });
 			}
-#line 2714 "parser.c"
+#line 2715 "parser.c"
     break;
 
   case 108: /* assignment: assignment_target '[' binary_expression ']' assignment_expression  */
-#line 679 "Parser.y"
+#line 680 "Parser.y"
                                                                                           {
 				_currentBytecodeBuffer->bb_current = bytecode_emitInstruction(_currentBytecodeBuffer, C_ASSIGN_SLOT, (GENERIC_DATA) { 0 });
 			}
-#line 2722 "parser.c"
+#line 2723 "parser.c"
     break;
 
   case 110: /* $@9: %empty  */
-#line 685 "Parser.y"
+#line 686 "Parser.y"
                                            {
 				parser_emitPushVariable(&yyvsp[0].ident);
 			}
-#line 2730 "parser.c"
+#line 2731 "parser.c"
     break;
 
   case 111: /* shorthand_assignment: variable_reference $@9 shorthand_assignment_operator expression  */
-#line 687 "Parser.y"
+#line 688 "Parser.y"
                                                                    {
 				YY_EMIT(C_BINOP, (GENERIC_DATA){yyvsp[-1].binop});
 				parser_emitAssignment(&yyvsp[-3].ident);
 			}
-#line 2739 "parser.c"
+#line 2740 "parser.c"
     break;
 
   case 112: /* assignment_target: variable_reference  */
-#line 692 "Parser.y"
+#line 693 "Parser.y"
                                       {
 				parser_emitPushVariable(&yyvsp[0].ident);
 			}
-#line 2747 "parser.c"
+#line 2748 "parser.c"
     break;
 
   case 113: /* shorthand_assignment_operator: T_SH_ASSIGN_MULT  */
-#line 697 "Parser.y"
+#line 698 "Parser.y"
                                          { yyval.binop = BIN_MUL; }
-#line 2753 "parser.c"
+#line 2754 "parser.c"
     break;
 
   case 114: /* shorthand_assignment_operator: T_SH_ASSIGN_DIV  */
-#line 698 "Parser.y"
+#line 699 "Parser.y"
                                           { yyval.binop = BIN_DIV; }
-#line 2759 "parser.c"
+#line 2760 "parser.c"
     break;
 
   case 115: /* shorthand_assignment_operator: T_SH_ASSIGN_MOD  */
-#line 699 "Parser.y"
+#line 700 "Parser.y"
                                           { yyval.binop = BIN_MOD; }
-#line 2765 "parser.c"
+#line 2766 "parser.c"
     break;
 
   case 116: /* shorthand_assignment_operator: T_SH_ASSIGN_PLUS  */
-#line 700 "Parser.y"
+#line 701 "Parser.y"
                                            { yyval.binop = BIN_ADD; }
-#line 2771 "parser.c"
+#line 2772 "parser.c"
     break;
 
   case 117: /* shorthand_assignment_operator: T_SH_ASSIGN_MINUS  */
-#line 701 "Parser.y"
+#line 702 "Parser.y"
                                             { yyval.binop = BIN_SUB; }
-#line 2777 "parser.c"
+#line 2778 "parser.c"
     break;
 
   case 118: /* assignment_expression: T_ASSIGN expression  */
-#line 703 "Parser.y"
+#line 704 "Parser.y"
                                                 { yyval.v = yyvsp[0].v;	}
-#line 2783 "parser.c"
+#line 2784 "parser.c"
     break;
 
   case 119: /* expression: binary_expression  */
-#line 705 "Parser.y"
+#line 706 "Parser.y"
                               { yyval.v = yyvsp[0].v; }
-#line 2789 "parser.c"
+#line 2790 "parser.c"
     break;
 
   case 122: /* $@10: %empty  */
-#line 709 "Parser.y"
+#line 710 "Parser.y"
                                                                        { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_RANGE}); }
-#line 2795 "parser.c"
+#line 2796 "parser.c"
     break;
 
   case 125: /* range_increment: T_DOTDOT binary_expression  */
-#line 712 "Parser.y"
+#line 713 "Parser.y"
                                                      { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_RANGE}); }
-#line 2801 "parser.c"
+#line 2802 "parser.c"
     break;
 
   case 126: /* minusminus_plusplus: T_MINUSMINUS  */
-#line 715 "Parser.y"
+#line 716 "Parser.y"
                                      { yyval.num = -1; }
-#line 2807 "parser.c"
+#line 2808 "parser.c"
     break;
 
   case 127: /* minusminus_plusplus: T_PLUSPLUS  */
-#line 716 "Parser.y"
+#line 717 "Parser.y"
                                      { yyval.num = 1; }
-#line 2813 "parser.c"
+#line 2814 "parser.c"
     break;
 
   case 128: /* increment_expression: variable_reference minusminus_plusplus  */
-#line 719 "Parser.y"
+#line 720 "Parser.y"
                                                                { 
 				_currentBytecodeBuffer->bb_current = bytecode_emitIncrementExpression(_currentBytecodeBuffer, yyvsp[-1].ident.s, yyvsp[-1].ident.heapIndex, yyvsp[-1].ident.isLocalVar, (int)yyvsp[0].num);
 			}
-#line 2821 "parser.c"
+#line 2822 "parser.c"
     break;
 
   case 129: /* simple_term: value  */
-#line 723 "Parser.y"
+#line 724 "Parser.y"
                       { yyval.v = yyvsp[0].v; }
-#line 2827 "parser.c"
+#line 2828 "parser.c"
     break;
 
   case 132: /* constructor_expression: T_NEW T_TYPE_IDENTIFIER '(' ')'  */
-#line 727 "Parser.y"
+#line 728 "Parser.y"
                                                         {
 				YY_EMIT(C_PUSH_NEW_INSTANCE, (GENERIC_DATA){yyvsp[-2].ident.type});
 			}
-#line 2835 "parser.c"
+#line 2836 "parser.c"
     break;
 
   case 133: /* unary_expression: '!' binary_expression  */
-#line 731 "Parser.y"
+#line 732 "Parser.y"
                                          { yyval.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NOT}); }
-#line 2841 "parser.c"
+#line 2842 "parser.c"
     break;
 
   case 134: /* unary_expression: '~' binary_expression  */
-#line 732 "Parser.y"
+#line 733 "Parser.y"
                                                 { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_NOT}); }
-#line 2847 "parser.c"
+#line 2848 "parser.c"
     break;
 
   case 135: /* unary_expression: '+' binary_expression  */
-#line 733 "Parser.y"
+#line 734 "Parser.y"
                                                 { yyval.v = yyvsp[0].v; }
-#line 2853 "parser.c"
+#line 2854 "parser.c"
     break;
 
   case 136: /* unary_expression: '-' variable_reference  */
-#line 734 "Parser.y"
+#line 735 "Parser.y"
                                                  { _currentBytecodeBuffer->bb_current = bytecode_emitMultiplyWithLiteralExpression(_currentBytecodeBuffer, &yyvsp[0].v, -1); }
-#line 2859 "parser.c"
+#line 2860 "parser.c"
     break;
 
   case 137: /* binary_expression: simple_term  */
-#line 737 "Parser.y"
+#line 738 "Parser.y"
                                     { yyval.ident.type = yyvsp[0].ident.type;}
-#line 2865 "parser.c"
+#line 2866 "parser.c"
     break;
 
   case 138: /* binary_expression: type_cast simple_term  */
-#line 738 "Parser.y"
+#line 739 "Parser.y"
                                                 {
 				yyval.ident.type = yyvsp[-1].ident.type;
 				_currentBytecodeBuffer->bb_current = bytecode_emitBinaryOperation(_currentBytecodeBuffer, BIN_CAST, yyval.binop);
 			}
-#line 2874 "parser.c"
+#line 2875 "parser.c"
     break;
 
   case 139: /* binary_expression: binary_expression '.' T_IDENT  */
-#line 743 "Parser.y"
+#line 744 "Parser.y"
                                                       {
 				yyval.ident.type = parser_pushFieldIndexWithError(yyvsp[-2].ident.type, yyvsp[0].ident.s);
 				YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); 
 			}
-#line 2883 "parser.c"
+#line 2884 "parser.c"
     break;
 
   case 141: /* binary_expression: binary_expression '[' expression ']'  */
-#line 748 "Parser.y"
+#line 749 "Parser.y"
                                                                { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); }
-#line 2889 "parser.c"
+#line 2890 "parser.c"
     break;
 
   case 142: /* binary_expression: binary_expression '~' binary_expression  */
-#line 749 "Parser.y"
+#line 750 "Parser.y"
                                                                     { yyval.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_MATCH}); }
-#line 2895 "parser.c"
+#line 2896 "parser.c"
     break;
 
   case 143: /* binary_expression: binary_expression T_NMATCH binary_expression  */
-#line 750 "Parser.y"
+#line 751 "Parser.y"
                                                                          { yyval.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NMATCH}); }
-#line 2901 "parser.c"
+#line 2902 "parser.c"
     break;
 
   case 144: /* binary_expression: binary_expression '&' binary_expression  */
-#line 751 "Parser.y"
+#line 752 "Parser.y"
                                                                         { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AND}); }
-#line 2907 "parser.c"
+#line 2908 "parser.c"
     break;
 
   case 145: /* binary_expression: binary_expression '|' binary_expression  */
-#line 752 "Parser.y"
+#line 753 "Parser.y"
                                                                         { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_OR}); }
-#line 2913 "parser.c"
+#line 2914 "parser.c"
     break;
 
   case 146: /* binary_expression: binary_expression '+' binary_expression  */
-#line 753 "Parser.y"
+#line 754 "Parser.y"
                                                                         { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_ADD}); }
-#line 2919 "parser.c"
+#line 2920 "parser.c"
     break;
 
   case 147: /* binary_expression: binary_expression '^' binary_expression  */
-#line 754 "Parser.y"
+#line 755 "Parser.y"
                                                                         { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_XOR}); }
-#line 2925 "parser.c"
+#line 2926 "parser.c"
     break;
 
   case 148: /* binary_expression: binary_expression '-' binary_expression  */
-#line 755 "Parser.y"
+#line 756 "Parser.y"
                                                                         { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SUB}); }
-#line 2931 "parser.c"
+#line 2932 "parser.c"
     break;
 
   case 149: /* binary_expression: binary_expression '*' binary_expression  */
-#line 756 "Parser.y"
+#line 757 "Parser.y"
                                                                         { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_MUL}); }
-#line 2937 "parser.c"
+#line 2938 "parser.c"
     break;
 
   case 150: /* binary_expression: binary_expression '/' binary_expression  */
-#line 757 "Parser.y"
+#line 758 "Parser.y"
                                                                         { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_DIV}); }
-#line 2943 "parser.c"
+#line 2944 "parser.c"
     break;
 
   case 151: /* binary_expression: binary_expression '%' binary_expression  */
-#line 758 "Parser.y"
+#line 759 "Parser.y"
                                                                         { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_MOD}); }
-#line 2949 "parser.c"
+#line 2950 "parser.c"
     break;
 
   case 152: /* binary_expression: binary_expression T_SHIFT_LEFT binary_expression  */
-#line 759 "Parser.y"
+#line 760 "Parser.y"
                                                                                 { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SHIFT_LEFT}); }
-#line 2955 "parser.c"
+#line 2956 "parser.c"
     break;
 
   case 153: /* binary_expression: binary_expression T_SHIFT_RIGHT binary_expression  */
-#line 760 "Parser.y"
+#line 761 "Parser.y"
                                                                             { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SHIFT_RIGHT}); }
-#line 2961 "parser.c"
+#line 2962 "parser.c"
     break;
 
   case 154: /* binary_expression: binary_expression T_POWER_TO binary_expression  */
-#line 761 "Parser.y"
+#line 762 "Parser.y"
                                                                          { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_POWER}); }
-#line 2967 "parser.c"
+#line 2968 "parser.c"
     break;
 
   case 155: /* binary_expression: binary_expression T_AND binary_expression  */
-#line 762 "Parser.y"
+#line 763 "Parser.y"
                                                                     { yyval.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_AND}); }
-#line 2973 "parser.c"
+#line 2974 "parser.c"
     break;
 
   case 156: /* binary_expression: binary_expression T_OR binary_expression  */
-#line 763 "Parser.y"
+#line 764 "Parser.y"
                                                                    { yyval.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_OR}); }
-#line 2979 "parser.c"
+#line 2980 "parser.c"
     break;
 
   case 157: /* binary_expression: binary_expression '<' binary_expression  */
-#line 764 "Parser.y"
+#line 765 "Parser.y"
                                                                   { yyval.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_LT}); }
-#line 2985 "parser.c"
+#line 2986 "parser.c"
     break;
 
   case 158: /* binary_expression: binary_expression '>' binary_expression  */
-#line 765 "Parser.y"
+#line 766 "Parser.y"
                                                                   { yyval.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_GT}); }
-#line 2991 "parser.c"
+#line 2992 "parser.c"
     break;
 
   case 159: /* binary_expression: binary_expression T_LE binary_expression  */
-#line 766 "Parser.y"
+#line 767 "Parser.y"
                                                                    { yyval.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_LE}); }
-#line 2997 "parser.c"
+#line 2998 "parser.c"
     break;
 
   case 160: /* binary_expression: binary_expression T_GE binary_expression  */
-#line 767 "Parser.y"
+#line 768 "Parser.y"
                                                                    { yyval.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_GE}); }
-#line 3003 "parser.c"
+#line 3004 "parser.c"
     break;
 
   case 161: /* binary_expression: binary_expression T_EQ binary_expression  */
-#line 768 "Parser.y"
+#line 769 "Parser.y"
                                                                    { yyval.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_EQ}); }
-#line 3009 "parser.c"
+#line 3010 "parser.c"
     break;
 
   case 162: /* binary_expression: binary_expression T_NE binary_expression  */
-#line 769 "Parser.y"
+#line 770 "Parser.y"
                                                                    { yyval.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NE}); }
-#line 3015 "parser.c"
+#line 3016 "parser.c"
     break;
 
   case 163: /* binary_expression: '(' binary_expression ')'  */
-#line 770 "Parser.y"
+#line 771 "Parser.y"
                                                         { yyval.v = yyvsp[-1].v; }
-#line 3021 "parser.c"
+#line 3022 "parser.c"
     break;
 
   case 164: /* binary_expression: variable_reference assignment_expression  */
-#line 771 "Parser.y"
+#line 772 "Parser.y"
                                                                    {
 				parser_emitAssignment(&yyvsp[-1].ident);
 			}
-#line 3029 "parser.c"
+#line 3030 "parser.c"
     break;
 
   case 166: /* condition: '(' binary_expression  */
-#line 778 "Parser.y"
+#line 779 "Parser.y"
                                                 {
 				yyerror("Missing closing parenthesis )");
 			}
-#line 3037 "parser.c"
+#line 3038 "parser.c"
     break;
 
   case 167: /* value: T_VARIABLE  */
-#line 782 "Parser.y"
+#line 783 "Parser.y"
                            {
 				parser_emitPushVariable(&yyvsp[0].ident);
 				yyval.ident.type = yyvsp[0].ident.type;
 			}
-#line 3046 "parser.c"
+#line 3047 "parser.c"
     break;
 
   case 168: /* value: string  */
-#line 786 "Parser.y"
+#line 787 "Parser.y"
                                  {
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=yyvsp[0].ident.s});
 				yyval.v.type = C_PUSH_STRING_LITERAL;
 				free(yyvsp[0].ident.s);
 			}
-#line 3056 "parser.c"
+#line 3057 "parser.c"
     break;
 
   case 169: /* value: simple_literal  */
-#line 791 "Parser.y"
+#line 792 "Parser.y"
                                          {	yyval.ident.type = yyvsp[0].ident.type;	}
-#line 3062 "parser.c"
+#line 3063 "parser.c"
     break;
 
   case 170: /* value: T_IDENT  */
-#line 792 "Parser.y"
+#line 793 "Parser.y"
                                   {
 				yyerror("Undefined identifier %s", yyvsp[0].ident.s);
 				parser_emitPushVariable(&yyvsp[0].ident);
 				yyval.ident.type = VT_STRING;  
 			}
-#line 3072 "parser.c"
+#line 3073 "parser.c"
     break;
 
   case 171: /* string: T_STRING  */
-#line 798 "Parser.y"
+#line 799 "Parser.y"
                          {	yyval.ident = yyvsp[0].ident; }
-#line 3078 "parser.c"
+#line 3079 "parser.c"
     break;
 
   case 172: /* string: string T_STRING  */
-#line 799 "Parser.y"
+#line 800 "Parser.y"
                                           { 
 				if ((yyval.ident.s = malloc(strlen(yyvsp[-1].ident.s)+strlen(yyvsp[0].ident.s)+1)) != 0) {
 					strcat(strcpy(yyval.ident.s,yyvsp[-1].ident.s),yyvsp[0].ident.s);
@@ -3089,107 +3090,107 @@ yyreduce:
 					yyval.ident = yyvsp[0].ident;
 				}
 			}
-#line 3093 "parser.c"
+#line 3094 "parser.c"
     break;
 
   case 173: /* break: T_BREAK opt_num ';'  */
-#line 811 "Parser.y"
+#line 812 "Parser.y"
                         {	bytecode_emitGotoInstruction(_currentBytecodeBuffer, lendid,_breaklevel-(int)yyvsp[-1].num,BRA_ALWAYS); }
-#line 3099 "parser.c"
+#line 3100 "parser.c"
     break;
 
   case 174: /* continue: T_CONTINUE opt_num ';'  */
-#line 813 "Parser.y"
+#line 814 "Parser.y"
                                        {
 				// in the case this is a continue in a for(int i;b;i++) loop, generate the i++ code before continuing.
 				parser_flushBuffer(_breaklevel-(int)yyvsp[-1].num+1);
 				bytecode_emitGotoInstruction(_currentBytecodeBuffer, lstartid,_breaklevel-(int)yyvsp[-1].num,BRA_ALWAYS); 
 			}
-#line 3109 "parser.c"
+#line 3110 "parser.c"
     break;
 
   case 175: /* return_expression: T_RETURN optional_bterm  */
-#line 820 "Parser.y"
+#line 821 "Parser.y"
                                                 {
 				YY_EMIT(C_STOP,(GENERIC_DATA){0});
 			}
-#line 3117 "parser.c"
+#line 3118 "parser.c"
     break;
 
   case 178: /* opt_num: %empty  */
-#line 827 "Parser.y"
+#line 828 "Parser.y"
                 {	yyval.num = 1;	}
-#line 3123 "parser.c"
+#line 3124 "parser.c"
     break;
 
   case 179: /* opt_num: T_NUM  */
-#line 828 "Parser.y"
+#line 829 "Parser.y"
                                 {	yyval.num = yyvsp[0].num; }
-#line 3129 "parser.c"
+#line 3130 "parser.c"
     break;
 
   case 184: /* case_selector: T_DEFAULT ':'  */
-#line 837 "Parser.y"
+#line 838 "Parser.y"
                                       {
 				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, VT_NIL, (GENERIC_DATA){.longValue=0});
 			}
-#line 3137 "parser.c"
+#line 3138 "parser.c"
     break;
 
   case 185: /* case_condition: integer_literal  */
-#line 842 "Parser.y"
+#line 843 "Parser.y"
                                         {
 				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, VT_NUMBER, (GENERIC_DATA){.longValue=yyvsp[0].v.data.longValue});
 			}
-#line 3145 "parser.c"
+#line 3146 "parser.c"
     break;
 
   case 186: /* case_condition: T_STRING  */
-#line 845 "Parser.y"
+#line 846 "Parser.y"
                                    {
 				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, VT_STRING, (GENERIC_DATA){.string=yyvsp[0].ident.s});
 			}
-#line 3153 "parser.c"
+#line 3154 "parser.c"
     break;
 
   case 187: /* case_condition: T_NUM T_DOTDOT T_NUM  */
-#line 848 "Parser.y"
+#line 849 "Parser.y"
                                                {
 				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, VT_RANGE, (GENERIC_DATA){.range.r_start=yyvsp[-2].num, .range.r_end=yyvsp[0].num});
 			}
-#line 3161 "parser.c"
+#line 3162 "parser.c"
     break;
 
   case 188: /* label: T_IDENT ':'  */
-#line 852 "Parser.y"
+#line 853 "Parser.y"
                             {
 				bytecode_createBranchLabel(_currentBytecodeBuffer, yyvsp[-1].ident.s);
 				freeitem(&yyvsp[-1].ident.s);
 			}
-#line 3170 "parser.c"
+#line 3171 "parser.c"
     break;
 
   case 189: /* goto_expression: T_GOTO T_IDENT  */
-#line 858 "Parser.y"
+#line 859 "Parser.y"
                                        {
 				_currentBytecodeBuffer->bb_current = bytecode_emitGotoLabelInstruction(yyvsp[0].ident.s,_currentBytecodeBuffer,BRA_ALWAYS);
 				freeitem(&yyvsp[0].ident.s);
 			}
-#line 3179 "parser.c"
+#line 3180 "parser.c"
     break;
 
   case 190: /* $@11: %empty  */
-#line 865 "Parser.y"
+#line 866 "Parser.y"
                         {
 				_breaklevel++;
 				bytecode_emitGotoInstruction(_currentBytecodeBuffer, switchTableId,_breaklevel,BRA_ALWAYS);
 				bytecode_startSwitchTable(_breaklevel);
 			}
-#line 3189 "parser.c"
+#line 3190 "parser.c"
     break;
 
   case 191: /* switch_expression: T_SWITCH '(' value ')' $@11 '{' case_clauses '}'  */
-#line 871 "Parser.y"
+#line 872 "Parser.y"
                         {
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, switchTableId,_breaklevel);
 				bytecode_destroyAutoLabelNamePrefix(switchTableId,_breaklevel);
@@ -3198,20 +3199,20 @@ yyreduce:
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lendid,_breaklevel);
 				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
 			}
-#line 3202 "parser.c"
+#line 3203 "parser.c"
     break;
 
   case 192: /* $@12: %empty  */
-#line 881 "Parser.y"
+#line 882 "Parser.y"
                                          {
 				bytecode_emitGotoInstruction(_currentBytecodeBuffer, lendid,_breaklevel,BRA_IF_FALSE);
 				_breaklevel++;
 			}
-#line 3211 "parser.c"
+#line 3212 "parser.c"
     break;
 
   case 193: /* for_loop_expression: T_FOR for_clause $@12 local_block  */
-#line 884 "Parser.y"
+#line 885 "Parser.y"
                                       {
 				if (yyvsp[-2].ident.s) {
 					sym_remove(_currentIdentifierContext, yyvsp[-2].ident.s);
@@ -3224,97 +3225,97 @@ yyreduce:
 				bytecode_destroyAutoLabelNamePrefix(lstartid,_breaklevel);
 				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
 			}
-#line 3228 "parser.c"
+#line 3229 "parser.c"
     break;
 
   case 196: /* $@13: %empty  */
-#line 900 "Parser.y"
+#line 901 "Parser.y"
                                        {
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lstartid,_breaklevel);
 			}
-#line 3236 "parser.c"
+#line 3237 "parser.c"
     break;
 
   case 197: /* $@14: %empty  */
-#line 902 "Parser.y"
+#line 903 "Parser.y"
                                                     {
 				parser_switchToBuffer(_breaklevel+1);
 			}
-#line 3244 "parser.c"
+#line 3245 "parser.c"
     break;
 
   case 198: /* $@15: %empty  */
-#line 904 "Parser.y"
+#line 905 "Parser.y"
                                         {
 				YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); 
 				parser_switchToBuffer(0);
 			}
-#line 3253 "parser.c"
+#line 3254 "parser.c"
     break;
 
   case 199: /* for_to_clause: '(' opt_for_initializer $@13 ';' binary_expression ';' $@14 for_increment $@15 ')'  */
-#line 907 "Parser.y"
+#line 908 "Parser.y"
                               {
 				yyval.ident.s = yyvsp[-8].ident.s;
 			}
-#line 3261 "parser.c"
+#line 3262 "parser.c"
     break;
 
   case 201: /* $@16: %empty  */
-#line 912 "Parser.y"
+#line 913 "Parser.y"
                                                         {
 				parser_defineVariable(yyvsp[0].ident.s, yyvsp[-1].ident.type, (intptr_t)0, yyvsp[-1].ident.arraySize);
 			}
-#line 3269 "parser.c"
+#line 3270 "parser.c"
     break;
 
   case 202: /* opt_for_initializer: type_name variable_identifier $@16 assignment_expression  */
-#line 914 "Parser.y"
+#line 915 "Parser.y"
                                                 {
 				yyval.ident.s = yyvsp[-2].ident.s;
 			}
-#line 3277 "parser.c"
+#line 3278 "parser.c"
     break;
 
   case 203: /* for_clause: for_to_clause  */
-#line 918 "Parser.y"
+#line 919 "Parser.y"
                               {
 				yyval.ident.s = yyvsp[0].ident.s;
 			}
-#line 3285 "parser.c"
+#line 3286 "parser.c"
     break;
 
   case 204: /* for_clause: in_clause  */
-#line 921 "Parser.y"
+#line 922 "Parser.y"
                                     {
 				yyval.ident.s = yyvsp[0].ident.s;
 			}
-#line 3293 "parser.c"
+#line 3294 "parser.c"
     break;
 
   case 205: /* for_clause: error  */
-#line 924 "Parser.y"
+#line 925 "Parser.y"
                                 {
 				yyval.ident.s = 0;
 				yyerror("Illegal for-loop expression.");
 				yyerrok;
 			}
-#line 3303 "parser.c"
+#line 3304 "parser.c"
     break;
 
   case 206: /* $@17: %empty  */
-#line 930 "Parser.y"
+#line 931 "Parser.y"
                                                   {
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lstartid,_breaklevel);
 				parser_newForeachCursor();
 				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_localVariableIndex});
 				parser_defineVariable(yyvsp[0].ident.s, yyvsp[-1].ident.type, (intptr_t)0, yyvsp[-1].ident.arraySize);
 			}
-#line 3314 "parser.c"
+#line 3315 "parser.c"
     break;
 
   case 207: /* in_clause: '(' type_name variable_identifier $@17 ':' expression ')'  */
-#line 935 "Parser.y"
+#line 936 "Parser.y"
                                              {
 				SYMBOL 	sym;
 				char *	key;
@@ -3322,28 +3323,28 @@ yyreduce:
 				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction((void*)VALUE(sym))}, 3);
 				yyval.ident.s = yyvsp[-4].ident.s;
 			}
-#line 3326 "parser.c"
+#line 3327 "parser.c"
     break;
 
   case 208: /* $@18: %empty  */
-#line 943 "Parser.y"
+#line 944 "Parser.y"
                         {
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lstartid,_breaklevel);
 			}
-#line 3334 "parser.c"
+#line 3335 "parser.c"
     break;
 
   case 209: /* $@19: %empty  */
-#line 945 "Parser.y"
+#line 946 "Parser.y"
                                     {
 				bytecode_emitGotoInstruction(_currentBytecodeBuffer, lendid,_breaklevel,BRA_IF_FALSE);
 				_breaklevel++;
 			}
-#line 3343 "parser.c"
+#line 3344 "parser.c"
     break;
 
   case 210: /* while: T_WHILE $@18 condition $@19 local_block  */
-#line 948 "Parser.y"
+#line 949 "Parser.y"
                                       {
 				_breaklevel--;
 				bytecode_emitGotoInstruction(_currentBytecodeBuffer, lstartid,_breaklevel,BRA_ALWAYS);
@@ -3351,56 +3352,56 @@ yyreduce:
 				bytecode_destroyAutoLabelNamePrefix(lstartid,_breaklevel);
 				bytecode_destroyAutoLabelNamePrefix(lendid,_breaklevel);
 			}
-#line 3355 "parser.c"
+#line 3356 "parser.c"
     break;
 
   case 214: /* $@20: %empty  */
-#line 964 "Parser.y"
+#line 965 "Parser.y"
                                        {
 				bytecode_emitGotoInstruction(_currentBytecodeBuffer, iffailid,_iflevel,BRA_IF_FALSE);
 				_iflevel++;
 			}
-#line 3364 "parser.c"
+#line 3365 "parser.c"
     break;
 
   case 215: /* $@21: %empty  */
-#line 967 "Parser.y"
+#line 968 "Parser.y"
                                       {
 				_iflevel--;
 			}
-#line 3372 "parser.c"
+#line 3373 "parser.c"
     break;
 
   case 216: /* if_expression: T_IF condition $@20 local_block $@21 else_clause  */
-#line 969 "Parser.y"
+#line 970 "Parser.y"
                                       {
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, ifdoneid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(ifdoneid,_iflevel);
 			}
-#line 3381 "parser.c"
+#line 3382 "parser.c"
     break;
 
   case 217: /* else_clause: %empty  */
-#line 974 "Parser.y"
+#line 975 "Parser.y"
              {
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, iffailid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(iffailid,_iflevel);
 			}
-#line 3390 "parser.c"
+#line 3391 "parser.c"
     break;
 
   case 218: /* $@22: %empty  */
-#line 978 "Parser.y"
+#line 979 "Parser.y"
                                  {
 				bytecode_emitGotoInstruction(_currentBytecodeBuffer, ifdoneid,_iflevel,BRA_ALWAYS);
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, iffailid,_iflevel);
 				bytecode_destroyAutoLabelNamePrefix(iffailid,_iflevel);
 			}
-#line 3400 "parser.c"
+#line 3401 "parser.c"
     break;
 
   case 223: /* @23: %empty  */
-#line 990 "Parser.y"
+#line 991 "Parser.y"
                             {
 				// Native call
 				_currentNativeMethodCalled = yyvsp[-1].funcp;
@@ -3408,32 +3409,32 @@ yyreduce:
 				*_currentFunctionCallParamIndexP = 0;
 				yyval.funcp = yyvsp[-1].funcp;
 			}
-#line 3412 "parser.c"
+#line 3413 "parser.c"
     break;
 
   case 224: /* call_expression: T_FUNC '(' @23 parameter_list closing_paren  */
-#line 996 "Parser.y"
+#line 997 "Parser.y"
                                                        {
 				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction(yyvsp[-4].funcp)}, *_currentFunctionCallParamIndexP);
 				_currentFunctionCallParamIndexP--;
 				_currentNativeMethodCalled = 0;
 			}
-#line 3422 "parser.c"
+#line 3423 "parser.c"
     break;
 
   case 225: /* @24: %empty  */
-#line 1001 "Parser.y"
+#line 1002 "Parser.y"
                                                      {
 				_currentNativeMethodCalled = 0;
 				_currentFunctionCallParamIndexP++;
 				*_currentFunctionCallParamIndexP = 0;
 				yyval.funcp = 0;
 			}
-#line 3433 "parser.c"
+#line 3434 "parser.c"
     break;
 
   case 226: /* call_expression: function_id_or_pointer '(' @24 parameter_list closing_paren  */
-#line 1006 "Parser.y"
+#line 1007 "Parser.y"
                                                        {
 				if (yyvsp[-4].ident.operation == C_MACRO_REF_LOCAL) {
 					_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, yyvsp[-4].ident.operation,(GENERIC_DATA){.intValue = yyvsp[-4].ident.heapIndex}, *_currentFunctionCallParamIndexP);
@@ -3443,62 +3444,62 @@ yyreduce:
 				}
 				_currentFunctionCallParamIndexP--;
 			}
-#line 3447 "parser.c"
+#line 3448 "parser.c"
     break;
 
   case 229: /* @25: %empty  */
-#line 1018 "Parser.y"
+#line 1019 "Parser.y"
                        {
 				_currentFunctionCallParamIndexP++;
 				*_currentFunctionCallParamIndexP = 0;
 				yyval.funcp = &_functionTable[FUNC_CreateArray];
 			}
-#line 3457 "parser.c"
+#line 3458 "parser.c"
     break;
 
   case 230: /* array_constructor: '[' @25 parameter_list ']'  */
-#line 1022 "Parser.y"
+#line 1023 "Parser.y"
                                              {
 				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
 					C_0FUNC,(GENERIC_DATA){FUNC_CreateArray}, *_currentFunctionCallParamIndexP);
 				_currentFunctionCallParamIndexP--;
 			}
-#line 3467 "parser.c"
+#line 3468 "parser.c"
     break;
 
   case 231: /* @26: %empty  */
-#line 1028 "Parser.y"
+#line 1029 "Parser.y"
                      {
 		_currentFunctionCallParamIndexP++;
 		*_currentFunctionCallParamIndexP = 0;
 		yyval.funcp = &_functionTable[FUNC_CreateMap];
 	}
-#line 3477 "parser.c"
+#line 3478 "parser.c"
     break;
 
   case 232: /* map_constructor: '{' @26 optional_map_associates '}'  */
-#line 1032 "Parser.y"
+#line 1033 "Parser.y"
                                       {
 		_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
 			C_0FUNC,(GENERIC_DATA){FUNC_CreateMap}, *_currentFunctionCallParamIndexP);
 		_currentFunctionCallParamIndexP--;
 	}
-#line 3487 "parser.c"
+#line 3488 "parser.c"
     break;
 
   case 237: /* @27: %empty  */
-#line 1048 "Parser.y"
+#line 1049 "Parser.y"
                                      { 
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=yyvsp[-1].ident.s});
 				yyval.v.type = C_PUSH_STRING_LITERAL;
 				free(yyvsp[-1].ident.s);
 				(*_currentFunctionCallParamIndexP) += 2;
 			}
-#line 3498 "parser.c"
+#line 3499 "parser.c"
     break;
 
   case 239: /* function_id_or_pointer: '*' variable_reference  */
-#line 1056 "Parser.y"
+#line 1057 "Parser.y"
                                                {
 				yyval.ident.operation =  yyvsp[0].ident.isLocalVar ? C_MACRO_REF_LOCAL : C_MACRO_REF;
 				if (yyvsp[0].ident.isLocalVar) {
@@ -3508,124 +3509,124 @@ yyreduce:
 					yyval.ident.stringIsAlloced = 1;
 				}
 			}
-#line 3512 "parser.c"
+#line 3513 "parser.c"
     break;
 
   case 240: /* function_id_or_pointer: T_IDENT  */
-#line 1066 "Parser.y"
+#line 1067 "Parser.y"
                                 {
 				yyval.ident = yyvsp[0].ident;
 				yyval.ident.operation = C_MACRO;
 			}
-#line 3521 "parser.c"
+#line 3522 "parser.c"
     break;
 
   case 241: /* parameter: expression  */
-#line 1071 "Parser.y"
+#line 1072 "Parser.y"
                            { yyval.ident.type = yyvsp[0].ident.type; (*_currentFunctionCallParamIndexP)++; }
-#line 3527 "parser.c"
+#line 3528 "parser.c"
     break;
 
   case 242: /* parameter: T_ELLIPSIS expression  */
-#line 1072 "Parser.y"
+#line 1073 "Parser.y"
                                                 { 
 				yyval.ident.type = yyvsp[0].ident.type; (*_currentFunctionCallParamIndexP)++; 
 				YY_EMIT(C_SPREAD, (GENERIC_DATA){1});
 			}
-#line 3536 "parser.c"
+#line 3537 "parser.c"
     break;
 
   case 243: /* type_cast: '(' type_name ')'  */
-#line 1077 "Parser.y"
+#line 1078 "Parser.y"
                                         {	
 				yyval.ident.type = yyvsp[-1].ident.type;
 				yyval.ident.arraySize = yyvsp[-1].ident.arraySize;
 			}
-#line 3545 "parser.c"
+#line 3546 "parser.c"
     break;
 
   case 244: /* type_name: T_TYPE_IDENTIFIER  */
-#line 1082 "Parser.y"
+#line 1083 "Parser.y"
                                {
 				yyval.ident.arraySize = 0;
 			}
-#line 3553 "parser.c"
+#line 3554 "parser.c"
     break;
 
   case 245: /* type_name: T_TYPE_IDENTIFIER array_size  */
-#line 1085 "Parser.y"
+#line 1086 "Parser.y"
                                                         {	
 				yyval.ident.type = VT_OBJECT_ARRAY;
 				yyval.ident.arraySize = yyvsp[0].ident.arraySize;
 			}
-#line 3562 "parser.c"
+#line 3563 "parser.c"
     break;
 
   case 247: /* array_size: '[' T_NUM ']'  */
-#line 1091 "Parser.y"
+#line 1092 "Parser.y"
                                         {
 				yyval.ident.arraySize = (int)yyvsp[-1].num;
 			}
-#line 3570 "parser.c"
+#line 3571 "parser.c"
     break;
 
   case 248: /* boolean_literal: T_TRUE  */
-#line 1095 "Parser.y"
+#line 1096 "Parser.y"
                         {
 			yyval.v.type = C_PUSH_BOOLEAN_LITERAL; 
 			yyval.v.data.booleanValue = 1;
 		}
-#line 3579 "parser.c"
+#line 3580 "parser.c"
     break;
 
   case 249: /* boolean_literal: T_FALSE  */
-#line 1098 "Parser.y"
+#line 1099 "Parser.y"
                             {
 			yyval.v.type = C_PUSH_BOOLEAN_LITERAL; 
 			yyval.v.data.booleanValue = 0;
 		}
-#line 3588 "parser.c"
+#line 3589 "parser.c"
     break;
 
   case 250: /* float_literal: T_FLOATING_POINT_NUMBER  */
-#line 1103 "Parser.y"
+#line 1104 "Parser.y"
                                        {
 				yyval.v.type = C_PUSH_FLOAT_LITERAL; 
 				yyval.v.data.doubleValue = yyvsp[0].v.data.doubleValue;
 			}
-#line 3597 "parser.c"
+#line 3598 "parser.c"
     break;
 
   case 251: /* integer_literal: T_NUM  */
-#line 1108 "Parser.y"
+#line 1109 "Parser.y"
                        {
 				yyval.v.type = C_PUSH_LONG_LITERAL; 
 				yyval.v.data.longValue  = yyvsp[0].num;
 			}
-#line 3606 "parser.c"
+#line 3607 "parser.c"
     break;
 
   case 252: /* integer_literal: '-' T_NUM  */
-#line 1112 "Parser.y"
+#line 1113 "Parser.y"
                                     {
 				yyval.ident.type = VT_NUMBER;
 				yyval.v.type = C_PUSH_LONG_LITERAL; 
 				yyval.v.data.longValue  = -yyvsp[0].num;
 			}
-#line 3616 "parser.c"
+#line 3617 "parser.c"
     break;
 
   case 253: /* character_literal: T_CHARACTER  */
-#line 1119 "Parser.y"
+#line 1120 "Parser.y"
                                {
 				yyval.v.type = C_PUSH_CHARACTER_LITERAL; 
 				yyval.v.data.uchar = (char)yyvsp[0].num;
 			}
-#line 3625 "parser.c"
+#line 3626 "parser.c"
     break;
 
   case 254: /* simple_literal: integer_literal  */
-#line 1124 "Parser.y"
+#line 1125 "Parser.y"
                                 { 
 				if (!_bDefiningConst) {
 					bytecode_emitPushParameterInstruction(yyvsp[0].v.data.longValue);
@@ -3634,11 +3635,11 @@ yyreduce:
 				}
 				yyval.ident.type = VT_NUMBER;
 			}
-#line 3638 "parser.c"
+#line 3639 "parser.c"
     break;
 
   case 255: /* simple_literal: float_literal  */
-#line 1132 "Parser.y"
+#line 1133 "Parser.y"
                                         { 
 				if (!_bDefiningConst) {
 					YY_EMIT(C_PUSH_FLOAT_LITERAL, yyvsp[0].v.data);
@@ -3647,11 +3648,11 @@ yyreduce:
 				}
 				yyval.ident.type = VT_FLOAT;
 			}
-#line 3651 "parser.c"
+#line 3652 "parser.c"
     break;
 
   case 256: /* simple_literal: character_literal  */
-#line 1140 "Parser.y"
+#line 1141 "Parser.y"
                                             { 
 				if (!_bDefiningConst) {
 					YY_EMIT(C_PUSH_CHARACTER_LITERAL, yyvsp[0].v.data);
@@ -3660,11 +3661,11 @@ yyreduce:
 				}
 				yyval.ident.type = VT_CHAR;
 			}
-#line 3664 "parser.c"
+#line 3665 "parser.c"
     break;
 
   case 257: /* simple_literal: boolean_literal  */
-#line 1148 "Parser.y"
+#line 1149 "Parser.y"
                                           { 
 				if (!_bDefiningConst) {
 					YY_EMIT(C_PUSH_BOOLEAN_LITERAL, yyvsp[0].v.data);
@@ -3673,11 +3674,11 @@ yyreduce:
 				}
 				yyval.ident.type = VT_BOOLEAN;
 			}
-#line 3677 "parser.c"
+#line 3678 "parser.c"
     break;
 
 
-#line 3681 "parser.c"
+#line 3682 "parser.c"
 
       default: break;
     }
@@ -3901,7 +3902,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 1156 "Parser.y"
+#line 1157 "Parser.y"
 
 
 /**

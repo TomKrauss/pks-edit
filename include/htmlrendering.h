@@ -32,7 +32,18 @@ extern RENDER_VIEW_PART* mdr_parseHTML(const char* pszText);
 /*
  * Render some render view parts as a response to a WM_PAINT message.
  */
-extern void mdr_renderViewparts(HWND hwnd, PAINTSTRUCT* ps, RENDER_VIEW_PART* pFirst);
+extern void mdr_renderViewparts(HWND hwnd, PAINTSTRUCT* ps, int nTopY, RENDER_VIEW_PART* pFirst);
+
+/*
+ * Invalidate the layout of all view parts starting with 'pFirst'.
+ */
+extern void mdr_invalidateViewpartsLayout(RENDER_VIEW_PART* pFirst);
+
+/*
+ * Returns the total extent in pixels of the current layout described by the list
+ * of view parts.
+ */
+void mdr_getViewpartsExtend(RENDER_VIEW_PART* pFirst, SIZE* pSize);
 
 #define HTMLRENDERING_H
 #endif 

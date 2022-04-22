@@ -232,13 +232,14 @@ int recorder_recordOperation(PARAMS* pp)
  */
 int recorder_toggleRecording(void) {
 	static KEYCODE scan = K_DELETED;
-	char    buf[100];
-	static  int _macroIndexRecorded;
+	char    buf[MAC_COMMENTLEN];
+	static  int _macroIndexRecorded = 1;
 
 	if (recorder_isRecording()) {		// STOP RECORDING
 		if (_cmdfuncp && _currentRecordingBuffer.bb_current !=_currentRecordingBuffer.bb_start) {
-			wsprintf(buf, "NewMacro%d", ++_macroIndexRecorded);
+			wsprintf(buf, "RecordedMacro_%d", _macroIndexRecorded);
 			if (!macro_getIndexForKeycode(&scan, buf, -1)) {
+				recorder_setRecording(FALSE);
 				return 0;
 			}
 			if (!scan) {
@@ -249,10 +250,11 @@ int recorder_toggleRecording(void) {
 					.mp_bytecodeLength = _currentRecordingBuffer.bb_current-_currentRecordingBuffer.bb_start, 
 					.mp_buffer = _currentRecordingBuffer.bb_start };
 			if ((_lastinsertedmac = macro_insertNewMacro(&pParam)) >= 0) {
+				_macroIndexRecorded++;
 				bindings_bindKey(scan, (MACROREF) { .index = _lastinsertedmac, .typ = CMD_MACRO }, NULL);
 			}
+			recorder_setRecording(FALSE);
 		}
-		recorder_setRecording(FALSE);
 	}  else {	// START RECORDING
 		recorder_setRecording(TRUE);;
 	}

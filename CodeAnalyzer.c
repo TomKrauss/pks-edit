@@ -214,6 +214,7 @@ static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
 	stringbuf_appendChar(pBuf, '(');
 	stringbuf_appendString(pBuf, stringbuf_getString(pszParams));
 	stringbuf_destroy(pszParams);
+	stringbuf_appendChar(pBuf, ')');
 	stringbuf_appendString(pBuf, "</p>");
 	
 	analyzer_formatJavadocComment(pBuf, pFunc->nf_description);

@@ -124,7 +124,7 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName
 			pMacroData = (MACRODATA *) &buf[offs];
 			pMacroData->cmdbyte = mp->mc_isNamespace ? CMD_NAMESPACE : CMD_MACRO;
 			pMacroData->namelen = (unsigned char)strlen(MAC_NAME(mp))+1;
-			pMacroData->commentlen = mp->mc_comment ? (unsigned char)strlen(mp->mc_comment)+1 : 0;
+			pMacroData->commentlen = mp->mc_comment ? (unsigned short)strlen(mp->mc_comment)+1 : 0;
 			pMacroData->namespaceIdx = mp->mc_namespaceIdx;
 			pMacroData->returnType = mp->mc_returnType;
 			pMacroData->macroScope = mp->mc_scope;

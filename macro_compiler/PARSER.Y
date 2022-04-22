@@ -64,7 +64,7 @@
 # define 	YYSTYPE _YYSTYPE
 
 # define 	MAX_BREAK_LEVEL	6
-# define	REC_SPACE		32000
+# define	MACRO_BYTECODE_SPACE	32000
 
 static BYTECODE_BUFFER  _buffers[MAX_BREAK_LEVEL];
 static BYTECODE_BUFFER* _currentBytecodeBuffer;
@@ -193,8 +193,9 @@ static void parser_switchToBuffer(int aLevel) {
 	}
 	_currentBytecodeBuffer = &_buffers[aLevel];
 	if (!_currentBytecodeBuffer->bb_start) {
-		_currentBytecodeBuffer->bb_end = ((_currentBytecodeBuffer->bb_start = malloc(REC_SPACE)) == 0) ? 
-			_currentBytecodeBuffer->bb_start : _currentBytecodeBuffer->bb_start + REC_SPACE;
+		int nCapacity = aLevel < 1 ? MACRO_BYTECODE_SPACE*4 : MACRO_BYTECODE_SPACE;
+		_currentBytecodeBuffer->bb_end = ((_currentBytecodeBuffer->bb_start = malloc(nCapacity)) == 0) ? 
+			_currentBytecodeBuffer->bb_start : _currentBytecodeBuffer->bb_start + nCapacity;
 		_currentBytecodeBuffer->bb_current = _currentBytecodeBuffer->bb_start;
 	}
 	if (aLevel > 1) {
