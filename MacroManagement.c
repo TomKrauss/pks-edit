@@ -501,8 +501,9 @@ int macro_insertNewMacro(MACRO_PARAM *mpParam)
 		arraylist_removeAt(_macroTable, i);
 	}
 
-	if ((mp = macro_createWithParams(mpParam)) == 0)
+	if ((mp = macro_createWithParams(mpParam)) == 0) {
 		return -1;
+	}
 
 	arraylist_add(_macroTable, mp);
 	i = (int)arraylist_size(_macroTable)-1;

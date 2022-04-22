@@ -1150,17 +1150,21 @@
     },
     { "separator": true },
     {
+      "command": "FormatSingleLineComments",
+      "icon": "fa-code"
+    },
+    {
+      "command": "TrimTrailingBlanks",
+      "icon": "fa-adjust"
+    },
+    { "separator": true },
+    {
       "command": "@help-manual-toc",
       "icon": "fa-question"
     },
     {
       "command": "@help-release-notes",
-      "icon": "fa-pencil-square-o"
-    },
-    { "separator": true },
-    {
-      "command": "TrimTrailingBlanks",
-      "icon": "fa-star"
+      "icon": "fa-info-circle"
     }
   ]
 }

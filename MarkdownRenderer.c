@@ -587,7 +587,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 	HFONT hFont = mdr_createFont(&pTR->tr_attributes, pRFP->rfp_zoomFactor);
 	HFONT hOldFont = SelectObject(hdc, hFont);
 	if (pRFP->rfp_skipSpace) {
-		while (nLen > 0 && string_isSpace(pTF->tf_text[nOffs])) {
+		while (nLen > 0 && isspace((unsigned char)pTF->tf_text[nOffs])) {
 			nOffs++;
 			nLen--;
 		}
@@ -749,7 +749,7 @@ static void mdr_renderMarkdownBlockPart(RENDER_VIEW_PART* pPart, HDC hdc, RECT* 
 		RECT r;
 		r.top = y-5;
 		if (pPart->rvp_layouted) {
-			r.bottom = r.top + pPart->rvp_bounds.bottom - pPart->rvp_bounds.top;
+			r.bottom = r.top + pPart->rvp_bounds.bottom - pPart->rvp_bounds.top + pPart->rvp_margins.m_bottom + 10;
 		} else {
 			// TODO: does currently not take into consideration the fact, that lines wrap around in a fenced code block.
 			// we should change the protocol to ensure, layout is calculated in a first phase.
@@ -1256,7 +1256,7 @@ static void mdr_parseStyle(FONT_STYLE_DELTA* pFSD, const char* pszStyleSpec) {
 	while (1) {
 		c = *pszStyleSpec++;
 		if (tState == 0) {
-			if (isalpha(c)) {
+			if (isalpha((unsigned char)c)) {
 				pszAttr = szAttribute;
 				tState = 1;
 			}
@@ -1347,13 +1347,13 @@ static int mdr_getTag(const char* pszSource, FONT_STYLE_DELTA* pFSD, struct tagH
 		}
 		switch (nState) {
 		case HPS_INIT:
-			if (isalpha(c)) {
+			if (isalpha((unsigned char)c)) {
 				nState = HPS_ELEM;
 				*pszDest++ = c;
 			}
 			break;
 		case HPS_ELEM:
-			if (isalpha(c)) {
+			if (isalpha((unsigned char)c)) {
 				if (pszDest < pszStart + nDestSize - 1) {
 					*pszDest++ = c;
 				}
@@ -1364,7 +1364,7 @@ static int mdr_getTag(const char* pszSource, FONT_STYLE_DELTA* pFSD, struct tagH
 			break;
 		case HPS_WAIT_FOR_VALUE:
 		case HPS_BETWEEN_ATTR:
-			if (isalpha(c)) {
+			if (isalpha((unsigned char)c)) {
 				pszAttr = szAttribute;
 				*pszAttr++ = c;
 				nState = HPS_ATTR;
@@ -1375,7 +1375,7 @@ static int mdr_getTag(const char* pszSource, FONT_STYLE_DELTA* pFSD, struct tagH
 			}
 			break;
 		case HPS_ATTR:
-			if (isalpha(c)) {
+			if (isalpha((unsigned char)c)) {
 				if (pszAttr < (szAttribute + sizeof szAttribute - 1)) {
 					*pszAttr++ = c;
 				}
@@ -1438,7 +1438,7 @@ static RENDER_VIEW_PART* mdr_newPart(RENDER_VIEW_PART** pFirst, FONT_STYLE_DELTA
  * Skip all leading space chars in an input string.
  */
 static const char* mdr_skipLeadingSpace(const char* pInput) {
-	while (isspace(*pInput)) {
+	while (isspace((unsigned char) * pInput)) {
 		pInput++;
 	}
 	return pInput;
@@ -1502,7 +1502,7 @@ RENDER_VIEW_PART* mdr_parseHTML(const char* pszText) {
 					pfsd->fsd_logicalStyles |= ATTR_LINE_BREAK;
 					pszText = mdr_skipLeadingSpace(pszText);
 				} else {
-					while (isspace(*pszText) && isspace(pszText[1])) {
+					while (isspace((unsigned char)*pszText) && isspace((unsigned char)pszText[1])) {
 						pszText++;
 					}
 				}
@@ -1864,7 +1864,7 @@ static BOOL mdr_parseTable(char* pszRelative, LINE** pFirst, RENDER_VIEW_PART* p
 	for (int i = 0; i < lpDef->len; i++) {
 		char c = lpDef->lbuf[i];
 		if (nColumn == -1) {
-			if (pks_isspace(c)) {
+			if (isspace(c)) {
 				continue;
 			}
 			if (c == '|' || c == '-' || c== '=' || c == ':') {
@@ -1955,6 +1955,9 @@ static void mdr_parseViewParts(WINFO *wp, MARKDOWN_RENDERER_DATA* pData) {
 		if (!ln_lineIsEmpty(lp)) {
 			RENDER_VIEW_PART* pPart;
 			pPart = pReuse == NULL ? ll_append(&pData->md_pElements, sizeof(RENDER_VIEW_PART)) : pReuse;
+			if (!pPart->rvp_paint) {
+				pPart->rvp_paint = mdr_renderMarkdownBlockPart;
+			}
 			pReuse = NULL;
 			pPart->rvp_lpStart = lp;
 			if (mdr_parseTable(fp->fname, &lp, pPart)) {
@@ -2042,7 +2045,7 @@ static int mdr_supportsMode(int aMode) {
 
 static int mdr_windowSizeChanged(WINFO* wp) {
 	// we do not support horizontal scrolling anyways - do not show a horizontal scrollbar.
-	wp->maxcurscol = wp->maxcol = 15;
+	wp->maxcurscol = wp->maxcol = 300;
 	wp->mincol = 0;
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (pData && pData->md_lastMinLn != wp->minln) {
@@ -2171,12 +2174,12 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	GetClientRect(wp->ww_handle, &rect);
 	BOOL bSizeChanged = FALSE;
-	if (rect.right != pData->md_lastBounds.right || rect.bottom != pData->md_lastBounds.bottom || wp->minln != pData->md_lastMinLn) {
+	if (rect.right != pData->md_lastBounds.right || rect.bottom != pData->md_lastBounds.bottom) {
 		bSizeChanged = TRUE;
-		pData->md_lastMinLn = wp->minln;
 		CopyRect(&pData->md_lastBounds, &rect);
 		mdr_invalidateViewpartsLayout(pData->md_pElements);
 	}
+	pData->md_lastMinLn = wp->minln;
 	if (!pData->md_pElements) {
 		mdr_parseViewParts(wp, pData);
 	}
