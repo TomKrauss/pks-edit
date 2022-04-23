@@ -31,8 +31,6 @@ typedef struct tagHEX_RENDERER_DATA {
 	long	nCachedByteOffset;	// See above - only valid if pByteOffsetCache is not null
 } HEX_RENDERER_DATA;
 
-extern void ww_setScrollCheckBounds(WINFO* wp);
-
 /*-----------------------------------------
  * Render an arbitrary string with a given length at a position using a font-style.
  */
@@ -383,7 +381,7 @@ static void hex_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 }
 
 static int hex_rendererSupportsMode(int aMode) {
-	if (aMode == SHOWCARET_LINE_HIGHLIGHT || aMode == SHOWRULER) {
+	if (aMode == SHOWRULER) {
 		return 0;
 	}
 	return 1;
@@ -401,7 +399,6 @@ static RENDERER _hexRenderer = {
 	hex_allocData,
 	0,
 	wt_scrollxy,
-	ww_setScrollCheckBounds,
 	render_adjustScrollBounds,
 	NULL,
 	hex_rendererSupportsMode,

@@ -555,7 +555,6 @@ static RENDERER _asciiRenderer = {
 	NULL,
 	NULL,
 	wt_scrollxy,
-	ww_setScrollCheckBounds,
 	render_adjustScrollBounds,
 	NULL,
 	ascii_rendererSupportsMode,
@@ -604,6 +603,16 @@ static void ww_assignRenderer(WINFO* wp) {
 	}
 	ww_destroyRendererData(wp);
 	wp->renderer = pNew;
+
+	RENDERER_WINDOW_PROC pOldWndProc = pOld ? pOld->r_wndProc : 0;
+	RENDERER_WINDOW_PROC pNewWndProc = pNew->r_wndProc;
+	if (!pNewWndProc) {
+		pNewWndProc = render_defaultWindowProc;
+	}
+	if (pNewWndProc != render_defaultWindowProc || 
+			(pNewWndProc == render_defaultWindowProc && pOldWndProc != 0 && pOldWndProc != render_defaultWindowProc)) {
+		SetWindowLongPtr(wp->ww_handle, GWLP_WNDPROC, (LONG_PTR)pNewWndProc);
+	}
 	wp->maxVisibleLineLen = -1;
 	if (wp->renderer->r_create) {
 		wp->r_data = wp->renderer->r_create(wp);
@@ -635,7 +644,7 @@ void ww_modeChanged(WINFO* wp) {
 	}
 
 	wp->scroll_dx = 4;
-	wp->renderer->r_windowSizeChanged(wp);
+	ww_setScrollCheckBounds(wp);
 	wp->renderer->r_adjustScrollBounds(wp);
 	win_sendRedrawToWindow(wp->ww_handle);
 	render_updateCaret(wp);
@@ -1007,11 +1016,7 @@ WINFUNC EditWndProc(
 		break;
 	}
 
-	case WM_MOVE:
-		/* drop through */
 	case WM_SIZE:
-		if (message == WM_MOVE)
-			break;
 		if (wParam == SIZEICONIC) {
 			break;
 		}
@@ -1073,7 +1078,7 @@ WINFUNC EditWndProc(
  * ww_updateWindowBounds()
  */
 static int ww_updateWindowBounds(WINFO *wp, int w, int h) {
-	wp->renderer->r_windowSizeChanged(wp);
+	ww_setScrollCheckBounds(wp);
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"set window scroll bounds to (minln = %ld, mincol = %ld, maxln = %ld, maxcol = %ld)",
 		   wp->minln,wp->mincol,wp->maxln,wp->maxcol));
 	return 1;
@@ -1187,9 +1192,10 @@ static void onButtonDown(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 }
 
 /*------------------------------------------------------------
- * WorkAreaWndProc()
+ * render_defaultWindowProc()
+ * Default Window procedure used by editor windows in PKS-Edit.
  */
-static WINFUNC WorkAreaWndProc(
+WINFUNC render_defaultWindowProc(
 	HWND hwnd,
 	UINT message,
 	WPARAM wParam,
@@ -1243,16 +1249,6 @@ static WINFUNC WorkAreaWndProc(
 	case WM_SYSKEYUP:
 	case WM_CHAR:
 		return SendMessage(hwndMain,message,wParam,lParam);
-
-	case WM_MOUSEMOVE:
-		if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {
-			if (wp->renderer->r_mouseMove) {
-				int xPos = GET_X_LPARAM(lParam);
-				int yPos = GET_Y_LPARAM(lParam);
-				wp->renderer->r_mouseMove(wp, xPos, yPos);
-			}
-		}
-		break;
 
 	case WM_MOUSEWHEEL:
 		zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
@@ -1635,7 +1631,7 @@ static WINFUNC LineNumberWndProc(
  * Register the window classes for PKS edit editor windows.
  */
 int ww_register(void) {
-	if (!win_registerWindowClass(szWorkAreaClass, WorkAreaWndProc,
+	if (!win_registerWindowClass(szWorkAreaClass, render_defaultWindowProc,
 		(LPSTR)IDC_IBEAM, GetStockObject(WHITE_BRUSH), 0,
 		sizeof(void*)) ||
 		!win_registerWindowClass(szEditClass, EditWndProc,

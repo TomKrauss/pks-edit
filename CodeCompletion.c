@@ -239,7 +239,7 @@ static void codecomplete_helpWindowUpdateScrollbar(HWND hwnd, int bScrollChanged
 		RECT rect;
 		GetClientRect(hwnd, &rect);
 		SIZE size;
-		mdr_getViewpartsExtend(pFirst, &size);
+		mdr_getViewpartsExtend(pFirst, &size, -1);
 		SCROLLINFO info = {
 			.cbSize = sizeof info,
 			.fMask = SIF_RANGE | SIF_PAGE | SIF_POS 
@@ -619,7 +619,7 @@ static LRESULT codecomplete_helpWndProc(HWND hwnd, UINT message, WPARAM wParam, 
 		return 0;
 	case WM_MOUSEWHEEL: {
 			int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-			codecomplete_helpWindowUpdateScrollbar(hwnd, 1, zDelta > 0 ? SB_PAGEDOWN : SB_PAGEUP);
+			codecomplete_helpWindowUpdateScrollbar(hwnd, 1, zDelta < 0 ? SB_PAGEDOWN : SB_PAGEUP);
 		}
 		break;
 	case WM_VSCROLL:

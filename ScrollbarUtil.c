@@ -31,6 +31,8 @@
 /*! MODIFY HERE !*/
 long		_multiplier = 1;
 
+extern void ww_setScrollCheckBounds(WINFO* wp);
+
 
 #if defined(WIN32)
 static void SetWin32ScrollInfo(WINFO * wp, int nSlider, 
@@ -142,7 +144,7 @@ int sl_scrollwinrange(WINFO *wp, long *pDeltaY, long *pDeltaX)
 	} 
 
 	if (*pDeltaY || *pDeltaX) {
-		wp->renderer->r_windowSizeChanged(wp);
+		ww_setScrollCheckBounds(wp);
 		return 1;
 	}
 	return 0;

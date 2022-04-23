@@ -152,8 +152,6 @@ typedef void (*RENDERER_HIT_TEST)(WINFO* wp, int cX, int cY, long* pLine, long* 
 
 typedef void (*RENDERER_NAVIGATE_ANCHOR)(WINFO* wp, const char* pszAnchor);
 
-typedef void (*RENDERER_WINDOW_SIZE_CHANGED)(WINFO* wp);
-
 typedef void (*RENDERER_MOUSEMOVE)(WINFO* wp, int x, int y);
 
 typedef BOOL(*RENDERER_FIND_LINK)(WINFO* wp, char* pszDest, size_t nMaxChars, NAVIGATION_INFO_PARSE_RESULT* pResult);
@@ -161,6 +159,8 @@ typedef BOOL(*RENDERER_FIND_LINK)(WINFO* wp, char* pszDest, size_t nMaxChars, NA
 // Repaint a range of "logical lines" starting with a logical screen colum and ending with a screen column
 // line numbers are counted in terms of internal buffer line indices.
 typedef int (*RENDERER_REPAINT)(WINFO* wp, int nFirstLine, int nLastLine, int nFirstCol, int nLastCol);
+
+typedef LRESULT (*RENDERER_WINDOW_PROC)(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 typedef struct tagRENDERER {
     const RENDER_LINE_FUNCTION r_renderLine;
@@ -174,7 +174,6 @@ typedef struct tagRENDERER {
     const RENDERER_CREATE r_create;                               // Called, when the renderer is created. Returns the internal data structure r_data. May be null.
     const RENDERER_DESTROY r_destroy;                             // Called when the renderer is destroy. Frees the internal data structure r_data. If null, free is called by default to release the structure.
     const RENDERER_SCROLL r_scroll;
-    const RENDERER_WINDOW_SIZE_CHANGED r_windowSizeChanged;       // The window size has changed: adjust the min and max lines and columns visible
     const RENDERER_SCROLL_SET_BOUNDS r_adjustScrollBounds;        // Set the new minimum and maximum line and columns used when navigating the caret if the 
                                                                   // caret does not fit in the current window.
     const RENDERER_CARET_UPDATE_UI r_updateCaretUI;               // Set x and y coordinates of the caret depending on the line and column.
@@ -186,7 +185,7 @@ typedef struct tagRENDERER {
     const char* r_context;                                        // Optional action context to allow for specific input actions for this renderer. Maybe null.
     const RENDERER_FIND_LINK r_findLink;                          // Optional callback to find a link at the "current" caret position.
     const RENDERER_NAVIGATE_ANCHOR r_navigateAnchor;              // Optional callback to navigate to an "anchor" specification
-    const RENDERER_MOUSEMOVE r_mouseMove;                         // Optional callback invoked during mouse move.
+    const RENDERER_WINDOW_PROC r_wndProc;                         // Custom window procedure used by this renderer.
 } RENDERER;
 
 /*--------------------------------------------------------------------------
@@ -317,6 +316,12 @@ extern int find_selectRangeWithMarkers(int rangeType, MARK** mps, MARK** mpe);
  * Performs the actual painting of the window.
  */
 extern void render_paintWindow(WINFO* wp);
+
+/*------------------------------------------------------------
+ * render_defaultWindowProc()
+ * Default Window procedure used by editor windows in PKS-Edit.
+ */
+extern LRESULT render_defaultWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 /*--------------------------------------------------------------------------
  * render_repaintFromLineTo()

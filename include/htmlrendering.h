@@ -41,9 +41,11 @@ extern void mdr_invalidateViewpartsLayout(RENDER_VIEW_PART* pFirst);
 
 /*
  * Returns the total extent in pixels of the current layout described by the list
- * of view parts.
+ * of view parts. If nUpToPart is greater or equals to 0, we will get the extend
+ * up to not including the part with the given index. If -1 is passed we will get
+ * the extent of all viewparts.
  */
-void mdr_getViewpartsExtend(RENDER_VIEW_PART* pFirst, SIZE* pSize);
+extern void mdr_getViewpartsExtend(RENDER_VIEW_PART* pFirst, SIZE* pSize, int nUpToPart);
 
 #define HTMLRENDERING_H
 #endif 

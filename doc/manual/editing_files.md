@@ -68,26 +68,21 @@ Multi caret mode ends, when an operation is performed inside PKS-Edit other than
 PKS-Edit will show in the code completion window (open by default by pressing Ctrl+SPACE) by default a selection of the keywords
 of the current language + the templates to be inserted.
 
-Some templates are marked as ``auto-insert``, which means PKS-Edit will right away expand the corresponding template, when it recoginzes,
+Some templates are marked as `auto-insert`, which means PKS-Edit will right away expand the corresponding template, when it recoginzes,
 the user has just entered the matching pattern of the template. Note, that auto-insertable templates may be marked to only be inserted
-in lexical contexts, where the expansion makes sense. Entering a ``{`` character for instance in a C code file will only automatically
+in lexical contexts, where the expansion makes sense. Entering a `{` character for instance in a C code file will only automatically
 add a closing bracket and open a new line for typing, if the character is not entered inside a string, character literal or comment.
-One can completely disable autocompletion by setting the option ``Autocomplete`` to off.
+One can completely disable autocompletion by setting the option `Autocomplete` to off.
 
 ### Bracket Operations
 
-One can find a matching bracket explicitly by using the ``Find->Goto matching bracket`` menu. 
+One can find a matching bracket explicitly by using the `Find->Goto matching bracket` menu. 
 
-When the ``Check Brackets`` option is enabled, PKS-Edit will check for bracket matches while you type and display a warning,
+When the `Check Brackets` option is enabled, PKS-Edit will check for bracket matches while you type and display a warning,
 if e.g. a closing bracket has no corresponding opening bracket.
 
 ### Code Formatting
 
-Code Formatting will be triggered by menu ``Functions->Format```in PKS-Edit, but is currently very limited for code type files. 
+Code Formatting will be triggered by menu `Functions->Format` in PKS-Edit, but is currently very limited for code type files. 
 It will update the indentation according to the defined block structure of a document. Formatting is a bit more advanced for text
 type files (.txt or .md), where one has several options regarding the expected output.
-
-
-
- 
-

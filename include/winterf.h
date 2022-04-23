@@ -62,7 +62,7 @@ typedef BOOL (FPE_FUNC *ENUMFUNCP)(HWND, DWORD);
 
 extern LRESULT	FrameWndProc(HWND, UINT, WPARAM, LPARAM);
 extern WINFUNC 	EditWndProc(HWND, UINT, WPARAM, LPARAM);
-extern WINFUNC 	WorkAreaWndProc(HWND, UINT, WPARAM, LPARAM);
+extern WINFUNC 	render_defaultWindowProc(HWND, UINT, WPARAM, LPARAM);
 extern WINFUNC 	RulerWndProc(HWND, UINT, WPARAM, LPARAM);
 extern int 		win_registerWindowClass( char *szClassName, WNDPROC WinProc, 
 					LPSTR lpCursorName, HANDLE hbrBackground, 
