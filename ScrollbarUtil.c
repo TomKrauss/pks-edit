@@ -44,13 +44,13 @@ static void SetWin32ScrollInfo(WINFO * wp, int nSlider,
 	if (lMaximum != scrollInfo.nMax || 
 			nVisible != (INT)scrollInfo.nPage ||
 			lValue != scrollInfo.nPos) {
-		scrollInfo.fMask = SIF_ALL|SIF_DISABLENOSCROLL;
+		scrollInfo.fMask = SIF_ALL;
 		scrollInfo.nMin = 0;
 		scrollInfo.nMax = lMaximum;
 		scrollInfo.nPage = nVisible;
 		scrollInfo.nPos = lValue;
-		SetScrollInfo(wp->ww_handle, nSlider, &scrollInfo, TRUE);
 		ShowScrollBar(wp->ww_handle, nSlider, nVisible < lMaximum);
+		SetScrollInfo(wp->ww_handle, nSlider, &scrollInfo, TRUE);
 	}
 }
 #endif

@@ -133,6 +133,12 @@ extern long theme_textStyleForeground(const char* pszStylename, long lDefault);
  */
 long theme_textStyleBackground(const char* pszStylename, long lDefault);
 
+/*
+ * Returns the font face for a given style name. If the style cannot be found or does not
+ * define the font face, a default value is returned.
+ */
+extern const char* theme_textStyleFontface(const char* pszStylename, const char* pszDefault);
+
 #define THEMES_H
 
 #endif // !THEMES_H

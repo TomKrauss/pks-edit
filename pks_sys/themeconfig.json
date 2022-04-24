@@ -20,6 +20,10 @@
       "dialogActiveTab": "#cc6600",
       "textStyles": [
         {
+          "styleName": "wysiwyg",
+          "faceName": "Arial"
+        },
+        {
           "styleName": "default",
           "size": -12,
           "foregroundColor": "#000030",
@@ -148,6 +152,10 @@
       "mainframeMargin": 10,
       "mainWindowBackgroundColor": "#cfffcf",
       "textStyles": [
+        {
+          "styleName": "wysiwyg",
+          "faceName": "Arial"
+        },
         {
           "styleName": "default",
           "size": -12,
@@ -281,6 +289,10 @@
       "mainWindowBackgroundColor": "#ffcfcf",
       "textStyles": [
         {
+          "styleName": "wysiwyg",
+          "faceName": "Arial"
+        },
+        {
           "styleName": "default",
           "size": -12,
           "foregroundColor": "#342323",
@@ -412,6 +424,10 @@
       "mainframeMargin": 10,
       "mainWindowBackgroundColor": "#555555",
       "textStyles": [
+        {
+          "styleName": "wysiwyg",
+          "faceName": "Arial"
+        },
         {
           "styleName": "default",
           "size": -12,

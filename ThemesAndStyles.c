@@ -1331,3 +1331,14 @@ long theme_textStyleBackground(const char* pszStylename, long lDefault) {
 	EDTEXTSTYLE* pStyle = ll_find((void*)theme_getCurrent()->th_styles, pszStylename);
 	return pStyle ? pStyle->bgcolor : lDefault;
 }
+
+/*
+ * Returns the font face for a given style name. If the style cannot be found or does not
+ * define the font face, a default value is returned.
+ */
+const char* theme_textStyleFontface(const char* pszStylename, const char* pszDefault) {
+	EDTEXTSTYLE* pStyle = ll_find((void*)theme_getCurrent()->th_styles, pszStylename);
+	return (pStyle && pStyle->faceName[0]) ? pStyle->faceName : pszDefault;
+}
+
+

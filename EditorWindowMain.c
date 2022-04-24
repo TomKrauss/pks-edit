@@ -68,6 +68,7 @@ static WINFO *_winlist;
 extern int  mouse_onMouseClicked(WINFO *fp, int x,int y,int b, int nclicks,int shift);
 extern RENDERER* hex_getRenderer();
 extern RENDERER* mdr_getRenderer();
+extern RENDERER* mdr_getHTMLRenderer();
 
 #define  LINE_ANNOTATION_WIDTH			5
 #define  LINE_ANNOATION_PADDING			2
@@ -1017,7 +1018,11 @@ WINFUNC EditWndProc(
 	}
 
 	case WM_SIZE:
-		if (wParam == SIZEICONIC) {
+		if (!IsWindowVisible(hwnd)) {
+			return 0;
+		}
+	case WM_SHOWWINDOW:
+		if ((message == WM_SHOWWINDOW && !wParam) || (message == WM_SIZE && wParam == SIZEICONIC)) {
 			break;
 		}
 
@@ -1029,23 +1034,18 @@ WINFUNC EditWndProc(
 		if (wp->ww_handle) {
 			MoveWindow(wp->ww_handle,xyWork.x,xyWork.y,
 					xyWork.w,xyWork.h,1);
+			if (message == WM_SHOWWINDOW) {
+				SendMessage(wp->ww_handle, message, wParam, lParam);
+			}
 		}
 		if (wp->ru_handle) {
 			MoveWindow(wp->ru_handle,xyRuler.x,xyRuler.y,
 					xyRuler.w,xyRuler.h,1);
+			win_sendRedrawToWindow(wp->ru_handle);
 		}
 		if (wp->lineNumbers_handle) {
 			MoveWindow(wp->lineNumbers_handle, xyLineWindowSize.x, xyLineWindowSize.y,
 				xyLineWindowSize.w, xyLineWindowSize.h, 1);
-		}
-		if (message == WM_EDWINREORG) {
-			if (wp->ru_handle) {
-				win_sendRedrawToWindow(wp->ru_handle);
-			}
-			return 1;
-		}
-		if (wp->ru_handle) {
-			RedrawWindow(wp->ru_handle, NULL, NULL, RDW_INVALIDATE);
 		}
 		break;
 		}
@@ -1077,7 +1077,7 @@ WINFUNC EditWndProc(
 /*------------------------------------------------------------
  * ww_updateWindowBounds()
  */
-static int ww_updateWindowBounds(WINFO *wp, int w, int h) {
+static int ww_updateWindowBounds(WINFO *wp) {
 	ww_setScrollCheckBounds(wp);
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"set window scroll bounds to (minln = %ld, mincol = %ld, maxln = %ld, maxcol = %ld)",
 		   wp->minln,wp->mincol,wp->maxln,wp->maxcol));
@@ -1313,9 +1313,16 @@ WINFUNC render_defaultWindowProc(
 		}
 		return 0;
 
+	case WM_SHOWWINDOW:
+		if (!wParam) {
+			return 0;
+		}
 	case WM_SIZE:
+		if (message == WM_SIZE && !IsWindowVisible(hwnd)) {
+			return 0;
+		}
 		if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {
-			if (!ww_updateWindowBounds(wp, LOWORD(lParam), HIWORD(lParam))) {
+			if (!ww_updateWindowBounds(wp)) {
 				return 0;
 			}
 			sl_size(wp);
@@ -1655,6 +1662,7 @@ int ww_register(void) {
 	ww_registerRenderer("default", &_asciiRenderer);
 	ww_registerRenderer("hex", hex_getRenderer());
 	ww_registerRenderer("markdown", mdr_getRenderer());
+	ww_registerRenderer("html", mdr_getHTMLRenderer());
 	return 1;
 }
 

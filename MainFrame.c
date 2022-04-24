@@ -1734,12 +1734,14 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		rect.bottom -= (nFkeyHeight + nStatusHeight + nToolbarHeight);
 		if (hwndRebar) {
 			ShowWindow(hwndRebar, nToolbarHeight ? SW_SHOW : SW_HIDE);
-			SendMessage(hwndRebar, message, wParam, lParam);
-			MoveWindow(hwndRebar, rect.left, 0,
-				rect.right-rect.left, nToolbarHeight, 1);
+			if (nToolbarHeight) {
+				SendMessage(hwndRebar, message, wParam, lParam);
+			}
 		}
 		if (hwndFkeys) {
-			ShowWindow(hwndFkeys, TRUE);
+			if (!IsWindowVisible(hwndFkeys)) {
+				ShowWindow(hwndFkeys, TRUE);
+			}
 			MoveWindow(hwndFkeys, rect.left, rect.bottom + rect.top,
 				rect.right, nFkeyHeight, 1);
 		}

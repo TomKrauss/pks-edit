@@ -164,7 +164,7 @@ typedef LRESULT (*RENDERER_WINDOW_PROC)(HWND hwnd, UINT message, WPARAM wParam, 
 
 typedef struct tagRENDERER {
     const RENDER_LINE_FUNCTION r_renderLine;
-    const RENDER_PAGE_FUNCTION r_renderPage;
+    RENDER_PAGE_FUNCTION r_renderPage;
     const PLACE_CARET_FUNCTION r_placeCaret;
     const CALCULATE_MAX_LINE_FUNCTION r_calculateMaxLine;
     const CALCULATE_MAX_LINE_FUNCTION r_calculateMaxScreenColumn; // Returns the maximum logical screen column position over all lines displayed

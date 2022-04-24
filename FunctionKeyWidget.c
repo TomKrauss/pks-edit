@@ -257,12 +257,14 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	RECT	 		r;
 	DRAWITEMSTRUCT *dp;
 	KEYCODE 		k;
-	BOOL			bShow;
 	HWND			hwndItem;
 	int				nDelta;
 	int				nButtons;
 
 	switch(message) {
+
+	case WM_ERASEBKGND:
+		return 0;
 
 	case WM_DRAWITEM:
 		dp = (DRAWITEMSTRUCT*)lParam;
@@ -289,7 +291,6 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		}
 		break;
 	case WM_SIZE:
-	case WM_EDWINREORG:
 		GetClientRect(hwnd,&r);
 		if (r.right < 620) {
 			r.right = 620;
@@ -298,35 +299,28 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 			nButtons = MAX_FKEYS;
 		}
 		nDelta = r.right - r.left - 1;
-		if (GetConfiguration()->layoutoptions & OL_FKEYS) {
+		BOOL bFKeys = GetConfiguration()->layoutoptions & OL_FKEYS;
+		if (bFKeys) {
 			for (x = r.left, item = IDD_FKFK1; 
 				item < IDD_FKFK1+nButtons; item++) {
 				x = fkey_resizeSubWindow(hwnd, item, x, (item - IDD_FKFK1+1)*nDelta/nButtons-x, FALSE);
 			}
 		} 
-		for (x = r.left, item = IDD_FKFLG1; 
-			item < IDD_FKFLG1 + nButtons; item++) {
-			x = fkey_resizeSubWindow(hwnd, item, x, 
-				(item - IDD_FKFLG1+1) * nDelta / nButtons - x, TRUE);
-		}
-		if (GetConfiguration()->layoutoptions & OL_FKEYS) {
-			bShow = TRUE;
-		} else {
-			bShow = FALSE;
+		BOOL bOptionKeys = GetConfiguration()->layoutoptions & OL_FKEYS;
+		if (bOptionKeys) {
+			for (x = r.left, item = IDD_FKFLG1;
+				item < IDD_FKFLG1 + nButtons; item++) {
+				x = fkey_resizeSubWindow(hwnd, item, x,
+					(item - IDD_FKFLG1 + 1) * nDelta / nButtons - x, TRUE);
+			}
 		}
 		for (item = IDD_FKFK1; item <= IDD_FKFKLAST; item++) {
 			hwndItem = GetDlgItem(hwnd, item);
-			ShowWindow(hwndItem, bShow);
-		}
-		if (GetConfiguration()->layoutoptions & OL_OPTIONBAR) {
-			bShow = TRUE;
-		}
-		else {
-			bShow = FALSE;
+			ShowWindow(hwndItem, bFKeys != 0);
 		}
 		for (x = 0, item = IDD_FKFLG1; item <= IDD_FKFLGLAST; item++) {
 			hwndItem = GetDlgItem(hwnd, item);
-			ShowWindow(hwndItem, bShow);
+			ShowWindow(hwndItem, bOptionKeys != 0);
 		}
 
 		return TRUE;

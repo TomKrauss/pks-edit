@@ -191,6 +191,7 @@ struct tagRENDER_VIEW_PART {
 	RENDER_PAINT rvp_paint;
 	MARGINS rvp_margins;
 	RECT rvp_bounds;			// Bounds of an element excluding the margins.
+	int rvp_height;				// The height in pixels.
 	BOOL rvp_layouted;			// TRUE, if the layout bounds of the view part are valid.
 	MDR_ELEMENT_TYPE rvp_type;
 	long rvp_number;			// for numbered lists
@@ -328,7 +329,7 @@ static BOOL runbounds_contains(RUN_BOUNDS* pBounds, POINT pt) {
  * Create a font for the given font-attributes. 
  */
 static HFONT mdr_createFont(const FONT_ATTRIBUTES* pAttrs, float fZoom) {
-	LOGFONT _lf = {
+	static LOGFONT _defaultFont = {
 		12,					// lfHeight;
 		0,					// lfWidth;
 		0,					// lfEscapement;
@@ -344,8 +345,13 @@ static HFONT mdr_createFont(const FONT_ATTRIBUTES* pAttrs, float fZoom) {
 		CLIP_DEFAULT_PRECIS,// lfClipPrecision;
 		ANTIALIASED_QUALITY,// lfQuality;
 		FF_DONTCARE, 		// lfPitchAndFamily;
-		"Verdana"			// lfFaceName[LF_FACESIZE];
 	};
+	LOGFONT _lf;
+	if (!_defaultFont.lfFaceName[0]) {
+		const char* pszStyle = theme_textStyleFontface("wysiwyg", "Verdana");
+		strcpy(_defaultFont.lfFaceName, pszStyle);
+	}
+	memcpy(&_lf, &_defaultFont, sizeof _lf);
 	_lf.lfHeight = (long)(pAttrs->size * fZoom);
 	if (pAttrs->fixedFont) {
 		strcpy(_lf.lfFaceName, "Consolas");
@@ -378,7 +384,8 @@ static void mdr_renderHorizontalRule(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBo
 		mdr_paintRule(hdc, pUsed->left, pUsed->right, (pUsed->top + pUsed->bottom - 3) / 2, 3);
 	}
 	memcpy(&pPart->rvp_bounds, pUsed, sizeof * pUsed);
-	pPart->rvp_layouted = 1;
+	pPart->rvp_height = pUsed->bottom - pBounds->top;
+	pPart->rvp_layouted = TRUE;
 }
 
 /*
@@ -469,7 +476,8 @@ static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, REC
 	pUsed->right = right;
 	pUsed->bottom = pUsed->top + nTableHeight;
 	memcpy(&pPart->rvp_bounds, pUsed, sizeof * pUsed);
-	pPart->rvp_layouted = 1;
+	pPart->rvp_height = pUsed->bottom - pBounds->top;
+	pPart->rvp_layouted = TRUE;
 }
 
 /*
@@ -573,7 +581,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 	int y = pBounds->top + pMargins->m_top;
 	int nRight = pBounds->right - pMargins->m_right;
 	int nDeltaPainted;
-	pUsed->top = y;
+	pUsed->top = pBounds->top;
 	pUsed->left = x;
 	pUsed->right = nRight;
 	TEXT_FLOW* pTF = pFlow;
@@ -791,6 +799,7 @@ static void mdr_renderMarkdownBlockPart(RENDER_VIEW_PART* pPart, HDC hdc, RECT* 
 		mdr_paintRule(hdc, pBounds->left + DEFAULT_LEFT_MARGIN, pBounds->right - DEFAULT_LEFT_MARGIN, pUsed->bottom - 2, 1);
 	}
 	RestoreDC(hdc, nDCId);
+	pPart->rvp_height = pUsed->bottom - pBounds->top;
 	pPart->rvp_layouted = TRUE;
 }
 
@@ -1736,7 +1745,7 @@ text_attrs_changed:
 				if (mdr_parseEntity(pSB, &lp->lbuf[i + 1], &i)) {
 					continue;
 				}
-			} else if (c == '<') {
+			} else if (!(fsd.fsd_logicalStyles & ATTR_CODE) && c == '<') {
 				BOOL bClose;
 				struct tagHTML_TAG_MAPPING* pMapping;
 				int iDelta = mdr_getTag(&lp->lbuf[i + 1], &fsdNext, &pMapping, &bClose);
@@ -1958,7 +1967,8 @@ static BOOL mdr_parseTable(char* pszRelative, LINE** pFirst, RENDER_VIEW_PART* p
 	return TRUE;
 }
 
-static void mdr_parseViewParts(WINFO *wp, MARKDOWN_RENDERER_DATA* pData) {
+static void mdr_parseMarkdownFormat(WINFO *wp) {
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	FTABLE* fp = wp->fp;
 	LINE* lp = fp->firstl;
 	STRING_BUF * pSB = stringbuf_create(256);
@@ -2094,7 +2104,7 @@ static int mdr_windowSizeChanged(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, BOOL 
  */
 static void mdr_getViewpartExtend(RENDER_VIEW_PART* pPart, SIZE* pSize) {
 	if (pPart->rvp_layouted) {
-		pSize->cy = (pPart->rvp_bounds.bottom + pPart->rvp_margins.m_bottom) - (pPart->rvp_bounds.top - pPart->rvp_margins.m_top);
+		pSize->cy = pPart->rvp_height;
 		pSize->cx = (pPart->rvp_bounds.right - pPart->rvp_margins.m_right) - (pPart->rvp_bounds.left - pPart->rvp_margins.m_left);
 	}
 }
@@ -2212,10 +2222,20 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 	int width;
 	mdr_windowSizeChanged(wp->ww_handle, wp->r_data, TRUE);
 	if (delta == 1) {
-		mdr_getViewpartExtend(pPartStartOfPage, &s1);
-		ScrollWindow(wp->ww_handle, 0, s1.cy, &r, (LPRECT)0);
-	}
-	else {
+		UpdateWindow(wp->ww_handle);
+		ScrollWindow(wp->ww_handle, 0, pPartStartOfPage->rvp_height, &r, (LPRECT)0);
+	} else if (delta < 0 && delta >= -3) {
+		int h = 0;
+		RENDER_VIEW_PART* pPart = mdr_getViewPartAt(pData->md_pElements, oldminLn);
+		while (oldminLn != pData->md_minln && pPart) {
+			mdr_getViewpartExtend(pPart, &s1);
+			h += s1.cy;
+			pPart = pPart->rvp_next;
+			oldminLn++;
+		}
+		UpdateWindow(wp->ww_handle);
+		ScrollWindow(wp->ww_handle, 0, -h, &r, (LPRECT)0);
+	} else {
 		InvalidateRect(wp->ww_handle, (LPRECT)0, 0);
 	}
 	UpdateWindow(wp->ww_handle);
@@ -2232,6 +2252,7 @@ void mdr_invalidateViewpartsLayout(RENDER_VIEW_PART* pFirst) {
 		// clear out old existing bounds.
 		memset(&pFirst->rvp_bounds, 0, sizeof pFirst->rvp_bounds);
 		pFirst->rvp_layouted = 0;
+		pFirst->rvp_height = 0;
 		pFirst = pFirst->rvp_next;
 	}
 }
@@ -2267,13 +2288,13 @@ void mdr_getViewpartsExtend(RENDER_VIEW_PART* pFirst, SIZE* pSize, int nUpToPart
 /*
  * Render the current window displaying MARKDOWN/HTML wysiwyg contents.
  */
-static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
+static void mdr_renderPage(RENDER_CONTEXT* pCtx, void (*parsePage)(WINFO* wp), RECT* pClip, HBRUSH hBrushBg, int y) {
 	RECT rect;
 	WINFO* wp = pCtx->rc_wp;
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	GetClientRect(wp->ww_handle, &rect);
 	if (!pData->md_pElements) {
-		mdr_parseViewParts(wp, pData);
+		parsePage(wp);
 	}
 	RECT occupiedBounds;
 	int nElements = 0;
@@ -2314,6 +2335,20 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, i
 		}
 		nElements++;
 	}
+}
+
+/*
+ * Render the current window displaying MARKDOWN wysiwyg contents.
+ */
+static void mdr_renderMarkdownFormatPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
+	mdr_renderPage(pCtx, mdr_parseMarkdownFormat, pClip, hBrushBg, y);
+}
+
+/*
+ * Render the current window displaying HTML wysiwyg contents.
+ */
+static void mdr_renderHTMLFormatPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
+	mdr_renderPage(pCtx, mdr_parseMarkdownFormat, pClip, hBrushBg, y);
 }
 
 /*
@@ -2644,7 +2679,14 @@ static LRESULT mdr_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 			mdr_scrolled(hwnd, pData, wParam);
 		}
 		return 0;
+	case WM_SHOWWINDOW:
+		if (!wParam) {
+			return 0;
+		}
 	case WM_SIZE:
+		if (message == WM_SIZE && !IsWindowVisible(hwnd)) {
+			return 0;
+		}
 		if ((pData = mdr_dataFromWindow(hwnd)) != 0) {
 			mdr_windowSizeChanged(hwnd, pData, FALSE);
 			return 0;
@@ -2686,7 +2728,7 @@ static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_I
 	RENDER_VIEW_PART* pPart = pData->md_caretView;
 	if (pPart) {
 		TEXT_RUN* pRun = mdr_getRunAtOffset(pPart, pData->md_flowCaretIndex);
-		if (pRun && pRun->tr_link && strlen(pRun->tr_link) < nMaxChars) {
+		if (pRun && !pRun->tr_image && pRun->tr_link && strlen(pRun->tr_link) < nMaxChars) {
 			strcpy(pszBuf, pRun->tr_link);
 			char* pszAnchor = strrchr(pszBuf, '#');
 			if (pszAnchor) {
@@ -2784,9 +2826,10 @@ static int mdr_repaint(WINFO* wp, int ln1, int ln2, int col1, int col2) {
 	}
 	return 0;
 }
+
 static RENDERER _mdrRenderer = {
 	render_singleLineOnDevice,
-	.r_renderPage = mdr_renderPage,
+	.r_renderPage = mdr_renderMarkdownFormatPage,
 	.r_placeCaret = mdr_placeCaret,
 	mdr_calculateMaxLine,
 	mdr_calculateLongestLine,
@@ -2809,6 +2852,10 @@ static RENDERER _mdrRenderer = {
 	.r_wndProc = mdr_wndProc
 };
 
+static RENDERER _htmlRenderer = {
+	.r_renderPage = mdr_renderHTMLFormatPage,
+};
+
 /*
  * Returns a markdown renderer.
  */
@@ -2816,4 +2863,13 @@ RENDERER* mdr_getRenderer() {
 	return &_mdrRenderer;
 }
 
+/*
+ * Returns an HTML wysiwyg renderer.
+ */
+RENDERER* mdr_getHTMLRenderer() {
+	memcpy(&_htmlRenderer, &_mdrRenderer, sizeof _mdrRenderer);
+	_htmlRenderer.r_renderPage = mdr_renderHTMLFormatPage;
+	_htmlRenderer.r_context = "html-renderer";
+	return &_mdrRenderer;
+}
 

@@ -54,8 +54,7 @@ way on various places in the text/code edited. Multiple carets in PKS-Edit can b
 
 - clicking to a place to add a secondary caret using `Alt+Click`
 - moving the caret up and down using `Ctrl+Alt+Up/Down` to add vertical secondary carets
-- by adding a `multi-word-match caret`: pressing `Ctrl+Shift+L` will place a secondary caret on all words
-**currently visible on the screen** matching the word close to the main input caret allowing to change all identical words
+- by adding a `multi-word-match caret`: pressing `Ctrl+Shift+L` will place a secondary caret on all words **currently visible on the screen** matching the word close to the main input caret allowing to change all identical words
 with one operation.
 - inserting a template defining one or more secondary caret places for editing.
 

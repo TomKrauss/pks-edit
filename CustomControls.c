@@ -47,22 +47,27 @@ static const char* LABELED_CLASS = "pksLabeled";
  */
 void cust_drawShadow(HDC hdc,RECT *rcp,int odItemState)
 {
+	static HPEN dialogPen;
+	static COLORREF dialogColor;
 	int			left,right,top,bottom;
-	HPEN		hPen;
-	HPEN		hPenTop;
 	THEME_DATA* pData = theme_getCurrent();
 
-	hPenTop = CreatePen(PS_SOLID, 0, pData->th_dialogBorder);
+	if (!dialogPen || pData->th_dialogBorder != dialogColor) {
+		if (dialogPen) {
+			DeleteObject(dialogPen);
+		}
+		dialogPen = CreatePen(PS_SOLID, 0, pData->th_dialogBorder);
+		dialogColor = pData->th_dialogBorder;
+	}
 	left = rcp->left;
 	right = rcp->right + rcp->left;
 	top = rcp->top;
 	bottom = rcp->top+rcp->bottom - 1;
-	hPen = SelectObject(hdc,hPenTop);
+	SelectObject(hdc,dialogPen);
 	MoveTo(hdc,right,top);
 	LineTo(hdc,left,top);
 	LineTo(hdc,left,bottom);
 	LineTo(hdc,right, bottom);
-	DeleteObject(SelectObject(hdc,hPen));
 }
 
 /*------------------------------------------------------------
@@ -125,24 +130,21 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 {
 	HBRUSH 	hBrush;
 	HFONT	hFont;
-	DWORD	dwColwi;
 	DWORD	dwColtext;
 	char 	szBuff[128];
 	THEME_DATA* pTheme = theme_getCurrent();
 
 	hFont = SelectObject(hdc, cust_getSmallEditorFont());
 	if (odItemState & STATE_CHECK) {
-		dwColwi = pTheme->th_dialogHighlight;
 		dwColtext = pTheme->th_dialogHighlightText;
 	} else {
-		dwColwi = pTheme->th_dialogBackground;
 		dwColtext = pTheme->th_dialogForeground;
 	}
 	if (odItemState & ODS_DISABLED) {
 		dwColtext = pTheme->th_dialogDisabled;
 	}
 	GetWindowText(hwnd,szBuff,sizeof szBuff);
-	hBrush = CreateSolidBrush(dwColwi);
+	hBrush = odItemState & STATE_CHECK ? theme_getDialogLightBackgroundBrush() : theme_getDialogBackgroundBrush();
 	SetBkMode(hdc,TRANSPARENT);
 
 	//InflateRect(rcp, -2, -2);
@@ -160,7 +162,6 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 	}
 	DrawText(hdc, szBuff, -1, rcp, DT_NOPREFIX | DT_WORDBREAK | DT_LEFT | DT_VCENTER);
 
-	DeleteObject(hBrush);
 	SelectObject(hdc,hFont);
 }
 
