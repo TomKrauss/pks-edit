@@ -31,6 +31,7 @@
 #include "codecompletion.h"
 #include "themes.h"
 #include "xdialog.h"
+#include "streams.h"
 #include "htmlrendering.h"
 
 #define GWL_HELPWINDOW_VIEWPARTS		0
@@ -421,7 +422,9 @@ static void codecomplete_setHelpContents(HWND hwnd, const char* pszHelp) {
 		SetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS, 0);
 	}
 	if (pszHelp && *pszHelp) {
-		pFirst = mdr_parseHTML(pszHelp);
+		INPUT_STREAM* pStream = streams_createStringInputStream(pszHelp);
+		pFirst = mdr_parseHTML(pStream);
+		pStream->is_destroy(pStream);
 		SetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS, (LONG_PTR)pFirst);
 		codecomplete_helpWindowSizeChanged(hwnd);
 		//InvalidateRect(hwnd, 0, 1);

@@ -143,6 +143,12 @@ Only local images are supported (no http support).
 
 PKS-Edit supports the markdown extension tables. 
 
+|    Tables|      Are      |  Cool |
+|----------|:-------------:|------:|
+| col 1 is |  left-aligned | $1600 |
+| col 2 is |    centered   |   $12 |
+| col 3 is | right-aligned |    $1 |
+
 ### Limitations
 
 **Note**, that tables in PKS-Edit currently have quite some _limitations_:
@@ -150,11 +156,6 @@ PKS-Edit supports the markdown extension tables.
 - alignment in combination with formatting is not supported (formatted text will never be displayed aligned)
 - table layout is performed rather heuristically and has lots of limitations
   
-| Tables   |      Are      |  Cool |
-|----------|:-------------:|------:|
-| col 1 is |  left-aligned | $1600 |
-| col 2 is |    centered   |   $12 |
-| col 3 is | right-aligned |    $1 |
 	
 ### More Table fun
 

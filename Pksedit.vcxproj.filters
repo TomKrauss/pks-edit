@@ -327,6 +327,9 @@
     <ClCompile Include="macro_compiler\MacroTypes.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Streams.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -552,6 +555,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\htmlrendering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\streams.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

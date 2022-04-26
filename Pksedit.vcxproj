@@ -374,6 +374,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="Streams.c" />
     <ClCompile Include="SyntaxHighlighting.c" />
     <ClCompile Include="Selection.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -1167,6 +1168,7 @@
     <ClInclude Include="include\funcdef.h" />
     <ClInclude Include="include\propertychange.h" />
     <ClInclude Include="include\publicapi.h" />
+    <ClInclude Include="include\streams.h" />
     <ClInclude Include="include\stringutil.h" />
     <ClInclude Include="include\syntaxhighlighting.h" />
     <ClInclude Include="include\textblocks.h" />

@@ -15,6 +15,8 @@
 
 #ifndef HTMLRENDERING_H
 
+typedef struct tagINPUT_STREAM INPUT_STREAM;
+
 typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 
 /*
@@ -27,7 +29,7 @@ extern void mdr_destroyViewParts(RENDER_VIEW_PART** pHEAD);
  * Note, that the viewparts must be destroyed, when they are not needed any more
  * using mdr_destroyViewParts.
  */
-extern RENDER_VIEW_PART* mdr_parseHTML(const char* pszText);
+extern RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream);
 
 /*
  * Render some render view parts as a response to a WM_PAINT message.
