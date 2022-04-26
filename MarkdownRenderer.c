@@ -442,7 +442,9 @@ static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, REC
 			bHeader = pCell->rtc_isHeader;
 			bounds.right = bounds.left + nColumnWidth[nColumn];
 			bounds.bottom = bounds.top + 3000;
-			mdr_renderTextFlow(&_tableMargins, &pCell->rtc_flow, &bounds, &flowBounds, &usedBounds, 0, pCell->rtc_align, &rfp);
+			if (pCell->rtc_flow.tf_text) {
+				mdr_renderTextFlow(&_tableMargins, &pCell->rtc_flow, &bounds, &flowBounds, &usedBounds, 0, pCell->rtc_align, &rfp);
+			}
 			int nHeight = usedBounds.bottom - usedBounds.top;
 			if (nHeight > nMaxHeight) {
 				nMaxHeight = nHeight;
@@ -797,8 +799,10 @@ static void mdr_renderMarkdownBlockPart(RENDER_VIEW_PART* pPart, HDC hdc, RECT* 
 		.rfp_measureOnly = bMeasureOnly,
 		.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK
 	};
-	mdr_renderTextFlow(pMargins, &pPart->rvp_data.rvp_flow, pBounds, &pPart->rvp_bounds, pUsed,
-			pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, RTC_ALIGN_LEFT, &rfp);
+	if (pPart->rvp_data.rvp_flow.tf_text) {
+		mdr_renderTextFlow(pMargins, &pPart->rvp_data.rvp_flow, pBounds, &pPart->rvp_bounds, pUsed,
+				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, RTC_ALIGN_LEFT, &rfp);
+	}
 	if (!bMeasureOnly && pPart->rvp_type == MET_HEADER && pPart->rvp_level < 3) {
 		mdr_paintRule(hdc, pBounds->left + DEFAULT_LEFT_MARGIN, pBounds->right - DEFAULT_LEFT_MARGIN, pUsed->bottom - 2, 1);
 	}
@@ -1332,6 +1336,11 @@ static struct tagHTML_TAG_MAPPING {
 	{"br", MET_NONE, 0, ATTR_LINE_BREAK},
 	{"p", MET_PARAGRAPH, 0, ATTR_LINE_BREAK},
 	{"script", MET_FENCED_CODE_BLOCK, 0},
+	{"table", MET_TABLE, 0},
+	{"hr", MET_HORIZONTAL_RULE, 0},
+	{"tr", MET_NONE, 0},
+	{"td", MET_NONE, 0},
+	{"th", MET_NONE, 0},
 	{"h1", MET_HEADER, 1},
 	{"h2", MET_HEADER, 2},
 	{"h3", MET_HEADER, 3},
@@ -1520,18 +1529,24 @@ static int mdr_parseEntity(STRING_BUF* pSB, INPUT_STREAM* pStream) {
 	return 0;
 }
 
-static RENDER_VIEW_PART* mdr_newPart(RENDER_VIEW_PART** pFirst, FONT_STYLE_DELTA* pFSD, STRING_BUF* pSB, MDR_ELEMENT_FORMAT* pFormat) {
+static RENDER_VIEW_PART* mdr_newPart(RENDER_VIEW_PART** pFirst, FONT_STYLE_DELTA* pFSD, MDR_ELEMENT_TYPE mType, int nLevel, MDR_ELEMENT_FORMAT** pFormat) {
 	RENDER_VIEW_PART* pPart = ll_append(pFirst, sizeof * pPart);
-	pPart->rvp_paint = mdr_renderMarkdownBlockPart;
+	if (mType == MET_HORIZONTAL_RULE) {
+		pPart->rvp_paint = mdr_renderHorizontalRule;
+	} else {
+		pPart->rvp_paint = mType == MET_TABLE ? mdr_renderTable : mdr_renderMarkdownBlockPart;
+	}
 	pPart->rvp_type = MET_NORMAL;
 	pFSD->fsd_logicalStyles = 0;
 	pFSD->fsd_styleName = 0;
 	pFSD->fsd_indent = 0;
 	pFSD->fsd_fgColor = NO_COLOR;
-	pPart->rvp_margins = pFormat->mef_margins;
-	pPart->rvp_margins.m_left = 5;
-	pPart->rvp_margins.m_right = 5;
-	stringbuf_reset(pSB);
+	pPart->rvp_type = mType;
+	if (mType == MET_TABLE) {
+		pPart->rvp_data.rvp_table = calloc(1, sizeof(RENDER_TABLE));
+	}
+	*pFormat = mdr_getFormatFor(mType, nLevel);
+	mdr_applyFormat(pPart, *pFormat);
 	return pPart;
 }
 
@@ -1561,18 +1576,78 @@ static BOOL mdr_skipHTMLCommentOrDoctype(INPUT_STREAM* pStream) {
 }
 
 /*
+ * Ensures, there is a paragraph, when HTML contents is added.
+ */
+static void mdr_ensureParagraph(RENDER_VIEW_PART** pFirst, RENDER_VIEW_PART** pPart, TEXT_FLOW** pFlow, MDR_ELEMENT_FORMAT** pFormat, FONT_STYLE_DELTA* pFSD,
+		LINE* lpRun) {
+	if (!*pPart) {
+		*pPart = mdr_newPart(pFirst, pFSD, MET_NORMAL, 0, pFormat);
+		(*pPart)->rvp_lpStart = lpRun;
+		*pFlow = &(*pPart)->rvp_data.rvp_flow;
+	}
+}
+
+static void mdr_calculateTableColumns(RENDER_TABLE* pTable) {
+	RENDER_TABLE_ROW* pRow = pTable->rt_rows;
+	int nColumn = 0;
+	// stupid simple layout mechanism assuming a ave char width of 8 to calculate
+	// required column widths.
+	while (pRow) {
+		nColumn = 0;
+		RENDER_TABLE_CELL* pCell = pRow->rtr_cells;
+		while (pCell) {
+			if (pCell->rtc_flow.tf_text) {
+				size_t nLen = strlen(pCell->rtc_flow.tf_text);
+				if (nLen > 100) {
+					// Force wrapping of long column contents
+					nLen = 100;
+				}
+				int nWidth = (int)nLen * 6;
+				nWidth += 30 + _tableMargins.m_left + _tableMargins.m_right;
+				if (nWidth > pTable->rt_columnWidths[nColumn]) {
+					pTable->rt_columnWidths[nColumn] = nWidth;
+				}
+			}
+			pCell = pCell->rtc_next;
+			nColumn++;
+		}
+		pRow = pRow->rtr_next;
+	}
+	if (!pTable->rt_columnCount) {
+		pTable->rt_columnCount = nColumn;
+	}
+	for (nColumn = 0; nColumn < MAX_TABLE_COLUMNS; nColumn++) {
+		pTable->rt_totalColumnWidth += pTable->rt_columnWidths[nColumn];
+	}
+}
+
+static BOOL mdr_supportsNestedTag(RENDER_VIEW_PART* pPart, MDR_ELEMENT_TYPE mNested) {
+	if (!pPart) {
+		return TRUE;
+	}
+	MDR_ELEMENT_TYPE mType = pPart->rvp_type;
+	if (mNested == MET_PARAGRAPH) {
+		return mType != MET_TABLE && mType != MET_HORIZONTAL_RULE && mType != MET_UNORDERED_LIST && mType != MET_ORDERED_LIST;
+	}
+	return TRUE;
+}
+
+/*
  * Parse a text and convert it into a list of view parts to be rendered later.
  * Note, that the viewparts must be destroyed, when they are not needed any more
  * using mdr_destroyViewParts.
  */
 RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream) {
-	MDR_ELEMENT_FORMAT* pFormat = &_formatText;
+	MDR_ELEMENT_FORMAT* pFormat;
 	RENDER_VIEW_PART* pFirst = 0;
 	FONT_STYLE_DELTA fsdTable[20];
 	FONT_STYLE_DELTA* pfsd = fsdTable;
 	STRING_BUF* pSB = stringbuf_create(256);
-	RENDER_VIEW_PART* pPart = mdr_newPart(&pFirst, pfsd, pSB, pFormat);
-	TEXT_FLOW* pFlow = &pPart->rvp_data.rvp_flow;
+	RENDER_VIEW_PART* pPart = 0;
+	RENDER_TABLE* pTable = 0;
+	RENDER_TABLE_ROW* pRow = 0;
+	RENDER_TABLE_CELL* pCell = 0;
+	TEXT_FLOW* pFlow = 0;
 	size_t nLastOffset = 0;
 	char c;
 	size_t nSize;
@@ -1583,7 +1658,6 @@ RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream) {
 	int nUlListLevel = 0;
 
 	nRunOffset = pStream->is_inputMark(pStream, &lpRun);
-	pPart->rvp_lpStart = lpRun;
 	while ((c = pStream->is_getc(pStream)) != 0) {
 		if (c == '&') {
 			if (mdr_parseEntity(pSB, pStream)) {
@@ -1606,48 +1680,76 @@ RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream) {
 					mListType = MET_UNORDERED_LIST;
 					nUlListLevel = bClose ? nUlListLevel - 1 : nUlListLevel + 1;
 					continue;
+				} else if (pTable && strcmp("tr", pMapping->tm_element) == 0) {
+					pRow = bClose ? 0 : (RENDER_TABLE_ROW*)ll_append((LINKED_LIST**)&pTable->rt_rows, sizeof *pRow);
+				} else if (pRow && (strcmp("td", pMapping->tm_element) == 0 || strcmp("th", pMapping->tm_element) == 0)) {
+					if (bClose) {
+						if (pFlow) {
+							nSize = stringbuf_size(pSB) - nLastOffset;
+							pFlow->tf_text = _strdup(stringbuf_getString(pSB));
+							mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, lpRun, nRunOffset);
+						}
+						stringbuf_reset(pSB);
+						nLastOffset = 0;
+						pCell = 0;
+					} else {
+						pCell = (RENDER_TABLE_CELL*)ll_append((LINKED_LIST**)&pRow->rtr_cells, sizeof * pCell);
+						pCell->rtc_isHeader = pMapping->tm_element[1] == 'h';
+						pFlow = &pCell->rtc_flow;
+					}
 				}
 				nSize = stringbuf_size(pSB) - nLastOffset;
 				MDR_ELEMENT_TYPE mType = pMapping->tm_blockElement;
-				if (mType != MET_NONE) {
+				if (mType != MET_NONE && mdr_supportsNestedTag(pPart, mType)) {
 					int nLevel = pMapping->tm_elementLevel;
-					if (nSize) {
-						mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, lpRun, nRunOffset);
-						nRunOffset = pStream->is_inputMark(pStream, &lpRun);
-						nLastOffset += nSize;
+					if (stringbuf_size(pSB)) {
+						mdr_ensureParagraph(&pFirst, &pPart, &pFlow, &pFormat, pfsd, lpRun);
+						if (nSize) {
+							mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, lpRun, nRunOffset);
+							nRunOffset = pStream->is_inputMark(pStream, &lpRun);
+							nLastOffset += nSize;
+						}
+						pFlow->tf_text = _strdup(stringbuf_getString(pSB));
+						stringbuf_reset(pSB);
+						nLastOffset = 0;
 					}
-					pFlow->tf_text = _strdup(stringbuf_getString(pSB));
 					if (bClose) {
+						if (mType == MET_TABLE && pTable) {
+							mdr_calculateTableColumns(pTable);
+							pTable = 0;
+						}
 						mType = MET_NORMAL;
 					} else if (strcmp("li", pMapping->tm_element) == 0) {
 						mType = mListType;
 						nLevel = mType == MET_UNORDERED_LIST ? nUlListLevel : nOlListLevel;
-					}
-					pFormat = mdr_getFormatFor(mType, nLevel);
+					} 
 					FONT_STYLE_DELTA* pfsd = fsdTable;
-					pPart = mdr_newPart(&pFirst, pfsd, pSB, pFormat);
-					pPart->rvp_type = mType;
+					if (bClose) {
+						pPart = NULL;
+						pFlow = NULL;
+					} else {
+						pPart = mdr_newPart(&pFirst, pfsd, mType, nLevel, &pFormat);
+						pPart->rvp_lpStart = lpRun;
+						pFlow = &pPart->rvp_data.rvp_flow;
+						if (mType == MET_TABLE) {
+							pTable = pPart->rvp_data.rvp_table;
+						}
+					}
 					nRunOffset = pStream->is_inputMark(pStream, &lpRun);
-					pPart->rvp_lpStart = lpRun;
-					pFlow = &pPart->rvp_data.rvp_flow;
 					nLastOffset = 0;
 					mdr_skipLeadingSpace(pStream);
-					if (!bClose) {
-						mdr_applyFormat(pPart, pFormat);
-					}
 					continue;
 				}
 				BOOL bBreak = bClose ? (pMapping->tm_textAttrClose & ATTR_LINE_BREAK) : (pMapping->tm_textAttr & ATTR_LINE_BREAK);
 				if (bBreak) {
 					pfsd->fsd_logicalStyles |= ATTR_LINE_BREAK;
 					mdr_skipLeadingSpace(pStream);
-				} else {
-					while (isspace((unsigned char)pStream->is_peekc(pStream, 0)) && isspace((unsigned char)pStream->is_peekc(pStream, 1))) {
-						pStream->is_getc(pStream);
-					}
 				}
-				mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, lpRun, nRunOffset);
-				nRunOffset = pStream->is_inputMark(pStream, &lpRun);
+				if (nSize) {
+					mdr_ensureParagraph(&pFirst, &pPart, &pFlow, &pFormat, pfsd, lpRun);
+					mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, lpRun, nRunOffset);
+					nRunOffset = pStream->is_inputMark(pStream, &lpRun);
+				}
 				nLastOffset += nSize;
 				if (bClose && pfsd > fsdTable) {
 					pfsd--;
@@ -1664,6 +1766,7 @@ RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream) {
 			// treat empty line as real line break.
 			nSize = stringbuf_size(pSB) - nLastOffset;
 			pfsd->fsd_logicalStyles |= ATTR_LINE_BREAK;
+			mdr_ensureParagraph(&pFirst, &pPart, &pFlow, &pFormat, pfsd, lpRun);
 			mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, lpRun, nRunOffset);
 			nRunOffset = pStream->is_inputMark(pStream, &lpRun);
 			nLastOffset += nSize;
@@ -1672,13 +1775,19 @@ RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream) {
 		}
 		if (c != '\n') {
 			stringbuf_appendChar(pSB, c);
+			if (c == ' ') {
+				mdr_skipLeadingSpace(pStream);
+			}
 		}
 	}
 	nSize = stringbuf_size(pSB) - nLastOffset;
-	if (nSize) {
-		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, lpRun, nRunOffset);
+	if (stringbuf_size(pSB)) {
+		mdr_ensureParagraph(&pFirst, &pPart, &pFlow, &pFormat, pfsd, lpRun);
+		if (nSize) {
+			mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pfsd, lpRun, nRunOffset);
+		}
+		pFlow->tf_text = _strdup(stringbuf_getString(pSB));
 	}
-	pFlow->tf_text = _strdup(stringbuf_getString(pSB));
 	stringbuf_destroy(pSB);
 	return pFirst;
 }
@@ -2071,12 +2180,10 @@ static BOOL mdr_parseTable(char* pszRelative, INPUT_STREAM* pStream, RENDER_VIEW
 				bStartColon = TRUE;
 			}
 			else if (bDashSeen && c == '|') {
-				if (pStream->is_peekc(pStream, 0) != '\n') {
-					columnAlignments[nColumn++] = nAlign;
-					bDashSeen = FALSE;
-					bStartColon = FALSE;
-					nAlign = RTC_ALIGN_LEFT;
-				}
+				columnAlignments[nColumn++] = nAlign;
+				bDashSeen = FALSE;
+				bStartColon = FALSE;
+				nAlign = RTC_ALIGN_LEFT;
 			} else {
 				pStream->is_seek(pStream, offsetCurrent);
 				return FALSE;
@@ -2104,33 +2211,7 @@ static BOOL mdr_parseTable(char* pszRelative, INPUT_STREAM* pStream, RENDER_VIEW
 	pStream->is_positionToLineStart(pStream, 2);
 	while (mdr_parseTableRow(pszRelative, pStream, pTable, FALSE, columnAlignments, nColumn)) {
 	}
-	RENDER_TABLE_ROW* pRow = pTable->rt_rows;
-	// stupid simple layout mechanism assuming a ave char width of 8 to calculate
-	// required column widths.
-	while (pRow) {
-		nColumn = 0;
-		RENDER_TABLE_CELL* pCell = pRow->rtr_cells;
-		while (pCell) {
-			if (pCell->rtc_flow.tf_text) {
-				size_t nLen = strlen(pCell->rtc_flow.tf_text);
-				if (nLen > 100) {
-					// Force wrapping of long column contents
-					nLen = 100;
-				}
-				int nWidth = (int)nLen * 6;
-				nWidth += 30 + _tableMargins.m_left + _tableMargins.m_right;
-				if (nWidth > pTable->rt_columnWidths[nColumn]) {
-					pTable->rt_columnWidths[nColumn] = nWidth;
-				}
-			}
-			pCell = pCell->rtc_next;
-			nColumn++;
-		}
-		pRow = pRow->rtr_next;
-	}
-	for (nColumn = 0; nColumn < MAX_TABLE_COLUMNS; nColumn++) {
-		pTable->rt_totalColumnWidth += pTable->rt_columnWidths[nColumn];
-	}
+	mdr_calculateTableColumns(pTable);
 	pPart->rvp_data.rvp_table = pTable;
 	return TRUE;
 }
