@@ -2253,6 +2253,7 @@ static void mdr_parseMarkdownFormat(WINFO *wp) {
 		}
 	}
 	stringbuf_destroy(pSB);
+	pStream->is_destroy(pStream);
 }
 
 /*
