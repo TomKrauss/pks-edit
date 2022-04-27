@@ -20,6 +20,7 @@
 #include "winfo.h"
 #include "documentmodel.h"
 #include "themes.h"
+#include "trace.h"
 
 #define	HEX_BYTES_PER_LINE		32
 #define HEX_ASCII_DISTANCE		3
@@ -29,6 +30,8 @@
 typedef struct tagHEX_RENDERER_DATA {
 	LINE* pByteOffsetCache;	// Used to speed up the calculation of "byte offsets" into our line pointers (used in Hex editing)
 	long	nCachedByteOffset;	// See above - only valid if pByteOffsetCache is not null
+	long    nCaretLine;
+	int     nCaretColumn;
 } HEX_RENDERER_DATA;
 
 /*-----------------------------------------
@@ -108,29 +111,22 @@ static int hex_getLinePointerFor(WINFO* wp,long ln, LINE** pLine, long* pStartOf
 			return (nStartOffset + HEX_BYTES_PER_LINE >= nOffset) ? -1 : 0;
 		}
 	}
+	*pLine = lp;
 	if (lp == NULL) {
 		return 0;
 	}
 	*pStartOffset = nStartOffset;
-	*pLine = lp;
 	return 1;
 }
 
 /*
  * Get the next line of bytes from the current file to be rendered. 
  */
-static int hex_getBytes(char* pszBuffer, WINFO* wp, long ln) {
+static int hex_getBytes(LINE* lp, int nStartOffset, char* pszBuffer, WINFO* wp, long ln) {
+	long nOffset = ln * HEX_BYTES_PER_LINE;
 	HEX_RENDERER_DATA* pData = wp->r_data;
 	FTABLE* fp = wp->fp;
-	long nOffset = ln * HEX_BYTES_PER_LINE;
-	LINE* lp;
-	long nStartOffset;
-	long nLineOffset;
 
-	int nResult = hex_getLinePointerFor(wp, ln, &lp, &nStartOffset, &nLineOffset);
-	if (nResult <= 0) {
-		return nResult;
-	}
 	pData->pByteOffsetCache = lp;
 	pData->nCachedByteOffset = nStartOffset;
 	int nCount = 0;
@@ -175,18 +171,56 @@ static void render_matchMarker(HDC hdc, THEME_DATA* pTheme, int xOffset, int y, 
 	rect.bottom = y + height;
 	int x;
 	int nCharsMarked = 1;
-	if (IS_IN_HEX_NUMBER_AREA(nColumn)) {
-		x = nColumn / 3;
-		x = 3 * HEX_BYTES_PER_LINE - 1 + HEX_ASCII_DISTANCE + x;
-	} else {
-		x = nColumn - (HEX_MAX_COL - HEX_BYTES_PER_LINE);
-		x = x * 3;
-		nCharsMarked = 2;
-	}
+	x = HEX_MAX_COL - HEX_BYTES_PER_LINE + nColumn;
 	rect.left = xOffset + (x * width);
 	rect.right = rect.left + (width*nCharsMarked);
 	FrameRect(hdc, &rect, hBrush);
 	DeleteObject(hBrush);
+}
+
+static BOOL render_hexSelection(HDC hdc, WINFO* wp, int y, LINE* lp, int nLineOffset, LINE* lpSelection, int nStartColumn, int nNumberOfCharsSelected) {
+	int nByteOffset = 0;
+	while (lp) {
+		if (lp == lpSelection) {
+			nByteOffset += nStartColumn - nLineOffset;
+			if (nByteOffset + nNumberOfCharsSelected < 0) {
+				return TRUE;
+			}
+			break;
+		}
+		nByteOffset += (ln_nBytes(lp) - nLineOffset);
+		if (nByteOffset >= HEX_BYTES_PER_LINE) {
+			return FALSE;
+		}
+		nLineOffset = 0;
+		lp = lp->next;
+	}
+	int xOffset = -wp->mincol * wp->cwidth;
+	int cWidth = wp->cwidth;
+	int cHeight = wp->cheight;
+	RECT rect;
+	rect.top = y;
+	rect.bottom = y + cHeight;
+	int nMax = nByteOffset + nNumberOfCharsSelected;
+	BOOL nRet = TRUE;
+	if (nMax > HEX_BYTES_PER_LINE) {
+		nMax = HEX_BYTES_PER_LINE;
+		nRet = FALSE;
+	}
+	for (int i = nByteOffset; i < nMax; i++) {
+		if (i >= 0) {
+			rect.left = xOffset + (3 * i * cWidth);
+			rect.right = rect.left + (2 * cWidth);
+			render_paintSelectionRect(hdc, &rect);
+		}
+	}
+	if (nByteOffset < 0) {
+		nByteOffset = 0;
+	}
+	rect.left = xOffset + (HEX_MAX_COL - HEX_BYTES_PER_LINE + nByteOffset) * cWidth;
+	rect.right = rect.left + ((nMax -nByteOffset) * cWidth);
+	render_paintSelectionRect(hdc, &rect);
+	return nRet;
 }
 
  /*
@@ -203,16 +237,34 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 	char szBuffer[HEX_BYTES_PER_LINE+5];
 	RECT rect;
 	RECT r;
+	LINE* lp;
+	LINE* lpSelection;
+	int nSelectionStart;
+	int nSelectionSize;
 	HBRUSH hBrush;
 	HBRUSH hBrushCaretLine;
+	HEX_RENDERER_DATA* pData = wp->r_data;
 
 	int cheight = wp->cheight;
 	GetClientRect(wp->ww_handle, &rect);
 	hBrushCaretLine = CreateSolidBrush(pCtx->rc_theme->th_caretLineColor);
+	if (wp->blstart && wp->blend && wp->blstart->m_linePointer == wp->blend->m_linePointer) {
+		lpSelection = wp->blend->m_linePointer;
+		nSelectionStart = wp->blstart->m_column;
+		nSelectionSize = wp->blend->m_column-wp->blstart->m_column;
+	}
+	else {
+		nSelectionSize = 0;
+		lpSelection = 0;
+		nSelectionStart = -1;
+	}
 	for (ln = min; ln <= max && y < pClip->bottom; ln++, y = newy) {
 		newy = y + cheight;
 		if (newy > pClip->top) {
-			nLength = hex_getBytes(szBuffer, wp, ln);
+			long nStartOffset;
+			long nLineOffset;
+			int nResult = hex_getLinePointerFor(wp, ln, &lp, &nStartOffset, &nLineOffset);
+			nLength = nResult <= 0 ? -1 : hex_getBytes(lp, nStartOffset, szBuffer, wp, ln);
 			if (nLength <= 0) {
 				if (nLength == -1) {
 					r.left = rect.left; r.right = rect.right;
@@ -226,7 +278,7 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 				}
 				break;
 			}
-			if (ln == wp->caret.ln && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
+			if (ln == pData->nCaretLine && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
 				hBrush = hBrushCaretLine;
 			} else {
 				hBrush = hBrushBg;
@@ -236,8 +288,13 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 			r.bottom = min(pClip->bottom, y + cheight);
 			FillRect(pCtx->rc_hdc, &r, hBrush);
 			render_hexLine(pCtx, y, szBuffer, nLength);
-			if (wp->caret.ln == ln) {
-				render_matchMarker(pCtx->rc_hdc, pCtx->rc_theme, -wp->mincol * wp->cwidth, y, wp->cwidth, wp->cheight, wp->caret.col);
+			if (pData->nCaretLine == ln) {
+				render_matchMarker(pCtx->rc_hdc, pCtx->rc_theme, -wp->mincol * wp->cwidth, y, wp->cwidth, wp->cheight, pData->nCaretColumn);
+			}
+			if (lpSelection) {
+				if (render_hexSelection(pCtx->rc_hdc, wp, y, lp, nLineOffset, lpSelection, nSelectionStart, nSelectionSize)) {
+					lpSelection = 0;
+				}
 			}
 		}
 	}
@@ -249,6 +306,26 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 		FillRect(pCtx->rc_hdc, &r, hBrushBg);
 	}
 	DeleteObject(hBrushCaretLine);
+}
+
+static void hex_bufferOffsetToScreen(WINFO* wp, CARET* pBufferCaret, long* pLine, long* pCol) {
+	FTABLE* fp = wp->fp;
+	LINE* lp = fp->firstl;
+	long nLine = 0;
+	long nTotalOffset = 0;
+	while (lp && lp != fp->lastl) {
+		if (lp == wp->caret.linePointer) {
+			nTotalOffset += wp->caret.offset;
+			nLine += nTotalOffset / HEX_BYTES_PER_LINE;
+			*pLine = nLine;
+			*pCol = nTotalOffset % HEX_BYTES_PER_LINE;
+			return;
+		}
+		nTotalOffset += ln_nBytes(lp);
+		nLine += nTotalOffset / HEX_BYTES_PER_LINE;
+		nTotalOffset %= HEX_BYTES_PER_LINE;
+		lp = lp->next;
+	}
 }
 
 static int hex_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFER_POS* pPosition) {
@@ -287,51 +364,48 @@ static int hex_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFE
 	return 1;
 }
 
+static void hex_repaintScreenLine(WINFO* wp, long nLine) {
+	RECT r;
+	GetClientRect(wp->ww_handle, &r);
+	r.top = (nLine - wp->minln) * wp->cheight;
+	r.bottom = r.top + wp->cheight;
+	render_invalidateRect(wp, &r);
+}
+
+static void hex_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* pHeight) {
+	HEX_RENDERER_DATA* pData = wp->r_data;
+	int nNewCol = pData->nCaretColumn * 3 * wp->cwidth;
+	int nOldY = *pCY;
+	EdTRACE(log_errorArgs(DEBUG_TRACE, "Setting caret x to %d (cwidth==%d)", *pCX, wp->cwidth));
+	*pCY = pData->nCaretLine * wp->cheight;
+	if (nNewCol != *pCX) {
+		*pCX = nNewCol;
+		if (*pCY == nOldY) {
+			hex_repaintScreenLine(wp, pData->nCaretLine);
+		}
+	}
+}
+
 /*
  * Caret movement in hex edit mode. 
  */
-static int hex_placeCursorAndValidateDelta(WINFO* wp, long* ln, long offset, long* screenCol, int updateVirtualOffset, int xDelta) {
-	int	  o;
-
-	o = *screenCol;
-	if (o < 0) {
-		*screenCol = 0;
-		o = 0;
-	}
-
-	if (o == HEX_MAX_COL && xDelta > 0) {
-		o = 0;
-		*ln = *ln + 1;
-	}
-	if (o > HEX_MAX_COL) {
-		o = HEX_MAX_COL;
-	}
-	if (IS_IN_HEX_NUMBER_AREA(o) && (o % 3) == 2) {
-		if (xDelta < 0) {
-			o--;
-		} else {
-			o++;
-		}
-	}
-	if (o < HEX_MAX_COL - HEX_BYTES_PER_LINE && o > HEX_MAX_COL - HEX_BYTES_PER_LINE - 3) {
-		if (xDelta < 0) {
-			o = HEX_MAX_COL - HEX_BYTES_PER_LINE-4;
-		} else {
-			o = HEX_MAX_COL - HEX_BYTES_PER_LINE;
-		}
-	}
-	INTERNAL_BUFFER_POS ibp;
-	if (!hex_screenOffsetToBuffer(wp, *ln, o, &ibp)) {
+static int hex_placeCaret(WINFO* wp, long* ln, long offset, long* screenCol, int updateVirtualOffset, int xDelta) {
+	if (!caret_placeCursorAndValidate(wp, ln, offset, screenCol, updateVirtualOffset, xDelta)) {
 		return 0;
 	}
-	wp->caret.linePointer = ibp.ibp_lp;
-	wp->caret.offset = ibp.ibp_lineOffset;
-	if (updateVirtualOffset) {
-		wp->caret.virtualOffset = o;
+	if (wp->caret.offset > wp->caret.linePointer->len) {
+		// TODO: handle insertion at end of file.
+		wp->caret.offset = wp->caret.linePointer->len;
 	}
-	caret_moveToLine(wp, *ln);
-	*screenCol = o;
-	render_repaintCurrentLine(wp);
+	long nLine;
+	long nCol;
+	hex_bufferOffsetToScreen(wp, &wp->caret, &nLine, &nCol);
+	HEX_RENDERER_DATA* pData = wp->r_data;
+	if (pData->nCaretLine != nLine) {
+		hex_repaintScreenLine(wp, pData->nCaretLine);
+	}
+	pData->nCaretLine = nLine;
+	pData->nCaretColumn = nCol;
 	return 1;
 }
 
@@ -339,7 +413,7 @@ static int hex_placeCursorAndValidateDelta(WINFO* wp, long* ln, long offset, lon
  * Caret movement in hex edit mode.
  */
 static int hex_placeCursorAndValidate(WINFO* wp, long* ln, long* col, int updateVirtualOffset) {
-	return hex_placeCursorAndValidateDelta(wp, ln, *col, col, updateVirtualOffset, 0);
+	return hex_placeCaret(wp, ln, *col, col, updateVirtualOffset, 0);
 }
 
 static long hex_calculateNLines(WINFO* wp) {
@@ -387,10 +461,35 @@ static int hex_rendererSupportsMode(int aMode) {
 	return 1;
 }
 
+static int hex_repaint(WINFO* wp, int ln1, int ln2, int col1, int col2) {
+	HEX_RENDERER_DATA* pData = wp->r_data;
+	if (wp->ww_handle && pData) {
+		if (ln1 == ln2) {
+			long nMin = wp->minln;
+			long nMax = wp->maxln;
+			FTABLE* fp = wp->fp;
+			LINE* lp1 = ln_goto(fp, ln1);
+			long nLine;
+			long nCol;
+			hex_bufferOffsetToScreen(wp, &(CARET) {.linePointer = lp1, .offset = col1}, & nLine, & nCol);
+			if (nLine < nMin || nLine > nMax) {
+				return 0;
+			}
+			hex_repaintScreenLine(wp, nLine);
+		}
+		else {
+			render_invalidateRect(wp, NULL);
+		}
+		return 1;
+	}
+	return 0;
+}
+
+
 static RENDERER _hexRenderer = {
 	render_singleLineOnDevice,
 	render_hexMode,
-	hex_placeCursorAndValidateDelta,
+	.r_placeCaret = hex_placeCaret,
 	hex_calculateNLines,
 	hex_calculateMaxScreenColumn,
 	hex_calculateMaxColumn,
@@ -400,12 +499,12 @@ static RENDERER _hexRenderer = {
 	0,
 	wt_scrollxy,
 	render_adjustScrollBounds,
-	NULL,
+	.r_updateCaretUI = hex_updateCaretUI,
 	hex_rendererSupportsMode,
 	caret_calculateOffsetFromScreen,
 	TRUE,
 	hex_modelChanged,
-	render_repaintDefault
+	.r_repaint= hex_repaint
 };
 
 /*

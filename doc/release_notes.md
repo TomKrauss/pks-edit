@@ -54,9 +54,13 @@ simple HTML formatting.
 - Error diagnostics of the PKSMacroC compiler and error handling in PKSMacroC has been improved (there is still room for improvement). 
 
 #### Markdown wysiwyg mode
-- One can search now and find matches in markdown documents rendered in Wysiwyg format
+- One can search now and find matches in markdown documents rendered in Wysiwyg format.
 - More HTML formatting is now supported in wysiwyg rendering
-- 
+- A simple wysiwxg mode was added for HTML documents (do not expect to much :-)).
+
+#### Hex mode
+- One can search now and find matches in hex mode (fixes issue PKSEDIT-3).
+
 ### Changed
 - all files previously stored in the old Windows INI-file format (`pksedit.his`, `pksedit.ini`) were replaced by JSON formatted files:
   `pkseditini.json` captures the standard PKS-Edit configuration, file `pkssession.json` contains _session_ information like the list
