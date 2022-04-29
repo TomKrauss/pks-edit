@@ -1133,6 +1133,8 @@ int EdFindFileCursor(WINFO* wp)
 			(fselpath[0] && (found = file_searchFileInPath(_fseltarget, fselpath)) != 0)) {
 			fm_savepos(MTE_AUTO_LAST_SEARCH);
 			if (xref_openFile(found, result.ni_lineNumber, result.ni_wp)) {
+				// avoid to do a shell execute on the result - we have opened the file "internally".
+				_fseltarget[0] = 0;
 				wp = ww_getCurrentEditorWindow();
 			}
 		}

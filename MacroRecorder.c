@@ -253,8 +253,8 @@ int recorder_toggleRecording(void) {
 				_macroIndexRecorded++;
 				bindings_bindKey(scan, (MACROREF) { .index = _lastinsertedmac, .typ = CMD_MACRO }, NULL);
 			}
-			recorder_setRecording(FALSE);
 		}
+		recorder_setRecording(FALSE);
 	}  else {	// START RECORDING
 		recorder_setRecording(TRUE);;
 	}
