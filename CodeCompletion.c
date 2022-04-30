@@ -423,7 +423,7 @@ static void codecomplete_setHelpContents(HWND hwnd, const char* pszHelp) {
 	}
 	if (pszHelp && *pszHelp) {
 		INPUT_STREAM* pStream = streams_createStringInputStream(pszHelp);
-		pFirst = mdr_parseHTML(pStream);
+		pFirst = mdr_parseHTML(pStream, "");
 		pStream->is_destroy(pStream);
 		SetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS, (LONG_PTR)pFirst);
 		codecomplete_helpWindowSizeChanged(hwnd);

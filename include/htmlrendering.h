@@ -29,7 +29,7 @@ extern void mdr_destroyViewParts(RENDER_VIEW_PART** pHEAD);
  * Note, that the viewparts must be destroyed, when they are not needed any more
  * using mdr_destroyViewParts.
  */
-extern RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream);
+extern RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream, const char* pszBaseURL);
 
 /*
  * Render some render view parts as a response to a WM_PAINT message.

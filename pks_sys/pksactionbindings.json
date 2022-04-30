@@ -783,7 +783,7 @@
     },
     {
       "mouse": "MLeft(1)",
-      "context": "markdown-renderer",
+      "context": "wysiwyg-renderer",
       "command": "@find-tag-under-cursor"
     },
     {
@@ -832,11 +832,11 @@
       "command": "@toggle-comment"
     },
     {
-      "context": "markdown-renderer",
+      "context": "wysiwyg-renderer",
       "separator": true
     },
     {
-      "context": "markdown-renderer",
+      "context": "wysiwyg-renderer",
       "command": "@find-file-under-cursor"
     }
   ],
