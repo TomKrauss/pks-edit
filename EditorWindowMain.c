@@ -89,7 +89,7 @@ void ww_registerRenderer(const char* pszName, RENDERER* pRenderer) {
 	if (!_renderers) {
 		_renderers = hashmap_create(17, NULL, NULL);
 	}
-	hashmap_put(_renderers, (intptr_t)pszName, (intptr_t) pRenderer);
+	hashmap_put(_renderers, pszName, (intptr_t) pRenderer);
 }
 
 /*------------------------------------------------------------
@@ -590,11 +590,11 @@ static void ww_assignRenderer(WINFO* wp) {
 	if (wp->dispmode & SHOWWYSIWYG) {
 		const char* pRenderer = grammar_wysiwygRenderer(fp->documentDescriptor->grammar);
 		if (pRenderer) {
-			pNew = (RENDERER*)hashmap_get(_renderers, (intptr_t)pRenderer);
+			pNew = (RENDERER*)hashmap_get(_renderers, pRenderer);
 		}
 	}
 	if (!pNew && wp->dispmode & SHOWHEX) {
-		pNew = (RENDERER*)hashmap_get(_renderers, (intptr_t)"hex");
+		pNew = (RENDERER*)hashmap_get(_renderers, "hex");
 	}
 	if (!pNew) {
 		pNew = &_asciiRenderer;

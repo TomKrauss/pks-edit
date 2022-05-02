@@ -279,7 +279,7 @@ static void parser_defineAnnotationValue(char* pszKey, char* pszValue) {
 		pAnnotation = pAnnotation->a_next;
 	}
 	if (pAnnotation) {
-		hashmap_put(pAnnotation->a_values, (intptr_t)pszKey, (intptr_t)pszValue);
+		hashmap_put(pAnnotation->a_values, pszKey, (intptr_t)pszValue);
 	} else {
 		free(pszKey);
 		free(pszValue);
@@ -297,9 +297,9 @@ static void parser_processNativeMethodAnnotations(char** pszLib, char** pszMacro
 	ANNOTATION* pAnnotation = _currentMethodAnnotations;
 	while(pAnnotation) {
 		if (strcmp("@Method", pAnnotation->a_name) == 0) {
-			*pszLib = (char*)hashmap_get(pAnnotation->a_values, (intptr_t)"lib");
-			*pszMacroCName = (char*)hashmap_get(pAnnotation->a_values, (intptr_t)"name");
-			*pszSignature = (char*)hashmap_get(pAnnotation->a_values, (intptr_t)"signature");
+			*pszLib = (char*)hashmap_get(pAnnotation->a_values, "lib");
+			*pszMacroCName = (char*)hashmap_get(pAnnotation->a_values, "name");
+			*pszSignature = (char*)hashmap_get(pAnnotation->a_values, "signature");
 		}
 		pAnnotation = pAnnotation->a_next;
 	}

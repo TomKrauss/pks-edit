@@ -327,7 +327,7 @@ PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType,
 			if (t == VT_STRING || t == 0) {
 				pszPointer2 = MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, memory_createObjectData(pContext, VT_STRING, 0, TOP_DATA_POINTER(pszPointer2)));
 			}
-			hashmap_put(pMap, pszPointer1, pszPointer2);
+			hashmap_put(pMap, (void*)pszPointer1, pszPointer2);
 		}
 		pData->od_size = (int)(nLen / 2);
 	} else if (sType != VT_STRING && types_isStructuredType(sType)) {
@@ -577,7 +577,7 @@ int memory_atPutObject(PKS_VALUE vTarget, PKS_VALUE vKey, PKS_VALUE vElement) {
 	if (vTarget.pkv_managed && vTarget.pkv_type == VT_MAP && vKey.pkv_type == VT_STRING) {
 		HASHMAP* pMap = memory_accessMap(vTarget.pkv_data.objectPointer);
 		hashmap_put(pMap,
-				MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, vKey.pkv_data.objectPointer),
+				(void*)MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, vKey.pkv_data.objectPointer),
 				MAKE_TYPED_OBJECT_POINTER(vElement.pkv_isPointer, vElement.pkv_type, vElement.pkv_data.val));
 		vTarget.pkv_data.objectPointer->od_size = hashmap_size(pMap);
 	}
@@ -593,7 +593,7 @@ int memory_atPutObject(PKS_VALUE vTarget, PKS_VALUE vKey, PKS_VALUE vElement) {
 PKS_VALUE memory_atObject(PKS_VALUE vTarget, PKS_VALUE vKey) {
 	if (vTarget.pkv_managed && vTarget.pkv_type == VT_MAP && vKey.pkv_type == VT_STRING) {
 		HASHMAP* pMap = memory_accessMap(vTarget.pkv_data.objectPointer);
-		TYPED_OBJECT_POINTER top= hashmap_get(pMap, MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, vKey.pkv_data.objectPointer));
+		TYPED_OBJECT_POINTER top= hashmap_get(pMap, (void*)MAKE_TYPED_OBJECT_POINTER(1, VT_STRING, vKey.pkv_data.objectPointer));
 		return memory_asValue(top);
 	}
 	interpreter_raiseError("Can only access map elements with string type keys.");

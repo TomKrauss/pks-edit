@@ -767,7 +767,7 @@ static int grammar_matchKeyword(HASHMAP* pKeywords, char* pKey, const char* pKey
 	}
 	strncpy(szBuf, pKey, nLen);
 	szBuf[nLen] = 0;
-	return hashmap_containsKey(pKeywords, (intptr_t)szBuf);
+	return hashmap_containsKey(pKeywords, szBuf);
 }
 
 /**

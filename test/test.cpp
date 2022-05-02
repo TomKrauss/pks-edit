@@ -727,17 +727,17 @@ namespace pkseditTests
 		TEST_METHOD(BasicOperations)
 		{
 			HASHMAP* pMap = hashmap_create(13, NULL, NULL);
-			hashmap_put(pMap, (intptr_t)"hans", 1);
-			hashmap_put(pMap, (intptr_t)"erwin", 1);
-			Assert::AreEqual(1, hashmap_put(pMap, (intptr_t)"gabi", 1));
-			Assert::AreEqual(0, hashmap_put(pMap, (intptr_t)"hans", 2));
+			hashmap_put(pMap, "hans", 1);
+			hashmap_put(pMap, "erwin", 1);
+			Assert::AreEqual(1, hashmap_put(pMap, "gabi", 1));
+			Assert::AreEqual(0, hashmap_put(pMap, "hans", 2));
 			Assert::AreEqual(3, hashmap_size(pMap));
-			Assert::AreEqual(1, hashmap_containsKey(pMap, (intptr_t)"hans"));
-			Assert::AreEqual(0, hashmap_containsKey(pMap, (intptr_t)"oscar"));
+			Assert::AreEqual(1, hashmap_containsKey(pMap, "hans"));
+			Assert::AreEqual(0, hashmap_containsKey(pMap, "oscar"));
 
-			Assert::AreEqual(0, hashmap_containsKey(pMap, (intptr_t)"HANS"));
+			Assert::AreEqual(0, hashmap_containsKey(pMap, "HANS"));
 			hashmap_makeCaseIgnore(pMap);
-			Assert::AreEqual(1, hashmap_containsKey(pMap, (intptr_t)"HANS"));
+			Assert::AreEqual(1, hashmap_containsKey(pMap, "HANS"));
 		}
 	};
 }

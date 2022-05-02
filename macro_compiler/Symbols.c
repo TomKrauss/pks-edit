@@ -166,7 +166,7 @@ void sym_remove(IDENTIFIER_CONTEXT* pContext, const char* key) {
 	HASH_ENTRY entry;
 	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, key, &entry, FALSE);
 	if (pFound) {
-		hashmap_remove(pFound->ic_table, (intptr_t)key);
+		hashmap_remove(pFound->ic_table, key);
 		free((void*)entry.he_key);
 		sym_destroyEntry(0, entry.he_value);
 	}
@@ -207,7 +207,7 @@ static int sym_insert(IDENTIFIER_CONTEXT* pContext, const char *key, SYMBOL vVal
 			*sym = vValue;
 			return 1;
 		}
-		hashmap_remove(pFound->ic_table, (intptr_t)entry.he_key);
+		hashmap_remove(pFound->ic_table, (void*)entry.he_key);
 		key = (char*)entry.he_key;
 		sym_destroyEntry(0, entry.he_value);
 	}
@@ -220,7 +220,7 @@ static int sym_insert(IDENTIFIER_CONTEXT* pContext, const char *key, SYMBOL vVal
 	}
 	SYMBOL* sym = calloc(1, sizeof * sym);
 	*sym = vValue;
-	hashmap_put(pFound->ic_table, (intptr_t)key, (intptr_t)sym);
+	hashmap_put(pFound->ic_table, key, (intptr_t)sym);
 	return 1;	
 }
 

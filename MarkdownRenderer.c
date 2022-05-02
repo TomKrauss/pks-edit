@@ -138,10 +138,16 @@ typedef struct tagTEXT_RUN {
 	FONT_ATTRIBUTES		tr_attributes;
 	char*				tr_link;
 	char*				tr_title;
+	char*				tr_anchor;
 	MD_IMAGE*			tr_image;
 	int					tr_selectionStart;
 	int					tr_selectionLength;
 } TEXT_RUN;
+
+/*
+ * Forward decl.: destroy a text run possibly release the link.
+ */
+static int mdr_destroyRun(TEXT_RUN* pRun);
 
 typedef struct tagTEXT_FLOW {
 	char* tf_text;
@@ -1654,7 +1660,7 @@ static int mdr_getTag(INPUT_STREAM* pStream, FONT_STYLE_DELTA* pFSD, HTML_TAG* p
 					if (!pTag->ht_attributes) {
 						pTag->ht_attributes = hashmap_create(13, 0, 0);
 					}
-					hashmap_put(pTag->ht_attributes, (intptr_t)_strdup(szAttribute), (intptr_t)_strdup(szValue));
+					hashmap_put(pTag->ht_attributes, _strdup(szAttribute), (intptr_t)_strdup(szValue));
 				} 
 				nState = HPS_BETWEEN_ATTR;
 			}
@@ -1680,6 +1686,19 @@ static int mdr_getTag(INPUT_STREAM* pStream, FONT_STYLE_DELTA* pFSD, HTML_TAG* p
  * Parse an HTML entity spec and convert into a character if successful. 
  */
 static int mdr_parseEntity(STRING_BUF* pSB, INPUT_STREAM* pStream) {
+	char szBuf[32];
+	char* pszDest;
+	if (pStream->is_peekc(pStream, 0) == '#' && pStream->is_peekc(pStream, 1) == 'x') {
+		pStream->is_skip(pStream, 2);
+		pszDest = szBuf;
+		char c;
+		while ((c = pStream->is_getc(pStream)) != 0 && c != ';' && pszDest < szBuf + sizeof szBuf - 1) {
+			*pszDest++ = c;
+		}
+		*pszDest = 0;
+		stringbuf_appendChar(pSB, (char)string_convertToLongBase16(szBuf));
+		return 1;
+	}
 	for (int nE = 0; nE < DIM(_entities); nE++) {
 		size_t nLen = strlen(_entities[nE].entity);
 		if (pStream->is_strncmp(pStream, _entities[nE].entity, nLen) == 0) {
@@ -1699,6 +1718,28 @@ static RENDER_TABLE* mdr_newTable(int nColumnCount) {
 	pResult->rt_borderWidth = 1;
 	pResult->rt_columnCount = nColumnCount;
 	return pResult;
+}
+/*
+ * Destroy a table cell.
+ */
+static int mdr_destroyTableCell(RENDER_TABLE_CELL* pCell) {
+	free(pCell->rtc_flow.tf_text);
+	ll_destroy(&pCell->rtc_flow.tf_runs, mdr_destroyRun);
+	return 1;
+}
+
+/*
+ * Destroy a table row.
+ */
+static int mdr_destroyTableRow(RENDER_TABLE_ROW* pRow) {
+	ll_destroy(&pRow->rtr_cells, mdr_destroyTableCell);
+	return 1;
+}
+
+static void mdr_destroyTable(RENDER_VIEW_PART* pRVP) {
+	ll_destroy(&pRVP->rvp_data.rvp_table->rt_rows, mdr_destroyTableRow);
+	free(pRVP->rvp_data.rvp_table);
+	pRVP->rvp_data.rvp_table = 0;
 }
 
 static void mdr_resetFontStyleDelta(FONT_STYLE_DELTA* pFSD) {
@@ -1735,8 +1776,7 @@ static RENDER_VIEW_PART* mdr_newPart(INPUT_STREAM* pStream, HTML_PARSER_STATE* p
 	RENDER_VIEW_PART* pExisting = pState->hps_part;
 	RENDER_VIEW_PART* pPart = (pExisting && pExisting->rvp_data.rvp_flow.tf_text == 0) ? pExisting : ll_append(pState->hps_head, sizeof * pPart);
 	if (pPart->rvp_data.rvp_table) {
-		free(pPart->rvp_data.rvp_table);
-		pPart->rvp_data.rvp_table = 0;
+		mdr_destroyTable(pPart);
 	}
 	if (pPart->rvp_decoration) {
 		free(pPart->rvp_decoration);
@@ -1879,16 +1919,16 @@ static int mdr_applyImageAttributes(HTML_PARSER_STATE* pState, HASHMAP* pValues)
 	if (!pPart || pPart->rvp_type == MET_TABLE) {
 		return 0;
 	}
-	char* pszLink = (char*)hashmap_get(pValues, (intptr_t)"src");
-	char* pszTitle = (char*)hashmap_get(pValues, (intptr_t)"alt");
+	char* pszLink = (char*)hashmap_get(pValues, "src");
+	char* pszTitle = (char*)hashmap_get(pValues, "alt");
 	if (!pszTitle) {
-		pszTitle = (char*)hashmap_get(pValues, (intptr_t)"title");
+		pszTitle = (char*)hashmap_get(pValues, "title");
 		if (!pszTitle) {
-			pszTitle = (char*)hashmap_get(pValues, (intptr_t)"name");
+			pszTitle = (char*)hashmap_get(pValues, "name");
 		}
 	}
-	char* pszW = (char*)hashmap_get(pValues, (intptr_t)"width");
-	char* pszH = (char*)hashmap_get(pValues, (intptr_t)"height");
+	char* pszW = (char*)hashmap_get(pValues, "width");
+	char* pszH = (char*)hashmap_get(pValues, "height");
 	FONT_STYLE_DELTA* pfsd = pState->hps_currentStyle;
 	pfsd->fsd_logicalStyles |= ATTR_LINK;
 	char* pszText = " ";
@@ -1927,11 +1967,11 @@ static void mdr_initParserState(HTML_PARSER_STATE* pState, RENDER_VIEW_PART** pH
  */
 static void mdr_applyRunAttributes(HTML_PARSER_STATE* pState, TEXT_RUN* pRun) {
 	if (pRun && pState->hps_lastAttributes) {
-		char* pszLink = (char*)hashmap_get(pState->hps_lastAttributes, (intptr_t)"href");
+		char* pszLink = (char*)hashmap_get(pState->hps_lastAttributes, "href");
 		if (pszLink) {
-			pRun->tr_link = _strdup(pszLink);
+			pRun->tr_link = mdr_processUrlWithBase(pState->hps_baseUrl, pszLink, FALSE);
 		}
-		char* pszTitle = (char*)hashmap_get(pState->hps_lastAttributes, (intptr_t)"title");
+		char* pszTitle = (char*)hashmap_get(pState->hps_lastAttributes, "title");
 		if (pszTitle) {
 			pRun->tr_title = _strdup(pszTitle);
 		}
@@ -2016,6 +2056,20 @@ static void mdr_onTagSpecialHandling(INPUT_STREAM* pStream, HTML_PARSER_STATE* p
 	}
 }
 
+static int mdr_processOpeningAnchor(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, HASHMAP* pAttributes) {
+	if (!pAttributes) {
+		return 0;
+	}
+	char* pszAnchor = (char*)hashmap_get(pAttributes, "name");
+	if (pszAnchor) {
+		TEXT_FLOW* pFlow = mdr_endRun(pStream, pState, TRUE);
+		if (pFlow) {
+			pFlow->tf_runs->tr_anchor = _strdup(pszAnchor);
+		}
+	}
+	return hashmap_containsKey(pAttributes, "href");
+}
+
 static void mdr_onInlineTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, HTML_TAG* pTag) {
 	if (pTag->ht_isClose) {
 		if (pTag->ht_descriptor->tm_noCloseTag) {
@@ -2027,8 +2081,12 @@ static void mdr_onInlineTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, HT
 			pState->hps_currentStyle--;
 		}
 	} else {
-		if (strcmp("img", pTag->ht_descriptor->tm_tagName) == 0) {
+		const char* pszTag = pTag->ht_descriptor->tm_tagName;
+		if (strcmp("img", pszTag) == 0) {
 			pState->hps_lastTextOffset += mdr_applyImageAttributes(pState, pTag->ht_attributes);
+			return;
+		}
+		if (strcmp("a", pszTag) == 0 && !mdr_processOpeningAnchor(pStream, pState, pTag->ht_attributes)) {
 			return;
 		}
 		BOOL bBreak = pTag->ht_descriptor->tm_textAttr & ATTR_LINE_BREAK;
@@ -2055,7 +2113,7 @@ static void mdr_applyTableAttributes(RENDER_TABLE* pTable, HASHMAP* pAttributes)
 	if (!pAttributes) {
 		return;
 	}
-	char* pszBorder = (char*)hashmap_get(pAttributes, (intptr_t)"border");
+	char* pszBorder = (char*)hashmap_get(pAttributes, "border");
 	if (pszBorder) {
 		pTable->rt_borderWidth = (int)string_convertToLong(pszBorder);
 	}
@@ -2172,7 +2230,7 @@ RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream, const char* pszBaseURL) {
 				}
 			}
 			continue;
-		} else if (c == '\n' && pStream->is_peekc(pStream, 0) == '\n') {
+		} else if (c == '\n' && pStream->is_peekc(pStream, 0) == '\n' && state.hps_table == 0) {
 			// treat empty line as real line break.
 			nSize = stringbuf_size(state.hps_text) - state.hps_lastTextOffset;
 			state.hps_currentStyle->fsd_logicalStyles |= ATTR_LINE_BREAK;
@@ -3073,6 +3131,7 @@ void mdr_renderViewparts(HWND hwnd, PAINTSTRUCT* ps, int nTopY, RENDER_VIEW_PART
 static int mdr_destroyRun(TEXT_RUN* pRun) {
 	free(pRun->tr_link);
 	free(pRun->tr_title);
+	free(pRun->tr_anchor);
 	if (pRun->tr_image) {
 		if (pRun->tr_image->mdi_image) {
 			DeleteObject(pRun->tr_image->mdi_image);
@@ -3083,29 +3142,11 @@ static int mdr_destroyRun(TEXT_RUN* pRun) {
 }
 
 /*
- * Destroy a table cell.
- */
-static int mdr_destroyTableCell(RENDER_TABLE_CELL* pCell) {
-	free(pCell->rtc_flow.tf_text);
-	ll_destroy(&pCell->rtc_flow.tf_runs, mdr_destroyRun);
-	return 1;
-}
-
-/*
- * Destroy a table row.
- */
-static int mdr_destroyTableRow(RENDER_TABLE_ROW* pRow) {
-	ll_destroy(&pRow->rtr_cells, mdr_destroyTableCell);
-	return 1;
-}
-
-/*
  * Destroy one view part. 
  */
 static int mdr_destroyViewPart(RENDER_VIEW_PART *pRVP) {
 	if (pRVP->rvp_type == MET_TABLE) {
-		ll_destroy(&pRVP->rvp_data.rvp_table->rt_rows, mdr_destroyTableRow);
-		free(pRVP->rvp_data.rvp_table);
+		mdr_destroyTable(pRVP);
 	} else {
 		free(pRVP->rvp_data.rvp_flow.tf_text);
 		ll_destroy(&pRVP->rvp_data.rvp_flow.tf_runs, mdr_destroyRun);
@@ -3454,6 +3495,9 @@ static int mdr_titleMatchesAnchor(TEXT_FLOW* pTitle, const char*pszTitleAnchor, 
 	if (pszTitleAnchor && _stricmp(pszTitleAnchor, pszAnchor) == 0) {
 		return 1;
 	}
+	if (!pTitle) {
+		return 0;
+	}
 	char szTitleAsAnchor[512];
 	char* pszTitle = pTitle->tf_text;
 	if (strlen(pszTitle) < sizeof szTitleAsAnchor) {
@@ -3472,7 +3516,24 @@ static int mdr_titleMatchesAnchor(TEXT_FLOW* pTitle, const char*pszTitleAnchor, 
 		return (_stricmp(pszAnchor, szTitleAsAnchor) == 0);
 	}
 	return 0;
+}
 
+typedef struct tagANCHOR_MATCH {
+	const char* am_matchAnchor;
+	int         am_offsetIdx;
+	int			am_matched;
+} ANCHOR_MATCH;
+
+/*
+ * Match an anchor agains the anchor added to a run.
+ */
+static int mdr_matchAnchor(TEXT_RUN* pRun, ANCHOR_MATCH* pMatch) {
+	if (pRun->tr_anchor && mdr_titleMatchesAnchor(0, pRun->tr_anchor, pMatch->am_matchAnchor)) {
+		pMatch->am_matched = 1;
+		return 0;
+	}
+	pMatch->am_offsetIdx++;
+	return 1;
 }
 
 static void mdr_navigateAnchor(WINFO* wp, const char* pszAnchor) {
@@ -3481,11 +3542,19 @@ static void mdr_navigateAnchor(WINFO* wp, const char* pszAnchor) {
 		return;
 	}
 	RENDER_VIEW_PART* pPart = pData->md_pElements;
+	long nCol = 0;
+	long nLine;
 	while (pPart) {
+		ANCHOR_MATCH match = { .am_matchAnchor = pszAnchor, .am_matched = 0, .am_offsetIdx = 0 };
+		mdr_forRunListDo(pPart, mdr_matchAnchor, &match);
+		if (match.am_matched) {
+			nCol = match.am_offsetIdx;
+			goto anchorMatched;
+		}
 		if (pPart->rvp_type == MET_HEADER) {
 			if (mdr_titleMatchesAnchor(&pPart->rvp_data.rvp_flow, 0, pszAnchor)) {
-				long nCol = 0;
-				long nLine = ln_indexOf(wp->fp, pPart->rvp_lpStart);
+anchorMatched:	
+				nLine = ln_indexOf(wp->fp, pPart->rvp_lpStart);
 				mdr_placeCaret(wp, &nLine, 0, &nCol, 0, 0);
 				wt_curpos(wp, nLine, 0);
 				return;

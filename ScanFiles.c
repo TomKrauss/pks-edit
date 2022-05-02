@@ -296,8 +296,8 @@ static unsigned char* find_collectFileFromLine(HASHMAP* pResult, EDIT_CONFIGURAT
 			if (nLen) {
 				strncpy(szBuf, match.braslist[0], nLen);
 				szBuf[nLen] = 0;
-				if (!hashmap_containsKey(pResult, (intptr_t)szBuf)) {
-					hashmap_put(pResult, (intptr_t)_strdup(szBuf), (intptr_t)1);
+				if (!hashmap_containsKey(pResult, szBuf)) {
+					hashmap_put(pResult, _strdup(szBuf), (intptr_t)1);
 				}
 			}
 		}

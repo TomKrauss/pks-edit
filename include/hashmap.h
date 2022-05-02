@@ -66,23 +66,23 @@ extern void hashmap_destroyWithKeysAndValues(HASHMAP* pTable);
  * Put an element into the hash table. Return 0 if an element with the named
  * key existed or 1 if a new entry was added.
  */
-extern int hashmap_put(HASHMAP* pTable, intptr_t key, intptr_t value);
+extern int hashmap_put(HASHMAP* pTable, const void* key, intptr_t value);
 
 /*
  * Remove an entry from the hashmap given the key.
  */
-extern void hashmap_remove(HASHMAP* pTable, intptr_t key);
+extern void hashmap_remove(HASHMAP* pTable, const void *key);
 
 /*
  * Return the value under which a particular key was registered or NULL
  * if not corresponding entry exists.
  */
-extern intptr_t hashmap_get(HASHMAP* pTable, intptr_t key);
+extern intptr_t hashmap_get(HASHMAP* pTable, const void* key);
 
 /*
  * Check, whether a given key is present in the hash table.
  */
-extern int hashmap_containsKey(HASHMAP* pTable, intptr_t key);
+extern int hashmap_containsKey(HASHMAP* pTable, const void* key);
 
 /*
  * Can be used to execute a callback for each key defined in a hashmap.

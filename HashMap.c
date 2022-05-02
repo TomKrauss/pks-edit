@@ -178,7 +178,7 @@ static void hashmap_rehash(HASHMAP* pTable, int newCapacity) {
 	pTable->ht_size = 0;
 	for (int i = 0; i < nOldSize; i++) {
 		if (pOld[i].he_key) {
-			hashmap_put(pTable, pOld[i].he_key, pOld[i].he_value);
+			hashmap_put(pTable, (void*)pOld[i].he_key, pOld[i].he_value);
 		}
 	}
 	free(pOld);
@@ -194,8 +194,8 @@ int hashmap_size(HASHMAP* pTable) {
 /*
  * Remove an entry from the hashmap given the key.
  */
-void hashmap_remove(HASHMAP* pTable, intptr_t key) {
-	int nIndex = hashmap_findIndex(pTable, key);
+void hashmap_remove(HASHMAP* pTable, const void* key) {
+	int nIndex = hashmap_findIndex(pTable, (intptr_t)key);
 	pTable->ht_entries[nIndex].he_key = 0;
 	pTable->ht_entries[nIndex].he_value = 0;
 	pTable->ht_size--;
@@ -206,17 +206,17 @@ void hashmap_remove(HASHMAP* pTable, intptr_t key) {
  * key existed or 1 if a new entry was added. If 0 is returned, the old key
  * persists and the new key will not be used.
  */
-int hashmap_put(HASHMAP* pTable, intptr_t key, intptr_t value) {
+int hashmap_put(HASHMAP* pTable, const void* key, intptr_t value) {
 	if (pTable->ht_size >= pTable->ht_capacity * 3 / 4) {
 		hashmap_rehash(pTable, pTable->ht_capacity + 1);
 	}
-	int nIndex = hashmap_findIndex(pTable, key);
+	int nIndex = hashmap_findIndex(pTable, (intptr_t)key);
 	if (pTable->ht_entries[nIndex].he_key != 0) {
 		pTable->ht_entries[nIndex].he_value = value;
 		return 0;
 	}
 	pTable->ht_size++;
-	pTable->ht_entries[nIndex].he_key = key;
+	pTable->ht_entries[nIndex].he_key = (intptr_t)key;
 	pTable->ht_entries[nIndex].he_value = value;
 	return 1;
 }
@@ -224,8 +224,8 @@ int hashmap_put(HASHMAP* pTable, intptr_t key, intptr_t value) {
 /*
  * Check, whether a given key is present in the hash table. 
  */
-int hashmap_containsKey(HASHMAP* pTable, intptr_t key) {
-	int nIndex = hashmap_findIndex(pTable, key);
+int hashmap_containsKey(HASHMAP* pTable, const void* key) {
+	int nIndex = hashmap_findIndex(pTable, (intptr_t)key);
 	return pTable->ht_entries[nIndex].he_key != 0;
 }
 
@@ -233,8 +233,8 @@ int hashmap_containsKey(HASHMAP* pTable, intptr_t key) {
  * Return the value under which a particular key was registered or NULL
  * if not corresponding entry exists.
  */
-intptr_t hashmap_get(HASHMAP* pTable, intptr_t key) {
-	int nIndex = hashmap_findIndex(pTable, key);
+intptr_t hashmap_get(HASHMAP* pTable, const void* key) {
+	int nIndex = hashmap_findIndex(pTable, (intptr_t)key);
 	return pTable->ht_entries[nIndex].he_value;
 }
 

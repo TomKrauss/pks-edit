@@ -233,7 +233,7 @@ static int json_getSet(char* pszBuf, jsmntok_t* tokens, int firstToken, int numb
 				*pTargetSlot = hashmap_create(19, NULL, NULL);
 			}
 			char* pszKey = _strdup(tokenContents);
-			if (!hashmap_put((HASHMAP*)*pTargetSlot, (intptr_t)pszKey, 1)) {
+			if (!hashmap_put((HASHMAP*)*pTargetSlot, pszKey, 1)) {
 				free(pszKey);
 			}
 		}

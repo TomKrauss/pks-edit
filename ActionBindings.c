@@ -442,7 +442,7 @@ static int bindings_loadFromFile(const char* pszFilename) {
 		while (pB) {
 			ACTION_BINDINGS* pBindings = bindings_lookupByContext(pB->ab_context);
 			intptr_t lValue = MACROREF_TO_INTPTR(pB->ab_binding.keybind.macref);
-			hashmap_put(pBindings->ab_keyBindingTable, pB->ab_binding.keybind.keycode, lValue);
+			hashmap_put(pBindings->ab_keyBindingTable, (void*)pB->ab_binding.keybind.keycode, lValue);
 			pB = pB->ab_next;
 		}
 		pB = definitions.mouse;
@@ -467,10 +467,10 @@ static int bindings_loadFromFile(const char* pszFilename) {
  */
 MACROREF bindings_getKeyBinding(KEYCODE keycode, const char* pszActionContext) {
 	ACTION_BINDINGS* pBindings = bindings_lookupByContext(pszActionContext);
-	intptr_t tResult = hashmap_get(pBindings->ab_keyBindingTable, (intptr_t) keycode);
+	intptr_t tResult = hashmap_get(pBindings->ab_keyBindingTable, (void*)keycode);
 	if (!tResult && pszActionContext) {
 		pBindings = bindings_lookupByContext(NULL);
-		tResult = hashmap_get(pBindings->ab_keyBindingTable, (intptr_t)keycode);
+		tResult = hashmap_get(pBindings->ab_keyBindingTable, (void*)keycode);
 	}
 	return INTPTR_TO_MACROREF(tResult);
 }
@@ -581,7 +581,7 @@ KEYCODE bindings_findBoundKey(const char* pszActionContext, MACROREF macro) {
  */
 int bindings_bindKey(KEYCODE key, MACROREF macro, const char* pszActionContext) {
 	ACTION_BINDINGS* pBindings = bindings_lookupByContext(pszActionContext);
-	hashmap_put(pBindings->ab_keyBindingTable, (intptr_t)key, MACROREF_TO_INTPTR(macro));
+	hashmap_put(pBindings->ab_keyBindingTable, (void*)key, MACROREF_TO_INTPTR(macro));
 	return 1;
 }
 
@@ -690,7 +690,7 @@ TOOLBAR_BUTTON_BINDING* bindings_getToolbarBindingsFor(const char* pszActionCont
  */
 int bindings_deleteKeyBinding(KEYCODE key, const char* pszActionContext) {
 	ACTION_BINDINGS* pBindings = bindings_lookupByContext(pszActionContext);
-	hashmap_put(pBindings->ab_keyBindingTable, (intptr_t)key, 0);
+	hashmap_put(pBindings->ab_keyBindingTable, (void*)key, 0);
 	return 1;
 }
 

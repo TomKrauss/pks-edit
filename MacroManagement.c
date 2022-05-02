@@ -427,19 +427,19 @@ MACRO *macro_createWithParams(MACRO_PARAM *pParam) {
 void macro_processAnnotations(MACRO_PARAM* pParam, ANNOTATION* pAnnotation) {
 	while (pAnnotation) {
 		if (strcmp(pAnnotation->a_name, "@ActionFlags") == 0) {
-			if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"needsCurrentEditor")) {
+			if (hashmap_containsKey(pAnnotation->a_values, "needsCurrentEditor")) {
 				pParam->mp_actionFlags |= EW_NEEDSCURRF;
 			}
-			if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"needsSelection")) {
+			if (hashmap_containsKey(pAnnotation->a_values, "needsSelection")) {
 				pParam->mp_actionFlags |= EW_NEEDSBLK;
 			}
-			if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"modifiesText")) {
+			if (hashmap_containsKey(pAnnotation->a_values, "modifiesText")) {
 				pParam->mp_actionFlags |= EW_MODIFY;
 			}
-			if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"ignoreDuringRecording")) {
+			if (hashmap_containsKey(pAnnotation->a_values, "ignoreDuringRecording")) {
 				pParam->mp_actionFlags |= EW_NOCASH;
 			}
-			if (hashmap_containsKey(pAnnotation->a_values, (intptr_t)"undoAvailable")) {
+			if (hashmap_containsKey(pAnnotation->a_values, "undoAvailable")) {
 				pParam->mp_actionFlags |= EW_UNDO_AVAILABLE;
 			}
 		}

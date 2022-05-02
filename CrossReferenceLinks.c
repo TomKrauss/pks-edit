@@ -314,11 +314,11 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 
 	if (regex_match(pattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
 		regex_getCapturingGroup(&match, _exprerror->tagCapture - 1, extCommand, sizeof extCommand);
-		TAG* pTag = (TAG*) hashmap_get(_allTags.tt_map, (intptr_t)extCommand);
+		TAG* pTag = (TAG*) hashmap_get(_allTags.tt_map, extCommand);
 		if (pTag == NULL) {
 			pTag = calloc(1, sizeof *pTag);
 			pTag->tagname = _strdup(extCommand);
-			hashmap_put(_allTags.tt_map, (intptr_t)pTag->tagname, (intptr_t)pTag);
+			hashmap_put(_allTags.tt_map, pTag->tagname, (intptr_t)pTag);
 		}
 		pReference = ll_insert(&pTag->tagReferences, sizeof * pReference);
 		pReference->pTag = pTag;
@@ -438,7 +438,7 @@ static void xref_addMessageItems(intptr_t k, intptr_t v) {
 static void xref_fillTagList(HWND hwnd, void* crossReferenceWord) {
 	_pszFilterString = crossReferenceWord;
 	_hwndDialog = hwnd;
-	TAG* tp = _allTags.tt_map ? (TAG*)hashmap_get(_allTags.tt_map, (intptr_t)crossReferenceWord) : NULL;
+	TAG* tp = _allTags.tt_map ? (TAG*)hashmap_get(_allTags.tt_map, crossReferenceWord) : NULL;
 	_pSelectReference = NULL;
 	SendDlgItemMessage(hwnd, IDD_ICONLIST, WM_SETREDRAW, FALSE, 0L);
 	SendDlgItemMessage(hwnd, IDD_ICONLIST, LB_RESETCONTENT, 0, 0L);
@@ -585,7 +585,7 @@ static TAG_REFERENCE* xref_selectTagsByDialog(char* pTagName) {
  */
 static BOOL _tagCancelled;
 static TAG_REFERENCE *xref_lookupTagReference(char *tagName, BOOL bForceDialog) {
-	TAG* tp = _allTags.tt_map ? (TAG*)hashmap_get(_allTags.tt_map, (intptr_t) tagName) : NULL;
+	TAG* tp = _allTags.tt_map ? (TAG*)hashmap_get(_allTags.tt_map, tagName) : NULL;
 	TAG_REFERENCE* pRef;
 
 	if (!bForceDialog && tp && ll_size((LINKED_LIST*)tp->tagReferences) <= 1) {

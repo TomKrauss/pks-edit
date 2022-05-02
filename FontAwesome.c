@@ -822,10 +822,10 @@ wchar_t faicon_codeForName(const char* pszIconName) {
 	if (!_faIconNameMap) {
 		_faIconNameMap = hashmap_create(128, 0, 0);
 		for (int i = 0; i < sizeof(_faIcons)/sizeof(_faIcons[0]); i++) {
-			hashmap_put(_faIconNameMap, (intptr_t)_faIcons[i].fa_name, (intptr_t)_faIcons[i].fa_code);
+			hashmap_put(_faIconNameMap, _faIcons[i].fa_name, (intptr_t)_faIcons[i].fa_code);
 		}
 	}
-	return (wchar_t)hashmap_get(_faIconNameMap, (intptr_t)pszIconName);
+	return (wchar_t)hashmap_get(_faIconNameMap, pszIconName);
 }
 
 /*

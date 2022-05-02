@@ -104,7 +104,7 @@ static HASHMAP* _suggestions;
 static ARRAY_LIST* _actionList;
 
 static CODE_ACTION* codecomplete_addTagsWithAlloc(const char* pszTagName, const char* (*fHelpCB)(const char* pszCompletion, void* pParam), void* nParam, BOOL bAlloc) {
-	if (hashmap_containsKey(_suggestions, (intptr_t)pszTagName)) {
+	if (hashmap_containsKey(_suggestions, pszTagName)) {
 		return NULL;
 	}
 	unsigned char* pszCopy = bAlloc ? _strdup(pszTagName) : (unsigned char* )pszTagName;
@@ -116,7 +116,7 @@ static CODE_ACTION* codecomplete_addTagsWithAlloc(const char* pszTagName, const 
 	pCurrent->ca_freeName = bAlloc;
 	pCurrent->ca_helpCB = fHelpCB;
 	pCurrent->ca_object = nParam;
-	hashmap_put(_suggestions, (intptr_t)pszCopy, (intptr_t)pCurrent);
+	hashmap_put(_suggestions, pszCopy, (intptr_t)pCurrent);
 	arraylist_add(_actionList, pCurrent);
 	return pCurrent;
 }
