@@ -1569,11 +1569,13 @@ typedef enum {
 	HPS_ELEM = 1,
 	HPS_BETWEEN_ATTR = 2,
 	HPS_ATTR = 3,
-	HPS_WAIT_FOR_VALUE = 4,
-	HPS_VALUE = 5
+	HPS_OPTIONAL_QUOTED_VALUE = 4,
+	HPS_WAIT_FOR_VALUE = 5,
+	HPS_VALUE = 6
 } HTML_PARSE_STATE;
 static int mdr_getTag(INPUT_STREAM* pStream, FONT_STYLE_DELTA* pFSD, HTML_TAG* pTag) {
 	char szTag[10];
+	int bTermQuote = 0;
 	char lastC = 0;
 	char szAttribute[32];
 	static char szValue[128];
@@ -1622,6 +1624,17 @@ static int mdr_getTag(INPUT_STREAM* pStream, FONT_STYLE_DELTA* pFSD, HTML_TAG* p
 				nState = HPS_BETWEEN_ATTR;
 			}
 			break;
+		case HPS_OPTIONAL_QUOTED_VALUE:
+			if (c == '"') {
+				nState = HPS_VALUE;
+				bTermQuote = 1;
+			}
+			else if (c != ' ') {
+				nState = HPS_VALUE;
+				*pszValue++ = c;
+				bTermQuote = 0;
+			}
+			break;
 		case HPS_WAIT_FOR_VALUE:
 		case HPS_BETWEEN_ATTR:
 			if (isalnum((unsigned char)c)) {
@@ -1629,24 +1642,24 @@ static int mdr_getTag(INPUT_STREAM* pStream, FONT_STYLE_DELTA* pFSD, HTML_TAG* p
 				*pszAttr++ = tolower(c);
 				nState = HPS_ATTR;
 			}
-			if (c == '"' && nState == HPS_WAIT_FOR_VALUE) {
-				nState = HPS_VALUE;
-				pszValue = szValue;
-			}
 			break;
 		case HPS_ATTR:
 			if (isalnum((unsigned char)c)) {
 				if (pszAttr < (szAttribute + sizeof szAttribute - 1)) {
 					*pszAttr++ = tolower(c);
 				}
-			}
-			else {
+			} else if (c == '=') {
 				*pszAttr = 0;
-				nState = HPS_WAIT_FOR_VALUE;
+				bTermQuote = 0;
+				nState = HPS_OPTIONAL_QUOTED_VALUE;
+				pszValue = szValue;
+			} else {
+				*pszAttr = 0;
+				nState = HPS_BETWEEN_ATTR;
 			}
 			break;
 		case HPS_VALUE:
-			if (c != '"') {
+			if ((bTermQuote && c != '"') || (!bTermQuote && c != ' ' && c != '/' && c != '>')) {
 				if (pszValue < (szValue + sizeof szValue - 1)) {
 					*pszValue++ = c;
 				}
@@ -1916,7 +1929,7 @@ static int mdr_endPart(HTML_PARSER_STATE* pState) {
 
 static int mdr_applyImageAttributes(HTML_PARSER_STATE* pState, HASHMAP* pValues) {
 	RENDER_VIEW_PART* pPart = pState->hps_part;
-	if (!pPart || pPart->rvp_type == MET_TABLE) {
+	if (!pPart || pPart->rvp_type == MET_TABLE || !pValues) {
 		return 0;
 	}
 	char* pszLink = (char*)hashmap_get(pValues, "src");

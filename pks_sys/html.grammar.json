@@ -58,7 +58,19 @@
         },
         {
           "match": "(<[a-zA-Z_0-9-]+>)\\s*=\\s*(\"[^\"]*\")",
-          "name": "string.xml.propertyDefinition",
+          "name": "string.xml.propertyDefinition2",
+          "captures": [
+            {
+              "pattern": "string.xml.attribute"
+            },
+            {
+              "pattern": "string.xml.value"
+            }
+          ]
+        },
+        {
+          "match": "(<[a-zA-Z_0-9-]+>)\\s*=\\s*([a-zA-Z_-0-9]*)",
+          "name": "string.xml.propertyDefinition1",
           "captures": [
             {
               "pattern": "string.xml.attribute"
