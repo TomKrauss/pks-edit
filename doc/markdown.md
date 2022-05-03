@@ -120,8 +120,12 @@ Here is an indented code block:
 
 ## Images
 
-Images are supported by PKS-Edit as well. The following samples show the supported image formats (`.bpm`, `.png`, `.jpg`, `.gif`).<br> 
-Note, that the special syntax for defining width and height of the image as rendered as in the following code is supported `[The famous cat]\(cat.bmp =250x150)`.
+Images are supported by PKS-Edit as well. The following samples show the supported image formats (`.bpm`, `.png`, `.jpg`, `.gif`).
+
+Note, that the special syntax for defining width and height of the image as rendered as in the following code is supported `[The famous cat]\(cat.bmp =250x150)]`.
+
+One can also use HTML syntax to add a picture. In that case width, height and borders may be defined using HTML properties 
+as in `<img src="bird.gif" width=250 style="border:5px solid yellow"/>`.
 
 ### Limitations
 
@@ -138,6 +142,7 @@ Only local images are supported (no http support).
 
 ![Flying Bird](bird.gif =250x)
 
+<img src="bird.gif" width=250 style="border:5px solid yellow"/>
 
 ## Tables
 
@@ -176,11 +181,19 @@ Column1   | Column2  |  Column3  |
 Content11 |  Content12 | 
 Content21 | Content22 | Content23 | Excess |
 ```
+
 Column1   | Column2  |  Column3  |
 ----------|-------------|------
 Content11 |  Content12 | 
 Content21 | Content22 | Content23 | Excess |
 
+### Here is an HTML table
+
+
+<table border=4 width=100%>
+<tr><th>HTML Header 1</th><th>Header 2</th></tr>
+<tr><td>Content 1</td><td>Content 2</td></tr>
+</table>
 
 
 
