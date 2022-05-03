@@ -192,7 +192,6 @@ static void decompile_printParameterAsConstant(char* pTargetString, long long va
  * The infos are inserted according to the position in the heap, where they are maintained.
  */
 int decompile_getLocalVariableInfo(MACRO* mp, TYPE_PROPERTY_DESCRIPTOR* pDescriptors, int nMaxVars) {
-	int nVarIdx = 0;
 	char* pInstr = mp->mc_bytecodes;
 	char* pInstrEnd = mp->mc_bytecodes+mp->mc_bytecodeLength;
 	int nMax = 0;
@@ -482,7 +481,6 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 	if (pParamStack < pStack) {
 		pParamStack = pStack;
 	}
-	DECOMPILATION_STACK_ELEMENT* pStackFrame = pParamStack;
 	if (passedArgs == 3 && sp->typ == C_0FUNC && sp->funcnum == FUNC_Foreach) {
 		stringbuf_reset(pBuf);
 		stringbuf_appendString(pBuf, "for (");
@@ -499,7 +497,11 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 			if (!pParamStack->dse_printed) {
 				break;
 			}
-			partyp = ep == NULL ? (PARAMETER_TYPE_DESCRIPTOR) { .pt_type = PARAM_TYPE_VOID} : function_getParameterTypeDescriptor(ep, npars + 1);
+			if (ep == NULL) {
+				partyp = (PARAMETER_TYPE_DESCRIPTOR){ .pt_type = PARAM_TYPE_VOID };
+			} else {
+				partyp = function_getParameterTypeDescriptor(ep, npars + 1);
+			}
 			if (npars) {
 				if (bMap && (npars & 1)) {
 					stringbuf_appendString(pBuf, ": ");
@@ -817,7 +819,11 @@ static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char*
 			COM_GOTO* pGoto = (COM_GOTO*)pBytecode;
 			if (nFound > nMax - 2) {
 				nMax += 100;
-				pResult = realloc(pResult, nMax * sizeof *pResult);
+				void* p = realloc(pResult, nMax * sizeof *pResult);
+				if (!p) {
+					return pResult;
+				}
+				pResult = p;
 			}
 			if (pGoto->branchType == BRA_ALWAYS) {
 				CONTROL_FLOW_MARK_INDEX* pFoundMark = decompile_controlFlowMarkForOffset(pResult, nFound, pGoto);

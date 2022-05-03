@@ -294,7 +294,6 @@ static OBJECT_DATA* memory_createObjectData(EXECUTION_CONTEXT* pContext, PKS_VAL
  * strings.
  */
 PKS_VALUE memory_createObject(EXECUTION_CONTEXT* pContext, PKS_VALUE_TYPE sType, int nInitialSize, const void *pInput) {
-	OBJECT_MEMORY* pMemory = &_objectSpace;
 	OBJECT_DATA* pData = memory_createObjectData(pContext, sType, nInitialSize, pInput);
 	if (!pData) {
 		return (PKS_VALUE) {

@@ -345,7 +345,6 @@ int mysprintf(char *d, char *format, SPRINTF_ARGS* pArgs) {
 	char *	buf = d;
 	char *	x;
 	char *	dend;
-	char* formatStart = 0;
 	WINFO* wp = pArgs->sa_wp;
 	union U_ARG_VALUE* args = pArgs->sa_values;
 	char 	stack[512];
@@ -358,7 +357,7 @@ int mysprintf(char *d, char *format, SPRINTF_ARGS* pArgs) {
 		else {
 			bForcePlus = 0;
 			bLeftJustify = 0;
-			formatStart = format - 1;
+			char* formatStart = format - 1;
 			nWidth  = 0;
 			cFiller = 0;
 			bHexPrefix = 0;

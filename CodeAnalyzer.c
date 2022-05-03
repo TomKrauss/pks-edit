@@ -264,9 +264,7 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 	int detectedEnd = 0;
 	FTABLE* fp = wp->fp;
 	LINE* lp = wp->caret.linePointer;
-	long nLine = wp->caret.ln;
 	LEXICAL_ELEMENT lexicalElements[MAX_LEXICAL_ELEMENT];
-	HIGHLIGHTER* pHighlighter = wp->highlighter;
 	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
 	LEXICAL_STATE lexicalState = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
 	int nElements = grammar_parse(pGrammar, lexicalElements, lexicalState, lp->lbuf, lp->len, &detectedEnd);
@@ -303,7 +301,6 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 		}
 		nOffset += lexicalElements[i].le_length;
 	}
-	BOOL bInParams = FALSE;
 	char* key;
 	SYMBOL sym = szFunction[0] ? sym_find(sym_getGlobalCompilerContext(), szFunction, &key) : (SYMBOL) { 0 };
 	if (sym.s_type == S_EDFUNC) {

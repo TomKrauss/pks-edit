@@ -472,7 +472,6 @@ int ww_tabsChanged(WINFO* wp, EDIT_CONFIGURATION* lp) {
 	else {
 		iTabSizes++;
 	}
-	nextIndent = tDelta;
 	for (i = 0, nextIndent = ts; i < MAXLINELEN; i++) {
 		if (i == nextIndent) {
 			TABPLACE(pIndentation, i);
@@ -1261,7 +1260,6 @@ WINFUNC render_defaultWindowProc(
 				if (GetAsyncKeyState(VK_SHIFT)) {
 					dy *= 4;
 				}
-				long dx = 0;
 				sl_moved(wp, dy, 0L, (wp->scrollflags & SC_CURSORCATCH));
 			}
 		}

@@ -325,7 +325,6 @@ PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char *symbolname) {
 	if (!pFound) {
 		interpreter_raiseError("undefined symbol %s", symbolname);
 	}
-	char* tmp = (char*)entry.he_key;
 	SYMBOL 	sym = *(SYMBOL*)entry.he_value;
 	SYMBOL_TYPE sType = sym.s_type;
 	if (sType != S_RUNTIME_VALUE) {

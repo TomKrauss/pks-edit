@@ -30,7 +30,6 @@ static ARRAY_LIST* _allActions;
 static BOOL action_isEnabled(ACTION* pAction) {
 	if (pAction->ac_commandType == CMD_CMDSEQ) {
 		COMMAND* pCommand = &_commandTable[pAction->ac_commandId];
-		NATIVE_FUNCTION* pFunc = &_functionTable[pCommand->c_functionDef.funcnum];
 		return interpreter_canExecuteNativeFunction(_commandTable[pAction->ac_commandId].c_functionDef.funcnum, pCommand->c_functionDef.p, 0);
 	}
 	else if (pAction->ac_commandType == CMD_MACRO) {

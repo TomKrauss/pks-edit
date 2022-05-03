@@ -547,7 +547,7 @@ static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, REC
 static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, SIZE* pSize, float zoomFactor, BOOL bMeasureOnly) {
 	MD_IMAGE* pImage = pTR->tr_image;
 	if (!pImage) {
-		pSize->cy = 20;
+		pSize->cx = 20;
 		pSize->cy = 20;
 		return;
 	}
@@ -844,7 +844,6 @@ static void mdr_paintFillDecoration(HDC hdc, RENDER_VIEW_PART* pPart, RECT* pBou
 	}
 	r.left = x - 10;
 	r.right = nRight > 1200 ? nRight - 100 : nRight;
-	HBRUSH hBrOld = SelectObject(hdc, theme_getDialogLightBackgroundBrush());
 	int nWidth = pDecoration->rbd_strokeWidth;
 	if (!nWidth) {
 		nWidth = 1;
@@ -1316,7 +1315,6 @@ static TEXT_RUN** mdr_getBlockRunsOf(RENDER_VIEW_PART* pPart) {
 static void mdr_parsePreformattedCodeBlock(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, BOOL bIndented, const char* pEndTag) {
 	size_t nLastOffset = 0;
 	int nOffs;
-	int nRunStart = 0;
 	char c;
 	LINE* lp;
 	char szTag[32];
@@ -1349,7 +1347,8 @@ static void mdr_parsePreformattedCodeBlock(INPUT_STREAM* pStream, HTML_PARSER_ST
 			return;
 		}
 		pPart->rvp_number++;
-		nRunStart = pStream->is_inputMark(pStream, &lp);
+		int nRunStart = pStream->is_inputMark(pStream, &lp);
+		pStream->is_skip(pStream, nOffs);
 		while ((c = pStream->is_getc(pStream)) != 0 && c != '\n') {
 			if (c == '\t') {
 				size_t nCurrent = stringbuf_size(pState->hps_text) - nLastOffset;
@@ -1400,7 +1399,6 @@ static BOOL mdr_parseAutolinks(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState,
 	if (bDot) {
 		size_t nSize = stringbuf_size(pState->hps_text) - nLastOffset;
 		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pFSD, lp, nLineOffset, 0);
-		nLastOffset += nSize;
 		char* pszLink;
 		char* pszTitle;
 		stringbuf_appendString(pState->hps_text, szTemp);
@@ -2259,7 +2257,6 @@ static void mdr_onBlockLevelTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState
 }
 
 static void mdr_onHtmlTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, HTML_TAG* pTag, FONT_STYLE_DELTA* pFSDDelta) {
-	BOOL bBlockLevel = pTag->ht_descriptor->tm_blockElement != MET_NONE;
 	HTML_TAG_TYPE tType = pTag->ht_descriptor->tm_tagType;
 
 	FONT_STYLE_DELTA* pOldFSD = pState->hps_currentStyle;
@@ -2374,7 +2371,6 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 	int nState = 0;
 	int nLevel = 0;
 	int nInPart = 0;
-	int nLineOffset = 0;
 	FONT_STYLE_DELTA fsd;
 	FONT_STYLE_DELTA fsdNext;
 
@@ -2384,10 +2380,10 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 	BOOL bEnforceBreak = TRUE;
 	while (pStream->is_peekc(pStream, 0)) {
 		BOOL bSkipped = FALSE;
-		char lastC;
+		char lastC = 0;
 		char cNext;
 		char c = 0;
-		nLineOffset = 0;
+		int nLineOffset = 0;
 		pState->hps_runOffset = pStream->is_inputMark(pStream, &pState->hps_lp);
 		for (; (cNext = pStream->is_peekc(pStream, 0)) != 0 && c != '\n'; pStream->is_skip(pStream, 1)) {
 			lastC = c;

@@ -49,7 +49,7 @@ typedef struct tagUNDO_OPERATION {
 	struct tagUNDO_DELTA {
 		LINE* lp;				// The remembered old line
 		union {
-			LINE* lpAnchor;			// The anchor line (previous line to old state) where the old state must be restored or in the case of LN_ORDER, the exchanged line
+			LINE* lpAnchor;		// The anchor line (previous line to old state) where the old state must be restored or in the case of LN_ORDER, the exchanged line
 			int   flag;
 		} oldState;
 		int	  op;				// one of O_MODIFY, O_DELETE, O_INSERT, O_LNORDER

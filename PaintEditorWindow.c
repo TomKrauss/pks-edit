@@ -181,7 +181,7 @@ int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long 
 	i = 0;
 	s = lp->lbuf;
 	send = &lp->lbuf[lp->len];
-	RENDER_STATE newstate = state;
+	RENDER_STATE newstate;
 	x -= startColumn * wp->cwidth;
 	FONT_STYLE_CLASS fsPreviousClass = -1;
 	FONT_STYLE_CLASS fsClass = FS_NORMAL;

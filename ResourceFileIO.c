@@ -54,11 +54,9 @@ char *rsc_rdmacros(char *name, unsigned char *p, unsigned char *pend)
 	MACRODATA *pMacroData;
 	unsigned char* pBufferStart;
 	unsigned char* pComment;
-	unsigned char* pName;
 
 	do {
 		pMacroData = (MACRODATA*) p;
-		pName = pMacroData->name;
 		pComment = &pMacroData->name[0] + pMacroData->namelen;
 		pBufferStart  = pComment+ pMacroData->commentlen;
 		len = pMacroData->bytecodeLength;

@@ -1088,7 +1088,7 @@ int interpreter_initializeNamespace(MACRO* mpNamespace, BOOL bSetJump) {
 		_currentExecutionContext = 0;
 		return -1;
 	}
-	int ret = macro_interpretByteCodesContext(_currentExecutionContext, mpNamespace);
+	macro_interpretByteCodesContext(_currentExecutionContext, mpNamespace);
 	interpreter_deallocateStack(_currentExecutionContext);
 	_currentExecutionContext = pOld;
 	mpNamespace->mc_isInitialized = TRUE;

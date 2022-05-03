@@ -757,11 +757,9 @@ static int edit_autoFormat(WINFO *wp) {
 static int edit_findNextOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) {
 	if (wp->workmode & WM_DELETE_MULTIPLE_SPACES) {
 		FTABLE* fp = wp->fp;
-		CARET caret;
 		int currentScreenCol = caret_lineOffset2screen(wp, &wp->caret);
 		int screenColNextTab = indent_calculateNextTabStop(currentScreenCol, &wp->indentation);
-		caret.linePointer = lp;
-		caret.offset = screenColNextTab;
+		CARET caret = {.linePointer = lp, .offset = screenColNextTab};
 		int lineOffsetNextTab = caret_screen2lineOffset(wp, &caret);
 		while (++nOffset < lineOffsetNextTab) {
 			if (lp->lbuf[nOffset] != fp->documentDescriptor->expandTabsWith) {
@@ -787,11 +785,12 @@ static BOOL edit_isSpace(LINE* lp, EDIT_CONFIGURATION* pDescriptor, int nOffset)
 static int edit_findPreviousOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) {
 	if (wp->workmode & WM_DELETE_MULTIPLE_SPACES) {
 		FTABLE* fp = wp->fp;
-		CARET caret;
 		int currentScreenCol = caret_lineOffset2screen(wp, &wp->caret);
 		int screenColPreviousTab = indent_calculatePreviousTabStop(currentScreenCol, &wp->indentation);
-		caret.linePointer = lp;
-		caret.offset = screenColPreviousTab;
+		CARET caret = {
+			.linePointer = lp,
+			.offset = screenColPreviousTab
+		};
 		int lineOffsetPreviousTab = caret_screen2lineOffset(wp, &caret);
 		int nNewOffset = nOffset;
 		while (--nNewOffset > lineOffsetPreviousTab) {
