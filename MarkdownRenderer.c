@@ -120,6 +120,13 @@ typedef struct tagMD_IMAGE {
 	HBITMAP				mdi_image;
 } MD_IMAGE;
 
+typedef enum {
+	TA_ALIGN_DEFAULT = 0,
+	TA_ALIGN_LEFT = 0x1,
+	TA_ALIGN_RIGHT = 0x2,
+	TA_ALIGN_CENTER = 0x3
+} TEXT_ALIGN;
+
 typedef struct tagFONT_STYLE_DELTA {
 	int fsd_logicalStyles;
 	int fsd_indent;
@@ -128,6 +135,7 @@ typedef struct tagFONT_STYLE_DELTA {
 	COLORREF fsd_fillColor;
 	COLORREF fsd_strokeColor;
 	int fsd_strokeWidth;
+	TEXT_ALIGN fsd_textAlign;
 } FONT_STYLE_DELTA;
 
 
@@ -171,17 +179,14 @@ typedef enum {
 	MET_HORIZONTAL_RULE
 } MDR_ELEMENT_TYPE;
 
-#define RTC_ALIGN_LEFT		0x1
-#define RTC_ALIGN_RIGHT		0x2
-#define RTC_ALIGN_CENTER	0x3
 #define MAX_TABLE_COLUMNS   256
 
 typedef struct tagRENDER_TABLE_CELL {
 	struct tagRENDER_TABLE_CELL* rtc_next;
-	BOOL	rtc_isHeader;
-	byte	rtc_align;
-	int		rtc_width;			// width in pixels or 0 for default width 
-	TEXT_FLOW rtc_flow;
+	BOOL		rtc_isHeader;
+	TEXT_ALIGN	rtc_align;
+	int			rtc_width;			// width in pixels or 0 for default width 
+	TEXT_FLOW	rtc_flow;
 } RENDER_TABLE_CELL;
 
 typedef struct tagRENDER_TABLE_ROW {
@@ -488,7 +493,11 @@ static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, REC
 			bounds.right = bounds.left + nColumnWidth[nColumn];
 			bounds.bottom = bounds.top + 3000;
 			if (pCell->rtc_flow.tf_text) {
-				mdr_renderTextFlow(&_tableMargins, &pCell->rtc_flow, &bounds, &flowBounds, &usedBounds, 0, pCell->rtc_align, &rfp);
+				byte align = pCell->rtc_align;
+				if (!align && pCell->rtc_isHeader) {
+					align = TA_ALIGN_CENTER;
+				}
+				mdr_renderTextFlow(&_tableMargins, &pCell->rtc_flow, &bounds, &flowBounds, &usedBounds, 0, align, &rfp);
 			}
 			int nHeight = usedBounds.bottom - usedBounds.top;
 			if (nHeight > nMaxHeight) {
@@ -500,7 +509,7 @@ static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, REC
 		}
 		pRow = pRow->rtr_next;
 		bounds.top += nMaxHeight;
-		if (pRow && !bMeasureOnly) {
+		if (pRow) {
 			rowBorders[nRowBorderIndex].rb_y = bounds.top + _tableMargins.m_bottom / 2;
 			rowBorders[nRowBorderIndex].rb_header = bHeader;
 			if (nRowBorderIndex < DIM(rowBorders)-1) {
@@ -741,10 +750,10 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			int nDeltaX = 0;
 			if (bRunBegin && !pTR->tr_next) {
 				// TODO alignment supported only for non formatted contents.
-				if (nAlign == RTC_ALIGN_RIGHT) {
+				if (nAlign == TA_ALIGN_RIGHT) {
 					nDeltaX = nTotalWidth - size.cx;
 				}
-				else if (nAlign == RTC_ALIGN_CENTER) {
+				else if (nAlign == TA_ALIGN_CENTER) {
 					nDeltaX = (nTotalWidth - size.cx) / 2;
 				}
 			}
@@ -895,7 +904,7 @@ static void mdr_renderMarkdownBlockPart(RENDER_VIEW_PART* pPart, HDC hdc, RECT* 
 	};
 	if (pFlow->tf_text && pFlow->tf_runs) {
 		mdr_renderTextFlow(pMargins, pFlow, pBounds, &pPart->rvp_bounds, pUsed,
-				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, RTC_ALIGN_LEFT, &rfp);
+				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, TA_ALIGN_LEFT, &rfp);
 	} else {
 		pUsed->bottom = y + 10 + pMargins->m_bottom;
 	}
@@ -1546,6 +1555,22 @@ static void mdr_parseBorder(FONT_STYLE_DELTA* pFSD, char* pszBorder) {
 }
 
 /*
+ * Parse / decode a CSS text-align specification.
+ */
+static TEXT_ALIGN mdr_parseTextAlignment(const char* pszSpec) {
+	if (strcmp("center", pszSpec) == 0) {
+		return TA_ALIGN_CENTER;
+	}
+	if (strcmp("right", pszSpec) == 0) {
+		return TA_ALIGN_RIGHT;
+	}
+	if (strcmp("left", pszSpec) == 0) {
+		return TA_ALIGN_LEFT;
+	}
+	return TA_ALIGN_DEFAULT;
+}
+
+/*
  * Parse a CSS style specification. Currently only color: #xxx / color: red or similar specifications
  * are supported.
  */
@@ -1594,6 +1619,8 @@ static void mdr_parseStyle(FONT_STYLE_DELTA* pFSD, const char* pszStyleSpec) {
 					pFSD->fsd_fillColor = json_convertColor(szAttrValue);
 				} else if (strcmp("border", szAttribute) == 0) {
 					mdr_parseBorder(pFSD, szAttrValue);
+				} else if (strcmp("text-align", szAttribute) == 0) {
+					pFSD->fsd_textAlign = mdr_parseTextAlignment(szAttrValue);
 				} else if (strcmp("text-decoration", szAttribute) == 0) {
 					if (strcmp("underline", szAttrValue)) {
 						pFSD->fsd_logicalStyles |= ATTR_UNDERLINE;
@@ -2111,8 +2138,10 @@ static void mdr_onTagSpecialHandling(INPUT_STREAM* pStream, HTML_PARSER_STATE* p
 			pState->hps_tableCell = 0;
 		}
 		else if (pState->hps_tableRow) {
-			pState->hps_tableCell = (RENDER_TABLE_CELL*)ll_append((LINKED_LIST**)&pState->hps_tableRow->rtr_cells, sizeof * pState->hps_tableCell);
-			pState->hps_tableCell->rtc_isHeader = pTag->ht_descriptor->tm_tagName[1] == 'h';
+			RENDER_TABLE_CELL* pTC = (RENDER_TABLE_CELL*)ll_append((LINKED_LIST**)&pState->hps_tableRow->rtr_cells, sizeof * pState->hps_tableCell);
+			pState->hps_tableCell = pTC;
+			pTC->rtc_isHeader = pTag->ht_descriptor->tm_tagName[1] == 'h';
+			pTC->rtc_align = pState->hps_currentStyle->fsd_textAlign;
 		}
 		mdr_skipLeadingSpace(pStream);
 		return;
@@ -2667,7 +2696,7 @@ static BOOL mdr_parseTable(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState) {
 	BOOL bStartColon = FALSE;
 	BOOL bDashSeen = FALSE;
 	int nColumn = -1;
-	int nAlign = RTC_ALIGN_LEFT;
+	int nAlign = TA_ALIGN_LEFT;
 	char c;
 	RENDER_VIEW_PART* pPart = pState->hps_part;
 	if (pPart == 0) {
@@ -2700,7 +2729,7 @@ static BOOL mdr_parseTable(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState) {
 				bDashSeen = TRUE;
 			}
 			else if (bDashSeen && c == ':') {
-				nAlign = bStartColon ? RTC_ALIGN_CENTER : RTC_ALIGN_RIGHT;
+				nAlign = bStartColon ? TA_ALIGN_CENTER : TA_ALIGN_RIGHT;
 			}
 			else if (!bDashSeen && c == ':') {
 				bStartColon = TRUE;
@@ -2709,7 +2738,7 @@ static BOOL mdr_parseTable(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState) {
 				columnAlignments[nColumn++] = nAlign;
 				bDashSeen = FALSE;
 				bStartColon = FALSE;
-				nAlign = RTC_ALIGN_LEFT;
+				nAlign = TA_ALIGN_LEFT;
 			} else {
 				pStream->is_seek(pStream, offsetCurrent);
 				return FALSE;
