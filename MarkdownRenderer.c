@@ -894,8 +894,8 @@ static void mdr_renderMarkdownBlockPart(RENDER_VIEW_PART* pPart, HDC hdc, RECT* 
 		.rfp_measureOnly = bMeasureOnly,
 		.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK
 	};
-	if (pPart->rvp_data.rvp_flow.tf_text && pPart->rvp_data.rvp_flow.tf_runs) {
-		mdr_renderTextFlow(pMargins, &pPart->rvp_data.rvp_flow, pBounds, &pPart->rvp_bounds, pUsed,
+	if (pFlow->tf_text && pFlow->tf_runs) {
+		mdr_renderTextFlow(pMargins, pFlow, pBounds, &pPart->rvp_bounds, pUsed,
 				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, RTC_ALIGN_LEFT, &rfp);
 	} else {
 		pUsed->bottom = y + 10 + pMargins->m_bottom;
@@ -1306,6 +1306,10 @@ static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char
 	return FALSE;
 }
 
+static TEXT_RUN** mdr_getBlockRunsOf(RENDER_VIEW_PART* pPart) {
+	return &pPart->rvp_data.rvp_flow.tf_runs;
+}
+
 /*
  * Parse a fenced code block and add the runs to the view part.
  */
@@ -1365,7 +1369,7 @@ static void mdr_parsePreformattedCodeBlock(INPUT_STREAM* pStream, HTML_PARSER_ST
 			stringbuf_appendChar(pState->hps_text, ' ');
 			nSize++;
 		}
-		mdr_appendRun(&pPart->rvp_data.rvp_flow.tf_runs, &_formatFenced, nSize, 
+		mdr_appendRun(mdr_getBlockRunsOf(pPart), &_formatFenced, nSize,
 			&(FONT_STYLE_DELTA){ATTR_LINE_BREAK, .fsd_textColor = NO_COLOR, 0, .fsd_fillColor = NO_COLOR, .fsd_strokeColor = NO_COLOR}, lp, nRunStart, 0);
 		nLastOffset += nSize;
 	}
@@ -1981,7 +1985,7 @@ static int mdr_applyImageAttributes(HTML_PARSER_STATE* pState, HASHMAP* pValues)
 	char* pszText = " ";
 	int nLen = (int)strlen(pszText);
 	stringbuf_appendString(pState->hps_text, pszText);
-	TEXT_RUN* pRun = mdr_appendRun(&pPart->rvp_data.rvp_flow.tf_runs, pState->hps_blockFormat, nLen, pfsd, pState->hps_lp, 0, 0);
+	TEXT_RUN* pRun = mdr_appendRun(mdr_getBlockRunsOf(pPart), pState->hps_blockFormat, nLen, pfsd, pState->hps_lp, 0, 0);
 	if (pszTitle) {
 		pRun->tr_title = _strdup(pszTitle);
 	}
@@ -2032,20 +2036,25 @@ static void mdr_applyRunAttributes(HTML_PARSER_STATE* pState, TEXT_RUN* pRun) {
 	}
 }
 
-static TEXT_FLOW* mdr_endRun(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, BOOL bForced) {
-	size_t nSize = stringbuf_size(pState->hps_text);
-	if (!nSize && !bForced) {
-		return 0;
-	}
+static TEXT_FLOW* mdr_getTextFlowEnsureInit(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState) {
 	if (!pState->hps_part) {
 		mdr_ensureParagraph(pStream, pState);
 	}
 	if (pState->hps_table && !pState->hps_tableCell) {
 		return 0;
 	}
-	TEXT_FLOW* pFlow = pState->hps_tableCell ? &pState->hps_tableCell->rtc_flow : &pState->hps_part->rvp_data.rvp_flow;
+	return pState->hps_tableCell ? &pState->hps_tableCell->rtc_flow : &pState->hps_part->rvp_data.rvp_flow;
+
+}
+
+static TEXT_FLOW* mdr_endRun(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, BOOL bForced) {
+	size_t nSize = stringbuf_size(pState->hps_text);
+	if (!nSize && !bForced) {
+		return 0;
+	}
+	TEXT_FLOW* pFlow = mdr_getTextFlowEnsureInit(pStream, pState);
 	int nDelta = (int)(nSize - pState->hps_lastTextOffset);
-	if (nDelta || bForced) {
+	if (pFlow && (nDelta || bForced)) {
 		TEXT_RUN* pRun = mdr_appendRun(&pFlow->tf_runs, pState->hps_blockFormat, nDelta, pState->hps_currentStyle, pState->hps_lp, pState->hps_runOffset, 0);
 		mdr_applyRunAttributes(pState, pRun);
 		pState->hps_lastTextOffset += nDelta;
@@ -2308,7 +2317,7 @@ RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream, const char* pszBaseURL) {
 			state.hps_currentStyle->fsd_logicalStyles |= ATTR_LINE_BREAK;
 			if (nSize) {
 				mdr_ensureParagraph(pStream, &state);
-				TEXT_RUN* pRun = mdr_appendRun(&state.hps_part->rvp_data.rvp_flow.tf_runs, state.hps_blockFormat, nSize, state.hps_currentStyle, 
+				TEXT_RUN* pRun = mdr_appendRun(mdr_getBlockRunsOf(state.hps_part), state.hps_blockFormat, nSize, state.hps_currentStyle,
 					state.hps_lp, state.hps_runOffset, 0);
 				mdr_applyRunAttributes(&state, pRun);
 				state.hps_lastTextOffset += (int)nSize;
@@ -2343,11 +2352,16 @@ static void mdr_parseFileToHTML(WINFO* wp) {
 	pStream->is_destroy(pStream);
 }
 
-static TEXT_FLOW* mdr_getCurrentFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState) {
-	if (!pState->hps_tableCell) {
-		mdr_ensureParagraph(pStream, pState);
+static TEXT_RUN* mdr_appendRunState(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, FONT_STYLE_DELTA* pFSD) {
+	TEXT_FLOW* pFlow = mdr_getTextFlowEnsureInit(pStream, pState);
+	if (!pFlow) {
+		return 0;
 	}
-	return pState->hps_tableCell ? &pState->hps_tableCell->rtc_flow : &pState->hps_part->rvp_data.rvp_flow;
+	int nSize = (int)(stringbuf_size(pState->hps_text) - pState->hps_lastTextOffset);
+	TEXT_RUN* pResult = mdr_appendRun(&pFlow->tf_runs, pState->hps_blockFormat, nSize, pFSD, pState->hps_lp, pState->hps_runOffset, 0);
+	pState->hps_runOffset = pStream->is_inputMark(pStream, &pState->hps_lp);
+	pState->hps_lastTextOffset += (int)nSize;
+	return pResult;
 }
 
 /*
@@ -2363,7 +2377,6 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 	int nLineOffset = 0;
 	FONT_STYLE_DELTA fsd;
 	FONT_STYLE_DELTA fsdNext;
-	size_t nSize;
 
 	fsd.fsd_logicalStyles = nInitialAttrs;
 	mdr_resetFontStyleDelta(&fsd);
@@ -2427,11 +2440,8 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 				c = pStream->is_peekc(pStream, 0);
 			} else if (!bEscaped && c == '=' && pStream->is_peekc(pStream, 1) == c) {
 				pStream->is_skip(pStream, 1);
-				nSize = stringbuf_size(pState->hps_text) - pState->hps_lastTextOffset;
-				mdr_appendRun(&mdr_getCurrentFlow(pStream, pState)->tf_runs, pState->hps_blockFormat, nSize, &fsd, pState->hps_lp, pState->hps_runOffset, 0);
-				pState->hps_runOffset = pStream->is_inputMark(pStream, &pState->hps_lp);
+				mdr_appendRunState(pStream, pState, &fsd);
 				fsd.fsd_logicalStyles ^= ATTR_HIGHLIGHT;
-				pState->hps_lastTextOffset += (int)nSize;
 				continue;
 			} else if (c == '`' || (!bEscaped && (c == '*' ||
 				// allow for _ only at word borders.
@@ -2456,14 +2466,11 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 					nToggle = ATTR_CODE;
 				}
 				if (nToggle) {
-					nSize = stringbuf_size(pState->hps_text) - pState->hps_lastTextOffset;
-					mdr_appendRun(&mdr_getCurrentFlow(pStream, pState)->tf_runs, pState->hps_blockFormat, nSize, &fsd, pState->hps_lp, pState->hps_runOffset, 0);
-					pState->hps_lastTextOffset  += (int)nSize;
+					mdr_appendRunState(pStream, pState, &fsd);
 					fsd = fsdNext;
 					int styles = fsd.fsd_logicalStyles ^ nToggle;
 					mdr_resetFontStyleDelta(&fsd);
 					fsd.fsd_logicalStyles = styles;
-					pState->hps_runOffset = pStream->is_inputMark(pStream, &pState->hps_lp)+1;
 					continue;
 				}
 			} else if (!bEscaped && (c == '[' || (c == '!' && pStream->is_peekc(pStream, 1) == '['))) {
@@ -2476,10 +2483,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 				char szLinkText[256];
 				if (mdr_parseLink(pStream, pState, szLinkText, &pLink, &pTitle, &nWidth, &nHeight)) {
 					int nAttr = 0;
-					nSize = stringbuf_size(pState->hps_text) - pState->hps_lastTextOffset;
-					mdr_appendRun(&mdr_getCurrentFlow(pStream, pState)->tf_runs, pState->hps_blockFormat, nSize, &fsd, pState->hps_lp, pState->hps_runOffset, 0);
-					pState->hps_runOffset = pStream->is_inputMark(pStream, &pState->hps_lp);
-					pState->hps_lastTextOffset += (int)nSize;
+					mdr_appendRunState(pStream, pState, &fsd);
 					int nTextStart = 0;
 					char c2 = szLinkText[0];
 					int nTextEnd = (int)strlen(szLinkText);
@@ -2502,10 +2506,8 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 						}
 					}
 					stringbuf_appendStringLength(pState->hps_text, &szLinkText[nTextStart], nTextEnd - nTextStart);
-					nSize = stringbuf_size(pState->hps_text) - pState->hps_lastTextOffset;
 					fsd.fsd_logicalStyles |= ATTR_LINK;
-					TEXT_RUN* pRun = mdr_appendRun(&mdr_getCurrentFlow(pStream, pState)->tf_runs, pState->hps_blockFormat, nSize, &fsd, pState->hps_lp, nTextStart, 0);
-					pState->hps_lastTextOffset += (int)nSize;
+					TEXT_RUN* pRun = mdr_appendRunState(pStream, pState, &fsd);
 					if (bImage) {
 						pRun->tr_image = calloc(1, sizeof(MD_IMAGE));
 						pRun->tr_image->mdi_height = nHeight;
@@ -2543,7 +2545,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 					continue;
 				}
 				pStream->is_seek(pStream, offset);
-				if (mdr_parseAutolinks(pStream, pState, mdr_getCurrentFlow(pStream, pState), pState->hps_blockFormat, &fsd, pState->hps_lastTextOffset)) {
+				if (mdr_parseAutolinks(pStream, pState, mdr_getTextFlowEnsureInit(pStream, pState), pState->hps_blockFormat, &fsd, pState->hps_lastTextOffset)) {
 					pState->hps_lastTextOffset = (int)stringbuf_size(pState->hps_text);
 					continue;
 				}
@@ -2557,12 +2559,10 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 		} else {
 			stringbuf_appendChar(pState->hps_text, ' ');
 		}
-		nSize = stringbuf_size(pState->hps_text) - pState->hps_lastTextOffset;
 		if (bEnforceBreak) {
 			fsd.fsd_logicalStyles |= ATTR_LINE_BREAK;
 		}
-		mdr_appendRun(&mdr_getCurrentFlow(pStream, pState)->tf_runs, pState->hps_blockFormat, nSize, &fsd, pState->hps_lp, pState->hps_runOffset, 0);
-		pState->hps_lastTextOffset += (int)nSize;
+		mdr_appendRunState(pStream, pState, &fsd);
 		if (mdr_isTopLevelOrBreak(pStream, mType, nLevel)) {
 			break;
 		}
