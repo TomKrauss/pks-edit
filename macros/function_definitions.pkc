@@ -116,6 +116,7 @@ native int EdBlockRead(EDITOR editor);
 
 /*
  * Saves the current selected text in the passed editor to a file.
+ * @see ReadBlock
  */
 @Method(name="WriteBlock")
 native int EdBlockWrite(EDITOR editor);
@@ -125,6 +126,8 @@ native int EdBlockWrite(EDITOR editor);
  * @param editor the editor in which the current selection is copied/cut. As always
  * this parameter is optional.
  * @param flags the flags defining the details about the operation.
+ * @see WriteBlock
+ * @see PasteBlock
  */
 @Method(name="CutBlock", signature="iWeCUT_")
 native int bl_cutOrCopy(EDITOR editor, int flags);

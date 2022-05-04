@@ -624,9 +624,6 @@ static void ww_assignRenderer(WINFO* wp) {
 	if (!wp->actionContext[0]) {
 		strcpy(wp->actionContext, fp->documentDescriptor->actionContext);
 	}
-	if (pOld) {
-		SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
-	}
 }
 
 /*
@@ -636,7 +633,6 @@ void ww_modeChanged(WINFO* wp) {
 	ww_assignRenderer(wp);
 	SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
 	if (wp->ww_handle) {
-		sl_size(wp);
 		font_selectStandardFont(wp->ww_handle, wp);
 		wt_setCaretVisibility(wp, 0);
 		wt_setCaretVisibility(wp, 1);
@@ -1032,7 +1028,7 @@ WINFUNC EditWndProc(
 		ww_createSubWindows(hwnd, wp,&xyWork,&xyRuler, &xyLineWindowSize);
 		if (wp->ww_handle) {
 			MoveWindow(wp->ww_handle,xyWork.x,xyWork.y,
-					xyWork.w,xyWork.h,1);
+					xyWork.w,xyWork.h,0);
 			if (message == WM_SHOWWINDOW) {
 				SendMessage(wp->ww_handle, message, wParam, lParam);
 			}

@@ -24,7 +24,8 @@
   * and an optional callback responsible for returning a help text for the recommendation getting passed the recommendation and the
   * arbitrary param.
   */
-typedef void (*ANALYZER_CALLBACK)(const char* pszRecommendation, void* pParam, const char* (*cbHelp)(const char* pszText, void* pParam));
+typedef void (*ANALYZER_CALLBACK)(const char* pszRecommendation, void* pParam, const char* (*cbHelp)(const char* pszText, void* pParam), 
+		const char*(*cbGetHyperlink)(const char* pszText));
 
 /*
  * The analyzer function to operate on a file referred to by a view pointer 'wp'. Only recommendations

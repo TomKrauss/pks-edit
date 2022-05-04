@@ -38,6 +38,8 @@
 #include "streams.h"
 #include "htmlrendering.h"
 
+typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
+
 #define NO_COLOR			-1		// marker for no color defined
 #define PARAGRAPH_OFFSET	15		// offset in pixels between paragraph type elements.
 #define DEFAULT_LEFT_MARGIN	10		// offset of most elements to the left of the screen.
@@ -2370,9 +2372,9 @@ static void mdr_onHtmlTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, HTML
 /*
  * Parse a text and convert it into a list of view parts to be rendered later.
  * Note, that the viewparts must be destroyed, when they are not needed any more
- * using mdr_destroyViewParts.
+ * using mdr_destroyRendererData.
  */
-RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream, const char* pszBaseURL) {
+MARKDOWN_RENDERER_DATA* mdr_parseHTML(INPUT_STREAM* pStream, HWND hwndParent, const char* pszBaseURL) {
 	RENDER_VIEW_PART* pFirst = 0;
 	char c;
 	size_t nSize;
@@ -2421,7 +2423,12 @@ RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream, const char* pszBaseURL) {
 		}
 	}
 	mdr_finalizeParserState(pStream, &state);
-	return pFirst;
+	MARKDOWN_RENDERER_DATA* pData = calloc(1, sizeof * pData);
+	pData->md_pElements = pFirst;
+	if (hwndParent) {
+		pData->md_hwndTooltip = cust_createToolTooltip(hwndParent);
+	}
+	return pData;
 }
 
 /*
@@ -2430,9 +2437,10 @@ RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream, const char* pszBaseURL) {
 static void mdr_parseFileToHTML(WINFO* wp) {
 	FTABLE* fp = wp->fp;
 	INPUT_STREAM* pStream = streams_createLineInputStream(fp->firstl, 0);
-	RENDER_VIEW_PART* pPart = mdr_parseHTML(pStream, fp->fname);
+	MARKDOWN_RENDERER_DATA* pParsed = mdr_parseHTML(pStream, 0, fp->fname);
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
-	pData->md_pElements = pPart;
+	pData->md_pElements = pParsed->md_pElements;
+	free(pParsed);
 	pStream->is_destroy(pStream);
 }
 
@@ -2916,7 +2924,7 @@ static int mdr_windowSizeChanged(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, BOOL 
 		return 0;
 	}
 	if (!bUpdateScrollbarOnly) {
-		mdr_invalidateViewpartsLayout(pData->md_pElements);
+		mdr_invalidateViewpartsLayout(pData);
 		InvalidateRect(hwnd, 0, FALSE);
 		UpdateWindow(hwnd);
 	}
@@ -2928,12 +2936,12 @@ static int mdr_windowSizeChanged(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, BOOL 
 	info.nPos = 0;
 	ShowScrollBar(hwnd, SB_HORZ, FALSE);
 	SIZE size;
-	mdr_getViewpartsExtend(pData->md_pElements, &size, -1);
+	mdr_getViewpartsExtend(pData, &size, -1);
 	info.nMax = size.cy;
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	info.nPage = rect.bottom - rect.top;
-	mdr_getViewpartsExtend(pData->md_pElements, &size, pData->md_minln);
+	mdr_getViewpartsExtend(pData, &size, pData->md_minln);
 	info.nPos = size.cy;
 	SetScrollInfo(hwnd, SB_VERT, &info, 1);
 	return 1;
@@ -3031,9 +3039,9 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 		RECT rect;
 		GetClientRect(wp->ww_handle, &rect);
 		int height = rect.bottom - rect.top;
-		mdr_getViewpartsExtend(pData->md_pElements, &s2, pData->md_caretLineIndex+1);
+		mdr_getViewpartsExtend(pData, &s2, pData->md_caretLineIndex+1);
 		while(1) {
-			mdr_getViewpartsExtend(pData->md_pElements, &s1, pData->md_minln);
+			mdr_getViewpartsExtend(pData, &s1, pData->md_minln);
 			int delta = s2.cy - s1.cy;
 			if (delta > height) {
 				pData->md_minln++;
@@ -3085,9 +3093,13 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 }
 
 /*
- * Invalidate the layout of all view parts starting with 'pFirst'.
+ * Invalidate the layout of all view parts starting with 'pData'.
  */
-void mdr_invalidateViewpartsLayout(RENDER_VIEW_PART* pFirst) {
+void mdr_invalidateViewpartsLayout(MARKDOWN_RENDERER_DATA* pData) {
+	if (!pData) {
+		return;
+	}
+	RENDER_VIEW_PART* pFirst = pData->md_pElements;
 	while (pFirst) {
 		// clear out old existing bounds.
 		memset(&pFirst->rvp_bounds, 0, sizeof pFirst->rvp_bounds);
@@ -3103,10 +3115,14 @@ void mdr_invalidateViewpartsLayout(RENDER_VIEW_PART* pFirst) {
  * up to not including the part with the given index. If -1 is passed we will get
  * the extent of all viewparts.
  */
-void mdr_getViewpartsExtend(RENDER_VIEW_PART* pFirst, SIZE* pSize, int nUpToPart) {
+void mdr_getViewpartsExtend(MARKDOWN_RENDERER_DATA* pData, SIZE* pSize, int nUpToPart) {
+	if (!pData) {
+		return;
+	}
 	pSize->cx = 10;
 	pSize->cy = 0;
 	int nIndex = 0;
+	RENDER_VIEW_PART* pFirst = pData->md_pElements;
 	while (pFirst) {
 		if (nUpToPart >= 0 && nUpToPart == nIndex) {
 			break;
@@ -3233,16 +3249,16 @@ static void mdr_renderHTMLFormatPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH h
 /*
  * Render some render view parts as a response to a WM_PAINT message into the window given with 'hwnd',
  * using the repaint areas and device context defined in 'ps' assuming the screen top is scrolled to
- * logical position 'nTopY' render the linked list of view parts starting with 'pFirst'.
+ * logical position 'nTopY' render the linked list of view parts starting with 'pData'.
  */
-void mdr_renderViewparts(HWND hwnd, PAINTSTRUCT* ps, int nTopY, RENDER_VIEW_PART* pFirst) {
+void mdr_renderMarkdownData(HWND hwnd, PAINTSTRUCT* ps, int nTopY, MARKDOWN_RENDERER_DATA* pData) {
 	RECT rect;
 	RECT occupiedBounds;
 	HDC hdc = ps->hdc;
 	RECT* pClip = &ps->rcPaint;
 	GetClientRect(hwnd, &rect);
 	HBRUSH hBrushBg = theme_getDialogBackgroundBrush();
-	RENDER_VIEW_PART* pPart = pFirst;
+	RENDER_VIEW_PART* pPart = pData->md_pElements;
 
 	FillRect(hdc, pClip, hBrushBg);
 	rect.top -= nTopY;
@@ -3294,8 +3310,12 @@ static int mdr_destroyViewPart(RENDER_VIEW_PART *pRVP) {
 /*
  * Destroy a list of view parts releasing unneeded memory.
  */
-void mdr_destroyViewParts(RENDER_VIEW_PART** pHEAD) {
-	ll_destroy(pHEAD, mdr_destroyViewPart);
+void mdr_destroyRendererData(MARKDOWN_RENDERER_DATA* pData) {
+	if (pData->md_hwndTooltip) {
+		DestroyWindow(pData->md_hwndTooltip);
+	}
+	ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
+	free(pData);
 }
 
 /*
@@ -3304,13 +3324,7 @@ void mdr_destroyViewParts(RENDER_VIEW_PART** pHEAD) {
 static void mdr_destroyData(WINFO* wp) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (pData) {
-		if (pData->md_hwndTooltip) {
-			DestroyWindow(pData->md_hwndTooltip);
-		}
-		mdr_destroyViewParts(&pData->md_pElements);
-		free(pData->md_pElements);
-		pData->md_pElements = NULL;
-		free(pData);
+		mdr_destroyRendererData(pData);
 	}
 }
 
@@ -3476,6 +3490,21 @@ static BOOL mdr_hitTestInternal(MARKDOWN_RENDERER_DATA* pData, int cx, int cy, l
 	return FALSE;
 }
 
+/*
+ * Can be used to find out, whether a link was clicked in a rich text renderer component given
+ * the renderer data hook and the mouse x and y position.
+ */
+char* mdr_linkClicked(MARKDOWN_RENDERER_DATA* pData, int cxMouse, int cyMouse) {
+	RENDER_VIEW_PART* pPart;
+	TEXT_RUN* pRun;
+	long ln;
+	long col;
+	if (mdr_hitTestInternal(pData, cxMouse, cyMouse, &ln, &col, &pPart, &pRun)) {
+		return pRun->tr_link;
+	}
+	return 0;
+}
+
 static void mdr_hitTest(WINFO* wp, int cx, int cy, long* pLine, long* pCol) {
 	RENDER_VIEW_PART* pMatchP;
 	TEXT_RUN* pMatchR;
@@ -3490,7 +3519,10 @@ static void mdr_setRollover(HWND hwnd, TEXT_RUN* pRun, BOOL aFlag) {
 	InvalidateRect(hwnd, (RECT*) & pRun->tr_bounds, FALSE);
 }
 
-static void mdr_mouseMove(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, int x, int y) {
+/*
+ * Generic mouse move handler for markdown rendering (supporting rollover effects etc...).
+ */
+void mdr_mouseMove(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, int x, int y) {
 	RENDER_VIEW_PART* pMatchP;
 	TEXT_RUN* pMatchR = NULL;
 	long line;
@@ -3521,7 +3553,7 @@ static void mdr_mouseMove(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, int x, int y
 	} else {
 		bShow = FALSE;
 	}
-	if (!SendMessage(pData->md_hwndTooltip, TTM_TRACKACTIVATE, (WPARAM)bShow, (LPARAM)&toolinfo)) {
+	if (pData->md_hwndTooltip && !SendMessage(pData->md_hwndTooltip, TTM_TRACKACTIVATE, (WPARAM)bShow, (LPARAM)&toolinfo)) {
 		log_errorArgs(DEBUG_ERR, "Activating tooltip failed. Error %ld.", GetLastError());
 	}
 }
@@ -3569,9 +3601,8 @@ static LRESULT mdr_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 		}
 		if ((pData = mdr_dataFromWindow(hwnd)) != 0) {
 			mdr_windowSizeChanged(hwnd, pData, FALSE);
-			return 0;
 		}
-		break;
+		return 0;
 	}
 	return render_defaultWindowProc(hwnd, message, wParam, lParam);
 }

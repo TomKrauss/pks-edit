@@ -28,14 +28,14 @@
 #include "pksrc.h"
 #include "linkedlist.h"
 #include "crossreferencelinks.h"
-#include "codecompletion.h"
 #include "themes.h"
 #include "xdialog.h"
 #include "streams.h"
 #include "htmlrendering.h"
 
 #define GWL_HELPWINDOW_VIEWPARTS		0
-#define GWL_HELPWINDOW_EXTRA	GWL_HELPWINDOW_VIEWPARTS+sizeof(void*)
+#define GWL_HELPWINDOW_PARAMS			GWL_HELPWINDOW_VIEWPARTS+sizeof(void*)
+#define GWL_HELPWINDOW_EXTRA			GWL_HELPWINDOW_PARAMS+sizeof(void*)
 
 #define CLASS_CODE_COMPLETION		"CodeCompletion"
 #define CLASS_CODE_COMPLETION_HELP	"CodeCompletionJHelp"
@@ -55,7 +55,10 @@ typedef struct tagCODE_ACTION {
 	const char* ca_name;
 	BOOL ca_replaceWord;
 	BOOL ca_freeName;
-	const char* (*ca_helpCB)(const char* pszCompletion, void* pParam);	// Callback to return a help text for this action. Note that the returned string must be malloc'd and will be freed after use.
+	const char* (*ca_helpCB)(const char* pszCompletion, void* pParam);	
+									// Callback to return a help text for this action. Note that the returned string must be malloc'd and will be freed after use.
+	const char* (*ca_getHyperlinkHelp)(const char* pszLink);
+									// Callback to return a help text for a hyperlink contained in a help text pointing to another help contents.
 	void* ca_object;				// an arbitrary object representing the details about the object for the code completion (e.g. a MACROREF object representing a macro/command)
 									// Can in particular used in the help callback to provide a help text for the action.
 	union {
@@ -103,7 +106,8 @@ static void codecomplete_updateScrollbar(HWND hwnd) {
 static HASHMAP* _suggestions;
 static ARRAY_LIST* _actionList;
 
-static CODE_ACTION* codecomplete_addTagsWithAlloc(const char* pszTagName, const char* (*fHelpCB)(const char* pszCompletion, void* pParam), void* nParam, BOOL bAlloc) {
+static CODE_ACTION* codecomplete_addTagsWithAlloc(const char* pszTagName, const char* (*fHelpCB)(const char* pszCompletion, void* pParam), 
+		const char* (*fGetHelpForLinkCB)(const char* pszUrl), void* nParam, BOOL bAlloc) {
 	if (hashmap_containsKey(_suggestions, pszTagName)) {
 		return NULL;
 	}
@@ -115,6 +119,7 @@ static CODE_ACTION* codecomplete_addTagsWithAlloc(const char* pszTagName, const 
 	pCurrent->ca_replaceWord = TRUE;
 	pCurrent->ca_freeName = bAlloc;
 	pCurrent->ca_helpCB = fHelpCB;
+	pCurrent->ca_getHyperlinkHelp = fGetHelpForLinkCB;
 	pCurrent->ca_object = nParam;
 	hashmap_put(_suggestions, pszCopy, (intptr_t)pCurrent);
 	arraylist_add(_actionList, pCurrent);
@@ -129,12 +134,14 @@ static void codecomplete_hideWindow(HWND hwnd) {
 	}
 
 }
-static void codecomplete_addTags(const char* pszTagName, void* pParam, const char* (*fHelpCB)(const char* pszCompletion, void* pParam)) {
-	codecomplete_addTagsWithAlloc(pszTagName, fHelpCB, pParam, FALSE);
+static void codecomplete_addTags(const char* pszTagName, void* pParam, 
+		const char* (*fHelpCB)(const char* pszCompletion, void* pParam), const char*(*fLink)(const char* pszLink)) {
+	codecomplete_addTagsWithAlloc(pszTagName, fHelpCB, fLink, pParam, FALSE);
 }
 
-static void codecomplete_analyzerCallback(const char* pszRecommendation, void* pParam, const char* (*fHelpCB)(const char* pszCompletion, void* pParam)) {
-	codecomplete_addTagsWithAlloc(pszRecommendation, fHelpCB, pParam, TRUE);
+static void codecomplete_analyzerCallback(const char* pszRecommendation, void* pParam, 
+			const char* (*fHelpCB)(const char* pszCompletion, void* pParam), const char*(*fGetHyperlinkText)(const char* pszLink)) {
+	codecomplete_addTagsWithAlloc(pszRecommendation, fHelpCB, fGetHyperlinkText, pParam, TRUE);
 }
 
 /*
@@ -211,6 +218,10 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	InvalidateRect(wp->codecomplete_handle, NULL, TRUE);
 }
 
+static MARKDOWN_RENDERER_DATA* codecompletehelp_getData(HWND hwnd) {
+	return (MARKDOWN_RENDERER_DATA*)GetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS);
+}
+
 /*
  * Paint the help window.
  */
@@ -218,14 +229,14 @@ static void codecomplete_paintHelp(HWND hwnd) {
 	PAINTSTRUCT paint;
 
 	BeginPaint(hwnd, &paint);
-	RENDER_VIEW_PART* pFirst = (RENDER_VIEW_PART * )GetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS);
-	if (pFirst) {
+	MARKDOWN_RENDERER_DATA* pData = codecompletehelp_getData(hwnd);
+	if (pData) {
 		SCROLLINFO info = {
 			.cbSize = sizeof info,
 			.fMask = SIF_POS,
 		};
 		GetScrollInfo(hwnd, SB_VERT, &info);
-		mdr_renderViewparts(hwnd, &paint, info.nPos, pFirst);
+		mdr_renderMarkdownData(hwnd, &paint, info.nPos, pData);
 	}
 }
 
@@ -235,12 +246,12 @@ static void codecomplete_paintHelp(HWND hwnd) {
  * and wParam contains the details about the message.
  */
 static void codecomplete_helpWindowUpdateScrollbar(HWND hwnd, int bScrollChanged, WPARAM wParam) {
-	RENDER_VIEW_PART* pFirst = (RENDER_VIEW_PART*)GetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS);
-	if (pFirst) {
+	MARKDOWN_RENDERER_DATA* pData = codecompletehelp_getData(hwnd);
+	if (pData) {
 		RECT rect;
 		GetClientRect(hwnd, &rect);
 		SIZE size;
-		mdr_getViewpartsExtend(pFirst, &size, -1);
+		mdr_getViewpartsExtend(pData, &size, -1);
 		SCROLLINFO info = {
 			.cbSize = sizeof info,
 			.fMask = SIF_RANGE | SIF_PAGE | SIF_POS 
@@ -291,9 +302,9 @@ static void codecomplete_helpWindowUpdateScrollbar(HWND hwnd, int bScrollChanged
  * update the scrollbars.
  */
 static void codecomplete_helpWindowSizeChanged(HWND hwnd) {
-	RENDER_VIEW_PART* pFirst = (RENDER_VIEW_PART*)GetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS);
-	if (pFirst) {
-		mdr_invalidateViewpartsLayout(pFirst);
+	MARKDOWN_RENDERER_DATA* pData = codecompletehelp_getData(hwnd);
+	if (pData) {
+		mdr_invalidateViewpartsLayout(pData);
 		InvalidateRect(hwnd, 0, FALSE);
 		UpdateWindow(hwnd);
 		codecomplete_helpWindowUpdateScrollbar(hwnd, 0, 0);
@@ -415,56 +426,83 @@ static void codecomplete_updateHelpWindowPosition(HWND hwnd) {
 /*
  * Update the help window contents (HTML formatted text) to display.
  */
-static void codecomplete_setHelpContents(HWND hwnd, const char* pszHelp) {
-	RENDER_VIEW_PART* pFirst = (RENDER_VIEW_PART *)GetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS);
-	if (pFirst) {
-		mdr_destroyViewParts(&pFirst);
+static void codecomplete_setHelpContents(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, const char* pszHelp) {
+	MARKDOWN_RENDERER_DATA* pData = codecompletehelp_getData(hwnd);
+	if (pData) {
+		mdr_destroyRendererData(pData);
+		SetWindowLongPtr(hwnd, GWL_HELPWINDOW_PARAMS, 0);
 		SetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS, 0);
 	}
 	if (pszHelp && *pszHelp) {
 		INPUT_STREAM* pStream = streams_createStringInputStream(pszHelp);
-		pFirst = mdr_parseHTML(pStream, "");
+		pData = mdr_parseHTML(pStream, hwnd, "");
 		pStream->is_destroy(pStream);
-		SetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS, (LONG_PTR)pFirst);
+		SetWindowLongPtr(hwnd, GWL_HELPWINDOW_VIEWPARTS, (LONG_PTR)pData);
+		SetWindowLongPtr(hwnd, GWL_HELPWINDOW_PARAMS, (LONG_PTR)pCC);
 		codecomplete_helpWindowSizeChanged(hwnd);
 		//InvalidateRect(hwnd, 0, 1);
 	}
 }
 
 /*
+ * Update the code completion secondary window and display the help for a selected code action.
+ */
+static void codecompletehelp_displayHelpText(HWND hwnd, HWND hwndHelp, CODE_COMPLETION_PARAMS* pParam, const char* pszHelp) {
+	if (!pszHelp || !*pszHelp) {
+		if (hwndHelp) {
+			codecomplete_setHelpContents(hwndHelp, 0, 0);
+			ShowWindow(hwndHelp, SW_HIDE);
+		}
+		return;
+	}
+	if (!hwndHelp) {
+		if (!hwnd) {
+			return;
+		}
+		hwndHelp = codecomplete_createHelpWindow(GetParent(hwnd));
+		if (!hwndHelp) {
+			return;
+		}
+		SetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW, (LONG_PTR)hwndHelp);
+	}
+	codecomplete_updateHelpWindowPosition(hwndHelp);
+	codecomplete_setHelpContents(hwndHelp, pParam, pszHelp);
+	InvalidateRect(hwndHelp, NULL, FALSE);
+
+}
+
+/*
  * Displays a help for the current code completion suggestion-
  */
 static void codecomplete_displayHelpFor(HWND hwnd, CODE_COMPLETION_PARAMS* pParam) {
+	HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
+	CODE_ACTION* pSelected = 0;
 	const char* pszHelp = NULL;
 	if (pParam->ccp_selection >= 0) {
-		CODE_ACTION* pSelected = (CODE_ACTION * )ll_at((LINKED_LIST*)pParam->ccp_actions, pParam->ccp_selection);
+		pSelected = (CODE_ACTION*)ll_at((LINKED_LIST*)pParam->ccp_actions, pParam->ccp_selection);
 		if (pSelected) {
 			if (pSelected->ca_helpCB) {
 				pszHelp = pSelected->ca_helpCB(pSelected->ca_name, pSelected->ca_object);
-			} else if (pSelected->ca_type == CA_TEMPLATE) {
+			}
+			else if (pSelected->ca_type == CA_TEMPLATE) {
 				pszHelp = template_expandCodeTemplateFor(pSelected->ca_param.template);
 			}
 		}
 	}
-	HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
-	if (!pszHelp || !*pszHelp) {
-		if (hwndSecondary) {
-			codecomplete_setHelpContents(hwndSecondary, 0);
-			ShowWindow(hwndSecondary, SW_HIDE);
-		}
-		return;
-	}
-	if (!hwndSecondary) {
-		hwndSecondary = codecomplete_createHelpWindow(GetParent(hwnd));
-		if (!hwndSecondary) {
-			return;
-		}
-		SetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW, (LONG_PTR)hwndSecondary);
-	}
-	codecomplete_updateHelpWindowPosition(hwnd);
-	codecomplete_setHelpContents(hwndSecondary, pszHelp);
+	codecompletehelp_displayHelpText(hwnd, hwndSecondary, pParam, pszHelp);
 	free((char*)pszHelp);
-	InvalidateRect(hwndSecondary, NULL, FALSE);
+}
+
+/*
+ * Hyperlinking in the help secondary window.
+ */
+static void codecompletehelp_navigate(HWND hwnd, CODE_COMPLETION_PARAMS* pParam, const char* pszLink) {
+	CODE_ACTION* pAction = pParam->ccp_actions;
+	if (pAction && pAction->ca_getHyperlinkHelp) {
+		char* pszHelp = (char*)pAction->ca_getHyperlinkHelp(pszLink);
+		codecompletehelp_displayHelpText(0, hwnd, pParam, pszHelp);
+		free(pszHelp);
+	}
 }
 
 static void codecomplete_changeSelection(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nNewSelection) {
@@ -625,6 +663,30 @@ static LRESULT codecomplete_helpWndProc(HWND hwnd, UINT message, WPARAM wParam, 
 			codecomplete_helpWindowUpdateScrollbar(hwnd, 1, zDelta < 0 ? SB_PAGEDOWN : SB_PAGEUP);
 		}
 		break;
+	case WM_MOUSEMOVE: {
+		MARKDOWN_RENDERER_DATA* pData = codecompletehelp_getData(hwnd);
+		if (pData != 0) {
+			int xPos = GET_X_LPARAM(lParam);
+			int yPos = GET_Y_LPARAM(lParam);
+			mdr_mouseMove(hwnd, pData, xPos, yPos);
+		}
+		}
+		return 0;
+	case WM_LBUTTONDOWN: {
+		MARKDOWN_RENDERER_DATA* pData = codecompletehelp_getData(hwnd);
+		if (pData != 0) {
+			int xPos = GET_X_LPARAM(lParam);
+			int yPos = GET_Y_LPARAM(lParam);
+			void* pLink = mdr_linkClicked(pData, xPos, yPos);
+			if (pLink) {
+				CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS * )GetWindowLongPtr(hwnd, GWL_HELPWINDOW_PARAMS);
+				if (pCC) {
+					codecompletehelp_navigate(hwnd, pCC, pLink);
+				}
+			}
+ 		}
+		}
+		break;
 	case WM_VSCROLL:
 		codecomplete_helpWindowUpdateScrollbar(hwnd, 1, wParam);
 		break;
@@ -632,7 +694,7 @@ static LRESULT codecomplete_helpWndProc(HWND hwnd, UINT message, WPARAM wParam, 
 		codecomplete_helpWindowSizeChanged(hwnd);
 		break;
 	case WM_DESTROY:
-		codecomplete_setHelpContents(hwnd, 0);
+		codecomplete_setHelpContents(hwnd, 0, 0);
 		break;
 	}
 	return DefWindowProc(hwnd, message, wParam, lParam);
@@ -689,7 +751,7 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
 			if (hwndSecondary && IsWindowVisible(hwnd)) {
 				WINDOWPOS* pWinpos = (WINDOWPOS*)lParam;
-				BOOL bHasContents = GetWindowLongPtr(hwndSecondary, GWL_HELPWINDOW_VIEWPARTS) != 0;
+				BOOL bHasContents = codecompletehelp_getData(hwndSecondary) != 0;
 				if (!bHasContents || (pWinpos->flags & SWP_HIDEWINDOW)) {
 					ShowWindow(hwndSecondary, SW_HIDE);
 				} else {

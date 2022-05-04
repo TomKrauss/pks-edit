@@ -25,6 +25,7 @@
 #include "winfo.h"
 #include "hashmap.h"
 #include "codeanalyzer.h"
+#include "codecompletion.h"
 #include "pksmacro.h"
 #include "actionbindings.h"
 #include "funcdef.h"
@@ -38,6 +39,11 @@ typedef struct tagANALYZER {
 	char an_name[32];
 	ANALYZER_FUNCTION an_function;
 } ANALYZER;
+
+/*
+ * Protocol prefix for hyperlinks inside the help window.
+ */
+#define MACROREF_PROTOCOL				"macroref://"
 
 static ANALYZER *_analyzers;
 
@@ -66,7 +72,7 @@ static void analyzer_extractWords(WINFO* wp, int (*fMatch)(const char* pszMatch)
 					char* pszWord = stringbuf_getString(pBuf);
 					if (*pszWord) {
 						if (fMatch(pszWord)) {
-							fCallback(pszWord, NULL, NULL);
+							fCallback(pszWord, NULL, NULL, NULL);
 						}
 					}
 				}
@@ -109,12 +115,27 @@ static void analyzer_startHelpSection(STRING_BUF* pBuf, const char* pszName) {
 	stringbuf_appendString(pBuf, "</b>:<br>");
 }
 
-static analyzer_formatJavadocComment(STRING_BUF* pBuf, const char* pszInput) {
+/*
+ * Formats a hyperlink reference to be added to the documentation. Will
+ * destroy the 2nd parameter as a side effect.
+ */
+static void analyzer_formatJavadocLink(STRING_BUF* pBuf, STRING_BUF* psbLink) {
+	stringbuf_appendString(pBuf, "<a href=\"");
+	stringbuf_appendString(pBuf, MACROREF_PROTOCOL);
+	stringbuf_appendString(pBuf, stringbuf_getString(psbLink));
+	stringbuf_appendString(pBuf, "\">");
+	stringbuf_appendString(pBuf, stringbuf_getString(psbLink));
+	stringbuf_appendString(pBuf, "</a>");
+	stringbuf_destroy(psbLink);
+}
+
+static void analyzer_formatJavadocComment(STRING_BUF* pBuf, const char* pszInput) {
 	char szTag[64];
 	char* pszTag = 0;
 	BOOL bParamsFound = 0;
 	BOOL bHighlightWord = 0;
 	char c;
+	STRING_BUF* psbLink = 0;
 
 	analyzer_startHelpSection(pBuf, "Description");
 	while ((c = *pszInput++) != 0) {
@@ -122,8 +143,16 @@ static analyzer_formatJavadocComment(STRING_BUF* pBuf, const char* pszInput) {
 			if (c == '@') {
 				pszTag = szTag;
 				bHighlightWord = 0;
-			}
-			else {
+			} else {
+				if (psbLink) {
+					if (c == '\n') {
+						analyzer_formatJavadocLink(pBuf, psbLink);
+						psbLink = 0;
+					} else if (!isspace((unsigned char)c)) {
+						stringbuf_appendChar(psbLink, c);
+					}
+					continue;
+				}
 				if (bHighlightWord == 1 && isalpha(c)) {
 					stringbuf_appendString(pBuf, "<em>");
 					bHighlightWord = 2;
@@ -134,8 +163,7 @@ static analyzer_formatJavadocComment(STRING_BUF* pBuf, const char* pszInput) {
 				}
 				stringbuf_appendChar(pBuf, c);
 			}
-		}
-		else if (pszTag) {
+		} else if (pszTag) {
 			if (!isalpha(c)) {
 				*pszTag = 0;
 				pszTag = 0;
@@ -148,8 +176,10 @@ static analyzer_formatJavadocComment(STRING_BUF* pBuf, const char* pszInput) {
 						stringbuf_appendString(pBuf, "<br>");
 					}
 					bHighlightWord = 1;
-				}
-				else {
+				} else if (strcmp("see", szTag) == 0) {
+					stringbuf_appendString(pBuf, "</p><b>See also:</b>&nbsp;");
+					psbLink = stringbuf_create(64);
+				} else {
 					szTag[0] = toupper(szTag[0]);
 					stringbuf_appendString(pBuf, "</p>");
 					analyzer_startHelpSection(pBuf, szTag);
@@ -159,6 +189,9 @@ static analyzer_formatJavadocComment(STRING_BUF* pBuf, const char* pszInput) {
 				*pszTag++ = c;
 			}
 		}
+	}
+	if (psbLink) {
+		analyzer_formatJavadocLink(pBuf, psbLink);
 	}
 	stringbuf_appendString(pBuf, "</p>");
 }
@@ -222,6 +255,19 @@ static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
 	stringbuf_destroy(pBuf);
 
 	return pszRet;
+}
+
+static const char* analyzerHelpForFuncHyperlink(const char* pszUrl) {
+	int nSize = (int)strlen(MACROREF_PROTOCOL);
+	if (pszUrl && strncmp(pszUrl, MACROREF_PROTOCOL, nSize) == 0) {
+		char* ret;
+		pszUrl += nSize;
+		SYMBOL sym = sym_find(sym_getGlobalContext(), pszUrl + nSize, &ret);
+		if (sym.s_type = S_EDFUNC) {
+			return analyzer_helpForFunc(pszUrl, &_functionTable[sym.s_index]);
+		}
+	}
+	return 0;
 }
 
 /*
@@ -307,7 +353,7 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 		// should select the proper constants for the native function currently edited. function_getParameterTypeDescriptor((void*)VALUE(sym),)
 		NATIVE_FUNCTION* pFunc = (NATIVE_FUNCTION*)VALUE(sym);
 		if (!bInIdent) {
-			fCallback(pFunc->nf_name, pFunc, analyzer_helpForFunc);
+			fCallback(pFunc->nf_name, pFunc, analyzer_helpForFunc, analyzerHelpForFuncHyperlink);
 		}
 		int nParameters = function_getParameterCount(pFunc);
 		int bEditorParam = 0;
@@ -321,7 +367,7 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 					PARAMETER_ENUM_VALUE* pValue = &_parameterEnumValueTable[i];
 					const char* pszName = pValue->pev_name;
 					if ((bInIdent && fMatch(pszName)) || nPar == nParamIndex || (bEditorParam && (nPar - 1 == nParamIndex))) {
-						fCallback(pszName, pValue, analyzer_helpForEnum);
+						fCallback(pszName, pValue, analyzer_helpForEnum, 0);
 					}
 				}
 			}
@@ -330,19 +376,19 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 	for (int i = 0; i < _functionTableSize; i++) {
 		NATIVE_FUNCTION* pFunc = &_functionTable[i];
 		if (fMatch(pFunc->nf_name)) {
-			fCallback(pFunc->nf_name, pFunc, analyzer_helpForFunc);
+			fCallback(pFunc->nf_name, pFunc, analyzer_helpForFunc, analyzerHelpForFuncHyperlink);
 		}
 	}
 	for (PKS_VALUE_TYPE vt = VT_FILE; types_existsType(vt); vt++) {
 		const char* pName = types_nameFor(vt);
 		if (fMatch(pName)) {
-			fCallback(pName, NULL, NULL);
+			fCallback(pName, NULL, NULL, NULL);
 		}
 	}
 	for (int i = 0; i < macro_getNumberOfMacros(); i++) {
 		MACRO* mp = macro_getByIndex(i);
 		if (mp && fMatch(MAC_NAME(mp))) {
-			fCallback(MAC_NAME(mp), mp, analyzer_helpForMacro);
+			fCallback(MAC_NAME(mp), mp, analyzer_helpForMacro, analyzerHelpForFuncHyperlink);
 		}
 	}
 }
@@ -355,7 +401,7 @@ static const char* analyzer_helpForCommand(const char* pszCommandName, void* pCo
 
 static ANALYZER_CALLBACK _keyAnalyzerCallback;
 static void analyzer_addKeycode(const char* pszKeycode) {
-	_keyAnalyzerCallback(pszKeycode, NULL, NULL);
+	_keyAnalyzerCallback(pszKeycode, NULL, NULL, NULL);
 }
 
 /*
@@ -372,12 +418,12 @@ static void analyzer_getBindingCompletions(WINFO* wp, int (*fMatch)(const char* 
 	for (int i = 0; (pszWord = macro_getCommandByIndex(i)) != 0; i++) {
 		if (fMatch(pszWord)) {
 			MACROREF macref = (MACROREF){ .typ = CMD_CMDSEQ, .index = i };
-			fCallback(pszWord, (void*)MACROREF_TO_INTPTR(macref), analyzer_helpForCommand);
+			fCallback(pszWord, (void*)MACROREF_TO_INTPTR(macref), analyzer_helpForCommand, NULL);
 		}
 	}
 	for (int i = 0; (pszWord = faicon_nameForIndex(i)) != 0; i++) {
 		if (fMatch(pszWord)) {
-			fCallback(pszWord, NULL, NULL);
+			fCallback(pszWord, NULL, NULL, NULL);
 		}
 	}
 }

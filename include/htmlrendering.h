@@ -17,29 +17,30 @@
 
 typedef struct tagINPUT_STREAM INPUT_STREAM;
 
-typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
+typedef struct tagMARKDOWN_RENDERER_DATA MARKDOWN_RENDERER_DATA;
 
 /*
  * Destroy a list of view parts releasing unneeded memory.
  */
-extern void mdr_destroyViewParts(RENDER_VIEW_PART** pHEAD);
+extern void mdr_destroyRendererData(MARKDOWN_RENDERER_DATA* pData);
 
 /*
  * Parse a text and convert it into a list of view parts to be rendered later.
  * Note, that the viewparts must be destroyed, when they are not needed any more
- * using mdr_destroyViewParts.
+ * using mdr_destroyRendererData. If hwndParent is specified also create some internal
+ * WINDOWS resources.
  */
-extern RENDER_VIEW_PART* mdr_parseHTML(INPUT_STREAM* pStream, const char* pszBaseURL);
+extern MARKDOWN_RENDERER_DATA* mdr_parseHTML(INPUT_STREAM* pStream, HWND hwndParent, const char* pszBaseURL);
 
 /*
  * Render some render view parts as a response to a WM_PAINT message.
  */
-extern void mdr_renderViewparts(HWND hwnd, PAINTSTRUCT* ps, int nTopY, RENDER_VIEW_PART* pFirst);
+extern void mdr_renderMarkdownData(HWND hwnd, PAINTSTRUCT* ps, int nTopY, MARKDOWN_RENDERER_DATA* pData);
 
 /*
- * Invalidate the layout of all view parts starting with 'pFirst'.
+ * Invalidate the layout of all view parts of a markdown renderer 'pData' structure.
  */
-extern void mdr_invalidateViewpartsLayout(RENDER_VIEW_PART* pFirst);
+extern void mdr_invalidateViewpartsLayout(MARKDOWN_RENDERER_DATA* pData);
 
 /*
  * Returns the total extent in pixels of the current layout described by the list
@@ -47,7 +48,19 @@ extern void mdr_invalidateViewpartsLayout(RENDER_VIEW_PART* pFirst);
  * up to not including the part with the given index. If -1 is passed we will get
  * the extent of all viewparts.
  */
-extern void mdr_getViewpartsExtend(RENDER_VIEW_PART* pFirst, SIZE* pSize, int nUpToPart);
+extern void mdr_getViewpartsExtend(MARKDOWN_RENDERER_DATA* pFirst, SIZE* pSize, int nUpToPart);
+
+/*
+ * Can be used to find out, whether a link was clicked in a rich text renderer component given
+ * the renderer data hook and the mouse x and y position. If a link was clicked, the target
+ * URL is returned.
+ */
+extern char* mdr_linkClicked(MARKDOWN_RENDERER_DATA* pData, int cxMouse, int cyMouse);
+
+/*
+ * Generic mouse move handler for markdown rendering (supporting rollover effects etc...).
+ */
+extern void mdr_mouseMove(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, int x, int y);
 
 #define HTMLRENDERING_H
 #endif 
