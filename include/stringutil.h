@@ -21,19 +21,19 @@ typedef int					BOOL;
 typedef struct tagSTRING_BUF STRING_BUF;
 typedef struct tagWINFO WINFO;
 
-extern char* _strtolend;
+extern const char* _strtolend;
 
 /*--------------------------------------------------------------------------
  * string_convertToLong()
  * Convert the first integer value from the passed String (interpret hex numbers and
  * normal numbers) set the resulting pointer after parsing to _strtolend.
  */
-extern long long string_convertToLong(char* s);
+extern long long string_convertToLong(const char* s);
 
 /**
  * Convert a string input to long assuming hexadecimal encoding.
  */
-extern long long string_convertToLongBase16(char* s);
+extern long long string_convertToLongBase16(const char* s);
 
 /*
  * Compare a string with a second string to a maximum to the length of the 2nd string

@@ -127,6 +127,13 @@ typedef enum {
 	TA_ALIGN_CENTER = 0x3
 } TEXT_ALIGN;
 
+typedef enum { CSU_NONE, CSU_PX, CSU_EM, CSU_PT, CSU_PERCENT } CSS_SIZE_UNIT;
+
+typedef struct tagSIZE_SPECIFICATION {
+	float	ss_value;
+	CSS_SIZE_UNIT ss_units;
+} SIZE_SPECIFICATION;
+
 typedef struct tagFONT_STYLE_DELTA {
 	int fsd_logicalStyles;
 	int fsd_indent;
@@ -136,6 +143,7 @@ typedef struct tagFONT_STYLE_DELTA {
 	COLORREF fsd_strokeColor;
 	int fsd_strokeWidth;
 	TEXT_ALIGN fsd_textAlign;
+	SIZE_SPECIFICATION fsd_width;
 } FONT_STYLE_DELTA;
 
 
@@ -185,7 +193,7 @@ typedef struct tagRENDER_TABLE_CELL {
 	struct tagRENDER_TABLE_CELL* rtc_next;
 	BOOL		rtc_isHeader;
 	TEXT_ALIGN	rtc_align;
-	int			rtc_width;			// width in pixels or 0 for default width 
+	SIZE_SPECIFICATION	rtc_width;			// width of the table cell
 	TEXT_FLOW	rtc_flow;
 } RENDER_TABLE_CELL;
 
@@ -199,8 +207,9 @@ typedef struct tag_RENDER_TABLE {
 	int rt_columnCount;
 	int rt_columnWidths[MAX_TABLE_COLUMNS];
 	int rt_totalColumnWidth;
-	int rt_borderWidth;			// width of the table border (by default 1)
-	float rt_width;				// width of total screen size in percent or 0 to use default size
+	int rt_borderWidth;						// width of the table border (by default 1)
+	COLORREF rt_borderColor;				// Optional color of the border
+	SIZE_SPECIFICATION rt_width;			// width of the table or default
 } RENDER_TABLE;
 
 typedef struct tagMARGINS {
@@ -452,15 +461,18 @@ static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, REC
 	int left = pBounds->left+pPart->rvp_margins.m_left;
 	int right = pBounds->right - pPart->rvp_margins.m_right;
 	int nWidth = right - left;
-	if (pTable->rt_width > 0) {
-		nWidth = (int)(nWidth * pTable->rt_width);
+	if (pTable->rt_width.ss_units == CSU_PERCENT) {
+		nWidth = (int)(nWidth * pTable->rt_width.ss_value);
+		right = left + nWidth;
+	} else if (pTable->rt_width.ss_units == CSU_PX) {
+		nWidth = (int)pTable->rt_width.ss_value;
 		right = left + nWidth;
 	}
 	int nTotal = pTable->rt_totalColumnWidth;
 	if (nTotal == 0) {
 		nTotal = 1;
 	}
-	if (nWidth > nTotal && pTable->rt_width == 0) {
+	if (nWidth > nTotal && pTable->rt_width.ss_units == CSU_NONE) {
 		right = left + nTotal;
 		nWidth = nTotal;
 	}
@@ -519,7 +531,11 @@ static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, REC
 	}
 	int nTableHeight = bounds.top - y + _tableMargins.m_bottom;
 	if (!bMeasureOnly && pTable->rt_borderWidth > 0) {
-		HPEN hPen = CreatePen(PS_SOLID, pTable->rt_borderWidth, pTheme->th_dialogLightBackground);
+		COLORREF cColor = pTable->rt_borderColor;
+		if (cColor == NO_COLOR) {
+			cColor = pTheme->th_dialogLightBackground;
+		}
+		HPEN hPen = CreatePen(PS_SOLID, pTable->rt_borderWidth, cColor);
 		HPEN hPenOld = SelectObject(hdc, hPen);
 		SelectObject(hdc, GetStockObject(NULL_BRUSH));
 		Rectangle(hdc, left, y, right, y + nTableHeight);
@@ -1145,7 +1161,6 @@ static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, si
 		}
 		else {
 			pRun->tr_attributes.fgColor = pFSD->fsd_textColor;
-			pFSD->fsd_textColor = NO_COLOR;
 		}
 	}
 	pRun->tr_attributes.indent = pFSD->fsd_indent;
@@ -1546,7 +1561,8 @@ static void mdr_parseBorder(FONT_STYLE_DELTA* pFSD, char* pszBorder) {
 	char* pszNext = strtok(pszBorder, " ");
 	while (pszNext) {
 		if (isdigit((unsigned char)pszNext[0])) {
-			pFSD->fsd_strokeWidth = pszNext[0] - '0';
+			// TODO: support size specifications
+			pFSD->fsd_strokeWidth = (int)string_convertToLong(pszNext);
 		} else if (strcmp("solid", pszNext) != 0) {
 			pFSD->fsd_strokeColor = json_convertColor(pszNext);
 		}
@@ -1568,6 +1584,24 @@ static TEXT_ALIGN mdr_parseTextAlignment(const char* pszSpec) {
 		return TA_ALIGN_LEFT;
 	}
 	return TA_ALIGN_DEFAULT;
+}
+
+/*
+ * Parse a CSS size specification.
+ */
+static SIZE_SPECIFICATION mdr_parseSize(const char* pszText) {
+	float fValue = (float)string_convertToLong(pszText);
+	CSS_SIZE_UNIT units = CSU_NONE;
+	if (_strtolend) {
+		if (*_strtolend == '%') {
+			fValue /= 100.0f;
+			units = CSU_PERCENT;
+		}
+		else if (_strtolend[0] == 0 || (_strtolend[0] == 'p' && _strtolend[1] == 'x')) {
+			units = CSU_PX;
+		}
+	}
+	return (SIZE_SPECIFICATION) { .ss_units = units, .ss_value = fValue };
 }
 
 /*
@@ -1617,6 +1651,8 @@ static void mdr_parseStyle(FONT_STYLE_DELTA* pFSD, const char* pszStyleSpec) {
 					pFSD->fsd_textColor = json_convertColor(szAttrValue);
 				} else if (strcmp("background", szAttribute) == 0) {
 					pFSD->fsd_fillColor = json_convertColor(szAttrValue);
+				} else if (strcmp("width", szAttribute) == 0) {
+					pFSD->fsd_width = mdr_parseSize(szAttrValue);
 				} else if (strcmp("border", szAttribute) == 0) {
 					mdr_parseBorder(pFSD, szAttrValue);
 				} else if (strcmp("text-align", szAttribute) == 0) {
@@ -1807,6 +1843,7 @@ static int mdr_parseEntity(STRING_BUF* pSB, INPUT_STREAM* pStream) {
 static RENDER_TABLE* mdr_newTable(int nColumnCount) {
 	RENDER_TABLE* pResult = calloc(1, sizeof * pResult);
 	pResult->rt_borderWidth = 1;
+	pResult->rt_borderColor = NO_COLOR;
 	pResult->rt_columnCount = nColumnCount;
 	return pResult;
 }
@@ -2202,7 +2239,24 @@ static void mdr_onInlineTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, HT
 	}
 }
 
-static void mdr_applyTableAttributes(RENDER_TABLE* pTable, HASHMAP* pAttributes) {
+/*
+ * Configure table from defined CSS style and additional table attributes. 
+ */
+static void mdr_applyTableAttributes(HTML_PARSER_STATE* pState, HASHMAP* pAttributes) {
+	RENDER_TABLE* pTable = pState->hps_table;
+	if (!pTable) {
+		return;
+	}
+	FONT_STYLE_DELTA* pfsd = pState->hps_currentStyle;
+	if (pfsd->fsd_width.ss_units != CSU_NONE) {
+		pTable->rt_width = pfsd->fsd_width;
+	}
+	if (pfsd->fsd_strokeWidth) {
+		pTable->rt_borderWidth = pfsd->fsd_strokeWidth;
+	}
+	if (pfsd->fsd_strokeColor != NO_COLOR) {
+		pTable->rt_borderColor = pfsd->fsd_strokeColor;
+	}
 	if (!pAttributes) {
 		return;
 	}
@@ -2212,7 +2266,7 @@ static void mdr_applyTableAttributes(RENDER_TABLE* pTable, HASHMAP* pAttributes)
 	}
 	char* pszWidth = (char*)hashmap_get(pAttributes, "width");
 	if (pszWidth) {
-		pTable->rt_width = (float)string_convertToLong(pszWidth) / 100.0f;
+		pTable->rt_width = mdr_parseSize(pszWidth);
 	}
 }
 
@@ -2233,6 +2287,8 @@ static void mdr_onBlockLevelTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState
 			return;
 		}
 	}
+	// Save current font-style settings - may be reset across part state handling
+	FONT_STYLE_DELTA fsd = *pState->hps_currentStyle;
 	if (mType == MET_TABLE && !pState->hps_table && pTag->ht_isOpen) {
 		// For tables force a new part start
 		pState->hps_blockLevel = 0;
@@ -2242,6 +2298,7 @@ static void mdr_onBlockLevelTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState
 		mdr_closeTextElement(pStream, pState, FALSE);
 		if (mType == MET_TABLE || !pState->hps_table) {
 			mdr_endPart(pState);
+			*pState->hps_currentStyle = fsd;
 		}
 		if (pTag->ht_isClose) {
 			return;
@@ -2265,10 +2322,11 @@ static void mdr_onBlockLevelTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState
 		if (mType == MET_ORDERED_LIST) {
 			pState->hps_part->rvp_number = pState->hps_orderedListIndices[nLevel-1]++;
 		}
+		*pState->hps_currentStyle = fsd;
 		mdr_skipLeadingSpace(pStream);
 		if (mType == MET_TABLE) {
 			pState->hps_table = pState->hps_part->rvp_data.rvp_table;
-			mdr_applyTableAttributes(pState->hps_table, pTag->ht_attributes);
+			mdr_applyTableAttributes(pState, pTag->ht_attributes);
 		} else if (mType == MET_FENCED_CODE_BLOCK) {
 			mdr_parsePreformattedCodeBlock(pStream, pState, FALSE, pTag->ht_descriptor->tm_tagName);
 			if (stringbuf_size(pState->hps_text)) {
@@ -2393,18 +2451,15 @@ static TEXT_RUN* mdr_appendRunState(INPUT_STREAM* pStream, HTML_PARSER_STATE* pS
 /*
  * Parse a top-level element to be rendered with a view part possibly containing nested formatting. 
  */
-static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int nInitialAttrs) {
+static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 	stringbuf_reset(pState->hps_text);
 	pState->hps_lastTextOffset = 0;
 	long nNumber;
 	int nState = 0;
 	int nLevel = 0;
 	int nInPart = 0;
-	FONT_STYLE_DELTA fsd;
-	FONT_STYLE_DELTA fsdNext;
 
-	fsd.fsd_logicalStyles = nInitialAttrs;
-	mdr_resetFontStyleDelta(&fsd);
+	mdr_resetFontStyleDelta(pState->hps_currentStyle);
 	MDR_ELEMENT_TYPE mType = MET_NORMAL;
 	BOOL bEnforceBreak = TRUE;
 	while (pStream->is_peekc(pStream, 0)) {
@@ -2458,15 +2513,14 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 			}
 			bEnforceBreak = FALSE;
 			int nToggle = 0;
-			fsdNext = fsd;
-			BOOL bEscaped = fsd.fsd_logicalStyles & ATTR_CODE;
+			BOOL bEscaped = pState->hps_currentStyle->fsd_logicalStyles & ATTR_CODE;
 			if (c == '\\' && strchr(_escapedChars, pStream->is_peekc(pStream, 1)) != NULL) {
 				pStream->is_skip(pStream, 1);
 				c = pStream->is_peekc(pStream, 0);
 			} else if (!bEscaped && c == '=' && pStream->is_peekc(pStream, 1) == c) {
 				pStream->is_skip(pStream, 1);
-				mdr_appendRunState(pStream, pState, &fsd);
-				fsd.fsd_logicalStyles ^= ATTR_HIGHLIGHT;
+				mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
+				pState->hps_currentStyle->fsd_logicalStyles ^= ATTR_HIGHLIGHT;
 				continue;
 			} else if (c == '`' || (!bEscaped && (c == '*' ||
 				// allow for _ only at word borders.
@@ -2491,11 +2545,8 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 					nToggle = ATTR_CODE;
 				}
 				if (nToggle) {
-					mdr_appendRunState(pStream, pState, &fsd);
-					fsd = fsdNext;
-					int styles = fsd.fsd_logicalStyles ^ nToggle;
-					mdr_resetFontStyleDelta(&fsd);
-					fsd.fsd_logicalStyles = styles;
+					mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
+					pState->hps_currentStyle->fsd_logicalStyles ^= nToggle;
 					continue;
 				}
 			} else if (!bEscaped && (c == '[' || (c == '!' && pStream->is_peekc(pStream, 1) == '['))) {
@@ -2508,7 +2559,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 				char szLinkText[256];
 				if (mdr_parseLink(pStream, pState, szLinkText, &pLink, &pTitle, &nWidth, &nHeight)) {
 					int nAttr = 0;
-					mdr_appendRunState(pStream, pState, &fsd);
+					mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 					int nTextStart = 0;
 					char c2 = szLinkText[0];
 					int nTextEnd = (int)strlen(szLinkText);
@@ -2531,8 +2582,8 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 						}
 					}
 					stringbuf_appendStringLength(pState->hps_text, &szLinkText[nTextStart], nTextEnd - nTextStart);
-					fsd.fsd_logicalStyles |= ATTR_LINK;
-					TEXT_RUN* pRun = mdr_appendRunState(pStream, pState, &fsd);
+					pState->hps_currentStyle->fsd_logicalStyles |= ATTR_LINK;
+					TEXT_RUN* pRun = mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 					if (bImage) {
 						pRun->tr_image = calloc(1, sizeof(MD_IMAGE));
 						pRun->tr_image->mdi_height = nHeight;
@@ -2558,19 +2609,16 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 			} else if (!bEscaped && c == '<') {
 				HTML_TAG tag;
 				STREAM_OFFSET offset = pStream->is_tell(pStream);
-				fsdNext = *pState->hps_currentStyle;
+				FONT_STYLE_DELTA fsdNext = *pState->hps_currentStyle;
 				pStream->is_skip(pStream, 1);
 				int bSucces = mdr_getTag(pStream, &fsdNext, &tag);
 				if (bSucces) {
 					mdr_onHtmlTag(pStream, pState, &tag, &fsdNext);
 					pStream->is_skip(pStream, -1);
-					if (tag.ht_isOpen) {
-						fsd = fsdNext;
-					}
 					continue;
 				}
 				pStream->is_seek(pStream, offset);
-				if (mdr_parseAutolinks(pStream, pState, mdr_getTextFlowEnsureInit(pStream, pState), pState->hps_blockFormat, &fsd, pState->hps_lastTextOffset)) {
+				if (mdr_parseAutolinks(pStream, pState, mdr_getTextFlowEnsureInit(pStream, pState), pState->hps_blockFormat, pState->hps_currentStyle, pState->hps_lastTextOffset)) {
 					pState->hps_lastTextOffset = (int)stringbuf_size(pState->hps_text);
 					continue;
 				}
@@ -2585,9 +2633,9 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState, int n
 			stringbuf_appendChar(pState->hps_text, ' ');
 		}
 		if (bEnforceBreak) {
-			fsd.fsd_logicalStyles |= ATTR_LINE_BREAK;
+			pState->hps_currentStyle->fsd_logicalStyles |= ATTR_LINE_BREAK;
 		}
-		mdr_appendRunState(pStream, pState, &fsd);
+		mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 		if (mdr_isTopLevelOrBreak(pStream, mType, nLevel)) {
 			break;
 		}
@@ -2615,7 +2663,7 @@ static RENDER_TABLE_CELL *mdr_parseTableCell(INPUT_STREAM* pStream, HTML_PARSER_
 	}
 	INPUT_STREAM* pInnerStream = streams_createStringInputStream(pszBuf);
 	pState->hps_tableCell = pCell;
-	mdr_parseFlow(pInnerStream, pState, bHeader ? ATTR_STRONG : 0);
+	mdr_parseFlow(pInnerStream, pState);
 	pState->hps_tableCell = 0;
 	// Hack: this is the attempt to get selections in table cell working
 	// If the table cell contains formatted contents - this won't work correctly.
@@ -2780,18 +2828,21 @@ static void mdr_parseMarkdownFormat(WINFO *wp) {
 	char c;
 	HTML_PARSER_STATE state;
 	int nDelta = 0;
+	RENDER_VIEW_PART* pLastPart = 0;
 
 	mdr_initParserState(&state, &pData->md_pElements, fp->fname);
 	while ((c = pStream->is_peekc(pStream, 0)) != 0) {
 		if (c != '\n') {
 			if (!mdr_parseTable(pStream, &state)) {
 				state.hps_blockLevel = 0;
-				mdr_parseFlow(pStream, &state, 0);
+				mdr_parseFlow(pStream, &state);
 			}
-			if (state.hps_part) {
-				state.hps_part->rvp_margins.m_top += nDelta;
+			pLastPart = pLastPart ? pLastPart->rvp_next : state.hps_part;
+			if (pLastPart) {
+				pLastPart->rvp_margins.m_top += nDelta;
 				nDelta = 0;
 			}
+			pLastPart = state.hps_part;
 			mdr_endPart(&state);
 		} else {
 			nDelta += PARAGRAPH_OFFSET / 2;

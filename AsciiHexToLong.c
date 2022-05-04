@@ -16,12 +16,12 @@
 
 #include "edtypes.h"
 
-char *_strtolend;
+const char *_strtolend;
 
 /**
  * Convert a string input to long assuming hexadecimal encoding. 
  */
-EXPORT long long string_convertToLongBase16(char* s) {
+EXPORT long long string_convertToLongBase16(const char* s) {
 	long long i = 0;
 	int o;
 	for (;;) {
@@ -43,7 +43,7 @@ EXPORT long long string_convertToLongBase16(char* s) {
 /*--------------------------------------------------------------------------
  * string_convertToLong()
  */
-EXPORT long long string_convertToLong(char *s)
+EXPORT long long string_convertToLong(const char *s)
 {
 	long long i = 0;
 	long long minus = 1;

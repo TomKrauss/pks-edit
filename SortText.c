@@ -129,7 +129,7 @@ static int sort_compareExtractKeyLetterWord(unsigned char* d, unsigned char* s, 
  * sort_convertStringToDigitArray()
  * convert a string to a dig. arr
  */
-static char *sort_convertStringToDigitArray(struct dvec *v,char *s, char *e)
+static const char *sort_convertStringToDigitArray(struct dvec *v,const char *s, const char *e)
 {	int i;
 
 	for (i = 0; i < MAXDEPTH; i++,v++) {
@@ -250,7 +250,7 @@ static void sort_initializeFieldSeparators(char *set, char *pFieldSeparators)
 static void sort_initializeKeyList(char *s, char *fs_set)
 {	STRVEC 	v;
 	DVEC		d;
-	char		*s2;
+	const char	*s2;
 	KEY		*kp;
 	char		loc_set[256];
 	int    	i;

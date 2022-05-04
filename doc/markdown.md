@@ -189,9 +189,10 @@ Content21 | Content22 | Content23 | Excess |
 
 ### Here is an HTML table
 
-<p>HTML Tables support simple HTML attributes and styles to align columns. Column and row spanning are not yet supported.</p>
+HTML Tables support simple HTML attributes and styles to align columns. Column and row spanning are not yet supported.
 
-<table border=4 width=100%>
+
+<table style="width:500px; border: 2px solid red;">
 <tr><th>HTML Header 1</th><th>Header 2</th></tr>
 <tr><td>Content 1</td><td style="text-align: center">Content 2 centered</td></tr>
 </table>
