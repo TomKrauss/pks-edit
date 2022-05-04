@@ -1119,7 +1119,7 @@ void grammar_documentTypeChanged(GRAMMAR* pGrammar) {
 static int (*pKeywordMatch)(char* param);
 static int grammar_addKeyword(char* pszKeyWord, ANALYZER_CALLBACK addCallback) {
 	if (pKeywordMatch(pszKeyWord)) {
-		(*addCallback)((const char*)pszKeyWord, NULL, NULL);
+		(*addCallback)((const char*)pszKeyWord, NULL, NULL, NULL);
 	}
 	return 1;
 }
