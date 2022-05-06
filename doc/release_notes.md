@@ -18,7 +18,7 @@ This release features __multi-caret__ editing and a major update of the PKSMacro
 - The code completion window displays now additional information about completions in a secondary window in situations
 where additional information is available. An example are templates, which show a preview of the text to insert or PKSMacroC
 functions and macros which show the description of the respective function or macro. The code completion help window supports
-simple HTML formatting.
+simple HTML formatting including hyperlink to more documentation.
 
 #### PKSMacroC
 - Expressions with strings such as "x"+1 are automatically coerced to string. One does not need to write any more "x"+(string)1.

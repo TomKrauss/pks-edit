@@ -97,6 +97,11 @@ extern PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(NATIVE_FUNC
 extern int function_parameterIsFormStart(NATIVE_FUNCTION* ep, int parno);
 
 /*
+ * Returns the enum value with the given name in the given enum type.
+ */
+extern PARAMETER_ENUM_VALUE* function_getParameterEnumValue(const char* pszEnumType, const char* pszEnumName);
+
+/*
  * Returns the number of parameters of a native macro function.
  */
 extern int function_getParameterCount(NATIVE_FUNCTION* ep);

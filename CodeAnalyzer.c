@@ -72,7 +72,9 @@ static void analyzer_extractWords(WINFO* wp, int (*fMatch)(const char* pszMatch)
 					char* pszWord = stringbuf_getString(pBuf);
 					if (*pszWord) {
 						if (fMatch(pszWord)) {
-							fCallback(pszWord, NULL, NULL, NULL);
+							fCallback(&(ANALYZER_CALLBACK_PARAM) {
+								.acp_recommendation = pszWord
+							});
 						}
 					}
 				}
@@ -196,7 +198,7 @@ static void analyzer_formatJavadocComment(STRING_BUF* pBuf, const char* pszInput
 	stringbuf_appendString(pBuf, "</p>");
 }
 
-static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
+static const char* analyzer_helpForMacrocNativeFunction(const char* pszName, void* pEdFunc) {
 	NATIVE_FUNCTION* pFunc = pEdFunc;
 	if (!pFunc->nf_description) {
 		return 0;
@@ -257,27 +259,23 @@ static const char* analyzer_helpForFunc(const char* pszName, void* pEdFunc) {
 	return pszRet;
 }
 
-static const char* analyzerHelpForFuncHyperlink(const char* pszUrl) {
-	int nSize = (int)strlen(MACROREF_PROTOCOL);
-	if (pszUrl && strncmp(pszUrl, MACROREF_PROTOCOL, nSize) == 0) {
-		char* ret;
-		pszUrl += nSize;
-		SYMBOL sym = sym_find(sym_getGlobalContext(), pszUrl + nSize, &ret);
-		if (sym.s_type = S_EDFUNC) {
-			return analyzer_helpForFunc(pszUrl, &_functionTable[sym.s_index]);
-		}
-	}
-	return 0;
-}
-
 /*
  * Returns the help for an enum value.
  */
-static const char* analyzer_helpForEnum(const char* pszName, PARAMETER_ENUM_VALUE* pEnumValue) {
-	return pEnumValue->pev_description ? _strdup(pEnumValue->pev_description) : 0;
+static const char* analyzer_helpForMacrocEnum(const char* pszName, PARAMETER_ENUM_VALUE* pEnumValue) {
+	STRING_BUF* pBuf = stringbuf_create(200);
+	analyzer_startHelpSection(pBuf, "Enum Value");
+	stringbuf_appendString(pBuf, "</p><p><i>");
+	stringbuf_appendString(pBuf, pszName);
+	stringbuf_appendString(pBuf, "</i></p><p>");
+	stringbuf_appendString(pBuf, pEnumValue->pev_description ? pEnumValue->pev_description : "NO DESCRIPTION");
+	stringbuf_appendString(pBuf, "</p>");
+	char* pszRet = _strdup(stringbuf_getString(pBuf));
+	stringbuf_destroy(pBuf);
+	return pszRet;
 }
 
-static const char* analyzer_helpForMacro(const char* pszName, void* pMac) {
+static const char* analyzer_helpForMacrocMacro(const char* pszName, void* pMac) {
 	STRING_BUF* pBuf = stringbuf_create(200);
 	MACRO* pMacro = pMac;
 
@@ -293,6 +291,33 @@ static const char* analyzer_helpForMacro(const char* pszName, void* pMac) {
 	return pszRet;
 }
 
+static const char* analyzerHelpForMacrocHyperlink(const char* pszUrl) {
+	int nSize = (int)strlen(MACROREF_PROTOCOL);
+	if (pszUrl && strncmp(pszUrl, MACROREF_PROTOCOL, nSize) == 0) {
+		char* ret;
+		const char* pszName = pszUrl + nSize;
+		char* pszDash = strchr(pszName, '#');
+		if (pszDash) {
+			pszDash++;
+			PARAMETER_ENUM_VALUE* pValue = function_getParameterEnumValue(0, pszDash);
+			if (pValue) {
+				return analyzer_helpForMacrocEnum(pszDash, pValue);
+			}
+		}
+		SYMBOL sym = sym_find(sym_getGlobalContext(), pszName, &ret);
+		if (sym.s_type == S_EDFUNC) {
+			return analyzer_helpForMacrocNativeFunction(pszName, (void*)VALUE(sym));
+		}
+		for (int i = 0; i < macro_getNumberOfMacros(); i++) {
+			MACRO* mp = macro_getByIndex(i);
+			if (mp && strcmp(MAC_NAME(mp), pszName) == 0) {
+				return analyzer_helpForMacrocMacro(pszName, mp);
+			}
+		}
+	}
+	return 0;
+}
+
 static void analyzer_getToken(char* pszDest, LINE* lp, int nStart, int nLen) {
 	int nEnd = nLen + nStart;
 	while (nStart < nEnd && nStart < lp->len) {
@@ -304,7 +329,7 @@ static void analyzer_getToken(char* pszDest, LINE* lp, int nStart, int nLen) {
 /*
  * Returns a possible macro function names which can be used in PKS Edit macros.
  */
-static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback) {
+static void analyzer_getMacrocCompletions(WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback) {
 	char szBuf[256];
 	char szFunction[256];
 	int detectedEnd = 0;
@@ -353,7 +378,12 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 		// should select the proper constants for the native function currently edited. function_getParameterTypeDescriptor((void*)VALUE(sym),)
 		NATIVE_FUNCTION* pFunc = (NATIVE_FUNCTION*)VALUE(sym);
 		if (!bInIdent) {
-			fCallback(pFunc->nf_name, pFunc, analyzer_helpForFunc, analyzerHelpForFuncHyperlink);
+			fCallback(&(ANALYZER_CALLBACK_PARAM) {
+				.acp_recommendation = pFunc->nf_name,
+					.acp_object = pFunc,
+					.acp_help = analyzer_helpForMacrocNativeFunction,
+					.acp_getHyperlinkText = analyzerHelpForMacrocHyperlink
+			});
 		}
 		int nParameters = function_getParameterCount(pFunc);
 		int bEditorParam = 0;
@@ -367,7 +397,11 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 					PARAMETER_ENUM_VALUE* pValue = &_parameterEnumValueTable[i];
 					const char* pszName = pValue->pev_name;
 					if ((bInIdent && fMatch(pszName)) || nPar == nParamIndex || (bEditorParam && (nPar - 1 == nParamIndex))) {
-						fCallback(pszName, pValue, analyzer_helpForEnum, 0);
+						fCallback(&(ANALYZER_CALLBACK_PARAM) {
+							.acp_recommendation = pszName,
+								.acp_object = pValue,
+								.acp_help = analyzer_helpForMacrocEnum
+						});
 					}
 				}
 			}
@@ -376,19 +410,28 @@ static void analyzer_getMacros(WINFO* wp, int (*fMatch)(const char* pszMatch), A
 	for (int i = 0; i < _functionTableSize; i++) {
 		NATIVE_FUNCTION* pFunc = &_functionTable[i];
 		if (fMatch(pFunc->nf_name)) {
-			fCallback(pFunc->nf_name, pFunc, analyzer_helpForFunc, analyzerHelpForFuncHyperlink);
+			fCallback(&(ANALYZER_CALLBACK_PARAM) { .acp_recommendation = pFunc->nf_name, 
+				.acp_help = analyzer_helpForMacrocNativeFunction,
+				.acp_object= pFunc,
+				.acp_getHyperlinkText = analyzerHelpForMacrocHyperlink
+			});
 		}
 	}
 	for (PKS_VALUE_TYPE vt = VT_FILE; types_existsType(vt); vt++) {
 		const char* pName = types_nameFor(vt);
 		if (fMatch(pName)) {
-			fCallback(pName, NULL, NULL, NULL);
+			fCallback(&(ANALYZER_CALLBACK_PARAM) { .acp_recommendation = pName });
 		}
 	}
 	for (int i = 0; i < macro_getNumberOfMacros(); i++) {
 		MACRO* mp = macro_getByIndex(i);
 		if (mp && fMatch(MAC_NAME(mp))) {
-			fCallback(MAC_NAME(mp), mp, analyzer_helpForMacro, analyzerHelpForFuncHyperlink);
+			fCallback(&(ANALYZER_CALLBACK_PARAM) {
+				.acp_recommendation = MAC_NAME(mp),
+					.acp_object = mp,
+					.acp_help = analyzer_helpForMacrocMacro,
+					.acp_getHyperlinkText = analyzerHelpForMacrocHyperlink
+			});
 		}
 	}
 }
@@ -401,7 +444,7 @@ static const char* analyzer_helpForCommand(const char* pszCommandName, void* pCo
 
 static ANALYZER_CALLBACK _keyAnalyzerCallback;
 static void analyzer_addKeycode(const char* pszKeycode) {
-	_keyAnalyzerCallback(pszKeycode, NULL, NULL, NULL);
+	_keyAnalyzerCallback(&(ANALYZER_CALLBACK_PARAM) { .acp_recommendation = pszKeycode });
 }
 
 /*
@@ -418,12 +461,19 @@ static void analyzer_getBindingCompletions(WINFO* wp, int (*fMatch)(const char* 
 	for (int i = 0; (pszWord = macro_getCommandByIndex(i)) != 0; i++) {
 		if (fMatch(pszWord)) {
 			MACROREF macref = (MACROREF){ .typ = CMD_CMDSEQ, .index = i };
-			fCallback(pszWord, (void*)MACROREF_TO_INTPTR(macref), analyzer_helpForCommand, NULL);
+			fCallback(&(ANALYZER_CALLBACK_PARAM) {
+				.acp_recommendation = pszWord,
+					.acp_object = (void*)MACROREF_TO_INTPTR(macref),
+					.acp_help = analyzer_helpForCommand,
+					.acp_getHyperlinkText = analyzerHelpForMacrocHyperlink
+			});
 		}
 	}
 	for (int i = 0; (pszWord = faicon_nameForIndex(i)) != 0; i++) {
 		if (fMatch(pszWord)) {
-			fCallback(pszWord, NULL, NULL, NULL);
+			fCallback(&(ANALYZER_CALLBACK_PARAM) {
+				.acp_recommendation = pszWord
+			});
 		}
 	}
 }
@@ -475,7 +525,7 @@ int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, int (*fMatc
  */
 void analyzer_registerDefaultAnalyzers() {
 	analyzer_register("words", analyzer_extractWords);
-	analyzer_register("pks-macros", analyzer_getMacros);
+	analyzer_register("pks-macros", analyzer_getMacrocCompletions);
 	analyzer_register("action-bindings", analyzer_getBindingCompletions);
 }
 

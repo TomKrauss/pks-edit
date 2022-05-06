@@ -11,6 +11,17 @@ typedef struct {
 } TOKEN;
 
 typedef enum {
+	// Before performing the operation ask the user to enter the name of a <em>named clipboard</em> to cut the selection to
+	CUT_QUERYID = 0x100,
+	// The selection is appended to the contents of an existing clipboard
+	CUT_APPND= 0x200,
+	// Use the <em>main</em> clipoard
+	CUT_USEPP=0x400,
+	// Delete the selection after copying the data to the clipboard.
+	CUT_DELETE=0x800
+} CUT_ENUM;
+
+typedef enum {
     // use .{}*?+ and all the stuff
     RE_DOREX = 0x1,
     // ignore case
@@ -128,6 +139,9 @@ native int EdBlockWrite(EDITOR editor);
  * @param flags the flags defining the details about the operation.
  * @see WriteBlock
  * @see PasteBlock
+ * @see TrimTrailingBlanks
+ * @see CUT_ENUM#CUT_QUERYID
+ * @see CUT_ENUM#CUT_APPND
  */
 @Method(name="CutBlock", signature="iWeCUT_")
 native int bl_cutOrCopy(EDITOR editor, int flags);

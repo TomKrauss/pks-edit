@@ -453,7 +453,7 @@ static void xref_fillTagList(HWND hwnd, void* crossReferenceWord) {
 
 static ANALYZER_CALLBACK _addCallback;
 static int xref_processTag(intptr_t pszText, intptr_t pszVal) {
-	_addCallback((const char*)pszText, (void*)pszVal, NULL, NULL);
+	_addCallback(&(ANALYZER_CALLBACK_PARAM) { .acp_recommendation = (const char*)pszText, .acp_object = (void*)pszVal });
 	return 1;
 }
 

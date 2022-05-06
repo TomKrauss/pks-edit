@@ -634,6 +634,7 @@ PARAMETER_ENUM_VALUE _parameterEnumValueTable[] = {
 { "ELO_CARET_STAYS"           , ELO_CARET_STAYS},
 { "RE_DOREX"                  , RE_DOREX   },
 { "RE_IGNCASE"                , RE_IGNCASE   },
+{ "RE_IGNORE_BINARY"          , RE_IGNORE_BINARY   },
 { "RE_SHELLWILD"              , RE_SHELLWILD   },
 { "RE_PRESERVE_CASE",			RE_PRESERVE_CASE},
 { "RE_APPEND_TO_SEARCH_RESULTS",RE_APPEND_TO_SEARCH_RESULTS},
@@ -769,3 +770,14 @@ int _parameterEnumValueTableSize = sizeof(_parameterEnumValueTable) / sizeof(_pa
 
 int _commandTableSize = sizeof(_commandTable)/sizeof(_commandTable[0]);
 
+/*
+ * Returns the enum value with the given name in the given enum type.
+ */
+PARAMETER_ENUM_VALUE* function_getParameterEnumValue(const char* pszEnumType, const char* pszEnumName) {
+    for (int i = 0; i < _parameterEnumValueTableSize; i++) {
+        if (strcmp(pszEnumName, _parameterEnumValueTable[i].pev_name) == 0) {
+            return &_parameterEnumValueTable[i];
+        }
+    }
+    return 0;
+}

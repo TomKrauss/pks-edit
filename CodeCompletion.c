@@ -134,14 +134,12 @@ static void codecomplete_hideWindow(HWND hwnd) {
 	}
 
 }
-static void codecomplete_addTags(const char* pszTagName, void* pParam, 
-		const char* (*fHelpCB)(const char* pszCompletion, void* pParam), const char*(*fLink)(const char* pszLink)) {
-	codecomplete_addTagsWithAlloc(pszTagName, fHelpCB, fLink, pParam, FALSE);
+static void codecomplete_addTags(ANALYZER_CALLBACK_PARAM* bParam) {
+	codecomplete_addTagsWithAlloc(bParam->acp_recommendation, bParam->acp_help, bParam->acp_getHyperlinkText, bParam->acp_object, FALSE);
 }
 
-static void codecomplete_analyzerCallback(const char* pszRecommendation, void* pParam, 
-			const char* (*fHelpCB)(const char* pszCompletion, void* pParam), const char*(*fGetHyperlinkText)(const char* pszLink)) {
-	codecomplete_addTagsWithAlloc(pszRecommendation, fHelpCB, fGetHyperlinkText, pParam, TRUE);
+static void codecomplete_analyzerCallback(ANALYZER_CALLBACK_PARAM *bParam) {
+	codecomplete_addTagsWithAlloc(bParam->acp_recommendation, bParam->acp_help, bParam->acp_getHyperlinkText, bParam->acp_object, TRUE);
 }
 
 /*
@@ -500,8 +498,12 @@ static void codecompletehelp_navigate(HWND hwnd, CODE_COMPLETION_PARAMS* pParam,
 	CODE_ACTION* pAction = pParam->ccp_actions;
 	if (pAction && pAction->ca_getHyperlinkHelp) {
 		char* pszHelp = (char*)pAction->ca_getHyperlinkHelp(pszLink);
-		codecompletehelp_displayHelpText(0, hwnd, pParam, pszHelp);
-		free(pszHelp);
+		if (pszHelp) {
+			// allow to "re-select" the original help text.
+			pParam->ccp_selection = -1;
+			codecompletehelp_displayHelpText(0, hwnd, pParam, pszHelp);
+			free(pszHelp);
+		}
 	}
 }
 

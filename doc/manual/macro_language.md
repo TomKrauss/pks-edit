@@ -95,8 +95,24 @@ The following HTML tags in comments are supported:
 - `<br>`, `<em>`, `<b>`, `<i>`, `<span class=.. style=...>`, `<dd>`, `<dl>`, `<dt>`, `<p>`, `<s>`, `<code>`, 
   `<del>`, `<strike>`
 
-Open Issues
-- Hyperlinks in comments are not yet supported
+#### Hyperlinks in comments 
+
+One can currently link to other help content (either description of a macro, native function or enum value) using the
+`@see` tag. Here is an example (note the syntax for enum values).
+
+```
+/*
+ * Cut or copies a selected block of text from the passed editor with the given flags.
+ * @param editor the editor in which the current selection is copied/cut. As always
+ * this parameter is optional.
+ * @param flags the flags defining the details about the operation.
+ * @see WriteBlock
+ * @see PasteBlock
+ * @see TrimTrailingBlanks
+ * @see CUT_ENUM#CUT_QUERYID
+ * @see CUT_ENUM#CUT_APPND
+ */
+```
 
 ## Types
 

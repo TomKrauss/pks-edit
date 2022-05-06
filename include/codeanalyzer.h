@@ -17,6 +17,15 @@
 
 #ifndef CODEANALYZER_H
 
+typedef struct tagANALYZER_CALLBACK_PARAM {
+	const char* acp_recommendation;									// The text to be displayed to the user as recommended by the code completion window
+	const char* (*acp_help)(const char* pszText, void* pObject);	// Callback for determining a help text for the recommendation and the acp_object representing
+																	// the object for which a recommendation is provided (e.g. a native function or macro or the like).
+	void* acp_object;												// Describes the object for which a recommendation is provided 
+																	// (e.g. a native function or macro or the like).
+	const char* (*acp_getHyperlinkText)(const char* pszURL);		// Returns a text to be displayed in the help window, when a link in the help window is clicked.
+} ANALYZER_CALLBACK_PARAM;
+
  /*
   * Callback to use to consume the recommendation found by an analyzer.
   * The recommendation text found must be copied inside the callback - if needed.
@@ -24,8 +33,7 @@
   * and an optional callback responsible for returning a help text for the recommendation getting passed the recommendation and the
   * arbitrary param.
   */
-typedef void (*ANALYZER_CALLBACK)(const char* pszRecommendation, void* pParam, const char* (*cbHelp)(const char* pszText, void* pParam), 
-		const char*(*cbGetHyperlink)(const char* pszText));
+typedef void (*ANALYZER_CALLBACK)(ANALYZER_CALLBACK_PARAM* pParam);
 
 /*
  * The analyzer function to operate on a file referred to by a view pointer 'wp'. Only recommendations
