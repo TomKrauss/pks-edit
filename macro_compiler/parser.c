@@ -2265,7 +2265,7 @@ yyreduce:
                                             {
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=""});
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=yyvsp[-1].ident.s});
-				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){(int)yyvsp[0].num});
+				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=(int)yyvsp[0].num});
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=_yyCurrentComment});
 				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
 						C_0FUNC, (GENERIC_DATA){ FUNC_RegisterEnumValue}, 4);

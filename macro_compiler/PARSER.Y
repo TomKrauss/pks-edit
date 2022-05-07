@@ -395,7 +395,7 @@ enum_values: enum_value
 enum_value:	T_IDENT opt_enum_assignment {
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=""});
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$1.ident.s});
-				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){(int)$2.num});
+				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=(int)$2.num});
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=_yyCurrentComment});
 				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
 						C_0FUNC, (GENERIC_DATA){ FUNC_RegisterEnumValue}, 4);

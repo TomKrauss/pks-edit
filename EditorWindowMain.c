@@ -1028,7 +1028,7 @@ WINFUNC EditWndProc(
 		ww_createSubWindows(hwnd, wp,&xyWork,&xyRuler, &xyLineWindowSize);
 		if (wp->ww_handle) {
 			MoveWindow(wp->ww_handle,xyWork.x,xyWork.y,
-					xyWork.w,xyWork.h,0);
+					xyWork.w,xyWork.h,1);
 			if (message == WM_SHOWWINDOW) {
 				SendMessage(wp->ww_handle, message, wParam, lParam);
 			}
