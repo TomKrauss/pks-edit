@@ -714,6 +714,11 @@
       "command": "@errorlist-current-line"
     },
     {
+      "key": "SPACE",
+      "context": "wysiwyg-renderer",
+      "command": "@find-tag-under-cursor"
+    },
+    {
       "key": "DELETE",
       "context": "search-list",
       "command": "@delete-line-stay"

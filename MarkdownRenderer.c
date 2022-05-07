@@ -53,7 +53,16 @@ static const char _escapedChars[] = "\\`*_{}[]<>()#+-.!|&";
 // Loads the an image with a name and a format into a HBITMAP.
 extern HBITMAP loadimage_load(char* pszName);
 
-typedef void (*RENDER_PAINT)(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, RECT* pUsed, float zoomFactor, BOOL bMeasureOnly);
+typedef struct tagRENDER_FLOW_PARAMS {
+	RENDER_VIEW_PART* rfp_part;
+	HDC rfp_hdc;
+	BOOL rfp_skipSpace;
+	float rfp_zoomFactor;
+	BOOL rfp_measureOnly;
+	BOOL rfp_focus;
+} RENDER_FLOW_PARAMS;
+
+typedef void (*RENDER_PAINT)(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pUsed);
 
 typedef struct tagENTITY_MAPPING {
 	char	c;
@@ -99,19 +108,20 @@ typedef struct tagRUN_BOUNDS {
  * The text style of a "text run"
  */
 typedef struct tagFONT_ATTRIBUTES {
-	int		strikeout;
-	int		italic;
 	int		size;
-	int		underline;
 	int		weight;
-	int		lineBreak;
 	int		indent;
-	BOOL	rollover;
-	BOOL    superscript;
-	BOOL    subscript;
+	short	lineBreak : 1;
+	short	strikeout : 1;
+	short	italic : 1;
+	short	underline : 1;
+	short	rollover : 1;
+	short	focussed : 1;
+	short	superscript : 1;
+	short	subscript : 1;
+	short	fixedFont : 1;
 	COLORREF bgColor;
 	COLORREF fgColor;
-	int		fixedFont;
 } FONT_ATTRIBUTES;
 
 typedef struct tagMD_IMAGE {
@@ -267,18 +277,13 @@ typedef struct tagMDR_ELEMENT_FORMAT {
 #define ATTR_SUPER		0x200
 #define ATTR_SUB		0x400
 
-typedef struct tagRENDER_FLOW_PARAMS {
-	HDC rfp_hdc;
-	BOOL rfp_skipSpace;
-	float rfp_zoomFactor;
-	BOOL rfp_measureOnly;
-} RENDER_FLOW_PARAMS;
-
 /*
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
  */
 static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBounds, 
 	RECT* pPartBounds, RECT* pUsed, int nBlockQuoteLevel, int nAlign, RENDER_FLOW_PARAMS *pRFP);
+static void mdr_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* pHeight);
+static int mdr_getNextLinkRunOffset(RENDER_VIEW_PART* pPart, int nOffset, int nDelta);
 
 static MDR_ELEMENT_FORMAT _formatText = {
 	0, 0, DEFAULT_LEFT_MARGIN, 20, 14, FW_NORMAL
@@ -363,8 +368,9 @@ typedef struct tagMARKDOWN_RENDERER_DATA {
 	TEXT_RUN* md_focussedRun;
 	long md_minln;
 	RENDER_VIEW_PART* md_caretView;
-	int md_flowCaretIndex;
-	int md_caretLineIndex;
+	TEXT_RUN* md_caretRun;
+	int md_caretRunIndex;
+	int md_caretPartIndex;
 } MARKDOWN_RENDERER_DATA;
 
 /*
@@ -419,8 +425,8 @@ static HFONT mdr_createFont(const FONT_ATTRIBUTES* pAttrs, float fZoom) {
 	if (pAttrs->weight) {
 		_lf.lfWeight = pAttrs->weight;
 	}
-	_lf.lfItalic = pAttrs->italic;
-	_lf.lfStrikeOut = pAttrs->strikeout;
+	_lf.lfItalic = (BYTE)pAttrs->italic;
+	_lf.lfStrikeOut = (BYTE)pAttrs->strikeout;
 	_lf.lfUnderline = pAttrs->rollover && pAttrs->underline;
 	return CreateFontIndirect(&_lf);
 }
@@ -434,13 +440,14 @@ static void mdr_paintRule(HDC hdc, int left, int right, int y, int nStrokeWidth)
 	DeleteObject(SelectObject(hdc, hPenOld));
 }
 
-static void mdr_renderHorizontalRule(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, RECT* pUsed, float zoomFactor, BOOL bMeasureOnly) {
+static void mdr_renderHorizontalRule(RENDER_FLOW_PARAMS* pParams,RECT* pBounds, RECT* pUsed) {
+	RENDER_VIEW_PART* pPart = pParams->rfp_part;
 	pUsed->top = pBounds->top + pPart->rvp_margins.m_top;
 	pUsed->left = pBounds->left + DEFAULT_LEFT_MARGIN;
 	pUsed->bottom = pUsed->top + DEFAULT_LEFT_MARGIN + pPart->rvp_margins.m_bottom;
 	pUsed->right = pBounds->right - 20;
-	if (!bMeasureOnly) {
-		mdr_paintRule(hdc, pUsed->left, pUsed->right, (pUsed->top + pUsed->bottom - 3) / 2, 3);
+	if (!pParams->rfp_measureOnly) {
+		mdr_paintRule(pParams->rfp_hdc, pUsed->left, pUsed->right, (pUsed->top + pUsed->bottom - 3) / 2, 3);
 	}
 	memcpy(&pPart->rvp_bounds, pUsed, sizeof * pUsed);
 	pPart->rvp_height = pUsed->bottom - pBounds->top;
@@ -450,7 +457,7 @@ static void mdr_renderHorizontalRule(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBo
 /*
  * Render a markdown table. 
  */
-static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, RECT* pUsed, float zoomFactor, BOOL bMeasureOnly) {
+static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pUsed) {
 	THEME_DATA* pTheme = theme_getCurrent();
 	int nColumnWidth[MAX_TABLE_COLUMNS];
 	struct tagROW_BORDER {
@@ -458,6 +465,7 @@ static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, REC
 		int rb_y;
 	} rowBorders[128];
 	int nRowBorderIndex = 0;
+	RENDER_VIEW_PART* pPart = pParams->rfp_part;
 	RENDER_TABLE* pTable = pPart->rvp_data.rvp_table;
 	int nColumns = pTable->rt_columnCount;
 	int left = pBounds->left+pPart->rvp_margins.m_left;
@@ -488,12 +496,6 @@ static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, REC
 	RENDER_TABLE_ROW* pRow = pTable->rt_rows;
 	RECT bounds;
 	bounds.top = y;
-	RENDER_FLOW_PARAMS rfp = {
-		.rfp_skipSpace = TRUE,
-		.rfp_hdc = hdc,
-		.rfp_zoomFactor = zoomFactor,
-		.rfp_measureOnly = bMeasureOnly
-	};
 	while (pRow) {
 		RENDER_TABLE_CELL* pCell = pRow->rtr_cells;
 		RECT usedBounds;
@@ -511,7 +513,7 @@ static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, REC
 				if (!align && pCell->rtc_isHeader) {
 					align = TA_ALIGN_CENTER;
 				}
-				mdr_renderTextFlow(&_tableMargins, &pCell->rtc_flow, &bounds, &flowBounds, &usedBounds, 0, align, &rfp);
+				mdr_renderTextFlow(&_tableMargins, &pCell->rtc_flow, &bounds, &flowBounds, &usedBounds, 0, align, pParams);
 			}
 			int nHeight = usedBounds.bottom - usedBounds.top;
 			if (nHeight > nMaxHeight) {
@@ -532,11 +534,12 @@ static void mdr_renderTable(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, REC
 		}
 	}
 	int nTableHeight = bounds.top - y + _tableMargins.m_bottom;
-	if (!bMeasureOnly && pTable->rt_borderWidth > 0) {
+	if (!pParams->rfp_measureOnly && pTable->rt_borderWidth > 0) {
 		COLORREF cColor = pTable->rt_borderColor;
 		if (cColor == NO_COLOR) {
 			cColor = pTheme->th_dialogLightBackground;
 		}
+		HDC hdc = pParams->rfp_hdc;
 		HPEN hPen = CreatePen(PS_SOLID, pTable->rt_borderWidth, cColor);
 		HPEN hPenOld = SelectObject(hdc, hPen);
 		SelectObject(hdc, GetStockObject(NULL_BRUSH));
@@ -785,8 +788,16 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			}
 			if (!pRFP->rfp_measureOnly) {
 				TextOut(hdc, x + nDeltaX, y + nDelta, &pTF->tf_text[nOffs], nFit);
+				RECT r;
+				r.left = x + nDeltaX;
+				r.top = y + nDelta;
 				if (pTR->tr_selectionLength) {
-					mdr_paintSelection(hdc, x + nDeltaX, y + nDelta, pRFP, pTR, nOffs, nDeltaPainted, nFit, pTF);
+					mdr_paintSelection(hdc, r.left, r.top, pRFP, pTR, nOffs, nDeltaPainted, nFit, pTF);
+				}
+				if (pTR->tr_attributes.focussed && pRFP->rfp_focus) {
+					r.right = r.left + size.cx;
+					r.bottom = r.top + size.cy;
+					DrawFocusRect(hdc, &r);
 				}
 				if (nBlockQuoteLevel) {
 					RECT leftRect;
@@ -892,11 +903,13 @@ static void mdr_paintFillDecoration(HDC hdc, RENDER_VIEW_PART* pPart, RECT* pBou
 /*
  * Render a "text type block part".
  */
-static void mdr_renderMarkdownBlockPart(RENDER_VIEW_PART* pPart, HDC hdc, RECT* pBounds, RECT* pUsed, float zoomFactor, BOOL bMeasureOnly) {
+static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pUsed) {
+	RENDER_VIEW_PART* pPart = pParams->rfp_part;
+	HDC hdc = pParams->rfp_hdc;
 	MARGINS* pMargins = &pPart->rvp_margins;
 	int x = pBounds->left + pMargins->m_left;
 	int y = pBounds->top + pMargins->m_top;
-	if (!bMeasureOnly) {
+	if (!pParams->rfp_measureOnly) {
 		if (pPart->rvp_type == MET_UNORDERED_LIST) {
 			TextOutW(hdc, x - 15, y, pPart->rvp_level == 1 ? L"\u25CF" : (pPart->rvp_level == 2 ? L"\u25CB" : L"\u25A0"), 1);
 		}
@@ -914,19 +927,13 @@ static void mdr_renderMarkdownBlockPart(RENDER_VIEW_PART* pPart, HDC hdc, RECT* 
 	}
 	int nDCId = SaveDC(hdc);
 	TEXT_FLOW* pFlow = &pPart->rvp_data.rvp_flow;
-	RENDER_FLOW_PARAMS rfp = {
-		.rfp_hdc = hdc,
-		.rfp_zoomFactor = zoomFactor,
-		.rfp_measureOnly = bMeasureOnly,
-		.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK
-	};
 	if (pFlow->tf_text && pFlow->tf_runs) {
 		mdr_renderTextFlow(pMargins, pFlow, pBounds, &pPart->rvp_bounds, pUsed,
-				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, TA_ALIGN_LEFT, &rfp);
+				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, TA_ALIGN_LEFT, pParams);
 	} else {
 		pUsed->bottom = y + 10 + pMargins->m_bottom;
 	}
-	if (!bMeasureOnly && pPart->rvp_type == MET_HEADER && pPart->rvp_level < 3) {
+	if (!pParams->rfp_measureOnly && pPart->rvp_type == MET_HEADER && pPart->rvp_level < 3) {
 		mdr_paintRule(hdc, pBounds->left + DEFAULT_LEFT_MARGIN, pBounds->right - DEFAULT_LEFT_MARGIN, pUsed->bottom - 2, 1);
 	}
 	RestoreDC(hdc, nDCId);
@@ -1131,7 +1138,7 @@ static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, si
 	if (!pFormat) {
 		pFormat = &_formatText;
 	}
-	TEXT_RUN* pRun = ll_append(pRuns, sizeof(TEXT_RUN));
+	TEXT_RUN* pRun = *pRuns == 0 || (*pRuns)->tr_size ? ll_append(pRuns, sizeof(TEXT_RUN)) : *pRuns;
 	pRun->tr_size = nSize;
 	pRun->tr_lp = lp;
 	pRun->tr_lineOffset = nLineOffset;
@@ -2893,21 +2900,6 @@ static RENDER_VIEW_PART* mdr_getViewPartForLine(RENDER_VIEW_PART* pFirstPart, LI
 	return 0;
 }
 
-static void mdr_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* pHeight) {
-	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
-	RENDER_VIEW_PART* pPart = pData->md_caretView;
-	*pCX = DEFAULT_LEFT_MARGIN;
-	if (pPart) {
-		*pCY = pPart->rvp_bounds.top;
-		*pCX = pPart->rvp_bounds.left;
-		*pHeight = pPart->rvp_bounds.bottom - pPart->rvp_bounds.top;
-		if (*pHeight <= 0) {
-			*pHeight = 1;
-		}
-	}
-	*pWidth = 2;
-}
-
 static int mdr_supportsMode(int aMode) {
 	if (aMode == SHOWCARET_LINE_HIGHLIGHT || aMode == SHOWLINENUMBERS || aMode == SHOWRULER) {
 		return 0;
@@ -3033,13 +3025,13 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 	SIZE s1;
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	int oldminLn = pData->md_minln;
-	if (pData->md_caretLineIndex <= pData->md_minln) {
-		pData->md_minln = pData->md_caretLineIndex;
+	if (pData->md_caretPartIndex <= pData->md_minln) {
+		pData->md_minln = pData->md_caretPartIndex;
 	} else {
 		RECT rect;
 		GetClientRect(wp->ww_handle, &rect);
 		int height = rect.bottom - rect.top;
-		mdr_getViewpartsExtend(pData, &s2, pData->md_caretLineIndex+1);
+		mdr_getViewpartsExtend(pData, &s2, pData->md_caretPartIndex+1);
 		while(1) {
 			mdr_getViewpartsExtend(pData, &s1, pData->md_minln);
 			int delta = s2.cy - s1.cy;
@@ -3207,9 +3199,17 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, void (*parsePage)(WINFO* wp), R
 	FillRect(pCtx->rc_hdc, pClip, hBrushBg);
 	BOOL bEndOfPage = FALSE;
 	RENDER_VIEW_PART* pPart;
+	RENDER_FLOW_PARAMS rfp = {
+		.rfp_focus = GetFocus() == wp->ww_handle,
+		.rfp_hdc = pCtx->rc_hdc,
+		.rfp_zoomFactor = wp->zoomFactor
+	};
 	for (pPart = pData->md_pElements; pPart; pPart = pPart->rvp_next) {
 		if (!pPart->rvp_layouted) {
-			pPart->rvp_paint(pPart, pCtx->rc_hdc, &rect, &occupiedBounds, wp->zoomFactor, TRUE);
+			rfp.rfp_part = pPart;
+			rfp.rfp_measureOnly = TRUE;
+			rfp.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK;
+			pPart->rvp_paint(&rfp, &rect, &occupiedBounds);
 		}
 	}
 	pPart = mdr_getViewPartAt(pData->md_pElements, pData->md_minln);
@@ -3220,7 +3220,10 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, void (*parsePage)(WINFO* wp), R
 			mdr_defineSelectionForPart(pPart, lp, wp->blstart->m_column, nSize);
 		}
 		if (!bEndOfPage || !pPart->rvp_layouted) {
-			pPart->rvp_paint(pPart, pCtx->rc_hdc, &rect, &occupiedBounds, wp->zoomFactor, bEndOfPage);
+			rfp.rfp_part = pPart;
+			rfp.rfp_measureOnly = bEndOfPage;
+			rfp.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK;
+			pPart->rvp_paint(&rfp, &rect, &occupiedBounds);
 		}
 		pPart = pPart->rvp_next;
 		if (occupiedBounds.bottom > rect.bottom) {
@@ -3262,13 +3265,21 @@ void mdr_renderMarkdownData(HWND hwnd, PAINTSTRUCT* ps, int nTopY, MARKDOWN_REND
 
 	FillRect(hdc, pClip, hBrushBg);
 	rect.top -= nTopY;
+	RENDER_FLOW_PARAMS rfp = {
+		.rfp_focus = GetFocus() == hwnd,
+		.rfp_hdc = hdc,
+		.rfp_zoomFactor = 1.0f,
+		.rfp_measureOnly = FALSE
+	};
 	for (; pPart && rect.top < pClip->bottom; rect.top = occupiedBounds.bottom) {
 		SIZE sPart;
 		mdr_getViewpartExtend(pPart, &sPart);
 		if (pPart->rvp_layouted && rect.top+sPart.cy < pClip->top) {
 			occupiedBounds.bottom = rect.top + sPart.cy;
 		} else {
-			pPart->rvp_paint(pPart, hdc, &rect, &occupiedBounds, 1.0f, FALSE);
+			rfp.rfp_part = pPart;
+			rfp.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK;
+			pPart->rvp_paint(&rfp, &rect, &occupiedBounds);
 		}
 		pPart = pPart->rvp_next;
 		if (pPart == 0 || (pPart->rvp_layouted && occupiedBounds.bottom > rect.bottom)) {
@@ -3390,7 +3401,7 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 	// if we scroll one buffer line up or down we simulate a scroll up/down by markdown paragrah.
 	int dl = offset == wp->caret.offset ? *ln - wp->caret.ln : 0;
 	RENDER_VIEW_PART* pPart = pData->md_caretView;
-	if (dl < 0 && pData->md_caretLineIndex == 0) {
+	if (dl < 0 && pData->md_caretPartIndex == 0) {
 		return 0;
 	}
 	if (pPart) {
@@ -3401,8 +3412,8 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 			}
 			*ln = wp->caret.ln + dl;
 		}
-		else if (dl == -1 && pData->md_caretLineIndex > 0) {
-			RENDER_VIEW_PART* pPartPrevious = mdr_getViewPartAt(pData->md_pElements, pData->md_caretLineIndex - 1);
+		else if (dl == -1 && pData->md_caretPartIndex > 0) {
+			RENDER_VIEW_PART* pPartPrevious = mdr_getViewPartAt(pData->md_pElements, pData->md_caretPartIndex - 1);
 			dl = ln_cnt(pPartPrevious->rvp_lpStart, pPart->rvp_lpStart) - 1;
 			if (dl == 0) {
 				dl = 1;
@@ -3417,9 +3428,20 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 	int nMDCaretLine;
 	pPart = mdr_getViewPartForLine(pData->md_pElements, wp->caret.linePointer, &nMDCaretLine);
 	pData->md_caretView = pPart;
-	pData->md_caretLineIndex = nMDCaretLine;
 	if (pPart) {
-		pData->md_flowCaretIndex = nColumn;
+		int nStart = pData->md_caretRunIndex;
+		if (pData->md_caretPartIndex != nMDCaretLine) {
+			pData->md_caretPartIndex = nMDCaretLine;
+			pData->md_caretRunIndex = 0;
+			nStart = -1;
+			xDelta = 1;
+		}
+		if (xDelta) {
+			pData->md_caretRunIndex = mdr_getNextLinkRunOffset(pPart, nStart, xDelta);
+		}
+		if (pData->md_caretRunIndex < 0) {
+			pData->md_caretRunIndex = 0;
+		}
 	}
 	return 1;
 }
@@ -3519,6 +3541,14 @@ static void mdr_setRollover(HWND hwnd, TEXT_RUN* pRun, BOOL aFlag) {
 	InvalidateRect(hwnd, (RECT*) & pRun->tr_bounds, FALSE);
 }
 
+static void mdr_setFocussed(HWND hwnd, TEXT_RUN* pRun, BOOL aFlag) {
+	if (!pRun || pRun->tr_attributes.focussed == aFlag || !pRun->tr_link) {
+		return;
+	}
+	pRun->tr_attributes.focussed = aFlag;
+	InvalidateRect(hwnd, (RECT*)&pRun->tr_bounds, FALSE);
+}
+
 /*
  * Generic mouse move handler for markdown rendering (supporting rollover effects etc...).
  */
@@ -3586,6 +3616,12 @@ static LRESULT mdr_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 			mdr_scrolled(hwnd, pData, zDelta < 0 ? SB_LINEDOWN : SB_LINEUP);
 		}
 		return 0;
+	case WM_KILLFOCUS:
+	case WM_SETFOCUS:
+		if ((pData = mdr_dataFromWindow(hwnd)) != 0 && pData->md_caretRun) {
+			InvalidateRect(hwnd, (RECT*) & pData->md_caretRun->tr_bounds, 0);
+		}
+		break;
 	case WM_VSCROLL:
 		if ((pData = mdr_dataFromWindow(hwnd)) != 0) {
 			mdr_scrolled(hwnd, pData, wParam);
@@ -3629,6 +3665,58 @@ static TEXT_RUN* mdr_getRunAtOffset(RENDER_VIEW_PART* pPart, int nOffset) {
 	return pParam.ro_match;
 }
 
+static int mdr_findNextLinkRun(TEXT_RUN* pRuns, RUN_OFFSET* pOffsets) {
+	while (pRuns) {
+		if (pRuns->tr_link) {
+			pOffsets->ro_match = pRuns;
+		}
+		if (pOffsets->ro_currentOffset >= pOffsets->ro_inputOffset && pOffsets->ro_match) {
+			return 0;
+		}
+		pOffsets->ro_currentOffset++;
+		pRuns = pRuns->tr_next;
+	}
+	return 1;
+}
+
+static int mdr_getNextLinkRunOffset(RENDER_VIEW_PART* pPart, int nStart, int nDelta) {
+	RUN_OFFSET pParam = (RUN_OFFSET){ .ro_inputOffset = nStart+nDelta, .ro_currentOffset = 0};
+	mdr_forRunListDo(pPart, mdr_findNextLinkRun, &pParam);
+	return pParam.ro_match ? pParam.ro_currentOffset : -1;
+}
+
+static void mdr_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* pHeight) {
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	RENDER_VIEW_PART* pPart = pData->md_caretView;
+	*pCX = DEFAULT_LEFT_MARGIN;
+	if (pPart) {
+		TEXT_RUN* pRun = mdr_getRunAtOffset(pPart, pData->md_caretRunIndex);
+		if (pRun) {
+			*pCY = pRun->tr_bounds.top1;
+			*pCX = pRun->tr_bounds.left1;
+			*pHeight = pRun->tr_bounds.bottom - pRun->tr_bounds.top1;
+		}
+		else {
+			*pCY = pPart->rvp_bounds.top;
+			*pCX = pPart->rvp_bounds.left;
+			*pHeight = pPart->rvp_bounds.bottom - pPart->rvp_bounds.top;
+		}
+		if (pRun != pData->md_caretRun) {
+			if (pData->md_caretRun) {
+				mdr_setFocussed(wp->ww_handle, pData->md_caretRun, FALSE);
+			}
+			pData->md_caretRun = pRun;
+			if (pRun) {
+				mdr_setFocussed(wp->ww_handle, pRun, TRUE);
+			}
+		}
+		if (*pHeight <= 2) {
+			*pHeight = 3;
+		}
+	}
+	*pWidth = 2;
+}
+
 static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_INFO_PARSE_RESULT* pResult) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (!pData) {
@@ -3636,7 +3724,7 @@ static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_I
 	}
 	RENDER_VIEW_PART* pPart = pData->md_caretView;
 	if (pPart) {
-		TEXT_RUN* pRun = mdr_getRunAtOffset(pPart, pData->md_flowCaretIndex);
+		TEXT_RUN* pRun = mdr_getRunAtOffset(pPart, pData->md_caretRunIndex);
 		if (pRun && !pRun->tr_image && pRun->tr_link && strlen(pRun->tr_link) < nMaxChars) {
 			strcpy(pszBuf, pRun->tr_link);
 			char* pszAnchor = strrchr(pszBuf, '#');
