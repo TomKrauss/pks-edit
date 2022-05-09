@@ -22,6 +22,8 @@
 #include "pksmacrocvm.h"
 #include "symbols.h"
 #include "winfo.h"
+#include "funcdef.h"
+#include "stringutil.h"
 
 #define MAX_TYPES		64
 
@@ -35,14 +37,27 @@ static void types_destroyDescriptor(PKS_TYPE_DESCRIPTOR* pType) {
 	if(!pType) {
 		return;
 	}
-	TYPE_PROPERTY_DESCRIPTOR* pDescriptors = pType->ptd_properties;
-	if (pDescriptors) {
-		for (int nProp = 0; nProp < pType->ptd_numberOfProperties; nProp++) {
-			free((char*)pDescriptors[nProp].tpd_name);
+	if (pType->ptd_isEnumType) {
+		PARAMETER_ENUM_VALUE* pTd = pType->ptd_elements.ptd_enumValues;
+		if (pTd) {
+			for (int nProp = 0; nProp < pType->ptd_numberOfProperties; nProp++) {
+				free((char*)pTd[nProp].pev_description);
+				free((char*)pTd[nProp].pev_name);
+			}
+			free(pTd);
 		}
-		free(pDescriptors);
+	}
+	else {
+		TYPE_PROPERTY_DESCRIPTOR* pDescriptors = pType->ptd_elements.ptd_properties;
+		if (pDescriptors) {
+			for (int nProp = 0; nProp < pType->ptd_numberOfProperties; nProp++) {
+				free((char*)pDescriptors[nProp].tpd_name);
+			}
+			free(pDescriptors);
+		}
 	}
 	free((char*)pType->ptd_name);
+	free((char*)pType->ptd_documentation);
 	free(pType);
 }
 
@@ -58,7 +73,9 @@ void types_destroy() {
 }
 
 /*
- * Register one type in the MacroC type registry.
+ * Register one type in the MacroC type registry. If 'nPreferredIndex is greater or equals 0
+ * it is used as the internal type index in PKSMacroC, if it is negative, a dynamic type index
+ * is created.
  */
 int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 	PKS_VALUE_TYPE t;
@@ -87,6 +104,16 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 			// do not register "special types names"
 			sym_createSymbol(sym_getKeywordContext(), (char*)pDescriptor->ptd_name, S_TYPE_IDENTIFIER, t, (GENERIC_DATA) { 0 }, 0);
 		}
+		pDescriptor->ptd_isEnumType = pTemplate->ptd_isEnumType;
+	} else {
+		if (pDescriptor->ptd_isEnumType != pTemplate->ptd_isEnumType) {
+			return 0;
+		}
+		free((char*)pDescriptor->ptd_documentation);
+		pDescriptor->ptd_documentation = 0;
+	}
+	if (pTemplate->ptd_documentation) {
+		pDescriptor->ptd_documentation = _strdup(pTemplate->ptd_documentation);
 	}
 	pDescriptor->ptd_hasDefaultValue = pTemplate->ptd_hasDefaultValue;
 	pDescriptor->ptd_callbacks = pTemplate->ptd_callbacks;
@@ -97,11 +124,34 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 	if (t >= _maxTypeIndex) {
 		_maxTypeIndex = t+1;
 	}
-	if (pTemplate->ptd_properties) {
-		pDescriptor->ptd_properties = calloc(pTemplate->ptd_numberOfProperties, sizeof * pTemplate->ptd_properties);
-		for (int i = 0; i < pDescriptor->ptd_numberOfProperties; i++) {
-			pDescriptor->ptd_properties[i].tpd_type = pTemplate->ptd_properties[i].tpd_type;
-			pDescriptor->ptd_properties[i].tpd_name = _strdup(pTemplate->ptd_properties[i].tpd_name);
+	if (pTemplate->ptd_isEnumType) {
+		if (pTemplate->ptd_elements.ptd_enumValues) {
+			pDescriptor->ptd_elements.ptd_enumValues = calloc(pTemplate->ptd_numberOfProperties, sizeof * pTemplate->ptd_elements.ptd_enumValues);
+			PARAMETER_ENUM_VALUE* pSource = pTemplate->ptd_elements.ptd_enumValues;
+			PARAMETER_ENUM_VALUE* pTarget = pDescriptor->ptd_elements.ptd_enumValues;
+			for (int i = 0; i < pDescriptor->ptd_numberOfProperties; i++) {
+				if (pSource->pev_description) {
+					pTarget->pev_description = _strdup(pSource->pev_description);
+				}
+				if (pSource->pev_name) {
+					pTarget->pev_name = _strdup(pSource->pev_name);
+					sym_createSymbol(sym_getKeywordContext(), (char*)pTarget->pev_name, S_ENUM, 0, (GENERIC_DATA) {
+						.val = (intptr_t)pTarget
+					}, 0);
+				}
+				pTarget->pev_val = pSource->pev_val;
+				pSource++;
+				pTarget++;
+			}
+		}
+	}
+	else {
+		if (pTemplate->ptd_elements.ptd_properties) {
+			pDescriptor->ptd_elements.ptd_properties = calloc(pTemplate->ptd_numberOfProperties, sizeof * pTemplate->ptd_elements.ptd_properties);
+			for (int i = 0; i < pDescriptor->ptd_numberOfProperties; i++) {
+				pDescriptor->ptd_elements.ptd_properties[i].tpd_type = pTemplate->ptd_elements.ptd_properties[i].tpd_type;
+				pDescriptor->ptd_elements.ptd_properties[i].tpd_name = _strdup(pTemplate->ptd_elements.ptd_properties[i].tpd_name);
+			}
 		}
 	}
 	return 1;
@@ -164,7 +214,7 @@ void types_registerDefaultTypes() {
 			{.tpd_type = VT_AUTO, .tpd_name = "value"},
 	};
 	types_register(VT_MAP_ENTRY, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_MAP_ENTRY, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0,
-		.ptd_properties = descriptors, .ptd_numberOfProperties = DIM(descriptors)
+		.ptd_elements.ptd_properties = descriptors, .ptd_numberOfProperties = DIM(descriptors)
 	});
 	types_register(VT_EDITOR_HANDLE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_EDITOR, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0,
 		.ptd_isHandleType = 1,
@@ -262,10 +312,10 @@ inline BOOL types_isStructuredType(PKS_VALUE_TYPE t) {
 int types_indexForProperty(PKS_VALUE_TYPE t, const char* pszPropertyName, PKS_VALUE_TYPE* tProperty) {
 	if (t >= 0 && t < _maxTypeIndex) {
 		PKS_TYPE_DESCRIPTOR* pDescriptor = _typeDescriptors[t];
-		if (pDescriptor != 0 && pDescriptor->ptd_properties != 0) {
+		if (pDescriptor != 0 && !pDescriptor->ptd_isEnumType && pDescriptor->ptd_elements.ptd_properties != 0) {
 			for (int i = 0; i < pDescriptor->ptd_numberOfProperties; i++) {
-				if (strcmp(pszPropertyName, pDescriptor->ptd_properties[i].tpd_name) == 0) {
-					*tProperty = pDescriptor->ptd_properties[i].tpd_type;
+				if (strcmp(pszPropertyName, pDescriptor->ptd_elements.ptd_properties[i].tpd_name) == 0) {
+					*tProperty = pDescriptor->ptd_elements.ptd_properties[i].tpd_type;
 					return i;
 				}
 			}
@@ -280,9 +330,22 @@ int types_indexForProperty(PKS_VALUE_TYPE t, const char* pszPropertyName, PKS_VA
 const char* types_getPropertyName(PKS_VALUE_TYPE t, int aPropertyIndex) {
 	if (t >= 0 && t < _maxTypeIndex) {
 		PKS_TYPE_DESCRIPTOR* pDescriptor = _typeDescriptors[t];
-		if (pDescriptor != 0 && pDescriptor->ptd_properties != 0 && pDescriptor->ptd_numberOfProperties > aPropertyIndex) {
-			return pDescriptor->ptd_properties[aPropertyIndex].tpd_name;
+		if (pDescriptor != 0 && !pDescriptor->ptd_isEnumType && pDescriptor->ptd_elements.ptd_properties != 0 && pDescriptor->ptd_numberOfProperties > aPropertyIndex) {
+			return pDescriptor->ptd_elements.ptd_properties[aPropertyIndex].tpd_name;
 		}
 	}
 	return 0;
+}
+
+/*
+ * Returns the "simple" documentation for a type.
+ */
+const char* types_getDocumentationFor(const char* pszTypeName) {
+	char* unused;
+	SYMBOL s = sym_find(sym_getKeywordContext(), pszTypeName, &unused);
+	if (s.s_type != S_TYPE_IDENTIFIER) {
+		return 0;
+	}
+	PKS_VALUE_TYPE t = s.s.symbol.s_valueType;
+	return _typeDescriptors[t]->ptd_documentation;
 }

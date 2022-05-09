@@ -101,9 +101,13 @@ typedef struct tagTYPE_PROPERTY_DESCRIPTOR {
 	const char*		tpd_name;
 } TYPE_PROPERTY_DESCRIPTOR;
 
+typedef struct tagPARAMETER_ENUM_VALUE PARAMETER_ENUM_VALUE;
+
 typedef struct tagPKS_TYPE_DESCRIPTOR {
 	PKS_VALUE_TYPE	ptd_type;						// the index used internally in macros for this type
 	const char*		ptd_name;						// the printed named of this type
+	const char*		ptd_documentation;				// The optional documentation for a type. Is always allocated.
+	int				ptd_isEnumType : 1;				// whether this is an enum type.
 	int				ptd_isHandleType : 1;			// whether this is a "handle" type wrapping a native C pointer (FILE*, WINFO*, ...)
 	int				ptd_isValueType : 1;			// whether this is an immutable value type (number, float boolean etc...)
 	int				ptd_hasDefaultValue : 1;		// Whether defining a variable of the described type will automatically create an "empty" instance of the type.
@@ -111,7 +115,10 @@ typedef struct tagPKS_TYPE_DESCRIPTOR {
 	int				ptd_objectSize;					// the size of a non-value type object - typically identical to ptd_numberOfProperties, but for some
 													// native types additional "internal pointers" are maintained not accessible as properties.
 	int				ptd_numberOfProperties;			// the number of properties described by a property descriptor
-	TYPE_PROPERTY_DESCRIPTOR *ptd_properties;
+	union {
+		TYPE_PROPERTY_DESCRIPTOR* ptd_properties;
+		PARAMETER_ENUM_VALUE* ptd_enumValues;
+	} ptd_elements;
 	TYPE_CALLBACKS	ptd_callbacks;
 } PKS_TYPE_DESCRIPTOR;
 
@@ -167,6 +174,18 @@ extern T_FINALIZER types_getFinalizer(PKS_VALUE_TYPE vType);
  * Answer true, if the passed type exists.
  */
 extern int types_existsType(PKS_VALUE_TYPE t);
+
+/*
+ * Returns the "simple" documentation for a type.
+ */
+extern const char* types_getDocumentationFor(const char* pszTypeName);
+
+/*
+ * Register one type in the MacroC type registry. If 'nPreferredIndex is greater or equals 0
+ * it is used as the internal type index in PKSMacroC, if it is negative, a dynamic type index
+ * is created.
+ */
+extern int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR* pTemplate);
 
 /*
  * Returns true, if a type is a value type.

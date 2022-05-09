@@ -917,7 +917,7 @@ static void decompile_makeAutoLabels(const char* start, const char* end, CONTROL
  * it is assumed that this points to the 1st parameter definition, if that is 0, the function tries to find the parameter
  * definitions in the byte code.
  */
-unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsigned char* sp) {
+unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsigned char* sp, char* (*printType)(const char* pszTypename)) {
 	unsigned char* pBytecodes = mp->mc_bytecodes;
 	unsigned char* spend = pBytecodes + mp->mc_bytecodeLength;
 	if (sp == 0) {
@@ -933,7 +933,8 @@ unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsign
 	if (mp->mc_scope == MS_LOCAL) {
 		stringbuf_appendString(pBuf, "static ");
 	}
-	decompile_print(pBuf, "%s %s(", types_nameFor(mp->mc_returnType), decompile_quoteString(MAC_NAME(mp)));
+	const char* pszType = types_nameFor(mp->mc_returnType);
+	decompile_print(pBuf, "%s %s(", pszType, decompile_quoteString(MAC_NAME(mp)));
 	while (sp < spend) {
 		if (*sp != C_DEFINE_PARAMETER) {
 			break;
@@ -942,7 +943,11 @@ unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsign
 		if (sp > pInstrStart) {
 			decompile_print(pBuf, ", ");
 		}
-		decompile_print(pBuf, "%s %s", types_nameFor(pSym->vartype), pSym->name);
+		pszType = types_nameFor(pSym->vartype);
+		if (printType) {
+			pszType = printType(pszType);
+		}
+		decompile_print(pBuf, "%s %s", pszType, pSym->name);
 		sp += interpreter_getParameterSize(*sp, sp + 1);
 	}
 	decompile_print(pBuf, ")");
@@ -980,7 +985,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 
 	pFlowMarks = decompile_analyseControlFlowMarks(sp, spend, &nMarks);
 
-	sp = decompile_printMacroSignature(mp, pBuf, sp);
+	sp = decompile_printMacroSignature(mp, pBuf, sp, 0);
 	stringbuf_appendString(pBuf, "{ \n");
 	decompile_makeAutoLabels(data, spend, pFlowMarks, nMarks);
 	bytecode_initializeAutoLabels();

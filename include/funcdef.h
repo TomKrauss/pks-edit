@@ -129,6 +129,7 @@ extern PARAMETER_ENUM_VALUE	_parameterEnumValueTable[];
 #define 	FUNC_Foreach					139
 #define 	FUNC_RegisterNative				158
 #define 	FUNC_RegisterEnumValue			169
+#define 	FUNC_RegisterType				170
 
 #define CMD_OPEN_FILE	0 
 #define CMD_OPEN_NEW_FILE	1 

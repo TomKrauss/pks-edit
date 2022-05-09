@@ -218,7 +218,7 @@ ARRAY_LIST* deccompile_macroNamed(const char* pszName, DECOMPILATION_MODE nMode,
  * definitions in the byte code.
  */
 #ifdef STRINGUTIL_H
-extern unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsigned char* pInstructionPointer);
+extern unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsigned char* pInstructionPointer, char* (*printType)(const char* pszType));
 #endif
 
 /*------------------------------------------------------------

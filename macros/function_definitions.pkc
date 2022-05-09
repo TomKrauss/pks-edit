@@ -10,6 +10,38 @@ typedef struct {
 	string t_text;							// The text	of the token.
 } TOKEN;
 
+/*
+ * Primitive type in PKSMacroC used to express signed integer type numbers in the range between
+ * -9_223_372_036_854_775_807 - 1 and 9_223_372_036_854_775_807
+ */
+typedef native int;
+
+/*
+ * Primitive type in PKSMacroC to represent character sequences. Note, that currently strings in PKS-Edit in general are always
+ * limited to contain 8-bit characters.
+ */
+typedef native string;
+
+/*
+ * Primitive type in PKSMacroC to represent floating point values.
+ */
+typedef native float;
+
+/*
+ * Primitive type in PKSMacroC to represent boolean values to be used in or created by evaluating <em>logical expressions</em>.
+ */
+typedef native boolean;
+
+/*
+ * Handle to be passed <b>optionally</b> to perform an operation in the context of
+ * an open editor window. If the <code>EDITOR</code> parameter is not passed, the
+ * currently active editor is used as an argument.
+ */
+typedef native EDITOR;
+
+/*
+ * Describes options for copying and cutting text from the curring selection.
+ */
 typedef enum {
 	// Before performing the operation ask the user to enter the name of a <em>named clipboard</em> to cut the selection to
 	CUT_QUERYID = 0x100,
@@ -21,6 +53,10 @@ typedef enum {
 	CUT_DELETE=0x800
 } CUT_ENUM;
 
+/*
+ * Describes options for searching and replacing text in PKS-EDIT in particular related to the use
+ * of using regular expressions.
+ */
 typedef enum {
     // use .{}*?+ and all the stuff
     RE_DOREX = 0x1,
@@ -716,7 +752,7 @@ native int EdUnHideLine(EDITOR editor);
  * REGEX options and a maximum number of times.
  */
 @Method(name="StringReplace", signature="ssssbRE_i")
-native string macro_substituteStringWith(string target, string pattern, string with, int reFlags, int nTimes);
+native string macro_substituteStringWith(string target, string pattern, string with, REGEX_OPTION reFlags, int nTimes);
 
 /*
  * Find a pattern in a string and return the index in the string or -1 if not found.

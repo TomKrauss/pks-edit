@@ -62,6 +62,18 @@ int function_initializeFunctionsAndTypes(void) {
 	return 1;
 }
 
+/*
+ * Returns the enum value with the given name in the given enum type.
+ */
+PARAMETER_ENUM_VALUE* function_getParameterEnumValue(const char* pszEnumType, const char* pszEnumName) {
+	char* unused;
+	SYMBOL sym = sym_find(sym_getKeywordContext(), pszEnumName, &unused);
+	if (sym.s_type == S_ENUM) {
+		return (PARAMETER_ENUM_VALUE * )VALUE(sym);
+	}
+	return 0;
+}
+
 /*--------------------------------------------------------------------------
  * function_enumValueFor()
  */

@@ -18,7 +18,7 @@
 
 %define parse.error detailed
 
-%token T_NAMESPACE T_TYPEDEF T_ENUM T_STRUCT T_REQUIRE T_FOR T_ANNOTATION T_NATIVE
+%token T_NAMESPACE T_TYPEDEF T_ENUM T_STRUCT T_REQUIRE T_FOR T_ANNOTATION T_NATIVE 
 %token T_NEW T_STATIC T_VOID T_TYPE_IDENTIFIER T_ELLIPSIS
 %token T_IDENT T_NUM T_FLOATING_POINT_NUMBER T_STRING T_CHARACTER T_CONST
 %token T_TRUE T_FALSE 
@@ -96,7 +96,6 @@ static 		char *lstartid  = "%ls%",
 extern 			int	_bInNativeDefinition;
 extern 			int	_bDefiningConst;
 extern 			int	_bInHeader;
-extern 			int	_bInEnumDefinition;
 
 extern char*    _yyCurrentComment;
 extern void		yyerror(const char* s, ...);
@@ -214,6 +213,34 @@ static void parser_flushBuffer(int aLevel) {
 		_buffers[1].bb_current += nBytes;
 		// _buffers[aLevel].bb_current = _buffers[aLevel].bb_start;
 	}
+}
+
+static void parser_startTypeDescriptor(int bEnum) {
+	_currentTypeDescriptor = calloc(1, sizeof *_currentTypeDescriptor);
+	_currentTypeDescriptor->td_isEnum = bEnum;
+	_currentTypeDescriptor->td_documentation = _yyCurrentComment;
+	_yyCurrentComment = 0;
+}
+
+static void parser_finalizeTypeDescriptor(char* pszTypename) {
+	_currentTypeDescriptor->td_name = pszTypename;
+	PKS_TYPE_DESCRIPTOR descriptor = {
+		.ptd_name = pszTypename,
+		.ptd_documentation = _currentTypeDescriptor->td_documentation,
+		.ptd_isEnumType = _currentTypeDescriptor->td_isEnum
+	};
+	types_register(-1, &descriptor);
+	int nParams = 4;
+	YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=pszTypename});
+	YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=_currentTypeDescriptor->td_documentation});
+	YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_currentTypeDescriptor->td_isEnum});
+	YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_currentTypeDescriptor->td_numberOfProperties});
+	_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
+			C_0FUNC, (GENERIC_DATA){ FUNC_RegisterType}, nParams);
+	free(_currentTypeDescriptor->td_name);
+	free(_currentTypeDescriptor->td_documentation);
+	free(_currentTypeDescriptor);
+	_currentTypeDescriptor = 0;
 }
 
 static void parser_emitAssignment(struct tagPARSE_IDENTIFIER* pIdent) {
@@ -367,14 +394,20 @@ global_declarations:
 
 typedef:	enum_definition
 			| struct_definition
+			| native_type_definition
 
-struct_definition: T_STRUCT '{' struct_element_definitions '}' T_IDENT {
-				free($5.ident.s);
+struct_definition: T_STRUCT { parser_startTypeDescriptor(0); } '{' struct_element_definitions '}' typedef_identifier
+
+enum_definition: T_ENUM { parser_startTypeDescriptor(1); } '{' enum_value_definitions '}' typedef_identifier
+
+native_type_definition: T_NATIVE { parser_startTypeDescriptor(0); } typedef_identifier
+
+typedef_identifier: T_IDENT {
+				parser_finalizeTypeDescriptor($1.ident.s);
 			}
-
-enum_definition: T_ENUM { _bInEnumDefinition = 1; } '{' enum_value_definitions '}' T_IDENT {
-				_bInEnumDefinition = 0;
-				free($6.ident.s);
+			|
+			T_TYPE_IDENTIFIER {
+				parser_finalizeTypeDescriptor(_strdup(types_nameFor($1.ident.type)));
 			}
 
 struct_element_definitions: struct_element

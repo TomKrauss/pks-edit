@@ -61,7 +61,6 @@ static YYERRSTRUCT	yyerr;
 int				_bDefiningConst;
 int				_bInHeader;
 int				_bInNativeDefinition;
-int				_bInEnumDefinition;
 
 typedef void EDFUNCDEF;
 
@@ -164,6 +163,7 @@ void yywarning(const char* s, ...) {
 static COMPILER_INPUT_STREAM	*_compilerInputStream;
 
 char * _yyCurrentComment;
+TYPE_DESCRIPTOR* _currentTypeDescriptor;
 
 void yyrequire(const char* pszNamespace) {
 	if (!compiler_requireNamespaceOrFilename(_compilerConfiguration->cb_dependencies, yy_getCurrentInputFilename(), pszNamespace)) {
@@ -463,7 +463,7 @@ WS		[ \t]
 				return bFloat ? T_FLOATING_POINT_NUMBER : T_NUM;
 			}
 #[^\n]*		{	;	}
-\/\/[^\n]*	{	if (_bInEnumDefinition) {
+\/\/[^\n]*	{	if (IS_IN_ENUM_DEFINITION) {
 					if (!_yyCurrentComment) {
 						_yyCurrentComment = calloc(1, MAX_COMMENT_SIZE);
 					}
@@ -514,7 +514,7 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 				}
 
 				if (t == S_ENUM) {
-					if (_bInEnumDefinition) {
+					if (IS_IN_ENUM_DEFINITION) {
 						goto retIdent;
 					}
 					yylval.num = function_enumValueFor((void*)VALUE(sym));

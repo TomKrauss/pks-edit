@@ -87,12 +87,22 @@ static void analyzer_extractWords(WINFO* wp, int (*fMatch)(const char* pszMatch)
 	stringbuf_destroy(pBuf);
 }
 
+static char* analyzer_printTypeWithLink(const char* pszType) {
+	static char szPrinted[256];
+	const char* pszDoc = types_getDocumentationFor(pszType);
+	if (!pszDoc) {
+		return (char*)pszType;
+	}
+	sprintf(szPrinted, "<a href=\"%s%s\">%s</a>", MACROREF_PROTOCOL, pszType, pszType);
+	return szPrinted;
+}
+
 static const char* analyzer_pksTypeFromParamtype(PARAMETER_TYPE_DESCRIPTOR pt) {
 	if (pt.pt_type == PARAM_TYPE_EDITOR_WINDOW) {
-		return types_nameFor(VT_EDITOR_HANDLE);
+		return analyzer_printTypeWithLink(types_nameFor(VT_EDITOR_HANDLE));
 	}
 	if (pt.pt_type == PARAM_TYPE_STRING) {
-		return types_nameFor(VT_STRING);
+		return analyzer_printTypeWithLink(types_nameFor(VT_STRING));
 	}
 	if (pt.pt_type == PARAM_TYPE_STRING_ARRAY) {
 		return "string[]";
@@ -108,7 +118,7 @@ static const char* analyzer_pksTypeFromParamtype(PARAMETER_TYPE_DESCRIPTOR pt) {
 			return szType;
 		}
 	}
-	return types_nameFor(VT_NUMBER);
+	return analyzer_printTypeWithLink(types_nameFor(VT_NUMBER));
 }
 
 static void analyzer_startHelpSection(STRING_BUF* pBuf, const char* pszName) {
@@ -233,6 +243,8 @@ static const char* analyzer_helpForMacrocNativeFunction(const char* pszName, voi
 		}
 		if (!szParamType[0] || pt.pt_type == PARAM_TYPE_ENUM || pt.pt_type == PARAM_TYPE_BITSET) {
 			strcpy(szParamType, (char*)analyzer_pksTypeFromParamtype(pt));
+		} else {
+			strcpy(szParamType, analyzer_printTypeWithLink(szParamType));
 		}
 		if (!szParamName[0]) {
 			sprintf(szParamName, "p%d", i);
@@ -280,13 +292,28 @@ static const char* analyzer_helpForMacrocMacro(const char* pszName, void* pMac) 
 	MACRO* pMacro = pMac;
 
 	analyzer_startHelpSection(pBuf, "Synopsis");
-	decompile_printMacroSignature(pMacro, pBuf, 0);
+	decompile_printMacroSignature(pMacro, pBuf, 0, analyzer_printTypeWithLink);
 	stringbuf_appendString(pBuf, "</p>");
 	char* pszComment = MAC_COMMENT(pMacro);
 	if (pszComment) {
 		analyzer_formatJavadocComment(pBuf, pszComment);
 	}
 	char * pszRet = _strdup(stringbuf_getString(pBuf));
+	stringbuf_destroy(pBuf);
+	return pszRet;
+}
+
+static char* analyzer_helpForMacrocType(const char* pszType) {
+	const char* pszDoc = types_getDocumentationFor(pszType);
+	if (!pszDoc) {
+		return 0;
+	}
+	STRING_BUF* pBuf = stringbuf_create(200);
+	stringbuf_appendString(pBuf, "<h4>Type ");
+	stringbuf_appendString(pBuf, pszType);
+	stringbuf_appendString(pBuf, "</h4>");
+	analyzer_formatJavadocComment(pBuf, pszDoc);
+	char* pszRet = _strdup(stringbuf_getString(pBuf));
 	stringbuf_destroy(pBuf);
 	return pszRet;
 }
@@ -307,6 +334,9 @@ static const char* analyzerHelpForMacrocHyperlink(const char* pszUrl) {
 		SYMBOL sym = sym_find(sym_getGlobalContext(), pszName, &ret);
 		if (sym.s_type == S_EDFUNC) {
 			return analyzer_helpForMacrocNativeFunction(pszName, (void*)VALUE(sym));
+		}
+		if (sym.s_type == S_TYPE_IDENTIFIER) {
+			return analyzer_helpForMacrocType(pszName);
 		}
 		for (int i = 0; i < macro_getNumberOfMacros(); i++) {
 			MACRO* mp = macro_getByIndex(i);

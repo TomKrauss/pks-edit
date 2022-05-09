@@ -77,6 +77,7 @@ static ARRAY_LIST* _contextStack;
 static EXECUTION_CONTEXT* _currentExecutionContext;
 static jmp_buf _currentJumpBuffer;
 static COM_FORM* _currentFormInstruction;
+static const PKS_VALUE NIL = { .pkv_type = VT_NIL };
 
 /*
  * An error has occurred during execution of a macro. Display a descriptive error and abort the execution.
@@ -220,6 +221,25 @@ static void interpreter_cleanupContextStacks() {
 	}
 }
 
+/*
+ * Implements the registerType native method. Parameters are: typename, typedoc, isenum, numberOfProperties, [propertyDescriptor[]]
+ * where each property is defined using its name, documentation and value/type (depending on whether the property represents an enum
+ * value or a struct field).
+ */
+PKS_VALUE interpreter_registerType(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	if (nArgs < 4) {
+		interpreter_raiseError("Illegal type registration - not enough parameters");
+		return NIL;
+	}
+	PKS_TYPE_DESCRIPTOR descriptor = {
+		.ptd_name = memory_accessString(pValues[0]),
+		.ptd_documentation = memory_accessString(pValues[1]),
+		.ptd_isEnumType = pValues[2].pkv_data.booleanValue,
+		.ptd_numberOfProperties = pValues[2].pkv_data.intValue
+	};
+	types_register(-1, &descriptor);
+	return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 1 };
+}
 /*
  * Implements the size() method used to determine the length of a string or the size of an array or object.
  */
