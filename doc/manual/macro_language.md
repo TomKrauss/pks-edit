@@ -89,6 +89,8 @@ special syntax to describe parameters and return types:
 - `@param paramName` description of parameter follows
 - `@returns` description of returned values follows.
 - `@see macroName` add a reference to another macro
+- `@see EnumType#EnumValue` add a reference to an enum value
+- `@see TypeName` add a reference to a type
 
 The following HTML tags in comments are supported:
 
@@ -116,13 +118,6 @@ One can currently link to other help content (either description of a macro, nat
 
 ## Types
 
-**PKSMacroC** supports 3 types of commments:
-
-- `#` as first character introduces single-line comments
-- `//` also introduces single-line comments
-- `/*` and `*/` may introduce multi-line comments similar to C. If one places a multi-lane comment before a macro, the comment will be used as 
-  the description / help (in code completion) text for that macro.
- 
 All primitive values (int, string, float, bool, range) in **PKSMacroC** code are `immutable`, array and structured types may be changed. 
 Values may have one of the following types:
 
@@ -151,6 +146,31 @@ shows implicit and explicit coercions.
 (string)1 -> "1"
 // implicit coercion
 "Hello " + 3 + " worlds"  -> "Hello 3 worlds"
+```
+
+## typedef
+
+One can use the `typedef` to define custom types or to document existing types. One may define _structured types_ using a C-like `struct` 
+syntax, _enum types_ using a C-like enum syntax and document an builtin type using the keyword `native`.
+
+Here are examples for the three different type definitions available:
+
+```
+typedef enum { FORM_OPEN = 0x0, FORM_SHOW = 0x1 } FORM_OPTION;
+// Represents one element in a hashmap
+typedef struct {
+    /*
+     * the key under which the element is stored in the map always a string
+     */
+    string key;
+    // the arbitrary value
+    any value;
+} MAP_ENTRY;
+
+/*
+ * Represents a signed integer value in PKSMacroC
+ */
+typedef native int;
 ```
 
 ## Literals
